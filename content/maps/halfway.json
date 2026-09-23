@@ -1,0 +1,189 @@
+{
+"id": "halfway",
+"name": "The Halfway Inn",
+"tileset": "town",
+"rows": [
+"==\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"WWW",
+"==\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"WWW",
+"==\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"W\"WWWW",
+"==\",,,,,,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"u\"\"WWWWWWWWW",
+"==t,,,,,,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"WWWWWWWWWW",
+"==t,,q,,|||,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"WWWWWWWWWW",
+"==\",,,,,,,,,,,\"\"\"\"\"\"\"\"\"\"\"u\"\"WWWWWWWWWW",
+"==\",,,,,,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"\"WWWWWWWWWWW",
+"==\",,,,,,,,,bbbbbbbbbb\"\"\"\"\"WWWWWWWWWWW",
+"==\",,,,,,,,,bbbbbbbbbb\"\"\"\"WWWWWWWWWWWW",
+"==\",,,,,,,,cbbbbbbbbbb\"\"\"\"WWWWWWWWWWWW",
+"==\",,,,,,,,cwDwowowoDo\"\"\"\"lWWYYYYWWWWW",
+"==\",,,,,,,,,,,\"\"\"\"\"\",\"\"\"\"\"SSYYYYYYWWWW",
+"==\",,,,,,,,,,,\"\"\"\"\"\",\"\"\"\"\"SiYYYYYYWWWW",
+"==t,,,,,,,,,,,\"\"\"\"\"\",,,,,,SSWYYYYWWWWW",
+"==\",,,,,,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"WKWWWWWWWWWW",
+"==t,sssss,,,,,\"\"\"\"\"\"\"\"\"\"\"\"WWWWWWWWWWWW",
+"==\",sssss,,,,,\"\"\"\"\"\"\"\"\"\"\"\"WWWWWWWWWWWW",
+"==\",woDowc,,,,\"\"\"\"\"\"\"\"\"\"\"\"\"WWWWWWWWWWW",
+"==\",,,,,,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"WWWWWWWWWW",
+"==t,,,,,,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"u\"WWWWWWWWWW",
+"==\",,,,,,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"\"\"WWWWWWWWWW",
+"==t,,,,,,,,,,,\"\"\"\"\"\"\"\"\"\"\"\"\"u\"\"WWWWWWWW",
+"==\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"WW\"WWWW",
+"==t\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"WWW",
+"==\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"WWW"
+],
+"legend": {
+".": "cobble",
+",": "dirt",
+"\"": "grassT",
+"f": "flowers",
+"t": "tree",
+"r": "roofR",
+"b": "roofB",
+"s": "roofS",
+"w": "wall",
+"o": "wallWin",
+"d": "doorShut",
+"D": "door",
+"#": "stonewall",
+"e": "edifice",
+"a": "edificeArch",
+"p": "pillar",
+"v": "vault",
+"@": "fountain",
+"~": "channel",
+"!": "falls",
+"|": "fence",
+"k": "stockade",
+"l": "lamp",
+"q": "well",
+"m": "stall",
+"c": "crate",
+"h": "headframe",
+"n": "tent",
+":": "sandArena",
+"x": "hexwall",
+"z": "hexwallRed",
+"-": "bridge",
+"1": "bridgeV",
+" ": "void",
+"^": "mountain",
+"W": "water",
+"u": "reeds",
+"y": "wheat",
+"F": "farm",
+"i": "flatstone",
+"K": "dock",
+"S": "sand",
+"X": "range",
+"=": "road",
+"Y": "deep"
+},
+"music": "lake",
+"bg": "lake",
+"outside": true,
+"exits": {
+"west": {
+"to": "world",
+"tx": 33,
+"ty": 37,
+"dir": "left"
+},
+"north": {
+"to": "world",
+"tx": 33,
+"ty": 36,
+"dir": "up"
+},
+"south": {
+"to": "world",
+"tx": 33,
+"ty": 38,
+"dir": "down"
+}
+},
+"npcs": [
+{
+"id": "doranYard",
+"x": 9,
+"y": 11,
+"look": "worker",
+"dir": "down"
+},
+{
+"id": "orrin",
+"x": 25,
+"y": 13,
+"look": "kid",
+"dir": "right",
+"cond": "!flag:dueSeen"
+},
+{
+"id": "pell",
+"x": 22,
+"y": 16,
+"look": "kid",
+"wander": 1,
+"cond": "!flag:dueSeen"
+}
+],
+"warps": [
+{
+"x": 13,
+"y": 11,
+"to": "halfway_in",
+"tx": 1,
+"ty": 5,
+"dir": "right"
+},
+{
+"x": 20,
+"y": 11,
+"to": "halfway_in",
+"tx": 16,
+"ty": 5,
+"dir": "left"
+}
+],
+"signs": [
+{
+"x": 26,
+"y": 11,
+"text": "A lantern post by the flat stone. Nobody swims here. Nobody draws from the lake. The well is for that.",
+"src": "wiki/halfway-inn-and-lake.md; module-halfway-inn.md §2 (the point)"
+}
+],
+"triggers": [
+{
+"id": "point",
+"rect": [
+28,
+11,
+3,
+5
+],
+"on": "use",
+"script": "point"
+},
+{
+"id": "pointStep",
+"rect": [
+27,
+13,
+1,
+1
+],
+"on": "step",
+"script": "pointStep"
+},
+{
+"id": "rowboat",
+"rect": [
+27,
+15,
+1,
+1
+],
+"on": "step",
+"script": "rowboat"
+}
+]
+}

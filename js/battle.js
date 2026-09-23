@@ -1,0 +1,1120 @@
+/* DRAGONSLEEP — the battle screen. Initiative once per battle (d20+DEX), per-turn command
+   menus, d20+mod vs AC, saves vs DC, conditions, grapples and ESCAPE, bonus actions.
+   Enemies on the left, party on the right. */
+'use strict';
+(function () {
+  var DS = window.DS, R = DS.R, I = DS.input, W8 = DS.W8;
+
+  // ------------------------------------------------------------------ helpers
+  function isHero(u) { return u.side === 'hero'; }
+  function hpOf(u) { return isHero(u) ? u.h.hp : u.hp; }
+  function maxOf(u) { return isHero(u) ? u.h.maxhp : u.maxhp; }
+  function down(u) { return isHero(u) ? (u.h.ko || u.h.hp <= 0) : u.dead; }
+  function nameOf(u) { return isHero(u) ? '{y}' + u.h.name + '{/}' : '{o}' + u.name + '{/}'; }
+  function plain(u) { return isHero(u) ? u.h.name : u.name; }
+  function abil(u, a) { return isHero(u) ? u.h.abil[a] : (u.m.abil[a] || 10); }
+  function incap(u) { return u.conds.paralyzed || u.conds.asleep || u.conds.stunned; }
+  function tags(u) { return isHero(u) ? ['humanoid'] : (u.m.tags || []); }
+
+  function Battle(o) {
+    var self = this;
+    this.kind = 'battle'; this.opaque = true; this.o = o;
+    this.round = 1; this.msg = ''; this.fx = []; this.nums = []; this.bright = !!o.bright; this.over = null;
+    this.flashT = 0; this.shake = 0; this.intro = 32;
+    this.bg = DS.battleBg(o.bg || 'plains');
+    var party = DS.G.party;
+    var list = o.solo != null ? [party[o.solo]] : party;
+    this.heroes = list.map(function (h, i) { return { side: 'hero', h: h, idx: i, conds: {}, buff: null, off: 0, pose: null, poseT: 0 }; });
+    this.foes = [];
+    var counts = {}, seen = {};
+    o.enemies.forEach(function (id) { counts[id] = (counts[id] || 0) + 1; });
+    o.enemies.forEach(function (id) {
+      var m = DS.DATA.monsters[id];
+      if (!m) { console.warn('no monster', id); return; }
+      seen[id] = (seen[id] || 0) + 1;
+      var nm = m.name + (counts[id] > 1 ? ' ' + String.fromCharCode(64 + seen[id]) : '');
+      self.foes.push(self.makeFoe(m, nm));
+    });
+    this.layoutFoes();
+    this.layoutHeroes();
+    this.tauntWearer = null;
+  }
+  DS.Battle = Battle;
+  Battle.prototype.makeFoe = function (m, nm) {
+    return {
+      side: 'foe', m: m, id: m.id, name: nm, hp: m.hp, maxhp: m.hp, conds: {}, buff: null, dead: false, art: DS.monsterArt(m.art || m.id, m.tint),
+      x: 0, y: 0, flash: 0, fade: 0, off: 0, recharge: {}, used: {}, holding: []
+    };
+  };
+  Battle.prototype.layoutFoes = function () {
+    var live = this.foes.filter(function (f) { return !f.dead || f.fade > 0; });
+    var colX = 170, cols = [], cur = null;
+    // column-major flow from the party side leftwards
+    live.slice().reverse().forEach(function (f) {
+      if (!cur || cur.h + f.art.h + 4 > 118) { cur = { w: 0, h: 0, list: [] }; cols.push(cur); }
+      cur.list.push(f); cur.h += f.art.h + 4; cur.w = Math.max(cur.w, f.art.w);
+    });
+    var totalW = cols.reduce(function (s, c) { return s + c.w + 6; }, 0);
+    var x = Math.max(4, Math.min(colX, Math.round((180 + totalW) / 2))) ;
+    cols.forEach(function (c) {
+      x -= c.w + 6;
+      var y = 30 + Math.round((118 - c.h) / 2);
+      c.list.forEach(function (f) { f.x = Math.max(2, x + Math.round((c.w - f.art.w) / 2)); f.y = y; y += f.art.h + 4; });
+    });
+  };
+  Battle.prototype.layoutHeroes = function () {
+    var n = this.heroes.length, gap = n > 3 ? 26 : 30, top = 44 + Math.round((4 - n) * gap / 2);
+    this.heroes.forEach(function (u, i) { u.x = 212 + (i % 2) * 6; u.y = top + i * gap; });
+  };
+  Battle.prototype.liveFoes = function () { return this.foes.filter(function (f) { return !f.dead; }); };
+  Battle.prototype.liveHeroes = function () { return this.heroes.filter(function (u) { return !down(u); }); };
+  Battle.prototype.allies = function (u) { return isHero(u) ? this.liveHeroes() : this.liveFoes(); };
+  Battle.prototype.enemiesOf = function (u) { return isHero(u) ? this.liveFoes() : this.liveHeroes(); };
+
+  // ------------------------------------------------------------------ scene plumbing
+  Battle.prototype.enter = function () {
+    var self = this;
+    DS.audio.play(this.o.music || 'battle');
+    DS.run(function* () { yield* self.flow(); });
+  };
+  Battle.prototype.update = function () { this.tick(); };
+  Battle.prototype.tick = function () {
+    if (this.intro > 0) this.intro--;
+    if (this.flashT > 0) this.flashT--;
+    if (this.shake > 0) this.shake--;
+    this.fx = this.fx.filter(function (p) { p.x += p.vx; p.y += p.vy; p.vy += p.g || 0; return --p.life > 0; });
+    this.nums = this.nums.filter(function (n) { n.t++; return n.t < 50; });
+    this.foes.forEach(function (f) { if (f.flash > 0) f.flash--; if (f.dead && f.fade > 0) f.fade--; });
+    this.heroes.forEach(function (u) { if (u.poseT > 0 && --u.poseT === 0) u.pose = null; });
+  };
+  Battle.prototype.wait = function (n) { return W8.frames(n); };
+  Battle.prototype.say = function* (t, frames) {
+    this.msg = t;
+    var n = 0, lim = frames || 44;
+    yield W8.until(function () { n++; return n >= lim || (n > 8 && DS.top() && DS.top().kind === 'battle' && I.pressed('a')); });
+  };
+  Battle.prototype.num = function (u, val, col) {
+    var p = this.posOf(u);
+    this.nums.push({ x: p.x, y: p.y - 4, v: val, col: col || '#F8F8F8', t: 0 });
+  };
+  Battle.prototype.posOf = function (u) {
+    if (isHero(u)) return { x: u.x + 8, y: u.y + 4 };
+    return { x: u.x + u.art.w / 2, y: u.y + u.art.h / 2 };
+  };
+  Battle.prototype.burst = function (u, col, n, spread, style) {
+    var p = this.posOf(u);
+    for (var i = 0; i < (n || 14); i++) {
+      var a = Math.random() * Math.PI * 2, s = Math.random() * (spread || 1.6);
+      var q = { x: p.x + (Math.random() - 0.5) * 10, y: p.y + (Math.random() - 0.5) * 10, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 16 + DS.rint(14), col: col, sz: 1 + DS.rint(2) };
+      if (style === 'rise') { q.vx *= 0.3; q.vy = -0.6 - Math.random(); }
+      if (style === 'fall') { q.vx *= 0.3; q.vy = 0.3 + Math.random(); q.y -= 12; }
+      this.fx.push(q);
+    }
+  };
+  Battle.prototype.bolt = function (from, to, col) {
+    var a = this.posOf(from), b = this.posOf(to);
+    for (var i = 0; i < 12; i++) {
+      var t = i / 12;
+      this.fx.push({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, vx: (b.x - a.x) / 40, vy: (b.y - a.y) / 40, life: 8 + i, col: col, sz: 2 });
+    }
+  };
+  var ELEM = {
+    fire: ['#F83800', '#FCA044', '#F8D878'], cold: ['#A4E4FC', '#F8F8F8', '#3CBCFC'], lightning: ['#F8F878', '#F8F8F8', '#FCE0A8'],
+    force: ['#D8B8F8', '#F8F8F8', '#9878F8'], acid: ['#B8F818', '#58D854', '#D8F878'], radiant: ['#F8D878', '#F8F8F8', '#FCE0A8'],
+    thunder: ['#B8B8F8', '#F8F8F8', '#6888FC'], poison: ['#9878F8', '#58D854', '#D800CC'], necrotic: ['#787878', '#503000', '#9878F8'],
+    heal: ['#58F898', '#B8F8B8', '#F8F8F8'], buff: ['#F8F8F8', '#F8D878', '#B8F8D8'], sleep: ['#6888FC', '#B8B8F8', '#F8F8F8'],
+    bludgeoning: ['#F8F8F8'], piercing: ['#F8F8F8'], slashing: ['#F8F8F8']
+  };
+  Battle.prototype.elemBurst = function (u, el, style) {
+    var cols = ELEM[el] || ELEM.force, self = this;
+    cols.forEach(function (c) { self.burst(u, c, 8, 1.8, style); });
+  };
+
+  // ------------------------------------------------------------------ core math
+  Battle.prototype.acOf = function (u) {
+    var ac = isHero(u) ? R.ac(u.h) : u.m.ac;
+    if (u.buff && u.buff.ac) ac += u.buff.ac;
+    if (u.conds.shielded) ac += 5;
+    return ac;
+  };
+  Battle.prototype.saveMod = function (u, ab) {
+    if (isHero(u)) return R.saveBonus(u.h, ab);
+    var s = u.m.saves && u.m.saves[ab];
+    return s != null ? s : DS.mod(abil(u, ab));
+  };
+  // returns {total, nat, success}
+  Battle.prototype.save = function (u, ab, dc, opt) {
+    opt = opt || {};
+    var adv = 0;
+    if (opt.poison && u.conds.antitoxin) adv++;
+    if (ab === 'dex' && (u.conds.restrained)) adv--;
+    if ((ab === 'str' || ab === 'dex') && incap(u)) return { total: 0, nat: 1, success: false };
+    var r1 = DS.d(20), r2 = DS.d(20), nat = adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1;
+    var tot = nat + this.saveMod(u, ab);
+    if (u.buff && u.buff.id === 'bless') tot += DS.d(4);
+    return { total: tot, nat: nat, success: tot >= dc };
+  };
+  Battle.prototype.check = function (u, ab, skill) {
+    var b = isHero(u) ? R.skill(u.h, skill, ab) : DS.mod(abil(u, ab)) + ((u.m.skills && u.m.skills[skill]) || 0);
+    return DS.d(20) + b;
+  };
+  // advantage bookkeeping for an attack from a on t
+  Battle.prototype.advantage = function (a, t, melee) {
+    var adv = 0, dis = 0;
+    if (a.conds.hidden) adv++;
+    if (a.conds.reckless) adv++;
+    if (t.conds.reckless) adv++;
+    if (a.conds.poisoned || a.conds.frightened || a.conds.restrained || a.conds.blinded || a.conds.prone) dis++;
+    if (t.conds.restrained || incap(t) || t.conds.blinded) adv++;
+    if (t.conds.prone) { if (melee) adv++; else dis++; }
+    if (!isHero(a) && a.m.traits && a.m.traits.packTactics && this.allies(a).length > 1) adv++;
+    if (!isHero(a) && a.m.traits && a.m.traits.lightSensitive && this.bright) dis++;
+    if (!isHero(t) && t.m.traits && t.m.traits.unseen && !t.conds.revealed) dis++;
+    if (t.conds.engulfed && !isHero(a) && a.holding.indexOf(t) >= 0) adv++;
+    return adv && !dis ? 1 : dis && !adv ? -1 : 0;
+  };
+  Battle.prototype.d20 = function (adv) {
+    var r1 = DS.d(20), r2 = DS.d(20);
+    return adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1;
+  };
+  // apply typed damage; returns dealt amount
+  Battle.prototype.hurt = function (u, n, type, from) {
+    if (down(u)) return 0;
+    n = Math.max(0, Math.round(n));
+    if (!isHero(u)) {
+      var m = u.m;
+      if (m.immune && m.immune.indexOf(type) >= 0) {
+        if (m.traits && m.traits.split && (type === 'slashing' || type === 'lightning') && u.hp >= 10 && this.foes.length < 8) this.splitFoe(u);
+        return 0;
+      }
+      if (m.resist && (m.resist.indexOf(type) >= 0 || (m.resist.indexOf('mundane') >= 0 && /bludgeoning|piercing|slashing/.test(type) && !(from && from.magicWeapon)))) n = Math.floor(n / 2);
+      if (m.vuln && m.vuln.indexOf(type) >= 0) n *= 2;
+      if (u.conds.raging && /bludgeoning|piercing|slashing/.test(type)) n = Math.floor(n / 2);
+      // the cloaker's damage transfer: half to the one it holds
+      if (m.traits && m.traits.damageTransfer && u.holding.length && from && !from.fromHeld) {
+        var held = u.holding[0], half = Math.floor(n / 2);
+        n -= half;
+        if (half > 0) this.hurt(held, half, type, { fromHeld: true });
+      }
+      u.hp -= n;
+      if (u.conds.asleep && n > 0) delete u.conds.asleep;
+      if (u.hp <= 0) { u.hp = 0; this.kill(u); }
+      else if (m.traits && m.traits.split && type === 'slashing' && u.hp >= 10 && this.foes.length < 8) this.splitFoe(u);
+      if (m.traits && m.traits.rageOnHit && !u.conds.raging && n > 0 && u.hp > 0) { u.conds.raging = { rounds: 10 }; this.pendingMsg = plain(u) + ' flies into a rage!'; }
+      return n;
+    }
+    var h = u.h;
+    if (u.buff && u.buff.temp) { var soak = Math.min(u.buff.temp, n); u.buff.temp -= soak; n -= soak; }
+    h.hp -= n;
+    if (u.conds.asleep && n > 0) delete u.conds.asleep;
+    if (h.hp <= 0) {
+      if (h.feats.relentless && h.hp > -h.maxhp) { h.feats.relentless = 0; h.hp = 1; this.pendingMsg = h.name + ' refuses to fall!'; }
+      else { h.hp = 0; h.ko = true; this.release(u); u.conds = {}; u.buff = null; DS.audio.sfx('ko'); }
+    }
+    return n;
+  };
+  Battle.prototype.heal = function (u, n) {
+    if (down(u)) return 0;
+    var h = u.h, before = h.hp;
+    h.hp = Math.min(h.maxhp, h.hp + n);
+    return h.hp - before;
+  };
+  Battle.prototype.kill = function (u) {
+    u.dead = true; u.fade = 24; DS.audio.sfx('die');
+    this.release(u);
+    var self = this;
+    // anyone this creature held goes free
+    u.holding.forEach(function (t) { delete t.conds.grappled; delete t.conds.engulfed; delete t.conds.blinded; delete t.conds.restrained; });
+    u.holding = [];
+  };
+  Battle.prototype.release = function (u) { // u stops being held by anyone
+    this.foes.forEach(function (f) { var i = f.holding.indexOf(u); if (i >= 0) f.holding.splice(i, 1); });
+    ['grappled', 'engulfed', 'attached'].forEach(function (k) { delete u.conds[k]; });
+  };
+  Battle.prototype.splitFoe = function (u) {
+    var half = Math.floor(u.hp / 2);
+    u.hp = u.hp - half; u.maxhp = Math.max(u.hp, Math.floor(u.maxhp / 2));
+    var twin = this.makeFoe(u.m, u.name + "'");
+    twin.hp = half; twin.maxhp = half; twin.init = u.init;
+    this.foes.push(twin);
+    var idx = this.order.indexOf(u);
+    this.order.splice(idx + 1, 0, twin);
+    this.layoutFoes();
+    this.pendingMsg = plain(u) + ' splits in two!';
+  };
+
+  // ------------------------------------------------------------------ the flow
+  Battle.prototype.flow = function* () {
+    var self = this;
+    yield this.wait(20);
+    var names = {}, orderN = [];
+    this.foes.forEach(function (f) { if (!names[f.m.name]) { names[f.m.name] = 0; orderN.push(f.m.name); } names[f.m.name]++; });
+    yield* this.say(orderN.map(function (n) { return (names[n] > 1 ? names[n] + ' ' : '') + n; }).join(', ') + (this.foes.length > 1 ? ' appear!' : ' appears!'), 50);
+    if (this.o.introText) yield* this.say(this.o.introText, 70);
+    // Sense Magic: the chuul feels a ring of binding coming
+    var ringU = this.heroes.filter(function (u) { var r = R.item(u.h.equip.ring); return r && r.ring && r.ring.taunt; })[0];
+    if (ringU) {
+      var rg = R.item(ringU.h.equip.ring).ring.taunt;
+      var bound = this.foes.filter(function (f) { return (f.m.tags || []).indexOf(rg.tag) >= 0; });
+      if (bound.length) { this.tauntWearer = ringU; this.tauntRounds = rg.rounds; this.tauntTag = rg.tag; yield* this.say('Something in the deep feels the ring coming.', 60); }
+    }
+    // initiative, rolled once
+    var all = this.heroes.concat(this.foes);
+    all.forEach(function (u) { u.init = DS.d(20) + (isHero(u) ? R.initBonus(u.h) : DS.mod(abil(u, 'dex'))) + Math.random() * 0.1; });
+    this.order = all.slice().sort(function (a, b) { return b.init - a.init; });
+    while (!this.over) {
+      if (this.tauntWearer && this.tauntRounds.indexOf(this.round) >= 0 && !down(this.tauntWearer)) {
+        var bnd = this.liveFoes().filter(function (f) { return (f.m.tags || []).indexOf(self.tauntTag) >= 0; });
+        if (bnd.length) {
+          DS.audio.sfx('ring');
+          this.burst(this.tauntWearer, '#F8D878', 16, 1.4, 'rise');
+          yield* this.say('The ring flares! The ' + bnd[0].m.name.toLowerCase() + ' turns on ' + nameOf(this.tauntWearer) + '!', 56);
+        }
+      }
+      for (var k = 0; k < this.order.length && !this.over; k++) {
+        var u = this.order[k];
+        if (down(u)) continue;
+        yield* this.turn(u);
+        this.checkEnd();
+      }
+      this.round++;
+    }
+    yield* this.finish();
+  };
+  Battle.prototype.checkEnd = function () {
+    if (this.over) return;
+    if (!this.liveFoes().length) this.over = 'win';
+    else if (!this.liveHeroes().length) this.over = 'lose';
+  };
+  Battle.prototype.flushMsg = function* () {
+    if (this.pendingMsg) { var m = this.pendingMsg; this.pendingMsg = null; yield* this.say(m, 44); }
+  };
+  Battle.prototype.turn = function* (u) {
+    this.active = u;
+    // start-of-turn
+    if (u.buff && u.buff.id === 'heroism' && isHero(u)) u.buff.temp = Math.max(u.buff.temp || 0, u.buff.tempEach);
+    delete u.conds.shielded;
+    delete u.conds.dodged;
+    if (u.conds.prone && !incap(u) && !u.conds.grappled) { delete u.conds.prone; yield* this.say(nameOf(u) + ' gets back up.', 30); }
+    if (u.conds.attached && isHero(u)) {
+      var src = u.conds.attached.src;
+      if (src && !src.dead) {
+        var dmg = this.hurt(u, DS.roll('1d4+3'), 'piercing', src);
+        this.num(u, dmg, '#F85838'); DS.audio.sfx('hit');
+        yield* this.say(nameOf(src) + ' drains ' + nameOf(u) + '. ' + dmg + ' damage.', 36);
+        yield* this.flushMsg();
+        if (down(u)) { yield* this.say(nameOf(u) + ' falls!', 40); return; }
+      } else delete u.conds.attached;
+    }
+    if (incap(u)) {
+      var why = u.conds.paralyzed ? 'is paralyzed' : u.conds.asleep ? 'is asleep' : 'is stunned';
+      yield* this.say(nameOf(u) + ' ' + why + '!', 34);
+    } else if (isHero(u)) {
+      yield* this.heroTurn(u);
+    } else {
+      yield* this.foeTurn(u);
+    }
+    if (!down(u)) yield* this.endTurn(u);
+    this.checkEnd();
+  };
+  Battle.prototype.endTurn = function* (u) {
+    var self = this, msgs = [];
+    Object.keys(u.conds).forEach(function (k) {
+      var c = u.conds[k];
+      if (!c || typeof c !== 'object') return;
+      if (c.save && !down(u)) {
+        var s = self.save(u, c.save.ab, c.save.dc, { poison: k === 'poisoned' });
+        if (s.success) { delete u.conds[k]; msgs.push(plain(u) + ' shakes off ' + k + '.'); return; }
+      }
+      if (c.rounds != null) { c.rounds--; if (c.rounds <= 0) { delete u.conds[k]; if (k !== 'hidden' && k !== 'blinded') msgs.push(plain(u) + ' is no longer ' + k + '.'); } }
+    });
+    // conditions that ride on another
+    Object.keys(u.conds).forEach(function (k) { var c = u.conds[k]; if (c && c.linked && !u.conds[c.linked]) { delete u.conds[k]; msgs.push(plain(u) + ' can move again.'); } });
+    if (u.buff && u.buff.rounds != null && --u.buff.rounds <= 0) { msgs.push(plain(u) + "'s " + u.buff.name + ' fades.'); u.buff = null; }
+    for (var i = 0; i < msgs.length; i++) yield* this.say(msgs[i], 34);
+  };
+
+  // ------------------------------------------------------------------ hero turn
+  Battle.prototype.heroTurn = function* (u) {
+    var h = u.h, self = this;
+    var st = { actions: 1, bonus: 1, surged: false, sneakUsed: false };
+    u.off = 6;
+    while (st.actions > 0 && !this.over && !down(u) && !incap(u)) {
+      var held = u.conds.grappled || u.conds.engulfed || (u.conds.restrained && u.conds.restrained.escape);
+      var skills = this.skillList(u, st);
+      var castable = R.spellList(h, 'battle').concat(h.cls === 'paladin' && R.maxSlotLevel(h) > 0 ? [DS.DATA.spells.smite] : []);
+      var items = this.battleItems();
+      var cmds = [
+        { label: 'FIGHT', value: 'fight' },
+        { label: 'MAGIC', value: 'magic', disabled: !castable.length },
+        { label: 'SKILL', value: 'skill', disabled: !skills.some(function (x) { return !x.disabled; }) },
+        { label: 'ITEM', value: 'item', disabled: !items.length },
+        held ? { label: 'ESCAPE', value: 'escape' } : { label: 'RUN', value: 'run', disabled: this.o.canRun === false }
+      ];
+      this.msg = h.name + (st.surged ? ' surges!' : '') + (st.actions > 1 ? ' (2 actions)' : '');
+      var cmd = yield DS.choose({ items: cmds, x: 0, y: 156, w: 90, h: 84, rowH: 12, pad: 8, cancelable: false, index: this.lastCmd && this.lastCmd[h.id] || 0 });
+      this.lastCmd = this.lastCmd || {}; this.lastCmd[h.id] = ['fight', 'magic', 'skill', 'item', 'run', 'escape'].indexOf(cmd) % 5;
+      var used = false;
+      if (cmd === 'fight') {
+        var t = yield* this.pickFoe();
+        if (!t) continue;
+        yield* this.heroAttack(u, t, st, null);
+        used = true;
+      } else if (cmd === 'magic') {
+        var sp = yield* this.pickSpell(u, castable);
+        if (!sp) continue;
+        used = yield* this.castSpell(u, sp, st);
+      } else if (cmd === 'skill') {
+        var sk = yield DS.choose({ items: skills, x: 0, y: 156 - Math.max(0, skills.length * 11 - 50), w: 120, rowH: 11, pad: 7 });
+        if (!sk) continue;
+        var res = yield* this.useSkill(u, sk, st);
+        if (res === 'cancel') continue;
+        if (res === 'bonus') { st.bonus = 0; continue; }
+        if (res === 'free') continue;
+        used = true;
+      } else if (cmd === 'item') {
+        var it = yield DS.choose({ items: items, x: 0, y: 96, w: 150, rowH: 11, pad: 7, visible: 6 });
+        if (!it) continue;
+        used = yield* this.useItem(u, it);
+      } else if (cmd === 'run') {
+        yield* this.tryRun(u);
+        used = true;
+      } else if (cmd === 'escape') {
+        yield* this.tryEscape(u);
+        used = true;
+      }
+      if (used) st.actions--;
+      this.checkEnd();
+    }
+    u.off = 0;
+  };
+  Battle.prototype.skillList = function (u, st) {
+    var h = u.h, f = h.feats, L = [];
+    if (h.cls === 'fighter') {
+      if (f.secondWind) L.push({ label: 'SECOND WIND', value: 'secondWind', right: 'bonus', disabled: !st.bonus });
+      if (f.actionSurge && !st.surged) L.push({ label: 'ACTION SURGE', value: 'actionSurge', right: 'free' });
+    }
+    if (h.cls === 'rogue') L.push({ label: 'HIDE', value: 'hide', right: 'bonus', disabled: !st.bonus || !!u.conds.hidden });
+    if (h.cls === 'paladin') {
+      if (f.lay > 0) L.push({ label: 'LAY ON HANDS', value: 'lay', right: f.lay });
+      if (f.channel && h.lvl >= 3) L.push({ label: 'SACRED WEAPON', value: 'sacred', right: 'CD' });
+    }
+    return L;
+  };
+  Battle.prototype.battleItems = function () {
+    return DS.G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && it.use && it.use.battle && s.n > 0; })
+      .map(function (s) { var it = DS.DATA.items[s.id]; return { label: it.name, right: 'x' + s.n, value: s.id }; });
+  };
+  // target pickers ----------------------------------------------------------
+  Battle.prototype.pickFoe = function* (filter) {
+    var list = this.liveFoes().filter(filter || function () { return true; });
+    if (!list.length) return null;
+    return yield W8.scene(new TargetScene(this, list, 'foe'));
+  };
+  Battle.prototype.pickAlly = function* (filter) {
+    var list = this.heroes.filter(filter || function (u) { return !down(u); });
+    if (!list.length) return null;
+    return yield W8.scene(new TargetScene(this, list, 'hero'));
+  };
+  Battle.prototype.pickSpell = function* (u, list) {
+    var h = u.h, self = this;
+    var items = list.map(function (sp) {
+      var lv = sp.id === 'smite' ? R.lowestSlot(h, 1) : sp.level ? R.lowestSlot(h, sp.level) : 0;
+      var dis = sp.level > 0 && !lv;
+      return { label: sp.name, value: sp, right: sp.level === 0 ? '—' : 'L' + (lv || sp.level), disabled: dis };
+    });
+    var slotTxt = (h.slots || []).map(function (n, i) { return 'L' + (i + 1) + ':' + n + '/' + h.slotsMax[i]; }).join(' ');
+    return yield DS.choose({
+      items: items, x: 0, y: 70, w: 150, rowH: 11, pad: 7, visible: 7, title: slotTxt || 'CANTRIPS',
+      drawExtra: function (ctx, menu) { var sp = menu.current() && menu.current().value; if (sp) { DS.win(ctx, 0, 36, 256, 34); var ln = DS.wrap(sp.desc || '', 240); for (var i = 0; i < Math.min(2, ln.length); i++) DS.text(ctx, ln[i], 8, 44 + i * 11); } }
+    });
+  };
+
+  // ------------------------------------------------------------------ attacks
+  Battle.prototype.heroAttack = function* (u, t, st, smite) {
+    var h = u.h, w = R.weaponOf(h), n = R.attacksPerTurn(h), self = this;
+    u.pose = 'act'; u.poseT = 999;
+    for (var a = 0; a < n && !this.over; a++) {
+      if (down(t)) { var alt = this.liveFoes(); if (!alt.length) break; t = DS.pick(alt); }
+      var melee = (w.weapon.props || []).indexOf('ranged') < 0;
+      var adv = this.advantage(u, t, melee);
+      var nat = this.d20(adv);
+      var bonus = R.attackBonus(h, w) + (u.buff && u.buff.atk ? u.buff.atk : 0) + (u.buff && u.buff.id === 'bless' ? DS.d(4) : 0);
+      var total = nat + bonus, ac = this.acOf(t);
+      var wasHidden = !!u.conds.hidden; delete u.conds.hidden;
+      // the cloaker's phantasms: a hit may land on an image
+      if (!isHero(t) && t.images > 0 && nat !== 20 && DS.d(t.images + 1) > 1 && total >= ac) {
+        t.images--; DS.audio.sfx('miss');
+        yield* this.say(nameOf(u) + ' strikes a phantasm! It bursts.', 36);
+        continue;
+      }
+      if (nat === 1 || (nat !== 20 && total < ac)) {
+        DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C');
+        yield* this.say(nameOf(u) + ' attacks ' + nameOf(t) + '... and misses.', 34);
+        continue;
+      }
+      var crit = nat >= R.critRange(h) || (melee && incap(t));
+      var dx = R.damageExpr(h, w);
+      var gwf = h.cls === 'fighter' && R.twoHanded(h, w) && h.id === 'barley';
+      var dmg = (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod;
+      if (crit && h.id === 'lymen' && melee) dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks
+      var extra = '', rad = 0;
+      if (h.cls === 'rogue' && !st.sneakUsed && (w.weapon.props || []).join().match(/finesse|ranged/) && adv >= 0 && (adv > 0 || wasHidden || this.liveHeroes().length > 1)) {
+        var sn = DS.roll(R.sneakDice(h.lvl), { crit: crit }); dmg += sn; st.sneakUsed = true; extra = ' Sneak Attack!';
+      }
+      if (smite) {
+        rad = DS.roll((1 + smite) + 'd8', { crit: crit });
+        if (tags(t).indexOf('undead') >= 0 || tags(t).indexOf('fiend') >= 0) rad += DS.roll('1d8', { crit: crit });
+        h.slots[smite - 1]--; smite = 0; extra += ' Divine Smite!';
+        this.elemBurst(t, 'radiant');
+      }
+      if (u.buff && u.buff.id === 'divineFavor') rad += DS.d(4);
+      var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 });
+      if (rad) dealt += this.hurt(t, rad, 'radiant', {});
+      t.flash = 14; DS.audio.sfx(crit ? 'crit' : 'hit');
+      if (crit) { this.flashT = 6; this.shake = 6; }
+      this.num(t, dealt, crit ? '#F8D878' : '#F8F8F8');
+      var imm = dealt === 0 ? ' No effect!' : '';
+      yield* this.say((crit ? 'Critical! ' : '') + nameOf(u) + ' hits ' + nameOf(t) + ' for ' + dealt + '.' + extra + imm, crit ? 48 : 38);
+      yield* this.flushMsg();
+      if (down(t)) yield* this.say(nameOf(t) + ' is defeated!', 30);
+    }
+    u.pose = null; u.poseT = 0;
+  };
+  Battle.prototype.tryRun = function* (u) {
+    if (this.o.canRun === false) { yield* this.say('There is no running from this!', 40); return; }
+    if (this.liveHeroes().some(function (x) { return x.conds.grappled || x.conds.engulfed; })) { yield* this.say('Someone is held fast. No one leaves.', 40); return; }
+    var best = 0; this.liveFoes().forEach(function (f) { best = Math.max(best, DS.mod(f.m.abil.dex || 10)); });
+    var roll = DS.d(20) + DS.mod(u.h.abil.dex);
+    if (roll >= 10 + best) { DS.audio.sfx('run'); yield* this.say('The party slips away!', 36); this.over = 'run'; }
+    else yield* this.say("Can't get away!", 34);
+  };
+  Battle.prototype.tryEscape = function* (u) {
+    var c = u.conds.engulfed || u.conds.grappled || u.conds.restrained;
+    var dc = c.escape || 14;
+    var ath = this.check(u, 'str', 'Athletics'), acr = this.check(u, 'dex', 'Acrobatics'), best = Math.max(ath, acr);
+    if (best >= dc) {
+      this.release(u); delete u.conds.restrained; delete u.conds.blinded;
+      DS.audio.sfx('confirm');
+      yield* this.say(nameOf(u) + ' breaks free! (' + best + ' vs DC ' + dc + ')', 44);
+    } else {
+      DS.audio.sfx('error');
+      yield* this.say(nameOf(u) + ' struggles, but is held. (' + best + ' vs DC ' + dc + ')', 44);
+    }
+  };
+
+  // ------------------------------------------------------------------ skills
+  Battle.prototype.useSkill = function* (u, sk, st) {
+    var h = u.h, f = h.feats, self = this;
+    if (sk === 'secondWind') {
+      var n = this.heal(u, DS.roll('1d10') + h.lvl); f.secondWind = 0;
+      DS.audio.sfx('heal'); this.elemBurst(u, 'heal', 'rise'); this.num(u, n, '#58F898');
+      yield* this.say(nameOf(u) + ' catches a second breath. +' + n + ' HP.', 44);
+      return 'bonus';
+    }
+    if (sk === 'actionSurge') {
+      f.actionSurge = 0; st.actions++; st.surged = true;
+      DS.audio.sfx('buff'); this.elemBurst(u, 'buff', 'rise');
+      yield* this.say(nameOf(u) + ' surges! One more action this turn.', 44);
+      return 'free';
+    }
+    if (sk === 'hide') {
+      u.conds.hidden = { rounds: 2 };
+      DS.audio.sfx('run');
+      yield* this.say(nameOf(u) + ' melts into the shadows.', 38);
+      return 'bonus';
+    }
+    if (sk === 'lay') {
+      var t = yield* this.pickAlly();
+      if (!t) return 'cancel';
+      var hasPoison = t.conds.poisoned || t.conds.paralyzed;
+      var opts = [{ label: 'HEAL', value: 'heal', disabled: t.h.hp >= t.h.maxhp }, { label: 'CURE POISON (5)', value: 'cure', disabled: f.lay < 5 || !hasPoison }];
+      var mode = yield DS.choose({ items: opts, x: 60, y: 110, w: 130, rowH: 11, pad: 7 });
+      if (!mode) return 'cancel';
+      if (mode === 'heal') {
+        var amt = Math.min(f.lay, t.h.maxhp - t.h.hp); f.lay -= amt; this.heal(t, amt);
+        DS.audio.sfx('heal'); this.elemBurst(t, 'heal', 'rise'); this.num(t, amt, '#58F898');
+        yield* this.say(nameOf(u) + ' lays on hands. ' + nameOf(t) + ' +' + amt + ' HP.', 44);
+      } else {
+        f.lay -= 5; delete t.conds.poisoned; delete t.conds.paralyzed;
+        DS.audio.sfx('heal'); this.elemBurst(t, 'radiant', 'rise');
+        yield* this.say(nameOf(u) + ' draws the poison out of ' + nameOf(t) + '.', 48);
+      }
+      return 'action';
+    }
+    if (sk === 'sacred') {
+      f.channel = 0;
+      u.buff = { id: 'sacred', name: 'Sacred Weapon', atk: Math.max(1, DS.mod(h.abil.cha)), rounds: 10 };
+      DS.audio.sfx('buff'); this.elemBurst(u, 'radiant', 'rise');
+      yield* this.say(nameOf(u) + "'s blade takes Kalindel's light. +" + u.buff.atk + ' to hit.', 48);
+      return 'action';
+    }
+    return 'cancel';
+  };
+
+  // ------------------------------------------------------------------ magic
+  Battle.prototype.castSpell = function* (u, sp, st) {
+    var h = u.h, self = this;
+    if (sp.id === 'smite') {
+      var lv = R.lowestSlot(h, 1);
+      if (!lv) { yield* this.say('No spell slots left.', 30); return false; }
+      var choice = lv;
+      if (R.lowestSlot(h, 2)) {
+        var pick = yield DS.choose({ items: [{ label: 'SMITE (L1) 2d8', value: 1, disabled: !h.slots[0] }, { label: 'SMITE (L2) 3d8', value: 2, disabled: !h.slots[1] }], x: 40, y: 100, w: 140, rowH: 11, pad: 7 });
+        if (!pick) return false; choice = pick;
+      }
+      var t = yield* this.pickFoe();
+      if (!t) return false;
+      yield* this.heroAttack(u, t, st, choice);
+      return true;
+    }
+    var slot = sp.level ? R.lowestSlot(h, sp.level) : 0;
+    if (sp.level && !slot) { yield* this.say('No spell slots left.', 30); return false; }
+    // choose targets
+    var targets = [];
+    if (sp.target === 'enemy' || sp.target === 'cone' || sp.target === 'line') {
+      var t0 = yield* this.pickFoe(sp.only ? function (f) { return (f.m.tags || []).indexOf(sp.only) >= 0; } : null);
+      if (!t0) return false;
+      targets = [t0];
+      if (sp.target !== 'enemy') {
+        var rest = this.liveFoes().filter(function (f) { return f !== t0; }), cnt = sp.target === 'cone' ? 2 : 3;
+        rest.sort(function (a, b) { return Math.abs(a.y - t0.y) + Math.abs(a.x - t0.x) - (Math.abs(b.y - t0.y) + Math.abs(b.x - t0.x)); });
+        targets = targets.concat(rest.slice(0, cnt));
+      }
+    } else if (sp.target === 'enemies') targets = this.liveFoes();
+    else if (sp.target === 'ally') { var ta = yield* this.pickAlly(); if (!ta) return false; targets = [ta]; }
+    else if (sp.target === 'allies') targets = this.liveHeroes().slice(0, sp.max || 4);
+    else if (sp.target === 'self') targets = [u];
+    if (slot) h.slots[slot - 1]--;
+    u.pose = 'cast'; u.poseT = 60;
+    DS.audio.sfx(sp.sfx || 'magic');
+    yield* this.say(nameOf(u) + ' casts ' + sp.name + '!', 34);
+    var up = slot ? slot - sp.level : 0, dc = R.spellDC(h), atk = R.spellAtk(h);
+    var k = sp.kind;
+    if (k === 'light') {
+      this.bright = true; this.flashT = 10;
+      this.foes.forEach(function (f) { f.conds.revealed = true; });
+      var shy = this.liveFoes().filter(function (f) { return f.m.traits && f.m.traits.lightSensitive; });
+      yield* this.say(shy.length ? 'Bright light floods the dark. ' + nameOf(shy[0]) + ' recoils from it!' : 'Bright light floods the ground.', 50);
+      return true;
+    }
+    for (var i = 0; i < targets.length && !this.over; i++) {
+      var t = targets[i];
+      if (down(t) && k !== 'buff') { if (sp.target === 'enemy') { var alts = this.liveFoes(); if (!alts.length) break; t = DS.pick(alts); } else continue; }
+      if (k === 'attack') {
+        var rays = (sp.rays || 1) + (sp.rayUp ? up : 0);
+        for (var r = 0; r < rays && !down(t); r++) {
+          var adv = this.advantage(u, t, false), nat = this.d20(adv);
+          var dice = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
+          this.bolt(u, t, (ELEM[sp.el] || ELEM.force)[0]);
+          yield this.wait(10);
+          if (nat === 1 || (nat !== 20 && nat + atk < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('It misses ' + nameOf(t) + '.', 26); continue; }
+          var d = this.hurt(t, DS.roll(dice, { crit: nat === 20 }), sp.el, { magicWeapon: true });
+          if (sp.cond && !down(t)) t.conds[sp.cond] = { rounds: 1 };
+          this.elemBurst(t, sp.el); t.flash = 12; DS.audio.sfx('hit'); this.num(t, d, '#F8D878');
+          yield* this.say(nameOf(t) + ' takes ' + d + ' ' + sp.el + ' damage.' + (d === 0 ? ' No effect!' : ''), 34);
+          yield* this.flushMsg();
+        }
+      } else if (k === 'auto') {
+        var darts = (sp.darts || 3) + up, tot = 0;
+        for (var q = 0; q < darts; q++) { this.bolt(u, t, '#D8B8F8'); tot += DS.roll(sp.dmg); }
+        yield this.wait(14);
+        var dd = this.hurt(t, tot, sp.el, { magicWeapon: true });
+        this.elemBurst(t, sp.el); t.flash = 12; DS.audio.sfx('hit'); this.num(t, dd, '#F8D878');
+        yield* this.say(darts + ' darts strike ' + nameOf(t) + ' for ' + dd + '.', 38);
+        yield* this.flushMsg();
+      } else if (k === 'save') {
+        var s = this.save(t, sp.save, dc, { poison: sp.el === 'poison' });
+        var dmgT = sp.dmg ? DS.roll(sp.dmg.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up * (sp.upDice || 0)) + 'd'; })) : 0;
+        if (s.success) dmgT = sp.half ? Math.floor(dmgT / 2) : 0;
+        var dealt = dmgT ? this.hurt(t, dmgT, sp.el, { magicWeapon: true }) : 0;
+        this.elemBurst(t, sp.el); if (dealt) { t.flash = 12; this.num(t, dealt, '#F8D878'); }
+        var line = nameOf(t) + (s.success ? ' resists' : ' is caught') + (dealt ? '. ' + dealt + ' damage.' : '.');
+        if (!s.success && sp.cond && !down(t) && !(t.m && (t.m.condImmune || []).indexOf(sp.cond) >= 0)) {
+          if (sp.only && tags(t).indexOf(sp.only) < 0) line += ' It is not affected.';
+          else { t.conds[sp.cond] = { rounds: sp.rounds || 10, save: sp.repeat ? { ab: sp.save, dc: dc } : null, escape: sp.cond === 'restrained' ? dc : null }; line += ' It is ' + sp.cond + '!'; }
+        }
+        yield* this.say(line, 36);
+        yield* this.flushMsg();
+      } else if (k === 'sleep') {
+        var pool = DS.roll((5 + 2 * up) + 'd8'), slept = [];
+        this.liveFoes().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (f) {
+          if (f.hp <= pool && (f.m.condImmune || []).indexOf('asleep') < 0 && (f.m.tags || []).indexOf('undead') < 0) { pool -= f.hp; f.conds.asleep = { rounds: 10 }; slept.push(f); self.elemBurst(f, 'sleep', 'rise'); }
+        });
+        yield* this.say(slept.length ? slept.map(plain).join(', ') + (slept.length > 1 ? ' fall' : ' falls') + ' asleep!' : 'Nothing sleeps.', 46);
+        break;
+      } else if (k === 'heal') {
+        if (down(t)) { yield* this.say(nameOf(t) + ' is beyond a spell. A healer\'s kit, or the leech-house.', 44); continue; }
+        var hv = this.heal(t, DS.roll(sp.dmg.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up) + 'd'; })) + DS.mod(h.abil[R.CLASSES[h.cls].cast]));
+        DS.audio.sfx('heal'); this.elemBurst(t, 'heal', 'rise'); this.num(t, hv, '#58F898');
+        yield* this.say(nameOf(t) + ' recovers ' + hv + ' HP.', 36);
+      } else if (k === 'buff') {
+        if (down(t)) continue;
+        if (sp.buff === 'shield') { t.conds.shielded = true; }
+        else if (sp.buff === 'mageArmor') { t.h.conds.mageArmor = true; }
+        else if (sp.buff === 'aid') { t.h.maxhp += 5 * (1 + up); t.h.hp += 5 * (1 + up); t.h.conds.aid = (t.h.conds.aid || 0) + 5 * (1 + up); }
+        else {
+          var b = { id: sp.buff, name: sp.name, rounds: 10 };
+          if (sp.buff === 'shieldOfFaith') b.ac = 2;
+          if (sp.buff === 'heroism') { b.tempEach = Math.max(1, DS.mod(h.abil.cha)); b.temp = b.tempEach; delete t.conds.frightened; }
+          t.buff = b;
+        }
+        this.elemBurst(t, 'buff', 'rise');
+        yield this.wait(8);
+      } else if (k === 'cure') {
+        ['poisoned', 'paralyzed', 'blinded'].forEach(function (c) { delete t.conds[c]; });
+        this.elemBurst(t, 'radiant', 'rise'); DS.audio.sfx('heal');
+        yield* this.say(nameOf(t) + ' is cleansed.', 36);
+      }
+      if (this.liveFoes().length === 0) break;
+    }
+    if (k === 'buff') {
+      var bt = targets.map(plain).join(', ');
+      yield* this.say(bt + (sp.buff === 'shield' ? ' raises a shield of force. +5 AC.' : sp.buff === 'shieldOfFaith' ? ': +2 AC.' : sp.buff === 'bless' ? ': blessed.' : sp.buff === 'mageArmor' ? ': mage armor.' : sp.buff === 'aid' ? ': +' + 5 * (1 + up) + ' max HP.' : ': ' + sp.name + '.'), 40);
+    }
+    u.pose = null;
+    return true;
+  };
+
+  // ------------------------------------------------------------------ items
+  Battle.prototype.useItem = function* (u, id) {
+    var it = DS.DATA.items[id], use = it.use, t = null, self = this;
+    if (use.target === 'enemy') { t = yield* this.pickFoe(); if (!t) return false; }
+    else if (use.target === 'ally' || use.target === 'revive') {
+      t = yield* this.pickAlly(use.target === 'revive' ? function (x) { return down(x); } : null);
+      if (!t) { if (use.target === 'revive') yield* this.say('No one is down.', 30); return false; }
+    } else t = u;
+    if (use.effect === 'heal' && t.h && t.h.hp >= t.h.maxhp) { yield* this.say(nameOf(t) + ' is unhurt.', 30); return false; }
+    DS.G.take(id, 1);
+    if (use.effect === 'heal') {
+      var n = this.heal(t, DS.roll(use.dice));
+      DS.audio.sfx('heal'); this.elemBurst(t, 'heal', 'rise'); this.num(t, n, '#58F898');
+      yield* this.say(nameOf(u) + ' uses ' + it.name + '. ' + nameOf(t) + ' +' + n + ' HP.', 42);
+    } else if (use.effect === 'revive') {
+      t.h.ko = false; t.h.hp = Math.max(1, use.hp || 1); t.conds = {};
+      DS.audio.sfx('heal'); this.elemBurst(t, 'heal', 'rise');
+      yield* this.say(nameOf(u) + ' works the ' + it.name + '. ' + nameOf(t) + ' is back up!', 46);
+    } else if (use.effect === 'antitoxin') {
+      t.conds.antitoxin = { rounds: 999 };
+      DS.audio.sfx('buff');
+      yield* this.say(nameOf(t) + ' drinks the ' + it.name.toLowerCase() + '. Advantage against poison.', 46);
+    } else if (use.effect === 'damage') {
+      var s = use.save ? this.save(t, use.save, use.dc || 10) : null;
+      var dmg = DS.roll(use.dice); if (s && s.success) dmg = Math.floor(dmg / 2);
+      if (use.only && tags(t).indexOf(use.only) < 0) dmg = 0;
+      var d = this.hurt(t, dmg, use.el, { magicWeapon: true });
+      this.elemBurst(t, use.el); t.flash = 12; DS.audio.sfx(use.el === 'fire' ? 'fire' : 'hit'); this.num(t, d, '#F8D878');
+      if (use.el === 'fire') this.usedFire = true;
+      yield* this.say(nameOf(u) + ' throws ' + it.name + '! ' + nameOf(t) + ' takes ' + d + '.', 42);
+      yield* this.flushMsg();
+    } else if (use.effect === 'light') {
+      this.bright = true; this.flashT = 8; this.usedFire = true;
+      var shy = this.liveFoes().filter(function (f) { return f.m.traits && f.m.traits.lightSensitive; });
+      yield* this.say(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.' + (shy.length ? ' ' + nameOf(shy[0]) + ' shrinks from the flame!' : ''), 46);
+    } else if (use.effect === 'cure') {
+      delete t.conds.poisoned; delete t.conds.paralyzed;
+      DS.audio.sfx('heal');
+      yield* this.say(nameOf(t) + ' is cured.', 36);
+    }
+    return true;
+  };
+
+  // ------------------------------------------------------------------ enemies
+  Battle.prototype.pickHeroFor = function (f, needHeld) {
+    var live = this.liveHeroes();
+    if (needHeld) live = live.filter(function (u) { return f.holding.indexOf(u) >= 0; });
+    if (!live.length) return null;
+    if (this.tauntWearer && !down(this.tauntWearer) && (f.m.tags || []).indexOf(this.tauntTag) >= 0 && this.tauntRounds.indexOf(this.round) >= 0) {
+      return live.indexOf(this.tauntWearer) >= 0 ? this.tauntWearer : 'none';
+    }
+    var engulfed = live.filter(function (u) { return f.holding.indexOf(u) >= 0 && u.conds.engulfed; });
+    if (engulfed.length) return engulfed[0];
+    var weights = live.map(function (u) { var w = [5, 4, 3, 2][u.idx] || 1; if (u.conds.hidden) w *= 0.3; return { u: u, w: w }; });
+    return DS.weighted(weights).u;
+  };
+  Battle.prototype.foeTurn = function* (f) {
+    var m = f.m, self = this;
+    f.off = 0;
+    if (f.conds.frightened && DS.d(2) === 1) { yield* this.say(nameOf(f) + ' cowers.', 30); return; }
+    if (f.conds.restrained && f.conds.restrained.escape) {
+      if (this.check(f, 'str', 'Athletics') >= f.conds.restrained.escape) { delete f.conds.restrained; yield* this.say(nameOf(f) + ' tears free of the web.', 32); }
+      else { yield* this.say(nameOf(f) + ' strains against the web.', 30); }
+      return;
+    }
+    // specials: recharge / once-per-battle
+    var specials = (m.specials || []).filter(function (s) {
+      if (s.once && f.used[s.id]) return false;
+      if (s.recharge) { if (f.recharge[s.id] === false) { if (DS.d(6) >= s.recharge) f.recharge[s.id] = true; else return false; } }
+      if (s.when === 'holding' && !f.holding.length) return false;
+      if (s.when === 'notHolding' && f.holding.length) return false;
+      if (s.when === 'bloodied' && f.hp > f.maxhp / 2) return false;
+      return true;
+    });
+    var sp = specials.length && Math.random() < (specials[0].chance || 0.4) ? specials[0] : null;
+    if (sp) { yield* this.special(f, sp); return; }
+    var routine = m.multi || [Object.keys(m.attacks)[0]];
+    if (m.choose) routine = DS.pick(m.choose);
+    if (f.conds.raging && m.traits && m.traits.reckless) f.conds.reckless = { rounds: 1 };
+    var target = null;
+    for (var i = 0; i < routine.length && !this.over; i++) {
+      var atk = m.attacks[routine[i]];
+      if (!atk) continue;
+      var t;
+      if (atk.needsHeld) { t = this.pickHeroFor(f, true); if (!t || t === 'none') continue; }
+      else { if (!target || down(target)) target = this.pickHeroFor(f); t = target; }
+      if (!t || t === 'none') { continue; }
+      if (atk.needsHeld === false && f.holding.indexOf(t) >= 0 && atk.grapple) { /* already held */ }
+      yield* this.foeAttack(f, t, atk);
+      if (!this.liveHeroes().length) break;
+    }
+  };
+  Battle.prototype.foeAttack = function* (f, t, atk) {
+    var self = this;
+    f.off = 8; f.flash = 6;
+    yield this.wait(8);
+    f.off = 0;
+    var melee = !atk.ranged;
+    var adv = this.advantage(f, t, melee);
+    if (atk.autoHitHeld && f.holding.indexOf(t) >= 0) adv = 1;
+    var nat = this.d20(adv), tot = nat + atk.hit, ac = this.acOf(t);
+    if (atk.save && !atk.hit) { // save-only attack (breath, gaze)
+      yield* this.applyRider(f, t, atk, false);
+      return;
+    }
+    if (nat === 1 || (nat !== 20 && tot < ac)) {
+      DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C');
+      yield* this.say(nameOf(f) + ' ' + (atk.verb || 'attacks') + ' ' + nameOf(t) + '... miss.', 32);
+      return;
+    }
+    var crit = nat === 20 || (melee && incap(t));
+    var dmg = DS.roll(atk.dmg, { crit: crit });
+    if (f.conds.raging && atk.rage) dmg += atk.rage;
+    if (atk.halfHP && f.hp <= f.maxhp / 2) dmg = DS.roll(atk.halfHP, { crit: crit });
+    // Uncanny Dodge (rogue 5): the first hit each round is halved
+    var dodge = '';
+    if (isHero(t) && t.h.cls === 'rogue' && t.h.lvl >= 5 && !t.conds.dodged && !incap(t)) { dmg = Math.floor(dmg / 2); t.conds.dodged = true; dodge = ' (dodged: half)'; }
+    var dealt = this.hurt(t, dmg, atk.type, f);
+    if (atk.extra) dealt += this.hurt(t, DS.roll(atk.extra, { crit: crit }), atk.extraType || atk.type, f);
+    t.pose = 'hurt'; t.poseT = 24; this.shake = crit ? 10 : 5; if (crit) this.flashT = 8;
+    DS.audio.sfx(crit ? 'crit' : 'hit');
+    this.num(t, dealt, '#F85838');
+    yield* this.say((crit ? 'Critical! ' : '') + nameOf(f) + ' ' + (atk.verb || 'hits') + ' ' + nameOf(t) + ' for ' + dealt + '.' + dodge, crit ? 46 : 36);
+    yield* this.flushMsg();
+    if (down(t)) { yield* this.say(nameOf(t) + ' falls!', 38); return; }
+    yield* this.applyRider(f, t, atk, true);
+  };
+  Battle.prototype.applyRider = function* (f, t, atk, hit) {
+    var self = this;
+    if (atk.grapple && hit && !down(t)) {
+      if (f.holding.length < (atk.grapple.max || 1) && f.holding.indexOf(t) < 0) {
+        f.holding.push(t);
+        t.conds.grappled = { escape: atk.grapple.dc, src: f };
+        if (atk.grapple.restrain) t.conds.restrained = { escape: atk.grapple.dc };
+        DS.audio.sfx('grab');
+        yield* this.say(nameOf(f) + ' seizes ' + nameOf(t) + '! (escape DC ' + atk.grapple.dc + ')', 44);
+      }
+    }
+    if (atk.engulf && hit && !down(t) && f.holding.indexOf(t) < 0) {
+      f.holding.push(t);
+      t.conds.engulfed = { escape: atk.engulf, src: f }; t.conds.blinded = { rounds: 999 };
+      DS.audio.sfx('grab');
+      yield* this.say(nameOf(f) + ' wraps itself around ' + nameOf(t) + '! (escape DC ' + atk.engulf + ')', 48);
+    }
+    if (atk.attach && hit && !down(t)) { t.conds.attached = { src: f }; yield* this.say(nameOf(f) + ' latches on!', 32); }
+    if (atk.blind && hit && !down(t)) { t.conds.blinded = { rounds: 1 }; }
+    if (atk.prone && hit && !down(t)) {
+      var ps = this.save(t, 'str', atk.prone);
+      if (!ps.success) { t.conds.prone = true; yield* this.say(nameOf(t) + ' is knocked prone!', 34); }
+    }
+    if (atk.save) {
+      var s = this.save(t, atk.save.ab, atk.save.dc, { poison: atk.save.poison });
+      if (atk.save.dmg) {
+        var d = DS.roll(atk.save.dmg); if (s.success) d = atk.save.half ? Math.floor(d / 2) : 0;
+        if (d) { var dd = this.hurt(t, d, atk.save.type || 'poison', f); this.num(t, dd, '#9878F8'); yield* this.say(nameOf(t) + (s.success ? ' resists some of the ' : ' takes the full ') + (atk.save.type || 'poison') + '. ' + dd + ' damage.', 40); }
+        else if (s.success) yield* this.say(nameOf(t) + ' shrugs it off.', 30);
+        if (down(t)) { yield* this.say(nameOf(t) + ' falls!', 38); return; }
+      }
+      if (atk.save.cond && !s.success && !down(t)) {
+        var immune = isHero(t) ? false : (t.m.condImmune || []).indexOf(atk.save.cond) >= 0;
+        if (!immune) {
+          t.conds[atk.save.cond] = { rounds: atk.save.rounds || 10, save: atk.save.repeat ? { ab: atk.save.ab, dc: atk.save.dc } : null };
+          if (atk.save.also) t.conds[atk.save.also] = { linked: atk.save.cond };
+          DS.audio.sfx('poison'); this.elemBurst(t, 'poison', 'fall');
+          yield* this.say(nameOf(t) + ' is ' + atk.save.cond + (atk.save.also ? ' — and ' + atk.save.also + '!' : '!'), 44);
+        }
+      } else if (atk.save.cond && s.success && !atk.save.dmg) yield* this.say(nameOf(t) + ' resists. (' + s.total + ' vs DC ' + atk.save.dc + ')', 34);
+    }
+  };
+  Battle.prototype.special = function* (f, sp) {
+    var self = this;
+    if (sp.recharge) f.recharge[sp.id] = false;
+    if (sp.once) f.used[sp.id] = true;
+    f.flash = 10;
+    if (sp.id === 'web') {
+      var t = this.pickHeroFor(f); if (!t || t === 'none') return;
+      yield* this.say(nameOf(f) + ' spits a web at ' + nameOf(t) + '!', 36);
+      var s = this.save(t, 'dex', sp.dc);
+      if (s.success) yield* this.say(nameOf(t) + ' dodges the web.', 30);
+      else { t.conds.restrained = { escape: sp.dc + 1 }; yield* this.say(nameOf(t) + ' is caught in the web! (escape DC ' + (sp.dc + 1) + ')', 40); }
+      return;
+    }
+    if (sp.id === 'moan') {
+      yield* this.say(nameOf(f) + ' moans. The sound gets inside you.', 44);
+      var list = this.liveHeroes();
+      for (var i = 0; i < list.length; i++) {
+        var s2 = this.save(list[i], 'wis', sp.dc);
+        if (!s2.success && !(list[i].buff && list[i].buff.id === 'heroism')) { list[i].conds.frightened = { rounds: 2, save: { ab: 'wis', dc: sp.dc } }; yield* this.say(nameOf(list[i]) + ' is frightened!', 30); }
+      }
+      return;
+    }
+    if (sp.id === 'phantasms') {
+      f.images = 3;
+      yield* this.say(nameOf(f) + ' splits into shadows. Three false shapes wheel about it!', 50);
+      return;
+    }
+    if (sp.id === 'rage') {
+      f.conds.raging = { rounds: 10 };
+      yield* this.say(nameOf(f) + ' roars and rages!', 38);
+      return;
+    }
+    if (sp.id === 'darkness') {
+      this.bright = false;
+      yield* this.say(nameOf(f) + ' swallows the light.', 36);
+      return;
+    }
+    if (sp.id === 'slam') { // the otyugh slams whatever it holds
+      var held = f.holding.slice();
+      yield* this.say(nameOf(f) + ' slams what it holds against the stone!', 40);
+      for (var q = 0; q < held.length; q++) {
+        var tq = held[q]; if (down(tq)) continue;
+        var sq = this.save(tq, 'con', 14), dq = DS.roll('2d6+3');
+        if (sq.success) dq = Math.floor(dq / 2); else tq.conds.stunned = { rounds: 1 };
+        dq = this.hurt(tq, dq, 'bludgeoning', f); this.num(tq, dq, '#F85838'); DS.audio.sfx('crit'); this.shake = 8;
+        yield* this.say(nameOf(tq) + ' takes ' + dq + (sq.success ? '.' : ' and is stunned!'), 40);
+        if (down(tq)) yield* this.say(nameOf(tq) + ' falls!', 36);
+      }
+      return;
+    }
+    if (sp.id === 'bargain') { // the otyugh, fed: a picture of a bucket
+      yield* this.say(sp.text || '...', 60);
+      return;
+    }
+  };
+
+  // ------------------------------------------------------------------ the end
+  Battle.prototype.finish = function* () {
+    var self = this, o = this.o;
+    // clear battle-only state
+    this.heroes.forEach(function (u) { u.conds = {}; u.buff = null; });
+    if (this.over === 'win') {
+      DS.audio.play('victory');
+      var xp = 0, silver = 0, drops = [];
+      this.foes.forEach(function (f) {
+        xp += f.m.xp || 0;
+        if (f.m.silver) silver += DS.roll(f.m.silver);
+        (f.m.drops || []).forEach(function (d) { if (Math.random() < d.chance) drops.push(d.item); });
+      });
+      if (o.noXp) xp = 0;
+      var K = DS.G.kills;
+      this.foes.forEach(function (f) { K[f.id] = (K[f.id] || 0) + 1; if (o.zone) K[o.zone + ':' + f.id] = (K[o.zone + ':' + f.id] || 0) + 1; });
+      if (o.bonusXp) xp += o.bonusXp;
+      var living = DS.G.party.filter(function (h) { return !h.ko; });
+      if (o.solo != null) living = [DS.G.party[o.solo]];
+      var each = living.length ? Math.floor(xp / living.length) : 0;
+      var lines = ['Victory!'];
+      if (each) lines.push('Each fighter standing gains ' + each + ' XP.');
+      if (silver) { DS.G.silver += silver; lines.push('Found ' + silver + ' sp in coin and salvage.'); }
+      drops.forEach(function (id) { DS.G.give(id, 1); lines.push('Found ' + DS.DATA.items[id].name + '!'); });
+      var ups = [];
+      living.forEach(function (h) { ups = ups.concat(R.gainXP(h, each)); });
+      yield W8.frames(30);
+      yield DS.say(lines.join('\n'), { top: true });
+      if (ups.length) { DS.audio.sfx('levelup'); yield DS.say(ups, { top: true }); }
+      if (this.usedFire && o.roost) DS.G.flags.roostBroken = (DS.G.flags.roostBroken || 0) + 1;
+    } else if (this.over === 'lose' && !o.lossOk) {
+      DS.audio.play('gameover');
+      yield W8.frames(40);
+      this.result = 'lose';
+      DS.pop(this);
+      DS.push(new DS.GameOver());
+      return;
+    }
+    this.result = this.over;
+    DS.pop(this);
+  };
+
+  // ------------------------------------------------------------------ drawing
+  Battle.prototype.draw = function (ctx) {
+    var sx = this.shake ? (DS.rint(3) - 1) * 2 : 0;
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 256, 240);
+    ctx.drawImage(this.bg, sx, 20);
+    if (this.bright) { ctx.globalAlpha = 0.12; ctx.fillStyle = '#F8F0C0'; ctx.fillRect(0, 20, 256, 132); ctx.globalAlpha = 1; }
+    var self = this, act = this.active;
+    // foes
+    this.foes.forEach(function (f) {
+      if (f.dead && f.fade <= 0) return;
+      var x = f.x + sx + (f.off || 0), y = f.y;
+      if (f.dead) { // dissolve: drop rows
+        var keep = f.fade / 24;
+        ctx.globalAlpha = keep; ctx.drawImage(f.art.img, 0, 0, f.art.w, Math.ceil(f.art.h * keep), x, y + f.art.h * (1 - keep), f.art.w, Math.ceil(f.art.h * keep)); ctx.globalAlpha = 1;
+        return;
+      }
+      if (f.images > 0) { ctx.globalAlpha = 0.35; for (var k = 0; k < f.images; k++) ctx.drawImage(f.art.img, x + [-10, 10, 0][k], y + [4, -4, 8][k]); ctx.globalAlpha = 1; }
+      var img = (f.flash > 0 && (f.flash & 2)) ? f.art.flash : f.art.img;
+      if (f.conds.asleep || f.conds.paralyzed) { ctx.globalAlpha = 0.7; }
+      ctx.drawImage(img, x, y);
+      ctx.globalAlpha = 1;
+      if (f.conds.asleep && ((DS.frame >> 4) & 1)) DS.text(ctx, 'z', x + f.art.w - 4, y - 2, '#B8B8F8');
+      if (f.conds.restrained) { ctx.strokeStyle = '#E8E8F0'; ctx.beginPath(); ctx.moveTo(x, y + f.art.h * 0.3); ctx.lineTo(x + f.art.w, y + f.art.h * 0.7); ctx.moveTo(x + f.art.w, y + f.art.h * 0.3); ctx.lineTo(x, y + f.art.h * 0.7); ctx.stroke(); }
+      if (act === f && ((DS.frame >> 3) & 1)) DS.text(ctx, '▼', x + f.art.w / 2 - 2, y - 9, '#F8D878');
+    });
+    // heroes
+    this.heroes.forEach(function (u) {
+      var h = u.h, spr = DS.fighter(DS.LOOKS[h.look], h.weapon);
+      var pose = down(u) ? 'ko' : u.pose ? u.pose : (h.hp < h.maxhp / 4 || incap(u)) ? 'hurt' : 'stand';
+      var x = u.x - (act === u ? (u.off || 0) : 0) + sx, y = u.y;
+      if (pose === 'ko') { ctx.drawImage(spr.ko, x - 4, y + 8); return; }
+      if (u.conds.paralyzed) { ctx.drawImage(spr[pose], x, y); ctx.globalAlpha = 0.4; ctx.fillStyle = '#6888FC'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      else ctx.drawImage(spr[pose], x, y);
+      if (u.conds.engulfed) { ctx.fillStyle = '#1a1a24'; ctx.fillRect(x - 1, y - 1, 18, 14); }
+      if (u.conds.grappled) { ctx.fillStyle = '#b85a3a'; ctx.fillRect(x - 3, y + 12, 3, 4); }
+      if (u.conds.restrained && !u.conds.grappled) { ctx.strokeStyle = '#E8E8F0'; ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x + 16, y + 18); ctx.moveTo(x + 16, y + 6); ctx.lineTo(x, y + 18); ctx.stroke(); }
+      if (u.conds.hidden) { ctx.globalAlpha = 0.5; ctx.fillStyle = '#000'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      if (u.buff) { if ((DS.frame >> 3) & 1) ctx.fillStyle = '#F8D878', ctx.fillRect(x + 7, y - 3, 2, 2); }
+      if (act === u) DS.text(ctx, '▼', x + 5, y - 10, '#F8D878');
+    });
+    // particles & numbers
+    this.fx.forEach(function (p) { ctx.fillStyle = p.col; ctx.fillRect(Math.round(p.x), Math.round(p.y), p.sz || 1, p.sz || 1); });
+    this.nums.forEach(function (n) {
+      var y = n.y - Math.min(12, n.t * 0.8) + (n.t > 12 ? 0 : 0);
+      if (n.t < 44 || (n.t & 2)) DS.textCenter(ctx, String(n.v), n.x, y, n.col);
+    });
+    if (this.flashT > 0 && (this.flashT & 2)) { ctx.globalAlpha = 0.35; ctx.fillStyle = '#F8F8F8'; ctx.fillRect(0, 20, 256, 132); ctx.globalAlpha = 1; }
+    // message banner
+    DS.win(ctx, 0, 0, 256, 20);
+    if (this.msg) DS.text(ctx, this.msg, 8, 6, '#F8F8F8');
+    // bottom panels
+    DS.win(ctx, 0, 156, 90, 84);
+    var groups = {}, gorder = [];
+    this.liveFoes().forEach(function (f) { if (!groups[f.m.name]) { groups[f.m.name] = 0; gorder.push(f.m.name); } groups[f.m.name]++; });
+    gorder.slice(0, 6).forEach(function (n, i) { DS.text(ctx, n.length > 11 ? n.slice(0, 11) : n, 8, 164 + i * 12, '#F8F8F8'); if (groups[n] > 1) DS.textRight(ctx, 'x' + groups[n], 84, 164 + i * 12, '#C8D0E8'); });
+    DS.win(ctx, 90, 156, 166, 84);
+    this.heroes.forEach(function (u, i) {
+      var h = u.h, y = 162 + i * 19, col = down(u) ? '#9C9C9C' : h.hp < h.maxhp / 4 ? '#F85838' : h.hp < h.maxhp / 2 ? '#F8D878' : '#F8F8F8';
+      DS.text(ctx, h.name, 98, y, act === u ? '#F8D878' : '#F8F8F8');
+      DS.textRight(ctx, (down(u) ? 'KO ' : '') + h.hp + '/' + h.maxhp, 206, y, col);
+      DS.bar(ctx, 98, y + 9, 108, h.hp / h.maxhp, col === '#F8F8F8' ? '#58D854' : col);
+      var tags = Object.keys(u.conds).filter(function (k) { return R.CONDS[k]; }).map(function (k) { return R.CONDS[k]; });
+      if (u.buff) tags.unshift('+' + (u.buff.id === 'shieldOfFaith' ? 'SOF' : u.buff.id.slice(0, 3).toUpperCase()));
+      DS.text(ctx, tags.slice(0, 2).join(' '), 212, y, '#B8B8F8');
+    });
+    if (this.intro > 0) { // opening wipe
+      var hgt = Math.round(120 * this.intro / 32);
+      ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 256, hgt); ctx.fillRect(0, 240 - hgt, 256, hgt);
+    }
+  };
+
+  // ------------------------------------------------------------------ target picking scene
+  function TargetScene(B, list, side) {
+    this.kind = 'target'; this.B = B; this.list = list; this.side = side; this.i = 0; this.result = null;
+    if (side === 'foe') this.list = list.slice().sort(function (a, b) { return a.x - b.x || a.y - b.y; });
+  }
+  TargetScene.prototype.update = function () {
+    var n = this.list.length, old = this.i;
+    if (I.repeat('down') || I.repeat('right')) this.i = (this.i + 1) % n;
+    if (I.repeat('up') || I.repeat('left')) this.i = (this.i - 1 + n) % n;
+    if (old !== this.i) DS.audio.sfx('cursor');
+    if (I.pressed('a')) { DS.audio.sfx('confirm'); this.result = this.list[this.i]; DS.pop(this); }
+    else if (I.pressed('b')) { DS.audio.sfx('cancel'); this.result = null; DS.pop(this); }
+  };
+  TargetScene.prototype.draw = function (ctx) {
+    var u = this.list[this.i]; if (!u) return;
+    var x, y;
+    if (u.side === 'hero') { x = u.x - 10; y = u.y + 8; }
+    else { x = u.x - 9; y = u.y + Math.round(u.art.h / 2) - 4; }
+    if ((DS.frame >> 3) & 1) DS.text(ctx, '▶', x, y, '#F8F8F8');
+    DS.win(ctx, 0, 0, 256, 20);
+    var nm = u.side === 'hero' ? u.h.name + '  ' + u.h.hp + '/' + u.h.maxhp : u.name;
+    DS.text(ctx, 'Target: ' + nm, 8, 6, '#F8D878');
+  };
+
+  // ------------------------------------------------------------------ battle backdrops
+  var bgCache = {};
+  DS.battleBg = function (kind) {
+    if (bgCache[kind]) return bgCache[kind];
+    var p = new DS.Pix(256, 132), r = DS.mulberry32(DS.hash(kind));
+    function band(y0, y1, c) { p.rect(0, y0, 256, y1 - y0, c); }
+    var N = DS.N;
+    if (kind === 'plains' || kind === 'road' || kind === 'hills') {
+      band(0, 50, N(0x21)); band(0, 16, N(0x11));
+      for (var i = 0; i < 5; i++) p.ellipse(20 + i * 60 + r() * 20, 12 + r() * 16, 14 + r() * 8, 4, N(0x30));
+      for (var x = 0; x < 256; x += 1) { var hh = 40 + Math.sin(x / 23) * 6 + Math.sin(x / 7) * 2; p.rect(x, hh, 1, 60 - hh, kind === 'hills' ? N(0x18) : N(0x1A)); }
+      band(56, 132, kind === 'road' ? N(0x37) : N(0x2A)); p.speckle(0, 56, 256, 76, kind === 'road' ? N(0x27) : N(0x1A), 0.06, r);
+    } else if (kind === 'gnoll') {
+      band(0, 56, '#e8b070'); band(0, 18, '#c87840');
+      for (var x2 = 0; x2 < 256; x2++) { var h2 = 36 + Math.sin(x2 / 30) * 10 + Math.sin(x2 / 9) * 3; p.rect(x2, h2, 1, 60 - h2, '#a07040'); }
+      band(56, 132, '#c8a060'); p.speckle(0, 56, 256, 76, '#906030', 0.08, r);
+    } else if (kind === 'cave' || kind === 'wet' || kind === 'dwarf' || kind === 'guano' || kind === 'deep') {
+      var wall = kind === 'dwarf' ? '#30303a' : kind === 'guano' ? '#5a4a40' : '#2c221e', wallL = kind === 'dwarf' ? '#44444e' : '#4a3c34';
+      band(0, 132, '#120e0c');
+      band(0, 52, wall);
+      for (var s = 0; s < 22; s++) { var sx = r() * 256, sl = 8 + r() * 26; p.tri(sx - 5, 0, sx + 5, 0, sx, sl, wallL); }
+      if (kind === 'dwarf') for (var yy = 4; yy < 52; yy += 8) { p.rect(0, yy, 256, 1, '#1e1e26'); }
+      band(52, 132, kind === 'guano' ? '#8a7a66' : kind === 'dwarf' ? '#44444e' : '#3a2e28');
+      p.speckle(0, 52, 256, 80, kind === 'guano' ? '#d8d0b8' : '#524238', kind === 'guano' ? 0.15 : 0.08, r);
+      if (kind === 'wet' || kind === 'deep') { p.ellipse(60, 100, 40, 8, '#123040'); p.ellipse(200, 116, 50, 10, '#081820'); p.rect(80, 100, 16, 1, '#2a6a80'); }
+      if (kind === 'guano') for (var b = 0; b < 30; b++) p.set(r() * 256, r() * 40, '#1a1418');
+    } else if (kind === 'bog') {
+      band(0, 132, '#0a1a10'); band(0, 60, '#08140c');
+      for (var t = 0; t < 12; t++) { var tx = r() * 256; p.rect(tx, 10 + r() * 20, 3, 50, '#1a2a18'); p.ellipse(tx + 1, 12 + r() * 10, 8, 6, '#14301c'); }
+      band(60, 132, '#123a1c'); p.speckle(0, 60, 256, 72, '#0a2a14', 0.2, r);
+      for (var g = 0; g < 26; g++) p.set(r() * 256, 10 + r() * 110, g % 2 ? N(0x2B) : N(0x39));
+    } else if (kind === 'gulch') {
+      band(0, 132, '#8a7a66'); band(0, 60, '#6e604e');
+      for (var w = 0; w < 7; w++) { var wx = 20 + w * 36; p.line(wx, 0, wx + 30, 50, '#e8e8f0'); p.line(wx + 30, 0, wx, 50, '#e8e8f0'); p.ring(wx + 15, 25, 8, 8, '#d8d8e0'); }
+      band(60, 132, '#9a8a74'); p.speckle(0, 60, 256, 72, '#6e604e', 0.1, r);
+    } else if (kind === 'lake') {
+      band(0, 132, '#040810'); band(0, 44, '#0a1020');
+      for (var st = 0; st < 40; st++) p.set(r() * 256, r() * 40, st % 3 ? '#8a8aa0' : '#f8f8f8');
+      band(44, 132, '#081820');
+      for (var wv = 0; wv < 30; wv++) p.rect(r() * 240, 50 + r() * 80, 6 + r() * 10, 1, '#123040');
+      p.ellipse(220, 118, 40, 10, '#6a6a72'); p.ellipse(220, 116, 36, 8, '#8a8a92');
+      p.rect(240, 60, 2, 50, '#3a2a1a'); p.rect(237, 56, 8, 6, '#F8D878');
+    } else if (kind === 'arena') {
+      band(0, 132, '#3a2a1a'); band(0, 50, '#1a1210');
+      for (var c2 = 0; c2 < 140; c2++) { var cx = r() * 256, cy = 6 + r() * 38; p.rect(cx, cy, 3, 4, ['#8a6a4a', '#6a4a3a', '#aa8a6a', '#5a5a6a'][c2 % 4]); p.rect(cx, cy - 2, 3, 2, '#e0b088'); }
+      band(48, 54, '#7a5a3a'); band(54, 132, N(0x38)); p.speckle(0, 54, 256, 78, N(0x28), 0.12, r);
+    } else if (kind === 'town') {
+      band(0, 60, '#50505e'); for (var bx = 0; bx < 256; bx += 16) p.rect(bx, 0, 1, 60, '#3a3a46');
+      band(60, 132, N(0x10)); p.speckle(0, 60, 256, 72, N(0x00), 0.1, r);
+    } else { band(0, 132, '#101018'); }
+    var c = p.canvas();
+    return (bgCache[kind] = c);
+  };
+
+  // ------------------------------------------------------------------ start helper for scripts
+  DS.battle = function (o) {
+    return {
+      start: function (script) {
+        var self = this;
+        DS.audio.sfx('encounter');
+        var b = new Battle(o);
+        var prevSong = DS.audio.songId;
+        b.onClose = function (res) {
+          self.finished = true; self.result = res;
+          if (o.after !== false && res !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true);
+          setTimeout(function () { script.resume(self, res); }, 0);
+        };
+        DS.push(new EncounterFlash(function () { DS.push(b); }));
+      }
+    };
+  };
+  function EncounterFlash(then) { this.kind = 'flash'; this.t = 0; this.then = then; }
+  EncounterFlash.prototype.update = function () { this.tick(); };
+  EncounterFlash.prototype.tick = function () { if (++this.t >= 28) { DS.pop(this); this.then(); } };
+  EncounterFlash.prototype.draw = function (ctx) {
+    var k = this.t;
+    if ((k >> 2) & 1) { ctx.globalAlpha = 0.8; ctx.fillStyle = '#F8F8F8'; ctx.fillRect(0, 0, 256, 240); ctx.globalAlpha = 1; }
+    if (k > 16) { var h = (k - 16) * 10; ctx.fillStyle = '#000'; ctx.fillRect(0, 120 - h, 256, h * 2); }
+  };
+})();

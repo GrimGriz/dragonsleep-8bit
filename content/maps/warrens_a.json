@@ -1,0 +1,277 @@
+{
+"id": "warrens_a",
+"name": "The Crawler Warrens — the mouth camp",
+"tileset": "cave",
+"rows": [
+"VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
+"VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
+"VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
+"VVV.VVVVV.VVVVV.VVVVV.VVVVV.VVVVV.VVVVVV",
+"MMM.MMMMM=MMMMM.MMMMM=MMMMM=MMMMM.MMMMMM",
+",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+",,,,RRRR,,SSSRRR,,,,,,,,,,,,RRR,,SSSSSS,",
+",,,,WWDW,,WWWWDW,,c,,,,c,,,,WDWq,OODOOO,",
+",,,,,,,,,,,,,,,,,,,,c,,,,c,,,,,,,,,,,,,,",
+",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
+"AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAA",
+"AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAA",
+"AAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAA",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"W\"\"W\"\"\"\"\"\"\"W\"\"yyyyyyyyyyyyyy",
+"\"\"FFFFFFF\"FFFFFF\"\"\"\"\"\"\"\"\"\"ffffffffffffff",
+"\"\"FRRRRRR\"RRRRRF\"\"\"\"\"\"\"\"\"\"yyyyyyyyyyyyyy",
+"\"\"FWWDWWW\"WWWWWF\"\"\"\"\"\"\"\"\"\"ffffffffffffff",
+"\"\"F\"\"\"\"\"\"\"\"\"\"\"\"F\"\"\"\"\"\"\"\"\"\"yyyyyyyyyyyyyy",
+"\"\"F\"\"\"\"\"\"\"\"\"\"\"\"F\"\"\"\"\"\"\"\"\"\"ffffffffffffff",
+"\"\"FFFFFFFFFFFFFF\"\"\"\"\"\"\"\"\"\"yyyyyyyyyyyyyy",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"ffffffffffffff"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "ladder",
+"l": "lantern",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "dirt",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "roofS",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "web",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bridgeV",
+"C": "cliff",
+"A": "water",
+"M": "mountain",
+"V": "range",
+"I": "lamp"
+},
+"music": "field",
+"bg": "plains",
+"outside": true,
+"exits": {
+"west": {
+"to": "world",
+"tx": 45,
+"ty": 13,
+"dir": "left"
+},
+"east": {
+"to": "world",
+"tx": 47,
+"ty": 13,
+"dir": "right"
+},
+"south": {
+"to": "world",
+"tx": 46,
+"ty": 13,
+"dir": "down"
+}
+},
+"npcs": [
+{
+"id": "skarn",
+"x": 15,
+"y": 8,
+"look": "skarn",
+"dir": "down"
+},
+{
+"id": "edric",
+"x": 7,
+"y": 8,
+"look": "clerk",
+"dir": "down"
+},
+{
+"id": "jory",
+"x": 11,
+"y": 5,
+"look": "worker",
+"dir": "down"
+},
+{
+"id": "hobCamp",
+"x": 30,
+"y": 8,
+"look": "oldhand",
+"dir": "down"
+},
+{
+"id": "linnet",
+"x": 20,
+"y": 18,
+"look": "girl",
+"dir": "up",
+"cond": "!flag:fiveDone"
+},
+{
+"id": "dunmoreLine",
+"x": 20,
+"y": 12,
+"look": "guard",
+"dir": "down",
+"cond": "flag:stockDead & !flag:lineBroken"
+}
+],
+"warps": [
+{
+"x": 3,
+"y": 3,
+"to": "warrens_c",
+"tx": 2,
+"ty": 16,
+"dir": "up"
+},
+{
+"x": 33,
+"y": 3,
+"to": "warrens_c",
+"tx": 45,
+"ty": 16,
+"dir": "up"
+},
+{
+"x": 15,
+"y": 4,
+"to": "warrens_b",
+"tx": 13,
+"ty": 26,
+"dir": "up"
+}
+],
+"signs": [
+{
+"x": 8,
+"y": 7,
+"text": "THE BOARD. One silver the sealed thimble above the wet; three below. Six draws to a shift. Antitoxin draught, one silver. Not taken: anyone with a lamp in Mouth One or Mouth Six after dark. — SKARN",
+"src": "WarrensModule/handouts/handout-galleries-hands-wanted.md (the bill)"
+}
+],
+"triggers": [
+{
+"id": "pen2",
+"rect": [
+9,
+4,
+1,
+1
+],
+"on": "use",
+"script": "pen",
+"arg": 2
+},
+{
+"id": "pen4",
+"rect": [
+21,
+4,
+1,
+1
+],
+"on": "use",
+"script": "pen",
+"arg": 4
+},
+{
+"id": "pen5",
+"rect": [
+27,
+4,
+1,
+1
+],
+"on": "use",
+"script": "pen",
+"arg": 5
+},
+{
+"id": "shop:tally",
+"x": 6,
+"y": 7,
+"on": "step",
+"script": "shop",
+"arg": "tally",
+"back": "down"
+},
+{
+"id": "keeper:kitchen",
+"x": 29,
+"y": 7,
+"on": "step",
+"script": "keeper",
+"arg": "kitchen",
+"back": "down"
+},
+{
+"id": "keeper:bunkhouse",
+"x": 35,
+"y": 7,
+"on": "step",
+"script": "keeper",
+"arg": "bunkhouse",
+"back": "down"
+},
+{
+"id": "keeper:skarnoffice",
+"x": 14,
+"y": 7,
+"on": "step",
+"script": "keeper",
+"arg": "skarnoffice",
+"back": "down"
+},
+{
+"id": "keeper:pellambarn",
+"x": 5,
+"y": 22,
+"on": "step",
+"script": "keeper",
+"arg": "pellambarn",
+"back": "down"
+}
+]
+}

@@ -1,0 +1,30 @@
+{
+  "kofi": "https://ko-fi.com/grimgriz",
+  "title": "DRAGONSLEEP",
+  "version": "1.0.0",
+  "startSilver": 10,
+  "startItems": [["simples", 3], ["kit", 1]],
+  "start": { "map": "silverton", "x": 30, "y": 36, "dir": "up" },
+  "renownTitles": ["a stranger", "a face in the crowd", "a name at the bars", "a name on the board", "a name up and down the road", "the corridor's own", "a local hero", "a local hero", "a local hero"],
+  "src": "handoff-2026-09-23-dragonsleep-8bit-spec.md (Ko-fi §1; start in Silverton §12); startSilver: wiki/barley.md (ten silver); start items invented.json#start",
+  "credits": [
+    { "t": "DRAGONSLEEP", "big": true },
+    { "t": "Silverton · the Warrens · the Road", "c": "#C8D0E8", "gap": 16 },
+    { "t": "A WORLD BY", "c": "#F8D878" },
+    { "t": "Griz — GrimGriz", "gap": 14 },
+    { "t": "The realm of DRAGONSLEEP, Silverton and the corridor, its people, its places and its names are Griz's.", "c": "#9C9C9C", "gap": 14 },
+    { "t": "SPEC", "c": "#F8D878" },
+    { "t": "Griz, with the Cowork seat", "gap": 14 },
+    { "t": "BUILT BY", "c": "#F8D878" },
+    { "t": "Claude (Anthropic), in Claude Code", "gap": 6 },
+    { "t": "Code, pixel art, chiptunes and connective text written for this game. Nothing copied from any other game.", "c": "#9C9C9C", "gap": 14 },
+    { "t": "RULES", "c": "#F8D878" },
+    { "t": "This work includes material taken from the System Reference Document 5.1 (\"SRD 5.1\") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.", "c": "#C8D0E8", "gap": 14 },
+    { "t": "The shape of the thing: the old turn-based console RPGs. The shape only.", "c": "#9C9C9C", "gap": 18 },
+    { "t": "UP TO THE DOORS", "c": "#F8D878" },
+    { "t": "DOWN TO THE PIT", "c": "#F8D878" },
+    { "t": "Coming in an expansion pack.", "gap": 6 },
+    { "t": "Donate to support it: ko-fi.com/grimgriz", "c": "#F8A4C0", "gap": 24 },
+    { "t": "Thanks for playing.", "c": "#F8D878", "gap": 60 }
+  ]
+}

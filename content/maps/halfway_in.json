@@ -1,0 +1,102 @@
+{
+"id": "halfway_in",
+"name": "The Halfway Inn — inside",
+"tileset": "inside",
+"rows": [
+"wwwwwwwwwwwwwwwwww",
+"w::h:::c:uwqqw::hw",
+"w::::::c::w::w:::w",
+"w::::::c:::::wtt:w",
+"w:tttt:c::w::::::w",
+"D:::::::::w::w:::D",
+"w::::::::::::w:::w",
+"w:t::::c::wz:::::w",
+"wk::::kc::w:zw::kw",
+"wwwwwwwwwwwwwwwwww"
+],
+"legend": {
+":": "floorWood",
+";": "floorStone",
+"_": "rug",
+"c": "counter",
+"b": "bar",
+"t": "table",
+"u": "stairsUp",
+"d": "stairsDown",
+"z": "bed",
+"q": "shelf",
+"h": "hearth",
+"i": "boxes",
+"w": "wall",
+"o": "wallWin",
+"p": "pillar",
+"#": "stonewall",
+"s": "sandArena",
+"x": "hexwall",
+"%": "curtain",
+" ": "void",
+"k": "crate",
+"D": "door",
+".": "floorWood",
+"l": "lamp"
+},
+"music": "inn",
+"bg": "town",
+"npcs": [
+{
+"id": "gennet",
+"x": 5,
+"y": 6,
+"look": "innlady",
+"dir": "down",
+"cond": "!flag:lakeDone"
+},
+{
+"id": "doranIn",
+"x": 8,
+"y": 3,
+"look": "worker",
+"dir": "left"
+},
+{
+"id": "elsbeth",
+"x": 15,
+"y": 5,
+"look": "elsbeth",
+"dir": "up"
+},
+{
+"id": "katarina",
+"x": 2,
+"y": 6,
+"look": "priest",
+"dir": "right"
+}
+],
+"warps": [
+{
+"x": 0,
+"y": 5,
+"to": "halfway",
+"tx": 13,
+"ty": 12,
+"dir": "down"
+},
+{
+"x": 17,
+"y": 5,
+"to": "halfway",
+"tx": 20,
+"ty": 12,
+"dir": "down"
+}
+],
+"signs": [
+{
+"x": 9,
+"y": 1,
+"text": "The stair up. The room over the kitchen has a bedside drawer. In it, a finished manuscript, left like a Gideons bible.",
+"src": "wiki/halfway-inn-and-lake.md (Katarina finished Book One here)"
+}
+]
+}

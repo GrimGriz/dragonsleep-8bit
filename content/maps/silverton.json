@@ -1,0 +1,570 @@
+{
+"id": "silverton",
+"name": "Silverton",
+"tileset": "town",
+"rows": [
+"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+"^^^^^^^^^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
+"^^^^^^^^^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
+"^^^^^^^^^^^eeaeeeaeeeaeeeaeeeeeeeeaeeeaeeeaeeeaee~~~~~~~~~~~",
+"^^^^^^^^^^^eeaeeeaeeeaeeeaeeevveeeaeeeaeeeaeeeaee~~~~~~~~~~~",
+"^^k..........@...@...@...@........@...@...@...@.............",
+",,,......................................................,,,",
+",,,......................................................,,,",
+"^^k.ssssss.rrrrr.bbbbb.sssss....rrrrr.bbbbb.sssss.rrrrrr.k\"\"",
+"^^k.ssssss.rrrrr.bbbbb.sssssl..lrrrrr.bbbbb.sssss.rrrrrr.k\"\"",
+"^^k.wowDwo.woDow.woDow.woDow....woDow.woDow.woDow.wowDwo.k\"\"",
+"^^k......................................................k\"\"",
+"^^krrrrrrr.bbbb.rrrr.bbbb........bbbbb.rrrrr.bbbb.sssss..k\"\"",
+"^^krrrrrrrlbbbb.rrrr.bbbb.l.....lbbbbb.rrrrrlbbbblsssss..k\"\"",
+"^^kwowDwow.wDwo.woDo.wDwo........woDow.woDow.wDwo.woDow..k\"\"",
+"^^k......................................................k\"\"",
+"^^k,,,,,,,,,,,,,,,........l.........rrrr.................k\"\"",
+"^^k,h,,,,,,,,,h,,,.l....bbbbbbbbbbb.rrrrl................k\"\"",
+"^^k,,,,,,h,,,,,,,,.....bbbbbbbbbbbbbwDwo.................k\"\"",
+"^^k,,,,,,,,,,,,,,,....bbbbbbbbbbbbbbb....................k\"\"",
+"^^k,,,bbb,,,,,,,,,...bbbbbbbbbbbbbbbbb.....bbbbbb........k\"\"",
+"^^k,,,www,,,,,,,,,..bbbbbbbbbbbbbbbbbbb....bbbbbb........k\"\"",
+"^^k,,,,,,,,,,,hbb,..bbbbbb:::::::bbbbbb....woDowo........k\"\"",
+"^^kc,h,,,,,,,,,wD,..bbbbb:::::::::bbbbb..................k\"\"",
+"^^k,,,,,,,,h,,,,,,..bbbbb:::::::::bbbbb.....l............k\"\"",
+"^^k,,,,,,,,,,sssss..bbbbb:::::::::bbbbb....rrrrr.........k\"\"",
+"^^kbbb,,,,,,,sssss..bbbbb:::::::::bbbbb....rrrrr.........k\"\"",
+"^^kwww,,bbb,,woDow..bbbbb:::::::::bbbbb....woDow.........k\"\"",
+"^^k,,,,,www,bbb,,,..zbbbbb:::::::bbbbbz..................k\"\"",
+"^^k,,,,,,,,,www,,,..xzbbbbbbbbbbbbbbbzx....rrrrr.ssssss..k\"\"",
+"^^k,h,,,,|ccc|,,,,...xzbbbbbbbbbbbbbzx.....rrrrr.ssssss..k\"\"",
+"^^k,,,,,,,ccc,,h,,....xzbbbbbbbbbbbzx......wodow.wodowo..k\"\"",
+"^^k,,,,,,,,,,,,,,,.....xzzzzzzzzzzzx.....................k\"\"",
+"^^k,,bbb,,,,,,,,,q......xxxxxDDxxxx.......\"\"\"\"\"\"\"\"\"sssss\"k\"\"",
+"^^k,,www,,,bbb,,,,........................t\"\"\"\"\"\"\"\"sssss\"k\"\"",
+"^^k,,,,,,,,www,,,,.l..mm...........mmm..l.\"\"\"\"\"\"\"\"\"wodow\"k\"\"",
+"^^k,,,,,h,,,,,,,,,........................\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"k\"\"",
+"^^k,,,,,,,,,,,,bbb........................\"\"ssssss\"\"\"\"\"\"tk\"\"",
+"^^k,bbb,,,,,,,,www.ssss...bbbb....rrrr.sss\"\"ssssss\"\"\"\"\"\"\"k\"\"",
+"^^k,wwwsssss,,,,,,.ssss.m.bbbb.mm.rrrr.sss\"\"wowDwo\"\"\"\"\"\"\"k\"\"",
+"^^k,,,,sssss,h,,,,.wdwo...wDwo....wDwo.wod\"\"f\"\"\"\"\"\"\"\"\"\"t\"k\"\"",
+"^^k,h,,woDow,,,,,,........................\"t\"f\"\"\"\"\"\"\"f\"\"\"k\"\"",
+"^^k,,,,,,,,,,,,,,,........................\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"k\"\"",
+"^^kkkkkkkkkkkkkkkkkkkkkkkkkkk,,kkkkkkkkkkkkkkkkkkkkkkkkkkk\"\"",
+"............................................................"
+],
+"legend": {
+".": "cobble",
+",": "dirt",
+"\"": "grassT",
+"f": "flowers",
+"t": "tree",
+"r": "roofR",
+"b": "roofB",
+"s": "roofS",
+"w": "wall",
+"o": "wallWin",
+"d": "doorShut",
+"D": "door",
+"#": "stonewall",
+"e": "edifice",
+"a": "edificeArch",
+"p": "pillar",
+"v": "vault",
+"@": "fountain",
+"~": "channel",
+"!": "falls",
+"|": "fence",
+"k": "stockade",
+"l": "lamp",
+"q": "well",
+"m": "stall",
+"c": "crate",
+"h": "headframe",
+"n": "tent",
+":": "sandArena",
+"x": "hexwall",
+"z": "hexwallRed",
+"-": "bridge",
+"1": "bridgeV",
+" ": "void",
+"^": "mountain",
+"W": "water",
+"u": "reeds",
+"y": "wheat",
+"F": "farm",
+"i": "flatstone",
+"K": "dock",
+"S": "sand",
+"X": "range",
+"=": "road",
+"Y": "deep"
+},
+"music": "town",
+"bg": "town",
+"outside": true,
+"exits": {
+"west": {
+"to": "world",
+"tx": 36,
+"ty": 11,
+"dir": "left"
+},
+"east": {
+"to": "world",
+"tx": 38,
+"ty": 13,
+"dir": "right"
+},
+"south": {
+"to": "world",
+"tx": 37,
+"ty": 12,
+"dir": "down"
+}
+},
+"npcs": [
+{
+"id": "marta",
+"x": 36,
+"y": 37,
+"look": "marta",
+"dir": "up"
+},
+{
+"id": "gull",
+"x": 9,
+"y": 22,
+"look": "rogue",
+"wander": 1
+},
+{
+"id": "kael",
+"x": 11,
+"y": 33,
+"look": "worker",
+"dir": "up"
+},
+{
+"id": "brennock",
+"x": 5,
+"y": 26,
+"look": "oldhand",
+"dir": "down"
+},
+{
+"id": "vera",
+"x": 6,
+"y": 31,
+"look": "girl",
+"wander": 1
+},
+{
+"id": "oldhob",
+"x": 17,
+"y": 24,
+"look": "oldhand",
+"dir": "left",
+"cond": "!flag:hobMet"
+},
+{
+"id": "papa",
+"x": 28,
+"y": 35,
+"look": "papa",
+"dir": "down",
+"solid": true,
+"face": false
+},
+{
+"id": "vivian",
+"x": 25,
+"y": 41,
+"look": "vivian",
+"dir": "down",
+"hire": "vivian",
+"idle": true,
+"lantern": true
+},
+{
+"id": "aurdinChapel",
+"x": 11,
+"y": 43,
+"look": "aurdin",
+"dir": "up",
+"hire": "aurdin"
+},
+{
+"id": "pete",
+"x": 20,
+"y": 34,
+"look": "worker2",
+"dir": "down"
+},
+{
+"id": "guard1",
+"x": 3,
+"y": 8,
+"look": "guard",
+"dir": "right"
+},
+{
+"id": "towns1",
+"x": 20,
+"y": 8,
+"look": "merchant",
+"wander": 3
+},
+{
+"id": "towns2",
+"x": 40,
+"y": 7,
+"look": "girl",
+"wander": 3
+},
+{
+"id": "towns3",
+"x": 27,
+"y": 16,
+"look": "worker",
+"wander": 3
+},
+{
+"id": "towns4",
+"x": 47,
+"y": 19,
+"look": "boy",
+"wander": 2
+},
+{
+"id": "towns5",
+"x": 8,
+"y": 30,
+"look": "worker2",
+"wander": 2
+},
+{
+"id": "towns6",
+"x": 46,
+"y": 33,
+"look": "clerk",
+"wander": 2
+},
+{
+"id": "towns7",
+"x": 36,
+"y": 12,
+"look": "noble",
+"wander": 2
+},
+{
+"id": "towns8",
+"x": 14,
+"y": 36,
+"look": "girl",
+"wander": 2
+},
+{
+"id": "idony",
+"x": 18,
+"y": 12,
+"look": "clerk",
+"dir": "down"
+}
+],
+"warps": [
+{
+"x": 29,
+"y": 34,
+"to": "hex",
+"tx": 10,
+"ty": 18,
+"dir": "up"
+},
+{
+"x": 30,
+"y": 34,
+"to": "hex",
+"tx": 11,
+"ty": 18,
+"dir": "up"
+}
+],
+"signs": [
+{
+"x": 29,
+"y": 6,
+"text": "The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.",
+"src": "wiki/silverton.md (the one law: nobody bothers the dwarves)"
+},
+{
+"x": 24,
+"y": 40,
+"text": "Sylvia Swann's booth: an owl painted on the board. The short reading, five silver. She isn't in.",
+"src": "wiki/silverton.md; the-lab/pit-maps/shops-silverton.json pin 37"
+},
+{
+"x": 31,
+"y": 40,
+"text": "The Vizardry mask-booth. Crude vizards with a hedge-glamour, a gold the hour. The real house is somewhere else.",
+"src": "wiki/vice-row.md; the-lab/pit-maps/shops-silverton.json pin 39"
+},
+{
+"x": 40,
+"y": 41,
+"text": "The card cellars. Low table buy-in five silver. The stairs go down; you do not.",
+"src": "the-lab/pit-maps/shops-silverton.json pin 41"
+},
+{
+"x": 45,
+"y": 32,
+"text": "The arena family's house. The door is shut.",
+"src": "wiki/silverton.md (pin 24, the arena family's house); reserved"
+},
+{
+"x": 20,
+"y": 41,
+"text": "The row's cut. The landlord's door.",
+"src": "wiki/silverton.md (vice row; Vondercamp reserved)"
+},
+{
+"x": 22,
+"y": 36,
+"text": "Betting stalls. Book made openly on fights, quietly on everything else.",
+"src": "the-lab/pit-maps/shops-silverton.json pin 18"
+},
+{
+"x": 50,
+"y": 32,
+"text": "Warehouses. No quay: the river is too small and fast to carry anything.",
+"src": "wiki/silverton.md; wiki/fountain-street.md (Mical)"
+}
+],
+"triggers": [
+{
+"id": "warp:winters",
+"x": 7,
+"y": 11,
+"on": "step",
+"script": "warp",
+"arg": "winters",
+"back": "down",
+"to": "winters",
+"tx": 4,
+"ty": 6
+},
+{
+"id": "keeper:casper",
+"x": 13,
+"y": 11,
+"on": "step",
+"script": "keeper",
+"arg": "casper",
+"back": "down"
+},
+{
+"id": "keeper:androit",
+"x": 19,
+"y": 11,
+"on": "step",
+"script": "keeper",
+"arg": "androit",
+"back": "down"
+},
+{
+"id": "keeper:hessle",
+"x": 25,
+"y": 11,
+"on": "step",
+"script": "keeper",
+"arg": "hessle",
+"back": "down"
+},
+{
+"id": "shop:kessler",
+"x": 34,
+"y": 11,
+"on": "step",
+"script": "shop",
+"arg": "kessler",
+"back": "down"
+},
+{
+"id": "shop:calla",
+"x": 40,
+"y": 11,
+"on": "step",
+"script": "shop",
+"arg": "calla",
+"back": "down"
+},
+{
+"id": "keeper:falstaff",
+"x": 46,
+"y": 11,
+"on": "step",
+"script": "keeper",
+"arg": "falstaff",
+"back": "down"
+},
+{
+"id": "keeper:merrick",
+"x": 53,
+"y": 11,
+"on": "step",
+"script": "keeper",
+"arg": "merrick",
+"back": "down"
+},
+{
+"id": "inn:cassia",
+"x": 6,
+"y": 15,
+"on": "step",
+"script": "inn",
+"arg": "cassia",
+"back": "down"
+},
+{
+"id": "keeper:mela",
+"x": 12,
+"y": 15,
+"on": "step",
+"script": "keeper",
+"arg": "mela",
+"back": "down"
+},
+{
+"id": "keeper:marin",
+"x": 18,
+"y": 15,
+"on": "step",
+"script": "keeper",
+"arg": "marin",
+"back": "down"
+},
+{
+"id": "shop:lisbet",
+"x": 22,
+"y": 15,
+"on": "step",
+"script": "shop",
+"arg": "lisbet",
+"back": "down"
+},
+{
+"id": "keeper:brennan",
+"x": 35,
+"y": 15,
+"on": "step",
+"script": "keeper",
+"arg": "brennan",
+"back": "down"
+},
+{
+"id": "shop:marko",
+"x": 41,
+"y": 15,
+"on": "step",
+"script": "shop",
+"arg": "marko",
+"back": "down"
+},
+{
+"id": "shop:kasten",
+"x": 46,
+"y": 15,
+"on": "step",
+"script": "shop",
+"arg": "kasten",
+"back": "down"
+},
+{
+"id": "keeper:barber",
+"x": 52,
+"y": 15,
+"on": "step",
+"script": "keeper",
+"arg": "barber",
+"back": "down"
+},
+{
+"id": "keeper:venhale",
+"x": 45,
+"y": 23,
+"on": "step",
+"script": "keeper",
+"arg": "venhale",
+"back": "down"
+},
+{
+"id": "shop:vilar",
+"x": 45,
+"y": 28,
+"on": "step",
+"script": "shop",
+"arg": "vilar",
+"back": "down"
+},
+{
+"id": "leech:davos",
+"x": 15,
+"y": 28,
+"on": "step",
+"script": "leech",
+"arg": "davos",
+"back": "down"
+},
+{
+"id": "keeper:percy",
+"x": 27,
+"y": 41,
+"on": "step",
+"script": "keeper",
+"arg": "percy",
+"back": "down"
+},
+{
+"id": "keeper:tam",
+"x": 35,
+"y": 41,
+"on": "step",
+"script": "keeper",
+"arg": "tam",
+"back": "down"
+},
+{
+"id": "chapel:aldwin",
+"x": 9,
+"y": 42,
+"on": "step",
+"script": "chapel",
+"arg": "aldwin",
+"back": "down"
+},
+{
+"id": "keeper:kess",
+"x": 16,
+"y": 24,
+"on": "step",
+"script": "keeper",
+"arg": "kess",
+"back": "down"
+},
+{
+"id": "keeper:mical",
+"x": 47,
+"y": 40,
+"on": "step",
+"script": "keeper",
+"arg": "mical",
+"back": "down"
+},
+{
+"id": "keeper:lucia",
+"x": 37,
+"y": 19,
+"on": "step",
+"script": "keeper",
+"arg": "lucia",
+"back": "down"
+}
+]
+}

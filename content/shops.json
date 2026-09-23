@@ -1,0 +1,21 @@
+{
+  "_note": "Shops by id. Register stock from the-lab/pit-maps/shops-silverton.json (seat-PROPOSED prices); extra stock beyond the register is invented.json#shop-stock.",
+  "vilar": { "name": "Show-Armorer", "keeper": "Vilar", "look": "smith", "greeting": "Blades that sing on stage or bite in earnest. Repairs, without asking which.",
+    "items": ["club", "quarterstaff", "dagger", "spear", "mace", "handaxe", "shortsword", "scimitar", "longsword", "flail", "warhammer", "battleaxe", "maul", "greataxe", "greatsword", "padded", "leather", "hide", "chainshirt", "ringmail", "scalemail", "chainmail", "shield"],
+    "src": "the-lab/pit-maps/shops-silverton.json pin 20 (spear, mace, shield; blunted anything); urtusk-children-prerolls.pdf p.6 (chain mail and shield out of the show-armourer's shop)" },
+  "kessler": { "name": "The Pawnbroker", "keeper": "Kessler", "look": "kessler", "greeting": "A third of value on the pledge, interest by the week. No questions that matter.",
+    "items": ["rapier", "lightcrossbow", "shortbow", "studded", "splint", "potion", "longsword1", "staff1"], "prices": { "potion": 375, "longsword1": 1875, "staff1": 1875, "splint": 1500 },
+    "src": "the-lab/pit-maps/shops-silverton.json pin 8 (unredeemed pledges at half to three-quarters PHB)" },
+  "calla": { "name": "Apothecary", "keeper": "Calla Voss", "look": "calla", "greeting": "Healer's kits, antitoxin, theriac, purges. Honest remedies above the counter.",
+    "items": ["simples", "kit", "antitoxin"], "src": "the-lab/pit-maps/shops-silverton.json pin 9" },
+  "marko": { "name": "Provisioner", "keeper": "Marko Thorne", "look": "marko", "greeting": "Rations, rope, tents, mules. Guards by the day: two gold a man.",
+    "items": ["rope", "tent", "torch", "simples"], "src": "the-lab/pit-maps/shops-silverton.json pin 15" },
+  "kasten": { "name": "Chandler", "keeper": "Kasten Wheal", "look": "merchant", "greeting": "Candles, soap, lamp-oil. Mines and arenas both burn a lot of light.",
+    "items": ["oil", "torch", "candle"], "src": "the-lab/pit-maps/shops-silverton.json pin 16" },
+  "lisbet": { "name": "Charms & Chalk", "keeper": "Lisbet Crane", "look": "girl", "greeting": "Warding chalk, five coppers the stick. Charms: no promises made.",
+    "items": ["chalk", "charm"], "src": "the-lab/pit-maps/shops-silverton.json pin 33" },
+  "tally": { "name": "The Tally-House", "keeper": "Edric Pellam", "look": "clerk", "greeting": "Doses out, weights in. The draught's a silver, taken at the board.",
+    "items": ["draught"], "buys": false, "src": "wiki/the-warrens.md (the antitoxin draught at 1 sp)" },
+  "cassia": { "name": "Coaching Inn", "keeper": "Cassia", "price": 8, "greeting": "Eight silver the good bed, each.",
+    "src": "the-lab/pit-maps/shops-silverton.json pin 11 (bed, comfortable, the night 8 sp)" }
+}

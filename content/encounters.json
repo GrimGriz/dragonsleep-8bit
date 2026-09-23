@@ -1,0 +1,28 @@
+{
+  "_note": "Random encounter tables by zone. e = [monster, min, max]. Creatures come from the register's road d20 and regional d8 tables (road-silverton-tarlynspit.md §Encounter Tables, approved 08-27c); weights and group sizes are the build's (invented.json#encounters). rate = steps between fights.",
+  "north": { "rate": [22, 40], "bg": "plains", "src": "road table d20 (14 wolves; 15 bandits; 16 stirges; 12 axe beaks)", "groups": [
+    { "w": 5, "e": [["giantrat", 2, 3]] }, { "w": 3, "e": [["wolf", 1, 2]] }, { "w": 3, "e": [["bandit", 2, 3]] },
+    { "w": 2, "e": [["stirge", 2, 3]] }, { "w": 1, "e": [["axebeak", 1, 1]] } ] },
+  "doors": { "rate": [18, 34], "bg": "hills", "src": "road table d20-13 (worg pack, orc-war remnant line); d20-14 wolves", "groups": [
+    { "w": 3, "e": [["wolf", 2, 3]] }, { "w": 2, "e": [["worg", 1, 2]] }, { "w": 1, "e": [["worg", 1, 1], ["wolf", 1, 2]] } ] },
+  "glowseep": { "rate": [16, 30], "bg": "bog", "music": "battle", "src": "road table Glowseep d8 (stirges 2d4; giant frogs / poisonous snake; swarm of insects; will-o'-wisp)", "groups": [
+    { "w": 4, "e": [["stirge", 2, 4]] }, { "w": 3, "e": [["giantfrog", 1, 2]] }, { "w": 2, "e": [["snake", 2, 3]] },
+    { "w": 2, "e": [["firebeetle", 2, 4]] }, { "w": 2, "e": [["insectswarm", 1, 1]] }, { "w": 1, "e": [["wisp", 1, 1]] } ] },
+  "gulch": { "rate": [14, 26], "bg": "gulch", "src": "wiki/web-gulch.md (giant wolf spiders through giant spiders)", "groups": [
+    { "w": 4, "e": [["wolfspider", 2, 3]] }, { "w": 2, "e": [["giantspider", 1, 1]] }, { "w": 1, "e": [["giantspider", 1, 1], ["wolfspider", 1, 2]] } ] },
+  "gnollhills": { "rate": [16, 30], "bg": "gnoll", "src": "wiki/gnoll-hills.md; road table (the pocket; packs)", "groups": [
+    { "w": 4, "e": [["gnoll", 2, 3]] }, { "w": 3, "e": [["hyena", 2, 4]] }, { "w": 2, "e": [["gnoll", 1, 2], ["hyena", 1, 3]] } ] },
+  "snoot": { "rate": [20, 36], "bg": "gnoll", "src": "wiki/the-road.md (the Snoot overlay south of the gulch)", "groups": [
+    { "w": 3, "e": [["gnoll", 2, 3]] }, { "w": 2, "e": [["hyena", 3, 4]] }, { "w": 1, "e": [["gnoll", 2, 2], ["hyena", 1, 2]] }, { "w": 1, "e": [["worg", 1, 2]] } ] },
+  "south": { "rate": [22, 40], "bg": "plains", "src": "road table d20 (12 axe beaks/giant boar; 13 worgs; 15 bandits)", "groups": [
+    { "w": 3, "e": [["axebeak", 1, 2]] }, { "w": 2, "e": [["bandit", 2, 3]] }, { "w": 2, "e": [["worg", 1, 2]] }, { "w": 1, "e": [["giantboar", 1, 1]] }, { "w": 1, "e": [["gnoll", 1, 2]] } ] },
+  "verge": { "rate": [20, 36], "bg": "plains", "src": "wiki/the-verge.md; road table d20-12 (Verge beasts)", "groups": [
+    { "w": 3, "e": [["axebeak", 1, 3]] }, { "w": 2, "e": [["giantboar", 1, 1]] }, { "w": 2, "e": [["wolf", 2, 3]] } ] },
+  "warrens_c": { "rate": [14, 26], "bg": "cave", "src": "wiki/the-warrens.md (rat swarms, darkmantles, the silver-robbing crews); WarrensModule/crawler-warrens-DM.md §4", "groups": [
+    { "w": 3, "e": [["ratswarm", 1, 2]] }, { "w": 3, "e": [["giantrat", 2, 4]] }, { "w": 2, "e": [["darkmantle", 1, 2]] }, { "w": 2, "e": [["centipede", 2, 3]] },
+    { "w": 2, "e": [["robber", 2, 3], ["crewboss", 1, 1]], "flee": 0.5, "fleeText": "w.nightcrewGone" } ] },
+  "warrens_d": { "rate": [14, 26], "bg": "wet", "src": "wiki/the-warrens.md (the wet: crawlers spent singly, gray ooze, rats)", "groups": [
+    { "w": 4, "e": [["crawler", 1, 1]] }, { "w": 2, "e": [["grayooze", 1, 1]] }, { "w": 2, "e": [["ratswarm", 1, 2]] }, { "w": 1, "e": [["darkmantle", 1, 2]] } ] },
+  "g3": { "rate": [12, 22], "bg": "guano", "src": "GalleriesModule/guano-galleries-DM.md (the dens: giant bats; darkmantles on the roof)", "groups": [
+    { "w": 5, "e": [["giantbat", 1, 3]] }, { "w": 2, "e": [["darkmantle", 1, 2]] }, { "w": 1, "e": [["giantbat", 1, 2], ["darkmantle", 1, 1]] } ] }
+}

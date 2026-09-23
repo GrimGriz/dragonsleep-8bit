@@ -1,0 +1,100 @@
+{
+"id": "hex2",
+"name": "The Hex — the gambling floor",
+"tileset": "inside",
+"rows": [
+"    xxxxxxxxxxxx    ",
+"   x____d__d____x   ",
+"  x______________x  ",
+" x________________x ",
+"x__________________x",
+"x___t__      __t___x",
+"x_____        _____x",
+"x_____        _____x",
+"x_____        _____x",
+"x_____        _____x",
+"x_____        _____x",
+"x___t__      __t___x",
+" x________________x ",
+"  x____t____t____x  ",
+"   x____________x   ",
+"    xxxxxxxxxxxx    "
+],
+"legend": {
+":": "floorWood",
+";": "floorStone",
+"_": "rug",
+"c": "counter",
+"b": "bar",
+"t": "table",
+"u": "stairsUp",
+"d": "stairsDown",
+"z": "bed",
+"q": "shelf",
+"h": "hearth",
+"i": "boxes",
+"w": "wall",
+"o": "wallWin",
+"p": "pillar",
+"#": "stonewall",
+"s": "sandArena",
+"x": "hexwall",
+"%": "curtain",
+" ": "void",
+"k": "crate",
+"D": "door",
+".": "darkfloor",
+"l": "lamp"
+},
+"music": "hex",
+"bg": "arena",
+"npcs": [
+{
+"id": "gambler1",
+"x": 5,
+"y": 6,
+"look": "noble",
+"dir": "right"
+},
+{
+"id": "gambler2",
+"x": 14,
+"y": 12,
+"look": "noble",
+"dir": "left"
+},
+{
+"id": "vairseat",
+"x": 15,
+"y": 6,
+"look": "noble",
+"dir": "left"
+}
+],
+"warps": [
+{
+"x": 8,
+"y": 1,
+"to": "hex",
+"tx": 9,
+"ty": 3,
+"dir": "down"
+},
+{
+"x": 11,
+"y": 1,
+"to": "hex",
+"tx": 12,
+"ty": 3,
+"dir": "down"
+}
+],
+"signs": [
+{
+"x": 10,
+"y": 14,
+"text": "The rail. Below, the sand. The roof is a ring: on a new-moon night you see the stars.",
+"src": "wiki/the-hex.md (the building as built)"
+}
+]
+}

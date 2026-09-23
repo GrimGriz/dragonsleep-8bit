@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>DRAGONSLEEP</title>
+<meta name="description" content="An 8-bit, turn-based RPG of Silverton and the corridor, with 5E-flavored rules. A world by GrimGriz.">
+<meta name="theme-color" content="#04061a">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%2304061a'/%3E%3Cpath d='M1 13 L5 6 L8 10 L11 4 L15 13 Z' fill='%2344445a'/%3E%3Crect x='7' y='3' width='2' height='10' fill='%233CBCFC'/%3E%3Crect x='11' y='4' width='1' height='1' fill='%23e8e8f4'/%3E%3C/svg%3E">
+<style>
+  :root { --bg: #04061a; --ink: #c8d0e8; --edge: #e8e8f4; --mid: #6e6e98; --btn: #1a1c46; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--ink); }
+  body {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    overflow: hidden; touch-action: none; -webkit-user-select: none; user-select: none;
+    font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace;
+  }
+  #screen { display: block; image-rendering: pixelated; image-rendering: crisp-edges; background: #000; outline: none; }
+  #hint { margin-top: 10px; color: #6c6c84; letter-spacing: .04em; text-align: center; padding: 0 16px; }
+  #pad { display: none; }
+  body.touch #hint { display: none; }
+  body.touch { justify-content: flex-start; padding-top: env(safe-area-inset-top); }
+  body.touch #pad {
+    display: flex; width: 100%; flex: 1; box-sizing: border-box; padding: 14px 18px calc(18px + env(safe-area-inset-bottom));
+    align-items: center; justify-content: space-between;
+  }
+  #dpad { position: relative; width: 150px; height: 150px; touch-action: none; }
+  #dpad div {
+    position: absolute; width: 50px; height: 50px; background: var(--btn); border: 2px solid var(--mid);
+    box-sizing: border-box; color: var(--edge); display: flex; align-items: center; justify-content: center; font-size: 16px;
+  }
+  #dpad div.on { background: #3a3c7a; border-color: var(--edge); }
+  #dpad [data-d=up] { left: 50px; top: 0; border-radius: 8px 8px 0 0; }
+  #dpad [data-d=down] { left: 50px; top: 100px; border-radius: 0 0 8px 8px; }
+  #dpad [data-d=left] { left: 0; top: 50px; border-radius: 8px 0 0 8px; }
+  #dpad [data-d=right] { left: 100px; top: 50px; border-radius: 0 8px 8px 0; }
+  #dpad .hub { left: 50px; top: 50px; border-radius: 0; }
+  .btns { display: grid; grid-template-columns: 70px 70px; grid-template-rows: 70px 40px; gap: 10px; align-items: center; justify-items: center; }
+  .btns div {
+    width: 64px; height: 64px; border-radius: 50%; background: var(--btn); border: 2px solid var(--mid); color: var(--edge);
+    display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: bold; touch-action: none;
+  }
+  .btns [data-btn=a] { grid-column: 2; grid-row: 1; transform: translateY(-18px); }
+  .btns [data-btn=b] { grid-column: 1; grid-row: 1; transform: translateY(6px); }
+  .btns [data-btn=menu] { grid-column: 1 / span 2; grid-row: 2; width: 96px; height: 32px; border-radius: 16px; font-size: 12px; }
+  .btns div.on { background: #3a3c7a; border-color: var(--edge); }
+  @media (orientation: landscape) {
+    body.touch { justify-content: center; }
+    body.touch #pad { position: fixed; inset: 0; pointer-events: none; padding: 0 calc(18px + env(safe-area-inset-right)) 0 calc(18px + env(safe-area-inset-left)); }
+    body.touch #pad > * { pointer-events: auto; }
+  }
+  noscript { color: var(--ink); padding: 24px; text-align: center; }
+</style>
+</head>
+<body>
+<canvas id="screen" width="256" height="240" tabindex="0" aria-label="DRAGONSLEEP game screen"></canvas>
+<div id="hint">ARROWS/WASD move &middot; Z/ENTER talk &amp; choose &middot; X/ESC menu &amp; back</div>
+<div id="pad" aria-hidden="true">
+  <div id="dpad"><div data-d="up">&#9650;</div><div data-d="left">&#9664;</div><div class="hub"></div><div data-d="right">&#9654;</div><div data-d="down">&#9660;</div></div>
+  <div class="btns"><div data-btn="b">B</div><div data-btn="a">A</div><div data-btn="menu">MENU</div></div>
+</div>
+<noscript>DRAGONSLEEP needs JavaScript.</noscript>
+<script src="js/core.js?v=204c9af1a0"></script>
+<script src="js/font.js?v=204c9af1a0"></script>
+<script src="js/art.js?v=204c9af1a0"></script>
+<script src="js/sprites.js?v=204c9af1a0"></script>
+<script src="js/bestiary-art.js?v=204c9af1a0"></script>
+<script src="js/audio.js?v=204c9af1a0"></script>
+<script src="js/rules.js?v=204c9af1a0"></script>
+<script src="js/ui.js?v=204c9af1a0"></script>
+<script src="js/battle.js?v=204c9af1a0"></script>
+<script src="js/world.js?v=204c9af1a0"></script>
+<script src="js/scenes.js?v=204c9af1a0"></script>
+<script src="js/events.js?v=204c9af1a0"></script>
+<script src="data/data.js?v=204c9af1a0"></script>
+<script src="js/main.js?v=204c9af1a0"></script>
+</body>
+</html>

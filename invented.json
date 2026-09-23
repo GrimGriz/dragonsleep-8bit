@@ -1,0 +1,53 @@
+{
+  "_about": "Everything this build made up, one line each, PROPOSED to Griz's ear (spec §8). Nothing here is written back to the wiki. Where the register holds a thing open, the game shows a visible [GRIZ] stub instead of inventing it.",
+  "status": "PROPOSED",
+  "entries": [
+    { "id": "threshing-flail", "what": "Barley's threshing flail statted as 1d10 bludgeoning, two-handed (so Great Weapon Fighting applies).", "why": "No stats anywhere in the register; the register calls it 'a two-handed farm tool'." },
+    { "id": "barley-starts-armed", "what": "Barley starts with the flail and no armor (AC 11).", "why": "The register has him owning nothing on Day -15; the game starts him at fighter 2 with his method in hand." },
+    { "id": "crawler", "what": "The Warrens' 'Crawler' is an original stat block (AC 12, HP 40, feelers +5 1d6+2 poison with the register's CON DC 13 paralysis, mandibles +4 2d4+2).", "why": "The carrion crawler is not in SRD 5.1; the spec forbids non-SRD monsters by name. The CON 13 touch is the register's own." },
+    { "id": "keeper", "what": "The Stair's Keeper is an original stat block (AC 13, HP 58, constrict + drag under, STR DC 13 grapple, invisible in its water until light shows it).", "why": "The water weird is not in SRD 5.1. The register's DC 13 and 'cannot leave its water' are kept." },
+    { "id": "glory-seeker", "what": "A 'Glory-Seeker' gnoll leader (CR 1, HP 38, spear + bite).", "why": "The gnoll pack lord is not SRD; the register's Snoot overlay has glory-seekers." },
+    { "id": "hires", "what": "Hire terms: Barley joins if you front his 5-silver stake at the Hex; Aurdin if you cover his debt (20 sp, creditor unnamed — held OPEN); Vivian after you buy one of her candles (1 sp) and ask; Lymen once the party has any renown. Spots: Barley at the Hex bar, Lymen at the Hex, Aurdin outside the mission chapel, Vivian on vice row.", "why": "The register gives no joining price for any of them; spots follow where the register places each." },
+    { "id": "hire-levels", "what": "Hires join at the higher of their sheet level and (the lead's level - 1).", "why": "Spec §13.7 suggestion (join-level floor)." },
+    { "id": "level-picks", "what": "Level-up picks: Barley Champion at 3, STR+2 at 4; Aurdin Evocation, learns Scorching Ray + Mage Armor (3), Web + Shatter (4), Fireball + Lightning Bolt (5), INT+1/CON+1 at 4; Lymen Oath of Devotion at 3 (+Divine Favor), Heroism at 4, Lesser Restoration + Aid at 5, STR+1/CHA+1 at 4; Vivian DEX+2 at 4.", "why": "SRD 5.1 offers one subclass per class; the register leaves Barley's and Lymen's unruled. Spells chosen from the SRD list for usefulness in menu combat (Griz 09-23: the build picks casters' spells; no need to include every spell)." },
+    { "id": "vivian-archetype", "what": "Vivian gets NO roguish archetype at level 3 (status shows '[GRIZ] archetype held open').", "why": "The register holds it open (lean Assassin, not SRD) and says Thief is deliberately not taken." },
+    { "id": "lymen-ac", "what": "Lymen's AC is computed as 19 (chain mail 16 + shield 2 + Defense 1).", "why": "His sheet reads 18 with Defense 'included' — the arithmetic doesn't reach 18. Flagged for Griz." },
+    { "id": "economy", "what": "Currency is silver pieces; SRD gp prices x10. Register prices win where they exist.", "why": "The town talks in silver; the Hex stake, the dose-rate and the lantern law are all in silver." },
+    { "id": "simples", "what": "Calla's 'simples' heal 1d4+2 in the game.", "why": "The register prices theriac/purges/simples at ~2 sp but gives no effect." },
+    { "id": "kit", "what": "A healer's kit is sold per use (5 sp) and gets a KO'd hero up at 1 HP.", "why": "SRD kit (10 uses for 5 gp) stabilizes; the spec wants KO'd heroes revived 'with an item'." },
+    { "id": "tent", "what": "The tent is a consumable short-rest item (half HP back; Second Wind, Action Surge, Channel Divinity recover).", "why": "Spec §7: short rest = a TENT item." },
+    { "id": "chalk", "what": "Warding chalk pushes the next random encounter back ~60 steps.", "why": "The register sells warding chalk and threshold lines with 'no promises made'; the effect is the game's." },
+    { "id": "charm", "what": "Lisbet's charm is a ring-slot item with no effect.", "why": "'Charms (no promises made)' — taken at its word." },
+    { "id": "shop-stock", "what": "Vilar's show-armorer sells the full SRD weapon and armor list (beyond the register's spear, mace, shield); Kessler's pawn stocks a few pledges (rapier, crossbow, studded, splint, potion, two +1 weapons).", "why": "The register has no armorer; Lymen's chain mail came from the show-armorer, so the game treats Vilar's as the armor shop." },
+    { "id": "halfway-price", "what": "A night at the Halfway Inn costs 5 sp a head.", "why": "No price in the register for ordinary guests." },
+    { "id": "encounters", "what": "Encounter weights, group sizes and step rates for every zone.", "why": "The register's road d20 and regional d8s name the creatures; the numbers are the game's." },
+    { "id": "hex-card", "what": "The Hex ladder for a free fighter: a floor-bet brawl (Bandit stats, fists), a freeman challenge vs a stable fighter (Thug), the card vs a hired blade (Bandit Captain stats), Talmok (register block, pit fists), then a festival bout (Berserker). Bouts are solo; a loser is stitched up on the house at 1 HP.", "why": "The register has no ladder for free fighters; the rungs follow its stated rules." },
+    { "id": "roost-law", "what": "Using fire (spells, oil, torches) in a battle under a roosted ceiling breaks the one law: Sabeth stops paying and Ottilie won't speak to you.", "why": "The register's one law; the mechanical consequence is the game's." },
+    { "id": "warrens-flow", "what": "Warrens flow: talk to Edric (or work a shift) to get in the book; talk to Skarn 'as a man' to open his gate; take the bucket to feed the otyugh or fight it; the mark wakes the keeper; rope the five out from the landing or wade in and fight. Killing 6+ crawlers makes the stock 'dead' and Dunmore's line holds the camp.", "why": "Every step is the register's; the thresholds and the order are the game's." },
+    { "id": "galleries-flow", "what": "The rescue set-piece is fixed in G3's side gallery (four giant bats); pits in G3 drop to G4; bad air costs 1d4 on a failed CON 12.", "why": "The register's set-piece is a d6 table fired once on the GM's word." },
+    { "id": "cloaker-light", "what": "Casting Light or using a torch in battle gives the cloaker disadvantage (its Light Sensitivity) and reveals the Keeper.", "why": "SRD Light Sensitivity; the register says light is the weapon." },
+    { "id": "due-timing", "what": "The lake's offering plays the first night the party sleeps at the Halfway Inn holding the Ring of Binding; the chuul then waits at the point.", "why": "Griz ruled what the cutscene shows (the inn lady and the kid go, only the inn lady comes back); when it plays is the game's." },
+    { "id": "west-edge", "what": "The Castegut road ends at a signpost (not this road, not this time); the east and west edges are the sea, the cliffs and the black mountains.", "why": "Spec §5: east/west stoppages as appropriate." },
+    { "id": "bounty-proof", "what": "Ettercap fangs and the cloaker's tail are the proof tokens for Hessle's board.", "why": "The register names the tail; the fangs are the game's." },
+    { "id": "start", "what": "The lead starts in the Gate Plaza with 10 silver, 3 simples and 1 healer's kit.", "why": "Barley's ten silver is canon; the rest is the game's." },
+    { "id": "quest-weapons", "what": "Each major quest (Pete's five, the rescue, the cloaker, the ettercap, Talmok, the Snoot) pays a magic weapon of the hero's own kind to the main and to one hired companion in the party: +1 for the first two, +2 after. Barley's is his threshing flail made +1/+2.", "why": "Griz 09-23, mid-build: 'add magic weapons as reward for major quest - one for main and one for one hired'. The weapons are SRD Weapon +1/+2." },
+    { "id": "connective", "what": "Narration and UI lines marked 'invented: connective' in content/text.json and content/npcs.json.", "why": "Glue between register facts." },
+    { "id": "renown", "what": "A Renown counter (+1 per resolved local job, +2 for the lake) and its titles; each point also gives 250 milestone XP to everyone standing.", "why": "Spec §4: 'local hero' as the motive." },
+    { "id": "maps", "what": "All tile maps are simplified from corridor v3, city v6, environs v3 and the module sheets; building footprints, the Hex outline and the dungeon layouts are approximate.", "why": "8-bit tile scale." }
+  ],
+  "griz_stubs": [
+    "Ambrose Winters' own words (his particulars are reserved).",
+    "What is in Hessle's drawer when the cloaker's tail is weighed (the bounty's backer is held OPEN).",
+    "Aurdin's familiar (undecided until he does the ritual in story).",
+    "Vivian's roguish archetype (held open, lean Assassin).",
+    "The Halfway Inn's fate after the chuul (OPEN by ruling: 'do not ruin it').",
+    "Mama's Pharmakaiea / the arena family (reserved)."
+  ],
+  "flagged_for_griz": [
+    "Lymen's sheet says AC 18; chain mail + shield + Defense makes 19.",
+    "fighter-barley.md records 'all three leads are level 2 at campaign start' (09-01) while the spec rules Aurdin's level 2 game-only (09-23).",
+    "Show-armorer: 'Villar' in shops-silverton.json, 'Vilar' elsewhere (the game uses Vilar).",
+    "Burned voice: the wiki gives it to Falstaff, silverton-personae.md to Merrick (the game gives it to Falstaff, per the wiki).",
+    "Kessler: the wiki's pronoun is 'her'; the portrait reads as a man. The game uses no pronoun."
+  ]
+}

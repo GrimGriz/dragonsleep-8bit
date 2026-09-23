@@ -1,0 +1,201 @@
+{
+"id": "galleries_g3",
+"name": "The guano mine — the dens",
+"tileset": "cave",
+"rows": [
+"######################################################",
+"###############gg#####################################",
+"####ggg######gggggg#####gggg####ggg###################",
+"####gggg#####gggggg#####gggg##ggggg###################",
+"###gggggg#####gggg#######..###ggggg###################",
+"#####gg#########.########.#####ggg####################",
+"######.#########.########.#######.####################",
+"######.#########.#######..#######.####################",
+"##l###.##l0#####.######l.#####l##.##0l#########lr#####",
+"......................##.#................########.L##",
+"...........................................#........##",
+"############.######>................................##",
+"############.#########0###....................########",
+"###########gg#############....>.......:::::###########",
+"#########gggggg###########ggg#############::##########",
+"##########ggggg###########gggg#############::#########",
+"###########gg#############gggg##############:::::::###",
+"###########################gg#####################:###",
+"######################################################",
+"######################################################"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "ladder",
+"l": "lantern",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "dirt",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "roofS",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "web",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bridgeV",
+"C": "cliff",
+"A": "water",
+"M": "mountain",
+"V": "range",
+"I": "lamp"
+},
+"music": "dungeon",
+"bg": "guano",
+"save": false,
+"roost": true,
+"dark": true,
+"npcs": [
+{
+"id": "dacedown",
+"x": 46,
+"y": 10,
+"look": "clerk",
+"dir": "left",
+"cond": "flag:cullHired & !flag:cloakerDone"
+},
+{
+"id": "drivecrew",
+"x": 30,
+"y": 10,
+"look": "worker2",
+"dir": "down",
+"cond": "flag:cullHired"
+}
+],
+"warps": [
+{
+"x": 0,
+"y": 9,
+"to": "galleries_g2",
+"tx": 34,
+"ty": 17,
+"dir": "left"
+},
+{
+"x": 0,
+"y": 10,
+"to": "galleries_g2",
+"tx": 34,
+"ty": 17,
+"dir": "left"
+},
+{
+"x": 51,
+"y": 9,
+"to": "galleries_g4",
+"tx": 9,
+"ty": 2,
+"dir": "down",
+"sfx": "stairs"
+}
+],
+"chests": [
+{
+"x": 50,
+"y": 17,
+"item": "ringofprotection",
+"n": 1
+}
+],
+"triggers": [
+{
+"id": "pit30",
+"rect": [
+30,
+13,
+1,
+1
+],
+"on": "step",
+"script": "pit"
+},
+{
+"id": "pit19",
+"rect": [
+19,
+11,
+1,
+1
+],
+"on": "step",
+"script": "pit"
+},
+{
+"id": "rescue",
+"rect": [
+25,
+5,
+1,
+1
+],
+"on": "step",
+"script": "rescue",
+"once": true,
+"cond": "flag:cullHired"
+},
+{
+"id": "badair",
+"rect": [
+44,
+15,
+7,
+3
+],
+"on": "step",
+"script": "badAir"
+}
+],
+"zones": [
+{
+"zone": "g3",
+"rect": [
+0,
+0,
+44,
+20
+]
+}
+]
+}

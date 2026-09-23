@@ -1,0 +1,171 @@
+{
+"id": "galleries_g1",
+"name": "The guano mine — the mouth",
+"tileset": "cave",
+"rows": [
+"VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
+"VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
+"VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
+"VVVVVVVVVVVVVVVVV.VVVVVVVVVVVVVVVVVV",
+"VVVVVVVVVVVVVVV.....VVVVVVVVVVVVVVVV",
+"MMMMMMMMMMMMMMM.....MMMMMMMMMMMMMMMM",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"gggg,ggggg\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"RRRRR\"\"SSSS\"\"\"\"\",\"\"\"\"SSSSSS\"\"\"RRRR\"",
+"\"OODOO\"\"WWDW\"H\"\"I,\"\"\"\"WWWWWW\"\"\"WWWW\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"RRRRR\"\"\"\"\"\"\"\"\"\"I,\"\"\"\"\"\"::::::\"FFFF\"",
+"\"WWWWW\"\"c\"\"\"c\"\"\"\",\"\"\"\"\"\"::::::\"\"\"\"\"\"",
+"\"\"\"\"\"\"\"\"\"\"c\"\"\"\"\"\",\"\"\"\"\"\"\"\"\"\"\"\"\"FFFF\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"I,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\"\"\"\"\"\"\"\"\"\"\"\"\"FFFF\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"I,\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\",\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"PPPPPPPPPPPPPPPPP,PPPPPPPPPPPPPPPPPP",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"",
+"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\""
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "ladder",
+"l": "lantern",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "dirt",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "roofS",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "web",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bridgeV",
+"C": "cliff",
+"A": "water",
+"M": "mountain",
+"V": "range",
+"I": "lamp"
+},
+"music": "field",
+"bg": "plains",
+"outside": true,
+"exits": {
+"south": {
+"to": "world",
+"tx": 23,
+"ty": 11,
+"dir": "down"
+},
+"west": {
+"to": "world",
+"tx": 23,
+"ty": 11,
+"dir": "down"
+},
+"east": {
+"to": "world",
+"tx": 23,
+"ty": 11,
+"dir": "down"
+}
+},
+"npcs": [
+{
+"id": "sabeth",
+"x": 13,
+"y": 9,
+"look": "innlady",
+"dir": "down"
+},
+{
+"id": "ottilie",
+"x": 15,
+"y": 5,
+"look": "oldhand",
+"dir": "down"
+},
+{
+"id": "wynn",
+"x": 4,
+"y": 9,
+"look": "oldhand",
+"dir": "down"
+},
+{
+"id": "dace",
+"x": 25,
+"y": 10,
+"look": "clerk",
+"wander": 1
+}
+],
+"warps": [
+{
+"x": 17,
+"y": 3,
+"to": "galleries_g2",
+"tx": 17,
+"ty": 26,
+"dir": "up"
+}
+],
+"triggers": [
+{
+"id": "keeper:pollardhouse",
+"x": 3,
+"y": 8,
+"on": "step",
+"script": "keeper",
+"arg": "pollardhouse",
+"back": "down"
+},
+{
+"id": "keeper:weighshed",
+"x": 10,
+"y": 8,
+"on": "step",
+"script": "keeper",
+"arg": "weighshed",
+"back": "down"
+}
+]
+}

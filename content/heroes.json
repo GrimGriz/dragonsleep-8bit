@@ -1,0 +1,62 @@
+{
+  "_note": "Stats from the register sheets. Gaps derived by SRD 5.1 rules and logged in invented.json. Level-up picks (spells, subclasses) are the build's, PROPOSED.",
+  "barley": {
+    "rewardWeapons": ["threshingflail1", "threshingflail2"],
+    "name": "Barley", "fullName": "Barley Pete Johnson (no relation)", "cls": "fighter", "level": 2, "race": "Human", "background": "Dispossessed",
+    "abil": { "str": 16, "dex": 13, "con": 16, "int": 9, "wis": 14, "cha": 11 }, "hp": 23,
+    "equip": { "weapon": "threshingflail", "armor": null, "shield": null, "ring": null },
+    "saveProf": ["str", "con"], "skills": { "Athletics": 5, "Perception": 4, "Insight": 4, "Survival": 4 },
+    "look": "barley", "weaponArt": "flail",
+    "classLine": "Fighter 2 · Great Weapon Fighting",
+    "blurb": "A Dominion farm wanderer with a threshing flail. He went down once against Cutter on fight night and got back up. Ten silver in his fist and a name that isn't his.",
+    "featText": [{ "t": "Great Weapon Fighting (rerolls 1s and 2s, two-handed)" }, { "t": "Second Wind 1d10+level" }, { "t": "Action Surge" }, { "lvl": 3, "t": "Champion: crit on 19-20" }, { "lvl": 5, "t": "Extra Attack" }],
+    "levels": { "3": { "subclass": "Champion" }, "4": { "asi": { "str": 2 } } },
+    "note": "His true name is withheld by the law of the tongue.",
+    "src": ["fighter-barley.md", "wiki/barley.md"]
+  },
+  "aurdin": {
+    "rewardWeapons": ["staff1", "staff2"],
+    "name": "Aurdin", "fullName": "Aurdin", "cls": "wizard", "level": 2, "race": "Human", "background": "Acolyte",
+    "abil": { "str": 11, "dex": 14, "con": 10, "int": 17, "wis": 9, "cha": 13 }, "hp": 10,
+    "equip": { "weapon": "quarterstaff", "armor": null, "shield": null, "ring": null },
+    "saveProf": ["int", "wis"], "skills": { "Arcana": 5, "Investigation": 5, "Religion": 5, "Insight": 1 },
+    "look": "aurdin", "weaponArt": "staff",
+    "spells": ["firebolt", "light", "dancinglights", "burninghands", "magicmissile", "shield", "sleep", "detectmagic", "findfamiliar"],
+    "classLine": "Wizard 2 · an evoker by aspiration",
+    "blurb": "Sixteen, INT 17, WIS 9: he knows, and asks the wrong people. A farm boy off Newland who walked away from the sun chapels, came in with the Glowseep crews' haul, and slept on Aldwin's floor.",
+    "featText": [{ "t": "Arcane Recovery (once a day, field)" }, { "t": "School of Evocation" }],
+    "levels": { "3": { "learn": ["scorchingray", "mageArmor"] }, "4": { "asi": { "int": 1, "con": 1 }, "learn": ["web", "shatter"] }, "5": { "learn": ["fireball", "lightningbolt"] } },
+    "subclassStart": "School of Evocation",
+    "note": "Canon: wizard 1. Level 2 is this game's only.",
+    "src": ["evoker-aurdin.md", "wiki/aurdin.md", "handoff-2026-09-23-dragonsleep-8bit-spec.md §11-B"]
+  },
+  "vivian": {
+    "rewardWeapons": ["dagger1", "dagger2"],
+    "name": "Vivian", "fullName": "Vivian Venn", "cls": "rogue", "level": 2, "race": "Human", "background": "the Quarter's own",
+    "abil": { "str": 10, "dex": 16, "con": 12, "int": 12, "wis": 14, "cha": 13 }, "hp": 15,
+    "equip": { "weapon": "candleknife", "armor": "leather", "shield": null, "ring": null },
+    "saveProf": ["dex", "int"], "skills": { "Sleight of Hand": 7, "Perception": 6, "Stealth": 5, "Insight": 4, "Deception": 3, "Investigation": 3, "Acrobatics": 3 },
+    "look": "vivian", "weaponArt": "dagger",
+    "classLine": "Rogue 2 · Sneak Attack 1d6 · Cunning Action",
+    "blurb": "Marta Venn's daughter, about twenty-two. Not a thief who learned to watch: a watcher who learned to steal. The candle girl on the east side, and one of the fingers at the Hex on card nights.",
+    "featText": [{ "t": "Sneak Attack (an ally engaged, or advantage)" }, { "t": "Cunning Action: HIDE as a bonus action" }, { "t": "Expertise: Sleight of Hand, Perception" }, { "lvl": 3, "t": "Archetype: [GRIZ] — held open" }, { "lvl": 5, "t": "Uncanny Dodge" }],
+    "levels": { "3": { "subclass": "[GRIZ] archetype held open" }, "4": { "asi": { "dex": 2 } } },
+    "note": "Her archetype is held open in canon (lean Assassin, not SRD). The game gives her none.",
+    "src": ["rogue-vivian.md", "wiki/vivian.md"]
+  },
+  "lymen": {
+    "rewardWeapons": ["longsword1", "longsword2"],
+    "name": "Lymen", "fullName": "Lymen \"Ly\" Urtusk", "cls": "paladin", "level": 2, "race": "Half-orc", "background": "Acolyte (self-ordained)",
+    "abil": { "str": 17, "dex": 10, "con": 15, "int": 8, "wis": 12, "cha": 14 }, "hp": 20,
+    "equip": { "weapon": "longsword", "armor": "chainmail", "shield": "shield", "ring": null },
+    "saveProf": ["wis", "cha"], "skills": { "Athletics": 5, "Insight": 3, "Religion": 1, "Intimidation": 4 },
+    "look": "lymen", "weaponArt": "sword",
+    "spells": ["bless", "curewounds", "shieldoffaith"],
+    "classLine": "Paladin 2 · self-ordained under Kalindel",
+    "blurb": "Warda's son, twenty-four. Self-ordained under Kalindel, the generative nature of the planet, in a town outside Newland's writ. Chain mail from the show-armorer: stage work outside, honest steel under.",
+    "featText": [{ "t": "Lay on Hands (5 per level; 5 cures a poison)" }, { "t": "Divine Smite" }, { "t": "Fighting Style: Defense" }, { "t": "Relentless Endurance, Savage Attacks" }, { "lvl": 3, "t": "Oath of Devotion: Sacred Weapon" }, { "lvl": 5, "t": "Extra Attack" }],
+    "levels": { "3": { "subclass": "Oath of Devotion", "learn": ["divinefavor"] }, "4": { "asi": { "str": 1, "cha": 1 }, "learn": ["heroism"] }, "5": { "learn": ["lesserrestoration", "aid"] } },
+    "note": "The Urtusk family is Griz's. The sheet reads AC 18; the rules make it 19 (flagged).",
+    "src": ["urtusk-children-prerolls.md", "urtusk-children-prerolls.pdf p.6", "wiki/the-urtusks.md"]
+  }
+}

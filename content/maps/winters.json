@@ -1,0 +1,62 @@
+{
+"id": "winters",
+"name": "Acquisitions & Estates",
+"tileset": "inside",
+"rows": [
+"wqqqqqqqqw",
+"wq::::::qw",
+"w::::::::w",
+"w:cccccc:w",
+"w::::::::w",
+"wk::__::kw",
+"w::::::::w",
+"wwwwDwwwww"
+],
+"legend": {
+":": "floorWood",
+";": "floorStone",
+"_": "rug",
+"c": "counter",
+"b": "bar",
+"t": "table",
+"u": "stairsUp",
+"d": "stairsDown",
+"z": "bed",
+"q": "shelf",
+"h": "hearth",
+"i": "boxes",
+"w": "wall",
+"o": "wallWin",
+"p": "pillar",
+"#": "stonewall",
+"s": "sandArena",
+"x": "hexwall",
+"%": "curtain",
+" ": "void",
+"k": "crate",
+"D": "door",
+".": "darkfloor",
+"l": "lamp"
+},
+"music": "town",
+"bg": "town",
+"npcs": [
+{
+"id": "winters",
+"x": 4,
+"y": 2,
+"look": "winters",
+"dir": "down"
+}
+],
+"warps": [
+{
+"x": 4,
+"y": 7,
+"to": "silverton",
+"tx": 7,
+"ty": 12,
+"dir": "down"
+}
+]
+}

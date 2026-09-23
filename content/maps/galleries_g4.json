@@ -1,0 +1,162 @@
+{
+"id": "galleries_g4",
+"name": "The guano mine — the deep gallery",
+"tileset": "cave",
+"rows": [
+"####################################",
+"#########L##########################",
+"###L#####.##########################",
+"###GGGG##.##########################",
+"##GGGGGG#.###.####..################",
+"##GGGGGG#.##............#.##########",
+"###GGGG#....................########",
+"#######.....................########",
+"######.......b................######",
+"####............................####",
+"#####...........................####",
+"####................b...........####",
+"###..............................###",
+"####.............................###",
+"###.............................#.##",
+"####............................####",
+"####.......b.....................###",
+"#####....................b.....#..##",
+"####............................#..#",
+"######........................####..",
+"########.........b...........#######",
+"########.#................#.########",
+"############...........#############",
+"############..####..################",
+"###########..#######################",
+"####################################"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "ladder",
+"l": "lantern",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "dirt",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "roofS",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "web",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bridgeV",
+"C": "cliff",
+"A": "water",
+"M": "mountain",
+"V": "range",
+"I": "lamp"
+},
+"music": "dungeon",
+"bg": "deep",
+"save": false,
+"dark": true,
+"warps": [
+{
+"x": 9,
+"y": 1,
+"to": "galleries_g3",
+"tx": 50,
+"ty": 9,
+"dir": "left",
+"sfx": "stairs"
+},
+{
+"x": 3,
+"y": 2,
+"to": "galleries_g2",
+"tx": 27,
+"ty": 5,
+"dir": "down",
+"sfx": "stairs"
+}
+],
+"chests": [
+{
+"x": 25,
+"y": 17,
+"item": "maul1",
+"n": 1
+}
+],
+"signs": [
+{
+"x": 33,
+"y": 18,
+"text": "A passage runs off into the dark, east. Not this adventure.",
+"src": "GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)"
+},
+{
+"x": 11,
+"y": 24,
+"text": "A passage runs off south. Not this adventure.",
+"src": "GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)"
+}
+],
+"triggers": [
+{
+"id": "cloaker",
+"rect": [
+8,
+6,
+3,
+2
+],
+"on": "step",
+"script": "cloaker",
+"cond": "!flag:cloakerDone"
+},
+{
+"id": "cloaker2",
+"rect": [
+4,
+6,
+3,
+1
+],
+"on": "step",
+"script": "cloaker",
+"cond": "!flag:cloakerDone"
+}
+]
+}
