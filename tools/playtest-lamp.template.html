@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playtest Lamp</title>
+<style>
+  :root { --bg:#f4ecdc; --ink:#2b2418; --dim:#7a6a52; --rule:#d8cbb2; --accent:#8b4a2b; --docket:#fbf5e8;
+          --works:#2f6d8f; --broken:#8f2f1c; --tune:#b8892a; --unclear:#a8552a; --skip:#6b6b6b; }
+  [data-theme="night"] { --bg:#1e1b16; --ink:#e6dcc8; --dim:#9a8e7a; --rule:#3a342b; --accent:#d69a6a; --docket:#26221b;
+          --works:#7fb3d0; --broken:#e0704f; --tune:#d9ad4f; --unclear:#e09a6a; --skip:#a09a90; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--ink); }
+  body { font-family:Georgia,"Iowan Old Style","Palatino Linotype","Book Antiqua",serif; font-size:18px; line-height:1.55; padding-bottom:5rem; }
+  #bar { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--rule); padding:.45rem 1rem;
+         display:flex; gap:.45rem; flex-wrap:wrap; align-items:center; font:14px system-ui,sans-serif; color:var(--dim); }
+  #bar button, #bar label.btn { background:none; border:1px solid var(--rule); color:var(--ink); padding:.25rem .6rem; border-radius:6px; cursor:pointer; font:inherit; }
+  #bar button:hover, #bar label.btn:hover { border-color:var(--accent); }
+  #bar button.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  #bar input[type=file] { display:none; }
+  #bar .sp { flex:1 1 auto; }
+  #count b { color:var(--ink); }
+  #meter { height:3px; background:var(--rule); position:sticky; top:0; }
+  #page { max-width:46em; margin:0 auto; padding:1.2rem 1.2rem 3rem; }
+  h1 { font-weight:normal; font-size:1.5em; margin:.6em 0 .3em; }
+  h2 { font-weight:normal; font-size:1.2em; border-bottom:1px solid var(--rule); padding-bottom:.2em; margin:2em 0 .6em; display:flex; justify-content:space-between; gap:1em; align-items:baseline; }
+  h2 small { font:13px system-ui,sans-serif; color:var(--dim); white-space:nowrap; }
+  .intro { color:var(--dim); } .intro p { margin:0 0 .6em; }
+  code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.85em; background:var(--docket); padding:0 .25em; border-radius:3px; }
+  a { color:var(--accent); }
+  .who { font:14px system-ui,sans-serif; color:var(--dim); display:flex; gap:.6em; flex-wrap:wrap; align-items:center; margin:.8em 0 0; }
+  .who input { font:inherit; color:var(--ink); background:var(--docket); border:1px solid var(--rule); border-radius:6px; padding:.25rem .5rem; }
+  .item { background:var(--docket); border:1px solid var(--rule); border-left:4px solid var(--rule); border-radius:6px; padding:.65rem .8rem; margin:.6rem 0; }
+  .item.v-works { border-left-color:var(--works); } .item.v-broken { border-left-color:var(--broken); }
+  .item.v-hard, .item.v-easy { border-left-color:var(--tune); } .item.v-unclear { border-left-color:var(--unclear); } .item.v-skip { border-left-color:var(--skip); }
+  .item.focus { outline:2px solid var(--accent); outline-offset:2px; }
+  .claim { margin:0 0 .45rem; }
+  .claim .id { font:12px ui-monospace,Menlo,Consolas,monospace; color:var(--dim); margin-right:.4em; }
+  .chips { display:flex; flex-wrap:wrap; gap:.35rem; font:13px system-ui,sans-serif; }
+  .chips button { background:none; border:1px solid var(--rule); color:var(--ink); border-radius:999px; padding:.2rem .65rem; cursor:pointer; font:inherit; min-height:30px; }
+  .chips button:hover { border-color:var(--accent); }
+  .chips button.on[data-v=works]   { background:var(--works);   border-color:var(--works);   color:var(--bg); }
+  .chips button.on[data-v=broken]  { background:var(--broken);  border-color:var(--broken);  color:var(--bg); }
+  .chips button.on[data-v=hard], .chips button.on[data-v=easy] { background:var(--tune); border-color:var(--tune); color:var(--bg); }
+  .chips button.on[data-v=unclear] { background:var(--unclear); border-color:var(--unclear); color:var(--bg); }
+  .chips button.on[data-v=skip]    { background:var(--skip);    border-color:var(--skip);    color:var(--bg); }
+  textarea { width:100%; margin-top:.45rem; font:15px/1.45 Georgia,serif; color:var(--ink); background:var(--bg); border:1px solid var(--rule); border-radius:6px; padding:.4rem .55rem; resize:vertical; min-height:2.2em; }
+  textarea:focus { outline:none; border-color:var(--accent); }
+  .stale { font:12px system-ui,sans-serif; color:var(--unclear); margin-top:.3rem; }
+  .secnote textarea { background:var(--docket); }
+  .secnote label, .final label { font:13px system-ui,sans-serif; color:var(--dim); }
+  body.unmarked-only .item.marked { display:none; }
+  #toast { position:fixed; left:50%; bottom:1.2rem; transform:translateX(-50%); background:var(--ink); color:var(--bg); font:14px system-ui,sans-serif; padding:.45rem .9rem; border-radius:6px; opacity:0; transition:opacity .2s; pointer-events:none; }
+  #toast.show { opacity:1; }
+  .legend { font:13px system-ui,sans-serif; color:var(--dim); margin:.6em 0 0; }
+  @media (max-width:560px) { body { font-size:17px; } #page { padding:1rem 1rem 3rem; } #bar { padding:.4rem .6rem; } }
+</style>
+</head>
+<body>
+<div id="bar">
+  <span id="count"></span>
+  <span class="sp"></span>
+  <button id="next" title="Jump to the next item with no mark">Next unmarked</button>
+  <button id="filter" title="Hide marked items">Unmarked only</button>
+  <button id="save" title="Download the feedback as a JSON ear-file">Save ear-file ⬇</button>
+  <label class="btn" title="Load a saved ear-file back in">Load ⬆<input type="file" id="load" accept=".json,application/json"></label>
+  <button id="md" title="Copy the checklist with your marks as markdown">Copy markdown</button>
+  <button id="theme">Night</button>
+  <button id="clear" title="Wipe every mark and note on this device">Clear</button>
+</div>
+<div id="meter"><div id="fill" style="height:3px;width:0;background:var(--accent)"></div></div>
+<main id="page"></main>
+<div id="toast"></div>
+<script>
+const DATA = /*__DATA__*/null;
+(function(){
+  const KEY='dsl-playtest-lamp:v1', root=document.documentElement, body=document.body, page=document.getElementById('page');
+  const G=k=>{try{return localStorage.getItem(k)}catch(e){return null}}, P=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}, D=k=>{try{localStorage.removeItem(k)}catch(e){}};
+  const VERDICTS=[['works','✓ works'],['broken','✗ broken'],['hard','too hard'],['easy','too easy'],['unclear','? unclear'],['skip','— not tested']];
+  const VLABEL=Object.fromEntries(VERDICTS);
+  const ITEMS=[]; DATA.sections.forEach(s=>s.items.forEach(it=>{it.sec=s; ITEMS.push(it);}));
+  const BYID=Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+  let S; try{ S=JSON.parse(G(KEY)||'null'); }catch(e){ S=null; }
+  if(!S||typeof S!=='object') S={};
+  S.items=S.items||{}; S.secnotes=S.secnotes||{}; S.notes=S.notes||''; S.tester=S.tester||'';
+  const persist=()=>P(KEY,JSON.stringify(S));
+  const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const toast=m=>{const t=document.getElementById('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toast.t); toast.t=setTimeout(()=>t.classList.remove('show'),1800);};
+
+  // render
+  let h='<h1>'+esc(DATA.title||'Playtest')+'</h1><div class="intro">'+DATA.intro.map(p=>'<p>'+p+'</p>').join('')+'</div>';
+  h+='<div class="who"><label>Tester <input id="tester" placeholder="your name" size="16"></label><span>checklist <code>'+esc(DATA.src_sha1)+'</code></span></div>';
+  h+='<p class="legend">Mark each line as you go; add a note wherever something felt off. Everything saves on this device as you type. <b>Save ear-file ⬇</b> downloads it to hand back.</p>';
+  DATA.sections.forEach(s=>{
+    h+='<h2 id="sec-'+s.n+'"><span>'+esc(s.n)+'. '+esc(s.title)+'</span><small data-sc="'+s.n+'"></small></h2>';
+    s.items.forEach(it=>{
+      h+='<div class="item" id="'+it.id+'" data-id="'+it.id+'"><p class="claim"><span class="id">'+it.id.slice(1)+'</span>'+it.html+'</p><div class="chips">'+
+        VERDICTS.map(([v,l])=>'<button type="button" data-v="'+v+'">'+l+'</button>').join('')+
+        '</div><textarea rows="1" placeholder="note (optional)"></textarea><div class="stale" hidden>This note was written against older wording of this line.</div></div>';
+    });
+    h+='<div class="secnote"><label>Anything else in '+esc(s.title)+'?</label><textarea rows="2" data-sec="'+s.n+'"></textarea></div>';
+  });
+  h+='<h2><span>Notes</span></h2><div class="final"><label>Overall — dead ends, soft-locks, "what do I do now?", anything the list missed</label><textarea id="notes" rows="5"></textarea></div>';
+  page.innerHTML=h;
+
+  const grow=ta=>{ta.style.height='auto'; ta.style.height=(ta.scrollHeight+2)+'px';};
+  function paint(it){
+    const el=document.getElementById(it.id), r=S.items[it.id]||{};
+    el.className='item'+(r.v?' marked v-'+r.v:'');
+    el.querySelectorAll('.chips button').forEach(b=>b.classList.toggle('on',b.dataset.v===r.v));
+    const ta=el.querySelector('textarea'); if(ta.value!==(r.note||'')) ta.value=r.note||''; grow(ta);
+    el.querySelector('.stale').hidden=!(r.h&&r.h!==it.h&&(r.v||r.note));
+  }
+  function counts(){
+    const n=ITEMS.length, m=ITEMS.filter(i=>(S.items[i.id]||{}).v).length;
+    const c={}; ITEMS.forEach(i=>{const v=(S.items[i.id]||{}).v; if(v) c[v]=(c[v]||0)+1;});
+    let t='<b>'+m+'</b>/'+n+' marked'; if(c.broken) t+=' · '+c.broken+' broken'; if(c.unclear) t+=' · '+c.unclear+' unclear'; if((c.hard||0)+(c.easy||0)) t+=' · '+((c.hard||0)+(c.easy||0))+' tuning';
+    document.getElementById('count').innerHTML=t; document.getElementById('fill').style.width=(n?100*m/n:0)+'%';
+    DATA.sections.forEach(s=>{const k=s.items.filter(i=>(S.items[i.id]||{}).v).length; document.querySelector('[data-sc="'+s.n+'"]').textContent=k+'/'+s.items.length;});
+    return {n,m,c};
+  }
+  function paintAll(){
+    ITEMS.forEach(paint);
+    page.querySelectorAll('textarea[data-sec]').forEach(t=>{t.value=S.secnotes[t.dataset.sec]||''; grow(t);});
+    const nt=document.getElementById('notes'); nt.value=S.notes||''; grow(nt);
+    document.getElementById('tester').value=S.tester||''; counts();
+  }
+  const stampNow=()=>new Date().toISOString().replace(/\.\d+Z$/,'Z');
+  const rec=id=>{const it=BYID[id]; const r=S.items[id]||(S.items[id]={}); r.h=it.h; return r;};
+
+  page.addEventListener('click',e=>{
+    const b=e.target.closest('.chips button'); if(!b) return;
+    const id=b.closest('.item').dataset.id, r=rec(id);
+    r.v = (r.v===b.dataset.v) ? '' : b.dataset.v; r.at=stampNow();
+    if(!r.v&&!r.note) delete S.items[id];
+    persist(); paint(BYID[id]); counts();
+  });
+  page.addEventListener('input',e=>{
+    const t=e.target; if(t.tagName!=='TEXTAREA') return; grow(t);
+    if(t.id==='notes') S.notes=t.value;
+    else if(t.dataset.sec) S.secnotes[t.dataset.sec]=t.value;
+    else { const id=t.closest('.item').dataset.id, r=rec(id); r.note=t.value; r.at=stampNow(); if(!r.v&&!r.note) delete S.items[id]; }
+    persist();
+  });
+  document.getElementById('tester').addEventListener('input',e=>{S.tester=e.target.value; persist();});
+
+  // bar
+  const th=document.getElementById('theme');
+  if(G('dsl-playtest-lamp:theme')==='night'){root.dataset.theme='night'; th.textContent='Day';}
+  th.onclick=()=>{const n=root.dataset.theme==='night'; if(n){delete root.dataset.theme; th.textContent='Night'; P('dsl-playtest-lamp:theme','day');} else {root.dataset.theme='night'; th.textContent='Day'; P('dsl-playtest-lamp:theme','night');}};
+  const fb=document.getElementById('filter');
+  fb.onclick=()=>{body.classList.toggle('unmarked-only'); fb.classList.toggle('on');};
+  document.getElementById('next').onclick=()=>{
+    const y=window.scrollY+90, live=i=>!(S.items[i.id]||{}).v;
+    const pick=ITEMS.find(i=>live(i)&&document.getElementById(i.id).getBoundingClientRect().top+window.scrollY>y)||ITEMS.find(live);
+    if(!pick){toast('Every line is marked.'); return;}
+    page.querySelectorAll('.item.focus').forEach(x=>x.classList.remove('focus'));
+    const el=document.getElementById(pick.id); el.classList.add('focus'); el.scrollIntoView({block:'center',behavior:'smooth'});
+  };
+  function dl(name,text,type){const b=new Blob([text],{type:type||'text/plain'}); const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href); a.remove();},500);}
+  const day=()=>new Date().toISOString().slice(0,10);
+  document.getElementById('save').onclick=()=>{
+    const {n,m,c}=counts();
+    const out={_readme:{what:'Playtest feedback — the DRAGONSLEEP playtest lamp, one verdict per checklist line.',
+        fold_back:'Whoever takes this (Cowork seat or code tab): broken and unclear lines become the fix list; too hard / too easy are tuning; notes are the tester\'s words, verbatim. Load this file back into the lamp to keep going.',
+        verdicts:VLABEL},
+      lamp:'playtest-lamp', checklist_sha1:DATA.src_sha1, tester:S.tester, saved_at:stampNow(),
+      counts:Object.assign({lines:n,marked:m},c),
+      items:ITEMS.filter(i=>S.items[i.id]).map(i=>{const r=S.items[i.id]; return {id:i.id, section:i.sec.n+'. '+i.sec.title, claim:i.text, verdict:r.v||'', note:r.note||'', at:r.at||'', text_changed:!!(r.h&&r.h!==i.h)};}),
+      section_notes:Object.fromEntries(DATA.sections.filter(s=>(S.secnotes[s.n]||'').trim()).map(s=>[s.n+'. '+s.title,S.secnotes[s.n]])),
+      notes:S.notes};
+    dl('playtest-ear-file-'+day()+(S.tester?'-'+S.tester.trim().toLowerCase().replace(/[^a-z0-9]+/g,'-'):'')+'.json',JSON.stringify(out,null,2),'application/json');
+    toast('Ear-file saved.');
+  };
+  document.getElementById('load').onchange=e=>{
+    const f=e.target.files[0]; if(!f) return; const r=new FileReader();
+    r.onload=()=>{ try{
+      const j=JSON.parse(r.result); let k=0, miss=0;
+      (j.items||[]).forEach(x=>{ const it=BYID[x.id]; if(!it){miss++; return;}
+        S.items[x.id]={v:x.verdict||'', note:x.note||'', at:x.at||'', h:(x.claim===it.text)?it.h:'changed'}; k++; });
+      const secByTitle=Object.fromEntries(DATA.sections.map(s=>[s.n+'. '+s.title,s.n]));
+      Object.entries(j.section_notes||{}).forEach(([t,v])=>{const n=secByTitle[t]||(t.match(/^(\d+)\./)||[])[1]; if(n) S.secnotes[n]=v;});
+      if(j.notes) S.notes=j.notes; if(j.tester) S.tester=j.tester;
+      persist(); paintAll(); toast('Loaded '+k+' lines'+(miss?' · '+miss+' no longer on the list':''));
+    }catch(err){ toast('That file is not a playtest ear-file.'); } e.target.value=''; };
+    r.readAsText(f);
+  };
+  document.getElementById('md').onclick=()=>{
+    let t='# '+(DATA.title||'Playtest')+' — marked'+(S.tester?' by '+S.tester:'')+' ('+day()+')\n';
+    DATA.sections.forEach(s=>{
+      t+='\n## '+s.n+'. '+s.title+'\n';
+      s.items.forEach(i=>{const r=S.items[i.id]||{}; t+='- ['+(r.v?'x':' ')+'] '+i.text+(r.v?' — **'+VLABEL[r.v]+'**':'')+(r.note?': '+r.note.replace(/\n+/g,' '):'')+'\n';});
+      if((S.secnotes[s.n]||'').trim()) t+='\n> '+S.secnotes[s.n].replace(/\n/g,'\n> ')+'\n';
+    });
+    t+='\n## Notes\n'+(S.notes||'(none)')+'\n';
+    const fallback=()=>{dl('playtest-marked-'+day()+'.md',t,'text/markdown'); toast('Clipboard blocked — downloaded instead.');};
+    if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(()=>toast('Markdown copied.'),fallback); else fallback();
+  };
+  const cb=document.getElementById('clear');
+  cb.onclick=()=>{
+    if(!cb.dataset.arm){cb.dataset.arm='1'; cb.textContent='Clear? click again'; setTimeout(()=>{delete cb.dataset.arm; cb.textContent='Clear';},3000); return;}
+    S={items:{},secnotes:{},notes:'',tester:S.tester}; D(KEY); persist(); paintAll(); delete cb.dataset.arm; cb.textContent='Clear'; toast('Cleared.');
+  };
+  paintAll();
+})();
+</script>
+</body>
+</html>
