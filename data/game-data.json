@@ -237,8 +237,7 @@
     "magicmissile",
     "shield",
     "sleep",
-    "detectmagic",
-    "findfamiliar"
+    "detectmagic"
    ],
    "classLine": "Wizard 2 · an evoker by aspiration",
    "blurb": "Sixteen, INT 17, WIS 9: he knows, and asks the wrong people. A farm boy off Newland who walked away from the sun chapels, came in with the Glowseep crews' haul, and slept on Aldwin's floor.",
@@ -331,14 +330,20 @@
      "t": "Sneak Attack (an ally engaged, or advantage)"
     },
     {
-     "t": "Cunning Action: HIDE as a bonus action"
+     "t": "Cunning Action: HIDE before or after her attack (bonus action)"
     },
     {
      "t": "Expertise: Sleight of Hand, Perception"
     },
     {
      "lvl": 3,
-     "t": "Archetype: [GRIZ] — held open"
+     "sub": "Thief",
+     "t": "Thief: Fast Hands (ITEM is a bonus action)"
+    },
+    {
+     "lvl": 3,
+     "sub": "Cutthroat",
+     "t": "Cutthroat: Opening Cut (first round: advantage on a foe that hasn't acted; a hit is a critical)"
     },
     {
      "lvl": 5,
@@ -347,7 +352,7 @@
    ],
    "levels": {
     "3": {
-     "subclass": "[GRIZ] archetype held open"
+     "choose": "archetype"
     },
     "4": {
      "asi": {
@@ -355,7 +360,19 @@
      }
     }
    },
-   "note": "Her archetype is held open in canon (lean Assassin, not SRD). The game gives her none.",
+   "archetypes": [
+    {
+     "name": "Thief",
+     "desc": "Fast Hands. Using an item is a bonus action: a potion, a kit, a torch, and still her attack.",
+     "src": "SRD 5.1 (Rogue: Thief, Fast Hands)"
+    },
+    {
+     "name": "Cutthroat",
+     "desc": "Opening Cut. In the first round, advantage against any foe that hasn't acted yet, and a hit on it is a critical.",
+     "src": "original to this game (the canon lean is Assassin, which is not in the SRD 5.1); invented.json#cutthroat"
+    }
+   ],
+   "note": "Her archetype is the player's choice at level 3 (RULED 09-24). The canon lean is Assassin; the SRD has only Thief, so the second path is this game's own.",
    "src": [
     "rogue-vivian.md",
     "wiki/vivian.md"
@@ -1226,6 +1243,35 @@
    "src": "the-lab/pit-maps/shops-silverton.json pin 9 (Antitoxin 50 gp); SRD 5.1",
    "id": "antitoxin"
   },
+  "superiorpotion": {
+   "name": "Superior Potion",
+   "kind": "use",
+   "price": 4500,
+   "use": {
+    "effect": "heal",
+    "dice": "8d4+8",
+    "target": "ally",
+    "battle": true,
+    "field": true
+   },
+   "desc": "Superior Healing: heals 8d4+8. Out of a dead man's cabinet.",
+   "src": "SRD 5.1 (Potion of Healing, superior); Winters' stock invented.json#winters-shelves",
+   "id": "superiorpotion"
+  },
+  "elixir": {
+   "name": "Elixir of Health",
+   "kind": "use",
+   "price": 1200,
+   "use": {
+    "effect": "cure",
+    "target": "ally",
+    "battle": true,
+    "field": false
+   },
+   "desc": "Cures poison and paralysis on the spot.",
+   "src": "SRD 5.1 (Elixir of Health); Winters' stock invented.json#winters-shelves",
+   "id": "elixir"
+  },
   "draught": {
    "name": "Draught",
    "kind": "use",
@@ -1348,6 +1394,24 @@
    "src": "wiki/web-gulch.md (the bounty); proof-token invented.json#bounty-proof",
    "id": "ettercapfangs"
   },
+  "estatepapers": {
+   "name": "Estate Papers",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "Winters' inventory of a dead man's goods. Androit seals it; Casper Venn values it; it goes back to Winters.",
+   "src": "invented.json#errands (Winters' courier work)",
+   "id": "estatepapers"
+  },
+  "debtpurse": {
+   "name": "Pryor's Debt",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "A sealed purse out of the Pryor estate. Mical signs the crate off her books; Brennan the smith is owed it.",
+   "src": "invented.json#errands (Winters' courier work)",
+   "id": "debtpurse"
+  },
   "cord": {
    "name": "Braided Cord",
    "kind": "key",
@@ -1458,17 +1522,6 @@
    "desc": "Ritual. Sense magic nearby.",
    "src": "SRD 5.1",
    "id": "detectmagic"
-  },
-  "findfamiliar": {
-   "name": "Find Familiar",
-   "level": 1,
-   "ritual": true,
-   "kind": "familiar",
-   "target": "self",
-   "field": true,
-   "desc": "Ritual. He knows it. He hasn't dared.",
-   "src": "SRD 5.1; wiki/aurdin.md (familiar undecided until he does the ritual in story)",
-   "id": "findfamiliar"
   },
   "mageArmor": {
    "name": "Mage Armor",
@@ -3167,6 +3220,38 @@
    "id": "brawler",
    "xp": 25
   },
+  "cardbruiser": {
+   "name": "Card Bruiser",
+   "art": "brawler",
+   "tint": "#7a5a8a",
+   "cr": "1/4",
+   "ac": 12,
+   "hp": 22,
+   "abil": {
+    "str": 14,
+    "dex": 12,
+    "con": 13,
+    "int": 9,
+    "wis": 10,
+    "cha": 10
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "attacks": {
+    "club": {
+     "name": "Cudgel",
+     "hit": 4,
+     "dmg": "1d6+2",
+     "type": "bludgeoning",
+     "verb": "cudgels"
+    }
+   },
+   "silver": "0",
+   "src": "SRD 5.1 (Bandit, scaled up); wiki/the-hex.md (the card); Barley's hire bout invented.json#barley-bout",
+   "id": "cardbruiser",
+   "xp": 50
+  },
   "stablefighter": {
    "name": "Stable Fighter",
    "art": "netfighter",
@@ -4116,9 +4201,58 @@
    "name": "Coaching Inn",
    "keeper": "Cassia",
    "price": 8,
-   "greeting": "Eight silver the good bed, each.",
-   "src": "the-lab/pit-maps/shops-silverton.json pin 11 (bed, comfortable, the night 8 sp)",
+   "partyPrice": 16,
+   "greeting": "Eight silver the good bed. A company takes the long room: sixteen, however many of you.",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 11 (bed, comfortable, the night 8 sp); party rate RULED 09-24 (Griz: 8 alone, a set 16 for the party)",
    "id": "cassia"
+  },
+  "lucia": {
+   "name": "Mama's Pharmakaiea",
+   "keeper": "Lucia",
+   "look": "lucia",
+   "greeting": "Mama mixes, I sell. Stitches are Davos. Anything that goes in a mouth is us.",
+   "items": [
+    "simples",
+    "potion",
+    "greaterpotion",
+    "antitoxin",
+    "kit"
+   ],
+   "prices": {
+    "potion": 450,
+    "greaterpotion": 1400
+   },
+   "thanks": [
+    "Mama says take it with food.",
+    "Two swallows, not one.",
+    "For the sand or the road, it works the same."
+   ],
+   "src": "wiki/the-hex.md (Mama's Pharmakaiea, shop card 'Consult Lucia'); a shop RULED 09-24 (Griz); stock invented.json#mamas",
+   "id": "lucia"
+  },
+  "winters": {
+   "name": "Acquisitions & Estates",
+   "keeper": "Ambrose Winters",
+   "look": "winters",
+   "greeting": "Everything on these shelves outlived somebody. The price is for the somebody.",
+   "items": [
+    "potion",
+    "greaterpotion",
+    "superiorpotion",
+    "elixir",
+    "ringofprotection",
+    "dagger1",
+    "maul1",
+    "staff1",
+    "splint"
+   ],
+   "thanks": [
+    "Look after it. Its last owner didn't.",
+    "Paid in full. I'll write it in the book.",
+    "It was a good estate. Mostly."
+   ],
+   "src": "wiki/fountain-street.md (Winters, Acquisitions & Estates); magic stock RULED 09-24 (Griz: he sells magic items); invented.json#winters-shelves",
+   "id": "winters"
   }
  },
  "npcs": {
@@ -4229,13 +4363,27 @@
    "script": "hireVivian",
    "talk": [
     {
+     "if": "lead:lymen",
+     "say": [
+      "The candle girl, on vice row between the booths. She never owns coin on a card night.",
+      "Ly. Warda's youngest, playing the hero. You grew up over the Hex; you don't need a candle. Buy one anyway."
+     ]
+    },
+    {
+     "if": "lead:barley",
+     "say": [
+      "The candle girl, on vice row between the booths. She never owns coin on a card night.",
+      "The farmhand off the sand. I watched you get up against Cutter. Everybody did."
+     ]
+    },
+    {
      "say": [
       "The candle girl, on vice row between the booths. She never owns coin on a card night.",
       "You're new. I saw you come through the gate."
      ]
     }
    ],
-   "src": "wiki/vivian.md; rogue-vivian.md (via ext-party)",
+   "src": "wiki/vivian.md; rogue-vivian.md (via ext-party); per-lead lines seat draft 09-24 (playtest: Lymen is from here)",
    "id": "vivian"
   },
   "aurdinChapel": {
@@ -4288,7 +4436,7 @@
     {
      "say": [
       "West gate. The road runs a mile to the fork. North of the fork, the Tower. South, the gulch and the long road to the Pit.",
-      "East gate's the feed track to the Warrens bridge. Nobody bothers the dwarves."
+      "East gate's the feed track to the Warrens bridge. The north gate, up the cut behind me, is the Doors road. Nobody bothers the dwarves."
      ]
     }
    ],
@@ -4400,6 +4548,20 @@
    "name": "Casper Venn",
    "talk": [
     {
+     "if": "has:estatepapers & !flag:wSealed",
+     "say": [
+      "He won't touch unsealed paper. \"Androit first. I value what's been sworn to, not what's been hoped.\""
+     ]
+    },
+    {
+     "if": "has:estatepapers & flag:wSealed & !flag:wValued",
+     "say": [
+      "He breaks nothing, reads everything, and writes a figure at the bottom in silver.",
+      "\"Tell Winters it's a fair estate. Not a rich one.\""
+     ],
+     "set": "wValued"
+    },
+    {
      "if": "hired:vivian",
      "say": [
       "Newland mint, old dwarven silver, wizard coin, arena chits. I change them all.",
@@ -4420,6 +4582,14 @@
   "androit": {
    "name": "Aldwyn Androit",
    "talk": [
+    {
+     "if": "has:estatepapers & !flag:wSealed",
+     "say": [
+      "He reads Winters' inventory through once, slowly, and presses his seal into the wax.",
+      "\"Now it's true. Casper Venn for the value.\""
+     ],
+     "set": "wSealed"
+    },
     {
      "say": [
       "Contracts, charters, manumissions, wills. Literacy is scarce. My seal makes things true.",
@@ -4499,6 +4669,21 @@
   "brennan": {
    "name": "Brennan",
    "talk": [
+    {
+     "if": "has:debtpurse & !flag:wSigned",
+     "say": [
+      "\"Not till Mical signs the Pryor crate off. I've been paid in promises before.\""
+     ]
+    },
+    {
+     "if": "has:debtpurse & flag:wSigned",
+     "say": [
+      "He counts it, then counts it again, and puts it in the forge's iron box.",
+      "\"Tell Winters the forge is square.\""
+     ],
+     "take": "debtpurse",
+     "set": "wPaid"
+    },
     {
      "say": [
       "Shoes, wheels, barrels, harness. Dwarven tools under rune-warranty go at triple.",
@@ -4605,6 +4790,14 @@
   "mical": {
    "name": "Mical",
    "talk": [
+    {
+     "if": "has:debtpurse & !flag:wSigned",
+     "say": [
+      "She checks the Pryor manifest against the crate twice. It matches, which seems to surprise her.",
+      "She signs it off her books. \"Brennan's next, I suppose. Winters settles his dead in order.\""
+     ],
+     "set": "wSigned"
+    },
     {
      "say": [
       "Warehouses, no quay. The river's too small and fast to carry anything.",
@@ -5385,11 +5578,6 @@
    "src": "SRD 5.1 (Detect Magic)",
    "id": "g.detectNo"
   },
-  "g.familiar": {
-   "t": "He knows the ritual. He hasn't dared. [GRIZ: the familiar is undecided until he does it in story.]",
-   "src": "wiki/aurdin.md (familiar undecided until the ritual, CANON 09-10)",
-   "id": "g.familiar"
-  },
   "g.nothingHappens": {
    "t": "Nothing happens.",
    "src": "invented: connective",
@@ -5406,8 +5594,8 @@
    "id": "g.closed"
   },
   "g.innAsk": {
-   "t": "{n} silver for the party.",
-   "src": "the-lab/pit-maps/shops-silverton.json pin 11 (8 sp the bed)",
+   "t": "{n} silver the night.",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 11 (8 sp the bed); party rate RULED 09-24",
    "id": "g.innAsk"
   },
   "g.poor": {
@@ -5426,8 +5614,8 @@
    "id": "chapel.ask"
   },
   "leech.greet": {
-   "t": "Fighters are stitched on the house. The mother pays. Everyone else pays me.",
-   "src": "wiki/the-hex.md (the leech-house; the mother pays its bills)",
+   "t": "Blood off the sand, the mother pays for. Anybody else's, you pay me.",
+   "src": "wiki/the-hex.md (the leech-house; the mother pays its bills); wording clarified 09-24 (playtest: 'on the house' read as a contradiction)",
    "id": "leech.greet"
   },
   "leech.none": {
@@ -5450,13 +5638,35 @@
    "src": "ext Silverton npcs (Hessle, quote); wiki/the-council.md",
    "id": "hessle.greet"
   },
-  "hessle.board": {
-   "t": [
-    "STANDING BOUNTIES: Forty gold for the Web Gulch ettercap. Ten more since it snared a lad.",
-    "Forty gold for the cloaker in the guano mine's deep gallery. The paper's gone brown. Nobody has ever collected, and nobody knows who posted it."
-   ],
-   "src": "wiki/the-road.md (standing bounties, CANON 08-01); GalleriesModule/handouts/handout-galleries-what-the-town-says.md",
-   "id": "hessle.board"
+  "hessle.boardRead": {
+   "t": "He taps the board through the window glass. Standing bounties:",
+   "src": "invented: connective",
+   "id": "hessle.boardRead"
+  },
+  "hessle.boardEttercap": {
+   "t": "FORTY GOLD for the Web Gulch ettercap. Ten more since it snared a lad. Fangs for proof.",
+   "src": "wiki/the-road.md (standing bounties, CANON 08-01); wiki/web-gulch.md (40 gp +10)",
+   "id": "hessle.boardEttercap"
+  },
+  "hessle.boardCloaker": {
+   "t": "FORTY GOLD for the cloaker in the guano mine's deep gallery. The paper's gone brown. Nobody has ever collected, and nobody knows who posted it.",
+   "src": "wiki/the-road.md (standing bounties); GalleriesModule/handouts/handout-galleries-what-the-town-says.md",
+   "id": "hessle.boardCloaker"
+  },
+  "hessle.boardClear": {
+   "t": "The old bounty papers are down. Clean nail holes where they hung. New ones will go up.",
+   "src": "invented: connective",
+   "id": "hessle.boardClear"
+  },
+  "board.head": {
+   "t": "THE WEIGH-HOUSE BOARD. Sworn before notary; paid at the scales.",
+   "src": "ext Silverton npcs (Hessle, quote); wiki/the-council.md",
+   "id": "board.head"
+  },
+  "board.foot": {
+   "t": "Fifty gold for true word; ten a fortnight for watch kept. Bring proof to Hessle, inside.",
+   "src": "ext Silverton npcs (Hessle, quote)",
+   "id": "board.foot"
   },
   "hessle.ettercapPaid": {
    "t": "He weighs the fangs honestly and pays out of the drawer: fifty gold. Five hundred silver.",
@@ -5466,9 +5676,10 @@
   "hessle.cloakerDrawer": {
    "t": [
     "Hessle weighs the tail honestly and opens the drawer.",
-    "[GRIZ: what is in the drawer. The bounty's backer is held OPEN by ruling — coin from an unnamed hand, or nothing.]"
+    "Inside: a purse gone stiff with age, forty gold in coin nobody has struck in thirty years, and a folded note in a hand he doesn't know. FOR WHOEVER COMES BACK UP.",
+    "\"That's sat there longer than I've kept the scales,\" he says. \"I never asked whose it was.\""
    ],
-   "src": "GalleriesModule/guano-galleries-DM.md §8; wiki/guano-galleries.md (backer OPEN, held)",
+   "src": "GalleriesModule/guano-galleries-DM.md §8; the backer, seat draft 09-24 (was held open; RULED 09-24 the seat drafts)",
    "id": "hessle.cloakerDrawer"
   },
   "hessle.fiveAlive": {
@@ -5496,10 +5707,95 @@
    "src": "wiki/fountain-street.md; wiki/silverton.md (Winters, shop card: 'Consult DM', RULED 09-02)",
    "id": "winters.first"
   },
-  "winters.griz": {
-   "t": "[GRIZ: Ambrose Winters' own words. His particulars are reserved.]",
-   "src": "wiki/silverton.md (Reserved to Griz: Winters' particulars)",
-   "id": "winters.griz"
+  "winters.words": {
+   "t": [
+    "A lean old man in a black coat, a ledger open under one hand: Ambrose Winters. He finishes the line he is writing before he looks up.",
+    "\"Everything on these shelves outlived somebody. I price the somebody first. Then the thing.\""
+   ],
+   "src": "wiki/fountain-street.md (Winters); his words seat draft 09-24 (RULED 09-24: the seat drafts key NPCs)",
+   "id": "winters.words"
+  },
+  "winters.vivian": {
+   "t": "His eyes go to Vivian's hands and stay there. \"Miss Venn. On the counter, where I can admire them.\"",
+   "src": "rumors r-winters (won't deal with thieves if he can help it); seat draft 09-24",
+   "id": "winters.vivian"
+  },
+  "winters.menu": {
+   "t": "Winters waits, pen lifted.",
+   "src": "seat draft 09-24",
+   "id": "winters.menu"
+  },
+  "winters.shelvesShut": {
+   "t": "\"The shelves are for people I know. Carry something for me first. Then we'll know each other.\"",
+   "src": "seat draft 09-24; shelves after the first errand invented.json#winters-shelves",
+   "id": "winters.shelvesShut"
+  },
+  "winters.errandA": {
+   "t": [
+    "\"Estates don't settle themselves, and I don't leave the counter.\" He squares a sheaf of papers and ties it off.",
+    "\"An inventory. Androit seals it, down the row. Then Casper Venn puts a value on it in silver. Then it comes back here. Don't read it on the way.\""
+   ],
+   "src": "RULED 09-24 (Winters starts courier errands); seat draft; wiki/fountain-street.md (Androit the notary; Casper Venn the changer)",
+   "id": "winters.errandA"
+  },
+  "winters.errandAtoAndroit": {
+   "t": "\"Androit first. The seal, then the value. Paper goes in order or it doesn't go at all.\"",
+   "src": "seat draft 09-24",
+   "id": "winters.errandAtoAndroit"
+  },
+  "winters.errandAtoCasper": {
+   "t": "\"Sealed. Good. Now Casper Venn, for the value.\"",
+   "src": "seat draft 09-24",
+   "id": "winters.errandAtoCasper"
+  },
+  "winters.errandAdone": {
+   "t": [
+    "He reads the seal, then Casper's figure, then the seal again. \"Honest, both of them. And you didn't read it.\"",
+    "\"Twelve silver. And the shelves are open to you now.\""
+   ],
+   "src": "seat draft 09-24",
+   "id": "winters.errandAdone"
+  },
+  "winters.errandB": {
+   "t": [
+    "\"The Pryor estate owed Brennan the smith for his forge. Dead men pay their debts in this shop.\"",
+    "\"Take the purse. Mical signs the Pryor crate off her books first, down at the warehouses. Then Brennan gets the purse. Then you get paid.\""
+   ],
+   "src": "seat draft 09-24; wiki/fountain-street.md (Mical's manifests); npcs (Brennan rebuilt the forge on borrowed coin)",
+   "id": "winters.errandB"
+  },
+  "winters.errandBtoMical": {
+   "t": "\"Mical first. The crate off her books, then the purse to Brennan.\"",
+   "src": "seat draft 09-24",
+   "id": "winters.errandBtoMical"
+  },
+  "winters.errandBtoBrennan": {
+   "t": "\"Signed off? Then the purse goes to Brennan. All of it. I'll know.\"",
+   "src": "seat draft 09-24",
+   "id": "winters.errandBtoBrennan"
+  },
+  "winters.errandBdone": {
+   "t": [
+    "\"The forge is square and the crate is off the books. That's an estate settled.\"",
+    "\"Twenty silver, and a potion off the shelf. Come back when somebody dies. Somebody always does.\""
+   ],
+   "src": "seat draft 09-24",
+   "id": "winters.errandBdone"
+  },
+  "winters.noWork": {
+   "t": "\"No papers today. Somebody will die. Somebody always does.\"",
+   "src": "seat draft 09-24",
+   "id": "winters.noWork"
+  },
+  "renown.errandA": {
+   "t": "Fountain Street knows your face.",
+   "src": "invented: connective",
+   "id": "renown.errandA"
+  },
+  "renown.errandB": {
+   "t": "The paper layer vouches for you.",
+   "src": "invented: connective",
+   "id": "renown.errandB"
   },
   "winters.notReady": {
    "t": "He looks you over the way a man looks over an estate before he names a price. Not ready. Not yet. (The one who leads you is level {lvl}.)",
@@ -5507,16 +5803,16 @@
    "id": "winters.notReady"
   },
   "winters.ready": {
-   "t": "Winters looks you over again. This time he nods.",
+   "t": "Winters looks you over again. This time he nods. \"Now you're ready.\"",
    "src": "handoff-2026-09-23-dragonsleep-8bit-spec.md §11-A (the item when the main is 4)",
    "id": "winters.ready"
   },
   "winters.ring": {
    "t": [
-    "He sets a plain ring on the counter: the RING OF BINDING.",
-    "It is for the thing in the lake. +3 to CON saves. On the first, fourth, seventh and tenth rounds, it must turn on whoever wears this."
+    "He sets a plain ring on the counter: the RING OF BINDING. \"For the thing in the lake. I've been holding it for whoever came along able to use it.\"",
+    "+3 to CON saves. On the first, fourth, seventh and tenth rounds, the thing must turn on whoever wears it."
    ],
-   "src": "handoff-2026-09-23-dragonsleep-8bit-spec.md §4 (the Ring of Binding, RULED 09-23)",
+   "src": "handoff-2026-09-23-dragonsleep-8bit-spec.md §4 (the Ring of Binding, RULED 09-23); his line seat draft 09-24",
    "id": "winters.ring"
   },
   "winters.equipAsk": {
@@ -5525,8 +5821,8 @@
    "id": "winters.equipAsk"
   },
   "winters.after": {
-   "t": "Winters glances at the ring on your hand, and at you, and goes back to his ledger.",
-   "src": "invented: connective",
+   "t": "Winters glances at the ring on your hand, then at you. \"Well?\"",
+   "src": "seat draft 09-24",
    "id": "winters.after"
   },
   "hire.barleyAsk": {
@@ -5541,6 +5837,27 @@
    ],
    "src": "book-thirty-silver/barley-I-name-in-the-sand.md (DRAFT lines, via ext-party)",
    "id": "hire.barleyYes"
+  },
+  "hire.barleyBout": {
+   "t": "Korvin chalks it before your silver's cold: BARLEY, on the card tonight. Barley takes the sand. You take the rail.",
+   "src": "wiki/the-hex.md (the card; the chalk); RULED 09-24 (Griz: fronting his fee puts him straight into a bout)",
+   "id": "hire.barleyBout"
+  },
+  "hire.barleyWon": {
+   "t": [
+    "Five in, ten out. He presses your five back into your hand.",
+    "\"Now I'm with you.\""
+   ],
+   "src": "book-thirty-silver/barley-I-name-in-the-sand.md ('five to walk in, ten to walk out'); seat draft 09-24",
+   "id": "hire.barleyWon"
+  },
+  "hire.barleyLost": {
+   "t": [
+    "He gets up off the sand the way he got up against Cutter. Your five's gone.",
+    "\"I owe you one. I'll walk it off with you.\""
+   ],
+   "src": "wiki/barley.md (went down against Cutter and got back up); seat draft 09-24",
+   "id": "hire.barleyLost"
   },
   "hire.aurdinAsk": {
    "t": "He owes. Due up in a few days, he says; it has been due up in a few days for a while now. To whom, he won't say. Cover it?",
@@ -5654,7 +5971,7 @@
    "id": "renown.card"
   },
   "hex.lost": {
-   "t": "{name} goes down.",
+   "t": "{name} goes down. The stake is the house's now.",
    "src": "invented: connective",
    "id": "hex.lost"
   },
@@ -5663,8 +5980,18 @@
    "src": "wiki/the-hex.md (a winner who loses the fronted 5 catches hell and gets bought rounds)",
    "id": "hex.lostFronted"
   },
+  "hex.frontedLymen": {
+   "t": "Short of five? Korvin chalks it against the house. Your mother's house. Lose it and you'll hear about it at supper.",
+   "src": "wiki/the-urtusks.md (the Hex is the family's house); seat draft 09-24",
+   "id": "hex.frontedLymen"
+  },
+  "hex.lostFrontedLymen": {
+   "t": "{name} goes down on the house's own five. Warda will hear by supper.",
+   "src": "wiki/the-urtusks.md; seat draft 09-24",
+   "id": "hex.lostFrontedLymen"
+  },
   "hex.stitched": {
-   "t": "Davos Kren stitches {name} up on the house. The mother pays.",
+   "t": "Davos Kren stitches {name} up on the house: whoever bleeds on the sand, the mother pays for.",
    "src": "wiki/the-hex.md (fight-night surgery the mother pays)",
    "id": "hex.stitched"
   },
@@ -5686,9 +6013,9 @@
   "lucia.card": {
    "t": [
     "MAMA'S PHARMAKAIEA. The shop card in the window reads: CONSULT LUCIA.",
-    "[GRIZ: the arena family and Mama's are reserved.]"
+    "Lucia is behind the counter, sleeves rolled, a mortar going."
    ],
-   "src": "wiki/the-hex.md (shop card 'Consult Lucia', RULED 09-02); wiki/the-urtusks.md (reserved)",
+   "src": "wiki/the-hex.md (shop card 'Consult Lucia', RULED 09-02); a shop RULED 09-24; seat draft",
    "id": "lucia.card"
   },
   "w.nightcrewGone": {
@@ -5705,6 +6032,41 @@
    "t": "Six draws to a shift. One silver the sealed thimble above the wet. A draught in your pack gives you an edge on the touch.",
    "src": "wiki/the-warrens.md (the dose-rate; six attempts a shift; the antitoxin draught buys advantage)",
    "id": "w.penAsk"
+  },
+  "w.penHow": {
+   "t": "Ride the pull. When the mark swings through the green, squeeze (Z). Green is a clean thimble. Amber is a dry pull. Red, and the feelers find you. The better your hands with animals, the wider the green.",
+   "src": "wiki/the-warrens.md (six attempts; fail by 5+ = the touch); the timing game invented.json#milking",
+   "id": "w.penHow"
+  },
+  "w.penReady": {
+   "t": "The crawler settles in the cradle. Watch the mark.",
+   "src": "invented: connective",
+   "id": "w.penReady"
+  },
+  "w.drawClean": {
+   "t": "A clean draw, sealed in its thimble.",
+   "src": "invented: connective",
+   "id": "w.drawClean"
+  },
+  "w.drawDry": {
+   "t": "A dry pull. Nothing in the thimble.",
+   "src": "invented: connective",
+   "id": "w.drawDry"
+  },
+  "w.drawTouched": {
+   "t": "Too hard, too wild. A feeler finds your wrist.",
+   "src": "wiki/the-warrens.md (the touch: poisoned and paralyzed)",
+   "id": "w.drawTouched"
+  },
+  "w.drawJerk": {
+   "t": "A feeler brushes a wrist. You jerk back in time.",
+   "src": "wiki/the-warrens.md (CON 13)",
+   "id": "w.drawJerk"
+  },
+  "w.gateOpens": {
+   "t": "The gate swings back on its pins and stays open. Past it, the drift; at the top of the drift, the daytime way down to the wet.",
+   "src": "wiki/the-warrens.md (Skarn holds the gate-key; the daytime way down)",
+   "id": "w.gateOpens"
   },
   "w.touchShrug": {
    "t": "A tentacle brushes a wrist. The draught holds.",
@@ -5785,7 +6147,7 @@
   "w.edricFirst": {
    "t": [
     "The tally-house. Edric Pellam keeps the book: doses out, weights in, who came back short. He reads it aloud like a man who hates what he is good at.",
-    "You're in the book now. The cradles are open to you."
+    "You're in the book now. The cradles are open to you: the pens are the gated mouths along the mountain, Two, Four and Five. Walk up to one to work a shift."
    ],
    "src": "wiki/the-warrens.md (the Pellams); WarrensModule/crawler-warrens-DM.md §4",
    "id": "w.edricFirst"
@@ -6039,11 +6401,26 @@
   },
   "g4.cloaker": {
    "t": [
-    "The bottom of the last pitch. Something hangs on the ladder like a cloak somebody left. Then it opens.",
-    "Bright light is its weakness. The way out is UP."
+    "The deep gallery opens out: bare rock, no roost. Something hangs from the roof like a cloak somebody left behind. Then it opens.",
+    "Bright light is its weakness: a torch, or the Light spell. The way out is UP."
    ],
    "src": "GalleriesModule/guano-galleries-DM.md §8 (hangs like a cloak; light is the weapon; the out is up)",
    "id": "g4.cloaker"
+  },
+  "fail.roost": {
+   "t": "You came to make a name. The guano mine gave you one: the fools who fired the roost. Nobody on the mountain will hire you again, and Silverton hears it by nightfall.",
+   "src": "RULED 09-24 (Griz: 'you wanted to make a name for yourself, but not this kind of name'); GalleriesModule/guano-galleries-DM.md §3 (the one law)",
+   "id": "fail.roost"
+  },
+  "rogue.archetypeAsk": {
+   "t": "{name} has found her way of working. Which will it be?",
+   "src": "RULED 09-24 (Griz: her archetype is the player's choice in this game)",
+   "id": "rogue.archetypeAsk"
+  },
+  "rogue.archetypeTaken": {
+   "t": "{name} works as a {arch} now.",
+   "src": "invented: connective",
+   "id": "rogue.archetypeTaken"
   },
   "g4.tail": {
    "t": "Received: Cloaker's Tail. Proof for Hessle's scales.",
@@ -6219,10 +6596,11 @@
   },
   "lake.ending": {
    "t": [
-    "What the Waterbys make of it is theirs. [GRIZ: the inn's fate is OPEN by ruling — 'do not ruin it'.]",
+    "The Waterbys keep the inn. The lantern stays on its hook by the lake door, and nobody lights it.",
+    "In the morning Doran walks down to the water with a bucket, draws from the lake in front of everyone, and drinks.",
     "The corridor has a local hero now. Up the mountain, the Doors. Down the road, the Pit. Those are other stories."
    ],
-   "src": "wiki/halfway-inn-and-lake.md (the inn's fate OPEN, 'do not ruin it'); spec §5 (the expansion walls)",
+   "src": "wiki/halfway-inn-and-lake.md (the inn's fate was held open, 'do not ruin it'); seat draft 09-24 (RULED 09-24: the seat drafts); spec §5 (the expansion walls)",
    "id": "lake.ending"
   },
   "lake.quiet": {
@@ -6565,9 +6943,93 @@
    "name": "Company",
    "show": "",
    "done": "party>=4",
-   "text": "Barley, Aurdin, Vivian and Lymen are all somewhere in Silverton. Find the others: the Hex, the mission chapel, vice row.",
+   "text": "Barley, Aurdin, Vivian and Lymen are all somewhere in Silverton. Find the others: the Hex, the mission chapel, vice row. Lymen wants you to have made a name first.",
    "doneText": "Four of you.",
-   "src": "handoff-2026-09-23 §3 (the others hireable in play); hire spots invented.json#hires"
+   "steps": [
+    {
+     "if": "!hired:barley",
+     "map": "hex",
+     "npc": "barleyBench",
+     "where": "Barley, on the bench at the Hex bar. Front his five."
+    },
+    {
+     "if": "!hired:aurdin",
+     "map": "silverton",
+     "npc": "aurdinChapel",
+     "where": "Aurdin, outside Aldwin's mission chapel in the Shaft Rows."
+    },
+    {
+     "if": "!hired:vivian",
+     "map": "silverton",
+     "npc": "vivian",
+     "where": "Vivian, selling candles on vice row, south of the Hex."
+    },
+    {
+     "if": "!hired:lymen",
+     "map": "hex",
+     "npc": "lymenHex",
+     "where": "Lymen, in the Hex. He joins once you have renown."
+    }
+   ],
+   "src": "handoff-2026-09-23 §3 (the others hireable in play); hire spots invented.json#hires; steps invented.json#pinned-quest"
+  },
+  {
+   "id": "errands",
+   "name": "Winters' Errands",
+   "show": "flag:wintersMet",
+   "done": "flag:wErrBDone",
+   "text": "Ambrose Winters has papers that need carrying, and he doesn't leave the counter. Easy work, and Fountain Street will know your face.",
+   "doneText": "Fountain Street knows your face. Winters' shelves are open to you.",
+   "steps": [
+    {
+     "if": "!flag:wErrA",
+     "map": "winters",
+     "npc": "winters",
+     "where": "Winters, Acquisitions & Estates. Ask him for WORK."
+    },
+    {
+     "if": "has:estatepapers & !flag:wSealed",
+     "map": "silverton",
+     "door": "androit",
+     "where": "Aldwyn Androit, the notary on Fountain Street: his seal on the papers."
+    },
+    {
+     "if": "has:estatepapers & !flag:wValued",
+     "map": "silverton",
+     "door": "casper",
+     "where": "Casper Venn, the changer on Fountain Street: a value in silver."
+    },
+    {
+     "if": "has:estatepapers",
+     "map": "winters",
+     "npc": "winters",
+     "where": "Back to Winters with the sealed, valued papers."
+    },
+    {
+     "if": "!flag:wErrB",
+     "map": "winters",
+     "npc": "winters",
+     "where": "Winters has more WORK."
+    },
+    {
+     "if": "has:debtpurse & !flag:wSigned",
+     "map": "silverton",
+     "door": "mical",
+     "where": "Mical at the Riverside warehouses: she signs the Pryor crate off her books."
+    },
+    {
+     "if": "has:debtpurse",
+     "map": "silverton",
+     "door": "brennan",
+     "where": "Brennan the smith, on the second row of Fountain Street: he's owed the purse."
+    },
+    {
+     "map": "winters",
+     "npc": "winters",
+     "where": "Back to Winters."
+    }
+   ],
+   "src": "RULED 09-24 (Griz: easy 'help people in town' renown, courier missions between important NPCs, Winters starts); invented.json#errands"
   },
   {
    "id": "five",
@@ -6576,15 +7038,71 @@
    "done": "flag:fiveDone",
    "text": "Across the river, the Crawler Warrens. Warrens Pete says six came up. The book has five names with no return line. Past the wet.",
    "doneText": "The five came back up. Edric wrote their return lines.",
+   "steps": [
+    {
+     "if": "has:fivetokens",
+     "map": "warrens_a",
+     "npc": "edric",
+     "where": "Bring the five's gear to Edric Pellam at the tally-house."
+    },
+    {
+     "if": "!flag:tallyMet",
+     "map": "warrens_a",
+     "npc": "edric",
+     "where": "Edric Pellam at the tally-house: the Warrens mouth camp, out the east gate and over the bridge."
+    },
+    {
+     "if": "!flag:skarnOk",
+     "map": "warrens_a",
+     "npc": "skarn",
+     "where": "Skarn, at the mouth camp. Speak to him as a man, and his gate opens."
+    },
+    {
+     "if": "!flag:fiveRecovered",
+     "map": "warrens_d",
+     "trig": "stair",
+     "where": "The flooded stair, past the wet: through Skarn's gate, up the drift, the daytime way down. Bring rope."
+    }
+   ],
    "src": "WarrensModule/crawler-warrens-DM.md (the hook)"
+  },
+  {
+   "id": "cradles",
+   "name": "The Cradles",
+   "show": "flag:tallyMet",
+   "done": "shifts>=1",
+   "text": "Your name is in Edric's book. The pens are the gated mouths along the mountain at the camp: Two, Four and Five. Six draws to a shift, a silver the clean thimble.",
+   "doneText": "You've worked the cradles. Any day you like.",
+   "steps": [
+    {
+     "map": "warrens_a",
+     "trig": "pen2",
+     "where": "Pen Two: the gated mouth on the mountain wall of the mouth camp."
+    }
+   ],
+   "src": "wiki/the-warrens.md (the dose-rate; six attempts a shift); WarrensModule/handouts/handout-galleries-hands-wanted.md"
   },
   {
    "id": "cull",
    "name": "The Cull",
    "show": "flag:heardGalleries|flag:cullHired",
    "done": "flag:rescued",
-   "text": "West of town, the guano mine hires cull hands: three silver a giant-bat head, a gold piece a darkmantle. The one law: no fire under a roost.",
+   "text": "West of town, the guano mine hires cull hands: three silver a giant-bat head, a gold piece a darkmantle. The one law: no fire, no noise under a roost.",
    "doneText": "You kept the law and brought a man up.",
+   "steps": [
+    {
+     "if": "!flag:cullHired",
+     "map": "galleries_g1",
+     "npc": "sabeth",
+     "where": "Sabeth Pollard at the weigh-shed, the guano mine's mouth (west, in the mountain)."
+    },
+    {
+     "if": "!flag:rescued",
+     "map": "galleries_g3",
+     "trig": "rescue",
+     "where": "The dens, down past the working gallery. Listen for Old Wynn's rattle."
+    }
+   ],
    "src": "wiki/guano-galleries.md; GalleriesModule/guano-galleries-DM.md"
   },
   {
@@ -6594,6 +7112,19 @@
    "done": "flag:cloakerDone",
    "text": "Forty gold on Hessle's board for the cloaker in the guano mine's deep gallery. Nobody has ever collected. Bright light is its weakness.",
    "doneText": "Hessle weighed the tail honestly and opened the drawer.",
+   "steps": [
+    {
+     "if": "has:cloakertail",
+     "map": "silverton",
+     "door": "hessle",
+     "where": "Take the tail to Hessle at the Weigh-House, Fountain Street."
+    },
+    {
+     "map": "galleries_g4",
+     "trig": "cloaker",
+     "where": "The deep gallery, below the dens: past the mark, down the last ladder. Bring light."
+    }
+   ],
    "src": "wiki/the-road.md; GalleriesModule/guano-galleries-DM.md §8"
   },
   {
@@ -6603,6 +7134,19 @@
    "done": "flag:ettercapDone",
    "text": "Forty gold, up ten since it snared a lad: the ettercap at the far end of Web Gulch, south of the fork.",
    "doneText": "Hessle paid fifty gold. Nobody will ever say why it braided.",
+   "steps": [
+    {
+     "if": "has:ettercapfangs",
+     "map": "silverton",
+     "door": "hessle",
+     "where": "Take the fangs to Hessle at the Weigh-House."
+    },
+    {
+     "map": "gulch",
+     "trig": "ettercap",
+     "where": "The far end of Web Gulch: down the silk-cutters' descent, south of the fork."
+    }
+   ],
    "src": "wiki/web-gulch.md"
   },
   {
@@ -6612,6 +7156,13 @@
    "done": "flag:talmokBeaten",
    "text": "The Hex: five silver to fight on the card, winner keeps ten. Korvin keeps the slate. Talmok is the champion.",
    "doneText": "You beat Talmok on the sand.",
+   "steps": [
+    {
+     "map": "hex",
+     "npc": "korvinSlate",
+     "where": "Korvin at the slate, in the Hex."
+    }
+   ],
    "src": "wiki/the-hex.md"
   },
   {
@@ -6621,6 +7172,13 @@
    "done": "flag:snootDone",
    "text": "Gnoll glory-seekers range south of the Halfway Inn. The challenge by day.",
    "doneText": "You held the road.",
+   "steps": [
+    {
+     "map": "world",
+     "trig": "snoot",
+     "where": "The road south of the Halfway Inn."
+    }
+   ],
    "src": "wiki/the-road.md; wiki/the-snoot.md"
   },
   {
@@ -6630,6 +7188,13 @@
    "done": "has:ringofbinding",
    "text": "Ambrose Winters, Acquisitions & Estates, Fountain Street. Not ready, not yet. (He will be ready when the one who leads you reaches level 4.)",
    "doneText": "The Ring of Binding.",
+   "steps": [
+    {
+     "map": "winters",
+     "npc": "winters",
+     "where": "Winters, once the one who leads you is level 4. Until then, ask him for work."
+    }
+   ],
    "src": "handoff-2026-09-23 §4, §11-A"
   },
   {
@@ -6639,6 +7204,37 @@
    "done": "flag:lakeDone",
    "text": "The Halfway Inn, seventeen miles down the road. The Waterbys. The deep off the point.",
    "doneText": "The thing in the lake is dead.",
+   "steps": [
+    {
+     "if": "!flag:reachedInn",
+     "map": "halfway",
+     "npc": "doranYard",
+     "where": "The Halfway Inn: south from the fork, past Web Gulch, on the east side of the road."
+    },
+    {
+     "if": "!flag:elsbethTold",
+     "map": "halfway_in",
+     "npc": "elsbeth",
+     "where": "Elsbeth, at the kitchen tub. She only talks while she works."
+    },
+    {
+     "if": "!has:ringofbinding & !flag:dueSeen",
+     "map": "winters",
+     "npc": "winters",
+     "where": "Not without help. Winters has something for this, when you're ready."
+    },
+    {
+     "if": "!flag:dueSeen",
+     "map": "halfway_in",
+     "npc": "gennet",
+     "where": "Take a room from the inn lady, with the ring on."
+    },
+    {
+     "map": "halfway",
+     "trig": "pointStep",
+     "where": "Down to the point."
+    }
+   ],
    "src": "wiki/halfway-inn-and-lake.md; spec §4 (the capstone)"
   }
  ],
@@ -6728,7 +7324,8 @@
     "A": "water",
     "M": "mountain",
     "V": "range",
-    "I": "lamp"
+    "I": "lamp",
+    "Q": "cocoon"
    },
    "music": "field",
    "bg": "plains",
@@ -6903,7 +7500,8 @@
     "A": "water",
     "M": "mountain",
     "V": "range",
-    "I": "lamp"
+    "I": "lamp",
+    "Q": "cocoon"
    },
    "music": "dungeon",
    "bg": "guano",
@@ -7073,7 +7671,8 @@
     "A": "water",
     "M": "mountain",
     "V": "range",
-    "I": "lamp"
+    "I": "lamp",
+    "Q": "cocoon"
    },
    "music": "dungeon",
    "bg": "guano",
@@ -7204,7 +7803,7 @@
     "###GGGG##.##########################",
     "##GGGGGG#.###.####..################",
     "##GGGGGG#.##............#.##########",
-    "###GGGG#....................########",
+    "###GGGGG....................########",
     "#######.....................########",
     "######.......b................######",
     "####............................####",
@@ -7280,7 +7879,8 @@
     "A": "water",
     "M": "mountain",
     "V": "range",
-    "I": "lamp"
+    "I": "lamp",
+    "Q": "cocoon"
    },
    "music": "dungeon",
    "bg": "deep",
@@ -7332,22 +7932,10 @@
     {
      "id": "cloaker",
      "rect": [
+      5,
       8,
-      6,
-      3,
-      2
-     ],
-     "on": "step",
-     "script": "cloaker",
-     "cond": "!flag:cloakerDone"
-    },
-    {
-     "id": "cloaker2",
-     "rect": [
-      4,
-      6,
-      3,
-      1
+      28,
+      16
      ],
      "on": "step",
      "script": "cloaker",
@@ -7377,7 +7965,7 @@
     "CCCCUUUUUUUUUUUeUUUUUUUXUUUUUUUUUUUUCUCC",
     "CCCCUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCCCC",
     "CCCCUUUUUUUUUUUUUUUXUUUUXUUUUUUUUUUUCCCC",
-    "CCCUUUUUUUUUUUUUUUUUUUUUUUUUUXUUUUUUUCCC",
+    "CCCUUUUUUUUUUUUUUeQeUUUUUUUUUXUUUUUUUCCC",
     "CCCUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCCC",
     "CCCCUUUUUUUUUUUUUUUUUUUUUUUUUUXUUUUUUCCC",
     "CCCCCCUUUUUUUUUUUUUUUUUUUUUUUUUeUUCUCCCC",
@@ -7446,7 +8034,8 @@
     "A": "water",
     "M": "mountain",
     "V": "range",
-    "I": "lamp"
+    "I": "lamp",
+    "Q": "cocoon"
    },
    "music": "dungeon",
    "bg": "gulch",
@@ -7521,12 +8110,12 @@
     {
      "id": "snared",
      "rect": [
+      18,
       17,
-      20,
-      2,
-      2
+      1,
+      1
      ],
-     "on": "step",
+     "on": "use",
      "script": "snared",
      "once": true
     },
@@ -7552,6 +8141,14 @@
       40,
       30
      ]
+    }
+   ],
+   "flagTiles": [
+    {
+     "x": 18,
+     "y": 17,
+     "tile": "gulch",
+     "cond": "trig:snared"
     }
    ]
   },
@@ -7632,7 +8229,9 @@
     "S": "sand",
     "X": "range",
     "=": "road",
-    "Y": "deep"
+    "Y": "deep",
+    "N": "noticeboard",
+    "P": "signpost"
    },
    "music": "lake",
    "bg": "lake",
@@ -8124,21 +8723,21 @@
    "name": "Silverton",
    "tileset": "town",
    "rows": [
-    "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-    "^^^^^^^^^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
-    "^^^^^^^^^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
-    "^^^^^^^^^^^eeaeeeaeeeaeeeaeeeeeeeeaeeeaeeeaeeeaee~~~~~~~~~~~",
-    "^^^^^^^^^^^eeaeeeaeeeaeeeaeeevveeeaeeeaeeeaeeeaee~~~~~~~~~~~",
-    "^^k..........@...@...@...@........@...@...@...@.............",
+    "^^^^^^,,^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "^^^^^^,,^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+    "^^^^^^,,^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
+    "^^^^^^,,^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
+    "^^^^^^,,^^^eeaeeeaeeeaeeeaeeeeeeeeaeeeaeeeaeeeaee~~~~~~~~~~~",
+    "^^^^^P,,^^^eeaeeeaeeeaeeeaeeevveeeaeeeaeeeaeeeaee~~~~~~~~~~~",
+    "^^k..........@.l.@...@.l.@........@.l.@...@.l.@.............",
     ",,,......................................................,,,",
     ",,,......................................................,,,",
     "^^k.ssssss.rrrrr.bbbbb.sssss....rrrrr.bbbbb.sssss.rrrrrr.k\"\"",
-    "^^k.ssssss.rrrrr.bbbbb.sssssl..lrrrrr.bbbbb.sssss.rrrrrr.k\"\"",
-    "^^k.wowDwo.woDow.woDow.woDow....woDow.woDow.woDow.wowDwo.k\"\"",
+    "^^k.ssssss.rrrrr.bbbbb.sssss....rrrrr.bbbbb.sssss.rrrrrr.k\"\"",
+    "^^k.wowDwo.woDow.woDow.wNDow....woDow.woDow.woDow.wowDwo.k\"\"",
     "^^k......................................................k\"\"",
     "^^krrrrrrr.bbbb.rrrr.bbbb........bbbbb.rrrrr.bbbb.sssss..k\"\"",
-    "^^krrrrrrrlbbbb.rrrr.bbbb.l.....lbbbbb.rrrrrlbbbblsssss..k\"\"",
+    "^^krrrrrrr.bbbb.rrrr.bbbb........bbbbb.rrrrr.bbbb.sssss..k\"\"",
     "^^kwowDwow.wDwo.woDo.wDwo........woDow.woDow.wDwo.woDow..k\"\"",
     "^^k......................................................k\"\"",
     "^^k,,,,,,,,,,,,,,,........l.........rrrr.................k\"\"",
@@ -8216,7 +8815,9 @@
     "S": "sand",
     "X": "range",
     "=": "road",
-    "Y": "deep"
+    "Y": "deep",
+    "N": "noticeboard",
+    "P": "signpost"
    },
    "music": "town",
    "bg": "town",
@@ -8239,6 +8840,12 @@
      "tx": 37,
      "ty": 12,
      "dir": "down"
+    },
+    "north": {
+     "to": "world",
+     "tx": 37,
+     "ty": 10,
+     "dir": "up"
     }
    },
    "npcs": [
@@ -8410,6 +9017,12 @@
    ],
    "signs": [
     {
+     "x": 5,
+     "y": 5,
+     "text": "NORTH GATE. The Doors road, up the mountain. The locals call it the Coldridge route.",
+     "src": "wiki/the-road.md (the Doors road); rumors r-coldridge (wiki/fountain-street.md HD-1)"
+    },
+    {
      "x": 29,
      "y": 5,
      "text": "The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.",
@@ -8469,7 +9082,8 @@
      "back": "down",
      "to": "winters",
      "tx": 4,
-     "ty": 6
+     "ty": 6,
+     "icon": "ring"
     },
     {
      "id": "keeper:casper",
@@ -8496,7 +9110,8 @@
      "on": "step",
      "script": "keeper",
      "arg": "hessle",
-     "back": "down"
+     "back": "down",
+     "icon": "scales"
     },
     {
      "id": "shop:kessler",
@@ -8505,7 +9120,8 @@
      "on": "step",
      "script": "shop",
      "arg": "kessler",
-     "back": "down"
+     "back": "down",
+     "icon": "coin"
     },
     {
      "id": "shop:calla",
@@ -8514,7 +9130,8 @@
      "on": "step",
      "script": "shop",
      "arg": "calla",
-     "back": "down"
+     "back": "down",
+     "icon": "potion"
     },
     {
      "id": "keeper:falstaff",
@@ -8541,7 +9158,8 @@
      "on": "step",
      "script": "inn",
      "arg": "cassia",
-     "back": "down"
+     "back": "down",
+     "icon": "bed"
     },
     {
      "id": "keeper:mela",
@@ -8568,7 +9186,8 @@
      "on": "step",
      "script": "shop",
      "arg": "lisbet",
-     "back": "down"
+     "back": "down",
+     "icon": "star"
     },
     {
      "id": "keeper:brennan",
@@ -8586,7 +9205,8 @@
      "on": "step",
      "script": "shop",
      "arg": "marko",
-     "back": "down"
+     "back": "down",
+     "icon": "pack"
     },
     {
      "id": "shop:kasten",
@@ -8595,7 +9215,8 @@
      "on": "step",
      "script": "shop",
      "arg": "kasten",
-     "back": "down"
+     "back": "down",
+     "icon": "candle"
     },
     {
      "id": "keeper:barber",
@@ -8622,7 +9243,8 @@
      "on": "step",
      "script": "shop",
      "arg": "vilar",
-     "back": "down"
+     "back": "down",
+     "icon": "sword"
     },
     {
      "id": "leech:davos",
@@ -8631,7 +9253,8 @@
      "on": "step",
      "script": "leech",
      "arg": "davos",
-     "back": "down"
+     "back": "down",
+     "icon": "stitch"
     },
     {
      "id": "keeper:percy",
@@ -8658,7 +9281,8 @@
      "on": "step",
      "script": "chapel",
      "arg": "aldwin",
-     "back": "down"
+     "back": "down",
+     "icon": "sun"
     },
     {
      "id": "keeper:kess",
@@ -8679,13 +9303,25 @@
      "back": "down"
     },
     {
-     "id": "keeper:lucia",
+     "id": "shop:lucia",
      "x": 37,
      "y": 19,
      "on": "step",
-     "script": "keeper",
+     "script": "shop",
      "arg": "lucia",
-     "back": "down"
+     "back": "down",
+     "icon": "mortar"
+    },
+    {
+     "id": "board",
+     "rect": [
+      24,
+      11,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "board"
     }
    ]
   },
@@ -8777,7 +9413,8 @@
     "A": "water",
     "M": "mountain",
     "V": "range",
-    "I": "lamp"
+    "I": "lamp",
+    "Q": "cocoon"
    },
    "music": "field",
    "bg": "plains",
@@ -8850,6 +9487,14 @@
    ],
    "warps": [
     {
+     "x": 15,
+     "y": 4,
+     "to": "warrens_b",
+     "tx": 13,
+     "ty": 26,
+     "dir": "up"
+    },
+    {
      "x": 3,
      "y": 3,
      "to": "warrens_c",
@@ -8863,14 +9508,6 @@
      "to": "warrens_c",
      "tx": 45,
      "ty": 16,
-     "dir": "up"
-    },
-    {
-     "x": 15,
-     "y": 4,
-     "to": "warrens_b",
-     "tx": 13,
-     "ty": 26,
      "dir": "up"
     }
    ],
@@ -9055,7 +9692,8 @@
     "A": "water",
     "M": "mountain",
     "V": "range",
-    "I": "lamp"
+    "I": "lamp",
+    "Q": "cocoon"
    },
    "music": "dungeon",
    "bg": "cave",
@@ -9128,7 +9766,22 @@
       1
      ],
      "on": "use",
-     "script": "skarnGate"
+     "script": "skarnGate",
+     "cond": "!flag:skarnGateOpen"
+    }
+   ],
+   "flagTiles": [
+    {
+     "x": 17,
+     "y": 19,
+     "tile": "gateOpen",
+     "cond": "flag:skarnGateOpen"
+    },
+    {
+     "x": 18,
+     "y": 19,
+     "tile": "gateOpen",
+     "cond": "flag:skarnGateOpen"
     }
    ]
   },
@@ -9212,7 +9865,8 @@
     "A": "water",
     "M": "mountain",
     "V": "range",
-    "I": "lamp"
+    "I": "lamp",
+    "Q": "cocoon"
    },
    "music": "dungeon",
    "bg": "cave",
@@ -9393,7 +10047,8 @@
     "A": "water",
     "M": "mountain",
     "V": "range",
-    "I": "lamp"
+    "I": "lamp",
+    "Q": "cocoon"
    },
    "music": "dungeon",
    "bg": "wet",
@@ -9710,7 +10365,24 @@
      "tx": 1,
      "ty": 8,
      "dir": "right",
-     "mapName": true
+     "mapName": true,
+     "alt": {
+      "down": {
+       "tx": 6,
+       "ty": 1,
+       "dir": "down"
+      },
+      "up": {
+       "tx": 29,
+       "ty": 43,
+       "dir": "up"
+      },
+      "left": {
+       "tx": 58,
+       "ty": 7,
+       "dir": "left"
+      }
+     }
     },
     {
      "x": 46,

@@ -70,5 +70,22 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] Sound/music plays after the first keypress; volume in OPTIONS
 - [ ] Opening index.html straight from disk also works
 
+## 11. Round two: the fold from the 09-24 ear-file
+- [ ] North gate: the cut up the mountain at the west end of Fountain Street → the Doors road → the expansion wall at the top. Walking back down drops you at the north gate (south road → south gate)
+- [ ] Town: shop signs hang over the shop doors (sun on the free chapel); lamp posts no longer block the alleys; Mama's (north of the Hex) is a shop now
+- [ ] The Weigh-House board is on the Weigh-House front wall (walk into it). Paid bounties come off it; Hessle's drawer pays for the cloaker's tail
+- [ ] Winters: his own lines; WORK = two courier errands (papers: Androit → Casper → back; the Pryor debt: Mical → Brennan → back), +1 renown each; THE SHELVES (magic items) open after the first one
+- [ ] Cassia's inn: 8 sp alone, 16 for the whole company
+- [ ] Barley: fronting his five puts him straight onto the sand for a bout, then he joins win or lose
+- [ ] Vivian: the right line for a Paladin (or Barley) lead; SKILL → HIDE + ATTACK / ATTACK + HIDE; at level 3 you choose THIEF or CUTTHROAT
+- [ ] JOURNAL: ▲▼ pick a quest, Z pins it; a gold arrow marks who/where next (or the way off this map toward it); the NEXT line says it in words
+- [ ] The cradles: Edric points you to the pen gates (Mouths 2, 4, 5); a shift is a timing game — squeeze in the green
+- [ ] Skarn's gate swings open when you walk into it (after talking to him as a man) and stays open
+- [ ] Web Gulch: the snared traveler hangs in plain sight between two web-trees on the way down
+- [ ] Guano slide: you land in a quiet pocket; the cloaker drops only once you're out in the big room. A torch or Light: it loses a turn, then fights DAZZLED
+- [ ] Fire or thunder under the roost (G2/G3): the roof lets go, bats fill the screen → NOT THIS KIND OF NAME
+- [ ] Chuul (any fight): when a grab, poison, the ring's taunt or a fall lands on the party, the top line holds with ▼ until you press Z
+- [ ] The ending: the inn's fate is written now (no stubs anywhere). And s8-3 above (the night at the inn) is still unmarked
+
 ## Notes
 (write here)

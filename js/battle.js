@@ -89,9 +89,21 @@
   };
   Battle.prototype.wait = function (n) { return W8.frames(n); };
   Battle.prototype.say = function* (t, frames) {
-    this.msg = t;
-    var n = 0, lim = frames || 44;
+    this.msg = t; this.holding = false;
+    var n = 0, lim = (frames || 44) + (DS.wrap(t, 240).length > 1 ? 24 : 0);
     yield W8.until(function () { n++; return n >= lim || (n > 8 && DS.top() && DS.top().kind === 'battle' && I.pressed('a')); });
+  };
+  // an effect line: held when it landed on one of ours, timed when on a foe
+  Battle.prototype.note = function* (u, t, frames) {
+    if (isHero(u)) yield* this.hold(t); else yield* this.say(t, frames);
+  };
+  // something that matters landed on the party (a grab, a poison, the ring's taunt, a fall): hold the line until Z
+  Battle.prototype.hold = function* (t) {
+    var self = this;
+    this.msg = t; this.holding = true;
+    var n = 0;
+    yield W8.until(function () { n++; return (n > 20 && DS.top() && DS.top().kind === 'battle' && I.pressed('a')) || n > 420; });
+    this.holding = false;
   };
   Battle.prototype.num = function (u, val, col) {
     var p = this.posOf(u);
@@ -251,6 +263,7 @@
     this.foes.forEach(function (f) { if (!names[f.m.name]) { names[f.m.name] = 0; orderN.push(f.m.name); } names[f.m.name]++; });
     yield* this.say(orderN.map(function (n) { return (names[n] > 1 ? names[n] + ' ' : '') + n; }).join(', ') + (this.foes.length > 1 ? ' appear!' : ' appears!'), 50);
     if (this.o.introText) yield* this.say(this.o.introText, 70);
+    if (this.o.roost) yield* this.say('Overhead, the roost: millions of sleeping wings. No fire. No noise.', 60);
     // Sense Magic: the chuul feels a ring of binding coming
     var ringU = this.heroes.filter(function (u) { var r = R.item(u.h.equip.ring); return r && r.ring && r.ring.taunt; })[0];
     if (ringU) {
@@ -268,7 +281,7 @@
         if (bnd.length) {
           DS.audio.sfx('ring');
           this.burst(this.tauntWearer, '#F8D878', 16, 1.4, 'rise');
-          yield* this.say('The ring flares! The ' + bnd[0].m.name.toLowerCase() + ' turns on ' + nameOf(this.tauntWearer) + '!', 56);
+          yield* this.hold('The ring flares! The ' + bnd[0].m.name.toLowerCase() + ' turns on ' + nameOf(this.tauntWearer) + '!');
         }
       }
       for (var k = 0; k < this.order.length && !this.over; k++) {
@@ -303,7 +316,7 @@
         this.num(u, dmg, '#F85838'); DS.audio.sfx('hit');
         yield* this.say(nameOf(src) + ' drains ' + nameOf(u) + '. ' + dmg + ' damage.', 36);
         yield* this.flushMsg();
-        if (down(u)) { yield* this.say(nameOf(u) + ' falls!', 40); return; }
+        if (down(u)) { yield* this.hold(nameOf(u) + ' falls!'); return; }
       } else delete u.conds.attached;
     }
     if (incap(u)) {
@@ -344,11 +357,12 @@
       var skills = this.skillList(u, st);
       var castable = R.spellList(h, 'battle').concat(h.cls === 'paladin' && R.maxSlotLevel(h) > 0 ? [DS.DATA.spells.smite] : []);
       var items = this.battleItems();
+      var fastHands = h.subclass === 'Thief' && st.bonus > 0; // Thief: ITEM as a bonus action
       var cmds = [
         { label: 'FIGHT', value: 'fight' },
         { label: 'MAGIC', value: 'magic', disabled: !castable.length },
         { label: 'SKILL', value: 'skill', disabled: !skills.some(function (x) { return !x.disabled; }) },
-        { label: 'ITEM', value: 'item', disabled: !items.length },
+        { label: 'ITEM', value: 'item', disabled: !items.length, right: fastHands ? 'bonus' : null },
         held ? { label: 'ESCAPE', value: 'escape' } : { label: 'RUN', value: 'run', disabled: this.o.canRun === false }
       ];
       this.msg = h.name + (st.surged ? ' surges!' : '') + (st.actions > 1 ? ' (2 actions)' : '');
@@ -376,6 +390,7 @@
         var it = yield DS.choose({ items: items, x: 0, y: 96, w: 150, rowH: 11, pad: 7, visible: 6 });
         if (!it) continue;
         used = yield* this.useItem(u, it);
+        if (used && fastHands && !this.usedFire) { st.bonus = 0; used = false; } // Fast Hands: the action is still hers
       } else if (cmd === 'run') {
         yield* this.tryRun(u);
         used = true;
@@ -384,6 +399,7 @@
         used = true;
       }
       if (used) st.actions--;
+      if (this.usedFire && this.o.roost && !this.over) this.over = 'roost'; // the one law, broken
       this.checkEnd();
     }
     u.off = 0;
@@ -394,7 +410,10 @@
       if (f.secondWind) L.push({ label: 'SECOND WIND', value: 'secondWind', right: 'bonus', disabled: !st.bonus });
       if (f.actionSurge && !st.surged) L.push({ label: 'ACTION SURGE', value: 'actionSurge', right: 'free' });
     }
-    if (h.cls === 'rogue') L.push({ label: 'HIDE', value: 'hide', right: 'bonus', disabled: !st.bonus || !!u.conds.hidden });
+    if (h.cls === 'rogue') { // Cunning Action: the bonus-action hide goes before or after her attack
+      L.push({ label: 'HIDE + ATTACK', value: 'hideAttack', right: 'bonus', disabled: !st.bonus });
+      L.push({ label: 'ATTACK + HIDE', value: 'attackHide', right: 'bonus', disabled: !st.bonus });
+    }
     if (h.cls === 'paladin') {
       if (f.lay > 0) L.push({ label: 'LAY ON HANDS', value: 'lay', right: f.lay });
       if (f.channel && h.lvl >= 3) L.push({ label: 'SACRED WEAPON', value: 'sacred', right: 'CD' });
@@ -438,6 +457,9 @@
       if (down(t)) { var alt = this.liveFoes(); if (!alt.length) break; t = DS.pick(alt); }
       var melee = (w.weapon.props || []).indexOf('ranged') < 0;
       var adv = this.advantage(u, t, melee);
+      // Cutthroat's Opening Cut: first round, a foe that hasn't moved yet
+      var opening = h.subclass === 'Cutthroat' && this.round === 1 && !isHero(t) && !t.acted;
+      if (opening) adv = adv < 0 ? 0 : 1;
       var nat = this.d20(adv);
       var bonus = R.attackBonus(h, w) + (u.buff && u.buff.atk ? u.buff.atk : 0) + (u.buff && u.buff.id === 'bless' ? DS.d(4) : 0);
       var total = nat + bonus, ac = this.acOf(t);
@@ -453,14 +475,14 @@
         yield* this.say(nameOf(u) + ' attacks ' + nameOf(t) + '... and misses.', 34);
         continue;
       }
-      var crit = nat >= R.critRange(h) || (melee && incap(t));
+      var crit = nat >= R.critRange(h) || (melee && incap(t)) || opening;
       var dx = R.damageExpr(h, w);
       var gwf = h.cls === 'fighter' && R.twoHanded(h, w) && h.id === 'barley';
       var dmg = (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod;
       if (crit && h.id === 'lymen' && melee) dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks
-      var extra = '', rad = 0;
+      var extra = opening ? ' Opening cut!' : '', rad = 0;
       if (h.cls === 'rogue' && !st.sneakUsed && (w.weapon.props || []).join().match(/finesse|ranged/) && adv >= 0 && (adv > 0 || wasHidden || this.liveHeroes().length > 1)) {
-        var sn = DS.roll(R.sneakDice(h.lvl), { crit: crit }); dmg += sn; st.sneakUsed = true; extra = ' Sneak Attack!';
+        var sn = DS.roll(R.sneakDice(h.lvl), { crit: crit }); dmg += sn; st.sneakUsed = true; extra += ' Sneak Attack!';
       }
       if (smite) {
         rad = DS.roll((1 + smite) + 'd8', { crit: crit });
@@ -518,11 +540,14 @@
       yield* this.say(nameOf(u) + ' surges! One more action this turn.', 44);
       return 'free';
     }
-    if (sk === 'hide') {
-      u.conds.hidden = { rounds: 2 };
-      DS.audio.sfx('run');
-      yield* this.say(nameOf(u) + ' melts into the shadows.', 38);
-      return 'bonus';
+    if (sk === 'hideAttack' || sk === 'attackHide') {
+      var tg = yield* this.pickFoe();
+      if (!tg) return 'cancel';
+      if (sk === 'hideAttack') { u.conds.hidden = { rounds: 2 }; DS.audio.sfx('run'); yield* this.say(nameOf(u) + ' melts into the shadows, then strikes from them.', 38); }
+      yield* this.heroAttack(u, tg, st, null);
+      if (sk === 'attackHide' && !this.over && !down(u)) { u.conds.hidden = { rounds: 2 }; DS.audio.sfx('run'); yield* this.say(nameOf(u) + ' slips back into the shadows. Harder to find; her next strike has advantage.', 44); }
+      st.bonus = 0;
+      return 'action';
     }
     if (sk === 'lay') {
       var t = yield* this.pickAlly();
@@ -589,13 +614,13 @@
     u.pose = 'cast'; u.poseT = 60;
     DS.audio.sfx(sp.sfx || 'magic');
     yield* this.say(nameOf(u) + ' casts ' + sp.name + '!', 34);
+    if (this.o.roost && (sp.el === 'fire' || sp.el === 'thunder')) { this.usedFire = true; u.pose = null; return true; } // fire or noise under the roost
     var up = slot ? slot - sp.level : 0, dc = R.spellDC(h), atk = R.spellAtk(h);
     var k = sp.kind;
     if (k === 'light') {
-      this.bright = true; this.flashT = 10;
+      this.flashT = 10;
       this.foes.forEach(function (f) { f.conds.revealed = true; });
-      var shy = this.liveFoes().filter(function (f) { return f.m.traits && f.m.traits.lightSensitive; });
-      yield* this.say(shy.length ? 'Bright light floods the dark. ' + nameOf(shy[0]) + ' recoils from it!' : 'Bright light floods the ground.', 50);
+      yield* this.dazzle(nameOf(u) + "'s light floods the dark.");
       return true;
     }
     for (var i = 0; i < targets.length && !this.over; i++) {
@@ -676,6 +701,18 @@
     return true;
   };
 
+  // bright light: things that hate it lose their next turn the first time, then fight at disadvantage
+  Battle.prototype.dazzle = function* (lead) {
+    var first = !this.bright;
+    this.bright = true;
+    var shy = this.liveFoes().filter(function (f) { return f.m.traits && f.m.traits.lightSensitive; });
+    if (!shy.length) { yield* this.say(lead + ' Bright light fills the place.', 44); return; }
+    shy.forEach(function (f) { f.flash = 16; if (first) f.conds.recoiling = true; });
+    if (!first) { yield* this.say(lead + ' The light holds. ' + nameOf(shy[0]) + ' is still dazzled.', 44); return; }
+    this.shake = 4; DS.audio.sfx('magic');
+    yield* this.say(lead + ' ' + nameOf(shy[0]) + ' recoils, shrinking up away from it! It loses its next turn, and attacks at disadvantage while the light holds.', 80);
+  };
+
   // ------------------------------------------------------------------ items
   Battle.prototype.useItem = function* (u, id) {
     var it = DS.DATA.items[id], use = it.use, t = null, self = this;
@@ -699,6 +736,7 @@
       DS.audio.sfx('buff');
       yield* this.say(nameOf(t) + ' drinks the ' + it.name.toLowerCase() + '. Advantage against poison.', 46);
     } else if (use.effect === 'damage') {
+      if (use.el === 'fire' && this.o.roost) { this.usedFire = true; DS.audio.sfx('fire'); yield* this.say(nameOf(u) + ' throws ' + it.name + '. It catches, under the roost.', 40); return true; }
       var s = use.save ? this.save(t, use.save, use.dc || 10) : null;
       var dmg = DS.roll(use.dice); if (s && s.success) dmg = Math.floor(dmg / 2);
       if (use.only && tags(t).indexOf(use.only) < 0) dmg = 0;
@@ -708,9 +746,9 @@
       yield* this.say(nameOf(u) + ' throws ' + it.name + '! ' + nameOf(t) + ' takes ' + d + '.', 42);
       yield* this.flushMsg();
     } else if (use.effect === 'light') {
-      this.bright = true; this.flashT = 8; this.usedFire = true;
-      var shy = this.liveFoes().filter(function (f) { return f.m.traits && f.m.traits.lightSensitive; });
-      yield* this.say(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.' + (shy.length ? ' ' + nameOf(shy[0]) + ' shrinks from the flame!' : ''), 46);
+      this.flashT = 8; this.usedFire = true;
+      if (this.o.roost) return true; // the torch is lit under the roost: that's the end of it
+      yield* this.dazzle(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.');
     } else if (use.effect === 'cure') {
       delete t.conds.poisoned; delete t.conds.paralyzed;
       DS.audio.sfx('heal');
@@ -735,6 +773,8 @@
   Battle.prototype.foeTurn = function* (f) {
     var m = f.m, self = this;
     f.off = 0;
+    f.acted = true;
+    if (f.conds.recoiling) { delete f.conds.recoiling; yield* this.say(nameOf(f) + ' writhes away from the light and does nothing.', 44); return; }
     if (f.conds.frightened && DS.d(2) === 1) { yield* this.say(nameOf(f) + ' cowers.', 30); return; }
     if (f.conds.restrained && f.conds.restrained.escape) {
       if (this.check(f, 'str', 'Athletics') >= f.conds.restrained.escape) { delete f.conds.restrained; yield* this.say(nameOf(f) + ' tears free of the web.', 32); }
@@ -776,6 +816,7 @@
     var melee = !atk.ranged;
     var adv = this.advantage(f, t, melee);
     if (atk.autoHitHeld && f.holding.indexOf(t) >= 0) adv = 1;
+    var dazzle = this.bright && f.m.traits && f.m.traits.lightSensitive ? ' (dazzled: disadvantage)' : '';
     var nat = this.d20(adv), tot = nat + atk.hit, ac = this.acOf(t);
     if (atk.save && !atk.hit) { // save-only attack (breath, gaze)
       yield* this.applyRider(f, t, atk, false);
@@ -783,7 +824,7 @@
     }
     if (nat === 1 || (nat !== 20 && tot < ac)) {
       DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C');
-      yield* this.say(nameOf(f) + ' ' + (atk.verb || 'attacks') + ' ' + nameOf(t) + '... miss.', 32);
+      yield* this.say(nameOf(f) + ' ' + (atk.verb || 'attacks') + ' ' + nameOf(t) + '... miss.' + dazzle, 32);
       return;
     }
     var crit = nat === 20 || (melee && incap(t));
@@ -798,9 +839,9 @@
     t.pose = 'hurt'; t.poseT = 24; this.shake = crit ? 10 : 5; if (crit) this.flashT = 8;
     DS.audio.sfx(crit ? 'crit' : 'hit');
     this.num(t, dealt, '#F85838');
-    yield* this.say((crit ? 'Critical! ' : '') + nameOf(f) + ' ' + (atk.verb || 'hits') + ' ' + nameOf(t) + ' for ' + dealt + '.' + dodge, crit ? 46 : 36);
+    yield* this.say((crit ? 'Critical! ' : '') + nameOf(f) + ' ' + (atk.verb || 'hits') + ' ' + nameOf(t) + ' for ' + dealt + '.' + dodge + dazzle, crit ? 46 : 36);
     yield* this.flushMsg();
-    if (down(t)) { yield* this.say(nameOf(t) + ' falls!', 38); return; }
+    if (down(t)) { yield* this.note(t, nameOf(t) + ' falls!', 38); return; }
     yield* this.applyRider(f, t, atk, true);
   };
   Battle.prototype.applyRider = function* (f, t, atk, hit) {
@@ -811,20 +852,20 @@
         t.conds.grappled = { escape: atk.grapple.dc, src: f };
         if (atk.grapple.restrain) t.conds.restrained = { escape: atk.grapple.dc };
         DS.audio.sfx('grab');
-        yield* this.say(nameOf(f) + ' seizes ' + nameOf(t) + '! (escape DC ' + atk.grapple.dc + ')', 44);
+        yield* this.note(t, nameOf(f) + ' seizes ' + nameOf(t) + '! Grappled: ESCAPE to break free (DC ' + atk.grapple.dc + ').', 44);
       }
     }
     if (atk.engulf && hit && !down(t) && f.holding.indexOf(t) < 0) {
       f.holding.push(t);
       t.conds.engulfed = { escape: atk.engulf, src: f }; t.conds.blinded = { rounds: 999 };
       DS.audio.sfx('grab');
-      yield* this.say(nameOf(f) + ' wraps itself around ' + nameOf(t) + '! (escape DC ' + atk.engulf + ')', 48);
+      yield* this.note(t, nameOf(f) + ' wraps itself around ' + nameOf(t) + '! Blinded and held: ESCAPE (DC ' + atk.engulf + ').', 48);
     }
-    if (atk.attach && hit && !down(t)) { t.conds.attached = { src: f }; yield* this.say(nameOf(f) + ' latches on!', 32); }
+    if (atk.attach && hit && !down(t)) { t.conds.attached = { src: f }; yield* this.note(t, nameOf(f) + ' latches on to ' + nameOf(t) + '!', 32); }
     if (atk.blind && hit && !down(t)) { t.conds.blinded = { rounds: 1 }; }
     if (atk.prone && hit && !down(t)) {
       var ps = this.save(t, 'str', atk.prone);
-      if (!ps.success) { t.conds.prone = true; yield* this.say(nameOf(t) + ' is knocked prone!', 34); }
+      if (!ps.success) { t.conds.prone = true; yield* this.note(t, nameOf(t) + ' is knocked prone!', 34); }
     }
     if (atk.save) {
       var s = this.save(t, atk.save.ab, atk.save.dc, { poison: atk.save.poison });
@@ -832,7 +873,7 @@
         var d = DS.roll(atk.save.dmg); if (s.success) d = atk.save.half ? Math.floor(d / 2) : 0;
         if (d) { var dd = this.hurt(t, d, atk.save.type || 'poison', f); this.num(t, dd, '#9878F8'); yield* this.say(nameOf(t) + (s.success ? ' resists some of the ' : ' takes the full ') + (atk.save.type || 'poison') + '. ' + dd + ' damage.', 40); }
         else if (s.success) yield* this.say(nameOf(t) + ' shrugs it off.', 30);
-        if (down(t)) { yield* this.say(nameOf(t) + ' falls!', 38); return; }
+        if (down(t)) { yield* this.note(t, nameOf(t) + ' falls!', 38); return; }
       }
       if (atk.save.cond && !s.success && !down(t)) {
         var immune = isHero(t) ? false : (t.m.condImmune || []).indexOf(atk.save.cond) >= 0;
@@ -840,7 +881,8 @@
           t.conds[atk.save.cond] = { rounds: atk.save.rounds || 10, save: atk.save.repeat ? { ab: atk.save.ab, dc: atk.save.dc } : null };
           if (atk.save.also) t.conds[atk.save.also] = { linked: atk.save.cond };
           DS.audio.sfx('poison'); this.elemBurst(t, 'poison', 'fall');
-          yield* this.say(nameOf(t) + ' is ' + atk.save.cond + (atk.save.also ? ' — and ' + atk.save.also + '!' : '!'), 44);
+          var cure = isHero(t) && atk.save.cond === 'poisoned' ? ' (Lay on Hands or an elixir cures it.)' : '';
+          yield* this.note(t, nameOf(t) + ' is ' + atk.save.cond + (atk.save.also ? ' — and ' + atk.save.also + '!' : '!') + cure, 44);
         }
       } else if (atk.save.cond && s.success && !atk.save.dmg) yield* this.say(nameOf(t) + ' resists. (' + s.total + ' vs DC ' + atk.save.dc + ')', 34);
     }
@@ -855,7 +897,7 @@
       yield* this.say(nameOf(f) + ' spits a web at ' + nameOf(t) + '!', 36);
       var s = this.save(t, 'dex', sp.dc);
       if (s.success) yield* this.say(nameOf(t) + ' dodges the web.', 30);
-      else { t.conds.restrained = { escape: sp.dc + 1 }; yield* this.say(nameOf(t) + ' is caught in the web! (escape DC ' + (sp.dc + 1) + ')', 40); }
+      else { t.conds.restrained = { escape: sp.dc + 1 }; yield* this.note(t, nameOf(t) + ' is caught in the web! Restrained: ESCAPE (DC ' + (sp.dc + 1) + ').', 40); }
       return;
     }
     if (sp.id === 'moan') {
@@ -863,7 +905,7 @@
       var list = this.liveHeroes();
       for (var i = 0; i < list.length; i++) {
         var s2 = this.save(list[i], 'wis', sp.dc);
-        if (!s2.success && !(list[i].buff && list[i].buff.id === 'heroism')) { list[i].conds.frightened = { rounds: 2, save: { ab: 'wis', dc: sp.dc } }; yield* this.say(nameOf(list[i]) + ' is frightened!', 30); }
+        if (!s2.success && !(list[i].buff && list[i].buff.id === 'heroism')) { list[i].conds.frightened = { rounds: 2, save: { ab: 'wis', dc: sp.dc } }; yield* this.hold(nameOf(list[i]) + ' is frightened! Disadvantage to attack.'); }
       }
       return;
     }
@@ -890,8 +932,9 @@
         var sq = this.save(tq, 'con', 14), dq = DS.roll('2d6+3');
         if (sq.success) dq = Math.floor(dq / 2); else tq.conds.stunned = { rounds: 1 };
         dq = this.hurt(tq, dq, 'bludgeoning', f); this.num(tq, dq, '#F85838'); DS.audio.sfx('crit'); this.shake = 8;
-        yield* this.say(nameOf(tq) + ' takes ' + dq + (sq.success ? '.' : ' and is stunned!'), 40);
-        if (down(tq)) yield* this.say(nameOf(tq) + ' falls!', 36);
+        if (sq.success) yield* this.say(nameOf(tq) + ' takes ' + dq + '.', 40);
+        else yield* this.hold(nameOf(tq) + ' takes ' + dq + ' and is stunned!');
+        if (down(tq)) yield* this.hold(nameOf(tq) + ' falls!');
       }
       return;
     }
@@ -906,6 +949,14 @@
     var self = this, o = this.o;
     // clear battle-only state
     this.heroes.forEach(function (u) { u.conds = {}; u.buff = null; });
+    if (this.over === 'roost') { // the roof lets go: bats fill the screen, then the other kind of name
+      yield* this.swarm();
+      DS.audio.play('gameover');
+      this.result = 'lose';
+      DS.pop(this);
+      DS.push(new DS.RoostFail());
+      return;
+    }
     if (this.over === 'win') {
       DS.audio.play('victory');
       var xp = 0, silver = 0, drops = [];
@@ -943,6 +994,37 @@
     DS.pop(this);
   };
 
+  // the roost comes down: wings from the top of the screen until there's nothing else
+  Battle.prototype.swarm = function* () {
+    var self = this;
+    this.bats = []; this.swarmT = 0;
+    DS.audio.sfx('error'); this.shake = 20;
+    yield* this.hold('Fire under a roosted ceiling. The whole roof shifts at once: millions of wings.');
+    this.msg = '';
+    for (var t = 0; t < 160; t++) {
+      this.swarmT = t;
+      for (var k = 0; k < 3 + (t >> 3) && self.bats.length < 900; k++) self.bats.push(DS.newBat(true));
+      if (t % 10 === 0) { DS.audio.sfx('miss'); this.shake = 6; }
+      yield this.wait(1);
+    }
+    yield this.wait(30);
+  };
+  DS.newBat = function (top) {
+    return { x: Math.random() * 256, y: top ? -8 - Math.random() * 30 : Math.random() * 240, vx: (Math.random() - 0.5) * 3, vy: 1.5 + Math.random() * 3.5, ph: DS.rint(8) };
+  };
+  DS.drawBats = function (ctx, bats) {
+    for (var i = 0; i < bats.length; i++) {
+      var b = bats[i];
+      b.x += b.vx + Math.sin((DS.frame + b.ph * 7) / 5) * 0.8; b.y += b.vy;
+      if (b.y > 250) { b.y = -8; b.x = Math.random() * 256; }
+      var up = ((DS.frame + b.ph) >> 2) & 1, x = Math.round(b.x), y = Math.round(b.y);
+      ctx.fillStyle = ['#1a1418', '#3a2e30', '#5a4a48'][i % 3];
+      ctx.fillRect(x - 1, y, 3, 3);
+      if (up) { ctx.fillRect(x - 5, y - 2, 4, 2); ctx.fillRect(x + 2, y - 2, 4, 2); }
+      else { ctx.fillRect(x - 5, y + 2, 4, 2); ctx.fillRect(x + 2, y + 2, 4, 2); }
+    }
+  };
+
   // ------------------------------------------------------------------ drawing
   Battle.prototype.draw = function (ctx) {
     var sx = this.shake ? (DS.rint(3) - 1) * 2 : 0;
@@ -965,6 +1047,7 @@
       ctx.drawImage(img, x, y);
       ctx.globalAlpha = 1;
       if (f.conds.asleep && ((DS.frame >> 4) & 1)) DS.text(ctx, 'z', x + f.art.w - 4, y - 2, '#B8B8F8');
+      if (self.bright && f.m.traits && f.m.traits.lightSensitive && ((DS.frame >> 4) & 1)) DS.textCenter(ctx, 'DAZZLED', x + f.art.w / 2, y - 18, '#F8D878');
       if (f.conds.restrained) { ctx.strokeStyle = '#E8E8F0'; ctx.beginPath(); ctx.moveTo(x, y + f.art.h * 0.3); ctx.lineTo(x + f.art.w, y + f.art.h * 0.7); ctx.moveTo(x + f.art.w, y + f.art.h * 0.3); ctx.lineTo(x, y + f.art.h * 0.7); ctx.stroke(); }
       if (act === f && ((DS.frame >> 3) & 1)) DS.text(ctx, '▼', x + f.art.w / 2 - 2, y - 9, '#F8D878');
     });
@@ -990,9 +1073,11 @@
       if (n.t < 44 || (n.t & 2)) DS.textCenter(ctx, String(n.v), n.x, y, n.col);
     });
     if (this.flashT > 0 && (this.flashT & 2)) { ctx.globalAlpha = 0.35; ctx.fillStyle = '#F8F8F8'; ctx.fillRect(0, 20, 256, 132); ctx.globalAlpha = 1; }
-    // message banner
-    DS.win(ctx, 0, 0, 256, 20);
-    if (this.msg) DS.text(ctx, this.msg, 8, 6, '#F8F8F8');
+    // message banner: two lines when it needs them; a held line blinks ▼ until Z
+    var ml = this.msg ? DS.wrap(this.msg, 240).slice(0, 2) : [];
+    DS.win(ctx, 0, 0, 256, ml.length > 1 ? 30 : 20, this.holding ? '#2a1440' : null);
+    for (var li = 0; li < ml.length; li++) DS.text(ctx, ml[li], 8, 6 + li * 10, '#F8F8F8');
+    if (this.holding && ((DS.frame >> 4) & 1)) DS.text(ctx, '▼', 244, ml.length > 1 ? 20 : 11, '#F8D878');
     // bottom panels
     DS.win(ctx, 0, 156, 90, 84);
     var groups = {}, gorder = [];
@@ -1011,6 +1096,10 @@
     if (this.intro > 0) { // opening wipe
       var hgt = Math.round(120 * this.intro / 32);
       ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 256, hgt); ctx.fillRect(0, 240 - hgt, 256, hgt);
+    }
+    if (this.bats) {
+      ctx.globalAlpha = Math.min(0.7, this.swarmT / 200); ctx.fillStyle = '#0a0608'; ctx.fillRect(0, 0, 256, 240); ctx.globalAlpha = 1;
+      DS.drawBats(ctx, this.bats);
     }
   };
 

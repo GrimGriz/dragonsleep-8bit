@@ -87,6 +87,7 @@
     }
     if (lu.learn) lu.learn.forEach(function (s) { if (h.known.indexOf(s) < 0) { h.known.push(s); msgs.push(h.name + ' learns ' + DS.DATA.spells[s].name + '.'); } });
     if (lu.subclass) { h.subclass = lu.subclass; msgs.push(h.name + ': ' + lu.subclass + '.'); }
+    if (lu.choose) { h.pendingChoice = lu.choose; msgs.push(h.name + ' has a choice to make.'); }
     (lu.feats || []).forEach(function (t) { msgs.push(t); });
     if (h.cls === 'paladin') { h.feats.lay = (h.feats.lay || 0) + 5; if (h.lvl === 3) h.feats.channel = 1; }
     if (h.cls === 'rogue' && h.lvl % 2 === 1) msgs.push('Sneak Attack is now ' + R.sneakDice(h.lvl) + '.');
@@ -104,6 +105,13 @@
     return msgs;
   };
   R.nextXP = function (h) { return h.lvl >= R.CAP ? null : R.XP_LEVEL[h.lvl + 1]; };
+  // bring an older save's heroes up to the current rules (spells cut, choices added since)
+  R.migrate = function (h) {
+    h.known = (h.known || []).filter(function (id) { return !!DS.DATA.spells[id]; });
+    var d = DS.DATA.heroes[h.id], arch = (d && d.archetypes) || [];
+    if (arch.length && h.lvl >= 3 && !arch.some(function (a) { return a.name === h.subclass; })) { h.subclass = null; h.pendingChoice = 'archetype'; }
+  };
+  R.isArch = function (h, name) { return h.subclass === name; };
 
   // ---------------------------------------------------------------- derived numbers
   R.item = function (id) { return id ? DS.DATA.items[id] : null; };

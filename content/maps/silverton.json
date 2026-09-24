@@ -3,21 +3,21 @@
 "name": "Silverton",
 "tileset": "town",
 "rows": [
-"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-"^^^^^^^^^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
-"^^^^^^^^^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
-"^^^^^^^^^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
-"^^^^^^^^^^^eeaeeeaeeeaeeeaeeeeeeeeaeeeaeeeaeeeaee~~~~~~~~~~~",
-"^^^^^^^^^^^eeaeeeaeeeaeeeaeeevveeeaeeeaeeeaeeeaee~~~~~~~~~~~",
-"^^k..........@...@...@...@........@...@...@...@.............",
+"^^^^^^,,^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+"^^^^^^,,^^^^^^^^^^^^^^^^^^^^^!!^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+"^^^^^^,,^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
+"^^^^^^,,^^^eeeeeeeeeeeeeeeeee!!eeeeeeeeeeeeeeeeee^^^^^^^^^^^",
+"^^^^^^,,^^^eeaeeeaeeeaeeeaeeeeeeeeaeeeaeeeaeeeaee~~~~~~~~~~~",
+"^^^^^P,,^^^eeaeeeaeeeaeeeaeeevveeeaeeeaeeeaeeeaee~~~~~~~~~~~",
+"^^k..........@.l.@...@.l.@........@.l.@...@.l.@.............",
 ",,,......................................................,,,",
 ",,,......................................................,,,",
 "^^k.ssssss.rrrrr.bbbbb.sssss....rrrrr.bbbbb.sssss.rrrrrr.k\"\"",
-"^^k.ssssss.rrrrr.bbbbb.sssssl..lrrrrr.bbbbb.sssss.rrrrrr.k\"\"",
-"^^k.wowDwo.woDow.woDow.woDow....woDow.woDow.woDow.wowDwo.k\"\"",
+"^^k.ssssss.rrrrr.bbbbb.sssss....rrrrr.bbbbb.sssss.rrrrrr.k\"\"",
+"^^k.wowDwo.woDow.woDow.wNDow....woDow.woDow.woDow.wowDwo.k\"\"",
 "^^k......................................................k\"\"",
 "^^krrrrrrr.bbbb.rrrr.bbbb........bbbbb.rrrrr.bbbb.sssss..k\"\"",
-"^^krrrrrrrlbbbb.rrrr.bbbb.l.....lbbbbb.rrrrrlbbbblsssss..k\"\"",
+"^^krrrrrrr.bbbb.rrrr.bbbb........bbbbb.rrrrr.bbbb.sssss..k\"\"",
 "^^kwowDwow.wDwo.woDo.wDwo........woDow.woDow.wDwo.woDow..k\"\"",
 "^^k......................................................k\"\"",
 "^^k,,,,,,,,,,,,,,,........l.........rrrr.................k\"\"",
@@ -95,7 +95,9 @@
 "S": "sand",
 "X": "range",
 "=": "road",
-"Y": "deep"
+"Y": "deep",
+"N": "noticeboard",
+"P": "signpost"
 },
 "music": "town",
 "bg": "town",
@@ -118,6 +120,12 @@
 "tx": 37,
 "ty": 12,
 "dir": "down"
+},
+"north": {
+"to": "world",
+"tx": 37,
+"ty": 10,
+"dir": "up"
 }
 },
 "npcs": [
@@ -289,6 +297,12 @@
 ],
 "signs": [
 {
+"x": 5,
+"y": 5,
+"text": "NORTH GATE. The Doors road, up the mountain. The locals call it the Coldridge route.",
+"src": "wiki/the-road.md (the Doors road); rumors r-coldridge (wiki/fountain-street.md HD-1)"
+},
+{
 "x": 29,
 "y": 5,
 "text": "The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.",
@@ -348,7 +362,8 @@
 "back": "down",
 "to": "winters",
 "tx": 4,
-"ty": 6
+"ty": 6,
+"icon": "ring"
 },
 {
 "id": "keeper:casper",
@@ -375,7 +390,8 @@
 "on": "step",
 "script": "keeper",
 "arg": "hessle",
-"back": "down"
+"back": "down",
+"icon": "scales"
 },
 {
 "id": "shop:kessler",
@@ -384,7 +400,8 @@
 "on": "step",
 "script": "shop",
 "arg": "kessler",
-"back": "down"
+"back": "down",
+"icon": "coin"
 },
 {
 "id": "shop:calla",
@@ -393,7 +410,8 @@
 "on": "step",
 "script": "shop",
 "arg": "calla",
-"back": "down"
+"back": "down",
+"icon": "potion"
 },
 {
 "id": "keeper:falstaff",
@@ -420,7 +438,8 @@
 "on": "step",
 "script": "inn",
 "arg": "cassia",
-"back": "down"
+"back": "down",
+"icon": "bed"
 },
 {
 "id": "keeper:mela",
@@ -447,7 +466,8 @@
 "on": "step",
 "script": "shop",
 "arg": "lisbet",
-"back": "down"
+"back": "down",
+"icon": "star"
 },
 {
 "id": "keeper:brennan",
@@ -465,7 +485,8 @@
 "on": "step",
 "script": "shop",
 "arg": "marko",
-"back": "down"
+"back": "down",
+"icon": "pack"
 },
 {
 "id": "shop:kasten",
@@ -474,7 +495,8 @@
 "on": "step",
 "script": "shop",
 "arg": "kasten",
-"back": "down"
+"back": "down",
+"icon": "candle"
 },
 {
 "id": "keeper:barber",
@@ -501,7 +523,8 @@
 "on": "step",
 "script": "shop",
 "arg": "vilar",
-"back": "down"
+"back": "down",
+"icon": "sword"
 },
 {
 "id": "leech:davos",
@@ -510,7 +533,8 @@
 "on": "step",
 "script": "leech",
 "arg": "davos",
-"back": "down"
+"back": "down",
+"icon": "stitch"
 },
 {
 "id": "keeper:percy",
@@ -537,7 +561,8 @@
 "on": "step",
 "script": "chapel",
 "arg": "aldwin",
-"back": "down"
+"back": "down",
+"icon": "sun"
 },
 {
 "id": "keeper:kess",
@@ -558,13 +583,25 @@
 "back": "down"
 },
 {
-"id": "keeper:lucia",
+"id": "shop:lucia",
 "x": 37,
 "y": 19,
 "on": "step",
-"script": "keeper",
+"script": "shop",
 "arg": "lucia",
-"back": "down"
+"back": "down",
+"icon": "mortar"
+},
+{
+"id": "board",
+"rect": [
+24,
+11,
+1,
+1
+],
+"on": "use",
+"script": "board"
 }
 ]
 }

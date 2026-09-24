@@ -14,6 +14,7 @@
   DS.loadSlot = function (slot) { return DS.store.get(SAVE_KEY + slot); };
   DS.startFrom = function (data) {
     DS.G = data; DS.bindState(DS.G);
+    DS.G.party.forEach(R.migrate);
     DS.clearScenes();
     var F = DS.field = new DS.Field();
     DS.push(F);
@@ -217,6 +218,8 @@
     DS.text(ctx, DS.field && DS.field.map ? DS.field.map.name : '', 12, 198, '#C8D0E8');
     DS.text(ctx, 'Time ' + fmtTime(G.time), 12, 210, '#9C9C9C');
     DS.text(ctx, 'Steps ' + G.steps, 96, 210, '#9C9C9C');
+    var pq = DS.pinnedQuest && DS.pinnedQuest();
+    DS.text(ctx, pq ? '◆ ' + pq.name : 'Pin a quest in JOURNAL', 12, 222, pq ? '#F8D878' : '#6C6C84');
     this.menu.draw(ctx);
   };
   function pickHero(title, filter) {
@@ -370,7 +373,7 @@
     if (c.cast) { DS.text(ctx, 'SPELL DC ' + R.spellDC(h) + '  ATTACK ' + DS.sgn(R.spellAtk(h)) + '  SLOTS ' + (h.slots || []).map(function (n, k) { return n + '/' + h.slotsMax[k]; }).join(' '), 12, y, '#B8B8F8'); y += 12; }
     var sp = h.known.map(function (id) { return DS.DATA.spells[id] ? DS.DATA.spells[id].name : id; });
     if (sp.length) { DS.wrap('Spells: ' + sp.join(', '), 234).slice(0, 3).forEach(function (l) { DS.text(ctx, l, 12, y, '#9C9C9C'); y += 10; }); y += 2; }
-    var feats = (d.featText || []).filter(function (f) { return !f.lvl || f.lvl <= h.lvl; }).map(function (f) { return f.t; });
+    var feats = (d.featText || []).filter(function (f) { return (!f.lvl || f.lvl <= h.lvl) && (!f.sub || f.sub === h.subclass); }).map(function (f) { return f.t; });
     if (h.cls === 'rogue') feats.unshift('Sneak Attack ' + R.sneakDice(h.lvl));
     if (h.cls === 'paladin') feats.push('Lay on Hands pool ' + (h.feats.lay || 0));
     DS.wrap('Features: ' + feats.join(' · '), 234).slice(0, 5).forEach(function (l) { DS.text(ctx, l, 12, y, '#E0C8A0'); y += 10; });
@@ -378,26 +381,58 @@
   };
 
   // ------------------------------------------------------------------ Journal
-  function Journal() { this.kind = 'journal'; this.page = 0; }
+  // Journal: the quests (pick one and pin it: a marker then shows the way), and the talk you've heard
+  function Journal() {
+    this.kind = 'journal'; this.page = 0; this.i = 0; this.scroll = 0;
+    var pin = DS.G.flags.pin, list = this.quests();
+    for (var k = 0; k < list.length; k++) if (list[k].id === pin) this.i = k;
+  }
+  Journal.prototype.quests = function () {
+    // open quests first, finished ones after
+    var all = (DS.DATA.quests || []).filter(function (q) { return DS.cond(q.show); });
+    return all.filter(function (q) { return !DS.cond(q.done); }).concat(all.filter(function (q) { return DS.cond(q.done); }));
+  };
   Journal.prototype.update = function () {
-    if (I.pressed('b') || I.pressed('a')) { DS.audio.sfx('cancel'); DS.pop(this); }
+    var G = DS.G, list = this.quests();
+    if (I.pressed('b')) { DS.audio.sfx('cancel'); DS.pop(this); return; }
     if (I.pressed('left') || I.pressed('right')) { this.page ^= 1; DS.audio.sfx('cursor'); }
+    if (this.page || !list.length) { if (I.pressed('a')) { DS.audio.sfx('cancel'); DS.pop(this); } return; }
+    if (I.repeat('down')) { this.i = (this.i + 1) % list.length; DS.audio.sfx('cursor'); }
+    if (I.repeat('up')) { this.i = (this.i - 1 + list.length) % list.length; DS.audio.sfx('cursor'); }
+    if (this.i < this.scroll) this.scroll = this.i;
+    if (this.i >= this.scroll + 10) this.scroll = this.i - 9;
+    if (I.pressed('a')) {
+      var q = list[this.i];
+      if (DS.cond(q.done)) { DS.audio.sfx('error'); return; }
+      if (G.flags.pin === q.id) { delete G.flags.pin; DS.audio.sfx('cancel'); }
+      else { G.flags.pin = q.id; DS.audio.sfx('confirm'); }
+    }
   };
   Journal.prototype.draw = function (ctx) {
     var G = DS.G;
     DS.win(ctx, 2, 2, 252, 236);
     DS.text(ctx, this.page ? 'THE BOARD & THE TALK' : 'THE LOCAL HERO', 12, 10, '#F8D878');
     DS.textRight(ctx, '◀ ▶', 244, 10, '#6C6C84');
-    var y = 26;
+    var y = 26, self = this;
     if (!this.page) {
-      DS.text(ctx, '★ Renown: ' + G.renown + '   ' + (DS.DATA.config.renownTitles[Math.min(G.renown, DS.DATA.config.renownTitles.length - 1)]), 12, y, '#F8F8F8'); y += 16;
-      (DS.DATA.quests || []).forEach(function (q) {
-        if (!DS.cond(q.show)) return;
-        var done = DS.cond(q.done);
-        DS.text(ctx, (done ? '★ ' : '▶ ') + q.name, 12, y, done ? '#9C9C9C' : '#F8D878'); y += 11;
-        DS.wrap(done ? (q.doneText || 'Done.') : q.text, 222).slice(0, 3).forEach(function (l) { DS.text(ctx, l, 22, y, done ? '#6C6C84' : '#E0C8A0'); y += 10; });
-        y += 4;
+      DS.text(ctx, '★ Renown: ' + G.renown + '   ' + (DS.DATA.config.renownTitles[Math.min(G.renown, DS.DATA.config.renownTitles.length - 1)]), 12, y, '#F8F8F8'); y += 14;
+      var list = this.quests();
+      list.slice(this.scroll, this.scroll + 10).forEach(function (q, k) {
+        var idx = k + self.scroll, done = DS.cond(q.done), pinned = G.flags.pin === q.id;
+        if (idx === self.i) DS.cursor(ctx, 10, y, false);
+        DS.text(ctx, (done ? '★ ' : pinned ? '◆ ' : '  ') + q.name, 18, y, done ? '#6C6C84' : pinned ? '#F8D878' : '#F8F8F8');
+        if (pinned) DS.textRight(ctx, 'PINNED', 244, y, '#F8D878');
+        y += 11;
       });
+      if (list.length > 10) DS.textRight(ctx, (this.scroll > 0 ? '▲' : ' ') + (this.scroll + 10 < list.length ? '▼' : ' '), 244, 26, '#C8D0E8');
+      var q = list[this.i];
+      DS.win(ctx, 6, 150, 244, 84);
+      if (q) {
+        var done = DS.cond(q.done), step = !done && DS.questStep(q), yy = 157;
+        DS.wrap(done ? (q.doneText || 'Done.') : q.text, 230).slice(0, 4).forEach(function (l) { DS.text(ctx, l, 12, yy, done ? '#9C9C9C' : '#E0C8A0'); yy += 10; });
+        if (step && step.where) DS.wrap('NEXT: ' + step.where, 230).slice(0, 2).forEach(function (l) { DS.text(ctx, l, 12, yy + 2, '#B8F8B8'); yy += 10; });
+        DS.textCenter(ctx, done ? 'X: close' : G.flags.pin === q.id ? 'Z: unpin   X: close' : 'Z: pin (a marker shows the way)  X: close', 128, 224, '#6C6C84');
+      }
     } else {
       (DS.DATA.rumors || []).filter(function (r) { return G.flags['heard:' + r.id]; }).slice(-14).forEach(function (r) {
         DS.wrap('· ' + r.t, 232).forEach(function (l) { if (y < 228) DS.text(ctx, l, 12, y, '#E0C8A0'); y += 10; });
@@ -539,6 +574,34 @@
     ctx.globalAlpha = Math.min(1, this.t / 60);
     DS.bigText(ctx, 'THE PARTY FALLS', 128, 80, 2);
     DS.textCenter(ctx, 'The corridor keeps what it takes.', 128, 116, '#9C9C9C');
+    ctx.globalAlpha = 1;
+    if (this.menu) this.menu.draw(ctx);
+  };
+
+  // ------------------------------------------------------------------ the roost law broken (RULED 09-24, Griz)
+  // Not a death: a failure of the other kind. You came to make a name. You made one.
+  function RoostFail() {
+    this.kind = 'gameover'; this.opaque = true; this.t = 0; this.menu = null; this.bats = [];
+    for (var i = 0; i < 260; i++) this.bats.push(DS.newBat(false));
+  }
+  DS.RoostFail = RoostFail;
+  RoostFail.prototype.update = function () {
+    this.t++;
+    if (this.t === 150) {
+      var any = [1, 2, 3].some(function (i) { return !!DS.loadSlot(i); });
+      this.menu = new DS.Menu({ items: [{ label: 'CONTINUE FROM A SAVE', value: 'load', disabled: !any }, { label: 'TITLE', value: 'title' }], x: 56, y: 176, w: 144, cancelable: false,
+        onSelect: function (it) { if (it.value === 'load') DS.push(new SlotScene(false)); else { DS.clearScenes(); DS.push(new Title()); } } });
+    }
+    if (this.menu) this.menu.update();
+  };
+  RoostFail.prototype.draw = function (ctx) {
+    ctx.fillStyle = '#060406'; ctx.fillRect(0, 0, 256, 240);
+    var keep = Math.max(40, 260 - this.t * 2); // the swarm thins out as the words come up
+    DS.drawBats(ctx, this.bats.slice(0, keep));
+    ctx.globalAlpha = Math.min(1, Math.max(0, (this.t - 30) / 60));
+    DS.bigText(ctx, 'NOT THIS KIND', 128, 44, 2);
+    DS.bigText(ctx, 'OF NAME', 128, 66, 2);
+    DS.wrap(DS.L('fail.roost'), 220).forEach(function (l, i) { DS.textCenter(ctx, l, 128, 104 + i * 11, '#C8D0E8'); });
     ctx.globalAlpha = 1;
     if (this.menu) this.menu.draw(ctx);
   };

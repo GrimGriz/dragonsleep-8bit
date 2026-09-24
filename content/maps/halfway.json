@@ -75,7 +75,9 @@
 "S": "sand",
 "X": "range",
 "=": "road",
-"Y": "deep"
+"Y": "deep",
+"N": "noticeboard",
+"P": "signpost"
 },
 "music": "lake",
 "bg": "lake",

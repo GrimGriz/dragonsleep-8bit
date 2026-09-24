@@ -32,6 +32,8 @@ def arrivals(mid):
         for w in om.get('warps', []):
             if w['to'] == mid:
                 pts.append((w['tx'], w['ty'], 'warp from %s' % om['id']))
+                for d, a in (w.get('alt') or {}).items():
+                    pts.append((a['tx'], a['ty'], 'warp from %s (entering %s)' % (om['id'], d)))
         for t in om.get('triggers', []):
             if t.get('to') == mid:
                 pts.append((t['tx'], t['ty'], 'door from %s' % om['id']))

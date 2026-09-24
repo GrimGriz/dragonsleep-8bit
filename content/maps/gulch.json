@@ -20,7 +20,7 @@
 "CCCCUUUUUUUUUUUeUUUUUUUXUUUUUUUUUUUUCUCC",
 "CCCCUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCCCC",
 "CCCCUUUUUUUUUUUUUUUXUUUUXUUUUUUUUUUUCCCC",
-"CCCUUUUUUUUUUUUUUUUUUUUUUUUUUXUUUUUUUCCC",
+"CCCUUUUUUUUUUUUUUeQeUUUUUUUUUXUUUUUUUCCC",
 "CCCUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUCCC",
 "CCCCUUUUUUUUUUUUUUUUUUUUUUUUUUXUUUUUUCCC",
 "CCCCCCUUUUUUUUUUUUUUUUUUUUUUUUUeUUCUCCCC",
@@ -89,7 +89,8 @@
 "A": "water",
 "M": "mountain",
 "V": "range",
-"I": "lamp"
+"I": "lamp",
+"Q": "cocoon"
 },
 "music": "dungeon",
 "bg": "gulch",
@@ -164,12 +165,12 @@
 {
 "id": "snared",
 "rect": [
+18,
 17,
-20,
-2,
-2
+1,
+1
 ],
-"on": "step",
+"on": "use",
 "script": "snared",
 "once": true
 },
@@ -195,6 +196,14 @@
 40,
 30
 ]
+}
+],
+"flagTiles": [
+{
+"x": 18,
+"y": 17,
+"tile": "gulch",
+"cond": "trig:snared"
 }
 ]
 }

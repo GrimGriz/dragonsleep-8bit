@@ -79,7 +79,8 @@
 "A": "water",
 "M": "mountain",
 "V": "range",
-"I": "lamp"
+"I": "lamp",
+"Q": "cocoon"
 },
 "music": "dungeon",
 "bg": "guano",

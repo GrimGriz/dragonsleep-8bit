@@ -90,6 +90,8 @@
     "attacks": { "bite": { "name": "Bite", "hit": 4, "dmg": "1d4+2", "type": "piercing", "verb": "bites", "save": { "ab": "con", "dc": 11, "dmg": "3d6", "type": "poison", "poison": true } } }, "silver": "0", "src": "SRD 5.1 (Giant Centipede)" },
   "brawler": { "name": "Bar Brawler", "art": "brawler", "cr": "1/8", "ac": 12, "hp": 11, "abil": { "str": 11, "dex": 12, "con": 12, "int": 10, "wis": 10, "cha": 10 }, "tags": ["humanoid"],
     "attacks": { "fists": { "name": "Fists", "hit": 3, "dmg": "1d4+1", "type": "bludgeoning", "verb": "punches" } }, "silver": "0", "src": "SRD 5.1 (Bandit, fists); wiki/the-hex.md (bar-fights in the small sand)" },
+  "cardbruiser": { "name": "Card Bruiser", "art": "brawler", "tint": "#7a5a8a", "cr": "1/4", "ac": 12, "hp": 22, "abil": { "str": 14, "dex": 12, "con": 13, "int": 9, "wis": 10, "cha": 10 }, "tags": ["humanoid"],
+    "attacks": { "club": { "name": "Cudgel", "hit": 4, "dmg": "1d6+2", "type": "bludgeoning", "verb": "cudgels" } }, "silver": "0", "src": "SRD 5.1 (Bandit, scaled up); wiki/the-hex.md (the card); Barley's hire bout invented.json#barley-bout" },
   "stablefighter": { "name": "Stable Fighter", "art": "netfighter", "cr": "1/2", "ac": 11, "hp": 32, "abil": { "str": 15, "dex": 11, "con": 14, "int": 10, "wis": 10, "cha": 11 }, "tags": ["humanoid"],
     "attacks": { "spear": { "name": "Spear", "hit": 4, "dmg": "1d6+2", "type": "piercing", "verb": "spears" } }, "multi": ["spear", "spear"], "silver": "0", "src": "SRD 5.1 (Thug); wiki/the-hex.md (a stable's man the owner wants bled)" },
   "merc": { "name": "Hired Blade", "art": "hexfighter", "cr": "2", "ac": 15, "hp": 65, "abil": { "str": 15, "dex": 16, "con": 14, "int": 14, "wis": 11, "cha": 14 }, "tags": ["humanoid"],

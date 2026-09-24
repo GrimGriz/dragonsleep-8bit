@@ -112,7 +112,24 @@
 "tx": 1,
 "ty": 8,
 "dir": "right",
-"mapName": true
+"mapName": true,
+"alt": {
+"down": {
+"tx": 6,
+"ty": 1,
+"dir": "down"
+},
+"up": {
+"tx": 29,
+"ty": 43,
+"dir": "up"
+},
+"left": {
+"tx": 58,
+"ty": 7,
+"dir": "left"
+}
+}
 },
 {
 "x": 46,

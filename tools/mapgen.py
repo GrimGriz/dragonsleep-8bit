@@ -25,7 +25,7 @@ LEGENDS = {
         'v': 'vault', '@': 'fountain', '~': 'channel', '!': 'falls', '|': 'fence', 'k': 'stockade', 'l': 'lamp', 'q': 'well',
         'm': 'stall', 'c': 'crate', 'h': 'headframe', 'n': 'tent', ':': 'sandArena', 'x': 'hexwall', 'z': 'hexwallRed',
         '-': 'bridge', '1': 'bridgeV', ' ': 'void', '^': 'mountain', 'W': 'water', 'u': 'reeds', 'y': 'wheat', 'F': 'farm',
-        'i': 'flatstone', 'K': 'dock', 'S': 'sand', 'X': 'range', '=': 'road', 'Y': 'deep',
+        'i': 'flatstone', 'K': 'dock', 'S': 'sand', 'X': 'range', '=': 'road', 'Y': 'deep', 'N': 'noticeboard', 'P': 'signpost',
     },
     'inside': {
         ':': 'floorWood', ';': 'floorStone', '_': 'rug', 'c': 'counter', 'b': 'bar', 't': 'table', 'u': 'stairsUp', 'd': 'stairsDown',
@@ -39,7 +39,7 @@ LEGENDS = {
         'f': 'fungus', ':': 'gravel', 'm': 'minecart', 'k': 'crateCave', '*': 'glowmoss', '0': 'chimney', 'u': 'stairsUp',
         'd': 'stairsDown', ' ': 'void', ',': 'dirt', '"': 'grass', 't': 'tree', 'R': 'roofB', 'S': 'roofS', 'W': 'wall',
         'O': 'wallWin', 'D': 'door', 'e': 'webtree', 'U': 'gulch', 'X': 'web', 'c': 'crate', 'q': 'well', 'T': 'tent', 'H': 'headframe',
-        'F': 'fence', 'P': 'road', 'B': 'bridgeV', 'C': 'cliff', 'A': 'water', 'M': 'mountain', 'V': 'range', 'I': 'lamp',
+        'F': 'fence', 'P': 'road', 'B': 'bridgeV', 'C': 'cliff', 'A': 'water', 'M': 'mountain', 'V': 'range', 'I': 'lamp', 'Q': 'cocoon',
     },
 }
 
@@ -133,6 +133,10 @@ class Grid:
         o = {'id': '%s:%s' % (script, arg), 'x': x, 'y': y, 'on': 'step', 'script': script, 'arg': arg, 'back': 'down'}
         o.update(kw)
         self.obj['triggers'].append(o)
+
+    def flagtile(self, x, y, tile, cond):
+        """swap a tile at map load once cond holds (a gate left open, a cocoon cut down)"""
+        self.obj.setdefault('flagTiles', []).append({'x': x, 'y': y, 'tile': tile, 'cond': cond})
 
     def trig(self, id, x, y, script, arg=None, on='step', w=1, h=1, **kw):
         o = {'id': id, 'rect': [x, y, w, h], 'on': on, 'script': script}
@@ -270,7 +274,9 @@ def build_world():
     # keep the road clean
     g.path([(FX, 15), (32, 18), (32, 22), (32, 31), (33, 34), (33, 44), (33, 52), (34, H - 1)], '=', only=['g', 't', 'n', 'w', 'u', 'e', 'z', ',', '.', '%', 'r'])
     # ---- objects
-    g.warp(SX, SY, 'silverton', 1, 8, 'right', mapName=True)
+    # the town icon lets you in by the gate you walked up to: down the Doors road = the north gate, etc.
+    g.warp(SX, SY, 'silverton', 1, 8, 'right', mapName=True,
+           alt={'down': {'tx': 6, 'ty': 1, 'dir': 'down'}, 'up': {'tx': 29, 'ty': 43, 'dir': 'up'}, 'left': {'tx': 58, 'ty': 7, 'dir': 'left'}})
     g.warp(46, 11, 'warrens_a', 20, 17, 'up')
     g.warp(23, 10, 'galleries_g1', 17, 22, 'up')
     g.warp(31, 26, 'gulch', 3, 5, 'right')
@@ -309,6 +315,9 @@ def build_silverton():
     for x in (13, 17, 21, 25, 34, 38, 42, 46):
         g.put(x, 6, '@')
     g.rect(3, 6, 8, 1, '.')
+    # the north gate: a cut up through the mountain's skirt to the Doors road
+    g.rect(6, 0, 2, 6, ',')
+    g.put(5, 5, 'P')
     # stockade (landward), gates west (the road), east (feed track), south (gate track)
     g.vline(2, 9, 44, 'k'); g.vline(57, 9, 44, 'k'); g.hline(2, 57, 44, 'k')
     g.vline(2, 6, 6, 'k'); g.rect(0, 7, 3, 2, ',')
@@ -325,7 +334,9 @@ def build_silverton():
     doors['calla'] = g.building(38, 9, 5, 3, 'b', 2)
     doors['factor'] = g.building(44, 9, 5, 3, 's', 2)
     doors['lantern'] = g.building(50, 9, 6, 3, 'r', 3)
-    g.put(28, 10, 'l'); g.put(31, 10, 'l')
+    g.put(24, 11, 'N')                                        # the Weigh-House board, on its front wall
+    for x in (15, 23, 36, 44):                               # lamps along the Edifice side of Fountain Street
+        g.put(x, 6, 'l')
     # block two: doors onto row 16
     doors['cassia'] = g.building(3, 13, 7, 3, 'r', 3)
     doors['mela'] = g.building(11, 13, 4, 3, 'b', 1)
@@ -335,8 +346,6 @@ def build_silverton():
     doors['marko'] = g.building(39, 13, 5, 3, 'r', 2)
     doors['kasten'] = g.building(45, 13, 4, 3, 'b', 1)
     doors['venn'] = g.building(50, 13, 5, 3, 's', 2)
-    for x in (10, 26, 32, 44, 49):
-        g.put(x, 14, 'l') if g.get(x, 14) == '.' else None
     # ---- the Gate Plaza & Arena Quarter: the Hex, hexagonal, fronting the gates
     cx, cy = 29.5, 26.5
     hexcells = set()
@@ -398,16 +407,18 @@ def build_silverton():
         if g.get(x, y) == '.': g.put(x, y, 'l')
     # ---- objects: shop and keeper doors
     D = lambda k: doors[k][0]
-    g.door(*D('winters'), 'warp', 'winters', to='winters', tx=4, ty=6)
-    g.door(*D('casper'), 'keeper', 'casper'); g.door(*D('androit'), 'keeper', 'androit'); g.door(*D('weigh'), 'keeper', 'hessle')
-    g.door(*D('kessler'), 'shop', 'kessler'); g.door(*D('calla'), 'shop', 'calla'); g.door(*D('factor'), 'keeper', 'falstaff')
-    g.door(*D('lantern'), 'keeper', 'merrick'); g.door(*D('cassia'), 'inn', 'cassia'); g.door(*D('mela'), 'keeper', 'mela')
-    g.door(*D('marin'), 'keeper', 'marin'); g.door(*D('lisbet'), 'shop', 'lisbet'); g.door(*D('brennan'), 'keeper', 'brennan')
-    g.door(*D('marko'), 'shop', 'marko'); g.door(*D('kasten'), 'shop', 'kasten'); g.door(*D('venn'), 'keeper', 'barber')
-    g.door(*D('venhale'), 'keeper', 'venhale'); g.door(*D('vilar'), 'shop', 'vilar'); g.door(*D('davos'), 'leech', 'davos')
-    g.door(*D('percy'), 'keeper', 'percy'); g.door(*D('tam'), 'keeper', 'tam'); g.door(*D('aldwin'), 'chapel', 'aldwin')
+    # icon = the hanging sign drawn over the door (js/world.js DS.doorSign)
+    g.door(*D('winters'), 'warp', 'winters', to='winters', tx=4, ty=6, icon='ring')
+    g.door(*D('casper'), 'keeper', 'casper'); g.door(*D('androit'), 'keeper', 'androit'); g.door(*D('weigh'), 'keeper', 'hessle', icon='scales')
+    g.door(*D('kessler'), 'shop', 'kessler', icon='coin'); g.door(*D('calla'), 'shop', 'calla', icon='potion'); g.door(*D('factor'), 'keeper', 'falstaff')
+    g.door(*D('lantern'), 'keeper', 'merrick'); g.door(*D('cassia'), 'inn', 'cassia', icon='bed'); g.door(*D('mela'), 'keeper', 'mela')
+    g.door(*D('marin'), 'keeper', 'marin'); g.door(*D('lisbet'), 'shop', 'lisbet', icon='star'); g.door(*D('brennan'), 'keeper', 'brennan')
+    g.door(*D('marko'), 'shop', 'marko', icon='pack'); g.door(*D('kasten'), 'shop', 'kasten', icon='candle'); g.door(*D('venn'), 'keeper', 'barber')
+    g.door(*D('venhale'), 'keeper', 'venhale'); g.door(*D('vilar'), 'shop', 'vilar', icon='sword'); g.door(*D('davos'), 'leech', 'davos', icon='stitch')
+    g.door(*D('percy'), 'keeper', 'percy'); g.door(*D('tam'), 'keeper', 'tam'); g.door(*D('aldwin'), 'chapel', 'aldwin', icon='sun')
     g.door(*D('kess'), 'keeper', 'kess'); g.door(*D('mical'), 'keeper', 'mical')
-    g.door(37, 19, 'keeper', 'lucia')
+    g.door(37, 19, 'shop', 'lucia', icon='mortar')
+    g.trig('board', 24, 11, 'board', on='use')
     g.warp(29, 34, 'hex', 10, 18, 'up'); g.warp(30, 34, 'hex', 11, 18, 'up')
     # people in the streets
     g.npc('marta', 36, 37, 'marta', dir='up')
@@ -430,6 +441,7 @@ def build_silverton():
     g.npc('towns7', 36, 12, 'noble', wander=2)
     g.npc('towns8', 14, 36, 'girl', wander=2)
     g.npc('idony', 18, 12, 'clerk', dir='down')
+    g.sign(5, 5, 'NORTH GATE. The Doors road, up the mountain. The locals call it the Coldridge route.', 'wiki/the-road.md (the Doors road); rumors r-coldridge (wiki/fountain-street.md HD-1)')
     g.sign(29, 5, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)')
     g.sign(24, 40, "Sylvia Swann's booth: an owl painted on the board. The short reading, five silver. She isn't in.", 'wiki/silverton.md; the-lab/pit-maps/shops-silverton.json pin 37')
     g.sign(31, 40, 'The Vizardry mask-booth. Crude vizards with a hedge-glamour, a gold the hour. The real house is somewhere else.', 'wiki/vice-row.md; the-lab/pit-maps/shops-silverton.json pin 39')
@@ -440,7 +452,7 @@ def build_silverton():
     g.sign(50, 32, 'Warehouses. No quay: the river is too small and fast to carry anything.', 'wiki/silverton.md; wiki/fountain-street.md (Mical)')
     save('silverton', g, 'town', 'Silverton', music='town', bg='town', outside=True,
          exits={'west': {'to': 'world', 'tx': 36, 'ty': 11, 'dir': 'left'}, 'east': {'to': 'world', 'tx': 38, 'ty': 13, 'dir': 'right'},
-                'south': {'to': 'world', 'tx': 37, 'ty': 12, 'dir': 'down'}})
+                'south': {'to': 'world', 'tx': 37, 'ty': 12, 'dir': 'down'}, 'north': {'to': 'world', 'tx': 37, 'ty': 10, 'dir': 'up'}})
 
 
 # ============================================================ THE HEX (ground floor + the gambling floor)
@@ -560,13 +572,13 @@ def build_warrens():
     for y in range(19, 27):
         for x in range(26, 40):
             g.put(x, y, 'y' if (y % 2) else 'f')
-    # objects
+    # objects (mouth 3 first: the pinned-quest marker routes by the first way it finds, and this is the daytime way)
+    g.put(mouths[3], 4, '.')
+    g.warp(mouths[3], 4, 'warrens_b', 13, 26, 'up')
     g.warp(mouths[1], 3, 'warrens_c', 2, 16, 'up')
     g.warp(mouths[6], 3, 'warrens_c', 45, 16, 'up')
     for n in (2, 4, 5):
         g.trig('pen%d' % n, mouths[n], 4, 'pen', n, on='use')
-    g.put(mouths[3], 4, '.')
-    g.warp(mouths[3], 4, 'warrens_b', 13, 26, 'up')
     g.npc('skarn', 15, 8, 'skarn', dir='down')
     g.npc('edric', 7, 8, 'clerk', dir='down')
     g.npc('jory', 11, 5, 'worker', dir='down')
@@ -606,7 +618,8 @@ def build_warrens():
     g.warp(13, 27, 'warrens_a', 15, 5, 'down')
     for x in (7, 21, 27):
         g.put(x, 27, '#')
-    g.trig('skarngate', 17, 19, 'skarnGate', on='use', w=2, h=1)
+    g.trig('skarngate', 17, 19, 'skarnGate', on='use', w=2, h=1, cond='!flag:skarnGateOpen')
+    g.flagtile(17, 19, 'gateOpen', 'flag:skarnGateOpen'); g.flagtile(18, 19, 'gateOpen', 'flag:skarnGateOpen')
     g.put(17, 27, '#')
     g.warp(12, 1, 'warrens_d', 2, 12, 'right')
     g.npc('jorypens', 10, 20, 'worker', dir='down')
@@ -789,14 +802,15 @@ def build_galleries():
     g.path([(9, 1), (9, 5)], '.')
     g.put(9, 1, 'L')
     g.blob(5, 5, 3, 2.4, 'G', rng, .2); g.path([(3, 2), (4, 4)], 'G'); g.put(3, 2, 'L')
+    g.put(7, 6, 'G'); g.put(7, 5, 'G')                          # the slide's spill opens into the big room
     for (x, y) in [(13, 8), (20, 11), (11, 16), (25, 17), (17, 20)]:
         g.put(x, y, 'b')
     g.path([(32, 17), (35, 20)], '.'); g.path([(12, 23), (11, 25)], '.')
     g.put(35, 20, '#'); g.put(11, 25, '#')
     g.warp(9, 1, 'galleries_g3', 50, 9, 'left', sfx='stairs')
     g.warp(3, 2, 'galleries_g2', 27, 5, 'down', sfx='stairs')
-    g.trig('cloaker', 8, 6, 'cloaker', on='step', w=3, h=2, cond='!flag:cloakerDone')
-    g.trig('cloaker2', 4, 6, 'cloaker', on='step', w=3, h=1, cond='!flag:cloakerDone')
+    # it drops on you once you're out in the big room, whichever way you came down (ladder or slide)
+    g.trig('cloaker', 5, 8, 'cloaker', on='step', w=28, h=16, cond='!flag:cloakerDone')
     g.sign(35, 20, 'A passage runs off into the dark, east. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
     g.sign(11, 25, 'A passage runs off south. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
     g.chest(25, 17, 'maul1', 1)
@@ -826,7 +840,10 @@ def build_gulch():
     g.put(1, 5, 'U'); g.put(1, 6, 'U'); g.put(38, 25, 'U'); g.put(38, 26, 'U'); g.put(39, 25, 'U'); g.put(39, 26, 'U')
     g.npc('silkcutter', 8, 9, 'worker', dir='right')
     g.npc('drummer', 7, 10, 'boy', dir='up', idle=True)
-    g.trig('snared', 17, 20, 'snared', on='step', once=True, w=2, h=2)
+    # the snared traveler: a silk-wrapped shape strung between two stunted trees, just off the way down
+    g.put(17, 17, 'e'); g.put(19, 17, 'e'); g.put(18, 17, 'Q')
+    g.trig('snared', 18, 17, 'snared', on='use', once=True)
+    g.flagtile(18, 17, 'gulch', 'trig:snared')
     g.trig('ettercap', 29, 9, 'ettercap', on='step', w=3, h=2, cond='!flag:ettercapDone')
     g.chest(33, 8, 'potion', 1); g.chest(19, 24, 'kit', 2)
     g.zone('gulch', 0, 0, W, H)

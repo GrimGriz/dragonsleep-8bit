@@ -21,7 +21,7 @@
     "equip": { "weapon": "quarterstaff", "armor": null, "shield": null, "ring": null },
     "saveProf": ["int", "wis"], "skills": { "Arcana": 5, "Investigation": 5, "Religion": 5, "Insight": 1 },
     "look": "aurdin", "weaponArt": "staff",
-    "spells": ["firebolt", "light", "dancinglights", "burninghands", "magicmissile", "shield", "sleep", "detectmagic", "findfamiliar"],
+    "spells": ["firebolt", "light", "dancinglights", "burninghands", "magicmissile", "shield", "sleep", "detectmagic"],
     "classLine": "Wizard 2 · an evoker by aspiration",
     "blurb": "Sixteen, INT 17, WIS 9: he knows, and asks the wrong people. A farm boy off Newland who walked away from the sun chapels, came in with the Glowseep crews' haul, and slept on Aldwin's floor.",
     "featText": [{ "t": "Arcane Recovery (once a day, field)" }, { "t": "School of Evocation" }],
@@ -39,9 +39,15 @@
     "look": "vivian", "weaponArt": "dagger",
     "classLine": "Rogue 2 · Sneak Attack 1d6 · Cunning Action",
     "blurb": "Marta Venn's daughter, about twenty-two. Not a thief who learned to watch: a watcher who learned to steal. The candle girl on the east side, and one of the fingers at the Hex on card nights.",
-    "featText": [{ "t": "Sneak Attack (an ally engaged, or advantage)" }, { "t": "Cunning Action: HIDE as a bonus action" }, { "t": "Expertise: Sleight of Hand, Perception" }, { "lvl": 3, "t": "Archetype: [GRIZ] — held open" }, { "lvl": 5, "t": "Uncanny Dodge" }],
-    "levels": { "3": { "subclass": "[GRIZ] archetype held open" }, "4": { "asi": { "dex": 2 } } },
-    "note": "Her archetype is held open in canon (lean Assassin, not SRD). The game gives her none.",
+    "featText": [{ "t": "Sneak Attack (an ally engaged, or advantage)" }, { "t": "Cunning Action: HIDE before or after her attack (bonus action)" }, { "t": "Expertise: Sleight of Hand, Perception" },
+      { "lvl": 3, "sub": "Thief", "t": "Thief: Fast Hands (ITEM is a bonus action)" }, { "lvl": 3, "sub": "Cutthroat", "t": "Cutthroat: Opening Cut (first round: advantage on a foe that hasn't acted; a hit is a critical)" },
+      { "lvl": 5, "t": "Uncanny Dodge" }],
+    "levels": { "3": { "choose": "archetype" }, "4": { "asi": { "dex": 2 } } },
+    "archetypes": [
+      { "name": "Thief", "desc": "Fast Hands. Using an item is a bonus action: a potion, a kit, a torch, and still her attack.", "src": "SRD 5.1 (Rogue: Thief, Fast Hands)" },
+      { "name": "Cutthroat", "desc": "Opening Cut. In the first round, advantage against any foe that hasn't acted yet, and a hit on it is a critical.", "src": "original to this game (the canon lean is Assassin, which is not in the SRD 5.1); invented.json#cutthroat" }
+    ],
+    "note": "Her archetype is the player's choice at level 3 (RULED 09-24). The canon lean is Assassin; the SRD has only Thief, so the second path is this game's own.",
     "src": ["rogue-vivian.md", "wiki/vivian.md"]
   },
   "lymen": {

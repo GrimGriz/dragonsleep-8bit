@@ -111,7 +111,9 @@
       if (lines.length) yield DS.say(lines, who(br.who || name));
       [].concat(br.set || []).forEach(function (f) { g.flags[f] = 1; });
       [].concat(br.rumor || []).forEach(function (rid) { g.flags['heard:' + rid] = 1; var rr = DS.DATA.rumorMap[rid]; if (rr && rr.flag) g.flags[rr.flag] = 1; });
+      if (br.take) g.take(br.take, 1);
       if (br.give) { g.give(br.give, 1); DS.audio.sfx('chest'); yield DS.say(L('g.got', { item: DS.DATA.items[br.give].name })); }
+      if (br.silver) { g.silver += br.silver; DS.audio.sfx('coin'); yield DS.say(L('g.foundSilver', { n: br.silver })); }
       if (br.renown) yield* EV.renown(br.renown, br.renownWhy);
       return;
     }
@@ -249,7 +251,6 @@
       var magic = (F().chests || []).filter(function (c) { var it = c.item && DS.DATA.items[c.item]; return it && /\+1|Ring of|Potion/.test(it.name) && !g.flags['chest:' + F().map.id + ':' + c.x + ',' + c.y]; });
       yield DS.say(L(magic.length ? 'g.detectYes' : 'g.detectNo')); return;
     }
-    if (sp.kind === 'familiar') { yield DS.say(L('g.familiar')); return; }
     yield DS.say(L('g.nothingHappens'));
   };
   EV.fieldSkill = function* (h, s) {
@@ -306,7 +307,7 @@
     yield DS.shop(id);
   };
   S.inn = function* (id) {
-    var inn = DS.DATA.shops[id], g = G(), cost = inn.price * g.party.length;
+    var inn = DS.DATA.shops[id], g = G(), cost = g.party.length > 1 && inn.partyPrice ? inn.partyPrice : inn.price * g.party.length;
     var a = yield DS.ask(inn.greeting + ' ' + L('g.innAsk', { n: cost }), ['STAY', 'LEAVE'], who(inn.keeper));
     if (a !== 0) return;
     if (!EV.pay(cost)) { yield DS.say(L('g.poor')); return; }
@@ -338,38 +339,104 @@
   };
 
   // --- the Weigh-House board: Hessle pays bounties
+  // what the board says right now: open bounties only; paid ones come down
+  function boardLines() {
+    var g = G(), out = [];
+    if (!g.flags.ettercapDone) out.push(L('hessle.boardEttercap'));
+    if (!g.flags.cloakerDone) out.push(L('hessle.boardCloaker'));
+    if (!out.length) out.push(L('hessle.boardClear'));
+    return out;
+  }
   S.hessle = function* (npc, D) {
     var g = G();
     yield DS.say(L('hessle.greet'), who('Hessle'));
     g.flags.heardEttercap = 1; g.flags.heardCloaker = 1; g.flags['heard:r-ettercap'] = 1; g.flags['heard:r-cloaker'] = 1;
+    var paid = false;
     if (g.count('ettercapfangs') > 0) {
-      g.take('ettercapfangs', 1); g.silver += 500; g.flags.ettercapDone = 1; DS.audio.sfx('coin');
+      g.take('ettercapfangs', 1); g.silver += 500; g.flags.ettercapDone = 1; DS.audio.sfx('coin'); paid = true;
       yield DS.say(L('hessle.ettercapPaid'), who('Hessle'));
       yield* EV.renown(1, 'renown.ettercap');
     }
     if (g.count('cloakertail') > 0) {
-      g.take('cloakertail', 1); g.flags.cloakerDone = 1;
+      g.take('cloakertail', 1); g.flags.cloakerDone = 1; paid = true;
       yield DS.say(L('hessle.cloakerDrawer'), who('Hessle'));
+      g.silver += 400; DS.audio.sfx('coin'); yield DS.say(L('g.foundSilver', { n: 400 }));
       yield* EV.renown(1, 'renown.cloaker');
     }
-    if (!g.flags.ettercapDone || !g.flags.cloakerDone) yield DS.say(L('hessle.board'), who('Hessle'));
+    if (!g.flags.ettercapDone || !g.flags.cloakerDone) yield DS.say([L('hessle.boardRead')].concat(boardLines()), who('Hessle'));
+    else if (!paid) yield DS.say(L('hessle.boardClear'), who('Hessle'));
     if (g.flags.fiveDone && !g.flags.fiveNotice) { g.flags.fiveNotice = 1; yield DS.say(L(g.flags.stockDead ? 'hessle.fiveDead' : 'hessle.fiveAlive'), who('Hessle')); }
+  };
+  // the board itself, on the Weigh-House's front wall
+  S.board = function* () {
+    var g = G();
+    g.flags.heardEttercap = 1; g.flags.heardCloaker = 1; g.flags['heard:r-ettercap'] = 1; g.flags['heard:r-cloaker'] = 1;
+    yield DS.say([L('board.head')].concat(boardLines(), [L('board.foot')]));
   };
 
   // --- Winters and the Ring of Binding (RULED 09-23: given when the main reaches level 4)
+  // Winters' own words are the seat's draft (RULED 09-24: the seat drafts key NPCs for this game)
   S.winters = function* () {
-    var g = G(), main = g.main();
-    if (g.has('ringofbinding')) { yield DS.say(L('winters.after')); return; }
-    if (!g.flags.wintersMet) { g.flags.wintersMet = 1; yield DS.say(L('winters.first')); }
-    yield DS.say(L('winters.griz'), who('Ambrose Winters'));
-    if (main.lvl < 4) { yield DS.say(L('winters.notReady', { lvl: main.lvl })); return; }
-    yield DS.say(L('winters.ready'));
-    DS.audio.sfx('ring');
-    g.give('ringofbinding', 1);
-    yield DS.say(L('winters.ring'));
-    var who2 = g.party.filter(function (h) { return !h.equip.ring; })[0] || main;
-    var eq = yield DS.ask(L('winters.equipAsk', { name: who2.name }), ['YES', 'NO']);
-    if (eq === 0) { if (who2.equip.ring) g.give(who2.equip.ring, 1); who2.equip.ring = 'ringofbinding'; g.take('ringofbinding', 1); DS.audio.sfx('confirm'); }
+    var g = G(), main = g.main(), W = who('Ambrose Winters');
+    if (!g.flags.wintersMet) {
+      g.flags.wintersMet = 1;
+      yield DS.say(L('winters.first'));
+      yield DS.say(L('winters.words'), W);
+      if (g.hero('vivian')) yield DS.say(L('winters.vivian'), W);
+    }
+    if (!g.has('ringofbinding') && !g.flags.lakeDone && main.lvl >= 4) {
+      yield DS.say(L('winters.ready'), W);
+      DS.audio.sfx('ring');
+      g.give('ringofbinding', 1);
+      yield DS.say(L('winters.ring'), W);
+      var who2 = g.party.filter(function (h) { return !h.equip.ring; })[0] || main;
+      var eq = yield DS.ask(L('winters.equipAsk', { name: who2.name }), ['YES', 'NO']);
+      if (eq === 0) { if (who2.equip.ring) g.give(who2.equip.ring, 1); who2.equip.ring = 'ringofbinding'; g.take('ringofbinding', 1); DS.audio.sfx('confirm'); }
+      return;
+    }
+    while (true) {
+      var a = yield DS.ask(L(g.has('ringofbinding') ? 'winters.after' : 'winters.menu'), ['WORK', 'THE SHELVES', 'LEAVE'], W);
+      if (a === 0) yield* S.wintersWork();
+      else if (a === 1) {
+        if (!g.flags.wErrADone) { yield DS.say(L('winters.shelvesShut'), W); continue; }
+        yield DS.shop('winters');
+      } else break;
+    }
+    if (!g.has('ringofbinding') && main.lvl < 4) yield DS.say(L('winters.notReady', { lvl: main.lvl }), W);
+  };
+  // Winters' courier work: easy renown in town (RULED 09-24, Griz: courier missions between important NPCs, Winters starts)
+  S.wintersWork = function* () {
+    var g = G(), W = who('Ambrose Winters');
+    if (!g.flags.wErrA) {
+      yield DS.say(L('winters.errandA'), W);
+      g.flags.wErrA = 1; g.give('estatepapers', 1); DS.audio.sfx('chest');
+      yield DS.say(L('g.got', { item: DS.DATA.items.estatepapers.name }));
+      return;
+    }
+    if (!g.flags.wErrADone) {
+      if (!g.flags.wValued) { yield DS.say(L(g.flags.wSealed ? 'winters.errandAtoCasper' : 'winters.errandAtoAndroit'), W); return; }
+      g.take('estatepapers', 1); g.flags.wErrADone = 1;
+      yield DS.say(L('winters.errandAdone'), W);
+      g.silver += 12; DS.audio.sfx('coin'); yield DS.say(L('g.foundSilver', { n: 12 }));
+      yield* EV.renown(1, 'renown.errandA');
+      return;
+    }
+    if (!g.flags.wErrB) {
+      yield DS.say(L('winters.errandB'), W);
+      g.flags.wErrB = 1; g.give('debtpurse', 1); DS.audio.sfx('chest');
+      yield DS.say(L('g.got', { item: DS.DATA.items.debtpurse.name }));
+      return;
+    }
+    if (!g.flags.wErrBDone) {
+      if (!g.flags.wPaid) { yield DS.say(L(g.flags.wSigned ? 'winters.errandBtoBrennan' : 'winters.errandBtoMical'), W); return; }
+      g.flags.wErrBDone = 1;
+      yield DS.say(L('winters.errandBdone'), W);
+      g.silver += 20; g.give('potion', 1); DS.audio.sfx('coin');
+      yield DS.say([L('g.foundSilver', { n: 20 }), L('g.got', { item: DS.DATA.items.potion.name })]);
+      yield* EV.renown(1, 'renown.errandB');
+      return;
+    }
+    yield DS.say(L('winters.noWork'), W);
   };
 
   // --- hires (spec §3: pick one lead; the others hireable in play). Terms PROPOSED.
@@ -380,7 +447,14 @@
     if (a !== 0) return;
     if (!EV.pay(5)) { yield DS.say(L('g.poor')); return; }
     yield DS.say(L('hire.barleyYes'), who('Barley'));
-    yield* EV.hire('barley');
+    if (!(yield* EV.hire('barley'))) return;
+    // your five puts him on the card tonight: his bout, straight away (RULED 09-24, Griz)
+    var b = g.hero('barley');
+    yield DS.say(L('hire.barleyBout'));
+    var res = yield DS.battle({ enemies: ['cardbruiser'], bg: 'arena', music: 'hex', solo: g.party.indexOf(b), lossOk: true, canRun: false, returnSong: 'hex' });
+    if (b.ko || b.hp <= 0) { b.ko = false; b.hp = 1; }
+    if (res === 'win') { g.silver += 5; DS.audio.sfx('coin'); yield DS.say(L('hire.barleyWon'), who('Barley')); }
+    else yield DS.say(L('hire.barleyLost'), who('Barley'));
   };
   S.hireAurdin = function* (npc, D) {
     var g = G();
@@ -438,7 +512,7 @@
     var fronted = false;
     if (c.stake) {
       if (g.silver >= c.stake) g.silver -= c.stake;
-      else { fronted = true; yield DS.say(L('hex.fronted'), who('Korvin')); }
+      else { fronted = true; yield DS.say(L(g.lead === 'lymen' ? 'hex.frontedLymen' : 'hex.fronted'), who('Korvin')); }
     }
     yield DS.say(L('hex.intro.' + c.id, { name: fighter.name }));
     var res = yield DS.battle({ enemies: [c.foe], bg: 'arena', music: c.id === 'talmok' ? 'boss' : 'hex', solo: g.party.indexOf(fighter), lossOk: true, canRun: false, returnSong: 'hex' });
@@ -451,7 +525,7 @@
       if (c.id === 'talmok' && first) { g.flags.talmokBeaten = 1; yield DS.say(L('hex.talmokDown')); yield* EV.renown(1, 'renown.talmok'); }
       else if (c.id === 'card' && first) yield* EV.renown(1, 'renown.card');
     } else {
-      yield DS.say(L(fronted ? 'hex.lostFronted' : 'hex.lost', { name: fighter.name }), who('Korvin'));
+      yield DS.say(L(fronted ? (g.lead === 'lymen' ? 'hex.lostFrontedLymen' : 'hex.lostFronted') : 'hex.lost', { name: fighter.name }), who('Korvin'));
       yield DS.say(L('hex.stitched', { name: fighter.name }));
     }
   };
@@ -465,31 +539,81 @@
     var h = g.party.length === 1 ? g.party[0] : yield DS.choose({ items: g.party.filter(function (x) { return !x.ko; }).map(function (x) { return { label: x.name, value: x }; }), x: 60, y: 80, w: 136, title: 'WHO MILKS?' });
     if (!h) return;
     var draught = g.count('draught') > 0; if (draught) g.take('draught', 1);
-    var got = 0, touched = false, lines = [];
     var best = Math.max(R.skill(h, 'Animal Handling', 'wis'), R.skill(h, 'Nature', 'int'));
-    for (var i = 0; i < 6 && !touched; i++) {
-      var r = DS.d(20) + best;
-      if (r >= 12) got++;
-      else if (r <= 7) {
-        var sv = DS.d(20) + R.saveBonus(h, 'con'); if (draught) sv = Math.max(sv, DS.d(20) + R.saveBonus(h, 'con'));
-        if (sv < 13) touched = true; else lines.push(L('w.touchShrug'));
-      }
-    }
-    if (touched) lines.push(L('w.touched', { name: h.name }));
-    g.silver += got; if (got) DS.audio.sfx('coin');
+    if (!g.flags.shifts) yield DS.say(L('w.penHow'));
+    var r = yield W8.scene(new MilkScene(h, best, draught));
+    var lines = [];
+    if (r.touched) lines.push(L('w.touched', { name: h.name }));
+    g.silver += r.got; if (r.got) DS.audio.sfx('coin');
     g.flags.shifts = (g.flags.shifts || 0) + 1;
-    lines.push(L('w.shiftPaid', { n: got }));
+    lines.push(L('w.shiftPaid', { n: r.got }));
     yield DS.say(lines);
     if (g.flags.shifts === 1) { g.flags.hobMet = 1; yield DS.say(L('w.hobAtCradle'), who('Old Hob')); g.flags['heard:r-promised'] = 1; }
   };
+  // the cradle: six draws, each a timed squeeze. Skill widens the clean band; a wild pull risks the tentacles.
+  function MilkScene(h, best, draught) {
+    this.kind = 'milk'; this.h = h; this.draught = draught; this.draw_ = 0; this.got = 0; this.touched = false;
+    this.pos = 0; this.dir = 1; this.speed = 0.016; this.msg = L('w.penReady'); this.hold = 0; this.done = false;
+    this.green = Math.min(0.2, 0.07 + 0.018 * Math.max(0, best)); this.amber = this.green + 0.13;
+    this.result = { got: 0, touched: false };
+  }
+  MilkScene.prototype.update = function () {
+    var I = DS.input;
+    if (this.done) { if (I.pressed('a') || I.pressed('b')) { this.result = { got: this.got, touched: this.touched }; DS.pop(this); } return; }
+    if (this.hold > 0) { this.hold--; return; }
+    this.pos += this.dir * this.speed;
+    if (this.pos > 1) { this.pos = 1; this.dir = -1; } else if (this.pos < 0) { this.pos = 0; this.dir = 1; }
+    if (!I.pressed('a')) return;
+    var off = Math.abs(this.pos - 0.5);
+    this.draw_++;
+    if (off <= this.green) { this.got++; DS.audio.sfx('coin'); this.msg = L('w.drawClean'); }
+    else if (off <= this.amber) { DS.audio.sfx('miss'); this.msg = L('w.drawDry'); }
+    else {
+      var bonus = R.saveBonus(this.h, 'con'), sv = DS.d(20) + bonus;
+      if (this.draught) sv = Math.max(sv, DS.d(20) + bonus);
+      if (sv < 13) { this.touched = true; DS.audio.sfx('poison'); this.msg = L('w.drawTouched'); }
+      else { DS.audio.sfx('bump'); this.msg = L(this.draught ? 'w.touchShrug' : 'w.drawJerk'); }
+    }
+    this.speed *= 1.12; this.hold = 30;
+    if (this.touched || this.draw_ >= 6) { this.done = true; this.hold = 0; }
+  };
+  MilkScene.prototype.draw = function (ctx) {
+    var x0 = 20, y0 = 40, w = 216;
+    DS.win(ctx, x0 - 8, y0 - 8, w + 16, 118);
+    DS.text(ctx, 'THE CRADLE', x0, y0, '#F8D878');
+    DS.textRight(ctx, 'draw ' + Math.min(6, this.draw_ + (this.done ? 0 : 1)) + '/6   thimbles ' + this.got, x0 + w, y0, '#C8D0E8');
+    // the crawler on its settle: a pale head and six feelers that won't keep still
+    var cx = 128, cy = y0 + 30, t = DS.frame;
+    ctx.fillStyle = '#6a7a5a'; ctx.fillRect(cx - 14, cy - 8, 28, 14);
+    ctx.fillStyle = '#8a9a6a'; ctx.fillRect(cx - 12, cy - 10, 24, 6);
+    ctx.fillStyle = '#101018'; ctx.fillRect(cx - 7, cy - 6, 3, 3); ctx.fillRect(cx + 4, cy - 6, 3, 3);
+    ctx.fillStyle = '#b8a888';
+    for (var k = 0; k < 6; k++) { var fx = cx - 12 + k * 5, len = 6 + ((t >> 3) + k * 3) % 5; ctx.fillRect(fx, cy + 6, 2, len); }
+    // the bar: red at the edges, amber, the clean band in the middle
+    var by = y0 + 56, bw = w;
+    ctx.fillStyle = '#A81000'; ctx.fillRect(x0, by, bw, 8);
+    ctx.fillStyle = '#AC7C00'; ctx.fillRect(x0 + bw * (0.5 - this.amber), by, bw * this.amber * 2, 8);
+    ctx.fillStyle = '#00A800'; ctx.fillRect(x0 + bw * (0.5 - this.green), by, bw * this.green * 2, 8);
+    var mx = Math.round(x0 + bw * this.pos);
+    ctx.fillStyle = '#F8F8F8'; ctx.fillRect(mx - 1, by - 3, 2, 14);
+    DS.text(ctx, '▼', mx - 3, by - 11, '#F8F8F8');
+    DS.wrap(this.msg, w).slice(0, 2).forEach(function (l, i) { DS.text(ctx, l, x0, by + 16 + i * 10, '#E0C8A0'); });
+    DS.textCenter(ctx, this.done ? 'Z: done' : 'Z: squeeze in the green', 128, y0 + 100, '#9C9C9C');
+  };
+  DS.MilkScene = MilkScene;
   S.skarnGate = function* () {
-    var g = G();
+    var g = G(), m = F().map;
     if (!g.flags.skarnOk) { yield DS.say(L('w.gateShut'), who('Skarn')); return; }
+    // the gate swings back on its pins, and stays open for you
     DS.audio.sfx('door');
-    var north = g.y > 19;
-    yield DS.fade(1, 8);
-    g.y = north ? 18 : 20; F().py = g.y * 16; g.dir = north ? 'up' : 'down';
-    yield DS.fade(0, 8);
+    for (var i = 0; i < 4; i++) {
+      var t = i % 2 ? 'gate' : 'gateOpen';
+      m.setTile(17, 19, t); m.setTile(18, 19, t);
+      yield W8.frames(6);
+    }
+    m.setTile(17, 19, 'gateOpen'); m.setTile(18, 19, 'gateOpen');
+    g.flags.skarnGateOpen = 1; DS.audio.sfx('confirm');
+    yield DS.say(L('w.gateOpens'));
   };
   S.skarn = function* (npc, D) {
     var g = G();
@@ -665,10 +789,14 @@
   };
 
   // --- Web Gulch
-  S.snared = function* () {
+  S.snared = function* (arg, t) {
+    var g = G();
     yield DS.say(L('gulch.snared'));
     var res = yield* EV.fight(['wolfspider', 'wolfspider', 'giantspider'], { bg: 'gulch' });
-    if (res === 'win') { yield DS.say(L('gulch.snaredFree')); G().silver += 12; DS.audio.sfx('coin'); }
+    if (res === 'win') {
+      F().map.setTile(18, 17, 'gulch');
+      yield DS.say(L('gulch.snaredFree')); g.silver += 12; DS.audio.sfx('coin');
+    } else if (res === 'run') delete g.flags['trig:snared']; // still hanging there; come back for them
   };
   S.ettercap = function* () {
     var g = G();
@@ -795,6 +923,25 @@
     DS.clearScenes();
     DS.fadeLevel = 0;
     DS.push(new DS.Credits(true));
+  };
+
+  // --- level-ups that ask: Vivian's archetype at rogue 3 (RULED 09-24, Griz: player's choice in this game)
+  EV.pendingChoices = function* () {
+    var g = G();
+    for (var i = 0; i < g.party.length; i++) {
+      var h = g.party[i];
+      if (h.pendingChoice !== 'archetype') { delete h.pendingChoice; continue; }
+      var opts = DS.DATA.heroes[h.id].archetypes || [];
+      var pick = null;
+      while (!pick) {
+        var a = yield DS.ask(L('rogue.archetypeAsk', { name: h.name }), opts.map(function (o) { return o.name.toUpperCase(); }).concat(['WHICH IS WHICH?']));
+        if (a >= 0 && a < opts.length) pick = opts[a];
+        else yield DS.say(opts.map(function (o) { return o.name.toUpperCase() + ': ' + o.desc; }));
+      }
+      h.subclass = pick.name; delete h.pendingChoice;
+      DS.audio.sfx('levelup');
+      yield DS.say(L('rogue.archetypeTaken', { name: h.name, arch: pick.name }));
+    }
   };
 
   // --- misc NPC scripts

@@ -74,9 +74,28 @@
     }
     m.at = function (x, y) { if (x < 0 || y < 0 || x >= m.w || y >= m.h) return null; return m.tiles[y * m.w + x]; };
     m.mark = function (ch) { var a = m.marks[ch]; return a ? a[0] : null; };
+    m.orig = m.tiles.slice();
+    // change one tile at runtime (a gate swinging open, a cocoon cut down) and repaint just that cell
+    m.setTile = function (x, y, tid) {
+      var i = y * m.w + x;
+      if (m.tiles[i] === tid || !DS.TILES[tid]) return;
+      m.tiles[i] = tid;
+      m.anim = m.anim.filter(function (a) { return a.x !== x || a.y !== y; });
+      var ctx = m.layer.getContext('2d'), v = DS.hash(x + ',' + y) % 7, nb = neighbours(m, x, y, tid);
+      ctx.clearRect(x * T, y * T, T, T);
+      if (DS.TILES[tid].anim) m.anim.push({ x: x, y: y, id: tid, v: v, nb: nb });
+      else ctx.drawImage(DS.tileCanvas(tid, v, 0, nb), x * T, y * T);
+    };
     buildLayer(m);
     return (mapCache[id] = m);
   };
+  // flag-driven tiles: the map as the save remembers it (open or shut, whichever the flags say)
+  function applyFlagTiles(m) {
+    (m.src.flagTiles || []).forEach(function (ft) {
+      m.setTile(ft.x, ft.y, DS.cond(ft.cond) ? ft.tile : m.orig[ft.y * m.w + ft.x]);
+    });
+  }
+  DS.applyFlagTiles = applyFlagTiles;
   function neighbours(m, x, y, id) {
     var t = DS.TILES[id];
     if (!t || !t.auto) return null;
@@ -157,6 +176,7 @@
     var self = this;
     this.npcs = (m.src.npcs || []).filter(function (n) { return DS.cond(n.cond) && !(n.hire && G.hired.indexOf(n.hire) >= 0); }).map(function (d) { return new Npc(d, m); });
     this.chests = (m.src.chests || []);
+    applyFlagTiles(m);
     this.resetEncounter();
     if (m.music) DS.audio.play(m.music);
     DS.EV && DS.EV.onEnter && DS.EV.onEnter(mapId, this);
@@ -229,6 +249,8 @@
     if (this.moving) { this.step(); return; }
     if (DS.scriptActive()) return;
     if (this.pendingPath && this.pendingPath.length) return;
+    // a level-up that asks the player something (Vivian's archetype) waits for the field
+    if (G.party.some(function (h) { return h.pendingChoice; })) { DS.run(function* () { yield* DS.EV.pendingChoices(); }); return; }
     if (I.pressed('b') || I.pressed('menu')) { DS.audio.sfx('confirm'); DS.push(new DS.FieldMenu()); return; }
     if (I.pressed('a')) { this.interact(); return; }
     var d = I.dir();
@@ -273,7 +295,12 @@
     G.steps++;
     if (this.pathWalk) return;
     var w = this.warpAt(G.x, G.y);
-    if (w) { DS.audio.sfx(w.sfx || 'door'); DS.run(function* () { yield* DS.EV.warp(w.to, w.tx, w.ty, w.dir || G.dir, w); }); return; }
+    if (w) {
+      var to = (w.alt && w.alt[G.dir]) || w; // some warps land you by the side you came in from
+      DS.audio.sfx(w.sfx || 'door');
+      DS.run(function* () { yield* DS.EV.warp(w.to, to.tx, to.ty, to.dir || w.dir || G.dir, w); });
+      return;
+    }
     var t = this.triggerAt(G.x, G.y, 'step');
     if (t) { if (t.once) G.flags['trig:' + t.id] = 1; DS.run(function* () { yield* DS.EV.trigger(t, self); }); return; }
     // random encounters
@@ -351,6 +378,13 @@
       if (!DS.cond(ch.cond)) continue;
       ctx.drawImage(DS.chestArt(!!G.flags['chest:' + m.id + ':' + ch.x + ',' + ch.y]), ch.x * T - cx, ch.y * T - cy);
     }
+    // hanging signs over shop doors
+    (m.src.triggers || []).forEach(function (t) {
+      if (!t.icon) return;
+      var sx = t.x * T - cx, sy = (t.y - 1) * T - cy;
+      if (sx < -T || sy < -T || sx > 256 || sy > 240) return;
+      ctx.drawImage(DS.doorSign(t.icon), sx + 2, sy + 3);
+    });
     // sprites sorted by y
     var sprites = this.npcs.filter(function (n) { return !n.hidden; }).map(function (n) { return { y: n.py, n: n }; });
     sprites.push({ y: this.py, player: true });
@@ -371,6 +405,7 @@
     });
     if (m.src.dark) this.drawDark(ctx, cx, cy);
     if (m.src.tint) { ctx.globalAlpha = m.src.tint[1]; ctx.fillStyle = m.src.tint[0]; ctx.fillRect(0, 0, 256, 240); ctx.globalAlpha = 1; }
+    this.drawPin(ctx, cx, cy);
     if (this.banner > 0) {
       this.banner--;
       var w = DS.textWidth(m.name) + 20;
@@ -384,6 +419,147 @@
     g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.78)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, 256, 240);
   };
+  // ------------------------------------------------------------------ the pinned quest
+  // Pick a quest in the JOURNAL and a marker bobs over whoever (or whatever) it wants next.
+  // On another map, the marker sits on the way there: the door, stair or road edge that leads toward it.
+  DS.pinnedQuest = function () {
+    var id = DS.G && DS.G.flags.pin;
+    var q = id && (DS.DATA.quests || []).filter(function (x) { return x.id === id; })[0];
+    if (!q || !DS.cond(q.show) || DS.cond(q.done)) return null;
+    return q;
+  };
+  DS.questStep = function (q) {
+    var st = (q.steps || []).filter(function (s) { return DS.cond(s['if']); });
+    return st[0] || null;
+  };
+  // every way off a map: warps, door-warps and walked-off edges
+  function links(mid) {
+    var src = DS.DATA.maps[mid], out = [];
+    (src.warps || []).forEach(function (w) { out.push({ to: w.to, x: w.x, y: w.y, tx: w.tx, ty: w.ty }); });
+    (src.triggers || []).forEach(function (t) { if (t.script === 'warp' && t.to) out.push({ to: t.to, x: t.x, y: t.y, tx: t.tx, ty: t.ty }); });
+    var ex = src.exits || {};
+    Object.keys(ex).forEach(function (e) { out.push({ to: ex[e].to, edge: e, tx: ex[e].tx, ty: ex[e].ty }); });
+    return out;
+  }
+  function nextHop(from, to) {
+    if (from === to) return to;
+    var prev = {}, q = [from]; prev[from] = null;
+    while (q.length) {
+      var m = q.shift();
+      if (m === to) break;
+      links(m).forEach(function (l) { if (!(l.to in prev) && DS.DATA.maps[l.to]) { prev[l.to] = m; q.push(l.to); } });
+    }
+    if (!(to in prev)) return null;
+    var cur = to;
+    while (prev[cur] !== from && prev[cur] != null) cur = prev[cur];
+    return cur;
+  }
+  // where the step's target stands on its own map (live NPC position when it's this map)
+  function stepPoint(mid, step, F) {
+    var src = DS.DATA.maps[mid];
+    if (step.npc) {
+      if (F && F.map.id === mid) {
+        var n = F.npcs.filter(function (x) { return x.id === step.npc && !x.hidden; })[0];
+        return n ? { px: n.px, py: n.py, npc: true } : null;
+      }
+      var d = (src.npcs || []).filter(function (x) { return x.id === step.npc; })[0];
+      return d ? { x: d.x, y: d.y } : null;
+    }
+    if (step.door || step.trig) {
+      var t = (src.triggers || []).filter(function (x) { return step.door ? x.arg === step.door : x.id === step.trig; })[0];
+      if (!t) return null;
+      var r = t.rect || [t.x, t.y, 1, 1];
+      return { x: r[0] + Math.floor((r[2] - 1) / 2), y: r[1] + Math.floor((r[3] - 1) / 2) };
+    }
+    if (step.at) return { x: step.at[0], y: step.at[1] };
+    return null;
+  }
+  function edgeTile(m, edge, px, py) { // the walkable edge tile nearest the player
+    var best = null, bd = 1e9;
+    for (var i = 0; i < (edge === 'north' || edge === 'south' ? m.w : m.h); i++) {
+      var x = edge === 'west' ? 0 : edge === 'east' ? m.w - 1 : i, y = edge === 'north' ? 0 : edge === 'south' ? m.h - 1 : i;
+      var t = m.at(x, y);
+      if (!t || !DS.TILES[t].pass) continue;
+      var d = Math.abs(x - px) + Math.abs(y - py);
+      if (d < bd) { bd = d; best = { x: x, y: y }; }
+    }
+    return best;
+  }
+  Field.prototype.pinPoint = function () {
+    var q = DS.pinnedQuest(), step = q && DS.questStep(q), G = DS.G, m = this.map;
+    if (!step || !step.map || !DS.DATA.maps[step.map]) return null;
+    if (step.map === m.id) return stepPoint(m.id, step, this);
+    var hop = nextHop(m.id, step.map);
+    if (!hop) return null;
+    // aim for where the hop map's own onward link (or the target) sits, so the right gate gets the marker
+    var goal;
+    if (hop === step.map) goal = stepPoint(hop, step);
+    else { var h2 = nextHop(hop, step.map), l2 = links(hop).filter(function (l) { return l.to === h2 && !l.edge; })[0]; goal = l2 ? { x: l2.x, y: l2.y } : null; }
+    var best = null, bs = 1e9, self = this;
+    links(m.id).filter(function (l) { return l.to === hop; }).forEach(function (l) {
+      var pos = l.edge ? edgeTile(self.map, l.edge, G.x, G.y) : { x: l.x, y: l.y };
+      if (!pos) return;
+      var s = (goal ? Math.abs(l.tx - goal.x) + Math.abs(l.ty - goal.y) : 0) + 0.3 * (Math.abs(pos.x - G.x) + Math.abs(pos.y - G.y));
+      if (s < bs) { bs = s; best = pos; }
+    });
+    return best;
+  };
+  Field.prototype.drawPin = function (ctx, cx, cy) {
+    if (this.hidePlayer || DS.find('battle')) return;
+    var p = this.pinPoint();
+    if (!p) return;
+    var x = (p.npc ? p.px : p.x * T) + 8 - cx, y = (p.npc ? p.py : p.y * T) - 8 - cy;
+    var bob = Math.round(Math.sin(DS.frame / 8) * 2);
+    if (x >= 6 && x <= 250 && y >= 4 && y <= 232) { ctx.drawImage(pinArrow('down'), x - 4, y - 10 + bob); return; }
+    // off screen: an arrow on the screen edge pointing the way
+    var d = x < 6 ? 'left' : x > 250 ? 'right' : y < 4 ? 'up' : 'down';
+    var ax = DS.clamp(x - 4, 2, 245), ay = DS.clamp(y - 4, 2, 229);
+    var pulse = ((DS.frame >> 3) & 1) ? 1 : 0;
+    if (d === 'left') ax = 2 + pulse; if (d === 'right') ax = 245 - pulse; if (d === 'up') ay = 2 + pulse; if (d === 'down') ay = 229 - pulse;
+    ctx.drawImage(pinArrow(d), ax, ay);
+  };
+  var arrowCache = {};
+  function pinArrow(dir) { // a 9x9 outlined gold arrow
+    if (arrowCache[dir]) return arrowCache[dir];
+    var rows = ['...###...', '...#o#...', '...#o#...', '####o####', '#ooooooo#', '.#ooooo#.', '..#ooo#..', '...#o#...', '....#....'];
+    var p = new DS.Pix(9, 9);
+    for (var y = 0; y < 9; y++) for (var x = 0; x < 9; x++) {
+      var ch = rows[y][x], px = x, py = y;
+      if (dir === 'up') py = 8 - y;
+      if (dir === 'right') { px = y; py = x; }
+      if (dir === 'left') { px = 8 - y; py = x; }
+      if (ch === '#') p.set(px, py, '#101018'); else if (ch === 'o') p.set(px, py, '#F8D878');
+    }
+    return (arrowCache[dir] = p.canvas());
+  }
+
+  // ------------------------------------------------------------------ shop signs (hung over a door)
+  var signCache = {};
+  var SIGNS = { // 8x8 glyphs: '#' dark ink, 'o' metal/gold, 'w' white, 'r' red, 'g' green, 'b' blue
+    ring: ['........', '..oooo..', '.o....o.', 'o......o', 'o......o', '.o....o.', '..oooo..', '........'],
+    scales: ['...##...', 'oooooooo', 'o..##..o', 'o..##..o', 'ooo##ooo', '...##...', '...##...', '.######.'],
+    coin: ['..oooo..', '.o#oo#o.', 'o#oooo#o', 'o#oooo#o', 'o#oooo#o', 'o#oooo#o', '.o#oo#o.', '..oooo..'],
+    potion: ['...##...', '...ww...', '...ww...', '..rrrr..', '.rrrrrr.', '.rrwrrr.', '.rrrrrr.', '..rrrr..'],
+    bed: ['........', '#.......', '#ww.....', '#wwbbbbb', '#bbbbbbb', '########', '#......#', '........'],
+    star: ['...o....', '...o....', 'ooooooo.', '.ooooo..', '..ooo...', '.oo.oo..', '.o...o..', '........'],
+    pack: ['..####..', '.#oooo#.', '#oooooo#', '#o####o#', '#oooooo#', '#oooooo#', '#oooooo#', '.######.'],
+    candle: ['...o....', '..ooo...', '...o....', '..www...', '..www...', '..www...', '..www...', '.#####..'],
+    sword: ['......w.', '.....w..', '....w...', '...w....', '#.w.....', '.#......', 'o.#.....', '........'],
+    stitch: ['...rr...', '...rr...', '.rrrrrr.', '.rrrrrr.', '...rr...', '...rr...', '...rr...', '........'],
+    sun: ['o..o..o.', '.o.o.o..', '..ooo...', 'oooooooo', '..ooo...', '.o.o.o..', 'o..o..o.', '........'],
+    mortar: ['.....#..', '....#...', '...#....', 'ogggggo.', '.ooooo..', '.ooooo..', '..ooo...', '.#####..']
+  };
+  var SIGNCOL = { '#': '#101018', o: '#F8D878', w: '#F8F8F8', r: '#E43838', g: '#58D854', b: '#6888FC' };
+  DS.doorSign = function (kind) {
+    if (signCache[kind]) return signCache[kind];
+    var p = new DS.Pix(12, 11), rows = SIGNS[kind] || SIGNS.coin;
+    p.rect(3, 0, 1, 1, '#503000'); p.rect(8, 0, 1, 1, '#503000');
+    p.rect(0, 1, 12, 10, '#503000'); p.rect(1, 2, 10, 8, '#AC7C00'); p.rect(1, 2, 10, 1, '#E0A850');
+    // scale the 8x8 glyph into the 8x8 face (1:1), centred
+    for (var y = 0; y < 8; y++) for (var x = 0; x < 8; x++) { var ch = rows[y][x]; if (SIGNCOL[ch]) p.set(2 + x, 2 + y, SIGNCOL[ch]); }
+    return (signCache[kind] = p.canvas());
+  };
+
   var chestCache = {};
   DS.chestArt = function (open) {
     if (chestCache[open]) return chestCache[open];

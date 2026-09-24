@@ -675,6 +675,26 @@
     p.rect(0, 1, 16, 2, '#6a6a72'); p.rect(0, 13, 16, 1, '#4a4a52');
     for (var x = 1; x < 16; x += 3) p.rect(x, 1, 1, 13, '#8a8a92');
   };
+  P.gateOpen = function (p, r) { // Skarn's gate swung back against the rock
+    P.caveFloor(p, r);
+    p.rect(0, 1, 16, 1, '#4a4a52');
+    p.rect(0, 1, 2, 14, '#6a6a72'); p.rect(14, 1, 2, 14, '#6a6a72');
+    p.rect(0, 1, 1, 14, '#8a8a92'); p.rect(15, 1, 1, 14, '#8a8a92');
+  };
+  P.noticeboard = function (p, r) { // the Weigh-House board, nailed to its front wall
+    wallBase(p);
+    p.rect(1, 2, 14, 11, C.woodD); p.rect(2, 3, 12, 9, C.wood);
+    p.rect(3, 4, 4, 5, '#e8e0c8'); p.rect(8, 4, 5, 3, '#f0e8d8'); p.rect(8, 8, 4, 3, '#d8c8a0');
+    p.rect(4, 5, 2, 1, C.ink); p.rect(4, 7, 2, 1, C.ink); p.rect(9, 5, 3, 1, C.ink); p.set(5, 4, C.red);
+    p.rect(1, 13, 1, 3, C.woodD); p.rect(14, 13, 1, 3, C.woodD);
+  };
+  P.cocoon = function (p, r, f) { // a traveler wrapped tight in silk, hanging off the ground
+    P.gulch(p, r);
+    p.line(8, 0, 8, 3, '#e8e8f0');
+    p.ellipse(8, 9, 4, 6.5, '#d8d8e0'); p.ellipse(8, 9, 3, 5.5, '#f0f0f8');
+    for (var y = 5; y < 15; y += 2) p.line(4, y + (f & 1), 12, y + 1 - (f & 1), '#b8b8c8');
+    p.set(7 + (f & 1), 6, '#9c8070');
+  };
   P.bones = function (p, r) {
     P.caveFloor(p, r);
     p.line(3, 10, 9, 7, '#e8e0d0'); p.set(3, 9, '#e8e0d0'); p.set(9, 6, '#e8e0d0');
@@ -731,7 +751,8 @@
     dwarfWall: { pass: 0, auto: 'wall' }, runeWall: { pass: 0, anim: 2 }, sealDoor: { pass: 0, anim: 2 }, drownStair: { pass: 0, anim: 4 }, ladder: { pass: 1 },
     holeDown: { pass: 1 }, lantern: { pass: 0, anim: 2 }, cradle: { pass: 0 }, gate: { pass: 0 }, bones: { pass: 1 }, stalag: { pass: 0 }, fungus: { pass: 1, anim: 2 },
     gravel: { pass: 1 }, minecart: { pass: 0 }, crateCave: { pass: 0, vars: 2 }, glowmoss: { pass: 1, anim: 2 }, chimney: { pass: 0 }, flatstone: { pass: 1 },
-    reeds: { pass: 1 }, dock: { pass: 1, anim: 4 }, grassT: { pass: 1 }
+    reeds: { pass: 1 }, dock: { pass: 1, anim: 4 }, grassT: { pass: 1 },
+    gateOpen: { pass: 1 }, noticeboard: { pass: 0 }, cocoon: { pass: 0, anim: 2 }
   };
   var tileCache = {};
   // variant v, anim frame f, neighbour-key nk ('' when not auto)

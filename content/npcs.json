@@ -1,5 +1,5 @@
 {
-  "_note": "Dialogue by npc id. talk = branches (first whose 'if' passes); rumors = townsfolk who cycle canon rumors; script = a scripted scene in js/events.js. Reserved persons (wiki/silverton.md) get no invented words.",
+  "_note": "Dialogue by npc id. talk = branches (first whose 'if' passes; a branch can say/set/give/take/silver/renown); rumors = townsfolk who cycle canon rumors; script = a scripted scene in js/events.js. RULED 09-24: the seat drafts reserved persons' words for this game; drafts are logged in invented.json.",
 
   "marta": { "name": "Marta Venn", "talk": [
     { "if": "hired:vivian & !lead:vivian", "say": ["Pie two coppers, sausage three.", "She looks at Vivian, and at you, and says nothing. She says nothing unless Viv's in real danger."] },
@@ -14,11 +14,15 @@
   "vera": { "name": "Vera", "talk": [ { "say": ["Secondhand at a fifth of new. I buy at a third, no questions.", "Everything stolen in this town surfaces here or at the pawnbroker's."] } ], "src": "the-lab/pit-maps/shops-silverton.json pin 28; ext Silverton npcs (Vera)" },
   "oldhob": { "name": "Old Hob", "talk": [ { "say": ["Hob Rennick. Dosed. Past the lamp-line more times than the book says.", "Buy me a dose and I'll talk. Or work a shift at the cradles beside me, across the water."], "rumor": "r-doserate" } ], "src": "WarrensModule/crawler-warrens-DM.md §4 (Old Hob; sleeps in a flop-cellar in the Shaft Rows)" },
   "papa": { "name": "Papa Urtusk", "script": "papa", "src": "wiki/the-urtusks.md (reserved)" },
-  "vivian": { "name": "Vivian", "script": "hireVivian", "talk": [ { "say": ["The candle girl, on vice row between the booths. She never owns coin on a card night.", "You're new. I saw you come through the gate."] } ], "src": "wiki/vivian.md; rogue-vivian.md (via ext-party)" },
+  "vivian": { "name": "Vivian", "script": "hireVivian", "talk": [
+    { "if": "lead:lymen", "say": ["The candle girl, on vice row between the booths. She never owns coin on a card night.", "Ly. Warda's youngest, playing the hero. You grew up over the Hex; you don't need a candle. Buy one anyway."] },
+    { "if": "lead:barley", "say": ["The candle girl, on vice row between the booths. She never owns coin on a card night.", "The farmhand off the sand. I watched you get up against Cutter. Everybody did."] },
+    { "say": ["The candle girl, on vice row between the booths. She never owns coin on a card night.", "You're new. I saw you come through the gate."] } ],
+    "src": "wiki/vivian.md; rogue-vivian.md (via ext-party); per-lead lines seat draft 09-24 (playtest: Lymen is from here)" },
   "aurdinChapel": { "name": "Aurdin", "script": "hireAurdin", "talk": [ { "say": ["A farm boy with a hand-me-down spellbook, sleeping on the sun god's floor: the god he was running from.", "Heading up to the wizard school, he says. Classes start in the fall. The Rebel Schools of the Black Mountains. You've heard the tales?"] } ], "src": "wiki/aurdin.md; evoker-aurdin.md (via ext-party)" },
   "pete": { "name": "Warrens Pete", "talk": [ { "say": ["Six of us went down past the wet. Six came up. Six.", "He says six a little too fast, and orders another."], "rumor": "r-pete", "set": "heardWarrens" } ], "src": "WarrensModule/crawler-warrens-DM.md (Warrens Pete tells it bigger every night; says 'six' too fast)" },
   "warrenspete": { "name": "Warrens Pete", "talk": [ { "say": ["Past the wet the shaft stops being a shaft. Dressed stone. A mark on the wall. The air comes up smelling like rain.", "Six came up. He drinks."], "rumor": "r-pete", "set": "heardWarrens" } ], "src": "wiki/the-warrens.md (the standing Warrens-Pete telling)" },
-  "guard1": { "name": "Gate hand", "talk": [ { "say": ["West gate. The road runs a mile to the fork. North of the fork, the Tower. South, the gulch and the long road to the Pit.", "East gate's the feed track to the Warrens bridge. Nobody bothers the dwarves."] } ], "src": "wiki/the-road.md; wiki/silverton.md; speaker invented: connective" },
+  "guard1": { "name": "Gate hand", "talk": [ { "say": ["West gate. The road runs a mile to the fork. North of the fork, the Tower. South, the gulch and the long road to the Pit.", "East gate's the feed track to the Warrens bridge. The north gate, up the cut behind me, is the Doors road. Nobody bothers the dwarves."] } ], "src": "wiki/the-road.md; wiki/silverton.md; speaker invented: connective" },
   "towns1": { "name": "Townsman", "rumors": ["r-dwarves", "r-lantern", "r-scaleslit", "r-winters"], "src": "content/rumors.json" },
   "towns2": { "name": "Townswoman", "rumors": ["r-hexcard", "r-fronted", "r-boxes", "r-talmok"], "src": "content/rumors.json" },
   "towns3": { "name": "Hand", "rumors": ["r-doserate", "r-mouths", "r-shibboleth", "r-pete"], "src": "content/rumors.json" },
@@ -30,10 +34,14 @@
   "idony": { "name": "Clerk", "talk": [ { "say": ["The notary's senior clerk. Plain, grey-eyed, dressed like a clerk and mistaken for one on purpose.", "She reads every ledger the scriptorium copies and forgets nothing she reads. She does not stop to talk."] } ], "src": "wiki/fountain-street.md (Idony Fell, CANON 09-16f)" },
 
   "casper": { "name": "Casper Venn", "talk": [
+    { "if": "has:estatepapers & !flag:wSealed", "say": ["He won't touch unsealed paper. \"Androit first. I value what's been sworn to, not what's been hoped.\""] },
+    { "if": "has:estatepapers & flag:wSealed & !flag:wValued", "say": ["He breaks nothing, reads everything, and writes a figure at the bottom in silver.", "\"Tell Winters it's a fair estate. Not a rich one.\""], "set": "wValued" },
     { "if": "hired:vivian", "say": ["Newland mint, old dwarven silver, wizard coin, arena chits. I change them all.", "He looks at Vivian. He knows what she does on the row, and he prices it."] },
     { "say": ["Newland mint, old dwarven silver, wizard coin, arena chits. I change them all.", "Thirty silver all in one hand? Smaller than you think."], "rumor": "r-lantern" } ],
     "src": "wiki/fountain-street.md (Casper Venn); ext Silverton npcs; wiki/the-venns.md" },
-  "androit": { "name": "Aldwyn Androit", "talk": [ { "say": ["Contracts, charters, manumissions, wills. Literacy is scarce. My seal makes things true.", "Before the grave I want this town's real history written down true."] } ], "src": "wiki/fountain-street.md (Aldwyn Androit); ext Silverton npcs" },
+  "androit": { "name": "Aldwyn Androit", "talk": [
+    { "if": "has:estatepapers & !flag:wSealed", "say": ["He reads Winters' inventory through once, slowly, and presses his seal into the wax.", "\"Now it's true. Casper Venn for the value.\""], "set": "wSealed" },
+    { "say": ["Contracts, charters, manumissions, wills. Literacy is scarce. My seal makes things true.", "Before the grave I want this town's real history written down true."] } ], "src": "wiki/fountain-street.md (Aldwyn Androit); ext Silverton npcs" },
   "hessle": { "name": "Hessle", "script": "hessle", "src": "wiki/fountain-street.md (Hessle, the Weigh-House board)" },
   "falstaff": { "name": "Falstaff", "talk": [
     { "if": "hired:aurdin", "say": ["The factor's clerk. His voice is burned; it comes out a rasp.", "He looks at Aurdin a long moment. You can't afford it, he said, the first time. He was right."] },
@@ -42,7 +50,10 @@
   "merrick": { "name": "Merrick", "talk": [ { "say": ["Dusk sendings are cheaper. A noon sending is a tell.", "Thirty silver at the window frees a slave. No questions asked, either way. The rates are what they are."], "rumor": "r-lantern" } ], "src": "the-lab/pit-maps/shops-silverton.json pin 34; ext Silverton npcs (Merrick)" },
   "mela": { "name": "Mela Sorris", "talk": [ { "say": ["Three coppers the common bath. Private room, hot water carried, five silver.", "She hears everything said in the steam, and passes on only the small things."] } ], "src": "the-lab/pit-maps/shops-silverton.json pin 12; ext Silverton npcs" },
   "marin": { "name": "Marin Voss", "talk": [ { "say": ["Common clothes five silver, traveler's two gold, factor-cut fine fifteen.", "Silver-thread trim was the old luxury line. Now it's mostly memory."] } ], "src": "the-lab/pit-maps/shops-silverton.json pin 13; ext Silverton npcs" },
-  "brennan": { "name": "Brennan", "talk": [ { "say": ["Shoes, wheels, barrels, harness. Dwarven tools under rune-warranty go at triple.", "My father died in the Water Burning. I rebuilt this forge on borrowed coin."] } ], "src": "the-lab/pit-maps/shops-silverton.json pin 14; wiki/the-warrens.md (Brennan)" },
+  "brennan": { "name": "Brennan", "talk": [
+    { "if": "has:debtpurse & !flag:wSigned", "say": ["\"Not till Mical signs the Pryor crate off. I've been paid in promises before.\""] },
+    { "if": "has:debtpurse & flag:wSigned", "say": ["He counts it, then counts it again, and puts it in the forge's iron box.", "\"Tell Winters the forge is square.\""], "take": "debtpurse", "set": "wPaid" },
+    { "say": ["Shoes, wheels, barrels, harness. Dwarven tools under rune-warranty go at triple.", "My father died in the Water Burning. I rebuilt this forge on borrowed coin."] } ], "src": "the-lab/pit-maps/shops-silverton.json pin 14; wiki/the-warrens.md (Brennan)" },
   "barber": { "name": "Venn", "talk": [ { "say": ["Shave, tooth, stitch. Fight nights I work the arena's chair.", "Bleeding? Three coppers. I'll advise against it."] } ], "src": "the-lab/pit-maps/shops-silverton.json pin 10; ext Silverton npcs" },
   "venhale": { "name": "Venn Hale", "talk": [ { "say": ["The fighters' stables. Part gymnasium, part debtors' prison.", "I can arrange a closed meeting with any fighter in the stables, for a sound reason. The card's run from Korvin's slate, inside the Hex."], "rumor": "r-hexcard" } ], "src": "wiki/the-hex.md (Venn Hale, the stables); ext Silverton npcs" },
   "percy": { "name": "Percy", "talk": [
@@ -55,7 +66,9 @@
     { "say": ["Bread at six. At quarter past, for the proud.", "The floor's free, if the old man likes your face."] } ],
     "src": "the-lab/pit-maps/shops-silverton.json pin 30; wiki/fountain-street.md (Aldwin, fifty years at the bread line)" },
   "kess": { "name": "Kess", "talk": [ { "say": ["A penny a night, dreams included. Some of them not yours.", "Don't sleep with your fist open."] } ], "src": "the-lab/pit-maps/shops-silverton.json pin 29; ext Silverton npcs (Kess)" },
-  "mical": { "name": "Mical", "talk": [ { "say": ["Warehouses, no quay. The river's too small and fast to carry anything.", "Seventeen years of manifests. She knows exactly which ones don't match what arrives."] } ], "src": "wiki/fountain-street.md (Mical)" },
+  "mical": { "name": "Mical", "talk": [
+    { "if": "has:debtpurse & !flag:wSigned", "say": ["She checks the Pryor manifest against the crate twice. It matches, which seems to surprise her.", "She signs it off her books. \"Brennan's next, I suppose. Winters settles his dead in order.\""], "set": "wSigned" },
+    { "say": ["Warehouses, no quay. The river's too small and fast to carry anything.", "Seventeen years of manifests. She knows exactly which ones don't match what arrives."] } ], "src": "wiki/fountain-street.md (Mical)" },
   "lucia": { "name": "Mama's Pharmakaiea", "script": "lucia", "src": "wiki/the-hex.md; wiki/the-urtusks.md (reserved)" },
 
   "winters": { "name": "Ambrose Winters", "script": "winters", "src": "wiki/fountain-street.md (Winters, reserved particulars); spec §4" },

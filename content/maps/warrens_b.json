@@ -87,7 +87,8 @@
 "A": "water",
 "M": "mountain",
 "V": "range",
-"I": "lamp"
+"I": "lamp",
+"Q": "cocoon"
 },
 "music": "dungeon",
 "bg": "cave",
@@ -160,7 +161,22 @@
 1
 ],
 "on": "use",
-"script": "skarnGate"
+"script": "skarnGate",
+"cond": "!flag:skarnGateOpen"
+}
+],
+"flagTiles": [
+{
+"x": 17,
+"y": 19,
+"tile": "gateOpen",
+"cond": "flag:skarnGateOpen"
+},
+{
+"x": 18,
+"y": 19,
+"tile": "gateOpen",
+"cond": "flag:skarnGateOpen"
 }
 ]
 }

@@ -86,7 +86,8 @@
 "A": "water",
 "M": "mountain",
 "V": "range",
-"I": "lamp"
+"I": "lamp",
+"Q": "cocoon"
 },
 "music": "field",
 "bg": "plains",
@@ -159,6 +160,14 @@
 ],
 "warps": [
 {
+"x": 15,
+"y": 4,
+"to": "warrens_b",
+"tx": 13,
+"ty": 26,
+"dir": "up"
+},
+{
 "x": 3,
 "y": 3,
 "to": "warrens_c",
@@ -172,14 +181,6 @@
 "to": "warrens_c",
 "tx": 45,
 "ty": 16,
-"dir": "up"
-},
-{
-"x": 15,
-"y": 4,
-"to": "warrens_b",
-"tx": 13,
-"ty": 26,
 "dir": "up"
 }
 ],

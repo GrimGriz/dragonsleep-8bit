@@ -41,7 +41,7 @@ python tools/checkmaps.py   # every door, warp, NPC and chest reachable
 
 ## Canon discipline
 
-Where the register holds something open or reserved to Griz (Winters' own words, what is in Hessle's drawer, Aurdin's familiar, Vivian's archetype, the inn's fate, the arena family), the game shows a visible `[GRIZ]` stub instead of inventing it.
+The game stands on the register, but it is its own telling. Where the register holds something open or reserved (Winters' own words, what is in Hessle's drawer, the inn's fate, Mama's), the build drafts it and the draft stands. There are no `[GRIZ]` stubs in play (Griz, 2026-09-24), and the wiki is not edited to match the game. Every drafted or invented thing is logged in `invented.json`.
 
 ## Credits
 
