@@ -430,7 +430,7 @@ def build_silverton():
     g.npc('towns7', 36, 12, 'noble', wander=2)
     g.npc('towns8', 14, 36, 'girl', wander=2)
     g.npc('idony', 18, 12, 'clerk', dir='down')
-    g.sign(29, 6, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)')
+    g.sign(29, 5, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)')
     g.sign(24, 40, "Sylvia Swann's booth: an owl painted on the board. The short reading, five silver. She isn't in.", 'wiki/silverton.md; the-lab/pit-maps/shops-silverton.json pin 37')
     g.sign(31, 40, 'The Vizardry mask-booth. Crude vizards with a hedge-glamour, a gold the hour. The real house is somewhere else.', 'wiki/vice-row.md; the-lab/pit-maps/shops-silverton.json pin 39')
     g.sign(40, 41, 'The card cellars. Low table buy-in five silver. The stairs go down; you do not.', 'the-lab/pit-maps/shops-silverton.json pin 41')
@@ -509,7 +509,7 @@ def build_hex():
     g2.npc('gambler1', 5, 6, 'noble', dir='right')
     g2.npc('gambler2', 14, 12, 'noble', dir='left')
     g2.npc('vairseat', 15, 6, 'noble', dir='left')
-    g2.sign(10, 14, 'The rail. Below, the sand. The roof is a ring: on a new-moon night you see the stars.', 'wiki/the-hex.md (the building as built)')
+    g2.sign(10, 11, 'The rail. Below, the sand. The roof is a ring: on a new-moon night you see the stars.', 'wiki/the-hex.md (the building as built)')
     save('hex2', g2, 'inside', 'The Hex — the gambling floor', music='hex', bg='arena', legend={'x': 'hexwall', '_': 'rug'})
 
 
@@ -573,7 +573,7 @@ def build_warrens():
     g.npc('hobCamp', 30, 8, 'oldhand', dir='down')
     g.npc('linnet', 20, 18, 'girl', dir='up', cond='!flag:fiveDone')
     g.npc('dunmoreLine', 20, 12, 'guard', dir='down', cond='flag:stockDead & !flag:lineBroken')
-    g.sign(8, 7, "THE BOARD. One silver the sealed thimble above the wet; three below. Six draws to a shift. Antitoxin draught, one silver. Not taken: anyone with a lamp in Mouth One or Mouth Six after dark. — SKARN", 'WarrensModule/handouts/handout-galleries-hands-wanted.md (the bill)')
+    g.sign(7, 7, "THE BOARD. One silver the sealed thimble above the wet; three below. Six draws to a shift. Antitoxin draught, one silver. Not taken: anyone with a lamp in Mouth One or Mouth Six after dark. — SKARN", 'WarrensModule/handouts/handout-galleries-hands-wanted.md (the bill)')
     g.door(6, 7, 'shop', 'tally', back='down')
     g.door(29, 7, 'keeper', 'kitchen', back='down')
     g.door(35, 7, 'keeper', 'bunkhouse', back='down')
@@ -797,8 +797,8 @@ def build_galleries():
     g.warp(3, 2, 'galleries_g2', 27, 5, 'down', sfx='stairs')
     g.trig('cloaker', 8, 6, 'cloaker', on='step', w=3, h=2, cond='!flag:cloakerDone')
     g.trig('cloaker2', 4, 6, 'cloaker', on='step', w=3, h=1, cond='!flag:cloakerDone')
-    g.sign(33, 18, 'A passage runs off into the dark, east. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
-    g.sign(11, 24, 'A passage runs off south. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
+    g.sign(35, 20, 'A passage runs off into the dark, east. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
+    g.sign(11, 25, 'A passage runs off south. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
     g.chest(25, 17, 'maul1', 1)
     save('galleries_g4', g, 'cave', 'The guano mine — the deep gallery', music='dungeon', bg='deep', save=False, dark=True)
 

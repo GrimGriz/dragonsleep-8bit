@@ -96,6 +96,8 @@ for mid, m in sorted(maps.items()):
         check('chest', c['x'], c['y'], c.get('item', 'silver'))
     for s in m.get('signs', []):
         check('sign', s['x'], s['y'], s['text'][:30])
+        if PASS.get(tile(m, s['x'], s['y']), False) and tile(m, s['x'], s['y']) not in ('stairsUp',):
+            print('%s: sign at %s,%s sits on a walkable tile' % (mid, s['x'], s['y'])); problems += 1
     for edge, e in (m.get('exits') or {}).items():
         xs = {'west': [(0, y) for y in range(H)], 'east': [(W - 1, y) for y in range(H)], 'north': [(x, 0) for x in range(W)], 'south': [(x, H - 1) for x in range(W)]}[edge]
         if not any(p in seen for p in xs):

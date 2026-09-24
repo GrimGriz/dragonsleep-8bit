@@ -246,9 +246,19 @@
       return;
     }
     if (!this.free(nx, ny, 'player')) {
+      // walking into something you can use (a gate, the mark, the stair, a sign, a chest) uses it, same as Z;
+      // holding the direction afterwards doesn't fire it again until you step away or press toward it anew
+      var key = m.id + ':' + nx + ',' + ny;
+      var usable = this.triggerAt(nx, ny, 'use') || this.signAt(nx, ny) || this.chestAt(nx, ny);
+      if (usable && !this.npcAt(nx, ny) && (I.pressed(d) || this.lastBump !== key)) {
+        this.lastBump = key;
+        this.interact();
+        return;
+      }
       if (!this.bumpT || DS.frame - this.bumpT > 18) { DS.audio.sfx('bump'); this.bumpT = DS.frame; }
       return;
     }
+    this.lastBump = null;
     G.x = nx; G.y = ny; this.moving = true;
   };
   Field.prototype.step = function () {
