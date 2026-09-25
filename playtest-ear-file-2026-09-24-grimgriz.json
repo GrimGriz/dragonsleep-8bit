@@ -1,0 +1,437 @@
+{
+  "_readme": {
+    "what": "Playtest feedback — the DRAGONSLEEP playtest lamp, one verdict per checklist line.",
+    "fold_back": "Whoever takes this (Cowork seat or code tab): broken and unclear lines become the fix list; too hard / too easy are tuning; notes are the tester's words, verbatim. Load this file back into the lamp to keep going.",
+    "verdicts": {
+      "works": "✓ works",
+      "broken": "✗ broken",
+      "hard": "too hard",
+      "easy": "too easy",
+      "unclear": "? unclear",
+      "skip": "— not tested"
+    }
+  },
+  "lamp": "playtest-lamp",
+  "checklist_sha1": "7a3f8e4a",
+  "tester": "GrimGriz",
+  "saved_at": "2026-09-24T22:15:19Z",
+  "counts": {
+    "lines": 46,
+    "marked": 45,
+    "works": 26,
+    "broken": 3,
+    "unclear": 7,
+    "hard": 2,
+    "skip": 6,
+    "easy": 1
+  },
+  "items": [
+    {
+      "id": "s1-1",
+      "section": "1. Start and town",
+      "claim": "Title → New Game → try each of the four leads once (intro text reads right for each?)",
+      "verdict": "works",
+      "note": "Vivian text to the Paladin still says \"saw you come into town\"\n",
+      "at": "2026-09-24T21:24:07Z",
+      "text_changed": false
+    },
+    {
+      "id": "s1-2",
+      "section": "1. Start and town",
+      "claim": "Silverton: walk every street; doors open shops/keepers when you walk in; you're stepped back out after",
+      "verdict": "works",
+      "note": "need shop icons on the shop shops, make Mama's a shop, I never found 'the board at the weigh house' - mentioned in npc text at what i suspect is weigh house, sun symbol on the free sleep chapel",
+      "at": "2026-09-24T21:27:05Z",
+      "text_changed": false
+    },
+    {
+      "id": "s1-3",
+      "section": "1. Start and town",
+      "claim": "Weigh-House (Hessle) reads the bounty board; the vault door sign; vice row booths",
+      "verdict": "broken",
+      "note": "works ish, but after collecting a bounty he still reads it as collectable",
+      "at": "2026-09-24T21:04:08Z",
+      "text_changed": false
+    },
+    {
+      "id": "s1-4",
+      "section": "1. Start and town",
+      "claim": "Shops: buy/sell, equip-now prompt, ▲▼ markers make sense; the silver economy feels fair",
+      "verdict": "unclear",
+      "note": "feels fair is interesting. didn't compare sell/buy prices",
+      "at": "2026-09-24T21:05:03Z",
+      "text_changed": false
+    },
+    {
+      "id": "s1-5",
+      "section": "1. Start and town",
+      "claim": "Inn (Cassia, 8 sp each) and Aldwin's free chapel floor both rest + offer save",
+      "verdict": "works",
+      "note": "do 8 and then a set 16 for the party - didn't test if using tent provided long rest ",
+      "at": "2026-09-24T21:05:59Z",
+      "text_changed": false
+    },
+    {
+      "id": "s1-6",
+      "section": "1. Start and town",
+      "claim": "Leech-house revives KO'd heroes for 5 sp each",
+      "verdict": "broken",
+      "note": "I'm getting 'stitches on the house' and 'mother pays' when barley loses - down 5 from the 5 to get into the fight. ",
+      "at": "2026-09-24T21:13:20Z",
+      "text_changed": false
+    },
+    {
+      "id": "s1-7",
+      "section": "1. Start and town",
+      "claim": "Field menu: ITEM / MAGIC / SKILL / EQUIP / STATUS / ORDER / JOURNAL / SAVE / OPTIONS all work",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:21:16Z",
+      "text_changed": false
+    },
+    {
+      "id": "s1-8",
+      "section": "1. Start and town",
+      "claim": "Save to a slot, quit to title, CONTINUE loads it back correctly",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:13:00Z",
+      "text_changed": false
+    },
+    {
+      "id": "s2-1",
+      "section": "2. Hires",
+      "claim": "Barley at the Hex bar (front 5 sp) · Aurdin outside the chapel (20 sp) · Vivian on vice row (buy a candle) · Lymen in the Hex (needs renown 1)",
+      "verdict": "works",
+      "note": "Hiring barley says you cover his floor fee, but then he just follows you - that should immediate fightscene with barley after you cover his silver\nvivian claims Lyman came through the gate - that's not the right text for him, he's from there...",
+      "at": "2026-09-24T21:13:48Z",
+      "text_changed": false
+    },
+    {
+      "id": "s2-2",
+      "section": "2. Hires",
+      "claim": "Hires join at the right level (main − 1, min 2); they vanish from the map once hired",
+      "verdict": "unclear",
+      "note": "they all came in at 2 in testing to date, which doesn't include main>3",
+      "at": "2026-09-24T21:14:46Z",
+      "text_changed": false
+    },
+    {
+      "id": "s2-3",
+      "section": "2. Hires",
+      "claim": "Journal \"Company\" quest points you to them clearly enough?",
+      "verdict": "hard",
+      "note": "be nice to pick one and make it active, which puts something visible over the head of the next person you need to talk to/etc",
+      "at": "2026-09-24T21:23:03Z",
+      "text_changed": false
+    },
+    {
+      "id": "s3-1",
+      "section": "3. Battle feel (the big one)",
+      "claim": "Solo start at level 2 in the fields north of town: survivable? Too grindy? (Aurdin solo is the hardest lead)",
+      "verdict": "hard",
+      "note": "currently can't get 'north' of town. Aurdin solo is way rough. \n\nlet's add easy 'help people in town' renown quest - courier missions between important NPCs, winters starts (he should also sell magic items (acquisitions))",
+      "at": "2026-09-24T21:39:18Z",
+      "text_changed": false
+    },
+    {
+      "id": "s3-2",
+      "section": "3. Battle feel (the big one)",
+      "claim": "Encounter rate: too often / too rare? Roads are half-rate",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:27:18Z",
+      "text_changed": false
+    },
+    {
+      "id": "s3-3",
+      "section": "3. Battle feel (the big one)",
+      "claim": "FIGHT / MAGIC / SKILL / ITEM / RUN; target picking; turn order readable",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T02:08:18Z",
+      "text_changed": false
+    },
+    {
+      "id": "s3-4",
+      "section": "3. Battle feel (the big one)",
+      "claim": "Barley: Second Wind (bonus), Action Surge (extra action), GWF · Vivian: HIDE, Sneak Attack · Lymen: Lay on Hands (heal / cure poison), Divine Smite in MAGIC, Sacred Weapon at 3 · Aurdin: Sleep, Burning Hands, Magic Missile, Shield; Arcane Recovery in the field",
+      "verdict": "skip",
+      "note": "most of them work great, only got up to web and shatter, arcane recovery not tested - no reason find familiar should be in the game",
+      "at": "2026-09-24T21:38:21Z",
+      "text_changed": false
+    },
+    {
+      "id": "s3-5",
+      "section": "3. Battle feel (the big one)",
+      "claim": "Level-ups (auto spell picks) feel right; cap at 5",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:38:40Z",
+      "text_changed": false
+    },
+    {
+      "id": "s3-6",
+      "section": "3. Battle feel (the big one)",
+      "claim": "KO → healer's kit revives in battle; whole party down → Game Over screen",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:39:41Z",
+      "text_changed": false
+    },
+    {
+      "id": "s4-1",
+      "section": "4. The Hex card",
+      "claim": "Korvin at the slate: brawl → freeman → hired blade → Talmok → festival",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:42:57Z",
+      "text_changed": false
+    },
+    {
+      "id": "s4-2",
+      "section": "4. The Hex card",
+      "claim": "Solo bouts; losing = stitched up at 1 HP, no game over; crowd fronts your 5 if broke",
+      "verdict": "works",
+      "note": "all hex fights work this way",
+      "at": "2026-09-24T21:44:10Z",
+      "text_changed": false
+    },
+    {
+      "id": "s4-3",
+      "section": "4. The Hex card",
+      "claim": "Is Talmok beatable around level 3–4?",
+      "verdict": "works",
+      "note": "definitely is at the top of 4 (quest item weapon + armor on barley)",
+      "at": "2026-09-24T21:44:46Z",
+      "text_changed": false
+    },
+    {
+      "id": "s5-1",
+      "section": "5. The Crawler Warrens (east, across the bridge)",
+      "claim": "Edric at the tally-house puts you in the book; work a shift at a pen (milking); Old Hob's line",
+      "verdict": "unclear",
+      "note": "i didn't find a crawler milking minigame, but Edric does say stuff like that",
+      "at": "2026-09-24T21:45:27Z",
+      "text_changed": false
+    },
+    {
+      "id": "s5-2",
+      "section": "5. The Crawler Warrens (east, across the bridge)",
+      "claim": "Skarn: talk \"as a man\" → his gate opens (walk into it)",
+      "verdict": "works",
+      "note": "not obvious enough - animate gate open on enter post skarn?",
+      "at": "2026-09-24T21:47:21Z",
+      "text_changed": false
+    },
+    {
+      "id": "s5-3",
+      "section": "5. The Crawler Warrens (east, across the bridge)",
+      "claim": "Mouths 1 & 6 → abandoned workings (rope + caches); night crews sometimes vanish instead of fighting",
+      "verdict": "skip",
+      "note": "",
+      "at": "2026-09-24T21:47:30Z",
+      "text_changed": false
+    },
+    {
+      "id": "s5-4",
+      "section": "5. The Crawler Warrens (east, across the bridge)",
+      "claim": "The wet: bucket → feed the otyugh (or fight it — should be brutal); jelly splits on slashing; gray ooze",
+      "verdict": "skip",
+      "note": "bucket feeding works",
+      "at": "2026-09-24T21:47:54Z",
+      "text_changed": false
+    },
+    {
+      "id": "s5-5",
+      "section": "5. The Crawler Warrens (east, across the bridge)",
+      "claim": "The landing: the mark, the flooded stair — rope them out (safe) vs touch the mark / wade in (the Keeper fight)",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:48:00Z",
+      "text_changed": false
+    },
+    {
+      "id": "s5-6",
+      "section": "5. The Crawler Warrens (east, across the bridge)",
+      "claim": "Bring the five's gear to Edric; Skarn pays; renown + milestone XP + magic weapons",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:48:05Z",
+      "text_changed": false
+    },
+    {
+      "id": "s5-7",
+      "section": "5. The Crawler Warrens (east, across the bridge)",
+      "claim": "Kill 6+ crawlers first → Dunmore's line holds the camp on your way back",
+      "verdict": "skip",
+      "note": "i did see text about a council meeting happening",
+      "at": "2026-09-24T21:48:28Z",
+      "text_changed": false
+    },
+    {
+      "id": "s6-1",
+      "section": "6. The guano mine (west, in the mountain)",
+      "claim": "Sabeth hires you; cull pay per head/darkmantle when you return",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:48:34Z",
+      "text_changed": false
+    },
+    {
+      "id": "s6-2",
+      "section": "6. The guano mine (west, in the mountain)",
+      "claim": "Fire under the roost (G2/G3) breaks the one law → Sabeth and Ottilie turn cold",
+      "verdict": "easy",
+      "note": "bats should flap and fill the screen then transition to party fail - cemented local reputation as incompetent... ",
+      "at": "2026-09-24T21:52:30Z",
+      "text_changed": false
+    },
+    {
+      "id": "s6-3",
+      "section": "6. The guano mine (west, in the mountain)",
+      "claim": "The rescue set-piece in the dens' side gallery; bad air; the pits drop you into G4",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T21:56:01Z",
+      "text_changed": false
+    },
+    {
+      "id": "s6-4",
+      "section": "6. The guano mine (west, in the mountain)",
+      "claim": "The cloaker: Light/torch gives it disadvantage; running goes up the ladder; tail → Hessle's drawer shows the [GRIZ] stub",
+      "verdict": "broken",
+      "note": "it just tells us it recoils from the light - things shouldn't be showing GRIZ stubs... and the cloaker combat is triggering on the guano slide and it should only trigger in the big room",
+      "at": "2026-09-24T21:57:27Z",
+      "text_changed": false
+    },
+    {
+      "id": "s7-1",
+      "section": "7. The road south",
+      "claim": "Web Gulch dungeon: the snared traveler; the braiding ettercap → fangs → Hessle pays 50 gp",
+      "verdict": "unclear",
+      "note": "didn't see the snared traveler - ettercap kill and bounty reward works",
+      "at": "2026-09-24T21:58:15Z",
+      "text_changed": false
+    },
+    {
+      "id": "s7-2",
+      "section": "7. The road south",
+      "claim": "Glowseep bog, Gnoll Hills, the Verge encounters",
+      "verdict": "skip",
+      "note": "big fan, insufficiently tested - ",
+      "at": "2026-09-24T21:59:22Z",
+      "text_changed": false
+    },
+    {
+      "id": "s7-3",
+      "section": "7. The road south",
+      "claim": "The Snoot's challenge on the road south of the inn",
+      "verdict": "works",
+      "note": "question:  Is the snoot 'glory seeking' encounter tied to the true-word bounty?",
+      "at": "2026-09-24T21:59:24Z",
+      "text_changed": false
+    },
+    {
+      "id": "s7-4",
+      "section": "7. The road south",
+      "claim": "Both expansion walls: top of the Doors road, the south edge → popup, Donate opens Ko-fi in a new tab, you're pushed back",
+      "verdict": "unclear",
+      "note": "south works, east might even have been tested - can't exit silverton and end up on doors road at present",
+      "at": "2026-09-24T21:59:57Z",
+      "text_changed": false
+    },
+    {
+      "id": "s8-1",
+      "section": "8. Winters and the lake (the capstone)",
+      "claim": "Winters: \"not ready\" until the main is level 4, then the Ring of Binding (+3 CON saves) and the equip prompt",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T22:00:10Z",
+      "text_changed": false
+    },
+    {
+      "id": "s8-2",
+      "section": "8. Winters and the lake (the capstone)",
+      "claim": "Halfway Inn: Elsbeth at the dishes (talk more than once); the point by day; the rowboat pokes the deep (fight without the ring = should be very hard)",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T22:03:29Z",
+      "text_changed": false
+    },
+    {
+      "id": "s8-4",
+      "section": "8. Winters and the lake (the capstone)",
+      "claim": "Chuul fight: \"The ring flares!\" on rounds 1/4/7/10, grapples + ESCAPE, poison → paralysis, Lay on Hands cure, never flees",
+      "verdict": "unclear",
+      "note": "the text fight scrolls by pretty fast up-top, not sure what it said up there. It never ran away and the other stuff seemed to work",
+      "at": "2026-09-24T22:13:02Z",
+      "text_changed": false
+    },
+    {
+      "id": "s8-5",
+      "section": "8. Winters and the lake (the capstone)",
+      "claim": "Win → ending text ([GRIZ] on the inn's fate) → credits → title",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T22:13:08Z",
+      "text_changed": false
+    },
+    {
+      "id": "s9-1",
+      "section": "9. Pacing and rewards",
+      "claim": "Main reaches level 4 at a reasonable point (renown gives 250 XP each)",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T22:13:15Z",
+      "text_changed": false
+    },
+    {
+      "id": "s9-2",
+      "section": "9. Pacing and rewards",
+      "claim": "Magic weapons after each major quest (+1, then +2) — main and one hire",
+      "verdict": "works",
+      "note": "i think it even did the good thing where the second reward gave it to the two that didn't get the first one",
+      "at": "2026-09-24T22:13:45Z",
+      "text_changed": false
+    },
+    {
+      "id": "s9-3",
+      "section": "9. Pacing and rewards",
+      "claim": "Anything that's a dead end, soft-lock, or \"what do I do now?\"",
+      "verdict": "unclear",
+      "note": "see quest turn-ins above",
+      "at": "2026-09-24T22:14:13Z",
+      "text_changed": false
+    },
+    {
+      "id": "s10-1",
+      "section": "10. Devices",
+      "claim": "Phone: touch d-pad + A/B/MENU, portrait and landscape",
+      "verdict": "skip",
+      "note": "",
+      "at": "2026-09-24T22:14:17Z",
+      "text_changed": false
+    },
+    {
+      "id": "s10-2",
+      "section": "10. Devices",
+      "claim": "Sound/music plays after the first keypress; volume in OPTIONS",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T22:14:20Z",
+      "text_changed": false
+    },
+    {
+      "id": "s10-3",
+      "section": "10. Devices",
+      "claim": "Opening index.html straight from disk also works",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-24T22:14:47Z",
+      "text_changed": false
+    }
+  ],
+  "section_notes": {},
+  "notes": ""
+}

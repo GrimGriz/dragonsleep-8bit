@@ -263,7 +263,7 @@
     this.foes.forEach(function (f) { if (!names[f.m.name]) { names[f.m.name] = 0; orderN.push(f.m.name); } names[f.m.name]++; });
     yield* this.say(orderN.map(function (n) { return (names[n] > 1 ? names[n] + ' ' : '') + n; }).join(', ') + (this.foes.length > 1 ? ' appear!' : ' appears!'), 50);
     if (this.o.introText) yield* this.say(this.o.introText, 70);
-    if (this.o.roost) yield* this.say('Overhead, the roost: millions of sleeping wings. No fire. No noise.', 60);
+    if (this.o.roost) yield* this.say('Overhead, the roost: millions of sleeping wings. No fire. No bright light.', 60);
     // Sense Magic: the chuul feels a ring of binding coming
     var ringU = this.heroes.filter(function (u) { var r = R.item(u.h.equip.ring); return r && r.ring && r.ring.taunt; })[0];
     if (ringU) {
@@ -492,10 +492,13 @@
   };
   Battle.prototype.pickSpell = function* (u, list) {
     var h = u.h, self = this;
+    var roost = this.o.roost;
     var items = list.map(function (sp) {
       var lv = sp.id === 'smite' ? R.lowestSlot(h, 1) : sp.level ? R.lowestSlot(h, sp.level) : 0;
-      var dis = sp.level > 0 && !lv;
-      return { label: sp.name, value: sp, right: sp.level === 0 ? '—' : 'L' + (lv || sp.level), disabled: dis };
+      // under a roost the fire and thunder spells are out (RULED 09-24): grayed. Light stays castable, and costs you.
+      var banned = roost && (sp.el === 'fire' || sp.el === 'thunder');
+      var dis = (sp.level > 0 && !lv) || banned;
+      return { label: sp.name, value: sp, right: banned ? 'ROOST' : sp.level === 0 ? '—' : 'L' + (lv || sp.level), disabled: dis };
     });
     var slotTxt = (h.slots || []).map(function (n, i) { return 'L' + (i + 1) + ':' + n + '/' + h.slotsMax[i]; }).join(' ');
     return yield DS.choose({
@@ -669,7 +672,9 @@
     u.pose = 'cast'; u.poseT = 60;
     DS.audio.sfx(sp.sfx || 'magic');
     yield* this.say(nameOf(u) + ' casts ' + sp.name + '!', 34);
-    if (this.o.roost && (sp.el === 'fire' || sp.el === 'thunder')) { this.usedFire = true; u.pose = null; return true; } // fire or noise under the roost
+    if (this.o.roost && (sp.kind === 'light' || sp.el === 'fire' || sp.el === 'thunder')) { // bright light (or fire) under the roost
+      this.usedFire = true; this.roostCause = sp.kind === 'light' ? 'light' : 'fire'; u.pose = null; return true;
+    }
     var up = slot ? slot - sp.level : 0, dc = R.spellDC(h), atk = R.spellAtk(h);
     var k = sp.kind;
     if (k === 'light') {
@@ -798,7 +803,7 @@
       DS.audio.sfx('buff');
       yield* this.say(nameOf(t) + ' drinks the ' + it.name.toLowerCase() + '. Advantage against poison.', 46);
     } else if (use.effect === 'damage') {
-      if (use.el === 'fire' && this.o.roost) { this.usedFire = true; DS.audio.sfx('fire'); yield* this.say(nameOf(u) + ' throws ' + it.name + '. It catches, under the roost.', 40); return true; }
+      if (use.el === 'fire' && this.o.roost) { this.usedFire = true; this.roostCause = 'fire'; DS.audio.sfx('fire'); yield* this.say(nameOf(u) + ' throws ' + it.name + '. It catches, under the roost.', 40); return true; }
       var s = use.save ? this.save(t, use.save, use.dc || 10) : null;
       var dmg = DS.roll(use.dice); if (s && s.success) dmg = Math.floor(dmg / 2);
       if (use.only && tags(t).indexOf(use.only) < 0) dmg = 0;
@@ -808,7 +813,7 @@
       yield* this.say(nameOf(u) + ' throws ' + it.name + '! ' + nameOf(t) + ' takes ' + d + '.', 42);
       yield* this.flushMsg();
     } else if (use.effect === 'light') {
-      this.flashT = 8; this.usedFire = true;
+      this.flashT = 8; this.usedFire = true; this.roostCause = 'light';
       if (this.o.roost) return true; // the torch is lit under the roost: that's the end of it
       yield* this.dazzle(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.');
     } else if (use.effect === 'fortify') { // Marta's bat-wing pie: +2 CON (a +1 to CON saves) and +5 HP for the fight
@@ -1082,7 +1087,7 @@
     var self = this;
     this.bats = []; this.swarmT = 0;
     DS.audio.sfx('error'); this.shake = 20;
-    yield* this.hold('Fire under a roosted ceiling. The whole roof shifts at once: millions of wings.');
+    yield* this.hold((this.roostCause === 'light' ? 'Bright light' : 'Fire') + ' under a roosted ceiling. The whole roof shifts at once: millions of wings.');
     this.msg = '';
     for (var t = 0; t < 160; t++) {
       this.swarmT = t;

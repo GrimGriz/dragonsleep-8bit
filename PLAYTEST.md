@@ -101,6 +101,7 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] After the credits: CONTINUE → morning at the lake; the inn lady grieving, Doran's thanks and free rooms, Elsbeth selling candles on vice row
 - [ ] Parts: Barley (Survival) and Aurdin (Arcana) harvest from the right monsters; Percy's shop (vice row, the jar sign) buys them at a fifth; wings → Marta Venn → bat-wing pie (+2 CON, +5 HP in a fight)
 - [ ] Dancing Lights works in a fight now (shows the Keeper)
+- [ ] Under the roost (G2/G3): fire and thunder spells are grayed out (ROOST); casting Light or lighting a torch still brings the roof down → NOT THIS KIND OF NAME
 
 ## Notes
 (write here)
