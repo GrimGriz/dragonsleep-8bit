@@ -11,6 +11,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 art = open(os.path.join(ROOT, 'js', 'art.js'), encoding='utf-8').read()
 table = art[art.index('var TILES = DS.TILES = {'):]
 PASS = {m.group(1): m.group(2) == '1' for m in re.finditer(r'(\w+): \{ pass: (\d)', table)}
+TALK = {m.group(1) for m in re.finditer(r'(\w+): \{ pass: \d[^}]*talk: 1', table)}   # counters, bars, stalls: talk across them
 
 maps = {}
 for f in glob.glob(os.path.join(ROOT, 'content', 'maps', '*.json')):
@@ -74,9 +75,12 @@ for mid, m in sorted(maps.items()):
     def adj(x, y):
         return any((x + dx, y + dy) in seen for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
 
+    def across(x, y):  # reachable by talking across a counter
+        return any(tile(m, x + dx, y + dy) in TALK and (x + 2 * dx, y + 2 * dy) in seen for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1)))
+
     def check(kind, x, y, label, need_on=False):
         global problems
-        ok = (x, y) in seen if need_on else ((x, y) in seen or adj(x, y))
+        ok = (x, y) in seen if need_on else ((x, y) in seen or adj(x, y) or (kind == 'npc' and across(x, y)))
         if not ok:
             print('%s: %s %s at %s,%s unreachable (tile %s)' % (mid, kind, label, x, y, tile(m, x, y)))
             problems += 1

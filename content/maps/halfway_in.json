@@ -52,25 +52,36 @@
 "cond": "!flag:lakeDone"
 },
 {
+"id": "gennetGrief",
+"x": 3,
+"y": 5,
+"look": "innlady",
+"dir": "down",
+"cond": "flag:lakeDone"
+},
+{
 "id": "doranIn",
 "x": 8,
 "y": 3,
 "look": "worker",
-"dir": "left"
+"dir": "left",
+"cond": "!flag:doranAway"
 },
 {
 "id": "elsbeth",
 "x": 15,
 "y": 5,
 "look": "elsbeth",
-"dir": "up"
+"dir": "up",
+"cond": "!flag:postgame"
 },
 {
 "id": "katarina",
 "x": 2,
 "y": 6,
-"look": "priest",
-"dir": "right"
+"look": "kat",
+"dir": "right",
+"cond": "!flag:katGone"
 }
 ],
 "warps": [
@@ -91,12 +102,17 @@
 "dir": "down"
 }
 ],
-"signs": [
+"triggers": [
 {
-"x": 9,
-"y": 1,
-"text": "The stair up. The room over the kitchen has a bedside drawer. In it, a finished manuscript, left like a Gideons bible.",
-"src": "wiki/halfway-inn-and-lake.md (Katarina finished Book One here)"
+"id": "drawer",
+"rect": [
+9,
+1,
+1,
+1
+],
+"on": "use",
+"script": "drawer"
 }
 ]
 }

@@ -87,5 +87,20 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] Chuul (any fight): when a grab, poison, the ring's taunt or a fall lands on the party, the top line holds with ▼ until you press Z
 - [ ] The ending: the inn's fate is written now (no stubs anywhere). And s8-3 above (the night at the inn) is still unmarked
 
+## 12. Round three: the wagon night, Percy, the parts
+- [ ] First night at the Halfway Inn: the wagon comes in at night; pick who had second watch; the goblins turn into children on screen if they see through it (no text)
+- [ ] KEEP WATCH (or never seeing through it): the handover, then the walk to the lake with a goblin beside the inn lady
+- [ ] INVESTIGATE alone / WAKE THE PARTY: out in the yard, a second look; the inn lady's line about the mine across the lake, and a sharper look if someone catches the lie
+- [ ] Seen through, Lymen out there: his line and the fight. Without him: "Those are children" and Amara's 50 gold. TAKE it (Kat rides off with them; Elsbeth goes silent) or REFUSE (fight)
+- [ ] The fight: Amara and Willem take turns running for the horses; darkness goes up and the drivers scatter; alone in the yard, the others come out in round two
+- [ ] They escape: you run them down on the road, then a chase to the Tower at your own speed (catch them at the fork; don't follow Willem's false riders west). Into the Tower: the popup
+- [ ] Killed in the yard: Doran takes the children to Newland; morning, Elsbeth's gift. Next visit after the chase: Doran gone, a girl out back, Elsbeth's gift and "go see Winters"
+- [ ] The strongbox's order → Hessle pays true word (not on the board). The Snoot's anchor-pin → Hessle's listed true word
+- [ ] Kat the next day gives you her book (ITEM → READ); Androit takes it for renown. If she rode out, the book's in the drawer at the stair
+- [ ] A later night with the ring: the kept girl walks to the lake (or, if the wagon went on, next month's goblin)
+- [ ] After the credits: CONTINUE → morning at the lake; the inn lady grieving, Doran's thanks and free rooms, Elsbeth selling candles on vice row
+- [ ] Parts: Barley (Survival) and Aurdin (Arcana) harvest from the right monsters; Percy's shop (vice row, the jar sign) buys them at a fifth; wings → Marta Venn → bat-wing pie (+2 CON, +5 HP in a fight)
+- [ ] Dancing Lights works in a fight now (shows the Keeper)
+
 ## Notes
 (write here)

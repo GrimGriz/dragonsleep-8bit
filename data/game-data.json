@@ -1394,6 +1394,247 @@
    "src": "wiki/web-gulch.md (the bounty); proof-token invented.json#bounty-proof",
    "id": "ettercapfangs"
   },
+  "batfur": {
+   "name": "Bat Fur",
+   "kind": "part",
+   "price": 2,
+   "desc": "Giant-bat fur, bagged. A Darkness wants it with a drop of pitch. Percy pays a fifth of what it sells for, rendered.",
+   "src": "SRD 5.1 (Darkness: bat fur and a drop of pitch); wiki/vice-row.md (Percy's: road harvest rendered, jarred, priced); invented.json#parts",
+   "id": "batfur"
+  },
+  "batwings": {
+   "name": "Bat Wings",
+   "kind": "part",
+   "price": 0,
+   "desc": "Two leathery wings. Percy won't have them. Marta Venn will cook them.",
+   "src": "Griz 09-24 (bat wings Percy doesn't want; Viv's mom cooks them up special)",
+   "id": "batwings"
+  },
+  "gulchsilk": {
+   "name": "Gulch Silk",
+   "kind": "part",
+   "price": 5,
+   "desc": "A skein of spider silk. A Web wants a bit of it.",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 38 (Gulch silk, the skein 5 sp); SRD 5.1 (Web)",
+   "id": "gulchsilk"
+  },
+  "darkmantlehide": {
+   "name": "Darkmantle Hide",
+   "kind": "part",
+   "price": 20,
+   "desc": "Raw darkmantle hide. Percy cures it and sells it on at two gold.",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 38 (Darkmantle hide, cured 2 gp)",
+   "id": "darkmantlehide"
+  },
+  "crawlerichor": {
+   "name": "Crawler Ichor",
+   "kind": "part",
+   "price": 60,
+   "desc": "Sealed ichor off a dead crawler. The dose trade's cousin. Handle it with a cloth.",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 38 (crawler ichor, 'consult DM, the dose trade's cousin'); price seat draft 09-24",
+   "id": "crawlerichor"
+  },
+  "glowgland": {
+   "name": "Glow Gland",
+   "kind": "part",
+   "price": 3,
+   "desc": "A fire beetle's glands. They glow for days. A Light wants something that shines.",
+   "src": "SRD 5.1 (Fire Beetle; Light: a firefly or phosphorescent moss); invented.json#parts",
+   "id": "glowgland"
+  },
+  "snaketongue": {
+   "name": "Snake Tongue",
+   "kind": "part",
+   "price": 5,
+   "desc": "A snake's tongue, forked. A Suggestion wants one.",
+   "src": "SRD 5.1 (Suggestion: a snake's tongue); wiki/glowseep.md (snake tongues, CANON 07-24)",
+   "id": "snaketongue"
+  },
+  "axebeakfeather": {
+   "name": "Axe Beak Feather",
+   "kind": "part",
+   "price": 3,
+   "desc": "A long wing feather. A Fly wants one.",
+   "src": "SRD 5.1 (Fly: a wing feather from any bird)",
+   "id": "axebeakfeather"
+  },
+  "wolffur": {
+   "name": "Wolf Fur",
+   "kind": "part",
+   "price": 2,
+   "desc": "A hank of wolf fur. A Lightning Bolt wants a bit of fur and a rod of amber.",
+   "src": "SRD 5.1 (Lightning Bolt: a bit of fur)",
+   "id": "wolffur"
+  },
+  "batpie": {
+   "name": "Bat-Wing Pie",
+   "kind": "use",
+   "price": 0,
+   "use": {
+    "effect": "fortify",
+    "target": "ally",
+    "battle": true,
+    "field": false
+   },
+   "desc": "Marta Venn's special. Eaten in a fight: +2 CON and +5 HP until it ends.",
+   "src": "Griz 09-24 (Viv's mom cooks bat wings: combat usable, +2 CON, +5 HP)",
+   "id": "batpie"
+  },
+  "anchorpin": {
+   "name": "Anchor-Pin",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "A brass pin off a Dominion wagoneer, taken as a trophy at the moot. True word on the Snoot, for Hessle.",
+   "src": "wiki/the-sisters.md (wagoneers set the anchors at the moot); wiki/the-snoot.md (the Dominion lit it); Griz 09-24 (the listed true word is the Snoot)",
+   "id": "anchorpin"
+  },
+  "wagonorder": {
+   "name": "Folded Order",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "Out of Amara's strongbox, sealed with a dove: 'Half a dozen before the festival, or you will be disciplined. V.'",
+   "src": "Griz 09-24 (an order: half a dozen before the festival, signed by the appropriate sister); wiki/the-sisters.md (Viatrix runs the route, Vespera's agent; Vespera keeps the doves)",
+   "id": "wagonorder"
+  },
+  "katbook": {
+   "name": "Katarina's Book",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "use": {
+    "effect": "read",
+    "target": "party",
+    "field": true
+   },
+   "desc": "A finished manuscript in a mender's hand. Book One. Use it to read the first page.",
+   "src": "wiki/halfway-inn-and-lake.md (Katarina finished Book One here); serial-castegut/installment-01.md (the first page)",
+   "id": "katbook"
+  },
+  "leather1": {
+   "name": "Leather +1",
+   "kind": "armor",
+   "price": 1500,
+   "armor": {
+    "type": "light",
+    "base": 11,
+    "bonus": 1
+   },
+   "desc": "Leather armor +1. The lake gave it back.",
+   "src": "SRD 5.1 (Armor +1)",
+   "id": "leather1"
+  },
+  "studded1": {
+   "name": "Studded +1",
+   "kind": "armor",
+   "price": 1950,
+   "armor": {
+    "type": "light",
+    "base": 12,
+    "bonus": 1
+   },
+   "desc": "Studded leather +1. The lake gave it back.",
+   "src": "SRD 5.1 (Armor +1)",
+   "id": "studded1"
+  },
+  "padded1": {
+   "name": "Padded +1",
+   "kind": "armor",
+   "price": 1500,
+   "armor": {
+    "type": "light",
+    "base": 11,
+    "bonus": 1
+   },
+   "desc": "Padded armor +1. The lake gave it back.",
+   "src": "SRD 5.1 (Armor +1)",
+   "id": "padded1"
+  },
+  "hide1": {
+   "name": "Hide +1",
+   "kind": "armor",
+   "price": 1500,
+   "armor": {
+    "type": "medium",
+    "base": 12,
+    "dexMax": 2,
+    "bonus": 1
+   },
+   "desc": "Hide armor +1. The lake gave it back.",
+   "src": "SRD 5.1 (Armor +1)",
+   "id": "hide1"
+  },
+  "chainshirt1": {
+   "name": "Chain Shirt +1",
+   "kind": "armor",
+   "price": 2000,
+   "armor": {
+    "type": "medium",
+    "base": 13,
+    "dexMax": 2,
+    "bonus": 1
+   },
+   "desc": "Chain shirt +1. The lake gave it back.",
+   "src": "SRD 5.1 (Armor +1)",
+   "id": "chainshirt1"
+  },
+  "scalemail1": {
+   "name": "Scale Mail +1",
+   "kind": "armor",
+   "price": 2000,
+   "armor": {
+    "type": "medium",
+    "base": 14,
+    "dexMax": 2,
+    "bonus": 1
+   },
+   "desc": "Scale mail +1. The lake gave it back.",
+   "src": "SRD 5.1 (Armor +1)",
+   "id": "scalemail1"
+  },
+  "ringmail1": {
+   "name": "Ring Mail +1",
+   "kind": "armor",
+   "price": 1800,
+   "armor": {
+    "type": "heavy",
+    "base": 14,
+    "dexMax": 0,
+    "bonus": 1
+   },
+   "desc": "Ring mail +1. The lake gave it back.",
+   "src": "SRD 5.1 (Armor +1)",
+   "id": "ringmail1"
+  },
+  "chainmail1": {
+   "name": "Chain Mail +1",
+   "kind": "armor",
+   "price": 2250,
+   "armor": {
+    "type": "heavy",
+    "base": 16,
+    "dexMax": 0,
+    "bonus": 1
+   },
+   "desc": "Chain mail +1. The lake gave it back.",
+   "src": "SRD 5.1 (Armor +1)",
+   "id": "chainmail1"
+  },
+  "splint1": {
+   "name": "Splint +1",
+   "kind": "armor",
+   "price": 3500,
+   "armor": {
+    "type": "heavy",
+    "base": 17,
+    "dexMax": 0,
+    "bonus": 1
+   },
+   "desc": "Splint +1. The lake gave it back.",
+   "src": "SRD 5.1 (Armor +1)",
+   "id": "splint1"
+  },
   "estatepapers": {
    "name": "Estate Papers",
    "kind": "key",
@@ -1456,7 +1697,8 @@
    "kind": "flavor",
    "target": "self",
    "field": true,
-   "desc": "Cantrip. Four little lights. The crews go quiet when he does this one.",
+   "battle": true,
+   "desc": "Cantrip. Four little lights. In a fight, nothing unseen stays unseen. Not fire.",
    "src": "SRD 5.1; evoker-aurdin.md (cast after the Glowseep)",
    "id": "dancinglights"
   },
@@ -1853,6 +2095,14 @@
     }
    ],
    "silver": "1d4",
+   "parts": [
+    {
+     "item": "darkmantlehide",
+     "skill": [
+      "Survival"
+     ]
+    }
+   ],
    "src": "SRD 5.1; GalleriesModule/guano-galleries-DM.md (the roof-killers)",
    "id": "darkmantle",
    "xp": 100
@@ -1905,6 +2155,14 @@
     "jaws"
    ],
    "silver": "1d6",
+   "parts": [
+    {
+     "item": "crawlerichor",
+     "skill": [
+      "Arcana"
+     ]
+    }
+   ],
    "src": "wiki/the-warrens.md (the herd; CON 13 paralytic touch); stat block invented.json#crawler",
    "id": "crawler",
    "xp": 450
@@ -2154,6 +2412,20 @@
     }
    },
    "silver": "0",
+   "parts": [
+    {
+     "item": "batfur",
+     "skill": [
+      "Survival"
+     ]
+    },
+    {
+     "item": "batwings",
+     "skill": [
+      "Survival"
+     ]
+    }
+   ],
    "src": "SRD 5.1; GalleriesModule/guano-galleries-DM.md (the dens)",
    "id": "giantbat",
    "xp": 50
@@ -2199,6 +2471,14 @@
     }
    },
    "silver": "0",
+   "parts": [
+    {
+     "item": "batwings",
+     "skill": [
+      "Survival"
+     ]
+    }
+   ],
    "src": "SRD 5.1; road table d20-14 (swarm of bats at dusk near the Galleries)",
    "id": "batswarm",
    "xp": 50
@@ -2340,6 +2620,15 @@
     }
    ],
    "silver": "1d4",
+   "parts": [
+    {
+     "item": "gulchsilk",
+     "skill": [
+      "Survival",
+      "Nature"
+     ]
+    }
+   ],
    "src": "SRD 5.1; wiki/web-gulch.md",
    "id": "giantspider",
    "xp": 200
@@ -2379,6 +2668,15 @@
     }
    },
    "silver": "1d2",
+   "parts": [
+    {
+     "item": "gulchsilk",
+     "skill": [
+      "Survival",
+      "Nature"
+     ]
+    }
+   ],
    "src": "SRD 5.1 (Giant Wolf Spider); wiki/web-gulch.md",
    "id": "wolfspider",
    "xp": 50
@@ -2443,6 +2741,15 @@
     {
      "item": "cord",
      "chance": 1
+    }
+   ],
+   "parts": [
+    {
+     "item": "gulchsilk",
+     "skill": [
+      "Survival",
+      "Nature"
+     ]
     }
    ],
    "src": "SRD 5.1; wiki/web-gulch.md (the braiding ettercap, 40 gp bounty)",
@@ -2652,6 +2959,15 @@
     }
    },
    "silver": "1",
+   "parts": [
+    {
+     "item": "glowgland",
+     "skill": [
+      "Survival",
+      "Nature"
+     ]
+    }
+   ],
    "src": "SRD 5.1 (Giant Fire Beetle); wiki/glowseep.md (fireflies)",
    "id": "firebeetle",
    "xp": 10
@@ -2726,6 +3042,15 @@
     }
    },
    "silver": "0",
+   "parts": [
+    {
+     "item": "snaketongue",
+     "skill": [
+      "Survival",
+      "Nature"
+     ]
+    }
+   ],
    "src": "SRD 5.1 (Poisonous Snake); road table Glowseep d8 3–4",
    "id": "snake",
    "xp": 25
@@ -3052,6 +3377,14 @@
     }
    },
    "silver": "0",
+   "parts": [
+    {
+     "item": "wolffur",
+     "skill": [
+      "Survival"
+     ]
+    }
+   ],
    "src": "SRD 5.1; road table d20-14",
    "id": "wolf",
    "xp": 50
@@ -3085,6 +3418,14 @@
     }
    },
    "silver": "0",
+   "parts": [
+    {
+     "item": "wolffur",
+     "skill": [
+      "Survival"
+     ]
+    }
+   ],
    "src": "SRD 5.1; road table d20-13 (worg pack, orc-war remnant line)",
    "id": "worg",
    "xp": 100
@@ -3116,6 +3457,14 @@
     }
    },
    "silver": "0",
+   "parts": [
+    {
+     "item": "axebeakfeather",
+     "skill": [
+      "Survival"
+     ]
+    }
+   ],
    "src": "SRD 5.1; road table d20-12 (Verge beasts, day)",
    "id": "axebeak",
    "xp": 50
@@ -3416,6 +3765,87 @@
    "src": "SRD 5.1 (Berserker); wiki/the-hex.md (festival fortnight, visiting barbarian fighters)",
    "id": "berserker",
    "xp": 450
+  },
+  "amara": {
+   "name": "Amara",
+   "art": "amara",
+   "cr": "3",
+   "ac": 13,
+   "hp": 38,
+   "abil": {
+    "str": 9,
+    "dex": 14,
+    "con": 12,
+    "int": 12,
+    "wis": 11,
+    "cha": 17
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "traits": {
+    "flees": true
+   },
+   "attacks": {
+    "blast": {
+     "name": "Eldritch Blast",
+     "hit": 6,
+     "dmg": "1d10+3",
+     "type": "force",
+     "verb": "blasts",
+     "ranged": true
+    }
+   },
+   "multi": [
+    "blast",
+    "blast"
+   ],
+   "silver": "0",
+   "src": "module-halfway-inn.md §4 (Amara, warlock 5, the Mirror's pact); npcs-by-location.md §The Road; game block from SRD 5.1 pieces (Eldritch Blast, two beams at 5th) invented.json#wagon-crew",
+   "id": "amara",
+   "xp": 700
+  },
+  "willem": {
+   "name": "Willem Glass",
+   "art": "willem",
+   "cr": "3",
+   "ac": 12,
+   "hp": 30,
+   "abil": {
+    "str": 9,
+    "dex": 14,
+    "con": 12,
+    "int": 17,
+    "wis": 12,
+    "cha": 11
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "traits": {
+    "flees": true
+   },
+   "attacks": {
+    "frost": {
+     "name": "Ray of Frost",
+     "hit": 6,
+     "dmg": "2d8",
+     "type": "cold",
+     "verb": "freezes",
+     "ranged": true
+    }
+   },
+   "specials": [
+    {
+     "id": "phantasms",
+     "once": true,
+     "chance": 0.9
+    }
+   ],
+   "silver": "0",
+   "src": "module-halfway-inn.md §4 (Willem Glass, wizard 5, Illusion: mirror image round one); game block from SRD 5.1 pieces invented.json#wagon-crew",
+   "id": "willem",
+   "xp": 700
   },
   "chuul": {
    "name": "Chuul",
@@ -4230,6 +4660,25 @@
    "src": "wiki/the-hex.md (Mama's Pharmakaiea, shop card 'Consult Lucia'); a shop RULED 09-24 (Griz); stock invented.json#mamas",
    "id": "lucia"
   },
+  "percy": {
+   "name": "Percy's Particulars",
+   "keeper": "Percy & Ned Halloway",
+   "look": "percy",
+   "greeting": "Road harvest rendered, jarred and priced. I pay a fifth of what it sells for once it's rendered. That's the rendering.",
+   "items": [],
+   "buysKind": [
+    "part"
+   ],
+   "buyRate": 0.2,
+   "nothingText": "Nothing on you worth a jar. Bring me parts: silk, hide, fur, glands. Somebody with the hands for it has to take them.",
+   "boughtText": [
+    "Ned, a jar.",
+    "Fair. It'll be worth five of that on the shelf.",
+    "I don't render what renders me. This, I'll render."
+   ],
+   "src": "wiki/vice-row.md (Percy's Particulars: road harvest rendered, jarred, priced); the-lab/pit-maps/shops-silverton.json pin 38; RULED 09-24 (a fifth of the post-process price; his shelf is flavor)",
+   "id": "percy"
+  },
   "winters": {
    "name": "Acquisitions & Estates",
    "keeper": "Ambrose Winters",
@@ -4258,6 +4707,7 @@
  "npcs": {
   "marta": {
    "name": "Marta Venn",
+   "script": "marta",
    "talk": [
     {
      "if": "hired:vivian & !lead:vivian",
@@ -4583,6 +5033,16 @@
    "name": "Aldwyn Androit",
    "talk": [
     {
+     "if": "has:katbook",
+     "say": [
+      "Androit turns the first page, then the second, then sits down to read the third.",
+      "\"A mender's hand. Written true, because nobody was ever meant to read it.\" He looks up. \"Leave it with me. This is the kind of history I meant.\""
+     ],
+     "take": "katbook",
+     "renown": 2,
+     "renownWhy": "renown.katbook"
+    },
+    {
      "if": "has:estatepapers & !flag:wSealed",
      "say": [
       "He reads Winters' inventory through once, slowly, and presses his seal into the wax.",
@@ -4721,8 +5181,29 @@
    "src": "wiki/the-hex.md (Venn Hale, the stables); ext Silverton npcs",
    "id": "venhale"
   },
+  "ned": {
+   "name": "Ned Halloway",
+   "talk": [
+    {
+     "if": "hired:aurdin",
+     "say": [
+      "Ned looks at Aurdin's spellbook the way a man looks at a road he didn't finish.",
+      "\"Classes start in the fall, they say. They said that to me, too.\""
+     ]
+    },
+    {
+     "say": [
+      "Edmund Halloway. Ned. Wizard, second circle, halted.",
+      "\"I went up the mountain road once, as far as the cut. Then I came back down and took a job labeling jars. The labels are very good.\""
+     ]
+    }
+   ],
+   "src": "wiki/vice-row.md (Ned Halloway, wizard 2 up from Newland, stopped halfway up the mountain road, CANON 09-09); lines seat draft 09-24",
+   "id": "ned"
+  },
   "percy": {
    "name": "Percy",
+   "script": "percyShop",
    "talk": [
     {
      "if": "hired:aurdin",
@@ -5301,8 +5782,48 @@
    "src": "module-halfway-inn.md §4 (Doran); wiki/halfway-inn-and-lake.md",
    "id": "doranYard"
   },
+  "gennetGrief": {
+   "name": "The inn lady",
+   "talk": [
+    {
+     "say": [
+      "The inn lady sits at the table with her apron balled in her hands. She doesn't look up.",
+      "\"It gave back,\" she says, to nobody. \"It always gave back.\""
+     ]
+    }
+   ],
+   "src": "RULED 09-24 (Griz: post-credits, the wife is inconsolable); wiki/halfway-inn-and-lake.md (the lake gives back)",
+   "id": "gennetGrief"
+  },
+  "adoptedKid": {
+   "name": "A small girl",
+   "talk": [
+    {
+     "say": [
+      "A small girl skipping stones in the shallows, never out past the knee-deep water.",
+      "The inn lady says she's for the kitchen."
+     ]
+    }
+   ],
+   "src": "RULED 09-24 (an extra kid playing out back)",
+   "id": "adoptedKid"
+  },
+  "elsbethCandles": {
+   "name": "Elsbeth",
+   "talk": [
+    {
+     "say": [
+      "Elsbeth, on vice row with a tray of candles and a lamp on a pole.",
+      "\"Candles? I sell them to everyone.\" She nearly smiles. \"I was told that's what you say.\""
+     ]
+    }
+   ],
+   "src": "RULED 09-24 (Griz: post-credits, the dishes girl is the new candle girl in Silverton); wiki/vivian.md (candles to 'everyone')",
+   "id": "elsbethCandles"
+  },
   "doranIn": {
    "name": "Doran Waterby",
+   "script": "doranIn",
    "talk": [
     {
      "say": [
@@ -5360,6 +5881,7 @@
   },
   "katarina": {
    "name": "A traveler",
+   "script": "katarina",
    "talk": [
     {
      "say": [
@@ -6607,6 +7129,323 @@
    "t": "The lake is quiet.",
    "src": "invented: connective",
    "id": "lake.quiet"
+  },
+  "due.kept": {
+   "t": "No wagon tonight. The inn lady has the one she kept.",
+   "src": "RULED 09-24 (Griz: later, with the ring, she has a kid to disappear)",
+   "id": "due.kept"
+  },
+  "due.walkGoblin": {
+   "t": "The lantern leaves the post. The inn lady walks the path to the point, and a goblin walks with her.",
+   "src": "RULED 09-24 (Griz: if the glamour never breaks, the walk looks like a goblin); module-halfway-inn.md §3 (the due)",
+   "id": "due.walkGoblin"
+  },
+  "wagon.night": {
+   "t": "Night at the Halfway Inn. The lamps are down and the house is quiet. Whoever has the watch sits at the window over the yard.",
+   "src": "RULED 09-24 (Griz: the wagon night, the first stay); module-halfway-inn.md §3 (the clock)",
+   "id": "wagon.night"
+  },
+  "wagon.secondWatch": {
+   "t": "On second watch, a wagon turns in off the road: one big wagon, two drivers, a woman on the bench beside a fair-haired man. Chained in the back, goblins. Who had second watch?",
+   "src": "module-halfway-inn.md §3 (the wagon, just after dark: 'goblins' chained in the back, two drivers, Amara riding beside Willem)",
+   "id": "wagon.secondWatch"
+  },
+  "wagon.greet1": {
+   "t": "Mistress Amara. You're late on the road tonight.",
+   "src": "module-halfway-inn.md §3 (the family turns out like it's market day); seat draft 09-24",
+   "id": "wagon.greet1"
+  },
+  "wagon.greet2": {
+   "t": "The Pit road's slow this time of year. Is the good room aired?",
+   "src": "seat draft 09-24 (non-incriminating, RULED 09-24)",
+   "id": "wagon.greet2"
+  },
+  "wagon.greet3": {
+   "t": "Aired and warm, and the good beer's up. The boys will see to the greys.",
+   "src": "module-halfway-inn.md §1 (room, board, stabling, the family treats the crew like gentry); seat draft",
+   "id": "wagon.greet3"
+  },
+  "wagon.ask": {
+   "t": "{name} watches from the window. What now?",
+   "src": "invented: connective",
+   "id": "wagon.ask"
+  },
+  "wagon.investigate": {
+   "t": "{name} slips down the stair and out into the yard.",
+   "src": "invented: connective",
+   "id": "wagon.investigate"
+  },
+  "wagon.wake": {
+   "t": "{name} shakes the others awake. You go down together and out into the yard.",
+   "src": "invented: connective",
+   "id": "wagon.wake"
+  },
+  "wagon.lie": {
+   "t": "A room for you and the drivers, same as ever. And we'll take one off your hands for the mine across the lake. They work hard for their board.",
+   "src": "RULED 09-24 (Griz: the inn lady offers a room, for a goblin to work in the mine on the other side of the lake: a lie)",
+   "id": "wagon.lie"
+  },
+  "wagon.insight": {
+   "t": "Something in how she says the mine. There is no mine across the lake. You look again, harder.",
+   "src": "RULED 09-24 (Insight on the lie opens a second look at +5)",
+   "id": "wagon.insight"
+  },
+  "wagon.nothing": {
+   "t": "Goblins in chains, a tired crew, a landlady doing business. None of yours. You go back up to bed.",
+   "src": "module-halfway-inn.md §7 (the quiet night: a legitimate outcome)",
+   "id": "wagon.nothing"
+  },
+  "wagon.lymen": {
+   "t": "Children. You chained children and painted goblins over them. By Kalindel, who makes things grow: not one more mile on this road.",
+   "src": "RULED 09-24 (Lymen says something paladiny and starts the fight); urtusk-children-prerolls.md (Kalindel); seat draft",
+   "id": "wagon.lymen"
+  },
+  "wagon.confront": {
+   "t": "Those aren't goblins. Those are children.",
+   "src": "seat draft 09-24",
+   "id": "wagon.confront"
+  },
+  "wagon.bribe": {
+   "t": "Fifty gold says you had a quiet night. The children go where children go. You go back to bed and ride on richer in the morning.",
+   "src": "RULED 09-24 (the wagon lady offers a bribe; 500 sp, from the strongbox's 60 gp)",
+   "id": "wagon.bribe"
+  },
+  "wagon.refuse": {
+   "t": "Keep your gold.",
+   "src": "invented: connective",
+   "id": "wagon.refuse"
+  },
+  "wagon.handover": {
+   "t": "Amara lifts one down from the back and puts its hand in the inn lady's. No coin changes hands. The inn lady takes it inside.",
+   "src": "module-halfway-inn.md §3 (the handover: practiced, no coin visible; the stay is the price)",
+   "id": "wagon.handover"
+  },
+  "wagon.quietNight": {
+   "t": "The drivers take the horses round to the stable. The lamps go out one by one, all but one. Past midnight, the lantern leaves its post.",
+   "src": "module-halfway-inn.md §6 (the Warm-Up; the lantern walks)",
+   "id": "wagon.quietNight"
+  },
+  "wagon.bribeTaken": {
+   "t": "Amara counts it into your hand. The inn lady takes one of the children by the hand, as if she'd been waiting for her. \"We'll keep this one,\" she says. \"Poor thing.\" The wagon doesn't stay the night.",
+   "src": "RULED 09-24 (bribe taken: the inn lady 'adopts' the child; the wagon doesn't stay)",
+   "id": "wagon.bribeTaken"
+  },
+  "wagon.bribeGone": {
+   "t": "The young woman from upstairs goes with them, a bag over her shoulder, up on the bench beside Amara. The wagon turns in the yard and is gone up the road. Past midnight, the lantern leaves its post.",
+   "src": "RULED 09-24 (Kat joins them if the bribe is taken)",
+   "id": "wagon.bribeGone"
+  },
+  "wagon.abandoned": {
+   "t": "The wagon stands in the yard with its traces cut. In the back, chained, eight children. Real, and very quiet.",
+   "src": "module-halfway-inn.md §4 (the stock: children glamoured as goblins, eight); §8 (the children)",
+   "id": "wagon.abandoned"
+  },
+  "wagon.strongbox": {
+   "t": "Under the driver's bench, a strongbox: mixed coin, the manacle keys, and a folded order sealed with a dove.",
+   "src": "module-halfway-inn.md §9 (the strongbox: 60 gp, manacle keys); RULED 09-24 (not a ledger: an order, signed by the appropriate sister)",
+   "id": "wagon.strongbox"
+  },
+  "wagon.doranTakes": {
+   "t": "Doran Waterby hitches his own horse to the wagon that same night and takes the children back down the road to Newland.",
+   "src": "RULED 09-24 (Griz: husband took the wagon of children back down to Newland)",
+   "id": "wagon.doranTakes"
+  },
+  "wagon.chase1": {
+   "t": "Hoofbeats, north up the road: two horses, run hard in the dark. You go after them.",
+   "src": "module-halfway-inn.md §4 (at real threat: darkness, then for the horses); RULED 09-24 (the party catches up once)",
+   "id": "wagon.chase1"
+  },
+  "wagon.caught1": {
+   "t": "Where the road climbs past the gulch, you run them down.",
+   "src": "invented: connective",
+   "id": "wagon.caught1"
+  },
+  "wagon.chase2": {
+   "t": "They're away again, north toward the fork and the Tower. Catch them before they get there.",
+   "src": "RULED 09-24 (escape twice: player control, no advantage; escapees head to the Tower)",
+   "id": "wagon.chase2"
+  },
+  "wagon.caught2": {
+   "t": "You catch them at last. There's nowhere left to run, and they know it.",
+   "src": "RULED 09-24 (third catch: to the death)",
+   "id": "wagon.caught2"
+  },
+  "wagon.fakeRider": {
+   "t": "Your hand goes through them. Willem's trick: a pair of riders made of nothing.",
+   "src": "module-halfway-inn.md §4 (Willem's favorite: a major image of the pair fleeing the WRONG way)",
+   "id": "wagon.fakeRider"
+  },
+  "wagon.roadDone": {
+   "t": "It's over on the road. Dawn comes up grey over the gulch. Behind you at the inn, eight children are real.",
+   "src": "invented: connective",
+   "id": "wagon.roadDone"
+  },
+  "wagon.towerEscape": {
+   "t": "The riders reach the Tower. Its door opens for them, and shuts. Dawn comes up grey on the road.",
+   "src": "wiki/the-sisters.md ('the tower in Silverton': the muster at the Tower); RULED 09-24 (escapees head to the Tower)",
+   "id": "wagon.towerEscape"
+  },
+  "wagon.morning.quiet": {
+   "t": "Morning. The wagon left at first light, one goblin fewer in the back, if anyone counted. The inn lady hums at the stove.",
+   "src": "module-halfway-inn.md §3 (a party that slept through it wakes to an ordinary inn, one goblin fewer)",
+   "id": "wagon.morning.quiet"
+  },
+  "wagon.morning.quietSeen": {
+   "t": "Morning. The wagon left at first light, one child fewer in the back. The inn lady hums at the stove.",
+   "src": "module-halfway-inn.md §7 (the night reclassifies itself in memory)",
+   "id": "wagon.morning.quietSeen"
+  },
+  "wagon.morning.bribe": {
+   "t": "Morning. The inn lady hums at the stove. There's no child anywhere in the house. Elsbeth won't look at you.",
+   "src": "RULED 09-24 (the bribe: the child still goes to the lake; Elsbeth never speaks to you again)",
+   "id": "wagon.morning.bribe"
+  },
+  "wagon.morning.inn": {
+   "t": "Morning. Doran is gone, and the wagon with him. The inn lady keeps her back to the room. Out back, a small girl is skipping stones: the one she kept.",
+   "src": "RULED 09-24 (Doran takes the children to Newland; an extra kid out back)",
+   "id": "wagon.morning.inn"
+  },
+  "wagon.ringCold": {
+   "t": "The ring on your hand is cold this morning. Whatever is in the lake has eaten.",
+   "src": "module-halfway-inn.md §8 (the chuul, fed: quiet for a month)",
+   "id": "wagon.ringCold"
+  },
+  "wagon.gift": {
+   "t": [
+    "Elsbeth finds you with a bundle from the pantry. \"The lake gave this back, the year Tobin went. It's no good to us.\"",
+    "She pushes it at you. \"It should go to somebody who stops things.\""
+   ],
+   "src": "module-halfway-inn.md §9 (bog-grave goods in the pantry); wiki/halfway-inn-and-lake.md (Tobin); RULED 09-24 (renown + an armor or item reward)",
+   "id": "wagon.gift"
+  },
+  "renown.wagon": {
+   "t": "Eight children off Amara's wagon, real again.",
+   "src": "invented: connective",
+   "id": "renown.wagon"
+  },
+  "inn.elsbethSilent": {
+   "t": "Elsbeth keeps scrubbing. She doesn't turn around, and she doesn't say anything at all.",
+   "src": "RULED 09-24 (after the bribe)",
+   "id": "inn.elsbethSilent"
+  },
+  "inn.elsbethWinters": {
+   "t": "In Silverton there's a man on Fountain Street. Winters. People bring him what the lake gives back, and once he asked me what else it gives. Go and see him.",
+   "src": "RULED 09-24 (Griz: the dishes girl urges the players to visit Winters); seat draft",
+   "id": "inn.elsbethWinters"
+  },
+  "inn.stair": {
+   "t": "The stair up to the guest rooms. The room over the kitchen has its door shut.",
+   "src": "wiki/halfway-inn-and-lake.md (the room over the kitchen)",
+   "id": "inn.stair"
+  },
+  "inn.drawerBook": {
+   "t": "Up the stair, in the room over the kitchen, the bedside drawer. Inside, left like a Gideons bible: a finished manuscript.",
+   "src": "wiki/halfway-inn-and-lake.md (the manuscript left in the drawer 'like a Gideons bible')",
+   "id": "inn.drawerBook"
+  },
+  "kat.book": {
+   "t": [
+    "This is the first time I have left the castle since Savine and the Sisters arrived.",
+    "I have waited my whole life to write a sentence and mean it the way I mean that one. Set down plainly it does not look like much: a wagon went out at first light, and I was on it. But I was a girl when they came and I am not one now, and in all the years between, the farthest I have been from Castegut's walls is the beach below the cliff stair, where the gulls go when the kitchens throw out the fish heads.",
+    "The gate is nine paces deep. I know because I counted them going out. I had never had occasion to count them before, and a thing I have not counted is a thing I do not own; so the first thing I ever owned of the world outside was the thickness of the wall that had kept me from it. Since then I have recorded that the pigs of the near farms are smaller than the castle pigs, that the road is worse than the maps pretend, and that open country in the evening smells of nothing at all — which, after a castle, after beeswax and lamp oil and other people, is the grandest smell there is.",
+    "I ought to say what I am doing on this road, and what this book is. I will do the second thing first, because the second thing is mine.",
+    "I write at night, in the wagon, by a small lamp I am permitted because my office is thought to require it. The paper I stole — an inch at a time, over more years than I will confess to. Not that paper is hard to come by; my office is issued it freely, and had I asked for more, more would have come. But paper that is issued has a purpose written against it somewhere, and paper that is asked for is remembered by whoever was asked. This paper has no history. No ledger anywhere says it exists — which is the only way a book like this one gets to exist. It is the only theft of my life, and I did it slowly, and I am not sorry. A prayer, where I come from, is a thing said at an appointed hour, in appointed words, for someone else's benefit. This book is the opposite of a prayer, and I keep it at the opposite hour. Nothing in it is offered up. Nothing in it may be taken. I know how the story I am walking back into ends — I am living in the after of it, which is what this road is — and you do not; so I ask you to trust that I am telling it in the order it was given to me, with the meaning last, because that is how it came, and any other order would be a lie of arrangement.",
+    "Now the first thing."
+   ],
+   "src": "serial-castegut/installment-01.md (the opening, to 'Now the first thing'; Griz 09-24: as much of the first page as makes sense)",
+   "id": "kat.book"
+  },
+  "kat.gives": {
+   "t": [
+    "The young woman in the brown dress closes her book when you sit down. Then she opens it again, turns it round, and slides it across to you.",
+    "\"I finished it here. I was going to leave it in the drawer. It should go to somebody who'll read it.\""
+   ],
+   "src": "RULED 09-24 (Griz: she gives the party her book and heads south); seat draft",
+   "id": "kat.gives"
+  },
+  "kat.south": {
+   "t": "She pays out her nights, takes up her bag, and walks south, toward the Pit.",
+   "src": "RULED 09-24 (heading south)",
+   "id": "kat.south"
+  },
+  "renown.katbook": {
+   "t": "Androit has the true history he wanted, in a mender's hand.",
+   "src": "npcs (Androit: 'Before the grave I want this town's real history written down true'); wiki/halfway-inn-and-lake.md (the book reaches Androit); RULED 09-24 (secret ++renown)",
+   "id": "renown.katbook"
+  },
+  "hessle.boardSnoot": {
+   "t": "FIFTY GOLD for true word on the Snoot: what lit it, and who stood by when it caught.",
+   "src": "ext Silverton npcs (Hessle: fifty gold for true word); RULED 09-24 (the listed true word is the Snoot)",
+   "id": "hessle.boardSnoot"
+  },
+  "hessle.snootWord": {
+   "t": [
+    "Hessle turns the anchor-pin over under the lamp. Dominion brass, a wagoneer's mark, taken at the moot.",
+    "\"So they were there when the king died.\" He writes it down and pays true word out of the drawer."
+   ],
+   "src": "wiki/the-snoot.md (the Dominion killed the king to light it); wiki/the-sisters.md (wagoneers set the anchors)",
+   "id": "hessle.snootWord"
+  },
+  "hessle.orderWord": {
+   "t": [
+    "Hessle reads the order twice. Half a dozen before the festival, or you will be disciplined. A V, and a dove in the wax.",
+    "\"This isn't for the board,\" he says quietly, and pays true word out of the drawer anyway."
+   ],
+   "src": "RULED 09-24 (Hessle pays unlisted true word for the order)",
+   "id": "hessle.orderWord"
+  },
+  "road.snootPin": {
+   "t": "Among the leader's trophies, strung on a thong: a brass anchor-pin off a Dominion wagoneer, taken at the moot. True word, for Hessle's board.",
+   "src": "wiki/the-snoot.md (the proof-taking by night); wiki/the-sisters.md (wagoneers at the moot); RULED 09-24 (a drop to claim the true word)",
+   "id": "road.snootPin"
+  },
+  "wall.tower": {
+   "t": "The door does not open for you. Not yet: coming in an expansion pack! Donate to support it!",
+   "src": "RULED 09-24 (pursue to the Tower: expansion pop-up, still 'its door doesn't open to you')",
+   "id": "wall.tower"
+  },
+  "percy.wings": {
+   "t": "Wings? Not in my jars. Take them to Marta Venn at the pie tables. She'll know what to do with them.",
+   "src": "RULED 09-24 (bat wings Percy doesn't want)",
+   "id": "percy.wings"
+  },
+  "marta.wings": {
+   "t": "Bat wings. I can do something with those. A silver apiece for the fat and the crust: {n} wing(s), {cost} silver.",
+   "src": "RULED 09-24 (Viv's mom cooks them up special)",
+   "id": "marta.wings"
+  },
+  "marta.wingsViv": {
+   "t": "Bat wings. For Viv's friends, no charge. {n} wing(s). Give me an hour.",
+   "src": "RULED 09-24; wiki/vivian.md (Marta Venn's daughter)",
+   "id": "marta.wingsViv"
+  },
+  "marta.pies": {
+   "t": "{n} bat-wing pie(s), hot. Eat one in the thick of it. It sits you up.",
+   "src": "RULED 09-24 (combat usable: +2 CON, +5 HP)",
+   "id": "marta.pies"
+  },
+  "after.prompt": {
+   "t": "The corridor goes on: the Doors up the mountain, the Pit down the road. Carry on, or go to the title.",
+   "src": "RULED 09-24 (post-credits continue)",
+   "id": "after.prompt"
+  },
+  "after.morning": {
+   "t": "Morning at Halfway Lake. The water is only water now. The inn is very quiet.",
+   "src": "invented: connective",
+   "id": "after.morning"
+  },
+  "after.doran": {
+   "t": [
+    "Doran Waterby sets a mug down in front of you and, for once, meets your eye.",
+    "\"I lost my way. Years ago, and every month since. Thank you.\" He means it. \"Your room's paid. It always will be.\""
+   ],
+   "src": "RULED 09-24 (Griz: husband thanks the party, free inn stays, says he lost his way)",
+   "id": "after.doran"
+  },
+  "after.doranStay": {
+   "t": "A room for the night? No charge.",
+   "src": "RULED 09-24",
+   "id": "after.doranStay"
   }
  },
  "rumors": [
@@ -8250,7 +9089,8 @@
      "x": 9,
      "y": 11,
      "look": "worker",
-     "dir": "down"
+     "dir": "down",
+     "cond": "!flag:doranAway"
     },
     {
      "id": "orrin",
@@ -8267,6 +9107,14 @@
      "look": "kid",
      "wander": 1,
      "cond": "!flag:dueSeen"
+    },
+    {
+     "id": "adoptedKid",
+     "x": 24,
+     "y": 18,
+     "look": "girl",
+     "wander": 1,
+     "cond": "flag:kidAtInn & !flag:dueSeen"
     }
    ],
    "warps": [
@@ -8385,25 +9233,36 @@
      "cond": "!flag:lakeDone"
     },
     {
+     "id": "gennetGrief",
+     "x": 3,
+     "y": 5,
+     "look": "innlady",
+     "dir": "down",
+     "cond": "flag:lakeDone"
+    },
+    {
      "id": "doranIn",
      "x": 8,
      "y": 3,
      "look": "worker",
-     "dir": "left"
+     "dir": "left",
+     "cond": "!flag:doranAway"
     },
     {
      "id": "elsbeth",
      "x": 15,
      "y": 5,
      "look": "elsbeth",
-     "dir": "up"
+     "dir": "up",
+     "cond": "!flag:postgame"
     },
     {
      "id": "katarina",
      "x": 2,
      "y": 6,
-     "look": "priest",
-     "dir": "right"
+     "look": "kat",
+     "dir": "right",
+     "cond": "!flag:katGone"
     }
    ],
    "warps": [
@@ -8424,12 +9283,17 @@
      "dir": "down"
     }
    ],
-   "signs": [
+   "triggers": [
     {
-     "x": 9,
-     "y": 1,
-     "text": "The stair up. The room over the kitchen has a bedside drawer. In it, a finished manuscript, left like a Gideons bible.",
-     "src": "wiki/halfway-inn-and-lake.md (Katarina finished Book One here)"
+     "id": "drawer",
+     "rect": [
+      9,
+      1,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "drawer"
     }
    ]
   },
@@ -8703,6 +9567,83 @@
      "y": 11,
      "text": "The rail. Below, the sand. The roof is a ring: on a new-moon night you see the stars.",
      "src": "wiki/the-hex.md (the building as built)"
+    }
+   ]
+  },
+  "percy": {
+   "id": "percy",
+   "name": "Percy's Particulars",
+   "tileset": "inside",
+   "rows": [
+    "wqqqqqqqqw",
+    "wqqqqqqqqw",
+    "w::::::::w",
+    "wccccccc:w",
+    "w::::::::w",
+    "wk::::::iw",
+    "w:::::::kw",
+    "wwwwDwwwww"
+   ],
+   "legend": {
+    ":": "floorWood",
+    ";": "floorStone",
+    "_": "rug",
+    "c": "counter",
+    "b": "bar",
+    "t": "table",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    "z": "bed",
+    "q": "shelf",
+    "h": "hearth",
+    "i": "boxes",
+    "w": "wall",
+    "o": "wallWin",
+    "p": "pillar",
+    "#": "stonewall",
+    "s": "sandArena",
+    "x": "hexwall",
+    "%": "curtain",
+    " ": "void",
+    "k": "crate",
+    "D": "door",
+    ".": "darkfloor",
+    "l": "lamp"
+   },
+   "music": "town",
+   "bg": "town",
+   "npcs": [
+    {
+     "id": "percy",
+     "x": 3,
+     "y": 2,
+     "look": "percy",
+     "dir": "down"
+    },
+    {
+     "id": "ned",
+     "x": 6,
+     "y": 2,
+     "look": "ned",
+     "dir": "down"
+    }
+   ],
+   "warps": [
+    {
+     "x": 4,
+     "y": 7,
+     "to": "silverton",
+     "tx": 27,
+     "ty": 42,
+     "dir": "down"
+    }
+   ],
+   "signs": [
+    {
+     "x": 1,
+     "y": 5,
+     "text": "The shelf card, in Percy's good hand: guano-and-sulfur, the paper, 1 sp. Sulfur 5 cp. Saltpeter 1 sp. Glow-moss, the pinch, 5 cp. Jar-fly, live, 1 sp. Gulch silk, the skein, 5 sp. Pressed black cake 2 sp. Darkmantle hide, cured, 2 gp. Crawler ichor: ask.",
+     "src": "the-lab/pit-maps/shops-silverton.json pin 38 (Percy's shelf, CANON 09-09)"
     }
    ]
   },
@@ -8983,6 +9924,16 @@
      "y": 12,
      "look": "clerk",
      "dir": "down"
+    },
+    {
+     "id": "elsbethCandles",
+     "x": 30,
+     "y": 42,
+     "look": "elsbeth",
+     "dir": "down",
+     "idle": true,
+     "lantern": true,
+     "cond": "flag:postgame"
     }
    ],
    "warps": [
@@ -9245,13 +10196,17 @@
      "icon": "stitch"
     },
     {
-     "id": "keeper:percy",
+     "id": "warp:percy",
      "x": 27,
      "y": 41,
      "on": "step",
-     "script": "keeper",
+     "script": "warp",
      "arg": "percy",
-     "back": "down"
+     "back": "down",
+     "to": "percy",
+     "tx": 4,
+     "ty": 6,
+     "icon": "jar"
     },
     {
      "id": "keeper:tam",
@@ -10410,7 +11365,8 @@
      "x": 30,
      "y": 12,
      "text": "THE TOWER. The sign says \"Wizard School.\" Everyone calls it the Tower. The door does not open for you.",
-     "src": "wiki/silverton.md; wiki/vice-row.md (the Wizard School = the Tower)"
+     "src": "wiki/silverton.md; wiki/vice-row.md (the Wizard School = the Tower)",
+     "cond": "!flag:towerFled"
     },
     {
      "x": 4,
@@ -10431,6 +11387,19 @@
      "on": "step",
      "script": "snoot",
      "cond": "!flag:snootDone"
+    },
+    {
+     "id": "towerDoor",
+     "rect": [
+      30,
+      12,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "expansion",
+     "arg": "tower",
+     "cond": "flag:towerFled"
     },
     {
      "id": "wallNorth",

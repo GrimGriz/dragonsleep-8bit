@@ -230,6 +230,8 @@
     if (w === 'axe') { p.line(31, 32, 33, 10, '#8a5a2a', 2); p.poly([[33, 10], [36, 6], [36, 18], [33, 15]], '#c8c8d0'); }
     if (w === 'net') { p.line(31, 30, 34, 20, '#8a5a2a', 1); p.ring(8, 30, 6, 6, '#c8b890'); p.line(3, 30, 13, 30, '#c8b890'); p.line(8, 25, 8, 35, '#c8b890'); }
     if (w === 'fists') { p.ellipse(31, 30, 2.5, 2.5, skin); }
+    if (w === 'mirror') { p.ellipse(32, 26, 3, 4, '#c8c8d8'); p.ellipse(32, 26, 2, 3, '#6a5a9a'); p.set(31, 25, '#f8f8f8'); p.set(34, 21, '#b8a0f8'); p.set(35, 24, '#b8a0f8'); }
+    if (w === 'wand') { p.line(31, 30, 35, 20, '#e8d8b0', 1); p.set(35, 19, '#a4e4fc'); p.set(34, 17, '#f8f8f8'); p.set(36, 21, '#a4e4fc'); }
     p.line(11, 22, 7, 32, skin, 3);
     if (o.shield) { p.ellipse(8, 30, 6, 8, o.shield); p.ellipse(8, 30, 3, 5, DS.mix(o.shield, '#ffffff', 0.25)); p.set(8, 30, '#c0a040'); }
     if (o.lamp) { p.rect(4, 32, 4, 5, INK); p.rect(5, 33, 2, 3, '#f8d878'); }
@@ -243,6 +245,8 @@
   A.hexfighter = function () { return humanoid({ cloth: '#7a2a2a', helm: '#8a8a98', weapon: 'sword', shield: '#7a5a2a', skin: '#c89070' }); };
   A.netfighter = function () { return humanoid({ cloth: '#3a5a3a', hair: '#1a1a1a', weapon: 'spear', skin: '#b07850' }); };
   A.orcfighter = function () { return humanoid({ cloth: '#5a3a2a', weapon: 'axe', skin: '#6a8a5a', tusks: true, big: true }); };
+  A.amara = function () { return humanoid({ cloth: '#3a2048', hood: '#1a1028', weapon: 'mirror', skin: '#e8c0a0', belt: '#b8a0d8' }); };
+  A.willem = function () { return humanoid({ cloth: '#2a4a7a', hair: '#e8d8a0', weapon: 'wand', skin: '#f0c8a8', belt: '#d8d8f0' }); };
   A.stablehand = function () { return humanoid({ cloth: '#3a2a4a', helm: '#6a6a78', weapon: 'spear', shield: '#4a2a2a', skin: '#e0b088' }); };
   A.chuul = function () {
     var p = new Pix(72, 64);

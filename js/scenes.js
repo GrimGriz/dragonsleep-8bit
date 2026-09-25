@@ -515,16 +515,19 @@
       }
     }
     if (what === 'sell') {
+      // most shops buy at half and won't touch gristle; Percy buys only parts, at a fifth of their rendered price
+      var d = this.def, rate = d.buyRate || 0.5;
+      var offer = function (it) { return Math.max(1, Math.floor(it.price * rate)); };
       while (true) {
-        var inv = G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it.kind !== 'key' && it.price > 0; })
-          .map(function (s) { var it = DS.DATA.items[s.id]; return { label: it.name + ' x' + s.n, right: Math.floor(it.price / 2) + ' sp', value: s.id }; });
-        if (!inv.length) { this.msg = 'You have nothing I want.'; return; }
+        var inv = G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it.kind !== 'key' && it.price > 0 && (d.buysKind ? d.buysKind.indexOf(it.kind) >= 0 : it.kind !== 'part'); })
+          .map(function (s) { var it = DS.DATA.items[s.id]; return { label: it.name + ' x' + s.n, right: offer(it) + ' sp', value: s.id }; });
+        if (!inv.length) { this.msg = d.nothingText || 'You have nothing I want.'; return; }
         var sid = yield DS.choose({ items: inv, x: 70, y: 58, w: 182, visible: 9, rowH: 12 });
         if (!sid) return;
         var sit = DS.DATA.items[sid], cnt = G.count(sid), k = 1;
-        if (cnt > 1) { k = yield DS.qty({ max: cnt, price: Math.floor(sit.price / 2), label: sit.name }); if (!k) continue; }
-        G.take(sid, k); G.silver += Math.floor(sit.price / 2) * k; DS.audio.sfx('coin');
-        this.msg = 'Done.';
+        if (cnt > 1) { k = yield DS.qty({ max: cnt, price: offer(sit), label: sit.name }); if (!k) continue; }
+        G.take(sid, k); G.silver += offer(sit) * k; DS.audio.sfx('coin');
+        this.msg = DS.pick(d.boughtText || ['Done.']);
       }
     }
   };
@@ -606,6 +609,33 @@
     if (this.menu) this.menu.draw(ctx);
   };
 
+  // ------------------------------------------------------------------ a book, read on its own page (Katarina's)
+  function BookScene(title, paras) {
+    this.kind = 'book'; this.opaque = true; this.p = 0; this.title = title;
+    var lines = [];
+    paras.forEach(function (t, i) { if (i) lines.push(''); DS.wrap(t, 216).forEach(function (l) { lines.push(l); }); });
+    this.pages = [];
+    for (var k = 0; k < lines.length; k += 17) this.pages.push(lines.slice(k, k + 17));
+  }
+  DS.BookScene = BookScene;
+  BookScene.prototype.update = function () {
+    if (I.pressed('b')) { DS.audio.sfx('cancel'); DS.pop(this); return; }
+    if (I.pressed('a') || I.pressed('right')) {
+      if (this.p < this.pages.length - 1) { this.p++; DS.audio.sfx('cursor'); } else { DS.audio.sfx('cancel'); DS.pop(this); }
+    }
+    if (I.pressed('left') && this.p > 0) { this.p--; DS.audio.sfx('cursor'); }
+  };
+  BookScene.prototype.draw = function (ctx) {
+    ctx.fillStyle = '#1a1210'; ctx.fillRect(0, 0, 256, 240);
+    ctx.fillStyle = '#6a4a2a'; ctx.fillRect(10, 6, 236, 228);
+    ctx.fillStyle = '#e8dcc0'; ctx.fillRect(14, 10, 228, 220);
+    ctx.fillStyle = '#d8c8a0'; ctx.fillRect(14, 10, 228, 2); ctx.fillRect(14, 228, 228, 2);
+    DS.textCenter(ctx, this.title, 128, 16, '#6a3a1a');
+    var pg = this.pages[this.p] || [];
+    for (var i = 0; i < pg.length; i++) DS.text(ctx, pg[i], 20, 30 + i * 11, '#2a1a10');
+    DS.textCenter(ctx, (this.p + 1) + ' / ' + this.pages.length + (this.p < this.pages.length - 1 ? '   Z: turn the page' : '   Z: close the book'), 128, 219, '#8a6a4a');
+  };
+
   // ------------------------------------------------------------------ Credits
   function Credits(ending) { this.kind = 'credits'; this.opaque = true; this.y = 240; this.ending = ending; this.lines = DS.DATA.credits; }
   DS.Credits = Credits;
@@ -613,10 +643,27 @@
   Credits.prototype.update = function () {
     this.y -= I.down('a') ? 1.6 : 0.4;
     if (I.pressed('b') || this.y < -this.lines.length * 12 - 40) {
-      if (this.ending) { DS.clearScenes(); DS.push(new Title()); }
+      if (this.ending) { DS.pop(this); DS.push(new AfterCredits()); }
       else DS.pop(this);
     }
     if (I.pressed('menu')) DS.openKofi();
+  };
+  // after the ending: carry on in a corridor with the lake quiet, or go to the title
+  function AfterCredits() {
+    var self = this;
+    this.kind = 'after'; this.opaque = true; this.t = 0;
+    this.menu = new DS.Menu({ items: [{ label: 'CONTINUE', value: 'go' }, { label: 'TITLE', value: 'title' }], x: 76, y: 150, w: 104, cancelable: false,
+      onSelect: function (it) {
+        if (it.value === 'title') { DS.clearScenes(); DS.push(new Title()); return; }
+        DS.run(function* () { yield* DS.EV.afterTheLake(); });
+      } });
+  }
+  AfterCredits.prototype.update = function () { this.t++; this.menu.update(); };
+  AfterCredits.prototype.draw = function (ctx) {
+    ctx.fillStyle = '#04061a'; ctx.fillRect(0, 0, 256, 240);
+    DS.bigText(ctx, 'THE LAKE IS QUIET', 128, 70, 1);
+    DS.wrap(DS.L('after.prompt'), 220).forEach(function (l, i) { DS.textCenter(ctx, l, 128, 96 + i * 11, '#C8D0E8'); });
+    this.menu.draw(ctx);
   };
   Credits.prototype.draw = function (ctx) {
     ctx.fillStyle = '#04061a'; ctx.fillRect(0, 0, 256, 240);

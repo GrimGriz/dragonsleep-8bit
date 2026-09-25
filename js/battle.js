@@ -150,7 +150,7 @@
     return ac;
   };
   Battle.prototype.saveMod = function (u, ab) {
-    if (isHero(u)) return R.saveBonus(u.h, ab);
+    if (isHero(u)) return R.saveBonus(u.h, ab) + (ab === 'con' && u.fortified ? 1 : 0); // Marta's pie: +2 CON
     var s = u.m.saves && u.m.saves[ab];
     return s != null ? s : DS.mod(abil(u, ab));
   };
@@ -276,6 +276,7 @@
     all.forEach(function (u) { u.init = DS.d(20) + (isHero(u) ? R.initBonus(u.h) : DS.mod(abil(u, 'dex'))) + Math.random() * 0.1; });
     this.order = all.slice().sort(function (a, b) { return b.init - a.init; });
     while (!this.over) {
+      if (this.o.join && this.round === this.o.join && this.o.solo != null) yield* this.joinParty();
       if (this.tauntWearer && this.tauntRounds.indexOf(this.round) >= 0 && !down(this.tauntWearer)) {
         var bnd = this.liveFoes().filter(function (f) { return (f.m.tags || []).indexOf(self.tauntTag) >= 0; });
         if (bnd.length) {
@@ -294,10 +295,64 @@
     }
     yield* this.finish();
   };
+  // a lone hero's fight that the rest of the party runs into (the wagon yard): they join at the top of a round
+  Battle.prototype.joinParty = function* () {
+    var self = this, here = this.heroes.map(function (u) { return u.h; });
+    var more = DS.G.party.filter(function (h) { return here.indexOf(h) < 0 && !h.ko; });
+    this.o.solo = null;
+    if (!more.length) return;
+    more.forEach(function (h) {
+      var u = { side: 'hero', h: h, idx: 0, conds: {}, buff: null, off: 0, pose: null, poseT: 0 };
+      u.init = DS.d(20) + R.initBonus(h) + Math.random() * 0.1;
+      self.heroes.push(u); self.order.push(u);
+    });
+    this.heroes.sort(function (a, b) { return DS.G.party.indexOf(a.h) - DS.G.party.indexOf(b.h); });
+    this.heroes.forEach(function (u) { u.idx = DS.G.party.indexOf(u.h); });
+    this.order.sort(function (a, b) { return b.init - a.init; });
+    this.layoutHeroes();
+    DS.audio.sfx('confirm');
+    yield* this.hold('The rest of the party comes pounding out of the inn!');
+  };
+  // foes that only fight to get away (Amara and Willem): each round one runs for it while the other covers
+  Battle.prototype.runner = function () {
+    if (this.o.noFlee) return null;
+    var fl = this.liveFoes().filter(function (x) { return x.m.traits && x.m.traits.flees; });
+    if (!fl.length) return null;
+    return fl.length > 1 ? fl[(this.round - 1) % fl.length] : fl[0];
+  };
+  Battle.prototype.foeFlee = function* (f) {
+    var self = this;
+    if (!this.darknessUp && this.o.darkness) { // Amara's darkness over the yard: the drivers know the drill
+      this.darknessUp = true; this.bright = false; DS.audio.sfx('magic'); this.flashT = 6;
+      yield* this.say('Amara throws darkness over the yard!', 44);
+      var drivers = this.liveFoes().filter(function (x) { return !(x.m.traits && x.m.traits.flees); });
+      if (drivers.length) {
+        drivers.forEach(function (d) { d.dead = true; d.fade = 24; d.surrendered = true; });
+        this.layoutFoes();
+        yield* this.say('The drivers throw down their blades and scatter.', 40);
+      }
+    }
+    var best = 0; this.liveHeroes().forEach(function (u) { best = Math.max(best, DS.mod(u.h.abil.dex)); });
+    var roll = DS.d(20) + DS.mod(abil(f, 'dex'));
+    f.off = -10;
+    yield* this.say(nameOf(f) + ' breaks for the horses...', 34);
+    f.off = 0;
+    if (roll >= 10 + best) {
+      DS.audio.sfx('run');
+      var away = this.liveFoes().filter(function (x) { return x.m.traits && x.m.traits.flees; });
+      DS.fledIds = away.map(function (x) { return x.id; }); // who's still out there, for the chase
+      yield* this.hold(away.length > 1 ? 'They get to the horses! Both of them are away into the dark.' : nameOf(f) + ' gets to a horse and is away into the dark!');
+      this.over = 'fled';
+    } else yield* this.say('...and is cut off. (' + roll + ' vs ' + (10 + best) + ')', 36);
+  };
   Battle.prototype.checkEnd = function () {
     if (this.over) return;
     if (!this.liveFoes().length) this.over = 'win';
-    else if (!this.liveHeroes().length) this.over = 'lose';
+    else if (!this.liveHeroes().length) {
+      // a lone watcher down in the yard isn't the end while the others are on their way out of the inn
+      var self = this, coming = this.o.join && this.o.solo != null && DS.G.party.some(function (h) { return !h.ko && self.heroes.every(function (u) { return u.h !== h; }); });
+      if (coming) this.o.join = Math.max(this.o.join, this.round + 1); else this.over = 'lose';
+    }
   };
   Battle.prototype.flushMsg = function* () {
     if (this.pendingMsg) { var m = this.pendingMsg; this.pendingMsg = null; yield* this.say(m, 44); }
@@ -623,6 +678,13 @@
       yield* this.dazzle(nameOf(u) + "'s light floods the dark.");
       return true;
     }
+    if (k === 'flavor') { // Dancing Lights: dim light, but nothing unseen stays unseen under it
+      this.foes.forEach(function (f) { f.conds.revealed = true; });
+      var shown = this.liveFoes().filter(function (f) { return f.m.traits && f.m.traits.unseen; });
+      this.burst(u, '#F8D878', 10, 1.2, 'rise');
+      yield* this.say('Four small lights bob out over the fight.' + (shown.length ? ' ' + nameOf(shown[0]) + ' shows plain under them!' : ' Nothing hides from them.'), 50);
+      return true;
+    }
     for (var i = 0; i < targets.length && !this.over; i++) {
       var t = targets[i];
       if (down(t) && k !== 'buff') { if (sp.target === 'enemy') { var alts = this.liveFoes(); if (!alts.length) break; t = DS.pick(alts); } else continue; }
@@ -749,6 +811,11 @@
       this.flashT = 8; this.usedFire = true;
       if (this.o.roost) return true; // the torch is lit under the roost: that's the end of it
       yield* this.dazzle(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.');
+    } else if (use.effect === 'fortify') { // Marta's bat-wing pie: +2 CON (a +1 to CON saves) and +5 HP for the fight
+      if (t.fortified) { DS.G.give(id, 1); yield* this.say(nameOf(t) + ' has already eaten.', 30); return false; }
+      t.fortified = true; t.h.maxhp += 5; t.h.hp += 5;
+      DS.audio.sfx('heal'); this.elemBurst(t, 'heal', 'rise'); this.num(t, 5, '#58F898');
+      yield* this.say(nameOf(t) + ' eats ' + it.name + '. +2 CON and +5 HP for the fight.', 46);
     } else if (use.effect === 'cure') {
       delete t.conds.poisoned; delete t.conds.paralyzed;
       DS.audio.sfx('heal');
@@ -775,6 +842,7 @@
     f.off = 0;
     f.acted = true;
     if (f.conds.recoiling) { delete f.conds.recoiling; yield* this.say(nameOf(f) + ' writhes away from the light and does nothing.', 44); return; }
+    if (this.runner() === f) { yield* this.foeFlee(f); return; }
     if (f.conds.frightened && DS.d(2) === 1) { yield* this.say(nameOf(f) + ' cowers.', 30); return; }
     if (f.conds.restrained && f.conds.restrained.escape) {
       if (this.check(f, 'str', 'Athletics') >= f.conds.restrained.escape) { delete f.conds.restrained; yield* this.say(nameOf(f) + ' tears free of the web.', 32); }
@@ -948,7 +1016,10 @@
   Battle.prototype.finish = function* () {
     var self = this, o = this.o;
     // clear battle-only state
-    this.heroes.forEach(function (u) { u.conds = {}; u.buff = null; });
+    this.heroes.forEach(function (u) {
+      u.conds = {}; u.buff = null;
+      if (u.fortified) { u.h.maxhp -= 5; u.h.hp = Math.min(u.h.hp, u.h.maxhp); u.fortified = false; }
+    });
     if (this.over === 'roost') { // the roof lets go: bats fill the screen, then the other kind of name
       yield* this.swarm();
       DS.audio.play('gameover');
@@ -976,6 +1047,18 @@
       if (each) lines.push('Each fighter standing gains ' + each + ' XP.');
       if (silver) { DS.G.silver += silver; lines.push('Found ' + silver + ' sp in coin and salvage.'); }
       drops.forEach(function (id) { DS.G.give(id, 1); lines.push('Found ' + DS.DATA.items[id].name + '!'); });
+      // spell-component harvest: needs someone standing who has the skill for that part
+      var hands = DS.G.party.filter(function (h) { return !h.ko; }), got = {}, gotOrder = [];
+      this.foes.forEach(function (f) {
+        if (f.surrendered) return;
+        (f.m.parts || []).forEach(function (pt) {
+          var h = hands.filter(function (x) { return pt.skill.some(function (s) { return x.skills && x.skills[s] != null; }); })[0];
+          if (!h) return;
+          if (!got[pt.item]) { got[pt.item] = { n: 0, who: h.name }; gotOrder.push(pt.item); }
+          got[pt.item].n++;
+        });
+      });
+      gotOrder.forEach(function (id) { DS.G.give(id, got[id].n); lines.push(got[id].who + ' harvests ' + DS.DATA.items[id].name + (got[id].n > 1 ? ' x' + got[id].n : '') + '.'); });
       var ups = [];
       living.forEach(function (h) { ups = ups.concat(R.gainXP(h, each)); });
       yield W8.frames(30);

@@ -223,6 +223,8 @@
     } else if (use.effect === 'ward') {
       g.take(id, 1); F().encounterIn += 60; DS.audio.sfx('magic');
       yield DS.say(L('g.chalk'));
+    } else if (use.effect === 'read') { // Katarina's book: the first page of Book One
+      yield W8.scene(new DS.BookScene('BOOK ONE', L('kat.book')));
     }
   };
   EV.fieldCast = function* (h, sp) {
@@ -285,13 +287,14 @@
   // ================================================================== SCRIPTS
   // --- expansion walls (spec §5): pop a modal, then put the party back one tile
   S.expansion = function* (dir) {
-    var north = dir === 'north';
+    var north = dir === 'north', tower = dir === 'tower';
     DS.audio.sfx('popup');
     yield DS.popup({
-      title: north ? 'UP TO THE DOORS' : 'DOWN TO THE PIT',
-      text: L('wall.text'), foot: DS.DATA.config.kofi.replace(/^https?:\/\//, ''), buttons: ['♥ DONATE', 'BACK'],
+      title: tower ? 'THE TOWER' : north ? 'UP TO THE DOORS' : 'DOWN TO THE PIT',
+      text: L(tower ? 'wall.tower' : 'wall.text'), foot: DS.DATA.config.kofi.replace(/^https?:\/\//, ''), buttons: ['♥ DONATE', 'BACK'],
       onButton: function (i) { if (i === 0) DS.openKofi(); }
     });
+    if (tower) return; // walked into the door, never onto it: nothing to back off from
     // back off the wall: straight away from it when there's ground there, else back the way you came
     var g = G(), away = north ? 'down' : 'up';
     if (F().free(g.x + DS.DIRS[away][0], g.y + DS.DIRS[away][1], 'player')) yield F().walk([away]);
@@ -343,13 +346,14 @@
 
   // --- the Weigh-House board: Hessle pays bounties
   // what the board says right now: open bounties only; paid ones come down
-  function boardLines() {
+  function openBounties() {
     var g = G(), out = [];
     if (!g.flags.ettercapDone) out.push(L('hessle.boardEttercap'));
     if (!g.flags.cloakerDone) out.push(L('hessle.boardCloaker'));
-    if (!out.length) out.push(L('hessle.boardClear'));
+    if (!g.flags.snootWord) out.push(L('hessle.boardSnoot'));   // the listed true word: the Snoot (RULED 09-24)
     return out;
   }
+  function boardLines() { var o = openBounties(); return o.length ? o : [L('hessle.boardClear')]; }
   S.hessle = function* (npc, D) {
     var g = G();
     yield DS.say(L('hessle.greet'), who('Hessle'));
@@ -366,7 +370,18 @@
       g.silver += 400; DS.audio.sfx('coin'); yield DS.say(L('g.foundSilver', { n: 400 }));
       yield* EV.renown(1, 'renown.cloaker');
     }
-    if (!g.flags.ettercapDone || !g.flags.cloakerDone) yield DS.say([L('hessle.boardRead')].concat(boardLines()), who('Hessle'));
+    // true word: the Snoot (listed), and Amara's order (not for any board)
+    if (g.count('anchorpin') > 0) {
+      g.take('anchorpin', 1); g.flags.snootWord = 1; paid = true;
+      yield DS.say(L('hessle.snootWord'), who('Hessle'));
+      g.silver += 500; DS.audio.sfx('coin'); yield DS.say(L('g.foundSilver', { n: 500 }));
+    }
+    if (g.count('wagonorder') > 0) {
+      g.take('wagonorder', 1); g.flags.orderWord = 1; paid = true;
+      yield DS.say(L('hessle.orderWord'), who('Hessle'));
+      g.silver += 500; DS.audio.sfx('coin'); yield DS.say(L('g.foundSilver', { n: 500 }));
+    }
+    if (openBounties().length) yield DS.say([L('hessle.boardRead')].concat(openBounties()), who('Hessle'));
     else if (!paid) yield DS.say(L('hessle.boardClear'), who('Hessle'));
     if (g.flags.fiveDone && !g.flags.fiveNotice) { g.flags.fiveNotice = 1; yield DS.say(L(g.flags.stockDead ? 'hessle.fiveDead' : 'hessle.fiveAlive'), who('Hessle')); }
   };
@@ -815,7 +830,11 @@
     if (g.flags.snootDone) return;
     yield DS.say(L('road.snoot'));
     var res = yield* EV.fight(['gloryseeker', 'gnoll', 'gnoll', 'hyena', 'hyena'], { bg: 'gnoll', music: 'boss', canRun: true });
-    if (res === 'win') { g.flags.snootDone = 1; yield DS.say(L('road.snootDone')); yield* EV.renown(1, 'renown.snoot'); }
+    if (res === 'win') {
+      g.flags.snootDone = 1; yield DS.say(L('road.snootDone'));
+      g.give('anchorpin', 1); DS.audio.sfx('chest'); yield DS.say(L('road.snootPin'));
+      yield* EV.renown(1, 'renown.snoot');
+    }
     else if (res === 'run') yield F().walk(['up']);
   };
 
@@ -831,7 +850,8 @@
     var a = yield DS.ask(L('inn.stayAsk', { n: cost }), ['STAY THE NIGHT', 'NO'], who('The inn lady'));
     if (a !== 0) return;
     if (!EV.pay(cost)) { yield DS.say(L('g.poor')); return; }
-    if (g.has('ringofbinding') && !g.flags.dueSeen) { yield* S.theDue(); return; }
+    if (!g.flags.wagonNight) { yield* S.wagonNight(); return; }                 // the first night: the wagon
+    if (g.has('ringofbinding') && !g.flags.dueSeen) { yield* S.theDue(); return; } // a night with the ring on: the due
     yield* EV.rest();
     var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
     if (s === 0) yield W8.scene(new DS.SlotScene(true));
@@ -839,6 +859,9 @@
   S.elsbeth = function* (npc, D) {
     var g = G();
     if (g.flags.lakeDone) { yield DS.say(L('inn.elsbethAfter'), who('Elsbeth')); return; }
+    if (g.flags.elsbethSilent) { yield DS.say(L('inn.elsbethSilent')); return; }
+    if (g.flags.wagonGift) { yield* EV.wagonGift(); return; }
+    if (g.flags.doranAway && !g.has('ringofbinding')) { yield DS.say(L('inn.elsbethWinters'), who('Elsbeth')); return; }
     if (!g.flags.dishes) {
       var a = yield DS.ask(L('inn.elsbethDishes'), ['HELP WITH THE DISHES', 'LEAVE HER BE']);
       if (a !== 0) return;
@@ -853,22 +876,17 @@
     }
     yield DS.say(L(g.has('ringofbinding') ? 'inn.elsbethTonight' : 'inn.elsbeth3'), who('Elsbeth'));
   };
+  var NIGHT = ['#04062a', 0.64];
   // RULED 09-23 (Griz): show the inn lady and the kid go to the lake, and only the inn lady come back.
-  S.theDue = function* () {
-    var g = G(), f = F();
-    g.flags.reachedInn = 1;
-    yield DS.fade(1, 30);
-    DS.audio.play('lake', true);
-    yield* EV.warp('halfway', 20, 13, 'down');
-    f = F();
-    f.hidePlayer = true;
-    var n1 = makeNpc('dueLady', 20, 12, 'innlady', true), n2 = makeNpc('dueKid', 20, 11, 'kid', false);
+  // RULED 09-24: the kid looks like whatever the party has let itself see — a goblin, if the glamour never broke.
+  EV.dueWalk = function* (look) {
+    var f = F(), g = G();
+    yield DS.fade(1, 16);
+    f.hidePlayer = true; g.x = 20; g.y = 13; f.px = 320; f.py = 208;
+    var n1 = makeNpc('dueLady', 20, 12, 'innlady', true), n2 = makeNpc('dueKid', 20, 11, look, false);
     f.npcs.push(n1, n2);
-    f.npcs = f.npcs.filter(function (n) { return n.id !== 'orrin' && n.id !== 'pell'; });
-    yield DS.say(L('due.night'), { top: true });
-    yield DS.say(L('due.wagon'), { top: true });
-    yield W8.frames(30);
-    yield DS.say(L('due.walk'), { top: true, auto: 90 });
+    yield DS.fade(0, 16);
+    yield DS.say(L(look === 'goblin' ? 'due.walkGoblin' : 'due.walk'), { top: true, auto: 90 });
     n1.path = ['down', 'down', 'right', 'right', 'right', 'right', 'right', 'up', 'right', 'face:right'];
     n2.path = ['wait20', 'down', 'down', 'down', 'right', 'right', 'right', 'right', 'right', 'right', 'face:right'];
     yield W8.until(function () { return !n1.moving && !n1.path.length && !n2.moving && !n2.path.length && !(n2.pause > 0); });
@@ -882,8 +900,24 @@
     n1.hidden = true;
     yield DS.say(L('due.back'), { top: true });
     f.npcs = f.npcs.filter(function (n) { return n !== n1 && n !== n2; });
+  };
+  // a night with the ring on, after the wagon night: the due, and then the thing is awake at the point
+  S.theDue = function* () {
+    var g = G(), f;
+    g.flags.reachedInn = 1;
+    yield DS.fade(1, 30);
+    DS.audio.play('lake', true);
+    yield* EV.warp('halfway', 20, 13, 'down');
+    f = F(); f.hidePlayer = true; f.tint = NIGHT;
+    f.npcs = f.npcs.filter(function (n) { return ['orrin', 'pell', 'adoptedKid'].indexOf(n.id) < 0; });
+    yield DS.say(L('due.night'), { top: true });
+    var look = 'kid';
+    if (g.flags.kidAtInn) yield DS.say(L('due.kept'), { top: true });
+    else { yield DS.say(L('due.wagon'), { top: true }); if (!g.flags.glamourBroken) look = 'goblin'; }
+    yield W8.frames(30);
+    yield* EV.dueWalk(look);
     f.hidePlayer = false;
-    g.flags.dueSeen = 1;
+    g.flags.dueSeen = 1; delete g.flags.kidAtInn;
     yield DS.say(L('due.after'));
     g.party.forEach(function (h) { R.refresh(h, true); });
   };
@@ -892,6 +926,266 @@
     var def = { id: id, x: x, y: y, look: look, lantern: lantern, face: false, solid: false };
     return new DS.Npc(def, F0.map);
   }
+  function spawn(def) { var n = new DS.Npc(Object.assign({ face: false, solid: false }, def), F().map); F().npcs.push(n); return n; }
+  function arrived(list) { return W8.until(function () { return list.every(function (n) { return !n.moving && !n.path.length && !(n.pause > 0); }); }); }
+
+  // ================================================================== THE WAGON NIGHT
+  // RULED 09-24 (Griz): the first night the party stays at the Halfway Inn, Amara's wagon comes in. Its "goblins"
+  // are Willem Glass's glamour over children out of Newland (module-halfway-inn.md). Who had second watch sees
+  // it arrive; what they see through, and what they do about it, is the night.
+  var W = {}; // the scene's cast, while it runs
+  function perceives(h, dc, bonus) { return DS.d(20) + R.skill(h, 'Perception', 'wis') + (bonus || 0) >= dc; }
+  function* breakGlamour() { // seen through: the player sees children. No words (RULED 09-24).
+    var g = G();
+    if (g.flags.glamourSeen) return;
+    g.flags.glamourSeen = 1;
+    DS.audio.sfx('magic');
+    DS.flashColor = '#F8F8F8'; DS.flashAlpha = 0.35; yield W8.frames(6); DS.flashColor = null;
+    if (W.wagon) W.wagon.def = Object.assign({}, W.wagon.def, { prop: 'wagonKids' });
+    if (W.goblin) W.goblin.look = DS.LOOKS.kid;
+    yield W8.frames(40);
+  }
+  S.wagonNight = function* () {
+    var g = G(), f, party = g.party.filter(function (h) { return !h.ko; });
+    g.flags.wagonNight = 1; delete g.flags.glamourSeen;
+    yield DS.fade(1, 30);
+    DS.audio.play('lake', true);
+    yield* EV.warp('halfway', 8, 12, 'left'); // camera: the yard in the top half, text in the bottom box
+    f = F(); f.hidePlayer = true; f.tint = NIGHT;
+    f.npcs = f.npcs.filter(function (n) { return ['orrin', 'pell', 'doranYard', 'adoptedKid'].indexOf(n.id) < 0; });
+    W = {};
+    W.wagon = spawn({ id: 'wagon', x: -2, y: 7, prop: 'wagon', dir: 'right' });
+    W.kat = spawn({ id: 'katYard', x: 15, y: 12, look: 'kat', dir: 'left' });
+    yield DS.say(L('wagon.night'));
+    W.wagon.path = ['right', 'right', 'right', 'right', 'right', 'right', 'right', 'right', 'right']; W.wagon.pathSpeed = 1;
+    yield arrived([W.wagon]);
+    W.amara = spawn({ id: 'amaraYard', x: 8, y: 9, look: 'amara', dir: 'right' });
+    W.willem = spawn({ id: 'willemYard', x: 7, y: 9, look: 'willem', dir: 'right' });
+    W.drivers = [spawn({ id: 'driver1', x: 3, y: 9, look: 'worker2', dir: 'down' }), spawn({ id: 'driver2', x: 4, y: 9, look: 'worker', dir: 'down' })];
+    W.goblin = spawn({ id: 'wagonGoblin', x: 5, y: 10, look: 'goblin', dir: 'right' });
+    yield DS.say(L('wagon.secondWatch'));
+    var watcher = party.length === 1 ? party[0] : yield DS.choose({ items: party.map(function (h) { return { label: h.name, right: 'Perception ' + DS.sgn(R.skill(h, 'Perception', 'wis')), value: h }; }), x: 60, y: 90, w: 150, title: 'WHO HAD SECOND WATCH?', cancelable: false });
+    watcher = watcher || party[0];
+    // the inn lady comes out to meet it, lantern up
+    W.gennet = spawn({ id: 'gennetYard', x: 13, y: 12, look: 'innlady', dir: 'left', lantern: true });
+    W.gennet.path = ['left', 'left', 'left', 'left', 'up', 'up', 'up', 'face:left'];
+    yield arrived([W.gennet]);
+    W.amara.dir = 'right';
+    yield DS.say(L('wagon.greet1'), who('The inn lady'));
+    yield DS.say(L('wagon.greet2'), who('Amara'));
+    yield DS.say(L('wagon.greet3'), who('The inn lady'));
+    if (perceives(watcher, 15)) yield* breakGlamour();
+    var a = yield DS.ask(L('wagon.ask', { name: watcher.name }), ['INVESTIGATE', 'WAKE THE PARTY', 'KEEP WATCH']);
+    if (a === 2) { yield* S.wagonQuiet(); return; }
+    var outside = a === 0 ? [watcher] : party.slice();
+    // out the door: the player is in the yard now
+    yield DS.fade(1, 10);
+    g.x = 13; g.y = 12; g.dir = 'left'; f.px = 13 * 16; f.py = 12 * 16; f.hidePlayer = false;
+    yield DS.fade(0, 10);
+    yield DS.say(L(a === 0 ? 'wagon.investigate' : 'wagon.wake', { name: watcher.name }));
+    yield F().walk(['left', 'left']);
+    if (!g.flags.glamourSeen && outside.some(function (h) { return perceives(h, 12); })) yield* breakGlamour();
+    if (!g.flags.glamourSeen) {
+      yield DS.say(L('wagon.lie'), who('The inn lady'));
+      // the lie: Insight hears it, and a second, sharper look follows
+      if (outside.some(function (h) { return DS.d(20) + R.skill(h, 'Insight', 'wis') >= 13; })) {
+        yield DS.say(L('wagon.insight'));
+        if (outside.some(function (h) { return perceives(h, 12, 5); })) yield* breakGlamour();
+      }
+    }
+    if (!g.flags.glamourSeen) { yield DS.say(L('wagon.nothing')); yield* S.wagonQuiet(); return; }
+    // seen through, out in the yard
+    var ly = outside.filter(function (h) { return h.id === 'lymen'; })[0];
+    if (ly) { yield DS.say(L('wagon.lymen'), who('Lymen')); yield* S.wagonFight(outside); return; }
+    yield DS.say(L('wagon.confront'), who(outside[0].name));
+    var b = yield DS.ask(L('wagon.bribe'), ['TAKE THE GOLD', 'REFUSE'], who('Amara'));
+    if (b === 0) { yield* S.wagonBribe(); return; }
+    yield DS.say(L('wagon.refuse'), who(outside[0].name));
+    yield* S.wagonFight(outside);
+  };
+  // nobody acts: the handover, and after midnight the lantern goes down to the water
+  S.wagonQuiet = function* () {
+    var g = G(), f = F();
+    W.goblin.path = ['right', 'right', 'right', 'up', 'face:right'];
+    yield arrived([W.goblin]);
+    yield DS.say(L('wagon.handover'));
+    W.goblin.path = ['down', 'down', 'right', 'right', 'right', 'right', 'hide'];
+    W.gennet.path = ['wait8', 'down', 'down', 'down', 'right', 'right', 'right', 'right', 'hide'];
+    yield arrived([W.goblin, W.gennet]);
+    g.flags.wagonOutcome = 'quiet';
+    if (g.flags.glamourSeen) g.flags.glamourBroken = 1;
+    yield DS.say(L('wagon.quietNight'));
+    yield* EV.dueWalk(g.flags.glamourSeen ? 'kid' : 'goblin');
+    yield* EV.wagonMorning(g.flags.glamourSeen ? 'quietSeen' : 'quiet');
+  };
+  // the gold taken: the lady "adopts" the child, the wagon doesn't stay, and Katarina rides out with it
+  S.wagonBribe = function* () {
+    var g = G();
+    g.silver += 500; DS.audio.sfx('coin');
+    yield DS.say(L('g.foundSilver', { n: 500 }));
+    g.flags.wagonOutcome = 'bribe'; g.flags.glamourBroken = 1; g.flags.elsbethSilent = 1; g.flags.katGone = 1;
+    yield DS.say(L('wagon.bribeTaken'));
+    W.goblin.path = ['right', 'right', 'right', 'up', 'face:right']; yield arrived([W.goblin]);
+    W.goblin.path = ['down', 'down', 'right', 'right', 'right', 'right', 'hide'];
+    W.gennet.path = ['wait8', 'down', 'down', 'down', 'right', 'right', 'right', 'right', 'hide'];
+    W.kat.path = ['left', 'left', 'left', 'left', 'left', 'left', 'up', 'up', 'up', 'hide'];
+    [W.amara, W.willem].concat(W.drivers).forEach(function (n) { n.path = ['wait30', 'hide']; });
+    yield arrived([W.goblin, W.gennet, W.kat]);
+    DS.audio.sfx('door');
+    W.wagon.dir = 'left'; W.wagon.path = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'];
+    yield arrived([W.wagon]);
+    yield DS.say(L('wagon.bribeGone'));
+    yield* EV.dueWalk('kid');
+    yield* EV.wagonMorning('bribe');
+  };
+  // steel comes out: the pair fight only to get to the horses; the drivers fold when the darkness goes up
+  S.wagonFight = function* (outside) {
+    var g = G(), party = g.party.filter(function (h) { return !h.ko; });
+    var solo = outside.length === 1 && party.length > 1 ? g.party.indexOf(outside[0]) : null;
+    DS.fledIds = null;
+    var res = yield DS.battle({ enemies: ['amara', 'willem', 'bandit', 'bandit'], bg: 'lake', music: 'boss', canRun: false, solo: solo, join: solo != null ? 2 : 0, darkness: true, returnSong: 'lake' });
+    if (res === 'lose') return;
+    g.flags.glamourBroken = 1; g.flags.glamourSeen = 1;
+    if (W.wagon) W.wagon.def = Object.assign({}, W.wagon.def, { prop: 'wagonKids' });
+    if (W.goblin) W.goblin.look = DS.LOOKS.kid;
+    [W.amara, W.willem].concat(W.drivers).forEach(function (n) { n.hidden = true; });
+    yield DS.say(L('wagon.abandoned'));
+    // the strongbox under the driver's bench
+    g.silver += 600; g.give('wagonorder', 1); DS.audio.sfx('chest');
+    yield DS.say([L('wagon.strongbox'), L('g.foundSilver', { n: 600 }), L('g.got', { item: DS.DATA.items.wagonorder.name })]);
+    yield* EV.wagonFreed();
+    if (res === 'win') { // both down in the yard
+      g.flags.wagonOutcome = 'inn';
+      yield DS.say(L('wagon.doranTakes'));
+      yield* EV.wagonMorning('inn');
+      return;
+    }
+    yield* S.wagonChase();
+  };
+  EV.wagonFreed = function* () { // eight children, real in a yard: renown, and the lake's thanks later from Elsbeth
+    var g = G();
+    g.flags.doranAway = 1; g.flags.kidAtInn = 1; g.flags.wagonGift = 1;
+    yield* EV.renown(1, 'renown.wagon');
+  };
+  // they got to the horses: the party runs them down once on the road; if they break away again, it's yours to catch them
+  S.wagonChase = function* () {
+    var g = G(), f;
+    yield DS.say(L('wagon.chase1'), { top: true });
+    yield DS.fade(1, 20);
+    F().tint = null; F().hidePlayer = false;
+    yield* EV.warp('world', 33, 34, 'up'); // just north of the inn: the run to the Tower is the whole road
+    f = F();
+    var who = (DS.fledIds || ['amara', 'willem']).slice(), riders = [];
+    who.forEach(function (id, k) { var r = spawn({ id: 'rider' + k, x: 33, y: 30 - k, look: id, dir: 'up' }); r.path = ['up']; riders.push(r); });
+    yield F().walk(['up', 'up', 'up']);
+    yield DS.say(L('wagon.caught1'), { top: true });
+    DS.fledIds = null;
+    var r2 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false });
+    f.npcs = f.npcs.filter(function (n) { return riders.indexOf(n) < 0; });
+    if (r2 === 'lose') return;
+    if (r2 === 'win') { g.flags.wagonOutcome = 'road'; yield DS.say(L('wagon.roadDone'), { top: true }); return; }
+    // away again, up the road to the fork and the Tower, at your own speed. At the fork they pull up a moment, and if
+    // Willem's still riding he throws a false pair of them west down the Castegut road.
+    who = (DS.fledIds || who).slice();
+    var m = f.map, sx = g.x, sy = g.y - 5;
+    var route = DS.pathTo(m, sx, sy, 30, 13);
+    var fork = route.length;
+    for (var i = 0; i < route.length; i++) { var px = sx, py = sy; route.slice(0, i + 1).forEach(function (d) { px += DS.DIRS[d][0]; py += DS.DIRS[d][1]; }); if (py <= 15) { fork = i + 1; break; } }
+    var realPath = route.slice(0, fork).concat(['wait64'], route.slice(fork)); // pulled up at the fork: the moment to catch them
+    var fx = sx, fy = sy; route.slice(0, fork).forEach(function (d) { fx += DS.DIRS[d][0]; fy += DS.DIRS[d][1]; });
+    var real = who.map(function (id, k) { return spawn({ id: 'rider' + k, x: sx, y: sy, look: id, dir: 'up' }); });
+    var fakes = who.indexOf('willem') < 0 ? [] : who.map(function (id, k) { var n = spawn({ id: 'fake' + k, x: fx, y: fy, look: id, dir: 'left' }); n.hidden = true; return n; });
+    var westward = DS.pathTo(m, fx, fy, 6, 16).slice(0, 12).concat(['hide']);
+    yield DS.say(L('wagon.chase2'), { top: true });
+    real.forEach(function (n, k) { n.pathSpeed = 2; n.path = (k ? ['wait8'] : []).concat(realPath); });
+    fakes.forEach(function (n, k) { n.pathSpeed = 2; n.path = ['wait' + (fork * 8 + 10 + k * 8), 'show'].concat(westward); });
+    var all = real.concat(fakes);
+    f.chase = {
+      real: real, fake: fakes, goal: { x: 30, y: 13 },
+      caught: function* () {
+        yield DS.say(L('wagon.caught2'), { top: true });
+        var r3 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false, noFlee: true });
+        F().npcs = F().npcs.filter(function (n) { return all.indexOf(n) < 0; });
+        if (r3 === 'lose') return;
+        g.flags.wagonOutcome = 'road';
+        yield DS.say(L('wagon.roadDone'), { top: true });
+      },
+      escaped: function* () {
+        F().npcs = F().npcs.filter(function (n) { return all.indexOf(n) < 0; });
+        g.flags.wagonOutcome = 'fled'; g.flags.towerFled = 1;
+        yield DS.say(L('wagon.towerEscape'), { top: true });
+      }
+    };
+  };
+  // morning at the inn, whatever the night was
+  EV.wagonMorning = function* (how) {
+    var g = G();
+    yield DS.fade(1, 30);
+    F().tint = null; F().hidePlayer = false;
+    g.party.forEach(function (h) { if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true); });
+    yield* EV.warp('halfway_in', 4, 6, 'down');
+    DS.audio.play('inn', true);
+    yield DS.say(L('wagon.morning.' + how));
+    if (how === 'inn') yield* EV.wagonGift();
+    if (how !== 'inn' && g.has('ringofbinding')) yield DS.say(L('wagon.ringCold')); // the lake was fed tonight
+    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
+    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+  };
+  // Elsbeth, after the wagon's been stopped: the lake gave it back; it should go to somebody who stops things
+  EV.wagonGift = function* () {
+    var g = G(), main = g.main();
+    delete g.flags.wagonGift;
+    var arm = R.item(main.equip.armor), id = arm && DS.DATA.items[arm.id + '1'] ? arm.id + '1' : 'ringofprotection', it = DS.DATA.items[id];
+    yield DS.say(L('wagon.gift'), who('Elsbeth'));
+    g.give(id, 1); DS.audio.sfx('chest');
+    yield DS.say(L('g.got', { item: it.name }));
+    if (it.kind === 'armor') {
+      var eq = yield DS.ask(L('winters.equipAsk', { name: main.name }), ['YES', 'NO']);
+      if (eq === 0) { g.give(main.equip.armor, 1); g.take(id, 1); main.equip.armor = id; DS.audio.sfx('confirm'); }
+    }
+    if (!g.has('ringofbinding')) yield DS.say(L('inn.elsbethWinters'), who('Elsbeth'));
+  };
+  // the day after: Katarina gives the party her book and heads south (RULED 09-24)
+  S.katarina = function* (npc, D) {
+    var g = G();
+    if (!g.flags.wagonNight) { yield* EV.dialog(D); return; }
+    g.flags.katGone = 1; g.give('katbook', 1); DS.audio.sfx('chest');
+    yield DS.say(L('kat.gives'), who('Katarina'));
+    yield DS.say(L('g.got', { item: DS.DATA.items.katbook.name }));
+    yield DS.say(L('kat.south'));
+    npc.hidden = true;
+  };
+  // the room over the kitchen: the drawer where she left the book, if she rode out with the wagon
+  S.drawer = function* () {
+    var g = G();
+    if (g.flags.katGone && !g.flags.katBookTaken && !g.has('katbook') && g.flags.wagonOutcome === 'bribe') {
+      g.flags.katBookTaken = 1; g.give('katbook', 1); DS.audio.sfx('chest');
+      yield DS.say([L('inn.drawerBook'), L('g.got', { item: DS.DATA.items.katbook.name })]);
+      return;
+    }
+    yield DS.say(L('inn.stair'));
+  };
+  S.doranIn = function* (npc, D) {
+    var g = G();
+    if (!g.flags.postgame) { yield* EV.dialog(D); return; }
+    yield DS.say(L('after.doran'), who('Doran Waterby'));
+    var a = yield DS.ask(L('after.doranStay'), ['STAY THE NIGHT', 'NO'], who('Doran Waterby'));
+    if (a !== 0) return;
+    yield* EV.rest();
+    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
+    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+  };
+  // after the credits: CONTINUE puts you back at the lake in the morning, the corridor still open
+  EV.afterTheLake = function* () {
+    var g = G();
+    g.flags.postgame = 1; delete g.flags.doranAway; delete g.flags.kidAtInn;
+    DS.clearScenes();
+    var f = DS.field = new DS.Field(); DS.push(f);
+    f.load('halfway', 20, 13, 'down');
+    DS.fadeLevel = 0;
+    DS.audio.play('lake', true);
+    yield DS.say(L('after.morning'));
+  };
   S.pointStep = function* () {
     var g = G();
     if (g.flags.lakeDone) { yield DS.say(L('lake.quiet')); return; }
@@ -945,6 +1239,28 @@
       DS.audio.sfx('levelup');
       yield DS.say(L('rogue.archetypeTaken', { name: h.name, arch: pick.name }));
     }
+  };
+
+  // --- Percy's Particulars: he buys the parts (a fifth of what he'll sell them for, rendered); Ned minds the jars
+  S.percyShop = function* (npc, D) {
+    yield* EV.dialog(D);
+    if (G().count('batwings') > 0) yield DS.say(L('percy.wings'), who('Percy'));
+    yield DS.shop('percy');
+  };
+  // --- Marta Venn cooks bat wings (Percy won't have them): a pie that sits you up in a fight (RULED 09-24)
+  S.marta = function* (npc, D) {
+    var g = G(), n = g.count('batwings');
+    if (n > 0) {
+      var free = !!g.hero('vivian'), cost = free ? 0 : n;
+      var a = yield DS.ask(L(free ? 'marta.wingsViv' : 'marta.wings', { n: n, cost: cost }), ['COOK THEM', 'NOT NOW'], who('Marta Venn'));
+      if (a === 0) {
+        if (cost && !EV.pay(cost)) { yield DS.say(L('g.poor')); return; }
+        g.take('batwings', n); g.give('batpie', n); DS.audio.sfx('chest');
+        yield DS.say(L('marta.pies', { n: n }), who('Marta Venn'));
+        return;
+      }
+    }
+    yield* EV.dialog(D);
   };
 
   // --- misc NPC scripts

@@ -336,6 +336,13 @@
     sylvia: { hair: '#6a6a7a', skin: '#f0c8a8', cloth: '#4a3a6a', trim: '#c0c0e0', style: { long: true, robe: true } },
     priest: { hair: '#6a6a6a', skin: '#e8b890', cloth: '#d8d0b8', trim: '#c0a040', style: { robe: true } },
     sailor: { hair: '#8a6a4a', skin: '#d8a070', cloth: '#6a8aa8', pants: '#3a3a4a' },
-    cutter: { hair: '#c8b8a0', skin: '#d8b080', cloth: '#7a6a5a', style: { robe: true, hat: true } }
+    cutter: { hair: '#c8b8a0', skin: '#d8b080', cloth: '#7a6a5a', style: { robe: true, hat: true } },
+    // the wagon night
+    goblin: { hair: '#2a3020', skin: '#7aa04a', cloth: '#6a5a3a', pants: '#4a3a2a', style: { bald: true } },
+    amara: { hair: '#2a1a2a', skin: '#e8c0a0', cloth: '#3a2048', trim: '#b8a0d8', style: { robe: true, hood: true } },
+    willem: { hair: '#e8d8a0', skin: '#f0c8a8', cloth: '#2a4a7a', trim: '#d8d8f0', style: { robe: true } },
+    kat: { hair: '#6a4a2a', skin: '#f0c8a8', cloth: '#6a4a2a', trim: '#c8b890', style: { long: true, robe: true } },
+    percy: { hair: '#9a7a5a', skin: '#f0c8a0', cloth: '#e8e0d0', apron: '#6a5a4a', style: { apron: true, beard: true } },
+    ned: { hair: '#4a3a2a', skin: '#f0c8a0', cloth: '#3a3a6a', trim: '#c0c0e0', style: { robe: true } }
   };
 })();

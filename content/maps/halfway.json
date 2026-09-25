@@ -108,7 +108,8 @@
 "x": 9,
 "y": 11,
 "look": "worker",
-"dir": "down"
+"dir": "down",
+"cond": "!flag:doranAway"
 },
 {
 "id": "orrin",
@@ -125,6 +126,14 @@
 "look": "kid",
 "wander": 1,
 "cond": "!flag:dueSeen"
+},
+{
+"id": "adoptedKid",
+"x": 24,
+"y": 18,
+"look": "girl",
+"wander": 1,
+"cond": "flag:kidAtInn & !flag:dueSeen"
 }
 ],
 "warps": [

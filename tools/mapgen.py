@@ -282,7 +282,8 @@ def build_world():
     g.warp(31, 26, 'gulch', 3, 5, 'right')
     g.warp(34, 37, 'halfway', 1, 10, 'right')
     g.trig('snoot', 31, 47, 'snoot', w=5, h=1, cond='!flag:snootDone')
-    g.sign(30, 12, 'THE TOWER. The sign says "Wizard School." Everyone calls it the Tower. The door does not open for you.', 'wiki/silverton.md; wiki/vice-row.md (the Wizard School = the Tower)')
+    g.sign(30, 12, 'THE TOWER. The sign says "Wizard School." Everyone calls it the Tower. The door does not open for you.', 'wiki/silverton.md; wiki/vice-row.md (the Wizard School = the Tower)', cond='!flag:towerFled')
+    g.trig('towerDoor', 30, 12, 'expansion', 'tower', on='use', cond='flag:towerFled')   # after Amara rides in: the expansion wall
     g.sign(4, 16, 'The Castegut road runs on west, weak and thin, north of the Gnoll Hills. Not this road. Not this time.', 'wiki/the-road.md (the Castegut road); edge text invented.json#west-edge')
     g.trig('wallNorth', 0, 0, 'expansion', 'north', w=W, h=1)
     g.trig('wallSouth', 0, H - 1, 'expansion', 'south', w=W, h=1)
@@ -415,7 +416,7 @@ def build_silverton():
     g.door(*D('marin'), 'keeper', 'marin'); g.door(*D('lisbet'), 'shop', 'lisbet', icon='star'); g.door(*D('brennan'), 'keeper', 'brennan')
     g.door(*D('marko'), 'shop', 'marko', icon='pack'); g.door(*D('kasten'), 'shop', 'kasten', icon='candle'); g.door(*D('venn'), 'keeper', 'barber')
     g.door(*D('venhale'), 'keeper', 'venhale'); g.door(*D('vilar'), 'shop', 'vilar', icon='sword'); g.door(*D('davos'), 'leech', 'davos', icon='stitch')
-    g.door(*D('percy'), 'keeper', 'percy'); g.door(*D('tam'), 'keeper', 'tam'); g.door(*D('aldwin'), 'chapel', 'aldwin', icon='sun')
+    g.door(*D('percy'), 'warp', 'percy', to='percy', tx=4, ty=6, icon='jar'); g.door(*D('tam'), 'keeper', 'tam'); g.door(*D('aldwin'), 'chapel', 'aldwin', icon='sun')
     g.door(*D('kess'), 'keeper', 'kess'); g.door(*D('mical'), 'keeper', 'mical')
     g.door(37, 19, 'shop', 'lucia', icon='mortar')
     g.trig('board', 24, 11, 'board', on='use')
@@ -441,6 +442,7 @@ def build_silverton():
     g.npc('towns7', 36, 12, 'noble', wander=2)
     g.npc('towns8', 14, 36, 'girl', wander=2)
     g.npc('idony', 18, 12, 'clerk', dir='down')
+    g.npc('elsbethCandles', 30, 42, 'elsbeth', dir='down', idle=True, lantern=True, cond='flag:postgame')   # after the lake: the new candle girl
     g.sign(5, 5, 'NORTH GATE. The Doors road, up the mountain. The locals call it the Coldridge route.', 'wiki/the-road.md (the Doors road); rumors r-coldridge (wiki/fountain-street.md HD-1)')
     g.sign(29, 5, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)')
     g.sign(24, 40, "Sylvia Swann's booth: an owl painted on the board. The short reading, five silver. She isn't in.", 'wiki/silverton.md; the-lab/pit-maps/shops-silverton.json pin 37')
@@ -523,6 +525,22 @@ def build_hex():
     g2.npc('vairseat', 15, 6, 'noble', dir='left')
     g2.sign(10, 11, 'The rail. Below, the sand. The roof is a ring: on a new-moon night you see the stars.', 'wiki/the-hex.md (the building as built)')
     save('hex2', g2, 'inside', 'The Hex — the gambling floor', music='hex', bg='arena', legend={'x': 'hexwall', '_': 'rug'})
+
+
+def build_percy():
+    # Percy's Particulars: jars in ranks behind the counter, a hand too good for the street on every label
+    g = Grid(10, 8, 'w')
+    g.rect(1, 1, 8, 6, ':')
+    g.hline(1, 8, 1, 'q'); g.hline(1, 8, 0, 'q')
+    g.hline(1, 8, 3, 'c'); g.put(8, 3, ':')
+    g.put(1, 5, 'k'); g.put(8, 5, 'i'); g.put(8, 6, 'k')
+    g.put(4, 7, 'D')
+    g.npc('percy', 3, 2, 'percy', dir='down')
+    g.npc('ned', 6, 2, 'ned', dir='down')
+    g.sign(1, 5, "The shelf card, in Percy's good hand: guano-and-sulfur, the paper, 1 sp. Sulfur 5 cp. Saltpeter 1 sp. Glow-moss, the pinch, 5 cp. Jar-fly, live, 1 sp. Gulch silk, the skein, 5 sp. Pressed black cake 2 sp. Darkmantle hide, cured, 2 gp. Crawler ichor: ask.",
+           'the-lab/pit-maps/shops-silverton.json pin 38 (Percy\'s shelf, CANON 09-09)')
+    g.warp(4, 7, 'silverton', 27, 42, 'down')
+    save('percy', g, 'inside', "Percy's Particulars", music='town', bg='town')
 
 
 def build_winters():
@@ -888,9 +906,10 @@ def build_halfway():
     g.blob(31, 13, 2.6, 2.4, 'Y', rng, 0)                      # the deep: it goes, forty paces out
     g.warp(inn_doors[0][0], inn_doors[0][1], 'halfway_in', 1, 5, 'right')
     g.warp(inn_doors[1][0], inn_doors[1][1], 'halfway_in', 16, 5, 'left')
-    g.npc('doranYard', 9, 11, 'worker', dir='down')
+    g.npc('doranYard', 9, 11, 'worker', dir='down', cond='!flag:doranAway')
     g.npc('orrin', 25, 13, 'kid', dir='right', cond='!flag:dueSeen')
     g.npc('pell', 22, 16, 'kid', wander=1, cond='!flag:dueSeen')
+    g.npc('adoptedKid', 24, 18, 'girl', wander=1, cond='flag:kidAtInn & !flag:dueSeen')   # the one she kept, out back by the water
     g.trig('point', 28, 11, 'point', on='use', w=3, h=5)
     g.trig('pointStep', 27, 13, 'pointStep', on='step')
     g.trig('rowboat', 27, 15, 'rowboat', on='step')
@@ -913,16 +932,17 @@ def build_halfway():
     g.put(16, 1, 'h'); g.hline(14, 15, 3, 't'); g.put(16, 8, 'k')
     g.warp(0, 5, 'halfway', 13, 12, 'down'); g.warp(17, 5, 'halfway', 20, 12, 'down')
     g.npc('gennet', 5, 6, 'innlady', dir='down', cond='!flag:lakeDone')
-    g.npc('doranIn', 8, 3, 'worker', dir='left')
-    g.npc('elsbeth', 15, 5, 'elsbeth', dir='up')
-    g.npc('katarina', 2, 6, 'priest', dir='right')
-    g.sign(9, 1, 'The stair up. The room over the kitchen has a bedside drawer. In it, a finished manuscript, left like a Gideons bible.', 'wiki/halfway-inn-and-lake.md (Katarina finished Book One here)')
+    g.npc('gennetGrief', 3, 5, 'innlady', dir='down', cond='flag:lakeDone')
+    g.npc('doranIn', 8, 3, 'worker', dir='left', cond='!flag:doranAway')
+    g.npc('elsbeth', 15, 5, 'elsbeth', dir='up', cond='!flag:postgame')
+    g.npc('katarina', 2, 6, 'kat', dir='right', cond='!flag:katGone')
+    g.trig('drawer', 9, 1, 'drawer', on='use')
     save('halfway_in', g, 'inside', 'The Halfway Inn — inside', music='inn', bg='town', legend={'.': 'floorWood'})
 
 
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
-    for f in (build_world, build_silverton, build_hex, build_winters, build_warrens, build_galleries, build_gulch, build_halfway):
+    for f in (build_world, build_silverton, build_hex, build_winters, build_percy, build_warrens, build_galleries, build_gulch, build_halfway):
         f()
     for id, d in MAPS.items():
         with open(os.path.join(OUT, id + '.json'), 'w', encoding='utf-8') as fh:

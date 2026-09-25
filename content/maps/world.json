@@ -169,7 +169,8 @@
 "x": 30,
 "y": 12,
 "text": "THE TOWER. The sign says \"Wizard School.\" Everyone calls it the Tower. The door does not open for you.",
-"src": "wiki/silverton.md; wiki/vice-row.md (the Wizard School = the Tower)"
+"src": "wiki/silverton.md; wiki/vice-row.md (the Wizard School = the Tower)",
+"cond": "!flag:towerFled"
 },
 {
 "x": 4,
@@ -190,6 +191,19 @@
 "on": "step",
 "script": "snoot",
 "cond": "!flag:snootDone"
+},
+{
+"id": "towerDoor",
+"rect": [
+30,
+12,
+1,
+1
+],
+"on": "use",
+"script": "expansion",
+"arg": "tower",
+"cond": "flag:towerFled"
 },
 {
 "id": "wallNorth",

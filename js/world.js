@@ -139,6 +139,7 @@
       if (this.px === tx && this.py === ty) this.moving = false;
       return;
     }
+    if (this.pause > 0) { this.pause--; return; } // a 'waitN' step holds the rest of the path
     if (this.path.length) {
       var d = this.path.shift();
       if (d === 'hide') { this.hidden = true; return; }
@@ -148,7 +149,6 @@
       this.dir = d; this.x += DIRS[d][0]; this.y += DIRS[d][1]; this.moving = true; this.speed = this.pathSpeed || 1;
       return;
     }
-    if (this.pause > 0) { this.pause--; return; }
     if (this.wander && !F.busy() && --this.wt <= 0) {
       this.wt = 60 + DS.rint(150);
       var dirs = ['up', 'down', 'left', 'right'], d2 = DS.pick(dirs), nx = this.x + DIRS[d2][0], ny = this.y + DIRS[d2][1];
@@ -172,7 +172,8 @@
   Field.prototype.load = function (mapId, x, y, dir) {
     var G = DS.G, m = DS.getMap(mapId);
     this.map = m; G.map = mapId; G.x = x; G.y = y; if (dir) G.dir = dir;
-    this.px = x * T; this.py = y * T; this.moving = false;
+    if (this.chase) { G.flags.wagonOutcome = G.flags.wagonOutcome || 'fled'; G.flags.towerFled = 1; } // left the road mid-chase: they got away
+    this.px = x * T; this.py = y * T; this.moving = false; this.tint = null; this.chase = null;
     var self = this;
     this.npcs = (m.src.npcs || []).filter(function (n) { return DS.cond(n.cond) && !(n.hire && G.hired.indexOf(n.hire) >= 0); }).map(function (d) { return new Npc(d, m); });
     this.chests = (m.src.chests || []);
@@ -251,12 +252,13 @@
     if (this.pendingPath && this.pendingPath.length) return;
     // a level-up that asks the player something (Vivian's archetype) waits for the field
     if (G.party.some(function (h) { return h.pendingChoice; })) { DS.run(function* () { yield* DS.EV.pendingChoices(); }); return; }
+    if (this.chase && this.chaseTick()) return;
     if (I.pressed('b') || I.pressed('menu')) { DS.audio.sfx('confirm'); DS.push(new DS.FieldMenu()); return; }
     if (I.pressed('a')) { this.interact(); return; }
     var d = I.dir();
     if (d) this.tryMove(d);
   };
-  Field.prototype.tick = function () { var self = this; this.npcs.forEach(function (n) { if (n.path.length || n.moving) n.update(self); }); };
+  Field.prototype.tick = function () { var self = this; this.npcs.forEach(function (n) { if (n.path.length || n.moving || n.pause > 0) n.update(self); }); };
   Field.prototype.tryMove = function (d) {
     var G = DS.G, nx = G.x + DIRS[d][0], ny = G.y + DIRS[d][1];
     G.dir = d;
@@ -305,7 +307,7 @@
     if (t) { if (t.once) G.flags['trig:' + t.id] = 1; DS.run(function* () { yield* DS.EV.trigger(t, self); }); return; }
     // random encounters
     var z = this.zoneAt(G.x, G.y);
-    if (z && DS.DATA.encounters[z] && !G.flags.noEncounters) {
+    if (z && DS.DATA.encounters[z] && !G.flags.noEncounters && !this.chase) {
       var tile = this.map.at(G.x, G.y), mult = (tile === 'road' || tile === 'bridge' || tile === 'dirtpath') ? 2 : 1;
       if (this.map.src.roadSafe === false) mult = 1;
       this.encounterIn -= 1 / mult;
@@ -396,6 +398,9 @@
         var fr = DS.walker(DS.LOOKS[lead.look]);
         var step = (self.moving || self.pathWalk) ? ((self.px + self.py) >> 3) & 1 : 0;
         if (!self.hidePlayer) ctx.drawImage(fr[G.dir][step], self.px - cx, self.py - cy - 2);
+      } else if (s.n.def.prop) { // a drawn prop (the wagon): anchored on its lead tile, facing its travel
+        var pn = s.n, left = pn.dir === 'left', img = DS.propArt(pn.def.prop, pn.moving ? (DS.frame >> 3) : 0, left);
+        ctx.drawImage(img, left ? pn.px - cx : pn.px + 16 - img.width - cx, pn.py + 16 - img.height - cy);
       } else {
         var n = s.n, frames = n.frames();
         var st = n.moving ? ((n.px + n.py) >> 3) & 1 : (n.def.idle ? (DS.frame >> 5) & 1 : 0);
@@ -404,8 +409,9 @@
       }
     });
     if (m.src.dark) this.drawDark(ctx, cx, cy);
-    if (m.src.tint) { ctx.globalAlpha = m.src.tint[1]; ctx.fillStyle = m.src.tint[0]; ctx.fillRect(0, 0, 256, 240); ctx.globalAlpha = 1; }
-    this.drawPin(ctx, cx, cy);
+    var tint = this.tint || m.src.tint; // scripts can drop night over a map (the wagon night)
+    if (tint) { ctx.globalAlpha = tint[1]; ctx.fillStyle = tint[0]; ctx.fillRect(0, 0, 256, 240); ctx.globalAlpha = 1; }
+    if (!this.chase) this.drawPin(ctx, cx, cy);
     if (this.banner > 0) {
       this.banner--;
       var w = DS.textWidth(m.name) + 20;
@@ -533,6 +539,67 @@
     return (arrowCache[dir] = p.canvas());
   }
 
+  // ------------------------------------------------------------------ the chase (the wagon night's last run)
+  // chase = { real:[npc], fake:[npc], goal:{x,y}, caught: gen fn, escaped: gen fn }. The player walks freely;
+  // touching a real rider ends it, touching one of Willem's false riders pops it, a rider at the goal escapes.
+  Field.prototype.chaseTick = function () {
+    var c = this.chase, G = DS.G, self = this;
+    function near(n) { return !n.hidden && Math.abs(n.x - G.x) + Math.abs(n.y - G.y) <= 1; }
+    var fake = c.fake.filter(near)[0];
+    if (fake) { fake.hidden = true; DS.audio.sfx('miss'); DS.run(function* () { yield DS.say(DS.L('wagon.fakeRider'), { top: true }); }); return true; }
+    if (c.real.some(near)) { this.chase = null; DS.run(c.caught); return true; }
+    if (c.real.some(function (n) { return n.x === c.goal.x && n.y === c.goal.y && !n.moving; })) { this.chase = null; DS.run(c.escaped); return true; }
+    return false;
+  };
+  // shortest walkable path on a map, as a list of steps (for scripted riders)
+  DS.pathTo = function (m, sx, sy, tx, ty) {
+    var prev = {}, q = [[sx, sy]], k0 = sx + ',' + sy; prev[k0] = null;
+    while (q.length) {
+      var p = q.shift();
+      if (p[0] === tx && p[1] === ty) break;
+      ['up', 'down', 'left', 'right'].forEach(function (d) {
+        var nx = p[0] + DIRS[d][0], ny = p[1] + DIRS[d][1], k = nx + ',' + ny, t = m.at(nx, ny);
+        if (k in prev || !t || !DS.TILES[t].pass) return;
+        prev[k] = [p[0], p[1], d]; q.push([nx, ny]);
+      });
+    }
+    var out = [], cur = tx + ',' + ty;
+    if (!(cur in prev)) return out;
+    while (prev[cur]) { out.unshift(prev[cur][2]); cur = prev[cur][0] + ',' + prev[cur][1]; }
+    return out;
+  };
+
+  // ------------------------------------------------------------------ props: the wagon, glamoured or not
+  var propCache = {};
+  DS.propArt = function (kind, f, flip) {
+    var key = kind + ':' + (f & 1) + ':' + (flip ? 1 : 0);
+    if (propCache[key]) return propCache[key];
+    var p = new DS.Pix(56, 28), ink = '#101018', wood = '#6a4a2a', woodL = '#8a6a3a', kids = kind === 'wagonKids';
+    // the wagon bed and its cage
+    p.rect(2, 12, 30, 9, wood); p.rect(2, 12, 30, 1, woodL); p.rect(2, 16, 30, 1, '#4a3018');
+    // who's in the back: goblins, or what they really are
+    [[6, 8], [11, 7], [16, 8], [21, 7], [26, 8]].forEach(function (h, i) {
+      if (kids) { p.ellipse(h[0], h[1], 2.2, 2.4, ['#f0c8a0', '#d8a880', '#e8b890', '#c89070', '#f0d0b0'][i]); p.rect(h[0] - 2, h[1] - 3, 5, 2, ['#6a4a2a', '#c09050', '#2a1a0a', '#8a5a30', '#d8b060'][i]); }
+      else { p.ellipse(h[0], h[1], 2.2, 2.2, '#7aa04a'); p.set(h[0] - 3, h[1] - 1, '#7aa04a'); p.set(h[0] + 3, h[1] - 1, '#7aa04a'); p.set(h[0] + 1, h[1], '#f83800'); }
+    });
+    p.rect(2, 3, 30, 1, '#4a4a52');
+    for (var x = 2; x <= 32; x += 5) p.rect(x, 3, 1, 9, '#7a7a82');
+    // wheels
+    [[8, 22], [26, 22]].forEach(function (w) { p.ellipse(w[0], w[1], 4, 4, ink); p.ellipse(w[0], w[1], 2.5, 2.5, '#5a4020'); p.set(w[0], w[1], ink); });
+    // the bench, the traces, two horses
+    p.rect(31, 9, 5, 3, woodL); p.line(34, 14, 42, 14, ink);
+    var leg = f & 1;
+    [[46, 15, '#7a4a2a'], [44, 12, '#5a3418']].forEach(function (hs) {
+      p.ellipse(hs[0], hs[1], 7, 3.5, hs[2]);
+      p.rect(hs[0] + 5, hs[1] - 6, 3, 6, hs[2]); p.rect(hs[0] + 6, hs[1] - 7, 5, 3, hs[2]);
+      p.rect(hs[0] - 5, hs[1] + 2, 2, 5 - leg, hs[2]); p.rect(hs[0] + 3, hs[1] + 2, 2, 4 + leg, hs[2]);
+      p.rect(hs[0] + 4, hs[1] - 7, 1, 1, ink);
+    });
+    p.outline(ink);
+    if (flip) p = p.flipH();
+    return (propCache[key] = p.canvas());
+  };
+
   // ------------------------------------------------------------------ shop signs (hung over a door)
   var signCache = {};
   var SIGNS = { // 8x8 glyphs: '#' dark ink, 'o' metal/gold, 'w' white, 'r' red, 'g' green, 'b' blue
@@ -547,7 +614,8 @@
     sword: ['......w.', '.....w..', '....w...', '...w....', '#.w.....', '.#......', 'o.#.....', '........'],
     stitch: ['...rr...', '...rr...', '.rrrrrr.', '.rrrrrr.', '...rr...', '...rr...', '...rr...', '........'],
     sun: ['o..o..o.', '.o.o.o..', '..ooo...', 'oooooooo', '..ooo...', '.o.o.o..', 'o..o..o.', '........'],
-    mortar: ['.....#..', '....#...', '...#....', 'ogggggo.', '.ooooo..', '.ooooo..', '..ooo...', '.#####..']
+    mortar: ['.....#..', '....#...', '...#....', 'ogggggo.', '.ooooo..', '.ooooo..', '..ooo...', '.#####..'],
+    jar: ['..####..', '..#ww#..', '.#gggg#.', '#gg#ggg#', '#ggg#gg#', '#gggggg#', '.######.', '........']
   };
   var SIGNCOL = { '#': '#101018', o: '#F8D878', w: '#F8F8F8', r: '#E43838', g: '#58D854', b: '#6888FC' };
   DS.doorSign = function (kind) {
