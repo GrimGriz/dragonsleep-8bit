@@ -557,9 +557,25 @@
     var h = g.party.length === 1 ? g.party[0] : yield DS.choose({ items: g.party.filter(function (x) { return !x.ko; }).map(function (x) { return { label: x.name, value: x }; }), x: 60, y: 80, w: 136, title: 'WHO MILKS?' });
     if (!h) return;
     var draught = g.count('draught') > 0; if (draught) g.take('draught', 1);
-    var best = Math.max(R.skill(h, 'Animal Handling', 'wis'), R.skill(h, 'Nature', 'int'));
+    var ah = R.skill(h, 'Animal Handling', 'wis'), na = R.skill(h, 'Nature', 'int');
+    var best = Math.max(ah, na), skillName = na > ah ? 'Nature' : 'Animal Handling';
     if (!g.flags.shifts) yield DS.say(L('w.penHow'));
-    var r = yield W8.scene(new MilkScene(h, best, draught));
+    var r;
+    if (DS.CradleScene) {
+      // the shift itself is drawn at full resolution over the 8-bit screen (js/cradle.js)
+      DS.audio.stop();
+      yield DS.fade(1, 18);
+      r = yield W8.scene(new DS.CradleScene({ hero: h, skill: best, skillName: skillName, draught: draught, mouth: n, shifts: g.flags.shifts || 0 }));
+      DS.audio.play(F().map.music || 'field', true);
+      yield DS.fade(0, 18);
+    } else { // no cradle scene loaded: the register's table rule, rolled straight
+      r = { got: 0, touched: false };
+      for (var i = 0; i < 6 && !r.touched; i++) {
+        var roll = DS.d(20) + best;
+        if (roll >= 12) r.got++;
+        else if (roll <= 6) { var sv = DS.d(20) + R.saveBonus(h, 'con'); if (draught) sv = Math.max(sv, DS.d(20) + R.saveBonus(h, 'con')); if (sv < 13) r.touched = true; }
+      }
+    }
     var lines = [];
     if (r.touched) lines.push(L('w.touched', { name: h.name }));
     g.silver += r.got; if (r.got) DS.audio.sfx('coin');
@@ -568,57 +584,6 @@
     yield DS.say(lines);
     if (g.flags.shifts === 1) { g.flags.hobMet = 1; yield DS.say(L('w.hobAtCradle'), who('Old Hob')); g.flags['heard:r-promised'] = 1; }
   };
-  // the cradle: six draws, each a timed squeeze. Skill widens the clean band; a wild pull risks the tentacles.
-  function MilkScene(h, best, draught) {
-    this.kind = 'milk'; this.h = h; this.draught = draught; this.draw_ = 0; this.got = 0; this.touched = false;
-    this.pos = 0; this.dir = 1; this.speed = 0.016; this.msg = L('w.penReady'); this.hold = 0; this.done = false;
-    this.green = Math.min(0.2, 0.07 + 0.018 * Math.max(0, best)); this.amber = this.green + 0.13;
-    this.result = { got: 0, touched: false };
-  }
-  MilkScene.prototype.update = function () {
-    var I = DS.input;
-    if (this.done) { if (I.pressed('a') || I.pressed('b')) { this.result = { got: this.got, touched: this.touched }; DS.pop(this); } return; }
-    if (this.hold > 0) { this.hold--; return; }
-    this.pos += this.dir * this.speed;
-    if (this.pos > 1) { this.pos = 1; this.dir = -1; } else if (this.pos < 0) { this.pos = 0; this.dir = 1; }
-    if (!I.pressed('a')) return;
-    var off = Math.abs(this.pos - 0.5);
-    this.draw_++;
-    if (off <= this.green) { this.got++; DS.audio.sfx('coin'); this.msg = L('w.drawClean'); }
-    else if (off <= this.amber) { DS.audio.sfx('miss'); this.msg = L('w.drawDry'); }
-    else {
-      var bonus = R.saveBonus(this.h, 'con'), sv = DS.d(20) + bonus;
-      if (this.draught) sv = Math.max(sv, DS.d(20) + bonus);
-      if (sv < 13) { this.touched = true; DS.audio.sfx('poison'); this.msg = L('w.drawTouched'); }
-      else { DS.audio.sfx('bump'); this.msg = L(this.draught ? 'w.touchShrug' : 'w.drawJerk'); }
-    }
-    this.speed *= 1.12; this.hold = 30;
-    if (this.touched || this.draw_ >= 6) { this.done = true; this.hold = 0; }
-  };
-  MilkScene.prototype.draw = function (ctx) {
-    var x0 = 20, y0 = 40, w = 216;
-    DS.win(ctx, x0 - 8, y0 - 8, w + 16, 118);
-    DS.text(ctx, 'THE CRADLE', x0, y0, '#F8D878');
-    DS.textRight(ctx, 'draw ' + Math.min(6, this.draw_ + (this.done ? 0 : 1)) + '/6   thimbles ' + this.got, x0 + w, y0, '#C8D0E8');
-    // the crawler on its settle: a pale head and six feelers that won't keep still
-    var cx = 128, cy = y0 + 30, t = DS.frame;
-    ctx.fillStyle = '#6a7a5a'; ctx.fillRect(cx - 14, cy - 8, 28, 14);
-    ctx.fillStyle = '#8a9a6a'; ctx.fillRect(cx - 12, cy - 10, 24, 6);
-    ctx.fillStyle = '#101018'; ctx.fillRect(cx - 7, cy - 6, 3, 3); ctx.fillRect(cx + 4, cy - 6, 3, 3);
-    ctx.fillStyle = '#b8a888';
-    for (var k = 0; k < 6; k++) { var fx = cx - 12 + k * 5, len = 6 + ((t >> 3) + k * 3) % 5; ctx.fillRect(fx, cy + 6, 2, len); }
-    // the bar: red at the edges, amber, the clean band in the middle
-    var by = y0 + 56, bw = w;
-    ctx.fillStyle = '#A81000'; ctx.fillRect(x0, by, bw, 8);
-    ctx.fillStyle = '#AC7C00'; ctx.fillRect(x0 + bw * (0.5 - this.amber), by, bw * this.amber * 2, 8);
-    ctx.fillStyle = '#00A800'; ctx.fillRect(x0 + bw * (0.5 - this.green), by, bw * this.green * 2, 8);
-    var mx = Math.round(x0 + bw * this.pos);
-    ctx.fillStyle = '#F8F8F8'; ctx.fillRect(mx - 1, by - 3, 2, 14);
-    DS.text(ctx, '▼', mx - 3, by - 11, '#F8F8F8');
-    DS.wrap(this.msg, w).slice(0, 2).forEach(function (l, i) { DS.text(ctx, l, x0, by + 16 + i * 10, '#E0C8A0'); });
-    DS.textCenter(ctx, this.done ? 'Z: done' : 'Z: squeeze in the green', 128, y0 + 100, '#9C9C9C');
-  };
-  DS.MilkScene = MilkScene;
   S.skarnGate = function* () {
     var g = G(), m = F().map;
     if (!g.flags.skarnOk) { yield DS.say(L('w.gateShut'), who('Skarn')); return; }

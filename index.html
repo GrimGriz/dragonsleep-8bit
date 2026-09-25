@@ -18,9 +18,11 @@
   #screen { display: block; image-rendering: pixelated; image-rendering: crisp-edges; background: #000; outline: none; }
   #hint { margin-top: 10px; color: #6c6c84; letter-spacing: .04em; text-align: center; padding: 0 16px; }
   #pad { display: none; }
+  #fx { position: fixed; left: 0; top: 0; pointer-events: none; display: none; z-index: 3; }
   body.touch #hint { display: none; }
   body.touch { justify-content: flex-start; padding-top: env(safe-area-inset-top); }
   body.touch #pad {
+    position: relative; z-index: 4;
     display: flex; width: 100%; flex: 1; box-sizing: border-box; padding: 14px 18px calc(18px + env(safe-area-inset-bottom));
     align-items: center; justify-content: space-between;
   }
@@ -60,19 +62,20 @@
   <div class="btns"><div data-btn="b">B</div><div data-btn="a">A</div><div data-btn="menu">MENU</div></div>
 </div>
 <noscript>DRAGONSLEEP needs JavaScript.</noscript>
-<script src="js/core.js?v=f2a1071c18"></script>
-<script src="js/font.js?v=f2a1071c18"></script>
-<script src="js/art.js?v=f2a1071c18"></script>
-<script src="js/sprites.js?v=f2a1071c18"></script>
-<script src="js/bestiary-art.js?v=f2a1071c18"></script>
-<script src="js/audio.js?v=f2a1071c18"></script>
-<script src="js/rules.js?v=f2a1071c18"></script>
-<script src="js/ui.js?v=f2a1071c18"></script>
-<script src="js/battle.js?v=f2a1071c18"></script>
-<script src="js/world.js?v=f2a1071c18"></script>
-<script src="js/scenes.js?v=f2a1071c18"></script>
-<script src="js/events.js?v=f2a1071c18"></script>
-<script src="data/data.js?v=f2a1071c18"></script>
-<script src="js/main.js?v=f2a1071c18"></script>
+<script src="js/core.js?v=1921139b84"></script>
+<script src="js/font.js?v=1921139b84"></script>
+<script src="js/art.js?v=1921139b84"></script>
+<script src="js/sprites.js?v=1921139b84"></script>
+<script src="js/bestiary-art.js?v=1921139b84"></script>
+<script src="js/audio.js?v=1921139b84"></script>
+<script src="js/rules.js?v=1921139b84"></script>
+<script src="js/ui.js?v=1921139b84"></script>
+<script src="js/cradle.js?v=1921139b84"></script>
+<script src="js/battle.js?v=1921139b84"></script>
+<script src="js/world.js?v=1921139b84"></script>
+<script src="js/scenes.js?v=1921139b84"></script>
+<script src="js/events.js?v=1921139b84"></script>
+<script src="data/data.js?v=1921139b84"></script>
+<script src="js/main.js?v=1921139b84"></script>
 </body>
 </html>

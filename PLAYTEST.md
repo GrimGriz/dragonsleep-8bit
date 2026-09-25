@@ -103,5 +103,18 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] Dancing Lights works in a fight now (shows the Keeper)
 - [ ] Under the roost (G2/G3): fire and thunder spells are grayed out (ROOST); casting Light or lighting a torch still brings the roof down → NOT THIS KIND OF NAME
 
+## 13. Round three: the cradle, rebuilt
+
+- [ ] A shift at a pen (Mouths 2, 4, 5) leaves the 8-bit screen: the lamp, the timber crib, the animal breathing in it, its eyes on your hand, eight feelers under the bar
+- [ ] The first shift opens with the title and the settle line; Z skips it. Later shifts open short
+- [ ] The brightest gland is the readiest; LEFT/RIGHT picks another feeler; the ring shows the gold before you press
+- [ ] Hold Z and the ring fills; let go in the gold = a sealed thimble (bead, wax, the seal on the tally at top right). Short = dry. Long = spilt (the bead bursts)
+- [ ] Held past the red, or to the top: the feeler comes off the bar and rears up; CONSTITUTION SAVE DC 13 rolls on screen; with a draught taken, two dice, the higher kept
+- [ ] IT HOLDS: you jerk back, the shift goes on. THE TOUCH: the color drains, the view tilts and closes, the heartbeat slows, then THE CREW DRAGS YOU OUT
+- [ ] From the fourth draw the settle wears thin: the gold drifts, the animal twitches (the ring shivers first), its eyes brighten
+- [ ] After six draws (or the touch): the plank with your thimbles, the count and the silver; Z returns to the 8-bit field, the music comes back, the pay line and Old Hob's words follow as before
+- [ ] Phone: the scene sits exactly over the game screen, the A button holds and releases the squeeze, the d-pad picks feelers
+- [ ] Feel: is the gold fair for a +0 hand? Is the last draw's drift too wild? Does the crawler read as a crawler?
+
 ## Notes
 (write here)

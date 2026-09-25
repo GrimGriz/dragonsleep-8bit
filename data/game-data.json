@@ -6556,9 +6556,53 @@
    "id": "w.penAsk"
   },
   "w.penHow": {
-   "t": "Ride the pull. When the mark swings through the green, squeeze (Z). Green is a clean thimble. Amber is a dry pull. Red, and the feelers find you. The better your hands with animals, the wider the green.",
-   "src": "wiki/the-warrens.md (six attempts; fail by 5+ = the touch); the timing game invented.json#milking",
+   "t": [
+    "Two hands with poles walk the animal into the cradle. The settle goes in after it: its own venom, thinned. Then the feelers come out through the slats, one by one, and under the bar.",
+    "Yours is the thimble. Hold Z to work the gland, and let go while the ring sits in the gold. Too soft is a dry pull. Too hard spills it. Push on past the red and the feeler comes off the bar, and then it is your wrist against the venom.",
+    "The brightest gland is the readiest. The settle wears off as the shift goes, so the last draws are the wild ones. Six, and the animal comes back to itself."
+   ],
+   "src": "WarrensModule/crawler-warrens-DM.md section 3 (the procedure: poles, the settle, the slats and the bar, the thimble and the wax; six attempts because the settle wears off; fail by 5+ = the touch, CON 13); the squeeze game invented.json#milking",
    "id": "w.penHow"
+  },
+  "w.cradle.enter": {
+   "t": "The settle takes. The animal's eyes go dull and far. Six draws, the old hands say, before it comes back to itself.",
+   "src": "WarrensModule/crawler-warrens-DM.md section 3 (the settle; six attempts a shift, because the settle wears off)",
+   "id": "w.cradle.enter"
+  },
+  "w.cradle.twitch": {
+   "t": "The settle is wearing thin. It knows you are there.",
+   "src": "WarrensModule/crawler-warrens-DM.md section 3 (six attempts a shift, because the settle wears off)",
+   "id": "w.cradle.twitch"
+  },
+  "w.cradle.whip": {
+   "t": "The feeler comes off the bar.",
+   "src": "WarrensModule/crawler-warrens-DM.md section 3 (fail by 5 or more: a tentacle touch, CON 13)",
+   "id": "w.cradle.whip"
+  },
+  "w.cradle.done": {
+   "t": "SHIFT DONE",
+   "src": "invented: connective",
+   "id": "w.cradle.done"
+  },
+  "w.cradle.dragged": {
+   "t": "THE CREW DRAGS YOU OUT",
+   "src": "wiki/the-warrens.md (the touch: poisoned and paralyzed)",
+   "id": "w.cradle.dragged"
+  },
+  "w.cradle.paid": {
+   "t": "{n} sealed at the board - {n} silver",
+   "src": "wiki/the-warrens.md (1 sp a thimble above the wet)",
+   "id": "w.cradle.paid"
+  },
+  "w.drawPerfect": {
+   "t": "A full thimble, sealed while it is still warm.",
+   "src": "invented: connective",
+   "id": "w.drawPerfect"
+  },
+  "w.drawSpilt": {
+   "t": "Too hard. The gland shuts and the bead runs off your wrist. Nothing to seal.",
+   "src": "invented: connective",
+   "id": "w.drawSpilt"
   },
   "w.penReady": {
    "t": "The crawler settles in the cradle. Watch the mark.",

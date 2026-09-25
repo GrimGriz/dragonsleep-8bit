@@ -38,6 +38,8 @@
     if (sfxBus) sfxBus.gain.value = AU.sfxVol;
     AU.savePrefs();
   };
+  // the buses, for scenes that build their own sounds (the cradle); null until the first press unlocks audio
+  AU.buses = function () { return AU.ctx ? { ctx: AU.ctx, sfx: sfxBus, music: musicBus, master: master } : null; };
 
   function freq(midi) { return 440 * Math.pow(2, (midi - 69) / 12); }
   var SEMI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
