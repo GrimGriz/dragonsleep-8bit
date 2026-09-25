@@ -124,9 +124,19 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] The chase to the Tower: the riders sit still until you touch a key (or a second and a half), then go
 - [ ] Morning after the yard fight: Elsbeth walks over from the kitchen before she speaks, then goes back to the tub
 - [ ] Kat rode out (the bribe): the morning line says her room stands open; step onto the stair for the drawer and her book
-- [ ] Winters: WORK hands you the first errand, the JOURNAL pins it and a line says how the pin works, and the talk ends (no return to the lifted pen). Errand A pays +1 renown at the counter (the star line)
+- [ ] Winters: WORK hands you the first errand, the JOURNAL pins it and a line says how the pin works, and the talk ends (no return to the lifted pen). Only the second errand pays renown: one for the pair
 - [ ] Dancing Lights is gone from Aurdin's list (an older save drops it); Light or a torch still shows the Keeper
 - [ ] The cradle from the fourth draw: the gold narrows, drifts wider and faster, the twitches come oftener. A real fight by the sixth draw, without being unfair to a +0 hand?
+
+## 15. Round four, second pass: Griz's 09-25 asks
+
+- [ ] The party is long-rested (HP, slots, Lay on Hands) before the wagon rolls in
+- [ ] Aurdin wears Wizard's Robes (AC 11 + DEX) from the start; Vilar sells them; Winters' shelves have Robes +1; Mage Armor still works over robes; an older save's Aurdin has them on CONTINUE
+- [ ] KEEP WATCH: Katarina goes in with the others before the lantern walk and rides out with the wagon at first light (the morning line says so); her book is in the drawer at the stair
+- [ ] Steel comes out: Katarina is inside before the fight; the next day she gives you her book
+- [ ] They flee: the chase first (the road dark, no doors or map edges until it ends), then back in the yard at night with a closing line, then the wagon, the strongbox, the children (+1 renown), Doran's drive, and the morning inside. The same whether you catch them on the road, at the fork, or they reach the Tower
+- [ ] After Elsbeth says "go and see Winters": at his counter the lead says she sent you; under level 4 he says he's been watching the challenges make you greater, but you are not yet ready
+- [ ] In Silverton, Vera the secondhand dealer says Androit pays for a real book; Kat's book to Androit pays as before
 
 ## Notes
 (write here)

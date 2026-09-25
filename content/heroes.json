@@ -18,7 +18,7 @@
     "rewardWeapons": ["staff1", "staff2"],
     "name": "Aurdin", "fullName": "Aurdin", "cls": "wizard", "level": 2, "race": "Human", "background": "Acolyte",
     "abil": { "str": 11, "dex": 14, "con": 10, "int": 17, "wis": 9, "cha": 13 }, "hp": 12,
-    "equip": { "weapon": "quarterstaff", "armor": null, "shield": null, "ring": null },
+    "equip": { "weapon": "quarterstaff", "armor": "robes", "shield": null, "ring": null },
     "saveProf": ["int", "wis"], "skills": { "Arcana": 5, "Investigation": 5, "Religion": 5, "Insight": 1 },
     "look": "aurdin", "weaponArt": "staff",
     "spells": ["firebolt", "light", "burninghands", "magicmissile", "shield", "sleep", "detectmagic"],

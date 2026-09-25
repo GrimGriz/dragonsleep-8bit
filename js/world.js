@@ -266,7 +266,7 @@
     if (nx < 0 || ny < 0 || nx >= m.w || ny >= m.h) { // walking off the map edge
       var edge = nx < 0 ? 'west' : nx >= m.w ? 'east' : ny < 0 ? 'north' : 'south';
       var ex = (m.src.exits && m.src.exits[edge]) || m.src.exit;
-      if (ex) { this.runExit(ex); return; }
+      if (ex && !this.chase) { this.runExit(ex); return; }
       return;
     }
     if (!this.free(nx, ny, 'player')) {
@@ -297,7 +297,7 @@
     G.steps++;
     if (this.pathWalk) return;
     var w = this.warpAt(G.x, G.y);
-    if (w) {
+    if (w && !this.chase) { // no doors mid-chase: the riders are the only way off this map
       var to = (w.alt && w.alt[G.dir]) || w; // some warps land you by the side you came in from
       DS.audio.sfx(w.sfx || 'door');
       DS.run(function* () { yield* DS.EV.warp(w.to, to.tx, to.ty, to.dir || w.dir || G.dir, w); });

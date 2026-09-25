@@ -1,7 +1,7 @@
 {
   "_note": "Shops by id. Register stock from the-lab/pit-maps/shops-silverton.json (seat-PROPOSED prices); extra stock beyond the register is invented.json#shop-stock.",
   "vilar": { "name": "Show-Armorer", "keeper": "Vilar", "look": "smith", "greeting": "Blades that sing on stage or bite in earnest. Repairs, without asking which.",
-    "items": ["club", "quarterstaff", "dagger", "spear", "mace", "handaxe", "shortsword", "scimitar", "longsword", "flail", "warhammer", "battleaxe", "maul", "greataxe", "greatsword", "padded", "leather", "hide", "chainshirt", "ringmail", "scalemail", "chainmail", "shield"],
+    "items": ["club", "quarterstaff", "dagger", "spear", "mace", "handaxe", "shortsword", "scimitar", "longsword", "flail", "warhammer", "battleaxe", "maul", "greataxe", "greatsword", "padded", "robes", "leather", "hide", "chainshirt", "ringmail", "scalemail", "chainmail", "shield"],
     "src": "the-lab/pit-maps/shops-silverton.json pin 20 (spear, mace, shield; blunted anything); urtusk-children-prerolls.pdf p.6 (chain mail and shield out of the show-armourer's shop)" },
   "kessler": { "name": "The Pawnbroker", "keeper": "Kessler", "look": "kessler", "greeting": "A third of value on the pledge, interest by the week. No questions that matter.",
     "items": ["rapier", "lightcrossbow", "shortbow", "studded", "splint", "potion", "longsword1", "staff1"], "prices": { "potion": 375, "longsword1": 1875, "staff1": 1875, "splint": 1500 },
@@ -28,7 +28,7 @@
     "boughtText": ["Ned, a jar.", "Fair. It'll be worth five of that on the shelf.", "I don't render what renders me. This, I'll render."],
     "src": "wiki/vice-row.md (Percy's Particulars: road harvest rendered, jarred, priced); the-lab/pit-maps/shops-silverton.json pin 38; RULED 09-24 (a fifth of the post-process price; his shelf is flavor)" },
   "winters": { "name": "Acquisitions & Estates", "keeper": "Ambrose Winters", "look": "winters", "greeting": "Everything on these shelves outlived somebody. The price is for the somebody.",
-    "items": ["potion", "greaterpotion", "superiorpotion", "elixir", "ringofprotection", "dagger1", "maul1", "staff1", "splint"],
+    "items": ["potion", "greaterpotion", "superiorpotion", "elixir", "ringofprotection", "dagger1", "maul1", "staff1", "robes1", "splint"],
     "thanks": ["Look after it. Its last owner didn't.", "Paid in full. I'll write it in the book.", "It was a good estate. Mostly."],
     "src": "wiki/fountain-street.md (Winters, Acquisitions & Estates); magic stock RULED 09-24 (Griz: he sells magic items); invented.json#winters-shelves" }
 }

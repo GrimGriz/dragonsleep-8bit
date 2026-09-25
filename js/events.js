@@ -182,16 +182,13 @@
     yield DS.say(L('g.joins', { name: h.name, lvl: h.lvl }));
     return true;
   };
+  EV.longRest = function () { G().party.forEach(function (h) { if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true); }); };
   EV.rest = function* (song) {
     var g = G();
     yield DS.fade(1, 24);
     DS.audio.play(song || 'inn', true);
     yield W8.frames(150);
-    g.party.forEach(function (h) {
-      if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; }
-      delete h.conds.mageArmor;
-      R.refresh(h, true);
-    });
+    EV.longRest();
     yield DS.fade(0, 24);
     DS.audio.play(F().map.music, true);
     yield DS.say(L('g.rested'));
@@ -402,6 +399,11 @@
       yield DS.say(L('winters.words'), W);
       if (g.hero('vivian')) yield DS.say(L('winters.vivian'), W);
     }
+    if (g.flags.elsbethSent && !g.flags.wintersAsked && !g.has('ringofbinding') && !g.flags.lakeDone) { // Elsbeth sent you (Griz 09-25): say so, and hear why not yet
+      g.flags.wintersAsked = 1;
+      yield DS.say(L('winters.askLake'), who(main.name));
+      if (main.lvl < 4) yield DS.say(L('winters.watching'), W);
+    }
     if (!g.has('ringofbinding') && !g.flags.lakeDone && main.lvl >= 4) {
       yield DS.say(L('winters.ready'), W);
       DS.audio.sfx('ring');
@@ -438,7 +440,6 @@
       g.take('estatepapers', 1); g.flags.wErrADone = 1;
       yield DS.say(L('winters.errandAdone'), W);
       g.silver += 12; DS.audio.sfx('coin'); yield DS.say(L('g.foundSilver', { n: 12 }));
-      yield* EV.renown(1, 'renown.errandA');
       return;
     }
     if (!g.flags.wErrB) {
@@ -828,7 +829,7 @@
     if (g.flags.lakeDone) { yield DS.say(L('inn.elsbethAfter'), who('Elsbeth')); return; }
     if (g.flags.elsbethSilent) { yield DS.say(L('inn.elsbethSilent')); return; }
     if (g.flags.wagonGift) { yield* EV.wagonGift(); return; }
-    if (g.flags.doranAway && !g.has('ringofbinding')) { yield DS.say(L('inn.elsbethWinters'), who('Elsbeth')); return; }
+    if (g.flags.doranAway && !g.has('ringofbinding')) { g.flags.elsbethSent = 1; yield DS.say(L('inn.elsbethWinters'), who('Elsbeth')); return; }
     if (!g.flags.dishes) {
       var a = yield DS.ask(L('inn.elsbethDishes'), ['HELP WITH THE DISHES', 'LEAVE HER BE']);
       if (a !== 0) return;
@@ -916,7 +917,9 @@
     yield W8.frames(110);
   }
   S.wagonNight = function* () {
-    var g = G(), f, party = g.party.filter(function (h) { return !h.ko; });
+    var g = G(), f;
+    EV.longRest(); // the party sleeps first (Griz 09-25: long-rest before the wagon rolls in)
+    var party = g.party.filter(function (h) { return !h.ko; });
     g.flags.wagonNight = 1; delete g.flags.glamourSeen;
     yield DS.fade(1, 30);
     DS.audio.play('lake', true);
@@ -980,8 +983,9 @@
     yield DS.say(L('wagon.handover'));
     W.goblin.path = ['down', 'down', 'right', 'right', 'right', 'right', 'hide'];
     W.gennet.path = ['wait8', 'down', 'down', 'down', 'right', 'right', 'right', 'right', 'hide'];
-    yield arrived([W.goblin, W.gennet]);
-    g.flags.wagonOutcome = 'quiet';
+    W.kat.path = DS.pathTo(f.map, W.kat.x, W.kat.y, 13, 11).concat(['hide']); // she goes in too; nobody can know what she saw (Griz 09-25)
+    yield arrived([W.goblin, W.gennet, W.kat]);
+    g.flags.wagonOutcome = 'quiet'; g.flags.katGone = 1; g.flags.katRode = 1; // and she rides out with the wagon at first light
     if (g.flags.glamourSeen) g.flags.glamourBroken = 1;
     yield DS.say(L('wagon.quietNight'));
     yield* EV.dueWalk(g.flags.glamourSeen ? 'kid' : 'goblin');
@@ -992,7 +996,7 @@
     var g = G();
     g.silver += 500; DS.audio.sfx('coin');
     yield DS.say(L('g.foundSilver', { n: 500 }));
-    g.flags.wagonOutcome = 'bribe'; g.flags.glamourBroken = 1; g.flags.elsbethSilent = 1; g.flags.katGone = 1;
+    g.flags.wagonOutcome = 'bribe'; g.flags.glamourBroken = 1; g.flags.elsbethSilent = 1; g.flags.katGone = 1; g.flags.katRode = 1;
     yield DS.say(L('wagon.bribeTaken'));
     W.goblin.path = ['right', 'right', 'right', 'up', 'face:right']; yield arrived([W.goblin]);
     W.goblin.path = ['down', 'down', 'right', 'right', 'right', 'right', 'hide'];
@@ -1011,6 +1015,7 @@
   S.wagonFight = function* (outside) {
     var g = G(), party = g.party.filter(function (h) { return !h.ko; });
     var solo = outside.length === 1 && party.length > 1 ? g.party.indexOf(outside[0]) : null;
+    if (W.kat && !W.kat.hidden) { W.kat.pathSpeed = 2; W.kat.path = DS.pathTo(F().map, W.kat.x, W.kat.y, 13, 11).concat(['hide']); yield arrived([W.kat]); } // she's inside before the first blade clears (Griz 09-25)
     DS.fledIds = null;
     var res = yield DS.battle({ enemies: ['amara', 'willem'], bg: 'lake', music: 'boss', canRun: false, solo: solo, join: solo != null ? 2 : 0, darkness: true, returnSong: 'lake' });
     if (res === 'lose') return;
@@ -1018,18 +1023,28 @@
     if (W.wagon) W.wagon.def = Object.assign({}, W.wagon.def, { prop: 'wagonKids' });
     if (W.goblin) W.goblin.look = DS.LOOKS.kid;
     [W.amara, W.willem].forEach(function (n) { n.hidden = true; });
+    if (res === 'fled') { yield* S.wagonChase(); return; } // the chase first; the yard, the children and the morning wait for the walk back (Griz 09-25)
+    g.flags.wagonOutcome = 'inn'; // both down in the yard
+    yield* EV.wagonYard();
+  };
+  // the yard after the pair is stopped: the traces cut, the strongbox under the bench, the children real (+1 renown), Doran's night drive, morning
+  EV.wagonYard = function* () {
+    var g = G();
     yield DS.say(L('wagon.abandoned'));
-    // the strongbox under the driver's bench
     g.silver += 600; g.give('wagonorder', 1); DS.audio.sfx('chest');
     yield DS.say([L('wagon.strongbox'), L('g.foundSilver', { n: 600 }), L('g.got', { item: DS.DATA.items.wagonorder.name })]);
     yield* EV.wagonFreed();
-    if (res === 'win') { // both down in the yard
-      g.flags.wagonOutcome = 'inn';
-      yield DS.say(L('wagon.doranTakes'));
-      yield* EV.wagonMorning('inn');
-      return;
-    }
-    yield* S.wagonChase();
+    yield DS.say(L('wagon.doranTakes'));
+    yield* EV.wagonMorning('inn');
+  };
+  // back from the road, still night: the yard as they left it, a closing line, then the children (Griz 09-25)
+  EV.wagonAfterChase = function* () {
+    yield* EV.warp('halfway', 11, 12, 'left');
+    var f = F(); f.tint = NIGHT; f.hidePlayer = false;
+    f.npcs = f.npcs.filter(function (n) { return ['orrin', 'pell', 'doranYard', 'adoptedKid'].indexOf(n.id) < 0; });
+    spawn({ id: 'wagonBack', x: 7, y: 7, prop: 'wagonKids', dir: 'right' });
+    yield DS.say(L('wagon.back'), { top: true });
+    yield* EV.wagonYard();
   };
   EV.wagonFreed = function* () { // eight children, real in a yard: renown, and the lake's thanks later from Elsbeth
     var g = G();
@@ -1043,7 +1058,7 @@
     yield DS.fade(1, 20);
     F().tint = null; F().hidePlayer = false;
     yield* EV.warp('world', 33, 34, 'up'); // just north of the inn: the run to the Tower is the whole road
-    f = F();
+    f = F(); f.tint = NIGHT; // the road is dark (Griz 09-25)
     var who = (DS.fledIds || ['amara', 'willem']).slice(), riders = [];
     who.forEach(function (id, k) { var r = spawn({ id: 'rider' + k, x: 33, y: 30 - k, look: id, dir: 'up' }); r.path = ['up']; riders.push(r); });
     yield F().walk(['up', 'up', 'up']);
@@ -1052,7 +1067,7 @@
     var r2 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false });
     f.npcs = f.npcs.filter(function (n) { return riders.indexOf(n) < 0; });
     if (r2 === 'lose') return;
-    if (r2 === 'win') { g.flags.wagonOutcome = 'road'; yield DS.say(L('wagon.roadDone'), { top: true }); return; }
+    if (r2 === 'win') { g.flags.wagonOutcome = 'road'; yield DS.say(L('wagon.roadDone'), { top: true }); yield* EV.wagonAfterChase(); return; }
     // away again, up the road to the fork and the Tower, at your own speed. At the fork they pull up a moment, and if
     // Willem's still riding he throws a false pair of them west down the Castegut road.
     who = (DS.fledIds || who).slice();
@@ -1079,11 +1094,13 @@
         if (r3 === 'lose') return;
         g.flags.wagonOutcome = 'road';
         yield DS.say(L('wagon.roadDone'), { top: true });
+        yield* EV.wagonAfterChase();
       },
       escaped: function* () {
         F().npcs = F().npcs.filter(function (n) { return all.indexOf(n) < 0; });
         g.flags.wagonOutcome = 'fled'; g.flags.towerFled = 1;
         yield DS.say(L('wagon.towerEscape'), { top: true });
+        yield* EV.wagonAfterChase();
       }
     };
   };
@@ -1092,7 +1109,7 @@
     var g = G();
     yield DS.fade(1, 30);
     F().tint = null; F().hidePlayer = false;
-    g.party.forEach(function (h) { if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true); });
+    EV.longRest();
     yield* EV.warp('halfway_in', 4, 6, 'down');
     DS.audio.play('inn', true);
     yield DS.say(L('wagon.morning.' + how));
@@ -1123,7 +1140,7 @@
       var eq = yield DS.ask(L('winters.equipAsk', { name: main.name }), ['YES', 'NO']);
       if (eq === 0) { g.give(main.equip.armor, 1); g.take(id, 1); main.equip.armor = id; DS.audio.sfx('confirm'); }
     }
-    if (!g.has('ringofbinding')) yield DS.say(L('inn.elsbethWinters'), who('Elsbeth'));
+    if (!g.has('ringofbinding')) { g.flags.elsbethSent = 1; yield DS.say(L('inn.elsbethWinters'), who('Elsbeth')); }
     if (home) els.path = DS.pathTo(f.map, els.x, els.y, home.x, home.y).concat(['face:' + home.dir]); // and back to the tub
   };
   // the day after: Katarina gives the party her book and heads south (RULED 09-24)
@@ -1139,7 +1156,7 @@
   // the room over the kitchen: the drawer where she left the book, if she rode out with the wagon
   S.drawer = function* () {
     var g = G();
-    if (g.flags.katGone && !g.flags.katBookTaken && !g.has('katbook') && g.flags.wagonOutcome === 'bribe') {
+    if (g.flags.katRode && !g.flags.katBookTaken && !g.has('katbook')) { // she rode out (KEEP WATCH or the bribe): the book stayed behind
       g.flags.katBookTaken = 1; g.give('katbook', 1); DS.audio.sfx('chest');
       yield DS.say([L('inn.drawerBook'), L('g.got', { item: DS.DATA.items.katbook.name })]);
       return;

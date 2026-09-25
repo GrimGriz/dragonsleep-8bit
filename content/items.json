@@ -33,6 +33,8 @@
   "longsword2": { "name": "Longsword +2", "kind": "weapon", "price": 5000, "weapon": { "dmg": "1d8", "versatile": "1d10", "type": "slashing", "group": "martial", "kind": "longsword", "props": ["versatile"], "bonus": 2 }, "desc": "+2 to hit and damage. Magic.", "src": "SRD 5.1 (Weapon, +2)" },
 
   "padded": { "name": "Padded", "kind": "armor", "price": 50, "armor": { "base": 11, "type": "light" }, "desc": "AC 11 + DEX. Light.", "src": "SRD 5.1" },
+  "robes": { "name": "Wizard's Robes", "kind": "armor", "price": 60, "armor": { "base": 11, "type": "robe" }, "desc": "AC 11 + DEX. Sigils in the hem: a wizard's only armor. Mage Armor still works over them.", "src": "invented (Griz 09-25: something for Aurdin's armor slot); AC as padded" },
+  "robes1": { "name": "Robes +1", "kind": "armor", "price": 1200, "armor": { "base": 11, "type": "robe", "bonus": 1 }, "desc": "Wizard's robes +1. The lake gave them back.", "src": "SRD 5.1 (Armor +1); invented robes" },
   "leather": { "name": "Leather", "kind": "armor", "price": 100, "armor": { "base": 11, "type": "light" }, "desc": "AC 11 + DEX. Light.", "src": "SRD 5.1" },
   "studded": { "name": "Studded Leather", "kind": "armor", "price": 450, "armor": { "base": 12, "type": "light" }, "desc": "AC 12 + DEX. Light.", "src": "SRD 5.1" },
   "hide": { "name": "Hide", "kind": "armor", "price": 100, "armor": { "base": 12, "type": "medium", "dexMax": 2 }, "desc": "AC 12 + DEX (max 2). Medium.", "src": "SRD 5.1" },

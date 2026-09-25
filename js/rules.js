@@ -18,7 +18,7 @@
       primary: 'str', asi: { str: 2 }
     },
     wizard: {
-      name: 'Wizard', hd: 6, saves: ['int', 'wis'], armor: [], weapons: ['dagger', 'dart', 'sling', 'quarterstaff', 'lightcrossbow'],
+      name: 'Wizard', hd: 6, saves: ['int', 'wis'], armor: ['robe'], weapons: ['dagger', 'dart', 'sling', 'quarterstaff', 'lightcrossbow'],
       caster: 'full', cast: 'int', primary: 'int', asi: { int: 1, con: 1 }
     },
     rogue: {
@@ -111,6 +111,7 @@
     // RULED 09-25: every level is a max hit die. An older save's heroes catch up (Aid's +5 set aside first).
     var c = R.CLASSES[h.cls], want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0);
     if (base < want) { h.maxhp += want - base; h.hp += want - base; }
+    if (h.id === 'aurdin' && !h.equip.armor && DS.DATA.items.robes) h.equip.armor = 'robes'; // 09-25: robes for the armor slot
     var d = DS.DATA.heroes[h.id], arch = (d && d.archetypes) || [];
     if (arch.length && h.lvl >= 3 && !arch.some(function (a) { return a.name === h.subclass; })) { h.subclass = null; h.pendingChoice = 'archetype'; }
   };
@@ -128,6 +129,7 @@
     if (a && a.armor) {
       var dm = a.armor.dexMax;
       ac = a.armor.base + (dm == null ? dex : Math.min(dex, dm)) + (a.armor.bonus || 0);
+      if (h.conds.mageArmor && a.armor.type === 'robe') ac = Math.max(ac, 13 + dex + (a.armor.bonus || 0)); // robes aren't armor to the spell
     } else if (h.conds.mageArmor) ac = 13 + dex;
     var s = R.item(h.equip.shield);
     if (s && s.shield) ac += s.shield.ac;

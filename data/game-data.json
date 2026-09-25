@@ -213,7 +213,7 @@
    "hp": 12,
    "equip": {
     "weapon": "quarterstaff",
-    "armor": null,
+    "armor": "robes",
     "shield": null,
     "ring": null
    },
@@ -1010,6 +1010,31 @@
    "desc": "AC 11 + DEX. Light.",
    "src": "SRD 5.1",
    "id": "padded"
+  },
+  "robes": {
+   "name": "Wizard's Robes",
+   "kind": "armor",
+   "price": 60,
+   "armor": {
+    "base": 11,
+    "type": "robe"
+   },
+   "desc": "AC 11 + DEX. Sigils in the hem: a wizard's only armor. Mage Armor still works over them.",
+   "src": "invented (Griz 09-25: something for Aurdin's armor slot); AC as padded",
+   "id": "robes"
+  },
+  "robes1": {
+   "name": "Robes +1",
+   "kind": "armor",
+   "price": 1200,
+   "armor": {
+    "base": 11,
+    "type": "robe",
+    "bonus": 1
+   },
+   "desc": "Wizard's robes +1. The lake gave them back.",
+   "src": "SRD 5.1 (Armor +1); invented robes",
+   "id": "robes1"
   },
   "leather": {
    "name": "Leather",
@@ -4516,6 +4541,7 @@
     "greataxe",
     "greatsword",
     "padded",
+    "robes",
     "leather",
     "hide",
     "chainshirt",
@@ -4681,6 +4707,7 @@
     "dagger1",
     "maul1",
     "staff1",
+    "robes1",
     "splint"
    ],
    "thanks": [
@@ -4769,7 +4796,8 @@
     {
      "say": [
       "Secondhand at a fifth of new. I buy at a third, no questions.",
-      "Everything stolen in this town surfaces here or at the pawnbroker's."
+      "Everything stolen in this town surfaces here or at the pawnbroker's.",
+      "Books don't come to me. Androit the notary pays for those: a real one, written by one hand from the first page to the last. Nobody in Silverton has brought him one."
      ]
     }
    ],
@@ -6297,13 +6325,8 @@
    "src": "seat draft 09-24",
    "id": "winters.noWork"
   },
-  "renown.errandA": {
-   "t": "Fountain Street knows your face.",
-   "src": "invented: connective",
-   "id": "renown.errandA"
-  },
   "renown.errandB": {
-   "t": "The paper layer vouches for you.",
+   "t": "Fountain Street knows your face. The paper layer vouches for you.",
    "src": "invented: connective",
    "id": "renown.errandB"
   },
@@ -6311,6 +6334,19 @@
    "t": "He looks you over the way a man looks over an estate before he names a price. Not ready. Not yet. (The one who leads you is level {lvl}.)",
    "src": "handoff-2026-09-23-dragonsleep-8bit-spec.md §4 ('when they're ready'; the main at level 4)",
    "id": "winters.notReady"
+  },
+  "winters.askLake": {
+   "t": "Elsbeth, at the Halfway Inn. The girl at the dishes. She said to come and ask you about the lake.",
+   "src": "RULED 09-25 (Griz: flag the player after Elsbeth sends them, and let them say so)",
+   "id": "winters.askLake"
+  },
+  "winters.watching": {
+   "t": [
+    "\"The girl at the dishes.\" For once he sets the pen down.",
+    "\"I've been watching the challenges make you greater. The Hex, the pens, the road. You are not yet ready. When you are, I'll know it, and there's something here for you.\""
+   ],
+   "src": "RULED 09-25 (Griz's words: 'I've been watching the challenges make you greater, but you are not yet ready'); explains his closing line",
+   "id": "winters.watching"
   },
   "winters.ready": {
    "t": "Winters looks you over again. This time he nods. \"Now you're ready.\"",
@@ -7308,22 +7344,27 @@
    "id": "wagon.fakeRider"
   },
   "wagon.roadDone": {
-   "t": "It's over on the road. Dawn comes up grey over the gulch. Behind you at the inn, eight children are real.",
+   "t": "It's over on the road. Behind you, back at the inn, eight children are waiting in a wagon.",
    "src": "invented: connective",
    "id": "wagon.roadDone"
   },
   "wagon.towerEscape": {
-   "t": "The riders reach the Tower. Its door opens for them, and shuts. Dawn comes up grey on the road.",
+   "t": "The riders reach the Tower. Its door opens for them, and shuts. Behind you, back at the inn, eight children are waiting in a wagon.",
    "src": "wiki/the-sisters.md ('the tower in Silverton': the muster at the Tower); RULED 09-24 (escapees head to the Tower)",
    "id": "wagon.towerEscape"
   },
+  "wagon.back": {
+   "t": "The long walk back down the road in the dark, to the inn's one lit window.",
+   "src": "invented: connective (Griz 09-25: the chase first, then back to the yard at night)",
+   "id": "wagon.back"
+  },
   "wagon.morning.quiet": {
-   "t": "Morning. The wagon left at first light, one goblin fewer in the back, if anyone counted. The inn lady hums at the stove.",
+   "t": "Morning. The wagon left at first light, one goblin fewer in the back, if anyone counted, and the young woman from upstairs up on the bench beside Amara, a bag over her shoulder. Her room over the kitchen stands open, the bed made. The inn lady hums at the stove.",
    "src": "module-halfway-inn.md §3 (a party that slept through it wakes to an ordinary inn, one goblin fewer)",
    "id": "wagon.morning.quiet"
   },
   "wagon.morning.quietSeen": {
-   "t": "Morning. The wagon left at first light, one child fewer in the back. The inn lady hums at the stove.",
+   "t": "Morning. The wagon left at first light, one child fewer in the back, and the young woman from upstairs up on the bench beside Amara, a bag over her shoulder. Her room over the kitchen stands open, the bed made. The inn lady hums at the stove.",
    "src": "module-halfway-inn.md §7 (the night reclassifies itself in memory)",
    "id": "wagon.morning.quietSeen"
   },
