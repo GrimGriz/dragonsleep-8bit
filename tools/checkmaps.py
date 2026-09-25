@@ -43,6 +43,9 @@ def arrivals(mid):
     return pts
 
 
+# ground that gives no hint a warp is there
+PLAIN = {'caveFloor', 'cobble', 'dirt', 'grass', 'grassT', 'plains', 'darkfloor', 'floorWood', 'floorStone', 'gravel', 'gulch', 'guano', 'dwarfFloor', 'sand', 'rug'}
+
 problems = 0
 for mid, m in sorted(maps.items()):
     W, H = len(m['rows'][0]), len(m['rows'])
@@ -100,9 +103,29 @@ for mid, m in sorted(maps.items()):
         check('sign', s['x'], s['y'], s['text'][:30])
         if PASS.get(tile(m, s['x'], s['y']), False) and tile(m, s['x'], s['y']) not in ('stairsUp',):
             print('%s: sign at %s,%s sits on a walkable tile' % (mid, s['x'], s['y'])); problems += 1
-    for edge, e in (m.get('exits') or {}).items():
-        xs = {'west': [(0, y) for y in range(H)], 'east': [(W - 1, y) for y in range(H)], 'north': [(x, 0) for x in range(W)], 'south': [(x, H - 1) for x in range(W)]}[edge]
-        if not any(p in seen for p in xs):
+    edges = {'west': [(0, y) for y in range(H)], 'east': [(W - 1, y) for y in range(H)], 'north': [(x, 0) for x in range(W)], 'south': [(x, H - 1) for x in range(W)]}
+    exits = m.get('exits') or {}
+    for edge, e in exits.items():
+        if not any(p in edges[edge] and p in seen for p in edges[edge]):
             print('%s: exit %s unreachable' % (mid, edge)); problems += 1
+    # dead edges: walkable ground on a map edge that goes nowhere looks like a way out (playtest 09-24, the wet)
+    warp_at = {(w['x'], w['y']) for w in m.get('warps', [])}
+    trig_at = set()
+    for t in m.get('triggers', []):
+        r = t.get('rect') or [t['x'], t['y'], 1, 1]
+        trig_at |= {(r[0] + i, r[1] + j) for i in range(r[2]) for j in range(r[3])}
+    if not m.get('exit'):
+        for edge, cells in edges.items():
+            if edge in exits:
+                continue
+            dead = [p for p in cells if p in seen and p not in warp_at and p not in trig_at]
+            if dead:
+                print('%s: %d walkable tile(s) on the %s edge lead nowhere, e.g. %s,%s' % (mid, len(dead), edge, dead[0][0], dead[0][1])); problems += 1
+    # hidden warps: a way out drawn as plain ground reads as a dead end
+    for w in m.get('warps', []):
+        t = tile(m, w['x'], w['y'])
+        on_edge = w['x'] in (0, W - 1) or w['y'] in (0, H - 1)
+        if t in PLAIN and not on_edge and not w.get('hidden'):
+            print('%s: warp at %s,%s (-> %s) is drawn as plain %s' % (mid, w['x'], w['y'], w['to'], t)); problems += 1
     print('%-14s reachable %4d tiles from %d arrival(s)' % (mid, len(seen), len(starts)))
 print('problems:', problems)

@@ -7247,7 +7247,7 @@
     "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
     "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
     "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
-    "VVVVVVVVVVVVVVVVV.VVVVVVVVVVVVVVVVVV",
+    "VVVVVVVVVVVVVVVVVdVVVVVVVVVVVVVVVVVV",
     "VVVVVVVVVVVVVVV.....VVVVVVVVVVVVVVVV",
     "MMMMMMMMMMMMMMM.....MMMMMMMMMMMMMMMM",
     "\"\"\"\"\"\"\"\"\"\"\"\"\"gggg,ggggg\"\"\"\"\"\"\"\"\"\"\"\"\"",
@@ -7564,6 +7564,14 @@
     },
     {
      "x": 35,
+     "y": 16,
+     "to": "galleries_g3",
+     "tx": 1,
+     "ty": 9,
+     "dir": "right"
+    },
+    {
+     "x": 35,
      "y": 17,
      "to": "galleries_g3",
      "tx": 1,
@@ -7816,7 +7824,7 @@
     "####.......b.....................###",
     "#####....................b.....#..##",
     "####............................#..#",
-    "######........................####..",
+    "######........................####.#",
     "########.........b...........#######",
     "########.#................#.########",
     "############...........#############",
@@ -7917,7 +7925,7 @@
    "signs": [
     {
      "x": 35,
-     "y": 20,
+     "y": 19,
      "text": "A passage runs off into the dark, east. Not this adventure.",
      "src": "GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)"
     },
@@ -7953,8 +7961,8 @@
     "CCCCCCCCCCCCCCCCCCCCUCCUCCCCCCCCCCCCCCCC",
     "CCCCCCCCCCCCUCCUUUUCUUUUCUCCCCCCCCCCCCCC",
     "CCCCCCCCCCCUUUUUUUUUUUUUUUCUUCCCCCCCCCCC",
-    "CUUUUUUUUCUUUUUUUUUUUUXUUUUUUCXCCCCCCCCC",
-    "CUUUUUUUUUUUUUUUUUUeUUUUXUUXXXXXXXCCCCCC",
+    "UUUUUUUUUCUUUUUUUUUUUUXUUUUUUCXCCCCCCCCC",
+    "UUUUUUUUUUUUUUUUUUUeUUUUXUUXXXXXXXCCCCCC",
     "CCCCCCUUUUUUUUUXUUUUXUXUUXXXXUUXXXCCCCCC",
     "CCCCUUT,,,UUUUUUUUUUUUUUeXXXUUUUXXXCCCCC",
     "CCCCCU,,,cUUeUUUUUUUUeUUUXXXUUUUXXXCCCCC",
@@ -8041,6 +8049,20 @@
    "bg": "gulch",
    "save": false,
    "outside": true,
+   "exits": {
+    "west": {
+     "to": "world",
+     "tx": 30,
+     "ty": 26,
+     "dir": "left"
+    },
+    "east": {
+     "to": "world",
+     "tx": 32,
+     "ty": 31,
+     "dir": "down"
+    }
+   },
    "npcs": [
     {
      "id": "silkcutter",
@@ -8056,40 +8078,6 @@
      "look": "boy",
      "dir": "up",
      "idle": true
-    }
-   ],
-   "warps": [
-    {
-     "x": 1,
-     "y": 5,
-     "to": "world",
-     "tx": 30,
-     "ty": 26,
-     "dir": "left"
-    },
-    {
-     "x": 1,
-     "y": 6,
-     "to": "world",
-     "tx": 30,
-     "ty": 26,
-     "dir": "left"
-    },
-    {
-     "x": 38,
-     "y": 25,
-     "to": "world",
-     "tx": 32,
-     "ty": 31,
-     "dir": "down"
-    },
-    {
-     "x": 38,
-     "y": 26,
-     "to": "world",
-     "tx": 32,
-     "ty": 31,
-     "dir": "down"
     }
    ],
    "chests": [
@@ -9333,8 +9321,8 @@
     "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
     "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
     "VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV",
-    "VVV.VVVVV.VVVVV.VVVVV.VVVVV.VVVVV.VVVVVV",
-    "MMM.MMMMM=MMMMM.MMMMM=MMMMM=MMMMM.MMMMMM",
+    "VVVdVVVVV.VVVVV.VVVVV.VVVVV.VVVVVdVVVVVV",
+    "MMM.MMMMM=MMMMMdMMMMM=MMMMM=MMMMM.MMMMMM",
     ",,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,",
     ",,,,RRRR,,SSSRRR,,,,,,,,,,,,RRR,,SSSSSS,",
     ",,,,WWDW,,WWWWDW,,c,,,,c,,,,WDWq,OODOOO,",
@@ -9807,8 +9795,8 @@
     "##..#########.#####################b#########..#",
     "##..#########################################..#",
     "##..#########################################..#",
-    "##..#########################################..#",
-    "##..#########################################..#"
+    "##uu#########################################uu#",
+    "################################################"
    ],
    "legend": {
     ".": "caveFloor",
@@ -9971,10 +9959,10 @@
     "##...wwwwwBBBB~~...........o......~~.#######",
     "##..........~B~~~................~~~~.#####~",
     "#...........~~~~~~..........~~...B~~~~~~~~~~",
-    "..............~~..BB~~~~~..~~~~~BB~~....####",
+    "#.............~~..BB~~~~~..~~~~~BB~~....####",
     "#.................~B~~~~~.~B~~~........#####",
-    "#.................~~~~~~~~BB~~~........#####",
-    "#..................~~~~~~.............######",
+    "#u................~~~~~~~~BB~~~........#####",
+    "#u.................~~~~~~.............######",
     "#...................................########",
     "##.............................o...#########",
     "###.........o...........y...........########",
@@ -9988,7 +9976,7 @@
     "###########hhhhhhhhhhhhhh################..#",
     "#########################################..#",
     "#########################################..#",
-    "#########################################..#",
+    "#########################################uu#",
     "#########################################..#",
     "############################################"
    ],
@@ -10447,9 +10435,9 @@
     {
      "id": "wallNorth",
      "rect": [
-      36,
       0,
-      3,
+      0,
+      64,
       1
      ],
      "on": "step",

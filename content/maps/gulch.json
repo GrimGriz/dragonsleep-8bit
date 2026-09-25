@@ -8,8 +8,8 @@
 "CCCCCCCCCCCCCCCCCCCCUCCUCCCCCCCCCCCCCCCC",
 "CCCCCCCCCCCCUCCUUUUCUUUUCUCCCCCCCCCCCCCC",
 "CCCCCCCCCCCUUUUUUUUUUUUUUUCUUCCCCCCCCCCC",
-"CUUUUUUUUCUUUUUUUUUUUUXUUUUUUCXCCCCCCCCC",
-"CUUUUUUUUUUUUUUUUUUeUUUUXUUXXXXXXXCCCCCC",
+"UUUUUUUUUCUUUUUUUUUUUUXUUUUUUCXCCCCCCCCC",
+"UUUUUUUUUUUUUUUUUUUeUUUUXUUXXXXXXXCCCCCC",
 "CCCCCCUUUUUUUUUXUUUUXUXUUXXXXUUXXXCCCCCC",
 "CCCCUUT,,,UUUUUUUUUUUUUUeXXXUUUUXXXCCCCC",
 "CCCCCU,,,cUUeUUUUUUUUeUUUXXXUUUUXXXCCCCC",
@@ -96,6 +96,20 @@
 "bg": "gulch",
 "save": false,
 "outside": true,
+"exits": {
+"west": {
+"to": "world",
+"tx": 30,
+"ty": 26,
+"dir": "left"
+},
+"east": {
+"to": "world",
+"tx": 32,
+"ty": 31,
+"dir": "down"
+}
+},
 "npcs": [
 {
 "id": "silkcutter",
@@ -111,40 +125,6 @@
 "look": "boy",
 "dir": "up",
 "idle": true
-}
-],
-"warps": [
-{
-"x": 1,
-"y": 5,
-"to": "world",
-"tx": 30,
-"ty": 26,
-"dir": "left"
-},
-{
-"x": 1,
-"y": 6,
-"to": "world",
-"tx": 30,
-"ty": 26,
-"dir": "left"
-},
-{
-"x": 38,
-"y": 25,
-"to": "world",
-"tx": 32,
-"ty": 31,
-"dir": "down"
-},
-{
-"x": 38,
-"y": 26,
-"to": "world",
-"tx": 32,
-"ty": 31,
-"dir": "down"
 }
 ],
 "chests": [

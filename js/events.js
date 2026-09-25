@@ -292,7 +292,10 @@
       text: L('wall.text'), foot: DS.DATA.config.kofi.replace(/^https?:\/\//, ''), buttons: ['♥ DONATE', 'BACK'],
       onButton: function (i) { if (i === 0) DS.openKofi(); }
     });
-    yield F().walk([north ? 'down' : 'up']);
+    // back off the wall: straight away from it when there's ground there, else back the way you came
+    var g = G(), away = north ? 'down' : 'up';
+    if (F().free(g.x + DS.DIRS[away][0], g.y + DS.DIRS[away][1], 'player')) yield F().walk([away]);
+    else yield* EV.stepBack(g.dir);
   };
   // --- keeper doors, shops, inns, the chapel, the leech-house
   S.keeper = function* (id) {

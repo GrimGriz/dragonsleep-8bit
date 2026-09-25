@@ -284,7 +284,7 @@ def build_world():
     g.trig('snoot', 31, 47, 'snoot', w=5, h=1, cond='!flag:snootDone')
     g.sign(30, 12, 'THE TOWER. The sign says "Wizard School." Everyone calls it the Tower. The door does not open for you.', 'wiki/silverton.md; wiki/vice-row.md (the Wizard School = the Tower)')
     g.sign(4, 16, 'The Castegut road runs on west, weak and thin, north of the Gnoll Hills. Not this road. Not this time.', 'wiki/the-road.md (the Castegut road); edge text invented.json#west-edge')
-    g.trig('wallNorth', 36, 0, 'expansion', 'north', w=3, h=1)
+    g.trig('wallNorth', 0, 0, 'expansion', 'north', w=W, h=1)
     g.trig('wallSouth', 0, H - 1, 'expansion', 'south', w=W, h=1)
     # encounter zones (first match wins)
     g.zone('doors', 33, 0, 9, 10)
@@ -573,7 +573,7 @@ def build_warrens():
         for x in range(26, 40):
             g.put(x, y, 'y' if (y % 2) else 'f')
     # objects (mouth 3 first: the pinned-quest marker routes by the first way it finds, and this is the daytime way)
-    g.put(mouths[3], 4, '.')
+    g.put(mouths[3], 4, 'd'); g.put(mouths[1], 3, 'd'); g.put(mouths[6], 3, 'd')   # the open mouths read as ways down
     g.warp(mouths[3], 4, 'warrens_b', 13, 26, 'up')
     g.warp(mouths[1], 3, 'warrens_c', 2, 16, 'up')
     g.warp(mouths[6], 3, 'warrens_c', 45, 16, 'up')
@@ -648,6 +648,8 @@ def build_warrens():
     g.put(22, 8, 'k'); g.put(27, 12, 'k')                   # two boarded winzes
     g.path([(24, 11), (24, 3), (24, 1)], '.', width=1)       # the drop north to the pools
     g.put(24, 1, 'd')
+    for x in (2, 3, 45, 46):                                  # the way up to the mouths: stairs, and no false edge below them
+        g.put(x, 17, 'u'); g.put(x, 18, '#')
     g.warp(2, 17, 'warrens_a', 3, 5, 'down'); g.warp(3, 17, 'warrens_a', 3, 5, 'down')
     g.warp(45, 17, 'warrens_a', 33, 5, 'down'); g.warp(46, 17, 'warrens_a', 33, 5, 'down')
     g.warp(24, 1, 'warrens_d', 41, 26, 'up')
@@ -686,6 +688,10 @@ def build_warrens():
     g.put(8, 21, 's'); g.vline(9, 20, 23, 'h'); g.put(10, 21, 'n'); g.put(10, 22, 'n')
     # a second shaft, just started, with a cache of tools
     g.path([(36, 17), (38, 21)], '.'); g.chest(38, 21, 'greaterpotion', 1)
+    # both ways out are stairs up (playtest 09-24: the west way out was bare floor, and a false edge sat beside it)
+    g.put(0, 10, '#')
+    for (x, y) in [(1, 12), (1, 13), (41, 27), (42, 27)]:
+        g.put(x, y, 'u')
     g.warp(1, 12, 'warrens_b', 12, 2, 'down'); g.warp(1, 13, 'warrens_b', 12, 2, 'down')
     g.warp(41, 27, 'warrens_c', 24, 2, 'down'); g.warp(42, 27, 'warrens_c', 24, 2, 'down')
     g.trig('bucket', 13, 5, 'bucket', on='use')
@@ -707,7 +713,7 @@ def build_galleries():
     W, H = 36, 24
     g = Grid(W, H, '"')
     g.rect(0, 0, W, 5, 'V'); g.rect(0, 5, W, 1, 'M')
-    g.rect(15, 4, 5, 2, '.'); g.put(17, 3, '.')             # the mouth
+    g.rect(15, 4, 5, 2, '.'); g.put(17, 3, 'd')             # the mouth
     for x in range(13, 23):
         if g.get(x, 6) == '"': g.put(x, 6, 'g')
     g.rect(1, 7, 5, 1, 'R'); g.hline(1, 5, 8, 'O'); g.put(3, 8, 'D')          # the house
@@ -751,7 +757,8 @@ def build_galleries():
     for (x, y) in [(14, 20), (21, 20), (31, 15)]:
         g.put(x, y, 'l')
     g.warp(17, 27, 'galleries_g1', 17, 4, 'down'); g.warp(16, 27, 'galleries_g1', 17, 4, 'down'); g.warp(18, 27, 'galleries_g1', 17, 4, 'down')
-    g.warp(35, 17, 'galleries_g3', 1, 9, 'right'); g.warp(35, 18, 'galleries_g3', 1, 9, 'right')
+    for y in (16, 17, 18):
+        if g.get(35, y) == '.': g.warp(35, y, 'galleries_g3', 1, 9, 'right')
     g.warp(28, 3, 'galleries_g4', 3, 3, 'down', sfx='stairs', slide=True)
     g.npc('scrapeboss', 9, 7, 'worker', dir='down')
     g.npc('scraper1', 18, 5, 'worker2', wander=1)
@@ -806,12 +813,12 @@ def build_galleries():
     for (x, y) in [(13, 8), (20, 11), (11, 16), (25, 17), (17, 20)]:
         g.put(x, y, 'b')
     g.path([(32, 17), (35, 20)], '.'); g.path([(12, 23), (11, 25)], '.')
-    g.put(35, 20, '#'); g.put(11, 25, '#')
+    g.put(35, 20, '#'); g.put(35, 19, '#'); g.put(11, 25, '#')   # passages off, not this adventure: signed dead ends, no open edge
     g.warp(9, 1, 'galleries_g3', 50, 9, 'left', sfx='stairs')
     g.warp(3, 2, 'galleries_g2', 27, 5, 'down', sfx='stairs')
     # it drops on you once you're out in the big room, whichever way you came down (ladder or slide)
     g.trig('cloaker', 5, 8, 'cloaker', on='step', w=28, h=16, cond='!flag:cloakerDone')
-    g.sign(35, 20, 'A passage runs off into the dark, east. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
+    g.sign(35, 19, 'A passage runs off into the dark, east. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
     g.sign(11, 25, 'A passage runs off south. Not this adventure.', 'GalleriesModule/guano-galleries-DM.md §2 G4 (beyond: not mapped)')
     g.chest(25, 17, 'maul1', 1)
     save('galleries_g4', g, 'cave', 'The guano mine — the deep gallery', music='dungeon', bg='deep', save=False, dark=True)
@@ -835,9 +842,9 @@ def build_gulch():
     g.blob(30, 9, 2.5, 1.6, 'U', rng, .1)
     g.path([(24, 12), (28, 10)], 'U')
     g.put(3, 5, 'U'); g.put(2, 5, 'U')
-    g.warp(1, 5, 'world', 30, 26, 'left'); g.warp(1, 6, 'world', 30, 26, 'left')
-    g.warp(38, 25, 'world', 32, 31, 'down'); g.warp(38, 26, 'world', 32, 31, 'down')
-    g.put(1, 5, 'U'); g.put(1, 6, 'U'); g.put(38, 25, 'U'); g.put(38, 26, 'U'); g.put(39, 25, 'U'); g.put(39, 26, 'U')
+    # both ends open onto the world: walk off the west end (up the descent) or the east end (out onto the road south)
+    for (x, y) in [(0, 5), (0, 6), (1, 5), (1, 6), (38, 25), (38, 26), (39, 25), (39, 26)]:
+        g.put(x, y, 'U')
     g.npc('silkcutter', 8, 9, 'worker', dir='right')
     g.npc('drummer', 7, 10, 'boy', dir='up', idle=True)
     # the snared traveler: a silk-wrapped shape strung between two stunted trees, just off the way down
@@ -847,7 +854,8 @@ def build_gulch():
     g.trig('ettercap', 29, 9, 'ettercap', on='step', w=3, h=2, cond='!flag:ettercapDone')
     g.chest(33, 8, 'potion', 1); g.chest(19, 24, 'kit', 2)
     g.zone('gulch', 0, 0, W, H)
-    save('gulch', g, 'cave', 'Web Gulch', music='dungeon', bg='gulch', save=False, outside=True)
+    save('gulch', g, 'cave', 'Web Gulch', music='dungeon', bg='gulch', save=False, outside=True,
+         exits={'west': {'to': 'world', 'tx': 30, 'ty': 26, 'dir': 'left'}, 'east': {'to': 'world', 'tx': 32, 'ty': 31, 'dir': 'down'}})
 
 
 # ============================================================ THE HALFWAY INN and HALFWAY LAKE

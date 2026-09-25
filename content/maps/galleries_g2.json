@@ -151,6 +151,14 @@
 },
 {
 "x": 35,
+"y": 16,
+"to": "galleries_g3",
+"tx": 1,
+"ty": 9,
+"dir": "right"
+},
+{
+"x": 35,
 "y": 17,
 "to": "galleries_g3",
 "tx": 1,
