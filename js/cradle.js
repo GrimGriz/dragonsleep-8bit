@@ -488,12 +488,13 @@
   CradleScene.prototype.setPhase = function (p) { this.phase = p; this.pt = 0; };
   CradleScene.prototype.caption = function (key, vars, life) { var s = DS.L(key, vars); this.cap = { s: Array.isArray(s) ? s[0] : s, t: 0, life: life || 150 }; };
   CradleScene.prototype.makeBand = function () {
-    var T = this.cur(), w = clamp(0.055 + 0.018 * this.skill, 0.035, 0.17) * T.ripe;
+    var T = this.cur(), w = clamp(0.055 + 0.018 * this.skill, 0.035, 0.17) * T.ripe * (1 - 0.3 * this.unrest()); // the gold narrows as the settle wears (tuned 09-25)
     this.band = { c: 0.42 + Math.random() * 0.34, w: w, phase: Math.random() * TAU, jump: 0 };
   };
   CradleScene.prototype.bandC = function () {
     var b = this.band; if (!b) return 0.6;
-    return b.c + (0.015 + 0.055 * this.unrest()) * Math.sin(this.t * 0.035 + b.phase) + b.jump;
+    var u = this.unrest(); // the drift widens and quickens as the settle wears (tuned 09-25: the late draws were too easy)
+    return b.c + (0.015 + 0.09 * u) * Math.sin(this.t * (0.035 + 0.03 * u) + b.phase) + b.jump;
   };
   CradleScene.prototype.pickNext = function () { // the ripest feeler left
     var best = -1, bi = this.sel;
@@ -561,10 +562,10 @@
     this.p += 0.0095 * (1 + 0.14 * this.draws) * this.ts;
     T.swell = this.p; squeezeSet(this.p);
     b.jump *= 0.97;
-    if (unrest > 0.3 && !this.twitch && Math.random() < 0.006) this.twitch = { t: 0 };
+    if (unrest > 0.3 && !this.twitch && Math.random() < 0.004 + 0.018 * unrest) this.twitch = { t: 0 };
     if (this.twitch) {
       this.twitch.t++;
-      if (this.twitch.t === 10) { b.jump = (Math.random() < 0.5 ? -1 : 1) * 0.07; T.flinch = 12; SFX.flinch(); this.shake = 6; if (!this.twitched) { this.twitched = true; this.caption('w.cradle.twitch', null, 120); } }
+      if (this.twitch.t === 10) { b.jump = (Math.random() < 0.5 ? -1 : 1) * (0.06 + 0.08 * unrest); T.flinch = 12; SFX.flinch(); this.shake = 6; if (!this.twitched) { this.twitched = true; this.caption('w.cradle.twitch', null, 120); } }
       if (this.twitch.t > 70) this.twitch = null;
     }
     var c = this.bandC();

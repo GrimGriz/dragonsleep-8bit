@@ -1,9 +1,9 @@
 {
-  "_note": "Stats from the register sheets. Gaps derived by SRD 5.1 rules and logged in invented.json. Level-up picks (spells, subclasses) are the build's, PROPOSED.",
+  "_note": "Stats from the register sheets. Gaps derived by SRD 5.1 rules and logged in invented.json. Level-up picks (spells, subclasses) are the build's, PROPOSED. HP: every level is a max hit die plus CON (RULED 09-25, Griz), so level 2 = 2 x (die + CON): Barley 26, Aurdin 12, Vivian 18, Lymen 24.",
   "barley": {
     "rewardWeapons": ["threshingflail1", "threshingflail2"],
     "name": "Barley", "fullName": "Barley Pete Johnson (no relation)", "cls": "fighter", "level": 2, "race": "Human", "background": "Dispossessed",
-    "abil": { "str": 16, "dex": 13, "con": 16, "int": 9, "wis": 14, "cha": 11 }, "hp": 23,
+    "abil": { "str": 16, "dex": 13, "con": 16, "int": 9, "wis": 14, "cha": 11 }, "hp": 26,
     "equip": { "weapon": "threshingflail", "armor": null, "shield": null, "ring": null },
     "saveProf": ["str", "con"], "skills": { "Athletics": 5, "Perception": 4, "Insight": 4, "Survival": 4 },
     "look": "barley", "weaponArt": "flail",
@@ -17,11 +17,11 @@
   "aurdin": {
     "rewardWeapons": ["staff1", "staff2"],
     "name": "Aurdin", "fullName": "Aurdin", "cls": "wizard", "level": 2, "race": "Human", "background": "Acolyte",
-    "abil": { "str": 11, "dex": 14, "con": 10, "int": 17, "wis": 9, "cha": 13 }, "hp": 10,
+    "abil": { "str": 11, "dex": 14, "con": 10, "int": 17, "wis": 9, "cha": 13 }, "hp": 12,
     "equip": { "weapon": "quarterstaff", "armor": null, "shield": null, "ring": null },
     "saveProf": ["int", "wis"], "skills": { "Arcana": 5, "Investigation": 5, "Religion": 5, "Insight": 1 },
     "look": "aurdin", "weaponArt": "staff",
-    "spells": ["firebolt", "light", "dancinglights", "burninghands", "magicmissile", "shield", "sleep", "detectmagic"],
+    "spells": ["firebolt", "light", "burninghands", "magicmissile", "shield", "sleep", "detectmagic"],
     "classLine": "Wizard 2 · an evoker by aspiration",
     "blurb": "Sixteen, INT 17, WIS 9: he knows, and asks the wrong people. A farm boy off Newland who walked away from the sun chapels, came in with the Glowseep crews' haul, and slept on Aldwin's floor.",
     "featText": [{ "t": "Arcane Recovery (once a day, field)" }, { "t": "School of Evocation" }],
@@ -33,7 +33,7 @@
   "vivian": {
     "rewardWeapons": ["dagger1", "dagger2"],
     "name": "Vivian", "fullName": "Vivian Venn", "cls": "rogue", "level": 2, "race": "Human", "background": "the Quarter's own",
-    "abil": { "str": 10, "dex": 16, "con": 12, "int": 12, "wis": 14, "cha": 13 }, "hp": 15,
+    "abil": { "str": 10, "dex": 16, "con": 12, "int": 12, "wis": 14, "cha": 13 }, "hp": 18,
     "equip": { "weapon": "candleknife", "armor": "leather", "shield": null, "ring": null },
     "saveProf": ["dex", "int"], "skills": { "Sleight of Hand": 7, "Perception": 6, "Stealth": 5, "Insight": 4, "Deception": 3, "Investigation": 3, "Acrobatics": 3 },
     "look": "vivian", "weaponArt": "dagger",
@@ -53,7 +53,7 @@
   "lymen": {
     "rewardWeapons": ["longsword1", "longsword2"],
     "name": "Lymen", "fullName": "Lymen \"Ly\" Urtusk", "cls": "paladin", "level": 2, "race": "Half-orc", "background": "Acolyte (self-ordained)",
-    "abil": { "str": 17, "dex": 10, "con": 15, "int": 8, "wis": 12, "cha": 14 }, "hp": 20,
+    "abil": { "str": 17, "dex": 10, "con": 15, "int": 8, "wis": 12, "cha": 14 }, "hp": 24,
     "equip": { "weapon": "longsword", "armor": "chainmail", "shield": "shield", "ring": null },
     "saveProf": ["wis", "cha"], "skills": { "Athletics": 5, "Insight": 3, "Religion": 1, "Intimidation": 4 },
     "look": "lymen", "weaponArt": "sword",

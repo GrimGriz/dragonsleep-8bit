@@ -271,8 +271,23 @@
     for (var i = 0; i < DS.scenes.length - 1; i++) if (DS.scenes[i].tick) DS.scenes[i].tick();
     for (var j = 0; j < DS.scripts.length; j++) DS.scripts[j].update();
     DS.scripts = DS.scripts.filter(function (s) { return !s.done; });
+    if (DS.wave && ++DS.wave.t >= DS.wave.dur) DS.wave = null;
     if (DS.audio && DS.audio.update) DS.audio.update();
     DS.input.clearEdges();
+  }
+  // a ripple over the whole frame (the glamour breaking): DS.wave = { t, dur, amp, tint }; rows shear on a sine that rises and settles
+  var waveBuf = null;
+  function drawWave(ctx) {
+    var w = DS.wave, env = Math.sin(Math.PI * Math.min(1, w.t / w.dur)), amp = (w.amp || 5) * env;
+    if (!waveBuf) { waveBuf = document.createElement('canvas'); waveBuf.width = DS.W; waveBuf.height = DS.H; }
+    var b = waveBuf.getContext('2d');
+    b.clearRect(0, 0, DS.W, DS.H); b.drawImage(ctx.canvas, 0, 0);
+    ctx.fillStyle = '#000'; ctx.fillRect(0, 0, DS.W, DS.H);
+    for (var y = 0; y < DS.H; y += 2) {
+      var dx = Math.round(Math.sin(y * 0.09 + w.t * 0.22) * amp);
+      ctx.drawImage(waveBuf, 0, y, DS.W, 2, dx, y, DS.W, 2);
+    }
+    if (w.tint) { ctx.globalAlpha = 0.28 * env; ctx.fillStyle = w.tint; ctx.fillRect(0, 0, DS.W, DS.H); ctx.globalAlpha = 1; }
   }
   function draw() {
     var ctx = DS.ctx;
@@ -282,6 +297,7 @@
     for (var k = start; k < DS.scenes.length; k++) {
       try { DS.scenes[k].draw(ctx); } catch (e) { console.error(e); DS.lastError = e; }
     }
+    if (DS.wave) drawWave(ctx);
     if (DS.fadeLevel > 0) {
       ctx.globalAlpha = DS.clamp(DS.fadeLevel, 0, 1);
       ctx.fillStyle = '#000'; ctx.fillRect(0, 0, DS.W, DS.H);

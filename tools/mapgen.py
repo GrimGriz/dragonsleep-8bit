@@ -936,7 +936,7 @@ def build_halfway():
     g.npc('doranIn', 8, 3, 'worker', dir='left', cond='!flag:doranAway')
     g.npc('elsbeth', 15, 5, 'elsbeth', dir='up', cond='!flag:postgame')
     g.npc('katarina', 2, 6, 'kat', dir='right', cond='!flag:katGone')
-    g.trig('drawer', 9, 1, 'drawer', on='use')
+    g.trig('drawer', 9, 1, 'drawer', on='step')   # the stairs tile is walkable, so a walk-into 'use' never fired (playtest 09-25)
     save('halfway_in', g, 'inside', 'The Halfway Inn — inside', music='inn', bg='town', legend={'.': 'floorWood'})
 
 

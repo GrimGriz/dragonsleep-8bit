@@ -70,7 +70,7 @@
   R.levelUp = function (h) {
     var msgs = [], c = R.CLASSES[h.cls];
     h.lvl++;
-    var gain = Math.floor(c.hd / 2) + 1 + DS.mod(h.abil.con);
+    var gain = c.hd + DS.mod(h.abil.con); // RULED 09-25 (Griz): a max hit die at every level
     gain = Math.max(1, gain);
     h.maxhp += gain; h.hp += gain;
     msgs.push(h.name + ' is now level ' + h.lvl + '! Max HP +' + gain + '.');
@@ -108,6 +108,9 @@
   // bring an older save's heroes up to the current rules (spells cut, choices added since)
   R.migrate = function (h) {
     h.known = (h.known || []).filter(function (id) { return !!DS.DATA.spells[id]; });
+    // RULED 09-25: every level is a max hit die. An older save's heroes catch up (Aid's +5 set aside first).
+    var c = R.CLASSES[h.cls], want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0);
+    if (base < want) { h.maxhp += want - base; h.hp += want - base; }
     var d = DS.DATA.heroes[h.id], arch = (d && d.archetypes) || [];
     if (arch.length && h.lvl >= 3 && !arch.some(function (a) { return a.name === h.subclass; })) { h.subclass = null; h.pendingChoice = 'archetype'; }
   };

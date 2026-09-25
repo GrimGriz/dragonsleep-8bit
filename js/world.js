@@ -544,6 +544,17 @@
   // touching a real rider ends it, touching one of Willem's false riders pops it, a rider at the goal escapes.
   Field.prototype.chaseTick = function () {
     var c = this.chase, G = DS.G, self = this;
+    if (c.hold > 0) { // the riders hold at the start until the player touches a key, or the hold runs out (playtest 09-25)
+      c.hold--;
+      var pressed = ['up', 'down', 'left', 'right', 'a'].some(function (b) { return I.down(b); });
+      if (pressed || c.hold <= 0) {
+        var cut = c.hold; c.hold = 0;
+        c.real.concat(c.fake).forEach(function (n) {
+          if (n.pause > 0) n.pause = Math.max(0, n.pause - cut);
+          else if (n.path[0] && n.path[0].indexOf('wait') === 0) { var left = (parseInt(n.path[0].slice(4), 10) || 0) - cut; if (left > 0) n.path[0] = 'wait' + left; else n.path.shift(); }
+        });
+      }
+    }
     function near(n) { return !n.hidden && Math.abs(n.x - G.x) + Math.abs(n.y - G.y) <= 1; }
     var fake = c.fake.filter(near)[0];
     if (fake) { fake.hidden = true; DS.audio.sfx('miss'); DS.run(function* () { yield DS.say(DS.L('wagon.fakeRider'), { top: true }); }); return true; }

@@ -111,7 +111,7 @@
 1,
 1
 ],
-"on": "use",
+"on": "step",
 "script": "drawer"
 }
 ]

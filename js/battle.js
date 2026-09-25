@@ -322,20 +322,14 @@
   };
   Battle.prototype.foeFlee = function* (f) {
     var self = this;
-    if (!this.darknessUp && this.o.darkness) { // Amara's darkness over the yard: the drivers know the drill
+    if (!this.darknessUp && this.o.darkness) { // Amara's darkness over the yard (the beats hold for Z: playtest 09-25, too fast to read)
       this.darknessUp = true; this.bright = false; DS.audio.sfx('magic'); this.flashT = 6;
-      yield* this.say('Amara throws darkness over the yard!', 44);
-      var drivers = this.liveFoes().filter(function (x) { return !(x.m.traits && x.m.traits.flees); });
-      if (drivers.length) {
-        drivers.forEach(function (d) { d.dead = true; d.fade = 24; d.surrendered = true; });
-        this.layoutFoes();
-        yield* this.say('The drivers throw down their blades and scatter.', 40);
-      }
+      yield* this.hold('Amara throws darkness over the yard!');
     }
     var best = 0; this.liveHeroes().forEach(function (u) { best = Math.max(best, DS.mod(u.h.abil.dex)); });
     var roll = DS.d(20) + DS.mod(abil(f, 'dex'));
     f.off = -10;
-    yield* this.say(nameOf(f) + ' breaks for the horses...', 34);
+    yield* this.say(nameOf(f) + ' breaks for the horses...', 56);
     f.off = 0;
     if (roll >= 10 + best) {
       DS.audio.sfx('run');
@@ -343,7 +337,7 @@
       DS.fledIds = away.map(function (x) { return x.id; }); // who's still out there, for the chase
       yield* this.hold(away.length > 1 ? 'They get to the horses! Both of them are away into the dark.' : nameOf(f) + ' gets to a horse and is away into the dark!');
       this.over = 'fled';
-    } else yield* this.say('...and is cut off. (' + roll + ' vs ' + (10 + best) + ')', 36);
+    } else yield* this.hold('...and is cut off. (' + roll + ' vs ' + (10 + best) + ')');
   };
   Battle.prototype.checkEnd = function () {
     if (this.over) return;
@@ -681,13 +675,6 @@
       this.flashT = 10;
       this.foes.forEach(function (f) { f.conds.revealed = true; });
       yield* this.dazzle(nameOf(u) + "'s light floods the dark.");
-      return true;
-    }
-    if (k === 'flavor') { // Dancing Lights: dim light, but nothing unseen stays unseen under it
-      this.foes.forEach(function (f) { f.conds.revealed = true; });
-      var shown = this.liveFoes().filter(function (f) { return f.m.traits && f.m.traits.unseen; });
-      this.burst(u, '#F8D878', 10, 1.2, 'rise');
-      yield* this.say('Four small lights bob out over the fight.' + (shown.length ? ' ' + nameOf(shown[0]) + ' shows plain under them!' : ' Nothing hides from them.'), 50);
       return true;
     }
     for (var i = 0; i < targets.length && !this.over; i++) {

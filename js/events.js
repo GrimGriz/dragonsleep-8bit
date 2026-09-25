@@ -247,7 +247,7 @@
       g.party.slice(0, 3).forEach(function (x) { if (!x.ko) { x.maxhp += 5; x.hp += 5; x.conds.aid = (x.conds.aid || 0) + 5; } });
       DS.audio.sfx('buff'); yield DS.say(L('g.aid')); return;
     }
-    if (sp.kind === 'light' || sp.kind === 'flavor') { DS.audio.sfx('magic'); yield DS.say(L(sp.kind === 'light' ? 'g.light' : 'g.dancing')); return; }
+    if (sp.kind === 'light') { DS.audio.sfx('magic'); yield DS.say(L('g.light')); return; }
     if (sp.kind === 'detect') {
       DS.audio.sfx('magic');
       var magic = (F().chests || []).filter(function (c) { var it = c.item && DS.DATA.items[c.item]; return it && /\+1|Ring of|Potion/.test(it.name) && !g.flags['chest:' + F().map.id + ':' + c.x + ',' + c.y]; });
@@ -414,7 +414,7 @@
     }
     while (true) {
       var a = yield DS.ask(L(g.has('ringofbinding') ? 'winters.after' : 'winters.menu'), ['WORK', 'THE SHELVES', 'LEAVE'], W);
-      if (a === 0) yield* S.wintersWork();
+      if (a === 0) { if ((yield* S.wintersWork()) === 'leave') break; } // a job in hand ends the talk (playtest 09-25: no 'lifted pen' loop)
       else if (a === 1) {
         if (!g.flags.wErrADone) { yield DS.say(L('winters.shelvesShut'), W); continue; }
         yield DS.shop('winters');
@@ -429,7 +429,9 @@
       yield DS.say(L('winters.errandA'), W);
       g.flags.wErrA = 1; g.give('estatepapers', 1); DS.audio.sfx('chest');
       yield DS.say(L('g.got', { item: DS.DATA.items.estatepapers.name }));
-      return;
+      if (!g.flags.pin) g.flags.pin = 'errands'; // the first errand teaches the journal (playtest 09-25)
+      yield DS.say(L('winters.journalHint'));
+      return 'leave';
     }
     if (!g.flags.wErrADone) {
       if (!g.flags.wValued) { yield DS.say(L(g.flags.wSealed ? 'winters.errandAtoCasper' : 'winters.errandAtoAndroit'), W); return; }
@@ -443,7 +445,7 @@
       yield DS.say(L('winters.errandB'), W);
       g.flags.wErrB = 1; g.give('debtpurse', 1); DS.audio.sfx('chest');
       yield DS.say(L('g.got', { item: DS.DATA.items.debtpurse.name }));
-      return;
+      return 'leave';
     }
     if (!g.flags.wErrBDone) {
       if (!g.flags.wPaid) { yield DS.say(L(g.flags.wSigned ? 'winters.errandBtoBrennan' : 'winters.errandBtoMical'), W); return; }
@@ -900,15 +902,18 @@
   // it arrive; what they see through, and what they do about it, is the night.
   var W = {}; // the scene's cast, while it runs
   function perceives(h, dc, bonus) { return DS.d(20) + R.skill(h, 'Perception', 'wis') + (bonus || 0) >= dc; }
-  function* breakGlamour() { // seen through: the player sees children. No words (RULED 09-24).
+  function* breakGlamour() { // seen through: the player sees children. No words (RULED 09-24). The yard ripples for a few
+    // seconds and they are children when it settles (playtest 09-25: the switch was too quick; 'wavy')
     var g = G();
     if (g.flags.glamourSeen) return;
     g.flags.glamourSeen = 1;
     DS.audio.sfx('magic');
+    DS.wave = { t: 0, dur: 150, amp: 6, tint: '#7050B0' };
+    yield W8.frames(64);
     DS.flashColor = '#F8F8F8'; DS.flashAlpha = 0.35; yield W8.frames(6); DS.flashColor = null;
     if (W.wagon) W.wagon.def = Object.assign({}, W.wagon.def, { prop: 'wagonKids' });
     if (W.goblin) W.goblin.look = DS.LOOKS.kid;
-    yield W8.frames(40);
+    yield W8.frames(110);
   }
   S.wagonNight = function* () {
     var g = G(), f, party = g.party.filter(function (h) { return !h.ko; });
@@ -926,7 +931,6 @@
     yield arrived([W.wagon]);
     W.amara = spawn({ id: 'amaraYard', x: 8, y: 9, look: 'amara', dir: 'right' });
     W.willem = spawn({ id: 'willemYard', x: 7, y: 9, look: 'willem', dir: 'right' });
-    W.drivers = [spawn({ id: 'driver1', x: 3, y: 9, look: 'worker2', dir: 'down' }), spawn({ id: 'driver2', x: 4, y: 9, look: 'worker', dir: 'down' })];
     W.goblin = spawn({ id: 'wagonGoblin', x: 5, y: 10, look: 'goblin', dir: 'right' });
     yield DS.say(L('wagon.secondWatch'));
     var watcher = party.length === 1 ? party[0] : yield DS.choose({ items: party.map(function (h) { return { label: h.name, right: 'Perception ' + DS.sgn(R.skill(h, 'Perception', 'wis')), value: h }; }), x: 60, y: 90, w: 150, title: 'WHO HAD SECOND WATCH?', cancelable: false });
@@ -994,7 +998,7 @@
     W.goblin.path = ['down', 'down', 'right', 'right', 'right', 'right', 'hide'];
     W.gennet.path = ['wait8', 'down', 'down', 'down', 'right', 'right', 'right', 'right', 'hide'];
     W.kat.path = ['left', 'left', 'left', 'left', 'left', 'left', 'up', 'up', 'up', 'hide'];
-    [W.amara, W.willem].concat(W.drivers).forEach(function (n) { n.path = ['wait30', 'hide']; });
+    [W.amara, W.willem].forEach(function (n) { n.path = ['wait30', 'hide']; });
     yield arrived([W.goblin, W.gennet, W.kat]);
     DS.audio.sfx('door');
     W.wagon.dir = 'left'; W.wagon.path = ['left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left', 'left'];
@@ -1003,17 +1007,17 @@
     yield* EV.dueWalk('kid');
     yield* EV.wagonMorning('bribe');
   };
-  // steel comes out: the pair fight only to get to the horses; the drivers fold when the darkness goes up
+  // steel comes out: the pair fight only to get to the horses. They drove the wagon themselves; no hired drivers (playtest 09-25)
   S.wagonFight = function* (outside) {
     var g = G(), party = g.party.filter(function (h) { return !h.ko; });
     var solo = outside.length === 1 && party.length > 1 ? g.party.indexOf(outside[0]) : null;
     DS.fledIds = null;
-    var res = yield DS.battle({ enemies: ['amara', 'willem', 'bandit', 'bandit'], bg: 'lake', music: 'boss', canRun: false, solo: solo, join: solo != null ? 2 : 0, darkness: true, returnSong: 'lake' });
+    var res = yield DS.battle({ enemies: ['amara', 'willem'], bg: 'lake', music: 'boss', canRun: false, solo: solo, join: solo != null ? 2 : 0, darkness: true, returnSong: 'lake' });
     if (res === 'lose') return;
     g.flags.glamourBroken = 1; g.flags.glamourSeen = 1;
     if (W.wagon) W.wagon.def = Object.assign({}, W.wagon.def, { prop: 'wagonKids' });
     if (W.goblin) W.goblin.look = DS.LOOKS.kid;
-    [W.amara, W.willem].concat(W.drivers).forEach(function (n) { n.hidden = true; });
+    [W.amara, W.willem].forEach(function (n) { n.hidden = true; });
     yield DS.say(L('wagon.abandoned'));
     // the strongbox under the driver's bench
     g.silver += 600; g.give('wagonorder', 1); DS.audio.sfx('chest');
@@ -1062,11 +1066,12 @@
     var fakes = who.indexOf('willem') < 0 ? [] : who.map(function (id, k) { var n = spawn({ id: 'fake' + k, x: fx, y: fy, look: id, dir: 'left' }); n.hidden = true; return n; });
     var westward = DS.pathTo(m, fx, fy, 6, 16).slice(0, 12).concat(['hide']);
     yield DS.say(L('wagon.chase2'), { top: true });
-    real.forEach(function (n, k) { n.pathSpeed = 2; n.path = (k ? ['wait8'] : []).concat(realPath); });
-    fakes.forEach(function (n, k) { n.pathSpeed = 2; n.path = ['wait' + (fork * 8 + 10 + k * 8), 'show'].concat(westward); });
+    var HOLD = 90; // the riders wait on the player: the first key, or a second and a half (playtest 09-25: they took off too quick)
+    real.forEach(function (n, k) { n.pathSpeed = 2; n.path = ['wait' + (HOLD + k * 8)].concat(realPath); });
+    fakes.forEach(function (n, k) { n.pathSpeed = 2; n.path = ['wait' + (HOLD + fork * 8 + 10 + k * 8), 'show'].concat(westward); });
     var all = real.concat(fakes);
     f.chase = {
-      real: real, fake: fakes, goal: { x: 30, y: 13 },
+      real: real, fake: fakes, goal: { x: 30, y: 13 }, hold: HOLD,
       caught: function* () {
         yield DS.say(L('wagon.caught2'), { top: true });
         var r3 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false, noFlee: true });
@@ -1098,8 +1103,18 @@
   };
   // Elsbeth, after the wagon's been stopped: the lake gave it back; it should go to somebody who stops things
   EV.wagonGift = function* () {
-    var g = G(), main = g.main();
+    var g = G(), main = g.main(), f = F(), els = EV.npc('elsbeth'), home = null;
     delete g.flags.wagonGift;
+    if (els && !els.hidden && Math.abs(els.x - g.x) + Math.abs(els.y - g.y) > 1) { // she comes over from the kitchen first (playtest 09-25: it read as the inn lady talking)
+      var spots = [[g.x, g.y - 1], [g.x + 1, g.y], [g.x - 1, g.y], [g.x, g.y + 1]].filter(function (p) { return f.free(p[0], p[1]); });
+      var to = spots[0], path = to ? DS.pathTo(f.map, els.x, els.y, to[0], to[1]) : [];
+      if (path.length) {
+        home = { x: els.x, y: els.y, dir: els.dir };
+        var face = to[1] < g.y ? 'down' : to[1] > g.y ? 'up' : to[0] < g.x ? 'right' : 'left';
+        yield EV.npcWalk(els, path.concat(['face:' + face]), 1);
+        g.dir = { down: 'up', up: 'down', right: 'left', left: 'right' }[face];
+      }
+    }
     var arm = R.item(main.equip.armor), id = arm && DS.DATA.items[arm.id + '1'] ? arm.id + '1' : 'ringofprotection', it = DS.DATA.items[id];
     yield DS.say(L('wagon.gift'), who('Elsbeth'));
     g.give(id, 1); DS.audio.sfx('chest');
@@ -1109,6 +1124,7 @@
       if (eq === 0) { g.give(main.equip.armor, 1); g.take(id, 1); main.equip.armor = id; DS.audio.sfx('confirm'); }
     }
     if (!g.has('ringofbinding')) yield DS.say(L('inn.elsbethWinters'), who('Elsbeth'));
+    if (home) els.path = DS.pathTo(f.map, els.x, els.y, home.x, home.y).concat(['face:' + home.dir]); // and back to the tub
   };
   // the day after: Katarina gives the party her book and heads south (RULED 09-24)
   S.katarina = function* (npc, D) {

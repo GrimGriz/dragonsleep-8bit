@@ -116,5 +116,17 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] Phone: the scene sits exactly over the game screen, the A button holds and releases the squeeze, the d-pad picks feelers
 - [ ] Feel: is the gold fair for a +0 hand? Is the last draw's drift too wild? Does the crawler read as a crawler?
 
+## 14. Round four: the fold from the 09-25 ear-file
+
+- [ ] HP: a level-up adds the whole hit die plus CON (Barley +13, Aurdin +6, Vivian +9, Lymen +12); a new game starts Barley 26 / Aurdin 12 / Vivian 18 / Lymen 24; an older save catches up on CONTINUE
+- [ ] The wagon comes in with no hired drivers: Amara has the reins, Willem beside her. The fight is the two of them, and each beat (the darkness, the break for the horses, cut off / away) waits for Z
+- [ ] Seeing through the glamour: the yard ripples for about three seconds with a violet cast, and the goblins are children when it settles
+- [ ] The chase to the Tower: the riders sit still until you touch a key (or a second and a half), then go
+- [ ] Morning after the yard fight: Elsbeth walks over from the kitchen before she speaks, then goes back to the tub
+- [ ] Kat rode out (the bribe): the morning line says her room stands open; step onto the stair for the drawer and her book
+- [ ] Winters: WORK hands you the first errand, the JOURNAL pins it and a line says how the pin works, and the talk ends (no return to the lifted pen). Errand A pays +1 renown at the counter (the star line)
+- [ ] Dancing Lights is gone from Aurdin's list (an older save drops it); Light or a torch still shows the Keeper
+- [ ] The cradle from the fourth draw: the gold narrows, drifts wider and faster, the twitches come oftener. A real fight by the sixth draw, without being unfair to a +0 hand?
+
 ## Notes
 (write here)
