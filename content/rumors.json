@@ -27,5 +27,6 @@
   { "id": "r-stream", "t": "The landlord in the deepest pool showed you, in pictures, what comes down the stream: fungal light, and clacking.", "src": "wiki/the-warrens.md (the clacker cavern)" },
   { "id": "r-winters", "t": "Ambrose Winters on Fountain Street. Acquisitions and Estates. Ran with Pyronimus and Tarlyn in the Orc War, they say. Won't deal with thieves if he can help it.", "flag": "heardWinters", "src": "wiki/fountain-street.md (Winters)" },
   { "id": "r-webgulch", "t": "Down the road past the fork: Web Gulch. Silk-cutters work it at noon, when the spiders sulk. They pay a boy to drum.", "src": "wiki/web-gulch.md; road-silverton-tarlynspit.md §4" },
-  { "id": "r-halfway", "t": "Seventeen miles down, the Halfway Inn: the only well on the road.", "flag": "heardLake", "src": "wiki/halfway-inn-and-lake.md" }
+  { "id": "r-halfway", "t": "Seventeen miles down, the Halfway Inn: the only well on the road.", "flag": "heardLake", "src": "wiki/halfway-inn-and-lake.md" },
+  {"id": "r-stairdry", "t": "Night crews pumped the Warrens' water stair dry, three nights running, and cut the warranted door at the foot of it. The one law. The scales are lit.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 1; §5.3 (game-only: the register's stair is still flooded at campaign start)"}
 ]

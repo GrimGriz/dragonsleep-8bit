@@ -128,6 +128,16 @@
 "tx": 24,
 "ty": 2,
 "dir": "down"
+},
+{
+"x": 8,
+"y": 21,
+"to": "burial",
+"tx": 2,
+"ty": 3,
+"dir": "right",
+"cond": "flag:stairHook & !flag:frontDoor",
+"sfx": "stairs"
 }
 ],
 "chests": [
@@ -216,7 +226,20 @@
 4
 ],
 "on": "use",
-"script": "stair"
+"script": "stair",
+"cond": "!flag:stairHook"
+},
+{
+"id": "dryStair",
+"rect": [
+19,
+20,
+1,
+4
+],
+"on": "step",
+"script": "dryStair",
+"cond": "flag:stairHook & !flag:drySeen"
 }
 ],
 "zones": [
@@ -228,6 +251,242 @@
 44,
 19
 ]
+}
+],
+"flagTiles": [
+{
+"x": 12,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 13,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 14,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 15,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 16,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 17,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 18,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 19,
+"y": 20,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 12,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 13,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 14,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 15,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 16,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 17,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 18,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 19,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 12,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 13,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 14,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 15,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 16,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 17,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 18,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 19,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 12,
+"y": 23,
+"tile": "puddle",
+"cond": "flag:stairHook"
+},
+{
+"x": 13,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 14,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 15,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 16,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 17,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 18,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 19,
+"y": 23,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 11,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 11,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 10,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 10,
+"y": 22,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 9,
+"y": 21,
+"tile": "dryStair",
+"cond": "flag:stairHook"
+},
+{
+"x": 8,
+"y": 21,
+"tile": "sealCut",
+"cond": "flag:stairHook"
+},
+{
+"x": 8,
+"y": 21,
+"tile": "ironBars",
+"cond": "flag:frontDoor"
 }
 ]
 }

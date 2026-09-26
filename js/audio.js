@@ -96,7 +96,8 @@
   };
   var DRUM = { // k kick, s snare, h hat, - rest (each char = one 16th)
     rock: 'k-h-s-h-k-k-s-h-', battle: 'k-hkshk-k-hksh-h', battle2: 'khhkshkhkkhkshsh', march: 'k---s---k-k-s---',
-    light: 'k-------s---h---', drip: '--------h-------', none: '----------------'
+    light: 'k-------s---h---', drip: '--------h-------', none: '----------------',
+    anvil: 'k-----h-k-----hh' // Solskaft: a hammer somewhere below, always
   };
   function parseMel(str) {
     var out = [];
@@ -195,6 +196,16 @@
       chords: 'D D G G A D Em A D G A A D Em A D',
       melody: 'A4.4 D5.4 E5.4 F#5.4 | E5.6 D5.2 C#5.8 | D5.4 G5.4 B5.4 A5.4 | G5.12 r.4 | C#5.4 E5.4 A5.4 G5.4 | F#5.6 G5.2 D5.8 | E5.4 D5.4 B4.4 A4.4 | A4.12 r.4 |' +
         ' D5.4 A5.4 G5.2 F#5.2 E5.4 | G5.4 D5.4 B4.8 | C#5.4 A5.4 G5.2 F#5.2 E5.4 | E5.16 | F#5.4 E5.4 D5.4 A5.4 | B5.6 A5.2 G5.8 | F#5.4 E5.4 C#5.4 E5.4 | D5.16'
+    },
+    solskaft: { // the halls behind the fountains: D dorian, a garrison's slow pride
+      bpm: 92, bass: 'halves', pad: 'hold', drums: 'anvil', duty: 0.25, melVol: 0.13, padVol: 0.05,
+      chords: 'Dm C Dm Am Bb C Dm Dm',
+      melody: 'D5.4 F5.4 A5.6 G5.2 | E5.4 G5.4 C5.8 | D5.4 A5.4 B5.4 A5.4 | G5.4 E5.4 A4.8 | F5.4 D5.4 Bb4.4 D5.4 | E5.4 G5.4 C6.6 Bb5.2 | A5.4 G5.2 F5.2 E5.4 C5.4 | D5.12 r.4'
+    },
+    burial: { // everyone here is waiting for one old dwarf upstairs
+      bpm: 60, bass: 'whole', pad: 'hold', drums: 'none', duty: 0.125, melVol: 0.1, padVol: 0.045,
+      chords: 'Am Am F E',
+      melody: 'r.8 E5.8 | A5.12 r.4 | r.4 C6.8 A5.4 | G#5.16'
     },
     glow: {
       bpm: 76, bass: 'halves', pad: 'arp8', drums: 'none', duty: 0.125, melVol: 0.11, padVol: 0.04,

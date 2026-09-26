@@ -733,7 +733,7 @@
     ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(bx, by, 220, 6);
     ctx.fillStyle = DS.mix(COL.red, COL.gold, settle); ctx.fillRect(bx + 220 * (1 - settle), by, 220 * settle, 6);
     var prompt = '';
-    if (this.phase === 'ready') prompt = 'hold Z to work the gland   ·   ◀ ▶ another feeler';
+    if (this.phase === 'ready') prompt = 'hold E to work the gland   ·   ◀ ▶ another feeler';
     else if (this.phase === 'squeeze') prompt = 'let go in the gold';
     if (prompt) txt(ctx, prompt, 512, 160, { size: 20, italic: true, color: COL.bone, align: 'center', shadow: true, alpha: 0.85 });
     if (this.cap) {
@@ -788,7 +788,7 @@
       if (st === 'perfect') { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = 'rgba(240,192,96,0.3)'; ctx.beginPath(); ctx.arc(x, 498, 34, 0, TAU); ctx.fill(); ctx.restore(); }
     }
     txt(ctx, DS.L('w.cradle.paid', { n: this.got }), 512, 596, { size: 22, color: COL.bone, align: 'center' });
-    txt(ctx, 'Z', 512, 636, { size: 18, italic: true, color: COL.dim, align: 'center', alpha: 0.5 + 0.5 * Math.sin(this.t * 0.1) });
+    txt(ctx, 'E', 512, 636, { size: 18, italic: true, color: COL.dim, align: 'center', alpha: 0.5 + 0.5 * Math.sin(this.t * 0.1) });
     ctx.restore();
   };
 })();

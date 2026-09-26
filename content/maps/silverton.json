@@ -316,7 +316,15 @@
 "x": 29,
 "y": 5,
 "text": "The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.",
-"src": "wiki/silverton.md (the one law: nobody bothers the dwarves)"
+"src": "wiki/silverton.md (the one law: nobody bothers the dwarves)",
+"cond": "!flag:frontDoor"
+},
+{
+"x": 30,
+"y": 5,
+"text": "The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.",
+"src": "wiki/silverton.md (the one law: nobody bothers the dwarves)",
+"cond": "!flag:frontDoor"
 },
 {
 "x": 24,
@@ -616,6 +624,21 @@
 ],
 "on": "use",
 "script": "board"
+},
+{
+"id": "vaultDoor",
+"rect": [
+29,
+5,
+2,
+1
+],
+"on": "use",
+"script": "warp",
+"cond": "flag:frontDoor",
+"to": "solskaft",
+"tx": 17,
+"ty": 46
 }
 ]
 }

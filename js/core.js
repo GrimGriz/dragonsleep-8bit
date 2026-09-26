@@ -86,7 +86,7 @@
   // ---------------------------------------------------------------- input
   var KEYMAP = {
     ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-    KeyZ: 'a', Enter: 'a', Space: 'a', NumpadEnter: 'a', KeyX: 'b', Escape: 'b', Backspace: 'b',
+    KeyE: 'a', KeyZ: 'a', Enter: 'a',  // E for WASD hands (playtest 09-26), Z for arrow hands Space: 'a', NumpadEnter: 'a', KeyX: 'b', Escape: 'b', Backspace: 'b',
     KeyM: 'menu', Tab: 'menu', ShiftLeft: 'menu', ShiftRight: 'menu', KeyC: 'menu'
   };
   var I = DS.input = { held: {}, edge: {}, since: {}, sources: {} };

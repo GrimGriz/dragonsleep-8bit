@@ -1,0 +1,481 @@
+{
+"id": "solskaft",
+"name": "Solskaft",
+"tileset": "cave",
+"rows": [
+"hhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhh",
+"hhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhh",
+"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+"hh___________hd_11111__2________hhhh",
+"hh_;_;_;_;_;_h__11111__2_____d__hhhh",
+"hh___________h__11111__2________hhhh",
+"hh______________11111__`________hhhh",
+"hh_;_;_;_;___h__11111__2________hhhh",
+"hh___________h__11111__2________hhhh",
+"hh___________h__11111__2hhhhhhhhhhhh",
+"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+"hhhhhh8h6hQhhh__11111__2hhhhhhhhhhhh",
+"hhhhh________h__11111__2__;_;_;_;_hh",
+"hhhhh________h__11111__2__________hh",
+"hhhhh___________11111__`__________hh",
+"hhhhh___________11111__`__________hh",
+"hhhhh________h__11111__2__________hh",
+"hhhhh________h__11111__2__;_;_____hh",
+"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+"hhh777777777hh__11111__2hhhhhhhhhhhh",
+"hh___________h__11111__2___)))__((_h",
+"hh______6____h__11111__2___________h",
+"hh___________h__11111__2_________(_h",
+"hh_5____________11111__`___________h",
+"hh______________11111__`___________h",
+"hh___________h__11111__2__________kh",
+"hh___________h__11111__2_________k_h",
+"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+"hhhhhhhhhhhhhhh______hh~~~~~~~~hhhhh",
+"hhhhhhhhhh________________hhhh~hhhhh",
+"hhhhhhhhhh______________;;hhhh~hhhhh",
+"hhhhhhhhhh________________hhhh~hhhhh",
+"hhhhhhhhhh______________;;hhhh~hhhhh",
+"hhhhhhhhhh________________hhhh~hhhhh",
+"hhhhhhhhhh________________hhhh~hhhhh",
+"hhhhhhhhhh________________hhhh~hhhhh",
+"hhhhhhh{hh________________hhhh~hhhhh",
+"h_________hhhhhh____hhhhhh____3____h",
+"h_________hhhhhh____hhhhhh_________h",
+"h__]______h______________h__~~~~~__h",
+"h_________h______________h_~~~~~~~_h",
+"h_________h_''''''''''''_h__~~~~~__<",
+"h_@@%@@@@_h______________h____~____h",
+"h_____________________________~____h",
+"h_________h_''''''''''''_h____~____h",
+"h_________h______________h____~____h",
+"hhhhhhhhhhhhhhhhh44hhhhhhhhhhh~hhhhh"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "ladder",
+"l": "lantern",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "dirt",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "roofS",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "web",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bridgeV",
+"C": "cliff",
+"A": "water",
+"M": "mountain",
+"V": "range",
+"I": "lamp",
+"Q": "emptyCut",
+"N": "niche",
+"J": "nicheGear",
+"!": "nicheOpen",
+"K": "nicheStone",
+"$": "nicheGearStone",
+"Z": "bier",
+"Y": "tombLamp",
+"z": "dryStair",
+"j": "sealCut",
+"i": "ironBars",
+"p": "puddle",
+"v": "steps",
+"1": "sunshaft",
+"2": "race",
+"3": "wheel",
+"4": "vaultIn",
+"5": "throne",
+"6": "oathStone",
+"7": "nameWall",
+"8": "anvil",
+"9": "forge",
+"a": "furnace",
+"E": "cupel",
+"%": "scales",
+"&": "lockCase",
+"/": "rack",
+"(": "vat",
+")": "smokeRack",
+"[": "boarded",
+"]": "ledgerDesk",
+"{": "tariff",
+"}": "shaftTop",
+";": "cot",
+"<": "brick",
+"@": "dcounter",
+"?": "dtable",
+"'": "portcullisUp",
+"`": "footbridge"
+},
+"music": "solskaft",
+"bg": "dwarf",
+"save": true,
+"beam": {
+"x0": 16,
+"x1": 20,
+"y0": 0,
+"y1": 28
+},
+"npcs": [
+{
+"id": "pyro",
+"x": 16,
+"y": 46,
+"look": "pyro",
+"dir": "up"
+},
+{
+"id": "ketil",
+"x": 19,
+"y": 46,
+"look": "ketil",
+"dir": "up"
+},
+{
+"id": "ingrith",
+"x": 3,
+"y": 39,
+"look": "ingrith",
+"dir": "down",
+"cond": "flag:clericMet"
+},
+{
+"id": "quartermaster",
+"x": 6,
+"y": 42,
+"look": "dclerk",
+"dir": "down"
+},
+{
+"id": "ragna",
+"x": 29,
+"y": 44,
+"look": "ragna",
+"dir": "up"
+},
+{
+"id": "brann",
+"x": 21,
+"y": 33,
+"look": "brann",
+"dir": "left",
+"cond": "!flag:escortsOut"
+},
+{
+"id": "hedda",
+"x": 22,
+"y": 36,
+"look": "hedda",
+"dir": "left",
+"cond": "!flag:escortsOut"
+},
+{
+"id": "drill1",
+"x": 11,
+"y": 33,
+"look": "dtrooper2",
+"dir": "right",
+"idle": true
+},
+{
+"id": "drill2",
+"x": 13,
+"y": 33,
+"look": "dtrooper",
+"dir": "right",
+"idle": true
+},
+{
+"id": "drill3",
+"x": 11,
+"y": 35,
+"look": "dtrooper2",
+"dir": "right",
+"idle": true
+},
+{
+"id": "drill4",
+"x": 13,
+"y": 35,
+"look": "dtrooper",
+"dir": "right",
+"idle": true
+},
+{
+"id": "drillmaster",
+"x": 16,
+"y": 34,
+"look": "dtrooper",
+"dir": "left"
+},
+{
+"id": "cook",
+"x": 30,
+"y": 24,
+"look": "dcook",
+"dir": "down",
+"wander": 1
+},
+{
+"id": "sleeper",
+"x": 30,
+"y": 15,
+"look": "dtrooper2",
+"dir": "down"
+},
+{
+"id": "shaftwatch",
+"x": 21,
+"y": 8,
+"look": "dtrooper",
+"dir": "left"
+},
+{
+"id": "yardhand",
+"x": 19,
+"y": 31,
+"look": "dtrooper2",
+"wander": 2
+}
+],
+"warps": [
+{
+"x": 17,
+"y": 47,
+"to": "silverton",
+"tx": 29,
+"ty": 6,
+"dir": "down"
+},
+{
+"x": 18,
+"y": 47,
+"to": "silverton",
+"tx": 30,
+"ty": 6,
+"dir": "down"
+},
+{
+"x": 29,
+"y": 4,
+"to": "solskaft_deep",
+"tx": 3,
+"ty": 11,
+"dir": "right"
+},
+{
+"x": 14,
+"y": 3,
+"to": "burial",
+"tx": 37,
+"ty": 3,
+"dir": "left"
+}
+],
+"signs": [
+{
+"x": 4,
+"y": 43,
+"text": "The assay-scales, under a cloth. Nobody has lifted it in seventy years; the dust on it is even.",
+"src": "handoff-2026-09-26 §4.3 A (the tollhouse)"
+},
+{
+"x": 7,
+"y": 37,
+"text": "THE TARIFF. Ingots by the stamp, lead by the pig, litharge by the jar. Charcoal, timber, salt, tallow, rope and bone-ash down. The prices are in a coin with a king's face nobody uses now.",
+"src": "handoff-2026-09-26 §4.3 (trade goods: up and down; INFERENCE, PROPOSED)"
+},
+{
+"x": 35,
+"y": 42,
+"text": "Brick, and a red mark cut across it. The old cut a shaft crew broke into, sixty years ago. The water went bad through here, and then the town burned.",
+"src": "wiki/deepholm-and-the-edifice.md (the Water Burning: an old dwarven cut feeding a cistern); spec §4.3 A"
+},
+{
+"x": 30,
+"y": 38,
+"text": "The stamp-mill wheel. The ore it broke is long gone; it turns because the covenant says the town's fountains must run, and the wheel is what meters them.",
+"src": "handoff-2026-09-26 §4.3 A (the falls-works)"
+},
+{
+"x": 3,
+"y": 24,
+"text": "The high seat of the Silversands. Empty. He stands at the door.",
+"src": "handoff-2026-09-26 §4.3 B (the clan hall)"
+},
+{
+"x": 8,
+"y": 22,
+"text": "The oath-stone of the Silversands. Every one of them put a hand here once. The band of gold is worn bright at hand height.",
+"src": "handoff-2026-09-26 §4.3 B"
+},
+{
+"x": 3,
+"y": 20,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 4,
+"y": 20,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 5,
+"y": 20,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 6,
+"y": 20,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 7,
+"y": 20,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 8,
+"y": 20,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 9,
+"y": 20,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 10,
+"y": 20,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 11,
+"y": 20,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 6,
+"y": 11,
+"text": "The Forge-Father's niche: an anvil, worn to a saddle in the middle.",
+"src": "wiki/pantheon.md (the Dwarven Triad: Motsognir, the Forge-Father); spec §4.3 B"
+},
+{
+"x": 8,
+"y": 11,
+"text": "Rekknar's ledger-stone. Every line on it balances.",
+"src": "wiki/pantheon.md (Rekknar the Reckoner); spec §4.3 B"
+},
+{
+"x": 10,
+"y": 11,
+"text": "A plain cut in the rock with nothing in it. The Dormant's.",
+"src": "wiki/pantheon.md (Dvalgarda, the vigil); spec §4.3 B (the sect is never named here)"
+},
+{
+"x": 27,
+"y": 21,
+"text": "The smokehouse: meat, and nothing else. Food comes down the highway now, not up.",
+"src": "handoff-2026-09-26 §4.3 B (the kitchens; the economy reversed — INFERENCE, PROPOSED); §12 correction (the dream is on vice row)"
+},
+{
+"x": 32,
+"y": 21,
+"text": "The brewhouse. Dwarves.",
+"src": "handoff-2026-09-26 §4.3 B"
+},
+{
+"x": 3,
+"y": 4,
+"text": "Six tiers of bunks up here, and a season's troops fill two of them. Dust on the rest.",
+"src": "handoff-2026-09-26 §4.3 B (the barracks tiers, most of them dark)"
+}
+],
+"triggers": [
+{
+"id": "pyroMeet",
+"rect": [
+12,
+40,
+13,
+2
+],
+"on": "step",
+"script": "pyroMeet",
+"cond": "flag:frontDoor & !flag:pyroMet"
+},
+{
+"id": "cot",
+"rect": [
+24,
+31,
+2,
+3
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "ketilStop",
+"rect": [
+17,
+46,
+2,
+1
+],
+"on": "step",
+"script": "ketilStop",
+"cond": "blasphemy>=1"
+}
+]
+}

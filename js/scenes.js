@@ -153,7 +153,7 @@
     DS.text(ctx, 'HP ' + h.maxhp + '   AC ' + R.ac(h) + '   ' + R.weaponOf(h).name, 12, 152, '#F8F8F8');
     var lines = DS.wrap(d.blurb, 232);
     for (var k = 0; k < Math.min(6, lines.length); k++) DS.text(ctx, lines[k], 12, 166 + k * 11, '#E0C8A0');
-    DS.textCenter(ctx, '◀ ▶ choose   Z/ENTER confirm   X back', 128, 230, '#6C6C84');
+    DS.textCenter(ctx, '◀ ▶ choose   E/ENTER confirm   X back', 128, 230, '#6C6C84');
   };
 
   // ------------------------------------------------------------------ save / load slots
@@ -431,7 +431,7 @@
         var done = DS.cond(q.done), step = !done && DS.questStep(q), yy = 157;
         DS.wrap(done ? (q.doneText || 'Done.') : q.text, 230).slice(0, 4).forEach(function (l) { DS.text(ctx, l, 12, yy, done ? '#9C9C9C' : '#E0C8A0'); yy += 10; });
         if (step && step.where) DS.wrap('NEXT: ' + step.where, 230).slice(0, 2).forEach(function (l) { DS.text(ctx, l, 12, yy + 2, '#B8F8B8'); yy += 10; });
-        DS.textCenter(ctx, done ? 'X: close' : G.flags.pin === q.id ? 'Z: unpin   X: close' : 'Z: pin (a marker shows the way)  X: close', 128, 224, '#6C6C84');
+        DS.textCenter(ctx, done ? 'X: close' : G.flags.pin === q.id ? 'E: unpin   X: close' : 'E: pin (a marker shows the way)  X: close', 128, 224, '#6C6C84');
       }
     } else {
       (DS.DATA.rumors || []).filter(function (r) { return G.flags['heard:' + r.id]; }).slice(-14).forEach(function (r) {
@@ -633,7 +633,7 @@
     DS.textCenter(ctx, this.title, 128, 16, '#6a3a1a');
     var pg = this.pages[this.p] || [];
     for (var i = 0; i < pg.length; i++) DS.text(ctx, pg[i], 20, 30 + i * 11, '#2a1a10');
-    DS.textCenter(ctx, (this.p + 1) + ' / ' + this.pages.length + (this.p < this.pages.length - 1 ? '   Z: turn the page' : '   Z: close the book'), 128, 219, '#8a6a4a');
+    DS.textCenter(ctx, (this.p + 1) + ' / ' + this.pages.length + (this.p < this.pages.length - 1 ? '   E: turn the page' : '   E: close the book'), 128, 219, '#8a6a4a');
   };
 
   // ------------------------------------------------------------------ Credits

@@ -19,7 +19,7 @@
   "curewounds": { "name": "Cure Wounds", "level": 1, "kind": "heal", "dmg": "1d8", "target": "ally", "battle": true, "field": true, "desc": "Heals 1d8 + CHA. (Not the fallen: they need a kit.)", "src": "SRD 5.1" },
   "shieldoffaith": { "name": "Shield of Faith", "level": 1, "kind": "buff", "buff": "shieldOfFaith", "target": "ally", "battle": true, "desc": "+2 AC to one ally.", "src": "SRD 5.1" },
   "divinefavor": { "name": "Divine Favor", "level": 1, "kind": "buff", "buff": "divineFavor", "target": "self", "battle": true, "desc": "Your weapon hits deal +1d4 radiant.", "src": "SRD 5.1" },
-  "heroism": { "name": "Heroism", "level": 1, "kind": "buff", "buff": "heroism", "target": "ally", "battle": true, "desc": "Immune to fear; temporary HP each turn.", "src": "SRD 5.1" },
+  "heroism": { "name": "Heroism", "level": 1, "kind": "buff", "buff": "heroism", "target": "ally", "battle": true, "desc": "No fear, and temporary HP equal to your CHA bonus at the start of each of its turns.", "src": "SRD 5.1" },
   "lesserrestoration": { "name": "Lesser Restoration", "level": 2, "kind": "cure", "target": "ally", "battle": true, "field": true, "desc": "Ends poison, paralysis or blindness.", "src": "SRD 5.1 (Oath of Devotion oath spell, 5th level)" },
   "aid": { "name": "Aid", "level": 2, "kind": "buff", "buff": "aid", "target": "allies", "max": 3, "battle": true, "field": true, "desc": "Up to three allies: +5 max and current HP until the next long rest.", "src": "SRD 5.1" },
   "smite": { "name": "Divine Smite", "level": 1, "kind": "smite", "target": "enemy", "battle": true, "desc": "Attack; on a hit spend a slot for +2d8 radiant (3d8 from a 2nd-level slot; +1d8 vs undead or fiends).", "src": "SRD 5.1 (Paladin: Divine Smite)" }

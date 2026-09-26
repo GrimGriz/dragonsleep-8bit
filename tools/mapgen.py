@@ -444,7 +444,9 @@ def build_silverton():
     g.npc('idony', 18, 12, 'clerk', dir='down')
     g.npc('elsbethCandles', 30, 42, 'elsbeth', dir='down', idle=True, lantern=True, cond='flag:postgame')   # after the lake: the new candle girl
     g.sign(5, 5, 'NORTH GATE. The Doors road, up the mountain. The locals call it the Coldridge route.', 'wiki/the-road.md (the Doors road); rumors r-coldridge (wiki/fountain-street.md HD-1)')
-    g.sign(29, 5, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)')
+    g.sign(29, 5, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)', cond='!flag:frontDoor')
+    g.sign(30, 5, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)', cond='!flag:frontDoor')
+    g.trig('vaultDoor', 29, 5, 'warp', on='use', w=2, cond='flag:frontDoor', to='solskaft', tx=17, ty=46)   # for them only (spec §4.5)
     g.sign(24, 40, "Sylvia Swann's booth: an owl painted on the board. The short reading, five silver. She isn't in.", 'wiki/silverton.md; the-lab/pit-maps/shops-silverton.json pin 37')
     g.sign(31, 40, 'The Vizardry mask-booth. Crude vizards with a hedge-glamour, a gold the hour. The real house is somewhere else.', 'wiki/vice-row.md; the-lab/pit-maps/shops-silverton.json pin 39')
     g.sign(40, 41, 'The card cellars. Low table buy-in five silver. The stairs go down; you do not.', 'the-lab/pit-maps/shops-silverton.json pin 41')
@@ -718,8 +720,19 @@ def build_warrens():
     g.trig('jelly', 22, 14, 'jelly', on='step', w=3, h=1, once=True)
     g.trig('ooze', 12, 16, 'oozeFight', on='step', once=True)
     g.trig('mark', 22, 19, 'mark', on='use')
-    g.trig('stair', 19, 20, 'stair', on='use', w=1, h=4)
+    g.trig('stair', 19, 20, 'stair', on='use', w=1, h=4, cond='!flag:stairHook')
     g.put(19, 20, 'n'); g.put(19, 21, 'n'); g.put(19, 22, 'n'); g.put(19, 23, 'n')
+    # the dwarven expansion (spec §5.3): the night crews pumped the stair dry and cut the warranted door at its foot
+    dry = 'flag:stairHook'
+    for y in range(20, 24):
+        for x in range(12, 20):
+            g.flagtile(x, y, 'puddle' if (x, y) == (12, 23) else 'dryStair', dry)
+    for (x, y) in [(11, 21), (11, 22), (10, 21), (10, 22), (9, 21)]:
+        g.flagtile(x, y, 'dryStair', dry)
+    g.flagtile(8, 21, 'sealCut', dry)
+    g.flagtile(8, 21, 'ironBars', 'flag:frontDoor')          # the garrison's iron: a lock instead of a promise
+    g.warp(8, 21, 'burial', 2, 3, 'right', cond='flag:stairHook & !flag:frontDoor', sfx='stairs')
+    g.trig('dryStair', 19, 20, 'dryStair', on='step', w=1, h=4, cond='flag:stairHook & !flag:drySeen')
     g.zone('warrens_d', 0, 0, W, 19)
     save('warrens_d', g, 'cave', 'The Warrens — the wet', music='dungeon', bg='wet', save=False, dark=True,
          legend={'n': 'drownStair'})
@@ -940,9 +953,228 @@ def build_halfway():
     save('halfway_in', g, 'inside', 'The Halfway Inn — inside', music='inn', bg='town', legend={'.': 'floorWood'})
 
 
+# ============================================================ THE DWARVEN EXPANSION (handoff-2026-09-26 spec)
+# Behind the fountains: the Burial the drained stair leads to, SOLSKAFT (the Silvered Sunshaft) and its works.
+DEEP = {
+    'N': 'niche', 'J': 'nicheGear', '!': 'nicheOpen', 'K': 'nicheStone', '$': 'nicheGearStone', 'Z': 'bier', 'Y': 'tombLamp',
+    'z': 'dryStair', 'j': 'sealCut', 'i': 'ironBars', 'p': 'puddle', 'v': 'steps', '1': 'sunshaft', '2': 'race', '3': 'wheel',
+    '4': 'vaultIn', '5': 'throne', '6': 'oathStone', '7': 'nameWall', '8': 'anvil', '9': 'forge', 'a': 'furnace', 'E': 'cupel',
+    '%': 'scales', '&': 'lockCase', '/': 'rack', '(': 'vat', ')': 'smokeRack', '[': 'boarded', ']': 'ledgerDesk', '{': 'tariff',
+    '}': 'shaftTop', ';': 'cot', '<': 'brick', '@': 'dcounter', '?': 'dtable', "'": 'portcullisUp', '`': 'footbridge', 'J2': 'nicheGear',
+    'Q': 'emptyCut',
+}
+DEEP.pop('J2')
+
+# the Burial's families: seven wedges fanning out from the empty centre; each reaches up the tiers as far as its dead go.
+# tiers: 0 = the top (the newest dead, the children's rows) ... 3 = the base ring (the patrons). (reach = lowest tier index it has)
+WEDGES = [
+    {'reach': 0, 'ended': True, 'fam': 'geirmund'},   # the night crew's sack came off these bones (T1, pried)
+    {'reach': 2, 'ended': True, 'fam': 'audun', 'gear': 3},   # the door-warden's line, ended at the Third Lamp: the Door-Shield
+    {'reach': 0, 'fam': 'orri'},
+    {'reach': 0, 'fam': 'hallveig'},
+    {'reach': 1, 'fam': 'kolbein'},
+    {'reach': 1, 'ended': True, 'fam': 'asmund', 'gear': 3},  # the heir's wedge (sidequest 9): a family that isn't dead yet
+    {'reach': 0, 'fam': 'brandr'},    # Brann's: the last niche two seasons old, and he is the living member
+]
+
+
+def build_deep():
+    # ---------------------------------------------------------------- THE BURIAL
+    W, H = 40, 33
+    g = Grid(W, H, 'h')
+    tiers = [(3, 2, 37), (9, 5, 34), (15, 8, 31), (21, 11, 28)]   # (walkway row, x0, x1): two rows of walk, the niche wall above
+    niches = {}
+    n = len(WEDGES)
+    for ti, (wy, x0, x1) in enumerate(tiers):
+        g.rect(x0, wy, x1 - x0 + 1, 2, '_')
+        L, R = x0 + 1, x1 - 1
+        prev = None
+        for x in range(L, R + 1):
+            wi = min(n - 1, int((x - L + .5) / (R - L + 1) * n))
+            if prev is not None and wi != prev:
+                prev = wi
+                continue                                     # a plain column between families
+            prev = wi
+            wd = WEDGES[wi]
+            if ti < wd['reach']:
+                continue                                     # the family's rows stop below this tier: blank stone
+            ch = 'K' if ti == 3 else 'N'
+            if wd.get('gear') == ti and not any(v[0] == wi and v[2] == 'gear' for v in niches.values()):
+                ch, kind = '$', 'gear'
+            elif wd['fam'] == 'geirmund' and ti == 0:
+                ch, kind = '!', 'pried'
+            else:
+                kind = 'patron' if ti == 3 else 'row'
+            g.put(x, wy - 1, ch)
+            niches['%d,%d' % (x, wy - 1)] = [wi, ti, kind]
+        g.trig('niches%d' % ti, L, wy - 1, 'niche', on='use', w=R - L + 1)   # every niche is a container; the script reads which
+    # the stairs between the tiers, switching ends as they go down and in
+    for (x, y0, y1) in [(34, 5, 8), (8, 11, 14), (28, 17, 20)]:
+        for y in range(y0, y1 + 1):
+            g.put(x, y, 'v')
+            niches.pop('%d,%d' % (x, y), None)
+    # the king's chamber: doorless, one lamp, nobody on the bier
+    g.rect(15, 24, 10, 7, '_')
+    g.put(19, 23, '_'); g.put(20, 23, '_')
+    g.put(19, 28, 'Z'); g.put(20, 28, 'Z'); g.put(22, 26, 'Y')
+    # the drained stair's cut door (west end of the top tier) and the dwarves' own stair (east end)
+    g.put(1, 3, 'z')
+    g.put(38, 3, 'r')
+    g.warp(1, 3, 'warrens_d', 9, 21, 'right', cond='!flag:frontDoor')
+    g.flagtile(1, 3, 'ironBars', 'flag:frontDoor')
+    g.warp(38, 3, 'solskaft', 15, 3, 'right', cond='flag:frontDoor')
+    g.flagtile(38, 3, 'stairsUp', 'flag:frontDoor')
+    g.trig('dwarfStair', 38, 3, 'dwarfStair', on='use', cond='!flag:frontDoor')
+    # the night crew at the Geirmund wedge; the catch is the scene's start
+    crew = '!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt'
+    g.npc('hask', 6, 3, 'hask', dir='up', cond=crew, face=False)
+    g.npc('wheelwright', 4, 4, 'wheelwright', dir='up', cond=crew, face=False)
+    g.npc('crewA', 5, 4, 'crewman', dir='up', cond=crew, face=False)
+    g.npc('crewB', 7, 4, 'crewman', dir='left', cond=crew, face=False)
+    g.trig('crew', 3, 3, 'crew', on='step', h=2, cond=crew)
+    g.trig('bier', 19, 28, 'bier', on='use', w=2)
+    g.sign(22, 26, 'One lamp, kept. Somebody fills it.', 'handoff-2026-09-26 §5.2 (lit by one lamp that the garrison keeps)')
+    save('burial', g, 'cave', 'The Burial', music='burial', bg='dwarf', save=False, dark=True, legend=DEEP, niches=niches,
+         lights=[{'x': 22, 'y': 26, 'r': 60}])   # one lamp, kept
+
+    # ---------------------------------------------------------------- SOLSKAFT: the front, the yard, the Sunshaft, its galleries
+    W, H = 36, 48
+    g = Grid(W, H, 'h')
+    # the vault hall, Pyro's post: two portcullises raised into the old ore-chute
+    g.rect(11, 40, 14, 7, '_')
+    g.put(17, 47, '4'); g.put(18, 47, '4')
+    g.hline(12, 23, 42, "'"); g.hline(12, 23, 45, "'")
+    g.warp(17, 47, 'silverton', 29, 6, 'down'); g.warp(18, 47, 'silverton', 30, 6, 'down')
+    # the tollhouse (west): the trade-counter, the scales under a cloth, the tariff board, the ledger-room
+    g.rect(1, 38, 9, 9, '_'); g.put(10, 44, '_')
+    g.hline(2, 8, 43, '@'); g.put(4, 43, '%')
+    g.put(7, 37, '{'); g.put(3, 40, ']')
+    # the falls-works (east): the race comes down off the Sunshaft and turns the old stamp-mill wheel
+    g.rect(26, 38, 9, 9, '_'); g.put(25, 44, '_')
+    g.vline(23, 2, 28, '2')
+    g.hline(23, 30, 29, '~'); g.vline(30, 29, 37, '~')
+    g.put(30, 38, '3')
+    g.blob(30.5, 41.5, 3.2, 1.6, '~')
+    g.vline(30, 43, 47, '~')
+    g.put(35, 42, '<')
+    # the caravan yard, the muster yard now: the season drills here; the cots at its east end
+    g.rect(10, 30, 16, 8, '_')
+    for x in range(16, 20):
+        g.put(x, 38, '_'); g.put(x, 39, '_')
+    for (x, y) in [(24, 31), (25, 31), (24, 33), (25, 33)]:
+        g.put(x, y, ';')
+    # the Sunshaft: the old main shaft driven up to the mountain's face; noon comes down it
+    g.rect(14, 2, 9, 27, '_')
+    g.rect(16, 2, 5, 27, '1')
+    for x in range(15, 21):
+        g.put(x, 29, '_')
+    g.hline(13, 22, 0, '}'); g.hline(13, 22, 1, '}')
+    # west galleries: the clan hall of the Silversands, the shrine of the Triad, the dark barracks
+    g.rect(2, 21, 11, 7, '_'); g.put(13, 24, '_'); g.put(13, 25, '_')
+    g.put(3, 24, '5'); g.put(8, 22, '6')
+    g.hline(3, 11, 20, '7')
+    g.rect(5, 12, 8, 6, '_'); g.put(13, 14, '_'); g.put(13, 15, '_')
+    g.put(6, 11, '8'); g.put(8, 11, '6'); g.put(10, 11, 'Q')
+    g.rect(2, 3, 11, 7, '_'); g.put(13, 6, '_')
+    for (x, y) in [(3, 4), (5, 4), (7, 4), (9, 4), (3, 7), (5, 7), (7, 7), (9, 7), (11, 4)]:
+        g.put(x, y, ';')
+    # east galleries, over footbridges across the race: the kitchens, the lit barracks, the stair down to the works
+    g.rect(24, 21, 11, 7, '_'); g.put(23, 24, '`'); g.put(23, 25, '`')
+    for x in (27, 28, 29):
+        g.put(x, 21, ')')
+    g.put(32, 21, '('); g.put(33, 21, '('); g.put(33, 23, '(')
+    g.put(34, 26, 'k'); g.put(33, 27, 'k')
+    g.rect(24, 12, 10, 6, '_'); g.put(23, 14, '`'); g.put(23, 15, '`')
+    for (x, y) in [(26, 12), (28, 12), (30, 12), (32, 12), (26, 17), (28, 17)]:
+        g.put(x, y, ';')
+    g.rect(24, 3, 8, 6, '_'); g.put(23, 6, '`')
+    g.put(29, 4, 'd')
+    g.warp(29, 4, 'solskaft_deep', 3, 11, 'right')
+    # the dwarves' own stair, down to the Burial, at the head of the shaft
+    g.put(14, 3, 'd')
+    g.warp(14, 3, 'burial', 37, 3, 'left')
+    # the garrison
+    g.npc('pyro', 16, 46, 'pyro', dir='up')
+    g.npc('ketil', 19, 46, 'ketil', dir='up')
+    g.npc('ingrith', 3, 39, 'ingrith', dir='down', cond='flag:clericMet')
+    g.npc('quartermaster', 6, 42, 'dclerk', dir='down')
+    g.npc('ragna', 29, 44, 'ragna', dir='up')
+    g.npc('brann', 21, 33, 'brann', dir='left', cond='!flag:escortsOut')
+    g.npc('hedda', 22, 36, 'hedda', dir='left', cond='!flag:escortsOut')
+    for i, (x, y) in enumerate([(11, 33), (13, 33), (11, 35), (13, 35)]):
+        g.npc('drill%d' % (i + 1), x, y, 'dtrooper' if i % 2 else 'dtrooper2', dir='right', idle=True)
+    g.npc('drillmaster', 16, 34, 'dtrooper', dir='left')
+    g.npc('cook', 30, 24, 'dcook', dir='down', wander=1)
+    g.npc('sleeper', 30, 15, 'dtrooper2', dir='down')
+    g.npc('shaftwatch', 21, 8, 'dtrooper', dir='left')
+    g.npc('yardhand', 19, 31, 'dtrooper2', wander=2)
+    # what the walls say
+    g.trig('pyroMeet', 12, 40, 'pyroMeet', on='step', w=13, h=2, cond='flag:frontDoor & !flag:pyroMet')
+    g.trig('cot', 24, 31, 'cot', on='use', w=2, h=3)
+    g.trig('ketilStop', 17, 46, 'ketilStop', on='step', w=2, cond='blasphemy>=1')   # "empty your packs" (spec §5.4)
+    g.sign(4, 43, 'The assay-scales, under a cloth. Nobody has lifted it in seventy years; the dust on it is even.', 'handoff-2026-09-26 §4.3 A (the tollhouse)')
+    g.sign(7, 37, 'THE TARIFF. Ingots by the stamp, lead by the pig, litharge by the jar. Charcoal, timber, salt, tallow, rope and bone-ash down. The prices are in a coin with a king\'s face nobody uses now.', 'handoff-2026-09-26 §4.3 (trade goods: up and down; INFERENCE, PROPOSED)')
+    g.sign(35, 42, 'Brick, and a red mark cut across it. The old cut a shaft crew broke into, sixty years ago. The water went bad through here, and then the town burned.', 'wiki/deepholm-and-the-edifice.md (the Water Burning: an old dwarven cut feeding a cistern); spec §4.3 A')
+    g.sign(30, 38, 'The stamp-mill wheel. The ore it broke is long gone; it turns because the covenant says the town\'s fountains must run, and the wheel is what meters them.', 'handoff-2026-09-26 §4.3 A (the falls-works)')
+    g.sign(3, 24, 'The high seat of the Silversands. Empty. He stands at the door.', 'handoff-2026-09-26 §4.3 B (the clan hall)')
+    g.sign(8, 22, 'The oath-stone of the Silversands. Every one of them put a hand here once. The band of gold is worn bright at hand height.', 'handoff-2026-09-26 §4.3 B')
+    for x in range(3, 12):
+        g.sign(x, 20, 'The hero-wall: the highway\'s dead, names cut in rows. Where a row stops short, a family stopped.', 'handoff-2026-09-26 §4.3 B (the hero-wall; a family\'s row ending is what "wiped out" looks like on stone)')
+    g.sign(6, 11, 'The Forge-Father\'s niche: an anvil, worn to a saddle in the middle.', 'wiki/pantheon.md (the Dwarven Triad: Motsognir, the Forge-Father); spec §4.3 B')
+    g.sign(8, 11, 'Rekknar\'s ledger-stone. Every line on it balances.', 'wiki/pantheon.md (Rekknar the Reckoner); spec §4.3 B')
+    g.sign(10, 11, 'A plain cut in the rock with nothing in it. The Dormant\'s.', 'wiki/pantheon.md (Dvalgarda, the vigil); spec §4.3 B (the sect is never named here)')
+    g.sign(27, 21, 'The smokehouse: meat, and nothing else. Food comes down the highway now, not up.', 'handoff-2026-09-26 §4.3 B (the kitchens; the economy reversed — INFERENCE, PROPOSED); §12 correction (the dream is on vice row)')
+    g.sign(32, 21, 'The brewhouse. Dwarves.', 'handoff-2026-09-26 §4.3 B')
+    g.sign(3, 4, 'Six tiers of bunks up here, and a season\'s troops fill two of them. Dust on the rest.', 'handoff-2026-09-26 §4.3 B (the barracks tiers, most of them dark)')
+    save('solskaft', g, 'cave', 'Solskaft', music='solskaft', bg='dwarf', save=True, legend=DEEP,
+         beam={'x0': 16, 'x1': 20, 'y0': 0, 'y1': 28})   # the Sunshaft
+
+    # ---------------------------------------------------------------- SOLSKAFT, the works: sorting floor, smelters, assay, mint, treasury, the highway's mouth
+    W, H = 40, 24
+    g = Grid(W, H, 'h')
+    g.rect(2, 9, 36, 5, '_')
+    g.rect(2, 2, 10, 6, '_'); g.rect(13, 2, 13, 6, '_'); g.rect(27, 2, 11, 6, '_')
+    for (x, y) in [(6, 8), (7, 8), (19, 8), (20, 8), (32, 8)]:
+        g.put(x, y, '_')
+    g.put(2, 11, 'u')
+    g.warp(2, 11, 'solskaft', 28, 4, 'left')
+    # the ore-sorting floor, an armory now: the Copperbottom smith
+    g.put(3, 2, '9'); g.put(5, 4, '8'); g.put(8, 5, '?'); g.put(9, 5, '?')
+    for x in (7, 8, 9, 10):
+        g.put(x, 1, '/')
+    # the smelters, cold: three furnaces, the cupel-hearth, the slag-tip
+    for x in (15, 18, 21):
+        g.put(x, 2, 'a')
+    g.put(23, 4, 'E')
+    g.blob(15.5, 5.8, 1.8, 1.1, ':')
+    # the assay house: the reason Fountain Street had to learn to weigh
+    g.put(29, 2, 'a'); g.put(31, 4, '?'); g.put(35, 3, '&')
+    # south: the mint (sealed), the treasury (open, empty), the trade hall (boarded)
+    g.put(6, 14, 's')
+    g.rect(12, 15, 9, 5, '_'); g.put(16, 14, '_')
+    g.put(26, 14, '[')
+    # the highway's mouth: the gate, and the ledger-lamp rack
+    for y in (10, 11, 12):
+        g.put(38, y, '=')
+    g.put(37, 9, 'l'); g.put(37, 13, 'l')
+    g.trig('highwayGate', 38, 10, 'highwayGate', on='use', h=3)
+    g.npc('smith', 6, 5, 'dsmith', dir='down')
+    g.npc('gatewatch', 36, 11, 'dtrooper', dir='left')
+    g.npc('smelterhand', 19, 4, 'dtrooper2', dir='down')
+    g.trig('treasury', 12, 15, 'treasury', on='step', w=9, h=5, once=True)
+    g.sign(35, 3, 'A locked case: the standard weights of the assay, dwarven-true, each in its cut. The key is not here.', 'handoff-2026-09-26 §4.3 C (the assay house; sidequest 1)')
+    g.sign(23, 4, 'The cupel-hearth: a shallow bowl of bone-ash. This is where silver is parted from lead. The ash came from the knacker\'s yard across the river, once.', 'handoff-2026-09-26 §4.3 (bone-ash for the cupels; Brennock\'s yard — INFERENCE, PROPOSED)')
+    g.sign(18, 2, 'The smelters. Cold a long time. The slag-tip beside them has grown a skin of moss.', 'handoff-2026-09-26 §4.3 C')
+    g.sign(31, 4, 'The touch-needles, laid out in their order. When the assay here closed, Fountain Street had to learn to weigh.', 'handoff-2026-09-26 §4.3 C (the assay is the reason Fountain Street exists — INFERENCE, the seat\'s)')
+    g.sign(6, 14, 'The mint. A warranted door, and the runes are whole. The king sealed it.', 'handoff-2026-09-26 §4.3 C (the mint, sealed by Pyro)')
+    g.sign(26, 14, 'The trade hall. NO SURFACE FOLK PAST THIS DOOR, cut in the lintel. The boards are nailed from this side.', 'handoff-2026-09-26 §4.3 C (the trade hall, sealed; boarded from the dwarves\' side)')
+    g.sign(37, 9, 'The ledger-lamp rack. Three hooks, three lamps: one for each station down the road.', 'handoff-2026-09-26 §4.3 C (the highway\'s mouth)')
+    save('solskaft_deep', g, 'cave', 'Solskaft — the works', music='solskaft', bg='dwarf', save=True, legend=DEEP)
+
+
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
-    for f in (build_world, build_silverton, build_hex, build_winters, build_percy, build_warrens, build_galleries, build_gulch, build_halfway):
+    for f in (build_world, build_silverton, build_hex, build_winters, build_percy, build_warrens, build_galleries, build_gulch, build_halfway, build_deep):
         f()
     for id, d in MAPS.items():
         with open(os.path.join(OUT, id + '.json'), 'w', encoding='utf-8') as fh:

@@ -232,6 +232,11 @@
     if (style.apron && view !== 'up') {
       for (var y6 = H === 16 ? 10 : 13; y6 < (H === 16 ? 13 : 17); y6++) for (var x6 = 0; x6 < g[y6].length; x6++) if (g[y6][x6] === 'c' && (view === 'side' ? x6 > 5 : (x6 > 4 && x6 < 11))) g[y6][x6] = 'a';
     }
+    if (style.stout && g[0].length <= 16) { // a dwarf: two rows of torso and leg taken out, the head set down on the shoulders
+      var cut = H === 16 ? [12, 13] : [13, 18], blank = g[0].map(function () { return '.'; });
+      g = g.filter(function (r, i) { return cut.indexOf(i) < 0; });
+      g.unshift(blank.slice()); g.unshift(blank.slice());
+    }
     return g.map(function (r) { return r.join(''); });
   }
   function palFor(look) {
@@ -343,6 +348,21 @@
     willem: { hair: '#e8d8a0', skin: '#f0c8a8', cloth: '#2a4a7a', trim: '#d8d8f0', style: { robe: true } },
     kat: { hair: '#6a4a2a', skin: '#f0c8a8', cloth: '#6a4a2a', trim: '#c8b890', style: { long: true, robe: true } },
     percy: { hair: '#9a7a5a', skin: '#f0c8a0', cloth: '#e8e0d0', apron: '#6a5a4a', style: { apron: true, beard: true } },
-    ned: { hair: '#4a3a2a', skin: '#f0c8a0', cloth: '#3a3a6a', trim: '#c0c0e0', style: { robe: true } }
+    ned: { hair: '#4a3a2a', skin: '#f0c8a0', cloth: '#3a3a6a', trim: '#c0c0e0', style: { robe: true } },
+    // the dwarven expansion: Solskaft's garrison, and the night crew under it
+    pyro: { hair: '#e0e0e4', skin: '#d8a078', cloth: '#6a6a78', clothD: '#44444e', trim: '#c0a040', pants: '#3a3a44', boots: '#1a1a20', style: { beard: true, stout: true } },
+    ingrith: { hair: '#3a2a1a', skin: '#e8b890', cloth: '#5a5a66', trim: '#d8d8e8', style: { long: true, robe: true, stout: true } },
+    ketil: { hair: '#8a4a2a', skin: '#e0a880', cloth: '#4a5a6a', trim: '#a0a0b0', style: { beard: true, hat: true, stout: true } },
+    ragna: { hair: '#c8a060', skin: '#e8b890', cloth: '#3a5a6a', apron: '#5a4a3a', style: { long: true, apron: true, stout: true } },
+    dtrooper: { hair: '#6a3a1a', skin: '#d8a078', cloth: '#5a5a6a', trim: '#a0a0b0', pants: '#3a3a44', style: { beard: true, hat: true, stout: true } },
+    dtrooper2: { hair: '#2a2a2a', skin: '#c89070', cloth: '#4a5058', trim: '#8a8a98', pants: '#34343c', style: { beard: true, hat: true, stout: true } },
+    dclerk: { hair: '#4a3a2a', skin: '#e8b890', cloth: '#4a4a5a', trim: '#c0c0c0', style: { beard: true, stout: true } },
+    dsmith: { hair: '#b8602a', skin: '#d8a078', cloth: '#6a4a3a', apron: '#4a3a30', style: { beard: true, apron: true, stout: true } },
+    dcook: { hair: '#a07a4a', skin: '#e0a880', cloth: '#5a4a3a', apron: '#d8d0c0', style: { beard: true, apron: true, stout: true } },
+    brann: { hair: '#c85a2a', skin: '#e8b890', cloth: '#5a6a5a', trim: '#a0a0b0', pants: '#3a3a34', style: { beard: true, stout: true } },
+    hedda: { hair: '#9a9a9a', skin: '#d8a078', cloth: '#4a4a3a', trim: '#8a8a70', style: { long: true, stout: true } },
+    hask: { hair: '#2a1a0a', skin: '#d8a070', cloth: '#3a2a2a', trim: '#6a6a6a', pants: '#2a2a2a' },
+    wheelwright: { hair: '#9a7a4a', skin: '#e8b890', cloth: '#6a5a3a', apron: '#4a3a2a', style: { apron: true } },
+    crewman: { hair: '#1a1a1a', skin: '#c89870', cloth: '#3a3a30', trim: '#5a5a5a', style: { hood: true } }
   };
 })();

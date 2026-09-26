@@ -1685,6 +1685,63 @@
    "desc": "Three strands, even-handed, patient work. Nobody knows why.",
    "src": "wiki/web-gulch.md; wiki/the-road.md (the braiding, always mystery)",
    "id": "cord"
+  },
+  "doorshield": {
+   "name": "Door-Shield",
+   "kind": "shield",
+   "price": 0,
+   "noSell": true,
+   "shield": {
+    "ac": 4,
+    "doorward": true
+   },
+   "desc": "A Silversands door-warden's shield, rimmed in truesilver. +2.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8 (Lymen's: the Door-Shield, shield +2; the proc RULED 09-26 by Griz: no rule text, just the named item); invented.json#door-shield",
+   "id": "doorshield"
+  },
+  "crewsack": {
+   "name": "The Crew's Sack",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "A mail shirt, a war-hammer and a ring, pried off a dead family's bones in the Burial.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4 (the night crews' sack is the party's to return)",
+   "id": "crewsack"
+  },
+  "asmundhammer": {
+   "name": "Asmund's Hammer",
+   "kind": "weapon",
+   "price": 0,
+   "noSell": true,
+   "weapon": {
+    "dmg": "1d8",
+    "versatile": "1d10",
+    "type": "bludgeoning",
+    "group": "martial",
+    "props": [
+     "versatile"
+    ],
+    "bonus": 1
+   },
+   "desc": "A Silversands war-hammer +1. The haft is wrapped in newer leather than the rest of him.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9 (the heir's wedge: gear on the bodies); invented.json#burial-families",
+   "id": "asmundhammer"
+  },
+  "lighthammer": {
+   "name": "Light Hammer",
+   "kind": "weapon",
+   "price": 20,
+   "weapon": {
+    "dmg": "1d4",
+    "type": "bludgeoning",
+    "group": "simple",
+    "props": [
+     "light"
+    ]
+   },
+   "desc": "1d4 bludgeoning. Light. Dwarven-made.",
+   "src": "SRD 5.1 (Light Hammer); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.5",
+   "id": "lighthammer"
   }
  },
  "spells": {
@@ -1954,7 +2011,7 @@
    "buff": "heroism",
    "target": "ally",
    "battle": true,
-   "desc": "Immune to fear; temporary HP each turn.",
+   "desc": "No fear, and temporary HP equal to your CHA bonus at the start of each of its turns.",
    "src": "SRD 5.1",
    "id": "heroism"
   },
@@ -3920,6 +3977,124 @@
    "src": "SRD 5.1; wiki/halfway-inn-and-lake.md (the god is a chuul, CR 4, in the deep off the point)",
    "id": "chuul",
    "xp": 1100
+  },
+  "hask": {
+   "name": "Hask",
+   "art": "hask",
+   "cr": "2",
+   "ac": 15,
+   "hp": 65,
+   "abil": {
+    "str": 15,
+    "dex": 16,
+    "con": 14,
+    "int": 14,
+    "wis": 11,
+    "cha": 14
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "attacks": {
+    "bar": {
+     "name": "Pry-bar",
+     "hit": 5,
+     "dmg": "1d6+3",
+     "type": "bludgeoning",
+     "verb": "swings at"
+    },
+    "knife": {
+     "name": "Knife",
+     "hit": 5,
+     "dmg": "1d4+3",
+     "type": "piercing",
+     "verb": "knifes"
+    }
+   },
+   "multi": [
+    "bar",
+    "bar",
+    "knife"
+   ],
+   "silver": "4d6+10",
+   "src": "SRD 5.1 (Bandit Captain, the scimitar as a pry-bar); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (HASK the boss, AC 15, HP 65)",
+   "id": "hask",
+   "xp": 450
+  },
+  "wheelwright": {
+   "name": "Wheelwright",
+   "art": "wheelwright",
+   "cr": "1",
+   "ac": 12,
+   "hp": 27,
+   "abil": {
+    "str": 10,
+    "dex": 15,
+    "con": 10,
+    "int": 12,
+    "wis": 14,
+    "cha": 16
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "traits": {
+    "bolts": "hask",
+    "flag": "wheelwrightRan"
+   },
+   "attacks": {
+    "mallet": {
+     "name": "Mallet",
+     "hit": 4,
+     "dmg": "1d6+2",
+     "type": "bludgeoning",
+     "verb": "hammers"
+    }
+   },
+   "multi": [
+    "mallet",
+    "mallet"
+   ],
+   "silver": "2d6",
+   "src": "SRD 5.1 (Spy: AC 12, HP 27, two attacks at +4); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the wheelwright who built the siphon, the clever one; runs on the second round if the boss falls)",
+   "id": "wheelwright",
+   "xp": 200
+  },
+  "crewman": {
+   "name": "Crewman",
+   "art": "thug",
+   "tint": "#403830",
+   "cr": "1/2",
+   "ac": 11,
+   "hp": 32,
+   "abil": {
+    "str": 15,
+    "dex": 11,
+    "con": 14,
+    "int": 10,
+    "wis": 10,
+    "cha": 11
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "attacks": {
+    "mace": {
+     "name": "Pry-bar",
+     "hit": 4,
+     "dmg": "1d6+2",
+     "type": "bludgeoning",
+     "verb": "clubs"
+    }
+   },
+   "multi": [
+    "mace",
+    "mace"
+   ],
+   "silver": "2d6",
+   "src": "SRD 5.1 (Thug); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (two crewmen, thugs)",
+   "id": "crewman",
+   "xp": 100
   }
  },
  "encounters": {
@@ -4717,6 +4892,51 @@
    ],
    "src": "wiki/fountain-street.md (Winters, Acquisitions & Estates); magic stock RULED 09-24 (Griz: he sells magic items); invented.json#winters-shelves",
    "id": "winters"
+  },
+  "qm": {
+   "name": "Garrison Stores",
+   "keeper": "the quartermaster",
+   "look": "dclerk",
+   "greeting": "Garrison stores. Rope, oil, a healer's kit. Silver is silver, even when nobody assays it any more.",
+   "items": [
+    "rope",
+    "oil",
+    "torch",
+    "antitoxin",
+    "kit",
+    "potion",
+    "tent"
+   ],
+   "buys": false,
+   "thanks": [
+    "Written down.",
+    "The ledger has it.",
+    "Mind the road."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (the quartermaster sells rope, lamp-oil, antitoxin, rations, a healer's kit, at garrison prices; buys nothing)",
+   "id": "qm"
+  },
+  "copperbottom": {
+   "name": "The Copperbottom Smith",
+   "keeper": "a Copperbottom, at the anvil",
+   "look": "dsmith",
+   "greeting": "Dwarven-made, and nothing magic. Favor is earned, not bought. Mind the anvil.",
+   "items": [
+    "handaxe",
+    "lighthammer",
+    "battleaxe",
+    "warhammer",
+    "chainmail",
+    "splint",
+    "shield"
+   ],
+   "thanks": [
+    "It'll outlast you.",
+    "Bring it back if it bends. It won't.",
+    "Good steel. Better hands, I hope."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.5 (the Copperbottom smith: repairs; dwarven-made mundane gear; nothing magic is sold, CANON's shape); splint: better armor than the surface sells (wiki/deepholm-and-the-edifice.md, dwarven favor)",
+   "id": "copperbottom"
   }
  },
  "npcs": {
@@ -4802,6 +5022,15 @@
     }
    ],
    "src": "the-lab/pit-maps/shops-silverton.json pin 28; ext Silverton npcs (Vera)",
+   "before": [
+    {
+     "key": "door",
+     "if": "flag:frontDoor",
+     "say": [
+      "You went through the door. Everybody knows. Nobody says."
+     ]
+    }
+   ],
    "id": "vera"
   },
   "oldhob": {
@@ -4918,6 +5147,15 @@
     "r-winters"
    ],
    "src": "content/rumors.json",
+   "before": [
+    {
+     "key": "hook",
+     "if": "flag:stairHook & !flag:crewDealt & !flag:crewCut",
+     "say": [
+      "The scales are lit. Somebody bothered the dwarves, and everybody's looking at somebody."
+     ]
+    }
+   ],
    "id": "towns1"
   },
   "towns2": {
@@ -4962,6 +5200,15 @@
     "r-deathround"
    ],
    "src": "content/rumors.json",
+   "before": [
+    {
+     "key": "door",
+     "if": "flag:frontDoor",
+     "say": [
+      "Dwarves let you in. What's it like?"
+     ]
+    }
+   ],
    "id": "towns5"
   },
   "towns6": {
@@ -5907,6 +6154,237 @@
    ],
    "src": "wiki/halfway-inn-and-lake.md (a mender writing a book at the inn is the campaign-start secret)",
    "id": "katarina"
+  },
+  "hask": {
+   "name": "Hask",
+   "script": "crew",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "hask"
+  },
+  "wheelwright": {
+   "name": "The wheelwright",
+   "script": "crew",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "wheelwright"
+  },
+  "crewA": {
+   "name": "Crewman",
+   "script": "crew",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "crewA"
+  },
+  "crewB": {
+   "name": "Crewman",
+   "script": "crew",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "crewB"
+  },
+  "pyro": {
+   "name": "Pyronimus",
+   "script": "pyro",
+   "src": "wiki/deepholm-and-the-edifice.md (Pyronimus, fighter 9, Solskaft's only king, at the vault door); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4",
+   "id": "pyro"
+  },
+  "ketil": {
+   "name": "Ketil Silversands",
+   "talk": [
+    {
+     "if": "blasphemy>=1",
+     "say": [
+      "I saw what you carried in from below. It goes out the way it came in: not at all."
+     ]
+    },
+    {
+     "say": [
+      "Ketil Silversands, second at the door. The king stands there. I stand beside him and count who goes by."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (the four watches: the door, Pyro's second; names PROPOSED); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "ketil"
+  },
+  "ingrith": {
+   "name": "Ingrith Scalebeam",
+   "script": "ingrith",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "ingrith"
+  },
+  "quartermaster": {
+   "name": "Quartermaster",
+   "script": "quartermaster",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (the quartermaster, a Scalebeam clerk; one of Ingrith's two underlings)",
+   "id": "quartermaster"
+  },
+  "ragna": {
+   "name": "Ragna Copperbottom",
+   "talk": [
+    {
+     "say": [
+      "Ragna Copperbottom. The water. The wheel is Copperbottom work, so the wheel is mine.",
+      "The covenant says the town's fountains run. The wheel meters them. If it ever stops, somebody up top finds out what a covenant is for."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 A, §4.4 (the water-warden, one of the four level-6s); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "ragna"
+  },
+  "brann": {
+   "name": "Brann Silversands",
+   "talk": [
+    {
+     "say": [
+      "Brann Silversands. Garrison, second season.",
+      "If the road opens, you'll want two of us with you. I'd go. I have a reason to see Third Lamp again."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Brann, the last of a family the highway wiped out at Third Lamp; his father's axe is still down there, §10-6); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "brann"
+  },
+  "hedda": {
+   "name": "Hedda Greyseam",
+   "talk": [
+    {
+     "say": [
+      "Hedda Greyseam. Garrison. Longer than most.",
+      "Our orders end at Third Lamp. What's past it is Deepholm's business, and I don't ask Deepholm its business."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Hedda, a Greyseam who knows more than she says about who moves through Solskaft at night; her orders end at Third Lamp); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "hedda"
+  },
+  "drill1": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Two score to a season. Half of us are down the road at any hour. The other half drill for it."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (a season is two score troops, PROPOSED); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "drill1"
+  },
+  "drill2": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Three years and I rotate home. Deepholm. Ceilings you can't see the top of."
+     ]
+    }
+   ],
+   "src": "wiki/deepholm-and-the-edifice.md (fresh troops in ~3-year seasons); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "drill2"
+  },
+  "drill3": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "The food comes up the highway on a cart. Every cart that gets here is a good day at Third Lamp."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 B (the garrison is fed from Deepholm by the highway, INFERENCE); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "drill3"
+  },
+  "drill4": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Don't touch the scales in the tollhouse. Nobody has in seventy years. It'd be a shame to be the first."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 A; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "drill4"
+  },
+  "drillmaster": {
+   "name": "Drill-sergeant",
+   "talk": [
+    {
+     "say": [
+      "Surface folk in the muster yard. The king let that happen. I'd drill you too, if you stood still long enough."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 A (the muster yard); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "drillmaster"
+  },
+  "cook": {
+   "name": "Cook",
+   "talk": [
+    {
+     "say": [
+      "Meat in the smoke, beer in the vats, bread from below. Sit if you're sitting. Eat if you're eating."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 B (the kitchens); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "cook"
+  },
+  "sleeper": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Bunks up here if you want one. The cots in the yard are nearer the door."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 B (the barracks tiers); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "sleeper"
+  },
+  "shaftwatch": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Noon comes straight down the shaft. For an hour a day you could forget you're under a mountain."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.1 (the Sunshaft); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "shaftwatch"
+  },
+  "yardhand": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "The stamp-wheel's still turning. That's your fountains, out front. Ragna keeps it honest."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 A; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "yardhand"
+  },
+  "smith": {
+   "name": "The Copperbottom smith",
+   "script": "dsmith",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.5 (the Copperbottom smith; nothing magic is sold)",
+   "id": "smith"
+  },
+  "gatewatch": {
+   "name": "Gate watch",
+   "script": "highwayGate",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 C",
+   "id": "gatewatch"
+  },
+  "smelterhand": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "The furnaces haven't been lit since before I was born. I sweep them anyway. Orders."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 C; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "smelterhand"
   }
  },
  "text": {
@@ -5959,7 +6437,7 @@
    "id": "intro.motive"
   },
   "intro.controls": {
-   "t": "Arrows or WASD to walk. Z or ENTER to talk and choose. X or ESC for the menu. Read the Weigh-House board on Fountain Street. The Hex is at the heart of the plaza.",
+   "t": "Arrows or WASD to walk. E (or Z, or ENTER) to talk and choose. X or ESC for the menu. Read the Weigh-House board on Fountain Street. The Hex is at the heart of the plaza.",
    "src": "invented: connective",
    "id": "intro.controls"
   },
@@ -6587,7 +7065,7 @@
   "w.penHow": {
    "t": [
     "Two hands with poles walk the animal into the cradle. The settle goes in after it: its own venom, thinned. Then the feelers come out through the slats, one by one, and under the bar.",
-    "Yours is the thimble. Hold Z to work the gland, and let go while the ring sits in the gold. Too soft is a dry pull. Too hard spills it. Push on past the red and the feeler comes off the bar, and then it is your wrist against the venom.",
+    "Yours is the thimble. Hold E to work the gland, and let go while the ring sits in the gold. Too soft is a dry pull. Too hard spills it. Push on past the red and the feeler comes off the bar, and then it is your wrist against the venom.",
     "The brightest gland is the readiest. The settle wears off as the shift goes, so the last draws are the wild ones. Six, and the animal comes back to itself."
    ],
    "src": "WarrensModule/crawler-warrens-DM.md section 3 (the procedure: poles, the settle, the slats and the bar, the thimble and the wax; six attempts because the settle wears off; fail by 5+ = the touch, CON 13); the squeeze game invented.json#milking",
@@ -7524,6 +8002,423 @@
    "t": "A room for the night? No charge.",
    "src": "RULED 09-24",
    "id": "after.doranStay"
+  },
+  "deep.papaCome": {
+   "t": "Papa Urtusk is out of his door. In all your time in Silverton you have never seen him more than a step from it.",
+   "src": "wiki/the-urtusks.md (\"Papa\" is the town's name for a man who stood in a door); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §1 item 5; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.papaCome"
+  },
+  "deep.papaHook": {
+   "t": [
+    "The scales are lit. The council's sitting.",
+    "Somebody pumped the water stair in the Warrens dry. Three nights of it. Then they went through the door at the bottom.",
+    "Nobody bothers the dwarves. The last time somebody did, this town burned for a winter."
+   ],
+   "src": "wiki/silverton.md (the council: \"the scales are lit\"; the one law); wiki/deepholm-and-the-edifice.md (the Water Burning, one winter); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 1; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.papaHook"
+  },
+  "deep.papaLymen": {
+   "t": "He looks at Lymen for a long moment and says nothing, which from Papa is a great deal.",
+   "src": "wiki/the-urtusks.md (Lymen is Warda's son: Papa's grandson); the family is reserved, so a look and no words; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.papaLymen"
+  },
+  "deep.papaGo": {
+   "t": [
+    "The council will hand the dwarves somebody. I'd rather it was the ones who did it.",
+    "You've made a name. Go and get them before the council picks one."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 1 (take them before the council decides who to hand the dwarves instead); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.papaGo"
+  },
+  "deep.papaAgain": {
+   "t": "The Warrens. The wet, past the landing. Before the council picks.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 1; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.papaAgain"
+  },
+  "deep.papaSharper": {
+   "t": "You went down and came back up with nothing. The council has started saying names. Some of them are yours.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (LEAVE: the council line in the plaza gets sharper); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.papaSharper"
+  },
+  "deep.papaCut": {
+   "t": "You took their silver. The council knows it. So do I.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (TAKE A CUT: renown -1); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.papaCut"
+  },
+  "deep.papaDone": {
+   "t": "The council's handing the dwarves nobody. That's your doing.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.papaDone"
+  },
+  "deep.papaDoor": {
+   "t": "The vault door opens for you now. I've stood in a door fifty years. Mind you know what one is for.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.5 (the front door, for them only); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.papaDoor"
+  },
+  "deep.drySee": {
+   "t": [
+    "The water stair is dry.",
+    "The steps go down dark with it, silt in the corners, a tide-line on the wall at a man's height. Pipe runs back up the daytime way: a siphon, bellows and a wheel, left where it stood when the water ran out."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (you cannot fight the keeper; you can take its water: a siphon-engine, three nights); game-only (the register's stair is still flooded at campaign start)",
+   "id": "deep.drySee"
+  },
+  "deep.dryFive": {
+   "t": "Pete's five left their tokens on the bottom step, where the water set them down.",
+   "src": "wiki/the-warrens.md (Pete's five); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the five's gear, if not already recovered)",
+   "id": "deep.dryFive"
+  },
+  "deep.puddle": {
+   "t": "In the corner at the stair's foot, a hand's depth of water shivers when you look at it. It can't leave its water. It has almost none left.",
+   "src": "wiki/the-warrens.md (the keeper cannot leave its water); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the keeper is a puddle; it is not dead)",
+   "id": "deep.puddle"
+  },
+  "deep.puddleStill": {
+   "t": "In the corner at the stair's foot, a hand's depth of water, still. Whatever kept this stair, you already settled with it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3; the base game's keeperDone",
+   "id": "deep.puddleStill"
+  },
+  "deep.doorCut": {
+   "t": "At the bottom, the warranted door. The runes on it are cut through with a chisel, clean and careful, by someone who thought it was carpentry.",
+   "src": "wiki/the-warrens.md (breaking a warranted seal is blasphemy, not vandalism); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3",
+   "id": "deep.doorCut"
+  },
+  "deep.crewCatch": {
+   "t": [
+    "Below the door, the top tier of a tomb: niches in dressed stone, the dead in rows.",
+    "Four of them at one family's niches with pry-bars and a sack, one lamp between them. The big one has a slab half off already."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.crewCatch"
+  },
+  "deep.crewAgain": {
+   "t": "The crew is still at it, working the same family's niches by one lamp.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.crewAgain"
+  },
+  "deep.crewBack": {
+   "t": "They came back for the rest. The same stair, the same four, the same sack, emptier.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (second chance: the crew comes back for the rest three nights later; greed)",
+   "id": "deep.crewBack"
+  },
+  "deep.haskSees": {
+   "t": "Well. Somebody's name got made. This is none of yours. Nobody down here is going to miss it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.haskSees"
+  },
+  "deep.haskBack": {
+   "t": "You again. You were paid. Go and spend it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.haskBack"
+  },
+  "deep.crewAsk": {
+   "t": "Four of them. Pry-bars. The dead in their rows, watching.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.crewAsk"
+  },
+  "deep.crewLeave": {
+   "t": "You leave them to it. The pry-bar starts again behind you.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.crewLeave"
+  },
+  "deep.vivSteps": {
+   "t": "Hask. I've carried your maps two years. You know my face, and you know what this is.",
+   "src": "wiki/vivian.md (the candle-girl courier carries the night crews' maps, CANON); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.vivSteps"
+  },
+  "deep.vivWins": {
+   "t": "Hask looks at her a long moment. Then he drops the sack, and the four of them go up the stair without a word. They will remember who stood between them and the dwarves.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts) (crewOwed)",
+   "id": "deep.vivWins"
+  },
+  "deep.sackDropped": {
+   "t": "The sack is on the floor where he dropped it: a mail shirt, a war-hammer, a ring.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.sackDropped"
+  },
+  "deep.vivFails": {
+   "t": "Hask laughs. \"Candle-girl. Go home. Or don't.\" The pry-bars come up.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.vivFails"
+  },
+  "deep.cutName": {
+   "t": "You name a price for looking the other way.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.cutName"
+  },
+  "deep.cutTaken": {
+   "t": "Hask counts it out without looking at you. \"Two hundred. Cheap, for what's down here.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts) (200 sp; crewCut)",
+   "id": "deep.cutTaken"
+  },
+  "deep.renownDown": {
+   "t": "Renown -1.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3-5.4 (renown -1, permanent)",
+   "id": "deep.renownDown"
+  },
+  "deep.cutFails": {
+   "t": "Hask laughs at the number. \"You haven't the stomach, and I haven't the time.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.cutFails"
+  },
+  "deep.crewFight": {
+   "t": "Hask hefts the pry-bar. The wheelwright hangs back by the lamp.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.crewFight"
+  },
+  "deep.crewDown": {
+   "t": "The crew is down. The sack lies where it fell: a mail shirt, a war-hammer, a ring.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.crewDown"
+  },
+  "deep.crewDownRan": {
+   "t": "The crew is down, all but the wheelwright, and his feet are gone up the stair. The sack lies where it fell: a mail shirt, a war-hammer, a ring.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the night crews; the catch is the scene's start); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts) (the wheelwright runs on the second round if the boss falls: sidequest 10's loose thread)",
+   "id": "deep.crewDownRan"
+  },
+  "deep.nicheDead": {
+   "t": "Nothing here but the dead.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4 (everything else is bodies and stone)",
+   "id": "deep.nicheDead"
+  },
+  "deep.priedNiche": {
+   "t": "The slabs are off and the bones moved. Whatever this family was buried with has been pried loose.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4",
+   "id": "deep.priedNiche"
+  },
+  "deep.sackAsk": {
+   "t": "The crew's sack is on your back.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4 (the night crews' sack is the party's to return)",
+   "id": "deep.sackAsk"
+  },
+  "deep.sackBack": {
+   "t": [
+    "You lay them back where they were: the mail on Thora, the hammer by Ari, the ring on the hand of Svala, the last of Geirmund's line.",
+    "The stone reads the same as it did. It doesn't need to thank you."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4; §10-3 (put it back); names invented.json#burial-families",
+   "id": "deep.sackBack"
+  },
+  "deep.geirmundNames": {
+   "t": "THORA, ARI, SVALA, of Geirmund's line. Season 31. Fell at the Third Lamp.",
+   "src": "invented.json#burial-families",
+   "id": "deep.geirmundNames"
+  },
+  "deep.sackRests": {
+   "t": "The mail, the hammer and the ring are back where they belong.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-3",
+   "id": "deep.sackRests"
+  },
+  "deep.shieldSeen": {
+   "t": "A door-warden's shield on his chest, rimmed in truesilver. A family's last gear, still on the bones.",
+   "src": "wiki/deepholm-and-the-edifice.md (the burial law: a wiped-out family's gear is on the bodies); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8",
+   "id": "deep.shieldSeen"
+  },
+  "deep.shieldWarrant": {
+   "t": "A shield on his chest, rimmed in truesilver. You take it off him yourself, as the law says. The ledger already has the line.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8 (Ingrith's warrant releases it: her overreach, in the ledger by her own hand)",
+   "id": "deep.shieldWarrant"
+  },
+  "deep.shieldGone": {
+   "t": "The bones are bare of the shield now. The ledger says where it went.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8",
+   "id": "deep.shieldGone"
+  },
+  "deep.tookIt": {
+   "t": "You take it off the dead. Nothing stops you. Nothing has to.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4 (taking without a warrant = blasphemy)",
+   "id": "deep.tookIt"
+  },
+  "deep.asmundGear": {
+   "t": "A hammer on his chest, the haft wrapped in newer leather than the rest of him. The row above him stops short. Somebody meant to come back for it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9 (the heir's wedge); invented.json#burial-families",
+   "id": "deep.asmundGear"
+  },
+  "deep.asmundBare": {
+   "t": "The hammer is gone from his chest.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9",
+   "id": "deep.asmundBare"
+  },
+  "deep.bier": {
+   "t": "A slab on a plinth, cut and dressed and kept clean. Nobody is on it. The lamp beside it is full.",
+   "src": "wiki/deepholm-and-the-edifice.md (the burial law, CANON 09-26: the center chamber is empty); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.2 (no text box explains this)",
+   "id": "deep.bier"
+  },
+  "deep.dwarfStairShut": {
+   "t": "The dwarves' own stair, going up. The runes on it are whole, and they are not yours.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 D (the dwarves' own stair, warranted; opens on Ingrith's warrant)",
+   "id": "deep.dwarfStairShut"
+  },
+  "deep.ingrithLamp": {
+   "t": "A lamp comes along the tier from the far end, where a stair goes up.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithLamp"
+  },
+  "deep.ingrithCome": {
+   "t": "A dwarf in a grey cleric's coat, a ledger under her arm. The two of the garrison behind her stop where she stops.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithCome"
+  },
+  "deep.ingrithLedger": {
+   "t": [
+    "The ledger felt the seal go. Three nights ago, at the second hour.",
+    "It has been waiting for me to come down and write who."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithLedger"
+  },
+  "deep.ingrithTakesBack": {
+   "t": "That is not yours. The ledger has no line that makes it yours. It goes back on the bones it came off, and the ledger writes that down too.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4 (a named release is lawful; nothing else is); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithTakesBack"
+  },
+  "deep.ingrithWithheld": {
+   "t": [
+    "It will write that four hands broke the seal, and that surface folk came after them, and were paid to go.",
+    "The ledger has four names in it tonight, and yours are among them."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (TAKE A CUT: the offer is withheld; the line is the spec's)",
+   "id": "deep.ingrithWithheld"
+  },
+  "deep.ingrithStopped": {
+   "t": "It will write that surface folk stopped them. That is a line it has not had to write in seventy years.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithStopped"
+  },
+  "deep.ingrithName": {
+   "t": "I am Ingrith Scalebeam. I keep Rekknar's ledger in Solskaft, and the water covenant, and the count of everything that goes up or down the highway. It has been a short count for a long time.",
+   "src": "wiki/deepholm-and-the-edifice.md (Ingrith Scalebeam, cleric 4, CANON 09-26b; the priest of Rekknar holds the ledger of the highway and the water covenant); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithName"
+  },
+  "deep.ingrithTrade": {
+   "t": [
+    "The king sealed our doors, and the trade stopped. My clan built itself on the trade: the assay, the tolls, the warranted bond. I have kept the ledger of a garrison ever since.",
+    "I would like to keep the ledger of a town again. Pyro will not open the doors while the highway bleeds. So the highway is the argument."
+   ],
+   "src": "wiki/deepholm-and-the-edifice.md (the Cleric wants surface trade resumed and the doors open; Scalebeam the trader clan); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithTrade"
+  },
+  "deep.ingrithOffer": {
+   "t": [
+    "Three days to Deepholm, three lamps, and one of them has been dark two seasons. Walk it for me.",
+    "Two of the garrison go with you. There is an abandoned lamp you may sleep in. And the front door opens for you: the four of you, and nobody else. The ledger will say so."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §1 item 5 (Griz: offers highway mission, a couple of the garrison troops, an abandoned place they can sleep; mission unlocks front door, for them only); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithOffer"
+  },
+  "deep.ingrithOfferAlone": {
+   "t": [
+    "Three days to Deepholm, three lamps, and one of them has been dark two seasons. Walk it for me.",
+    "I'll not spend two of ours on people the ledger doubts; you walk it alone. But the front door opens for you, the four of you and nobody else. The ledger will say so."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the second chance: the offer minus the escort; her line is the spec's)",
+   "id": "deep.ingrithOfferAlone"
+  },
+  "deep.ingrithWarrant": {
+   "t": [
+    "One more line tonight. The door-warden Audun's line ended at the Third Lamp, and his shield is still on his bones, at the foot of the second wedge.",
+    "The ledger releases it to you. Take it off him yourself. Nobody hands the dead's gear across; that is the law."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8 (the Door-Shield: Ingrith's warrant releases it at beat 3 as the first payment; her overreach); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithWarrant"
+  },
+  "deep.ingrithSack": {
+   "t": "That sack goes back on the bodies it came off. Not by me; by you. The pried niches, at the near end of the top tier.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4; §10-3",
+   "id": "deep.ingrithSack"
+  },
+  "deep.ingrithBars": {
+   "t": "Her two set the garrison's iron across the cut door. A broken oath stays broken in the ledger; the crews' road is shut with a lock now, instead of a promise.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (she bars the cut door with the garrison's iron)",
+   "id": "deep.ingrithBars"
+  },
+  "deep.ingrithStair": {
+   "t": "Come up our stair when you've paid your respects. The door at the top knows your faces now. So will the king. He won't like it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithStair"
+  },
+  "deep.ingrithShieldHint": {
+   "t": "Audun's shield is still on his bones, at the foot of the second wedge. The ledger has released it. It waits for your hand, not mine.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8",
+   "id": "deep.ingrithShieldHint"
+  },
+  "deep.ingrithOffice1": {
+   "t": "The tariff board is seventy years stale. I dust it anyway. A ledger-keeper who stops dusting stops counting.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithOffice1"
+  },
+  "deep.ingrithOffice2": {
+   "t": "The highway's mouth is in the works below. The gate opens when the season's mustered and the road-captain sends word.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithOffice2"
+  },
+  "deep.ingrithOffice3": {
+   "t": "My clan keeps the doors at both ends of the road. Up here I keep a garrison's pantry. Down there my kin keep a city's tolls.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.2, §6.4 (the trader clan keeps the doors at both ends); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithOffice3"
+  },
+  "deep.pyroSees": {
+   "t": "The old dwarf at the vault door turns his head, and then the rest of him.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4",
+   "id": "deep.pyroSees"
+  },
+  "deep.pyroFirst": {
+   "t": "Her ledger says you go through. Mine says nobody does. I'll let hers stand tonight.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Pyro's first line, drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.pyroFirst"
+  },
+  "deep.pyro1": {
+   "t": "The door's mine. The ledger's hers. Between the two of us the town gets its water.",
+   "src": "wiki/deepholm-and-the-edifice.md (Pyronimus at the vault door; the water covenant); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.pyro1"
+  },
+  "deep.pyro2": {
+   "t": "She wants the doors open. I want the road to stop bleeding. We want the same thing in a different order.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.pyro2"
+  },
+  "deep.pyro3": {
+   "t": "Nobody bothers the dwarves. Your town made that law, not us. We only keep it.",
+   "src": "wiki/deepholm-and-the-edifice.md (the one law, derived from the Burning; the dwarves do not care about the town's politics); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.pyro3"
+  },
+  "deep.pyroShield": {
+   "t": "That's Audun's shield. He stood this door beside me eleven seasons. Carry it like there's a door behind you.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.pyroShield"
+  },
+  "deep.ketilStop": {
+   "t": "Empty your packs. Here. Now.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4 (Pyro's door-second stops the party at the door: \"empty your packs\"; no fight)",
+   "id": "deep.ketilStop"
+  },
+  "deep.ketilTakes": {
+   "t": "Ketil takes back what came off the dead and hands it to a trooper, who goes down the stair with it without a word.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.4 (confiscated; renown -1 per item)",
+   "id": "deep.ketilTakes"
+  },
+  "deep.cot": {
+   "t": "A garrison cot, and a blanket that smells of the smokehouse. Nobody asks what you owe.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.5 (the cot: a free long rest once the front door is yours)",
+   "id": "deep.cot"
+  },
+  "deep.treasury": {
+   "t": "The treasury. Open, and empty. What it held went down to Deepholm at the withdrawal, and nobody here counts it out loud.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 C (the treasury, open and empty); wiki/fountain-street.md (the only count is Androit's father's records)",
+   "id": "deep.treasury"
+  },
+  "deep.gateShut": {
+   "t": "The road's shut till the season's mustered and the road-captain sends word. Then the gate opens on the Cleric's warrant, and two of ours walk with you.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 C (the highway's mouth); M2 opens it",
+   "id": "deep.gateShut"
+  },
+  "deep.ingrithLedger2": {
+   "t": [
+    "The ledger felt them come back. Greedy is a thing it writes down too.",
+    "This time it waited for me to see what you would do."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the second chance); drafted by the code tab, PROPOSED",
+   "id": "deep.ingrithLedger2"
   }
  },
  "rumors": [
@@ -7688,6 +8583,11 @@
    "t": "Seventeen miles down, the Halfway Inn: the only well on the road.",
    "flag": "heardLake",
    "src": "wiki/halfway-inn-and-lake.md"
+  },
+  {
+   "id": "r-stairdry",
+   "t": "Night crews pumped the Warrens' water stair dry, three nights running, and cut the warranted door at the foot of it. The one law. The scales are lit.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 1; §5.3 (game-only: the register's stair is still flooded at campaign start)"
   }
  ],
  "rumorMap": {
@@ -7852,6 +8752,11 @@
    "t": "Seventeen miles down, the Halfway Inn: the only well on the road.",
    "flag": "heardLake",
    "src": "wiki/halfway-inn-and-lake.md"
+  },
+  "r-stairdry": {
+   "id": "r-stairdry",
+   "t": "Night crews pumped the Warrens' water stair dry, three nights running, and cut the warranted door at the foot of it. The one law. The scales are lit.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 1; §5.3 (game-only: the register's stair is still flooded at campaign start)"
   }
  },
  "quests": [
@@ -8153,9 +9058,683 @@
     }
    ],
    "src": "wiki/halfway-inn-and-lake.md; spec §4 (the capstone)"
+  },
+  {
+   "id": "onelaw",
+   "name": "The One Law",
+   "show": "flag:stairHook",
+   "done": "flag:clericMet",
+   "text": "Papa Urtusk: somebody pumped the Warrens' water stair dry and went through the warranted door at its foot. Nobody bothers the dwarves. Find them before the council hands the dwarves someone else.",
+   "doneText": "The Cleric of Solskaft wrote it in her ledger.",
+   "steps": [
+    {
+     "if": "!flag:drySeen",
+     "map": "warrens_d",
+     "trig": "dryStair",
+     "where": "The Warrens' wet: past the landing with the mark, the stair beyond it."
+    },
+    {
+     "if": "flag:crewCut & !flag:crewBack",
+     "map": "burial",
+     "trig": "crew",
+     "where": "They'll be back for the rest of it. Give it a few nights, then go down again."
+    },
+    {
+     "map": "burial",
+     "trig": "crew",
+     "where": "Down through the cut door. Somebody is at the dead."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 1-3; steps invented.json#pinned-quest"
+  },
+  {
+   "id": "solskaft",
+   "name": "Behind the Fountains",
+   "show": "flag:frontDoor",
+   "done": "flag:highwaySecured",
+   "text": "Ingrith Scalebeam, Cleric of Rekknar and keeper of Solskaft's ledger, wants the doors open and the trade back. Pyro won't open them while the highway bleeds. Walk it for her: three days, three lamps.",
+   "doneText": "Three lamps lit.",
+   "steps": [
+    {
+     "if": "flag:warrantShield & !flag:shieldTaken",
+     "map": "burial",
+     "at": [
+      15,
+      20
+     ],
+     "where": "The Burial's base ring: the door-warden Audun's shield, released to you by the ledger."
+    },
+    {
+     "if": "!flag:pyroMet",
+     "map": "solskaft",
+     "npc": "pyro",
+     "where": "Up the dwarves' stair into Solskaft. The king is at the door."
+    },
+    {
+     "map": "solskaft_deep",
+     "trig": "highwayGate",
+     "where": "The highway's mouth, in the works below Solskaft."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 3-5"
   }
  ],
  "maps": {
+  "burial": {
+   "id": "burial",
+   "name": "The Burial",
+   "tileset": "cave",
+   "rows": [
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhh!!!!!hhhhhhNNNNhNNNhhhhhhhhhhhNNNNhhh",
+    "hz____________________________________rh",
+    "hh____________________________________hh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhh",
+    "hhhhhhNNNNhhhhhNNNhNNNhNNNhNNNhNNNvhhhhh",
+    "hhhhh______________________________hhhhh",
+    "hhhhh______________________________hhhhh",
+    "hhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhvNNNhNNhNNhNNNhNNhNNhNNhhhhhhhhh",
+    "hhhhhhhh________________________hhhhhhhh",
+    "hhhhhhhh________________________hhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhh",
+    "hhhhhhhhhhhhKKh$KhKhKhKh$KhKvhhhhhhhhhhh",
+    "hhhhhhhhhhh__________________hhhhhhhhhhh",
+    "hhhhhhhhhhh__________________hhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhh__hhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhh_______Y__hhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhh____ZZ____hhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "guanoDeep",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "drownStair",
+    ">": "holeDown",
+    "L": "ladder",
+    "l": "lantern",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "minecart",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    " ": "void",
+    ",": "dirt",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "roofS",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "door",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "web",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bridgeV",
+    "C": "cliff",
+    "A": "water",
+    "M": "mountain",
+    "V": "range",
+    "I": "lamp",
+    "Q": "emptyCut",
+    "N": "niche",
+    "J": "nicheGear",
+    "!": "nicheOpen",
+    "K": "nicheStone",
+    "$": "nicheGearStone",
+    "Z": "bier",
+    "Y": "tombLamp",
+    "z": "dryStair",
+    "j": "sealCut",
+    "i": "ironBars",
+    "p": "puddle",
+    "v": "steps",
+    "1": "sunshaft",
+    "2": "race",
+    "3": "wheel",
+    "4": "vaultIn",
+    "5": "throne",
+    "6": "oathStone",
+    "7": "nameWall",
+    "8": "anvil",
+    "9": "forge",
+    "a": "furnace",
+    "E": "cupel",
+    "%": "scales",
+    "&": "lockCase",
+    "/": "rack",
+    "(": "vat",
+    ")": "smokeRack",
+    "[": "boarded",
+    "]": "ledgerDesk",
+    "{": "tariff",
+    "}": "shaftTop",
+    ";": "cot",
+    "<": "brick",
+    "@": "dcounter",
+    "?": "dtable",
+    "'": "portcullisUp",
+    "`": "footbridge"
+   },
+   "music": "burial",
+   "bg": "dwarf",
+   "save": false,
+   "dark": true,
+   "niches": {
+    "3,2": [
+     0,
+     0,
+     "pried"
+    ],
+    "4,2": [
+     0,
+     0,
+     "pried"
+    ],
+    "5,2": [
+     0,
+     0,
+     "pried"
+    ],
+    "6,2": [
+     0,
+     0,
+     "pried"
+    ],
+    "7,2": [
+     0,
+     0,
+     "pried"
+    ],
+    "14,2": [
+     2,
+     0,
+     "row"
+    ],
+    "15,2": [
+     2,
+     0,
+     "row"
+    ],
+    "16,2": [
+     2,
+     0,
+     "row"
+    ],
+    "17,2": [
+     2,
+     0,
+     "row"
+    ],
+    "19,2": [
+     3,
+     0,
+     "row"
+    ],
+    "20,2": [
+     3,
+     0,
+     "row"
+    ],
+    "21,2": [
+     3,
+     0,
+     "row"
+    ],
+    "33,2": [
+     6,
+     0,
+     "row"
+    ],
+    "34,2": [
+     6,
+     0,
+     "row"
+    ],
+    "35,2": [
+     6,
+     0,
+     "row"
+    ],
+    "36,2": [
+     6,
+     0,
+     "row"
+    ],
+    "6,8": [
+     0,
+     1,
+     "row"
+    ],
+    "7,8": [
+     0,
+     1,
+     "row"
+    ],
+    "8,8": [
+     0,
+     1,
+     "row"
+    ],
+    "9,8": [
+     0,
+     1,
+     "row"
+    ],
+    "15,8": [
+     2,
+     1,
+     "row"
+    ],
+    "16,8": [
+     2,
+     1,
+     "row"
+    ],
+    "17,8": [
+     2,
+     1,
+     "row"
+    ],
+    "19,8": [
+     3,
+     1,
+     "row"
+    ],
+    "20,8": [
+     3,
+     1,
+     "row"
+    ],
+    "21,8": [
+     3,
+     1,
+     "row"
+    ],
+    "23,8": [
+     4,
+     1,
+     "row"
+    ],
+    "24,8": [
+     4,
+     1,
+     "row"
+    ],
+    "25,8": [
+     4,
+     1,
+     "row"
+    ],
+    "27,8": [
+     5,
+     1,
+     "row"
+    ],
+    "28,8": [
+     5,
+     1,
+     "row"
+    ],
+    "29,8": [
+     5,
+     1,
+     "row"
+    ],
+    "31,8": [
+     6,
+     1,
+     "row"
+    ],
+    "32,8": [
+     6,
+     1,
+     "row"
+    ],
+    "33,8": [
+     6,
+     1,
+     "row"
+    ],
+    "9,14": [
+     0,
+     2,
+     "row"
+    ],
+    "10,14": [
+     0,
+     2,
+     "row"
+    ],
+    "11,14": [
+     0,
+     2,
+     "row"
+    ],
+    "13,14": [
+     1,
+     2,
+     "row"
+    ],
+    "14,14": [
+     1,
+     2,
+     "row"
+    ],
+    "16,14": [
+     2,
+     2,
+     "row"
+    ],
+    "17,14": [
+     2,
+     2,
+     "row"
+    ],
+    "19,14": [
+     3,
+     2,
+     "row"
+    ],
+    "20,14": [
+     3,
+     2,
+     "row"
+    ],
+    "21,14": [
+     3,
+     2,
+     "row"
+    ],
+    "23,14": [
+     4,
+     2,
+     "row"
+    ],
+    "24,14": [
+     4,
+     2,
+     "row"
+    ],
+    "26,14": [
+     5,
+     2,
+     "row"
+    ],
+    "27,14": [
+     5,
+     2,
+     "row"
+    ],
+    "29,14": [
+     6,
+     2,
+     "row"
+    ],
+    "30,14": [
+     6,
+     2,
+     "row"
+    ],
+    "12,20": [
+     0,
+     3,
+     "patron"
+    ],
+    "13,20": [
+     0,
+     3,
+     "patron"
+    ],
+    "15,20": [
+     1,
+     3,
+     "gear"
+    ],
+    "16,20": [
+     1,
+     3,
+     "patron"
+    ],
+    "18,20": [
+     2,
+     3,
+     "patron"
+    ],
+    "20,20": [
+     3,
+     3,
+     "patron"
+    ],
+    "22,20": [
+     4,
+     3,
+     "patron"
+    ],
+    "24,20": [
+     5,
+     3,
+     "gear"
+    ],
+    "25,20": [
+     5,
+     3,
+     "patron"
+    ],
+    "27,20": [
+     6,
+     3,
+     "patron"
+    ]
+   },
+   "lights": [
+    {
+     "x": 22,
+     "y": 26,
+     "r": 60
+    }
+   ],
+   "npcs": [
+    {
+     "id": "hask",
+     "x": 6,
+     "y": 3,
+     "look": "hask",
+     "dir": "up",
+     "cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
+     "face": false
+    },
+    {
+     "id": "wheelwright",
+     "x": 4,
+     "y": 4,
+     "look": "wheelwright",
+     "dir": "up",
+     "cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
+     "face": false
+    },
+    {
+     "id": "crewA",
+     "x": 5,
+     "y": 4,
+     "look": "crewman",
+     "dir": "up",
+     "cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
+     "face": false
+    },
+    {
+     "id": "crewB",
+     "x": 7,
+     "y": 4,
+     "look": "crewman",
+     "dir": "left",
+     "cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
+     "face": false
+    }
+   ],
+   "warps": [
+    {
+     "x": 1,
+     "y": 3,
+     "to": "warrens_d",
+     "tx": 9,
+     "ty": 21,
+     "dir": "right",
+     "cond": "!flag:frontDoor"
+    },
+    {
+     "x": 38,
+     "y": 3,
+     "to": "solskaft",
+     "tx": 15,
+     "ty": 3,
+     "dir": "right",
+     "cond": "flag:frontDoor"
+    }
+   ],
+   "signs": [
+    {
+     "x": 22,
+     "y": 26,
+     "text": "One lamp, kept. Somebody fills it.",
+     "src": "handoff-2026-09-26 §5.2 (lit by one lamp that the garrison keeps)"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "niches0",
+     "rect": [
+      3,
+      2,
+      34,
+      1
+     ],
+     "on": "use",
+     "script": "niche"
+    },
+    {
+     "id": "niches1",
+     "rect": [
+      6,
+      8,
+      28,
+      1
+     ],
+     "on": "use",
+     "script": "niche"
+    },
+    {
+     "id": "niches2",
+     "rect": [
+      9,
+      14,
+      22,
+      1
+     ],
+     "on": "use",
+     "script": "niche"
+    },
+    {
+     "id": "niches3",
+     "rect": [
+      12,
+      20,
+      16,
+      1
+     ],
+     "on": "use",
+     "script": "niche"
+    },
+    {
+     "id": "dwarfStair",
+     "rect": [
+      38,
+      3,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "dwarfStair",
+     "cond": "!flag:frontDoor"
+    },
+    {
+     "id": "crew",
+     "rect": [
+      3,
+      3,
+      1,
+      2
+     ],
+     "on": "step",
+     "script": "crew",
+     "cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt"
+    },
+    {
+     "id": "bier",
+     "rect": [
+      19,
+      28,
+      2,
+      1
+     ],
+     "on": "use",
+     "script": "bier"
+    }
+   ],
+   "flagTiles": [
+    {
+     "x": 1,
+     "y": 3,
+     "tile": "ironBars",
+     "cond": "flag:frontDoor"
+    },
+    {
+     "x": 38,
+     "y": 3,
+     "tile": "stairsUp",
+     "cond": "flag:frontDoor"
+    }
+   ]
+  },
   "galleries_g1": {
    "id": "galleries_g1",
    "name": "The guano mine — the mouth",
@@ -10043,7 +11622,15 @@
      "x": 29,
      "y": 5,
      "text": "The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.",
-     "src": "wiki/silverton.md (the one law: nobody bothers the dwarves)"
+     "src": "wiki/silverton.md (the one law: nobody bothers the dwarves)",
+     "cond": "!flag:frontDoor"
+    },
+    {
+     "x": 30,
+     "y": 5,
+     "text": "The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.",
+     "src": "wiki/silverton.md (the one law: nobody bothers the dwarves)",
+     "cond": "!flag:frontDoor"
     },
     {
      "x": 24,
@@ -10343,6 +11930,734 @@
      ],
      "on": "use",
      "script": "board"
+    },
+    {
+     "id": "vaultDoor",
+     "rect": [
+      29,
+      5,
+      2,
+      1
+     ],
+     "on": "use",
+     "script": "warp",
+     "cond": "flag:frontDoor",
+     "to": "solskaft",
+     "tx": 17,
+     "ty": 46
+    }
+   ]
+  },
+  "solskaft": {
+   "id": "solskaft",
+   "name": "Solskaft",
+   "tileset": "cave",
+   "rows": [
+    "hhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhh",
+    "hhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+    "hh___________hd_11111__2________hhhh",
+    "hh_;_;_;_;_;_h__11111__2_____d__hhhh",
+    "hh___________h__11111__2________hhhh",
+    "hh______________11111__`________hhhh",
+    "hh_;_;_;_;___h__11111__2________hhhh",
+    "hh___________h__11111__2________hhhh",
+    "hh___________h__11111__2hhhhhhhhhhhh",
+    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+    "hhhhhh8h6hQhhh__11111__2hhhhhhhhhhhh",
+    "hhhhh________h__11111__2__;_;_;_;_hh",
+    "hhhhh________h__11111__2__________hh",
+    "hhhhh___________11111__`__________hh",
+    "hhhhh___________11111__`__________hh",
+    "hhhhh________h__11111__2__________hh",
+    "hhhhh________h__11111__2__;_;_____hh",
+    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+    "hhh777777777hh__11111__2hhhhhhhhhhhh",
+    "hh___________h__11111__2___)))__((_h",
+    "hh______6____h__11111__2___________h",
+    "hh___________h__11111__2_________(_h",
+    "hh_5____________11111__`___________h",
+    "hh______________11111__`___________h",
+    "hh___________h__11111__2__________kh",
+    "hh___________h__11111__2_________k_h",
+    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhh______hh~~~~~~~~hhhhh",
+    "hhhhhhhhhh________________hhhh~hhhhh",
+    "hhhhhhhhhh______________;;hhhh~hhhhh",
+    "hhhhhhhhhh________________hhhh~hhhhh",
+    "hhhhhhhhhh______________;;hhhh~hhhhh",
+    "hhhhhhhhhh________________hhhh~hhhhh",
+    "hhhhhhhhhh________________hhhh~hhhhh",
+    "hhhhhhhhhh________________hhhh~hhhhh",
+    "hhhhhhh{hh________________hhhh~hhhhh",
+    "h_________hhhhhh____hhhhhh____3____h",
+    "h_________hhhhhh____hhhhhh_________h",
+    "h__]______h______________h__~~~~~__h",
+    "h_________h______________h_~~~~~~~_h",
+    "h_________h_''''''''''''_h__~~~~~__<",
+    "h_@@%@@@@_h______________h____~____h",
+    "h_____________________________~____h",
+    "h_________h_''''''''''''_h____~____h",
+    "h_________h______________h____~____h",
+    "hhhhhhhhhhhhhhhhh44hhhhhhhhhhh~hhhhh"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "guanoDeep",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "drownStair",
+    ">": "holeDown",
+    "L": "ladder",
+    "l": "lantern",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "minecart",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    " ": "void",
+    ",": "dirt",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "roofS",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "door",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "web",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bridgeV",
+    "C": "cliff",
+    "A": "water",
+    "M": "mountain",
+    "V": "range",
+    "I": "lamp",
+    "Q": "emptyCut",
+    "N": "niche",
+    "J": "nicheGear",
+    "!": "nicheOpen",
+    "K": "nicheStone",
+    "$": "nicheGearStone",
+    "Z": "bier",
+    "Y": "tombLamp",
+    "z": "dryStair",
+    "j": "sealCut",
+    "i": "ironBars",
+    "p": "puddle",
+    "v": "steps",
+    "1": "sunshaft",
+    "2": "race",
+    "3": "wheel",
+    "4": "vaultIn",
+    "5": "throne",
+    "6": "oathStone",
+    "7": "nameWall",
+    "8": "anvil",
+    "9": "forge",
+    "a": "furnace",
+    "E": "cupel",
+    "%": "scales",
+    "&": "lockCase",
+    "/": "rack",
+    "(": "vat",
+    ")": "smokeRack",
+    "[": "boarded",
+    "]": "ledgerDesk",
+    "{": "tariff",
+    "}": "shaftTop",
+    ";": "cot",
+    "<": "brick",
+    "@": "dcounter",
+    "?": "dtable",
+    "'": "portcullisUp",
+    "`": "footbridge"
+   },
+   "music": "solskaft",
+   "bg": "dwarf",
+   "save": true,
+   "beam": {
+    "x0": 16,
+    "x1": 20,
+    "y0": 0,
+    "y1": 28
+   },
+   "npcs": [
+    {
+     "id": "pyro",
+     "x": 16,
+     "y": 46,
+     "look": "pyro",
+     "dir": "up"
+    },
+    {
+     "id": "ketil",
+     "x": 19,
+     "y": 46,
+     "look": "ketil",
+     "dir": "up"
+    },
+    {
+     "id": "ingrith",
+     "x": 3,
+     "y": 39,
+     "look": "ingrith",
+     "dir": "down",
+     "cond": "flag:clericMet"
+    },
+    {
+     "id": "quartermaster",
+     "x": 6,
+     "y": 42,
+     "look": "dclerk",
+     "dir": "down"
+    },
+    {
+     "id": "ragna",
+     "x": 29,
+     "y": 44,
+     "look": "ragna",
+     "dir": "up"
+    },
+    {
+     "id": "brann",
+     "x": 21,
+     "y": 33,
+     "look": "brann",
+     "dir": "left",
+     "cond": "!flag:escortsOut"
+    },
+    {
+     "id": "hedda",
+     "x": 22,
+     "y": 36,
+     "look": "hedda",
+     "dir": "left",
+     "cond": "!flag:escortsOut"
+    },
+    {
+     "id": "drill1",
+     "x": 11,
+     "y": 33,
+     "look": "dtrooper2",
+     "dir": "right",
+     "idle": true
+    },
+    {
+     "id": "drill2",
+     "x": 13,
+     "y": 33,
+     "look": "dtrooper",
+     "dir": "right",
+     "idle": true
+    },
+    {
+     "id": "drill3",
+     "x": 11,
+     "y": 35,
+     "look": "dtrooper2",
+     "dir": "right",
+     "idle": true
+    },
+    {
+     "id": "drill4",
+     "x": 13,
+     "y": 35,
+     "look": "dtrooper",
+     "dir": "right",
+     "idle": true
+    },
+    {
+     "id": "drillmaster",
+     "x": 16,
+     "y": 34,
+     "look": "dtrooper",
+     "dir": "left"
+    },
+    {
+     "id": "cook",
+     "x": 30,
+     "y": 24,
+     "look": "dcook",
+     "dir": "down",
+     "wander": 1
+    },
+    {
+     "id": "sleeper",
+     "x": 30,
+     "y": 15,
+     "look": "dtrooper2",
+     "dir": "down"
+    },
+    {
+     "id": "shaftwatch",
+     "x": 21,
+     "y": 8,
+     "look": "dtrooper",
+     "dir": "left"
+    },
+    {
+     "id": "yardhand",
+     "x": 19,
+     "y": 31,
+     "look": "dtrooper2",
+     "wander": 2
+    }
+   ],
+   "warps": [
+    {
+     "x": 17,
+     "y": 47,
+     "to": "silverton",
+     "tx": 29,
+     "ty": 6,
+     "dir": "down"
+    },
+    {
+     "x": 18,
+     "y": 47,
+     "to": "silverton",
+     "tx": 30,
+     "ty": 6,
+     "dir": "down"
+    },
+    {
+     "x": 29,
+     "y": 4,
+     "to": "solskaft_deep",
+     "tx": 3,
+     "ty": 11,
+     "dir": "right"
+    },
+    {
+     "x": 14,
+     "y": 3,
+     "to": "burial",
+     "tx": 37,
+     "ty": 3,
+     "dir": "left"
+    }
+   ],
+   "signs": [
+    {
+     "x": 4,
+     "y": 43,
+     "text": "The assay-scales, under a cloth. Nobody has lifted it in seventy years; the dust on it is even.",
+     "src": "handoff-2026-09-26 §4.3 A (the tollhouse)"
+    },
+    {
+     "x": 7,
+     "y": 37,
+     "text": "THE TARIFF. Ingots by the stamp, lead by the pig, litharge by the jar. Charcoal, timber, salt, tallow, rope and bone-ash down. The prices are in a coin with a king's face nobody uses now.",
+     "src": "handoff-2026-09-26 §4.3 (trade goods: up and down; INFERENCE, PROPOSED)"
+    },
+    {
+     "x": 35,
+     "y": 42,
+     "text": "Brick, and a red mark cut across it. The old cut a shaft crew broke into, sixty years ago. The water went bad through here, and then the town burned.",
+     "src": "wiki/deepholm-and-the-edifice.md (the Water Burning: an old dwarven cut feeding a cistern); spec §4.3 A"
+    },
+    {
+     "x": 30,
+     "y": 38,
+     "text": "The stamp-mill wheel. The ore it broke is long gone; it turns because the covenant says the town's fountains must run, and the wheel is what meters them.",
+     "src": "handoff-2026-09-26 §4.3 A (the falls-works)"
+    },
+    {
+     "x": 3,
+     "y": 24,
+     "text": "The high seat of the Silversands. Empty. He stands at the door.",
+     "src": "handoff-2026-09-26 §4.3 B (the clan hall)"
+    },
+    {
+     "x": 8,
+     "y": 22,
+     "text": "The oath-stone of the Silversands. Every one of them put a hand here once. The band of gold is worn bright at hand height.",
+     "src": "handoff-2026-09-26 §4.3 B"
+    },
+    {
+     "x": 3,
+     "y": 20,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 4,
+     "y": 20,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 5,
+     "y": 20,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 6,
+     "y": 20,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 7,
+     "y": 20,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 8,
+     "y": 20,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 9,
+     "y": 20,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 10,
+     "y": 20,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 11,
+     "y": 20,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 6,
+     "y": 11,
+     "text": "The Forge-Father's niche: an anvil, worn to a saddle in the middle.",
+     "src": "wiki/pantheon.md (the Dwarven Triad: Motsognir, the Forge-Father); spec §4.3 B"
+    },
+    {
+     "x": 8,
+     "y": 11,
+     "text": "Rekknar's ledger-stone. Every line on it balances.",
+     "src": "wiki/pantheon.md (Rekknar the Reckoner); spec §4.3 B"
+    },
+    {
+     "x": 10,
+     "y": 11,
+     "text": "A plain cut in the rock with nothing in it. The Dormant's.",
+     "src": "wiki/pantheon.md (Dvalgarda, the vigil); spec §4.3 B (the sect is never named here)"
+    },
+    {
+     "x": 27,
+     "y": 21,
+     "text": "The smokehouse: meat, and nothing else. Food comes down the highway now, not up.",
+     "src": "handoff-2026-09-26 §4.3 B (the kitchens; the economy reversed — INFERENCE, PROPOSED); §12 correction (the dream is on vice row)"
+    },
+    {
+     "x": 32,
+     "y": 21,
+     "text": "The brewhouse. Dwarves.",
+     "src": "handoff-2026-09-26 §4.3 B"
+    },
+    {
+     "x": 3,
+     "y": 4,
+     "text": "Six tiers of bunks up here, and a season's troops fill two of them. Dust on the rest.",
+     "src": "handoff-2026-09-26 §4.3 B (the barracks tiers, most of them dark)"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "pyroMeet",
+     "rect": [
+      12,
+      40,
+      13,
+      2
+     ],
+     "on": "step",
+     "script": "pyroMeet",
+     "cond": "flag:frontDoor & !flag:pyroMet"
+    },
+    {
+     "id": "cot",
+     "rect": [
+      24,
+      31,
+      2,
+      3
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "ketilStop",
+     "rect": [
+      17,
+      46,
+      2,
+      1
+     ],
+     "on": "step",
+     "script": "ketilStop",
+     "cond": "blasphemy>=1"
+    }
+   ]
+  },
+  "solskaft_deep": {
+   "id": "solskaft_deep",
+   "name": "Solskaft — the works",
+   "tileset": "cave",
+   "rows": [
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhh////hhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hh_9________h__a__a__a____h__a________hh",
+    "hh__________h_____________h________&__hh",
+    "hh___8______h__________E__h____?______hh",
+    "hh______??__h_:::_________h___________hh",
+    "hh__________h_:::_________h___________hh",
+    "hh__________h_____________h___________hh",
+    "hhhhhh__hhhhhhhhhhh__hhhhhhhhhhh_hhhhhhh",
+    "hh___________________________________lhh",
+    "hh____________________________________=h",
+    "hhu___________________________________=h",
+    "hh____________________________________=h",
+    "hh___________________________________lhh",
+    "hhhhhhshhhhhhhhh_hhhhhhhhh[hhhhhhhhhhhhh",
+    "hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "guanoDeep",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "drownStair",
+    ">": "holeDown",
+    "L": "ladder",
+    "l": "lantern",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "minecart",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    " ": "void",
+    ",": "dirt",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "roofS",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "door",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "web",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bridgeV",
+    "C": "cliff",
+    "A": "water",
+    "M": "mountain",
+    "V": "range",
+    "I": "lamp",
+    "Q": "emptyCut",
+    "N": "niche",
+    "J": "nicheGear",
+    "!": "nicheOpen",
+    "K": "nicheStone",
+    "$": "nicheGearStone",
+    "Z": "bier",
+    "Y": "tombLamp",
+    "z": "dryStair",
+    "j": "sealCut",
+    "i": "ironBars",
+    "p": "puddle",
+    "v": "steps",
+    "1": "sunshaft",
+    "2": "race",
+    "3": "wheel",
+    "4": "vaultIn",
+    "5": "throne",
+    "6": "oathStone",
+    "7": "nameWall",
+    "8": "anvil",
+    "9": "forge",
+    "a": "furnace",
+    "E": "cupel",
+    "%": "scales",
+    "&": "lockCase",
+    "/": "rack",
+    "(": "vat",
+    ")": "smokeRack",
+    "[": "boarded",
+    "]": "ledgerDesk",
+    "{": "tariff",
+    "}": "shaftTop",
+    ";": "cot",
+    "<": "brick",
+    "@": "dcounter",
+    "?": "dtable",
+    "'": "portcullisUp",
+    "`": "footbridge"
+   },
+   "music": "solskaft",
+   "bg": "dwarf",
+   "save": true,
+   "npcs": [
+    {
+     "id": "smith",
+     "x": 6,
+     "y": 5,
+     "look": "dsmith",
+     "dir": "down"
+    },
+    {
+     "id": "gatewatch",
+     "x": 36,
+     "y": 11,
+     "look": "dtrooper",
+     "dir": "left"
+    },
+    {
+     "id": "smelterhand",
+     "x": 19,
+     "y": 4,
+     "look": "dtrooper2",
+     "dir": "down"
+    }
+   ],
+   "warps": [
+    {
+     "x": 2,
+     "y": 11,
+     "to": "solskaft",
+     "tx": 28,
+     "ty": 4,
+     "dir": "left"
+    }
+   ],
+   "signs": [
+    {
+     "x": 35,
+     "y": 3,
+     "text": "A locked case: the standard weights of the assay, dwarven-true, each in its cut. The key is not here.",
+     "src": "handoff-2026-09-26 §4.3 C (the assay house; sidequest 1)"
+    },
+    {
+     "x": 23,
+     "y": 4,
+     "text": "The cupel-hearth: a shallow bowl of bone-ash. This is where silver is parted from lead. The ash came from the knacker's yard across the river, once.",
+     "src": "handoff-2026-09-26 §4.3 (bone-ash for the cupels; Brennock's yard — INFERENCE, PROPOSED)"
+    },
+    {
+     "x": 18,
+     "y": 2,
+     "text": "The smelters. Cold a long time. The slag-tip beside them has grown a skin of moss.",
+     "src": "handoff-2026-09-26 §4.3 C"
+    },
+    {
+     "x": 31,
+     "y": 4,
+     "text": "The touch-needles, laid out in their order. When the assay here closed, Fountain Street had to learn to weigh.",
+     "src": "handoff-2026-09-26 §4.3 C (the assay is the reason Fountain Street exists — INFERENCE, the seat's)"
+    },
+    {
+     "x": 6,
+     "y": 14,
+     "text": "The mint. A warranted door, and the runes are whole. The king sealed it.",
+     "src": "handoff-2026-09-26 §4.3 C (the mint, sealed by Pyro)"
+    },
+    {
+     "x": 26,
+     "y": 14,
+     "text": "The trade hall. NO SURFACE FOLK PAST THIS DOOR, cut in the lintel. The boards are nailed from this side.",
+     "src": "handoff-2026-09-26 §4.3 C (the trade hall, sealed; boarded from the dwarves' side)"
+    },
+    {
+     "x": 37,
+     "y": 9,
+     "text": "The ledger-lamp rack. Three hooks, three lamps: one for each station down the road.",
+     "src": "handoff-2026-09-26 §4.3 C (the highway's mouth)"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "highwayGate",
+     "rect": [
+      38,
+      10,
+      1,
+      3
+     ],
+     "on": "use",
+     "script": "highwayGate"
+    },
+    {
+     "id": "treasury",
+     "rect": [
+      12,
+      15,
+      9,
+      5
+     ],
+     "on": "step",
+     "script": "treasury",
+     "once": true
     }
    ]
   },
@@ -11107,6 +13422,16 @@
      "tx": 24,
      "ty": 2,
      "dir": "down"
+    },
+    {
+     "x": 8,
+     "y": 21,
+     "to": "burial",
+     "tx": 2,
+     "ty": 3,
+     "dir": "right",
+     "cond": "flag:stairHook & !flag:frontDoor",
+     "sfx": "stairs"
     }
    ],
    "chests": [
@@ -11195,7 +13520,20 @@
       4
      ],
      "on": "use",
-     "script": "stair"
+     "script": "stair",
+     "cond": "!flag:stairHook"
+    },
+    {
+     "id": "dryStair",
+     "rect": [
+      19,
+      20,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "dryStair",
+     "cond": "flag:stairHook & !flag:drySeen"
     }
    ],
    "zones": [
@@ -11207,6 +13545,242 @@
       44,
       19
      ]
+    }
+   ],
+   "flagTiles": [
+    {
+     "x": 12,
+     "y": 20,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 13,
+     "y": 20,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 14,
+     "y": 20,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 15,
+     "y": 20,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 16,
+     "y": 20,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 17,
+     "y": 20,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 18,
+     "y": 20,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 19,
+     "y": 20,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 12,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 13,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 14,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 15,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 16,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 17,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 18,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 19,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 12,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 13,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 14,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 15,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 16,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 17,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 18,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 19,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 12,
+     "y": 23,
+     "tile": "puddle",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 13,
+     "y": 23,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 14,
+     "y": 23,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 15,
+     "y": 23,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 16,
+     "y": 23,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 17,
+     "y": 23,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 18,
+     "y": 23,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 19,
+     "y": 23,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 11,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 11,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 10,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 10,
+     "y": 22,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 9,
+     "y": 21,
+     "tile": "dryStair",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 8,
+     "y": 21,
+     "tile": "sealCut",
+     "cond": "flag:stairHook"
+    },
+    {
+     "x": 8,
+     "y": 21,
+     "tile": "ironBars",
+     "cond": "flag:frontDoor"
     }
    ]
   },

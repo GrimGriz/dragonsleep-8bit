@@ -1,0 +1,232 @@
+{
+"id": "solskaft_deep",
+"name": "Solskaft — the works",
+"tileset": "cave",
+"rows": [
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhhhhhh////hhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hh_9________h__a__a__a____h__a________hh",
+"hh__________h_____________h________&__hh",
+"hh___8______h__________E__h____?______hh",
+"hh______??__h_:::_________h___________hh",
+"hh__________h_:::_________h___________hh",
+"hh__________h_____________h___________hh",
+"hhhhhh__hhhhhhhhhhh__hhhhhhhhhhh_hhhhhhh",
+"hh___________________________________lhh",
+"hh____________________________________=h",
+"hhu___________________________________=h",
+"hh____________________________________=h",
+"hh___________________________________lhh",
+"hhhhhhshhhhhhhhh_hhhhhhhhh[hhhhhhhhhhhhh",
+"hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "ladder",
+"l": "lantern",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "dirt",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "roofS",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "web",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bridgeV",
+"C": "cliff",
+"A": "water",
+"M": "mountain",
+"V": "range",
+"I": "lamp",
+"Q": "emptyCut",
+"N": "niche",
+"J": "nicheGear",
+"!": "nicheOpen",
+"K": "nicheStone",
+"$": "nicheGearStone",
+"Z": "bier",
+"Y": "tombLamp",
+"z": "dryStair",
+"j": "sealCut",
+"i": "ironBars",
+"p": "puddle",
+"v": "steps",
+"1": "sunshaft",
+"2": "race",
+"3": "wheel",
+"4": "vaultIn",
+"5": "throne",
+"6": "oathStone",
+"7": "nameWall",
+"8": "anvil",
+"9": "forge",
+"a": "furnace",
+"E": "cupel",
+"%": "scales",
+"&": "lockCase",
+"/": "rack",
+"(": "vat",
+")": "smokeRack",
+"[": "boarded",
+"]": "ledgerDesk",
+"{": "tariff",
+"}": "shaftTop",
+";": "cot",
+"<": "brick",
+"@": "dcounter",
+"?": "dtable",
+"'": "portcullisUp",
+"`": "footbridge"
+},
+"music": "solskaft",
+"bg": "dwarf",
+"save": true,
+"npcs": [
+{
+"id": "smith",
+"x": 6,
+"y": 5,
+"look": "dsmith",
+"dir": "down"
+},
+{
+"id": "gatewatch",
+"x": 36,
+"y": 11,
+"look": "dtrooper",
+"dir": "left"
+},
+{
+"id": "smelterhand",
+"x": 19,
+"y": 4,
+"look": "dtrooper2",
+"dir": "down"
+}
+],
+"warps": [
+{
+"x": 2,
+"y": 11,
+"to": "solskaft",
+"tx": 28,
+"ty": 4,
+"dir": "left"
+}
+],
+"signs": [
+{
+"x": 35,
+"y": 3,
+"text": "A locked case: the standard weights of the assay, dwarven-true, each in its cut. The key is not here.",
+"src": "handoff-2026-09-26 §4.3 C (the assay house; sidequest 1)"
+},
+{
+"x": 23,
+"y": 4,
+"text": "The cupel-hearth: a shallow bowl of bone-ash. This is where silver is parted from lead. The ash came from the knacker's yard across the river, once.",
+"src": "handoff-2026-09-26 §4.3 (bone-ash for the cupels; Brennock's yard — INFERENCE, PROPOSED)"
+},
+{
+"x": 18,
+"y": 2,
+"text": "The smelters. Cold a long time. The slag-tip beside them has grown a skin of moss.",
+"src": "handoff-2026-09-26 §4.3 C"
+},
+{
+"x": 31,
+"y": 4,
+"text": "The touch-needles, laid out in their order. When the assay here closed, Fountain Street had to learn to weigh.",
+"src": "handoff-2026-09-26 §4.3 C (the assay is the reason Fountain Street exists — INFERENCE, the seat's)"
+},
+{
+"x": 6,
+"y": 14,
+"text": "The mint. A warranted door, and the runes are whole. The king sealed it.",
+"src": "handoff-2026-09-26 §4.3 C (the mint, sealed by Pyro)"
+},
+{
+"x": 26,
+"y": 14,
+"text": "The trade hall. NO SURFACE FOLK PAST THIS DOOR, cut in the lintel. The boards are nailed from this side.",
+"src": "handoff-2026-09-26 §4.3 C (the trade hall, sealed; boarded from the dwarves' side)"
+},
+{
+"x": 37,
+"y": 9,
+"text": "The ledger-lamp rack. Three hooks, three lamps: one for each station down the road.",
+"src": "handoff-2026-09-26 §4.3 C (the highway's mouth)"
+}
+],
+"triggers": [
+{
+"id": "highwayGate",
+"rect": [
+38,
+10,
+1,
+3
+],
+"on": "use",
+"script": "highwayGate"
+},
+{
+"id": "treasury",
+"rect": [
+12,
+15,
+9,
+5
+],
+"on": "step",
+"script": "treasury",
+"once": true
+}
+]
+}

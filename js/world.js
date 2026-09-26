@@ -90,10 +90,14 @@
     return (mapCache[id] = m);
   };
   // flag-driven tiles: the map as the save remembers it (open or shut, whichever the flags say)
-  function applyFlagTiles(m) {
+  function applyFlagTiles(m) { // per cell, the last entry whose condition holds wins; none holding = the tile as drawn
+    var want = {};
     (m.src.flagTiles || []).forEach(function (ft) {
-      m.setTile(ft.x, ft.y, DS.cond(ft.cond) ? ft.tile : m.orig[ft.y * m.w + ft.x]);
+      var k = ft.x + ',' + ft.y;
+      if (!(k in want)) want[k] = { x: ft.x, y: ft.y, tile: m.orig[ft.y * m.w + ft.x] };
+      if (DS.cond(ft.cond)) want[k].tile = ft.tile;
     });
+    Object.keys(want).forEach(function (k) { var c = want[k]; m.setTile(c.x, c.y, c.tile); });
   }
   DS.applyFlagTiles = applyFlagTiles;
   function neighbours(m, x, y, id) {
@@ -408,6 +412,7 @@
         if (n.def.lantern) { ctx.fillStyle = (DS.frame >> 3) & 1 ? '#F8D878' : '#FCA044'; ctx.fillRect(n.px - cx + 13, n.py - cy + 6, 3, 4); }
       }
     });
+    if (m.src.beam) this.drawBeam(ctx, cx, cy);
     if (m.src.dark) this.drawDark(ctx, cx, cy);
     var tint = this.tint || m.src.tint; // scripts can drop night over a map (the wagon night)
     if (tint) { ctx.globalAlpha = tint[1]; ctx.fillStyle = tint[0]; ctx.fillRect(0, 0, 256, 240); ctx.globalAlpha = 1; }
@@ -419,11 +424,56 @@
       DS.textCenter(ctx, m.name, 128, 13, '#F8D878');
     }
   };
+  // the dark: a sheet of shadow with holes cut in it, one round the party (a lamp's reach) and one for every light the map keeps
+  var darkBuf = null;
   Field.prototype.drawDark = function (ctx, cx, cy) {
-    var px = this.px - cx + 8, py = this.py - cy + 8, r = 72;
-    var g = ctx.createRadialGradient(px, py, r * 0.55, px, py, r * 1.35);
-    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(0,0,0,0.78)');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, 256, 240);
+    if (!darkBuf) { darkBuf = document.createElement('canvas'); darkBuf.width = 256; darkBuf.height = 240; }
+    var d = darkBuf.getContext('2d'), m = this.map, lights = [];
+    lights.push({ x: this.px - cx + 8, y: this.py - cy + 8, r: this.lightR || m.src.lightR || 72 });
+    (m.src.lights || []).concat(this.lights || []).forEach(function (l) {
+      if (l.cond && !DS.cond(l.cond)) return;
+      var lx = (l.x != null ? l.x : l[0]) * 16 + 8 - cx, ly = (l.y != null ? l.y : l[1]) * 16 + 8 - cy, lr = l.r || l[2] || 40;
+      if (lx < -lr * 1.4 || ly < -lr * 1.4 || lx > 256 + lr * 1.4 || ly > 240 + lr * 1.4) return;
+      lights.push({ x: lx, y: ly, r: lr * (0.96 + 0.04 * Math.sin(DS.frame / 7 + lx * 0.13)), warm: l.warm !== false, col: l.col });
+    });
+    d.globalCompositeOperation = 'source-over'; d.clearRect(0, 0, 256, 240);
+    d.fillStyle = 'rgba(0,0,0,' + (m.src.darkness || 0.78) + ')'; d.fillRect(0, 0, 256, 240);
+    d.globalCompositeOperation = 'destination-out';
+    lights.forEach(function (l) {
+      var g = d.createRadialGradient(l.x, l.y, l.r * 0.55, l.x, l.y, l.r * 1.35);
+      g.addColorStop(0, 'rgba(0,0,0,1)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+      d.fillStyle = g; d.fillRect(l.x - l.r * 1.4, l.y - l.r * 1.4, l.r * 2.8, l.r * 2.8);
+    });
+    ctx.drawImage(darkBuf, 0, 0);
+    // a kept flame warms what it lights
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    lights.slice(1).forEach(function (l) {
+      if (!l.warm) return;
+      var g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.r);
+      g.addColorStop(0, l.col || 'rgba(255,170,80,0.16)'); g.addColorStop(1, 'rgba(255,170,80,0)');
+      ctx.fillStyle = g; ctx.fillRect(l.x - l.r, l.y - l.r, l.r * 2, l.r * 2);
+    });
+    ctx.restore();
+  };
+  // noon down a shaft: a soft column of light over the floor, dust turning in it (Solskaft's Sunshaft)
+  Field.prototype.drawBeam = function (ctx, cx, cy) {
+    var b = this.map.src.beam, x0 = b.x0 * 16 - cx, x1 = (b.x1 + 1) * 16 - cx, y0 = b.y0 * 16 - cy, y1 = (b.y1 + 1) * 16 - cy;
+    if (x1 < 0 || x0 > 256 || y1 < 0 || y0 > 240) return;
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    var w = x1 - x0, g = ctx.createLinearGradient(x0 - 10, 0, x1 + 10, 0);
+    g.addColorStop(0, 'rgba(255,236,180,0)'); g.addColorStop(0.3, 'rgba(255,236,180,0.10)'); g.addColorStop(0.5, 'rgba(255,240,200,0.16)');
+    g.addColorStop(0.7, 'rgba(255,236,180,0.10)'); g.addColorStop(1, 'rgba(255,236,180,0)');
+    ctx.fillStyle = g; ctx.fillRect(x0 - 10, Math.max(0, y0), w + 20, Math.min(240, y1) - Math.max(0, y0));
+    var v = ctx.createLinearGradient(0, y0, 0, y1); // brighter toward the top, where the sky is
+    v.addColorStop(0, 'rgba(255,250,230,0.14)'); v.addColorStop(1, 'rgba(255,250,230,0)');
+    ctx.fillStyle = v; ctx.fillRect(x0, Math.max(0, y0), w, Math.min(240, y1) - Math.max(0, y0));
+    for (var i = 0; i < 26; i++) { // the motes: each drifts down and sideways on its own slow sine
+      var hh = y1 - y0, my = y0 + ((i * 97 + DS.frame * (0.25 + (i % 5) * 0.06)) % hh), mx = x0 + ((i * 53) % w) + Math.sin(DS.frame / 40 + i) * 5;
+      if (my < -2 || my > 242) continue;
+      ctx.fillStyle = i % 3 ? 'rgba(255,245,210,0.55)' : 'rgba(255,255,255,0.8)';
+      ctx.fillRect(Math.round(mx), Math.round(my), 1, 1);
+    }
+    ctx.restore();
   };
   // ------------------------------------------------------------------ the pinned quest
   // Pick a quest in the JOURNAL and a marker bobs over whoever (or whatever) it wants next.

@@ -731,6 +731,200 @@
   };
   P.dock = function (p, r, f) { waterBase(p, r, f, false); p.rect(4, 0, 8, 16, C.wood); for (var y = 0; y < 16; y += 3) p.rect(4, y, 8, 1, C.woodD); };
 
+  // --- the dwarven expansion: the Burial, Solskaft, the works (2026-09-26 spec)
+  var DW = { floor: '#5a5a66', grid: '#44444e', hi: '#6e6e7a', face: '#44444e', brick: '#30303a', top: '#26262e', dark: '#16161c', shroud: '#b8b4a8', shroudD: '#8a867c', rune: '#9a9aa8' };
+  function dwFace(p) { P.dwarfWall(p, null, 0, 0, { downFloor: true }); }
+  function dwFloor(p) { P.dwarfFloor(p); }
+  function nicheBase(p, v) { // a slot cut in the dressed face, a shrouded body laid in it, a line of carving under
+    dwFace(p);
+    p.rect(1, 3, 14, 7, DW.dark); p.rect(1, 3, 14, 1, DW.brick);
+    p.ellipse(8, 7.5, 5.5, 1.8, DW.shroudD); p.ellipse(7.5, 7, 5, 1.4, DW.shroud);
+    p.ellipse(3.5, 7, 1.6, 1.4, DW.shroud); p.line(5, 6, 12, 6, '#d0ccc0');
+    for (var x = 2; x < 14; x += 2) p.set(x, 12, (x + v) % 3 ? DW.rune : DW.brick);
+    p.rect(1, 10, 14, 1, DW.hi);
+  }
+  P.niche = function (p, r, f, v) { nicheBase(p, v); if (v === 1) p.set(9, 8, '#6a5a3a'); };
+  P.nicheGear = function (p, r, f, v) { // a wiped-out family's gear, still on the bones: a boss, a rim, mail
+    nicheBase(p, v);
+    p.ellipse(9, 6.5, 2.2, 2, '#8a8a98'); p.ring(9, 6.5, 2.2, 2, '#d8d8e8'); p.set(9, 6, f & 1 ? '#F8F8F8' : '#F8D878');
+    p.rect(4, 8, 3, 1, '#9a9aa8');
+  };
+  P.nicheOpen = function (p, r) { // pried: the slab off, chisel scars, the bones moved
+    dwFace(p);
+    p.rect(1, 3, 14, 7, DW.dark); p.line(1, 3, 6, 9, DW.brick); p.line(9, 3, 14, 8, DW.brick);
+    p.line(3, 8, 7, 7, '#e8e0d0'); p.set(10, 8, '#e8e0d0'); p.ellipse(12, 7, 1.5, 1.2, '#e8e0d0');
+    p.rect(1, 10, 14, 1, DW.hi); p.set(4, 12, '#c8c8d8'); p.set(11, 13, '#c8c8d8'); p.set(7, 11, '#c8c8d8');
+  };
+  P.nicheStone = function (p, r, f, v) { // a patron's niche: deeper, a carved lintel
+    dwFace(p);
+    p.rect(0, 1, 16, 2, DW.hi); p.rect(0, 2, 16, 1, DW.brick); for (var x = 1; x < 16; x += 3) p.set(x, 1, DW.rune);
+    p.rect(1, 4, 14, 8, DW.dark);
+    p.ellipse(8, 9, 6, 2, DW.shroudD); p.ellipse(7.5, 8.5, 5.5, 1.6, DW.shroud); p.ellipse(3, 8.5, 1.8, 1.5, DW.shroud);
+    p.rect(1, 12, 14, 1, DW.hi); p.rect(2, 14, 12, 1, DW.rune);
+  };
+  P.nicheGearStone = function (p, r, f, v) { P.nicheStone(p, r, f, v); p.ellipse(9, 8, 2.4, 2.2, '#8a8a98'); p.ring(9, 8, 2.4, 2.2, '#e8e8f4'); p.set(9, 7, f & 1 ? '#F8F8F8' : '#F8D878'); };
+  P.bier = function (p) { // the king's chamber: a cut slab on a plinth, and nobody on it
+    dwFloor(p);
+    p.rect(1, 5, 14, 9, '#3a3a44'); p.rect(2, 3, 12, 8, '#8a8a96'); p.rect(2, 3, 12, 1, '#b0b0bc'); p.rect(3, 4, 10, 6, '#7a7a86');
+    p.frame(3, 4, 10, 6, '#6a6a76'); p.rect(1, 13, 14, 1, DW.brick);
+  };
+  P.tombLamp = function (p, r, f) {
+    dwFloor(p);
+    p.rect(7, 6, 2, 9, '#2a2a30'); p.rect(5, 14, 6, 1, '#2a2a30');
+    p.rect(5, 2, 6, 5, '#1a1a20'); p.rect(6, 3, 4, 3, f & 1 ? '#F8D878' : '#FCA044'); p.set(8, 1, '#2a2a30');
+  };
+  P.dryStair = function (p, r) { // the water stair, pumped dry: steps still dark with it, silt in the corners
+    base(p, '#3a3a46');
+    for (var y = 0; y < 16; y += 4) { p.rect(0, y, 16, 3, '#56566a'); p.rect(0, y + 3, 16, 1, '#23232c'); p.rect(0, y, 16, 1, '#6a6a80'); }
+    p.speckle(0, 0, 16, 16, '#2a3a48', 0.12, r); p.rect(0, 14, 3, 2, '#6a6a5a'); p.rect(13, 6, 3, 1, '#6a6a5a');
+  };
+  P.sealCut = function (p, r) { // the warranted door, cut through with a chisel by a man who thought it was carpentry
+    base(p, '#30303a');
+    p.rect(3, 1, 10, 15, DW.dark); p.rect(1, 1, 2, 15, '#5a5a66'); p.rect(13, 1, 2, 15, '#5a5a66');
+    p.line(1, 5, 3, 7, N(0x21)); p.set(13, 9, N(0x21)); p.set(14, 3, N(0x21));
+    p.line(3, 2, 5, 4, '#9a9aa2'); p.line(11, 12, 13, 14, '#9a9aa2');
+  };
+  P.ironBars = function (p) { // the garrison's iron across a cut door: a lock instead of a promise
+    P.sealCut(p, DS.mulberry32(3));
+    for (var x = 3; x < 14; x += 3) p.rect(x, 1, 1, 15, '#8a8a92');
+    p.rect(2, 4, 12, 2, '#6a6a72'); p.rect(2, 11, 12, 2, '#6a6a72'); p.rect(7, 7, 3, 3, '#3a3a42'); p.set(8, 8, '#c0a040');
+  };
+  P.puddle = function (p, r, f) { // the keeper: a hand's depth of water that can't leave itself
+    dwFloor(p);
+    p.ellipse(8, 9, 7, 4.5, '#123040'); p.ellipse(8, 9, 5.5, 3.2, '#1a4050');
+    p.rect(3 + (f * 2) % 8, 8, 3, 1, '#2a6a80'); p.set(10 - (f % 3), 11, '#3a8aa0');
+    if (f === 2) { p.set(7, 7, '#a4e4fc'); p.set(8, 6, '#a4e4fc'); }
+  };
+  P.steps = function (p) { base(p, '#4a4a56'); for (var y = 0; y < 16; y += 4) { p.rect(0, y, 16, 3, '#6e6e7a'); p.rect(0, y, 16, 1, '#8a8a96'); p.rect(0, y + 3, 16, 1, '#2a2a32'); } };
+  P.sunshaft = function (p, r, f) { // noon down the old main shaft: the floor there warm and pale; the beam itself is drawn over it
+    base(p, '#86847a');
+    for (var y = 0; y < 16; y += 8) for (var x = 0; x < 16; x += 8) { p.frame(x, y, 8, 8, '#727066'); p.set(x + 1, y + 1, '#a4a194'); }
+    p.set((f * 5 + 3) % 16, (f * 7 + 2) % 16, '#c8c2a8');
+  };
+  P.race = function (p, r, f) { // the race off the falls, down the shaft wall: silvered with spray, and with the silver in the stone
+    base(p, '#2a2a34'); p.rect(2, 0, 12, 16, '#4a6a88'); p.rect(3, 0, 10, 16, '#6a8aa8');
+    for (var i = 0; i < 9; i++) { var x = 3 + (i * 5) % 10, y = (i * 7 + f * 4) % 16; p.rect(x, y, 1, 3, '#dce8f4'); }
+    p.rect(0, 0, 2, 16, '#44444e'); p.rect(14, 0, 2, 16, '#44444e'); p.set(0, (f * 5) % 16, '#c8c8d8'); p.set(15, (f * 5 + 8) % 16, '#c8c8d8');
+  };
+  P.footbridge = function (p, r, f) { // a dressed slab across the race, an iron rail either side
+    P.race(p, r, f);
+    p.rect(0, 2, 16, 12, '#6e6e7a'); p.rect(0, 2, 16, 1, '#8a8a96'); p.rect(0, 13, 16, 1, '#30303a');
+    for (var x = 0; x < 16; x += 8) p.frame(x, 3, 8, 10, '#5a5a66');
+    p.rect(0, 1, 16, 1, '#2a2a30'); p.rect(0, 14, 16, 1, '#2a2a30');
+  };
+  P.wheel = function (p, r, f) { // the stamp-mill wheel: it still turns, because the covenant says the fountains run
+    base(p, N(0x12)); p.rect(0, 12, 16, 4, N(0x21));
+    p.ring(8, 8, 6.5, 6.5, C.woodD); p.ring(8, 8, 5.5, 5.5, C.wood);
+    for (var k = 0; k < 4; k++) { var a = (k / 4 + f / 16) * Math.PI * 2; p.line(8, 8, 8 + Math.cos(a) * 6, 8 + Math.sin(a) * 6, C.woodD); p.rect(Math.round(8 + Math.cos(a) * 6.5) - 1, Math.round(8 + Math.sin(a) * 6.5) - 1, 2, 2, C.woodL); }
+    p.rect(7, 7, 2, 2, '#2a2a30');
+  };
+  P.vaultIn = function (p) { // the vault door, from inside: swung back on its pin
+    dwFloor(p); p.rect(0, 0, 16, 3, '#26262e');
+    p.ellipse(3, 8, 3, 7, '#6a6a76'); p.ellipse(3, 8, 2, 6, '#8a8a96'); p.set(3, 8, '#c0a040');
+    p.rect(6, 0, 10, 3, '#9a9a88'); p.dither(6, 3, 10, 4, '#9a9a88', 0);
+  };
+  P.throne = function (p) { // the high seat of the Silversands: empty most days; he stands at the door
+    dwFloor(p);
+    p.rect(3, 1, 10, 9, '#3a3a44'); p.rect(4, 2, 8, 7, '#6e6e7a'); p.rect(2, 8, 12, 5, '#5a5a66'); p.rect(4, 9, 8, 3, '#7a7a86');
+    p.rect(3, 12, 10, 2, '#30303a'); p.set(8, 3, '#c0a040'); p.set(7, 4, '#c0a040'); p.set(9, 4, '#c0a040');
+  };
+  P.oathStone = function (p) {
+    dwFloor(p); p.ellipse(8, 14, 6, 1.5, DW.brick);
+    p.rect(5, 1, 6, 13, '#6a6a76'); p.rect(5, 1, 2, 13, '#8a8a96'); p.rect(5, 6, 6, 2, '#44444e');
+    for (var y = 2; y < 13; y += 3) p.set(9, y, '#c0a040');
+  };
+  P.nameWall = function (p, r, f, v) { // the hero-wall: the highway's dead, names in rows
+    dwFace(p);
+    for (var y = 2; y < 14; y += 3) for (var x = 1; x < 15; x += 1) if ((x * 7 + y * 3 + v) % 5 < 3) p.set(x, y, DW.rune);
+    if (v === 2) p.rect(9, 11, 6, 1, '#26262e');
+  };
+  P.anvil = function (p) {
+    dwFloor(p);
+    p.rect(2, 5, 12, 3, '#3a3a44'); p.rect(1, 5, 3, 2, '#3a3a44'); p.rect(2, 5, 12, 1, '#8a8a96');
+    p.rect(6, 8, 4, 4, '#2a2a30'); p.rect(4, 12, 8, 2, '#2a2a30');
+  };
+  P.forge = function (p, r, f) {
+    base(p, '#44444e'); p.frame(0, 0, 16, 16, '#26262e');
+    p.rect(2, 5, 12, 10, '#16161c'); p.rect(3 + (f & 1), 10, 10, 4, N(0x16)); p.rect(5, 8 - (f & 1), 6, 4, N(0x27)); p.rect(7, 11, 2, 2, N(0x38));
+    p.rect(1, 2, 14, 2, '#6e6e7a');
+  };
+  P.furnace = function (p) { // the smelters: cold
+    base(p, '#3a3a44'); p.rect(2, 0, 12, 16, '#4a4a56'); p.rect(2, 0, 2, 16, '#5a5a66');
+    p.ellipse(8, 11, 4, 4, '#16161c'); p.rect(4, 11, 8, 4, '#16161c'); p.set(6, 13, '#4a3a2a'); p.set(9, 14, '#4a3a2a');
+    p.rect(1, 15, 14, 1, '#26262e');
+  };
+  P.cupel = function (p) { // the cupel hearth: bone-ash, where silver is parted from lead
+    dwFloor(p);
+    p.ellipse(8, 9, 7, 4.5, '#3a3a44'); p.ellipse(8, 8.5, 5.5, 3.2, '#d8d0c0'); p.ellipse(8, 8.5, 3, 1.6, '#b8b0a0'); p.set(8, 8, '#e8e8f0');
+  };
+  P.dcounter = function (p) { // a dressed-stone counter on a stone floor
+    dwFloor(p);
+    p.rect(0, 2, 16, 10, '#4a4a56'); p.rect(0, 2, 16, 3, '#7a7a86'); p.rect(0, 5, 16, 1, '#26262e'); p.rect(0, 11, 16, 1, '#30303a');
+  };
+  P.dtable = function (p) { // a sorting table: a stone top on two legs
+    dwFloor(p);
+    p.rect(1, 4, 14, 6, '#6e6e7a'); p.rect(1, 4, 14, 1, '#8a8a96'); p.rect(2, 10, 2, 4, '#30303a'); p.rect(12, 10, 2, 4, '#30303a');
+    p.set(5, 6, '#9a9aa8'); p.set(9, 7, '#c0a040'); p.set(11, 6, '#9a9aa8');
+  };
+  P.scales = function (p, r) { // the assay-scales, under a cloth, on the trade-counter
+    P.dcounter(p);
+    p.poly([[3, 2], [13, 2], [14, 10], [2, 10]], '#9a9080'); p.line(3, 2, 13, 2, '#b8ae9c'); p.line(8, 0, 8, 2, '#c0a040');
+    p.set(5, 9, '#7a7060'); p.set(11, 9, '#7a7060');
+  };
+  P.lockCase = function (p) { // the standard weights, locked
+    dwFloor(p);
+    p.rect(2, 3, 12, 10, '#3a3a44'); p.rect(3, 4, 10, 8, '#5a5a66'); p.rect(3, 4, 10, 1, '#7a7a86');
+    [[5, 7], [8, 7], [11, 7]].forEach(function (w, i) { p.rect(w[0] - 1, w[1] + 2 - i, 2, 2 + i, '#c0a040'); });
+    p.rect(7, 11, 2, 2, '#16161c'); p.set(7, 11, '#c0a040');
+  };
+  P.rack = function (p) {
+    dwFace(p);
+    p.rect(1, 4, 14, 1, C.woodD); p.rect(1, 11, 14, 1, C.woodD);
+    [3, 7, 11].forEach(function (x, i) { p.rect(x, 2, 1, 12, C.wood); if (i === 1) p.rect(x - 2, 2, 5, 3, '#8a8a96'); else p.poly([[x + 1, 3], [x + 3, 2], [x + 3, 7], [x + 1, 6]], '#a8a8b4'); });
+  };
+  P.vat = function (p) {
+    dwFloor(p); p.ellipse(8, 13, 7, 2, DW.brick);
+    p.rect(2, 3, 12, 11, C.woodD); p.ellipse(8, 3, 6, 2, C.wood); p.ellipse(8, 3, 4.5, 1.2, '#6a4a1a');
+    p.rect(2, 6, 12, 1, '#6a6a72'); p.rect(2, 11, 12, 1, '#6a6a72');
+  };
+  P.smokeRack = function (p) {
+    dwFloor(p);
+    p.rect(1, 2, 14, 1, C.woodD); p.rect(1, 2, 1, 13, C.woodD); p.rect(14, 2, 1, 13, C.woodD);
+    [[4, 3], [8, 3], [12, 3]].forEach(function (m) { p.ellipse(m[0], m[1] + 5, 1.6, 4, '#7a3a1a'); p.ellipse(m[0] - 0.5, m[1] + 4, 1, 2.5, '#a05a2a'); p.set(m[0], m[1], C.woodL); });
+  };
+  P.boarded = function (p) { // the trade hall: boarded, from the dwarves' side
+    base(p, '#30303a'); p.rect(2, 1, 12, 15, '#1a1a20');
+    [[1, 4], [1, 9], [1, 13]].forEach(function (b, i) { p.line(b[0], b[1] + (i & 1), 14, b[1] - 1 + (i & 1) * 2, C.wood, 2); });
+    p.set(3, 4, '#9a9aa2'); p.set(12, 9, '#9a9aa2'); p.set(7, 13, '#9a9aa2');
+  };
+  P.ledgerDesk = function (p) {
+    dwFloor(p);
+    p.rect(1, 4, 14, 9, C.woodD); p.rect(1, 4, 14, 2, C.wood);
+    p.rect(3, 5, 10, 5, '#e8dcc0'); p.rect(8, 5, 1, 5, '#b8a888'); for (var y = 6; y < 10; y += 1) { p.rect(4, y, 3, 1, (y & 1) ? '#8a7a60' : '#e8dcc0'); p.rect(9, y, 3, 1, (y & 1) ? '#8a7a60' : '#e8dcc0'); }
+    p.set(13, 5, '#101018'); p.set(13, 4, '#6a4a2a');
+  };
+  P.tariff = function (p) { // the tariff board: prices in a dead currency
+    dwFace(p);
+    p.rect(1, 2, 14, 11, C.woodD); p.rect(2, 3, 12, 9, '#2a2a22');
+    for (var y = 4; y < 11; y += 2) { p.rect(3, y, 5, 1, '#d8d0b8'); p.rect(10, y, 3, 1, '#c0a040'); }
+  };
+  P.shaftTop = function (p, r, f) { // the top of the old main shaft: the mountain's face, and the sky
+    base(p, '#8ab8e8'); p.rect(0, 10, 16, 6, '#b8d8f0'); p.dither(0, 8, 16, 4, '#b8d8f0', 0);
+    p.rect(0, 0, 2, 16, '#6a6a76'); p.rect(14, 0, 2, 16, '#6a6a76'); p.set(6 + (f & 1), 4, '#F8F8F8'); p.set(10, 6, '#F8F8F8');
+  };
+  P.cot = function (p) { dwFloor(p); p.rect(2, 2, 12, 12, C.woodD); p.rect(3, 3, 10, 3, '#b8b4a8'); p.rect(3, 6, 10, 7, '#6a6a4a'); p.rect(3, 6, 10, 1, '#8a8a5a'); };
+  P.brick = function (p) { // the old dwarven cut the shaft crew broke into: bricked, marked
+    dwFace(p);
+    for (var y = 3; y < 13; y += 3) for (var x = (y % 2) * 2; x < 16; x += 4) p.rect(x, y, 3, 2, '#7a5a4a');
+    p.line(4, 4, 12, 12, '#c83030'); p.line(12, 4, 4, 12, '#c83030');
+  };
+  P.portcullisUp = function (p) { // raised into the old ore-chute: a dark slot overhead and the iron teeth just showing
+    dwFloor(p);
+    p.rect(0, 6, 16, 4, '#1a1a20'); p.rect(0, 6, 16, 1, '#30303a');
+    for (var x = 1; x < 16; x += 3) { p.rect(x, 8, 1, 3, '#7a7a82'); p.set(x, 11, '#9a9aa2'); }
+  };
+  P.emptyCut = function (p) { dwFace(p); p.rect(3, 3, 10, 9, DW.dark); p.rect(3, 3, 10, 1, DW.brick); p.rect(3, 12, 10, 1, DW.hi); }; // the Dormant's: nothing in it
+
   // ------------------------------------------------------------------ tile table
   // pass: walkable. anim: frames. talk: can talk across (counters). auto: neighbour-aware.
   var TILES = DS.TILES = {
@@ -752,7 +946,15 @@
     holeDown: { pass: 1 }, lantern: { pass: 0, anim: 2 }, cradle: { pass: 0 }, gate: { pass: 0 }, bones: { pass: 1 }, stalag: { pass: 0 }, fungus: { pass: 1, anim: 2 },
     gravel: { pass: 1 }, minecart: { pass: 0 }, crateCave: { pass: 0, vars: 2 }, glowmoss: { pass: 1, anim: 2 }, chimney: { pass: 0 }, flatstone: { pass: 1 },
     reeds: { pass: 1 }, dock: { pass: 1, anim: 4 }, grassT: { pass: 1 },
-    gateOpen: { pass: 1 }, noticeboard: { pass: 0 }, cocoon: { pass: 0, anim: 2 }
+    gateOpen: { pass: 1 }, noticeboard: { pass: 0 }, cocoon: { pass: 0, anim: 2 },
+    // the dwarven expansion
+    niche: { pass: 0, vars: 3 }, nicheGear: { pass: 0, anim: 2, vars: 1 }, nicheOpen: { pass: 0, vars: 1 }, nicheStone: { pass: 0, vars: 1 }, nicheGearStone: { pass: 0, anim: 2, vars: 1 },
+    bier: { pass: 0, vars: 1 }, tombLamp: { pass: 0, anim: 2, vars: 1 }, dryStair: { pass: 1, vars: 2 }, sealCut: { pass: 1, vars: 1 }, ironBars: { pass: 0, vars: 1 },
+    puddle: { pass: 0, anim: 4, vars: 1 }, steps: { pass: 1, vars: 1 }, sunshaft: { pass: 1, anim: 2, vars: 1 }, race: { pass: 0, anim: 4, vars: 1 }, footbridge: { pass: 1, anim: 4, vars: 1 }, wheel: { pass: 0, anim: 4, vars: 1 },
+    vaultIn: { pass: 1, vars: 1 }, throne: { pass: 0, vars: 1 }, oathStone: { pass: 0, vars: 1 }, nameWall: { pass: 0, vars: 3 }, anvil: { pass: 0, vars: 1 },
+    forge: { pass: 0, anim: 2, vars: 1 }, furnace: { pass: 0, vars: 1 }, cupel: { pass: 0, vars: 1 }, scales: { pass: 0, talk: 1, vars: 1 }, dcounter: { pass: 0, talk: 1, vars: 1 }, dtable: { pass: 0, vars: 1 }, lockCase: { pass: 0, vars: 1 },
+    rack: { pass: 0, vars: 1 }, vat: { pass: 0, vars: 1 }, smokeRack: { pass: 0, vars: 1 }, boarded: { pass: 0, vars: 1 }, ledgerDesk: { pass: 0, talk: 1, vars: 1 },
+    tariff: { pass: 0, vars: 1 }, emptyCut: { pass: 0, vars: 1 }, portcullisUp: { pass: 1, vars: 1 }, shaftTop: { pass: 0, anim: 2, vars: 1 }, cot: { pass: 0, vars: 1 }, brick: { pass: 0, vars: 1 }
   };
   var tileCache = {};
   // variant v, anim frame f, neighbour-key nk ('' when not auto)

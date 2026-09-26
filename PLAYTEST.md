@@ -1,6 +1,6 @@
 # DRAGONSLEEP — playtest checklist
 
-Live: https://grimgriz.github.io/dragonsleep-8bit/ · Z/Enter = use · X/Esc = menu/back · arrows/WASD = walk
+Live: https://grimgriz.github.io/dragonsleep-8bit/ · E/Z/Enter = use · X/Esc = menu/back · arrows/WASD = walk
 
 Tested so far only by bots (49 battles, every scripted scene) and a map-reachability checker. **Nobody has played it start to finish.** Mark anything that feels wrong, too hard, too easy, or unclear.
 
@@ -137,6 +137,34 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] They flee: the chase first (the road dark, no doors or map edges until it ends), then back in the yard at night with a closing line, then the wagon, the strongbox, the children (+1 renown), Doran's drive, and the morning inside. The same whether you catch them on the road, at the fork, or they reach the Tower
 - [ ] After Elsbeth says "go and see Winters": at his counter the lead says she sent you; under level 4 he says he's been watching the challenges make you greater, but you are not yet ready
 - [ ] In Silverton, Vera the secondhand dealer says Androit pays for a real book; Kat's book to Androit pays as before
+
+## 16. Round five: the fold from the 09-25 round-four ear-file, and your 09-26 asks
+
+- [ ] Winters: bring an errand back and he closes it as soon as you speak to him, then hands over the next one in the same breath (no picking WORK)
+- [ ] Mage Armor: in the field and in a fight, an ally in real armor can't be picked (ARMORED); robes still take it
+- [ ] E talks and chooses now (Z, Enter and Space still work); every on-screen hint says E
+- [ ] Heroism: Lymen's cast line names the number (+2 at CHA 15); a cyan +2 floats over the target at the start of each of its turns; the party panel shows +2 beside the name; a hit says "heroism takes 2"
+
+## 17. The dwarven expansion, part one: the door opens (cap still 5)
+
+- [ ] After the chuul, the first time you walk into Silverton: Papa Urtusk walks up from off the screen, out of his door; the scales are lit; the journal pins THE ONE LAW
+- [ ] The Warrens' wet, past the mark: the water stair is dry (silt, a tide-line, the siphon left standing); a puddle in the corner that shivers; the warranted door at the foot cut through
+- [ ] Through the cut door: the top tier of the Burial. Four of them at a family's niches: CHALLENGE / VIVIAN KNOWS THEM (Vivian in the party) / TAKE A CUT / LEAVE
+- [ ] The checks show on screen: the skill, the DC, whose hand, the die tumbling and landing, the total, SUCCESS or NOT ENOUGH
+- [ ] The fight: Hask with a pry-bar, the wheelwright with a mallet and a lamp, two crewmen. Drop Hask and the wheelwright runs for the stair on his next turn (no XP for him)
+- [ ] Vivian's word (Persuasion 13): they drop the sack and go up the stair without a word
+- [ ] Take a cut (Intimidation 15): 200 sp, renown -1; Ingrith comes anyway and withholds the offer. Three long rests later they come back for the rest; beat them and the offer comes, without the escort
+- [ ] Ingrith Scalebeam comes along the tier with a lamp and two of the garrison: the ledger, her name, the trade, the highway as the argument, the offer, the warrant for Audun's shield. Her two bar the cut door; the dwarves' stair at the far end opens
+- [ ] The Burial: seven families fanning down four tiers to the king's chamber; every niche reads (a name, a season, the lamp they fell at); rows stop short where a family did. The chamber: one kept lamp that glows in the dark, a clean slab, nobody on it
+- [ ] Put the sack back on the pried niches (the names come back); Audun's shield comes off his bones on the warrant and offers itself to Lymen
+- [ ] Take something without a warrant (Asmund's hammer, or the shield before Ingrith): Ketil stops you at the vault door ("Empty your packs"), takes it back to the dead, renown -1 each. No fight
+- [ ] The Door-Shield: +2 shield, and now and then a miss off Lymen makes the shield flare; light goes out from it and comes down on everyone; the party shines silver; "The Door-Shield protects the party." Did you ever see it happen?
+- [ ] Up the dwarves' stair into SOLSKAFT: the Sunshaft (noon down the old main shaft, dust turning in the light), the race down the east wall, footbridges to the kitchens and barracks, the clan hall (the empty high seat, the oath-stone, the hero-wall), the shrine of the Triad
+- [ ] Down to the vault hall: Pyro turns and gives you his one line; Ketil beside him. The tollhouse (the scales under a cloth, the tariff board, Ingrith at her ledger, the quartermaster's stores); the falls-works (the stamp-mill wheel turning, the cistern, the bricked cut from the Water Burning)
+- [ ] The muster yard: troopers drilling, Brann and Hedda, a free cot (long rest, save)
+- [ ] Out the vault door onto Fountain Street, and back in through it (it opens for you now). Vera and a Shaft Rows hand have something to say about it
+- [ ] The works below: the Copperbottom smith (dwarven steel, splint, nothing magic), the cold smelters, the cupel-hearth, the assay house, the sealed mint, the empty treasury, the boarded trade hall, and the highway's gate (shut for now)
+- [ ] Music: a new hall theme in Solskaft, and a slow one in the Burial
 
 ## Notes
 (write here)

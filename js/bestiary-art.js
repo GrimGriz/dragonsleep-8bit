@@ -232,6 +232,8 @@
     if (w === 'fists') { p.ellipse(31, 30, 2.5, 2.5, skin); }
     if (w === 'mirror') { p.ellipse(32, 26, 3, 4, '#c8c8d8'); p.ellipse(32, 26, 2, 3, '#6a5a9a'); p.set(31, 25, '#f8f8f8'); p.set(34, 21, '#b8a0f8'); p.set(35, 24, '#b8a0f8'); }
     if (w === 'wand') { p.line(31, 30, 35, 20, '#e8d8b0', 1); p.set(35, 19, '#a4e4fc'); p.set(34, 17, '#f8f8f8'); p.set(36, 21, '#a4e4fc'); }
+    if (w === 'bar') { p.line(30, 34, 34, 8, '#6a6a72', 2); p.line(34, 8, 36, 6, '#6a6a72', 1); p.set(35, 5, '#9a9aa2'); } // a pry-bar
+    if (w === 'mallet') { p.line(31, 30, 33, 16, '#8a5a2a', 2); p.rect(30, 12, 7, 5, '#9a7a4a'); p.rect(30, 12, 7, 1, '#b89a6a'); }
     p.line(11, 22, 7, 32, skin, 3);
     if (o.shield) { p.ellipse(8, 30, 6, 8, o.shield); p.ellipse(8, 30, 3, 5, DS.mix(o.shield, '#ffffff', 0.25)); p.set(8, 30, '#c0a040'); }
     if (o.lamp) { p.rect(4, 32, 4, 5, INK); p.rect(5, 33, 2, 3, '#f8d878'); }
@@ -313,6 +315,9 @@
     return p;
   };
   A.shadowkid = function () { return humanoid({ cloth: '#3a3a3a', weapon: 'fists', skin: '#8a8a8a' }); };
+  // the night crew in the Burial (2026-09-26 spec §5.3): Hask with a pry-bar, the wheelwright who built the siphon
+  A.hask = function () { return humanoid({ cloth: '#3a2a2a', hair: '#2a1a0a', beard: '#2a1a0a', weapon: 'bar', big: true, skin: '#d8a070', belt: '#6a6a72' }); };
+  A.wheelwright = function () { return humanoid({ cloth: '#6a5a3a', hair: '#9a7a4a', weapon: 'mallet', skin: '#e8b890', belt: '#4a3a2a', lamp: true }); };
 
   var cache = {};
   DS.monsterArt = function (id, tint) {

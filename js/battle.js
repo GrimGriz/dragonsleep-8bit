@@ -147,6 +147,7 @@
     var ac = isHero(u) ? R.ac(u.h) : u.m.ac;
     if (u.buff && u.buff.ac) ac += u.buff.ac;
     if (u.conds.shielded) ac += 5;
+    if (this.doorWardOn && isHero(u) && !down(u)) ac += 3; // the Door-Shield protects the party (RULED 09-26)
     return ac;
   };
   Battle.prototype.saveMod = function (u, ab) {
@@ -216,7 +217,7 @@
       return n;
     }
     var h = u.h;
-    if (u.buff && u.buff.temp) { var soak = Math.min(u.buff.temp, n); u.buff.temp -= soak; n -= soak; }
+    if (u.buff && u.buff.temp) { var soak = Math.min(u.buff.temp, n); u.buff.temp -= soak; n -= soak; u.soaked = (u.soaked || 0) + soak; }
     h.hp -= n;
     if (u.conds.asleep && n > 0) delete u.conds.asleep;
     if (h.hp <= 0) {
@@ -339,6 +340,33 @@
       this.over = 'fled';
     } else yield* this.hold('...and is cut off. (' + roll + ' vs ' + (10 + best) + ')');
   };
+  // one who runs the moment the one in charge is down: gone up the stair, no fight left in him (the wheelwright)
+  Battle.prototype.foeBolt = function* (f) {
+    f.off = -10;
+    DS.audio.sfx('run');
+    yield* this.say(nameOf(f) + ' drops what he was holding and runs for the stair!', 50);
+    f.off = 0; f.dead = true; f.fled = true; f.fade = 24; this.release(f);
+    if (f.m.traits.flag) DS.G.flags[f.m.traits.flag] = 1;
+    yield* this.say(nameOf(f) + ' is gone.', 30);
+  };
+  // the Door-Shield (RULED 09-26, Griz): 3% on a miss the shield could have caused; energy goes out from the shield and
+  // comes down on the party with a sheen; +3 AC to all until the wearer's next turn. No rule text anywhere: a named item.
+  Battle.prototype.doorWard = function* (t) {
+    var sh = R.item(t.h.equip.shield), self = this;
+    if (!sh || !sh.shield || !sh.shield.doorward || this.doorWardOn || down(t) || this.over) return;
+    if (Math.random() >= (DS.doorWardChance != null ? DS.doorWardChance : 0.03)) return;
+    var c = this.posOf(t);
+    DS.audio.sfx('magic');
+    for (var k = 0; k < 28; k++) { var a = k / 28 * Math.PI * 2; this.fx.push({ x: c.x, y: c.y, vx: Math.cos(a) * 1.7, vy: Math.sin(a) * 1.7, life: 20, col: k % 2 ? '#E8F0FF' : '#A4C8F8', sz: 2 }); }
+    yield this.wait(18);
+    this.liveHeroes().forEach(function (u) {
+      var p = self.posOf(u);
+      for (var k2 = 0; k2 < 12; k2++) { var a2 = k2 / 12 * Math.PI * 2, sx = p.x + Math.cos(a2) * 26, sy = p.y + Math.sin(a2) * 26; self.fx.push({ x: sx, y: sy, vx: (p.x - sx) / 14, vy: (p.y - sy) / 14, life: 14, col: '#F8F8F8', sz: 1 }); }
+    });
+    yield this.wait(14);
+    this.doorWardOn = t; this.flashT = 4; DS.audio.sfx('buff');
+    yield* this.say('The ' + sh.name + ' protects the party.', 60);
+  };
   Battle.prototype.checkEnd = function () {
     if (this.over) return;
     if (!this.liveFoes().length) this.over = 'win';
@@ -354,7 +382,12 @@
   Battle.prototype.turn = function* (u) {
     this.active = u;
     // start-of-turn
-    if (u.buff && u.buff.id === 'heroism' && isHero(u)) u.buff.temp = Math.max(u.buff.temp || 0, u.buff.tempEach);
+    if (u.buff && u.buff.id === 'heroism' && isHero(u)) { // temporary HP at the start of each of its turns (playtest 09-26: it was there, but nothing showed it)
+      var gain = u.buff.tempEach - (u.buff.temp || 0);
+      u.buff.temp = Math.max(u.buff.temp || 0, u.buff.tempEach);
+      if (gain > 0) { this.num(u, '+' + gain, '#6CF0F8'); this.elemBurst(u, 'buff', 'rise'); }
+    }
+    if (this.doorWardOn === u) this.doorWardOn = null;
     delete u.conds.shielded;
     delete u.conds.dodged;
     if (u.conds.prone && !incap(u) && !u.conds.grappled) { delete u.conds.prone; yield* this.say(nameOf(u) + ' gets back up.', 30); }
@@ -753,7 +786,7 @@
     }
     if (k === 'buff') {
       var bt = targets.map(plain).join(', ');
-      yield* this.say(bt + (sp.buff === 'shield' ? ' raises a shield of force. +5 AC.' : sp.buff === 'shieldOfFaith' ? ': +2 AC.' : sp.buff === 'bless' ? ': blessed.' : sp.buff === 'mageArmor' ? ': mage armor.' : sp.buff === 'aid' ? ': +' + 5 * (1 + up) + ' max HP.' : ': ' + sp.name + '.'), 40);
+      yield* this.say(bt + (sp.buff === 'shield' ? ' raises a shield of force. +5 AC.' : sp.buff === 'shieldOfFaith' ? ': +2 AC.' : sp.buff === 'bless' ? ': blessed.' : sp.buff === 'mageArmor' ? ': mage armor.' : sp.buff === 'aid' ? ': +' + 5 * (1 + up) + ' max HP.' : sp.buff === 'heroism' ? ': heroism. No fear, and +' + Math.max(1, DS.mod(h.abil.cha)) + ' temporary HP at the start of each turn.' : ': ' + sp.name + '.'), 40);
     }
     u.pose = null;
     return true;
@@ -839,6 +872,7 @@
     f.acted = true;
     if (f.conds.recoiling) { delete f.conds.recoiling; yield* this.say(nameOf(f) + ' writhes away from the light and does nothing.', 44); return; }
     if (this.runner() === f) { yield* this.foeFlee(f); return; }
+    if (m.traits && m.traits.bolts && this.round >= 2 && this.foes.some(function (x) { return x.id === m.traits.bolts && x.dead; })) { yield* this.foeBolt(f); return; }
     if (f.conds.frightened && DS.d(2) === 1) { yield* this.say(nameOf(f) + ' cowers.', 30); return; }
     if (f.conds.restrained && f.conds.restrained.escape) {
       if (this.check(f, 'str', 'Athletics') >= f.conds.restrained.escape) { delete f.conds.restrained; yield* this.say(nameOf(f) + ' tears free of the web.', 32); }
@@ -889,6 +923,7 @@
     if (nat === 1 || (nat !== 20 && tot < ac)) {
       DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C');
       yield* this.say(nameOf(f) + ' ' + (atk.verb || 'attacks') + ' ' + nameOf(t) + '... miss.' + dazzle, 32);
+      if (isHero(t) && nat >= 15) yield* this.doorWard(t);
       return;
     }
     var crit = nat === 20 || (melee && incap(t));
@@ -898,8 +933,10 @@
     // Uncanny Dodge (rogue 5): the first hit each round is halved
     var dodge = '';
     if (isHero(t) && t.h.cls === 'rogue' && t.h.lvl >= 5 && !t.conds.dodged && !incap(t)) { dmg = Math.floor(dmg / 2); t.conds.dodged = true; dodge = ' (dodged: half)'; }
+    t.soaked = 0;
     var dealt = this.hurt(t, dmg, atk.type, f);
     if (atk.extra) dealt += this.hurt(t, DS.roll(atk.extra, { crit: crit }), atk.extraType || atk.type, f);
+    if (t.soaked) dodge += ' (heroism takes ' + t.soaked + ')';
     t.pose = 'hurt'; t.poseT = 24; this.shake = crit ? 10 : 5; if (crit) this.flashT = 8;
     DS.audio.sfx(crit ? 'crit' : 'hit');
     this.num(t, dealt, '#F85838');
@@ -1028,13 +1065,14 @@
       DS.audio.play('victory');
       var xp = 0, silver = 0, drops = [];
       this.foes.forEach(function (f) {
+        if (f.fled) return;
         xp += f.m.xp || 0;
         if (f.m.silver) silver += DS.roll(f.m.silver);
         (f.m.drops || []).forEach(function (d) { if (Math.random() < d.chance) drops.push(d.item); });
       });
       if (o.noXp) xp = 0;
       var K = DS.G.kills;
-      this.foes.forEach(function (f) { K[f.id] = (K[f.id] || 0) + 1; if (o.zone) K[o.zone + ':' + f.id] = (K[o.zone + ':' + f.id] || 0) + 1; });
+      this.foes.forEach(function (f) { if (f.fled) return; K[f.id] = (K[f.id] || 0) + 1; if (o.zone) K[o.zone + ':' + f.id] = (K[o.zone + ':' + f.id] || 0) + 1; });
       if (o.bonusXp) xp += o.bonusXp;
       var living = DS.G.party.filter(function (h) { return !h.ko; });
       if (o.solo != null) living = [DS.G.party[o.solo]];
@@ -1046,7 +1084,7 @@
       // spell-component harvest: needs someone standing who has the skill for that part
       var hands = DS.G.party.filter(function (h) { return !h.ko; }), got = {}, gotOrder = [];
       this.foes.forEach(function (f) {
-        if (f.surrendered) return;
+        if (f.surrendered || f.fled) return;
         (f.m.parts || []).forEach(function (pt) {
           var h = hands.filter(function (x) { return pt.skill.some(function (s) { return x.skills && x.skills[s] != null; }); })[0];
           if (!h) return;
@@ -1138,6 +1176,7 @@
       if (pose === 'ko') { ctx.drawImage(spr.ko, x - 4, y + 8); return; }
       if (u.conds.paralyzed) { ctx.drawImage(spr[pose], x, y); ctx.globalAlpha = 0.4; ctx.fillStyle = '#6888FC'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
       else ctx.drawImage(spr[pose], x, y);
+      if (self.doorWardOn) { ctx.globalAlpha = 0.28 + 0.16 * Math.sin(DS.frame / 5 + u.idx); ctx.drawImage(sheenOf(spr[pose]), x, y); ctx.globalAlpha = 1; if (((DS.frame >> 2) + u.idx * 3) % 11 === 0) { ctx.fillStyle = '#F8F8F8'; ctx.fillRect(x + 3 + (DS.frame % 9), y + 4 + (DS.frame % 13), 1, 1); } }
       if (u.conds.engulfed) { ctx.fillStyle = '#1a1a24'; ctx.fillRect(x - 1, y - 1, 18, 14); }
       if (u.conds.grappled) { ctx.fillStyle = '#b85a3a'; ctx.fillRect(x - 3, y + 12, 3, 4); }
       if (u.conds.restrained && !u.conds.grappled) { ctx.strokeStyle = '#E8E8F0'; ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x + 16, y + 18); ctx.moveTo(x + 16, y + 6); ctx.lineTo(x, y + 18); ctx.stroke(); }
@@ -1166,6 +1205,7 @@
     this.heroes.forEach(function (u, i) {
       var h = u.h, y = 162 + i * 19, col = down(u) ? '#9C9C9C' : h.hp < h.maxhp / 4 ? '#F85838' : h.hp < h.maxhp / 2 ? '#F8D878' : '#F8F8F8';
       DS.text(ctx, h.name, 98, y, act === u ? '#F8D878' : '#F8F8F8');
+      if (u.buff && u.buff.temp > 0 && !down(u)) DS.text(ctx, '+' + u.buff.temp, 102 + DS.textWidth(h.name), y, '#6CF0F8');
       DS.textRight(ctx, (down(u) ? 'KO ' : '') + h.hp + '/' + h.maxhp, 206, y, col);
       DS.bar(ctx, 98, y + 9, 108, h.hp / h.maxhp, col === '#F8F8F8' ? '#58D854' : col);
       var tags = Object.keys(u.conds).filter(function (k) { return R.CONDS[k]; }).map(function (k) { return R.CONDS[k]; });
@@ -1181,6 +1221,17 @@
       DS.drawBats(ctx, this.bats);
     }
   };
+
+  // a pale silver copy of a figure, for the ward's sheen
+  var sheenCache = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
+  function sheenOf(img) {
+    var c = sheenCache && sheenCache.get(img);
+    if (c) return c;
+    c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+    var x = c.getContext('2d'); x.drawImage(img, 0, 0); x.globalCompositeOperation = 'source-atop'; x.fillStyle = '#E8F0FF'; x.fillRect(0, 0, c.width, c.height);
+    if (sheenCache) sheenCache.set(img, c);
+    return c;
+  }
 
   // ------------------------------------------------------------------ target picking scene
   function TargetScene(B, list, side) {

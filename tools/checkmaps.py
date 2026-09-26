@@ -27,6 +27,13 @@ def tile(m, x, y):
     return L if isinstance(L, str) else L['tile']
 
 
+def walk(m, x, y):
+    # walkable as drawn, or once some flag opens it (a gate left open, the water stair pumped dry): reachable in SOME state
+    if PASS.get(tile(m, x, y), False):
+        return True
+    return any(ft['x'] == x and ft['y'] == y and PASS.get(ft['tile'], False) for ft in m.get('flagTiles', []))
+
+
 def arrivals(mid):
     pts = []
     for om in maps.values():
@@ -55,12 +62,12 @@ for mid, m in sorted(maps.items()):
     starts = arrivals(mid)
     if mid == 'silverton':
         starts.append((30, 36, 'game start'))
-    bad_start = [s for s in starts if not PASS.get(tile(m, s[0], s[1]), False)]
+    bad_start = [s for s in starts if not walk(m, s[0], s[1])]
     for s in bad_start:
         print('%s: arrival %s,%s (%s) lands on %s' % (mid, s[0], s[1], s[2], tile(m, s[0], s[1])))
         problems += 1
     seen = set()
-    q = deque((s[0], s[1]) for s in starts if PASS.get(tile(m, s[0], s[1]), False))
+    q = deque((s[0], s[1]) for s in starts if walk(m, s[0], s[1]))
     for p in q:
         seen.add(p)
     while q:
@@ -69,7 +76,7 @@ for mid, m in sorted(maps.items()):
             nx, ny = x + dx, y + dy
             if (nx, ny) in seen or (nx, ny) in blocked:
                 continue
-            if PASS.get(tile(m, nx, ny), False):
+            if walk(m, nx, ny):
                 seen.add((nx, ny)); q.append((nx, ny))
 
     def adj(x, y):

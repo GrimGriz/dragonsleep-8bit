@@ -1,0 +1,615 @@
+{
+"id": "burial",
+"name": "The Burial",
+"tileset": "cave",
+"rows": [
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhh!!!!!hhhhhhNNNNhNNNhhhhhhhhhhhNNNNhhh",
+"hz____________________________________rh",
+"hh____________________________________hh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhh",
+"hhhhhhNNNNhhhhhNNNhNNNhNNNhNNNhNNNvhhhhh",
+"hhhhh______________________________hhhhh",
+"hhhhh______________________________hhhhh",
+"hhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhvNNNhNNhNNhNNNhNNhNNhNNhhhhhhhhh",
+"hhhhhhhh________________________hhhhhhhh",
+"hhhhhhhh________________________hhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhh",
+"hhhhhhhhhhhhKKh$KhKhKhKh$KhKvhhhhhhhhhhh",
+"hhhhhhhhhhh__________________hhhhhhhhhhh",
+"hhhhhhhhhhh__________________hhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhh__hhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhh_______Y__hhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhh____ZZ____hhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "ladder",
+"l": "lantern",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "dirt",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "roofS",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "web",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bridgeV",
+"C": "cliff",
+"A": "water",
+"M": "mountain",
+"V": "range",
+"I": "lamp",
+"Q": "emptyCut",
+"N": "niche",
+"J": "nicheGear",
+"!": "nicheOpen",
+"K": "nicheStone",
+"$": "nicheGearStone",
+"Z": "bier",
+"Y": "tombLamp",
+"z": "dryStair",
+"j": "sealCut",
+"i": "ironBars",
+"p": "puddle",
+"v": "steps",
+"1": "sunshaft",
+"2": "race",
+"3": "wheel",
+"4": "vaultIn",
+"5": "throne",
+"6": "oathStone",
+"7": "nameWall",
+"8": "anvil",
+"9": "forge",
+"a": "furnace",
+"E": "cupel",
+"%": "scales",
+"&": "lockCase",
+"/": "rack",
+"(": "vat",
+")": "smokeRack",
+"[": "boarded",
+"]": "ledgerDesk",
+"{": "tariff",
+"}": "shaftTop",
+";": "cot",
+"<": "brick",
+"@": "dcounter",
+"?": "dtable",
+"'": "portcullisUp",
+"`": "footbridge"
+},
+"music": "burial",
+"bg": "dwarf",
+"save": false,
+"dark": true,
+"niches": {
+"3,2": [
+0,
+0,
+"pried"
+],
+"4,2": [
+0,
+0,
+"pried"
+],
+"5,2": [
+0,
+0,
+"pried"
+],
+"6,2": [
+0,
+0,
+"pried"
+],
+"7,2": [
+0,
+0,
+"pried"
+],
+"14,2": [
+2,
+0,
+"row"
+],
+"15,2": [
+2,
+0,
+"row"
+],
+"16,2": [
+2,
+0,
+"row"
+],
+"17,2": [
+2,
+0,
+"row"
+],
+"19,2": [
+3,
+0,
+"row"
+],
+"20,2": [
+3,
+0,
+"row"
+],
+"21,2": [
+3,
+0,
+"row"
+],
+"33,2": [
+6,
+0,
+"row"
+],
+"34,2": [
+6,
+0,
+"row"
+],
+"35,2": [
+6,
+0,
+"row"
+],
+"36,2": [
+6,
+0,
+"row"
+],
+"6,8": [
+0,
+1,
+"row"
+],
+"7,8": [
+0,
+1,
+"row"
+],
+"8,8": [
+0,
+1,
+"row"
+],
+"9,8": [
+0,
+1,
+"row"
+],
+"15,8": [
+2,
+1,
+"row"
+],
+"16,8": [
+2,
+1,
+"row"
+],
+"17,8": [
+2,
+1,
+"row"
+],
+"19,8": [
+3,
+1,
+"row"
+],
+"20,8": [
+3,
+1,
+"row"
+],
+"21,8": [
+3,
+1,
+"row"
+],
+"23,8": [
+4,
+1,
+"row"
+],
+"24,8": [
+4,
+1,
+"row"
+],
+"25,8": [
+4,
+1,
+"row"
+],
+"27,8": [
+5,
+1,
+"row"
+],
+"28,8": [
+5,
+1,
+"row"
+],
+"29,8": [
+5,
+1,
+"row"
+],
+"31,8": [
+6,
+1,
+"row"
+],
+"32,8": [
+6,
+1,
+"row"
+],
+"33,8": [
+6,
+1,
+"row"
+],
+"9,14": [
+0,
+2,
+"row"
+],
+"10,14": [
+0,
+2,
+"row"
+],
+"11,14": [
+0,
+2,
+"row"
+],
+"13,14": [
+1,
+2,
+"row"
+],
+"14,14": [
+1,
+2,
+"row"
+],
+"16,14": [
+2,
+2,
+"row"
+],
+"17,14": [
+2,
+2,
+"row"
+],
+"19,14": [
+3,
+2,
+"row"
+],
+"20,14": [
+3,
+2,
+"row"
+],
+"21,14": [
+3,
+2,
+"row"
+],
+"23,14": [
+4,
+2,
+"row"
+],
+"24,14": [
+4,
+2,
+"row"
+],
+"26,14": [
+5,
+2,
+"row"
+],
+"27,14": [
+5,
+2,
+"row"
+],
+"29,14": [
+6,
+2,
+"row"
+],
+"30,14": [
+6,
+2,
+"row"
+],
+"12,20": [
+0,
+3,
+"patron"
+],
+"13,20": [
+0,
+3,
+"patron"
+],
+"15,20": [
+1,
+3,
+"gear"
+],
+"16,20": [
+1,
+3,
+"patron"
+],
+"18,20": [
+2,
+3,
+"patron"
+],
+"20,20": [
+3,
+3,
+"patron"
+],
+"22,20": [
+4,
+3,
+"patron"
+],
+"24,20": [
+5,
+3,
+"gear"
+],
+"25,20": [
+5,
+3,
+"patron"
+],
+"27,20": [
+6,
+3,
+"patron"
+]
+},
+"lights": [
+{
+"x": 22,
+"y": 26,
+"r": 60
+}
+],
+"npcs": [
+{
+"id": "hask",
+"x": 6,
+"y": 3,
+"look": "hask",
+"dir": "up",
+"cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
+"face": false
+},
+{
+"id": "wheelwright",
+"x": 4,
+"y": 4,
+"look": "wheelwright",
+"dir": "up",
+"cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
+"face": false
+},
+{
+"id": "crewA",
+"x": 5,
+"y": 4,
+"look": "crewman",
+"dir": "up",
+"cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
+"face": false
+},
+{
+"id": "crewB",
+"x": 7,
+"y": 4,
+"look": "crewman",
+"dir": "left",
+"cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
+"face": false
+}
+],
+"warps": [
+{
+"x": 1,
+"y": 3,
+"to": "warrens_d",
+"tx": 9,
+"ty": 21,
+"dir": "right",
+"cond": "!flag:frontDoor"
+},
+{
+"x": 38,
+"y": 3,
+"to": "solskaft",
+"tx": 15,
+"ty": 3,
+"dir": "right",
+"cond": "flag:frontDoor"
+}
+],
+"signs": [
+{
+"x": 22,
+"y": 26,
+"text": "One lamp, kept. Somebody fills it.",
+"src": "handoff-2026-09-26 §5.2 (lit by one lamp that the garrison keeps)"
+}
+],
+"triggers": [
+{
+"id": "niches0",
+"rect": [
+3,
+2,
+34,
+1
+],
+"on": "use",
+"script": "niche"
+},
+{
+"id": "niches1",
+"rect": [
+6,
+8,
+28,
+1
+],
+"on": "use",
+"script": "niche"
+},
+{
+"id": "niches2",
+"rect": [
+9,
+14,
+22,
+1
+],
+"on": "use",
+"script": "niche"
+},
+{
+"id": "niches3",
+"rect": [
+12,
+20,
+16,
+1
+],
+"on": "use",
+"script": "niche"
+},
+{
+"id": "dwarfStair",
+"rect": [
+38,
+3,
+1,
+1
+],
+"on": "use",
+"script": "dwarfStair",
+"cond": "!flag:frontDoor"
+},
+{
+"id": "crew",
+"rect": [
+3,
+3,
+1,
+2
+],
+"on": "step",
+"script": "crew",
+"cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt"
+},
+{
+"id": "bier",
+"rect": [
+19,
+28,
+2,
+1
+],
+"on": "use",
+"script": "bier"
+}
+],
+"flagTiles": [
+{
+"x": 1,
+"y": 3,
+"tile": "ironBars",
+"cond": "flag:frontDoor"
+},
+{
+"x": 38,
+"y": 3,
+"tile": "stairsUp",
+"cond": "flag:frontDoor"
+}
+]
+}
