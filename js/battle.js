@@ -284,6 +284,7 @@
     this.foes.forEach(function (f) { if (!names[f.m.name]) { names[f.m.name] = 0; orderN.push(f.m.name); } names[f.m.name]++; });
     yield* this.say(orderN.map(function (n) { return (names[n] > 1 ? names[n] + ' ' : '') + n; }).join(', ') + (this.foes.length > 1 ? ' appear!' : ' appears!'), 50);
     if (this.o.introText) yield* this.say(this.o.introText, 70);
+    for (var hk = 0; hk < (DS.battleHooks || []).length; hk++) yield* DS.battleHooks[hk](this);
     if (this.o.roost) yield* this.say('Overhead, the roost: millions of sleeping wings. No fire. No bright light.', 60);
     // Sense Magic: the chuul feels a ring of binding coming
     var ringU = this.heroes.filter(function (u) { var r = R.item(u.h.equip.ring); return r && r.ring && r.ring.taunt; })[0];

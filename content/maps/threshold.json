@@ -117,12 +117,6 @@
 ],
 "signs": [
 {
-"x": 10,
-"y": 3,
-"text": "THE TARIFF. Ore by the weight, salt by the sack, timber, tallow, rope. The prices are in a coin that is still struck.",
-"src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a tariff board in a live currency)"
-},
-{
 "x": 12,
 "y": 11,
 "text": "The weigh-station. The weights are honest. Nobody here would know how to make them otherwise.",
@@ -146,6 +140,17 @@
 ],
 "on": "use",
 "script": "deepDoor"
+},
+{
+"id": "tariff",
+"rect": [
+10,
+3,
+1,
+1
+],
+"on": "use",
+"script": "tariff"
 }
 ]
 }

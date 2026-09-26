@@ -442,6 +442,7 @@ def build_silverton():
     g.npc('towns7', 36, 12, 'noble', wander=2)
     g.npc('towns8', 14, 36, 'girl', wander=2)
     g.npc('idony', 18, 12, 'clerk', dir='down')
+    g.npc('signy', 9, 36, 'signy', dir='down', cond='flag:lakeDone & !flag:heirDone')
     g.npc('elsbethCandles', 30, 42, 'elsbeth', dir='down', idle=True, lantern=True, cond='flag:postgame')   # after the lake: the new candle girl
     g.sign(5, 5, 'NORTH GATE. The Doors road, up the mountain. The locals call it the Coldridge route.', 'wiki/the-road.md (the Doors road); rumors r-coldridge (wiki/fountain-street.md HD-1)')
     g.sign(29, 5, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)', cond='!flag:frontDoor')
@@ -720,19 +721,20 @@ def build_warrens():
     g.trig('jelly', 22, 14, 'jelly', on='step', w=3, h=1, once=True)
     g.trig('ooze', 12, 16, 'oozeFight', on='step', once=True)
     g.trig('mark', 22, 19, 'mark', on='use')
-    g.trig('stair', 19, 20, 'stair', on='use', w=1, h=4, cond='!flag:stairHook')
+    g.trig('stair', 19, 20, 'stair', on='use', w=1, h=4, cond='!flag:stairHook | flag:keeperWater')
     g.put(19, 20, 'n'); g.put(19, 21, 'n'); g.put(19, 22, 'n'); g.put(19, 23, 'n')
     # the dwarven expansion (spec §5.3): the night crews pumped the stair dry and cut the warranted door at its foot
-    dry = 'flag:stairHook'
+    dry = 'flag:stairHook & !flag:keeperWater'
     for y in range(20, 24):
         for x in range(12, 20):
             g.flagtile(x, y, 'puddle' if (x, y) == (12, 23) else 'dryStair', dry)
     for (x, y) in [(11, 21), (11, 22), (10, 21), (10, 22), (9, 21)]:
         g.flagtile(x, y, 'dryStair', dry)
     g.flagtile(8, 21, 'sealCut', dry)
-    g.flagtile(8, 21, 'ironBars', 'flag:frontDoor')          # the garrison's iron: a lock instead of a promise
-    g.warp(8, 21, 'burial', 2, 3, 'right', cond='flag:stairHook & !flag:frontDoor', sfx='stairs')
+    g.flagtile(8, 21, 'ironBars', 'flag:frontDoor & !flag:keeperWater')   # the garrison's iron: a lock instead of a promise
+    g.warp(8, 21, 'burial', 2, 3, 'right', cond='flag:stairHook & !flag:frontDoor & !flag:keeperWater', sfx='stairs')
     g.trig('dryStair', 19, 20, 'dryStair', on='step', w=1, h=4, cond='flag:stairHook & !flag:drySeen')
+    g.trig('holdStair', 19, 20, 'holdStair', on='step', w=1, h=4, cond='flag:waterAsked & !flag:keeperWater & flag:drySeen')
     g.zone('warrens_d', 0, 0, W, 19)
     save('warrens_d', g, 'cave', 'The Warrens — the wet', music='dungeon', bg='wet', save=False, dark=True,
          legend={'n': 'drownStair'})
@@ -1091,6 +1093,10 @@ def build_deep():
     g.rect(24, 3, 8, 6, '_'); g.put(23, 6, '`')
     g.put(29, 4, 'd')
     g.warp(29, 4, 'solskaft_deep', 3, 11, 'right')
+    # the wheelwright's lift, top and bottom of the shaft (sidequest 10)
+    g.flagtile(22, 26, 'lift', 'flag:wwLift'); g.flagtile(22, 4, 'lift', 'flag:wwLift')
+    g.warp(22, 26, 'solskaft', 21, 4, 'left', cond='flag:wwLift', sfx='door', hidden=True)
+    g.warp(22, 4, 'solskaft', 21, 26, 'left', cond='flag:wwLift', sfx='door', hidden=True)
     # the dwarves' own stair, down to the Burial, at the head of the shaft
     g.put(14, 3, 'd')
     g.warp(14, 3, 'burial', 37, 3, 'left')
@@ -1334,6 +1340,7 @@ def build_highway():
     g.trig('tower3', 68, 5, 'lampTower', 3, on='use', cond='flag:lamp3')
     g.trig('xorn', 29, 10, 'xorn', on='step', w=3, h=4, cond='!flag:xornDone')
     g.trig('captain', 69, 17, 'captain', on='use')
+    g.trig('leavings', 66, 15, 'leavings', on='use', cond='flag:lamp3')
 
     g.zone('hw3', 0, 0, 56, H)
     save('highway_3', g, 'cave', 'The Highway — to the Third Lamp', music='highway', bg='highway', save=False, dark=True, legend=HW,
@@ -1355,7 +1362,7 @@ def build_highway():
     g.put(5, 12, 'n'); g.put(6, 12, 'n')                   # a bench
     g.npc('dagny', 14, 3, 'dagny', dir='down')
     g.trig('deepDoor', 17, 7, 'deepDoor', on='use', h=3)
-    g.sign(10, 3, 'THE TARIFF. Ore by the weight, salt by the sack, timber, tallow, rope. The prices are in a coin that is still struck.', SPEC_REF + ' §6.4 (a tariff board in a live currency)')
+    g.trig('tariff', 10, 3, 'tariff', on='use')
     g.sign(12, 11, 'The weigh-station. The weights are honest. Nobody here would know how to make them otherwise.', SPEC_REF + ' §6.4 (a weigh-station)')
     g.sign(5, 12, "A stone bench, worn in the middle by three days' worth of the tired.", SPEC_REF + ' §6.4 (a bench)')
     save('threshold', g, 'cave', "Deepholm's Door", music='highway', bg='highway', save=True, dark=True, legend=dict(HW, **{'m': 'madeRoad', 'D': 'deepDoor', 'd': 'deepDoorSill', 'G': 'grille', 'Y': 'tariffLive', '%': 'scales', 'n': 'bench'}),

@@ -2138,6 +2138,52 @@
    "desc": "A plain knot of iron on a cord: the Dormant's. It is still warm from his throat.",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (his pack: a Dvalgarda holy symbol)",
    "id": "dvalsymbol"
+  },
+  "weights": {
+   "name": "Standard Weights",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "The assay's standard weights, dwarven-true, each in its cut. Lent against the ledger.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1",
+   "id": "weights"
+  },
+  "recordpage": {
+   "name": "A Copied Page",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "One page from Androit's father's mine records, in Idony's hand: what went down the mountain, counted.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-2; wiki/fountain-street.md (the only count is Androit's father's records)",
+   "id": "recordpage"
+  },
+  "tariffcopy": {
+   "name": "The Tariff's Last Lines",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "The last surface goods through Deepholm's gate and their tolls, copied off Dagny's board.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-7",
+   "id": "tariffcopy"
+  },
+  "fatheraxe": {
+   "name": "Silversands Axe",
+   "kind": "weapon",
+   "price": 0,
+   "noSell": true,
+   "weapon": {
+    "dmg": "1d8",
+    "versatile": "1d10",
+    "type": "slashing",
+    "group": "martial",
+    "props": [
+     "versatile"
+    ],
+    "bonus": 1
+   },
+   "desc": "A Silversands axe +1, a family's mark on the cheek of the blade. Brann's father's.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6",
+   "id": "fatheraxe"
   }
  },
  "spells": {
@@ -6680,6 +6726,7 @@
      ]
     }
    ],
+   "script": "vera",
    "id": "vera"
   },
   "oldhob": {
@@ -6904,6 +6951,7 @@
     }
    ],
    "src": "wiki/fountain-street.md (Idony Fell, CANON 09-16f)",
+   "script": "idony",
    "id": "idony"
   },
   "casper": {
@@ -7397,6 +7445,7 @@
     }
    ],
    "src": "WarrensModule/crawler-warrens-DM.md §4, §7",
+   "script": "hobHeir",
    "id": "hobCamp"
   },
   "hobB": {
@@ -7876,6 +7925,7 @@
     }
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 A, §4.4 (the water-warden, one of the four level-6s); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "script": "ragna",
    "id": "ragna"
   },
   "brann": {
@@ -7889,6 +7939,7 @@
     }
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Brann, the last of a family the highway wiped out at Third Lamp; his father's axe is still down there, §10-6); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "script": "brannYard",
    "id": "brann"
   },
   "hedda": {
@@ -8089,6 +8140,22 @@
     }
    ],
    "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "before": [
+    {
+     "key": "sack",
+     "if": "flag:sackSold",
+     "say": [
+      "You're the ones sold the Geirmund gear to a junk-woman up top. Walk on."
+     ]
+    },
+    {
+     "key": "ww",
+     "if": "flag:wwHidden",
+     "say": [
+      "The night crews' tools have gone quiet up top, they say. Somebody's making them better. I don't like it."
+     ]
+    }
+   ],
    "id": "lamp1c"
   },
   "brannLamp": {
@@ -8120,6 +8187,12 @@
    "script": "dagny",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (Dagny Scalebeam behind the grille; the trader clan keeps the doors at both ends; PROPOSED)",
    "id": "dagny"
+  },
+  "signy": {
+   "name": "The rope-maker",
+   "script": "signy",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9 (a dwarf grown old-looking among humans in the unowned district, who has never said what they are); name invented.json#heir",
+   "id": "signy"
   }
  },
  "text": {
@@ -10955,6 +11028,396 @@
    "t": "The common pipe goes round. Nobody talks. You come out rested, a little.",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (the common pipe, five coppers: a short rest in town; the game counts it a silver)",
    "id": "deep.tamPipe"
+  },
+  "renown.weights": {
+   "t": "Fountain Street saw the scales proved wrong.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1 (expose him: renown +2)",
+   "id": "renown.weights"
+  },
+  "renown.wheelwright": {
+   "t": "The one who cut a warranted rune answered for it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10 (hand him to the ledger: renown +1)",
+   "id": "renown.wheelwright"
+  },
+  "renown.heir": {
+   "t": "An heir, found in the Shaft Rows, and a wedge that didn't end.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9",
+   "id": "renown.heir"
+  },
+  "deep.brannSack": {
+   "t": "Brann, beside you: \"Thora's mail, Ari's hammer, Svala's ring. Geirmund's line. Thora taught me to hold a shield. You put it back on her.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-3 (the next time Brann fights beside the party he says whose they were); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.brannSack"
+  },
+  "deep.veraSack": {
+   "t": "Vera looks in the sack and doesn't touch anything. \"Grave-goods from past the seals. I've one box of those already, and the man who sold it me hasn't been seen since. Eighty silver.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-3 (Vera's locked box, CANON, gets a sibling); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.veraSack"
+  },
+  "deep.veraBought": {
+   "t": "She locks it in a second box beside the first, and doesn't look at you again.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-3",
+   "id": "deep.veraBought"
+  },
+  "deep.sackTrooper": {
+   "t": "You're the ones sold the Geirmund gear to a junk-woman up top. Walk on.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-3 (a rumor rides the party down the highway until a trooper at First Lamp says it to their face); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.sackTrooper"
+  },
+  "deep.leavings": {
+   "t": "Under the drow's leavings in the barrack-cut, a Silversands axe with a family's mark on the blade. It wasn't theirs. It was taken here, two seasons back.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6 (Brann's father's axe, under the drow's leavings)",
+   "id": "deep.leavings"
+  },
+  "deep.axeAsk": {
+   "t": "Brann's family fell at this lamp. He is the living member; by his own clan's law, the axe is in use the moment he holds it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6 (Griz's burial law, inverted: a living member)",
+   "id": "deep.axeAsk"
+  },
+  "deep.axeGiven": {
+   "t": "Brann takes it in both hands and doesn't say anything for a long time. Then: \"It's heavier than I remembered. He always said it would be.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.axeGiven"
+  },
+  "deep.axeKept": {
+   "t": "It's a good axe. Nobody says anything about it. Nobody ever will.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6 (keep it: he says nothing, ever)",
+   "id": "deep.axeKept"
+  },
+  "deep.leavingsDone": {
+   "t": "The drow's leavings, and nothing in them now.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6",
+   "id": "deep.leavingsDone"
+  },
+  "deep.brannAfter": {
+   "t": "I'll hold the lamp with it. Pyro says I'm to stand his door after, if I live that long. I mean to.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6 (at the credits he is the door-second); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.brannAfter"
+  },
+  "deep.pyroAxeGiven": {
+   "t": "The boy brought his father's axe home. He'll stand the door with me when his season's done. Ketil can retire and complain.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6 (Pyro's line warmer); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.pyroAxeGiven"
+  },
+  "deep.pyroAxeKept": {
+   "t": "A Silversands axe went up the road in a surface pack. I'll not say more than that.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6 (Pyro's line colder); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.pyroAxeKept"
+  },
+  "deep.heirAldwin": {
+   "t": [
+    "Aldwin keeps you at the door. \"A woman came to the chapel to die. Wenna. She says she was a dwarf's wife, before the gate sealed. Asmund, of the Silversands.",
+    "She says there was a child, hidden in the Shaft Rows the week the dwarves went down, and never found. She begs me to find them. I am an old man who gives out bread. You go through the dwarves' door.\""
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9 (the seed: a dying woman brought to the chapel claims a dwarven husband and a child hidden before the gate sealed; personae slot 30, Griz-approved story surface); her name and his invented.json#heir",
+   "id": "deep.heirAldwin"
+  },
+  "deep.aldwinAfter": {
+   "t": "\"Wenna died two nights ago. I told her. She knew before I finished.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.aldwinAfter"
+  },
+  "deep.heirHob": {
+   "t": "Old Hob scratches his jaw. \"A face that never aged right? The rope-maker in the Shaft Rows. Signy. Seventy years in the Rows, and she looks sixty, and she looked sixty when I was a boy.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9 (Old Hob knows a face that never aged right); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.heirHob"
+  },
+  "deep.signy0": {
+   "t": "Rope, by the fathom. That's all anyone needs to know about me.",
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.signy0"
+  },
+  "deep.signyNo": {
+   "t": "She coils rope and doesn't look up. There's nothing to see but an old woman's hands, if you don't know where to look.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9 (Investigation)",
+   "id": "deep.signyNo"
+  },
+  "deep.signyReveal": {
+   "t": [
+    "She stops coiling. \"Asmund.\" She says it like a word she hasn't said aloud in seventy years. \"My mother put me in a cellar in the Rows and told me to keep still until she came back. She didn't. I kept still a very long time.\"",
+    "\"Take me down, then. I want to see his name.\""
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.signyReveal"
+  },
+  "deep.signyWaits": {
+   "t": "I'll come down when the ledger's ready. Tell your Cleric.",
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.signyWaits"
+  },
+  "deep.ingrithHeir": {
+   "t": "An heir. The ledger has had no such line in seventy years. Bring her to the wedge; I'll meet you there with the book.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9 (bring them to the wedge with Ingrith: the ledger records an heir); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithHeir"
+  },
+  "deep.heirRite1": {
+   "t": "Signy comes down the dwarves' stair behind you, slowly, and stands at the foot of the Asmund wedge a long time.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9",
+   "id": "deep.heirRite1"
+  },
+  "deep.heirRite2": {
+   "t": "Signy, of Asmund's line, of the Silversands. The ledger records an heir. The wedge did not end.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9 (the wedge's stone is re-cut); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.heirRite2"
+  },
+  "deep.heirRite3": {
+   "t": "The gear comes off the bodies, lawfully, by her hand. She keeps her father's helm. She puts his hammer in yours. \"He'd want it used.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9 (the heir gives the party one piece of it); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.heirRite3"
+  },
+  "deep.ingrithWeights": {
+   "t": "The assay's standard weights. Take them up to Fountain Street and weigh something honest against the Weigh-House scales. The ledger lends them; the ledger will want them back.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1 (Ingrith lends them against the ledger); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithWeights"
+  },
+  "deep.weights1": {
+   "t": "In front of the board, with Fountain Street watching, you set a dwarven standard in one pan and a Weigh-House weight in the other. The Weigh-House weight is light.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1 (Hessle's scales proved wrong in front of the board)",
+   "id": "deep.weights1"
+  },
+  "deep.weights2": {
+   "t": "Hessle doesn't argue. He looks at the pans, and then at the street, and then at you. \"My daughter,\" he says, and nothing else.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1; wiki/fountain-street.md (he debases the scales for his daughter's keep); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.weights2"
+  },
+  "deep.weightsAsk": {
+   "t": "Fountain Street is waiting to see what you do.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1",
+   "id": "deep.weightsAsk"
+  },
+  "deep.weightsExpose": {
+   "t": "You say it out loud. By dark the Weigh-House lamp is lit and the council is sitting. By the end of it, Hessle's daughter is on the street.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1 (expose him: renown +2; the council's lamp lights that night; his daughter on the street by the end of it: a line, not a scene)",
+   "id": "deep.weightsExpose"
+  },
+  "deep.weightsWarn": {
+   "t": [
+    "\"I'll re-true them. A season, at least.\" He owes you, and pays it at once, low: \"Kessler's holding something a dwarf pawned. Copper-coloured. He won't sell it and he won't say why. That's a true word; it's the only kind I've got left.\""
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1 (warn him: he re-trues the scales; pays in a true word about what Kessler is holding); wiki/the-copper-egg.md (the scraping pawned at Kessler's)",
+   "id": "deep.weightsWarn"
+  },
+  "deep.weightsSold": {
+   "t": "Falstaff hears you out in his burned whisper and counts out a hundred and fifty. \"The dwarves lend instruments now. That's worth knowing.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1 (sell the knowledge to Falstaff: silver, and the factor's house learns the dwarves are lending instruments)",
+   "id": "deep.weightsSold"
+  },
+  "deep.weightsBack": {
+   "t": "The standard weights go back down the dwarves' stair, into Ingrith's hands, and into her ledger.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1",
+   "id": "deep.weightsBack"
+  },
+  "deep.lamp2Ask": {
+   "t": "The dead lamp. The slates. The dark.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5",
+   "id": "deep.lamp2Ask"
+  },
+  "deep.slatesYes": {
+   "t": "The watch-roster, in a good dwarven hand. Six names, a date, and under it no relief. The last line is half a word.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (Investigation 12 finds the roster)",
+   "id": "deep.slatesYes"
+  },
+  "deep.slatesNo": {
+   "t": "Scratches on slate. Names, maybe.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5",
+   "id": "deep.slatesNo"
+  },
+  "deep.whyYes": {
+   "t": "The lamp's mark is scratched through: declared unwarranted. The last watch died to the thing in the drainage cut, and Rekknar's ledger holds a debt on the lamp until someone pays it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (Religion 12: unwarranted, a debt in the ledger)",
+   "id": "deep.whyYes"
+  },
+  "deep.whyNo": {
+   "t": "A mark on the tower, scratched through. It means something to someone.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5",
+   "id": "deep.whyNo"
+  },
+  "deep.lamp2Relit": {
+   "t": "You put the ledger-lamp's flame to the wick. It takes. Second Lamp is lit, and the debt on it is yours now.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (relight it anyway and the party takes the debt: a dwarf will call it in at the credits)",
+   "id": "deep.lamp2Relit"
+  },
+  "deep.darkRest": {
+   "t": "Nobody sleeps well at a dark lamp. Each of you wakes a little short.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (leave it dark: a rest there costs a hit die)",
+   "id": "deep.darkRest"
+  },
+  "deep.lamp2Night": {
+   "t": "In the night, something drips in the drainage cut below the station. Then it stops dripping, which is worse.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (the first night there)",
+   "id": "deep.lamp2Night"
+  },
+  "deep.rcDebt": {
+   "t": "A dwarf came up to Silverton the next season, with a ledger, to collect a lamp's debt.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (the debt called in at the credits)",
+   "id": "deep.rcDebt"
+  },
+  "deep.wwFound": {
+   "t": "At Brennan's forge, working a bellows with his sleeves rolled: the wheelwright. The one who built the siphon.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10 (he turns up at Brennan's forge, where the night crews' tools are made)",
+   "id": "deep.wwFound"
+  },
+  "deep.wwPlea": {
+   "t": [
+    "\"I built a pump. It pumped. I didn't know the door was a promise; I thought it was a door.\"",
+    "\"The dwarves have a wheel up there nobody living can improve. I can. I can put a lift up that shaft of theirs. That's my price, if you're selling me.\""
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10 (his price for his life: the vertical lift up the Sunshaft); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.wwPlea"
+  },
+  "deep.wwAsk": {
+   "t": "Two people want him: Ingrith, for what he can build, and the ledger, for what he cut.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10",
+   "id": "deep.wwAsk"
+  },
+  "deep.wwLift": {
+   "t": "Ingrith takes him down the stair with a face like a closed book. A season later there is a lift in the Sunshaft, top to bottom, and nobody in the garrison will admit they use it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10 (hand him to Ingrith: the sunshaft gets a lift, a mechanic, not a cutscene)",
+   "id": "deep.wwLift"
+  },
+  "deep.wwLedger": {
+   "t": "The watch comes off the wall for him, the way it does for one crime only. The wheel up there keeps turning the way it always has.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10 (hand him to the ledger: renown +1)",
+   "id": "deep.wwLedger"
+  },
+  "deep.wwHidden": {
+   "t": "\"Candle-girl. I owe you twice now.\" He goes back to Brennan's bellows, and makes it better.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10 (hide him: crewOwed, Vivian)",
+   "id": "deep.wwHidden"
+  },
+  "deep.wwTrooper": {
+   "t": "The night crews' tools have gone quiet up top, they say. Somebody's making them better. I don't like it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10 (a trooper at First Lamp mentions it two seasons on); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.wwTrooper"
+  },
+  "deep.pyroWwLift": {
+   "t": "Ingrith has her wheelwright. I've a man who put a chisel through a warranted rune building me a lift. We'll see which of us is right.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10 (Pyro's line has an edge in it); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.pyroWwLift"
+  },
+  "deep.pyroWwLedger": {
+   "t": "You gave the ledger the man who cut the rune. That's the law kept. I notice who keeps it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.pyroWwLedger"
+  },
+  "deep.ingrithCount": {
+   "t": "I'll need numbers when I go down to my clan: what the treasury sent to Deepholm at the withdrawal. We never wrote it where anyone could read it. Someone up top did.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-2 (Ingrith needs the count; the only count is Androit's father's mine records); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithCount"
+  },
+  "deep.androitCount": {
+   "t": "\"My father's records are not for sale. Three buyers have asked in forty years, and I have told all three the same.\" He doesn't look toward the back room, and you notice that he doesn't.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-2 (Aldwin Androit will not sell; the Doors' office has wanted them forty years)",
+   "id": "deep.androitCount"
+  },
+  "deep.idonyPrice": {
+   "t": [
+    "Idony Fell stops, which she never does. \"One page. Copied, not sold. And not for silver.\"",
+    "\"The family on the coast buys things brought up from past the seals. I want to know what the dwarves would pay for the same things. Ask your dwarves.\""
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-2 (Idony will copy one page for a price that isn't silver: what the dwarves will pay the family on the coast for artifacts; her channel, CANON); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.idonyPrice"
+  },
+  "deep.ingrithAnswer": {
+   "t": "Tell your clerk this, and tell her exactly: the trader clan pays by the assay, never by the story. Whatever she's selling up the coast, we would pay less, and honestly.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-2; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithAnswer"
+  },
+  "deep.idonyCopies": {
+   "t": "\"By the assay, never by the story.\" She writes it down, once, and then copies you a page of a dead man's count in a clerk's perfect hand, without looking at the original twice.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-2",
+   "id": "deep.idonyCopies"
+  },
+  "deep.ingrithPage": {
+   "t": "She reads it standing up. \"That is what we took down. That is what we owe the argument.\" She puts it in the ledger. \"I go down with a number now.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-2 (deliver the page: Ingrith's consult has teeth)",
+   "id": "deep.ingrithPage"
+  },
+  "deep.consultCount": {
+   "t": "And I carry a count they can't argue with. Seventy years of it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-2 (a line at beat 9); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.consultCount"
+  },
+  "deep.ragnaWater": {
+   "t": [
+    "The keeper in your drained stair isn't dead. It can't leave its water, and its water's in the settling pools. I can put it back: reverse the siphon, three nights.",
+    "The crews will come for the stair while I do. Hold it for three nights, and the road they cut is a promise again."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-4 (Ragna can reverse the siphon, three nights, if the party holds the stair); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ragnaWater"
+  },
+  "deep.holdStair": {
+   "t": "The siphon runs backward, and the night crews come down the daytime way to stop it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-4 (the second-chance encounter, or a fresh one)",
+   "id": "deep.holdStair"
+  },
+  "deep.holdNights": {
+   "t": "Three nights you hold the stair.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-4",
+   "id": "deep.holdNights"
+  },
+  "deep.waterBack": {
+   "t": "On the third morning the stair is water again, black and still, and something stands up in it for a moment to look at you before it lies back down.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-4 (the stair floods, the keeper stands again: the only path where a bound elemental gets helped)",
+   "id": "deep.waterBack"
+  },
+  "deep.stairFlooded": {
+   "t": "A dwarven stair runs down into black water. The keeper is home. The door at the bottom is under the water again: not a lock now, a promise.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-4 (the base game's stair text swaps to the flooded version with a new last line); wiki/the-warrens.md",
+   "id": "deep.stairFlooded"
+  },
+  "deep.ragnaAfter": {
+   "t": "The keeper's home. The wheel's turning. Everything up here that's supposed to be wet is wet.",
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ragnaAfter"
+  },
+  "deep.tariffRead": {
+   "t": "THE TARIFF. Ore by the weight, salt by the sack, timber, tallow, rope. The prices are in a coin that is still struck. At the foot, the last surface goods ever tolled through: a caravan off the Coldridge route, one crate.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-7 (the board lists the last surface goods that came down, and their tolls)",
+   "id": "deep.tariffRead"
+  },
+  "deep.tariffCopy": {
+   "t": "You copy the last lines. Mical, up top, keeps manifests.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-7",
+   "id": "deep.tariffCopy"
+  },
+  "deep.micalTariff": {
+   "t": [
+    "Mical reads the lines twice, then goes into the back and comes out with a manifest seventeen years old. \"That caravan was never lost. Everyone says the Coldridge took it. It didn't. It came down here.\"",
+    "\"The crate it carried is behind a door you'll never open. But it was never lost, and somebody's son should know.\""
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-7 (the one on the Coldridge route that was never lost at all, only down here; the crate in the sealed trade hall; no door opens)",
+   "id": "deep.micalTariff"
+  },
+  "deep.tobin": {
+   "t": "Marko's son, from the back: \"Mical told us. The caravan wasn't lost.\" He puts down the sack he was lifting. \"Then I'll stay. Somebody should keep the shop that was waiting for it.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-7 (Marko's son Tobin gets a line and a reason to stay); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.tobin"
+  },
+  "deep.wintersCurl": {
+   "t": "Winters glances at what's in your hand, and then, carefully, doesn't. \"Five hundred. No questions. That's the whole offer.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8 (Winters pays 500 sp and asks no questions)",
+   "id": "deep.wintersCurl"
+  },
+  "deep.wintersPaid": {
+   "t": "It goes into a drawer that locks. He writes nothing down, which for Winters is a kind of shouting.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.wintersPaid"
+  },
+  "deep.luciaCurl": {
+   "t": "Lucia looks at the curl of copper for a long time. \"Give it here.\" That is all she says.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8 (Lucia pays nothing, tells the party nothing, and takes it)",
+   "id": "deep.luciaCurl"
+  },
+  "deep.luciaTook": {
+   "t": "She puts it with something else in a cloth, and her mortar starts again. From then on, the antitoxin is at cost for you.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8 (from then on Mama's Pharmakaiea sells the party antitoxin at cost; neither says the word egg)",
+   "id": "deep.luciaTook"
+  },
+  "deep.luciaAtCost": {
+   "t": "Antitoxin at cost, for you. Mama says.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8",
+   "id": "deep.luciaAtCost"
   }
  },
  "rumors": [
@@ -11711,6 +12174,141 @@
     }
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 6-9"
+  },
+  {
+   "id": "heir",
+   "name": "The Heir in the Stacks",
+   "show": "flag:heirAsked",
+   "done": "flag:heirDone",
+   "text": "Aldwin: a dying woman, Wenna, says she was the wife of Asmund of the Silversands, and that a child was hidden in the Shaft Rows the week the gate sealed, and never found.",
+   "doneText": "The ledger records an heir.",
+   "steps": [
+    {
+     "if": "!flag:heirHint & !flag:heirFound",
+     "map": "warrens_a",
+     "npc": "hobCamp",
+     "where": "Someone who has been in the Rows long enough to know a face that never aged. Old Hob, at the Warrens camp?"
+    },
+    {
+     "if": "!flag:heirFound",
+     "map": "silverton",
+     "npc": "signy",
+     "where": "The rope-maker in the Shaft Rows."
+    },
+    {
+     "if": "!flag:heirReady",
+     "map": "solskaft",
+     "npc": "ingrith",
+     "where": "Ingrith, and the ledger."
+    },
+    {
+     "map": "burial",
+     "at": [
+      24,
+      20
+     ],
+     "where": "Asmund's wedge, at the Burial's base ring."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9"
+  },
+  {
+   "id": "weights",
+   "name": "The Standard Weights",
+   "show": "flag:weightsGiven",
+   "done": "flag:weightsDone",
+   "text": "Ingrith lent the assay's standard weights. Weigh something honest against the Weigh-House scales.",
+   "doneText": "The scales were weighed.",
+   "steps": [
+    {
+     "map": "silverton",
+     "door": "hessle",
+     "where": "The Weigh-House on Fountain Street, in front of the board."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1"
+  },
+  {
+   "id": "count",
+   "name": "What They Took Down",
+   "show": "flag:countAsked",
+   "done": "flag:countDone",
+   "text": "Ingrith needs the count of what the treasury sent to Deepholm. The only count is Androit's father's mine records.",
+   "doneText": "Ingrith goes down with a number.",
+   "steps": [
+    {
+     "if": "!flag:idonyAsked",
+     "map": "silverton",
+     "npc": "idony",
+     "where": "Androit won't sell. His clerk, Idony, reads everything."
+    },
+    {
+     "if": "!flag:idonyAnswer",
+     "map": "solskaft",
+     "npc": "ingrith",
+     "where": "Ask the dwarves what they pay for things brought up from past the seals."
+    },
+    {
+     "if": "!flag:countPage",
+     "map": "silverton",
+     "npc": "idony",
+     "where": "Idony, with the dwarves' answer."
+    },
+    {
+     "map": "solskaft",
+     "npc": "ingrith",
+     "where": "The page, to Ingrith."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-2"
+  },
+  {
+   "id": "keeperwater",
+   "name": "The Keeper's Water",
+   "show": "flag:waterAsked",
+   "done": "flag:keeperWater",
+   "text": "Ragna can reverse the siphon and give the drained stair back its water, and its keeper, if you hold the stair for three nights.",
+   "doneText": "The stair is water again.",
+   "steps": [
+    {
+     "map": "warrens_d",
+     "trig": "holdStair",
+     "where": "The drained stair, in the Warrens' wet."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-4"
+  },
+  {
+   "id": "wheelwright",
+   "name": "The Wheelwright",
+   "show": "flag:crewDealt & flag:wheelwrightRan | flag:crewOwed",
+   "done": "flag:wwDone",
+   "text": "The one who built the siphon got away. The night crews' tools are made at Brennan's forge.",
+   "doneText": "The wheelwright answered for it, one way or another.",
+   "steps": [
+    {
+     "map": "silverton",
+     "door": "brennan",
+     "where": "Brennan's forge, in the second block."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-10"
+  },
+  {
+   "id": "tariff",
+   "name": "The Tariff Board",
+   "show": "has:tariffcopy",
+   "done": "flag:tariffDone",
+   "text": "The last surface goods ever tolled through Deepholm's gate: a caravan off the Coldridge route. Mical keeps manifests.",
+   "doneText": "The caravan was never lost.",
+   "steps": [
+    {
+     "map": "silverton",
+     "door": "mical",
+     "where": "Mical, at the warehouses on the riverside."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-7"
   }
  ],
  "maps": {
@@ -14508,6 +15106,18 @@
      ],
      "on": "use",
      "script": "captain"
+    },
+    {
+     "id": "leavings",
+     "rect": [
+      66,
+      15,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "leavings",
+     "cond": "flag:lamp3"
     }
    ],
    "zones": [
@@ -14884,6 +15494,14 @@
      "y": 12,
      "look": "clerk",
      "dir": "down"
+    },
+    {
+     "id": "signy",
+     "x": 9,
+     "y": 36,
+     "look": "signy",
+     "dir": "down",
+     "cond": "flag:lakeDone & !flag:heirDone"
     },
     {
      "id": "elsbethCandles",
@@ -15558,6 +16176,28 @@
      "dir": "right"
     },
     {
+     "x": 22,
+     "y": 26,
+     "to": "solskaft",
+     "tx": 21,
+     "ty": 4,
+     "dir": "left",
+     "cond": "flag:wwLift",
+     "sfx": "door",
+     "hidden": true
+    },
+    {
+     "x": 22,
+     "y": 4,
+     "to": "solskaft",
+     "tx": 21,
+     "ty": 26,
+     "dir": "left",
+     "cond": "flag:wwLift",
+     "sfx": "door",
+     "hidden": true
+    },
+    {
      "x": 14,
      "y": 3,
      "to": "burial",
@@ -15729,6 +16369,20 @@
      "on": "step",
      "script": "ketilStop",
      "cond": "blasphemy>=1"
+    }
+   ],
+   "flagTiles": [
+    {
+     "x": 22,
+     "y": 26,
+     "tile": "lift",
+     "cond": "flag:wwLift"
+    },
+    {
+     "x": 22,
+     "y": 4,
+     "tile": "lift",
+     "cond": "flag:wwLift"
     }
    ]
   },
@@ -16112,12 +16766,6 @@
    ],
    "signs": [
     {
-     "x": 10,
-     "y": 3,
-     "text": "THE TARIFF. Ore by the weight, salt by the sack, timber, tallow, rope. The prices are in a coin that is still struck.",
-     "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a tariff board in a live currency)"
-    },
-    {
      "x": 12,
      "y": 11,
      "text": "The weigh-station. The weights are honest. Nobody here would know how to make them otherwise.",
@@ -16141,6 +16789,17 @@
      ],
      "on": "use",
      "script": "deepDoor"
+    },
+    {
+     "id": "tariff",
+     "rect": [
+      10,
+      3,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "tariff"
     }
    ]
   },
@@ -16913,7 +17572,7 @@
      "tx": 2,
      "ty": 3,
      "dir": "right",
-     "cond": "flag:stairHook & !flag:frontDoor",
+     "cond": "flag:stairHook & !flag:frontDoor & !flag:keeperWater",
      "sfx": "stairs"
     }
    ],
@@ -17004,7 +17663,7 @@
      ],
      "on": "use",
      "script": "stair",
-     "cond": "!flag:stairHook"
+     "cond": "!flag:stairHook | flag:keeperWater"
     },
     {
      "id": "dryStair",
@@ -17017,6 +17676,18 @@
      "on": "step",
      "script": "dryStair",
      "cond": "flag:stairHook & !flag:drySeen"
+    },
+    {
+     "id": "holdStair",
+     "rect": [
+      19,
+      20,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "holdStair",
+     "cond": "flag:waterAsked & !flag:keeperWater & flag:drySeen"
     }
    ],
    "zones": [
@@ -17035,235 +17706,235 @@
      "x": 12,
      "y": 20,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 13,
      "y": 20,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 14,
      "y": 20,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 15,
      "y": 20,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 16,
      "y": 20,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 17,
      "y": 20,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 18,
      "y": 20,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 19,
      "y": 20,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 12,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 13,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 14,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 15,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 16,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 17,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 18,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 19,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 12,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 13,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 14,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 15,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 16,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 17,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 18,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 19,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 12,
      "y": 23,
      "tile": "puddle",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 13,
      "y": 23,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 14,
      "y": 23,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 15,
      "y": 23,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 16,
      "y": 23,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 17,
      "y": 23,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 18,
      "y": 23,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 19,
      "y": 23,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 11,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 11,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 10,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 10,
      "y": 22,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 9,
      "y": 21,
      "tile": "dryStair",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 8,
      "y": 21,
      "tile": "sealCut",
-     "cond": "flag:stairHook"
+     "cond": "flag:stairHook & !flag:keeperWater"
     },
     {
      "x": 8,
      "y": 21,
      "tile": "ironBars",
-     "cond": "flag:frontDoor"
+     "cond": "flag:frontDoor & !flag:keeperWater"
     }
    ]
   },

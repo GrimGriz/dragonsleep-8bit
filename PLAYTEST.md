@@ -215,5 +215,19 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] The couch again: the dream plays again, and holding E wakes you early
 - [ ] Does it land? (It's meant to stay unexplained in the game.)
 
+## 21. The dwarven expansion, part five: the sidequests
+
+- [ ] Put it back: return the crew's sack to the pried niches (the names come back), and the next fight with Brann beside you he says whose they were. Or sell it to Vera for 80 sp, and a trooper at First Lamp says it to your face
+- [ ] Brann's father's axe: after the raid, under the drow's leavings at Third Lamp. Give it to him (he holds the lamp with it; later he's to stand Pyro's door) or keep it (+1, and Pyro's line goes cold). Walking without the escort, you can carry it up to him in the yard
+- [ ] The heir in the Stacks: Aldwin tells you of Wenna, who says she was Asmund's wife; Old Hob at the Warrens camp knows a face that never aged; Signy the rope-maker in the Shaft Rows; Ingrith and the ledger; the rite at Asmund's wedge (his hammer, lawfully, and renown)
+- [ ] The standard weights: Ingrith lends them; at the Weigh-House board, EXPOSE Hessle (renown +2; his daughter on the street), WARN him (a true word about what Kessler is holding), or SELL it to Falstaff (150 sp)
+- [ ] Second Lamp's dark: at the dead tower, read the slates (Investigation 12), learn why it's dark (Religion 12), and relight it with the ledger-lamp (the debt is yours; the credits remember). Sleeping there while it's dark leaves everyone a hit die short
+- [ ] The wheelwright, at Brennan's forge: to Ingrith (a lift appears in the Sunshaft, top and bottom), to the ledger (renown +1), or, if Vivian talked the crew off, let him hide (a trooper at First Lamp notices later). Pyro has a word about it either way
+- [ ] What they took down: Ingrith needs the count; Androit won't sell; Idony copies one page if you bring her the dwarves' answer ("by the assay, never by the story"); Ingrith goes down with a number (and says so at the door)
+- [ ] The keeper's water: Ragna reverses the siphon if you hold the drained stair (a night crew comes for it); the stair floods again, the keeper stands up in it once, and the stair's text changes
+- [ ] The tariff board: at Deepholm's door, copy the last lines; Mical says the Coldridge caravan was never lost; Marko's son Tobin decides to stay
+- [ ] The curl of copper (if you have it): Winters pays 500 sp and asks nothing; Lucia takes it for nothing, and antitoxin is at cost at Mama's from then on
+- [ ] The journal has an entry for most of these, and the pin shows the way
+
 ## Notes
 (write here)

@@ -967,6 +967,10 @@
   };
   P.bench = function (p) { P.madeRoad(p); p.rect(1, 6, 14, 4, '#5a4a3a'); p.rect(1, 6, 14, 1, '#7a6a4a'); p.rect(2, 10, 2, 4, '#3a2a1a'); p.rect(12, 10, 2, 4, '#3a2a1a'); };
   P.tariffLive = function (p) { P.tariff(p); p.rect(10, 4, 3, 1, '#F8D878'); p.rect(10, 8, 3, 1, '#F8D878'); };
+  P.lift = function (p, r, f) { // the wheelwright's lift: a platform on chains, up and down the shaft
+    P.dwarfFloor(p); p.rect(1, 2, 14, 12, '#6a4a2a'); p.rect(1, 2, 14, 2, '#8a6a3a'); p.frame(1, 2, 14, 12, '#3a2a1a');
+    p.rect(3, 0, 1, 3, '#9a9aa2'); p.rect(12, 0, 1, 3, '#9a9aa2'); p.rect(6, 7, 4, 2, '#c0a040');
+  };
   P.portcullisUp = function (p) { // raised into the old ore-chute: a dark slot overhead and the iron teeth just showing
     dwFloor(p);
     p.rect(0, 6, 16, 4, '#1a1a20'); p.rect(0, 6, 16, 1, '#30303a');
@@ -1006,7 +1010,7 @@
     tariff: { pass: 0, vars: 1 }, emptyCut: { pass: 0, vars: 1 }, portcullisUp: { pass: 1, vars: 1 },
     lampTower: { pass: 0, anim: 2, vars: 1 }, lampTowerDark: { pass: 0, vars: 1 }, sealWhole: { pass: 0, anim: 2, vars: 1 }, sealBroken: { pass: 1, vars: 1 }, vein: { pass: 0, anim: 2, vars: 1 },
     chasm: { pass: 0 }, rubble: { pass: 1 }, bodyCaptain: { pass: 0, vars: 1 },
-    madeRoad: { pass: 1, vars: 1 }, deepDoor: { pass: 0, vars: 1 }, deepDoorSill: { pass: 0, anim: 2, vars: 1 }, grille: { pass: 0, talk: 1, vars: 1 }, bench: { pass: 0, vars: 1 }, tariffLive: { pass: 0, vars: 1 }, shaftTop: { pass: 0, anim: 2, vars: 1 }, cot: { pass: 0, vars: 1 }, brick: { pass: 0, vars: 1 }
+    madeRoad: { pass: 1, vars: 1 }, lift: { pass: 1, vars: 1 }, deepDoor: { pass: 0, vars: 1 }, deepDoorSill: { pass: 0, anim: 2, vars: 1 }, grille: { pass: 0, talk: 1, vars: 1 }, bench: { pass: 0, vars: 1 }, tariffLive: { pass: 0, vars: 1 }, shaftTop: { pass: 0, anim: 2, vars: 1 }, cot: { pass: 0, vars: 1 }, brick: { pass: 0, vars: 1 }
   };
   var tileCache = {};
   // variant v, anim frame f, neighbour-key nk ('' when not auto)

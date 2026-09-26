@@ -350,6 +350,9 @@
     var k = 'pyroIdx', i = g.flags[k] || 0; g.flags[k] = i + 1;
     var lines = ['deep.pyro1', 'deep.pyro2', 'deep.pyro3'];
     if (g.flags.shieldTaken && !unlawful().length && g.flags.warrantShield) lines.push('deep.pyroShield');
+    if (g.flags.axeGiven) lines.push('deep.pyroAxeGiven'); if (g.flags.axeKept) lines.push('deep.pyroAxeKept');
+    if (g.flags.wwLift) lines.push('deep.pyroWwLift'); if (g.flags.wwLedger) lines.push('deep.pyroWwLedger');
+    if (lines.length > 3) { yield DS.say(L(lines[3 + (i % (lines.length - 3))]), P); return; } // the newest things first
     yield DS.say(L(lines[i % lines.length]), P);
   };
   S.ketilStop = function* () { // the door-second: "empty your packs" (spec §5.4). No fight; the law's weight is the point
@@ -377,6 +380,11 @@
     }
     if (g.flags.warrantShield && !g.flags.shieldTaken) { yield DS.say(L('deep.ingrithShieldHint'), I2); return; }
     if (g.has('crewsack')) { yield DS.say(L('deep.ingrithSack'), I2); return; }
+    if (g.has('recordpage')) { g.take('recordpage', 1); g.flags.countDone = 1; DS.audio.sfx('confirm'); yield DS.say(L('deep.ingrithPage'), I2); return; }
+    if (g.flags.heirFound && !g.flags.heirReady) { g.flags.heirReady = 1; yield DS.say(L('deep.ingrithHeir'), I2); return; }
+    if (g.flags.idonyAsked && !g.flags.idonyAnswer) { g.flags.idonyAnswer = 1; yield DS.say(L('deep.ingrithAnswer'), I2); return; }
+    if (!g.flags.weightsGiven) { g.flags.weightsGiven = 1; g.give('weights', 1); DS.audio.sfx('chest'); yield DS.say([L('deep.ingrithWeights'), L('g.got', { item: DS.DATA.items.weights.name })], I2); return; }
+    if (!g.flags.countAsked) { g.flags.countAsked = 1; yield DS.say(L('deep.ingrithCount'), I2); return; }
     var k = 'ingrithIdx', i = g.flags[k] || 0; g.flags[k] = i + 1;
     yield DS.say(L(['deep.ingrithOffice1', 'deep.ingrithOffice2', 'deep.ingrithOffice3'][i % 3]), I2);
   };
@@ -452,7 +460,7 @@
     } else yield DS.say(L('deep.musterAlone'), GW);
     g.give('ledgerlamp', 1); DS.audio.sfx('chest');
     yield DS.say([L('deep.ledgerlamp'), L('g.got', { item: DS.DATA.items.ledgerlamp.name })], GW);
-    g.flags.roadOpen = 1; g.flags.escortsOut = 1;
+    g.flags.roadOpen = 1; if (!g.flags.noEscort) g.flags.escortsOut = 1;
     DS.audio.sfx('door'); DS.applyFlagTiles(f.map);
     yield DS.say(L('deep.gateOpens'));
   };
@@ -467,6 +475,7 @@
     } else {
       yield DS.say(L('deep.lamp2Arrive'));
       if (guests) { yield DS.say(L('deep.lamp2Brann'), who('Brann Silversands')); yield DS.say(L('deep.lamp2Hedda'), who('Hedda Greyseam')); }
+      yield DS.say(L('deep.lamp2Night'));
     }
     yield* EV.rest('inn');
     yield* EV.milestone(n === 1 ? 4000 : 7000, n === 1 ? 'deep.mileLamp1' : 'deep.mileLamp2');
@@ -476,9 +485,34 @@
   };
   S.lampTower = function* (n) {
     var g = G();
-    if (n === 2 && !g.flags.lamp2Lit) yield DS.say(L('deep.lamp2Dark'));
-    else yield DS.say(L('deep.lampLit'));
+    if (n === 2 && !g.flags.lamp2Lit) {
+      yield DS.say(L('deep.lamp2Dark'));
+      var asked = g.flags.slatesAsked || {};
+      while (true) {
+        var opts = [], vals = [];
+        if (!asked.read) { opts.push('READ THE SLATES (INVESTIGATION 12)'); vals.push('read'); }
+        if (!asked.why) { opts.push('WHY IS IT DARK? (RELIGION 12)'); vals.push('why'); }
+        if (g.has('ledgerlamp')) { opts.push('RELIGHT IT ANYWAY'); vals.push('light'); }
+        opts.push('THE ROAD'); vals.push('road');
+        var a = vals[yield DS.ask(L('deep.lamp2Ask'), opts)];
+        if (a === 'read') { asked.read = 1; yield DS.say(L((yield* EV.check('Investigation', 'int', 12)) ? 'deep.slatesYes' : 'deep.slatesNo')); }
+        else if (a === 'why') { asked.why = 1; yield DS.say(L((yield* EV.check('Religion', 'int', 12)) ? 'deep.whyYes' : 'deep.whyNo')); }
+        else if (a === 'light') { g.flags.lamp2Lit = 1; g.flags.lampDebt = 1; DS.audio.sfx('magic'); yield DS.say(L('deep.lamp2Relit')); break; }
+        else break;
+        g.flags.slatesAsked = asked;
+      }
+    } else yield DS.say(L('deep.lampLit'));
     yield* EV.roadMenu(n);
+  };
+  // nobody sleeps well at a dark lamp: each wakes a hit die short (sidequest 5)
+  var baseRest3 = EV.rest;
+  EV.rest = function* (song) {
+    yield* baseRest3(song);
+    var g = G(), m = F() && F().map;
+    if (m && m.id === 'highway_2' && !g.flags.lamp2Lit && G().x >= 64) {
+      g.party.forEach(function (h) { if (!h.ko) h.hp = Math.max(1, h.maxhp - R.CLASSES[h.cls].hd); });
+      yield DS.say(L('deep.darkRest'));
+    }
   };
   // leg one: the cut seal and the goblins behind it; the truesilver in the cut
   S.cutSeal = function* () {
@@ -785,6 +819,7 @@
     var sx = f.free(g.x, g.y + 1) ? g.x : g.x - 1, sy = f.free(g.x, g.y + 1) ? g.y + 1 : g.y;
     var ing = spawn({ id: 'ingrithDoor', x: sx, y: sy, look: 'ingrith', dir: 'right' });
     yield DS.say(L('deep.consult1'));
+    if (g.flags.countDone) yield DS.say(L('deep.consultCount'), who('Ingrith Scalebeam'));
     ing.path = DS.pathTo(f.map, ing.x, ing.y, 16, 8).concat(['face:right']);
     yield arrived([ing]);
     DS.audio.sfx('door'); DS.flashColor = '#F8E0A0'; DS.flashAlpha = 0.25; yield W8.frames(10); DS.flashColor = null;
@@ -803,10 +838,11 @@
     yield* EV.expansionEnd();
   };
   EV.expansionEnd = function* () {
-    var base = DS.DATA.credits, lines = [{ t: 'DRAGONSLEEP', big: true }, { t: 'Behind the Fountains', c: '#C8D0E8', gap: 16 }];
+    var g2 = G(), base = DS.DATA.credits, lines = [{ t: 'DRAGONSLEEP', big: true }, { t: 'Behind the Fountains', c: '#C8D0E8', gap: 16 }];
     base.slice(2).forEach(function (l) {
       if (l.t === 'Thanks for playing.') {
-        lines.push({ t: L(EV.receiptKey()), c: '#E0C8A0', gap: 20 });
+        lines.push({ t: L(EV.receiptKey()), c: '#E0C8A0', gap: g2.flags.lampDebt ? 8 : 20 });
+        if (g2.flags.lampDebt) lines.push({ t: L('deep.rcDebt'), c: '#E0C8A0', gap: 20 });
         lines.push({ t: 'DEEPHOLM', c: '#F8D878' }); lines.push({ t: 'Coming in an expansion.', gap: 6 });
         lines.push({ t: 'Donate to support it: ' + DS.DATA.config.kofi.replace(/^https?:\/\//, ''), c: '#F8A4C0', gap: 24 });
       }
@@ -848,6 +884,178 @@
     g.flags.smokeDreamt = 1;
     DS.audio.play(F().map.music || 'town', true);
     yield DS.fade(0, 1);
+  };
+
+  // ================================================================== the sidequests (spec §10, the seat's order: 3 6 9 1 5 10 2 4 7 8)
+  // 3. put it back: Brann knows whose they were; or the sack goes to Vera, and a rumor follows the party down the road
+  DS.battleHooks = (DS.battleHooks || []).concat([function* (b) {
+    var g = G();
+    if (g.flags.sackReturned && !g.flags.brannSackSaid && b.heroes.some(function (u) { return u.guest && u.h.id === 'brann'; })) {
+      g.flags.brannSackSaid = 1;
+      yield* b.hold(L('deep.brannSack'));
+    }
+  }]);
+  S.vera = function* (npc, D) {
+    var g = G();
+    if (g.has('crewsack')) {
+      var a = yield DS.ask(L('deep.veraSack'), ['SELL IT (80 SP)', 'NO'], who('Vera'));
+      if (a === 0) { g.take('crewsack', 1); g.silver += 80; g.flags.sackSold = 1; DS.audio.sfx('coin'); yield DS.say(L('deep.veraBought'), who('Vera')); return; }
+    }
+    yield* EV.dialog(D);
+  };
+  // 6. Brann's father's axe, under the drow's leavings at Third Lamp
+  S.leavings = function* () {
+    var g = G();
+    if (g.flags.axeGiven || g.flags.axeKept || g.has('fatheraxe')) { yield DS.say(L('deep.leavingsDone')); return; }
+    yield DS.say(L('deep.leavings'));
+    var here = !!EV.npc('brannLamp');
+    var a = yield DS.ask(L('deep.axeAsk'), [here ? 'GIVE IT TO BRANN' : 'TAKE IT UP TO BRANN', 'KEEP IT']);
+    if (a === 0 && here) { g.flags.axeGiven = 1; DS.audio.sfx('confirm'); yield DS.say(L('deep.axeGiven'), who('Brann Silversands')); return; }
+    g.give('fatheraxe', 1); DS.audio.sfx('chest');
+    if (a === 0) { g.flags.axeCarried = 1; yield DS.say(L('g.got', { item: DS.DATA.items.fatheraxe.name })); return; }
+    g.flags.axeKept = 1; yield DS.say([L('deep.axeKept'), L('g.got', { item: DS.DATA.items.fatheraxe.name })]);
+  };
+  S.brannYard = function* (npc, D) {
+    var g = G();
+    if (g.flags.axeCarried && g.has('fatheraxe')) { unequip('fatheraxe'); g.take('fatheraxe', 1); g.flags.axeGiven = 1; delete g.flags.axeCarried; DS.audio.sfx('confirm'); yield DS.say(L('deep.axeGiven'), who('Brann Silversands')); return; }
+    if (g.flags.axeGiven) { yield DS.say(L('deep.brannAfter'), who('Brann Silversands')); return; }
+    yield* EV.dialog(D);
+  };
+  // 9. the heir in the Stacks: a family that isn't dead yet
+  var baseChapel = S.chapel;
+  S.chapel = function* () {
+    var g = G(), A2 = who('Aldwin');
+    if (g.flags.frontDoor && !g.flags.heirAsked) { g.flags.heirAsked = 1; yield DS.say(L('deep.heirAldwin'), A2); }
+    else if (g.flags.heirDone && !g.flags.aldwinAfter) { g.flags.aldwinAfter = 1; yield DS.say(L('deep.aldwinAfter'), A2); }
+    yield* baseChapel();
+  };
+  S.hobHeir = function* (npc, D) {
+    var g = G();
+    if (g.flags.heirAsked && !g.flags.heirHint) { g.flags.heirHint = 1; yield DS.say(L('deep.heirHob'), who('Old Hob')); return; }
+    yield* EV.dialog(D);
+  };
+  S.signy = function* () {
+    var g = G(), SG = who('The rope-maker');
+    if (!g.flags.heirAsked) { yield DS.say(L('deep.signy0'), SG); return; }
+    if (g.flags.heirFound) { yield DS.say(L('deep.signyWaits'), who('Signy')); return; }
+    if (!g.flags.heirHint && !(yield* EV.check('Investigation', 'int', 14))) { yield DS.say(L('deep.signyNo'), SG); return; }
+    yield DS.say(L('deep.signyReveal'), who('Signy'));
+    g.flags.heirFound = 1; g.flags.pin = 'heir';
+  };
+  EV.heirRite = function* () { // at Asmund's wedge: the ledger records an heir; the gear comes off the bodies lawfully
+    var g = G(), f = F(), keeper = g.flags.ingrithEscort ? 'The ledger-clerk' : 'Ingrith Scalebeam';
+    var sg = spawn({ id: 'signyRite', x: g.x - 1, y: g.y + 1, look: 'signy', dir: 'up' }), ig = spawn({ id: 'ingrithRite', x: g.x + 1, y: g.y + 1, look: g.flags.ingrithEscort ? 'dclerk' : 'ingrith', dir: 'up' });
+    yield DS.say(L('deep.heirRite1'));
+    yield DS.say(L('deep.heirRite2'), who(keeper));
+    yield DS.say(L('deep.heirRite3'), who('Signy'));
+    unlawful(); g.flags.unlawful = g.flags.unlawful.filter(function (id) { return id !== 'asmundhammer'; });
+    if (!g.has('asmundhammer')) g.give('asmundhammer', 1);
+    g.flags.asmundTaken = 1; g.flags.heirDone = 1; DS.audio.sfx('chest');
+    yield DS.say(L('g.got', { item: DS.DATA.items.asmundhammer.name }));
+    yield* EV.renown(1, 'renown.heir');
+    sg.path = ['wait30', 'hide']; ig.path = ['wait30', 'hide'];
+  };
+  var baseNiche = S.niche;
+  S.niche = function* () {
+    var g = G(), f = F(), p = f.facing(), info = (f.map.src.niches || {})[p[0] + ',' + p[1]];
+    if (info && info[2] === 'gear' && info[0] === 5 && g.flags.heirReady && !g.flags.heirDone) { yield* EV.heirRite(); return; }
+    yield* baseNiche();
+  };
+  // 1. the standard weights: Hessle's scales, proved wrong in front of the board
+  var baseHessle = S.hessle;
+  S.hessle = function* (npc, D) {
+    var g = G(), H3 = who('Hessle');
+    if (g.has('weights') && !g.flags.weightsDone) {
+      yield DS.say(L('deep.weights1'));
+      yield DS.say(L('deep.weights2'), H3);
+      var a = yield DS.ask(L('deep.weightsAsk'), ['EXPOSE HIM', 'WARN HIM', 'SELL IT TO FALSTAFF']);
+      g.flags.weightsDone = a === 0 ? 'exposed' : a === 1 ? 'warned' : 'sold';
+      if (a === 0) { yield DS.say(L('deep.weightsExpose')); yield* EV.renown(2, 'renown.weights'); }
+      else if (a === 1) yield DS.say(L('deep.weightsWarn'), H3);
+      else { g.silver += 150; DS.audio.sfx('coin'); yield DS.say(L('deep.weightsSold'), who('Falstaff')); }
+      g.take('weights', 1); yield DS.say(L('deep.weightsBack'));
+      return;
+    }
+    yield* baseHessle(npc, D);
+  };
+  // 10. the wheelwright, at Brennan's forge
+  var baseKeeper = S.keeper;
+  S.keeper = function* (id) {
+    var g = G();
+    if (id === 'brennan' && (g.flags.wheelwrightRan || g.flags.crewOwed) && g.flags.crewDealt && !g.flags.wwDone) { yield* EV.wheelwright(); return; }
+    if (id === 'androit' && g.flags.countAsked && !g.flags.countDone && !g.flags.androitSaid) { g.flags.androitSaid = 1; yield DS.say(L('deep.androitCount'), who('Aldwyn Androit')); return; }
+    if (id === 'mical' && g.has('tariffcopy') && !g.flags.tariffDone) { g.take('tariffcopy', 1); g.flags.tariffDone = 1; yield DS.say(L('deep.micalTariff'), who('Mical')); return; }
+    yield* baseKeeper(id);
+  };
+  EV.wheelwright = function* () {
+    var g = G(), WW = who('The wheelwright');
+    yield DS.say(L('deep.wwFound'));
+    yield DS.say(L('deep.wwPlea'), WW);
+    var opts = ['HAND HIM TO INGRITH', 'HAND HIM TO THE LEDGER'], vals = ['lift', 'ledger'];
+    if (g.flags.crewOwed) { opts.push('LET HIM HIDE'); vals.push('hide'); }
+    var a = vals[yield DS.ask(L('deep.wwAsk'), opts)];
+    g.flags.wwDone = a;
+    if (a === 'lift') { g.flags.wwLift = 1; yield DS.say(L('deep.wwLift')); }
+    else if (a === 'ledger') { g.flags.wwLedger = 1; yield DS.say(L('deep.wwLedger')); yield* EV.renown(1, 'renown.wheelwright'); }
+    else { g.flags.wwHidden = 1; yield DS.say(L('deep.wwHidden'), WW); }
+  };
+  // 2. the count: Idony copies one page, for a price that isn't silver
+  S.idony = function* (npc, D) {
+    var g = G(), ID = who('Idony Fell');
+    if (g.flags.countAsked && !g.flags.idonyAsked) { g.flags.idonyAsked = 1; yield DS.say(L('deep.idonyPrice'), ID); return; }
+    if (g.flags.idonyAnswer && !g.flags.countPage) {
+      g.flags.countPage = 1; g.give('recordpage', 1); DS.audio.sfx('chest');
+      yield DS.say([L('deep.idonyCopies'), L('g.got', { item: DS.DATA.items.recordpage.name })], ID);
+      return;
+    }
+    yield* EV.dialog(D);
+  };
+  // 4. the keeper's water: Ragna reverses the siphon if you hold the stair
+  S.ragna = function* (npc, D) {
+    var g = G(), RG = who('Ragna Copperbottom');
+    if (g.flags.frontDoor && !g.flags.waterAsked && !g.flags.keeperWater) { g.flags.waterAsked = 1; yield DS.say(L('deep.ragnaWater'), RG); return; }
+    if (g.flags.keeperWater) { yield DS.say(L('deep.ragnaAfter'), RG); return; }
+    yield* EV.dialog(D);
+  };
+  S.holdStair = function* () {
+    var g = G();
+    yield DS.say(L('deep.holdStair'));
+    var res = yield* EV.fight(['crewboss', 'thug', 'thug', 'robber', 'robber'], { bg: 'dwarf', music: 'boss', canRun: true });
+    if (res !== 'win') { if (res === 'run') yield F().walk(['right']); return; }
+    yield DS.fade(1, 30);
+    yield DS.say(L('deep.holdNights'), { top: true });
+    g.flags.keeperWater = 1; DS.applyFlagTiles(F().map);
+    yield DS.fade(0, 30);
+    yield DS.say(L('deep.waterBack'));
+  };
+  var baseStair = S.stair;
+  S.stair = function* () { if (G().flags.keeperWater) { yield DS.say(L('deep.stairFlooded')); return; } yield* baseStair(); };
+  // 7. the tariff board's last lines, carried up to Mical; and a reason for Tobin to stay
+  S.tariff = function* () {
+    var g = G();
+    yield DS.say(L('deep.tariffRead'));
+    if (!g.has('tariffcopy') && !g.flags.tariffDone) { g.give('tariffcopy', 1); DS.audio.sfx('chest'); yield DS.say([L('deep.tariffCopy'), L('g.got', { item: DS.DATA.items.tariffcopy.name })]); }
+  };
+  // 8. the curl of copper: Winters pays; Lucia takes it
+  var baseShop = S.shop;
+  S.shop = function* (id) {
+    var g = G();
+    if (id === 'marko' && g.flags.tariffDone && !g.flags.tobinSaid) { g.flags.tobinSaid = 1; yield DS.say(L('deep.tobin'), who('Tobin Thorne')); }
+    if (id === 'lucia' && g.has('copperscraping') && !g.flags.curlDone) {
+      var a = yield DS.ask(L('deep.luciaCurl'), ['GIVE IT HER', 'NO'], who('Lucia'));
+      if (a === 0) { g.take('copperscraping', 1); g.flags.curlDone = 'lucia'; yield DS.say(L('deep.luciaTook'), who('Lucia')); }
+    }
+    if (id === 'lucia' && g.flags.curlDone === 'lucia') { var def = JSON.parse(JSON.stringify(DS.DATA.shops.lucia)); def.prices = def.prices || {}; def.prices.antitoxin = 250; def.greeting = L('deep.luciaAtCost'); yield W8.scene(new DS.Shop(def)); return; }
+    yield* baseShop(id);
+  };
+  var baseWinters = S.winters;
+  S.winters = function* () {
+    var g = G();
+    if (g.has('copperscraping') && !g.flags.curlDone) {
+      var a = yield DS.ask(L('deep.wintersCurl'), ['SELL IT (500 SP)', 'NOT THIS'], who('Ambrose Winters'));
+      if (a === 0) { g.take('copperscraping', 1); g.silver += 500; g.flags.curlDone = 'winters'; DS.audio.sfx('coin'); yield DS.say(L('deep.wintersPaid'), who('Ambrose Winters')); return; }
+    }
+    yield* baseWinters();
   };
 
   // talk that comes first, once, when its condition holds (the town telling you what you did: spec §11 consequences as rumor)

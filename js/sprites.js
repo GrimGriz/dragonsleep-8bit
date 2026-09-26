@@ -371,6 +371,7 @@
     hask: { hair: '#2a1a0a', skin: '#d8a070', cloth: '#3a2a2a', trim: '#6a6a6a', pants: '#2a2a2a' },
     wheelwright: { hair: '#9a7a4a', skin: '#e8b890', cloth: '#6a5a3a', apron: '#4a3a2a', style: { apron: true } },
     crewman: { hair: '#1a1a1a', skin: '#c89870', cloth: '#3a3a30', trim: '#5a5a5a', style: { hood: true } },
+    signy: { hair: '#c8c8c8', skin: '#d8a880', cloth: '#6a5a4a', apron: '#8a7a5a', style: { hood: true, apron: true, stout: true } },
     dagny: { hair: '#6a3a1a', skin: '#e0a880', cloth: '#5a5a66', trim: '#F8D878', style: { long: true, robe: true, stout: true } },
     torvald: { hair: '#8a7a6a', skin: '#d8a078', cloth: '#5a4a3a', clothD: '#3a2e24', trim: '#b87a3a', style: { beard: true, hood: true, robe: true, stout: true } },
     sectblade: { hair: '#1a1a1a', skin: '#c89070', cloth: '#26262e', trim: '#6a4a8a', style: { hood: true, beard: true, stout: true } }

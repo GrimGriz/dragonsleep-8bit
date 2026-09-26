@@ -305,6 +305,28 @@
 "dir": "right"
 },
 {
+"x": 22,
+"y": 26,
+"to": "solskaft",
+"tx": 21,
+"ty": 4,
+"dir": "left",
+"cond": "flag:wwLift",
+"sfx": "door",
+"hidden": true
+},
+{
+"x": 22,
+"y": 4,
+"to": "solskaft",
+"tx": 21,
+"ty": 26,
+"dir": "left",
+"cond": "flag:wwLift",
+"sfx": "door",
+"hidden": true
+},
+{
 "x": 14,
 "y": 3,
 "to": "burial",
@@ -476,6 +498,20 @@
 "on": "step",
 "script": "ketilStop",
 "cond": "blasphemy>=1"
+}
+],
+"flagTiles": [
+{
+"x": 22,
+"y": 26,
+"tile": "lift",
+"cond": "flag:wwLift"
+},
+{
+"x": 22,
+"y": 4,
+"tile": "lift",
+"cond": "flag:wwLift"
 }
 ]
 }

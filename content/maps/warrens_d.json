@@ -136,7 +136,7 @@
 "tx": 2,
 "ty": 3,
 "dir": "right",
-"cond": "flag:stairHook & !flag:frontDoor",
+"cond": "flag:stairHook & !flag:frontDoor & !flag:keeperWater",
 "sfx": "stairs"
 }
 ],
@@ -227,7 +227,7 @@
 ],
 "on": "use",
 "script": "stair",
-"cond": "!flag:stairHook"
+"cond": "!flag:stairHook | flag:keeperWater"
 },
 {
 "id": "dryStair",
@@ -240,6 +240,18 @@
 "on": "step",
 "script": "dryStair",
 "cond": "flag:stairHook & !flag:drySeen"
+},
+{
+"id": "holdStair",
+"rect": [
+19,
+20,
+1,
+4
+],
+"on": "step",
+"script": "holdStair",
+"cond": "flag:waterAsked & !flag:keeperWater & flag:drySeen"
 }
 ],
 "zones": [
@@ -258,235 +270,235 @@
 "x": 12,
 "y": 20,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 13,
 "y": 20,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 14,
 "y": 20,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 15,
 "y": 20,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 16,
 "y": 20,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 17,
 "y": 20,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 18,
 "y": 20,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 19,
 "y": 20,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 12,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 13,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 14,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 15,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 16,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 17,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 18,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 19,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 12,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 13,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 14,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 15,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 16,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 17,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 18,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 19,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 12,
 "y": 23,
 "tile": "puddle",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 13,
 "y": 23,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 14,
 "y": 23,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 15,
 "y": 23,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 16,
 "y": 23,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 17,
 "y": 23,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 18,
 "y": 23,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 19,
 "y": 23,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 11,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 11,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 10,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 10,
 "y": 22,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 9,
 "y": 21,
 "tile": "dryStair",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 8,
 "y": 21,
 "tile": "sealCut",
-"cond": "flag:stairHook"
+"cond": "flag:stairHook & !flag:keeperWater"
 },
 {
 "x": 8,
 "y": 21,
 "tile": "ironBars",
-"cond": "flag:frontDoor"
+"cond": "flag:frontDoor & !flag:keeperWater"
 }
 ]
 }

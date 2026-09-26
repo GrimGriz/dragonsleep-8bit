@@ -277,6 +277,14 @@
 "dir": "down"
 },
 {
+"id": "signy",
+"x": 9,
+"y": 36,
+"look": "signy",
+"dir": "down",
+"cond": "flag:lakeDone & !flag:heirDone"
+},
+{
 "id": "elsbethCandles",
 "x": 30,
 "y": 42,
