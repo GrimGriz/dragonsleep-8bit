@@ -9,17 +9,21 @@
       "easy": "too easy",
       "unclear": "? unclear",
       "skip": "— not tested"
-    },
-    "round": "FOUR — seeded by the code tab 2026-09-25 from round three (playtest-ear-file-2026-09-25-grimgriz.json). Lines that passed keep their verdict (new notes marked R2:); lines that were broken, unclear, too hard, too easy or not tested are blank with round three's words attached and 're-test'; section 14 is new (the fold, commit eb5acac+afd376d). Load this into the lamp (Load ear-file) to start round four, then Save ear-file when done."
+    }
   },
   "lamp": "playtest-lamp",
   "checklist_sha1": "6bec83dd",
   "tester": "GrimGriz",
-  "saved_at": "2026-09-25T20:30:36Z",
+  "saved_at": "2026-09-25T21:39:36Z",
   "counts": {
     "lines": 101,
-    "marked": 64,
-    "works": 64
+    "marked": 100,
+    "works": 85,
+    "easy": 2,
+    "skip": 6,
+    "hard": 2,
+    "unclear": 4,
+    "broken": 1
   },
   "items": [
     {
@@ -71,9 +75,9 @@
       "id": "s1-6",
       "section": "1. Start and town",
       "claim": "Leech-house revives KO'd heroes for 5 sp each",
-      "verdict": "",
+      "verdict": "works",
       "note": "R1 ✗ broken: I'm getting 'stitches on the house' and 'mother pays' when barley loses - down 5 from the 5 to get into the fight. — re-test (folded in e25a3e1 / 802cfbb / c5e8389)",
-      "at": "",
+      "at": "2026-09-25T20:56:52Z",
       "text_changed": false
     },
     {
@@ -107,9 +111,9 @@
       "id": "s2-2",
       "section": "2. Hires",
       "claim": "Hires join at the right level (main − 1, min 2); they vanish from the map once hired",
-      "verdict": "",
+      "verdict": "works",
       "note": "R1 ? unclear: they all came in at 2 in testing to date, which doesn't include main>3 — re-test (folded in e25a3e1 / 802cfbb / c5e8389)",
-      "at": "",
+      "at": "2026-09-25T21:15:58Z",
       "text_changed": false
     },
     {
@@ -126,7 +130,7 @@
       "section": "3. Battle feel (the big one)",
       "claim": "Solo start at level 2 in the fields north of town: survivable? Too grindy? (Aurdin solo is the hardest lead)",
       "verdict": "works",
-      "note": "R2: i like the way the spawning works now - let's always give characters max possible hp when they level (and recalculate their level two hp with that in mind)",
+      "note": "i like the way the spawning works now - let's always give characters max possible hp when they level (and recalculate their level two hp with that in mind)",
       "at": "2026-09-25T17:34:58Z",
       "text_changed": false
     },
@@ -206,9 +210,9 @@
       "id": "s5-1",
       "section": "5. The Crawler Warrens (east, across the bridge)",
       "claim": "Edric at the tally-house puts you in the book; work a shift at a pen (milking); Old Hob's line",
-      "verdict": "",
+      "verdict": "works",
       "note": "R1 ? unclear: i didn't find a crawler milking minigame, but Edric does say stuff like that — re-test (folded in e25a3e1 / 802cfbb / c5e8389)",
-      "at": "",
+      "at": "2026-09-25T21:16:13Z",
       "text_changed": false
     },
     {
@@ -224,18 +228,18 @@
       "id": "s5-3",
       "section": "5. The Crawler Warrens (east, across the bridge)",
       "claim": "Mouths 1 & 6 → abandoned workings (rope + caches); night crews sometimes vanish instead of fighting",
-      "verdict": "",
+      "verdict": "works",
       "note": "R1 — not tested — re-test (folded in e25a3e1 / 802cfbb / c5e8389)",
-      "at": "",
+      "at": "2026-09-25T21:16:15Z",
       "text_changed": false
     },
     {
       "id": "s5-4",
       "section": "5. The Crawler Warrens (east, across the bridge)",
       "claim": "The wet: bucket → feed the otyugh (or fight it — should be brutal); jelly splits on slashing; gray ooze",
-      "verdict": "",
+      "verdict": "works",
       "note": "R1 — not tested: bucket feeding works — re-test (folded in e25a3e1 / 802cfbb / c5e8389)",
-      "at": "",
+      "at": "2026-09-25T21:16:24Z",
       "text_changed": false
     },
     {
@@ -467,9 +471,9 @@
       "id": "s11-4",
       "section": "11. Round two: the fold from the 09-24 ear-file",
       "claim": "Winters: his own lines; WORK = two courier errands (papers: Androit → Casper → back; the Pryor debt: Mical → Brennan → back), +1 renown each; THE SHELVES (magic items) open after the first one",
-      "verdict": "",
-      "note": "R2 too easy: only renown after the second one, feels like a 'use your journal' tutorial should follow his lines in the first one, and if he gives you a job have it function like 'leave' - without going back to his menu 'lifted pen' — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "easy",
+      "note": "only renown after the second one, feels like a 'use your journal' tutorial should follow his lines in the first one, and if he gives you a job have it function like 'leave' - without going back to his menu 'lifted pen'",
+      "at": "2026-09-25T19:07:03Z",
       "text_changed": false
     },
     {
@@ -548,36 +552,36 @@
       "id": "s11-13",
       "section": "11. Round two: the fold from the 09-24 ear-file",
       "claim": "Fire or thunder under the roost (G2/G3): the roof lets go, bats fill the screen → NOT THIS KIND OF NAME",
-      "verdict": "",
-      "note": "R2 — not tested — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "skip",
+      "note": "now greyed out, works with light and torches",
+      "at": "2026-09-25T21:21:02Z",
       "text_changed": false
     },
     {
       "id": "s11-14",
       "section": "11. Round two: the fold from the 09-24 ear-file",
       "claim": "Chuul (any fight): when a grab, poison, the ring's taunt or a fall lands on the party, the top line holds with ▼ until you press Z",
-      "verdict": "",
-      "note": "R2 — not tested — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "works",
+      "note": "",
+      "at": "2026-09-25T21:21:11Z",
       "text_changed": false
     },
     {
       "id": "s11-15",
       "section": "11. Round two: the fold from the 09-24 ear-file",
       "claim": "The ending: the inn's fate is written now (no stubs anywhere). And s8-3 above (the night at the inn) is still unmarked",
-      "verdict": "",
-      "note": "R2 — not tested — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "skip",
+      "note": "game is not table, game ending is fine",
+      "at": "2026-09-25T21:21:55Z",
       "text_changed": false
     },
     {
       "id": "s12-1",
       "section": "12. Round three: the wagon night, Percy, the parts",
       "claim": "First night at the Halfway Inn: the wagon comes in at night; pick who had second watch; the goblins turn into children on screen if they see through it (no text)",
-      "verdict": "",
-      "note": "R2 too hard: works, but need a more visual transition (takes longer - wavy?) — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "hard",
+      "note": "works, but need a more visual transition (takes longer - wavy?) ",
+      "at": "2026-09-25T17:53:10Z",
       "text_changed": false
     },
     {
@@ -585,7 +589,7 @@
       "section": "12. Round three: the wagon night, Percy, the parts",
       "claim": "KEEP WATCH (or never seeing through it): the handover, then the walk to the lake with a goblin beside the inn lady",
       "verdict": "works",
-      "note": "R2: that works",
+      "note": "that works",
       "at": "2026-09-25T19:01:09Z",
       "text_changed": false
     },
@@ -593,9 +597,9 @@
       "id": "s12-3",
       "section": "12. Round three: the wagon night, Percy, the parts",
       "claim": "INVESTIGATE alone / WAKE THE PARTY: out in the yard, a second look; the inn lady's line about the mine across the lake, and a sharper look if someone catches the lie",
-      "verdict": "",
-      "note": "R2 ? unclear: hard to test, keep making the perception checks — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "unclear",
+      "note": "hard to test, keep making the perception checks",
+      "at": "2026-09-25T18:08:24Z",
       "text_changed": false
     },
     {
@@ -611,27 +615,27 @@
       "id": "s12-5",
       "section": "12. Round three: the wagon night, Percy, the parts",
       "claim": "The fight: Amara and Willem take turns running for the horses; darkness goes up and the drivers scatter; alone in the yard, the others come out in round two",
-      "verdict": "",
-      "note": "R2 ? unclear: works, but plays out too fast to read what's happening - and I don't think we need the drivers- i.e. Amara and Willem were driving? — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "unclear",
+      "note": "works, but plays out too fast to read what's happening - and I don't think we need the drivers- i.e. Amara and Willem were driving?",
+      "at": "2026-09-25T18:11:11Z",
       "text_changed": false
     },
     {
       "id": "s12-6",
       "section": "12. Round three: the wagon night, Percy, the parts",
       "claim": "They escape: you run them down on the road, then a chase to the Tower at your own speed (catch them at the fork; don't follow Willem's false riders west). Into the Tower: the popup",
-      "verdict": "",
-      "note": "R2 too hard: can we hold their movement until the player touches a key/or 1.5 seconds (they take off a little too quick) — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "hard",
+      "note": "can we hold their movement until the player touches a key/or 1.5 seconds (they take off a little too quick)",
+      "at": "2026-09-25T18:13:53Z",
       "text_changed": false
     },
     {
       "id": "s12-7",
       "section": "12. Round three: the wagon night, Percy, the parts",
       "claim": "Killed in the yard: Doran takes the children to Newland; morning, Elsbeth's gift. Next visit after the chase: Doran gone, a girl out back, Elsbeth's gift and \"go see Winters\"",
-      "verdict": "",
-      "note": "R2 ? unclear: this worked, but you're standing in the Inn wake-up spot next to the inn lady and elsbeth is still over yonder, so it seems like it's the inn lady talking — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "unclear",
+      "note": "this worked, but you're standing in the Inn wake-up spot next to the inn lady and elsbeth is still over yonder, so it seems like it's the inn lady talking",
+      "at": "2026-09-25T19:01:00Z",
       "text_changed": false
     },
     {
@@ -647,18 +651,18 @@
       "id": "s12-9",
       "section": "12. Round three: the wagon night, Percy, the parts",
       "claim": "Kat the next day gives you her book (ITEM → READ); Androit takes it for renown. If she rode out, the book's in the drawer at the stair",
-      "verdict": "",
-      "note": "R2 ✗ broken: could not find book when Kat rode out — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "broken",
+      "note": "could not find book when Kat rode out",
+      "at": "2026-09-25T18:30:39Z",
       "text_changed": false
     },
     {
       "id": "s12-10",
       "section": "12. Round three: the wagon night, Percy, the parts",
       "claim": "A later night with the ring: the kept girl walks to the lake (or, if the wagon went on, next month's goblin)",
-      "verdict": "",
-      "note": "R2 — not tested — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "skip",
+      "note": "",
+      "at": "2026-09-25T18:27:03Z",
       "text_changed": false
     },
     {
@@ -684,7 +688,7 @@
       "section": "12. Round three: the wagon night, Percy, the parts",
       "claim": "Dancing Lights works in a fight now (shows the Keeper)",
       "verdict": "works",
-      "note": "R2: one use doesn't warrant it being included always - if i had be right about it being faerie fire and not confused, we should pull it - you were right the first time",
+      "note": "one use doesn't warrant it being included always - if i had be right about it being faerie fire and not confused, we should pull it - you were right the first time",
       "at": "2026-09-25T18:17:37Z",
       "text_changed": false
     },
@@ -737,9 +741,9 @@
       "id": "s13-5",
       "section": "13. Round three: the cradle, rebuilt",
       "claim": "Held past the red, or to the top: the feeler comes off the bar and rears up; CONSTITUTION SAVE DC 13 rolls on screen; with a draught taken, two dice, the higher kept",
-      "verdict": "",
-      "note": "R2 — not tested — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "skip",
+      "note": "",
+      "at": "2026-09-25T18:50:05Z",
       "text_changed": false
     },
     {
@@ -755,9 +759,9 @@
       "id": "s13-7",
       "section": "13. Round three: the cradle, rebuilt",
       "claim": "From the fourth draw the settle wears thin: the gold drifts, the animal twitches (the ring shivers first), its eyes brighten",
-      "verdict": "",
-      "note": "R2 too easy — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "easy",
+      "note": "",
+      "at": "2026-09-25T18:50:27Z",
       "text_changed": false
     },
     {
@@ -773,165 +777,167 @@
       "id": "s13-9",
       "section": "13. Round three: the cradle, rebuilt",
       "claim": "Phone: the scene sits exactly over the game screen, the A button holds and releases the squeeze, the d-pad picks feelers",
-      "verdict": "",
-      "note": "R2 — not tested — re-test (folded in eb5acac+afd376d)",
-      "at": "",
+      "verdict": "skip",
+      "note": "",
+      "at": "2026-09-25T18:50:48Z",
       "text_changed": false
     },
     {
       "id": "s13-10",
       "section": "13. Round three: the cradle, rebuilt",
       "claim": "Feel: is the gold fair for a +0 hand? Is the last draw's drift too wild? Does the crawler read as a crawler?",
-      "verdict": "",
-      "note": "R2: little cuter than necessary but reads crawler enough",
-      "at": "",
+      "verdict": "works",
+      "note": "little cuter than necessary but reads crawler enough ",
+      "at": "2026-09-25T21:22:07Z",
       "text_changed": false
     },
     {
       "id": "s14-1",
       "section": "14. Round four: the fold from the 09-25 ear-file",
       "claim": "HP: a level-up adds the whole hit die plus CON (Barley +13, Aurdin +6, Vivian +9, Lymen +12); a new game starts Barley 26 / Aurdin 12 / Vivian 18 / Lymen 24; an older save catches up on CONTINUE",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:22:15Z",
       "text_changed": false
     },
     {
       "id": "s14-2",
       "section": "14. Round four: the fold from the 09-25 ear-file",
       "claim": "The wagon comes in with no hired drivers: Amara has the reins, Willem beside her. The fight is the two of them, and each beat (the darkness, the break for the horses, cut off / away) waits for Z",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:22:20Z",
       "text_changed": false
     },
     {
       "id": "s14-3",
       "section": "14. Round four: the fold from the 09-25 ear-file",
       "claim": "Seeing through the glamour: the yard ripples for about three seconds with a violet cast, and the goblins are children when it settles",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:22:25Z",
       "text_changed": false
     },
     {
       "id": "s14-4",
       "section": "14. Round four: the fold from the 09-25 ear-file",
       "claim": "The chase to the Tower: the riders sit still until you touch a key (or a second and a half), then go",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:22:30Z",
       "text_changed": false
     },
     {
       "id": "s14-5",
       "section": "14. Round four: the fold from the 09-25 ear-file",
       "claim": "Morning after the yard fight: Elsbeth walks over from the kitchen before she speaks, then goes back to the tub",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:22:34Z",
       "text_changed": false
     },
     {
       "id": "s14-6",
       "section": "14. Round four: the fold from the 09-25 ear-file",
       "claim": "Kat rode out (the bribe): the morning line says her room stands open; step onto the stair for the drawer and her book",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:22:41Z",
       "text_changed": false
     },
     {
       "id": "s14-7",
       "section": "14. Round four: the fold from the 09-25 ear-file",
       "claim": "Winters: WORK hands you the first errand, the JOURNAL pins it and a line says how the pin works, and the talk ends (no return to the lifted pen). Only the second errand pays renown: one for the pair",
-      "verdict": "",
-      "note": "",
-      "at": "",
+      "verdict": "works",
+      "note": "when you've completed the part of the errand and go talk to him, that should come up before the menu - shouldn't have to select 'work' to get the next mission text if talking to him completes current mission step",
+      "at": "2026-09-25T21:27:12Z",
       "text_changed": false
     },
     {
       "id": "s14-8",
       "section": "14. Round four: the fold from the 09-25 ear-file",
       "claim": "Dancing Lights is gone from Aurdin's list (an older save drops it); Light or a torch still shows the Keeper",
-      "verdict": "",
+      "verdict": "skip",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:27:22Z",
       "text_changed": false
     },
     {
       "id": "s14-9",
       "section": "14. Round four: the fold from the 09-25 ear-file",
       "claim": "The cradle from the fourth draw: the gold narrows, drifts wider and faster, the twitches come oftener. A real fight by the sixth draw, without being unfair to a +0 hand?",
-      "verdict": "",
-      "note": "",
-      "at": "",
+      "verdict": "works",
+      "note": "good fun now",
+      "at": "2026-09-25T21:29:20Z",
       "text_changed": false
     },
     {
       "id": "s15-1",
       "section": "15. Round four, second pass: Griz's 09-25 asks",
       "claim": "The party is long-rested (HP, slots, Lay on Hands) before the wagon rolls in",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:29:27Z",
       "text_changed": false
     },
     {
       "id": "s15-2",
       "section": "15. Round four, second pass: Griz's 09-25 asks",
       "claim": "Aurdin wears Wizard's Robes (AC 11 + DEX) from the start; Vilar sells them; Winters' shelves have Robes +1; Mage Armor still works over robes; an older save's Aurdin has them on CONTINUE",
-      "verdict": "",
-      "note": "",
-      "at": "",
+      "verdict": "unclear",
+      "note": "make sure mage armor isn't working on armored allies if it isn't supposed to - ",
+      "at": "2026-09-25T21:30:11Z",
       "text_changed": false
     },
     {
       "id": "s15-3",
       "section": "15. Round four, second pass: Griz's 09-25 asks",
       "claim": "KEEP WATCH: Katarina goes in with the others before the lantern walk and rides out with the wagon at first light (the morning line says so); her book is in the drawer at the stair",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:30:22Z",
       "text_changed": false
     },
     {
       "id": "s15-4",
       "section": "15. Round four, second pass: Griz's 09-25 asks",
       "claim": "Steel comes out: Katarina is inside before the fight; the next day she gives you her book",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:30:26Z",
       "text_changed": false
     },
     {
       "id": "s15-5",
       "section": "15. Round four, second pass: Griz's 09-25 asks",
       "claim": "They flee: the chase first (the road dark, no doors or map edges until it ends), then back in the yard at night with a closing line, then the wagon, the strongbox, the children (+1 renown), Doran's drive, and the morning inside. The same whether you catch them on the road, at the fork, or they reach the Tower",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:34:41Z",
       "text_changed": false
     },
     {
       "id": "s15-6",
       "section": "15. Round four, second pass: Griz's 09-25 asks",
       "claim": "After Elsbeth says \"go and see Winters\": at his counter the lead says she sent you; under level 4 he says he's been watching the challenges make you greater, but you are not yet ready",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:37:54Z",
       "text_changed": false
     },
     {
       "id": "s15-7",
       "section": "15. Round four, second pass: Griz's 09-25 asks",
       "claim": "In Silverton, Vera the secondhand dealer says Androit pays for a real book; Kat's book to Androit pays as before",
-      "verdict": "",
+      "verdict": "works",
       "note": "",
-      "at": "",
+      "at": "2026-09-25T21:39:17Z",
       "text_changed": false
     }
   ],
-  "section_notes": {},
+  "section_notes": {
+    "15. Round four, second pass: Griz's 09-25 asks": "Aurdin is showing mage armor lvl 1 and scorching ray is showing as his only lvl 2 spell at lvl 3 (might be appropriate, but mage armor shows below) - should he be able to cast magic missile at lvl 2 by arrowing over at level 1 in the menu>?"
+  },
   "notes": ""
 }
