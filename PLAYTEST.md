@@ -166,5 +166,28 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] The works below: the Copperbottom smith (dwarven steel, splint, nothing magic), the cold smelters, the cupel-hearth, the assay house, the sealed mint, the empty treasury, the boarded trade hall, and the highway's gate (shut for now)
 - [ ] Music: a new hall theme in Solskaft, and a slow one in the Burial
 
+## 18. The dwarven expansion, part two: the highway (cap 9)
+
+- [ ] The cap: after the chuul, levels 6 to 9 open (14,000 / 23,000 / 34,000 / 48,000 XP). Before the chuul the game stays capped at 5
+- [ ] Barley 6 STR, 7 quicker off the mark, 8 CON (HP catches up), 9 Indomitable ("Barley shakes it off" on a failed save, once a day)
+- [ ] Aurdin 6 Acid Splash + Potent Cantrip, 7 Ice Storm and Greater Invisibility (4th-level slots), 8 INT and Stoneskin, 9 Cone of Cold and Hold Monster (5th)
+- [ ] Vivian 6 Expertise in Stealth and Deception, 7 Evasion, 8 DEX, 9 Supreme Sneak (hidden longer); Sneak Attack 4d6 at 7, 5d6 at 9. Her skills now grow when DEX does
+- [ ] Lymen 6 Aura of Protection (the party adds his CHA to saves while he stands; a small glint on everyone), 7 Aura of Devotion, 8 STR/CHA, 9 Revivify (needs a diamond) and Daylight
+- [ ] The gate in the works: the season musters, Brann and Hedda walk with you (unless the ledger doubts you), Ingrith's ledger-lamp, the gate goes up
+- [ ] Guests: Brann (axe) and Hedda (hammer and shield) fight behind the four on their own, with their own HP bars; knocked out, they sit out until the next lamp's rest
+- [ ] On the road: the dark, and the ledger-lamp's wider light; whole seals glow white along the walls, cut ones red; LAMP 1 · DAY 1 in the corner
+- [ ] Leg one: goblins, hobgoblins (worse with a friend beside them), worgs, bugbears (hard on the first round). The cut seal (red) opens on the goblins' camp: a bugbear chief, a hobgoblin sergeant and the rest. The truesilver seam in the cut edge
+- [ ] First Lamp: Ulf Silversands and his troopers; the day ends, you rest, a milestone, THE SECOND DAY
+- [ ] The Copperbottom smith re-hafts Barley's flail with the truesilver: THE WINNOWER (+2, and a critical hit knocks the target flat)
+- [ ] Leg two: the great cavern, the chasm either side. The causeway passes under a stalactite; with the ledger-lamp a Perception check shows it's a roper (fight it, or go round by the rim-path). Gricks, darkmantles, a gibbering mouther (the gibbering stuns, the spit blinds), a gelatinous cube you can see through
+- [ ] A new breach in the south wall (red, never sealed): a bulette comes up through the road and leaps on the party
+- [ ] Second Lamp: dark two seasons, you sleep there anyway; the roster on the slates; the black pudding in the drainage cut below (optional; it splits under slashing)
+- [ ] Leg three: duergar (they swell huge, or vanish), grimlocks, drow with poisoned bolts; a xorn eats its way out of the wall
+- [ ] Third Lamp, taken: the raid (a blade-captain, a spell-weaver throwing lightning and holds, five drow). GO IN, or CREEP UP FIRST (a group Stealth check: win it and the first round is yours). Win: Brann lights the lamp, the escorts stay to hold it, a big milestone, the road is held
+- [ ] The captain in the barrack-cut: the Greyseam knife (+2; a sneak attack with it poisons). Hedda has a line about it
+- [ ] Held lamps are warp points: the lamp-tower's menu (rest, back up to Solskaft, on to another held lamp); the gate's menu the same way down
+- [ ] Past Third Lamp: Deepholm's road (the next part)
+- [ ] Music: a new theme for the road
+
 ## Notes
 (write here)

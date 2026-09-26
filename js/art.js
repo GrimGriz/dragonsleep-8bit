@@ -918,6 +918,40 @@
     for (var y = 3; y < 13; y += 3) for (var x = (y % 2) * 2; x < 16; x += 4) p.rect(x, y, 3, 2, '#7a5a4a');
     p.line(4, 4, 12, 12, '#c83030'); p.line(12, 4, 4, 12, '#c83030');
   };
+  // --- the highway to Deepholm (spec §6)
+  function rawFace(p) { P.caveWall(p, DS.mulberry32(11), 0, 0, { downFloor: true }); }
+  P.lampTower = function (p, r, f) { // a station's lamp, lit: the road has a day's end here
+    P.caveFloor(p, r); p.ellipse(8, 14, 6, 1.6, '#2a221e');
+    p.rect(6, 5, 4, 10, '#44444e'); p.rect(6, 5, 1, 10, '#6e6e7a'); p.rect(4, 13, 8, 2, '#30303a');
+    p.rect(3, 0, 10, 6, '#26262e'); p.rect(4, 1, 8, 4, f & 1 ? '#F8E0A0' : '#F8C860'); p.rect(5, 2, 6, 2, '#FFF8E0'); p.rect(3, 0, 10, 1, '#6e6e7a');
+  };
+  P.lampTowerDark = function (p, r) { // a station's lamp, gone dark
+    P.caveFloor(p, r); p.ellipse(8, 14, 6, 1.6, '#2a221e');
+    p.rect(6, 5, 4, 10, '#3a3a44'); p.rect(4, 13, 8, 2, '#26262e');
+    p.rect(3, 0, 10, 6, '#1a1a20'); p.rect(4, 1, 8, 4, '#2a2a30'); p.set(6, 2, '#4a4a52'); p.set(10, 3, '#3a3a42');
+  };
+  P.sealWhole = function (p, r, f) { // a warranted wall across a small connection: dressed stone set in the raw, its rune whole
+    rawFace(p);
+    p.rect(2, 2, 12, 12, '#44444e'); p.frame(2, 2, 12, 12, '#26262e'); p.rect(3, 3, 10, 1, '#5a5a66');
+    var g = f & 1 ? '#B8C8E8' : '#8898B8'; p.ring(8, 8, 3, 3, g); p.set(8, 4, g); p.set(8, 12, g); p.set(4, 8, g); p.set(12, 8, g);
+  };
+  P.sealBroken = function (p, r) { // a warranted wall breached from the far side: the runes in pieces on the floor
+    P.caveFloor(p, r);
+    p.rect(0, 0, 2, 16, '#44444e'); p.rect(14, 0, 2, 16, '#44444e'); p.rect(2, 0, 3, 3, '#44444e'); p.rect(11, 0, 3, 4, '#44444e');
+    [[4, 10], [9, 12], [11, 7], [6, 14]].forEach(function (q) { p.rect(q[0], q[1], 2, 2, '#5a5a66'); p.set(q[0], q[1], '#8898B8'); });
+  };
+  P.vein = function (p, r, f) { // the seam the seals were driven through: truesilver in the rock
+    rawFace(p);
+    p.line(0, 11, 16, 5, '#8a8a9a', 2); p.line(3, 13, 12, 9, '#9a9aa8');
+    p.set(5, 9, f & 1 ? '#FFFFFF' : '#D8E0F0'); p.set(11, 6, f & 1 ? '#D8E0F0' : '#FFFFFF'); p.set(8, 8, '#C8D0E8');
+  };
+  P.chasm = function (p, r) { base(p, '#050508'); p.speckle(0, 0, 16, 16, '#0c0c14', 0.12, r); p.set(r() * 16 | 0, r() * 16 | 0, '#1a1a26'); };
+  P.rubble = function (p, r) { P.caveFloor(p, r); for (var i = 0; i < 6; i++) { var x = r() * 13 | 0, y = r() * 13 | 0; p.rect(x, y, 3, 2, '#6c5a4c'); p.set(x, y, '#8a7a6a'); } };
+  P.bodyCaptain = function (p, r) { // a garrison captain where the raid left him
+    P.dwarfFloor(p);
+    p.ellipse(8, 10, 6, 3, '#4a5058'); p.ellipse(7, 9, 5, 2, '#5a6068'); p.ellipse(3, 9, 2, 2, '#d8a078'); p.rect(1, 8, 2, 3, '#6a3a1a');
+    p.rect(9, 11, 5, 1, '#d8d8e8'); p.set(13, 11, '#6a4a8a'); p.rect(4, 13, 6, 1, '#5a1a1a');
+  };
   P.portcullisUp = function (p) { // raised into the old ore-chute: a dark slot overhead and the iron teeth just showing
     dwFloor(p);
     p.rect(0, 6, 16, 4, '#1a1a20'); p.rect(0, 6, 16, 1, '#30303a');
@@ -954,7 +988,9 @@
     vaultIn: { pass: 1, vars: 1 }, throne: { pass: 0, vars: 1 }, oathStone: { pass: 0, vars: 1 }, nameWall: { pass: 0, vars: 3 }, anvil: { pass: 0, vars: 1 },
     forge: { pass: 0, anim: 2, vars: 1 }, furnace: { pass: 0, vars: 1 }, cupel: { pass: 0, vars: 1 }, scales: { pass: 0, talk: 1, vars: 1 }, dcounter: { pass: 0, talk: 1, vars: 1 }, dtable: { pass: 0, vars: 1 }, lockCase: { pass: 0, vars: 1 },
     rack: { pass: 0, vars: 1 }, vat: { pass: 0, vars: 1 }, smokeRack: { pass: 0, vars: 1 }, boarded: { pass: 0, vars: 1 }, ledgerDesk: { pass: 0, talk: 1, vars: 1 },
-    tariff: { pass: 0, vars: 1 }, emptyCut: { pass: 0, vars: 1 }, portcullisUp: { pass: 1, vars: 1 }, shaftTop: { pass: 0, anim: 2, vars: 1 }, cot: { pass: 0, vars: 1 }, brick: { pass: 0, vars: 1 }
+    tariff: { pass: 0, vars: 1 }, emptyCut: { pass: 0, vars: 1 }, portcullisUp: { pass: 1, vars: 1 },
+    lampTower: { pass: 0, anim: 2, vars: 1 }, lampTowerDark: { pass: 0, vars: 1 }, sealWhole: { pass: 0, anim: 2, vars: 1 }, sealBroken: { pass: 1, vars: 1 }, vein: { pass: 0, anim: 2, vars: 1 },
+    chasm: { pass: 0 }, rubble: { pass: 1 }, bodyCaptain: { pass: 0, vars: 1 }, shaftTop: { pass: 0, anim: 2, vars: 1 }, cot: { pass: 0, vars: 1 }, brick: { pass: 0, vars: 1 }
   };
   var tileCache = {};
   // variant v, anim frame f, neighbour-key nk ('' when not auto)

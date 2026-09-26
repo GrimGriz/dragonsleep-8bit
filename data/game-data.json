@@ -172,6 +172,14 @@
     {
      "lvl": 5,
      "t": "Extra Attack"
+    },
+    {
+     "lvl": 7,
+     "t": "Remarkable Athlete (initiative)"
+    },
+    {
+     "lvl": 9,
+     "t": "Indomitable (reroll a failed save, once a day)"
     }
    ],
    "levels": {
@@ -182,6 +190,26 @@
      "asi": {
       "str": 2
      }
+    },
+    "6": {
+     "asi": {
+      "str": 2
+     }
+    },
+    "7": {
+     "feats": [
+      "Remarkable Athlete: quicker off the mark (initiative)."
+     ]
+    },
+    "8": {
+     "asi": {
+      "con": 2
+     }
+    },
+    "9": {
+     "feats": [
+      "Indomitable: once a day, a failed save is rolled again."
+     ]
     }
    },
    "note": "His true name is withheld by the law of the tongue.",
@@ -246,6 +274,10 @@
     },
     {
      "t": "School of Evocation"
+    },
+    {
+     "lvl": 6,
+     "t": "Potent Cantrip"
     }
    ],
    "levels": {
@@ -269,6 +301,34 @@
      "learn": [
       "fireball",
       "lightningbolt"
+     ]
+    },
+    "6": {
+     "learn": [
+      "acidsplash"
+     ],
+     "feats": [
+      "Potent Cantrip: a foe who saves against a cantrip still takes half."
+     ]
+    },
+    "7": {
+     "learn": [
+      "icestorm",
+      "greaterinvisibility"
+     ]
+    },
+    "8": {
+     "asi": {
+      "int": 2
+     },
+     "learn": [
+      "stoneskin"
+     ]
+    },
+    "9": {
+     "learn": [
+      "coneofcold",
+      "holdmonster"
      ]
     }
    },
@@ -347,6 +407,18 @@
     {
      "lvl": 5,
      "t": "Uncanny Dodge"
+    },
+    {
+     "lvl": 6,
+     "t": "Expertise: Stealth, Deception"
+    },
+    {
+     "lvl": 7,
+     "t": "Evasion"
+    },
+    {
+     "lvl": 9,
+     "t": "Supreme Sneak (hidden lasts longer)"
     }
    ],
    "levels": {
@@ -357,6 +429,27 @@
      "asi": {
       "dex": 2
      }
+    },
+    "6": {
+     "expertise": [
+      "Stealth",
+      "Deception"
+     ]
+    },
+    "7": {
+     "feats": [
+      "Evasion: a DEX save for half takes none, and a failed one takes half."
+     ]
+    },
+    "8": {
+     "asi": {
+      "dex": 2
+     }
+    },
+    "9": {
+     "feats": [
+      "Supreme Sneak: she stays hidden longer."
+     ]
     }
    },
    "archetypes": [
@@ -375,6 +468,10 @@
    "src": [
     "rogue-vivian.md",
     "wiki/vivian.md"
+   ],
+   "expertise": [
+    "Sleight of Hand",
+    "Perception"
    ],
    "id": "vivian"
   },
@@ -443,6 +540,14 @@
     {
      "lvl": 5,
      "t": "Extra Attack"
+    },
+    {
+     "lvl": 6,
+     "t": "Aura of Protection (+CHA to the party's saves)"
+    },
+    {
+     "lvl": 7,
+     "t": "Aura of Devotion (no charm)"
     }
    ],
    "levels": {
@@ -466,6 +571,28 @@
       "lesserrestoration",
       "aid"
      ]
+    },
+    "6": {
+     "feats": [
+      "Aura of Protection: while Lymen stands, the party adds his CHA to saves."
+     ]
+    },
+    "7": {
+     "feats": [
+      "Aura of Devotion: the party cannot be charmed."
+     ]
+    },
+    "8": {
+     "asi": {
+      "str": 1,
+      "cha": 1
+     }
+    },
+    "9": {
+     "learn": [
+      "revivify",
+      "daylight"
+     ]
     }
    },
    "note": "The Urtusk family is Griz's. The sheet reads AC 18; the rules make it 19 (flagged).",
@@ -475,6 +602,95 @@
     "wiki/the-urtusks.md"
    ],
    "id": "lymen"
+  },
+  "brann": {
+   "name": "Brann",
+   "fullName": "Brann Silversands",
+   "guest": true,
+   "cls": "fighter",
+   "level": 5,
+   "race": "Dwarf",
+   "background": "Garrison",
+   "abil": {
+    "str": 16,
+    "dex": 13,
+    "con": 14,
+    "int": 10,
+    "wis": 11,
+    "cha": 10
+   },
+   "hp": 58,
+   "equip": {
+    "weapon": "battleaxe",
+    "armor": "splint",
+    "shield": null,
+    "ring": null
+   },
+   "saveProf": [
+    "str",
+    "con"
+   ],
+   "skills": {
+    "Athletics": 5,
+    "Perception": 2
+   },
+   "look": "brann",
+   "weaponArt": "axe",
+   "attacks": 2,
+   "resist": [
+    "poison"
+   ],
+   "levels": {},
+   "featText": [],
+   "classLine": "Garrison, second season",
+   "blurb": "Young; the last of a family the highway wiped out at Third Lamp.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (the escorts: veteran stat block AC 17 HP 58, dwarf traits); §6.2 (guests); names PROPOSED",
+   "id": "brann"
+  },
+  "hedda": {
+   "name": "Hedda",
+   "fullName": "Hedda Greyseam",
+   "guest": true,
+   "cls": "fighter",
+   "level": 5,
+   "race": "Dwarf",
+   "background": "Garrison",
+   "abil": {
+    "str": 16,
+    "dex": 12,
+    "con": 14,
+    "int": 11,
+    "wis": 13,
+    "cha": 10
+   },
+   "hp": 58,
+   "equip": {
+    "weapon": "warhammer",
+    "armor": "chainmail",
+    "shield": "shield",
+    "ring": null
+   },
+   "saveProf": [
+    "str",
+    "con"
+   ],
+   "skills": {
+    "Athletics": 5,
+    "Perception": 3,
+    "Insight": 3
+   },
+   "look": "hedda",
+   "weaponArt": "hammer",
+   "attacks": 2,
+   "resist": [
+    "poison"
+   ],
+   "levels": {},
+   "featText": [],
+   "classLine": "Garrison, longer than most",
+   "blurb": "A Greyseam in the garrison. Her orders end at Third Lamp.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (the escorts); §6.2 (guests); names PROPOSED",
+   "id": "hedda"
   }
  },
  "items": {
@@ -1742,6 +1958,73 @@
    "desc": "1d4 bludgeoning. Light. Dwarven-made.",
    "src": "SRD 5.1 (Light Hammer); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.5",
    "id": "lighthammer"
+  },
+  "ledgerlamp": {
+   "name": "Ledger-Lamp",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "A dwarven lamp under warranty, from Ingrith. It lights further than a torch, and shows the road's seals: white where whole, red where cut.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (the ledgerlamp key item)",
+   "id": "ledgerlamp"
+  },
+  "truesilver": {
+   "name": "Truesilver Lump",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "A fist of truesilver ore from the seam in the First Lamp seal. The smith will want it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3, §8; wiki/deepholm-and-the-edifice.md (truesilver, the mithral precursor)",
+   "id": "truesilver"
+  },
+  "winnower": {
+   "name": "The Winnower",
+   "kind": "weapon",
+   "price": 0,
+   "noSell": true,
+   "weapon": {
+    "dmg": "1d10",
+    "type": "bludgeoning",
+    "group": "martial",
+    "props": [
+     "heavy",
+     "two-handed"
+    ],
+    "bonus": 2,
+    "onCrit": "prone"
+   },
+   "desc": "Barley's threshing flail, a truesilver head on it. +2. A critical hit knocks the target flat.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8 (Barley: flail +2; on a critical hit the target is knocked prone); invented.json#four-items",
+   "id": "winnower"
+  },
+  "greyseamknife": {
+   "name": "Greyseam Knife",
+   "kind": "weapon",
+   "price": 0,
+   "noSell": true,
+   "weapon": {
+    "dmg": "1d4",
+    "type": "piercing",
+    "group": "simple",
+    "kind": "dagger",
+    "props": [
+     "finesse",
+     "light"
+    ],
+    "bonus": 2,
+    "sneakPoison": 13
+   },
+   "desc": "A sect blade, ward-knotted, not garrison issue. +2. A sneak attack with it poisons (CON 13).",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8 (Vivian: dagger +2; a hit with Sneak Attack poisons, CON DC 13); invented.json#four-items",
+   "id": "greyseamknife"
+  },
+  "diamond": {
+   "name": "Diamond",
+   "kind": "tool",
+   "price": 3000,
+   "desc": "Worth three hundred gold. Revivify burns one.",
+   "src": "SRD 5.1 (Revivify, a diamond worth 300 gp); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9 (Dagny sells one)",
+   "id": "diamond"
   }
  },
  "spells": {
@@ -2048,6 +2331,118 @@
    "desc": "Attack; on a hit spend a slot for +2d8 radiant (3d8 from a 2nd-level slot; +1d8 vs undead or fiends).",
    "src": "SRD 5.1 (Paladin: Divine Smite)",
    "id": "smite"
+  },
+  "acidsplash": {
+   "name": "Acid Splash",
+   "level": 0,
+   "kind": "save",
+   "save": "dex",
+   "dmg": "1d6",
+   "scale": {
+    "5": "2d6"
+   },
+   "el": "acid",
+   "target": "cone",
+   "max": 2,
+   "battle": true,
+   "sfx": "hit",
+   "desc": "Cantrip. A bubble of acid on up to two foes: DEX save or 2d6 acid.",
+   "src": "SRD 5.1",
+   "id": "acidsplash"
+  },
+  "icestorm": {
+   "name": "Ice Storm",
+   "level": 4,
+   "kind": "save",
+   "save": "dex",
+   "half": true,
+   "dmg": "2d8",
+   "el": "bludgeoning",
+   "dmg2": "4d6",
+   "el2": "cold",
+   "upDice": 1,
+   "target": "enemies",
+   "battle": true,
+   "sfx": "crit",
+   "desc": "Hail on every foe: 2d8 bludgeoning and 4d6 cold, DEX half.",
+   "src": "SRD 5.1",
+   "id": "icestorm"
+  },
+  "greaterinvisibility": {
+   "name": "Greater Invisibility",
+   "level": 4,
+   "kind": "buff",
+   "buff": "invisible",
+   "target": "ally",
+   "battle": true,
+   "desc": "An ally turns invisible: attacks on it at disadvantage, its attacks at advantage, for the fight.",
+   "src": "SRD 5.1 (Greater Invisibility)",
+   "id": "greaterinvisibility"
+  },
+  "stoneskin": {
+   "name": "Stoneskin",
+   "level": 4,
+   "kind": "buff",
+   "buff": "stoneskin",
+   "target": "ally",
+   "battle": true,
+   "desc": "An ally's skin turns stone-hard: half damage from mundane blows, for the fight.",
+   "src": "SRD 5.1",
+   "id": "stoneskin"
+  },
+  "coneofcold": {
+   "name": "Cone of Cold",
+   "level": 5,
+   "kind": "save",
+   "save": "con",
+   "half": true,
+   "dmg": "8d8",
+   "upDice": 1,
+   "el": "cold",
+   "target": "cone",
+   "battle": true,
+   "sfx": "magic",
+   "desc": "8d8 cold to up to three foes, CON half.",
+   "src": "SRD 5.1",
+   "id": "coneofcold"
+  },
+  "holdmonster": {
+   "name": "Hold Monster",
+   "level": 5,
+   "kind": "save",
+   "save": "wis",
+   "cond": "paralyzed",
+   "rounds": 10,
+   "repeat": true,
+   "el": "force",
+   "target": "enemy",
+   "battle": true,
+   "sfx": "magic",
+   "desc": "Any creature: WIS save or paralyzed. It saves again at the end of each turn.",
+   "src": "SRD 5.1",
+   "id": "holdmonster"
+  },
+  "revivify": {
+   "name": "Revivify",
+   "level": 3,
+   "kind": "revive",
+   "target": "revive",
+   "battle": true,
+   "field": true,
+   "desc": "A fallen ally is back up at 1 HP. Burns a diamond worth 300 gp.",
+   "src": "SRD 5.1 (Revivify; paladin 9, spec §9)",
+   "id": "revivify"
+  },
+  "daylight": {
+   "name": "Daylight",
+   "level": 3,
+   "kind": "light",
+   "target": "self",
+   "battle": true,
+   "field": true,
+   "desc": "A sphere of daylight. Things that hate light, hate it more.",
+   "src": "SRD 5.1 (Daylight; spec §9: the Sunshaft's own spell)",
+   "id": "daylight"
   }
  },
  "monsters": {
@@ -4095,6 +4490,808 @@
    "src": "SRD 5.1 (Thug); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (two crewmen, thugs)",
    "id": "crewman",
    "xp": 100
+  },
+  "goblin": {
+   "name": "Goblin",
+   "art": "goblin",
+   "cr": "1/4",
+   "ac": 15,
+   "hp": 7,
+   "abil": {
+    "str": 8,
+    "dex": 14,
+    "con": 10,
+    "int": 10,
+    "wis": 8,
+    "cha": 8
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "attacks": {
+    "scimitar": {
+     "name": "Scimitar",
+     "hit": 4,
+     "dmg": "1d6+2",
+     "type": "slashing",
+     "verb": "cuts"
+    }
+   },
+   "silver": "1d6",
+   "src": "SRD 5.1 (Goblin); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "goblin",
+   "xp": 50
+  },
+  "hobgoblin": {
+   "name": "Hobgoblin",
+   "art": "hobgoblin",
+   "cr": "1/2",
+   "ac": 18,
+   "hp": 11,
+   "abil": {
+    "str": 13,
+    "dex": 12,
+    "con": 12,
+    "int": 10,
+    "wis": 10,
+    "cha": 9
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "attacks": {
+    "longsword": {
+     "name": "Longsword",
+     "hit": 3,
+     "dmg": "1d8+1",
+     "type": "slashing",
+     "verb": "cuts",
+     "martial": "2d6"
+    }
+   },
+   "silver": "2d6",
+   "src": "SRD 5.1 (Hobgoblin, Martial Advantage); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "hobgoblin",
+   "xp": 100
+  },
+  "bugbear": {
+   "name": "Bugbear",
+   "art": "bugbear",
+   "cr": "1",
+   "ac": 16,
+   "hp": 27,
+   "abil": {
+    "str": 15,
+    "dex": 14,
+    "con": 13,
+    "int": 8,
+    "wis": 11,
+    "cha": 9
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "attacks": {
+    "morningstar": {
+     "name": "Morningstar",
+     "hit": 4,
+     "dmg": "2d8+2",
+     "type": "piercing",
+     "verb": "smashes",
+     "firstRound": "2d6"
+    }
+   },
+   "silver": "2d6",
+   "src": "SRD 5.1 (Bugbear, Surprise Attack as the first round); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "bugbear",
+   "xp": 200
+  },
+  "bugbearchief": {
+   "short": "Chief",
+   "name": "Bugbear Chief",
+   "art": "bugbear",
+   "tint": "#5a2a1a",
+   "cr": "3",
+   "ac": 17,
+   "hp": 65,
+   "abil": {
+    "str": 17,
+    "dex": 14,
+    "con": 14,
+    "int": 11,
+    "wis": 12,
+    "cha": 11
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "attacks": {
+    "morningstar": {
+     "name": "Morningstar",
+     "hit": 5,
+     "dmg": "2d8+3",
+     "type": "piercing",
+     "verb": "smashes",
+     "firstRound": "2d6"
+    }
+   },
+   "multi": [
+    "morningstar",
+    "morningstar"
+   ],
+   "silver": "4d6+10",
+   "src": "game-original from SRD 5.1 pieces (Bugbear + two attacks, more HP; the chief is not in the SRD) invented.json#highway-ladder; handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "bugbearchief",
+   "xp": 700
+  },
+  "hobsergeant": {
+   "short": "Sergeant",
+   "name": "Hobgoblin Sgt.",
+   "art": "hobgoblin",
+   "tint": "#8a2a1a",
+   "cr": "3",
+   "ac": 18,
+   "hp": 39,
+   "abil": {
+    "str": 15,
+    "dex": 14,
+    "con": 14,
+    "int": 12,
+    "wis": 10,
+    "cha": 13
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "attacks": {
+    "longsword": {
+     "name": "Longsword",
+     "hit": 5,
+     "dmg": "1d8+2",
+     "type": "slashing",
+     "verb": "cuts",
+     "martial": "2d6"
+    }
+   },
+   "multi": [
+    "longsword",
+    "longsword"
+   ],
+   "silver": "3d6+10",
+   "src": "game-original from SRD 5.1 pieces (Hobgoblin + Veteran; the hobgoblin captain is not in the SRD) invented.json#highway-ladder; handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "hobsergeant",
+   "xp": 700
+  },
+  "grick": {
+   "name": "Grick",
+   "art": "grick",
+   "cr": "2",
+   "ac": 14,
+   "hp": 27,
+   "abil": {
+    "str": 14,
+    "dex": 14,
+    "con": 11,
+    "int": 3,
+    "wis": 14,
+    "cha": 5
+   },
+   "tags": [
+    "monstrosity"
+   ],
+   "resist": [
+    "mundane"
+   ],
+   "attacks": {
+    "tentacles": {
+     "name": "Tentacles",
+     "hit": 4,
+     "dmg": "2d6+2",
+     "type": "slashing",
+     "verb": "lashes"
+    },
+    "beak": {
+     "name": "Beak",
+     "hit": 4,
+     "dmg": "1d6+2",
+     "type": "piercing",
+     "verb": "bites"
+    }
+   },
+   "multi": [
+    "tentacles",
+    "beak"
+   ],
+   "silver": "0",
+   "src": "SRD 5.1 (Grick; resistant to nonmagical blows); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "grick",
+   "xp": 450
+  },
+  "mouther": {
+   "short": "Mouther",
+   "name": "Gibbering Mouther",
+   "art": "mouther",
+   "cr": "2",
+   "ac": 9,
+   "hp": 67,
+   "abil": {
+    "str": 10,
+    "dex": 8,
+    "con": 16,
+    "int": 3,
+    "wis": 10,
+    "cha": 6
+   },
+   "tags": [
+    "aberration"
+   ],
+   "condImmune": [
+    "prone"
+   ],
+   "pickSpecial": true,
+   "attacks": {
+    "bites": {
+     "name": "Bites",
+     "hit": 2,
+     "dmg": "5d6",
+     "type": "piercing",
+     "verb": "bites all over"
+    }
+   },
+   "specials": [
+    {
+     "id": "gibber",
+     "kind": "blast",
+     "chance": 0.45,
+     "text": "gibbers, a hundred mouths at once. Minds slip.",
+     "save": "wis",
+     "dc": 10,
+     "targets": "all",
+     "cond": "stunned",
+     "rounds": 1,
+     "condText": "Lost for a moment!"
+    },
+    {
+     "id": "spittle",
+     "kind": "curse",
+     "recharge": 5,
+     "text": "spits a gob of something that flashes on {t}.",
+     "save": "dex",
+     "dc": 13,
+     "cond": "blinded",
+     "rounds": 1
+    }
+   ],
+   "silver": "0",
+   "src": "SRD 5.1 (Gibbering Mouther: Gibbering as a WIS 10 stun, Blinding Spittle); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "mouther",
+   "xp": 450
+  },
+  "cube": {
+   "short": "Cube",
+   "name": "Gelatinous Cube",
+   "art": "cube",
+   "cr": "2",
+   "ac": 6,
+   "hp": 84,
+   "abil": {
+    "str": 14,
+    "dex": 3,
+    "con": 20,
+    "int": 1,
+    "wis": 6,
+    "cha": 1
+   },
+   "tags": [
+    "ooze"
+   ],
+   "condImmune": [
+    "blinded",
+    "frightened",
+    "prone",
+    "asleep"
+   ],
+   "traits": {
+    "unseen": true
+   },
+   "attacks": {
+    "engulf": {
+     "name": "Engulf",
+     "hit": 4,
+     "dmg": "3d6",
+     "type": "acid",
+     "verb": "rolls over",
+     "engulf": 12
+    },
+    "digest": {
+     "name": "Digest",
+     "hit": 4,
+     "dmg": "6d6",
+     "type": "acid",
+     "verb": "dissolves",
+     "needsHeld": true,
+     "autoHitHeld": true
+    }
+   },
+   "multi": [
+    "engulf",
+    "digest"
+   ],
+   "silver": "3d6",
+   "src": "SRD 5.1 (Gelatinous Cube: transparent, engulf, 6d6 acid inside); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "cube",
+   "xp": 450
+  },
+  "pudding": {
+   "short": "Pudding",
+   "name": "Black Pudding",
+   "art": "pudding",
+   "cr": "4",
+   "ac": 7,
+   "hp": 85,
+   "abil": {
+    "str": 16,
+    "dex": 5,
+    "con": 16,
+    "int": 1,
+    "wis": 6,
+    "cha": 1
+   },
+   "tags": [
+    "ooze"
+   ],
+   "immune": [
+    "acid",
+    "cold",
+    "lightning",
+    "slashing"
+   ],
+   "condImmune": [
+    "blinded",
+    "frightened",
+    "prone",
+    "asleep"
+   ],
+   "traits": {
+    "split": true
+   },
+   "attacks": {
+    "pseudopod": {
+     "name": "Pseudopod",
+     "hit": 5,
+     "dmg": "1d6+3",
+     "type": "bludgeoning",
+     "verb": "slams",
+     "extra": "4d8",
+     "extraType": "acid"
+    }
+   },
+   "silver": "0",
+   "src": "SRD 5.1 (Black Pudding: splits under slashing and lightning); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder); §10-5 (the thing in the drainage cut)",
+   "id": "pudding",
+   "xp": 1100
+  },
+  "roper": {
+   "name": "Roper",
+   "art": "roper",
+   "cr": "5",
+   "ac": 20,
+   "hp": 93,
+   "abil": {
+    "str": 18,
+    "dex": 8,
+    "con": 17,
+    "int": 7,
+    "wis": 16,
+    "cha": 6
+   },
+   "tags": [
+    "monstrosity"
+   ],
+   "traits": {
+    "unseen": true
+   },
+   "condImmune": [
+    "prone"
+   ],
+   "attacks": {
+    "tendril": {
+     "name": "Tendril",
+     "hit": 7,
+     "dmg": "0",
+     "type": "bludgeoning",
+     "verb": "snakes a tendril around",
+     "grapple": {
+      "dc": 15,
+      "max": 2,
+      "restrain": true
+     }
+    },
+    "bite": {
+     "name": "Bite",
+     "hit": 7,
+     "dmg": "4d8+4",
+     "type": "piercing",
+     "verb": "bites"
+    }
+   },
+   "multi": [
+    "tendril",
+    "tendril",
+    "bite"
+   ],
+   "silver": "0",
+   "src": "SRD 5.1 (Roper: false appearance, grappling tendrils, bite); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (the roper at the fork)",
+   "id": "roper",
+   "xp": 1800
+  },
+  "bulette": {
+   "name": "Bulette",
+   "art": "bulette",
+   "cr": "5",
+   "ac": 17,
+   "hp": 94,
+   "abil": {
+    "str": 19,
+    "dex": 11,
+    "con": 21,
+    "int": 2,
+    "wis": 10,
+    "cha": 5
+   },
+   "tags": [
+    "monstrosity"
+   ],
+   "attacks": {
+    "bite": {
+     "name": "Bite",
+     "hit": 7,
+     "dmg": "4d12+4",
+     "type": "piercing",
+     "verb": "bites"
+    }
+   },
+   "specials": [
+    {
+     "id": "leap",
+     "kind": "blast",
+     "recharge": 5,
+     "chance": 0.5,
+     "text": "leaps and comes down on the party like a falling wall!",
+     "save": "dex",
+     "dc": 16,
+     "dmg": "6d6",
+     "type": "bludgeoning",
+     "half": true,
+     "targets": 2,
+     "cond": "prone",
+     "condText": "Flattened!"
+    }
+   ],
+   "silver": "0",
+   "src": "SRD 5.1 (Bulette, Deadly Leap); stands in for the spec's umber hulk, which is not in the SRD 5.1: the thing that digs new connections (invented.json#highway-ladder); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "bulette",
+   "xp": 1800
+  },
+  "duergar": {
+   "name": "Duergar",
+   "art": "duergar",
+   "cr": "1",
+   "ac": 16,
+   "hp": 26,
+   "abil": {
+    "str": 14,
+    "dex": 11,
+    "con": 14,
+    "int": 11,
+    "wis": 10,
+    "cha": 9
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "resist": [
+    "poison"
+   ],
+   "traits": {
+    "lightSensitive": true
+   },
+   "pickSpecial": true,
+   "attacks": {
+    "warpick": {
+     "name": "War Pick",
+     "hit": 4,
+     "dmg": "1d8+2",
+     "type": "piercing",
+     "verb": "picks at",
+     "big": "2d8+2"
+    }
+   },
+   "specials": [
+    {
+     "id": "enlarge",
+     "kind": "self",
+     "once": true,
+     "chance": 0.4,
+     "enlarge": true,
+     "text": "swells to twice its size!"
+    },
+    {
+     "id": "invis",
+     "kind": "self",
+     "once": true,
+     "cond": "invisible",
+     "rounds": 2,
+     "text": "fades out of sight."
+    }
+   ],
+   "silver": "2d6+4",
+   "src": "SRD 5.1 (Duergar: Enlarge, Invisibility, sunlight sensitivity); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "duergar",
+   "xp": 200
+  },
+  "grimlock": {
+   "name": "Grimlock",
+   "art": "grimlock",
+   "cr": "1/4",
+   "ac": 11,
+   "hp": 11,
+   "abil": {
+    "str": 16,
+    "dex": 12,
+    "con": 12,
+    "int": 9,
+    "wis": 8,
+    "cha": 6
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "condImmune": [
+    "blinded"
+   ],
+   "attacks": {
+    "club": {
+     "name": "Spiked Bone Club",
+     "hit": 5,
+     "dmg": "1d4+3",
+     "type": "bludgeoning",
+     "verb": "clubs",
+     "extra": "1d4",
+     "extraType": "piercing"
+    }
+   },
+   "silver": "1d4",
+   "src": "SRD 5.1 (Grimlock); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "grimlock",
+   "xp": 50
+  },
+  "xorn": {
+   "name": "Xorn",
+   "art": "xorn",
+   "cr": "5",
+   "ac": 19,
+   "hp": 73,
+   "abil": {
+    "str": 17,
+    "dex": 10,
+    "con": 22,
+    "int": 11,
+    "wis": 10,
+    "cha": 11
+   },
+   "tags": [
+    "elemental"
+   ],
+   "resist": [
+    "mundane"
+   ],
+   "attacks": {
+    "claw": {
+     "name": "Claw",
+     "hit": 6,
+     "dmg": "1d6+3",
+     "type": "slashing",
+     "verb": "rakes"
+    },
+    "bite": {
+     "name": "Bite",
+     "hit": 6,
+     "dmg": "3d6+3",
+     "type": "piercing",
+     "verb": "bites"
+    }
+   },
+   "multi": [
+    "claw",
+    "claw",
+    "claw",
+    "bite"
+   ],
+   "silver": "5d6",
+   "src": "SRD 5.1 (Xorn; its resistance read as all mundane blows) invented.json#highway-ladder; handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (a xorn in the wall)",
+   "id": "xorn",
+   "xp": 1800
+  },
+  "drow": {
+   "name": "Drow",
+   "art": "drow",
+   "cr": "1/4",
+   "ac": 15,
+   "hp": 13,
+   "abil": {
+    "str": 10,
+    "dex": 14,
+    "con": 10,
+    "int": 11,
+    "wis": 11,
+    "cha": 12
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "traits": {
+    "lightSensitive": true
+   },
+   "attacks": {
+    "shortsword": {
+     "name": "Shortsword",
+     "hit": 4,
+     "dmg": "1d6+2",
+     "type": "piercing",
+     "verb": "stabs"
+    },
+    "crossbow": {
+     "name": "Hand Crossbow",
+     "hit": 4,
+     "dmg": "1d6+2",
+     "type": "piercing",
+     "verb": "shoots",
+     "ranged": true,
+     "save": {
+      "ab": "con",
+      "dc": 13,
+      "cond": "poisoned",
+      "rounds": 10,
+      "repeat": true,
+      "poison": true
+     }
+    }
+   },
+   "choose": [
+    [
+     "shortsword"
+    ],
+    [
+     "crossbow"
+    ]
+   ],
+   "specials": [
+    {
+     "id": "darkness",
+     "once": true,
+     "chance": 0.2
+    }
+   ],
+   "silver": "2d6",
+   "src": "SRD 5.1 (Drow: poisoned bolts, innate darkness, sunlight sensitivity); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (the underdark's raid)",
+   "id": "drow",
+   "xp": 50
+  },
+  "drowcaptain": {
+   "short": "Captain",
+   "name": "Drow Blade-Captain",
+   "art": "drowcaptain",
+   "cr": "5",
+   "ac": 18,
+   "hp": 71,
+   "abil": {
+    "str": 13,
+    "dex": 18,
+    "con": 14,
+    "int": 11,
+    "wis": 13,
+    "cha": 12
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "traits": {
+    "lightSensitive": true
+   },
+   "attacks": {
+    "shortsword": {
+     "name": "Shortsword",
+     "hit": 7,
+     "dmg": "1d6+4",
+     "type": "piercing",
+     "verb": "cuts",
+     "extra": "2d6",
+     "extraType": "poison"
+    }
+   },
+   "multi": [
+    "shortsword",
+    "shortsword"
+   ],
+   "specials": [
+    {
+     "id": "darkness",
+     "once": true,
+     "chance": 0.3
+    }
+   ],
+   "silver": "6d6+20",
+   "src": "game-original from SRD 5.1 pieces (Drow + Gladiator numbers; the drow elite warrior is not in the SRD) invented.json#highway-ladder; handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "drowcaptain",
+   "xp": 1800
+  },
+  "spellweaver": {
+   "short": "Weaver",
+   "name": "Drow Spell-Weaver",
+   "art": "spellweaver",
+   "cr": "6",
+   "ac": 12,
+   "hp": 45,
+   "abil": {
+    "str": 9,
+    "dex": 14,
+    "con": 11,
+    "int": 17,
+    "wis": 12,
+    "cha": 11
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "traits": {
+    "lightSensitive": true
+   },
+   "pickSpecial": true,
+   "attacks": {
+    "firebolt": {
+     "name": "Fire Bolt",
+     "hit": 6,
+     "dmg": "2d10",
+     "type": "fire",
+     "verb": "burns",
+     "ranged": true
+    }
+   },
+   "specials": [
+    {
+     "id": "boltstorm",
+     "kind": "blast",
+     "recharge": 5,
+     "chance": 0.5,
+     "text": "draws the dark into a line of lightning!",
+     "save": "dex",
+     "dc": 14,
+     "dmg": "8d6",
+     "type": "lightning",
+     "half": true,
+     "targets": 3
+    },
+    {
+     "id": "hold",
+     "kind": "curse",
+     "once": true,
+     "text": "closes a hand, and {t} locks where they stand.",
+     "save": "wis",
+     "dc": 14,
+     "cond": "paralyzed",
+     "rounds": 10,
+     "repeat": true
+    },
+    {
+     "id": "darkness",
+     "once": true
+    }
+   ],
+   "silver": "4d6+20",
+   "src": "game-original from SRD 5.1 pieces (the Mage: fire bolt, lightning bolt, hold person; the drow mage is not in the SRD) invented.json#highway-ladder; handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
+   "id": "spellweaver",
+   "xp": 2300
   }
  },
  "encounters": {
@@ -4691,6 +5888,204 @@
     }
    ],
    "id": "g3"
+  },
+  "hw1": {
+   "rate": [
+    16,
+    30
+   ],
+   "bg": "highway",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (leg one: goblins and such)",
+   "groups": [
+    {
+     "w": 4,
+     "e": [
+      [
+       "goblin",
+       3,
+       5
+      ]
+     ]
+    },
+    {
+     "w": 3,
+     "e": [
+      [
+       "goblin",
+       2,
+       3
+      ],
+      [
+       "hobgoblin",
+       1,
+       2
+      ]
+     ]
+    },
+    {
+     "w": 3,
+     "e": [
+      [
+       "hobgoblin",
+       2,
+       3
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "worg",
+       2,
+       3
+      ],
+      [
+       "goblin",
+       1,
+       2
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "bugbear",
+       1,
+       2
+      ],
+      [
+       "goblin",
+       1,
+       2
+      ]
+     ]
+    }
+   ],
+   "id": "hw1"
+  },
+  "hw2": {
+   "rate": [
+    16,
+    30
+   ],
+   "bg": "cavern",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (leg two: deep fauna)",
+   "groups": [
+    {
+     "w": 3,
+     "e": [
+      [
+       "grick",
+       1,
+       3
+      ]
+     ]
+    },
+    {
+     "w": 3,
+     "e": [
+      [
+       "darkmantle",
+       2,
+       4
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "cube",
+       1,
+       1
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "mouther",
+       1,
+       1
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "grick",
+       1,
+       2
+      ],
+      [
+       "darkmantle",
+       1,
+       2
+      ]
+     ]
+    }
+   ],
+   "id": "hw2"
+  },
+  "hw3": {
+   "rate": [
+    16,
+    30
+   ],
+   "bg": "highway",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (leg three: the underdark's skirmishes)",
+   "groups": [
+    {
+     "w": 4,
+     "e": [
+      [
+       "duergar",
+       2,
+       4
+      ]
+     ]
+    },
+    {
+     "w": 3,
+     "e": [
+      [
+       "grimlock",
+       3,
+       6
+      ]
+     ]
+    },
+    {
+     "w": 3,
+     "e": [
+      [
+       "drow",
+       2,
+       4
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "duergar",
+       1,
+       2
+      ],
+      [
+       "grimlock",
+       2,
+       3
+      ]
+     ]
+    }
+   ],
+   "id": "hw3"
   }
  },
  "shops": {
@@ -6385,6 +7780,85 @@
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 C; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
    "id": "smelterhand"
+  },
+  "ulf": {
+   "name": "Ulf Silversands",
+   "talk": [
+    {
+     "if": "flag:highwaySecured",
+     "say": [
+      "Three lamps lit in one season. I'll be telling that one when I'm under the tier."
+     ]
+    },
+    {
+     "say": [
+      "Ulf Silversands. First Lamp's mine, and the road back to the mouth.",
+      "Mind the cut seal back up the road. We keep patching it; they keep coming through."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4, §6.3 (the road-captain at First Lamp); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "ulf"
+  },
+  "lamp1a": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Forward post. We sleep in shifts and wake up counting."
+     ]
+    }
+   ],
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "lamp1a"
+  },
+  "lamp1b": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Second Lamp's been dark two seasons. Nobody will say why, which is its own answer."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "lamp1b"
+  },
+  "lamp1c": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "The cistern's good. Drink. The next one down tastes of the dark."
+     ]
+    }
+   ],
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "lamp1c"
+  },
+  "brannLamp": {
+   "name": "Brann Silversands",
+   "talk": [
+    {
+     "say": [
+      "I'm staying. It's lit. That's all I wanted."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 6; §10-6 (Brann's father's axe, M5); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "brannLamp"
+  },
+  "heddaLamp": {
+   "name": "Hedda Greyseam",
+   "talk": [
+    {
+     "say": [
+      "Our orders end here. Yours don't, it seems. Deepholm's door is a day on, at the end of the made road."
+     ]
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 6-7; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "heddaLamp"
   }
  },
  "text": {
@@ -8419,6 +9893,376 @@
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the second chance); drafted by the code tab, PROPOSED",
    "id": "deep.ingrithLedger2"
+  },
+  "deep.milestone": {
+   "t": "Each of you gains {n} XP. {why}",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9 (milestone XP at each lamp)",
+   "id": "deep.milestone"
+  },
+  "deep.mileLamp1": {
+   "t": "First Lamp, reached.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9",
+   "id": "deep.mileLamp1"
+  },
+  "deep.mileLamp2": {
+   "t": "Second Lamp, reached.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9",
+   "id": "deep.mileLamp2"
+  },
+  "deep.mileLamp3": {
+   "t": "Third Lamp, lit again.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9",
+   "id": "deep.mileLamp3"
+  },
+  "deep.roadMenuGate": {
+   "t": "The highway's mouth. Three lamps down the road.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.roadMenuGate"
+  },
+  "deep.roadMenuLamp": {
+   "t": "The lamp-station. A cot, a cistern, the road both ways.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.roadMenuLamp"
+  },
+  "deep.walkUp": {
+   "t": "You walk back up the lamps.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (a \"walk back up the lamps\" fade)",
+   "id": "deep.walkUp"
+  },
+  "deep.walkDown": {
+   "t": "Down the road, lamp to lamp.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2",
+   "id": "deep.walkDown"
+  },
+  "deep.musterCome": {
+   "t": "The season is mustered at the gate: a line of the garrison, a lamp on every third helm, and Ingrith's warrant nailed to the post.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.musterCome"
+  },
+  "deep.heddaOrders": {
+   "t": [
+    "Hedda Greyseam. Our orders are the three lamps. Hold the road, light what's dark, bring you back up it.",
+    "Past Third Lamp is Deepholm's road, and our orders end at the lamp."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Hedda: her orders end at Third Lamp); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.heddaOrders"
+  },
+  "deep.brannGo": {
+   "t": "Brann Silversands. I asked to go. My family fell at Third Lamp, and I'd like to see it lit.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Brann, the last of a family the highway wiped out at Third Lamp); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.brannGo"
+  },
+  "deep.guestsJoin": {
+   "t": "BRANN AND HEDDA WALK WITH YOU. They fight behind the four of you, their own way, and hold the road with you as far as Third Lamp.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (guests, RULED 09-26)",
+   "id": "deep.guestsJoin"
+  },
+  "deep.musterAlone": {
+   "t": "The Cleric's word is on the post: the ledger doubts you, so nobody walks with you. The road is yours alone.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the offer minus the escort); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.musterAlone"
+  },
+  "deep.ledgerlamp": {
+   "t": "Ingrith sent this down for you: a ledger-lamp, dwarven, under warranty. It lights further than a torch, and it shows the seals: white for a whole one, red where one's been cut.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (Ingrith's gift: the ledgerlamp key item, the surveyor's instrument of the road)",
+   "id": "deep.ledgerlamp"
+  },
+  "deep.gateOpens": {
+   "t": "The gate goes up into the rock. Past it, the road: dressed stone down the middle, raw cavern either side, and dark all the way down.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.1",
+   "id": "deep.gateOpens"
+  },
+  "deep.lamp1Arrive": {
+   "t": [
+    "First Lamp. Held. A lamp-tower burning, a cistern, a barrack-cut, eight of the garrison and their captain.",
+    "The day ends here."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (First Lamp is held by Ulf Silversands and eight troopers, the forward post)",
+   "id": "deep.lamp1Arrive"
+  },
+  "deep.ulf1": {
+   "t": [
+    "Ulf Silversands. The road is mine from here to Solskaft's mouth, for what that's worth this season.",
+    "Goblins came through a cut seal back up the road a month since. We threw them back. They didn't stay thrown."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (the road-captain, one of the four level-6s); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ulf1"
+  },
+  "deep.lamp1Brann": {
+   "t": "One lamp. Two to go.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.lamp1Brann"
+  },
+  "deep.lamp2Arrive": {
+   "t": [
+    "Second Lamp. Dark two seasons. The tower cold, the cistern still running, dust on the cots.",
+    "Ingrith's abandoned place you can sleep. The day ends here, in the dark."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (Second Lamp: dark, abandoned two seasons; the cistern still runs)",
+   "id": "deep.lamp2Arrive"
+  },
+  "deep.lamp2Brann": {
+   "t": "Nobody's lit it since the last watch. Nobody says why.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (the lamp declared unwarranted); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.lamp2Brann"
+  },
+  "deep.lamp2Hedda": {
+   "t": "Sleep. I'll sit up. I always do, here.",
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.lamp2Hedda"
+  },
+  "deep.day2": {
+   "t": "THE SECOND DAY",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (the day-clock)",
+   "id": "deep.day2"
+  },
+  "deep.day3": {
+   "t": "THE THIRD DAY",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2",
+   "id": "deep.day3"
+  },
+  "deep.day3End": {
+   "t": "Three lamps lit. The road down to Deepholm is held.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 5 (highwaySecured)",
+   "id": "deep.day3End"
+  },
+  "deep.lampLit": {
+   "t": "The lamp burns. Somebody keeps it full.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.lampLit"
+  },
+  "deep.lamp2Dark": {
+   "t": "The lamp is dark. Its warranty lapsed two seasons back, and the ledger holds a debt on it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5",
+   "id": "deep.lamp2Dark"
+  },
+  "deep.cutSeal": {
+   "t": [
+    "A warranted wall, breached from the far side. Its runes lie on the floor in pieces.",
+    "Beyond it, a cavern and a camp: hide tents, bones, a fire, and the smell of goblins."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the cut seal: the goblins' camp behind it, a bugbear chief and a hobgoblin captain)",
+   "id": "deep.cutSeal"
+  },
+  "deep.cutSealIntro": {
+   "t": "The camp comes up off its blankets, blades first.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.cutSealIntro"
+  },
+  "deep.cutSealDone": {
+   "t": "The camp is broken. In the cut edge of the seal, the rock shines: they drove the seal right through the seam.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (a lump of the truesilver vein in the cut)",
+   "id": "deep.cutSealDone"
+  },
+  "deep.veinBusy": {
+   "t": "A seam of something bright in the rock. Not with goblins at your back.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.veinBusy"
+  },
+  "deep.vein": {
+   "t": "The seals were driven through the seam, and the seam is truesilver. A lump the size of a fist comes out of the cut with a knife and some patience.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3; wiki/deepholm-and-the-edifice.md (truesilver, the mithral precursor)",
+   "id": "deep.vein"
+  },
+  "deep.veinDone": {
+   "t": "The seam, and the gap where the lump came out.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.veinDone"
+  },
+  "deep.roperCauseway": {
+   "t": "The causeway runs straight across the great cavern, the dark falling away either side. Ahead, a stalactite hangs low over it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the roper at the fork: the causeway passes under a stalactite that is not a stalactite)",
+   "id": "deep.roperCauseway"
+  },
+  "deep.roperSeen": {
+   "t": "The ledger-lamp catches it just so, and it isn't a stalactite. It has an eye.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the light shows it: the base game's light law again)",
+   "id": "deep.roperSeen"
+  },
+  "deep.roperAgain": {
+   "t": "The thing over the causeway waits, pretending.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.roperAgain"
+  },
+  "deep.roperAsk": {
+   "t": "The rim-path winds the long way round, south. Or you can pass under it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.roperAsk"
+  },
+  "deep.roperGrabs": {
+   "t": "The stalactite opens an eye, and its tendrils come down.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.roperGrabs"
+  },
+  "deep.roperDone": {
+   "t": "The causeway is clear. What's left of it hangs there like a stalactite, which is all it ever wanted anyone to think.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.roperDone"
+  },
+  "deep.bulette": {
+   "t": [
+    "The road bucks. Out of a breach in the south wall, rough-cut and new, something armored comes up through the stone like a fin through water."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the thing that makes new connections: an unsealable breach, dug last month; a bulette for the umber hulk, which is not in the SRD 5.1)",
+   "id": "deep.bulette"
+  },
+  "deep.buletteDone": {
+   "t": "The breach it came up through is a month old. There was never a seal there to cut. There is no rune for a hole a beast dug.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.buletteDone"
+  },
+  "deep.buletteHedda": {
+   "t": "That goes in the ledger as a hole. Ingrith will hate it.",
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.buletteHedda"
+  },
+  "deep.drain": {
+   "t": "The drainage cut under the station. Something black lies across the floor of it, glossy, still. The last watch's gear is on the floor beside it, what's left of it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (the last watch died to the thing in the drainage cut, the black pudding)",
+   "id": "deep.drain"
+  },
+  "deep.drainAsk": {
+   "t": "It hasn't moved. It will.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.drainAsk"
+  },
+  "deep.drainDone": {
+   "t": "The drainage cut is clear. Whatever the last watch owed, the thing that killed them is paid.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.drainDone"
+  },
+  "deep.xorn": {
+   "t": "The wall ahead bulges, cracks, and something the size of a barrel pushes out of the rock, chewing.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (a xorn in the wall)",
+   "id": "deep.xorn"
+  },
+  "deep.xornDone": {
+   "t": "It had been eating the seam. There are gems in the rubble it spat out.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.xornDone"
+  },
+  "deep.raidSee": {
+   "t": [
+    "Third Lamp. Dark. Shapes moving in the station, pale-haired and quiet, and the garrison's crates pulled into a barricade.",
+    "The underdark took the lamp."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (Third Lamp taken: the underdark's raid holds the station)",
+   "id": "deep.raidSee"
+  },
+  "deep.raidBrann": {
+   "t": "Our lamp.",
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.raidBrann"
+  },
+  "deep.raidHedda": {
+   "t": "Their captain, and one who weaves. Kill the weaver first or none of us walks out.",
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.raidHedda"
+  },
+  "deep.raidAsk": {
+   "t": "They haven't seen you. Not yet.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.raidAsk"
+  },
+  "deep.raidIntro": {
+   "t": "Steel in the dark, and a voice already weaving.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.raidIntro"
+  },
+  "deep.raidCrept": {
+   "t": "You are among them before the first one turns.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.raidCrept"
+  },
+  "deep.raidSpotted": {
+   "t": "A pale head turns. A hand goes up. So much for that.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.raidSpotted"
+  },
+  "deep.raidWon": {
+   "t": "The raid is broken. The station is quiet, and cold.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.raidWon"
+  },
+  "deep.lamp3Lit": {
+   "t": "Brann lights the lamp with his own hands. Hedda watches him do it and says nothing, which is a kindness.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the lamp relit = highwaySecured); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.lamp3Lit"
+  },
+  "deep.lamp3LitAlone": {
+   "t": "You light the lamp yourselves. The flame takes. The road is held.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.lamp3LitAlone"
+  },
+  "deep.escortsStay": {
+   "t": [
+    "Our orders end at the lamp. We hold it now, the two of us, till the season sends relief.",
+    "Past here is Deepholm's road. Walk softly on it."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 6 (the escorts hold Third Lamp: \"our orders end at the lamp\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.escortsStay"
+  },
+  "deep.captainSee": {
+   "t": [
+    "Third Lamp's captain, where the raid left him in the barrack-cut. On his belt, beside the garrison knife, a second one: not issue. A ward-knot etched on the blade."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8 (the Greyseam knife: a sect blade on a garrison captain's body; the sect inside the garrison, shown not told)",
+   "id": "deep.captainSee"
+  },
+  "deep.heddaKnife": {
+   "t": "Take it. Better it goes up the road with you than back to whoever gave it him.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Hedda knows more than she says); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.heddaKnife"
+  },
+  "deep.captainRest": {
+   "t": "The garrison will carry him up to the Burial. The rows get longer.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.captainRest"
+  },
+  "deep.deepRoad": {
+   "t": "Past Third Lamp the road is swept and dressed: Deepholm's now. (The rest of the road is the next part of this expansion.)",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §14 (M3: the door and the road's people)",
+   "id": "deep.deepRoad"
+  },
+  "deep.smithLump": {
+   "t": "Truesilver. From the seam at the First Lamp seal. I haven't had my hands on any in thirty years. Bring me the thresher's flail and I'll put a head on it that'll outlast the both of you.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8 (the Winnower: re-hafted with a truesilver head by the Copperbottom smith); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.smithLump"
+  },
+  "deep.smithNoFlail": {
+   "t": "Not without the flail. Bring me the thresher, or the thresher's flail.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.smithNoFlail"
+  },
+  "deep.smithAsk": {
+   "t": "A truesilver head on Barley's flail?",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.smithAsk"
+  },
+  "deep.smithWorks": {
+   "t": "The forge goes white. The anvil rings for an hour, and nobody in the works complains.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.smithWorks"
+  },
+  "deep.smithWinnower": {
+   "t": "There. It'll thresh anything that stands still long enough. Call it the Winnower; that's what it does.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.smithWinnower"
+  },
+  "deep.noDiamond": {
+   "t": "Revivify wants a diamond worth three hundred gold, and there's none in the pack.",
+   "src": "SRD 5.1 (Revivify)",
+   "id": "deep.noDiamond"
+  },
+  "deep.noneDown": {
+   "t": "No one is down.",
+   "src": "SRD 5.1",
+   "id": "deep.noneDown"
+  },
+  "deep.revived": {
+   "t": "The diamond goes to dust. {name} breathes, and is up.",
+   "src": "SRD 5.1 (Revivify)",
+   "id": "deep.revived"
   }
  },
  "rumors": [
@@ -9111,9 +10955,27 @@
      "where": "Up the dwarves' stair into Solskaft. The king is at the door."
     },
     {
+     "if": "!flag:roadOpen",
      "map": "solskaft_deep",
      "trig": "highwayGate",
      "where": "The highway's mouth, in the works below Solskaft."
+    },
+    {
+     "if": "!flag:lamp1",
+     "map": "highway_1",
+     "trig": "lampArrive1",
+     "where": "Down the road to the First Lamp. A day's march."
+    },
+    {
+     "if": "!flag:lamp2",
+     "map": "highway_2",
+     "trig": "lampArrive2",
+     "where": "The Second Lamp, across the great cavern. Dark two seasons."
+    },
+    {
+     "map": "highway_3",
+     "trig": "raid",
+     "where": "The Third Lamp. Something has put it out."
     }
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 3-5"
@@ -11227,6 +13089,720 @@
     }
    ]
   },
+  "highway_1": {
+   "id": "highway_1",
+   "name": "The Highway — to the First Lamp",
+   "tileset": "cave",
+   "rows": [
+    "########################################################################",
+    "########################..........######################################",
+    "######################.........b....####################################",
+    "#####################...T........T...########################hhhhhhhhhhh",
+    "#####################................########################h_________h",
+    "######################b...b........b#########################h____L____h",
+    "########################...,,....############################h_________S",
+    "############################.,###############################h_________h",
+    "##########S###########S####VX###########S###########S########h_________h",
+    ".............................................................___________",
+    "________________________________________________________________________",
+    "________________________________________________________________________",
+    ".............................................................___________",
+    "################S#################S####.........#########S###h_________h",
+    "######################################..........#############h______~~_h",
+    "####################################..............###########h;_;___~~_h",
+    "###################################.......f....^...##########h;_;______h",
+    "###################################................##########h_________h",
+    "####################################....^.....f....##########hhhhhhhhhhh",
+    "#####################################.......^....#######################",
+    "#########################################.###.##########################",
+    "########################################################################"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "guanoDeep",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "drownStair",
+    ">": "holeDown",
+    "L": "lampTower",
+    "l": "lampTowerDark",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "minecart",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    " ": "void",
+    ",": "rubble",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "sealWhole",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "door",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "sealBroken",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bodyCaptain",
+    "C": "chasm",
+    "A": "water",
+    "M": "mountain",
+    "V": "vein",
+    "I": "lamp",
+    "Q": "cocoon",
+    ";": "cot",
+    "N": "noticeboard"
+   },
+   "music": "highway",
+   "bg": "highway",
+   "save": false,
+   "dark": true,
+   "highway": 1,
+   "seals": [
+    {
+     "x": 10,
+     "y": 8
+    },
+    {
+     "x": 22,
+     "y": 8
+    },
+    {
+     "x": 40,
+     "y": 8
+    },
+    {
+     "x": 52,
+     "y": 8
+    },
+    {
+     "x": 16,
+     "y": 13
+    },
+    {
+     "x": 34,
+     "y": 13
+    },
+    {
+     "x": 46,
+     "y": 13
+    },
+    {
+     "x": 57,
+     "y": 13
+    },
+    {
+     "x": 28,
+     "y": 8,
+     "cut": true
+    },
+    {
+     "x": 71,
+     "y": 6
+    }
+   ],
+   "lights": [
+    {
+     "x": 66,
+     "y": 5,
+     "r": 84
+    }
+   ],
+   "exits": {
+    "west": {
+     "to": "solskaft_deep",
+     "tx": 37,
+     "ty": 11,
+     "dir": "left"
+    },
+    "east": {
+     "to": "highway_2",
+     "tx": 1,
+     "ty": 11,
+     "dir": "right"
+    }
+   },
+   "npcs": [
+    {
+     "id": "ulf",
+     "x": 65,
+     "y": 7,
+     "look": "ketil",
+     "dir": "down",
+     "name": "Ulf Silversands"
+    },
+    {
+     "id": "lamp1a",
+     "x": 63,
+     "y": 6,
+     "look": "dtrooper",
+     "dir": "right",
+     "idle": true
+    },
+    {
+     "id": "lamp1b",
+     "x": 69,
+     "y": 8,
+     "look": "dtrooper2",
+     "dir": "left"
+    },
+    {
+     "id": "lamp1c",
+     "x": 67,
+     "y": 14,
+     "look": "dtrooper",
+     "dir": "up"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "lampArrive1",
+     "rect": [
+      61,
+      9,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "lampArrive",
+     "arg": 1,
+     "cond": "!flag:lamp1"
+    },
+    {
+     "id": "tower1",
+     "rect": [
+      66,
+      5,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "lampTower",
+     "arg": 1
+    },
+    {
+     "id": "cutSeal",
+     "rect": [
+      27,
+      5,
+      4,
+      3
+     ],
+     "on": "step",
+     "script": "cutSeal",
+     "cond": "!flag:sealCleared"
+    },
+    {
+     "id": "vein",
+     "rect": [
+      27,
+      8,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "vein"
+    }
+   ],
+   "zones": [
+    {
+     "zone": "hw1",
+     "rect": [
+      0,
+      0,
+      60,
+      22
+     ]
+    }
+   ]
+  },
+  "highway_2": {
+   "id": "highway_2",
+   "name": "The Highway — to the Second Lamp",
+   "tileset": "cave",
+   "rows": [
+    "############################################################################",
+    "####################################CCC#C###################################",
+    "#############################CCCCCCCCCCCCCCC################################",
+    "############################CCCCCCCCCCCCCCCCCCCCC###############hhhhhhhhhhhh",
+    "#########################CCCCCCCCCCCCCCCCCCCCCCCCC##############h_;;___N_~~h",
+    "########################CCCCCCCCCCCCCC^CCCCCCCCCCCCC############h____l_____h",
+    "######################CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC#########h_;________h",
+    "#####################C.._____________________________..#########h__________h",
+    "#####################C.._____________________________..#########h__________h",
+    "######S#######S######C..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC..#########h__________h",
+    "........................CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...........____________",
+    "____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
+    "____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
+    "........................CCCCCCCCCCCCCCCCCCCCCCCCCCCCCC..........hhhhhh_hhhhh",
+    "##########S###########..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...#####X#######__#####",
+    "######################...CCCCCCCCCCCCCCCCCCCCCCCCCCC....#####.#####______###",
+    "######################....CCCCCCCCCCCCCCCCCCCCCCCCC....###......##______o_##",
+    "#######################........CCCCCCCCCCCCCCCCCCCC...###......,.#________##",
+    "########################........C*CCCCCCCCCC*CCCCC...####........##_o____###",
+    "############################C...........CCCCCC..~....####..,....############",
+    "############################~#......................#########.##############",
+    "######################################...~......############################",
+    "############################################################################",
+    "############################################################################"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "guanoDeep",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "drownStair",
+    ">": "holeDown",
+    "L": "lampTower",
+    "l": "lampTowerDark",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "minecart",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    " ": "void",
+    ",": "rubble",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "sealWhole",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "door",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "sealBroken",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bodyCaptain",
+    "C": "chasm",
+    "A": "water",
+    "M": "mountain",
+    "V": "vein",
+    "I": "lamp",
+    "Q": "cocoon",
+    ";": "cot",
+    "N": "noticeboard"
+   },
+   "music": "highway",
+   "bg": "cavern",
+   "save": false,
+   "dark": true,
+   "highway": 2,
+   "seals": [
+    {
+     "x": 6,
+     "y": 9
+    },
+    {
+     "x": 14,
+     "y": 9
+    },
+    {
+     "x": 10,
+     "y": 14
+    },
+    {
+     "x": 61,
+     "y": 14,
+     "cut": true
+    }
+   ],
+   "lights": [
+    {
+     "x": 69,
+     "y": 5,
+     "r": 84,
+     "cond": "flag:lamp2Lit"
+    }
+   ],
+   "exits": {
+    "west": {
+     "to": "highway_1",
+     "tx": 70,
+     "ty": 10,
+     "dir": "left"
+    },
+    "east": {
+     "to": "highway_3",
+     "tx": 1,
+     "ty": 11,
+     "dir": "right"
+    }
+   },
+   "signs": [
+    {
+     "x": 71,
+     "y": 4,
+     "text": "Slates on a nail: the watch-roster. The last line is a date, and no relief after it.",
+     "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3, §10-5 (the Second Lamp's dark)"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "lampArrive2",
+     "rect": [
+      64,
+      10,
+      1,
+      3
+     ],
+     "on": "step",
+     "script": "lampArrive",
+     "arg": 2,
+     "cond": "!flag:lamp2"
+    },
+    {
+     "id": "tower2",
+     "rect": [
+      69,
+      5,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "lampTower",
+     "arg": 2
+    },
+    {
+     "id": "roper",
+     "rect": [
+      36,
+      7,
+      5,
+      2
+     ],
+     "on": "step",
+     "script": "roper",
+     "cond": "!flag:roperDead"
+    },
+    {
+     "id": "bulette",
+     "rect": [
+      59,
+      10,
+      4,
+      3
+     ],
+     "on": "step",
+     "script": "bulette",
+     "cond": "!flag:buletteDead"
+    },
+    {
+     "id": "drain",
+     "rect": [
+      67,
+      15,
+      7,
+      4
+     ],
+     "on": "step",
+     "script": "drainCut",
+     "cond": "!flag:puddingDead"
+    }
+   ],
+   "zones": [
+    {
+     "zone": "hw2",
+     "rect": [
+      0,
+      0,
+      64,
+      24
+     ]
+    }
+   ]
+  },
+  "highway_3": {
+   "id": "highway_3",
+   "name": "The Highway — to the Third Lamp",
+   "tileset": "cave",
+   "rows": [
+    "############################################################################",
+    "############################################################################",
+    "############################################################################",
+    "############################......##########################hhhhhhhhhhhhhhhh",
+    "###########################........#########################h______________h",
+    "###########################........#########################h_______l____~~h",
+    "############################......##########################h____________~~h",
+    "##############################.#,###########################h______________h",
+    "##############################,,############################h__kk__________h",
+    "########S##########S###########,#####S##########S###########h______________h",
+    "............................................................________________",
+    "____________________________________________________________________________",
+    "____________________________________________________________________________",
+    "............................................................________________",
+    "#############S############S###############S##########S######h___________kk_h",
+    "############################################################h_____k________h",
+    "############################################################h__________;___h",
+    "############################################################h________B_;_;_h",
+    "############################################################h______________h",
+    "############################################################hhhhhhhhhhhhhhhh",
+    "############################################################################",
+    "############################################################################",
+    "############################################################################",
+    "############################################################################"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "guanoDeep",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "drownStair",
+    ">": "holeDown",
+    "L": "lampTower",
+    "l": "lampTowerDark",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "minecart",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    " ": "void",
+    ",": "rubble",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "sealWhole",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "door",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "sealBroken",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bodyCaptain",
+    "C": "chasm",
+    "A": "water",
+    "M": "mountain",
+    "V": "vein",
+    "I": "lamp",
+    "Q": "cocoon",
+    ";": "cot",
+    "N": "noticeboard"
+   },
+   "music": "highway",
+   "bg": "highway",
+   "save": false,
+   "dark": true,
+   "highway": 3,
+   "seals": [
+    {
+     "x": 8,
+     "y": 9
+    },
+    {
+     "x": 19,
+     "y": 9
+    },
+    {
+     "x": 37,
+     "y": 9
+    },
+    {
+     "x": 48,
+     "y": 9
+    },
+    {
+     "x": 13,
+     "y": 14
+    },
+    {
+     "x": 26,
+     "y": 14
+    },
+    {
+     "x": 42,
+     "y": 14
+    },
+    {
+     "x": 53,
+     "y": 14
+    }
+   ],
+   "lights": [
+    {
+     "x": 68,
+     "y": 5,
+     "r": 84,
+     "cond": "flag:lamp3"
+    }
+   ],
+   "exits": {
+    "west": {
+     "to": "highway_2",
+     "tx": 74,
+     "ty": 11,
+     "dir": "left"
+    }
+   },
+   "npcs": [
+    {
+     "id": "brannLamp",
+     "x": 66,
+     "y": 7,
+     "look": "brann",
+     "dir": "down",
+     "cond": "flag:lamp3 & !flag:noEscort"
+    },
+    {
+     "id": "heddaLamp",
+     "x": 70,
+     "y": 7,
+     "look": "hedda",
+     "dir": "down",
+     "cond": "flag:lamp3 & !flag:noEscort"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "raid",
+     "rect": [
+      57,
+      10,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "raid",
+     "cond": "!flag:lamp3"
+    },
+    {
+     "id": "tower3",
+     "rect": [
+      68,
+      5,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "lampTower",
+     "arg": 3,
+     "cond": "flag:lamp3"
+    },
+    {
+     "id": "xorn",
+     "rect": [
+      29,
+      10,
+      3,
+      4
+     ],
+     "on": "step",
+     "script": "xorn",
+     "cond": "!flag:xornDone"
+    },
+    {
+     "id": "captain",
+     "rect": [
+      69,
+      17,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "captain"
+    },
+    {
+     "id": "deepRoad",
+     "rect": [
+      75,
+      10,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "deepholmRoad"
+    }
+   ],
+   "zones": [
+    {
+     "zone": "hw3",
+     "rect": [
+      0,
+      0,
+      56,
+      24
+     ]
+    }
+   ],
+   "flagTiles": [
+    {
+     "x": 68,
+     "y": 5,
+     "tile": "lampTower",
+     "cond": "flag:lamp3"
+    }
+   ]
+  },
   "percy": {
    "id": "percy",
    "name": "Percy's Particulars",
@@ -12444,9 +15020,9 @@
     "hh__________h_____________h___________hh",
     "hhhhhh__hhhhhhhhhhh__hhhhhhhhhhh_hhhhhhh",
     "hh___________________________________lhh",
-    "hh____________________________________=h",
-    "hhu___________________________________=h",
-    "hh____________________________________=h",
+    "hh____________________________________=_",
+    "hhu___________________________________=_",
+    "hh____________________________________=_",
     "hh___________________________________lhh",
     "hhhhhhshhhhhhhhh_hhhhhhhhh[hhhhhhhhhhhhh",
     "hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
@@ -12558,6 +15134,14 @@
    "music": "solskaft",
    "bg": "dwarf",
    "save": true,
+   "exits": {
+    "east": {
+     "to": "highway_1",
+     "tx": 1,
+     "ty": 10,
+     "dir": "right"
+    }
+   },
    "npcs": [
     {
      "id": "smith",
@@ -12645,7 +15229,8 @@
       3
      ],
      "on": "use",
-     "script": "highwayGate"
+     "script": "highwayGate",
+     "cond": "!flag:roadOpen"
     },
     {
      "id": "treasury",
@@ -12658,6 +15243,26 @@
      "on": "step",
      "script": "treasury",
      "once": true
+    }
+   ],
+   "flagTiles": [
+    {
+     "x": 38,
+     "y": 10,
+     "tile": "gateOpen",
+     "cond": "flag:roadOpen"
+    },
+    {
+     "x": 38,
+     "y": 11,
+     "tile": "gateOpen",
+     "cond": "flag:roadOpen"
+    },
+    {
+     "x": 38,
+     "y": 12,
+     "tile": "gateOpen",
+     "cond": "flag:roadOpen"
     }
    ]
   },

@@ -417,6 +417,10 @@
     var tint = this.tint || m.src.tint; // scripts can drop night over a map (the wagon night)
     if (tint) { ctx.globalAlpha = tint[1]; ctx.fillStyle = tint[0]; ctx.fillRect(0, 0, 256, 240); ctx.globalAlpha = 1; }
     if (!this.chase) this.drawPin(ctx, cx, cy);
+    if (m.src.highway && !this.hidePlayer) { // the day-clock (spec §6.2): time passing is the cheapest way a road feels three days long
+      var hud = 'LAMP ' + m.src.highway + ' · DAY ' + m.src.highway, hw = DS.textWidth(hud) + 14;
+      DS.win(ctx, 4, 222, hw, 15); DS.text(ctx, hud, 11, 226, '#F8D878');
+    }
     if (this.banner > 0) {
       this.banner--;
       var w = DS.textWidth(m.name) + 20;
@@ -429,8 +433,11 @@
   Field.prototype.drawDark = function (ctx, cx, cy) {
     if (!darkBuf) { darkBuf = document.createElement('canvas'); darkBuf.width = 256; darkBuf.height = 240; }
     var d = darkBuf.getContext('2d'), m = this.map, lights = [];
-    lights.push({ x: this.px - cx + 8, y: this.py - cy + 8, r: this.lightR || m.src.lightR || 72 });
-    (m.src.lights || []).concat(this.lights || []).forEach(function (l) {
+    var lamp = DS.G.has && DS.G.has('ledgerlamp');
+    lights.push({ x: this.px - cx + 8, y: this.py - cy + 8, r: this.lightR || (m.src.highway ? (lamp ? 84 : 56) : (m.src.lightR || 72)) });
+    // the ledger-lamp shows the seals: a whole one white, a cut one red (spec §6.2: the surveyor's instrument of the road)
+    var seals = lamp ? (m.src.seals || []).map(function (q) { return { x: q.x, y: q.y, r: 22, col: q.cut ? 'rgba(255,70,40,0.42)' : 'rgba(210,225,255,0.34)' }; }) : [];
+    (m.src.lights || []).concat(this.lights || [], seals).forEach(function (l) {
       if (l.cond && !DS.cond(l.cond)) return;
       var lx = (l.x != null ? l.x : l[0]) * 16 + 8 - cx, ly = (l.y != null ? l.y : l[1]) * 16 + 8 - cy, lr = l.r || l[2] || 40;
       if (lx < -lr * 1.4 || ly < -lr * 1.4 || lx > 256 + lr * 1.4 || ly > 240 + lr * 1.4) return;

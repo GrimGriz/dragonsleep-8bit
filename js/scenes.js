@@ -7,7 +7,7 @@
   // ------------------------------------------------------------------ saves
   DS.saveGame = function (slot) {
     var G = DS.G;
-    var data = JSON.parse(JSON.stringify({ v: G.v, lead: G.lead, party: G.party, inv: G.inv, silver: G.silver, flags: G.flags, renown: G.renown, map: G.map, x: G.x, y: G.y, dir: G.dir, steps: G.steps, time: G.time, kills: G.kills, hired: G.hired }));
+    var data = JSON.parse(JSON.stringify({ v: G.v, lead: G.lead, party: G.party, inv: G.inv, silver: G.silver, flags: G.flags, renown: G.renown, map: G.map, x: G.x, y: G.y, dir: G.dir, steps: G.steps, time: G.time, kills: G.kills, hired: G.hired, guests: G.guests || [] }));
     data.saved = Date.now();
     return DS.store.set(SAVE_KEY + slot, data);
   };

@@ -295,6 +295,13 @@
       if (pose === 'act') { p.line(14, 13, 15, 10, steel); }
       else if (pose !== 'cast') { p.line(13, 14, 14, 16, steel); }
       if (pose === 'cast' || pose === 'stand') { p.set(3, 13, '#f8d878'); p.set(3, 12, '#fca044'); } // the candle
+    } else if (weapon === 'axe') { // Brann's battleaxe
+      if (pose === 'act') { p.line(12, 14, 15, 3, wood); p.rect(13, 1, 3, 4, steel); p.set(13, 2, steelD); }
+      else if (pose !== 'cast') { p.line(13, 12, 14, 21, wood); p.rect(12, 10, 3, 4, steel); p.set(12, 11, steelD); }
+    } else if (weapon === 'hammer') { // Hedda's warhammer, and a shield
+      if (pose === 'act') { p.line(13, 14, 15, 5, wood); p.rect(13, 2, 3, 3, steelD); p.rect(13, 2, 3, 1, steel); }
+      else if (pose !== 'cast') { p.line(13, 13, 14, 21, wood); p.rect(12, 11, 4, 3, steelD); p.rect(12, 11, 4, 1, steel); }
+      p.rect(3, 12, 4, 6, '#5a5a66'); p.frame(3, 12, 4, 6, '#101018'); p.set(4, 14, '#c8c8d8');
     } else if (weapon === 'staff') {
       if (pose === 'act') { p.line(10, 22, 15, 4, wood); p.set(15, 3, '#fca044'); }
       else if (pose === 'cast') { p.line(12, 0, 12, 12, wood); p.set(12, 0, '#f8d878'); }

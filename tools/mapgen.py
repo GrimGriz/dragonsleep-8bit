@@ -954,6 +954,7 @@ def build_halfway():
 
 
 # ============================================================ THE DWARVEN EXPANSION (handoff-2026-09-26 spec)
+SPEC_REF = 'handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md'
 # Behind the fountains: the Burial the drained stair leads to, SOLSKAFT (the Silvered Sunshaft) and its works.
 DEEP = {
     'N': 'niche', 'J': 'nicheGear', '!': 'nicheOpen', 'K': 'nicheStone', '$': 'nicheGearStone', 'Z': 'bier', 'Y': 'tombLamp',
@@ -1156,8 +1157,10 @@ def build_deep():
     # the highway's mouth: the gate, and the ledger-lamp rack
     for y in (10, 11, 12):
         g.put(38, y, '=')
+        g.put(39, y, '_')
+        g.flagtile(38, y, 'gateOpen', 'flag:roadOpen')
     g.put(37, 9, 'l'); g.put(37, 13, 'l')
-    g.trig('highwayGate', 38, 10, 'highwayGate', on='use', h=3)
+    g.trig('highwayGate', 38, 10, 'highwayGate', on='use', h=3, cond='!flag:roadOpen')
     g.npc('smith', 6, 5, 'dsmith', dir='down')
     g.npc('gatewatch', 36, 11, 'dtrooper', dir='left')
     g.npc('smelterhand', 19, 4, 'dtrooper2', dir='down')
@@ -1169,12 +1172,178 @@ def build_deep():
     g.sign(6, 14, 'The mint. A warranted door, and the runes are whole. The king sealed it.', 'handoff-2026-09-26 §4.3 C (the mint, sealed by Pyro)')
     g.sign(26, 14, 'The trade hall. NO SURFACE FOLK PAST THIS DOOR, cut in the lintel. The boards are nailed from this side.', 'handoff-2026-09-26 §4.3 C (the trade hall, sealed; boarded from the dwarves\' side)')
     g.sign(37, 9, 'The ledger-lamp rack. Three hooks, three lamps: one for each station down the road.', 'handoff-2026-09-26 §4.3 C (the highway\'s mouth)')
-    save('solskaft_deep', g, 'cave', 'Solskaft — the works', music='solskaft', bg='dwarf', save=True, legend=DEEP)
+    save('solskaft_deep', g, 'cave', 'Solskaft — the works', music='solskaft', bg='dwarf', save=True, legend=DEEP,
+         exits={'east': {'to': 'highway_1', 'tx': 1, 'ty': 10, 'dir': 'right'}})
+
+
+# ---------------------------------------------------------------- THE HIGHWAY: three days, three lamps (spec §6)
+HW = {'.': 'caveFloor', '#': 'caveWall', '_': 'dwarfFloor', 'S': 'sealWhole', 'X': 'sealBroken', 'V': 'vein', 'L': 'lampTower', 'l': 'lampTowerDark',
+      'C': 'chasm', '~': 'pool', ';': 'cot', 'T': 'tent', 'b': 'bones', ',': 'rubble', 'B': 'bodyCaptain', 'h': 'dwarfWall', 'k': 'crateCave',
+      'f': 'fungus', '^': 'stalag', '*': 'glowmoss', 'o': 'ooze', 'N': 'noticeboard'}
+
+
+def road(g, x0, x1, y=10):
+    g.rect(x0, y - 1, x1 - x0 + 1, 4, '.')
+    g.rect(x0, y, x1 - x0 + 1, 2, '_')
+
+
+def station(g, x0, y0, w, h, lamp, lit, seals):
+    g.frame(x0, y0, w, h, 'h')
+    g.rect(x0 + 1, y0 + 1, w - 2, h - 2, '_')
+    g.put(lamp[0], lamp[1], 'L' if lit else 'l')
+    return g
+
+
+def build_highway():
+    import random as _r
+    # ---- leg one: Solskaft's mouth to First Lamp (goblins and such, breaking through sealed caves)
+    W, H = 72, 22
+    rng = _r.Random(6101)
+    g = Grid(W, H, '#')
+    road(g, 0, 71)
+    seals = []
+    for x in (10, 22, 40, 52):
+        g.put(x, 8, 'S'); seals.append({'x': x, 'y': 8})
+    for x in (16, 34, 46, 57):
+        g.put(x, 13, 'S'); seals.append({'x': x, 'y': 13})
+    # the cut seal, and the goblins' camp in the cavern behind it
+    g.blob(29, 4, 8, 3.2, '.', rng, .3)
+    g.put(28, 8, 'X'); g.put(28, 7, '.'); seals.append({'x': 28, 'y': 8, 'cut': True})
+    g.put(27, 8, 'V')
+    for (x, y) in [(24, 3), (33, 3)]:
+        g.put(x, y, 'T')
+    for (x, y) in [(26, 5), (31, 2), (35, 5), (22, 5)]:
+        g.put(x, y, 'b')
+    for (x, y) in [(28, 6), (29, 7), (27, 6)]:
+        g.put(x, y, ',')
+    # a big open cavern off the south side: too wide to seal; the dark in it is where things come from
+    g.blob(43, 17, 8, 3.5, '.', rng, .35)
+    for x in range(39, 48):
+        g.put(x, 13, '.')
+    for (x, y) in [(40, 18), (47, 16), (44, 19)]:
+        g.put(x, y, '^')
+    g.put(42, 16, 'f'); g.put(46, 18, 'f')
+    # First Lamp: held; the garrison's forward post
+    station(g, 61, 3, 11, 16, (66, 5), True, seals)
+    for y in range(9, 13):
+        g.put(61, y, '_')
+        g.put(71, y, '_')
+    g.rect(68, 14, 2, 2, '~')
+    for (x, y) in [(62, 15), (62, 16), (64, 15), (64, 16)]:
+        g.put(x, y, ';')
+    g.put(71, 6, 'S'); seals.append({'x': 71, 'y': 6})
+    g.npc('ulf', 65, 7, 'ketil', dir='down', name='Ulf Silversands')
+    g.npc('lamp1a', 63, 6, 'dtrooper', dir='right', idle=True)
+    g.npc('lamp1b', 69, 8, 'dtrooper2', dir='left')
+    g.npc('lamp1c', 67, 14, 'dtrooper', dir='up')
+    g.trig('lampArrive1', 61, 9, 'lampArrive', 1, on='step', h=4, cond='!flag:lamp1')
+    g.trig('tower1', 66, 5, 'lampTower', 1, on='use')
+    g.trig('cutSeal', 27, 5, 'cutSeal', on='step', w=4, h=3, cond='!flag:sealCleared')
+    g.trig('vein', 27, 8, 'vein', on='use')
+    g.zone('hw1', 0, 0, 60, H)
+    save('highway_1', g, 'cave', 'The Highway — to the First Lamp', music='highway', bg='highway', save=False, dark=True, legend=HW,
+         highway=1, seals=seals, lights=[{'x': 66, 'y': 5, 'r': 84}],
+         exits={'west': {'to': 'solskaft_deep', 'tx': 37, 'ty': 11, 'dir': 'left'}, 'east': {'to': 'highway_2', 'tx': 1, 'ty': 11, 'dir': 'right'}})
+
+    # ---- leg two: First Lamp to Second Lamp (deep fauna; the causeway across the great cavern; the roper at the fork)
+    W, H = 76, 24
+    rng = _r.Random(6202)
+    g = Grid(W, H, '#')
+    road(g, 0, 21, 11)
+    road(g, 55, 75, 11)
+    seals = []
+    for x in (6, 14):
+        g.put(x, 9, 'S'); seals.append({'x': x, 'y': 9})
+    g.put(10, 14, 'S'); seals.append({'x': 10, 'y': 14})
+    # the great cavern: open, unsealable; the causeway runs straight across it (north), a rim-path winds round (south)
+    g.blob(38, 11.5, 17.5, 10, 'C', rng, .15)
+    g.rect(22, 6, 33, 3, 'C')
+    g.rect(22, 7, 33, 2, '_')
+    for x in (22, 23):
+        for y in range(7, 13):
+            g.put(x, y, '.')
+    for x in (53, 54):
+        for y in range(7, 13):
+            g.put(x, y, '.')
+    g.path([(22, 13), (24, 17), (30, 19), (38, 20), (46, 19), (51, 17), (54, 13)], '.', width=2)
+    road(g, 0, 21, 11); road(g, 55, 75, 11)                 # the chasm doesn't get the road
+    for y in range(10, 14):
+        g.put(20, y, '.'); g.put(21, y, '.'); g.put(55, y, '.')
+    for (x, y) in [(28, 20), (41, 21), (48, 19)]:
+        g.put(x, y, '~')
+    for (x, y) in [(33, 18), (44, 18)]:
+        g.put(x, y, '*')
+    g.put(38, 5, '^')                                        # the stalactite over the causeway
+    # the bulette's tunnel: a new breach, dug last month (no seal was ever there to cut)
+    g.blob(61, 18, 4, 2.5, '.', rng, .3); g.put(61, 14, '.'); g.put(61, 15, '.'); g.put(61, 14, 'X'); seals.append({'x': 61, 'y': 14, 'cut': True})
+    g.put(59, 19, ','); g.put(63, 17, ',')
+    # Second Lamp: abandoned two seasons; the cistern still runs; a drainage cut below
+    station(g, 64, 3, 12, 11, (69, 5), False, seals)
+    for y in range(10, 14):
+        g.put(64, y, '_')
+        g.put(75, y, '_')
+    g.rect(64, 13, 12, 1, 'h')
+    for y in range(10, 13):
+        g.put(64, y, '_')
+    g.rect(65, 10, 10, 3, '_')
+    g.put(73, 4, '~'); g.put(74, 4, '~')
+    for (x, y) in [(66, 4), (66, 6), (67, 4)]:
+        g.put(x, y, ';')
+    g.put(71, 4, 'N')
+    g.put(70, 13, '_')
+    g.blob(70, 17, 4, 2.5, '_', rng, .1)
+    g.put(68, 18, 'o'); g.put(72, 16, 'o')
+    g.trig('lampArrive2', 64, 10, 'lampArrive', 2, on='step', h=3, cond='!flag:lamp2')
+    g.trig('tower2', 69, 5, 'lampTower', 2, on='use')
+    g.trig('roper', 36, 7, 'roper', on='step', w=5, h=2, cond='!flag:roperDead')
+    g.trig('bulette', 59, 10, 'bulette', on='step', w=4, h=3, cond='!flag:buletteDead')
+    g.trig('drain', 67, 15, 'drainCut', on='step', w=7, h=4, cond='!flag:puddingDead')
+    g.sign(71, 4, 'Slates on a nail: the watch-roster. The last line is a date, and no relief after it.', SPEC_REF + ' §6.3, §10-5 (the Second Lamp\'s dark)')
+    g.zone('hw2', 0, 0, 64, H)
+    save('highway_2', g, 'cave', 'The Highway — to the Second Lamp', music='highway', bg='cavern', save=False, dark=True, legend=HW,
+         highway=2, seals=seals, lights=[{'x': 69, 'y': 5, 'r': 84, 'cond': 'flag:lamp2Lit'}],
+         exits={'west': {'to': 'highway_1', 'tx': 70, 'ty': 10, 'dir': 'left'}, 'east': {'to': 'highway_3', 'tx': 1, 'ty': 11, 'dir': 'right'}})
+
+    # ---- leg three: Second Lamp to Third Lamp (duergar, grimlocks, a xorn in the wall, the raid)
+    W, H = 76, 24
+    rng = _r.Random(6303)
+    g = Grid(W, H, '#')
+    road(g, 0, 75, 11)
+    seals = []
+    for x in (8, 19, 37, 48):
+        g.put(x, 9, 'S'); seals.append({'x': x, 'y': 9})
+    for x in (13, 26, 42, 53):
+        g.put(x, 14, 'S'); seals.append({'x': x, 'y': 14})
+    g.blob(31, 5, 4, 2.4, '.', rng, .3)                      # where the xorn has been eating the seam
+    g.put(31, 9, ','); g.put(31, 8, ','); g.put(30, 8, ','); g.put(32, 7, ',')
+    # Third Lamp: taken by the raid
+    station(g, 60, 3, 16, 17, (68, 5), False, seals)
+    for y in range(10, 14):
+        g.put(60, y, '_')
+        g.put(75, y, '_')
+    for (x, y) in [(63, 8), (64, 8), (72, 14), (73, 14), (66, 15)]:
+        g.put(x, y, 'k')
+    for (x, y) in [(71, 17), (73, 17), (71, 16)]:
+        g.put(x, y, ';')
+    g.put(69, 17, 'B')
+    g.rect(73, 5, 2, 2, '~')
+    g.flagtile(68, 5, 'lampTower', 'flag:lamp3')
+    g.npc('brannLamp', 66, 7, 'brann', dir='down', cond='flag:lamp3 & !flag:noEscort')
+    g.npc('heddaLamp', 70, 7, 'hedda', dir='down', cond='flag:lamp3 & !flag:noEscort')
+    g.trig('raid', 57, 10, 'raid', on='step', h=4, cond='!flag:lamp3')
+    g.trig('tower3', 68, 5, 'lampTower', 3, on='use', cond='flag:lamp3')
+    g.trig('xorn', 29, 10, 'xorn', on='step', w=3, h=4, cond='!flag:xornDone')
+    g.trig('captain', 69, 17, 'captain', on='use')
+    g.trig('deepRoad', 75, 10, 'deepholmRoad', on='step', h=4)
+    g.zone('hw3', 0, 0, 56, H)
+    save('highway_3', g, 'cave', 'The Highway — to the Third Lamp', music='highway', bg='highway', save=False, dark=True, legend=HW,
+         highway=3, seals=seals, lights=[{'x': 68, 'y': 5, 'r': 84, 'cond': 'flag:lamp3'}],
+         exits={'west': {'to': 'highway_2', 'tx': 74, 'ty': 11, 'dir': 'left'}})
 
 
 if __name__ == '__main__':
     os.makedirs(OUT, exist_ok=True)
-    for f in (build_world, build_silverton, build_hex, build_winters, build_percy, build_warrens, build_galleries, build_gulch, build_halfway, build_deep):
+    for f in (build_world, build_silverton, build_hex, build_winters, build_percy, build_warrens, build_galleries, build_gulch, build_halfway, build_deep, build_highway):
         f()
     for id, d in MAPS.items():
         with open(os.path.join(OUT, id + '.json'), 'w', encoding='utf-8') as fh:

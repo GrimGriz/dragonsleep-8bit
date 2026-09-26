@@ -13,9 +13,9 @@
 "hh__________h_____________h___________hh",
 "hhhhhh__hhhhhhhhhhh__hhhhhhhhhhh_hhhhhhh",
 "hh___________________________________lhh",
-"hh____________________________________=h",
-"hhu___________________________________=h",
-"hh____________________________________=h",
+"hh____________________________________=_",
+"hhu___________________________________=_",
+"hh____________________________________=_",
 "hh___________________________________lhh",
 "hhhhhhshhhhhhhhh_hhhhhhhhh[hhhhhhhhhhhhh",
 "hhhhhhhhhhhh_________hhhhhhhhhhhhhhhhhhh",
@@ -127,6 +127,14 @@
 "music": "solskaft",
 "bg": "dwarf",
 "save": true,
+"exits": {
+"east": {
+"to": "highway_1",
+"tx": 1,
+"ty": 10,
+"dir": "right"
+}
+},
 "npcs": [
 {
 "id": "smith",
@@ -214,7 +222,8 @@
 3
 ],
 "on": "use",
-"script": "highwayGate"
+"script": "highwayGate",
+"cond": "!flag:roadOpen"
 },
 {
 "id": "treasury",
@@ -227,6 +236,26 @@
 "on": "step",
 "script": "treasury",
 "once": true
+}
+],
+"flagTiles": [
+{
+"x": 38,
+"y": 10,
+"tile": "gateOpen",
+"cond": "flag:roadOpen"
+},
+{
+"x": 38,
+"y": 11,
+"tile": "gateOpen",
+"cond": "flag:roadOpen"
+},
+{
+"x": 38,
+"y": 12,
+"tile": "gateOpen",
+"cond": "flag:roadOpen"
 }
 ]
 }

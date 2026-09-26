@@ -1,0 +1,219 @@
+{
+"id": "highway_2",
+"name": "The Highway — to the Second Lamp",
+"tileset": "cave",
+"rows": [
+"############################################################################",
+"####################################CCC#C###################################",
+"#############################CCCCCCCCCCCCCCC################################",
+"############################CCCCCCCCCCCCCCCCCCCCC###############hhhhhhhhhhhh",
+"#########################CCCCCCCCCCCCCCCCCCCCCCCCC##############h_;;___N_~~h",
+"########################CCCCCCCCCCCCCC^CCCCCCCCCCCCC############h____l_____h",
+"######################CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC#########h_;________h",
+"#####################C.._____________________________..#########h__________h",
+"#####################C.._____________________________..#########h__________h",
+"######S#######S######C..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC..#########h__________h",
+"........................CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...........____________",
+"____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
+"____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
+"........................CCCCCCCCCCCCCCCCCCCCCCCCCCCCCC..........hhhhhh_hhhhh",
+"##########S###########..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...#####X#######__#####",
+"######################...CCCCCCCCCCCCCCCCCCCCCCCCCCC....#####.#####______###",
+"######################....CCCCCCCCCCCCCCCCCCCCCCCCC....###......##______o_##",
+"#######################........CCCCCCCCCCCCCCCCCCCC...###......,.#________##",
+"########################........C*CCCCCCCCCC*CCCCC...####........##_o____###",
+"############################C...........CCCCCC..~....####..,....############",
+"############################~#......................#########.##############",
+"######################################...~......############################",
+"############################################################################",
+"############################################################################"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "lampTower",
+"l": "lampTowerDark",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "minecart",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "rubble",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "sealWhole",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "sealBroken",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bodyCaptain",
+"C": "chasm",
+"A": "water",
+"M": "mountain",
+"V": "vein",
+"I": "lamp",
+"Q": "cocoon",
+";": "cot",
+"N": "noticeboard"
+},
+"music": "highway",
+"bg": "cavern",
+"save": false,
+"dark": true,
+"highway": 2,
+"seals": [
+{
+"x": 6,
+"y": 9
+},
+{
+"x": 14,
+"y": 9
+},
+{
+"x": 10,
+"y": 14
+},
+{
+"x": 61,
+"y": 14,
+"cut": true
+}
+],
+"lights": [
+{
+"x": 69,
+"y": 5,
+"r": 84,
+"cond": "flag:lamp2Lit"
+}
+],
+"exits": {
+"west": {
+"to": "highway_1",
+"tx": 70,
+"ty": 10,
+"dir": "left"
+},
+"east": {
+"to": "highway_3",
+"tx": 1,
+"ty": 11,
+"dir": "right"
+}
+},
+"signs": [
+{
+"x": 71,
+"y": 4,
+"text": "Slates on a nail: the watch-roster. The last line is a date, and no relief after it.",
+"src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3, §10-5 (the Second Lamp's dark)"
+}
+],
+"triggers": [
+{
+"id": "lampArrive2",
+"rect": [
+64,
+10,
+1,
+3
+],
+"on": "step",
+"script": "lampArrive",
+"arg": 2,
+"cond": "!flag:lamp2"
+},
+{
+"id": "tower2",
+"rect": [
+69,
+5,
+1,
+1
+],
+"on": "use",
+"script": "lampTower",
+"arg": 2
+},
+{
+"id": "roper",
+"rect": [
+36,
+7,
+5,
+2
+],
+"on": "step",
+"script": "roper",
+"cond": "!flag:roperDead"
+},
+{
+"id": "bulette",
+"rect": [
+59,
+10,
+4,
+3
+],
+"on": "step",
+"script": "bulette",
+"cond": "!flag:buletteDead"
+},
+{
+"id": "drain",
+"rect": [
+67,
+15,
+7,
+4
+],
+"on": "step",
+"script": "drainCut",
+"cond": "!flag:puddingDead"
+}
+],
+"zones": [
+{
+"zone": "hw2",
+"rect": [
+0,
+0,
+64,
+24
+]
+}
+]
+}

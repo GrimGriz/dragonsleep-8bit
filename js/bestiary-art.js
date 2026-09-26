@@ -319,6 +319,101 @@
   A.hask = function () { return humanoid({ cloth: '#3a2a2a', hair: '#2a1a0a', beard: '#2a1a0a', weapon: 'bar', big: true, skin: '#d8a070', belt: '#6a6a72' }); };
   A.wheelwright = function () { return humanoid({ cloth: '#6a5a3a', hair: '#9a7a4a', weapon: 'mallet', skin: '#e8b890', belt: '#4a3a2a', lamp: true }); };
 
+  // ------------------------------------------------------------------ the highway to Deepholm (2026-09-26 spec §6.3)
+  function squash(p, drop) { // a shorter build of the same figure: some rows taken out (dwarves, goblins)
+    var keep = []; for (var y = 0; y < p.h; y++) if (drop.indexOf(y) < 0) keep.push(y);
+    var q = new Pix(p.w, keep.length);
+    keep.forEach(function (sy, dy) { for (var x = 0; x < p.w; x++) q.d[dy * p.w + x] = p.d[sy * p.w + x]; });
+    return q;
+  }
+  function rng(k) { var r = DS.mulberry32(DS.hash(k)); return r; }
+  A.goblin = function () {
+    var p = new Pix(32, 34), g = '#6a9a3a', gD = '#4a7028';
+    p.rect(11, 25, 4, 7, '#3a2a1a'); p.rect(17, 25, 4, 7, '#3a2a1a'); p.rect(10, 31, 5, 2, INK); p.rect(17, 31, 5, 2, INK);
+    p.rect(9, 15, 14, 11, '#6a4a2a'); p.rect(9, 15, 14, 3, '#8a6a3a'); p.rect(9, 22, 14, 1, '#3a2a1a');
+    p.ellipse(16, 9, 6, 6, g); p.ellipse(15, 7, 4, 3, '#8aba4a');
+    p.tri(9, 8, 2, 4, 10, 11, gD); p.tri(23, 8, 30, 4, 22, 11, gD);
+    eye(p, 18, 8, '#f8d800'); eye(p, 14, 8, '#f8d800'); p.rect(14, 12, 5, 1, INK); p.set(15, 13, '#f8f8e8');
+    p.line(22, 17, 27, 22, g, 2); p.line(27, 22, 30, 12, '#d8d8e8', 1); p.set(28, 20, '#8a5a2a');
+    p.line(9, 17, 6, 23, g, 2);
+    return p.outline(INK);
+  };
+  A.hobgoblin = function () { return humanoid({ skin: '#c8783a', hair: '#2a1a1a', cloth: '#7a2a2a', helm: '#6a6a78', weapon: 'sword', shield: '#5a3a2a', belt: '#c0a040' }); };
+  A.bugbear = function () {
+    var p = humanoid({ skin: '#a07040', hair: '#6a4a2a', cloth: '#4a3a2a', weapon: 'club', big: true, beard: '#7a5a3a' });
+    p.tri(12, 6, 9, 0, 15, 5, '#8a6030'); p.tri(24, 5, 28, 0, 26, 7, '#8a6030');
+    return p.outline(INK);
+  };
+  A.grick = function () {
+    var p = new Pix(48, 40);
+    for (var i = 0; i < 9; i++) { var x = 4 + i * 3.2, y = 30 - Math.sin(i * 0.5) * 6 - i * 1.2; p.ellipse(x, y, 5 - i * 0.2, 4.2 - i * 0.15, i % 2 ? '#6a6a5a' : '#7a7a68'); }
+    p.ellipse(33, 16, 5.5, 5, '#5a5a4a');
+    for (var t = 0; t < 4; t++) { var a = -1.2 + t * 0.8; p.line(35, 16, 35 + Math.cos(a) * 11, 16 + Math.sin(a) * 10, '#8a8a70', 2); p.set(Math.round(35 + Math.cos(a) * 12), Math.round(16 + Math.sin(a) * 11), '#5a5a4a'); }
+    p.tri(37, 14, 44, 16, 37, 19, '#d8c890'); p.line(37, 16, 43, 16, INK);
+    return p.outline(INK);
+  };
+  A.mouther = function () {
+    var p = new Pix(54, 42), r = rng('mouther');
+    p.ellipse(27, 28, 25, 13, '#8a5a5a'); p.ellipse(24, 24, 18, 10, '#a06a68'); p.ellipse(32, 30, 12, 7, '#7a4a4a');
+    for (var i = 0; i < 9; i++) { var x = 8 + r() * 38, y = 18 + r() * 18; p.ellipse(x, y, 3, 1.6, '#3a1a1a'); p.set(x - 1, y - 1, '#f8f8e8'); p.set(x + 1, y - 1, '#f8f8e8'); }
+    for (var k = 0; k < 7; k++) { var ex = 10 + r() * 34, ey = 16 + r() * 18; p.ellipse(ex, ey, 1.8, 1.8, '#f8f0c0'); p.set(ex, ey, INK); }
+    return p.outline(INK);
+  };
+  A.cube = function () { // the cube: you see through it to what it's eaten
+    var p = new Pix(50, 50), c = '#5ab8a8', cL = '#8ae8d0';
+    p.rect(6, 12, 34, 34, '#3a7a70'); p.dither(6, 12, 34, 34, c, 0);
+    p.poly([[6, 12], [14, 4], [48, 4], [40, 12]], '#6ac8b8'); p.poly([[40, 12], [48, 4], [48, 38], [40, 46]], '#2a6a60');
+    p.line(6, 12, 40, 12, cL); p.line(40, 12, 48, 4, cL); p.line(14, 4, 48, 4, cL); p.line(6, 12, 14, 4, cL);
+    p.ellipse(20, 30, 3, 3.5, '#e8e0d0'); p.set(19, 29, INK); p.set(21, 29, INK); p.line(20, 34, 22, 42, '#e8e0d0'); p.line(16, 38, 26, 36, '#e8e0d0');
+    p.rect(30, 38, 4, 2, '#b89a4a'); p.set(12, 20, '#c8c8d8');
+    return p.outline('#1a3a34');
+  };
+  A.pudding = function () {
+    var p = new Pix(56, 30);
+    p.ellipse(28, 20, 26, 9, '#1a1a20'); p.ellipse(22, 15, 15, 8, '#2a2a32'); p.ellipse(38, 17, 10, 6, '#24242c');
+    p.ellipse(18, 12, 4, 2, '#5a5a6a'); p.set(36, 14, '#6a6a7a'); p.set(26, 11, '#8a8a9a'); p.ellipse(44, 24, 3, 1.5, '#3a3a44');
+    return p.outline('#060608');
+  };
+  A.roper = function () { // a stalagmite that isn't
+    var p = new Pix(40, 62), r = rng('roper');
+    p.poly([[20, 0], [8, 58], [32, 58]], '#6a5a4c'); p.poly([[20, 0], [8, 58], [18, 58]], '#8a7a6a');
+    for (var i = 0; i < 12; i++) p.set(12 + r() * 16, 10 + r() * 44, '#4a3c34');
+    p.ellipse(21, 22, 4, 3.5, '#e8d8a8'); p.ellipse(21, 22, 2, 2.4, '#c83000'); p.set(21, 21, INK);
+    p.ellipse(21, 40, 6, 3, '#2a1a14'); for (var t = 17; t < 26; t += 2) p.set(t, 38, '#f8f0d8');
+    for (var k = 0; k < 4; k++) { var ty = 30 + k * 5; p.line(28, ty, 38, ty - 8 + k * 5, '#8a7a5a'); p.line(12, ty, 2, ty - 6 + k * 4, '#8a7a5a'); }
+    p.rect(6, 58, 28, 3, '#4a3c34');
+    return p.outline(INK);
+  };
+  A.bulette = function () { // the thing that digs new connections
+    var p = new Pix(66, 46);
+    p.ellipse(30, 26, 24, 13, '#5a6a7a'); p.ellipse(28, 22, 20, 8, '#7a8a9a');
+    for (var s = 0; s < 6; s++) p.line(14 + s * 7, 16, 16 + s * 7, 34, '#3a4a5a');
+    p.tri(24, 13, 34, 1, 40, 14, '#6a7a8a'); p.line(34, 1, 40, 14, '#3a4a5a');
+    p.ellipse(54, 28, 10, 9, '#5a6a7a'); p.poly([[56, 32], [66, 30], [64, 38], [54, 38]], '#4a5a6a');
+    for (var tk = 56; tk < 66; tk += 2) p.set(tk, 33, '#f0f0e0');
+    eye(p, 56, 24, '#f8d800');
+    [[14, 36], [22, 38], [38, 38], [46, 36]].forEach(function (l) { p.rect(l[0], l[1], 5, 7, '#4a5a6a'); p.rect(l[0] - 1, l[1] + 6, 7, 2, '#2a3a4a'); });
+    return p.outline(INK);
+  };
+  A.duergar = function () { return squash(humanoid({ skin: '#8a8a94', helm: '#4a4a52', beard: '#5a5a62', cloth: '#3a3a44', weapon: 'axe', belt: '#6a4a3a' }), [26, 28, 30, 38, 40, 42, 44]); };
+  A.grimlock = function () {
+    var p = humanoid({ skin: '#8a8a7a', cloth: '#4a4a3a', weapon: 'club', belt: '#2a2a1a' });
+    p.rect(21, 9, 5, 4, '#8a8a7a'); p.line(21, 11, 25, 11, '#6a6a5a'); // no eyes
+    return p;
+  };
+  A.xorn = function () {
+    var p = new Pix(46, 50);
+    p.ellipse(23, 30, 16, 18, '#7a5a3a'); p.ellipse(21, 26, 12, 13, '#9a7a4a');
+    for (var s = 0; s < 5; s++) p.ellipse(15 + s * 4, 36 + (s % 2) * 3, 2, 1.5, '#5a3a2a');
+    p.ellipse(23, 12, 9, 5, '#3a2014'); for (var t = 16; t < 31; t += 3) { p.set(t, 10, '#f0e8d0'); p.set(t + 1, 14, '#f0e8d0'); }
+    [[12, 20], [23, 18], [34, 20]].forEach(function (e) { p.ellipse(e[0], e[1], 2.2, 2, '#f8e060'); p.set(e[0], e[1], INK); });
+    [[8, 26, 0, 20], [38, 26, 46, 20], [23, 46, 23, 50]].forEach(function (a) { p.line(a[0], a[1], a[2], a[3], '#6a4a2a', 3); });
+    return p.outline(INK);
+  };
+  A.drow = function () { return humanoid({ skin: '#3a3a5a', hair: '#e8e8f0', cloth: '#2a2a3a', weapon: 'sword', belt: '#6a4a8a' }); };
+  A.drowcaptain = function () { var p = humanoid({ skin: '#3a3a5a', hair: '#e8e8f0', cloth: '#3a2a4a', weapon: 'sword', shield: '#2a2a3a', belt: '#b8a0d8' }); p.line(8, 40, 3, 20, '#d8d8e8', 1); return p; };
+  A.spellweaver = function () { return humanoid({ skin: '#3a3a5a', hood: '#2a1a3a', cloth: '#4a2a6a', weapon: 'wand', belt: '#d8b8f8' }); };
+
   var cache = {};
   DS.monsterArt = function (id, tint) {
     var key = id + (tint || '');

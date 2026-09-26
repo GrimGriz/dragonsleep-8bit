@@ -174,7 +174,7 @@
   EV.hire = function* (id) {
     var g = G();
     if (g.party.length >= 4) { yield DS.say(L('g.partyFull')); return false; }
-    var d = DS.DATA.heroes[id], lvl = Math.max(d.level, Math.min(R.CAP, g.main().lvl - 1));
+    var d = DS.DATA.heroes[id], lvl = Math.max(d.level, Math.min(R.cap(), g.main().lvl - 1));
     var h = R.makeHero(id, lvl);
     g.party.push(h); g.hired.push(id);
     DS.audio.sfx('levelup');

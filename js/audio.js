@@ -202,6 +202,11 @@
       chords: 'Dm C Dm Am Bb C Dm Dm',
       melody: 'D5.4 F5.4 A5.6 G5.2 | E5.4 G5.4 C5.8 | D5.4 A5.4 B5.4 A5.4 | G5.4 E5.4 A4.8 | F5.4 D5.4 Bb4.4 D5.4 | E5.4 G5.4 C6.6 Bb5.2 | A5.4 G5.2 F5.2 E5.4 C5.4 | D5.12 r.4'
     },
+    highway: { // three days under the mountain, lamp to lamp
+      bpm: 100, bass: 'halves', pad: 'arp8', drums: 'drip', duty: 0.125, melVol: 0.12, padVol: 0.035,
+      chords: 'Am G F E Am G F E',
+      melody: 'A4.4 C5.4 E5.4 D5.4 | B4.4 D5.4 G4.8 | A4.4 C5.4 F5.6 E5.2 | G#4.8 B4.8 | E5.4 D5.4 C5.4 B4.4 | D5.6 C5.2 B4.8 | C5.4 A4.4 F4.4 A4.4 | E4.12 r.4'
+    },
     burial: { // everyone here is waiting for one old dwarf upstairs
       bpm: 60, bass: 'whole', pad: 'hold', drums: 'none', duty: 0.125, melVol: 0.1, padVol: 0.045,
       chords: 'Am Am F E',

@@ -25,6 +25,9 @@
     var party = DS.G.party;
     var list = o.solo != null ? [party[o.solo]] : party;
     this.heroes = list.map(function (h, i) { return { side: 'hero', h: h, idx: i, conds: {}, buff: null, off: 0, pose: null, poseT: 0 }; });
+    if (o.solo == null && !o.noGuests) (DS.G.guests || []).forEach(function (g, k) { // guests: AI-run allies behind the four (spec §6.2)
+      if (!g.h.ko && g.h.hp > 0) self.heroes.push({ side: 'hero', h: g.h, idx: 4 + k, guest: true, conds: {}, buff: null, off: 0, pose: null, poseT: 0 });
+    });
     this.foes = [];
     var counts = {}, seen = {};
     o.enemies.forEach(function (id) { counts[id] = (counts[id] || 0) + 1; });
@@ -63,8 +66,10 @@
     });
   };
   Battle.prototype.layoutHeroes = function () {
-    var n = this.heroes.length, gap = n > 3 ? 26 : 30, top = 44 + Math.round((4 - n) * gap / 2);
-    this.heroes.forEach(function (u, i) { u.x = 212 + (i % 2) * 6; u.y = top + i * gap; });
+    var main = this.heroes.filter(function (u) { return !u.guest; }), gs = this.heroes.filter(function (u) { return u.guest; });
+    var n = main.length, gap = n > 3 ? 26 : 30, top = 44 + Math.round((4 - n) * gap / 2);
+    main.forEach(function (u, i) { u.x = 212 + (i % 2) * 6; u.y = top + i * gap; });
+    gs.forEach(function (u, k) { u.x = 236; u.y = Math.min(124, Math.round(top + gap * 0.5 + k * gap * 2)); });
   };
   Battle.prototype.liveFoes = function () { return this.foes.filter(function (f) { return !f.dead; }); };
   Battle.prototype.liveHeroes = function () { return this.heroes.filter(function (u) { return !down(u); }); };
@@ -150,8 +155,13 @@
     if (this.doorWardOn && isHero(u) && !down(u)) ac += 3; // the Door-Shield protects the party (RULED 09-26)
     return ac;
   };
+  // Aura of Protection (paladin 6): while he stands, the party adds his CHA to saves
+  Battle.prototype.aura = function () {
+    var p = this.heroes.filter(function (x) { return !x.guest && x.h.cls === 'paladin' && x.h.lvl >= 6 && !down(x); })[0];
+    return p ? Math.max(1, DS.mod(p.h.abil.cha)) : 0;
+  };
   Battle.prototype.saveMod = function (u, ab) {
-    if (isHero(u)) return R.saveBonus(u.h, ab) + (ab === 'con' && u.fortified ? 1 : 0); // Marta's pie: +2 CON
+    if (isHero(u)) return R.saveBonus(u.h, ab) + (ab === 'con' && u.fortified ? 1 : 0) + this.aura(); // Marta's pie: +2 CON
     var s = u.m.saves && u.m.saves[ab];
     return s != null ? s : DS.mod(abil(u, ab));
   };
@@ -165,6 +175,11 @@
     var r1 = DS.d(20), r2 = DS.d(20), nat = adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1;
     var tot = nat + this.saveMod(u, ab);
     if (u.buff && u.buff.id === 'bless') tot += DS.d(4);
+    if (tot < dc && isHero(u) && u.h.cls === 'fighter' && u.h.lvl >= 9 && u.h.feats.indomitable) { // Indomitable: once a day, roll it again
+      u.h.feats.indomitable = 0;
+      var n2 = DS.d(20); tot = n2 + this.saveMod(u, ab) + (u.buff && u.buff.id === 'bless' ? DS.d(4) : 0); nat = n2;
+      this.pendingMsg = plain(u) + (tot >= dc ? ' shakes it off.' : ' digs in, and it takes him anyway.');
+    }
     return { total: tot, nat: nat, success: tot >= dc };
   };
   Battle.prototype.check = function (u, ab, skill) {
@@ -175,6 +190,8 @@
   Battle.prototype.advantage = function (a, t, melee) {
     var adv = 0, dis = 0;
     if (a.conds.hidden) adv++;
+    if (a.conds.invisible) adv++;
+    if (t.conds.invisible) dis++;
     if (a.conds.reckless) adv++;
     if (t.conds.reckless) adv++;
     if (a.conds.poisoned || a.conds.frightened || a.conds.restrained || a.conds.blinded || a.conds.prone) dis++;
@@ -217,6 +234,8 @@
       return n;
     }
     var h = u.h;
+    if (h.resist && h.resist.indexOf(type) >= 0) n = Math.floor(n / 2);
+    if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type) && !(from && from.magicWeapon)) n = Math.floor(n / 2);
     if (u.buff && u.buff.temp) { var soak = Math.min(u.buff.temp, n); u.buff.temp -= soak; n -= soak; u.soaked = (u.soaked || 0) + soak; }
     h.hp -= n;
     if (u.conds.asleep && n > 0) delete u.conds.asleep;
@@ -275,6 +294,7 @@
     // initiative, rolled once
     var all = this.heroes.concat(this.foes);
     all.forEach(function (u) { u.init = DS.d(20) + (isHero(u) ? R.initBonus(u.h) : DS.mod(abil(u, 'dex'))) + Math.random() * 0.1; });
+    if (this.o.revealed) this.foes.forEach(function (f) { f.conds.revealed = true; }); // seen coming: the light already on it
     this.order = all.slice().sort(function (a, b) { return b.init - a.init; });
     while (!this.over) {
       if (this.o.join && this.round === this.o.join && this.o.solo != null) yield* this.joinParty();
@@ -286,9 +306,11 @@
           yield* this.hold('The ring flares! The ' + bnd[0].m.name.toLowerCase() + ' turns on ' + nameOf(this.tauntWearer) + '!');
         }
       }
+      if (this.round === 1 && this.o.surprised && !this.surpriseSaid) { this.surpriseSaid = true; yield* this.hold(this.o.surprised === 'party' ? 'Caught off guard! They have the first round.' : 'They never saw you coming. The first round is yours.'); }
       for (var k = 0; k < this.order.length && !this.over; k++) {
         var u = this.order[k];
         if (down(u)) continue;
+        if (this.round === 1 && ((this.o.surprised === 'party' && isHero(u)) || (this.o.surprised === 'foes' && !isHero(u)))) continue;
         yield* this.turn(u);
         this.checkEnd();
       }
@@ -307,8 +329,8 @@
       u.init = DS.d(20) + R.initBonus(h) + Math.random() * 0.1;
       self.heroes.push(u); self.order.push(u);
     });
-    this.heroes.sort(function (a, b) { return DS.G.party.indexOf(a.h) - DS.G.party.indexOf(b.h); });
-    this.heroes.forEach(function (u) { u.idx = DS.G.party.indexOf(u.h); });
+    this.heroes.sort(function (a, b) { return (a.guest ? 9 : DS.G.party.indexOf(a.h)) - (b.guest ? 9 : DS.G.party.indexOf(b.h)); });
+    this.heroes.forEach(function (u) { if (!u.guest) u.idx = DS.G.party.indexOf(u.h); });
     this.order.sort(function (a, b) { return b.init - a.init; });
     this.layoutHeroes();
     DS.audio.sfx('confirm');
@@ -430,8 +452,18 @@
   };
 
   // ------------------------------------------------------------------ hero turn
+  // a guest's turn: at the nearest foe, with what it carries (never menu'd)
+  Battle.prototype.guestTurn = function* (u) {
+    var foes = this.liveFoes();
+    if (!foes.length) return;
+    var t = foes.slice().sort(function (a, b) { return (b.x + b.art.w) - (a.x + a.art.w); })[0];
+    u.off = 6;
+    yield* this.heroAttack(u, t, { actions: 1, bonus: 0, surged: false, sneakUsed: true }, null);
+    u.off = 0;
+  };
   Battle.prototype.heroTurn = function* (u) {
     var h = u.h, self = this;
+    if (u.guest) { yield* this.guestTurn(u); return; }
     var st = { actions: 1, bonus: 1, surged: false, sneakUsed: false };
     u.off = 6;
     while (st.actions > 0 && !this.over && !down(u) && !incap(u)) {
@@ -566,8 +598,9 @@
       var dmg = (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod;
       if (crit && h.id === 'lymen' && melee) dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks
       var extra = opening ? ' Opening cut!' : '', rad = 0;
+      var sneaked = false;
       if (h.cls === 'rogue' && !st.sneakUsed && (w.weapon.props || []).join().match(/finesse|ranged/) && adv >= 0 && (adv > 0 || wasHidden || this.liveHeroes().length > 1)) {
-        var sn = DS.roll(R.sneakDice(h.lvl), { crit: crit }); dmg += sn; st.sneakUsed = true; extra += ' Sneak Attack!';
+        var sn = DS.roll(R.sneakDice(h.lvl), { crit: crit }); dmg += sn; st.sneakUsed = true; extra += ' Sneak Attack!'; sneaked = true;
       }
       if (smite) {
         rad = DS.roll((1 + smite) + 'd8', { crit: crit });
@@ -578,6 +611,11 @@
       if (u.buff && u.buff.id === 'divineFavor') rad += DS.d(4);
       var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 });
       if (rad) dealt += this.hurt(t, rad, 'radiant', {});
+      var tImm = function (c) { return !isHero(t) && (t.m.condImmune || []).indexOf(c) >= 0; };
+      if (crit && w.weapon.onCrit === 'prone' && !down(t) && !t.conds.prone && !tImm('prone')) { t.conds.prone = true; extra += ' Knocked flat!'; } // the Winnower threshes
+      if (sneaked && w.weapon.sneakPoison && !down(t) && !tImm('poisoned')) { // the Greyseam knife
+        if (!this.save(t, 'con', w.weapon.sneakPoison).success) { t.conds.poisoned = { rounds: 1 }; extra += ' Poisoned!'; }
+      }
       t.flash = 14; DS.audio.sfx(crit ? 'crit' : 'hit');
       if (crit) { this.flashT = 6; this.shake = 6; }
       this.num(t, dealt, crit ? '#F8D878' : '#F8F8F8');
@@ -628,9 +666,10 @@
     if (sk === 'hideAttack' || sk === 'attackHide') {
       var tg = yield* this.pickFoe();
       if (!tg) return 'cancel';
-      if (sk === 'hideAttack') { u.conds.hidden = { rounds: 2 }; DS.audio.sfx('run'); yield* this.say(nameOf(u) + ' melts into the shadows, then strikes from them.', 38); }
+      var hideR = h.lvl >= 9 ? 3 : 2;
+      if (sk === 'hideAttack') { u.conds.hidden = { rounds: hideR }; DS.audio.sfx('run'); yield* this.say(nameOf(u) + ' melts into the shadows, then strikes from them.', 38); }
       yield* this.heroAttack(u, tg, st, null);
-      if (sk === 'attackHide' && !this.over && !down(u)) { u.conds.hidden = { rounds: 2 }; DS.audio.sfx('run'); yield* this.say(nameOf(u) + ' slips back into the shadows. Harder to find; her next strike has advantage.', 44); }
+      if (sk === 'attackHide' && !this.over && !down(u)) { u.conds.hidden = { rounds: hideR }; DS.audio.sfx('run'); yield* this.say(nameOf(u) + ' slips back into the shadows. Harder to find; her next strike has advantage.', 44); }
       st.bonus = 0;
       return 'action';
     }
@@ -687,7 +726,7 @@
       if (!t0) return false;
       targets = [t0];
       if (sp.target !== 'enemy') {
-        var rest = this.liveFoes().filter(function (f) { return f !== t0; }), cnt = sp.target === 'cone' ? 2 : 3;
+        var rest = this.liveFoes().filter(function (f) { return f !== t0; }), cnt = sp.max ? sp.max - 1 : sp.target === 'cone' ? 2 : 3;
         rest.sort(function (a, b) { return Math.abs(a.y - t0.y) + Math.abs(a.x - t0.x) - (Math.abs(b.y - t0.y) + Math.abs(b.x - t0.x)); });
         targets = targets.concat(rest.slice(0, cnt));
       }
@@ -699,6 +738,11 @@
     }
     else if (sp.target === 'allies') targets = this.liveHeroes().slice(0, sp.max || 4);
     else if (sp.target === 'self') targets = [u];
+    else if (sp.target === 'revive') { // Revivify: a diamond, and someone to bring back
+      if (!DS.G.count('diamond')) { yield* this.say('Revivify needs a diamond worth 300 gp. There is none in the pack.', 44); return false; }
+      if (!this.heroes.some(function (x) { return down(x) && !x.guest; })) { yield* this.say('No one is down.', 30); return false; }
+      var tr = yield* this.pickAlly(function (x) { return down(x) && !x.guest; }); if (!tr) return false; targets = [tr];
+    }
     if (slot) h.slots[slot - 1]--;
     u.pose = 'cast'; u.poseT = 60;
     DS.audio.sfx(sp.sfx || 'magic');
@@ -716,6 +760,12 @@
     }
     for (var i = 0; i < targets.length && !this.over; i++) {
       var t = targets[i];
+      if (k === 'revive') {
+        DS.G.take('diamond', 1); t.h.ko = false; t.h.hp = 1; t.conds = {};
+        DS.audio.sfx('heal'); this.elemBurst(t, 'radiant', 'rise'); this.num(t, '+1', '#58F898');
+        yield* this.say('The diamond goes to dust in ' + nameOf(u) + "'s hand. " + nameOf(t) + ' breathes, and is up!', 50);
+        continue;
+      }
       if (down(t) && k !== 'buff') { if (sp.target === 'enemy') { var alts = this.liveFoes(); if (!alts.length) break; t = DS.pick(alts); } else continue; }
       if (k === 'attack') {
         var rays = (sp.rays || 1) + (sp.rayUp ? up : 0);
@@ -741,9 +791,13 @@
         yield* this.flushMsg();
       } else if (k === 'save') {
         var s = this.save(t, sp.save, dc, { poison: sp.el === 'poison' });
-        var dmgT = sp.dmg ? DS.roll(sp.dmg.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up * (sp.upDice || 0)) + 'd'; })) : 0;
-        if (s.success) dmgT = sp.half ? Math.floor(dmgT / 2) : 0;
+        var potent = sp.level === 0 && h.cls === 'wizard' && h.lvl >= 6; // Potent Cantrip: a save still takes half
+        var dexp = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
+        var upd = function (e) { return e.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up * (sp.upDice || 0)) + 'd'; }); };
+        var dmgT = dexp ? DS.roll(upd(dexp)) : 0, dmg2 = sp.dmg2 ? DS.roll(sp.dmg2) : 0;
+        if (s.success) { dmgT = sp.half || potent ? Math.floor(dmgT / 2) : 0; dmg2 = sp.half || potent ? Math.floor(dmg2 / 2) : 0; }
         var dealt = dmgT ? this.hurt(t, dmgT, sp.el, { magicWeapon: true }) : 0;
+        if (dmg2 && !down(t)) dealt += this.hurt(t, dmg2, sp.el2, { magicWeapon: true });
         this.elemBurst(t, sp.el); if (dealt) { t.flash = 12; this.num(t, dealt, '#F8D878'); }
         var line = nameOf(t) + (s.success ? ' resists' : ' is caught') + (dealt ? '. ' + dealt + ' damage.' : '.');
         if (!s.success && sp.cond && !down(t) && !(t.m && (t.m.condImmune || []).indexOf(sp.cond) >= 0)) {
@@ -768,6 +822,8 @@
         if (down(t)) continue;
         if (sp.buff === 'shield') { t.conds.shielded = true; }
         else if (sp.buff === 'mageArmor') { t.h.conds.mageArmor = true; }
+        else if (sp.buff === 'invisible') { t.conds.invisible = { rounds: 10 }; delete t.conds.hidden; }
+        else if (sp.buff === 'stoneskin') { t.conds.stoneskin = { rounds: 10 }; }
         else if (sp.buff === 'aid') { t.h.maxhp += 5 * (1 + up); t.h.hp += 5 * (1 + up); t.h.conds.aid = (t.h.conds.aid || 0) + 5 * (1 + up); }
         else {
           var b = { id: sp.buff, name: sp.name, rounds: 10 };
@@ -868,7 +924,7 @@
   };
   Battle.prototype.foeTurn = function* (f) {
     var m = f.m, self = this;
-    f.off = 0;
+    f.off = 0; f.martialUsed = 0;
     f.acted = true;
     if (f.conds.recoiling) { delete f.conds.recoiling; yield* this.say(nameOf(f) + ' writhes away from the light and does nothing.', 44); return; }
     if (this.runner() === f) { yield* this.foeFlee(f); return; }
@@ -888,7 +944,7 @@
       if (s.when === 'bloodied' && f.hp > f.maxhp / 2) return false;
       return true;
     });
-    var sp = specials.length && Math.random() < (specials[0].chance || 0.4) ? specials[0] : null;
+    var sp = specials.length && Math.random() < (specials[0].chance || 0.4) ? (m.pickSpecial ? DS.pick(specials) : specials[0]) : null;
     if (sp) { yield* this.special(f, sp); return; }
     var routine = m.multi || [Object.keys(m.attacks)[0]];
     if (m.choose) routine = DS.pick(m.choose);
@@ -916,6 +972,11 @@
     if (atk.autoHitHeld && f.holding.indexOf(t) >= 0) adv = 1;
     var dazzle = this.bright && f.m.traits && f.m.traits.lightSensitive ? ' (dazzled: disadvantage)' : '';
     var nat = this.d20(adv), tot = nat + atk.hit, ac = this.acOf(t);
+    if (atk.dmg === '0' && (nat === 20 || (nat !== 1 && tot >= ac))) { // a grab that does no harm by itself (the roper's tendrils)
+      yield* this.say(nameOf(f) + ' ' + (atk.verb || 'reaches for') + ' ' + nameOf(t) + '.', 30);
+      yield* this.applyRider(f, t, atk, true);
+      return;
+    }
     if (atk.save && !atk.hit) { // save-only attack (breath, gaze)
       yield* this.applyRider(f, t, atk, false);
       return;
@@ -926,8 +987,10 @@
       if (isHero(t) && nat >= 15) yield* this.doorWard(t);
       return;
     }
-    var crit = nat === 20 || (melee && incap(t));
-    var dmg = DS.roll(atk.dmg, { crit: crit });
+    var crit = nat === 20 || (melee && incap(t)) || (this.round === 1 && this.o.surprised === 'party' && f.m.traits && f.m.traits.assassinate);
+    var dmg = DS.roll(f.enlarged && atk.big ? atk.big : atk.dmg, { crit: crit });
+    if (atk.martial && !f.martialUsed && this.allies(f).length > 1) { dmg += DS.roll(atk.martial, { crit: crit }); f.martialUsed = this.round; } // martial advantage, once a turn
+    if (atk.firstRound && this.round === 1) dmg += DS.roll(atk.firstRound, { crit: crit });
     if (f.conds.raging && atk.rage) dmg += atk.rage;
     if (atk.halfHP && f.hp <= f.maxhp / 2) dmg = DS.roll(atk.halfHP, { crit: crit });
     // Uncanny Dodge (rogue 5): the first hit each round is halved
@@ -970,8 +1033,10 @@
     }
     if (atk.save) {
       var s = this.save(t, atk.save.ab, atk.save.dc, { poison: atk.save.poison });
+      yield* this.flushMsg();
       if (atk.save.dmg) {
-        var d = DS.roll(atk.save.dmg); if (s.success) d = atk.save.half ? Math.floor(d / 2) : 0;
+        var d0 = DS.roll(atk.save.dmg), d = d0; if (s.success) d = atk.save.half ? Math.floor(d / 2) : 0;
+        if (this.evades(t, atk.save.ab, atk.save.half)) d = s.success ? 0 : Math.floor(d0 / 2);
         if (d) { var dd = this.hurt(t, d, atk.save.type || 'poison', f); this.num(t, dd, '#9878F8'); yield* this.say(nameOf(t) + (s.success ? ' resists some of the ' : ' takes the full ') + (atk.save.type || 'poison') + '. ' + dd + ' damage.', 40); }
         else if (s.success) yield* this.say(nameOf(t) + ' shrugs it off.', 30);
         if (down(t)) { yield* this.note(t, nameOf(t) + ' falls!', 38); return; }
@@ -988,6 +1053,8 @@
       } else if (atk.save.cond && s.success && !atk.save.dmg) yield* this.say(nameOf(t) + ' resists. (' + s.total + ' vs DC ' + atk.save.dc + ')', 34);
     }
   };
+  // Evasion (rogue 7): a DEX save for half takes none, and a failed one half
+  Battle.prototype.evades = function (u, ab, half) { return !!(half && ab === 'dex' && isHero(u) && u.h.cls === 'rogue' && u.h.lvl >= 7 && !incap(u)); };
   Battle.prototype.special = function* (f, sp) {
     var self = this;
     if (sp.recharge) f.recharge[sp.id] = false;
@@ -1041,6 +1108,47 @@
     }
     if (sp.id === 'bargain') { // the otyugh, fed: a picture of a bucket
       yield* this.say(sp.text || '...', 60);
+      return;
+    }
+    if (sp.kind === 'blast') { // a save against something that hits several at once (lightning, a leap, a gibbering)
+      yield* this.say(nameOf(f) + ' ' + sp.text, 44);
+      if (sp.el) this.bright = this.bright || sp.el === 'lightning';
+      var pool = this.liveHeroes().slice(); DS.shuffle(pool);
+      var hit = sp.targets === 'all' ? pool : pool.slice(0, sp.targets || 3);
+      for (var bi = 0; bi < hit.length && !this.over; bi++) {
+        var tb = hit[bi]; if (down(tb)) continue;
+        var sb = this.save(tb, sp.save, sp.dc, { poison: sp.type === 'poison' });
+        yield* this.flushMsg();
+        var line = nameOf(tb) + (sb.success ? ' resists' : ' is caught');
+        if (sp.dmg) {
+          var db0 = DS.roll(sp.dmg), db = sb.success ? (sp.half ? Math.floor(db0 / 2) : 0) : db0;
+          if (this.evades(tb, sp.save, sp.half)) db = sb.success ? 0 : Math.floor(db0 / 2);
+          if (db) { db = this.hurt(tb, db, sp.type || 'force', f); this.num(tb, db, '#F85838'); tb.pose = 'hurt'; tb.poseT = 20; this.elemBurst(tb, sp.type || 'force'); }
+          line += db ? '. ' + db + ' damage.' : '.';
+        } else line += '.';
+        if (!sb.success && sp.cond && !down(tb)) { tb.conds[sp.cond] = sp.cond === 'prone' ? true : { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null }; line += ' ' + (sp.condText || (sp.cond.charAt(0).toUpperCase() + sp.cond.slice(1) + '!')); }
+        this.shake = 4; DS.audio.sfx(db ? 'hit' : 'miss');
+        yield* this.note(tb, line, 36);
+        if (down(tb)) yield* this.note(tb, nameOf(tb) + ' falls!', 34);
+      }
+      return;
+    }
+    if (sp.kind === 'curse') { // one of the party, a save, a condition (a held breath, a blinding spit)
+      var tc = this.pickHeroFor(f); if (!tc || tc === 'none') return;
+      yield* this.say(nameOf(f) + ' ' + sp.text.replace('{t}', plain(tc)), 44);
+      var sc = this.save(tc, sp.save, sp.dc);
+      yield* this.flushMsg();
+      if (sc.success) { yield* this.say(nameOf(tc) + ' resists. (' + sc.total + ' vs DC ' + sp.dc + ')', 34); return; }
+      tc.conds[sp.cond] = { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null };
+      DS.audio.sfx('poison');
+      yield* this.note(tc, nameOf(tc) + ' is ' + sp.cond + '!', 40);
+      return;
+    }
+    if (sp.kind === 'self') { // the creature changes: grown huge (the duergar), or gone from sight
+      if (sp.enlarge) f.enlarged = true;
+      if (sp.cond) f.conds[sp.cond] = { rounds: sp.rounds || 3 };
+      f.flash = 16; DS.audio.sfx('magic');
+      yield* this.say(nameOf(f) + ' ' + sp.text, 44);
       return;
     }
   };
@@ -1169,6 +1277,7 @@
       if (act === f && ((DS.frame >> 3) & 1)) DS.text(ctx, '▼', x + f.art.w / 2 - 2, y - 9, '#F8D878');
     });
     // heroes
+    var aura = this.aura() > 0;
     this.heroes.forEach(function (u) {
       var h = u.h, spr = DS.fighter(DS.LOOKS[h.look], h.weapon);
       var pose = down(u) ? 'ko' : u.pose ? u.pose : (h.hp < h.maxhp / 4 || incap(u)) ? 'hurt' : 'stand';
@@ -1181,6 +1290,10 @@
       if (u.conds.grappled) { ctx.fillStyle = '#b85a3a'; ctx.fillRect(x - 3, y + 12, 3, 4); }
       if (u.conds.restrained && !u.conds.grappled) { ctx.strokeStyle = '#E8E8F0'; ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x + 16, y + 18); ctx.moveTo(x + 16, y + 6); ctx.lineTo(x, y + 18); ctx.stroke(); }
       if (u.conds.hidden) { ctx.globalAlpha = 0.5; ctx.fillStyle = '#000'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      if (u.conds.invisible) { ctx.globalAlpha = 0.6; ctx.fillStyle = '#10123a'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      if (u.conds.stoneskin && ((DS.frame >> 3) & 1)) { ctx.fillStyle = '#9a9aa8'; ctx.fillRect(x + 2, y + 12, 1, 1); ctx.fillRect(x + 12, y + 8, 1, 1); }
+      if (aura && !down(u) && ((DS.frame + u.idx * 9) % 40) < 20) { ctx.fillStyle = '#F8E8A0'; ctx.fillRect(x + 1, y - 2, 1, 1); ctx.fillRect(x + 14, y - 2, 1, 1); }
+      if (u.guest) { DS.bar(ctx, x, y + 25, 16, h.hp / h.maxhp, h.hp < h.maxhp / 4 ? '#F85838' : '#58D854'); }
       if (u.buff) { if ((DS.frame >> 3) & 1) ctx.fillStyle = '#F8D878', ctx.fillRect(x + 7, y - 3, 2, 2); }
       if (act === u) DS.text(ctx, '▼', x + 5, y - 10, '#F8D878');
     });
@@ -1199,10 +1312,10 @@
     // bottom panels
     DS.win(ctx, 0, 156, 90, 84);
     var groups = {}, gorder = [];
-    this.liveFoes().forEach(function (f) { if (!groups[f.m.name]) { groups[f.m.name] = 0; gorder.push(f.m.name); } groups[f.m.name]++; });
+    this.liveFoes().forEach(function (f) { var nm = f.m.short || f.m.name; if (!groups[nm]) { groups[nm] = 0; gorder.push(nm); } groups[nm]++; });
     gorder.slice(0, 6).forEach(function (n, i) { DS.text(ctx, n.length > 11 ? n.slice(0, 11) : n, 8, 164 + i * 12, '#F8F8F8'); if (groups[n] > 1) DS.textRight(ctx, 'x' + groups[n], 84, 164 + i * 12, '#C8D0E8'); });
     DS.win(ctx, 90, 156, 166, 84);
-    this.heroes.forEach(function (u, i) {
+    this.heroes.filter(function (u) { return !u.guest; }).forEach(function (u, i) {
       var h = u.h, y = 162 + i * 19, col = down(u) ? '#9C9C9C' : h.hp < h.maxhp / 4 ? '#F85838' : h.hp < h.maxhp / 2 ? '#F8D878' : '#F8F8F8';
       DS.text(ctx, h.name, 98, y, act === u ? '#F8D878' : '#F8F8F8');
       if (u.buff && u.buff.temp > 0 && !down(u)) DS.text(ctx, '+' + u.buff.temp, 102 + DS.textWidth(h.name), y, '#6CF0F8');
@@ -1306,6 +1419,20 @@
     } else if (kind === 'town') {
       band(0, 60, '#50505e'); for (var bx = 0; bx < 256; bx += 16) p.rect(bx, 0, 1, 60, '#3a3a46');
       band(60, 132, N(0x10)); p.speckle(0, 60, 256, 72, N(0x00), 0.1, r);
+    } else if (kind === 'highway') { // the dwarves' road: dressed stone down the middle, raw rock either side, a lamp far off
+      band(0, 132, '#16161c'); band(0, 56, '#26262e');
+      for (var sx2 = 0; sx2 < 256; sx2 += 16) { p.rect(sx2, 14, 14, 38, '#30303a'); p.rect(sx2 + 1, 15, 12, 1, '#44444e'); }
+      [44, 124, 204].forEach(function (rx) { p.rect(rx, 20, 14, 24, '#3a3a46'); p.ring(rx + 7, 32, 4, 4, '#9aa8c8'); p.set(rx + 7, 27, '#9aa8c8'); p.set(rx + 7, 37, '#9aa8c8'); });
+      p.ellipse(128, 40, 6, 5, '#3a2a14'); p.ellipse(128, 40, 3, 3, '#f8d878'); p.set(128, 34, '#fca044');
+      band(56, 132, '#3a3a44');
+      for (var ry = 60; ry < 132; ry += 8) { var inset = (132 - ry) * 0.6; p.rect(inset, ry, 256 - inset * 2, 1, '#2a2a32'); }
+      p.speckle(0, 56, 256, 76, '#4a4a56', 0.05, r);
+    } else if (kind === 'cavern') { // the big caverns the road crosses on a causeway; the dark either side is where things come from
+      band(0, 132, '#08080c'); band(0, 40, '#14121a');
+      for (var st2 = 0; st2 < 26; st2++) { var cxs = r() * 256, cl = 10 + r() * 30; p.tri(cxs - 4, 0, cxs + 4, 0, cxs, cl, '#2a2630'); }
+      p.poly([[0, 132], [70, 64], [186, 64], [256, 132]], '#34323c'); p.poly([[70, 64], [186, 64], [180, 70], [76, 70]], '#4a4854');
+      for (var cy2 = 72; cy2 < 132; cy2 += 10) { var w2 = 110 + (cy2 - 64) * 1.8; p.rect(128 - w2 / 2, cy2, w2, 1, '#2a2830'); }
+      p.speckle(0, 40, 256, 30, '#1e1c24', 0.3, r);
     } else { band(0, 132, '#101018'); }
     var c = p.canvas();
     return (bgCache[kind] = c);

@@ -5,12 +5,13 @@
   var DS = window.DS;
   var R = DS.R = {};
   R.ABIL = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-  R.XP_LEVEL = [0, 0, 300, 900, 2700, 6500]; // xp needed to BE level n
-  R.CAP = 5;
-  R.CR_XP = { '0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 700, '4': 1100, '5': 1800, '6': 2300, '7': 2900, '8': 3900 };
-  R.prof = function (lvl) { return lvl >= 5 ? 3 : 2; };
-  var SLOTS_FULL = { 1: [2], 2: [3], 3: [4, 2], 4: [4, 3], 5: [4, 3, 2] };
-  var SLOTS_HALF = { 1: [], 2: [2], 3: [3], 4: [3], 5: [4, 2] };
+  R.XP_LEVEL = [0, 0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000]; // xp needed to BE level n (5E 2014)
+  R.CAP = 9; // the dwarven expansion raises the cap 5 -> 9 (spec §9) ...
+  R.cap = function () { return DS.G && DS.G.flags && DS.G.flags.lakeDone ? R.CAP : 5; }; // ... once the chuul is dead: the base game stays capped at 5
+  R.CR_XP = { '0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 700, '4': 1100, '5': 1800, '6': 2300, '7': 2900, '8': 3900, '9': 5000 };
+  R.prof = function (lvl) { return lvl >= 9 ? 4 : lvl >= 5 ? 3 : 2; };
+  var SLOTS_FULL = { 1: [2], 2: [3], 3: [4, 2], 4: [4, 3], 5: [4, 3, 2], 6: [4, 3, 3], 7: [4, 3, 3, 1], 8: [4, 3, 3, 2], 9: [4, 3, 3, 3, 1] };
+  var SLOTS_HALF = { 1: [], 2: [2], 3: [3], 4: [3], 5: [4, 2], 6: [4, 2], 7: [4, 3], 8: [4, 3], 9: [4, 3, 2] };
 
   R.CLASSES = {
     fighter: {
@@ -56,7 +57,7 @@
   // restore per-rest resources; long = long rest
   R.refresh = function (h, long) {
     var f = h.feats;
-    if (h.cls === 'fighter') { f.secondWind = 1; f.actionSurge = 1; }
+    if (h.cls === 'fighter') { f.secondWind = 1; f.actionSurge = 1; if (long) f.indomitable = h.lvl >= 9 ? 1 : 0; }
     if (h.cls === 'paladin') { f.channel = h.lvl >= 3 ? 1 : 0; if (long) { f.lay = 5 * h.lvl; f.relentless = 1; } }
     if (h.cls === 'wizard' && long) f.arcaneRecovery = 1;
     if (long) {
@@ -80,10 +81,13 @@
     for (var i = 0; i < h.slotsMax.length; i++) h.slots[i] = (h.slots[i] || 0) + (h.slotsMax[i] - (oldMax[i] || 0));
     var d = DS.DATA.heroes[h.id];
     var lu = (d.levels && d.levels[h.lvl]) || {};
+    if (lu.expertise) { h.expertise = (h.expertise || []).concat(lu.expertise); msgs.push('Expertise: ' + lu.expertise.join(', ') + '.'); }
     if (lu.asi || h.lvl === 4) {
       var asi = lu.asi || c.asi, parts = [];
       Object.keys(asi).forEach(function (k) { h.abil[k] = Math.min(20, h.abil[k] + asi[k]); parts.push(k.toUpperCase() + ' +' + asi[k]); });
       msgs.push('Ability scores: ' + parts.join(', ') + '.');
+      var want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0); // CON counts back to level 1
+      if (base < want) { h.hp += want - base; h.maxhp += want - base; }
     }
     if (lu.learn) lu.learn.forEach(function (s) { if (h.known.indexOf(s) < 0) { h.known.push(s); msgs.push(h.name + ' learns ' + DS.DATA.spells[s].name + '.'); } });
     if (lu.subclass) { h.subclass = lu.subclass; msgs.push(h.name + ': ' + lu.subclass + '.'); }
@@ -94,19 +98,22 @@
     if (h.lvl === 5 && (h.cls === 'fighter' || h.cls === 'paladin')) msgs.push('Extra Attack: two attacks with FIGHT.');
     if (h.lvl === 3 && h.cls === 'fighter') msgs.push('Champion: critical hits on 19 or 20.');
     if (h.lvl === 5 && h.cls === 'rogue') msgs.push('Uncanny Dodge: the first hit each round is halved.');
+    if (h.cls === 'fighter' && h.lvl === 9) h.feats.indomitable = 1;
     return msgs;
   };
   R.gainXP = function (h, xp) {
     var msgs = [];
-    if (h.lvl >= R.CAP) { h.xp = Math.max(h.xp, R.XP_LEVEL[R.CAP]); return msgs; }
+    var cap = R.cap();
+    if (h.lvl >= cap) { h.xp = R.XP_LEVEL[cap]; return msgs; } // at the cap nothing banks (so the chuul isn't a jump to 9)
     h.xp += xp;
-    while (h.lvl < R.CAP && h.xp >= R.XP_LEVEL[h.lvl + 1]) msgs = msgs.concat(R.levelUp(h));
-    if (h.lvl >= R.CAP) h.xp = Math.max(h.xp, R.XP_LEVEL[R.CAP]);
+    while (h.lvl < cap && h.xp >= R.XP_LEVEL[h.lvl + 1]) msgs = msgs.concat(R.levelUp(h));
+    if (h.lvl >= cap) h.xp = R.XP_LEVEL[cap];
     return msgs;
   };
-  R.nextXP = function (h) { return h.lvl >= R.CAP ? null : R.XP_LEVEL[h.lvl + 1]; };
+  R.nextXP = function (h) { return h.lvl >= R.cap() ? null : R.XP_LEVEL[h.lvl + 1]; };
   // bring an older save's heroes up to the current rules (spells cut, choices added since)
   R.migrate = function (h) {
+    if (h.lvl <= 5 && h.xp >= R.XP_LEVEL[6]) h.xp = R.XP_LEVEL[6] - 1; // XP banked under the old cap of 5: one step short of 6, no more
     h.known = (h.known || []).filter(function (id) { return !!DS.DATA.spells[id]; });
     // RULED 09-25: every level is a max hit die. An older save's heroes catch up (Aid's +5 set aside first).
     var c = R.CLASSES[h.cls], want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0);
@@ -188,16 +195,20 @@
     if (ring && ring.ring && ring.ring.saveAll) b += ring.ring.saveAll;
     return b;
   };
+  // skills are written at proficiency +2; they grow with it, twice over where there's expertise, and a skill that gains
+  // expertise later (the rogue at 6) adds proficiency once more
   R.skill = function (h, name, ab) {
-    var s = h.skills && h.skills[name];
-    if (s != null) return s + (h.lvl >= 5 ? 1 : 0);
-    return DS.mod(h.abil[ab]);
+    var s = h.skills && h.skills[name], d = h.id && DS.DATA.heroes[h.id], p = R.prof(h.lvl);
+    if (s == null) return DS.mod(h.abil[ab]);
+    var base = (d && d.expertise) || [], later = (h.expertise || []).filter(function (x) { return base.indexOf(x) < 0; });
+    var grown = d && d.abil && d.abil[ab] != null ? DS.mod(h.abil[ab]) - DS.mod(d.abil[ab]) : 0; // an ability raised since level 2 raises its skills
+    return s + (p - 2) * (base.indexOf(name) >= 0 ? 2 : 1) + (later.indexOf(name) >= 0 ? p : 0) + grown;
   };
-  R.spellDC = function (h) { var c = R.CLASSES[h.cls]; return 8 + R.prof(h.lvl) + DS.mod(h.abil[c.cast || 'int']); };
+  R.spellDC = function (h) { var c = R.CLASSES[h.cls], w = R.item(h.equip.weapon); return 8 + R.prof(h.lvl) + DS.mod(h.abil[c.cast || 'int']) + ((w && w.weapon && w.weapon.dcBonus) || 0); };
   R.spellAtk = function (h) { var c = R.CLASSES[h.cls]; return R.prof(h.lvl) + DS.mod(h.abil[c.cast || 'int']); };
-  R.initBonus = function (h) { return DS.mod(h.abil.dex); };
+  R.initBonus = function (h) { return DS.mod(h.abil.dex) + (h.cls === 'fighter' && h.lvl >= 7 ? Math.ceil(R.prof(h.lvl) / 2) : 0); }; // Remarkable Athlete
   R.critRange = function (h) { return (h.cls === 'fighter' && h.lvl >= 3) ? 19 : 20; };
-  R.attacksPerTurn = function (h) { return ((h.cls === 'fighter' || h.cls === 'paladin') && h.lvl >= 5) ? 2 : 1; };
+  R.attacksPerTurn = function (h) { if (h.attacks) return h.attacks; return ((h.cls === 'fighter' || h.cls === 'paladin') && h.lvl >= 5) ? 2 : 1; };
   R.maxSlotLevel = function (h) { var m = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) m = i + 1; }); return m; };
   R.lowestSlot = function (h, min) { for (var i = (min || 1) - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) return i + 1; return 0; };
   R.cantripDice = function (sp, h) {
@@ -219,6 +230,6 @@
   R.canAct = function (u) { return !u.ko && u.hp > 0 && !u.conds.paralyzed && !u.conds.asleep && !u.conds.stunned; };
   R.CONDS = {
     poisoned: 'PSN', frightened: 'FRT', restrained: 'RST', prone: 'PRN', asleep: 'SLP', paralyzed: 'PAR', grappled: 'GRP',
-    blinded: 'BLD', hidden: 'HID', stunned: 'STN', engulfed: 'ENG'
+    blinded: 'BLD', hidden: 'HID', stunned: 'STN', engulfed: 'ENG', invisible: 'INV', stoneskin: 'STN'
   };
 })();

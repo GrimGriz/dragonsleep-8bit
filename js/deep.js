@@ -50,9 +50,11 @@
   EV.check = function* (skill, ab, dc, o) {
     o = o || {};
     var g = G(), hands = o.hero ? [o.hero] : g.party.filter(function (h) { return !h.ko; });
-    var h = hands.slice().sort(function (a, b) { return R.skill(b, skill, ab) - R.skill(a, skill, ab); })[0] || g.main();
+    var sorted = hands.slice().sort(function (a, b) { return R.skill(b, skill, ab) - R.skill(a, skill, ab); });
+    // a group check (all of you creeping up together) rides on the middle of the party, not its best
+    var h = (o.group ? sorted[Math.floor((sorted.length - 1) / 2) + (sorted.length > 2 ? 1 : 0)] : sorted[0]) || g.main();
     var mod = R.skill(h, skill, ab), r1 = DS.d(20), r2 = DS.d(20), nat = o.adv ? Math.max(r1, r2) : r1, total = nat + mod, ok = total >= dc;
-    yield W8.scene(new CheckScene({ skill: skill, dc: dc, name: h.name, mod: mod, nat: nat, total: total, ok: ok, adv: o.adv }));
+    yield W8.scene(new CheckScene({ skill: skill, dc: dc, name: o.group ? 'The party, at ' + h.name + "'s pace" : h.name, mod: mod, nat: nat, total: total, ok: ok, adv: o.adv }));
     return ok;
   };
 
@@ -368,7 +370,6 @@
     yield DS.say(L(['deep.ingrithOffice1', 'deep.ingrithOffice2', 'deep.ingrithOffice3'][i % 3]), I2);
   };
   S.quartermaster = function* () { yield DS.shop('qm'); };
-  S.dsmith = function* () { yield DS.shop('copperbottom'); };
   S.cot = function* () {
     yield DS.say(L('deep.cot'));
     yield* EV.rest('inn');
@@ -376,7 +377,228 @@
     if (s === 0) yield W8.scene(new DS.SlotScene(true));
   };
   S.treasury = function* () { yield DS.say(L('deep.treasury')); };
-  S.highwayGate = function* () { yield DS.say(L('deep.gateShut'), who('Gate watch')); };
+
+  // ================================================================== the highway (spec §6): three days, three lamps
+  // guests: AI-run allies with a stat block and a leave-condition (spec §6.2, RULED 09-26: general, the escorts first)
+  EV.addGuest = function (id) {
+    var g = G(), d = DS.DATA.heroes[id];
+    g.guests = g.guests || [];
+    if (g.guests.some(function (x) { return x.id === id; })) return;
+    var h = R.makeHero(id, d.level);
+    h.attacks = d.attacks; h.resist = d.resist; h.guest = true;
+    g.guests.push({ id: id, h: h });
+  };
+  EV.dropGuests = function () { G().guests = []; };
+  // milestone XP: the road pays at its lamps (spec §9)
+  EV.milestone = function* (xp, key) {
+    var g = G(), ups = [];
+    g.party.forEach(function (h) { if (!h.ko) ups = ups.concat(R.gainXP(h, xp)); });
+    DS.audio.sfx('levelup');
+    yield DS.say(L('deep.milestone', { n: xp, why: L(key) }));
+    if (ups.length) yield DS.say(ups);
+  };
+  var LAMPS_AT = { 1: ['highway_1', 65, 10], 2: ['highway_2', 68, 11], 3: ['highway_3', 66, 11] };
+  var LAMP_NAME = { 1: 'THE FIRST LAMP', 2: 'THE SECOND LAMP', 3: 'THE THIRD LAMP' };
+  EV.lampWalk = function* (map, x, y, dir, key) { // "a walk back up the lamps": a fade, a line, and you're there
+    yield DS.fade(1, 20);
+    yield DS.say(L(key), { top: true, auto: 70 });
+    DS.field.load(map, x, y, dir); DS.field.banner = 90;
+    yield DS.fade(0, 20);
+  };
+  EV.roadMenu = function* (here) { // fast travel: a held lamp is a warp point (spec §6.2)
+    var g = G(), opts = [], vals = [];
+    if (here !== 'gate') { opts.push('REST HERE'); vals.push('rest'); opts.push('BACK UP TO SOLSKAFT'); vals.push('up'); }
+    [1, 2, 3].forEach(function (n) { if (g.flags['lamp' + n] && n !== here) { opts.push('TO ' + LAMP_NAME[n]); vals.push(n); } });
+    if (here === 'gate') { opts.unshift('WALK THE ROAD'); vals.unshift('walk'); }
+    opts.push('NOT NOW'); vals.push('no');
+    var a = vals[yield DS.ask(L(here === 'gate' ? 'deep.roadMenuGate' : 'deep.roadMenuLamp'), opts)];
+    if (a === 'rest') {
+      yield* EV.rest('inn');
+      var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
+      if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    } else if (a === 'up') yield* EV.lampWalk('solskaft_deep', 36, 11, 'left', 'deep.walkUp');
+    else if (typeof a === 'number') { var at = LAMPS_AT[a]; yield* EV.lampWalk(at[0], at[1], at[2], 'right', a > (here === 'gate' ? 0 : here) ? 'deep.walkDown' : 'deep.walkUp'); }
+  };
+  // the muster at the gate: the escort comes down, Ingrith's lamp, the gate opens (spec §3 beat 5)
+  S.highwayGate = function* () {
+    var g = G(), GW = who('Gate watch');
+    if (!g.flags.clericMet) { yield DS.say(L('deep.gateShut'), GW); return; }
+    if (g.flags.roadOpen) { yield* EV.roadMenu('gate'); return; }
+    var f = F();
+    yield DS.say(L('deep.musterCome'));
+    if (!g.flags.noEscort) {
+      var b = spawn({ id: 'brannMuster', x: 30, y: 10, look: 'brann', dir: 'right' }), hd = spawn({ id: 'heddaMuster', x: 30, y: 12, look: 'hedda', dir: 'right' });
+      b.path = DS.pathTo(f.map, 30, 10, g.x - 1, g.y - 1); hd.path = DS.pathTo(f.map, 30, 12, g.x - 1, g.y + 1);
+      yield arrived([b, hd]);
+      faceTo(b, g.x, g.y); faceTo(hd, g.x, g.y);
+      yield DS.say(L('deep.heddaOrders'), who('Hedda Greyseam'));
+      yield DS.say(L('deep.brannGo'), who('Brann Silversands'));
+      EV.addGuest('brann'); EV.addGuest('hedda');
+      DS.audio.sfx('levelup');
+      yield DS.say(L('deep.guestsJoin'));
+      b.hidden = true; hd.hidden = true;
+    } else yield DS.say(L('deep.musterAlone'), GW);
+    g.give('ledgerlamp', 1); DS.audio.sfx('chest');
+    yield DS.say([L('deep.ledgerlamp'), L('g.got', { item: DS.DATA.items.ledgerlamp.name })], GW);
+    g.flags.roadOpen = 1; g.flags.escortsOut = 1;
+    DS.audio.sfx('door'); DS.applyFlagTiles(f.map);
+    yield DS.say(L('deep.gateOpens'));
+  };
+  // a lamp reached ends the day (spec §6.2)
+  S.lampArrive = function* (n) {
+    var g = G(), guests = (g.guests || []).length > 0;
+    g.flags['lamp' + n] = 1;
+    if (n === 1) {
+      yield DS.say(L('deep.lamp1Arrive'));
+      yield DS.say(L('deep.ulf1'), who('Ulf Silversands'));
+      if (guests) yield DS.say(L('deep.lamp1Brann'), who('Brann Silversands'));
+    } else {
+      yield DS.say(L('deep.lamp2Arrive'));
+      if (guests) { yield DS.say(L('deep.lamp2Brann'), who('Brann Silversands')); yield DS.say(L('deep.lamp2Hedda'), who('Hedda Greyseam')); }
+    }
+    yield* EV.rest('inn');
+    yield* EV.milestone(n === 1 ? 4000 : 7000, n === 1 ? 'deep.mileLamp1' : 'deep.mileLamp2');
+    yield DS.say(L(n === 1 ? 'deep.day2' : 'deep.day3'), { top: true });
+    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
+    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+  };
+  S.lampTower = function* (n) {
+    var g = G();
+    if (n === 2 && !g.flags.lamp2Lit) yield DS.say(L('deep.lamp2Dark'));
+    else yield DS.say(L('deep.lampLit'));
+    yield* EV.roadMenu(n);
+  };
+  // leg one: the cut seal and the goblins behind it; the truesilver in the cut
+  S.cutSeal = function* () {
+    var g = G();
+    yield DS.say(L('deep.cutSeal'));
+    var res = yield* EV.fight(['bugbearchief', 'hobsergeant', 'goblin', 'goblin', 'goblin', 'worg'], { bg: 'cavern', music: 'boss', canRun: true, introText: L('deep.cutSealIntro') });
+    if (res === 'win') { g.flags.sealCleared = 1; yield DS.say(L('deep.cutSealDone')); }
+    else if (res === 'run') yield F().walk(['down', 'down']);
+  };
+  S.vein = function* () {
+    var g = G();
+    if (g.flags.lumpTaken) { yield DS.say(L('deep.veinDone')); return; }
+    if (!g.flags.sealCleared) { yield DS.say(L('deep.veinBusy')); return; }
+    g.flags.lumpTaken = 1; g.give('truesilver', 1); DS.audio.sfx('chest');
+    yield DS.say([L('deep.vein'), L('g.got', { item: DS.DATA.items.truesilver.name })]);
+  };
+  // leg two: the roper at the fork (the light shows it), the bulette's breach, the thing in the drainage cut
+  S.roper = function* () {
+    var g = G();
+    var seen = g.flags.roperSeen;
+    if (!seen) {
+      yield DS.say(L('deep.roperCauseway'));
+      if (g.has('ledgerlamp') && (yield* EV.check('Perception', 'wis', 12))) { seen = g.flags.roperSeen = 1; yield DS.say(L('deep.roperSeen')); }
+    } else yield DS.say(L('deep.roperAgain'));
+    if (seen) {
+      var a = yield DS.ask(L('deep.roperAsk'), ['FIGHT IT', 'GO BACK']);
+      if (a !== 0) { yield F().walk(['left', 'left']); return; }
+      var r1 = yield* EV.fight(['roper'], { bg: 'cavern', music: 'boss', canRun: true, revealed: true });
+      if (r1 === 'win') { g.flags.roperDead = 1; yield DS.say(L('deep.roperDone')); } else if (r1 === 'run') yield F().walk(['left', 'left']);
+      return;
+    }
+    yield DS.say(L('deep.roperGrabs'));
+    var r2 = yield* EV.fight(['roper'], { bg: 'cavern', music: 'boss', canRun: true, surprised: 'party' });
+    if (r2 === 'win') { g.flags.roperDead = 1; g.flags.roperSeen = 1; yield DS.say(L('deep.roperDone')); } else if (r2 === 'run') { g.flags.roperSeen = 1; yield F().walk(['left', 'left']); }
+  };
+  S.bulette = function* () {
+    var g = G();
+    yield DS.say(L('deep.bulette'));
+    var res = yield* EV.fight(['bulette'], { bg: 'cavern', music: 'boss', canRun: true });
+    if (res === 'win') { g.flags.buletteDead = 1; yield DS.say(L('deep.buletteDone')); if ((g.guests || []).length) yield DS.say(L('deep.buletteHedda'), who('Hedda Greyseam')); }
+  };
+  S.drainCut = function* () {
+    var g = G();
+    yield DS.say(L('deep.drain'));
+    var a = yield DS.ask(L('deep.drainAsk'), ['FIGHT IT', 'BACK AWAY']);
+    if (a !== 0) { yield F().walk(['up']); return; }
+    var res = yield* EV.fight(['pudding'], { bg: 'cavern', music: 'boss', canRun: true });
+    if (res === 'win') { g.flags.puddingDead = 1; yield DS.say(L('deep.drainDone')); } else if (res === 'run') yield F().walk(['up']);
+  };
+  // leg three: the xorn in the wall, and the raid on Third Lamp (the capstone)
+  S.xorn = function* () {
+    var g = G();
+    yield DS.say(L('deep.xorn'));
+    var res = yield* EV.fight(['xorn'], { bg: 'highway', music: 'boss', canRun: true });
+    if (res === 'win') { g.flags.xornDone = 1; yield DS.say(L('deep.xornDone')); }
+  };
+  S.raid = function* () {
+    var g = G(), guests = (g.guests || []).length > 0;
+    yield DS.say(L('deep.raidSee'));
+    if (guests) { yield DS.say(L('deep.raidBrann'), who('Brann Silversands')); yield DS.say(L('deep.raidHedda'), who('Hedda Greyseam')); }
+    var a = yield DS.ask(L('deep.raidAsk'), ['GO IN', 'CREEP UP FIRST']);
+    var o = { bg: 'highway', music: 'boss', canRun: false, introText: L('deep.raidIntro') };
+    if (a === 1) { if (yield* EV.check('Stealth', 'dex', 13, { group: true })) { o.surprised = 'foes'; yield DS.say(L('deep.raidCrept')); } else yield DS.say(L('deep.raidSpotted')); }
+    var res = yield* EV.fight(['drowcaptain', 'spellweaver', 'drow', 'drow', 'drow', 'drow', 'drow'], o);
+    if (res !== 'win') return;
+    g.flags.lamp3 = 1; g.flags.highwaySecured = 1;
+    yield DS.say(L('deep.raidWon'));
+    DS.audio.sfx('magic'); DS.applyFlagTiles(F().map);
+    yield DS.say(L(guests ? 'deep.lamp3Lit' : 'deep.lamp3LitAlone'));
+    yield* EV.milestone(10000, 'deep.mileLamp3');
+    if (guests) { yield DS.say(L('deep.escortsStay'), who('Hedda Greyseam')); EV.dropGuests(); F().refreshNpcs(); }
+    g.flags.pin = 'thedoor';
+    yield DS.say(L('deep.day3End'), { top: true });
+  };
+  S.captain = function* () { // the Greyseam knife: a sect blade on a garrison captain's body (spec §8: shown, not told)
+    var g = G();
+    if (!g.flags.lamp3) return;
+    if (g.flags.knifeTaken) { yield DS.say(L('deep.captainRest')); return; }
+    yield DS.say(L('deep.captainSee'));
+    if (EV.npc('heddaLamp')) yield DS.say(L('deep.heddaKnife'), who('Hedda Greyseam'));
+    g.flags.knifeTaken = 1; g.give('greyseamknife', 1); DS.audio.sfx('chest');
+    yield DS.say(L('g.got', { item: DS.DATA.items.greyseamknife.name }));
+    var v = g.hero('vivian');
+    if (v) {
+      var eq = yield DS.ask(L('winters.equipAsk', { name: v.name }), ['YES', 'NO']);
+      if (eq === 0) { if (v.equip.weapon && v.equip.weapon !== 'unarmed') g.give(v.equip.weapon, 1); g.take('greyseamknife', 1); v.equip.weapon = 'greyseamknife'; DS.audio.sfx('confirm'); }
+    }
+  };
+  S.deepholmRoad = function* () { yield DS.say(L('deep.deepRoad')); yield F().walk(['left']); };
+  // the smith re-hafts Barley's flail in truesilver (spec §8: the Winnower)
+  S.dsmith = function* () {
+    var g = G(), S2 = who('The Copperbottom smith');
+    if (g.has('truesilver') && !g.flags.winnowerMade) {
+      yield DS.say(L('deep.smithLump'), S2);
+      var flails = ['threshingflail2', 'threshingflail1', 'threshingflail'], b = g.hero('barley');
+      var fl = flails.filter(function (id) { return (b && b.equip.weapon === id) || g.count(id) > 0; })[0];
+      if (!fl) { yield DS.say(L('deep.smithNoFlail'), S2); }
+      else {
+        var a = yield DS.ask(L('deep.smithAsk'), ['RE-HAFT IT', 'NOT YET']);
+        if (a === 0) {
+          if (b && b.equip.weapon === fl) b.equip.weapon = null; else g.take(fl, 1);
+          g.take('truesilver', 1); g.flags.winnowerMade = 1;
+          DS.audio.sfx('crit'); yield DS.say(L('deep.smithWorks'));
+          if (b && !b.equip.weapon) { b.equip.weapon = 'winnower'; } else g.give('winnower', 1);
+          DS.audio.sfx('chest');
+          yield DS.say([L('deep.smithWinnower'), L('g.got', { item: DS.DATA.items.winnower.name })], S2);
+          return;
+        }
+      }
+    }
+    yield DS.shop('copperbottom');
+  };
+  // guests sleep where the party sleeps: a long rest stands them up again (a KO'd guest sits out till the next lamp)
+  var baseLongRest2 = EV.longRest;
+  EV.longRest = function () {
+    baseLongRest2();
+    (G().guests || []).forEach(function (x) { x.h.ko = false; x.h.conds = {}; R.refresh(x.h, true); });
+  };
+  // Revivify in the field: a diamond, and a fallen friend
+  var baseFieldCast = EV.fieldCast;
+  EV.fieldCast = function* (h, sp) {
+    if (sp.kind !== 'revive') { yield* baseFieldCast(h, sp); return; }
+    var g = G(), slot = R.lowestSlot(h, sp.level);
+    if (!slot) { yield DS.say(L('g.noSlots')); return; }
+    if (!g.count('diamond')) { yield DS.say(L('deep.noDiamond')); return; }
+    var items = g.party.map(function (x) { return { label: x.name, right: x.ko ? 'KO' : x.hp + '/' + x.maxhp, value: x, disabled: !x.ko }; });
+    if (!items.some(function (it) { return !it.disabled; })) { yield DS.say(L('deep.noneDown')); return; }
+    var t = yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'WHO COMES BACK?' });
+    if (!t) return;
+    h.slots[slot - 1]--; g.take('diamond', 1); t.ko = false; t.hp = 1; DS.audio.sfx('heal');
+    yield DS.say(L('deep.revived', { name: t.name }));
+  };
 
   // talk that comes first, once, when its condition holds (the town telling you what you did: spec §11 consequences as rumor)
   var baseTalk = EV.talk;
