@@ -48,6 +48,8 @@ def check_paths(src):
             if p.startswith('content/') or p.startswith('invented.json') or 'handoff-2026-09-23' in p:
                 continue
             cands = [os.path.join(REGISTER, p), os.path.join(LAB, p), os.path.join(os.path.dirname(REGISTER), p),
+                     os.path.join(os.path.dirname(REGISTER), 'handoffs-spent', p),  # a spent handoff is still a source
+
                      os.path.join(REGISTER, 'wiki', p), os.path.join(REGISTER, 'WarrensModule', p), os.path.join(REGISTER, 'GalleriesModule', p),
                      os.path.join(os.path.dirname(REGISTER), 'the-lab', 'pit-maps', os.path.basename(p))]
             if not any(os.path.exists(c) for c in cands):
