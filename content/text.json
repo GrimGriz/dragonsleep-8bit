@@ -35,6 +35,7 @@
   "g.noSlots": { "t": "No spell slots left.", "src": "invented: connective" },
   "g.cured": { "t": "{name} is cleansed.", "src": "invented: connective" },
   "g.mageArmor": { "t": "{name}: mage armor. AC {ac} until the next long rest.", "src": "SRD 5.1 (Mage Armor)" },
+  "g.mageArmorNone": { "t": "Everyone standing wears armor. Mage Armor has no one to take it.", "src": "SRD 5.1 (Mage Armor: a willing creature who isn't wearing armor); playtest 09-25 round four s15-2" },
   "g.aid": { "t": "Aid: up to three companions gain 5 max HP until the next long rest.", "src": "SRD 5.1 (Aid)" },
   "g.light": { "t": "A steady light, the Furnace's little cousin. In the dark places it matters.", "src": "SRD 5.1 (Light); evoker-aurdin.md" },
   "g.detectYes": { "t": "Somewhere close, something hums with magic.", "src": "SRD 5.1 (Detect Magic)" },

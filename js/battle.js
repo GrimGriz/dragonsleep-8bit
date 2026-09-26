@@ -659,7 +659,11 @@
         targets = targets.concat(rest.slice(0, cnt));
       }
     } else if (sp.target === 'enemies') targets = this.liveFoes();
-    else if (sp.target === 'ally') { var ta = yield* this.pickAlly(); if (!ta) return false; targets = [ta]; }
+    else if (sp.target === 'ally') {
+      var unarmored = sp.buff === 'mageArmor' ? function (x) { return !down(x) && !R.armored(x.h); } : null; // Mage Armor: an unarmored ally only
+      if (unarmored && !this.heroes.some(unarmored)) { yield* this.say('No one here goes unarmored. Mage Armor has no one to take it.', 40); return false; }
+      var ta = yield* this.pickAlly(unarmored); if (!ta) return false; targets = [ta];
+    }
     else if (sp.target === 'allies') targets = this.liveHeroes().slice(0, sp.max || 4);
     else if (sp.target === 'self') targets = [u];
     if (slot) h.slots[slot - 1]--;

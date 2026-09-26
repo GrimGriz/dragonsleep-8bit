@@ -138,6 +138,8 @@
     if (h.cls === 'paladin' && a && a.armor) ac += 1; // Fighting Style: Defense
     return ac;
   };
+  // wearing real armor (robes aren't armor to Mage Armor): the spell has no one to take it (playtest 09-25 round four)
+  R.armored = function (h) { var a = R.item(h.equip.armor); return !!(a && a.armor && a.armor.type !== 'robe'); };
   R.isProfWeapon = function (h, w) {
     var ok = R.CLASSES[h.cls].weapons;
     return w.id === 'unarmed' || ok.indexOf(w.weapon.group) >= 0 || ok.indexOf(w.weapon.kind) >= 0;

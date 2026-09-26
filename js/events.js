@@ -229,7 +229,9 @@
     var slot = sp.level && !sp.ritual ? R.lowestSlot(h, sp.level) : 0;
     if (sp.level && !sp.ritual && !slot) { yield DS.say(L('g.noSlots')); return; }
     if (sp.kind === 'heal' || sp.kind === 'cure' || (sp.kind === 'buff' && sp.target !== 'allies')) {
-      var items = g.party.map(function (x) { return { label: x.name, right: (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: x.ko }; });
+      var ma = sp.buff === 'mageArmor';
+      var items = g.party.map(function (x) { return { label: x.name, right: ma && R.armored(x) ? 'ARMORED' : (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: x.ko || (ma && R.armored(x)) }; });
+      if (ma && items.every(function (it) { return it.disabled; })) { yield DS.say(L('g.mageArmorNone')); return; }
       var t = yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'ON WHOM?' });
       if (!t) return;
       if (slot) h.slots[slot - 1]--;
@@ -413,6 +415,16 @@
       var eq = yield DS.ask(L('winters.equipAsk', { name: who2.name }), ['YES', 'NO']);
       if (eq === 0) { if (who2.equip.ring) g.give(who2.equip.ring, 1); who2.equip.ring = 'ringofbinding'; g.take('ringofbinding', 1); DS.audio.sfx('confirm'); }
       return;
+    }
+    // an errand brought back closes as soon as you walk in, and the next one comes with it (playtest 09-25 round four:
+    // no picking WORK to hear what finishing the step already told him)
+    var back = (g.flags.wErrA && !g.flags.wErrADone && g.flags.wValued) || (g.flags.wErrB && !g.flags.wErrBDone && g.flags.wPaid);
+    if (back) {
+      yield* S.wintersWork();
+      if (g.flags.wErrADone && !g.flags.wErrB && (yield* S.wintersWork()) === 'leave') {
+        if (!g.has('ringofbinding') && main.lvl < 4) yield DS.say(L('winters.notReady', { lvl: main.lvl }), W);
+        return;
+      }
     }
     while (true) {
       var a = yield DS.ask(L(g.has('ringofbinding') ? 'winters.after' : 'winters.menu'), ['WORK', 'THE SHELVES', 'LEAVE'], W);

@@ -6091,6 +6091,11 @@
    "src": "SRD 5.1 (Mage Armor)",
    "id": "g.mageArmor"
   },
+  "g.mageArmorNone": {
+   "t": "Everyone standing wears armor. Mage Armor has no one to take it.",
+   "src": "SRD 5.1 (Mage Armor: a willing creature who isn't wearing armor); playtest 09-25 round four s15-2",
+   "id": "g.mageArmorNone"
+  },
   "g.aid": {
    "t": "Aid: up to three companions gain 5 max HP until the next long rest.",
    "src": "SRD 5.1 (Aid)",
