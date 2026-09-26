@@ -22,7 +22,7 @@ An 8-bit, turn-based RPG of Silverton and the Silverton–Pit corridor, in the s
 
 Plain HTML, canvas and classic scripts; no build step to play. All pixel art, tiles, the font and the chiptune music are generated in code (`js/art.js`, `js/sprites.js`, `js/bestiary-art.js`, `js/font.js`, `js/audio.js`). Nothing is copied from any other game.
 
-One scene steps outside the 8-bit frame on purpose: a shift at the Warrens' cradles (`js/cradle.js`) is drawn at full resolution on a second canvas laid over the game screen, with the lamp, the timber, the animal and your hands drawn from curves and light, then taken away again when the shift ends.
+Two scenes step outside the 8-bit frame on purpose: a shift at the Warrens' cradles (`js/cradle.js`) and a dream on a couch on vice row (`js/smoke.js`) are drawn at full resolution on a second canvas laid over the game screen, from curves and light, then taken away again when they end.
 
 The content comes from the TarlynsPit register (the wiki and the module packages). It is hand-authored as JSON in `content/`, where every record cites its source page (`"src"`), then compiled:
 

@@ -823,6 +823,33 @@
     } }));
   };
 
+  // ================================================================== the smoke (spec §12): Tam Vere's couch on vice row
+  S.tam = function* (npc, D) {
+    var g = G(), T2 = who('Tam Vere');
+    if (!g.flags.lakeDone) { yield* EV.dialog(D); return; }
+    if (g.flags.smokeDreamt && !g.flags.tamAfterSaid) { g.flags.tamAfterSaid = 1; yield DS.say(L('deep.tamAfter'), T2); }
+    else if (g.flags.torvaldMet && g.flags.torvaldFate !== 'dead' && !g.flags.tamDwarfSaid) { g.flags.tamDwarfSaid = 1; yield DS.say(L('deep.tamDwarf'), T2); }
+    var a = yield DS.ask(L('deep.tamOffer'), ['THE COUCH (5 SP)', 'THE COMMON PIPE (1 SP)', 'NOT TONIGHT'], T2);
+    if (a === 1) { // a short rest in town: the pipe's own use
+      if (!EV.pay(1)) { yield DS.say(L('g.poor')); return; }
+      yield DS.fade(1, 16); yield W8.frames(40);
+      g.party.forEach(function (x) { if (!x.ko) x.hp = Math.min(x.maxhp, x.hp + Math.ceil(x.maxhp / 2)); R.refresh(x, false); });
+      yield DS.fade(0, 16);
+      yield DS.say(L('deep.tamPipe'));
+      return;
+    }
+    if (a !== 0) return;
+    if (!EV.pay(5)) { yield DS.say(L('g.poor')); return; }
+    var again = !!g.flags.smokeDreamt;
+    yield DS.say(L(again ? 'deep.tamCouchAgain' : 'deep.tamCouch'), T2);
+    yield DS.fade(1, 30);
+    DS.fadeLevel = 0;
+    yield W8.scene(new DS.SmokeScene({ again: again }));
+    g.flags.smokeDreamt = 1;
+    DS.audio.play(F().map.music || 'town', true);
+    yield DS.fade(0, 1);
+  };
+
   // talk that comes first, once, when its condition holds (the town telling you what you did: spec §11 consequences as rumor)
   var baseTalk = EV.talk;
   EV.talk = function* (npc) {

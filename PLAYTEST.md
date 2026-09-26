@@ -203,5 +203,17 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] The credits: BEHIND THE FOUNTAINS, and one line before "Thanks for playing" that your choices wrote (the cleric's fate). THE ROAD IS HELD; CONTINUE wakes you in Solskaft
 - [ ] Levels by the end: about 6 at First Lamp, 8 at Third Lamp, 9 at the door
 
+## 20. The dwarven expansion, part four: the smoke
+
+- [ ] After the chuul, Tam Vere on vice row offers the couch and the good leaf (5 sp), or the common pipe (a short rest in town)
+- [ ] The couch: the den in 8-bit (the party laid out on the couch, the lamp, the racks), smoke rising from the pipe and thickening, grey coming down the screen from the top
+- [ ] Then twenty seconds with no words, drawn at full resolution: a castle on a headland, a sun-disc over its gate; a storm in off the sea, the light dropping by thirds, lightning (the frame bends with each strike); a tower struck, its top falling, the disc going dark
+- [ ] The clouds close over everything. Low in the dark, a copper spire rises out of the bottom of the frame, up through the cloud
+- [ ] It pierces the cloud; the cloud tears outward from that point; plain daylight, the castle standing with its broken tower, the disc lit. A hold, and back to the couch; the party gets up; no one says anything
+- [ ] Sound: wind, thunder with the strikes, a bright ring when it pierces, and the title theme as you wake
+- [ ] Tam's line after, once and for good: "Most come to forget. You came out with something." After you've met the cleric on the road, she mentions a dwarf on her couch who didn't sleep
+- [ ] The couch again: the dream plays again, and holding E wakes you early
+- [ ] Does it land? (It's meant to stay unexplained in the game.)
+
 ## Notes
 (write here)

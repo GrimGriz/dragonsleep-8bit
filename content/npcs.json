@@ -65,7 +65,7 @@
     { "if": "hired:aurdin", "say": ["A fireball's worth of guano and sulfur, one silver the paper.", "Ned Halloway, behind the counter, nods at Aurdin. Everyone calls him Ned. He scared himself out of going up to the Doors."] },
     { "say": ["Percy's Particulars. A fireball's worth of guano and sulfur, one silver the paper.", "Gland's half-drained. You carried it warm. I don't render what renders me."] } ],
     "src": "the-lab/pit-maps/shops-silverton.json pin 38; ext Silverton npcs (Percy quotes; Ned Halloway)" },
-  "tam": { "name": "Tam Vere", "talk": [ { "say": ["Five coppers the common pipe. The couch and the good leaf, five silver.", "She remembers every face in the smoke room, and what each came to forget. You are not going in."] } ], "src": "the-lab/pit-maps/shops-silverton.json pin 40; ext Silverton npcs" },
+  "tam": { "name": "Tam Vere", "script": "tam", "talk": [ { "say": ["Five coppers the common pipe. The couch and the good leaf, five silver.", "She remembers every face in the smoke room, and what each came to forget. You are not going in."] } ], "src": "the-lab/pit-maps/shops-silverton.json pin 40; ext Silverton npcs" },
   "aldwin": { "name": "Aldwin", "talk": [
     { "if": "hired:aurdin", "say": ["Bread at six. At quarter past, for the proud.", "The old priest looks at Aurdin and says nothing about the sun god. Fifty years at the bread line teaches a man when not to."] },
     { "say": ["Bread at six. At quarter past, for the proud.", "The floor's free, if the old man likes your face."] } ],

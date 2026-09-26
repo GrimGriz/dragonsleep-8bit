@@ -7136,6 +7136,7 @@
   },
   "tam": {
    "name": "Tam Vere",
+   "script": "tam",
    "talk": [
     {
      "say": [
@@ -10924,6 +10925,36 @@
    "t": "The seal, and the ledger.",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9 (milestone XP at each spine beat)",
    "id": "deep.mileCrew"
+  },
+  "deep.tamOffer": {
+   "t": "The couch and the good leaf. Five silver. Most people come to forget something.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (Tam's part: the couch offered once the lake is done); drafted by the Cowork seat in the spec, PROPOSED (Tam's register is the only explanation the game gives)",
+   "id": "deep.tamOffer"
+  },
+  "deep.tamCouch": {
+   "t": "She lays a pipe in your hands and draws the curtain, and the den goes quiet.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12",
+   "id": "deep.tamCouch"
+  },
+  "deep.tamCouchAgain": {
+   "t": "She doesn't ask why you're back. The curtain, the pipe, the quiet.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (the couch can be bought again; the dream plays again, skippable)",
+   "id": "deep.tamCouchAgain"
+  },
+  "deep.tamAfter": {
+   "t": "Most come to forget. You came out with something. I don't ask.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (her line after the dream, once and for good); drafted by the Cowork seat in the spec, PROPOSED (Tam's register is the only explanation the game gives)",
+   "id": "deep.tamAfter"
+  },
+  "deep.tamDwarf": {
+   "t": "A dwarf sat on that couch a week ago and didn't sleep. First one in seventy years.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (the second line; Torvald stopped in town on his way out, CANON); drafted by the Cowork seat in the spec, PROPOSED (Tam's register is the only explanation the game gives)",
+   "id": "deep.tamDwarf"
+  },
+  "deep.tamPipe": {
+   "t": "The common pipe goes round. Nobody talks. You come out rested, a little.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (the common pipe, five coppers: a short rest in town; the game counts it a silver)",
+   "id": "deep.tamPipe"
   }
  },
  "rumors": [

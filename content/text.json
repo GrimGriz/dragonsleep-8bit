@@ -538,5 +538,11 @@
   "deep.rcDead": {"t": "Nobody in Silverton ever knew a cleric had died on the road under the mountain. The dwarves knew.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.3"},
   "deep.rcDefault": {"t": "Nobody bothers the dwarves.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.3"},
   "deep.ingrithWaits": {"t": "She waits for your answer, the ledger already under her arm.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md \u00a73 beat 9; drafted by the code tab, PROPOSED"},
-  "deep.mileCrew": {"t": "The seal, and the ledger.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md \u00a79 (milestone XP at each spine beat)"}
+  "deep.mileCrew": {"t": "The seal, and the ledger.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md \u00a79 (milestone XP at each spine beat)"},
+  "deep.tamOffer": {"t": "The couch and the good leaf. Five silver. Most people come to forget something.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (Tam's part: the couch offered once the lake is done); drafted by the Cowork seat in the spec, PROPOSED (Tam's register is the only explanation the game gives)"},
+  "deep.tamCouch": {"t": "She lays a pipe in your hands and draws the curtain, and the den goes quiet.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12"},
+  "deep.tamCouchAgain": {"t": "She doesn't ask why you're back. The curtain, the pipe, the quiet.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (the couch can be bought again; the dream plays again, skippable)"},
+  "deep.tamAfter": {"t": "Most come to forget. You came out with something. I don't ask.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (her line after the dream, once and for good); drafted by the Cowork seat in the spec, PROPOSED (Tam's register is the only explanation the game gives)"},
+  "deep.tamDwarf": {"t": "A dwarf sat on that couch a week ago and didn't sleep. First one in seventy years.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (the second line; Torvald stopped in town on his way out, CANON); drafted by the Cowork seat in the spec, PROPOSED (Tam's register is the only explanation the game gives)"},
+  "deep.tamPipe": {"t": "The common pipe goes round. Nobody talks. You come out rested, a little.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §12 (the common pipe, five coppers: a short rest in town; the game counts it a silver)"}
 }
