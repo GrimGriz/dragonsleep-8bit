@@ -1097,7 +1097,7 @@ def build_deep():
     # the garrison
     g.npc('pyro', 16, 46, 'pyro', dir='up')
     g.npc('ketil', 19, 46, 'ketil', dir='up')
-    g.npc('ingrith', 3, 39, 'ingrith', dir='down', cond='flag:clericMet')
+    g.npc('ingrith', 3, 39, 'ingrith', dir='down', cond='flag:clericMet & !flag:ingrithEscort')
     g.npc('quartermaster', 6, 42, 'dclerk', dir='down')
     g.npc('ragna', 29, 44, 'ragna', dir='up')
     g.npc('brann', 21, 33, 'brann', dir='left', cond='!flag:escortsOut')
@@ -1334,11 +1334,33 @@ def build_highway():
     g.trig('tower3', 68, 5, 'lampTower', 3, on='use', cond='flag:lamp3')
     g.trig('xorn', 29, 10, 'xorn', on='step', w=3, h=4, cond='!flag:xornDone')
     g.trig('captain', 69, 17, 'captain', on='use')
-    g.trig('deepRoad', 75, 10, 'deepholmRoad', on='step', h=4)
+
     g.zone('hw3', 0, 0, 56, H)
     save('highway_3', g, 'cave', 'The Highway — to the Third Lamp', music='highway', bg='highway', save=False, dark=True, legend=HW,
          highway=3, seals=seals, lights=[{'x': 68, 'y': 5, 'r': 84, 'cond': 'flag:lamp3'}],
-         exits={'west': {'to': 'highway_2', 'tx': 74, 'ty': 11, 'dir': 'left'}})
+         exits={'west': {'to': 'highway_2', 'tx': 74, 'ty': 11, 'dir': 'left'}, 'east': {'to': 'threshold', 'tx': 1, 'ty': 8, 'dir': 'right'}})
+
+    # ---- Deepholm's door: the small spot where the highway ends (spec §6.4). One screen: the gate, the bench, the road behind
+    W, H = 18, 15
+    g = Grid(W, H, '#')
+    g.rect(1, 4, 16, 9, 'm')                               # the made road: the first dressed stone in three days
+    g.rect(0, 7, 3, 3, '_')                                # where the carved road comes in
+    for y in range(4, 13):
+        g.put(17, y, 'h')
+    g.put(17, 7, 'D'); g.put(17, 8, 'D'); g.put(17, 9, 'd')  # the door, three tall; light under it
+    g.hline(12, 16, 3, 'h')
+    g.put(14, 4, 'G'); g.put(15, 4, 'G')                   # the toll-grille; Dagny behind it
+    g.put(10, 3, 'Y')                                      # the tariff board, prices in a live coin
+    g.put(12, 11, '%')                                     # the weigh-station
+    g.put(5, 12, 'n'); g.put(6, 12, 'n')                   # a bench
+    g.npc('dagny', 14, 3, 'dagny', dir='down')
+    g.trig('deepDoor', 17, 7, 'deepDoor', on='use', h=3)
+    g.sign(10, 3, 'THE TARIFF. Ore by the weight, salt by the sack, timber, tallow, rope. The prices are in a coin that is still struck.', SPEC_REF + ' §6.4 (a tariff board in a live currency)')
+    g.sign(12, 11, 'The weigh-station. The weights are honest. Nobody here would know how to make them otherwise.', SPEC_REF + ' §6.4 (a weigh-station)')
+    g.sign(5, 12, "A stone bench, worn in the middle by three days' worth of the tired.", SPEC_REF + ' §6.4 (a bench)')
+    save('threshold', g, 'cave', "Deepholm's Door", music='highway', bg='highway', save=True, dark=True, legend=dict(HW, **{'m': 'madeRoad', 'D': 'deepDoor', 'd': 'deepDoorSill', 'G': 'grille', 'Y': 'tariffLive', '%': 'scales', 'n': 'bench'}),
+         lights=[{'x': 16, 'y': 8, 'r': 90, 'col': 'rgba(255,200,120,0.22)'}, {'x': 14, 'y': 4, 'r': 40}],
+         exits={'west': {'to': 'highway_3', 'tx': 74, 'ty': 11, 'dir': 'left'}})
 
 
 if __name__ == '__main__':

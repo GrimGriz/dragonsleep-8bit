@@ -318,6 +318,7 @@
     DS.applyFlagTiles(f.map);
     yield DS.say(L('deep.ingrithStair'), I2);
     yield* ingrithGoes([ing, t1, t2]);
+    yield* EV.milestone(2500, 'deep.mileCrew');
   };
   function* ingrithGoes(list) { // back along the tier to their stair; the player is free to move while they go
     list.forEach(function (n, k) { n.pathSpeed = 2; n.path = ['face:right', 'wait' + (6 + k * 6)]; for (var x = n.x; x < 37; x++) n.path.push('right'); n.path.push('hide'); });
@@ -345,6 +346,7 @@
   S.pyro = function* (npc) {
     var g = G(), P = who('Pyronimus');
     if (!g.flags.pyroMet) { yield* S.pyroMeet(); return; }
+    if (g.flags.highwaySecured && !g.flags.pyroConsent) { g.flags.pyroConsent = 1; yield DS.say(L('deep.pyroSecured'), P); return; } // beat 9: the king's word
     var k = 'pyroIdx', i = g.flags[k] || 0; g.flags[k] = i + 1;
     var lines = ['deep.pyro1', 'deep.pyro2', 'deep.pyro3'];
     if (g.flags.shieldTaken && !unlawful().length && g.flags.warrantShield) lines.push('deep.pyroShield');
@@ -364,6 +366,15 @@
   };
   S.ingrith = function* () {
     var g = G(), I2 = who('Ingrith Scalebeam');
+    if (g.flags.pyroConsent && !g.flags.ingrithEscort) { // beat 9: she goes down, and you walk her
+      yield DS.say(L('deep.ingrithConsult'), I2);
+      var a = yield DS.ask(L('deep.ingrithWaits'), ['WALK HER DOWN', 'NOT YET'], I2);
+      if (a !== 0) return;
+      EV.addGuest('ingrith'); g.flags.ingrithEscort = 1; DS.audio.sfx('levelup');
+      yield DS.say(L('deep.ingrithJoins'));
+      var me = EV.npc('ingrith'); if (me) me.hidden = true;
+      return;
+    }
     if (g.flags.warrantShield && !g.flags.shieldTaken) { yield DS.say(L('deep.ingrithShieldHint'), I2); return; }
     if (g.has('crewsack')) { yield DS.say(L('deep.ingrithSack'), I2); return; }
     var k = 'ingrithIdx', i = g.flags[k] || 0; g.flags[k] = i + 1;
@@ -386,6 +397,7 @@
     if (g.guests.some(function (x) { return x.id === id; })) return;
     var h = R.makeHero(id, d.level);
     h.attacks = d.attacks; h.resist = d.resist; h.guest = true;
+    if (d.healer) { h.healer = d.healer; h.feats.heals = d.healer; }
     g.guests.push({ id: id, h: h });
   };
   EV.dropGuests = function () { G().guests = []; };
@@ -583,7 +595,7 @@
   var baseLongRest2 = EV.longRest;
   EV.longRest = function () {
     baseLongRest2();
-    (G().guests || []).forEach(function (x) { x.h.ko = false; x.h.conds = {}; R.refresh(x.h, true); });
+    (G().guests || []).forEach(function (x) { x.h.ko = false; x.h.conds = {}; R.refresh(x.h, true); if (x.h.healer) x.h.feats.heals = x.h.healer; });
   };
   // Revivify in the field: a diamond, and a fallen friend
   var baseFieldCast = EV.fieldCast;
@@ -598,6 +610,217 @@
     if (!t) return;
     h.slots[slot - 1]--; g.take('diamond', 1); t.ko = false; t.hp = 1; DS.audio.sfx('heal');
     yield DS.say(L('deep.revived', { name: t.name }));
+  };
+
+  // ================================================================== Deepholm's door (spec §6.4) and the road's people (§7)
+  S['enter:threshold'] = function* () {
+    var g = G();
+    if (!g.flags.deepholmSeen) { g.flags.deepholmSeen = 1; yield DS.say(L('deep.doorSee')); }
+    if (!g.flags.torvaldMet) yield* EV.torvald();
+  };
+  // a menu of checks, each once, each with the reason it might tell you something (spec §7: checks as dialog options)
+  function* checkMenu(title, list, asked) {
+    var items = list.filter(function (c) { return !asked[c.id] && (!c.cond || c.cond()); }).map(function (c) { return { label: c.label, value: c }; });
+    items.push({ label: 'ENOUGH', value: 'back' });
+    return yield DS.choose({ items: items, x: 70, y: 40, w: 180, title: title, rowH: 12,
+      drawExtra: function (ctx, menu) { var c = menu.current() && menu.current().value; if (!c || c === 'back') return; DS.win(ctx, 4, 196, 248, 40); DS.wrap(L(c.hint), 236).slice(0, 3).forEach(function (l, i) { DS.text(ctx, l, 10, 203 + i * 10, '#E0C8A0'); }); } });
+  }
+  EV.torvald = function* () {
+    var g = G(), f = F(), C = who('The cleric');
+    g.flags.torvaldMet = 1;
+    var tv = spawn({ id: 'torvaldNpc', x: 16, y: g.y, look: 'torvald', dir: 'left' });
+    yield DS.say(L('deep.tvCome'));
+    tv.path = []; for (var x = tv.x; x > g.x + 2; x--) tv.path.push('left');
+    yield arrived([tv]);
+    playerFace(tv.x, tv.y);
+    yield DS.say(L('deep.tv1'), C);
+    var asked = {}, anyOk = false, done = null, viv = g.hero('vivian');
+    var CHECKS = [
+      { id: 'insight', label: 'INSIGHT 13', hint: 'deep.tvHint.insight', skill: 'Insight', ab: 'wis', dc: 13 },
+      { id: 'religion', label: 'RELIGION 12', hint: 'deep.tvHint.religion', skill: 'Religion', ab: 'int', dc: 12 },
+      { id: 'medicine', label: 'MEDICINE 14', hint: 'deep.tvHint.medicine', skill: 'Medicine', ab: 'wis', dc: 14 },
+      { id: 'persuade', label: 'PERSUASION 15', hint: 'deep.tvHint.persuade', skill: 'Persuasion', ab: 'cha', dc: 15, cond: function () { return anyOk; } },
+      { id: 'lift', label: 'SLEIGHT OF HAND 15', hint: 'deep.tvHint.lift', skill: 'Sleight of Hand', ab: 'dex', dc: 15, cond: function () { return viv && !viv.ko; }, hero: viv }
+    ];
+    while (!done) {
+      var a = yield DS.ask(L('deep.tvAsk'), ['LET HIM GO', 'ASK HIM', 'HOLD HIM'], C);
+      if (a === 0) { done = g.flags.scrapingLifted ? 'robbed' : 'gone'; break; }
+      if (a === 2) { done = 'fight'; break; }
+      while (true) {
+        var c = yield* checkMenu(L('deep.tvWatch'), CHECKS, asked);
+        if (!c || c === 'back') break;
+        asked[c.id] = 1;
+        var ok = yield* EV.check(c.skill, c.ab, c.dc, { hero: c.hero });
+        yield DS.say(L('deep.tv.' + c.id + (ok ? 'Yes' : 'No')), c.id === 'persuade' ? C : undefined);
+        if (ok) anyOk = true;
+        if (c.id === 'persuade' && ok) { g.flags.torvaldTold = 1; done = 'told'; break; }
+        if (c.id === 'lift') { if (ok) { g.flags.scrapingLifted = 1; g.give('copperscraping', 1); } else { done = 'caught'; break; } }
+      }
+    }
+    if (done === 'fight') {
+      yield DS.say(L('deep.tvHold'));
+      DS.battleYielded = false;
+      var res = yield* EV.fight(['torvald'], { bg: 'highway', music: 'boss', canRun: false, yieldText: L('deep.tvYield') });
+      if (res !== 'win') return;
+      var kill = true;
+      if (DS.battleYielded) { var y = yield DS.ask(L('deep.tvYieldAsk'), ['LET HIM GO', 'FINISH IT']); kill = y === 1; }
+      if (!kill) { g.flags.torvaldFate = 'spared'; yield DS.say(L('deep.tvSpared')); tv.pathSpeed = 1; tv.path = DS.pathTo(f.map, tv.x, tv.y, 0, 8).concat(['hide']); return; }
+      g.flags.torvaldFate = 'dead'; tv.hidden = true;
+      ['copperscraping', 'kit', 'dvalsymbol'].forEach(function (id) { g.give(id, 1); }); g.silver += 40; DS.audio.sfx('chest');
+      yield DS.say(L('deep.tvDead'));
+      return;
+    }
+    if (done === 'caught') { g.flags.torvaldFate = 'gone'; yield DS.say(L('deep.tvCaught')); }
+    else {
+      g.flags.torvaldFate = done;
+      g.party.forEach(function (h) { if (!h.ko) { h.hp = h.maxhp; delete h.conds.poisoned; delete h.conds.paralyzed; } });
+      DS.audio.sfx('heal');
+      yield DS.say(L('deep.tvHeal'));
+      yield DS.say(L('deep.tvGo'), C);
+    }
+    tv.pathSpeed = 2; tv.path = DS.pathTo(f.map, tv.x, tv.y, 0, 8).concat(['hide']);
+    yield DS.say(L('deep.tvGone'), { auto: 60 });
+  };
+  // the sect's blades, at the next rest of any kind after the cleric (spec §7.2)
+  EV.assassinsDue = function () { var g = G(); return !!g.flags.torvaldMet && (!g.flags.assassinsMet || g.flags.assassinsCircle) && !g.flags.assassinsFate; };
+  EV.assassins = function* () {
+    var g = G(), f = F(), second = !!g.flags.assassinsCircle, H2 = who('A hooded dwarf');
+    g.flags.assassinsMet = 1; delete g.flags.assassinsCircle;
+    yield DS.say(L(second ? 'deep.asBack' : 'deep.asNight'));
+    var party = g.party.filter(function (h) { return !h.ko; });
+    var w = party.length === 1 ? party[0] : yield DS.choose({ items: party.map(function (h) { return { label: h.name, right: 'Perception ' + (10 + R.skill(h, 'Perception', 'wis')), value: h }; }), x: 60, y: 90, w: 156, title: L('deep.asWatch'), cancelable: false });
+    w = w || party[0];
+    var spotted = 10 + R.skill(w, 'Perception', 'wis') >= DS.d(20) + 9;
+    var blades = [];
+    [[g.x - 2, g.y], [g.x + 2, g.y], [g.x, g.y - 2], [g.x, g.y + 2]].forEach(function (p) { if (blades.length < 2 && f.free(p[0], p[1])) blades.push(spawn({ id: 'blade' + blades.length, x: p[0], y: p[1], look: 'sectblade', dir: 'down' })); });
+    blades.forEach(function (n) { faceTo(n, g.x, g.y); });
+    yield DS.say(L(spotted ? 'deep.asSpotted' : 'deep.asUnseen', { name: w.name }));
+    yield DS.say(L('deep.as1'), H2);
+    var carried = g.has('copperscraping') || g.flags.torvaldFate === 'dead', went = ['gone', 'told', 'robbed', 'spared'].indexOf(g.flags.torvaldFate) >= 0;
+    var asked = {}, fate = null;
+    var CHECKS = [
+      { id: 'religion', label: 'RELIGION 12', hint: 'deep.asHint.religion', skill: 'Religion', ab: 'int', dc: 12 },
+      { id: 'insight', label: 'INSIGHT 14', hint: 'deep.asHint.insight', skill: 'Insight', ab: 'wis', dc: 14 },
+      { id: 'intimidate', label: 'INTIMIDATION 16', hint: 'deep.asHint.intimidate', skill: 'Intimidation', ab: 'cha', dc: 16 }
+    ];
+    while (!fate) {
+      var a = yield DS.ask(L('deep.asAsk'), ['HE WENT UP', 'HE WENT DOWN', 'NOTHING TO SAY', 'ASK THEM', 'FIGHT'], H2);
+      if (a === 3) {
+        while (true) {
+          var c = yield* checkMenu(L('deep.tvWatch'), CHECKS, asked);
+          if (!c || c === 'back') break;
+          asked[c.id] = 1;
+          var ok = yield* EV.check(c.skill, c.ab, c.dc);
+          yield DS.say(L('deep.as.' + c.id + (ok ? 'Yes' : 'No')), c.id === 'intimidate' && ok ? H2 : undefined);
+          if (c.id === 'intimidate' && ok) g.flags.assassinsTold = 1;
+        }
+        continue;
+      }
+      if (a === 0 && went) { fate = 'sent'; yield DS.say(L('deep.asUp')); break; }
+      if (a === 0 || a === 1) { // a lie either way: up when he never went up, or down
+        if (yield* EV.check('Deception', 'cha', 15)) { fate = 'misled'; yield DS.say(L('deep.asLie')); break; }
+        yield DS.say(L('deep.asLieNo'), H2); fate = 'fight'; spotted = false; break;
+      }
+      if (a === 2) {
+        if (carried) {
+          yield DS.say(L('deep.asCarry'), H2);
+          var b = yield DS.ask(L('deep.asAsk'), g.has('copperscraping') ? ['GIVE IT', 'KEEP IT'] : ['STAND YOUR GROUND']);
+          if (b === 0 && g.has('copperscraping')) { g.take('copperscraping', 1); fate = 'paid'; yield DS.say(L('deep.asPaid')); break; }
+          fate = 'fight'; break;
+        }
+        yield DS.say(L('deep.asNoBusiness'), H2);
+        fate = second ? 'gone' : 'circle';
+        yield DS.say(L('deep.asGone'));
+        break;
+      }
+      if (a === 4) { fate = 'fight'; break; }
+    }
+    if (fate === 'fight') {
+      yield DS.say(L('deep.asFight'));
+      var res = yield* EV.fight(['assassin', 'assassin'], { bg: f.map.bg || 'highway', music: 'boss', canRun: false, surprised: spotted ? null : 'party' });
+      f.npcs = f.npcs.filter(function (n) { return blades.indexOf(n) < 0; });
+      if (res !== 'win') return;
+      g.flags.assassinsFate = 'dead'; g.give('sectblade', 2); g.give('wardknot', 1); g.silver += 120; DS.audio.sfx('chest');
+      yield DS.say(L('deep.asDead'));
+      return;
+    }
+    blades.forEach(function (n) { n.path = ['wait20', 'hide']; });
+    if (fate === 'circle') g.flags.assassinsCircle = 1; else g.flags.assassinsFate = fate;
+  };
+  var baseRest = EV.rest;
+  EV.rest = function* (song) { if (EV.assassinsDue()) { yield* EV.assassins(); if (!DS.field || G().party.every(function (h) { return h.ko; })) return; } yield* baseRest(song); };
+  var baseUse = EV.useFieldItem;
+  EV.useFieldItem = function* (id, h) {
+    var it = DS.DATA.items[id], src = F().map.src;
+    if (it && it.use && it.use.effect === 'rest' && EV.assassinsDue() && !(src.tent === false || (!src.outside && !src.dark))) yield* EV.assassins();
+    yield* baseUse(id, h);
+  };
+  // Dagny, at the grille; the door and its popup; the consult (spec §6.4, §3 beat 9)
+  S.dagny = function* () {
+    var g = G(), D2 = who('Dagny Scalebeam');
+    var k = 'dagnyIdx', i = g.flags[k] || 0; g.flags[k] = i + 1;
+    yield DS.say(L(['deep.dagny1', 'deep.dagny2', 'deep.dagny3'][i % 3]), D2);
+    yield DS.shop('dagny');
+  };
+  S.deepDoor = function* () {
+    var g = G();
+    if (g.flags.ingrithEscort && !g.flags.expansionDone && (g.guests || []).some(function (x) { return x.id === 'ingrith'; })) { yield* EV.consult(); return; }
+    DS.audio.sfx('popup');
+    yield DS.popup({
+      title: 'DAGNY SCALEBEAM', text: L('deep.doorPopup'), foot: DS.DATA.config.kofi.replace(/^https?:\/\//, ''), buttons: ['\u2665 DONATE', 'BACK'],
+      art: function (ctx, x, y) { ctx.drawImage(DS.walker(DS.LOOKS.dagny).down[(DS.frame >> 5) & 1], x - 12, y - 2, 24, 24); },
+      onButton: function (b) { if (b === 0) DS.openKofi(); }
+    });
+  };
+  EV.receiptKey = function () { // the credits' last card, chosen by the flags (spec §7.3)
+    var g = G(), a = g.flags.assassinsFate;
+    if (g.flags.torvaldFate === 'dead') return 'deep.rcDead';
+    if (a === 'sent') return 'deep.rcSent';
+    if (a === 'misled' || a === 'dead') return 'deep.rcReached';
+    if (a === 'paid') return 'deep.rcPaid';
+    return 'deep.rcDefault';
+  };
+  EV.consult = function* () {
+    var g = G(), D2 = who('Dagny Scalebeam'), f = F();
+    var sx = f.free(g.x, g.y + 1) ? g.x : g.x - 1, sy = f.free(g.x, g.y + 1) ? g.y + 1 : g.y;
+    var ing = spawn({ id: 'ingrithDoor', x: sx, y: sy, look: 'ingrith', dir: 'right' });
+    yield DS.say(L('deep.consult1'));
+    ing.path = DS.pathTo(f.map, ing.x, ing.y, 16, 8).concat(['face:right']);
+    yield arrived([ing]);
+    DS.audio.sfx('door'); DS.flashColor = '#F8E0A0'; DS.flashAlpha = 0.25; yield W8.frames(10); DS.flashColor = null;
+    yield DS.say(L('deep.consult2'));
+    ing.hidden = true;
+    g.guests = (g.guests || []).filter(function (x) { return x.id !== 'ingrith'; });
+    yield DS.say(L('deep.consult3'), D2);
+    yield DS.say(L('deep.dagnyStaff'), D2);
+    g.give('sunshaftstaff', 1); DS.audio.sfx('chest');
+    yield DS.say(L('g.got', { item: DS.DATA.items.sunshaftstaff.name }));
+    var au = g.hero('aurdin');
+    if (au) { var eq = yield DS.ask(L('winters.equipAsk', { name: au.name }), ['YES', 'NO']); if (eq === 0) { if (au.equip.weapon && au.equip.weapon !== 'unarmed') g.give(au.equip.weapon, 1); g.take('sunshaftstaff', 1); au.equip.weapon = 'sunshaftstaff'; DS.audio.sfx('confirm'); } }
+    yield* EV.milestone(13000, 'deep.mileDoor');
+    g.flags.expansionDone = 1;
+    yield DS.say(L('deep.consultEnd'));
+    yield* EV.expansionEnd();
+  };
+  EV.expansionEnd = function* () {
+    var base = DS.DATA.credits, lines = [{ t: 'DRAGONSLEEP', big: true }, { t: 'Behind the Fountains', c: '#C8D0E8', gap: 16 }];
+    base.slice(2).forEach(function (l) {
+      if (l.t === 'Thanks for playing.') {
+        lines.push({ t: L(EV.receiptKey()), c: '#E0C8A0', gap: 20 });
+        lines.push({ t: 'DEEPHOLM', c: '#F8D878' }); lines.push({ t: 'Coming in an expansion.', gap: 6 });
+        lines.push({ t: 'Donate to support it: ' + DS.DATA.config.kofi.replace(/^https?:\/\//, ''), c: '#F8A4C0', gap: 24 });
+      }
+      lines.push(l);
+    });
+    DS.audio.play('ending', true);
+    yield DS.fade(1, 40);
+    DS.clearScenes(); DS.fadeLevel = 0;
+    DS.push(new DS.Credits(true, { lines: lines, title: 'THE ROAD IS HELD', prompt: L('deep.afterPrompt'), onContinue: function* () {
+      DS.clearScenes();
+      var f2 = DS.field = new DS.Field(); DS.push(f2);
+      f2.load('solskaft', 18, 20, 'down'); DS.fadeLevel = 0;
+      yield DS.say(L('deep.afterMorning'));
+    } }));
   };
 
   // talk that comes first, once, when its condition holds (the town telling you what you did: spec §11 consequences as rumor)

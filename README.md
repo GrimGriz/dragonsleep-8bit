@@ -6,7 +6,7 @@ An 8-bit, turn-based RPG of Silverton and the Silverton–Pit corridor, in the s
 
 **Controls:** arrows or WASD to walk · E (or Z / Enter / Space) to talk and choose · X / Esc to open the menu and go back.
 
-**Up to the Doors, down to the Pit:** coming in an expansion pack. [Donate to support it](https://ko-fi.com/grimgriz).
+**Up to the Doors, down to the Pit, and through Deepholm's door:** coming in expansion packs. [Donate to support them](https://ko-fi.com/grimgriz).
 
 ## What's in it
 
@@ -15,7 +15,8 @@ An 8-bit, turn-based RPG of Silverton and the Silverton–Pit corridor, in the s
 - **The guano mine** — the mouth, the working gallery, the dens and the cull, the deep gallery and the forty-gold tail.
 - **Web Gulch**, the **Glowseep**, the **Gnoll Hills**, the **Verge** and the road south.
 - **The Halfway Inn and Halfway Lake** — the capstone.
-- Four heroes (Barley, Aurdin, Vivian, Lymen "Ly" Urtusk), levels 2–5; Fighter, Wizard, Rogue and Paladin features from the SRD 5.1.
+- **Behind the Fountains** (after the lake) — the drained stair, the Burial, **Solskaft** (the Silvered Sunshaft the dwarves cut out of their silver mine), the three-day highway and its three lamps, and Deepholm's door.
+- Four heroes (Barley, Aurdin, Vivian, Lymen "Ly" Urtusk), levels 2–5, and 6–9 behind the fountains; Fighter, Wizard, Rogue and Paladin features from the SRD 5.1.
 
 ## How it's built
 

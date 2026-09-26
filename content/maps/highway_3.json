@@ -141,6 +141,12 @@
 "tx": 74,
 "ty": 11,
 "dir": "left"
+},
+"east": {
+"to": "threshold",
+"tx": 1,
+"ty": 8,
+"dir": "right"
 }
 },
 "npcs": [
@@ -209,17 +215,6 @@
 ],
 "on": "use",
 "script": "captain"
-},
-{
-"id": "deepRoad",
-"rect": [
-75,
-10,
-1,
-4
-],
-"on": "step",
-"script": "deepholmRoad"
 }
 ],
 "zones": [

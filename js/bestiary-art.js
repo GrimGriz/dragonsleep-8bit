@@ -412,6 +412,16 @@
   };
   A.drow = function () { return humanoid({ skin: '#3a3a5a', hair: '#e8e8f0', cloth: '#2a2a3a', weapon: 'sword', belt: '#6a4a8a' }); };
   A.drowcaptain = function () { var p = humanoid({ skin: '#3a3a5a', hair: '#e8e8f0', cloth: '#3a2a4a', weapon: 'sword', shield: '#2a2a3a', belt: '#b8a0d8' }); p.line(8, 40, 3, 20, '#d8d8e8', 1); return p; };
+  A.assassin = function () { // the sect's blades: dwarves, hooded, a ward-knot on each blade
+    var p = squash(humanoid({ skin: '#c89070', hood: '#1a1a22', cloth: '#26262e', beard: '#2a2a2a', weapon: 'knife', belt: '#6a4a8a' }), [26, 28, 30, 38, 40, 42, 44]);
+    p.line(4, 30, 1, 22, '#d8d8e8'); p.set(2, 25, '#9878F8');
+    return p.outline(INK);
+  };
+  A.torvald = function () { // a cleric of Dvalgarda in a traveling cloak, a pack on his back
+    var p = squash(humanoid({ skin: '#d8a078', hood: '#4a3a2a', cloth: '#5a4a3a', beard: '#8a7a6a', weapon: 'mallet', belt: '#b87a3a' }), [26, 28, 30, 38, 40, 42, 44]);
+    p.rect(6, 22, 6, 9, '#6a5a3a'); p.rect(6, 22, 6, 1, '#8a7a5a'); p.set(20, 18, '#b8d8a8');
+    return p.outline(INK);
+  };
   A.spellweaver = function () { return humanoid({ skin: '#3a3a5a', hood: '#2a1a3a', cloth: '#4a2a6a', weapon: 'wand', belt: '#d8b8f8' }); };
 
   var cache = {};

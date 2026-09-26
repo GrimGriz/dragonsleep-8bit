@@ -637,32 +637,32 @@
   };
 
   // ------------------------------------------------------------------ Credits
-  function Credits(ending) { this.kind = 'credits'; this.opaque = true; this.y = 240; this.ending = ending; this.lines = DS.DATA.credits; }
+  function Credits(ending, o) { this.kind = 'credits'; this.opaque = true; this.y = 240; this.ending = ending; this.o = o || {}; this.lines = this.o.lines || DS.DATA.credits; }
   DS.Credits = Credits;
   Credits.prototype.enter = function () { if (this.ending) DS.audio.play('ending'); };
   Credits.prototype.update = function () {
     this.y -= I.down('a') ? 1.6 : 0.4;
     if (I.pressed('b') || this.y < -this.lines.length * 12 - 40) {
-      if (this.ending) { DS.pop(this); DS.push(new AfterCredits()); }
+      if (this.ending) { DS.pop(this); DS.push(new AfterCredits(this.o)); }
       else DS.pop(this);
     }
     if (I.pressed('menu')) DS.openKofi();
   };
   // after the ending: carry on in a corridor with the lake quiet, or go to the title
-  function AfterCredits() {
+  function AfterCredits(o) {
     var self = this;
-    this.kind = 'after'; this.opaque = true; this.t = 0;
+    this.kind = 'after'; this.opaque = true; this.t = 0; this.o = o || {};
     this.menu = new DS.Menu({ items: [{ label: 'CONTINUE', value: 'go' }, { label: 'TITLE', value: 'title' }], x: 76, y: 150, w: 104, cancelable: false,
       onSelect: function (it) {
         if (it.value === 'title') { DS.clearScenes(); DS.push(new Title()); return; }
-        DS.run(function* () { yield* DS.EV.afterTheLake(); });
+        DS.run(self.o.onContinue || function* () { yield* DS.EV.afterTheLake(); });
       } });
   }
   AfterCredits.prototype.update = function () { this.t++; this.menu.update(); };
   AfterCredits.prototype.draw = function (ctx) {
     ctx.fillStyle = '#04061a'; ctx.fillRect(0, 0, 256, 240);
-    DS.bigText(ctx, 'THE LAKE IS QUIET', 128, 70, 1);
-    DS.wrap(DS.L('after.prompt'), 220).forEach(function (l, i) { DS.textCenter(ctx, l, 128, 96 + i * 11, '#C8D0E8'); });
+    DS.bigText(ctx, this.o.title || 'THE LAKE IS QUIET', 128, 70, 1);
+    DS.wrap(this.o.prompt || DS.L('after.prompt'), 220).forEach(function (l, i) { DS.textCenter(ctx, l, 128, 96 + i * 11, '#C8D0E8'); });
     this.menu.draw(ctx);
   };
   Credits.prototype.draw = function (ctx) {

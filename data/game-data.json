@@ -691,6 +691,51 @@
    "blurb": "A Greyseam in the garrison. Her orders end at Third Lamp.",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (the escorts); §6.2 (guests); names PROPOSED",
    "id": "hedda"
+  },
+  "ingrith": {
+   "name": "Ingrith",
+   "fullName": "Ingrith Scalebeam",
+   "guest": true,
+   "cls": "fighter",
+   "level": 4,
+   "race": "Dwarf",
+   "background": "Cleric of Rekknar",
+   "abil": {
+    "str": 12,
+    "dex": 10,
+    "con": 14,
+    "int": 13,
+    "wis": 16,
+    "cha": 13
+   },
+   "hp": 36,
+   "equip": {
+    "weapon": "mace",
+    "armor": "chainmail",
+    "shield": "shield",
+    "ring": null
+   },
+   "saveProf": [
+    "wis",
+    "cha"
+   ],
+   "skills": {
+    "Insight": 5,
+    "Religion": 3
+   },
+   "look": "ingrith",
+   "weaponArt": "hammer",
+   "attacks": 1,
+   "healer": 3,
+   "resist": [
+    "poison"
+   ],
+   "levels": {},
+   "featText": [],
+   "classLine": "Cleric of Rekknar",
+   "blurb": "The keeper of Solskaft's ledger, going down to her clan.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9 (the Cleric goes down to Deepholm with the party as her escort); a guest who heals (the build's)",
+   "id": "ingrith"
   }
  },
  "items": {
@@ -2025,6 +2070,74 @@
    "desc": "Worth three hundred gold. Revivify burns one.",
    "src": "SRD 5.1 (Revivify, a diamond worth 300 gp); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9 (Dagny sells one)",
    "id": "diamond"
+  },
+  "sunshaftstaff": {
+   "name": "Sunshaft Staff",
+   "kind": "weapon",
+   "price": 0,
+   "noSell": true,
+   "weapon": {
+    "dmg": "1d6",
+    "versatile": "1d8",
+    "type": "bludgeoning",
+    "group": "simple",
+    "kind": "quarterstaff",
+    "props": [
+     "versatile"
+    ],
+    "bonus": 2,
+    "dcBonus": 1,
+    "reveals": true
+   },
+   "desc": "Deepholm-made, the trade clan's first toll paid in a century. +2. Spells cast through it are harder to resist, and its light finds what hides.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8 (Aurdin: quarterstaff +2, spell save DC +1, Light that reveals the unseen); invented.json#four-items",
+   "id": "sunshaftstaff"
+  },
+  "copperscraping": {
+   "name": "A Curl of Copper",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "A curl of something copper-coloured, the weight of a coin. It is warm.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (the scraping lifted from the wax-paper); wiki/the-copper-egg.md",
+   "id": "copperscraping"
+  },
+  "sectblade": {
+   "name": "Sect Blade",
+   "kind": "weapon",
+   "price": 0,
+   "noSell": true,
+   "weapon": {
+    "dmg": "1d6",
+    "type": "piercing",
+    "group": "martial",
+    "kind": "shortsword",
+    "props": [
+     "finesse",
+     "light"
+    ]
+   },
+   "desc": "A dwarven shortsword with a ward-knot etched on it. The poison on it is spent.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (their poisoned shortswords, noSell)",
+   "id": "sectblade"
+  },
+  "wardknot": {
+   "name": "Ward-Knots",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "Two of Dvalgarda's ward-knots, cut from the sect's blades.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2",
+   "id": "wardknot"
+  },
+  "dvalsymbol": {
+   "name": "A Holy Symbol",
+   "kind": "key",
+   "price": 0,
+   "noSell": true,
+   "desc": "A plain knot of iron on a cord: the Dormant's. It is still warm from his throat.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (his pack: a Dvalgarda holy symbol)",
+   "id": "dvalsymbol"
   }
  },
  "spells": {
@@ -5292,6 +5405,131 @@
    "src": "game-original from SRD 5.1 pieces (the Mage: fire bolt, lightning bolt, hold person; the drow mage is not in the SRD) invented.json#highway-ladder; handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder)",
    "id": "spellweaver",
    "xp": 2300
+  },
+  "assassin": {
+   "short": "Sect blade",
+   "name": "Sect Blade",
+   "art": "assassin",
+   "cr": "8",
+   "ac": 15,
+   "hp": 78,
+   "abil": {
+    "str": 11,
+    "dex": 16,
+    "con": 14,
+    "int": 13,
+    "wis": 11,
+    "cha": 10
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "resist": [
+    "poison"
+   ],
+   "traits": {
+    "assassinate": true
+   },
+   "attacks": {
+    "shortsword": {
+     "name": "Shortsword",
+     "hit": 6,
+     "dmg": "1d6+3",
+     "type": "piercing",
+     "verb": "cuts",
+     "martial": "4d6",
+     "save": {
+      "ab": "con",
+      "dc": 15,
+      "dmg": "7d6",
+      "type": "poison",
+      "half": true,
+      "poison": true
+     }
+    }
+   },
+   "multi": [
+    "shortsword",
+    "shortsword"
+   ],
+   "silver": "0",
+   "src": "SRD 5.1 (Assassin: Assassinate, 7d6 poison CON 15 half, Sneak Attack 4d6 once a turn with an ally); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (the sect's blades, dwarves, hooded, Dvalgarda's ward-knot on the blades)",
+   "id": "assassin",
+   "xp": 3900
+  },
+  "torvald": {
+   "short": "Cleric",
+   "name": "Dwarf Cleric",
+   "art": "torvald",
+   "cr": "3",
+   "ac": 13,
+   "hp": 40,
+   "abil": {
+    "str": 12,
+    "dex": 10,
+    "con": 14,
+    "int": 12,
+    "wis": 17,
+    "cha": 13
+   },
+   "tags": [
+    "humanoid"
+   ],
+   "resist": [
+    "poison"
+   ],
+   "traits": {
+    "yields": true
+   },
+   "pickSpecial": true,
+   "attacks": {
+    "mace": {
+     "name": "Mace",
+     "hit": 4,
+     "dmg": "1d6+2",
+     "type": "bludgeoning",
+     "verb": "strikes"
+    }
+   },
+   "specials": [
+    {
+     "id": "guardians",
+     "kind": "blast",
+     "recharge": 5,
+     "chance": 0.5,
+     "text": "calls on the Dormant, and spirits wheel about him, cold as a vault.",
+     "save": "wis",
+     "dc": 13,
+     "dmg": "3d8",
+     "type": "radiant",
+     "half": true,
+     "targets": "all"
+    },
+    {
+     "id": "hold",
+     "kind": "curse",
+     "once": true,
+     "text": "points at {t}. \"Be still.\"",
+     "save": "wis",
+     "dc": 13,
+     "cond": "paralyzed",
+     "rounds": 10,
+     "repeat": true
+    },
+    {
+     "id": "sanctuary",
+     "kind": "self",
+     "once": true,
+     "when": "bloodied",
+     "cond": "invisible",
+     "rounds": 2,
+     "text": "wraps himself in sanctuary. Blows slide off the air around him."
+    }
+   ],
+   "silver": "0",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (a priest block strengthened to cleric 5: AC 13, HP 40, Spirit Guardians, Hold Person, Sanctuary at first blood, yields at half HP); wiki/the-copper-egg.md (Torvald Greyseam, cleric 5 of Dvalgarda)",
+   "id": "torvald",
+   "xp": 700
   }
  },
  "encounters": {
@@ -6332,6 +6570,22 @@
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.5 (the Copperbottom smith: repairs; dwarven-made mundane gear; nothing magic is sold, CANON's shape); splint: better armor than the surface sells (wiki/deepholm-and-the-edifice.md, dwarven favor)",
    "id": "copperbottom"
+  },
+  "dagny": {
+   "name": "The Toll-Grille",
+   "keeper": "Dagny Scalebeam",
+   "look": "dagny",
+   "greeting": "I sell one thing through this grille, and it isn't passage. A diamond, for the ones who bring their dead back.",
+   "items": [
+    "diamond"
+   ],
+   "buys": false,
+   "thanks": [
+    "Tolled and written.",
+    "The ledger has it."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9 (Dagny sells one: the diamond for Revivify, the only thing she sells)",
+   "id": "dagny"
   }
  },
  "npcs": {
@@ -7859,6 +8113,12 @@
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 6-7; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
    "id": "heddaLamp"
+  },
+  "dagny": {
+   "name": "Dagny Scalebeam",
+   "script": "dagny",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (Dagny Scalebeam behind the grille; the trader clan keeps the doors at both ends; PROPOSED)",
+   "id": "dagny"
   }
  },
  "text": {
@@ -10263,6 +10523,407 @@
    "t": "The diamond goes to dust. {name} breathes, and is up.",
    "src": "SRD 5.1 (Revivify)",
    "id": "deep.revived"
+  },
+  "deep.doorSee": {
+   "t": [
+    "The carved road ends. A made road begins: dressed stone, the first in three days, and a light that is not a lamp.",
+    "At the end of it, a door the height of three men, and under the door, the glow of a city."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4",
+   "id": "deep.doorSee"
+  },
+  "deep.tvCome": {
+   "t": "Up the made road from the door comes a dwarf in a cleric's coat under a traveling cloak, a pack on his back, walking fast. He looks back once. He stops because he must: you fill the road.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tvCome"
+  },
+  "deep.tv1": {
+   "t": [
+    "You're surface. Good. Then you'll understand a hurry. I carry a remedy to someone very sick, up top, and every hour I stand here is an hour off their life.",
+    "I'll do this much for the road: stand still, and I'll close what it opened in you. The best a cleric of my years can do."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv1"
+  },
+  "deep.tvAsk": {
+   "t": "He waits, as far as a man in a hurry can.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tvAsk"
+  },
+  "deep.tvWatch": {
+   "t": "WHAT DO YOU WATCH FOR?",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tvWatch"
+  },
+  "deep.tvHint.insight": {
+   "t": "The hurry. Which way does he keep looking?",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (Insight 13: the hurry is fear, not urgency)",
+   "id": "deep.tvHint.insight"
+  },
+  "deep.tvHint.religion": {
+   "t": "The symbol at his throat.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (Religion 12: Dvalgarda's, and her clerics keep a vigil)",
+   "id": "deep.tvHint.religion"
+  },
+  "deep.tvHint.medicine": {
+   "t": "The remedy. What is in the wax-paper?",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (Medicine 14: it is not a herb)",
+   "id": "deep.tvHint.medicine"
+  },
+  "deep.tvHint.persuade": {
+   "t": "Ask him straight. A man who pawned a secret in public may want to be asked.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (Persuasion 15, after any success: he wants to be asked)",
+   "id": "deep.tvHint.persuade"
+  },
+  "deep.tvHint.lift": {
+   "t": "Vivian: the wax-paper, out of his pack, while he talks.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (Sleight of Hand 15: Henrietta taught her the trade)",
+   "id": "deep.tvHint.lift"
+  },
+  "deep.tv.insightYes": {
+   "t": "He's not running toward the sick. He's running from something behind him.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv.insightYes"
+  },
+  "deep.tv.insightNo": {
+   "t": "He's tired. That's all you can see.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv.insightNo"
+  },
+  "deep.tv.religionYes": {
+   "t": "Dvalgarda's. Her people don't leave what they watch. This one has.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv.religionYes"
+  },
+  "deep.tv.religionNo": {
+   "t": "A dwarven god. One of three.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv.religionNo"
+  },
+  "deep.tv.medicineYes": {
+   "t": "Whatever's in that paper isn't a plant. It shone, a copper colour, when the lamp caught it.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv.medicineYes"
+  },
+  "deep.tv.medicineNo": {
+   "t": "A physician's pack. Well kept.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv.medicineNo"
+  },
+  "deep.tv.persuadeYes": {
+   "t": [
+    "Then hear it, and carry it where I can't.",
+    "The dwarves have been keeping secrets from the Druids that endanger the world. That's the whole of what I'll say. Someone at Sanctuary should have known a generation ago."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (the sentence is Griz's: \"the dwarves have been keeping secrets from the Druids that endanger the world\")",
+   "id": "deep.tv.persuadeYes"
+  },
+  "deep.tv.persuadeNo": {
+   "t": "You've enough. Let me pass.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv.persuadeNo"
+  },
+  "deep.tv.liftYes": {
+   "t": "A curl of something, copper-coloured, the weight of a coin. It is warm. He hasn't noticed.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv.liftYes"
+  },
+  "deep.tv.liftNo": {
+   "t": "He catches her wrist without looking down. He lets it go without a word, and that is worse.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tv.liftNo"
+  },
+  "deep.tvHeal": {
+   "t": "He does what he said. A word, a hand on each of you, and the road's wounds close. No more than that: he has nothing to spare.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (HP to full, poison and paralysis cured, no slots restored)",
+   "id": "deep.tvHeal"
+  },
+  "deep.tvGo": {
+   "t": "I really must go.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tvGo"
+  },
+  "deep.tvGone": {
+   "t": "He walks off up the road, fast, and doesn't look back this time.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tvGone"
+  },
+  "deep.tvCaught": {
+   "t": "He goes at once. No healing. He doesn't say why; he doesn't have to.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tvCaught"
+  },
+  "deep.tvHold": {
+   "t": "He will not be held.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tvHold"
+  },
+  "deep.tvYield": {
+   "t": "\"Enough. Take what you want and let me die in the open air, not here.\"",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (the YIELD beat at half HP)",
+   "id": "deep.tvYield"
+  },
+  "deep.tvYieldAsk": {
+   "t": "He is on his knees, his hands open.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tvYieldAsk"
+  },
+  "deep.tvSpared": {
+   "t": "You let him up. He goes, slowly now, up the road.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.tvSpared"
+  },
+  "deep.tvDead": {
+   "t": "The cleric is dead on the made road. In his pack: a healer's kit, a holy symbol, forty silver, and a curl of something copper-coloured in wax-paper, still warm.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (his pack: the scraping, a healer's kit, a Dvalgarda holy symbol, 40 sp)",
+   "id": "deep.tvDead"
+  },
+  "deep.asNight": {
+   "t": "The camp goes quiet. Somebody has the watch.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (the next rest of any kind)",
+   "id": "deep.asNight"
+  },
+  "deep.asBack": {
+   "t": "They come back, as they said they might, to be sure.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (they circle back once)",
+   "id": "deep.asBack"
+  },
+  "deep.asWatch": {
+   "t": "WHO HAD THE WATCH?",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (the watch chooser)",
+   "id": "deep.asWatch"
+  },
+  "deep.asSpotted": {
+   "t": "{name} sees them before they are close: two shapes out of the dark, hooded, quiet. Everyone is up and armed when they arrive.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (the watcher's passive Perception against their Stealth)",
+   "id": "deep.asSpotted"
+  },
+  "deep.asUnseen": {
+   "t": "Nobody sees them until they are standing among you. Two of them, hooded, blades out.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2",
+   "id": "deep.asUnseen"
+  },
+  "deep.as1": {
+   "t": "We're looking for a brother of ours. A cleric. He'd have passed this way going up, in a hurry. You'll have seen him.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.as1"
+  },
+  "deep.asAsk": {
+   "t": "Two of them. Dwarves. The blades are etched.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.asAsk"
+  },
+  "deep.asUp": {
+   "t": "They turn and go up the road at once, without a word of thanks.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.asUp"
+  },
+  "deep.asLie": {
+   "t": "They look at each other. Then they turn back toward Deepholm.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.asLie"
+  },
+  "deep.asLieNo": {
+   "t": "\"No,\" the speaker says.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.asLieNo"
+  },
+  "deep.asCarry": {
+   "t": "Then you carry what he carried. Set it down.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.asCarry"
+  },
+  "deep.asPaid": {
+   "t": "The speaker takes the curl of copper, wraps it, and they go. Nothing else is said.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.asPaid"
+  },
+  "deep.asNoBusiness": {
+   "t": "Then we've no business.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.asNoBusiness"
+  },
+  "deep.asGone": {
+   "t": "They go. The camp is very quiet after.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.asGone"
+  },
+  "deep.asHint.religion": {
+   "t": "The etching on the blades.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (Religion 12: house-cleaning is a rite, not a hunt)",
+   "id": "deep.asHint.religion"
+  },
+  "deep.asHint.insight": {
+   "t": "What do they actually want?",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (Insight 14: an absence explained)",
+   "id": "deep.asHint.insight"
+  },
+  "deep.asHint.intimidate": {
+   "t": "They are two, and you are not a party to trifle with.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (Intimidation 16: the party is 8th-9th level)",
+   "id": "deep.asHint.intimidate"
+  },
+  "deep.as.religionYes": {
+   "t": "Ward-knots. Dvalgarda's. These aren't hunters. They're a liturgy with knives.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.as.religionYes"
+  },
+  "deep.as.religionNo": {
+   "t": "Knots of some kind. Old ones.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.as.religionNo"
+  },
+  "deep.as.insightYes": {
+   "t": "They're not angry. They're accounting. Something is missing from a count, and the count matters more than the man.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.as.insightYes"
+  },
+  "deep.as.insightNo": {
+   "t": "Their faces give you nothing.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.as.insightNo"
+  },
+  "deep.as.intimidateYes": {
+   "t": "He took what was not his to carry out of a place you will never see. That is all, and it is more than you should have.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.as.intimidateYes"
+  },
+  "deep.as.intimidateNo": {
+   "t": "The speaker almost smiles.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7 (Torvald and the assassins; his words drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.as.intimidateNo"
+  },
+  "deep.asFight": {
+   "t": "House-cleaning does not yield.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (they fight to the death)",
+   "id": "deep.asFight"
+  },
+  "deep.asDead": {
+   "t": "The sect's blades are dead. Their swords are good steel, the poison on them spent. Ward-knots on both.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.2 (loot: two shortswords, the ward-knot symbols, 120 sp)",
+   "id": "deep.asDead"
+  },
+  "deep.dagny1": {
+   "t": [
+    "Dagny Scalebeam, at the grille. Tolls, weights, and the count of who goes by. Ingrith's kin, if you're wondering. We keep the doors at both ends.",
+    "The last surface folk through this gate paid in coin with a king's face on it that nobody's seen since."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (her line about the king's coin is the spec's); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.dagny1"
+  },
+  "deep.dagny2": {
+   "t": "Food goes up the road on carts. Nothing comes down but word, and not much of that.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (the food going up)",
+   "id": "deep.dagny2"
+  },
+  "deep.dagny3": {
+   "t": "The seasons change at this gate. Two score up, two score down, every three years. I count them both ways.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (the seasons)",
+   "id": "deep.dagny3"
+  },
+  "deep.doorPopup": {
+   "t": "\"Deepholm. Not tonight.\" Coming in an expansion.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (the Ko-fi popup in Dagny's mouth: \"DEEPHOLM. Not tonight.\" with the config's ko-fi link; the exact line is Griz's)",
+   "id": "deep.doorPopup"
+  },
+  "deep.pyroSecured": {
+   "t": "Three lamps lit. I said I'd let her go down and ask. I didn't say I'd like the answer.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Pyro's second line, drafted by the Cowork seat, PROPOSED)",
+   "id": "deep.pyroSecured"
+  },
+  "deep.ingrithConsult": {
+   "t": [
+    "The king has given his word. I go down to Deepholm, to my clan, and ask them for the trade.",
+    "I'll want an escort that has already walked the road. The ledger has four names in it I trust."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9 (the Cleric goes down to Deepholm with the party as her escort); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.ingrithConsult"
+  },
+  "deep.ingrithJoins": {
+   "t": "INGRITH WALKS WITH YOU. She fights behind the four of you, and she heals.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (guests)",
+   "id": "deep.ingrithJoins"
+  },
+  "deep.consult1": {
+   "t": "Ingrith steps up to the grille. \"Dagny.\" \"Cousin.\" They look at each other a long moment, the way people do who have kept the same ledger from opposite ends.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9; §6.4 (Ingrith's kinswoman); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.consult1"
+  },
+  "deep.consult2": {
+   "t": "The great door opens the width of one dwarf. Light comes out, and noise, and warm air that smells of bread. Ingrith goes through it with her ledger under her arm, and does not look back.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9 (Dagny lets her through and not them)",
+   "id": "deep.consult2"
+  },
+  "deep.consult3": {
+   "t": "The Cleric goes through. You don't. That's not me. That's the ledger.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.consult3"
+  },
+  "deep.dagnyStaff": {
+   "t": [
+    "One more thing, and then the grille shuts. The trade clan has paid no toll in a hundred years. Ingrith says it pays one tonight, to you.",
+    "Made down there. For the one of you who makes light."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §8 (the Sunshaft staff: Deepholm-made, the trade clan's first toll paid in a century; from Dagny at beat 9, the expansion's last reward); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.dagnyStaff"
+  },
+  "deep.mileDoor": {
+   "t": "The road, and Deepholm's door.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9",
+   "id": "deep.mileDoor"
+  },
+  "deep.consultEnd": {
+   "t": [
+    "The grille shuts. The door is only a door again, with light under it.",
+    "Somewhere down there, a cleric of the ledger is asking her clan to open a mountain."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.consultEnd"
+  },
+  "deep.afterPrompt": {
+   "t": "Solskaft stands open to you. Deepholm does not, yet. Carry on, or go to the title.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §2 (the third door)",
+   "id": "deep.afterPrompt"
+  },
+  "deep.afterMorning": {
+   "t": "Morning comes down the Sunshaft. The garrison is at its drill, and nobody stops you.",
+   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "id": "deep.afterMorning"
+  },
+  "deep.rcSent": {
+   "t": "The cleric was found on the Coldridge route the next spring. The remedy never reached anyone.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.3",
+   "id": "deep.rcSent"
+  },
+  "deep.rcReached": {
+   "t": "The cleric reached Sanctuary. What he said there is another story.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.3",
+   "id": "deep.rcReached"
+  },
+  "deep.rcPaid": {
+   "t": "The curl of copper went back down the mountain. Whatever it would have cured went uncured.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.3",
+   "id": "deep.rcPaid"
+  },
+  "deep.rcDead": {
+   "t": "Nobody in Silverton ever knew a cleric had died on the road under the mountain. The dwarves knew.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.3",
+   "id": "deep.rcDead"
+  },
+  "deep.rcDefault": {
+   "t": "Nobody bothers the dwarves.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.3",
+   "id": "deep.rcDefault"
+  },
+  "deep.ingrithWaits": {
+   "t": "She waits for your answer, the ledger already under her arm.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9; drafted by the code tab, PROPOSED",
+   "id": "deep.ingrithWaits"
+  },
+  "deep.mileCrew": {
+   "t": "The seal, and the ledger.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9 (milestone XP at each spine beat)",
+   "id": "deep.mileCrew"
   }
  },
  "rumors": [
@@ -10979,6 +11640,46 @@
     }
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 3-5"
+  },
+  {
+   "id": "thedoor",
+   "name": "Deepholm's Door",
+   "show": "flag:highwaySecured",
+   "done": "flag:expansionDone",
+   "text": "The road is held. Pyro said he would let the Cleric go down to Deepholm and consult her clan once it was. Past Third Lamp, the made road runs to Deepholm's door.",
+   "doneText": "The Cleric went through. You did not.",
+   "steps": [
+    {
+     "if": "!flag:deepholmSeen",
+     "map": "threshold",
+     "at": [
+      16,
+      8
+     ],
+     "where": "Past Third Lamp, the made road to Deepholm's door."
+    },
+    {
+     "if": "!flag:pyroConsent",
+     "map": "solskaft",
+     "npc": "pyro",
+     "where": "Back up the lamps: tell the king the road is held."
+    },
+    {
+     "if": "!flag:ingrithEscort",
+     "map": "solskaft",
+     "npc": "ingrith",
+     "where": "Ingrith, at her ledger in the tollhouse."
+    },
+    {
+     "map": "threshold",
+     "at": [
+      16,
+      8
+     ],
+     "where": "Down to Deepholm's door, with the Cleric."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 6-9"
   }
  ],
  "maps": {
@@ -13702,6 +14403,12 @@
      "tx": 74,
      "ty": 11,
      "dir": "left"
+    },
+    "east": {
+     "to": "threshold",
+     "tx": 1,
+     "ty": 8,
+     "dir": "right"
     }
    },
    "npcs": [
@@ -13770,17 +14477,6 @@
      ],
      "on": "use",
      "script": "captain"
-    },
-    {
-     "id": "deepRoad",
-     "rect": [
-      75,
-      10,
-      1,
-      4
-     ],
-     "on": "step",
-     "script": "deepholmRoad"
     }
    ],
    "zones": [
@@ -14704,7 +15400,7 @@
      "y": 39,
      "look": "ingrith",
      "dir": "down",
-     "cond": "flag:clericMet"
+     "cond": "flag:clericMet & !flag:ingrithEscort"
     },
     {
      "id": "quartermaster",
@@ -15263,6 +15959,157 @@
      "y": 12,
      "tile": "gateOpen",
      "cond": "flag:roadOpen"
+    }
+   ]
+  },
+  "threshold": {
+   "id": "threshold",
+   "name": "Deepholm's Door",
+   "tileset": "cave",
+   "rows": [
+    "##################",
+    "##################",
+    "##################",
+    "##########Y#hhhhh#",
+    "#mmmmmmmmmmmmmGGmh",
+    "#mmmmmmmmmmmmmmmmh",
+    "#mmmmmmmmmmmmmmmmh",
+    "___mmmmmmmmmmmmmmD",
+    "___mmmmmmmmmmmmmmD",
+    "___mmmmmmmmmmmmmmd",
+    "#mmmmmmmmmmmmmmmmh",
+    "#mmmmmmmmmmm%mmmmh",
+    "#mmmmnnmmmmmmmmmmh",
+    "##################",
+    "##################"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "grille",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "bench",
+    ">": "holeDown",
+    "L": "lampTower",
+    "l": "lampTowerDark",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "madeRoad",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "deepDoorSill",
+    " ": "void",
+    ",": "rubble",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "sealWhole",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "deepDoor",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "sealBroken",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bodyCaptain",
+    "C": "chasm",
+    "A": "water",
+    "M": "mountain",
+    "V": "vein",
+    "I": "lamp",
+    "Q": "cocoon",
+    ";": "cot",
+    "N": "noticeboard",
+    "Y": "tariffLive",
+    "%": "scales"
+   },
+   "music": "highway",
+   "bg": "highway",
+   "save": true,
+   "dark": true,
+   "lights": [
+    {
+     "x": 16,
+     "y": 8,
+     "r": 90,
+     "col": "rgba(255,200,120,0.22)"
+    },
+    {
+     "x": 14,
+     "y": 4,
+     "r": 40
+    }
+   ],
+   "exits": {
+    "west": {
+     "to": "highway_3",
+     "tx": 74,
+     "ty": 11,
+     "dir": "left"
+    }
+   },
+   "npcs": [
+    {
+     "id": "dagny",
+     "x": 14,
+     "y": 3,
+     "look": "dagny",
+     "dir": "down"
+    }
+   ],
+   "signs": [
+    {
+     "x": 10,
+     "y": 3,
+     "text": "THE TARIFF. Ore by the weight, salt by the sack, timber, tallow, rope. The prices are in a coin that is still struck.",
+     "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a tariff board in a live currency)"
+    },
+    {
+     "x": 12,
+     "y": 11,
+     "text": "The weigh-station. The weights are honest. Nobody here would know how to make them otherwise.",
+     "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a weigh-station)"
+    },
+    {
+     "x": 5,
+     "y": 12,
+     "text": "A stone bench, worn in the middle by three days' worth of the tired.",
+     "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a bench)"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "deepDoor",
+     "rect": [
+      17,
+      7,
+      1,
+      3
+     ],
+     "on": "use",
+     "script": "deepDoor"
     }
    ]
   },

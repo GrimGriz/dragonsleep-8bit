@@ -228,6 +228,7 @@
       }
       u.hp -= n;
       if (u.conds.asleep && n > 0) delete u.conds.asleep;
+      if (m.traits && m.traits.yields && !u.yielded && u.hp > 0 && u.hp <= u.maxhp / 2) { u.yielded = true; this.yielder = u; } // stops when he's beaten, if you do
       if (u.hp <= 0) { u.hp = 0; this.kill(u); }
       else if (m.traits && m.traits.split && type === 'slashing' && u.hp >= 10 && this.foes.length < 8) this.splitFoe(u);
       if (m.traits && m.traits.rageOnHit && !u.conds.raging && n > 0 && u.hp > 0) { u.conds.raging = { rounds: 10 }; this.pendingMsg = plain(u) + ' flies into a rage!'; }
@@ -294,7 +295,8 @@
     // initiative, rolled once
     var all = this.heroes.concat(this.foes);
     all.forEach(function (u) { u.init = DS.d(20) + (isHero(u) ? R.initBonus(u.h) : DS.mod(abil(u, 'dex'))) + Math.random() * 0.1; });
-    if (this.o.revealed) this.foes.forEach(function (f) { f.conds.revealed = true; }); // seen coming: the light already on it
+    var seer = this.heroes.some(function (x) { var w = R.item(x.h.equip.weapon); return w && w.weapon && w.weapon.reveals; }); // the Sunshaft staff's light
+    if (this.o.revealed || seer) this.foes.forEach(function (f) { f.conds.revealed = true; }); // seen coming: the light already on it
     this.order = all.slice().sort(function (a, b) { return b.init - a.init; });
     while (!this.over) {
       if (this.o.join && this.round === this.o.join && this.o.solo != null) yield* this.joinParty();
@@ -391,6 +393,7 @@
   };
   Battle.prototype.checkEnd = function () {
     if (this.over) return;
+    if (this.yielder && !this.yielder.dead) { this.over = 'yield'; return; }
     if (!this.liveFoes().length) this.over = 'win';
     else if (!this.liveHeroes().length) {
       // a lone watcher down in the yard isn't the end while the others are on their way out of the inn
@@ -454,8 +457,15 @@
   // ------------------------------------------------------------------ hero turn
   // a guest's turn: at the nearest foe, with what it carries (never menu'd)
   Battle.prototype.guestTurn = function* (u) {
-    var foes = this.liveFoes();
+    var foes = this.liveFoes(), self = this;
     if (!foes.length) return;
+    var hurt = this.liveHeroes().filter(function (x) { return x.h.hp < x.h.maxhp / 2; }).sort(function (a, b) { return a.h.hp / a.h.maxhp - b.h.hp / b.h.maxhp; })[0];
+    if (u.h.healer && (u.h.feats.heals || 0) > 0 && hurt) { // a guest who heals (Ingrith): Rekknar balances the account
+      u.h.feats.heals--; var hv = this.heal(hurt, DS.roll('2d8+3'));
+      DS.audio.sfx('heal'); this.elemBurst(hurt, 'heal', 'rise'); this.num(hurt, hv, '#58F898');
+      yield* this.say(nameOf(u) + ' lays a hand on ' + nameOf(hurt) + '. +' + hv + ' HP.', 40);
+      return;
+    }
     var t = foes.slice().sort(function (a, b) { return (b.x + b.art.w) - (a.x + a.art.w); })[0];
     u.off = 6;
     yield* this.heroAttack(u, t, { actions: 1, bonus: 0, surged: false, sneakUsed: true }, null);
@@ -1168,6 +1178,11 @@
       DS.pop(this);
       DS.push(new DS.RoostFail());
       return;
+    }
+    if (this.over === 'yield') { // he stops: the fight is won, and what you do with him is yours
+      yield* this.hold(this.o.yieldText || (nameOf(this.yielder) + ' lowers his hands.'));
+      this.over = 'win'; this.yielded = true; DS.battleYielded = true;
+      this.foes.forEach(function (f) { if (!f.dead) { f.dead = true; f.surrendered = true; f.fade = 0; } });
     }
     if (this.over === 'win') {
       DS.audio.play('victory');

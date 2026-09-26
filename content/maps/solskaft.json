@@ -178,7 +178,7 @@
 "y": 39,
 "look": "ingrith",
 "dir": "down",
-"cond": "flag:clericMet"
+"cond": "flag:clericMet & !flag:ingrithEscort"
 },
 {
 "id": "quartermaster",

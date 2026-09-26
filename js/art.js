@@ -952,6 +952,21 @@
     p.ellipse(8, 10, 6, 3, '#4a5058'); p.ellipse(7, 9, 5, 2, '#5a6068'); p.ellipse(3, 9, 2, 2, '#d8a078'); p.rect(1, 8, 2, 3, '#6a3a1a');
     p.rect(9, 11, 5, 1, '#d8d8e8'); p.set(13, 11, '#6a4a8a'); p.rect(4, 13, 6, 1, '#5a1a1a');
   };
+  // --- Deepholm's door (spec §6.4): the first dressed stone in three days, and a light that isn't a lamp
+  P.madeRoad = function (p) { base(p, '#6a6a74'); for (var y = 0; y < 16; y += 4) { var o = (y >> 2) & 1 ? 4 : 0; for (var x = -o; x < 16; x += 8) { p.frame(x, y, 8, 4, '#56565e'); p.rect(x + 1, y + 1, 6, 1, '#7e7e88'); } } };
+  P.deepDoor = function (p, r, f, v) { // a door the height of three men, and under it, light
+    base(p, '#3a3a44'); p.rect(1, 0, 14, 16, '#54545e'); p.rect(1, 0, 14, 1, '#6e6e7a');
+    p.rect(7, 0, 2, 16, '#26262e'); p.set(4, 5 + v, '#c0a040'); p.set(11, 5 + v, '#c0a040');
+    for (var y = 2; y < 16; y += 5) { p.rect(2, y, 5, 1, '#44444e'); p.rect(9, y, 5, 1, '#44444e'); }
+  };
+  P.deepDoorSill = function (p, r, f) { P.deepDoor(p, r, f, 0); p.rect(1, 14, 14, 2, f & 1 ? '#F8E0A0' : '#F8D080'); p.rect(3, 13, 10, 1, '#c8a060'); };
+  P.grille = function (p, r) { // the toll-grille, and a counter under it
+    P.dcounter(p, r);
+    for (var x = 1; x < 16; x += 3) p.rect(x, 0, 1, 5, '#8a8a92');
+    p.rect(0, 0, 16, 1, '#6a6a72');
+  };
+  P.bench = function (p) { P.madeRoad(p); p.rect(1, 6, 14, 4, '#5a4a3a'); p.rect(1, 6, 14, 1, '#7a6a4a'); p.rect(2, 10, 2, 4, '#3a2a1a'); p.rect(12, 10, 2, 4, '#3a2a1a'); };
+  P.tariffLive = function (p) { P.tariff(p); p.rect(10, 4, 3, 1, '#F8D878'); p.rect(10, 8, 3, 1, '#F8D878'); };
   P.portcullisUp = function (p) { // raised into the old ore-chute: a dark slot overhead and the iron teeth just showing
     dwFloor(p);
     p.rect(0, 6, 16, 4, '#1a1a20'); p.rect(0, 6, 16, 1, '#30303a');
@@ -990,7 +1005,8 @@
     rack: { pass: 0, vars: 1 }, vat: { pass: 0, vars: 1 }, smokeRack: { pass: 0, vars: 1 }, boarded: { pass: 0, vars: 1 }, ledgerDesk: { pass: 0, talk: 1, vars: 1 },
     tariff: { pass: 0, vars: 1 }, emptyCut: { pass: 0, vars: 1 }, portcullisUp: { pass: 1, vars: 1 },
     lampTower: { pass: 0, anim: 2, vars: 1 }, lampTowerDark: { pass: 0, vars: 1 }, sealWhole: { pass: 0, anim: 2, vars: 1 }, sealBroken: { pass: 1, vars: 1 }, vein: { pass: 0, anim: 2, vars: 1 },
-    chasm: { pass: 0 }, rubble: { pass: 1 }, bodyCaptain: { pass: 0, vars: 1 }, shaftTop: { pass: 0, anim: 2, vars: 1 }, cot: { pass: 0, vars: 1 }, brick: { pass: 0, vars: 1 }
+    chasm: { pass: 0 }, rubble: { pass: 1 }, bodyCaptain: { pass: 0, vars: 1 },
+    madeRoad: { pass: 1, vars: 1 }, deepDoor: { pass: 0, vars: 1 }, deepDoorSill: { pass: 0, anim: 2, vars: 1 }, grille: { pass: 0, talk: 1, vars: 1 }, bench: { pass: 0, vars: 1 }, tariffLive: { pass: 0, vars: 1 }, shaftTop: { pass: 0, anim: 2, vars: 1 }, cot: { pass: 0, vars: 1 }, brick: { pass: 0, vars: 1 }
   };
   var tileCache = {};
   // variant v, anim frame f, neighbour-key nk ('' when not auto)

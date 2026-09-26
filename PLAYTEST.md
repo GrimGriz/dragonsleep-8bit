@@ -189,5 +189,19 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] Past Third Lamp: Deepholm's road (the next part)
 - [ ] Music: a new theme for the road
 
+## 19. The dwarven expansion, part three: Deepholm's door and the road's people
+
+- [ ] Past Third Lamp the made road begins: dressed stone, the door the height of three men with a city's glow under it, Dagny at the toll-grille, the tariff in a live coin, a bench
+- [ ] Torvald comes up the road from the door, in a hurry, and offers to heal. LET HIM GO / ASK HIM / HOLD HIM
+- [ ] ASK HIM is a menu of checks, each once, each with a line saying what you're watching for: Insight 13, Religion 12, Medicine 14, then Persuasion 15 once any has worked (the sentence: the dwarves have been keeping secrets from the Druids that endanger the world), and Vivian's Sleight of Hand 15 (the curl of copper, warm)
+- [ ] He heals when he goes (HP full, poison and paralysis cured, no slots); caught lifting the paper, he goes at once without healing
+- [ ] HOLD HIM: a fight with Spirit Guardians, a Hold, Sanctuary when he's bloodied. At half HP he yields: LET HIM GO, or FINISH IT (his pack: the scraping, a kit, a holy symbol, 40 sp)
+- [ ] The next rest of any kind after him (a tent, a lamp, the cot, an inn): the sect's two blades. WHO HAD THE WATCH? (their Stealth against the watcher's Perception; miss them and they get the first round, and their first hits are criticals)
+- [ ] Their question: HE WENT UP (the truth, if he did) / HE WENT DOWN (Deception 15) / NOTHING TO SAY (if you carry what he carried: give it or fight; if not, they go and circle back once) / ASK THEM (Religion 12, Insight 14, Intimidation 16) / FIGHT (the hardest fight in the expansion, to the death)
+- [ ] Try the door: Dagny's popup, her face in it, "Deepholm. Not tonight." Dagny sells one thing: a diamond (for Revivify)
+- [ ] The consult: back up the lamps, Pyro gives his word ("I didn't say I'd like the answer"), Ingrith joins as a guest who heals; at the door she goes through and you don't; Dagny hands over the SUNSHAFT STAFF for Aurdin (+2, +1 spell DC, and its light shows hidden things in every fight)
+- [ ] The credits: BEHIND THE FOUNTAINS, and one line before "Thanks for playing" that your choices wrote (the cleric's fate). THE ROAD IS HELD; CONTINUE wakes you in Solskaft
+- [ ] Levels by the end: about 6 at First Lamp, 8 at Third Lamp, 9 at the door
+
 ## Notes
 (write here)

@@ -1,0 +1,151 @@
+{
+"id": "threshold",
+"name": "Deepholm's Door",
+"tileset": "cave",
+"rows": [
+"##################",
+"##################",
+"##################",
+"##########Y#hhhhh#",
+"#mmmmmmmmmmmmmGGmh",
+"#mmmmmmmmmmmmmmmmh",
+"#mmmmmmmmmmmmmmmmh",
+"___mmmmmmmmmmmmmmD",
+"___mmmmmmmmmmmmmmD",
+"___mmmmmmmmmmmmmmd",
+"#mmmmmmmmmmmmmmmmh",
+"#mmmmmmmmmmm%mmmmh",
+"#mmmmnnmmmmmmmmmmh",
+"##################",
+"##################"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "grille",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "bench",
+">": "holeDown",
+"L": "lampTower",
+"l": "lampTowerDark",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "madeRoad",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "deepDoorSill",
+" ": "void",
+",": "rubble",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "sealWhole",
+"W": "wall",
+"O": "wallWin",
+"D": "deepDoor",
+"e": "webtree",
+"U": "gulch",
+"X": "sealBroken",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bodyCaptain",
+"C": "chasm",
+"A": "water",
+"M": "mountain",
+"V": "vein",
+"I": "lamp",
+"Q": "cocoon",
+";": "cot",
+"N": "noticeboard",
+"Y": "tariffLive",
+"%": "scales"
+},
+"music": "highway",
+"bg": "highway",
+"save": true,
+"dark": true,
+"lights": [
+{
+"x": 16,
+"y": 8,
+"r": 90,
+"col": "rgba(255,200,120,0.22)"
+},
+{
+"x": 14,
+"y": 4,
+"r": 40
+}
+],
+"exits": {
+"west": {
+"to": "highway_3",
+"tx": 74,
+"ty": 11,
+"dir": "left"
+}
+},
+"npcs": [
+{
+"id": "dagny",
+"x": 14,
+"y": 3,
+"look": "dagny",
+"dir": "down"
+}
+],
+"signs": [
+{
+"x": 10,
+"y": 3,
+"text": "THE TARIFF. Ore by the weight, salt by the sack, timber, tallow, rope. The prices are in a coin that is still struck.",
+"src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a tariff board in a live currency)"
+},
+{
+"x": 12,
+"y": 11,
+"text": "The weigh-station. The weights are honest. Nobody here would know how to make them otherwise.",
+"src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a weigh-station)"
+},
+{
+"x": 5,
+"y": 12,
+"text": "A stone bench, worn in the middle by three days' worth of the tired.",
+"src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a bench)"
+}
+],
+"triggers": [
+{
+"id": "deepDoor",
+"rect": [
+17,
+7,
+1,
+3
+],
+"on": "use",
+"script": "deepDoor"
+}
+]
+}
