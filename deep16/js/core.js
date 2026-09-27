@@ -63,7 +63,7 @@
     KeyE: 'a', KeyZ: 'a', Enter: 'a', NumpadEnter: 'a',
     KeyX: 'b', Escape: 'b', Backspace: 'b',
     Space: 'end',
-    KeyM: 'menu', Tab: 'menu', KeyC: 'menu',
+    KeyM: 'menu', Tab: 'menu', KeyC: 'center', Home: 'center', KeyH: 'help',
     Backquote: 'stats',
     Digit1: 'n1', Digit2: 'n2', Digit3: 'n3', Digit4: 'n4', Digit5: 'n5', Digit6: 'n6', Digit7: 'n7', Digit8: 'n8', Digit9: 'n9',
     Numpad1: 'n1', Numpad2: 'n2', Numpad3: 'n3', Numpad4: 'n4', Numpad5: 'n5', Numpad6: 'n6', Numpad7: 'n7', Numpad8: 'n8', Numpad9: 'n9'
@@ -100,8 +100,11 @@
     c.addEventListener('mousedown', function (e) {
       at(e); e.preventDefault(); c.focus();
       if (e.button === 0) I.mouse.click = true;
+      if (e.button === 1) I.mouse.drag = { x: I.mouse.x, y: I.mouse.y }; // the middle button drags the view
       if (e.button === 2) I.mouse.rclick = true;
     });
+    window.addEventListener('mouseup', function (e) { if (e.button === 1) I.mouse.drag = null; });
+    c.addEventListener('mousemove', function () { var d = I.mouse.drag; if (d) { I.mouse.panX = (I.mouse.panX || 0) + (I.mouse.x - d.x); I.mouse.panY = (I.mouse.panY || 0) + (I.mouse.y - d.y); d.x = I.mouse.x; d.y = I.mouse.y; } });
     c.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   };
 

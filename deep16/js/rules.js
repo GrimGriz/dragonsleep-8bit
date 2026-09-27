@@ -6,16 +6,17 @@
   var D = window.D16, G = D.grid;
   var RU = D.rules = {};
 
-  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.unconscious; };
-  RU.ac = function (u) { return (u.baseAC || u.ac) + (u.conds.shield ? 5 : 0); };
+  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.unconscious; };
+  RU.ac = function (u) { return (u.baseAC || u.ac) + (u.conds.shield ? 5 : 0) + (u.conds.shieldOfFaith ? 2 : 0); };
 
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {
-    u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spell: null, bonusSpell: false, moved: 0 };
+    u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0 };
     u.reaction = 1;
     delete u.conds.dodge;
     delete u.conds.shield;
     D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; });
+    if (D.magic) D.magic.startTurn(D.battle, u);
   };
 
   // Aura of Protection: while the paladin stands, allies within 10 ft (and he) add his CHA to saves
@@ -30,9 +31,11 @@
   };
   RU.save = function (u, ab, dc) {
     var bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u);
-    var adv = ab === 'dex' && u.conds.dodge;
-    var r1 = D.d(20), r2 = adv ? D.d(20) : null, d = adv ? Math.max(r1, r2) : r1;
-    var res = { rolls: adv ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u) };
+    var adv = ab === 'dex' && u.conds.dodge, dis = ab === 'dex' && u.conds.restrained;
+    if ((ab === 'str' || ab === 'dex') && (u.conds.paralyzed || u.conds.asleep)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true };
+    var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
+    var bl = u.conds.blessed ? D.d(4) : 0; bonus += bl;
+    var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl };
     // Indomitable (fighter 9): a failed save is rolled again, once a day -- taken at once, and said so
     if (!res.ok && u.cls === 'fighter' && u.feats && u.feats.indomitable) {
       u.feats.indomitable = 0;
@@ -47,6 +50,11 @@
     var adv = [], dis = [], melee = !atk.ranged && !atk.spell;
     if (att.conds.poisoned) dis.push('poisoned');
     if (att.conds.hidden) adv.push('unseen');
+    if (att.conds.invisible) adv.push('invisible');
+    if (tgt.conds.invisible && !att.conds.invisible) dis.push('invisible target');
+    if (att.conds.restrained) dis.push('restrained');
+    if (tgt.conds.restrained) adv.push('restrained target');
+    if (tgt.conds.paralyzed || tgt.conds.asleep) adv.push(tgt.conds.asleep ? 'asleep' : 'paralyzed');
     if (tgt.conds.hidden && G.dist(att, tgt, ax, ay) > 5) dis.push('unseen target');
     if (tgt.conds.faerie) adv.push('faerie fire');
     if (tgt.conds.dodge && !att.conds.hidden) dis.push('dodging');
@@ -58,6 +66,12 @@
       if (atk.range && G.dist(att, tgt, ax, ay) > atk.range[0]) dis.push('long range');
     }
     return { adv: adv, dis: dis, net: adv.length && !dis.length ? 1 : dis.length && !adv.length ? -1 : 0 };
+  };
+  // a save's numbers for a card: the d20, the bonus, and what's in it (the aura, Bless)
+  RU.saveText = function (sv) {
+    if (sv.auto) return '{o}auto-fail{/} (held or asleep)';
+    var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless);
+    return 'd20 ' + (sv.indomitable ? sv.rolls[0] + ', again ' + sv.indomitable : sv.d20) + ' ' + RU.sign(sv.bonus) + (bits.length ? ' {y}(' + bits.join(', ') + '){/}' : '') + ' = ' + sv.total;
   };
   RU.d20 = function (net) {
     var a = D.d(20);

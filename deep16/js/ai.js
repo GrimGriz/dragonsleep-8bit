@@ -9,7 +9,7 @@
   var AI = D.ai = {};
 
   function heroes(B, u) {
-    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && (!w.conds.hidden || G.dist(u, w) <= 5); });
+    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && ((!w.conds.hidden && !w.conds.invisible) || G.dist(u, w) <= 5); });
   }
   // the square to walk to: in reach of the target for least movement, else as close as the move allows
   function approach(u, tgt, rm, reach) {
@@ -32,11 +32,13 @@
     RU.startTurn(u);
     if (u.dead) return;
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
-    if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + u.name + ' cannot act.{/}']); yield 30; return; }
+    if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}The ' + B.shortName(u) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
+    if (u.conds.restrained) yield* D.magic.breakFree(B, u); // a web: tear at it first
     if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'drow') yield* drow(B, u);
     else yield* guest(B, u);
+    D.magic.endTurn(B, u);
     u.anim = 'idle';
     yield 16;
   };
@@ -61,7 +63,7 @@
       FX.sparkle(u, 'violet', 22); FX.ring(u, 'violet', 36);
       B.card(['{r}The phase spider{/} steps out of the rock beside ' + tgt.name + '!', '{g}(Ethereal Jaunt, a bonus action: back on the Material Plane){/}']);
       yield 30;
-      if (G.dist(u, tgt) <= u.reach) { T.action = 0; yield* B.attack(u, tgt, bite); }
+      if (G.dist(u, tgt) <= u.reach && T.action) { T.action = 0; yield* B.attack(u, tgt, bite); }
       return;
     }
     // on this plane: bite the weakest in reach, else close and bite; then fade (a bonus action)
@@ -72,7 +74,7 @@
       yield* walkTo(B, u, approach(u, t2, G.reach(u, T.move)));
       if (u.dead || u.hp <= 0) return;
     }
-    if (G.dist(u, t2) <= u.reach && !t2.dead) { T.action = 0; yield* B.attack(u, t2, bite); }
+    if (G.dist(u, t2) <= u.reach && !t2.dead && T.action) { T.action = 0; yield* B.attack(u, t2, bite); }
     if (u.dead || u.hp <= 0) return;
     if (T.bonus) {
       T.bonus = 0; u.ethereal = true;
@@ -107,7 +109,7 @@
     yield 10;
     got.forEach(function (w) {
       var sv = RU.save(w, 'dex', ff.dc);
-      lines.push('  ' + w.name + ': d20 ' + sv.d20 + RU.sign(sv.bonus) + (sv.aura ? ' {y}(aura +' + sv.aura + '){/}' : '') + ' = ' + sv.total + ' ' + (sv.ok ? '{n}saved{/}' : '{p}outlined: attacks on them have advantage{/}'));
+      lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{p}outlined: attacks on them have advantage{/}'));
       if (!sv.ok) w.conds.faerie = true;
     });
     B.card(lines, 420);
@@ -119,7 +121,7 @@
     var T = u.turn, hs = heroes(B, u), bow = u.attacks.crossbow, blade = u.attacks.shortsword, self = this;
     if (!hs.length) { B.card(['{g}The captain looks for someone to shoot and finds no one.{/}']); yield 30; return; }
     // Faerie Fire, once: on the biggest cluster (two or more, or anyone on the first round)
-    if (u.faerie && !u.faerie.used) {
+    if (u.faerie && !u.faerie.used && T.action) {
       var cube = bestCube(B, u, u.faerie.cube, u.faerie.range);
       if (cube && (cube.count >= 2 || (B.round === 1 && cube.count >= 1))) { yield* faerieFire(B, u, cube); return; }
     }
@@ -140,6 +142,7 @@
       hs = heroes(B, u);
     } else if (adj.length) {
       // pressed: two shortsword cuts at the weakest in reach
+      if (!T.action) return;
       T.action = 0;
       for (var a = 0; a < u.multi; a++) {
         var tg = heroes(B, u).filter(function (w) { return G.dist(u, w) <= 5; }).sort(function (p, q) { return p.hp - q.hp; })[0];
@@ -165,6 +168,7 @@
       if (u.dead || u.hp <= 0) return;
     }
     // shoot: twice, the lowest AC in sight each time
+    if (!T.action) return;
     T.action = 0;
     for (var s2 = 0; s2 < u.multi; s2++) {
       var inSight = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.dist(u, w) <= bow.range[1]; });
@@ -186,7 +190,7 @@
     }
     var tgt = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (G.dist(u, tgt) > u.reach) yield* walkTo(B, u, approach(u, tgt, G.reach(u, T.move)));
-    if (u.hp <= 0) return;
+    if (u.hp <= 0 || !T.action) return;
     T.action = 0;
     for (var k = 0; k < (u.attacks || 1); k++) {
       var t = heroes(B, u).filter(function (w) { return G.dist(u, w) <= u.reach; })[0];

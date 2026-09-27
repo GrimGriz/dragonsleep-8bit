@@ -35,7 +35,7 @@
       if (id === 'aurdin' && h.known.indexOf('mageArmor') >= 0) h.conds.mageArmor = 1;
       return h;
     });
-    return { party: party, guests: [], inv: [['potion', 3]], flags: { lakeDone: 1, roadHeld: 1 }, fixture: true };
+    return { party: party, guests: [], inv: [{ id: 'potion', n: 3 }, { id: 'greaterpotion', n: 1 }, { id: 'antitoxin', n: 1 }, { id: 'kit', n: 1 }, { id: 'oil', n: 2 }], flags: { lakeDone: 1, expansionDone: 1 }, fixture: true };
   };
 
   // the heroes and guests as DEEP16 units: everything the grid needs, read off the 8-bit sheet
@@ -52,7 +52,7 @@
       id: h.id, name: look.name || h.name, cls: h.cls, lvl: h.lvl, guest: guest, side: 'party', sheet: look.sheet || h.id + '_p0',
       hp: h.ko ? 0 : h.hp, maxhp: h.maxhp, ko: !!h.ko, conds: JSON.parse(JSON.stringify(h.conds || {})),
       abil: h.abil, baseAC: R.ac(h), prof: R.prof(h.lvl), init: R.initBonus(h), speed: 30, size: 1, reach: 5,
-      slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), known: (h.known || []).slice(),
+      slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), known: knownOf(h), armored: R.armored(h),
       feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass,
       weapon: { name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: (w.weapon && w.weapon.props) || [],
         finesse: !!(w.weapon && (w.weapon.props || []).indexOf('finesse') >= 0), gwf: h.cls === 'fighter' && R.twoHanded(h, w) },
@@ -61,6 +61,8 @@
       stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h
     };
   }
+  // Misty Step is the POC spec's (§3) and not in the 8-bit game's list: a wizard of 3rd level or more knows it here
+  function knownOf(h) { var k = (h.known || []).slice(); if (h.cls === 'wizard' && h.lvl >= 3 && k.indexOf('mistystep') < 0) k.push('mistystep'); return k; }
   // the POC's looks (RULED 09-27, Griz: "Denny should play as Barley but look like Denny for this POC"); the base art
   // is LPC (pipeline 0), Blender for special monsters (RULED 09-27: "Pipeline 0 is the way to go, maybe pipeline 1 for
   // special monsters or fights")

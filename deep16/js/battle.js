@@ -30,6 +30,7 @@
       };
     });
     this.units = party.concat(foes);
+    this.inv = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; });
     G.setup(m, this.units);
     FX.clear();
@@ -60,6 +61,7 @@
     if (this.menu) { D.ui.menuInput(this); return; }
     if (I.pressed('menu')) { D.ui.openMenu(this); return; }
     if (this.req) { D.ui.input(this, this.req); return; }
+    D.ui.camera(this);
     if (this.waitFx) { if (FX.busy()) return; this.waitFx = false; }
     if (this.wait > 0) { this.wait--; return; }
     if (this.co) this.step();
@@ -135,6 +137,7 @@
       if (this.over() || !RU.canAct(u)) break;
       this.keepInView(u);
     }
+    D.magic.endTurn(this, u);
     this.tool = 'move';
   };
 
@@ -142,13 +145,12 @@
   Battle.prototype.commands = function (u) {
     var T = u.turn, out = [], has = function (id) { return u.known && u.known.indexOf(id) >= 0; };
     var slot = function (min) { for (var i = min - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) return i + 1; return 0; };
-    var canSpell = !T.bonusSpell && !T.spell; // a bonus-action spell leaves only an action cantrip, and the other way round
     out.push({ id: 'attack', label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A', ok: T.attacksLeft > 0 || T.action > 0, tool: 'attack' });
-    if (u.cls === 'wizard') {
-      if (has('firebolt')) out.push({ id: 'firebolt', label: 'FIRE BOLT', cost: 'A', ok: T.action > 0 && !T.attacksLeft, tool: 'firebolt' });
-      if (has('fireball')) out.push({ id: 'fireball', label: 'FIREBALL L' + (slot(3) || 3), cost: 'A', ok: T.action > 0 && !T.attacksLeft && slot(3) > 0 && canSpell, tool: 'fireball' });
-      out.push({ id: 'misty', label: 'MISTY STEP', cost: 'B', ok: T.bonus > 0 && slot(2) > 0 && !T.spell && !T.bonusSpell, tool: 'misty' });
-    }
+    if (u.conds.restrained) out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
+    var spells = D.magic.list(this, u);
+    if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spells.some(function (e) { return e.ok; }), sub: 'spells', icon: 'spell' });
+    var items = this.itemList(u);
+    if (items.length) out.push({ id: 'items', label: 'ITEM', cost: 'A', ok: T.action > 0 && !T.attacksLeft, sub: 'items', icon: 'item' });
     if (u.cls === 'fighter') {
       out.push({ id: 'secondwind', label: '2ND WIND', cost: 'B', ok: T.bonus > 0 && u.feats.secondWind > 0 });
       out.push({ id: 'surge', label: 'SURGE', cost: 'F', ok: u.feats.actionSurge > 0 && !T.action && !T.attacksLeft });
@@ -183,14 +185,13 @@
         if (u.conds.hidden) delete u.conds.hidden;
         return;
       }
-      case 'firebolt': {
-        T.action = 0; T.spell = 'cantrip';
-        yield* this.attack(u, c.target, { name: 'Fire Bolt', atk: u.spellAtk, dice: u.lvl >= 11 ? '3d10' : u.lvl >= 5 ? '2d10' : '1d10', mod: 0, type: 'fire', spell: true, ranged: true, range: [120, 120], fx: 'fire' });
-        if (u.conds.hidden) delete u.conds.hidden;
+      case 'cast': {
+        yield* D.magic.cast(this, u, c.id, c.slot, c.target);
+        if (u.conds.hidden && D.magic.data(c.id).kind !== 'buff') delete u.conds.hidden;
         return;
       }
-      case 'fireball': { yield* this.fireball(u, c.x, c.y); return; }
-      case 'misty': { yield* this.misty(u, c.x, c.y); return; }
+      case 'item': { yield* this.useItem(u, c.id, c.target); return; }
+      case 'breakfree': { yield* D.magic.breakFree(this, u); return; }
       case 'dash': T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'cdash': T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (Cunning Action) dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
@@ -270,12 +271,12 @@
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) delete tgt.conds.helped; // help is spent on the first swing
-    var r = RU.d20(e.net), nat = r.pick, total = nat + atk.atk;
+    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, total = nat + atk.atk + bless;
     var critAt = att.crit || 20;
     var hit = nat === 20 || (nat !== 1 && total >= ac);
-    var crit = hit && (nat >= critAt || (melee && tgt.hp <= 0 && !tgt.dead));
+    var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5));
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
-    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
+    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn
     if (hit && nat !== 20 && tgt.cls === 'wizard' && tgt.reaction > 0 && !tgt.conds.shield && RU.canAct(tgt) && tgt.known.indexOf('shield') >= 0 && slotFor(tgt, 1) && total < ac + 5 && !tgt.guest) {
@@ -301,6 +302,7 @@
         parts.push('{p}sneak ' + RU.sneakDice(att) + ' ' + RU.fmtRolls(sn.rolls) + ' = ' + sn.total + '{/}');
       }
     }
+    if (att.conds.divineFavor && !atk.spell) { var df = D.roll('1d4', { crit: crit }); dmg += df.total; parts.push('{y}favor 1d4 [' + df.rolls.join(',') + '] radiant{/}'); }
     // a foe's poisoned blade
     if (atk.extra) { var ex = D.roll(atk.extra, { crit: crit }); dmg += ex.total; parts.push(atk.extra + ' ' + RU.fmtRolls(ex.rolls) + ' ' + atk.extraType); }
     // Divine Smite: after the hit, spend a slot
@@ -330,13 +332,13 @@
     // riders: the drow's poisoned bolt, the spider's venom
     if (!tgt.dead && tgt.hp > 0 && atk.poison && !tgt.conds.poisoned) {
       var sv = RU.save(tgt, 'con', atk.poison.dc);
-      this.card(['{r}' + nameOf(tgt) + '{/}: CON save vs poison  d20 ' + (sv.indomitable ? sv.rolls[0] + ', again ' + sv.indomitable : sv.d20) + ' ' + RU.sign(sv.bonus) + (sv.aura ? ' {y}(aura +' + sv.aura + '){/}' : '') + ' = ' + sv.total + ' vs DC ' + sv.dc + '  ' + (sv.ok ? '{n}SAVED{/}' : '{o}POISONED{/}')]);
+      this.card(['{r}' + nameOf(tgt) + '{/}: CON save vs poison  ' + RU.saveText(sv) + ' vs DC ' + sv.dc + '  ' + (sv.ok ? '{n}SAVED{/}' : '{o}POISONED{/}')]);
       if (!sv.ok) { tgt.conds.poisoned = true; FX.sparkle(tgt, 'moss', 10); }
       yield 30;
     }
     if (!tgt.dead && atk.save && tgt.hp > 0) {
       var s2 = RU.save(tgt, atk.save.ab, atk.save.dc), pr = D.roll(atk.save.dice), pd = s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;
-      this.card(['{r}' + nameOf(tgt) + '{/}: ' + atk.save.ab.toUpperCase() + ' save  d20 ' + s2.d20 + ' ' + RU.sign(s2.bonus) + (s2.aura ? ' {y}(aura){/}' : '') + ' = ' + s2.total + ' vs DC ' + s2.dc + '  ' + (s2.ok ? '{n}SAVED{/} (half)' : '{o}FAILED{/}'), atk.save.dice + ' ' + RU.fmtRolls(pr.rolls) + ' = ' + pr.total + ' ' + atk.save.type + '  = {r}' + pd + '{/}']);
+      this.card(['{r}' + nameOf(tgt) + '{/}: ' + atk.save.ab.toUpperCase() + ' save  ' + RU.saveText(s2) + ' vs DC ' + s2.dc + '  ' + (s2.ok ? '{n}SAVED{/} (half)' : '{o}FAILED{/}'), atk.save.dice + ' ' + RU.fmtRolls(pr.rolls) + ' = ' + pr.total + ' ' + atk.save.type + '  = {r}' + pd + '{/}']);
       if (pd) this.hurt(tgt, pd, atk.save.type);
       yield 30;
     }
@@ -354,6 +356,10 @@
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
   Battle.prototype.hurt = function (u, n, type) {
     if (n <= 0) return;
+    if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '')) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
+    if (u.temp > 0) { var soak = Math.min(u.temp, n); u.temp -= soak; n -= soak; }
+    if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
+    if (n <= 0) return;
     u.hp = Math.max(0, u.hp - n);
     u.flash = 10;
     FX.float('-' + n, u, D.PAL.ramps.red[4]);
@@ -362,7 +368,8 @@
       u.anim = 'hurt'; u.animT = this.t;
       if (u.side === 'party') { u.ko = true; this.card(['{r}' + u.name + ' goes down.{/}']); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); }
-    }
+      if (u.conc) D.magic.endConc(this, u, 'down');
+    } else D.magic.concCheck(this, u, n);
   };
   Battle.prototype.heal = function (u, n) {
     var was = u.hp;
@@ -370,6 +377,41 @@
     if (was <= 0 && u.hp > 0) { u.ko = false; u.anim = 'idle'; }
     FX.float('+' + (u.hp - was), u, D.PAL.ramps.moss[2]);
     return u.hp - was;
+  };
+
+  // ------------------------------------------------------------------ items: the save's own (a potion, a kit, an antitoxin, an oil flask)
+  var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1 };
+  Battle.prototype.itemList = function (u) {
+    var T = u.turn;
+    return (this.inv || []).map(function (s) {
+      var it = window.DS.DATA.items[s.id];
+      if (!it || !it.use || !it.use.battle || !ITEM_OK[it.use.effect] || s.n <= 0) return null;
+      return { id: s.id, name: it.name, n: s.n, use: it.use, ok: T.action > 0 && !T.attacksLeft, why: T.action > 0 ? '' : 'the action is spent' };
+    }).filter(Boolean);
+  };
+  Battle.prototype.itemTargetOK = function (u, id, w) {
+    var use = window.DS.DATA.items[id].use;
+    if (!w || w.dead) return false;
+    if (use.effect === 'damage') return G.hostile(u, w) && w.hp > 0 && G.dist(u, w) <= 20 && G.los(u, w).clear;
+    if (w.side !== u.side || (w !== u && G.dist(u, w) > 5)) return false;
+    if (use.effect === 'revive') return w.hp <= 0;
+    if (use.effect === 'heal') return w.hp < w.maxhp;
+    return true;
+  };
+  Battle.prototype.useItem = function* (u, id, w) {
+    var it = window.DS.DATA.items[id], use = it.use, s = this.inv.filter(function (x) { return x.id === id; })[0];
+    u.turn.action = 0; s.n--;
+    var who = w === u ? 'drinks' : 'gives ' + w.name;
+    if (use.effect === 'heal') { var r = D.roll(use.dice), got = this.heal(w, r.total); this.card(['{y}' + u.name + '{/} ' + who + ' a ' + it.name + ': ' + use.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {n}' + r.total + '{/}' + (got < r.total ? ' (' + got + ' to full)' : '')]); FX.sparkle(w, 'moss', 12); }
+    if (use.effect === 'revive') { this.heal(w, use.hp || 1); this.card(['{y}' + u.name + '{/} works the ' + it.name + ' on ' + w.name + ': up, on ' + w.hp + ' HP.']); }
+    if (use.effect === 'antitoxin' || use.effect === 'cure') { var had = !!w.conds.poisoned; delete w.conds.poisoned; this.card(['{y}' + u.name + '{/} ' + who + ' the ' + it.name + (had ? ': the poison goes out.' : ': nothing to cure.')]); FX.sparkle(w, 'moss', 10); }
+    if (use.effect === 'damage') {
+      FX.projectile(u, w, 'fire'); yield { fx: 1 };
+      var sv = RU.save(w, use.save || 'dex', use.dc || 10), dmg = sv.ok ? 0 : D.roll(String(use.dice)).total;
+      this.card(['{y}' + u.name + '{/} throws the ' + it.name + ' at the ' + shortName(w) + ': DEX ' + RU.saveText(sv) + ' vs DC ' + (use.dc || 10) + '  ' + (sv.ok ? '{n}dodged{/}' : '{o}burning: ' + dmg + ' fire{/}')]);
+      if (dmg) this.hurt(w, dmg, 'fire');
+    }
+    yield 30;
   };
 
   // ------------------------------------------------------------------ Fireball: the area proof (DEX save for half; Evasion; the aura)
@@ -388,7 +430,7 @@
     caught.forEach(function (w) {
       var sv = RU.save(w, 'dex', u.spellDC), evade = w.cls === 'rogue' && w.lvl >= 7;
       var d = sv.ok ? (evade ? 0 : Math.floor(r.total / 2)) : (evade ? Math.floor(r.total / 2) : r.total);
-      lines.push('  ' + nameOf(w) + ': d20 ' + sv.d20 + RU.sign(sv.bonus) + (sv.aura ? '{y}(aura){/}' : '') + ' = ' + sv.total + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + d + '{/}');
+      lines.push('  ' + nameOf(w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + d + '{/}');
       hits.push([w, d]);
     });
     if (!caught.length) lines.push('  {g}no one in it.{/}');
@@ -412,6 +454,7 @@
   Battle.prototype.misty = function* (u, x, y) {
     var T = u.turn, sl = slotFor(u, 2);
     T.bonus = 0; T.bonusSpell = true; u.slots[sl - 1]--;
+    if (u.conds.hidden) delete u.conds.hidden;
     FX.sparkle(u, 'silver', 16);
     this.card(['{y}' + u.name + '{/}: MISTY STEP (L' + sl + ') -- silver mist, and he is ' + (Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5) + ' ft away.']);
     yield 16;
