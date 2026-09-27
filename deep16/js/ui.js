@@ -52,8 +52,8 @@
   function reachCache(B, u) {
     var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
     if (B.cache && B.cache.key === key) return B.cache;
-    var dash = T.action > 0 && !T.attacksLeft ? u.speed : 0;
-    B.cache = { key: key, move: G.reach(u, T.move), dash: dash ? G.reach(u, T.move + dash) : null, hide: null };
+    var held = !!u.conds.restrained, dash = !held && T.action > 0 && !T.attacksLeft ? u.speed : 0;
+    B.cache = { key: key + (held ? ',held' : ''), move: G.reach(u, held ? 0 : T.move), dash: dash ? G.reach(u, T.move + dash) : null, hide: null };
     return B.cache;
   }
   // a rogue's places to try hiding: squares she can reach where no foe she knows of sees her plainly (no cover)
@@ -351,7 +351,11 @@
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (x === u.x && y === u.y) { D.sfx('popup'); B.tool = 'menu'; return; }
       if (foe && v === 'ok') return UI.command(B, u, { do: 'attack', target: foe });
-      if (foe) { D.sfx('error'); return B.card(['{o}The ' + B.shortName(foe) + ' is out of reach (' + G.dist(u, foe) + ' ft).{/}'], 120); }
+      if (foe) {
+        D.sfx('error');
+        if (B.canHit(u, foe)) return B.card(['{o}No attack left this turn: the action is spent.{/}'], 120);
+        return B.card(['{o}The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + G.dist(u, foe) + ' ft).{/}'], 120);
+      }
       if (v === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
       if (v === 'far') return UI.command(B, u, { do: 'dashmove', x: x, y: y });
       return;

@@ -61,7 +61,7 @@
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
       reckless: !!d.reckless, rageOnHit: !!d.rageOnHit, raging: false,
-      flees: !!d.flees, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
+      flees: !!d.flees && !(this.fight && this.fight.noFlee), transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
@@ -298,10 +298,10 @@
     // DASH, DISENGAGE, DODGE, HELP: the same ACTIONS for all four (Griz, 09-27: "uniform like the paladin"). The rogue's
     // Dash and Disengage are Cunning Action's (the bonus action) while she has the bonus, the plain actions after
     if (cun) {
-      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: true, note: 'Cunning Action: +' + u.speed + ' ft this turn', icon: 'dash' });
+      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: !u.conds.restrained, why: 'held fast: her speed is 0, and a Dash adds her speed', note: 'Cunning Action: +' + u.speed + ' ft this turn', icon: 'dash' });
       out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: !T.disengaged, note: 'Cunning Action: leaving reach provokes nothing', icon: 'disengage' });
     } else {
-      out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: '+' + u.speed + ' ft this turn' });
+      out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the action is spent', note: '+' + u.speed + ' ft this turn' });
       out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
     }
     // out the way the party came in (the fight's entry squares): the tabletop's walking off the table (Griz, 09-27: the climb's escape)
@@ -341,7 +341,7 @@
       case 'breakfree': { yield* D.magic.breakFree(this, u); return; }
       case 'dashmove': {
         var far = G.reach(u, T.move + u.speed)[c.x + ',' + c.y], opts = [];
-        if (!far) return;
+        if (!far || u.conds.restrained) return;
         if (u.cls === 'rogue' && u.lvl >= 2 && T.bonus) opts.push({ label: 'CUNNING DASH (bonus)', value: 'b' });
         if (T.action && !T.attacksLeft) opts.push({ label: 'DASH (your action)', value: 'a' });
         if (!opts.length) { this.card(['{g}No dash left this turn.{/}']); return; }
@@ -358,8 +358,8 @@
       case 'leave': { yield* this.leave(u); return; }
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
-      case 'dash': D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
-      case 'cdash': D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (Cunning Action) dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'dash': if (u.conds.restrained) return; D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'cdash': if (u.conds.restrained) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (Cunning Action) dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
       case 'sacred': {

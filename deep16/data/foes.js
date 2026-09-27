@@ -246,6 +246,14 @@
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
     multi: 1, src: 'SRD 5.1 Guard (CR 1/8); content/monsters.json guard (the Line Guard)'
   },
+  // the ladder's wagon yard: two who rode guard on the wagon (SRD 5.1 Guard; the ladder's own, not the 8-bit game's)
+  hiredsword: {
+    name: 'Hired Sword', sheet: 'guard_p1', cr: '1/8', ac: 16, hp: 11, speed: 30, size: 1, reach: 5,
+    abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
+    saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Guard (CR 1/8): the ladder\'s wagon yard, riding guard (Griz, 09-27: "a pair of soldiers")'
+  },
   veteran: {
     name: 'Sergeant', sheet: 'veteran_p1', cr: '3', ac: 17, hp: 58, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,

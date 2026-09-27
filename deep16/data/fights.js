@@ -93,10 +93,13 @@
       intro: 'A shape wrapped tight in silk hangs in the strands. It moves. Something else moves toward it.',
       from: 'the 8-bit game: events.js, the snared lad (two wolf spiders and a giant spider)', won: 'YOU CUT THE TRAVELER DOWN.',
       foes: [{ id: 'ws1', kind: 'wolfspider', at: [4, 5] }, { id: 'ws2', kind: 'wolfspider', at: [13, 6] }, { id: 'gs1', kind: 'giantspider', at: [10, 3] }], wave: null },
-    { id: 'wagon', level: 4, map: 'yard', name: 'The Wagon Yard', sub: 'the Halfway Inn, at night', music: 'boss', noEscape: true,
-      intro: 'Steel comes out, and the pair fight only to get to the horses: a step at a time toward the stable gate, blasting. If either of them reaches it, they are gone.',
-      from: 'the 8-bit game: events.js S.wagonFight (Amara and Willem; the 8-bit game has the lone investigator and a chase after)', won: 'THE GLAMOUR IS BROKEN.', escaped: 'THEY GOT AWAY WITH THE HORSES.',
-      foes: [{ id: 'amara', kind: 'amara', at: [3, 10] }, { id: 'willem', kind: 'willem', at: [2, 8] }], wave: null },
+    // the ladder's wagon yard (Griz, 09-27: "willem escaping (or both) shouldn't result in ladder fall - we need the escape for the
+    // 8-bit, can we add a pair of soldiers and have them not escape for the ladder?"): two hired swords ride guard, and nobody runs
+    // (noFlee). The 8-bit game's own fight keeps the escape and the chase. DEADLY for four at 4 by the table (the four have max HP)
+    { id: 'wagon', level: 4, map: 'yard', name: 'The Wagon Yard', sub: 'the Halfway Inn, at night', music: 'boss', noFlee: true,
+      intro: 'Steel comes out. Two hired swords who rode guard on the wagon step in front of the pair, and Amara and Willem stand behind them, blasting. Nobody reaches the horses tonight.',
+      from: 'the 8-bit game: events.js S.wagonFight (Amara and Willem; there, they run for the horses and a chase follows). The two hired swords are the ladder\'s own, not the 8-bit game\'s (it ruled no hired drivers)', won: 'THE GLAMOUR IS BROKEN.',
+      foes: [{ id: 'amara', kind: 'amara', at: [3, 10] }, { id: 'willem', kind: 'willem', at: [2, 8] }, { id: 'hs1', kind: 'hiredsword', at: [5, 9] }, { id: 'hs2', kind: 'hiredsword', at: [4, 6] }], wave: null },
     { id: 'gricks', level: 5, map: 'grickden', name: 'The Grick Den', sub: 'south of the king\'s road, leg one', music: 'boss',
       intro: 'Something moves in the open cavern south of the road, low and fast, and then there are more of them than there were rocks. (Plain steel does half; magic does not care.)',
       from: 'the 8-bit game: deep.js S.grickDen (three gricks; five with the king)', won: 'THE DARK IS ONLY DARK AGAIN.',
