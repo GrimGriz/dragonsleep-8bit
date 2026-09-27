@@ -236,5 +236,88 @@
     attacks: { pseudopod: { name: 'Pseudopod', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', extra: '4d8', extraType: 'acid', reach: 5 } },
     multi: 1, immune: ['acid', 'cold', 'lightning', 'slashing'], split: true,
     src: 'SRD 5.1 Black Pudding (CR 4, Large): pseudopod + 4d8 acid; immune acid, cold, lightning, slashing; Split (read: battle.js split)', todo: 'its acid eating armour and weapons is not read'
+  },
+  // ------------------------------------------------------------------ people (09-27): KayKit Adventurers greyed or turned (tools/deep16-figures.json)
+  // the line across the bridge (events.js, enter:warrens_a): the Captain's stable, five guards and their sergeant
+  guard: {
+    name: 'Line Guard', sheet: 'guard_p1', cr: '1/8', ac: 16, hp: 11, speed: 30, size: 1, reach: 5,
+    abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
+    saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Guard (CR 1/8); content/monsters.json guard (the Line Guard)'
+  },
+  veteran: {
+    name: 'Sergeant', sheet: 'veteran_p1', cr: '3', ac: 17, hp: 58, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
+    saves: { str: 3, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
+    attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 }, shortsword: { name: 'Shortsword', atk: 5, dice: '1d6', mod: 3, type: 'piercing', reach: 5 } },
+    multi: ['longsword', 'longsword', 'shortsword'], src: 'SRD 5.1 Veteran (CR 3); content/monsters.json veteran (the line\'s Sergeant)'
+  },
+  // the Snoot's glory-seekers on the road south (events.js S.snoot)
+  gloryseeker: {
+    name: 'Glory-Seeker', sheet: 'gloryseeker_p1', cr: '1', ac: 15, hp: 38, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 12, con: 13, int: 7, wis: 10, cha: 9 }, init: 1, perception: 10,
+    saves: { str: 3, dex: 1, con: 1, int: -2, wis: 0, cha: -1 },
+    attacks: { spear: { name: 'Spear', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5 }, bite: { name: 'Bite', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
+    multi: ['spear', 'bite'], src: 'content/monsters.json gloryseeker (the 8-bit game\'s own: the Snoot\'s young blood, from the SRD gnoll)'
+  },
+  gnoll: {
+    name: 'Gnoll', sheet: 'gnoll_p1', cr: '1/2', ac: 15, hp: 22, speed: 30, size: 1, reach: 5,
+    abil: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 }, init: 1, perception: 10,
+    saves: { str: 2, dex: 1, con: 0, int: -2, wis: 0, cha: -2 },
+    attacks: { spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 }, bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll', todo: 'Rampage (a bite after it drops someone) is not read'
+  },
+  hyena: {
+    name: 'Hyena', sheet: 'hyena_p1', cr: '0', ac: 11, hp: 5, speed: 50, size: 1, reach: 5,
+    abil: { str: 11, dex: 13, con: 12, int: 2, wis: 12, cha: 5 }, init: 1, perception: 13,
+    saves: { str: 0, dex: 1, con: 1, int: -4, wis: 1, cha: -3 },
+    attacks: { bite: { name: 'Bite', atk: 2, dice: '1d6', mod: 0, type: 'piercing', reach: 5 } },
+    multi: 1, packTactics: true, src: 'SRD 5.1 Hyena (CR 0, Pack Tactics); content/monsters.json hyena'
+  },
+  // the night crew in the Burial (deep.js, The One Law): Hask, his crew, and the wheelwright, who bolts when Hask falls
+  hask: {
+    name: 'Hask', sheet: 'hask_p1', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
+    saves: { str: 4, dex: 5, con: 2, int: 2, wis: 0, cha: 2 },
+    attacks: { bar: { name: 'Pry-bar', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5 }, knife: { name: 'Knife', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
+    multi: ['bar', 'bar', 'knife'], src: 'content/monsters.json hask (the SRD 5.1 Bandit Captain as the night crew\'s boss)'
+  },
+  wheelwright: {
+    name: 'Wheelwright', sheet: 'wheelwright_p1', cr: '1', ac: 12, hp: 27, speed: 30, size: 1, reach: 5,
+    abil: { str: 10, dex: 15, con: 10, int: 12, wis: 14, cha: 16 }, init: 2, perception: 16,
+    saves: { str: 0, dex: 2, con: 0, int: 1, wis: 2, cha: 3 },
+    attacks: { mallet: { name: 'Mallet', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
+    multi: ['mallet', 'mallet'], bolts: 'hask',
+    src: 'content/monsters.json wheelwright (the SRD 5.1 Spy): when Hask falls he runs for the stair (the map\'s exit), dashing'
+  },
+  crewman: {
+    name: 'Crewman', sheet: 'crewman_p1', cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
+    saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
+    attacks: { bar: { name: 'Pry-bar', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
+    multi: ['bar', 'bar'], src: 'content/monsters.json crewman (the SRD 5.1 Thug)'
+  },
+  // holding the stair at the siphon (deep.js S.holdStair): the night crews come down the daytime way
+  crewboss: {
+    name: 'Crew Boss', sheet: 'hask_p1', cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
+    saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
+    attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
+    multi: 1, src: 'content/monsters.json crewboss (a Thug with one blow); Hask\'s sheet'
+  },
+  thug: {
+    name: 'Thug', sheet: 'crewman_p1', cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
+    saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
+    attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
+    multi: ['mace', 'mace'], src: 'SRD 5.1 Thug (CR 1/2); content/monsters.json thug'
+  },
+  robber: {
+    name: 'Night Crew', sheet: 'wheelwright_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
+    abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
+    saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: { knife: { name: 'Knife', atk: 3, dice: '1d4', mod: 1, type: 'piercing', reach: 5 } },
+    multi: 1, src: 'content/monsters.json robber (the SRD 5.1 Bandit with a knife)'
   }
 };

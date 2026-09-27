@@ -329,6 +329,23 @@
     }
     u.anim = 'idle';
   }
+  function* bolt(B, u) {
+    var T = u.turn, exits = B.fight.exit || B.map.def.exit || [];
+    if (!exits.length || !T.action) return;
+    T.action = 0; T.move = u.speed * 2; // Dash
+    var rm = G.reach(u, T.move), best = null, bc = Infinity;
+    exits.forEach(function (x) { var e = rm[x[0] + ',' + x[1]]; if (e && e.stand && e.cost < bc) { bc = e.cost; best = e; } });
+    if (!best) { // not this turn: as close as the dash goes
+      Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var d = Math.min.apply(null, exits.map(function (x) { return Math.max(Math.abs(x[0] - e.x), Math.abs(x[1] - e.y)); })); if (d * 100 + e.cost / 5 < bc) { bc = d * 100 + e.cost / 5; best = e; } });
+    }
+    B.card(['{r}The ' + B.shortName(u) + '{/} breaks and runs!  {g}(Dash){/}']); yield 16;
+    if (best) yield* walkTo(B, u, best);
+    if (u.dead || u.hp <= 0) return;
+    if (exits.some(function (x) { return x[0] === u.x && x[1] === u.y; })) {
+      u.dead = true; u.fled = true; u.deadT = B.t; D.sfx('run');
+      B.card(['{o}The ' + B.shortName(u) + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30;
+    }
+  }
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u);
     if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp) {
@@ -336,6 +353,8 @@
       else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
     }
     u.burned = false;
+    // it bolts (the wheelwright, when Hask is down): Dash for the map's exit and gone -- the player's opportunity attacks are the only stop
+    if (u.bolts && B.units.some(function (w) { return w.kind === u.bolts && w.dead; })) { yield* bolt(B, u); return; }
     // a spent Web comes back on a 5 or 6 (at the start of its turn)
     if (u.web && !u.web.ready) { var rc = D.d(6); if (rc >= u.web.recharge) { u.web.ready = true; B.card(['{g}The ' + B.shortName(u) + ' has web again (d6 ' + rc + ').{/}'], 200); yield 12; } }
     // a grip it can no longer reach goes slack

@@ -87,6 +87,9 @@
     var cv = document.createElement('canvas'); cv.width = maxX - minX; cv.height = maxY - minY;
     var ctx = cv.getContext('2d');
     var stone = iso.ramp('stone'), silver = iso.ramp('silver'), blue = iso.ramp('blue'), violet = iso.ramp('violet'), moss = iso.ramp('moss');
+    // an open-air map (ground: 'earth', 09-27: the road, the gnolls' country, the bridge) lays its raw floor as packed dirt
+    // and grass instead of cave stone; the rock round it stands as the cutting's walls
+    var earth = m.def.ground === 'earth', leather = iso.ramp('leather');
     var seed = D.hash(m.def.name);
     var W, H, px, sqc; // the current square's buffer
     function put(ix, iy, c) { ix -= sqc.x0; iy -= sqc.y0; if (ix < 0 || iy < 0 || ix >= W || iy >= H) return; var o = (iy * W + ix) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; }
@@ -134,8 +137,14 @@
             var crack = Math.abs(vnoise(gx * 2.2, gy * 2.2, seed + 21) - 0.5) < 0.012;
             var pebble = h2(Math.floor(gx * 14), Math.floor(gy * 14), seed + 5) > 0.985;
             var mossy = fbm(gx * 0.7, gy * 0.7, seed + 40) > 0.66 && rock < 0.6;
-            col = crack ? stone[1] : pebble ? stone[6] : mossy && fine > 0.55 ? rampPick(moss, 0.3 + n * 0.4, ix, iy) : rampPick(stone, shade, ix, iy);
-            if (s.ch === 'r' && fine > 0.6) col = rampPick(stone, shade + 0.18, ix, iy);
+            if (earth) {
+              var grass = fbm(gx * 0.45, gy * 0.45, seed + 40) + (fine - 0.5) * 0.25 > 0.5 && s.ch !== 'r';
+              col = crack ? leather[0] : pebble ? stone[5] : grass ? rampPick(moss, 0.15 + n * 0.7 - Math.max(0, 0.9 - rock) * 0.3, ix, iy) : rampPick(leather, 0.2 + n * 0.5 + (fine - 0.5) * 0.15 - Math.max(0, 0.9 - rock) * 0.25, ix, iy);
+              if (s.ch === 'r' && fine > 0.55) col = rampPick(stone, shade + 0.25, ix, iy);
+            } else {
+              col = crack ? stone[1] : pebble ? stone[6] : mossy && fine > 0.55 ? rampPick(moss, 0.3 + n * 0.4, ix, iy) : rampPick(stone, shade, ix, iy);
+              if (s.ch === 'r' && fine > 0.6) col = rampPick(stone, shade + 0.18, ix, iy);
+            }
           }
           put(ix, iy, col);
         }

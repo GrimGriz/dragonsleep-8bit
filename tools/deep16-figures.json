@@ -363,6 +363,68 @@
         "walk": "Slime_Walk"
       }
     },
+    "guard": {
+      "_note": "a line guard (SRD guard): the KayKit Knight, helmed, rectangle shield and sword, taken down to plain steel and grey.",
+      "file": "kaykit/Knight.glb",
+      "show": ["Knight_ArmLeft", "Knight_ArmRight", "Knight_Body", "Knight_Head", "Knight_Helmet", "Knight_LegLeft", "Knight_LegRight", "1H_Sword", "Rectangle_Shield"],
+      "grade": { "hue": 0, "sat": 0.35, "val": 0.85 },
+      "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Stab", "walk": "Walking_A" }
+    },
+    "veteran": {
+      "_note": "the line's sergeant (SRD veteran): the KayKit Knight, caped, badge shield, darker.",
+      "file": "kaykit/Knight.glb",
+      "show": ["Knight_ArmLeft", "Knight_ArmRight", "Knight_Body", "Knight_Cape", "Knight_Head", "Knight_Helmet", "Knight_LegLeft", "Knight_LegRight", "1H_Sword", "Badge_Shield"],
+      "grade": { "hue": 170, "sat": 0.6, "val": 0.7 },
+      "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Slice_Diagonal", "walk": "Walking_A" }
+    },
+    "hask": {
+      "_note": "Hask, the night crew's boss (the bandit captain reskin): the KayKit Barbarian, hat and hand-axe (for his pry-bar), darkened.",
+      "file": "kaykit/Barbarian.glb",
+      "show": ["Barbarian_ArmLeft", "Barbarian_ArmRight", "Barbarian_Body", "Barbarian_Hat", "Barbarian_Head", "Barbarian_LegLeft", "Barbarian_LegRight", "1H_Axe"],
+      "grade": { "hue": -15, "sat": 0.7, "val": 0.7 },
+      "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Chop", "walk": "Walking_A" }
+    },
+    "crewman": {
+      "_note": "a night-crew hand (thug): the KayKit Barbarian bareheaded, hand-axe, in dun work clothes.",
+      "file": "kaykit/Barbarian.glb",
+      "show": ["Barbarian_ArmLeft", "Barbarian_ArmRight", "Barbarian_Body", "Barbarian_Head", "Barbarian_LegLeft", "Barbarian_LegRight", "1H_Axe"],
+      "grade": { "hue": 25, "sat": 0.45, "val": 0.8 },
+      "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Chop", "walk": "Walking_A" }
+    },
+    "wheelwright": {
+      "_note": "the wheelwright (spy; he runs when Hask falls) and the night crew's knife-men: the KayKit Rogue, bareheaded, a knife, greyed.",
+      "file": "kaykit/Rogue.glb",
+      "show": ["Rogue_ArmLeft", "Rogue_ArmRight", "Rogue_Body", "Rogue_Head", "Rogue_LegLeft", "Rogue_LegRight", "Knife"],
+      "grade": { "hue": 0, "sat": 0.4, "val": 0.9 },
+      "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Stab", "walk": "Walking_A" }
+    },
+    "gnoll": {
+      "_note": "the gnoll (SRD 5.1): Quaternius Big/Tribal, graded to a hyena's dun.",
+      "file": "quaternius/ultimate-monsters/Big/Blends/Tribal.blend",
+      "show": ["Tribal"],
+      "grade": { "hue": 20, "sat": 0.6, "val": 0.85 },
+      "size_squares": 1.4,
+      "yaw": 0,
+      "anims": { "idle": "Idle", "attack": "Weapon", "walk": "Walk" }
+    },
+    "gloryseeker": {
+      "_note": "the glory-seeker (the 8-bit game's own, the gnolls' champion): Quaternius Big/Tribal drawn big, darker, redder.",
+      "file": "quaternius/ultimate-monsters/Big/Blends/Tribal.blend",
+      "show": ["Tribal"],
+      "grade": { "hue": -10, "sat": 0.9, "val": 0.7 },
+      "size_squares": 1.65,
+      "yaw": 0,
+      "anims": { "idle": "Idle", "attack": "Weapon", "walk": "Walk" }
+    },
+    "hyena": {
+      "_note": "the hyena (SRD 5.1): the Quaternius Husky, graded to a dirty tan.",
+      "file": "quaternius/animated-animals/glTF/Husky.gltf",
+      "show": ["Cube"],
+      "grade": { "hue": 15, "sat": 0.55, "val": 0.75 },
+      "size_squares": 1.0,
+      "yaw": 180,
+      "anims": { "idle": "Idle", "attack": "Attack", "walk": "Walk" }
+    },
     "troll": {
       "_note": "Quaternius Ultimate Monsters, Big/Yeti (CC0, Atlas_Monsters.png) standing in for the SRD troll. Large: 2 squares.",
       "file": "quaternius/ultimate-monsters/Big/Blends/Yeti.blend",

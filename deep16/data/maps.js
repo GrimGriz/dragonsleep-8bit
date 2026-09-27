@@ -13,6 +13,7 @@ window.D16.MAPS.gulch = {
   name: 'Web Gulch',
   sub: 'the strung end',
   step: 20,
+  ground: 'earth', // the gulch is open to the sky (the 8-bit game's `gulch` is an outdoor ground)
   rows: [
     '##################',
     '####LLLLLL########',
@@ -332,6 +333,118 @@ window.D16.MAPS.restcamp = {
     '####################'
   ],
   entry: [[8, 5], [11, 5], [8, 7], [11, 7], [9, 6]],
+  foes: [],
+  wave: null
+};
+
+// The bridge into the camp (the 8-bit game's enter:warrens_a, `plains`): the line holds the far end of a bridge four
+// wide over a drop (the rock either side of it is the drop); the camp's ground beyond.
+window.D16.MAPS.bridge = {
+  name: 'The Bridge',
+  sub: 'the way into the camp',
+  step: 20,
+  ground: 'earth',
+  rows: [
+    '####################',
+    '##................##',
+    '#..................#',
+    '#...P........P.....#',
+    '##......======....##',
+    '########====########',
+    '########====########',
+    '########====########',
+    '########====########',
+    '#######.====.#######',
+    '####....====....####',
+    '###..............###',
+    '####............####',
+    '######........######'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 12]],
+  foes: [],
+  wave: null
+};
+
+// The road south of the Halfway Inn (the 8-bit game's S.snoot, `gnoll`): open country with the road through it,
+// scrub and stones (the rubble), and the Snoot's young blood across it by day.
+window.D16.MAPS.snootroad = {
+  name: 'The Road South',
+  sub: 'south of the Halfway Inn',
+  step: 20,
+  ground: 'earth',
+  rows: [
+    '####################',
+    '#####..........#####',
+    '###..............###',
+    '##....r......r....##',
+    '#..................#',
+    '#.......====.......#',
+    '#...rr..====.......#',
+    '#.......====...rr..#',
+    '#.......====.......#',
+    '##......====......##',
+    '###.....====.....###',
+    '####....====....####',
+    '######..====..######',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 12]],
+  foes: [],
+  wave: null
+};
+
+// The Burial (the 8-bit game's `dwarf`, The One Law): worked stone under the old dwarf-hold, columns (the stalagmites
+// stand in), the lamp by the stair up at the back. The stair is the way out (exit): the wheelwright runs for it.
+window.D16.MAPS.burial = {
+  name: 'The Burial',
+  sub: 'under the old hold, the night shift',
+  step: 20,
+  rows: [
+    '####################',
+    '########====########',
+    '####....====....####',
+    '###..............###',
+    '##..P....==....P..##',
+    '#......======......#',
+    '#......======......#',
+    '#..P...======...P..#',
+    '#......======......#',
+    '##.....======.....##',
+    '###....======....###',
+    '####...======...####',
+    '#######======#######',
+    '#######======#######'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 12]],
+  exit: [[8, 1], [9, 1], [10, 1], [11, 1]],
+  exitName: 'up the stair',
+  foes: [],
+  wave: null
+};
+
+// The siphon stair (the 8-bit game's S.holdStair, warrens_d): the four hold the landing at the top of a flight (the
+// ledge; the slabs are the steps) over the siphon's pool, and the night crews come up at them.
+window.D16.MAPS.siphon = {
+  name: 'The Siphon Stair',
+  sub: 'the Warrens, holding the stair',
+  step: 20,
+  rows: [
+    '####################',
+    '######........######',
+    '####............####',
+    '###..............###',
+    '##...P........P...##',
+    '##................##',
+    '##.......~~.......##',
+    '###......~~......###',
+    '####............####',
+    '#####...////...#####',
+    '######.LLLLLL.######',
+    '#######LLLLLL#######',
+    '########LLLL########',
+    '####################'
+  ],
+  entry: [[8, 11], [9, 11], [10, 11], [11, 11], [9, 12]],
   foes: [],
   wave: null
 };
