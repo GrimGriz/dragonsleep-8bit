@@ -66,8 +66,12 @@
     D.fit();
   };
   D.fit = function () {
-    var c = D.canvas, s = Math.min(window.innerWidth / D.W, (window.innerHeight - 24) / D.H);
-    s = s >= 1 ? Math.floor(s) : s; // integer scale: 2x = 960x540, 4x = 1920x1080
+    // a phone keeps room for the pad (below the screen upright, both sides when turned), and takes a fractional scale
+    // under 2x: at 1.1x the board is still bigger than at 1x
+    var c = D.canvas, touch = !!D.touch, aw = window.innerWidth, ah = window.innerHeight - (touch ? 0 : 24);
+    if (touch) { if (ah > aw) ah -= Math.min(250, ah * 0.42); else aw -= 320; }
+    var s = Math.min(aw / D.W, ah / D.H);
+    s = s >= (touch ? 2 : 1) ? Math.floor(s) : s; // integer scale: 2x = 960x540, 4x = 1920x1080
     if (D.forceScale) s = D.forceScale;
     D.scale = Math.max(0.5, s);
     c.style.width = Math.round(D.W * D.scale) + 'px';
@@ -116,6 +120,7 @@
     // the mouse is followed over the whole window, so the view keeps scrolling when it runs off the canvas into the
     // margin; 'moved' only when it crosses a logical pixel (a resting hand's twitch shouldn't steal a menu's choice)
     function at(e) {
+      if (ghost()) return;
       var r = c.getBoundingClientRect();
       var x = Math.floor((e.clientX - r.left) / r.width * D.W), y = Math.floor((e.clientY - r.top) / r.height * D.H);
       if (x !== I.mouse.x || y !== I.mouse.y) I.mouse.moved = true;
@@ -130,6 +135,7 @@
     document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) { I.mouse.inWin = false; I.mouse.inside = false; } }); // off the window
     c.addEventListener('wheel', function (e) { e.preventDefault(); at(e); I.mouse.wheel += e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0; }, { passive: false });
     c.addEventListener('mousedown', function (e) {
+      if (ghost()) return;
       at(e); e.preventDefault(); c.focus(); D.unlockAudio();
       if (e.button === 0) I.mouse.click = true;
       if (e.button === 1) I.mouse.drag = { x: I.mouse.x, y: I.mouse.y }; // the middle button drags the view
@@ -137,6 +143,86 @@
     });
     window.addEventListener('mouseup', function (e) { if (e.button === 1) I.mouse.drag = null; });
     c.addEventListener('contextmenu', function (e) { e.preventDefault(); });
+  };
+  // a finger's taps also arrive as made-up mouse events a moment later in some browsers: those are ignored
+  function ghost() { return D.touchT && performance.now() - D.touchT < 800; }
+
+  // ---------------------------------------------------------------- touch (phones): the 8-bit game's pad (its js/core.js DS.initTouch) in
+  // DEEP16's colours, and the canvas read for a finger. A tap points (the cursor goes there, nothing happens yet); a
+  // second tap on the same spot acts; a drag pans the view; a long press inspects (the right-click). The edge-scroll
+  // is off for a finger (a finger never leaves the window, so the view would drift). ?touch forces it, ?notouch hides it.
+  D.initTouch = function () {
+    var pad = document.getElementById('pad'), c = D.canvas, q = location.search, m = I.mouse;
+    if (!pad) return;
+    var mq = function (s) { return !!(window.matchMedia && window.matchMedia(s).matches); };
+    var on = /[?&]touch\b/.test(q) || (!/[?&]notouch\b/.test(q) && (mq('(pointer: coarse)') || (navigator.maxTouchPoints > 0 && mq('(hover: none)'))));
+    if (!on) return;
+    D.touch = true; document.body.classList.add('touch');
+    // a lifted finger counts as the gesture that may start sound, a finger put down may not: wake it on both
+    function wake() { D.touchT = performance.now(); D.unlockAudio(); }
+    function hold(el, e) { try { el.setPointerCapture(e.pointerId); } catch (x) { /* a pointer that can't be captured still counts */ } }
+    // the d-pad: one finger can slide between directions
+    var dpad = document.getElementById('dpad'), active = {};
+    function dirAt(ev) {
+      var r = dpad.getBoundingClientRect(), x = ev.clientX - (r.left + r.width / 2), y = ev.clientY - (r.top + r.height / 2);
+      if (Math.abs(x) < r.width * 0.12 && Math.abs(y) < r.height * 0.12) return null;
+      return Math.abs(x) > Math.abs(y) ? (x < 0 ? 'left' : 'right') : (y < 0 ? 'up' : 'down');
+    }
+    function setDir(id, d) {
+      var prev = active[id];
+      if (prev === d) return;
+      if (prev) I.release(prev);
+      active[id] = d;
+      if (d) I.press(d);
+      ['up', 'down', 'left', 'right'].forEach(function (k) { var el = dpad.querySelector('[data-d="' + k + '"]'); if (el) el.classList.toggle('on', !!I.held[k]); });
+    }
+    dpad.addEventListener('pointerdown', function (e) { e.preventDefault(); hold(dpad, e); wake(); setDir(e.pointerId, dirAt(e)); });
+    dpad.addEventListener('pointermove', function (e) { if (e.pointerId in active) setDir(e.pointerId, dirAt(e)); });
+    function dUp(e) { if (e.pointerId in active) { setDir(e.pointerId, null); delete active[e.pointerId]; } wake(); }
+    dpad.addEventListener('pointerup', dUp); dpad.addEventListener('pointercancel', dUp);
+    Array.prototype.forEach.call(pad.querySelectorAll('[data-btn]'), function (el) {
+      var b = el.getAttribute('data-btn');
+      el.addEventListener('pointerdown', function (e) { e.preventDefault(); hold(el, e); el.classList.add('on'); I.press(b); wake(); });
+      function rel() { el.classList.remove('on'); I.release(b); wake(); }
+      el.addEventListener('pointerup', rel); el.addEventListener('pointercancel', rel);
+    });
+    // INFO: inspect whatever the cursor is on (the right-click)
+    Array.prototype.forEach.call(pad.querySelectorAll('[data-tap=inspect]'), function (el) {
+      el.addEventListener('pointerdown', function (e) { e.preventDefault(); el.classList.add('on'); m.rclick = true; wake(); });
+      el.addEventListener('pointerup', function () { el.classList.remove('on'); wake(); });
+    });
+    // the canvas under a finger
+    var f = null, last = null, HOLD = 450, SLOP = 10;
+    function spot(e) { var r = c.getBoundingClientRect(); return { x: Math.floor((e.clientX - r.left) / r.width * D.W), y: Math.floor((e.clientY - r.top) / r.height * D.H) }; }
+    c.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse') return;
+      e.preventDefault(); hold(c, e); wake();
+      if (f) return; // a second finger is ignored
+      var p = spot(e);
+      f = { id: e.pointerId, cx: e.clientX, cy: e.clientY, x: p.x, y: p.y, lx: p.x, ly: p.y, drag: false, held: false };
+      m.x = p.x; m.y = p.y; m.moved = true; m.inside = true; m.inWin = false;
+      f.timer = setTimeout(function () { if (f && !f.drag) { f.held = true; m.rclick = true; } }, HOLD);
+    });
+    c.addEventListener('pointermove', function (e) {
+      if (!f || e.pointerId !== f.id) return;
+      D.touchT = performance.now();
+      var p = spot(e);
+      if (!f.drag && Math.hypot(e.clientX - f.cx, e.clientY - f.cy) > SLOP) { f.drag = true; clearTimeout(f.timer); }
+      if (f.drag) { m.panX = (m.panX || 0) + (p.x - f.lx); m.panY = (m.panY || 0) + (p.y - f.ly); f.lx = p.x; f.ly = p.y; }
+    });
+    function lift(e) {
+      if (!f || e.pointerId !== f.id) return;
+      clearTimeout(f.timer); wake();
+      if (!f.drag && !f.held && e.type === 'pointerup') {
+        var now = performance.now();
+        if (last && now - last.t < 1500 && Math.abs(f.x - last.x) <= 6 && Math.abs(f.y - last.y) <= 6) { m.click = true; last = null; }
+        else last = { x: f.x, y: f.y, t: now };
+      } else last = null;
+      f = null; m.inWin = false;
+    }
+    c.addEventListener('pointerup', lift); c.addEventListener('pointercancel', lift);
+    document.addEventListener('contextmenu', function (e) { if (e.target.closest && e.target.closest('#pad')) e.preventDefault(); });
+    D.fit();
   };
 
   // ---------------------------------------------------------------- scenes (a small stack, like the 8-bit game's)

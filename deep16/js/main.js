@@ -7,6 +7,7 @@
   if (sc) D.forceScale = +sc[1];
   D.initCanvas();
   D.initMouse();
+  D.initTouch(); // a phone: the pad, and the canvas read for a finger (?touch forces it)
   window.addEventListener('error', function (e) { D.lastError = e.error || e.message; });
   D.canvas.focus();
   D.loadImages(D.spr.images(), function () {

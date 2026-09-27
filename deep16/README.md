@@ -125,8 +125,14 @@ generator: turns, commands, attacks and their reactions, the spells) · `js/ai.j
 A stepped harness for testing lives in `dev/deep16-harness.js` (gitignored): pause the loop, drive a turn per call,
 rig the dice, inject an attack.
 
+**On a phone** (09-27, Griz: "can we add the d-pad and buttons for phone browsers?") the 8-bit game's pad comes up
+(`js/core.js D.initTouch`; `?touch` forces it, `?notouch` hides it): the d-pad, A, B, MENU, END, zoom − and +, and
+INFO (inspect what the cursor is on). On the board a tap points, a second tap on the same spot acts, a drag pans and
+a long press inspects. Turned sideways the pad sits either side of the board; upright it sits below and the board is
+small. What each spell does, against the tabletop: `../deep16-current spells.md` (reading-lamp format).
+
 ## Not in the POC
 
-Story beyond the entry card; shops; rests; writing back to the 8-bit save; touch; prone; flight (bats and cloakers
+Story beyond the entry card; shops; rests; writing back to the 8-bit save; flight (bats and cloakers
 move on the ground). The visual crossing (the 8-bit frame gaining resolution at the door) is unbuilt. Levelling and
 many maps and fights: see the ladder, above.

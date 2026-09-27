@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>DRAGONSLEEP — past the door</title>
 <meta name="description" content="DEEP16: the world past Deepholm's door, 16-bit at a Diablo angle, on a 5-ft grid. A proof of concept.">
 <meta name="theme-color" content="#0a0810">
@@ -11,16 +11,62 @@
   body { display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace; }
   #screen { display: block; image-rendering: pixelated; image-rendering: crisp-edges; background: #000; outline: none; cursor: crosshair; }
   #hint { margin-top: 6px; color: #6e6a66; letter-spacing: .04em; text-align: center; padding: 0 16px; }
+  /* the phone pad (the 8-bit game's, in DEEP16's colours): shown only on a touch screen (js/core.js D.initTouch) */
+  #pad, #turn { display: none; }
+  body.touch { justify-content: flex-start; padding-top: env(safe-area-inset-top); touch-action: none; -webkit-user-select: none; user-select: none; }
+  body.touch #hint { display: none; }
+  body.touch #screen { cursor: default; touch-action: none; }
+  body.touch #pad {
+    position: relative; z-index: 4; display: flex; width: 100%; flex: 1; box-sizing: border-box;
+    padding: 22px 16px calc(16px + env(safe-area-inset-bottom)); align-items: center; justify-content: space-between;
+  }
+  #pad .cluster { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+  #pad div { box-sizing: border-box; touch-action: none; }
+  #dpad { position: relative; width: 132px; height: 132px; }
+  #dpad div, .ab div, .pills div {
+    background: #1c1826; border: 2px solid #5a5068; color: #e8e4d8; display: flex; align-items: center; justify-content: center;
+  }
+  #dpad div { position: absolute; width: 44px; height: 44px; font-size: 15px; }
+  #dpad [data-d=up] { left: 44px; top: 0; border-radius: 8px 8px 0 0; }
+  #dpad [data-d=down] { left: 44px; top: 88px; border-radius: 0 0 8px 8px; }
+  #dpad [data-d=left] { left: 0; top: 44px; border-radius: 8px 0 0 8px; }
+  #dpad [data-d=right] { left: 88px; top: 44px; border-radius: 0 8px 8px 0; }
+  #dpad .hub { left: 44px; top: 44px; border-radius: 0; }
+  .ab { position: relative; width: 132px; height: 96px; }
+  .ab div { position: absolute; width: 58px; height: 58px; border-radius: 50%; font-size: 18px; font-weight: bold; }
+  .ab [data-btn=a] { right: 0; top: 0; }
+  .ab [data-btn=b] { left: 0; top: 36px; }
+  .pills { display: flex; gap: 8px; }
+  .pills div { min-width: 40px; height: 28px; padding: 0 10px; border-radius: 14px; font-size: 11px; letter-spacing: .04em; }
+  #pad .on { background: #3a3450; border-color: #e8e4d8; }
+  #turn { position: absolute; left: 0; right: 0; top: 4px; text-align: center; font-size: 11px; color: #6e6a66; pointer-events: none; }
+  @media (orientation: portrait) { body.touch #turn { display: block; } }
+  @media (orientation: landscape) {
+    body.touch { justify-content: center; padding-top: 0; }
+    body.touch #pad { position: fixed; inset: 0; pointer-events: none; padding: 0 calc(12px + env(safe-area-inset-right)) 0 calc(12px + env(safe-area-inset-left)); }
+    body.touch #pad > .cluster { pointer-events: auto; }
+  }
 </style>
 </head>
 <body>
 <canvas id="screen" width="480" height="270" tabindex="0" aria-label="DEEP16 game screen"></canvas>
 <div id="hint">CLICK &middot; RIGHT-CLICK inspect &middot; WHEEL zoom &middot; ARROWS/WASD cursor &middot; E confirm &middot; X back &middot; Q ring &middot; 1-9 &middot; SPACE end turn &middot; M menu</div>
+<div id="pad" aria-hidden="true">
+  <div class="cluster">
+    <div id="dpad"><div data-d="up">&#9650;</div><div data-d="left">&#9664;</div><div class="hub"></div><div data-d="right">&#9654;</div><div data-d="down">&#9660;</div></div>
+    <div class="pills"><div data-btn="zoomout">&minus;</div><div data-btn="zoomin">+</div><div data-tap="inspect">INFO</div></div>
+  </div>
+  <div id="turn">turn the phone sideways for a bigger board &middot; tap to point, tap again to act, drag to look, hold to inspect</div>
+  <div class="cluster">
+    <div class="ab"><div data-btn="b">B</div><div data-btn="a">A</div></div>
+    <div class="pills"><div data-btn="menu">MENU</div><div data-btn="end">END</div></div>
+  </div>
+</div>
 <script>window.DS = window.DS || {};</script>
 <script src="../js/font.js?v=4d55fb2e4b"></script>
 <script src="../data/data.js?v=070d2c5281"></script>
 <script src="../js/rules.js?v=6f07679df7"></script>
-<script src="js/core.js?v=88cd77ac45"></script>
+<script src="js/core.js?v=57bd45ad70"></script>
 <script src="../js/audio.js?v=2cc0fb47b5"></script>
 <script src="js/palette.js?v=9dc10bdb56"></script>
 <script src="js/iso.js?v=3d11aa3df7"></script>
@@ -43,6 +89,6 @@
 <script src="js/ui.js?v=33b70685c3"></script>
 <script src="js/view.js?v=96cf7cc882"></script>
 <script src="js/ladder.js?v=f75005870e"></script>
-<script src="js/main.js?v=ca2399afef"></script>
+<script src="js/main.js?v=2fbd6ff6ff"></script>
 </body>
 </html>
