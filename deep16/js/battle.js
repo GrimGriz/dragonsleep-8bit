@@ -268,7 +268,7 @@
     if (items.length) out.push({ id: 'items', label: 'ITEM', cost: 'A', ok: T.action > 0 && !T.attacksLeft, sub: 'items', icon: 'item' });
     if (u.cls === 'fighter') {
       out.push({ id: 'secondwind', label: '2ND WIND', cost: 'B', ok: T.bonus > 0 && u.feats.secondWind > 0, why: u.feats.secondWind > 0 ? '' : 'spent (a short rest brings it back)', note: '1d10+' + u.lvl + ' HP, ' + (u.feats.secondWind > 0 ? '1 use' : 'spent') + ' (short rest)' });
-      out.push({ id: 'surge', label: 'SURGE', cost: 'F', ok: u.feats.actionSurge > 0 && !T.action && !T.attacksLeft, why: u.feats.actionSurge > 0 ? 'after your action' : 'spent (a short rest brings it back)', note: 'one more action, ' + (u.feats.actionSurge > 0 ? '1 use' : 'spent') + ' (short rest)' });
+      if (u.lvl >= 2) out.push({ id: 'surge', label: 'SURGE', cost: 'F', ok: u.feats.actionSurge > 0 && !T.action && !T.attacksLeft, why: u.feats.actionSurge > 0 ? 'after your action' : 'spent (a short rest brings it back)', note: 'one more action, ' + (u.feats.actionSurge > 0 ? '1 use' : 'spent') + ' (short rest)' });
     }
     if (u.cls === 'rogue' && u.lvl >= 2) {
       out.push({ id: 'hide', label: 'HIDE', cost: 'B', ok: T.bonus > 0 || T.action > 0, note: 'Cunning Action: Stealth against their eyes' });

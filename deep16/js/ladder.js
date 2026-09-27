@@ -9,8 +9,9 @@
   var P = function (r, i) { return D.PAL.ramps[r][i]; };
   var KEY = 'deep16.ladder';
   // the four start the 8-bit game at level 2, and its rules build them from there. The ladder has a rung 1 all the same
-  // (Griz, 09-27: "might as well add level 1, we'll want it eventually"): till level-1 sheets are made, they fight it at 2
-  function low() { return Math.max.apply(null, ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { return DS.DATA.heroes[id].level || 1; })); }
+  // (Griz, 09-27: "might as well add level 1, we'll want it eventually"): the level-1 sheets are drawn back from the
+  // level-2 starts (js/save.js SV.levelOne), so rung 1 is fought at 1
+  function low() { return 1; }
 
   function Ladder() { this.t = 0; }
   D.Ladder = Ladder;
@@ -32,7 +33,7 @@
   function gains(L, F) {
     var R = DS.R;
     return ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) {
-      var h = R.makeHero(id, L), look = D.save.look(id, F), hp0 = h.maxhp;
+      var h = L < DS.DATA.heroes[id].level ? D.save.levelOne(R.makeHero(id)) : R.makeHero(id, L), look = D.save.look(id, F), hp0 = h.maxhp;
       var msgs = (R.levelUp(h) || []).map(function (m) { return window.DS.stripCodes ? window.DS.stripCodes(String(m)) : String(m); });
       return { name: look.name || h.name, cls: h.cls, lvl: h.lvl, hp: h.maxhp - hp0, msgs: msgs };
     });

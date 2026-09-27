@@ -30,10 +30,22 @@
 
   // the four at a level (9 unless said): the 8-bit game's own levelling, its picks and features; the reward weapons
   // as the ladder's guess at when they come (+1 from 5, +2 at 9)
+  // level 1 (the ladder's first rung; Griz 09-27: "might as well add level 1"): the 8-bit game starts the four at 2, so a
+  // level-1 sheet is drawn back from it -- one max hit die plus CON (the level-2 starts are exactly two), the level-1 slot
+  // table (the wizard's two first-level slots; the paladin none, so no Smite), no Action Surge, Lay on Hands 5
+  SV.levelOne = function (h) {
+    var c = R.CLASSES[h.cls];
+    h.lvl = 1; h.xp = 0;
+    h.maxhp = h.hp = Math.max(1, c.hd + DS.mod(h.abil.con));
+    h.slotsMax = R.slotsFor(h); h.slots = h.slotsMax.slice();
+    if (h.cls === 'fighter') h.feats.actionSurge = 0;
+    if (h.cls === 'paladin') { h.feats.lay = 5; h.feats.channel = 0; }
+    return h;
+  };
   SV.fixture = function (level) {
     var L = level || 9;
     var party = ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) {
-      var h = R.makeHero(id, L), d = DS.DATA.heroes[id], tier = L >= 9 ? 1 : L >= 5 ? 0 : -1;
+      var h = L < DS.DATA.heroes[id].level ? SV.levelOne(R.makeHero(id)) : R.makeHero(id, L), d = DS.DATA.heroes[id], tier = L >= 9 ? 1 : L >= 5 ? 0 : -1;
       if (tier >= 0 && d.rewardWeapons && d.rewardWeapons[tier] && DS.DATA.items[d.rewardWeapons[tier]]) h.equip.weapon = d.rewardWeapons[tier];
       if (id === 'aurdin' && h.known.indexOf('mageArmor') >= 0) h.conds.mageArmor = 1;
       return h;
