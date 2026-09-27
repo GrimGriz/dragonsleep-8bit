@@ -125,6 +125,15 @@ generator: turns, commands, attacks and their reactions, the spells) · `js/ai.j
 A stepped harness for testing lives in `dev/deep16-harness.js` (gitignored): pause the loop, drive a turn per call,
 rig the dice, inject an attack.
 
+**Gear in a fight** (09-27, Griz: "Don't add a button for gear swapping, but ... apply the action cost for weapon
+swaps"; "at least one crossbow/bolts in the player inventory for all of deep16 modes"): every pack DEEP16 fights with
+carries a light crossbow and twenty bolts (`SV.armoury`; the 8-bit save walking in is never written). On a hero's turn
+the MENU has **EQUIP**: a weapon from the pack, or a shield off or on, each for the action (a swap is two object
+interactions; the second takes the action). A hero's ranged weapon reaches to its long range with a clear line,
+spends a bolt a shot, fires once an action however many attacks (Loading), gets no Great Weapon Fighting, and makes no
+opportunity attacks. The ring: the rogue's HIDE is on the first circle, and ACTIONS is the same for all four (DASH,
+DISENGAGE, DODGE, HELP), the rogue's Dash and Disengage being Cunning Action's while her bonus action is up.
+
 **On a phone** (09-27, Griz: "can we add the d-pad and buttons for phone browsers?") the 8-bit game's pad comes up
 (`js/core.js D.initTouch`; `?touch` forces it, `?notouch` hides it): the d-pad, A, B, MENU, END, zoom − and +, and
 INFO (inspect what the cursor is on). On the board a tap points, a second tap on the same spot acts, a drag pans and

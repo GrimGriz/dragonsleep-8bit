@@ -1034,12 +1034,26 @@
     "kind": "lightcrossbow",
     "props": [
      "ranged",
-     "two-handed"
-    ]
+     "two-handed",
+     "loading"
+    ],
+    "range": [
+     80,
+     320
+    ],
+    "ammo": "bolts"
    },
-   "desc": "1d8 piercing, ranged. Uses DEX.",
+   "desc": "1d8 piercing, ranged (80/320 ft). Uses DEX. Loading: one bolt an action, however many attacks.",
    "src": "SRD 5.1",
    "id": "lightcrossbow"
+  },
+  "bolts": {
+   "name": "Crossbow Bolts",
+   "kind": "ammo",
+   "price": 10,
+   "desc": "Bolts for a crossbow, one a shot.",
+   "src": "SRD 5.1 (Ammunition: crossbow bolts (20), 1 gp)",
+   "id": "bolts"
   },
   "shortbow": {
    "name": "Shortbow",
@@ -1052,9 +1066,13 @@
     "props": [
      "ranged",
      "two-handed"
+    ],
+    "range": [
+     80,
+     320
     ]
    },
-   "desc": "1d6 piercing, ranged. Uses DEX.",
+   "desc": "1d6 piercing, ranged (80/320 ft). Uses DEX.",
    "src": "SRD 5.1",
    "id": "shortbow"
   },

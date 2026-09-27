@@ -24,7 +24,7 @@
     party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });
     var foes = (F.foes || m.def.foes).map(function (f) { return self.makeFoe(f); });
     this.units = party.concat(foes);
-    this.inv = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
+    this.inv = D.save.armoury(JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; }));
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
     // strung webs a fight starts with (Web Gulch): difficult ground for all but the web-walkers, drawn like the spell's
     var webs = F.webs || m.def.webs;
@@ -277,16 +277,22 @@
       out.push({ id: 'secondwind', label: '2ND WIND', cost: 'B', ok: T.bonus > 0 && u.feats.secondWind > 0, why: u.feats.secondWind > 0 ? '' : 'spent (a short rest brings it back)', note: '1d10+' + u.lvl + ' HP, ' + (u.feats.secondWind > 0 ? '1 use' : 'spent') + ' (short rest)' });
       if (u.lvl >= 2) out.push({ id: 'surge', label: 'SURGE', cost: 'F', ok: u.feats.actionSurge > 0 && !T.action && !T.attacksLeft, why: u.feats.actionSurge > 0 ? 'after your action' : 'spent (a short rest brings it back)', note: 'one more action, ' + (u.feats.actionSurge > 0 ? '1 use' : 'spent') + ' (short rest)' });
     }
-    if (u.cls === 'rogue' && u.lvl >= 2) {
-      out.push({ id: 'hide', label: 'HIDE', cost: 'B', ok: T.bonus > 0 || T.action > 0, note: 'Cunning Action: Stealth against their eyes' });
-      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: T.bonus > 0, note: 'Cunning Action: +' + u.speed + ' ft this turn', icon: 'dash' });
-      out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: T.bonus > 0 && !T.disengaged, note: 'Cunning Action: leaving reach provokes nothing', icon: 'disengage' });
-    }
+    // HIDE sits on the rogue's first ring (Griz, 09-27: "Rogues gonna hide allatime"): Cunning Action's bonus action from
+    // level 2, and the action when the bonus is gone (or before level 2, as the tabletop's Hide action)
+    var cun = u.cls === 'rogue' && u.lvl >= 2 && T.bonus > 0;
+    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: cun || (T.action > 0 && !T.attacksLeft), note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
     if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay', note: 'a pool of ' + (u.feats.lay || 0) + ' HP (long rest), touch' });
     // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
     if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a short rest brings it back)', note: '+' + Math.max(1, D.mod(u.abil.cha)) + ' to hit for a minute; Channel Divinity ' + (u.feats.channel > 0 ? '1/1' : '0/1') + ' (short rest)' });
-    if (u.cls !== 'rogue') out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: '+' + u.speed + ' ft this turn' });
-    if (u.cls !== 'rogue') out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
+    // DASH, DISENGAGE, DODGE, HELP: the same ACTIONS for all four (Griz, 09-27: "uniform like the paladin"). The rogue's
+    // Dash and Disengage are Cunning Action's (the bonus action) while she has the bonus, the plain actions after
+    if (cun) {
+      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: true, note: 'Cunning Action: +' + u.speed + ' ft this turn', icon: 'dash' });
+      out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: !T.disengaged, note: 'Cunning Action: leaving reach provokes nothing', icon: 'disengage' });
+    } else {
+      out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: '+' + u.speed + ' ft this turn' });
+      out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
+    }
     out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'attacks at you at disadvantage till your next turn' });
     // Help (the attack kind) only with a foe beside you (Griz, 09-27)
     if (this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5; }))
@@ -306,7 +312,9 @@
       }
       case 'attack': {
         if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = u.attacks; }
+        if (u.weapon.ammo && !this.ammoLeft(u)) { this.card(['{o}' + u.name + ' has no ' + this.itemName(u.weapon.ammo).toLowerCase() + ' left.{/}'], 120); return; }
         T.attacksLeft--;
+        if (u.weapon.ammo) this.spendAmmo(u);
         yield* this.attack(u, c.target, u.weapon);
         if (u.conds.hidden) delete u.conds.hidden;
         return;
@@ -383,7 +391,7 @@
       // leaving a hostile's reach without Disengage provokes, right before the step
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
         var prov = this.units.filter(function (w) {
-          return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal
+          return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && !(w.weapon && w.weapon.ranged)
             && G.dist(w, u) <= w.reach && G.dist(w, u, null, null, nx, ny) > w.reach && !(w.conds.hidden && false);
         });
         for (var k = 0; k < prov.length; k++) {
@@ -615,6 +623,47 @@
     return u.hp - was;
   };
 
+  // ------------------------------------------------------------------ gear in the fight: the MENU's EQUIP, not a ring button (Griz, 09-27: "Don't add
+  // a button for gear swapping, but ... apply the action cost for weapon swaps"). A swap is stowing one weapon and drawing
+  // another: the turn's one free object interaction and a second one, which takes the action (SRD 5.1, Use an Object),
+  // so a swap costs the action. A shield on or off is an action too; armour doesn't change in a fight.
+  Battle.prototype.itemName = function (id) { var it = window.DS.DATA.items[id]; return it ? it.name : id; };
+  function packOf(B, id) { return B.inv.filter(function (x) { return x.id === id; })[0]; }
+  Battle.prototype.ammoLeft = function (u) { var s = packOf(this, u.weapon.ammo); return s ? s.n : 0; };
+  Battle.prototype.spendAmmo = function (u) { var s = packOf(this, u.weapon.ammo); if (s && s.n > 0) s.n--; };
+  Battle.prototype.gearOptions = function (u) {
+    var R = window.DS.R, h = u.src, T = u.turn, B = this, out = [];
+    if (!h || u.guest || !T || !h.equip) return out;
+    var busy = T.action > 0 && !T.attacksLeft ? '' : 'the action is spent', cur = R.item(h.equip.weapon);
+    var curTwo = cur && cur.weapon && (cur.weapon.props || []).indexOf('two-handed') >= 0;
+    this.inv.forEach(function (s) {
+      var it = window.DS.DATA.items[s.id];
+      if (!it || it.kind !== 'weapon' || s.n <= 0 || !R.canEquip(h, it)) return;
+      var wd = it.weapon, two = (wd.props || []).indexOf('two-handed') >= 0, why = busy || (two && h.equip.shield ? 'two hands: the shield comes off first' : '');
+      var ammo = wd.ammo ? ', ' + (packOf(B, wd.ammo) ? packOf(B, wd.ammo).n : 0) + ' ' + B.itemName(wd.ammo).toLowerCase() : '';
+      out.push({ kind: 'weapon', id: s.id, label: it.name, note: wd.dmg + ' ' + wd.type + (wd.range ? ', ' + wd.range.join('/') + ' ft' : ', melee') + ammo, ok: !why, why: why });
+    });
+    if (h.equip.shield) out.push({ kind: 'shieldoff', label: 'SHIELD OFF', note: 'into the pack: -' + ((R.item(h.equip.shield).shield || {}).ac || 2) + ' AC', ok: !busy, why: busy });
+    else {
+      var sh = this.inv.filter(function (s) { var it = window.DS.DATA.items[s.id]; return it && it.kind === 'shield' && s.n > 0 && R.canEquip(h, it); })[0];
+      if (sh) out.push({ kind: 'shieldon', id: sh.id, label: 'SHIELD ON: ' + this.itemName(sh.id), note: '', ok: !busy && !curTwo, why: busy || (curTwo ? 'the weapon takes both hands' : '') });
+    }
+    return out;
+  };
+  Battle.prototype.swapGear = function (u, o) {
+    var R = window.DS.R, h = u.src, B = this;
+    function give(id) { if (!id) return; var s = packOf(B, id); if (s) s.n++; else B.inv.push({ id: id, n: 1 }); }
+    function take(id) { var s = packOf(B, id); if (s) s.n--; }
+    u.turn.action = 0; D.sfx('confirm');
+    if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; }
+    if (o.kind === 'shieldoff') { give(h.equip.shield); h.equip.shield = null; }
+    if (o.kind === 'shieldon') { take(o.id); h.equip.shield = o.id; }
+    u.weapon = D.save.weaponOf(h); u.attacks = u.weapon.loading ? 1 : u.attacksBase;
+    var ac = R.ac(h); if (u.conds.mageArmor && !R.armored(h)) ac = Math.max(ac, 13 + D.mod(u.abil.dex)); // Mage Armor cast in this fight
+    u.baseAC = ac; u.armored = R.armored(h);
+    this.card(['{y}' + u.name + '{/} ' + (o.kind === 'weapon' ? 'stows one weapon and takes up the ' + u.weapon.name : o.kind === 'shieldoff' ? 'slings the shield' : 'takes up the shield') + ' (the action).  AC ' + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
+  };
+
   // ------------------------------------------------------------------ items: the save's own (a potion, a kit, an antitoxin, an oil flask)
   var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1 };
   Battle.prototype.itemList = function (u) {
@@ -707,7 +756,7 @@
   // a foe with a clear, coverless look at her sees her anyway
   Battle.prototype.hide = function* (u) {
     var T = u.turn;
-    if (T.bonus > 0) T.bonus = 0; else T.action = 0;
+    if (T.bonus > 0 && u.lvl >= 2) T.bonus = 0; else T.action = 0; // Cunning Action from level 2; the Hide action before
     D.sfx('run');
     var foes = this.units.filter(function (w) { return w.side === 'foe' && G.standing(w) && RU.canAct(w); });
     var plain = foes.filter(function (w) { var l = G.los(w, u); return l.clear && !l.cover; });
@@ -746,7 +795,14 @@
 
   // ------------------------------------------------------------------ the camera: snap to a unit; recentre only when it nears the edge
   Battle.prototype.foeInReach = function (u) {
-    return this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.dead && w.hp > 0 && G.dist(u, w) <= u.reach; });
+    var self = this;
+    return this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.dead && w.hp > 0 && self.canHit(u, w); });
+  };
+  // can u's weapon reach w from where u stands? A ranged one (a hero's crossbow) out to its long range, if it can see w
+  Battle.prototype.canHit = function (u, w) {
+    var wp = u.weapon;
+    if (wp && wp.ranged) return G.dist(u, w) <= wp.range[1] && G.los(u, w).clear;
+    return G.dist(u, w) <= u.reach;
   };
   Battle.prototype.focus = function (u) { var c = FX.at(u); D.iso.lookAt(c.gx, c.gy, c.gz); };
   Battle.prototype.keepInView = function (u) {

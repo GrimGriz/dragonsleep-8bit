@@ -88,10 +88,11 @@
   UI.flankSpots = flankSpots;
 
   // ------------------------------------------------------------------ the commands a style shows (window and ring add MOVE and END TURN)
-  // the top of the menu: MOVE, ATTACK, (BREAK FREE), SPELLS, SKILLS, ITEM, ACTIONS, END TURN. SKILLS gathers the class
-  // features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action Surge, the
-  // rogue's Cunning Action); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help) -- Griz, 09-27
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, hide: 1, cdash: 1, cdisengage: 1 }, ACTIONS = { dash: 1, disengage: 1, dodge: 1, help: 1 };
+  // the top of the menu: MOVE, ATTACK, (HIDE), (BREAK FREE), SPELLS, SKILLS, ITEM, ACTIONS, END TURN. SKILLS gathers the
+  // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
+  // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
+  // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1 }, ACTIONS = { dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1 };
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -99,7 +100,7 @@
     var c = B.commands(u), top = {}, sk = [], ac = [];
     c.forEach(function (x) { if (SKILLS[x.id]) sk.push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    ['attack', 'hide', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
     if (ac.length) out.push(group('actions', 'ACTIONS', ac));
@@ -326,7 +327,7 @@
     if (!s || !s.open) return 'no';
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (x === u.x && y === u.y) return 'self';
-      if (foe) return G.dist(u, foe) <= u.reach && (T.attacksLeft || T.action) ? 'ok' : 'no';
+      if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action) ? 'ok' : 'no'; // a crossbow reaches out to its long range
       var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
       if (rc.move[k] && rc.move[k].stand) return 'ok';
       if (rc.dash && rc.dash[k] && rc.dash[k].stand) return 'far';
@@ -385,14 +386,37 @@
   function vol(k) { var A = window.DS.audio; return A ? A[k] : 0; }
   function pct(v) { return v > 0 ? Math.round(v * 100) + '%' : 'OFF'; }
   function setVol(k, v) { var A = window.DS.audio; if (!A) return; A[k] = Math.round(D.clamp(v, 0, 1) * 10) / 10; A.setVolumes(); }
-  function menuItems() {
-    return [['resume', 'RESUME'], ['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
+  // the hero whose turn it is, for EQUIP (a guest's gear is its own)
+  function gearHero(B) { var u = B && B.req && B.req.turn; return u && u.side === 'party' && !u.guest && u.src ? u : null; }
+  function menuItems(B) {
+    var g = gearHero(B), eq = g ? [['equip', 'EQUIP: ' + g.name.toUpperCase()]] : [];
+    return [['resume', 'RESUME']].concat(eq, [['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
       ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >'],
-      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)'], ['out', UI.backLabel()]];
+      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)'], ['out', UI.backLabel()]]);
+  }
+  // EQUIP's panel: the weapons in the pack this hero can use, and the shield off or on; each costs the action
+  function gearInput(B) {
+    var M = B.menu, u = gearHero(B), opts = u ? B.gearOptions(u) : [], n = opts.length;
+    if (I.pressed('b') || I.pressed('menu') || !u) { D.sfx('cancel'); M.panel = null; return; }
+    if (!n) { if (I.pressed('a') || I.mouse.click) { D.sfx('cancel'); M.panel = null; } return; }
+    var s0 = M.gsel = D.clamp(M.gsel || 0, 0, n - 1);
+    if (I.repeat('up')) M.gsel = (M.gsel + n - 1) % n;
+    if (I.repeat('down')) M.gsel = (M.gsel + 1) % n;
+    if (M.gsel !== s0) D.sfx('cursor');
+    var pick = I.pressed('a') ? M.gsel : -1;
+    if (I.mouse.click && B.gearRects) B.gearRects.forEach(function (r, i) { if (hit(r)) pick = i; });
+    if (I.mouse.moved && B.gearRects) B.gearRects.forEach(function (r, i) { if (hit(r)) M.gsel = i; });
+    if (pick < 0) return;
+    M.gsel = pick;
+    var o = opts[pick];
+    if (!o.ok) { D.sfx('error'); B.card(['{o}' + o.label + ': ' + o.why + '.{/}'], 120); return; }
+    B.swapGear(u, o);
+    B.menu = null; // back to the turn
   }
   UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? 'BACK TO THE LADDER' : 'RETURN TO SILVERTON'; };
   UI.menuInput = function (B) {
-    var M = B.menu, items = menuItems(), n = items.length, s0 = M.sel;
+    var M = B.menu, items = menuItems(B), n = items.length, s0 = M.sel;
+    if (M.panel === 'equip') return gearInput(B);
     if (M.panel) { if (I.pressed('a') || I.pressed('b') || I.pressed('menu') || I.mouse.click) { D.sfx('cancel'); M.panel = null; } return; }
     if (I.repeat('up')) M.sel = (M.sel + n - 1) % n;
     if (I.repeat('down')) M.sel = (M.sel + 1) % n;
@@ -409,6 +433,7 @@
     D.sfx('confirm');
     if (id === 'resume') B.menu = null;
     if (id === 'party') M.panel = 'party';
+    if (id === 'equip') { M.panel = 'equip'; M.gsel = 0; }
     if (id === 'style') { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); }
     if (id === 'auto') { UI.opts.autoEnd = !UI.opts.autoEnd; UI.saveOpts(); }
     if (id === 'music') setVol('musicVol', vol('musicVol') > 0 ? 0 : 0.5); // E: off, or back on
@@ -540,7 +565,7 @@
       // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
       if (u.cls === 'rogue') { var hs = hideSpots(B, u); Object.keys(hs).forEach(function (k) { if (!hs[k]) return; var q = k.split(','); fillSq(ctx, +q[0], +q[1], R('violet', 3), 0.42, 5); }); }
       if (T.attacksLeft || T.action) B.units.forEach(function (w) {
-        if (!G.hostile(u, w) || !G.standing(w) || G.dist(u, w) > u.reach) return;
+        if (!G.hostile(u, w) || !G.standing(w) || !B.canHit(u, w)) return;
         G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('red', 4), 0.9); });
       });
       // flanking: a gold gem on each square (her own included) where she'd flank a foe with an ally across it (Griz, 09-27)
@@ -627,7 +652,7 @@
       if (u && G.hostile(u, w) && !w.dead) {
         var d = G.dist(u, w), l = G.los(u, w), sp = B.tool === 'spell' && (B.spell.g.shape === 'attack' || B.spell.g.shape === 'rays');
         var e = RU.edges(u, w, sp ? { spell: true, ranged: true, range: [B.spell.g.range, B.spell.g.range] } : u.weapon);
-        var bits = [d + ' ft' + (d <= u.reach ? ' {n}in reach{/}' : '')];
+        var bits = [d + ' ft' + (!sp && B.canHit(u, w) ? (u.weapon && u.weapon.ranged ? ' {n}in range{/}' : ' {n}in reach{/}') : '')];
         if (!l.clear) bits.push('{o}no line{/}');
         else if (l.cover && d > 5) bits.push('{c}half cover (+2): ' + l.why + '{/}');
         if (e.adv.length) bits.push('{n}adv: ' + e.adv.join(', ') + '{/}');
@@ -884,7 +909,8 @@
   function menu(ctx, B) {
     var M = B.menu;
     if (M.panel === 'party') return party(ctx, B);
-    var items = menuItems(), w = 190, h = items.length * 13 + 12, x = (D.W - w) / 2, y = 60;
+    if (M.panel === 'equip') return gear(ctx, B);
+    var items = menuItems(B), w = 190, h = items.length * 13 + 12, x = (D.W - w) / 2, y = 60;
     UI.opts.style === 'window' ? winBox(ctx, x, y, w, h) : box(ctx, x, y, w, h);
     B.menuRects = [];
     items.forEach(function (it, i) {
@@ -892,6 +918,25 @@
       B.menuRects.push(r);
       if (i === M.sel) { ctx.fillStyle = R('gold', 1); ctx.fillRect(r.x, r.y, r.w, r.h); }
       D.text(ctx, it[1], r.x + 6, r.y + 2, i === M.sel ? R('gold', 4) : R('bone', 1));
+    });
+  }
+  // EQUIP: the hero's weapon and shield now, the pack's choices, each greyed with its reason when it can't be done
+  function gear(ctx, B) {
+    var M = B.menu, u = gearHero(B), opts = u ? B.gearOptions(u) : [], w = 300, rowH = 13, h = Math.max(1, opts.length) * rowH + 44, x = (D.W - w) / 2, y = 50;
+    box(ctx, x, y, w, h, R('glow', 1));
+    if (!u) return;
+    D.text(ctx, 'EQUIP: ' + u.name.toUpperCase(), x + 8, y + 5, R('gold', 4));
+    D.text(ctx, 'a swap costs the action  ·  X back', x + w - 8, y + 5, R('stone', 5), 'right');
+    D.text(ctx, 'in hand: ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? ', ' + u.weapon.range.join('/') + ' ft' : '') + '   AC ' + RU.ac(u), x + 8, y + 17, R('bone', 2));
+    B.gearRects = [];
+    if (!opts.length) { D.text(ctx, '{g}Nothing in the pack ' + u.name + ' can take up.{/}', x + 8, y + 31, R('bone', 1)); return; }
+    opts.forEach(function (o, i) {
+      var r = { x: x + 6, y: y + 29 + i * rowH, w: w - 12, h: rowH - 1 };
+      B.gearRects.push(r);
+      if (i === M.gsel) { ctx.fillStyle = R('gold', 1); ctx.fillRect(r.x, r.y, r.w, r.h); }
+      var col = !o.ok ? R('stone', 5) : i === M.gsel ? R('gold', 4) : R('bone', 1);
+      D.text(ctx, o.label, r.x + 6, r.y + 2, col);
+      D.text(ctx, o.ok ? o.note : o.why, r.x + r.w - 6, r.y + 2, o.ok ? R('stone', 6) : R('stone', 5), 'right');
     });
   }
   // the party at a glance (the 8-bit game's status screen, in small)

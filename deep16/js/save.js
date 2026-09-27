@@ -54,7 +54,26 @@
     });
     var inv = L >= 9 ? [{ id: 'potion', n: 3 }, { id: 'greaterpotion', n: 1 }, { id: 'antitoxin', n: 1 }, { id: 'kit', n: 1 }, { id: 'oil', n: 2 }]
       : L >= 5 ? [{ id: 'potion', n: 3 }, { id: 'antitoxin', n: 1 }, { id: 'oil', n: 1 }] : [{ id: 'potion', n: 2 }];
-    return { party: party, guests: [], inv: inv, flags: { lakeDone: 1, expansionDone: L >= 9 ? 1 : 0 }, fixture: true, level: L };
+    return { party: party, guests: [], inv: SV.armoury(inv), flags: { lakeDone: 1, expansionDone: L >= 9 ? 1 : 0 }, fixture: true, level: L };
+  };
+  // every pack DEEP16 fights with carries a light crossbow and twenty bolts (Griz, 09-27: "at least one crossbow/bolts in
+  // the player inventory for all of deep16 modes"); the 8-bit save walking in is read, never written, so it's added here
+  SV.armoury = function (inv) {
+    [['lightcrossbow', 1], ['bolts', 20]].forEach(function (p) {
+      var s = inv.filter(function (x) { return x.id === p[0]; })[0];
+      if (!s) inv.push({ id: p[0], n: p[1] }); else if (s.n < p[1]) s.n = p[1];
+    });
+    return inv;
+  };
+  // a hero's weapon as the grid reads it (the unit's, and again after a swap in the fight). A ranged weapon shoots out to
+  // its long range; a loading one (the crossbow) fires once an action, Extra Attack or no; Great Weapon Fighting is melee only
+  SV.weaponOf = function (h) {
+    var w = R.weaponOf(h), dm = R.damageExpr(h, w), wd = w.weapon || {}, props = wd.props || [], ranged = props.indexOf('ranged') >= 0;
+    return {
+      id: h.equip && h.equip.weapon, name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: props, magic: !!wd.bonus,
+      finesse: props.indexOf('finesse') >= 0, gwf: h.cls === 'fighter' && !ranged && R.twoHanded(h, w),
+      ranged: ranged, range: ranged ? (wd.range || [80, 320]) : null, ammo: wd.ammo || null, loading: props.indexOf('loading') >= 0, fx: 'bolt'
+    };
   };
 
   // the heroes and guests as DEEP16 units: everything the grid needs, read off the 8-bit sheet
@@ -66,16 +85,14 @@
     return out;
   };
   function unitOf(h, guest, fight) {
-    var w = R.weaponOf(h), dm = R.damageExpr(h, w), look = SV.look(h.id, fight);
+    var look = SV.look(h.id, fight), wp = SV.weaponOf(h);
     return {
       id: h.id, name: look.name || h.name, cls: h.cls, lvl: h.lvl, guest: guest, side: 'party', sheet: look.sheet || h.id + '_p0',
       hp: h.ko ? 0 : h.hp, maxhp: h.maxhp, ko: !!h.ko, conds: JSON.parse(JSON.stringify(h.conds || {})),
       abil: h.abil, baseAC: R.ac(h), prof: R.prof(h.lvl), init: R.initBonus(h), speed: 30, size: 1, reach: 5,
       slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), known: knownOf(h), armored: R.armored(h),
       feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass,
-      weapon: { name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: (w.weapon && w.weapon.props) || [], magic: !!(w.weapon && w.weapon.bonus),
-        finesse: !!(w.weapon && (w.weapon.props || []).indexOf('finesse') >= 0), gwf: h.cls === 'fighter' && R.twoHanded(h, w) },
-      attacks: R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
+      weapon: wp, attacksBase: R.attacksPerTurn(h), attacks: wp.loading ? 1 : R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
       saves: { str: R.saveBonus(h, 'str'), dex: R.saveBonus(h, 'dex'), con: R.saveBonus(h, 'con'), int: R.saveBonus(h, 'int'), wis: R.saveBonus(h, 'wis'), cha: R.saveBonus(h, 'cha') },
       stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h
     };
