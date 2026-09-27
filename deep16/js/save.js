@@ -101,9 +101,9 @@
       stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h
     };
   }
-  // Misty Step is the POC spec's (§3) and not in the 8-bit game's list: a wizard of 3rd level or more has it in his book here
-  // (the climb's wizard learns his own spells: Misty Step only if he picked it; inside the 8-bit game, h.ownBook, his book is his own)
-  function bookOf(h) { var k = (h.known || []).slice(); if (!h.climb && !h.ownBook && h.cls === 'wizard' && h.lvl >= 3 && k.indexOf('mistystep') < 0) k.push('mistystep'); return k; }
+  // his book is his own everywhere (RULED 09-27, Griz: Misty Step is "a spell he can learn"; the POC's loan of it to every
+  // wizard of 3rd level is gone): what the 8-bit game's levelling gave him, or what he picked on the climb
+  function bookOf(h) { return (h.known || []).slice(); }
   SV.displaced = function (h) { var c = R.item(h.equip && h.equip.cloak); return !!(c && c.cloak && c.cloak.displacement); };
   // what a hero can cast in the fight: all he knows, or, once the camp has prepared his day (h.prepared), his cantrips,
   // the spells he prepared, and the ones his oath keeps ready

@@ -99,11 +99,13 @@
       foes: [{ id: 'ws1', kind: 'wolfspider', at: [4, 5] }, { id: 'ws2', kind: 'wolfspider', at: [13, 6] }, { id: 'gs1', kind: 'giantspider', at: [10, 3] }], wave: null },
     // the ladder's wagon yard (Griz, 09-27: "willem escaping (or both) shouldn't result in ladder fall - we need the escape for the
     // 8-bit, can we add a pair of soldiers and have them not escape for the ladder?"): two hired swords ride guard, and nobody runs
-    // (noFlee). The 8-bit game's own fight keeps the escape and the chase. DEADLY for four at 4 by the table (the four have max HP)
+    // (noFlee). The 8-bit game's own fight keeps the escape and the chase. DEADLY for four at 4 by the table (the four have max HP).
+    // 09-27 (Griz): the two are Dominion line soldiers in black half plate (foes.js dominion), on the ladder only, stock and climb;
+    // Willem at the team's flank fumbles the traces till a blow lands, then turns and fights (nobody runs here)
     { id: 'wagon', level: 4, map: 'yard', name: 'The Wagon Yard', sub: 'the Halfway Inn, at night', music: 'boss', noFlee: true,
-      intro: 'Steel comes out. Two hired swords who rode guard on the wagon step in front of the pair, and Amara and Willem stand behind them, blasting. Nobody reaches the horses tonight.',
-      from: 'the 8-bit game: events.js S.wagonFight (Amara and Willem; there, they run for the horses and a chase follows). The two hired swords are the ladder\'s own, not the 8-bit game\'s (it ruled no hired drivers)', won: 'THE GLAMOUR IS BROKEN.',
-      foes: [{ id: 'amara', kind: 'amara', at: [8, 6] }, { id: 'willem', kind: 'willem', at: [6, 6] }, { id: 'hs1', kind: 'hiredsword', at: [10, 7] }, { id: 'hs2', kind: 'hiredsword', at: [9, 9] }], wave: null,
+      intro: 'Two Dominion soldiers in black half plate step out. Willem goes for the team.',
+      from: 'the 8-bit game: events.js S.wagonFight (Amara and Willem; there, they run on foot and a chase follows). The two soldiers are the ladder\'s own (the Dominion patrol\'s line soldiers), not the 8-bit game\'s', won: 'THE GLAMOUR IS BROKEN.',
+      foes: [{ id: 'amara', kind: 'amara', at: [9, 6] }, { id: 'willem', kind: 'willem', at: [8, 5], traces: true }, { id: 'ds1', kind: 'dominion', at: [10, 7] }, { id: 'ds2', kind: 'dominion', at: [9, 9] }], wave: null,
       // in the wagon's bed, the cargo: goblins to the eye until the glamour breaks, then children (Griz, 09-27: "we need NPC goblin
       // or children in that wagon"; the 8-bit game's W.goblin, look kid once glamourBroken)
       riders: [{ at: [4, 3], sheet: 'goblin_p1', after: 'kid1_p0', gz: 12 }, { at: [4, 4], sheet: 'goblin_p1', after: 'kid2_p0', gz: 12 }].concat(TEAM) },

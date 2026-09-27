@@ -20,6 +20,10 @@
   mageArmor: { shape: 'touch', side: 'ally', time: 'A', unarmored: true },
   scorchingray: { shape: 'rays', range: 120, n: 3, time: 'A' },
   web: { shape: 'cube', range: 60, size: 20, time: 'A', conc: true },
+  // Thunderwave (SRD 5.1): a 15-ft cube out from the caster, CON half, and a failed save is pushed 10 ft away (wave)
+  thunderwave: { shape: 'wave', size: 15, time: 'A' },
+  // Hold Person (SRD 5.1): a humanoid within 60 ft, WIS or paralyzed, a save again at the end of each of its turns
+  holdperson: { shape: 'single', side: 'foe', range: 60, time: 'A', conc: true, only: 'humanoid' },
   shatter: { shape: 'sphere', range: 60, r: 10, time: 'A' },
   mistystep: { shape: 'teleport', range: 30, time: 'B' },
   fireball: { shape: 'sphere', range: 150, r: 20, time: 'A' },
@@ -39,7 +43,5 @@
   revivify: { shape: 'none', why: 'no one here has died (the fallen are only down)' },
   daylight: { shape: 'none', why: 'not sunlight: the drow would not flinch' }
 };
-// Misty Step is not in the 8-bit game's list (the POC spec asked for it): its record lives here
-window.D16.EXTRA_SPELLS = {
-  mistystep: { name: 'Misty Step', level: 2, kind: 'teleport', target: 'self', battle: true, desc: 'A bonus action: silver mist, and you are 30 ft away.', src: 'SRD 5.1' }
-};
+// spells the 8-bit game's list lacks would live here; Misty Step moved into content/spells.json on 09-27 (a learnable, grid-only spell)
+window.D16.EXTRA_SPELLS = {};

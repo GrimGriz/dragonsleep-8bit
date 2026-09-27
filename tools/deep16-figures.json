@@ -175,6 +175,13 @@
         "walk": "Walk"
       }
     },
+    "dominion": {
+      "_note": "a Dominion line soldier (dominion-patrol-the-fare-home.pdf, LINE SOLDIERS: fighter 2, the sword-and-shield pair, rolled 09-27): the KayKit Knight, helmed, sword and round shield, the half plate taken down to black (Griz: \"make the armor on these guys as if it was black armor\"). The ladder's wagon yard.",
+      "file": "kaykit/Knight.glb",
+      "show": ["Knight_ArmLeft", "Knight_ArmRight", "Knight_Body", "Knight_Head", "Knight_Helmet", "Knight_LegLeft", "Knight_LegRight", "1H_Sword", "Round_Shield"],
+      "grade": { "hue": 0, "sat": 0.45, "val": 0.34 },
+      "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Slice_Diagonal", "walk": "Walking_A" }
+    },
     "horse": {
       "_note": "the wagon's team (the 8-bit wagon yard, 09-27: Griz, 'add horses to the wagon'): Quaternius Horse (CC0, the wolf's pack), Large: 2 squares nose to tail. Scenery in the yard (a fight's riders), never in the fight. hurt = the startle when Willem is hit.",
       "file": "quaternius/animated-animals/glTF/Horse.gltf",

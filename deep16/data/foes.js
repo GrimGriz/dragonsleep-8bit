@@ -74,7 +74,7 @@
     abil: { str: 14, dex: 15, con: 13, int: 7, wis: 12, cha: 8 }, init: 2, perception: 13,
     saves: { str: 2, dex: 2, con: 1, int: -2, wis: 1, cha: -1 },
     attacks: {
-      bite: { name: 'Bite', atk: 4, dice: '1d8', mod: 2, type: 'piercing', extra: '1d8', extraType: 'poison', reach: 5, poison: { dc: 11 } },
+      bite: { name: 'Bite', atk: 4, dice: '1d8', mod: 2, type: 'piercing', extra: '1d8', extraType: 'poison', reach: 5, poison: { dc: 11, repeat: true } },
       claws: { name: 'Claws', atk: 4, dice: '2d4', mod: 2, type: 'slashing', reach: 5 }
     },
     multi: ['bite', 'claws'], web: { atk: 4, range: [30, 60], dc: 11, recharge: 5 }, webWalker: true,
@@ -180,7 +180,7 @@
     src: 'content/monsters.json spellweaver (game-original, CR 6): Fire Bolt; a line of lightning (recharge 5-6, DEX 14, 8d6); Hold once (WIS 14, paralyzed, a save each turn)', todo: 'Darkness and light sensitivity are not read'
   },
   drowling: {
-    name: 'Drow', sheet: 'drow_p1', cr: '1/4', ac: 15, hp: 13, speed: 30, size: 1, reach: 5,
+    name: 'Drow', sheet: 'drow_p1', humanoid: true, cr: '1/4', ac: 15, hp: 13, speed: 30, size: 1, reach: 5,
     abil: { str: 10, dex: 14, con: 10, int: 11, wis: 11, cha: 12 }, init: 2, perception: 12,
     saves: { str: 0, dex: 2, con: 0, int: 0, wis: 0, cha: 1 },
     attacks: {
@@ -248,11 +248,25 @@
   },
   // the ladder's wagon yard: two who rode guard on the wagon (SRD 5.1 Guard; the ladder's own, not the 8-bit game's)
   hiredsword: {
-    name: 'Hired Sword', sheet: 'guard_p1', cr: '1/8', ac: 16, hp: 11, speed: 30, size: 1, reach: 5,
+    name: 'Hired Sword', sheet: 'guard_p1', humanoid: true, cr: '1/8', ac: 16, hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
     multi: 1, src: 'SRD 5.1 Guard (CR 1/8): the ladder\'s wagon yard, riding guard (Griz, 09-27: "a pair of soldiers")'
+  },
+  // the ladder's wagon yard since 09-27 (Griz: "consult the katarina wagon troops and use two of those soldiers (if we rolled
+  // them, what weapons) and make the armor on these guys as if it was black armor"; ladder only, stock and climb): the Dominion
+  // patrol's LINE SOLDIERS (dominion-patrol-the-fare-home.pdf: fighter 2, "two with glaives, two with sword and shield"); two
+  // rolled d4 3 and 4, the sword-and-shield pair: half plate, shield, Defense style
+  dominion: {
+    name: 'Dominion Soldier', sheet: 'dominion_p1', humanoid: true, cr: '1/2', ac: 19, hp: 20, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 12, con: 14, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
+    saves: { str: 4, dex: 1, con: 4, int: 0, wis: 0, cha: 0 },
+    attacks: {
+      longsword: { name: 'Longsword', atk: 4, dice: '1d8', mod: 2, type: 'slashing', reach: 5 },
+      crossbow: { name: 'Light Crossbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', range: [80, 320], ranged: true }
+    },
+    multi: 1, src: 'dominion-patrol-the-fare-home.pdf LINE SOLDIERS (fighter 2, sword and shield: AC 19, HP 20, longsword +4 1d8+2, light crossbow +3 1d8+1 80/320)', todo: 'Second Wind (1d10+2) and Action Surge are not read'
   },
   veteran: {
     name: 'Sergeant', sheet: 'veteran_p1', cr: '3', ac: 17, hp: 58, speed: 30, size: 1, reach: 5,

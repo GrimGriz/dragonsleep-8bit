@@ -19,11 +19,9 @@
     send({ type: 'd16:ready' });
   };
   E.start = function (m) {
-    // the book is the 8-bit game's own: no Misty Step lent (save.js bookOf)
-    (m.save.party || []).concat(m.save.guests || []).forEach(function (h) { h.ownBook = true; });
     var B = E.B = new D.Battle({ embed: m.opts || {}, fight: m.fight, data: m.save, onDone: function (res) { E.done(B, res); } });
     D.push(B);
-    E.inv0 = counts(B.inv); // (the pack as the fight began, with the crossbow and bolts DEEP16 lends every pack: save.js armoury)
+    E.inv0 = counts(B.inv); // (the pack as the fight began: only what the party brought, no loan here)
     D.canvas.focus();
   };
   E.done = function (B, res) {

@@ -44,7 +44,10 @@
     party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });
     var foes = (F.foes || m.def.foes).map(function (f) { return self.makeFoe(f); });
     this.units = party.concat(foes);
-    this.inv = D.save.armoury(JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; }));
+    // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
+    // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
+    var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
+    this.inv = this.o.embed ? pack : D.save.armoury(pack);
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
     // strung webs a fight starts with (Web Gulch): difficult ground for all but the web-walkers, drawn like the spell's
     var webs = F.webs || m.def.webs;
@@ -78,7 +81,7 @@
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
       reckless: !!d.reckless, rageOnHit: !!d.rageOnHit, raging: false,
-      // (the 8-bit wagon yard, fight.runWhenHurt: nobody runs until the one at the traces is hit -- then both do, Battle.run2)
+      // (the 8-bit wagon yard, fight.runWhenHurt: nobody runs until the one at the traces is hit -- then both do, Battle.startRun)
       flees: !!d.flees && !(this.fight && (this.fight.noFlee || this.fight.runWhenHurt)), traces: !!f.traces, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
@@ -277,17 +280,17 @@
   Battle.prototype.shortName = shortName;
 
   // the pair run (the 8-bit wagon yard, fight.runWhenHurt; Griz 09-27: "willem try to unhook them for the first part of the
-  // fight (until he takes damage) - then amara and willem will try to make the escape on foot"): the first blow that lands on
-  // the one at the traces, and he lets them go; both break for the road on foot (their `flees`, ai.js shooter), and the team
-  // startles in its harness
-  Battle.prototype.run2 = function (u) {
-    this.bolting = true; u.traces = false;
-    this.units.forEach(function (w) { if (w.side === 'foe' && D.FOES[w.kind] && D.FOES[w.kind].flees) w.flees = true; });
-    this.riders.forEach(function (r) { if (r.team) { r.anim = 'hurt'; r.animT = this.t; } }, this);
+  // fight (until he takes damage) - then amara and willem will try to make the escape on foot"; and "him getting hit should
+  // not [do anything] in the fight - but start them both running for the escape tile on their next move"): the blow only
+  // marks it (hurt: this.hitAtTraces); each of the pair breaks for the road at the start of its own next turn (ai.js turn)
+  Battle.prototype.startRun = function (u) {
+    u.flees = true;
     D.sfx('run');
-    var go = this.units.filter(function (w) { return w.side === 'foe' && w.flees && w.hp > 0 && !w.dead; }).map(shortName);
-    this.card(['{r}' + shortName(u) + (u.hp > 0 ? ' lets go of the traces.{/}  "Leave them!" ' : ' falls at the traces.{/}  ') +
-      (go.length ? go.join(' and ') + (go.length > 1 ? ' break' : ' breaks') + ' for the road, on foot.' : '')], 420);
+    if (u.traces) {
+      u.traces = false;
+      this.riders.forEach(function (r) { if (r.team) { r.anim = 'hurt'; r.animT = this.t; } }, this); // (the team flinches in its harness; it stays hitched)
+      this.card(['{r}' + shortName(u) + ' lets go of the traces.{/}  "Leave them!"  He breaks for the road, on foot.'], 400);
+    } else this.card(['{r}' + shortName(u) + ' breaks for the road, on foot.{/}'], 400);
   };
 
   Battle.prototype.finish = function* (o) {
@@ -490,11 +493,14 @@
         }
       }
       u.facing = D.spr.facingFor(nx - u.x, ny - u.y);
+      var wasIn = D.magic.webAt(this, u);
       u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: STEP_FRAMES };
       u.x = nx; u.y = ny;
       if (o && o.spend) T.move -= cost;
       this.keepInView(u);
       yield STEP_FRAMES;
+      // into a spell's web (from outside it): the SRD's save for one who enters it during its turn; stuck, it stops there
+      if (!u.ethereal && !wasIn && D.magic.webCatch(this, u, 'enters')) { if (o && o.spend) T.move = 0; yield 24; break; }
     }
     u.anim = 'idle';
   };
@@ -610,7 +616,8 @@
     if (!tgt.dead && tgt.hp > 0 && atk.poison && !tgt.conds.poisoned) {
       var sv = RU.save(tgt, 'con', atk.poison.dc);
       this.card(['{r}' + nameOf(tgt) + '{/}: CON save vs poison  ' + RU.saveText(sv) + ' vs DC ' + sv.dc + '  ' + (sv.ok ? '{n}SAVED{/}' : '{o}POISONED{/}')]);
-      if (!sv.ok) { D.sfx('poison'); tgt.conds.poisoned = true; FX.sparkle(tgt, 'moss', 10); }
+      // (a poison that wears off, the ettercap's: a CON save at the end of each of its turns, magic.js endTurn; the drow's lasts the fight)
+      if (!sv.ok) { D.sfx('poison'); tgt.conds.poisoned = atk.poison.repeat ? { save: 'con', dc: atk.poison.dc } : true; FX.sparkle(tgt, 'moss', 10); }
       yield 30;
     }
     // a grapple on the hit (the otyugh's tentacles): Medium or smaller, while it has a tentacle free; grappled and restrained
@@ -641,7 +648,7 @@
     if (atk.paralyze && !tgt.dead && tgt.hp > 0 && !tgt.conds.paralyzed) {
       var ps = RU.save(tgt, 'con', atk.paralyze.dc);
       this.card(['{r}' + nameOf(tgt) + '{/}: CON save  ' + RU.saveText(ps) + ' vs DC ' + ps.dc + '  ' + (ps.ok ? '{n}SAVED{/}' : '{p}POISONED and PARALYZED{/} {g}(a CON save at the end of each turn){/}')]);
-      if (!ps.ok) { D.sfx('poison'); tgt.conds.poisoned = true; tgt.conds.paralyzed = { save: 'con', dc: atk.paralyze.dc, by: att.id }; FX.sparkle(tgt, 'moss', 12); }
+      if (!ps.ok) { D.sfx('poison'); tgt.conds.poisoned = { paralysis: true }; tgt.conds.paralyzed = { save: 'con', dc: atk.paralyze.dc, by: att.id, poison: true }; FX.sparkle(tgt, 'moss', 12); }
       yield 30;
     }
     if (!tgt.dead && atk.save && tgt.hp > 0) {
@@ -685,7 +692,7 @@
     if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
     if (n <= 0) return;
     u.hp = Math.max(0, u.hp - n);
-    if (this.fight.runWhenHurt === u.id && !this.bolting) this.run2(u);
+    if (u.traces) this.hitAtTraces = true; // (nothing shows now: from their next moves they run, or he turns to fight: ai.js turn)
     if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
     u.flash = 10;
     FX.float('-' + n, u, D.PAL.ramps.red[4]);

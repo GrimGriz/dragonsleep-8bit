@@ -38,6 +38,12 @@
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
     if (u.conds.restrained) yield* D.magic.breakFree(B, u); // a web: tear at it first
+    // the wagon yard: once Willem has been hit at the traces, in the 8-bit game's yard (runWhenHurt) each of the pair runs from its
+    // own next move (battle.js startRun); on the ladder, where nobody runs, he lets the traces go and turns to fight
+    if (B.hitAtTraces && u.side === 'foe') {
+      if (B.fight.runWhenHurt && !u.flees && D.FOES[u.kind] && D.FOES[u.kind].flees) { B.startRun(u); yield 30; }
+      else if (u.traces) { u.traces = false; B.card(['{r}' + u.name + ' lets go of the traces{/} and turns on you.'], 360); yield 30; }
+    }
     if (u.traces) yield* traces(B, u);
     else if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'drow') yield* drow(B, u);
@@ -54,15 +60,16 @@
 
   // ------------------------------------------------------------------ Willem at the team's heads (the 8-bit wagon yard, a foe placed with
   // `traces`; Griz 09-27): each turn his action goes on the harness -- no step, no blow -- until a blow lands on him
-  // (battle.js hurt: fight.runWhenHurt lets the pair run). He never gets them free: the horses are out of the escape
-  var FUMBLE = ['works at the traces with shaking hands.', 'drops a buckle in the dark and gropes for it.',
-    'has one trace free. The near horse sidesteps, and he swears at it.', 'fights the last strap. It will not give.', 'saws at a strap with a little knife.'];
+  // (battle.js hurt: fight.runWhenHurt; the pair run from their next moves). He gets nowhere: nothing comes loose, the horses
+  // stay hitched and the wagon stays put (Griz: they are out of the script's escape), so no line says otherwise
+  var FUMBLE = ['fumbles at the traces with shaking hands.', 'drops a buckle in the dark and gropes for it.',
+    'cannot find the strap end in the dark.', 'yanks at a buckle. It will not give.', 'curses the harness. Nothing comes loose.'];
   function* traces(B, u) {
     u.turn.action = 0; u.turn.move = 0; u.turn.bonus = 0;
     var n = u.fumbles = (u.fumbles || 0) + 1;
     var team = B.riders.filter(function (r) { return r.team; }).sort(function (a, b) { return Math.hypot(a.x - u.x, a.y - u.y) - Math.hypot(b.x - u.x, b.y - u.y); })[0];
     if (team) u.facing = B.faceTo(u, { x: team.x, y: team.y, size: 1 }); // (turned to the horses, his back to the fight)
-    B.card(['{o}' + u.name + '{/} ' + FUMBLE[n <= FUMBLE.length ? n - 1 : 2 + (n % 3)] + '  {g}(his action: the harness){/}']);
+    B.card(['{o}' + u.name + '{/} ' + FUMBLE[(n - 1) % FUMBLE.length] + '  {g}(his action: the harness){/}']);
     yield 40;
   }
 

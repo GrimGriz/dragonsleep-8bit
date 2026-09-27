@@ -2565,6 +2565,16 @@
    "src": "SRD 5.1",
    "id": "holdperson"
   },
+  "mistystep": {
+   "name": "Misty Step",
+   "level": 2,
+   "kind": "teleport",
+   "target": "self",
+   "grid": true,
+   "desc": "A bonus action: silver mist, and you are 30 ft away (on the grid: DEEP16's fights).",
+   "src": "SRD 5.1; RULED 09-27 (Griz): a spell the wizard can learn at level-up, not lent (grid: no 8-bit battle or field use)",
+   "id": "mistystep"
+  },
   "fireball": {
    "name": "Fireball",
    "level": 3,

@@ -26,7 +26,7 @@
     var T = u.turn;
     return (u.known || []).map(function (id) {
       var sp = M.data(id), g = M.geo(id);
-      if (!sp || (!sp.battle && g.shape !== 'none')) return null;
+      if (!sp || (!sp.battle && !sp.grid && g.shape !== 'none')) return null; // (grid: a spell only DEEP16's fights can use, Misty Step)
       var e = { id: id, name: sp.name, level: sp.level, g: g, sp: sp, levels: sp.level ? M.slotLevels(u, sp.level) : [0] };
       e.slot = e.levels[0] || sp.level;
       var why = '';
@@ -58,7 +58,8 @@
       case 'line': return g.len + '-ft line · ' + save + ' · ' + d + ' ' + sp.el;
       case 'sphere': return e.id === 'sleep' ? (g.pool + g.poolUp * Math.max(0, e.slot - 1)) + 'd8 HP of sleep, ' + g.r + '-ft sphere within ' + g.range + ' ft' : g.r + '-ft sphere within ' + g.range + ' ft · ' + save + ' · ' + d + (sp.dmg2 ? ' + ' + sp.dmg2 : '') + ' ' + sp.el;
       case 'cube': return g.size + '-ft cube within ' + g.range + ' ft · DEX or restrained' + conc;
-      case 'single': return e.id === 'holdmonster' ? 'a foe within 90 ft · WIS or paralyzed' + conc : 'an ally within ' + g.range + ' ft · +2 AC' + conc;
+      case 'wave': return '15-ft cube out from you · CON half · ' + d + ' thunder, a failed save pushed 10 ft';
+      case 'single': return e.id === 'holdmonster' ? 'a foe within 90 ft · WIS or paralyzed' + conc : e.id === 'holdperson' ? 'a humanoid within 60 ft · WIS or paralyzed' + conc : 'an ally within ' + g.range + ' ft · +2 AC' + conc;
       case 'allies': return 'up to ' + n + ' within ' + g.range + ' ft · ' + (e.id === 'bless' ? '+1d4 to attacks and saves' + conc : '+' + 5 * Math.max(1, e.slot - 1) + ' max HP');
       case 'self': return '+1d4 radiant on weapon hits' + conc;
       case 'teleport': return '30 ft, to a square you can see';
@@ -89,9 +90,31 @@
   M.area = function (u, g, cx, cy) {
     if (g.shape === 'sphere') return M.inRange(u, g, cx, cy) ? G.sphere(cx, cy, g.r) : [];
     if (g.shape === 'cube') { var n = g.size / 5, x0 = cx - Math.floor((n - 1) / 2), y0 = cy - Math.floor((n - 1) / 2); return M.inRange(u, g, cx, cy) ? G.cube(x0, y0, n) : []; }
+    if (g.shape === 'wave') return M.wave(u, g, cx, cy);
     if (g.shape === 'cone') return aimed(u, cx, cy, g.len, true);
     if (g.shape === 'line') return aimed(u, cx, cy, g.len, false);
     return [];
+  };
+  // a cube out from the caster (Thunderwave): 3 x 3 squares against the side (or the corner) of him the cursor is toward
+  M.waveDir = function (u, cx, cy) {
+    var dx = cx - u.x, dy = cy - u.y;
+    if (!dx && !dy) return null;
+    var sx = Math.abs(dx) > 2 * Math.abs(dy) ? Math.sign(dx) : Math.abs(dy) > 2 * Math.abs(dx) ? 0 : Math.sign(dx);
+    var sy = Math.abs(dy) > 2 * Math.abs(dx) ? Math.sign(dy) : Math.abs(dx) > 2 * Math.abs(dy) ? 0 : Math.sign(dy);
+    return [sx, sy];
+  };
+  M.wave = function (u, g, cx, cy) {
+    var d = M.waveDir(u, cx, cy), n = g.size / 5, out = [];
+    if (!d) return out;
+    var x0 = d[0] > 0 ? u.x + 1 : d[0] < 0 ? u.x - n : u.x - (n - 1) / 2, y0 = d[1] > 0 ? u.y + 1 : d[1] < 0 ? u.y - n : u.y - (n - 1) / 2;
+    for (var y = y0; y < y0 + n; y++) for (var x = x0; x < x0 + n; x++) { var s = G.map.at(x, y); if (s && s.open && G.losPoint(u.x, u.y, x, y)) out.push([x, y]); }
+    return out;
+  };
+  // a humanoid (Hold Person): the party, the 8-bit game's monsters tagged so, and the grid's own kinds that say so
+  M.humanoid = function (w) {
+    if (w.side === 'party') return true;
+    var m = window.DS.DATA.monsters[w.kind], f = D.FOES[w.kind] || {};
+    return !!(f.humanoid || (m && (m.tags || []).indexOf('humanoid') >= 0));
   };
   M.touchTargets = function (B, u, g) {
     return B.units.filter(function (w) {
@@ -108,6 +131,7 @@
     var foeWanted = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe';
     if (foeWanted && (!G.hostile(u, w) || w.hp <= 0)) return false;
     if ((g.shape === 'allies' || g.side === 'ally') && w.side !== u.side) return false;
+    if (g.only === 'humanoid' && !M.humanoid(w)) return false;
     if (G.dist(u, w) > (g.range || 5)) return false;
     return G.los(u, w).clear || w === u;
   };
@@ -174,10 +198,10 @@
         if (!sv.ok) B.hurt(w, r1.total, 'acid');
       });
       B.card(lines2, 360); yield 30;
-    } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line') {
+    } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') {
       yield* area(B, u, id, sp, g, slot, t.x, t.y, head);
     } else if (g.shape === 'single') {
-      if (id === 'holdmonster') {
+      if (id === 'holdmonster' || id === 'holdperson') {
         var sv2 = RU.save(t, 'wis', dc);
         B.card([head + ' on the ' + B.shortName(t) + '  WIS ' + RU.saveText(sv2) + ' vs DC ' + dc + '  ' + (sv2.ok ? '{n}SAVED{/}' : '{p}HELD FAST: paralyzed{/}')]);
         FX.ring(t, 'violet', 40);
@@ -243,7 +267,8 @@
     var sq = M.area(u, g, cx, cy), dc = u.spellDC;
     var ramp = sp.el === 'cold' || sp.el === 'lightning' ? 'glow' : sp.el === 'thunder' ? 'silver' : sp.el === 'force' ? 'bone' : 'fire';
     if (g.shape === 'sphere' || g.shape === 'cube') { FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 }; }
-    FX.bloom(g.shape === 'cone' || g.shape === 'line' ? u.x : cx, g.shape === 'cone' || g.shape === 'line' ? u.y : cy, sq, ramp);
+    var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave';
+    FX.bloom(fromMe ? u.x : cx, fromMe ? u.y : cy, sq, ramp);
     var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq); });
     var lines = [];
     if (id === 'sleep') {
@@ -263,8 +288,14 @@
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{p}restrained{/}'));
         if (!sv.ok) { w.conds.restrained = { dc: dc, by: u.id }; stuck.push(w); }
       });
-      B.webs = (B.webs || []).concat([{ by: u.id, sq: sq }]);
-      M.concentrate(B, u, id, sp.name, function () { lift(B, stuck, 'restrained'); B.webs = (B.webs || []).filter(function (wb) { return wb.by !== u.id; }); });
+      B.webs = (B.webs || []).concat([{ by: u.id, sq: sq, dc: dc }]);
+      // when it goes, everyone it holds goes free (the first catch and any caught since: M.webCatch)
+      M.concentrate(B, u, id, sp.name, function () {
+        var freed = [];
+        B.units.forEach(function (w) { var r = w.conds.restrained; if (r && r.by === u.id && !r.grapple) { delete w.conds.restrained; if (!w.dead && w.hp > 0) freed.push(w.side === 'foe' ? B.shortName(w) : w.name); } });
+        B.webs = (B.webs || []).filter(function (wb) { return wb.by !== u.id; });
+        B.card(['{p}The webs melt away.{/}' + (freed.length ? '  {o}' + freed.join(', ') + ' ' + (freed.length > 1 ? 'are' : 'is') + ' free.{/}' : '')], 360);
+      });
     } else {
       var dd = M.dice(sp, u, slot), r = D.roll(dd), r2 = sp.dmg2 ? D.roll(sp.dmg2) : null, tot = r.total + (r2 ? r2.total : 0), ab = sp.save || 'dex';
       lines.push(head + '  ' + dd + ' ' + RU.fmtRolls(r.rolls) + (r2 ? ' + ' + sp.dmg2 + ' ' + RU.fmtRolls(r2.rolls) : '') + ' = {o}' + tot + '{/} ' + sp.el + '  ' + ab.toUpperCase() + ' DC ' + dc);
@@ -273,12 +304,14 @@
         var sv = RU.save(w, ab, dc), evade = ab === 'dex' && w.cls === 'rogue' && w.lvl >= 7;
         var d = sv.ok ? (evade ? 0 : (sp.half ? Math.floor(tot / 2) : 0)) : (evade ? Math.floor(tot / 2) : tot);
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + d + '{/}');
-        hits.push([w, d]);
+        hits.push([w, d, sv.ok]);
       });
       if (!caught.length) lines.push('  {g}no one in it.{/}');
       B.card(lines.slice(0, 7), 420);
       yield { fx: 1 };
       hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el); });
+      // Thunderwave: a failed save is pushed 10 ft straight away from the caster (stopped by a wall, a creature, the edge)
+      if (g.shape === 'wave') hits.forEach(function (h) { if (!h[2]) M.push(B, u, h[0], 2); });
       yield 30;
       return;
     }
@@ -291,26 +324,65 @@
   // the start of a creature's turn: Heroism's temporary HP; a restrained or paralyzed creature has no move
   M.startTurn = function (B, u) {
     if (u.conds.heroism) u.temp = Math.max(u.temp || 0, u.conds.heroism.each);
+    if (B && u.hp > 0 && !u.dead) M.webCatch(B, u, 'starts');
     if (u.conds.restrained || u.conds.paralyzed || u.conds.asleep) u.turn.move = 0;
+  };
+  // SRD Web (09-27: Griz, "I wasn't sure it was applied appropriately (guy looked like he had it but was running around)"):
+  // "Each creature that starts its turn in the webs or that enters them during its turn must make a Dexterity saving throw.
+  // On a failed save, the creature is restrained." Only a cast web (it has a DC); the strung webs a map starts with are only
+  // difficult ground. One save a turn: a creature that saved goes on through that turn
+  M.webAt = function (B, u) {
+    var f = G.foot(u);
+    return (B.webs || []).filter(function (w) { return w.dc && f.some(function (p) { return w.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); })[0] || null;
+  };
+  M.webCatch = function (B, u, how) {
+    var wb = M.webAt(B, u);
+    if (!wb || u.webWalker || u.conds.restrained || (u.turn && u.turn.webSaved)) return false;
+    var sv = RU.save(u, 'dex', wb.dc), who = u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}';
+    if (u.turn) u.turn.webSaved = true;
+    B.card([who + (how === 'enters' ? ' blunders into the web' : ' starts its turn in the web') + ': DEX ' + RU.saveText(sv) + ' vs DC ' + wb.dc + '  ' + (sv.ok ? '{n}pulls through{/}' : '{p}stuck fast{/}')]);
+    if (sv.ok) return false;
+    u.conds.restrained = { dc: wb.dc, by: wb.by }; FX.sparkle(u, 'bone', 12);
+    return true;
   };
   // the end: a paralyzed creature tries its save again (Hold Monster)
   M.endTurn = function (B, u) {
+    if (u.conds.poisoned && u.conds.poisoned.save && !u.conds.paralyzed) M.poisonSave(B, u);
     var p = u.conds.paralyzed;
     if (p && p.save) {
       var sv = RU.save(u, p.save, p.dc);
       B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' strains against the hold: ' + p.save.toUpperCase() + ' ' + RU.saveText(sv) + ' vs DC ' + p.dc + '  ' + (sv.ok ? '{n}FREE{/}' : '{g}still held{/}')]);
-      if (sv.ok) { delete u.conds.paralyzed; var c = B.units.filter(function (w) { return w.conc && w.conc.id === 'holdmonster' && w.id === p.by; })[0]; if (c) delete c.conc; }
+      if (sv.ok && p.poison) delete u.conds.poisoned; // (the chuul's, the crawler's: paralyzed while poisoned; one save ends both)
+      if (sv.ok) { delete u.conds.paralyzed; var c = B.units.filter(function (w) { return w.conc && (w.conc.id === 'holdmonster' || w.conc.id === 'holdperson') && w.id === p.by; })[0]; if (c) delete c.conc; }
     }
+  };
+  // a shove away from `from`, n squares (Thunderwave's 10 ft): each square only if the body can stand there
+  M.push = function (B, from, w, n) {
+    if (!w || w.dead || w.hp <= 0 || w.bound) return;
+    var dx = Math.sign(w.x - from.x), dy = Math.sign(w.y - from.y), x0 = w.x, y0 = w.y, moved = 0;
+    if (!dx && !dy) return;
+    for (var i = 0; i < n; i++) { if (!G.canStand(w, w.x + dx, w.y + dy)) break; w.x += dx; w.y += dy; moved++; }
+    if (!moved) return;
+    w.tween = { fx: x0, fy: y0, fz: G.gzAt(w, x0, y0), t: 0, dur: 10 };
+    FX.float('pushed ' + moved * 5 + ' ft', w, D.PAL.ramps.silver[5]);
+  };
+  // a poison that wears off (09-27): the save at the end of the poisoned one's turn (M.endTurn calls it)
+  M.poisonSave = function (B, u) {
+    var q = u.conds.poisoned;
+    if (!q || !q.save || u.hp <= 0) return;
+    var sv = RU.save(u, q.save, q.dc);
+    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' fights the poison: CON ' + RU.saveText(sv) + ' vs DC ' + q.dc + '  ' + (sv.ok ? '{n}IT PASSES{/}' : '{g}still poisoned{/}')]);
+    if (sv.ok) delete u.conds.poisoned;
   };
   // breaking out of a web: an action, a STR check against the caster's DC
   M.breakFree = function* (B, u) {
     // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
-    var r = u.conds.restrained, d = D.d(20), useDex = r.grapple && D.mod(u.abil.dex) > D.mod(u.abil.str);
+    var r = u.conds.restrained, d = u.conds.poisoned ? Math.min(D.d(20), D.d(20)) : D.d(20), useDex = r.grapple && D.mod(u.abil.dex) > D.mod(u.abil.str);
     var tot = d + D.mod(useDex ? u.abil.dex : u.abil.str) + (u.cls === 'fighter' || (useDex && u.cls === 'rogue') ? u.prof : 0);
     u.turn.action = 0;
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
     if (tot >= r.dc) {
-      delete u.conds.restrained; u.turn.move = u.speed;
+      delete u.conds.restrained; u.turn.move = u.speed; u.turn.webSaved = true; // (torn free: it goes on through the web this turn)
       var by = B.units.filter(function (w) { return w.id === r.by; })[0]; if (by && by.holding) by.holding = by.holding.filter(function (w) { return w !== u; });
     }
     yield 30;

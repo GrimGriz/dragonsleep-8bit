@@ -84,8 +84,8 @@
       if (r.feats && h.feats) Object.keys(h.feats).forEach(function (k) { if (typeof h.feats[k] === 'number' && typeof r.feats[k] === 'number') h.feats[k] = Math.min(h.feats[k], r.feats[k]); });
       if (r.mageArmor) h.conds.mageArmor = true; // cast in the fight: it holds till the long rest, as the 8-bit game's does
     });
-    // the pack: what the fight used is gone. DEEP16 lends every pack a crossbow and twenty bolts (its save.js armoury):
-    // bolts loosed come off what the party really carried, never below none
+    // the pack: what the fight used is gone (a potion drunk, a bolt loosed), never below none. The party fights with only
+    // what it brought (no crossbow lent here, Griz 09-27)
     var i0 = d.inv0 || {}, i1 = d.inv1 || {};
     Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0), have = g.count(id); if (used > 0 && have > 0) g.take(id, Math.min(used, have)); });
     if (d.result === 'fled') DS.fledIds = (d.away || []).slice();
