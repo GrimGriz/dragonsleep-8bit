@@ -192,6 +192,8 @@
     if (I.pressed('b')) {
       if (B.picks && B.picks.length) { B.picks.pop(); return; }
       if (B.tool !== rest()) { B.tool = rest(); B.spell = null; B.clearCards(); return; }
+      // on the ring, X at rest calls the ring up (Griz, 09-27: backing out of a move should bring it); M/Tab the menu
+      if (UI.opts.style === 'ring') { B.tool = 'menu'; B.clearCards(); return; }
       return UI.openMenu(B);
     }
     if (I.pressed('a')) actAt(B, u, B.cursor.x, B.cursor.y, true);
@@ -628,7 +630,7 @@
     ctx.strokeStyle = R('silver', 3); ctx.strokeRect(eb.x + 0.5, eb.y + 0.5, eb.w - 1, eb.h - 1);
     D.text(ctx, 'END TURN', eb.x + eb.w / 2, eb.y + 2, R('bone', 1), 'center');
     var spellRing = B.list && B.list.kind === 'spells';
-    D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'Q, or E on yourself: the ring   X: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
+    D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'X, Q or E on yourself: the ring   M: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
     D.text(ctx, 'C recentre  H hints  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5));
   }
   function pip(ctx, x, y, label, lit, col) { // a small lit box round a letter; gives back its width
@@ -767,7 +769,7 @@
     var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
     D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  Two drow on the ledge. Something in the stalagmites.', D.W / 2, 150, R('accent', 2), 'center');
     if (B.canSwap) D.text(ctx, B.o.fixture ? '2: walk in from the 8-bit save instead' : '2: walk in as the fixture instead (the four at level 9; the fight is built for them)', D.W / 2, 164, R('silver', 5), 'center');
-    D.text(ctx, 'menu: ' + UI.opts.style.toUpperCase() + ' (M or X/Esc, then MENU)   hints: ' + (UI.opts.help ? 'ON' : 'OFF') + ' (H)', D.W / 2, 194, R('stone', 5), 'center');
+    D.text(ctx, 'menu: ' + UI.opts.style.toUpperCase() + (UI.opts.style === 'ring' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)') + '   hints: ' + (UI.opts.help ? 'ON' : 'OFF') + ' (H)', D.W / 2, 194, R('stone', 5), 'center');
     if ((B.t >> 5) & 1) D.text(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }
   function inspect(ctx, u) {
