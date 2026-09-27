@@ -68,7 +68,7 @@
     KeyE: 'a', KeyZ: 'a', Enter: 'a', NumpadEnter: 'a',
     KeyX: 'b', Escape: 'b', Backspace: 'b',
     Space: 'end',
-    KeyM: 'menu', Tab: 'menu', KeyC: 'center', Home: 'center', KeyH: 'help',
+    KeyM: 'menu', Tab: 'menu', KeyC: 'center', Home: 'center',
     KeyQ: 'ring',
     Minus: 'zoomout', NumpadSubtract: 'zoomout', Equal: 'zoomin', NumpadAdd: 'zoomin',
     Backquote: 'stats',

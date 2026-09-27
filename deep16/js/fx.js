@@ -16,7 +16,7 @@
   FX.float = function (text, u, color, big) {
     var p = FX.at(u), n = FX.list.filter(function (f) { return f.kind === 'float' && f.u === u && f.t < 20; }).length;
     return FX.add({ kind: 'float', screen: true, u: u, dur: 70, draw: function (ctx) { // drawn over the world at full size, so it reads zoomed out too
-      var s = scr(p.gx, p.gy, p.gz), top = D.spr.top(u.sheet) * (D.iso.inWorld ? 1 : D.iso.zoom), k = Math.min(1, this.t / 10);
+      var s = scr(p.gx, p.gy, p.gz), top = D.spr.unitTop(u) * (D.iso.inWorld ? 1 : D.iso.zoom), k = Math.min(1, this.t / 10);
       D.text(ctx, text, s.x, s.y - top - 6 - k * 12 - n * 9, color, 'center');
     } });
   };
@@ -69,7 +69,7 @@
   };
   FX.ring = function (u, ramp, dur) {
     return FX.add({ kind: 'ring', dur: dur || 40, draw: function (ctx) {
-      var p = FX.at(u), s = scr(p.gx, p.gy, p.gz), top = D.spr.top(u.sheet), k = this.t / this.dur;
+      var p = FX.at(u), s = scr(p.gx, p.gy, p.gz), top = D.spr.unitTop(u), k = this.t / this.dur;
       ctx.strokeStyle = D.PAL.ramps[ramp][2]; ctx.globalAlpha = 1 - k; ctx.lineWidth = 1;
       ctx.beginPath(); ctx.ellipse(s.x, s.y - top / 2, 16 + k * 6, top / 2 + 4 + k * 4, 0, 0, 7); ctx.stroke();
       ctx.globalAlpha = 1;

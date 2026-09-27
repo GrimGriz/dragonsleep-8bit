@@ -31,5 +31,7 @@ window.D16.MAPS.cavern = {
     { id: 'drow2', kind: 'drow', at: [14, 1] },
     { id: 'spider', kind: 'phasespider', at: [10, 7] }
   ],
+  // when those three are down: the cocoon at (5, 1) splits, and what was in it drops to the nearest free floor
+  wave: { id: 'drider', kind: 'drider', from: [5, 1] },
   lights: [[3, 1, 40, 'violet'], [5, 1, 40, 'violet']]
 };

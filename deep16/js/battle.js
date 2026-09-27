@@ -20,15 +20,7 @@
     var party = D.save.units(this.from.data);
     var entry = m.def.entry.slice();
     party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });
-    var foes = m.def.foes.map(function (f) {
-      var d = D.FOES[f.kind];
-      return {
-        id: f.id, kind: f.kind, name: d.name, side: 'foe', sheet: d.sheet, x: f.at[0], y: f.at[1], facing: 1,
-        hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
-        init: d.init, perception: d.perception, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
-        conds: {}, lvl: 5
-      };
-    });
+    var foes = m.def.foes.map(function (f) { return self.makeFoe(f); });
     this.units = party.concat(foes);
     this.inv = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; });
@@ -39,6 +31,16 @@
     D.iso.lookAt(5, 10);
     this.co = this.run();
     D.battle = this;
+  };
+
+  Battle.prototype.makeFoe = function (f) {
+    var d = D.FOES[f.kind];
+    return {
+      id: f.id, kind: f.kind, name: d.name, side: 'foe', sheet: d.sheet, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1,
+      hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
+      init: d.init, perception: d.perception, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
+      fey: !!d.fey, webWalker: !!d.webWalker, conds: {}, lvl: 5
+    };
   };
 
   // ------------------------------------------------------------------ the coroutine
@@ -107,12 +109,43 @@
         if (u.side === 'party' && !u.guest) yield* this.heroTurn(u);
         else yield* D.ai.turn(this, u);
         this.active = null;
+        yield* this.wave();
         var o = this.over();
         if (o) { yield* this.finish(o); return; }
+        i = this.order.indexOf(u); // (a new foe may have been dealt in ahead of it)
       }
     }
   };
-  function shortName(u) { return u.side === 'foe' ? (u.kind === 'drow' ? 'Captain' : 'Spider') : u.name; }
+  function shortName(u) { return u.side === 'foe' ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider' }[u.kind] || u.name) : u.name; }
+
+  // the second wave: when the gallery goes still, the cocoon on the far wall splits and what was in it drops out,
+  // dealt into the initiative on its own roll. The hero whose blow did it keeps the rest of the turn.
+  Battle.prototype.wave = function* () {
+    var w = this.map.def.wave;
+    if (!w || this.waved || this.over() !== 'won') return;
+    this.waved = true;
+    var u = this.makeFoe(w), best = null, bd = Infinity;
+    for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
+      if (!G.canStand(u, x, y)) continue;
+      var d = Math.hypot(x + (u.size - 1) / 2 - w.from[0], y + (u.size - 1) / 2 - w.from[1]);
+      if (d < bd) { bd = d; best = [x, y]; }
+    }
+    if (!best) return;
+    u.x = best[0]; u.y = best[1]; u.facing = 0;
+    u.anim = 'idle'; u.animT = this.t; u.flash = 0; u.reaction = 1;
+    u.tween = { fx: w.from[0] - (u.size - 1) / 2, fy: w.from[1] - (u.size - 1) / 2, fz: 46, t: 0, dur: 26 }; // the drop from the wall
+    this.units.push(u);
+    // the split cocoon stays on the wall as a husk
+    this.map.props.forEach(function (p) { if (p.kind === 'cocoon' && p.sq.x === w.from[0] && p.sq.y === w.from[1]) p.alpha = 0.3; });
+    u.initRoll = D.d(20) + u.init;
+    var at = 0;
+    while (at < this.order.length && (this.order[at].initRoll > u.initRoll || (this.order[at].initRoll === u.initRoll && this.order[at].abil.dex >= u.abil.dex))) at++;
+    this.order.splice(at, 0, u);
+    this.focus(u);
+    FX.sparkle(u, 'bone', 24);
+    this.card(['{r}A cocoon on the far wall splits.{/} Something drops out of it on eight legs.', '{r}A DRIDER{/}: a drow above, a spider below.  {g}initiative ' + u.initRoll + '{/}'], 420);
+    yield 70;
+  };
   Battle.prototype.shortName = shortName;
 
   Battle.prototype.finish = function* (o) {
@@ -134,6 +167,7 @@
       var cmd = yield { turn: u };
       if (!cmd || cmd.do === 'end') break;
       yield* this.exec(u, cmd);
+      yield* this.wave();
       if (this.over() || !RU.canAct(u)) break;
       this.keepInView(u);
     }
@@ -271,7 +305,7 @@
           if (take) {
             w.reaction = 0;
             this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? 'the ' + shortName(u) : u.name) + '.']);
-            var atk = w.weapon || w.attacks.shortsword || w.attacks.bite;
+            var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite;
             yield* this.attack(w, u, atk, { oa: true });
             if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
           }

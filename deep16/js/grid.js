@@ -60,7 +60,7 @@
     if (dx && dy && !footWalkable(u, x0 + dx, y0) && !footWalkable(u, x0, y0 + dy)) return Infinity; // no squeezing between two rocks at a corner
     if (o && o.ghost) return 5;
     var f = G.foot(u, x1, y1);
-    for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if (s.difficult || (D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1]))) return 10; }
+    for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if (s.difficult || (!u.webWalker && D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1]))) return 10; }
     return 5;
   };
   var N8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];

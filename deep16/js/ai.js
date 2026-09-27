@@ -37,6 +37,7 @@
     if (u.conds.restrained) yield* D.magic.breakFree(B, u); // a web: tear at it first
     if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'drow') yield* drow(B, u);
+    else if (u.kind === 'drider') yield* drider(B, u);
     else yield* guest(B, u);
     D.magic.endTurn(B, u);
     u.anim = 'idle';
@@ -175,6 +176,41 @@
       if (!inSight.length) { B.card(['{g}The captain has no clear shot.{/}']); yield 20; break; }
       var t3 = inSight.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0];
       yield* B.attack(u, t3, bow);
+      if (u.dead || u.hp <= 0) return;
+    }
+  }
+
+  // ------------------------------------------------------------------ the drider (the second wave): three attacks, the bite first
+  // It closes on the nearest hero it can reach this turn and fights there -- the bite at the weakest beside it, then
+  // two longsword cuts; with no one in reach it stands and looses three arrows at the lowest AC in sight. Faerie Fire
+  // once, only on three or more (its three attacks are worth more than the light).
+  function* drider(B, u) {
+    var T = u.turn, hs = heroes(B, u), sw = u.attacks.longsword, bite = u.attacks.bite, bow = u.attacks.longbow;
+    if (!hs.length) return;
+    if (u.faerie && !u.faerie.used && T.action) {
+      var cube = bestCube(B, u, u.faerie.cube, u.faerie.range);
+      if (cube && cube.count >= 3) { yield* faerieFire(B, u, cube); return; }
+    }
+    var inReach = function () { return heroes(B, u).filter(function (w) { return G.dist(u, w) <= u.reach; }); };
+    if (!inReach().length) {
+      var tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], e = approach(u, tgt, G.reach(u, T.move));
+      if (e && G.dist(u, tgt, e.x, e.y) <= u.reach) { yield* walkTo(B, u, e); if (u.dead || u.hp <= 0) return; }
+    }
+    if (!T.action) return;
+    T.action = 0;
+    if (inReach().length) {
+      for (var a = 0; a < u.multi; a++) {
+        var tg = inReach().sort(function (p, q) { return p.hp - q.hp; })[0];
+        if (!tg) break;
+        yield* B.attack(u, tg, a === 0 ? bite : sw);
+        if (u.dead || u.hp <= 0) return;
+      }
+      return;
+    }
+    for (var s = 0; s < u.multi; s++) {
+      var seen = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.dist(u, w) <= bow.range[1]; });
+      if (!seen.length) { B.card(['{g}The drider has no clear shot.{/}']); yield 20; break; }
+      yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], bow);
       if (u.dead || u.hp <= 0) return;
     }
   }

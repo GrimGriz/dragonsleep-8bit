@@ -240,7 +240,7 @@
       var pool = D.roll((g.pool + g.poolUp * Math.max(0, slot - 1)) + 'd8'), left = pool.total;
       lines.push(head + '  ' + (g.pool + g.poolUp * Math.max(0, slot - 1)) + 'd8 = ' + pool.total + ' HP of sleep, the weakest first');
       caught.slice().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (w) {
-        if (w.kind === 'drow') { lines.push('  ' + w.name + ': {g}fey blood: sleep cannot take it{/}'); return; }
+        if (w.kind === 'drow' || w.fey) { lines.push('  ' + w.name + ': {g}fey blood: sleep cannot take it{/}'); return; }
         if (w.hp <= left) { left -= w.hp; w.conds.asleep = true; lines.push('  ' + w.name + ' ({r}' + w.hp + '{/}): {p}asleep{/}'); }
         else lines.push('  ' + w.name + ' (' + w.hp + '): too much left in it');
       });
@@ -248,6 +248,7 @@
       lines.push(head + '  a 20-ft cube of sticky web: DEX DC ' + dc + ' or restrained (concentration)');
       var stuck = [];
       caught.forEach(function (w) {
+        if (w.webWalker) { lines.push('  ' + w.name + ': {g}walks webs: they do not hold it{/}'); return; }
         var sv = RU.save(w, 'dex', dc);
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{p}restrained{/}'));
         if (!sv.ok) { w.conds.restrained = { dc: dc, by: u.id }; stuck.push(w); }

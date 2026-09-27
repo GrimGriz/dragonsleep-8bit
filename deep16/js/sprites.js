@@ -44,6 +44,21 @@
   S.duration = function (name, anim) { var a = S.anim(name, anim); return a ? Math.ceil(a.frames * 60 / (a.fps || 8)) : 0; };
   S.top = function (name) { var sh = D.SHEETS && D.SHEETS[name]; return sh ? sh.top || 48 : 42; };
 
+  // a rider on a body (the drider: the drow captain from the waist up on the phase spider's back, till it has a sheet
+  // of its own): the rider's frame is cut at its waist (cut px above its foot) and that line set lift px above the
+  // body's foot, a little toward the way it faces
+  var DIR = [[0, 1], [-0.7, 0.7], [-1, 0], [-0.7, -0.7], [0, -1], [0.7, -0.7], [1, 0], [0.7, 0.7]];
+  S.RIDE = { cut: 22, lift: 21, lean: 7 };
+  S.drawRider = function (ctx, u, anim, t, x, y, o) {
+    var f = (u.facing || 0) % 8, d = DIR[f], rx = Math.round(x + d[0] * S.RIDE.lean), ry = Math.round(y + d[1] * S.RIDE.lean / 2);
+    var top = S.top(u.rider), foot = ry - S.RIDE.lift + S.RIDE.cut;
+    ctx.save(); ctx.beginPath(); ctx.rect(rx - 40, foot - top - 10, 80, top + 10 - S.RIDE.cut); ctx.clip();
+    S.draw(ctx, u.rider, S.anim(u.rider, anim) ? anim : 'idle', f, t, rx, foot, o);
+    ctx.restore();
+  };
+  // how tall a unit stands above its foot (HP bars, labels, picking)
+  S.unitTop = function (u) { return u.rider ? S.RIDE.lift - S.RIDE.cut + S.top(u.rider) : S.top(u.sheet); };
+
   // until a sheet exists: a capsule in the unit's colour, so the grid can be built before the art lands
   S.placeholder = function (ctx, name, x, y, o) {
     var col = (o && o.color) || '#8a96aa';

@@ -25,5 +25,20 @@
     },
     multi: 1, jaunt: true,
     src: 'SRD 5.1 Phase Spider (Ethereal Jaunt as a bonus action; bite with a DC 11 CON poison save)'
+  },
+  // the second wave (Griz, 09-27: "adding a new monster to appear when these ones go down (your choice monster!)"):
+  // when the gallery goes still a cocoon on the far wall splits and a drider drops out. The SRD 5.1 block as written;
+  // its look is the drow captain's upper half on the phase spider's body, darkened (no sheet of its own yet)
+  drider: {
+    name: 'Drider', sheet: 'phasespider_p1', rider: 'drow_p0', cr: '6', ac: 19, hp: 123, speed: 30, size: 2, reach: 5,
+    abil: { str: 16, dex: 16, con: 18, int: 13, wis: 14, cha: 12 }, init: 3, perception: 15,
+    saves: { str: 3, dex: 3, con: 4, int: 1, wis: 2, cha: 1 },
+    attacks: {
+      longsword: { name: 'Longsword', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 5 },
+      bite: { name: 'Bite', atk: 6, dice: '1d4', mod: 0, type: 'piercing', extra: '2d8', extraType: 'poison', reach: 5 },
+      longbow: { name: 'Longbow', atk: 6, dice: '1d8', mod: 3, type: 'piercing', range: [150, 600], ranged: true, extra: '1d8', extraType: 'poison' }
+    },
+    multi: 3, faerieFire: { dc: 13, range: 60, cube: 4 }, fey: true, webWalker: true,
+    src: 'SRD 5.1 Drider (CR 6): three attacks, longsword or longbow, one of them may be the bite; Faerie Fire 1/day (DC 13); Fey Ancestry (no magical sleep); Web Walker'
   }
 };

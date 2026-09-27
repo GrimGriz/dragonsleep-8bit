@@ -28,7 +28,7 @@
   // RULED 09-27, Griz: the ring is the main menu, the window stays for those who'd rather; the bar's buttons are gone
   // (a saved 'bar' becomes the ring)
   UI.opts = { help: false, style: 'ring', autoEnd: true };
-  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { UI.opts.help = !!o0.help; if (o0.style === 'window') UI.opts.style = 'window'; if (o0.autoEnd === false) UI.opts.autoEnd = false; } } catch (e) { }
+  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window') UI.opts.style = 'window'; if (o0.autoEnd === false) UI.opts.autoEnd = false; } } catch (e) { }
   UI.saveOpts = function () { try { window.localStorage.setItem('deep16.opts', JSON.stringify(UI.opts)); } catch (e) { } };
   var qs = /[?&]menu=(window|ring)/.exec(location.search); if (qs) UI.opts.style = qs[1];
   // at rest: WINDOW holds its command window up (as Chrono Trigger does); RING stands on the grid ready to walk, and
@@ -47,7 +47,7 @@
     if (req.entry) B.entryT = B.t;
   };
   function reachCache(B, u) {
-    var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead ? 0 : 1) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
+    var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
     if (B.cache && B.cache.key === key) return B.cache;
     var dash = T.action > 0 && !T.attacksLeft ? u.speed : 0;
     B.cache = { key: key, move: G.reach(u, T.move), dash: dash ? G.reach(u, T.move + dash) : null, hide: null };
@@ -67,6 +67,22 @@
     });
     return rc.hide;
   }
+
+  // the squares she can reach (and her own) from which she'd flank a foe with an ally on its far side: { 'x,y': [{ foe, ally }] }
+  function flankSpots(B, u) {
+    var rc = reachCache(B, u);
+    if (rc.flank) return rc.flank;
+    var foes = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.dead && w.hp > 0; }), out = {};
+    var sq = [[u.x, u.y]];
+    Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand) sq.push([e.x, e.y]); });
+    sq.forEach(function (q) {
+      var got = [];
+      foes.forEach(function (f) { if (G.dist(u, f, q[0], q[1]) > 5) return; var a = G.flank(u, f, q[0], q[1]); if (a) got.push({ foe: f, ally: a }); });
+      if (got.length) out[q[0] + ',' + q[1]] = got;
+    });
+    return (rc.flank = out);
+  }
+  UI.flankSpots = flankSpots;
 
   // ------------------------------------------------------------------ the commands a style shows (window and ring add MOVE and END TURN)
   UI.cmds = function (B, u) {
@@ -93,7 +109,8 @@
     var m = I.mouse, iso = D.iso, cam = iso.cam, map = iso.map, bk = map.bake, z = iso.zoom;
     var free = !m.drag && !B.menu && !(B.req && (B.req.prompt || B.req.entry));
     if (free && m.inWin && !(m.inside && overUI(B) && m.y < D.H - 3)) {
-      var push = function (d) { return d >= EDGE ? 0 : d <= 0 ? 6 : 1.5 + 4.5 * (1 - d / EDGE); };
+      // past the edge counts for a band as wide again (and twice over); further out the mouse is parked, not pushing
+      var push = function (d) { return d >= EDGE || d < -2 * EDGE ? 0 : d <= 0 ? 6 : 1.5 + 4.5 * (1 - d / EDGE); };
       cam.x += (push(D.W - 1 - m.x) - push(m.x)) / z;
       cam.y += (push(D.H - 1 - m.y) - push(m.y)) * 0.75 / z;
     }
@@ -110,7 +127,6 @@
 
   // ------------------------------------------------------------------ input
   UI.input = function (B, req) {
-    if (I.pressed('help')) { UI.opts.help = !UI.opts.help; UI.saveOpts(); B.card(['{y}HINTS ' + (UI.opts.help ? 'ON' : 'OFF') + '{/}' + (UI.opts.help ? ': a rogue sees where she could try to hide' : '')], 150); }
     if (req.entry) {
       if (B.canSwap && (I.pressed('n2') || I.pressed('left') || I.pressed('right'))) { D.pop(); D.push(new D.Battle({ fixture: !B.o.fixture })); return; }
       if (I.pressed('a') || I.pressed('end') || I.mouse.click || (!B.canSwap && B.t - B.entryT > 240)) B.answer();
@@ -141,7 +157,7 @@
     var best = null, bd = -1e9, z = D.iso.zoom;
     B.units.forEach(function (u) {
       if (u.dead || u.ethereal) return;
-      var p = unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.top(u.sheet) : 16) * z, hw = (s > 1 ? 30 : 11) * z;
+      var p = unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * z;
       if (mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z && p.depth > bd) { bd = p.depth; best = u; }
     });
     return best;
@@ -192,6 +208,8 @@
     if (I.pressed('b')) {
       if (B.picks && B.picks.length) { B.picks.pop(); return; }
       if (B.tool !== rest()) { B.tool = rest(); B.spell = null; B.clearCards(); return; }
+      // on the ring, X at rest calls the ring up (Griz, 09-27: backing out of a move should bring it); M/Tab the menu
+      if (UI.opts.style === 'ring') { B.tool = 'menu'; B.clearCards(); return; }
       return UI.openMenu(B);
     }
     if (I.pressed('a')) actAt(B, u, B.cursor.x, B.cursor.y, true);
@@ -327,10 +345,11 @@
     }
   }
 
-  // ------------------------------------------------------------------ the X/Esc menu (and M, Tab): the party, help, the menu's style, and out
+  // ------------------------------------------------------------------ the X/Esc menu (and M, Tab): the party, the menu's style, and out
   UI.openMenu = function (B) { B.menu = { sel: 0, panel: null }; };
   function menuItems() {
-    return ['RESUME', 'PARTY', 'HINTS: ' + (UI.opts.help ? 'ON' : 'OFF'), 'MENU: ' + UI.opts.style.toUpperCase() + '  < >', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF'), 'RESTART THE FIGHT', 'THE GATE (the sprites)', 'RETURN TO SILVERTON'];
+    return [['resume', 'RESUME'], ['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
+      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)'], ['out', 'RETURN TO SILVERTON']];
   }
   UI.menuInput = function (B) {
     var M = B.menu, items = menuItems(), n = items.length;
@@ -338,20 +357,20 @@
     if (I.repeat('up')) M.sel = (M.sel + n - 1) % n;
     if (I.repeat('down')) M.sel = (M.sel + 1) % n;
     var styles = ['ring', 'window'], si = styles.indexOf(UI.opts.style);
-    if (M.sel === 3 && (I.repeat('left') || I.repeat('right'))) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); return; }
+    if (items[M.sel][0] === 'style' && (I.repeat('left') || I.repeat('right'))) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); return; }
     var pick = I.pressed('a') ? M.sel : -1;
     if (I.mouse.click && B.menuRects) B.menuRects.forEach(function (r, i) { if (hit(r)) pick = i; });
     if (I.pressed('b') || I.pressed('menu')) { B.menu = null; return; }
     if (pick < 0) return;
     M.sel = pick;
-    if (pick === 0) B.menu = null;
-    if (pick === 1) M.panel = 'party';
-    if (pick === 2) { UI.opts.help = !UI.opts.help; UI.saveOpts(); }
-    if (pick === 3) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); }
-    if (pick === 4) { UI.opts.autoEnd = !UI.opts.autoEnd; UI.saveOpts(); }
-    if (pick === 5) { D.pop(); D.push(new D.Battle({ fixture: B.o.fixture })); }
-    if (pick === 6) location.search = '?gate';
-    if (pick === 7) location.href = '../';   // back to the 8-bit game: nothing is written
+    var id = items[pick][0];
+    if (id === 'resume') B.menu = null;
+    if (id === 'party') M.panel = 'party';
+    if (id === 'style') { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); }
+    if (id === 'auto') { UI.opts.autoEnd = !UI.opts.autoEnd; UI.saveOpts(); }
+    if (id === 'restart') { D.pop(); D.push(new D.Battle({ fixture: B.o.fixture })); }
+    if (id === 'gate') location.search = '?gate';
+    if (id === 'out') location.href = '../';   // back to the 8-bit game: nothing is written
   };
   function restyle(B) { if (B.req && B.req.turn && (B.tool === 'move' || B.tool === 'menu')) B.tool = rest(); }
   UI.resultInput = function (B) {
@@ -422,9 +441,12 @@
           var s = u.size || 1;
           ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 10 * s + 1, 4 * s + 1, 0, 0, 7); ctx.fill();
         }
-        D.spr.draw(ctx, u.sheet, anim === 'hurt' && !has('hurt') ? 'idle' : anim, u.facing || 0, t, p.x, p.y, o);
+        // a rider's body (the drider's spider half) goes dark unless something else tints it; the rider on top
+        var body = u.rider && !o.tint ? Object.assign({}, o, { tint: R('outline', 0), tintAlpha: 0.5 }) : o;
+        D.spr.draw(ctx, u.sheet, anim === 'hurt' && !has('hurt') ? 'idle' : anim, u.facing || 0, t, p.x, p.y, body);
+        if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
         if (!u.dead && !u.ethereal) {
-          var top = D.spr.top(u.sheet), w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
+          var top = D.spr.unitTop(u), w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
           ctx.fillStyle = R('outline', 0); ctx.fillRect(bx - 1, by - 1, w + 2, 4);
           ctx.fillStyle = R('stone', 1); ctx.fillRect(bx, by, w, 2);
           ctx.fillStyle = u.side === 'foe' ? R('red', 3) : u.hp <= u.maxhp / 4 ? R('fire', 1) : R('moss', 2);
@@ -474,14 +496,27 @@
       var rc = reachCache(B, u);
       if (rc.dash) Object.keys(rc.dash).forEach(function (k) { var e = rc.dash[k]; if (e.stand && !rc.move[k]) fillSq(ctx, e.x, e.y, R('glow', 1), 0.07); });
       Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand && e.cost > 0) fillSq(ctx, e.x, e.y, R('glow', 1), 0.17); });
-      // HELP: the places a rogue knows she could try to hide (no foe she knows of sees her there plainly)
-      if (UI.opts.help && u.cls === 'rogue') { var hs = hideSpots(B, u); Object.keys(hs).forEach(function (k) { if (!hs[k]) return; var q = k.split(','); fillSq(ctx, +q[0], +q[1], R('violet', 3), 0.42, 5); }); }
+      // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
+      if (u.cls === 'rogue') { var hs = hideSpots(B, u); Object.keys(hs).forEach(function (k) { if (!hs[k]) return; var q = k.split(','); fillSq(ctx, +q[0], +q[1], R('violet', 3), 0.42, 5); }); }
       if (T.attacksLeft || T.action) B.units.forEach(function (w) {
         if (!G.hostile(u, w) || !G.standing(w) || G.dist(u, w) > u.reach) return;
         G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('red', 4), 0.9); });
       });
+      // flanking: a gold gem on each square (her own included) where she'd flank a foe with an ally across it (Griz, 09-27)
+      var fs = flankSpots(B, u);
+      Object.keys(fs).forEach(function (k) { var q = k.split(','); fillSq(ctx, +q[0], +q[1], R('gold', 4), 0.8, 11); });
       var e2 = rc.move[cx + ',' + cy] || (rc.dash && rc.dash[cx + ',' + cy]);
       if (e2 && e2.stand && !G.occupant(cx, cy, u)) (G.path(rc.dash && rc.dash[cx + ',' + cy] && !rc.move[cx + ',' + cy] ? rc.dash : rc.move, cx, cy) || []).forEach(function (q) { dotSq(q[0], q[1], R('bone', 2)); });
+      // on a gem: the ally across the foe lit hard, and the line through the foe between them
+      (fs[cx + ',' + cy] || []).forEach(function (fe) {
+        G.foot(fe.ally).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 1, 1); });
+        G.foot(fe.foe).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 3), 0.9, 4); });
+        var p0 = D.iso.center(cx, cy, G.map.gz(cx, cy)), s0 = D.iso.toScreen(p0.x, p0.y), a1 = UI.unitPos(B, fe.ally);
+        DEFER.push({ depth: 1e6, gz: 0, draw: function (c) { // over the figures, so the foe between doesn't hide it
+          c.strokeStyle = R('gold', 4); c.globalAlpha = 0.85; c.setLineDash([3, 3]);
+          c.beginPath(); c.moveTo(s0.x, s0.y - 2); c.lineTo(a1.x, a1.y - 2); c.stroke(); c.setLineDash([]); c.globalAlpha = 1;
+        } });
+      });
       var f = G.occupant(cx, cy);
       if (f && G.hostile(u, f) && G.dist(u, f) <= 5) {
         var ally = G.flank(u, f);
@@ -526,7 +561,6 @@
       if (u.dead) { ctx.fillStyle = R('accent', 2); ctx.fillRect(x + 1, 7, w - 4, 1); }
       x += w + 2;
     });
-    if (UI.opts.help) D.text(ctx, 'HINTS', D.W - 4, 3, R('violet', 5), 'right');
   }
   function cards(ctx, B) {
     var y = 15;
@@ -559,10 +593,14 @@
         if (e.dis.length) bits.push('{o}dis: ' + e.dis.join(', ') + '{/}');
         lines.push(bits.join('  '));
       }
-    } else if (u && UI.opts.help && u.cls === 'rogue' && (B.tool === 'move' || B.tool === 'menu')) {
-      var hs = hideSpots(B, u), k = B.cursor.x + ',' + B.cursor.y;
-      if (hs[k] === true) lines.push('{p}a place to try hiding{/}: no foe she knows of sees it plainly');
-      else if (hs[k] === false) lines.push('{g}in plain sight of a foe here{/}');
+    } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
+      var k = B.cursor.x + ',' + B.cursor.y;
+      (flankSpots(B, u)[k] || []).forEach(function (fe) { lines.push('{y}flanking{/} the ' + B.shortName(fe.foe) + ' with ' + fe.ally.name + ': advantage in melee, both'); });
+      if (u.cls === 'rogue') {
+        var hs = hideSpots(B, u);
+        if (hs[k] === true) lines.push('{p}a place to try hiding{/}: no foe she knows of sees it plainly');
+        else if (hs[k] === false) lines.push('{g}in plain sight of a foe here{/}');
+      }
     }
     if (!lines.length) return;
     var ww = 0; lines.forEach(function (l) { ww = Math.max(ww, D.textWidth(l)); });
@@ -603,8 +641,8 @@
     if (!u) return;
     ctx.fillStyle = R('stone', 1); ctx.fillRect(4, BAR_Y + 4, 36, 38);
     ctx.save(); ctx.beginPath(); ctx.rect(4, BAR_Y + 4, 36, 38); ctx.clip();
-    var top = D.spr.top(u.sheet);
-    D.spr.draw(ctx, u.sheet, 'idle', 0, B.t, 22, BAR_Y + 6 + Math.min(top, u.size > 1 ? 30 : 44), { alpha: u.ethereal ? 0.3 : 1 });
+    var face = u.rider || u.sheet, top = D.spr.top(face); // (a drider's portrait is its rider's face)
+    D.spr.draw(ctx, face, 'idle', 0, B.t, 22, BAR_Y + 6 + Math.min(top, u.size > 1 && !u.rider ? 30 : 44), { alpha: u.ethereal ? 0.3 : 1 });
     ctx.restore();
     ctx.strokeStyle = u.side === 'foe' ? R('red', 3) : R('gold', 3); ctx.strokeRect(4.5, BAR_Y + 4.5, 35, 37);
     var cl = u.side === 'foe' ? 'foe' : (u.cls + ' ' + u.lvl), clx = 44 + D.textWidth(u.name) + 6;
@@ -628,8 +666,8 @@
     ctx.strokeStyle = R('silver', 3); ctx.strokeRect(eb.x + 0.5, eb.y + 0.5, eb.w - 1, eb.h - 1);
     D.text(ctx, 'END TURN', eb.x + eb.w / 2, eb.y + 2, R('bone', 1), 'center');
     var spellRing = B.list && B.list.kind === 'spells';
-    D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'Q, or E on yourself: the ring   X: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
-    D.text(ctx, 'C recentre  H hints  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5));
+    D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'X, Q or E on yourself: the ring   M: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
+    D.text(ctx, 'C recentre  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5));
   }
   function pip(ctx, x, y, label, lit, col) { // a small lit box round a letter; gives back its width
     var w = D.textWidth(label) + 3;
@@ -767,7 +805,7 @@
     var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
     D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  Two drow on the ledge. Something in the stalagmites.', D.W / 2, 150, R('accent', 2), 'center');
     if (B.canSwap) D.text(ctx, B.o.fixture ? '2: walk in from the 8-bit save instead' : '2: walk in as the fixture instead (the four at level 9; the fight is built for them)', D.W / 2, 164, R('silver', 5), 'center');
-    D.text(ctx, 'menu: ' + UI.opts.style.toUpperCase() + ' (M or X/Esc, then MENU)   hints: ' + (UI.opts.help ? 'ON' : 'OFF') + ' (H)', D.W / 2, 194, R('stone', 5), 'center');
+    D.text(ctx, 'menu: ' + UI.opts.style.toUpperCase() + (UI.opts.style === 'ring' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)'), D.W / 2, 194, R('stone', 5), 'center');
     if ((B.t >> 5) & 1) D.text(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }
   function inspect(ctx, u) {
@@ -775,6 +813,8 @@
     if (u.weapon) lines.push(u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' ' + u.weapon.type + (u.attacks > 1 ? ', x' + u.attacks : ''));
     if (u.attacks && !u.weapon) Object.keys(u.attacks).forEach(function (k) { var a = u.attacks[k]; lines.push(a.name + ' ' + RU.sign(a.atk) + ', ' + a.dice + RU.sign(a.mod) + ' ' + a.type + (a.range ? ', ' + a.range.join('/') + ' ft' : '') + (a.extra ? ' +' + a.extra + ' ' + a.extraType : '') + (a.save ? ', DC ' + a.save.dc + ' ' + a.save.ab.toUpperCase() + ' or ' + a.save.dice + ' ' + a.save.type : '') + (a.poison ? ', DC ' + a.poison.dc + ' CON or poisoned' : '')); });
     if (u.jaunt) lines.push('{p}Ethereal Jaunt{/} (bonus action): steps out of the world, and back.');
+    if (u.multi > 2 && u.attacks && u.attacks.bite) lines.push('{p}Multiattack{/}: three, sword or bow; one of them may be the bite.');
+    if (u.fey || u.webWalker) lines.push([u.fey ? '{p}Fey Ancestry{/}: no magical sleep' : '', u.webWalker ? '{p}Web Walker{/}: webs do not hold it' : ''].filter(Boolean).join('  '));
     if (u.faerie) lines.push('{p}Faerie Fire{/} once' + (u.faerie.used ? ' (spent)' : ''));
     var c = conds(u).trim(); if (c) lines.push(c);
     var w = 0; lines.forEach(function (l) { w = Math.max(w, D.textWidth(l)); });
@@ -791,7 +831,7 @@
       var r = { x: x + 6, y: y + 6 + i * 13, w: w - 12, h: 12 };
       B.menuRects.push(r);
       if (i === M.sel) { ctx.fillStyle = R('gold', 1); ctx.fillRect(r.x, r.y, r.w, r.h); }
-      D.text(ctx, it, r.x + 6, r.y + 2, i === M.sel ? R('gold', 4) : R('bone', 1));
+      D.text(ctx, it[1], r.x + 6, r.y + 2, i === M.sel ? R('gold', 4) : R('bone', 1));
     });
   }
   // the party at a glance (the 8-bit game's status screen, in small)
