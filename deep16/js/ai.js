@@ -147,7 +147,7 @@
     yield { fx: 1 };
     yield 30;
   }
-  function visibleFrom(u, x, y, hs) { return hs.filter(function (w) { var l = G.los(u, w, x, y); return l.clear; }); }
+  function visibleFrom(u, x, y, hs) { return hs.filter(function (w) { var l = G.los(u, w, x, y); return l.clear && D.magic.sees(D.battle, { x: x, y: y, size: u.size || 1 }, w); }); }
   function* drow(B, u) {
     var T = u.turn, hs = heroes(B, u), bow = u.attacks.crossbow, blade = u.attacks.shortsword, self = this;
     if (!hs.length) { B.card(['{g}The captain looks for someone to shoot and finds no one.{/}']); yield 30; return; }
@@ -376,7 +376,9 @@
     // one who fights only to get away (the wagon pair): each turn a move toward the way out, then the blasts. On the ladder
     // they give ground a step at a time; in the 8-bit yard (fight.runWhenHurt), once they run, it is a full stride (on foot)
     if (u.flees && exits.length) {
-      var rx = G.reach(u, B.fight.runWhenHurt ? T.move : Math.min(T.move, 15)), go = null, gd = Infinity;
+      // her Darkness the turn she breaks (the 8-bit game's: "Amara throws darkness over the yard!"), then the run
+      if (u.darkness && !u.darkness.used && T.action) yield* D.magic.castDarkness(B, u);
+      var rx = G.reach(u, B.fight.runWhenHurt || B.fight.fledEnds ? T.move : Math.min(T.move, 15)), go = null, gd = Infinity; // (the 8-bit's story fights: fledEnds too)
       Object.keys(rx).forEach(function (k) { var e = rx[k]; if (!e.stand) return; var d = Math.min.apply(null, exits.map(function (x) { return Math.max(Math.abs(x[0] - e.x), Math.abs(x[1] - e.y)); })) * 10 + e.cost / 10; if (d < gd) { gd = d; go = e; } });
       if (go && (go.x !== u.x || go.y !== u.y)) { yield* walkTo(B, u, go); if (u.dead || u.hp <= 0) return; }
       if (exits.some(function (x) { return x[0] === u.x && x[1] === u.y; })) {

@@ -42,7 +42,9 @@
     (m.def.doors || []).forEach(function (q) { self.exits.push(q); });
     if (!this.exits.length) this.exits = entry.slice();
     party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });
-    var foes = (F.foes || m.def.foes).map(function (f) { return self.makeFoe(f); });
+    // inside the 8-bit game, only those still out there (this.o.embed.only: the chase's road fights)
+    var only = this.o.embed && this.o.embed.only;
+    var foes = (F.foes || m.def.foes).filter(function (f) { return !only || only.indexOf(f.kind) >= 0; }).map(function (f) { return self.makeFoe(f); });
     this.units = party.concat(foes);
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
@@ -86,6 +88,7 @@
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
+      darkness: d.darkness ? { r: d.darkness.r, range: d.darkness.range, used: false } : null, // (Amara's, once: magic.js castDarkness)
       hidden0: !!f.hidden
     };
   };
@@ -472,7 +475,8 @@
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
         var prov = this.units.filter(function (w) {
           return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && !(w.weapon && w.weapon.ranged)
-            && G.dist(w, u) <= w.reach && G.dist(w, u, null, null, nx, ny) > w.reach && !(w.conds.hidden && false);
+            && G.dist(w, u) <= w.reach && G.dist(w, u, null, null, nx, ny) > w.reach && !(w.conds.hidden && false)
+            && D.magic.sees(D.battle, w, u); // (a creature you can see: not into or out of darkness)
         });
         for (var k = 0; k < prov.length; k++) {
           var w = prov[k], take = true;

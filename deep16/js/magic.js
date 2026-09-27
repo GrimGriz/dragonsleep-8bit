@@ -132,6 +132,7 @@
     if (foeWanted && (!G.hostile(u, w) || w.hp <= 0)) return false;
     if ((g.shape === 'allies' || g.side === 'ally') && w.side !== u.side) return false;
     if (g.only === 'humanoid' && !M.humanoid(w)) return false;
+    if ((g.shape === 'single' || g.shape === 'darts' || g.shape === 'allies' || g.shape === 'splash') && w !== u && !M.sees(B, u, w)) return false; // (a creature you can see)
     if (G.dist(u, w) > (g.range || 5)) return false;
     return G.los(u, w).clear || w === u;
   };
@@ -355,6 +356,39 @@
       if (sv.ok && p.poison) delete u.conds.poisoned; // (the chuul's, the crawler's: paralyzed while poisoned; one save ends both)
       if (sv.ok) { delete u.conds.paralyzed; var c = B.units.filter(function (w) { return w.conc && (w.conc.id === 'holdmonster' || w.conc.id === 'holdperson') && w.id === p.by; })[0]; if (c) delete c.conc; }
     }
+  };
+  // ------------------------------------------------------------------ Darkness (SRD 5.1; Griz 09-27: "We'll have to deal with darkness, at least the
+  // magical kind"): a 15-ft-radius sphere of magical darkness. Nothing sees into it, out of it or across it (darkvision neither):
+  // an unseen target is attacked at disadvantage and an unseen attacker attacks with advantage (rules.js edges), no opportunity
+  // attack on one you cannot see (battle.js moveAlong), a spell that needs its target seen cannot take one (targetOK), and the
+  // foes pick only targets they can see (ai.js visibleFrom). Concentration: it lifts when the caster's does
+  M.darkAt = function (B, x, y) { return (B.darks || []).some(function (d) { return d.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };
+  M.inDark = function (B, u) { return G.foot(u).some(function (p) { return M.darkAt(B, p[0], p[1]); }); };
+  M.sees = function (B, a, b) {
+    if (!B || !(B.darks || []).length || a === b || a.devilSight) return true;
+    if (M.inDark(B, a) || M.inDark(B, b)) return false;
+    var x0 = a.x + ((a.size || 1) - 1) / 2, y0 = a.y + ((a.size || 1) - 1) / 2, dx = b.x + ((b.size || 1) - 1) / 2 - x0, dy = b.y + ((b.size || 1) - 1) / 2 - y0;
+    var n = Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) * 2);
+    for (var i = 1; i < n; i++) if (M.darkAt(B, Math.round(x0 + dx * i / n), Math.round(y0 + dy * i / n))) return false; // (across it)
+    return true;
+  };
+  // a foe's Darkness (Amara's, the turn she breaks for the way out): over as many of them as it can cover, within its range
+  M.castDarkness = function* (B, u) {
+    var K = u.darkness, hs = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w); }), best = null, bn = 0;
+    hs.forEach(function (c) {
+      if (Math.max(Math.abs(c.x - u.x), Math.abs(c.y - u.y)) * 5 > K.range) return;
+      var sq = G.sphere(c.x, c.y, K.r), n = hs.filter(function (w) { return G.inArea(w, sq); }).length;
+      if (n > bn) { bn = n; best = { c: c, sq: sq }; }
+    });
+    if (!best) return false;
+    u.turn.action = 0; K.used = true;
+    B.darks = (B.darks || []).concat([{ by: u.id, sq: best.sq }]);
+    M.concentrate(B, u, 'darkness', 'Darkness', function () { B.darks = (B.darks || []).filter(function (d) { return d.by !== u.id; }); B.card(['{p}The darkness lifts.{/}'], 300); });
+    D.sfx('magic'); FX.ring(best.c, 'violet', 44);
+    var under = hs.filter(function (w) { return G.inArea(w, best.sq); }).map(function (w) { return w.name; });
+    B.card(['{r}' + u.name + ' throws darkness over ' + under.join(', ') + '!{/}  {g}(15 ft of it: nobody sees in, out or across; concentration){/}'], 420);
+    yield 40;
+    return true;
   };
   // a shove away from `from`, n squares (Thunderwave's 10 ft): each square only if the body can stand there
   M.push = function (B, from, w, n) {

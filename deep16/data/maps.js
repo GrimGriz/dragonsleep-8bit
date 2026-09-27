@@ -368,6 +368,38 @@ window.D16.MAPS.bridge = {
   wave: null
 };
 
+// The road north of the Halfway Inn at night, where it climbs past the gulch (the 8-bit game's wagon chase: S.wagonChase, the
+// road fights): the road up the middle, grass and scrub either side, rubble, the trees closing in at the edges. North is the
+// way on toward the fork and the Tower (exit: the pair run for it); the party comes up from the south.
+window.D16.MAPS.northroad = {
+  name: 'The Road North',
+  sub: 'past the gulch, at night',
+  step: 20,
+  ground: 'earth',
+  road: 'y',
+  rows: [
+    'TTTgg.r.,,,,..g.gTTT',
+    'TTgg....,,,,....ggTT',
+    'Tgg..r..,,,,..r..ggT',
+    'Tg......,,,,......gT',
+    'gg...rr.,,,,.......g',
+    'g.......,,,,....r..g',
+    'g..r....,,,,.......g',
+    'g.......,,,,..rr...g',
+    'gg......,,,,.......g',
+    'Tg...r..,,,,......gT',
+    'Tgg.....,,,,..r..ggT',
+    'TTg.....,,,,.....gTT',
+    'TTgg....,,,,....ggTT',
+    'TTTgg...,,,,...ggTTT'
+  ],
+  entry: [[9, 13], [10, 13], [8, 13], [11, 13], [9, 12]],
+  exit: [[3, 0], [4, 0], [5, 0], [6, 0], [7, 0], [8, 0], [9, 0], [10, 0], [11, 0], [12, 0], [13, 0], [14, 0], [15, 0], [16, 0]],
+  exitName: 'up the road into the dark',
+  foes: [],
+  wave: null
+};
+
 // The road south of the Halfway Inn (the 8-bit game's S.snoot, `gnoll`): open country with the road through it,
 // scrub and stones (the rubble), and the Snoot's young blood across it by day.
 window.D16.MAPS.snootroad = {

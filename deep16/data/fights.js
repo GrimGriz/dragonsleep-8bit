@@ -120,6 +120,18 @@
       from: 'the 8-bit game: events.js S.wagonFight', won: 'THE YARD IS QUIET.', escaped: 'THEY ARE AWAY UP THE ROAD.',
       foes: [{ id: 'amara', kind: 'amara', at: [10, 6] }, { id: 'willem', kind: 'willem', at: [8, 5], traces: true }], wave: null,
       riders: [{ at: [4, 3], sheet: 'kid1_p0', gz: 12 }, { at: [4, 4], sheet: 'kid2_p0', gz: 12 }].concat(TEAM) },
+    // the chase's road fights (events.js S.wagonChase: caught1, then caught2). The first: run down on the road, they run again from
+    // the first turn (Amara's Darkness, Willem's images, a full stride north), and either one over the far edge is the 8-bit's
+    // 'fled' -- the chase on the map, then the second. The second: nowhere left to run (noFlee), to the end. js/embed.js passes
+    // `only` (who is still out there), so one of them alone fights alone
+    { id: 'roadcatch1', story: true, map: 'northroad', name: 'The Road North', sub: 'past the gulch, at night', music: 'boss', fledEnds: true,
+      intro: 'You run them down where the road climbs. They turn, and then they run again.',
+      from: 'the 8-bit game: events.js S.wagonChase (caught1)', won: 'IT IS OVER ON THE ROAD.', escaped: 'THEY ARE AWAY AGAIN, NORTH.',
+      foes: [{ id: 'amara', kind: 'amara', at: [9, 8] }, { id: 'willem', kind: 'willem', at: [11, 8] }], wave: null },
+    { id: 'roadcatch2', story: true, map: 'northroad', name: 'The Road North', sub: 'the last of the road, at night', music: 'boss', noFlee: true,
+      intro: 'You catch them at last. There is nowhere left to run, and they know it.',
+      from: 'the 8-bit game: events.js S.wagonChase (caught2)', won: 'IT IS OVER ON THE ROAD.',
+      foes: [{ id: 'amara', kind: 'amara', at: [9, 7] }, { id: 'willem', kind: 'willem', at: [11, 7] }], wave: null },
     { id: 'gricks', level: 5, map: 'grickden', name: 'The Grick Den', sub: 'south of the king\'s road, leg one', music: 'boss',
       intro: 'Something moves in the open cavern south of the road, low and fast, and then there are more of them than there were rocks. (Plain steel does half; magic does not care.)',
       from: 'the 8-bit game: deep.js S.grickDen (three gricks; five with the king)', won: 'THE DARK IS ONLY DARK AGAIN.',

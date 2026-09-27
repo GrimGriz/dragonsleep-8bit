@@ -523,6 +523,7 @@
         if (anim === 'idle' || anim === 'walk') t = u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;
+        if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.2 : 0.5; // (inside the darkness: a shape, if that)
         if (u.flash > 0) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
@@ -571,6 +572,7 @@
     });
     // a web on the floor
     (B.webs || []).forEach(function (wb) { wb.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], R('bone', 1), 0.22, 3); }); });
+    (B.darks || []).forEach(function (dk) { dk.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], '#040308', 0.86); }); }); // magical darkness
     if (B.active && !B.active.ethereal) G.foot(B.active).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9, 3); });
     if (!u) return;
     var T = u.turn, tool = B.tool, cx = B.cursor.x, cy = B.cursor.y;

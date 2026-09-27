@@ -64,6 +64,9 @@
     if (att.reckless && melee) adv.push('reckless');
     if (tgt.reckless && melee) adv.push('reckless target');
     if (att.conds.hidden) adv.push('unseen');
+    // magical darkness (magic.js sees): who cannot see whom
+    var DB = D.battle;
+    if (DB && (DB.darks || []).length && D.magic) { if (!D.magic.sees(DB, att, tgt)) dis.push('unseen target: darkness'); if (!D.magic.sees(DB, tgt, att)) adv.push('unseen attacker: darkness'); }
     if (att.conds.invisible) adv.push('invisible');
     if (tgt.conds.invisible && !att.conds.invisible) dis.push('invisible target');
     if (att.conds.restrained) dis.push('restrained');

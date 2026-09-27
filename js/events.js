@@ -1082,7 +1082,8 @@
     yield F().walk(['up', 'up', 'up']);
     yield DS.say(L('wagon.caught1'), { top: true });
     DS.fledIds = null;
-    var r2 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false });
+    // fought in DEEP16 (story-fights): the road north, and they run again from the first turn (deep16/data/fights.js roadcatch1)
+    var r2 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false, deep16: 'roadcatch1', deep16Only: who });
     f.npcs = f.npcs.filter(function (n) { return riders.indexOf(n) < 0; });
     if (r2 === 'lose') return;
     if (r2 === 'win') { g.flags.wagonOutcome = 'road'; yield DS.say(L('wagon.roadDone'), { top: true }); yield* EV.wagonAfterChase(); return; }
@@ -1107,7 +1108,7 @@
       real: real, fake: fakes, goal: { x: 30, y: 13 }, hold: HOLD,
       caught: function* () {
         yield DS.say(L('wagon.caught2'), { top: true });
-        var r3 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false, noFlee: true });
+        var r3 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false, noFlee: true, deep16: 'roadcatch2', deep16Only: who });
         F().npcs = F().npcs.filter(function (n) { return all.indexOf(n) < 0; });
         if (r3 === 'lose') return;
         g.flags.wagonOutcome = 'road';
