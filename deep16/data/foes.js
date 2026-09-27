@@ -449,7 +449,7 @@
     saves: { str: 4, dex: 0, con: 3, int: -3, wis: 0, cha: -3 },
     attacks: {
       pincer: { name: 'Pincer', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 10, grapple: { dc: 14, max: 2 } },
-      tentacles: { name: 'Tentacles', atk: 6, dice: '1d1', mod: -1, type: 'poison', reach: 5, needsHeld: true, autoHitHeld: true, paralyze: { dc: 13 } }
+      tentacles: { name: 'Tentacles', atk: 6, dice: '1d1', mod: -1, type: 'poison', reach: 10, needsHeld: true, autoHitHeld: true, paralyze: { dc: 13 } }
     },
     multi: ['pincer', 'pincer', 'tentacles'], immune: ['poison'], swims: true,
     src: 'SRD 5.1 Chuul (CR 4, Large): two pincers (reach 10, grappled, escape DC 14), the tentacles on one it holds (CON 13 or poisoned and paralyzed); content/monsters.json chuul. It swims: the water does not slow it'

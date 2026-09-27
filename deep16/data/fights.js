@@ -9,11 +9,11 @@
   D.FIGHTS = [
     // the first rungs (09-27, the Cowork seat, on Griz's "proceed with 4"): the 8-bit game's own creatures on the one map,
     // placed by hand; each names its foes and no wave. The blocks are data/foes.js; they fight by ai.js brute().
-    { id: 'rats', level: 1, map: 'cavern', name: 'The Rat Cellar', sub: 'under the Shaft Rows',
+    { id: 'rats', bestiary: true, level: 1, map: 'cavern', name: 'The Rat Cellar', sub: 'under the Shaft Rows',
       intro: 'Rats the size of dogs, and two wolves that came in after them.', from: 'the north road table (giant rats; wolves)',
       foes: [{ id: 'rat1', kind: 'giantrat', at: [8, 3] }, { id: 'rat2', kind: 'giantrat', at: [12, 3] }, { id: 'rat3', kind: 'giantrat', at: [15, 5] },
              { id: 'wolf1', kind: 'wolf', at: [5, 6] }, { id: 'wolf2', kind: 'wolf', at: [16, 8] }], wave: null },
-    { id: 'crypt', level: 2, map: 'cavern', name: 'The Old Cut', sub: 'a sealed working, opened',
+    { id: 'crypt', bestiary: true, level: 2, map: 'cavern', name: 'The Old Cut', sub: 'a sealed working, opened',
       intro: 'Four of the dead, on their feet, with the blades they were buried with.', from: 'the ladder\'s floor (SRD skeletons; not yet a set piece of the 8-bit game)',
       foes: [{ id: 'sk1', kind: 'skeleton', at: [7, 2] }, { id: 'sk2', kind: 'skeleton', at: [11, 3] }, { id: 'sk3', kind: 'skeleton', at: [14, 2] }, { id: 'sk4', kind: 'skeleton', at: [16, 5] }], wave: null },
     // ------------------------------------------------------------------ the 8-bit game's set pieces (09-27, the ladder seat, on Griz's word:
@@ -143,10 +143,10 @@
       intro: 'You lie down on the road. Two of the sect come out of the dark at the edges, and house-cleaning does not yield. (Whoever does not see them coming loses the first round.)',
       from: 'the 8-bit game: deep.js, the sect blades at the first rest after Torvald (two assassins; the party surprised unless the watch spots them). DEADLY for four at 9', won: 'THE SECT IS SHORT TWO BLADES.',
       foes: [{ id: 'blade1', kind: 'assassin', at: [2, 2] }, { id: 'blade2', kind: 'assassin', at: [16, 11] }], wave: null },
-    { id: 'gulch', level: 3, map: 'cavern', name: 'The Web', sub: 'Web Gulch, the strung end',
+    { id: 'gulch', bestiary: true, level: 3, map: 'cavern', name: 'The Web', sub: 'Web Gulch, the strung end',
       intro: 'Three giant spiders, and silk from rim to rim.', from: 'Web Gulch (giant spiders)',
       foes: [{ id: 'gs1', kind: 'giantspider', at: [10, 7] }, { id: 'gs2', kind: 'giantspider', at: [13, 8] }, { id: 'gs3', kind: 'giantspider', at: [5, 5] }], wave: null },
-    { id: 'trollhole', level: 5, map: 'cavern', name: 'The Troll Hole', sub: 'off the fourth leg',
+    { id: 'trollhole', bestiary: true, level: 5, map: 'cavern', name: 'The Troll Hole', sub: 'off the fourth leg',
       intro: 'It is already getting up again.', from: 'leg four of the highway (the troll hole)',
       foes: [{ id: 'troll1', kind: 'troll', at: [11, 4] }], wave: null },
     { id: 'gallery', level: 9, map: 'cavern', name: 'The Cocoon Gallery', sub: 'off the road, below Third Lamp',
@@ -154,6 +154,12 @@
       looks: { barley: { name: 'Denny', sheet: 'denny_p2' } } } // Denny plays Barley here only (Griz, 09-27)
   ];
   D.fight = function (id) { return D.FIGHTS.filter(function (f) { return f.id === id; })[0] || D.FIGHTS.filter(function (f) { return f.id === 'gallery'; })[0]; };
-  D.fightsAt = function (level) { return D.FIGHTS.filter(function (f) { return f.level === level; }); };
+  // a rung's fights: the Cocoon Gallery first on the top rung (the POC, Denny's), then the 8-bit game's set pieces, then
+  // the bestiary's (the Cowork seat's first four, `bestiary`)
+  function rank(f) { return f.id === 'gallery' ? -1 : f.bestiary ? 1 : 0; }
+  D.fightsAt = function (level) {
+    return D.FIGHTS.map(function (f, i) { return [f, i]; }).filter(function (p) { return p[0].level === level; })
+      .sort(function (a, b) { return rank(a[0]) - rank(b[0]) || a[1] - b[1]; }).map(function (p) { return p[0]; });
+  };
   D.fightAt = function (level) { return D.fightsAt(level)[0] || null; };
 })();
