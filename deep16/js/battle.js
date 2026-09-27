@@ -192,22 +192,24 @@
     var items = this.itemList(u);
     if (items.length) out.push({ id: 'items', label: 'ITEM', cost: 'A', ok: T.action > 0 && !T.attacksLeft, sub: 'items', icon: 'item' });
     if (u.cls === 'fighter') {
-      out.push({ id: 'secondwind', label: '2ND WIND', cost: 'B', ok: T.bonus > 0 && u.feats.secondWind > 0 });
-      out.push({ id: 'surge', label: 'SURGE', cost: 'F', ok: u.feats.actionSurge > 0 && !T.action && !T.attacksLeft });
+      out.push({ id: 'secondwind', label: '2ND WIND', cost: 'B', ok: T.bonus > 0 && u.feats.secondWind > 0, why: u.feats.secondWind > 0 ? '' : 'spent (a short rest brings it back)', note: '1d10+' + u.lvl + ' HP, ' + (u.feats.secondWind > 0 ? '1 use' : 'spent') + ' (short rest)' });
+      out.push({ id: 'surge', label: 'SURGE', cost: 'F', ok: u.feats.actionSurge > 0 && !T.action && !T.attacksLeft, why: u.feats.actionSurge > 0 ? 'after your action' : 'spent (a short rest brings it back)', note: 'one more action, ' + (u.feats.actionSurge > 0 ? '1 use' : 'spent') + ' (short rest)' });
     }
     if (u.cls === 'rogue' && u.lvl >= 2) {
-      out.push({ id: 'hide', label: 'HIDE', cost: 'B', ok: T.bonus > 0 || T.action > 0 });
-      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: T.bonus > 0 });
-      out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: T.bonus > 0 && !T.disengaged });
+      out.push({ id: 'hide', label: 'HIDE', cost: 'B', ok: T.bonus > 0 || T.action > 0, note: 'Cunning Action: Stealth against their eyes' });
+      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: T.bonus > 0, note: 'Cunning Action: +' + u.speed + ' ft this turn', icon: 'dash' });
+      out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: T.bonus > 0 && !T.disengaged, note: 'Cunning Action: leaving reach provokes nothing', icon: 'disengage' });
     }
-    if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay' });
+    if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay', note: 'a pool of ' + (u.feats.lay || 0) + ' HP (long rest), touch' });
     // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
-    if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a rest brings it back)' });
-    if (u.cls !== 'rogue') out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft });
-    if (u.cls !== 'rogue') out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged });
-    out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft });
-    out.push({ id: 'help', label: 'HELP', cost: 'A', ok: T.action > 0 && !T.attacksLeft, tool: 'help' });
-    return out.slice(0, 9);
+    if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a short rest brings it back)', note: '+' + Math.max(1, D.mod(u.abil.cha)) + ' to hit for a minute; Channel Divinity ' + (u.feats.channel > 0 ? '1/1' : '0/1') + ' (short rest)' });
+    if (u.cls !== 'rogue') out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: '+' + u.speed + ' ft this turn' });
+    if (u.cls !== 'rogue') out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
+    out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'attacks at you at disadvantage till your next turn' });
+    // Help (the attack kind) only with a foe beside you (Griz, 09-27)
+    if (this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5; }))
+      out.push({ id: 'help', label: 'HELP', cost: 'A', ok: T.action > 0 && !T.attacksLeft, tool: 'help', note: 'the next ally to swing at a foe beside you has advantage' });
+    return out;
   };
 
   // ------------------------------------------------------------------ commands

@@ -42,6 +42,9 @@
       // a second swing waits on the grid only while there's a foe to take it at; else back to rest (walk, or the ring)
       B.tool = T.attacksLeft && B.foeInReach(req.turn) ? 'attack' : B.nextTool || rest(); B.nextTool = null; B.cache = null; B.list = null; B.picks = []; B.spell = null;
       if (B.cmdSel == null || B.cmdFor !== req.turn) { B.cmdSel = 0; B.cmdFor = req.turn; B.ringA = null; }
+      // on the ring, the grid gives way to it once there's nothing left there: no step to take, no swing at a foe in reach
+      // (Griz, 09-27: all the movement spent, or the last blow struck, and the ring comes up by itself)
+      if (UI.opts.style === 'ring' && B.tool === 'move' && gridDone(B, req.turn)) { B.tool = 'menu'; B.ringStill = false; }
     }
     if (req.prompt) { B.sel = 0; D.sfx('popup'); }
     if (req.entry) B.entryT = B.t;
@@ -85,10 +88,22 @@
   UI.flankSpots = flankSpots;
 
   // ------------------------------------------------------------------ the commands a style shows (window and ring add MOVE and END TURN)
+  // the top of the menu: MOVE, ATTACK, (BREAK FREE), SPELLS, SKILLS, ITEM, ACTIONS, END TURN. SKILLS gathers the class
+  // features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action Surge, the
+  // rogue's Cunning Action); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help) -- Griz, 09-27
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, hide: 1, cdash: 1, cdisengage: 1 }, ACTIONS = { dash: 1, disengage: 1, dodge: 1, help: 1 };
+  function group(id, label, list) {
+    return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
+  }
   UI.cmds = function (B, u) {
-    var c = B.commands(u);
-    c = c.filter(function (x) { return !((x.id === 'dash' || x.id === 'cdash') && u.turn.move > 0); });
-    return [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }].concat(c).concat([{ id: 'end', label: 'END TURN', cost: 'F', ok: true, icon: 'end' }]);
+    var c = B.commands(u), top = {}, sk = [], ac = [];
+    c.forEach(function (x) { if (SKILLS[x.id]) sk.push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
+    ['attack', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    if (sk.length) out.push(group('skills', 'SKILLS', sk));
+    if (top.items) out.push(top.items);
+    if (ac.length) out.push(group('actions', 'ACTIONS', ac));
+    return out.concat([{ id: 'end', label: 'END TURN', cost: 'F', ok: true, icon: 'end' }]);
   };
 
   // ------------------------------------------------------------------ the camera: look where you like (the edge, a middle-drag), C comes back
@@ -184,7 +199,7 @@
     // hovering picks an icon only when the mouse moves onto it: a ring turning under a resting mouse, or a twitch
     // on the same icon, leaves the arrows' choice alone (Griz, 09-27: the arrows stopped working over the wheel)
     var hb = B.buttons && B.buttons[B.hoverBtn], hk = !hb ? null : hb.list != null && B.list ? 'l' + hb.list : hb.idx != null ? 'c' + hb.idx : 'x';
-    if (hb && I.mouse.moved && hk !== B.hoverKey) { if (hb.list != null && B.list) { if (B.list.sel !== hb.list) D.sfx('cursor'); B.list.sel = hb.list; } else if (hb.idx != null && B.tool === 'menu') { if (B.cmdSel !== hb.idx) D.sfx('cursor'); B.cmdSel = hb.idx; } }
+    if (hb && I.mouse.moved && hk !== B.hoverKey) { B.ringStill = true; if (hb.list != null && B.list) { if (B.list.sel !== hb.list) D.sfx('cursor'); B.list.sel = hb.list; } else if (hb.idx != null && B.tool === 'menu') { if (B.cmdSel !== hb.idx) D.sfx('cursor'); B.cmdSel = hb.idx; } }
     B.hoverKey = hk;
     if (I.mouse.click && B.hoverBtn >= 0) { var bt = B.buttons[B.hoverBtn]; return bt.end ? UI.command(B, u, { do: 'end' }) : bt.cast ? castPicks(B, u) : bt.list != null ? pickListItem(B, u, B.list.items[bt.list], bt.list) : pickCommand(B, u, bt.cmd, bt.idx); }
     if (I.mouse.rclick && !overUI(B)) { var w0 = G.occupant(B.cursor.x, B.cursor.y) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0) B.inspect = w0; return; }
@@ -198,7 +213,7 @@
       var n = cmds.length, prev = B.cmdSel;
       if (st === 'window') { if (I.repeat('up')) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('down')) B.cmdSel = (B.cmdSel + 1) % n; }
       else { if (I.repeat('left') || I.repeat('up')) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('right') || I.repeat('down')) B.cmdSel = (B.cmdSel + 1) % n; }
-      if (B.cmdSel !== prev) { B.clearCards(); D.sfx('cursor'); }
+      if (B.cmdSel !== prev) { B.clearCards(); D.sfx('cursor'); B.ringStill = false; }
       if (I.pressed('a')) return pickCommand(B, u, cmds[B.cmdSel], B.cmdSel);
       if (I.pressed('b')) { if (rest() !== 'menu') { D.sfx('cancel'); B.tool = rest(); return; } return UI.openMenu(B); } // the ring goes back down
       if (I.mouse.click && !overUI(B)) actAt(B, u, B.cursor.x, B.cursor.y);
@@ -216,6 +231,12 @@
     if (I.pressed('a')) actAt(B, u, B.cursor.x, B.cursor.y, true);
     else if (I.mouse.click && !overUI(B)) actAt(B, u, B.cursor.x, B.cursor.y, false);
   }
+  function gridDone(B, u) {
+    var T = u.turn;
+    if ((T.attacksLeft > 0 || T.action > 0) && B.foeInReach(u)) return false;
+    if (T.move > 0 && !u.conds.restrained) { var rc = reachCache(B, u); if (Object.keys(rc.move).some(function (k) { return rc.move[k].stand && rc.move[k].cost > 0; })) return false; }
+    return true;
+  }
   // nothing left this turn: no square to step to, and every command grey (the bonus, a surge, a spell all count)
   function spent(B, u) {
     var T = u.turn;
@@ -231,6 +252,12 @@
     D.sfx('confirm');
     if (c.id === 'end') return UI.command(B, u, { do: 'end' });
     if (c.sub === 'spells' && UI.opts.style === 'ring') { B.list = levelRing(B, u); B.ringB = null; return; }
+    if (c.items) { // SKILLS, ACTIONS: their commands as a list (a ring on the ring)
+      var cl = c.items.map(function (x) { return { kind: 'cmd', cmd: x, id: x.id, icon: x.icon, name: x.label, label: x.label, cost: x.cost, ok: x.ok, why: x.why, note: x.note }; });
+      var f0 = 0; cl.some(function (e, i) { if (e.ok) { f0 = i; return true; } return false; });
+      B.list = { kind: c.sub, items: cl, sel: f0, title: c.label }; B.ringB = null; B.ringStill = false;
+      return;
+    }
     if (c.sub) {
       var items = c.sub === 'spells' ? D.magic.list(B, u).map(function (e) { e.kind = 'spell'; return e; }) : B.itemList(u).map(function (e) { e.kind = 'item'; return e; });
       var first = 0; items.some(function (e, i) { if (e.ok) { first = i; return true; } return false; });
@@ -261,6 +288,7 @@
       if (I.repeat(slotKey[0])) e.slot = e.levels[Math.max(0, i - 1)];
       if (I.repeat(slotKey[1])) e.slot = e.levels[Math.min(e.levels.length - 1, i + 1)];
     }
+    if (L.sel !== sel0) B.ringStill = false;
     if (L.sel !== sel0 || (e && e.slot !== slot0)) D.sfx('cursor');
     for (var k = 1; k <= 9; k++) if (I.pressed('n' + k) && L.items[k - 1]) return pickListItem(B, u, L.items[k - 1], k - 1);
     if (I.pressed('a')) return pickListItem(B, u, e, L.sel);
@@ -270,6 +298,7 @@
     if (!e) return;
     B.list.sel = i;
     if (!e.ok) { D.sfx('error'); B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
+    if (e.kind === 'cmd') { B.list = null; return pickCommand(B, u, e.cmd); } // (it says its own confirm)
     D.sfx('confirm');
     if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.label }; B.ringC = null; return; }
     B.list = null;
@@ -483,24 +512,16 @@
   function lineSq(ctx, x, y, color, alpha, inset) { onSq(x, y, function (c) { D.iso.rhombus(c, x, y, G.map.gz(x, y), inset == null ? 2 : inset); c.globalAlpha = alpha == null ? 1 : alpha; c.strokeStyle = color; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1; }); }
   function dotSq(x, y, color) { onSq(x, y, function (c) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); c.fillStyle = color; c.fillRect(s.x - 1, s.y - 1, 2, 2); }); }
   function overlay(ctx, B, u) {
-    // the aura of protection: a gold ring 10 ft round a standing paladin
+    // the aura of protection round a standing paladin: a dashed gold circle, 10 ft (Griz, 09-27: "auras as circles centered
+    // on him"). Its radius, 2.9 squares, takes in the centre of every square within 10 ft -- the 5x5 block the rules
+    // count, corners too -- and none past it; the cursor inside says what it is
     B.units.forEach(function (p) {
       if (p.cls !== 'paladin' || p.lvl < 6 || !G.standing(p) || !RU.canAct(p)) return;
-      var inA = function (x, y) { return Math.max(Math.abs(x - p.x), Math.abs(y - p.y)) <= 2; };
-      for (var y = p.y - 2; y <= p.y + 2; y++) for (var x = p.x - 2; x <= p.x + 2; x++) {
-        var s = G.map.at(x, y); if (!s || !s.open) continue;
-        (function (x, y, s) {
-          onSq(x, y, function (c) {
-            var cc = D.iso.center(x, y, s.gz), q = D.iso.toScreen(cc.x, cc.y);
-            c.strokeStyle = R('gold', 3); c.globalAlpha = 0.75; c.lineWidth = 1; c.beginPath();
-            if (!inA(x, y - 1)) { c.moveTo(q.x - 32, q.y); c.lineTo(q.x, q.y - 16); }
-            if (!inA(x + 1, y)) { c.moveTo(q.x, q.y - 16); c.lineTo(q.x + 32, q.y); }
-            if (!inA(x, y + 1)) { c.moveTo(q.x + 32, q.y); c.lineTo(q.x, q.y + 16); }
-            if (!inA(x - 1, y)) { c.moveTo(q.x, q.y + 16); c.lineTo(q.x - 32, q.y); }
-            c.stroke(); c.globalAlpha = 1;
-          });
-        })(x, y, s);
-      }
+      var q = unitPos(B, p), r = 2.9 * Math.SQRT2;
+      ctx.save(); ctx.beginPath(); ctx.ellipse(q.x, q.y, r * D.iso.TW / 2, r * D.iso.TH / 2, 0, 0, Math.PI * 2);
+      ctx.globalAlpha = 0.06; ctx.fillStyle = R('gold', 3); ctx.fill();
+      ctx.globalAlpha = 0.75; ctx.strokeStyle = R('gold', 3); ctx.lineWidth = 1; ctx.setLineDash([4, 3]); ctx.stroke();
+      ctx.restore();
     });
     // a web on the floor
     (B.webs || []).forEach(function (wb) { wb.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], R('bone', 1), 0.22, 3); }); });
@@ -610,6 +631,10 @@
       }
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
+      B.units.forEach(function (p) {
+        if (p.cls !== 'paladin' || p.lvl < 6 || !G.standing(p) || !RU.canAct(p) || Math.max(Math.abs(B.cursor.x - p.x), Math.abs(B.cursor.y - p.y)) > 2) return;
+        lines.push('{y}' + p.name + '\'s aura{/}: allies here add +' + Math.max(1, D.mod(p.abil.cha)) + ' to saving throws');
+      });
       (flankSpots(B, u)[k] || []).forEach(function (fe) { lines.push('{y}flanking{/} the ' + B.shortName(fe.foe) + ' with ' + fe.ally.name + ': advantage in melee, both'); });
       if (u.cls === 'rogue') {
         var hs = hideSpots(B, u);
@@ -700,18 +725,19 @@
     var h = vis * 11 + 26, y = yBottom - h;   // the rows, then the summary line clear of the last one
     win ? winBox(ctx, x, y, w, h) : box(ctx, x, y, w, h, R('glow', 1));
     B.uiRects.push({ x: x, y: y, w: w, h: h });
-    D.text(ctx, L.kind === 'spells' ? (L.title || 'SPELLS') + (u.slots.length ? '   slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : '') : 'ITEMS (an action)', x + 6, y + 4, R('gold', 4));
+    D.text(ctx, L.kind === 'spells' ? (L.title || 'SPELLS') + (u.slots.length ? '   slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : '') : L.kind === 'items' ? 'ITEMS (an action)' : (L.title || ''), x + 6, y + 4, R('gold', 4));
     for (var k = 0; k < vis; k++) {
       var i = start + k, e = rows[i], r = { x: x + 3, y: y + 14 + k * 11, w: w - 6, h: 11, list: i };
       B.buttons.push(r);
       if (i === L.sel) { ctx.fillStyle = win ? R('blue', 2) : R('stone', 3); ctx.fillRect(r.x, r.y, r.w, r.h); if (win) hand(ctx, r.x - 10, r.y + 1); }
       D.text(ctx, (k + 1) + ' ' + e.name, r.x + 3, r.y + 2, e.ok ? R('bone', 2) : R('stone', 4));
-      D.text(ctx, slotText(e) + (e.g ? '  ' + costTag(e.g.time) : ''), r.x + r.w - 3, r.y + 2, e.ok ? R('silver', 5) : R('stone', 4), 'right');
+      D.text(ctx, e.kind === 'cmd' ? costTag(e.cost) : slotText(e) + (e.g ? '  ' + costTag(e.g.time) : ''), r.x + r.w - 3, r.y + 2, e.ok ? R('silver', 5) : R('stone', 4), 'right');
     }
     var cur = rows[L.sel];
     var sy = y + h - 10;
     if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.sp) D.text(ctx, '{g}' + D.magic.summary(cur, u) + '{/}', x + 6, sy, R('accent', 2));
+    else if (cur && cur.note) D.text(ctx, '{g}' + cur.note + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire' }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
   }
 
@@ -763,7 +789,7 @@
     var spells = B.list && B.list.kind === 'spells', target = -sel * (Math.PI * 2 / n), key = !B.list ? 'ringA' : spells ? 'ringC' : 'ringB';
     if (B[key] == null) B[key] = target;
     var dA = target - B[key]; while (dA > Math.PI) dA -= Math.PI * 2; while (dA < -Math.PI) dA += Math.PI * 2;
-    B[key] += dA * 0.35;
+    if (!B.ringStill) B[key] += dA * 0.35; // (still while the mouse picks: it points where the icon is -- Griz, 09-27)
     ctx.fillStyle = 'rgba(10,8,16,.35)'; ctx.beginPath(); ctx.ellipse(cx, cy, rx + 10, ry + 10, 0, 0, 7); ctx.fill();
     var order = cmds.map(function (c, i) { var a = Math.PI / 2 + B[key] + i * Math.PI * 2 / n; return { c: c, i: i, x: cx + Math.cos(a) * rx, y: cy + Math.sin(a) * ry, z: Math.sin(a) }; });
     order.sort(function (a, b) { return a.z - b.z; });
@@ -779,12 +805,12 @@
       // the one at the front is named in full below the ring
       if (o.c.kind === 'spell' && !front) D.text(ctx, initials(o.c.name), bx + 6, by + 6, o.c.ok ? R('bone', 2) : R('stone', 4), 'center');
     });
-    if (spells && B.list.title) { var tt = B.list.title, tw2 = D.textWidth(tt) + 10; box(ctx, Math.round(cx - tw2 / 2), Math.round(cy - ry - 30), tw2, 12, R('glow', 1)); D.text(ctx, tt, cx, Math.round(cy - ry - 28), R('gold', 4), 'center'); }
+    if (B.list && B.list.title) { var tt = B.list.title, tw2 = D.textWidth(tt) + 10; box(ctx, Math.round(cx - tw2 / 2), Math.round(cy - ry - 30), tw2, 12, R('glow', 1)); D.text(ctx, tt, cx, Math.round(cy - ry - 28), R('gold', 4), 'center'); }
     var cur = cmds[sel], label = (cur.label || cur.name) + (cur.kind === 'item' ? '  ' + slotText(cur) : cur.kind === 'spell' && cur.level ? '  L' + cur.slot + (cur.levels.length > 1 ? ' ^v' : '') : '') + (cur.cost ? '  ' + costTag(cur.cost) : cur.g ? '  ' + costTag(cur.g.time) : '');
     var lw = D.textWidth(label) + 10, ly = cy + ry + 16;
     box(ctx, Math.round(cx - lw / 2), ly, lw, 12, R('gold', 3));
     D.text(ctx, label, cx, ly + 2, cur.ok ? R('bone', 2) : R('stone', 4), 'center');
-    var sub = !cur.ok && cur.why ? cur.why : cur.kind === 'spell' ? D.magic.summary(cur, u) : '';
+    var sub = !cur.ok && cur.why ? cur.why : cur.kind === 'spell' ? D.magic.summary(cur, u) : cur.note || '';
     if (sub) { var ww = D.textWidth(sub) + 8; box(ctx, Math.round(cx - ww / 2), ly + 13, ww, 11, R('stone', 3)); D.text(ctx, '{g}' + sub + '{/}', cx, ly + 15, R('accent', 2), 'center'); }
   }
   function initials(name) { var w = name.split(' ').filter(function (x) { return !/^(of|the)$/i.test(x); }); return w.length > 1 ? w.map(function (x) { return x[0]; }).join('').slice(0, 2) : name.slice(0, 2); }

@@ -14,6 +14,8 @@
     hide: ['............', '............', '...oooooo...', '..oVVVVVVo..', '.oVVwwwwVVo.', 'oVVwwoowwVVo', '.oVVwwwwVVo.', '..oVVVVVVo..', '...oooooo...', '.oooooooooo.', '............', '............'],
     secondwind: ['............', '..oo...oo...', '.orro.orro..', 'orRRrorRRro.', 'orRRRRRwRro.', 'orRRRRwwwRo.', '.orRRRRwRo..', '..orRRRRo...', '...orRRo....', '....oro.....', '.....o......', '............'],
     surge: ['......oooo..', '.....oGGo...', '....oGGo....', '...oGGo.....', '..oGGGGGo...', '..ooooGGo...', '.....oGo....', '....oGo.....', '...oGo......', '..oGo.......', '..oo........', '............'],
+    skills: ['...oooooo...', '..osSSSSso..', '.osSSgGSSso.', '.osSgGGgSso.', '.osgGGGGgso.', '.osSgGGgSso.', '.osSSgGSSso.', '..osSSSSso..', '..osSSSSso..', '...osSSso...', '....osso....', '.....oo.....'],
+    actions: ['.....oo.....', '....occo....', '...occcco...', '.o...cc...o.', 'oco..cc..oco', 'occcccccccco', 'occcccccccco', 'oco..cc..oco', '.o...cc...o.', '...occcco...', '....occo....', '.....oo.....'],
     sacred: ['..w......oo.', '.www....oGgo', '..w....oGgo.', '......oGgo..', '.oo..oGgo.w.', '.ogo.Ggo.www', '..ogogo...w.', '...ogo......', '..oLgo......', '.oLo.ogo....', 'oLo...oo....', '.o..........'],
     lay: ['....o.o.....', '...ogogo.o..', '...ogogoogo.', '.o.ogogogo..', 'ogoogggggo..', '.ogogggggo..', '..ogggGggo..', '..oggGGgo...', '...oggggo...', '...ogggo....', '....ooo.....', '............'],
     free: ['............', '.ooo....ooo.', 'oSSSo..oSSSo', 'oS.So..oS.So', 'oSSSo..oSSSo', '.ooo....ooo.', '....o..o....', '...o....o...', '............', '..o......o..', '............', '............'],

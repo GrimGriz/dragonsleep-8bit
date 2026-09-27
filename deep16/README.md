@@ -15,7 +15,11 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
 - **Menu styles** (RULED 09-27, Griz: the ring main, the window for those who'd rather; the first try's BAR of
   buttons dropped. Switched in the menu, kept per browser, or `?menu=ring|window`): **RING** — a Secret of Mana-style
   ring of icons round the hero; a turn starts on the grid, ready to walk, and the ring comes up on X, Q, E over the
-  hero or a click on him. SPELLS opens a ring of levels, a level a ring of its spells (up/down picks the slot) ·
+  hero or a click on him — and by itself once the grid has nothing left (no step to take, no swing at a foe in reach).
+  Hovering picks an icon where it is (the ring holds still for the mouse); the keys turn it. SPELLS opens a ring of
+  levels, a level a ring of its spells (up/down picks the slot); **SKILLS** the class features that spend something
+  (Lay on Hands, Sacred Weapon, Second Wind, Action Surge, Cunning Action — the 8-bit game's SKILL); **ACTIONS** the
+  plain ones (Dash, Disengage, Dodge, and Help with a foe beside you). Each shows what it has left ·
   **WINDOW** — a Chrono Trigger-style command window with a pointing hand, up at rest; SPELLS and ITEM open a list
   (left/right picks the slot level). The bar shows **BARM** after the class — bonus, action, reaction, move and the
   feet left — each lit while it's there to spend.
@@ -30,7 +34,9 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
   the turn passes after a beat; X holds it.
 - **On the grid, always** (09-27; the old HINTS toggle is gone): a rogue's reachable squares that no foe she knows
   of sees plainly are tinted violet; and for any hero, a gold gem marks each square (her own included) where she'd
-  flank a foe with an ally on its far side — the cursor on a gem lights that ally hard and names the pair.
+  flank a foe with an ally on its far side — the cursor on a gem lights that ally hard and names the pair. A
+  paladin's Aura of Protection is a dashed gold circle round him (10 ft: it takes in the centre of every square the
+  rules count), and the cursor inside it says so.
 - **The second wave:** when the two drow and the spider are down, a cocoon on the far wall splits and a **drider**
   drops out (SRD 5.1, CR 6; its look is the drow captain's upper half on the phase spider's body, darkened, till it has
   a sheet of its own). It closes and fights (the bite, then two longsword cuts) or stands off with three longbow shots;
@@ -54,7 +60,7 @@ outline. Sheets are `art/<figure>_p<N>.png` + `.json` (per-animation frame sizes
   Character Generator (GitHub), recolours them from its palettes and composites the figures into
   `_src/lpc/composed/`; then `python tools/pixelate.py p0 all`. Four directions onto eight facings.
 - **Pipeline 1, Blender pre-render** (`*_p1`): `"C:/Program Files/Blender Foundation/Blender 5.2/blender.exe" -b
-  --disable-autoexec --python tools/render-sprites.py -- <figure> 8` renders a CC0 model (KayKit, or the OpenGameArt
+  --disable-autoexec --python tools/render-sprites.py — <figure> 8` renders a CC0 model (KayKit, or the OpenGameArt
   spider) at the dimetric angle — orthographic, X 60°, Z 45°, the toon matcap — per `tools/deep16-figures.json`
   (which parts show, the atlas recolours, the actions); then `python tools/pixelate.py p1 all`.
 - **Pipeline 2, generated** (`denny_p2`): Griz's generated character sheet, cut and cleaned by `python tools/denny-sheet.py`.
