@@ -125,6 +125,20 @@ generator: turns, commands, attacks and their reactions, the spells) · `js/ai.j
 A stepped harness for testing lives in `dev/deep16-harness.js` (gitignored): pause the loop, drive a turn per call,
 rig the dice, inject an attack.
 
+**The climb** (09-27, `js/climb.js`, `?climb`, or C / the button on the ladder; Griz: "an alternate mode that goes
+fight-by-fight 1-9 (random of created battles)"): one party from level 1 (Barley in splint, as on the ladder). Each
+rung draws a fight at random from the rung's; the camp comes before it (a long rest between fights; the gear chosen
+there stays with the party). A win is the **level-up with your picks** (SRD 5.1, as the build plays it): an ability
+score increase at 4 and 8, and 6 for the fighter (+2 to one, or +1 to two; the SRD's one feat, Grappler, isn't built),
+the rogue's archetype at 3 (Thief: ITEM for the bonus action; Cutthroat: in the first round, advantage on a foe that
+hasn't acted, and a hit on it is a critical) and two Expertise skills at 6, the wizard's two spells a level from 3 (the
+8-bit game's list and Misty Step; Thunderwave and Hold Person are listed, not built) and a cantrip at 4. The class's
+own part (HP, a max hit die a level; slots; features; Champion, Devotion) comes as the 8-bit game levels it, and the
+quests' reward weapons at 5 and 9. **All four down**: back to the bottom, a new run at level 1 (the best level is
+kept). **One of them out the way the party came in** (LEAVE THE FIGHT, in ACTIONS, on the fight's entry squares; a
+foe beside them gets its opportunity attack): back to the campfire, where the DM's hands raise the fallen, no level
+for it, and another fight drawn from the rung. Kept in `deep16.climb`.
+
 **The camp** (09-27, `js/camp.js`: Griz, "spell prep should probably run before each fight"): a rung's E opens the camp
 before the fight. **EQUIP** from the rung's armoury, free (Silverton's racks from rung 1; the lake's hoard and Winters'
 cases from 5; the Door-Shield and the smith's from 6; dwarven plate at 8): what one hero sets down another can take up.

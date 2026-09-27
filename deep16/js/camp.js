@@ -34,18 +34,23 @@
   // the lowest slot of a level or higher with one left (index), or -1
   function slotAt(h, lvl) { for (var i = lvl - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) return i; return -1; }
 
-  function Camp(L, F, done) { this.L = L; this.F = F; this.done = done; this.t = 0; }
+  // o.climb (js/climb.js): the climb's own party, rested, instead of the ladder's fixture; its gear stays with it
+  function Camp(L, F, done, o) { this.L = L; this.F = F; this.done = done; this.t = 0; this.o = o || {}; }
   D.Camp = Camp;
   Camp.prototype.opaque = true;
   Camp.prototype.enter = function () {
-    var all = D.store.get(KEY) || {};
-    this.st = all[this.L] || this.fresh();
-    this.base = SV.fixture(this.L, { bare: true });
+    var all = D.store.get(KEY) || {}, cl = this.o.climb;
+    this.st = cl ? (cl.campState() || this.fresh()) : all[this.L] || this.fresh();
+    this.base = cl ? cl.rested() : SV.fixture(this.L, { bare: true });
     this.mode = 'menu'; this.sel = 0; this.top = 0; this.stack = []; this.msg = null;
     this.rebuild();
   };
   Camp.prototype.fresh = function () { return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: 'aurdin' }, aid: { on: false, out: 'lymen' } } }; };
-  Camp.prototype.save = function () { var all = D.store.get(KEY) || {}; all[this.L] = this.st; D.store.set(KEY, all); };
+  Camp.prototype.save = function () {
+    if (this.o.climb) { this.o.climb.setCamp(this.st); return; }
+    var all = D.store.get(KEY) || {}; all[this.L] = this.st; D.store.set(KEY, all);
+  };
+  Camp.prototype.look = function (id) { return SV.look(id, this.o.climb ? null : this.F); }; // the climb: Barley is Barley
 
   // ------------------------------------------------------------------ the morning, built from the choices
   Camp.prototype.build = function () {
@@ -112,8 +117,10 @@
         { label: 'PREPARE SPELLS', right: hs.filter(function (h) { return h.prepared; }).map(function (h) { return h.name + ' ' + h.prepared.length + '/' + SV.prepCount(h); }).join('  '), act: go('caster'), desc: 'The day\'s spells. Aurdin prepares INT + his level from his book; Lymen CHA + half his level from the paladin list. Cantrips, and Lymen\'s oath spells, are always ready.' },
         { label: 'CAST AHEAD', right: [this.info.mageArmor.on ? 'mage armor' : '', this.info.aid.on ? 'aid' : ''].filter(Boolean).join(', ') || 'nothing', act: go('cast'), desc: 'The 8-hour spells, cast this morning: they are on when the fight starts, and their slots are spent.' },
         { label: 'FIGHT', right: this.F.name, act: function () { self.fight(); }, desc: this.F.intro || '' },
-        { label: 'THE BUILD\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to the 8-bit game\'s own picks: their own gear, the build\'s spells, Mage Armor on Aurdin.' },
-        { label: 'BACK TO THE LADDER', right: '', act: function () { self.leave(null); }, desc: '' }
+        this.o.climb
+          ? { label: 'RESET THE MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'The day\'s spells back to the default picks from what they know, Mage Armor on Aurdin if he knows it, and today\'s gear changes undone.' }
+          : { label: 'THE BUILD\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to the 8-bit game\'s own picks: their own gear, the build\'s spells, Mage Armor on Aurdin.' },
+        { label: this.o.climb ? 'BACK TO THE CLIMB' : 'BACK TO THE LADDER', right: '', act: function () { self.leave(null); }, desc: '' }
       ] };
       case 'hero': return { title: 'EQUIP WHOM?', rows: hs.map(function (h) { return { label: h.name.toUpperCase(), right: 'AC ' + R.ac(h) + '  ' + R.weaponOf(h).name, act: go('slot', { hero: h.id }), hero: h.id }; }) };
       case 'slot': {
@@ -204,7 +211,10 @@
     var self = this;
     this.save();
     D.sfx('confirm');
-    D.push(new D.Battle({ ladder: true, fight: this.F.id, data: this.build(), onDone: function (res) { self.leave(res); } }));
+    var data = this.build();
+    // the climb: the gear chosen here goes with the party from now on
+    if (this.o.climb) { this.o.climb.keep(data.party); this.st.equip = {}; this.save(); }
+    D.push(new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, onDone: function (res) { self.leave(res); } }));
   };
   // back to the ladder (the fight has popped itself already)
   Camp.prototype.leave = function (res) { if (D.top() === this) D.pop(); this.done(res); };
@@ -247,10 +257,10 @@
     var fl = [P('red', 3), P('fire', 1), P('gold', 3), P('gold', 4)];
     for (var k = 0; k < 7; k++) { var hgt = 3 + ((this.t / 4 + k * 5) % 7); ctx.fillStyle = fl[k % 4]; ctx.fillRect(236 + k, 258 - hgt, 1, hgt); }
     ctx.save(); ctx.translate(6, 5); ctx.scale(2, 2); D.text(ctx, 'THE CAMP', 0, 0, P('gold', 4)); ctx.restore();
-    D.text(ctx, 'level ' + this.L + '  ·  before {y}' + this.F.name + '{/}  ·  ' + (this.F.sub || ''), 98, 9, P('silver', 5));
+    D.text(ctx, (this.o.climb ? '{p}the climb{/}  ·  ' : '') + 'level ' + this.L + '  ·  before {y}' + this.F.name + '{/}  ·  ' + (this.F.sub || ''), 98, 9, P('silver', 5));
     // the four
     hs.forEach(function (h, i) {
-      var x = 6, y = PY + i * 56, w = 232, hh = 53, look = SV.look(h.id, self.F), on = focus === h.id;
+      var x = 6, y = PY + i * 56, w = 232, hh = 53, look = self.look(h.id), on = focus === h.id;
       box(ctx, x, y, w, hh, on ? P('gold', 4) : P('stone', 3));
       ctx.save(); ctx.beginPath(); ctx.rect(x + 3, y + 3, 32, hh - 6); ctx.clip();
       var sheet = look.sheet || h.id + '_p0';

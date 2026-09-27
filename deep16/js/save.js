@@ -102,7 +102,8 @@
     };
   }
   // Misty Step is the POC spec's (§3) and not in the 8-bit game's list: a wizard of 3rd level or more has it in his book here
-  function bookOf(h) { var k = (h.known || []).slice(); if (h.cls === 'wizard' && h.lvl >= 3 && k.indexOf('mistystep') < 0) k.push('mistystep'); return k; }
+  // (the climb's wizard learns his own spells: Misty Step only if he picked it)
+  function bookOf(h) { var k = (h.known || []).slice(); if (!h.climb && h.cls === 'wizard' && h.lvl >= 3 && k.indexOf('mistystep') < 0) k.push('mistystep'); return k; }
   SV.displaced = function (h) { var c = R.item(h.equip && h.equip.cloak); return !!(c && c.cloak && c.cloak.displacement); };
   // what a hero can cast in the fight: all he knows, or, once the camp has prepared his day (h.prepared), his cantrips,
   // the spells he prepared, and the ones his oath keeps ready

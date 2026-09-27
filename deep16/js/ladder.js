@@ -58,6 +58,9 @@
   Ladder.prototype.update = function () {
     this.t++;
     if (this.leaving) return this.leaveInput();
+    // C, or the button top right: the climb (js/climb.js), one party from 1 to 9
+    var cb = this.climbBtn, mm = I.mouse;
+    if (!this.card && (I.pressed('center') || (mm.click && cb && mm.x >= cb.x && mm.x < cb.x + cb.w && mm.y >= cb.y && mm.y < cb.y + cb.h))) { D.sfx('confirm'); D.pop(); D.push(new D.Climb()); return; }
     if (this.card) {
       if (I.pressed('a') || I.pressed('b') || I.mouse.click) { D.sfx('confirm'); this.card = null; }
       return;
@@ -128,6 +131,10 @@
       if (h.slots) D.text(ctx, h.slots, bx + 6, yy + 18, P('accent', 2));
     });
     D.text(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E fight  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
+    var cb = this.climbBtn = { x: D.W - 104, y: 4, w: 98, h: 17 }, cl = D.climb && D.climb.load();
+    ctx.fillStyle = P('violet', 1); ctx.fillRect(cb.x, cb.y, cb.w, cb.h); ctx.strokeStyle = P('violet', 4); ctx.strokeRect(cb.x + 0.5, cb.y + 0.5, cb.w - 1, cb.h - 1);
+    D.text(ctx, '{p}THE CLIMB{/}  (C)', cb.x + cb.w / 2, cb.y + 2, P('bone', 1), 'center');
+    D.text(ctx, cl ? 'level ' + cl.level + ', run ' + cl.run : 'one party, 1 to 9', cb.x + cb.w / 2, cb.y + 10, P('stone', 5), 'center');
     if (this.card) this.drawCard(ctx);
     if (this.leaving) {
       var lw = 300, lx = (D.W - lw) / 2;

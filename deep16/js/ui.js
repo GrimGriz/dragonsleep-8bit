@@ -92,7 +92,7 @@
   // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
   // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
   // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1 };
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, leave: 1 };
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -413,7 +413,7 @@
     B.swapGear(u, o);
     B.menu = null; // back to the turn
   }
-  UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? 'BACK TO THE LADDER' : 'RETURN TO SILVERTON'; };
+  UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? (B.o.climb ? 'BACK TO THE CLIMB' : 'BACK TO THE LADDER') : 'RETURN TO SILVERTON'; };
   UI.menuInput = function (B) {
     var M = B.menu, items = menuItems(B), n = items.length, s0 = M.sel;
     if (M.panel === 'equip') return gearInput(B);
@@ -495,6 +495,7 @@
   UI.unitPos = unitPos;
   function unitObj(B, u) {
     var p = unitPos(B, u), has = function (a) { return !!D.spr.anim(u.sheet, a); };
+    if (u.left) return null; // out of the fight, the way they came in
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
     return {
       depth: p.depth, gz: p.gz, layer: 1, draw: function (ctx) {

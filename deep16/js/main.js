@@ -11,7 +11,8 @@
   window.addEventListener('error', function (e) { D.lastError = e.error || e.message; });
   D.canvas.focus();
   D.loadImages(D.spr.images(), function () {
-    if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder());
+    if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
+    else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder());
     else if (/[?&]gate\b/.test(q)) D.push(new D.Gate());
     else if (/[?&]view\b/.test(q)) D.push(new D.MapView('cavern'));
     else D.push(new D.Battle());

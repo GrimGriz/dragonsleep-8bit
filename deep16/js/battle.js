@@ -21,8 +21,9 @@
     else if (this.o.ladder) this.from = { from: 'the ladder', when: null, data: D.save.fixture(F.level) };
     else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
     this.canSwap = !this.o.ladder && (this.o.fixture || this.from.from !== 'the fixture');
-    var party = D.save.units(this.from.data, F);
+    var party = D.save.units(this.from.data, this.o.climb ? Object.assign({}, F, { looks: null }) : F); // the climb: Barley is Barley
     var entry = (F.entry || m.def.entry).slice();
+    this.exits = entry.slice(); // the way the party came in, and the way out (LEAVE THE FIGHT)
     party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });
     var foes = (F.foes || m.def.foes).map(function (f) { return self.makeFoe(f); });
     this.units = party.concat(foes);
@@ -152,7 +153,8 @@
     // a fight that must not let them go (the wagon yard: fight.noEscape): one got away, and it is lost
     if (this.fight.noEscape && !this.alive('foe').length && this.units.some(function (u) { return u.fled; })) return 'lost';
     if (!this.alive('foe').length) return 'won';
-    if (!this.alive('party').length) return 'lost';
+    // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27)
+    if (!this.alive('party').length) return this.units.some(function (u) { return u.left; }) ? 'escaped' : 'lost';
     return null;
   };
 
@@ -235,7 +237,8 @@
     D.music(o === 'won' ? 'victory' : 'gameover');
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
-    this.card([o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}', '{g}' + (this.o.onDone ? 'E back to the ladder' : 'E fight again') + ' · M the menu{/}'], 1e9);
+    var head = o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
+    this.card([head, '{g}' + (this.o.onDone ? (this.o.climb ? 'E back to the climb' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}'], 1e9);
   };
 
   // ------------------------------------------------------------------ a hero's turn: the player acts until END TURN
@@ -274,7 +277,8 @@
     var spells = D.magic.list(this, u);
     if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spells.some(function (e) { return e.ok; }), sub: 'spells', icon: 'spell' });
     var items = this.itemList(u);
-    if (items.length) out.push({ id: 'items', label: 'ITEM', cost: 'A', ok: T.action > 0 && !T.attacksLeft, sub: 'items', icon: 'item' });
+    var fast = u.subclass === 'Thief' && T.bonus > 0; // Fast Hands: the Thief uses an item with her bonus action
+    if (items.length) out.push({ id: 'items', label: 'ITEM', cost: fast ? 'B' : 'A', ok: fast || (T.action > 0 && !T.attacksLeft), sub: 'items', icon: 'item' });
     if (u.cls === 'fighter') {
       out.push({ id: 'secondwind', label: '2ND WIND', cost: 'B', ok: T.bonus > 0 && u.feats.secondWind > 0, why: u.feats.secondWind > 0 ? '' : 'spent (a short rest brings it back)', note: '1d10+' + u.lvl + ' HP, ' + (u.feats.secondWind > 0 ? '1 use' : 'spent') + ' (short rest)' });
       if (u.lvl >= 2) out.push({ id: 'surge', label: 'SURGE', cost: 'F', ok: u.feats.actionSurge > 0 && !T.action && !T.attacksLeft, why: u.feats.actionSurge > 0 ? 'after your action' : 'spent (a short rest brings it back)', note: 'one more action, ' + (u.feats.actionSurge > 0 ? '1 use' : 'spent') + ' (short rest)' });
@@ -300,6 +304,8 @@
       out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: '+' + u.speed + ' ft this turn' });
       out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
     }
+    // out the way the party came in (the fight's entry squares): the tabletop's walking off the table (Griz, 09-27: the climb's escape)
+    if (this.onExit(u)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in: a foe beside you gets its swing' });
     out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'attacks at you at disadvantage till your next turn' });
     // Help (the attack kind) only with a foe beside you (Griz, 09-27)
     if (this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5; }))
@@ -349,6 +355,7 @@
         if (path2 && path2.length) yield* this.moveAlong(u, path2, { spend: true });
         return;
       }
+      case 'leave': { yield* this.leave(u); return; }
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
       case 'dash': D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
@@ -461,7 +468,8 @@
     var hit = nat === 20 || (nat !== 1 && total >= ac)
       || !!(atk.autoHitHeld && tgt.conds.restrained && tgt.conds.restrained.by === att.id); // the cloaker's bite on the one it has engulfed
     var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5)
-      || (att.assassinate && tgt.conds.surprised)); // Assassinate: any hit on one caught unaware is a critical
+      || (att.assassinate && tgt.conds.surprised) // Assassinate: any hit on one caught unaware is a critical
+      || (att.subclass === 'Cutthroat' && this.round === 1 && !tgt.acted)); // Opening Cut (the game's Cutthroat): the same, in the first round
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
@@ -695,6 +703,29 @@
     this.card(['{y}' + u.name + '{/} ' + did + ' (the action).  AC ' + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
   };
 
+  // ------------------------------------------------------------------ leaving: out the way the party came in. Stepping off the map leaves any foe's reach,
+  // so its opportunity attack comes first (unless the hero disengaged); then the hero is out of the fight, not dead
+  Battle.prototype.onExit = function (u) { return (this.exits || []).some(function (q) { return q[0] === u.x && q[1] === u.y; }); };
+  Battle.prototype.leave = function* (u) {
+    var T = u.turn;
+    if (!T.disengaged) {
+      var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && G.dist(w, u) <= w.reach && !(w.weapon && w.weapon.ranged); });
+      for (var k = 0; k < prov.length; k++) {
+        var w = prov[k], keys = Object.keys(w.attacks || {}).filter(function (key) { return !w.attacks[key].ranged; }), atk = w.weapon || (keys.length ? w.attacks[keys[0]] : null);
+        if (!atk) continue;
+        w.reaction = 0;
+        this.card(['{o}' + (w.side === 'foe' ? 'The ' + shortName(w) : w.name) + '{/}: an opportunity attack on ' + u.name + ', leaving.']);
+        yield* this.attack(w, u, atk, { oa: true });
+        if (u.hp <= 0) return;
+      }
+    }
+    T.move = 0; u.left = true; u.dead = true; u.deadT = this.t; delete u.conds.ablaze;
+    if (u.conc) D.magic.endConc(this, u, 'out of the fight');
+    D.sfx('run');
+    this.card(['{y}' + u.name + '{/} gets out the way the party came in.  {g}(out of the fight){/}']);
+    yield 30;
+  };
+
   // ------------------------------------------------------------------ items: the save's own (a potion, a kit, an antitoxin, an oil flask)
   var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1 };
   Battle.prototype.itemList = function (u) {
@@ -703,7 +734,7 @@
       var it = window.DS.DATA.items[s.id];
       if (!it || !it.use || !it.use.battle || !ITEM_OK[it.use.effect] || s.n <= 0) return null;
       if (roost && it.use.effect === 'damage') return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
-      return { id: s.id, name: it.name, n: s.n, use: it.use, ok: T.action > 0 && !T.attacksLeft, why: T.action > 0 ? '' : 'the action is spent' };
+      return { id: s.id, name: it.name, n: s.n, use: it.use, ok: (u.subclass === 'Thief' && T.bonus > 0) || (T.action > 0 && !T.attacksLeft), why: T.action > 0 ? '' : 'the action is spent' };
     }).filter(Boolean);
   };
   Battle.prototype.itemTargetOK = function (u, id, w) {
@@ -717,7 +748,8 @@
   };
   Battle.prototype.useItem = function* (u, id, w) {
     var it = window.DS.DATA.items[id], use = it.use, s = this.inv.filter(function (x) { return x.id === id; })[0];
-    u.turn.action = 0; s.n--;
+    if (u.subclass === 'Thief' && u.turn.bonus > 0) u.turn.bonus = 0; else u.turn.action = 0; // Fast Hands
+    s.n--;
     var who = w === u ? 'drinks' : 'gives ' + w.name;
     if (use.effect === 'heal') { var r = D.roll(use.dice), got = this.heal(w, r.total); this.card(['{y}' + u.name + '{/} ' + who + ' a ' + it.name + ': ' + use.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {n}' + r.total + '{/}' + (got < r.total ? ' (' + got + ' to full)' : '')]); FX.sparkle(w, 'moss', 12); }
     if (use.effect === 'revive') { this.heal(w, use.hp || 1); this.card(['{y}' + u.name + '{/} works the ' + it.name + ' on ' + w.name + ': up, on ' + w.hp + ' HP.']); }
