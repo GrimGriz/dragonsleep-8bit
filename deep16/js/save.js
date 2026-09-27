@@ -59,7 +59,7 @@
       abil: h.abil, baseAC: R.ac(h), prof: R.prof(h.lvl), init: R.initBonus(h), speed: 30, size: 1, reach: 5,
       slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), known: knownOf(h), armored: R.armored(h),
       feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass,
-      weapon: { name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: (w.weapon && w.weapon.props) || [],
+      weapon: { name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: (w.weapon && w.weapon.props) || [], magic: !!(w.weapon && w.weapon.bonus),
         finesse: !!(w.weapon && (w.weapon.props || []).indexOf('finesse') >= 0), gwf: h.cls === 'fighter' && R.twoHanded(h, w) },
       attacks: R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
       saves: { str: R.saveBonus(h, 'str'), dex: R.saveBonus(h, 'dex'), con: R.saveBonus(h, 'con'), int: R.saveBonus(h, 'int'), wis: R.saveBonus(h, 'wis'), cha: R.saveBonus(h, 'cha') },

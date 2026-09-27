@@ -448,3 +448,112 @@ window.D16.MAPS.siphon = {
   foes: [],
   wave: null
 };
+
+// The open cavern south of the road (the 8-bit game's S.grickDen, leg one): stalagmites everywhere, and the dark in it
+// is where things come from. The gricks start hidden among the stone.
+window.D16.MAPS.grickden = {
+  name: 'The Grick Den',
+  sub: 'south of the king\'s road',
+  step: 20,
+  rows: [
+    '####################',
+    '####.....P......####',
+    '###..P..........P###',
+    '##.........P......##',
+    '#...P..............#',
+    '#.........rr....P..#',
+    '#..P...............#',
+    '#.......P.....r....#',
+    '##..........P.....##',
+    '###..............###',
+    '####....P.......####',
+    '######........######',
+    '########....########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
+  foes: [],
+  wave: null
+};
+
+// The breach on leg two (the 8-bit game's S.bulette): the made road torn up from below, its slabs thrown about.
+window.D16.MAPS.breach = {
+  name: 'The Breach',
+  sub: 'the king\'s road, leg two',
+  step: 20,
+  rows: [
+    '####################',
+    '#####...rrrrr...####',
+    '###....rr...rr....##',
+    '##.................#',
+    '#.......======.....#',
+    '#.......======.....#',
+    '#...r...==rr==..P..#',
+    '#.......======.....#',
+    '##......======....##',
+    '###.....======...###',
+    '####....======..####',
+    '#####...======.#####',
+    '########====########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
+  foes: [],
+  wave: null
+};
+
+// The deep galleries (the 8-bit game's `deep`, galleries g4, the tail bounty): dark pools, and something up in the dark.
+window.D16.MAPS.deep = {
+  name: 'The Deep Gallery',
+  sub: 'the galleries, below the roost',
+  step: 20,
+  rows: [
+    '####################',
+    '####......~~~...####',
+    '###.....~~~~~....###',
+    '##.......~~~......##',
+    '#....P............##',
+    '#..................#',
+    '#...~~.......P.....#',
+    '#..~~~.............#',
+    '##.................#',
+    '###......P.......###',
+    '####............####',
+    '######........######',
+    '########....########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
+  foes: [],
+  wave: null
+};
+
+// The Halfway Inn's yard at night (the 8-bit game's wagon night): the wagon (the P block), the well, the inn door the
+// four come out of, and the stable gate at the far corner where the horses are: the way out (exit).
+window.D16.MAPS.yard = {
+  name: 'The Inn Yard',
+  sub: 'the Halfway Inn, at night',
+  step: 20,
+  ground: 'earth',
+  rows: [
+    '####################',
+    '##############...###',
+    '#.................##',
+    '#...PPP............#',
+    '#...PPP............#',
+    '#..................#',
+    '#.......r..........#',
+    '#..................#',
+    '#...........P......#',
+    '#..................#',
+    '##................##',
+    '###....======....###',
+    '####...======...####',
+    '####################'
+  ],
+  entry: [[9, 12], [10, 12], [8, 11], [11, 11], [9, 11]],
+  exit: [[14, 1], [15, 1], [16, 1]],
+  exitName: 'through the stable gate with the horses',
+  foes: [],
+  wave: null
+};

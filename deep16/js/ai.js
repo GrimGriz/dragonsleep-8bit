@@ -8,6 +8,8 @@
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx;
   var AI = D.ai = {};
 
+  // "The troll", but "Willem" (a foe with a name of its own is `named`)
+  function the(B, u) { return (u.named ? '' : 'The ') + B.shortName(u); }
   function heroes(B, u) {
     return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && ((!w.conds.hidden && !w.conds.invisible) || G.dist(u, w) <= 5); });
   }
@@ -31,9 +33,9 @@
   AI.turn = function* (B, u) {
     RU.startTurn(u);
     if (u.dead) return;
-    if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? 'The ' + B.shortName(u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
+    if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
-    if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}The ' + B.shortName(u) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
+    if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + the(B, u) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
     if (u.conds.restrained) yield* D.magic.breakFree(B, u); // a web: tear at it first
     if (u.kind === 'phasespider') yield* spider(B, u);
@@ -42,8 +44,8 @@
     else if (u.weave) yield* weaver(B, u);
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
-    // a Slam's stun lasts till the end of the slammer's next turn
-    B.units.forEach(function (w) { var s = w.conds.stunned; if (s && s.by === u.id) { if (s.fresh) s.fresh = false; else delete w.conds.stunned; } });
+    // a Slam's stun and a Moan's fright last till the end of the foe's next turn
+    B.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { var s = w.conds[c]; if (s && s.by === u.id) { if (s.fresh) s.fresh = false; else delete w.conds[c]; } }); });
     D.magic.endTurn(B, u);
     u.anim = 'idle';
     yield 16;
@@ -329,22 +331,96 @@
     }
     u.anim = 'idle';
   }
+  // its ranged routine (the multiattack's ranged names, else its first ranged attack once), each at the lowest AC in sight
+  function* volley(B, u) {
+    var keys = Array.isArray(u.multi) ? u.multi.filter(function (k) { return u.attacks[k] && u.attacks[k].ranged; }) : [];
+    if (!keys.length) keys = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].ranged; }).slice(0, 1);
+    if (!keys.length || !u.turn.action) return false;
+    var first = u.attacks[keys[0]];
+    if (!visibleFrom(u, u.x, u.y, heroes(B, u)).some(function (w) { return G.dist(u, w) <= first.range[1]; })) return false;
+    u.turn.action = 0;
+    for (var i = 0; i < keys.length; i++) {
+      var atk = u.attacks[keys[i]], seen = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.dist(u, w) <= atk.range[1]; });
+      if (!seen.length) break;
+      yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], atk);
+      if (u.dead || u.hp <= 0) break;
+    }
+    return true;
+  }
+  function* shooter(B, u) {
+    var T = u.turn, hs = heroes(B, u), far = u.attacks[Object.keys(u.attacks)[0]].range[0], exits = B.fight.exit || B.map.def.exit || [];
+    // one who fights only to get away (the wagon pair, for the horses): each turn a move toward the way out, then the blasts
+    if (u.flees && exits.length) {
+      var rx = G.reach(u, Math.min(T.move, 15)), go = null, gd = Infinity; // they give ground a step at a time, blasting (bloodied, they Dash)
+      Object.keys(rx).forEach(function (k) { var e = rx[k]; if (!e.stand) return; var d = Math.min.apply(null, exits.map(function (x) { return Math.max(Math.abs(x[0] - e.x), Math.abs(x[1] - e.y)); })) * 10 + e.cost / 10; if (d < gd) { gd = d; go = e; } });
+      if (go && (go.x !== u.x || go.y !== u.y)) { yield* walkTo(B, u, go); if (u.dead || u.hp <= 0) return; }
+      if (exits.some(function (x) { return x[0] === u.x && x[1] === u.y; })) {
+        u.dead = true; u.fled = true; u.deadT = B.t; D.sfx('run');
+        B.card(['{o}' + u.name + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30; return;
+      }
+      if (!(yield* volley(B, u))) { B.card(['{g}' + u.name + ' makes for the way out.{/}']); yield 16; }
+      return;
+    }
+    if (G.foesNear(u, u.x, u.y, 5).length || !visibleFrom(u, u.x, u.y, hs).length) {
+      var rm = G.reach(u, T.move), pick = null, ps = -1e9;
+      Object.keys(rm).forEach(function (k) {
+        var e = rm[k]; if (!e.stand) return;
+        var vis = visibleFrom(u, e.x, e.y, hs); if (!vis.length) return;
+        var near = Math.min.apply(null, hs.map(function (w) { return G.dist(u, w, e.x, e.y); }));
+        var s = -G.foesNear(u, e.x, e.y, 5).length * 20 - Math.abs(near - Math.min(far, 30)) / 5 - e.cost / 10;
+        if (s > ps) { ps = s; pick = e; }
+      });
+      if (pick && (pick.x !== u.x || pick.y !== u.y)) { yield* walkTo(B, u, pick); if (u.dead || u.hp <= 0) return; }
+    }
+    if (!(yield* volley(B, u))) { B.card(['{g}' + the(B, u) + ' has no clear shot.{/}']); yield 20; }
+  }
+  function* leap(B, u, hs) {
+    var L = u.leap, best = null;
+    hs.forEach(function (t) {
+      if (G.dist(u, t) > L.range || !G.los(u, t).clear) return;
+      var pair = hs.filter(function (w) { return w !== t && G.dist(w, t) <= 5; }).length;
+      // a landing: free for its body, beside the target
+      var land = null, ld = Infinity;
+      for (var y = t.y - u.size; y <= t.y + (t.size || 1); y++) for (var x = t.x - u.size; x <= t.x + (t.size || 1); x++) {
+        if (!G.canStand(u, x, y) || G.dist(u, t, x, y) > 5) continue;
+        var d = Math.hypot(x - u.x, y - u.y); if (d < ld) { ld = d; land = [x, y]; }
+      }
+      if (land && (!best || pair > best.pair)) best = { t: t, pair: pair, land: land };
+    });
+    if (!best) return false;
+    var T = u.turn; T.action = 0; L.ready = false;
+    u.tween = { fx: u.x, fy: u.y, fz: 60, t: 0, dur: 22 }; u.x = best.land[0]; u.y = best.land[1];
+    u.facing = B.faceTo(u, best.t); u.anim = 'attack'; u.animT = B.t; D.sfx('crit');
+    var hit = [best.t].concat(hs.filter(function (w) { return w !== best.t && G.dist(w, best.t) <= 5 && G.dist(u, w) <= 5; }).slice(0, (L.targets || 2) - 1));
+    var roll = D.roll(L.dice), lines = ['{r}' + the(B, u) + '{/} leaps, and comes down on them like a falling wall!  ' + L.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + L.dc], hurt = [];
+    yield 24;
+    hit.forEach(function (w) {
+      var sv = RU.save(w, 'dex', L.dc), ev = w.cls === 'rogue' && w.lvl >= 7, n = sv.ok ? (ev ? 0 : Math.floor(roll.total / 2)) : (ev ? Math.floor(roll.total / 2) : roll.total);
+      lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + '  {r}' + n + '{/}'); hurt.push([w, n]);
+    });
+    B.card(lines, 400);
+    hurt.forEach(function (h) { FX.slash(h[0], D.PAL.ramps.red[4]); B.hurt(h[0], h[1], 'bludgeoning'); });
+    yield 34; u.anim = 'idle';
+    return true;
+  }
   function* bolt(B, u) {
     var T = u.turn, exits = B.fight.exit || B.map.def.exit || [];
-    if (!exits.length || !T.action) return;
+    if (!exits.length || !T.action) return false;
     T.action = 0; T.move = u.speed * 2; // Dash
     var rm = G.reach(u, T.move), best = null, bc = Infinity;
     exits.forEach(function (x) { var e = rm[x[0] + ',' + x[1]]; if (e && e.stand && e.cost < bc) { bc = e.cost; best = e; } });
     if (!best) { // not this turn: as close as the dash goes
       Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var d = Math.min.apply(null, exits.map(function (x) { return Math.max(Math.abs(x[0] - e.x), Math.abs(x[1] - e.y)); })); if (d * 100 + e.cost / 5 < bc) { bc = d * 100 + e.cost / 5; best = e; } });
     }
-    B.card(['{r}The ' + B.shortName(u) + '{/} breaks and runs!  {g}(Dash){/}']); yield 16;
+    B.card(['{r}' + the(B, u) + '{/} breaks and runs!  {g}(Dash){/}']); yield 16;
     if (best) yield* walkTo(B, u, best);
-    if (u.dead || u.hp <= 0) return;
+    if (u.dead || u.hp <= 0) return true;
     if (exits.some(function (x) { return x[0] === u.x && x[1] === u.y; })) {
       u.dead = true; u.fled = true; u.deadT = B.t; D.sfx('run');
-      B.card(['{o}The ' + B.shortName(u) + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30;
+      if (u.holding && u.holding.length) B.release(u);
+      B.card(['{o}' + the(B, u) + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30;
     }
+    return true;
   }
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u);
@@ -353,10 +429,33 @@
       else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
     }
     u.burned = false;
-    // it bolts (the wheelwright, when Hask is down): Dash for the map's exit and gone -- the player's opportunity attacks are the only stop
-    if (u.bolts && B.units.some(function (w) { return w.kind === u.bolts && w.dead; })) { yield* bolt(B, u); return; }
+    // it bolts (the wheelwright, when Hask is down): Dash for the map's exit and gone -- the player's opportunity attacks are
+    // the only stop. (Amara and Willem, who fight only to get away, give ground a step at a time instead: shooter())
+    if (u.bolts && B.units.some(function (w) { return w.kind === u.bolts && w.dead; })) { if (yield* bolt(B, u)) return; }
+    // recharges (5-6 at the start of its turn): the Moan, the Leap
+    [u.moan, u.leap].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
+    // Phantasms (the cloaker when bloodied; Willem at once): three false images, its action
+    if (u.phantasms && !u.phantasms.used && T.action && (u.phantasms.when === 'start' || u.hp <= u.maxhp / 2)) {
+      T.action = 0; u.phantasms.used = true; u.images = 3; D.sfx('magic'); FX.sparkle(u, 'violet', 30);
+      B.card(['{r}' + the(B, u) + '{/} splits into shadows: three false shapes wheel about it!  {g}(each blow may go at an image){/}'], 360);
+      yield 34;
+      if (!hs.length) return;
+    }
+    // the Moan (the cloaker): every hero within 60 ft, WIS or frightened till the end of its next turn
+    if (u.moan && u.moan.ready && T.action && hs.filter(function (w) { return G.dist(u, w) <= 60 && !w.conds.frightened; }).length >= 2) {
+      T.action = 0; u.moan.ready = false; D.sfx('encounter');
+      var ml = ['{r}' + the(B, u) + '{/} moans. The sound gets inside you.  WIS DC ' + u.moan.dc];
+      hs.filter(function (w) { return G.dist(u, w) <= 60; }).forEach(function (w) {
+        var sv = RU.save(w, 'wis', u.moan.dc);
+        ml.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/}' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
+        if (!sv.ok) w.conds.frightened = { by: u.id, fresh: true };
+      });
+      B.card(ml, 420); yield 40; return;
+    }
+    // the Leap (the bulette): into the air and down on up to two of them standing together (DEX, half on a save)
+    if (u.leap && u.leap.ready && T.action && hs.length) { if (yield* leap(B, u, hs)) return; }
     // a spent Web comes back on a 5 or 6 (at the start of its turn)
-    if (u.web && !u.web.ready) { var rc = D.d(6); if (rc >= u.web.recharge) { u.web.ready = true; B.card(['{g}The ' + B.shortName(u) + ' has web again (d6 ' + rc + ').{/}'], 200); yield 12; } }
+    if (u.web && !u.web.ready) { var rc = D.d(6); if (rc >= u.web.recharge) { u.web.ready = true; B.card(['{g}' + the(B, u) + ' has web again (d6 ' + rc + ').{/}'], 200); yield 12; } }
     // a grip it can no longer reach goes slack
     (u.holding || []).slice().forEach(function (w) { if (w.dead || w.hp <= 0 || !w.conds.restrained || w.conds.restrained.by !== u.id || G.dist(u, w) > reachOf(u)) B.release(u, w); });
     if (!hs.length) return;
@@ -376,26 +475,25 @@
       }
     }
     var tgt = near[0], ranged = Object.keys(u.attacks || {}).filter(function (k) { return u.attacks[k].ranged; }).map(function (k) { return u.attacks[k]; });
+    // all its attacks at range (Amara, Willem): keep off, step away when pressed, and shoot
+    if (ranged.length && ranged.length === Object.keys(u.attacks).length) { yield* shooter(B, u); return; }
     if (!tgt) {
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       var e = approach(u, tgt, G.reach(u, T.move), reachOf(u));
       if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
-      else if (u.bound) { B.card(['{g}The ' + B.shortName(u) + ' churns in its pool; no one is in its reach.{/}']); yield 20; }
-      else if (!ranged.length) { B.card(['{g}The ' + B.shortName(u) + ' paces: it cannot get at anyone.{/}']); yield 20; }
+      else if (u.bound) { B.card(['{g}' + the(B, u) + ' churns in its pool; no one is in its reach.{/}']); yield 20; }
+      else if (!ranged.length) { B.card(['{g}' + the(B, u) + ' paces: it cannot get at anyone.{/}']); yield 20; }
       if (u.dead || u.hp <= 0) return;
     }
     if (!T.action) return;
     var inReachNow = heroes(B, u).filter(function (w) { return G.dist(u, w) <= reachOf(u); });
-    // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow) -- once
-    if (!inReachNow.length && ranged.length) {
-      var shot = ranged[0], seen = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.dist(u, w) <= shot.range[1]; });
-      if (seen.length) { T.action = 0; yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], shot); return; }
-    }
+    // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow)
+    if (!inReachNow.length && ranged.length) { if (yield* volley(B, u)) return; }
     // Enlarge (the duergar), once, when there is no one to hit yet: its pick hits for the bigger dice from now on
     if (!inReachNow.length && u.enlarge && !u.enlarge.used) {
       T.action = 0; u.enlarge.used = true;
       var big = {}; Object.keys(u.attacks).forEach(function (k) { big[k] = Object.assign({}, u.attacks[k]); if (!big[k].ranged) big[k].dice = u.enlarge.dice; }); u.attacks = big;
-      D.sfx('buff'); FX.ring(u, 'stone', 30); B.card(['{r}The ' + B.shortName(u) + '{/} swells to twice its size!  {g}(Enlarge: its blows hit for ' + u.enlarge.dice + '){/}']);
+      D.sfx('buff'); FX.ring(u, 'stone', 30); B.card(['{r}' + the(B, u) + '{/} swells to twice its size!  {g}(Enlarge: its blows hit for ' + u.enlarge.dice + '){/}']);
       yield 30; return;
     }
     T.action = 0;

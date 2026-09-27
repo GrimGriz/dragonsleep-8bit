@@ -277,7 +277,7 @@
   },
   // the night crew in the Burial (deep.js, The One Law): Hask, his crew, and the wheelwright, who bolts when Hask falls
   hask: {
-    name: 'Hask', sheet: 'hask_p1', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
+    named: true, name: 'Hask', sheet: 'hask_p1', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
     saves: { str: 4, dex: 5, con: 2, int: 2, wis: 0, cha: 2 },
     attacks: { bar: { name: 'Pry-bar', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5 }, knife: { name: 'Knife', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
@@ -319,5 +319,56 @@
     saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { knife: { name: 'Knife', atk: 3, dice: '1d4', mod: 1, type: 'piercing', reach: 5 } },
     multi: 1, src: 'content/monsters.json robber (the SRD 5.1 Bandit with a knife)'
+  },
+  // ------------------------------------------------------------------ batch five (09-27): the snared lad, the grick den, the bulette, the cloaker, the wagon yard
+  wolfspider: {
+    name: 'Wolf Spider', sheet: 'wolfspider_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, size: 1, reach: 5,
+    abil: { str: 12, dex: 16, con: 13, int: 3, wis: 12, cha: 4 }, init: 3, perception: 13,
+    saves: { str: 1, dex: 3, con: 1, int: -4, wis: 1, cha: -3 },
+    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d6', type: 'poison', half: true } } },
+    multi: 1, webWalker: true, src: 'SRD 5.1 Giant Wolf Spider (CR 1/4); content/monsters.json wolfspider'
+  },
+  grick: {
+    name: 'Grick', sheet: 'grick_p1', cr: '2', ac: 14, hp: 27, speed: 30, size: 1, reach: 5,
+    abil: { str: 14, dex: 14, con: 11, int: 3, wis: 14, cha: 5 }, init: 2, perception: 12,
+    saves: { str: 2, dex: 2, con: 0, int: -4, wis: 2, cha: -3 },
+    attacks: { tentacles: { name: 'Tentacles', atk: 4, dice: '2d6', mod: 2, type: 'slashing', reach: 5 }, beak: { name: 'Beak', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
+    multi: ['tentacles', 'beak'], resist: ['mundane'],
+    src: 'SRD 5.1 Grick (CR 2): tentacles then beak; resists bludgeoning, piercing and slashing from non-magical weapons (read: battle.js); Stone Camouflage as starting hidden (the fight\'s foe: hidden)'
+  },
+  bulette: {
+    name: 'Bulette', sheet: 'bulette_p1', cr: '5', ac: 17, hp: 94, speed: 40, size: 2, reach: 5,
+    abil: { str: 19, dex: 11, con: 21, int: 2, wis: 10, cha: 5 }, init: 0, perception: 16,
+    saves: { str: 4, dex: 0, con: 5, int: -4, wis: 0, cha: -3 },
+    attacks: { bite: { name: 'Bite', atk: 7, dice: '4d12', mod: 4, type: 'piercing', reach: 5 } },
+    multi: 1, leap: { dc: 16, dice: '6d6', targets: 2, range: 40, recharge: 5 },
+    src: 'SRD 5.1 Bulette (CR 5, Large); content/monsters.json bulette (its Deadly Leap as the 8-bit game reads it: DEX 16, 6d6, two of them, half on a save; recharge 5-6)', todo: 'the burrow and the knockdown are not read'
+  },
+  cloaker: {
+    name: 'Cloaker', sheet: 'cloaker_p1', cr: '8', ac: 14, hp: 78, speed: 40, size: 2, reach: 5,
+    abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,
+    saves: { str: 3, dex: 2, con: 1, int: 1, wis: 1, cha: 2 },
+    attacks: {
+      bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 3, type: 'piercing', reach: 5, grapple: { dc: 16, max: 1 }, autoHitHeld: true },
+      tail: { name: 'Tail', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 10 }
+    },
+    multi: ['bite', 'tail'], moan: { dc: 13, recharge: 5 }, phantasms: 'bloodied', transfer: true,
+    src: 'SRD 5.1 Cloaker (CR 8, fly 40 read as moving 40); content/monsters.json cloaker: the bite engulfs (read as a grip, escape DC 16, its bite then always lands), Damage Transfer, Moan (WIS 13, frightened), Phantasms once when bloodied', todo: 'light sensitivity and the engulfed one\'s blindness are not read'
+  },
+  amara: {
+    named: true, name: 'Amara', sheet: 'amara_p1', cr: '3', ac: 13, hp: 38, speed: 30, size: 1, reach: 5,
+    abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
+    saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
+    attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
+    multi: ['blast', 'blast'], flees: true,
+    src: 'content/monsters.json amara (the 8-bit game\'s own warlock): two beams of Eldritch Blast; bloodied, she runs for the horses', todo: 'her Darkness is not read'
+  },
+  willem: {
+    named: true, name: 'Willem Glass', sheet: 'willem_p1', cr: '3', ac: 12, hp: 30, speed: 30, size: 1, reach: 5,
+    abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 }, init: 2, perception: 11,
+    saves: { str: -1, dex: 2, con: 1, int: 5, wis: 3, cha: 0 },
+    attacks: { frost: { name: 'Ray of Frost', atk: 6, dice: '2d8', mod: 0, type: 'cold', ranged: true, spell: true, range: [60, 60], fx: 'bolt' } },
+    multi: 1, flees: true, phantasms: 'start',
+    src: 'content/monsters.json willem (the 8-bit game\'s own illusionist): Ray of Frost; Phantasms at once (three false images); bloodied, he runs for the horses', todo: 'the ray\'s slow is not read'
   }
 };

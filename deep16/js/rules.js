@@ -51,6 +51,7 @@
   RU.edges = function (att, tgt, atk, ax, ay) {
     var adv = [], dis = [], melee = !atk.ranged && !atk.spell;
     if (att.conds.poisoned) dis.push('poisoned');
+    if (att.conds.frightened) dis.push('frightened');
     if (att.conds.hidden) adv.push('unseen');
     if (att.conds.invisible) adv.push('invisible');
     if (tgt.conds.invisible && !att.conds.invisible) dis.push('invisible target');

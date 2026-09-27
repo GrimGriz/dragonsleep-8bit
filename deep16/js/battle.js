@@ -25,8 +25,7 @@
     var foes = (F.foes || m.def.foes).map(function (f) { return self.makeFoe(f); });
     this.units = party.concat(foes);
     this.inv = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
-    this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; });
-    G.setup(m, this.units);
+    this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
     // strung webs a fight starts with (Web Gulch): difficult ground for all but the web-walkers, drawn like the spell's
     var webs = F.webs || m.def.webs;
     this.webs = webs ? [{ by: 'the ground', sq: webs.slice() }] : [];
@@ -53,7 +52,12 @@
       ethereal: !!f.ethereal, // a phase spider may start in the rock (the north cut: "They come out of the walls")
       weave: d.weave ? JSON.parse(JSON.stringify(d.weave)) : null, sneak: d.sneak || null, assassinate: !!d.assassinate, stealth: d.stealth || 0,
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
-      bolts: d.bolts || null // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
+      bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
+      flees: !!d.flees, transfer: !!d.transfer, images: 0, named: !!d.named,
+      moan: d.moan ? { dc: d.moan.dc, recharge: d.moan.recharge, ready: true } : null,
+      leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
+      phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
+      hidden0: !!f.hidden
     };
   };
   // a damage type against a foe's resistances, immunities and vulnerabilities (SRD: immune 0, resist half, vulnerable x2)
@@ -138,6 +142,8 @@
 
   Battle.prototype.alive = function (side) { return this.units.filter(function (u) { return u.side === side && !u.dead && u.hp > 0; }); };
   Battle.prototype.over = function () {
+    // a fight that must not let them go (the wagon yard: fight.noEscape): one got away, and it is lost
+    if (this.fight.noEscape && !this.alive('foe').length && this.units.some(function (u) { return u.fled; })) return 'lost';
     if (!this.alive('foe').length) return 'won';
     if (!this.alive('party').length) return 'lost';
     return null;
@@ -184,7 +190,7 @@
       }
     }
   };
-  function shortName(u) { return u.side === 'foe' ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider', spellweaver: 'Weaver', bugbearchief: 'Chief', hobsergeant: 'Sergeant', assassin: 'Blade', stonegiant: 'Giant', pudding: 'Pudding', giantspider: 'Spider' }[u.kind] || u.name) : u.name; }
+  function shortName(u) { return u.side === 'foe' ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider', spellweaver: 'Weaver', bugbearchief: 'Chief', hobsergeant: 'Sergeant', assassin: 'Blade', stonegiant: 'Giant', pudding: 'Pudding', giantspider: 'Spider', willem: 'Willem' }[u.kind] || u.name) : u.name; }
 
   // the second wave: when the gallery goes still, the cocoon on the far wall splits and what was in it drops out,
   // dealt into the initiative on its own roll. The hero whose blow did it keeps the rest of the turn.
@@ -221,8 +227,8 @@
     this.result = o;
     D.music(o === 'won' ? 'victory' : 'gameover');
     yield 30;
-    var F = this.fight;
-    this.card([o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : '{r}' + (F.lost || 'THE DARK KEEPS THEM.') + '{/}', '{g}' + (this.o.onDone ? 'E back to the ladder' : 'E fight again') + ' · M the menu{/}'], 1e9);
+    var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
+    this.card([o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}', '{g}' + (this.o.onDone ? 'E back to the ladder' : 'E fight again') + ' · M the menu{/}'], 1e9);
   };
 
   // ------------------------------------------------------------------ a hero's turn: the player acts until END TURN
@@ -412,11 +418,24 @@
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
+    if (att.side === 'foe' && att.conds.hidden) delete att.conds.hidden; // a foe that strikes from hiding is seen (the gricks)
+    // false images (the cloaker's phantasms, Willem's): a d20 says whether the blow goes at an image (3: 6+, 2: 8+, 1: 11+)
+    if (tgt.images > 0 && !atk.save) {
+      var need = [0, 11, 8, 6][Math.min(3, tgt.images)], id20 = D.d(20);
+      if (id20 >= need) {
+        var ir = RU.d20(e.net), itot = ir.pick + atk.atk, iac = 10 + D.mod(tgt.abil.dex), ihit = ir.pick === 20 || (ir.pick !== 1 && itot >= iac);
+        if (ihit) tgt.images--;
+        D.sfx(ihit ? 'hit' : 'miss'); FX.sparkle(tgt, 'violet', 14);
+        this.card(['{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name, 'd20 ' + id20 + ' vs ' + need + ': {p}a false image{/}  d20 ' + ir.pick + ' ' + RU.sign(atk.atk) + ' = ' + itot + ' vs AC ' + iac + '  ' + (ihit ? '{n}the image bursts{/} (' + tgt.images + ' left)' : '{g}MISS{/}')], 300, cid);
+        yield o.oa ? 16 : 26; att.anim = 'idle'; return;
+      }
+    }
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) delete tgt.conds.helped; // help is spent on the first swing
     var sacred = att.conds.sacred && !atk.spell && !atk.ranged ? att.conds.sacred.atk : 0;
     var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, total = nat + atk.atk + bless + sacred;
     var critAt = att.crit || 20;
-    var hit = nat === 20 || (nat !== 1 && total >= ac);
+    var hit = nat === 20 || (nat !== 1 && total >= ac)
+      || !!(atk.autoHitHeld && tgt.conds.restrained && tgt.conds.restrained.by === att.id); // the cloaker's bite on the one it has engulfed
     var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5)
       || (att.assassinate && tgt.conds.surprised)); // Assassinate: any hit on one caught unaware is a critical
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
@@ -480,6 +499,10 @@
       var ud = yield { prompt: { who: tgt, title: tgt.name + ': UNCANNY DODGE?', lines: ['The blow would deal ' + dmg + '. Halve it to ' + Math.floor(dmg / 2) + '? (the reaction)'], opts: [{ label: 'DODGE IT', value: true }, { label: 'TAKE IT', value: false }] } };
       if (ud) { D.sfx('run'); tgt.reaction = 0; dmg = Math.floor(dmg / 2); parts.push('{c}uncanny dodge: halved to ' + dmg + '{/}'); }
     }
+    // resistance to non-magical weapons (the grick): the weapon's own damage halved unless the weapon is magic
+    if (tgt.resist && tgt.resist.indexOf('mundane') >= 0 && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type)) {
+      var cut = Math.ceil(dr.total / 2); dmg -= cut; parts.push('{g}-' + cut + ': it shrugs off plain steel{/}');
+    }
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + dmg + '{/}'], 300, cid);
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
     this.hurt(tgt, dmg, atk.type);
@@ -527,6 +550,11 @@
       if (ty.why) FX.float(ty.why, u, ty.why === 'vulnerable' ? D.PAL.ramps.gold[4] : D.PAL.ramps.silver[5]);
       n = ty.n;
       if (n <= 0) return;
+    }
+    // Damage Transfer (the cloaker): while it has someone engulfed, half of what it takes goes to them
+    if (u.transfer && u.holding && u.holding.length && n > 1) {
+      var vic = u.holding[0], half = Math.floor(n / 2);
+      if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
     }
     if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '')) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
     if (u.temp > 0) { var soak = Math.min(u.temp, n); u.temp -= soak; n -= soak; }
