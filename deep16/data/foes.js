@@ -167,5 +167,74 @@
     attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'piercing', reach: 5, prone: 13 } },
     multi: 1,
     src: 'SRD 5.1 Worg (CR 1/2, Large, speed 50); content/monsters.json worg', todo: 'the bite\'s STR DC 13 knockdown is not read (no prone yet)'
+  },
+  // Third Lamp (deep.js S.raid) and the fallback line (S.fallback): the spell-weaver has her own routine (ai.js weaver);
+  // the plain drow fight by brute() (a blade in reach, else the hand crossbow). Their Darkness and light sensitivity are not read.
+  spellweaver: {
+    name: 'Drow Spell-Weaver', sheet: 'spellweaver_p1', cr: '6', ac: 12, hp: 45, speed: 30, size: 1, reach: 5,
+    abil: { str: 9, dex: 14, con: 11, int: 17, wis: 12, cha: 11 }, init: 2, perception: 11,
+    saves: { str: -1, dex: 2, con: 0, int: 3, wis: 1, cha: 0 },
+    attacks: { firebolt: { name: 'Fire Bolt', atk: 6, dice: '2d10', mod: 0, type: 'fire', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
+    multi: 1, fey: true,
+    weave: { bolt: { dc: 14, dice: '8d6', type: 'lightning', len: 100, recharge: 5 }, hold: { dc: 14, range: 60 } },
+    src: 'content/monsters.json spellweaver (game-original, CR 6): Fire Bolt; a line of lightning (recharge 5-6, DEX 14, 8d6); Hold once (WIS 14, paralyzed, a save each turn)', todo: 'Darkness and light sensitivity are not read'
+  },
+  drowling: {
+    name: 'Drow', sheet: 'drow_p1', cr: '1/4', ac: 15, hp: 13, speed: 30, size: 1, reach: 5,
+    abil: { str: 10, dex: 14, con: 10, int: 11, wis: 11, cha: 12 }, init: 2, perception: 12,
+    saves: { str: 0, dex: 2, con: 0, int: 0, wis: 0, cha: 1 },
+    attacks: {
+      shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
+      crossbow: { name: 'Hand Crossbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true, poison: { dc: 13 } }
+    },
+    multi: 1, fey: true,
+    src: 'SRD 5.1 Drow (CR 1/4); content/monsters.json drow (the pipeline-1 drow sheet; the captains keep the LPC one)', todo: 'Darkness and light sensitivity are not read'
+  },
+  // the sect blades (deep.js, the first rest after Torvald): Sneak Attack, and Assassinate on a party caught unaware
+  assassin: {
+    name: 'Sect Blade', sheet: 'assassin_p1', cr: '8', ac: 15, hp: 78, speed: 30, size: 1, reach: 5,
+    abil: { str: 11, dex: 16, con: 14, int: 13, wis: 11, cha: 10 }, init: 3, perception: 13, stealth: 9,
+    saves: { str: 0, dex: 6, con: 2, int: 4, wis: 0, cha: 0 },
+    attacks: { shortsword: { name: 'Shortsword', atk: 6, dice: '1d6', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 15, dice: '7d6', type: 'poison', half: true } } },
+    multi: ['shortsword', 'shortsword'], sneak: '4d6', assassinate: true, resist: ['poison'],
+    src: 'content/monsters.json assassin (the SRD 5.1 Assassin as the sect\'s blade, CR 8): two shortsword cuts with CON 15 poison, Sneak Attack 4d6, Assassinate (a critical on a creature caught unaware)'
+  },
+  // the stone giant's camp (deep.js S.giant): the giant and three duergar
+  stonegiant: {
+    name: 'Stone Giant', sheet: 'stonegiant_p1', cr: '7', ac: 17, hp: 126, speed: 40, size: 3, reach: 15,
+    abil: { str: 23, dex: 15, con: 20, int: 10, wis: 12, cha: 9 }, init: 2, perception: 14,
+    saves: { str: 6, dex: 5, con: 8, int: 0, wis: 4, cha: -1 },
+    attacks: {
+      greatclub: { name: 'Greatclub', atk: 9, dice: '3d8', mod: 6, type: 'bludgeoning', reach: 15 },
+      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'bolt' }
+    },
+    multi: ['greatclub', 'greatclub'],
+    src: 'SRD 5.1 Stone Giant (CR 7, Huge, greatclub reach 15 ft; Rock as a ranged attack, thrown when no one is in reach); content/monsters.json stonegiant', todo: 'the rock\'s knockdown is not read (no prone yet)'
+  },
+  duergar: {
+    name: 'Duergar', sheet: 'duergar_p1', cr: '1', ac: 16, hp: 26, speed: 25, size: 1, reach: 5,
+    abil: { str: 14, dex: 11, con: 14, int: 11, wis: 10, cha: 9 }, init: 0, perception: 10,
+    saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: -1 },
+    attacks: { warpick: { name: 'War Pick', atk: 4, dice: '1d8', mod: 2, type: 'piercing', reach: 5 } },
+    multi: 1, resist: ['poison'], enlarge: { dice: '2d8' },
+    src: 'SRD 5.1 Duergar (CR 1): war pick; Enlarge once (an action: its pick hits for 2d8+2); content/monsters.json duergar', todo: 'Invisibility and light sensitivity are not read'
+  },
+  // the rescue in the dens (events.js, quest `cull`): the roost overhead, and its one law -- no fire, no thunder
+  giantbat: {
+    name: 'Giant Bat', sheet: 'giantbat_p1', cr: '1/4', ac: 13, hp: 22, speed: 60, size: 2, reach: 5,
+    abil: { str: 15, dex: 16, con: 11, int: 2, wis: 12, cha: 6 }, init: 3, perception: 11,
+    saves: { str: 2, dex: 3, con: 0, int: -4, wis: 1, cha: -2 },
+    attacks: { bite: { name: 'Bite', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
+    multi: 1,
+    src: 'SRD 5.1 Giant Bat (CR 1/4, Large, fly 60: here it moves 60 on the ground); content/monsters.json giantbat', todo: 'flight is not read (it goes round, not over)'
+  },
+  // the drain cut (deep.js S.drainCut): two black puddings. Slashing or lightning splits one (at 10 HP or more)
+  pudding: {
+    name: 'Black Pudding', sheet: 'pudding_p1', small: 'puddingm_p1', cr: '4', ac: 7, hp: 85, speed: 20, size: 2, reach: 5,
+    abil: { str: 16, dex: 5, con: 16, int: 1, wis: 6, cha: 1 }, init: -3, perception: 8,
+    saves: { str: 3, dex: -3, con: 3, int: -5, wis: -2, cha: -5 },
+    attacks: { pseudopod: { name: 'Pseudopod', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', extra: '4d8', extraType: 'acid', reach: 5 } },
+    multi: 1, immune: ['acid', 'cold', 'lightning', 'slashing'], split: true,
+    src: 'SRD 5.1 Black Pudding (CR 4, Large): pseudopod + 4d8 acid; immune acid, cold, lightning, slashing; Split (read: battle.js split)', todo: 'its acid eating armour and weapons is not read'
   }
 };

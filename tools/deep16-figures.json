@@ -267,6 +267,102 @@
         "walk": "Walk"
       }
     },
+    "spellweaver": {
+      "_note": "the drow spell-weaver of Third Lamp (the expansion's own): the KayKit Mage in the drow's colours (the drow's atlas cells), staff in hand.",
+      "file": "kaykit/Mage.glb",
+      "show": ["Mage_ArmLeft", "Mage_ArmRight", "Mage_Body", "Mage_Head", "Mage_LegLeft", "Mage_LegRight", "2H_Staff"],
+      "recolor": [
+        [[0, 0], "#4a3a60"],
+        [[1, 0], "#e8e4f0"],
+        [[0, 1], "#241c30"],
+        [[1, 1], "#2e1a40"],
+        [[1, 2], "#2e1a40"],
+        [[2, 2], "#62398a"]
+      ],
+      "anims": {
+        "idle": "2H_Melee_Idle",
+        "attack": "2H_Ranged_Shoot",
+        "walk": "Walking_A"
+      }
+    },
+    "assassin": {
+      "_note": "the sect blades (the expansion's assassins): KayKit Rogue_Hooded in black and old red, a knife in each hand.",
+      "file": "kaykit/Rogue_Hooded.glb",
+      "show": ["Rogue_ArmLeft", "Rogue_ArmRight", "Rogue_Body", "Rogue_Cape", "Rogue_Head_Hooded", "Rogue_LegLeft", "Rogue_LegRight", "Knife", "Knife_Offhand"],
+      "recolor": [
+        [[0, 1], "#1a1416"],
+        [[1, 1], "#3a1016"],
+        [[1, 2], "#3a1016"],
+        [[2, 2], "#8a2020"]
+      ],
+      "anims": {
+        "idle": "Idle",
+        "attack": "Dualwield_Melee_Attack_Stab",
+        "walk": "Walking_A"
+      }
+    },
+    "duergar": {
+      "_note": "the duergar of the stone giant's camp: the KayKit Barbarian with every colour taken down to the grey of the deep dwarves, axe and round shield.",
+      "file": "kaykit/Barbarian.glb",
+      "show": ["Barbarian_ArmLeft", "Barbarian_ArmRight", "Barbarian_Body", "Barbarian_Head", "Barbarian_LegLeft", "Barbarian_LegRight", "1H_Axe", "Barbarian_Round_Shield"],
+      "grade": { "hue": 0, "sat": 0.2, "val": 0.8 },
+      "anims": {
+        "idle": "Idle",
+        "attack": "1H_Melee_Attack_Chop",
+        "walk": "Walking_A"
+      }
+    },
+    "stonegiant": {
+      "_note": "the stone giant (SRD 5.1, Huge): Quaternius Big/BlueDemon (it carries its own club) turned to grey stone at three squares.",
+      "file": "quaternius/ultimate-monsters/Big/Blends/BlueDemon.blend",
+      "show": ["BlueDemon"],
+      "grade": { "hue": 0, "sat": 0.18, "val": 0.85 },
+      "size_squares": 3.0,
+      "yaw": 0,
+      "anims": {
+        "idle": "Idle",
+        "attack": "Weapon",
+        "walk": "Walk"
+      }
+    },
+    "giantbat": {
+      "_note": "the giant bat (SRD 5.1, Large): Quaternius Animated Monsters Bat, at two squares; it flies all the time.",
+      "file": "quaternius/animated-monsters/Blend/Bat.blend",
+      "show": ["Bat", "Eyes"],
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": {
+        "idle": "Bat_Flying",
+        "attack": "Bat_Attack",
+        "walk": "Bat_Flying"
+      }
+    },
+    "pudding": {
+      "_note": "the black pudding (SRD 5.1, Large): Quaternius Animated Monsters Slime, turned black, at two squares.",
+      "file": "quaternius/animated-monsters/Blend/Slime.blend",
+      "show": ["Slime"],
+      "grade": { "hue": 0, "sat": 0.1, "val": 0.28 },
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": {
+        "idle": "Slime_Idle",
+        "attack": "Slime_Attack",
+        "walk": "Slime_Walk"
+      }
+    },
+    "puddingm": {
+      "_note": "a black pudding split in two (Medium): the same slime at one square.",
+      "file": "quaternius/animated-monsters/Blend/Slime.blend",
+      "show": ["Slime"],
+      "grade": { "hue": 0, "sat": 0.1, "val": 0.28 },
+      "size_squares": 1.0,
+      "yaw": 0,
+      "anims": {
+        "idle": "Slime_Idle",
+        "attack": "Slime_Attack",
+        "walk": "Slime_Walk"
+      }
+    },
     "troll": {
       "_note": "Quaternius Ultimate Monsters, Big/Yeti (CC0, Atlas_Monsters.png) standing in for the SRD troll. Large: 2 squares.",
       "file": "quaternius/ultimate-monsters/Big/Blends/Yeti.blend",

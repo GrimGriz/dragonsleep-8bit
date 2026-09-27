@@ -31,6 +31,7 @@
   AI.turn = function* (B, u) {
     RU.startTurn(u);
     if (u.dead) return;
+    if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? 'The ' + B.shortName(u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}The ' + B.shortName(u) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
@@ -38,6 +39,7 @@
     if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);
+    else if (u.weave) yield* weaver(B, u);
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
     // a Slam's stun lasts till the end of the slammer's next turn
@@ -219,6 +221,75 @@
     }
   }
 
+  // ------------------------------------------------------------------ the spell-weaver (Third Lamp, 09-27): she keeps her distance; Hold once,
+  // early, on the one who hits hardest; a line of lightning when it would catch two or more (recharge 5-6); else Fire Bolt
+  // at the lowest AC in sight. Pressed, she steps away first (no Disengage: the player's opportunity attack is the test).
+  function bestLine(B, u, len) {
+    var best = null;
+    heroes(B, u).forEach(function (t) {
+      var sq = D.magic.area(u, { shape: 'line', len: len }, t.x, t.y);
+      var got = B.units.filter(function (w) { return G.standing(w) && G.inArea(w, sq); }), hs = got.filter(function (w) { return w.side !== u.side; }).length;
+      if (got.length > hs) return; // not through her own
+      if (!best || hs > best.count) best = { sq: sq, count: hs, t: t };
+    });
+    return best;
+  }
+  function* weaver(B, u) {
+    var T = u.turn, W = u.weave, hs = heroes(B, u), bolt = u.attacks.firebolt;
+    if (!hs.length) return;
+    if (W.bolt.spent) { var rc = D.d(6); if (rc >= W.bolt.recharge) { W.bolt.spent = false; B.card(['{g}The weaver draws the dark in again (d6 ' + rc + ').{/}'], 200); yield 12; } }
+    // pressed: a step back to somewhere she can still see someone from, and no one beside her
+    if (G.foesNear(u, u.x, u.y, 5).length) {
+      var rm = G.reach(u, T.move), pick = null, ps = -1e9;
+      Object.keys(rm).forEach(function (k) {
+        var e = rm[k]; if (!e.stand) return;
+        var vis = visibleFrom(u, e.x, e.y, hs).length; if (!vis) return;
+        var s = -G.foesNear(u, e.x, e.y, 5).length * 20 + Math.min.apply(null, hs.map(function (w) { return G.dist(u, w, e.x, e.y); })) / 5 + (G.gzAt(u, e.x, e.y) ? 3 : 0) - e.cost / 10;
+        if (s > ps) { ps = s; pick = e; }
+      });
+      if (pick && (pick.x !== u.x || pick.y !== u.y)) { B.card(['{r}The weaver{/} slips back.']); yield 12; yield* walkTo(B, u, pick); if (u.dead || u.hp <= 0) return; hs = heroes(B, u); }
+    }
+    if (!T.action || !hs.length) return;
+    // Hold, once, in the first rounds: the hardest hitter she can see within range
+    if (!W.hold.used && B.round <= 3) {
+      var ht = visibleFrom(u, u.x, u.y, hs).filter(function (w) { return !w.conds.paralyzed && G.dist(u, w) <= W.hold.range && !w.fey; })
+        .sort(function (a, b) { return (b.attacks || 1) * (b.lvl || 1) + b.maxhp / 20 - ((a.attacks || 1) * (a.lvl || 1) + a.maxhp / 20); })[0];
+      if (ht) {
+        T.action = 0; W.hold.used = true; u.anim = 'attack'; u.animT = B.t; D.sfx('magic'); FX.ring(ht, 'violet', 40);
+        var sv = RU.save(ht, 'wis', W.hold.dc);
+        B.card(['{r}The weaver{/} closes a hand: HOLD {y}' + ht.name + '{/}.  WIS ' + RU.saveText(sv) + ' vs DC ' + W.hold.dc + '  ' + (sv.ok ? '{n}SHRUGS IT OFF{/}' : '{p}PARALYZED{/} {g}(a WIS save at the end of each turn){/}')], 400);
+        if (!sv.ok) ht.conds.paralyzed = { save: 'wis', dc: W.hold.dc, by: u.id };
+        yield 40; u.anim = 'idle'; return;
+      }
+    }
+    // the line of lightning, on two or more
+    if (!W.bolt.spent) {
+      var ln = bestLine(B, u, W.bolt.len);
+      if (ln && ln.count >= 2) {
+        T.action = 0; W.bolt.spent = true; u.anim = 'attack'; u.animT = B.t; D.sfx('magic');
+        u.facing = B.faceTo(u, ln.t);
+        FX.bloom(u.x, u.y, ln.sq, 'glow');
+        var roll = D.roll(W.bolt.dice), lines = ['{r}The weaver{/} draws the dark into a line of lightning!  ' + W.bolt.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + W.bolt.dc], hits = [];
+        yield 12;
+        B.units.filter(function (w) { return G.standing(w) && w.side !== u.side && G.inArea(w, ln.sq); }).forEach(function (w) {
+          var s2 = RU.save(w, 'dex', W.bolt.dc), ev = w.cls === 'rogue' && w.lvl >= 7;
+          var n = s2.ok ? (ev ? 0 : Math.floor(roll.total / 2)) : (ev ? Math.floor(roll.total / 2) : roll.total);
+          lines.push('  ' + w.name + ': ' + RU.saveText(s2) + ' ' + (s2.ok ? '{n}saved{/}' : '{o}failed{/}') + (ev ? ' {c}evasion{/}' : '') + '  {r}' + n + '{/}');
+          hits.push([w, n]);
+        });
+        B.card(lines.slice(0, 7), 420);
+        yield { fx: 1 };
+        hits.forEach(function (h) { B.hurt(h[0], h[1], W.bolt.type); });
+        yield 34; u.anim = 'idle'; return;
+      }
+    }
+    // Fire Bolt at the lowest AC in sight
+    var seen = visibleFrom(u, u.x, u.y, hs).filter(function (w) { return G.dist(u, w) <= bolt.range[1]; });
+    if (!seen.length) { B.card(['{g}The weaver has no one in sight.{/}']); yield 20; return; }
+    T.action = 0;
+    yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], bolt);
+  }
+
   // ------------------------------------------------------------------ a guest (Brann, Hedda, Ingrith, Pyro): the nearest foe, Extra Attack
   // ------------------------------------------------------------------ brute: any foe with no routine of its own (the bestiary, 09-27):
   // regenerate if it can; close on the nearest hero (the weakest already in reach first); then run `multi` --
@@ -285,16 +356,29 @@
         return;
       }
     }
-    var tgt = near[0];
+    var tgt = near[0], ranged = Object.keys(u.attacks || {}).filter(function (k) { return u.attacks[k].ranged; }).map(function (k) { return u.attacks[k]; });
     if (!tgt) {
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       var e = approach(u, tgt, G.reach(u, T.move), reachOf(u));
       if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
       else if (u.bound) { B.card(['{g}The ' + B.shortName(u) + ' churns in its pool; no one is in its reach.{/}']); yield 20; }
-      else { B.card(['{g}The ' + B.shortName(u) + ' paces: it cannot get at anyone.{/}']); yield 20; }
+      else if (!ranged.length) { B.card(['{g}The ' + B.shortName(u) + ' paces: it cannot get at anyone.{/}']); yield 20; }
       if (u.dead || u.hp <= 0) return;
     }
     if (!T.action) return;
+    var inReachNow = heroes(B, u).filter(function (w) { return G.dist(u, w) <= reachOf(u); });
+    // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow) -- once
+    if (!inReachNow.length && ranged.length) {
+      var shot = ranged[0], seen = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.dist(u, w) <= shot.range[1]; });
+      if (seen.length) { T.action = 0; yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], shot); return; }
+    }
+    // Enlarge (the duergar), once, when there is no one to hit yet: its pick hits for the bigger dice from now on
+    if (!inReachNow.length && u.enlarge && !u.enlarge.used) {
+      T.action = 0; u.enlarge.used = true;
+      var big = {}; Object.keys(u.attacks).forEach(function (k) { big[k] = Object.assign({}, u.attacks[k]); if (!big[k].ranged) big[k].dice = u.enlarge.dice; }); u.attacks = big;
+      D.sfx('buff'); FX.ring(u, 'stone', 30); B.card(['{r}The ' + B.shortName(u) + '{/} swells to twice its size!  {g}(Enlarge: its blows hit for ' + u.enlarge.dice + '){/}']);
+      yield 30; return;
+    }
     T.action = 0;
     var names = Object.keys(u.attacks || {}), routine = Array.isArray(u.multi) ? u.multi : [];
     if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);

@@ -30,7 +30,9 @@
       var e = { id: id, name: sp.name, level: sp.level, g: g, sp: sp, levels: sp.level ? M.slotLevels(u, sp.level) : [0] };
       e.slot = e.levels[0] || sp.level;
       var why = '';
-      if (g.shape === 'none' || g.shape === 'reaction') why = g.why;
+      // under a roost (the rescue in the dens), its one law: no fire, no thunder (the 8-bit game greys them too, RULED 09-24)
+      if (B.fight && B.fight.roost && /fire|thunder/.test(sp.el || '')) why = 'the roost overhead: no fire, no thunder';
+      else if (g.shape === 'none' || g.shape === 'reaction') why = g.why;
       else if (sp.level && !e.levels.length) why = 'no slot of level ' + sp.level + ' or higher';
       else if (g.time === 'B' && !T.bonus) why = 'the bonus action is spent';
       else if (g.time === 'A' && (!T.action || T.attacksLeft)) why = 'the action is spent';

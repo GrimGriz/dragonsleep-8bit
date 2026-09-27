@@ -50,7 +50,9 @@
       packTactics: !!d.packTactics, resist: d.resist || null, immune: d.immune || null, vulnerable: d.vulnerable || null,
       web: d.web ? { atk: d.web.atk, range: d.web.range, dc: d.web.dc, recharge: d.web.recharge, ready: true } : null,
       slam: d.slam || null, bound: d.bound || null, martial: d.martial || null, surprise: d.surprise || null, holding: [],
-      ethereal: !!f.ethereal // a phase spider may start in the rock (the north cut: "They come out of the walls")
+      ethereal: !!f.ethereal, // a phase spider may start in the rock (the north cut: "They come out of the walls")
+      weave: d.weave ? JSON.parse(JSON.stringify(d.weave)) : null, sneak: d.sneak || null, assassinate: !!d.assassinate, stealth: d.stealth || 0,
+      enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null
     };
   };
   // a damage type against a foe's resistances, immunities and vulnerabilities (SRD: immune 0, resist half, vulnerable x2)
@@ -60,6 +62,27 @@
     if (has(u.resist)) return { n: Math.floor(n / 2), why: 'resists' };
     if (has(u.vulnerable)) return { n: n * 2, why: 'vulnerable' };
     return { n: n, why: '' };
+  };
+  // the pudding splits: each half has half its hit points and is one size smaller (Large -> Medium -> Small, and a Small
+  // one does not split); the new one takes the nearest free square and acts right after it in the order
+  Battle.prototype.splitOff = function (u) {
+    var cls = u.sizeClass || (u.size > 1 ? 'L' : 'M'), next = cls === 'L' ? 'M' : 'S', half = Math.floor(u.hp / 2);
+    var n = this.makeFoe({ id: u.id + '-' + (this.splitSeq = (this.splitSeq || 0) + 1), kind: u.kind });
+    n.size = 1; if (u.small) n.sheet = u.small;
+    var best = null, bd = Infinity, ux = u.x + ((u.size || 1) - 1) / 2, uy = u.y + ((u.size || 1) - 1) / 2;
+    var wasSize = u.size; u.size = 1; // (its own footprint shrinks first, so the half can take a square it held)
+    for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
+      if ((x === u.x && y === u.y) || !G.canStand(n, x, y)) continue;
+      var d = Math.hypot(x - ux, y - uy); if (d < bd) { bd = d; best = [x, y]; }
+    }
+    if (!best) { u.size = wasSize; return; } // no room: it does not split
+    u.hp = u.maxhp = half; u.sizeClass = next; if (u.small) u.sheet = u.small;
+    n.hp = n.maxhp = half; n.sizeClass = next; n.x = best[0]; n.y = best[1]; n.facing = u.facing;
+    n.anim = 'idle'; n.animT = this.t; n.flash = 10; n.reaction = 1; n.initRoll = u.initRoll;
+    this.units.push(n);
+    this.order.splice(this.order.indexOf(u) + 1, 0, n);
+    FX.sparkle(n, 'stone', 16); FX.sparkle(u, 'stone', 16); D.sfx('poison');
+    this.card(['{r}The ' + shortName(u) + ' splits in two!{/}  {g}(' + half + ' HP each, one size smaller){/}'], 360);
   };
   // let go of whatever u holds (it fell, or its grip was out of reach)
   Battle.prototype.release = function (u, only) {
@@ -129,6 +152,21 @@
     this.order = this.units.slice().sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
     yield 50;
+    // an ambush (the sect blades at the rest): the foes' Stealth, rolled once, against each hero's passive Perception;
+    // whoever does not notice is caught unaware -- no turn in the first round, no reactions till then
+    if (this.fight.ambush) {
+      var sk = Math.max.apply(null, this.units.filter(function (w) { return w.side === 'foe'; }).map(function (w) { return w.stealth || 0; }));
+      var sr = D.d(20), st = sr + sk, caught = [], lines = ['{r}AMBUSH{/}: their Stealth d20 ' + sr + ' ' + RU.sign(sk) + ' = ' + st + ' against each passive Perception'];
+      this.units.forEach(function (w) {
+        if (w.side !== 'party' || w.hp <= 0) return;
+        var ok = (w.perception || 10) >= st;
+        lines.push('  ' + w.name + ' ' + (w.perception || 10) + ': ' + (ok ? '{n}sees them coming{/}' : '{o}caught unaware{/}'));
+        if (!ok) { w.conds.surprised = true; caught.push(w); }
+      });
+      this.card(lines, 480);
+      D.sfx(caught.length ? 'encounter' : 'popup');
+      yield 70;
+    }
     while (true) {
       this.round++;
       for (var i = 0; i < this.order.length; i++) {
@@ -145,7 +183,7 @@
       }
     }
   };
-  function shortName(u) { return u.side === 'foe' ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider' }[u.kind] || u.name) : u.name; }
+  function shortName(u) { return u.side === 'foe' ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider', spellweaver: 'Weaver', bugbearchief: 'Chief', hobsergeant: 'Sergeant', assassin: 'Blade', stonegiant: 'Giant', pudding: 'Pudding', giantspider: 'Spider' }[u.kind] || u.name) : u.name; }
 
   // the second wave: when the gallery goes still, the cocoon on the far wall splits and what was in it drops out,
   // dealt into the initiative on its own roll. The hero whose blow did it keeps the rest of the turn.
@@ -190,6 +228,7 @@
   Battle.prototype.heroTurn = function* (u) {
     RU.startTurn(u);
     this.focus(u);
+    if (u.conds.surprised) { delete u.conds.surprised; this.card(['{g}' + u.name + ' is caught unaware: no turn this round.{/}']); yield 40; return; }
     if (RU.canAct(u)) D.sfx('popup'); // your turn
     if (!RU.canAct(u)) {
       this.card(['{g}' + u.name + (u.hp <= 0 ? ' is down.' : ' cannot act.') + '{/}']);
@@ -377,7 +416,8 @@
     var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, total = nat + atk.atk + bless + sacred;
     var critAt = att.crit || 20;
     var hit = nat === 20 || (nat !== 1 && total >= ac);
-    var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5));
+    var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5)
+      || (att.assassinate && tgt.conds.surprised)); // Assassinate: any hit on one caught unaware is a critical
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
@@ -412,6 +452,10 @@
     // Martial Advantage (the hobgoblins): once a turn, +2d6 while an ally who can act stands within 5 ft of the target
     if (att.martial && att.turn && !att.turn.martialUsed && this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) {
       att.turn.martialUsed = true; var ma = D.roll(att.martial, { crit: crit }); dmg += ma.total; parts.push('{o}martial ' + att.martial + ' ' + RU.fmtRolls(ma.rolls) + '{/}');
+    }
+    // a foe's Sneak Attack (the sect blades): once a turn, with advantage or an ally beside the target, and not at disadvantage
+    if (att.sneak && att.turn && !att.turn.sneakUsed && e.net >= 0 && (e.net > 0 || this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; }))) {
+      att.turn.sneakUsed = true; var fs = D.roll(att.sneak, { crit: crit }); dmg += fs.total; parts.push('{p}sneak ' + att.sneak + ' ' + RU.fmtRolls(fs.rolls) + ' = ' + fs.total + '{/}');
     }
     // Surprise Attack (the bugbears; the 8-bit game's reading): the first round's hits bite harder
     if (att.surprise && this.round === 1) { var sa = D.roll(att.surprise, { crit: crit }); dmg += sa.total; parts.push('{o}first blow ' + att.surprise + ' ' + RU.fmtRolls(sa.rolls) + '{/}'); }
@@ -475,6 +519,8 @@
   Battle.prototype.hurt = function (u, n, type) {
     if (n <= 0) return;
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
+    // Split (the black pudding): slashing or lightning on one of Medium size or more with 10 HP or more halves it into two
+    if (u.split && !u.dead && /slashing|lightning/.test(type || '') && u.hp >= 10 && (u.sizeClass || (u.size > 1 ? 'L' : 'M')) !== 'S' && this.alive('foe').length < 8) this.splitOff(u);
     if (u.immune || u.resist || u.vulnerable) {
       var ty = this.typed(u, n, type);
       if (ty.why) FX.float(ty.why, u, ty.why === 'vulnerable' ? D.PAL.ramps.gold[4] : D.PAL.ramps.silver[5]);
@@ -509,10 +555,11 @@
   // ------------------------------------------------------------------ items: the save's own (a potion, a kit, an antitoxin, an oil flask)
   var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1 };
   Battle.prototype.itemList = function (u) {
-    var T = u.turn;
+    var T = u.turn, roost = this.fight && this.fight.roost;
     return (this.inv || []).map(function (s) {
       var it = window.DS.DATA.items[s.id];
       if (!it || !it.use || !it.use.battle || !ITEM_OK[it.use.effect] || s.n <= 0) return null;
+      if (roost && it.use.effect === 'damage') return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
       return { id: s.id, name: it.name, n: s.n, use: it.use, ok: T.action > 0 && !T.attacksLeft, why: T.action > 0 ? '' : 'the action is spent' };
     }).filter(Boolean);
   };

@@ -173,3 +173,165 @@ window.D16.MAPS.trollcave = {
   foes: [],
   wave: null
 };
+
+// Third Lamp (the 8-bit game's S.raid, `highway`): the lamp-station on the king's road -- the made road down the middle,
+// the garrison's crates pulled into barricades (the P squares), the lamp's platform at the back (the ledge), a slab up to it.
+window.D16.MAPS.lamp = {
+  name: 'Third Lamp',
+  sub: 'the king\'s road: the station, taken',
+  step: 20,
+  rows: [
+    '####################',
+    '###...LLLLLLLL...###',
+    '##....LLL/LLLL....##',
+    '#.......====.......#',
+    '#..P....====....P..#',
+    '#.......====.......#',
+    '#..PPP..====..PPP..#',
+    '#.......====.......#',
+    '##......====......##',
+    '###.....====.....###',
+    '####....====....####',
+    '#####...====...#####',
+    '########====########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
+  foes: [],
+  wave: null
+};
+
+// The drow's fallback line (the 8-bit game's S.fallback, leg four): a line of crates across the road with gaps in it,
+// and pale heads behind it. They have had a day to get ready.
+window.D16.MAPS.barricade = {
+  name: 'The Fallback Line',
+  sub: 'the king\'s road, leg four',
+  step: 20,
+  rows: [
+    '####################',
+    '######........######',
+    '####....====....####',
+    '###.....====.....###',
+    '##......====......##',
+    '##.PPPP.PPPP.PPPP.##',
+    '##......====......##',
+    '#.......====.......#',
+    '#..r....====....r..#',
+    '#.......====.......#',
+    '##......====......##',
+    '####....====....####',
+    '########====########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
+  foes: [],
+  wave: null
+};
+
+// The stone giant's camp (the 8-bit game's S.giant, leg three): a cut off the south side of the road, duergar grey and
+// quiet at their fire, and behind them, sitting against the wall as if it were part of it, a giant made of the same stone.
+window.D16.MAPS.giantcamp = {
+  name: 'The Giant\'s Camp',
+  sub: 'the king\'s road, leg three',
+  step: 20,
+  rows: [
+    '####################',
+    '####............####',
+    '###..............###',
+    '##...P......P.....##',
+    '#..................#',
+    '#.....rr...........#',
+    '#..................#',
+    '##........P.......##',
+    '###..............###',
+    '####............####',
+    '#####..........#####',
+    '######........######',
+    '########====########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
+  foes: [],
+  wave: null
+};
+
+// The dens under the roost (the 8-bit game's S.rescue, `guano`, the galleries): a side gallery where a drive went wrong.
+// Overhead, the roost -- millions of sleeping wings -- and its one law: no fire, no thunder (the fight's `roost`).
+window.D16.MAPS.roost = {
+  name: 'The Dens',
+  sub: 'the galleries, under the roost',
+  step: 20,
+  rows: [
+    '##################',
+    '#####........#####',
+    '###............###',
+    '##..P........P..##',
+    '#................#',
+    '#.....rr.........#',
+    '#................#',
+    '##......P.......##',
+    '###............###',
+    '####..........####',
+    '#####........#####',
+    '######......######',
+    '#######....#######',
+    '#######....#######'
+  ],
+  entry: [[8, 12], [9, 12], [8, 13], [9, 13], [7, 11]],
+  foes: [],
+  wave: null
+};
+
+// The drainage cut under the station (the 8-bit game's S.drainCut): Thyra's people keep a weighted grate over it and do
+// not go down. Something black lies across the floor down there, glossy and still. Two somethings.
+window.D16.MAPS.drain = {
+  name: 'The Drain Cut',
+  sub: 'under the station',
+  step: 20,
+  rows: [
+    '##################',
+    '######....########',
+    '#####......#######',
+    '####........######',
+    '###..........#####',
+    '###...r......#####',
+    '##............####',
+    '##.....rr......###',
+    '###.............##',
+    '####..........####',
+    '#####........#####',
+    '######......######',
+    '#######====#######',
+    '#######====#######'
+  ],
+  entry: [[8, 12], [9, 12], [8, 13], [9, 13], [7, 11]],
+  foes: [],
+  wave: null
+};
+
+// The rest (the 8-bit game's sect blades, "wherever you rest"): the four camped on the road where it runs through a
+// wide cave, the stalagmites round it, and the dark at the edges. The party starts where it lay down.
+window.D16.MAPS.restcamp = {
+  name: 'The Rest',
+  sub: 'the king\'s road, past Torvald',
+  step: 20,
+  rows: [
+    '####################',
+    '###..............###',
+    '##................##',
+    '#...P..........P...#',
+    '#..................#',
+    '#......======......#',
+    '#......======......#',
+    '#......======......#',
+    '#..................#',
+    '#...P..........P...#',
+    '##................##',
+    '###..............###',
+    '####............####',
+    '####################'
+  ],
+  entry: [[8, 5], [11, 5], [8, 7], [11, 7], [9, 6]],
+  foes: [],
+  wave: null
+};
