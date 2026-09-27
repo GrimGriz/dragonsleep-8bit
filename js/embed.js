@@ -50,7 +50,10 @@
     function onMsg(e) {
       var m = e.data;
       if (e.source !== fr.contentWindow || !m) return;
-      if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: { canRun: o.canRun !== false } }, '*');
+      // the lone investigator (the wagon night's INVESTIGATE): the 8-bit battle's `solo` (a party index) goes over as the hero's
+      // id, with `join`, the round the rest come out of the inn
+      var solo = o.solo != null && g.party[o.solo] ? g.party[o.solo].id : null;
+      if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: { canRun: o.canRun !== false, solo: solo, join: o.join || 0 } }, '*');
       if (m.type === 'd16:done') {
         window.removeEventListener('message', onMsg);
         fr.parentNode.removeChild(fr);

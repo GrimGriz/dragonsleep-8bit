@@ -38,7 +38,8 @@
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
     if (u.conds.restrained) yield* D.magic.breakFree(B, u); // a web: tear at it first
-    if (u.kind === 'phasespider') yield* spider(B, u);
+    if (u.traces) yield* traces(B, u);
+    else if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);
     else if (u.weave) yield* weaver(B, u);
@@ -50,6 +51,20 @@
     u.anim = 'idle';
     yield 16;
   };
+
+  // ------------------------------------------------------------------ Willem at the team's heads (the 8-bit wagon yard, a foe placed with
+  // `traces`; Griz 09-27): each turn his action goes on the harness -- no step, no blow -- until a blow lands on him
+  // (battle.js hurt: fight.runWhenHurt lets the pair run). He never gets them free: the horses are out of the escape
+  var FUMBLE = ['works at the traces with shaking hands.', 'drops a buckle in the dark and gropes for it.',
+    'has one trace free. The near horse sidesteps, and he swears at it.', 'fights the last strap. It will not give.', 'saws at a strap with a little knife.'];
+  function* traces(B, u) {
+    u.turn.action = 0; u.turn.move = 0; u.turn.bonus = 0;
+    var n = u.fumbles = (u.fumbles || 0) + 1;
+    var team = B.riders.filter(function (r) { return r.team; }).sort(function (a, b) { return Math.hypot(a.x - u.x, a.y - u.y) - Math.hypot(b.x - u.x, b.y - u.y); })[0];
+    if (team) u.facing = B.faceTo(u, { x: team.x, y: team.y, size: 1 }); // (turned to the horses, his back to the fight)
+    B.card(['{o}' + u.name + '{/} ' + FUMBLE[n <= FUMBLE.length ? n - 1 : 2 + (n % 3)] + '  {g}(his action: the harness){/}']);
+    yield 40;
+  }
 
   // ------------------------------------------------------------------ the phase spider
   function* spider(B, u) {
@@ -351,9 +366,10 @@
   }
   function* shooter(B, u) {
     var T = u.turn, hs = heroes(B, u), far = u.attacks[Object.keys(u.attacks)[0]].range[0], exits = B.fight.exit || B.map.def.exit || [];
-    // one who fights only to get away (the wagon pair, for the horses): each turn a move toward the way out, then the blasts
+    // one who fights only to get away (the wagon pair): each turn a move toward the way out, then the blasts. On the ladder
+    // they give ground a step at a time; in the 8-bit yard (fight.runWhenHurt), once they run, it is a full stride (on foot)
     if (u.flees && exits.length) {
-      var rx = G.reach(u, Math.min(T.move, 15)), go = null, gd = Infinity; // they give ground a step at a time, blasting (bloodied, they Dash)
+      var rx = G.reach(u, B.fight.runWhenHurt ? T.move : Math.min(T.move, 15)), go = null, gd = Infinity;
       Object.keys(rx).forEach(function (k) { var e = rx[k]; if (!e.stand) return; var d = Math.min.apply(null, exits.map(function (x) { return Math.max(Math.abs(x[0] - e.x), Math.abs(x[1] - e.y)); })) * 10 + e.cost / 10; if (d < gd) { gd = d; go = e; } });
       if (go && (go.x !== u.x || go.y !== u.y)) { yield* walkTo(B, u, go); if (u.dead || u.hp <= 0) return; }
       if (exits.some(function (x) { return x[0] === u.x && x[1] === u.y; })) {

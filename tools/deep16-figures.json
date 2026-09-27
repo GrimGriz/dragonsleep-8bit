@@ -175,6 +175,32 @@
         "walk": "Walk"
       }
     },
+    "horse": {
+      "_note": "the wagon's team (the 8-bit wagon yard, 09-27: Griz, 'add horses to the wagon'): Quaternius Horse (CC0, the wolf's pack), Large: 2 squares nose to tail. Scenery in the yard (a fight's riders), never in the fight. hurt = the startle when Willem is hit.",
+      "file": "quaternius/animated-animals/glTF/Horse.gltf",
+      "show": ["Horse"],
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": {
+        "idle": "Idle",
+        "walk": "Walk",
+        "attack": "Attack_Kick",
+        "hurt": "Idle_HitReact1"
+      }
+    },
+    "horsegrey": {
+      "_note": "the team's other horse: Quaternius Horse_White (CC0), as the bay.",
+      "file": "quaternius/animated-animals/glTF/Horse_White.gltf",
+      "show": ["Horse"],
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": {
+        "idle": "Idle",
+        "walk": "Walk",
+        "attack": "Attack_Kick",
+        "hurt": "Idle_HitReact1"
+      }
+    },
     "ettercap": {
       "_note": "Quaternius Ultimate Monsters, Big/Alien (CC0) standing in for the SRD ettercap: the spindly one, its purple taken down towards grey. Medium, drawn a little over a square so it stands at a hero's height.",
       "file": "quaternius/ultimate-monsters/Big/Blends/Alien.blend",

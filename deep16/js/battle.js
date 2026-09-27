@@ -26,8 +26,17 @@
     var entry = (F.entry || m.def.entry).slice();
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
     // the party came in by), and a map's named doors (`doors`: the inn's); a map closed all round keeps the way in
-    // riders (a fight's scenery figures: the wagon's glamoured children): drawn where they stand, never in the fight
-    this.riders = (F.riders || []).map(function (r) { return { x: r.at[0], y: r.at[1], sheet: r.sheet, after: r.after, facing: r.facing || 0, gz: r.gz || 0 }; });
+    // riders (a fight's scenery figures: the wagon's glamoured children, the team in its traces): drawn where they stand,
+    // never in the fight. `foot` [w, h] for a big one (a horse is 2 x 1), `blocks` holds its squares, `team` startles when the run begins
+    this.riders = (F.riders || []).map(function (r) { return { x: r.at[0], y: r.at[1], sheet: r.sheet, after: r.after, facing: r.facing || 0, gz: r.gz || 0, foot: r.foot || [1, 1], team: !!r.team, anim: 'idle', animT: 0 }; });
+    (F.riders || []).forEach(function (r) { if (!r.blocks) return; var f = r.foot || [1, 1]; for (var j = 0; j < f[1]; j++) for (var i = 0; i < f[0]; i++) { var s = m.at(r.at[0] + i, r.at[1] + j); if (s) s.walk = false; } });
+    // the lone investigator (the 8-bit wagon night's INVESTIGATE, this.o.embed.solo): one hero in the yard; the rest come out
+    // of the inn at round this.o.embed.join (the 8-bit battle's `join`), onto the squares by the door
+    var solo = this.o.embed && this.o.embed.solo;
+    var out = solo && party.some(function (u) { return u.id === solo; }) ? party.filter(function (u) { return u.id !== solo; }) : [];
+    this.reserve = out.filter(function (u) { return u.hp > 0; });
+    this.stayed = out.filter(function (u) { return u.hp <= 0; }); // (one already down stays in the inn: embed.js still reports them)
+    party = party.filter(function (u) { return out.indexOf(u) < 0; });
     this.exits = [];
     for (var ey = 0; ey < m.h; ey++) for (var ex = 0; ex < m.w; ex++) { var es = m.at(ex, ey); if (es && es.walk && (ex === 0 || ey === 0 || ex === m.w - 1 || ey === m.h - 1)) this.exits.push([ex, ey]); }
     (m.def.doors || []).forEach(function (q) { self.exits.push(q); });
@@ -69,7 +78,8 @@
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
       reckless: !!d.reckless, rageOnHit: !!d.rageOnHit, raging: false,
-      flees: !!d.flees && !(this.fight && this.fight.noFlee), transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
+      // (the 8-bit wagon yard, fight.runWhenHurt: nobody runs until the one at the traces is hit -- then both do, Battle.run2)
+      flees: !!d.flees && !(this.fight && (this.fight.noFlee || this.fight.runWhenHurt)), traces: !!f.traces, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
@@ -160,10 +170,35 @@
   Battle.prototype.over = function () {
     // a fight that must not let them go (the wagon yard: fight.noEscape): one got away, and it is lost
     if (this.fight.noEscape && !this.alive('foe').length && this.units.some(function (u) { return u.fled; })) return 'lost';
+    // a fight that ends the moment one gets away (the 8-bit wagon yard, fight.fledEnds: either of the pair on the road is the chase)
+    if (this.fight.fledEnds && this.units.some(function (u) { return u.side === 'foe' && u.fled; })) return 'fled';
     if (!this.alive('foe').length) return 'won';
-    // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27)
-    if (!this.alive('party').length) return this.units.some(function (u) { return u.left; }) ? 'escaped' : 'lost';
+    // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27), or the rest
+    // are still on their way out of the inn (this.reserve)
+    if (!this.alive('party').length) return this.reserve.length ? null : this.units.some(function (u) { return u.left; }) ? 'escaped' : 'lost';
     return null;
+  };
+  // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
+  // entry, each on its own initiative
+  Battle.prototype.joinReserve = function* () {
+    var self = this, come = this.reserve, e0 = (this.fight.entry || this.map.def.entry)[0], names = [];
+    this.reserve = [];
+    come.forEach(function (u) {
+      var at = null, bd = Infinity;
+      for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) { if (!G.canStand(u, x, y)) continue; var d = Math.hypot(x - e0[0], y - e0[1]); if (d < bd) { bd = d; at = [x, y]; } }
+      if (!at) return;
+      u.x = at[0]; u.y = at[1]; u.facing = 5; u.anim = 'idle'; u.animT = self.t; u.flash = 0; u.reaction = 1; u.conds = u.conds || {};
+      if (u.hp <= 0) u.ko = true;
+      self.units.push(u); names.push(u.name);
+      u.initRoll = D.d(20) + u.init;
+      var k = 0; while (k < self.order.length && self.order[k].initRoll >= u.initRoll) k++;
+      self.order.splice(k, 0, u);
+      FX.sparkle(u, 'gold', 10);
+    });
+    if (!names.length) return;
+    this.focus(come[0]); D.sfx('popup');
+    this.card(['{y}' + names.join(', ') + '{/} ' + (names.length > 1 ? 'come' : 'comes') + ' out of the inn!  {g}(' + come.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ') + '){/}'], 360);
+    yield 50;
   };
 
   // ------------------------------------------------------------------ the run: entry card, initiative, rounds
@@ -193,6 +228,7 @@
     }
     while (true) {
       this.round++;
+      if (this.reserve.length && this.round >= ((this.o.embed && this.o.embed.join) || 2)) yield* this.joinReserve();
       for (var i = 0; i < this.order.length; i++) {
         var u = this.order[i];
         if (u.dead) continue;
@@ -240,11 +276,25 @@
   };
   Battle.prototype.shortName = shortName;
 
+  // the pair run (the 8-bit wagon yard, fight.runWhenHurt; Griz 09-27: "willem try to unhook them for the first part of the
+  // fight (until he takes damage) - then amara and willem will try to make the escape on foot"): the first blow that lands on
+  // the one at the traces, and he lets them go; both break for the road on foot (their `flees`, ai.js shooter), and the team
+  // startles in its harness
+  Battle.prototype.run2 = function (u) {
+    this.bolting = true; u.traces = false;
+    this.units.forEach(function (w) { if (w.side === 'foe' && D.FOES[w.kind] && D.FOES[w.kind].flees) w.flees = true; });
+    this.riders.forEach(function (r) { if (r.team) { r.anim = 'hurt'; r.animT = this.t; } }, this);
+    D.sfx('run');
+    var go = this.units.filter(function (w) { return w.side === 'foe' && w.flees && w.hp > 0 && !w.dead; }).map(shortName);
+    this.card(['{r}' + shortName(u) + (u.hp > 0 ? ' lets go of the traces.{/}  "Leave them!" ' : ' falls at the traces.{/}  ') +
+      (go.length ? go.join(' and ') + (go.length > 1 ? ' break' : ' breaks') + ' for the road, on foot.' : '')], 420);
+  };
+
   Battle.prototype.finish = function* (o) {
     this.result = o;
     // the glamour broken: the riders are what they were all along (the wagon yard's children)
     if (o === 'won') this.riders.forEach(function (r) { if (r.after) { r.sheet = r.after; FX.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
-    D.music(o === 'won' ? 'victory' : 'gameover');
+    if (o !== 'fled') D.music(o === 'won' ? 'victory' : 'gameover'); // (one got away: the boss tune runs on into the chase)
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
     var head = o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
@@ -635,6 +685,7 @@
     if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
     if (n <= 0) return;
     u.hp = Math.max(0, u.hp - n);
+    if (this.fight.runWhenHurt === u.id && !this.bolting) this.run2(u);
     if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
     u.flash = 10;
     FX.float('-' + n, u, D.PAL.ramps.red[4]);

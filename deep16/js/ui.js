@@ -469,7 +469,15 @@
     D.iso.inWorld = true; // (before the figures are placed: their positions are the world canvas's)
     try {
       B.units.forEach(function (u) { var o = unitObj(B, u); if (o) objs.push(o); });
-      (B.riders || []).forEach(function (r) { var c = D.iso.center(r.x, r.y, r.gz), s = D.iso.toScreen(c.x, c.y); objs.push({ depth: r.x + r.y + 0.6, gz: r.gz, draw: function (ctx) { D.spr.draw(ctx, r.sheet, 'idle', r.facing, B.t, s.x, s.y, {}); } }); });
+      // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
+      (B.riders || []).forEach(function (r) {
+        var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2, r.y + (f[1] - 1) / 2, r.gz), s = D.iso.toScreen(c.x, c.y);
+        objs.push({ depth: r.x + r.y + (f[0] - 1) + (f[1] - 1) + 0.6, gz: r.gz, draw: function (ctx) {
+          var a = r.anim && r.anim !== 'idle' && D.spr.anim(r.sheet, r.anim) && B.t - r.animT <= D.spr.duration(r.sheet, r.anim) + 6 ? r.anim : 'idle';
+          if (f[0] > 1 || f[1] > 1) { ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(s.x, s.y, 20, 7, 0, 0, 7); ctx.fill(); }
+          D.spr.draw(ctx, r.sheet, a, r.facing, a === 'idle' ? B.t + r.x * 7 + r.y * 13 : B.t - r.animT, s.x, s.y, a === 'idle' ? {} : { once: true });
+        } });
+      });
       FX.list.forEach(function (f) { if (!f.screen) objs.push({ depth: 1e6, gz: 0, draw: function (c) { f.draw(c); } }); });
       DEFER = objs; WCTX = wx;
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
@@ -889,7 +897,7 @@
     ctx.save(); ctx.translate(D.W / 2, 92); ctx.scale(2, 2); D.text(ctx, (F.name || B.map.def.name).toUpperCase(), 0, 0, R('gold', 4), 'center'); ctx.restore();
     D.text(ctx, F.sub || B.map.def.sub, D.W / 2, 116, R('silver', 5), 'center');
     if (from.from === 'the ladder') D.text(ctx, names.join(', ') + ' at level ' + F.level + ': the ladder.', D.W / 2, 136, R('bone', 1), 'center');
-    else if (B.o.embed) D.text(ctx, names.join(', ') + '.', D.W / 2, 136, R('bone', 1), 'center');
+    else if (B.o.embed) D.text(ctx, names.join(', ') + (B.reserve.length ? ', alone in the yard. The others are on their way out of the inn.' : '.'), D.W / 2, 136, R('bone', 1), 'center');
     else D.text(ctx, names.join(', ') + ' come in from ' + (from.from === 'the fixture' ? (B.o.fixture ? 'the fixture' : 'the fixture (no 8-bit save found)') : from.from + (ago ? ', saved ' + (ago < 120 ? ago + ' min' : Math.round(ago / 60) + ' h') + ' ago' : '')) + '.', D.W / 2, 136, R('bone', 1), 'center');
     var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
     D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  ' + (F.intro || ''), D.W / 2, 150, R('accent', 2), 'center');

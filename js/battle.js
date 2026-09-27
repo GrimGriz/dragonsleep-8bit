@@ -363,13 +363,13 @@
     var best = 0; this.liveHeroes().forEach(function (u) { best = Math.max(best, DS.mod(u.h.abil.dex)); });
     var roll = DS.d(20) + DS.mod(abil(f, 'dex'));
     f.off = -10;
-    yield* this.say(nameOf(f) + ' breaks for the horses...', 56);
+    yield* this.say(nameOf(f) + ' breaks and runs for the dark...', 56); // (on foot: the horses are out of the escape, Griz 09-27)
     f.off = 0;
     if (roll >= 10 + best) {
       DS.audio.sfx('run');
       var away = this.liveFoes().filter(function (x) { return x.m.traits && x.m.traits.flees; });
       DS.fledIds = away.map(function (x) { return x.id; }); // who's still out there, for the chase
-      yield* this.hold(away.length > 1 ? 'They get to the horses! Both of them are away into the dark.' : nameOf(f) + ' gets to a horse and is away into the dark!');
+      yield* this.hold(away.length > 1 ? 'They break clear! Both of them are away into the dark.' : nameOf(f) + ' breaks clear and is away into the dark!');
       this.over = 'fled';
     } else yield* this.hold('...and is cut off. (' + roll + ' vs ' + (10 + best) + ')');
   };

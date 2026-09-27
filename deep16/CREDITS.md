@@ -20,7 +20,7 @@ stalagmites, cocoons and rubble are drawn in code (`deep16/js/iso.js`, `deep16/j
   (Oct 2022, 50 in Big / Blob / Flying — Yeti as `troll_p1`). Credit is not required by the licence; given gladly.
   The ladder's sheets (09-27, graded or recoloured per `tools/deep16-figures.json`): Easy Enemy Snake_Angry (`naga_p1`),
   Snake (`keeper_p1`), Spider (`wolfspider_p1`); Animated Monster Bat (`giantbat_p1`), Slime (`pudding_p1`, `puddingm_p1`,
-  `ochrejelly_p1`, `ochrejellym_p1`, `grayooze_p1`); Animals Wolf (`worg_p1`), Husky (`hyena_p1`); Ultimate Monsters Big
+  `ochrejelly_p1`, `ochrejellym_p1`, `grayooze_p1`); Animals Wolf (`worg_p1`), Husky (`hyena_p1`), Horse and Horse_White (`horse_p1`, `horsegrey_p1`: the wagon's team); Ultimate Monsters Big
   Alien (`ettercap_p1`), BlueDemon (`stonegiant_p1`, `earthelemental_p1`), Cactoro (`roper_p1`), Dino (`bulette_p1`),
   Frog (`chuul_p1`), Monkroose (`bugbearchief_p1`), Orc (`hobgoblin_p1`), Orc_Skull (`hobsergeant_p1`), Tribal
   (`gnoll_p1`, `gloryseeker_p1`); Blob GreenSpikyBlob (`otyugh_p1`, `xorn_p1`); Flying Ghost (`cloaker_p1`), Glub

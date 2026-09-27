@@ -30,7 +30,7 @@
     var foes = B.units.filter(function (u) { return u.side === 'foe'; });
     send({
       type: 'd16:done', result: res || 'escaped',
-      party: B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) {
+      party: B.units.concat(B.reserve || [], B.stayed || []).filter(function (u) { return u.side === 'party'; }).map(function (u) { // (reserve: still in the inn when it ended)
         return { id: u.id, guest: !!u.guest, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left };
       }),
       foes: foes.map(function (u) { return { id: u.id, kind: u.kind, dead: u.hp <= 0, fled: !!u.fled }; }),

@@ -6,6 +6,10 @@
 'use strict';
 (function () {
   var D = window.D16 = window.D16 || {};
+  // the wagon's team (the inn yard; Griz 09-27: "add horses to the wagon"): hitched in front of the wagon, which faces +gx,
+  // under the rail; a bay and a grey, each two squares nose to tail. Scenery: they hold their squares and startle when the run begins
+  var TEAM = [{ at: [8, 3], sheet: 'horse_p1', facing: 7, foot: [2, 1], blocks: true, team: true },
+              { at: [8, 4], sheet: 'horsegrey_p1', facing: 7, foot: [2, 1], blocks: true, team: true }];
   D.FIGHTS = [
     // the first rungs (09-27, the Cowork seat, on Griz's "proceed with 4"): the 8-bit game's own creatures on the one map,
     // placed by hand; each names its foes and no wave. The blocks are data/foes.js; they fight by ai.js brute().
@@ -102,7 +106,18 @@
       foes: [{ id: 'amara', kind: 'amara', at: [8, 6] }, { id: 'willem', kind: 'willem', at: [6, 6] }, { id: 'hs1', kind: 'hiredsword', at: [10, 7] }, { id: 'hs2', kind: 'hiredsword', at: [9, 9] }], wave: null,
       // in the wagon's bed, the cargo: goblins to the eye until the glamour breaks, then children (Griz, 09-27: "we need NPC goblin
       // or children in that wagon"; the 8-bit game's W.goblin, look kid once glamourBroken)
-      riders: [{ at: [4, 3], sheet: 'goblin_p1', after: 'kid1_p0', gz: 12 }, { at: [4, 4], sheet: 'goblin_p1', after: 'kid2_p0', gz: 12 }] },
+      riders: [{ at: [4, 3], sheet: 'goblin_p1', after: 'kid1_p0', gz: 12 }, { at: [4, 4], sheet: 'goblin_p1', after: 'kid2_p0', gz: 12 }].concat(TEAM) },
+    // the 8-bit game's own wagon yard (events.js S.wagonFight fights it here, js/embed.js; not on the ladder: no level). Griz,
+    // 09-27: "add horses to the wagon ... have willem try to unhook them for the first part of the fight (until he takes damage)
+    // - then amara and willem will try to make the escape on foot - either succeeding switches to chase 1 fight 2". Willem at
+    // the team's flank (`traces`: ai.js), Amara between him and the inn; the first blow on him and both run (runWhenHurt), and
+    // either one on the road ends it (fledEnds: the 8-bit battle's 'fled', S.wagonChase). The glamour is already seen through
+    // (the fight only comes to it once it is): the children in the bed are children
+    { id: 'wagonnight', story: true, map: 'yard', name: 'The Wagon Yard', sub: 'the Halfway Inn, at night', music: 'boss', runWhenHurt: 'willem', fledEnds: true,
+      intro: 'Steel comes out. Willem goes for the team; Amara stands between him and you.',
+      from: 'the 8-bit game: events.js S.wagonFight', won: 'THE YARD IS QUIET.', escaped: 'THEY ARE AWAY UP THE ROAD.',
+      foes: [{ id: 'amara', kind: 'amara', at: [10, 6] }, { id: 'willem', kind: 'willem', at: [8, 5], traces: true }], wave: null,
+      riders: [{ at: [4, 3], sheet: 'kid1_p0', gz: 12 }, { at: [4, 4], sheet: 'kid2_p0', gz: 12 }].concat(TEAM) },
     { id: 'gricks', level: 5, map: 'grickden', name: 'The Grick Den', sub: 'south of the king\'s road, leg one', music: 'boss',
       intro: 'Something moves in the open cavern south of the road, low and fast, and then there are more of them than there were rocks. (Plain steel does half; magic does not care.)',
       from: 'the 8-bit game: deep.js S.grickDen (three gricks; five with the king)', won: 'THE DARK IS ONLY DARK AGAIN.',

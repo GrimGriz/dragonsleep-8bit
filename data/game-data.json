@@ -10572,8 +10572,8 @@
    "id": "wagon.bribeGone"
   },
   "wagon.abandoned": {
-   "t": "The wagon stands in the yard with its traces cut. In the back, chained, eight children. Real, and very quiet.",
-   "src": "module-halfway-inn.md §4 (the stock: children glamoured as goblins, eight); §8 (the children)",
+   "t": "The wagon stands in the yard, the team still in its traces, half the buckles undone. In the back, chained, eight children. Real, and very quiet.",
+   "src": "module-halfway-inn.md §4 (the stock: children glamoured as goblins, eight); §8 (the children); the team left in its traces: 09-27, Griz: 'write out the horses involvement in the escape ... amara and willem will try to make the escape on foot' (seat draft)",
    "id": "wagon.abandoned"
   },
   "wagon.strongbox": {
@@ -10582,13 +10582,13 @@
    "id": "wagon.strongbox"
   },
   "wagon.doranTakes": {
-   "t": "Doran Waterby hitches his own horse to the wagon that same night and takes the children back down the road to Newland.",
-   "src": "RULED 09-24 (Griz: husband took the wagon of children back down to Newland)",
+   "t": "Doran Waterby climbs up on the bench that same night, the wagon's own team still in the traces, and drives the children back down the road to Newland.",
+   "src": "RULED 09-24 (Griz: husband took the wagon of children back down to Newland); the team still hitched: 09-27, Griz: 'write out the horses involvement in the escape ... amara and willem will try to make the escape on foot' (seat draft)",
    "id": "wagon.doranTakes"
   },
   "wagon.chase1": {
-   "t": "Hoofbeats, north up the road: two horses, run hard in the dark. You go after them.",
-   "src": "module-halfway-inn.md §4 (at real threat: darkness, then for the horses); RULED 09-24 (the party catches up once)",
+   "t": "Running feet, north up the road: two shapes going hard in the dark. You go after them.",
+   "src": "module-halfway-inn.md §4 (at real threat: darkness, then for the horses); RULED 09-24 (the party catches up once); on foot: 09-27, Griz: 'write out the horses involvement in the escape ... amara and willem will try to make the escape on foot' (seat draft)",
    "id": "wagon.chase1"
   },
   "wagon.caught1": {
@@ -10607,7 +10607,7 @@
    "id": "wagon.caught2"
   },
   "wagon.fakeRider": {
-   "t": "Your hand goes through them. Willem's trick: a pair of riders made of nothing.",
+   "t": "Your hand goes through them. Willem's trick: a pair of runners made of nothing.",
    "src": "module-halfway-inn.md §4 (Willem's favorite: a major image of the pair fleeing the WRONG way)",
    "id": "wagon.fakeRider"
   },
@@ -10617,7 +10617,7 @@
    "id": "wagon.roadDone"
   },
   "wagon.towerEscape": {
-   "t": "The riders reach the Tower. Its door opens for them, and shuts. Behind you, back at the inn, eight children are waiting in a wagon.",
+   "t": "They reach the Tower. Its door opens for them, and shuts. Behind you, back at the inn, eight children are waiting in a wagon.",
    "src": "wiki/the-sisters.md ('the tower in Silverton': the muster at the Tower); RULED 09-24 (escapees head to the Tower)",
    "id": "wagon.towerEscape"
   },

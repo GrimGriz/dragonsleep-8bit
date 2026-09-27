@@ -1026,13 +1026,16 @@
     yield* EV.dueWalk('kid');
     yield* EV.wagonMorning('bribe');
   };
-  // steel comes out: the pair fight only to get to the horses. They drove the wagon themselves; no hired drivers (playtest 09-25)
+  // steel comes out. They drove the wagon themselves; no hired drivers (playtest 09-25). Fought in DEEP16 (09-27, Griz: "add
+  // horses to the wagon ... have willem try to unhook them for the first part of the fight (until he takes damage) - then amara
+  // and willem will try to make the escape on foot - either succeeding switches to chase 1 fight 2"): deep16/data/fights.js
+  // `wagonnight`; its 'fled' is the 8-bit battle's, and the chase below runs as ever, on foot
   S.wagonFight = function* (outside) {
     var g = G(), party = g.party.filter(function (h) { return !h.ko; });
     var solo = outside.length === 1 && party.length > 1 ? g.party.indexOf(outside[0]) : null;
     if (W.kat && !W.kat.hidden) { W.kat.pathSpeed = 2; W.kat.path = DS.pathTo(F().map, W.kat.x, W.kat.y, 13, 11).concat(['hide']); yield arrived([W.kat]); } // she's inside before the first blade clears (Griz 09-25)
     DS.fledIds = null;
-    var res = yield DS.battle({ enemies: ['amara', 'willem'], bg: 'lake', music: 'boss', canRun: false, solo: solo, join: solo != null ? 2 : 0, darkness: true, returnSong: 'lake' });
+    var res = yield DS.battle({ enemies: ['amara', 'willem'], bg: 'lake', music: 'boss', canRun: false, solo: solo, join: solo != null ? 2 : 0, darkness: true, returnSong: 'lake', deep16: 'wagonnight' });
     if (res === 'lose') return;
     g.flags.glamourBroken = 1; g.flags.glamourSeen = 1;
     if (W.wagon) W.wagon.def = Object.assign({}, W.wagon.def, { prop: 'wagonKids' });
