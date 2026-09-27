@@ -28,14 +28,19 @@
     return { from: 'the fixture', when: null, data: SV.fixture() };
   };
 
-  SV.fixture = function () {
+  // the four at a level (9 unless said): the 8-bit game's own levelling, its picks and features; the reward weapons
+  // as the ladder's guess at when they come (+1 from 5, +2 at 9)
+  SV.fixture = function (level) {
+    var L = level || 9;
     var party = ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) {
-      var h = R.makeHero(id, 9), d = DS.DATA.heroes[id];
-      if (d.rewardWeapons && d.rewardWeapons[1] && DS.DATA.items[d.rewardWeapons[1]]) h.equip.weapon = d.rewardWeapons[1];
+      var h = R.makeHero(id, L), d = DS.DATA.heroes[id], tier = L >= 9 ? 1 : L >= 5 ? 0 : -1;
+      if (tier >= 0 && d.rewardWeapons && d.rewardWeapons[tier] && DS.DATA.items[d.rewardWeapons[tier]]) h.equip.weapon = d.rewardWeapons[tier];
       if (id === 'aurdin' && h.known.indexOf('mageArmor') >= 0) h.conds.mageArmor = 1;
       return h;
     });
-    return { party: party, guests: [], inv: [{ id: 'potion', n: 3 }, { id: 'greaterpotion', n: 1 }, { id: 'antitoxin', n: 1 }, { id: 'kit', n: 1 }, { id: 'oil', n: 2 }], flags: { lakeDone: 1, expansionDone: 1 }, fixture: true };
+    var inv = L >= 9 ? [{ id: 'potion', n: 3 }, { id: 'greaterpotion', n: 1 }, { id: 'antitoxin', n: 1 }, { id: 'kit', n: 1 }, { id: 'oil', n: 2 }]
+      : L >= 5 ? [{ id: 'potion', n: 3 }, { id: 'antitoxin', n: 1 }, { id: 'oil', n: 1 }] : [{ id: 'potion', n: 2 }];
+    return { party: party, guests: [], inv: inv, flags: { lakeDone: 1, expansionDone: L >= 9 ? 1 : 0 }, fixture: true, level: L };
   };
 
   // the heroes and guests as DEEP16 units: everything the grid needs, read off the 8-bit sheet

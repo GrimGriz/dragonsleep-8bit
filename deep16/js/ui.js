@@ -143,7 +143,7 @@
   // ------------------------------------------------------------------ input
   UI.input = function (B, req) {
     if (req.entry) {
-      if (B.canSwap && (I.pressed('n2') || I.pressed('left') || I.pressed('right'))) { D.pop(); D.push(new D.Battle({ fixture: !B.o.fixture })); return; }
+      if (B.canSwap && (I.pressed('n2') || I.pressed('left') || I.pressed('right'))) { D.pop(); D.push(new D.Battle(Object.assign({}, B.o, { fixture: !B.o.fixture }))); return; }
       if (I.pressed('a') || I.pressed('end') || I.mouse.click || (!B.canSwap && B.t - B.entryT > 240)) { D.sfx('confirm'); B.answer(); }
       return;
     }
@@ -388,8 +388,9 @@
   function menuItems() {
     return [['resume', 'RESUME'], ['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
       ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >'],
-      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)'], ['out', 'RETURN TO SILVERTON']];
+      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)'], ['out', UI.backLabel()]];
   }
+  UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? 'BACK TO THE LADDER' : 'RETURN TO SILVERTON'; };
   UI.menuInput = function (B) {
     var M = B.menu, items = menuItems(), n = items.length, s0 = M.sel;
     if (M.panel) { if (I.pressed('a') || I.pressed('b') || I.pressed('menu') || I.mouse.click) { D.sfx('cancel'); M.panel = null; } return; }
@@ -412,14 +413,18 @@
     if (id === 'auto') { UI.opts.autoEnd = !UI.opts.autoEnd; UI.saveOpts(); }
     if (id === 'music') setVol('musicVol', vol('musicVol') > 0 ? 0 : 0.5); // E: off, or back on
     if (id === 'sounds') setVol('sfxVol', vol('sfxVol') > 0 ? 0 : 0.7);
-    if (id === 'restart') { D.pop(); D.push(new D.Battle({ fixture: B.o.fixture })); }
+    if (id === 'restart') { D.pop(); D.push(new D.Battle(B.o)); }
     if (id === 'gate') location.search = '?gate';
-    if (id === 'out') location.href = '../';   // back to the 8-bit game: nothing is written
+    if (id === 'out') { if (B.o.onDone) { D.pop(); B.o.onDone(null); } else location.href = '../'; } // the ladder, or back to the 8-bit game: nothing is written
   };
   function restyle(B) { if (B.req && B.req.turn && (B.tool === 'move' || B.tool === 'menu')) B.tool = rest(); }
   UI.resultInput = function (B) {
     UI.camera(B);
-    if (I.pressed('a') || (I.mouse.click && !overUI(B))) { D.pop(); D.push(new D.Battle({ fixture: B.o.fixture })); }
+    if (I.pressed('a') || (I.mouse.click && !overUI(B))) {
+      D.sfx('confirm');
+      if (B.o.onDone) { D.pop(); B.o.onDone(B.result); return; } // back to the ladder with the result
+      D.pop(); D.push(new D.Battle(B.o));
+    }
   };
 
   // ------------------------------------------------------------------ drawing
@@ -840,11 +845,13 @@
     ctx.fillStyle = 'rgba(10,8,16,.7)'; ctx.fillRect(0, 0, D.W, D.H);
     var from = B.from, names = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.name; });
     var ago = from.when ? Math.max(1, Math.round((Date.now() - from.when) / 60000)) : 0;
-    ctx.save(); ctx.translate(D.W / 2, 92); ctx.scale(2, 2); D.text(ctx, D.MAPS.cavern.name.toUpperCase(), 0, 0, R('gold', 4), 'center'); ctx.restore();
-    D.text(ctx, D.MAPS.cavern.sub, D.W / 2, 116, R('silver', 5), 'center');
-    D.text(ctx, names.join(', ') + ' come in from ' + (from.from === 'the fixture' ? (B.o.fixture ? 'the fixture' : 'the fixture (no 8-bit save found)') : from.from + (ago ? ', saved ' + (ago < 120 ? ago + ' min' : Math.round(ago / 60) + ' h') + ' ago' : '')) + '.', D.W / 2, 136, R('bone', 1), 'center');
+    var F = B.fight;
+    ctx.save(); ctx.translate(D.W / 2, 92); ctx.scale(2, 2); D.text(ctx, (F.name || B.map.def.name).toUpperCase(), 0, 0, R('gold', 4), 'center'); ctx.restore();
+    D.text(ctx, F.sub || B.map.def.sub, D.W / 2, 116, R('silver', 5), 'center');
+    if (from.from === 'the ladder') D.text(ctx, names.join(', ') + ' at level ' + F.level + ': the ladder.', D.W / 2, 136, R('bone', 1), 'center');
+    else D.text(ctx, names.join(', ') + ' come in from ' + (from.from === 'the fixture' ? (B.o.fixture ? 'the fixture' : 'the fixture (no 8-bit save found)') : from.from + (ago ? ', saved ' + (ago < 120 ? ago + ' min' : Math.round(ago / 60) + ' h') + ' ago' : '')) + '.', D.W / 2, 136, R('bone', 1), 'center');
     var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
-    D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  Two drow on the ledge. Something in the stalagmites.', D.W / 2, 150, R('accent', 2), 'center');
+    D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  ' + (F.intro || ''), D.W / 2, 150, R('accent', 2), 'center');
     if (B.canSwap) D.text(ctx, B.o.fixture ? '2: walk in from the 8-bit save instead' : '2: walk in as the fixture instead (the four at level 9; the fight is built for them)', D.W / 2, 164, R('silver', 5), 'center');
     D.text(ctx, 'menu: ' + UI.opts.style.toUpperCase() + (UI.opts.style === 'ring' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)'), D.W / 2, 194, R('stone', 5), 'center');
     if ((B.t >> 5) & 1) D.text(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');

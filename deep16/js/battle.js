@@ -13,14 +13,16 @@
   D.Battle = Battle;
 
   Battle.prototype.enter = function () {
-    var m = this.map = D.iso.load(D.MAPS.cavern), self = this;
-    // walk in from the save (the door's snapshot or the newest slot), or as the fixture: the entry card offers both
-    this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
-    this.canSwap = this.o.fixture || this.from.from !== 'the fixture';
+    var F = this.fight = D.fight(this.o.fight || 'gallery'), m = this.map = D.iso.load(D.MAPS[F.map]), self = this;
+    // on the ladder: the four at the fight's level, by the 8-bit game's own rules (nothing read from a save).
+    // Otherwise walk in from the save (the door's snapshot or the newest slot), or as the fixture: the entry card offers both
+    if (this.o.ladder) this.from = { from: 'the ladder', when: null, data: D.save.fixture(F.level) };
+    else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
+    this.canSwap = !this.o.ladder && (this.o.fixture || this.from.from !== 'the fixture');
     var party = D.save.units(this.from.data);
-    var entry = m.def.entry.slice();
+    var entry = (F.entry || m.def.entry).slice();
     party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });
-    var foes = m.def.foes.map(function (f) { return self.makeFoe(f); });
+    var foes = (F.foes || m.def.foes).map(function (f) { return self.makeFoe(f); });
     this.units = party.concat(foes);
     this.inv = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; });
@@ -122,7 +124,7 @@
   // the second wave: when the gallery goes still, the cocoon on the far wall splits and what was in it drops out,
   // dealt into the initiative on its own roll. The hero whose blow did it keeps the rest of the turn.
   Battle.prototype.wave = function* () {
-    var w = this.map.def.wave;
+    var w = this.fight.wave !== undefined ? this.fight.wave : this.map.def.wave;
     if (!w || this.waved || this.over() !== 'won') return;
     this.waved = true;
     var u = this.makeFoe(w), best = null, bd = Infinity;
@@ -154,7 +156,8 @@
     this.result = o;
     D.music(o === 'won' ? 'victory' : 'gameover');
     yield 30;
-    this.card([o === 'won' ? '{y}THE GALLERY IS STILL.{/}' : '{r}THE DARK KEEPS THEM.{/}', '{g}E fight again · M the menu{/}'], 1e9);
+    var F = this.fight;
+    this.card([o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : '{r}' + (F.lost || 'THE DARK KEEPS THEM.') + '{/}', '{g}' + (this.o.onDone ? 'E back to the ladder' : 'E fight again') + ' · M the menu{/}'], 1e9);
   };
 
   // ------------------------------------------------------------------ a hero's turn: the player acts until END TURN
@@ -592,6 +595,7 @@
     if (s.x < 110 || s.x > D.W - 110 || s.y < 70 || s.y > D.H - 90) this.focus(u);
   };
 
+  Battle.prototype.opaque = true; // (the ladder under it needn't draw)
   Battle.prototype.draw = function (ctx) { D.ui.drawBattle(ctx, this); };
   Battle.prototype.onRequest = function (req) { D.ui.onRequest(this, req); };
 })();
