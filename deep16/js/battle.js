@@ -283,6 +283,11 @@
     // level 2, and the action when the bonus is gone (or before level 2, as the tabletop's Hide action)
     var cun = u.cls === 'rogue' && u.lvl >= 2 && T.bonus > 0;
     if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: cun || (T.action > 0 && !T.attacksLeft), note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
+    // Flame Tongue: a bonus action lights it or puts it out (not under the roost: its one law is no fire)
+    if (u.weapon && u.weapon.flame) {
+      var roostF = this.fight && this.fight.roost && !u.conds.ablaze;
+      out.push({ id: u.conds.ablaze ? 'douse' : 'ignite', label: u.conds.ablaze ? 'DOUSE' : 'IGNITE', cost: 'B', icon: 'sacred', ok: T.bonus > 0 && !roostF, why: roostF ? 'the roost overhead: no fire' : 'the bonus action is spent', note: u.conds.ablaze ? 'the blade goes dark' : u.weapon.name + ': +' + u.weapon.flame + ' fire on a hit, light 40 ft' });
+    }
     if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay', note: 'a pool of ' + (u.feats.lay || 0) + ' HP (long rest), touch' });
     // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
     if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a short rest brings it back)', note: '+' + Math.max(1, D.mod(u.abil.cha)) + ' to hit for a minute; Channel Divinity ' + (u.feats.channel > 0 ? '1/1' : '0/1') + ' (short rest)' });
@@ -344,6 +349,8 @@
         if (path2 && path2.length) yield* this.moveAlong(u, path2, { spend: true });
         return;
       }
+      case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
+      case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
       case 'dash': D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'cdash': D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (Cunning Action) dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
@@ -484,6 +491,9 @@
         parts.push('{p}sneak ' + RU.sneakDice(att) + ' ' + RU.fmtRolls(sn.rolls) + ' = ' + sn.total + '{/}');
       }
     }
+    // Flame Tongue (SRD 5.1): while it burns, +2d6 fire on a hit, dealt as fire (a troll's knitting reads it; fire resistance halves it)
+    var fire = 0;
+    if (atk.flame && att.conds.ablaze && !atk.spell) { var fl = D.roll(atk.flame, { crit: crit }); fire = fl.total; parts.push('{o}flame ' + atk.flame + ' ' + RU.fmtRolls(fl.rolls) + ' = ' + fl.total + ' fire{/}'); }
     if (att.conds.divineFavor && !atk.spell) { var df = D.roll('1d4', { crit: crit }); dmg += df.total; parts.push('{y}favor 1d4 [' + df.rolls.join(',') + '] radiant{/}'); }
     // a foe's poisoned blade
     if (atk.extra) { var ex = D.roll(atk.extra, { crit: crit }); dmg += ex.total; parts.push(atk.extra + ' ' + RU.fmtRolls(ex.rolls) + ' ' + atk.extraType); }
@@ -522,9 +532,10 @@
     if (tgt.resist && tgt.resist.indexOf('mundane') >= 0 && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type)) {
       var cut = Math.ceil(dr.total / 2); dmg -= cut; parts.push('{g}-' + cut + ': it shrugs off plain steel{/}');
     }
-    this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + dmg + '{/}'], 300, cid);
+    this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire) + '{/}'], 300, cid);
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
-    this.hurt(tgt, dmg, atk.type);
+    if (fire) { FX.sparkle(tgt, 'fire', 12); this.hurt(tgt, fire, 'fire'); }
+    if (!tgt.dead) this.hurt(tgt, dmg, atk.type);
     yield o.oa ? 18 : 26;
     // riders: the drow's poisoned bolt, the spider's venom
     if (!tgt.dead && tgt.hp > 0 && atk.poison && !tgt.conds.poisoned) {
@@ -605,13 +616,14 @@
     if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
     if (n <= 0) return;
     u.hp = Math.max(0, u.hp - n);
+    if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
     u.flash = 10;
     FX.float('-' + n, u, D.PAL.ramps.red[4]);
     if (u.conds.hidden) delete u.conds.hidden;
     if (u.hp <= 0) {
       u.anim = 'hurt'; u.animT = this.t;
       D.sfx(u.side === 'party' ? 'ko' : 'die');
-      if (u.side === 'party') { u.ko = true; this.card(['{r}' + u.name + ' goes down.{/}']); }
+      if (u.side === 'party') { u.ko = true; delete u.conds.ablaze; this.card(['{r}' + u.name + ' goes down.{/}']); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); if (u.holding && u.holding.length) this.release(u); }
       if (u.conc) D.magic.endConc(this, u, 'down');
     } else D.magic.concCheck(this, u, n);
@@ -668,7 +680,7 @@
     function give(id) { if (!id) return; var s = packOf(B, id); if (s) s.n++; else B.inv.push({ id: id, n: 1 }); }
     function take(id) { var s = packOf(B, id); if (s) s.n--; }
     u.turn.action = 0; D.sfx('confirm');
-    if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; }
+    if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; delete u.conds.ablaze; } // sheathed: the flame goes out
     if (o.kind === 'shieldoff') { give(h.equip.shield); h.equip.shield = null; }
     if (o.kind === 'shieldon') { take(o.id); h.equip.shield = o.id; }
     if (o.kind === 'armoroff') { give(h.equip.armor); h.equip.armor = null; }

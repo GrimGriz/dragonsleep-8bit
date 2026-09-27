@@ -1047,6 +1047,37 @@
    "src": "SRD 5.1",
    "id": "lightcrossbow"
   },
+  "flametongue": {
+   "name": "Flame Tongue",
+   "kind": "weapon",
+   "price": 5000,
+   "weapon": {
+    "dmg": "1d8",
+    "versatile": "1d10",
+    "type": "slashing",
+    "group": "martial",
+    "kind": "longsword",
+    "props": [
+     "versatile"
+    ],
+    "magic": true,
+    "flame": "2d6"
+   },
+   "desc": "A longsword. A bonus action lights the blade: +2d6 fire on a hit, and light 40 ft. Another puts it out; so does sheathing it.",
+   "src": "SRD 5.1 (Flame Tongue; a longsword; its attunement not counted)",
+   "id": "flametongue"
+  },
+  "cloakdisplacement": {
+   "name": "Cloak of Displacement",
+   "kind": "cloak",
+   "price": 6000,
+   "cloak": {
+    "displacement": true
+   },
+   "desc": "The wearer seems to stand a little to one side: attacks at them have disadvantage, until a blow lands (then not till their next turn). Gone while they can't act or move.",
+   "src": "SRD 5.1 (Cloak of Displacement; its attunement not counted)",
+   "id": "cloakdisplacement"
+  },
   "bolts": {
    "name": "Crossbow Bolts",
    "kind": "ammo",

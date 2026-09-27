@@ -135,6 +135,15 @@ Mage Armor (on by default, on a hero in no armour, a 1st-level slot) and Aid (th
 HP); each needs its spell prepared. **THE BUILD'S MORNING** resets to the 8-bit game's own picks. The choices are kept
 per level (`deep16.camp`); the fight starts from a copy of the morning, so RESTART starts from it again.
 
+**Two magic items that aren't a plus** (09-27, Griz: "create two of the 'magic other than a +' items to complicate the
+combat rules further"), in the armoury from rung 5, both SRD 5.1 (their attunement isn't counted):
+**Flame Tongue** (a longsword): IGNITE / DOUSE in SKILLS, a bonus action; while it burns a hit adds 2d6 fire, dealt
+as fire on its own (fire resistance and immunity read it; a troll doesn't knit that turn); sheathing it in a swap, or
+its wielder going down, puts it out; under the roost it won't light. Its light (40 ft) waits for darkness to be read.
+**Cloak of Displacement** (a new CLOAK slot, the camp's; anyone can wear one): attacks at the wearer are at
+disadvantage until a blow lands, then not till the wearer's next turn; nothing while they're held, stunned, asleep,
+restrained or down.
+
 **Gear in a fight** (09-27, Griz: "Don't add a button for gear swapping, but ... apply the action cost for weapon
 swaps"; "at least one crossbow/bolts in the player inventory for all of deep16 modes"): every pack DEEP16 fights with
 carries a light crossbow and twenty bolts (`SV.armoury`; the 8-bit save walking in is never written). On a hero's turn

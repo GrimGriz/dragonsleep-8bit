@@ -14,6 +14,7 @@
     u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0 };
     u.reaction = 1;
     delete u.conds.dodge;
+    delete u.conds.displaceOff; // a Cloak of Displacement works again from the wearer's own turn
     // up off the floor: half its speed (09-27, prone)
     if (u.conds.prone && u.hp > 0) { delete u.conds.prone; u.turn.move = Math.floor(u.speed / 2); if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200); }
     delete u.conds.shield;
@@ -74,6 +75,9 @@
     if (tgt.conds.hidden && G.dist(att, tgt, ax, ay) > 5) dis.push('unseen target');
     if (tgt.conds.faerie) adv.push('faerie fire');
     if (tgt.conds.dodge && !att.conds.hidden) dis.push('dodging');
+    // a Cloak of Displacement (SRD 5.1): at disadvantage, until a blow lands on the wearer (back at their turn); nothing while
+    // they can't act or can't move (held, stunned, asleep, restrained, down)
+    if (tgt.displacement && !tgt.conds.displaceOff && tgt.hp > 0 && !tgt.conds.paralyzed && !tgt.conds.stunned && !tgt.conds.asleep && !tgt.conds.restrained && !tgt.conds.unconscious) dis.push('displacement');
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) adv.push('help');
     if (tgt.hp <= 0 && !tgt.dead && G.dist(att, tgt, ax, ay) <= 5) adv.push('down');
     if (melee && G.flank(att, tgt, ax, ay)) adv.push('flanking');

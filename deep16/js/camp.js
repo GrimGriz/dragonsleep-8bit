@@ -9,14 +9,16 @@
   var D = window.D16, I = D.input, DS = window.DS, SV = D.save;
   var P = function (r, i) { return D.PAL.ramps[r][i]; };
   var KEY = 'deep16.camp';
-  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['ring', 'RING']];
+  var SLOTS = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['ring', 'RING'], ['cloak', 'CLOAK']];
 
   // the armoury a rung offers: the 8-bit game's gear by then. Silverton's racks (the Show-Armorer, the Pawnbroker) from the
   // start; from 5, after the lake, its hoard given back and Winters' cases; from 6 what's behind the fountains; plate at 8
   var ARMOURY = [
     [1, ['longsword', 'battleaxe', 'warhammer', 'greatsword', 'greataxe', 'maul', 'mace', 'spear', 'handaxe', 'shortsword', 'rapier', 'shortbow',
          'leather', 'studded', 'hide', 'chainshirt', 'scalemail', 'ringmail', 'chainmail', 'splint', 'shield']],
-    [5, ['longsword1', 'maul1', 'dagger1', 'staff1', 'leather1', 'studded1', 'hide1', 'chainshirt1', 'scalemail1', 'chainmail1', 'splint1', 'robes1', 'ringofprotection']],
+    // and two that aren't a plus (Griz, 09-27: "create two of the 'magic other than a +' items"): Flame Tongue, the Cloak of Displacement
+    [5, ['longsword1', 'maul1', 'dagger1', 'staff1', 'leather1', 'studded1', 'hide1', 'chainshirt1', 'scalemail1', 'chainmail1', 'splint1', 'robes1', 'ringofprotection',
+         'flametongue', 'cloakdisplacement']],
     [6, ['doorshield', 'lighthammer']],
     [8, ['dwarfplate']]
   ];
@@ -26,6 +28,8 @@
     return out.filter(function (id) { return DS.DATA.items[id]; });
   }
   function item(id) { return id ? DS.DATA.items[id] : null; }
+  // the 8-bit game has no cloak slot: anyone can wear a cloak
+  function canWear(h, it) { return it.kind === 'cloak' || DS.R.canEquip(h, it); }
   function twoHanded(id) { var it = item(id); return !!(it && it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0); }
   // the lowest slot of a level or higher with one left (index), or -1
   function slotAt(h, lvl) { for (var i = lvl - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) return i; return -1; }
@@ -93,6 +97,7 @@
     if (slot === 'weapon' && twoHanded(id)) h2.equip.shield = null;
     if (slot === 'armor' && R.armored(h2)) delete h2.conds.mageArmor;
     if (slot === 'weapon' && !id) return 'bare hands';
+    if (slot === 'cloak') return id ? 'foes at disadvantage' : '';
     if (slot === 'weapon') { var w = R.weaponOf(h2), dm = R.damageExpr(h2, w); return D.rules.sign(R.attackBonus(h2, w)) + ' ' + dm.dice + (dm.mod ? D.rules.sign(dm.mod) : ''); }
     return 'AC ' + R.ac(h2);
   }
@@ -124,7 +129,7 @@
         if (cur) rows.push({ label: item(cur).name + '  (worn)', right: withItem(h2, slot, cur), ok: false, why: 'already worn', hero: h2.id, desc: item(cur).desc });
         Object.keys(this.avail).sort().forEach(function (id) {
           var it = item(id);
-          if (!it || !self.avail[id] || it.kind !== slot || !R.canEquip(h2, it)) return;
+          if (!it || !self.avail[id] || it.kind !== slot || !canWear(h2, it)) return;
           var why = slot === 'shield' && twoHanded(h2.equip.weapon) ? R.weaponOf(h2).name + ' takes both hands' : '';
           rows.push({ label: it.name, right: withItem(h2, slot, id), ok: !why, why: why, act: function () { self.setEquip(h2, slot, id); }, hero: h2.id, desc: it.desc });
         });
@@ -251,7 +256,7 @@
       var sheet = look.sheet || h.id + '_p0';
       D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 19, y + Math.min(D.spr.top(sheet), 46) + 3, {});
       ctx.restore();
-      var w0 = R.weaponOf(h), dm = R.damageExpr(h, w0), gear = [item(h.equip.armor), item(h.equip.shield), item(h.equip.ring)].filter(Boolean).map(function (it) { return it.name; });
+      var w0 = R.weaponOf(h), dm = R.damageExpr(h, w0), gear = [item(h.equip.armor), item(h.equip.shield), item(h.equip.ring), item(h.equip.cloak)].filter(Boolean).map(function (it) { return it.name; });
       D.text(ctx, '{y}' + (look.name || h.name) + '{/}  ' + h.cls + ' ' + h.lvl + '   HP ' + h.maxhp + '   AC ' + R.ac(h), x + 40, y + 4, P('bone', 1));
       D.text(ctx, w0.name + ' ' + D.rules.sign(R.attackBonus(h, w0)) + ', ' + dm.dice + (dm.mod ? D.rules.sign(dm.mod) : ''), x + 40, y + 14, P('silver', 5));
       D.text(ctx, gear.join(', ') || 'no armour', x + 40, y + 23, P('silver', 5));

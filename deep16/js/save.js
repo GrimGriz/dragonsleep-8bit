@@ -72,9 +72,10 @@
   SV.weaponOf = function (h) {
     var w = R.weaponOf(h), dm = R.damageExpr(h, w), wd = w.weapon || {}, props = wd.props || [], ranged = props.indexOf('ranged') >= 0;
     return {
-      id: h.equip && h.equip.weapon, name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: props, magic: !!wd.bonus,
+      id: h.equip && h.equip.weapon, name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: props, magic: !!(wd.bonus || wd.magic),
       finesse: props.indexOf('finesse') >= 0, gwf: h.cls === 'fighter' && !ranged && R.twoHanded(h, w),
-      ranged: ranged, range: ranged ? (wd.range || [80, 320]) : null, ammo: wd.ammo || null, loading: props.indexOf('loading') >= 0, fx: 'bolt'
+      ranged: ranged, range: ranged ? (wd.range || [80, 320]) : null, ammo: wd.ammo || null, loading: props.indexOf('loading') >= 0, fx: 'bolt',
+      flame: wd.flame || null // Flame Tongue: a bonus action lights it (battle.js IGNITE)
     };
   };
 
@@ -94,6 +95,7 @@
       abil: h.abil, baseAC: R.ac(h), prof: R.prof(h.lvl), init: R.initBonus(h), speed: 30, size: 1, reach: 5,
       slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), known: knownOf(h), armored: R.armored(h),
       feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass,
+      displacement: SV.displaced(h), // a Cloak of Displacement (rules.js edges)
       weapon: wp, attacksBase: R.attacksPerTurn(h), attacks: wp.loading ? 1 : R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
       saves: { str: R.saveBonus(h, 'str'), dex: R.saveBonus(h, 'dex'), con: R.saveBonus(h, 'con'), int: R.saveBonus(h, 'int'), wis: R.saveBonus(h, 'wis'), cha: R.saveBonus(h, 'cha') },
       stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h
@@ -101,6 +103,7 @@
   }
   // Misty Step is the POC spec's (§3) and not in the 8-bit game's list: a wizard of 3rd level or more has it in his book here
   function bookOf(h) { var k = (h.known || []).slice(); if (h.cls === 'wizard' && h.lvl >= 3 && k.indexOf('mistystep') < 0) k.push('mistystep'); return k; }
+  SV.displaced = function (h) { var c = R.item(h.equip && h.equip.cloak); return !!(c && c.cloak && c.cloak.displacement); };
   // what a hero can cast in the fight: all he knows, or, once the camp has prepared his day (h.prepared), his cantrips,
   // the spells he prepared, and the ones his oath keeps ready
   function knownOf(h) {

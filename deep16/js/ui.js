@@ -92,7 +92,7 @@
   // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
   // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
   // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1 }, ACTIONS = { dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1 };
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1 };
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -687,6 +687,8 @@
     if (w.conds.hidden) c.push('{c}hidden{/}');
     if (w.conds.invisible) c.push('{c}invisible{/}');
     if (w.conds.dodge) c.push('{c}dodging{/}');
+    if (w.conds.ablaze) c.push('{o}blade ablaze{/}');
+    if (w.displacement) c.push(w.conds.displaceOff ? '{g}displacement (next turn){/}' : '{c}displaced{/}');
     if (w.conds.shield) c.push('{c}shield{/}');
     if (w.conds.shieldOfFaith) c.push('{c}faith +2{/}');
     if (w.conds.blessed) c.push('{y}blessed{/}');
