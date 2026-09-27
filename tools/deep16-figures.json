@@ -1,0 +1,88 @@
+{
+  "_note": "DEEP16 pipeline 1: which CC0 model each figure is, which parts show, which atlas cells are recoloured (cell = [column, row] of the KayKit gradient atlas, 128x256 px each; colours follow the 8-bit game's looks in js/sprites.js), which actions are idle and walk. yaw: extra turn (degrees) if a model's forward is not -Y.",
+  "human_px": 56,
+  "figures": {
+    "barley": {
+      "file": "kaykit/Barbarian.glb",
+      "show": ["Barbarian_ArmLeft", "Barbarian_ArmRight", "Barbarian_Body", "Barbarian_Head", "Barbarian_LegLeft", "Barbarian_LegRight"],
+      "flail": "2H_Axe",
+      "recolor": [
+        [[1, 0], "#d8b060"],
+        [[0, 1], "#6a7a3a"],
+        [[1, 1], "#6a7a3a"]
+      ],
+      "anims": {
+        "idle": "2H_Melee_Idle",
+        "walk": "Walking_A"
+      }
+    },
+    "aurdin": {
+      "file": "kaykit/Mage.glb",
+      "show": ["Mage_ArmLeft", "Mage_ArmRight", "Mage_Body", "Mage_Head", "Mage_LegLeft", "Mage_LegRight", "2H_Staff"],
+      "recolor": [
+        [[1, 0], "#5a3418"],
+        [[0, 1], "#9a6a3a"],
+        [[1, 1], "#9a6a3a"],
+        [[7, 1], "#4a2e1a"],
+        [[2, 1], "#dca238"]
+      ],
+      "anims": {
+        "idle": "2H_Melee_Idle",
+        "walk": "Walking_A"
+      }
+    },
+    "vivian": {
+      "file": "kaykit/Rogue.glb",
+      "show": ["Rogue_ArmLeft", "Rogue_ArmRight", "Rogue_Body", "Rogue_Cape", "Rogue_Head", "Rogue_LegLeft", "Rogue_LegRight", "Knife"],
+      "recolor": [
+        [[1, 0], "#6a2818"]
+      ],
+      "anims": {
+        "idle": "Idle",
+        "walk": "Walking_A"
+      }
+    },
+    "lymen": {
+      "file": "kaykit/Knight.glb",
+      "show": ["Knight_ArmLeft", "Knight_ArmRight", "Knight_Body", "Knight_Cape", "Knight_Head", "Knight_LegLeft", "Knight_LegRight", "1H_Sword", "Round_Shield"],
+      "recolor": [
+        [[0, 0], "#7aa06a"],
+        [[1, 0], "#2a3424"],
+        [[0, 1], "#3e6440"]
+      ],
+      "anims": {
+        "idle": "Idle",
+        "walk": "Walking_A"
+      }
+    },
+    "drow": {
+      "file": "kaykit/Rogue_Hooded.glb",
+      "show": ["Rogue_ArmLeft", "Rogue_ArmRight", "Rogue_Body", "Rogue_Cape", "Rogue_Head_Hooded", "Rogue_LegLeft", "Rogue_LegRight", "1H_Crossbow"],
+      "recolor": [
+        [[0, 0], "#4a3a60"],
+        [[1, 0], "#e8e4f0"],
+        [[0, 1], "#241c30"],
+        [[1, 1], "#2e1a40"],
+        [[1, 2], "#2e1a40"],
+        [[2, 2], "#62398a"]
+      ],
+      "anims": {
+        "idle": "Idle",
+        "walk": "Walking_A"
+      }
+    },
+    "phasespider": {
+      "file": "spider/spider_1.blend",
+      "show": ["Spider"],
+      "tint": "#3a2058",
+      "size_squares": 2.1,
+      "yaw": 0,
+      "anims": {
+        "idle": "IDLE",
+        "walk": "WALK"
+      },
+      "cavity": false
+    }
+  },
+  "look": "matcap:toon_light.exr"
+}

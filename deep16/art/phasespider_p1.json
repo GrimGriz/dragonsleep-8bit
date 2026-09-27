@@ -1,0 +1,20 @@
+{
+ "image": "art/phasespider_p1.png",
+ "fw": 126,
+ "fh": 108,
+ "ax": 63,
+ "ay": 87,
+ "top": 31,
+ "anims": {
+  "idle": {
+   "row": 0,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "row": 8,
+   "frames": 8,
+   "fps": 10
+  }
+ }
+}

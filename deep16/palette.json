@@ -1,0 +1,20 @@
+{
+  "_note": "DEEP16's one palette: 64 colours in ramps, dark to light. Every sprite, tile and UI colour passes through it (tools/pixelate.py quantizes to it). Warm stone for the deep, cold silver for dwarf-work and steel, the Sunshaft's gold, the drow's violet.",
+  "ramps": {
+    "outline": ["#0a0810"],
+    "stone":   ["#161110", "#241c18", "#342822", "#46362c", "#5c4838", "#765e4a", "#94795f", "#b49a7c"],
+    "silver":  ["#14171e", "#20252f", "#313846", "#475061", "#636e82", "#8a96aa", "#b8c3d4"],
+    "bone":    ["#d8d4c4", "#eeeadc", "#fcfcf4"],
+    "gold":    ["#3c2608", "#6c4612", "#a4701e", "#dca238", "#f8d67a"],
+    "violet":  ["#170d22", "#2a1840", "#432762", "#62398a", "#8a5cb4", "#bb96e0"],
+    "skin":    ["#4a2a1e", "#7a4630", "#aa6c4a", "#d49a72", "#f0c8a0"],
+    "orc":     ["#1e2a18", "#34482a", "#56703e", "#86a05e"],
+    "red":     ["#240808", "#4c1010", "#801c1c", "#b83428", "#e8624a"],
+    "blue":    ["#0e1430", "#1c2c5e", "#30509a", "#5a82cc"],
+    "moss":    ["#0e1e12", "#1e3a22", "#3e6440"],
+    "leather": ["#221408", "#3e2612", "#62401e", "#8c6430"],
+    "fire":    ["#c85014", "#f08c24", "#f8c048"],
+    "glow":    ["#1a5c80", "#3cbcfc", "#a8e8ff"],
+    "accent":  ["#f8a4c0", "#2a7a70", "#6e6a66"]
+  }
+}

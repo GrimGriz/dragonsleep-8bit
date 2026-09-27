@@ -2,3 +2,6 @@ dev/
 __pycache__/
 *.pyc
 .DS_Store
+
+# DEEP16 source art (downloaded packs; only rendered sheets are committed)
+deep16/_src/

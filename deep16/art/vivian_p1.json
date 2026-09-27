@@ -1,0 +1,20 @@
+{
+ "image": "art/vivian_p1.png",
+ "fw": 96,
+ "fh": 96,
+ "ax": 48,
+ "ay": 84,
+ "top": 57,
+ "anims": {
+  "idle": {
+   "row": 0,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "row": 8,
+   "frames": 8,
+   "fps": 10
+  }
+ }
+}

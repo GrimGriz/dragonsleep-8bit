@@ -1,0 +1,30 @@
+{
+ "image": "art/vivian_p0.png",
+ "fw": 64,
+ "fh": 64,
+ "ax": 32,
+ "ay": 61,
+ "top": 49,
+ "anims": {
+  "idle": {
+   "row": 0,
+   "frames": 2,
+   "fps": 6
+  },
+  "walk": {
+   "row": 8,
+   "frames": 9,
+   "fps": 10
+  },
+  "attack": {
+   "row": 16,
+   "frames": 6,
+   "fps": 12
+  },
+  "hurt": {
+   "row": 24,
+   "frames": 6,
+   "fps": 10
+  }
+ }
+}
