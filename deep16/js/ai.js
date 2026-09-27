@@ -35,7 +35,7 @@
     if (u.dead) return;
     if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
-    if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + the(B, u) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
+    if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
     if (u.conds.restrained) yield* D.magic.breakFree(B, u); // a web: tear at it first
     if (u.kind === 'phasespider') yield* spider(B, u);
@@ -461,6 +461,10 @@
     // a grip it can no longer reach goes slack
     (u.holding || []).slice().forEach(function (w) { if (w.dead || w.hp <= 0 || !w.conds.restrained || w.conds.restrained.by !== u.id || G.dist(u, w) > reachOf(u)) B.release(u, w); });
     if (!hs.length) return;
+    // the Ring of Binding (the chuul, rounds 1/4/7/10): it must turn on whoever wears the ring
+    if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && hs.indexOf(B.taunt.u) >= 0) {
+      hs = [B.taunt.u]; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + B.taunt.u.name + '{/}: the ring binds it  {g}(round ' + B.round + '){/}']); yield 20;
+    }
     // Tentacle Slam, instead of the bites and lashes, on what it already holds (the 8-bit game: half the time)
     if (u.slam && u.holding.length && T.action && D.d(100) <= (u.slam.chance || 0.5) * 100) { yield* slam(B, u); return; }
     var near = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u); }).sort(function (a, b) { return a.hp - b.hp; });
@@ -504,8 +508,11 @@
     for (var k = 0; k < routine.length; k++) {
       var atk = u.attacks[routine[k]];
       if (!atk) break;
-      // the weakest in this attack's reach; a grappling attack reaches first for someone it does not already hold
-      var t = heroes(B, u).filter(function (w) { return G.dist(u, w) <= (atk.reach || u.reach); }).sort(function (a, b) {
+      // the weakest in this attack's reach; a grappling attack reaches first for someone it does not already hold; an
+      // attack only for the held (the Keeper's Drag Under, the chuul's tentacles) goes at one it holds, or not at all
+      var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u);
+      if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
+      var t = pool.filter(function (w) { return G.dist(u, w) <= (atk.reach || u.reach); }).sort(function (a, b) {
         if (atk.grapple) { var ha = u.holding.indexOf(a) >= 0, hb = u.holding.indexOf(b) >= 0; if (ha !== hb) return ha ? 1 : -1; }
         return a.hp - b.hp;
       })[0];

@@ -538,6 +538,31 @@
       "yaw": 0,
       "anims": { "idle": "Slime_Idle", "attack": "Slime_Attack", "walk": "Slime_Walk" }
     },
+    "keeper": {
+      "_note": "the Keeper of the flooded stair (the 8-bit game's own water weird): the Quaternius snake, turned to lit water-blue, at two squares. The Cowork seat's note stands: it wants a water shader, not a model.",
+      "file": "quaternius/easy-enemy/Blends/Snake.blend",
+      "show": ["Snake"],
+      "grade": { "hue": 60, "sat": 0.9, "val": 1.0 },
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": { "idle": "Snake_Idle", "attack": "Snake_Attack", "walk": "Snake_Walk" }
+    },
+    "chuul": {
+      "_note": "the chuul (SRD 5.1, Large): Quaternius Big/Frog -- 'the size of a wagon, the colour of wet stone' -- a loose fit (no crab in the packs).",
+      "file": "quaternius/ultimate-monsters/Big/Blends/Frog.blend",
+      "show": ["Frog"],
+      "grade": { "hue": 20, "sat": 0.35, "val": 0.65 },
+      "size_squares": 2.2,
+      "yaw": 0,
+      "anims": { "idle": "Idle", "attack": "Punch", "walk": "Walk" }
+    },
+    "brawler": {
+      "_note": "a Hex floor brawler: the KayKit Barbarian bare-handed, in a tavern's colours.",
+      "file": "kaykit/Barbarian.glb",
+      "show": ["Barbarian_ArmLeft", "Barbarian_ArmRight", "Barbarian_Body", "Barbarian_Head", "Barbarian_LegLeft", "Barbarian_LegRight"],
+      "grade": { "hue": -30, "sat": 0.6, "val": 0.9 },
+      "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Chop", "walk": "Walking_A" }
+    },
     "troll": {
       "_note": "Quaternius Ultimate Monsters, Big/Yeti (CC0, Atlas_Monsters.png) standing in for the SRD troll. Large: 2 squares.",
       "file": "quaternius/ultimate-monsters/Big/Blends/Yeti.blend",

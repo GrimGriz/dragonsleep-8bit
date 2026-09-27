@@ -29,6 +29,10 @@
     // strung webs a fight starts with (Web Gulch): difficult ground for all but the web-walkers, drawn like the spell's
     var webs = F.webs || m.def.webs;
     this.webs = webs ? [{ by: 'the ground', sq: webs.slice() }] : [];
+    // a Ring of Binding (the lake: fight.ring { hero, rounds, con }): its wearer saves CON better, and on the named rounds
+    // the thing in the water must turn on them (ai.js brute)
+    this.taunt = null;
+    if (F.ring) { var rw = party.filter(function (u) { return u.id === F.ring.hero; })[0]; if (rw) { rw.saves = Object.assign({}, rw.saves); rw.saves.con += F.ring.con || 0; rw.ring = true; this.taunt = { u: rw, rounds: F.ring.rounds }; } }
     FX.clear();
     this.t = 0; this.cards = []; this.round = 0; this.order = []; this.active = null;
     this.tool = 'move'; this.cursor = { x: 5, y: 10 }; this.req = null; this.wait = 0; this.waitFx = false; this.result = null;
@@ -53,7 +57,7 @@
       weave: d.weave ? JSON.parse(JSON.stringify(d.weave)) : null, sneak: d.sneak || null, assassinate: !!d.assassinate, stealth: d.stealth || 0,
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
-      flees: !!d.flees, transfer: !!d.transfer, images: 0, named: !!d.named,
+      flees: !!d.flees, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims,
       moan: d.moan ? { dc: d.moan.dc, recharge: d.moan.recharge, ready: true } : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
@@ -238,8 +242,10 @@
     if (u.conds.surprised) { delete u.conds.surprised; this.card(['{g}' + u.name + ' is caught unaware: no turn this round.{/}']); yield 40; return; }
     if (RU.canAct(u)) D.sfx('popup'); // your turn
     if (!RU.canAct(u)) {
-      this.card(['{g}' + u.name + (u.hp <= 0 ? ' is down.' : ' cannot act.') + '{/}']);
-      yield 40; return;
+      this.card(['{g}' + u.name + (u.hp <= 0 ? ' is down.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']);
+      yield 40;
+      if (u.hp > 0) D.magic.endTurn(this, u); // a held hero still gets the save at the end of the turn (the weaver's Hold, the chuul)
+      return;
     }
     this.tool = 'move'; this.cursor = { x: u.x, y: u.y };
     while (true) {
@@ -530,6 +536,13 @@
         }
         if (rs) { tgt.tween = { fx: tgt.x, fy: tgt.y, fz: 0, t: 0, dur: 18 }; tgt.x = rs[0]; tgt.y = rs[1]; this.card(['{r}' + nameOf(att) + '{/} reels ' + nameOf(tgt) + ' in.']); D.sfx('run'); yield 24; }
       }
+    }
+    // the chuul's tentacles on one it holds: CON or poisoned, and paralyzed while the poison lasts (a CON save each turn)
+    if (atk.paralyze && !tgt.dead && tgt.hp > 0 && !tgt.conds.paralyzed) {
+      var ps = RU.save(tgt, 'con', atk.paralyze.dc);
+      this.card(['{r}' + nameOf(tgt) + '{/}: CON save  ' + RU.saveText(ps) + ' vs DC ' + ps.dc + '  ' + (ps.ok ? '{n}SAVED{/}' : '{p}POISONED and PARALYZED{/} {g}(a CON save at the end of each turn){/}')]);
+      if (!ps.ok) { D.sfx('poison'); tgt.conds.poisoned = true; tgt.conds.paralyzed = { save: 'con', dc: atk.paralyze.dc, by: att.id }; FX.sparkle(tgt, 'moss', 12); }
+      yield 30;
     }
     if (!tgt.dead && atk.save && tgt.hp > 0) {
       var s2 = RU.save(tgt, atk.save.ab, atk.save.dc), pr = D.roll(atk.save.dice), pd = s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;

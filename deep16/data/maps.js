@@ -663,3 +663,85 @@ window.D16.MAPS.settling = {
   foes: [],
   wave: null
 };
+
+// The flooded stair (the 8-bit game's `dwarf`, warrens_d, Pete's Five): a dwarven stair runs down into black water; in
+// the flooded chamber five men lie drowned; past the water, a door under warded runes. What keeps it keeps to the water.
+window.D16.MAPS.floodstair = {
+  name: 'The Flooded Stair',
+  sub: 'the Warrens, Pete\'s Five',
+  step: 20,
+  rows: [
+    '##################',
+    '######=====#######',
+    '#####~~~~~~~######',
+    '####~~~~~~~~~#####',
+    '###~~~~~~~~~~~####',
+    '###~~~~~~~~~~~####',
+    '###~~~~~~~~~~~####',
+    '####~~~~~~~~~#####',
+    '#####..====..#####',
+    '######.====.######',
+    '######.====.######',
+    '#######====#######',
+    '#######====#######',
+    '#######====#######'
+  ],
+  entry: [[7, 8], [10, 8], [8, 9], [9, 9], [8, 10]], // at the water's foot: in the 8-bit game you wade in (or rope them out)
+  foes: [],
+  wave: null
+};
+
+// The point (the 8-bit game's `lake`, at night): a flat oval stone, a stack of stones on its landward edge, the lantern
+// post (the stalagmite stands in), the rowboat pulled up; forty paces out the water goes dark. The chuul comes up out of it.
+window.D16.MAPS.point = {
+  name: 'The Point',
+  sub: 'the lake, at night',
+  step: 20,
+  ground: 'earth',
+  rows: [
+    '####################',
+    '#~~~~~~~~~~~~~~~~~~#',
+    '#~~~~~~~~~~~~~~~~~~#',
+    '#~~~~~~~~~~~~~~~~~~#',
+    '#~~~~~~~~~~~~~~~~~~#',
+    '#~~~~~~~......~~~~~#',
+    '#~~~~~~........~~~~#',
+    '#~~~~~....P.....~~~#',
+    '#~~~~.....r......~~#',
+    '#~~~.............~~#',
+    '##..............####',
+    '###............#####',
+    '####..........######',
+    '######......########'
+  ],
+  entry: [[8, 12], [9, 12], [10, 12], [7, 12], [9, 13]],
+  foes: [],
+  wave: null
+};
+
+// The Hex floor (the 8-bit game's `arena`, Fight Night): the pit in the middle of the hall, benches round it (the
+// stalagmites stand in for the posts), flagstones underfoot.
+window.D16.MAPS.hexfloor = {
+  name: 'The Hex',
+  sub: 'Fight Night, the floor',
+  step: 20,
+  rows: [
+    '##################',
+    '####..........####',
+    '###..P......P..###',
+    '##..............##',
+    '##....======....##',
+    '#.....======.....#',
+    '#.....======.....#',
+    '#.....======.....#',
+    '#.....======.....#',
+    '##....======....##',
+    '##..............##',
+    '###..P......P..###',
+    '####..........####',
+    '##################'
+  ],
+  entry: [[7, 11], [10, 11], [8, 12], [9, 12], [8, 11]],
+  foes: [],
+  wave: null
+};

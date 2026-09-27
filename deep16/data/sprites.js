@@ -223,6 +223,43 @@
 }
 }
 },
+"brawler_p1": {
+"image": "art/brawler_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"top": 57,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "broodmother_p1": {
 "image": "art/broodmother_p1.png",
 "fw": 176,
@@ -328,6 +365,43 @@
 "fw": 120,
 "fh": 156,
 "ax": 60,
+"ay": 125,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"chuul_p1": {
+"image": "art/chuul_p1.png",
+"fw": 132,
+"fh": 156,
+"ax": 66,
+"ay": 125,
+"top": 69,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 132,
+"fh": 156,
+"ax": 66,
+"ay": 125,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1248,
+"fw": 132,
+"fh": 156,
+"ax": 66,
+"ay": 125,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2496,
+"fw": 132,
+"fh": 156,
+"ax": 66,
 "ay": 125,
 "frames": 8,
 "fps": 12
@@ -1144,6 +1218,43 @@
 "fh": 96,
 "ax": 48,
 "ay": 77,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"keeper_p1": {
+"image": "art/keeper_p1.png",
+"fw": 120,
+"fh": 164,
+"ax": 60,
+"ay": 132,
+"top": 81,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 164,
+"ax": 60,
+"ay": 132,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1312,
+"fw": 120,
+"fh": 164,
+"ax": 60,
+"ay": 132,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2624,
+"fw": 120,
+"fh": 164,
+"ax": 60,
+"ay": 132,
 "frames": 8,
 "fps": 12
 }

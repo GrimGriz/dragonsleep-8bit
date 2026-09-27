@@ -427,5 +427,46 @@
     attacks: { pseudopod: { name: 'Pseudopod', atk: 3, dice: '1d6', mod: 1, type: 'bludgeoning', extra: '2d6', extraType: 'acid', reach: 5 } },
     multi: 1, resist: ['acid', 'cold', 'fire'],
     src: 'SRD 5.1 Gray Ooze (CR 1/2); content/monsters.json grayooze', todo: 'its acid corroding metal is not read'
+  },
+  // ------------------------------------------------------------------ the water, hand-waved (09-27, Griz: "we'll probably hand wave the chuul fight
+  // rather than add swimming"): what lives in the water keeps to it or comes out of it; nobody swims
+  // the Keeper of the flooded stair (events.js S.stair, Pete's Five): "It never left its water; it only let go."
+  keeper: {
+    name: 'The Keeper', named: true, sheet: 'keeper_p1', cr: '3', ac: 13, hp: 58, speed: 60, size: 2, reach: 10,
+    abil: { str: 17, dex: 16, con: 13, int: 11, wis: 10, cha: 10 }, init: 3, perception: 10,
+    saves: { str: 3, dex: 3, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: {
+      constrict: { name: 'Constrict', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 10, grapple: { dc: 13, max: 1 } },
+      drown: { name: 'Drag Under', atk: 5, dice: '2d6', mod: 0, type: 'bludgeoning', reach: 10, needsHeld: true, autoHitHeld: true }
+    },
+    multi: ['constrict', 'drown'], resist: ['fire'], immune: ['poison'], bound: '~',
+    src: 'content/monsters.json keeper (the 8-bit game\'s own, the SRD 5.1 Water Weird\'s numbers): Constrict grips (escape DC 13), Drag Under always lands on the one it holds; it keeps to its water and starts unseen in it'
+  },
+  // the chuul off the point (events.js S.lakeFight, the base game's capstone): it comes up out of the deep and can come ashore
+  chuul: {
+    name: 'Chuul', sheet: 'chuul_p1', cr: '4', ac: 16, hp: 93, speed: 30, size: 2, reach: 10,
+    abil: { str: 19, dex: 10, con: 16, int: 5, wis: 11, cha: 5 }, init: 0, perception: 14,
+    saves: { str: 4, dex: 0, con: 3, int: -3, wis: 0, cha: -3 },
+    attacks: {
+      pincer: { name: 'Pincer', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 10, grapple: { dc: 14, max: 2 } },
+      tentacles: { name: 'Tentacles', atk: 6, dice: '1d1', mod: -1, type: 'poison', reach: 5, needsHeld: true, autoHitHeld: true, paralyze: { dc: 13 } }
+    },
+    multi: ['pincer', 'pincer', 'tentacles'], immune: ['poison'], swims: true,
+    src: 'SRD 5.1 Chuul (CR 4, Large): two pincers (reach 10, grappled, escape DC 14), the tentacles on one it holds (CON 13 or poisoned and paralyzed); content/monsters.json chuul. It swims: the water does not slow it'
+  },
+  // the Hex floor (events.js, Fight Night's floor): brawlers and a card bruiser, the ladder's level-1 set piece
+  brawler: {
+    name: 'Bar Brawler', sheet: 'brawler_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
+    abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
+    saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: { fists: { name: 'Fists', atk: 3, dice: '1d4', mod: 1, type: 'bludgeoning', reach: 5 } },
+    multi: 1, src: 'content/monsters.json brawler (the Hex floor)'
+  },
+  cardbruiser: {
+    name: 'Card Bruiser', sheet: 'crewman_p1', cr: '1/4', ac: 12, hp: 22, speed: 30, size: 1, reach: 5,
+    abil: { str: 14, dex: 12, con: 13, int: 9, wis: 10, cha: 10 }, init: 1, perception: 10,
+    saves: { str: 2, dex: 1, con: 1, int: -1, wis: 0, cha: 0 },
+    attacks: { club: { name: 'Cudgel', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
+    multi: 1, src: 'content/monsters.json cardbruiser (the Hex card\'s first bout); the crewman\'s sheet'
   }
 };
