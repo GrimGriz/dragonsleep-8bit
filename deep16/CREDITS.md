@@ -13,6 +13,11 @@ stalagmites, cocoons and rubble are drawn in code (`deep16/js/iso.js`, `deep16/j
 - **Spider** — br-n518, OpenGameArt — **CC0**. `spider_1.blend` (https://opengameart.org/sites/default/files/spider_1.blend),
   rescaled and tinted violet for the phase spider, and darker under the drider (the drow rider mounted on its thorax bone by the
   `rider` block in `tools/render-sprites.py`, 09-27).
+- **Quaternius** — quaternius.com, all **CC0** (each pack's `License.txt` rides in `_src/quaternius/<pack>/`), pulled 09-27:
+  **Easy Enemy Pack** (Jan 2019: Frog, Rat, Snake, Snake_Angry, Spider, Wasp — `giantrat_p1`, `giantspider_p1`);
+  **Animated Monster Pack** (Aug 2018: Bat, Dragon, Skeleton, Slime); **Ultimate Animated Animal Pack** (Jul 2021: Alpaca,
+  Bull, Cow, Deer, Donkey, Fox, Horse, Horse_White, Husky, ShibaInu, Stag, Wolf — `wolf_p1`); **Ultimate Monsters**
+  (Oct 2022, 50 in Big / Blob / Flying — Yeti as `troll_p1`). Credit is not required by the licence; given gladly.
 
 ## Pipeline 2 — generated (`denny_p2`)
 

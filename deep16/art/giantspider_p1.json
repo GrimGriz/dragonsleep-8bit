@@ -1,0 +1,37 @@
+{
+ "image": "art/giantspider_p1.png",
+ "fw": 120,
+ "fh": 108,
+ "ax": 60,
+ "ay": 87,
+ "top": 40,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 120,
+   "fh": 108,
+   "ax": 60,
+   "ay": 87,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 864,
+   "fw": 120,
+   "fh": 108,
+   "ax": 60,
+   "ay": 87,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1728,
+   "fw": 120,
+   "fh": 108,
+   "ax": 60,
+   "ay": 87,
+   "frames": 8,
+   "fps": 12
+  }
+ }
+}

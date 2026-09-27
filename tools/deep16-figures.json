@@ -128,6 +128,54 @@
         "attack": "Unarmed_Melee_Attack_Punch_A",
         "walk": "Walking_D_Skeletons"
       }
+    },
+    "giantrat": {
+      "_note": "Quaternius Easy Enemy Pack (CC0, _src/quaternius/easy-enemy). Material colours, no texture. Small: 0.8 squares.",
+      "file": "quaternius/easy-enemy/Blends/Rat.blend",
+      "show": ["Rat"],
+      "size_squares": 1.0,
+      "yaw": 180,
+      "anims": {
+        "idle": "Rat_Idle",
+        "attack": "Rat_Attack",
+        "walk": "Rat_Walk"
+      }
+    },
+    "giantspider": {
+      "_note": "Quaternius Easy Enemy Pack spider (the mesh is named 'Cube'). Large: 2 squares. The phase spider keeps the OpenGameArt model.",
+      "file": "quaternius/easy-enemy/Blends/Spider.blend",
+      "show": ["Cube"],
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": {
+        "idle": "Spider_Idle",
+        "attack": "Spider_Attack",
+        "walk": "Spider_Walk"
+      }
+    },
+    "wolf": {
+      "_note": "Quaternius Ultimate Animated Animal Pack (CC0, _src/quaternius/animated-animals/glTF). Medium: 1 square; the worg is this at 1.4 with a recolour owed.",
+      "file": "quaternius/animated-animals/glTF/Wolf.gltf",
+      "show": ["Wolf"],
+      "size_squares": 1.0,
+      "yaw": 180,
+      "anims": {
+        "idle": "Idle",
+        "attack": "Attack",
+        "walk": "Walk"
+      }
+    },
+    "troll": {
+      "_note": "Quaternius Ultimate Monsters, Big/Yeti (CC0, Atlas_Monsters.png) standing in for the SRD troll. Large: 2 squares.",
+      "file": "quaternius/ultimate-monsters/Big/Blends/Yeti.blend",
+      "show": ["Yeti"],
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": {
+        "idle": "Idle",
+        "attack": "Punch",
+        "walk": "Walk"
+      }
     }
   },
   "look": "matcap:toon_light.exr"
