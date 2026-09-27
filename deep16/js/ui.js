@@ -396,7 +396,8 @@
     var g = gearHero(B), eq = g ? [['equip', 'EQUIP: ' + g.name.toUpperCase()]] : [];
     return [['resume', 'RESUME']].concat(eq, [['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
       ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >'],
-      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)']], B && B.o.onDone ? [] : [['ladder', 'THE LADDER']], [['out', UI.backLabel()]]);
+      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)']].filter(function () { return !(B && B.o.embed); }),
+      B && B.o.onDone ? [] : [['ladder', 'THE LADDER']], B && B.o.embed ? [] : [['out', UI.backLabel()]]); // inside the 8-bit game the fight is the story's: no restart, no way round it
   }
   // EQUIP's panel: the weapons in the pack this hero can use, and the shield off or on; each costs the action
   function gearInput(B) {
@@ -888,6 +889,7 @@
     ctx.save(); ctx.translate(D.W / 2, 92); ctx.scale(2, 2); D.text(ctx, (F.name || B.map.def.name).toUpperCase(), 0, 0, R('gold', 4), 'center'); ctx.restore();
     D.text(ctx, F.sub || B.map.def.sub, D.W / 2, 116, R('silver', 5), 'center');
     if (from.from === 'the ladder') D.text(ctx, names.join(', ') + ' at level ' + F.level + ': the ladder.', D.W / 2, 136, R('bone', 1), 'center');
+    else if (B.o.embed) D.text(ctx, names.join(', ') + '.', D.W / 2, 136, R('bone', 1), 'center');
     else D.text(ctx, names.join(', ') + ' come in from ' + (from.from === 'the fixture' ? (B.o.fixture ? 'the fixture' : 'the fixture (no 8-bit save found)') : from.from + (ago ? ', saved ' + (ago < 120 ? ago + ' min' : Math.round(ago / 60) + ' h') + ' ago' : '')) + '.', D.W / 2, 136, R('bone', 1), 'center');
     var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
     D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  ' + (F.intro || ''), D.W / 2, 150, R('accent', 2), 'center');

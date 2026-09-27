@@ -11,7 +11,8 @@
   window.addEventListener('error', function (e) { D.lastError = e.error || e.message; });
   D.canvas.focus();
   D.loadImages(D.spr.images(), function () {
-    if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
+    if (D.embed.on) D.embed.boot(); // inside the 8-bit game: the fight and the party come by postMessage (js/embed.js)
+    else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
     else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder());
     else if (/[?&]gate\b/.test(q)) D.push(new D.Gate());
     else if (/[?&]view\b/.test(q)) D.push(new D.MapView('cavern'));

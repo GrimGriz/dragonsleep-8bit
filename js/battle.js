@@ -83,6 +83,8 @@
   // ------------------------------------------------------------------ scene plumbing
   Battle.prototype.enter = function () {
     var self = this;
+    // fought in DEEP16 (js/embed.js): only the ending runs here, on what came back (Victory!, XP, silver, drops, the harvest)
+    if (this.fromDeep) { this.intro = 0; DS.run(function* () { yield* self.finish(); }); return; }
     DS.audio.play(this.o.music || 'battle');
     DS.run(function* () { yield* self.flow(); });
   };
@@ -1510,6 +1512,7 @@
     };
   };
   function EncounterFlash(then) { this.kind = 'flash'; this.t = 0; this.then = then; }
+  DS.EncounterFlash = EncounterFlash; // (js/embed.js flashes the same way before DEEP16 comes up)
   EncounterFlash.prototype.update = function () { this.tick(); };
   EncounterFlash.prototype.tick = function () { if (++this.t >= 28) { DS.pop(this); this.then(); } };
   EncounterFlash.prototype.draw = function (ctx) {

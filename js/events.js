@@ -802,7 +802,8 @@
     var g = G();
     if (g.flags.ettercapDone || g.has('ettercapfangs')) return;
     yield DS.say(L('gulch.ettercap'));
-    var res = yield* EV.fight(['ettercap', 'giantspider'], { bg: 'gulch', music: 'boss', canRun: true });
+    // fought in DEEP16 (RULED 09-27, Griz: "replace it outright"; js/embed.js): the first 8-bit fight on the grid
+    var res = yield* EV.fight(['ettercap', 'giantspider'], { bg: 'gulch', music: 'boss', canRun: true, deep16: 'ettercap' });
     if (res === 'win') { g.give('ettercapfangs', 1); DS.audio.sfx('chest'); yield DS.say(L('gulch.fangs')); }
   };
 

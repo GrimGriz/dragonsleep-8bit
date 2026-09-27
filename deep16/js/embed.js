@@ -1,0 +1,42 @@
+/* DEEP16 — a fight inside the 8-bit game (?embed). The 8-bit page lays this page over its own canvas in an iframe
+   (js/embed.js there) and the two talk by postMessage: this page says 'd16:ready' once it has loaded, the 8-bit page
+   answers with the fight and the party as they stand ('ds8:fight'), and when the fight is over this page sends back what
+   it did ('d16:done'). RULED 09-27 (Griz): the ettercap is replaced outright, and "what is spent in the fight gone on
+   return to 8-bit": HP, slots, uses, potions and bolts. DEEP16 still writes no 8-bit save; the 8-bit page applies the
+   result to its own party, and the save changes when the player saves. */
+'use strict';
+(function () {
+  var D = window.D16, E = D.embed = { on: /[?&]embed\b/.test(location.search) };
+  function send(m) { if (window.parent && window.parent !== window) window.parent.postMessage(m, '*'); }
+  function counts(inv) { var c = {}; (inv || []).forEach(function (s) { c[s.id] = (c[s.id] || 0) + s.n; }); return c; }
+
+  E.boot = function () {
+    window.addEventListener('message', function (e) {
+      var m = e.data;
+      if (e.source !== window.parent || !m || m.type !== 'ds8:fight' || E.B) return;
+      E.start(m);
+    });
+    send({ type: 'd16:ready' });
+  };
+  E.start = function (m) {
+    // the book is the 8-bit game's own: no Misty Step lent (save.js bookOf)
+    (m.save.party || []).concat(m.save.guests || []).forEach(function (h) { h.ownBook = true; });
+    var B = E.B = new D.Battle({ embed: m.opts || {}, fight: m.fight, data: m.save, onDone: function (res) { E.done(B, res); } });
+    D.push(B);
+    E.inv0 = counts(B.inv); // (the pack as the fight began, with the crossbow and bolts DEEP16 lends every pack: save.js armoury)
+    D.canvas.focus();
+  };
+  E.done = function (B, res) {
+    var foes = B.units.filter(function (u) { return u.side === 'foe'; });
+    send({
+      type: 'd16:done', result: res || 'escaped',
+      party: B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) {
+        return { id: u.id, guest: !!u.guest, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left };
+      }),
+      foes: foes.map(function (u) { return { id: u.id, kind: u.kind, dead: u.hp <= 0, fled: !!u.fled }; }),
+      // who is still out there when the fight ends because one got away (fight.fledEnds: the 8-bit wagon yard): the chase's
+      away: foes.filter(function (u) { return u.flees && u.hp > 0; }).map(function (u) { return u.kind; }),
+      inv0: E.inv0, inv1: counts(B.inv)
+    });
+  };
+})();

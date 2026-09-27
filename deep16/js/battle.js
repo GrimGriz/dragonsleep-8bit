@@ -17,10 +17,11 @@
     // on the ladder: the four at the fight's level, by the 8-bit game's own rules (nothing read from a save).
     // Otherwise walk in from the save (the door's snapshot or the newest slot), or as the fixture: the entry card offers both
     // from the camp (js/camp.js): the four as the morning left them; copied, so RESTART starts from the camp again
-    if (this.o.data) this.from = { from: 'the camp', when: null, data: JSON.parse(JSON.stringify(this.o.data)) };
+    // inside the 8-bit game (js/embed.js, this.o.embed): the party it handed over, as it stood when the fight began
+    if (this.o.data) this.from = { from: this.o.embed ? 'the 8-bit game' : 'the camp', when: null, data: JSON.parse(JSON.stringify(this.o.data)) };
     else if (this.o.ladder) this.from = { from: 'the ladder', when: null, data: D.save.fixture(F.level) };
     else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
-    this.canSwap = !this.o.ladder && (this.o.fixture || this.from.from !== 'the fixture');
+    this.canSwap = !this.o.ladder && !this.o.embed && (this.o.fixture || this.from.from !== 'the fixture');
     var party = D.save.units(this.from.data, this.o.climb ? Object.assign({}, F, { looks: null }) : F); // the climb: Barley is Barley
     var entry = (F.entry || m.def.entry).slice();
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
@@ -247,7 +248,7 @@
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
     var head = o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
-    this.card([head, '{g}' + (this.o.onDone ? (this.o.climb ? 'E back to the climb' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}'], 1e9);
+    this.card([head, '{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.climb ? 'E back to the climb' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}'], 1e9);
   };
 
   // ------------------------------------------------------------------ a hero's turn: the player acts until END TURN
@@ -314,7 +315,8 @@
       out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
     }
     // out the way the party came in (the fight's entry squares): the tabletop's walking off the table (Griz, 09-27: the climb's escape)
-    if (this.onExit(u)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in: a foe beside you gets its swing' });
+    // (inside the 8-bit game, only where its own battle had RUN: this.o.embed.canRun)
+    if (this.onExit(u) && !(this.o.embed && this.o.embed.canRun === false)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in: a foe beside you gets its swing' });
     out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'attacks at you at disadvantage till your next turn' });
     // Help (the attack kind) only with a foe beside you (Griz, 09-27)
     if (this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5; }))
