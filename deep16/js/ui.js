@@ -484,7 +484,7 @@
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;
         if (u.flash > 0) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
-        else if (u.conds.paralyzed) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
+        else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
         else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; }
         if (!u.ethereal && !(u.dead && !has('hurt'))) {
           var s = u.size || 1;
@@ -670,7 +670,8 @@
     if (w.conds.divineFavor) c.push('{y}favor{/}');
     if (w.conds.sacred) c.push('{y}sacred +' + w.conds.sacred.atk + '{/}');
     if (w.conds.helped) c.push('{w}helped{/}');
-    if (w.conds.restrained) c.push('{w}webbed{/}');
+    if (w.conds.restrained) c.push(w.conds.restrained.grapple ? '{w}held{/}' : '{w}webbed{/}');
+    if (w.conds.stunned) c.push('{p}stunned{/}');
     if (w.conds.paralyzed) c.push('{p}held{/}');
     if (w.conds.asleep) c.push('{p}asleep{/}');
     if (w.conc) c.push('{y}conc: ' + w.conc.name + '{/}');
@@ -859,11 +860,20 @@
   function inspect(ctx, u) {
     var lines = ['{' + (u.side === 'foe' ? 'r' : 'c') + '}' + u.name + '{/}' + (u.cls ? '  ' + u.cls + ' ' + u.lvl : ''), 'HP ' + u.hp + '/' + u.maxhp + '  AC ' + RU.ac(u) + '  speed ' + u.speed + ' ft' + (u.size > 1 ? '  Large' : '')];
     if (u.weapon) lines.push(u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' ' + u.weapon.type + (u.attacks > 1 ? ', x' + u.attacks : ''));
-    if (u.attacks && !u.weapon) Object.keys(u.attacks).forEach(function (k) { var a = u.attacks[k]; lines.push(a.name + ' ' + RU.sign(a.atk) + ', ' + a.dice + RU.sign(a.mod) + ' ' + a.type + (a.range ? ', ' + a.range.join('/') + ' ft' : '') + (a.extra ? ' +' + a.extra + ' ' + a.extraType : '') + (a.save ? ', DC ' + a.save.dc + ' ' + a.save.ab.toUpperCase() + ' or ' + a.save.dice + ' ' + a.save.type : '') + (a.poison ? ', DC ' + a.poison.dc + ' CON or poisoned' : '')); });
+    if (u.attacks && !u.weapon) Object.keys(u.attacks).forEach(function (k) { var a = u.attacks[k]; lines.push(a.name + ' ' + RU.sign(a.atk) + ', ' + a.dice + RU.sign(a.mod) + ' ' + a.type + (a.range ? ', ' + a.range.join('/') + ' ft' : '') + (a.extra ? ' +' + a.extra + ' ' + a.extraType : '') + (a.save ? ', DC ' + a.save.dc + ' ' + a.save.ab.toUpperCase() + ' or ' + a.save.dice + ' ' + a.save.type : '') + (a.poison ? ', DC ' + a.poison.dc + ' CON or poisoned' : '') + (a.reach > 5 ? ', reach ' + a.reach + ' ft' : '') + (a.grapple ? ', grips (escape DC ' + a.grapple.dc + ')' : '')); });
     if (u.jaunt) lines.push('{p}Ethereal Jaunt{/} (bonus action): steps out of the world, and back.');
     if (u.multi > 2 && u.attacks && u.attacks.bite) lines.push('{p}Multiattack{/}: three, sword or bow; one of them may be the bite.');
     if (u.fey || u.webWalker) lines.push([u.fey ? '{p}Fey Ancestry{/}: no magical sleep' : '', u.webWalker ? '{p}Web Walker{/}: webs do not hold it' : ''].filter(Boolean).join('  '));
     if (u.faerie) lines.push('{p}Faerie Fire{/} once' + (u.faerie.used ? ' (spent)' : ''));
+    // the bestiary's traits (09-27)
+    if (u.web) lines.push('{p}Web{/} (recharge ' + u.web.recharge + '-6): ' + RU.sign(u.web.atk) + ', ' + u.web.range.join('/') + ' ft, restrained (escape DC ' + u.web.dc + ')' + (u.web.ready ? '' : ' {g}(spent){/}'));
+    if (u.slam) lines.push('{p}Tentacle Slam{/}: what it holds, CON DC ' + u.slam.dc + ' or ' + u.slam.dice + ' and stunned');
+    if (u.bound) lines.push('{p}Keeps to the water{/}: it will not leave its pool');
+    if (u.packTactics) lines.push('{p}Pack Tactics{/}: advantage with an ally beside its target');
+    if (u.martial) lines.push('{p}Martial Advantage{/}: +' + u.martial + ' once a turn with an ally beside its target');
+    if (u.surprise) lines.push('{p}Surprise Attack{/}: +' + u.surprise + ' on the first round\'s hits');
+    var dt = [u.immune ? 'immune ' + u.immune.join(', ') : '', u.resist ? 'resists ' + u.resist.join(', ') : '', u.vulnerable ? 'vulnerable ' + u.vulnerable.join(', ') : ''].filter(Boolean);
+    if (dt.length) lines.push('{p}' + dt.join('  ·  ') + '{/}');
     var c = conds(u).trim(); if (c) lines.push(c);
     var w = 0; lines.forEach(function (l) { w = Math.max(w, D.textWidth(l)); });
     box(ctx, 6, 40, w + 12, lines.length * 9 + 8, u.side === 'foe' ? R('red', 3) : R('glow', 1));

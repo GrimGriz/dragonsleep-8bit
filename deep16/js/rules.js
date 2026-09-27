@@ -6,7 +6,7 @@
   var D = window.D16, G = D.grid;
   var RU = D.rules = {};
 
-  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.unconscious; };
+  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.unconscious && !u.conds.stunned; };
   RU.ac = function (u) { return (u.baseAC || u.ac) + (u.conds.shield ? 5 : 0) + (u.conds.shieldOfFaith ? 2 : 0); };
 
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
@@ -34,7 +34,7 @@
   RU.save = function (u, ab, dc) {
     var bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u);
     var adv = ab === 'dex' && u.conds.dodge, dis = ab === 'dex' && u.conds.restrained;
-    if ((ab === 'str' || ab === 'dex') && (u.conds.paralyzed || u.conds.asleep)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true };
+    if ((ab === 'str' || ab === 'dex') && (u.conds.paralyzed || u.conds.asleep || u.conds.stunned)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true };
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = u.conds.blessed ? D.d(4) : 0; bonus += bl;
     var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl };
@@ -57,6 +57,9 @@
     if (att.conds.restrained) dis.push('restrained');
     if (tgt.conds.restrained) adv.push('restrained target');
     if (tgt.conds.paralyzed || tgt.conds.asleep) adv.push(tgt.conds.asleep ? 'asleep' : 'paralyzed');
+    if (tgt.conds.stunned) adv.push('stunned');
+    // Pack Tactics (the rats, the wolves): advantage while an ally of the attacker who can act stands within 5 ft of the target
+    if (att.packTactics && G.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) adv.push('pack tactics');
     if (tgt.conds.hidden && G.dist(att, tgt, ax, ay) > 5) dis.push('unseen target');
     if (tgt.conds.faerie) adv.push('faerie fire');
     if (tgt.conds.dodge && !att.conds.hidden) dis.push('dodging');

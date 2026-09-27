@@ -71,6 +71,36 @@ def all_images():
 if F.get('recolor'):
     recolor(all_images(), F['recolor'])
 
+
+# ------------------------------------------------------------------ a grade for atlas-textured models (Quaternius): turn the hue, scale saturation
+# and value over the whole texture, so greys and whites (eyes, teeth, spikes) stay as they are. grade: {hue: degrees, sat: x, val: x}
+def grade(imgs, g):
+    import numpy as np
+    for img in imgs:
+        w, h = img.size
+        px = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)
+        r, gg, b = px[..., 0], px[..., 1], px[..., 2]
+        mx = np.max(px[..., :3], axis=-1); mn = np.min(px[..., :3], axis=-1); d = mx - mn
+        hh = np.zeros_like(mx)
+        m = d > 1e-6
+        rc = np.where(m, (mx - r) / np.where(m, d, 1), 0); gc = np.where(m, (mx - gg) / np.where(m, d, 1), 0); bc = np.where(m, (mx - b) / np.where(m, d, 1), 0)
+        hh = np.where(r == mx, bc - gc, np.where(gg == mx, 2 + rc - bc, 4 + gc - rc))
+        hh = np.where(m, (hh / 6) % 1, 0)
+        ss = np.where(mx > 1e-6, d / np.where(mx > 1e-6, mx, 1), 0)
+        hh = (hh + g.get('hue', 0) / 360.0) % 1
+        ss = np.clip(ss * g.get('sat', 1), 0, 1)
+        vv = np.clip(mx * g.get('val', 1), 0, 1)
+        i = np.floor(hh * 6).astype(np.int32) % 6; f = hh * 6 - np.floor(hh * 6)
+        p = vv * (1 - ss); q = vv * (1 - ss * f); t = vv * (1 - ss * (1 - f))
+        out = np.stack([np.choose(i, [vv, q, p, p, t, vv]), np.choose(i, [t, vv, vv, q, p, p]), np.choose(i, [p, p, t, vv, vv, q])], axis=-1)
+        px[..., :3] = out
+        img.pixels[:] = px.ravel()
+        img.update()
+
+
+if F.get('grade'):
+    grade(all_images(), F['grade'])
+
 # ------------------------------------------------------------------ a tint for untextured models (the spider)
 if F.get('tint'):
     for m in bpy.data.materials:

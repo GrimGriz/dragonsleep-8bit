@@ -298,6 +298,43 @@
 }
 }
 },
+"ettercap_p1": {
+"image": "art/ettercap_p1.png",
+"fw": 96,
+"fh": 120,
+"ax": 48,
+"ay": 96,
+"top": 55,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 120,
+"ax": 48,
+"ay": 96,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 960,
+"fw": 96,
+"fh": 120,
+"ax": 48,
+"ay": 96,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1920,
+"fw": 96,
+"fh": 120,
+"ax": 48,
+"ay": 96,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "giantrat_p1": {
 "image": "art/giantrat_p1.png",
 "fw": 96,
@@ -443,6 +480,43 @@
 "ay": 84,
 "frames": 8,
 "fps": 10
+}
+}
+},
+"otyugh_p1": {
+"image": "art/otyugh_p1.png",
+"fw": 120,
+"fh": 162,
+"ax": 60,
+"ay": 130,
+"top": 84,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 162,
+"ax": 60,
+"ay": 130,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1296,
+"fw": 120,
+"fh": 162,
+"ax": 60,
+"ay": 130,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2592,
+"fw": 120,
+"fh": 162,
+"ax": 60,
+"ay": 130,
+"frames": 8,
+"fps": 12
 }
 }
 },

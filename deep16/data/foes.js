@@ -54,7 +54,7 @@
     saves: { str: -2, dex: 2, con: 0, int: -4, wis: 0, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 } },
     multi: 1, packTactics: true,
-    src: 'SRD 5.1 Giant Rat (CR 1/8); content/monsters.json giantrat', todo: 'Pack Tactics (advantage beside an ally) is not read'
+    src: 'SRD 5.1 Giant Rat (CR 1/8); content/monsters.json giantrat. Pack Tactics is read (rules.js edges, 09-27)'
   },
   giantspider: {
     name: 'Giant Spider', sheet: 'giantspider_p1', cr: '1', ac: 14, hp: 26, speed: 30, size: 2, reach: 5,
@@ -63,8 +63,36 @@
     attacks: {
       bite: { name: 'Bite', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d8', type: 'poison', half: true } }
     },
-    multi: 1, web: { atk: 5, range: [30, 60], dc: 12, recharge: 5 },
-    src: 'SRD 5.1 Giant Spider (CR 1); content/monsters.json giantspider', todo: 'Web (recharge 5-6, ranged, restrained DC 12) is not read; the engine has the restrained condition, so it is a short add'
+    multi: 1, web: { atk: 5, range: [30, 60], dc: 12, recharge: 5 }, webWalker: true,
+    src: 'SRD 5.1 Giant Spider (CR 1); content/monsters.json giantspider. Web is read (09-27, ai.js webShot): a ranged attack, restrained, escape DC 12, recharge 5-6'
+  },
+  // ------------------------------------------------------------------ the 8-bit game's bosses, set pieces for the ladder (09-27, the ladder seat)
+  // The braiding ettercap of Web Gulch (events.js S.ettercap: it fights beside a giant spider). SRD 5.1 as written; its
+  // Web in the SRD's form (a ranged attack, where the 8-bit game rolls a DEX save).
+  ettercap: {
+    name: 'Ettercap', sheet: 'ettercap_p1', cr: '2', ac: 13, hp: 44, speed: 30, size: 1, reach: 5,
+    abil: { str: 14, dex: 15, con: 13, int: 7, wis: 12, cha: 8 }, init: 2, perception: 13,
+    saves: { str: 2, dex: 2, con: 1, int: -2, wis: 1, cha: -1 },
+    attacks: {
+      bite: { name: 'Bite', atk: 4, dice: '1d8', mod: 2, type: 'piercing', extra: '1d8', extraType: 'poison', reach: 5, poison: { dc: 11 } },
+      claws: { name: 'Claws', atk: 4, dice: '2d4', mod: 2, type: 'slashing', reach: 5 }
+    },
+    multi: ['bite', 'claws'], web: { atk: 4, range: [30, 60], dc: 11, recharge: 5 }, webWalker: true,
+    src: 'SRD 5.1 Ettercap (CR 2); content/monsters.json ettercap (wiki/web-gulch.md, the braiding ettercap). Spider Climb not read (no walls to climb on the grid)'
+  },
+  // The landlord of the Warrens' deepest pool (events.js: "It rises from its pool... It will not leave the water").
+  // SRD 5.1 Otyugh as the 8-bit game has it (no disease, no stench): bite and two tentacles, a tentacle grips (up to two),
+  // and on half its turns it slams what it holds (CON 14, 2d6+3, stunned). bound '~': it keeps to its pool, not slowed there.
+  otyugh: {
+    name: 'Otyugh', sheet: 'otyugh_p1', cr: '5', ac: 14, hp: 114, speed: 30, size: 2, reach: 5,
+    abil: { str: 16, dex: 11, con: 19, int: 6, wis: 13, cha: 6 }, init: 0, perception: 11,
+    saves: { str: 3, dex: 0, con: 7, int: -2, wis: 1, cha: -2 },
+    attacks: {
+      bite: { name: 'Bite', atk: 6, dice: '2d8', mod: 3, type: 'piercing', reach: 5 },
+      tentacle: { name: 'Tentacle', atk: 6, dice: '1d8', mod: 3, type: 'bludgeoning', extra: '1d8', extraType: 'piercing', reach: 10, grapple: { dc: 13, max: 2 } }
+    },
+    multi: ['tentacle', 'tentacle', 'bite'], slam: { dc: 14, dice: '2d6+3', chance: 0.5 }, bound: '~',
+    src: 'SRD 5.1 Otyugh (CR 5); content/monsters.json otyugh (the landlord, wiki/the-warrens.md). Tentacle reach 10 ft (SRD); the bite\'s disease and the telepathy left off, as in the 8-bit game'
   },
   wolf: {
     name: 'Wolf', sheet: 'wolf_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, size: 1, reach: 5,
@@ -72,7 +100,7 @@
     saves: { str: 1, dex: 2, con: 1, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 4, dice: '2d4', mod: 2, type: 'piercing', reach: 5, prone: 11 } },
     multi: 1, packTactics: true,
-    src: 'SRD 5.1 Wolf (CR 1/4); content/monsters.json wolf', todo: 'Pack Tactics and the bite\'s STR DC 11 knockdown are not read'
+    src: 'SRD 5.1 Wolf (CR 1/4); content/monsters.json wolf. Pack Tactics is read (09-27)', todo: 'the bite\'s STR DC 11 knockdown is not read (the engine has no prone yet)'
   },
   skeleton: {
     name: 'Skeleton', sheet: 'skeleton_p1', cr: '1/4', ac: 13, hp: 13, speed: 30, size: 1, reach: 5,
@@ -80,7 +108,7 @@
     saves: { str: 0, dex: 2, con: 2, int: -2, wis: -1, cha: -3 },
     attacks: { shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
     multi: 1, vulnerable: ['bludgeoning'], immune: ['poison'],
-    src: 'SRD 5.1 Skeleton (CR 1/4): armor scraps AC 13, shortsword (the sheet carries the pack\'s blade and small shield); the shortbow left off', todo: 'vulnerable (bludgeoning x2) and poison immunity are not read'
+    src: 'SRD 5.1 Skeleton (CR 1/4): armor scraps AC 13, shortsword (the sheet carries the pack\'s blade and small shield); the shortbow left off. Vulnerable and immune are read (battle.js typed(), 09-27)'
   },
   troll: {
     name: 'Troll', sheet: 'troll_p1', cr: '5', ac: 15, hp: 84, speed: 30, size: 2, reach: 5,

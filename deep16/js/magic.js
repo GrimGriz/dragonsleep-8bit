@@ -302,10 +302,15 @@
   };
   // breaking out of a web: an action, a STR check against the caster's DC
   M.breakFree = function* (B, u) {
-    var r = u.conds.restrained, d = D.d(20), tot = d + D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0);
+    // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
+    var r = u.conds.restrained, d = D.d(20), useDex = r.grapple && D.mod(u.abil.dex) > D.mod(u.abil.str);
+    var tot = d + D.mod(useDex ? u.abil.dex : u.abil.str) + (u.cls === 'fighter' || (useDex && u.cls === 'rogue') ? u.prof : 0);
     u.turn.action = 0;
-    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' tears at the web: STR d20 ' + d + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still stuck{/}')]);
-    if (tot >= r.dc) { delete u.conds.restrained; u.turn.move = u.speed; }
+    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
+    if (tot >= r.dc) {
+      delete u.conds.restrained; u.turn.move = u.speed;
+      var by = B.units.filter(function (w) { return w.id === r.by; })[0]; if (by && by.holding) by.holding = by.holding.filter(function (w) { return w !== u; });
+    }
     yield 30;
   };
   M.webbed = function (B, x, y) { return (B.webs || []).some(function (w) { return w.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };

@@ -27,6 +27,9 @@
     this.inv = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; });
     G.setup(m, this.units);
+    // strung webs a fight starts with (Web Gulch): difficult ground for all but the web-walkers, drawn like the spell's
+    var webs = F.webs || m.def.webs;
+    this.webs = webs ? [{ by: 'the ground', sq: webs.slice() }] : [];
     FX.clear();
     this.t = 0; this.cards = []; this.round = 0; this.order = []; this.active = null;
     this.tool = 'move'; this.cursor = { x: 5, y: 10 }; this.req = null; this.wait = 0; this.waitFx = false; this.result = null;
@@ -41,8 +44,30 @@
       id: f.id, kind: f.kind, name: d.name, side: 'foe', sheet: d.sheet, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1,
       hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       init: d.init, perception: d.perception, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
-      fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5
+      fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5,
+      // the bestiary's traits (09-27, the ladder): read by rules.js (packTactics), hurt() (resist/immune/vulnerable),
+      // ai.js brute() (web, slam, bound, martial, surprise) and attack() (a grapple on a hit)
+      packTactics: !!d.packTactics, resist: d.resist || null, immune: d.immune || null, vulnerable: d.vulnerable || null,
+      web: d.web ? { atk: d.web.atk, range: d.web.range, dc: d.web.dc, recharge: d.web.recharge, ready: true } : null,
+      slam: d.slam || null, bound: d.bound || null, martial: d.martial || null, surprise: d.surprise || null, holding: []
     };
+  };
+  // a damage type against a foe's resistances, immunities and vulnerabilities (SRD: immune 0, resist half, vulnerable x2)
+  Battle.prototype.typed = function (u, n, type) {
+    var t = type || '', has = function (l) { return l && l.some(function (k) { return t.indexOf(k) >= 0; }); };
+    if (has(u.immune)) return { n: 0, why: 'immune' };
+    if (has(u.resist)) return { n: Math.floor(n / 2), why: 'resists' };
+    if (has(u.vulnerable)) return { n: n * 2, why: 'vulnerable' };
+    return { n: n, why: '' };
+  };
+  // let go of whatever u holds (it fell, or its grip was out of reach)
+  Battle.prototype.release = function (u, only) {
+    this.units.forEach(function (w) {
+      var r = w.conds.restrained;
+      if (r && r.by === u.id && r.grapple && (!only || only === w)) delete w.conds.restrained;
+      if (w.conds.stunned && w.conds.stunned.by === u.id && !only) delete w.conds.stunned;
+    });
+    u.holding = (u.holding || []).filter(function (w) { return only && w !== only && w.conds.restrained && w.conds.restrained.by === u.id; });
   };
 
   // ------------------------------------------------------------------ the coroutine
@@ -96,7 +121,7 @@
   // ------------------------------------------------------------------ the run: entry card, initiative, rounds
   Battle.prototype.run = function* () {
     var self = this;
-    D.music('battle'); // (it starts on the first key or click: browsers hold sound till then)
+    D.music(this.fight.music || 'battle'); // (it starts on the first key or click: browsers hold sound till then; a set piece's boss tune)
     yield { entry: true };
     // initiative: d20 + DEX (and the fighter's Remarkable Athlete), rolled once
     var rolls = this.units.map(function (u) { var d = D.d(20); u.initRoll = d + u.init; return { u: u, d: d }; });
@@ -381,6 +406,12 @@
     if (att.conds.divineFavor && !atk.spell) { var df = D.roll('1d4', { crit: crit }); dmg += df.total; parts.push('{y}favor 1d4 [' + df.rolls.join(',') + '] radiant{/}'); }
     // a foe's poisoned blade
     if (atk.extra) { var ex = D.roll(atk.extra, { crit: crit }); dmg += ex.total; parts.push(atk.extra + ' ' + RU.fmtRolls(ex.rolls) + ' ' + atk.extraType); }
+    // Martial Advantage (the hobgoblins): once a turn, +2d6 while an ally who can act stands within 5 ft of the target
+    if (att.martial && att.turn && !att.turn.martialUsed && this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) {
+      att.turn.martialUsed = true; var ma = D.roll(att.martial, { crit: crit }); dmg += ma.total; parts.push('{o}martial ' + att.martial + ' ' + RU.fmtRolls(ma.rolls) + '{/}');
+    }
+    // Surprise Attack (the bugbears; the 8-bit game's reading): the first round's hits bite harder
+    if (att.surprise && this.round === 1) { var sa = D.roll(att.surprise, { crit: crit }); dmg += sa.total; parts.push('{o}first blow ' + att.surprise + ' ' + RU.fmtRolls(sa.rolls) + '{/}'); }
     // Divine Smite: after the hit, spend a slot
     if (att.cls === 'paladin' && melee && !att.guest && (att.slots || []).some(function (n) { return n > 0; })) {
       var opts = [];
@@ -412,6 +443,14 @@
       if (!sv.ok) { D.sfx('poison'); tgt.conds.poisoned = true; FX.sparkle(tgt, 'moss', 10); }
       yield 30;
     }
+    // a grapple on the hit (the otyugh's tentacles): Medium or smaller, while it has a tentacle free; grappled and restrained
+    if (atk.grapple && !tgt.dead && tgt.hp > 0 && (tgt.size || 1) <= 1 && !tgt.conds.restrained && (att.holding || []).length < (atk.grapple.max || 1)) {
+      tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true };
+      att.holding = (att.holding || []).concat([tgt]);
+      D.sfx('poison'); FX.ring(tgt, 'bone', 26);
+      this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED and RESTRAINED{/}  {g}(escape DC ' + atk.grapple.dc + ', an action){/}']);
+      yield 30;
+    }
     if (!tgt.dead && atk.save && tgt.hp > 0) {
       var s2 = RU.save(tgt, atk.save.ab, atk.save.dc), pr = D.roll(atk.save.dice), pd = s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;
       this.card(['{r}' + nameOf(tgt) + '{/}: ' + atk.save.ab.toUpperCase() + ' save  ' + RU.saveText(s2) + ' vs DC ' + s2.dc + '  ' + (s2.ok ? '{n}SAVED{/} (half)' : '{o}FAILED{/}'), atk.save.dice + ' ' + RU.fmtRolls(pr.rolls) + ' = ' + pr.total + ' ' + atk.save.type + '  = {r}' + pd + '{/}']);
@@ -433,6 +472,12 @@
   Battle.prototype.hurt = function (u, n, type) {
     if (n <= 0) return;
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
+    if (u.immune || u.resist || u.vulnerable) {
+      var ty = this.typed(u, n, type);
+      if (ty.why) FX.float(ty.why, u, ty.why === 'vulnerable' ? D.PAL.ramps.gold[4] : D.PAL.ramps.silver[5]);
+      n = ty.n;
+      if (n <= 0) return;
+    }
     if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '')) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
     if (u.temp > 0) { var soak = Math.min(u.temp, n); u.temp -= soak; n -= soak; }
     if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
@@ -445,7 +490,7 @@
       u.anim = 'hurt'; u.animT = this.t;
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.side === 'party') { u.ko = true; this.card(['{r}' + u.name + ' goes down.{/}']); }
-      else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); }
+      else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); if (u.holding && u.holding.length) this.release(u); }
       if (u.conc) D.magic.endConc(this, u, 'down');
     } else D.magic.concCheck(this, u, n);
   };

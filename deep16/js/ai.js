@@ -40,6 +40,8 @@
     else if (u.kind === 'drider') yield* drider(B, u);
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
+    // a Slam's stun lasts till the end of the slammer's next turn
+    B.units.forEach(function (w) { var s = w.conds.stunned; if (s && s.by === u.id) { if (s.fresh) s.fresh = false; else delete w.conds.stunned; } });
     D.magic.endTurn(B, u);
     u.anim = 'idle';
     yield 16;
@@ -221,6 +223,41 @@
   // ------------------------------------------------------------------ brute: any foe with no routine of its own (the bestiary, 09-27):
   // regenerate if it can; close on the nearest hero (the weakest already in reach first); then run `multi` --
   // a list of attack names in order, or a count of the first attack -- on the weakest in reach each time
+  // the bestiary's traits (09-27, the ladder): a Web shot on a recharge (the giant spider, the ettercap), a grip held
+  // and a Tentacle Slam (the otyugh), a creature bound to its ground (bound: the chars of the squares it keeps to)
+  function reachOf(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r, u.attacks[k].reach || 0); }); return r; }
+  function* webShot(B, u, tgt) {
+    var W = u.web, T = u.turn;
+    T.action = 0; W.ready = false;
+    var shot = { name: 'Web', atk: W.atk, dice: '0', mod: 0, type: 'web', range: W.range, ranged: true, fx: 'bolt' };
+    u.facing = B.faceTo(u, tgt); u.anim = 'attack'; u.animT = B.t;
+    FX.projectile(u, tgt, 'bolt'); yield { fx: 1 };
+    var e = RU.edges(u, tgt, shot), r = RU.d20(e.net), tot = r.pick + W.atk, ac = RU.ac(tgt) + G.los(u, tgt).cover;
+    var hit = r.pick === 20 || (r.pick !== 1 && tot >= ac);
+    var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
+    B.card(['{r}' + u.name + '{/} > {y}' + tgt.name + '{/}  WEB (recharge ' + W.recharge + '-6)', 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + r.pick + ' ' + RU.sign(W.atk) + ' = ' + tot + '  vs AC ' + ac + '  ' + (hit ? '{n}HIT{/}: {o}RESTRAINED{/} {g}(escape DC ' + W.dc + ', an action){/}' : '{g}MISS{/}') + why], 360);
+    D.sfx(hit ? 'hit' : 'miss');
+    if (hit) { tgt.conds.restrained = { dc: W.dc, by: u.id }; FX.ring(tgt, 'bone', 26); FX.sparkle(tgt, 'bone', 12); }
+    else FX.float('MISS', tgt, D.PAL.ramps.silver[5]);
+    yield 34;
+    u.anim = 'idle';
+  }
+  function* slam(B, u) {
+    var S = u.slam, held = u.holding.slice();
+    u.turn.action = 0; u.anim = 'attack'; u.animT = B.t;
+    B.card(['{r}' + u.name + '{/}: TENTACLE SLAM -- it beats what it holds against the stone.  CON DC ' + S.dc]);
+    yield 24;
+    for (var i = 0; i < held.length; i++) {
+      var w = held[i]; if (w.dead || w.hp <= 0) continue;
+      var sv = RU.save(w, 'con', S.dc), roll = D.roll(S.dice), n = sv.ok ? Math.floor(roll.total / 2) : roll.total;
+      B.card(['  ' + w.name + ': CON ' + RU.saveText(sv) + ' vs DC ' + S.dc + '  ' + (sv.ok ? '{n}SAVED{/} (half)' : '{o}STUNNED{/}') + '  ' + S.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = {r}' + n + '{/} bludgeoning'], 360);
+      D.sfx('crit'); FX.slash(w, D.PAL.ramps.red[4]);
+      B.hurt(w, n, 'bludgeoning');
+      if (!sv.ok && w.hp > 0) w.conds.stunned = { by: u.id, fresh: true };
+      yield 34;
+    }
+    u.anim = 'idle';
+  }
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u);
     if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp) {
@@ -228,12 +265,33 @@
       else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
     }
     u.burned = false;
+    // a spent Web comes back on a 5 or 6 (at the start of its turn)
+    if (u.web && !u.web.ready) { var rc = D.d(6); if (rc >= u.web.recharge) { u.web.ready = true; B.card(['{g}The ' + B.shortName(u) + ' has web again (d6 ' + rc + ').{/}'], 200); yield 12; } }
+    // a grip it can no longer reach goes slack
+    (u.holding || []).slice().forEach(function (w) { if (w.dead || w.hp <= 0 || !w.conds.restrained || w.conds.restrained.by !== u.id || G.dist(u, w) > reachOf(u)) B.release(u, w); });
     if (!hs.length) return;
-    var near = hs.filter(function (w) { return G.dist(u, w) <= u.reach; }).sort(function (a, b) { return a.hp - b.hp; });
+    // Tentacle Slam, instead of the bites and lashes, on what it already holds (the 8-bit game: half the time)
+    if (u.slam && u.holding.length && T.action && D.d(100) <= (u.slam.chance || 0.5) * 100) { yield* slam(B, u); return; }
+    var near = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u); }).sort(function (a, b) { return a.hp - b.hp; });
+    // Web: at the start, or whenever no one is in reach -- the nearest free hero it can see, in range
+    if (u.web && u.web.ready && T.action && (!near.length || B.round === 1)) {
+      var free = hs.filter(function (w) { return !w.conds.restrained && G.dist(u, w) <= u.web.range[1] && G.los(u, w).clear; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+      if (free.length) {
+        yield* webShot(B, u, free[0]);
+        if (u.dead || u.hp <= 0) return;
+        // then close on whoever is caught, for next turn's bite
+        var caught = hs.filter(function (w) { return w.conds.restrained; })[0] || free[0];
+        if (G.dist(u, caught) > u.reach) yield* walkTo(B, u, approach(u, caught, G.reach(u, T.move)));
+        return;
+      }
+    }
     var tgt = near[0];
     if (!tgt) {
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
-      yield* walkTo(B, u, approach(u, tgt, G.reach(u, T.move)));
+      var e = approach(u, tgt, G.reach(u, T.move), reachOf(u));
+      if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
+      else if (u.bound) { B.card(['{g}The ' + B.shortName(u) + ' churns in its pool; no one is in its reach.{/}']); yield 20; }
+      else { B.card(['{g}The ' + B.shortName(u) + ' paces: it cannot get at anyone.{/}']); yield 20; }
       if (u.dead || u.hp <= 0) return;
     }
     if (!T.action) return;
@@ -242,8 +300,13 @@
     if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);
     for (var k = 0; k < routine.length; k++) {
       var atk = u.attacks[routine[k]];
-      var t = heroes(B, u).filter(function (w) { return G.dist(u, w) <= (atk.reach || u.reach); }).sort(function (a, b) { return a.hp - b.hp; })[0];
-      if (!t || !atk) break;
+      if (!atk) break;
+      // the weakest in this attack's reach; a grappling attack reaches first for someone it does not already hold
+      var t = heroes(B, u).filter(function (w) { return G.dist(u, w) <= (atk.reach || u.reach); }).sort(function (a, b) {
+        if (atk.grapple) { var ha = u.holding.indexOf(a) >= 0, hb = u.holding.indexOf(b) >= 0; if (ha !== hb) return ha ? 1 : -1; }
+        return a.hp - b.hp;
+      })[0];
+      if (!t) continue;
       yield* B.attack(u, t, atk);
       if (u.dead || u.hp <= 0) return;
     }
