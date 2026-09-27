@@ -529,6 +529,43 @@
 }
 }
 },
+"skeleton_p1": {
+"image": "art/skeleton_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"top": 56,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "troll_p1": {
 "image": "art/troll_p1.png",
 "fw": 120,

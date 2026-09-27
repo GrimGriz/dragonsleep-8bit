@@ -42,5 +42,55 @@
     },
     multi: 3, faerieFire: { dc: 13, range: 60, cube: 4 }, fey: true, webWalker: true,
     src: 'SRD 5.1 Drider (CR 6): three attacks, longsword or longbow, one of them may be the bite; Faerie Fire 1/day (DC 13); Fey Ancestry (no magical sleep); Web Walker'
+  },
+
+  // ------------------------------------------------------------------ the bestiary's first five (09-27, the Cowork seat, on Griz's "proceed with 4"):
+  // SRD 5.1 blocks as written, sheets from pipeline 1 (KayKit Skeletons; Quaternius packs). They fight by js/ai.js brute():
+  // close on the nearest hero, then the routine in `multi` (a list of attack names, or a count of the first attack).
+  // Fields the engine does not read yet are kept as data and named in `todo`, so the next seat sees the gap, not a silent stub.
+  giantrat: {
+    name: 'Giant Rat', sheet: 'giantrat_p1', cr: '1/8', ac: 12, hp: 7, speed: 30, size: 1, reach: 5,
+    abil: { str: 7, dex: 15, con: 11, int: 2, wis: 10, cha: 4 }, init: 2, perception: 10,
+    saves: { str: -2, dex: 2, con: 0, int: -4, wis: 0, cha: -3 },
+    attacks: { bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 } },
+    multi: 1, packTactics: true,
+    src: 'SRD 5.1 Giant Rat (CR 1/8); content/monsters.json giantrat', todo: 'Pack Tactics (advantage beside an ally) is not read'
+  },
+  giantspider: {
+    name: 'Giant Spider', sheet: 'giantspider_p1', cr: '1', ac: 14, hp: 26, speed: 30, size: 2, reach: 5,
+    abil: { str: 14, dex: 16, con: 12, int: 2, wis: 11, cha: 4 }, init: 3, perception: 10,
+    saves: { str: 2, dex: 3, con: 1, int: -4, wis: 0, cha: -3 },
+    attacks: {
+      bite: { name: 'Bite', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d8', type: 'poison', half: true } }
+    },
+    multi: 1, web: { atk: 5, range: [30, 60], dc: 12, recharge: 5 },
+    src: 'SRD 5.1 Giant Spider (CR 1); content/monsters.json giantspider', todo: 'Web (recharge 5-6, ranged, restrained DC 12) is not read; the engine has the restrained condition, so it is a short add'
+  },
+  wolf: {
+    name: 'Wolf', sheet: 'wolf_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, size: 1, reach: 5,
+    abil: { str: 12, dex: 15, con: 12, int: 3, wis: 12, cha: 6 }, init: 2, perception: 13,
+    saves: { str: 1, dex: 2, con: 1, int: -4, wis: 1, cha: -2 },
+    attacks: { bite: { name: 'Bite', atk: 4, dice: '2d4', mod: 2, type: 'piercing', reach: 5, prone: 11 } },
+    multi: 1, packTactics: true,
+    src: 'SRD 5.1 Wolf (CR 1/4); content/monsters.json wolf', todo: 'Pack Tactics and the bite\'s STR DC 11 knockdown are not read'
+  },
+  skeleton: {
+    name: 'Skeleton', sheet: 'skeleton_p1', cr: '1/4', ac: 13, hp: 13, speed: 30, size: 1, reach: 5,
+    abil: { str: 10, dex: 14, con: 15, int: 6, wis: 8, cha: 5 }, init: 2, perception: 9,
+    saves: { str: 0, dex: 2, con: 2, int: -2, wis: -1, cha: -3 },
+    attacks: { shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
+    multi: 1, vulnerable: ['bludgeoning'], immune: ['poison'],
+    src: 'SRD 5.1 Skeleton (CR 1/4): armor scraps AC 13, shortsword (the sheet carries the pack\'s blade and small shield); the shortbow left off', todo: 'vulnerable (bludgeoning x2) and poison immunity are not read'
+  },
+  troll: {
+    name: 'Troll', sheet: 'troll_p1', cr: '5', ac: 15, hp: 84, speed: 30, size: 2, reach: 5,
+    abil: { str: 18, dex: 13, con: 20, int: 7, wis: 9, cha: 7 }, init: 1, perception: 12,
+    saves: { str: 4, dex: 1, con: 5, int: -2, wis: -1, cha: -2 },
+    attacks: {
+      bite: { name: 'Bite', atk: 7, dice: '1d6', mod: 4, type: 'piercing', reach: 5 },
+      claw: { name: 'Claw', atk: 7, dice: '2d6', mod: 4, type: 'slashing', reach: 5 }
+    },
+    multi: ['bite', 'claw', 'claw'], regen: 10,
+    src: 'SRD 5.1 Troll (CR 5): Multiattack bite + two claws; Regeneration 10 at the start of its turn unless it took fire or acid since its last (read by brute(): battle.hurt marks u.burned)'
   }
 };

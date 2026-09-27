@@ -38,6 +38,7 @@
     if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);
+    else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
     D.magic.endTurn(B, u);
     u.anim = 'idle';
@@ -217,6 +218,37 @@
   }
 
   // ------------------------------------------------------------------ a guest (Brann, Hedda, Ingrith, Pyro): the nearest foe, Extra Attack
+  // ------------------------------------------------------------------ brute: any foe with no routine of its own (the bestiary, 09-27):
+  // regenerate if it can; close on the nearest hero (the weakest already in reach first); then run `multi` --
+  // a list of attack names in order, or a count of the first attack -- on the weakest in reach each time
+  function* brute(B, u) {
+    var T = u.turn, hs = heroes(B, u);
+    if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp) {
+      if (u.burned) { B.card(['{g}' + u.name + ' does not knit: it burned.{/}']); yield 16; }
+      else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
+    }
+    u.burned = false;
+    if (!hs.length) return;
+    var near = hs.filter(function (w) { return G.dist(u, w) <= u.reach; }).sort(function (a, b) { return a.hp - b.hp; });
+    var tgt = near[0];
+    if (!tgt) {
+      tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+      yield* walkTo(B, u, approach(u, tgt, G.reach(u, T.move)));
+      if (u.dead || u.hp <= 0) return;
+    }
+    if (!T.action) return;
+    T.action = 0;
+    var names = Object.keys(u.attacks || {}), routine = Array.isArray(u.multi) ? u.multi : [];
+    if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);
+    for (var k = 0; k < routine.length; k++) {
+      var atk = u.attacks[routine[k]];
+      var t = heroes(B, u).filter(function (w) { return G.dist(u, w) <= (atk.reach || u.reach); }).sort(function (a, b) { return a.hp - b.hp; })[0];
+      if (!t || !atk) break;
+      yield* B.attack(u, t, atk);
+      if (u.dead || u.hp <= 0) return;
+    }
+  }
+
   function* guest(B, u) {
     var T = u.turn, fs = heroes(B, u);
     if (!fs.length) return;

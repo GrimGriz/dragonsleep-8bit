@@ -10,7 +10,7 @@ The camera: orthographic, rotation X 60, Z 45 -> true 2:1 dimetric. World +X is 
 Facing f (0..7 = S, SW, W, NW, N, NE, E, SE) turns the model to 45 - 45 f degrees (the models face -Y, which is SW).
 """
 import bpy, bmesh, sys, os, json, math
-from mathutils import Vector, Matrix
+from mathutils import Vector, Matrix, Euler
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SRC = os.path.join(ROOT, 'deep16', '_src')
@@ -157,6 +157,24 @@ cx, cy = (lo.x + hi.x) / 2, (lo.y + hi.y) / 2
 if F.get('size_squares'):   # centre a big creature on its footprint; a humanoid keeps its own origin at its feet
     arm.location.x -= cx; arm.location.y -= cy
 arm.location.z -= lo.z
+bpy.context.view_layer.update()
+
+# ------------------------------------------------------------------ props: loose meshes (a KayKit weapon .gltf) hung on a bone of the model, the way the Adventurers carry theirs
+# props: [{file, bone, offset, rot, scale}] -- offset/rot default to what the Knight's 1H_Sword and Round_Shield sit at on handslot.r / handslot.l
+PROP_DEFAULT = {'handslot.r': ([0, -0.079, 0], [90, 0, 180]), 'handslot.l': ([0, -0.095, 0.156], [-90, 0, 0])}
+for P in F.get('props', []):
+    before = set(bpy.data.objects)
+    bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, P['file']))
+    d_off, d_rot = PROP_DEFAULT.get(P['bone'], ([0, 0, 0], [0, 0, 0]))
+    off = Vector(P.get('offset', d_off)); rot = [math.radians(a) for a in P.get('rot', d_rot)]; ps = P.get('scale', 1.0)
+    for o in [o for o in bpy.data.objects if o not in before]:
+        if o.type != 'MESH':
+            continue
+        o.parent = arm; o.parent_type = 'BONE'; o.parent_bone = P['bone']
+        o.matrix_parent_inverse = Matrix.Identity(4)
+        o.matrix_basis = Matrix.Translation(off) @ Euler(rot, 'XYZ').to_matrix().to_4x4() @ Matrix.Scale(ps, 4)
+        o.hide_render = False
+        print('[render] prop %s on %s' % (o.name, P['bone']))
 bpy.context.view_layer.update()
 
 # ------------------------------------------------------------------ a rider: a second model mounted on a bone of the first (the drider: a drow's upper half on the spider)

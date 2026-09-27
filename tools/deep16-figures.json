@@ -120,14 +120,24 @@
       }
     },
     "skeleton": {
-      "_note": "the SRD skeleton (CR 1/4) -- KayKit Skeletons pack (CC0, _src/kaykit-skeletons), the same rig and action set as the Adventurers. The pack's weapons are separate .gltf files (Skeleton_Blade, _Axe, _Crossbow, _Shield_*), not in the GLB: a 'props' hook in render-sprites.py is owed before it carries a blade. Unarmed for now.",
+      "_note": "the SRD skeleton (CR 1/4) -- KayKit Skeletons pack (CC0, _src/kaykit-skeletons), the same rig and action set as the Adventurers. The pack's weapons are separate .gltf files, hung on the hand bones by the props hook (09-27).",
       "file": "kaykit-skeletons/addons/kaykit_character_pack_skeletons/Characters/gltf/Skeleton_Warrior.glb",
       "show": ["Skeleton_Warrior_ArmLeft", "Skeleton_Warrior_ArmRight", "Skeleton_Warrior_Body", "Skeleton_Warrior_Cloak", "Skeleton_Warrior_Eyes", "Skeleton_Warrior_Head", "Skeleton_Warrior_Helmet", "Skeleton_Warrior_Jaw", "Skeleton_Warrior_LegLeft", "Skeleton_Warrior_LegRight"],
       "anims": {
         "idle": "Idle_Combat",
-        "attack": "Unarmed_Melee_Attack_Punch_A",
+        "attack": "1H_Melee_Attack_Slice_Diagonal",
         "walk": "Walking_D_Skeletons"
-      }
+      },
+      "props": [
+        {
+          "file": "kaykit-skeletons/addons/kaykit_character_pack_skeletons/Assets/gltf/Skeleton_Blade.gltf",
+          "bone": "handslot.r"
+        },
+        {
+          "file": "kaykit-skeletons/addons/kaykit_character_pack_skeletons/Assets/gltf/Skeleton_Shield_Small_A.gltf",
+          "bone": "handslot.l"
+        }
+      ]
     },
     "giantrat": {
       "_note": "Quaternius Easy Enemy Pack (CC0, _src/quaternius/easy-enemy). Material colours, no texture. Small: 0.8 squares.",
