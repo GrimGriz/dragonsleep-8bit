@@ -92,11 +92,7 @@
   MapView.prototype.update = function () {
     this.t++;
     var c = this.cur, m = D.iso.map, moved = false;
-    if (I.repeat('up')) { c.x--; c.y--; moved = true; }
-    if (I.repeat('down')) { c.x++; c.y++; moved = true; }
-    if (I.repeat('left')) { c.x--; c.y++; moved = true; }
-    if (I.repeat('right')) { c.x++; c.y--; moved = true; }
-    c.x = D.clamp(c.x, 0, m.w - 1); c.y = D.clamp(c.y, 0, m.h - 1);
+    ['up', 'down', 'left', 'right'].forEach(function (k) { if (I.repeat(k) && D.iso.nudge(c, k, m.w, m.h)) moved = true; });
     if (moved) D.iso.lookAt(c.x, c.y, m.gz(c.x, c.y));
     if (I.mouse.inside && I.mouse.moved) { var s = D.iso.pick(I.mouse.x, I.mouse.y); if (s) { c.x = s.x; c.y = s.y; } }
     if (I.mouse.click) D.iso.lookAt(c.x, c.y, m.gz(c.x, c.y));

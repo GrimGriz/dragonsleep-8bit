@@ -302,6 +302,27 @@
     return best;
   };
 
+  // the keyboard cursor: one square a press, the way the key points on screen. A screen column (x - y) or row (x + y)
+  // is a zigzag of squares, so up/down step x or y by turns and hold the column, left/right hold the row. (Stepping
+  // x and y together kept x + y's parity: half the floor, a checkerboard, could never be reached -- Griz, 09-27.)
+  iso.nudge = function (c, dir, w, h) {
+    var v = dir === 'up' || dir === 'down', s = dir === 'up' || dir === 'left' ? -1 : 1;
+    var lane = function (x, y) { return v ? x - y : x + y; };
+    if (!c.lane || c.lane.v !== v || c.lane.x !== c.x || c.lane.y !== c.y) c.lane = { v: v, at: lane(c.x, c.y) };
+    // up: x-1 or y-1 · down: x+1 or y+1 · left: x-1 or y+1 · right: x+1 or y-1. The first is taken on a tie, so
+    // a press and its opposite come back to the same square.
+    var opts = v ? (s < 0 ? [[-1, 0], [0, -1]] : [[1, 0], [0, 1]]) : (s < 0 ? [[-1, 0], [0, 1]] : [[0, -1], [1, 0]]);
+    var best = null, bd = 1e9;
+    opts.forEach(function (o) {
+      var x = c.x + o[0], y = c.y + o[1], d = Math.abs(lane(x, y) - c.lane.at);
+      if (x < 0 || y < 0 || x >= w || y >= h) return;
+      if (d < bd) { bd = d; best = [x, y]; }
+    });
+    if (!best) return false;
+    c.x = best[0]; c.y = best[1]; c.lane.x = c.x; c.lane.y = c.y;
+    return true;
+  };
+
   // snap the camera (16-bit games cut, they don't glide)
   iso.lookAt = function (gx, gy, gz) { var c = iso.center(gx, gy, gz || 0); iso.cam.x = Math.round(c.x); iso.cam.y = Math.round(c.y - 20); };
 })();

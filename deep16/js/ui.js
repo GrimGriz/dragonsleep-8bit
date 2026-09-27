@@ -2,7 +2,8 @@
    Three menu styles over one set of commands, switched in the X/Esc menu (Griz, 09-27: "curious about trying different
    menu ideas"): BAR (buttons in the bottom bar, the grid cursor at rest), WINDOW (a Chrono Trigger-style command window
    with a pointing hand; the menu at rest, as there), RING (a Secret of Mana-style ring of icons round the hero).
-   The bottom bar always has the portrait, HP and the four pips -- MOVE, ACTION, BONUS, REACTION.
+   The bottom bar always has the portrait, HP and BARM -- bonus, action, reaction, move and its feet -- lit while there's
+   one left, after the class; END TURN in its bottom-right corner.
    The overlay under the sprites: reach (blue), dash reach (paler), targets, templates, the aura ring, a flanking line;
    the cursor red where the current thing can't go; with HELP on, a rogue's hiding places tinted.
    Keys: arrows/WASD cursor (or the menu), E/Z confirm, X/Esc back (at rest: the menu), SPACE end turn, 1-9 commands,
@@ -13,6 +14,7 @@
   var UI = D.ui = {};
   var R = function (r, i) { return D.PAL.ramps[r][i]; };
   var BAR_Y = 226, DEFER = null;
+  var BX = 182, BP = 74;   // the bar's right-hand block (the buttons, or the hints): its left edge, a cell's pitch
 
   // ------------------------------------------------------------------ options (a per-viewer convenience; the page works without storage)
   UI.opts = { help: false, style: 'bar' };
@@ -96,9 +98,9 @@
     if (I.mouse.click && B.promptRects) for (var i = 0; i < B.promptRects.length; i++) if (hit(B.promptRects[i])) return B.answer(p.opts[i].value);
   }
   function hit(r) { var m = I.mouse; return r && m.x >= r.x && m.y >= r.y && m.x < r.x + r.w && m.y < r.y + r.h; }
-  function moveCursor(B, dx, dy) {
+  function moveCursor(B, dir) {
     var m = G.map;
-    B.cursor.x = D.clamp(B.cursor.x + dx, 0, m.w - 1); B.cursor.y = D.clamp(B.cursor.y + dy, 0, m.h - 1);
+    if (!D.iso.nudge(B.cursor, dir, m.w, m.h)) return;
     var c = D.iso.center(B.cursor.x, B.cursor.y, m.gz(B.cursor.x, B.cursor.y)), s = D.iso.toScreen(c.x, c.y);
     if (s.x < 60 || s.x > D.W - 60 || s.y < 50 || s.y > BAR_Y - 30) D.iso.lookAt(B.cursor.x, B.cursor.y, m.gz(B.cursor.x, B.cursor.y));
   }
@@ -143,10 +145,7 @@
       return;
     }
     // the grid
-    if (I.repeat('up')) moveCursor(B, -1, -1);
-    if (I.repeat('down')) moveCursor(B, 1, 1);
-    if (I.repeat('left')) moveCursor(B, -1, 1);
-    if (I.repeat('right')) moveCursor(B, 1, -1);
+    ['up', 'down', 'left', 'right'].forEach(function (k) { if (I.repeat(k)) moveCursor(B, k); });
     if (I.pressed('b')) {
       if (B.picks && B.picks.length) { B.picks.pop(); return; }
       if (B.tool !== rest()) { B.tool = rest(); B.spell = null; B.clearCards(); return; }
@@ -184,7 +183,7 @@
   }
   function listInput(B, u) {
     var L = B.list, n = L.items.length, st = UI.opts.style, e = L.items[L.sel];
-    var ringy = st === 'ring' && L.kind !== 'spells', nextKey = ringy ? ['left', 'right'] : ['up', 'down'], slotKey = ringy ? ['up', 'down'] : ['left', 'right'];
+    var ringy = st === 'ring', nextKey = ringy ? ['left', 'right'] : ['up', 'down'], slotKey = ringy ? ['down', 'up'] : ['left', 'right']; // [lower, higher]
     if (n && I.repeat(nextKey[0])) L.sel = (L.sel + n - 1) % n;
     if (n && I.repeat(nextKey[1])) L.sel = (L.sel + 1) % n;
     if (e && e.kind === 'spell' && e.levels.length > 1) {
@@ -200,7 +199,7 @@
     if (!e) return;
     B.list.sel = i;
     if (!e.ok) { B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
-    if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.name }; return; }
+    if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.label }; B.ringC = null; return; }
     B.list = null;
     if (e.kind === 'item') { B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' : e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240); return; }
     var g = e.g, n = (g.n || 1) + Math.max(0, e.slot - e.level);
@@ -327,7 +326,6 @@
     bar(ctx, B, hero);
     if (hero && UI.opts.style === 'window') cmdWindow(ctx, B, hero);
     if (hero && UI.opts.style === 'ring') cmdRing(ctx, B, hero);
-    if (hero && B.list && B.list.kind === 'spells' && UI.opts.style === 'ring') { var hp = UI.unitPos(B, hero); listPopup(ctx, B, hero, D.clamp(hp.x + 26, 4, D.W - 214), D.clamp(hp.y + 30, 150, BAR_Y - 4), 210); }
     if (hero && B.tool === 'spell' && B.spell && B.spell.g.shape === 'allies' && B.picks.length) castButton(ctx, B);
     if (hero && B.list && UI.opts.style === 'bar') listPopup(ctx, B, hero, 266, BAR_Y - 4, 212);
     if (B.inspect) inspect(ctx, B.inspect);
@@ -550,29 +548,34 @@
     D.spr.draw(ctx, u.sheet, 'idle', 0, B.t, 22, BAR_Y + 6 + Math.min(top, u.size > 1 ? 30 : 44), { alpha: u.ethereal ? 0.3 : 1 });
     ctx.restore();
     ctx.strokeStyle = u.side === 'foe' ? R('red', 3) : R('gold', 3); ctx.strokeRect(4.5, BAR_Y + 4.5, 35, 37);
+    var cl = u.side === 'foe' ? 'foe' : (u.cls + ' ' + u.lvl), clx = 44 + D.textWidth(u.name) + 6;
     D.text(ctx, u.name, 44, BAR_Y + 4, u.side === 'foe' ? R('red', 4) : R('gold', 4));
-    D.text(ctx, u.side === 'foe' ? 'foe' : (u.cls + ' ' + u.lvl), 44 + D.textWidth(u.name) + 6, BAR_Y + 4, R('accent', 2));
+    D.text(ctx, cl, clx, BAR_Y + 4, R('accent', 2));
     ctx.fillStyle = R('stone', 1); ctx.fillRect(44, BAR_Y + 15, 100, 4);
     ctx.fillStyle = u.side === 'foe' ? R('red', 3) : R('moss', 2); ctx.fillRect(44, BAR_Y + 15, Math.round(100 * Math.max(0, u.hp) / u.maxhp), 4);
     D.text(ctx, 'HP ' + u.hp + '/' + u.maxhp + (u.temp ? ' +' + u.temp : '') + '   AC ' + RU.ac(u), 44, BAR_Y + 21, R('bone', 1));
+    ctx.save(); ctx.beginPath(); ctx.rect(44, BAR_Y + 29, BX - 48, 12); ctx.clip(); // a long line of conditions stops short of the buttons
     D.text(ctx, conds(u).trim() || (u.slots && u.slots.length ? 'slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : ''), 44, BAR_Y + 31, R('accent', 2));
-    if (!hero) { D.text(ctx, u.ethereal ? 'moving unseen...' : 'its turn', 160, BAR_Y + 16, R('accent', 2)); return; }
-    var T = u.turn;
-    pip(ctx, 150, BAR_Y + 4, 'MOVE ' + T.move, T.move > 0, R('glow', 1));
-    pip(ctx, 206, BAR_Y + 4, 'ACTION', T.action > 0 || T.attacksLeft > 0, R('gold', 3));
-    pip(ctx, 150, BAR_Y + 17, 'BONUS', T.bonus > 0, R('glow', 2));
-    pip(ctx, 206, BAR_Y + 17, 'REACTION', u.reaction > 0, R('violet', 4));
-    var eb = { x: 150, y: BAR_Y + 30, w: 110, h: 11, end: true };
+    ctx.restore();
+    if (!hero) { D.text(ctx, u.ethereal ? 'moving unseen...' : 'its turn', BX, BAR_Y + 16, R('accent', 2)); return; }
+    var T = u.turn, px = clx + D.textWidth(cl) + 6;
+    // BARM: bonus, action, reaction, move (the feet left) -- lit while there's one to spend (Griz, 09-27: "BARM #" after the class)
+    [['B', T.bonus > 0, R('glow', 2)], ['A', T.action > 0 || T.attacksLeft > 0, R('gold', 3)], ['R', u.reaction > 0, R('violet', 4)], ['M ' + T.move, T.move > 0, R('glow', 1)]]
+      .forEach(function (p) { px += pip(ctx, px, BAR_Y + 2, p[0], p[1], p[2]) + 2; });
+    // END TURN keeps the bottom-right cell in every style
+    var eb = { x: BX + 3 * BP, y: BAR_Y + 30, w: BP - 2, h: 11, end: true };
     B.buttons.push(eb);
     ctx.fillStyle = B.hoverBtn === B.buttons.length - 1 ? R('stone', 3) : R('stone', 1); ctx.fillRect(eb.x, eb.y, eb.w, eb.h);
-    D.text(ctx, 'SPACE  END TURN', eb.x + 4, eb.y + 2, R('bone', 1));
+    ctx.strokeStyle = R('silver', 3); ctx.strokeRect(eb.x + 0.5, eb.y + 0.5, eb.w - 1, eb.h - 1);
+    D.text(ctx, 'END TURN', eb.x + eb.w / 2, eb.y + 2, R('bone', 1), 'center');
     if (st !== 'bar') {
-      D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : (B.tool === 'menu' ? 'left/right turns the ring, E: choose' : 'E: here   X: back to the ring'), 266, BAR_Y + 6, R('accent', 2));
-      D.text(ctx, 'C recentre  H hints  M menu', 266, BAR_Y + 18, R('stone', 5));
+      var spellRing = B.list && B.list.kind === 'spells';
+      D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : (B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose' : 'E: here   X: back to the ring'), BX, BAR_Y + 6, R('accent', 2));
+      D.text(ctx, 'C recentre  H hints  M menu  SPACE end turn', BX, BAR_Y + 18, R('stone', 5));
       return;
     }
     UI.cmds(B, u).forEach(function (c, i) {
-      var col = i % 3, row = Math.floor(i / 3), b = { x: 266 + col * 71, y: BAR_Y + 4 + row * 13, w: 69, h: 11, cmd: c, idx: i };
+      var col = i % 4, row = Math.floor(i / 4), b = { x: BX + col * BP, y: BAR_Y + 4 + row * 13, w: BP - 2, h: 11, cmd: c, idx: i };
       B.buttons.push(b);
       var hov = B.hoverBtn === B.buttons.length - 1, on = (c.tool && B.tool === c.tool) || (c.sub && B.list && B.list.kind === c.sub);
       var edge = c.cost === 'A' ? R('gold', 3) : c.cost === 'B' ? R('glow', 1) : R('bone', 0);
@@ -581,10 +584,12 @@
       D.text(ctx, (i + 1) + ' ' + c.label, b.x + 3, b.y + 2, c.ok ? R('bone', 2) : R('stone', 4));
     });
   }
-  function pip(ctx, x, y, label, lit, col) {
-    ctx.fillStyle = lit ? col : R('stone', 1); ctx.fillRect(x, y, 54, 11);
-    ctx.strokeStyle = lit ? R('bone', 1) : R('stone', 3); ctx.strokeRect(x + 0.5, y + 0.5, 53, 10);
-    D.text(ctx, label, x + 3, y + 2, lit ? R('outline', 0) : R('accent', 2));
+  function pip(ctx, x, y, label, lit, col) { // a small lit box round a letter; gives back its width
+    var w = D.textWidth(label) + 3;
+    ctx.fillStyle = lit ? col : R('stone', 1); ctx.fillRect(x, y, w, 10);
+    if (lit) window.DS.text(ctx, label, x + 2, y + 2, R('outline', 0)); // dark on a lit box: no drop shadow, it smears
+    else D.text(ctx, label, x + 2, y + 2, R('stone', 4));
+    return w;
   }
   function costTag(c) { return c === 'A' ? '{y}A{/}' : c === 'B' ? '{c}B{/}' : c === 'M' ? '{c}M{/}' : ''; }
   function slotText(e) { return e.kind !== 'spell' ? 'x' + e.n : e.level ? 'L' + e.slot + (e.levels.length > 1 ? ' <>' : '') : 'cantrip'; }
@@ -592,7 +597,7 @@
   // a list (spells, items) as a popup: the BAR style's, and the WINDOW style's second window
   function listPopup(ctx, B, u, x, yBottom, w, win) {
     var L = B.list, rows = L.items, vis = Math.min(rows.length, 10), start = D.clamp(L.sel - 5, 0, Math.max(0, rows.length - vis));
-    var h = vis * 11 + 22, y = yBottom - h;
+    var h = vis * 11 + 26, y = yBottom - h;   // the rows, then the summary line clear of the last one
     win ? winBox(ctx, x, y, w, h) : box(ctx, x, y, w, h, R('glow', 1));
     B.uiRects.push({ x: x, y: y, w: w, h: h });
     D.text(ctx, L.kind === 'spells' ? (L.title || 'SPELLS') + (u.slots.length ? '   slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : '') : 'ITEMS (an action)', x + 6, y + 4, R('gold', 4));
@@ -604,9 +609,10 @@
       D.text(ctx, slotText(e) + (e.g ? '  ' + costTag(e.g.time) : ''), r.x + r.w - 3, r.y + 2, e.ok ? R('silver', 5) : R('stone', 4), 'right');
     }
     var cur = rows[L.sel];
-    if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, y + h - 9, R('accent', 2));
-    else if (cur && cur.sp) D.text(ctx, '{g}' + D.magic.summary(cur, u) + '{/}', x + 6, y + h - 9, R('accent', 2));
-    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire' }[cur.use.effect] || '') + '{/}', x + 6, y + h - 9, R('accent', 2));
+    var sy = y + h - 10;
+    if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, sy, R('accent', 2));
+    else if (cur && cur.sp) D.text(ctx, '{g}' + D.magic.summary(cur, u) + '{/}', x + 6, sy, R('accent', 2));
+    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire' }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
   }
 
   // ------------------------------------------------------------------ WINDOW: Chrono Trigger's command window, a pointing hand
@@ -648,12 +654,12 @@
   }
   function cmdRing(ctx, B, u) {
     if (B.tool !== 'menu' && !B.list) return;
-    if (B.list && B.list.kind === 'spells') return;
     var cmds = B.list ? B.list.items : UI.cmds(B, u), n = cmds.length, sel = B.list ? B.list.sel : B.cmdSel;
     if (!n) return;
     var p = UI.unitPos(B, u), cx = p.x, cy = p.y - 26, rx = Math.max(36, n * 6), ry = Math.max(20, n * 3);
-    // turn the ring smoothly toward the chosen icon (the chosen one sits at the front, at the bottom)
-    var target = -sel * (Math.PI * 2 / n), key = B.list ? 'ringB' : 'ringA';
+    // turn the ring smoothly toward the chosen icon (the chosen one sits at the front, at the bottom);
+    // each ring keeps its own turn, so X from a level's spells comes back to the levels as they were
+    var spells = B.list && B.list.kind === 'spells', target = -sel * (Math.PI * 2 / n), key = !B.list ? 'ringA' : spells ? 'ringC' : 'ringB';
     if (B[key] == null) B[key] = target;
     var dA = target - B[key]; while (dA > Math.PI) dA -= Math.PI * 2; while (dA < -Math.PI) dA += Math.PI * 2;
     B[key] += dA * 0.35;
@@ -668,15 +674,19 @@
       ctx.strokeStyle = front ? R('gold', 4) : o.c.ok ? R('silver', 3) : R('stone', 3); ctx.strokeRect(bx - 1.5, by - 1.5, 12 * s + 3, 12 * s + 3);
       ctx.globalAlpha = o.c.ok ? 1 : 0.4; ctx.drawImage(ic, bx, by, 12 * s, 12 * s); ctx.globalAlpha = 1;
       if (o.c.kind === 'level') D.text(ctx, o.c.level ? String(o.c.level) : 'C', bx + 6 * s, by + 3 * s, R('outline', 0), 'center');
+      // a level's stars share colours by element, so the ones behind wear their initials (Shield of Faith: SF);
+      // the one at the front is named in full below the ring
+      if (o.c.kind === 'spell' && !front) D.text(ctx, initials(o.c.name), bx + 6, by + 6, o.c.ok ? R('bone', 2) : R('stone', 4), 'center');
     });
-    var cur = cmds[sel], label = (cur.label || cur.name) + (cur.kind === 'item' ? '  ' + slotText(cur) : '') + (cur.cost ? '  ' + costTag(cur.cost) : cur.g ? '  ' + costTag(cur.g.time) : '');
+    if (spells && B.list.title) { var tt = B.list.title, tw2 = D.textWidth(tt) + 10; box(ctx, Math.round(cx - tw2 / 2), Math.round(cy - ry - 30), tw2, 12, R('glow', 1)); D.text(ctx, tt, cx, Math.round(cy - ry - 28), R('gold', 4), 'center'); }
+    var cur = cmds[sel], label = (cur.label || cur.name) + (cur.kind === 'item' ? '  ' + slotText(cur) : cur.kind === 'spell' && cur.level ? '  L' + cur.slot + (cur.levels.length > 1 ? ' ^v' : '') : '') + (cur.cost ? '  ' + costTag(cur.cost) : cur.g ? '  ' + costTag(cur.g.time) : '');
     var lw = D.textWidth(label) + 10, ly = cy + ry + 16;
     box(ctx, Math.round(cx - lw / 2), ly, lw, 12, R('gold', 3));
     D.text(ctx, label, cx, ly + 2, cur.ok ? R('bone', 2) : R('stone', 4), 'center');
     var sub = !cur.ok && cur.why ? cur.why : cur.kind === 'spell' ? D.magic.summary(cur, u) : '';
     if (sub) { var ww = D.textWidth(sub) + 8; box(ctx, Math.round(cx - ww / 2), ly + 13, ww, 11, R('stone', 3)); D.text(ctx, '{g}' + sub + '{/}', cx, ly + 15, R('accent', 2), 'center'); }
-    if (false) { var ww = D.textWidth(cur.why) + 8; box(ctx, Math.round(cx - ww / 2), ly + 13, ww, 11, R('stone', 3)); D.text(ctx, '{g}' + cur.why + '{/}', cx, ly + 15, R('accent', 2), 'center'); }
   }
+  function initials(name) { var w = name.split(' ').filter(function (x) { return !/^(of|the)$/i.test(x); }); return w.length > 1 ? w.map(function (x) { return x[0]; }).join('').slice(0, 2) : name.slice(0, 2); }
 
   // ------------------------------------------------------------------ prompts, the entry card, inspect, the menu
   function box(ctx, x, y, w, h, edge) {
