@@ -61,7 +61,7 @@
       T.bonus = 0; u.ethereal = false;
       B.focus(u);
       FX.sparkle(u, 'violet', 22); FX.ring(u, 'violet', 36);
-      B.card(['{r}The phase spider{/} steps out of the rock beside ' + tgt.name + '!', '{g}(Ethereal Jaunt, a bonus action: back on the Material Plane){/}']);
+      B.card(['{r}The phase spider{/} steps out of the rock ' + (G.dist(u, tgt) <= 5 ? 'beside ' : 'near ') + tgt.name + '!', '{g}(Ethereal Jaunt, a bonus action: back on the Material Plane){/}']);
       yield 30;
       if (G.dist(u, tgt) <= u.reach && T.action) { T.action = 0; yield* B.attack(u, tgt, bite); }
       return;

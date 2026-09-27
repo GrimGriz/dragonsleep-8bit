@@ -25,7 +25,7 @@
   UI.onRequest = function (B, req) {
     if (req.turn) {
       var T = req.turn.turn;
-      B.tool = T.attacksLeft ? 'attack' : rest(); B.cache = null; B.list = null; B.picks = []; B.spell = null;
+      B.tool = T.attacksLeft ? 'attack' : B.nextTool || rest(); B.nextTool = null; B.cache = null; B.list = null; B.picks = []; B.spell = null;
       if (B.cmdSel == null || B.cmdFor !== req.turn) { B.cmdSel = 0; B.cmdFor = req.turn; B.ringA = null; }
     }
     if (req.prompt) B.sel = 0;
@@ -57,6 +57,7 @@
   UI.cmds = function (B, u) {
     var c = B.commands(u);
     if (UI.opts.style === 'bar') return c;
+    c = c.filter(function (x) { return !((x.id === 'dash' || x.id === 'cdash') && u.turn.move > 0); });
     return [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }].concat(c).concat([{ id: 'end', label: 'END TURN', cost: 'F', ok: true, icon: 'end' }]);
   };
 
@@ -75,7 +76,7 @@
 
   // ------------------------------------------------------------------ input
   UI.input = function (B, req) {
-    if (I.pressed('help')) { UI.opts.help = !UI.opts.help; UI.saveOpts(); B.card(['{y}HELP ' + (UI.opts.help ? 'ON' : 'OFF') + '{/}' + (UI.opts.help ? ': hints on the grid (a rogue sees where she could hide)' : '')], 150); }
+    if (I.pressed('help')) { UI.opts.help = !UI.opts.help; UI.saveOpts(); B.card(['{y}HINTS ' + (UI.opts.help ? 'ON' : 'OFF') + '{/}' + (UI.opts.help ? ': a rogue sees where she could try to hide' : '')], 150); }
     if (req.entry) {
       if (B.canSwap && (I.pressed('n2') || I.pressed('left') || I.pressed('right'))) { D.pop(); D.push(new D.Battle({ fixture: !B.o.fixture })); return; }
       if (I.pressed('a') || I.pressed('end') || I.mouse.click || (!B.canSwap && B.t - B.entryT > 240)) B.answer();
@@ -101,6 +102,16 @@
     var c = D.iso.center(B.cursor.x, B.cursor.y, m.gz(B.cursor.x, B.cursor.y)), s = D.iso.toScreen(c.x, c.y);
     if (s.x < 60 || s.x > D.W - 60 || s.y < 50 || s.y > BAR_Y - 30) D.iso.lookAt(B.cursor.x, B.cursor.y, m.gz(B.cursor.x, B.cursor.y));
   }
+  // the figure under the mouse (its whole sprite, front-most first): clicking a body selects its owner, not the floor behind
+  UI.pickUnit = function (B, mx, my) {
+    var best = null, bd = -1e9;
+    B.units.forEach(function (u) {
+      if (u.dead || u.ethereal) return;
+      var p = unitPos(B, u), s = u.size || 1, top = u.hp > 0 ? D.spr.top(u.sheet) : 16, hw = s > 1 ? 30 : 11;
+      if (mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 && p.depth > bd) { bd = p.depth; best = u; }
+    });
+    return best;
+  };
   function overUI(B) { // is the mouse over a menu, a list or the bar (so the grid doesn't take the click)?
     if (I.mouse.y >= BAR_Y) return true;
     return (B.uiRects || []).some(hit);
@@ -111,10 +122,10 @@
     if (I.pressed('end')) return UI.command(B, u, { do: 'end' });
     // the mouse: over the menus, or on the grid
     B.hoverBtn = -1;
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var s = D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
     if (I.mouse.inside) (B.buttons || []).forEach(function (b, i) { if (hit(b)) B.hoverBtn = i; });
     if (B.hoverBtn >= 0 && I.mouse.moved) { var hb = B.buttons[B.hoverBtn]; if (hb.list != null && B.list) B.list.sel = hb.list; else if (hb.idx != null && B.tool === 'menu') B.cmdSel = hb.idx; }
-    if (I.mouse.click && B.hoverBtn >= 0) { var bt = B.buttons[B.hoverBtn]; return bt.end ? UI.command(B, u, { do: 'end' }) : bt.list != null ? pickListItem(B, u, B.list.items[bt.list], bt.list) : pickCommand(B, u, bt.cmd, bt.idx); }
+    if (I.mouse.click && B.hoverBtn >= 0) { var bt = B.buttons[B.hoverBtn]; return bt.end ? UI.command(B, u, { do: 'end' }) : bt.cast ? castPicks(B, u) : bt.list != null ? pickListItem(B, u, B.list.items[bt.list], bt.list) : pickCommand(B, u, bt.cmd, bt.idx); }
     if (I.mouse.rclick && !overUI(B)) { var w0 = G.occupant(B.cursor.x, B.cursor.y) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0) B.inspect = w0; return; }
     // an open list (spells, items) takes the keys first
     if (B.list) return listInput(B, u);
@@ -141,14 +152,17 @@
       if (B.tool !== rest()) { B.tool = rest(); B.spell = null; B.clearCards(); return; }
       return UI.openMenu(B);
     }
-    if (I.pressed('a') || (I.mouse.click && !overUI(B))) actAt(B, u, B.cursor.x, B.cursor.y);
+    if (I.pressed('a')) actAt(B, u, B.cursor.x, B.cursor.y, true);
+    else if (I.mouse.click && !overUI(B)) actAt(B, u, B.cursor.x, B.cursor.y, false);
   }
+  function castPicks(B, u) { var S = B.spell; if (S && B.picks.length) UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: { units: B.picks.slice() } }); }
   function etherealAt(B, x, y) { return B.units.filter(function (w) { return w.ethereal && x >= w.x && y >= w.y && x < w.x + w.size && y < w.y + w.size; })[0]; }
   function pickCommand(B, u, c, idx) {
     if (idx != null) B.cmdSel = idx;
     if (!c) return;
     if (!c.ok) { B.card(['{g}' + c.label + ': not now.{/}'], 90); return; }
     if (c.id === 'end') return UI.command(B, u, { do: 'end' });
+    if (c.sub === 'spells' && UI.opts.style === 'ring') { B.list = levelRing(B, u); B.ringB = null; return; }
     if (c.sub) {
       var items = c.sub === 'spells' ? D.magic.list(B, u).map(function (e) { e.kind = 'spell'; return e; }) : B.itemList(u).map(function (e) { e.kind = 'item'; return e; });
       var first = 0; items.some(function (e, i) { if (e.ok) { first = i; return true; } return false; });
@@ -158,9 +172,19 @@
     if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: pick a foe beside you; the next ally to swing at it has advantage.{/}'], 200); return; }
     UI.command(B, u, { do: c.id });
   }
+  function levelRing(B, u) {
+    var all = D.magic.list(B, u), lv = {}, items = [];
+    all.forEach(function (e) { (lv[e.level] = lv[e.level] || []).push(e); });
+    Object.keys(lv).map(Number).sort(function (a, b) { return a - b; }).forEach(function (L) {
+      var slots = L ? (u.slots[L - 1] || 0) : null, any = lv[L].some(function (e) { return e.ok; });
+      items.push({ kind: 'level', level: L, name: L ? 'LEVEL ' + L : 'CANTRIPS', label: L ? 'LEVEL ' + L + ' · ' + slots + ' slot' + (slots === 1 ? '' : 's') : 'CANTRIPS', ok: any, why: any ? '' : L && !slots ? 'no level-' + L + ' slots left' : 'nothing castable now', spells: lv[L] });
+    });
+    var first = 0; items.some(function (e, i) { if (e.ok) { first = i; return true; } return false; });
+    return { kind: 'levels', items: items, sel: first };
+  }
   function listInput(B, u) {
     var L = B.list, n = L.items.length, st = UI.opts.style, e = L.items[L.sel];
-    var nextKey = st === 'ring' ? ['left', 'right'] : ['up', 'down'], slotKey = st === 'ring' ? ['up', 'down'] : ['left', 'right'];
+    var ringy = st === 'ring' && L.kind !== 'spells', nextKey = ringy ? ['left', 'right'] : ['up', 'down'], slotKey = ringy ? ['up', 'down'] : ['left', 'right'];
     if (n && I.repeat(nextKey[0])) L.sel = (L.sel + n - 1) % n;
     if (n && I.repeat(nextKey[1])) L.sel = (L.sel + 1) % n;
     if (e && e.kind === 'spell' && e.levels.length > 1) {
@@ -170,12 +194,13 @@
     }
     for (var k = 1; k <= 9; k++) if (I.pressed('n' + k) && L.items[k - 1]) return pickListItem(B, u, L.items[k - 1], k - 1);
     if (I.pressed('a')) return pickListItem(B, u, e, L.sel);
-    if (I.pressed('b')) { B.list = null; return; }
+    if (I.pressed('b')) { B.list = L.back || null; return; }
   }
   function pickListItem(B, u, e, i) {
     if (!e) return;
     B.list.sel = i;
     if (!e.ok) { B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
+    if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.name }; return; }
     B.list = null;
     if (e.kind === 'item') { B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' : e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240); return; }
     var g = e.g, n = (g.n || 1) + Math.max(0, e.slot - e.level);
@@ -183,11 +208,13 @@
     B.picks = [];
     if (g.shape === 'self') return UI.command(B, u, { do: 'cast', id: e.id, slot: e.slot, target: u });
     B.tool = 'spell';
-    var how = { attack: 'a foe in sight within ' + g.range + ' ft', rays: n + ' rays: click a foe for each (the same foe again is fine)', darts: n + ' darts: click a foe for each (the same foe again is fine)', splash: 'a foe within ' + g.range + ' ft (one beside it is caught too)', single: (g.side === 'foe' ? 'a foe' : 'an ally') + ' within ' + g.range + ' ft', touch: 'yourself, or an ally beside you', allies: 'up to ' + n + ' allies within ' + g.range + ' ft (click them; E on empty ground to cast with fewer)', sphere: 'a point within ' + g.range + ' ft (the ' + g.r + '-ft sphere shows)', cube: 'a point within ' + g.range + ' ft', cone: 'aim the ' + g.len + '-ft cone', line: 'aim the ' + g.len + '-ft line', teleport: 'a square you can see within 30 ft' }[g.shape] || '';
+    if (g.shape === 'allies' && e.id === 'bless' && (!u.conds.blessed)) B.picks = [u]; // Bless takes the caster by default; click him again to leave him out
+    var how = { attack: 'a foe in sight within ' + g.range + ' ft', rays: n + ' rays: click a foe for each (the same foe again is fine)', darts: n + ' darts: click a foe for each (the same foe again is fine)', splash: 'a foe within ' + g.range + ' ft (one beside it is caught too)', single: (g.side === 'foe' ? 'a foe' : 'an ally') + ' within ' + g.range + ' ft', touch: 'yourself, or an ally beside you', allies: 'up to ' + n + ' allies within ' + g.range + ' ft (click to add or drop; CAST, or E off a target, casts with fewer)', sphere: 'a point within ' + g.range + ' ft (the ' + g.r + '-ft sphere shows)', cube: 'a point within ' + g.range + ' ft', cone: 'aim the ' + g.len + '-ft cone', line: 'aim the ' + g.len + '-ft line', teleport: 'a square you can see within 30 ft' }[g.shape] || '';
     B.clearCards(); B.card(['{y}' + e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + '{/}: ' + how + '.  {g}X back{/}'], 100000);
   }
   UI.command = function (B, u, cmd) {
     B.clearCards();
+    if (UI.opts.style !== 'bar' && /^(dash|cdash|disengage|cdisengage)$/.test(cmd.do)) B.nextTool = 'move';
     B.tool = cmd.do === 'attack' && u.turn.attacksLeft > 1 ? 'attack' : cmd.do === 'attack' && !u.turn.attacksLeft && u.turn.action && u.attacks > 1 ? 'attack' : rest();
     B.spell = null; B.picks = []; B.list = null;
     B.answer(cmd);
@@ -219,7 +246,7 @@
     }
     return 'no';
   };
-  function actAt(B, u, x, y) {
+  function actAt(B, u, x, y, byKey) {
     var T = u.turn, tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (x === u.x && y === u.y) { if (UI.opts.style !== 'bar') B.tool = 'menu'; return; }
@@ -227,7 +254,7 @@
       if (foe) return B.card(['{o}The ' + B.shortName(foe) + ' is out of reach (' + G.dist(u, foe) + ' ft).{/}'], 120);
       if (tool === 'attack') return;
       if (v === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
-      if (v === 'far') return B.card(['{g}That far needs a DASH first (' + reachCache(B, u).dash[x + ',' + y].cost + ' ft).{/}'], 120);
+      if (v === 'far') return UI.command(B, u, { do: 'dashmove', x: x, y: y });
       return;
     }
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe }); return B.card(['{o}Help: pick a foe beside you.{/}'], 120); }
@@ -243,9 +270,10 @@
       }
       if (g.shape === 'allies') {
         if (v === 'ok') { var i = B.picks.indexOf(w); if (i >= 0) B.picks.splice(i, 1); else B.picks.push(w); }
-        else if (v === 'self' && B.picks.length) return cast({ units: B.picks.slice() });
+        else if (byKey && B.picks.length) return cast({ units: B.picks.slice() });
+        else return;
         if (B.picks.length >= S.n) return cast({ units: B.picks.slice() });
-        return B.card(['{y}' + S.name + '{/}: ' + B.picks.map(function (p) { return p.name; }).join(', ') + ' (' + B.picks.length + ' of ' + S.n + ').  {g}E on empty ground to cast with these{/}'], 100000);
+        return B.card(['{y}' + S.name + '{/}: ' + (B.picks.length ? B.picks.map(function (p) { return p.name; }).join(', ') : 'no one yet') + ' (' + B.picks.length + ' of ' + S.n + ').  {g}CAST below, or E off a target, casts with these{/}'], 100000);
       }
       if (v !== 'ok') return;
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'teleport') return cast({ x: x, y: y });
@@ -256,7 +284,7 @@
   // ------------------------------------------------------------------ the X/Esc menu (and M, Tab): the party, help, the menu's style, and out
   UI.openMenu = function (B) { B.menu = { sel: 0, panel: null }; };
   function menuItems() {
-    return ['RESUME', 'PARTY', 'HELP: ' + (UI.opts.help ? 'ON' : 'OFF'), 'MENU: ' + UI.opts.style.toUpperCase() + '  < >', 'RESTART THE FIGHT', 'THE GATE (the sprites)', 'RETURN TO SILVERTON'];
+    return ['RESUME', 'PARTY', 'HINTS: ' + (UI.opts.help ? 'ON' : 'OFF'), 'MENU: ' + UI.opts.style.toUpperCase() + '  < >', 'RESTART THE FIGHT', 'THE GATE (the sprites)', 'RETURN TO SILVERTON'];
   }
   UI.menuInput = function (B) {
     var M = B.menu, items = menuItems(), n = items.length;
@@ -299,6 +327,8 @@
     bar(ctx, B, hero);
     if (hero && UI.opts.style === 'window') cmdWindow(ctx, B, hero);
     if (hero && UI.opts.style === 'ring') cmdRing(ctx, B, hero);
+    if (hero && B.list && B.list.kind === 'spells' && UI.opts.style === 'ring') { var hp = UI.unitPos(B, hero); listPopup(ctx, B, hero, D.clamp(hp.x + 26, 4, D.W - 214), D.clamp(hp.y + 30, 150, BAR_Y - 4), 210); }
+    if (hero && B.tool === 'spell' && B.spell && B.spell.g.shape === 'allies' && B.picks.length) castButton(ctx, B);
     if (hero && B.list && UI.opts.style === 'bar') listPopup(ctx, B, hero, 266, BAR_Y - 4, 212);
     if (B.inspect) inspect(ctx, B.inspect);
     if (req && req.prompt) prompt(ctx, B, req.prompt);
@@ -440,7 +470,7 @@
       if (u.dead) { ctx.fillStyle = R('accent', 2); ctx.fillRect(x + 1, 7, w - 4, 1); }
       x += w + 2;
     });
-    if (UI.opts.help) D.text(ctx, 'HELP', D.W - 4, 3, R('violet', 5), 'right');
+    if (UI.opts.help) D.text(ctx, 'HINTS', D.W - 4, 3, R('violet', 5), 'right');
   }
   function cards(ctx, B) {
     var y = 15;
@@ -538,7 +568,7 @@
     D.text(ctx, 'SPACE  END TURN', eb.x + 4, eb.y + 2, R('bone', 1));
     if (st !== 'bar') {
       D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : (B.tool === 'menu' ? 'left/right turns the ring, E: choose' : 'E: here   X: back to the ring'), 266, BAR_Y + 6, R('accent', 2));
-      D.text(ctx, 'C recentre  H help  M menu', 266, BAR_Y + 18, R('stone', 5));
+      D.text(ctx, 'C recentre  H hints  M menu', 266, BAR_Y + 18, R('stone', 5));
       return;
     }
     UI.cmds(B, u).forEach(function (c, i) {
@@ -565,7 +595,7 @@
     var h = vis * 11 + 22, y = yBottom - h;
     win ? winBox(ctx, x, y, w, h) : box(ctx, x, y, w, h, R('glow', 1));
     B.uiRects.push({ x: x, y: y, w: w, h: h });
-    D.text(ctx, L.kind === 'spells' ? 'SPELLS' + (u.slots.length ? '   slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : '') : 'ITEMS (an action)', x + 6, y + 4, R('gold', 4));
+    D.text(ctx, L.kind === 'spells' ? (L.title || 'SPELLS') + (u.slots.length ? '   slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : '') : 'ITEMS (an action)', x + 6, y + 4, R('gold', 4));
     for (var k = 0; k < vis; k++) {
       var i = start + k, e = rows[i], r = { x: x + 3, y: y + 14 + k * 11, w: w - 6, h: 11, list: i };
       B.buttons.push(r);
@@ -608,8 +638,17 @@
   }
 
   // ------------------------------------------------------------------ RING: Secret of Mana's ring of icons round the hero
+  function castButton(ctx, B) {
+    var S = B.spell, label = 'CAST ' + S.name.toUpperCase() + ': ' + B.picks.map(function (p) { return p.name; }).join(', ') + '  (E)', w = D.textWidth(label) + 14, r = { x: Math.round((D.W - w) / 2), y: BAR_Y - 20, w: w, h: 14, cast: true };
+    B.buttons.push(r); B.uiRects.push(r);
+    var hov = B.buttons[B.hoverBtn] === r || hit(r);
+    ctx.fillStyle = hov ? R('gold', 2) : R('gold', 1); ctx.fillRect(r.x, r.y, r.w, r.h);
+    ctx.strokeStyle = R('gold', 4); ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+    D.text(ctx, label, r.x + 7, r.y + 3, R('gold', 4));
+  }
   function cmdRing(ctx, B, u) {
     if (B.tool !== 'menu' && !B.list) return;
+    if (B.list && B.list.kind === 'spells') return;
     var cmds = B.list ? B.list.items : UI.cmds(B, u), n = cmds.length, sel = B.list ? B.list.sel : B.cmdSel;
     if (!n) return;
     var p = UI.unitPos(B, u), cx = p.x, cy = p.y - 26, rx = Math.max(36, n * 6), ry = Math.max(20, n * 3);
@@ -628,8 +667,9 @@
       ctx.fillStyle = front ? R('gold', 1) : R('stone', 1); ctx.fillRect(bx - 2, by - 2, 12 * s + 4, 12 * s + 4);
       ctx.strokeStyle = front ? R('gold', 4) : o.c.ok ? R('silver', 3) : R('stone', 3); ctx.strokeRect(bx - 1.5, by - 1.5, 12 * s + 3, 12 * s + 3);
       ctx.globalAlpha = o.c.ok ? 1 : 0.4; ctx.drawImage(ic, bx, by, 12 * s, 12 * s); ctx.globalAlpha = 1;
+      if (o.c.kind === 'level') D.text(ctx, o.c.level ? String(o.c.level) : 'C', bx + 6 * s, by + 3 * s, R('outline', 0), 'center');
     });
-    var cur = cmds[sel], label = (cur.label || cur.name) + (cur.kind === 'spell' || cur.kind === 'item' ? '  ' + slotText(cur) : '') + (cur.cost ? '  ' + costTag(cur.cost) : cur.g ? '  ' + costTag(cur.g.time) : '');
+    var cur = cmds[sel], label = (cur.label || cur.name) + (cur.kind === 'item' ? '  ' + slotText(cur) : '') + (cur.cost ? '  ' + costTag(cur.cost) : cur.g ? '  ' + costTag(cur.g.time) : '');
     var lw = D.textWidth(label) + 10, ly = cy + ry + 16;
     box(ctx, Math.round(cx - lw / 2), ly, lw, 12, R('gold', 3));
     D.text(ctx, label, cx, ly + 2, cur.ok ? R('bone', 2) : R('stone', 4), 'center');
@@ -669,7 +709,7 @@
     var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
     D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  Two drow on the ledge. Something in the stalagmites.', D.W / 2, 150, R('accent', 2), 'center');
     if (B.canSwap) D.text(ctx, B.o.fixture ? '2: walk in from the 8-bit save instead' : '2: walk in as the fixture instead (the four at level 9; the fight is built for them)', D.W / 2, 164, R('silver', 5), 'center');
-    D.text(ctx, 'menu: ' + UI.opts.style.toUpperCase() + ' (M or X/Esc, then MENU)   help: ' + (UI.opts.help ? 'ON' : 'OFF') + ' (H)', D.W / 2, 194, R('stone', 5), 'center');
+    D.text(ctx, 'menu: ' + UI.opts.style.toUpperCase() + ' (M or X/Esc, then MENU)   hints: ' + (UI.opts.help ? 'ON' : 'OFF') + ' (H)', D.W / 2, 194, R('stone', 5), 'center');
     if ((B.t >> 5) & 1) D.text(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }
   function inspect(ctx, u) {

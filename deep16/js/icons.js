@@ -53,6 +53,7 @@
       if (k === 'buff' || k === 'teleport') return D.icon('spell', 'buff');
       return D.icon('spell', { fire: 'fire', cold: 'cold', lightning: 'lightning', acid: 'acid', thunder: 'thunder', bludgeoning: 'cold', radiant: 'radiant' }[sp.el] || 'force');
     }
+    if (e.kind === 'level') return D.icon('spell', ['thunder', 'cold', 'acid', 'lightning', 'fire', 'fire', 'force', 'force', 'force', 'force'][e.level] || 'force');
     if (e.kind === 'item') return D.icon('item', e.use && e.use.effect === 'heal' ? '' : e.use && e.use.effect);
     return D.icon(e.icon || e.id);
   };

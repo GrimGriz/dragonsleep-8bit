@@ -192,6 +192,22 @@
       }
       case 'item': { yield* this.useItem(u, c.id, c.target); return; }
       case 'breakfree': { yield* D.magic.breakFree(this, u); return; }
+      case 'dashmove': {
+        var far = G.reach(u, T.move + u.speed)[c.x + ',' + c.y], opts = [];
+        if (!far) return;
+        if (u.cls === 'rogue' && u.lvl >= 2 && T.bonus) opts.push({ label: 'CUNNING DASH (bonus)', value: 'b' });
+        if (T.action && !T.attacksLeft) opts.push({ label: 'DASH (your action)', value: 'a' });
+        if (!opts.length) { this.card(['{g}No dash left this turn.{/}']); return; }
+        opts.push({ label: 'NOT THAT FAR', value: 0 });
+        var how = yield { prompt: { who: u, title: u.name + ': DASH THERE?', lines: ['That square is ' + far.cost + ' ft away; ' + T.move + ' ft of move is left.'], opts: opts } };
+        if (!how) return;
+        if (how === 'b') T.bonus = 0; else T.action = 0;
+        T.move += u.speed;
+        this.card(['{y}' + u.name + '{/}' + (how === 'b' ? ' (Cunning Action)' : '') + ' dashes: {c}+' + u.speed + ' ft{/}.']);
+        var rm2 = G.reach(u, T.move), path2 = G.path(rm2, c.x, c.y);
+        if (path2 && path2.length) yield* this.moveAlong(u, path2, { spend: true });
+        return;
+      }
       case 'dash': T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'cdash': T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (Cunning Action) dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
