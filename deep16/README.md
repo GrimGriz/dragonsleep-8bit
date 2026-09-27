@@ -21,6 +21,11 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
   feet left — each lit while it's there to spend.
 - **Zoom:** the screen is drawn at the window's whole-number scale, so zooming out steps by whole device pixels
   (at 3×: 1, 2/3, 1/3; at 2×: 1, 1/2) and stays crisp; the menus and the floating numbers keep their size.
+- **Sound** (09-27): the 8-bit game's own chip synth (`../js/audio.js`) — its effects for the menus (cursor, confirm,
+  cancel, error, a pop when the ring or a prompt comes up) and the fight (hit, crit, miss, a fall, spells by element,
+  heals, smites, the jaunt, the drider's arrival), and its tunes: `battle`, `boss` when the drider drops, `victory` or
+  `gameover`. MUSIC and SOUNDS volumes in the menu (left/right, E mutes) are the 8-bit game's own, shared. Sound
+  starts on the first key or click (the browser's rule).
 - **AUTO END TURN** (on by default, in the menu): when every command is grey and there's no square left to step to,
   the turn passes after a beat; X holds it.
 - **On the grid, always** (09-27; the old HINTS toggle is gone): a rogue's reachable squares that no foe she knows

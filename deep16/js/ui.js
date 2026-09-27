@@ -43,7 +43,7 @@
       B.tool = T.attacksLeft && B.foeInReach(req.turn) ? 'attack' : B.nextTool || rest(); B.nextTool = null; B.cache = null; B.list = null; B.picks = []; B.spell = null;
       if (B.cmdSel == null || B.cmdFor !== req.turn) { B.cmdSel = 0; B.cmdFor = req.turn; B.ringA = null; }
     }
-    if (req.prompt) B.sel = 0;
+    if (req.prompt) { B.sel = 0; D.sfx('popup'); }
     if (req.entry) B.entryT = B.t;
   };
   function reachCache(B, u) {
@@ -129,7 +129,7 @@
   UI.input = function (B, req) {
     if (req.entry) {
       if (B.canSwap && (I.pressed('n2') || I.pressed('left') || I.pressed('right'))) { D.pop(); D.push(new D.Battle({ fixture: !B.o.fixture })); return; }
-      if (I.pressed('a') || I.pressed('end') || I.mouse.click || (!B.canSwap && B.t - B.entryT > 240)) B.answer();
+      if (I.pressed('a') || I.pressed('end') || I.mouse.click || (!B.canSwap && B.t - B.entryT > 240)) { D.sfx('confirm'); B.answer(); }
       return;
     }
     UI.camera(B);
@@ -137,13 +137,14 @@
     if (req.turn) return turnInput(B, req.turn);
   };
   function promptInput(B, p) {
-    var n = p.opts.length;
+    var n = p.opts.length, s0 = B.sel, go = function (v) { D.sfx('confirm'); B.answer(v); };
     if (I.repeat('left') || I.repeat('up')) B.sel = (B.sel + n - 1) % n;
     if (I.repeat('right') || I.repeat('down')) B.sel = (B.sel + 1) % n;
-    for (var k = 1; k <= n; k++) if (I.pressed('n' + k)) return B.answer(p.opts[k - 1].value);
-    if (I.pressed('a')) return B.answer(p.opts[B.sel].value);
-    if (I.pressed('b')) return B.answer(p.opts[n - 1].value);
-    if (I.mouse.click && B.promptRects) for (var i = 0; i < B.promptRects.length; i++) if (hit(B.promptRects[i])) return B.answer(p.opts[i].value);
+    if (B.sel !== s0) D.sfx('cursor');
+    for (var k = 1; k <= n; k++) if (I.pressed('n' + k)) return go(p.opts[k - 1].value);
+    if (I.pressed('a')) return go(p.opts[B.sel].value);
+    if (I.pressed('b')) { D.sfx('cancel'); return B.answer(p.opts[n - 1].value); }
+    if (I.mouse.click && B.promptRects) for (var i = 0; i < B.promptRects.length; i++) if (hit(B.promptRects[i])) return go(p.opts[i].value);
   }
   function hit(r) { var m = I.mouse; return r && m.x >= r.x && m.y >= r.y && m.x < r.x + r.w && m.y < r.y + r.h; }
   function moveCursor(B, dir) {
@@ -183,7 +184,7 @@
     // hovering picks an icon only when the mouse moves onto it: a ring turning under a resting mouse, or a twitch
     // on the same icon, leaves the arrows' choice alone (Griz, 09-27: the arrows stopped working over the wheel)
     var hb = B.buttons && B.buttons[B.hoverBtn], hk = !hb ? null : hb.list != null && B.list ? 'l' + hb.list : hb.idx != null ? 'c' + hb.idx : 'x';
-    if (hb && I.mouse.moved && hk !== B.hoverKey) { if (hb.list != null && B.list) B.list.sel = hb.list; else if (hb.idx != null && B.tool === 'menu') B.cmdSel = hb.idx; }
+    if (hb && I.mouse.moved && hk !== B.hoverKey) { if (hb.list != null && B.list) { if (B.list.sel !== hb.list) D.sfx('cursor'); B.list.sel = hb.list; } else if (hb.idx != null && B.tool === 'menu') { if (B.cmdSel !== hb.idx) D.sfx('cursor'); B.cmdSel = hb.idx; } }
     B.hoverKey = hk;
     if (I.mouse.click && B.hoverBtn >= 0) { var bt = B.buttons[B.hoverBtn]; return bt.end ? UI.command(B, u, { do: 'end' }) : bt.cast ? castPicks(B, u) : bt.list != null ? pickListItem(B, u, B.list.items[bt.list], bt.list) : pickCommand(B, u, bt.cmd, bt.idx); }
     if (I.mouse.rclick && !overUI(B)) { var w0 = G.occupant(B.cursor.x, B.cursor.y) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0) B.inspect = w0; return; }
@@ -191,25 +192,25 @@
     if (B.list) return listInput(B, u);
     var cmds = UI.cmds(B, u);
     for (var k = 1; k <= 9; k++) if (I.pressed('n' + k) && cmds[k - 1]) return pickCommand(B, u, cmds[k - 1], k - 1);
-    if (I.pressed('ring')) { B.tool = B.tool === 'menu' ? rest() === 'menu' ? 'move' : rest() : 'menu'; B.spell = null; B.picks = []; B.clearCards(); return; }
+    if (I.pressed('ring')) { D.sfx(B.tool === 'menu' ? 'cancel' : 'popup'); B.tool = B.tool === 'menu' ? rest() === 'menu' ? 'move' : rest() : 'menu'; B.spell = null; B.picks = []; B.clearCards(); return; }
     // the command menu at rest (window, ring)
     if (B.tool === 'menu') {
       var n = cmds.length, prev = B.cmdSel;
       if (st === 'window') { if (I.repeat('up')) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('down')) B.cmdSel = (B.cmdSel + 1) % n; }
       else { if (I.repeat('left') || I.repeat('up')) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('right') || I.repeat('down')) B.cmdSel = (B.cmdSel + 1) % n; }
-      if (B.cmdSel !== prev) B.clearCards();
+      if (B.cmdSel !== prev) { B.clearCards(); D.sfx('cursor'); }
       if (I.pressed('a')) return pickCommand(B, u, cmds[B.cmdSel], B.cmdSel);
-      if (I.pressed('b')) { if (rest() !== 'menu') { B.tool = rest(); return; } return UI.openMenu(B); } // the ring goes back down
+      if (I.pressed('b')) { if (rest() !== 'menu') { D.sfx('cancel'); B.tool = rest(); return; } return UI.openMenu(B); } // the ring goes back down
       if (I.mouse.click && !overUI(B)) actAt(B, u, B.cursor.x, B.cursor.y);
       return;
     }
     // the grid
     ['up', 'down', 'left', 'right'].forEach(function (k) { if (I.repeat(k)) moveCursor(B, k); });
     if (I.pressed('b')) {
-      if (B.picks && B.picks.length) { B.picks.pop(); return; }
-      if (B.tool !== rest()) { B.tool = rest(); B.spell = null; B.clearCards(); return; }
+      if (B.picks && B.picks.length) { D.sfx('cancel'); B.picks.pop(); return; }
+      if (B.tool !== rest()) { D.sfx('cancel'); B.tool = rest(); B.spell = null; B.clearCards(); return; }
       // on the ring, X at rest calls the ring up (Griz, 09-27: backing out of a move should bring it); M/Tab the menu
-      if (UI.opts.style === 'ring') { B.tool = 'menu'; B.clearCards(); return; }
+      if (UI.opts.style === 'ring') { D.sfx('popup'); B.tool = 'menu'; B.clearCards(); return; }
       return UI.openMenu(B);
     }
     if (I.pressed('a')) actAt(B, u, B.cursor.x, B.cursor.y, true);
@@ -226,7 +227,8 @@
   function pickCommand(B, u, c, idx) {
     if (idx != null) B.cmdSel = idx;
     if (!c) return;
-    if (!c.ok) { B.card(['{g}' + c.label + ': ' + (c.why || 'not now') + '.{/}'], 120); return; }
+    if (!c.ok) { D.sfx('error'); B.card(['{g}' + c.label + ': ' + (c.why || 'not now') + '.{/}'], 120); return; }
+    D.sfx('confirm');
     if (c.id === 'end') return UI.command(B, u, { do: 'end' });
     if (c.sub === 'spells' && UI.opts.style === 'ring') { B.list = levelRing(B, u); B.ringB = null; return; }
     if (c.sub) {
@@ -251,6 +253,7 @@
   function listInput(B, u) {
     var L = B.list, n = L.items.length, st = UI.opts.style, e = L.items[L.sel];
     var ringy = st === 'ring', nextKey = ringy ? ['left', 'right'] : ['up', 'down'], slotKey = ringy ? ['down', 'up'] : ['left', 'right']; // [lower, higher]
+    var sel0 = L.sel, slot0 = e && e.slot;
     if (n && I.repeat(nextKey[0])) L.sel = (L.sel + n - 1) % n;
     if (n && I.repeat(nextKey[1])) L.sel = (L.sel + 1) % n;
     if (e && e.kind === 'spell' && e.levels.length > 1) {
@@ -258,14 +261,16 @@
       if (I.repeat(slotKey[0])) e.slot = e.levels[Math.max(0, i - 1)];
       if (I.repeat(slotKey[1])) e.slot = e.levels[Math.min(e.levels.length - 1, i + 1)];
     }
+    if (L.sel !== sel0 || (e && e.slot !== slot0)) D.sfx('cursor');
     for (var k = 1; k <= 9; k++) if (I.pressed('n' + k) && L.items[k - 1]) return pickListItem(B, u, L.items[k - 1], k - 1);
     if (I.pressed('a')) return pickListItem(B, u, e, L.sel);
-    if (I.pressed('b')) { B.list = L.back || null; return; }
+    if (I.pressed('b')) { D.sfx('cancel'); B.list = L.back || null; return; }
   }
   function pickListItem(B, u, e, i) {
     if (!e) return;
     B.list.sel = i;
-    if (!e.ok) { B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
+    if (!e.ok) { D.sfx('error'); B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
+    D.sfx('confirm');
     if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.label }; B.ringC = null; return; }
     B.list = null;
     if (e.kind === 'item') { B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' : e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240); return; }
@@ -314,9 +319,9 @@
   function actAt(B, u, x, y, byKey) {
     var T = u.turn, tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
-      if (x === u.x && y === u.y) { B.tool = 'menu'; return; }
+      if (x === u.x && y === u.y) { D.sfx('popup'); B.tool = 'menu'; return; }
       if (foe && v === 'ok') return UI.command(B, u, { do: 'attack', target: foe });
-      if (foe) return B.card(['{o}The ' + B.shortName(foe) + ' is out of reach (' + G.dist(u, foe) + ' ft).{/}'], 120);
+      if (foe) { D.sfx('error'); return B.card(['{o}The ' + B.shortName(foe) + ' is out of reach (' + G.dist(u, foe) + ' ft).{/}'], 120); }
       if (v === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
       if (v === 'far') return UI.command(B, u, { do: 'dashmove', x: x, y: y });
       return;
@@ -346,28 +351,38 @@
   }
 
   // ------------------------------------------------------------------ the X/Esc menu (and M, Tab): the party, the menu's style, and out
-  UI.openMenu = function (B) { B.menu = { sel: 0, panel: null }; };
+  UI.openMenu = function (B) { D.sfx('popup'); B.menu = { sel: 0, panel: null }; };
+  // the volumes are the 8-bit game's own (shared: one player, one ear)
+  function vol(k) { var A = window.DS.audio; return A ? A[k] : 0; }
+  function pct(v) { return v > 0 ? Math.round(v * 100) + '%' : 'OFF'; }
+  function setVol(k, v) { var A = window.DS.audio; if (!A) return; A[k] = Math.round(D.clamp(v, 0, 1) * 10) / 10; A.setVolumes(); }
   function menuItems() {
     return [['resume', 'RESUME'], ['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
+      ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >'],
       ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)'], ['out', 'RETURN TO SILVERTON']];
   }
   UI.menuInput = function (B) {
-    var M = B.menu, items = menuItems(), n = items.length;
-    if (M.panel) { if (I.pressed('a') || I.pressed('b') || I.pressed('menu') || I.mouse.click) M.panel = null; return; }
+    var M = B.menu, items = menuItems(), n = items.length, s0 = M.sel;
+    if (M.panel) { if (I.pressed('a') || I.pressed('b') || I.pressed('menu') || I.mouse.click) { D.sfx('cancel'); M.panel = null; } return; }
     if (I.repeat('up')) M.sel = (M.sel + n - 1) % n;
     if (I.repeat('down')) M.sel = (M.sel + 1) % n;
-    var styles = ['ring', 'window'], si = styles.indexOf(UI.opts.style);
-    if (items[M.sel][0] === 'style' && (I.repeat('left') || I.repeat('right'))) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); return; }
+    if (M.sel !== s0) D.sfx('cursor');
+    var styles = ['ring', 'window'], si = styles.indexOf(UI.opts.style), here = items[M.sel][0], lr = I.repeat('left') ? -1 : I.repeat('right') ? 1 : 0;
+    if (here === 'style' && lr) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); D.sfx('cursor'); return; }
+    if ((here === 'music' || here === 'sounds') && lr) { setVol(here === 'music' ? 'musicVol' : 'sfxVol', vol(here === 'music' ? 'musicVol' : 'sfxVol') + lr * 0.1); D.sfx('cursor'); return; }
     var pick = I.pressed('a') ? M.sel : -1;
     if (I.mouse.click && B.menuRects) B.menuRects.forEach(function (r, i) { if (hit(r)) pick = i; });
-    if (I.pressed('b') || I.pressed('menu')) { B.menu = null; return; }
+    if (I.pressed('b') || I.pressed('menu')) { D.sfx('cancel'); B.menu = null; return; }
     if (pick < 0) return;
     M.sel = pick;
     var id = items[pick][0];
+    D.sfx('confirm');
     if (id === 'resume') B.menu = null;
     if (id === 'party') M.panel = 'party';
     if (id === 'style') { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); }
     if (id === 'auto') { UI.opts.autoEnd = !UI.opts.autoEnd; UI.saveOpts(); }
+    if (id === 'music') setVol('musicVol', vol('musicVol') > 0 ? 0 : 0.5); // E: off, or back on
+    if (id === 'sounds') setVol('sfxVol', vol('sfxVol') > 0 ? 0 : 0.7);
     if (id === 'restart') { D.pop(); D.push(new D.Battle({ fixture: B.o.fixture })); }
     if (id === 'gate') location.search = '?gate';
     if (id === 'out') location.href = '../';   // back to the 8-bit game: nothing is written

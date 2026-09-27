@@ -59,7 +59,7 @@
         if (s < bs) { bs = s; best = e; }
       });
       if (best) { u.x = best.x; u.y = best.y; T.move -= best.cost; }
-      T.bonus = 0; u.ethereal = false;
+      T.bonus = 0; u.ethereal = false; D.sfx('magic');
       B.focus(u);
       FX.sparkle(u, 'violet', 22); FX.ring(u, 'violet', 36);
       B.card(['{r}The phase spider{/} steps out of the rock ' + (G.dist(u, tgt) <= 5 ? 'beside ' : 'near ') + tgt.name + '!', '{g}(Ethereal Jaunt, a bonus action: back on the Material Plane){/}']);
@@ -78,7 +78,7 @@
     if (G.dist(u, t2) <= u.reach && !t2.dead && T.action) { T.action = 0; yield* B.attack(u, t2, bite); }
     if (u.dead || u.hp <= 0) return;
     if (T.bonus) {
-      T.bonus = 0; u.ethereal = true;
+      T.bonus = 0; u.ethereal = true; D.sfx('run');
       FX.sparkle(u, 'violet', 22);
       B.card(['{r}The phase spider{/} fades out of the world.', '{g}(Ethereal Jaunt: it cannot be seen, struck or blocked till it steps back){/}']);
       yield 30;
@@ -103,6 +103,7 @@
   function* faerieFire(B, u, cube) {
     var T = u.turn, ff = u.faerie;
     T.action = 0; ff.used = true;
+    D.sfx('magic');
     u.anim = 'attack'; u.animT = B.t;
     FX.bloom(cube.x0 + 1.5, cube.y0 + 1.5, cube.sq, 'violet');
     var lines = ['{r}' + u.name + '{/}: FAERIE FIRE -- a 20-ft cube of violet light.  DEX DC ' + ff.dc];

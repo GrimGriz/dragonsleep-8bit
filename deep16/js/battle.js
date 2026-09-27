@@ -94,6 +94,7 @@
   // ------------------------------------------------------------------ the run: entry card, initiative, rounds
   Battle.prototype.run = function* () {
     var self = this;
+    D.music('battle'); // (it starts on the first key or click: browsers hold sound till then)
     yield { entry: true };
     // initiative: d20 + DEX (and the fighter's Remarkable Athlete), rolled once
     var rolls = this.units.map(function (u) { var d = D.d(20); u.initRoll = d + u.init; return { u: u, d: d }; });
@@ -143,6 +144,7 @@
     this.order.splice(at, 0, u);
     this.focus(u);
     FX.sparkle(u, 'bone', 24);
+    D.sfx('encounter'); D.music('boss');
     this.card(['{r}A cocoon on the far wall splits.{/} Something drops out of it on eight legs.', '{r}A DRIDER{/}: a drow above, a spider below.  {g}initiative ' + u.initRoll + '{/}'], 420);
     yield 70;
   };
@@ -150,6 +152,7 @@
 
   Battle.prototype.finish = function* (o) {
     this.result = o;
+    D.music(o === 'won' ? 'victory' : 'gameover');
     yield 30;
     this.card([o === 'won' ? '{y}THE GALLERY IS STILL.{/}' : '{r}THE DARK KEEPS THEM.{/}', '{g}E fight again · M the menu{/}'], 1e9);
   };
@@ -158,6 +161,7 @@
   Battle.prototype.heroTurn = function* (u) {
     RU.startTurn(u);
     this.focus(u);
+    if (RU.canAct(u)) D.sfx('popup'); // your turn
     if (!RU.canAct(u)) {
       this.card(['{g}' + u.name + (u.hp <= 0 ? ' is down.' : ' cannot act.') + '{/}']);
       yield 40; return;
@@ -246,11 +250,12 @@
         if (path2 && path2.length) yield* this.moveAlong(u, path2, { spend: true });
         return;
       }
-      case 'dash': T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
-      case 'cdash': T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (Cunning Action) dashes: {c}+' + u.speed + ' ft{/}.']); return;
-      case 'disengage': T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
-      case 'cdisengage': T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
+      case 'dash': D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'cdash': D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (Cunning Action) dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
+      case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
       case 'sacred': {
+        D.sfx('buff');
         T.action = 0; u.feats.channel = 0;
         var sb = Math.max(1, D.mod(u.abil.cha));
         u.conds.sacred = { atk: sb, rounds: 10 };
@@ -258,8 +263,9 @@
         this.card(['{y}' + u.name + '{/}: SACRED WEAPON. The blade takes Kalindel\'s light: +' + sb + ' to hit with it for a minute (Channel Divinity).']);
         return;
       }
-      case 'dodge': T.action = 0; u.conds.dodge = true; this.card(['{y}' + u.name + '{/} dodges: attacks against at disadvantage till the next turn.']); return;
+      case 'dodge': D.sfx('bump'); T.action = 0; u.conds.dodge = true; this.card(['{y}' + u.name + '{/} dodges: attacks against at disadvantage till the next turn.']); return;
       case 'help': {
+        D.sfx('buff');
         T.action = 0;
         c.target.conds.helped = { by: u.id, side: u.side };
         this.card(['{y}' + u.name + '{/} helps: the next ally to swing at the ' + shortName(c.target) + ' does it with advantage.']);
@@ -274,6 +280,7 @@
         yield 20; return;
       }
       case 'surge': {
+        D.sfx('buff');
         u.feats.actionSurge = 0; T.action = 1;
         this.card(['{y}' + u.name + '{/}: ACTION SURGE -- a second action.']); FX.ring(u, 'gold', 30);
         yield 20; return;
@@ -347,11 +354,12 @@
       var yes = yield { prompt: { who: tgt, title: tgt.name + ': SHIELD?', lines: ['The ' + total + ' would hit AC ' + ac + '.', '+5 AC makes it ' + (ac + 5) + ': a miss. (a level-' + slotFor(tgt, 1) + ' slot, the reaction)'], opts: [{ label: 'CAST SHIELD', value: true }, { label: 'TAKE IT', value: false }] } };
       if (yes) {
         var sl = slotFor(tgt, 1); tgt.slots[sl - 1]--; tgt.reaction = 0; tgt.conds.shield = true;
-        FX.ring(tgt, 'glow', 50);
+        FX.ring(tgt, 'glow', 50); D.sfx('buff');
         ac += 5; hit = false; crit = false;
         line += '  {c}SHIELD +5{/}';
       }
     }
+    D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
     if (!hit) { FX.float('MISS', tgt, D.PAL.ramps.silver[5]); yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
     // damage
@@ -376,7 +384,7 @@
       this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why], 300, cid);
       var lv = yield { prompt: { who: att, title: att.name + ': DIVINE SMITE?', lines: ['The blow lands' + (crit ? ' -- a critical: the smite dice double.' : '.')], opts: opts } };
       if (lv) {
-        att.slots[lv - 1]--;
+        att.slots[lv - 1]--; D.sfx('magic');
         var sm = D.roll(Math.min(5, 1 + lv) + 'd8', { crit: crit }); dmg += sm.total;
         parts.push('{y}smite ' + Math.min(5, 1 + lv) + 'd8 ' + RU.fmtRolls(sm.rolls) + ' = ' + sm.total + ' radiant{/}');
         FX.ring(tgt, 'gold', 30); FX.sparkle(tgt, 'gold', 16);
@@ -386,7 +394,7 @@
     if (tgt.cls === 'rogue' && tgt.lvl >= 5 && tgt.reaction > 0 && RU.canAct(tgt) && !tgt.guest) {
       this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ')], 300, cid);
       var ud = yield { prompt: { who: tgt, title: tgt.name + ': UNCANNY DODGE?', lines: ['The blow would deal ' + dmg + '. Halve it to ' + Math.floor(dmg / 2) + '? (the reaction)'], opts: [{ label: 'DODGE IT', value: true }, { label: 'TAKE IT', value: false }] } };
-      if (ud) { tgt.reaction = 0; dmg = Math.floor(dmg / 2); parts.push('{c}uncanny dodge: halved to ' + dmg + '{/}'); }
+      if (ud) { D.sfx('run'); tgt.reaction = 0; dmg = Math.floor(dmg / 2); parts.push('{c}uncanny dodge: halved to ' + dmg + '{/}'); }
     }
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + dmg + '{/}'], 300, cid);
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
@@ -396,7 +404,7 @@
     if (!tgt.dead && tgt.hp > 0 && atk.poison && !tgt.conds.poisoned) {
       var sv = RU.save(tgt, 'con', atk.poison.dc);
       this.card(['{r}' + nameOf(tgt) + '{/}: CON save vs poison  ' + RU.saveText(sv) + ' vs DC ' + sv.dc + '  ' + (sv.ok ? '{n}SAVED{/}' : '{o}POISONED{/}')]);
-      if (!sv.ok) { tgt.conds.poisoned = true; FX.sparkle(tgt, 'moss', 10); }
+      if (!sv.ok) { D.sfx('poison'); tgt.conds.poisoned = true; FX.sparkle(tgt, 'moss', 10); }
       yield 30;
     }
     if (!tgt.dead && atk.save && tgt.hp > 0) {
@@ -429,6 +437,7 @@
     if (u.conds.hidden) delete u.conds.hidden;
     if (u.hp <= 0) {
       u.anim = 'hurt'; u.animT = this.t;
+      D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.side === 'party') { u.ko = true; this.card(['{r}' + u.name + ' goes down.{/}']); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); }
       if (u.conc) D.magic.endConc(this, u, 'down');
@@ -439,6 +448,7 @@
     u.hp = Math.min(u.maxhp, u.hp + n);
     if (was <= 0 && u.hp > 0) { u.ko = false; u.anim = 'idle'; }
     FX.float('+' + (u.hp - was), u, D.PAL.ramps.moss[2]);
+    if (u.hp > was) D.sfx('heal');
     return u.hp - was;
   };
 
@@ -469,6 +479,7 @@
     if (use.effect === 'revive') { this.heal(w, use.hp || 1); this.card(['{y}' + u.name + '{/} works the ' + it.name + ' on ' + w.name + ': up, on ' + w.hp + ' HP.']); }
     if (use.effect === 'antitoxin' || use.effect === 'cure') { var had = !!w.conds.poisoned; delete w.conds.poisoned; this.card(['{y}' + u.name + '{/} ' + who + ' the ' + it.name + (had ? ': the poison goes out.' : ': nothing to cure.')]); FX.sparkle(w, 'moss', 10); }
     if (use.effect === 'damage') {
+      D.sfx('fire');
       FX.projectile(u, w, 'fire'); yield { fx: 1 };
       var sv = RU.save(w, use.save || 'dex', use.dc || 10), dmg = sv.ok ? 0 : D.roll(String(use.dice)).total;
       this.card(['{y}' + u.name + '{/} throws the ' + it.name + ' at the ' + shortName(w) + ': DEX ' + RU.saveText(sv) + ' vs DC ' + (use.dc || 10) + '  ' + (sv.ok ? '{n}dodged{/}' : '{o}burning: ' + dmg + ' fire{/}')]);
@@ -517,6 +528,7 @@
   Battle.prototype.misty = function* (u, x, y) {
     var T = u.turn, sl = slotFor(u, 2);
     T.bonus = 0; T.bonusSpell = true; u.slots[sl - 1]--;
+    D.sfx('magic');
     if (u.conds.hidden) delete u.conds.hidden;
     FX.sparkle(u, 'silver', 16);
     this.card(['{y}' + u.name + '{/}: MISTY STEP (L' + sl + ') -- silver mist, and he is ' + (Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5) + ' ft away.']);
@@ -532,6 +544,7 @@
   Battle.prototype.hide = function* (u) {
     var T = u.turn;
     if (T.bonus > 0) T.bonus = 0; else T.action = 0;
+    D.sfx('run');
     var foes = this.units.filter(function (w) { return w.side === 'foe' && G.standing(w) && RU.canAct(w); });
     var plain = foes.filter(function (w) { var l = G.los(w, u); return l.clear && !l.cover; });
     var r = D.d(20), total = r + u.stealth, top = Math.max.apply(null, foes.map(function (w) { return w.perception; }).concat([0]));

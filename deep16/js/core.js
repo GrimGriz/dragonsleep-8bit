@@ -39,6 +39,22 @@
     set: function (k, v) { try { window.localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
   };
 
+  // ---------------------------------------------------------------- sound: the 8-bit game's own chip synth (../js/audio.js, loaded after this):
+  // its sound effects and its tunes, its volumes (the 'ds8-audio' key, shared with the 8-bit game). It needs DS.store.
+  window.DS = window.DS || {};
+  if (!window.DS.store) window.DS.store = D.store;
+  function AU() { return window.DS.audio; }
+  D.sfx = function (id) { var A = AU(); if (A) A.sfx(id); };
+  D.music = function (id) { var A = AU(); if (A) A.play(id); };
+  // browsers start sound only on a key or a click. The synth's unlock replays a tune asked for before it, but through
+  // play(), which skips a tune it thinks is already on -- so a tune that's named and not sounding is started again here
+  D.unlockAudio = function () {
+    var A = AU(); if (!A || !A.unlock) return;
+    var first = !A.ctx;
+    A.unlock();
+    if (first && A.ctx && A.songId && !A.song) A.play(A.songId, true);
+  };
+
   // ---------------------------------------------------------------- canvas
   // The screen is 480x270 logical pixels, drawn into a backing store D.R times that (D.R = the integer scale), so a
   // zoomed-out world can land on whole device pixels: at 3x, zoom 2/3 draws each art pixel as 2x2 (crisp), 1/3 as 1x1.
@@ -91,6 +107,7 @@
     if (!b) return;
     e.preventDefault();
     if (!e.repeat) I.press(b);
+    D.unlockAudio();
   });
   window.addEventListener('keyup', function (e) { var b = KEYMAP[e.code]; if (b) { e.preventDefault(); I.release(b); } });
   window.addEventListener('blur', function () { I.held = {}; I.mouse.inWin = false; I.mouse.inside = false; });
@@ -113,7 +130,7 @@
     document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) { I.mouse.inWin = false; I.mouse.inside = false; } }); // off the window
     c.addEventListener('wheel', function (e) { e.preventDefault(); at(e); I.mouse.wheel += e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0; }, { passive: false });
     c.addEventListener('mousedown', function (e) {
-      at(e); e.preventDefault(); c.focus();
+      at(e); e.preventDefault(); c.focus(); D.unlockAudio();
       if (e.button === 0) I.mouse.click = true;
       if (e.button === 1) I.mouse.drag = { x: I.mouse.x, y: I.mouse.y }; // the middle button drags the view
       if (e.button === 2) I.mouse.rclick = true;
@@ -133,6 +150,7 @@
   D.fps = 0; D.showStats = /[?&]stats\b/.test(location.search);
   D.paused = false;
   D.update = function () {
+    var A = AU(); if (A && A.update) A.update(); // the tune's notes, scheduled a little ahead
     if (I.pressed('stats')) D.showStats = !D.showStats;
     var s = D.top();
     if (s && s.update) s.update();

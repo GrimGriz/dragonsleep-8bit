@@ -130,6 +130,13 @@
   function lift(B, list, cond) { list.forEach(function (w) { delete w.conds[cond]; }); }
 
   // ------------------------------------------------------------------ cast: spends the slot and the action or bonus action, then does the thing
+  // the sound a spell makes as it's cast (the 8-bit game's effects)
+  M.sound = function (sp) {
+    var k = sp.kind, el = sp.el;
+    if (k === 'heal' || k === 'cure' || k === 'revive') return 'heal';
+    if (k === 'buff' || k === 'light' || k === 'detect') return 'buff';
+    return el === 'fire' ? 'fire' : el === 'cold' ? 'frost' : el === 'lightning' || el === 'thunder' ? 'zap' : 'magic';
+  };
   M.cast = function* (B, u, id, slot, t) {
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
     if (g.time === 'B') { T.bonus = 0; T.bonusSpell = true; } else { T.action = 0; T.spellAction = sp.level ? 'leveled' : 'cantrip'; }
@@ -138,6 +145,7 @@
     var dc = u.spellDC, n = up(sp, slot);
     if (g.shape !== 'self' && g.shape !== 'touch') { var at = t && t.x != null ? { x: t.x, y: t.y, size: 1 } : t && t.units ? t.units[0] : t; if (at) u.facing = B.faceTo(u, at); }
     u.anim = 'attack'; u.animT = B.t;
+    D.sfx(M.sound(sp));
     yield 10;
 
     if (g.shape === 'attack' || g.shape === 'rays') {
