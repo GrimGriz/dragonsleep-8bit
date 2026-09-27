@@ -1,0 +1,58 @@
+name: Bug
+description: Something broke, froze, or did the wrong thing.
+title: "[bug] "
+labels: ["bug", "playtest"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for playing. One bug per report, please. A screenshot or a short clip helps more than anything: drag it into the box below.
+  - type: dropdown
+    id: build
+    attributes:
+      label: Which part?
+      options:
+        - The 8-bit game
+        - DEEP16, the ladder (deep16/?ladder)
+        - DEEP16, the fight past the door
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where were you?
+      description: A town, a map, a quest, or for DEEP16 the rung and the fight (e.g. "rung 4, The Thing in the Lake").
+      placeholder: rung 3, The Braiding Ettercap
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, and what went wrong.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+  - type: dropdown
+    id: device
+    attributes:
+      label: What were you playing on?
+      options:
+        - Computer, keyboard
+        - Computer, mouse
+        - Phone
+        - Tablet
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      placeholder: Chrome, Firefox, Safari, Edge...
+  - type: textarea
+    id: shots
+    attributes:
+      label: Screenshot or clip
+      description: Drag images or video in here.

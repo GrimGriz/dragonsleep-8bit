@@ -1,0 +1,70 @@
+name: Playtest feedback
+description: How a fight, a rung, or a stretch of the game felt. Too hard, too easy, confusing, fun.
+title: "[playtest] "
+labels: ["playtest"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for playing. Short is fine. This is for how things *felt*; if something broke, the Bug form is quicker to act on.
+  - type: dropdown
+    id: build
+    attributes:
+      label: Which part?
+      options:
+        - The 8-bit game
+        - DEEP16, the ladder (deep16/?ladder)
+        - DEEP16, the fight past the door
+        - Watched it on stream
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Which fight, rung, or stretch?
+      placeholder: rung 9, House-Cleaning
+  - type: dropdown
+    id: difficulty
+    attributes:
+      label: How hard was it?
+      options:
+        - Too easy
+        - About right
+        - Hard but fair
+        - Too hard
+        - Didn't finish it
+  - type: dropdown
+    id: result
+    attributes:
+      label: How did it end?
+      options:
+        - Won
+        - Won, but someone went down
+        - Lost
+        - Stopped playing
+        - Doesn't apply
+  - type: textarea
+    id: best
+    attributes:
+      label: The best moment
+      description: What worked, what you'd want more of.
+  - type: textarea
+    id: worst
+    attributes:
+      label: The worst moment
+      description: What was confusing, slow, or annoying. The menus, the rolls, the camera, a rule that felt wrong.
+  - type: textarea
+    id: rules
+    attributes:
+      label: Anything that didn't match the tabletop rules?
+      description: If you know 5E and something played differently from the SRD, say what and where.
+  - type: dropdown
+    id: device
+    attributes:
+      label: What were you playing on?
+      options:
+        - Computer, keyboard
+        - Computer, mouse
+        - Phone
+        - Tablet
+        - Watched, didn't play

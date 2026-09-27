@@ -4,6 +4,8 @@ An 8-bit, turn-based RPG of Silverton and the Silverton–Pit corridor, in the s
 
 **Play:** https://grimgriz.github.io/dragonsleep-8bit/ — works in any modern browser, on a phone too (touch d-pad). You can also open `index.html` straight from disk.
 
+**Playtesting:** found a bug, or a fight that felt wrong? [Open an issue](https://github.com/GrimGriz/dragonsleep-8bit/issues/new/choose): there's a short form for bugs and one for how a fight felt.
+
 **Controls:** arrows or WASD to walk · E (or Z / Enter / Space) to talk and choose · X / Esc to open the menu and go back.
 
 **Up to the Doors, down to the Pit, and through Deepholm's door:** coming in expansion packs. [Donate to support them](https://ko-fi.com/grimgriz).

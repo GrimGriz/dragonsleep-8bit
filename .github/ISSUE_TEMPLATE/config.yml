@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Play the 8-bit game
+    url: https://grimgriz.github.io/dragonsleep-8bit/
+    about: DRAGONSLEEP in the browser (a phone works too).
+  - name: Play DEEP16's ladder
+    url: https://grimgriz.github.io/dragonsleep-8bit/deep16/?ladder
+    about: The 16-bit fights, rung by rung, levels 1 to 9.
