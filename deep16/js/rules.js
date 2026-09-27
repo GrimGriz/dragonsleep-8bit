@@ -52,6 +52,9 @@
     var adv = [], dis = [], melee = !atk.ranged && !atk.spell;
     if (att.conds.poisoned) dis.push('poisoned');
     if (att.conds.frightened) dis.push('frightened');
+    // Reckless (Talmok, the berserker): it swings with advantage, and everyone swings at it with advantage
+    if (att.reckless && melee) adv.push('reckless');
+    if (tgt.reckless && melee) adv.push('reckless target');
     if (att.conds.hidden) adv.push('unseen');
     if (att.conds.invisible) adv.push('invisible');
     if (tgt.conds.invisible && !att.conds.invisible) dis.push('invisible target');

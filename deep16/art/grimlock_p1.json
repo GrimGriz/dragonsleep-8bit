@@ -1,0 +1,37 @@
+{
+ "image": "art/grimlock_p1.png",
+ "fw": 96,
+ "fh": 106,
+ "ax": 48,
+ "ay": 85,
+ "top": 56,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 96,
+   "fh": 106,
+   "ax": 48,
+   "ay": 85,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 848,
+   "fw": 96,
+   "fh": 106,
+   "ax": 48,
+   "ay": 85,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1696,
+   "fw": 96,
+   "fh": 106,
+   "ax": 48,
+   "ay": 85,
+   "frames": 8,
+   "fps": 12
+  }
+ }
+}

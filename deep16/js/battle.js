@@ -57,6 +57,7 @@
       weave: d.weave ? JSON.parse(JSON.stringify(d.weave)) : null, sneak: d.sneak || null, assassinate: !!d.assassinate, stealth: d.stealth || 0,
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
+      reckless: !!d.reckless, rageOnHit: !!d.rageOnHit, raging: false,
       flees: !!d.flees, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims,
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
@@ -484,6 +485,7 @@
       att.turn.sneakUsed = true; var fs = D.roll(att.sneak, { crit: crit }); dmg += fs.total; parts.push('{p}sneak ' + att.sneak + ' ' + RU.fmtRolls(fs.rolls) + ' = ' + fs.total + '{/}');
     }
     // Surprise Attack (the bugbears; the 8-bit game's reading): the first round's hits bite harder
+    if (att.raging && atk.rage) { dmg += atk.rage; parts.push('{o}rage +' + atk.rage + '{/}'); }
     if (att.surprise && this.round === 1) { var sa = D.roll(att.surprise, { crit: crit }); dmg += sa.total; parts.push('{o}first blow ' + att.surprise + ' ' + RU.fmtRolls(sa.rolls) + '{/}'); }
     // Divine Smite: after the hit, spend a slot
     if (att.cls === 'paladin' && melee && !att.guest && (att.slots || []).some(function (n) { return n > 0; })) {
@@ -565,6 +567,8 @@
   Battle.prototype.hurt = function (u, n, type) {
     if (n <= 0) return;
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
+    // Talmok rages when he is first hit: blades and fists do half from then on, his own blows +2
+    if (u.rageOnHit && !u.raging && !u.dead) { u.raging = true; u.resist = ['bludgeoning', 'piercing', 'slashing']; FX.ring(u, 'red', 30); D.sfx('crit'); this.card(['{r}' + u.name + '{/} roars and rages!  {g}(half from blades and blows; +2 to his own){/}']); }
     // Split (the black pudding): slashing or lightning on one of Medium size or more with 10 HP or more halves it into two
     if (u.split && !u.dead && /slashing|lightning/.test(type || '') && u.hp >= 10 && (u.sizeClass || (u.size > 1 ? 'L' : 'M')) !== 'S' && this.alive('foe').length < 8) this.splitOff(u);
     if (u.immune || u.resist || u.vulnerable) {

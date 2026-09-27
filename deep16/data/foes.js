@@ -549,5 +549,57 @@
     attacks: { bites: { name: 'Bites', atk: 2, dice: '5d6', mod: 0, type: 'piercing', reach: 5 } },
     multi: 1, moan: { dc: 10, recharge: 4, cond: 'stunned', range: 20, min: 1, text: 'gibbers, a hundred mouths at once. Minds slip.' },
     src: 'SRD 5.1 Gibbering Mouther (CR 2); content/monsters.json mouther (leg two): Gibbering read as the 8-bit game has it (WIS 10 or stunned, within 20 ft; here on a recharge of 4-6)', todo: 'the Blinding Spittle and the Aberrant Ground are not read'
+  },
+  // the Hex card's top (events.js, Fight Night): Talmok and the visiting barbarian, both reckless; Talmok rages when first hit
+  talmok: {
+    name: 'Talmok', named: true, sheet: 'talmok_p1', cr: '2', ac: 15, hp: 35, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 14, con: 16, int: 9, wis: 13, cha: 11 }, init: 2, perception: 11,
+    saves: { str: 5, dex: 2, con: 5, int: -1, wis: 1, cha: 0 },
+    attacks: { fists: { name: 'Pit Fists', atk: 5, dice: '1d1', mod: 3, type: 'bludgeoning', reach: 5, rage: 2 } },
+    multi: ['fists', 'fists'], reckless: true, rageOnHit: true,
+    src: 'content/monsters.json talmok (the 8-bit game\'s own pit fighter): Pit Fists for a flat 4 (+2 raging), reckless, rages on the first hit (here: two blows a turn, as a CR 2 brawler)', todo: 'the fists\' knockdown is not read (no prone yet)'
+  },
+  berserker: {
+    name: 'Visiting Barbarian', sheet: 'berserker_p1', cr: '2', ac: 13, hp: 67, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 12, con: 17, int: 9, wis: 11, cha: 9 }, init: 1, perception: 10,
+    saves: { str: 3, dex: 1, con: 3, int: -1, wis: 0, cha: -1 },
+    attacks: { greataxe: { name: 'Greataxe', atk: 5, dice: '1d12', mod: 3, type: 'slashing', reach: 5 } },
+    multi: 1, reckless: true, src: 'SRD 5.1 Berserker (CR 2, Reckless); content/monsters.json berserker (the Hex card\'s visiting barbarian)'
+  },
+  banditcaptain: {
+    name: 'Bandit Captain', sheet: 'hask_p1', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
+    saves: { str: 4, dex: 5, con: 2, int: 2, wis: 0, cha: 2 },
+    attacks: { scimitar: { name: 'Scimitar', atk: 5, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, dagger: { name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
+    multi: ['scimitar', 'scimitar', 'dagger'], src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet)', todo: 'Parry is not read'
+  },
+  grimlock: {
+    name: 'Grimlock', sheet: 'grimlock_p1', cr: '1/4', ac: 11, hp: 11, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 12, con: 12, int: 9, wis: 8, cha: 6 }, init: 1, perception: 13,
+    saves: { str: 3, dex: 1, con: 1, int: -1, wis: -1, cha: -2 },
+    attacks: { club: { name: 'Spiked Bone Club', atk: 5, dice: '1d4', mod: 3, type: 'bludgeoning', extra: '1d4', extraType: 'piercing', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Grimlock (CR 1/4): blind, stone camouflage (it starts hidden); content/monsters.json grimlock (leg three)'
+  },
+  cube: {
+    name: 'Gelatinous Cube', sheet: 'cube_p1', cr: '2', ac: 6, hp: 84, speed: 15, size: 2, reach: 5,
+    abil: { str: 14, dex: 3, con: 20, int: 1, wis: 6, cha: 1 }, init: -4, perception: 8,
+    saves: { str: 2, dex: -4, con: 5, int: -5, wis: -2, cha: -5 },
+    attacks: {
+      engulf: { name: 'Engulf', atk: 4, dice: '3d6', mod: 0, type: 'acid', reach: 5, grapple: { dc: 12, max: 1 } },
+      digest: { name: 'Digest', atk: 4, dice: '6d6', mod: 0, type: 'acid', reach: 5, needsHeld: true, autoHitHeld: true }
+    },
+    multi: ['engulf', 'digest'],
+    src: 'SRD 5.1 Gelatinous Cube (CR 2, Large, transparent: it starts hidden); content/monsters.json cube (leg two): Engulf read as a grip (escape DC 12), Digest on the one it has, as the 8-bit game runs them', todo: 'its moving into your square is not read'
+  },
+  crawler: {
+    name: 'Crawler', sheet: 'crawler_p1', cr: '2', ac: 12, hp: 40, speed: 30, size: 2, reach: 5,
+    abil: { str: 14, dex: 13, con: 14, int: 1, wis: 12, cha: 5 }, init: 1, perception: 13,
+    saves: { str: 2, dex: 1, con: 2, int: -5, wis: 1, cha: -3 },
+    attacks: {
+      feelers: { name: 'Feelers', atk: 5, dice: '1d6', mod: 2, type: 'poison', reach: 10, paralyze: { dc: 13 } },
+      jaws: { name: 'Mandibles', atk: 4, dice: '2d4', mod: 2, type: 'piercing', reach: 5 }
+    },
+    multi: ['feelers', 'jaws'],
+    src: 'content/monsters.json crawler (the 8-bit game\'s own, the Warrens\' crawler -- the cradle\'s): feelers at 10 ft, CON 13 or poisoned and paralyzed (a save each turn), then the mandibles'
   }
 };

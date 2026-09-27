@@ -297,6 +297,43 @@
 }
 }
 },
+"berserker_p1": {
+"image": "art/berserker_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"top": 57,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "brawler_p1": {
 "image": "art/brawler_p1.png",
 "fw": 96,
@@ -519,6 +556,43 @@
 }
 }
 },
+"crawler_p1": {
+"image": "art/crawler_p1.png",
+"fw": 120,
+"fh": 166,
+"ax": 60,
+"ay": 133,
+"top": 81,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 166,
+"ax": 60,
+"ay": 133,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1328,
+"fw": 120,
+"fh": 166,
+"ax": 60,
+"ay": 133,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2656,
+"fw": 120,
+"fh": 166,
+"ax": 60,
+"ay": 133,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "crewman_p1": {
 "image": "art/crewman_p1.png",
 "fw": 96,
@@ -551,6 +625,43 @@
 "fh": 96,
 "ax": 48,
 "ay": 84,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"cube_p1": {
+"image": "art/cube_p1.png",
+"fw": 120,
+"fh": 132,
+"ax": 60,
+"ay": 106,
+"top": 62,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 132,
+"ax": 60,
+"ay": 106,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1056,
+"fw": 120,
+"fh": 132,
+"ax": 60,
+"ay": 106,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2112,
+"fw": 120,
+"fh": 132,
+"ax": 60,
+"ay": 106,
 "frames": 8,
 "fps": 12
 }
@@ -1255,6 +1366,43 @@
 "fh": 96,
 "ax": 48,
 "ay": 77,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"grimlock_p1": {
+"image": "art/grimlock_p1.png",
+"fw": 96,
+"fh": 106,
+"ax": 48,
+"ay": 85,
+"top": 56,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 106,
+"ax": 48,
+"ay": 85,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 848,
+"fw": 96,
+"fh": 106,
+"ax": 48,
+"ay": 85,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1696,
+"fw": 96,
+"fh": 106,
+"ax": 48,
+"ay": 85,
 "frames": 8,
 "fps": 12
 }
@@ -2115,6 +2263,43 @@
 "fh": 216,
 "ax": 88,
 "ay": 173,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"talmok_p1": {
+"image": "art/talmok_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"top": 57,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
 "frames": 8,
 "fps": 12
 }
