@@ -563,6 +563,15 @@
       "grade": { "hue": -30, "sat": 0.6, "val": 0.9 },
       "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Chop", "walk": "Walking_A" }
     },
+    "xorn": {
+      "_note": "the xorn (SRD 5.1, Medium): Quaternius Blob/GreenSpikyBlob (the otyugh's model) at a square and a bit, turned to stone grey -- a loose fit; the three-fold body is lost.",
+      "file": "quaternius/ultimate-monsters/Blob/Blends/GreenSpikyBlob.blend",
+      "show": ["GreenSpiky_Blob", "GreenSpiky_Blob.002"],
+      "grade": { "hue": 0, "sat": 0.15, "val": 0.75 },
+      "size_squares": 1.3,
+      "yaw": 0,
+      "anims": { "idle": "Idle", "attack": "Bite_Front", "walk": "Walk" }
+    },
     "troll": {
       "_note": "Quaternius Ultimate Monsters, Big/Yeti (CC0, Atlas_Monsters.png) standing in for the SRD troll. Large: 2 squares.",
       "file": "quaternius/ultimate-monsters/Big/Blends/Yeti.blend",

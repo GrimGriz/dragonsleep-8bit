@@ -745,3 +745,30 @@ window.D16.MAPS.hexfloor = {
   foes: [],
   wave: null
 };
+
+// The seam on leg three (the 8-bit game's S.xorn, `highway`): the made road under a wall with a mineral seam in it;
+// the wall ahead bulges, cracks, and two things the size of barrels push out of the rock, chewing (the rubble they spat).
+window.D16.MAPS.seamwall = {
+  name: 'The Seam',
+  sub: 'the king\'s road, leg three',
+  step: 20,
+  rows: [
+    '####################',
+    '#####..rrrrr..######',
+    '####..........######',
+    '###.....====....####',
+    '##......====.....###',
+    '##..P...====......##',
+    '#.......====.......#',
+    '#.......====...P...#',
+    '##......====......##',
+    '###.....====.....###',
+    '####....====....####',
+    '#####...====...#####',
+    '########====########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
+  foes: [],
+  wave: null
+};

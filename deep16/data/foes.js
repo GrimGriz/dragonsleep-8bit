@@ -468,5 +468,14 @@
     saves: { str: 2, dex: 1, con: 1, int: -1, wis: 0, cha: 0 },
     attacks: { club: { name: 'Cudgel', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
     multi: 1, src: 'content/monsters.json cardbruiser (the Hex card\'s first bout); the crewman\'s sheet'
+  },
+  // the xorns in the seam (deep.js S.xorn, leg three)
+  xorn: {
+    name: 'Xorn', sheet: 'xorn_p1', cr: '5', ac: 19, hp: 73, speed: 20, size: 1, reach: 5,
+    abil: { str: 17, dex: 10, con: 22, int: 11, wis: 10, cha: 11 }, init: 0, perception: 16,
+    saves: { str: 3, dex: 0, con: 6, int: 0, wis: 0, cha: 0 },
+    attacks: { claw: { name: 'Claw', atk: 6, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, bite: { name: 'Bite', atk: 6, dice: '3d6', mod: 3, type: 'piercing', reach: 5 } },
+    multi: ['claw', 'claw', 'claw', 'bite'], resist: ['mundane'],
+    src: 'SRD 5.1 Xorn (CR 5): three claws and a bite; resists plain steel (the SRD\'s non-adamantine); content/monsters.json xorn', todo: 'Earth Glide (through the rock) is not read'
   }
 };
