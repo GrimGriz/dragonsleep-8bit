@@ -49,7 +49,8 @@
       // ai.js brute() (web, slam, bound, martial, surprise) and attack() (a grapple on a hit)
       packTactics: !!d.packTactics, resist: d.resist || null, immune: d.immune || null, vulnerable: d.vulnerable || null,
       web: d.web ? { atk: d.web.atk, range: d.web.range, dc: d.web.dc, recharge: d.web.recharge, ready: true } : null,
-      slam: d.slam || null, bound: d.bound || null, martial: d.martial || null, surprise: d.surprise || null, holding: []
+      slam: d.slam || null, bound: d.bound || null, martial: d.martial || null, surprise: d.surprise || null, holding: [],
+      ethereal: !!f.ethereal // a phase spider may start in the rock (the north cut: "They come out of the walls")
     };
   };
   // a damage type against a foe's resistances, immunities and vulnerabilities (SRD: immune 0, resist half, vulnerable x2)
@@ -342,7 +343,9 @@
           if (take) {
             w.reaction = 0;
             this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? 'the ' + shortName(u) : u.name) + '.']);
-            var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite;
+            var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite
+              || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]]; // any melee attack (the morningstar)
+            if (!atk) continue;
             yield* this.attack(w, u, atk, { oa: true });
             if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
           }

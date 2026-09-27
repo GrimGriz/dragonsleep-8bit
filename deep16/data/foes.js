@@ -120,5 +120,52 @@
     },
     multi: ['bite', 'claw', 'claw'], regen: 10,
     src: 'SRD 5.1 Troll (CR 5): Multiattack bite + two claws; Regeneration 10 at the start of its turn unless it took fire or acid since its last (read by brute(): battle.hurt marks u.burned)'
+  },
+
+  // ------------------------------------------------------------------ the expansion's set pieces (09-27, the ladder seat): content/monsters.json's
+  // numbers as the 8-bit game has them; sizes and speeds from the SRD (the 8-bit blocks carry none)
+  // the nest (deep.js S.brood): the one that bred the phase spiders. Huge (the Cowork seat's map: the spider at 3 squares)
+  broodmother: {
+    name: 'Broodmother', sheet: 'broodmother_p1', cr: '6', ac: 15, hp: 120, speed: 30, size: 3, reach: 5,
+    abil: { str: 19, dex: 15, con: 16, int: 7, wis: 12, cha: 6 }, init: 2, perception: 11,
+    saves: { str: 4, dex: 2, con: 3, int: -2, wis: 1, cha: -2 },
+    attacks: {
+      bite: { name: 'Bite', atk: 7, dice: '2d10', mod: 4, type: 'piercing', reach: 5, save: { ab: 'con', dc: 14, dice: '6d8', type: 'poison', half: true } }
+    },
+    multi: ['bite', 'bite'], web: { atk: 7, range: [30, 60], dc: 14, recharge: 5 }, webWalker: true,
+    src: 'content/monsters.json broodmother (game-original from the SRD 5.1 Phase Spider at CR 6); its Web in the SRD\'s attack form', todo: 'the jaunt when bloodied (once, 4 rounds) is not read'
+  },
+  // the cut seal camp (deep.js S.cutSeal): budgeted hard for four at 5
+  bugbearchief: {
+    name: 'Bugbear Chief', sheet: 'bugbearchief_p1', cr: '3', ac: 17, hp: 65, speed: 30, size: 1, reach: 5,
+    abil: { str: 17, dex: 14, con: 14, int: 11, wis: 12, cha: 11 }, init: 2, perception: 11,
+    saves: { str: 3, dex: 2, con: 2, int: 0, wis: 1, cha: 0 },
+    attacks: { morningstar: { name: 'Morningstar', atk: 5, dice: '2d8', mod: 3, type: 'piercing', reach: 5 } },
+    multi: ['morningstar', 'morningstar'], surprise: '2d6',
+    src: 'content/monsters.json bugbearchief (game-original from SRD 5.1 pieces: the Bugbear, two attacks); Surprise Attack as the 8-bit game reads it (+2d6 in the first round)'
+  },
+  hobsergeant: {
+    name: 'Hobgoblin Sergeant', sheet: 'hobsergeant_p1', cr: '3', ac: 18, hp: 39, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 14, con: 14, int: 12, wis: 10, cha: 13 }, init: 2, perception: 10,
+    saves: { str: 2, dex: 2, con: 2, int: 1, wis: 0, cha: 1 },
+    attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 2, type: 'slashing', reach: 5 } },
+    multi: ['longsword', 'longsword'], martial: '2d6',
+    src: 'content/monsters.json hobsergeant (game-original from SRD 5.1 pieces: the Hobgoblin and the Veteran); Martial Advantage'
+  },
+  hobgoblin: {
+    name: 'Hobgoblin', sheet: 'hobgoblin_p1', cr: '1/2', ac: 18, hp: 11, speed: 30, size: 1, reach: 5,
+    abil: { str: 13, dex: 12, con: 12, int: 10, wis: 10, cha: 9 }, init: 1, perception: 10,
+    saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: -1 },
+    attacks: { longsword: { name: 'Longsword', atk: 3, dice: '1d8', mod: 1, type: 'slashing', reach: 5 } },
+    multi: 1, martial: '2d6',
+    src: 'SRD 5.1 Hobgoblin (CR 1/2): longsword, Martial Advantage; content/monsters.json hobgoblin (the longbow left off, as the 8-bit game has it)'
+  },
+  worg: {
+    name: 'Worg', sheet: 'worg_p1', cr: '1/2', ac: 13, hp: 26, speed: 50, size: 2, reach: 5,
+    abil: { str: 16, dex: 13, con: 13, int: 7, wis: 11, cha: 8 }, init: 1, perception: 14,
+    saves: { str: 3, dex: 1, con: 1, int: -2, wis: 0, cha: -1 },
+    attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'piercing', reach: 5, prone: 13 } },
+    multi: 1,
+    src: 'SRD 5.1 Worg (CR 1/2, Large, speed 50); content/monsters.json worg', todo: 'the bite\'s STR DC 13 knockdown is not read (no prone yet)'
   }
 };

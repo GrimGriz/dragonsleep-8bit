@@ -1,0 +1,37 @@
+{
+ "image": "art/hobgoblin_p1.png",
+ "fw": 96,
+ "fh": 114,
+ "ax": 48,
+ "ay": 92,
+ "top": 52,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 96,
+   "fh": 114,
+   "ax": 48,
+   "ay": 92,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 912,
+   "fw": 96,
+   "fh": 114,
+   "ax": 48,
+   "ay": 92,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1824,
+   "fw": 96,
+   "fh": 114,
+   "ax": 48,
+   "ay": 92,
+   "frames": 8,
+   "fps": 12
+  }
+ }
+}

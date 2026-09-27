@@ -201,6 +201,72 @@
         "walk": "Walk"
       }
     },
+    "broodmother": {
+      "_note": "the Broodmother of the nest (the expansion's own, CR 6): the phase spider's model at three squares, darker, the red of old blood in it. Huge: 3 squares.",
+      "file": "spider/spider_1.blend",
+      "show": ["Spider"],
+      "tint": "#3a1426",
+      "size_squares": 3.0,
+      "yaw": 0,
+      "anims": {
+        "idle": "IDLE",
+        "attack": "ATTACK",
+        "walk": "WALK"
+      },
+      "cavity": false
+    },
+    "worg": {
+      "_note": "the worg (SRD 5.1, Large): the Quaternius wolf at two squares, darker and dirtier.",
+      "file": "quaternius/animated-animals/glTF/Wolf.gltf",
+      "show": ["Wolf"],
+      "grade": { "hue": 8, "sat": 0.7, "val": 0.55 },
+      "size_squares": 2.0,
+      "yaw": 180,
+      "anims": {
+        "idle": "Idle",
+        "attack": "Attack",
+        "walk": "Walk"
+      }
+    },
+    "hobgoblin": {
+      "_note": "the hobgoblin (SRD 5.1): Quaternius Big/Orc, the green turned to the hobgoblin's rust-orange; its own blade.",
+      "file": "quaternius/ultimate-monsters/Big/Blends/Orc.blend",
+      "show": ["Orc", "Orc_Weapon"],
+      "grade": { "hue": -85, "sat": 0.95, "val": 0.95 },
+      "size_squares": 1.4,
+      "yaw": 0,
+      "anims": {
+        "idle": "Idle",
+        "attack": "Weapon",
+        "walk": "Walk"
+      }
+    },
+    "hobsergeant": {
+      "_note": "the hobgoblin sergeant (the expansion's own): Quaternius Big/Orc_Skull (the skull helm marks the rank), graded like the hobgoblins.",
+      "file": "quaternius/ultimate-monsters/Big/Blends/Orc_Skull.blend",
+      "show": ["Orc_Skull", "Orc_Weapon"],
+      "grade": { "hue": -85, "sat": 0.95, "val": 0.9 },
+      "size_squares": 1.5,
+      "yaw": 0,
+      "anims": {
+        "idle": "Idle",
+        "attack": "Weapon",
+        "walk": "Walk"
+      }
+    },
+    "bugbearchief": {
+      "_note": "the bugbear chief (the expansion's own, from the SRD bugbear): Quaternius Big/Monkroose, the furred one, turned to a bugbear's dun brown; drawn big.",
+      "file": "quaternius/ultimate-monsters/Big/Blends/Monkroose.blend",
+      "show": ["Monkroose"],
+      "grade": { "hue": -60, "sat": 0.6, "val": 0.75 },
+      "size_squares": 1.7,
+      "yaw": 0,
+      "anims": {
+        "idle": "Idle",
+        "attack": "Weapon",
+        "walk": "Walk"
+      }
+    },
     "troll": {
       "_note": "Quaternius Ultimate Monsters, Big/Yeti (CC0, Atlas_Monsters.png) standing in for the SRD troll. Large: 2 squares.",
       "file": "quaternius/ultimate-monsters/Big/Blends/Yeti.blend",

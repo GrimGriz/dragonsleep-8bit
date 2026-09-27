@@ -98,8 +98,22 @@ def grade(imgs, g):
         img.update()
 
 
+def grade_rgb(rgb, g):
+    import colorsys
+    h, s, v = colorsys.rgb_to_hsv(*rgb[:3])
+    return list(colorsys.hsv_to_rgb((h + g.get('hue', 0) / 360.0) % 1, min(1, s * g.get('sat', 1)), min(1, v * g.get('val', 1))))
+
+
 if F.get('grade'):
     grade(all_images(), F['grade'])
+    # models coloured by material, with no texture (the Quaternius animals): grade the materials' own colours too
+    for m in bpy.data.materials:
+        m.diffuse_color = grade_rgb(list(m.diffuse_color), F['grade']) + [m.diffuse_color[3]]
+        if m.use_nodes and m.node_tree:
+            for n in m.node_tree.nodes:
+                if n.type == 'BSDF_PRINCIPLED' and not n.inputs['Base Color'].is_linked:
+                    c = n.inputs['Base Color'].default_value
+                    n.inputs['Base Color'].default_value = grade_rgb(list(c), F['grade']) + [c[3]]
 
 # ------------------------------------------------------------------ a tint for untextured models (the spider)
 if F.get('tint'):

@@ -1,0 +1,37 @@
+{
+ "image": "art/broodmother_p1.png",
+ "fw": 176,
+ "fh": 148,
+ "ax": 88,
+ "ay": 119,
+ "top": 44,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 176,
+   "fh": 148,
+   "ax": 88,
+   "ay": 119,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 1184,
+   "fw": 176,
+   "fh": 148,
+   "ax": 88,
+   "ay": 119,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 2368,
+   "fw": 176,
+   "fh": 148,
+   "ax": 88,
+   "ay": 119,
+   "frames": 8,
+   "fps": 12
+  }
+ }
+}

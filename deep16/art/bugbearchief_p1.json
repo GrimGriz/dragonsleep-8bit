@@ -1,0 +1,37 @@
+{
+ "image": "art/bugbearchief_p1.png",
+ "fw": 104,
+ "fh": 130,
+ "ax": 52,
+ "ay": 104,
+ "top": 60,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 104,
+   "fh": 130,
+   "ax": 52,
+   "ay": 104,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 1040,
+   "fw": 104,
+   "fh": 130,
+   "ax": 52,
+   "ay": 104,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 2080,
+   "fw": 104,
+   "fh": 130,
+   "ax": 52,
+   "ay": 104,
+   "frames": 8,
+   "fps": 12
+  }
+ }
+}

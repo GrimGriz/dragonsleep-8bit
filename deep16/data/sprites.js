@@ -149,6 +149,80 @@
 }
 }
 },
+"broodmother_p1": {
+"image": "art/broodmother_p1.png",
+"fw": 176,
+"fh": 148,
+"ax": 88,
+"ay": 119,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 176,
+"fh": 148,
+"ax": 88,
+"ay": 119,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1184,
+"fw": 176,
+"fh": 148,
+"ax": 88,
+"ay": 119,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2368,
+"fw": 176,
+"fh": 148,
+"ax": 88,
+"ay": 119,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"bugbearchief_p1": {
+"image": "art/bugbearchief_p1.png",
+"fw": 104,
+"fh": 130,
+"ax": 52,
+"ay": 104,
+"top": 60,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 104,
+"fh": 130,
+"ax": 52,
+"ay": 104,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1040,
+"fw": 104,
+"fh": 130,
+"ax": 52,
+"ay": 104,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2080,
+"fw": 104,
+"fh": 130,
+"ax": 52,
+"ay": 104,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "denny_p2": {
 "image": "art/denny_p2.png",
 "fw": 96,
@@ -404,6 +478,80 @@
 "fh": 108,
 "ax": 60,
 "ay": 87,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"hobgoblin_p1": {
+"image": "art/hobgoblin_p1.png",
+"fw": 96,
+"fh": 114,
+"ax": 48,
+"ay": 92,
+"top": 52,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 114,
+"ax": 48,
+"ay": 92,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 912,
+"fw": 96,
+"fh": 114,
+"ax": 48,
+"ay": 92,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1824,
+"fw": 96,
+"fh": 114,
+"ax": 48,
+"ay": 92,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"hobsergeant_p1": {
+"image": "art/hobsergeant_p1.png",
+"fw": 96,
+"fh": 122,
+"ax": 48,
+"ay": 98,
+"top": 59,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 122,
+"ax": 48,
+"ay": 98,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 976,
+"fw": 96,
+"fh": 122,
+"ax": 48,
+"ay": 98,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1952,
+"fw": 96,
+"fh": 122,
+"ax": 48,
+"ay": 98,
 "frames": 8,
 "fps": 12
 }
@@ -783,6 +931,43 @@
 "fh": 96,
 "ax": 48,
 "ay": 77,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"worg_p1": {
+"image": "art/worg_p1.png",
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"top": 59,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 976,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1952,
+"fw": 120,
+"fh": 122,
+"ax": 60,
+"ay": 98,
 "frames": 8,
 "fps": 12
 }
