@@ -444,7 +444,7 @@
   },
   // the chuul off the point (events.js S.lakeFight, the base game's capstone): it comes up out of the deep and can come ashore
   chuul: {
-    name: 'Chuul', sheet: 'chuul_p1', cr: '4', ac: 16, hp: 93, speed: 30, size: 2, reach: 10,
+    name: 'Chuul', sheet: 'chuul_p2', cr: '4', ac: 16, hp: 93, speed: 30, size: 2, reach: 10,
     abil: { str: 19, dex: 10, con: 16, int: 5, wis: 11, cha: 5 }, init: 0, perception: 14,
     saves: { str: 4, dex: 0, con: 3, int: -3, wis: 0, cha: -3 },
     attacks: {
