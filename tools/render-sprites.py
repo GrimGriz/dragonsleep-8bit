@@ -47,14 +47,13 @@ for o in bpy.data.objects:
         o.hide_render = o.name not in F['show']
 
 # ------------------------------------------------------------------ recolour atlas cells (keep each cell's gradient, change its hue)
-if F.get('recolor'):
+def recolor(imgs, cells):
     import numpy as np
-    imgs = {n.image for m in bpy.data.materials if m.node_tree for n in m.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image}
     for img in imgs:
         w, h = img.size
         px = np.array(img.pixels[:], dtype=np.float32).reshape(h, w, 4)
         cw, ch = w // 8, h // 4
-        for (c, r), col in F['recolor']:
+        for (c, r), col in cells:
             y0 = h - (r + 1) * ch          # Blender's rows run bottom-up
             cell = px[y0:y0 + ch, c * cw:(c + 1) * cw, :3]
             lum = cell @ np.array([0.299, 0.587, 0.114], dtype=np.float32)
@@ -63,6 +62,14 @@ if F.get('recolor'):
             px[y0:y0 + ch, c * cw:(c + 1) * cw, :3] = np.clip(tgt[None, None, :] * (lum / mid)[..., None], 0, 1)
         img.pixels[:] = px.ravel()
         img.update()
+
+
+def all_images():
+    return {n.image for m in bpy.data.materials if m.node_tree for n in m.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image}
+
+
+if F.get('recolor'):
+    recolor(all_images(), F['recolor'])
 
 # ------------------------------------------------------------------ a tint for untextured models (the spider)
 if F.get('tint'):
@@ -151,6 +158,40 @@ if F.get('size_squares'):   # centre a big creature on its footprint; a humanoid
     arm.location.x -= cx; arm.location.y -= cy
 arm.location.z -= lo.z
 bpy.context.view_layer.update()
+
+# ------------------------------------------------------------------ a rider: a second model mounted on a bone of the first (the drider: a drow's upper half on the spider)
+R = F.get('rider')
+if R:
+    before = set(bpy.data.objects) | set()
+    imgs_before = all_images()
+    bpy.ops.import_scene.gltf(filepath=os.path.join(SRC, R['file']))
+    new = [o for o in bpy.data.objects if o not in before]
+    rarm = next(o for o in new if o.type == 'ARMATURE' and o.parent is None)
+    for o in new:
+        if o.type == 'MESH':
+            o.hide_render = o.name not in R['show']
+    if R.get('recolor'):
+        recolor(all_images() - imgs_before, R['recolor'])
+    def rider_action(anim):    # R['anim'] is one action name, or {main-anim: action} with 'idle' the fallback
+        ra = R['anim']
+        name = ra if isinstance(ra, str) else ra.get(anim, ra.get('idle'))
+        ract = bpy.data.actions[name]
+        rad = rarm.animation_data or rarm.animation_data_create()
+        rad.action = ract
+        if hasattr(rad, 'action_slot') and getattr(ract, 'slots', None) and len(ract.slots):
+            rad.action_slot = ract.slots[0]
+    rider_action('idle')
+    # mount: a point in the first armature's rest space (its units, before its scale), carried by the named bone
+    scene.frame_set(int(bpy.data.actions[F['anims']['idle']].frame_range[0]))
+    bpy.context.view_layer.update()
+    mount_world = arm.matrix_world @ Vector(R['mount'])
+    rarm.parent = arm; rarm.parent_type = 'BONE'; rarm.parent_bone = R['bone']
+    rarm.matrix_parent_inverse = Matrix.Identity(4)
+    bpy.context.view_layer.update()
+    rs = R.get('scale', 1.0)
+    rarm.matrix_world = Matrix.Translation(mount_world) @ Matrix.Rotation(math.radians(R.get('yaw', 0)), 4, 'Z') @ Matrix.Scale(rs, 4)
+    bpy.context.view_layer.update()
+    print('[render] rider %s mounted on %s at %s' % (R['file'], R['bone'], [round(v, 2) for v in mount_world]))
 lo, hi = world_bbox()
 height_px = (hi.z - lo.z) * K * math.cos(math.radians(30))
 span_px = max(hi.x - lo.x, hi.y - lo.y) * K
@@ -185,7 +226,7 @@ kind, _, lname = LOOK.partition(':')
 sh.light = {'studio': 'STUDIO', 'matcap': 'MATCAP', 'flat': 'FLAT'}[kind]
 if kind == 'studio': sh.studio_light = lname
 if kind == 'matcap': sh.studio_light = lname
-sh.color_type = 'MATERIAL' if F.get('tint') else 'TEXTURE'
+sh.color_type = 'MATERIAL' if (F.get('tint') and not F.get('rider')) else 'TEXTURE'
 sh.show_cavity = F.get('cavity', True); sh.cavity_type = 'BOTH'
 sh.cavity_ridge_factor = 1.2; sh.cavity_valley_factor = 1.0
 sh.show_specular_highlight = False
@@ -203,6 +244,8 @@ for anim, action in F['anims'].items():
     if ONLY and anim != ONLY.split(':')[0]:
         continue
     act = use_action(action)
+    if R:
+        rider_action(anim)
     f0, f1 = act.frame_range
     n = NFRAMES
     meta['anims'][anim] = {'action': action, 'frames': n}

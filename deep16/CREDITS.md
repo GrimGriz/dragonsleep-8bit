@@ -8,9 +8,11 @@ stalagmites, cocoons and rubble are drawn in code (`deep16/js/iso.js`, `deep16/j
 - **KayKit : Adventurers Character Pack 1.0** — Kay Lousberg, www.kaylousberg.com — **CC0 1.0**.
   https://github.com/KayKit-Game-Assets/KayKit-Character-Pack-Adventures-1.0 — Barbarian (Barley, with a threshing flail
   modelled in `tools/render-sprites.py` in place of the axe), Mage (Aurdin), Rogue (Vivian), Knight (Lymen), Rogue_Hooded
-  (the drow); atlas cells recoloured per `tools/deep16-figures.json`. Credit is not required by the licence; given gladly.
+  (the drow; its upper half again as the drider's rider); atlas cells recoloured per `tools/deep16-figures.json`. Credit is not
+  required by the licence; given gladly.
 - **Spider** — br-n518, OpenGameArt — **CC0**. `spider_1.blend` (https://opengameart.org/sites/default/files/spider_1.blend),
-  rescaled and tinted violet for the phase spider.
+  rescaled and tinted violet for the phase spider, and darker under the drider (the drow rider mounted on its thorax bone by the
+  `rider` block in `tools/render-sprites.py`, 09-27).
 
 ## Pipeline 2 — generated (`denny_p2`)
 

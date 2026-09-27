@@ -28,9 +28,11 @@
   },
   // the second wave (Griz, 09-27: "adding a new monster to appear when these ones go down (your choice monster!)"):
   // when the gallery goes still a cocoon on the far wall splits and a drider drops out. The SRD 5.1 block as written;
-  // its look is the drow captain's upper half on the phase spider's body, darkened (no sheet of its own yet)
+  // its look is its own pipeline-1 sheet (09-27, the Cowork seat): the drow's upper half rendered on the spider's body in
+  // Blender -- tools/deep16-figures.json 'drider' (a rider block), rendered by tools/render-sprites.py. The old composite
+  // (sheet + rider drawn in JS) still works: set rider: 'drow_p0' and sheet: 'phasespider_p1' to get it back.
   drider: {
-    name: 'Drider', sheet: 'phasespider_p1', rider: 'drow_p0', cr: '6', ac: 19, hp: 123, speed: 30, size: 2, reach: 5,
+    name: 'Drider', sheet: 'drider_p1', cr: '6', ac: 19, hp: 123, speed: 30, size: 2, reach: 5,
     abil: { str: 16, dex: 16, con: 18, int: 13, wis: 14, cha: 12 }, init: 3, perception: 15,
     saves: { str: 3, dex: 3, con: 4, int: 1, wis: 2, cha: 1 },
     attacks: {
