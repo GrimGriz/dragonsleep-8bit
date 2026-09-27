@@ -392,7 +392,7 @@
     var g = gearHero(B), eq = g ? [['equip', 'EQUIP: ' + g.name.toUpperCase()]] : [];
     return [['resume', 'RESUME']].concat(eq, [['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
       ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >'],
-      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)'], ['out', UI.backLabel()]]);
+      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)']], B && B.o.onDone ? [] : [['ladder', 'THE LADDER']], [['out', UI.backLabel()]]);
   }
   // EQUIP's panel: the weapons in the pack this hero can use, and the shield off or on; each costs the action
   function gearInput(B) {
@@ -440,6 +440,7 @@
     if (id === 'sounds') setVol('sfxVol', vol('sfxVol') > 0 ? 0 : 0.7);
     if (id === 'restart') { D.pop(); D.push(new D.Battle(B.o)); }
     if (id === 'gate') location.search = '?gate';
+    if (id === 'ladder') location.search = '?ladder';
     if (id === 'out') { if (B.o.onDone) { D.pop(); B.o.onDone(null); } else location.href = '../'; } // the ladder, or back to the 8-bit game: nothing is written
   };
   function restyle(B) { if (B.req && B.req.turn && (B.tool === 'move' || B.tool === 'menu')) B.tool = rest(); }

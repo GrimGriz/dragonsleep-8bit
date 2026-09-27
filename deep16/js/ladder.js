@@ -57,6 +57,7 @@
 
   Ladder.prototype.update = function () {
     this.t++;
+    if (this.leaving) return this.leaveInput();
     if (this.card) {
       if (I.pressed('a') || I.pressed('b') || I.mouse.click) { D.sfx('confirm'); this.card = null; }
       return;
@@ -70,7 +71,13 @@
     if (I.mouse.moved && I.mouse.inside && this.rows) this.rows.forEach(function (r) { if (I.mouse.x >= r.x && I.mouse.x < r.x + r.w && I.mouse.y >= r.y && I.mouse.y < r.y + r.h) this.sel = r.L; }, this);
     if (this.sel !== s0) { D.sfx('cursor'); this.save(); }
     if (I.pressed('a') || (I.mouse.click && this.rows && this.rows.some(function (r) { return r.L === this.sel && I.mouse.x >= r.x && I.mouse.x < r.x + r.w && I.mouse.y >= r.y && I.mouse.y < r.y + r.h; }, this))) this.fight(this.sel);
-    if (I.pressed('b') || I.pressed('menu')) { D.sfx('cancel'); location.href = './'; }
+    // X or M asks first (09-27: M on the ladder threw the player out to the proof of concept's fight, whose menu has no
+    // way back): E goes, X stays
+    if (I.pressed('b') || I.pressed('menu')) { D.sfx('popup'); this.leaving = true; }
+  };
+  Ladder.prototype.leaveInput = function () {
+    if (I.pressed('a')) { D.sfx('confirm'); location.href = './'; return; }
+    if (I.pressed('b') || I.pressed('menu') || I.mouse.click) { D.sfx('cancel'); this.leaving = false; }
   };
 
   function box(ctx, x, y, w, h, edge) {
@@ -122,6 +129,13 @@
     });
     D.text(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E fight  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
     if (this.card) this.drawCard(ctx);
+    if (this.leaving) {
+      var lw = 300, lx = (D.W - lw) / 2;
+      box(ctx, lx, 104, lw, 46);
+      D.text(ctx, '{y}LEAVE THE LADDER?{/}', D.W / 2, 112, P('gold', 4), 'center');
+      D.text(ctx, 'for the first fight past the door (the Cocoon Gallery)', D.W / 2, 124, P('bone', 1), 'center');
+      D.text(ctx, '{g}E leave  ·  X stay{/}', D.W / 2, 137, P('accent', 2), 'center');
+    }
   };
   // a light read of the four at a level (cached per level and fight: a fight may give them its own looks)
   Ladder.prototype.partyAt = function (L) {
