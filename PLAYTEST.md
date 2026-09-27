@@ -265,5 +265,25 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] Levels by fighting: about 6 by the north cut, about 7 by the nest, about 9 at the door
 - [ ] The Hex: the Hired Blade on the card is now easier than Talmok, the champion
 
+## 23. DEEP16: past the door, 16-bit (the proof of concept)
+
+- [ ] Getting there: after the expansion's credits a third choice, PAST THE DOOR, takes the party into DEEP16 (or open /deep16/ straight)
+- [ ] The entry card says who walked in (from the door, a slot, or the fixture) and what level; 2 swaps to the four at level 9, which the fight is built for
+- [ ] The look: the LPC figures at the Diablo angle, the Blender phase spider, Denny playing Barley. Does it read 16-bit? Chrono Trigger enough?
+- [ ] The cavern reads as a place: the neck you come in by, the stalagmites, the ledge two steps up with the fallen slab for a ramp, the rubble, the still pool, the cocoons
+- [ ] Moving: hovering shows where you can go (blue), where a dash would take you (paler), and the path; click to go; you can move, act, and move the rest
+- [ ] The four pips (MOVE, ACTION, BONUS, REACTION) and SPACE to end the turn with anything unspent, no nag
+- [ ] Commands 1-9 or click; targeting modes for attack, Fire Bolt, the Fireball template, Misty Step, Lay on Hands, Help; X backs out
+- [ ] Opportunity attacks: leaving a foe's reach lets it swing; Disengage (or Vivian's Cunning Action) doesn't; a drow breaking away asks whether you take your swing
+- [ ] Cover (+2 behind a stalagmite or a body) and flanking (the gold line, advantage) show on the tooltip and the roll card
+- [ ] Reactions ask you: Shield for Aurdin, Uncanny Dodge for Vivian, Divine Smite after Lymen's hit
+- [ ] Vivian hides behind a stalagmite (Cunning Action), then strikes with advantage and Sneak Attack
+- [ ] Aurdin: Fireball's template and the saves for half (Vivian's Evasion takes none); after Misty Step only a cantrip
+- [ ] Lymen: the gold aura ring (his CHA to saves inside it); Lay on Hands is touch (heal, or cure the drow's poison)
+- [ ] The foes: the drow hold the ledge and shoot the lowest AC, Faerie Fire once, break away at a quarter HP; the phase spider bites, fades, and steps out of the rock beside the weakest
+- [ ] Every roll is on screen as a card: readable? too many?
+- [ ] Frame rate at 2x (the ` key shows it), and one look at 4x
+- [ ] M, RETURN TO SILVERTON goes back to the 8-bit game; nothing is written
+
 ## Notes
 (write here)

@@ -8,6 +8,8 @@ An 8-bit, turn-based RPG of Silverton and the Silverton–Pit corridor, in the s
 
 **Up to the Doors, down to the Pit, and through Deepholm's door:** coming in expansion packs. [Donate to support them](https://ko-fi.com/grimgriz).
 
+**Past the door, 16-bit:** [`deep16/`](deep16/README.md) is a proof of concept of the world beyond Deepholm's door at a Diablo angle, on a 5-ft grid with more of the 5E rules (https://grimgriz.github.io/dragonsleep-8bit/deep16/, or PAST THE DOOR after the expansion's credits).
+
 ## What's in it
 
 - **Silverton** — Fountain Street, the Weigh-House bounty board, the Hex and its fight card, vice row, the Shaft Rows, shops, the mission chapel, the leech-house, Winters' Acquisitions & Estates.
