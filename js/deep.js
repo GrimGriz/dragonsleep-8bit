@@ -1109,7 +1109,7 @@
     DS.push(new DS.Credits(true, { lines: lines, title: 'THE ROAD IS HELD', prompt: L('deep.afterPrompt'), onContinue: function* () {
       DS.clearScenes();
       var f2 = DS.field = new DS.Field(); DS.push(f2);
-      f2.load('solskaft', 18, 20, 'down'); DS.fadeLevel = 0;
+      f2.load('solskaft', 28, 20, 'down'); // the Sunshaft floor (Solskaft widened ten columns west in the re-cut) DS.fadeLevel = 0;
       yield DS.say(L('deep.afterMorning'));
     } }));
   };
