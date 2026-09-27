@@ -1109,9 +1109,19 @@
     DS.push(new DS.Credits(true, { lines: lines, title: 'THE ROAD IS HELD', prompt: L('deep.afterPrompt'), onContinue: function* () {
       DS.clearScenes();
       var f2 = DS.field = new DS.Field(); DS.push(f2);
-      f2.load('solskaft', 28, 20, 'down'); // the Sunshaft floor (Solskaft widened ten columns west in the re-cut) DS.fadeLevel = 0;
+      // the Sunshaft floor (Solskaft widened ten columns west in the re-cut)
+      f2.load('solskaft', 28, 20, 'down'); DS.fadeLevel = 0;
       yield DS.say(L('deep.afterMorning'));
-    } }));
+    }, pastDoor: (g2.flags.expansionDone || g2.flags.highwaySecured) ? EV.pastTheDoor : null }));
+  };
+  // PAST THE DOOR (the DEEP16 POC's seam, handoff-2026-09-26-deep16-poc-spec.md §4): the save as it stands goes into
+  // `deep16.handoff` (same origin, one localStorage) and the page goes to deep16/, which reads it. No slot is written.
+  // The visual crossing (the frame gaining resolution) is a later handoff.
+  EV.pastTheDoor = function () {
+    var g3 = G();
+    var snap = JSON.parse(JSON.stringify({ v: g3.v, lead: g3.lead, party: g3.party, inv: g3.inv, silver: g3.silver, flags: g3.flags, renown: g3.renown, map: g3.map, x: g3.x, y: g3.y, dir: g3.dir, steps: g3.steps, time: g3.time, kills: g3.kills, hired: g3.hired, guests: g3.guests || [] }));
+    DS.store.set('deep16.handoff', { at: Date.now(), save: snap });
+    window.location.href = 'deep16/';
   };
 
   // ================================================================== the smoke (spec §12): Tam Vere's couch on vice row

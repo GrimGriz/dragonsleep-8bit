@@ -28,7 +28,9 @@
   // ------------------------------------------------------------------ input
   UI.input = function (B, req) {
     if (req.entry) {
-      if (I.pressed('a') || I.pressed('b') || I.pressed('end') || I.mouse.click || B.t - B.entryT > 240) B.answer();
+      // 2 swaps who walks in (the save or the fixture) and starts again; anything else begins
+      if (B.canSwap && (I.pressed('n2') || I.pressed('left') || I.pressed('right'))) { D.pop(); D.push(new D.Battle({ fixture: !B.o.fixture })); return; }
+      if (I.pressed('a') || I.pressed('end') || I.mouse.click || (!B.canSwap && B.t - B.entryT > 240)) B.answer();
       return;
     }
     if (req.prompt) return promptInput(B, req.prompt);
@@ -408,9 +410,11 @@
     var ago = from.when ? Math.max(1, Math.round((Date.now() - from.when) / 60000)) : 0;
     ctx.save(); ctx.translate(D.W / 2, 92); ctx.scale(2, 2); D.text(ctx, D.MAPS.cavern.name.toUpperCase(), 0, 0, R('gold', 4), 'center'); ctx.restore();
     D.text(ctx, D.MAPS.cavern.sub, D.W / 2, 116, R('silver', 5), 'center');
-    D.text(ctx, names.join(', ') + ' come in from ' + (from.from === 'the fixture' ? 'the fixture (no 8-bit save on this origin)' : from.from + (ago ? ', saved ' + (ago < 120 ? ago + ' min' : Math.round(ago / 60) + ' h') + ' ago' : '')) + '.', D.W / 2, 136, R('bone', 1), 'center');
-    D.text(ctx, 'Two drow on the ledge. Something in the stalagmites.', D.W / 2, 150, R('accent', 2), 'center');
-    if ((B.t >> 5) & 1) D.text(ctx, 'E to begin', D.W / 2, 176, R('glow', 2), 'center');
+    D.text(ctx, names.join(', ') + ' come in from ' + (from.from === 'the fixture' ? (B.o.fixture ? 'the fixture' : 'the fixture (no 8-bit save found)') : from.from + (ago ? ', saved ' + (ago < 120 ? ago + ' min' : Math.round(ago / 60) + ' h') + ' ago' : '')) + '.', D.W / 2, 136, R('bone', 1), 'center');
+    var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
+    D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  Two drow on the ledge. Something in the stalagmites.', D.W / 2, 150, R('accent', 2), 'center');
+    if (B.canSwap) D.text(ctx, B.o.fixture ? '2: walk in from the 8-bit save instead' : '2: walk in as the fixture instead (the four at level 9; the fight is built for them)', D.W / 2, 164, R('silver', 5), 'center');
+    if ((B.t >> 5) & 1) D.text(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }
   function inspect(ctx, u) {
     var lines = ['{' + (u.side === 'foe' ? 'r' : 'c') + '}' + u.name + '{/}' + (u.cls ? '  ' + u.cls + ' ' + u.lvl : ''), 'HP ' + u.hp + '/' + u.maxhp + '  AC ' + RU.ac(u) + '  speed ' + u.speed + ' ft' + (u.size > 1 ? '  Large' : '')];

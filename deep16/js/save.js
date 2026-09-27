@@ -21,8 +21,9 @@
   // which party walks in, and from where
   SV.load = function () {
     var h = D.store.get('deep16.handoff');
-    if (h && h.save && h.save.party) return { from: 'the door', when: h.at, data: h.save };
     var slots = SV.slots().sort(function (a, b) { return (b.data.saved || 0) - (a.data.saved || 0); });
+    // the door's snapshot, unless a slot has been saved since (the newer of the two walks in)
+    if (h && h.save && h.save.party && (!slots.length || (h.at || 0) >= (slots[0].data.saved || 0))) return { from: 'the door', when: h.at, data: h.save };
     if (slots.length) return { from: 'slot ' + slots[0].slot, when: slots[0].data.saved, data: slots[0].data };
     return { from: 'the fixture', when: null, data: SV.fixture() };
   };

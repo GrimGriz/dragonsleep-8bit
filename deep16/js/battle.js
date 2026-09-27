@@ -14,7 +14,9 @@
 
   Battle.prototype.enter = function () {
     var m = this.map = D.iso.load(D.MAPS.cavern), self = this;
-    this.from = D.save.load();
+    // walk in from the save (the door's snapshot or the newest slot), or as the fixture: the entry card offers both
+    this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
+    this.canSwap = this.o.fixture || this.from.from !== 'the fixture';
     var party = D.save.units(this.from.data);
     var entry = m.def.entry.slice();
     party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });

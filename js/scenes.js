@@ -696,9 +696,12 @@
   function AfterCredits(o) {
     var self = this;
     this.kind = 'after'; this.opaque = true; this.t = 0; this.o = o || {};
-    this.menu = new DS.Menu({ items: [{ label: 'CONTINUE', value: 'go' }, { label: 'TITLE', value: 'title' }], x: 76, y: 150, w: 104, cancelable: false,
+    var items = [{ label: 'CONTINUE', value: 'go' }, { label: 'TITLE', value: 'title' }];
+    if (this.o.pastDoor) items.push({ label: 'PAST THE DOOR', value: 'door', color: '#F8D878' }); // the DEEP16 POC's seam
+    this.menu = new DS.Menu({ items: items, x: 76, y: 150, w: 104, cancelable: false,
       onSelect: function (it) {
         if (it.value === 'title') { DS.clearScenes(); DS.push(new Title()); return; }
+        if (it.value === 'door') { self.o.pastDoor(); return; }
         DS.run(self.o.onContinue || function* () { yield* DS.EV.afterTheLake(); });
       } });
   }
