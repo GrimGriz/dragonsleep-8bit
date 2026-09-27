@@ -81,18 +81,26 @@ def pixelate(img, ss, do_lift=True, alpha_cut=0.5):
     return out
 
 
-def write_sheet(name, frames, fw, fh, ax, ay, top):
-    """frames: {anim: [[facing0 frames...], ... 8 facings]} of RGBA arrays (fh x fw)."""
+def write_sheet(name, frames, fw, fh, ax, ay, top, sizes=None):
+    """frames: {anim: [[facing0 frames...], ... 8 facings]} of RGBA arrays. Each anim is a block of 8 rows stacked
+    down the sheet; `sizes` gives an anim its own frame size and foot, (fw, fh, ax, ay), when it isn't the sheet's
+    (LPC's oversize weapon swings are 192 px frames)."""
+    sizes = sizes or {}
     anims = [a for a in ANIM_ORDER if a in frames]
-    cols = max(len(frames[a][0]) for a in anims)
-    sheet = np.zeros((fh * 8 * len(anims), fw * cols, 4), dtype=np.uint8)
+    dims = {a: sizes.get(a, (fw, fh, ax, ay)) for a in anims}
+    width = max(len(frames[a][0]) * dims[a][0] for a in anims)
+    height = sum(8 * dims[a][1] for a in anims)
+    sheet = np.zeros((height, width, 4), dtype=np.uint8)
     meta = {'image': 'art/%s.png' % name, 'fw': fw, 'fh': fh, 'ax': ax, 'ay': ay, 'top': top, 'anims': {}}
-    for k, anim in enumerate(anims):
-        meta['anims'][anim] = {'row': k * 8, 'frames': len(frames[anim][0]), 'fps': FPS.get(anim, 8)}
+    y0 = 0
+    for anim in anims:
+        afw, afh, aax, aay = dims[anim]
+        meta['anims'][anim] = {'y': y0, 'fw': afw, 'fh': afh, 'ax': aax, 'ay': aay, 'frames': len(frames[anim][0]), 'fps': FPS.get(anim, 8)}
         for f in range(8):
             for i, fr in enumerate(frames[anim][f]):
-                y, x = (k * 8 + f) * fh, i * fw
-                sheet[y:y + fh, x:x + fw] = fr[:fh, :fw]
+                y, x = y0 + f * afh, i * afw
+                sheet[y:y + afh, x:x + afw] = fr[:afh, :afw]
+        y0 += 8 * afh
     os.makedirs(ART, exist_ok=True)
     Image.fromarray(sheet, 'RGBA').save(os.path.join(ART, name + '.png'), optimize=True)
     json.dump(meta, open(os.path.join(ART, name + '.json'), 'w'), indent=1)
@@ -123,21 +131,22 @@ def p0(fig):
     meta = json.load(open(os.path.join(d, 'meta.json')))
     fw, fh = meta['frame_w'], meta['frame_h']
     ax, ay = meta.get('foot', [fw // 2, fh - 6])
-    frames = {}
+    frames, sizes = {}, {}
     for anim, info in meta['anims'].items():
         if anim not in FPS:
             continue
-        if info.get('frame_w', fw) != fw or info.get('frame_h', fh) != fh:
-            print('  %s_p0: %s is on %dpx frames, not in this sheet yet' % (fig, anim, info.get('frame_w')))
-            continue
+        afw, afh = info.get('frame_w', fw), info.get('frame_h', fh)
+        if (afw, afh) != (fw, fh):
+            fx, fy = info.get('foot', [ax + info.get('origin', [0, 0])[0], ay + info.get('origin', [0, 0])[1]])
+            sizes[anim] = (afw, afh, fx, fy)
         sheet = Image.open(os.path.join(d, anim + '.png')).convert('RGBA')
         rows = info.get('rows', ['up', 'left', 'down', 'right'])
         # LPC art is already pixel art at 1x: snap to the palette without the render lift, keep its own outline
         cells = {}
         for ri, dname in enumerate(rows):
-            cells[dname] = [pixelate(sheet.crop((i * fw, ri * fh, (i + 1) * fw, (ri + 1) * fh)), 1, do_lift=False) for i in range(info['frames'])]
+            cells[dname] = [pixelate(sheet.crop((i * afw, ri * afh, (i + 1) * afw, (ri + 1) * afh)), 1, do_lift=False) for i in range(info['frames'])]
         frames[anim] = [cells.get(LPC_FOR_FACING[f]) or cells.get('down') or next(iter(cells.values())) for f in range(8)]
-    write_sheet(fig + '_p0', frames, fw, fh, ax, ay, top_of(frames['idle'][0], ay))
+    write_sheet(fig + '_p0', frames, fw, fh, ax, ay, top_of(frames['idle'][0], ay), sizes)
 
 
 def main():

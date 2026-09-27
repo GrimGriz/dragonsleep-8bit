@@ -46,14 +46,22 @@
     return out;
   };
   function unitOf(h, guest) {
-    var w = R.weaponOf ? R.weaponOf(h) : null;
+    var w = R.weaponOf(h), dm = R.damageExpr(h, w), look = SV.LOOK[h.id] || {};
     return {
-      id: h.id, name: h.name, cls: h.cls, lvl: h.lvl, guest: guest, side: 'party',
+      id: h.id, name: look.name || h.name, cls: h.cls, lvl: h.lvl, guest: guest, side: 'party', sheet: look.sheet || h.id + '_p0',
       hp: h.ko ? 0 : h.hp, maxhp: h.maxhp, ko: !!h.ko, conds: JSON.parse(JSON.stringify(h.conds || {})),
-      abil: h.abil, ac: R.ac(h), prof: R.prof(h.lvl), init: R.initBonus ? R.initBonus(h) : DS.mod(h.abil.dex),
-      slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), known: (h.known || []).slice(), feats: JSON.parse(JSON.stringify(h.feats || {})),
-      weapon: w, atk: R.attackBonus(h), dmg: R.damageExpr(h), attacks: R.attacksPerTurn(h), crit: R.critRange ? R.critRange(h) : 20,
-      spellDC: R.spellDC(h), spellAtk: R.spellAtk(h), src: h
+      abil: h.abil, baseAC: R.ac(h), prof: R.prof(h.lvl), init: R.initBonus(h), speed: 30, size: 1, reach: 5,
+      slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), known: (h.known || []).slice(),
+      feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass,
+      weapon: { name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: (w.weapon && w.weapon.props) || [],
+        finesse: !!(w.weapon && (w.weapon.props || []).indexOf('finesse') >= 0), gwf: h.cls === 'fighter' && R.twoHanded(h, w) },
+      attacks: R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
+      saves: { str: R.saveBonus(h, 'str'), dex: R.saveBonus(h, 'dex'), con: R.saveBonus(h, 'con'), int: R.saveBonus(h, 'int'), wis: R.saveBonus(h, 'wis'), cha: R.saveBonus(h, 'cha') },
+      stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h
     };
   }
+  // the POC's looks (RULED 09-27, Griz: "Denny should play as Barley but look like Denny for this POC"); the base art
+  // is LPC (pipeline 0), Blender for special monsters (RULED 09-27: "Pipeline 0 is the way to go, maybe pipeline 1 for
+  // special monsters or fights")
+  SV.LOOK = { barley: { name: 'Denny', sheet: 'denny_p2' }, aurdin: { sheet: 'aurdin_p0' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' } };
 })();

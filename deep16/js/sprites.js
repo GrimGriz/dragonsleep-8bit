@@ -12,17 +12,37 @@
   S.has = function (name) { return !!(D.SHEETS && D.SHEETS[name] && D.images[D.SHEETS[name].image] && D.images[D.SHEETS[name].image].naturalWidth); };
 
   // draw one frame; t in frames at 60 Hz; returns the sprite's height above the foot (for labels and HP bars)
+  // o.once: play through once and hold the last frame (an attack, a fall); o.alpha; o.flip: mirror; o.tint: a flash colour
   S.draw = function (ctx, name, anim, facing, t, x, y, o) {
     var sh = D.SHEETS && D.SHEETS[name];
     if (!sh || !S.has(name)) return S.placeholder(ctx, name, x, y, o);
     var a = sh.anims[anim] || sh.anims.idle, img = D.images[sh.image];
-    var fr = Math.floor(t * (a.fps || 8) / 60) % a.frames;
-    var row = a.row + (facing % 8);
+    var fw = a.fw || sh.fw, fh = a.fh || sh.fh, ax = a.ax != null ? a.ax : sh.ax, ay = a.ay != null ? a.ay : sh.ay;
+    var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.once ? Math.min(a.frames - 1, n) : n % a.frames;
+    var sy = (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh;
+    var dx = Math.round(x - ax), dy = Math.round(y - ay);
+    ctx.save();
     if (o && o.alpha != null) ctx.globalAlpha = o.alpha;
-    ctx.drawImage(img, fr * sh.fw, row * sh.fh, sh.fw, sh.fh, Math.round(x - sh.ax), Math.round(y - sh.ay), sh.fw, sh.fh);
-    ctx.globalAlpha = 1;
-    return sh.top || sh.ay;
+    if (o && o.lie) { ctx.translate(x, y); ctx.rotate(-Math.PI / 2); ctx.translate(-x, -y + 6); }
+    ctx.drawImage(img, fr * fw, sy, fw, fh, dx, dy, fw, fh);
+    if (o && o.tint) { // a hit flash: the frame's own silhouette filled with one colour
+      var tc = S.tintCanvas(fw, fh);
+      var tx = tc.getContext('2d');
+      tx.globalCompositeOperation = 'source-over'; tx.clearRect(0, 0, fw, fh);
+      tx.drawImage(img, fr * fw, sy, fw, fh, 0, 0, fw, fh);
+      tx.globalCompositeOperation = 'source-in'; tx.fillStyle = o.tint; tx.fillRect(0, 0, fw, fh);
+      ctx.globalAlpha = (o.tintAlpha == null ? 0.75 : o.tintAlpha) * (o.alpha == null ? 1 : o.alpha);
+      ctx.drawImage(tc, dx, dy);
+    }
+    ctx.restore();
+    return sh.top || ay;
   };
+  var tintCv = {};
+  S.tintCanvas = function (w, h) { var k = w + 'x' + h; if (!tintCv[k]) { tintCv[k] = document.createElement('canvas'); tintCv[k].width = w; tintCv[k].height = h; } return tintCv[k]; };
+  S.anim = function (name, anim) { var sh = D.SHEETS && D.SHEETS[name]; return sh && sh.anims[anim]; };
+  // how long an anim takes to play once, in frames at 60 Hz
+  S.duration = function (name, anim) { var a = S.anim(name, anim); return a ? Math.ceil(a.frames * 60 / (a.fps || 8)) : 0; };
+  S.top = function (name) { var sh = D.SHEETS && D.SHEETS[name]; return sh ? sh.top || 48 : 42; };
 
   // until a sheet exists: a capsule in the unit's colour, so the grid can be built before the art lands
   S.placeholder = function (ctx, name, x, y, o) {

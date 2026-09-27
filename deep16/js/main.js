@@ -1,4 +1,4 @@
-/* DEEP16 — boot. ?gate = the stop-and-look gate; ?view = the cavern with a cursor; ?stats = the frame-rate overlay;
+/* DEEP16 — boot. The fight by default; ?gate = the stop-and-look gate; ?view = the cavern with a cursor; ?stats = the frame-rate overlay;
    ?scale=N forces an integer scale. */
 'use strict';
 (function () {
@@ -11,7 +11,8 @@
   D.canvas.focus();
   D.loadImages(D.spr.images(), function () {
     if (/[?&]gate\b/.test(q)) D.push(new D.Gate());
-    else D.push(new D.MapView('cavern'));
+    else if (/[?&]view\b/.test(q)) D.push(new D.MapView('cavern'));
+    else D.push(new D.Battle());
     D.start();
   });
 })();

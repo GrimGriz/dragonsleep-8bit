@@ -78,7 +78,7 @@
       "size_squares": 2.1,
       "yaw": 0,
       "anims": {
-        "idle": "IDLE",
+        "idle": "IDLE", "attack": "ATTACK",
         "walk": "WALK"
       },
       "cavity": false
