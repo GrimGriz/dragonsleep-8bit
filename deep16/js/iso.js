@@ -44,17 +44,23 @@
   iso.noise = { vnoise: vnoise, fbm: fbm, dith: dith, rampPick: rampPick, h2: h2 };
 
   // ------------------------------------------------------------------ the map
-  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1 };
+  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1, ',': 1, 'g': 1, 'T': 1, 'W': 1, 'V': 1, 'k': 1, 'f': 1, 'w': 1 };
+  // set design (09-27, Griz: "proceed with set design"): the things a square can hold that stand in the way -- not walked
+  // through, half cover, like a stalagmite (grid.js names them in the cover's reason). b is a built wall: rock to the rules.
+  //   ,  a road (packed dirt, rutted)   g  grass   T  a tree   W  a wagon under its cover (squares side by side make one)
+  //   V  a wagon's open bed (lower; a fight's `riders` stand in it)
+  //   k  a woodpile or crates   f  a rail or fence (posts and bars)   w  a well   b  a building's wall
+  var STANDS = { P: 'a stalagmite', T: 'a tree', W: 'the wagon', V: 'the wagon', k: 'the woodpile', f: 'the rail', w: 'the well' };
   iso.load = function (def) {
     var m = { def: def, w: def.rows[0].length, h: def.rows.length, sq: [] };
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var ch = def.rows[y][x];
       m.sq.push({
         x: x, y: y, ch: ch, open: !!OPEN[ch],
-        walk: !!OPEN[ch] && ch !== 'P' && ch !== 'c',
+        walk: !!OPEN[ch] && ch !== 'c' && !STANDS[ch],
         difficult: ch === 'r' || ch === '~',
         gz: ch === 'L' ? def.step * 2 : ch === '/' ? def.step : 0,
-        pillar: ch === 'P', cocoon: ch === 'c'
+        pillar: !!STANDS[ch], stands: STANDS[ch] || null, cocoon: ch === 'c', tree: ch === 'T', block: 'WVkfw'.indexOf(ch) >= 0 ? ch : null
       });
     }
     m.at = function (x, y) { return (x < 0 || y < 0 || x >= m.w || y >= m.h) ? null : m.sq[y * m.w + x]; };
@@ -137,7 +143,12 @@
             var crack = Math.abs(vnoise(gx * 2.2, gy * 2.2, seed + 21) - 0.5) < 0.012;
             var pebble = h2(Math.floor(gx * 14), Math.floor(gy * 14), seed + 5) > 0.985;
             var mossy = fbm(gx * 0.7, gy * 0.7, seed + 40) > 0.66 && rock < 0.6;
-            if (earth) {
+            if (s.ch === ',') {                                   // the road: packed dirt, two ruts along it, no grass
+              var rx = gx + 0.5 - Math.floor(gx + 0.5), ry = gy + 0.5 - Math.floor(gy + 0.5), rut = (m.def.road === 'y' ? Math.abs(rx - 0.3) < 0.05 || Math.abs(rx - 0.7) < 0.05 : Math.abs(ry - 0.3) < 0.05 || Math.abs(ry - 0.7) < 0.05);
+              col = rut ? leather[0] : pebble ? stone[5] : rampPick(leather, 0.12 + n * 0.4 + (fine - 0.5) * 0.15, ix, iy);
+            } else if (s.ch === 'g') {                            // grass, all of it
+              col = pebble ? stone[4] : rampPick(moss, 0.12 + n * 0.75 + (fine - 0.5) * 0.2 - Math.max(0, 0.9 - rock) * 0.3, ix, iy);
+            } else if (earth) {
               var grass = fbm(gx * 0.45, gy * 0.45, seed + 40) + (fine - 0.5) * 0.25 > 0.5 && s.ch !== 'r';
               col = crack ? leather[0] : pebble ? stone[5] : grass ? rampPick(moss, 0.15 + n * 0.7 - Math.max(0, 0.9 - rock) * 0.3, ix, iy) : rampPick(leather, 0.2 + n * 0.5 + (fine - 0.5) * 0.15 - Math.max(0, 0.9 - rock) * 0.25, ix, iy);
               if (s.ch === 'r' && fine > 0.55) col = rampPick(stone, shade + 0.25, ix, iy);
@@ -146,6 +157,9 @@
               if (s.ch === 'r' && fine > 0.6) col = rampPick(stone, shade + 0.18, ix, iy);
             }
           }
+          // an open edge of the map (a road running on, the way out) fades into the dark, dithered
+          var ed = Math.min(gx + 0.5, gy + 0.5, m.w - 0.5 - gx, m.h - 0.5 - gy);
+          if (ed < 0.9 && dith(ix, iy) > ed / 0.9) col = stone[0];
           put(ix, iy, col);
         }
       }
@@ -194,7 +208,9 @@
     m.sq.forEach(function (s) {
       if (s.rock === 'far' || s.rock === 'near') m.props.push({ kind: 'rock', sq: s, depth: s.x + s.y, gz: 0 });
       if (s.tile) m.props.push({ kind: 'tile', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1, img: s.tile });
-      if (s.pillar) m.props.push({ kind: 'pillar', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.stalagmite(D.hash('p' + s.x + ',' + s.y)) });
+      if (s.ch === 'P') m.props.push({ kind: 'pillar', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.stalagmite(D.hash('p' + s.x + ',' + s.y)) });
+      if (s.tree) m.props.push({ kind: 'tree', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.tree(D.hash('t' + s.x + ',' + s.y)) });
+      if (s.block) m.props.push({ kind: 'block', sq: s, depth: s.x + s.y + 0.5, gz: 0, img: blockCanvas(m, s) });
       if (s.cocoon) m.props.push({ kind: 'cocoon', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.cocoon(D.hash('c' + s.x + ',' + s.y)) });
       if (s.ch === 'r') {
         for (var k = 0; k < 3; k++) {
@@ -206,6 +222,51 @@
       }
     });
     m.rockImgs = {};
+  }
+
+  // ------------------------------------------------------------------ the blocks: a box on the square, its faces toward +gx and +gy only where
+  // the same block doesn't carry on (so a wagon two squares wide by four long is one box), lit as the rock is
+  var BLOCK = { W: { h: 24, side: 'leather', top: 'silver', planks: true, wheels: true }, V: { h: 12, side: 'leather', top: 'leather', planks: true, wheels: true, bed: true }, k: { h: 14, side: 'leather', top: 'leather', planks: true, logs: true },
+    f: { h: 11, side: 'leather', top: 'leather', rail: true }, w: { h: 11, side: 'stone', top: 'stone', well: true } };
+  function blockCanvas(m, s) {
+    var b = BLOCK[s.ch], hgt = b.h, W = TW, H = TH + hgt + 2, ox = HW, oy = hgt + HH;
+    var same = function (x, y) { var n = m.at(x, y); return !!(n && n.ch === s.ch); };
+    var seed = D.hash(m.def.name) + s.x * 31 + s.y * 17, side = iso.ramp(b.side), top = iso.ramp(b.top), stone = iso.ramp('stone');
+    var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
+    var cx = cv.getContext('2d'), img = cx.createImageData(W, H), px = img.data;
+    function put(ix, iy, c) { if (ix < 0 || iy < 0 || ix >= W || iy >= H) return; var o = (iy * W + ix) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; }
+    [['R', !same(s.x + 1, s.y), !same(s.x, s.y - 1) || !same(s.x, s.y + 1)], ['L', !same(s.x, s.y + 1), !same(s.x - 1, s.y) || !same(s.x + 1, s.y)]].forEach(function (f) {
+      if (!f[1]) return;
+      var right = f[0] === 'R', wheel = b.wheels && f[2];
+      for (var k = 0; k < HW; k++) {
+        var fx = right ? ox + k : ox - HW + k, yb = right ? oy + HH - Math.floor(k / 2) : oy + Math.floor(k / 2);
+        for (var j = 0; j < hgt; j++) {
+          var y = yb - j - 1, v = (right ? 0.3 : 0.52) + (vnoise(k * 0.2 + s.x * 5, y * 0.3, seed) - 0.5) * 0.2;
+          if (b.rail && !(k % 16 < 3 || j === 3 || j === 4 || j === 8 || j === 9)) continue;   // posts and two bars, the yard through them
+          if (b.planks && !b.logs && k % 8 === 0) v -= 0.16;                                   // plank seams
+          if (b.logs) { var ring = Math.hypot((k % 7) - 3, (j % 5) - 2); v = ring < 1.2 ? 0.7 : ring < 2.4 ? 0.45 : 0.18; } // log ends, stacked
+          if (b.well && (j % 4 === 0 || (k + (j >> 2) * 4) % 8 === 0)) v -= 0.14;           // the well's courses
+          if (j === 0) v -= 0.1;
+          var col = rampPick(side, v, fx, y);
+          if (wheel) { var d = Math.hypot(k - HW / 2, (j - 7) * 1.1); if (d < 7.5 && d > 5) col = stone[1]; else if (d < 1.6) col = stone[3]; else if (d < 5 && ((k + j) % 3 === 0)) col = stone[2]; }
+          put(fx, y, col);
+        }
+      }
+    });
+    // the top: a wagon's canvas cover, the woodpile's bark, the rail's bar, the well's rim round the dark
+    for (var dy = -HH; dy < HH; dy++) {
+      var half = HW - Math.abs(dy + 0.5) * 2;
+      for (var dx = -Math.floor(half); dx < half; dx++) {
+        var tx = ox + dx, ty = oy - hgt + dy, v2 = 0.5 + (vnoise((dx + s.x * 64) * 0.12, (dy + s.y * 32) * 0.25, seed + 9) - 0.5) * 0.3;
+        if (b.rail && Math.abs(dy) > 1) continue;
+        if (b.well) { var r2 = Math.hypot(dx / HW, dy / HH); if (r2 < 0.5) { put(tx, ty, stone[0]); continue; } v2 = 0.42 + (r2 > 0.85 ? -0.1 : 0.08); }
+        if (b.bed) v2 = (Math.abs(((dx - dy * 2) % 8 + 8) % 8) < 1 ? 0.12 : 0.36) + (vnoise(dx * 0.4, dy * 0.4, seed) - 0.5) * 0.15; // the bed's boards
+        if (s.ch === 'W') v2 = 0.3 + 0.28 * Math.abs(Math.sin((dx + dy * 2 + s.x * 13) * 0.35)) + (half - Math.abs(dx + 0.5) < 2 ? -0.18 : 0); // the cover's folds: dusky canvas at night
+        put(tx, ty, rampPick(top, v2, tx, ty));
+      }
+    }
+    cx.putImageData(img, 0, 0);
+    return { canvas: cv, ax: ox, ay: oy };
   }
 
   // a cut stub stands a little above the highest open floor around it (so a stub beside the ledge is cut at the ledge)
@@ -227,7 +288,8 @@
     var W = TW, H = TH + top + 2, ox = HW, oy = top + HH; // canvas-local centre of the square's ground rhombus
     var cv = document.createElement('canvas'); cv.width = W; cv.height = H;
     var cx = cv.getContext('2d'), img = cx.createImageData(W, H), px = img.data;
-    var seed = D.hash(m.def.name) + s.x * 31 + s.y * 17;
+    var seed = D.hash(m.def.name) + s.x * 31 + s.y * 17, built = s.ch === 'b';
+    if (built) stone = iso.ramp('silver');
     function put(ix, iy, c, a) { if (ix < 0 || iy < 0 || ix >= W || iy >= H) return; var o = (iy * W + ix) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = a == null ? 255 : a; }
     // faces: the +gx face (lower-right) and the +gy face (lower-left), each from its neighbour's floor up to the top
     [['R', fR], ['L', fL]].forEach(function (f) {
@@ -243,6 +305,7 @@
           // strata: horizontal-ish bands, broken by noise; lit from the upper left
           var band = vnoise(k * 0.08 + s.x * 3.1, (y + s.y * 11) * 0.22, seed) * 0.5 + vnoise(k * 0.3, y * 0.05, seed + 4) * 0.5;
           var v = (right ? 0.26 : 0.46) + (band - 0.5) * 0.36;
+          if (built) { var course = Math.floor((j + s.y * 3) / 5), joint = (k + (course % 2) * 6) % 12 === 0; v = (right ? 0.34 : 0.56) + (vnoise(k * 0.5 + course * 7, course, seed) - 0.5) * 0.18 - ((j % 5 === 0 || joint) ? 0.22 : 0); } // a building: coursed stone
           if (far) v -= Math.pow(up, 1.6) * 0.62;                 // into the dark above
           if (j === 0) v -= 0.12;                                  // the foot of the wall
           if (!far && j === span - 1) v += 0.18;                   // the cut edge catches the light

@@ -528,32 +528,40 @@ window.D16.MAPS.deep = {
   wave: null
 };
 
-// The Halfway Inn's yard at night (the 8-bit game's wagon night): the wagon (the P block), the well, the inn door the
-// four come out of, and the stable gate at the far corner where the horses are: the way out (exit).
+// The Halfway Inn's yard at night (the 8-bit game's wagon night), re-cut 09-27 (set design; Griz: "the battlemap for that
+// first fight seems small ... get closer to the 8-bit scene") from tools/mapgen.py build_halfway at the same bearings: the
+// road down the west side (off both ends: the way out), the wagon pulled in off it, the well and the hitching rail, the
+// inn's long wall on the east with its two doors (the four come out of the near one), the woodpile, the stable to the south.
 window.D16.MAPS.yard = {
   name: 'The Inn Yard',
   sub: 'the Halfway Inn, at night',
   step: 20,
   ground: 'earth',
+  road: 'y',
   rows: [
-    '####################',
-    '##############...###',
-    '#.................##',
-    '#...PPP............#',
-    '#...PPP............#',
-    '#..................#',
-    '#.......r..........#',
-    '#..................#',
-    '#...........P......#',
-    '#..................#',
-    '##................##',
-    '###....======....###',
-    '####...======...####',
-    '####################'
+    ',,Tfffffffffffffffffff',
+    ',,T...........gggggggf',
+    ',,g..w..fff...gggggggf',
+    ',,T.VWWW......gggggggf',
+    ',,g.VWWW......gggggggf',
+    ',,g.........bbbbbbbbbb',
+    ',,g.........bbbbbbbbbb',
+    ',,g........kbbbbbbbbbb',
+    ',,g........kb=bbbbbb=b',
+    ',,g...........gggggggf',
+    ',,g...........gggggggf',
+    ',,g...........gggggggf',
+    ',,T...........gggggggf',
+    ',,g.bbbbb.....gggggggf',
+    ',,T.bbbbb.....gggggggf',
+    ',,g.bbbbbk....gggggggf',
+    ',,Tfffffffffffffffffff'
   ],
-  entry: [[9, 12], [10, 12], [8, 11], [11, 11], [9, 11]],
-  exit: [[14, 1], [15, 1], [16, 1]],
-  exitName: 'through the stable gate with the horses',
+  entry: [[13, 9], [12, 9], [14, 9], [13, 10], [12, 10]],
+  doors: [[13, 8], [20, 8]],
+  exit: [[0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [0, 5], [0, 6], [0, 7], [0, 8], [0, 9], [0, 10], [0, 11], [0, 12], [0, 13], [0, 14], [0, 15], [0, 16]],
+  exitName: 'up the road into the dark',
+  lights: [[13, 9, 40, 'gold']],
   foes: [],
   wave: null
 };

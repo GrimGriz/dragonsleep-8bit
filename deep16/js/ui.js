@@ -468,6 +468,7 @@
     D.iso.inWorld = true; // (before the figures are placed: their positions are the world canvas's)
     try {
       B.units.forEach(function (u) { var o = unitObj(B, u); if (o) objs.push(o); });
+      (B.riders || []).forEach(function (r) { var c = D.iso.center(r.x, r.y, r.gz), s = D.iso.toScreen(c.x, c.y); objs.push({ depth: r.x + r.y + 0.6, gz: r.gz, draw: function (ctx) { D.spr.draw(ctx, r.sheet, 'idle', r.facing, B.t, s.x, s.y, {}); } }); });
       FX.list.forEach(function (f) { if (!f.screen) objs.push({ depth: 1e6, gz: 0, draw: function (c) { f.draw(c); } }); });
       DEFER = objs; WCTX = wx;
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
@@ -569,6 +570,8 @@
       if (rc.dash) Object.keys(rc.dash).forEach(function (k) { var e = rc.dash[k]; if (e.stand && !rc.move[k]) fillSq(ctx, e.x, e.y, R('glow', 1), 0.07); });
       Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand && e.cost > 0) fillSq(ctx, e.x, e.y, R('glow', 1), 0.17); });
       // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
+      // the ways out: a pale marker on each (set design, 09-27)
+      (B.exits || []).forEach(function (q) { lineSq(ctx, q[0], q[1], R('moss', 2), 0.35); });
       if (u.cls === 'rogue') { var hs = hideSpots(B, u); Object.keys(hs).forEach(function (k) { if (!hs[k]) return; var q = k.split(','); fillSq(ctx, +q[0], +q[1], R('violet', 3), 0.42, 5); }); }
       if (T.attacksLeft || T.action) B.units.forEach(function (w) {
         if (!G.hostile(u, w) || !G.standing(w) || !B.canHit(u, w)) return;

@@ -138,7 +138,7 @@
           var inA = x >= (ax == null ? a.x : ax) && y >= (ay == null ? a.y : ay) && x < (ax == null ? a.x : ax) + (a.size || 1) && y < (ay == null ? a.y : ay) + (a.size || 1);
           var inB = x >= b.x && y >= b.y && x < b.x + (b.size || 1) && y < b.y + (b.size || 1);
           if (inA || inB) continue;
-          if (s.pillar) { cover = 2; why = 'a stalagmite'; }
+          if (s.pillar) { cover = 2; why = s.stands || 'a stalagmite'; }
           var w = G.occupant(x, y);
           if (w && w !== a && w !== b && cover < 2) { cover = 2; why = w.name; }
         }

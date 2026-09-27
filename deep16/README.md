@@ -139,6 +139,20 @@ kept). **One of them out the way the party came in** (LEAVE THE FIGHT, in ACTION
 foe beside them gets its opportunity attack): back to the campfire, where the DM's hands raise the fallen, no level
 for it, and another fight drawn from the rung. Kept in `deep16.climb`.
 
+**Set design** (09-27, Griz: "proceed with set design"; `js/iso.js`, `js/art.js`, `data/maps.js`): the maps have more
+than cave now. New ground: `,` a road (rutted dirt; a map's `road: 'y'` runs its ruts along gy) and `g` grass. New set
+pieces, each a stalagmite to the rules (not walked through, half cover, named in the cover's reason): `T` a tree, `W` a
+wagon under its cover and `V` its open bed (squares side by side make one wagon, wheels at its ends), `k` a woodpile,
+`f` a rail or fence (posts and bars), `w` a well; and `b` a building's wall (coursed stone; rock to the rules). An
+**open edge** of a map (any square on the border you can stand on) fades into the dark and is a way out: LEAVE THE
+FIGHT works from any of them, and from a map's `doors`; the ways out are marked on the grid on a hero's turn. A map
+closed all round keeps the squares the party came in by. A fight's `riders` are scenery figures standing where they
+are (never in the fight), and a win can change them (`after`). **The inn yard** is re-cut from the 8-bit game's Halfway
+map at its bearings (22 x 17): the road down the west side, the wagon with the children in its bed (goblins to the eye
+until the glamour breaks: `kid1_p0`/`kid2_p0`, Aurdin's LPC layers in farm colours at 80%), the well and the rail,
+the inn's wall and its two doors, the woodpile, the stable. The ladder's fight there has two hired swords, and nobody
+flees.
+
 **The camp** (09-27, `js/camp.js`: Griz, "spell prep should probably run before each fight"): a rung's E opens the camp
 before the fight. **EQUIP** from the rung's armoury, free (Silverton's racks from rung 1; the lake's hoard and Winters'
 cases from 5; the Door-Shield and the smith's from 6; dwarven plate at 8): what one hero sets down another can take up.

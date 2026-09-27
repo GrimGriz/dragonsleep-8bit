@@ -575,6 +575,32 @@ FIGURES = {
                   'body = teen (the generator\'s youth body); head = human male (the generator maps teen to it)',
                   'attack = spellcast (7 frames), the simple staff\'s own spellcast sheets'],
     },
+    # the wagon's children (09-27, Griz: "we need NPC goblin or children in that wagon"): Aurdin's own cached layers
+    # (the teen body, the plain skirt as a smock, the longsleeve), in farm colours; scaled down to a child's height after
+    'kid1': {
+        'body': 'teen', 'skin': 'light', 'eyes': 'brown', 'attack': 'spellcast',
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_male.json'},
+            {'def': 'legs/skirts/legs_skirts_plain.json', 'color': 'walnut'},
+            {'def': 'feet/shoes/feet_shoes_basic.json', 'color': 'brown'},
+            {'def': 'torso/shirts/longsleeve/torso_clothes_longsleeve.json', 'color': 'tan'},
+            {'def': 'hair/short/hair_messy2.json', 'color': 'sandy'},
+        ],
+        'notes': ['a child from the wagon: Aurdin\'s layers only (nothing new fetched), smock = longsleeve + plain skirt'],
+    },
+    'kid2': {
+        'body': 'teen', 'skin': 'olive', 'eyes': 'green', 'attack': 'spellcast',
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_male.json'},
+            {'def': 'legs/skirts/legs_skirts_plain.json', 'color': 'brown'},
+            {'def': 'feet/shoes/feet_shoes_basic.json', 'color': 'brown'},
+            {'def': 'torso/shirts/longsleeve/torso_clothes_longsleeve.json', 'color': 'maroon'},
+            {'def': 'hair/short/hair_messy2.json', 'color': 'redhead'},
+        ],
+        'notes': ['a child from the wagon: Aurdin\'s layers only (nothing new fetched), smock = longsleeve + plain skirt'],
+    },
     'vivian': {
         'body': 'female', 'skin': 'light', 'eyes': 'green', 'attack': 'slash',
         'items': [

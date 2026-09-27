@@ -23,7 +23,14 @@
     this.canSwap = !this.o.ladder && (this.o.fixture || this.from.from !== 'the fixture');
     var party = D.save.units(this.from.data, this.o.climb ? Object.assign({}, F, { looks: null }) : F); // the climb: Barley is Barley
     var entry = (F.entry || m.def.entry).slice();
-    this.exits = entry.slice(); // the way the party came in, and the way out (LEAVE THE FIGHT)
+    // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
+    // the party came in by), and a map's named doors (`doors`: the inn's); a map closed all round keeps the way in
+    // riders (a fight's scenery figures: the wagon's glamoured children): drawn where they stand, never in the fight
+    this.riders = (F.riders || []).map(function (r) { return { x: r.at[0], y: r.at[1], sheet: r.sheet, after: r.after, facing: r.facing || 0, gz: r.gz || 0 }; });
+    this.exits = [];
+    for (var ey = 0; ey < m.h; ey++) for (var ex = 0; ex < m.w; ex++) { var es = m.at(ex, ey); if (es && es.walk && (ex === 0 || ey === 0 || ex === m.w - 1 || ey === m.h - 1)) this.exits.push([ex, ey]); }
+    (m.def.doors || []).forEach(function (q) { self.exits.push(q); });
+    if (!this.exits.length) this.exits = entry.slice();
     party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });
     var foes = (F.foes || m.def.foes).map(function (f) { return self.makeFoe(f); });
     this.units = party.concat(foes);
@@ -234,6 +241,8 @@
 
   Battle.prototype.finish = function* (o) {
     this.result = o;
+    // the glamour broken: the riders are what they were all along (the wagon yard's children)
+    if (o === 'won') this.riders.forEach(function (r) { if (r.after) { r.sheet = r.after; FX.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
     D.music(o === 'won' ? 'victory' : 'gameover');
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;

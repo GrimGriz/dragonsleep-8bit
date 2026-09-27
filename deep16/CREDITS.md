@@ -37,6 +37,10 @@ stalagmites, cocoons and rubble are drawn in code (`deep16/js/iso.js`, `deep16/j
 
 The `*_p0` sheets are derivatives of the art credited below and are distributed under the same licences.
 
+`kid1_p0` and `kid2_p0` (the wagon yard's children, 09-27) are made of Aurdin's layers only (the teen body, the human
+male head, the plain skirt, the basic shoes, the longsleeve, the messy hair), recoloured and shrunk to 80%: every entry
+below that says "Used by: aurdin" (but the robe belt and the staff) credits them too.
+
 Licence texts: CC-BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0/ , CC-BY 3.0 https://creativecommons.org/licenses/by/3.0/ , OGA-BY 3.0 https://static.opengameart.org/OGA-BY-3.0.txt , GPL 3.0 https://www.gnu.org/licenses/gpl-3.0.html
 
 ## body/body.json -- "Body Color"

@@ -99,7 +99,10 @@
     { id: 'wagon', level: 4, map: 'yard', name: 'The Wagon Yard', sub: 'the Halfway Inn, at night', music: 'boss', noFlee: true,
       intro: 'Steel comes out. Two hired swords who rode guard on the wagon step in front of the pair, and Amara and Willem stand behind them, blasting. Nobody reaches the horses tonight.',
       from: 'the 8-bit game: events.js S.wagonFight (Amara and Willem; there, they run for the horses and a chase follows). The two hired swords are the ladder\'s own, not the 8-bit game\'s (it ruled no hired drivers)', won: 'THE GLAMOUR IS BROKEN.',
-      foes: [{ id: 'amara', kind: 'amara', at: [3, 10] }, { id: 'willem', kind: 'willem', at: [2, 8] }, { id: 'hs1', kind: 'hiredsword', at: [5, 9] }, { id: 'hs2', kind: 'hiredsword', at: [4, 6] }], wave: null },
+      foes: [{ id: 'amara', kind: 'amara', at: [8, 6] }, { id: 'willem', kind: 'willem', at: [6, 6] }, { id: 'hs1', kind: 'hiredsword', at: [10, 7] }, { id: 'hs2', kind: 'hiredsword', at: [9, 9] }], wave: null,
+      // in the wagon's bed, the cargo: goblins to the eye until the glamour breaks, then children (Griz, 09-27: "we need NPC goblin
+      // or children in that wagon"; the 8-bit game's W.goblin, look kid once glamourBroken)
+      riders: [{ at: [4, 3], sheet: 'goblin_p1', after: 'kid1_p0', gz: 12 }, { at: [4, 4], sheet: 'goblin_p1', after: 'kid2_p0', gz: 12 }] },
     { id: 'gricks', level: 5, map: 'grickden', name: 'The Grick Den', sub: 'south of the king\'s road, leg one', music: 'boss',
       intro: 'Something moves in the open cavern south of the road, low and fast, and then there are more of them than there were rocks. (Plain steel does half; magic does not care.)',
       from: 'the 8-bit game: deep.js S.grickDen (three gricks; five with the king)', won: 'THE DARK IS ONLY DARK AGAIN.',
