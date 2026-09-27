@@ -19,7 +19,7 @@
     if (this.o.ladder) this.from = { from: 'the ladder', when: null, data: D.save.fixture(F.level) };
     else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
     this.canSwap = !this.o.ladder && (this.o.fixture || this.from.from !== 'the fixture');
-    var party = D.save.units(this.from.data);
+    var party = D.save.units(this.from.data, F);
     var entry = (F.entry || m.def.entry).slice();
     party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });
     var foes = (F.foes || m.def.foes).map(function (f) { return self.makeFoe(f); });

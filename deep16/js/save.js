@@ -44,15 +44,15 @@
   };
 
   // the heroes and guests as DEEP16 units: everything the grid needs, read off the 8-bit sheet
-  SV.units = function (data) {
+  SV.units = function (data, fight) {
     DS.G = { flags: data.flags || { lakeDone: 1 } };
     var out = [];
-    (data.party || []).forEach(function (h) { out.push(unitOf(h, false)); });
-    (data.guests || []).forEach(function (g) { out.push(unitOf(g, true)); });
+    (data.party || []).forEach(function (h) { out.push(unitOf(h, false, fight)); });
+    (data.guests || []).forEach(function (g) { out.push(unitOf(g, true, fight)); });
     return out;
   };
-  function unitOf(h, guest) {
-    var w = R.weaponOf(h), dm = R.damageExpr(h, w), look = SV.LOOK[h.id] || {};
+  function unitOf(h, guest, fight) {
+    var w = R.weaponOf(h), dm = R.damageExpr(h, w), look = SV.look(h.id, fight);
     return {
       id: h.id, name: look.name || h.name, cls: h.cls, lvl: h.lvl, guest: guest, side: 'party', sheet: look.sheet || h.id + '_p0',
       hp: h.ko ? 0 : h.hp, maxhp: h.maxhp, ko: !!h.ko, conds: JSON.parse(JSON.stringify(h.conds || {})),
@@ -71,5 +71,8 @@
   // the POC's looks (RULED 09-27, Griz: "Denny should play as Barley but look like Denny for this POC"); the base art
   // is LPC (pipeline 0), Blender for special monsters (RULED 09-27: "Pipeline 0 is the way to go, maybe pipeline 1 for
   // special monsters or fights")
-  SV.LOOK = { barley: { name: 'Denny', sheet: 'denny_p2' }, aurdin: { sheet: 'aurdin_p0' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' } };
+  // Barley is Barley again everywhere but the level-9 fight (Griz, 09-27: "put Barley back except in the lvl 9 fight"):
+  // a fight may carry `looks` over these (data/fights.js, the Cocoon Gallery keeps Denny)
+  SV.LOOK = { barley: { sheet: 'barley_p0' }, aurdin: { sheet: 'aurdin_p0' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' } };
+  SV.look = function (id, fight) { return (fight && fight.looks && fight.looks[id]) || SV.LOOK[id] || {}; };
 })();

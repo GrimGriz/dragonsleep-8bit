@@ -28,7 +28,7 @@
   function gains(L) {
     var R = DS.R;
     return ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) {
-      var h = R.makeHero(id, L), look = D.save.LOOK[id] || {}, hp0 = h.maxhp;
+      var h = R.makeHero(id, L), look = D.save.look(id, D.fightAt(L + 1)), hp0 = h.maxhp;
       var msgs = (R.levelUp(h) || []).map(function (m) { return window.DS.stripCodes ? window.DS.stripCodes(String(m)) : String(m); });
       return { name: look.name || h.name, cls: h.cls, lvl: h.lvl, hp: h.maxhp - hp0, msgs: msgs };
     });
@@ -118,7 +118,7 @@
     if (this.cache[L]) return this.cache[L];
     var R = DS.R, data = D.save.fixture(L);
     return (this.cache[L] = data.party.map(function (h) {
-      var look = D.save.LOOK[h.id] || {}, w = R.weaponOf(h);
+      var look = D.save.look(h.id, D.fightAt(L)), w = R.weaponOf(h);
       return { name: look.name || h.name, cls: h.cls, lvl: h.lvl, hp: h.maxhp, ac: R.ac(h), weapon: w ? w.name : '', slots: h.slotsMax && h.slotsMax.length ? 'slots ' + h.slotsMax.map(function (n, k) { return (k + 1) + ':' + n; }).join(' ') : '' };
     }));
   };

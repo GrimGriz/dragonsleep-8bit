@@ -23,7 +23,8 @@
       intro: 'It is already getting up again.', from: 'leg four of the highway (the troll hole)',
       foes: [{ id: 'troll1', kind: 'troll', at: [11, 4] }], wave: null },
     { id: 'gallery', level: 9, map: 'cavern', name: 'The Cocoon Gallery', sub: 'off the road, below Third Lamp',
-      intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)' }
+      intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)',
+      looks: { barley: { name: 'Denny', sheet: 'denny_p2' } } } // Denny plays Barley here only (Griz, 09-27)
   ];
   D.fight = function (id) { return D.FIGHTS.filter(function (f) { return f.id === id; })[0] || D.FIGHTS[D.FIGHTS.length - 1]; };
   D.fightAt = function (level) { return D.FIGHTS.filter(function (f) { return f.level === level; })[0] || null; };
