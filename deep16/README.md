@@ -7,8 +7,14 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
 - **Play:** after the expansion's credits choose **PAST THE DOOR**, or open `deep16/` straight
   (https://grimgriz.github.io/dragonsleep-8bit/deep16/). `?gate` shows the sprite comparison (the three pipelines);
   `?view` walks a cursor round the cavern; `?stats` (or the ` key) shows the frame rate; `?scale=N` forces a scale.
-- **Keys:** mouse hover/click, right-click to inspect · arrows/WASD move the cursor · E/Z confirm · X/Esc back ·
-  1–9 commands · SPACE end turn · M the menu (restart, the gate, RETURN TO SILVERTON).
+- **Keys:** mouse hover/click, right-click to inspect, middle-drag or the screen's edge to look round · arrows/WASD
+  move the cursor (or the menu) · E/Z confirm · X/Esc back, and at rest the menu · 1–9 commands · SPACE end turn ·
+  C recentre · H help · M/Tab the menu (PARTY, HELP, MENU style, restart, the gate, RETURN TO SILVERTON).
+- **Menu styles** (switched in the menu, kept per browser, or `?menu=bar|window|ring`): **BAR** — buttons in the
+  bottom bar, the grid cursor at rest · **WINDOW** — a Chrono Trigger-style command window with a pointing hand ·
+  **RING** — a Secret of Mana-style ring of icons round the hero. SPELLS and ITEM open a list (left/right, or up/down
+  on the ring, picks the slot level).
+- **HELP** (H): hints on the grid — a rogue's reachable squares that no foe she knows of sees plainly are tinted.
 - **Runs** from any static server (the 8-bit game's `dragonsleep` preview on 8923 serves it at `/deep16/`); it loads the
   8-bit game's `../js/font.js`, `../data/data.js` and `../js/rules.js`, so the lettering and the character maths are
   the 8-bit game's own. Nothing here is loaded by the 8-bit game.
