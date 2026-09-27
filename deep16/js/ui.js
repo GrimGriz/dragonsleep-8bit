@@ -1,33 +1,46 @@
 /* DEEP16 — the fight's face and hands.
-   Three menu styles over one set of commands, switched in the X/Esc menu (Griz, 09-27: "curious about trying different
-   menu ideas"): BAR (buttons in the bottom bar, the grid cursor at rest), WINDOW (a Chrono Trigger-style command window
-   with a pointing hand; the menu at rest, as there), RING (a Secret of Mana-style ring of icons round the hero).
-   The bottom bar always has the portrait, HP and BARM -- bonus, action, reaction, move and its feet -- lit while there's
-   one left, after the class; END TURN in its bottom-right corner.
+   Two menu styles over one set of commands, switched in the X/Esc menu: RING (a Secret of Mana-style ring of icons round
+   the hero, the main one; the grid cursor at rest, the ring up on Q or E over the hero) and WINDOW (a Chrono
+   Trigger-style command window with a pointing hand, up at rest, as there). RULED 09-27, Griz: the ring main, the window
+   for those who'd rather; the first try's BAR of buttons dropped.
+   The bottom bar has the portrait, HP and BARM -- bonus, action, reaction, move and its feet -- lit while there's one
+   left, after the class; the keys; END TURN in its bottom-right corner.
    The overlay under the sprites: reach (blue), dash reach (paler), targets, templates, the aura ring, a flanking line;
    the cursor red where the current thing can't go; with HELP on, a rogue's hiding places tinted.
-   Keys: arrows/WASD cursor (or the menu), E/Z confirm, X/Esc back (at rest: the menu), SPACE end turn, 1-9 commands,
-   M/Tab the menu, C recentre, H help. Mouse: hover, click, right-click inspect, middle-drag or the screen edge to look. */
+   Keys: arrows/WASD cursor along the grid (or the menu), E/Z confirm, X/Esc back (at rest: the menu), Q the ring,
+   SPACE end turn, 1-9 commands, M/Tab the menu, C recentre, H help, -/= zoom. Mouse: hover, click, right-click
+   inspect, the wheel zooms, middle-drag or the screen's edge (or past it) to look. */
 'use strict';
 (function () {
   var D = window.D16, I = D.input, G = D.grid, RU = D.rules, FX = D.fx;
   var UI = D.ui = {};
   var R = function (r, i) { return D.PAL.ramps[r][i]; };
-  var BAR_Y = 226, DEFER = null;
-  var BX = 182, BP = 74;   // the bar's right-hand block (the buttons, or the hints): its left edge, a cell's pitch
+  var BAR_Y = 226, DEFER = null, WCTX = null, WC = null;
+  function worldCanvas(w, h) {
+    if (!WC) WC = document.createElement('canvas');
+    if (WC.width !== w || WC.height !== h) { WC.width = w; WC.height = h; }
+    WC.getContext('2d').imageSmoothingEnabled = false;
+    return WC;
+  }
+  var BX = 182, BP = 74;   // the bar's right-hand block (the keys, END TURN): its left edge, a cell's pitch
 
   // ------------------------------------------------------------------ options (a per-viewer convenience; the page works without storage)
-  UI.opts = { help: false, style: 'bar' };
-  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { UI.opts.help = !!o0.help; if (/^(bar|window|ring)$/.test(o0.style)) UI.opts.style = o0.style; } } catch (e) { }
+  // RULED 09-27, Griz: the ring is the main menu, the window stays for those who'd rather; the bar's buttons are gone
+  // (a saved 'bar' becomes the ring)
+  UI.opts = { help: false, style: 'ring', autoEnd: true };
+  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { UI.opts.help = !!o0.help; if (o0.style === 'window') UI.opts.style = 'window'; if (o0.autoEnd === false) UI.opts.autoEnd = false; } } catch (e) { }
   UI.saveOpts = function () { try { window.localStorage.setItem('deep16.opts', JSON.stringify(UI.opts)); } catch (e) { } };
-  var qs = /[?&]menu=(bar|window|ring)/.exec(location.search); if (qs) UI.opts.style = qs[1];
-  function rest() { return UI.opts.style === 'bar' ? 'move' : 'menu'; }
+  var qs = /[?&]menu=(window|ring)/.exec(location.search); if (qs) UI.opts.style = qs[1];
+  // at rest: WINDOW holds its command window up (as Chrono Trigger does); RING stands on the grid ready to walk, and
+  // the ring comes up on E over the hero (where the cursor starts a turn), a click on him, or Q (Griz, 09-27)
+  function rest() { return UI.opts.style === 'window' ? 'menu' : 'move'; }
 
   // ------------------------------------------------------------------ requests
   UI.onRequest = function (B, req) {
     if (req.turn) {
       var T = req.turn.turn;
-      B.tool = T.attacksLeft ? 'attack' : B.nextTool || rest(); B.nextTool = null; B.cache = null; B.list = null; B.picks = []; B.spell = null;
+      // a second swing waits on the grid only while there's a foe to take it at; else back to rest (walk, or the ring)
+      B.tool = T.attacksLeft && B.foeInReach(req.turn) ? 'attack' : B.nextTool || rest(); B.nextTool = null; B.cache = null; B.list = null; B.picks = []; B.spell = null;
       if (B.cmdSel == null || B.cmdFor !== req.turn) { B.cmdSel = 0; B.cmdFor = req.turn; B.ringA = null; }
     }
     if (req.prompt) B.sel = 0;
@@ -58,22 +71,41 @@
   // ------------------------------------------------------------------ the commands a style shows (window and ring add MOVE and END TURN)
   UI.cmds = function (B, u) {
     var c = B.commands(u);
-    if (UI.opts.style === 'bar') return c;
     c = c.filter(function (x) { return !((x.id === 'dash' || x.id === 'cdash') && u.turn.move > 0); });
     return [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }].concat(c).concat([{ id: 'end', label: 'END TURN', cost: 'F', ok: true, icon: 'end' }]);
   };
 
   // ------------------------------------------------------------------ the camera: look where you like (the edge, a middle-drag), C comes back
+  // the zoom steps: whole device pixels per art pixel at the backing scale (at 3x: 1, 2/3, 1/3), never under a third
+  function zooms() { var R = D.R, L = []; for (var k = R; k >= 1; k--) if (k / R >= 0.33) L.push(k / R); if (L.length < 2) L.push(0.5); return L; }
+  UI.setZoom = function (dir, ax, ay) {
+    var L = zooms(), iso = D.iso, cam = iso.cam, z0 = iso.zoom, i = 0, best = 1e9;
+    L.forEach(function (z, k) { if (Math.abs(z - z0) < best) { best = Math.abs(z - z0); i = k; } });
+    var z1 = L[D.clamp(i + dir, 0, L.length - 1)];
+    if (z1 === z0) return;
+    // keep the world point under the mouse (or the middle) where it is
+    if (ax == null) { ax = D.W / 2; ay = D.H / 2; }
+    var wx = cam.x + (ax - D.W / 2) / z0, wy = cam.y + (ay - D.H / 2) / z0;
+    iso.zoom = z1; cam.x = wx - (ax - D.W / 2) / z1; cam.y = wy - (ay - D.H / 2) / z1;
+  };
+  var EDGE = 16; // the edge band that scrolls the view, in screen pixels (it was 4-6); past the canvas's edge, full speed
   UI.camera = function (B) {
-    var m = I.mouse, cam = D.iso.cam, map = D.iso.map, bk = map.bake;
-    if (m.inside && !m.drag && !B.menu && !(B.req && (B.req.prompt || B.req.entry))) {
-      if (m.x < 6) cam.x -= 4; if (m.x > D.W - 7) cam.x += 4;
-      if (m.y < 5) cam.y -= 3; if (m.y > D.H - 4) cam.y += 3;
+    var m = I.mouse, iso = D.iso, cam = iso.cam, map = iso.map, bk = map.bake, z = iso.zoom;
+    var free = !m.drag && !B.menu && !(B.req && (B.req.prompt || B.req.entry));
+    if (free && m.inWin && !(m.inside && overUI(B) && m.y < D.H - 3)) {
+      var push = function (d) { return d >= EDGE ? 0 : d <= 0 ? 6 : 1.5 + 4.5 * (1 - d / EDGE); };
+      cam.x += (push(D.W - 1 - m.x) - push(m.x)) / z;
+      cam.y += (push(D.H - 1 - m.y) - push(m.y)) * 0.75 / z;
     }
-    if (m.panX || m.panY) { cam.x -= m.panX || 0; cam.y -= m.panY || 0; m.panX = m.panY = 0; }
+    if (m.panX || m.panY) { cam.x -= (m.panX || 0) / z; cam.y -= (m.panY || 0) / z; m.panX = m.panY = 0; }
+    if (free && (m.wheel || I.pressed('zoomout') || I.pressed('zoomin'))) UI.setZoom(m.wheel ? m.wheel : I.pressed('zoomout') ? 1 : -1, m.wheel && m.inside ? m.x : null, m.wheel && m.inside ? m.y : null);
     if (I.pressed('center')) { var a = B.active || (B.req && B.req.turn); if (a) B.focus(a); }
-    cam.x = D.clamp(cam.x, bk.x + D.W / 2 - 60, bk.x + bk.canvas.width - D.W / 2 + 60);
-    cam.y = D.clamp(cam.y, bk.y + D.H / 2 - 20, bk.y + bk.canvas.height - D.H / 2 + 60);
+    // keep the cave in view; zoomed out past its size, centre it
+    z = iso.zoom;
+    var vw = D.W / z, vh = D.H / z, bw = bk.canvas.width, bh = bk.canvas.height;
+    var x0 = bk.x + vw / 2 - 60, x1 = bk.x + bw - vw / 2 + 60, y0 = bk.y + vh / 2 - 20, y1 = bk.y + bh - vh / 2 + 60;
+    cam.x = x0 > x1 ? bk.x + bw / 2 : D.clamp(cam.x, x0, x1);
+    cam.y = y0 > y1 ? bk.y + bh / 2 + 20 : D.clamp(cam.y, y0, y1);
   };
 
   // ------------------------------------------------------------------ input
@@ -106,11 +138,11 @@
   }
   // the figure under the mouse (its whole sprite, front-most first): clicking a body selects its owner, not the floor behind
   UI.pickUnit = function (B, mx, my) {
-    var best = null, bd = -1e9;
+    var best = null, bd = -1e9, z = D.iso.zoom;
     B.units.forEach(function (u) {
       if (u.dead || u.ethereal) return;
-      var p = unitPos(B, u), s = u.size || 1, top = u.hp > 0 ? D.spr.top(u.sheet) : 16, hw = s > 1 ? 30 : 11;
-      if (mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 && p.depth > bd) { bd = p.depth; best = u; }
+      var p = unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.top(u.sheet) : 16) * z, hw = (s > 1 ? 30 : 11) * z;
+      if (mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z && p.depth > bd) { bd = p.depth; best = u; }
     });
     return best;
   };
@@ -122,17 +154,28 @@
     var st = UI.opts.style, any = I.pressed('a') || I.pressed('b') || I.pressed('end') || I.mouse.click;
     if (B.inspect && (any || I.mouse.rclick)) { B.inspect = null; return; }
     if (I.pressed('end')) return UI.command(B, u, { do: 'end' });
+    // AUTO END: every command grey and no step left to take -- a beat to see it, then the turn passes (X holds it)
+    if (UI.opts.autoEnd && !B.list && B.tool !== 'spell' && B.autoHold !== B.req && spent(B, u)) {
+      if (B.autoFor !== B.req) { B.autoFor = B.req; B.autoT = B.t; B.card(['{g}Nothing left to spend: the turn passes.  X holds it{/}'], 50); }
+      if (I.pressed('b')) { B.autoHold = B.req; B.clearCards(); return; }
+      if (B.t - B.autoT >= 45 || I.pressed('a')) return UI.command(B, u, { do: 'end' });
+    }
     // the mouse: over the menus, or on the grid
     B.hoverBtn = -1;
     if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
     if (I.mouse.inside) (B.buttons || []).forEach(function (b, i) { if (hit(b)) B.hoverBtn = i; });
-    if (B.hoverBtn >= 0 && I.mouse.moved) { var hb = B.buttons[B.hoverBtn]; if (hb.list != null && B.list) B.list.sel = hb.list; else if (hb.idx != null && B.tool === 'menu') B.cmdSel = hb.idx; }
+    // hovering picks an icon only when the mouse moves onto it: a ring turning under a resting mouse, or a twitch
+    // on the same icon, leaves the arrows' choice alone (Griz, 09-27: the arrows stopped working over the wheel)
+    var hb = B.buttons && B.buttons[B.hoverBtn], hk = !hb ? null : hb.list != null && B.list ? 'l' + hb.list : hb.idx != null ? 'c' + hb.idx : 'x';
+    if (hb && I.mouse.moved && hk !== B.hoverKey) { if (hb.list != null && B.list) B.list.sel = hb.list; else if (hb.idx != null && B.tool === 'menu') B.cmdSel = hb.idx; }
+    B.hoverKey = hk;
     if (I.mouse.click && B.hoverBtn >= 0) { var bt = B.buttons[B.hoverBtn]; return bt.end ? UI.command(B, u, { do: 'end' }) : bt.cast ? castPicks(B, u) : bt.list != null ? pickListItem(B, u, B.list.items[bt.list], bt.list) : pickCommand(B, u, bt.cmd, bt.idx); }
     if (I.mouse.rclick && !overUI(B)) { var w0 = G.occupant(B.cursor.x, B.cursor.y) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0) B.inspect = w0; return; }
     // an open list (spells, items) takes the keys first
     if (B.list) return listInput(B, u);
     var cmds = UI.cmds(B, u);
     for (var k = 1; k <= 9; k++) if (I.pressed('n' + k) && cmds[k - 1]) return pickCommand(B, u, cmds[k - 1], k - 1);
+    if (I.pressed('ring')) { B.tool = B.tool === 'menu' ? rest() === 'menu' ? 'move' : rest() : 'menu'; B.spell = null; B.picks = []; B.clearCards(); return; }
     // the command menu at rest (window, ring)
     if (B.tool === 'menu') {
       var n = cmds.length, prev = B.cmdSel;
@@ -140,7 +183,7 @@
       else { if (I.repeat('left') || I.repeat('up')) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('right') || I.repeat('down')) B.cmdSel = (B.cmdSel + 1) % n; }
       if (B.cmdSel !== prev) B.clearCards();
       if (I.pressed('a')) return pickCommand(B, u, cmds[B.cmdSel], B.cmdSel);
-      if (I.pressed('b')) return UI.openMenu(B);
+      if (I.pressed('b')) { if (rest() !== 'menu') { B.tool = rest(); return; } return UI.openMenu(B); } // the ring goes back down
       if (I.mouse.click && !overUI(B)) actAt(B, u, B.cursor.x, B.cursor.y);
       return;
     }
@@ -154,12 +197,18 @@
     if (I.pressed('a')) actAt(B, u, B.cursor.x, B.cursor.y, true);
     else if (I.mouse.click && !overUI(B)) actAt(B, u, B.cursor.x, B.cursor.y, false);
   }
+  // nothing left this turn: no square to step to, and every command grey (the bonus, a surge, a spell all count)
+  function spent(B, u) {
+    var T = u.turn;
+    if (T.move > 0 && !u.conds.restrained) { var rc = reachCache(B, u); if (Object.keys(rc.move).some(function (k) { return rc.move[k].stand && rc.move[k].cost > 0; })) return false; }
+    return !B.commands(u).some(function (c) { return c.ok; });
+  }
   function castPicks(B, u) { var S = B.spell; if (S && B.picks.length) UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: { units: B.picks.slice() } }); }
   function etherealAt(B, x, y) { return B.units.filter(function (w) { return w.ethereal && x >= w.x && y >= w.y && x < w.x + w.size && y < w.y + w.size; })[0]; }
   function pickCommand(B, u, c, idx) {
     if (idx != null) B.cmdSel = idx;
     if (!c) return;
-    if (!c.ok) { B.card(['{g}' + c.label + ': not now.{/}'], 90); return; }
+    if (!c.ok) { B.card(['{g}' + c.label + ': ' + (c.why || 'not now') + '.{/}'], 120); return; }
     if (c.id === 'end') return UI.command(B, u, { do: 'end' });
     if (c.sub === 'spells' && UI.opts.style === 'ring') { B.list = levelRing(B, u); B.ringB = null; return; }
     if (c.sub) {
@@ -213,7 +262,7 @@
   }
   UI.command = function (B, u, cmd) {
     B.clearCards();
-    if (UI.opts.style !== 'bar' && /^(dash|cdash|disengage|cdisengage)$/.test(cmd.do)) B.nextTool = 'move';
+    if (/^(dash|cdash|disengage|cdisengage)$/.test(cmd.do)) B.nextTool = 'move';
     B.tool = cmd.do === 'attack' && u.turn.attacksLeft > 1 ? 'attack' : cmd.do === 'attack' && !u.turn.attacksLeft && u.turn.action && u.attacks > 1 ? 'attack' : rest();
     B.spell = null; B.picks = []; B.list = null;
     B.answer(cmd);
@@ -226,8 +275,7 @@
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (x === u.x && y === u.y) return 'self';
       if (foe) return G.dist(u, foe) <= u.reach && (T.attacksLeft || T.action) ? 'ok' : 'no';
-      if (tool === 'attack') return 'no';
-      var rc = reachCache(B, u), k = x + ',' + y;
+      var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
       if (rc.move[k] && rc.move[k].stand) return 'ok';
       if (rc.dash && rc.dash[k] && rc.dash[k].stand) return 'far';
       return 'no';
@@ -248,10 +296,9 @@
   function actAt(B, u, x, y, byKey) {
     var T = u.turn, tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
-      if (x === u.x && y === u.y) { if (UI.opts.style !== 'bar') B.tool = 'menu'; return; }
+      if (x === u.x && y === u.y) { B.tool = 'menu'; return; }
       if (foe && v === 'ok') return UI.command(B, u, { do: 'attack', target: foe });
       if (foe) return B.card(['{o}The ' + B.shortName(foe) + ' is out of reach (' + G.dist(u, foe) + ' ft).{/}'], 120);
-      if (tool === 'attack') return;
       if (v === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
       if (v === 'far') return UI.command(B, u, { do: 'dashmove', x: x, y: y });
       return;
@@ -283,15 +330,15 @@
   // ------------------------------------------------------------------ the X/Esc menu (and M, Tab): the party, help, the menu's style, and out
   UI.openMenu = function (B) { B.menu = { sel: 0, panel: null }; };
   function menuItems() {
-    return ['RESUME', 'PARTY', 'HINTS: ' + (UI.opts.help ? 'ON' : 'OFF'), 'MENU: ' + UI.opts.style.toUpperCase() + '  < >', 'RESTART THE FIGHT', 'THE GATE (the sprites)', 'RETURN TO SILVERTON'];
+    return ['RESUME', 'PARTY', 'HINTS: ' + (UI.opts.help ? 'ON' : 'OFF'), 'MENU: ' + UI.opts.style.toUpperCase() + '  < >', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF'), 'RESTART THE FIGHT', 'THE GATE (the sprites)', 'RETURN TO SILVERTON'];
   }
   UI.menuInput = function (B) {
     var M = B.menu, items = menuItems(), n = items.length;
     if (M.panel) { if (I.pressed('a') || I.pressed('b') || I.pressed('menu') || I.mouse.click) M.panel = null; return; }
     if (I.repeat('up')) M.sel = (M.sel + n - 1) % n;
     if (I.repeat('down')) M.sel = (M.sel + 1) % n;
-    var styles = ['bar', 'window', 'ring'], si = styles.indexOf(UI.opts.style);
-    if (M.sel === 3 && (I.repeat('left') || I.repeat('right'))) { UI.opts.style = styles[(si + (I.repeat('left') ? 2 : 1)) % 3]; UI.saveOpts(); restyle(B); return; }
+    var styles = ['ring', 'window'], si = styles.indexOf(UI.opts.style);
+    if (M.sel === 3 && (I.repeat('left') || I.repeat('right'))) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); return; }
     var pick = I.pressed('a') ? M.sel : -1;
     if (I.mouse.click && B.menuRects) B.menuRects.forEach(function (r, i) { if (hit(r)) pick = i; });
     if (I.pressed('b') || I.pressed('menu')) { B.menu = null; return; }
@@ -300,10 +347,11 @@
     if (pick === 0) B.menu = null;
     if (pick === 1) M.panel = 'party';
     if (pick === 2) { UI.opts.help = !UI.opts.help; UI.saveOpts(); }
-    if (pick === 3) { UI.opts.style = styles[(si + 1) % 3]; UI.saveOpts(); restyle(B); }
-    if (pick === 4) { D.pop(); D.push(new D.Battle({ fixture: B.o.fixture })); }
-    if (pick === 5) location.search = '?gate';
-    if (pick === 6) location.href = '../';   // back to the 8-bit game: nothing is written
+    if (pick === 3) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); }
+    if (pick === 4) { UI.opts.autoEnd = !UI.opts.autoEnd; UI.saveOpts(); }
+    if (pick === 5) { D.pop(); D.push(new D.Battle({ fixture: B.o.fixture })); }
+    if (pick === 6) location.search = '?gate';
+    if (pick === 7) location.href = '../';   // back to the 8-bit game: nothing is written
   };
   function restyle(B) { if (B.req && B.req.turn && (B.tool === 'move' || B.tool === 'menu')) B.tool = rest(); }
   UI.resultInput = function (B) {
@@ -315,11 +363,22 @@
   UI.drawBattle = function (ctx, B) {
     var req = B.req, hero = req && req.turn, objs = [];
     B.uiRects = []; B.buttons = [];
-    B.units.forEach(function (u) { var o = unitObj(B, u); if (o) objs.push(o); });
-    FX.list.forEach(function (f) { objs.push({ depth: 1e6, gz: 0, draw: function (c) { f.draw(c); } }); });
-    DEFER = objs;
-    D.iso.draw(ctx, objs, function (c) { overlay(c, B, hero); });
-    DEFER = null;
+    // the world at 1:1 into its own canvas, W/zoom wide, then onto the screen at the zoom (crisp where the backing
+    // scale times the zoom is whole); menus, cards and the floating numbers go on top at full size
+    var z = D.iso.zoom, vw = Math.ceil(D.W / z), vh = Math.ceil(D.H / z), wc = worldCanvas(vw, vh), wx = wc.getContext('2d');
+    wx.fillStyle = '#000'; wx.fillRect(0, 0, vw, vh);
+    D.iso.inWorld = true; // (before the figures are placed: their positions are the world canvas's)
+    try {
+      B.units.forEach(function (u) { var o = unitObj(B, u); if (o) objs.push(o); });
+      FX.list.forEach(function (f) { if (!f.screen) objs.push({ depth: 1e6, gz: 0, draw: function (c) { f.draw(c); } }); });
+      DEFER = objs; WCTX = wx;
+      D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
+    } finally { D.iso.inWorld = false; DEFER = null; WCTX = null; }
+    var dev = z * D.R;
+    ctx.imageSmoothingEnabled = Math.abs(dev - Math.round(dev)) > 1e-6;
+    ctx.drawImage(wc, 0, 0, vw, vh, 0, 0, vw * z, vh * z);
+    ctx.imageSmoothingEnabled = false;
+    FX.list.forEach(function (f) { if (f.screen) f.draw(ctx); });
     strip(ctx, B);
     cards(ctx, B);
     tooltip(ctx, B, hero);
@@ -327,7 +386,6 @@
     if (hero && UI.opts.style === 'window') cmdWindow(ctx, B, hero);
     if (hero && UI.opts.style === 'ring') cmdRing(ctx, B, hero);
     if (hero && B.tool === 'spell' && B.spell && B.spell.g.shape === 'allies' && B.picks.length) castButton(ctx, B);
-    if (hero && B.list && UI.opts.style === 'bar') listPopup(ctx, B, hero, 266, BAR_Y - 4, 212);
     if (B.inspect) inspect(ctx, B.inspect);
     if (req && req.prompt) prompt(ctx, B, req.prompt);
     if (req && req.entry) entry(ctx, B);
@@ -382,7 +440,7 @@
   function onSq(x, y, fn) {
     var z = G.map.gz(x, y);
     if (z > 0 && DEFER) DEFER.push({ depth: x + y + 0.05, gz: z, layer: 0, draw: fn });
-    else fn(D.ctx);
+    else fn(WCTX || D.ctx);
   }
   function fillSq(ctx, x, y, color, alpha, inset) { onSq(x, y, function (c) { D.iso.rhombus(c, x, y, G.map.gz(x, y), inset || 1); c.globalAlpha = alpha; c.fillStyle = color; c.fill(); c.globalAlpha = 1; }); }
   function lineSq(ctx, x, y, color, alpha, inset) { onSq(x, y, function (c) { D.iso.rhombus(c, x, y, G.map.gz(x, y), inset == null ? 2 : inset); c.globalAlpha = alpha == null ? 1 : alpha; c.strokeStyle = color; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1; }); }
@@ -527,6 +585,7 @@
     if (w.conds.stoneskin) c.push('{c}stoneskin{/}');
     if (w.conds.heroism) c.push('{y}heroism{/}');
     if (w.conds.divineFavor) c.push('{y}favor{/}');
+    if (w.conds.sacred) c.push('{y}sacred +' + w.conds.sacred.atk + '{/}');
     if (w.conds.helped) c.push('{w}helped{/}');
     if (w.conds.restrained) c.push('{w}webbed{/}');
     if (w.conds.paralyzed) c.push('{p}held{/}');
@@ -536,7 +595,7 @@
     return c.length ? '  ' + c.join(' ') : '';
   }
 
-  // ------------------------------------------------------------------ the bottom bar: portrait, HP, pips (and the BAR style's buttons)
+  // ------------------------------------------------------------------ the bottom bar: portrait, HP, BARM, the keys, END TURN
   function bar(ctx, B, hero) {
     var u = hero || B.active, st = UI.opts.style;
     ctx.fillStyle = 'rgba(10,8,16,.9)'; ctx.fillRect(0, BAR_Y, D.W, D.H - BAR_Y);
@@ -554,7 +613,7 @@
     ctx.fillStyle = R('stone', 1); ctx.fillRect(44, BAR_Y + 15, 100, 4);
     ctx.fillStyle = u.side === 'foe' ? R('red', 3) : R('moss', 2); ctx.fillRect(44, BAR_Y + 15, Math.round(100 * Math.max(0, u.hp) / u.maxhp), 4);
     D.text(ctx, 'HP ' + u.hp + '/' + u.maxhp + (u.temp ? ' +' + u.temp : '') + '   AC ' + RU.ac(u), 44, BAR_Y + 21, R('bone', 1));
-    ctx.save(); ctx.beginPath(); ctx.rect(44, BAR_Y + 29, BX - 48, 12); ctx.clip(); // a long line of conditions stops short of the buttons
+    ctx.save(); ctx.beginPath(); ctx.rect(44, BAR_Y + 29, BX - 48, 12); ctx.clip(); // a long line of conditions stops short of the keys
     D.text(ctx, conds(u).trim() || (u.slots && u.slots.length ? 'slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : ''), 44, BAR_Y + 31, R('accent', 2));
     ctx.restore();
     if (!hero) { D.text(ctx, u.ethereal ? 'moving unseen...' : 'its turn', BX, BAR_Y + 16, R('accent', 2)); return; }
@@ -562,27 +621,15 @@
     // BARM: bonus, action, reaction, move (the feet left) -- lit while there's one to spend (Griz, 09-27: "BARM #" after the class)
     [['B', T.bonus > 0, R('glow', 2)], ['A', T.action > 0 || T.attacksLeft > 0, R('gold', 3)], ['R', u.reaction > 0, R('violet', 4)], ['M ' + T.move, T.move > 0, R('glow', 1)]]
       .forEach(function (p) { px += pip(ctx, px, BAR_Y + 2, p[0], p[1], p[2]) + 2; });
-    // END TURN keeps the bottom-right cell in every style
+    // END TURN in the bottom-right corner
     var eb = { x: BX + 3 * BP, y: BAR_Y + 30, w: BP - 2, h: 11, end: true };
     B.buttons.push(eb);
     ctx.fillStyle = B.hoverBtn === B.buttons.length - 1 ? R('stone', 3) : R('stone', 1); ctx.fillRect(eb.x, eb.y, eb.w, eb.h);
     ctx.strokeStyle = R('silver', 3); ctx.strokeRect(eb.x + 0.5, eb.y + 0.5, eb.w - 1, eb.h - 1);
     D.text(ctx, 'END TURN', eb.x + eb.w / 2, eb.y + 2, R('bone', 1), 'center');
-    if (st !== 'bar') {
-      var spellRing = B.list && B.list.kind === 'spells';
-      D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : (B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose' : 'E: here   X: back to the ring'), BX, BAR_Y + 6, R('accent', 2));
-      D.text(ctx, 'C recentre  H hints  M menu  SPACE end turn', BX, BAR_Y + 18, R('stone', 5));
-      return;
-    }
-    UI.cmds(B, u).forEach(function (c, i) {
-      var col = i % 4, row = Math.floor(i / 4), b = { x: BX + col * BP, y: BAR_Y + 4 + row * 13, w: BP - 2, h: 11, cmd: c, idx: i };
-      B.buttons.push(b);
-      var hov = B.hoverBtn === B.buttons.length - 1, on = (c.tool && B.tool === c.tool) || (c.sub && B.list && B.list.kind === c.sub);
-      var edge = c.cost === 'A' ? R('gold', 3) : c.cost === 'B' ? R('glow', 1) : R('bone', 0);
-      ctx.fillStyle = on ? R('gold', 1) : hov && c.ok ? R('stone', 3) : R('stone', 1); ctx.fillRect(b.x, b.y, b.w, b.h);
-      ctx.strokeStyle = c.ok ? edge : R('stone', 3); ctx.strokeRect(b.x + 0.5, b.y + 0.5, b.w - 1, b.h - 1);
-      D.text(ctx, (i + 1) + ' ' + c.label, b.x + 3, b.y + 2, c.ok ? R('bone', 2) : R('stone', 4));
-    });
+    var spellRing = B.list && B.list.kind === 'spells';
+    D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'Q, or E on yourself: the ring   X: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
+    D.text(ctx, 'C recentre  H hints  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5));
   }
   function pip(ctx, x, y, label, lit, col) { // a small lit box round a letter; gives back its width
     var w = D.textWidth(label) + 3;
@@ -656,7 +703,8 @@
     if (B.tool !== 'menu' && !B.list) return;
     var cmds = B.list ? B.list.items : UI.cmds(B, u), n = cmds.length, sel = B.list ? B.list.sel : B.cmdSel;
     if (!n) return;
-    var p = UI.unitPos(B, u), cx = p.x, cy = p.y - 26, rx = Math.max(36, n * 6), ry = Math.max(20, n * 3);
+    // wider than it was (Griz, 09-27), and round the hero's middle at any zoom
+    var p = UI.unitPos(B, u), cx = p.x, cy = Math.round(p.y - 26 * D.iso.zoom), rx = Math.max(52, n * 7), ry = Math.max(28, n * 3.5);
     // turn the ring smoothly toward the chosen icon (the chosen one sits at the front, at the bottom);
     // each ring keeps its own turn, so X from a level's spells comes back to the levels as they were
     var spells = B.list && B.list.kind === 'spells', target = -sel * (Math.PI * 2 / n), key = !B.list ? 'ringA' : spells ? 'ringC' : 'ringB';

@@ -11,7 +11,14 @@
 
   // square centre in world pixels (the rhombus's middle), at elevation gz
   iso.center = function (gx, gy, gz) { return { x: (gx - gy) * HW, y: (gx + gy) * HH + HH - (gz || 0) }; };
-  iso.toScreen = function (wx, wy) { return { x: Math.round(wx - iso.cam.x + D.W / 2), y: Math.round(wy - iso.cam.y + D.H / 2) }; };
+  // world pixels -> the space being drawn in. The fight draws its world at 1:1 into a canvas W/zoom wide (iso.inWorld)
+  // and lays it on the screen scaled by the zoom; everything else (menus, the ring, picking, the mouse) is screen space.
+  // At zoom 1 the two are the same.
+  iso.zoom = 1; iso.inWorld = false;
+  iso.toScreen = function (wx, wy) {
+    if (iso.inWorld) return { x: Math.round(wx - iso.cam.x + D.W / iso.zoom / 2), y: Math.round(wy - iso.cam.y + D.H / iso.zoom / 2) };
+    return { x: Math.round((wx - iso.cam.x) * iso.zoom + D.W / 2), y: Math.round((wy - iso.cam.y) * iso.zoom + D.H / 2) };
+  };
   iso.cam = { x: 0, y: 0 };
 
   // ------------------------------------------------------------------ palette (from palette.js, generated from palette.json)
@@ -291,35 +298,24 @@
 
   // the square under a screen point: test each open square's rhombus at its own height, front-most wins
   iso.pick = function (sx, sy) {
-    var m = iso.map, best = null, bd = -1;
+    var m = iso.map, best = null, bd = -1, z = iso.inWorld ? 1 : iso.zoom;
     for (var i = 0; i < m.sq.length; i++) {
       var s = m.sq[i];
       if (!s.open) continue;
       var c = iso.center(s.x, s.y, s.gz), p = iso.toScreen(c.x, c.y);
       var dx = Math.abs(sx + 0.5 - p.x), dy = Math.abs(sy + 0.5 - p.y);
-      if (dx / HW + dy / HH <= 1 && s.x + s.y > bd) { bd = s.x + s.y; best = s; }
+      if (dx / (HW * z) + dy / (HH * z) <= 1 && s.x + s.y > bd) { bd = s.x + s.y; best = s; }
     }
     return best;
   };
 
-  // the keyboard cursor: one square a press, the way the key points on screen. A screen column (x - y) or row (x + y)
-  // is a zigzag of squares, so up/down step x or y by turns and hold the column, left/right hold the row. (Stepping
-  // x and y together kept x + y's parity: half the floor, a checkerboard, could never be reached -- Griz, 09-27.)
+  // the keyboard cursor: one square a press along the grid's own axes, as on the 8-bit map (up is y-1, right x+1), so
+  // on screen up runs up-right, right down-right, down down-left, left up-left (Griz, 09-27: "follow the grid version").
+  // One axis at a time reaches every square; stepping x and y together once left half the floor, a checkerboard, out.
   iso.nudge = function (c, dir, w, h) {
-    var v = dir === 'up' || dir === 'down', s = dir === 'up' || dir === 'left' ? -1 : 1;
-    var lane = function (x, y) { return v ? x - y : x + y; };
-    if (!c.lane || c.lane.v !== v || c.lane.x !== c.x || c.lane.y !== c.y) c.lane = { v: v, at: lane(c.x, c.y) };
-    // up: x-1 or y-1 · down: x+1 or y+1 · left: x-1 or y+1 · right: x+1 or y-1. The first is taken on a tie, so
-    // a press and its opposite come back to the same square.
-    var opts = v ? (s < 0 ? [[-1, 0], [0, -1]] : [[1, 0], [0, 1]]) : (s < 0 ? [[-1, 0], [0, 1]] : [[0, -1], [1, 0]]);
-    var best = null, bd = 1e9;
-    opts.forEach(function (o) {
-      var x = c.x + o[0], y = c.y + o[1], d = Math.abs(lane(x, y) - c.lane.at);
-      if (x < 0 || y < 0 || x >= w || y >= h) return;
-      if (d < bd) { bd = d; best = [x, y]; }
-    });
-    if (!best) return false;
-    c.x = best[0]; c.y = best[1]; c.lane.x = c.x; c.lane.y = c.y;
+    var d = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] }[dir], x = c.x + d[0], y = c.y + d[1];
+    if (x < 0 || y < 0 || x >= w || y >= h) return false;
+    c.x = x; c.y = y;
     return true;
   };
 

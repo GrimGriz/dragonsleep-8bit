@@ -16,6 +16,8 @@
     delete u.conds.dodge;
     delete u.conds.shield;
     D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; });
+    // Sacred Weapon lasts a minute: ten of his turns (and goes out if he fell)
+    if (u.conds.sacred && (u.hp <= 0 || --u.conds.sacred.rounds <= 0)) { delete u.conds.sacred; if (D.battle) D.battle.card(['{g}' + u.name + '\'s blade goes back to steel: Sacred Weapon ends.{/}']); }
     if (D.magic) D.magic.startTurn(D.battle, u);
   };
 

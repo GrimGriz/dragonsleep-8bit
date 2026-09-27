@@ -145,7 +145,9 @@
   Battle.prototype.commands = function (u) {
     var T = u.turn, out = [], has = function (id) { return u.known && u.known.indexOf(id) >= 0; };
     var slot = function (min) { for (var i = min - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) return i + 1; return 0; };
-    out.push({ id: 'attack', label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A', ok: T.attacksLeft > 0 || T.action > 0, tool: 'attack' });
+    // a swing is only there to take with a foe in reach, or the feet left to walk to one (Lymen's second attack, 09-27)
+    var foeNear = this.foeInReach(u), canWalk = T.move > 0 && !u.conds.restrained;
+    out.push({ id: 'attack', label: T.attacksLeft ? 'ATTACK (' + T.attacksLeft + ')' : 'ATTACK' + (u.attacks > 1 ? ' x' + u.attacks : ''), cost: 'A', ok: (T.attacksLeft > 0 || T.action > 0) && (foeNear || canWalk), why: foeNear || canWalk ? '' : 'no foe in reach, and no feet left', tool: 'attack' });
     if (u.conds.restrained) out.push({ id: 'breakfree', label: 'BREAK FREE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, icon: 'free' });
     var spells = D.magic.list(this, u);
     if (spells.length) out.push({ id: 'spells', label: 'SPELLS', cost: 'A', ok: spells.some(function (e) { return e.ok; }), sub: 'spells', icon: 'spell' });
@@ -161,6 +163,8 @@
       out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: T.bonus > 0 && !T.disengaged });
     }
     if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay' });
+    // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
+    if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a rest brings it back)' });
     if (u.cls !== 'rogue') out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft });
     if (u.cls !== 'rogue') out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged });
     out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft });
@@ -212,6 +216,14 @@
       case 'cdash': T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (Cunning Action) dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
+      case 'sacred': {
+        T.action = 0; u.feats.channel = 0;
+        var sb = Math.max(1, D.mod(u.abil.cha));
+        u.conds.sacred = { atk: sb, rounds: 10 };
+        FX.ring(u, 'gold', 40); FX.sparkle(u, 'gold', 16);
+        this.card(['{y}' + u.name + '{/}: SACRED WEAPON. The blade takes Kalindel\'s light: +' + sb + ' to hit with it for a minute (Channel Divinity).']);
+        return;
+      }
       case 'dodge': T.action = 0; u.conds.dodge = true; this.card(['{y}' + u.name + '{/} dodges: attacks against at disadvantage till the next turn.']); return;
       case 'help': {
         T.action = 0;
@@ -287,12 +299,13 @@
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) delete tgt.conds.helped; // help is spent on the first swing
-    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, total = nat + atk.atk + bless;
+    var sacred = att.conds.sacred && !atk.spell && !atk.ranged ? att.conds.sacred.atk : 0;
+    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, total = nat + atk.atk + bless + sacred;
     var critAt = att.crit || 20;
     var hit = nat === 20 || (nat !== 1 && total >= ac);
     var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5));
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
-    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
+    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn
     if (hit && nat !== 20 && tgt.cls === 'wizard' && tgt.reaction > 0 && !tgt.conds.shield && RU.canAct(tgt) && tgt.known.indexOf('shield') >= 0 && slotFor(tgt, 1) && total < ac + 5 && !tgt.guest) {
@@ -521,6 +534,9 @@
   };
 
   // ------------------------------------------------------------------ the camera: snap to a unit; recentre only when it nears the edge
+  Battle.prototype.foeInReach = function (u) {
+    return this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.dead && w.hp > 0 && G.dist(u, w) <= u.reach; });
+  };
   Battle.prototype.focus = function (u) { var c = FX.at(u); D.iso.lookAt(c.gx, c.gy, c.gz); };
   Battle.prototype.keepInView = function (u) {
     var c = FX.at(u), w = D.iso.center(c.gx, c.gy, c.gz), s = D.iso.toScreen(w.x, w.y);

@@ -7,16 +7,22 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
 - **Play:** after the expansion's credits choose **PAST THE DOOR**, or open `deep16/` straight
   (https://grimgriz.github.io/dragonsleep-8bit/deep16/). `?gate` shows the sprite comparison (the three pipelines);
   `?view` walks a cursor round the cavern; `?stats` (or the ` key) shows the frame rate; `?scale=N` forces a scale.
-- **Keys:** mouse hover/click, right-click to inspect, middle-drag or the screen's edge to look round · arrows/WASD
-  move the cursor a square a press, zigzagging the way the key points on screen (or the menu) · E/Z confirm · X/Esc
-  back, and at rest the menu · 1–9 commands · SPACE end turn · C recentre · H hints · M/Tab the menu (PARTY, HINTS,
-  MENU style, restart, the gate, RETURN TO SILVERTON).
-- **Menu styles** (switched in the menu, kept per browser, or `?menu=bar|window|ring`): **BAR** — buttons in the
-  bottom bar, the grid cursor at rest · **WINDOW** — a Chrono Trigger-style command window with a pointing hand ·
-  **RING** — a Secret of Mana-style ring of icons round the hero. SPELLS and ITEM open a list (left/right picks the
-  slot level); on the ring, SPELLS opens a ring of levels, and a level a ring of its spells (up/down picks the slot).
-  The bar shows **BARM** after the class — bonus, action, reaction, move and the feet left — each lit while it's there
-  to spend.
+- **Keys:** mouse hover/click, right-click to inspect, the wheel (or -/=) zooms out and back, middle-drag or the
+  screen's edge (a 16-px band, or anywhere past the canvas) to look round · arrows/WASD move the cursor a square a
+  press along the grid, as on the 8-bit map (up is up-right on screen), or the menu · E/Z confirm · X/Esc back, and at
+  rest the menu · Q the ring · 1–9 commands · SPACE end turn · C recentre · H hints · M/Tab the menu (PARTY, HINTS,
+  MENU style, AUTO END TURN, restart, the gate, RETURN TO SILVERTON).
+- **Menu styles** (RULED 09-27, Griz: the ring main, the window for those who'd rather; the first try's BAR of
+  buttons dropped. Switched in the menu, kept per browser, or `?menu=ring|window`): **RING** — a Secret of Mana-style
+  ring of icons round the hero; a turn starts on the grid, ready to walk, and the ring comes up on Q, E over the hero
+  or a click on him. SPELLS opens a ring of levels, a level a ring of its spells (up/down picks the slot) ·
+  **WINDOW** — a Chrono Trigger-style command window with a pointing hand, up at rest; SPELLS and ITEM open a list
+  (left/right picks the slot level). The bar shows **BARM** after the class — bonus, action, reaction, move and the
+  feet left — each lit while it's there to spend.
+- **Zoom:** the screen is drawn at the window's whole-number scale, so zooming out steps by whole device pixels
+  (at 3×: 1, 2/3, 1/3; at 2×: 1, 1/2) and stays crisp; the menus and the floating numbers keep their size.
+- **AUTO END TURN** (on by default, in the menu): when every command is grey and there's no square left to step to,
+  the turn passes after a beat; X holds it.
 - **HINTS** (H): hints on the grid — a rogue's reachable squares that no foe she knows of sees plainly are tinted.
 - **Runs** from any static server (the 8-bit game's `dragonsleep` preview on 8923 serves it at `/deep16/`); it loads the
   8-bit game's `../js/font.js`, `../data/data.js` and `../js/rules.js`, so the lettering and the character maths are

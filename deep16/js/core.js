@@ -40,11 +40,12 @@
   };
 
   // ---------------------------------------------------------------- canvas
+  // The screen is 480x270 logical pixels, drawn into a backing store D.R times that (D.R = the integer scale), so a
+  // zoomed-out world can land on whole device pixels: at 3x, zoom 2/3 draws each art pixel as 2x2 (crisp), 1/3 as 1x1.
+  D.R = 1;
   D.initCanvas = function () {
     var c = D.canvas = document.getElementById('screen');
-    c.width = D.W; c.height = D.H;
     D.ctx = c.getContext('2d');
-    D.ctx.imageSmoothingEnabled = false;
     window.addEventListener('resize', D.fit);
     D.fit();
   };
@@ -55,6 +56,10 @@
     D.scale = Math.max(0.5, s);
     c.style.width = Math.round(D.W * D.scale) + 'px';
     c.style.height = Math.round(D.H * D.scale) + 'px';
+    var R = Math.max(1, Math.floor(D.scale));
+    if (c.width !== D.W * R || c.height !== D.H * R) { c.width = D.W * R; c.height = D.H * R; }
+    D.R = R;
+    D.ctx.imageSmoothingEnabled = false; // (a resize resets the context)
   };
 
   // ---------------------------------------------------------------- input: the 8-bit game's keys stay meaningful; Space is END TURN here
@@ -64,11 +69,13 @@
     KeyX: 'b', Escape: 'b', Backspace: 'b',
     Space: 'end',
     KeyM: 'menu', Tab: 'menu', KeyC: 'center', Home: 'center', KeyH: 'help',
+    KeyQ: 'ring',
+    Minus: 'zoomout', NumpadSubtract: 'zoomout', Equal: 'zoomin', NumpadAdd: 'zoomin',
     Backquote: 'stats',
     Digit1: 'n1', Digit2: 'n2', Digit3: 'n3', Digit4: 'n4', Digit5: 'n5', Digit6: 'n6', Digit7: 'n7', Digit8: 'n8', Digit9: 'n9',
     Numpad1: 'n1', Numpad2: 'n2', Numpad3: 'n3', Numpad4: 'n4', Numpad5: 'n5', Numpad6: 'n6', Numpad7: 'n7', Numpad8: 'n8', Numpad9: 'n9'
   };
-  var I = D.input = { held: {}, edge: {}, since: {}, mouse: { x: -1, y: -1, moved: false, click: false, rclick: false, inside: false } };
+  var I = D.input = { held: {}, edge: {}, since: {}, mouse: { x: -1, y: -1, moved: false, click: false, rclick: false, inside: false, inWin: false, wheel: 0 } };
   I.press = function (b) { if (!I.held[b]) { I.edge[b] = true; I.since[b] = D.frame; } I.held[b] = true; };
   I.release = function (b) { I.held[b] = false; };
   I.pressed = function (b) { return !!I.edge[b]; };
@@ -78,7 +85,7 @@
     var t = D.frame - I.since[b];
     return t > 14 && t % 5 === 0;
   };
-  I.clear = function () { I.edge = {}; I.mouse.click = false; I.mouse.rclick = false; I.mouse.moved = false; };
+  I.clear = function () { I.edge = {}; I.mouse.click = false; I.mouse.rclick = false; I.mouse.moved = false; I.mouse.wheel = 0; };
   window.addEventListener('keydown', function (e) {
     var b = KEYMAP[e.code];
     if (!b) return;
@@ -86,17 +93,25 @@
     if (!e.repeat) I.press(b);
   });
   window.addEventListener('keyup', function (e) { var b = KEYMAP[e.code]; if (b) { e.preventDefault(); I.release(b); } });
-  window.addEventListener('blur', function () { I.held = {}; });
+  window.addEventListener('blur', function () { I.held = {}; I.mouse.inWin = false; I.mouse.inside = false; });
   D.initMouse = function () {
     var c = D.canvas;
+    // the mouse is followed over the whole window, so the view keeps scrolling when it runs off the canvas into the
+    // margin; 'moved' only when it crosses a logical pixel (a resting hand's twitch shouldn't steal a menu's choice)
     function at(e) {
       var r = c.getBoundingClientRect();
-      I.mouse.x = Math.floor((e.clientX - r.left) / r.width * D.W);
-      I.mouse.y = Math.floor((e.clientY - r.top) / r.height * D.H);
-      I.mouse.inside = I.mouse.x >= 0 && I.mouse.y >= 0 && I.mouse.x < D.W && I.mouse.y < D.H;
+      var x = Math.floor((e.clientX - r.left) / r.width * D.W), y = Math.floor((e.clientY - r.top) / r.height * D.H);
+      if (x !== I.mouse.x || y !== I.mouse.y) I.mouse.moved = true;
+      I.mouse.x = x; I.mouse.y = y; I.mouse.inWin = true;
+      I.mouse.inside = x >= 0 && y >= 0 && x < D.W && y < D.H;
     }
-    c.addEventListener('mousemove', function (e) { at(e); I.mouse.moved = true; });
+    window.addEventListener('mousemove', function (e) {
+      at(e);
+      var d = I.mouse.drag; if (d) { I.mouse.panX = (I.mouse.panX || 0) + (I.mouse.x - d.x); I.mouse.panY = (I.mouse.panY || 0) + (I.mouse.y - d.y); d.x = I.mouse.x; d.y = I.mouse.y; }
+    });
     c.addEventListener('mouseleave', function () { I.mouse.inside = false; });
+    document.addEventListener('mouseout', function (e) { if (!e.relatedTarget) { I.mouse.inWin = false; I.mouse.inside = false; } }); // off the window
+    c.addEventListener('wheel', function (e) { e.preventDefault(); at(e); I.mouse.wheel += e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0; }, { passive: false });
     c.addEventListener('mousedown', function (e) {
       at(e); e.preventDefault(); c.focus();
       if (e.button === 0) I.mouse.click = true;
@@ -104,7 +119,6 @@
       if (e.button === 2) I.mouse.rclick = true;
     });
     window.addEventListener('mouseup', function (e) { if (e.button === 1) I.mouse.drag = null; });
-    c.addEventListener('mousemove', function () { var d = I.mouse.drag; if (d) { I.mouse.panX = (I.mouse.panX || 0) + (I.mouse.x - d.x); I.mouse.panY = (I.mouse.panY || 0) + (I.mouse.y - d.y); d.x = I.mouse.x; d.y = I.mouse.y; } });
     c.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   };
 
@@ -127,7 +141,7 @@
   };
   D.draw = function () {
     var ctx = D.ctx;
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.setTransform(D.R, 0, 0, D.R, 0, 0);
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, D.W, D.H);
     for (var i = 0; i < D.scenes.length; i++) {
       var s = D.scenes[i];
