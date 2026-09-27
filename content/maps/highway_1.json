@@ -1,6 +1,6 @@
 {
 "id": "highway_1",
-"name": "The Highway — to the First Lamp",
+"name": "The road to First Lamp",
 "tileset": "cave",
 "rows": [
 "########################################################################",
@@ -52,7 +52,7 @@
 "^": "stalag",
 "f": "fungus",
 ":": "gravel",
-"m": "minecart",
+"m": "madeRoad",
 "k": "crateCave",
 "*": "glowmoss",
 "0": "chimney",
@@ -226,6 +226,18 @@
 "cond": "!flag:sealCleared"
 },
 {
+"id": "grickDen",
+"rect": [
+40,
+15,
+7,
+4
+],
+"on": "step",
+"script": "grickDen",
+"cond": "!flag:grickDone"
+},
+{
 "id": "vein",
 "rect": [
 27,
@@ -235,6 +247,18 @@
 ],
 "on": "use",
 "script": "vein"
+},
+{
+"id": "relief",
+"rect": [
+36,
+9,
+1,
+4
+],
+"on": "step",
+"script": "relief",
+"cond": "flag:captainFound & !flag:reliefSeen"
 }
 ],
 "zones": [

@@ -3,54 +3,54 @@
 "name": "Solskaft",
 "tileset": "cave",
 "rows": [
-"hhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhh",
-"hhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhh",
-"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-"hh___________hd_11111__2________hhhh",
-"hh_;_;_;_;_;_h__11111__2_____d__hhhh",
-"hh___________h__11111__2________hhhh",
-"hh______________11111__`________hhhh",
-"hh_;_;_;_;___h__11111__2________hhhh",
-"hh___________h__11111__2________hhhh",
-"hh___________h__11111__2hhhhhhhhhhhh",
-"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-"hhhhhh8h6hQhhh__11111__2hhhhhhhhhhhh",
-"hhhhh________h__11111__2__;_;_;_;_hh",
-"hhhhh________h__11111__2__________hh",
-"hhhhh___________11111__`__________hh",
-"hhhhh___________11111__`__________hh",
-"hhhhh________h__11111__2__________hh",
-"hhhhh________h__11111__2__;_;_____hh",
-"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-"hhh777777777hh__11111__2hhhhhhhhhhhh",
-"hh___________h__11111__2___)))__((_h",
-"hh______6____h__11111__2___________h",
-"hh___________h__11111__2_________(_h",
-"hh_5____________11111__`___________h",
-"hh______________11111__`___________h",
-"hh___________h__11111__2__________kh",
-"hh___________h__11111__2_________k_h",
-"hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-"hhhhhhhhhhhhhhh______hh~~~~~~~~hhhhh",
-"hhhhhhhhhh________________hhhh~hhhhh",
-"hhhhhhhhhh______________;;hhhh~hhhhh",
-"hhhhhhhhhh________________hhhh~hhhhh",
-"hhhhhhhhhh______________;;hhhh~hhhhh",
-"hhhhhhhhhh________________hhhh~hhhhh",
-"hhhhhhhhhh________________hhhh~hhhhh",
-"hhhhhhhhhh________________hhhh~hhhhh",
-"hhhhhhh{hh________________hhhh~hhhhh",
-"h_________hhhhhh____hhhhhh____3____h",
-"h_________hhhhhh____hhhhhh_________h",
-"h__]______h______________h__~~~~~__h",
-"h_________h______________h_~~~~~~~_h",
-"h_________h_''''''''''''_h__~~~~~__<",
-"h_@@%@@@@_h______________h____~____h",
-"h_____________________________~____h",
-"h_________h_''''''''''''_h____~____h",
-"h_________h______________h____~____h",
-"hhhhhhhhhhhhhhhhh44hhhhhhhhhhh~hhhhh"
+"hhhhhhhhhhhhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhhhhhh",
+"hh,,,,,,,,,hhhhhhhhhhhhh__11111__2SSSSSSSSSSSSSShh",
+"hh,M,M,M,M,h___________hd_11111__2StStStSSbSbSfShh",
+"hh,,,,,,,,,h_;_;_;_;_;_h__11111__2SSSSSSSSSSSSSShh",
+"hh,M,M,M,M,,___________h__11111__2StStStSSeSeSfShh",
+"hh,,,,,,,,,h______________11111__`SSSSSSSSSSSSSShh",
+"hhhhhhhhhhhh_;_;_;_;___h__11111__2SSSSSSSSSSSSSShh",
+"hhA:::c:hhhh___________h__11111__2SmmSSSyyyyyyyyhh",
+"hh::::::hhhh___________h__11111__2SSSSSSSSSSSSSShh",
+"hh::::::hhhhhhhhhhhhhhhh__11111__2hhhhhhhhhhhhhhhh",
+"hh:;::::hhhhhhhhhhhhhhhh__11111__2hhhhhhhhhhhhhhhh",
+"hhhWLWhWHWhWHWhWHWhWHWhh__11111__2__;_;_;_;_hhhhhh",
+"hh________________________11111__2__________hhhhhh",
+"hh________________________11111__`__________hhhhhh",
+"hhWhWHWhWHWhWHWhWHWhWHWh__11111__`__________hhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhh__11111__2__________hhhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhh__11111__2__;_;_____hhhhhh",
+"hhhh8h6hQhhh___OO5OO___h__11111__2hhhhhhhhhhhhhhhh",
+"hhh_______hhI__OOOOO__Ih__11111__2hhhhhhhhhhhhhhhh",
+"hhh_______hh___________h__11111__2hhhhhhhhhhhhhhhh",
+"hhh_______hh___________h__11111__2___)))__((_hhhhh",
+"hhh_______hh_____6_____h__11111__2___________hhhhh",
+"hhh_______hh___________h__11111__2_________(_hhhhh",
+"hhh_______hh___________h__11111__`______________dh",
+"hhh_______hh___________h__11111__`______________hh",
+"hhhhh__hhhhhhhhh___hhhhh__11111__2__________khhhhh",
+"hh________________________11111__2_________k_hhhhh",
+"hh________________________11111__2hhhhhhhhhhhhhhhh",
+"hhhhhhhhhhh777777777hhhhh______hh~~~~~~~~hhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhh______________;;hhhh~hhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhh______________;;hhhh~hhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+"hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+"hhhhhhhhhhhhhhhhh{hh________________hhhh~hhhhhhhhh",
+"hhhhhhhhhhh_________hhhhhh____hhhhhh____3____hhhhh",
+"hhhhhhhhhhh_________hhhhhh____hhhhhh_________hhhhh",
+"hhhhhhhhhhh__]______h______________h__~~~~~__hhhhh",
+"hhhhhhhhhhh_________h______________h_~~~~~~~_hhhhh",
+"hhhhhhhhhhh_________h_''''''''''''_h__~~~~~__<hhhh",
+"hhhhhhhhhhh_@@%@@@@_h______________h____~____hhhhh",
+"hhhhhhhhhhh_____________________________~____hhhhh",
+"hhhhhhhhhhh_________h_''''''''''''_h____~____hhhhh",
+"hhhhhhhhhhh_________h______________h____~____hhhhh",
+"hhhhhhhhhhhhhhhhhhhhhhhhhhh44hhhhhhhhhhh~hhhhhhhhh"
 ],
 "legend": {
 ".": "caveFloor",
@@ -70,44 +70,44 @@
 "s": "sealDoor",
 "n": "drownStair",
 ">": "holeDown",
-"L": "ladder",
+"L": "houseLit",
 "l": "lantern",
-"y": "cradle",
+"y": "wheatBed",
 "=": "gate",
-"b": "bones",
+"b": "cherryTree",
 "^": "stalag",
-"f": "fungus",
-":": "gravel",
-"m": "minecart",
+"f": "pearTree",
+":": "floorStone",
+"m": "mint",
 "k": "crateCave",
 "*": "glowmoss",
 "0": "chimney",
 "u": "stairsUp",
 "d": "stairsDown",
 " ": "void",
-",": "dirt",
+",": "dwarfFloor",
 "\"": "grass",
-"t": "tree",
+"t": "appleTree",
 "R": "roofB",
-"S": "roofS",
-"W": "wall",
-"O": "wallWin",
+"S": "soil",
+"W": "houseWin",
+"O": "dais",
 "D": "door",
-"e": "webtree",
+"e": "hops",
 "U": "gulch",
 "X": "web",
-"c": "crate",
+"c": "table",
 "q": "well",
 "T": "tent",
-"H": "headframe",
+"H": "houseShut",
 "F": "fence",
 "P": "road",
 "B": "bridgeV",
 "C": "cliff",
-"A": "water",
-"M": "mountain",
+"A": "hearth",
+"M": "shroomBed",
 "V": "range",
-"I": "lamp",
+"I": "tombLamp",
 "Q": "emptyCut",
 "N": "niche",
 "J": "nicheGear",
@@ -153,28 +153,33 @@
 "save": true,
 "beam": {
 "x0": 16,
-"x1": 20,
-"y0": 0,
-"y1": 28
+"x1": 18,
+"y0": 22,
+"y1": 28,
+"land": [
+17,
+22
+]
 },
 "npcs": [
 {
 "id": "pyro",
-"x": 16,
+"x": 26,
 "y": 46,
 "look": "pyro",
-"dir": "up"
+"dir": "up",
+"cond": "!flag:pyroLeads | flag:captainHome"
 },
 {
 "id": "ketil",
-"x": 19,
+"x": 29,
 "y": 46,
 "look": "ketil",
 "dir": "up"
 },
 {
 "id": "ingrith",
-"x": 3,
+"x": 13,
 "y": 39,
 "look": "ingrith",
 "dir": "down",
@@ -182,21 +187,21 @@
 },
 {
 "id": "quartermaster",
-"x": 6,
+"x": 16,
 "y": 42,
 "look": "dclerk",
 "dir": "down"
 },
 {
 "id": "ragna",
-"x": 29,
+"x": 39,
 "y": 44,
 "look": "ragna",
 "dir": "up"
 },
 {
 "id": "brann",
-"x": 21,
+"x": 31,
 "y": 33,
 "look": "brann",
 "dir": "left",
@@ -204,15 +209,31 @@
 },
 {
 "id": "hedda",
-"x": 22,
+"x": 32,
 "y": 36,
 "look": "hedda",
 "dir": "left",
 "cond": "!flag:escortsOut"
 },
 {
+"id": "halldor",
+"x": 24,
+"y": 34,
+"look": "halldor",
+"dir": "right",
+"cond": "flag:halldorUp & !flag:petition | flag:nestHome"
+},
+{
+"id": "halldorBunk",
+"x": 41,
+"y": 16,
+"look": "halldor",
+"dir": "left",
+"cond": "flag:captainHome & !flag:halldorUp"
+},
+{
 "id": "drill1",
-"x": 11,
+"x": 21,
 "y": 33,
 "look": "dtrooper2",
 "dir": "right",
@@ -220,7 +241,7 @@
 },
 {
 "id": "drill2",
-"x": 13,
+"x": 23,
 "y": 33,
 "look": "dtrooper",
 "dir": "right",
@@ -228,7 +249,7 @@
 },
 {
 "id": "drill3",
-"x": 11,
+"x": 21,
 "y": 35,
 "look": "dtrooper2",
 "dir": "right",
@@ -236,7 +257,7 @@
 },
 {
 "id": "drill4",
-"x": 13,
+"x": 23,
 "y": 35,
 "look": "dtrooper",
 "dir": "right",
@@ -244,14 +265,15 @@
 },
 {
 "id": "drillmaster",
-"x": 16,
+"x": 26,
 "y": 34,
 "look": "dtrooper",
-"dir": "left"
+"dir": "left",
+"cond": "!flag:reliefSeen | flag:nestCrushed"
 },
 {
 "id": "cook",
-"x": 30,
+"x": 40,
 "y": 24,
 "look": "dcook",
 "dir": "down",
@@ -259,29 +281,51 @@
 },
 {
 "id": "sleeper",
-"x": 30,
+"x": 40,
 "y": 15,
 "look": "dtrooper2",
 "dir": "down"
 },
 {
 "id": "shaftwatch",
-"x": 21,
+"x": 31,
 "y": 8,
 "look": "dtrooper",
 "dir": "left"
 },
 {
 "id": "yardhand",
-"x": 19,
+"x": 29,
 "y": 31,
 "look": "dtrooper2",
 "wander": 2
+},
+{
+"id": "asdis",
+"x": 4,
+"y": 9,
+"look": "asdis",
+"dir": "down"
+},
+{
+"id": "gardener",
+"x": 41,
+"y": 6,
+"look": "dtrooper2",
+"dir": "left",
+"wander": 1
+},
+{
+"id": "shroomer",
+"x": 6,
+"y": 4,
+"look": "dtrooper",
+"dir": "down"
 }
 ],
 "warps": [
 {
-"x": 17,
+"x": 27,
 "y": 47,
 "to": "silverton",
 "tx": 29,
@@ -289,7 +333,7 @@
 "dir": "down"
 },
 {
-"x": 18,
+"x": 28,
 "y": 47,
 "to": "silverton",
 "tx": 30,
@@ -297,18 +341,18 @@
 "dir": "down"
 },
 {
-"x": 29,
-"y": 4,
+"x": 48,
+"y": 24,
 "to": "solskaft_deep",
 "tx": 3,
 "ty": 11,
 "dir": "right"
 },
 {
-"x": 22,
+"x": 32,
 "y": 26,
 "to": "solskaft",
-"tx": 21,
+"tx": 31,
 "ty": 4,
 "dir": "left",
 "cond": "flag:wwLift",
@@ -316,10 +360,10 @@
 "hidden": true
 },
 {
-"x": 22,
+"x": 32,
 "y": 4,
 "to": "solskaft",
-"tx": 21,
+"tx": 31,
 "ty": 26,
 "dir": "left",
 "cond": "flag:wwLift",
@@ -327,147 +371,243 @@
 "hidden": true
 },
 {
-"x": 14,
+"x": 24,
 "y": 3,
 "to": "burial",
-"tx": 37,
-"ty": 3,
+"tx": 41,
+"ty": 5,
 "dir": "left"
 }
 ],
 "signs": [
 {
-"x": 4,
+"x": 14,
 "y": 43,
 "text": "The assay-scales, under a cloth. Nobody has lifted it in seventy years; the dust on it is even.",
 "src": "handoff-2026-09-26 §4.3 A (the tollhouse)"
 },
 {
-"x": 7,
+"x": 17,
 "y": 37,
 "text": "THE TARIFF. Ingots by the stamp, lead by the pig, litharge by the jar. Charcoal, timber, salt, tallow, rope and bone-ash down. The prices are in a coin with a king's face nobody uses now.",
 "src": "handoff-2026-09-26 §4.3 (trade goods: up and down; INFERENCE, PROPOSED)"
 },
 {
-"x": 35,
+"x": 45,
 "y": 42,
 "text": "Brick, and a red mark cut across it. The old cut a shaft crew broke into, sixty years ago. The water went bad through here, and then the town burned.",
 "src": "wiki/deepholm-and-the-edifice.md (the Water Burning: an old dwarven cut feeding a cistern); spec §4.3 A"
 },
 {
-"x": 30,
+"x": 40,
 "y": 38,
 "text": "The stamp-mill wheel. The ore it broke is long gone; it turns because the covenant says the town's fountains must run, and the wheel is what meters them.",
 "src": "handoff-2026-09-26 §4.3 A (the falls-works)"
 },
 {
-"x": 3,
-"y": 24,
-"text": "The high seat of the Silversands. Empty. He stands at the door.",
-"src": "handoff-2026-09-26 §4.3 B (the clan hall)"
+"x": 17,
+"y": 18,
+"text": "The high seat of the Silversands, on its dais. Empty. He stands at the door.",
+"src": "handoff-2026-09-26 §4.3 B (the clan hall); spine-recut §5 (the throne on a dais at the hall's north end)"
 },
 {
-"x": 8,
+"x": 17,
 "y": 22,
-"text": "The oath-stone of the Silversands. Every one of them put a hand here once. The band of gold is worn bright at hand height.",
-"src": "handoff-2026-09-26 §4.3 B"
+"text": "The oath-stone of the Silversands, directly below the empty seat. Every one of them put a hand here once; the band of gold is worn bright at hand height. At noon the light lands here.",
+"src": "handoff-2026-09-26 §4.3 B; spine-recut §5 (the beam lands on the oath-stone; \"At noon the light lands here.\" seat's draft)"
 },
 {
-"x": 3,
-"y": 20,
+"x": 11,
+"y": 29,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 12,
+"y": 29,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 13,
+"y": 29,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 14,
+"y": 29,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 15,
+"y": 29,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 16,
+"y": 29,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 17,
+"y": 29,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 18,
+"y": 29,
+"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+},
+{
+"x": 19,
+"y": 29,
 "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
 "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
 },
 {
 "x": 4,
-"y": 20,
-"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-},
-{
-"x": 5,
-"y": 20,
-"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-},
-{
-"x": 6,
-"y": 20,
-"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-},
-{
-"x": 7,
-"y": 20,
-"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-},
-{
-"x": 8,
-"y": 20,
-"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-},
-{
-"x": 9,
-"y": 20,
-"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-},
-{
-"x": 10,
-"y": 20,
-"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-},
-{
-"x": 11,
-"y": 20,
-"text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-"src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-},
-{
-"x": 6,
-"y": 11,
+"y": 18,
 "text": "The Forge-Father's niche: an anvil, worn to a saddle in the middle.",
 "src": "wiki/pantheon.md (the Dwarven Triad: Motsognir, the Forge-Father); spec §4.3 B"
 },
 {
-"x": 8,
-"y": 11,
+"x": 6,
+"y": 18,
 "text": "Rekknar's ledger-stone. Every line on it balances.",
 "src": "wiki/pantheon.md (Rekknar the Reckoner); spec §4.3 B"
 },
 {
-"x": 10,
-"y": 11,
+"x": 8,
+"y": 18,
 "text": "A plain cut in the rock with nothing in it. The Dormant's.",
 "src": "wiki/pantheon.md (Dvalgarda, the vigil); spec §4.3 B (the sect is never named here)"
 },
 {
-"x": 27,
+"x": 37,
 "y": 21,
-"text": "The smokehouse: meat, and nothing else. Food comes down the highway now, not up.",
-"src": "handoff-2026-09-26 §4.3 B (the kitchens; the economy reversed — INFERENCE, PROPOSED); §12 correction (the dream is on vice row)"
+"text": "The smokehouse: meat, and nothing else. The rest of the table comes from the grow and the dark.",
+"src": "handoff-2026-09-26 §4.3 B (the kitchens); spine-recut §5 (Solskaft feeds itself; the food-from-below line cut)"
 },
 {
-"x": 32,
+"x": 42,
 "y": 21,
-"text": "The brewhouse. Dwarves.",
-"src": "handoff-2026-09-26 §4.3 B"
+"text": "The brewhouse. Dwarves. The hops come down from the terrace in baskets.",
+"src": "handoff-2026-09-26 §4.3 B; spine-recut §5 (hops for the brewhouse, PROPOSED by the east-Washington rule)"
 },
 {
-"x": 3,
+"x": 13,
 "y": 4,
 "text": "Six tiers of bunks up here, and a season's troops fill two of them. Dust on the rest.",
 "src": "handoff-2026-09-26 §4.3 B (the barracks tiers, most of them dark)"
+},
+{
+"x": 8,
+"y": 12,
+"text": "GREYSEAM, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+"src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+},
+{
+"x": 12,
+"y": 12,
+"text": "ORRI, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+"src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+},
+{
+"x": 16,
+"y": 12,
+"text": "HALLVEIG, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+"src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+},
+{
+"x": 20,
+"y": 12,
+"text": "KOLBEIN, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+"src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+},
+{
+"x": 5,
+"y": 15,
+"text": "COPPERBOTTOM, cut in the lintel. Barred, like the rest, but somebody has chalked on the bar: AT THE FORGE.",
+"src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+},
+{
+"x": 9,
+"y": 15,
+"text": "ASMUND, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+"src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+},
+{
+"x": 13,
+"y": 15,
+"text": "BRANDR, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+"src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+},
+{
+"x": 17,
+"y": 15,
+"text": "GEIRMUND, cut in the lintel. Barred. The line that lived here ended on the road; the ledger has the house.",
+"src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+},
+{
+"x": 21,
+"y": 15,
+"text": "AUDUN, cut in the lintel. Barred. The line that lived here ended on the road; the ledger has the house.",
+"src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+},
+{
+"x": 3,
+"y": 12,
+"text": "SCALEBEAM, cut in the lintel, and the one door on the street with a light behind it.",
+"src": "spine-recut §5 (one lit door: the Scalebeam house, CANON 09-26e)"
+},
+{
+"x": 35,
+"y": 3,
+"text": "Apple trees, in soil carried up in baskets a season at a time. The fruit is small and very sweet.",
+"src": "spine-recut §5 (the grow is an apple orchard: RULED 09-26d)"
+},
+{
+"x": 42,
+"y": 3,
+"text": "Cherries, trained flat to the rock where the light is longest.",
+"src": "spine-recut §5 (cherries and pears, PROPOSED by his climate rule)"
+},
+{
+"x": 46,
+"y": 3,
+"text": "Pear trees, the oldest things growing in Solskaft.",
+"src": "spine-recut §5 (PROPOSED by his climate rule)"
+},
+{
+"x": 35,
+"y": 8,
+"text": "A mint bed. It gets into everything, the gardener says, which is the point.",
+"src": "spine-recut §5 (a mint bed, PROPOSED)"
+},
+{
+"x": 40,
+"y": 8,
+"text": "Dry-land wheat, thin and gold, along the terrace's long edge. It barely needs watering, which is why it is here.",
+"src": "spine-recut §5 (dry-land wheat, PROPOSED by the east-Washington rule)"
+},
+{
+"x": 3,
+"y": 3,
+"text": "The shroom farm: beds of spent ore-dust and dung in the dark, the caps pale in a hooded lamp. This is what Solskaft actually eats.",
+"src": "wiki/solskaft.md (the shroom farms, CANON 09-26c); spine-recut §5 (the shrooms are the staple)"
 }
 ],
 "triggers": [
 {
 "id": "pyroMeet",
 "rect": [
-12,
+22,
 40,
 13,
 2
@@ -479,7 +619,7 @@
 {
 "id": "cot",
 "rect": [
-24,
+34,
 31,
 2,
 3
@@ -488,9 +628,174 @@
 "script": "cot"
 },
 {
-"id": "ketilStop",
+"id": "bunk15_4",
+"rect": [
+15,
+4,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk17_4",
 "rect": [
 17,
+4,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk19_4",
+"rect": [
+19,
+4,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk21_4",
+"rect": [
+21,
+4,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk13_7",
+"rect": [
+13,
+7,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk15_7",
+"rect": [
+15,
+7,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk17_7",
+"rect": [
+17,
+7,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk19_7",
+"rect": [
+19,
+7,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk36_12",
+"rect": [
+36,
+12,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk38_12",
+"rect": [
+38,
+12,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk40_12",
+"rect": [
+40,
+12,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk42_12",
+"rect": [
+42,
+12,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk36_17",
+"rect": [
+36,
+17,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "bunk38_17",
+"rect": [
+38,
+17,
+1,
+1
+],
+"on": "use",
+"script": "cot"
+},
+{
+"id": "asdisCot",
+"rect": [
+3,
+11,
+1,
+1
+],
+"on": "use",
+"script": "asdisRest"
+},
+{
+"id": "ketilStop",
+"rect": [
+27,
 46,
 2,
 1
@@ -502,13 +807,13 @@
 ],
 "flagTiles": [
 {
-"x": 22,
+"x": 32,
 "y": 26,
 "tile": "lift",
 "cond": "flag:wwLift"
 },
 {
-"x": 22,
+"x": 32,
 "y": 4,
 "tile": "lift",
 "cond": "flag:wwLift"

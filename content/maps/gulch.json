@@ -183,7 +183,7 @@
 "x": 18,
 "y": 17,
 "tile": "gulch",
-"cond": "trig:snared"
+"cond": "flag:trig:snared"
 }
 ]
 }

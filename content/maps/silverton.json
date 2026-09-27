@@ -645,7 +645,7 @@
 "script": "warp",
 "cond": "flag:frontDoor",
 "to": "solskaft",
-"tx": 17,
+"tx": 27,
 "ty": 46
 }
 ]

@@ -422,6 +422,8 @@
     p.rect(6, 22, 6, 9, '#6a5a3a'); p.rect(6, 22, 6, 1, '#8a7a5a'); p.set(20, 18, '#b8d8a8');
     return p.outline(INK);
   };
+  // the nest's mother (spine-recut §2 beat 5): the giant spider's own painter, drawn half again as big, in the brood's violet
+  A.broodmother = function () { var p = new Pix(66, 50); spider(p, 36, 28, 2.1, '#2a2440', '#5a4a8a', '#1a1428'); p.set(18, 26, '#c8b8f8'); p.set(21, 29, '#c8b8f8'); p.set(16, 29, '#c8b8f8'); return p.outline(INK); };
   A.spellweaver = function () { return humanoid({ skin: '#3a3a5a', hood: '#2a1a3a', cloth: '#4a2a6a', weapon: 'wand', belt: '#d8b8f8' }); };
 
   var cache = {};

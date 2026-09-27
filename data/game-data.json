@@ -736,6 +736,141 @@
    "blurb": "The keeper of Solskaft's ledger, going down to her clan.",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9 (the Cleric goes down to Deepholm with the party as her escort); a guest who heals (the build's)",
    "id": "ingrith"
+  },
+  "pyro": {
+   "name": "Pyro",
+   "fullName": "Pyronimus",
+   "guest": true,
+   "cls": "fighter",
+   "level": 9,
+   "race": "Dwarf",
+   "background": "King of Solskaft",
+   "abil": {
+    "str": 18,
+    "dex": 14,
+    "con": 16,
+    "int": 11,
+    "wis": 13,
+    "cha": 15
+   },
+   "hp": 85,
+   "equip": {
+    "weapon": "mace",
+    "armor": "dwarfplate",
+    "shield": null,
+    "ring": null
+   },
+   "saveProf": [
+    "str",
+    "con"
+   ],
+   "skills": {
+    "Athletics": 8,
+    "Insight": 5,
+    "Intimidation": 6
+   },
+   "look": "pyro",
+   "weaponArt": "maces",
+   "attacks": 3,
+   "surgeAI": true,
+   "resist": [
+    "poison"
+   ],
+   "levels": {},
+   "featText": [],
+   "classLine": "Fighter 9 · two hand maces",
+   "blurb": "Solskaft's only king, at the vault door. Ran with Winters and Tarlyn in the Orc War, and likes adventurers.",
+   "src": "wiki/deepholm-and-the-edifice.md (Pyronimus, fighter 9); wiki/solskaft.md (dual-wields hand maces: CANON 09-26c); handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 2 (sheet PROPOSED: Two-Weapon Fighting, mace in each hand, Extra Attack, Second Wind, Action Surge, Indomitable; HP ~85; RULED 09-26d fighter 9). attacks 3 = Extra Attack's two and the off-hand's one",
+   "id": "pyro"
+  },
+  "halldor": {
+   "name": "Halldor",
+   "fullName": "Halldor Silversands",
+   "guest": true,
+   "cls": "fighter",
+   "level": 6,
+   "race": "Dwarf",
+   "background": "Garrison captain",
+   "abil": {
+    "str": 16,
+    "dex": 12,
+    "con": 16,
+    "int": 11,
+    "wis": 13,
+    "cha": 12
+   },
+   "hp": 64,
+   "equip": {
+    "weapon": "warhammer",
+    "armor": "splint",
+    "shield": "shield",
+    "ring": null
+   },
+   "saveProf": [
+    "str",
+    "con"
+   ],
+   "skills": {
+    "Athletics": 6,
+    "Perception": 4,
+    "Survival": 4
+   },
+   "look": "halldor",
+   "weaponArt": "hammer",
+   "attacks": 2,
+   "resist": [
+    "poison"
+   ],
+   "levels": {},
+   "featText": [],
+   "classLine": "Garrison captain",
+   "blurb": "A captain of the garrison. Took a unit up the north cut after something that came through the wall.",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 3 (Captain Halldor Silversands, RULED 09-26d: 'sounds fun'); sheet PROPOSED",
+   "id": "halldor"
+  },
+  "trooper": {
+   "name": "Trooper",
+   "fullName": "A trooper of the garrison",
+   "guest": true,
+   "cls": "fighter",
+   "level": 4,
+   "race": "Dwarf",
+   "background": "Garrison",
+   "abil": {
+    "str": 15,
+    "dex": 11,
+    "con": 14,
+    "int": 10,
+    "wis": 11,
+    "cha": 10
+   },
+   "hp": 36,
+   "equip": {
+    "weapon": "warhammer",
+    "armor": "chainmail",
+    "shield": "shield",
+    "ring": null
+   },
+   "saveProf": [
+    "str",
+    "con"
+   ],
+   "skills": {
+    "Athletics": 4,
+    "Perception": 2
+   },
+   "look": "dtrooper",
+   "weaponArt": "hammer",
+   "attacks": 1,
+   "resist": [
+    "poison"
+   ],
+   "levels": {},
+   "featText": [],
+   "classLine": "Garrison",
+   "blurb": "One of the season's troops.",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beats 3 and 5 (the captain's unit); sheet PROPOSED",
+   "id": "trooper"
   }
  },
  "items": {
@@ -2070,6 +2205,19 @@
    "desc": "Worth three hundred gold. Revivify burns one.",
    "src": "SRD 5.1 (Revivify, a diamond worth 300 gp); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §9 (Dagny sells one)",
    "id": "diamond"
+  },
+  "dwarfplate": {
+   "name": "Dwarven Plate",
+   "kind": "armor",
+   "price": 15000,
+   "armor": {
+    "base": 18,
+    "type": "heavy",
+    "dexMax": 0
+   },
+   "desc": "AC 18. Heavy. Dwarven plate, a patrol-captain's, fitted for a dwarf and let out by the smith for anyone else.",
+   "src": "SRD 5.1 (Plate, AC 18); handoff-2026-09-26-dragonsleep-spine-recut.md §2 (Pyro's kit; the nest's cocoons, PROPOSED)",
+   "id": "dwarfplate"
   },
   "sunshaftstaff": {
    "name": "Sunshaft Staff",
@@ -4263,16 +4411,16 @@
   "merc": {
    "name": "Hired Blade",
    "art": "hexfighter",
-   "cr": "2",
-   "ac": 15,
-   "hp": 65,
+   "cr": "1",
+   "ac": 14,
+   "hp": 40,
    "abil": {
-    "str": 15,
-    "dex": 16,
-    "con": 14,
-    "int": 14,
+    "str": 14,
+    "dex": 15,
+    "con": 13,
+    "int": 12,
     "wis": 11,
-    "cha": 14
+    "cha": 13
    },
    "tags": [
     "humanoid"
@@ -4280,28 +4428,27 @@
    "attacks": {
     "sword": {
      "name": "Sword",
-     "hit": 5,
-     "dmg": "1d6+3",
+     "hit": 4,
+     "dmg": "1d6+2",
      "type": "slashing",
      "verb": "cuts"
     },
     "dagger": {
      "name": "Dagger",
-     "hit": 5,
-     "dmg": "1d4+3",
+     "hit": 4,
+     "dmg": "1d4+2",
      "type": "piercing",
      "verb": "stabs"
     }
    },
    "multi": [
     "sword",
-    "sword",
     "dagger"
    ],
    "silver": "0",
-   "src": "SRD 5.1 (Bandit Captain); npcs-by-location.md (mercs between contracts on the card)",
+   "src": "SRD 5.1 (Bandit Captain, cut down to a merc between contracts: two attacks, 40 HP, so the champion stays the hardest bout; Griz 09-27: the blade was harder than Talmok); npcs-by-location.md (mercs between contracts on the card)",
    "id": "merc",
-   "xp": 450
+   "xp": 200
   },
   "talmok": {
    "name": "Talmok",
@@ -5576,6 +5723,421 @@
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §7.1 (a priest block strengthened to cleric 5: AC 13, HP 40, Spirit Guardians, Hold Person, Sanctuary at first blood, yields at half HP); wiki/the-copper-egg.md (Torvald Greyseam, cleric 5 of Dvalgarda)",
    "id": "torvald",
    "xp": 700
+  },
+  "ogre": {
+   "name": "Ogre",
+   "art": "bugbear",
+   "tint": "#c0a868",
+   "cr": "2",
+   "ac": 11,
+   "hp": 59,
+   "abil": {
+    "str": 19,
+    "dex": 8,
+    "con": 16,
+    "int": 5,
+    "wis": 7,
+    "cha": 7
+   },
+   "tags": [
+    "giant"
+   ],
+   "attacks": {
+    "club": {
+     "name": "Greatclub",
+     "hit": 6,
+     "dmg": "2d8+4",
+     "type": "bludgeoning",
+     "verb": "clubs"
+    }
+   },
+   "silver": "3d6",
+   "src": "SRD 5.1 (Ogre); handoff-2026-09-26-dragonsleep-spine-recut.md §3 (leg one: an ogre with goblins); art: the bugbear recoloured (RULED 09-27: recolor where possible)",
+   "id": "ogre",
+   "xp": 450
+  },
+  "ettin": {
+   "name": "Ettin",
+   "art": "bugbear",
+   "tint": "#8a6a9a",
+   "cr": "4",
+   "ac": 12,
+   "hp": 85,
+   "abil": {
+    "str": 21,
+    "dex": 8,
+    "con": 17,
+    "int": 6,
+    "wis": 10,
+    "cha": 8
+   },
+   "tags": [
+    "giant"
+   ],
+   "attacks": {
+    "axe": {
+     "name": "Battleaxe",
+     "hit": 7,
+     "dmg": "2d8+5",
+     "type": "slashing",
+     "verb": "hacks at"
+    },
+    "star": {
+     "name": "Morningstar",
+     "hit": 7,
+     "dmg": "2d8+5",
+     "type": "piercing",
+     "verb": "smashes"
+    }
+   },
+   "multi": [
+    "axe",
+    "star"
+   ],
+   "silver": "4d6",
+   "src": "SRD 5.1 (Ettin); spine-recut §3 (leg two); art: the bugbear recoloured",
+   "id": "ettin",
+   "xp": 1100
+  },
+  "phasespider": {
+   "short": "Phase Spider",
+   "name": "Phase Spider",
+   "art": "spider",
+   "tint": "#8a8af0",
+   "cr": "3",
+   "ac": 13,
+   "hp": 32,
+   "abil": {
+    "str": 15,
+    "dex": 15,
+    "con": 12,
+    "int": 6,
+    "wis": 10,
+    "cha": 6
+   },
+   "tags": [
+    "monstrosity"
+   ],
+   "attacks": {
+    "bite": {
+     "name": "Bite",
+     "hit": 4,
+     "dmg": "1d10+2",
+     "type": "piercing",
+     "verb": "bites",
+     "save": {
+      "ab": "con",
+      "dc": 11,
+      "dmg": "4d8",
+      "half": true,
+      "type": "poison",
+      "poison": true
+     }
+    }
+   },
+   "specials": [
+    {
+     "id": "jaunt",
+     "kind": "self",
+     "when": "bloodied",
+     "once": true,
+     "chance": 0.9,
+     "cond": "ethereal",
+     "rounds": 4,
+     "text": "blinks out of the world and into the rock."
+    }
+   ],
+   "silver": "0",
+   "src": "SRD 5.1 (Phase Spider; Ethereal Jaunt read as one jaunt when bloodied, back through the wall next round); spine-recut §2 beat 3 (RULED 09-26d with the captain); art: the giant spider recoloured",
+   "id": "phasespider",
+   "xp": 700
+  },
+  "broodmother": {
+   "short": "Broodmother",
+   "name": "Broodmother",
+   "art": "broodmother",
+   "cr": "6",
+   "ac": 15,
+   "hp": 120,
+   "abil": {
+    "str": 19,
+    "dex": 15,
+    "con": 16,
+    "int": 7,
+    "wis": 12,
+    "cha": 6
+   },
+   "tags": [
+    "monstrosity"
+   ],
+   "attacks": {
+    "bite": {
+     "name": "Bite",
+     "hit": 7,
+     "dmg": "2d10+4",
+     "type": "piercing",
+     "verb": "bites",
+     "save": {
+      "ab": "con",
+      "dc": 14,
+      "dmg": "6d8",
+      "half": true,
+      "type": "poison",
+      "poison": true
+     }
+    }
+   },
+   "multi": [
+    "bite",
+    "bite"
+   ],
+   "pickSpecial": true,
+   "specials": [
+    {
+     "id": "web",
+     "dc": 14,
+     "recharge": 5,
+     "chance": 0.4
+    },
+    {
+     "id": "jaunt",
+     "kind": "self",
+     "when": "bloodied",
+     "once": true,
+     "cond": "ethereal",
+     "rounds": 4,
+     "text": "folds herself into the rock."
+    }
+   ],
+   "silver": "0",
+   "src": "game-original, built from the SRD 5.1 Phase Spider at CR 6 (spine-recut §2 beat 5: 'a phase spider brood with a bigger one, CR 5-6'); art: the giant spider's painter, drawn larger",
+   "id": "broodmother",
+   "xp": 2300
+  },
+  "stonegiant": {
+   "short": "Stone Giant",
+   "name": "Stone Giant",
+   "art": "orcfighter",
+   "tint": "#a0a0a8",
+   "cr": "7",
+   "ac": 17,
+   "hp": 126,
+   "abil": {
+    "str": 23,
+    "dex": 15,
+    "con": 20,
+    "int": 10,
+    "wis": 12,
+    "cha": 9
+   },
+   "tags": [
+    "giant"
+   ],
+   "attacks": {
+    "club": {
+     "name": "Greatclub",
+     "hit": 9,
+     "dmg": "3d8+6",
+     "type": "bludgeoning",
+     "verb": "clubs"
+    }
+   },
+   "multi": [
+    "club",
+    "club"
+   ],
+   "specials": [
+    {
+     "id": "rock",
+     "kind": "blast",
+     "recharge": 5,
+     "chance": 0.35,
+     "text": "wrenches a boulder out of the wall and heaves it!",
+     "save": "dex",
+     "dc": 17,
+     "dmg": "4d10+6",
+     "type": "bludgeoning",
+     "half": true,
+     "targets": 1,
+     "cond": "prone",
+     "condText": "Knocked flat!"
+    }
+   ],
+   "silver": "4d10",
+   "src": "SRD 5.1 (Stone Giant; Rock read as a DEX save); spine-recut §3 (leg three: duergar with a stone giant, the deep's own giant); art: the orc fighter recoloured",
+   "id": "stonegiant",
+   "xp": 2900
+  },
+  "troll": {
+   "name": "Troll",
+   "art": "gnoll",
+   "tint": "#3a8a3a",
+   "cr": "5",
+   "ac": 15,
+   "hp": 84,
+   "abil": {
+    "str": 18,
+    "dex": 13,
+    "con": 20,
+    "int": 7,
+    "wis": 9,
+    "cha": 7
+   },
+   "tags": [
+    "giant"
+   ],
+   "traits": {
+    "regen": 10
+   },
+   "attacks": {
+    "bite": {
+     "name": "Bite",
+     "hit": 7,
+     "dmg": "1d6+4",
+     "type": "piercing",
+     "verb": "bites"
+    },
+    "claw": {
+     "name": "Claw",
+     "hit": 7,
+     "dmg": "2d6+4",
+     "type": "slashing",
+     "verb": "rakes"
+    }
+   },
+   "multi": [
+    "bite",
+    "claw",
+    "claw"
+   ],
+   "silver": "2d6",
+   "src": "SRD 5.1 (Troll: Regeneration 10 a turn unless it took fire or acid since its last); spine-recut §3 (leg four: a troll pack); art: the gnoll recoloured",
+   "id": "troll",
+   "xp": 1800
+  },
+  "naga": {
+   "short": "Naga",
+   "name": "Spirit Naga",
+   "art": "snake",
+   "tint": "#5a7ab8",
+   "cr": "8",
+   "ac": 15,
+   "hp": 75,
+   "abil": {
+    "str": 18,
+    "dex": 17,
+    "con": 14,
+    "int": 16,
+    "wis": 15,
+    "cha": 16
+   },
+   "tags": [
+    "monstrosity"
+   ],
+   "immune": [
+    "poison"
+   ],
+   "condImmune": [
+    "poisoned"
+   ],
+   "attacks": {
+    "bite": {
+     "name": "Bite",
+     "hit": 7,
+     "dmg": "1d6+4",
+     "type": "piercing",
+     "verb": "bites",
+     "save": {
+      "ab": "con",
+      "dc": 13,
+      "dmg": "7d8",
+      "half": true,
+      "type": "poison",
+      "poison": true
+     }
+    }
+   },
+   "pickSpecial": true,
+   "specials": [
+    {
+     "id": "bolt",
+     "kind": "blast",
+     "recharge": 5,
+     "chance": 0.5,
+     "text": "speaks, and lightning runs along the water!",
+     "save": "dex",
+     "dc": 14,
+     "dmg": "8d6",
+     "type": "lightning",
+     "half": true,
+     "targets": 3
+    },
+    {
+     "id": "hold",
+     "kind": "curse",
+     "once": true,
+     "text": "turns its eyes on the party, and {t} cannot move.",
+     "save": "wis",
+     "dc": 14,
+     "cond": "paralyzed",
+     "rounds": 10,
+     "repeat": true
+    }
+   ],
+   "silver": "6d10",
+   "src": "SRD 5.1 (Spirit Naga: Lightning Bolt, Hold Person; poison bite); spine-recut §3 (leg four: a spirit naga in the deep water); art: the snake recoloured",
+   "id": "naga",
+   "xp": 3900
+  },
+  "earthelemental": {
+   "short": "Elemental",
+   "name": "Earth Elemental",
+   "art": "xorn",
+   "tint": "#8a6a3a",
+   "cr": "5",
+   "ac": 17,
+   "hp": 126,
+   "abil": {
+    "str": 20,
+    "dex": 8,
+    "con": 20,
+    "int": 5,
+    "wis": 10,
+    "cha": 5
+   },
+   "tags": [
+    "elemental"
+   ],
+   "resist": [
+    "mundane"
+   ],
+   "vuln": [
+    "thunder"
+   ],
+   "immune": [
+    "poison"
+   ],
+   "condImmune": [
+    "paralyzed",
+    "poisoned"
+   ],
+   "attacks": {
+    "slam": {
+     "name": "Slam",
+     "hit": 8,
+     "dmg": "2d8+5",
+     "type": "bludgeoning",
+     "verb": "slams"
+    }
+   },
+   "multi": [
+    "slam",
+    "slam"
+   ],
+   "silver": "0",
+   "src": "SRD 5.1 (Earth Elemental; its resistance read as all mundane blows, as the xorn's); spine-recut §3 (leg four: an earth elemental in the made road's cut); art: the xorn recoloured",
+   "id": "earthelemental",
+   "xp": 1800
   }
  },
  "encounters": {
@@ -6175,19 +6737,24 @@
   },
   "hw1": {
    "rate": [
-    16,
-    30
+    14,
+    26
    ],
    "bg": "highway",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (leg one: goblins and such)",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §3 (the ladder read right: what is available, scaled by depth; 6-9, increasing toward Deepholm) (leg one, for 5-6: hobgoblin squads with a sergeant, bugbears, an ogre with goblins)",
    "groups": [
     {
      "w": 4,
      "e": [
       [
-       "goblin",
+       "hobgoblin",
        3,
-       5
+       4
+      ],
+      [
+       "hobsergeant",
+       1,
+       1
       ]
      ]
     },
@@ -6195,14 +6762,14 @@
      "w": 3,
      "e": [
       [
-       "goblin",
+       "bugbear",
        2,
        3
       ],
       [
-       "hobgoblin",
-       1,
-       2
+       "goblin",
+       2,
+       3
       ]
      ]
     },
@@ -6210,9 +6777,14 @@
      "w": 3,
      "e": [
       [
-       "hobgoblin",
+       "ogre",
+       1,
+       2
+      ],
+      [
+       "goblin",
        2,
-       3
+       4
       ]
      ]
     },
@@ -6225,9 +6797,9 @@
        3
       ],
       [
-       "goblin",
-       1,
-       2
+       "hobgoblin",
+       2,
+       3
       ]
      ]
     },
@@ -6235,12 +6807,12 @@
      "w": 2,
      "e": [
       [
-       "bugbear",
+       "bugbearchief",
        1,
-       2
+       1
       ],
       [
-       "goblin",
+       "bugbear",
        1,
        2
       ]
@@ -6251,18 +6823,18 @@
   },
   "hw2": {
    "rate": [
-    16,
-    30
+    14,
+    26
    ],
    "bg": "cavern",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (leg two: deep fauna)",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §3 (the ladder read right: what is available, scaled by depth; 6-9, increasing toward Deepholm) (leg two, for 6-7: gibbering mouthers, an ettin, the phase spiders, the deep fauna)",
    "groups": [
     {
      "w": 3,
      "e": [
       [
-       "grick",
-       1,
+       "mouther",
+       2,
        3
       ]
      ]
@@ -6271,8 +6843,8 @@
      "w": 3,
      "e": [
       [
-       "darkmantle",
-       2,
+       "grick",
+       3,
        4
       ]
      ]
@@ -6281,34 +6853,49 @@
      "w": 2,
      "e": [
       [
-       "cube",
+       "ettin",
        1,
-       1
+       2
       ]
      ]
     },
     {
      "w": 2,
      "e": [
+      [
+       "phasespider",
+       2,
+       3
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "darkmantle",
+       3,
+       5
+      ],
+      [
+       "grick",
+       1,
+       1
+      ]
+     ]
+    },
+    {
+     "w": 1,
+     "e": [
+      [
+       "cube",
+       1,
+       1
+      ],
       [
        "mouther",
        1,
        1
-      ]
-     ]
-    },
-    {
-     "w": 2,
-     "e": [
-      [
-       "grick",
-       1,
-       2
-      ],
-      [
-       "darkmantle",
-       1,
-       2
       ]
      ]
     }
@@ -6317,39 +6904,19 @@
   },
   "hw3": {
    "rate": [
-    16,
-    30
+    12,
+    22
    ],
    "bg": "highway",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (leg three: the underdark's skirmishes)",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §3 (the ladder read right: what is available, scaled by depth; 6-9, increasing toward Deepholm) (leg three, for 7-8: duergar, a xorn pair in the seam, cloakers, drow blade-captain squads)",
    "groups": [
     {
-     "w": 4,
+     "w": 3,
      "e": [
       [
        "duergar",
-       2,
-       4
-      ]
-     ]
-    },
-    {
-     "w": 3,
-     "e": [
-      [
-       "grimlock",
-       3,
+       4,
        6
-      ]
-     ]
-    },
-    {
-     "w": 3,
-     "e": [
-      [
-       "drow",
-       2,
-       4
       ]
      ]
     },
@@ -6358,18 +6925,180 @@
      "e": [
       [
        "duergar",
-       1,
-       2
+       2,
+       3
       ],
       [
        "grimlock",
+       3,
+       4
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "xorn",
+       2,
+       2
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "cloaker",
+       1,
+       1
+      ]
+     ]
+    },
+    {
+     "w": 3,
+     "e": [
+      [
+       "drowcaptain",
+       1,
+       1
+      ],
+      [
+       "drow",
+       3,
+       4
+      ]
+     ]
+    }
+   ],
+   "id": "hw3"
+  },
+  "hw4": {
+   "rate": [
+    12,
+    22
+   ],
+   "bg": "highway",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §3 (the ladder read right: what is available, scaled by depth; 6-9, increasing toward Deepholm) (leg four, for 8-9: the drow in force, a troll pack, a spirit naga, an earth elemental)",
+   "groups": [
+    {
+     "w": 2,
+     "e": [
+      [
+       "drowcaptain",
+       1,
+       1
+      ],
+      [
+       "drow",
+       4,
+       5
+      ]
+     ]
+    },
+    {
+     "w": 1,
+     "e": [
+      [
+       "spellweaver",
+       1,
+       1
+      ],
+      [
+       "drow",
+       3,
+       4
+      ]
+     ]
+    },
+    {
+     "w": 3,
+     "e": [
+      [
+       "troll",
+       2,
+       2
+      ]
+     ]
+    },
+    {
+     "w": 1,
+     "e": [
+      [
+       "naga",
+       1,
+       1
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "earthelemental",
+       1,
+       1
+      ],
+      [
+       "xorn",
+       1,
+       1
+      ]
+     ]
+    },
+    {
+     "w": 2,
+     "e": [
+      [
+       "stonegiant",
+       1,
+       1
+      ],
+      [
+       "duergar",
        2,
        3
       ]
      ]
     }
    ],
-   "id": "hw3"
+   "id": "hw4"
+  },
+  "nest": {
+   "rate": [
+    10,
+    18
+   ],
+   "bg": "cavern",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §3 (the ladder read right: what is available, scaled by depth; 6-9, increasing toward Deepholm) (the nest: the brood, level 7-8 fights); spine-recut §2 beat 5",
+   "groups": [
+    {
+     "w": 3,
+     "e": [
+      [
+       "phasespider",
+       2,
+       3
+      ]
+     ]
+    },
+    {
+     "w": 1,
+     "e": [
+      [
+       "phasespider",
+       2,
+       2
+      ],
+      [
+       "giantspider",
+       2,
+       3
+      ]
+     ]
+    }
+   ],
+   "id": "nest"
   }
  },
  "shops": {
@@ -6722,7 +7451,7 @@
      "key": "door",
      "if": "flag:frontDoor",
      "say": [
-      "You went through the door. Everybody knows. Nobody says."
+      "The dwarves let you four through their door, and nobody else. Nobody knows why. Nobody asks me."
      ]
     }
    ],
@@ -6901,7 +7630,7 @@
      "key": "door",
      "if": "flag:frontDoor",
      "say": [
-      "Dwarves let you in. What's it like?"
+      "Dwarves let you four in and nobody else. What did you do to them? What's it like?"
      ]
     }
    ],
@@ -8020,24 +8749,213 @@
    "talk": [
     {
      "say": [
-      "Meat in the smoke, beer in the vats, bread from below. Sit if you're sitting. Eat if you're eating."
+      "Meat in the smoke, shrooms from the dark, apples from the light. Sit if you're sitting."
      ]
     }
    ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 B (the kitchens); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §5 (the cook's line, the seat's draft verbatim: Solskaft feeds itself; 'bread from below' cut)",
    "id": "cook"
   },
   "sleeper": {
    "name": "Trooper",
+   "script": "sleeper",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 B (the barracks tiers); handoff-2026-09-26-dragonsleep-spine-recut.md F4 (the bunks offer sleep); drafted by the code tab, PROPOSED",
+   "id": "sleeper"
+  },
+  "asdis": {
+   "name": "Asdis Scalebeam",
+   "script": "asdis",
+   "src": "wiki/solskaft.md (the residential quarter; one lit door, the Scalebeam house, Asdis: CANON 09-26d/e); spine-recut §5",
+   "id": "asdis"
+  },
+  "gardener": {
+   "name": "Gardener",
    "talk": [
     {
      "say": [
-      "Bunks up here if you want one. The cots in the yard are nearer the door."
+      "Apples, mostly. Cherries where the light stays longest, pears because the old king liked them, hops for the brewhouse, and mint because it won't stop.",
+      "Everything up here came up the shaft in a basket. Including the dirt."
      ]
     }
    ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 B (the barracks tiers); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
-   "id": "sleeper"
+   "src": "wiki/solskaft.md (the grow is an apple orchard, and whatever else makes sense for east Washington state climate: RULED 09-26d); spine-recut §5 (a gardener trooper); drafted by the code tab, PROPOSED",
+   "id": "gardener"
+  },
+  "shroomer": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "The apples are for feast-days. This is what we eat. Don't let the gardener tell you different.",
+      "Keep your lamp hooded in here. They don't like the light, and neither do I, after a season of it."
+     ]
+    }
+   ],
+   "src": "wiki/solskaft.md (the shroom farms, CANON 09-26c: the staple); spine-recut §5; drafted by the code tab, PROPOSED",
+   "id": "shroomer"
+  },
+  "halldor": {
+   "name": "Halldor Silversands",
+   "script": "halldor",
+   "src": "spine-recut §2 beat 5 (the captain's petition, in the muster yard)",
+   "id": "halldor"
+  },
+  "halldorBunk": {
+   "name": "Halldor Silversands",
+   "script": "halldorBunk",
+   "src": "spine-recut §2 beat 5 (a couple of quests later the captain will be healed)",
+   "id": "halldorBunk"
+  },
+  "halldorPin": {
+   "name": "Halldor Silversands",
+   "talk": [
+    {
+     "say": [
+      "Keep your voice down. They listen through the rock."
+     ]
+    }
+   ],
+   "src": "spine-recut §2 beat 3; drafted by the code tab, PROPOSED",
+   "id": "halldorPin"
+  },
+  "pinA": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Two days. Don't ask me to sleep; I've tried."
+     ]
+    }
+   ],
+   "src": "spine-recut §2 beat 3; drafted by the code tab, PROPOSED",
+   "id": "pinA"
+  },
+  "pinB": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "It's in the wall. It's always in the wall."
+     ]
+    }
+   ],
+   "src": "spine-recut §2 beat 3; drafted by the code tab, PROPOSED",
+   "id": "pinB"
+  },
+  "pinC": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Leg's gone. I'm still holding the lamp, though. Somebody has to."
+     ]
+    }
+   ],
+   "src": "spine-recut §2 beat 3 (two down); drafted by the code tab, PROPOSED",
+   "id": "pinC"
+  },
+  "pinD": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "...",
+      "(He's breathing. That's all he's doing.)"
+     ]
+    }
+   ],
+   "src": "spine-recut §2 beat 3 (two down); drafted by the code tab, PROPOSED",
+   "id": "pinD"
+  },
+  "thyra": {
+   "name": "Thyra Silversands",
+   "talk": [
+    {
+     "if": "flag:highwaySecured",
+     "say": [
+      "The road held to the door. Second Lamp never went dark, and now none of them has to."
+     ]
+    },
+    {
+     "say": [
+      "Thyra Silversands, Second Lamp. Cistern's good, cots are dry, and nothing's come up the drainage cut since we weighted the grate."
+     ]
+    }
+   ],
+   "src": "wiki/solskaft.md (Second Lamp a manned outpost: CANON 09-26d; its garrison a captain and three, PROPOSED); name drafted by the code tab, PROPOSED",
+   "id": "thyra"
+  },
+  "lamp2a": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Second Lamp's the dull one. That's what you want in a lamp."
+     ]
+    }
+   ],
+   "src": "spine-recut §4; drafted by the code tab, PROPOSED",
+   "id": "lamp2a"
+  },
+  "lamp2b": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Past the great cavern the road's ours again. Mostly."
+     ]
+    }
+   ],
+   "src": "spine-recut §4; drafted by the code tab, PROPOSED",
+   "id": "lamp2b"
+  },
+  "lamp2c": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Don't lift the grate over the drainage cut. We weighted it for a reason. Two reasons, and they're both black."
+     ]
+    }
+   ],
+   "src": "spine-recut §3-4 (the black pudding in the drainage); drafted by the code tab, PROPOSED",
+   "id": "lamp2c"
+  },
+  "geir": {
+   "name": "Geir Silversands",
+   "talk": [
+    {
+     "say": [
+      "Geir Silversands, Third Lamp. Past here the road is Deepholm's, and quieter than it ought to be."
+     ]
+    }
+   ],
+   "src": "spine-recut §2 beat 6 (Third Lamp held until the word from below); name drafted by the code tab, PROPOSED",
+   "id": "geir"
+  },
+  "lamp3a": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Last lamp. The season's stores come down to us and stop. Nobody past here wants them."
+     ]
+    }
+   ],
+   "src": "spine-recut §2 beat 6; drafted by the code tab, PROPOSED",
+   "id": "lamp3a"
+  },
+  "lamp3b": {
+   "name": "Trooper",
+   "talk": [
+    {
+     "say": [
+      "Some nights you hear the deep road breathing. Geir says it's the draught. Geir says a lot of things."
+     ]
+    }
+   ],
+   "src": "spine-recut §2 beat 6 (the drow are coming); drafted by the code tab, PROPOSED",
+   "id": "lamp3b"
   },
   "shaftwatch": {
    "name": "Trooper",
@@ -8123,11 +9041,11 @@
    "talk": [
     {
      "say": [
-      "Second Lamp's been dark two seasons. Nobody will say why, which is its own answer."
+      "Thyra keeps Second Lamp. She's never let it gutter, and she'll tell you so."
      ]
     }
    ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "src": "wiki/solskaft.md (Second Lamp manned, never abandoned: CANON 09-26d); drafted by the code tab, PROPOSED",
    "id": "lamp1b"
   },
   "lamp1c": {
@@ -9124,6 +10042,16 @@
    "src": "wiki/the-warrens.md (W4: the mark; air from below that smells of rain)",
    "id": "w.markSee"
   },
+  "w.markDry": {
+   "t": "Cut in the landing wall at the stair head: the mark. Dwarven work. The stair below it is dry now, and the air that comes up smells of silt.",
+   "src": "wiki/the-warrens.md (W4: the mark); handoff-2026-09-26-dragonsleep-spine-recut.md F1 (once the stair is drained the mark reads as a mark and nothing more)",
+   "id": "w.markDry"
+  },
+  "w.markPlain": {
+   "t": "Cut in the landing wall at the stair head: the mark. Dwarven work.",
+   "src": "wiki/the-warrens.md (W4: the mark); handoff-2026-09-26-dragonsleep-spine-recut.md F1",
+   "id": "w.markPlain"
+  },
   "w.markRead": {
    "t": "A warranty in Rekknar's ledger. An oath, not a lock. Breaking it would be blasphemy, not vandalism.",
    "src": "wiki/the-warrens.md (a warranted seal is an oath in the ledger)",
@@ -9882,8 +10810,8 @@
    "id": "deep.puddle"
   },
   "deep.puddleStill": {
-   "t": "In the corner at the stair's foot, a hand's depth of water, still. Whatever kept this stair, you already settled with it.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3; the base game's keeperDone",
+   "t": "In the corner at the stair's foot, a dark stain on the stone where the last of the water dried. No water left to keep anything. Whatever kept this stair, you already settled with it.",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md F2 (Griz: if the keeper was beaten in the base game, there is no puddle at all); the base game's keeperDone",
    "id": "deep.puddleStill"
   },
   "deep.doorCut": {
@@ -10099,12 +11027,552 @@
    "id": "deep.ingrithName"
   },
   "deep.ingrithTrade": {
-   "t": [
-    "The king sealed our doors, and the trade stopped. My clan built itself on the trade: the assay, the tolls, the warranted bond. I have kept the ledger of a garrison ever since.",
-    "I would like to keep the ledger of a town again. Pyro will not open the doors while the highway bleeds. So the highway is the argument."
-   ],
-   "src": "wiki/deepholm-and-the-edifice.md (the Cleric wants surface trade resumed and the doors open; Scalebeam the trader clan); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "The king sealed our doors, and the trade stopped. My clan built itself on the trade: the assay, the tolls, the warranted bond. I have kept the ledger of a garrison ever since.",
+   "src": "wiki/deepholm-and-the-edifice.md (the Cleric wants surface trade resumed; Scalebeam the trader clan); handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 1 (her ask lands at beat 6, not here: the doors-open half of the line moved there)",
    "id": "deep.ingrithTrade"
+  },
+  "deep.ingrithDoor": {
+   "t": [
+    "I will not ask you for anything tonight. The ledger does not buy with favours.",
+    "But it writes what it saw, and it saw four surface hands stop a crew at the dead. Our front door opens for you: the four of you, and nobody else. Not the town. Not the council. You.",
+    "Nobody up there will know why. Let them wonder."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md F10 (the party's passage is the ledger's leave for these four, a convenience so the Warrens walk isn't repeated; nobody knows why) and §2 beat 1 (nothing about the highway); drafted by the code tab, PROPOSED",
+   "id": "deep.ingrithDoor"
+  },
+  "deep.ingrithSeeKing": {
+   "t": "Go and see the king. The ledger has nothing more to ask of you tonight.",
+   "src": "spine-recut §2 beat 1; drafted by the code tab, PROPOSED",
+   "id": "deep.ingrithSeeKing"
+  },
+  "deep.pyroReads": {
+   "t": "He looks you over the way a smith looks over a blade somebody else forged: where it'll bend, and where it won't.",
+   "src": "spine-recut §2 beat 2 (he reads THEM: a party-level check, low DC, flavour); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroReads"
+  },
+  "deep.pyroEyeYes": {
+   "t": "Ha. There it is. Winters looked at me like that once, across a fire, the night before the orcs came over the ridge. He was younger than you.",
+   "src": "wiki/deepholm-and-the-edifice.md (Pyro ran with Winters and Tarlyn in the Orc War); spine-recut §2 beat 2 (he sees his own youth in them); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroEyeYes"
+  },
+  "deep.pyroEyeNo": {
+   "t": "You looked away first. So did Tarlyn, the first time. He got better at it. So will you.",
+   "src": "spine-recut §2 beat 2; drafted by the code tab, PROPOSED",
+   "id": "deep.pyroEyeNo"
+  },
+  "deep.pyroGripYes": {
+   "t": "A grip like a pry-bar. Good. You'll want your hands where I'm taking you.",
+   "src": "spine-recut §2 beat 2; drafted by the code tab, PROPOSED",
+   "id": "deep.pyroGripYes"
+  },
+  "deep.pyroGripNo": {
+   "t": "Soft. The road will fix that, or it won't. It fixed me.",
+   "src": "spine-recut §2 beat 2; drafted by the code tab, PROPOSED",
+   "id": "deep.pyroGripNo"
+  },
+  "deep.pyroRoad": {
+   "t": [
+    "The halls are her ledger's to show you. The road is mine.",
+    "Four days down to Deepholm's door, three lamps on it, and the dark comes through the seals faster than we can cut new ones. Walk it with me. I'll show you what it's for."
+   ],
+   "src": "spine-recut §2 beat 2 ('says the road is his to show'); §4 (four days); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroRoad"
+  },
+  "deep.pyroAsk": {
+   "t": "He takes two maces down off the wall behind the door, one for each hand, and waits.",
+   "src": "wiki/solskaft.md (he dual-wields hand maces, CANON 09-26c); spine-recut §2 beat 2; F5 (player autonomy: he waits, he doesn't march you out)",
+   "id": "deep.pyroAsk"
+  },
+  "deep.pyroWait": {
+   "t": "Then look around. It's a small place and an old one. I'll be at the door; I always am.",
+   "src": "spine-recut §2 beat 2; drafted by the code tab, PROPOSED",
+   "id": "deep.pyroWait"
+  },
+  "deep.pyroAgain": {
+   "t": "Ready? The road doesn't get shorter for waiting on it.",
+   "src": "spine-recut §2 beat 2; drafted by the code tab, PROPOSED",
+   "id": "deep.pyroAgain"
+  },
+  "deep.pyroKetil": {
+   "t": "Ketil. The door's yours till I'm back.",
+   "src": "spine-recut §2 beat 2 ('He leaves Ketil the door'); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroKetil"
+  },
+  "deep.pyroKetilAns": {
+   "t": "It was mine the last time, too. You came back.",
+   "src": "spine-recut §2 beat 2; drafted by the code tab, PROPOSED",
+   "id": "deep.pyroKetilAns"
+  },
+  "deep.pyroJoins": {
+   "t": "PYRONIMUS WALKS WITH YOU. The king of Solskaft fights behind the four of you, a mace in each hand.",
+   "src": "spine-recut §2 beat 2 (Pyro joins as a guest, fighter 9, two hand maces)",
+   "id": "deep.pyroJoins"
+  },
+  "deep.pyroToGate": {
+   "t": "The gate. Ingrith's waiting on you, and so am I, apparently.",
+   "src": "spine-recut §2 beat 6; drafted by the code tab, PROPOSED",
+   "id": "deep.pyroToGate"
+  },
+  "deep.pyroNest": {
+   "t": "Halldor's nest. Crush it and come back to me. I want to hear it from you, not him; he'll make it sound easy.",
+   "src": "spine-recut §2 beat 5; drafted by the code tab, PROPOSED",
+   "id": "deep.pyroNest"
+  },
+  "deep.gatePyro": {
+   "t": "Pyro puts his shoulder to the gate-bar as if he were twenty. 'Up she goes. Mind the seals: white's whole, red's cut, and cut means company.'",
+   "src": "spine-recut §2 beats 2-3 (the road opens by Pyro's leave: F8); drafted by the code tab, PROPOSED",
+   "id": "deep.gatePyro"
+  },
+  "deep.ledgerlampPyro": {
+   "t": "He unhooks a ledger-lamp from the rack and hands it over. 'Ingrith's. Under warranty. It lights further than a torch, and it shows the seals.'",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (the ledger-lamp); spine-recut §2 beat 3 (the king hands it over now)",
+   "id": "deep.ledgerlampPyro"
+  },
+  "deep.gateKing": {
+   "t": "The king has the road back, he says. The halls are yours. When the road wants you, it'll send for you.",
+   "src": "spine-recut §2 beat 4 ('The halls are yours; the road is mine again'); drafted by the code tab, PROPOSED",
+   "id": "deep.gateKing"
+  },
+  "deep.ulfKing": {
+   "t": "Ulf Silversands. My king. If I'd known, I'd have swept.",
+   "src": "spine-recut §2 beat 3; drafted by the code tab, PROPOSED",
+   "id": "deep.ulfKing"
+  },
+  "deep.lamp1Pyro": {
+   "t": "You never sweep, Ulf. That's why I like it here.",
+   "src": "spine-recut §2 beat 3; drafted by the code tab, PROPOSED",
+   "id": "deep.lamp1Pyro"
+  },
+  "deep.thyraReport": {
+   "t": [
+    "Thyra Silversands, Second Lamp. My king.",
+    "Halldor took six up the north cut, back along the road, after something that came through the wall and wasn't there when he got to it. Two days. A runner came back with half a word: pinned."
+   ],
+   "src": "spine-recut §2 beat 3 (Halldor and his unit pinned off the highway; Second Lamp's garrison 'a captain and three', PROPOSED); name Thyra drafted by the code tab, PROPOSED",
+   "id": "deep.thyraReport"
+  },
+  "deep.pyroPinned": {
+   "t": "Then we go and unpin him. The north cut, back the way we came a little. Rest first if you need it; he's held two days, he'll hold one more night.",
+   "src": "spine-recut §2 beat 3; F5 (the rest offered, not imposed); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroPinned"
+  },
+  "deep.thyra1": {
+   "t": "Thyra Silversands, Second Lamp. Cistern's good, cots are dry, and nothing's come up the drainage cut since we weighted the grate.",
+   "src": "spine-recut §4 (Second Lamp manned); drafted by the code tab, PROPOSED",
+   "id": "deep.thyra1"
+  },
+  "deep.lamp3Arrive": {
+   "t": "Third Lamp. Held: the last lamp and the biggest station, the season's stores in crates, a tower burning.",
+   "src": "spine-recut §2 beat 6 (Third Lamp held until the word from below); drafted by the code tab, PROPOSED",
+   "id": "deep.lamp3Arrive"
+  },
+  "deep.geir1": {
+   "t": "Geir Silversands, Third Lamp. Past here the road is Deepholm's, and quieter than it ought to be.",
+   "src": "spine-recut §2 beat 6 (the lamp before the drow take it); name drafted by the code tab, PROPOSED",
+   "id": "deep.geir1"
+  },
+  "deep.geirKing": {
+   "t": "My king. You came all this way to count my crates? They're very good crates.",
+   "src": "spine-recut §2 beat 3; drafted by the code tab, PROPOSED",
+   "id": "deep.geirKing"
+  },
+  "deep.lampStay": {
+   "t": "A cot, a cistern, a lamp that burns all night. Stay, or go on while you've the legs for it.",
+   "src": "spine-recut F5 (a lamp reached offers a rest: STAY / GO ON)",
+   "id": "deep.lampStay"
+  },
+  "deep.pyroRoad1": {
+   "t": [
+    "The dead ride up this road, you know. Every one of the Burial's lower rows came up it on a litter.",
+    "The law's simple: nothing comes off the dead without the ledger saying so. Not a ring. Not a name. Your crew thought it was a tomb. It's a count."
+   ],
+   "src": "spine-recut §2 beat 3 (three lines across leg two: the burial law in his mouth); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroRoad1"
+  },
+  "deep.pyroRoad2": {
+   "t": [
+    "You'll want to know why I sealed the mint.",
+    "Coin with my face on it, going up to a town that burned. I'd rather it didn't exist than it bought that again. The silver's still in there. Let it be silver."
+   ],
+   "src": "spine-recut §2 beat 3 (why he sealed the mint); wiki/solskaft.md (the mint, sealed by Pyro); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroRoad2"
+  },
+  "deep.pyroRoad3": {
+   "t": [
+    "This road was for carts. Ore up, tolls down, and everything the two ends wanted of each other. Four days of lamps so a carter could sleep.",
+    "Now it's for the dead and the relief. One day it'll be for carts again. I'd like to see it. I'd like you to."
+   ],
+   "src": "spine-recut §2 beat 3 (what the road was for); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroRoad3"
+  },
+  "deep.pinnedSee": {
+   "t": [
+    "The north cut opens into a cavern, and at the back of it a neck of rock no wider than two dwarves. Across the neck, a wall of crates and packs.",
+    "Behind it, five of the garrison. Two of them lying down, and not by choice."
+   ],
+   "src": "spine-recut §2 beat 3 (a side cavern, one screen, dark, a defensible dead-end; four troopers, two down)",
+   "id": "deep.pinnedSee"
+  },
+  "deep.halldor1": {
+   "t": [
+    "Halldor Silversands. You're not relief. You're better: you brought the king.",
+    "Spiders. Big ones, the colour of a bruise. Go at them and they're in the rock. Turn your back and they're out of it. We've held the neck two days so they don't get down to the road."
+   ],
+   "src": "spine-recut §2 beat 3 (Captain Halldor Silversands, RULED 09-26d; the phase spiders: a seal fails and a charge finds nothing); drafted by the code tab, PROPOSED",
+   "id": "deep.halldor1"
+  },
+  "deep.pyroHalldor": {
+   "t": "Two days on a neck with two down. That's the song they'll sing at your wake, captain, and it won't be for a long while yet.",
+   "src": "spine-recut §2 beat 3; drafted by the code tab, PROPOSED",
+   "id": "deep.pyroHalldor"
+  },
+  "deep.spidersCome": {
+   "t": "The rock beside the crates ripples like water. A leg comes out of it. Then the rest.",
+   "src": "spine-recut §2 beat 3 (they come back through the walls)",
+   "id": "deep.spidersCome"
+  },
+  "deep.spidersIntro": {
+   "t": "They come out of the walls.",
+   "src": "spine-recut §2 beat 3",
+   "id": "deep.spidersIntro"
+  },
+  "deep.spidersGone": {
+   "t": "The last of them goes back into the rock and doesn't come out. Somewhere past the neck, something bigger is listening.",
+   "src": "spine-recut §2 beat 3 (the nest is behind them and is not fought now)",
+   "id": "deep.spidersGone"
+  },
+  "deep.halldor2": {
+   "t": [
+    "They'll be back. There's a nest past the neck, and I haven't the hands to crush it.",
+    "Not today. Today I've two men to carry home and a leg that doesn't work. Get us up the road."
+   ],
+   "src": "spine-recut §2 beats 3-4; drafted by the code tab, PROPOSED",
+   "id": "deep.halldor2"
+  },
+  "deep.halldorTend": {
+   "t": "Halldor's leg is laid open to the bone, and he's standing on it anyway.",
+   "src": "spine-recut §2 beat 4 (a healer's kit or Lay on Hands on him is a talk option that matters)",
+   "id": "deep.halldorTend"
+  },
+  "deep.halldorKit": {
+   "t": "You clean it and bind it. He swears the whole time, in three languages, and then stands up straighter than he did.",
+   "src": "spine-recut §2 beat 4; drafted by the code tab, PROPOSED",
+   "id": "deep.halldorKit"
+  },
+  "deep.halldorLay": {
+   "t": "Lymen puts his hands on the leg. The light is brief, and the swearing stops. Halldor looks at the half-orc a long moment and says nothing, which from a Silversand is thanks.",
+   "src": "spine-recut §2 beat 4; drafted by the code tab, PROPOSED",
+   "id": "deep.halldorLay"
+  },
+  "deep.halldorWalks": {
+   "t": "I've walked on worse. Not far, but I have.",
+   "src": "spine-recut §2 beat 4; drafted by the code tab, PROPOSED",
+   "id": "deep.halldorWalks"
+  },
+  "deep.escortBegins": {
+   "t": "Up the road, then. The two that can't walk ride the others' backs. The captain walks behind you, and so do I.",
+   "src": "spine-recut §2 beat 4 (escort Pyro and the wounded captain back up the highway); drafted by the code tab, PROPOSED",
+   "id": "deep.escortBegins"
+  },
+  "deep.neckNow": {
+   "t": "Past the neck, the dark goes on, and something in it is listening. Halldor's right. Not today.",
+   "src": "spine-recut §2 beat 3 (the nest is not fought now)",
+   "id": "deep.neckNow"
+  },
+  "deep.neckLater": {
+   "t": "The neck, and the dark past it. Not without Halldor: he knows the way, and he's earned the going.",
+   "src": "spine-recut §2 beat 5 (the petition opens it)",
+   "id": "deep.neckLater"
+  },
+  "deep.reliefCome": {
+   "t": "Boots on the road ahead, a lot of them, coming down: a column of the garrison, a lamp on every third helm.",
+   "src": "spine-recut §2 beat 4 (a relief column passes them going down: eight troopers and a drill-sergeant)",
+   "id": "deep.reliefCome"
+  },
+  "deep.reliefSgt": {
+   "t": "The king's word came up the lamps. We go down.",
+   "src": "spine-recut §2 beat 4 (the seat's line, verbatim; Griz: 'he sends reinforcements back down')",
+   "id": "deep.reliefSgt"
+  },
+  "deep.reliefPyro": {
+   "t": "Hold the neck. Don't chase anything into a wall. Send word if the rock moves.",
+   "src": "spine-recut §2 beat 4; drafted by the code tab, PROPOSED",
+   "id": "deep.reliefPyro"
+  },
+  "deep.homeCome": {
+   "t": "The works, and the gate behind you. Two of the garrison come down at a run and take the wounded between them.",
+   "src": "spine-recut §2 beat 4 (at the door: captainHome)",
+   "id": "deep.homeCome"
+  },
+  "deep.halldorHome": {
+   "t": "I'll be on my feet in a week. Two, if the cook has her way.",
+   "src": "spine-recut §2 beat 4; drafted by the code tab, PROPOSED",
+   "id": "deep.halldorHome"
+  },
+  "deep.halldorHomeTended": {
+   "t": "I'll be on my feet sooner than I've any right to. That's your doing. I won't forget it.",
+   "src": "spine-recut §2 beat 4 (the tending matters); drafted by the code tab, PROPOSED",
+   "id": "deep.halldorHomeTended"
+  },
+  "deep.pyroTrusts": {
+   "t": [
+    "Muck about. The halls are yours; the road is mine again.",
+    "I'll tell Ketil you pass, any door, any hour. If anyone asks why, tell them the king likes you. It's true, and it'll annoy them."
+   ],
+   "src": "spine-recut §2 beat 4 (the seat's draft 'Muck about. The halls are yours; the road is mine again. Ketil, they pass.' — Ketil is at the vault door, not in the works, so the last sentence is re-cut); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroTrusts"
+  },
+  "deep.pyroGoesUp": {
+   "t": "Pyro takes the stair up toward the vault door, two maces over his shoulder, whistling.",
+   "src": "spine-recut §2 beat 4",
+   "id": "deep.pyroGoesUp"
+  },
+  "deep.halldorBunk": {
+   "t": "Not dead. Not up. The spiders are still down there, and I know where. Give me a week, and do something useful while I lie here.",
+   "src": "spine-recut §2 beat 5 (a couple of quests later, the captain will be healed); drafted by the code tab, PROPOSED",
+   "id": "deep.halldorBunk"
+  },
+  "deep.halldorBunk2": {
+   "t": "Nearly. The leg takes weight now. One more good turn somewhere in the halls and I'll be in the yard, looking for you.",
+   "src": "spine-recut §2 beat 5; drafted by the code tab, PROPOSED",
+   "id": "deep.halldorBunk2"
+  },
+  "deep.petition": {
+   "t": [
+    "I know where the nest is. I didn't have enough. I do now, if you come.",
+    "Past the neck in the north cut, deeper. Four of mine and me, and the four of you."
+   ],
+   "src": "spine-recut §2 beat 5 (the seat's draft, verbatim, and the rest drafted); Griz 09-26c: 'petition the party to push deeper than he had with him to crush the nest'",
+   "id": "deep.petition"
+  },
+  "deep.petitionTended": {
+   "t": [
+    "You patched me on the road. Now let me pay it.",
+    "I know where the nest is. I didn't have enough. I do now, if you come."
+   ],
+   "src": "spine-recut §2 beats 4-5 (the tending matters); drafted by the code tab, PROPOSED",
+   "id": "deep.petitionTended"
+  },
+  "deep.petitionAsk": {
+   "t": "He has his hammer on his shoulder already.",
+   "src": "spine-recut §2 beat 5",
+   "id": "deep.petitionAsk"
+  },
+  "deep.petitionWait": {
+   "t": "The nest won't get smaller. Come and find me in the yard.",
+   "src": "spine-recut §2 beat 5; drafted by the code tab, PROPOSED",
+   "id": "deep.petitionWait"
+  },
+  "deep.petitionJoin": {
+   "t": "HALLDOR AND FOUR OF THE GARRISON WALK WITH YOU. The gate is open.",
+   "src": "spine-recut §2 beat 5 (the captain and four troopers as guests)",
+   "id": "deep.petitionJoin"
+  },
+  "deep.halldorGo": {
+   "t": "The north cut, off the road just short of Second Lamp, and past the neck. We're with you.",
+   "src": "spine-recut §2 beat 5",
+   "id": "deep.halldorGo"
+  },
+  "deep.halldorAfter": {
+   "t": "The rock's quiet past the neck. I go up there and listen, some nights, to be sure. It stays quiet.",
+   "src": "spine-recut §2 beat 5; drafted by the code tab, PROPOSED",
+   "id": "deep.halldorAfter"
+  },
+  "deep.broodSee": {
+   "t": [
+    "The gallery opens into a chamber hung with cocoons, and in the middle of it something the size of a cart, the same bruise-colour as the rest, but more.",
+    "She turns all her eyes on you at once."
+   ],
+   "src": "spine-recut §2 beat 5 (the nest: a cocoon gallery; the brood with a bigger one)",
+   "id": "deep.broodSee"
+  },
+  "deep.broodHalldor": {
+   "t": "That's the one. Everything we fought was hers.",
+   "src": "spine-recut §2 beat 5; drafted by the code tab, PROPOSED",
+   "id": "deep.broodHalldor"
+  },
+  "deep.broodIntro": {
+   "t": "The brood comes out of the walls, and she comes with it.",
+   "src": "spine-recut §2 beat 5",
+   "id": "deep.broodIntro"
+  },
+  "deep.broodDone": {
+   "t": "The broodmother is dead, and the walls are only walls. Whatever was coming through them has stopped coming.",
+   "src": "spine-recut §2 beat 5 (nestCrushed)",
+   "id": "deep.broodDone"
+  },
+  "deep.cocoonBusy": {
+   "t": "A cocoon, big as a dwarf. Not now. Not with them in the walls.",
+   "src": "spine-recut §2 beat 5",
+   "id": "deep.cocoonBusy"
+  },
+  "deep.cocoonDead": {
+   "t": "A cocoon, cut open: somebody who came this way a season or two ago. Nothing on them you'd take.",
+   "src": "spine-recut §2 beat 5; drafted by the code tab, PROPOSED",
+   "id": "deep.cocoonDead"
+  },
+  "deep.cocoonDone": {
+   "t": "The cocoon, cut open, and empty now.",
+   "src": "spine-recut §2 beat 5",
+   "id": "deep.cocoonDone"
+  },
+  "deep.cocoonGear": {
+   "t": "A cocoon, cut open: one of the garrison's patrol, two seasons gone. What they carried is yours, by Halldor's word and the ledger's line.",
+   "src": "spine-recut §2 beat 5 (the four-items thread may hang here: seat's call); drafted by the code tab, PROPOSED",
+   "id": "deep.cocoonGear"
+  },
+  "deep.nestHome": {
+   "t": [
+    "I'll take mine home by the short way, and give the ledger the names. Some of those cocoons are ours. Take what's on them; I'll write the lines. They'd want it used, not buried.",
+    "Then go and sleep. You've earned a night nobody comes through the walls."
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 5 (the burial law kept by the ledger's line); drafted by the code tab, PROPOSED",
+   "id": "deep.nestHome"
+  },
+  "deep.runnerCome": {
+   "t": "Morning, and a runner at the door, still breathing hard from the road.",
+   "src": "spine-recut §2 beat 6 (nestCrushed + a rest: Ulf's runner at the door)",
+   "id": "deep.runnerCome"
+  },
+  "deep.runner": {
+   "t": [
+    "From Ulf at First Lamp, for the king: Third Lamp's gone dark. Drow. They came up out of the deep road in the night and took the station.",
+    "The king wants you at the gate. Ingrith's there already."
+   ],
+   "src": "spine-recut §2 beat 6 (Griz 09-26c: 'trigger word of the Drow taking the third station'); drafted by the code tab, PROPOSED",
+   "id": "deep.runner"
+  },
+  "deep.ingrithAsk": {
+   "t": [
+    "Third Lamp is theirs. While the drow hold it they hold the road, and I can't go down to my clan and ask them anything.",
+    "I need the road held to Deepholm's door, all four days of it. Then I go down and ask the trader clan for the trade, with the ledger under my arm."
+   ],
+   "src": "spine-recut §2 beat 6 (Ingrith's ask lands here, not at the start: the road must be held to the door for the Cleric to consult the trader clan); drafted by the code tab, PROPOSED",
+   "id": "deep.ingrithAsk"
+  },
+  "deep.pyroSends": {
+   "t": [
+    "I'd walk it myself. But somebody has to hold the door behind you, and it's always been me.",
+    "Brann and Hedda go with you as far as Third Lamp. Take it back, and hold the road to the door."
+   ],
+   "src": "spine-recut §2 beat 6 (Pyro sends the party, with Brann and Hedda as the escorts, as built); drafted by the code tab, PROPOSED",
+   "id": "deep.pyroSends"
+  },
+  "deep.grickDen": {
+   "t": "Something moves in the open cavern south of the road, low and fast, and then there are more of them than there were rocks.",
+   "src": "spine-recut §3 (leg one: a grick pack in the south cavern)",
+   "id": "deep.grickDen"
+  },
+  "deep.grickDone": {
+   "t": "The gricks are dead. The dark in the cavern is only dark again, for now.",
+   "src": "spine-recut §3",
+   "id": "deep.grickDone"
+  },
+  "deep.giantSee": {
+   "t": "A cut off the south side of the road, and a camp in it: duergar, grey and quiet, and behind them, sitting against the wall as if it were part of it, a giant made of the same stone.",
+   "src": "spine-recut §3 (leg three: duergar with a stone giant, the deep's own giant)",
+   "id": "deep.giantSee"
+  },
+  "deep.giantDone": {
+   "t": "The giant goes down like a wall coming down. The duergar's camp has a strongbox, and the strongbox has silver.",
+   "src": "spine-recut §3",
+   "id": "deep.giantDone"
+  },
+  "deep.deepRoadPyro": {
+   "t": "That's Deepholm's road. I don't walk it. I've no business at their door and they've none at mine. Not this season.",
+   "src": "spine-recut §2 beat 3; drafted by the code tab, PROPOSED",
+   "id": "deep.deepRoadPyro"
+  },
+  "deep.fallback": {
+   "t": "A line of crates across the road, and pale heads behind it: the ones who fell back from Third Lamp. They've had a day to get ready.",
+   "src": "spine-recut §4 (leg four: the drow's fallback positions after Third Lamp)",
+   "id": "deep.fallback"
+  },
+  "deep.fallbackIntro": {
+   "t": "Crossbows over the crates, and a captain's voice.",
+   "src": "spine-recut §4",
+   "id": "deep.fallbackIntro"
+  },
+  "deep.fallbackDone": {
+   "t": "The drow's line is broken. What's left of them runs for the deep road, and it isn't much.",
+   "src": "spine-recut §4",
+   "id": "deep.fallbackDone"
+  },
+  "deep.naga": {
+   "t": [
+    "The road crosses the black water on a causeway of dressed blocks. Halfway over, the water stands up.",
+    "It has a woman's face, and it doesn't blink, and it isn't a woman."
+   ],
+   "src": "spine-recut §3-4 (leg four: a spirit naga in the deep water; a deep-water crossing)",
+   "id": "deep.naga"
+  },
+  "deep.nagaDone": {
+   "t": "The water lies down again. Whatever it was, it will be a long time coming back together, if it can.",
+   "src": "spine-recut §4 (SRD: a spirit naga's rejuvenation, told not shown)",
+   "id": "deep.nagaDone"
+  },
+  "deep.trolls": {
+   "t": "A cavern off the south side of the road, and a smell in it like a butcher's yard in summer. Big grey-green shapes, a lot of arms.",
+   "src": "spine-recut §3 (leg four: a troll pack)",
+   "id": "deep.trolls"
+  },
+  "deep.trollsDone": {
+   "t": "They're down. Somebody should burn them before they get up again, and somebody does.",
+   "src": "spine-recut §3 (SRD: trolls regenerate unless burned)",
+   "id": "deep.trollsDone"
+  },
+  "deep.elemental": {
+   "t": "The made road runs into a cut, and the cut's walls move. The rock stands up on legs of rock.",
+   "src": "spine-recut §3-4 (leg four: an earth elemental in the made road's cut)",
+   "id": "deep.elemental"
+  },
+  "deep.elementalDone": {
+   "t": "The rock lies down and is only rock again. The made road runs on, dressed stone all the way to a light.",
+   "src": "spine-recut §4",
+   "id": "deep.elementalDone"
+  },
+  "deep.roadHeld": {
+   "t": "Four days of road, three lamps, and a door at the end of it. The road is held.",
+   "src": "spine-recut §2 beat 6 (the road held to the door); §4 (four days)",
+   "id": "deep.roadHeld"
+  },
+  "deep.asdis0": {
+   "t": [
+    "Asdis Scalebeam. This was my brother's house, and his daughter's, and hers. They all went down when the clans went back deep. I didn't.",
+    "Somebody should keep a lamp lit on the street. Sit. You look like people who eat standing up."
+   ],
+   "src": "wiki/solskaft.md (the residential quarter, closed; one lit door, the Scalebeam house, Asdis: CANON 09-26d/e); spine-recut §5; drafted by the code tab, PROPOSED",
+   "id": "deep.asdis0"
+  },
+  "deep.asdis1": {
+   "t": "Ingrith used to hide under that table with the ledger's spare pens and write her own name in the dust. Every page. She was six. She hasn't changed.",
+   "src": "spine-recut §5 (Asdis remembers Ingrith as a girl); drafted by the code tab, PROPOSED",
+   "id": "deep.asdis1"
+  },
+  "deep.asdis2": {
+   "t": "The street was loud, once. Forty families. Now it's me, the smith's people when they remember to sleep, and the dust.",
+   "src": "spine-recut §5 (the military supply smiths may live on the street too, his hedge); drafted by the code tab, PROPOSED",
+   "id": "deep.asdis2"
+  },
+  "deep.asdis3": {
+   "t": "Apples from the terrace, shrooms from the dark, and bread I bake because nobody else will. Eat.",
+   "src": "spine-recut §5 (Solskaft feeds itself; the orchard and the shroom farm); drafted by the code tab, PROPOSED",
+   "id": "deep.asdis3"
+  },
+  "deep.asdisAsk": {
+   "t": "There's a cot by the hearth, and more soup than one old woman needs.",
+   "src": "spine-recut §5 (Asdis feeds the party: a rest point)",
+   "id": "deep.asdisAsk"
+  },
+  "deep.asdisRest": {
+   "t": "Soup, bread, a cot by the hearth. She sits up with her mending till you're asleep, the way she did for Ingrith.",
+   "src": "spine-recut §5; drafted by the code tab, PROPOSED",
+   "id": "deep.asdisRest"
+  },
+  "deep.sleeperOffer": {
+   "t": "Bunks up here if you want one. Any with no name chalked on the frame is yours for the night.",
+   "src": "spine-recut F4 (the bunks offered sleep and didn't give it: a bed is a bed); drafted by the code tab, PROPOSED",
+   "id": "deep.sleeperOffer"
   },
   "deep.ingrithOffer": {
    "t": [
@@ -10141,8 +11609,8 @@
    "id": "deep.ingrithBars"
   },
   "deep.ingrithStair": {
-   "t": "Come up our stair when you've paid your respects. The door at the top knows your faces now. So will the king. He won't like it.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "Come up our stair when you've paid your respects. The door at the top knows your faces now. Go and see the king. He stands at the vault door; he always does.",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 1 ('Go and see the king'); drafted by the code tab, PROPOSED",
    "id": "deep.ingrithStair"
   },
   "deep.ingrithShieldHint": {
@@ -10156,8 +11624,8 @@
    "id": "deep.ingrithOffice1"
   },
   "deep.ingrithOffice2": {
-   "t": "The highway's mouth is in the works below. The gate opens when the season's mustered and the road-captain sends word.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 3; §4.4 (Ingrith Scalebeam, dry, exact, \"the ledger felt it\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "The highway's mouth is in the works below. The king keeps the gate. The ledger keeps the count of who goes through it, and who comes back.",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 (the road opens by Pyro's leave: F8); drafted by the code tab, PROPOSED",
    "id": "deep.ingrithOffice2"
   },
   "deep.ingrithOffice3": {
@@ -10171,13 +11639,13 @@
    "id": "deep.pyroSees"
   },
   "deep.pyroFirst": {
-   "t": "Her ledger says you go through. Mine says nobody does. I'll let hers stand tonight.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Pyro's first line, drafted by the Cowork seat, PROPOSED)",
+   "t": "Her ledger says you go through. Good. I've wanted someone through that door for a long time who wasn't a dwarf.",
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 2 (the seat's draft, verbatim); Griz 09-26c: 'I want to change Pyro to highly sympathetic with the adventurers'",
    "id": "deep.pyroFirst"
   },
   "deep.pyro1": {
-   "t": "The door's mine. The ledger's hers. Between the two of us the town gets its water.",
-   "src": "wiki/deepholm-and-the-edifice.md (Pyronimus at the vault door; the water covenant); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "I ran the Orc War with Winters and Tarlyn. Three fools with more nerve than sense. You remind me of them, which is a compliment, and a warning.",
+   "src": "wiki/deepholm-and-the-edifice.md (the Orc War); spine-recut §2 beat 2 (sympathetic); drafted by the code tab, PROPOSED",
    "id": "deep.pyro1"
   },
   "deep.pyro2": {
@@ -10186,8 +11654,8 @@
    "id": "deep.pyro2"
   },
   "deep.pyro3": {
-   "t": "Nobody bothers the dwarves. Your town made that law, not us. We only keep it.",
-   "src": "wiki/deepholm-and-the-edifice.md (the one law, derived from the Burning; the dwarves do not care about the town's politics); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "Nobody bothers the dwarves. Your town made that law, not us. I'm glad somebody finally broke it the right way round.",
+   "src": "spine-recut §2 beat 2 (sympathetic); drafted by the code tab, PROPOSED",
    "id": "deep.pyro3"
   },
   "deep.pyroShield": {
@@ -10216,8 +11684,8 @@
    "id": "deep.treasury"
   },
   "deep.gateShut": {
-   "t": "The road's shut till the season's mustered and the road-captain sends word. Then the gate opens on the Cleric's warrant, and two of ours walk with you.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.3 C (the highway's mouth); M2 opens it",
+   "t": "The road's the king's. The gate opens when he walks it, not before.",
+   "src": "spine-recut F8 (the road opens by Pyro's leave); drafted by the code tab, PROPOSED",
    "id": "deep.gateShut"
   },
   "deep.ingrithLedger2": {
@@ -10249,8 +11717,8 @@
    "id": "deep.mileLamp3"
   },
   "deep.roadMenuGate": {
-   "t": "The highway's mouth. Three lamps down the road.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "The highway's mouth. Three lamps down the road, and Deepholm's door a day past the last.",
+   "src": "spine-recut §4 (four days)",
    "id": "deep.roadMenuGate"
   },
   "deep.roadMenuLamp": {
@@ -10275,25 +11743,25 @@
   },
   "deep.heddaOrders": {
    "t": [
-    "Hedda Greyseam. Our orders are the three lamps. Hold the road, light what's dark, bring you back up it.",
-    "Past Third Lamp is Deepholm's road, and our orders end at the lamp."
+    "Hedda Greyseam. Our orders are Third Lamp: take it back, light it, hold it.",
+    "Past Third Lamp is Deepholm's road, and our orders end at the lamp. Past it, you're on your own."
    ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Hedda: her orders end at Third Lamp); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (her orders end at Third Lamp); spine-recut §2 beat 6 (re-timed after the drow take the lamp)",
    "id": "deep.heddaOrders"
   },
   "deep.brannGo": {
-   "t": "Brann Silversands. I asked to go. My family fell at Third Lamp, and I'd like to see it lit.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Brann, the last of a family the highway wiped out at Third Lamp); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "Brann Silversands. I asked to go. My family fell at Third Lamp. I'm not letting it fall twice.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4; spine-recut §2 beat 6; drafted by the code tab, PROPOSED",
    "id": "deep.brannGo"
   },
   "deep.guestsJoin": {
-   "t": "BRANN AND HEDDA WALK WITH YOU. They fight behind the four of you, their own way, and hold the road with you as far as Third Lamp.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (guests, RULED 09-26)",
+   "t": "BRANN AND HEDDA WALK WITH YOU. They fight behind the four of you, their own way, as far as Third Lamp.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (guests); spine-recut §2 beat 6",
    "id": "deep.guestsJoin"
   },
   "deep.musterAlone": {
-   "t": "The Cleric's word is on the post: the ledger doubts you, so nobody walks with you. The road is yours alone.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §5.3 (the offer minus the escort); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "The ledger doubts you, so she won't spend two of ours. I don't, but it's her ledger. The road's yours alone.",
+   "src": "spine-recut §2 beat 6 (the noEscort branch, re-timed); drafted by the code tab, PROPOSED",
    "id": "deep.musterAlone"
   },
   "deep.ledgerlamp": {
@@ -10307,11 +11775,8 @@
    "id": "deep.gateOpens"
   },
   "deep.lamp1Arrive": {
-   "t": [
-    "First Lamp. Held. A lamp-tower burning, a cistern, a barrack-cut, eight of the garrison and their captain.",
-    "The day ends here."
-   ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (First Lamp is held by Ulf Silversands and eight troopers, the forward post)",
+   "t": "First Lamp. Held. A lamp-tower burning, a cistern, a barrack-cut, eight of the garrison and their captain.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3; spine-recut F5 ('The day ends here' cut: a lamp offers, it never imposes)",
    "id": "deep.lamp1Arrive"
   },
   "deep.ulf1": {
@@ -10323,26 +11788,23 @@
    "id": "deep.ulf1"
   },
   "deep.lamp1Brann": {
-   "t": "One lamp. Two to go.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "One lamp. Third's the one that matters.",
+   "src": "spine-recut §2 beat 6; drafted by the code tab, PROPOSED",
    "id": "deep.lamp1Brann"
   },
   "deep.lamp2Arrive": {
-   "t": [
-    "Second Lamp. Dark two seasons. The tower cold, the cistern still running, dust on the cots.",
-    "Ingrith's abandoned place you can sleep. The day ends here, in the dark."
-   ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (Second Lamp: dark, abandoned two seasons; the cistern still runs)",
+   "t": "Second Lamp. Held, and never not held: a lamp-tower burning, the cistern running, a captain and three on the watch.",
+   "src": "wiki/solskaft.md (Second Lamp a manned outpost, never abandoned: CANON 09-26d); spine-recut §4",
    "id": "deep.lamp2Arrive"
   },
   "deep.lamp2Brann": {
-   "t": "Nobody's lit it since the last watch. Nobody says why.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (the lamp declared unwarranted); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "Thyra's lamp. She never lets it gutter. Third Lamp next. Ours.",
+   "src": "spine-recut §2 beat 6; drafted by the code tab, PROPOSED",
    "id": "deep.lamp2Brann"
   },
   "deep.lamp2Hedda": {
-   "t": "Sleep. I'll sit up. I always do, here.",
-   "src": "drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "Sleep if you're sleeping. I'll sit up. I always do, the night before Third Lamp.",
+   "src": "spine-recut §2 beat 6; drafted by the code tab, PROPOSED",
    "id": "deep.lamp2Hedda"
   },
   "deep.day2": {
@@ -10451,8 +11913,8 @@
    "id": "deep.buletteHedda"
   },
   "deep.drain": {
-   "t": "The drainage cut under the station. Something black lies across the floor of it, glossy, still. The last watch's gear is on the floor beside it, what's left of it.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-5 (the last watch died to the thing in the drainage cut, the black pudding)",
+   "t": "The drainage cut under the station. Thyra's people keep a weighted grate over it and don't go down. Something black lies across the floor down there, glossy and still. Two somethings.",
+   "src": "spine-recut §3 (leg two: a black pudding in the drainage); §4 (Second Lamp manned: the dead watch struck)",
    "id": "deep.drain"
   },
   "deep.drainAsk": {
@@ -10461,13 +11923,13 @@
    "id": "deep.drainAsk"
   },
   "deep.drainDone": {
-   "t": "The drainage cut is clear. Whatever the last watch owed, the thing that killed them is paid.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6 (the highway); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "t": "The drainage cut is clear. Thyra can take the weights off her grate.",
+   "src": "spine-recut §3; drafted by the code tab, PROPOSED",
    "id": "deep.drainDone"
   },
   "deep.xorn": {
-   "t": "The wall ahead bulges, cracks, and something the size of a barrel pushes out of the rock, chewing.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (a xorn in the wall)",
+   "t": "The wall ahead bulges, cracks, and two things the size of barrels push out of the rock, chewing.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3; spine-recut §3 (leg three: a xorn pair in the seam)",
    "id": "deep.xorn"
   },
   "deep.xornDone": {
@@ -10531,9 +11993,9 @@
   "deep.escortsStay": {
    "t": [
     "Our orders end at the lamp. We hold it now, the two of us, till the season sends relief.",
-    "Past here is Deepholm's road. Walk softly on it."
+    "Past here is Deepholm's road. Hold it to the door, and walk softly on it."
    ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 6 (the escorts hold Third Lamp: \"our orders end at the lamp\"); drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4; spine-recut §2 beat 6 (hold the road to the door)",
    "id": "deep.escortsStay"
   },
   "deep.captainSee": {
@@ -10554,8 +12016,8 @@
    "id": "deep.captainRest"
   },
   "deep.deepRoad": {
-   "t": "Past Third Lamp the road is swept and dressed: Deepholm's now. (The rest of the road is the next part of this expansion.)",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §14 (M3: the door and the road's people)",
+   "t": "Past Third Lamp is Deepholm's road. Nobody walks it this season without the king's word and a reason, and you've neither yet.",
+   "src": "spine-recut §2 (leg four opens at the word from below, beat 6); drafted by the code tab, PROPOSED",
    "id": "deep.deepRoad"
   },
   "deep.smithLump": {
@@ -10600,10 +12062,10 @@
   },
   "deep.doorSee": {
    "t": [
-    "The carved road ends. A made road begins: dressed stone, the first in three days, and a light that is not a lamp.",
+    "The made road runs on to its end: a small spot, a bench, a grille, and a light that is not a lamp.",
     "At the end of it, a door the height of three men, and under the door, the glow of a city."
    ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4",
+   "src": "wiki/deepholm-and-the-edifice.md (Deepholm's door); spine-recut §4 (the first dressed stone moves to leg four's midpoint; the small spot is where the fourth day ends)",
    "id": "deep.doorSee"
   },
   "deep.tvCome": {
@@ -10901,8 +12363,8 @@
    "id": "deep.doorPopup"
   },
   "deep.pyroSecured": {
-   "t": "Three lamps lit. I said I'd let her go down and ask. I didn't say I'd like the answer.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (Pyro's second line, drafted by the Cowork seat, PROPOSED)",
+   "t": "The road's held to the door. I said she could go down and ask. Walk her there. I'd go myself if the door would keep.",
+   "src": "spine-recut §2 beat 6 (re-timed: the consult after the road is held to the door); drafted by the code tab, PROPOSED",
    "id": "deep.pyroSecured"
   },
   "deep.ingrithConsult": {
@@ -11043,6 +12505,11 @@
    "t": "An heir, found in the Shaft Rows, and a wedge that didn't end.",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9",
    "id": "renown.heir"
+  },
+  "renown.nest": {
+   "t": "The nest in the north cut, crushed.",
+   "src": "spine-recut §2 beat 5 (nestCrushed, renown +1)",
+   "id": "renown.nest"
   },
   "deep.brannSack": {
    "t": "Brann, beside you: \"Thora's mail, Ari's hammer, Svala's ring. Geirmund's line. Thora taught me to hold a shield. You put it back on her.\"",
@@ -12063,7 +13530,7 @@
    "name": "The One Law",
    "show": "flag:stairHook",
    "done": "flag:clericMet",
-   "text": "Papa Urtusk: somebody pumped the Warrens' water stair dry and went through the warranted door at its foot. Nobody bothers the dwarves. Find them before the council hands the dwarves someone else.",
+   "text": "The stair behind the Warrens is dry. Find who drained it.",
    "doneText": "The Cleric of Solskaft wrote it in her ledger.",
    "steps": [
     {
@@ -12081,34 +13548,44 @@
     {
      "map": "burial",
      "trig": "crew",
-     "where": "Down through the cut door. Somebody is at the dead."
+     "where": "Down through the cut door, along the hallway. Somebody is at the dead."
     }
    ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 1-3; steps invented.json#pinned-quest"
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 1 (the journal gets one line at a time: F8)"
   },
   {
-   "id": "solskaft",
-   "name": "Behind the Fountains",
+   "id": "theking",
+   "name": "The King at the Door",
    "show": "flag:frontDoor",
-   "done": "flag:highwaySecured",
-   "text": "Ingrith Scalebeam, Cleric of Rekknar and keeper of Solskaft's ledger, wants the doors open and the trade back. Pyro won't open them while the highway bleeds. Walk it for her: three days, three lamps.",
-   "doneText": "Three lamps lit.",
+   "done": "flag:pyroLeads",
+   "text": "Ingrith Scalebeam has given you the front door. Go and see the king.",
+   "doneText": "The king walks his road with you.",
    "steps": [
     {
      "if": "flag:warrantShield & !flag:shieldTaken",
      "map": "burial",
      "at": [
-      15,
+      7,
       20
      ],
      "where": "The Burial's base ring: the door-warden Audun's shield, released to you by the ledger."
     },
     {
-     "if": "!flag:pyroMet",
      "map": "solskaft",
      "npc": "pyro",
-     "where": "Up the dwarves' stair into Solskaft. The king is at the door."
-    },
+     "where": "Up the dwarves' stair and down the Sunshaft. The king stands at the vault door."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beats 1-2 (the seat's journal line, verbatim)"
+  },
+  {
+   "id": "kingsroad",
+   "name": "The King's Road",
+   "show": "flag:pyroLeads",
+   "done": "flag:captainFound",
+   "text": "Pyro walks his road with you, to show you what it's for.",
+   "doneText": "Halldor's unit was pinned in the north cut. Not now.",
+   "steps": [
     {
      "if": "!flag:roadOpen",
      "map": "solskaft_deep",
@@ -12119,39 +13596,118 @@
      "if": "!flag:lamp1",
      "map": "highway_1",
      "trig": "lampArrive1",
-     "where": "Down the road to the First Lamp. A day's march."
+     "where": "Down the road to First Lamp."
     },
     {
-     "if": "!flag:lamp2",
+     "if": "!flag:lamp2 & !flag:heardPinned",
      "map": "highway_2",
      "trig": "lampArrive2",
-     "where": "The Second Lamp, across the great cavern. Dark two seasons."
+     "where": "Second Lamp, across the great cavern."
     },
     {
-     "map": "highway_3",
-     "trig": "raid",
-     "where": "The Third Lamp. Something has put it out."
+     "map": "pinned",
+     "trig": "pinned",
+     "where": "The north cut, off the road just short of Second Lamp. Halldor's unit is pinned."
     }
    ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 3-5"
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 3"
+  },
+  {
+   "id": "escort",
+   "name": "Bring Them Home",
+   "show": "flag:captainFound",
+   "done": "flag:captainHome",
+   "text": "Halldor and his wounded, and the king, back up the road to Solskaft.",
+   "doneText": "Home. The king trusts you in his halls.",
+   "steps": [
+    {
+     "map": "solskaft_deep",
+     "at": [
+      36,
+      11
+     ],
+     "where": "Up the road, to the highway's mouth in the works."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 4"
+  },
+  {
+   "id": "halls",
+   "name": "The Halls Are Yours",
+   "show": "flag:pyroTrusts",
+   "done": "flag:petition",
+   "text": "Muck about, the king says. The halls are yours, and the road is his. Halldor is in the lit barracks, mending.",
+   "doneText": "Halldor is on his feet, and he knows where the nest is.",
+   "steps": [
+    {
+     "if": "!flag:halldorUp",
+     "map": "solskaft",
+     "npc": "halldorBunk",
+     "where": "Halldor, in the lit barracks. Do some good in the halls while he mends."
+    },
+    {
+     "map": "solskaft",
+     "npc": "halldor",
+     "where": "Halldor, in the muster yard."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beats 4-5 (a couple of quests later, the captain petitions)"
+  },
+  {
+   "id": "nest",
+   "name": "The Nest",
+   "show": "flag:petition",
+   "done": "flag:nestCrushed",
+   "text": "Halldor knows where the nest is, past the neck in the north cut. He didn't have enough. He does now.",
+   "doneText": "The nest is crushed.",
+   "steps": [
+    {
+     "map": "nest",
+     "trig": "brood",
+     "where": "The north cut off the road short of Second Lamp, and past the neck."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 5"
+  },
+  {
+   "id": "solskaft",
+   "name": "Behind the Fountains",
+   "show": "flag:wordBelow",
+   "done": "flag:highwaySecured",
+   "text": "The drow have taken Third Lamp. Ingrith needs the road held to Deepholm's door, all four days of it, so she can go down and ask her clan for the trade.",
+   "doneText": "The road is held to the door.",
+   "steps": [
+    {
+     "if": "!flag:mustered",
+     "map": "solskaft_deep",
+     "trig": "muster",
+     "where": "The highway's mouth, in the works. The king and the Cleric are waiting."
+    },
+    {
+     "if": "!flag:raidWon",
+     "map": "highway_3",
+     "trig": "raid",
+     "where": "Third Lamp. Take it back."
+    },
+    {
+     "map": "threshold",
+     "at": [
+      16,
+      8
+     ],
+     "where": "Past Third Lamp, the last day of the road, to Deepholm's door."
+    }
+   ],
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 6 (now the highway mission goes in the journal)"
   },
   {
    "id": "thedoor",
    "name": "Deepholm's Door",
    "show": "flag:highwaySecured",
    "done": "flag:expansionDone",
-   "text": "The road is held. Pyro said he would let the Cleric go down to Deepholm and consult her clan once it was. Past Third Lamp, the made road runs to Deepholm's door.",
+   "text": "The road is held to the door. Pyro said he would let the Cleric go down to Deepholm and consult her clan once it was.",
    "doneText": "The Cleric went through. You did not.",
    "steps": [
-    {
-     "if": "!flag:deepholmSeen",
-     "map": "threshold",
-     "at": [
-      16,
-      8
-     ],
-     "where": "Past Third Lamp, the made road to Deepholm's door."
-    },
     {
      "if": "!flag:pyroConsent",
      "map": "solskaft",
@@ -12173,7 +13729,7 @@
      "where": "Down to Deepholm's door, with the Cleric."
     }
    ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beats 6-9"
+   "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 6 (the consult, re-timed)"
   },
   {
    "id": "heir",
@@ -12204,29 +13760,13 @@
     {
      "map": "burial",
      "at": [
-      24,
+      27,
       20
      ],
      "where": "Asmund's wedge, at the Burial's base ring."
     }
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-9"
-  },
-  {
-   "id": "weights",
-   "name": "The Standard Weights",
-   "show": "flag:weightsGiven",
-   "done": "flag:weightsDone",
-   "text": "Ingrith lent the assay's standard weights. Weigh something honest against the Weigh-House scales.",
-   "doneText": "The scales were weighed.",
-   "steps": [
-    {
-     "map": "silverton",
-     "door": "hessle",
-     "where": "The Weigh-House on Fountain Street, in front of the board."
-    }
-   ],
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-1"
   },
   {
    "id": "count",
@@ -12317,39 +13857,40 @@
    "name": "The Burial",
    "tileset": "cave",
    "rows": [
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
-    "hhh!!!!!hhhhhhNNNNhNNNhhhhhhhhhhhNNNNhhh",
-    "hz____________________________________rh",
-    "hh____________________________________hh",
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhh",
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhh",
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhh",
-    "hhhhhhNNNNhhhhhNNNhNNNhNNNhNNNhNNNvhhhhh",
-    "hhhhh______________________________hhhhh",
-    "hhhhh______________________________hhhhh",
-    "hhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
-    "hhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
-    "hhhhhhhhvhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
-    "hhhhhhhhvNNNhNNhNNhNNNhNNhNNhNNhhhhhhhhh",
-    "hhhhhhhh________________________hhhhhhhh",
-    "hhhhhhhh________________________hhhhhhhh",
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhvhhhhhhhhhhh",
-    "hhhhhhhhhhhhKKh$KhKhKhKh$KhKvhhhhhhhhhhh",
-    "hhhhhhhhhhh__________________hhhhhhhhhhh",
-    "hhhhhhhhhhh__________________hhhhhhhhhhh",
-    "hhhhhhhhhhhhhhhhhhh__hhhhhhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhh_______Y__hhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhh____ZZ____hhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhh__________hhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhh_8_6_Q_Yhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhh___x____hhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhh________hhhhhhhhhhhhhhhhhh",
+    "hhhhhhshhhshhhhhhhhhh__hhhhhhhhhshhhhshhhhhh",
+    "hz________________________________________rh",
+    "hh________________________________________hh",
+    "hhhhhhhhhhhhvhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhh",
+    "hh!!!!hhhhhhvhNNNhNNNhhhhhhhhhhvhNNNNhhhhhhh",
+    "hh__________v__________________v__________hh",
+    "hh__________v__________________v__________hh",
+    "hhhhhhhhhhhhvhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhh",
+    "hhNNNNhhhhhhvhNNNhNNNhhNNNhNNNhvhNNNNhhhhhhh",
+    "hh__________v__________________v__________hh",
+    "hh__________v__________________v__________hh",
+    "hhhhhhhhhhhhvhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhh",
+    "hhNNNNhNNNNhvhNNNhNNNhhNNNhNNNhvhNNNNhhhhhhh",
+    "hh__________v__________________v__________hh",
+    "hh__________v__________________v__________hh",
+    "hhhhhhhhhhhhvhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhh",
+    "hhKKKKh$KKKhvhKKKhKKKhhKKKh$KKhvhKKKKhhhhhhh",
+    "hh__________v__________________v__________hh",
+    "hh__________v__________________v__________hh",
+    "hhhhhhhhhhhhvhhhhhhhhhhhhhhhhhhvhhhhhhhhhhhh",
+    "hhhhhhhhhhhh____________________hhhhhhhhhhhh",
+    "hhhhhhhhhhhh____________________hhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhh____________hhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhh_________Y__hhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhh____________hhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhh_____ZZ_____hhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhh____________hhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhh____________hhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh"
    ],
    "legend": {
     ".": "caveFloor",
@@ -12362,7 +13903,7 @@
     "o": "ooze",
     "g": "guano",
     "G": "guanoDeep",
-    "x": "webFloor",
+    "x": "kneelStone",
     "_": "dwarfFloor",
     "h": "dwarfWall",
     "r": "runeWall",
@@ -12452,283 +13993,238 @@
    "save": false,
    "dark": true,
    "niches": {
-    "3,2": [
+    "2,8": [
      0,
      0,
      "pried"
     ],
-    "4,2": [
+    "3,8": [
      0,
      0,
      "pried"
     ],
-    "5,2": [
+    "4,8": [
      0,
      0,
      "pried"
     ],
-    "6,2": [
+    "5,8": [
      0,
      0,
      "pried"
     ],
-    "7,2": [
-     0,
-     0,
-     "pried"
-    ],
-    "14,2": [
-     2,
-     0,
-     "row"
-    ],
-    "15,2": [
-     2,
-     0,
-     "row"
-    ],
-    "16,2": [
-     2,
-     0,
-     "row"
-    ],
-    "17,2": [
-     2,
-     0,
-     "row"
-    ],
-    "19,2": [
-     3,
-     0,
-     "row"
-    ],
-    "20,2": [
-     3,
-     0,
-     "row"
-    ],
-    "21,2": [
-     3,
-     0,
-     "row"
-    ],
-    "33,2": [
-     6,
-     0,
-     "row"
-    ],
-    "34,2": [
-     6,
-     0,
-     "row"
-    ],
-    "35,2": [
-     6,
-     0,
-     "row"
-    ],
-    "36,2": [
-     6,
-     0,
-     "row"
-    ],
-    "6,8": [
+    "2,12": [
      0,
      1,
      "row"
     ],
-    "7,8": [
+    "3,12": [
      0,
      1,
      "row"
     ],
-    "8,8": [
+    "4,12": [
      0,
      1,
      "row"
     ],
-    "9,8": [
+    "5,12": [
      0,
      1,
      "row"
     ],
-    "15,8": [
-     2,
-     1,
-     "row"
-    ],
-    "16,8": [
-     2,
-     1,
-     "row"
-    ],
-    "17,8": [
-     2,
-     1,
-     "row"
-    ],
-    "19,8": [
-     3,
-     1,
-     "row"
-    ],
-    "20,8": [
-     3,
-     1,
-     "row"
-    ],
-    "21,8": [
-     3,
-     1,
-     "row"
-    ],
-    "23,8": [
-     4,
-     1,
-     "row"
-    ],
-    "24,8": [
-     4,
-     1,
-     "row"
-    ],
-    "25,8": [
-     4,
-     1,
-     "row"
-    ],
-    "27,8": [
-     5,
-     1,
-     "row"
-    ],
-    "28,8": [
-     5,
-     1,
-     "row"
-    ],
-    "29,8": [
-     5,
-     1,
-     "row"
-    ],
-    "31,8": [
-     6,
-     1,
-     "row"
-    ],
-    "32,8": [
-     6,
-     1,
-     "row"
-    ],
-    "33,8": [
-     6,
-     1,
-     "row"
-    ],
-    "9,14": [
+    "2,16": [
      0,
      2,
      "row"
     ],
-    "10,14": [
+    "3,16": [
      0,
      2,
      "row"
     ],
-    "11,14": [
+    "4,16": [
      0,
      2,
      "row"
     ],
-    "13,14": [
-     1,
+    "5,16": [
+     0,
      2,
      "row"
     ],
-    "14,14": [
-     1,
-     2,
-     "row"
-    ],
-    "16,14": [
-     2,
-     2,
-     "row"
-    ],
-    "17,14": [
-     2,
-     2,
-     "row"
-    ],
-    "19,14": [
-     3,
-     2,
-     "row"
-    ],
-    "20,14": [
-     3,
-     2,
-     "row"
-    ],
-    "21,14": [
-     3,
-     2,
-     "row"
-    ],
-    "23,14": [
-     4,
-     2,
-     "row"
-    ],
-    "24,14": [
-     4,
-     2,
-     "row"
-    ],
-    "26,14": [
-     5,
-     2,
-     "row"
-    ],
-    "27,14": [
-     5,
-     2,
-     "row"
-    ],
-    "29,14": [
-     6,
-     2,
-     "row"
-    ],
-    "30,14": [
-     6,
-     2,
-     "row"
-    ],
-    "12,20": [
+    "2,20": [
      0,
      3,
      "patron"
     ],
-    "13,20": [
+    "3,20": [
      0,
      3,
      "patron"
     ],
-    "15,20": [
+    "4,20": [
+     0,
+     3,
+     "patron"
+    ],
+    "5,20": [
+     0,
+     3,
+     "patron"
+    ],
+    "7,16": [
+     1,
+     2,
+     "row"
+    ],
+    "8,16": [
+     1,
+     2,
+     "row"
+    ],
+    "9,16": [
+     1,
+     2,
+     "row"
+    ],
+    "10,16": [
+     1,
+     2,
+     "row"
+    ],
+    "7,20": [
      1,
      3,
      "gear"
     ],
-    "16,20": [
+    "8,20": [
      1,
      3,
      "patron"
     ],
-    "18,20": [
+    "9,20": [
+     1,
+     3,
+     "patron"
+    ],
+    "10,20": [
+     1,
+     3,
+     "patron"
+    ],
+    "14,8": [
      2,
+     0,
+     "row"
+    ],
+    "15,8": [
+     2,
+     0,
+     "row"
+    ],
+    "16,8": [
+     2,
+     0,
+     "row"
+    ],
+    "14,12": [
+     2,
+     1,
+     "row"
+    ],
+    "15,12": [
+     2,
+     1,
+     "row"
+    ],
+    "16,12": [
+     2,
+     1,
+     "row"
+    ],
+    "14,16": [
+     2,
+     2,
+     "row"
+    ],
+    "15,16": [
+     2,
+     2,
+     "row"
+    ],
+    "16,16": [
+     2,
+     2,
+     "row"
+    ],
+    "14,20": [
+     2,
+     3,
+     "patron"
+    ],
+    "15,20": [
+     2,
+     3,
+     "patron"
+    ],
+    "16,20": [
+     2,
+     3,
+     "patron"
+    ],
+    "18,8": [
+     3,
+     0,
+     "row"
+    ],
+    "19,8": [
+     3,
+     0,
+     "row"
+    ],
+    "20,8": [
+     3,
+     0,
+     "row"
+    ],
+    "18,12": [
+     3,
+     1,
+     "row"
+    ],
+    "19,12": [
+     3,
+     1,
+     "row"
+    ],
+    "20,12": [
+     3,
+     1,
+     "row"
+    ],
+    "18,16": [
+     3,
+     2,
+     "row"
+    ],
+    "19,16": [
+     3,
+     2,
+     "row"
+    ],
+    "20,16": [
+     3,
+     2,
+     "row"
+    ],
+    "18,20": [
+     3,
+     3,
+     "patron"
+    ],
+    "19,20": [
+     3,
      3,
      "patron"
     ],
@@ -12737,22 +14233,172 @@
      3,
      "patron"
     ],
-    "22,20": [
+    "23,12": [
+     4,
+     1,
+     "row"
+    ],
+    "24,12": [
+     4,
+     1,
+     "row"
+    ],
+    "25,12": [
+     4,
+     1,
+     "row"
+    ],
+    "23,16": [
+     4,
+     2,
+     "row"
+    ],
+    "24,16": [
+     4,
+     2,
+     "row"
+    ],
+    "25,16": [
+     4,
+     2,
+     "row"
+    ],
+    "23,20": [
      4,
      3,
      "patron"
     ],
     "24,20": [
+     4,
+     3,
+     "patron"
+    ],
+    "25,20": [
+     4,
+     3,
+     "patron"
+    ],
+    "27,12": [
+     5,
+     1,
+     "row"
+    ],
+    "28,12": [
+     5,
+     1,
+     "row"
+    ],
+    "29,12": [
+     5,
+     1,
+     "row"
+    ],
+    "27,16": [
+     5,
+     2,
+     "row"
+    ],
+    "28,16": [
+     5,
+     2,
+     "row"
+    ],
+    "29,16": [
+     5,
+     2,
+     "row"
+    ],
+    "27,20": [
      5,
      3,
      "gear"
     ],
-    "25,20": [
+    "28,20": [
      5,
      3,
      "patron"
     ],
-    "27,20": [
+    "29,20": [
+     5,
+     3,
+     "patron"
+    ],
+    "33,8": [
+     6,
+     0,
+     "row"
+    ],
+    "34,8": [
+     6,
+     0,
+     "row"
+    ],
+    "35,8": [
+     6,
+     0,
+     "row"
+    ],
+    "36,8": [
+     6,
+     0,
+     "row"
+    ],
+    "33,12": [
+     6,
+     1,
+     "row"
+    ],
+    "34,12": [
+     6,
+     1,
+     "row"
+    ],
+    "35,12": [
+     6,
+     1,
+     "row"
+    ],
+    "36,12": [
+     6,
+     1,
+     "row"
+    ],
+    "33,16": [
+     6,
+     2,
+     "row"
+    ],
+    "34,16": [
+     6,
+     2,
+     "row"
+    ],
+    "35,16": [
+     6,
+     2,
+     "row"
+    ],
+    "36,16": [
+     6,
+     2,
+     "row"
+    ],
+    "33,20": [
+     6,
+     3,
+     "patron"
+    ],
+    "34,20": [
+     6,
+     3,
+     "patron"
+    ],
+    "35,20": [
+     6,
+     3,
+     "patron"
+    ],
+    "36,20": [
      6,
      3,
      "patron"
@@ -12760,16 +14406,21 @@
    },
    "lights": [
     {
-     "x": 22,
-     "y": 26,
+     "x": 25,
+     "y": 27,
      "r": 60
+    },
+    {
+     "x": 25,
+     "y": 1,
+     "r": 44
     }
    ],
    "npcs": [
     {
      "id": "hask",
-     "x": 6,
-     "y": 3,
+     "x": 4,
+     "y": 9,
      "look": "hask",
      "dir": "up",
      "cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
@@ -12777,8 +14428,8 @@
     },
     {
      "id": "wheelwright",
-     "x": 4,
-     "y": 4,
+     "x": 2,
+     "y": 10,
      "look": "wheelwright",
      "dir": "up",
      "cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
@@ -12786,8 +14437,8 @@
     },
     {
      "id": "crewA",
-     "x": 5,
-     "y": 4,
+     "x": 3,
+     "y": 10,
      "look": "crewman",
      "dir": "up",
      "cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
@@ -12795,8 +14446,8 @@
     },
     {
      "id": "crewB",
-     "x": 7,
-     "y": 4,
+     "x": 5,
+     "y": 10,
      "look": "crewman",
      "dir": "left",
      "cond": "!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt",
@@ -12806,7 +14457,7 @@
    "warps": [
     {
      "x": 1,
-     "y": 3,
+     "y": 5,
      "to": "warrens_d",
      "tx": 9,
      "ty": 21,
@@ -12814,10 +14465,10 @@
      "cond": "!flag:frontDoor"
     },
     {
-     "x": 38,
-     "y": 3,
+     "x": 42,
+     "y": 5,
      "to": "solskaft",
-     "tx": 15,
+     "tx": 25,
      "ty": 3,
      "dir": "right",
      "cond": "flag:frontDoor"
@@ -12825,19 +14476,163 @@
    ],
    "signs": [
     {
-     "x": 22,
-     "y": 26,
+     "x": 25,
+     "y": 27,
      "text": "One lamp, kept. Somebody fills it.",
      "src": "handoff-2026-09-26 §5.2 (lit by one lamp that the garrison keeps)"
+    },
+    {
+     "x": 21,
+     "y": 2,
+     "text": "A kneeling-stone, two hollows worn in it. Nobody comes down here to pray who has not come to bury.",
+     "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §5 (the Burial's chapel: an altar, a lamp, a kneeling-stone; Griz 09-26d: to all three of the Triad)"
+    },
+    {
+     "x": 19,
+     "y": 1,
+     "text": "The Forge-Father's niche. The anvil here is small, a grave-anvil; nothing was ever struck on it.",
+     "src": "wiki/pantheon.md (the Dwarven Triad); spine-recut §5 (the chapel to all three)"
+    },
+    {
+     "x": 21,
+     "y": 1,
+     "text": "Rekknar's ledger-stone. The last line on it is a name, and the line under it is ruled and empty.",
+     "src": "wiki/pantheon.md (Rekknar the Reckoner); spine-recut §5"
+    },
+    {
+     "x": 23,
+     "y": 1,
+     "text": "A plain cut in the rock with nothing in it. The Dormant's. Down here it looks like an open niche.",
+     "src": "wiki/pantheon.md (Dvalgarda, the vigil); spine-recut §5 (the sect is never named here)"
+    },
+    {
+     "x": 6,
+     "y": 4,
+     "text": "A sealed door, warranted. The runes are whole. The ledger knows what is behind it; you do not.",
+     "src": "spine-recut §5 (the hallway: sealed doors off it; nothing behind them this round)"
+    },
+    {
+     "x": 10,
+     "y": 4,
+     "text": "A sealed door, warranted. The runes are whole. The ledger knows what is behind it; you do not.",
+     "src": "spine-recut §5 (the hallway: sealed doors off it; nothing behind them this round)"
+    },
+    {
+     "x": 32,
+     "y": 4,
+     "text": "A sealed door, warranted. The runes are whole. The ledger knows what is behind it; you do not.",
+     "src": "spine-recut §5 (the hallway: sealed doors off it; nothing behind them this round)"
+    },
+    {
+     "x": 37,
+     "y": 4,
+     "text": "A sealed door, warranted. The runes are whole. The ledger knows what is behind it; you do not.",
+     "src": "spine-recut §5 (the hallway: sealed doors off it; nothing behind them this round)"
+    },
+    {
+     "x": 38,
+     "y": 8,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 38,
+     "y": 12,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 38,
+     "y": 16,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 38,
+     "y": 20,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 39,
+     "y": 8,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 39,
+     "y": 12,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 39,
+     "y": 16,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 39,
+     "y": 20,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 40,
+     "y": 8,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 40,
+     "y": 12,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 40,
+     "y": 16,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 40,
+     "y": 20,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 41,
+     "y": 8,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 41,
+     "y": 12,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 41,
+     "y": 16,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
+    },
+    {
+     "x": 41,
+     "y": 20,
+     "text": "A wedge cut and dressed, and nobody in it. The eighth place. It waits.",
+     "src": "spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)"
     }
    ],
    "triggers": [
     {
      "id": "niches0",
      "rect": [
-      3,
       2,
-      34,
+      8,
+      40,
       1
      ],
      "on": "use",
@@ -12846,9 +14641,9 @@
     {
      "id": "niches1",
      "rect": [
-      6,
-      8,
-      28,
+      2,
+      12,
+      40,
       1
      ],
      "on": "use",
@@ -12857,9 +14652,9 @@
     {
      "id": "niches2",
      "rect": [
-      9,
-      14,
-      22,
+      2,
+      16,
+      40,
       1
      ],
      "on": "use",
@@ -12868,9 +14663,9 @@
     {
      "id": "niches3",
      "rect": [
-      12,
+      2,
       20,
-      16,
+      40,
       1
      ],
      "on": "use",
@@ -12879,8 +14674,8 @@
     {
      "id": "dwarfStair",
      "rect": [
-      38,
-      3,
+      42,
+      5,
       1,
       1
      ],
@@ -12891,9 +14686,9 @@
     {
      "id": "crew",
      "rect": [
-      3,
-      3,
-      1,
+      10,
+      5,
+      2,
       2
      ],
      "on": "step",
@@ -12903,8 +14698,8 @@
     {
      "id": "bier",
      "rect": [
-      19,
-      28,
+      21,
+      29,
       2,
       1
      ],
@@ -12915,13 +14710,13 @@
    "flagTiles": [
     {
      "x": 1,
-     "y": 3,
+     "y": 5,
      "tile": "ironBars",
      "cond": "flag:frontDoor"
     },
     {
-     "x": 38,
-     "y": 3,
+     "x": 42,
+     "y": 5,
      "tile": "stairsUp",
      "cond": "flag:frontDoor"
     }
@@ -13824,7 +15619,7 @@
      "x": 18,
      "y": 17,
      "tile": "gulch",
-     "cond": "trig:snared"
+     "cond": "flag:trig:snared"
     }
    ]
   },
@@ -14421,7 +16216,7 @@
   },
   "highway_1": {
    "id": "highway_1",
-   "name": "The Highway — to the First Lamp",
+   "name": "The road to First Lamp",
    "tileset": "cave",
    "rows": [
     "########################################################################",
@@ -14473,7 +16268,7 @@
     "^": "stalag",
     "f": "fungus",
     ":": "gravel",
-    "m": "minecart",
+    "m": "madeRoad",
     "k": "crateCave",
     "*": "glowmoss",
     "0": "chimney",
@@ -14647,6 +16442,18 @@
      "cond": "!flag:sealCleared"
     },
     {
+     "id": "grickDen",
+     "rect": [
+      40,
+      15,
+      7,
+      4
+     ],
+     "on": "step",
+     "script": "grickDen",
+     "cond": "!flag:grickDone"
+    },
+    {
      "id": "vein",
      "rect": [
       27,
@@ -14656,6 +16463,18 @@
      ],
      "on": "use",
      "script": "vein"
+    },
+    {
+     "id": "relief",
+     "rect": [
+      36,
+      9,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "relief",
+     "cond": "flag:captainFound & !flag:reliefSeen"
     }
    ],
    "zones": [
@@ -14672,19 +16491,19 @@
   },
   "highway_2": {
    "id": "highway_2",
-   "name": "The Highway — to the Second Lamp",
+   "name": "The road to Second Lamp",
    "tileset": "cave",
    "rows": [
     "############################################################################",
     "####################################CCC#C###################################",
-    "#############################CCCCCCCCCCCCCCC################################",
-    "############################CCCCCCCCCCCCCCCCCCCCC###############hhhhhhhhhhhh",
-    "#########################CCCCCCCCCCCCCCCCCCCCCCCCC##############h_;;___N_~~h",
-    "########################CCCCCCCCCCCCCC^CCCCCCCCCCCCC############h____l_____h",
-    "######################CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC#########h_;________h",
-    "#####################C.._____________________________..#########h__________h",
-    "#####################C.._____________________________..#########h__________h",
-    "######S#######S######C..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC..#########h__________h",
+    "#############################CCCCCCCCCCCCCCC##############u#################",
+    "############################CCCCCCCCCCCCCCCCCCCCC#########.#####hhhhhhhhhhhh",
+    "#########################CCCCCCCCCCCCCCCCCCCCCCCCC#######..#####h_;;_____~~h",
+    "########################CCCCCCCCCCCCCC^CCCCCCCCCCCCC######.,####h____L_____h",
+    "######################CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC###.#####h_;________h",
+    "#####################C.._____________________________..###.#####h__________h",
+    "#####################C.._____________________________..###.#####h__________h",
+    "######S#######S######C..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC..###.#####h__________h",
     "........................CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...........____________",
     "____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
     "____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
@@ -14726,7 +16545,7 @@
     "^": "stalag",
     "f": "fungus",
     ":": "gravel",
-    "m": "minecart",
+    "m": "madeRoad",
     "k": "crateCave",
     "*": "glowmoss",
     "0": "chimney",
@@ -14788,8 +16607,7 @@
     {
      "x": 69,
      "y": 5,
-     "r": 84,
-     "cond": "flag:lamp2Lit"
+     "r": 84
     }
    ],
    "exits": {
@@ -14806,12 +16624,55 @@
      "dir": "right"
     }
    },
+   "npcs": [
+    {
+     "id": "thyra",
+     "x": 71,
+     "y": 6,
+     "look": "thyra",
+     "dir": "down",
+     "name": "Thyra Silversands"
+    },
+    {
+     "id": "lamp2a",
+     "x": 67,
+     "y": 8,
+     "look": "dtrooper2",
+     "dir": "right"
+    },
+    {
+     "id": "lamp2b",
+     "x": 73,
+     "y": 7,
+     "look": "dtrooper",
+     "dir": "left",
+     "idle": true
+    },
+    {
+     "id": "lamp2c",
+     "x": 68,
+     "y": 11,
+     "look": "dtrooper2",
+     "dir": "down"
+    }
+   ],
+   "warps": [
+    {
+     "x": 58,
+     "y": 2,
+     "to": "pinned",
+     "tx": 9,
+     "ty": 12,
+     "dir": "up",
+     "sfx": "stairs"
+    }
+   ],
    "signs": [
     {
-     "x": 71,
-     "y": 4,
-     "text": "Slates on a nail: the watch-roster. The last line is a date, and no relief after it.",
-     "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3, §10-5 (the Second Lamp's dark)"
+     "x": 59,
+     "y": 8,
+     "text": "A side cut, north off the road. Fresh boot-marks going up it, dwarven, and none coming back.",
+     "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 3 (off the highway: a side cavern)"
     }
    ],
    "triggers": [
@@ -14875,6 +16736,45 @@
      "on": "step",
      "script": "drainCut",
      "cond": "!flag:puddingDead"
+    },
+    {
+     "id": "pyroRoad1",
+     "rect": [
+      9,
+      10,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "pyroRoad",
+     "arg": 1,
+     "cond": "flag:pyroLeads & !flag:captainFound & !flag:pyroRoad1"
+    },
+    {
+     "id": "pyroRoad2",
+     "rect": [
+      22,
+      7,
+      2,
+      6
+     ],
+     "on": "step",
+     "script": "pyroRoad",
+     "arg": 2,
+     "cond": "flag:pyroLeads & !flag:captainFound & !flag:pyroRoad2"
+    },
+    {
+     "id": "pyroRoad3",
+     "rect": [
+      56,
+      10,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "pyroRoad",
+     "arg": 3,
+     "cond": "flag:pyroLeads & !flag:captainFound & !flag:pyroRoad3"
     }
    ],
    "zones": [
@@ -14891,7 +16791,7 @@
   },
   "highway_3": {
    "id": "highway_3",
-   "name": "The Highway — to the Third Lamp",
+   "name": "The road to Third Lamp",
    "tileset": "cave",
    "rows": [
     "############################################################################",
@@ -14899,22 +16799,22 @@
     "############################################################################",
     "############################......##########################hhhhhhhhhhhhhhhh",
     "###########################........#########################h______________h",
-    "###########################........#########################h_______l____~~h",
+    "###########################........#########################h_______L____~~h",
     "############################......##########################h____________~~h",
     "##############################.#,###########################h______________h",
-    "##############################,,############################h__kk__________h",
+    "##############################,,############################h______________h",
     "########S##########S###########,#####S##########S###########h______________h",
     "............................................................________________",
     "____________________________________________________________________________",
     "____________________________________________________________________________",
     "............................................................________________",
-    "#############S############S###############S##########S######h___________kk_h",
-    "############################################################h_____k________h",
-    "############################################################h__________;___h",
-    "############################################################h________B_;_;_h",
-    "############################################################h______________h",
-    "############################################################hhhhhhhhhhhhhhhh",
-    "############################################################################",
+    "#############S############S###############S#.########S######h______________h",
+    "############################################..##############h______________h",
+    "########################################........############h__________;___h",
+    "#######################################..........###########h__________;_;_h",
+    "#######################################........k.###########h______________h",
+    "########################################..T......###########hhhhhhhhhhhhhhhh",
+    "############################################.###############################",
     "############################################################################",
     "############################################################################",
     "############################################################################"
@@ -14945,7 +16845,7 @@
     "^": "stalag",
     "f": "fungus",
     ":": "gravel",
-    "m": "minecart",
+    "m": "madeRoad",
     "k": "crateCave",
     "*": "glowmoss",
     "0": "chimney",
@@ -15023,7 +16923,7 @@
      "x": 68,
      "y": 5,
      "r": 84,
-     "cond": "flag:lamp3"
+     "cond": "!flag:wordBelow | flag:raidWon"
     }
    ],
    "exits": {
@@ -15034,20 +16934,45 @@
      "dir": "left"
     },
     "east": {
-     "to": "threshold",
+     "to": "highway_4",
      "tx": 1,
-     "ty": 8,
+     "ty": 11,
      "dir": "right"
     }
    },
    "npcs": [
+    {
+     "id": "geir",
+     "x": 67,
+     "y": 7,
+     "look": "dtrooper",
+     "dir": "down",
+     "name": "Geir Silversands",
+     "cond": "!flag:wordBelow"
+    },
+    {
+     "id": "lamp3a",
+     "x": 64,
+     "y": 12,
+     "look": "dtrooper2",
+     "dir": "right",
+     "cond": "!flag:wordBelow"
+    },
+    {
+     "id": "lamp3b",
+     "x": 72,
+     "y": 9,
+     "look": "dtrooper",
+     "dir": "left",
+     "cond": "!flag:wordBelow"
+    },
     {
      "id": "brannLamp",
      "x": 66,
      "y": 7,
      "look": "brann",
      "dir": "down",
-     "cond": "flag:lamp3 & !flag:noEscort"
+     "cond": "flag:raidWon & !flag:noEscort"
     },
     {
      "id": "heddaLamp",
@@ -15055,10 +16980,23 @@
      "y": 7,
      "look": "hedda",
      "dir": "down",
-     "cond": "flag:lamp3 & !flag:noEscort"
+     "cond": "flag:raidWon & !flag:noEscort"
     }
    ],
    "triggers": [
+    {
+     "id": "lampArrive3",
+     "rect": [
+      60,
+      10,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "lampArrive",
+     "arg": 3,
+     "cond": "!flag:lamp3 & !flag:wordBelow"
+    },
     {
      "id": "raid",
      "rect": [
@@ -15069,7 +17007,7 @@
      ],
      "on": "step",
      "script": "raid",
-     "cond": "!flag:lamp3"
+     "cond": "flag:wordBelow & !flag:raidWon"
     },
     {
      "id": "tower3",
@@ -15082,7 +17020,7 @@
      "on": "use",
      "script": "lampTower",
      "arg": 3,
-     "cond": "flag:lamp3"
+     "cond": "!flag:wordBelow | flag:raidWon"
     },
     {
      "id": "xorn",
@@ -15097,6 +17035,18 @@
      "cond": "!flag:xornDone"
     },
     {
+     "id": "giant",
+     "rect": [
+      42,
+      16,
+      5,
+      3
+     ],
+     "on": "step",
+     "script": "giant",
+     "cond": "!flag:giantDone"
+    },
+    {
      "id": "captain",
      "rect": [
       69,
@@ -15105,7 +17055,8 @@
       1
      ],
      "on": "use",
-     "script": "captain"
+     "script": "captain",
+     "cond": "flag:wordBelow"
     },
     {
      "id": "leavings",
@@ -15117,7 +17068,19 @@
      ],
      "on": "use",
      "script": "leavings",
-     "cond": "flag:lamp3"
+     "cond": "flag:raidWon"
+    },
+    {
+     "id": "deepholmRoad",
+     "rect": [
+      74,
+      10,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "deepholmRoad",
+     "cond": "!flag:wordBelow"
     }
    ],
    "zones": [
@@ -15133,10 +17096,383 @@
    ],
    "flagTiles": [
     {
+     "x": 63,
+     "y": 8,
+     "tile": "crateCave",
+     "cond": "flag:wordBelow"
+    },
+    {
+     "x": 64,
+     "y": 8,
+     "tile": "crateCave",
+     "cond": "flag:wordBelow"
+    },
+    {
+     "x": 72,
+     "y": 14,
+     "tile": "crateCave",
+     "cond": "flag:wordBelow"
+    },
+    {
+     "x": 73,
+     "y": 14,
+     "tile": "crateCave",
+     "cond": "flag:wordBelow"
+    },
+    {
+     "x": 66,
+     "y": 15,
+     "tile": "crateCave",
+     "cond": "flag:wordBelow"
+    },
+    {
+     "x": 69,
+     "y": 17,
+     "tile": "bodyCaptain",
+     "cond": "flag:wordBelow"
+    },
+    {
      "x": 68,
      "y": 5,
-     "tile": "lampTower",
-     "cond": "flag:lamp3"
+     "tile": "lampTowerDark",
+     "cond": "flag:wordBelow & !flag:raidWon"
+    }
+   ]
+  },
+  "highway_4": {
+   "id": "highway_4",
+   "name": "The road to Deepholm's door",
+   "tileset": "cave",
+   "rows": [
+    "################################################################################",
+    "################################################################################",
+    "################################################################################",
+    "################################################################################",
+    "################################################################################",
+    "##################################ww############################################",
+    "################################wwwwwwww########################################",
+    "###############################wwwwwwwwww#######################################",
+    "################b#############wwwwwwwwwwww####################.....#############",
+    "#########S#####k########S#####wwwwwwwwwwwww##################,.....#############",
+    "..............................wwwwwwwwwwwww.....................................",
+    "______________________________________________mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "______________________________________________mmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmmm",
+    "..............................wwwwwwwwwwwww.....................................",
+    "###############k##S###########wwwwwwwwwwww##########.#########.....,############",
+    "##############,################wwwwwwwwww##########...########.....#############",
+    "################################wwwwwww#########........########################",
+    "##################################ww###########..........#######################",
+    "###############################################.......b..#######################",
+    "################################################..b.....########################",
+    "#################################################....,##########################",
+    "################################################################################",
+    "################################################################################",
+    "################################################################################"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "guanoDeep",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "drownStair",
+    ">": "holeDown",
+    "L": "lampTower",
+    "l": "lampTowerDark",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "madeRoad",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    " ": "void",
+    ",": "rubble",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "sealWhole",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "door",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "sealBroken",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bodyCaptain",
+    "C": "chasm",
+    "A": "water",
+    "M": "mountain",
+    "V": "vein",
+    "I": "lamp",
+    "Q": "cocoon",
+    ";": "cot",
+    "N": "noticeboard"
+   },
+   "music": "highway",
+   "bg": "highway",
+   "save": false,
+   "dark": true,
+   "highway": 4,
+   "seals": [
+    {
+     "x": 9,
+     "y": 9
+    },
+    {
+     "x": 24,
+     "y": 9
+    },
+    {
+     "x": 18,
+     "y": 14
+    }
+   ],
+   "exits": {
+    "west": {
+     "to": "highway_3",
+     "tx": 74,
+     "ty": 11,
+     "dir": "left"
+    },
+    "east": {
+     "to": "threshold",
+     "tx": 1,
+     "ty": 8,
+     "dir": "right"
+    }
+   },
+   "signs": [
+    {
+     "x": 46,
+     "y": 9,
+     "text": "Here the carved road ends and a made road begins: dressed stone, laid, not cut. The first since Solskaft.",
+     "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §4 (the first dressed stone moves to this leg's midpoint)"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "fallback",
+     "rect": [
+      13,
+      10,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "fallback",
+     "cond": "!flag:fallbackDone"
+    },
+    {
+     "id": "naga",
+     "rect": [
+      33,
+      11,
+      1,
+      2
+     ],
+     "on": "step",
+     "script": "naga",
+     "cond": "!flag:nagaDone"
+    },
+    {
+     "id": "trolls",
+     "rect": [
+      50,
+      16,
+      5,
+      3
+     ],
+     "on": "step",
+     "script": "trolls",
+     "cond": "!flag:trollsDone"
+    },
+    {
+     "id": "elemental",
+     "rect": [
+      63,
+      10,
+      1,
+      4
+     ],
+     "on": "step",
+     "script": "elemental",
+     "cond": "!flag:elementalDone"
+    }
+   ],
+   "zones": [
+    {
+     "zone": "hw4",
+     "rect": [
+      0,
+      0,
+      80,
+      24
+     ]
+    }
+   ]
+  },
+  "nest": {
+   "id": "nest",
+   "name": "The nest",
+   "tileset": "cave",
+   "rows": [
+    "########################",
+    "########.......#########",
+    "######...Q....Q..#######",
+    "#####...........Q#######",
+    "######.Q.........#######",
+    "####.#.............#####",
+    "###.........b......#####",
+    "##.Q.................###",
+    "##.................Q..##",
+    "#....b................##",
+    "##..Q.............b..###",
+    "####................####",
+    "######Q..........Q######",
+    "##########...###########",
+    "###########..###########",
+    "###########uu###########"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "guanoDeep",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "drownStair",
+    ">": "holeDown",
+    "L": "lampTower",
+    "l": "lampTowerDark",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "madeRoad",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    " ": "void",
+    ",": "rubble",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "sealWhole",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "door",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "sealBroken",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bodyCaptain",
+    "C": "chasm",
+    "A": "water",
+    "M": "mountain",
+    "V": "vein",
+    "I": "lamp",
+    "Q": "cocoon",
+    ";": "cot",
+    "N": "noticeboard"
+   },
+   "music": "highway",
+   "bg": "cavern",
+   "save": false,
+   "dark": true,
+   "warps": [
+    {
+     "x": 11,
+     "y": 15,
+     "to": "pinned",
+     "tx": 9,
+     "ty": 2,
+     "dir": "down",
+     "sfx": "stairs"
+    },
+    {
+     "x": 12,
+     "y": 15,
+     "to": "pinned",
+     "tx": 10,
+     "ty": 2,
+     "dir": "down",
+     "sfx": "stairs"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "brood",
+     "rect": [
+      8,
+      2,
+      8,
+      4
+     ],
+     "on": "step",
+     "script": "brood",
+     "cond": "!flag:nestCrushed"
+    },
+    {
+     "id": "cocoons",
+     "rect": [
+      0,
+      0,
+      24,
+      16
+     ],
+     "on": "use",
+     "script": "cocoon"
+    }
+   ],
+   "zones": [
+    {
+     "zone": "nest",
+     "rect": [
+      0,
+      5,
+      24,
+      11
+     ],
+     "cond": "!flag:nestCrushed"
     }
    ]
   },
@@ -15214,6 +17550,214 @@
      "y": 5,
      "text": "The shelf card, in Percy's good hand: guano-and-sulfur, the paper, 1 sp. Sulfur 5 cp. Saltpeter 1 sp. Glow-moss, the pinch, 5 cp. Jar-fly, live, 1 sp. Gulch silk, the skein, 5 sp. Pressed black cake 2 sp. Darkmantle hide, cured, 2 gp. Crawler ichor: ask.",
      "src": "the-lab/pit-maps/shops-silverton.json pin 38 (Percy's shelf, CANON 09-09)"
+    }
+   ]
+  },
+  "pinned": {
+   "id": "pinned",
+   "name": "The north cut",
+   "tileset": "cave",
+   "rows": [
+    "####################",
+    "######...uu..#######",
+    "######.......#######",
+    "########...#########",
+    "#########..#########",
+    "#########..#########",
+    "######..#...########",
+    "####....k..k....####",
+    "##...b.......,...###",
+    "##..,............###",
+    "##.............,####",
+    "###...,.......b#####",
+    "#######....#.#######",
+    "#########uu#########",
+    "####################"
+   ],
+   "legend": {
+    ".": "caveFloor",
+    "#": "caveWall",
+    "+": "timber",
+    "|": "rails",
+    "-": "railsH",
+    "~": "pool",
+    "w": "deep",
+    "o": "ooze",
+    "g": "guano",
+    "G": "guanoDeep",
+    "x": "webFloor",
+    "_": "dwarfFloor",
+    "h": "dwarfWall",
+    "r": "runeWall",
+    "s": "sealDoor",
+    "n": "drownStair",
+    ">": "holeDown",
+    "L": "lampTower",
+    "l": "lampTowerDark",
+    "y": "cradle",
+    "=": "gate",
+    "b": "bones",
+    "^": "stalag",
+    "f": "fungus",
+    ":": "gravel",
+    "m": "madeRoad",
+    "k": "crateCave",
+    "*": "glowmoss",
+    "0": "chimney",
+    "u": "stairsUp",
+    "d": "stairsDown",
+    " ": "void",
+    ",": "rubble",
+    "\"": "grass",
+    "t": "tree",
+    "R": "roofB",
+    "S": "sealWhole",
+    "W": "wall",
+    "O": "wallWin",
+    "D": "door",
+    "e": "webtree",
+    "U": "gulch",
+    "X": "sealBroken",
+    "c": "crate",
+    "q": "well",
+    "T": "tent",
+    "H": "headframe",
+    "F": "fence",
+    "P": "road",
+    "B": "bodyCaptain",
+    "C": "chasm",
+    "A": "water",
+    "M": "mountain",
+    "V": "vein",
+    "I": "lamp",
+    "Q": "cocoon",
+    ";": "cot",
+    "N": "noticeboard"
+   },
+   "music": "highway",
+   "bg": "cavern",
+   "save": false,
+   "dark": true,
+   "lights": [
+    {
+     "x": 9,
+     "y": 6,
+     "r": 40,
+     "cond": "!flag:captainFound"
+    }
+   ],
+   "npcs": [
+    {
+     "id": "halldorPin",
+     "x": 9,
+     "y": 6,
+     "look": "halldor",
+     "dir": "down",
+     "cond": "!flag:captainFound"
+    },
+    {
+     "id": "pinA",
+     "x": 10,
+     "y": 6,
+     "look": "dtrooper",
+     "dir": "down",
+     "cond": "!flag:captainFound"
+    },
+    {
+     "id": "pinB",
+     "x": 9,
+     "y": 5,
+     "look": "dtrooper2",
+     "dir": "down",
+     "cond": "!flag:captainFound"
+    },
+    {
+     "id": "pinC",
+     "x": 10,
+     "y": 5,
+     "look": "dtrooper",
+     "dir": "down",
+     "cond": "!flag:captainFound"
+    },
+    {
+     "id": "pinD",
+     "x": 9,
+     "y": 4,
+     "look": "dtrooper2",
+     "dir": "down",
+     "cond": "!flag:captainFound"
+    }
+   ],
+   "warps": [
+    {
+     "x": 9,
+     "y": 13,
+     "to": "highway_2",
+     "tx": 58,
+     "ty": 3,
+     "dir": "down",
+     "sfx": "stairs"
+    },
+    {
+     "x": 10,
+     "y": 13,
+     "to": "highway_2",
+     "tx": 58,
+     "ty": 3,
+     "dir": "down",
+     "sfx": "stairs"
+    },
+    {
+     "x": 9,
+     "y": 1,
+     "to": "nest",
+     "tx": 11,
+     "ty": 14,
+     "dir": "up",
+     "cond": "flag:petition"
+    },
+    {
+     "x": 10,
+     "y": 1,
+     "to": "nest",
+     "tx": 12,
+     "ty": 14,
+     "dir": "up",
+     "cond": "flag:petition"
+    }
+   ],
+   "signs": [
+    {
+     "x": 8,
+     "y": 7,
+     "text": "Crates and packs, stacked for a wall. The rock behind them is scratched from the inside, as if something had come through it.",
+     "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 3 (they phase through rock, so a seal fails and a charge finds nothing)"
+    }
+   ],
+   "triggers": [
+    {
+     "id": "pinned",
+     "rect": [
+      7,
+      8,
+      6,
+      3
+     ],
+     "on": "step",
+     "script": "pinned",
+     "cond": "!flag:captainFound"
+    },
+    {
+     "id": "neck",
+     "rect": [
+      9,
+      3,
+      2,
+      1
+     ],
+     "on": "step",
+     "script": "neck",
+     "cond": "flag:captainFound & !flag:petition"
     }
    ]
   },
@@ -15864,7 +18408,7 @@
      "script": "warp",
      "cond": "flag:frontDoor",
      "to": "solskaft",
-     "tx": 17,
+     "tx": 27,
      "ty": 46
     }
    ]
@@ -15874,54 +18418,54 @@
    "name": "Solskaft",
    "tileset": "cave",
    "rows": [
-    "hhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhh",
-    "hhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhh",
-    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-    "hh___________hd_11111__2________hhhh",
-    "hh_;_;_;_;_;_h__11111__2_____d__hhhh",
-    "hh___________h__11111__2________hhhh",
-    "hh______________11111__`________hhhh",
-    "hh_;_;_;_;___h__11111__2________hhhh",
-    "hh___________h__11111__2________hhhh",
-    "hh___________h__11111__2hhhhhhhhhhhh",
-    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-    "hhhhhh8h6hQhhh__11111__2hhhhhhhhhhhh",
-    "hhhhh________h__11111__2__;_;_;_;_hh",
-    "hhhhh________h__11111__2__________hh",
-    "hhhhh___________11111__`__________hh",
-    "hhhhh___________11111__`__________hh",
-    "hhhhh________h__11111__2__________hh",
-    "hhhhh________h__11111__2__;_;_____hh",
-    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-    "hhh777777777hh__11111__2hhhhhhhhhhhh",
-    "hh___________h__11111__2___)))__((_h",
-    "hh______6____h__11111__2___________h",
-    "hh___________h__11111__2_________(_h",
-    "hh_5____________11111__`___________h",
-    "hh______________11111__`___________h",
-    "hh___________h__11111__2__________kh",
-    "hh___________h__11111__2_________k_h",
-    "hhhhhhhhhhhhhh__11111__2hhhhhhhhhhhh",
-    "hhhhhhhhhhhhhhh______hh~~~~~~~~hhhhh",
-    "hhhhhhhhhh________________hhhh~hhhhh",
-    "hhhhhhhhhh______________;;hhhh~hhhhh",
-    "hhhhhhhhhh________________hhhh~hhhhh",
-    "hhhhhhhhhh______________;;hhhh~hhhhh",
-    "hhhhhhhhhh________________hhhh~hhhhh",
-    "hhhhhhhhhh________________hhhh~hhhhh",
-    "hhhhhhhhhh________________hhhh~hhhhh",
-    "hhhhhhh{hh________________hhhh~hhhhh",
-    "h_________hhhhhh____hhhhhh____3____h",
-    "h_________hhhhhh____hhhhhh_________h",
-    "h__]______h______________h__~~~~~__h",
-    "h_________h______________h_~~~~~~~_h",
-    "h_________h_''''''''''''_h__~~~~~__<",
-    "h_@@%@@@@_h______________h____~____h",
-    "h_____________________________~____h",
-    "h_________h_''''''''''''_h____~____h",
-    "h_________h______________h____~____h",
-    "hhhhhhhhhhhhhhhhh44hhhhhhhhhhh~hhhhh"
+    "hhhhhhhhhhhhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhh}}}}}}}}}}hhhhhhhhhhhhhhhhh",
+    "hh,,,,,,,,,hhhhhhhhhhhhh__11111__2SSSSSSSSSSSSSShh",
+    "hh,M,M,M,M,h___________hd_11111__2StStStSSbSbSfShh",
+    "hh,,,,,,,,,h_;_;_;_;_;_h__11111__2SSSSSSSSSSSSSShh",
+    "hh,M,M,M,M,,___________h__11111__2StStStSSeSeSfShh",
+    "hh,,,,,,,,,h______________11111__`SSSSSSSSSSSSSShh",
+    "hhhhhhhhhhhh_;_;_;_;___h__11111__2SSSSSSSSSSSSSShh",
+    "hhA:::c:hhhh___________h__11111__2SmmSSSyyyyyyyyhh",
+    "hh::::::hhhh___________h__11111__2SSSSSSSSSSSSSShh",
+    "hh::::::hhhhhhhhhhhhhhhh__11111__2hhhhhhhhhhhhhhhh",
+    "hh:;::::hhhhhhhhhhhhhhhh__11111__2hhhhhhhhhhhhhhhh",
+    "hhhWLWhWHWhWHWhWHWhWHWhh__11111__2__;_;_;_;_hhhhhh",
+    "hh________________________11111__2__________hhhhhh",
+    "hh________________________11111__`__________hhhhhh",
+    "hhWhWHWhWHWhWHWhWHWhWHWh__11111__`__________hhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhh__11111__2__________hhhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhh__11111__2__;_;_____hhhhhh",
+    "hhhh8h6hQhhh___OO5OO___h__11111__2hhhhhhhhhhhhhhhh",
+    "hhh_______hhI__OOOOO__Ih__11111__2hhhhhhhhhhhhhhhh",
+    "hhh_______hh___________h__11111__2hhhhhhhhhhhhhhhh",
+    "hhh_______hh___________h__11111__2___)))__((_hhhhh",
+    "hhh_______hh_____6_____h__11111__2___________hhhhh",
+    "hhh_______hh___________h__11111__2_________(_hhhhh",
+    "hhh_______hh___________h__11111__`______________dh",
+    "hhh_______hh___________h__11111__`______________hh",
+    "hhhhh__hhhhhhhhh___hhhhh__11111__2__________khhhhh",
+    "hh________________________11111__2_________k_hhhhh",
+    "hh________________________11111__2hhhhhhhhhhhhhhhh",
+    "hhhhhhhhhhh777777777hhhhh______hh~~~~~~~~hhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhh______________;;hhhh~hhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhh______________;;hhhh~hhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+    "hhhhhhhhhhhhhhhhhhhh________________hhhh~hhhhhhhhh",
+    "hhhhhhhhhhhhhhhhh{hh________________hhhh~hhhhhhhhh",
+    "hhhhhhhhhhh_________hhhhhh____hhhhhh____3____hhhhh",
+    "hhhhhhhhhhh_________hhhhhh____hhhhhh_________hhhhh",
+    "hhhhhhhhhhh__]______h______________h__~~~~~__hhhhh",
+    "hhhhhhhhhhh_________h______________h_~~~~~~~_hhhhh",
+    "hhhhhhhhhhh_________h_''''''''''''_h__~~~~~__<hhhh",
+    "hhhhhhhhhhh_@@%@@@@_h______________h____~____hhhhh",
+    "hhhhhhhhhhh_____________________________~____hhhhh",
+    "hhhhhhhhhhh_________h_''''''''''''_h____~____hhhhh",
+    "hhhhhhhhhhh_________h______________h____~____hhhhh",
+    "hhhhhhhhhhhhhhhhhhhhhhhhhhh44hhhhhhhhhhh~hhhhhhhhh"
    ],
    "legend": {
     ".": "caveFloor",
@@ -15941,44 +18485,44 @@
     "s": "sealDoor",
     "n": "drownStair",
     ">": "holeDown",
-    "L": "ladder",
+    "L": "houseLit",
     "l": "lantern",
-    "y": "cradle",
+    "y": "wheatBed",
     "=": "gate",
-    "b": "bones",
+    "b": "cherryTree",
     "^": "stalag",
-    "f": "fungus",
-    ":": "gravel",
-    "m": "minecart",
+    "f": "pearTree",
+    ":": "floorStone",
+    "m": "mint",
     "k": "crateCave",
     "*": "glowmoss",
     "0": "chimney",
     "u": "stairsUp",
     "d": "stairsDown",
     " ": "void",
-    ",": "dirt",
+    ",": "dwarfFloor",
     "\"": "grass",
-    "t": "tree",
+    "t": "appleTree",
     "R": "roofB",
-    "S": "roofS",
-    "W": "wall",
-    "O": "wallWin",
+    "S": "soil",
+    "W": "houseWin",
+    "O": "dais",
     "D": "door",
-    "e": "webtree",
+    "e": "hops",
     "U": "gulch",
     "X": "web",
-    "c": "crate",
+    "c": "table",
     "q": "well",
     "T": "tent",
-    "H": "headframe",
+    "H": "houseShut",
     "F": "fence",
     "P": "road",
     "B": "bridgeV",
     "C": "cliff",
-    "A": "water",
-    "M": "mountain",
+    "A": "hearth",
+    "M": "shroomBed",
     "V": "range",
-    "I": "lamp",
+    "I": "tombLamp",
     "Q": "emptyCut",
     "N": "niche",
     "J": "nicheGear",
@@ -16024,28 +18568,33 @@
    "save": true,
    "beam": {
     "x0": 16,
-    "x1": 20,
-    "y0": 0,
-    "y1": 28
+    "x1": 18,
+    "y0": 22,
+    "y1": 28,
+    "land": [
+     17,
+     22
+    ]
    },
    "npcs": [
     {
      "id": "pyro",
-     "x": 16,
+     "x": 26,
      "y": 46,
      "look": "pyro",
-     "dir": "up"
+     "dir": "up",
+     "cond": "!flag:pyroLeads | flag:captainHome"
     },
     {
      "id": "ketil",
-     "x": 19,
+     "x": 29,
      "y": 46,
      "look": "ketil",
      "dir": "up"
     },
     {
      "id": "ingrith",
-     "x": 3,
+     "x": 13,
      "y": 39,
      "look": "ingrith",
      "dir": "down",
@@ -16053,21 +18602,21 @@
     },
     {
      "id": "quartermaster",
-     "x": 6,
+     "x": 16,
      "y": 42,
      "look": "dclerk",
      "dir": "down"
     },
     {
      "id": "ragna",
-     "x": 29,
+     "x": 39,
      "y": 44,
      "look": "ragna",
      "dir": "up"
     },
     {
      "id": "brann",
-     "x": 21,
+     "x": 31,
      "y": 33,
      "look": "brann",
      "dir": "left",
@@ -16075,15 +18624,31 @@
     },
     {
      "id": "hedda",
-     "x": 22,
+     "x": 32,
      "y": 36,
      "look": "hedda",
      "dir": "left",
      "cond": "!flag:escortsOut"
     },
     {
+     "id": "halldor",
+     "x": 24,
+     "y": 34,
+     "look": "halldor",
+     "dir": "right",
+     "cond": "flag:halldorUp & !flag:petition | flag:nestHome"
+    },
+    {
+     "id": "halldorBunk",
+     "x": 41,
+     "y": 16,
+     "look": "halldor",
+     "dir": "left",
+     "cond": "flag:captainHome & !flag:halldorUp"
+    },
+    {
      "id": "drill1",
-     "x": 11,
+     "x": 21,
      "y": 33,
      "look": "dtrooper2",
      "dir": "right",
@@ -16091,7 +18656,7 @@
     },
     {
      "id": "drill2",
-     "x": 13,
+     "x": 23,
      "y": 33,
      "look": "dtrooper",
      "dir": "right",
@@ -16099,7 +18664,7 @@
     },
     {
      "id": "drill3",
-     "x": 11,
+     "x": 21,
      "y": 35,
      "look": "dtrooper2",
      "dir": "right",
@@ -16107,7 +18672,7 @@
     },
     {
      "id": "drill4",
-     "x": 13,
+     "x": 23,
      "y": 35,
      "look": "dtrooper",
      "dir": "right",
@@ -16115,14 +18680,15 @@
     },
     {
      "id": "drillmaster",
-     "x": 16,
+     "x": 26,
      "y": 34,
      "look": "dtrooper",
-     "dir": "left"
+     "dir": "left",
+     "cond": "!flag:reliefSeen | flag:nestCrushed"
     },
     {
      "id": "cook",
-     "x": 30,
+     "x": 40,
      "y": 24,
      "look": "dcook",
      "dir": "down",
@@ -16130,29 +18696,51 @@
     },
     {
      "id": "sleeper",
-     "x": 30,
+     "x": 40,
      "y": 15,
      "look": "dtrooper2",
      "dir": "down"
     },
     {
      "id": "shaftwatch",
-     "x": 21,
+     "x": 31,
      "y": 8,
      "look": "dtrooper",
      "dir": "left"
     },
     {
      "id": "yardhand",
-     "x": 19,
+     "x": 29,
      "y": 31,
      "look": "dtrooper2",
      "wander": 2
+    },
+    {
+     "id": "asdis",
+     "x": 4,
+     "y": 9,
+     "look": "asdis",
+     "dir": "down"
+    },
+    {
+     "id": "gardener",
+     "x": 41,
+     "y": 6,
+     "look": "dtrooper2",
+     "dir": "left",
+     "wander": 1
+    },
+    {
+     "id": "shroomer",
+     "x": 6,
+     "y": 4,
+     "look": "dtrooper",
+     "dir": "down"
     }
    ],
    "warps": [
     {
-     "x": 17,
+     "x": 27,
      "y": 47,
      "to": "silverton",
      "tx": 29,
@@ -16160,7 +18748,7 @@
      "dir": "down"
     },
     {
-     "x": 18,
+     "x": 28,
      "y": 47,
      "to": "silverton",
      "tx": 30,
@@ -16168,18 +18756,18 @@
      "dir": "down"
     },
     {
-     "x": 29,
-     "y": 4,
+     "x": 48,
+     "y": 24,
      "to": "solskaft_deep",
      "tx": 3,
      "ty": 11,
      "dir": "right"
     },
     {
-     "x": 22,
+     "x": 32,
      "y": 26,
      "to": "solskaft",
-     "tx": 21,
+     "tx": 31,
      "ty": 4,
      "dir": "left",
      "cond": "flag:wwLift",
@@ -16187,10 +18775,10 @@
      "hidden": true
     },
     {
-     "x": 22,
+     "x": 32,
      "y": 4,
      "to": "solskaft",
-     "tx": 21,
+     "tx": 31,
      "ty": 26,
      "dir": "left",
      "cond": "flag:wwLift",
@@ -16198,147 +18786,243 @@
      "hidden": true
     },
     {
-     "x": 14,
+     "x": 24,
      "y": 3,
      "to": "burial",
-     "tx": 37,
-     "ty": 3,
+     "tx": 41,
+     "ty": 5,
      "dir": "left"
     }
    ],
    "signs": [
     {
-     "x": 4,
+     "x": 14,
      "y": 43,
      "text": "The assay-scales, under a cloth. Nobody has lifted it in seventy years; the dust on it is even.",
      "src": "handoff-2026-09-26 §4.3 A (the tollhouse)"
     },
     {
-     "x": 7,
+     "x": 17,
      "y": 37,
      "text": "THE TARIFF. Ingots by the stamp, lead by the pig, litharge by the jar. Charcoal, timber, salt, tallow, rope and bone-ash down. The prices are in a coin with a king's face nobody uses now.",
      "src": "handoff-2026-09-26 §4.3 (trade goods: up and down; INFERENCE, PROPOSED)"
     },
     {
-     "x": 35,
+     "x": 45,
      "y": 42,
      "text": "Brick, and a red mark cut across it. The old cut a shaft crew broke into, sixty years ago. The water went bad through here, and then the town burned.",
      "src": "wiki/deepholm-and-the-edifice.md (the Water Burning: an old dwarven cut feeding a cistern); spec §4.3 A"
     },
     {
-     "x": 30,
+     "x": 40,
      "y": 38,
      "text": "The stamp-mill wheel. The ore it broke is long gone; it turns because the covenant says the town's fountains must run, and the wheel is what meters them.",
      "src": "handoff-2026-09-26 §4.3 A (the falls-works)"
     },
     {
-     "x": 3,
-     "y": 24,
-     "text": "The high seat of the Silversands. Empty. He stands at the door.",
-     "src": "handoff-2026-09-26 §4.3 B (the clan hall)"
+     "x": 17,
+     "y": 18,
+     "text": "The high seat of the Silversands, on its dais. Empty. He stands at the door.",
+     "src": "handoff-2026-09-26 §4.3 B (the clan hall); spine-recut §5 (the throne on a dais at the hall's north end)"
     },
     {
-     "x": 8,
+     "x": 17,
      "y": 22,
-     "text": "The oath-stone of the Silversands. Every one of them put a hand here once. The band of gold is worn bright at hand height.",
-     "src": "handoff-2026-09-26 §4.3 B"
+     "text": "The oath-stone of the Silversands, directly below the empty seat. Every one of them put a hand here once; the band of gold is worn bright at hand height. At noon the light lands here.",
+     "src": "handoff-2026-09-26 §4.3 B; spine-recut §5 (the beam lands on the oath-stone; \"At noon the light lands here.\" seat's draft)"
     },
     {
-     "x": 3,
-     "y": 20,
+     "x": 11,
+     "y": 29,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 12,
+     "y": 29,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 13,
+     "y": 29,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 14,
+     "y": 29,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 15,
+     "y": 29,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 16,
+     "y": 29,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 17,
+     "y": 29,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 18,
+     "y": 29,
+     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
+     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
+    },
+    {
+     "x": 19,
+     "y": 29,
      "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
      "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
     },
     {
      "x": 4,
-     "y": 20,
-     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-    },
-    {
-     "x": 5,
-     "y": 20,
-     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-    },
-    {
-     "x": 6,
-     "y": 20,
-     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-    },
-    {
-     "x": 7,
-     "y": 20,
-     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-    },
-    {
-     "x": 8,
-     "y": 20,
-     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-    },
-    {
-     "x": 9,
-     "y": 20,
-     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-    },
-    {
-     "x": 10,
-     "y": 20,
-     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-    },
-    {
-     "x": 11,
-     "y": 20,
-     "text": "The hero-wall: the highway's dead, names cut in rows. Where a row stops short, a family stopped.",
-     "src": "handoff-2026-09-26 §4.3 B (the hero-wall; a family's row ending is what \"wiped out\" looks like on stone)"
-    },
-    {
-     "x": 6,
-     "y": 11,
+     "y": 18,
      "text": "The Forge-Father's niche: an anvil, worn to a saddle in the middle.",
      "src": "wiki/pantheon.md (the Dwarven Triad: Motsognir, the Forge-Father); spec §4.3 B"
     },
     {
-     "x": 8,
-     "y": 11,
+     "x": 6,
+     "y": 18,
      "text": "Rekknar's ledger-stone. Every line on it balances.",
      "src": "wiki/pantheon.md (Rekknar the Reckoner); spec §4.3 B"
     },
     {
-     "x": 10,
-     "y": 11,
+     "x": 8,
+     "y": 18,
      "text": "A plain cut in the rock with nothing in it. The Dormant's.",
      "src": "wiki/pantheon.md (Dvalgarda, the vigil); spec §4.3 B (the sect is never named here)"
     },
     {
-     "x": 27,
+     "x": 37,
      "y": 21,
-     "text": "The smokehouse: meat, and nothing else. Food comes down the highway now, not up.",
-     "src": "handoff-2026-09-26 §4.3 B (the kitchens; the economy reversed — INFERENCE, PROPOSED); §12 correction (the dream is on vice row)"
+     "text": "The smokehouse: meat, and nothing else. The rest of the table comes from the grow and the dark.",
+     "src": "handoff-2026-09-26 §4.3 B (the kitchens); spine-recut §5 (Solskaft feeds itself; the food-from-below line cut)"
     },
     {
-     "x": 32,
+     "x": 42,
      "y": 21,
-     "text": "The brewhouse. Dwarves.",
-     "src": "handoff-2026-09-26 §4.3 B"
+     "text": "The brewhouse. Dwarves. The hops come down from the terrace in baskets.",
+     "src": "handoff-2026-09-26 §4.3 B; spine-recut §5 (hops for the brewhouse, PROPOSED by the east-Washington rule)"
     },
     {
-     "x": 3,
+     "x": 13,
      "y": 4,
      "text": "Six tiers of bunks up here, and a season's troops fill two of them. Dust on the rest.",
      "src": "handoff-2026-09-26 §4.3 B (the barracks tiers, most of them dark)"
+    },
+    {
+     "x": 8,
+     "y": 12,
+     "text": "GREYSEAM, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+     "src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+    },
+    {
+     "x": 12,
+     "y": 12,
+     "text": "ORRI, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+     "src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+    },
+    {
+     "x": 16,
+     "y": 12,
+     "text": "HALLVEIG, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+     "src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+    },
+    {
+     "x": 20,
+     "y": 12,
+     "text": "KOLBEIN, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+     "src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+    },
+    {
+     "x": 5,
+     "y": 15,
+     "text": "COPPERBOTTOM, cut in the lintel. Barred, like the rest, but somebody has chalked on the bar: AT THE FORGE.",
+     "src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+    },
+    {
+     "x": 9,
+     "y": 15,
+     "text": "ASMUND, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+     "src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+    },
+    {
+     "x": 13,
+     "y": 15,
+     "text": "BRANDR, cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.",
+     "src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+    },
+    {
+     "x": 17,
+     "y": 15,
+     "text": "GEIRMUND, cut in the lintel. Barred. The line that lived here ended on the road; the ledger has the house.",
+     "src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+    },
+    {
+     "x": 21,
+     "y": 15,
+     "text": "AUDUN, cut in the lintel. Barred. The line that lived here ended on the road; the ledger has the house.",
+     "src": "spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial's lines and the garrison's clans; the smiths' hedge, seat's call)"
+    },
+    {
+     "x": 3,
+     "y": 12,
+     "text": "SCALEBEAM, cut in the lintel, and the one door on the street with a light behind it.",
+     "src": "spine-recut §5 (one lit door: the Scalebeam house, CANON 09-26e)"
+    },
+    {
+     "x": 35,
+     "y": 3,
+     "text": "Apple trees, in soil carried up in baskets a season at a time. The fruit is small and very sweet.",
+     "src": "spine-recut §5 (the grow is an apple orchard: RULED 09-26d)"
+    },
+    {
+     "x": 42,
+     "y": 3,
+     "text": "Cherries, trained flat to the rock where the light is longest.",
+     "src": "spine-recut §5 (cherries and pears, PROPOSED by his climate rule)"
+    },
+    {
+     "x": 46,
+     "y": 3,
+     "text": "Pear trees, the oldest things growing in Solskaft.",
+     "src": "spine-recut §5 (PROPOSED by his climate rule)"
+    },
+    {
+     "x": 35,
+     "y": 8,
+     "text": "A mint bed. It gets into everything, the gardener says, which is the point.",
+     "src": "spine-recut §5 (a mint bed, PROPOSED)"
+    },
+    {
+     "x": 40,
+     "y": 8,
+     "text": "Dry-land wheat, thin and gold, along the terrace's long edge. It barely needs watering, which is why it is here.",
+     "src": "spine-recut §5 (dry-land wheat, PROPOSED by the east-Washington rule)"
+    },
+    {
+     "x": 3,
+     "y": 3,
+     "text": "The shroom farm: beds of spent ore-dust and dung in the dark, the caps pale in a hooded lamp. This is what Solskaft actually eats.",
+     "src": "wiki/solskaft.md (the shroom farms, CANON 09-26c); spine-recut §5 (the shrooms are the staple)"
     }
    ],
    "triggers": [
     {
      "id": "pyroMeet",
      "rect": [
-      12,
+      22,
       40,
       13,
       2
@@ -16350,7 +19034,7 @@
     {
      "id": "cot",
      "rect": [
-      24,
+      34,
       31,
       2,
       3
@@ -16359,9 +19043,174 @@
      "script": "cot"
     },
     {
-     "id": "ketilStop",
+     "id": "bunk15_4",
+     "rect": [
+      15,
+      4,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk17_4",
      "rect": [
       17,
+      4,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk19_4",
+     "rect": [
+      19,
+      4,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk21_4",
+     "rect": [
+      21,
+      4,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk13_7",
+     "rect": [
+      13,
+      7,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk15_7",
+     "rect": [
+      15,
+      7,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk17_7",
+     "rect": [
+      17,
+      7,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk19_7",
+     "rect": [
+      19,
+      7,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk36_12",
+     "rect": [
+      36,
+      12,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk38_12",
+     "rect": [
+      38,
+      12,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk40_12",
+     "rect": [
+      40,
+      12,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk42_12",
+     "rect": [
+      42,
+      12,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk36_17",
+     "rect": [
+      36,
+      17,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "bunk38_17",
+     "rect": [
+      38,
+      17,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "cot"
+    },
+    {
+     "id": "asdisCot",
+     "rect": [
+      3,
+      11,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "asdisRest"
+    },
+    {
+     "id": "ketilStop",
+     "rect": [
+      27,
       46,
       2,
       1
@@ -16373,13 +19222,13 @@
    ],
    "flagTiles": [
     {
-     "x": 22,
+     "x": 32,
      "y": 26,
      "tile": "lift",
      "cond": "flag:wwLift"
     },
     {
-     "x": 22,
+     "x": 32,
      "y": 4,
      "tile": "lift",
      "cond": "flag:wwLift"
@@ -16551,8 +19400,8 @@
      "x": 2,
      "y": 11,
      "to": "solskaft",
-     "tx": 28,
-     "ty": 4,
+     "tx": 47,
+     "ty": 24,
      "dir": "left"
     }
    ],
@@ -16614,6 +19463,18 @@
      "cond": "!flag:roadOpen"
     },
     {
+     "id": "muster",
+     "rect": [
+      35,
+      10,
+      3,
+      3
+     ],
+     "on": "step",
+     "script": "muster",
+     "cond": "flag:wordBelow & !flag:mustered"
+    },
+    {
      "id": "treasury",
      "rect": [
       12,
@@ -16659,9 +19520,9 @@
     "#mmmmmmmmmmmmmGGmh",
     "#mmmmmmmmmmmmmmmmh",
     "#mmmmmmmmmmmmmmmmh",
-    "___mmmmmmmmmmmmmmD",
-    "___mmmmmmmmmmmmmmD",
-    "___mmmmmmmmmmmmmmd",
+    "mmmmmmmmmmmmmmmmmD",
+    "mmmmmmmmmmmmmmmmmD",
+    "mmmmmmmmmmmmmmmmmd",
     "#mmmmmmmmmmmmmmmmh",
     "#mmmmmmmmmmm%mmmmh",
     "#mmmmnnmmmmmmmmmmh",
@@ -16749,8 +19610,8 @@
    ],
    "exits": {
     "west": {
-     "to": "highway_3",
-     "tx": 74,
+     "to": "highway_4",
+     "tx": 78,
      "ty": 11,
      "dir": "left"
     }
@@ -16774,8 +19635,8 @@
     {
      "x": 5,
      "y": 12,
-     "text": "A stone bench, worn in the middle by three days' worth of the tired.",
-     "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a bench)"
+     "text": "A stone bench, worn in the middle by four days' worth of the tired.",
+     "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a bench); handoff-2026-09-26-dragonsleep-spine-recut.md §4 (four days)"
     }
    ],
    "triggers": [
@@ -17570,7 +20431,7 @@
      "y": 21,
      "to": "burial",
      "tx": 2,
-     "ty": 3,
+     "ty": 5,
      "dir": "right",
      "cond": "flag:stairHook & !flag:frontDoor & !flag:keeperWater",
      "sfx": "stairs"
@@ -17923,6 +20784,12 @@
      "y": 21,
      "tile": "dryStair",
      "cond": "flag:stairHook & !flag:keeperWater"
+    },
+    {
+     "x": 12,
+     "y": 23,
+     "tile": "stain",
+     "cond": "flag:stairHook & !flag:keeperWater & flag:keeperDone"
     },
     {
      "x": 8,

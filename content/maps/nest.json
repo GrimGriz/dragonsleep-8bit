@@ -1,0 +1,144 @@
+{
+"id": "nest",
+"name": "The nest",
+"tileset": "cave",
+"rows": [
+"########################",
+"########.......#########",
+"######...Q....Q..#######",
+"#####...........Q#######",
+"######.Q.........#######",
+"####.#.............#####",
+"###.........b......#####",
+"##.Q.................###",
+"##.................Q..##",
+"#....b................##",
+"##..Q.............b..###",
+"####................####",
+"######Q..........Q######",
+"##########...###########",
+"###########..###########",
+"###########uu###########"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "lampTower",
+"l": "lampTowerDark",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "madeRoad",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "rubble",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "sealWhole",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "sealBroken",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bodyCaptain",
+"C": "chasm",
+"A": "water",
+"M": "mountain",
+"V": "vein",
+"I": "lamp",
+"Q": "cocoon",
+";": "cot",
+"N": "noticeboard"
+},
+"music": "highway",
+"bg": "cavern",
+"save": false,
+"dark": true,
+"warps": [
+{
+"x": 11,
+"y": 15,
+"to": "pinned",
+"tx": 9,
+"ty": 2,
+"dir": "down",
+"sfx": "stairs"
+},
+{
+"x": 12,
+"y": 15,
+"to": "pinned",
+"tx": 10,
+"ty": 2,
+"dir": "down",
+"sfx": "stairs"
+}
+],
+"triggers": [
+{
+"id": "brood",
+"rect": [
+8,
+2,
+8,
+4
+],
+"on": "step",
+"script": "brood",
+"cond": "!flag:nestCrushed"
+},
+{
+"id": "cocoons",
+"rect": [
+0,
+0,
+24,
+16
+],
+"on": "use",
+"script": "cocoon"
+}
+],
+"zones": [
+{
+"zone": "nest",
+"rect": [
+0,
+5,
+24,
+11
+],
+"cond": "!flag:nestCrushed"
+}
+]
+}

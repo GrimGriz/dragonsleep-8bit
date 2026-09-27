@@ -229,5 +229,41 @@ Tested so far only by bots (49 battles, every scripted scene) and a map-reachabi
 - [ ] The curl of copper (if you have it): Winters pays 500 sp and asks nothing; Lucia takes it for nothing, and antitoxin is at cost at Mama's from then on
 - [ ] The journal has an entry for most of these, and the pin shows the way
 
+## 22. Round six: the re-cut from your first playthrough of the expansion
+
+- [ ] The round-six start: open the game with ?round6 on the end of the address (https://grimgriz.github.io/dragonsleep-8bit/?round6), NEW GAME, pick a lead. All four at level 4 on Fountain Street, every quest done but the Halfway Inn and the lake (Vivian's archetype asks at once, as it would at rogue 3)
+- [ ] F1: the mark at the Warrens landing, once the stair is drained (or the keeper's been dealt with), reads as a mark and never offers to wake anything
+- [ ] F2: if you beat the keeper in the base game, the drained stair's corner is a dry stain, not a puddle
+- [ ] F3: in the crew fight, the wheelwright drops his mallet and runs up the stair the moment Hask falls (a line, and he's gone); the wheelwright sidequest keys off it
+- [ ] F4: every bunk in both barracks, the yard cots, the trooper in the lit barracks and Asdis's cot all give a night's rest
+- [ ] F5: a lamp reached offers a night (STAY THE NIGHT / GO ON) and never imposes one; no XP handed out at the lamps
+- [ ] F6: no LAMP · DAY box; each leg's name shows when you step onto it (The road to First Lamp, ... The road to Deepholm's door)
+- [ ] F7: fights are built for the four of you at the leg's level plus whoever walks with you (Pyro counts as two); set pieces hard, the road's randoms about medium. Too hard or too easy per leg?
+- [ ] F8: the journal, one line at a time: "The stair behind the Warrens is dry. Find who drained it." then "Ingrith Scalebeam has given you the front door. Go and see the king." Nothing about the highway until the drow take Third Lamp
+- [ ] F10: the weights sidequest is retired; the front door is the ledger's leave for the four of you, and the town doesn't know why (Vera, the shaft hand)
+- [ ] Beat 1: Ingrith asks you for nothing; the front door opens for you four and nobody else; the garrison's iron across the cut door
+- [ ] Beat 2: Pyro, sympathetic ("I've wanted someone through that door for a long time who wasn't a dwarf"); he reads you (look him in the eye / take his hand, low DC, flavour); WALK THE ROAD WITH HIM or NOT YET, and he waits at the door till you say
+- [ ] Pyro in a fight: fighter 9, a mace in each hand (three swings a turn), a second wind when he's hurt, an action surge when two or more stand against him
+- [ ] He opens the gate himself and hands you the ledger-lamp; at First Lamp, Ulf ("If I'd known, I'd have swept")
+- [ ] Across leg two he talks three times: the burial law, why he sealed the mint, what the road was for
+- [ ] Second Lamp is a manned outpost (Thyra Silversands and three): Halldor's unit is pinned up the north cut, a little back along the road
+- [ ] The north cut: Halldor and his troopers holding a neck of rock; phase spiders come out of the walls, step into the rock when they're hurt, and come out again next round
+- [ ] After the fight: tend Halldor (a healer's kit, or Lymen's hands) or let him walk. Wounded, he swings at disadvantage and draws their attacks, and a night's rest doesn't mend him
+- [ ] Going home: a relief column passes you going down ("The king's word came up the lamps. We go down.")
+- [ ] At the works: Halldor carried up, Pyro's trust ("Muck about. The halls are yours; the road is mine again."), and the gate shuts behind him
+- [ ] The halls: the sidequests open (put it back, the count, the keeper's water, the heir, the wheelwright); the lamps are warp points from here on
+- [ ] Two sidequests later Halldor is up, in the muster yard, with his petition; he and four troopers go with you past the neck to the nest
+- [ ] The nest: the brood and the Broodmother; the cocoons hold what a lost patrol carried (a diamond, a greater potion, dwarven plate)
+- [ ] The first rest after the nest: Ulf's runner, the drow have taken Third Lamp. At the gate: Ingrith's ask (hold the road to the door) and Pyro sends you, with Brann and Hedda to Third Lamp
+- [ ] Third Lamp is held before that (Geir Silversands, a lit tower), taken after the word (dark, the crates, the captain's body), and lit again after the raid
+- [ ] Leg four, Third Lamp to Deepholm's door: the drow's fallback line; the causeway over black water and what stands up out of it; the troll hole; the made road beginning halfway; the rock that stands up in the made road's cut
+- [ ] At the door, the road is held; Torvald, the assassins, Dagny and the consult as before. The consult pays 5,000 XP, the only milestone left
+- [ ] Solskaft's clan hall turned on its axis: the throne on a dais at the north end, the oath-stone south of it, the doors south of that, and the noon beam coming through the doors to land on the stone
+- [ ] The closed street above the clan hall: barred family doors with their names on the lintels, and one lit door, the Scalebeam house, where Asdis feeds you and remembers Ingrith at six
+- [ ] The grow on the top terrace (apples, cherries, pears, hops, mint, dry-land wheat), the shroom farm in the dark past the dark barracks, and the cook's line ("Meat in the smoke, shrooms from the dark, apples from the light")
+- [ ] The Burial: both ways in land in a hallway (sealed doors, the Triad's chapel with a kneeling-stone); two straight stairs down through the tiers to the king's chamber; eight wedge-places, one of them waiting
+- [ ] Levels by fighting: about 6 by the north cut, about 7 by the nest, about 9 at the door
+- [ ] The Hex: the Hired Blade on the card is now easier than Talmok, the champion
+
 ## Notes
 (write here)

@@ -302,6 +302,10 @@
       if (pose === 'act') { p.line(13, 14, 15, 5, wood); p.rect(13, 2, 3, 3, steelD); p.rect(13, 2, 3, 1, steel); }
       else if (pose !== 'cast') { p.line(13, 13, 14, 21, wood); p.rect(12, 11, 4, 3, steelD); p.rect(12, 11, 4, 1, steel); }
       p.rect(3, 12, 4, 6, '#5a5a66'); p.frame(3, 12, 4, 6, '#101018'); p.set(4, 14, '#c8c8d8');
+    } else if (weapon === 'maces') { // Pyro's two hand maces (Griz 09-26c: "He dual-wields hand-held maces"), one in each fist
+      var head = function (x, y) { p.rect(x, y, 3, 3, steelD); p.set(x + 1, y, steel); p.set(x, y + 1, steel); p.set(x + 2, y + 1, '#c0a040'); };
+      if (pose === 'act') { p.line(13, 13, 15, 6, wood); head(14, 3); p.line(4, 13, 2, 9, wood); head(1, 6); }
+      else if (pose !== 'cast') { p.line(13, 13, 14, 19, wood); head(13, 19); p.line(4, 13, 3, 19, wood); head(2, 19); }
     } else if (weapon === 'staff') {
       if (pose === 'act') { p.line(10, 22, 15, 4, wood); p.set(15, 3, '#fca044'); }
       else if (pose === 'cast') { p.line(12, 0, 12, 12, wood); p.set(12, 0, '#f8d878'); }
@@ -374,6 +378,10 @@
     signy: { hair: '#c8c8c8', skin: '#d8a880', cloth: '#6a5a4a', apron: '#8a7a5a', style: { hood: true, apron: true, stout: true } },
     dagny: { hair: '#6a3a1a', skin: '#e0a880', cloth: '#5a5a66', trim: '#F8D878', style: { long: true, robe: true, stout: true } },
     torvald: { hair: '#8a7a6a', skin: '#d8a078', cloth: '#5a4a3a', clothD: '#3a2e24', trim: '#b87a3a', style: { beard: true, hood: true, robe: true, stout: true } },
-    sectblade: { hair: '#1a1a1a', skin: '#c89070', cloth: '#26262e', trim: '#6a4a8a', style: { hood: true, beard: true, stout: true } }
+    sectblade: { hair: '#1a1a1a', skin: '#c89070', cloth: '#26262e', trim: '#6a4a8a', style: { hood: true, beard: true, stout: true } },
+    // the spine re-cut: the pinned captain, the second lamp's captain, and the old woman behind the one lit door
+    halldor: { hair: '#6a6a70', skin: '#d8a078', cloth: '#4a5a6a', trim: '#c8c8d8', pants: '#34343c', style: { beard: true, stout: true } },
+    thyra: { hair: '#b8783a', skin: '#e0a880', cloth: '#5a5a6a', trim: '#c0a040', pants: '#3a3a44', style: { long: true, stout: true } },
+    asdis: { hair: '#e8e8ec', skin: '#e0b090', cloth: '#6a4a5a', apron: '#8a7a6a', style: { long: true, apron: true, stout: true } }
   };
 })();
