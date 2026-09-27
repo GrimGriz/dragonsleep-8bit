@@ -443,14 +443,16 @@
       yield 34;
       if (!hs.length) return;
     }
-    // the Moan (the cloaker): every hero within 60 ft, WIS or frightened till the end of its next turn
-    if (u.moan && u.moan.ready && T.action && hs.filter(function (w) { return G.dist(u, w) <= 60 && !w.conds.frightened; }).length >= 2) {
-      T.action = 0; u.moan.ready = false; D.sfx('encounter');
-      var ml = ['{r}' + the(B, u) + '{/} moans. The sound gets inside you.  WIS DC ' + u.moan.dc];
-      hs.filter(function (w) { return G.dist(u, w) <= 60; }).forEach(function (w) {
-        var sv = RU.save(w, 'wis', u.moan.dc);
-        ml.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/}' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
-        if (!sv.ok) w.conds.frightened = { by: u.id, fresh: true };
+    // the Moan (the cloaker): every hero within 60 ft, WIS or frightened till the end of its next turn; the mouther's
+    // Gibbering is the same shape (20 ft, stunned) -- moan: { dc, recharge, cond, range, text }
+    var MO = u.moan, mcond = MO && (MO.cond || 'frightened'), mrange = MO && (MO.range || 60);
+    if (MO && MO.ready && T.action && hs.filter(function (w) { return G.dist(u, w) <= mrange && !w.conds[mcond]; }).length >= (MO.min || 2)) {
+      T.action = 0; MO.ready = false; D.sfx('encounter');
+      var ml = ['{r}' + the(B, u) + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
+      hs.filter(function (w) { return G.dist(u, w) <= mrange; }).forEach(function (w) {
+        var sv = RU.save(w, 'wis', MO.dc);
+        ml.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/}' : mcond === 'stunned' ? '{p}STUNNED{/} (no turn)' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
+        if (!sv.ok) w.conds[mcond] = { by: u.id, fresh: true };
       });
       B.card(ml, 420); yield 40; return;
     }

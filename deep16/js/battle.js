@@ -58,7 +58,7 @@
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
       flees: !!d.flees, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims,
-      moan: d.moan ? { dc: d.moan.dc, recharge: d.moan.recharge, ready: true } : null,
+      moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
       hidden0: !!f.hidden

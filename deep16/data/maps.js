@@ -772,3 +772,31 @@ window.D16.MAPS.seamwall = {
   foes: [],
   wave: null
 };
+
+// The Glowseep (the 8-bit game's `bog`, the glowseep table): a wet flat of reed-tussocks (the rubble) and black pools
+// under an open sky; frogs and snakes in the water.
+window.D16.MAPS.bog = {
+  name: 'The Glowseep',
+  sub: 'the bog, off the north road',
+  step: 20,
+  ground: 'earth',
+  rows: [
+    '##################',
+    '####..~~~...r.####',
+    '###..~~~~~....~###',
+    '##..r~~~~...~~~~##',
+    '#.....~~..r.~~~~.#',
+    '#..r.......~~~...#',
+    '#~~~....r........#',
+    '#~~~~.......r..~~#',
+    '##~~..r.......~~~#',
+    '###.........r..###',
+    '####....~~.....###',
+    '######..~~..######',
+    '######......######',
+    '#######....#######'
+  ],
+  entry: [[8, 12], [9, 12], [8, 13], [9, 13], [7, 12]],
+  foes: [],
+  wave: null
+};

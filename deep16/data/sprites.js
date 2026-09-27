@@ -149,6 +149,80 @@
 }
 }
 },
+"axebeak_p1": {
+"image": "art/axebeak_p1.png",
+"fw": 108,
+"fh": 144,
+"ax": 54,
+"ay": 116,
+"top": 78,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 108,
+"fh": 144,
+"ax": 54,
+"ay": 116,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1152,
+"fw": 108,
+"fh": 144,
+"ax": 54,
+"ay": 116,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2304,
+"fw": 108,
+"fh": 144,
+"ax": 54,
+"ay": 116,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"bandit_p1": {
+"image": "art/bandit_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"top": 60,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "barley_p0": {
 "image": "art/barley_p0.png",
 "fw": 64,
@@ -779,6 +853,43 @@
 }
 }
 },
+"ettin_p1": {
+"image": "art/ettin_p1.png",
+"fw": 132,
+"fh": 174,
+"ax": 66,
+"ay": 140,
+"top": 86,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 132,
+"fh": 174,
+"ax": 66,
+"ay": 140,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1392,
+"fw": 132,
+"fh": 174,
+"ax": 66,
+"ay": 140,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2784,
+"fw": 132,
+"fh": 174,
+"ax": 66,
+"ay": 140,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "giantbat_p1": {
 "image": "art/giantbat_p1.png",
 "fw": 120,
@@ -811,6 +922,80 @@
 "fh": 156,
 "ax": 60,
 "ay": 125,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"giantboar_p1": {
+"image": "art/giantboar_p1.png",
+"fw": 120,
+"fh": 128,
+"ax": 60,
+"ay": 103,
+"top": 75,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 128,
+"ax": 60,
+"ay": 103,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1024,
+"fw": 120,
+"fh": 128,
+"ax": 60,
+"ay": 103,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2048,
+"fw": 120,
+"fh": 128,
+"ax": 60,
+"ay": 103,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"giantfrog_p1": {
+"image": "art/giantfrog_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 23,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
 "frames": 8,
 "fps": 12
 }
@@ -959,6 +1144,43 @@
 "fh": 126,
 "ax": 48,
 "ay": 101,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"goblin_p1": {
+"image": "art/goblin_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 39,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
 "frames": 8,
 "fps": 12
 }
@@ -1334,6 +1556,43 @@
 }
 }
 },
+"mouther_p1": {
+"image": "art/mouther_p1.png",
+"fw": 96,
+"fh": 122,
+"ax": 48,
+"ay": 98,
+"top": 65,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 122,
+"ax": 48,
+"ay": 98,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 976,
+"fw": 96,
+"fh": 122,
+"ax": 48,
+"ay": 98,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1952,
+"fw": 96,
+"fh": 122,
+"ax": 48,
+"ay": 98,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "naga_p1": {
 "image": "art/naga_p1.png",
 "fw": 120,
@@ -1440,6 +1699,43 @@
 "fh": 96,
 "ax": 48,
 "ay": 77,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"ogre_p1": {
+"image": "art/ogre_p1.png",
+"fw": 120,
+"fh": 156,
+"ax": 60,
+"ay": 125,
+"top": 74,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 156,
+"ax": 60,
+"ay": 125,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1248,
+"fw": 120,
+"fh": 156,
+"ax": 60,
+"ay": 125,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2496,
+"fw": 120,
+"fh": 156,
+"ax": 60,
+"ay": 125,
 "frames": 8,
 "fps": 12
 }
@@ -1708,6 +2004,43 @@
 "fh": 96,
 "ax": 48,
 "ay": 84,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"snake_p1": {
+"image": "art/snake_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 37,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
 "frames": 8,
 "fps": 12
 }

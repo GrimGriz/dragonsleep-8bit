@@ -1,0 +1,37 @@
+{
+ "image": "art/mouther_p1.png",
+ "fw": 96,
+ "fh": 122,
+ "ax": 48,
+ "ay": 98,
+ "top": 65,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 96,
+   "fh": 122,
+   "ax": 48,
+   "ay": 98,
+   "frames": 8,
+   "fps": 6
+  },
+  "walk": {
+   "y": 976,
+   "fw": 96,
+   "fh": 122,
+   "ax": 48,
+   "ay": 98,
+   "frames": 8,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1952,
+   "fw": 96,
+   "fh": 122,
+   "ax": 48,
+   "ay": 98,
+   "frames": 8,
+   "fps": 12
+  }
+ }
+}

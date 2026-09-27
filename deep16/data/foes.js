@@ -477,5 +477,77 @@
     attacks: { claw: { name: 'Claw', atk: 6, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, bite: { name: 'Bite', atk: 6, dice: '3d6', mod: 3, type: 'piercing', reach: 5 } },
     multi: ['claw', 'claw', 'claw', 'bite'], resist: ['mundane'],
     src: 'SRD 5.1 Xorn (CR 5): three claws and a bite; resists plain steel (the SRD\'s non-adamantine); content/monsters.json xorn', todo: 'Earth Glide (through the rock) is not read'
+  },
+  // ------------------------------------------------------------------ the bestiary from the 8-bit game's random tables (content/encounters.json), 09-27
+  bandit: {
+    name: 'Bandit', sheet: 'bandit_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
+    abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
+    saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: { scimitar: { name: 'Scimitar', atk: 3, dice: '1d6', mod: 1, type: 'slashing', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Bandit (CR 1/8); content/monsters.json bandit (the north and south roads)'
+  },
+  giantfrog: {
+    name: 'Giant Frog', sheet: 'giantfrog_p1', cr: '1/4', ac: 11, hp: 18, speed: 30, size: 1, reach: 5,
+    abil: { str: 12, dex: 13, con: 11, int: 2, wis: 10, cha: 3 }, init: 1, perception: 12,
+    saves: { str: 1, dex: 1, con: 0, int: -4, wis: 0, cha: -4 },
+    attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, grapple: { dc: 11, max: 1 } } },
+    multi: 1, swims: true, src: 'SRD 5.1 Giant Frog (CR 1/4): the bite grips (escape DC 11); content/monsters.json giantfrog (the Glowseep)', todo: 'Swallow is not read'
+  },
+  snake: {
+    name: 'Poison Snake', sheet: 'snake_p1', cr: '1/8', ac: 13, hp: 2, speed: 30, size: 1, reach: 5,
+    abil: { str: 2, dex: 16, con: 11, int: 1, wis: 10, cha: 3 }, init: 3, perception: 10,
+    saves: { str: -4, dex: 3, con: 0, int: -5, wis: 0, cha: -4 },
+    attacks: { bite: { name: 'Bite', atk: 5, dice: '1d1', mod: 0, type: 'piercing', reach: 5, save: { ab: 'con', dc: 10, dice: '2d4', type: 'poison', half: true } } },
+    multi: 1, swims: true, src: 'SRD 5.1 Poisonous Snake (CR 1/8); content/monsters.json snake (the Glowseep)'
+  },
+  axebeak: {
+    name: 'Axe Beak', sheet: 'axebeak_p1', cr: '1/4', ac: 11, hp: 19, speed: 50, size: 2, reach: 5,
+    abil: { str: 14, dex: 12, con: 12, int: 2, wis: 10, cha: 5 }, init: 1, perception: 10,
+    saves: { str: 2, dex: 1, con: 1, int: -4, wis: 0, cha: -3 },
+    attacks: { beak: { name: 'Beak', atk: 4, dice: '1d8', mod: 2, type: 'slashing', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Axe Beak (CR 1/4, Large); content/monsters.json axebeak (the south road, the verge)'
+  },
+  giantboar: {
+    name: 'Giant Boar', sheet: 'giantboar_p1', cr: '2', ac: 12, hp: 42, speed: 40, size: 2, reach: 5,
+    abil: { str: 17, dex: 10, con: 16, int: 2, wis: 7, cha: 5 }, init: 0, perception: 8,
+    saves: { str: 3, dex: 0, con: 3, int: -4, wis: -2, cha: -3 },
+    attacks: { tusk: { name: 'Tusk', atk: 5, dice: '2d6', mod: 3, type: 'slashing', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Giant Boar (CR 2, Large); content/monsters.json giantboar', todo: 'Charge and Relentless are not read'
+  },
+  goblin: {
+    name: 'Goblin', sheet: 'goblin_p1', cr: '1/4', ac: 15, hp: 7, speed: 30, size: 1, reach: 5,
+    abil: { str: 8, dex: 14, con: 10, int: 10, wis: 8, cha: 8 }, init: 2, perception: 9,
+    saves: { str: -1, dex: 2, con: 0, int: 0, wis: -1, cha: -1 },
+    attacks: { scimitar: { name: 'Scimitar', atk: 4, dice: '1d6', mod: 2, type: 'slashing', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Goblin (CR 1/4); content/monsters.json goblin (the king\'s road, leg one)', todo: 'Nimble Escape is not read'
+  },
+  bugbear: {
+    name: 'Bugbear', sheet: 'bugbearchief_p1', cr: '1', ac: 16, hp: 27, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 14, con: 13, int: 8, wis: 11, cha: 9 }, init: 2, perception: 10,
+    saves: { str: 2, dex: 2, con: 1, int: -1, wis: 0, cha: -1 },
+    attacks: { morningstar: { name: 'Morningstar', atk: 4, dice: '2d8', mod: 2, type: 'piercing', reach: 5 } },
+    multi: 1, surprise: '2d6', src: 'SRD 5.1 Bugbear (CR 1); content/monsters.json bugbear; the chief\'s sheet'
+  },
+  ogre: {
+    name: 'Ogre', sheet: 'ogre_p1', cr: '2', ac: 11, hp: 59, speed: 40, size: 2, reach: 5,
+    abil: { str: 19, dex: 8, con: 16, int: 5, wis: 7, cha: 7 }, init: -1, perception: 8,
+    saves: { str: 4, dex: -1, con: 3, int: -3, wis: -2, cha: -2 },
+    attacks: { club: { name: 'Greatclub', atk: 6, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Ogre (CR 2, Large); content/monsters.json ogre (the king\'s road, leg one)'
+  },
+  ettin: {
+    name: 'Ettin', sheet: 'ettin_p1', cr: '4', ac: 12, hp: 85, speed: 40, size: 2, reach: 5,
+    abil: { str: 21, dex: 8, con: 17, int: 6, wis: 10, cha: 8 }, init: -1, perception: 14,
+    saves: { str: 5, dex: -1, con: 3, int: -2, wis: 0, cha: -1 },
+    attacks: { axe: { name: 'Battleaxe', atk: 7, dice: '2d8', mod: 5, type: 'slashing', reach: 5 }, star: { name: 'Morningstar', atk: 7, dice: '2d8', mod: 5, type: 'piercing', reach: 5 } },
+    multi: ['axe', 'star'], src: 'SRD 5.1 Ettin (CR 4, Large): battleaxe and morningstar; content/monsters.json ettin (leg two)', todo: 'Two Heads and Wakeful are not read'
+  },
+  mouther: {
+    name: 'Gibbering Mouther', sheet: 'mouther_p1', cr: '2', ac: 9, hp: 67, speed: 10, size: 1, reach: 5,
+    abil: { str: 10, dex: 8, con: 16, int: 3, wis: 10, cha: 6 }, init: -1, perception: 10,
+    saves: { str: 0, dex: -1, con: 3, int: -4, wis: 0, cha: -2 },
+    attacks: { bites: { name: 'Bites', atk: 2, dice: '5d6', mod: 0, type: 'piercing', reach: 5 } },
+    multi: 1, moan: { dc: 10, recharge: 4, cond: 'stunned', range: 20, min: 1, text: 'gibbers, a hundred mouths at once. Minds slip.' },
+    src: 'SRD 5.1 Gibbering Mouther (CR 2); content/monsters.json mouther (leg two): Gibbering read as the 8-bit game has it (WIS 10 or stunned, within 20 ft; here on a recharge of 4-6)', todo: 'the Blinding Spittle and the Aberrant Ground are not read'
   }
 };
