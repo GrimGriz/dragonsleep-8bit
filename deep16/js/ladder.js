@@ -8,7 +8,8 @@
   var D = window.D16, I = D.input, DS = window.DS;
   var P = function (r, i) { return D.PAL.ramps[r][i]; };
   var KEY = 'deep16.ladder';
-  // the four start the 8-bit game at level 2, and its rules build them from there: the ladder's rungs are 2 to 9
+  // the four start the 8-bit game at level 2, and its rules build them from there. The ladder has a rung 1 all the same
+  // (Griz, 09-27: "might as well add level 1, we'll want it eventually"): till level-1 sheets are made, they fight it at 2
   function low() { return Math.max.apply(null, ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { return DS.DATA.heroes[id].level || 1; })); }
 
   function Ladder() { this.t = 0; }
@@ -16,7 +17,7 @@
   Ladder.prototype.enter = function () {
     var st = D.store.get(KEY) || {};
     this.won = st.won || {};              // level -> true
-    this.lo = low();
+    this.lo = 1; this.start = low();
     this.sel = Math.min(9, Math.max(this.lo, st.at || this.lo));
     this.card = null;                     // the level-up card, after a win
     D.music('title');
@@ -91,16 +92,19 @@
     var F2 = D.fightAt(this.sel), bx = 292, bw = D.W - bx - 6;
     box(ctx, bx, 40, bw, 196, F2 ? P('gold', 3) : P('stone', 3));
     D.text(ctx, 'LEVEL ' + this.sel, bx + 6, 45, P('gold', 4));
+    var ty = 57; // the rung's words stack down the panel, each wrapped to it
+    var put = function (txt, col) { D.wrap(txt, bw - 12).forEach(function (l) { D.text(ctx, l, bx + 6, ty, col); ty += 9; }); };
     if (F2) {
-      D.wrap(F2.intro || '', bw - 12).forEach(function (l, i) { D.text(ctx, l, bx + 6, 57 + i * 9, P('bone', 1)); });
-      D.text(ctx, '{g}' + (F2.from || '') + '{/}', bx + 6, 84, P('accent', 2));
+      put(F2.intro || '', P('bone', 1)); ty += 3;
+      put('{g}' + (F2.from || '') + '{/}', P('accent', 2));
       var foes = (F2.foes || D.MAPS[F2.map].foes).map(function (f) { return D.FOES[f.kind] ? D.FOES[f.kind].name : f.kind; });
       var cnt = {}; foes.forEach(function (n) { cnt[n] = (cnt[n] || 0) + 1; });
-      D.text(ctx, 'foes: ' + Object.keys(cnt).map(function (n) { return (cnt[n] > 1 ? cnt[n] + ' ' : '') + n; }).join(', '), bx + 6, 96, P('red', 4));
-    } else D.text(ctx, '{g}no fight on this rung yet{/}', bx + 6, 57, P('accent', 2));
+      put('foes: ' + Object.keys(cnt).map(function (n) { return (cnt[n] > 1 ? cnt[n] + ' ' : '') + n; }).join(', '), P('red', 4));
+    } else put('{g}no fight on this rung yet{/}', P('accent', 2));
+    if (this.sel < this.start) put('{o}level-' + this.sel + ' sheets owed: they fight it at ' + this.start + '{/}', P('accent', 2));
     var party = this.partyAt(this.sel);
     party.forEach(function (h, i) {
-      var yy = 112 + i * 28;
+      var yy = Math.max(112, ty + 4) + i * 28;
       D.text(ctx, '{y}' + h.name + '{/}  ' + h.cls + ' ' + h.lvl, bx + 6, yy, P('bone', 1));
       D.text(ctx, 'HP ' + h.hp + '  AC ' + h.ac + '  ' + h.weapon, bx + 6, yy + 9, P('silver', 5));
       if (h.slots) D.text(ctx, h.slots, bx + 6, yy + 18, P('accent', 2));
