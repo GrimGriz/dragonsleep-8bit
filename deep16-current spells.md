@@ -22,7 +22,8 @@ Plain text is the spell as DEEP16 runs it on the grid. *Italic is where DEEP16 p
 Mage Armor and Aid last 8 hours on the tabletop.
 
 - **The 8-bit game** holds both *until the next long rest*: sleeping lifts them, and a day longer than 8 hours never ends them early. You caught this one; it spares a recast every dungeon day.
-- **The ladder** puts Mage Armor on Aurdin before every fight from rung 3, and he pays for it with a 1st-level slot, as on the tabletop (ruled 09-27: it was free until then). Aid is never cast ahead; Lymen casts it in the fight.
+- **The ladder's camp** casts both ahead if you choose (CAST AHEAD): Mage Armor is on by default from rung 3 and costs a 1st-level slot, as on the tabletop (ruled 09-27: it was free until then); Aid, from rung 5, costs a 2nd-level slot for +5 HP on three of the four. Each has to be prepared first.
+- **Prepared spells.** The camp prepares the day (PREPARE SPELLS): Aurdin INT modifier + his level from his book, Lymen CHA modifier + half his level from the paladin list, Lesser Restoration always ready for Lymen from rung 5 (his oath). In the fight only the cantrips, the prepared and the oath's are on the SPELLS list. (Outside the camp, a party walking in from the 8-bit save still has everything it knows ready.)
 - Aurdin's Wizard's Robes are the 8-bit game's own (AC 11 + DEX, and not armour as far as the spell cares). Under Mage Armor he stands at 13 + DEX, and the lake's +1 robes add their +1 on top.
 
 ## Aurdin (wizard, evoker)

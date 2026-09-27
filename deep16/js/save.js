@@ -42,15 +42,16 @@
     if (h.cls === 'paladin') { h.feats.lay = 5; h.feats.channel = 0; }
     return h;
   };
-  SV.fixture = function (level) {
-    var L = level || 9;
+  // o.bare: nothing cast that morning (the camp casts, js/camp.js)
+  SV.fixture = function (level, o) {
+    var L = level || 9, bare = !!(o && o.bare);
     var party = ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) {
       var h = L < DS.DATA.heroes[id].level ? SV.levelOne(R.makeHero(id)) : R.makeHero(id, L), d = DS.DATA.heroes[id], tier = L >= 9 ? 1 : L >= 5 ? 0 : -1;
       if (tier >= 0 && d.rewardWeapons && d.rewardWeapons[tier] && DS.DATA.items[d.rewardWeapons[tier]]) h.equip.weapon = d.rewardWeapons[tier];
       // the 8-bit sheet gives Barley no armour (a thresher: AC 11); the ladder dresses him (Griz, 09-27: "let's go with splint-mail")
       if (id === 'barley' && !h.equip.armor) h.equip.armor = 'splint';
       // Mage Armor cast that morning, and paid for: a 1st-level slot (Griz, 09-27: "cost for mage armor"; it was free)
-      if (id === 'aurdin' && h.known.indexOf('mageArmor') >= 0 && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
+      if (!bare && id === 'aurdin' && h.known.indexOf('mageArmor') >= 0 && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
       return h;
     });
     var inv = L >= 9 ? [{ id: 'potion', n: 3 }, { id: 'greaterpotion', n: 1 }, { id: 'antitoxin', n: 1 }, { id: 'kit', n: 1 }, { id: 'oil', n: 2 }]
@@ -98,8 +99,41 @@
       stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h
     };
   }
-  // Misty Step is the POC spec's (§3) and not in the 8-bit game's list: a wizard of 3rd level or more knows it here
-  function knownOf(h) { var k = (h.known || []).slice(); if (h.cls === 'wizard' && h.lvl >= 3 && k.indexOf('mistystep') < 0) k.push('mistystep'); return k; }
+  // Misty Step is the POC spec's (§3) and not in the 8-bit game's list: a wizard of 3rd level or more has it in his book here
+  function bookOf(h) { var k = (h.known || []).slice(); if (h.cls === 'wizard' && h.lvl >= 3 && k.indexOf('mistystep') < 0) k.push('mistystep'); return k; }
+  // what a hero can cast in the fight: all he knows, or, once the camp has prepared his day (h.prepared), his cantrips,
+  // the spells he prepared, and the ones his oath keeps ready
+  function knownOf(h) {
+    var k = bookOf(h);
+    if (!h.prepared) return k;
+    var cantrips = k.filter(function (id) { var sp = SV.spell(id); return sp && !sp.level; });
+    return cantrips.concat(h.prepared, SV.oath(h)).filter(function (id, i, a) { return a.indexOf(id) === i; });
+  }
+
+  // ---------------------------------------------------------------- the day's spells (SRD 5.1; Griz, 09-27: "spell prep should probably run
+  // before each fight"). A wizard prepares INT modifier + his level from his spellbook; a paladin CHA modifier + half his
+  // level from the whole paladin list (the ones built here), and nothing at level 1. Both only of levels they have slots for.
+  SV.PALADIN = ['bless', 'curewounds', 'shieldoffaith', 'divinefavor', 'heroism', 'lesserrestoration', 'aid', 'revivify', 'daylight'];
+  SV.spell = function (id) { return window.DS.DATA.spells[id] || (D.EXTRA_SPELLS || {})[id]; };
+  // the Oath of Devotion keeps its spells ready, uncounted: Lesser Restoration from 5 (Zone of Truth, its pair, isn't built;
+  // the 3rd-level pair comes at 9, and neither of those is built either)
+  SV.oath = function (h) { return h.cls === 'paladin' && h.lvl >= 5 ? ['lesserrestoration'] : []; };
+  SV.prepCount = function (h) {
+    if (h.cls === 'wizard') return Math.max(1, DS.mod(h.abil.int) + h.lvl);
+    if (h.cls === 'paladin') return h.lvl >= 2 ? Math.max(1, DS.mod(h.abil.cha) + Math.floor(h.lvl / 2)) : 0;
+    return 0;
+  };
+  SV.prepPool = function (h) {
+    var top = (h.slotsMax || []).length, oath = SV.oath(h), src = h.cls === 'wizard' ? bookOf(h) : h.cls === 'paladin' ? SV.PALADIN : [];
+    return src.filter(function (id) { var sp = SV.spell(id); return sp && sp.level > 0 && sp.level <= top && oath.indexOf(id) < 0; });
+  };
+  // the day the build would pick: what the 8-bit game's levelling gave him first, the highest levels first, Mage Armor
+  // always (it's cast at camp), Detect Magic last (a ritual: it needn't be prepared, and it does nothing in a fight)
+  SV.prepDefault = function (h) {
+    var build = h.known || [];
+    var rank = function (id) { return (id === 'mageArmor' ? 100 : 0) + (build.indexOf(id) >= 0 ? 50 : 0) + SV.spell(id).level * 5 - (id === 'detectmagic' ? 60 : 0); };
+    return SV.prepPool(h).sort(function (a, b) { return rank(b) - rank(a); }).slice(0, SV.prepCount(h));
+  };
   // the POC's looks (RULED 09-27, Griz: "Denny should play as Barley but look like Denny for this POC"); the base art
   // is LPC (pipeline 0), Blender for special monsters (RULED 09-27: "Pipeline 0 is the way to go, maybe pipeline 1 for
   // special monsters or fights")

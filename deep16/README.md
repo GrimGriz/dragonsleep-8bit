@@ -125,6 +125,16 @@ generator: turns, commands, attacks and their reactions, the spells) · `js/ai.j
 A stepped harness for testing lives in `dev/deep16-harness.js` (gitignored): pause the loop, drive a turn per call,
 rig the dice, inject an attack.
 
+**The camp** (09-27, `js/camp.js`: Griz, "spell prep should probably run before each fight"): a rung's E opens the camp
+before the fight. **EQUIP** from the rung's armoury, free (Silverton's racks from rung 1; the lake's hoard and Winters'
+cases from 5; the Door-Shield and the smith's from 6; dwarven plate at 8): what one hero sets down another can take up.
+**PREPARE SPELLS**, SRD counts: Aurdin INT modifier + his level from his book (Misty Step is in it from 3), Lymen CHA
+modifier + half his level from the paladin list (nothing at 1), Lesser Restoration always ready from 5 (the Oath of
+Devotion); the fight's SPELLS list is then the cantrips, the prepared, and the oath's. **CAST AHEAD** the 8-hour spells:
+Mage Armor (on by default, on a hero in no armour, a 1st-level slot) and Aid (three of the four, a 2nd-level slot, +5
+HP); each needs its spell prepared. **THE BUILD'S MORNING** resets to the 8-bit game's own picks. The choices are kept
+per level (`deep16.camp`); the fight starts from a copy of the morning, so RESTART starts from it again.
+
 **Gear in a fight** (09-27, Griz: "Don't add a button for gear swapping, but ... apply the action cost for weapon
 swaps"; "at least one crossbow/bolts in the player inventory for all of deep16 modes"): every pack DEEP16 fights with
 carries a light crossbow and twenty bolts (`SV.armoury`; the 8-bit save walking in is never written). On a hero's turn

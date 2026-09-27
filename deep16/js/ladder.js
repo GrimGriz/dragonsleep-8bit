@@ -43,7 +43,8 @@
     var F = this.cur(L), self = this;
     if (!F) { D.sfx('error'); return; }
     D.sfx('confirm');
-    D.push(new D.Battle({ ladder: true, fight: F.id, onDone: function (res) { self.done(L, res, F); } }));
+    // the camp first (js/camp.js): the gear, the day's spells, what's cast before the fight; then the fight
+    D.push(new D.Camp(L, F, function (res) { self.done(L, res, F); }));
   };
   Ladder.prototype.done = function (L, res, F) {
     D.music('title');

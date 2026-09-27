@@ -16,7 +16,9 @@
     var F = this.fight = D.fight(this.o.fight || 'gallery'), m = this.map = D.iso.load(D.MAPS[F.map]), self = this;
     // on the ladder: the four at the fight's level, by the 8-bit game's own rules (nothing read from a save).
     // Otherwise walk in from the save (the door's snapshot or the newest slot), or as the fixture: the entry card offers both
-    if (this.o.ladder) this.from = { from: 'the ladder', when: null, data: D.save.fixture(F.level) };
+    // from the camp (js/camp.js): the four as the morning left them; copied, so RESTART starts from the camp again
+    if (this.o.data) this.from = { from: 'the camp', when: null, data: JSON.parse(JSON.stringify(this.o.data)) };
+    else if (this.o.ladder) this.from = { from: 'the ladder', when: null, data: D.save.fixture(F.level) };
     else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
     this.canSwap = !this.o.ladder && (this.o.fixture || this.from.from !== 'the fixture');
     var party = D.save.units(this.from.data, F);
