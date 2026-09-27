@@ -369,6 +369,63 @@
     saves: { str: -1, dex: 2, con: 1, int: 5, wis: 3, cha: 0 },
     attacks: { frost: { name: 'Ray of Frost', atk: 6, dice: '2d8', mod: 0, type: 'cold', ranged: true, spell: true, range: [60, 60], fx: 'bolt' } },
     multi: 1, flees: true, phantasms: 'start',
-    src: 'content/monsters.json willem (the 8-bit game\'s own illusionist): Ray of Frost; Phantasms at once (three false images); bloodied, he runs for the horses', todo: 'the ray\'s slow is not read'
+    src: 'content/monsters.json willem (the 8-bit game\'s own illusionist): Ray of Frost; Phantasms at once (three false images); he gives ground toward the horses, shooting', todo: 'the ray\'s slow is not read'
+  },
+  // ------------------------------------------------------------------ batch six (09-27): the causeway, the cut, the roper, the settling pools
+  // the spirit naga (deep.js S.naga, leg four): "Halfway over, the water stands up." It keeps to the black water (bound '~'),
+  // bites at ten feet, and has the spell-weaver's routine (ai.js weaver): Hold once, lightning along the water
+  naga: {
+    name: 'Spirit Naga', sheet: 'naga_p1', cr: '8', ac: 15, hp: 75, speed: 40, size: 2, reach: 10,
+    abil: { str: 18, dex: 17, con: 14, int: 16, wis: 15, cha: 16 }, init: 3, perception: 12,
+    saves: { str: 4, dex: 6, con: 5, int: 3, wis: 5, cha: 6 },
+    attacks: { bite: { name: 'Bite', atk: 7, dice: '1d6', mod: 4, type: 'piercing', reach: 10, save: { ab: 'con', dc: 13, dice: '7d8', type: 'poison', half: true } } },
+    multi: 1, immune: ['poison'], bound: '~',
+    weave: { bolt: { dc: 14, dice: '8d6', type: 'lightning', len: 100, recharge: 5, text: 'speaks, and lightning runs along the water!', again: 'gathers the storm again' }, hold: { dc: 14, range: 60, text: 'turns its eyes on them' } },
+    src: 'SRD 5.1 Spirit Naga (CR 8); content/monsters.json naga (its spells as the 8-bit game has them: Hold once, a line of lightning on a recharge)', todo: 'its rejuvenation is not read'
+  },
+  // the made road's cut (deep.js S.elemental): "the cut's walls move"
+  earthelemental: {
+    name: 'Earth Elemental', sheet: 'earthelemental_p1', cr: '5', ac: 17, hp: 126, speed: 30, size: 2, reach: 10,
+    abil: { str: 20, dex: 8, con: 20, int: 5, wis: 10, cha: 5 }, init: -1, perception: 10,
+    saves: { str: 5, dex: -1, con: 5, int: -3, wis: 0, cha: -3 },
+    attacks: { slam: { name: 'Slam', atk: 8, dice: '2d8', mod: 5, type: 'bludgeoning', reach: 10 } },
+    multi: ['slam', 'slam'], resist: ['mundane'], vulnerable: ['thunder'], immune: ['poison'],
+    src: 'SRD 5.1 Earth Elemental (CR 5, Large, slam reach 10 ft); content/monsters.json earthelemental: resists plain steel, thunder hurts it double, immune to poison', todo: 'Earth Glide (through the rock) is not read'
+  },
+  // the roper on leg two's fork (deep.js S.roper): it looks like the stalagmites until it doesn't (hidden at the start)
+  roper: {
+    name: 'Roper', sheet: 'roper_p1', cr: '5', ac: 20, hp: 93, speed: 10, size: 2, reach: 5,
+    abil: { str: 18, dex: 8, con: 17, int: 7, wis: 16, cha: 6 }, init: -1, perception: 16,
+    saves: { str: 4, dex: -1, con: 3, int: -2, wis: 3, cha: -2 },
+    attacks: {
+      tendril: { name: 'Tendril', atk: 7, dice: '1d1', mod: -1, type: 'bludgeoning', reach: 50, grapple: { dc: 15, max: 2 }, reel: true },
+      bite: { name: 'Bite', atk: 7, dice: '4d8', mod: 4, type: 'piercing', reach: 5 }
+    },
+    multi: ['tendril', 'tendril', 'bite'],
+    src: 'SRD 5.1 Roper (CR 5, Large): two tendrils at 50 ft (grappled, restrained, escape DC 15; Reel drags them in) and the bite; content/monsters.json roper', todo: 'the tendrils\' STR weakening is not read'
+  },
+  darkmantle: {
+    name: 'Darkmantle', sheet: 'darkmantle_p1', cr: '1/2', ac: 11, hp: 22, speed: 30, size: 1, reach: 5,
+    abil: { str: 16, dex: 12, con: 13, int: 2, wis: 10, cha: 5 }, init: 1, perception: 10,
+    saves: { str: 3, dex: 1, con: 1, int: -4, wis: 0, cha: -3 },
+    attacks: { crush: { name: 'Crush', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Darkmantle (CR 1/2, fly 30 read as moving 30); content/monsters.json darkmantle', todo: 'its Darkness Aura and the crush\'s blinding hold are not read'
+  },
+  // the Warrens' settling pools (events.js, warrens_d): the ochre jelly and the gray ooze
+  ochrejelly: {
+    name: 'Ochre Jelly', sheet: 'ochrejelly_p1', small: 'ochrejellym_p1', cr: '2', ac: 8, hp: 45, speed: 10, size: 2, reach: 5,
+    abil: { str: 15, dex: 6, con: 14, int: 2, wis: 6, cha: 1 }, init: -2, perception: 8,
+    saves: { str: 2, dex: -2, con: 2, int: -4, wis: -2, cha: -5 },
+    attacks: { pseudopod: { name: 'Pseudopod', atk: 4, dice: '2d6', mod: 2, type: 'bludgeoning', extra: '1d6', extraType: 'acid', reach: 5 } },
+    multi: 1, resist: ['acid'], immune: ['lightning', 'slashing'], split: true,
+    src: 'SRD 5.1 Ochre Jelly (CR 2, Large): Split on slashing or lightning, like the pudding; content/monsters.json ochrejelly'
+  },
+  grayooze: {
+    name: 'Gray Ooze', sheet: 'grayooze_p1', cr: '1/2', ac: 8, hp: 22, speed: 10, size: 1, reach: 5,
+    abil: { str: 12, dex: 6, con: 16, int: 1, wis: 6, cha: 2 }, init: -2, perception: 8,
+    saves: { str: 1, dex: -2, con: 3, int: -5, wis: -2, cha: -4 },
+    attacks: { pseudopod: { name: 'Pseudopod', atk: 3, dice: '1d6', mod: 1, type: 'bludgeoning', extra: '2d6', extraType: 'acid', reach: 5 } },
+    multi: 1, resist: ['acid', 'cold', 'fire'],
+    src: 'SRD 5.1 Gray Ooze (CR 1/2); content/monsters.json grayooze', todo: 'its acid corroding metal is not read'
   }
 };

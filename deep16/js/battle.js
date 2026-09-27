@@ -521,6 +521,15 @@
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
       this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED and RESTRAINED{/}  {g}(escape DC ' + atk.grapple.dc + ', an action){/}']);
       yield 30;
+      // Reel (the roper's tendril): the one it holds is dragged in to its side
+      if (atk.reel && G.dist(att, tgt) > 5) {
+        var rs = null, rd = Infinity, S = att.size || 1;
+        for (var ry = att.y - 1; ry <= att.y + S; ry++) for (var rx = att.x - 1; rx <= att.x + S; rx++) {
+          if (!G.canStand(tgt, rx, ry) || G.dist(att, tgt, null, null, rx, ry) > 5) continue;
+          var dd = Math.hypot(rx - tgt.x, ry - tgt.y); if (dd < rd) { rd = dd; rs = [rx, ry]; }
+        }
+        if (rs) { tgt.tween = { fx: tgt.x, fy: tgt.y, fz: 0, t: 0, dur: 18 }; tgt.x = rs[0]; tgt.y = rs[1]; this.card(['{r}' + nameOf(att) + '{/} reels ' + nameOf(tgt) + ' in.']); D.sfx('run'); yield 24; }
+      }
     }
     if (!tgt.dead && atk.save && tgt.hp > 0) {
       var s2 = RU.save(tgt, atk.save.ab, atk.save.dc), pr = D.roll(atk.save.dice), pd = s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;

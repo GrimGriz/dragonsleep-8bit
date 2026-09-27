@@ -475,6 +475,69 @@
       "grade": { "hue": 90, "sat": 0.7, "val": 0.9 },
       "anims": { "idle": "Idle", "attack": "1H_Ranged_Shoot", "walk": "Walking_A" }
     },
+    "naga": {
+      "_note": "the spirit naga of the causeway (SRD 5.1, Large): the Quaternius angry snake at two squares, turned to the black water's blue-green.",
+      "file": "quaternius/easy-enemy/Blends/Snake_Angry.blend",
+      "show": ["Snake"],
+      "grade": { "hue": 150, "sat": 0.6, "val": 0.75 },
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": { "idle": "Snake_Idle", "attack": "Snake_Attack", "walk": "Snake_Walk" }
+    },
+    "earthelemental": {
+      "_note": "the earth elemental (SRD 5.1, Large): Quaternius Big/BlueDemon (the stone giant's model) at two squares, turned to brown earth, its club and all.",
+      "file": "quaternius/ultimate-monsters/Big/Blends/BlueDemon.blend",
+      "show": ["BlueDemon"],
+      "grade": { "hue": -170, "sat": 0.35, "val": 0.6 },
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": { "idle": "Idle", "attack": "Punch", "walk": "Walk" }
+    },
+    "roper": {
+      "_note": "the roper (SRD 5.1, Large): Quaternius Big/Cactoro turned to wet grey stone -- a trial: the cactus-man wears a hat.",
+      "file": "quaternius/ultimate-monsters/Big/Blends/Cactoro.blend",
+      "show": ["Cactoro"],
+      "grade": { "hue": 0, "sat": 0.12, "val": 0.6 },
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": { "idle": "Idle", "attack": "Punch", "walk": "Walk" }
+    },
+    "darkmantle": {
+      "_note": "the darkmantle (SRD 5.1, Small): Quaternius Flying/Glub, dark, at a square.",
+      "file": "quaternius/ultimate-monsters/Flying/Blends/Glub.blend",
+      "show": ["Glub"],
+      "grade": { "hue": 0, "sat": 0.5, "val": 0.55 },
+      "size_squares": 1.0,
+      "yaw": 0,
+      "anims": { "idle": "Flying_Idle", "attack": "Headbutt", "walk": "Fast_Flying" }
+    },
+    "ochrejelly": {
+      "_note": "the ochre jelly (SRD 5.1, Large): the Quaternius slime, the colour of old mustard, at two squares.",
+      "file": "quaternius/animated-monsters/Blend/Slime.blend",
+      "show": ["Slime"],
+      "grade": { "hue": -60, "sat": 0.85, "val": 0.75 },
+      "size_squares": 2.0,
+      "yaw": 0,
+      "anims": { "idle": "Slime_Idle", "attack": "Slime_Attack", "walk": "Slime_Walk" }
+    },
+    "ochrejellym": {
+      "_note": "an ochre jelly split in two (Medium): the same at one square.",
+      "file": "quaternius/animated-monsters/Blend/Slime.blend",
+      "show": ["Slime"],
+      "grade": { "hue": -60, "sat": 0.85, "val": 0.75 },
+      "size_squares": 1.0,
+      "yaw": 0,
+      "anims": { "idle": "Slime_Idle", "attack": "Slime_Attack", "walk": "Slime_Walk" }
+    },
+    "grayooze": {
+      "_note": "the gray ooze (SRD 5.1, Medium): the slime, wet-stone grey, at a square.",
+      "file": "quaternius/animated-monsters/Blend/Slime.blend",
+      "show": ["Slime"],
+      "grade": { "hue": 0, "sat": 0.08, "val": 0.55 },
+      "size_squares": 1.0,
+      "yaw": 0,
+      "anims": { "idle": "Slime_Idle", "attack": "Slime_Attack", "walk": "Slime_Walk" }
+    },
     "troll": {
       "_note": "Quaternius Ultimate Monsters, Big/Yeti (CC0, Atlas_Monsters.png) standing in for the SRD troll. Large: 2 squares.",
       "file": "quaternius/ultimate-monsters/Big/Blends/Yeti.blend",

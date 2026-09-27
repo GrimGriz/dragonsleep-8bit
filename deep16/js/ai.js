@@ -239,9 +239,9 @@
   function* weaver(B, u) {
     var T = u.turn, W = u.weave, hs = heroes(B, u), bolt = u.attacks.firebolt;
     if (!hs.length) return;
-    if (W.bolt.spent) { var rc = D.d(6); if (rc >= W.bolt.recharge) { W.bolt.spent = false; B.card(['{g}The weaver draws the dark in again (d6 ' + rc + ').{/}'], 200); yield 12; } }
-    // pressed: a step back to somewhere she can still see someone from, and no one beside her
-    if (G.foesNear(u, u.x, u.y, 5).length) {
+    if (W.bolt.spent) { var rc = D.d(6); if (rc >= W.bolt.recharge) { W.bolt.spent = false; B.card(['{g}' + the(B, u) + ' ' + (W.bolt.again || 'draws the dark in again') + ' (d6 ' + rc + ').{/}'], 200); yield 12; } }
+    // pressed: a step back to somewhere she can still see someone from, and no one beside her (not the naga: it bites)
+    if (bolt && G.foesNear(u, u.x, u.y, 5).length) {
       var rm = G.reach(u, T.move), pick = null, ps = -1e9;
       Object.keys(rm).forEach(function (k) {
         var e = rm[k]; if (!e.stand) return;
@@ -259,7 +259,7 @@
       if (ht) {
         T.action = 0; W.hold.used = true; u.anim = 'attack'; u.animT = B.t; D.sfx('magic'); FX.ring(ht, 'violet', 40);
         var sv = RU.save(ht, 'wis', W.hold.dc);
-        B.card(['{r}The weaver{/} closes a hand: HOLD {y}' + ht.name + '{/}.  WIS ' + RU.saveText(sv) + ' vs DC ' + W.hold.dc + '  ' + (sv.ok ? '{n}SHRUGS IT OFF{/}' : '{p}PARALYZED{/} {g}(a WIS save at the end of each turn){/}')], 400);
+        B.card(['{r}' + the(B, u) + '{/} ' + (W.hold.text || 'closes a hand') + ': HOLD {y}' + ht.name + '{/}.  WIS ' + RU.saveText(sv) + ' vs DC ' + W.hold.dc + '  ' + (sv.ok ? '{n}SHRUGS IT OFF{/}' : '{p}PARALYZED{/} {g}(a WIS save at the end of each turn){/}')], 400);
         if (!sv.ok) ht.conds.paralyzed = { save: 'wis', dc: W.hold.dc, by: u.id };
         yield 40; u.anim = 'idle'; return;
       }
@@ -271,7 +271,7 @@
         T.action = 0; W.bolt.spent = true; u.anim = 'attack'; u.animT = B.t; D.sfx('magic');
         u.facing = B.faceTo(u, ln.t);
         FX.bloom(u.x, u.y, ln.sq, 'glow');
-        var roll = D.roll(W.bolt.dice), lines = ['{r}The weaver{/} draws the dark into a line of lightning!  ' + W.bolt.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + W.bolt.dc], hits = [];
+        var roll = D.roll(W.bolt.dice), lines = ['{r}' + the(B, u) + '{/} ' + (W.bolt.text || 'draws the dark into a line of lightning!') + '  ' + W.bolt.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + W.bolt.dc], hits = [];
         yield 12;
         B.units.filter(function (w) { return G.standing(w) && w.side !== u.side && G.inArea(w, ln.sq); }).forEach(function (w) {
           var s2 = RU.save(w, 'dex', W.bolt.dc), ev = w.cls === 'rogue' && w.lvl >= 7;
@@ -285,6 +285,8 @@
         yield 34; u.anim = 'idle'; return;
       }
     }
+    // no bolt of her own (the naga): the bite, as any brute
+    if (!bolt) { yield* brute(B, u); return; }
     // Fire Bolt at the lowest AC in sight
     var seen = visibleFrom(u, u.x, u.y, hs).filter(function (w) { return G.dist(u, w) <= bolt.range[1]; });
     if (!seen.length) { B.card(['{g}The weaver has no one in sight.{/}']); yield 20; return; }

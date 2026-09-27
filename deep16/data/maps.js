@@ -557,3 +557,109 @@ window.D16.MAPS.yard = {
   foes: [],
   wave: null
 };
+
+// The causeway over the black water (the 8-bit game's S.naga, leg four): the made road crosses on dressed blocks, the
+// water both sides. Halfway over, the water stands up -- and what stands up keeps to it (the naga is bound to '~').
+window.D16.MAPS.causeway = {
+  name: 'The Causeway',
+  sub: 'the king\'s road, leg four: the black water',
+  step: 20,
+  rows: [
+    '####################',
+    '###~~~~~====~~~~~###',
+    '##~~~~~~====~~~~~~##',
+    '#~~~~~~~====~~~~~~~#',
+    '#~~~~~~~====~~~~~~~#',
+    '#~~~~~~~====~~~~~~~#',
+    '#~~~~~~~====~~~~~~~#',
+    '#~~~~~~~====~~~~~~~#',
+    '#~~~~~~~====~~~~~~~#',
+    '##~~~~~~====~~~~~~##',
+    '###~~~~~====~~~~~###',
+    '####....====....####',
+    '#####...====...#####',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 12]],
+  foes: [],
+  wave: null
+};
+
+// The made road's cut (the 8-bit game's S.elemental, leg four): the road runs into a cut, and the cut's walls move.
+window.D16.MAPS.cutwalls = {
+  name: 'The Cut',
+  sub: 'the king\'s road, leg four: the made road',
+  step: 20,
+  rows: [
+    '####################',
+    '#######======#######',
+    '######.======.######',
+    '#####..======..#####',
+    '####...======...####',
+    '###..r.======.r..###',
+    '###....======....###',
+    '###....======....###',
+    '###..r.======....###',
+    '####...======...####',
+    '#####..======..#####',
+    '######.======.######',
+    '#######======#######',
+    '#######======#######'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 12]],
+  foes: [],
+  wave: null
+};
+
+// Leg two's fork (the 8-bit game's S.roper): a cavern of stalagmites, and one of them is not.
+window.D16.MAPS.roperfork = {
+  name: 'The Fork',
+  sub: 'the king\'s road, leg two',
+  step: 20,
+  rows: [
+    '####################',
+    '####..P....P....####',
+    '###.............P###',
+    '##..P......P......##',
+    '#..........r.......#',
+    '#...P.............P#',
+    '#.......P....P.....#',
+    '#..................#',
+    '##...P........P...##',
+    '###..............###',
+    '####............####',
+    '######........######',
+    '########====########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
+  foes: [],
+  wave: null
+};
+
+// The Warrens' settling pools (the 8-bit game's `wet`, warrens_d): dressed walkways between two pools; the second pool
+// heaves, and the wet stone moves.
+window.D16.MAPS.settling = {
+  name: 'The Settling Pools',
+  sub: 'the Warrens, the lower works',
+  step: 20,
+  rows: [
+    '##################',
+    '#####........#####',
+    '###..~~~..~~~..###',
+    '##...~~~..~~~...##',
+    '##...~~~..~~~...##',
+    '#.......==.......#',
+    '#.......==.......#',
+    '#..~~~..==..~~~..#',
+    '#..~~~..==..~~~..#',
+    '##......==......##',
+    '###.....==.....###',
+    '#####...==...#####',
+    '#######....#######',
+    '#######....#######'
+  ],
+  entry: [[8, 12], [9, 12], [8, 13], [9, 13], [7, 11]],
+  foes: [],
+  wave: null
+};

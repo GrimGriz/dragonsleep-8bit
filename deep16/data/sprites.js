@@ -408,6 +408,43 @@
 }
 }
 },
+"darkmantle_p1": {
+"image": "art/darkmantle_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 22,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "denny_p2": {
 "image": "art/denny_p2.png",
 "fw": 96,
@@ -589,6 +626,43 @@
 "fh": 96,
 "ax": 48,
 "ay": 84,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"earthelemental_p1": {
+"image": "art/earthelemental_p1.png",
+"fw": 120,
+"fh": 148,
+"ax": 60,
+"ay": 119,
+"top": 68,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 148,
+"ax": 60,
+"ay": 119,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1184,
+"fw": 120,
+"fh": 148,
+"ax": 60,
+"ay": 119,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2368,
+"fw": 120,
+"fh": 148,
+"ax": 60,
+"ay": 119,
 "frames": 8,
 "fps": 12
 }
@@ -811,6 +885,43 @@
 "fh": 126,
 "ax": 48,
 "ay": 101,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"grayooze_p1": {
+"image": "art/grayooze_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 32,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
 "frames": 8,
 "fps": 12
 }
@@ -1112,6 +1223,117 @@
 }
 }
 },
+"naga_p1": {
+"image": "art/naga_p1.png",
+"fw": 120,
+"fh": 166,
+"ax": 60,
+"ay": 133,
+"top": 81,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 166,
+"ax": 60,
+"ay": 133,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1328,
+"fw": 120,
+"fh": 166,
+"ax": 60,
+"ay": 133,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2656,
+"fw": 120,
+"fh": 166,
+"ax": 60,
+"ay": 133,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"ochrejelly_p1": {
+"image": "art/ochrejelly_p1.png",
+"fw": 120,
+"fh": 132,
+"ax": 60,
+"ay": 106,
+"top": 62,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 132,
+"ax": 60,
+"ay": 106,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1056,
+"fw": 120,
+"fh": 132,
+"ax": 60,
+"ay": 106,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2112,
+"fw": 120,
+"fh": 132,
+"ax": 60,
+"ay": 106,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"ochrejellym_p1": {
+"image": "art/ochrejellym_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 32,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "otyugh_p1": {
 "image": "art/otyugh_p1.png",
 "fw": 120,
@@ -1301,6 +1523,43 @@
 "fh": 96,
 "ax": 48,
 "ay": 77,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"roper_p1": {
+"image": "art/roper_p1.png",
+"fw": 120,
+"fh": 174,
+"ax": 60,
+"ay": 140,
+"top": 100,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 120,
+"fh": 174,
+"ax": 60,
+"ay": 140,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1392,
+"fw": 120,
+"fh": 174,
+"ax": 60,
+"ay": 140,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 2784,
+"fw": 120,
+"fh": 174,
+"ax": 60,
+"ay": 140,
 "frames": 8,
 "fps": 12
 }
