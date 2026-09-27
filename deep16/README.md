@@ -45,6 +45,49 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
   8-bit game's `../js/font.js`, `../data/data.js` and `../js/rules.js`, so the lettering and the character maths are
   the 8-bit game's own. Nothing here is loaded by the 8-bit game.
 
+## The ladder (`?ladder`) — the leveling simulator
+
+https://grimgriz.github.io/dragonsleep-8bit/deep16/?ladder · Griz, 09-27: *"win this fight, level up, and we slowly
+fill out the bestiary"*. Nine rungs, the four built at each level by the 8-bit game's own rules (level 1 drawn back
+from their level-2 starts: `SV.levelOne`). A rung holds several fights: **left/right** picks, the 8-bit game's set
+pieces first, the bestiary's after; a win brings the level-up card and marks that fight WON. Fights are data
+(`data/fights.js`: map, level, foes where they stand, the entry card's words and where they come from), maps are
+hand-drawn ASCII (`data/cavern.js`, `data/maps.js`), foes are `data/foes.js` (content/monsters.json's numbers, SRD sizes).
+
+| L | fights (the first is the default) |
+|---|---|
+| 1 | The Hex Floor (brawlers, a card bruiser) · The Rat Cellar |
+| 2 | The Rescue (four giant bats; the roost: no fire, no thunder) · Holding the Stair (the four hold the top) · The Snared Lad (wolf spiders, a giant spider) · The Old Cut |
+| 3 | The Braiding Ettercap (and a giant spider, webs strung) · The Glory-Seekers (gnolls, hyenas, outdoors) · The Settling Pools (ochre jelly, gray ooze) · The Keeper (the flooded stair) · The Web |
+| 4 | The Landlord (the otyugh in its pool) · The Line (five guards, a sergeant, on a bridge) · The Night Crew (Hask; the wheelwright bolts) · The Wagon Yard (Amara and Willem make for the horses) · The Thing in the Lake (the chuul; Barley wears the Ring of Binding) |
+| 5 | The Cut Seal (bugbear chief, hobgoblins, a worg) · The Grick Den (hidden; plain steel does half) · The Breach (the bulette) · The Troll Hole |
+| 6 | Pinned (three phase spiders out of the walls) · The Drain Cut (two black puddings that split) · The Cloaker · The Fork (a roper, two darkmantles, hidden) |
+| 7 | The Brood (the broodmother and a phase spider) · The Fallback Line (a blade-captain, four drow) · The Black Water (the spirit naga) |
+| 8 | Two Trolls · The Raid on Third Lamp (captain, spell-weaver, drow) · The Giant's Camp (stone giant, duergar) · The Cut's Walls (two earth elementals) · The Seam (two xorns) |
+| 9 | The Cocoon Gallery (the POC; Denny plays Barley here only) · House-Cleaning (two sect blades, an ambush: DEADLY) |
+
+Each set piece is sized **hard for the four** by the DMG table (the 8-bit game sized them for its guests; the card
+says what its list was). **The water is hand-waved** (Griz, 09-27): what lives in it keeps to it (the otyugh, the
+Keeper, the naga) or swims and comes ashore (the chuul); nobody else swims. The looks are CC0 stand-ins, loose fits
+by his word (CREDITS.md; `tools/deep16-figures.json` has a `grade` for Quaternius atlases).
+
+**What the engine reads now** (ai.js `brute()` for any foe without a routine of its own, plus the fight's options):
+Web (a ranged attack, restrained, recharge 5–6) · grips on a hit (escape with STR or DEX, an action) and what goes
+with them — Tentacle Slam and stun, Reel, Drag Under and the chuul's tentacles on the one held, engulf with Damage
+Transfer · Pack Tactics · Martial Advantage · Surprise Attack · a foe's Sneak Attack · immune / resist / vulnerable, and
+resistance to plain steel (a hero's weapon with a bonus is magic) · Split (the pudding, the ochre jelly) · a ranged
+attack when no one's in reach, and foes that only shoot keep off · Enlarge · Leap · Moan (frightened) · Phantasms
+(false images) · the spell-weaver's routine (Hold once, a line of lightning, Fire Bolt; the naga uses it with its bite)
+· foes bound to water, or swimming · foes starting hidden or in the Ethereal · a foe that bolts for the map's exit
+(the wheelwright) or gives ground toward it (the wagon pair; `noEscape` loses the fight if one gets out) · an ambush
+(`ambush`: their Stealth against each passive Perception; the unaware lose round 1; Assassinate) · the roost's law
+(`roost`) · the Ring of Binding (`ring`) · strung webs a map starts with · open-air ground (`ground: 'earth'`).
+Each foe block names what it has that isn't read yet in `todo`.
+
+**Testing** (`dev/deep16-harness.js`, gitignored): `T16.ladder(id, seed)` opens a fight at its level; `T16.auto()`
+hands the four to the guest AI (walk to the nearest foe and swing: no spells, so it runs pessimistic); `T16.run(n)`
+steps on. Every fight above ran to a result with no errors that way (09-27).
+
 ## The save
 
 Same origin, one localStorage. DEEP16 reads `deep16.handoff` (the snapshot PAST THE DOOR writes) unless a slot was saved
@@ -83,5 +126,6 @@ rig the dice, inject an attack.
 
 ## Not in the POC
 
-Story beyond the entry card; shops; rests; levelling; more than one map or fight; writing back to the 8-bit save;
-sound; touch. The visual crossing (the 8-bit frame gaining resolution at the door) is the next handoff.
+Story beyond the entry card; shops; rests; writing back to the 8-bit save; touch; prone; flight (bats and cloakers
+move on the ground). The visual crossing (the 8-bit frame gaining resolution at the door) is unbuilt. Levelling and
+many maps and fights: see the ladder, above.
