@@ -47,6 +47,8 @@
     var party = ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) {
       var h = L < DS.DATA.heroes[id].level ? SV.levelOne(R.makeHero(id)) : R.makeHero(id, L), d = DS.DATA.heroes[id], tier = L >= 9 ? 1 : L >= 5 ? 0 : -1;
       if (tier >= 0 && d.rewardWeapons && d.rewardWeapons[tier] && DS.DATA.items[d.rewardWeapons[tier]]) h.equip.weapon = d.rewardWeapons[tier];
+      // the 8-bit sheet gives Barley no armour (a thresher: AC 11); the ladder dresses him (Griz, 09-27: "let's go with splint-mail")
+      if (id === 'barley' && !h.equip.armor) h.equip.armor = 'splint';
       if (id === 'aurdin' && h.known.indexOf('mageArmor') >= 0) h.conds.mageArmor = 1;
       return h;
     });
