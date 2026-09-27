@@ -689,6 +689,23 @@
       "yaw": 0,
       "anims": { "idle": "Snake_Idle", "attack": "Snake_Attack", "walk": "Snake_Walk" }
     },
+    "batswarm": {
+      "_note": "a swarm of bats (SRD 5.1): the Quaternius bat at a square, darker (one bat standing for the cloud).",
+      "file": "quaternius/animated-monsters/Blend/Bat.blend",
+      "show": ["Bat", "Eyes"],
+      "grade": { "hue": 0, "sat": 0.5, "val": 0.6 },
+      "size_squares": 1.0,
+      "yaw": 0,
+      "anims": { "idle": "Bat_Flying", "attack": "Bat_Attack", "walk": "Bat_Flying" }
+    },
+    "insectswarm": {
+      "_note": "a swarm of insects (SRD 5.1): the Quaternius Easy Enemy wasp at a square (one wasp standing for the cloud).",
+      "file": "quaternius/easy-enemy/Blends/Wasp.blend",
+      "show": ["Wasp"],
+      "size_squares": 1.0,
+      "yaw": 0,
+      "anims": { "idle": "Wasp_Flying", "attack": "Wasp_Attack", "walk": "Wasp_Flying" }
+    },
     "troll": {
       "_note": "Quaternius Ultimate Monsters, Big/Yeti (CC0, Atlas_Monsters.png) standing in for the SRD troll. Large: 2 squares.",
       "file": "quaternius/ultimate-monsters/Big/Blends/Yeti.blend",

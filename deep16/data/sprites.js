@@ -297,6 +297,43 @@
 }
 }
 },
+"batswarm_p1": {
+"image": "art/batswarm_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 36,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 12
+}
+}
+},
 "berserker_p1": {
 "image": "art/berserker_p1.png",
 "fw": 96,
@@ -1563,6 +1600,43 @@
 "ax": 48,
 "ay": 77,
 "top": 46,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 768,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 10
+},
+"attack": {
+"y": 1536,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"frames": 8,
+"fps": 12
+}
+}
+},
+"insectswarm_p1": {
+"image": "art/insectswarm_p1.png",
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 77,
+"top": 53,
 "anims": {
 "idle": {
 "y": 0,

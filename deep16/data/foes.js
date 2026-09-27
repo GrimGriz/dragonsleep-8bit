@@ -100,7 +100,7 @@
     saves: { str: 1, dex: 2, con: 1, int: -4, wis: 1, cha: -2 },
     attacks: { bite: { name: 'Bite', atk: 4, dice: '2d4', mod: 2, type: 'piercing', reach: 5, prone: 11 } },
     multi: 1, packTactics: true,
-    src: 'SRD 5.1 Wolf (CR 1/4); content/monsters.json wolf. Pack Tactics is read (09-27)', todo: 'the bite\'s STR DC 11 knockdown is not read (the engine has no prone yet)'
+    src: 'SRD 5.1 Wolf (CR 1/4); content/monsters.json wolf. Pack Tactics is read; the bite\'s knockdown (STR 11, prone) is read (09-27)'
   },
   skeleton: {
     name: 'Skeleton', sheet: 'skeleton_p1', cr: '1/4', ac: 13, hp: 13, speed: 30, size: 1, reach: 5,
@@ -166,7 +166,7 @@
     saves: { str: 3, dex: 1, con: 1, int: -2, wis: 0, cha: -1 },
     attacks: { bite: { name: 'Bite', atk: 5, dice: '2d6', mod: 3, type: 'piercing', reach: 5, prone: 13 } },
     multi: 1,
-    src: 'SRD 5.1 Worg (CR 1/2, Large, speed 50); content/monsters.json worg', todo: 'the bite\'s STR DC 13 knockdown is not read (no prone yet)'
+    src: 'SRD 5.1 Worg (CR 1/2, Large, speed 50); content/monsters.json worg; the bite\'s knockdown (STR 13, prone) is read (09-27)'
   },
   // Third Lamp (deep.js S.raid) and the fallback line (S.fallback): the spell-weaver has her own routine (ai.js weaver);
   // the plain drow fight by brute() (a blade in reach, else the hand crossbow). Their Darkness and light sensitivity are not read.
@@ -206,10 +206,10 @@
     saves: { str: 6, dex: 5, con: 8, int: 0, wis: 4, cha: -1 },
     attacks: {
       greatclub: { name: 'Greatclub', atk: 9, dice: '3d8', mod: 6, type: 'bludgeoning', reach: 15 },
-      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'bolt' }
+      rock: { name: 'Rock', atk: 9, dice: '4d10', mod: 6, type: 'bludgeoning', range: [60, 240], ranged: true, fx: 'bolt', prone: 17 }
     },
     multi: ['greatclub', 'greatclub'],
-    src: 'SRD 5.1 Stone Giant (CR 7, Huge, greatclub reach 15 ft; Rock as a ranged attack, thrown when no one is in reach); content/monsters.json stonegiant', todo: 'the rock\'s knockdown is not read (no prone yet)'
+    src: 'SRD 5.1 Stone Giant (CR 7, Huge, greatclub reach 15 ft; Rock as a ranged attack, thrown when no one is in reach); content/monsters.json stonegiant; the rock knocks prone (STR 17)'
   },
   duergar: {
     name: 'Duergar', sheet: 'duergar_p1', cr: '1', ac: 16, hp: 26, speed: 25, size: 1, reach: 5,
@@ -342,7 +342,7 @@
     saves: { str: 4, dex: 0, con: 5, int: -4, wis: 0, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 7, dice: '4d12', mod: 4, type: 'piercing', reach: 5 } },
     multi: 1, leap: { dc: 16, dice: '6d6', targets: 2, range: 40, recharge: 5 },
-    src: 'SRD 5.1 Bulette (CR 5, Large); content/monsters.json bulette (its Deadly Leap as the 8-bit game reads it: DEX 16, 6d6, two of them, half on a save; recharge 5-6)', todo: 'the burrow and the knockdown are not read'
+    src: 'SRD 5.1 Bulette (CR 5, Large); content/monsters.json bulette (its Deadly Leap as the 8-bit game reads it: DEX 16, 6d6, two of them, half on a save and prone on a failure; recharge 5-6)', todo: 'the burrow is not read'
   },
   cloaker: {
     name: 'Cloaker', sheet: 'cloaker_p1', cr: '8', ac: 14, hp: 78, speed: 40, size: 2, reach: 5,
@@ -555,9 +555,9 @@
     name: 'Talmok', named: true, sheet: 'talmok_p1', cr: '2', ac: 15, hp: 35, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 14, con: 16, int: 9, wis: 13, cha: 11 }, init: 2, perception: 11,
     saves: { str: 5, dex: 2, con: 5, int: -1, wis: 1, cha: 0 },
-    attacks: { fists: { name: 'Pit Fists', atk: 5, dice: '1d1', mod: 3, type: 'bludgeoning', reach: 5, rage: 2 } },
+    attacks: { fists: { name: 'Pit Fists', atk: 5, dice: '1d1', mod: 3, type: 'bludgeoning', reach: 5, rage: 2, prone: 13 } },
     multi: ['fists', 'fists'], reckless: true, rageOnHit: true,
-    src: 'content/monsters.json talmok (the 8-bit game\'s own pit fighter): Pit Fists for a flat 4 (+2 raging), reckless, rages on the first hit (here: two blows a turn, as a CR 2 brawler)', todo: 'the fists\' knockdown is not read (no prone yet)'
+    src: 'content/monsters.json talmok (the 8-bit game\'s own pit fighter): Pit Fists for a flat 4 (+2 raging), reckless, rages on the first hit (here: two blows a turn, as a CR 2 brawler); the fists knock prone (STR 13)'
   },
   berserker: {
     name: 'Visiting Barbarian', sheet: 'berserker_p1', cr: '2', ac: 13, hp: 67, speed: 30, size: 1, reach: 5,
@@ -601,5 +601,31 @@
     },
     multi: ['feelers', 'jaws'],
     src: 'content/monsters.json crawler (the 8-bit game\'s own, the Warrens\' crawler -- the cradle\'s): feelers at 10 ft, CON 13 or poisoned and paralyzed (a save each turn), then the mandibles'
+  },
+  // ------------------------------------------------------------------ swarms (09-27): resist blades and blows, bite for less at half their hit
+  // points (halfHP), never knocked down; one creature's sheet stands for the cloud
+  ratswarm: {
+    name: 'Rat Swarm', sheet: 'giantrat_p1', cr: '1/4', ac: 10, hp: 24, speed: 30, size: 1, reach: 5,
+    abil: { str: 9, dex: 11, con: 9, int: 2, wis: 10, cha: 3 }, init: 0, perception: 10,
+    saves: { str: -1, dex: 0, con: -1, int: -4, wis: 0, cha: -4 },
+    attacks: { bites: { name: 'Bites', atk: 2, dice: '2d6', halfHP: '1d6', mod: 0, type: 'piercing', reach: 5 } },
+    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'],
+    src: 'SRD 5.1 Swarm of Rats (CR 1/4); content/monsters.json ratswarm (the Warrens)', todo: 'sharing a creature\'s space is not read'
+  },
+  batswarm: {
+    name: 'Bat Swarm', sheet: 'batswarm_p1', cr: '1/4', ac: 12, hp: 22, speed: 30, size: 1, reach: 5,
+    abil: { str: 5, dex: 15, con: 10, int: 2, wis: 12, cha: 4 }, init: 2, perception: 11,
+    saves: { str: -3, dex: 2, con: 0, int: -4, wis: 1, cha: -3 },
+    attacks: { bites: { name: 'Bites', atk: 4, dice: '2d4', halfHP: '1d4', mod: 0, type: 'piercing', reach: 5 } },
+    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'],
+    src: 'SRD 5.1 Swarm of Bats (CR 1/4, fly 30 read as moving 30); content/monsters.json batswarm (the galleries)', todo: 'sharing a creature\'s space is not read'
+  },
+  insectswarm: {
+    name: 'Insect Swarm', sheet: 'insectswarm_p1', cr: '1/2', ac: 12, hp: 22, speed: 20, size: 1, reach: 5,
+    abil: { str: 3, dex: 13, con: 10, int: 1, wis: 7, cha: 1 }, init: 1, perception: 8,
+    saves: { str: -4, dex: 1, con: 0, int: -5, wis: -2, cha: -5 },
+    attacks: { bites: { name: 'Bites', atk: 3, dice: '4d4', halfHP: '2d4', mod: 0, type: 'piercing', reach: 5 } },
+    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'],
+    src: 'SRD 5.1 Swarm of Insects (CR 1/2); content/monsters.json insectswarm (the Glowseep)', todo: 'sharing a creature\'s space is not read'
   }
 };

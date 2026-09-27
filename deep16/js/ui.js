@@ -672,6 +672,8 @@
     if (w.conds.helped) c.push('{w}helped{/}');
     if (w.conds.restrained) c.push(w.conds.restrained.grapple ? '{w}held{/}' : '{w}webbed{/}');
     if (w.conds.stunned) c.push('{p}stunned{/}');
+    if (w.conds.prone) c.push('{o}prone{/}');
+    if (w.swarm) c.push('{g}swarm{/}');
     if (w.conds.paralyzed) c.push('{p}held{/}');
     if (w.conds.asleep) c.push('{p}asleep{/}');
     if (w.conc) c.push('{y}conc: ' + w.conc.name + '{/}');

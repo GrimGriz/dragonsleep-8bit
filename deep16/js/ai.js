@@ -398,7 +398,8 @@
     yield 24;
     hit.forEach(function (w) {
       var sv = RU.save(w, 'dex', L.dc), ev = w.cls === 'rogue' && w.lvl >= 7, n = sv.ok ? (ev ? 0 : Math.floor(roll.total / 2)) : (ev ? Math.floor(roll.total / 2) : roll.total);
-      lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + '  {r}' + n + '{/}'); hurt.push([w, n]);
+      lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed: prone{/}') + '  {r}' + n + '{/}'); hurt.push([w, n]);
+      if (!sv.ok) w.conds.prone = true; // the Leap flattens those who fail
     });
     B.card(lines, 400);
     hurt.forEach(function (h) { FX.slash(h[0], D.PAL.ramps.red[4]); B.hurt(h[0], h[1], 'bludgeoning'); });

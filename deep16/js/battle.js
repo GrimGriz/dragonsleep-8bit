@@ -58,7 +58,7 @@
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
       reckless: !!d.reckless, rageOnHit: !!d.rageOnHit, raging: false,
-      flees: !!d.flees, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims,
+      flees: !!d.flees, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
@@ -463,7 +463,8 @@
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
     if (!hit) { FX.float('MISS', tgt, D.PAL.ramps.silver[5]); yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
     // damage
-    var dr = RU.damage(atk.dice, atk.mod, { crit: crit, gwf: atk.gwf }), dmg = dr.total, parts = [atk.dice + RU.sign(atk.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(atk.mod) + ' = ' + dr.total + ' ' + atk.type];
+    var dice = att.swarm && atk.halfHP && att.hp <= att.maxhp / 2 ? atk.halfHP : atk.dice; // a swarm at half its hit points bites for less
+    var dr = RU.damage(dice, atk.mod, { crit: crit, gwf: atk.gwf }), dmg = dr.total, parts = [dice + RU.sign(atk.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(atk.mod) + ' = ' + dr.total + ' ' + atk.type];
     // Sneak Attack: once a turn, a finesse or ranged weapon, with advantage or an ally at the target's side
     if (att.cls === 'rogue' && att.turn && !att.turn.sneakUsed && (atk.finesse || atk.ranged) && e.net >= 0) {
       var ally = this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; });
@@ -538,6 +539,13 @@
         }
         if (rs) { tgt.tween = { fx: tgt.x, fy: tgt.y, fz: 0, t: 0, dur: 18 }; tgt.x = rs[0]; tgt.y = rs[1]; this.card(['{r}' + nameOf(att) + '{/} reels ' + nameOf(tgt) + ' in.']); D.sfx('run'); yield 24; }
       }
+    }
+    // a knockdown (the wolf's bite, the worg's, Talmok's fists, the giant's rock): STR or prone
+    if (atk.prone && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne) {
+      var ks = RU.save(tgt, 'str', atk.prone);
+      this.card(['{r}' + nameOf(tgt) + '{/}: STR save  ' + RU.saveText(ks) + ' vs DC ' + ks.dc + '  ' + (ks.ok ? '{n}KEEPS HIS FEET{/}' : '{o}KNOCKED PRONE{/} {g}(half his move to rise){/}')]);
+      if (!ks.ok) { tgt.conds.prone = true; D.sfx('hit'); }
+      yield 24;
     }
     // the chuul's tentacles on one it holds: CON or poisoned, and paralyzed while the poison lasts (a CON save each turn)
     if (atk.paralyze && !tgt.dead && tgt.hp > 0 && !tgt.conds.paralyzed) {

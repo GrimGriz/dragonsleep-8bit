@@ -14,6 +14,8 @@
     u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0 };
     u.reaction = 1;
     delete u.conds.dodge;
+    // up off the floor: half its speed (09-27, prone)
+    if (u.conds.prone && u.hp > 0) { delete u.conds.prone; u.turn.move = Math.floor(u.speed / 2); if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200); }
     delete u.conds.shield;
     D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; });
     // Sacred Weapon lasts a minute: ten of his turns (and goes out if he fell)
@@ -52,6 +54,10 @@
     var adv = [], dis = [], melee = !atk.ranged && !atk.spell;
     if (att.conds.poisoned) dis.push('poisoned');
     if (att.conds.frightened) dis.push('frightened');
+    // prone (09-27: the wolves' and worgs' knockdown, Talmok's, the bulette's Leap, the giant's rock): a prone attacker is at
+    // disadvantage; a prone target is easy to hit from beside it and hard from afar
+    if (att.conds.prone) dis.push('prone');
+    if (tgt.conds.prone) { if (melee && G.dist(att, tgt, ax, ay) <= 5) adv.push('prone target'); else if (!melee) dis.push('prone target'); }
     // Reckless (Talmok, the berserker): it swings with advantage, and everyone swings at it with advantage
     if (att.reckless && melee) adv.push('reckless');
     if (tgt.reckless && melee) adv.push('reckless target');
