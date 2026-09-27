@@ -643,6 +643,17 @@
       var ammo = wd.ammo ? ', ' + (packOf(B, wd.ammo) ? packOf(B, wd.ammo).n : 0) + ' ' + B.itemName(wd.ammo).toLowerCase() : '';
       out.push({ kind: 'weapon', id: s.id, label: it.name, note: wd.dmg + ' ' + wd.type + (wd.range ? ', ' + wd.range.join('/') + ' ft' : ', melee') + ammo, ok: !why, why: why });
     });
+    // armour: not in a fight on the tabletop (it takes minutes), but the ladder's test bench allows it, for the action
+    // (Griz, 09-27: "Allow for in-combat armor swapping on the non-climbing ladder"); a climb (this.o.climb) will not
+    if (this.o.ladder && !this.o.climb) {
+      var worn = R.item(h.equip.armor);
+      if (worn) out.push({ kind: 'armoroff', label: 'ARMOUR OFF: ' + worn.name, note: 'into the pack (the ladder only)', ok: !busy, why: busy });
+      this.inv.forEach(function (s) {
+        var it = window.DS.DATA.items[s.id];
+        if (!it || it.kind !== 'armor' || s.n <= 0 || !R.canEquip(h, it)) return;
+        out.push({ kind: 'armor', id: s.id, label: 'WEAR: ' + it.name, note: it.desc ? it.desc.split('.')[0] : '', ok: !busy, why: busy });
+      });
+    }
     if (h.equip.shield) out.push({ kind: 'shieldoff', label: 'SHIELD OFF', note: 'into the pack: -' + ((R.item(h.equip.shield).shield || {}).ac || 2) + ' AC', ok: !busy, why: busy });
     else {
       var sh = this.inv.filter(function (s) { var it = window.DS.DATA.items[s.id]; return it && it.kind === 'shield' && s.n > 0 && R.canEquip(h, it); })[0];
@@ -658,10 +669,16 @@
     if (o.kind === 'weapon') { give(h.equip.weapon); take(o.id); h.equip.weapon = o.id; }
     if (o.kind === 'shieldoff') { give(h.equip.shield); h.equip.shield = null; }
     if (o.kind === 'shieldon') { take(o.id); h.equip.shield = o.id; }
+    if (o.kind === 'armoroff') { give(h.equip.armor); h.equip.armor = null; }
+    if (o.kind === 'armor') { give(h.equip.armor); take(o.id); h.equip.armor = o.id; }
     u.weapon = D.save.weaponOf(h); u.attacks = u.weapon.loading ? 1 : u.attacksBase;
+    // Mage Armor ends when its wearer puts on armour (robes aren't armour to it)
+    if (R.armored(h) && (u.conds.mageArmor || (h.conds && h.conds.mageArmor))) { delete u.conds.mageArmor; if (h.conds) delete h.conds.mageArmor; }
     var ac = R.ac(h); if (u.conds.mageArmor && !R.armored(h)) ac = Math.max(ac, 13 + D.mod(u.abil.dex)); // Mage Armor cast in this fight
     u.baseAC = ac; u.armored = R.armored(h);
-    this.card(['{y}' + u.name + '{/} ' + (o.kind === 'weapon' ? 'stows one weapon and takes up the ' + u.weapon.name : o.kind === 'shieldoff' ? 'slings the shield' : 'takes up the shield') + ' (the action).  AC ' + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
+    var did = { weapon: 'stows one weapon and takes up the ' + u.weapon.name, shieldoff: 'slings the shield', shieldon: 'takes up the shield',
+      armoroff: 'sheds the armour', armor: 'buckles on the ' + this.itemName(o.id) }[o.kind];
+    this.card(['{y}' + u.name + '{/} ' + did + ' (the action).  AC ' + RU.ac(u) + '  ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? '  ' + u.weapon.range.join('/') + ' ft' : '')], 240);
   };
 
   // ------------------------------------------------------------------ items: the save's own (a potion, a kit, an antitoxin, an oil flask)

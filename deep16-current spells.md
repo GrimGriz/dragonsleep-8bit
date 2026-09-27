@@ -22,7 +22,7 @@ Plain text is the spell as DEEP16 runs it on the grid. *Italic is where DEEP16 p
 Mage Armor and Aid last 8 hours on the tabletop.
 
 - **The 8-bit game** holds both *until the next long rest*: sleeping lifts them, and a day longer than 8 hours never ends them early. You caught this one; it spares a recast every dungeon day.
-- **The ladder today** *puts Mage Armor on Aurdin before every fight from rung 3, and no slot is spent.* On the tabletop he would spend a 1st-level slot that morning. Aid is never cast ahead; Lymen casts it in the fight.
+- **The ladder** puts Mage Armor on Aurdin before every fight from rung 3, and he pays for it with a 1st-level slot, as on the tabletop (ruled 09-27: it was free until then). Aid is never cast ahead; Lymen casts it in the fight.
 - Aurdin's Wizard's Robes are the 8-bit game's own (AC 11 + DEX, and not armour as far as the spell cares). Under Mage Armor he stands at 13 + DEX, and the lake's +1 robes add their +1 on top.
 
 ## Aurdin (wizard, evoker)
@@ -40,7 +40,7 @@ Mage Armor and Aid last 8 hours on the tabletop.
 - **Shield** (from the start). A reaction when a blow would land: +5 AC until his next turn, that blow included. *DEEP16 only offers it when the +5 would turn the blow, and never on a natural 20; on the tabletop he may raise it on any hit.*
 - **Sleep** (from the start). A 20-ft sphere within 90 ft: 5d8 HP of sleep (+2d8 a slot higher), the lowest current HP first; a sleeper wakes when hurt. Drow are not taken (fey blood). *Undead are taken too; on the tabletop undead, and anything that can't be charmed, are not. The skeletons of the Old Cut would sleep.*
 - **Detect Magic** (from the start). *No use on the grid.*
-- **Mage Armor** (from rung 3). Touch, a creature wearing no armour: AC 13 + DEX. *On the ladder he walks in already wearing it, free (above).* In a fight it has almost no one to take it: the other three wear armour.
+- **Mage Armor** (from rung 3). Touch, a creature wearing no armour: AC 13 + DEX. On the ladder he walks in already wearing it, one 1st-level slot the poorer (above). It ends if he puts on armour (the ladder lets armour change mid-fight). In a fight it has almost no one to take it: the other three wear armour.
 
 ### 2nd level
 
@@ -100,4 +100,4 @@ The tabletop gaps worth closing, small ones first:
 8. Invisible heroes can still be swung at where they are heard, at disadvantage.
 9. Being held, stunned or asleep ends concentration.
 10. Stoneskin turns nonmagical blows only.
-11. Mage Armor on the ladder costs its slot once spell prep runs before each fight (or stays free, by ruling).
+11. ~~Mage Armor on the ladder costs its slot~~ (done 09-27).

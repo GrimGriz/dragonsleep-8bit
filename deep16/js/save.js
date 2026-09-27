@@ -49,7 +49,8 @@
       if (tier >= 0 && d.rewardWeapons && d.rewardWeapons[tier] && DS.DATA.items[d.rewardWeapons[tier]]) h.equip.weapon = d.rewardWeapons[tier];
       // the 8-bit sheet gives Barley no armour (a thresher: AC 11); the ladder dresses him (Griz, 09-27: "let's go with splint-mail")
       if (id === 'barley' && !h.equip.armor) h.equip.armor = 'splint';
-      if (id === 'aurdin' && h.known.indexOf('mageArmor') >= 0) h.conds.mageArmor = 1;
+      // Mage Armor cast that morning, and paid for: a 1st-level slot (Griz, 09-27: "cost for mage armor"; it was free)
+      if (id === 'aurdin' && h.known.indexOf('mageArmor') >= 0 && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
       return h;
     });
     var inv = L >= 9 ? [{ id: 'potion', n: 3 }, { id: 'greaterpotion', n: 1 }, { id: 'antitoxin', n: 1 }, { id: 'kit', n: 1 }, { id: 'oil', n: 2 }]

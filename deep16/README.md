@@ -129,7 +129,10 @@ rig the dice, inject an attack.
 swaps"; "at least one crossbow/bolts in the player inventory for all of deep16 modes"): every pack DEEP16 fights with
 carries a light crossbow and twenty bolts (`SV.armoury`; the 8-bit save walking in is never written). On a hero's turn
 the MENU has **EQUIP**: a weapon from the pack, or a shield off or on, each for the action (a swap is two object
-interactions; the second takes the action). A hero's ranged weapon reaches to its long range with a clear line,
+interactions; the second takes the action). Armour doesn't change in a fight on the tabletop, but the ladder's test
+bench allows it, for the action (09-27: "Allow for in-combat armor swapping on the non-climbing ladder"): ARMOUR OFF
+and WEAR, with what the party has taken off in the pack; a climb (`o.climb`, not built) won't. Mage Armor ends when its
+wearer puts armour on, and Aurdin's morning Mage Armor on the ladder costs a 1st-level slot. A hero's ranged weapon reaches to its long range with a clear line,
 spends a bolt a shot, fires once an action however many attacks (Loading), gets no Great Weapon Fighting, and makes no
 opportunity attacks. The ring: the rogue's HIDE is on the first circle, and ACTIONS is the same for all four (DASH,
 DISENGAGE, DODGE, HELP), the rogue's Dash and Disengage being Cunning Action's while her bonus action is up.
