@@ -69,9 +69,13 @@
     var main = this.heroes.filter(function (u) { return !u.guest; }), gs = this.heroes.filter(function (u) { return u.guest; });
     var n = main.length, gap = n > 3 ? 26 : 30, top = 44 + Math.round((4 - n) * gap / 2);
     main.forEach(function (u, i) { u.x = 212 + (i % 2) * 6; u.y = top + i * gap; });
-    gs.forEach(function (u, k) { u.x = 236; u.y = Math.min(124, Math.round(top + gap * 0.5 + k * gap * 2)); });
+    // guests stand behind the four; up to five of them (the nest: Halldor and four troopers) fan down the right edge
+    var gstep = gs.length > 2 ? Math.min(gap * 2, Math.floor(84 / Math.max(1, gs.length - 1))) : gap * 2;
+    gs.forEach(function (u, k) { u.x = 236 + (gs.length > 2 ? (k % 2) * 4 : 0); u.y = Math.min(128, Math.round((gs.length > 2 ? 40 : top + gap * 0.5) + k * gstep)); });
   };
-  Battle.prototype.liveFoes = function () { return this.foes.filter(function (f) { return !f.dead; }); };
+  // a foe gone ethereal (the phase spiders' jaunt) is out of the world till its next turn: nobody can pick it, it isn't dead
+  Battle.prototype.liveFoes = function () { return this.foes.filter(function (f) { return !f.dead && !f.conds.ethereal; }); };
+  Battle.prototype.foesLeft = function () { return this.foes.filter(function (f) { return !f.dead; }); };
   Battle.prototype.liveHeroes = function () { return this.heroes.filter(function (u) { return !down(u); }); };
   Battle.prototype.allies = function (u) { return isHero(u) ? this.liveHeroes() : this.liveFoes(); };
   Battle.prototype.enemiesOf = function (u) { return isHero(u) ? this.liveFoes() : this.liveHeroes(); };
@@ -219,6 +223,7 @@
       }
       if (m.resist && (m.resist.indexOf(type) >= 0 || (m.resist.indexOf('mundane') >= 0 && /bludgeoning|piercing|slashing/.test(type) && !(from && from.magicWeapon)))) n = Math.floor(n / 2);
       if (m.vuln && m.vuln.indexOf(type) >= 0) n *= 2;
+      if (m.traits && m.traits.regen && (type === 'fire' || type === 'acid') && n > 0) u.burned = true; // a troll doesn't grow back what burned
       if (u.conds.raging && /bludgeoning|piercing|slashing/.test(type)) n = Math.floor(n / 2);
       // the cloaker's damage transfer: half to the one it holds
       if (m.traits && m.traits.damageTransfer && u.holding.length && from && !from.fromHeld) {
@@ -316,6 +321,7 @@
         if (this.round === 1 && ((this.o.surprised === 'party' && isHero(u)) || (this.o.surprised === 'foes' && !isHero(u)))) continue;
         yield* this.turn(u);
         this.checkEnd();
+        if (!this.over) yield* this.bolters();
       }
       this.round++;
     }
@@ -365,7 +371,14 @@
       this.over = 'fled';
     } else yield* this.hold('...and is cut off. (' + roll + ' vs ' + (10 + best) + ')');
   };
-  // one who runs the moment the one in charge is down: gone up the stair, no fight left in him (the wheelwright)
+  // one who runs the moment the one in charge is down: gone up the stair, no fight left in him (the wheelwright).
+  // Checked after every turn, so he goes the turn his master drops, before anyone can cut him down (re-cut F3: it
+  // waited for his own turn in round two, and he was usually dead by then)
+  Battle.prototype.bolters = function* () {
+    var self = this;
+    var go = this.liveFoes().filter(function (f) { var b = f.m.traits && f.m.traits.bolts; return b && self.foes.some(function (x) { return x.id === b && x.dead && !x.fled; }); });
+    for (var i = 0; i < go.length && !this.over; i++) { yield* this.foeBolt(go[i]); this.checkEnd(); }
+  };
   Battle.prototype.foeBolt = function* (f) {
     f.off = -10;
     DS.audio.sfx('run');
@@ -395,7 +408,7 @@
   Battle.prototype.checkEnd = function () {
     if (this.over) return;
     if (this.yielder && !this.yielder.dead) { this.over = 'yield'; return; }
-    if (!this.liveFoes().length) this.over = 'win';
+    if (!this.foesLeft().length) this.over = 'win';
     else if (!this.liveHeroes().length) {
       // a lone watcher down in the yard isn't the end while the others are on their way out of the inn
       var self = this, coming = this.o.join && this.o.solo != null && DS.G.party.some(function (h) { return !h.ko && self.heroes.every(function (u) { return u.h !== h; }); });
@@ -430,6 +443,8 @@
     if (incap(u)) {
       var why = u.conds.paralyzed ? 'is paralyzed' : u.conds.asleep ? 'is asleep' : 'is stunned';
       yield* this.say(nameOf(u) + ' ' + why + '!', 34);
+    } else if (isHero(u) && !this.liveFoes().length && this.foesLeft().length) { // everything left is in the rock: nothing to strike
+      yield* this.say(nameOf(u) + ' waits, watching the walls.', 30);
     } else if (isHero(u)) {
       yield* this.heroTurn(u);
     } else {
@@ -467,17 +482,30 @@
       yield* this.say(nameOf(u) + ' lays a hand on ' + nameOf(hurt) + '. +' + hv + ' HP.', 40);
       return;
     }
-    var t = foes.slice().sort(function (a, b) { return (b.x + b.art.w) - (a.x + a.art.w); })[0];
-    u.off = 6;
-    yield* this.heroAttack(u, t, { actions: 1, bonus: 0, surged: false, sneakUsed: true }, null);
-    u.off = 0;
+    var h = u.h, f = h.feats || {};
+    // a fighter guest's own resources (Pyro's kit, re-cut §2 beat 2): Second Wind when hurt, Action Surge when two or more stand against him
+    if (h.cls === 'fighter' && !h.wounded && f.secondWind && h.hp < h.maxhp * 0.4) {
+      f.secondWind = 0; var sw = this.heal(u, DS.roll('1d10') + h.lvl);
+      DS.audio.sfx('heal'); this.elemBurst(u, 'heal', 'rise'); this.num(u, sw, '#58F898');
+      yield* this.say(nameOf(u) + ' catches his second wind. +' + sw + ' HP.', 36);
+    }
+    var surge = h.cls === 'fighter' && h.lvl >= 2 && f.actionSurge && !h.wounded && foes.length >= 2 && h.surgeAI;
+    var rounds = surge ? 2 : 1;
+    if (surge) { f.actionSurge = 0; DS.audio.sfx('buff'); yield* this.say(nameOf(u) + ' surges!', 28); }
+    for (var r = 0; r < rounds && !this.over; r++) {
+      foes = this.liveFoes(); if (!foes.length) break;
+      var t = foes.slice().sort(function (a, b) { return (b.x + b.art.w) - (a.x + a.art.w); })[0];
+      u.off = 6;
+      yield* this.heroAttack(u, t, { actions: 1, bonus: 0, surged: false, sneakUsed: true }, null);
+      u.off = 0;
+    }
   };
   Battle.prototype.heroTurn = function* (u) {
     var h = u.h, self = this;
     if (u.guest) { yield* this.guestTurn(u); return; }
     var st = { actions: 1, bonus: 1, surged: false, sneakUsed: false };
     u.off = 6;
-    while (st.actions > 0 && !this.over && !down(u) && !incap(u)) {
+    while (st.actions > 0 && !this.over && !down(u) && !incap(u) && this.liveFoes().length) { // nothing left in sight (all in the rock): the turn ends
       var held = u.conds.grappled || u.conds.engulfed || (u.conds.restrained && u.conds.restrained.escape);
       var skills = this.skillList(u, st);
       var castable = R.spellList(h, 'battle').concat(h.cls === 'paladin' && R.maxSlotLevel(h) > 0 ? [DS.DATA.spells.smite] : []);
@@ -582,9 +610,10 @@
     var h = u.h, w = R.weaponOf(h), n = R.attacksPerTurn(h), self = this;
     u.pose = 'act'; u.poseT = 999;
     for (var a = 0; a < n && !this.over; a++) {
-      if (down(t)) { var alt = this.liveFoes(); if (!alt.length) break; t = DS.pick(alt); }
+      if (down(t) || t.conds.ethereal) { var alt = this.liveFoes(); if (!alt.length) break; t = DS.pick(alt); }
       var melee = (w.weapon.props || []).indexOf('ranged') < 0;
       var adv = this.advantage(u, t, melee);
+      if (h.wounded) adv--; // Halldor, a third of himself, swinging anyway
       // Cutthroat's Opening Cut: first round, a foe that hasn't moved yet
       var opening = h.subclass === 'Cutthroat' && this.round === 1 && !isHero(t) && !t.acted;
       if (opening) adv = adv < 0 ? 0 : 1;
@@ -930,7 +959,7 @@
     }
     var engulfed = live.filter(function (u) { return f.holding.indexOf(u) >= 0 && u.conds.engulfed; });
     if (engulfed.length) return engulfed[0];
-    var weights = live.map(function (u) { var w = [5, 4, 3, 2][u.idx] || 1; if (u.conds.hidden) w *= 0.3; return { u: u, w: w }; });
+    var weights = live.map(function (u) { var w = [5, 4, 3, 2][u.idx] || 1; if (u.h.wounded) w = 6; if (u.conds.hidden) w *= 0.3; return { u: u, w: w }; }); // the wounded draw them
     return DS.weighted(weights).u;
   };
   Battle.prototype.foeTurn = function* (f) {
@@ -938,8 +967,16 @@
     f.off = 0; f.martialUsed = 0;
     f.acted = true;
     if (f.conds.recoiling) { delete f.conds.recoiling; yield* this.say(nameOf(f) + ' writhes away from the light and does nothing.', 44); return; }
+    if (m.traits && m.traits.regen) { // the troll's Regeneration: 10 back at the start of its turn, unless fire or acid found it since
+      if (!f.burned && f.hp < f.maxhp) { var rg = Math.min(m.traits.regen, f.maxhp - f.hp); f.hp += rg; this.num(f, '+' + rg, '#58F898'); yield* this.say(nameOf(f) + "'s wounds close. +" + rg + ' HP.', 30); }
+      f.burned = false;
+    }
+    if (f.conds.ethereal) { // back through the rock somewhere else, and at someone who wasn't looking (the phase spiders)
+      delete f.conds.ethereal; f.conds.invisible = { rounds: 1 }; f.flash = 12; DS.audio.sfx('magic');
+      this.layoutFoes();
+      yield* this.say(nameOf(f) + ' comes back out of the wall!', 36);
+    }
     if (this.runner() === f) { yield* this.foeFlee(f); return; }
-    if (m.traits && m.traits.bolts && this.round >= 2 && this.foes.some(function (x) { return x.id === m.traits.bolts && x.dead; })) { yield* this.foeBolt(f); return; }
     if (f.conds.frightened && DS.d(2) === 1) { yield* this.say(nameOf(f) + ' cowers.', 30); return; }
     if (f.conds.restrained && f.conds.restrained.escape) {
       if (this.check(f, 'str', 'Athletics') >= f.conds.restrained.escape) { delete f.conds.restrained; yield* this.say(nameOf(f) + ' tears free of the web.', 32); }
@@ -1285,6 +1322,7 @@
       if (f.images > 0) { ctx.globalAlpha = 0.35; for (var k = 0; k < f.images; k++) ctx.drawImage(f.art.img, x + [-10, 10, 0][k], y + [4, -4, 8][k]); ctx.globalAlpha = 1; }
       var img = (f.flash > 0 && (f.flash & 2)) ? f.art.flash : f.art.img;
       if (f.conds.asleep || f.conds.paralyzed) { ctx.globalAlpha = 0.7; }
+      if (f.conds.ethereal) { ctx.globalAlpha = 0.12 + 0.08 * ((DS.frame >> 3) & 1); } // in the rock: a shimmer where it went
       ctx.drawImage(img, x, y);
       ctx.globalAlpha = 1;
       if (f.conds.asleep && ((DS.frame >> 4) & 1)) DS.text(ctx, 'z', x + f.art.w - 4, y - 2, '#B8B8F8');

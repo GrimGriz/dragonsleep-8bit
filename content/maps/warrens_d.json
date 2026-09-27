@@ -134,7 +134,7 @@
 "y": 21,
 "to": "burial",
 "tx": 2,
-"ty": 3,
+"ty": 5,
 "dir": "right",
 "cond": "flag:stairHook & !flag:frontDoor & !flag:keeperWater",
 "sfx": "stairs"
@@ -487,6 +487,12 @@
 "y": 21,
 "tile": "dryStair",
 "cond": "flag:stairHook & !flag:keeperWater"
+},
+{
+"x": 12,
+"y": 23,
+"tile": "stain",
+"cond": "flag:stairHook & !flag:keeperWater & flag:keeperDone"
 },
 {
 "x": 8,

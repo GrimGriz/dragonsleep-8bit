@@ -10,9 +10,9 @@
 "#mmmmmmmmmmmmmGGmh",
 "#mmmmmmmmmmmmmmmmh",
 "#mmmmmmmmmmmmmmmmh",
-"___mmmmmmmmmmmmmmD",
-"___mmmmmmmmmmmmmmD",
-"___mmmmmmmmmmmmmmd",
+"mmmmmmmmmmmmmmmmmD",
+"mmmmmmmmmmmmmmmmmD",
+"mmmmmmmmmmmmmmmmmd",
 "#mmmmmmmmmmmmmmmmh",
 "#mmmmmmmmmmm%mmmmh",
 "#mmmmnnmmmmmmmmmmh",
@@ -100,8 +100,8 @@
 ],
 "exits": {
 "west": {
-"to": "highway_3",
-"tx": 74,
+"to": "highway_4",
+"tx": 78,
 "ty": 11,
 "dir": "left"
 }
@@ -125,8 +125,8 @@
 {
 "x": 5,
 "y": 12,
-"text": "A stone bench, worn in the middle by three days' worth of the tired.",
-"src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a bench)"
+"text": "A stone bench, worn in the middle by four days' worth of the tired.",
+"src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.4 (a bench); handoff-2026-09-26-dragonsleep-spine-recut.md §4 (four days)"
 }
 ],
 "triggers": [

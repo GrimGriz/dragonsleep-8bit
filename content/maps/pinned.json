@@ -1,0 +1,208 @@
+{
+"id": "pinned",
+"name": "The north cut",
+"tileset": "cave",
+"rows": [
+"####################",
+"######...uu..#######",
+"######.......#######",
+"########...#########",
+"#########..#########",
+"#########..#########",
+"######..#...########",
+"####....k..k....####",
+"##...b.......,...###",
+"##..,............###",
+"##.............,####",
+"###...,.......b#####",
+"#######....#.#######",
+"#########uu#########",
+"####################"
+],
+"legend": {
+".": "caveFloor",
+"#": "caveWall",
+"+": "timber",
+"|": "rails",
+"-": "railsH",
+"~": "pool",
+"w": "deep",
+"o": "ooze",
+"g": "guano",
+"G": "guanoDeep",
+"x": "webFloor",
+"_": "dwarfFloor",
+"h": "dwarfWall",
+"r": "runeWall",
+"s": "sealDoor",
+"n": "drownStair",
+">": "holeDown",
+"L": "lampTower",
+"l": "lampTowerDark",
+"y": "cradle",
+"=": "gate",
+"b": "bones",
+"^": "stalag",
+"f": "fungus",
+":": "gravel",
+"m": "madeRoad",
+"k": "crateCave",
+"*": "glowmoss",
+"0": "chimney",
+"u": "stairsUp",
+"d": "stairsDown",
+" ": "void",
+",": "rubble",
+"\"": "grass",
+"t": "tree",
+"R": "roofB",
+"S": "sealWhole",
+"W": "wall",
+"O": "wallWin",
+"D": "door",
+"e": "webtree",
+"U": "gulch",
+"X": "sealBroken",
+"c": "crate",
+"q": "well",
+"T": "tent",
+"H": "headframe",
+"F": "fence",
+"P": "road",
+"B": "bodyCaptain",
+"C": "chasm",
+"A": "water",
+"M": "mountain",
+"V": "vein",
+"I": "lamp",
+"Q": "cocoon",
+";": "cot",
+"N": "noticeboard"
+},
+"music": "highway",
+"bg": "cavern",
+"save": false,
+"dark": true,
+"lights": [
+{
+"x": 9,
+"y": 6,
+"r": 40,
+"cond": "!flag:captainFound"
+}
+],
+"npcs": [
+{
+"id": "halldorPin",
+"x": 9,
+"y": 6,
+"look": "halldor",
+"dir": "down",
+"cond": "!flag:captainFound"
+},
+{
+"id": "pinA",
+"x": 10,
+"y": 6,
+"look": "dtrooper",
+"dir": "down",
+"cond": "!flag:captainFound"
+},
+{
+"id": "pinB",
+"x": 9,
+"y": 5,
+"look": "dtrooper2",
+"dir": "down",
+"cond": "!flag:captainFound"
+},
+{
+"id": "pinC",
+"x": 10,
+"y": 5,
+"look": "dtrooper",
+"dir": "down",
+"cond": "!flag:captainFound"
+},
+{
+"id": "pinD",
+"x": 9,
+"y": 4,
+"look": "dtrooper2",
+"dir": "down",
+"cond": "!flag:captainFound"
+}
+],
+"warps": [
+{
+"x": 9,
+"y": 13,
+"to": "highway_2",
+"tx": 58,
+"ty": 3,
+"dir": "down",
+"sfx": "stairs"
+},
+{
+"x": 10,
+"y": 13,
+"to": "highway_2",
+"tx": 58,
+"ty": 3,
+"dir": "down",
+"sfx": "stairs"
+},
+{
+"x": 9,
+"y": 1,
+"to": "nest",
+"tx": 11,
+"ty": 14,
+"dir": "up",
+"cond": "flag:petition"
+},
+{
+"x": 10,
+"y": 1,
+"to": "nest",
+"tx": 12,
+"ty": 14,
+"dir": "up",
+"cond": "flag:petition"
+}
+],
+"signs": [
+{
+"x": 8,
+"y": 7,
+"text": "Crates and packs, stacked for a wall. The rock behind them is scratched from the inside, as if something had come through it.",
+"src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 3 (they phase through rock, so a seal fails and a charge finds nothing)"
+}
+],
+"triggers": [
+{
+"id": "pinned",
+"rect": [
+7,
+8,
+6,
+3
+],
+"on": "step",
+"script": "pinned",
+"cond": "!flag:captainFound"
+},
+{
+"id": "neck",
+"rect": [
+9,
+3,
+2,
+1
+],
+"on": "step",
+"script": "neck",
+"cond": "flag:captainFound & !flag:petition"
+}
+]
+}

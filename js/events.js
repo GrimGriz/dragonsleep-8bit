@@ -681,10 +681,12 @@
   S.oozeFight = function* () { yield DS.say(L('w.ooze')); yield* EV.fight(['grayooze'], { bg: 'wet' }); };
   S.mark = function* () {
     var g = G();
-    yield DS.say(L('w.markSee'));
+    // once the stair is drained, fought or flooded again, the mark is only a mark (re-cut F1: it still offered to wake the keeper)
+    var settled = g.flags.keeperDone || g.flags.stairHook || g.flags.fiveRecovered;
+    yield DS.say(L(g.flags.stairHook && !g.flags.keeperWater ? 'w.markDry' : settled ? 'w.markPlain' : 'w.markSee'));
     var arc = g.party.some(function (h) { return DS.d(20) + Math.max(R.skill(h, 'Arcana', 'int'), R.skill(h, 'Religion', 'int')) >= 12; });
     if (arc || g.flags.hobMet) { g.flags.markRead = 1; yield DS.say(L('w.markRead')); }
-    if (g.flags.keeperDone) return;
+    if (settled) return;
     var a = yield DS.ask(L('w.markAsk'), ['LEAVE IT', 'PUT A HAND ON IT']);
     if (a === 1) { g.flags.keeperAwake = 1; DS.audio.sfx('splash'); yield DS.say(L('w.markWake')); }
   };

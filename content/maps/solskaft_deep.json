@@ -163,8 +163,8 @@
 "x": 2,
 "y": 11,
 "to": "solskaft",
-"tx": 28,
-"ty": 4,
+"tx": 47,
+"ty": 24,
 "dir": "left"
 }
 ],
@@ -224,6 +224,18 @@
 "on": "use",
 "script": "highwayGate",
 "cond": "!flag:roadOpen"
+},
+{
+"id": "muster",
+"rect": [
+35,
+10,
+3,
+3
+],
+"on": "step",
+"script": "muster",
+"cond": "flag:wordBelow & !flag:mustered"
 },
 {
 "id": "treasury",

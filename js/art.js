@@ -795,6 +795,10 @@
     p.rect(3 + (f * 2) % 8, 8, 3, 1, '#2a6a80'); p.set(10 - (f % 3), 11, '#3a8aa0');
     if (f === 2) { p.set(7, 7, '#a4e4fc'); p.set(8, 6, '#a4e4fc'); }
   };
+  P.stain = function (p, r) { // where the keeper's last water dried (re-cut F2): a dark ring on dry stair, nothing living in it
+    P.dryStair(p, r);
+    p.ellipse(8, 9, 6.5, 4, '#2c2c36'); p.ellipse(8, 9, 5, 2.8, '#34343f'); p.set(4, 8, '#5a5a4a'); p.set(12, 10, '#5a5a4a');
+  };
   P.steps = function (p) { base(p, '#4a4a56'); for (var y = 0; y < 16; y += 4) { p.rect(0, y, 16, 3, '#6e6e7a'); p.rect(0, y, 16, 1, '#8a8a96'); p.rect(0, y + 3, 16, 1, '#2a2a32'); } };
   P.sunshaft = function (p, r, f) { // noon down the old main shaft: the floor there warm and pale; the beam itself is drawn over it
     base(p, '#86847a');
@@ -977,6 +981,71 @@
     for (var x = 1; x < 16; x += 3) { p.rect(x, 8, 1, 3, '#7a7a82'); p.set(x, 11, '#9a9aa2'); }
   };
   P.emptyCut = function (p) { dwFace(p); p.rect(3, 3, 10, 9, DW.dark); p.rect(3, 3, 10, 1, DW.brick); p.rect(3, 12, 10, 1, DW.hi); }; // the Dormant's: nothing in it
+  // ---- the spine re-cut (handoff-2026-09-26-dragonsleep-spine-recut §5): the clan hall's dais, the closed street, the grow, the Burial's chapel
+  P.dais = function (p) { // the throne's dais: one step up, the edge worn where a king's boots come down it
+    base(p, '#6a6a76');
+    for (var y = 0; y < 16; y += 8) for (var x = 0; x < 16; x += 8) { p.frame(x, y, 8, 8, '#54545e'); p.set(x + 1, y + 1, '#8a8a96'); }
+    p.rect(0, 14, 16, 2, '#3a3a44'); p.rect(0, 13, 16, 1, '#9a9aa6');
+  };
+  function houseFace(p) { // a family's front on the closed street: dressed stone, a lintel with the family's mark
+    dwFace(p); p.rect(0, 0, 16, 2, DW.top); p.rect(2, 1, 12, 1, DW.hi);
+  }
+  P.houseShut = function (p) { // shuttered since the clans went back deep: a stone door, an iron bar across, dust on the step
+    houseFace(p);
+    p.rect(3, 3, 10, 13, '#3a3a44'); p.frame(3, 3, 10, 13, '#1e1e26'); p.rect(7, 4, 2, 11, '#30303a');
+    p.rect(2, 8, 12, 2, '#6a6a72'); p.set(3, 8, '#9a9aa2'); p.set(12, 9, '#4a4a52');
+    p.set(5, 2, DW.rune); p.set(7, 2, DW.rune); p.set(10, 2, DW.rune);
+  };
+  P.houseWin = function (p) { // the same front with a shutter where a window was
+    houseFace(p);
+    p.rect(4, 5, 8, 6, '#1e1e26'); for (var y = 6; y < 11; y += 2) p.rect(5, y, 6, 1, '#4a4a52'); p.rect(3, 11, 10, 1, DW.hi);
+  };
+  P.houseLit = function (p, r, f) { // one lit door on a closed street: the Scalebeam house
+    houseFace(p);
+    p.rect(3, 3, 10, 13, '#2a2016'); p.rect(4, 4, 8, 12, f & 1 ? '#F8C070' : '#FCA044'); p.rect(4, 4, 8, 3, '#F8D878');
+    p.rect(3, 3, 1, 13, '#1e1e26'); p.rect(12, 3, 1, 13, '#1e1e26'); p.set(8, 1, '#c0a040');
+  };
+  P.soil = function (p, r) { // the terrace's earth, carried up in baskets a season at a time
+    base(p, '#5a4632'); p.speckle(0, 0, 16, 16, '#6e5840', 0.25, r); p.speckle(0, 0, 16, 16, '#46362a', 0.15, r);
+    for (var y = 3; y < 16; y += 5) p.rect(0, y, 16, 1, '#4a3a2c');
+  };
+  function fruitTree(fruit, fruitL, leaf, leafD, blossom) {
+    return function (p, r) {
+      P.soil(p, r);
+      p.ellipse(8, 6.5, 6.5, 5.5, leafD); p.ellipse(7.5, 6, 5.5, 4.6, leaf);
+      p.rect(7, 11, 2, 5, '#4a3020'); p.set(6, 15, '#4a3020'); p.set(9, 15, '#4a3020');
+      var pts = [[4, 5], [9, 3], [11, 7], [6, 8], [8, 6], [3, 8]];
+      pts.forEach(function (q, i) { if (r() < 0.8) { p.set(q[0], q[1], fruit); if (i % 2) p.set(q[0], q[1] - 1, fruitL); } });
+      if (blossom) { p.set(5, 3, blossom); p.set(10, 5, blossom); }
+    };
+  }
+  P.appleTree = fruitTree('#D83828', '#F87858', '#2a8a2a', '#1a5a1a');
+  P.cherryTree = fruitTree('#A01030', '#E04060', '#3a7a28', '#205018', '#F8B8C8');
+  P.pearTree = fruitTree('#B8C838', '#E0E870', '#3a8a3a', '#1e5a22');
+  P.hops = function (p, r) { // hops for the brewhouse, up strings to a beam
+    P.soil(p, r);
+    p.rect(2, 0, 1, 16, '#6a4a2a'); p.rect(13, 0, 1, 16, '#6a4a2a'); p.rect(2, 0, 12, 1, '#6a4a2a');
+    for (var y = 1; y < 15; y += 2) { p.set(3 + (y % 4), y, '#58A838'); p.set(10 - (y % 4), y, '#58A838'); p.set(4 + (y % 4), y + 1, '#88D858'); p.set(9 - (y % 4), y + 1, '#3a7a28'); }
+  };
+  P.mint = function (p, r) { // a mint bed, low and bright, edged in stone
+    P.soil(p, r); p.frame(0, 0, 16, 16, '#6a6a76');
+    for (var i = 0; i < 22; i++) { var x = 2 + Math.floor(r() * 12), y = 2 + Math.floor(r() * 12); p.set(x, y, '#58D878'); p.set(x + 1, y, '#38A858'); }
+  };
+  P.wheatBed = function (p, r) { // dry-land wheat, thin and pale gold, along the terrace's long edge
+    P.soil(p, r);
+    for (var y = 1; y < 15; y += 2) for (var x = 1 + ((y >> 1) & 1); x < 15; x += 3) { p.set(x, y, '#c8a848'); p.set(x, y + 1, '#8a7a3a'); if (r() < 0.3) p.set(x, y - 1, '#e0c878'); }
+    p.frame(0, 0, 16, 16, '#6a5a3a');
+  };
+  P.shroomBed = function (p, r, f) { // the shroom farm: dark beds of spent ore-dust and dung, the caps pale in the lamp
+    base(p, '#1e1a18'); p.frame(0, 0, 16, 16, '#3a3a44'); p.speckle(1, 1, 14, 14, '#2e2824', 0.4, r);
+    var caps = [[4, 5], [9, 4], [12, 9], [6, 10], [3, 12], [10, 12]];
+    caps.forEach(function (q, i) { p.rect(q[0], q[1], 2, 1, i % 2 ? '#d8d0c0' : '#b8a890'); p.set(q[0], q[1] + 1, '#8a8070'); });
+    if (f & 1) p.set(9, 4, '#f0e8d8');
+  };
+  P.kneelStone = function (p) { // the Burial chapel's kneeling-stone: two hollows worn in it
+    dwFloor(p); p.rect(3, 6, 10, 6, '#6a6a76'); p.rect(3, 6, 10, 1, '#8a8a96'); p.rect(3, 11, 10, 1, '#3a3a44');
+    p.ellipse(6, 9, 1.6, 1, '#4a4a54'); p.ellipse(10, 9, 1.6, 1, '#4a4a54');
+  };
 
   // ------------------------------------------------------------------ tile table
   // pass: walkable. anim: frames. talk: can talk across (counters). auto: neighbour-aware.
@@ -1003,14 +1072,17 @@
     // the dwarven expansion
     niche: { pass: 0, vars: 3 }, nicheGear: { pass: 0, anim: 2, vars: 1 }, nicheOpen: { pass: 0, vars: 1 }, nicheStone: { pass: 0, vars: 1 }, nicheGearStone: { pass: 0, anim: 2, vars: 1 },
     bier: { pass: 0, vars: 1 }, tombLamp: { pass: 0, anim: 2, vars: 1 }, dryStair: { pass: 1, vars: 2 }, sealCut: { pass: 1, vars: 1 }, ironBars: { pass: 0, vars: 1 },
-    puddle: { pass: 0, anim: 4, vars: 1 }, steps: { pass: 1, vars: 1 }, sunshaft: { pass: 1, anim: 2, vars: 1 }, race: { pass: 0, anim: 4, vars: 1 }, footbridge: { pass: 1, anim: 4, vars: 1 }, wheel: { pass: 0, anim: 4, vars: 1 },
+    puddle: { pass: 0, anim: 4, vars: 1 }, stain: { pass: 1, vars: 1 }, steps: { pass: 1, vars: 1 }, sunshaft: { pass: 1, anim: 2, vars: 1 }, race: { pass: 0, anim: 4, vars: 1 }, footbridge: { pass: 1, anim: 4, vars: 1 }, wheel: { pass: 0, anim: 4, vars: 1 },
     vaultIn: { pass: 1, vars: 1 }, throne: { pass: 0, vars: 1 }, oathStone: { pass: 0, vars: 1 }, nameWall: { pass: 0, vars: 3 }, anvil: { pass: 0, vars: 1 },
     forge: { pass: 0, anim: 2, vars: 1 }, furnace: { pass: 0, vars: 1 }, cupel: { pass: 0, vars: 1 }, scales: { pass: 0, talk: 1, vars: 1 }, dcounter: { pass: 0, talk: 1, vars: 1 }, dtable: { pass: 0, vars: 1 }, lockCase: { pass: 0, vars: 1 },
     rack: { pass: 0, vars: 1 }, vat: { pass: 0, vars: 1 }, smokeRack: { pass: 0, vars: 1 }, boarded: { pass: 0, vars: 1 }, ledgerDesk: { pass: 0, talk: 1, vars: 1 },
     tariff: { pass: 0, vars: 1 }, emptyCut: { pass: 0, vars: 1 }, portcullisUp: { pass: 1, vars: 1 },
     lampTower: { pass: 0, anim: 2, vars: 1 }, lampTowerDark: { pass: 0, vars: 1 }, sealWhole: { pass: 0, anim: 2, vars: 1 }, sealBroken: { pass: 1, vars: 1 }, vein: { pass: 0, anim: 2, vars: 1 },
     chasm: { pass: 0 }, rubble: { pass: 1 }, bodyCaptain: { pass: 0, vars: 1 },
-    madeRoad: { pass: 1, vars: 1 }, lift: { pass: 1, vars: 1 }, deepDoor: { pass: 0, vars: 1 }, deepDoorSill: { pass: 0, anim: 2, vars: 1 }, grille: { pass: 0, talk: 1, vars: 1 }, bench: { pass: 0, vars: 1 }, tariffLive: { pass: 0, vars: 1 }, shaftTop: { pass: 0, anim: 2, vars: 1 }, cot: { pass: 0, vars: 1 }, brick: { pass: 0, vars: 1 }
+    madeRoad: { pass: 1, vars: 1 }, lift: { pass: 1, vars: 1 }, deepDoor: { pass: 0, vars: 1 }, deepDoorSill: { pass: 0, anim: 2, vars: 1 }, grille: { pass: 0, talk: 1, vars: 1 }, bench: { pass: 0, vars: 1 }, tariffLive: { pass: 0, vars: 1 }, shaftTop: { pass: 0, anim: 2, vars: 1 }, cot: { pass: 0, vars: 1 }, brick: { pass: 0, vars: 1 },
+    dais: { pass: 1, vars: 1 }, houseShut: { pass: 0, vars: 1 }, houseWin: { pass: 0, vars: 1 }, houseLit: { pass: 1, anim: 2, vars: 1 }, soil: { pass: 1, vars: 2 },
+    appleTree: { pass: 0, vars: 3 }, cherryTree: { pass: 0, vars: 3 }, pearTree: { pass: 0, vars: 3 }, hops: { pass: 0, vars: 1 }, mint: { pass: 0, vars: 2 },
+    wheatBed: { pass: 0, vars: 1 }, shroomBed: { pass: 0, anim: 2, vars: 3 }, kneelStone: { pass: 0, vars: 1 }
   };
   var tileCache = {};
   // variant v, anim frame f, neighbour-key nk ('' when not auto)

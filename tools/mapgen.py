@@ -447,7 +447,7 @@ def build_silverton():
     g.sign(5, 5, 'NORTH GATE. The Doors road, up the mountain. The locals call it the Coldridge route.', 'wiki/the-road.md (the Doors road); rumors r-coldridge (wiki/fountain-street.md HD-1)')
     g.sign(29, 5, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)', cond='!flag:frontDoor')
     g.sign(30, 5, 'The vault door. The highway to Deepholm. Nobody bothers the dwarves. Not since the Water Burning.', 'wiki/silverton.md (the one law: nobody bothers the dwarves)', cond='!flag:frontDoor')
-    g.trig('vaultDoor', 29, 5, 'warp', on='use', w=2, cond='flag:frontDoor', to='solskaft', tx=17, ty=46)   # for them only (spec §4.5)
+    g.trig('vaultDoor', 29, 5, 'warp', on='use', w=2, cond='flag:frontDoor', to='solskaft', tx=27, ty=46)   # for them only (spec §4.5)
     g.sign(24, 40, "Sylvia Swann's booth: an owl painted on the board. The short reading, five silver. She isn't in.", 'wiki/silverton.md; the-lab/pit-maps/shops-silverton.json pin 37')
     g.sign(31, 40, 'The Vizardry mask-booth. Crude vizards with a hedge-glamour, a gold the hour. The real house is somewhere else.', 'wiki/vice-row.md; the-lab/pit-maps/shops-silverton.json pin 39')
     g.sign(40, 41, 'The card cellars. Low table buy-in five silver. The stairs go down; you do not.', 'the-lab/pit-maps/shops-silverton.json pin 41')
@@ -730,9 +730,10 @@ def build_warrens():
             g.flagtile(x, y, 'puddle' if (x, y) == (12, 23) else 'dryStair', dry)
     for (x, y) in [(11, 21), (11, 22), (10, 21), (10, 22), (9, 21)]:
         g.flagtile(x, y, 'dryStair', dry)
+    g.flagtile(12, 23, 'stain', dry + ' & flag:keeperDone')   # re-cut F2: a keeper beaten in the base game left no puddle, only a stain
     g.flagtile(8, 21, 'sealCut', dry)
     g.flagtile(8, 21, 'ironBars', 'flag:frontDoor & !flag:keeperWater')   # the garrison's iron: a lock instead of a promise
-    g.warp(8, 21, 'burial', 2, 3, 'right', cond='flag:stairHook & !flag:frontDoor & !flag:keeperWater', sfx='stairs')
+    g.warp(8, 21, 'burial', 2, 5, 'right', cond='flag:stairHook & !flag:frontDoor & !flag:keeperWater', sfx='stairs')
     g.trig('dryStair', 19, 20, 'dryStair', on='step', w=1, h=4, cond='flag:stairHook & !flag:drySeen')
     g.trig('holdStair', 19, 20, 'holdStair', on='step', w=1, h=4, cond='flag:waterAsked & !flag:keeperWater & flag:drySeen')
     g.zone('warrens_d', 0, 0, W, 19)
@@ -883,7 +884,7 @@ def build_gulch():
     # the snared traveler: a silk-wrapped shape strung between two stunted trees, just off the way down
     g.put(17, 17, 'e'); g.put(19, 17, 'e'); g.put(18, 17, 'Q')
     g.trig('snared', 18, 17, 'snared', on='use', once=True)
-    g.flagtile(18, 17, 'gulch', 'trig:snared')
+    g.flagtile(18, 17, 'gulch', 'flag:trig:snared')   # was 'trig:snared', which DS.cond read as a number: the cut cocoon grew back
     g.trig('ettercap', 29, 9, 'ettercap', on='step', w=3, h=2, cond='!flag:ettercapDone')
     g.chest(33, 8, 'potion', 1); g.chest(19, 24, 'kit', 2)
     g.zone('gulch', 0, 0, W, H)
@@ -982,159 +983,245 @@ WEDGES = [
 
 
 def build_deep():
-    # ---------------------------------------------------------------- THE BURIAL
-    W, H = 40, 33
+    # ---------------------------------------------------------------- THE BURIAL (re-cut 09-27, handoff-2026-09-26-dragonsleep-spine-recut §5)
+    # Both ways in land in a HALLWAY first (sealed doors off it, the Triad's chapel), and the hallway opens on the chamber.
+    # Two staircases go straight down through the tiers, one on the Warrens side and one on the Solskaft side, to the
+    # king's chamber at the bottom centre. The tiers are wide enough for two family wedges on each side of each stair:
+    # eight wedge-places, seven families, one waiting (Griz 09-26d/e: "wide enough for two of those on each side").
+    W, H = 44, 34
     g = Grid(W, H, 'h')
-    tiers = [(3, 2, 37), (9, 5, 34), (15, 8, 31), (21, 11, 28)]   # (walkway row, x0, x1): two rows of walk, the niche wall above
+    g.rect(2, 5, 40, 2, '_')                                     # the hallway
+    g.rect(18, 1, 8, 3, '_'); g.put(21, 4, '_'); g.put(22, 4, '_')   # the chapel, off the hallway's north side
+    g.put(19, 1, '8'); g.put(21, 1, '6'); g.put(23, 1, 'Q')      # the Triad: the Forge-Father's anvil, Rekknar's ledger-stone, the Dormant's empty cut
+    g.put(25, 1, 'Y'); g.put(21, 2, 'x')                         # a lamp, and the kneeling-stone
+    for x in (6, 10, 32, 37):
+        g.put(x, 4, 's')                                         # sealed rooms, warranted; nothing behind them this round
+    STAIRS = (12, 31)
+    TIERS = [8, 12, 16, 20]                                      # the niche row of each tier; the walk is the two rows under it
     niches = {}
-    n = len(WEDGES)
-    for ti, (wy, x0, x1) in enumerate(tiers):
-        g.rect(x0, wy, x1 - x0 + 1, 2, '_')
-        L, R = x0 + 1, x1 - 1
-        prev = None
-        for x in range(L, R + 1):
-            wi = min(n - 1, int((x - L + .5) / (R - L + 1) * n))
-            if prev is not None and wi != prev:
-                prev = wi
-                continue                                     # a plain column between families
-            prev = wi
-            wd = WEDGES[wi]
+    for ti, ny in enumerate(TIERS):
+        g.rect(2, ny + 1, 40, 2, '_')
+    # the wedges: (x0, x1, family index into WEDGES); family 7 is the place that waits
+    WEDGE_AT = [(2, 5, 0), (7, 10, 1), (14, 16, 2), (18, 20, 3), (23, 25, 4), (27, 29, 5), (33, 36, 6), (38, 41, 7)]
+    for (x0, x1, wi) in WEDGE_AT:
+        if wi >= len(WEDGES):
+            continue
+        wd = WEDGES[wi]
+        for ti, ny in enumerate(TIERS):
             if ti < wd['reach']:
-                continue                                     # the family's rows stop below this tier: blank stone
-            ch = 'K' if ti == 3 else 'N'
-            if wd.get('gear') == ti and not any(v[0] == wi and v[2] == 'gear' for v in niches.values()):
-                ch, kind = '$', 'gear'
-            elif wd['fam'] == 'geirmund' and ti == 0:
-                ch, kind = '!', 'pried'
-            else:
-                kind = 'patron' if ti == 3 else 'row'
-            g.put(x, wy - 1, ch)
-            niches['%d,%d' % (x, wy - 1)] = [wi, ti, kind]
-        g.trig('niches%d' % ti, L, wy - 1, 'niche', on='use', w=R - L + 1)   # every niche is a container; the script reads which
-    # the stairs between the tiers, switching ends as they go down and in
-    for (x, y0, y1) in [(34, 5, 8), (8, 11, 14), (28, 17, 20)]:
-        for y in range(y0, y1 + 1):
-            g.put(x, y, 'v')
-            niches.pop('%d,%d' % (x, y), None)
+                continue                                          # the family's rows stop below this tier: blank stone
+            for x in range(x0, x1 + 1):
+                ch = 'K' if ti == 3 else 'N'
+                if wd.get('gear') == ti and not any(v[0] == wi and v[2] == 'gear' for v in niches.values()):
+                    ch, kind = '$', 'gear'
+                elif wd['fam'] == 'geirmund' and ti == 0:
+                    ch, kind = '!', 'pried'
+                else:
+                    kind = 'patron' if ti == 3 else 'row'
+                g.put(x, ny, ch)
+                niches['%d,%d' % (x, ny)] = [wi, ti, kind]
+    for ti, ny in enumerate(TIERS):
+        g.trig('niches%d' % ti, 2, ny, 'niche', on='use', w=40)   # every niche is a container; the script reads which
+    # the two staircases, straight down from the hallway to the bottom landing
+    for sx in STAIRS:
+        for y in range(7, 24):
+            g.put(sx, y, 'v')
+            niches.pop('%d,%d' % (sx, y), None)
+    g.rect(12, 24, 20, 2, '_')                                   # the landing at the stairs' feet
     # the king's chamber: doorless, one lamp, nobody on the bier
-    g.rect(15, 24, 10, 7, '_')
-    g.put(19, 23, '_'); g.put(20, 23, '_')
-    g.put(19, 28, 'Z'); g.put(20, 28, 'Z'); g.put(22, 26, 'Y')
-    # the drained stair's cut door (west end of the top tier) and the dwarves' own stair (east end)
-    g.put(1, 3, 'z')
-    g.put(38, 3, 'r')
-    g.warp(1, 3, 'warrens_d', 9, 21, 'right', cond='!flag:frontDoor')
-    g.flagtile(1, 3, 'ironBars', 'flag:frontDoor')
-    g.warp(38, 3, 'solskaft', 15, 3, 'right', cond='flag:frontDoor')
-    g.flagtile(38, 3, 'stairsUp', 'flag:frontDoor')
-    g.trig('dwarfStair', 38, 3, 'dwarfStair', on='use', cond='!flag:frontDoor')
-    # the night crew at the Geirmund wedge; the catch is the scene's start
+    g.rect(16, 26, 12, 6, '_')
+    g.put(21, 29, 'Z'); g.put(22, 29, 'Z'); g.put(25, 27, 'Y')
+    # the drained stair's cut door (the hallway's Warrens end) and the dwarves' own stair (its Solskaft end)
+    g.put(1, 5, 'z')
+    g.put(42, 5, 'r')
+    g.warp(1, 5, 'warrens_d', 9, 21, 'right', cond='!flag:frontDoor')
+    g.flagtile(1, 5, 'ironBars', 'flag:frontDoor')
+    g.warp(42, 5, 'solskaft', 25, 3, 'right', cond='flag:frontDoor')
+    g.flagtile(42, 5, 'stairsUp', 'flag:frontDoor')
+    g.trig('dwarfStair', 42, 5, 'dwarfStair', on='use', cond='!flag:frontDoor')
+    # the night crew at the Geirmund wedge (the Warrens-side outer wedge, top tier); the catch is the scene's start:
+    # it springs in the hallway at the head of the Warrens stair, so nobody walks past it
     crew = '!flag:crewDealt & !flag:crewCut | flag:crewBack & !flag:crewDealt'
-    g.npc('hask', 6, 3, 'hask', dir='up', cond=crew, face=False)
-    g.npc('wheelwright', 4, 4, 'wheelwright', dir='up', cond=crew, face=False)
-    g.npc('crewA', 5, 4, 'crewman', dir='up', cond=crew, face=False)
-    g.npc('crewB', 7, 4, 'crewman', dir='left', cond=crew, face=False)
-    g.trig('crew', 3, 3, 'crew', on='step', h=2, cond=crew)
-    g.trig('bier', 19, 28, 'bier', on='use', w=2)
-    g.sign(22, 26, 'One lamp, kept. Somebody fills it.', 'handoff-2026-09-26 §5.2 (lit by one lamp that the garrison keeps)')
-    save('burial', g, 'cave', 'The Burial', music='burial', bg='dwarf', save=False, dark=True, legend=DEEP, niches=niches,
-         lights=[{'x': 22, 'y': 26, 'r': 60}])   # one lamp, kept
+    g.npc('hask', 4, 9, 'hask', dir='up', cond=crew, face=False)
+    g.npc('wheelwright', 2, 10, 'wheelwright', dir='up', cond=crew, face=False)
+    g.npc('crewA', 3, 10, 'crewman', dir='up', cond=crew, face=False)
+    g.npc('crewB', 5, 10, 'crewman', dir='left', cond=crew, face=False)
+    g.trig('crew', 10, 5, 'crew', on='step', w=2, h=2, cond=crew)
+    g.trig('bier', 21, 29, 'bier', on='use', w=2)
+    g.sign(25, 27, 'One lamp, kept. Somebody fills it.', 'handoff-2026-09-26 §5.2 (lit by one lamp that the garrison keeps)')
+    g.sign(21, 2, 'A kneeling-stone, two hollows worn in it. Nobody comes down here to pray who has not come to bury.', 'handoff-2026-09-26-dragonsleep-spine-recut.md §5 (the Burial\'s chapel: an altar, a lamp, a kneeling-stone; Griz 09-26d: to all three of the Triad)')
+    g.sign(19, 1, 'The Forge-Father\'s niche. The anvil here is small, a grave-anvil; nothing was ever struck on it.', 'wiki/pantheon.md (the Dwarven Triad); spine-recut §5 (the chapel to all three)')
+    g.sign(21, 1, 'Rekknar\'s ledger-stone. The last line on it is a name, and the line under it is ruled and empty.', 'wiki/pantheon.md (Rekknar the Reckoner); spine-recut §5')
+    g.sign(23, 1, 'A plain cut in the rock with nothing in it. The Dormant\'s. Down here it looks like an open niche.', 'wiki/pantheon.md (Dvalgarda, the vigil); spine-recut §5 (the sect is never named here)')
+    for x in (6, 10, 32, 37):
+        g.sign(x, 4, 'A sealed door, warranted. The runes are whole. The ledger knows what is behind it; you do not.', 'spine-recut §5 (the hallway: sealed doors off it; nothing behind them this round)')
+    for x in range(38, 42):
+        for ny in TIERS:
+            g.sign(x, ny, 'A wedge cut and dressed, and nobody in it. The eighth place. It waits.', 'spine-recut §5 (eight wedge-places, seven families, one waiting: CANON 09-26e)')
+    save('burial', g, 'cave', 'The Burial', music='burial', bg='dwarf', save=False, dark=True, legend=dict(DEEP, x='kneelStone'), niches=niches,
+         lights=[{'x': 25, 'y': 27, 'r': 60}, {'x': 25, 'y': 1, 'r': 44}])   # one lamp, kept; the chapel's
 
-    # ---------------------------------------------------------------- SOLSKAFT: the front, the yard, the Sunshaft, its galleries
-    W, H = 36, 48
+    # ---------------------------------------------------------------- SOLSKAFT: the front, the yard, the Sunshaft, its galleries (re-cut 09-27)
+    # Widened ten columns west for the closed street and the clan hall's court, and six east for the grow.
+    W, H = 50, 48
     g = Grid(W, H, 'h')
     # the vault hall, Pyro's post: two portcullises raised into the old ore-chute
-    g.rect(11, 40, 14, 7, '_')
-    g.put(17, 47, '4'); g.put(18, 47, '4')
-    g.hline(12, 23, 42, "'"); g.hline(12, 23, 45, "'")
-    g.warp(17, 47, 'silverton', 29, 6, 'down'); g.warp(18, 47, 'silverton', 30, 6, 'down')
+    g.rect(21, 40, 14, 7, '_')
+    g.put(27, 47, '4'); g.put(28, 47, '4')
+    g.hline(22, 33, 42, "'"); g.hline(22, 33, 45, "'")
+    g.warp(27, 47, 'silverton', 29, 6, 'down'); g.warp(28, 47, 'silverton', 30, 6, 'down')
     # the tollhouse (west): the trade-counter, the scales under a cloth, the tariff board, the ledger-room
-    g.rect(1, 38, 9, 9, '_'); g.put(10, 44, '_')
-    g.hline(2, 8, 43, '@'); g.put(4, 43, '%')
-    g.put(7, 37, '{'); g.put(3, 40, ']')
+    g.rect(11, 38, 9, 9, '_'); g.put(20, 44, '_')
+    g.hline(12, 18, 43, '@'); g.put(14, 43, '%')
+    g.put(17, 37, '{'); g.put(13, 40, ']')
     # the falls-works (east): the race comes down off the Sunshaft and turns the old stamp-mill wheel
-    g.rect(26, 38, 9, 9, '_'); g.put(25, 44, '_')
-    g.vline(23, 2, 28, '2')
-    g.hline(23, 30, 29, '~'); g.vline(30, 29, 37, '~')
-    g.put(30, 38, '3')
-    g.blob(30.5, 41.5, 3.2, 1.6, '~')
-    g.vline(30, 43, 47, '~')
-    g.put(35, 42, '<')
+    g.rect(36, 38, 9, 9, '_'); g.put(35, 44, '_')
+    g.vline(33, 2, 28, '2')
+    g.hline(33, 40, 29, '~'); g.vline(40, 29, 37, '~')
+    g.put(40, 38, '3')
+    g.blob(40.5, 41.5, 3.2, 1.6, '~')
+    g.vline(40, 43, 47, '~')
+    g.put(45, 42, '<')
     # the caravan yard, the muster yard now: the season drills here; the cots at its east end
-    g.rect(10, 30, 16, 8, '_')
-    for x in range(16, 20):
+    g.rect(20, 30, 16, 8, '_')
+    for x in range(26, 30):
         g.put(x, 38, '_'); g.put(x, 39, '_')
-    for (x, y) in [(24, 31), (25, 31), (24, 33), (25, 33)]:
+    for (x, y) in [(34, 31), (35, 31), (34, 33), (35, 33)]:
         g.put(x, y, ';')
     # the Sunshaft: the old main shaft driven up to the mountain's face; noon comes down it
-    g.rect(14, 2, 9, 27, '_')
-    g.rect(16, 2, 5, 27, '1')
-    for x in range(15, 21):
+    g.rect(24, 2, 9, 27, '_')
+    g.rect(26, 2, 5, 27, '1')
+    for x in range(25, 31):
         g.put(x, 29, '_')
-    g.hline(13, 22, 0, '}'); g.hline(13, 22, 1, '}')
-    # west galleries: the clan hall of the Silversands, the shrine of the Triad, the dark barracks
-    g.rect(2, 21, 11, 7, '_'); g.put(13, 24, '_'); g.put(13, 25, '_')
-    g.put(3, 24, '5'); g.put(8, 22, '6')
-    g.hline(3, 11, 20, '7')
-    g.rect(5, 12, 8, 6, '_'); g.put(13, 14, '_'); g.put(13, 15, '_')
-    g.put(6, 11, '8'); g.put(8, 11, '6'); g.put(10, 11, 'Q')
-    g.rect(2, 3, 11, 7, '_'); g.put(13, 6, '_')
-    for (x, y) in [(3, 4), (5, 4), (7, 4), (9, 4), (3, 7), (5, 7), (7, 7), (9, 7), (11, 4)]:
+    g.hline(23, 32, 0, '}'); g.hline(23, 32, 1, '}')
+    # ---- the west galleries
+    # the noon court: the shaft's west bay, where the silvered walls throw the noon light north through the clan hall's doors
+    g.rect(2, 27, 22, 2, '_')
+    g.hline(11, 19, 29, '7')                                     # the hero-wall, on the court's south face
+    # the clan hall of the Silversands, turned on its axis (Griz 09-26c: "The sunbeam would land on the swearing stone,
+    # directly south of the throne dias and throne, straight through the doors"): the throne on its dais at the north end,
+    # the oath-stone directly south of it, the doors south of that on the court
+    g.rect(12, 18, 11, 8, '_')
+    g.rect(15, 18, 5, 2, 'O')                                    # the dais
+    g.put(17, 18, '5')                                           # the throne
+    g.put(17, 22, '6')                                           # the oath-stone, in the beam's landing
+    for x in (16, 17, 18):
+        g.put(x, 26, '_')                                        # the doors, open on the court
+    g.put(12, 19, 'I'); g.put(22, 19, 'I')                        # the hall's lamps
+    # the shrine of the Triad, west of the clan hall, on the court
+    g.rect(3, 19, 7, 7, '_'); g.put(5, 26, '_'); g.put(6, 26, '_')
+    g.put(4, 18, '8'); g.put(6, 18, '6'); g.put(8, 18, 'Q')
+    # THE RESIDENTIAL QUARTER, closed (CANON 09-26d/e: a west gallery off the Sunshaft above the clan hall): a street of family
+    # houses shuttered since the clans went back deep, and one lit door, the Scalebeam house, where Asdis would not go down
+    g.rect(2, 13, 22, 2, '_')
+    FRONT_N = {4: 'L', 8: 'H', 12: 'H', 16: 'H', 20: 'H'}         # north side: Scalebeam (lit), Greyseam, Orri, Hallveig, Kolbein
+    FRONT_S = {5: 'H', 9: 'H', 13: 'H', 17: 'H', 21: 'H'}         # south side: Copperbottom, Asmund, Brandr, Geirmund, Audun
+    for x in range(2, 23):
+        g.put(x, 12, FRONT_N.get(x, 'W' if x % 2 else 'h'))
+        g.put(x, 15, FRONT_S.get(x, 'W' if x % 2 == 0 else 'h'))
+    # the Scalebeam house: the room behind the one lit door
+    g.rect(2, 8, 6, 4, ':')
+    g.put(2, 8, 'A'); g.put(6, 8, 'c'); g.put(3, 11, ';')         # a hearth, a table, a cot
+    g.put(4, 12, 'L')
+    # the dark barracks (north-west) and the shroom farm through them, in the dark past the last bunk
+    g.rect(12, 3, 11, 7, '_'); g.put(23, 6, '_')
+    for (x, y) in [(13, 4), (15, 4), (17, 4), (19, 4), (13, 7), (15, 7), (17, 7), (19, 7), (21, 4)]:
         g.put(x, y, ';')
-    # east galleries, over footbridges across the race: the kitchens, the lit barracks, the stair down to the works
-    g.rect(24, 21, 11, 7, '_'); g.put(23, 24, '`'); g.put(23, 25, '`')
-    for x in (27, 28, 29):
+    g.rect(2, 2, 9, 5, ','); g.put(11, 5, ',')
+    for (x, y) in [(3, 3), (5, 3), (7, 3), (9, 3), (3, 5), (5, 5), (7, 5), (9, 5)]:
+        g.put(x, y, 'M')
+    # ---- the east galleries, over footbridges across the race
+    # the kitchens: smokehouse, brewhouse; and the stair down to the works beyond them
+    g.rect(34, 21, 11, 7, '_'); g.put(33, 24, '`'); g.put(33, 25, '`')
+    for x in (37, 38, 39):
         g.put(x, 21, ')')
-    g.put(32, 21, '('); g.put(33, 21, '('); g.put(33, 23, '(')
-    g.put(34, 26, 'k'); g.put(33, 27, 'k')
-    g.rect(24, 12, 10, 6, '_'); g.put(23, 14, '`'); g.put(23, 15, '`')
-    for (x, y) in [(26, 12), (28, 12), (30, 12), (32, 12), (26, 17), (28, 17)]:
+    g.put(42, 21, '('); g.put(43, 21, '('); g.put(43, 23, '(')
+    g.put(44, 26, 'k'); g.put(43, 27, 'k')
+    g.rect(45, 24, 3, 2, '_'); g.put(48, 24, 'd')
+    g.warp(48, 24, 'solskaft_deep', 3, 11, 'right')
+    # the lit barracks
+    g.rect(34, 12, 10, 6, '_'); g.put(33, 14, '`'); g.put(33, 15, '`')
+    for (x, y) in [(36, 12), (38, 12), (40, 12), (42, 12), (36, 17), (38, 17)]:
         g.put(x, y, ';')
-    g.rect(24, 3, 8, 6, '_'); g.put(23, 6, '`')
-    g.put(29, 4, 'd')
-    g.warp(29, 4, 'solskaft_deep', 3, 11, 'right')
+    # THE GROW: the top terrace under the Sunshaft's light (CANON 09-26d: "apple orchard and whatever else makes sense for
+    # east Washington state climate"): apples, cherries and pears, hops for the brewhouse, a mint bed, dry-land wheat
+    g.rect(34, 2, 14, 8, 'S'); g.put(33, 6, '`')
+    for (x, y, ch) in [(35, 3, 't'), (37, 3, 't'), (39, 3, 't'), (35, 5, 't'), (37, 5, 't'), (39, 5, 't'),
+                       (42, 3, 'b'), (44, 3, 'b'), (42, 5, 'e'), (44, 5, 'e'), (46, 3, 'f'), (46, 5, 'f'),
+                       (35, 8, 'm'), (36, 8, 'm')]:
+        g.put(x, y, ch)
+    for x in range(40, 48):
+        g.put(x, 8, 'y')                                         # dry-land wheat along the terrace's long edge
     # the wheelwright's lift, top and bottom of the shaft (sidequest 10)
-    g.flagtile(22, 26, 'lift', 'flag:wwLift'); g.flagtile(22, 4, 'lift', 'flag:wwLift')
-    g.warp(22, 26, 'solskaft', 21, 4, 'left', cond='flag:wwLift', sfx='door', hidden=True)
-    g.warp(22, 4, 'solskaft', 21, 26, 'left', cond='flag:wwLift', sfx='door', hidden=True)
+    g.flagtile(32, 26, 'lift', 'flag:wwLift'); g.flagtile(32, 4, 'lift', 'flag:wwLift')
+    g.warp(32, 26, 'solskaft', 31, 4, 'left', cond='flag:wwLift', sfx='door', hidden=True)
+    g.warp(32, 4, 'solskaft', 31, 26, 'left', cond='flag:wwLift', sfx='door', hidden=True)
     # the dwarves' own stair, down to the Burial, at the head of the shaft
-    g.put(14, 3, 'd')
-    g.warp(14, 3, 'burial', 37, 3, 'left')
+    g.put(24, 3, 'd')
+    g.warp(24, 3, 'burial', 41, 5, 'left')
     # the garrison
-    g.npc('pyro', 16, 46, 'pyro', dir='up')
-    g.npc('ketil', 19, 46, 'ketil', dir='up')
-    g.npc('ingrith', 3, 39, 'ingrith', dir='down', cond='flag:clericMet & !flag:ingrithEscort')
-    g.npc('quartermaster', 6, 42, 'dclerk', dir='down')
-    g.npc('ragna', 29, 44, 'ragna', dir='up')
-    g.npc('brann', 21, 33, 'brann', dir='left', cond='!flag:escortsOut')
-    g.npc('hedda', 22, 36, 'hedda', dir='left', cond='!flag:escortsOut')
-    for i, (x, y) in enumerate([(11, 33), (13, 33), (11, 35), (13, 35)]):
+    g.npc('pyro', 26, 46, 'pyro', dir='up', cond='!flag:pyroLeads | flag:captainHome')
+    g.npc('ketil', 29, 46, 'ketil', dir='up')
+    g.npc('ingrith', 13, 39, 'ingrith', dir='down', cond='flag:clericMet & !flag:ingrithEscort')
+    g.npc('quartermaster', 16, 42, 'dclerk', dir='down')
+    g.npc('ragna', 39, 44, 'ragna', dir='up')
+    g.npc('brann', 31, 33, 'brann', dir='left', cond='!flag:escortsOut')
+    g.npc('hedda', 32, 36, 'hedda', dir='left', cond='!flag:escortsOut')
+    g.npc('halldor', 24, 34, 'halldor', dir='right', cond='flag:halldorUp & !flag:petition | flag:nestHome')
+    g.npc('halldorBunk', 41, 16, 'halldor', dir='left', cond='flag:captainHome & !flag:halldorUp')
+    for i, (x, y) in enumerate([(21, 33), (23, 33), (21, 35), (23, 35)]):
         g.npc('drill%d' % (i + 1), x, y, 'dtrooper' if i % 2 else 'dtrooper2', dir='right', idle=True)
-    g.npc('drillmaster', 16, 34, 'dtrooper', dir='left')
-    g.npc('cook', 30, 24, 'dcook', dir='down', wander=1)
-    g.npc('sleeper', 30, 15, 'dtrooper2', dir='down')
-    g.npc('shaftwatch', 21, 8, 'dtrooper', dir='left')
-    g.npc('yardhand', 19, 31, 'dtrooper2', wander=2)
+    g.npc('drillmaster', 26, 34, 'dtrooper', dir='left', cond='!flag:reliefSeen | flag:nestCrushed')
+    g.npc('cook', 40, 24, 'dcook', dir='down', wander=1)
+    g.npc('sleeper', 40, 15, 'dtrooper2', dir='down')
+    g.npc('shaftwatch', 31, 8, 'dtrooper', dir='left')
+    g.npc('yardhand', 29, 31, 'dtrooper2', wander=2)
+    g.npc('asdis', 4, 9, 'asdis', dir='down')
+    g.npc('gardener', 41, 6, 'dtrooper2', dir='left', wander=1)
+    g.npc('shroomer', 6, 4, 'dtrooper', dir='down')
     # what the walls say
-    g.trig('pyroMeet', 12, 40, 'pyroMeet', on='step', w=13, h=2, cond='flag:frontDoor & !flag:pyroMet')
-    g.trig('cot', 24, 31, 'cot', on='use', w=2, h=3)
-    g.trig('ketilStop', 17, 46, 'ketilStop', on='step', w=2, cond='blasphemy>=1')   # "empty your packs" (spec §5.4)
-    g.sign(4, 43, 'The assay-scales, under a cloth. Nobody has lifted it in seventy years; the dust on it is even.', 'handoff-2026-09-26 §4.3 A (the tollhouse)')
-    g.sign(7, 37, 'THE TARIFF. Ingots by the stamp, lead by the pig, litharge by the jar. Charcoal, timber, salt, tallow, rope and bone-ash down. The prices are in a coin with a king\'s face nobody uses now.', 'handoff-2026-09-26 §4.3 (trade goods: up and down; INFERENCE, PROPOSED)')
-    g.sign(35, 42, 'Brick, and a red mark cut across it. The old cut a shaft crew broke into, sixty years ago. The water went bad through here, and then the town burned.', 'wiki/deepholm-and-the-edifice.md (the Water Burning: an old dwarven cut feeding a cistern); spec §4.3 A')
-    g.sign(30, 38, 'The stamp-mill wheel. The ore it broke is long gone; it turns because the covenant says the town\'s fountains must run, and the wheel is what meters them.', 'handoff-2026-09-26 §4.3 A (the falls-works)')
-    g.sign(3, 24, 'The high seat of the Silversands. Empty. He stands at the door.', 'handoff-2026-09-26 §4.3 B (the clan hall)')
-    g.sign(8, 22, 'The oath-stone of the Silversands. Every one of them put a hand here once. The band of gold is worn bright at hand height.', 'handoff-2026-09-26 §4.3 B')
-    for x in range(3, 12):
-        g.sign(x, 20, 'The hero-wall: the highway\'s dead, names cut in rows. Where a row stops short, a family stopped.', 'handoff-2026-09-26 §4.3 B (the hero-wall; a family\'s row ending is what "wiped out" looks like on stone)')
-    g.sign(6, 11, 'The Forge-Father\'s niche: an anvil, worn to a saddle in the middle.', 'wiki/pantheon.md (the Dwarven Triad: Motsognir, the Forge-Father); spec §4.3 B')
-    g.sign(8, 11, 'Rekknar\'s ledger-stone. Every line on it balances.', 'wiki/pantheon.md (Rekknar the Reckoner); spec §4.3 B')
-    g.sign(10, 11, 'A plain cut in the rock with nothing in it. The Dormant\'s.', 'wiki/pantheon.md (Dvalgarda, the vigil); spec §4.3 B (the sect is never named here)')
-    g.sign(27, 21, 'The smokehouse: meat, and nothing else. Food comes down the highway now, not up.', 'handoff-2026-09-26 §4.3 B (the kitchens; the economy reversed — INFERENCE, PROPOSED); §12 correction (the dream is on vice row)')
-    g.sign(32, 21, 'The brewhouse. Dwarves.', 'handoff-2026-09-26 §4.3 B')
-    g.sign(3, 4, 'Six tiers of bunks up here, and a season\'s troops fill two of them. Dust on the rest.', 'handoff-2026-09-26 §4.3 B (the barracks tiers, most of them dark)')
-    save('solskaft', g, 'cave', 'Solskaft', music='solskaft', bg='dwarf', save=True, legend=DEEP,
-         beam={'x0': 16, 'x1': 20, 'y0': 0, 'y1': 28})   # the Sunshaft
+    g.trig('pyroMeet', 22, 40, 'pyroMeet', on='step', w=13, h=2, cond='flag:frontDoor & !flag:pyroMet')
+    g.trig('cot', 34, 31, 'cot', on='use', w=2, h=3)
+    # a bed is a bed (re-cut F4): every bunk in both barracks is a rest point, like the yard cots; and Asdis's cot
+    for (x, y) in [(15, 4), (17, 4), (19, 4), (21, 4), (13, 7), (15, 7), (17, 7), (19, 7), (36, 12), (38, 12), (40, 12), (42, 12), (36, 17), (38, 17)]:
+        g.trig('bunk%d_%d' % (x, y), x, y, 'cot', on='use')
+    g.trig('asdisCot', 3, 11, 'asdisRest', on='use')
+    g.trig('ketilStop', 27, 46, 'ketilStop', on='step', w=2, cond='blasphemy>=1')   # "empty your packs" (spec §5.4)
+    g.sign(14, 43, 'The assay-scales, under a cloth. Nobody has lifted it in seventy years; the dust on it is even.', 'handoff-2026-09-26 §4.3 A (the tollhouse)')
+    g.sign(17, 37, 'THE TARIFF. Ingots by the stamp, lead by the pig, litharge by the jar. Charcoal, timber, salt, tallow, rope and bone-ash down. The prices are in a coin with a king\'s face nobody uses now.', 'handoff-2026-09-26 §4.3 (trade goods: up and down; INFERENCE, PROPOSED)')
+    g.sign(45, 42, 'Brick, and a red mark cut across it. The old cut a shaft crew broke into, sixty years ago. The water went bad through here, and then the town burned.', 'wiki/deepholm-and-the-edifice.md (the Water Burning: an old dwarven cut feeding a cistern); spec §4.3 A')
+    g.sign(40, 38, 'The stamp-mill wheel. The ore it broke is long gone; it turns because the covenant says the town\'s fountains must run, and the wheel is what meters them.', 'handoff-2026-09-26 §4.3 A (the falls-works)')
+    g.sign(17, 18, 'The high seat of the Silversands, on its dais. Empty. He stands at the door.', 'handoff-2026-09-26 §4.3 B (the clan hall); spine-recut §5 (the throne on a dais at the hall\'s north end)')
+    g.sign(17, 22, 'The oath-stone of the Silversands, directly below the empty seat. Every one of them put a hand here once; the band of gold is worn bright at hand height. At noon the light lands here.', 'handoff-2026-09-26 §4.3 B; spine-recut §5 (the beam lands on the oath-stone; "At noon the light lands here." seat\'s draft)')
+    for x in range(11, 20):
+        g.sign(x, 29, 'The hero-wall: the highway\'s dead, names cut in rows. Where a row stops short, a family stopped.', 'handoff-2026-09-26 §4.3 B (the hero-wall; a family\'s row ending is what "wiped out" looks like on stone)')
+    g.sign(4, 18, 'The Forge-Father\'s niche: an anvil, worn to a saddle in the middle.', 'wiki/pantheon.md (the Dwarven Triad: Motsognir, the Forge-Father); spec §4.3 B')
+    g.sign(6, 18, 'Rekknar\'s ledger-stone. Every line on it balances.', 'wiki/pantheon.md (Rekknar the Reckoner); spec §4.3 B')
+    g.sign(8, 18, 'A plain cut in the rock with nothing in it. The Dormant\'s.', 'wiki/pantheon.md (Dvalgarda, the vigil); spec §4.3 B (the sect is never named here)')
+    g.sign(37, 21, 'The smokehouse: meat, and nothing else. The rest of the table comes from the grow and the dark.', 'handoff-2026-09-26 §4.3 B (the kitchens); spine-recut §5 (Solskaft feeds itself; the food-from-below line cut)')
+    g.sign(42, 21, 'The brewhouse. Dwarves. The hops come down from the terrace in baskets.', 'handoff-2026-09-26 §4.3 B; spine-recut §5 (hops for the brewhouse, PROPOSED by the east-Washington rule)')
+    g.sign(13, 4, 'Six tiers of bunks up here, and a season\'s troops fill two of them. Dust on the rest.', 'handoff-2026-09-26 §4.3 B (the barracks tiers, most of them dark)')
+    FAMS = {(8, 12): 'GREYSEAM', (12, 12): 'ORRI', (16, 12): 'HALLVEIG', (20, 12): 'KOLBEIN', (5, 15): 'COPPERBOTTOM', (9, 15): 'ASMUND',
+            (13, 15): 'BRANDR', (17, 15): 'GEIRMUND', (21, 15): 'AUDUN'}
+    for (x, y), nm in FAMS.items():
+        if nm == 'COPPERBOTTOM':
+            t = 'COPPERBOTTOM, cut in the lintel. Barred, like the rest, but somebody has chalked on the bar: AT THE FORGE.'
+        elif nm in ('GEIRMUND', 'AUDUN'):
+            t = nm + ', cut in the lintel. Barred. The line that lived here ended on the road; the ledger has the house.'
+        else:
+            t = nm + ', cut in the lintel. Barred from outside since the clans went back deep. The dust on the step is even.'
+        g.sign(x, y, t, 'spine-recut §5 (the residential quarter, the familial residences, CLOSED: CANON 09-26d; the family names are the Burial\'s lines and the garrison\'s clans; the smiths\' hedge, seat\'s call)')
+    g.sign(3, 12, 'SCALEBEAM, cut in the lintel, and the one door on the street with a light behind it.', 'spine-recut §5 (one lit door: the Scalebeam house, CANON 09-26e)')
+    g.sign(35, 3, 'Apple trees, in soil carried up in baskets a season at a time. The fruit is small and very sweet.', 'spine-recut §5 (the grow is an apple orchard: RULED 09-26d)')
+    g.sign(42, 3, 'Cherries, trained flat to the rock where the light is longest.', 'spine-recut §5 (cherries and pears, PROPOSED by his climate rule)')
+    g.sign(46, 3, 'Pear trees, the oldest things growing in Solskaft.', 'spine-recut §5 (PROPOSED by his climate rule)')
+    g.sign(35, 8, 'A mint bed. It gets into everything, the gardener says, which is the point.', 'spine-recut §5 (a mint bed, PROPOSED)')
+    g.sign(40, 8, 'Dry-land wheat, thin and gold, along the terrace\'s long edge. It barely needs watering, which is why it is here.', 'spine-recut §5 (dry-land wheat, PROPOSED by the east-Washington rule)')
+    g.sign(3, 3, 'The shroom farm: beds of spent ore-dust and dung in the dark, the caps pale in a hooded lamp. This is what Solskaft actually eats.', 'wiki/solskaft.md (the shroom farms, CANON 09-26c); spine-recut §5 (the shrooms are the staple)')
+    save('solskaft', g, 'cave', 'Solskaft', music='solskaft', bg='dwarf', save=True,
+         legend=dict(DEEP, **{'O': 'dais', 'H': 'houseShut', 'W': 'houseWin', 'L': 'houseLit', 'S': 'soil', 't': 'appleTree', 'b': 'cherryTree', 'e': 'hops', 'f': 'pearTree',
+                     'm': 'mint', 'y': 'wheatBed', 'M': 'shroomBed', 'A': 'hearth', 'c': 'table', 'I': 'tombLamp', ':': 'floorStone', ',': 'dwarfFloor'}),
+         beam={'x0': 16, 'x1': 18, 'y0': 22, 'y1': 28, 'land': [17, 22]})   # noon, through the doors, onto the oath-stone
 
     # ---------------------------------------------------------------- SOLSKAFT, the works: sorting floor, smelters, assay, mint, treasury, the highway's mouth
     W, H = 40, 24
@@ -1144,7 +1231,7 @@ def build_deep():
     for (x, y) in [(6, 8), (7, 8), (19, 8), (20, 8), (32, 8)]:
         g.put(x, y, '_')
     g.put(2, 11, 'u')
-    g.warp(2, 11, 'solskaft', 28, 4, 'left')
+    g.warp(2, 11, 'solskaft', 47, 24, 'left')
     # the ore-sorting floor, an armory now: the Copperbottom smith
     g.put(3, 2, '9'); g.put(5, 4, '8'); g.put(8, 5, '?'); g.put(9, 5, '?')
     for x in (7, 8, 9, 10):
@@ -1167,6 +1254,7 @@ def build_deep():
         g.flagtile(38, y, 'gateOpen', 'flag:roadOpen')
     g.put(37, 9, 'l'); g.put(37, 13, 'l')
     g.trig('highwayGate', 38, 10, 'highwayGate', on='use', h=3, cond='!flag:roadOpen')
+    g.trig('muster', 35, 10, 'muster', on='step', w=3, h=3, cond='flag:wordBelow & !flag:mustered')   # beat 6: the season musters at the gate
     g.npc('smith', 6, 5, 'dsmith', dir='down')
     g.npc('gatewatch', 36, 11, 'dtrooper', dir='left')
     g.npc('smelterhand', 19, 4, 'dtrooper2', dir='down')
@@ -1182,10 +1270,11 @@ def build_deep():
          exits={'east': {'to': 'highway_1', 'tx': 1, 'ty': 10, 'dir': 'right'}})
 
 
-# ---------------------------------------------------------------- THE HIGHWAY: three days, three lamps (spec §6)
+# ---------------------------------------------------------------- THE HIGHWAY: four days, four legs, three lamps and the door (spec §6; re-cut 09-27 §4)
 HW = {'.': 'caveFloor', '#': 'caveWall', '_': 'dwarfFloor', 'S': 'sealWhole', 'X': 'sealBroken', 'V': 'vein', 'L': 'lampTower', 'l': 'lampTowerDark',
       'C': 'chasm', '~': 'pool', ';': 'cot', 'T': 'tent', 'b': 'bones', ',': 'rubble', 'B': 'bodyCaptain', 'h': 'dwarfWall', 'k': 'crateCave',
-      'f': 'fungus', '^': 'stalag', '*': 'glowmoss', 'o': 'ooze', 'N': 'noticeboard'}
+      'f': 'fungus', '^': 'stalag', '*': 'glowmoss', 'o': 'ooze', 'N': 'noticeboard', 'm': 'madeRoad', 'w': 'deep', 'Q': 'cocoon', 'u': 'stairsUp'}
+RECUT = 'handoff-2026-09-26-dragonsleep-spine-recut.md'
 
 
 def road(g, x0, x1, y=10):
@@ -1202,7 +1291,7 @@ def station(g, x0, y0, w, h, lamp, lit, seals):
 
 def build_highway():
     import random as _r
-    # ---- leg one: Solskaft's mouth to First Lamp (goblins and such, breaking through sealed caves)
+    # ---- leg one: Solskaft's mouth to First Lamp (the intrusions: hobgoblins, bugbears, an ogre, breaking through sealed caves)
     W, H = 72, 22
     rng = _r.Random(6101)
     g = Grid(W, H, '#')
@@ -1222,7 +1311,7 @@ def build_highway():
         g.put(x, y, 'b')
     for (x, y) in [(28, 6), (29, 7), (27, 6)]:
         g.put(x, y, ',')
-    # a big open cavern off the south side: too wide to seal; the dark in it is where things come from
+    # a big open cavern off the south side: too wide to seal; the dark in it is where things come from (the grick pack)
     g.blob(43, 17, 8, 3.5, '.', rng, .35)
     for x in range(39, 48):
         g.put(x, 13, '.')
@@ -1245,9 +1334,12 @@ def build_highway():
     g.trig('lampArrive1', 61, 9, 'lampArrive', 1, on='step', h=4, cond='!flag:lamp1')
     g.trig('tower1', 66, 5, 'lampTower', 1, on='use')
     g.trig('cutSeal', 27, 5, 'cutSeal', on='step', w=4, h=3, cond='!flag:sealCleared')
+    g.trig('grickDen', 40, 15, 'grickDen', on='step', w=7, h=4, cond='!flag:grickDone')
     g.trig('vein', 27, 8, 'vein', on='use')
+    # the relief column passes the escort going down (beat 4: "he sends reinforcements back down")
+    g.trig('relief', 36, 9, 'relief', on='step', h=4, cond='flag:captainFound & !flag:reliefSeen')
     g.zone('hw1', 0, 0, 60, H)
-    save('highway_1', g, 'cave', 'The Highway — to the First Lamp', music='highway', bg='highway', save=False, dark=True, legend=HW,
+    save('highway_1', g, 'cave', 'The road to First Lamp', music='highway', bg='highway', save=False, dark=True, legend=HW,
          highway=1, seals=seals, lights=[{'x': 66, 'y': 5, 'r': 84}],
          exits={'west': {'to': 'solskaft_deep', 'tx': 37, 'ty': 11, 'dir': 'left'}, 'east': {'to': 'highway_2', 'tx': 1, 'ty': 11, 'dir': 'right'}})
 
@@ -1283,8 +1375,14 @@ def build_highway():
     # the bulette's tunnel: a new breach, dug last month (no seal was ever there to cut)
     g.blob(61, 18, 4, 2.5, '.', rng, .3); g.put(61, 14, '.'); g.put(61, 15, '.'); g.put(61, 14, 'X'); seals.append({'x': 61, 'y': 14, 'cut': True})
     g.put(59, 19, ','); g.put(63, 17, ',')
-    # Second Lamp: abandoned two seasons; the cistern still runs; a drainage cut below
-    station(g, 64, 3, 12, 11, (69, 5), False, seals)
+    # the north cut: a side passage off the road, up to where Halldor's unit is pinned (beat 3: off the highway)
+    for y in range(3, 10):
+        g.put(58, y, '.')
+    g.put(57, 4, '.'); g.put(59, 5, ','); g.put(58, 2, '.')
+    g.put(58, 2, 'u')
+    g.warp(58, 2, 'pinned', 9, 12, 'up', sfx='stairs')
+    # Second Lamp: a manned outpost that was never abandoned (RULED 09-26d); its cistern runs; a drainage cut below
+    station(g, 64, 3, 12, 11, (69, 5), True, seals)
     for y in range(10, 14):
         g.put(64, y, '_')
         g.put(75, y, '_')
@@ -1295,22 +1393,76 @@ def build_highway():
     g.put(73, 4, '~'); g.put(74, 4, '~')
     for (x, y) in [(66, 4), (66, 6), (67, 4)]:
         g.put(x, y, ';')
-    g.put(71, 4, 'N')
     g.put(70, 13, '_')
     g.blob(70, 17, 4, 2.5, '_', rng, .1)
     g.put(68, 18, 'o'); g.put(72, 16, 'o')
+    g.npc('thyra', 71, 6, 'thyra', dir='down', name='Thyra Silversands')
+    g.npc('lamp2a', 67, 8, 'dtrooper2', dir='right')
+    g.npc('lamp2b', 73, 7, 'dtrooper', dir='left', idle=True)
+    g.npc('lamp2c', 68, 11, 'dtrooper2', dir='down')
     g.trig('lampArrive2', 64, 10, 'lampArrive', 2, on='step', h=3, cond='!flag:lamp2')
     g.trig('tower2', 69, 5, 'lampTower', 2, on='use')
     g.trig('roper', 36, 7, 'roper', on='step', w=5, h=2, cond='!flag:roperDead')
     g.trig('bulette', 59, 10, 'bulette', on='step', w=4, h=3, cond='!flag:buletteDead')
     g.trig('drain', 67, 15, 'drainCut', on='step', w=7, h=4, cond='!flag:puddingDead')
-    g.sign(71, 4, 'Slates on a nail: the watch-roster. The last line is a date, and no relief after it.', SPEC_REF + ' §6.3, §10-5 (the Second Lamp\'s dark)')
+    # Pyro on the road (beat 3: three lines across the leg, while he walks it with you)
+    g.trig('pyroRoad1', 9, 10, 'pyroRoad', 1, on='step', h=4, cond='flag:pyroLeads & !flag:captainFound & !flag:pyroRoad1')
+    g.trig('pyroRoad2', 22, 7, 'pyroRoad', 2, on='step', w=2, h=6, cond='flag:pyroLeads & !flag:captainFound & !flag:pyroRoad2')
+    g.trig('pyroRoad3', 56, 10, 'pyroRoad', 3, on='step', h=4, cond='flag:pyroLeads & !flag:captainFound & !flag:pyroRoad3')
+    g.sign(59, 8, 'A side cut, north off the road. Fresh boot-marks going up it, dwarven, and none coming back.', RECUT + ' §2 beat 3 (off the highway: a side cavern)')
     g.zone('hw2', 0, 0, 64, H)
-    save('highway_2', g, 'cave', 'The Highway — to the Second Lamp', music='highway', bg='cavern', save=False, dark=True, legend=HW,
-         highway=2, seals=seals, lights=[{'x': 69, 'y': 5, 'r': 84, 'cond': 'flag:lamp2Lit'}],
+    save('highway_2', g, 'cave', 'The road to Second Lamp', music='highway', bg='cavern', save=False, dark=True, legend=HW,
+         highway=2, seals=seals, lights=[{'x': 69, 'y': 5, 'r': 84}],
          exits={'west': {'to': 'highway_1', 'tx': 70, 'ty': 10, 'dir': 'left'}, 'east': {'to': 'highway_3', 'tx': 1, 'ty': 11, 'dir': 'right'}})
 
-    # ---- leg three: Second Lamp to Third Lamp (duergar, grimlocks, a xorn in the wall, the raid)
+    # ---- the pinned cavern (beat 3): one screen, dark, a defensible dead-end. Halldor's unit holds the neck; the nest is past it
+    W, H = 20, 15
+    rng = _r.Random(6505)
+    g = Grid(W, H, '#')
+    g.blob(9.5, 9.5, 7.5, 3.2, '.', rng, .25)
+    g.rect(9, 12, 2, 2, '.'); g.put(9, 13, 'u'); g.put(10, 13, 'u')
+    g.rect(9, 3, 2, 4, '.')                                  # the neck
+    g.blob(9.5, 2, 4, 1.6, '.', rng, .2)                     # the dark past it, where the brood came from
+    g.put(8, 7, 'k'); g.put(11, 7, 'k')                      # a shield-wall of crates and packs across the neck's mouth
+    for (x, y) in [(4, 9), (15, 10), (6, 11), (13, 8)]:
+        g.put(x, y, ',')
+    for (x, y) in [(5, 8), (14, 11)]:
+        g.put(x, y, 'b')
+    g.warp(9, 13, 'highway_2', 58, 3, 'down', sfx='stairs'); g.warp(10, 13, 'highway_2', 58, 3, 'down', sfx='stairs')
+    g.npc('halldorPin', 9, 6, 'halldor', dir='down', cond='!flag:captainFound')
+    g.npc('pinA', 10, 6, 'dtrooper', dir='down', cond='!flag:captainFound')
+    g.npc('pinB', 9, 5, 'dtrooper2', dir='down', cond='!flag:captainFound')
+    g.npc('pinC', 10, 5, 'dtrooper', dir='down', cond='!flag:captainFound')     # down: the two carried out after
+    g.npc('pinD', 9, 4, 'dtrooper2', dir='down', cond='!flag:captainFound')
+    g.trig('pinned', 7, 8, 'pinned', on='step', w=6, h=3, cond='!flag:captainFound')
+    g.trig('neck', 9, 3, 'neck', on='step', w=2, cond='flag:captainFound & !flag:petition')
+    g.put(9, 0, '#'); g.put(10, 0, '#'); g.put(9, 1, 'u'); g.put(10, 1, 'u')
+    g.warp(9, 1, 'nest', 11, 14, 'up', cond='flag:petition')
+    g.warp(10, 1, 'nest', 12, 14, 'up', cond='flag:petition')
+    g.sign(8, 7, 'Crates and packs, stacked for a wall. The rock behind them is scratched from the inside, as if something had come through it.', RECUT + ' §2 beat 3 (they phase through rock, so a seal fails and a charge finds nothing)')
+    save('pinned', g, 'cave', 'The north cut', music='highway', bg='cavern', save=False, dark=True, legend=HW,
+         lights=[{'x': 9, 'y': 6, 'r': 40, 'cond': '!flag:captainFound'}])
+
+    # ---- the nest (beat 5): the phase spiders' brood-gallery, deeper past the neck. Cocoons in the walls, and her
+    W, H = 24, 16
+    rng = _r.Random(6606)
+    g = Grid(W, H, '#')
+    g.blob(11.5, 9, 10, 4.5, '.', rng, .3)
+    g.blob(11.5, 3.5, 6, 2.4, '.', rng, .2)                  # the brood chamber
+    g.rect(11, 12, 2, 4, '.'); g.put(11, 15, 'u'); g.put(12, 15, 'u')
+    for (x, y) in [(3, 7), (4, 10), (19, 8), (20, 11), (7, 4), (16, 3), (6, 12), (17, 12), (9, 2), (14, 2)]:
+        if g.get(x, y) == '.':
+            g.put(x, y, 'Q')
+    for (x, y) in [(5, 9), (18, 10), (12, 6)]:
+        g.put(x, y, 'b')
+    g.warp(11, 15, 'pinned', 9, 2, 'down', sfx='stairs'); g.warp(12, 15, 'pinned', 10, 2, 'down', sfx='stairs')
+    g.trig('brood', 8, 2, 'brood', on='step', w=8, h=4, cond='!flag:nestCrushed')
+    g.trig('cocoons', 0, 0, 'cocoon', on='use', w=W, h=H)
+    g.zone('nest', 0, 5, W, 11, cond='!flag:nestCrushed')
+    save('nest', g, 'cave', 'The nest', music='highway', bg='cavern', save=False, dark=True, legend=HW)
+
+    # ---- leg three: Second Lamp to Third Lamp (duergar and their stone giant, a xorn in the seam, cloakers; Third Lamp)
+    # Third Lamp has three states: held (before the word from below), taken (the raid), and lit again
     W, H = 76, 24
     rng = _r.Random(6303)
     g = Grid(W, H, '#')
@@ -1322,36 +1474,81 @@ def build_highway():
         g.put(x, 14, 'S'); seals.append({'x': x, 'y': 14})
     g.blob(31, 5, 4, 2.4, '.', rng, .3)                      # where the xorn has been eating the seam
     g.put(31, 9, ','); g.put(31, 8, ','); g.put(30, 8, ','); g.put(32, 7, ',')
-    # Third Lamp: taken by the raid
-    station(g, 60, 3, 16, 17, (68, 5), False, seals)
+    g.blob(44, 18, 5, 2.6, '.', rng, .3); g.put(44, 14, '.'); g.put(44, 15, '.')   # the duergar's cut, south, and their giant
+    g.put(42, 19, 'T'); g.put(47, 18, 'k')
+    # Third Lamp
+    station(g, 60, 3, 16, 17, (68, 5), True, seals)
     for y in range(10, 14):
         g.put(60, y, '_')
         g.put(75, y, '_')
     for (x, y) in [(63, 8), (64, 8), (72, 14), (73, 14), (66, 15)]:
-        g.put(x, y, 'k')
+        g.flagtile(x, y, 'crateCave', 'flag:wordBelow')
     for (x, y) in [(71, 17), (73, 17), (71, 16)]:
         g.put(x, y, ';')
-    g.put(69, 17, 'B')
+    g.flagtile(69, 17, 'bodyCaptain', 'flag:wordBelow')
     g.rect(73, 5, 2, 2, '~')
-    g.flagtile(68, 5, 'lampTower', 'flag:lamp3')
-    g.npc('brannLamp', 66, 7, 'brann', dir='down', cond='flag:lamp3 & !flag:noEscort')
-    g.npc('heddaLamp', 70, 7, 'hedda', dir='down', cond='flag:lamp3 & !flag:noEscort')
-    g.trig('raid', 57, 10, 'raid', on='step', h=4, cond='!flag:lamp3')
-    g.trig('tower3', 68, 5, 'lampTower', 3, on='use', cond='flag:lamp3')
+    g.flagtile(68, 5, 'lampTowerDark', 'flag:wordBelow & !flag:raidWon')
+    g.npc('geir', 67, 7, 'dtrooper', dir='down', name='Geir Silversands', cond='!flag:wordBelow')
+    g.npc('lamp3a', 64, 12, 'dtrooper2', dir='right', cond='!flag:wordBelow')
+    g.npc('lamp3b', 72, 9, 'dtrooper', dir='left', cond='!flag:wordBelow')
+    g.npc('brannLamp', 66, 7, 'brann', dir='down', cond='flag:raidWon & !flag:noEscort')
+    g.npc('heddaLamp', 70, 7, 'hedda', dir='down', cond='flag:raidWon & !flag:noEscort')
+    g.trig('lampArrive3', 60, 10, 'lampArrive', 3, on='step', h=4, cond='!flag:lamp3 & !flag:wordBelow')
+    g.trig('raid', 57, 10, 'raid', on='step', h=4, cond='flag:wordBelow & !flag:raidWon')
+    g.trig('tower3', 68, 5, 'lampTower', 3, on='use', cond='!flag:wordBelow | flag:raidWon')
     g.trig('xorn', 29, 10, 'xorn', on='step', w=3, h=4, cond='!flag:xornDone')
-    g.trig('captain', 69, 17, 'captain', on='use')
-    g.trig('leavings', 66, 15, 'leavings', on='use', cond='flag:lamp3')
-
+    g.trig('giant', 42, 16, 'giant', on='step', w=5, h=3, cond='!flag:giantDone')
+    g.trig('captain', 69, 17, 'captain', on='use', cond='flag:wordBelow')
+    g.trig('leavings', 66, 15, 'leavings', on='use', cond='flag:raidWon')
+    g.trig('deepholmRoad', 74, 10, 'deepholmRoad', on='step', h=4, cond='!flag:wordBelow')
     g.zone('hw3', 0, 0, 56, H)
-    save('highway_3', g, 'cave', 'The Highway — to the Third Lamp', music='highway', bg='highway', save=False, dark=True, legend=HW,
-         highway=3, seals=seals, lights=[{'x': 68, 'y': 5, 'r': 84, 'cond': 'flag:lamp3'}],
-         exits={'west': {'to': 'highway_2', 'tx': 74, 'ty': 11, 'dir': 'left'}, 'east': {'to': 'threshold', 'tx': 1, 'ty': 8, 'dir': 'right'}})
+    save('highway_3', g, 'cave', 'The road to Third Lamp', music='highway', bg='highway', save=False, dark=True, legend=HW,
+         highway=3, seals=seals, lights=[{'x': 68, 'y': 5, 'r': 84, 'cond': '!flag:wordBelow | flag:raidWon'}],
+         exits={'west': {'to': 'highway_2', 'tx': 74, 'ty': 11, 'dir': 'left'}, 'east': {'to': 'highway_4', 'tx': 1, 'ty': 11, 'dir': 'right'}})
 
-    # ---- Deepholm's door: the small spot where the highway ends (spec §6.4). One screen: the gate, the bench, the road behind
+    # ---- leg four (RULED 09-26c, his word: "a 4 day journey"): Third Lamp to Deepholm's door. The drow's fallback line,
+    # the deep-water crossing, and halfway the carved road gives way to made road; an earth elemental in the made road's cut
+    W, H = 80, 24
+    rng = _r.Random(6404)
+    g = Grid(W, H, '#')
+    road(g, 0, 79, 11)
+    seals = []
+    for x in (9, 24):
+        g.put(x, 9, 'S'); seals.append({'x': x, 'y': 9})
+    g.put(18, 14, 'S'); seals.append({'x': 18, 'y': 14})
+    # the drow fell back here after Third Lamp: a line of their crates across the road
+    for y in (9, 14):
+        g.put(15, y, 'k')
+    g.put(16, 8, 'b'); g.put(14, 15, ',')
+    # the deep water: the road goes across it on a causeway of dressed blocks; the rest is black and cold
+    g.blob(36, 11.5, 7, 6, 'w', rng, .15)
+    g.rect(29, 10, 15, 4, '.'); g.rect(29, 11, 15, 2, '_')
+    for x in range(30, 43):
+        g.put(x, 10, 'w'); g.put(x, 13, 'w')
+    # the troll hole, a cavern off the south side
+    g.blob(52, 18, 5, 2.8, '.', rng, .3); g.put(52, 14, '.'); g.put(52, 15, '.')
+    g.put(50, 19, 'b'); g.put(54, 18, 'b'); g.put(53, 20, ',')
+    # halfway: the made road begins (the first dressed stone the door's sign spoke of)
+    for x in range(46, 80):
+        for y in (11, 12):
+            g.put(x, y, 'm')
+    g.rect(62, 8, 5, 8, '.'); g.rect(62, 11, 5, 2, 'm')          # the made road's cut, where the rock moves
+    g.put(61, 9, ','); g.put(67, 14, ',')
+    g.trig('fallback', 13, 10, 'fallback', on='step', h=4, cond='!flag:fallbackDone')
+    g.trig('naga', 33, 11, 'naga', on='step', h=2, cond='!flag:nagaDone')
+    g.trig('trolls', 50, 16, 'trolls', on='step', w=5, h=3, cond='!flag:trollsDone')
+    g.trig('elemental', 63, 10, 'elemental', on='step', h=4, cond='!flag:elementalDone')
+    g.sign(46, 9, 'Here the carved road ends and a made road begins: dressed stone, laid, not cut. The first since Solskaft.', RECUT + ' §4 (the first dressed stone moves to this leg\'s midpoint)')
+    g.zone('hw4', 0, 0, 80, H)
+    save('highway_4', g, 'cave', "The road to Deepholm's door", music='highway', bg='highway', save=False, dark=True,
+         legend=dict(HW, m='madeRoad'), highway=4, seals=seals,
+         exits={'west': {'to': 'highway_3', 'tx': 74, 'ty': 11, 'dir': 'left'}, 'east': {'to': 'threshold', 'tx': 1, 'ty': 8, 'dir': 'right'}})
+
+    # ---- Deepholm's door: the small spot where the highway ends (spec §6.4), where the fourth day ends now. One screen
     W, H = 18, 15
     g = Grid(W, H, '#')
-    g.rect(1, 4, 16, 9, 'm')                               # the made road: the first dressed stone in three days
-    g.rect(0, 7, 3, 3, '_')                                # where the carved road comes in
+    g.rect(1, 4, 16, 9, 'm')                               # the made road's end
+    g.rect(0, 7, 3, 3, 'm')
     for y in range(4, 13):
         g.put(17, y, 'h')
     g.put(17, 7, 'D'); g.put(17, 8, 'D'); g.put(17, 9, 'd')  # the door, three tall; light under it
@@ -1364,10 +1561,10 @@ def build_highway():
     g.trig('deepDoor', 17, 7, 'deepDoor', on='use', h=3)
     g.trig('tariff', 10, 3, 'tariff', on='use')
     g.sign(12, 11, 'The weigh-station. The weights are honest. Nobody here would know how to make them otherwise.', SPEC_REF + ' §6.4 (a weigh-station)')
-    g.sign(5, 12, "A stone bench, worn in the middle by three days' worth of the tired.", SPEC_REF + ' §6.4 (a bench)')
+    g.sign(5, 12, "A stone bench, worn in the middle by four days' worth of the tired.", SPEC_REF + ' §6.4 (a bench); ' + RECUT + ' §4 (four days)')
     save('threshold', g, 'cave', "Deepholm's Door", music='highway', bg='highway', save=True, dark=True, legend=dict(HW, **{'m': 'madeRoad', 'D': 'deepDoor', 'd': 'deepDoorSill', 'G': 'grille', 'Y': 'tariffLive', '%': 'scales', 'n': 'bench'}),
          lights=[{'x': 16, 'y': 8, 'r': 90, 'col': 'rgba(255,200,120,0.22)'}, {'x': 14, 'y': 4, 'r': 40}],
-         exits={'west': {'to': 'highway_3', 'tx': 74, 'ty': 11, 'dir': 'left'}})
+         exits={'west': {'to': 'highway_4', 'tx': 78, 'ty': 11, 'dir': 'left'}})
 
 
 if __name__ == '__main__':

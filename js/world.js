@@ -417,10 +417,6 @@
     var tint = this.tint || m.src.tint; // scripts can drop night over a map (the wagon night)
     if (tint) { ctx.globalAlpha = tint[1]; ctx.fillStyle = tint[0]; ctx.fillRect(0, 0, 256, 240); ctx.globalAlpha = 1; }
     if (!this.chase) this.drawPin(ctx, cx, cy);
-    if (m.src.highway && !this.hidePlayer) { // the day-clock (spec §6.2): time passing is the cheapest way a road feels three days long
-      var hud = 'LAMP ' + m.src.highway + ' · DAY ' + m.src.highway, hw = DS.textWidth(hud) + 14;
-      DS.win(ctx, 4, 222, hw, 15); DS.text(ctx, hud, 11, 226, '#F8D878');
-    }
     if (this.banner > 0) {
       this.banner--;
       var w = DS.textWidth(m.name) + 20;
@@ -474,6 +470,12 @@
     var v = ctx.createLinearGradient(0, y0, 0, y1); // brighter toward the top, where the sky is
     v.addColorStop(0, 'rgba(255,250,230,0.14)'); v.addColorStop(1, 'rgba(255,250,230,0)');
     ctx.fillStyle = v; ctx.fillRect(x0, Math.max(0, y0), w, Math.min(240, y1) - Math.max(0, y0));
+    if (b.land) { // where it lands: noon pooled on the oath-stone (re-cut §5: "At noon the light lands here.")
+      var lx = b.land[0] * 16 + 8 - cx, ly = b.land[1] * 16 + 10 - cy, pr = 22 + Math.sin(DS.frame / 50) * 2;
+      var pg = ctx.createRadialGradient(lx, ly, 2, lx, ly, pr);
+      pg.addColorStop(0, 'rgba(255,248,220,0.34)'); pg.addColorStop(1, 'rgba(255,240,200,0)');
+      ctx.fillStyle = pg; ctx.fillRect(lx - pr, ly - pr, pr * 2, pr * 2);
+    }
     for (var i = 0; i < 26; i++) { // the motes: each drifts down and sideways on its own slow sine
       var hh = y1 - y0, my = y0 + ((i * 97 + DS.frame * (0.25 + (i % 5) * 0.06)) % hh), mx = x0 + ((i * 53) % w) + Math.sin(DS.frame / 40 + i) * 5;
       if (my < -2 || my > 242) continue;

@@ -1,18 +1,18 @@
 {
 "id": "highway_2",
-"name": "The Highway — to the Second Lamp",
+"name": "The road to Second Lamp",
 "tileset": "cave",
 "rows": [
 "############################################################################",
 "####################################CCC#C###################################",
-"#############################CCCCCCCCCCCCCCC################################",
-"############################CCCCCCCCCCCCCCCCCCCCC###############hhhhhhhhhhhh",
-"#########################CCCCCCCCCCCCCCCCCCCCCCCCC##############h_;;___N_~~h",
-"########################CCCCCCCCCCCCCC^CCCCCCCCCCCCC############h____l_____h",
-"######################CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC#########h_;________h",
-"#####################C.._____________________________..#########h__________h",
-"#####################C.._____________________________..#########h__________h",
-"######S#######S######C..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC..#########h__________h",
+"#############################CCCCCCCCCCCCCCC##############u#################",
+"############################CCCCCCCCCCCCCCCCCCCCC#########.#####hhhhhhhhhhhh",
+"#########################CCCCCCCCCCCCCCCCCCCCCCCCC#######..#####h_;;_____~~h",
+"########################CCCCCCCCCCCCCC^CCCCCCCCCCCCC######.,####h____L_____h",
+"######################CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC###.#####h_;________h",
+"#####################C.._____________________________..###.#####h__________h",
+"#####################C.._____________________________..###.#####h__________h",
+"######S#######S######C..CCCCCCCCCCCCCCCCCCCCCCCCCCCCC..###.#####h__________h",
 "........................CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...........____________",
 "____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
 "____________________....CCCCCCCCCCCCCCCCCCCCCCCCCCCCC...____________________",
@@ -54,7 +54,7 @@
 "^": "stalag",
 "f": "fungus",
 ":": "gravel",
-"m": "minecart",
+"m": "madeRoad",
 "k": "crateCave",
 "*": "glowmoss",
 "0": "chimney",
@@ -116,8 +116,7 @@
 {
 "x": 69,
 "y": 5,
-"r": 84,
-"cond": "flag:lamp2Lit"
+"r": 84
 }
 ],
 "exits": {
@@ -134,12 +133,55 @@
 "dir": "right"
 }
 },
+"npcs": [
+{
+"id": "thyra",
+"x": 71,
+"y": 6,
+"look": "thyra",
+"dir": "down",
+"name": "Thyra Silversands"
+},
+{
+"id": "lamp2a",
+"x": 67,
+"y": 8,
+"look": "dtrooper2",
+"dir": "right"
+},
+{
+"id": "lamp2b",
+"x": 73,
+"y": 7,
+"look": "dtrooper",
+"dir": "left",
+"idle": true
+},
+{
+"id": "lamp2c",
+"x": 68,
+"y": 11,
+"look": "dtrooper2",
+"dir": "down"
+}
+],
+"warps": [
+{
+"x": 58,
+"y": 2,
+"to": "pinned",
+"tx": 9,
+"ty": 12,
+"dir": "up",
+"sfx": "stairs"
+}
+],
 "signs": [
 {
-"x": 71,
-"y": 4,
-"text": "Slates on a nail: the watch-roster. The last line is a date, and no relief after it.",
-"src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3, §10-5 (the Second Lamp's dark)"
+"x": 59,
+"y": 8,
+"text": "A side cut, north off the road. Fresh boot-marks going up it, dwarven, and none coming back.",
+"src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 3 (off the highway: a side cavern)"
 }
 ],
 "triggers": [
@@ -203,6 +245,45 @@
 "on": "step",
 "script": "drainCut",
 "cond": "!flag:puddingDead"
+},
+{
+"id": "pyroRoad1",
+"rect": [
+9,
+10,
+1,
+4
+],
+"on": "step",
+"script": "pyroRoad",
+"arg": 1,
+"cond": "flag:pyroLeads & !flag:captainFound & !flag:pyroRoad1"
+},
+{
+"id": "pyroRoad2",
+"rect": [
+22,
+7,
+2,
+6
+],
+"on": "step",
+"script": "pyroRoad",
+"arg": 2,
+"cond": "flag:pyroLeads & !flag:captainFound & !flag:pyroRoad2"
+},
+{
+"id": "pyroRoad3",
+"rect": [
+56,
+10,
+1,
+4
+],
+"on": "step",
+"script": "pyroRoad",
+"arg": 3,
+"cond": "flag:pyroLeads & !flag:captainFound & !flag:pyroRoad3"
 }
 ],
 "zones": [

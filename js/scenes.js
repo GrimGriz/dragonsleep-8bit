@@ -108,6 +108,48 @@
     try { window.open(DS.DATA.config.kofi, '_blank', 'noopener'); } catch (e) { }
   };
 
+  // ------------------------------------------------------------------ the round-six start (Griz 09-27, for the re-cut's playtest)
+  // "all the char at lvl 4, all quests done but as if they've never gone to the half-way in the whole game, start in Silverton".
+  // Reached with ?round6 on the URL: the lead is picked as usual, then the party stands on Fountain Street in this state.
+  // Flag names per events.js (errands 396-473, the five 602-720, cradles 596, cull 731-761, tail/ettercap 356-371 and 777-807,
+  // the Hex 524-564, the Snoot 810-821, Winters' ring 409-417); the six majors put everyone on their +2 weapon (events.js 153-173).
+  DS.round6 = /[?&]round6\b/.test(location.search || '');
+  DS.roundSix = function (G) {
+    var D = DS.DATA, f = G.flags;
+    function set(o) { Object.keys(o).forEach(function (k) { f[k] = o[k]; }); }
+    var ids = [G.lead].concat(['barley', 'aurdin', 'vivian', 'lymen'].filter(function (id) { return id !== G.lead; }));
+    G.party = ids.map(function (id) { return R.makeHero(id, 4); }); // Vivian's archetype stays pending: the field asks, the player chooses
+    G.hired = ids.slice(); G.guests = [];
+    G.inv = [];
+    [['potion', 3], ['greaterpotion', 1], ['simples', 4], ['kit', 3], ['draught', 2], ['batpie', 2], ['rope', 1], ['oil', 3], ['torch', 2], ['cord', 1], ['tent', 1]]
+      .forEach(function (s) { if (D.items[s[0]]) G.give(s[0], s[1]); });
+    if (G.lead !== 'vivian' && D.items.candle) G.give('candle', 1);
+    G.party.forEach(function (h) { var rw = D.heroes[h.id].rewardWeapons; if (rw) h.equip.weapon = rw[1]; });
+    f.majors = 6;
+    G.main().equip.ring = 'ringofbinding';                                 // When You're Ready: Winters' ring, to the lead
+    var bare = G.party.filter(function (h) { return !h.equip.ring; }).sort(function (a, b) { return R.ac(a) - R.ac(b); })[0];
+    if (bare) bare.equip.ring = 'ringofprotection';                        // the dens' chest
+    set({ wintersMet: 1, heardWinters: 1, wErrA: 1, wSealed: 1, wValued: 1, wErrADone: 1, wErrB: 1, wSigned: 1, wPaid: 1, wErrBDone: 1 });
+    set({ heardPete: 1, heardWarrens: 1, tallyMet: 1, fiveKnown: 1, skarnOk: 1, skarnGateOpen: 1, landlordSpoke: 1, otyughFed: 1,
+          markRead: 1, fiveRecovered: 1, fiveDone: 1, skarnPaid: 1, fiveNotice: 1, 'trig:jelly': 1, 'trig:ooze': 1 });
+    set({ shifts: 3, hobMet: 1 });
+    set({ heardGalleries: 1, cullHired: 1, rescued: 1, cullDone: 1, 'trig:rescue': 1, paidBats: 8, paidMantles: 2 });
+    set({ heardCloaker: 1, cloakerDone: 1, heardEttercap: 1, ettercapDone: 1, 'trig:snared': 1 });
+    set({ heardHex: 1, 'hex:brawl': 1, 'hex:freeman': 1, 'hex:card': 1, 'hex:talmok': 1, talmokBeaten: 1 });
+    set({ heardSnoot: 1, snootDone: 1, snootWord: 1 });
+    ['r-ettercap', 'r-cloaker', 'r-cloakerNumber', 'r-nobodyCollected', 'r-lantern', 'r-dwarves', 'r-hexcard', 'r-fronted', 'r-boxes', 'r-deathround',
+     'r-talmok', 'r-snoot', 'r-snootreach', 'r-escort', 'r-scaleslit', 'r-doserate', 'r-mouths', 'r-shibboleth', 'r-guanowages', 'r-roost', 'r-coldridge',
+     'r-maps', 'r-pete', 'r-promised', 'r-stream', 'r-winters', 'r-webgulch'].forEach(function (id) { f['heard:' + id] = 1; });
+    ['warrens_b:1,9', 'warrens_c:13,14', 'warrens_c:30,5', 'warrens_c:41,5', 'warrens_d:38,21', 'galleries_g3:50,17', 'galleries_g4:25,17', 'gulch:33,8', 'gulch:19,24']
+      .forEach(function (k) { f['chest:' + k] = 1; });
+    G.kills = { crawler: 3, 'warrens_d:crawler': 3, giantbat: 12, 'g3:giantbat': 8, darkmantle: 2, 'g3:darkmantle': 2, cloaker: 1, ettercap: 1, talmok: 1 };
+    G.renown = 8; G.silver = 1500;
+    set({ heardLake: 1, 'heard:r-lake': 1, 'heard:r-halfway': 1, pin: 'lake' });
+    G.map = 'silverton'; G.x = 29; G.y = 8; G.dir = 'down';
+    G.time = 6 * 3600 * 60;
+    return G;
+  };
+
   // ------------------------------------------------------------------ Lead select
   function LeadSelect() { this.kind = 'lead'; this.opaque = true; this.i = 0; this.ids = ['barley', 'aurdin', 'vivian', 'lymen']; }
   LeadSelect.prototype.update = function () {
@@ -119,16 +161,18 @@
       DS.audio.sfx('confirm');
       var id = this.ids[this.i], d = DS.DATA.heroes[id];
       DS.run(function* () {
-        var ok = yield DS.ask('Begin as ' + d.name + '? The other three can be found in play, and hired.', ['BEGIN', 'BACK']);
+        var ok = yield DS.ask(DS.round6 ? 'Round six, led by ' + d.name + '? The other three are already with you.' : 'Begin as ' + d.name + '? The other three can be found in play, and hired.', ['BEGIN', 'BACK']);
         if (ok !== 0) return;
         DS.newGame(id); DS.bindState(DS.G);
+        if (DS.round6) DS.roundSix(DS.G);
         yield DS.fade(1, 30);
         DS.clearScenes();
         var F = DS.field = new DS.Field();
         DS.push(F);
-        var st = DS.DATA.config.start;
+        var st = DS.round6 ? { map: DS.G.map, x: DS.G.x, y: DS.G.y, dir: DS.G.dir } : DS.DATA.config.start;
         F.load(st.map, st.x, st.y, st.dir);
         yield DS.fade(0, 30);
+        if (DS.round6) { yield DS.say('ROUND SIX. All four of you at level 4, every quest done but the Halfway Inn and the lake. Fountain Street, and the road south is waiting.'); return; }
         yield* DS.EV.intro(id);
       });
     }
