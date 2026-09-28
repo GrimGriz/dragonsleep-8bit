@@ -15,6 +15,15 @@
   function abil(u, a) { return isHero(u) ? u.h.abil[a] : (u.m.abil[a] || 10); }
   function incap(u) { return u.conds.paralyzed || u.conds.asleep || u.conds.stunned; }
   function tags(u) { return isHero(u) ? ['humanoid'] : (u.m.tags || []); }
+  // what Protection from Evil and Good wards against (SRD 5.1): aberrations, celestials, elementals, fey, fiends and the dead
+  function otherworld(u) { return /^(aberration|celestial|elemental|fey|fiend|undead)$/.test(tags(u)[0] || ''); }
+  // one ward-able condition from one otherworldly (frightened, charmed) on one under the ward: nothing
+  function pfegStops(t, f, cond) { return !!(t && t.conds.pfeg && f && otherworld(f) && /frightened|charmed/.test(cond || '')); }
+  // the minute's spells running out (09-28g): what the card says as each goes
+  var END_TEXT = { spiritWeapon: "'s spiritual weapon fades.", magicWeapon: "'s weapon is plain steel again.", branding: "'s waiting light goes out.",
+    pfeg: "'s ward against the otherworldly fades.", sanctuary: "'s sanctuary fades." };
+  // Command's word falls on no ears among the dead and the witless (the grid's reading: deep16/js/grimoire.js deaf)
+  function deafTo(u) { return tags(u)[0] === 'undead' || abil(u, 'int') <= 3; }
 
   function Battle(o) {
     var self = this;
@@ -213,6 +222,7 @@
     if (a.conds.hidden && !eyeT) adv++;
     if (a.conds.invisible && !eyeT) adv++;
     if (t.conds.invisible && !a.conds.seeInvisible && !eyeA) dis++;
+    if (t.conds.pfeg && otherworld(a)) dis++; // Protection from Evil and Good (SRD 5.1; 09-28g)
     if (this.blindTo(a) && typeof R.BLIND !== 'number') dis++; // shooting blind: the SRD's disadvantage (the -4 is the other switch)
     if (this.dark && !this.lit && this.seesDark(a) && !this.seesDark(t)) adv++; // unseen attacker (SRD): the one who sees in the dark on the one who does not
     if (a.conds.reckless) adv++;
@@ -464,9 +474,16 @@
         if (down(u)) { yield* this.hold(nameOf(u) + ' falls!'); return; }
       } else delete u.conds.attached;
     }
+    // Command's word (SRD 5.1; 09-28g): it obeys on this turn, or the turn it could not take spends it
+    var word = !isHero(u) && u.conds.commanded ? u.conds.commanded.word : null;
+    if (word) delete u.conds.commanded;
+    // the floating weapon (Spiritual Weapon): it swings as its caster's turn opens (the SRD's bonus action)
+    if (isHero(u) && u.conds.spiritWeapon && !incap(u) && this.liveFoes().length) yield* this.spiritStrike(u);
     if (incap(u)) {
       var why = u.conds.paralyzed ? 'is paralyzed' : u.conds.asleep ? 'is asleep' : 'is stunned';
       yield* this.say(nameOf(u) + ' ' + why + '!', 34);
+    } else if (word) {
+      yield* this.obey(u, word);
     } else if (isHero(u) && !this.liveFoes().length && this.foesLeft().length) { // everything left is in the rock: nothing to strike
       yield* this.say(nameOf(u) + ' waits, watching the walls.', 30);
     } else if (isHero(u)) {
@@ -486,7 +503,7 @@
         var s = self.save(u, c.save.ab, c.save.dc, { poison: k === 'poisoned' });
         if (s.success) { delete u.conds[k]; msgs.push(plain(u) + ' shakes off ' + k + '.'); return; }
       }
-      if (c.rounds != null) { c.rounds--; if (c.rounds <= 0) { delete u.conds[k]; if (k !== 'hidden' && k !== 'blinded') msgs.push(plain(u) + ' is no longer ' + k + '.'); } }
+      if (c.rounds != null) { c.rounds--; if (c.rounds <= 0) { delete u.conds[k]; if (END_TEXT[k]) msgs.push(plain(u) + END_TEXT[k]); else if (k !== 'hidden' && k !== 'blinded') msgs.push(plain(u) + ' is no longer ' + k + '.'); } }
     });
     // conditions that ride on another
     Object.keys(u.conds).forEach(function (k) { var c = u.conds[k]; if (c && c.linked && !u.conds[c.linked]) { delete u.conds[k]; msgs.push(plain(u) + ' can move again.'); } });
@@ -495,18 +512,58 @@
     for (var i = 0; i < msgs.length; i++) yield* this.say(msgs[i], 34);
   };
 
+  // Command's word, on the commanded one's own turn (SRD 5.1: each of the four ends the turn). FF-simple: FLEE is the turn spent
+  // backing off; DROP lets go of whoever it holds
+  Battle.prototype.obey = function* (f, word) {
+    f.acted = true;
+    if (word === 'grovel') { f.conds.prone = true; yield* this.say(nameOf(f) + ' GROVELS, face to the ground. Its turn is gone.', 44); return; }
+    if (word === 'drop') {
+      var held = f.holding ? f.holding.slice() : [];
+      held.forEach(function (t) { delete t.conds.grappled; delete t.conds.engulfed; delete t.conds.blinded; delete t.conds.restrained; delete t.conds.attached; }); // (as kill() lets go)
+      f.holding = [];
+      yield* this.say(nameOf(f) + ' DROPS ' + (held.length ? held.map(plain).join(' and ') : 'what it holds') + '. Its turn is gone.', 44);
+      return;
+    }
+    if (word === 'flee') { f.off = -10; yield* this.say(nameOf(f) + ' FLEES from the word, and comes back to itself too late.', 44); f.off = 0; return; }
+    yield* this.say(nameOf(f) + ' HALTS. It does nothing.', 40);
+  };
+  // the floating weapon's swing (Spiritual Weapon, SRD 5.1): a melee spell attack at a foe, 1d8 + the caster's modifier force
+  Battle.prototype.spiritStrike = function* (u) {
+    var sw = u.conds.spiritWeapon, foes = this.liveFoes(); if (!sw || !foes.length) return;
+    var t = foes.slice().sort(function (a, b) { return a.hp - b.hp; })[0];
+    var nat = this.d20(this.advantage(u, t, true)), atk = R.spellAtk(u.h);
+    this.bolt(u, t, '#E8F0FF'); yield this.wait(8);
+    if (nat === 1 || (nat !== 20 && nat + atk < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('The spiritual weapon swings at ' + nameOf(t) + ' and misses.', 30); return; }
+    var d = this.hurt(t, DS.roll(sw.dice, { crit: nat === 20 }) + DS.mod(u.h.abil[R.CLASSES[u.h.cls].cast]), 'force', { magicWeapon: true });
+    this.elemBurst(t, 'force'); t.flash = 12; DS.audio.sfx('hit'); this.num(t, d, '#F8D878');
+    yield* this.say('The spiritual weapon strikes ' + nameOf(t) + ' for ' + d + '.', 34);
+    yield* this.flushMsg();
+    if (down(t)) yield* this.say(nameOf(t) + ' is defeated!', 30);
+  };
+  // Sanctuary (SRD 5.1): one who would strike the warded saves WIS first; failed, it turns on another, or the blow is lost
+  Battle.prototype.wardCheck = function* (f, t) {
+    if (!t || t === 'none' || !t.conds.sanctuary || down(t)) return t;
+    var s = this.save(f, 'wis', t.conds.sanctuary.dc);
+    if (s.success) return t;
+    var alt = this.liveHeroes().filter(function (x) { return x !== t && !x.conds.sanctuary; });
+    if (alt.length) { var a = DS.pick(alt); yield* this.say(nameOf(f) + ' cannot bring itself to strike ' + nameOf(t) + ', and turns on ' + nameOf(a) + '.', 40); return a; }
+    yield* this.say(nameOf(f) + ' cannot bring itself to strike ' + nameOf(t) + '.', 40);
+    return null;
+  };
+
   // ------------------------------------------------------------------ hero turn
   // a guest's turn: at the nearest foe, with what it carries (never menu'd)
   Battle.prototype.guestTurn = function* (u) {
     var foes = this.liveFoes(), self = this;
     if (!foes.length) return;
     var hurt = this.liveHeroes().filter(function (x) { return x.h.hp < x.h.maxhp / 2; }).sort(function (a, b) { return a.h.hp / a.h.maxhp - b.h.hp / b.h.maxhp; })[0];
-    if (u.h.healer && (u.h.feats.heals || 0) > 0 && hurt) { // a guest who heals (Ingrith): Rekknar balances the account
+    if (u.h.healer && (u.h.feats.heals || 0) > 0 && hurt) { // a guest who heals by a counter (an older sheet's; Ingrith is a cleric since 09-28g)
       u.h.feats.heals--; var hv = this.heal(hurt, DS.roll('2d8+3'));
       DS.audio.sfx('heal'); this.elemBurst(hurt, 'heal', 'rise'); this.num(hurt, hv, '#58F898');
       yield* this.say(nameOf(u) + ' lays a hand on ' + nameOf(hurt) + '. +' + hv + ' HP.', 40);
       return;
     }
+    if (u.h.cls === 'cleric' && (yield* this.clericTurn(u))) return;
     var h = u.h, f = h.feats || {};
     // a fighter guest's own resources (Pyro's kit, re-cut §2 beat 2): Second Wind when hurt, Action Surge when two or more stand against him
     if (h.cls === 'fighter' && !h.wounded && f.secondWind && h.hp < h.maxhp * 0.4) {
@@ -524,6 +581,72 @@
       yield* this.heroAttack(u, t, { actions: 1, bonus: 0, surged: false, sneakUsed: true }, null);
       u.off = 0;
     }
+  };
+  // a cleric guest's turn (Ingrith, RULED 09-28g: "she's meant to be Cleric"; Life Domain, the SRD's, INFERENCE invented.json
+  // #ingrith-cleric): Rekknar balances the account. By the SRD's economy: a friend down, Healing Word (the bonus action) and the
+  // mace after; two or more low, Preserve Life; one low, Cure Wounds; the dead in number, Turn Undead; the first round against more
+  // than one, Bless; else the floating weapon (a bonus action) and the mace. Returns true when the turn is spent, false for the mace
+  Battle.prototype.clericTurn = function* (u) {
+    var h = u.h, self = this, f = h.feats || {}, wis = DS.mod(h.abil.wis), life = h.subclass === 'Life Domain';
+    function can(id) { var sp = DS.DATA.spells[id]; return !!(sp && sp.battle && (h.known || []).indexOf(id) >= 0 && (!sp.level || R.lowestSlot(h, sp.level))); }
+    function spend(id) { var sl = R.lowestSlot(h, DS.DATA.spells[id].level); h.slots[sl - 1]--; return sl; }
+    function mend(t, id, dice) { // a healing spell: its dice by the slot, WIS, and Disciple of Life (SRD 5.1: 2 + the slot's level)
+      var sl = spend(id), n = parseInt(dice, 10) || 1, die = dice.replace(/^\d*/, '');
+      var hv = self.heal(t, DS.roll((n * sl) + die) + wis + (life ? 2 + sl : 0));
+      DS.audio.sfx('heal'); self.elemBurst(t, 'heal', 'rise'); self.num(t, hv, '#58F898');
+      return hv;
+    }
+    var heroes = this.heroes, foes = this.liveFoes();
+    var downed = heroes.filter(function (x) { return down(x); });
+    var low = heroes.filter(function (x) { return !down(x) && x.h.hp < x.h.maxhp * 0.4; }).sort(function (a, b) { return a.h.hp / a.h.maxhp - b.h.hp / b.h.maxhp; });
+    // Preserve Life (Life 2, Channel Divinity): five times her level, shared out, none past half its maximum
+    if (life && h.lvl >= 2 && f.channel > 0 && downed.length + low.length >= 2) {
+      f.channel--; var pool = 5 * h.lvl, got = [];
+      downed.concat(low).forEach(function (x) { var g = Math.min(pool, Math.floor(x.h.maxhp / 2) - Math.max(0, x.h.hp)); if (g > 0) { pool -= g; self.heal(x, g); self.num(x, g, '#58F898'); self.elemBurst(x, 'heal', 'rise'); got.push(plain(x) + ' +' + g); } });
+      DS.audio.sfx('heal'); this.flashT = 4;
+      yield* this.say(nameOf(u) + ' raises Rekknar\'s mark: PRESERVE LIFE. ' + got.join(', ') + '.', 50);
+      yield* this.flushMsg();
+      return true;
+    }
+    if (downed.length && can('healingword')) { // the bonus action: the word, then the mace
+      var t0 = downed.filter(function (x) { return !x.guest; })[0] || downed[0], hw = mend(t0, 'healingword', '1d4');
+      yield* this.say(nameOf(u) + ' speaks a word to ' + nameOf(t0) + '. +' + hw + ' HP.', 40);
+      yield* this.flushMsg();
+      return false;
+    }
+    if ((downed.length || low.length) && can('curewounds')) {
+      var t1 = downed[0] || low[0], cw = mend(t1, 'curewounds', '1d8');
+      yield* this.say(nameOf(u) + ' lays a hand on ' + nameOf(t1) + ': Cure Wounds. +' + cw + ' HP.', 40);
+      yield* this.flushMsg();
+      return true;
+    }
+    // Turn Undead (every cleric, 2; Channel Divinity): the dead save WIS or are turned -- they cower from her (the 8-bit's frightened)
+    var dead = foes.filter(function (x) { return tags(x)[0] === 'undead' && !x.conds.frightened; });
+    if (h.lvl >= 2 && f.channel > 0 && dead.length >= 2) {
+      f.channel--; DS.audio.sfx('buff'); this.flashT = 6;
+      yield* this.say(nameOf(u) + ' presents Rekknar\'s mark: TURN UNDEAD.', 44);
+      var turned = [];
+      dead.forEach(function (x) { if (!self.save(x, 'wis', R.spellDC(h)).success) { x.conds.frightened = { rounds: 10 }; turned.push(plain(x)); } });
+      yield* this.say(turned.length ? turned.join(', ') + (turned.length > 1 ? ' turn' : ' turns') + ' from her and cower.' : 'The dead stand their ground.', 40);
+      return true;
+    }
+    if (this.round === 1 && foes.length > 1 && can('bless')) {
+      var blessed = this.liveHeroes().filter(function (x) { return !x.buff; }).slice(0, 3);
+      if (blessed.length >= 2) {
+        spend('bless'); blessed.forEach(function (x) { x.buff = { id: 'bless', name: 'Bless', rounds: 10 }; self.elemBurst(x, 'buff', 'rise'); });
+        DS.audio.sfx('buff');
+        yield* this.say(nameOf(u) + ' casts Bless: ' + blessed.map(plain).join(', ') + '.', 40);
+        return true;
+      }
+    }
+    if (!u.conds.spiritWeapon && foes.length && can('spiritualweapon')) { // the bonus action: the weapon, and its first swing; then the mace
+      spend('spiritualweapon'); u.conds.spiritWeapon = { dice: '1d8', rounds: 10 };
+      DS.audio.sfx('magic');
+      yield* this.say(nameOf(u) + ' calls up a spiritual weapon: a hammer of force, in the air beside her.', 40);
+      yield* this.spiritStrike(u);
+      return false;
+    }
+    return false;
   };
   Battle.prototype.heroTurn = function* (u) {
     var h = u.h, self = this;
@@ -553,9 +676,12 @@
         yield* this.heroAttack(u, t, st, null);
         used = true;
       } else if (cmd === 'magic') {
-        var sp = yield* this.pickSpell(u, castable);
+        var sp = yield* this.pickSpell(u, castable, st);
         if (!sp) continue;
         used = yield* this.castSpell(u, sp, st);
+        // a bonus-action spell (SRD 5.1; 09-28g, as the grid has them): the bonus action spent, the action still his -- but a spell
+        // with it may only be a cantrip (pickSpell greys the rest)
+        if (used && sp.bonus && st.bonus > 0) { st.bonus = 0; st.bonusSpell = true; used = false; }
       } else if (cmd === 'skill') {
         var sk = yield DS.choose({ items: skills, x: 0, y: 156 - Math.max(0, skills.length * 11 - 50), w: 120, rowH: 11, pad: 7 });
         if (!sk) continue;
@@ -619,15 +745,17 @@
     if (!list.length) return null;
     return yield W8.scene(new TargetScene(this, list, 'hero'));
   };
-  Battle.prototype.pickSpell = function* (u, list) {
+  Battle.prototype.pickSpell = function* (u, list, st) {
     var h = u.h, self = this;
     var roost = this.o.roost;
     var items = list.map(function (sp) {
       var lv = sp.id === 'smite' ? R.lowestSlot(h, 1) : sp.level ? R.lowestSlot(h, sp.level) : 0;
       // under a roost the fire and thunder spells are out (RULED 09-24): grayed. Light stays castable, and costs you.
       var banned = roost && (sp.el === 'fire' || sp.el === 'thunder');
-      var dis = (sp.level > 0 && !lv) || banned;
-      return { label: sp.name, value: sp, right: banned ? 'ROOST' : sp.level === 0 ? '—' : 'L' + (lv || sp.level), disabled: dis };
+      // the bonus action (09-28g): a bonus-action spell wants it free; after one, the action's spell may only be a cantrip
+      var noBonus = sp.bonus && st && !st.bonus, onlyCantrip = st && st.bonusSpell && sp.level > 0 && !sp.bonus && sp.id !== 'smite';
+      var dis = (sp.level > 0 && !lv) || banned || noBonus || onlyCantrip;
+      return { label: sp.name, value: sp, right: banned ? 'ROOST' : noBonus ? 'bonus' : sp.level === 0 ? '—' : 'L' + (lv || sp.level), disabled: dis };
     });
     var slotTxt = (h.slots || []).map(function (n, i) { return 'L' + (i + 1) + ':' + n + '/' + h.slotsMax[i]; }).join(' ');
     return yield DS.choose({
@@ -649,8 +777,10 @@
       var opening = h.subclass === 'Cutthroat' && this.round === 1 && !isHero(t) && !t.acted;
       if (opening) adv = adv < 0 ? 0 : 1;
       var nat = this.d20(adv), pen = this.blindPen(u), blindTxt = this.blindTxt(u);
-      var bonus = R.attackBonus(h, w) + (u.buff && u.buff.atk ? u.buff.atk : 0) + (u.buff && u.buff.id === 'bless' ? DS.d(4) : 0);
+      var mw = u.conds.magicWeapon ? u.conds.magicWeapon.b : 0; // Magic Weapon (09-28g): +1 (or more) to hit and damage, and magical
+      var bonus = R.attackBonus(h, w) + mw + (u.buff && u.buff.atk ? u.buff.atk : 0) + (u.buff && u.buff.id === 'bless' ? DS.d(4) : 0);
       var total = nat + bonus + pen, ac = this.acOf(t);
+      if (u.conds.sanctuary) { delete u.conds.sanctuary; this.pendingMsg = plain(u) + "'s sanctuary ends."; } // (the warded who strike lose the ward)
       var wasHidden = !!u.conds.hidden; delete u.conds.hidden;
       if (u.conds.invisible && u.conds.invisible.ends) delete u.conds.invisible; // (Invisibility, Mislead: the swing had its advantage; the spell is gone)
       // the cloaker's phantasms: a hit may land on an image
@@ -667,7 +797,7 @@
       var crit = nat >= R.critRange(h) || (melee && incap(t)) || opening;
       var dx = R.damageExpr(h, w);
       var gwf = h.cls === 'fighter' && R.twoHanded(h, w) && h.id === 'barley';
-      var dmg = (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod;
+      var dmg = (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod + mw;
       if (crit && h.id === 'lymen' && melee) dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks
       var extra = opening ? ' Opening cut!' : '', rad = 0;
       var sneaked = false;
@@ -681,7 +811,9 @@
         this.elemBurst(t, 'radiant');
       }
       if (u.buff && u.buff.id === 'divineFavor') rad += DS.d(4);
-      var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 });
+      // Branding Smite (09-28g): the waiting light goes into this blow, and the one struck glows (no invisibility on it)
+      if (u.conds.branding) { rad += DS.roll(u.conds.branding.dice, { crit: crit }); delete u.conds.branding; t.conds.revealed = true; delete t.conds.invisible; extra += ' Branded!'; this.elemBurst(t, 'radiant'); }
+      var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 || mw > 0 });
       if (rad) dealt += this.hurt(t, rad, 'radiant', {});
       var tImm = function (c) { return !isHero(t) && (t.m.condImmune || []).indexOf(c) >= 0; };
       if (crit && w.weapon.onCrit === 'prone' && !down(t) && !t.conds.prone && !tImm('prone')) { t.conds.prone = true; extra += ' Knocked flat!'; } // the Winnower threshes
@@ -795,6 +927,31 @@
     }
     var slot = sp.level ? R.lowestSlot(h, sp.level) : 0;
     if (sp.level && !slot) { yield* this.say('No spell slots left.', 30); return false; }
+    // Command (SRD 5.1; 09-28g, Lymen's list and the grid's asking): one foe that can understand, one word, WIS
+    if (sp.kind === 'command') {
+      if (!this.liveFoes().some(function (f) { return !deafTo(f); })) { yield* this.say('Nothing here would understand the word.', 36); return false; }
+      var ct = yield* this.pickFoe(function (f) { return !deafTo(f); }); if (!ct) return false;
+      var word = yield DS.choose({ items: [{ label: 'GROVEL', value: 'grovel', right: 'prone' }, { label: 'HALT', value: 'halt' }, { label: 'FLEE', value: 'flee' }, { label: 'DROP', value: 'drop', right: ct.holding && ct.holding.length ? 'held' : '' }], x: 40, y: 96, w: 140, rowH: 11, pad: 7 });
+      if (!word) return false;
+      h.slots[slot - 1]--; u.pose = 'cast'; u.poseT = 60; DS.audio.sfx(sp.sfx || 'magic');
+      if (u.conds.sanctuary) delete u.conds.sanctuary;
+      if (u.conds.invisible && u.conds.invisible.ends) delete u.conds.invisible;
+      yield* this.say(nameOf(u) + ': "' + word.toUpperCase() + '!"', 34);
+      var cs = this.save(ct, 'wis', R.spellDC(h));
+      if (cs.success) { yield* this.say(nameOf(ct) + ' shakes off the word. (' + cs.total + ' vs DC ' + R.spellDC(h) + ')', 36); u.pose = null; return true; }
+      ct.conds.commanded = { word: word }; this.elemBurst(ct, 'buff', 'fall');
+      yield* this.say(nameOf(ct) + ' will obey on its turn.', 34);
+      u.pose = null; return true;
+    }
+    // Spiritual Weapon (SRD 5.1; a cleric's): the floating weapon, its first swing now, and one each turn after (turn(), spiritStrike)
+    if (sp.kind === 'spiritweapon') {
+      if (!this.liveFoes().length) return false;
+      h.slots[slot - 1]--; u.pose = 'cast'; u.poseT = 60; DS.audio.sfx('magic');
+      u.conds.spiritWeapon = { dice: (1 + Math.floor((slot - 2) / 2)) + 'd8', rounds: 10 };
+      yield* this.say(nameOf(u) + ' casts ' + sp.name + '!', 34);
+      yield* this.spiritStrike(u);
+      u.pose = null; return true;
+    }
     // choose targets
     var targets = [];
     if (sp.target === 'enemy' || sp.target === 'cone' || sp.target === 'line') {
@@ -810,6 +967,9 @@
     else if (sp.target === 'ally') {
       var unarmored = sp.buff === 'mageArmor' ? function (x) { return !down(x) && !R.armored(x.h); } : null; // Mage Armor: an unarmored ally only
       if (unarmored && !this.heroes.some(unarmored)) { yield* this.say('No one here goes unarmored. Mage Armor has no one to take it.', 40); return false; }
+      // Magic Weapon: a weapon that is not magic already (SRD 5.1), in the hand of one standing
+      if (sp.buff === 'magicWeapon') unarmored = function (x) { var wx = R.weaponOf(x.h); return !down(x) && !x.conds.magicWeapon && wx.id !== 'unarmed' && !(wx.weapon.bonus || wx.weapon.magic); };
+      if (sp.buff === 'magicWeapon' && !this.heroes.some(unarmored)) { yield* this.say('Every blade here is magic already. Magic Weapon has nothing to take.', 40); return false; }
       var ta = yield* this.pickAlly(unarmored || (sp.kind === 'heal' ? function (x) { return true; } : null)); if (!ta) return false; targets = [ta]; // (a healing spell may go to one who is down: SRD, RULED 09-28)
     }
     else if (sp.target === 'allies') {
@@ -841,6 +1001,7 @@
     DS.audio.sfx(sp.sfx || 'magic');
     yield* this.say(nameOf(u) + ' casts ' + sp.name + '!', 34);
     if (u.conds.invisible && u.conds.invisible.ends) delete u.conds.invisible; // (Invisibility, Mislead: a spell cast ends it)
+    if (u.conds.sanctuary && targets.some(function (x) { return !isHero(x); })) delete u.conds.sanctuary; // (Sanctuary: a spell at a foe ends it)
     if (this.o.roost && ((sp.kind === 'light' && !sp.dim) || sp.buff === 'continualFlame' || sp.el === 'fire' || sp.el === 'thunder')) { // bright light (or fire) under the roost; dim light is lawful (RULED 09-28)
       this.usedFire = true; this.roostCause = sp.el === 'fire' ? 'fire' : 'light'; u.pose = null; return true;
     }
@@ -932,6 +1093,11 @@
         else if (sp.buff === 'continualFlame') { t.h.conds.continualFlame = t.h.equip.weapon || t.h.equip.armor || true; this.lit = true; this.flashT = 8; yield* this.dazzle(nameOf(u) + ' sets a flame on ' + plain(t) + "'s " + (R.item(t.h.equip.weapon) ? R.item(t.h.equip.weapon).name.toLowerCase() : 'gear') + ' that gives no heat.'); }
         else if (sp.buff === 'stoneskin') { t.conds.stoneskin = { rounds: 10 }; }
         else if (sp.buff === 'aid') { t.h.maxhp += 5 * (1 + up); t.h.hp += 5 * (1 + up); t.h.conds.aid = (t.h.conds.aid || 0) + 5 * (1 + up); }
+        // Lymen's list (09-28g; the grid's since 09-28, deep16/js/grimoire.js): for the fight (ten rounds, a minute), on the unit
+        else if (sp.buff === 'branding') { t.conds.branding = { dice: (2 + up) + 'd6', rounds: 10 }; }
+        else if (sp.buff === 'magicWeapon') { t.conds.magicWeapon = { b: slot >= 6 ? 3 : slot >= 4 ? 2 : 1, rounds: 10 }; }
+        else if (sp.buff === 'pfeg') { t.conds.pfeg = { rounds: 10 }; }
+        else if (sp.buff === 'sanctuary') { t.conds.sanctuary = { dc: dc, rounds: 10 }; }
         else {
           var b = { id: sp.buff, name: sp.name, rounds: 10 };
           if (sp.buff === 'shieldOfFaith') b.ac = 2;
@@ -950,7 +1116,9 @@
     if (k === 'buff') {
       var bt = targets.map(plain).join(', ');
       yield* this.say(bt + (sp.buff === 'shield' ? ' raises a shield of force. +5 AC.' : sp.buff === 'shieldOfFaith' ? ': +2 AC.' : sp.buff === 'bless' ? ': blessed.' : sp.buff === 'mageArmor' ? ': mage armor.' : sp.buff === 'aid' ? ': +' + 5 * (1 + up) + ' max HP.' : sp.buff === 'heroism' ? ': heroism. No fear, and +' + Math.max(1, DS.mod(h.abil.cha)) + ' temporary HP at the start of each turn.'
-        : sp.buff === 'invisible' ? ': gone from sight' + (sp.id === 'invisibility' ? ', till they attack or cast.' : '.') : sp.buff === 'mislead' ? ': gone, and a double stands in the place.' : sp.buff === 'seeInvisible' ? ': the invisible stand plain.' : sp.buff === 'darkvision' ? ': darkvision, sixty feet.' : sp.buff === 'continualFlame' ? ': a light that will not go out.' : ': ' + sp.name + '.'), 40);
+        : sp.buff === 'invisible' ? ': gone from sight' + (sp.id === 'invisibility' ? ', till they attack or cast.' : '.') : sp.buff === 'mislead' ? ': gone, and a double stands in the place.' : sp.buff === 'seeInvisible' ? ': the invisible stand plain.' : sp.buff === 'darkvision' ? ': darkvision, sixty feet.' : sp.buff === 'continualFlame' ? ': a light that will not go out.'
+        : sp.buff === 'branding' ? "'s blade takes a waiting light. The next hit: +" + (2 + up) + 'd6 radiant.' : sp.buff === 'magicWeapon' ? "'s weapon: +" + (slot >= 6 ? 3 : slot >= 4 ? 2 : 1) + ', and magical.'
+        : sp.buff === 'pfeg' ? ': warded against the dead and the otherworldly.' : sp.buff === 'sanctuary' ? ': sanctuary. A foe must pass WIS ' + dc + ' to strike.' : ': ' + sp.name + '.'), 40);
     }
     u.pose = null;
     return true;
@@ -1085,6 +1253,7 @@
       if (atk.needsHeld) { t = this.pickHeroFor(f, true); if (!t || t === 'none') continue; }
       else { if (!target || down(target)) target = this.pickHeroFor(f); t = target; }
       if (!t || t === 'none') { continue; }
+      if (t.conds.sanctuary) { t = yield* this.wardCheck(f, t); if (!t) continue; if (!atk.needsHeld) target = t; } // (Sanctuary, 09-28g)
       if (atk.needsHeld === false && f.holding.indexOf(t) >= 0 && atk.grapple) { /* already held */ }
       yield* this.foeAttack(f, t, atk);
       if (!this.liveHeroes().length) break;
@@ -1170,7 +1339,7 @@
         if (down(t)) { yield* this.note(t, nameOf(t) + ' falls!', 38); return; }
       }
       if (atk.save.cond && !s.success && !down(t)) {
-        var immune = isHero(t) ? false : (t.m.condImmune || []).indexOf(atk.save.cond) >= 0;
+        var immune = isHero(t) ? pfegStops(t, f, atk.save.cond) : (t.m.condImmune || []).indexOf(atk.save.cond) >= 0;
         if (!immune) {
           t.conds[atk.save.cond] = { rounds: atk.save.rounds || 10, save: atk.save.repeat ? { ab: atk.save.ab, dc: atk.save.dc } : null };
           if (atk.save.also) t.conds[atk.save.also] = { linked: atk.save.cond };
@@ -1190,6 +1359,7 @@
     f.flash = 10;
     if (sp.id === 'web') {
       var t = this.pickHeroFor(f); if (!t || t === 'none') return;
+      t = yield* this.wardCheck(f, t); if (!t) return;
       yield* this.say(nameOf(f) + ' spits a web at ' + nameOf(t) + '!', 36);
       var s = this.save(t, 'dex', sp.dc);
       if (s.success) yield* this.say(nameOf(t) + ' dodges the web.', 30);
@@ -1201,7 +1371,7 @@
       var list = this.liveHeroes();
       for (var i = 0; i < list.length; i++) {
         var s2 = this.save(list[i], 'wis', sp.dc);
-        if (!s2.success && !(list[i].buff && list[i].buff.id === 'heroism')) { list[i].conds.frightened = { rounds: 2, save: { ab: 'wis', dc: sp.dc } }; yield* this.hold(nameOf(list[i]) + ' is frightened! Disadvantage to attack.'); }
+        if (!s2.success && !(list[i].buff && list[i].buff.id === 'heroism') && !pfegStops(list[i], f, 'frightened')) { list[i].conds.frightened = { rounds: 2, save: { ab: 'wis', dc: sp.dc } }; yield* this.hold(nameOf(list[i]) + ' is frightened! Disadvantage to attack.'); }
       }
       return;
     }
@@ -1254,7 +1424,7 @@
           if (db) { db = this.hurt(tb, db, sp.type || 'force', f); this.num(tb, db, '#F85838'); tb.pose = 'hurt'; tb.poseT = 20; this.elemBurst(tb, sp.type || 'force'); }
           line += db ? '. ' + db + ' damage.' : '.';
         } else line += '.';
-        if (!sb.success && sp.cond && !down(tb)) { tb.conds[sp.cond] = sp.cond === 'prone' ? true : { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null }; line += ' ' + (sp.condText || (sp.cond.charAt(0).toUpperCase() + sp.cond.slice(1) + '!')); }
+        if (!sb.success && sp.cond && !down(tb) && !pfegStops(tb, f, sp.cond)) { tb.conds[sp.cond] = sp.cond === 'prone' ? true : { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null }; line += ' ' + (sp.condText || (sp.cond.charAt(0).toUpperCase() + sp.cond.slice(1) + '!')); }
         this.shake = 4; DS.audio.sfx(db ? 'hit' : 'miss');
         yield* this.note(tb, line, 36);
         if (down(tb)) yield* this.note(tb, nameOf(tb) + ' falls!', 34);
@@ -1263,10 +1433,12 @@
     }
     if (sp.kind === 'curse') { // one of the party, a save, a condition (a held breath, a blinding spit)
       var tc = this.pickHeroFor(f); if (!tc || tc === 'none') return;
+      tc = yield* this.wardCheck(f, tc); if (!tc) return;
       yield* this.say(nameOf(f) + ' ' + sp.text.replace('{t}', plain(tc)), 44);
       var sc = this.save(tc, sp.save, sp.dc);
       yield* this.flushMsg();
       if (sc.success) { yield* this.say(nameOf(tc) + ' resists. (' + sc.total + ' vs DC ' + sp.dc + ')', 34); return; }
+      if (pfegStops(tc, f, sp.cond)) { yield* this.say(nameOf(tc) + "'s ward holds: it cannot take hold of " + plain(tc) + '.', 36); return; }
       tc.conds[sp.cond] = { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null };
       DS.audio.sfx('poison');
       yield* this.note(tc, nameOf(tc) + ' is ' + sp.cond + '!', 40);

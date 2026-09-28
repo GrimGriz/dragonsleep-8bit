@@ -317,10 +317,16 @@
   // slots for. Cantrips are always ready, and so, uncounted, are the Oath of Devotion's spells and a wizard's rituals (cast
   // from the book as rituals, in the field). DEEP16 reads these same functions (deep16/js/save.js): one law for both games.
   // `spellOf` is the lookup (DEEP16 passes its own, which also knows the grid's spells)
-  R.PALADIN_SPELLS = ['bless', 'curewounds', 'shieldoffaith', 'divinefavor', 'heroism', 'lesserrestoration', 'aid', 'revivify', 'daylight'];
+  // Command, Branding Smite and Magic Weapon joined 09-28 (built on the grid for the class NPCs; RULED 09-28g, Griz: "they have to be
+  // able to transfer back and forth from 16bit fights" -- so the 8-bit battle casts them too, js/battle.js)
+  R.PALADIN_SPELLS = ['bless', 'command', 'curewounds', 'shieldoffaith', 'divinefavor', 'heroism', 'lesserrestoration', 'aid', 'brandingsmite', 'magicweapon', 'revivify', 'daylight'];
   function spellData(id) { return DS.DATA.spells[id]; }
-  // the oath's spells: Lesser Restoration from 5 (Zone of Truth, its pair, isn't built; nor the 3rd's pair, nor the 9th's)
-  R.oathSpells = function (h) { return h.cls === 'paladin' && h.lvl >= 5 ? ['lesserrestoration'] : []; };
+  // the Oath of Devotion's spells (SRD 5.1): Protection from Evil and Good and Sanctuary from 3, Lesser Restoration from 5 (Zone of
+  // Truth, its pair, isn't built; nor the 9th's). Both games (the 3rd's pair was the grid's alone till 09-28g)
+  R.oathSpells = function (h) {
+    if (h.cls !== 'paladin' || h.lvl < 3) return [];
+    return ['protectionfromevilandgood', 'sanctuary'].concat(h.lvl >= 5 ? ['lesserrestoration'] : []);
+  };
   R.prepCount = function (h) {
     if (h.cls === 'wizard') return Math.max(1, DS.mod(h.abil.int) + h.lvl);
     if (h.cls === 'paladin') return h.lvl >= 2 ? Math.max(1, DS.mod(h.abil.cha) + Math.floor(h.lvl / 2)) : 0;

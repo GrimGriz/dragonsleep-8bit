@@ -449,17 +449,35 @@
 
   // ================================================================== the highway (spec §6; re-cut 09-27): four days, three lamps and the door
   // guests: AI-run allies with a stat block and a leave-condition (spec §6.2). `key` lets one sheet walk as several (the troopers)
-  EV.addGuest = function (id, key, o) {
-    var g = G(), d = DS.DATA.heroes[id];
+  EV.guestSheet = function (id, key, o) {
+    var d = DS.DATA.heroes[id];
     key = key || id; o = o || {};
-    g.guests = g.guests || [];
-    if (g.guests.some(function (x) { return x.id === key; })) return;
     var h = R.makeHero(id, d.level);
     h.attacks = d.attacks; h.resist = d.resist; h.guest = true; h.surgeAI = !!d.surgeAI;
     if (key !== id) h.name = o.name || h.name;
     if (d.healer) { h.healer = d.healer; h.feats.heals = d.healer; }
     if (o.wounded) { h.wounded = true; h.hp = Math.max(1, Math.round(h.maxhp / 3)); } // Halldor: a third of himself, and he won't sit out
-    g.guests.push({ id: key, h: h });
+    return h;
+  };
+  EV.addGuest = function (id, key, o) {
+    var g = G();
+    key = key || id;
+    g.guests = g.guests || [];
+    if (g.guests.some(function (x) { return x.id === key; })) return;
+    g.guests.push({ id: key, h: EV.guestSheet(id, key, o) });
+  };
+  // a save made while a guest walked by an older sheet (Ingrith was a fighter with a heals counter till 09-28g, RULED: "she's meant
+  // to be Cleric"): she walks on by the sheet as it stands now, as hurt as she was
+  var baseStartFrom = DS.startFrom;
+  DS.startFrom = function (data) {
+    baseStartFrom(data);
+    (G().guests || []).forEach(function (x) {
+      var d = DS.DATA.heroes[x.h.id];
+      if (!d || x.h.cls === d.cls) return;
+      var nh = EV.guestSheet(x.h.id, x.id, { name: x.h.name, wounded: x.h.wounded });
+      nh.ko = !!x.h.ko; nh.hp = nh.ko ? 0 : Math.max(1, Math.min(nh.hp, Math.round(nh.maxhp * x.h.hp / Math.max(1, x.h.maxhp))));
+      x.h = nh;
+    });
   };
   EV.dropGuests = function () { G().guests = []; };
   EV.dropGuest = function (key) { var g = G(); g.guests = (g.guests || []).filter(function (x) { return x.id !== key; }); };

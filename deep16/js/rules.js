@@ -12,7 +12,8 @@
   RU.ac = function (u) {
     var c = u.conds, ac = (u.baseAC || u.ac);
     if (c.barkskin) ac = Math.max(ac, 16);
-    return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0);
+    var ward = D.battle && D.battle.doorWardOn && u.side === 'party' && u.hp > 0 ? 3 : 0; // the Door-Shield protects the party (battle.js doorWard)
+    return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0) + ward;
   };
   // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
   RU.immuneTo = function (u, cond) { return !!(u && ((u.condImmune && u.condImmune.indexOf(cond) >= 0) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond)))); }; // (Freedom of Movement: js/grimoire.js)
@@ -22,6 +23,7 @@
     u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false }; // (freeObj: the turn's one free hand on an object -- a torch dropped, put out or taken up)
     u.reaction = 1;
     delete u.conds.dodge;
+    if (D.battle && D.battle.doorWardOn === u) D.battle.doorWardOn = null; // (the Door-Shield's +3 lasts till its bearer's turn)
     u.acted = true; // it has had a turn (the Cutthroat's Opening Cut reads it)
     delete u.conds.displaceOff; // a Cloak of Displacement works again from the wearer's own turn
     // up off the floor: half its speed (09-27, prone)

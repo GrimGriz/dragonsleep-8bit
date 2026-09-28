@@ -76,7 +76,10 @@
       id: h.equip && h.equip.weapon, name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: props, magic: !!(wd.bonus || wd.magic),
       finesse: props.indexOf('finesse') >= 0, gwf: h.cls === 'fighter' && !ranged && R.twoHanded(h, w),
       ranged: ranged, range: ranged ? (wd.range || [80, 320]) : null, ammo: wd.ammo || null, loading: props.indexOf('loading') >= 0, fx: 'bolt',
-      flame: wd.flame || null // Flame Tongue: a bonus action lights it (battle.js IGNITE)
+      flame: wd.flame || null, // Flame Tongue: a bonus action lights it (battle.js IGNITE)
+      // the 8-bit game's named weapons (09-28g, Griz: "make sure items are being loaded into the 16bit fights"): the Winnower's
+      // critical knocks flat, the Greyseam knife's Sneak Attack poisons (battle.js attack, as the 8-bit battle.js heroAttack)
+      onCrit: wd.onCrit || null, sneakPoison: wd.sneakPoison || 0
     };
   };
 

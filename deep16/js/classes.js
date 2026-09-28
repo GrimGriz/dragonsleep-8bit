@@ -60,8 +60,10 @@
       cantrips: [3, 3, 3, 4, 4, 4, 4, 4, 4], prepares: 'int',
       spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'chilltouch', 'light'], 1: ['magicmissile', 'shield', 'mageArmor', 'burninghands', 'sleep', 'colorspray', 'grease', 'hideouslaughter', 'falselife'], 2: ['scorchingray', 'mistystep', 'holdperson', 'web', 'shatter', 'mirrorimage', 'acidarrow', 'blur'], 3: ['fireball', 'lightningbolt', 'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch'], 4: ['icestorm', 'blacktentacles', 'phantasmalkiller', 'greaterinvisibility', 'dimensiondoor', 'fireshield', 'banishment', 'confusion', 'resilientsphere', 'stoneskin', 'blight'], 5: ['coneofcold', 'holdmonster', 'mislead'] } }
   };
-  // the Mirror's warlocks (RULED 09-28): the pact of the Mirror's expanded list and its eye (invented.json #pact-of-the-mirror)
-  NPC.MIRROR = { 1: ['silentimage', 'hideouslaughter', 'glasswhisper', 'command'], 3: ['mirrorimage', 'detectthoughts'], 5: ['hypnoticpattern', 'clairvoyance'] };
+  // the Mirror's warlocks (RULED 09-28): the pact of the Mirror's expanded list and its eye (invented.json #pact-of-the-mirror). Its 1st
+  // TRIMMED to two, the SRD's patrons' count (RULED 09-28g, Griz: "Trim"): the two his words named, Glass Whisper and Command (the
+  // asking); the seat's Silent Image and Hideous Laughter are off it
+  NPC.MIRROR = { 1: ['glasswhisper', 'command'], 3: ['mirrorimage', 'detectthoughts'], 5: ['hypnoticpattern', 'clairvoyance'] };
 
   // ------------------------------------------------------------------ the existing NPCs the generator builds by name (the survey, 09-28).
   // Each is its register's class, level, race and list; `maxhp` for the story-vital (the players' max hit die, RULED 09-28)
@@ -78,7 +80,8 @@
       guardianText: 'calls on the Dormant, and spirits wheel out from him, cold as a vault' },
     // Amara, warlock 5 of the Mirror (npcs-by-location.md §The Road, RE-RULED 08-29): the register's list with the ear file's fold
     // (Mirror's Gaze for Hex, Minor Illusion for Friends; the asking is Command, RULED 09-28); Agonizing Blast; Fiendish Vigor (False
-    // Life at will: she walks in with it); the Mirror's eye. Charm Person and Suggestion wait on charm (LATER), Gaseous Form is OUT
+    // Life at will: she walks in with it); the Mirror's eye. Charm Person and Suggestion wait on charm (LATER). Her known spells are
+    // the SRD's six at the 5th (TRIMMED 09-28g, Griz: "Trim"): Command in, Gaseous Form (OUT in the game already) off her list
     amara: { cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
       equip: { weapon: 'dagger', armor: 'leather' },
       known: ['eldritchblast', 'minorillusion', 'mirrorsgaze', 'command', 'darkness', 'fear', 'charmperson', 'suggestion'],
@@ -88,11 +91,12 @@
     willem: { cls: 'wizard', lvl: 5, race: 'human', subclass: null, abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 },
       equip: { weapon: 'quarterstaff', armor: null }, noPrecast: true,
       known: ['rayoffrost', 'minorillusion', 'mageArmor', 'shield', 'mirrorimage', 'invisibility', 'blur', 'hypnoticpattern'] },
-    // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b): the 8-bit game keeps her a fighter with a `heals`
-    // counter (content/heroes.json, flagged: the register says cleric); on the grid her 8-bit sheet stands (HP, AC, mace) and a
-    // cleric's casting is laid over it -- the drafted list (spells-srd-by-class.md), slots 4/3, WIS
-    ingrith: { overlay: true, cls: 'cleric', lvl: 4, slots: [4, 3],
-      known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration'] }
+    // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b). RULED 09-28g (Griz: "Yes, she's meant to be Cleric"):
+    // her 8-bit sheet is a cleric's now (content/heroes.json: the d8's average HP, slots 4/3, the drafted list and the Life Domain's
+    // Spiritual Weapon), so the grid reads her as it reads the heroes; the overlay stays only for a sheet still a fighter's
+    ingrith: { overlay: true, cls: 'cleric', lvl: 4, slots: [4, 3], subclass: 'Life Domain', race: 'dwarf', abil: { str: 12, dex: 10, con: 14, int: 13, wis: 16, cha: 13 },
+      equip: { weapon: 'mace', armor: 'chainmail', shield: 'shield' }, hp: 31,
+      known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration', 'spiritualweapon'] }
   };
 
   // spells known or prepared at a level: the class's list to the highest slot it has, as many as it may know (or prepare),
@@ -222,19 +226,16 @@
   // register): the grid lays the class's casting over the 8-bit unit -- its spells, its slots (what it spent stays spent: the
   // 8-bit sheet keeps them till its long rest), its DC by the class's ability
   NPC.overlay = function (u, h) {
-    var o = NPC.NAMED[h.id]; if (!o || !o.overlay) return u;
+    var o = NPC.NAMED[h.id]; if (!o || !o.overlay || h.cls === o.cls) return u; // (the sheet is the class's already: nothing to lay over)
     var RC = R.CLASSES[o.cls], ab = RC.cast, prof = R.prof(u.lvl);
     u.cls = o.cls; u.known = o.known.slice();
     u.slots = h.slots && h.slots.length === o.slots.length ? h.slots.slice() : o.slots.slice(); u.slotsMax = o.slots.slice();
     u.spellDC = 8 + prof + DS.mod(u.abil[ab]); u.spellAtk = prof + DS.mod(u.abil[ab]);
     return u;
   };
-  // the paladin's list on the grid (09-28): the spells built for the class NPCs join Lymen's pool here -- Command, Branding Smite, Magic
-  // Weapon -- and his Oath of Devotion's at 3 (Protection from Evil and Good, Sanctuary). This page's rules only: the 8-bit game's own
-  // battle cannot cast them (no 8-bit records), so its pool stays as it was till Griz says (handoff §3F)
-  ['command', 'brandingsmite', 'magicweapon'].forEach(function (id) { if (R.PALADIN_SPELLS.indexOf(id) < 0) R.PALADIN_SPELLS.push(id); });
-  var oath0 = R.oathSpells;
-  R.oathSpells = function (h) { var o = oath0(h).slice(); if (h.cls === 'paladin' && h.lvl >= 3) ['protectionfromevilandgood', 'sanctuary'].forEach(function (id) { if (o.indexOf(id) < 0) o.push(id); }); return o; };
+  // (the paladin's Command, Branding Smite, Magic Weapon and his oath's Protection from Evil and Good and Sanctuary were this page's
+  // alone till 09-28g; RULED then, Griz: "they have to be able to transfer back and forth from 16bit fights" -- they are js/rules.js
+  // R.PALADIN_SPELLS / R.oathSpells now, one law for both games, and the 8-bit battle casts them)
   // thrown weapons read as ranged when thrown (SRD 5.1: the handaxe, the dagger 20/60)
   NPC.THROWN = { handaxe: [20, 60], dagger: [20, 60] };
 

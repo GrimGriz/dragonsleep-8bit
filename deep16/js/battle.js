@@ -763,7 +763,13 @@
     }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
-    if (!hit) { if (o.onMiss) o.onMiss(tgt); FX.float('MISS', tgt, D.PAL.ramps.silver[5]); yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
+    if (!hit) {
+      if (o.onMiss) o.onMiss(tgt); FX.float('MISS', tgt, D.PAL.ramps.silver[5]);
+      if (nat >= 15 && !atk.spell) this.doorWard(tgt); // (the Door-Shield: a miss it could have caused)
+      yield o.oa ? 16 : 24; att.anim = 'idle';
+      if (D.features && D.features.answerBack) yield* D.features.answerBack(this, att, tgt, atk, melee); // (the Path of the Sand, 6)
+      return;
+    }
     // damage
     var dice = att.swarm && atk.halfHP && att.hp <= att.maxhp / 2 ? atk.halfHP : atk.dice; // a swarm at half its hit points bites for less
     var dr = RU.damage(dice, atk.mod, { crit: crit, gwf: atk.gwf }), dmg = dr.total, parts = [dice + RU.sign(atk.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(atk.mod) + ' = ' + dr.total + ' ' + atk.type];
@@ -775,10 +781,11 @@
     if (att.conds.enlarged && !atk.spell) { var en = D.roll('1d4', { crit: crit }); dmg += att.conds.enlarged.down ? -en.total : en.total; parts.push((att.conds.enlarged.down ? '{g}reduced -' : '{o}enlarged +') + en.total + '{/}'); dmg = Math.max(1, dmg); }
     if (att.conds.enfeebled && strBlow && !atk.spell) { var cut0 = Math.ceil(dmg / 2); dmg -= cut0; parts.push('{g}enfeebled -' + cut0 + '{/}'); }
     // Sneak Attack: once a turn, a finesse or ranged weapon, with advantage or an ally at the target's side
+    var sneaked = false;
     if (att.cls === 'rogue' && att.turn && !att.turn.sneakUsed && (atk.finesse || atk.ranged) && e.net >= 0) {
       var ally = this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; });
       if (e.net > 0 || ally) {
-        att.turn.sneakUsed = true;
+        att.turn.sneakUsed = true; sneaked = true;
         var sn = D.roll(RU.sneakDice(att), { crit: crit }); dmg += sn.total;
         parts.push('{p}sneak ' + RU.sneakDice(att) + ' ' + RU.fmtRolls(sn.rolls) + ' = ' + sn.total + '{/}');
       }
@@ -842,6 +849,16 @@
     if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type);
     for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1]);
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type);
+    // the 8-bit game's named weapons (09-28g): the Winnower threshes one flat on a critical; the Greyseam knife's Sneak Attack
+    // poisons, CON 13, till the end of its next turn (the 8-bit battle's own reading, js/battle.js heroAttack)
+    if (crit && atk.onCrit === 'prone' && !atk.spell && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')) {
+      tgt.conds.prone = true; this.card(['  {o}' + nameOf(tgt) + ' is threshed flat: PRONE{/}'], 220);
+    }
+    if (sneaked && atk.sneakPoison && !tgt.dead && tgt.hp > 0 && !tgt.conds.poisoned && !RU.immuneTo(tgt, 'poisoned')) {
+      var gsv = RU.save(tgt, 'con', atk.sneakPoison);
+      this.card(['  {p}the greyseam{/}: ' + nameOf(tgt) + ' CON ' + RU.saveText(gsv) + ' vs DC ' + atk.sneakPoison + '  ' + (gsv.ok ? '{n}SAVED{/}' : '{o}POISONED{/}')], 240);
+      if (!gsv.ok) { D.sfx('poison'); tgt.conds.poisoned = { till: { who: tgt.id, at: 'end', n: 1 } }; FX.sparkle(tgt, 'moss', 10); }
+    }
     if (o.onHit) o.onHit(tgt, crit); // (a spell attack's rider: js/grimoire.js)
     if (D.magic.onWeaponHit && !atk.spell && !tgt.dead) yield* D.magic.onWeaponHit(this, att, tgt, atk, crit); // (Stunning Strike, Open Hand, Colossus Slayer: js/features.js)
     yield o.oa ? 18 : 26;
@@ -1074,7 +1091,8 @@
   };
 
   // ------------------------------------------------------------------ items: the save's own (a potion, a kit, an antitoxin, an oil flask)
-  var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1, light: 1 };
+  // fortify (09-28g): Marta's bat-wing pie, eaten in a fight -- +2 CON (+1 to CON saves) and +5 HP till it ends (the 8-bit battle's)
+  var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1, light: 1, fortify: 1 };
   // a torch is lit as a bonus action by the Thief (Fast Hands), or by anyone if the seat's default is flipped (js/light.js LIGHT_COST)
   function torchFast(u) { return u.subclass === 'Thief' || D.light.LIGHT_COST === 'B'; }
   Battle.prototype.itemList = function (u) {
@@ -1098,7 +1116,19 @@
     if (w.side !== u.side || (w !== u && G.dist(u, w) > 5)) return false;
     if (use.effect === 'revive') return w.hp <= 0;
     if (use.effect === 'heal') return w.hp < w.maxhp;
+    if (use.effect === 'fortify') return w.hp > 0 && !w.fortified;
     return true;
+  };
+  // the Door-Shield (the 8-bit game's, RULED 09-26 by Griz: "no rule text, just the named item"; invented.json #door-shield): on a
+  // miss at its bearer that rolled a natural 15 or more, a 3% chance -- energy out from the shield and down onto the party, +3 AC
+  // to all of them till the bearer's next turn (rules.js RU.ac; cleared in RU.startTurn). On the grid since 09-28g
+  Battle.prototype.doorWard = function (t) {
+    var R = window.DS.R, sh = t.src && t.src.equip && R.item(t.src.equip.shield), self = this;
+    if (!sh || !sh.shield || !sh.shield.doorward || this.doorWardOn || t.side !== 'party' || t.hp <= 0) return;
+    if (Math.random() >= (window.DS.doorWardChance != null ? window.DS.doorWardChance : 0.03)) return;
+    this.doorWardOn = t; D.sfx('buff'); FX.ring(t, 'glow', 60);
+    this.units.forEach(function (w) { if (w.side === 'party' && w.hp > 0 && !w.dead) FX.sparkle(w, 'silver', 14); });
+    this.card(['{c}The ' + sh.name + ' protects the party.{/}  {g}(+3 AC to all, till ' + t.name + '\'s next turn){/}'], 320);
   };
   Battle.prototype.useItem = function* (u, id, w) {
     var it = window.DS.DATA.items[id], use = it.use, s = this.inv.filter(function (x) { return x.id === id; })[0];
@@ -1108,7 +1138,16 @@
     var who = w === u ? 'drinks' : 'gives ' + w.name;
     if (use.effect === 'heal') { var r = D.roll(use.dice), got = this.heal(w, r.total); this.card(['{y}' + u.name + '{/} ' + who + ' a ' + it.name + ': ' + use.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {n}' + r.total + '{/}' + (got < r.total ? ' (' + got + ' to full)' : '')]); FX.sparkle(w, 'moss', 12); }
     if (use.effect === 'revive') { this.heal(w, use.hp || 1); this.card(['{y}' + u.name + '{/} works the ' + it.name + ' on ' + w.name + ': up, on ' + w.hp + ' HP.']); }
-    if (use.effect === 'antitoxin' || use.effect === 'cure') { var had = !!w.conds.poisoned; delete w.conds.poisoned; this.card(['{y}' + u.name + '{/} ' + who + ' the ' + it.name + (had ? ': the poison goes out.' : ': nothing to cure.')]); FX.sparkle(w, 'moss', 10); }
+    if (use.effect === 'antitoxin' || use.effect === 'cure') {
+      // the elixir cures paralysis too, as the 8-bit battle's does (09-28g)
+      var had = !!w.conds.poisoned, stiff = use.effect === 'cure' && !!w.conds.paralyzed;
+      delete w.conds.poisoned; if (stiff) delete w.conds.paralyzed;
+      this.card(['{y}' + u.name + '{/} ' + who + ' the ' + it.name + (had || stiff ? ': the ' + (had && stiff ? 'poison and the paralysis go' : had ? 'poison goes' : 'paralysis goes') + ' out.' : ': nothing to cure.')]); FX.sparkle(w, 'moss', 10);
+    }
+    if (use.effect === 'fortify') {
+      w.fortified = true; w.maxhp += 5; w.hp += 5; if (w.saves) w.saves.con += 1;
+      this.card(['{y}' + (w === u ? u.name + '{/} eats' : u.name + '{/} gives ' + w.name) + ' a ' + it.name + ': {n}+5 HP{/} and +2 CON {g}(+1 to CON saves) for the fight{/}']); FX.sparkle(w, 'moss', 12);
+    }
     if (use.effect === 'damage') {
       D.sfx('fire');
       FX.projectile(u, w, 'fire'); yield { fx: 1 };

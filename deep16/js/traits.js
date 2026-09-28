@@ -1,6 +1,6 @@
 /* DEEP16 — the bestiary's traits the sheets owed (handoff-2026-09-28-npc-classes-to-six.md §3G; the `todo`s of data/foes.js): each
    SRD 5.1 trait as the grid reads it, keyed off the sheet (D.FOES[kind]). The roper's grip weakens; the black pudding and the gray
-   ooze eat weapons and armour (for the fight: their lasting wear waits on the 8-bit's gear); the broodmother folds into the rock
+   ooze eat weapons and armour (for the fight only: RULED 09-28g, Griz, "Should the ooze's acid wear gear down for good?" -- "No"); the broodmother folds into the rock
    once, bloodied; the gnoll rampages; the giant boar charges and will not drop to a small blow; the goblin slips away; the ettin's
    two heads; the xorn and the earth elemental glide through the stone. The naga's rejuvenation (days after) and the giant frog's
    Swallow (Small or smaller: none of the four) are not a fight's. */

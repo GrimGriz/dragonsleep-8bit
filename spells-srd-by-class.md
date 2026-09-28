@@ -33,10 +33,10 @@ Each spell gets one verdict:
 | Caster | Class | Register | Casts today | A first list, for the NPC spells work (to rule) |
 |---|---|---|---|---|
 | Aurdin | wizard (evoker) 1-9: spells to 5th | the 8-bit build (content/heroes.json) | his book; prepares INT + level (09-28) | his own: the book grows by the build's picks, or the climb's |
-| Lymen | paladin (Devotion) 2-9: spells to 3rd | the 8-bit build | the paladin list; prepares CHA + half his level; Lesser Restoration always (his oath) | the oath's others once built: Protection from Evil and Good and Sanctuary at 3, Zone of Truth at 5, Beacon of Hope and Dispel Magic at 9 |
+| Lymen | paladin (Devotion) 2-9: spells to 3rd | the 8-bit build | the paladin list (Command, Branding Smite, Magic Weapon joined it, both games, 09-28g); prepares CHA + half his level; his oath's always: Protection from Evil and Good and Sanctuary from 3, Lesser Restoration from 5 | the oath's others once built: Zone of Truth at 5, Beacon of Hope and Dispel Magic at 9 |
 | Torvald Greyseam | cleric 5 of Dvalgarda: to 3rd | the-copper-egg.md (CANON 09-16f) | Spirit Guardians as a line (a stand-in), Hold, Sanctuary as two rounds unseen (a stand-in) | the SRD Priest's (a 5th-level cleric): Light, Sacred Flame, Thaumaturgy; Cure Wounds, Guiding Bolt, Sanctuary; Lesser Restoration, Spiritual Weapon; Dispel Magic, Spirit Guardians -- and Hold Person, the 8-bit's. Slots 4/3/2 |
-| Ingrith Scalebeam | cleric 4: to 2nd | deepholm-and-the-edifice.md (CANON 09-26b); no spells in the register | a `heals` counter (a stand-in) | drafted: Sacred Flame, Guidance; Cure Wounds, Healing Word, Bless, Shield of Faith; Aid, Lesser Restoration, Prayer of Healing. Slots 4/3 |
-| Amara | warlock 5, the Great Old One -- the Mirror (RE-RULED 08-29): to 3rd (two 3rd-level slots) | npcs-by-location.md §The Road; module-halfway-inn.md | Eldritch Blast (two beams) | the register's: Eldritch Blast (Agonizing Blast), *friends*, Prestidigitation; Charm Person, *hex*, Suggestion, Darkness, Fear, Gaseous Form (*italic: not SRD*); invocations Agonizing Blast, Beguiling Influence, Fiendish Vigor, Awakened Mind. At threat: Darkness, then Gaseous Form, and runs |
+| Ingrith Scalebeam | cleric 4: to 2nd | deepholm-and-the-edifice.md (CANON 09-26b); no spells in the register | a cleric in both games since 09-28g (RULED): the Life Domain (the seat's), the drafted list and Spiritual Weapon; the 8-bit battle runs her turn as a cleric (#ingrith-cleric) | drafted: Sacred Flame, Guidance; Cure Wounds, Healing Word, Bless, Shield of Faith; Aid, Lesser Restoration, Prayer of Healing. Slots 4/3 |
+| Amara | warlock 5, the Great Old One -- the Mirror (RE-RULED 08-29): to 3rd (two 3rd-level slots) | npcs-by-location.md §The Road; module-halfway-inn.md | Eldritch Blast (two beams) | the register's: Eldritch Blast (Agonizing Blast), *friends*, Prestidigitation; Charm Person, *hex*, Suggestion, Darkness, Fear, Gaseous Form (*italic: not SRD*); invocations Agonizing Blast, Beguiling Influence, Fiendish Vigor, Awakened Mind. At threat: Darkness, then Gaseous Form, and runs. TRIMMED 09-28g: six known, the SRD's count (Gaseous Form off, Command on) |
 | Willem Glass | wizard 5, Illusion: to 3rd | npcs-by-location.md §The Road | Ray of Frost, Phantasms (Mirror Image in round one) | the register's: Minor Illusion, Fire Bolt, Mage Hand, Prestidigitation; Disguise Self, Silent Image, Mage Armor, Shield, Invisibility, Mirror Image, *phantasmal force*, Major Image, Hypnotic Pattern. Slots 4/3/2. Flees with Amara, fights only to cover the going |
 | the drow spell-weaver | game-original from the SRD Mage (a 9th-level caster) | content/monsters.json spellweaver | Fire Bolt, a lightning line, Hold, Darkness | the SRD Mage's list (marked SW), with the 8-bit's Lightning Bolt for Fireball, Hold Person, and the drow's innate |
 | the spirit naga | SRD Spirit Naga (a 10th-level caster) | content/monsters.json naga | a lightning line, Hold | the SRD's list (marked Na): Blight, Dimension Door and Dominate Person are the new ones |
@@ -62,9 +62,17 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 - **The class NPCs** (09-28): *"Higertha is half-orc Druid, see if other existing NPCs need classes built and human the rest of the classes"*; *"except when matching existing NPCs, generic is good"*. Existing NPCs with a class are built by name; the rest human, standard array, named by class and level (#class-npcs).
 - **Rope Trick and Tiny Hut in Aurdin's build** (09-28): *"The build's picks"*: Rope Trick at wizard 3, Tiny Hut at 5 (#aurdin-rest-spells).
 
+## Ruled, 09-28g
+
+- **Lymen's new spells in the 8-bit's own battle: yes.** *"yeah, they have to be able to transfer back and forth from 16bit fights."* Command, Branding Smite and Magic Weapon on the paladin list, Protection from Evil and Good and Sanctuary his oath's from 3 -- one law for both games (`js/rules.js`), and the 8-bit battle casts all five (#lymen-both-games). The SRD's bonus-action spells cost the bonus action there now, as on the grid (#bonus-action-spells-8bit).
+- **The items into the 16-bit fights**: *"Also need to make sure items are being loaded into the 16bit fights."* The pack crosses as it stands; the Winnower, the Greyseam knife, the Door-Shield, the bat-wing pie and the elixir's paralysis cure were missing on the grid and are built there (#items-on-the-grid; `dev/bench16.js mode=items`).
+- **Ingrith a cleric in the 8-bit too: yes.** *"Yes, she's meant to be Cleric."* Cleric 4, 31 HP by the d8, slots 4/3, the Life Domain (the seat's: the SRD's one), her drafted list and Spiritual Weapon; the heals counter retired; older saves carry her over (#ingrith-cleric).
+- **The Mirror's four 1st-level spells and Amara's seventh: trim.** *"Trim."* The pact of the Mirror's 1st carries two, Glass Whisper and Command (the two his words named); Amara knows six at the 5th, Gaseous Form off her list (#pact-of-the-mirror, #the-asking-is-command).
+- **The ooze's acid wearing gear down for good: no.** *"No."* The corrosion is the fight's alone (#ooze-wear-fight-only).
+
 ## Still open
 
-- Nothing of the past-the-SRD lamp: all seven folded 09-28 (above). The Mirror's 1st-level place carries four (Silent Image, Hideous Laughter, Glass Whisper, Command) where the SRD's patrons carry two, and Command makes Amara's known spells seven at the 5th where the SRD's table says six: his to trim, or to keep.
+- Nothing from 09-28's list: all ruled 09-28g (above).
 
 ## By level
 
@@ -89,7 +97,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Produce Flame | D |  | **BUILT** | spell attack 30 ft, 1d8 fire (2d8 at 5th); a flame in hand lights 10 ft; a druid foe later -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Ray of Frost | W S | Au Wi Na | **BUILT** | Willem's attack today (2d8 cold); the spell adds speed -10 till your next turn (a sheet todo) -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Resistance | C D | To In | **BUILT** | touch (conc): +1d4 to one saving throw; a cleric guest before a fight -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
-| Sacred Flame | C | To In | **BUILT** | DEX save or 1d8 radiant (2d8 at 5th), cover no help; Torvald's and Ingrith's cantrip -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
+| Sacred Flame | C | To In | **BUILT** | DEX save or 1d8 radiant (2d8 at 5th), cover no help; Torvald's and Ingrith's cantrip -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#ingrith-cleric) |
 | Shillelagh | D |  | **BUILT** | self, bonus action: club or staff attacks use WIS, d8 damage, magical; a druid foe's melee -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Shocking Grasp | W S | Au Wi | **BUILT** | melee spell attack 1d8 lightning, adv vs metal armour; the target loses its reaction -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Spare the Dying | C | To In | **OUT** | RULED out 09-28 ("leave it out"): no death saves here, nothing to stabilize |
@@ -108,7 +116,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Burning Hands | W S | Au Wi | **BUILT** | 15-ft cone, DEX save 3d6 fire (half); greyed under the roost |
 | Charm Person | W K S B D | Au Am Wi Na | **LATER** | charmed: it won't attack the caster -- needs the AI to honour charm; the naga's, Amara's |
 | Color Spray | W S | Au Wi | **BUILT** | 15-ft cone, 6d10 HP of creatures (lowest first) blinded till your next turn -- Sleep's way -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
-| Command | C P | Ly To In | **BUILT** | one word, WIS save: FLEE (moves away), GROVEL (prone), HALT (loses its turn), DROP -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
+| Command | C P | Ly To In | **BUILT** | one word, WIS save: FLEE (moves away), GROVEL (prone), HALT (loses its turn), DROP -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#lymen-both-games) |
 | Comprehend Languages | W K S B | Au Am Wi | **OUT** | reading and hearing any language: social |
 | Create or Destroy Water | C D | To In | **OUT** | water by the gallon: the water is hand-waved |
 | Cure Wounds | C P B D R | Ly To In | **BUILT** | touch, 1d8 + mod (+1d8 a slot); wakes one who is down (SRD, 09-28) |
@@ -128,7 +136,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Goodberry | D R |  | **OUT** | ten 1-HP berries (an action each) and a day's food; no caster for it, at most an item |
 | Grease | W | Au Wi | **BUILT** | 10-ft square terrain: DEX save or prone, difficult (Web's cube, slick) -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Guiding Bolt | C | To In | **BUILT** | spell attack 120 ft, 4d6 radiant; the next attack at it has advantage; Torvald's -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
-| Healing Word | C B D | To In | **BUILT** | bonus action, 60 ft, 1d4 + mod; wakes one who is down; Ingrith's -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
+| Healing Word | C B D | To In | **BUILT** | bonus action, 60 ft, 1d4 + mod; wakes one who is down; Ingrith's -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#ingrith-cleric) |
 | Hellish Rebuke | K | Am | **BUILT** | reaction when hurt by one in 60 ft: DEX save 2d10 fire (half); Amara's; greyed under the roost -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Heroism | P B | Ly | **BUILT** | touch (conc): fearless, temp HP = mod each turn |
 | Hideous Laughter | W B | Au Wi | **BUILT** | WIS save: prone and incapacitated (conc); a save each turn, and with adv when hurt -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
@@ -140,9 +148,9 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Longstrider | W B D R | Au Wi | **BUILT** | touch: +10 ft speed for an hour; cast ahead -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Mage Armor | W S | Au Wi SW | **BUILT** | touch, no armour: AC 13 + DEX; holds till the long rest in the 8-bit (09-27) |
 | Magic Missile | W S | Au Wi SW | **BUILT** | three darts, 1d4+1 force each, never miss (+1 dart a slot) |
-| Protection from Evil and Good | W C P K | Au Ly To In Am Wi | **BUILT** | needs creature types on the sheets (RULED yes 09-28, to add); Lymen's oath spell at 3 -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
+| Protection from Evil and Good | W C P K | Au Ly To In Am Wi | **BUILT** | needs creature types on the sheets (RULED yes 09-28, to add); Lymen's oath spell at 3 -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#lymen-both-games) |
 | Purify Food and Drink | C P D | Ly To In | **OUT** | no food or drink in the game |
-| Sanctuary | C | Ly To In | **BUILT** | bonus action: WIS save to attack the warded (else pick another); ends if it attacks; Torvald's; Lymen's oath at 3 -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
+| Sanctuary | C | Ly To In | **BUILT** | bonus action: WIS save to attack the warded (else pick another); ends if it attacks; Torvald's; Lymen's oath at 3 -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#lymen-both-games) |
 | Shield | W S | Au Wi SW | **BUILT** | reaction: +5 AC till your next turn, the blow included |
 | Shield of Faith | C P | Ly To In | **BUILT** | bonus action (conc): +2 AC |
 | Silent Image | W S B | Au Wi | **LATER** | an image to fool: needs foes the AI lets be fooled |
@@ -165,7 +173,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Barkskin | D R |  | **BUILT** | touch (ally), conc: its AC can't be less than 16; a druid foe's self-buff later -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Blindness/Deafness | W C S B | Au To In Wi | **BUILT** | CON save or blinded (or deafened) a minute, a save each turn; the blinded condition -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Blur | W S | Au Wi | **BUILT** | self (conc): attackers at disadvantage -- the Cloak of Displacement's edge -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
-| Branding Smite | P | Ly | **BUILT** | Lymen: the next hit +2d6 radiant, shows the invisible; the target glows dim 5 ft (dim is lawful under the roost, 09-28) -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
+| Branding Smite | P | Ly | **BUILT** | Lymen: the next hit +2d6 radiant, shows the invisible; the target glows dim 5 ft (dim is lawful under the roost, 09-28) -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#lymen-both-games) |
 | Calm Emotions | C B | To In | **LATER** | ends charm and fear on humanoids, or makes them indifferent: needs charm and the AI |
 | Continual Flame | W C | Au To In Wi | **BUILT** | a torch-bright flame that never goes out: always lit (Ottilie would stop it) -- BUILT 09-28 (torchdark): on the weapon in hand, bright 20 ft, never out; always lit, so Ottilie stops it; no ruby (nothing but the rest spells consumes a component) |
 | Darkness | W K S | Au Am Wi Dr | **BUILT** | the drow's innate on the grid (15-ft sphere; swallows Light, Daylight burns it); a spell for Amara with the dark; as a spell too (09-28: any caster, deep16/js/grimoire.js) |
@@ -189,7 +197,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Locate Animals or Plants | B D R |  | **OUT** | divination: direction to the nearest beast or plant of a kind within 5 miles |
 | Locate Object | W C P B D R | Au Ly To In Wi | **OUT** | divination |
 | Magic Mouth | W B | Au Wi | **OUT** | a message on a trigger: dungeon dressing |
-| Magic Weapon | W P | Au Ly Wi | **BUILT** | bonus action (conc, an hour): a weapon becomes +1 and magical -- plain-steel resistance no longer halves it -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
+| Magic Weapon | W P | Au Ly Wi | **BUILT** | bonus action (conc, an hour): a weapon becomes +1 and magical -- plain-steel resistance no longer halves it -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#lymen-both-games) |
 | Mirror Image | W K S | Au Am Wi | **BUILT** | self: three duplicates, a hit may strike one instead (d20 by count); Willem's phantasms -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Misty Step | W K S | Au Am Wi SW | **BUILT** | grid only: a 30-ft teleport, bonus action |
 | Moonbeam | D |  | **LATER** | a beam moved 60 ft by action: CON save 2d10 radiant on entry or start; needs moving zones |
@@ -204,7 +212,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Silence | C B R | To In | **LATER** | 20-ft sphere: no sound, no verbal spells, thunder immune -- matters once foes cast |
 | Spider Climb | W K S | Au Am Wi | **OUT** | walls and ceilings: no climbing on the grid |
 | Spike Growth | D R |  | **BUILT** | terrain (conc): 20-ft radius, difficult, 2d4 piercing per 5 ft moved in it; a druid foe -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
-| Spiritual Weapon | C | To In | **BUILT** | bonus action: a floating weapon, melee spell attack 1d8+mod force; moved 20 ft to strike again; Torvald's -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
+| Spiritual Weapon | C | To In | **BUILT** | bonus action: a floating weapon, melee spell attack 1d8+mod force; moved 20 ft to strike again; Torvald's -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#ingrith-cleric) |
 | Suggestion | W K S B | Au Am Wi SW | **LATER** | a charm with a course of action: needs the AI to obey; the spell-weaver's (the SRD Mage) |
 | Warding Bond | C | To In | **BUILT** | touch: +1 AC and saves, resistance to all damage; the caster takes the same damage -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Web | W S | Au Wi | **BUILT** | 20-ft cube terrain: DEX save or restrained, a save each turn (conc) |

@@ -698,7 +698,7 @@
    "name": "Ingrith",
    "fullName": "Ingrith Scalebeam",
    "guest": true,
-   "cls": "fighter",
+   "cls": "cleric",
    "level": 4,
    "race": "Dwarf",
    "background": "Cleric of Rekknar",
@@ -710,7 +710,7 @@
     "wis": 16,
     "cha": 13
    },
-   "hp": 36,
+   "hp": 31,
    "equip": {
     "weapon": "mace",
     "armor": "chainmail",
@@ -728,15 +728,33 @@
    "look": "ingrith",
    "weaponArt": "hammer",
    "attacks": 1,
-   "healer": 3,
    "resist": [
     "poison"
    ],
    "levels": {},
-   "featText": [],
-   "classLine": "Cleric of Rekknar",
+   "featText": [
+    {
+     "t": "Disciple of Life: her healing spells heal 2 + the slot's level more"
+    },
+    {
+     "t": "Channel Divinity: Preserve Life, Turn Undead"
+    }
+   ],
+   "classLine": "Cleric 4 of Rekknar",
    "blurb": "The keeper of Solskaft's ledger, going down to her clan.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9 (the Cleric goes down to Deepholm with the party as her escort); a guest who heals (the build's)",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §3 beat 9 (the Cleric goes down to Deepholm with the party as her escort); a guest who heals (the build's); RULED 09-28g (Griz: \"Yes, she's meant to be Cleric\"): cleric 4 in both games -- the SRD's average HP by the d8 (31), slots 4/3, the drafted list (spells-srd-by-class.md) and the Life Domain's Spiritual Weapon; Life Domain the seat's (invented.json #ingrith-cleric)",
+   "subclassStart": "Life Domain",
+   "spells": [
+    "sacredflame",
+    "guidance",
+    "bless",
+    "curewounds",
+    "healingword",
+    "shieldoffaith",
+    "aid",
+    "lesserrestoration",
+    "spiritualweapon"
+   ],
    "id": "ingrith"
   },
   "pyro": {
@@ -2664,8 +2682,9 @@
    "buff": "shieldOfFaith",
    "target": "ally",
    "battle": true,
-   "desc": "+2 AC to one ally.",
+   "desc": "Bonus action. +2 AC to one ally.",
    "src": "SRD 5.1",
+   "bonus": true,
    "id": "shieldoffaith"
   },
   "divinefavor": {
@@ -2675,8 +2694,9 @@
    "buff": "divineFavor",
    "target": "self",
    "battle": true,
-   "desc": "Your weapon hits deal +1d4 radiant.",
+   "desc": "Bonus action. Your weapon hits deal +1d4 radiant.",
    "src": "SRD 5.1",
+   "bonus": true,
    "id": "divinefavor"
   },
   "heroism": {
@@ -3055,9 +3075,10 @@
    },
    "el": "radiant",
    "target": "enemy",
-   "grid": true,
-   "src": "SRD 5.1 Sacred Flame (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "src": "SRD 5.1 Sacred Flame (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): Ingrith is a cleric in the 8-bit game too: her spells cast in its battle (js/battle.js)",
    "sfx": "magic",
+   "battle": true,
+   "desc": "Cantrip. DEX save or 1d8 radiant (2d8 at level 5).",
    "id": "sacredflame"
   },
   "shillelagh": {
@@ -3156,12 +3177,13 @@
   "command": {
    "name": "Command",
    "level": 1,
-   "kind": "save",
+   "kind": "command",
    "save": "wis",
    "target": "enemy",
-   "grid": true,
-   "src": "SRD 5.1 Command (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "src": "SRD 5.1 Command (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): \"they have to be able to transfer back and forth from 16bit fights\": the 8-bit battle casts it too (js/battle.js)",
    "sfx": "magic",
+   "battle": true,
+   "desc": "One word, WIS save: GROVEL, HALT, FLEE or DROP. It obeys on its turn, and the turn is gone. Not the dead, nor the witless.",
    "id": "command"
   },
   "entangle": {
@@ -3225,8 +3247,10 @@
    "kind": "heal",
    "dmg": "1d4",
    "target": "ally",
-   "grid": true,
-   "src": "SRD 5.1 Healing Word (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "src": "SRD 5.1 Healing Word (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): Ingrith is a cleric in the 8-bit game too: her spells cast in its battle (js/battle.js)",
+   "battle": true,
+   "desc": "Bonus action. A word at range: 1d4 + WIS back to one ally (+1d4 a slot above 1st).",
+   "bonus": true,
    "id": "healingword"
   },
   "hellishrebuke": {
@@ -3301,8 +3325,11 @@
    "level": 1,
    "kind": "buff",
    "target": "ally",
-   "grid": true,
-   "src": "SRD 5.1 Sanctuary (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "src": "SRD 5.1 Sanctuary (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): \"they have to be able to transfer back and forth from 16bit fights\": the 8-bit battle casts it too (js/battle.js)",
+   "buff": "sanctuary",
+   "battle": true,
+   "desc": "Bonus action. One ally is warded: a foe must pass a WIS save to strike it, else it turns elsewhere. Ends if the ally attacks or casts at a foe.",
+   "bonus": true,
    "id": "sanctuary"
   },
   "faeriefire": {
@@ -3336,8 +3363,10 @@
    "level": 1,
    "kind": "buff",
    "target": "ally",
-   "grid": true,
-   "src": "SRD 5.1 Protection from Evil and Good (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "src": "SRD 5.1 Protection from Evil and Good (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): \"they have to be able to transfer back and forth from 16bit fights\": the 8-bit battle casts it too (js/battle.js)",
+   "buff": "pfeg",
+   "battle": true,
+   "desc": "One ally: the dead, fiends, fey, elementals, aberrations and celestials attack it at disadvantage, and cannot frighten it.",
    "id": "protectionfromevilandgood"
   },
   "darkness": {
@@ -3399,8 +3428,11 @@
    "level": 2,
    "kind": "buff",
    "target": "self",
-   "grid": true,
-   "src": "SRD 5.1 Branding Smite (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "src": "SRD 5.1 Branding Smite (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): \"they have to be able to transfer back and forth from 16bit fights\": the 8-bit battle casts it too (js/battle.js)",
+   "buff": "branding",
+   "battle": true,
+   "desc": "Bonus action. Your next weapon hit: +2d6 radiant (+1d6 a slot above 2nd), and the one struck cannot hide in invisibility.",
+   "bonus": true,
    "id": "brandingsmite"
   },
   "enhanceability": {
@@ -3465,8 +3497,11 @@
    "level": 2,
    "kind": "buff",
    "target": "ally",
-   "grid": true,
-   "src": "SRD 5.1 Magic Weapon (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "src": "SRD 5.1 Magic Weapon (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): \"they have to be able to transfer back and forth from 16bit fights\": the 8-bit battle casts it too (js/battle.js)",
+   "buff": "magicWeapon",
+   "battle": true,
+   "desc": "Bonus action. One ally's weapon becomes +1 (+2 from a 4th-level slot): to hit and damage, and magical.",
+   "bonus": true,
    "id": "magicweapon"
   },
   "mirrorimage": {
@@ -3511,13 +3546,15 @@
   "spiritualweapon": {
    "name": "Spiritual Weapon",
    "level": 2,
-   "kind": "attack",
+   "kind": "spiritweapon",
    "dmg": "1d8",
    "el": "force",
    "target": "enemy",
-   "grid": true,
-   "src": "SRD 5.1 Spiritual Weapon (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "src": "SRD 5.1 Spiritual Weapon (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): Ingrith is a cleric in the 8-bit game too: her spells cast in its battle (js/battle.js)",
    "sfx": "magic",
+   "battle": true,
+   "desc": "Bonus action. A floating weapon of force strikes a foe now and again each round: spell attack, 1d8 + WIS force. Ten rounds.",
+   "bonus": true,
    "id": "spiritualweapon"
   },
   "wardingbond": {
