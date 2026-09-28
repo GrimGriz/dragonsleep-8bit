@@ -198,6 +198,10 @@
     if (h.equip.torch) bits.push('a torch already');
     return bits.join(' and ') || 'both hands full';
   };
+  // shooting blind (an attack at a creature the attacker cannot see for want of light): 'disadvantage' is the SRD 5.1's rule
+  // (AMENDED 09-28 on Griz's question: the -4 was AD&D's number, "shouldn't be what the game does"); -4 keeps his first notion
+  // as a flat penalty instead. One switch, both games (deep16/js/light.js L.BLIND reads it)
+  R.BLIND = 'disadvantage';
   R.RACE_DV = { 'Half-orc': 60, 'Dwarf': 60, 'Elf': 60, 'Gnome': 60, 'Tiefling': 60, 'Drow': 120 };
   R.darkvision = function (h) { var d = DS.DATA.heroes[h.id]; return Math.max(R.RACE_DV[d && d.race] || 0, h.conds && h.conds.darkvision ? 60 : 0); };
   R.carriesLight = function (h) {

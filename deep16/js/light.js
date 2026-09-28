@@ -5,14 +5,17 @@
    burning blade, the Sunshaft staff, Sacred Weapon's glow, a Continual Flame). On dark ground (the map's `dark`, the
    fight's, or the 8-bit map's when the fight is fought from there) the characters see by those lights and by their own
    darkvision; the player sees the whole grid, greyed and dimmed where no one of the party can. A creature in the dark to
-   its attacker is unseen: an attack at it takes -4 (his table; magical darkness keeps the SRD's disadvantage), an attack
-   from it has advantage, and a spell that wants "a creature you can see" cannot take it. The AI reads the same rule
+   its attacker is unseen: an attack at it has disadvantage (the SRD 5.1; his first "-4" was AD&D's and stays as a switch,
+   js/rules.js R.BLIND), an attack from it has advantage, and a spell that wants "a creature you can see" cannot take it.
+   The AI reads the same rule
    (ai.js heroes, visibleFrom). The look is the campfire's light pass laid over the fight's world canvas (ui.js). */
 'use strict';
 (function () {
   var D = window.D16, G = D.grid;
   var L = D.light = {};
-  L.BLIND = -4;                        // shooting blind: an attack at a creature the attacker cannot see for want of light (RULED 09-28: "a -4")
+  // shooting blind (an attack at a creature the attacker cannot see for want of light): the SRD's disadvantage, or a flat penalty --
+  // one switch in js/rules.js R.BLIND (AMENDED 09-28: the -4 was AD&D's number; the game's law is the SRD 5.1)
+  L.BLIND = (window.DS && window.DS.R && window.DS.R.BLIND != null) ? window.DS.R.BLIND : 'disadvantage';
   L.TORCH = { bright: 20, dim: 20 };   // SRD 5.1 torch: bright 20 ft, dim 20 more, an hour (no fight runs that long)
   L.LIGHT_COST = 'A';                  // lighting a torch: an action (SRD 5.1 tinderbox: "takes an action"); the Thief's Fast Hands make it a bonus. OPEN (handoff 09-28 §4): 'B' would make it a bonus action for all
   // who sees in the dark by blood (SRD 5.1), keyed on the 8-bit sheets' `race`

@@ -70,14 +70,14 @@
     // Reckless (Talmok, the berserker): it swings with advantage, and everyone swings at it with advantage
     if (att.reckless && melee) adv.push('reckless');
     if (tgt.reckless && melee) adv.push('reckless target');
-    if (att.conds.hidden) adv.push('unseen');
+    var DB = D.battle, pen = 0, penWhy = '', mirror = function (eye, seen) { return !!(D.magic && DB && eye.mirrorEye && D.magic.inMirror(DB, eye, seen)); };
+    if (att.conds.hidden && !mirror(tgt, att)) adv.push('unseen'); // (the Mirror's eye on her: no hiding in front of it)
     // who cannot see whom (magic.js seeWhy: blinded, magical darkness, fog, the invisible, the dark). An unseen target is attacked
-    // at -4 for want of light (RULED 09-28, his table: "shooting blind is just handled with a -4") or at disadvantage for the rest
-    // (SRD); an unseen attacker attacks with advantage; a blinded creature is both
-    var DB = D.battle, pen = 0, penWhy = '';
+    // at disadvantage (SRD 5.1; AMENDED 09-28 from his -4, which was AD&D's -- R.BLIND keeps the flat penalty as a switch); an
+    // unseen attacker attacks with advantage; a blinded creature is both
     if (DB && D.magic) {
       var v1 = D.magic.seeWhy(DB, att, tgt);
-      if (!v1.ok) { if (v1.why === 'dark' && D.light) { pen = D.light.BLIND; penWhy = 'blind'; } else dis.push(v1.why === 'blinded' ? 'blinded' : 'unseen target: ' + v1.why); }
+      if (!v1.ok) { if (v1.why === 'dark' && D.light && typeof D.light.BLIND === 'number') { pen = D.light.BLIND; penWhy = 'blind'; } else dis.push(v1.why === 'blinded' ? 'blinded' : 'unseen target: ' + v1.why); }
       var v2 = D.magic.seeWhy(DB, tgt, att);
       if (!v2.ok) adv.push(v2.why === 'blinded' ? 'blinded target' : 'unseen attacker: ' + v2.why);
     }
@@ -88,7 +88,7 @@
     if (tgt.conds.surprised && att.assassinate) adv.push('assassinate');
     // Pack Tactics (the rats, the wolves): advantage while an ally of the attacker who can act stands within 5 ft of the target
     if (att.packTactics && G.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) adv.push('pack tactics');
-    if (tgt.conds.hidden && G.dist(att, tgt, ax, ay) > 5) dis.push('unseen target');
+    if (tgt.conds.hidden && G.dist(att, tgt, ax, ay) > 5 && !mirror(att, tgt)) dis.push('unseen target');
     if (tgt.conds.faerie) adv.push('faerie fire');
     if (tgt.conds.dodge && !att.conds.hidden) dis.push('dodging');
     // Opening Cut (the game's Cutthroat): in the first round, advantage on a foe that hasn't acted yet

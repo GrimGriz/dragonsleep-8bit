@@ -48,6 +48,7 @@
     }
     if (req.prompt) { B.sel = 0; D.sfx('popup'); }
     if (req.entry) B.entryT = B.t;
+    if (req.scene) { req.scene.t = 0; if (req.scene.clip) D.clip(req.scene.clip); } // a cutscene beat: its clip starts with it
   };
   function reachCache(B, u) {
     var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
@@ -156,10 +157,16 @@
       if (I.pressed('a') || I.pressed('end') || I.mouse.click || (!B.canSwap && B.t - B.entryT > 240)) { D.sfx('confirm'); B.answer(); }
       return;
     }
+    if (req.scene) return sceneInput(B, req.scene);
     UI.camera(B);
     if (req.prompt) return promptInput(B, req.prompt);
     if (req.turn) return turnInput(B, req.turn);
   };
+  // a cutscene beat runs its frames; after its first second E or a click moves it on
+  function sceneInput(B, sc) {
+    sc.t = (sc.t || 0) + 1;
+    if (sc.t >= (sc.frames || 120) || (sc.t > 60 && (I.pressed('a') || I.pressed('end') || I.mouse.click))) B.answer();
+  }
   function promptInput(B, p) {
     var n = p.opts.length, s0 = B.sel, go = function (v) { D.sfx('confirm'); B.answer(v); };
     if (I.repeat('left') || I.repeat('up')) B.sel = (B.sel + n - 1) % n;
@@ -516,8 +523,40 @@
     if (B.inspect) inspect(ctx, B.inspect);
     if (req && req.prompt) prompt(ctx, B, req.prompt);
     if (req && req.entry) entry(ctx, B);
+    if (req && req.scene) scene(ctx, B, req.scene);
     if (B.menu) menu(ctx, B);
   };
+
+  // ------------------------------------------------------------------ a cutscene beat (the gimmick, Griz 09-28: "a quick cutscene close-up of Aurdin
+  // and then that mp3, then a close up of the cloaker showing it hit, then big close up cloaker face"): one figure blown up over
+  // a vignette, a caption under it; `hit` flashes it and lands three darts up its body; `face` frames its head
+  function scene(ctx, B, sc) {
+    var t = sc.t || 0, u = sc.who, k = sc.scale || 3, red = sc.tone === 'red', top = D.spr.top(u.sheet);
+    ctx.fillStyle = red ? 'rgba(34,4,8,0.94)' : 'rgba(5,5,12,0.94)'; ctx.fillRect(0, 0, D.W, D.H);
+    var g = ctx.createRadialGradient(D.W / 2, D.H / 2 - 10, 10, D.W / 2, D.H / 2 - 10, 210);
+    g.addColorStop(0, red ? 'rgba(150,26,36,0.55)' : 'rgba(70,84,140,0.4)'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, D.W, D.H);
+    var foot = sc.face ? Math.round(D.H / 2 + top * k * (sc.faceAt || 0.72)) : Math.round(D.H / 2 + top * k / 2 - 8);
+    var o = {}; if (sc.hit && t < 44 && ((t >> 2) & 1)) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
+    var anim = sc.anim && D.spr.anim(u.sheet, sc.anim) ? sc.anim : 'idle';
+    if (anim === 'attack') { o.once = true; }
+    ctx.save(); ctx.translate(D.W / 2, foot); ctx.scale(k, k);
+    D.spr.draw(ctx, u.sheet, anim, sc.facing == null ? 0 : sc.facing, anim === 'attack' ? Math.min(t, 60) : t, 0, 0, o);
+    ctx.restore();
+    if (sc.hit) for (var i = 0; i < 3; i++) { // the darts landing: three bursts up the body, in turn
+      var tt = t - i * 9; if (tt < 0 || tt > 32) continue;
+      var px = D.W / 2 + [-28, 24, 4][i], py = foot - top * k * [0.3, 0.55, 0.78][i];
+      ctx.strokeStyle = R('violet', 4); ctx.globalAlpha = 1 - tt / 32; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(px, py, 3 + tt * 1.7, 0, 7); ctx.stroke();
+      ctx.fillStyle = R('bone', 2); ctx.fillRect(px - 1, py - 1, 3, 3); ctx.globalAlpha = 1;
+    }
+    if (sc.caption) {
+      var w = D.textWidth(sc.caption) + 18, x = Math.round((D.W - w) / 2), y = D.H - 42;
+      ctx.fillStyle = 'rgba(8,6,14,.92)'; ctx.fillRect(x, y, w, 17);
+      ctx.strokeStyle = red ? R('red', 4) : R('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 16);
+      D.text(ctx, sc.caption, D.W / 2, y + 5, red ? R('red', 4) : R('gold', 4), 'center');
+    }
+    if (t > 60 && ((t >> 5) & 1)) D.text(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5));
+  }
 
   function unitPos(B, u) {
     var s = u.size || 1, gx = u.x, gy = u.y, gz = G.gzAt(u, u.x, u.y);

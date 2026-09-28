@@ -384,7 +384,7 @@
     abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
     saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
     attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
-    multi: ['blast', 'blast'], flees: true, darkness: { r: 15, range: 60 },
+    multi: ['blast', 'blast'], flees: true, darkness: { r: 15, range: 60 }, mirrorEye: true, // (the Mirror's eye: RULED 09-28, all the Mirror's warlocks; magic.js inMirror)
     src: 'content/monsters.json amara (the 8-bit game\'s own warlock): two beams of Eldritch Blast; when she runs, Darkness first (npcs-by-location.md her spells: darkness; module-halfway-inn.md "darkness over the yard"). No Devil\'s Sight: she is as blind in it as anyone'
   },
   willem: {

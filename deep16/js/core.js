@@ -46,6 +46,17 @@
   function AU() { return window.DS.audio; }
   D.sfx = function (id) { var A = AU(); if (A) A.sfx(id); };
   D.music = function (id) { var A = AU(); if (A) A.play(id); };
+  // a recorded line (the gimmick's clips, deep16/audio/*.mp3; Griz's livestream branding): an <audio> beside the chip synth, at the
+  // effects' volume; a clip that is not there fails quietly (the caption carries the line)
+  D.clip = function (url, done) {
+    try {
+      var a = new Audio(url), A = AU();
+      a.volume = A && A.sfxVol != null ? Math.max(0, Math.min(1, A.sfxVol)) : 0.7;
+      a.onended = function () { if (done) done(true); }; a.onerror = function () { if (done) done(false); };
+      var p = a.play(); if (p && p.catch) p.catch(function () { if (done) done(false); });
+      return a;
+    } catch (e) { if (done) done(false); return null; }
+  };
   // browsers start sound only on a key or a click. The synth's unlock replays a tune asked for before it, but through
   // play(), which skips a tune it thinks is already on -- so a tune that's named and not sounding is started again here
   D.unlockAudio = function () {

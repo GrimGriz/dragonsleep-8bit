@@ -54,19 +54,23 @@ brings — a torch in hand, the Light cantrip on someone's gear, a burning blade
 Daylight at a point. Every light is bright so far and dim as far again; dim light is enough to see by. **The player
 sees the whole grid**; what no one of the four can see is greyed and dimmed (the campfire's light pass, `js/light.js`).
 Each character sees by the light a creature stands in and by its own darkvision (Lymen 60 ft, the dwarves; the sheets
-say who else: `data/foes.js` `darkvision`, `blindsight`, `blind`). **An attack at a creature the attacker cannot see for
-want of light takes -4** (his table); magical darkness, fog, the invisible and blindness keep the SRD's disadvantage; an
-unseen attacker has advantage; a spell that wants "a creature you can see" cannot take one unseen. The AI reads the
-same rule. **Torches are hands:** ITEM lights one (an action; the Thief's bonus) if a hand is free — a two-handed
+say who else: `data/foes.js` `darkvision`, `blindsight`, `blind`). **An attack at a creature the attacker cannot see is at
+disadvantage** (the SRD 5.1's rule; his first "-4" was AD&D's number and stays as a switch, `js/rules.js R.BLIND`, one law
+for both games); an unseen attacker has advantage, so two blind fighters roll straight; a spell that wants "a creature you
+can see" cannot take one unseen. The AI reads the same rule. **Torches are hands:** ITEM lights one (an action; the Thief's bonus) if a hand is free — a two-handed
 weapon takes both, a shield one — so Aurdin or Vivian carries it and Lymen cannot; DROP leaves it burning where it
 fell, THROW lands it within 20 ft, DOUSE stows it, TAKE UP the one at your feet; a versatile weapon held with a torch
 hits for its one-handed die; under the roost it is fire, greyed. The eleven spells that waited on the dark are built
 (Dancing Lights, Fog Cloud, Continual Flame, Darkvision, Invisibility, See Invisibility, Sleet Storm, Stinking Cloud,
 Mislead, Pass Without Trace, True Seeing), and the sheets' sight todos (the darkmantle's aura and blinding crush, the
 cloaker's fold, the duergar's Invisibility). "Magic Missile at the darkness": a dart aimed at a square the caster cannot
-see into strikes what stands there (`D.RULES.missilesAtTheDark`, a switch). The roost coming down is drawn over the
-map before the hand-off. Open for Griz: the torch's action (a switch, `L.LIGHT_COST`), whether the -4 also covers
-spells and melee (it does as built), the dark maps map by map.
+see into strikes what stands there (`D.RULES.missilesAtTheDark`, a switch), and in the cloaker's deep gallery the first
+one is the gimmick's cutscene (Griz's livestream branding: a close-up of the caster and his clip `audio/attacking_the_darkness.mp3`,
+the cloaker hit, its face and "AND THE DARKNESS ATTACKS BACK", then it comes for the caster). **The Mirror's eye**
+(RULED 09-28, the Mirror's warlocks' feature: Amara): a mirror worn facing forward -- in the cone before her, a creature
+in any light cannot hide from her and gains nothing by being invisible; it shows nothing in the dark. The roost coming
+down is drawn over the map before the hand-off. Open for Griz: the torch's action (a switch, `L.LIGHT_COST`), the dark
+maps map by map.
 
 ## The ladder (`?ladder`) — the leveling simulator
 

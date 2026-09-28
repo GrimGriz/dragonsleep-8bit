@@ -212,12 +212,24 @@
       // game"): a dart aimed at a square the caster cannot see into (t.units holds { x, y, dark: true }) flies anyway. Whatever
       // stands there takes it -- the darts never miss -- and an empty square takes nothing but the slot. RULES.missilesAtTheDark
       var darts = t.units.map(function (w) { if (!w.dark) return w; var at = G.occupant(w.x, w.y); return (at && at.hp > 0 && !at.dead && G.hostile(u, at)) ? at : { x: w.x, y: w.y, size: 1, dark: true, id: 'dark' + w.x + ',' + w.y, name: 'the darkness' }; });
-      var lines = [head + ' -- ' + darts.length + ' darts, each 1d4+1 force, never missing' + (t.units.some(function (w) { return w.dark; }) ? '  {p}AT THE DARKNESS{/}' : '')], tot = {}, who = {};
+      var atDark = t.units.some(function (w) { return w.dark; });
+      // the gimmick (Griz, 09-28, the livestreams' branding): in the fight that carries it (data/fights.js `gimmick: 'darkness'`, the cloaker's
+      // deep gallery), the first Magic Missile thrown at the darkness is a cutscene -- a close-up of the caster and his clip, then the
+      // cloaker hit, then its face and the line -- and the thing struck comes for the caster (ai.js brute: grudge)
+      var gim = B.fight && B.fight.gimmick === 'darkness' && atDark && u.side === 'party' && !B.gimmickDone;
+      if (gim) yield { scene: { who: u, anim: 'attack', facing: 0, scale: 3, frames: 250, clip: 'audio/attacking_the_darkness.mp3', caption: 'MAGIC MISSILE. AT THE DARKNESS.' } };
+      var lines = [head + ' -- ' + darts.length + ' darts, each 1d4+1 force, never missing' + (atDark ? '  {p}AT THE DARKNESS{/}' : '')], tot = {}, who = {}, struck = [];
       for (var k = 0; k < darts.length; k++) { FX.projectile(u, darts[k], 'fire'); }
       yield { fx: 1 };
       darts.forEach(function (w) { var r = D.roll('1d4+1'); tot[w.id] = (tot[w.id] || 0) + r.total; who[w.id] = w; });
-      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force'); });
+      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force'); if (w.side === 'foe') struck.push(w); });
       B.card(lines, 360); yield 30;
+      if (gim && struck.length) {
+        B.gimmickDone = true;
+        var c = struck[0]; if (!c.dead && c.hp > 0) c.grudge = u.id;
+        yield { scene: { who: c, scale: 1.3, frames: 110, hit: true, caption: 'THE DARTS FIND IT.' } };
+        yield { scene: { who: c, face: true, scale: 3, frames: 210, tone: 'red', clip: 'audio/the_darkness_attacks_back.mp3', caption: 'AND THE DARKNESS ATTACKS BACK.' } };
+      }
     } else if (g.shape === 'splash') {
       var first = t, second = B.units.filter(function (w) { return w !== first && G.hostile(u, w) && G.standing(w) && G.dist(first, w) <= 5; })[0];
       var dd = M.dice(sp, u, 0), r1 = D.roll(dd), lines2 = [head + '  ' + dd + ' ' + RU.fmtRolls(r1.rolls) + ' = ' + r1.total + ' acid  DEX DC ' + dc + ', no half'];
@@ -566,11 +578,24 @@
       var k = obscuredBetween(B, a, b);
       if (k && !(a.devilSight && k === 'darkness')) return { ok: false, why: k === 'darkness' ? 'darkness' : k === 'stink' ? 'the cloud' : k };
     }
-    if (b.conds && b.conds.invisible && !b.conds.faerie && !a.seeInvisible) return { ok: false, why: 'invisible' };
+    if (b.conds && b.conds.invisible && !b.conds.faerie && !a.seeInvisible && !M.inMirror(B, a, b)) return { ok: false, why: 'invisible' };
     if (D.light) { var s = D.light.seesBy(B, a, b); if (!s.ok) return { ok: false, why: s.why }; if (s.dv) return { ok: true, dv: true }; }
     return { ok: true };
   };
   M.sees = function (B, a, b) { return M.seeWhy(B, a, b).ok; };
+  // the Mirror's eye (RULED 09-28, Griz: "All Mirror Warlocks should get it as a class feature", "it needing light"): a mirror worn
+  // facing forward. Within the cone before the wearer -- her facing and a little past the two beside it -- a creature standing in
+  // any light cannot hide from her and gains nothing by being invisible (seeWhy, rules.js edges, ai.js heroes, battle.js hide). A
+  // mirror shows nothing in the dark. The units' `facing` is the sprite's (0 S, 1 SW, 2 W, 3 NW, 4 N, 5 NE, 6 E, 7 SE on screen)
+  var FACE = [[1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0]];
+  M.inMirror = function (B, a, b) {
+    if (!a || !b || !a.mirrorEye || a.facing == null || a.hp <= 0 || a.dead) return false;
+    if (D.light && D.light.levelOf(B, b) < 1) return false;
+    var f = FACE[a.facing % 8], fl = Math.hypot(f[0], f[1]);
+    var ax = a.x + ((a.size || 1) - 1) / 2, ay = a.y + ((a.size || 1) - 1) / 2, dx = b.x + ((b.size || 1) - 1) / 2 - ax, dy = b.y + ((b.size || 1) - 1) / 2 - ay, dl = Math.hypot(dx, dy);
+    if (!dl) return true;
+    return (f[0] * dx + f[1] * dy) / (fl * dl) >= 0.6;
+  };
   // a foe's Darkness (Amara's, the turn she breaks for the way out; the drow's innate): over as many of them as it can cover,
   // within its range. A Light (a spell of 2nd level or lower) under it is dispelled; a Daylight it would overlap burns it as it forms
   M.castDarkness = function* (B, u) {

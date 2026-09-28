@@ -103,7 +103,7 @@
   "berserker": { "name": "Visiting Barbarian", "art": "orcfighter", "tint": "#b08060", "cr": "2", "ac": 13, "hp": 67, "abil": { "str": 16, "dex": 12, "con": 17, "int": 9, "wis": 11, "cha": 9 }, "tags": ["humanoid"], "traits": { "reckless": true },
     "attacks": { "greataxe": { "name": "Greataxe", "hit": 5, "dmg": "1d12+3", "type": "slashing", "verb": "cleaves" } }, "silver": "0", "src": "SRD 5.1 (Berserker); wiki/the-hex.md (festival fortnight, visiting barbarian fighters)" },
   "amara": { "name": "Amara", "art": "amara", "cr": "3", "ac": 13, "hp": 45, "abil": { "str": 9, "dex": 14, "con": 12, "int": 12, "wis": 11, "cha": 17 }, "tags": ["humanoid"],
-    "traits": { "flees": true },
+    "traits": { "flees": true, "mirrorEye": true },
     "attacks": { "blast": { "name": "Eldritch Blast", "hit": 6, "dmg": "1d10+3", "type": "force", "verb": "blasts", "ranged": true } }, "multi": ["blast", "blast"],
     "silver": "0",
     "src": "module-halfway-inn.md §4 (Amara, warlock 5, the Mirror's pact); npcs-by-location.md §The Road; game block from SRD 5.1 pieces (Eldritch Blast, two beams at 5th) invented.json#wagon-crew" },

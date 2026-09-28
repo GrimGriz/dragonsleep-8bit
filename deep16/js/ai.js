@@ -13,7 +13,7 @@
   // the foes a creature knows of: those it can see (magic.js seeWhy: the light, the dark, its darkvision, the fog, the invisible)
   // and any beside it (heard, felt); a hidden one only beside it (torchdark, 09-28)
   function heroes(B, u) {
-    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && ((!w.conds.hidden && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); });
+    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && (((!w.conds.hidden || D.magic.inMirror(B, u, w)) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
     if (seen.length) return seen;
     // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
     // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)
@@ -474,7 +474,9 @@
     return true;
   }
   function* brute(B, u) {
-    var T = u.turn, hs = heroes(B, u);
+    var T = u.turn, hs = heroes(B, u), grudge = false;
+    // the darkness attacks back (the gimmick, magic.js): the one the darts found comes for the caster this turn, nothing else
+    if (u.grudge) { var gr = B.units.filter(function (w) { return w.id === u.grudge && G.standing(w); })[0]; delete u.grudge; if (gr) { hs = [gr]; grudge = true; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + gr.name + '{/}.'], 240); yield 16; } }
     if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp) {
       if (u.burned) { B.card(['{g}' + u.name + ' does not knit: it burned.{/}']); yield 16; }
       else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
@@ -508,7 +510,7 @@
     // recharges (5-6 at the start of its turn): the Moan, the Leap
     [u.moan, u.leap].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
     // Phantasms (the cloaker when bloodied; Willem at once): three false images, its action
-    if (u.phantasms && !u.phantasms.used && T.action && (u.phantasms.when === 'start' || u.hp <= u.maxhp / 2)) {
+    if (!grudge && u.phantasms && !u.phantasms.used && T.action && (u.phantasms.when === 'start' || u.hp <= u.maxhp / 2)) {
       T.action = 0; u.phantasms.used = true; u.images = 3; D.sfx('magic'); FX.sparkle(u, 'violet', 30);
       B.card(['{r}' + the(B, u) + '{/} splits into shadows: three false shapes wheel about it!  {g}(each blow may go at an image){/}'], 360);
       yield 34;
@@ -517,7 +519,7 @@
     // the Moan (the cloaker): every hero within 60 ft, WIS or frightened till the end of its next turn; the mouther's
     // Gibbering is the same shape (20 ft, stunned) -- moan: { dc, recharge, cond, range, text }
     var MO = u.moan, mcond = MO && (MO.cond || 'frightened'), mrange = MO && (MO.range || 60);
-    if (MO && MO.ready && T.action && hs.filter(function (w) { return G.dist(u, w) <= mrange && !w.conds[mcond]; }).length >= (MO.min || 2)) {
+    if (!grudge && MO && MO.ready && T.action && hs.filter(function (w) { return G.dist(u, w) <= mrange && !w.conds[mcond]; }).length >= (MO.min || 2)) {
       T.action = 0; MO.ready = false; D.sfx('encounter');
       var ml = ['{r}' + the(B, u) + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
       hs.filter(function (w) { return G.dist(u, w) <= mrange; }).forEach(function (w) {

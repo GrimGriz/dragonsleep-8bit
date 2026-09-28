@@ -51,8 +51,11 @@
   DS.Battle = Battle;
   // who sees in the dark without a light: a hero by blood or the day's spell (R.darkvision), a monster by its sheet's senses
   Battle.prototype.seesDark = function (u) { return isHero(u) ? R.darkvision(u.h) > 0 : !!(u.m.senses && (u.m.senses.darkvision || u.m.senses.blindsight)); };
-  // shooting blind (RULED 09-28: "a -4"): in the dark, with no light made, an attacker with no darkvision takes -4 to hit
-  Battle.prototype.blindPen = function (a) { return this.dark && !this.lit && !this.seesDark(a) ? -4 : 0; };
+  // shooting blind: in the dark, with no light made, an attacker with no darkvision attacks at disadvantage (SRD 5.1; AMENDED 09-28
+  // from his -4, which was AD&D's: R.BLIND keeps the flat penalty as a switch)
+  Battle.prototype.blindTo = function (a) { return this.dark && !this.lit && !this.seesDark(a); };
+  Battle.prototype.blindPen = function (a) { return this.blindTo(a) && typeof R.BLIND === 'number' ? R.BLIND : 0; };
+  Battle.prototype.blindTxt = function (a) { return this.blindTo(a) ? (typeof R.BLIND === 'number' ? ' (blind: ' + R.BLIND + ')' : ' (blind: disadvantage)') : ''; };
   Battle.prototype.makeFoe = function (m, nm) {
     return {
       side: 'foe', m: m, id: m.id, name: nm, hp: m.hp, maxhp: m.hp, conds: {}, buff: null, dead: false, art: DS.monsterArt(m.art || m.id, m.tint),
@@ -205,9 +208,12 @@
   // advantage bookkeeping for an attack from a on t
   Battle.prototype.advantage = function (a, t, melee) {
     var adv = 0, dis = 0;
-    if (a.conds.hidden) adv++;
-    if (a.conds.invisible) adv++;
-    if (t.conds.invisible && !a.conds.seeInvisible) dis++;
+    // the Mirror's eye (RULED 09-28: the Mirror's warlocks; it needs light): hiding and invisibility are nothing to one who wears it
+    var eyeT = this.lit && !isHero(t) && t.m.traits && t.m.traits.mirrorEye, eyeA = this.lit && !isHero(a) && a.m.traits && a.m.traits.mirrorEye;
+    if (a.conds.hidden && !eyeT) adv++;
+    if (a.conds.invisible && !eyeT) adv++;
+    if (t.conds.invisible && !a.conds.seeInvisible && !eyeA) dis++;
+    if (this.blindTo(a) && typeof R.BLIND !== 'number') dis++; // shooting blind: the SRD's disadvantage (the -4 is the other switch)
     if (this.dark && !this.lit && this.seesDark(a) && !this.seesDark(t)) adv++; // unseen attacker (SRD): the one who sees in the dark on the one who does not
     if (a.conds.reckless) adv++;
     if (t.conds.reckless) adv++;
@@ -307,7 +313,7 @@
     if (this.o.introText) yield* this.say(this.o.introText, 70);
     for (var hk = 0; hk < (DS.battleHooks || []).length; hk++) yield* DS.battleHooks[hk](this);
     if (this.o.roost) yield* this.say('Overhead, the roost: millions of sleeping wings. No fire. No bright light.', 60);
-    if (this.dark && !this.lit) yield* this.hold('Dark. Nobody without darkvision can see to aim: -4 to hit until somebody makes a light.');
+    if (this.dark && !this.lit) yield* this.hold('Dark. Nobody without darkvision can see to aim: ' + (typeof R.BLIND === 'number' ? R.BLIND + ' to hit' : 'disadvantage') + ' until somebody makes a light.');
     else if (this.dark && this.torchBy) { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy; })[0]; if (tb) yield* this.say(nameOf(tb) + ' holds the torch up.', 40); }
     // Sense Magic: the chuul feels a ring of binding coming
     var ringU = this.heroes.filter(function (u) { var r = R.item(u.h.equip.ring); return r && r.ring && r.ring.taunt; })[0];
@@ -642,7 +648,7 @@
       // Cutthroat's Opening Cut: first round, a foe that hasn't moved yet
       var opening = h.subclass === 'Cutthroat' && this.round === 1 && !isHero(t) && !t.acted;
       if (opening) adv = adv < 0 ? 0 : 1;
-      var nat = this.d20(adv), pen = this.blindPen(u), blindTxt = pen ? ' (blind: ' + pen + ')' : '';
+      var nat = this.d20(adv), pen = this.blindPen(u), blindTxt = this.blindTxt(u);
       var bonus = R.attackBonus(h, w) + (u.buff && u.buff.atk ? u.buff.atk : 0) + (u.buff && u.buff.id === 'bless' ? DS.d(4) : 0);
       var total = nat + bonus + pen, ac = this.acOf(t);
       var wasHidden = !!u.conds.hidden; delete u.conds.hidden;
@@ -872,7 +878,7 @@
           var dice = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
           this.bolt(u, t, (ELEM[sp.el] || ELEM.force)[0]);
           yield this.wait(10);
-          if (nat === 1 || (nat !== 20 && nat + atk + bp < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('It misses ' + nameOf(t) + '.' + (bp ? ' (blind: ' + bp + ')' : ''), 26); continue; }
+          if (nat === 1 || (nat !== 20 && nat + atk + bp < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('It misses ' + nameOf(t) + '.' + this.blindTxt(u), 26); continue; }
           var d = this.hurt(t, DS.roll(dice, { crit: nat === 20 }), sp.el, { magicWeapon: true });
           if (sp.cond && !down(t)) t.conds[sp.cond] = { rounds: 1 };
           this.elemBurst(t, sp.el); t.flash = 12; DS.audio.sfx('hit'); this.num(t, d, '#F8D878');
@@ -1023,7 +1029,8 @@
     }
     var engulfed = live.filter(function (u) { return f.holding.indexOf(u) >= 0 && u.conds.engulfed; });
     if (engulfed.length) return engulfed[0];
-    var weights = live.map(function (u) { var w = [5, 4, 3, 2][u.idx] || 1; if (u.h.wounded) w = 6; if (u.conds.hidden) w *= 0.3; return { u: u, w: w }; }); // the wounded draw them
+    var self = this, eye = this.lit && f.m.traits && f.m.traits.mirrorEye; // (the Mirror's eye: a hidden one is as plain as the rest)
+    var weights = live.map(function (u) { var w = [5, 4, 3, 2][u.idx] || 1; if (u.h.wounded) w = 6; if (u.conds.hidden && !eye) w *= 0.3; return { u: u, w: w }; }); // the wounded draw them
     return DS.weighted(weights).u;
   };
   Battle.prototype.foeTurn = function* (f) {
@@ -1091,7 +1098,7 @@
     var melee = !atk.ranged;
     var adv = this.advantage(f, t, melee);
     if (atk.autoHitHeld && f.holding.indexOf(t) >= 0) adv = 1;
-    var bp = this.blindPen(f), dazzle = (this.bright && f.m.traits && f.m.traits.lightSensitive ? ' (dazzled: disadvantage)' : '') + (bp ? ' (blind: ' + bp + ')' : '');
+    var bp = this.blindPen(f), dazzle = (this.bright && f.m.traits && f.m.traits.lightSensitive ? ' (dazzled: disadvantage)' : '') + this.blindTxt(f);
     var nat = this.d20(adv), tot = nat + atk.hit + bp, ac = this.acOf(t);
     if (atk.dmg === '0' && (nat === 20 || (nat !== 1 && tot >= ac))) { // a grab that does no harm by itself (the roper's tendrils)
       yield* this.say(nameOf(f) + ' ' + (atk.verb || 'reaches for') + ' ' + nameOf(t) + '.', 30);

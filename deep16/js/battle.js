@@ -174,7 +174,8 @@
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
       // and what it does with the dark itself (the darkmantle's aura, the duergar's Invisibility: ai.js brute)
       darkvision: d.darkvision || 0, blindsight: d.blindsight || 0, blind: !!d.blind, truesight: d.truesight || 0, devilSight: !!d.devilSight,
-      aura: d.darknessAura ? { used: false } : null, invis: d.invisibility ? { used: false } : null
+      aura: d.darknessAura ? { used: false } : null, invis: d.invisibility ? { used: false } : null,
+      mirrorEye: !!d.mirrorEye // the Mirror's warlocks (RULED 09-28): no hiding or invisibility before her, in light (magic.js inMirror)
     };
   };
   // a damage type against a foe's resistances, immunities and vulnerabilities (SRD: immune 0, resist half, vulnerable x2)
@@ -1076,10 +1077,13 @@
     var T = u.turn;
     if (T.bonus > 0 && u.lvl >= 2) T.bonus = 0; else T.action = 0; // Cunning Action from level 2; the Hide action before
     D.sfx('run');
-    var foes = this.units.filter(function (w) { return w.side === 'foe' && G.standing(w) && RU.canAct(w); });
+    var foes = this.units.filter(function (w) { return w.side === 'foe' && G.standing(w) && RU.canAct(w); }), self = this;
     var plain = foes.filter(function (w) { var l = G.los(w, u); return l.clear && !l.cover; });
-    var r = D.d(20), total = r + u.stealth, top = Math.max.apply(null, foes.map(function (w) { return w.perception; }).concat([0]));
-    if (plain.length) {
+    var mirror = foes.filter(function (w) { return w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); }); // (the Mirror's eye: no hiding before it, in light)
+    var r = D.d(20), total = r + u.stealth + (u.conds.pwt ? 10 : 0), top = Math.max.apply(null, foes.map(function (w) { return w.perception; }).concat([0]));
+    if (mirror.length) {
+      this.card(['{y}' + u.name + '{/} tries to hide, but the mirror on ' + mirror.map(shortName).join(' and ') + ' has her: {p}nothing hides in front of the Mirror\'s eye{/}.', '{g}Get behind her, or into the dark.{/}']);
+    } else if (plain.length) {
       this.card(['{y}' + u.name + '{/} tries to hide, but the ' + plain.map(shortName).join(' and the ') + ' can see her plainly (no cover).', '{g}Put a stalagmite or a body between you first.{/}']);
     } else {
       var ok = total >= top && !u.conds.faerie; // (outlined in violet light: nowhere to hide)

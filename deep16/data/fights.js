@@ -147,8 +147,11 @@
       intro: 'The road bucks. Out of a breach in the south wall, rough-cut and new, something armored comes up through the stone like a fin through water.',
       from: 'the 8-bit game: deep.js S.bulette (one bulette; two with the king)', won: 'THERE IS NO RUNE FOR A HOLE A BEAST DUG.',
       foes: [{ id: 'bul', kind: 'bulette', at: [9, 1] }], wave: null },
-    { id: 'cloaker', level: 6, map: 'deep', name: 'The Cloaker', sub: 'the deep gallery', music: 'boss',
-      intro: 'Something hangs from the roof like a cloak somebody left behind. Then it opens.',
+    // the gimmick's home (Griz, 09-28: "the first 16-bit fight with a cloaker in which Aurdin magic-missiles a cloaker ... a quick cutscene
+    // close-up of Aurdin and then that mp3, then a close up of the cloaker showing it hit, then big close up cloaker face"): the first
+    // Magic Missile thrown at the darkness here is the cutscene (magic.js darts, ui.js scene), and the cloaker comes for the caster
+    { id: 'cloaker', level: 6, map: 'deep', name: 'The Cloaker', sub: 'the deep gallery', music: 'boss', gimmick: 'darkness',
+      intro: 'Something hangs from the roof like a cloak somebody left behind. Then it opens. (It is dark down here, and it hates the light.)',
       from: 'the 8-bit game: events.js, the tail bounty (the cloaker; the 8-bit game fights it at 4-5, hard for four at 6)', won: 'PROOF FOR HESSLE\'S SCALES.',
       foes: [{ id: 'clk', kind: 'cloaker', at: [12, 4] }], wave: null },
     { id: 'settling', level: 3, map: 'settling', name: 'The Settling Pools', sub: 'the Warrens, the lower works',
