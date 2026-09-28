@@ -130,10 +130,10 @@
       D.text(ctx, 'HP ' + h.hp + '  AC ' + h.ac + '  ' + h.weapon, bx + 6, yy + 9, P('silver', 5));
       if (h.slots) D.text(ctx, h.slots, bx + 6, yy + 18, P('accent', 2));
     });
-    D.text(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E fight  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
+    D.hint(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E fight  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
     var cb = this.climbBtn = { x: D.W - 104, y: 4, w: 98, h: 17 }, cl = D.climb && D.climb.load();
     ctx.fillStyle = P('violet', 1); ctx.fillRect(cb.x, cb.y, cb.w, cb.h); ctx.strokeStyle = P('violet', 4); ctx.strokeRect(cb.x + 0.5, cb.y + 0.5, cb.w - 1, cb.h - 1);
-    D.text(ctx, '{p}THE CLIMB{/}  (C)', cb.x + cb.w / 2, cb.y + 2, P('bone', 1), 'center');
+    D.hint(ctx, '{p}THE CLIMB{/}  (C)', cb.x + cb.w / 2, cb.y + 2, P('bone', 1), 'center');
     D.text(ctx, cl ? 'level ' + cl.level + ', run ' + cl.run : 'one party, 1 to 9', cb.x + cb.w / 2, cb.y + 10, P('stone', 5), 'center');
     if (this.card) this.drawCard(ctx);
     if (this.leaving) {
@@ -141,7 +141,7 @@
       box(ctx, lx, 104, lw, 46);
       D.text(ctx, '{y}LEAVE THE LADDER?{/}', D.W / 2, 112, P('gold', 4), 'center');
       D.text(ctx, 'for the first fight past the door (the Cocoon Gallery)', D.W / 2, 124, P('bone', 1), 'center');
-      D.text(ctx, '{g}E leave  ·  X stay{/}', D.W / 2, 137, P('accent', 2), 'center');
+      D.hint(ctx, '{g}E leave  ·  X stay{/}', D.W / 2, 137, P('accent', 2), 'center');
     }
   };
   // a light read of the four at a level (cached per level and fight: a fight may give them its own looks)
@@ -161,7 +161,7 @@
       box(ctx, x, 90, w, 60);
       D.text(ctx, '{y}THE TOP OF THE LADDER{/}', D.W / 2, 100, P('gold', 4), 'center');
       D.text(ctx, 'Level 9 won. The ladder goes no higher -- yet.', D.W / 2, 116, P('bone', 1), 'center');
-      D.text(ctx, '{g}E{/}', D.W / 2, 134, P('accent', 2), 'center');
+      D.hint(ctx, '{g}E{/}', D.W / 2, 134, P('accent', 2), 'center');
       return;
     }
     var lines = [];
@@ -173,6 +173,6 @@
     box(ctx, x, y, w, h);
     D.text(ctx, '{y}LEVEL UP: ' + c.from + ' -> ' + (c.from + 1) + '{/}', D.W / 2, y + 6, P('gold', 4), 'center');
     lines.forEach(function (l, i) { D.text(ctx, l, x + 8, y + 20 + i * 9, P('bone', 1)); });
-    D.text(ctx, '{g}E{/}', D.W / 2, y + h - 10, P('accent', 2), 'center');
+    D.hint(ctx, '{g}E{/}', D.W / 2, y + h - 10, P('accent', 2), 'center');
   };
 })();

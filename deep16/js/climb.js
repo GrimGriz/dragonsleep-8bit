@@ -123,7 +123,7 @@
     var self = this;
     return [
       { label: 'TO THE CAMP, THEN THE FIGHT', act: function () { self.go(); } },
-      { label: 'START OVER (a new climb at level 1)', act: function () { self.card = { ask: 'over', lines: ['{y}START OVER?{/}', 'The party goes back to level 1, and this climb is done.', '{g}E start over  ·  X keep climbing{/}'] }; } },
+      { label: 'START OVER (a new climb at level 1)', act: function () { self.card = { ask: 'over', lines: ['{y}START OVER?{/}', 'The party goes back to level 1, and this climb is done.', D.keys('{g}E start over  ·  X keep climbing{/}')] }; } },
       { label: 'BACK TO THE LADDER', act: function () { D.pop(); D.push(new D.Ladder()); } }
     ];
   };
@@ -136,33 +136,33 @@
     var s = this.s, self = this;
     D.music('title');
     if (res === 'won') {
-      if (s.level >= 9) { s.best = 9; CL.save(s); this.card = { top: true, lines: ['{y}THE TOP OF THE CLIMB{/}', 'Level 9 won, from level 1, run ' + s.run + '.', 'The ladder goes no higher -- yet.', '{g}E{/}'] }; return; }
+      if (s.level >= 9) { s.best = 9; CL.save(s); this.card = { top: true, lines: ['{y}THE TOP OF THE CLIMB{/}', 'Level 9 won, from level 1, run ' + s.run + '.', 'The ladder goes no higher -- yet.', D.keys('{g}E{/}')] }; return; }
       D.push(new LevelUp(s, function () {
         s.level++; s.best = Math.max(s.best, s.level); s.camp = s.camp ? { equip: {}, prep: {}, cast: s.camp.cast } : null;
         CL.draw(s); CL.save(s);
         var F = D.fight(s.fight);
-        self.card = { lines: ['{y}LEVEL ' + s.level + '{/}', 'The next rung: {y}' + (F ? F.name : '?') + '{/}' + (F && F.sub ? ', ' + F.sub : '') + '.', '{g}E{/}'] };
+        self.card = { lines: ['{y}LEVEL ' + s.level + '{/}', 'The next rung: {y}' + (F ? F.name : '?') + '{/}' + (F && F.sub ? ', ' + F.sub : '') + '.', D.keys('{g}E{/}')] };
       }));
       return;
     }
     if (res === 'lost') {
       var at = s.level;
       this.s = CL.fresh(s); CL.save(this.s);
-      this.card = { lines: ['{r}THE DARK KEEPS THEM.{/}', 'All four went down on the rung of level ' + at + '.', 'Back to the bottom: a new climb, at level 1 (run ' + this.s.run + ').', '{g}E{/}'] };
+      this.card = { lines: ['{r}THE DARK KEEPS THEM.{/}', 'All four went down on the rung of level ' + at + '.', 'Back to the bottom: a new climb, at level 1 (run ' + this.s.run + ').', D.keys('{g}E{/}')] };
       return;
     }
     if (res === 'escaped') {
       var fell = (info && info.down) || [];
       CL.draw(s, s.fight); CL.save(s);
       var F2 = D.fight(s.fight);
-      this.card = { hands: true, t0: this.t, down: fell, lines: ['{y}BACK TO THE CAMPFIRE{/}', 'A giant pair of DM hands appears above the campfire and waves vigorously.', fell.length ? 'Your fallen comrades appear around the fire, resurrected.' : 'Nobody fell. The hands wave anyway.', 'No level for it. The next fight on this rung: {y}' + (F2 ? F2.name : '?') + '{/}.', '{g}E{/}'] };
+      this.card = { hands: true, t0: this.t, down: fell, lines: ['{y}BACK TO THE CAMPFIRE{/}', 'A giant pair of DM hands appears above the campfire and waves vigorously.', fell.length ? 'Your fallen comrades appear around the fire, resurrected.' : 'Nobody fell. The hands wave anyway.', 'No level for it. The next fight on this rung: {y}' + (F2 ? F2.name : '?') + '{/}.', D.keys('{g}E{/}')] };
     }
   };
   Climb.prototype.update = function () {
     this.t++;
     if (this.card) {
       if (this.card.ask === 'over') {
-        if (I.pressed('a')) { this.s = CL.fresh(this.s); CL.save(this.s); this.card = { lines: ['{y}A NEW CLIMB{/}', 'Level 1, run ' + this.s.run + '.', '{g}E{/}'] }; D.sfx('confirm'); }
+        if (I.pressed('a')) { this.s = CL.fresh(this.s); CL.save(this.s); this.card = { lines: ['{y}A NEW CLIMB{/}', 'Level 1, run ' + this.s.run + '.', D.keys('{g}E{/}')] }; D.sfx('confirm'); }
         else if (I.pressed('b') || I.pressed('menu') || I.mouse.click) { this.card = null; D.sfx('cancel'); }
         return;
       }
@@ -249,7 +249,7 @@
       D.text(ctx, r.label, rr.x + 5, rr.y + 3, i === self.sel ? P('gold', 4) : P('bone', 1));
     });
     D.text(ctx, 'A win: level up, your picks.  All four down: back to the bottom.  One gets out the way in: back to the campfire.', D.W / 2, 226, P('stone', 5), 'center');
-    D.text(ctx, 'up/down choose  ·  E pick  ·  in a fight, LEAVE THE FIGHT from the squares you came in by', D.W / 2, D.H - 12, P('stone', 5), 'center');
+    D.hint(ctx, 'up/down choose  ·  E pick  ·  in a fight, LEAVE THE FIGHT from the squares you came in by', D.W / 2, D.H - 12, P('stone', 5), 'center');
     if (this.card) {
       var c = this.card, cw = 330, wl = [];
       c.lines.forEach(function (l) { wl = wl.concat(D.wrap(l, cw - 16)); });
@@ -358,7 +358,7 @@
       box(ctx, 16, 28, D.W - 32, 214, P('gold', 3));
       var y = 36;
       this.summary.forEach(function (l) { D.wrap(l, D.W - 50).forEach(function (w) { if (y < 232) D.text(ctx, w, 24, y, P('bone', 1)); y += 9; }); });
-      D.text(ctx, '{g}E on to the next rung{/}', D.W / 2, D.H - 14, P('accent', 2), 'center');
+      D.hint(ctx, '{g}E on to the next rung{/}', D.W / 2, D.H - 14, P('accent', 2), 'center');
       return;
     }
     // the four, the one choosing lit
@@ -389,6 +389,6 @@
     });
     var row = L.rows[this.sel], desc = row && row.desc ? row.desc : L.desc || '';
     D.wrap(desc, PW - 12).slice(0, 5).forEach(function (l, j) { D.text(ctx, l, PX + 6, PY + 176 + j * 8, P('bone', 2)); });
-    D.text(ctx, 'up/down choose  ·  E pick  ·  X take a pick back', D.W / 2, D.H - 10, P('stone', 5), 'center');
+    D.hint(ctx, 'up/down choose  ·  E pick  ·  X take a pick back', D.W / 2, D.H - 10, P('stone', 5), 'center');
   };
 })();

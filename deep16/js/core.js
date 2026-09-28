@@ -126,6 +126,44 @@
   });
   window.addEventListener('keyup', function (e) { var b = KEYMAP[e.code]; if (b) { e.preventDefault(); I.release(b); } });
   window.addEventListener('blur', function () { I.held = {}; I.mouse.inWin = false; I.mouse.inside = false; });
+
+  // the game pad (../js/pad.js, the 8-bit game's, loaded after this). RULED 09-28 (Griz): the right stick up/down zooms (up in,
+  // down out), left/right calls the wheel up and turns it; the left stick pressed in, before anything on the wheel is
+  // chosen, drops the wheel and frees the cursor. The left stick walks the cursor where it points on the screen (js/ui.js
+  // stickCursor), the d-pad along the grid's axes as the arrows do. The rest as the keys are laid out: A is E, B is X,
+  // Y is END TURN (Space), X/square INFO (the right-click), start MENU, back and R3 recentre (C), the bumpers turn the
+  // wheel and the triggers zoom, for a hand that would rather press than push
+  var PADMAP = {
+    buttons: { 0: 'a', 1: 'b', 2: 'info', 3: 'end', 4: 'wheell', 5: 'wheelr', 6: 'zoomout', 7: 'zoomin', 8: 'center', 9: 'menu',
+      10: 'drop', 11: 'center', 12: 'up', 13: 'down', 14: 'left', 15: 'right' },
+    ls: { up: 'up', down: 'down', left: 'left', right: 'right' },
+    rs: { up: 'zoomin', down: 'zoomout', left: 'wheell', right: 'wheelr' },
+    hint: {
+      xbox: 'LEFT STICK cursor &middot; D-PAD along the grid &middot; A confirm &middot; B back &middot; RIGHT STICK &#9664;&#9654; the wheel, &#9650;&#9660; zoom &middot; L3 drop the wheel &middot; X inspect &middot; Y end turn &middot; START menu &middot; R3 recentre &middot; LB/RB the wheel &middot; LT/RT zoom',
+      ps: 'LEFT STICK cursor &middot; D-PAD along the grid &middot; &#10005; confirm &middot; &#9675; back &middot; RIGHT STICK &#9664;&#9654; the wheel, &#9650;&#9660; zoom &middot; L3 drop the wheel &middot; &#9633; inspect &middot; &#9651; end turn &middot; OPTIONS menu &middot; R3 recentre &middot; L1/R1 the wheel &middot; L2/R2 zoom'
+    }
+  };
+  // the hints drawn in the game, in the pad's names while the hand is on it (D.keys wraps each hint where it's drawn)
+  var SAY = [
+    [/\bM or Tab\b/g, 'START', 'OPTIONS'], [/\bX\/Esc\b/g, 'B', '○'], [/wheel or -\/= zoom/g, 'RIGHT STICK ▲▼ zoom', 'RIGHT STICK ▲▼ zoom'],
+    [/\bSPACE\b/g, 'Y', '△'], [/\bE\b/g, 'A', '✕'], [/\bX\b/g, 'B', '○'], [/\bM\b/g, 'START', 'OPTIONS'], [/\bC\b/g, 'R3', 'R3'],
+    [/\bQ\b/g, 'RIGHT STICK', 'RIGHT STICK']
+  ];
+  D.keys = function (s) { var P = window.DS.pad; return P ? P.say(s, SAY) : s; };
+  I.stickWay = null; // the way the left stick is pressing the four, if it is (the grid takes the stick's own path instead)
+  I.pollPad = function () {
+    var P = window.DS.pad;
+    if (!P) return;
+    var busy = P.poll(PADMAP, I.press, I.release);
+    I.stickWay = P.ways.ls || null;
+    // the stick's own beat: pressed afresh whenever it swings to another eighth of the compass, repeating while it stays
+    var s = P.stick, oct = Math.hypot(s.x, s.y) >= (I.held.stick ? 0.3 : 0.5) ? (Math.round(Math.atan2(-s.y, s.x) / (Math.PI / 4)) + 8) % 8 : -1;
+    if (oct !== I.stickOct) { I.release('stick'); if (oct >= 0) I.press('stick'); I.stickOct = oct; }
+    if (I.edge.info) I.mouse.rclick = true; // INFO: look at what the cursor is on
+    // the hand went to the pad: the mouse is parked (a pointer left resting at the screen's edge would scroll the view for
+    // ever, and one left over a menu would take its hover back) until it moves again
+    if (busy) { var m = I.mouse; m.inWin = false; m.inside = false; m.x = -1; m.y = -1; m.drag = null; }
+  };
   D.initMouse = function () {
     var c = D.canvas;
     // the mouse is followed over the whole window, so the view keeps scrolling when it runs off the canvas into the
@@ -248,6 +286,7 @@
   D.paused = false;
   D.update = function () {
     var A = AU(); if (A && A.update) A.update(); // the tune's notes, scheduled a little ahead
+    I.pollPad();
     if (I.pressed('stats')) D.showStats = !D.showStats;
     var s = D.top();
     if (s && s.update) s.update();
@@ -296,6 +335,7 @@
     DS.text(ctx, s, x, y, color || '#e8e4d8');
     return w;
   };
+  D.hint = function (ctx, s, x, y, color, align) { return D.text(ctx, D.keys(s), x, y, color, align); }; // a line naming keys
   D.textWidth = function (s) { return window.DS.textWidth(s); };
   D.wrap = function (s, w) { return window.DS.wrap(s, w); };
 

@@ -733,7 +733,7 @@
     ctx.fillStyle = 'rgba(255,255,255,0.12)'; ctx.fillRect(bx, by, 220, 6);
     ctx.fillStyle = DS.mix(COL.red, COL.gold, settle); ctx.fillRect(bx + 220 * (1 - settle), by, 220 * settle, 6);
     var prompt = '';
-    if (this.phase === 'ready') prompt = 'hold E to work the gland   ·   ◀ ▶ another feeler';
+    if (this.phase === 'ready') prompt = DS.keys('hold E to work the gland   ·   ◀ ▶ another feeler');
     else if (this.phase === 'squeeze') prompt = 'let go in the gold';
     if (prompt) txt(ctx, prompt, 512, 160, { size: 20, italic: true, color: COL.bone, align: 'center', shadow: true, alpha: 0.85 });
     if (this.cap) {

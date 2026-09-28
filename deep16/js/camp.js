@@ -309,6 +309,6 @@
     var dl = D.wrap(desc, PW - 12).slice(0, 4), said = this.msg && this.t - this.msg.t < 150;
     if (said) dl = ['{o}' + this.msg.text + '{/}'].concat(dl.slice(0, 3));
     if (dl.length) { var dy = D.H - 18 - dl.length * 8 - 6; box(ctx, PX, dy, PW, dl.length * 8 + 6, P('stone', 3), 0.86); dl.forEach(function (l, j) { D.text(ctx, l, PX + 6, dy + 4 + j * 8, P('bone', 2)); }); }
-    D.text(ctx, 'up/down choose  ·  E pick  ·  X back' + (row && row.cycle ? '  ·  left/right: on whom' : ''), D.W / 2, D.H - 10, P('stone', 5), 'center');
+    D.hint(ctx, 'up/down choose  ·  E pick  ·  X back' + (row && row.cycle ? '  ·  left/right: on whom' : ''), D.W / 2, D.H - 10, P('stone', 5), 'center');
   };
 })();

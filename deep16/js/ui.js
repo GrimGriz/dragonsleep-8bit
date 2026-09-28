@@ -182,10 +182,23 @@
   }
   function hit(r) { var m = I.mouse; return r && m.x >= r.x && m.y >= r.y && m.x < r.x + r.w && m.y < r.y + r.h; }
   function moveCursor(B, dir) {
-    var m = G.map;
-    if (!D.iso.nudge(B.cursor, dir, m.w, m.h)) return;
-    var c = D.iso.center(B.cursor.x, B.cursor.y, m.gz(B.cursor.x, B.cursor.y)), s = D.iso.toScreen(c.x, c.y);
+    if (D.iso.nudge(B.cursor, dir, G.map.w, G.map.h)) showCursor(B);
+  }
+  function showCursor(B) { // near the screen's edge (or off it), the view comes to the cursor
+    var m = G.map, c = D.iso.center(B.cursor.x, B.cursor.y, m.gz(B.cursor.x, B.cursor.y)), s = D.iso.toScreen(c.x, c.y);
     if (s.x < 60 || s.x > D.W - 60 || s.y < 50 || s.y > BAR_Y - 30) D.iso.lookAt(B.cursor.x, B.cursor.y, m.gz(B.cursor.x, B.cursor.y));
+  }
+  // the pad's left stick on the grid (Griz 09-28): the cursor goes where the stick points on the screen, eight ways -- a slant
+  // runs along one of the grid's axes, straight up is a diagonal step -- so a thumb needn't learn the diamond (the d-pad and
+  // the arrows keep to the axes)
+  var OCT = [[1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0]]; // E NE N NW W SW S SE on the screen
+  function stickCursor(B) {
+    var d = OCT[I.stickOct], m = G.map;
+    if (!d) return;
+    var x = D.clamp(B.cursor.x + d[0], 0, m.w - 1), y = D.clamp(B.cursor.y + d[1], 0, m.h - 1);
+    if (x === B.cursor.x && y === B.cursor.y) return;
+    B.cursor.x = x; B.cursor.y = y;
+    showCursor(B);
   }
   // the figure under the mouse (its whole sprite, front-most first): clicking a body selects its owner, not the floor behind
   UI.pickUnit = function (B, mx, my) {
@@ -207,7 +220,7 @@
     if (I.pressed('end')) return UI.command(B, u, { do: 'end' });
     // AUTO END: every command grey and no step left to take -- a beat to see it, then the turn passes (X holds it)
     if (UI.opts.autoEnd && !B.list && B.tool !== 'spell' && B.autoHold !== B.req && spent(B, u)) {
-      if (B.autoFor !== B.req) { B.autoFor = B.req; B.autoT = B.t; B.card(['{g}Nothing left to spend: the turn passes.  X holds it{/}'], 50); }
+      if (B.autoFor !== B.req) { B.autoFor = B.req; B.autoT = B.t; B.card([D.keys('{g}Nothing left to spend: the turn passes.  X holds it{/}')], 50); }
       if (I.pressed('b')) { B.autoHold = B.req; B.clearCards(); return; }
       if (B.t - B.autoT >= 45 || I.pressed('a')) return UI.command(B, u, { do: 'end' });
     }
@@ -222,6 +235,14 @@
     B.hoverKey = hk;
     if (I.mouse.click && B.hoverBtn >= 0) { var bt = B.buttons[B.hoverBtn]; return bt.end ? UI.command(B, u, { do: 'end' }) : bt.cast ? castPicks(B, u) : bt.list != null ? pickListItem(B, u, B.list.items[bt.list], bt.list) : pickCommand(B, u, bt.cmd, bt.idx); }
     if (I.mouse.rclick && !overUI(B)) { var w0 = G.occupant(B.cursor.x, B.cursor.y) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0) B.inspect = w0; return; }
+    // the pad (Griz 09-28): the left stick pressed in, before anything on the wheel is chosen, drops the wheel (and a list on
+    // it) and the cursor is free on the grid; with no wheel up it recentres, as C does. The right stick's left/right (or a
+    // bumper) calls the wheel up, and once it's up turns it (turnWheel)
+    if (I.pressed('drop')) {
+      if (B.list || B.tool === 'menu') { D.sfx('cancel'); B.list = null; B.tool = 'move'; B.spell = null; B.picks = []; B.clearCards(); showCursor(B); return; }
+      B.focus(u);
+    }
+    if (!B.list && B.tool !== 'menu' && (I.pressed('wheell') || I.pressed('wheelr'))) { D.sfx('popup'); B.tool = 'menu'; B.spell = null; B.picks = []; B.clearCards(); B.ringStill = false; return; }
     // an open list (spells, items) takes the keys first
     if (B.list) return listInput(B, u);
     var cmds = UI.cmds(B, u);
@@ -230,16 +251,17 @@
     // the command menu at rest (window, ring)
     if (B.tool === 'menu') {
       var n = cmds.length, prev = B.cmdSel;
-      if (st === 'window') { if (I.repeat('up')) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('down')) B.cmdSel = (B.cmdSel + 1) % n; }
-      else { if (I.repeat('left') || I.repeat('up')) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('right') || I.repeat('down')) B.cmdSel = (B.cmdSel + 1) % n; }
+      if (st === 'window') { if (I.repeat('up') || turnWheel() < 0) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('down') || turnWheel() > 0) B.cmdSel = (B.cmdSel + 1) % n; }
+      else { if (I.repeat('left') || I.repeat('up') || turnWheel() < 0) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('right') || I.repeat('down') || turnWheel() > 0) B.cmdSel = (B.cmdSel + 1) % n; }
       if (B.cmdSel !== prev) { B.clearCards(); D.sfx('cursor'); B.ringStill = false; }
       if (I.pressed('a')) return pickCommand(B, u, cmds[B.cmdSel], B.cmdSel);
       if (I.pressed('b')) { if (rest() !== 'menu') { D.sfx('cancel'); B.tool = rest(); return; } return UI.openMenu(B); } // the ring goes back down
       if (I.mouse.click && !overUI(B)) actAt(B, u, B.cursor.x, B.cursor.y);
       return;
     }
-    // the grid
-    ['up', 'down', 'left', 'right'].forEach(function (k) { if (I.repeat(k)) moveCursor(B, k); });
+    // the grid (the left stick takes its own path, stickCursor)
+    ['up', 'down', 'left', 'right'].forEach(function (k) { if (k !== I.stickWay && I.repeat(k)) moveCursor(B, k); });
+    if (I.repeat('stick')) stickCursor(B);
     if (I.pressed('b')) {
       if (B.picks && B.picks.length) { D.sfx('cancel'); B.picks.pop(); return; }
       if (B.tool !== rest()) { D.sfx('cancel'); B.tool = rest(); B.spell = null; B.clearCards(); return; }
@@ -262,6 +284,7 @@
     if (T.move > 0 && !u.conds.restrained) { var rc = reachCache(B, u); if (Object.keys(rc.move).some(function (k) { return rc.move[k].stand && rc.move[k].cost > 0; })) return false; }
     return !B.commands(u).some(function (c) { return c.ok; });
   }
+  function turnWheel() { return I.repeat('wheell') ? -1 : I.repeat('wheelr') ? 1 : 0; } // the pad's right stick or bumpers, on the wheel
   function castPicks(B, u) { var S = B.spell; if (S && B.picks.length) UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: { units: B.picks.slice() } }); }
   function etherealAt(B, x, y) { return B.units.filter(function (w) { return w.ethereal && x >= w.x && y >= w.y && x < w.x + w.size && y < w.y + w.size; })[0]; }
   function pickCommand(B, u, c, idx) {
@@ -284,7 +307,7 @@
       B.list = { kind: c.sub, items: items, sel: first }; B.ringB = null;
       return;
     }
-    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: pick a foe beside you; the next ally to swing at it has advantage.{/}'], 200); if (c.tool === 'torch') B.card(['{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}'], 100000); return; }
+    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: pick a foe beside you; the next ally to swing at it has advantage.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); return; }
     UI.command(B, u, { do: c.id });
   }
   function levelRing(B, u) {
@@ -301,8 +324,8 @@
     var L = B.list, n = L.items.length, st = UI.opts.style, e = L.items[L.sel];
     var ringy = st === 'ring', nextKey = ringy ? ['left', 'right'] : ['up', 'down'], slotKey = ringy ? ['down', 'up'] : ['left', 'right']; // [lower, higher]
     var sel0 = L.sel, slot0 = e && e.slot;
-    if (n && I.repeat(nextKey[0])) L.sel = (L.sel + n - 1) % n;
-    if (n && I.repeat(nextKey[1])) L.sel = (L.sel + 1) % n;
+    if (n && (I.repeat(nextKey[0]) || turnWheel() < 0)) L.sel = (L.sel + n - 1) % n;
+    if (n && (I.repeat(nextKey[1]) || turnWheel() > 0)) L.sel = (L.sel + 1) % n;
     if (e && e.kind === 'spell' && e.levels.length > 1) {
       var i = e.levels.indexOf(e.slot);
       if (I.repeat(slotKey[0])) e.slot = e.levels[Math.max(0, i - 1)];
@@ -330,7 +353,7 @@
     B.tool = 'spell';
     if (g.shape === 'allies' && e.id === 'bless' && (!u.conds.blessed)) B.picks = [u]; // Bless takes the caster by default; click him again to leave him out
     var how = { attack: 'a foe in sight within ' + g.range + ' ft', rays: n + ' rays: click a foe for each (the same foe again is fine)', darts: n + ' darts: click a foe for each (the same foe again is fine)', splash: 'a foe within ' + g.range + ' ft (one beside it is caught too)', single: (g.side === 'foe' ? 'a foe' : 'an ally') + ' within ' + g.range + ' ft', touch: 'yourself, or an ally beside you', allies: 'up to ' + n + ' allies within ' + g.range + ' ft (click to add or drop; CAST, or E off a target, casts with fewer)', sphere: 'a point within ' + g.range + ' ft (the ' + g.r + '-ft sphere shows)', cube: 'a point within ' + g.range + ' ft', cone: 'aim the ' + g.len + '-ft cone', line: 'aim the ' + g.len + '-ft line', teleport: 'a square you can see within 30 ft' }[g.shape] || '';
-    B.clearCards(); B.card(['{y}' + e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + '{/}: ' + how + '.  {g}X back{/}'], 100000);
+    B.clearCards(); B.card(['{y}' + e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + '{/}: ' + how + D.keys('.  {g}X back{/}')], 100000);
   }
   UI.command = function (B, u, cmd) {
     B.clearCards();
@@ -558,7 +581,7 @@
       ctx.strokeStyle = red ? R('red', 4) : R('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 16);
       D.text(ctx, sc.caption, D.W / 2, y + 5, red ? R('red', 4) : R('gold', 4), 'center');
     }
-    if (t > 60 && ((t >> 5) & 1)) D.text(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5));
+    if (t > 60 && ((t >> 5) & 1)) D.hint(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5));
   }
 
   function unitPos(B, u) {
@@ -846,8 +869,8 @@
     ctx.strokeStyle = R('silver', 3); ctx.strokeRect(eb.x + 0.5, eb.y + 0.5, eb.w - 1, eb.h - 1);
     D.text(ctx, 'END TURN', eb.x + eb.w / 2, eb.y + 2, R('bone', 1), 'center');
     var spellRing = B.list && B.list.kind === 'spells';
-    D.text(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'X, Q or E on yourself: the ring   M: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
-    D.text(ctx, 'C recentre  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5));
+    D.hint(ctx, st === 'window' ? (B.tool === 'menu' ? 'up/down, E: choose   X: menu' : 'E: here   X: back to the commands') : spellRing ? 'left/right turns the ring, up/down the slot, E: choose' : B.tool === 'menu' || B.list ? 'left/right turns the ring, E: choose   X: close' : B.tool === 'move' ? 'X, Q or E on yourself: the ring   M: menu' : 'E: here   X: back', BX, BAR_Y + 6, R('accent', 2));
+    D.hint(ctx, 'C recentre  M menu  wheel or -/= zoom', BX, BAR_Y + 18, R('stone', 5));
   }
   function pip(ctx, x, y, label, lit, col) { // a small lit box round a letter; gives back its width
     var w = D.textWidth(label) + 3;
@@ -989,9 +1012,9 @@
     var lv = B.units.filter(function (u) { return u.side === 'party'; }).map(function (u) { return u.lvl; });
     D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  ' + (B.intro || ''), D.W / 2, 150, R('accent', 2), 'center');
     if (B.canSwap) D.text(ctx, B.o.fixture ? '2: walk in from the 8-bit save instead' : '2: walk in as the fixture instead (the four at level 9; the fight is built for them)', D.W / 2, 164, R('silver', 5), 'center');
-    D.text(ctx, 'menu: ' + UI.opts.style.toUpperCase() + (UI.opts.style === 'ring' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)'), D.W / 2, 194, R('stone', 5), 'center');
+    D.hint(ctx, 'menu: ' + UI.opts.style.toUpperCase() + (UI.opts.style === 'ring' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)'), D.W / 2, 194, R('stone', 5), 'center');
     if (B.dark) D.text(ctx, 'DARK GROUND: the four see by their lights and darkvision. You see it all: what they cannot is grey.', D.W / 2, 208, R('fire', 1), 'center');
-    if ((B.t >> 5) & 1) D.text(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
+    if ((B.t >> 5) & 1) D.hint(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }
   function inspect(ctx, u) {
     var lines = ['{' + (u.side === 'foe' ? 'r' : 'c') + '}' + u.name + '{/}' + (u.cls ? '  ' + u.cls + ' ' + u.lvl : ''), 'HP ' + u.hp + '/' + u.maxhp + '  AC ' + RU.ac(u) + '  speed ' + u.speed + ' ft' + (u.size > 1 ? '  Large' : '')];
@@ -1043,7 +1066,7 @@
     box(ctx, x, y, w, h, R('glow', 1));
     if (!u) return;
     D.text(ctx, 'EQUIP: ' + u.name.toUpperCase(), x + 8, y + 5, R('gold', 4));
-    D.text(ctx, 'a swap costs the action  ·  X back', x + w - 8, y + 5, R('stone', 5), 'right');
+    D.hint(ctx, 'a swap costs the action  ·  X back', x + w - 8, y + 5, R('stone', 5), 'right');
     D.text(ctx, 'in hand: ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? ', ' + u.weapon.range.join('/') + ' ft' : '') + '   AC ' + RU.ac(u), x + 8, y + 17, R('bone', 2));
     B.gearRects = [];
     if (!opts.length) { D.text(ctx, '{g}Nothing in the pack ' + u.name + ' can take up.{/}', x + 8, y + 31, R('bone', 1)); return; }
@@ -1061,7 +1084,7 @@
     var ps = B.units.filter(function (u) { return u.side === 'party'; }), w = 440, rowH = 38, h = ps.length * rowH + 20, x = (D.W - w) / 2, y = Math.max(16, (BAR_Y - h) / 2);
     box(ctx, x, y, w, h, R('glow', 1));
     D.text(ctx, 'THE PARTY', x + 8, y + 5, R('gold', 4));
-    D.text(ctx, 'X back', x + w - 8, y + 5, R('stone', 5), 'right');
+    D.hint(ctx, 'X back', x + w - 8, y + 5, R('stone', 5), 'right');
     ps.forEach(function (u, i) {
       var ry = y + 17 + i * rowH, f = u.feats || {};
       ctx.save(); ctx.beginPath(); ctx.rect(x + 6, ry, 30, 34); ctx.clip();

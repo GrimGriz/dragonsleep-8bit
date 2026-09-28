@@ -91,13 +91,13 @@
     KeyM: 'menu', Tab: 'menu', ShiftLeft: 'menu', ShiftRight: 'menu', KeyC: 'menu'
   };
   var I = DS.input = { held: {}, edge: {}, since: {}, sources: {} };
-  I.press = function (btn, src) {
+  I.press = function (btn, src, quiet) { // (quiet: the game pad, whose press can't unlock sound -- js/pad.js)
     I.sources[btn] = I.sources[btn] || {};
     var was = I.held[btn];
     I.sources[btn][src] = true;
     I.held[btn] = true;
     if (!was) { I.edge[btn] = true; I.since[btn] = DS.frame; }
-    DS.audio && DS.audio.unlock && DS.audio.unlock();
+    if (!quiet) DS.audio && DS.audio.unlock && DS.audio.unlock();
   };
   I.release = function (btn, src) {
     if (!I.sources[btn]) return;
@@ -133,6 +133,23 @@
     I.release(b, 'k:' + e.code);
   });
   window.addEventListener('blur', function () { I.held = {}; I.sources = {}; });
+
+  // the game pad (js/pad.js, loaded after this): the left stick and the d-pad walk; the face buttons as the keys are laid out,
+  // A to act, B and X back, Y the menu (start and back too)
+  var PADMAP = {
+    buttons: { 0: 'a', 1: 'b', 2: 'b', 3: 'menu', 8: 'menu', 9: 'menu', 12: 'up', 13: 'down', 14: 'left', 15: 'right' },
+    ls: { up: 'up', down: 'down', left: 'left', right: 'right' },
+    hint: {
+      xbox: 'LEFT STICK/D-PAD move &middot; A talk &amp; choose &middot; B/X menu &amp; back &middot; Y/START menu',
+      ps: 'LEFT STICK/D-PAD move &middot; &#10005; talk &amp; choose &middot; &#9675;/&#9633; menu &amp; back &middot; &#9651;/OPTIONS menu'
+    }
+  };
+  // the hints drawn in the game, in the pad's names while the hand is on it (DS.keys wraps each hint where it's drawn)
+  var SAY = [[/\bE\/ENTER\b/g, 'A', '✕'], [/\bM\/SHIFT\b/g, 'Y', '△'], [/\bE\b/g, 'A', '✕'], [/\bX\b/g, 'B', '○']];
+  DS.keys = function (s) { return DS.pad ? DS.pad.say(s, SAY) : s; };
+  function padPress(b) { I.press(b, 'pad', true); }
+  function padRelease(b) { I.release(b, 'pad'); }
+  I.pollPad = function () { if (DS.pad) DS.pad.poll(PADMAP, padPress, padRelease); };
 
   DS.initTouch = function () {
     var pad = document.getElementById('pad');
@@ -264,6 +281,7 @@
   }
   function update() {
     DS.frame++;
+    DS.input.pollPad();
     var top = DS.top();
     if (top && top.update) {
       try { top.update(); } catch (e) { console.error(e); DS.lastError = e; }

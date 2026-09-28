@@ -356,6 +356,6 @@
       for (var ex = 0; ex < 256; ex += 2) if ((ex >> 1) % 2 === ((t >> 2) & 1)) ctx.fillRect(ex, edge - 8, 2, 8);
     }
     if (waking && this.pt < 30) { ctx.fillStyle = 'rgba(0,0,0,' + (1 - this.pt / 30) + ')'; ctx.fillRect(0, 0, 256, 240); }
-    if (this.o.again && this.phase === 'den' && ((t >> 5) & 1)) DS.textRight(ctx, 'hold E to wake', 250, 230, '#6C6C84');
+    if (this.o.again && this.phase === 'den' && ((t >> 5) & 1)) DS.textRight(ctx, DS.keys('hold E to wake'), 250, 230, '#6C6C84');
   };
 })();
