@@ -411,7 +411,7 @@
   // breaking out of a web: an action, a STR check against the caster's DC
   M.breakFree = function* (B, u) {
     // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
-    var r = u.conds.restrained, d = u.conds.poisoned ? Math.min(D.d(20), D.d(20)) : D.d(20), useDex = r.grapple && D.mod(u.abil.dex) > D.mod(u.abil.str);
+    var r = u.conds.restrained, d = u.conds.poisoned || u.conds.frightened ? Math.min(D.d(20), D.d(20)) : D.d(20), useDex = r.grapple && D.mod(u.abil.dex) > D.mod(u.abil.str);
     var tot = d + D.mod(useDex ? u.abil.dex : u.abil.str) + (u.cls === 'fighter' || (useDex && u.cls === 'rogue') ? u.prof : 0);
     u.turn.action = 0;
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);

@@ -141,8 +141,12 @@
     got.forEach(function (w) {
       var sv = RU.save(w, 'dex', ff.dc);
       lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{p}outlined: attacks on them have advantage{/}'));
-      if (!sv.ok) w.conds.faerie = true;
+      if (!sv.ok) w.conds.faerie = { by: u.id };
     });
+    // concentration (SRD 5.1): the violet light goes out when the drow falls, is incapacitated or loses it to a blow (it lasted
+    // the whole fight before, whatever became of her)
+    if (got.some(function (w) { return w.conds.faerie && w.conds.faerie.by === u.id; }))
+      D.magic.concentrate(B, u, 'faeriefire', 'Faerie Fire', function () { B.units.forEach(function (w) { if (w.conds.faerie && w.conds.faerie.by === u.id) delete w.conds.faerie; }); });
     B.card(lines, 420);
     yield { fx: 1 };
     yield 30;
@@ -282,7 +286,7 @@
         T.action = 0; W.hold.used = true; u.anim = 'attack'; u.animT = B.t; D.sfx('magic'); FX.ring(ht, 'violet', 40);
         var sv = RU.save(ht, 'wis', W.hold.dc);
         B.card(['{r}' + the(B, u) + '{/} ' + (W.hold.text || 'closes a hand') + ': HOLD {y}' + ht.name + '{/}.  WIS ' + RU.saveText(sv) + ' vs DC ' + W.hold.dc + '  ' + (sv.ok ? '{n}SHRUGS IT OFF{/}' : '{p}PARALYZED{/} {g}(a WIS save at the end of each turn){/}')], 400);
-        if (!sv.ok) ht.conds.paralyzed = { save: 'wis', dc: W.hold.dc, by: u.id };
+        if (!sv.ok) { ht.conds.paralyzed = { save: 'wis', dc: W.hold.dc, by: u.id }; D.magic.concentrate(B, u, 'holdperson', 'Hold Person', function () { if (ht.conds.paralyzed && ht.conds.paralyzed.by === u.id) delete ht.conds.paralyzed; }); }
         yield 40; u.anim = 'idle'; return;
       }
     }
@@ -476,6 +480,7 @@
       T.action = 0; MO.ready = false; D.sfx('encounter');
       var ml = ['{r}' + the(B, u) + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
       hs.filter(function (w) { return G.dist(u, w) <= mrange; }).forEach(function (w) {
+        if (mcond === 'frightened' && w.conds.heroism) { ml.push('  ' + w.name + ': {n}fearless{/} (Heroism)'); return; }
         var sv = RU.save(w, 'wis', MO.dc);
         ml.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/}' : mcond === 'stunned' ? '{p}STUNNED{/} (no turn)' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
         if (!sv.ok) w.conds[mcond] = { by: u.id, fresh: true };

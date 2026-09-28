@@ -243,6 +243,7 @@
         else yield* D.ai.turn(this, u);
         this.active = null;
         yield* this.wave();
+        this.sweep();
         var o = this.over();
         if (o) { yield* this.finish(o); return; }
         i = this.order.indexOf(u); // (a new foe may have been dealt in ahead of it)
@@ -281,6 +282,20 @@
     yield 70;
   };
   Battle.prototype.shortName = shortName;
+
+  // the conditions' housekeeping after every turn (09-27, Griz: "check the rest of the status effects for the similar issue
+  // poison and restrained were having"): what a creature holds ends with it. A stun or a fright it laid (the slam's, the
+  // Moan's: till the end of its next turn) ends when it is gone, since that turn never comes; its concentration ends when it
+  // is incapacitated (paralyzed, stunned, asleep: SRD), and so does a grip it holds (a grapple ends when the grappler is)
+  Battle.prototype.sweep = function () {
+    var self = this;
+    this.units.forEach(function (s) {
+      var gone = s.dead || s.fled || s.left || s.hp <= 0, incap = gone || s.conds.paralyzed || s.conds.stunned || s.conds.asleep;
+      if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id) delete w.conds[c]; }); });
+      if (incap && s.conc) D.magic.endConc(self, s, gone ? 'gone' : 'incapacitated');
+      if (incap && s.holding && s.holding.length) self.release(s);
+    });
+  };
 
   // the pair run (the 8-bit wagon yard, fight.runWhenHurt; Griz 09-27: "willem try to unhook them for the first part of the
   // fight (until he takes damage) - then amara and willem will try to make the escape on foot"; and "him getting hit should
@@ -900,7 +915,7 @@
     if (plain.length) {
       this.card(['{y}' + u.name + '{/} tries to hide, but the ' + plain.map(shortName).join(' and the ') + ' can see her plainly (no cover).', '{g}Put a stalagmite or a body between you first.{/}']);
     } else {
-      var ok = total >= top;
+      var ok = total >= top && !u.conds.faerie; // (outlined in violet light: nowhere to hide)
       this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + ' ' + RU.sign(u.stealth) + ' = ' + total + ' vs passive Perception ' + top + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
       if (ok) u.conds.hidden = true;
     }

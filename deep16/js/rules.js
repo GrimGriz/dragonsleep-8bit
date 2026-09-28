@@ -67,8 +67,8 @@
     // magical darkness (magic.js sees): who cannot see whom
     var DB = D.battle;
     if (DB && (DB.darks || []).length && D.magic) { if (!D.magic.sees(DB, att, tgt)) dis.push('unseen target: darkness'); if (!D.magic.sees(DB, tgt, att)) adv.push('unseen attacker: darkness'); }
-    if (att.conds.invisible) adv.push('invisible');
-    if (tgt.conds.invisible && !att.conds.invisible) dis.push('invisible target');
+    if (att.conds.invisible && !att.conds.faerie) adv.push('invisible');
+    if (tgt.conds.invisible && !att.conds.invisible && !tgt.conds.faerie) dis.push('invisible target'); // (outlined: no good being unseen)
     if (att.conds.restrained) dis.push('restrained');
     if (tgt.conds.restrained) adv.push('restrained target');
     if (tgt.conds.paralyzed || tgt.conds.asleep) adv.push(tgt.conds.asleep ? 'asleep' : 'paralyzed');
