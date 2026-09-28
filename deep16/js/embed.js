@@ -19,6 +19,9 @@
     send({ type: 'd16:ready' });
   };
   E.start = function (m) {
+    // an 8-bit list with a foe the grid has no sheet for (review 09-28 #13): say so, and the 8-bit game fights it itself
+    var list = m.opts && m.opts.enemies, missing = (list || []).filter(function (id8) { return !D.FOES[D.kind8 ? D.kind8(id8) : id8]; });
+    if (missing.length) { console.warn('DEEP16: no foe for the 8-bit game\'s ' + missing.join(', ') + ': the fight stays 8-bit'); send({ type: 'd16:refuse', missing: missing }); return; }
     var B = E.B = new D.Battle({ embed: m.opts || {}, fight: m.fight, data: m.save, onDone: function (res) { E.done(B, res); } });
     D.push(B);
     E.inv0 = counts(B.inv); // (the pack as the fight began: only what the party brought, no loan here)
@@ -29,8 +32,13 @@
     send({
       type: 'd16:done', result: res || 'escaped',
       party: B.units.concat(B.reserve || [], B.stayed || []).filter(function (u) { return u.side === 'party'; }).map(function (u) { // (reserve: still in the inn when it ended)
-        return { id: u.id, guest: !!u.guest, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left };
+        return { id: u.id, guest: !!u.guest, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left,
+          equip: u.src && u.src.equip ? JSON.parse(JSON.stringify(u.src.equip)) : null }; // (EQUIP in the fight crosses back: RULED 09-28)
       }),
+      // the rest came out of the inn (the lone investigator's fight, Battle.joinReserve): the 8-bit battle's `solo` is over, and its
+      // XP is split among everyone standing (review 09-28 #2)
+      joined: !!(B.o.embed && B.o.embed.solo) && !(B.reserve || []).length,
+      roost: B.roostBroken || null, // (bright light under the roost: the 8-bit's RoostFail runs on it)
       foes: foes.map(function (u) { return { id: u.id, kind: u.kind, i8: u.i8, dead: u.hp <= 0, fled: !!u.fled }; }), // (i8: its place in the 8-bit list)
       // who is still out there when the fight ends because one got away (fight.fledEnds: the 8-bit wagon yard): the chase's
       away: foes.filter(function (u) { return u.flees && u.hp > 0; }).map(function (u) { return u.kind; }),

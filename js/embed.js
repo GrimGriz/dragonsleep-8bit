@@ -9,7 +9,7 @@
 'use strict';
 (function () {
   var DS = window.DS, base = DS.battle;
-  var RESULT = { won: 'win', lost: 'lose', escaped: 'run', fled: 'fled', yielded: 'win' };
+  var RESULT = { won: 'win', lost: 'lose', escaped: 'run', fled: 'fled', yielded: 'win', roost: 'lose' }; // (roost: the roof let go, RoostFail)
 
   DS.battle = function (o) { return o && o.deep16 ? deep(o) : base(o); };
 
@@ -20,7 +20,16 @@
         DS.audio.sfx('encounter');
         DS.push(new DS.EncounterFlash(function () {
           open(o, function (d) {
+            if (d.type === 'd16:refuse') { // (no sheet on the grid for one of these: the 8-bit battle, as ever)
+              console.warn('DEEP16 refused ' + o.deep16 + ' (' + (d.missing || []).join(', ') + '): fought in the 8-bit game');
+              var b8 = new DS.Battle(o);
+              b8.onClose = function (r) { self.finished = true; self.result = r; if (o.after !== false && r !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true); setTimeout(function () { script.resume(self, r); }, 0); };
+              DS.push(b8); return;
+            }
             var res = apply(d);
+            // the rest of the party came out of the inn during the fight: no longer a lone fighter's battle, so the XP is split
+            // among everyone standing, as the 8-bit's own joinParty leaves it (review 09-28 #2)
+            if (d.joined && o.solo != null) o.solo = null;
             var b = new DS.Battle(o);
             // the 8-bit foes as DEEP16 left them: on a win all down (one who got away gives no XP), else as they stood. Each
             // DEEP16 foe knows its place in the 8-bit list (i8); a fight built without the list is matched by kind
@@ -36,7 +45,8 @@
               // one who ran carries his flag out with him, as the 8-bit foeBolt does (the wheelwright: wheelwrightRan)
               if (r && r.fled && f.m.traits && f.m.traits.flag) DS.G.flags[f.m.traits.flag] = 1;
             });
-            b.over = res; b.fromDeep = true;
+            b.over = d.result === 'roost' ? 'roost' : res; b.fromDeep = true; // (roost: finish() runs the swarm and RoostFail)
+            if (d.result === 'roost') { b.usedFire = true; b.roostCause = d.roost === 'daylight' ? 'light' : d.roost || 'light'; }
             b.onClose = function (r) {
               self.finished = true; self.result = r;
               if (o.after !== false && r !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true);
@@ -62,12 +72,15 @@
       // the lone investigator (the wagon night's INVESTIGATE): the 8-bit battle's `solo` (a party index) goes over as the hero's
       // id, with `join`, the round the rest come out of the inn
       var solo = o.solo != null && g.party[o.solo] ? g.party[o.solo].id : null;
+      // the light already on them: the scene's `revealed`, or a hero carrying a weapon that reveals (the Sunshaft staff: the 8-bit
+      // battle's `seer`, js/battle.js), so nothing on the grid starts hidden (review 09-28 #5)
+      var seer = g.party.some(function (h) { if (h.ko) return false; var w = DS.R.item(h.equip && h.equip.weapon); return !!(w && w.weapon && w.weapon.reveals); });
       // the fight is the 8-bit scene's own foes (RULED 09-28, Griz: "8-bit's list"), and its opening: who was caught unaware
       // (`surprised`), whether the light was already on them (`revealed`), what a foe who yields says (`yieldText`)
       if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
         canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null, enemies: o.enemies || null,
-        surprised: o.surprised || null, revealed: !!o.revealed, yieldText: o.yieldText || null } }, '*');
-      if (m.type === 'd16:done') {
+        surprised: o.surprised || null, revealed: !!o.revealed || seer, yieldText: o.yieldText || null } }, '*');
+      if (m.type === 'd16:done' || m.type === 'd16:refuse') {
         window.removeEventListener('message', onMsg);
         fr.parentNode.removeChild(fr);
         DS.paused = false; DS.input.flush();
@@ -96,11 +109,15 @@
       if (r.slots && h.slots) h.slots = h.slots.map(function (n, i) { return r.slots[i] == null ? n : Math.min(n, r.slots[i]); });
       if (r.feats && h.feats) Object.keys(h.feats).forEach(function (k) { if (typeof h.feats[k] === 'number' && typeof r.feats[k] === 'number') h.feats[k] = Math.min(h.feats[k], r.feats[k]); });
       if (r.mageArmor) h.conds.mageArmor = true; // cast in the fight: it holds till the long rest, as the 8-bit game's does
+      else if (h.conds.mageArmor && r.equip && DS.R.armored(Object.assign({}, h, { equip: r.equip }))) delete h.conds.mageArmor; // (armour put on in the fight ends it)
+      // EQUIP in the fight (a weapon drawn, a shield on or off) crosses back (RULED 09-28: "all changes in 16 should cross back to 8bit")
+      if (r.equip && h.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in r.equip) h.equip[k] = r.equip[k]; });
     });
     // the pack: what the fight used is gone (a potion drunk, a bolt loosed), never below none. The party fights with only
     // what it brought (no crossbow lent here, Griz 09-27)
     var i0 = d.inv0 || {}, i1 = d.inv1 || {};
     Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0), have = g.count(id); if (used > 0 && have > 0) g.take(id, Math.min(used, have)); });
+    Object.keys(i1).forEach(function (id) { var got = (i1[id] || 0) - (i0[id] || 0); if (got > 0) g.give(id, got); }); // (a weapon stowed in the fight is back in the pack)
     if (d.result === 'fled') DS.fledIds = (d.away || []).slice();
     if (d.result === 'yielded') DS.battleYielded = true; // (his words were on DEEP16's card; the scene asks what you do with him)
     return RESULT[d.result] || 'run';
