@@ -1,7 +1,7 @@
 ---
 layer: reference, to rule. Every SRD 5.1 spell (the 2014 rules, 319 of them) with a verdict for DRAGONSLEEP -- built, in, dark, later, out -- by level and by class, and who in the game could cast it. In prep of more NPCs and foes (Griz, 09-28: "we're doing it in prep of adding more NPCs and foes - so please do the whole list"), and the first step of the other classes' combat spells (handoff-2026-09-28-deep16-after-the-review-CODE-TAB.md §3A).
 written: 2026-09-28, the Code tab on dragonsleep-8bit (config claude-opus-5-5). The spell text and the class lists: the SRD 5.1 as dnd5eapi.co serves it (/api/2014). The verdicts: the wizard 0-5, cleric 0-3, paladin 1-3 and warlock 0-3 lists (192 spells) by the seat; the other 127 by a runner under the same rubric, read by the seat (one changed: Faerie Fire is built). Rebuilt by dev/srd-spells/build_spell_doc.py (gitignored, with the SRD text cached and the verdicts as JSON).
-status: PROPOSED, with Griz's rulings of 09-28 folded in (Ruled, below) and four things still open. Nothing here is built by being listed; every verdict is his to overrule.
+status: PROPOSED, with Griz's rulings of 09-28 folded in (Ruled, below) and one thing still open (the ear-lamp). Nothing here is built by being listed; every verdict is his to overrule.
 ---
 
 # The SRD spells, for DRAGONSLEEP
@@ -16,13 +16,13 @@ Each spell gets one verdict:
 
 | | BUILT | IN | DARK | LATER | OUT | all |
 |---|---|---|---|---|---|---|
-| **every spell** | 34 | 108 | 11 | 61 | 105 | 319 |
-| Wizard | 23 | 60 | 10 | 41 | 70 | 204 |
+| **every spell** | 34 | 110 | 11 | 61 | 103 | 319 |
+| Wizard | 23 | 62 | 10 | 41 | 68 | 204 |
 | Cleric | 10 | 42 | 2 | 11 | 40 | 105 |
 | Paladin | 10 | 8 | 0 | 1 | 12 | 31 |
 | Warlock | 6 | 23 | 2 | 13 | 20 | 64 |
 | Sorcerer | 24 | 42 | 8 | 23 | 23 | 120 |
-| Bard | 11 | 29 | 6 | 17 | 48 | 111 |
+| Bard | 11 | 30 | 6 | 17 | 47 | 111 |
 | Druid | 9 | 35 | 4 | 23 | 35 | 106 |
 | Ranger | 5 | 7 | 3 | 7 | 15 | 37 |
 
@@ -52,13 +52,13 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 - **Remove Curse: out.** The Ring of Binding is not a curse: *"it was to pull the chuul out of the water"* (the excuse for no swimming combat).
 - **Creature types on the sheets: yes**, *"unless there's a case against it, we're trying to mechanize as much of the ruleset into play we can, until it starts impacting play experience"*. No case against found: the cost is tagging every sheet (most are SRD monsters with their type printed), and it opens Protection from Evil and Good (Lymen's oath at 3), Hold Person's humanoids (a tag today), Banishment's other planes.
 - **The roost's word: "fired the roost"**, whatever the cause (the 8-bit line said "Fire" for Light too; mended).
+- **The SRD stat blocks' lists as NPC lists: yes** where the register has none (the Priest for Torvald, the Mage for the spell-weaver, the Spirit Naga's own); the register's blocks win where they exist (Amara, Willem). The case against was harder fights to re-tune and each spell built twice; his word: *"harder fights and tuning sounds like 'better gameplay', so yes"*.
+- **Resting anywhere: in, as field spells.** *"I'd add them the way you suggest, making sure their long-rests are counted with the others and allow saves."* Each spends a component, the game's first (a special case: nothing else consumes one): Rope Trick a skein of **Gulch Silk** (the gulch spiders' part, already in the game) for a short rest like the tent; Tiny Hut **a special snail shell**, new -- *"we'll put them as a dominion shore export"* -- that Percy sells, and not cheap (his first thing to sell: his shelf was flavour, 09-24): a long rest only where a tent goes, through the same rest (the story clocks count it, the morning's spells, the save). The shell's name and price the building seat drafts.
+- **Willem's cantrip: Ray of Frost.** *"Willem is a frosty person, if he could have chosen it as a cantrip he would."* (The register's block says Fire Bolt: a character note for the Cowork seat to fold, with the shell as a Dominion shore export.)
 
 ## Still open
 
-- **The SRD stat blocks' lists as NPC lists** (his lean yes: *"makes sense, is there a case against?"*): where the register has none (the Priest for Torvald, the Mage for the spell-weaver, the Spirit Naga's own), the register's blocks winning where they exist (Amara, Willem). The case against: more tools make a harder fight, so each NPC fight wants a re-tune; and every NPC spell wants an 8-bit battle record too (all changes cross back), so each spell is built twice.
-- **Resting anywhere.** Griz: *"these seem like things that would stay out of a combat menu. I think we should add them though. What's the case against?"* The case: the tent is a short rest (half HP, the short-rest features, no slots); Tiny Hut is a ritual, so a wizard could take a free long rest wherever a tent is allowed, every time -- full HP and every slot, the lamps and cots no longer the places a party makes for, and (since 09-28) a save offered at each one. The story clocks count long rests (the night crew's return, the assassins' due, the runner after the nest), so they would run wherever the hut goes up. If they come in: field spells only, Rope Trick a short rest like the tent, Tiny Hut a long rest only where a tent is allowed, through the same rest (the clocks, the morning, the save).
-- **Spells the register names that the SRD lacks:** Amara's *hex* and *friends*, Willem's *phantasmal force*. Build them from the register's word in our own text, or an SRD stand-in (Hex's damage is Hunter's Mark's shape)?
-- **Willem's cantrip.** The register gives him Fire Bolt; the 8-bit sheet gave him Ray of Frost (invented.json wagon-crew). Which stands?
+- **Past the SRD: made our own, sufficiently distinct** (his lean, 09-28: *"'sufficiently distinct' spell names/functions - opine"*). The seat's recommendations are cards in an ear-lamp for his verdict and his box: `dev/distinct-spells-lamp.html` (the principle; Hex; Friends; Phantasmal Force; the Great Old One as the pact of the Mirror; Dissonant Whispers; Awakened Mind). His saved `distinct-ear-file-*.json` in `dev/` is the ruling; the building seat folds it here and into invented.json.
 
 ## By level
 
@@ -191,7 +191,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Prayer of Healing | C | To In | **IN** | field: up to six, 2d8 + mod each, 10 minutes; a rest-side heal |
 | Protection from Poison | C P D R | Ly To In | **IN** | touch: ends poison; adv on saves against it and resistance to poison damage, an hour |
 | Ray of Enfeeblement | W K | Au Am Wi | **IN** | spell attack: its STR weapon damage halved (conc); a CON save each turn ends it |
-| Rope Trick | W | Au Wi | **OUT** | a hideaway to rest in: rests are fixed places -- Griz leans in (a field spell, 09-28): see still open |
+| Rope Trick | W | Au Wi | **IN** | RULED in 09-28: field only, a short rest like the tent; spends a skein of Gulch Silk |
 | Scorching Ray | W S | Au Wi | **BUILT** | three rays, 2d6 fire each (+1 ray a slot); greyed under the roost |
 | See Invisibility | W S B | Au Wi | **DARK** | sees the invisible and the ethereal: waits on the dark |
 | Shatter | W K S B | Au Am Wi | **BUILT** | 10-ft sphere, CON save 3d8 thunder (half); greyed under the roost |
@@ -244,7 +244,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Speak with Plants | B D R |  | **OUT** | questioning plants; its brush-to-difficult-terrain side is minor and needs plant tiles |
 | Spirit Guardians | C | To | **IN** | aura 15 ft (conc): foes entering or starting there WIS save 3d8 radiant (half), half speed; Torvald's |
 | Stinking Cloud | W S B | Au Wi | **DARK** | 20-ft sphere heavily obscured; CON save or lose the action -- the obscuring waits on the dark |
-| Tiny Hut | W B | Au Wi | **OUT** | a dome to rest in anywhere: rests are fixed places by design -- Griz leans in (a field spell, 09-28): see still open |
+| Tiny Hut | W B | Au Wi | **IN** | RULED in 09-28: field only, a long rest where a tent goes, counted with the rest (clocks, morning, save); spends a snail shell from Percy's |
 | Tongues | W C K S B | Au To Am Wi | **OUT** | any language: social |
 | Vampiric Touch | W K | Au Am Wi | **IN** | melee spell attack 3d6 necrotic, heals half (conc; again each action) |
 | Water Breathing | W S D R | Au Wi Na | **OUT** | the water is hand-waved: nobody swims; the naga's list has it |
@@ -377,7 +377,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Finger of Death | W K S |  | **IN** | single: CON save 7d8+30 necrotic (half); the zombie rider is moot, nobody dies; a lich |
 | Fire Storm | C S D |  | **IN** | ten 10-ft cubes laid as the caster likes, DEX save 7d10 fire (half); can spare plants |
 | Forcecage | W K B |  | **LATER** | a force prison, no save, 1 hr: none leave but by teleport and a CHA save; needs walls |
-| Magnificent Mansion | W B |  | **OUT** | a hideaway to rest in; rests are fixed places by design -- Griz leans in (a field spell, 09-28): see still open |
+| Magnificent Mansion | W B |  | **OUT** | 7th level: no hero reaches it, and a foe has no use for a hideaway |
 | Mirage Arcane | W B D |  | **OUT** | terrain illusion over a square mile for 10 days: scenery, not a fight |
 | Plane Shift | W C K S D |  | **OUT** | planar travel; its banishing touch would send a hero off-world for good |
 | Prismatic Spray | W S |  | **IN** | cone 60 ft, DEX save, a d8 ray each: 10d6 of five types, restrain-to-stone, blind-to-banish |
@@ -439,8 +439,8 @@ The same verdicts, a line a level: each class's own SRD list.
 
 - **Cantrips:** Acid Splash (BUILT), Chill Touch (IN), Dancing Lights (DARK), Fire Bolt (BUILT), Light (BUILT), Mage Hand (OUT), Mending (OUT), Message (OUT), Minor Illusion (LATER), Poison Spray (IN), Prestidigitation (OUT), Ray of Frost (IN), Shocking Grasp (IN), True Strike (IN)
 - **1st:** Alarm (OUT), Burning Hands (BUILT), Charm Person (LATER), Color Spray (IN), Comprehend Languages (OUT), Detect Magic (BUILT), Disguise Self (OUT), Expeditious Retreat (IN), False Life (IN), Feather Fall (OUT), Find Familiar (OUT), Floating Disk (OUT), Fog Cloud (DARK), Grease (IN), Hideous Laughter (IN), Identify (OUT), Illusory Script (OUT), Jump (OUT), Longstrider (IN), Mage Armor (BUILT), Magic Missile (BUILT), Protection from Evil and Good (LATER), Shield (BUILT), Silent Image (LATER), Sleep (BUILT), Thunderwave (BUILT), Unseen Servant (OUT)
-- **2nd:** Acid Arrow (IN), Alter Self (OUT), Arcane Lock (OUT), Arcanist's Magic Aura (OUT), Blindness/Deafness (IN), Blur (IN), Continual Flame (DARK), Darkness (BUILT), Darkvision (DARK), Detect Thoughts (OUT), Enlarge/Reduce (IN), Flaming Sphere (LATER), Gentle Repose (OUT), Gust of Wind (IN), Hold Person (BUILT), Invisibility (DARK), Knock (OUT), Levitate (LATER), Locate Object (OUT), Magic Mouth (OUT), Magic Weapon (IN), Mirror Image (IN), Misty Step (BUILT), Ray of Enfeeblement (IN), Rope Trick (OUT), Scorching Ray (BUILT), See Invisibility (DARK), Shatter (BUILT), Spider Climb (OUT), Suggestion (LATER), Web (BUILT)
-- **3rd:** Animate Dead (LATER), Bestow Curse (IN), Blink (IN), Clairvoyance (OUT), Counterspell (LATER), Dispel Magic (IN), Fear (IN), Fireball (BUILT), Fly (LATER), Gaseous Form (OUT), Glyph of Warding (OUT), Haste (IN), Hypnotic Pattern (IN), Lightning Bolt (BUILT), Magic Circle (OUT), Major Image (LATER), Nondetection (OUT), Phantom Steed (OUT), Protection From Energy (IN), Remove Curse (OUT), Sending (OUT), Sleet Storm (DARK), Slow (IN), Stinking Cloud (DARK), Tiny Hut (OUT), Tongues (OUT), Vampiric Touch (IN), Water Breathing (OUT)
+- **2nd:** Acid Arrow (IN), Alter Self (OUT), Arcane Lock (OUT), Arcanist's Magic Aura (OUT), Blindness/Deafness (IN), Blur (IN), Continual Flame (DARK), Darkness (BUILT), Darkvision (DARK), Detect Thoughts (OUT), Enlarge/Reduce (IN), Flaming Sphere (LATER), Gentle Repose (OUT), Gust of Wind (IN), Hold Person (BUILT), Invisibility (DARK), Knock (OUT), Levitate (LATER), Locate Object (OUT), Magic Mouth (OUT), Magic Weapon (IN), Mirror Image (IN), Misty Step (BUILT), Ray of Enfeeblement (IN), Rope Trick (IN), Scorching Ray (BUILT), See Invisibility (DARK), Shatter (BUILT), Spider Climb (OUT), Suggestion (LATER), Web (BUILT)
+- **3rd:** Animate Dead (LATER), Bestow Curse (IN), Blink (IN), Clairvoyance (OUT), Counterspell (LATER), Dispel Magic (IN), Fear (IN), Fireball (BUILT), Fly (LATER), Gaseous Form (OUT), Glyph of Warding (OUT), Haste (IN), Hypnotic Pattern (IN), Lightning Bolt (BUILT), Magic Circle (OUT), Major Image (LATER), Nondetection (OUT), Phantom Steed (OUT), Protection From Energy (IN), Remove Curse (OUT), Sending (OUT), Sleet Storm (DARK), Slow (IN), Stinking Cloud (DARK), Tiny Hut (IN), Tongues (OUT), Vampiric Touch (IN), Water Breathing (OUT)
 - **4th:** Arcane Eye (OUT), Banishment (IN), Black Tentacles (IN), Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Control Water (OUT), Dimension Door (IN), Fabricate (OUT), Faithful Hound (LATER), Fire Shield (IN), Greater Invisibility (BUILT), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Phantasmal Killer (IN), Polymorph (LATER), Private Sanctum (OUT), Resilient Sphere (IN), Secret Chest (OUT), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (LATER)
 - **5th:** Animate Objects (LATER), Arcane Hand (LATER), Cloudkill (LATER), Cone of Cold (BUILT), Conjure Elemental (LATER), Contact Other Plane (OUT), Creation (OUT), Dominate Person (LATER), Dream (OUT), Geas (OUT), Hold Monster (BUILT), Legend Lore (OUT), Mislead (DARK), Modify Memory (OUT), Passwall (OUT), Planar Binding (OUT), Scrying (OUT), Seeming (OUT), Telekinesis (LATER), Telepathic Bond (OUT), Teleportation Circle (OUT), Wall of Force (LATER), Wall of Stone (LATER)
 - **6th:** Chain Lightning (IN), Circle of Death (IN), Contingency (LATER), Create Undead (LATER), Disintegrate (IN), Eyebite (IN), Flesh to Stone (IN), Freezing Sphere (IN), Globe of Invulnerability (IN), Guards and Wards (OUT), Instant Summons (OUT), Irresistible Dance (IN), Magic Jar (LATER), Mass Suggestion (LATER), Move Earth (OUT), Programmed Illusion (OUT), Sunbeam (IN), True Seeing (DARK), Wall of Ice (LATER)
@@ -500,7 +500,7 @@ The same verdicts, a line a level: each class's own SRD list.
 - **Cantrips:** Dancing Lights (DARK), Light (BUILT), Mage Hand (OUT), Mending (OUT), Message (OUT), Minor Illusion (LATER), Prestidigitation (OUT), True Strike (IN), Vicious Mockery (IN)
 - **1st:** Animal Friendship (LATER), Bane (IN), Charm Person (LATER), Comprehend Languages (OUT), Cure Wounds (BUILT), Detect Magic (BUILT), Disguise Self (OUT), Feather Fall (OUT), Healing Word (IN), Heroism (BUILT), Hideous Laughter (IN), Identify (OUT), Illusory Script (OUT), Longstrider (IN), Silent Image (LATER), Sleep (BUILT), Speak with Animals (OUT), Thunderwave (BUILT), Unseen Servant (OUT)
 - **2nd:** Animal Messenger (OUT), Blindness/Deafness (IN), Calm Emotions (LATER), Detect Thoughts (OUT), Enhance Ability (IN), Enthrall (OUT), Heat Metal (IN), Hold Person (BUILT), Invisibility (DARK), Knock (OUT), Lesser Restoration (BUILT), Locate Animals or Plants (OUT), Locate Object (OUT), Magic Mouth (OUT), See Invisibility (DARK), Shatter (BUILT), Silence (LATER), Suggestion (LATER), Zone of Truth (OUT)
-- **3rd:** Bestow Curse (IN), Clairvoyance (OUT), Dispel Magic (IN), Fear (IN), Glyph of Warding (OUT), Hypnotic Pattern (IN), Major Image (LATER), Nondetection (OUT), Plant Growth (LATER), Sending (OUT), Speak with Dead (OUT), Speak with Plants (OUT), Stinking Cloud (DARK), Tiny Hut (OUT), Tongues (OUT)
+- **3rd:** Bestow Curse (IN), Clairvoyance (OUT), Dispel Magic (IN), Fear (IN), Glyph of Warding (OUT), Hypnotic Pattern (IN), Major Image (LATER), Nondetection (OUT), Plant Growth (LATER), Sending (OUT), Speak with Dead (OUT), Speak with Plants (OUT), Stinking Cloud (DARK), Tiny Hut (IN), Tongues (OUT)
 - **4th:** Compulsion (LATER), Confusion (IN), Dimension Door (IN), Freedom of Movement (IN), Greater Invisibility (BUILT), Hallucinatory Terrain (OUT), Locate Creature (OUT), Polymorph (LATER)
 - **5th:** Animate Objects (LATER), Awaken (OUT), Dominate Person (LATER), Dream (OUT), Geas (OUT), Greater Restoration (IN), Hold Monster (BUILT), Legend Lore (OUT), Mass Cure Wounds (IN), Mislead (DARK), Modify Memory (OUT), Planar Binding (OUT), Raise Dead (OUT), Scrying (OUT), Seeming (OUT), Teleportation Circle (OUT)
 - **6th:** Eyebite (IN), Find the Path (OUT), Guards and Wards (OUT), Irresistible Dance (IN), Mass Suggestion (LATER), Programmed Illusion (OUT), True Seeing (DARK)
