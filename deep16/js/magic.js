@@ -50,6 +50,7 @@
       var why = '';
       // under a roost (the rescue in the dens), its one law: no fire, no thunder (the 8-bit game greys them too, RULED 09-24)
       if (B.fight && B.fight.roost && /fire|thunder/.test(sp.el || '')) why = 'the roost overhead: no fire, no thunder';
+      else if (u.conds.feeble) why = 'the mind is gone (Feeblemind)';
       else if (g.shape === 'none' || g.shape === 'reaction') why = g.why;
       else if (sp.level && !e.levels.length) why = 'no slot of level ' + sp.level + ' or higher';
       else if (g.time === 'B' && !T.bonus) why = 'the bonus action is spent';

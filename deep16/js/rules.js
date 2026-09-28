@@ -45,7 +45,7 @@
   RU.save = function (u, ab, dc) {
     var c = u.conds, bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u) + (c.wardingBond ? 1 : 0) - (ab === 'dex' && c.slowed ? 2 : 0);
     // advantage: Dodge and Haste on DEX; Beacon of Hope on WIS; a creature's own (Danger Sense, Magic Resistance: o.adv). Disadvantage: restrained on DEX
-    var adv = (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(RU.saveAdv && RU.saveAdv(u, ab)), dis = (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)); // (the roper's grip on STR: js/traits.js)
+    var adv = (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)), dis = (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)); // (the roper's grip on STR: js/traits.js)
     if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || c.incapacitated && c.laughing)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true };
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
@@ -104,6 +104,9 @@
     // the class NPCs' spells (09-28, js/grimoire.js): Guiding Bolt's glow (the next attack at it), Vicious Mockery (its own next attack),
     // True Strike (the caster's first at it), Blur (at the blurred: not for blindsight or truesight), Reckless Attack's price
     if (tgt.conds.guided) adv.push('guiding bolt');
+    if (att.conds.sickened) dis.push('sickened'); // (Eyebite)
+    if (tgt.conds.holyAura) dis.push('holy aura');
+    if (tgt.conds.foresight) dis.push('foresight'); if (att.conds.foresight) adv.push('foresight');
     if (tgt.conds.metalEdge && atk.spell) adv.push('metal armour');
     if (att.conds.mocked) dis.push('mocked');
     if (att.conds.trueStrike && att.conds.trueStrike.at === tgt.id) adv.push('true strike');

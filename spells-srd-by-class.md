@@ -16,14 +16,14 @@ Each spell gets one verdict:
 
 | | BUILT | IN | DARK | LATER | OUT | all |
 |---|---|---|---|---|---|---|
-| **every spell** | 121 | 35 | 0 | 60 | 103 | 319 |
-| Wizard | 72 | 24 | 0 | 40 | 68 | 204 |
-| Cleric | 43 | 12 | 0 | 10 | 40 | 105 |
+| **every spell** | 152 | 4 | 0 | 60 | 103 | 319 |
+| Wizard | 95 | 1 | 0 | 40 | 68 | 204 |
+| Cleric | 53 | 2 | 0 | 10 | 40 | 105 |
 | Paladin | 19 | 0 | 0 | 0 | 12 | 31 |
-| Warlock | 23 | 9 | 0 | 12 | 20 | 64 |
-| Sorcerer | 58 | 16 | 0 | 23 | 23 | 120 |
-| Bard | 36 | 11 | 0 | 17 | 47 | 111 |
-| Druid | 38 | 10 | 0 | 23 | 35 | 106 |
+| Warlock | 32 | 0 | 0 | 12 | 20 | 64 |
+| Sorcerer | 74 | 0 | 0 | 23 | 23 | 120 |
+| Bard | 47 | 0 | 0 | 17 | 47 | 111 |
+| Druid | 46 | 2 | 0 | 23 | 35 | 106 |
 | Ranger | 15 | 0 | 0 | 7 | 15 | 37 |
 
 **Who**, in the tables: **Au** Aurdin (wizard, spells to 5th), **Ly** Lymen (paladin to 3rd, and his Oath of Devotion's spells), **To** Torvald (cleric 5), **In** Ingrith (cleric 4), **Am** Amara (warlock 5), **Wi** Willem (wizard 5), **SW** the drow spell-weaver (the SRD Mage's own list), **Na** the spirit naga (the SRD's own list), **Dr** the drow's innate, **Du** the duergar's. A hero or a classed NPC is marked for every spell his class and level reach; the two SRD stat blocks only for the spells they have. **Classes**: W wizard, C cleric, P paladin, K warlock, S sorcerer, B bard, D druid, R ranger.
@@ -340,30 +340,30 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Spell | Classes | Who | Verdict | In the game |
 |---|---|---|---|---|
 | Blade Barrier | C |  | **LATER** | a wall of blades (line or ring): DEX save 6d10 slashing on entry or start; needs walls |
-| Chain Lightning | W S |  | **IN** | a target plus three more within 30 ft of it, DEX save 10d8 lightning (half); a foe archmage |
-| Circle of Death | W K S |  | **IN** | sphere 60-ft radius, CON save 8d6 necrotic (half); a foe necromancer or warlock later |
+| Chain Lightning | W S |  | **BUILT** | a target plus three more within 30 ft of it, DEX save 10d8 lightning (half); a foe archmage -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Circle of Death | W K S |  | **BUILT** | sphere 60-ft radius, CON save 8d6 necrotic (half); a foe necromancer or warlock later -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Conjure Fey | K D |  | **LATER** | summons: one fey of CR 6 or lower that obeys, turning hostile if concentration breaks |
 | Contingency | W |  | **LATER** | a stored self-spell set off by a named trigger: needs triggered spells (a boss's backup) |
 | Create Undead | W C K |  | **LATER** | night only, 1-min cast: up to three ghouls that obey; summons (or just ghouls on the map) |
-| Disintegrate | W S |  | **IN** | single: DEX save or 10d6+40 force, none on a save; dust moot, the fallen are only down; a lich |
-| Eyebite | W K S B |  | **IN** | one target per action (conc): WIS save or asleep, panicked (flees), or sickened (disadv) |
+| Disintegrate | W S |  | **BUILT** | single: DEX save or 10d6+40 force, none on a save; dust moot, the fallen are only down; a lich -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Eyebite | W K S B |  | **BUILT** | one target per action (conc): WIS save or asleep, panicked (flees), or sickened (disadv) -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Find the Path | C B D |  | **OUT** | travel: knows the shortest route to a familiar place |
-| Flesh to Stone | W K |  | **IN** | single (conc): CON save or restrained; 3 fails petrified, 3 saves free; needs petrified |
+| Flesh to Stone | W K |  | **BUILT** | single (conc): CON save or restrained; 3 fails petrified, 3 saves free; needs petrified -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Forbiddance | C |  | **LATER** | a 24-hr ward on a place: no teleporting in, chosen kinds take 5d10; needs place-bound laws |
-| Freezing Sphere | W |  | **IN** | sphere 60-ft radius, CON save 10d6 cold (half); the kept globe and frozen water aside |
-| Globe of Invulnerability | W S |  | **IN** | fixed 10-ft sphere (conc): spells of 5th or lower from outside can't touch those in it; a lich |
+| Freezing Sphere | W |  | **BUILT** | sphere 60-ft radius, CON save 10d6 cold (half); the kept globe and frozen water aside -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Globe of Invulnerability | W S |  | **BUILT** | fixed 10-ft sphere (conc): spells of 5th or lower from outside can't touch those in it; a lich -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Guards and Wards | W B |  | **OUT** | a stronghold's dressing (fog, locks, webs, lights) for 24 hr: build it as the dungeon |
-| Harm | C |  | **IN** | single: CON save 14d6 necrotic (half), never below 1 HP; a fail cuts HP max for an hour |
-| Heal | C D |  | **IN** | single ally: regains 70 HP, ends blinded, deafened, disease; a foe high priest's boss heal |
+| Harm | C |  | **BUILT** | single: CON save 14d6 necrotic (half), never below 1 HP; a fail cuts HP max for an hour -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Heal | C D |  | **BUILT** | single ally: regains 70 HP, ends blinded, deafened, disease; a foe high priest's boss heal -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Heroes' Feast | C D |  | **IN** | field, 24 hr for 12: immune poison and fear, adv on WIS saves, +2d10 HP max; a host's gift |
 | Instant Summons | W |  | **OUT** | utility: a marked item appears in hand |
-| Irresistible Dance | W B |  | **IN** | single, no first save (conc): dances in place, disadv attacks and DEX saves, attackers at adv |
+| Irresistible Dance | W B |  | **BUILT** | single, no first save (conc): dances in place, disadv attacks and DEX saves, attackers at adv -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Magic Jar | W |  | **LATER** | possession: the caster's soul takes a humanoid's body (CHA save); control of a creature |
 | Mass Suggestion | W K S B |  | **LATER** | a charm setting a course for up to 12 (WIS, 24 hr): control, or a story beat |
 | Move Earth | W S D |  | **OUT** | reshapes earth over 10-minute stretches: too slow for a fight; earthworks are story |
 | Planar Ally | C |  | **OUT** | planar bargaining for a paid service; a hired ally is story, not a cast |
 | Programmed Illusion | W B |  | **OUT** | a scripted illusion on a trigger: dungeon dressing with no mechanical effect |
-| Sunbeam | W S D |  | **IN** | line 60 ft (conc, again each action): CON save 6d8 radiant + blinded; its mote is sunlight |
+| Sunbeam | W S D |  | **BUILT** | line 60 ft (conc, again each action): CON save 6d8 radiant + blinded; its mote is sunlight -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Transport via Plants | D |  | **OUT** | travel: step into one big plant and out of another anywhere |
 | True Seeing | W C K S B |  | **BUILT** | truesight 120 ft for an hour: sees the invisible, through darkness and illusion -- BUILT 09-28 (torchdark): truesight 120 ft on the grid (grid only: no hero reaches 6th) |
 | Wall of Ice | W |  | **LATER** | a wall of ice (panels or dome, 30 HP a section): DEX save 10d6 cold; needs walls |
@@ -375,25 +375,25 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 
 | Spell | Classes | Who | Verdict | In the game |
 |---|---|---|---|---|
-| Arcane Sword | W B |  | **IN** | like Spiritual Weapon: a floating sword, melee spell attack 3d10 force, moved 20 ft by bonus |
+| Arcane Sword | W B |  | **BUILT** | like Spiritual Weapon: a floating sword, melee spell attack 3d10 force, moved 20 ft by bonus -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Conjure Celestial | C |  | **LATER** | summons: a celestial of CR 4 or lower that obeys; needs summons |
-| Delayed Blast Fireball | W S |  | **IN** | a bead (conc) that bursts as a 20-ft sphere, DEX save 12d6 fire +1d6 per turn it waits |
-| Divine Word | C |  | **IN** | any number within 30 ft, CHA save, by HP: 50 deafened, 40 blinded, 30 stunned, 20 down |
-| Etherealness | W C K S B |  | **IN** | self, 8 hr: ethereal (the engine's) and moves through walls; a foe's escape or ambush |
-| Finger of Death | W K S |  | **IN** | single: CON save 7d8+30 necrotic (half); the zombie rider is moot, nobody dies; a lich |
-| Fire Storm | C S D |  | **IN** | ten 10-ft cubes laid as the caster likes, DEX save 7d10 fire (half); can spare plants |
+| Delayed Blast Fireball | W S |  | **BUILT** | a bead (conc) that bursts as a 20-ft sphere, DEX save 12d6 fire +1d6 per turn it waits -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Divine Word | C |  | **BUILT** | any number within 30 ft, CHA save, by HP: 50 deafened, 40 blinded, 30 stunned, 20 down -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Etherealness | W C K S B |  | **BUILT** | self, 8 hr: ethereal (the engine's) and moves through walls; a foe's escape or ambush -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Finger of Death | W K S |  | **BUILT** | single: CON save 7d8+30 necrotic (half); the zombie rider is moot, nobody dies; a lich -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Fire Storm | C S D |  | **BUILT** | ten 10-ft cubes laid as the caster likes, DEX save 7d10 fire (half); can spare plants -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Forcecage | W K B |  | **LATER** | a force prison, no save, 1 hr: none leave but by teleport and a CHA save; needs walls |
 | Magnificent Mansion | W B |  | **OUT** | 7th level: no hero reaches it, and a foe has no use for a hideaway |
 | Mirage Arcane | W B D |  | **OUT** | terrain illusion over a square mile for 10 days: scenery, not a fight |
 | Plane Shift | W C K S D |  | **OUT** | planar travel; its banishing touch would send a hero off-world for good |
-| Prismatic Spray | W S |  | **IN** | cone 60 ft, DEX save, a d8 ray each: 10d6 of five types, restrain-to-stone, blind-to-banish |
+| Prismatic Spray | W S |  | **BUILT** | cone 60 ft, DEX save, a d8 ray each: 10d6 of five types, restrain-to-stone, blind-to-banish -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Project Image | W B |  | **OUT** | a far illusory double to talk through: a villain's messenger, a story beat |
-| Regenerate | C B D |  | **IN** | touch (1-min cast): 4d8+15 HP, then 1 HP a turn for an hour; a boss's pre-cast |
+| Regenerate | C B D |  | **BUILT** | touch (1-min cast): 4d8+15 HP, then 1 HP a turn for an hour; a boss's pre-cast -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Resurrection | C B |  | **OUT** | nobody dies here (the fallen are only down), and it takes an hour |
 | Reverse Gravity | W S D |  | **LATER** | a 50-ft cylinder where all fall upward (DEX to hold on): needs elevation |
 | Sequester | W |  | **OUT** | hides a creature or object in suspended animation: story |
 | Simulacrum | W |  | **LATER** | 12-hr rite: a half-HP double that obeys; a boss's twin needs allies it controls |
-| Symbol | W C B |  | **IN** | a glyph trap (INT check to find): a 60-ft sphere on trigger - death 10d10, fear, sleep, stun |
+| Symbol | W C B |  | **BUILT** | a glyph trap (INT check to find): a 60-ft sphere on trigger - death 10d10, fear, sleep, stun -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Teleport | W S B |  | **OUT** | travel to a known place |
 
 ### 8th (16)
@@ -407,27 +407,27 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Control Weather | W C D |  | **OUT** | weather within 5 miles changing over tens of minutes; the game has no weather |
 | Demiplane | W K |  | **OUT** | a door to an empty room: utility |
 | Dominate Monster | W K S B |  | **LATER** | control of a creature: fails WIS and obeys (a hero turned on the party); a lich; needs dominate |
-| Earthquake | C S D |  | **IN** | 100-ft radius (conc): difficult, DEX save or prone each turn, CON or lose concentration |
-| Feeblemind | W K B D |  | **IN** | single: 4d6 psychic, INT save or INT/CHA 1, no spells or speech; a save per 30 days; heal cures |
+| Earthquake | C S D |  | **BUILT** | 100-ft radius (conc): difficult, DEX save or prone each turn, CON or lose concentration -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Feeblemind | W K B D |  | **BUILT** | single: 4d6 psychic, INT save or INT/CHA 1, no spells or speech; a save per 30 days; heal cures -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Glibness | K B |  | **OUT** | social: Charisma checks at least 15, lies pass as truth |
-| Holy Aura | C |  | **IN** | allies in 30 ft (conc): adv on saves, attacks vs them at disadv; undead hitters CON or blind |
+| Holy Aura | C |  | **BUILT** | allies in 30 ft (conc): adv on saves, attacks vs them at disadv; undead hitters CON or blind -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Incendiary Cloud | W S |  | **LATER** | a cloud drifting 10 ft a turn: DEX save 10d8 fire, heavily obscured; needs moving clouds |
-| Maze | W |  | **IN** | single, no save (conc): gone from the field until a DC 20 INT check as its action |
-| Mind Blank | W B |  | **IN** | touch (ally), 24 hr: immune to psychic damage and to charm; a ward before the naga |
-| Power Word Stun | W K S B |  | **IN** | single, no save: stunned if 150 HP or fewer; CON save at the end of its turns; a lich |
-| Sunburst | W S D |  | **IN** | sphere 60-ft radius, CON save 12d6 radiant + blinded (save each turn); ends spell darkness |
+| Maze | W |  | **BUILT** | single, no save (conc): gone from the field until a DC 20 INT check as its action -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Mind Blank | W B |  | **BUILT** | touch (ally), 24 hr: immune to psychic damage and to charm; a ward before the naga -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Power Word Stun | W K S B |  | **BUILT** | single, no save: stunned if 150 HP or fewer; CON save at the end of its turns; a lich -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Sunburst | W S D |  | **BUILT** | sphere 60-ft radius, CON save 12d6 radiant + blinded (save each turn); ends spell darkness -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 
 ### 9th (15)
 
 | Spell | Classes | Who | Verdict | In the game |
 |---|---|---|---|---|
 | Astral Projection | W C K |  | **OUT** | planar travel on the Astral Plane |
-| Foresight | W K B D |  | **IN** | touch (ally), 8 hr: adv on attacks, checks, saves; attacks vs it at disadv; a boss pre-cast |
+| Foresight | W K B D |  | **BUILT** | touch (ally), 8 hr: adv on attacks, checks, saves; attacks vs it at disadv; a boss pre-cast -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Gate | W C S |  | **LATER** | a portal, or a named being pulled through it (not controlled): summons, or a story beat |
 | Imprisonment | W K |  | **OUT** | a 1-minute rite binding a creature for good: a story's end, not a fight |
-| Mass Heal | C |  | **IN** | allies in sight: 700 HP shared as the caster likes, ends blinded, deafened, disease |
-| Meteor Swarm | W S |  | **IN** | four 40-ft spheres, DEX save 20d6 fire + 20d6 bludgeoning (half), hit once |
-| Power Word Kill | W K S B |  | **IN** | single, no save: at 100 HP or fewer it drops (only down here); a lich later |
+| Mass Heal | C |  | **BUILT** | allies in sight: 700 HP shared as the caster likes, ends blinded, deafened, disease -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Meteor Swarm | W S |  | **BUILT** | four 40-ft spheres, DEX save 20d6 fire + 20d6 bludgeoning (half), hit once -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
+| Power Word Kill | W K S B |  | **BUILT** | single, no save: at 100 HP or fewer it drops (only down here); a lich later -- BUILT 09-28 (batch E, deep16/js/grimoire.js): on the grid, for the foes past the cap (a lich, an archmage) |
 | Prismatic Wall | W |  | **LATER** | a seven-layer wall or globe, a save per layer; blinds within 20 ft; needs walls |
 | Shapechange | W D |  | **LATER** | polymorph self into any creature up to its level: needs stat blocks |
 | Storm of Vengeance | D |  | **IN** | whole field (conc), a new blow each round: thunder, acid, six 10d6 bolts, hail, sleet |
