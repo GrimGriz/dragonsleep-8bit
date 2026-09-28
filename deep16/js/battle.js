@@ -721,6 +721,7 @@
       if (id20 >= need) {
         var ir = RU.d20(e.net), itot = ir.pick + atk.atk, iac = 10 + D.mod(tgt.abil.dex), ihit = ir.pick === 20 || (ir.pick !== 1 && itot >= iac);
         if (ihit) tgt.images--;
+        if (ihit && D.features && D.features.rimeDouble) D.features.rimeDouble(this, att, tgt); // (the Rimeglass: the double breaks to rime)
         D.sfx(ihit ? 'hit' : 'miss'); FX.sparkle(tgt, 'violet', 14);
         this.card(['{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name, 'd20 ' + id20 + ' vs ' + need + ': {p}a false image{/}  d20 ' + ir.pick + ' ' + RU.sign(atk.atk) + ' = ' + itot + ' vs AC ' + iac + '  ' + (ihit ? '{n}the image bursts{/} (' + tgt.images + ' left)' : '{g}MISS{/}')], 300, cid);
         yield o.oa ? 16 : 26; att.anim = 'idle'; return;
@@ -743,11 +744,20 @@
     // a bard's dice (js/features.js): Bardic Inspiration turns a miss, Cutting Words a hit
     if (!hit && nat !== 1 && att.conds.inspired && D.features) { var bi = D.features.inspire(att, ac - total); if (bi) { total += bi; pen += bi; hit = total >= ac; } }
     if (hit && nat !== 20 && D.features) { var cw = D.features.cutting(this, att, tgt, total - ac); if (cw) { total -= cw; pen -= cw; hit = total >= ac; } }
+    // the Hand on the Neck (the Window, Kat's domain: js/features.js): the glass takes the first blow that would land -- rolled again,
+    // and the second roll stands
+    var glass = '';
+    if (hit && tgt.conds.glassHand && G.hostile(att, tgt)) {
+      delete tgt.conds.glassHand;
+      var r2 = RU.d20(e.net); nat = r2.pick; total = nat + atk.atk + bless + sacred + pen;
+      hit = nat === 20 || (nat !== 1 && total >= ac);
+      glass = '  {p}the glass takes it: again, d20 ' + nat + ' = ' + total + '{/}';
+    }
     var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5)
       || (att.assassinate && tgt.conds.surprised) // Assassinate: any hit on one caught unaware is a critical
       || (att.subclass === 'Cutthroat' && this.round === 1 && !tgt.acted)); // Opening Cut (the game's Cutthroat): the same, in the first round
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
-    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
+    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + glass;
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
     // the +5 turns the blow; one run by the AI never asks)
@@ -933,6 +943,7 @@
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
   Battle.prototype.hurt = function (u, n, type) {
     if (n <= 0) return;
+    if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
     // Talmok rages when he is first hit: blades and fists do half from then on, his own blows +2
     if (u.rageOnHit && !u.raging && !u.dead) { u.raging = true; u.resist = ['bludgeoning', 'piercing', 'slashing']; FX.ring(u, 'red', 30); D.sfx('crit'); this.card(['{r}' + u.name + '{/} roars and rages!  {g}(half from blades and blows; +2 to his own){/}']); }

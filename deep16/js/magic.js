@@ -411,6 +411,7 @@
       caught.slice().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (w) {
         if (w.kind === 'drow' || w.fey) { lines.push('  ' + w.name + ': {g}fey blood: sleep cannot take it{/}'); return; }
         if (w.type === 'undead') { lines.push('  ' + w.name + ': {g}the dead do not sleep{/}'); return; }
+        if (M.wakeful && M.wakeful(B, w)) { lines.push('  ' + w.name + ': {g}the vigil keeps it awake{/}'); return; } // (the Vigil, 6: js/features.js)
         if (RU.immuneTo(w, 'asleep')) { lines.push('  ' + w.name + ': {g}nothing in it sleeps{/}'); return; }
         if (w.hp <= left) { left -= w.hp; w.conds.asleep = true; lines.push('  ' + w.name + ' ({r}' + w.hp + '{/}): {p}asleep{/}'); }
         else lines.push('  ' + w.name + ' (' + w.hp + '): too much left in it');

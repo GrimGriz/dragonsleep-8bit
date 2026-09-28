@@ -64,6 +64,16 @@
   // TRIMMED to two, the SRD's patrons' count (RULED 09-28g, Griz: "Trim"): the two his words named, Glass Whisper and Command (the
   // asking); the seat's Silent Image and Hideous Laughter are off it
   NPC.MIRROR = { 1: ['glasswhisper', 'command'], 3: ['mirrorimage', 'detectthoughts'], 5: ['hypnoticpattern', 'clairvoyance'] };
+  // our own subclasses (RULED 09-28g, Griz, on the ones past the SRD: "Sufficiently distinct"; the past-the-SRD principle, invented.json
+  // #past-the-srd): the domains' spells, always prepared (a spell not built yet is simply not cast: magic.js M.list); the features are
+  // js/features.js. The Window: Tronupholen's menders (Kat's, "Cleric of trickster deity trapped in mirror"); the Vigil: Dvalgarda's,
+  // the Ward of the Dormant (Torvald's; the register names no domain). The Rimeglass (Willem's) and the Path of the Sand (Talmok's) have
+  // no spells of their own
+  NPC.SUBS = {
+    'the Window': { always: { 1: ['disguiseself', 'silentimage'], 3: ['blur', 'passwithouttrace'], 5: ['hypnoticpattern', 'clairvoyance'] }, uses: 'handOnNeck' },
+    'the Vigil': { always: { 1: ['sanctuary', 'protectionfromevilandgood'], 3: ['holdperson', 'wardingbond'], 5: ['spiritguardians', 'glyphofwarding'] }, uses: 'keepersWard' }
+  };
+  function subAlways(sub, lvl) { var a = [], s = NPC.SUBS[sub]; Object.keys((s && s.always) || {}).forEach(function (k) { if (lvl >= +k) a = a.concat(s.always[k]); }); return a; }
 
   // ------------------------------------------------------------------ the existing NPCs the generator builds by name (the survey, 09-28).
   // Each is its register's class, level, race and list; `maxhp` for the story-vital (the players' max hit die, RULED 09-28)
@@ -74,7 +84,8 @@
     // Torvald Greyseam, cleric 5 of Dvalgarda (the-copper-egg.md, CANON 09-16f): the SRD Priest's list (RULED 09-28: the SRD stat
     // blocks' lists where the register has none) and the 8-bit's Hold Person; the register gives no domain, so none (flagged); his
     // numbers the 8-bit sheet's (content/monsters.json torvald: AC 13, a max d8+2 a level). His spirits are the Dormant's, cold
-    torvald: { cls: 'cleric', lvl: 5, race: 'dwarf', subclass: null, abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 },
+    // His domain the Vigil, Dvalgarda's (09-28g, the seat's on Griz's "Sufficiently distinct"; invented.json #the-vigil)
+    torvald: { cls: 'cleric', lvl: 5, race: 'dwarf', subclass: 'the Vigil', abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainshirt' }, noPrecast: true,
       known: ['sacredflame', 'light', 'curewounds', 'guidingbolt', 'sanctuary', 'lesserrestoration', 'spiritualweapon', 'holdperson', 'dispelmagic', 'spiritguardians'],
       guardianText: 'calls on the Dormant, and spirits wheel out from him, cold as a vault' },
@@ -87,10 +98,22 @@
       known: ['eldritchblast', 'minorillusion', 'mirrorsgaze', 'command', 'darkness', 'fear', 'charmperson', 'suggestion'],
       invocations: ['agonizing', 'fiendishvigor'] },
     // Willem Glass, wizard 5 of illusion (npcs-by-location.md §The Road): Ray of Frost (RULED 09-28), Blur for Phantasmal Force (the ear
-    // file, dist-4); the illusion school is the PHB's, so none of its features (flagged). The 8-bit sheet's AC 12: no Mage Armor up
-    willem: { cls: 'wizard', lvl: 5, race: 'human', subclass: null, abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 },
+    // file, dist-4); the illusion school is the PHB's: his tradition is our own, the Rimeglass (09-28g, the seat's on Griz's "Sufficiently
+    // distinct"; invented.json #the-rimeglass). The 8-bit sheet's AC 12: no Mage Armor up
+    willem: { cls: 'wizard', lvl: 5, race: 'human', subclass: 'the Rimeglass', abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 },
       equip: { weapon: 'quarterstaff', armor: null }, noPrecast: true,
       known: ['rayoffrost', 'minorillusion', 'mageArmor', 'shield', 'mirrorimage', 'invisibility', 'blur', 'hypnoticpattern'] },
+    // Talmok, barbarian 3, Bloodsnout's champion at the Hex (the-hex.md, RULED 09-01): the register's block (npcs-by-location.md §TALMOK:
+    // pit fists, rages on first blood, wrestles to the sand) and its Totem Warrior (Bear), the PHB's -- his path is our own, the Path of
+    // the Sand (09-28g; invented.json #path-of-the-sand), and its 3rd-level features are what his block already did. The register gives
+    // no race: human, the generator's. The ladder's card keeps his bestiary sheet (data/foes.js talmok); this is the Pocket DM's
+    talmok: { name: 'Talmok', cls: 'barbarian', lvl: 3, race: 'human', subclass: 'Path of the Sand', named: true, look: 'talmok_p1',
+      abil: { str: 16, dex: 14, con: 16, int: 9, wis: 13, cha: 11 }, equip: { weapon: 'unarmed', armor: null }, alt: null, hp: 35 }, // (no handaxes to throw: the pit fists)
+    // Katarina, the mender (serial-castegut/BIBLE.md: a cleric of Tronupholen, the Fey in the Mirror, CANON 08-06). RULED 09-28g (Griz):
+    // "Kat supposed to be Cleric of trickster deity trapped in mirror" -- her domain is our own, the Window (invented.json #the-window).
+    // Her level is unruled in the register (cleric 2 or 3, BIBLE 08-27), so she stands at any, as Higertha does; human, generic numbers
+    katarina: { name: 'Katarina', cls: 'cleric', race: 'human', subclass: 'the Window', named: true,
+      equip: { weapon: 'mace', armor: 'leather', shield: 'shield' } },
     // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b). RULED 09-28g (Griz: "Yes, she's meant to be Cleric"):
     // her 8-bit sheet is a cleric's now (content/heroes.json: the d8's average HP, slots 4/3, the drafted list and the Life Domain's
     // Spiritual Weapon), so the grid reads her as it reads the heroes; the overlay stays only for a sheet still a fighter's
@@ -152,7 +175,7 @@
       base: JSON.parse(JSON.stringify(abil)), abil: abil, maxhp: hp, hp: hp,
       equip: Object.assign({ weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }, spec.equip || {}),
       known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: c.style || null,
-      skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: c.kit.alt || null, land: spec.land || null
+      skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: 'alt' in spec ? spec.alt : (c.kit.alt || null), land: spec.land || null
     };
     // skills the grid reads (Stealth, Perception): written at the level-1 proficiency, as the 8-bit sheets are (R.skill grows them)
     if (/rogue|ranger|monk|bard/.test(cls)) h.skills.Stealth = DS.mod(abil.dex) + 2;
@@ -166,8 +189,12 @@
       var cc = c;
       if (spec.spells) cc = Object.assign({}, c, { spells: spec.spells });
       if (sub === 'The Mirror') { cc = Object.assign({}, cc, { spells: JSON.parse(JSON.stringify(cc.spells)) }); Object.keys(NPC.MIRROR).forEach(function (k) { if (lvl >= +k) NPC.MIRROR[k].forEach(function (id) { var L = +k >= 5 ? 3 : +k >= 3 ? 2 : 1; cc.spells[L] = [id].concat((cc.spells[L] || []).filter(function (x) { return x !== id; })); }); }); }
-      h.known = spec.known ? spec.known.slice() : spellsFor(cc, cls, lvl, abil, sub);
+      if (NPC.SUBS[sub] && NPC.SUBS[sub].always) cc = Object.assign({}, cc, { always: NPC.SUBS[sub].always }); // (our own domains' lists, in the Life Domain's place)
+      // a named one's own list, with its domain's always-prepared spells on top (09-28g: Torvald's Vigil)
+      h.known = spec.known ? spec.known.concat(subAlways(sub, lvl)).filter(function (id, i, a) { return a.indexOf(id) === i; }) : spellsFor(cc, cls, lvl, abil, sub);
     }
+    // our own subclasses' per-rest uses (js/features.js): the Window's Hand on the Neck, the Vigil's Keeper's Ward -- WIS a long rest
+    if (NPC.SUBS[sub] && NPC.SUBS[sub].uses) h.feats[NPC.SUBS[sub].uses] = Math.max(1, DS.mod(abil.wis));
     if (cls === 'warlock') {
       var inv = []; Object.keys(c.invocations || {}).forEach(function (k) { if (lvl >= +k) inv = c.invocations[k].slice(); }); h.invocations = spec.invocations ? spec.invocations.slice() : inv;
       if (sub === 'The Mirror') h.mirrorEye = true; // (RULED 09-28: the pact of the Mirror's class feature)
@@ -259,6 +286,6 @@
     var sp = typeof word === 'string' ? NPC.spec(word, lvl) : word;
     if (!sp) return null;
     var h = NPC.sheet(sp);
-    return NPC.unit(h, side || 'foe', Object.assign({ named: sp.named }, o || {}));
+    return NPC.unit(h, side || 'foe', Object.assign({ named: sp.named, sheet: sp.look || null }, o || {})); // (a named one's own figure: Talmok's)
   };
 })();

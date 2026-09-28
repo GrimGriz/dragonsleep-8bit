@@ -255,4 +255,166 @@
     killer.temp = Math.max(killer.temp || 0, n); FX.sparkle(killer, 'fire', 14);
     B.card(['{r}' + Nm(B, killer) + '{/} drinks it in: {c}' + n + ' temporary HP{/} {g}(Dark One\'s Blessing){/}'], 240);
   };
+
+  // ================================================================== our own subclasses (RULED 09-28g, Griz, on the four past the SRD: "Sufficiently
+  // distinct -- Kat supposed to be Cleric of trickster deity trapped in mirror"; the past-the-SRD principle, invented.json #past-the-srd:
+  // our name, our words, a function of our own). Drafted by the seat, standing as approved (the game's law, 09-24); their lists are
+  // js/classes.js NPC.SUBS, the words invented.json #path-of-the-sand #the-rimeglass #the-window #the-vigil
+  function sub(u, name, lvl) { return u.subclass === name && u.lvl >= (lvl || 1); }
+  function hostileNear(B, u, ft) { return B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= ft; }); }
+
+  // ------------------------------------------------------------------ the Path of the Sand (Talmok's; the barbarian, 3): the pit's own
+  // FIRST BLOOD (3): stung, he rages -- when he takes damage and isn't raging, the reaction and a use of Rage start it
+  var onHurt1 = M.onHurt;
+  M.onHurt = function (B, u, n, type) {
+    if (onHurt1) onHurt1(B, u, n, type);
+    if (!sub(u, 'Path of the Sand', 3) || u.conds.raging || !feat(u, 'rage') || u.reaction <= 0 || u.hp <= 0 || u.dead || !RU.canAct(u)) return;
+    u.reaction = 0; u.feats.rage--;
+    u.conds.raging = { dmg: u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.' };
+    D.sfx('crit'); FX.ring(u, 'red', 34);
+    B.card(['{r}' + Nm(B, u) + ': FIRST BLOOD -- he rages!{/}  {g}(the reaction: +' + u.conds.raging.dmg + ' damage, blades and blows halved){/}'], 300);
+  };
+  // DOWN IN THE SAND (3): raging, once a turn, a melee hit on one no bigger than Large -- STR save or down on the sand
+  var onWeaponHit1 = M.onWeaponHit;
+  M.onWeaponHit = function* (B, att, tgt, atk, crit) {
+    if (onWeaponHit1) yield* onWeaponHit1(B, att, tgt, atk, crit);
+    if (!sub(att, 'Path of the Sand', 3) || !att.conds.raging || atk.ranged || !att.turn || att.turn.sanded || tgt.dead || tgt.hp <= 0 || tgt.conds.prone || tgt.noProne || RU.immuneTo(tgt, 'prone') || (tgt.size || 1) > 2) return;
+    att.turn.sanded = true;
+    var dc = 8 + att.prof + D.mod(att.abil.str), sv = RU.save(tgt, 'str', dc);
+    B.card(['  {o}down in the sand{/}: ' + Nm(B, tgt) + ' STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}keeps its feet{/}' : '{o}PRONE{/}')], 240);
+    if (!sv.ok) tgt.conds.prone = true;
+    yield 10;
+  };
+  // ANSWER BACK (6): raging, one who misses him in melee gets one blow back (the reaction) -- battle.js attack calls it on a miss
+  F.answerBack = function* (B, att, tgt, atk, melee) {
+    if (!melee || atk.spell || !sub(tgt, 'Path of the Sand', 6) || !tgt.conds.raging || tgt.reaction <= 0 || !RU.canAct(tgt) || att.dead || att.hp <= 0 || G.dist(tgt, att) > (tgt.reach || 5) || !tgt.weapon) return;
+    tgt.reaction = 0;
+    B.card(['{r}' + Nm(B, tgt) + ' answers back!{/}  {g}(the reaction){/}'], 200);
+    yield* B.attack(tgt, att, tgt.weapon, { oa: true });
+  };
+
+  // ------------------------------------------------------------------ the Rimeglass (Willem's; the wizard's tradition, 2): illusion with the
+  // cold in it. RIME DOUBLES (2): a blow that breaks one of his false images (Mirror Image) breaks rime over the one who struck -- its
+  // speed 10 ft less till its next turn is over (battle.js attack calls it)
+  F.rimeDouble = function (B, att, tgt) {
+    if (!sub(tgt, 'the Rimeglass', 2) || att.dead || att.hp <= 0) return;
+    att.conds.frosted = { by: tgt.id, till: { who: att.id, at: 'end', n: 1 } };
+    FX.sparkle(att, 'silver', 12);
+    B.card(['  {c}the double breaks to rime{/} over ' + nm(B, att) + ': {g}-10 ft till its turn is over{/}'], 200);
+  };
+  // RIME STEP (6): his illusion of the 1st level or more, cast, and he is ten feet off -- to the square farthest from the foes
+  var ILLUSION = ['silentimage', 'majorimage', 'mirrorimage', 'blur', 'invisibility', 'greaterinvisibility', 'hypnoticpattern', 'phantasmalkiller', 'mislead', 'disguiseself', 'colorspray'];
+  var cast1 = M.cast;
+  M.cast = function (B, u, id) {
+    var g = cast1.apply(this, arguments);
+    if (!sub(u, 'the Rimeglass', 6) || ILLUSION.indexOf(id) < 0) return g;
+    return (function* () {
+      var r = yield* g;
+      if (u.dead || u.hp <= 0 || !hostileNear(B, u, 30).length) return r;
+      var best = null, bs = -1;
+      for (var dy = -2; dy <= 2; dy++) for (var dx = -2; dx <= 2; dx++) {
+        var x = u.x + dx, y = u.y + dy; if ((!dx && !dy) || !G.canStand(u, x, y)) continue;
+        var near = Math.min.apply(null, hostileNear(B, u, 200).map(function (w) { return Math.max(Math.abs(w.x - x), Math.abs(w.y - y)); }).concat([99]));
+        if (near > bs) { bs = near; best = [x, y]; }
+      }
+      if (best && bs > Math.min.apply(null, hostileNear(B, u, 200).map(function (w) { return Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)); }).concat([99]))) {
+        var x0 = u.x, y0 = u.y; u.x = best[0]; u.y = best[1]; u.tween = { fx: x0, fy: y0, fz: G.gzAt(u, x0, y0), t: 0, dur: 8 };
+        FX.sparkle(u, 'silver', 14); B.card(['{c}' + Nm(B, u) + ' steps through the rime{/} {g}(Rime Step: 10 ft){/}'], 200); yield 10;
+      }
+      return r;
+    })();
+  };
+
+  // ------------------------------------------------------------------ the Window (Kat's; the cleric's domain, 1): the menders of Tronupholen,
+  // the Fey in the Mirror, who pray at their own reflections. THE HAND ON THE NECK (1; WIS a long rest): a bonus action, a touch --
+  // the first blow that would land on the touched before the mender's next turn is rolled again, and the second roll stands (battle.js
+  // attack reads conds.glassHand)
+  // the AI weighs a bonus-action feature against the best bonus-action spell it has (tactics.js casts those first): the blow it
+  // likely keeps off the one it guards, against the spell's own score
+  function bestBonusSpell(B, u) { var p = TX.spellPlansFor(B, u).filter(function (x) { return x.bonus; }).sort(function (a, b) { return b.score - a.score; })[0]; return p ? p.score : 0; }
+  function threatOn(B, w) { return hostileNear(B, w, 5).reduce(function (s, f) { return s + TX.dpr(f); }, 0) + hostileNear(B, w, 60).filter(function (f) { return G.dist(f, w) > 5; }).reduce(function (s, f) { return s + TX.dpr(f) * 0.4; }, 0); }
+  TX.FIRST.unshift(function* (B, u) {
+    var T = u.turn;
+    if (!sub(u, 'the Window', 1) || !T.bonus || !feat(u, 'handOnNeck') || (u.side === 'party' && !u.guest)) return;
+    var best = null;
+    TX.alliesOf(B, u).forEach(function (w) {
+      if (!G.standing(w) || w.conds.glassHand || G.dist(u, w) > 5) return; // (a touch: one beside her)
+      var top = hostileNear(B, w, 10).reduce(function (m, f) { return Math.max(m, TX.dpr(f)); }, 0), sc = top * 0.45 * 1.2 * (w.hp < w.maxhp / 2 ? 1.5 : 1);
+      if (!best || sc > best.sc) best = { t: w, sc: sc };
+    });
+    if (!best || best.sc < 2 || best.sc <= bestBonusSpell(B, u)) return;
+    var t = best.t;
+    T.bonus = 0; u.feats.handOnNeck--; t.conds.glassHand = { by: u.id, till: { who: u.id, at: 'start', n: 1 } };
+    FX.sparkle(t, 'violet', 12);
+    B.card(['{y}' + Nm(B, u) + '{/}: THE HAND ON THE NECK on ' + (t === u ? 'herself' : t.name) + ' {g}(the glass takes the first blow that would land){/}'], 220); yield 10;
+  });
+  // THE DOUBLING (2; Channel Divinity): two glass doubles step out of her mirror -- a blow at her may strike one instead (Mirror Image's)
+  TX.ACTIONS.push(function (B, u, fs) {
+    if (!sub(u, 'the Window', 2) || !feat(u, 'channel') || !u.turn.action || u.turn.attacksLeft || (u.images || 0) > 0 || (u.side === 'party' && !u.guest)) return null;
+    var th = fs.filter(function (w) { return G.dist(u, w) <= 60; }).reduce(function (s, w) { return s + TX.dpr(w); }, 0);
+    if (!th) return null;
+    return { kind: 'feature', why: 'the Doubling', score: th * 0.3 * 2 + (u.hp < u.maxhp / 2 ? 3 : 0), go: function* () {
+      u.turn.action = 0; u.feats.channel--; u.images = 2; D.sfx('magic'); FX.sparkle(u, 'violet', 24);
+      B.card(['{y}' + Nm(B, u) + '{/} lifts her mirror: THE DOUBLING -- three of her, and which is which?  {g}(Channel Divinity){/}'], 300); yield 20;
+    } };
+  });
+  // THE SHOWING (6; Channel Divinity): one within 30 ft that can see her mirror, WIS -- Tronupholen shows it something in the glass
+  // (he shows, never speaks), and it can do nothing till its next turn is over
+  TX.ACTIONS.push(function (B, u, fs) {
+    if (!sub(u, 'the Window', 6) || !feat(u, 'channel') || !u.turn.action || u.turn.attacksLeft || (u.side === 'party' && !u.guest)) return null;
+    var best = null;
+    fs.forEach(function (w) { if (G.dist(u, w) > 30 || w.conds.incapacitated || RU.immuneTo(w, 'incapacitated') || !M.sees(B, w, u)) return; var sc = TX.pFail(w, 'wis', u.spellDC) * (TX.dpr(w) * 1.6 + 2); if (!best || sc > best.score) best = { t: w, score: sc }; });
+    if (!best) return null;
+    var t = best.t;
+    return { kind: 'feature', why: 'the Showing at ' + t.name, score: best.score, go: function* () {
+      u.turn.action = 0; u.feats.channel--; D.sfx('magic'); FX.ring(u, 'violet', 40);
+      var sv = RU.save(t, 'wis', u.spellDC);
+      B.card(['{y}' + Nm(B, u) + '{/} turns her mirror on ' + nm(B, t) + ': THE SHOWING  WIS ' + RU.saveText(sv) + ' vs DC ' + u.spellDC + '  ' + (sv.ok ? '{n}it looks away{/}' : '{p}it is shown something, and can do nothing{/}')], 320);
+      if (!sv.ok) t.conds.incapacitated = { by: u.id, till: { who: t.id, at: 'end', n: 1 }, endText: '{who} comes back from the glass.' };
+      yield 20;
+    } };
+  });
+
+  // ------------------------------------------------------------------ the Vigil (Torvald's; the cleric's domain, 1): Dvalgarda's, the Ward of
+  // the Dormant, whose sect keeps the vigil over the sleeping Silver and the egg. KEEPER'S WARD (1; WIS a long rest): a bonus action,
+  // one he can see within 30 ft (or himself) -- the next damage it takes before his next turn is cut by 1d8 + his level
+  TX.FIRST.unshift(function* (B, u) {
+    var T = u.turn;
+    if (!sub(u, 'the Vigil', 1) || !T.bonus || !feat(u, 'keepersWard') || (u.side === 'party' && !u.guest)) return;
+    var best = null, cut = 4.5 + u.lvl;
+    TX.alliesOf(B, u).forEach(function (w) {
+      if (!G.standing(w) || w.conds.keeperWard || G.dist(u, w) > 30) return;
+      var sc = Math.min(threatOn(B, w), cut) * 0.9 * 1.2 * (w.hp < w.maxhp / 2 ? 1.5 : 1);
+      if (!best || sc > best.sc) best = { t: w, sc: sc };
+    });
+    if (!best || best.sc < 2 || best.sc <= bestBonusSpell(B, u)) return;
+    var t = best.t;
+    T.bonus = 0; u.feats.keepersWard--; t.conds.keeperWard = { by: u.id, n: u.lvl, till: { who: u.id, at: 'start', n: 1 } };
+    FX.ring(t, 'silver', 26);
+    B.card(['{y}' + Nm(B, u) + '{/}: KEEPER\'S WARD on ' + (t === u ? 'himself' : t.name) + ' {g}(the next blow cut by 1d8 + ' + u.lvl + '){/}'], 220); yield 10;
+  });
+  // (battle.js hurt asks before the damage lands: what is left of it)
+  M.preHurt = function (B, u, n) {
+    var kw = u && u.conds && u.conds.keeperWard;
+    if (!kw || n <= 0 || u.hp <= 0) return n;
+    delete u.conds.keeperWard;
+    var r = D.roll('1d8'), cut = Math.min(n, r.total + kw.n);
+    FX.sparkle(u, 'silver', 12);
+    B.card(['  {c}the keeper\'s ward{/} takes ' + cut + ' of it {g}(1d8 [' + r.rolls.join(',') + '] + ' + kw.n + '){/}'], 200);
+    return n - cut;
+  };
+  // HOLD THE DOOR (2; Channel Divinity): the ones who would hem him in -- each foe within 10 ft, STR save or shoved 10 ft away from him
+  TX.ACTIONS.push(function (B, u, fs) {
+    if (!sub(u, 'the Vigil', 2) || !feat(u, 'channel') || !u.turn.action || u.turn.attacksLeft || (u.side === 'party' && !u.guest)) return null;
+    var close = hostileNear(B, u, 10).filter(function (w) { return !w.bound && (w.size || 1) <= 2; });
+    if (close.length < 2) return null;
+    return { kind: 'feature', why: 'Hold the Door', score: close.reduce(function (s, w) { return s + TX.pFail(w, 'str', u.spellDC) * (TX.dpr(w) * 0.9 + 2); }, 0), go: function* () {
+      u.turn.action = 0; u.feats.channel--; D.sfx('crit'); FX.ring(u, 'silver', 50);
+      var lines = ['{y}' + Nm(B, u) + '{/} plants his feet: HOLD THE DOOR  STR DC ' + u.spellDC + '  {g}(Channel Divinity){/}'];
+      close.forEach(function (w) { var sv = RU.save(w, 'str', u.spellDC); lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}holds its ground{/}' : '{o}shoved back{/}')); if (!sv.ok) M.push(B, u, w, 2); });
+      B.card(lines.slice(0, 8), 360); yield 24;
+    } };
+  });
+  // WAKEFUL (6): magic cannot put him, or one of his within 10 ft, to sleep (magic.js Sleep asks)
+  M.wakeful = function (B, w) { return B.units.some(function (k) { return sub(k, 'the Vigil', 6) && k.side === w.side && G.standing(k) && G.dist(k, w) <= 10; }); };
 })();
