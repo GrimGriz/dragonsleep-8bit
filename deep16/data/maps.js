@@ -205,6 +205,34 @@ window.D16.MAPS.lamp = {
   wave: null
 };
 
+// Deepholm's door (the 8-bit game's `threshold`, where the cleric comes up the road: deep.js EV.torvald): the made road runs
+// on to its end, "a small spot, a bench, a grille, and a light that is not a lamp", and a door the height of three men at the
+// top of the step (the ledge). The grille's bars either side of the road (f), the bench (k). Closed but for the road back up.
+window.D16.MAPS.threshold = {
+  name: 'Deepholm\'s Door',
+  sub: 'the made road\'s end',
+  step: 20,
+  rows: [
+    '####################',
+    '#######LLLLLL#######',
+    '######.LL/LLL.######',
+    '#####...====...#####',
+    '####..f.====.f..####',
+    '###...f.====.f...###',
+    '##..k...====......##',
+    '##......====......##',
+    '##......====......##',
+    '###.....====.....###',
+    '####....====....####',
+    '#####...====...#####',
+    '########====########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
+  foes: [],
+  wave: null
+};
+
 // The drow's fallback line (the 8-bit game's S.fallback, leg four): a line of crates across the road with gaps in it,
 // and pale heads behind it. They have had a day to get ready.
 window.D16.MAPS.barricade = {

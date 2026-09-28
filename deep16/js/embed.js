@@ -31,7 +31,7 @@
       party: B.units.concat(B.reserve || [], B.stayed || []).filter(function (u) { return u.side === 'party'; }).map(function (u) { // (reserve: still in the inn when it ended)
         return { id: u.id, guest: !!u.guest, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left };
       }),
-      foes: foes.map(function (u) { return { id: u.id, kind: u.kind, dead: u.hp <= 0, fled: !!u.fled }; }),
+      foes: foes.map(function (u) { return { id: u.id, kind: u.kind, i8: u.i8, dead: u.hp <= 0, fled: !!u.fled }; }), // (i8: its place in the 8-bit list)
       // who is still out there when the fight ends because one got away (fight.fledEnds: the 8-bit wagon yard): the chase's
       away: foes.filter(function (u) { return u.flees && u.hp > 0; }).map(function (u) { return u.kind; }),
       inv0: E.inv0, inv1: counts(B.inv)

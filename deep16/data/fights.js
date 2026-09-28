@@ -132,6 +132,13 @@
       intro: 'You catch them at last. There is nowhere left to run, and they know it.',
       from: 'the 8-bit game: events.js S.wagonChase (caught2)', won: 'IT IS OVER ON THE ROAD.',
       foes: [{ id: 'amara', kind: 'amara', at: [9, 7] }, { id: 'willem', kind: 'willem', at: [11, 7] }], wave: null },
+    // the cleric at Deepholm's door (deep.js EV.torvald, HOLD HIM; Griz 09-28: "given the weight of the scene ... redo it in 16"):
+    // a story fight (no level: off the ladder). He yields at half his hit points (foes.js torvald `yields`): the fight ends
+    // 'yielded', his own words on the card (the 8-bit's yieldText), and the 8-bit game asks what you do with him
+    { id: 'torvald', story: true, map: 'threshold', name: 'He Will Not Be Held', sub: 'Deepholm\'s door, the made road\'s end', music: 'boss',
+      intro: 'A dwarf in a cleric\'s coat, a pack on his back and somewhere to be, and you fill the road. He will not be held. (He yields when he is beaten.)',
+      from: 'the 8-bit game: deep.js EV.torvald, HOLD HIM (the dwarf cleric; he yields at half)', won: 'THE CLERIC IS DEAD ON THE MADE ROAD.', yielded: 'HE IS ON HIS KNEES, HIS HANDS OPEN.',
+      foes: [{ id: 'torvald', kind: 'torvald', at: [10, 9] }], wave: null },
     { id: 'gricks', level: 5, map: 'grickden', name: 'The Grick Den', sub: 'south of the king\'s road, leg one', music: 'boss',
       intro: 'Something moves in the open cavern south of the road, low and fast, and then there are more of them than there were rocks. (Plain steel does half; magic does not care.)',
       from: 'the 8-bit game: deep.js S.grickDen (three gricks; five with the king)', won: 'THE DARK IS ONLY DARK AGAIN.',
@@ -150,6 +157,7 @@
       foes: [{ id: 'jelly', kind: 'ochrejelly', at: [13, 3] }, { id: 'ooze', kind: 'grayooze', at: [4, 6] }], wave: null },
     { id: 'roper', level: 6, map: 'roperfork', name: 'The Fork', sub: 'the king\'s road, leg two', music: 'boss',
       intro: 'A cavern of stalagmites where the road forks. One of them is not a stalagmite. (It and what hangs above start hidden.)',
+      introSeen: 'A cavern of stalagmites where the road forks. One of them is not a stalagmite, and the lamp has already shown you which.', // (the 8-bit game's roperSeen: the fight is `revealed`)
       from: 'the 8-bit game: deep.js S.roper (a roper and two darkmantles; more with the king)', won: 'IT HANGS THERE LIKE A STALACTITE.',
       foes: [{ id: 'roper', kind: 'roper', at: [9, 3], hidden: true }, { id: 'dm1', kind: 'darkmantle', at: [5, 6], hidden: true }, { id: 'dm2', kind: 'darkmantle', at: [15, 4], hidden: true }], wave: null },
     { id: 'naga', level: 7, map: 'causeway', name: 'The Black Water', sub: 'the causeway, leg four', music: 'boss',

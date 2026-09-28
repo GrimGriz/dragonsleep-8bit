@@ -610,7 +610,7 @@
     // budgeted hard (DMG): four at 5 face six; with the king (worth two) the camp is eight
     var foes = ['bugbearchief', 'hobsergeant', 'hobgoblin', 'hobgoblin', 'hobgoblin', 'worg'];
     if (EV.guestWeight() >= 1.5) foes = foes.concat(['bugbear', 'worg']);
-    var res = yield* EV.fight(foes, { bg: 'cavern', music: 'boss', canRun: true, introText: L('deep.cutSealIntro') });
+    var res = yield* EV.fight(foes, { bg: 'cavern', music: 'boss', canRun: true, introText: L('deep.cutSealIntro'), deep16: 'cutseal' }); // (DEEP16: this list, on the camp)
     if (res === 'win') { g.flags.sealCleared = 1; yield DS.say(L('deep.cutSealDone')); }
     else if (res === 'run') yield F().walk(['down', 'down']);
   };
@@ -618,7 +618,7 @@
     var g = G();
     yield DS.say(L('deep.grickDen'));
     var foes = ['grick', 'grick', 'grick'].concat(EV.guestWeight() >= 1.5 ? ['grick', 'grick'] : []);
-    var res = yield* EV.fight(foes, { bg: 'cavern', music: 'boss', canRun: true });
+    var res = yield* EV.fight(foes, { bg: 'cavern', music: 'boss', canRun: true, deep16: 'gricks' });
     if (res === 'win') { g.flags.grickDone = 1; yield DS.say(L('deep.grickDone')); }
     else if (res === 'run') yield F().walk(['up', 'up']);
   };
@@ -641,18 +641,18 @@
     if (seen) {
       var a = yield DS.ask(L('deep.roperAsk'), ['FIGHT IT', 'GO BACK']);
       if (a !== 0) { yield F().walk(['left', 'left']); return; }
-      var r1 = yield* EV.fight(foes, { bg: 'cavern', music: 'boss', canRun: true, revealed: true });
+      var r1 = yield* EV.fight(foes, { bg: 'cavern', music: 'boss', canRun: true, revealed: true, deep16: 'roper' }); // (DEEP16: seen, so nothing starts hidden)
       if (r1 === 'win') { g.flags.roperDead = 1; yield DS.say(L('deep.roperDone')); } else if (r1 === 'run') yield F().walk(['left', 'left']);
       return;
     }
     yield DS.say(L('deep.roperGrabs'));
-    var r2 = yield* EV.fight(foes, { bg: 'cavern', music: 'boss', canRun: true, surprised: 'party' });
+    var r2 = yield* EV.fight(foes, { bg: 'cavern', music: 'boss', canRun: true, surprised: 'party', deep16: 'roper' });
     if (r2 === 'win') { g.flags.roperDead = 1; g.flags.roperSeen = 1; yield DS.say(L('deep.roperDone')); } else if (r2 === 'run') { g.flags.roperSeen = 1; yield F().walk(['left', 'left']); }
   };
   S.bulette = function* () {
     var g = G();
     yield DS.say(L('deep.bulette'));
-    var res = yield* EV.fight(['bulette'].concat(EV.guestWeight() >= 1.5 ? ['bulette'] : []), { bg: 'cavern', music: 'boss', canRun: true });
+    var res = yield* EV.fight(['bulette'].concat(EV.guestWeight() >= 1.5 ? ['bulette'] : []), { bg: 'cavern', music: 'boss', canRun: true, deep16: 'bulette' });
     if (res === 'win') { g.flags.buletteDead = 1; yield DS.say(L('deep.buletteDone')); if (EV.hasGuest('hedda')) yield DS.say(L('deep.buletteHedda'), who('Hedda Greyseam')); }
   };
   S.drainCut = function* () {
@@ -660,7 +660,7 @@
     yield DS.say(L('deep.drain'));
     var a = yield DS.ask(L('deep.drainAsk'), ['FIGHT IT', 'BACK AWAY']);
     if (a !== 0) { yield F().walk(['up']); return; }
-    var res = yield* EV.fight(['pudding', 'pudding'], { bg: 'cavern', music: 'boss', canRun: true });
+    var res = yield* EV.fight(['pudding', 'pudding'], { bg: 'cavern', music: 'boss', canRun: true, deep16: 'drain' });
     if (res === 'win') { g.flags.puddingDead = 1; yield DS.say(L('deep.drainDone')); } else if (res === 'run') yield F().walk(['up']);
   };
   // beat 3, off the highway: the north cut, and Halldor's unit holding the neck against a thing they cannot take
@@ -675,7 +675,7 @@
     // the fight: the party, the king, the captain at a third of himself who refuses to sit out, and his two on their feet
     EV.addGuest('halldor', 'halldor', { wounded: true });
     EV.addGuest('trooper', 'pinA', { name: 'Trooper' }); EV.addGuest('trooper', 'pinB', { name: 'Trooper' });
-    var res = yield* EV.fight(['phasespider', 'phasespider', 'phasespider', 'phasespider', 'phasespider'], { bg: 'cavern', music: 'boss', canRun: false, introText: L('deep.spidersIntro') });
+    var res = yield* EV.fight(['phasespider', 'phasespider', 'phasespider', 'phasespider', 'phasespider'], { bg: 'cavern', music: 'boss', canRun: false, introText: L('deep.spidersIntro'), deep16: 'pinned' });
     EV.dropGuest('pinA'); EV.dropGuest('pinB');
     if (res !== 'win') { EV.dropGuest('halldor'); return; }
     g.flags.captainFound = 1; g.flags.pin = 'escort';
@@ -759,7 +759,7 @@
     var g = G();
     yield DS.say(L('deep.broodSee'));
     if (EV.hasGuest('halldor')) yield DS.say(L('deep.broodHalldor'), who('Halldor Silversands'));
-    var res = yield* EV.fight(['broodmother', 'phasespider', 'phasespider', 'phasespider', 'phasespider'], { bg: 'cavern', music: 'boss', canRun: false, introText: L('deep.broodIntro') });
+    var res = yield* EV.fight(['broodmother', 'phasespider', 'phasespider', 'phasespider', 'phasespider'], { bg: 'cavern', music: 'boss', canRun: false, introText: L('deep.broodIntro'), deep16: 'brood' });
     if (res !== 'win') return;
     g.flags.nestCrushed = 1; g.flags.pin = 'halls';
     yield DS.say(L('deep.broodDone'));
@@ -799,13 +799,13 @@
   S.xorn = function* () {
     var g = G();
     yield DS.say(L('deep.xorn'));
-    var res = yield* EV.fight(['xorn', 'xorn'], { bg: 'highway', music: 'boss', canRun: true });
+    var res = yield* EV.fight(['xorn', 'xorn'], { bg: 'highway', music: 'boss', canRun: true, deep16: 'xorns' });
     if (res === 'win') { g.flags.xornDone = 1; yield DS.say(L('deep.xornDone')); }
   };
   S.giant = function* () {
     var g = G();
     yield DS.say(L('deep.giantSee'));
-    var res = yield* EV.fight(['stonegiant', 'duergar', 'duergar', 'duergar'], { bg: 'highway', music: 'boss', canRun: true });
+    var res = yield* EV.fight(['stonegiant', 'duergar', 'duergar', 'duergar'], { bg: 'highway', music: 'boss', canRun: true, deep16: 'giant' });
     if (res === 'win') { g.flags.giantDone = 1; g.silver += 300; DS.audio.sfx('coin'); yield DS.say([L('deep.giantDone'), L('g.foundSilver', { n: 300 })]); }
     else if (res === 'run') yield F().walk(['up', 'up']);
   };
@@ -814,7 +814,7 @@
     yield DS.say(L('deep.raidSee'));
     if (guests) { yield DS.say(L('deep.raidBrann'), who('Brann Silversands')); yield DS.say(L('deep.raidHedda'), who('Hedda Greyseam')); }
     var a = yield DS.ask(L('deep.raidAsk'), ['GO IN', 'CREEP UP FIRST']);
-    var o = { bg: 'highway', music: 'boss', canRun: false, introText: L('deep.raidIntro') };
+    var o = { bg: 'highway', music: 'boss', canRun: false, introText: L('deep.raidIntro'), deep16: 'raid' }; // (DEEP16: this list, at the station)
     if (a === 1) { if (yield* EV.check('Stealth', 'dex', 13, { group: true })) { o.surprised = 'foes'; yield DS.say(L('deep.raidCrept')); } else yield DS.say(L('deep.raidSpotted')); }
     var res = yield* EV.fight(['drowcaptain', 'spellweaver', 'drow', 'drow', 'drow', 'drow', 'drow', 'drow'], o); // hard for four at 7-8 with Brann and Hedda
     if (res !== 'win') return;
@@ -844,17 +844,17 @@
     yield F().walk(['left']);
   };
   // leg four (re-cut §4): the drow's fallback line; the deep water and what lives in it; the troll hole; the made road's cut
-  function* legFour(flag, lineKey, introKey, foes, doneKey, back) {
+  function* legFour(flag, lineKey, introKey, foes, doneKey, back, d16) {
     var g = G();
     yield DS.say(L(lineKey));
-    var res = yield* EV.fight(foes, { bg: 'highway', music: 'boss', canRun: true, introText: introKey ? L(introKey) : undefined });
+    var res = yield* EV.fight(foes, { bg: 'highway', music: 'boss', canRun: true, introText: introKey ? L(introKey) : undefined, deep16: d16 }); // (DEEP16: each leg's own fight)
     if (res === 'win') { g.flags[flag] = 1; yield DS.say(L(doneKey)); }
     else if (res === 'run') yield F().walk(back);
   }
-  S.fallback = function* () { yield* legFour('fallbackDone', 'deep.fallback', 'deep.fallbackIntro', ['drowcaptain', 'drow', 'drow', 'drow', 'drow'], 'deep.fallbackDone', ['left', 'left']); };
-  S.naga = function* () { yield* legFour('nagaDone', 'deep.naga', null, ['naga'], 'deep.nagaDone', ['left', 'left']); };
-  S.trolls = function* () { yield* legFour('trollsDone', 'deep.trolls', null, ['troll', 'troll'], 'deep.trollsDone', ['up', 'up']); };
-  S.elemental = function* () { yield* legFour('elementalDone', 'deep.elemental', null, ['earthelemental', 'earthelemental'], 'deep.elementalDone', ['left', 'left']); };
+  S.fallback = function* () { yield* legFour('fallbackDone', 'deep.fallback', 'deep.fallbackIntro', ['drowcaptain', 'drow', 'drow', 'drow', 'drow'], 'deep.fallbackDone', ['left', 'left'], 'fallback'); };
+  S.naga = function* () { yield* legFour('nagaDone', 'deep.naga', null, ['naga'], 'deep.nagaDone', ['left', 'left'], 'naga'); };
+  S.trolls = function* () { yield* legFour('trollsDone', 'deep.trolls', null, ['troll', 'troll'], 'deep.trollsDone', ['up', 'up'], 'trolls'); };
+  S.elemental = function* () { yield* legFour('elementalDone', 'deep.elemental', null, ['earthelemental', 'earthelemental'], 'deep.elementalDone', ['left', 'left'], 'elementals'); };
   // the smith re-hafts Barley's flail in truesilver (spec §8: the Winnower)
   S.dsmith = function* () {
     var g = G(), S2 = who('The Copperbottom smith');
@@ -951,7 +951,9 @@
     if (done === 'fight') {
       yield DS.say(L('deep.tvHold'));
       DS.battleYielded = false;
-      var res = yield* EV.fight(['torvald'], { bg: 'highway', music: 'boss', canRun: false, yieldText: L('deep.tvYield') });
+      // fought in DEEP16 (Griz 09-28: "given the weight of the scene ... redo it in 16"; deep16/data/fights.js torvald): he
+      // yields at half, and js/embed.js hands it back as the 8-bit battle's own yield (DS.battleYielded)
+      var res = yield* EV.fight(['torvald'], { bg: 'highway', music: 'boss', canRun: false, yieldText: L('deep.tvYield'), deep16: 'torvald' });
       if (res !== 'win') return;
       var kill = true;
       if (DS.battleYielded) { var y = yield DS.ask(L('deep.tvYieldAsk'), ['LET HIM GO', 'FINISH IT']); kill = y === 1; }
@@ -1028,7 +1030,7 @@
     }
     if (fate === 'fight') {
       yield DS.say(L('deep.asFight'));
-      var res = yield* EV.fight(['assassin', 'assassin'], { bg: f.map.bg || 'highway', music: 'boss', canRun: false, surprised: spotted ? null : 'party' });
+      var res = yield* EV.fight(['assassin', 'assassin'], { bg: f.map.bg || 'highway', music: 'boss', canRun: false, surprised: spotted ? null : 'party', deep16: 'blades' }); // (DEEP16: the watch's word stands, no roll there)
       f.npcs = f.npcs.filter(function (n) { return blades.indexOf(n) < 0; });
       if (res !== 'win') return;
       g.flags.assassinsFate = 'dead'; g.give('sectblade', 2); g.give('wardknot', 1); g.silver += 120; DS.audio.sfx('chest');

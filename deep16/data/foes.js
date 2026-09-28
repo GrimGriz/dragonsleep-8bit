@@ -393,6 +393,17 @@
     multi: 1, flees: true, phantasms: 'start',
     src: 'content/monsters.json willem (the 8-bit game\'s own illusionist): Ray of Frost; Phantasms at once (three false images); he gives ground toward the horses, shooting', todo: 'the ray\'s slow is not read'
   },
+  // the cleric at Deepholm's door (the 8-bit game's deep.js EV.torvald, HOLD HIM; Griz 09-28: "under most circumstances it
+  // shouldn't end in a fight, but given the weight of the scene ... redo it in 16"): a remedy in his pack for someone sick up
+  // top, and he will not be held. He yields when he is beaten (`yields`: at half his hit points, standing, the fight is over)
+  torvald: {
+    name: 'Dwarf Cleric', sheet: 'torvald_p0', cr: '3', ac: 13, hp: 40, speed: 25, size: 1, reach: 5,
+    abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 }, init: 0, perception: 13,
+    saves: { str: 2, dex: 0, con: 2, int: 0, wis: 5, cha: 3 },
+    attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
+    multi: 1, yields: true,
+    src: 'content/monsters.json torvald (the Dwarf Cleric: AC 13, 40 HP, mace +4 1d6+2; yields at half, the 8-bit battle.js)'
+  },
   // ------------------------------------------------------------------ batch six (09-27): the causeway, the cut, the roper, the settling pools
   // the spirit naga (deep.js S.naga, leg four): "Halfway over, the water stands up." It keeps to the black water (bound '~'),
   // bites at ten feet, and has the spell-weaver's routine (ai.js weaver): Hold once, lightning along the water

@@ -41,10 +41,27 @@
     for (var ey = 0; ey < m.h; ey++) for (var ex = 0; ex < m.w; ex++) { var es = m.at(ex, ey); if (es && es.walk && (ex === 0 || ey === 0 || ex === m.w - 1 || ey === m.h - 1)) this.exits.push([ex, ey]); }
     (m.def.doors || []).forEach(function (q) { self.exits.push(q); });
     if (!this.exits.length) this.exits = entry.slice();
-    party.forEach(function (u, i) { var e = entry[i % entry.length]; u.x = e[0]; u.y = e[1]; u.facing = 5; });
-    // inside the 8-bit game, only those still out there (this.o.embed.only: the chase's road fights)
-    var only = this.o.embed && this.o.embed.only;
-    var foes = (F.foes || m.def.foes).filter(function (f) { return !only || only.indexOf(f.kind) >= 0; }).map(function (f) { return self.makeFoe(f); });
+    // more of them than the map has entry squares (the 8-bit game's guests: the nest's Halldor and his four) stand on the
+    // nearest free squares behind the first
+    var seat = {};
+    party.forEach(function (u, i) {
+      var e = entry[i];
+      if (!e || seat[e[0] + ',' + e[1]]) {
+        var bd = Infinity, e0 = entry[0];
+        for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
+          var q = m.at(x, y); if (!q || !q.walk || seat[x + ',' + y]) continue;
+          var dd = Math.max(Math.abs(x - e0[0]), Math.abs(y - e0[1])) + (y < e0[1] ? 0.5 : 0) + 0.01 * Math.hypot(x - e0[0], y - e0[1]);
+          if (dd < bd) { bd = dd; e = [x, y]; }
+        }
+      }
+      seat[e[0] + ',' + e[1]] = 1; u.x = e[0]; u.y = e[1]; u.facing = 5;
+    });
+    // inside the 8-bit game, the 8-bit scene's own foes (this.o.embed.enemies, Battle.roster), or only those still out there
+    // (this.o.embed.only: the chase's road fights)
+    var only = this.o.embed && this.o.embed.only, list = this.o.embed && this.o.embed.enemies;
+    var foes = (list ? this.roster(F.foes || m.def.foes, list, m, party) : (F.foes || m.def.foes).filter(function (f) { return !only || only.indexOf(f.kind) >= 0; }))
+      .map(function (f) { return self.makeFoe(f); });
+    if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
     this.units = party.concat(foes);
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
@@ -56,7 +73,7 @@
     this.webs = webs ? [{ by: 'the ground', sq: webs.slice() }] : [];
     // a Ring of Binding (the lake: fight.ring { hero, rounds, con }): its wearer saves CON better, and on the named rounds
     // the thing in the water must turn on them (ai.js brute)
-    this.taunt = null; this.intro = F.intro;
+    this.taunt = null; this.intro = (this.o.embed && this.o.embed.revealed && F.introSeen) || F.intro;
     var ring = F.ring;
     // inside the 8-bit game the ring is whoever wears it, standing (its S.lakeFight), and its +3 is already in their saves
     // (the 8-bit R.saveBonus); nobody wearing it, no taunt, and the card says so (fight.introNoRing)
@@ -74,10 +91,51 @@
     D.battle = this;
   };
 
+  // the 8-bit game's monster ids where DEEP16's kinds differ (its drow are DEEP16's drowlings; its blade-captain, DEEP16's drow)
+  var KIND8 = { drow: 'drowling', drowcaptain: 'drow' };
+  D.kind8 = function (id8) { return KIND8[id8] || id8; };
+  // the fight inside the 8-bit game (RULED 09-28, Griz: the 8-bit's list): the foes the 8-bit scene sends, sized there for
+  // the party and its guests (EV.guestWeight: Pyro is worth two), each on the fight's own spot for its kind; one the fight
+  // has no spot for is set down on the nearest free square beside one of its kind (hidden or in the rock as that one is),
+  // else beside the fight's first foe. Spots nobody takes stay empty. Each carries its place in the 8-bit list (i8), so
+  // js/embed.js knows which 8-bit foe died or got away
+  Battle.prototype.roster = function (spots, list, m, party) {
+    var used = [], taken = {}, out = [], extra = [];
+    function mark(x, y, s) { for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) taken[(x + i) + ',' + (y + j)] = 1; }
+    party.forEach(function (u) { mark(u.x, u.y, 1); });
+    list.forEach(function (id8, n) {
+      var kind = D.kind8(id8);
+      if (!D.FOES[kind]) { console.warn('DEEP16: no foe for the 8-bit game\'s ' + id8); return; }
+      for (var j = 0; j < spots.length; j++) if (used.indexOf(j) < 0 && spots[j].kind === kind) { used.push(j); out.push(Object.assign({}, spots[j], { i8: n })); mark(spots[j].at[0], spots[j].at[1], D.FOES[kind].size || 1); return; }
+      extra.push({ kind: kind, i8: n });
+    });
+    var nth = {};
+    extra.forEach(function (e) {
+      // (beside each spot of its kind in turn: five phase spiders out of three walls, not two out of one)
+      var d = D.FOES[e.kind], s = d.size || 1, likes = spots.filter(function (p) { return p.kind === e.kind; });
+      var like = likes.length ? likes[(nth[e.kind] = (nth[e.kind] || 0) + 1) % likes.length] : null;
+      var at = (like || spots[0] || { at: [Math.floor(m.w / 2), 2] }).at, best = null, bd = Infinity;
+      for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
+        var ok = true;
+        for (var j = 0; j < s && ok; j++) for (var i = 0; i < s && ok; i++) { var q = m.at(x + i, y + j); ok = !!(q && q.walk && !taken[(x + i) + ',' + (y + j)] && (!d.bound || q.ch === d.bound)); }
+        if (!ok) continue;
+        var dd = Math.max(Math.abs(x - at[0]), Math.abs(y - at[1])) + 0.01 * Math.hypot(x - at[0], y - at[1]);
+        // (not in the party's lap: a square beside a hero costs as if it were three further off)
+        if (party.some(function (u) { return Math.abs(u.x - x) <= s && Math.abs(u.y - y) <= s; })) dd += 3;
+        if (dd < bd) { bd = dd; best = [x, y]; }
+      }
+      if (!best) { console.warn('DEEP16: no room for the 8-bit game\'s ' + e.kind); return; }
+      mark(best[0], best[1], s);
+      var hidden = like ? like.hidden : spots.length && spots.every(function (p) { return p.hidden; });
+      out.push({ id: e.kind + '-' + e.i8, kind: e.kind, at: best, hidden: !!hidden, ethereal: !!(like && like.ethereal), i8: e.i8 });
+    });
+    return out.sort(function (a, b) { return a.i8 - b.i8; });
+  };
+
   Battle.prototype.makeFoe = function (f) {
     var d = D.FOES[f.kind];
     return {
-      id: f.id, kind: f.kind, name: d.name, side: 'foe', sheet: d.sheet, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1,
+      id: f.id, kind: f.kind, name: d.name, i8: f.i8, side: 'foe', sheet: d.sheet, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1,
       hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       init: d.init, perception: d.perception, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
       fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5,
@@ -92,6 +150,7 @@
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
       reckless: !!d.reckless, rageOnHit: !!d.rageOnHit, raging: false,
       // (the 8-bit wagon yard, fight.runWhenHurt: nobody runs until the one at the traces is hit -- then both do, Battle.startRun)
+      yields: !!d.yields, // (stops at half his hit points: Battle.over's 'yielded', the 8-bit game's yield)
       flees: !!d.flees && !(this.fight && (this.fight.noFlee || this.fight.runWhenHurt)), traces: !!f.traces, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
@@ -187,6 +246,9 @@
     // a fight that ends the moment one gets away (the 8-bit wagon yard, fight.fledEnds: either of the pair on the road is the chase)
     if (this.fight.fledEnds && this.units.some(function (u) { return u.side === 'foe' && u.fled; })) return 'fled';
     if (!this.alive('foe').length) return 'won';
+    // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
+    // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
+    if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
     // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27), or the rest
     // are still on their way out of the inn (this.reserve)
     if (!this.alive('party').length) return this.reserve.length ? null : this.units.some(function (u) { return u.left; }) ? 'escaped' : 'lost';
@@ -227,7 +289,16 @@
     yield 50;
     // an ambush (the sect blades at the rest): the foes' Stealth, rolled once, against each hero's passive Perception;
     // whoever does not notice is caught unaware -- no turn in the first round, no reactions till then
-    if (this.fight.ambush) {
+    // inside the 8-bit game its scene has already said who saw whom (the 8-bit battle's `surprised`: the watch that missed
+    // the blades, the roper's grab, the crept-up raid), so that side loses the first round and nothing is rolled here
+    var sur = this.o.embed && this.o.embed.surprised;
+    if (sur === 'party' || sur === 'foes') {
+      var side = sur === 'party' ? 'party' : 'foe';
+      this.units.forEach(function (w) { if (w.side === side && w.hp > 0) w.conds.surprised = true; });
+      this.card([sur === 'party' ? '{r}CAUGHT OFF GUARD{/}: they have the first round.' : '{y}THEY NEVER SAW YOU COMING{/}: the first round is yours.'], 360);
+      D.sfx(sur === 'party' ? 'encounter' : 'popup');
+      yield 60;
+    } else if (this.fight.ambush && !this.o.embed) {
       var sk = Math.max.apply(null, this.units.filter(function (w) { return w.side === 'foe'; }).map(function (w) { return w.stealth || 0; }));
       var sr = D.d(20), st = sr + sk, caught = [], lines = ['{r}AMBUSH{/}: their Stealth d20 ' + sr + ' ' + RU.sign(sk) + ' = ' + st + ' against each passive Perception'];
       this.units.forEach(function (w) {
@@ -323,10 +394,10 @@
     this.result = o;
     // the glamour broken: the riders are what they were all along (the wagon yard's children)
     if (o === 'won') this.riders.forEach(function (r) { if (r.after) { r.sheet = r.after; FX.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
-    if (o !== 'fled') D.music(o === 'won' ? 'victory' : 'gameover'); // (one got away: the boss tune runs on into the chase)
+    if (o !== 'fled' && o !== 'yielded') D.music(o === 'won' ? 'victory' : 'gameover'); // (one got away: the boss tune runs on into the chase)
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
-    var head = o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
+    var head = o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
     this.card([head, '{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.climb ? 'E back to the climb' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}'], 1e9);
   };
 

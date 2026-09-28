@@ -9,7 +9,7 @@
 'use strict';
 (function () {
   var DS = window.DS, base = DS.battle;
-  var RESULT = { won: 'win', lost: 'lose', escaped: 'run', fled: 'fled' };
+  var RESULT = { won: 'win', lost: 'lose', escaped: 'run', fled: 'fled', yielded: 'win' };
 
   DS.battle = function (o) { return o && o.deep16 ? deep(o) : base(o); };
 
@@ -22,13 +22,17 @@
           open(o, function (d) {
             var res = apply(d);
             var b = new DS.Battle(o);
-            // the 8-bit foes as DEEP16 left them: on a win all down (one who got away gives no XP), else as they stood
+            // the 8-bit foes as DEEP16 left them: on a win all down (one who got away gives no XP), else as they stood. Each
+            // DEEP16 foe knows its place in the 8-bit list (i8); a fight built without the list is matched by kind
             var back = (d.foes || []).slice();
-            b.foes.forEach(function (f) {
+            b.foes.forEach(function (f, n) {
               var k = -1;
-              for (var i = 0; i < back.length; i++) if (back[i].kind === f.id) { k = i; break; }
+              for (var i = 0; i < back.length; i++) if (back[i].i8 === n) { k = i; break; }
+              if (k < 0) for (var j = 0; j < back.length; j++) if (back[j].i8 == null && back[j].kind === f.id) { k = j; break; }
               var r = k >= 0 ? back.splice(k, 1)[0] : null;
               if (res === 'win' || (r && (r.dead || r.fled))) { f.dead = true; f.fade = 0; if (r && r.fled) f.fled = true; }
+              // he yielded (the cleric): the 8-bit battle's own yield, a win with him standing (no harvest off him)
+              if (d.result === 'yielded' && r && !r.dead) f.surrendered = true;
               // one who ran carries his flag out with him, as the 8-bit foeBolt does (the wheelwright: wheelwrightRan)
               if (r && r.fled && f.m.traits && f.m.traits.flag) DS.G.flags[f.m.traits.flag] = 1;
             });
@@ -48,14 +52,21 @@
   // DEEP16 up over the screen; the 8-bit game holds still under it (DS.paused) until the fight comes back
   function open(o, done) {
     var g = DS.G, fr = document.createElement('iframe');
-    var snap = JSON.parse(JSON.stringify({ party: g.party, guests: (g.guests || []).map(function (x) { return x.h; }), inv: g.inv, flags: g.flags }));
+    // the guests the 8-bit battle would field (standing, and none for a lone fighter or a noGuests fight), each by its key
+    // (two troopers are pinA and pinB, both 'trooper' underneath)
+    var guests = o.solo == null && !o.noGuests ? (g.guests || []).filter(function (x) { return !x.h.ko && x.h.hp > 0; }) : [];
+    var snap = JSON.parse(JSON.stringify({ party: g.party, guests: guests.map(function (x) { return Object.assign({}, x.h, { key: x.id }); }), inv: g.inv, flags: g.flags }));
     function onMsg(e) {
       var m = e.data;
       if (e.source !== fr.contentWindow || !m) return;
       // the lone investigator (the wagon night's INVESTIGATE): the 8-bit battle's `solo` (a party index) goes over as the hero's
       // id, with `join`, the round the rest come out of the inn
       var solo = o.solo != null && g.party[o.solo] ? g.party[o.solo].id : null;
-      if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: { canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null } }, '*');
+      // the fight is the 8-bit scene's own foes (RULED 09-28, Griz: "8-bit's list"), and its opening: who was caught unaware
+      // (`surprised`), whether the light was already on them (`revealed`), what a foe who yields says (`yieldText`)
+      if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
+        canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null, enemies: o.enemies || null,
+        surprised: o.surprised || null, revealed: !!o.revealed, yieldText: o.yieldText || null } }, '*');
       if (m.type === 'd16:done') {
         window.removeEventListener('message', onMsg);
         fr.parentNode.removeChild(fr);
@@ -74,9 +85,9 @@
 
   // what the fight did, onto the party: what was spent stays spent (no slot, use or potion comes back that the fight took)
   function apply(d) {
-    var g = DS.G, all = g.party.concat((g.guests || []).map(function (x) { return x.h; }));
+    var g = DS.G, all = g.party.map(function (h) { return { id: h.id, h: h }; }).concat(g.guests || []); // (a guest by its key)
     (d.party || []).forEach(function (r) {
-      var h = all.filter(function (x) { return x.id === r.id; })[0];
+      var h = (all.filter(function (x) { return x.id === r.id; })[0] || {}).h;
       if (!h) return;
       h.conds = h.conds || {};
       // Aid cast in the fight: the 8-bit game's own Aid, lifted at the next long rest (EV.longRest)
@@ -91,6 +102,7 @@
     var i0 = d.inv0 || {}, i1 = d.inv1 || {};
     Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0), have = g.count(id); if (used > 0 && have > 0) g.take(id, Math.min(used, have)); });
     if (d.result === 'fled') DS.fledIds = (d.away || []).slice();
+    if (d.result === 'yielded') DS.battleYielded = true; // (his words were on DEEP16's card; the scene asks what you do with him)
     return RESULT[d.result] || 'run';
   }
 })();
