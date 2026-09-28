@@ -613,8 +613,9 @@
     multi: ['engulf', 'digest'],
     src: 'SRD 5.1 Gelatinous Cube (CR 2, Large, transparent: it starts hidden); content/monsters.json cube (leg two): Engulf read as a grip (escape DC 12), Digest on the one it has, as the 8-bit game runs them', todo: 'its moving into your square is not read'
   },
+  // its art since 09-27: Griz's Grok sheet (pipeline 2, tools/crawler-sheet.py; crawler_p2), the snake stand-in retired
   crawler: {
-    name: 'Crawler', sheet: 'crawler_p1', cr: '2', ac: 12, hp: 40, speed: 30, size: 2, reach: 5,
+    name: 'Crawler', sheet: 'crawler_p2', cr: '2', ac: 12, hp: 40, speed: 30, size: 2, reach: 5,
     abil: { str: 14, dex: 13, con: 14, int: 1, wis: 12, cha: 5 }, init: 1, perception: 13,
     saves: { str: 2, dex: 1, con: 2, int: -5, wis: 1, cha: -3 },
     attacks: {

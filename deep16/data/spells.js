@@ -41,7 +41,10 @@
   lesserrestoration: { shape: 'touch', side: 'ally', time: 'A' },
   aid: { shape: 'allies', range: 30, n: 3, time: 'A' },
   revivify: { shape: 'none', why: 'no one here has died (the fallen are only down)' },
-  daylight: { shape: 'none', why: 'not sunlight: the drow would not flinch' }
+  // Daylight (SRD 5.1): a 60-ft sphere of bright light (not sunlight: the drow do not flinch); where it overlaps a Darkness of
+  // 3rd level or lower, that Darkness is dispelled (09-27, Griz: "Did we get the light spell cancelling darkness?" -- the Light
+  // cantrip cannot: Darkness dispels it, not the other way)
+  daylight: { shape: 'sphere', range: 60, r: 60, time: 'A' }
 };
 // spells the 8-bit game's list lacks would live here; Misty Step moved into content/spells.json on 09-27 (a learnable, grid-only spell)
 window.D16.EXTRA_SPELLS = {};

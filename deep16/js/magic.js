@@ -40,6 +40,7 @@
       else if (g.time === 'B' && T.bonusSpell) why = 'one bonus-action spell a turn';
       else if (g.time === 'A' && T.bonusSpell && sp.level) why = 'after a bonus-action spell, only a cantrip';
       else if (g.unarmored && !M.touchTargets(B, u, g).length) why = 'no one within reach without armour';
+      else if (id === 'daylight' && !(B.darks || []).length) why = 'no magical darkness here to burn away';
       e.ok = !why; e.why = why;
       return e;
     }).filter(Boolean).sort(function (a, b) { return a.level - b.level || (a.name < b.name ? -1 : 1); });
@@ -56,7 +57,8 @@
       case 'splash': return 'a foe within ' + g.range + ' ft (and one beside it) · DEX · ' + d + ' acid';
       case 'cone': return g.len + '-ft cone · ' + save + ' · ' + d + ' ' + sp.el;
       case 'line': return g.len + '-ft line · ' + save + ' · ' + d + ' ' + sp.el;
-      case 'sphere': return e.id === 'sleep' ? (g.pool + g.poolUp * Math.max(0, e.slot - 1)) + 'd8 HP of sleep, ' + g.r + '-ft sphere within ' + g.range + ' ft' : g.r + '-ft sphere within ' + g.range + ' ft · ' + save + ' · ' + d + (sp.dmg2 ? ' + ' + sp.dmg2 : '') + ' ' + sp.el;
+      case 'sphere': if (e.id === 'daylight') return '60-ft sphere of daylight within 60 ft · dispels a Darkness it touches';
+        return e.id === 'sleep' ? (g.pool + g.poolUp * Math.max(0, e.slot - 1)) + 'd8 HP of sleep, ' + g.r + '-ft sphere within ' + g.range + ' ft' : g.r + '-ft sphere within ' + g.range + ' ft · ' + save + ' · ' + d + (sp.dmg2 ? ' + ' + sp.dmg2 : '') + ' ' + sp.el;
       case 'cube': return g.size + '-ft cube within ' + g.range + ' ft · DEX or restrained' + conc;
       case 'wave': return '15-ft cube out from you · CON half · ' + d + ' thunder, a failed save pushed 10 ft';
       case 'single': return e.id === 'holdmonster' ? 'a foe within 90 ft · WIS or paralyzed' + conc : e.id === 'holdperson' ? 'a humanoid within 60 ft · WIS or paralyzed' + conc : 'an ally within ' + g.range + ' ft · +2 AC' + conc;
@@ -272,7 +274,15 @@
     FX.bloom(fromMe ? u.x : cx, fromMe ? u.y : cy, sq, ramp);
     var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq); });
     var lines = [];
-    if (id === 'sleep') {
+    if (id === 'daylight') {
+      var burnt = (B.darks || []).filter(function (dk) { return dk.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); });
+      lines.push(head + '  a sphere of daylight' + (burnt.length ? ': {y}the darkness burns away{/}' : ': nothing here it undoes'));
+      burnt.forEach(function (dk) {
+        var by = B.units.filter(function (w) { return w.id === dk.by; })[0];
+        if (by && by.conc && by.conc.id === 'darkness') M.endConc(B, by, 'Daylight');
+        else B.darks = (B.darks || []).filter(function (x) { return x !== dk; });
+      });
+    } else if (id === 'sleep') {
       var pool = D.roll((g.pool + g.poolUp * Math.max(0, slot - 1)) + 'd8'), left = pool.total;
       lines.push(head + '  ' + (g.pool + g.poolUp * Math.max(0, slot - 1)) + 'd8 = ' + pool.total + ' HP of sleep, the weakest first');
       caught.slice().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (w) {

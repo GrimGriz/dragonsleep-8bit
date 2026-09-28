@@ -778,7 +778,8 @@
     var g = G();
     if (g.flags.cloakerDone || g.has('cloakertail')) return;
     yield DS.say(L('g4.cloaker'));
-    var res = yield* EV.fight(['cloaker'], { bg: 'deep', music: 'boss', canRun: true });
+    // fought in DEEP16 (Griz 09-27: "Let's get the cloaker fight in there as well"; deep16/data/fights.js cloaker, js/embed.js)
+    var res = yield* EV.fight(['cloaker'], { bg: 'deep', music: 'boss', canRun: true, deep16: 'cloaker' });
     if (res === 'win') { g.give('cloakertail', 1); DS.audio.sfx('chest'); yield DS.say(L('g4.tail')); }
     else if (res === 'run') { yield DS.say(L('g4.ranUp')); yield* EV.warp('galleries_g3', 50, 9, 'left'); }
   };
