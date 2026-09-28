@@ -371,6 +371,52 @@
 }
 }
 },
+"brann_p0": {
+"image": "art/brann_p0.png",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 40,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "brawler_p1": {
 "image": "art/brawler_p1.png",
 "fw": 96,
@@ -1613,6 +1659,52 @@
 }
 }
 },
+"halldor_p0": {
+"image": "art/halldor_p0.png",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "hask_p1": {
 "image": "art/hask_p1.png",
 "fw": 96,
@@ -1647,6 +1739,52 @@
 "ay": 84,
 "frames": 8,
 "fps": 12
+}
+}
+},
+"hedda_p0": {
+"image": "art/hedda_p0.png",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 39,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
 }
 }
 },
@@ -1850,6 +1988,52 @@
 "ay": 77,
 "frames": 8,
 "fps": 12
+}
+}
+},
+"ingrith_p0": {
+"image": "art/ingrith_p0.png",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 39,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
 }
 }
 },
@@ -2472,6 +2656,52 @@
 }
 }
 },
+"pyro_p0": {
+"image": "art/pyro_p0.png",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 51,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "roper_p1": {
 "image": "art/roper_p1.png",
 "fw": 120,
@@ -2694,6 +2924,52 @@
 }
 }
 },
+"torvald_p0": {
+"image": "art/torvald_p0.png",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 39,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "troll_p1": {
 "image": "art/troll_p1.png",
 "fw": 120,
@@ -2728,6 +3004,52 @@
 "ay": 119,
 "frames": 8,
 "fps": 12
+}
+}
+},
+"trooper_p0": {
+"image": "art/trooper_p0.png",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
 }
 }
 },

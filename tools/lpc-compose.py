@@ -651,6 +651,111 @@ FIGURES = {
                   'attack = thrust (8 frames): the generator\'s crossbow only animates walk/thrust/hurt (no shoot '
                   'sheet); thrust is its aim-and-fire pose'],
     },
+    # ------------------------------------------------------------------------------------------ the 8-bit game's dwarves
+    # (09-28, Griz: guest art by "LPC compose"): the guests who walk the king's road with the four in DEEP16's story fights,
+    # and the cleric at Deepholm's door. Each is composed full-size here as <id>_full, then squashed to a dwarf's build by
+    # tools/lpc-squash.py into <id> (shorter, a little broader), then pixelated as <id>_p0. Colours after js/sprites.js LOOKS.
+    # Warhammers are drawn as the generator's mace (it has no warhammer); Brann's battleaxe is its war axe.
+    'pyro_full': {  # Pyronimus, King of Solskaft: white hair and beard, dwarf-plate, a gold crown, the mace
+        'body': 'male', 'skin': 'lpcr.tan', 'eyes': 'gray', 'attack': ('slash', 'slash_oversize'),
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_male.json'},
+            {'def': 'legs/pants/legs_pants.json', 'color': 'charcoal'},
+            {'def': 'feet/boots/feet_boots_basic.json', 'color': 'black'},
+            {'def': 'torso/armour/torso_armour_plate.json', 'color': 'silver'},
+            {'def': 'arms/arms_armour.json', 'color': 'silver'},
+            {'def': 'hair/short/hair_messy1.json', 'color': 'white'},
+            {'def': 'hair/beards/beards_winter.json', 'color': 'white'},
+            {'def': 'headwear/hats/formal/hat_formal_crown.json', 'variant': 'crown_gold'},
+            {'def': 'weapons/blunt/weapon_blunt_mace.json', 'variant': 'mace', 'idle_from': IDLE_FROM_WALK},
+        ],
+        'notes': ['the king: dwarf-plate as the generator\'s plate (torso and arms) in silver, the gold crown, a white winter beard'],
+    },
+    'halldor_full': {  # Halldor Silversands, the garrison captain: iron-grey, splint (plate), the warhammer
+        'body': 'male', 'skin': 'lpcr.tan', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_male.json'},
+            {'def': 'legs/pants/legs_pants.json', 'color': 'charcoal'},
+            {'def': 'feet/boots/feet_boots_basic.json', 'color': 'black'},
+            {'def': 'torso/armour/torso_armour_plate.json', 'color': 'iron'},
+            {'def': 'arms/arms_armour.json', 'color': 'iron'},
+            {'def': 'hair/short/hair_messy2.json', 'color': 'gray'},
+            {'def': 'hair/beards/beards_beard.json', 'color': 'gray'},
+            {'def': 'weapons/blunt/weapon_blunt_mace.json', 'variant': 'mace', 'idle_from': IDLE_FROM_WALK},
+        ],
+        'notes': ['splint as the generator\'s plate in iron; the warhammer as its mace'],
+    },
+    'trooper_full': {  # a garrison trooper: nasal helm, chainmail, a brown beard, the warhammer
+        'body': 'male', 'skin': 'lpcr.tan', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_male.json'},
+            {'def': 'legs/pants/legs_pants.json', 'color': 'charcoal'},
+            {'def': 'feet/boots/feet_boots_basic.json', 'color': 'black'},
+            {'def': 'torso/torso_chainmail.json', 'color': 'steel'},
+            {'def': 'hair/beards/beards_medium.json', 'color': 'chestnut'},
+            {'def': 'headwear/helmets/helmets/hat_helmet_nasal.json', 'color': 'iron'},
+            {'def': 'weapons/blunt/weapon_blunt_mace.json', 'variant': 'mace', 'idle_from': IDLE_FROM_WALK},
+        ],
+        'notes': ['the 8-bit dtrooper look: a hat (the nasal helm), a beard'],
+    },
+    'brann_full': {  # Brann Silversands: a red beard, splint (plate), the battleaxe
+        'body': 'male', 'skin': 'light', 'eyes': 'blue', 'attack': ('slash', 'slash_oversize'),
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_male.json'},
+            {'def': 'legs/pants/legs_pants.json', 'color': 'brown'},
+            {'def': 'feet/boots/feet_boots_basic.json', 'color': 'leather'},
+            {'def': 'torso/armour/torso_armour_plate.json', 'color': 'steel'},
+            {'def': 'arms/arms_armour.json', 'color': 'steel'},
+            {'def': 'hair/short/hair_messy1.json', 'color': 'ginger'},
+            {'def': 'hair/beards/beards_beard.json', 'color': 'ginger'},
+            {'def': 'weapons/blunt/weapon_blunt_waraxe.json', 'variant': 'waraxe', 'idle_from': IDLE_FROM_WALK},
+        ],
+        'notes': ['the battleaxe as the generator\'s war axe'],
+    },
+    'hedda_full': {  # Hedda Greyseam: long grey hair, chainmail, the warhammer
+        'body': 'female', 'skin': 'lpcr.tan', 'eyes': 'gray', 'attack': ('slash', 'slash_oversize'),
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_female.json'},
+            {'def': 'legs/pants/legs_pants.json', 'color': 'charcoal'},
+            {'def': 'feet/boots/feet_boots_basic.json', 'color': 'black'},
+            {'def': 'torso/torso_chainmail.json', 'color': 'steel'},
+            {'def': 'hair/long/hair_long.json', 'color': 'gray'},
+            {'def': 'weapons/blunt/weapon_blunt_mace.json', 'variant': 'mace', 'idle_from': IDLE_FROM_WALK},
+        ],
+        'notes': ['the warhammer as the generator\'s mace'],
+    },
+    'ingrith_full': {  # Ingrith Scalebeam, a cleric of Rekknar: a grey robe over mail, dark hair, the mace
+        'body': 'female', 'skin': 'light', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_female.json'},
+            {'def': 'feet/shoes/feet_shoes_basic.json', 'color': 'brown'},
+            {'def': 'torso/shirts/torso_clothes_robe.json', 'variant': 'white'},
+            {'def': 'hair/long/hair_long.json', 'color': 'dark_brown'},
+            {'def': 'weapons/blunt/weapon_blunt_mace.json', 'variant': 'mace', 'idle_from': IDLE_FROM_WALK},
+        ],
+        'notes': ['the robe (the generator\'s, female body) in white (its light gray is near-black); her chainmail under it is not drawn'],
+    },
+    'torvald_full': {  # the cleric at Deepholm's door: a cleric's coat under a traveling cloak, a hood, a beard, the mace
+        'body': 'male', 'skin': 'lpcr.tan', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_male.json'},
+            {'def': 'legs/pants/legs_pants.json', 'color': 'brown'},
+            {'def': 'feet/boots/feet_boots_basic.json', 'color': 'leather'},
+            {'def': 'torso/jacket/torso_jacket_frock.json', 'variant': 'walnut'},
+            {'def': 'torso/cape/cape_solid.json', 'color': 'brown'},
+            {'def': 'hair/beards/beards_beard.json', 'color': 'ash'},
+            {'def': 'headwear/coverings/hoods/hat_hood_cloth.json', 'color': 'brown'},
+            {'def': 'weapons/blunt/weapon_blunt_mace.json', 'variant': 'mace', 'idle_from': IDLE_FROM_WALK},
+        ],
+        'notes': ['the 8-bit torvald look: beard, hood, robe (a frock coat), a traveling cloak (the solid cape)'],
+    },
 }
 SPIDER = {
     'phasespider': {

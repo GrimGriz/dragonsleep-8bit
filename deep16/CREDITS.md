@@ -374,3 +374,144 @@ Used by: phasespider (sheet `spider07`, hue-shifted to violet by tools/lpc-compo
 - licences (as listed on the OGA page, checked 2026-09-26): CC-BY 4.0, CC-BY 3.0, GPL 3.0, GPL 2.0, OGA-BY 3.0
 - the page asks: "Attribute Stephen 'Redshrike' Challener as graphic artist and William.Thompsonj as contributor. If reasonable link to this page or the OGA homepage."
 - https://opengameart.org/content/lpc-spider
+
+### The 8-bit game's dwarves (09-28): `pyro_p0`, `halldor_p0`, `trooper_p0`, `brann_p0`, `hedda_p0`, `ingrith_p0`, `torvald_p0`
+
+Composed by `tools/lpc-compose.py` (`<id>_full`), squashed to a dwarf's build by `tools/lpc-squash.py`, pixelated by `tools/pixelate.py p0`. They also use these layers credited above: `body/body.json` (brann, halldor, hedda, ingrith, pyro, torvald, trooper); `feet/boots/feet_boots_basic.json` (brann, halldor, hedda, pyro, torvald, trooper); `feet/shoes/feet_shoes_basic.json` (ingrith); `hair/long/hair_long.json` (hedda, ingrith); `hair/short/hair_messy1.json` (brann, pyro); `hair/short/hair_messy2.json` (halldor); `head/heads/human/heads_human_female.json` (hedda, ingrith); `head/heads/human/heads_human_male.json` (brann, halldor, pyro, torvald, trooper); `legs/pants/legs_pants.json` (brann, halldor, hedda, pyro, torvald, trooper); `torso/torso_chainmail.json` (hedda, trooper).
+
+## arms/arms_armour.json -- "Armour"
+
+Used by: brann, halldor, pyro
+
+- **file** `arms/armour/plate/male`
+  - authors: Michael Whitlock (bigbeargames), Matthew Krohn (makrohn), Johannes Sjölund (wulax), bluecarrot16, JaidynReiman
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+  - http://opengameart.org/content/lpc-clothing-updates
+  - notes: original by wulax, recolors by bigbeargames; adapted to v3 bases and further recolors by bluecarrot16, climb/emote/jump by JaidynReiman
+
+## hair/beards/beards_beard.json -- "Basic Beard"
+
+Used by: brann, halldor, torvald
+
+- **file** `beards/beard/basic`
+  - authors: JaidynReiman, Carlo Enrico Victoria (Nemisys)
+  - licences: CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/lpc-white-beard
+  - notes: Original by Nemisys, repositioning by JaidynReiman.
+
+## hair/beards/beards_medium.json -- "Medium Beard"
+
+Used by: trooper
+
+- **file** `beards/beard/medium`
+  - authors: ElizaWy
+  - licences: OGA-BY 3.0
+  - https://github.com/ElizaWy/LPC/tree/main/Characters/Hair
+  - https://opengameart.org/content/lpc-expanded-sit-run-jump-more
+
+## hair/beards/beards_winter.json -- "Winter Beard"
+
+Used by: pyro
+
+- **file** `beards/beard/winter`
+  - authors: bluecarrot16
+  - licences: CC0
+  - https://opengameart.org/content/lpc-santa
+
+## headwear/coverings/hoods/hat_hood_cloth.json -- "Hood"
+
+Used by: torvald
+
+- **file** `hat/cloth/hood`
+  - authors: Johannes Sjölund (wulax), JaidynReiman
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+  - https://opengameart.org/content/lpc-expanded-hats-facial-helmets
+  - notes: Brown hood by Wulax, original black/white recolors by ??, mapped to idle/run/jump/revised combat by JaidynReiman, along with additional recolors.
+
+## headwear/hats/formal/hat_formal_crown.json -- "Crown"
+
+Used by: pyro
+
+- **file** `hat/formal/crown`
+  - authors: DarkwallLKE, Charles Sanchez (CharlesGabriel)
+  - licences: CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+  - https://opengameart.org/content/lpc-crown
+  - https://opengameart.org/content/lpc-expanded-hats-facial-helmets
+
+## headwear/helmets/helmets/hat_helmet_nasal.json -- "Nasal helm"
+
+Used by: trooper
+
+- **file** `hat/helmet/nasal`
+  - authors: bluecarrot16
+  - licences: CC-BY 3.0, CC-BY 4.0, OGA-BY 3.0, GPL 2.0, GPL 3.0
+  - https://opengameart.org/content/lpc-helmets
+  - https://opengameart.org/content/lpc-expanded-hats-facial-helmets
+
+## torso/armour/torso_armour_plate.json -- "Plate"
+
+Used by: brann, halldor, pyro
+
+- **file** `torso/armour/plate/male`
+  - authors: Napsio (Vitruvian Studio), JaidynReiman, bluecarrot16, Michael Whitlock (bigbeargames), Johannes Sjölund (wulax)
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+  - https://opengameart.org/content/lpc-combat-armor-for-women
+  - notes: original by wulax, recolor by bigbeargames, color reduced to 7 colors and adapted to v3 bases by bluecarrot16, run/jump/sit/climb/revised combat by JaidynReiman, reduced colors to 6 (based on Napsio's Vitruvian)
+
+## torso/cape/cape_solid.json -- "Solid"
+
+Used by: torvald
+
+- **file** `cape/solid/fg`
+  - authors: bluecarrot16, JaidynReiman
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more
+  - https://opengameart.org/content/lpc-roman-armor
+  - http://opengameart.org/content/lpc-clothing-updates
+- **file** `cape/solid/bg`
+  - authors: Nila122, JaidynReiman
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/lpc-curly-hair-elven-ears-white-cape-with-blue-trim-and-more
+  - https://opengameart.org/content/lpc-roman-armor
+
+## torso/jacket/torso_jacket_frock.json -- "Frock coat"
+
+Used by: torvald
+
+- **file** `torso/jacket/frock`
+  - authors: bluecarrot16
+  - licences: CC-BY-SA 3.0
+  - https://opengameart.org/content/lpc-pirates
+
+## torso/shirts/torso_clothes_robe.json -- "Robe"
+
+Used by: ingrith
+
+- **file** `torso/clothes/robe`
+  - authors: Luke Mehl
+  - licences: CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/female-mage-clothing-set
+
+## weapons/blunt/weapon_blunt_mace.json -- "Mace"
+
+Used by: halldor, hedda, ingrith, pyro, torvald, trooper
+
+- **file** `weapon/blunt/mace`
+  - authors: Johannes Sjölund (wulax), bluecarrot16
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0
+  - https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+  - https://opengameart.org/content/lpc-extended-weapon-animations
+
+## weapons/blunt/weapon_blunt_waraxe.json -- "Waraxe"
+
+Used by: brann
+
+- **file** `weapon/blunt/waraxe`
+  - authors: Benjamin K. Smith (BenCreating), bluecarrot16, Sander Frenken (castelonia)
+  - licences: CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/lpc-medieval-weapons
+
