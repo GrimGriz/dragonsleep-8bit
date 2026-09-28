@@ -201,6 +201,7 @@
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
     if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') g = Object.assign({}, g, { time: 'B', move: true }); // (the lights are up: this is the bonus action that moves them)
     var ex0 = M.EFFECT && M.EFFECT[id]; if (ex0 && ex0.geo) g = ex0.geo(B, u, g) || g; // (the floating weapon already up: its swing)
+    if (T.quicken && g.time === 'A' && sp.level) g = Object.assign({}, g, { time: 'B' }); // (Quickened Spell: js/features.js)
     if (g.time === 'B') { T.bonus = 0; if (!g.move) T.bonusSpell = true; } else { T.action = 0; T.spellAction = g.free ? T.spellAction : sp.level ? 'leveled' : 'cantrip'; }
     if (sp.level && !g.free) u.slots[slot - 1]--;
     var head = '{y}' + u.name + '{/}: ' + sp.name.toUpperCase() + (sp.level ? ' (L' + slot + ')' : '');
@@ -430,9 +431,15 @@
       });
     } else {
       var dd = M.dice(sp, u, slot), r = D.roll(dd), r2 = sp.dmg2 ? D.roll(sp.dmg2) : null, tot = r.total + (r2 ? r2.total : 0), ab = sp.save || 'dex';
-      lines.push(head + '  ' + dd + ' ' + RU.fmtRolls(r.rolls) + (r2 ? ' + ' + sp.dmg2 + ' ' + RU.fmtRolls(r2.rolls) : '') + ' = {o}' + tot + '{/} ' + sp.el + '  ' + ab.toUpperCase() + ' DC ' + dc);
+      // Elemental Affinity (the Draconic sorcerer at 6): + CHA to a spell of the ancestry's element
+      var aff = M.affinity ? M.affinity(u, sp.el) : 0; tot += aff;
+      lines.push(head + '  ' + dd + ' ' + RU.fmtRolls(r.rolls) + (r2 ? ' + ' + sp.dmg2 + ' ' + RU.fmtRolls(r2.rolls) : '') + (aff ? ' {y}+' + aff + ' affinity{/}' : '') + ' = {o}' + tot + '{/} ' + sp.el + '  ' + ab.toUpperCase() + ' DC ' + dc);
       var hits = [];
+      // Sculpt Spells (the evoker, SRD 5.1 wizard 2): up to 1 + the spell's level of his own in an evocation are spared -- they save, and
+      // take nothing where a save would halve it (js/features.js M.sculpted)
+      var spared = M.sculpted ? M.sculpted(u, id, sp, caught) : [];
       caught.forEach(function (w) {
+        if (spared.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}sculpted out of it{/}'); return; }
         var sv = RU.save(w, ab, dc), evade = ab === 'dex' && w.cls === 'rogue' && w.lvl >= 7;
         var d = sv.ok ? (evade ? 0 : (sp.half ? Math.floor(tot / 2) : 0)) : (evade ? Math.floor(tot / 2) : tot);
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + d + '{/}');

@@ -35,10 +35,9 @@
 
   // Aura of Protection: while the paladin stands, allies within 10 ft (and he) add his CHA to saves
   RU.aura = function (u) {
-    if (u.side !== 'party') return 0;
     var best = 0;
     G.units.forEach(function (p) {
-      if (p.cls !== 'paladin' || p.lvl < 6 || p.side !== u.side || !G.standing(p) || !RU.canAct(p)) return;
+      if (p.cls !== 'paladin' || p.lvl < 6 || p.side !== u.side || !G.standing(p) || !RU.canAct(p)) return; // (either side: a class NPC paladin's too)
       if (p === u || G.dist(p, u) <= 10) best = Math.max(best, Math.max(1, D.mod(p.abil.cha)));
     });
     return best;
@@ -54,6 +53,8 @@
     var bn = c.baned ? D.d(4) : 0; bonus -= bn;
     var rs = c.resistance ? D.d(4) : 0; if (rs) { bonus += rs; delete c.resistance; }
     var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs };
+    // Bardic Inspiration (js/features.js): the die on a save it would turn
+    if (!res.ok && c.inspired && D.features) { var ins = D.features.inspire(u, dc - res.total); if (ins) { res.bonus += ins; res.total += ins; res.ok = res.total >= dc; res.bless = (res.bless || 0) + ins; } }
     // Indomitable (fighter 9): a failed save is rolled again, once a day -- taken at once, and said so
     if (!res.ok && u.cls === 'fighter' && u.feats && u.feats.indomitable) {
       u.feats.indomitable = 0;
@@ -78,8 +79,8 @@
     if (att.conds.prone) dis.push('prone');
     if (tgt.conds.prone) { if (melee && G.dist(att, tgt, ax, ay) <= 5) adv.push('prone target'); else if (!melee) dis.push('prone target'); }
     // Reckless (Talmok, the berserker): it swings with advantage, and everyone swings at it with advantage
-    if (att.reckless && melee) adv.push('reckless');
-    if (tgt.reckless && melee) adv.push('reckless target');
+    if ((att.reckless || att.conds.reckless) && melee) adv.push('reckless');
+    if ((tgt.reckless || tgt.conds.reckless) && melee) adv.push('reckless target'); // (a class barbarian's Reckless Attack: js/tactics.js)
     var DB = D.battle, pen = 0, penWhy = '', mirror = function (eye, seen) { return !!(D.magic && DB && eye.mirrorEye && D.magic.inMirror(DB, eye, seen)); };
     if (att.conds.hidden && !mirror(tgt, att)) adv.push('unseen'); // (the Mirror's eye on her: no hiding in front of it)
     // who cannot see whom (magic.js seeWhy: blinded, magical darkness, fog, the invisible, the dark). An unseen target is attacked

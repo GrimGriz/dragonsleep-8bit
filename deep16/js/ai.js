@@ -48,6 +48,8 @@
     if (!u.ethereal) B.focus(u);
     // a word of Command it must obey (js/grimoire.js): halted, grovelling, or away from the one who spoke, and nothing more
     if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(B, u); yield 20; D.magic.endTurn(B, u); u.anim = 'idle'; return; }
+    // Fear's run (js/grimoire.js): any creature under it Dashes away from the one it fears
+    if (D.magic.mustFlee && D.magic.mustFlee(u) && !u.classAI) { yield* D.tactics.fleeFear(B, u); D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     if (u.conds.restrained && !(u.classAI && D.tactics && D.tactics.freeFirst && !D.tactics.freeFirst(B, u))) yield* D.magic.breakFree(B, u); // a web: tear at it first
     // the wagon yard: once Willem has been hit at the traces, in the 8-bit game's yard (runWhenHurt) each of the pair runs from its
     // own next move (battle.js startRun); on the ladder, where nobody runs, he lets the traces go and turns to fight

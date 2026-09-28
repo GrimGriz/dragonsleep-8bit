@@ -463,6 +463,8 @@
       if (u.hp > 0) D.magic.endTurn(this, u); // a held hero still gets the save at the end of the turn (the weaver's Hold, the chuul)
       return;
     }
+    // Fear's run (a foe's Fear, js/grimoire.js): the Dash away from it, and the turn is over
+    if (D.magic.mustFlee && D.magic.mustFlee(u)) { yield* D.tactics.fleeFear(this, u); yield 30; D.magic.endTurn(this, u); return; }
     // a word of Command obeyed (a foe's Command, js/grimoire.js): the turn is the word's
     if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(this, u); yield 40; D.magic.endTurn(this, u); return; }
     this.tool = 'move'; this.cursor = { x: u.x, y: u.y };
@@ -546,7 +548,8 @@
         return;
       }
       case 'attack': {
-        if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = u.attacks; }
+        if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon (the turn is spent picking it up).{/}'], 200); return; }
+        if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = T.slowed ? 1 : u.attacks + (T.hasteAction ? 1 : 0); } // (Haste's one more, Slow's one: js/grimoire.js)
         if (u.weapon.ammo && !this.ammoLeft(u)) { this.card(['{o}' + u.name + ' has no ' + this.itemName(u.weapon.ammo).toLowerCase() + ' left.{/}'], 120); return; }
         T.attacksLeft--;
         if (u.weapon.ammo) this.spendAmmo(u);
@@ -724,6 +727,9 @@
     var critAt = att.crit || 20;
     var hit = nat === 20 || (nat !== 1 && total >= ac)
       || !!(atk.autoHitHeld && tgt.conds.restrained && tgt.conds.restrained.by === att.id); // the cloaker's bite on the one it has engulfed
+    // a bard's dice (js/features.js): Bardic Inspiration turns a miss, Cutting Words a hit
+    if (!hit && nat !== 1 && att.conds.inspired && D.features) { var bi = D.features.inspire(att, ac - total); if (bi) { total += bi; pen += bi; hit = total >= ac; } }
+    if (hit && nat !== 20 && D.features) { var cw = D.features.cutting(this, att, tgt, total - ac); if (cw) { total -= cw; pen -= cw; hit = total >= ac; } }
     var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5)
       || (att.assassinate && tgt.conds.surprised) // Assassinate: any hit on one caught unaware is a critical
       || (att.subclass === 'Cutthroat' && this.round === 1 && !tgt.acted)); // Opening Cut (the game's Cutthroat): the same, in the first round
@@ -809,6 +815,8 @@
       var ud = byAI(tgt) ? (dmg + fire + rad + ext >= 6) : yield { prompt: { who: tgt, title: tgt.name + ': UNCANNY DODGE?', lines: ['The blow would deal ' + (dmg + fire + rad + ext) + '. Halve it to ' + (Math.floor(dmg / 2) + Math.floor(fire / 2) + Math.floor(rad / 2) + Math.floor(ext / 2)) + '? (the reaction)'], opts: [{ label: 'DODGE IT', value: true }, { label: 'TAKE IT', value: false }] } };
       if (ud) { D.sfx('run'); tgt.reaction = 0; dmg = Math.floor(dmg / 2); fire = Math.floor(fire / 2); rad = Math.floor(rad / 2); ext = Math.floor(ext / 2); parts.push('{c}uncanny dodge: halved to ' + (dmg + fire + rad + ext) + '{/}'); }
     }
+    // Deflect Missiles (the monk, js/features.js): the reaction that catches it
+    if (D.magic.deflect && atk.ranged && !atk.spell) { var dfl = D.magic.deflect(this, tgt, atk, dmg); if (dfl) { dmg -= dfl; parts.push('{c}deflected -' + dfl + '{/}'); } }
     // resistance to non-magical weapons (the grick): the weapon's own damage halved unless the weapon is magic
     // (the whole of it: the dice, the sneak, the martial advantage -- resistance halves the damage of that type, SRD; review 09-28 #10)
     if (tgt.resist && tgt.resist.indexOf('mundane') >= 0 && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type)) {
@@ -822,6 +830,7 @@
     for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1]);
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type);
     if (o.onHit) o.onHit(tgt, crit); // (a spell attack's rider: js/grimoire.js)
+    if (D.magic.onWeaponHit && !atk.spell && !tgt.dead) yield* D.magic.onWeaponHit(this, att, tgt, atk, crit); // (Stunning Strike, Open Hand, Colossus Slayer: js/features.js)
     yield o.oa ? 18 : 26;
     // a reaction to the blow (09-28, js/grimoire.js): Hellish Rebuke from one who took it and can see who gave it
     if (D.magic.rebuke && !tgt.dead && tgt.hp > 0 && !att.dead) yield* D.magic.rebuke(this, tgt, att);
@@ -911,7 +920,18 @@
       if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
     }
     if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '')) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
+    // the class NPCs' wards (09-28, js/grimoire.js): Protection from Energy (one element halved), Protection from Poison, Rage (blades and
+    // blows halved), Warding Bond (all of it halved -- and the one who bound it takes as much)
+    var ward = u.conds;
+    if ((ward.energyWard && ward.energyWard.type === type) || (ward.poisonWard && type === 'poison') || (ward.raging && /bludgeoning|piercing|slashing/.test(type || ''))) { n = Math.floor(n / 2); FX.float('resists', u, D.PAL.ramps.silver[5]); }
+    if (ward.wardingBond && n > 0) {
+      n = Math.floor(n / 2);
+      var bondBy = this.units.filter(function (w) { return w.id === ward.wardingBond.by && !w.dead && w.hp > 0; })[0];
+      if (bondBy && bondBy !== u && n > 0) { FX.float('bond', bondBy, D.PAL.ramps.gold[4]); this.hurt(bondBy, n, 'bond'); if (bondBy.hp <= 0) delete ward.wardingBond; }
+    }
     if (u.temp > 0) { var soak = Math.min(u.temp, n); u.temp -= soak; n -= soak; }
+    // Wild Shape (js/features.js): the beast's hit points take it first; at 0 the druid comes back with the rest
+    if (u.beast && n > 0) { if (n < u.beast.hp) { u.beast.hp -= n; u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); return; } var over = n - u.beast.hp; D.features.unshape(this, u, over); return; }
     if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
     if (n <= 0) return;
     u.hp = Math.max(0, u.hp - n);
@@ -933,6 +953,7 @@
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.side === 'party') { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside him.{/}' : '')]); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); if (u.holding && u.holding.length) this.release(u); }
+      if (D.magic.onKill) D.magic.onKill(this, this.active, u); // (Dark One's Blessing: js/features.js)
       if (u.conc) D.magic.endConc(this, u, 'down');
       // one who runs the moment the one in charge is down (the wheelwright, when Hask falls): gone up the stair at once, before
       // anyone can cut him down -- the 8-bit's foeBolt, certain (review 09-28 #11: the wheelwright quest hangs on his getting away)

@@ -70,12 +70,14 @@
   // ------------------------------------------------------------------ weapons: every one it carries
   function weapons(u) {
     var out = [];
+    if (u.conds.disarmed) return out; // (dropped: Command's DROP, Fear, Heat Metal)
     if (u.weapon && u.weapon.name) out.push(u.weapon);
     if (u.alt && u.alt.name) out.push(u.alt);
     return out;
   }
   function isRanged(wp) { return !!(wp && wp.ranged); }
-  function attacksWith(u, wp) { return wp.loading ? 1 : (u.attacksBase || (typeof u.attacks === 'number' ? u.attacks : 1) || 1); }
+  // the Attack action's swings: Extra Attack, a loading weapon's one; Haste's one more, Slow's one only (js/grimoire.js)
+  function attacksWith(u, wp) { var n = wp.loading ? 1 : (u.attacksBase || (typeof u.attacks === 'number' ? u.attacks : 1) || 1); if (u.turn && u.turn.slowed) return 1; return n + (u.turn && u.turn.hasteAction ? 1 : 0); }
   // one swing's worth at t from square (x, y): the hit chance with what the square gives (flank, the dark, long range), the
   // dice, a rogue's sneak, a smite in hand
   function swing(B, u, t, wp, x, y) {
@@ -127,6 +129,8 @@
     if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = attacksWith(u, wp); }
     var keep = u.weapon; u.weapon = wp;
     var rng = wp.ranged ? wp.range[1] : (wp.reach || u.reach || 5), first = true;
+    // Reckless Attack (the barbarian, 2): advantage on its STR swings this turn, and at it till its next (js/features.js decides)
+    if (!wp.ranged && D.features && D.features.reckless(u) && !u.conds.reckless) { u.conds.reckless = { till: { who: u.id, at: 'start', n: 1 } }; B.card(['{r}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' swings recklessly.{/}'], 160); }
     while (T.attacksLeft > 0 && !u.dead && u.hp > 0) {
       var t = first && t0 && G.standing(t0) && G.dist(u, t0) <= rng ? t0 : foesOf(B, u).filter(function (w) { return G.dist(u, w) <= rng && (!wp.ranged || G.los(u, w).clear); }).sort(function (a, b) { return a.hp - b.hp; })[0];
       first = false;
@@ -152,11 +156,11 @@
       try { best = ev(B, u, e, slot, fs, allies); } catch (err) { if (D.lastError == null) D.lastError = err; best = null; }
       if (!best || !(best.score > 0)) return;
       // concentration: a new one must be worth more than what the old one still holds
-      if (e.g.conc && u.conc) best.score -= (u.conc.value || 6);
-      // a slot is dear: a leveled spell must beat what a cantrip or a swing would do by its level's cost
-      if (e.level > 0) best.score -= slot * 1.2;
+      if (e.g.conc && u.conc && !(e.g.free && u.conc.id === e.id)) best.score -= (u.conc.value || 6);
+      // a slot is dear: a leveled spell must beat what a cantrip or a swing would do by its level's cost (a spell already paid for is free)
+      if (e.level > 0 && !e.g.free) best.score -= slot * 1.2;
       if (best.score <= 0) return;
-      out.push({ kind: 'spell', id: e.id, score: best.score, why: e.name + (best.t && best.t.name ? ' on ' + best.t.name : ''), bonus: e.g.time === 'B', go: castGo(B, u, e, slot, best) });
+      out.push({ kind: 'spell', id: e.id, level: e.level, score: best.score, why: e.name + (best.t && best.t.name ? ' on ' + best.t.name : ''), bonus: e.g.time === 'B', go: castGo(B, u, e, slot, best) });
     });
     return out;
   }
@@ -173,6 +177,7 @@
       if (u.conc && u.conc.id === e.id && u.conc.value == null) u.conc.value = best.keep != null ? best.keep : Math.max(4, best.score * 0.6);
     };
   }
+  TX.spellPlansFor = function (B, u) { return spellPlans(B, u, foesOf(B, u), alliesOf(B, u)); };
   TX.EVAL = {};
   var EV = TX.EVAL;
   function inRangeOf(u, g, w, x, y) { return G.dist(u, w, x, y) <= (g.range || 5); }
@@ -219,7 +224,7 @@
     caught.forEach(function (w) {
       var pf = TX.pFail(w, ab, u.spellDC), x = pf * d + (1 - pf) * (sp.half ? d / 2 : 0);
       if (G.hostile(u, w)) sc += TX.worth(x, w);
-      else if (!(u.subclass === 'School of Evocation' && D.RULES.sculpt !== false)) sc -= (w === u ? 3 : 2) * Math.min(x, w.hp) + (x >= w.hp ? 10 : 0);
+      else if (!(M.sculpts && M.sculpts(u, e.id))) sc -= (w === u ? 3 : 2) * Math.min(x, w.hp) + (x >= w.hp ? 10 : 0);
     });
     return sc;
   };
@@ -385,6 +390,8 @@
     var T = u.turn;
     if (u.hp <= 0 || u.dead) return;
     B.focus(u);
+    // Fear's run (SRD 5.1): the Dash, away from the one it fears, and nothing else
+    if (M.mustFlee && M.mustFlee(u)) { yield* TX.fleeFear(B, u); return; }
     var fs = foesOf(B, u);
     if (!fs.length) {
       // no one it knows of: toward the nearest it can hear, then wait
@@ -425,6 +432,13 @@
     if (e) yield* walk(B, u, e);
   }
   TX.act = act;
+  TX.fleeFear = function* (B, u) {
+    var T = u.turn;
+    if (T.action && !u.conds.restrained) { T.action = 0; T.move += u.speed; }
+    T.fleeFrom = u.conds.feared.by;
+    B.card(['{p}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' runs from its fear.{/}'], 200);
+    yield* M.flee(B, u);
+  };
   // a caster, a bowman: after acting, off the front if it can be
   function* keepOff(B, u) {
     var T = u.turn;
@@ -457,6 +471,15 @@
     var fs = foesOf(B, u), allies = alliesOf(B, u);
     var plans = spellPlans(B, u, fs, allies).filter(function (p) { return p.bonus; }).sort(function (a, b) { return b.score - a.score; });
     if (plans[0] && plans[0].score > 2) yield* plans[0].go();
+  });
+  // Frenzy (the Berserker, 3): while raging, a swing for the bonus action
+  TX.AFTER.push(function* (B, u) {
+    var T = u.turn;
+    if (!u.conds.frenzy || !u.conds.raging || !T.bonus || u.conds.disarmed) return;
+    var t = foesOf(B, u).filter(function (w) { return G.dist(u, w) <= (u.weapon.reach || u.reach || 5); }).sort(function (a, b) { return a.hp - b.hp; })[0];
+    if (!t) return;
+    T.bonus = 0; B.card(['{r}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' is in a frenzy!{/}  {g}(a swing for the bonus action){/}'], 160);
+    yield* B.attack(u, t, u.weapon);
   });
   // Second Wind (the fighter), under half
   TX.AFTER.push(function* (B, u) {
