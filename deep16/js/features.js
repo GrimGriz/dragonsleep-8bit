@@ -115,7 +115,7 @@
     var T = u.turn;
     if (u.cls !== 'rogue' || u.lvl < 2 || !T.bonus || u.side === 'party' && !u.guest) return;
     var beside = foesBeside(B, u);
-    if (beside.length && T.move > 0) { T.bonus = 0; T.disengaged = true; B.card(['{y}' + Nm(B, u) + '{/} (Cunning Action) disengages.'], 160); yield 8; return; }
+    if (beside.length && T.move >= 10) { T.bonus = 0; T.disengaged = true; B.card(['{y}' + Nm(B, u) + '{/} (Cunning Action) disengages.'], 160); yield 8; return; }
     if (!beside.length && !u.conds.hidden) { yield* B.hide(u); }
   });
   // ------------------------------------------------------------------ the paladin: Sacred Weapon for the AI's paladins

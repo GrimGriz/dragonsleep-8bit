@@ -31,32 +31,32 @@
   // spells: what the NPC knows or prepares at each level it reaches (the test vehicle's list: chosen to put every built spell
   // of its class through a fight); `always`: the domain's or the oath's, prepared and uncounted
   var C = NPC.CLASSES = {
-    barbarian: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greataxe', alt: 'handaxe' }, sub: [3, 'Path of the Berserker'], look: 'berserker_p1' },
-    bard: { prio: ['cha', 'dex', 'con', 'wis', 'int', 'str'], kit: { weapon: 'rapier', armor: 'leather', alt: 'dagger' }, sub: [3, 'College of Lore'], look: 'gloryseeker_p1',
+    barbarian: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greataxe', alt: 'handaxe' }, sub: [3, 'Path of the Berserker'], look: 'npcbarbarian_p0' },
+    bard: { prio: ['cha', 'dex', 'con', 'wis', 'int', 'str'], kit: { weapon: 'rapier', armor: 'leather', alt: 'dagger' }, sub: [3, 'College of Lore'], look: 'npcbard_p0',
       cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], known: [4, 5, 6, 7, 8, 9, 10, 11, 12],
       spells: { 0: ['viciousmockery', 'dancinglights', 'light'], 1: ['healingword', 'hideouslaughter', 'faeriefire', 'thunderwave', 'bane', 'curewounds'], 2: ['heatmetal', 'shatter', 'blindnessdeafness', 'enhanceability'], 3: ['hypnoticpattern', 'fear', 'slow'], magicalSecrets: ['fireball', 'haste'] } },
-    cleric: { prio: ['wis', 'con', 'str', 'cha', 'dex', 'int'], kit: { weapon: 'mace', armor: 'chainmail', shield: 'shield', alt: 'lightcrossbow' }, sub: [1, 'Life Domain'], look: 'torvald_p0',
+    cleric: { prio: ['wis', 'con', 'str', 'cha', 'dex', 'int'], kit: { weapon: 'mace', armor: 'chainmail', shield: 'shield', alt: 'lightcrossbow' }, sub: [1, 'Life Domain'], look: 'npccleric_p0',
       cantrips: [3, 3, 3, 4, 4, 4, 4, 4, 4], prepares: 'wis',
       always: { 1: ['bless', 'curewounds'], 3: ['lesserrestoration', 'spiritualweapon'], 5: ['beaconofhope', 'revivify'] },
       spells: { 0: ['sacredflame', 'guidance', 'light', 'resistance'], 1: ['guidingbolt', 'healingword', 'shieldoffaith', 'sanctuary', 'command', 'bane', 'inflictwounds'], 2: ['holdperson', 'aid', 'blindnessdeafness', 'wardingbond'], 3: ['spiritguardians', 'masshealingword', 'dispelmagic', 'bestowcurse', 'daylight'] } },
-    druid: { prio: ['wis', 'con', 'dex', 'int', 'cha', 'str'], kit: { weapon: 'scimitar', armor: 'leather', shield: 'shield' }, sub: [2, 'Circle of the Land'], look: 'bandit_p1',
+    druid: { prio: ['wis', 'con', 'dex', 'int', 'cha', 'str'], kit: { weapon: 'scimitar', armor: 'leather', shield: 'shield' }, sub: [2, 'Circle of the Land'], look: 'npcdruid_p0',
       cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], prepares: 'wis', landCantrip: 'poisonspray',
       spells: { 0: ['produceflame', 'shillelagh', 'guidance', 'resistance'], 1: ['entangle', 'faeriefire', 'healingword', 'curewounds', 'fogcloud', 'thunderwave'], 2: ['barkskin', 'flameblade', 'heatmetal', 'spikegrowth', 'gustofwind', 'enhanceability'], 3: ['calllightning', 'dispelmagic', 'protectionfromenergy', 'sleetstorm', 'daylight'] } },
-    fighter: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greatsword', armor: 'chainmail', alt: 'handaxe' }, style: 'gwf', sub: [3, 'Champion'], look: 'veteran_p1', asiAt: [4, 6, 8] },
-    monk: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'shortsword', alt: 'dagger' }, sub: [3, 'Way of the Open Hand'], look: 'brawler_p1' },
-    paladin: { prio: ['str', 'cha', 'con', 'wis', 'dex', 'int'], kit: { weapon: 'longsword', armor: 'chainmail', shield: 'shield', alt: 'handaxe' }, style: 'defense', sub: [3, 'Oath of Devotion'], look: 'guard_p1', prepares: 'cha', half: true,
+    fighter: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greatsword', armor: 'chainmail', alt: 'handaxe' }, style: 'gwf', sub: [3, 'Champion'], look: 'npcfighter_p0', asiAt: [4, 6, 8] },
+    monk: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'shortsword', alt: 'dagger' }, sub: [3, 'Way of the Open Hand'], look: 'npcmonk_p0' },
+    paladin: { prio: ['str', 'cha', 'con', 'wis', 'dex', 'int'], kit: { weapon: 'longsword', armor: 'chainmail', shield: 'shield', alt: 'handaxe' }, style: 'defense', sub: [3, 'Oath of Devotion'], look: 'npcpaladin_p0', prepares: 'cha', half: true,
       always: { 3: ['protectionfromevilandgood', 'sanctuary'], 5: ['lesserrestoration'] },
       spells: { 1: ['bless', 'command', 'shieldoffaith', 'divinefavor', 'heroism', 'curewounds'], 2: ['brandingsmite', 'magicweapon', 'aid'] } },
-    ranger: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'longbow', armor: 'scalemail', alt: 'shortsword' }, style: 'archery', sub: [3, 'Hunter'], look: 'crewman_p1',
+    ranger: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'longbow', armor: 'scalemail', alt: 'shortsword' }, style: 'archery', sub: [3, 'Hunter'], look: 'npcranger_p0',
       known: [0, 2, 3, 3, 4, 4, 5, 5, 6], spells: { 1: ['huntersmark', 'curewounds', 'fogcloud', 'longstrider'], 2: ['spikegrowth', 'passwithouttrace', 'barkskin'] } },
-    rogue: { prio: ['dex', 'con', 'wis', 'int', 'cha', 'str'], kit: { weapon: 'rapier', armor: 'leather', alt: 'shortbow' }, sub: [3, 'Thief'], look: 'assassin_p1', expertise: ['Stealth', 'Perception'] },
-    sorcerer: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', alt: 'dagger' }, sub: [1, 'Draconic Bloodline'], look: 'willem_p1', ancestry: 'fire',
+    rogue: { prio: ['dex', 'con', 'wis', 'int', 'cha', 'str'], kit: { weapon: 'rapier', armor: 'leather', alt: 'shortbow' }, sub: [3, 'Thief'], look: 'npcrogue_p0', expertise: ['Stealth', 'Perception'] },
+    sorcerer: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', alt: 'dagger' }, sub: [1, 'Draconic Bloodline'], look: 'npcsorcerer_p0', ancestry: 'fire',
       cantrips: [4, 4, 4, 5, 5, 5, 5, 5, 5], known: [2, 3, 4, 5, 6, 7, 8, 9, 10],
       spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'poisonspray', 'chilltouch'], 1: ['magicmissile', 'shield', 'burninghands', 'colorspray'], 2: ['scorchingray', 'mistystep', 'mirrorimage'], 3: ['fireball', 'haste'] } },
-    warlock: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', armor: 'leather', alt: 'dagger' }, sub: [1, 'The Fiend'], look: 'amara_p1',
+    warlock: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', armor: 'leather', alt: 'dagger' }, sub: [1, 'The Fiend'], look: 'npcwarlock_p0',
       cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], known: [2, 3, 4, 5, 6, 7, 8, 9, 10], invocations: { 2: ['agonizing', 'devilsight'], 5: ['agonizing', 'devilsight', 'repelling'] },
       spells: { 0: ['eldritchblast', 'chilltouch', 'poisonspray'], 1: ['hellishrebuke', 'command', 'burninghands', 'expeditiousretreat'], 2: ['scorchingray', 'darkness', 'mirrorimage', 'holdperson'], 3: ['fireball', 'fear', 'vampirictouch'] } },
-    wizard: { prio: ['int', 'con', 'dex', 'wis', 'cha', 'str'], kit: { weapon: 'quarterstaff', armor: 'robes' }, sub: [2, 'School of Evocation'], look: 'willem_p1',
+    wizard: { prio: ['int', 'con', 'dex', 'wis', 'cha', 'str'], kit: { weapon: 'quarterstaff', armor: 'robes' }, sub: [2, 'School of Evocation'], look: 'npcwizard_p0',
       cantrips: [3, 3, 3, 4, 4, 4, 4, 4, 4], prepares: 'int',
       spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'chilltouch', 'light'], 1: ['magicmissile', 'shield', 'mageArmor', 'burninghands', 'sleep', 'colorspray', 'grease', 'hideouslaughter', 'falselife'], 2: ['scorchingray', 'mistystep', 'holdperson', 'web', 'shatter', 'mirrorimage', 'acidarrow', 'blur'], 3: ['fireball', 'lightningbolt', 'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch'] } }
   };
@@ -68,7 +68,7 @@
   NPC.NAMED = {
     // Higertha, the druid at Mama's Pharmakaiea in the Hex (RULED 09-28: "Higertha is half-orc Druid"); the register sets no level,
     // so she stands at any. Her circle's land is the seat's draft (invented.json #higertha-druid): the mountain, the Pit's
-    higertha: { name: 'Higertha', cls: 'druid', race: 'halforc', named: true, land: 'mountain', look: 'ingrith_p0' },
+    higertha: { name: 'Higertha', cls: 'druid', race: 'halforc', named: true, land: 'mountain' }, // (her look is the druid's own, npcdruid_p0: the half-orc in the forest robe)
     // Torvald Greyseam, cleric 5 of Dvalgarda (the-copper-egg.md, CANON 09-16f): the SRD Priest's list (RULED 09-28: the SRD stat
     // blocks' lists where the register has none) and the 8-bit's Hold Person; the register gives no domain, so none (flagged); his
     // numbers the 8-bit sheet's (content/monsters.json torvald: AC 13, a max d8+2 a level). His spirits are the Dormant's, cold
@@ -229,6 +229,12 @@
     u.spellDC = 8 + prof + DS.mod(u.abil[ab]); u.spellAtk = prof + DS.mod(u.abil[ab]);
     return u;
   };
+  // the paladin's list on the grid (09-28): the spells built for the class NPCs join Lymen's pool here -- Command, Branding Smite, Magic
+  // Weapon -- and his Oath of Devotion's at 3 (Protection from Evil and Good, Sanctuary). This page's rules only: the 8-bit game's own
+  // battle cannot cast them (no 8-bit records), so its pool stays as it was till Griz says (handoff §3F)
+  ['command', 'brandingsmite', 'magicweapon'].forEach(function (id) { if (R.PALADIN_SPELLS.indexOf(id) < 0) R.PALADIN_SPELLS.push(id); });
+  var oath0 = R.oathSpells;
+  R.oathSpells = function (h) { var o = oath0(h).slice(); if (h.cls === 'paladin' && h.lvl >= 3) ['protectionfromevilandgood', 'sanctuary'].forEach(function (id) { if (o.indexOf(id) < 0) o.push(id); }); return o; };
   // thrown weapons read as ranged when thrown (SRD 5.1: the handaxe, the dagger 20/60)
   NPC.THROWN = { handaxe: [20, 60], dagger: [20, 60] };
 

@@ -13,8 +13,12 @@
   var KEY = 'deep16.climb', IDS = ['barley', 'aurdin', 'vivian', 'lymen'], ABIL = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   // the wizard spells a climb can learn (the 8-bit game's list and Misty Step); the cantrips
   var WIZARD = ['burninghands', 'magicmissile', 'shield', 'sleep', 'detectmagic', 'mageArmor', 'thunderwave', 'scorchingray', 'shatter', 'web',
-    'holdperson', 'mistystep', 'fireball', 'lightningbolt', 'icestorm', 'greaterinvisibility', 'stoneskin', 'coneofcold', 'holdmonster', 'ropetrick', 'tinyhut']; // (the resting spells: RULED 09-28, the climb offers them too)
-  var CANTRIPS = ['firebolt', 'acidsplash', 'light'];
+    'holdperson', 'mistystep', 'fireball', 'lightningbolt', 'icestorm', 'greaterinvisibility', 'stoneskin', 'coneofcold', 'holdmonster', 'ropetrick', 'tinyhut', // (the resting spells: RULED 09-28, the climb offers them too)
+    // the wizard's spells built for the class NPCs (09-28, js/grimoire.js): his to learn on the climb and try by hand
+    'colorspray', 'grease', 'hideouslaughter', 'falselife', 'expeditiousretreat', 'longstrider', 'protectionfromevilandgood', 'fogcloud',
+    'acidarrow', 'blur', 'mirrorimage', 'rayofenfeeblement', 'gustofwind', 'enlargereduce', 'magicweapon', 'invisibility', 'darkvision', 'seeinvisibility', 'continualflame', 'darkness',
+    'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch', 'blink', 'protectionfromenergy', 'dispelmagic', 'stinkingcloud', 'sleetstorm'];
+  var CANTRIPS = ['firebolt', 'acidsplash', 'light', 'rayoffrost', 'shockinggrasp', 'chilltouch', 'poisonspray', 'truestrike', 'dancinglights'];
 
   // ------------------------------------------------------------------ the climb's state
   var CL = D.climb = {};

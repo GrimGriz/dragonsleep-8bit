@@ -469,7 +469,7 @@
     var T = u.turn;
     if (!T.move || u.conds.restrained) return;
     var ranged = (u.weapon && u.weapon.ranged) || TX.caster(u);
-    if (!ranged) return;
+    if (!ranged && !T.disengaged) return; // (one who disengaged -- the rogue's Cunning Action, a goblin's -- steps back out of reach too)
     var fs = foesOf(B, u), pressed = G.foesNear(u, u.x, u.y, 5).length;
     if (!pressed) return;
     if (!T.disengaged && u.hp > u.maxhp * 0.6) return; // (not worth the swings at it while it is whole)

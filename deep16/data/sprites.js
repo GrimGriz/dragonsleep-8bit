@@ -2378,6 +2378,558 @@
 }
 }
 },
+"npcbarbarian_p0": {
+"image": "art/npcbarbarian_p0.png?v=7c36f59579",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcbard_p0": {
+"image": "art/npcbard_p0.png?v=23d407d523",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npccleric_p0": {
+"image": "art/npccleric_p0.png?v=4f551206f1",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 50,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcdruid_p0": {
+"image": "art/npcdruid_p0.png?v=d497855172",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 8,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcfighter_p0": {
+"image": "art/npcfighter_p0.png?v=3fbd1bc80c",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 53,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcmonk_p0": {
+"image": "art/npcmonk_p0.png?v=7bea59f508",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 48,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcpaladin_p0": {
+"image": "art/npcpaladin_p0.png?v=7b2ae6d957",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcranger_p0": {
+"image": "art/npcranger_p0.png?v=e3c4b6ed19",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 13,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcrogue_p0": {
+"image": "art/npcrogue_p0.png?v=b4a59a696b",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcsorcerer_p0": {
+"image": "art/npcsorcerer_p0.png?v=3a3abe847c",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcwarlock_p0": {
+"image": "art/npcwarlock_p0.png?v=871c384641",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 53,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcwizard_p0": {
+"image": "art/npcwizard_p0.png?v=ab64fa9ea3",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 57,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "ochrejelly_p1": {
 "image": "art/ochrejelly_p1.png?v=b29add51ae",
 "fw": 120,

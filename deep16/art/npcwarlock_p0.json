@@ -1,0 +1,46 @@
+{
+ "image": "art/npcwarlock_p0.png",
+ "fw": 64,
+ "fh": 64,
+ "ax": 32,
+ "ay": 61,
+ "top": 53,
+ "anims": {
+  "idle": {
+   "y": 0,
+   "fw": 64,
+   "fh": 64,
+   "ax": 32,
+   "ay": 61,
+   "frames": 2,
+   "fps": 6
+  },
+  "walk": {
+   "y": 512,
+   "fw": 64,
+   "fh": 64,
+   "ax": 32,
+   "ay": 61,
+   "frames": 9,
+   "fps": 10
+  },
+  "attack": {
+   "y": 1024,
+   "fw": 64,
+   "fh": 64,
+   "ax": 32,
+   "ay": 61,
+   "frames": 6,
+   "fps": 12
+  },
+  "hurt": {
+   "y": 1536,
+   "fw": 64,
+   "fh": 64,
+   "ax": 32,
+   "ay": 61,
+   "frames": 6,
+   "fps": 10
+  }
+ }
+}

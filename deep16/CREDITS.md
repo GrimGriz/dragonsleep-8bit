@@ -515,6 +515,85 @@ Used by: brann
   - licences: CC-BY-SA 3.0, GPL 3.0
   - https://opengameart.org/content/lpc-medieval-weapons
 
+### The class NPCs (09-28): `npcbarbarian_p0`, `npcbard_p0`, `npccleric_p0`, `npcdruid_p0` (Higertha's), `npcfighter_p0`, `npcmonk_p0`, `npcpaladin_p0`, `npcranger_p0`, `npcrogue_p0`, `npcsorcerer_p0`, `npcwarlock_p0`, `npcwizard_p0`
+
+Composed by `tools/lpc-compose.py` (`npc<class>`), pixelated by `tools/pixelate.py p0` (deep16/js/classes.js `look`). They also use these layers credited above: `body/body.json` (all twelve); `head/heads/human/heads_human_male.json` (barbarian, cleric, fighter, monk, rogue, warlock); `head/heads/human/heads_human_female.json` (bard, paladin, ranger, sorcerer); `legs/pants/legs_pants.json` (barbarian, bard, cleric, fighter, monk, paladin, ranger, rogue, warlock); `feet/boots/feet_boots_basic.json` (barbarian, bard, cleric, fighter, paladin, ranger, rogue, warlock); `feet/shoes/feet_shoes_basic.json` (druid, monk, sorcerer, wizard); `hair/long/hair_long.json` (barbarian, bard, druid, sorcerer, wizard); `hair/short/hair_messy1.json` (cleric); `hair/short/hair_messy2.json` (fighter, warlock); `torso/armour/torso_armour_leather.json` (barbarian, ranger, rogue); `torso/armour/torso_armour_plate.json` (fighter, paladin); `torso/torso_chainmail.json` (cleric); `torso/shirts/longsleeve/torso_clothes_longsleeve.json` (bard, warlock); `torso/shirts/torso_clothes_robe.json` (druid, sorcerer, wizard); `torso/waist/belt_robe.json` (monk); `torso/cape/cape_solid.json` (bard, warlock); `headwear/coverings/hoods/hat_hood_cloth.json` (ranger, rogue); `weapons/blunt/weapon_blunt_mace.json` (cleric); `weapons/blunt/weapon_blunt_waraxe.json` (barbarian); `weapons/sword/weapon_sword_dagger.json` (bard, rogue, warlock); `weapons/sword/weapon_sword_longsword.json` (fighter, paladin); `weapons/shields/shield_round.json` (cleric, paladin); `weapons/magic/weapon_magic_simple.json` (wizard). And these, new with them:
+
+## hair/bald/hair_buzzcut.json -- "Buzzcut"
+
+Used by: npcmonk
+
+- **file** `hair/buzzcut`
+  - authors: ElizaWy
+  - licences: OGA-BY 3.0
+  - https://opengameart.org/content/lpc-hair
+
+## hair/braids/hair_braid.json -- "Braid"
+
+Used by: npcpaladin
+
+- **file** `hair/braid`
+  - authors: Nila122, ElizaWy
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0, GPL 2.0
+  - https://opengameart.org/content/3-hairs-for-lpc
+  - https://opengameart.org/content/lpc-hair
+
+## head/heads/fantasy/heads_orc_female.json -- "Orc female"
+
+Used by: npcdruid
+
+- **file** `head/heads/orc/female`
+  - authors: bluecarrot16, Matthew Krohn (makrohn), Marcel van de Steeg (MadMarcel), Stephen Challener (Redshrike)
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+  - https://opengameart.org/content/lpc-female-orcogregoblintroll-base-walkcycle
+  - https://opengameart.org/content/lpc-ladies
+  - https://opengameart.org/content/lpc-character-bases
+  - notes: human head adapted to orc by madmarcel, hurt/cast animations made by makrohn, headless version and tweaks by bluecarrot16
+
+## head/heads/human/heads_human_female_elderly.json -- "Human Female Elderly"
+
+Used by: npcwizard
+
+- **file** `head/heads/human/female_elderly`
+  - authors: Benjamin K. Smith (BenCreating), Eliza Wyatt (ElizaWy), Stephen Challener (Redshrike)
+  - licences: OGA-BY 3.0, CC-BY 3.0
+  - https://opengameart.org/content/liberated-pixel-cup-lpc-base-assets-sprites-map-tiles
+  - https://opengameart.org/content/lpc-revised-elders
+  - https://opengameart.org/content/lpc-character-bases
+
+## headwear/hats/magic/hat_magic_wizard.json -- "Wizard Hat Base"
+
+Used by: npcwizard
+
+- **file** `hat/magic/wizard`
+  - authors: Michael Whitlock (bigbeargames), Tuomo Untinen (reemax), JaidynReiman
+  - licences: CC-BY-SA 3.0, GPL 2.0, GPL 3.0
+  - https://opengameart.org/content/lpc-items-and-game-effects
+  - https://opengameart.org/content/lpc-pointed-hats
+  - https://opengameart.org/content/lpc-expanded-hats-facial-helmets
+  - notes: Original Wizard Hat and Recolors by bigbeargames and reemax; split into separate layers with new recolors by JaidynReiman
+
+## weapons/magic/weapon_magic_gnarled.json -- "Gnarled staff"
+
+Used by: npcdruid
+
+- **file** `weapon/magic/gnarled`
+  - authors: bluecarrot16
+  - licences: OGA-BY 3.0+, GPL 3.0, CC-BY 4.0
+  - https://opengameart.org/content/lpc-more-weapons
+
+## weapons/ranged/bow/weapon_ranged_bow_normal.json -- "Normal"
+
+Used by: npcranger
+
+- **file** `weapon/ranged/bow/normal`
+  - authors: Johannes Sjölund (wulax), Pierre Vigier (pvigier)
+  - licences: OGA-BY 3.0+, GPL 3.0, CC-BY 4.0
+  - https://opengameart.org/content/lpc-medieval-fantasy-character-sprites
+  - https://opengameart.org/content/lpc-walk-animations-for-bows
+  - notes: original by wulax, walk animations by pvigier, split into layers and tweaked for v3 character bases by bluecarrot16. pvigier has agreed to license this sheet as OGA-BY 3.0+.
+
 ## The campfire (09-28)
 
 The four heroes' sheets (barley_p0, aurdin_p0, vivian_p0, lymen_p0) also carry the generator's `sit` animation (`tools/lpc-compose.py` `extra`), from the same layers and sheet definitions credited above (the body's credits include LPC Be Seated, https://opengameart.org/content/lpc-be-seated). The campfire scene they sit in (`js/campfire.js`) is drawn in code.
