@@ -89,6 +89,16 @@
     else if (slotAt(ly, 2) < 0) awhy = 'no 2nd-level slot left';
     if (aid.on && !awhy) { ly.slots[slotAt(ly, 2)]--; at.forEach(function (h) { h.maxhp += 5; h.hp += 5; h.conds.aid = (h.conds.aid || 0) + 5; }); }
     info.aid = { why: awhy, targets: at, on: aid.on && !awhy };
+    // a torch in hand (Griz, 09-28h: "Can we add 'Aurdin torch' as a campfire prepare?"): lit at the camp, out of the pack, so
+    // nobody spends the fight's first action on the tinderbox; it takes a hand, as on the grid (js/light.js L.handsFree)
+    var tb = by[st.torch], tpack = (data.inv || []).filter(function (s) { return s.id === 'torch'; })[0], twhy = '';
+    if (tb) {
+      if (!tpack || tpack.n < 1) twhy = 'no torch in the pack';
+      else if (twoHanded(tb.equip.weapon)) twhy = tb.name + '\'s ' + item(tb.equip.weapon).name + ' takes both hands';
+      else if (tb.equip.weapon && tb.equip.shield) twhy = tb.name + ' has a weapon and a shield';
+      if (!twhy) { tpack.n--; data.torchBy = tb.id; }
+    }
+    info.torch = { who: tb || null, why: twhy, on: !!tb && !twhy, left: tpack ? tpack.n : 0 };
     this.info = info;
     return data;
   };
@@ -116,6 +126,9 @@
         { label: 'EQUIP', right: armoury(this.L).length + ' in the armoury', act: go('hero'), desc: 'Weapons, armour, shields and rings from the armoury, free: nobody is fighting yet. What one hero sets down, another can take up.' },
         { label: 'PREPARE SPELLS', right: hs.filter(function (h) { return h.prepared; }).map(function (h) { return h.name + ' ' + h.prepared.length + '/' + SV.prepCount(h); }).join('  '), act: go('caster'), desc: 'The day\'s spells. Aurdin prepares INT + his level from his book; Lymen CHA + half his level from the paladin list. Cantrips, and Lymen\'s oath spells, are always ready.' },
         { label: 'CAST AHEAD', right: [this.info.mageArmor.on ? 'mage armor' : '', this.info.aid.on ? 'aid' : ''].filter(Boolean).join(', ') || 'nothing', act: go('cast'), desc: 'The 8-hour spells, cast this morning: they are on when the fight starts, and their slots are spent.' },
+        { label: 'A TORCH IN HAND', right: this.info.torch.why || (this.info.torch.who ? this.info.torch.who.name : 'nobody'), ok: !this.info.torch.why || !!this.info.torch.who,
+          act: function () { self.cycleTorch(1); }, cycle: function (d) { self.cycleTorch(d); },
+          desc: 'Who walks in holding a torch lit at the camp, from the pack: bright 20 ft and dim 20 more from the first round, and no action spent on the tinderbox. It takes a hand (a versatile weapon is held in one); not with a two-handed weapon, or a weapon and a shield. Left/right or E: who.' + ((this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark) ? '  This fight is in the dark.' : '  This fight is not in the dark.') },
         { label: 'FIGHT', right: this.F.name, act: function () { self.fight(); }, desc: this.F.intro || '' },
         this.o.climb
           ? { label: 'RESET THE MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'The day\'s spells back to the default picks from what they know, Mage Armor on Aurdin if he knows it, and today\'s gear changes undone.' }
@@ -201,6 +214,12 @@
     this.st.cast.mageArmor.who = ok[((i < 0 ? 0 : i + d) % ok.length + ok.length) % ok.length].id;
     this.changed();
   };
+  Camp.prototype.cycleTorch = function (d) { // nobody, then Aurdin first (his word), then the rest in the party's order
+    var ids = [null, 'aurdin'].concat(this.data.party.map(function (h) { return h.id; }).filter(function (id) { return id !== 'aurdin'; }));
+    var i = ids.indexOf(this.st.torch || null);
+    this.st.torch = ids[((i + d) % ids.length + ids.length) % ids.length];
+    this.changed();
+  };
   Camp.prototype.cycleAid = function (d) {
     var ids = this.data.party.map(function (h) { return h.id; }), i = ids.indexOf(this.st.cast.aid.out);
     this.st.cast.aid.out = ids[((i + d) % ids.length + ids.length) % ids.length];
@@ -221,7 +240,7 @@
     // the climb: the gear chosen here goes with the party from now on
     if (this.o.climb) { this.o.climb.keep(data.party); this.st.equip = {}; this.save(); }
     // (who went down in it, for the climb's campfire: the DM's hands bring them back -- climb.js)
-    var fb = new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, onDone: function (res) {
+    var fb = new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, torch: data.torchBy, onDone: function (res) {
       var down = (fb.units || []).filter(function (u) { return u.side === 'party' && !u.guest && (u.ko || u.hp <= 0); }).map(function (u) { return u.id; });
       self.leave(res, { down: down });
     } });

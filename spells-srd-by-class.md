@@ -71,6 +71,12 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 - **The ooze's acid wearing gear down for good: no.** *"No."* The corrosion is the fight's alone (#ooze-wear-fight-only).
 - **The subclasses past the SRD, and Torvald's none: our own.** *"Sufficiently distinct - Kat supposed to be Cleric of trickster deity trapped in mirror."* Drafted by the seat and built on the grid (`deep16/js/features.js`, `deep16/js/classes.js NPC.SUBS`): Talmok's **Path of the Sand** (First Blood, Down in the Sand; Answer Back at 6), Willem's **Rimeglass** (Rime Doubles; Rime Step at 6), Kat's **Window**, Tronupholen's menders (the Hand on the Neck; the Doubling; the Showing at 6; Disguise Self, Silent Image, Blur, Pass without Trace, Hypnotic Pattern, Clairvoyance), Torvald's **Vigil**, Dvalgarda's (Keeper's Ward; Hold the Door; Wakeful at 6; Sanctuary, Protection from Evil and Good, Hold Person, Warding Bond, Spirit Guardians, Glyph of Warding) (#path-of-the-sand, #the-rimeglass, #the-window, #the-vigil). Ingrith's domain is the SRD's Life (#ingrith-cleric).
 
+## Ruled, 09-28h
+
+- **Material components: none, except the rest spells'.** *"no material component for anything but the rest-ones"*: Rope Trick spends its Gulch Silk and Tiny Hut its Dome Whorl; Continual Flame needs no ruby (as built). **Revivify keeps its diamond** (asked, 09-28h: *"Keep the diamond"*; Dagny's grille and the cocoon's diamond keep their reason).
+- **Lighting a torch costs an action** (the SRD tinderbox): *"yes to action cost"* (`deep16/js/light.js L.LIGHT_COST 'A'`).
+- **The spell animation pass** (handoff-2026-09-28-spell-animation-pass.md §4): both games (*"might as well pretty spells it now"*; the 8-bit gets sprites where it needs them, entangling vines first); code for most, a visible double for whatever makes mirror images (to pop), the terrain art where it serves; the 15 ramps as they are (*"you creative from 15 sounds fine"*); an animation takes as long as it needs (*"The lack of spirit weapon as such is what made me see the need for this pass"*); a sound per element and an alternate for special cases; the cast pose for every caster we have. Fireball and Lightning Bolt are decent as they are; the drow's spells were lackluster.
+
 ## Still open
 
 - Nothing from 09-28's list: all ruled 09-28g (above). The four subclasses are the seat's drafts, standing as approved: his word to redirect any of them.

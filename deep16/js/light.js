@@ -17,7 +17,7 @@
   // one switch in js/rules.js R.BLIND (AMENDED 09-28: the -4 was AD&D's number; the game's law is the SRD 5.1)
   L.BLIND = (window.DS && window.DS.R && window.DS.R.BLIND != null) ? window.DS.R.BLIND : 'disadvantage';
   L.TORCH = { bright: 20, dim: 20 };   // SRD 5.1 torch: bright 20 ft, dim 20 more, an hour (no fight runs that long)
-  L.LIGHT_COST = 'A';                  // lighting a torch: an action (SRD 5.1 tinderbox: "takes an action"); the Thief's Fast Hands make it a bonus. OPEN (handoff 09-28 §4): 'B' would make it a bonus action for all
+  L.LIGHT_COST = 'A';                  // lighting a torch: an action (SRD 5.1 tinderbox: "takes an action"); the Thief's Fast Hands make it a bonus. RULED 09-28h (Griz: "yes to action cost"); 'B' would make it a bonus action for all
   // who sees in the dark by blood (SRD 5.1), keyed on the 8-bit sheets' `race`
   L.RACE_DV = { 'Half-orc': 60, 'Dwarf': 60, 'Elf': 60, 'Gnome': 60, 'Tiefling': 60, 'Drow': 120, 'Human': 0, 'Halfling': 0 };
   L.raceDV = function (race) { return L.RACE_DV[race] || 0; };
