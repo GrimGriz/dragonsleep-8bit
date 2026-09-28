@@ -253,10 +253,13 @@
     }
     return n;
   };
+  // SRD 5.1 (RULED 09-28, Griz: "17 SRD"): one at 0 who is not dead wakes with any healing, at the healed amount -- a spell, a
+  // potion, a paladin's hands (a kit only stabilises; Revivify is for the dead). Before this, a downed hero was "beyond a spell"
   Battle.prototype.heal = function (u, n) {
-    if (down(u)) return 0;
-    var h = u.h, before = h.hp;
-    h.hp = Math.min(h.maxhp, h.hp + n);
+    if (!isHero(u) || n <= 0) return 0;
+    var h = u.h, before = Math.max(0, h.hp), was = down(u);
+    h.hp = Math.min(h.maxhp, before + n);
+    if (h.hp > 0 && was) { h.ko = false; u.conds = {}; u.pose = null; this.pendingMsg = nameOf(u) + ' comes round.'; }
     return h.hp - before;
   };
   Battle.prototype.kill = function (u) {
@@ -716,7 +719,7 @@
       return 'action';
     }
     if (sk === 'lay') {
-      var t = yield* this.pickAlly();
+      var t = yield* this.pickAlly(function (x) { return true; }); // (the downed too: SRD, RULED 09-28)
       if (!t) return 'cancel';
       var hasPoison = t.conds.poisoned || t.conds.paralyzed;
       var opts = [{ label: 'HEAL', value: 'heal', disabled: t.h.hp >= t.h.maxhp }, { label: 'CURE POISON (5)', value: 'cure', disabled: f.lay < 5 || !hasPoison }];
@@ -776,7 +779,7 @@
     else if (sp.target === 'ally') {
       var unarmored = sp.buff === 'mageArmor' ? function (x) { return !down(x) && !R.armored(x.h); } : null; // Mage Armor: an unarmored ally only
       if (unarmored && !this.heroes.some(unarmored)) { yield* this.say('No one here goes unarmored. Mage Armor has no one to take it.', 40); return false; }
-      var ta = yield* this.pickAlly(unarmored); if (!ta) return false; targets = [ta];
+      var ta = yield* this.pickAlly(unarmored || (sp.kind === 'heal' ? function (x) { return true; } : null)); if (!ta) return false; targets = [ta]; // (a healing spell may go to one who is down: SRD, RULED 09-28)
     }
     else if (sp.target === 'allies') targets = this.liveHeroes().slice(0, sp.max || 4);
     else if (sp.target === 'self') targets = [u];
@@ -808,7 +811,7 @@
         yield* this.say('The diamond goes to dust in ' + nameOf(u) + "'s hand. " + nameOf(t) + ' breathes, and is up!', 50);
         continue;
       }
-      if (down(t) && k !== 'buff') { if (sp.target === 'enemy') { var alts = this.liveFoes(); if (!alts.length) break; t = DS.pick(alts); } else continue; }
+      if (down(t) && k !== 'buff' && k !== 'heal') { if (sp.target === 'enemy') { var alts = this.liveFoes(); if (!alts.length) break; t = DS.pick(alts); } else continue; }
       if (k === 'attack') {
         var rays = (sp.rays || 1) + (sp.rayUp ? up : 0);
         for (var r = 0; r < rays && !down(t); r++) {
@@ -856,7 +859,6 @@
         yield* this.say(slept.length ? slept.map(plain).join(', ') + (slept.length > 1 ? ' fall' : ' falls') + ' asleep!' : 'Nothing sleeps.', 46);
         break;
       } else if (k === 'heal') {
-        if (down(t)) { yield* this.say(nameOf(t) + ' is beyond a spell. A healer\'s kit, or the leech-house.', 44); continue; }
         var hv = this.heal(t, DS.roll(sp.dmg.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up) + 'd'; })) + DS.mod(h.abil[R.CLASSES[h.cls].cast]));
         DS.audio.sfx('heal'); this.elemBurst(t, 'heal', 'rise'); this.num(t, hv, '#58F898');
         yield* this.say(nameOf(t) + ' recovers ' + hv + ' HP.', 36);
@@ -907,7 +909,7 @@
     var it = DS.DATA.items[id], use = it.use, t = null, self = this;
     if (use.target === 'enemy') { t = yield* this.pickFoe(); if (!t) return false; }
     else if (use.target === 'ally' || use.target === 'revive') {
-      t = yield* this.pickAlly(use.target === 'revive' ? function (x) { return down(x); } : null);
+      t = yield* this.pickAlly(use.target === 'revive' ? function (x) { return down(x); } : use.effect === 'heal' ? function (x) { return true; } : null); // (a potion wakes one who is down: SRD, RULED 09-28)
       if (!t) { if (use.target === 'revive') yield* this.say('No one is down.', 30); return false; }
     } else t = u;
     if (use.effect === 'heal' && t.h && t.h.hp >= t.h.maxhp) { yield* this.say(nameOf(t) + ' is unhurt.', 30); return false; }
