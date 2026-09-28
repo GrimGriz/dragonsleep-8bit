@@ -66,7 +66,7 @@
     var only = this.o.embed && this.o.embed.only, list = this.o.embed && this.o.embed.enemies;
     var foes = (list ? this.roster(F.foes || m.def.foes, list, m, party) : (F.foes || m.def.foes).filter(function (f) { return !only || only.indexOf(f.kind) >= 0; }))
       .map(function (f) { return self.makeFoe(f); });
-    if (NB) foes = this.seatBand(NB.foes.map(function (w, i) { return D.npc.build(w, F.level, 'foe', { id: 'f' + i + '-' + String(w).split(':')[0] }); }).filter(Boolean), m, party);
+    if (NB && NB.foes && NB.foes.length) foes = this.seatBand(NB.foes.map(function (w, i) { return D.npc.build(w, F.level, 'foe', { id: 'f' + i + '-' + String(w).split(':')[0] }); }).filter(Boolean), m, party);
     if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
     this.units = party.concat(foes);
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
@@ -169,7 +169,8 @@
   };
   Battle.prototype.makeFoe0 = function (f, d) {
     return {
-      id: f.id, kind: f.kind, name: d.name, i8: f.i8, side: 'foe', sheet: d.sheet, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1,
+      // the creature type (RULED 09-28: on every sheet) and the challenge rating (Turn Undead's destroying reads it)
+      id: f.id, kind: f.kind, name: d.name, i8: f.i8, side: 'foe', sheet: d.sheet, type: d.type || null, cr: d.cr, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1,
       hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       init: d.init, perception: d.perception, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
       fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5,

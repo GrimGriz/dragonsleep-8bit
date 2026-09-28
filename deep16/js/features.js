@@ -169,6 +169,30 @@
     } };
   });
 
+  // Turn Undead (every cleric, 2; Channel Divinity): the dead within 30 ft that see or hear it save WIS or are turned -- they run from it
+  // and do nothing else till hurt (a minute); Destroy Undead (5): a CR of 1/2 or less that fails is destroyed outright
+  function crNum(cr) { return cr == null ? 99 : String(cr).indexOf('/') > 0 ? +cr.split('/')[0] / +cr.split('/')[1] : +cr; }
+  TX.ACTIONS.push(function (B, u, fs) {
+    if (u.cls !== 'cleric' || u.lvl < 2 || !feat(u, 'channel') || !u.turn.action || u.turn.attacksLeft) return null;
+    var dead = fs.filter(function (w) { return w.type === 'undead' && G.dist(u, w) <= 30 && !w.conds.turned; });
+    if (!dead.length) return null;
+    var dc = u.spellDC, sc = dead.reduce(function (s, w) { return s + TX.pFail(w, 'wis', dc) * TX.dpr(w) * 3; }, 0);
+    return { kind: 'feature', why: 'Turn Undead', score: sc, go: function* () {
+      u.turn.action = 0; u.feats.channel--; D.sfx('buff'); FX.ring(u, 'gold', 60);
+      var lines = ['{y}' + Nm(B, u) + '{/} presents the holy symbol: TURN UNDEAD  WIS DC ' + dc], gone = [];
+      dead.forEach(function (w) {
+        var sv = RU.save(w, 'wis', dc), destroy = !sv.ok && u.lvl >= 5 && crNum(w.cr) <= (u.lvl >= 17 ? 4 : u.lvl >= 14 ? 3 : u.lvl >= 11 ? 2 : u.lvl >= 8 ? 1 : 0.5);
+        lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}stands{/}' : destroy ? '{y}DESTROYED{/}' : '{o}turned{/}'));
+        if (destroy) gone.push(w); else if (!sv.ok) { w.conds.turned = { by: u.id }; w.conds.frightened = { by: u.id }; w.conds.feared = { by: u.id }; }
+      });
+      B.card(lines.slice(0, 8), 420); yield { fx: 1 };
+      gone.forEach(function (w) { B.hurt(w, w.hp + (w.temp || 0), 'radiant'); });
+      yield 24;
+    } };
+  });
+  var onHurt0 = M.onHurt;
+  M.onHurt = function (B, u, n, type) { if (onHurt0) onHurt0(B, u, n, type); if (u.conds.turned) { delete u.conds.turned; if (u.conds.feared && !u.conds.feared.dc) delete u.conds.feared; B.card(['{g}' + Nm(B, u) + ' is hurt out of its terror.{/}'], 200); } };
+
   // ------------------------------------------------------------------ the druid: Wild Shape (2; the Circle of the Land's: an action, a beast
   // of CR 1/4 with no flying or swimming till 4, 1/2 till 8) -- the wolf from the bestiary. Its HP is its own; at 0 the druid comes
   // back with the rest of the blow; no spells cast in it

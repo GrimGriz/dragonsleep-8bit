@@ -144,6 +144,7 @@
   // a humanoid (Hold Person): the party, the 8-bit game's monsters tagged so, and the grid's own kinds that say so
   M.humanoid = function (w) {
     if (w.side === 'party') return true;
+    if (w.type) return w.type === 'humanoid'; // (the creature type on every sheet, 09-28)
     var m = window.DS.DATA.monsters[w.kind], f = D.FOES[w.kind] || {};
     return !!(f.humanoid || (m && (m.tags || []).indexOf('humanoid') >= 0));
   };
@@ -407,6 +408,7 @@
       lines.push(head + '  ' + (g.pool + g.poolUp * Math.max(0, slot - 1)) + 'd8 = ' + pool.total + ' HP of sleep, the weakest first');
       caught.slice().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (w) {
         if (w.kind === 'drow' || w.fey) { lines.push('  ' + w.name + ': {g}fey blood: sleep cannot take it{/}'); return; }
+        if (w.type === 'undead') { lines.push('  ' + w.name + ': {g}the dead do not sleep{/}'); return; }
         if (RU.immuneTo(w, 'asleep')) { lines.push('  ' + w.name + ': {g}nothing in it sleeps{/}'); return; }
         if (w.hp <= left) { left -= w.hp; w.conds.asleep = true; lines.push('  ' + w.name + ' ({r}' + w.hp + '{/}): {p}asleep{/}'); }
         else lines.push('  ' + w.name + ' (' + w.hp + '): too much left in it');
