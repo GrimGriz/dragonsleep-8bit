@@ -142,6 +142,13 @@
       // the bestiary's traits (09-27, the ladder): read by rules.js (packTactics), hurt() (resist/immune/vulnerable),
       // ai.js brute() (web, slam, bound, martial, surprise) and attack() (a grapple on a hit)
       packTactics: !!d.packTactics, resist: d.resist || null, immune: d.immune || null, vulnerable: d.vulnerable || null,
+      // condition immunities cross from the 8-bit sheet (review 09-28 #9: the Keeper is not webbed, the pudding not put to sleep, the
+      // roper not knocked down); a grid-only kind names its own. Light sensitivity (#7): bright light (the Light cantrip, Daylight)
+      // costs it its next turn the first time and disadvantage while the light holds, as the 8-bit battle's dazzle does
+      condImmune: (d.condImmune || (window.DS.DATA.monsters[f.kind] || {}).condImmune || null),
+      lightSensitive: !!(d.lightSensitive || ((window.DS.DATA.monsters[f.kind] || {}).traits || {}).lightSensitive),
+      // a soldier's own second wind and action surge (the Dominion line, review 09-28 #16): ai.js brute()
+      secondWind: d.secondWind || null, actionSurge: !!d.actionSurge,
       web: d.web ? { atk: d.web.atk, range: d.web.range, dc: d.web.dc, recharge: d.web.recharge, ready: true } : null,
       slam: d.slam || null, bound: d.bound || null, martial: d.martial || null, surprise: d.surprise || null, holding: [],
       ethereal: !!f.ethereal, // a phase spider may start in the rock (the north cut: "They come out of the walls")
@@ -155,7 +162,7 @@
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
-      darkness: d.darkness ? { r: d.darkness.r, range: d.darkness.range, used: false } : null, // (Amara's, once: magic.js castDarkness)
+      darkness: d.darkness ? { r: d.darkness.r, range: d.darkness.range, chance: d.darkness.chance, used: false } : null, // (Amara's, once, the turn she runs; the drow's on the 8-bit's chance: magic.js castDarkness)
       hidden0: !!f.hidden
     };
   };
@@ -245,6 +252,9 @@
     if (this.fight.noEscape && !this.alive('foe').length && this.units.some(function (u) { return u.fled; })) return 'lost';
     // a fight that ends the moment one gets away (the 8-bit wagon yard, fight.fledEnds: either of the pair on the road is the chase)
     if (this.fight.fledEnds && this.units.some(function (u) { return u.side === 'foe' && u.fled; })) return 'fled';
+    // bright light under the roost (the Light cantrip, Daylight): the roof lets go -- the 8-bit game's RoostFail runs on it
+    // (RULED 09-28: the roost law is canon; fire and thunder stay greyed, the one thing to remember is not to cast light)
+    if (this.roostBroken) return 'roost';
     if (!this.alive('foe').length) return 'won';
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
     // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
@@ -395,9 +405,10 @@
     // the glamour broken: the riders are what they were all along (the wagon yard's children)
     if (o === 'won') this.riders.forEach(function (r) { if (r.after) { r.sheet = r.after; FX.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
     if (o !== 'fled' && o !== 'yielded') D.music(o === 'won' ? 'victory' : 'gameover'); // (one got away: the boss tune runs on into the chase)
+    if (o === 'roost') { D.sfx('encounter'); this.card(['{r}' + (this.roostBroken === 'daylight' ? 'Daylight' : 'Bright light') + ' under a roosted ceiling. The whole roof shifts at once: millions of wings.{/}'], 1e9); yield 90; }
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
-    var head = o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
+    var head = o === 'roost' ? '{r}THE ROOST COMES DOWN.{/}' : o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
     this.card([head, '{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.climb ? 'E back to the climb' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}'], 1e9);
   };
 
@@ -703,8 +714,9 @@
       if (ud) { D.sfx('run'); tgt.reaction = 0; dmg = Math.floor(dmg / 2); fire = Math.floor(fire / 2); rad = Math.floor(rad / 2); ext = Math.floor(ext / 2); parts.push('{c}uncanny dodge: halved to ' + (dmg + fire + rad + ext) + '{/}'); }
     }
     // resistance to non-magical weapons (the grick): the weapon's own damage halved unless the weapon is magic
+    // (the whole of it: the dice, the sneak, the martial advantage -- resistance halves the damage of that type, SRD; review 09-28 #10)
     if (tgt.resist && tgt.resist.indexOf('mundane') >= 0 && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type)) {
-      var cut = Math.ceil(dr.total / 2); dmg -= cut; parts.push('{g}-' + cut + ': it shrugs off plain steel{/}');
+      var cut = dmg - Math.floor(dmg / 2); dmg -= cut; parts.push('{g}-' + cut + ': it shrugs off plain steel{/}');
     }
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire + rad + ext) + '{/}'], 300, cid);
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
@@ -714,7 +726,7 @@
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type);
     yield o.oa ? 18 : 26;
     // riders: the drow's poisoned bolt, the spider's venom
-    if (!tgt.dead && tgt.hp > 0 && atk.poison && !tgt.conds.poisoned) {
+    if (!tgt.dead && tgt.hp > 0 && atk.poison && !tgt.conds.poisoned && !RU.immuneTo(tgt, 'poisoned')) {
       var sv = RU.save(tgt, 'con', atk.poison.dc);
       this.card(['{r}' + nameOf(tgt) + '{/}: CON save vs poison  ' + RU.saveText(sv) + ' vs DC ' + sv.dc + '  ' + (sv.ok ? '{n}SAVED{/}' : '{o}POISONED{/}')]);
       // (a poison that wears off, the ettercap's: a CON save at the end of each of its turns, magic.js endTurn; the drow's lasts the fight)
@@ -722,7 +734,7 @@
       yield 30;
     }
     // a grapple on the hit (the otyugh's tentacles): Medium or smaller, while it has a tentacle free; grappled and restrained
-    if (atk.grapple && !tgt.dead && tgt.hp > 0 && (tgt.size || 1) <= 1 && !tgt.conds.restrained && (att.holding || []).length < (atk.grapple.max || 1)) {
+    if (atk.grapple && !tgt.dead && tgt.hp > 0 && (tgt.size || 1) <= 1 && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length < (atk.grapple.max || 1)) {
       tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true };
       att.holding = (att.holding || []).concat([tgt]);
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
@@ -739,14 +751,14 @@
       }
     }
     // a knockdown (the wolf's bite, the worg's, Talmok's fists, the giant's rock): STR or prone
-    if (atk.prone && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne) {
+    if (atk.prone && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')) {
       var ks = RU.save(tgt, 'str', atk.prone);
       this.card(['{r}' + nameOf(tgt) + '{/}: STR save  ' + RU.saveText(ks) + ' vs DC ' + ks.dc + '  ' + (ks.ok ? '{n}KEEPS HIS FEET{/}' : '{o}KNOCKED PRONE{/} {g}(half his move to rise){/}')]);
       if (!ks.ok) { tgt.conds.prone = true; D.sfx('hit'); }
       yield 24;
     }
     // the chuul's tentacles on one it holds: CON or poisoned, and paralyzed while the poison lasts (a CON save each turn)
-    if (atk.paralyze && !tgt.dead && tgt.hp > 0 && !tgt.conds.paralyzed) {
+    if (atk.paralyze && !tgt.dead && tgt.hp > 0 && !tgt.conds.paralyzed && !RU.immuneTo(tgt, 'paralyzed') && !RU.immuneTo(tgt, 'poisoned')) {
       var ps = RU.save(tgt, 'con', atk.paralyze.dc);
       this.card(['{r}' + nameOf(tgt) + '{/}: CON save  ' + RU.saveText(ps) + ' vs DC ' + ps.dc + '  ' + (ps.ok ? '{n}SAVED{/}' : '{p}POISONED and PARALYZED{/} {g}(a CON save at the end of each turn){/}')]);
       if (!ps.ok) { D.sfx('poison'); tgt.conds.poisoned = { paralysis: true }; tgt.conds.paralyzed = { save: 'con', dc: atk.paralyze.dc, by: att.id, poison: true }; FX.sparkle(tgt, 'moss', 12); }
@@ -798,12 +810,22 @@
     u.flash = 10;
     FX.float('-' + n, u, D.PAL.ramps.red[4]);
     if (u.conds.hidden) delete u.conds.hidden;
+    if (u.hp <= 0 && u.side === 'party' && !u.guest && u.feats && u.feats.relentless > 0) {
+      // Relentless (the 8-bit game's own, js/battle.js: Lymen, once a day): the blow that would drop him leaves him at 1 (review 09-28 #3)
+      u.feats.relentless = 0; u.hp = 1; FX.ring(u, 'gold', 30); D.sfx('buff');
+      this.card(['{y}' + u.name + ' refuses to fall!{/}  {g}(Relentless: once a day, at 1 HP){/}']);
+      D.magic.concCheck(this, u, n);
+      return;
+    }
     if (u.hp <= 0) {
       u.anim = 'hurt'; u.animT = this.t;
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.side === 'party') { u.ko = true; delete u.conds.ablaze; this.card(['{r}' + u.name + ' goes down.{/}']); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); if (u.holding && u.holding.length) this.release(u); }
       if (u.conc) D.magic.endConc(this, u, 'down');
+      // one who runs the moment the one in charge is down (the wheelwright, when Hask falls): gone up the stair at once, before
+      // anyone can cut him down -- the 8-bit's foeBolt, certain (review 09-28 #11: the wheelwright quest hangs on his getting away)
+      if (u.side === 'foe') { var self = this; this.units.forEach(function (w) { if (w.side === 'foe' && w.bolts === u.kind && !w.dead && w.hp > 0) { w.dead = true; w.fled = true; w.deadT = self.t; if (w.holding && w.holding.length) self.release(w); D.sfx('run'); self.card(['{r}' + w.name + '{/} drops what he was holding and runs for the stair. He is gone.']); } }); }
     } else D.magic.concCheck(this, u, n);
   };
   Battle.prototype.heal = function (u, n) {

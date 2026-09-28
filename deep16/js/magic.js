@@ -40,7 +40,8 @@
       else if (g.time === 'B' && T.bonusSpell) why = 'one bonus-action spell a turn';
       else if (g.time === 'A' && T.bonusSpell && sp.level) why = 'after a bonus-action spell, only a cantrip';
       else if (g.unarmored && !M.touchTargets(B, u, g).length) why = 'no one within reach without armour';
-      else if (id === 'daylight' && !(B.darks || []).length) why = 'no magical darkness here to burn away';
+      else if (id === 'daylight' && !(B.darks || []).length && B.bright) why = 'the place is already lit';
+      else if (id === 'light' && B.bright) why = 'the place is already lit';
       e.ok = !why; e.why = why;
       return e;
     }).filter(Boolean).sort(function (a, b) { return a.level - b.level || (a.name < b.name ? -1 : 1); });
@@ -63,7 +64,7 @@
       case 'wave': return '15-ft cube out from you · CON half · ' + d + ' thunder, a failed save pushed 10 ft';
       case 'single': return e.id === 'holdmonster' ? 'a foe within 90 ft · WIS or paralyzed' + conc : e.id === 'holdperson' ? 'a humanoid within 60 ft · WIS or paralyzed' + conc : 'an ally within ' + g.range + ' ft · +2 AC' + conc;
       case 'allies': return 'up to ' + n + ' within ' + g.range + ' ft · ' + (e.id === 'bless' ? '+1d4 to attacks and saves' + conc : '+' + 5 * Math.max(1, e.slot - 1) + ' max HP');
-      case 'self': return '+1d4 radiant on weapon hits' + conc;
+      case 'self': return e.id === 'light' ? 'bright light for the fight: what hates light loses a turn, then fights at disadvantage' + (D.battle && D.battle.fight && D.battle.fight.roost ? ' -- {r}UNDER THE ROOST{/}' : '') : '+1d4 radiant on weapon hits' + conc;
       case 'teleport': return '30 ft, to a square you can see';
       case 'touch': return 'touch · ' + ({ curewounds: (1 + Math.max(0, e.slot - 1)) + 'd8' + RU.sign(M.mod(u)) + ' healing', mageArmor: 'no armour: AC 13 + DEX', greaterinvisibility: 'invisible' + conc, stoneskin: 'half from blades, bolts, bites' + conc, heroism: 'fearless, temp HP each turn' + conc, lesserrestoration: 'ends poison, paralysis, blindness' }[e.id] || '');
     }
@@ -208,7 +209,8 @@
         var sv2 = RU.save(t, 'wis', dc);
         B.card([head + ' on the ' + B.shortName(t) + '  WIS ' + RU.saveText(sv2) + ' vs DC ' + dc + '  ' + (sv2.ok ? '{n}SAVED{/}' : '{p}HELD FAST: paralyzed{/}')]);
         FX.ring(t, 'violet', 40);
-        if (!sv2.ok) { t.conds.paralyzed = { dc: dc, save: 'wis', by: u.id }; M.concentrate(B, u, id, sp.name, function () { delete t.conds.paralyzed; }); }
+        if (!sv2.ok && RU.immuneTo(t, 'paralyzed')) B.card(['  ' + t.name + ': {g}cannot be held{/}']);
+        else if (!sv2.ok) { t.conds.paralyzed = { dc: dc, save: 'wis', by: u.id }; M.concentrate(B, u, id, sp.name, function () { delete t.conds.paralyzed; }); }
       } else if (id === 'shieldoffaith') {
         t.conds.shieldOfFaith = { by: u.id }; FX.ring(t, 'gold', 40);
         M.concentrate(B, u, id, sp.name, function () { delete t.conds.shieldOfFaith; });
@@ -255,6 +257,8 @@
         u.conds.divineFavor = { by: u.id };
         M.concentrate(B, u, id, sp.name, function () { delete u.conds.divineFavor; });
         B.card([head + ': his weapon hits take {y}+1d4 radiant{/} (concentration).']);
+      } else if (id === 'light') {
+        yield* M.brighten(B, u, 'light', head);
       }
       FX.sparkle(w2, g.shape === 'self' || id === 'divinefavor' ? 'gold' : 'glow', 14);
       yield 30;
@@ -276,17 +280,19 @@
     var lines = [];
     if (id === 'daylight') {
       var burnt = (B.darks || []).filter(function (dk) { return dk.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); });
-      lines.push(head + '  a sphere of daylight' + (burnt.length ? ': {y}the darkness burns away{/}' : ': nothing here it undoes'));
+      lines.push(head + '  a sphere of daylight' + (burnt.length ? ': {y}the darkness burns away{/}' : B.bright ? '' : ': bright light fills the place'));
       burnt.forEach(function (dk) {
         var by = B.units.filter(function (w) { return w.id === dk.by; })[0];
         if (by && by.conc && by.conc.id === 'darkness') M.endConc(B, by, 'Daylight');
         else B.darks = (B.darks || []).filter(function (x) { return x !== dk; });
       });
+      yield* M.brighten(B, u, 'daylight', null); // (and it is bright light: what hates light hates it, and under the roost it is the roof)
     } else if (id === 'sleep') {
       var pool = D.roll((g.pool + g.poolUp * Math.max(0, slot - 1)) + 'd8'), left = pool.total;
       lines.push(head + '  ' + (g.pool + g.poolUp * Math.max(0, slot - 1)) + 'd8 = ' + pool.total + ' HP of sleep, the weakest first');
       caught.slice().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (w) {
         if (w.kind === 'drow' || w.fey) { lines.push('  ' + w.name + ': {g}fey blood: sleep cannot take it{/}'); return; }
+        if (RU.immuneTo(w, 'asleep')) { lines.push('  ' + w.name + ': {g}nothing in it sleeps{/}'); return; }
         if (w.hp <= left) { left -= w.hp; w.conds.asleep = true; lines.push('  ' + w.name + ' ({r}' + w.hp + '{/}): {p}asleep{/}'); }
         else lines.push('  ' + w.name + ' (' + w.hp + '): too much left in it');
       });
@@ -295,6 +301,7 @@
       var stuck = [];
       caught.forEach(function (w) {
         if (w.webWalker) { lines.push('  ' + w.name + ': {g}walks webs: they do not hold it{/}'); return; }
+        if (RU.immuneTo(w, 'restrained')) { lines.push('  ' + w.name + ': {g}cannot be held by it{/}'); return; }
         var sv = RU.save(w, 'dex', dc);
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{p}restrained{/}'));
         if (!sv.ok) { w.conds.restrained = { dc: dc, by: u.id }; stuck.push(w); }
@@ -348,7 +355,7 @@
   };
   M.webCatch = function (B, u, how) {
     var wb = M.webAt(B, u);
-    if (!wb || u.webWalker || u.conds.restrained || (u.turn && u.turn.webSaved)) return false;
+    if (!wb || u.webWalker || u.conds.restrained || RU.immuneTo(u, 'restrained') || (u.turn && u.turn.webSaved)) return false;
     var sv = RU.save(u, 'dex', wb.dc), who = u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}';
     if (u.turn) u.turn.webSaved = true;
     B.card([who + (how === 'enters' ? ' blunders into the web' : ' starts its turn in the web') + ': DEX ' + RU.saveText(sv) + ' vs DC ' + wb.dc + '  ' + (sv.ok ? '{n}pulls through{/}' : '{p}stuck fast{/}')]);
@@ -367,6 +374,23 @@
       if (sv.ok) { delete u.conds.paralyzed; var c = B.units.filter(function (w) { return w.conc && (w.conc.id === 'holdmonster' || w.conc.id === 'holdperson') && w.id === p.by; })[0]; if (c) delete c.conc; }
     }
   };
+  // ------------------------------------------------------------------ bright light: the Light cantrip and Daylight (the 8-bit battle's dazzle, crossed 09-28).
+  // The place is lit for the fight (B.bright): whatever hid is seen, and what hates light (lightSensitive: the drow, the duergar,
+  // the cloaker) loses its next turn the first time and attacks at disadvantage while the light holds (rules.js edges). Under a
+  // roost it is the one law broken (RULED 09-28, canon): the fight ends 'roost' and the 8-bit game's RoostFail runs
+  M.brighten = function* (B, u, source, head) {
+    var first = !B.bright;
+    B.bright = true; B.brightBy = source === 'daylight' ? 'daylight' : (B.brightBy || 'light');
+    var shy = B.units.filter(function (w) { return w.side === 'foe' && G.standing(w) && w.lightSensitive; });
+    B.units.forEach(function (w) { if (w.side === 'foe' && w.conds.hidden) { delete w.conds.hidden; w.hidden0 = false; } });
+    var lines = head ? [head + ': bright light fills the place.'] : [];
+    if (shy.length) { shy.forEach(function (w) { w.flash = 16; if (first) w.conds.recoiling = true; }); lines.push('  ' + shy.map(function (w) { return w.name; }).join(', ') + (first ? ': {o}recoils, shrinking up away from it{/} -- no next turn, and disadvantage while the light holds' : ': {o}still dazzled{/}')); }
+    if (B.fight && B.fight.roost && !B.roostBroken) { B.roostBroken = source; lines.push('{r}Bright light under a roosted ceiling.{/}'); D.sfx('encounter'); }
+    if (lines.length) B.card(lines, 420);
+    FX.ring(u, 'glow', 40);
+    yield 30;
+  };
+
   // ------------------------------------------------------------------ Darkness (SRD 5.1; Griz 09-27: "We'll have to deal with darkness, at least the
   // magical kind"): a 15-ft-radius sphere of magical darkness. Nothing sees into it, out of it or across it (darkvision neither):
   // an unseen target is attacked at disadvantage and an unseen attacker attacks with advantage (rules.js edges), no opportunity
@@ -387,11 +411,13 @@
     var K = u.darkness, hs = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w); }), best = null, bn = 0;
     hs.forEach(function (c) {
       if (Math.max(Math.abs(c.x - u.x), Math.abs(c.y - u.y)) * 5 > K.range) return;
-      var sq = G.sphere(c.x, c.y, K.r), n = hs.filter(function (w) { return G.inArea(w, sq); }).length;
+      var sq = G.sphere(c.x, c.y, K.r), n = hs.filter(function (w) { return G.inArea(w, sq) && !M.inDark(B, w); }).length; // (one already in the dark counts for nothing: no second sphere on the same heads)
       if (n > bn) { bn = n; best = { c: c, sq: sq }; }
     });
     if (!best) return false;
     u.turn.action = 0; K.used = true;
+    if (B.bright && B.brightBy === 'daylight') { D.sfx('magic'); B.card(['{r}' + u.name + '{/} calls up darkness -- and the daylight burns it away as it forms.'], 300); yield 30; return true; }
+    if (B.bright) { B.bright = false; B.brightBy = null; B.card(['{r}' + u.name + '{/} swallows the light.'], 300); } // (the Light cantrip: dispelled)
     B.darks = (B.darks || []).concat([{ by: u.id, sq: best.sq }]);
     M.concentrate(B, u, 'darkness', 'Darkness', function () { B.darks = (B.darks || []).filter(function (d) { return d.by !== u.id; }); B.card(['{p}The darkness lifts.{/}'], 300); });
     D.sfx('magic'); FX.ring(best.c, 'violet', 44);

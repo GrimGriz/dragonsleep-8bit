@@ -8,6 +8,8 @@
 
   RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.unconscious && !u.conds.stunned && !u.conds.surprised; };
   RU.ac = function (u) { return (u.baseAC || u.ac) + (u.conds.shield ? 5 : 0) + (u.conds.shieldOfFaith ? 2 : 0); };
+  // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
+  RU.immuneTo = function (u, cond) { return !!(u && u.condImmune && u.condImmune.indexOf(cond) >= 0); };
 
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {
@@ -56,6 +58,10 @@
     var adv = [], dis = [], melee = !atk.ranged && !atk.spell;
     if (att.conds.poisoned) dis.push('poisoned');
     if (att.conds.frightened) dis.push('frightened');
+    // bright light (the Light cantrip, Daylight: battle.js B.bright) on one that hates it (the 8-bit's lightSensitive: drow, duergar,
+    // the cloaker), and a wounded guest swinging anyway (Halldor at a third of himself, the 8-bit js/battle.js) -- review 09-28 #7, #4
+    if (att.lightSensitive && D.battle && D.battle.bright) dis.push('dazzled');
+    if (att.guest && att.src && att.src.wounded) dis.push('wounded');
     // prone (09-27: the wolves' and worgs' knockdown, Talmok's, the bulette's Leap, the giant's rock): a prone attacker is at
     // disadvantage; a prone target is easy to hit from beside it and hard from afar
     if (att.conds.prone) dis.push('prone');

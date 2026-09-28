@@ -11,7 +11,7 @@
 (window.D16 = window.D16 || {}).SPELLS = {
   firebolt: { shape: 'attack', range: 120, time: 'A' },
   acidsplash: { shape: 'splash', range: 60, time: 'A' },
-  light: { shape: 'none', why: 'the ledger-lamp is lit' },
+  light: { shape: 'self', time: 'A' }, // bright light for the fight (magic.js brighten; the 8-bit's dazzle, crossed 09-28)
   burninghands: { shape: 'cone', len: 15, time: 'A' },
   magicmissile: { shape: 'darts', range: 120, n: 3, time: 'A' },
   shield: { shape: 'reaction', why: 'a reaction: offered when a blow would land' },

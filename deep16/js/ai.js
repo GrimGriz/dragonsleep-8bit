@@ -34,6 +34,7 @@
     RU.startTurn(u);
     if (u.dead) return;
     if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
+    if (u.conds.recoiling) { delete u.conds.recoiling; B.card(['{g}' + the(B, u) + ' recoils from the light, shrinking up away from it: no turn.{/}']); yield 30; return; }
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
@@ -155,6 +156,10 @@
   function* drow(B, u) {
     var T = u.turn, hs = heroes(B, u), bow = u.attacks.crossbow, blade = u.attacks.shortsword, self = this;
     if (!hs.length) { B.card(['{g}The captain looks for someone to shoot and finds no one.{/}']); yield 30; return; }
+    // innate Darkness, once (the 8-bit's chance, or at once to swallow a Light): review 09-28 #6
+    if (u.darkness && u.darkness.chance != null && !u.darkness.used && T.action && (B.bright || D.d(100) <= u.darkness.chance * 100)) {
+      if (yield* D.magic.castDarkness(B, u)) return;
+    }
     // Faerie Fire, once: on the biggest cluster (two or more, or anyone on the first round)
     if (u.faerie && !u.faerie.used && T.action) {
       var cube = bestCube(B, u, u.faerie.cube, u.faerie.range);
@@ -265,6 +270,10 @@
   function* weaver(B, u) {
     var T = u.turn, W = u.weave, hs = heroes(B, u), bolt = u.attacks.firebolt;
     if (!hs.length) return;
+    // innate Darkness, once (the weaver's, the 8-bit's `darkness` special; at once to swallow a Light): review 09-28 #6
+    if (u.darkness && u.darkness.chance != null && !u.darkness.used && T.action && (B.bright || D.d(100) <= u.darkness.chance * 100)) {
+      if (yield* D.magic.castDarkness(B, u)) return;
+    }
     if (W.bolt.spent) { var rc = D.d(6); if (rc >= W.bolt.recharge) { W.bolt.spent = false; B.card(['{g}' + the(B, u) + ' ' + (W.bolt.again || 'draws the dark in again') + ' (d6 ' + rc + ').{/}'], 200); yield 12; } }
     // pressed: a step back to somewhere she can still see someone from, and no one beside her (not the naga: it bites)
     if (bolt && G.foesNear(u, u.x, u.y, 5).length) {
@@ -461,6 +470,15 @@
       else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
     }
     u.burned = false;
+    // Second Wind (the Dominion line soldier: 1d10+2 as a bonus action, once, under half)
+    if (u.secondWind && !u.secondWindUsed && u.hp > 0 && u.hp < u.maxhp / 2) {
+      u.secondWindUsed = true; var sw = D.roll(u.secondWind); B.heal(u, sw.total);
+      B.card(['{r}' + the(B, u) + '{/} catches a second wind.  +' + sw.total]); yield 20;
+    }
+    // innate Darkness (the drow, the captain, the weaver: once, on the 8-bit's chance, or at once to swallow a Light): magic.js castDarkness
+    if (u.darkness && u.darkness.chance != null && !u.darkness.used && T.action && hs.length && (B.bright || D.d(100) <= u.darkness.chance * 100)) {
+      if (yield* D.magic.castDarkness(B, u)) return;
+    }
     // it bolts (the wheelwright, when Hask is down): Dash for the map's exit and gone -- the player's opportunity attacks are
     // the only stop. (Amara and Willem, who fight only to get away, give ground a step at a time instead: shooter())
     if (u.bolts && B.units.some(function (w) { return w.kind === u.bolts && w.dead; })) { if (yield* bolt(B, u)) return; }
@@ -538,6 +556,10 @@
     T.action = 0;
     var names = Object.keys(u.attacks || {}), routine = Array.isArray(u.multi) ? u.multi : [];
     if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);
+    // Action Surge (the Dominion line soldier), once, with two or more in its reach: the routine over again
+    if (u.actionSurge && !u.surged && heroes(B, u).filter(function (w) { return G.dist(u, w) <= reachOf(u); }).length >= 2) {
+      u.surged = true; routine = routine.concat(routine); D.sfx('buff'); B.card(['{r}' + the(B, u) + '{/} surges!  {g}(Action Surge){/}']); yield 16;
+    }
     for (var k = 0; k < routine.length; k++) {
       var atk = u.attacks[routine[k]];
       if (!atk) break;
@@ -556,10 +578,21 @@
   }
 
   function* guest(B, u) {
-    var T = u.turn, fs = heroes(B, u);
+    var T = u.turn, fs = heroes(B, u), h = u.src || {}, f = u.feats || {};
     if (!fs.length) return;
-    if (u.hp < u.maxhp / 2 && u.feats && u.feats.secondWind) {
-      T.bonus = 0; u.feats.secondWind = 0;
+    // a guest who heals (Ingrith: the 8-bit's `healer`, feats.heals): a hand on whoever of her side is worst off under half
+    var hurt = B.units.filter(function (w) { return w.side === u.side && G.standing(w) && w.hp < w.maxhp / 2; }).sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })[0];
+    if (h.healer && (f.heals || 0) > 0 && hurt && T.action) {
+      if (G.dist(u, hurt) > 5) yield* walkTo(B, u, approach(u, hurt, G.reach(u, T.move), 5));
+      if (G.dist(u, hurt) <= 5) {
+        T.action = 0; f.heals--; var hv = D.roll('2d8+3'); var got = B.heal(hurt, hv.total); D.sfx('heal'); FX.sparkle(hurt, 'glow', 14);
+        B.card(['{y}' + u.name + '{/} lays a hand on ' + hurt.name + ': {n}+' + got + '{/}  {g}(Rekknar balances the account: ' + f.heals + ' left){/}']); yield 24;
+        return;
+      }
+    }
+    // a fighter's second wind when hurt -- not a wounded one (Halldor at a third of himself neither winds nor surges, the 8-bit's `wounded`)
+    if (u.hp < u.maxhp / 2 && f.secondWind && !h.wounded) {
+      T.bonus = 0; f.secondWind = 0;
       var r = D.roll('1d10+' + u.lvl); B.heal(u, r.total);
       B.card(['{y}' + u.name + '{/}: SECOND WIND  +' + r.total]); yield 20;
     }
@@ -567,10 +600,14 @@
     if (G.dist(u, tgt) > u.reach) yield* walkTo(B, u, approach(u, tgt, G.reach(u, T.move)));
     if (u.hp <= 0 || !T.action) return;
     T.action = 0;
-    for (var k = 0; k < (u.attacks || 1); k++) {
+    // Action Surge (Pyro: the 8-bit's `surgeAI`), once, when two or more stand against him: the attacks over again
+    var rounds = h.surgeAI && f.actionSurge && !h.wounded && heroes(B, u).filter(function (w) { return G.dist(u, w) <= u.reach; }).length >= 2 ? 2 : 1;
+    if (rounds > 1) { f.actionSurge = 0; D.sfx('buff'); B.card(['{y}' + u.name + '{/} surges!  {g}(Action Surge: the attacks again){/}']); yield 16; }
+    for (var rr = 0; rr < rounds; rr++) for (var k = 0; k < (u.attacks || 1); k++) {
       var t = heroes(B, u).filter(function (w) { return G.dist(u, w) <= u.reach; })[0];
       if (!t) break;
       yield* B.attack(u, t, u.weapon);
+      if (u.hp <= 0) return;
     }
   }
 })();
