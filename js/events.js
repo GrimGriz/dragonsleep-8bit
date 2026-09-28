@@ -308,6 +308,23 @@
     var g = G();
     var slot = sp.level && !sp.ritual ? R.lowestSlot(h, sp.level) : 0;
     if (sp.level && !sp.ritual && !slot) { yield DS.say(L('g.noSlots')); return; }
+    // the resting spells (RULED 09-28): only where a tent could go (the tent's own rule), each spending its component -- the game's
+    // first consumed ones. Rope Trick: a short rest, as the tent. Tiny Hut (a ritual: no slot): a long rest, the same rest the inn
+    // gives -- the story clocks count it (EV.longRest), and the morning's spells and the save follow
+    if (sp.kind === 'rest') {
+      if (F().map.src.tent === false || !F().map.src.outside && !F().map.src.dark) { yield DS.say(L('g.noRestHere')); return; }
+      if (sp.component && g.count(sp.component) < 1) { yield DS.say(L('g.noComponent', { item: DS.DATA.items[sp.component].name })); return; }
+      if (sp.component) g.take(sp.component, 1);
+      if (slot) h.slots[slot - 1]--;
+      DS.audio.sfx('magic');
+      if (sp.rest === 'long') { yield DS.say(L('g.tinyHut')); yield* EV.rest(); yield* EV.morning(); return; }
+      yield DS.say(L('g.ropeTrick'));
+      yield DS.fade(1, 20); yield W8.frames(60);
+      g.party.forEach(function (x) { if (!x.ko) x.hp = Math.min(x.maxhp, x.hp + Math.ceil(x.maxhp / 2)); R.refresh(x, false); });
+      yield DS.fade(0, 20);
+      yield DS.say(L('g.tentRest'));
+      return;
+    }
     if (sp.kind === 'heal' || sp.kind === 'cure' || (sp.kind === 'buff' && sp.target !== 'allies')) {
       var ma = sp.buff === 'mageArmor';
       var items = g.party.map(function (x) { return { label: x.name, right: ma && R.armored(x) ? 'ARMORED' : (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: x.ko || (ma && R.armored(x)) }; });

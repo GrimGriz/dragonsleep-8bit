@@ -284,7 +284,8 @@
     "3": {
      "learn": [
       "scorchingray",
-      "mageArmor"
+      "mageArmor",
+      "ropetrick"
      ]
     },
     "4": {
@@ -300,7 +301,8 @@
     "5": {
      "learn": [
       "fireball",
-      "lightningbolt"
+      "lightningbolt",
+      "tinyhut"
      ]
     },
     "6": {
@@ -2397,6 +2399,14 @@
    "desc": "A Silversands axe +1, a family's mark on the cheek of the blade. Brann's father's.",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6",
    "id": "fatheraxe"
+  },
+  "domewhorl": {
+   "name": "Dome Whorl",
+   "kind": "part",
+   "price": 250,
+   "desc": "A fist-sized whorl off the Dominion shore, clear as glass and cold. A wizard breaks one to raise Tiny Hut for the night.",
+   "src": "invented (RULED 09-28: \"have the bead be a special snailshell we just invented - we'll put them as a dominion shore export\"; Percy sells it, not cheap): the SRD Tiny Hut's crystal bead",
+   "id": "domewhorl"
   }
  },
  "spells": {
@@ -3662,6 +3672,31 @@
    "src": "SRD 5.1 Vampiric Touch (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "vampirictouch"
+  },
+  "ropetrick": {
+   "name": "Rope Trick",
+   "level": 2,
+   "kind": "rest",
+   "rest": "short",
+   "component": "gulchsilk",
+   "target": "party",
+   "field": true,
+   "desc": "A rope up into a hidden space for the party: a short rest anywhere a tent could go. It takes a skein of Gulch Silk.",
+   "src": "SRD 5.1 Rope Trick; RULED 09-28: a short rest like the tent, spending a skein of Gulch Silk (the game's first consumed components)",
+   "id": "ropetrick"
+  },
+  "tinyhut": {
+   "name": "Tiny Hut",
+   "level": 3,
+   "ritual": true,
+   "kind": "rest",
+   "rest": "long",
+   "component": "domewhorl",
+   "target": "party",
+   "field": true,
+   "desc": "A dome of force over the party for the night: a long rest where a tent could go. Cast from the book as a ritual; it breaks a Dome Whorl.",
+   "src": "SRD 5.1 Leomund's Tiny Hut (the SRD's Tiny Hut, a ritual); RULED 09-28: a long rest where a tent goes, counted with the rest (clocks, morning, save), spending a snail shell from Percy's",
+   "id": "tinyhut"
   }
  },
  "monsters": {
@@ -8340,7 +8375,9 @@
    "keeper": "Percy & Ned Halloway",
    "look": "percy",
    "greeting": "Road harvest rendered, jarred and priced. I pay a fifth of what it sells for once it's rendered. That's the rendering.",
-   "items": [],
+   "items": [
+    "domewhorl"
+   ],
    "buysKind": [
     "part"
    ],
@@ -14043,6 +14080,26 @@
    "t": "Nothing in hand to put a flame on.",
    "src": "invented: connective",
    "id": "g.flameNothing"
+  },
+  "g.ropeTrick": {
+   "t": "A rope climbs into the air and hangs there. One by one you go up it and pull it in after you. A short rest, out of the world.",
+   "src": "invented: connective (the resting spells, RULED 09-28)",
+   "id": "g.ropeTrick"
+  },
+  "g.tinyHut": {
+   "t": "The whorl breaks with a sound like a bell. A dome of shimmering force closes over the party for the night.",
+   "src": "invented: connective (the resting spells, RULED 09-28)",
+   "id": "g.tinyHut"
+  },
+  "g.noComponent": {
+   "t": "The spell wants {item}, and there is none in the pack.",
+   "src": "invented: connective (the resting spells, RULED 09-28)",
+   "id": "g.noComponent"
+  },
+  "g.noRestHere": {
+   "t": "Not here: nowhere a tent could go.",
+   "src": "invented: connective (the resting spells, RULED 09-28)",
+   "id": "g.noRestHere"
   }
  },
  "rumors": [

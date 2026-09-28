@@ -248,12 +248,13 @@
       }
     } else if (g.shape === 'splash') {
       var first = t, second = B.units.filter(function (w) { return w !== first && G.hostile(u, w) && G.standing(w) && G.dist(first, w) <= 5; })[0];
-      var dd = M.dice(sp, u, 0), r1 = D.roll(dd), lines2 = [head + '  ' + dd + ' ' + RU.fmtRolls(r1.rolls) + ' = ' + r1.total + ' acid  DEX DC ' + dc + ', no half'];
+      var potent = u.subclass === 'School of Evocation' && u.lvl >= 6; // (Potent Cantrip, the evoker's 6: half on a save)
+      var dd = M.dice(sp, u, 0), r1 = D.roll(dd), lines2 = [head + '  ' + dd + ' ' + RU.fmtRolls(r1.rolls) + ' = ' + r1.total + ' acid  DEX DC ' + dc + (potent ? ', half on a save (potent)' : ', no half')];
       FX.projectile(u, first, 'fire'); yield { fx: 1 };
       [first, second].filter(Boolean).forEach(function (w) {
         var sv = RU.save(w, 'dex', dc);
-        lines2.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed -> ' + r1.total + '{/}'));
-        if (!sv.ok) B.hurt(w, r1.total, 'acid');
+        lines2.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' + (potent ? ' -> ' + Math.floor(r1.total / 2) : '') : '{o}failed -> ' + r1.total + '{/}'));
+        if (!sv.ok) B.hurt(w, r1.total, 'acid'); else if (potent) B.hurt(w, Math.floor(r1.total / 2), 'acid');
       });
       B.card(lines2, 360); yield 30;
     } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') {

@@ -91,6 +91,9 @@
   glasswhisper: { shape: 'single', side: 'foe', range: 60, time: 'A' },
   protectionfromevilandgood: { shape: 'touch', side: 'ally', time: 'A', conc: true },
   darkness: { shape: 'sphere', range: 60, r: 15, time: 'A', conc: true },
+  // the resting spells (RULED 09-28): the 8-bit game's field, a rest -- never a fight's
+  ropetrick: { shape: 'none', why: 'a field spell: a short rest, not a fight' },
+  tinyhut: { shape: 'none', why: 'a field spell: a long rest, not a fight' },
   // the class NPCs' spells (09-28, batch bc; js/grimoire.js)
   acidarrow: { shape: 'attack', range: 90, time: 'A' },
   barkskin: { shape: 'touch', side: 'ally', time: 'A', conc: true },

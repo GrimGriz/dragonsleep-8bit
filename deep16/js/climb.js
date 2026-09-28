@@ -13,7 +13,7 @@
   var KEY = 'deep16.climb', IDS = ['barley', 'aurdin', 'vivian', 'lymen'], ABIL = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
   // the wizard spells a climb can learn (the 8-bit game's list and Misty Step); the cantrips
   var WIZARD = ['burninghands', 'magicmissile', 'shield', 'sleep', 'detectmagic', 'mageArmor', 'thunderwave', 'scorchingray', 'shatter', 'web',
-    'holdperson', 'mistystep', 'fireball', 'lightningbolt', 'icestorm', 'greaterinvisibility', 'stoneskin', 'coneofcold', 'holdmonster'];
+    'holdperson', 'mistystep', 'fireball', 'lightningbolt', 'icestorm', 'greaterinvisibility', 'stoneskin', 'coneofcold', 'holdmonster', 'ropetrick', 'tinyhut']; // (the resting spells: RULED 09-28, the climb offers them too)
   var CANTRIPS = ['firebolt', 'acidsplash', 'light'];
 
   // ------------------------------------------------------------------ the climb's state

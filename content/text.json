@@ -734,5 +734,9 @@
   "g.torchAlready": {"t": "{name} carries a torch already. One is enough.", "src": "invented: connective"},
   "g.darkvision": {"t": "{name}: darkvision. The dark opens out to sixty feet, grey and plain, until the next long rest.", "src": "SRD 5.1 (Darkvision)"},
   "g.continualFlame": {"t": "{name}'s weapon takes a flame with no heat in it, torch-bright. It will not go out.", "src": "SRD 5.1 (Continual Flame)"},
-  "g.flameNothing": {"t": "Nothing in hand to put a flame on.", "src": "invented: connective"}
+  "g.flameNothing": {"t": "Nothing in hand to put a flame on.", "src": "invented: connective"},
+  "g.ropeTrick": {"t": "A rope climbs into the air and hangs there. One by one you go up it and pull it in after you. A short rest, out of the world.", "src": "invented: connective (the resting spells, RULED 09-28)"},
+  "g.tinyHut": {"t": "The whorl breaks with a sound like a bell. A dome of shimmering force closes over the party for the night.", "src": "invented: connective (the resting spells, RULED 09-28)"},
+  "g.noComponent": {"t": "The spell wants {item}, and there is none in the pack.", "src": "invented: connective (the resting spells, RULED 09-28)"},
+  "g.noRestHere": {"t": "Not here: nowhere a tent could go.", "src": "invented: connective (the resting spells, RULED 09-28)"}
 }
