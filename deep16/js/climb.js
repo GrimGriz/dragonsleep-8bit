@@ -93,17 +93,6 @@
     ctx.fillStyle = P('stone', 3); ctx.fillRect(x - n / 2 - 2, y, n + 4, 2);
     for (var k = 0; k < n; k++) { var h = (big ? 5 : 3) + ((t / 4 + k * 5) % (big ? 12 : 7)) * (1 - Math.abs(k - n / 2) / n); ctx.fillStyle = fl[k % 4]; ctx.fillRect(Math.round(x - n / 2 + k), Math.round(y - h), 1, Math.round(h)); }
   }
-  // the DM's hands, waving over the fire
-  function hands(ctx, x, y, t) {
-    var sk = [P('skin', 2), P('skin', 3), P('skin', 1)];
-    [-1, 1].forEach(function (side) {
-      var cx = x + side * 34 + Math.round(Math.sin(t / 7 + (side > 0 ? 1.6 : 0)) * 6), cy = y + Math.round(Math.cos(t / 9) * 2);
-      ctx.fillStyle = sk[0]; ctx.fillRect(cx - 9, cy, 18, 18);                       // the palm
-      for (var f = 0; f < 4; f++) { ctx.fillStyle = sk[f % 2]; ctx.fillRect(cx - 9 + f * 5, cy - 12 + (f === 0 || f === 3 ? 3 : 0), 4, 13 - (f === 0 || f === 3 ? 3 : 0)); }
-      ctx.fillStyle = sk[1]; ctx.fillRect(side < 0 ? cx + 9 : cx - 14, cy + 6, 5, 8);  // the thumb
-      ctx.fillStyle = sk[2]; ctx.fillRect(cx - 6, cy + 18, 12, 10);                   // the wrist
-    });
-  }
   // the abilities in a card's width, and a subclass in a word
   function abils(h) { return ABIL.map(function (k) { return k.charAt(0).toUpperCase() + (k === 'cha' ? 'h' : '') + h.abil[k]; }).join(' '); }
   var SUB = { 'School of Evocation': 'evoker', 'Oath of Devotion': 'Devotion' };
@@ -137,9 +126,9 @@
   Climb.prototype.go = function () {
     var self = this, F = D.fight(this.s.fight);
     D.sfx('confirm');
-    D.push(new D.Camp(this.s.level, F, function (res) { self.after(res); }, { climb: this.hooks() }));
+    D.push(new D.Camp(this.s.level, F, function (res, info) { self.after(res, info); }, { climb: this.hooks() }));
   };
-  Climb.prototype.after = function (res) {
+  Climb.prototype.after = function (res, info) {
     var s = this.s, self = this;
     D.music('title');
     if (res === 'won') {
@@ -159,10 +148,10 @@
       return;
     }
     if (res === 'escaped') {
-      var fell = [];
+      var fell = (info && info.down) || [];
       CL.draw(s, s.fight); CL.save(s);
       var F2 = D.fight(s.fight);
-      this.card = { hands: true, lines: ['{y}BACK TO THE CAMPFIRE{/}', 'A giant pair of DM hands appears above the campfire and waves vigorously.', 'Your fallen comrades appear around the fire, resurrected.', 'No level for it. The next fight on this rung: {y}' + (F2 ? F2.name : '?') + '{/}.', '{g}E{/}'] };
+      this.card = { hands: true, t0: this.t, down: fell, lines: ['{y}BACK TO THE CAMPFIRE{/}', 'A giant pair of DM hands appears above the campfire and waves vigorously.', fell.length ? 'Your fallen comrades appear around the fire, resurrected.' : 'Nobody fell. The hands wave anyway.', 'No level for it. The next fight on this rung: {y}' + (F2 ? F2.name : '?') + '{/}.', '{g}E{/}'] };
     }
   };
   Climb.prototype.update = function () {
@@ -189,7 +178,27 @@
     if (I.pressed('a') || (m.click && hit >= 0)) { rows[this.sel].act(); return; }
     if (I.pressed('b') || I.pressed('menu')) { D.sfx('cancel'); this.sel = 2; }
   };
+  // back to the campfire, whole screen (Griz, 09-28: "fancy up the DM handwaving"): the hands come down out of the dark,
+  // wave, the sparkles fall on the empty places, the fallen come back into them, and the hands go
+  Climb.prototype.drawHands = function (ctx) {
+    var c = this.card, s = this.s, tt = this.t - (c.t0 || 0), CF = D.campfire, cx = D.W / 2, cy = 172;
+    var back = Math.max(0, Math.min(1, (tt - 70) / 80));
+    CF.draw(ctx, { cx: cx, cy: cy, t: this.t, dim: 1, heroes: s.party.map(function (h) { return { id: h.id, sheet: SV.look(h.id, null).sheet || h.id + '_p0', alpha: c.down.indexOf(h.id) >= 0 ? back : 1 }; }) });
+    if (tt > 45 && tt < 175) c.down.forEach(function (id) { var st = CF.seatAt(id, cx, cy); if (st) CF.sparkle(ctx, st.x, st.y - 10, tt); });
+    var hy = tt < 40 ? -100 + tt / 40 * 160 : tt < 190 ? 60 : 60 - (tt - 190) * 4;
+    if (hy > -100) {
+      ctx.fillStyle = 'rgba(0,0,0,.3)'; ctx.beginPath(); ctx.ellipse(cx, cy + 10, 70 * Math.min(1, tt / 40), 8, 0, 0, 7); ctx.fill(); // their shadow on the clearing
+      CF.hands(ctx, cx, hy, tt < 40 || tt > 190 ? tt * 0.3 : tt, 3, 1);
+    }
+    if (tt > 30) {
+      var wl = []; c.lines.forEach(function (l) { wl = wl.concat(D.wrap(l, 340)); });
+      var bh = wl.length * 10 + 8, by = D.H - bh - 8;
+      box(ctx, cx - 180, by, 360, bh, P('gold', 4));
+      wl.forEach(function (w, i) { D.text(ctx, w, cx, by + 5 + i * 10, P('bone', 1), 'center'); });
+    }
+  };
   Climb.prototype.draw = function (ctx) {
+    if (this.card && this.card.hands) return this.drawHands(ctx);
     var R = DS.R, s = this.s, self = this, F = D.fight(s.fight);
     ctx.fillStyle = '#07060c'; ctx.fillRect(0, 0, D.W, D.H);
     ctx.save(); ctx.translate(6, 5); ctx.scale(2, 2); D.text(ctx, 'THE CLIMB', 0, 0, P('gold', 4)); ctx.restore();
@@ -240,9 +249,8 @@
     if (this.card) {
       var c = this.card, cw = 330, wl = [];
       c.lines.forEach(function (l) { wl = wl.concat(D.wrap(l, cw - 16)); });
-      var ch = wl.length * 10 + (c.hands ? 70 : 16), cx = (D.W - cw) / 2, cy = Math.max(10, (D.H - ch) / 2), y0 = cy + 8;
+      var ch = wl.length * 10 + 16, cx = (D.W - cw) / 2, cy = Math.max(10, (D.H - ch) / 2), y0 = cy + 8;
       box(ctx, cx, cy, cw, ch, P('gold', 4));
-      if (c.hands) { hands(ctx, D.W / 2, cy + 22, this.t); fire(ctx, D.W / 2, cy + 58, this.t, true); y0 = cy + 66; }
       wl.forEach(function (w, i) { D.text(ctx, w, D.W / 2, y0 + i * 10, P('bone', 1), 'center'); });
     }
   };

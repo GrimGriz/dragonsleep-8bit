@@ -17,8 +17,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D16 = os.path.join(ROOT, 'deep16')
 SRC = os.path.join(D16, '_src')
 ART = os.path.join(D16, 'art')
-FPS = {'idle': 6, 'walk': 10, 'attack': 12, 'hurt': 10, 'die': 8}
-ANIM_ORDER = ['idle', 'walk', 'attack', 'hurt', 'die']
+FPS = {'idle': 6, 'walk': 10, 'attack': 12, 'hurt': 10, 'die': 8, 'sit': 2}
+ANIM_ORDER = ['idle', 'walk', 'attack', 'hurt', 'die', 'sit']
 # LPC has four directions; the eight facings take the nearest, the front and back diagonals leaning to down and up
 LPC_ROW = {'up': 0, 'left': 1, 'down': 2, 'right': 3}
 LPC_FOR_FACING = ['down', 'down', 'left', 'up', 'up', 'up', 'right', 'down']

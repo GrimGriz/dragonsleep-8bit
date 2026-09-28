@@ -220,10 +220,15 @@
     var data = this.build();
     // the climb: the gear chosen here goes with the party from now on
     if (this.o.climb) { this.o.climb.keep(data.party); this.st.equip = {}; this.save(); }
-    D.push(new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, onDone: function (res) { self.leave(res); } }));
+    // (who went down in it, for the climb's campfire: the DM's hands bring them back -- climb.js)
+    var fb = new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, onDone: function (res) {
+      var down = (fb.units || []).filter(function (u) { return u.side === 'party' && !u.guest && (u.ko || u.hp <= 0); }).map(function (u) { return u.id; });
+      self.leave(res, { down: down });
+    } });
+    D.push(fb);
   };
   // back to the ladder (the fight has popped itself already)
-  Camp.prototype.leave = function (res) { if (D.top() === this) D.pop(); this.done(res); };
+  Camp.prototype.leave = function (res, info) { if (D.top() === this) D.pop(); this.done(res, info || {}); };
 
   // ------------------------------------------------------------------ input
   var PX = 244, PY = 30, PW = D.W - 244 - 6, ROW = 11, VIS = 15;
@@ -252,22 +257,23 @@
   };
 
   // ------------------------------------------------------------------ drawing
-  function box(ctx, x, y, w, h, edge) {
-    ctx.fillStyle = 'rgba(10,8,16,.92)'; ctx.fillRect(x, y, w, h);
+  function box(ctx, x, y, w, h, edge, a) {
+    ctx.fillStyle = 'rgba(10,8,16,' + (a || 0.92) + ')'; ctx.fillRect(x, y, w, h);
     ctx.strokeStyle = edge || P('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
   }
+  var FIRE_AT = [PX + 115, 206]; // the campfire's fire on screen: in the window the list leaves open (js/campfire.js)
   Camp.prototype.draw = function (ctx) {
     var R = DS.R, self = this, hs = this.data.party, L = this.list(), row = L.rows[this.sel], focus = row && row.hero;
-    ctx.fillStyle = '#07060c'; ctx.fillRect(0, 0, D.W, D.H);
-    // a fire, low in the middle, for the look of it
-    var fl = [P('red', 3), P('fire', 1), P('gold', 3), P('gold', 4)];
-    for (var k = 0; k < 7; k++) { var hgt = 3 + ((this.t / 4 + k * 5) % 7); ctx.fillStyle = fl[k % 4]; ctx.fillRect(236 + k, 258 - hgt, 1, hgt); }
+    // the backdrop: the four round the fire in a night clearing (Griz, 09-28), the panels over it let it through
+    D.campfire.draw(ctx, { cx: FIRE_AT[0], cy: FIRE_AT[1], t: this.t, dim: 0.8, heroes: hs.map(function (h) { return { id: h.id, sheet: self.look(h.id).sheet || h.id + '_p0' }; }) });
+    var seat = focus && D.campfire.seatAt(focus, FIRE_AT[0], FIRE_AT[1]);
+    if (seat) { var bob = Math.round(Math.sin(this.t / 8) * 2); D.text(ctx, '▼', seat.x, seat.y - 50 + bob, P('gold', 4), 'center'); }
     ctx.save(); ctx.translate(6, 5); ctx.scale(2, 2); D.text(ctx, 'THE CAMP', 0, 0, P('gold', 4)); ctx.restore();
     D.text(ctx, (this.o.climb ? '{p}the climb{/}  ·  ' : '') + 'level ' + this.L + '  ·  before {y}' + this.F.name + '{/}  ·  ' + (this.F.sub || ''), 98, 9, P('silver', 5));
     // the four
     hs.forEach(function (h, i) {
       var x = 6, y = PY + i * 56, w = 232, hh = 53, look = self.look(h.id), on = focus === h.id;
-      box(ctx, x, y, w, hh, on ? P('gold', 4) : P('stone', 3));
+      box(ctx, x, y, w, hh, on ? P('gold', 4) : P('stone', 3), 0.8);
       ctx.save(); ctx.beginPath(); ctx.rect(x + 3, y + 3, 32, hh - 6); ctx.clip();
       var sheet = look.sheet || h.id + '_p0';
       D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 19, y + Math.min(D.spr.top(sheet), 46) + 3, {});
@@ -284,8 +290,9 @@
       D.text(ctx, bits.join('  '), x + 40, y + 34, P('accent', 2));
       if (h.prepared) D.text(ctx, D.wrap(h.prepared.length + '/' + SV.prepCount(h) + ': ' + h.prepared.map(function (id) { return SV.spell(id).name; }).join(', '), w - 46)[0], x + 40, y + 43, P('stone', 5));
     });
-    // the list
-    box(ctx, PX, PY, PW, 224, P('gold', 3));
+    // the list, as tall as its rows (the fire shows below it), and the chosen row's words in their own box at the foot
+    var shown = Math.min(VIS, L.rows.length);
+    box(ctx, PX, PY, PW, 18 + shown * ROW + 5, P('gold', 3), 0.84);
     D.text(ctx, L.title, PX + 6, PY + 5, P('gold', 4));
     this.rowRects = [];
     L.rows.slice(this.top, this.top + VIS).forEach(function (r, j) {
@@ -299,8 +306,9 @@
     if (L.rows.length > VIS) D.text(ctx, (this.top + 1) + '-' + Math.min(L.rows.length, this.top + VIS) + ' of ' + L.rows.length, PX + PW - 7, PY + 5, P('stone', 5), 'right');
     // the chosen row's words
     var desc = row ? (row.ok === false && row.why ? '{o}' + row.why + '{/}' + (row.desc ? '  ' + row.desc : '') : row.desc || '') : '';
-    D.wrap(desc, PW - 12).slice(0, 4).forEach(function (l, j) { D.text(ctx, l, PX + 6, PY + 190 + j * 8, P('bone', 2)); });
-    if (this.msg && this.t - this.msg.t < 150) D.text(ctx, '{o}' + this.msg.text + '{/}', PX + 6, PY + 180, P('bone', 1));
+    var dl = D.wrap(desc, PW - 12).slice(0, 4), said = this.msg && this.t - this.msg.t < 150;
+    if (said) dl = ['{o}' + this.msg.text + '{/}'].concat(dl.slice(0, 3));
+    if (dl.length) { var dy = D.H - 18 - dl.length * 8 - 6; box(ctx, PX, dy, PW, dl.length * 8 + 6, P('stone', 3), 0.86); dl.forEach(function (l, j) { D.text(ctx, l, PX + 6, dy + 4 + j * 8, P('bone', 2)); }); }
     D.text(ctx, 'up/down choose  ·  E pick  ·  X back' + (row && row.cycle ? '  ·  left/right: on whom' : ''), D.W / 2, D.H - 10, P('stone', 5), 'center');
   };
 })();

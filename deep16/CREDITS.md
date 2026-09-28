@@ -515,3 +515,6 @@ Used by: brann
   - licences: CC-BY-SA 3.0, GPL 3.0
   - https://opengameart.org/content/lpc-medieval-weapons
 
+## The campfire (09-28)
+
+The four heroes' sheets (barley_p0, aurdin_p0, vivian_p0, lymen_p0) also carry the generator's `sit` animation (`tools/lpc-compose.py` `extra`), from the same layers and sheet definitions credited above (the body's credits include LPC Be Seated, https://opengameart.org/content/lpc-be-seated). The campfire scene they sit in (`js/campfire.js`) is drawn in code.

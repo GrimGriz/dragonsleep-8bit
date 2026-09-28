@@ -444,7 +444,8 @@ def build_figure(fid, fig):
     os.makedirs(odir, exist_ok=True)
     meta = {'frame_w': F, 'frame_h': F, 'anims': {}, 'foot': None, 'layers': [], 'notes': ''}
     stacks = {}
-    for anim, src in (('idle', 'idle'), ('walk', 'walk'), ('attack', fig['attack']), ('hurt', 'hurt')):
+    # (a figure's `extra` animations ride along: the four heroes sit at the campfire -- Griz 09-28, the camp's backdrop)
+    for anim, src in (('idle', 'idle'), ('walk', 'walk'), ('attack', fig['attack']), ('hurt', 'hurt')) + tuple((x, x) for x in fig.get('extra', [])):
         if isinstance(src, tuple):
             src_anim, custom = src
         else:
@@ -541,6 +542,7 @@ FIGURES = {
     # skin/hair/cloth keys are the generator's palette keys: 'colour' (default version of that material, ulpc),
     # 'version.colour' (e.g. lpcr.tan) or 'material.version.colour' (e.g. all.lpcr.purple).
     'barley': {
+        'extra': ['sit'],
         'body': 'male', 'skin': 'lpcr.tan', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
         'items': [
             {'def': 'body/body.json'},
@@ -557,6 +559,7 @@ FIGURES = {
                   'exactly as in the generator'],
     },
     'aurdin': {
+        'extra': ['sit'],
         'body': 'teen', 'skin': 'light', 'eyes': 'blue', 'attack': 'spellcast',
         'items': [
             {'def': 'body/body.json'},
@@ -602,6 +605,7 @@ FIGURES = {
         'notes': ['a child from the wagon: Aurdin\'s layers only (nothing new fetched), smock = longsleeve + plain skirt'],
     },
     'vivian': {
+        'extra': ['sit'],
         'body': 'female', 'skin': 'light', 'eyes': 'green', 'attack': 'slash',
         'items': [
             {'def': 'body/body.json'},
@@ -616,6 +620,7 @@ FIGURES = {
                   'attack = slash (6 frames, 64px) with the dagger\'s own slash sheets'],
     },
     'lymen': {
+        'extra': ['sit'],
         'body': 'male', 'skin': 'pale_green', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
         'items': [
             {'def': 'body/body.json'},
