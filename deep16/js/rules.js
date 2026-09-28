@@ -15,7 +15,7 @@
     return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0);
   };
   // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
-  RU.immuneTo = function (u, cond) { return !!(u && u.condImmune && u.condImmune.indexOf(cond) >= 0); };
+  RU.immuneTo = function (u, cond) { return !!(u && ((u.condImmune && u.condImmune.indexOf(cond) >= 0) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond)))); }; // (Freedom of Movement: js/grimoire.js)
 
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {

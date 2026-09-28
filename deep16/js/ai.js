@@ -46,6 +46,10 @@
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
+    // banished, or sealed in a sphere (js/grimoire.js): no turn here
+    if (u.conds.banished) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is not here.{/}'], 160); yield 16; D.magic.endTurn(B, u); u.anim = 'idle'; return; }
+    // confused (Confusion): the d10 may take the turn
+    if (u.conds.confused && D.magic.confusedTurn && (yield* D.magic.confusedTurn(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // a word of Command it must obey (js/grimoire.js): halted, grovelling, or away from the one who spoke, and nothing more
     if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(B, u); yield 20; D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // Fear's run (js/grimoire.js): any creature under it Dashes away from the one it fears

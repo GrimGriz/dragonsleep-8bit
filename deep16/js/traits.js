@@ -39,6 +39,8 @@
       tgt.baseAC -= 1; tgt.corrodedAC = (tgt.corrodedAC || 0) + 1;
       B.card(['{o}' + Nm(B, tgt) + '\'s armour is eaten: AC ' + RU.ac(tgt) + '.{/}  {g}(for the fight){/}'], 260);
     }
+    // Fire Shield (js/grimoire.js): a blow from beside it burns back, 2d8 fire (the warm) or cold (the chill)
+    if (tgt.conds.fireShield && melee && G.dist(att, tgt) <= 5 && !att.dead && att.hp > 0) { var fs0 = D.roll('2d8'); B.card(['{o}' + Nm(B, att) + ' is burned by the fire shield{/}  2d8 = ' + fs0.total + ' ' + tgt.conds.fireShield.type], 200); B.hurt(att, fs0.total, tgt.conds.fireShield.type); }
     // the giant boar's Charge: 20 ft straight at it and a tusk that lands -- 2d6 more, and STR or prone
     if (att.charge && att.turn && !att.turn.charged && (att.speed - att.turn.move) >= 20 && !tgt.dead && tgt.hp > 0) {
       att.turn.charged = true;

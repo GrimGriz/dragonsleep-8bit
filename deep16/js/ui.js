@@ -360,7 +360,7 @@
       var g = B.spell.g, M = D.magic;
       if (g.shape === 'sphere' || g.shape === 'cube') return M.inRange(u, g, x, y) ? 'ok' : 'no';
       if (g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') return M.area(u, g, x, y).length ? 'ok' : 'no';
-      if (g.shape === 'teleport') return B.mistyTargets(u).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
+      if (g.shape === 'teleport') return B.mistyTargets(u, g.range).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
       if (g.shape === 'allies' && B.picks.length && !(w && M.targetOK(B, u, g, w))) return 'self';
       if (w && M.targetOK(B, u, g, w)) return 'ok';
       return M.missileDark(B, u, g, x, y) ? 'ok' : 'no'; // (Magic Missile at the darkness: a square the caster cannot see into)
@@ -690,7 +690,7 @@
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') {
         var col = S.id === 'web' ? R('bone', 1) : S.id === 'sleep' ? R('violet', 4) : S.sp.el === 'cold' || S.sp.el === 'lightning' ? R('glow', 1) : R('fire', 1);
         M.area(u, g, cx, cy).forEach(function (q) { fillSq(ctx, q[0], q[1], col, 0.38); });
-      } else if (g.shape === 'teleport') B.mistyTargets(u).forEach(function (q) { lineSq(ctx, q[0], q[1], R('glow', 2), 0.6, 4); });
+      } else if (g.shape === 'teleport') B.mistyTargets(u, g.range).forEach(function (q) { lineSq(ctx, q[0], q[1], R('glow', 2), 0.6, 4); });
       else B.units.forEach(function (w) {
         if (!M.targetOK(B, u, g, w)) return;
         var picked = B.picks.filter(function (p) { return p === w; }).length;

@@ -473,6 +473,9 @@
       if (u.hp > 0) D.magic.endTurn(this, u); // a held hero still gets the save at the end of the turn (the weaver's Hold, the chuul)
       return;
     }
+    // banished or sealed in a sphere; confused (js/grimoire.js)
+    if (u.conds.banished) { this.card(['{g}' + u.name + ' is not here.{/}']); yield 40; D.magic.endTurn(this, u); return; }
+    if (u.conds.confused && D.magic.confusedTurn && (yield* D.magic.confusedTurn(this, u))) { yield 30; D.magic.endTurn(this, u); return; }
     // Fear's run (a foe's Fear, js/grimoire.js): the Dash away from it, and the turn is over
     if (D.magic.mustFlee && D.magic.mustFlee(u)) { yield* D.tactics.fleeFear(this, u); yield 30; D.magic.endTurn(this, u); return; }
     // a word of Command obeyed (a foe's Command, js/grimoire.js): the turn is the word's
@@ -958,6 +961,8 @@
       D.magic.concCheck(this, u, n);
       return;
     }
+    // Death Ward (js/grimoire.js): the first fall stops at 1
+    if (u.hp <= 0 && u.conds.deathWard) { delete u.conds.deathWard; u.hp = 1; FX.ring(u, 'gold', 30); this.card(['{y}' + (u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' does not fall: the death ward holds.{/}']); D.magic.concCheck(this, u, n); return; }
     // Relentless (the giant boar: js/traits.js): a small blow that would drop it leaves it at 1
     if (u.hp <= 0 && D.traits && D.traits.refuse && D.traits.refuse(this, u, n)) { D.magic.concCheck(this, u, n); return; }
     if (u.hp <= 0) {
@@ -1142,9 +1147,10 @@
   };
 
   // ------------------------------------------------------------------ Misty Step: a bonus action, 30 ft to a square you can see
-  Battle.prototype.mistyTargets = function (u) {
-    var out = [];
-    for (var y = u.y - 6; y <= u.y + 6; y++) for (var x = u.x - 6; x <= u.x + 6; x++) {
+  // the squares a teleport reaches (Misty Step's 30 ft; Dimension Door's 500, js/grimoire.js): free, and seen
+  Battle.prototype.mistyTargets = function (u, range) {
+    var out = [], n = Math.floor((range || 30) / 5);
+    for (var y = u.y - n; y <= u.y + n; y++) for (var x = u.x - n; x <= u.x + n; x++) {
       if (x === u.x && y === u.y) continue;
       if (!G.canStand(u, x, y) || !G.losPoint(u.x, u.y, x, y)) continue;
       out.push([x, y]);

@@ -16,15 +16,15 @@ Each spell gets one verdict:
 
 | | BUILT | IN | DARK | LATER | OUT | all |
 |---|---|---|---|---|---|---|
-| **every spell** | 104 | 52 | 0 | 60 | 103 | 319 |
-| Wizard | 64 | 32 | 0 | 40 | 68 | 204 |
-| Cleric | 33 | 22 | 0 | 10 | 40 | 105 |
-| Paladin | 16 | 3 | 0 | 0 | 12 | 31 |
-| Warlock | 20 | 12 | 0 | 12 | 20 | 64 |
-| Sorcerer | 53 | 21 | 0 | 23 | 23 | 120 |
-| Bard | 31 | 16 | 0 | 17 | 47 | 111 |
-| Druid | 31 | 17 | 0 | 23 | 35 | 106 |
-| Ranger | 14 | 1 | 0 | 7 | 15 | 37 |
+| **every spell** | 121 | 35 | 0 | 60 | 103 | 319 |
+| Wizard | 72 | 24 | 0 | 40 | 68 | 204 |
+| Cleric | 43 | 12 | 0 | 10 | 40 | 105 |
+| Paladin | 19 | 0 | 0 | 0 | 12 | 31 |
+| Warlock | 23 | 9 | 0 | 12 | 20 | 64 |
+| Sorcerer | 58 | 16 | 0 | 23 | 23 | 120 |
+| Bard | 36 | 11 | 0 | 17 | 47 | 111 |
+| Druid | 38 | 10 | 0 | 23 | 35 | 106 |
+| Ranger | 15 | 0 | 0 | 7 | 15 | 37 |
 
 **Who**, in the tables: **Au** Aurdin (wizard, spells to 5th), **Ly** Lymen (paladin to 3rd, and his Oath of Devotion's spells), **To** Torvald (cleric 5), **In** Ingrith (cleric 4), **Am** Amara (warlock 5), **Wi** Willem (wizard 5), **SW** the drow spell-weaver (the SRD Mage's own list), **Na** the spirit naga (the SRD's own list), **Dr** the drow's innate, **Du** the duergar's. A hero or a classed NPC is marked for every spell his class and level reach; the two SRD stat blocks only for the spells they have. **Classes**: W wizard, C cleric, P paladin, K warlock, S sorcerer, B bard, D druid, R ranger.
 
@@ -262,32 +262,32 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Spell | Classes | Who | Verdict | In the game |
 |---|---|---|---|---|
 | Arcane Eye | W C | Au | **OUT** | a scouting eye: divination |
-| Banishment | W C P K S | Au | **IN** | CHA save: gone from the field while concentration holds; one from another plane gone for good |
-| Black Tentacles | W | Au | **IN** | 20-ft square terrain (conc): difficult; DEX save or 3d6 bludgeoning and restrained |
-| Blight | W K S D | Au Na | **IN** | CON save 8d8 necrotic (half); the naga's |
+| Banishment | W C P K S | Au | **BUILT** | CHA save: gone from the field while concentration holds; one from another plane gone for good -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
+| Black Tentacles | W | Au | **BUILT** | 20-ft square terrain (conc): difficult; DEX save or 3d6 bludgeoning and restrained -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
+| Blight | W K S D | Au Na | **BUILT** | CON save 8d8 necrotic (half); the naga's -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Compulsion | B |  | **LATER** | a charm that drives movement: WIS save, then it must move the way you point; forced moves |
-| Confusion | W S B D | Au | **IN** | 10-ft sphere, WIS save (conc): each turn a d10 -- wander, stand, strike at random |
+| Confusion | W S B D | Au | **BUILT** | 10-ft sphere, WIS save (conc): each turn a d10 -- wander, stand, strike at random -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Conjure Minor Elementals | W D | Au | **LATER** | summons: elementals that obey |
 | Conjure Woodland Beings | D R |  | **LATER** | summons: fey (one CR 2 up to eight CR 1/4) that obey the caster; needs summons |
 | Control Water | W C D | Au | **OUT** | the water is hand-waved |
-| Death Ward | C P |  | **IN** | touch (ally), 8 hr: the first drop to 0 HP leaves it at 1 instead; a foe priest's champion |
-| Dimension Door | W K S B | Au Na | **IN** | teleport 500 ft with one ally: across the field or off it; the naga's |
+| Death Ward | C P |  | **BUILT** | touch (ally), 8 hr: the first drop to 0 HP leaves it at 1 instead; a foe priest's champion -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
+| Dimension Door | W K S B | Au Na | **BUILT** | teleport 500 ft with one ally: across the field or off it; the naga's -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Divination | D |  | **OUT** | divination: one question about the next 7 days, a cryptic reply |
 | Dominate Beast | S D |  | **LATER** | control of a creature: a beast fails WIS and obeys the caster; needs dominate |
 | Fabricate | W | Au | **OUT** | crafting |
 | Faithful Hound | W | Au | **LATER** | an invisible watchdog that bites: a summon |
-| Fire Shield | W | Au | **IN** | self: warm or chill -- resistance to one, and 2d8 back at whoever strikes you in melee |
-| Freedom of Movement | C B D R |  | **IN** | touch (ally), 1 hr: ignores difficult terrain, no magic paralysis or restraint, slips grapples |
+| Fire Shield | W | Au | **BUILT** | self: warm or chill -- resistance to one, and 2d8 back at whoever strikes you in melee -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
+| Freedom of Movement | C B D R |  | **BUILT** | touch (ally), 1 hr: ignores difficult terrain, no magic paralysis or restraint, slips grapples -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Giant Insect | D |  | **LATER** | summons: bugs grown giant (centipedes, spiders, wasps, a scorpion) that obey; needs summons |
 | Greater Invisibility | W S B | Au SW | **BUILT** | grid: invisible even while attacking (conc) |
-| Guardian of Faith | C |  | **IN** | a fixed Large guardian, 8 hr: foes coming within 10 ft DEX save 20 radiant; gone at 60 dealt |
+| Guardian of Faith | C |  | **BUILT** | a fixed Large guardian, 8 hr: foes coming within 10 ft DEX save 20 radiant; gone at 60 dealt -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Hallucinatory Terrain | W K B D | Au | **OUT** | scenery illusion |
 | Ice Storm | W S D | Au SW | **BUILT** | 20-ft cylinder, DEX save 2d8 bludgeoning + 4d6 cold (half), difficult |
 | Locate Creature | W C P B D R | Au | **OUT** | divination |
-| Phantasmal Killer | W | Au | **IN** | WIS save: frightened, 4d10 psychic at each turn's end till a save (conc) |
+| Phantasmal Killer | W | Au | **BUILT** | WIS save: frightened, 4d10 psychic at each turn's end till a save (conc) -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Polymorph | W S B D | Au | **LATER** | needs stat blocks to become (a beast's sheet): a foe made a toad, later |
 | Private Sanctum | W | Au | **OUT** | a warded room: set-up |
-| Resilient Sphere | W | Au | **IN** | DEX save: sealed in a sphere (conc) -- one foe out of the fight, or a friend kept safe |
+| Resilient Sphere | W | Au | **BUILT** | DEX save: sealed in a sphere (conc) -- one foe out of the fight, or a friend kept safe -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Secret Chest | W | Au | **OUT** | storage |
 | Stone Shape | W C D | Au | **OUT** | reshapes stone: the maps' walls are the story's |
 | Stoneskin | W S D R | Au | **BUILT** | touch (conc): resistance to nonmagical blades, bolts, bites |
@@ -307,19 +307,19 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Cone of Cold | W S | Au SW | **BUILT** | 60-ft cone, CON save 8d8 cold (half) |
 | Conjure Elemental | W D | Au | **LATER** | summons: an elemental that obeys, hostile if concentration breaks |
 | Contact Other Plane | W K | Au | **OUT** | divination |
-| Contagion | C D |  | **IN** | touch attack: a disease (blinded, vulnerable to all, stunned when hurt...); 3 CON fails, 7 days |
+| Contagion | C D |  | **BUILT** | touch attack: a disease (blinded, vulnerable to all, stunned when hurt...); 3 CON fails, 7 days -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Creation | W S | Au | **OUT** | crafting |
-| Dispel Evil and Good | C P |  | **IN** | self (conc): undead, fiends, fey etc. at disadv vs you; a touch frees the charmed or banishes |
+| Dispel Evil and Good | C P |  | **BUILT** | self (conc): undead, fiends, fey etc. at disadv vs you; a touch frees the charmed or banishes -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Dominate Person | W S B | Au Na | **LATER** | control of a humanoid (a hero turned on the party): needs dominate; the naga's |
 | Dream | W K B | Au | **OUT** | a message in a dream |
-| Flame Strike | C |  | **IN** | sphere 10-ft radius, DEX save 4d6 fire + 4d6 radiant (half); a cleric foe later |
+| Flame Strike | C |  | **BUILT** | sphere 10-ft radius, DEX save 4d6 fire + 4d6 radiant (half); a cleric foe later -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Geas | W C P B D | Au | **OUT** | a binding command over days: story |
-| Greater Restoration | C B D |  | **IN** | touch cure: ends charm, petrify, a curse, stat or HP-max drain; the answer to harm, feeblemind |
+| Greater Restoration | C B D |  | **BUILT** | touch cure: ends charm, petrify, a curse, stat or HP-max drain; the answer to harm, feeblemind -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Hallow | C |  | **LATER** | a 24-hr rite on a place: a lair law (fear, vulnerability, no undead); needs place-bound laws |
 | Hold Monster | W K S B | Au | **BUILT** | any creature, WIS save or paralyzed, a save each turn (conc) |
-| Insect Plague | C S D |  | **IN** | a lasting 20-ft sphere (conc): CON save 4d10 piercing on appear, entry, end turn; difficult |
+| Insect Plague | C S D |  | **BUILT** | a lasting 20-ft sphere (conc): CON save 4d10 piercing on appear, entry, end turn; difficult -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Legend Lore | W C B | Au | **OUT** | divination |
-| Mass Cure Wounds | C B D |  | **IN** | allies, up to six in a 30-ft sphere: 3d8 + mod each; a foe priest healing its band |
+| Mass Cure Wounds | C B D |  | **BUILT** | allies, up to six in a 30-ft sphere: 3d8 + mod each; a foe priest healing its band -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Mislead | W B | Au | **BUILT** | invisible, and an illusory double: waits on the dark -- BUILT 09-28 (torchdark): invisible till he attacks or casts, and one false image |
 | Modify Memory | W B | Au | **OUT** | social |
 | Passwall | W | Au | **OUT** | a passage through a wall: the maps' walls are the story's |

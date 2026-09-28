@@ -124,7 +124,25 @@
   protectionfromenergy: { shape: 'touch', side: 'ally', time: 'A', conc: true },
   slow: { shape: 'cube', range: 120, size: 40, time: 'A', conc: true },
   spiritguardians: { shape: 'self', time: 'A', conc: true },
-  vampirictouch: { shape: 'attack', range: 5, time: 'A', conc: true }
+  vampirictouch: { shape: 'attack', range: 5, time: 'A', conc: true },
+  // the class NPCs' spells (09-28, batch d; js/grimoire.js)
+  banishment: { shape: 'single', range: 60, time: 'A', conc: true },
+  blacktentacles: { shape: 'cube', range: 90, size: 20, time: 'A', conc: true },
+  blight: { shape: 'single', side: 'foe', range: 30, time: 'A' },
+  confusion: { shape: 'sphere', range: 90, r: 10, time: 'A', conc: true },
+  deathward: { shape: 'touch', side: 'ally', time: 'A' },
+  dimensiondoor: { shape: 'teleport', range: 500, time: 'A' },
+  fireshield: { shape: 'self', time: 'A' },
+  freedomofmovement: { shape: 'touch', side: 'ally', time: 'A' },
+  guardianoffaith: { shape: 'sphere', range: 30, r: 5, time: 'A' },
+  phantasmalkiller: { shape: 'single', side: 'foe', range: 120, time: 'A', conc: true },
+  resilientsphere: { shape: 'single', range: 30, time: 'A', conc: true },
+  contagion: { shape: 'attack', range: 5, time: 'A' },
+  dispelevilandgood: { shape: 'self', time: 'A', conc: true },
+  flamestrike: { shape: 'sphere', range: 60, r: 10, time: 'A' },
+  greaterrestoration: { shape: 'touch', side: 'ally', time: 'A' },
+  insectplague: { shape: 'sphere', range: 300, r: 20, time: 'A', conc: true },
+  masscurewounds: { shape: 'allies', range: 60, n: 6, time: 'A' }
 };
 // spells the 8-bit game's list lacks would live here; Misty Step moved into content/spells.json on 09-27 (a learnable, grid-only spell)
 window.D16.EXTRA_SPELLS = {};
