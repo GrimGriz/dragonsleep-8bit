@@ -57,6 +57,9 @@
       if (B.fight.runWhenHurt && !u.flees && D.FOES[u.kind] && D.FOES[u.kind].flees) { B.startRun(u); yield 30; }
       else if (u.traces) { u.traces = false; B.card(['{r}' + u.name + ' lets go of the traces{/} and turns on you.'], 360); yield 30; }
     }
+    // the bestiary's own turn-taking (js/traits.js): the broodmother in the rock
+    var handled = u.side === 'foe' && D.traits && D.traits.turn ? yield* D.traits.turn(B, u) : false;
+    if (handled) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     if (u.traces) yield* traces(B, u);
     else if (u.classAI && D.tactics) yield* D.tactics.turn(B, u); // a class NPC (js/classes.js), or a hero on the bench: the class's own tactics (js/tactics.js)
     else if (u.kind === 'phasespider') yield* spider(B, u);
@@ -65,6 +68,7 @@
     else if (u.weave) yield* weaver(B, u);
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
+    if (u.side === 'foe' && D.traits && D.traits.after) yield* D.traits.after(B, u); // (the gnoll's Rampage, the goblin's Nimble Escape)
     // a Slam's stun and a Moan's fright last till the end of the foe's next turn
     B.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { var s = w.conds[c]; if (s && s.by === u.id) { if (s.fresh) s.fresh = false; else delete w.conds[c]; } }); });
     D.magic.endTurn(B, u);

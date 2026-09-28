@@ -29,10 +29,13 @@
   G.hostile = function (a, b) { return a.side !== b.side; };
   G.gzAt = function (u, x, y) { var z = 0; G.foot(u, x, y).forEach(function (p) { z = Math.max(z, G.map.gz(p[0], p[1])); }); return z; };
   function walkable(x, y) { var s = G.map.at(x, y); return !!(s && s.walk); }
-  function footWalkable(u, x, y) {
+  // Earth Glide (the xorn, the earth elemental; js/traits.js): through the rock ('#', the stalagmites), never a built wall, and it stands only
+  // on open ground (pass: a square it may go through)
+  function glides(u, x, y) { var s = G.map.at(x, y); return !!(u && u.earthGlide && s && (s.ch === '#' || s.ch === 'P') && x > 0 && y > 0 && x < G.map.w - 1 && y < G.map.h - 1); }
+  function footWalkable(u, x, y, pass) {
     var f = G.foot(u, x, y), lo = 1e9, hi = -1e9;
     for (var i = 0; i < f.length; i++) {
-      if (!walkable(f[i][0], f[i][1])) return false;
+      if (!walkable(f[i][0], f[i][1]) && !(pass && glides(u, f[i][0], f[i][1]))) return false;
       var z = G.map.gz(f[i][0], f[i][1]); lo = Math.min(lo, z); hi = Math.max(hi, z);
     }
     return hi - lo <= G.map.def.step; // a Large body can straddle one step, not the ledge
@@ -47,7 +50,7 @@
   };
   // may u pass through here (allies yes, foes no; a creature who is down still blocks its foes)
   G.canPass = function (u, x, y, o) {
-    if (!footWalkable(u, x, y)) return false;
+    if (!footWalkable(u, x, y, true)) return false;
     if (o && o.ghost) return true;
     var f = G.foot(u, x, y);
     for (var i = 0; i < f.length; i++) { var w = G.occupant(f[i][0], f[i][1], u); if (w && G.hostile(u, w)) return false; }
@@ -57,7 +60,7 @@
     if (!G.canPass(u, x1, y1, o)) return Infinity;
     if (Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) > G.map.def.step) return Infinity;
     var dx = x1 - x0, dy = y1 - y0;
-    if (dx && dy && !footWalkable(u, x0 + dx, y0) && !footWalkable(u, x0, y0 + dy)) return Infinity; // no squeezing between two rocks at a corner
+    if (dx && dy && !footWalkable(u, x0 + dx, y0, true) && !footWalkable(u, x0, y0 + dy, true)) return Infinity; // no squeezing between two rocks at a corner
     if (o && o.ghost) return 5;
     // frightened (SRD): not one step nearer the one it fears, while that one stands
     var fr = u.conds && u.conds.frightened;

@@ -163,6 +163,8 @@
     var d = D.FOES[f.kind];
     if (d.build && D.npc && D.npc.NAMED[d.build]) return D.npc.fromFoe(this, f, d); // (a named caster built by its class: js/classes.js)
     var u = this.makeFoe0(f, d);
+    // the bestiary's traits (js/traits.js): the sheet's own, carried on the unit
+    if (D.traits) D.traits.FIELDS.forEach(function (k) { if (d[k] != null) u[k] = JSON.parse(JSON.stringify(d[k])); });
     // a stat block's spells (the SRD Mage, the Spirit Naga: data/foes.js `caster`), cast for real by the class tactics (js/tactics.js)
     if (d.caster) { var cs = d.caster; u.known = cs.known.slice(); u.slots = cs.slots.slice(); u.slotsMax = cs.slots.slice(); u.spellDC = cs.dc; u.spellAtk = cs.atk; u.castAb = cs.ab; u.lvl = cs.lvl; u.prof = Math.ceil(1 + cs.lvl / 4); u.classAI = true; u.weave = null; }
     return u;
@@ -852,7 +854,7 @@
     }
     // a grapple on the hit (the otyugh's tentacles): Medium or smaller, while it has a tentacle free; grappled and restrained
     if (atk.grapple && !tgt.dead && tgt.hp > 0 && (tgt.size || 1) <= 1 && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length < (atk.grapple.max || 1)) {
-      tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true };
+      tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true, weak: !!atk.weakens }; // (weak: the roper's tendril, disadvantage on STR: js/traits.js)
       att.holding = (att.holding || []).concat([tgt]);
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
       this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED and RESTRAINED{/}  {g}(escape DC ' + atk.grapple.dc + ', an action){/}']);
@@ -956,8 +958,11 @@
       D.magic.concCheck(this, u, n);
       return;
     }
+    // Relentless (the giant boar: js/traits.js): a small blow that would drop it leaves it at 1
+    if (u.hp <= 0 && D.traits && D.traits.refuse && D.traits.refuse(this, u, n)) { D.magic.concCheck(this, u, n); return; }
     if (u.hp <= 0) {
       u.anim = 'hurt'; u.animT = this.t;
+      if (D.traits && D.traits.onDown) D.traits.onDown(this, this.active, u); // (the gnoll's Rampage)
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.side === 'party') { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside him.{/}' : '')]); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); if (u.holding && u.holding.length) this.release(u); }

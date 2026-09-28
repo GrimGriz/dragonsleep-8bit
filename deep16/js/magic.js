@@ -687,7 +687,7 @@
   // breaking out of a web: an action, a STR check against the caster's DC
   M.breakFree = function* (B, u) {
     // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
-    var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, d = (u.conds.poisoned || u.conds.frightened ? Math.min(D.d(20), D.d(20)) : D.d(20)) + gd, useDex = r.grapple && D.mod(u.abil.dex) > D.mod(u.abil.str);
+    var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, d = (u.conds.poisoned || u.conds.frightened || r.weak ? Math.min(D.d(20), D.d(20)) : D.d(20)) + gd, useDex = r.grapple && D.mod(u.abil.dex) > D.mod(u.abil.str); // (r.weak: the roper's tendril, js/traits.js)
     var tot = d + D.mod(useDex ? u.abil.dex : u.abil.str) + (u.cls === 'fighter' || (useDex && u.cls === 'rogue') ? u.prof : 0);
     u.turn.action = 0;
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
