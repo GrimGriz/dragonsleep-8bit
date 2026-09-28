@@ -57,7 +57,40 @@
   // Daylight (SRD 5.1): a 60-ft sphere of bright light (not sunlight: the drow do not flinch); where it overlaps a Darkness of
   // 3rd level or lower, that Darkness is dispelled (09-27, Griz: "Did we get the light spell cancelling darkness?" -- the Light
   // cantrip cannot: Darkness dispels it, not the other way)
-  daylight: { shape: 'sphere', range: 60, r: 60, time: 'A' }
+  daylight: { shape: 'sphere', range: 60, r: 60, time: 'A' },
+  // the class NPCs' spells (09-28, batch a; js/grimoire.js)
+  chilltouch: { shape: 'attack', range: 120, time: 'A' },
+  poisonspray: { shape: 'single', side: 'foe', range: 10, time: 'A' },
+  produceflame: { shape: 'attack', range: 30, time: 'A' },
+  rayoffrost: { shape: 'attack', range: 60, time: 'A' },
+  resistance: { shape: 'touch', side: 'ally', time: 'A', conc: true },
+  sacredflame: { shape: 'single', side: 'foe', range: 60, time: 'A' },
+  shillelagh: { shape: 'self', time: 'B' },
+  shockinggrasp: { shape: 'attack', range: 5, time: 'A' },
+  truestrike: { shape: 'single', side: 'foe', range: 30, time: 'A', conc: true },
+  viciousmockery: { shape: 'single', side: 'foe', range: 60, time: 'A' },
+  eldritchblast: { shape: 'rays', range: 120, n: 1, time: 'A' },
+  guidance: { shape: 'touch', side: 'ally', time: 'A', conc: true },
+  bane: { shape: 'allies', side: 'foe', range: 30, n: 3, time: 'A', conc: true },
+  colorspray: { shape: 'cone', len: 15, time: 'A' },
+  command: { shape: 'single', side: 'foe', range: 60, time: 'A' },
+  entangle: { shape: 'cube', range: 90, size: 20, time: 'A', conc: true },
+  expeditiousretreat: { shape: 'self', time: 'B', conc: true },
+  falselife: { shape: 'self', time: 'A' },
+  grease: { shape: 'cube', range: 60, size: 10, time: 'A' },
+  guidingbolt: { shape: 'attack', range: 120, time: 'A' },
+  healingword: { shape: 'single', side: 'ally', range: 60, time: 'B' },
+  hellishrebuke: { shape: 'reaction', why: 'a reaction: when a foe you can see within 60 ft hurts you' },
+  hideouslaughter: { shape: 'single', side: 'foe', range: 30, time: 'A', conc: true },
+  huntersmark: { shape: 'single', side: 'foe', range: 90, time: 'B', conc: true },
+  mirrorsgaze: { shape: 'single', side: 'foe', range: 90, time: 'B', conc: true },
+  inflictwounds: { shape: 'attack', range: 5, time: 'A' },
+  longstrider: { shape: 'touch', side: 'ally', time: 'A' },
+  sanctuary: { shape: 'single', side: 'ally', range: 30, time: 'B', self: true },
+  faeriefire: { shape: 'cube', range: 60, size: 20, time: 'A', conc: true },
+  glasswhisper: { shape: 'single', side: 'foe', range: 60, time: 'A' },
+  protectionfromevilandgood: { shape: 'touch', side: 'ally', time: 'A', conc: true },
+  darkness: { shape: 'sphere', range: 60, r: 15, time: 'A', conc: true }
 };
 // spells the 8-bit game's list lacks would live here; Misty Step moved into content/spells.json on 09-27 (a learnable, grid-only spell)
 window.D16.EXTRA_SPELLS = {};

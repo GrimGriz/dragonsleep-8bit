@@ -1,0 +1,197 @@
+/* DEEP16 — the class NPCs (handoff-2026-09-28-npc-classes-to-six.md; Griz 09-28: "build NPC of each class out to level 6 and
+   combat test them"). A sheet for any of the twelve SRD 5.1 classes at levels 1-9, built by the SRD's own tables and by
+   the 8-bit game's rules (js/rules.js R.CLASSES, R.ac, R.attackBonus, R.spellDC ...), then made a grid unit the way the
+   heroes are (js/save.js SV.unitOf). The spells are the grid's (data/spells.js + content/spells.json); a spell not built yet
+   is simply not on the list (magic.js M.list).
+   RULED 09-28: "Higertha is half-orc Druid, see if other existing NPCs need classes built and human the rest of the classes";
+   names "except when matching existing NPCs, generic is good" -- 'Cleric 5'. HP the SRD's fixed average (the max hit die a
+   level is for the story-vital, by name: NAMED `maxhp`). Ability scores: the standard array by the class's priorities. */
+'use strict';
+(function () {
+  var D = window.D16, DS = window.DS, R = DS.R;
+  var NPC = D.npc = {};
+  var ARRAY = [15, 14, 13, 12, 10, 8];
+
+  // the SRD 5.1 races the generator knows (human by default); their numbers and the traits the grid reads
+  NPC.RACES = {
+    human: { name: 'Human', abil: { str: 1, dex: 1, con: 1, int: 1, wis: 1, cha: 1 } },
+    halforc: { name: 'Half-orc', abil: { str: 2, con: 1 }, dv: 60, relentless: true, savage: true },
+    dwarf: { name: 'Dwarf', abil: { con: 2, wis: 1 }, dv: 60, speed: 25, resist: ['poison'], hpLevel: 1 }, // (the hill dwarf)
+    elf: { name: 'Elf', abil: { dex: 2, int: 1 }, dv: 60, fey: true },                                   // (the high elf: Fey Ancestry, no magic sleep)
+    halfling: { name: 'Halfling', abil: { dex: 2, cha: 1 }, speed: 25 },
+    halfelf: { name: 'Half-elf', abil: { cha: 2, con: 1, dex: 1 }, dv: 60, fey: true },
+    gnome: { name: 'Gnome', abil: { int: 2, con: 1 }, dv: 60, speed: 25 },
+    tiefling: { name: 'Tiefling', abil: { cha: 2, int: 1 }, dv: 60, resist: ['fire'] },
+    dragonborn: { name: 'Dragonborn', abil: { str: 2, cha: 1 } }
+  };
+
+  // ------------------------------------------------------------------ the twelve, levels 1-6 (the SRD's tables; spells by level of the NPC).
+  // prio: where the standard array goes. kit: the SRD starting kit's weapon, armour, shield, and a second weapon (alt: the ranged
+  // one, or the melee one for a bow). sub: the SRD's one subclass and the level it comes. cantrips / known by class level (1-9).
+  // spells: what the NPC knows or prepares at each level it reaches (the test vehicle's list: chosen to put every built spell
+  // of its class through a fight); `always`: the domain's or the oath's, prepared and uncounted
+  var C = NPC.CLASSES = {
+    barbarian: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greataxe', alt: 'handaxe' }, sub: [3, 'Path of the Berserker'], look: 'berserker_p1' },
+    bard: { prio: ['cha', 'dex', 'con', 'wis', 'int', 'str'], kit: { weapon: 'rapier', armor: 'leather', alt: 'dagger' }, sub: [3, 'College of Lore'], look: 'gloryseeker_p1',
+      cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], known: [4, 5, 6, 7, 8, 9, 10, 11, 12],
+      spells: { 0: ['viciousmockery', 'dancinglights', 'light'], 1: ['healingword', 'hideouslaughter', 'faeriefire', 'thunderwave', 'bane', 'curewounds'], 2: ['heatmetal', 'shatter', 'blindnessdeafness', 'enhanceability'], 3: ['hypnoticpattern', 'fear', 'slow'], magicalSecrets: ['fireball', 'haste'] } },
+    cleric: { prio: ['wis', 'con', 'str', 'cha', 'dex', 'int'], kit: { weapon: 'mace', armor: 'chainmail', shield: 'shield', alt: 'lightcrossbow' }, sub: [1, 'Life Domain'], look: 'torvald_p0',
+      cantrips: [3, 3, 3, 4, 4, 4, 4, 4, 4], prepares: 'wis',
+      always: { 1: ['bless', 'curewounds'], 3: ['lesserrestoration', 'spiritualweapon'], 5: ['beaconofhope', 'revivify'] },
+      spells: { 0: ['sacredflame', 'guidance', 'light', 'resistance'], 1: ['guidingbolt', 'healingword', 'shieldoffaith', 'sanctuary', 'command', 'bane', 'inflictwounds'], 2: ['holdperson', 'aid', 'blindnessdeafness', 'wardingbond'], 3: ['spiritguardians', 'masshealingword', 'dispelmagic', 'bestowcurse', 'daylight'] } },
+    druid: { prio: ['wis', 'con', 'dex', 'int', 'cha', 'str'], kit: { weapon: 'scimitar', armor: 'leather', shield: 'shield' }, sub: [2, 'Circle of the Land'], look: 'bandit_p1',
+      cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], prepares: 'wis', landCantrip: 'poisonspray',
+      spells: { 0: ['produceflame', 'shillelagh', 'guidance', 'resistance'], 1: ['entangle', 'faeriefire', 'healingword', 'curewounds', 'fogcloud', 'thunderwave'], 2: ['barkskin', 'flameblade', 'heatmetal', 'spikegrowth', 'gustofwind', 'enhanceability'], 3: ['calllightning', 'dispelmagic', 'protectionfromenergy', 'sleetstorm', 'daylight'] } },
+    fighter: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greatsword', armor: 'chainmail', alt: 'handaxe' }, style: 'gwf', sub: [3, 'Champion'], look: 'veteran_p1', asiAt: [4, 6, 8] },
+    monk: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'shortsword', alt: 'dagger' }, sub: [3, 'Way of the Open Hand'], look: 'brawler_p1' },
+    paladin: { prio: ['str', 'cha', 'con', 'wis', 'dex', 'int'], kit: { weapon: 'longsword', armor: 'chainmail', shield: 'shield', alt: 'handaxe' }, style: 'defense', sub: [3, 'Oath of Devotion'], look: 'guard_p1', prepares: 'cha', half: true,
+      always: { 3: ['protectionfromevilandgood', 'sanctuary'], 5: ['lesserrestoration'] },
+      spells: { 1: ['bless', 'command', 'shieldoffaith', 'divinefavor', 'heroism', 'curewounds'], 2: ['brandingsmite', 'magicweapon', 'aid'] } },
+    ranger: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'longbow', armor: 'scalemail', alt: 'shortsword' }, style: 'archery', sub: [3, 'Hunter'], look: 'crewman_p1',
+      known: [0, 2, 3, 3, 4, 4, 5, 5, 6], spells: { 1: ['huntersmark', 'curewounds', 'fogcloud', 'longstrider'], 2: ['spikegrowth', 'passwithouttrace', 'barkskin'] } },
+    rogue: { prio: ['dex', 'con', 'wis', 'int', 'cha', 'str'], kit: { weapon: 'rapier', armor: 'leather', alt: 'shortbow' }, sub: [3, 'Thief'], look: 'assassin_p1', expertise: ['Stealth', 'Perception'] },
+    sorcerer: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', alt: 'dagger' }, sub: [1, 'Draconic Bloodline'], look: 'willem_p1', ancestry: 'fire',
+      cantrips: [4, 4, 4, 5, 5, 5, 5, 5, 5], known: [2, 3, 4, 5, 6, 7, 8, 9, 10],
+      spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'poisonspray', 'chilltouch'], 1: ['magicmissile', 'shield', 'burninghands', 'colorspray'], 2: ['scorchingray', 'mistystep', 'mirrorimage'], 3: ['fireball', 'haste'] } },
+    warlock: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', armor: 'leather', alt: 'dagger' }, sub: [1, 'The Fiend'], look: 'amara_p1',
+      cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], known: [2, 3, 4, 5, 6, 7, 8, 9, 10], invocations: { 2: ['agonizing', 'devilsight'], 5: ['agonizing', 'devilsight', 'repelling'] },
+      spells: { 0: ['eldritchblast', 'chilltouch', 'poisonspray'], 1: ['hellishrebuke', 'command', 'burninghands', 'expeditiousretreat'], 2: ['scorchingray', 'darkness', 'mirrorimage', 'holdperson'], 3: ['fireball', 'fear', 'vampirictouch'] } },
+    wizard: { prio: ['int', 'con', 'dex', 'wis', 'cha', 'str'], kit: { weapon: 'quarterstaff', armor: 'robes' }, sub: [2, 'School of Evocation'], look: 'willem_p1',
+      cantrips: [3, 3, 3, 4, 4, 4, 4, 4, 4], prepares: 'int',
+      spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'chilltouch', 'light'], 1: ['magicmissile', 'shield', 'mageArmor', 'burninghands', 'sleep', 'colorspray', 'grease', 'hideouslaughter', 'falselife'], 2: ['scorchingray', 'mistystep', 'holdperson', 'web', 'shatter', 'mirrorimage', 'acidarrow', 'blur'], 3: ['fireball', 'lightningbolt', 'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch'] } }
+  };
+  // the Mirror's warlocks (RULED 09-28): the pact of the Mirror's expanded list and its eye (invented.json #pact-of-the-mirror)
+  NPC.MIRROR = { 1: ['silentimage', 'hideouslaughter', 'glasswhisper', 'command'], 3: ['mirrorimage', 'detectthoughts'], 5: ['hypnoticpattern', 'clairvoyance'] };
+
+  // ------------------------------------------------------------------ the existing NPCs the generator builds by name (the survey, 09-28).
+  // Each is its register's class, level, race and list; `maxhp` for the story-vital (the players' max hit die, RULED 09-28)
+  NPC.NAMED = {
+    // Higertha, the druid at Mama's Pharmakaiea in the Hex (RULED 09-28: "Higertha is half-orc Druid"); the register sets no level,
+    // so she stands at any. Her circle's land is the seat's draft (invented.json #higertha-druid): the mountain, the Pit's
+    higertha: { name: 'Higertha', cls: 'druid', race: 'halforc', named: true, land: 'mountain' }
+  };
+
+  // spells known or prepared at a level: the class's list to the highest slot it has, as many as it may know (or prepare),
+  // each level's first; always-prepared ones on top
+  function spellsFor(c, cls, lvl, abil, sub) {
+    var h0 = { cls: cls, lvl: lvl }, slots = R.slotsFor(h0), top = 0;
+    slots.forEach(function (n, i) { if (n > 0) top = i + 1; });
+    var sp = c.spells || {}, out = [], cantrips = [];
+    var nc = c.cantrips ? c.cantrips[lvl - 1] : 0;
+    (sp[0] || []).slice(0, nc).forEach(function (id) { cantrips.push(id); });
+    if (cls === 'druid' && lvl >= 2 && c.landCantrip) cantrips.push(c.landCantrip); // (the Land's bonus cantrip)
+    var pool = [];
+    for (var L = 1; L <= top; L++) (sp[L] || []).forEach(function (id) { pool.push(id); });
+    if (cls === 'bard' && lvl >= 6 && sp.magicalSecrets) sp.magicalSecrets.forEach(function (id) { pool.push(id); }); // (Additional Magical Secrets, Lore 6)
+    var n = c.known ? c.known[lvl - 1] : c.prepares ? Math.max(1, DS.mod(abil[c.prepares]) + (c.half ? Math.floor(lvl / 2) : lvl)) : 0;
+    if (c.half && lvl < 2) n = 0;
+    // the highest levels first, then down, so a caster of 5 carries its 3rds (the build's own habit: R.prepDefault)
+    var byLv = {}; pool.forEach(function (id) { var L2 = 0; for (var k = 1; k <= 9; k++) if ((sp[k] || []).indexOf(id) >= 0) L2 = k; if (!L2) L2 = 3; (byLv[L2] = byLv[L2] || []).push(id); });
+    var take = [], rounds = 0;
+    while (take.length < n && rounds < 20) { for (var L3 = top; L3 >= 1 && take.length < n; L3--) { var q = byLv[L3] || []; var nx = q.filter(function (id) { return take.indexOf(id) < 0; })[0]; if (nx) take.push(nx); } rounds++; if (!pool.some(function (id) { return take.indexOf(id) < 0; })) break; }
+    var always = [];
+    Object.keys(c.always || {}).forEach(function (k) { if (lvl >= +k) always = always.concat(c.always[k]); });
+    out = cantrips.concat(always, take);
+    return out.filter(function (id, i) { return out.indexOf(id) === i; });
+  }
+
+  // ------------------------------------------------------------------ the sheet (the 8-bit game's shape: js/rules.js reads it)
+  // spec: { cls, lvl, race, name, named, spells (a list over the class's), maxhp (true: a max hit die a level), land, patron }
+  NPC.sheet = function (spec) {
+    var cls = spec.cls, c = C[cls], RC = R.CLASSES[cls], lvl = Math.max(1, Math.min(9, spec.lvl || 1));
+    if (!c || !RC) throw new Error('DEEP16: no class ' + cls);
+    var race = NPC.RACES[spec.race || 'human'] || NPC.RACES.human;
+    var abil = {};
+    c.prio.forEach(function (k, i) { abil[k] = ARRAY[i]; });
+    Object.keys(race.abil).forEach(function (k) { abil[k] += race.abil[k]; });
+    // Ability Score Improvements (4, 8; the fighter's 6 too): +2 to the first ability not yet at 20, split over the next if need be
+    (c.asiAt || [4, 8]).forEach(function (at) {
+      if (lvl < at) return;
+      var left = 2;
+      c.prio.forEach(function (k) { var room = 20 - abil[k], g = Math.min(room, left); if (g > 0) { abil[k] += g; left -= g; } });
+    });
+    var con = DS.mod(abil.con), hd = RC.hd;
+    var hp = spec.maxhp ? lvl * Math.max(1, hd + con) : hd + con + (lvl - 1) * (hd / 2 + 1 + con);
+    hp += (race.hpLevel || 0) * lvl;
+    var sub = c.sub && lvl >= c.sub[0] ? c.sub[1] : null;
+    if (cls === 'warlock' && spec.patron === 'mirror') sub = 'The Mirror';
+    if (sub === 'Draconic Bloodline') hp += lvl; // Draconic Resilience: +1 HP a level
+    var h = {
+      id: spec.id || ('npc-' + cls + lvl), name: spec.name || (RC.name + ' ' + lvl), cls: cls, lvl: lvl, xp: R.XP_LEVEL[lvl],
+      base: JSON.parse(JSON.stringify(abil)), abil: abil, maxhp: hp, hp: hp,
+      equip: { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null },
+      known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: c.style || null,
+      skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: c.kit.alt || null, land: spec.land || null
+    };
+    // skills the grid reads (Stealth, Perception): written at the level-1 proficiency, as the 8-bit sheets are (R.skill grows them)
+    if (/rogue|ranger|monk|bard/.test(cls)) h.skills.Stealth = DS.mod(abil.dex) + 2;
+    if (/rogue|ranger|druid|barbarian|cleric/.test(cls)) h.skills.Perception = DS.mod(abil.wis) + 2;
+    if (cls === 'rogue') h.expertise = (c.expertise || []).slice(); // (Expertise at 1: both twice over)
+    R.refresh(h, true);
+    if (!(race.relentless)) delete h.feats.relentless; // (R.refresh gives every paladin Lymen's half-orc Relentless)
+    else h.feats.relentless = 1;
+    // the spells: the class's list (or the spec's), cut to what the level knows or prepares
+    if (RC.caster) {
+      var cc = c;
+      if (spec.spells) cc = Object.assign({}, c, { spells: spec.spells });
+      if (sub === 'The Mirror') { cc = Object.assign({}, cc, { spells: JSON.parse(JSON.stringify(cc.spells)) }); Object.keys(NPC.MIRROR).forEach(function (k) { if (lvl >= +k) NPC.MIRROR[k].forEach(function (id) { var L = +k >= 5 ? 3 : +k >= 3 ? 2 : 1; cc.spells[L] = [id].concat((cc.spells[L] || []).filter(function (x) { return x !== id; })); }); }); }
+      h.known = spellsFor(cc, cls, lvl, abil, sub);
+    }
+    if (cls === 'warlock') {
+      var inv = []; Object.keys(c.invocations || {}).forEach(function (k) { if (lvl >= +k) inv = c.invocations[k].slice(); }); h.invocations = inv;
+      if (sub === 'The Mirror') h.mirrorEye = true; // (RULED 09-28: the pact of the Mirror's class feature)
+    }
+    // a caster who wears no armour walks in under Mage Armor, cast that morning and paid for (the fixture's Aurdin: save.js)
+    if (h.known.indexOf('mageArmor') >= 0 && !R.armored(h) && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
+    h.hp = h.maxhp;
+    return h;
+  };
+
+  // ------------------------------------------------------------------ the unit (on either side): the heroes' shape (save.js unitOf), and the rest
+  NPC.unit = function (h, side, o) {
+    o = o || {};
+    var c = C[h.cls], race = NPC.RACES[h.race] || NPC.RACES.human;
+    var u = D.save.unitOf(h, side !== 'party', null);
+    u.kind = 'npc' + h.cls; // (no bestiary kind: nothing keyed to a kind -- the wheelwright's bolt, a fight's roster -- takes it for one)
+    u.side = side || 'foe'; u.guest = false; u.npc = true; u.classAI = true; // (on the party's side it is the player's to run, unless the bench runs it)
+    u.id = o.id || h.id; u.name = h.name; u.named = !!o.named || !!h.named;
+    u.sheet = o.sheet || c.look; u.race = h.race; u.type = 'humanoid';
+    u.speed = (race.speed || 30) + (h.cls === 'monk' && h.lvl >= 2 ? (h.lvl >= 6 ? 15 : 10) : 0) + (h.cls === 'barbarian' && h.lvl >= 5 ? 10 : 0);
+    u.darkvision = Math.max(race.dv || 0, u.darkvision || 0);
+    if (h.invocations && h.invocations.indexOf('devilsight') >= 0) u.devilSight = true; // Devil's Sight: sees in any dark, the magical too, to 120 ft
+    if (race.resist) u.resist = race.resist.slice();
+    if (race.fey) u.fey = true; // (Fey Ancestry: no magic puts it to sleep)
+    if (race.savage) u.savage = true;
+    if (h.mirrorEye) u.mirrorEye = true;
+    u.invocations = h.invocations || null;
+    u.facing = 1;
+    // a second weapon to draw (the class AI's): a bow for the swordsman, a sword for the bowman, handaxes to throw
+    if (h.alt) { var h2 = Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: h.alt, shield: DS.DATA.items[h.alt] && (DS.DATA.items[h.alt].weapon.props || []).indexOf('two-handed') >= 0 ? null : h.equip.shield }) }); u.alt = D.save.weaponOf(h2); if (NPC.THROWN[h.alt]) { u.alt.ranged = true; u.alt.thrown = true; u.alt.range = NPC.THROWN[h.alt]; } }
+    return u;
+  };
+  // thrown weapons read as ranged when thrown (SRD 5.1: the handaxe, the dagger 20/60)
+  NPC.THROWN = { handaxe: [20, 60], dagger: [20, 60] };
+
+  // a spec from a word: 'cleric', 'higertha', 'cleric:5', 'druid:3:dwarf'
+  NPC.spec = function (word, lvl) {
+    var bits = String(word).toLowerCase().split(':'), key = bits[0], L = +bits[1] || lvl || 1;
+    var named = NPC.NAMED[key];
+    if (named) return Object.assign({ id: key }, named, { lvl: named.lvl || L });
+    if (!C[key]) return null;
+    return { cls: key, lvl: L, race: bits[2] || 'human' };
+  };
+  // the class floor from a URL: ?npc=cleric,wizard&lvl=5 -- those against the four at that level; &vs=fighter,rogue -- a band instead
+  // of the four (yours to run); an entry like higertha or druid:3:dwarf names one (NPC.spec)
+  D.npcFight = function (q, o) {
+    var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
+    var L = Math.max(1, Math.min(9, +(get('lvl') || get('level')) || 5)), foes = (get('npc') || 'fighter').split(',').filter(Boolean), vs = get('vs');
+    var what = foes.map(function (w) { var s = NPC.spec(w, L); return s ? (s.name || R.CLASSES[s.cls].name) : w; }).join(', ');
+    return new D.Battle(Object.assign({ npc: { foes: foes, party: vs ? vs.split(',').filter(Boolean) : null }, fightDef: D.classFight(L, { what: what }) }, o || {}));
+  };
+  NPC.build = function (word, lvl, side, o) {
+    var sp = typeof word === 'string' ? NPC.spec(word, lvl) : word;
+    if (!sp) return null;
+    var h = NPC.sheet(sp);
+    return NPC.unit(h, side || 'foe', Object.assign({ named: sp.named }, o || {}));
+  };
+})();

@@ -2962,6 +2962,384 @@
    "desc": "Truesight 120 ft: the dark, the fog and the invisible are nothing to them.",
    "src": "SRD 5.1 (True Seeing); torchdark 09-28 (the grid only: no hero reaches 6th)",
    "id": "trueseeing"
+  },
+  "chilltouch": {
+   "name": "Chill Touch",
+   "level": 0,
+   "kind": "attack",
+   "dmg": "1d8",
+   "scale": {
+    "5": "2d8"
+   },
+   "el": "necrotic",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Chill Touch (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "chilltouch"
+  },
+  "poisonspray": {
+   "name": "Poison Spray",
+   "level": 0,
+   "kind": "save",
+   "save": "con",
+   "dmg": "1d12",
+   "scale": {
+    "5": "2d12"
+   },
+   "el": "poison",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Poison Spray (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "poison",
+   "id": "poisonspray"
+  },
+  "produceflame": {
+   "name": "Produce Flame",
+   "level": 0,
+   "kind": "attack",
+   "dmg": "1d8",
+   "scale": {
+    "5": "2d8"
+   },
+   "el": "fire",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Produce Flame (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "fire",
+   "id": "produceflame"
+  },
+  "rayoffrost": {
+   "name": "Ray of Frost",
+   "level": 0,
+   "kind": "attack",
+   "dmg": "1d8",
+   "scale": {
+    "5": "2d8"
+   },
+   "el": "cold",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Ray of Frost (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "frost",
+   "id": "rayoffrost"
+  },
+  "resistance": {
+   "name": "Resistance",
+   "level": 0,
+   "kind": "buff",
+   "buff": "resistance",
+   "target": "ally",
+   "grid": true,
+   "src": "SRD 5.1 Resistance (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "resistance"
+  },
+  "sacredflame": {
+   "name": "Sacred Flame",
+   "level": 0,
+   "kind": "save",
+   "save": "dex",
+   "dmg": "1d8",
+   "scale": {
+    "5": "2d8"
+   },
+   "el": "radiant",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Sacred Flame (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "sacredflame"
+  },
+  "shillelagh": {
+   "name": "Shillelagh",
+   "level": 0,
+   "kind": "buff",
+   "buff": "shillelagh",
+   "target": "self",
+   "grid": true,
+   "src": "SRD 5.1 Shillelagh (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "shillelagh"
+  },
+  "shockinggrasp": {
+   "name": "Shocking Grasp",
+   "level": 0,
+   "kind": "attack",
+   "dmg": "1d8",
+   "scale": {
+    "5": "2d8"
+   },
+   "el": "lightning",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Shocking Grasp (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "zap",
+   "id": "shockinggrasp"
+  },
+  "truestrike": {
+   "name": "True Strike",
+   "level": 0,
+   "kind": "buff",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 True Strike (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "truestrike"
+  },
+  "viciousmockery": {
+   "name": "Vicious Mockery",
+   "level": 0,
+   "kind": "save",
+   "save": "wis",
+   "dmg": "1d4",
+   "scale": {
+    "5": "2d4"
+   },
+   "el": "psychic",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Vicious Mockery (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "viciousmockery"
+  },
+  "eldritchblast": {
+   "name": "Eldritch Blast",
+   "level": 0,
+   "kind": "attack",
+   "dmg": "1d10",
+   "el": "force",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Eldritch Blast (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "zap",
+   "id": "eldritchblast"
+  },
+  "guidance": {
+   "name": "Guidance",
+   "level": 0,
+   "kind": "buff",
+   "target": "ally",
+   "grid": true,
+   "src": "SRD 5.1 Guidance (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "guidance"
+  },
+  "bane": {
+   "name": "Bane",
+   "level": 1,
+   "kind": "save",
+   "save": "cha",
+   "target": "enemies",
+   "max": 3,
+   "grid": true,
+   "src": "SRD 5.1 Bane (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "bane"
+  },
+  "colorspray": {
+   "name": "Color Spray",
+   "level": 1,
+   "kind": "sleep",
+   "target": "cone",
+   "grid": true,
+   "src": "SRD 5.1 Color Spray (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "colorspray"
+  },
+  "command": {
+   "name": "Command",
+   "level": 1,
+   "kind": "save",
+   "save": "wis",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Command (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "command"
+  },
+  "entangle": {
+   "name": "Entangle",
+   "level": 1,
+   "kind": "save",
+   "save": "str",
+   "cond": "restrained",
+   "target": "enemies",
+   "grid": true,
+   "src": "SRD 5.1 Entangle (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "entangle"
+  },
+  "expeditiousretreat": {
+   "name": "Expeditious Retreat",
+   "level": 1,
+   "kind": "buff",
+   "target": "self",
+   "grid": true,
+   "src": "SRD 5.1 Expeditious Retreat (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "expeditiousretreat"
+  },
+  "falselife": {
+   "name": "False Life",
+   "level": 1,
+   "kind": "buff",
+   "target": "self",
+   "grid": true,
+   "src": "SRD 5.1 False Life (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "falselife"
+  },
+  "grease": {
+   "name": "Grease",
+   "level": 1,
+   "kind": "save",
+   "save": "dex",
+   "cond": "prone",
+   "target": "enemies",
+   "grid": true,
+   "src": "SRD 5.1 Grease (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "grease"
+  },
+  "guidingbolt": {
+   "name": "Guiding Bolt",
+   "level": 1,
+   "kind": "attack",
+   "dmg": "4d6",
+   "upDice": 1,
+   "el": "radiant",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Guiding Bolt (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "guidingbolt"
+  },
+  "healingword": {
+   "name": "Healing Word",
+   "level": 1,
+   "kind": "heal",
+   "dmg": "1d4",
+   "target": "ally",
+   "grid": true,
+   "src": "SRD 5.1 Healing Word (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "healingword"
+  },
+  "hellishrebuke": {
+   "name": "Hellish Rebuke",
+   "level": 1,
+   "kind": "save",
+   "save": "dex",
+   "half": true,
+   "dmg": "2d10",
+   "upDice": 1,
+   "el": "fire",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Hellish Rebuke (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "fire",
+   "id": "hellishrebuke"
+  },
+  "hideouslaughter": {
+   "name": "Hideous Laughter",
+   "level": 1,
+   "kind": "save",
+   "save": "wis",
+   "cond": "incapacitated",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Hideous Laughter (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "hideouslaughter"
+  },
+  "huntersmark": {
+   "name": "Hunter's Mark",
+   "level": 1,
+   "kind": "buff",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Hunter's Mark (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "huntersmark"
+  },
+  "mirrorsgaze": {
+   "name": "Mirror's Gaze",
+   "level": 1,
+   "kind": "buff",
+   "target": "enemy",
+   "grid": true,
+   "src": "game-original (RULED 09-28, the ear file dist-2): built on the SRD's Hunter's Mark",
+   "id": "mirrorsgaze"
+  },
+  "inflictwounds": {
+   "name": "Inflict Wounds",
+   "level": 1,
+   "kind": "attack",
+   "dmg": "3d10",
+   "upDice": 1,
+   "el": "necrotic",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Inflict Wounds (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "inflictwounds"
+  },
+  "longstrider": {
+   "name": "Longstrider",
+   "level": 1,
+   "kind": "buff",
+   "target": "ally",
+   "grid": true,
+   "src": "SRD 5.1 Longstrider (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "longstrider"
+  },
+  "sanctuary": {
+   "name": "Sanctuary",
+   "level": 1,
+   "kind": "buff",
+   "target": "ally",
+   "grid": true,
+   "src": "SRD 5.1 Sanctuary (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "sanctuary"
+  },
+  "faeriefire": {
+   "name": "Faerie Fire",
+   "level": 1,
+   "kind": "save",
+   "save": "dex",
+   "target": "enemies",
+   "grid": true,
+   "src": "SRD 5.1 Faerie Fire (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "faeriefire"
+  },
+  "glasswhisper": {
+   "name": "Glass Whisper",
+   "level": 1,
+   "kind": "save",
+   "save": "wis",
+   "half": true,
+   "dmg": "2d6",
+   "upDice": 1,
+   "el": "psychic",
+   "target": "enemy",
+   "grid": true,
+   "sfx": "magic",
+   "src": "game-original (RULED 09-28, the ear file dist-6): the pact of the Mirror's own harm",
+   "id": "glasswhisper"
+  },
+  "protectionfromevilandgood": {
+   "name": "Protection from Evil and Good",
+   "level": 1,
+   "kind": "buff",
+   "target": "ally",
+   "grid": true,
+   "src": "SRD 5.1 Protection from Evil and Good (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "id": "protectionfromevilandgood"
+  },
+  "darkness": {
+   "name": "Darkness",
+   "level": 2,
+   "kind": "cloud",
+   "cloud": "darkness",
+   "target": "self",
+   "grid": true,
+   "src": "SRD 5.1 Darkness (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "darkness"
   }
  },
  "monsters": {

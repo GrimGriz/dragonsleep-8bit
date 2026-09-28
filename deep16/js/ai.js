@@ -46,7 +46,9 @@
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
-    if (u.conds.restrained) yield* D.magic.breakFree(B, u); // a web: tear at it first
+    // a word of Command it must obey (js/grimoire.js): halted, grovelling, or away from the one who spoke, and nothing more
+    if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(B, u); yield 20; D.magic.endTurn(B, u); u.anim = 'idle'; return; }
+    if (u.conds.restrained && !(u.classAI && D.tactics && D.tactics.freeFirst && !D.tactics.freeFirst(B, u))) yield* D.magic.breakFree(B, u); // a web: tear at it first
     // the wagon yard: once Willem has been hit at the traces, in the 8-bit game's yard (runWhenHurt) each of the pair runs from its
     // own next move (battle.js startRun); on the ladder, where nobody runs, he lets the traces go and turns to fight
     if (B.hitAtTraces && u.side === 'foe') {
@@ -54,6 +56,7 @@
       else if (u.traces) { u.traces = false; B.card(['{r}' + u.name + ' lets go of the traces{/} and turns on you.'], 360); yield 30; }
     }
     if (u.traces) yield* traces(B, u);
+    else if (u.classAI && D.tactics) yield* D.tactics.turn(B, u); // a class NPC (js/classes.js), or a hero on the bench: the class's own tactics (js/tactics.js)
     else if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);
@@ -603,6 +606,8 @@
     }
   }
 
+  // the helpers the class tactics share (js/tactics.js)
+  AI.heroes = heroes; AI.approach = approach; AI.walkTo = walkTo; AI.visibleFrom = visibleFrom; AI.eyesAt = eyesAt; AI.reachOf = reachOf; AI.the = the;
   function* guest(B, u) {
     var T = u.turn, fs = heroes(B, u), h = u.src || {}, f = u.feats || {};
     if (!fs.length) return;

@@ -6,8 +6,14 @@
   var D = window.D16, G = D.grid;
   var RU = D.rules = {};
 
-  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.unconscious && !u.conds.stunned && !u.conds.surprised; };
-  RU.ac = function (u) { return (u.baseAC || u.ac) + (u.conds.shield ? 5 : 0) + (u.conds.shieldOfFaith ? 2 : 0); };
+  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.unconscious && !u.conds.stunned && !u.conds.surprised && !u.conds.incapacitated; };
+  // AC: armour, Shield, Shield of Faith; and the class NPCs' spells (09-28, js/grimoire.js): Barkskin's floor of 16, Haste's +2,
+  // Slow's -2, Warding Bond's +1
+  RU.ac = function (u) {
+    var c = u.conds, ac = (u.baseAC || u.ac);
+    if (c.barkskin) ac = Math.max(ac, 16);
+    return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0);
+  };
   // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
   RU.immuneTo = function (u, cond) { return !!(u && u.condImmune && u.condImmune.indexOf(cond) >= 0); };
 
@@ -38,12 +44,16 @@
     return best;
   };
   RU.save = function (u, ab, dc) {
-    var bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u);
-    var adv = ab === 'dex' && u.conds.dodge, dis = ab === 'dex' && u.conds.restrained;
-    if ((ab === 'str' || ab === 'dex') && (u.conds.paralyzed || u.conds.asleep || u.conds.stunned)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true };
+    var c = u.conds, bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u) + (c.wardingBond ? 1 : 0) - (ab === 'dex' && c.slowed ? 2 : 0);
+    // advantage: Dodge and Haste on DEX; Beacon of Hope on WIS; a creature's own (Danger Sense, Magic Resistance: o.adv). Disadvantage: restrained on DEX
+    var adv = (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(RU.saveAdv && RU.saveAdv(u, ab)), dis = ab === 'dex' && c.restrained;
+    if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || c.incapacitated && c.laughing)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true };
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
-    var bl = u.conds.blessed ? D.d(4) : 0; bonus += bl;
-    var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl };
+    var bl = c.blessed ? D.d(4) : 0; bonus += bl;
+    // Bane (-1d4), Resistance (+1d4, once)
+    var bn = c.baned ? D.d(4) : 0; bonus -= bn;
+    var rs = c.resistance ? D.d(4) : 0; if (rs) { bonus += rs; delete c.resistance; }
+    var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs };
     // Indomitable (fighter 9): a failed save is rolled again, once a day -- taken at once, and said so
     if (!res.ok && u.cls === 'fighter' && u.feats && u.feats.indomitable) {
       u.feats.indomitable = 0;
@@ -55,7 +65,7 @@
 
   // advantage and disadvantage for an attack, each with its reason (the card shows them)
   RU.edges = function (att, tgt, atk, ax, ay) {
-    var adv = [], dis = [], melee = !atk.ranged && !atk.spell;
+    var adv = [], dis = [], melee = !atk.ranged && (!atk.spell || atk.touch); // (a touch spell is a melee attack)
     if (att.conds.poisoned) dis.push('poisoned');
     if (att.conds.frightened) dis.push('frightened');
     // bright light where it stands (js/light.js: a torch's reach, the Light cantrip, Daylight) on one that hates it (the 8-bit's
@@ -90,6 +100,15 @@
     if (att.packTactics && G.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) adv.push('pack tactics');
     if (tgt.conds.hidden && G.dist(att, tgt, ax, ay) > 5 && !mirror(att, tgt)) dis.push('unseen target');
     if (tgt.conds.faerie) adv.push('faerie fire');
+    // the class NPCs' spells (09-28, js/grimoire.js): Guiding Bolt's glow (the next attack at it), Vicious Mockery (its own next attack),
+    // True Strike (the caster's first at it), Blur (at the blurred: not for blindsight or truesight), Reckless Attack's price
+    if (tgt.conds.guided) adv.push('guiding bolt');
+    if (tgt.conds.metalEdge && atk.spell) adv.push('metal armour');
+    if (att.conds.mocked) dis.push('mocked');
+    if (att.conds.trueStrike && att.conds.trueStrike.at === tgt.id) adv.push('true strike');
+    if (tgt.conds.blur && !(att.blindsight && G.dist(att, tgt, ax, ay) <= att.blindsight) && !att.truesight) dis.push('blur');
+    if (att.conds.disAt && att.conds.disAt.id === tgt.id) dis.push(att.conds.disAt.why || 'cursed'); // (Bestow Curse, Chill Touch on the dead)
+    if (tgt.conds.pfeg && /aberration|celestial|elemental|fey|fiend|undead/.test(att.type || '')) dis.push('protection from evil');
     if (tgt.conds.dodge && !att.conds.hidden) dis.push('dodging');
     // Opening Cut (the game's Cutthroat): in the first round, advantage on a foe that hasn't acted yet
     if (att.subclass === 'Cutthroat' && D.battle && D.battle.round === 1 && !tgt.acted && tgt.side !== att.side) adv.push('opening cut');
@@ -108,7 +127,7 @@
   // a save's numbers for a card: the d20, the bonus, and what's in it (the aura, Bless)
   RU.saveText = function (sv) {
     if (sv.auto) return '{o}auto-fail{/} (held or asleep)';
-    var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless);
+    var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.resist) bits.push('resistance +' + sv.resist);
     return 'd20 ' + (sv.indomitable ? sv.rolls[0] + ', again ' + sv.indomitable : sv.d20) + ' ' + RU.sign(sv.bonus) + (bits.length ? ' {y}(' + bits.join(', ') + '){/}' : '') + ' = ' + sv.total;
   };
   RU.d20 = function (net) {

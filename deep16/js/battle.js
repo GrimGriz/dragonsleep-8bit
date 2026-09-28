@@ -13,16 +13,21 @@
   D.Battle = Battle;
 
   Battle.prototype.enter = function () {
-    var F = this.fight = D.fight(this.o.fight || 'gallery'), m = this.map = D.iso.load(D.MAPS[F.map]), self = this;
+    var F = this.fight = this.o.fightDef || D.fight(this.o.fight || 'gallery'), m = this.map = D.iso.load(D.MAPS[F.map]), self = this;
     // on the ladder: the four at the fight's level, by the 8-bit game's own rules (nothing read from a save).
     // Otherwise walk in from the save (the door's snapshot or the newest slot), or as the fixture: the entry card offers both
     // from the camp (js/camp.js): the four as the morning left them; copied, so RESTART starts from the camp again
     // inside the 8-bit game (js/embed.js, this.o.embed): the party it handed over, as it stood when the fight began
     if (this.o.data) this.from = { from: this.o.embed ? 'the 8-bit game' : 'the camp', when: null, data: JSON.parse(JSON.stringify(this.o.data)) };
-    else if (this.o.ladder) this.from = { from: 'the ladder', when: null, data: D.save.fixture(F.level) };
+    else if (this.o.ladder || this.o.npc) this.from = { from: this.o.npc ? 'the class floor' : 'the ladder', when: null, data: D.save.fixture(F.level) };
     else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
-    this.canSwap = !this.o.ladder && !this.o.embed && (this.o.fixture || this.from.from !== 'the fixture');
+    this.canSwap = !this.o.ladder && !this.o.npc && !this.o.embed && (this.o.fixture || this.from.from !== 'the fixture');
     var party = D.save.units(this.from.data, this.o.climb ? Object.assign({}, F, { looks: null }) : F); // the climb: Barley is Barley
+    // the class floor (js/classes.js): a band of class NPCs instead of the four when asked (class against class), and on the bench
+    // everyone on the party's side is run by the class tactics too (js/tactics.js)
+    var NB = this.o.npc;
+    if (NB && NB.party) party = NB.party.map(function (w, i) { return D.npc.build(w, F.level, 'party', { id: 'p' + i + '-' + String(w).split(':')[0] }); }).filter(Boolean);
+    if (NB && this.o.bench) party.forEach(function (u) { u.guest = true; u.classAI = true; });
     var entry = (F.entry || m.def.entry).slice();
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
     // the party came in by), and a map's named doors (`doors`: the inn's); a map closed all round keeps the way in
@@ -61,6 +66,7 @@
     var only = this.o.embed && this.o.embed.only, list = this.o.embed && this.o.embed.enemies;
     var foes = (list ? this.roster(F.foes || m.def.foes, list, m, party) : (F.foes || m.def.foes).filter(function (f) { return !only || only.indexOf(f.kind) >= 0; }))
       .map(function (f) { return self.makeFoe(f); });
+    if (NB) foes = this.seatBand(NB.foes.map(function (w, i) { return D.npc.build(w, F.level, 'foe', { id: 'f' + i + '-' + String(w).split(':')[0] }); }).filter(Boolean), m, party);
     if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
     this.units = party.concat(foes);
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
@@ -139,6 +145,20 @@
     return out.sort(function (a, b) { return a.i8 - b.i8; });
   };
 
+  // a band of class NPCs across the floor from the party: the free squares farthest north, spread a square apart
+  Battle.prototype.seatBand = function (band, m, party) {
+    var taken = {}, pts = [];
+    party.forEach(function (u) { taken[u.x + ',' + u.y] = 1; });
+    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var q = m.at(x, y); if (q && q.walk) pts.push([x, y]); }
+    var cx = (m.w - 1) / 2;
+    pts.sort(function (a, b) { return a[1] - b[1] || Math.abs(a[0] - cx) - Math.abs(b[0] - cx); });
+    band.forEach(function (u) {
+      var at = pts.filter(function (p) { for (var j = -1; j <= 1; j++) for (var i = -1; i <= 1; i++) if (taken[(p[0] + i) + ',' + (p[1] + j)]) return false; return true; })[0] || pts.filter(function (p) { return !taken[p[0] + ',' + p[1]]; })[0];
+      if (!at) return;
+      u.x = at[0]; u.y = at[1]; u.facing = 1; taken[at[0] + ',' + at[1]] = 1;
+    });
+    return band;
+  };
   Battle.prototype.makeFoe = function (f) {
     var d = D.FOES[f.kind];
     return {
@@ -443,6 +463,8 @@
       if (u.hp > 0) D.magic.endTurn(this, u); // a held hero still gets the save at the end of the turn (the weaver's Hold, the chuul)
       return;
     }
+    // a word of Command obeyed (a foe's Command, js/grimoire.js): the turn is the word's
+    if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(this, u); yield 40; D.magic.endTurn(this, u); return; }
     this.tool = 'move'; this.cursor = { x: u.x, y: u.y };
     while (true) {
       var cmd = yield { turn: u };
@@ -649,6 +671,8 @@
       if (!u.ethereal && !wasIn && D.magic.webCatch(this, u, 'enters')) { if (o && o.spend) T.move = 0; yield 24; break; }
       // onto a Sleet Storm's ice (the first square of it this turn): DEX or down, and the move ends there
       if (!u.ethereal && D.magic.sleetCatch(this, u)) { if (o && o.spend) T.move = 0; yield 24; break; }
+      // a spell's ground (09-28, js/grimoire.js): grease underfoot, spikes, the guardians' ring -- a fall ends the move there
+      if (!u.ethereal && D.magic.stepInto) { var si = D.magic.stepInto(this, u); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (si) { if (o && o.spend) T.move = 0; yield 24; break; } }
     }
     u.anim = 'idle';
   };
@@ -666,7 +690,7 @@
   Battle.prototype.attack = function* (att, tgt, atk, o) {
     o = o || {};
     if (!tgt || tgt.dead || tgt.ethereal) return;
-    var self = this, melee = !atk.ranged && !atk.spell, cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
+    var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     att.facing = faceTo(att, tgt);
     att.anim = 'attack'; att.animT = this.t;
     if (!o.oa) yield 10;
@@ -687,8 +711,16 @@
       }
     }
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) delete tgt.conds.helped; // help is spent on the first swing
+    // Sanctuary (SRD 5.1; 09-28, js/grimoire.js): whoever would strike the warded makes a WIS save first, or the blow is lost
+    if (tgt.conds.sanctuary && G.hostile(att, tgt) && D.magic.sanctuary && !D.magic.sanctuary(this, att, tgt)) { yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
+    // the one-shot marks, spent by this roll: Guiding Bolt's glow on the target, Vicious Mockery on the attacker, True Strike
+    if (tgt.conds.guided) delete tgt.conds.guided;
+    if (att.conds.mocked) delete att.conds.mocked;
+    if (att.conds.trueStrike && att.conds.trueStrike.at === tgt.id) delete att.conds.trueStrike;
     var sacred = att.conds.sacred && !atk.spell && !atk.ranged ? att.conds.sacred.atk : 0;
-    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, pen = e.pen || 0, total = nat + atk.atk + bless + sacred + pen;
+    var baneR = att.conds.baned ? D.d(4) : 0;
+    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, pen = (e.pen || 0) - baneR, total = nat + atk.atk + bless + sacred + pen;
+    if (baneR && !e.pen) e.penWhy = 'bane';
     var critAt = att.crit || 20;
     var hit = nat === 20 || (nat !== 1 && total >= ac)
       || !!(atk.autoHitHeld && tgt.conds.restrained && tgt.conds.restrained.by === att.id); // the cloaker's bite on the one it has engulfed
@@ -698,10 +730,11 @@
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
-    // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn
-    if (hit && nat !== 20 && tgt.cls === 'wizard' && tgt.reaction > 0 && !tgt.conds.shield && RU.canAct(tgt) && tgt.known.indexOf('shield') >= 0 && slotFor(tgt, 1) && total < ac + 5 && !tgt.guest) {
+    // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
+    // the +5 turns the blow; one run by the AI never asks)
+    if (hit && nat !== 20 && tgt.reaction > 0 && !tgt.conds.shield && RU.canAct(tgt) && (tgt.known || []).indexOf('shield') >= 0 && slotFor(tgt, 1) && total < ac + 5 && (!tgt.guest || tgt.classAI)) {
       this.card([head, line + why], 300, cid);
-      var yes = yield { prompt: { who: tgt, title: tgt.name + ': SHIELD?', lines: ['The ' + total + ' would hit AC ' + ac + '.', '+5 AC makes it ' + (ac + 5) + ': a miss. (a level-' + slotFor(tgt, 1) + ' slot, the reaction)'], opts: [{ label: 'CAST SHIELD', value: true }, { label: 'TAKE IT', value: false }] } };
+      var yes = byAI(tgt) ? true : yield { prompt: { who: tgt, title: tgt.name + ': SHIELD?', lines: ['The ' + total + ' would hit AC ' + ac + '.', '+5 AC makes it ' + (ac + 5) + ': a miss. (a level-' + slotFor(tgt, 1) + ' slot, the reaction)'], opts: [{ label: 'CAST SHIELD', value: true }, { label: 'TAKE IT', value: false }] } };
       if (yes) {
         var sl = slotFor(tgt, 1); tgt.slots[sl - 1]--; tgt.reaction = 0; tgt.conds.shield = true;
         FX.ring(tgt, 'glow', 50); D.sfx('buff');
@@ -711,10 +744,17 @@
     }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
-    if (!hit) { FX.float('MISS', tgt, D.PAL.ramps.silver[5]); yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
+    if (!hit) { if (o.onMiss) o.onMiss(tgt); FX.float('MISS', tgt, D.PAL.ramps.silver[5]); yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
     // damage
     var dice = att.swarm && atk.halfHP && att.hp <= att.maxhp / 2 ? atk.halfHP : atk.dice; // a swarm at half its hit points bites for less
     var dr = RU.damage(dice, atk.mod, { crit: crit, gwf: atk.gwf }), dmg = dr.total, parts = [dice + RU.sign(atk.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(atk.mod) + ' = ' + dr.total + ' ' + atk.type];
+    // Savage Attacks (the half-orc, SRD 5.1): a melee critical rolls one of the weapon's dice once more
+    if (crit && melee && att.savage && /d/.test(dice)) { var sv0 = D.roll('1' + String(dice).replace(/^\d*/, '')); dmg += sv0.total; parts.push('{o}savage +' + sv0.total + '{/}'); }
+    // the class NPCs' riders (09-28): Rage's +2 on a STR blow; Enlarge's +1d4 (Reduce's -1d4); Ray of Enfeeblement halves a STR weapon's
+    var strBlow = melee && !atk.finesse || (atk.finesse && att.abil && att.abil.str >= att.abil.dex && melee);
+    if (att.conds.raging && strBlow) { dmg += att.conds.raging.dmg || 2; parts.push('{o}rage +' + (att.conds.raging.dmg || 2) + '{/}'); }
+    if (att.conds.enlarged && !atk.spell) { var en = D.roll('1d4', { crit: crit }); dmg += att.conds.enlarged.down ? -en.total : en.total; parts.push((att.conds.enlarged.down ? '{g}reduced -' : '{o}enlarged +') + en.total + '{/}'); dmg = Math.max(1, dmg); }
+    if (att.conds.enfeebled && strBlow && !atk.spell) { var cut0 = Math.ceil(dmg / 2); dmg -= cut0; parts.push('{g}enfeebled -' + cut0 + '{/}'); }
     // Sneak Attack: once a turn, a finesse or ranged weapon, with advantage or an ally at the target's side
     if (att.cls === 'rogue' && att.turn && !att.turn.sneakUsed && (atk.finesse || atk.ranged) && e.net >= 0) {
       var ally = this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; });
@@ -726,9 +766,15 @@
     }
     // Flame Tongue (SRD 5.1): while it burns, +2d6 fire on a hit, dealt as fire (a troll's knitting reads it; fire resistance halves it)
     // the riders land as their own kind of damage (09-28: the ochre jelly is immune to slashing, not to a smite): fire, radiant, a foe's extra
-    var fire = 0, rad = 0, ext = 0;
+    var fire = 0, rad = 0, ext = 0, xtra = []; // (xtra: [n, type] riders of their own kind: a mark's psychic, a curse's necrotic)
     if (atk.flame && att.conds.ablaze && !atk.spell) { var fl = D.roll(atk.flame, { crit: crit }); fire = fl.total; parts.push('{o}flame ' + atk.flame + ' ' + RU.fmtRolls(fl.rolls) + ' = ' + fl.total + ' fire{/}'); }
     if (att.conds.divineFavor && !atk.spell) { var df = D.roll('1d4', { crit: crit }); rad += df.total; parts.push('{y}favor 1d4 [' + df.rolls.join(',') + '] radiant{/}'); }
+    // the marks (09-28, js/grimoire.js): Hunter's Mark (+1d6 on a weapon's hit), Mirror's Gaze (+1d6 psychic on any of her hits), Bestow
+    // Curse's +1d8 necrotic, Branding Smite's +2d6 radiant on the next weapon hit (and the struck one glows, seen)
+    var mk = tgt.conds.marked;
+    if (mk && mk.by === att.id && (mk.any || !atk.spell)) { var hm = D.roll('1d6', { crit: crit }); if (mk.type) xtra.push([hm.total, mk.type]); else dmg += hm.total; parts.push('{p}' + (mk.name || 'mark') + ' 1d6 [' + hm.rolls.join(',') + ']' + (mk.type ? ' ' + mk.type : '') + '{/}'); }
+    if (tgt.conds.cursed && tgt.conds.cursed.by === att.id && tgt.conds.cursed.dmg) { var bc = D.roll('1d8', { crit: crit }); xtra.push([bc.total, 'necrotic']); parts.push('{p}curse 1d8 [' + bc.rolls.join(',') + '] necrotic{/}'); }
+    if (att.conds.branding && !atk.spell) { var bs = D.roll(att.conds.branding.dice || '2d6', { crit: crit }); rad += bs.total; parts.push('{y}branding ' + (att.conds.branding.dice || '2d6') + ' [' + bs.rolls.join(',') + '] radiant{/}'); delete att.conds.branding; tgt.conds.branded = { by: att.id }; if (tgt.conds.invisible) delete tgt.conds.invisible; }
     // a foe's poisoned blade
     if (atk.extra) { var ex = D.roll(atk.extra, { crit: crit }); ext += ex.total; parts.push(atk.extra + ' ' + RU.fmtRolls(ex.rolls) + ' ' + atk.extraType); }
     // Martial Advantage (the hobgoblins): once a turn, +2d6 while an ally who can act stands within 5 ft of the target
@@ -743,12 +789,13 @@
     if (att.raging && atk.rage) { dmg += atk.rage; parts.push('{o}rage +' + atk.rage + '{/}'); }
     if (att.surprise && this.round === 1) { var sa = D.roll(att.surprise, { crit: crit }); dmg += sa.total; parts.push('{o}first blow ' + att.surprise + ' ' + RU.fmtRolls(sa.rolls) + '{/}'); }
     // Divine Smite: after the hit, spend a slot
-    if (att.cls === 'paladin' && melee && !att.guest && (att.slots || []).some(function (n) { return n > 0; })) {
+    if (att.cls === 'paladin' && melee && (!att.guest || att.classAI) && (att.slots || []).some(function (n) { return n > 0; })) {
       var opts = [];
       [1, 2, 3].forEach(function (lv) { if (att.slots[lv - 1] > 0) opts.push({ label: 'L' + lv + ' ' + Math.min(5, 1 + lv) + 'd8', value: lv }); });
       opts.push({ label: 'NO SMITE', value: 0 });
       this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why], 300, cid);
-      var lv = yield { prompt: { who: att, title: att.name + ': DIVINE SMITE?', lines: ['The blow lands' + (crit ? ' -- a critical: the smite dice double.' : '.')], opts: opts } };
+      // the AI's paladin (09-28): the best slot on a critical; else the lowest, on one the blow alone won't drop and worth the slot
+      var lv = byAI(att) ? (crit ? opts[opts.length - 2].value : (tgt.hp > dmg + 4 && tgt.maxhp >= 15 ? opts[0].value : 0)) : yield { prompt: { who: att, title: att.name + ': DIVINE SMITE?', lines: ['The blow lands' + (crit ? ' -- a critical: the smite dice double.' : '.')], opts: opts } };
       if (lv) {
         att.slots[lv - 1]--; D.sfx('magic');
         var sm = D.roll(Math.min(5, 1 + lv) + 'd8', { crit: crit }); rad += sm.total;
@@ -757,9 +804,9 @@
       }
     }
     // Uncanny Dodge: Vivian's reaction halves a hit from an attacker she can see
-    if (tgt.cls === 'rogue' && tgt.lvl >= 5 && tgt.reaction > 0 && RU.canAct(tgt) && !tgt.guest) {
+    if (tgt.cls === 'rogue' && tgt.lvl >= 5 && tgt.reaction > 0 && RU.canAct(tgt) && (!tgt.guest || tgt.classAI) && M16().sees(this, tgt, att)) {
       this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ')], 300, cid);
-      var ud = yield { prompt: { who: tgt, title: tgt.name + ': UNCANNY DODGE?', lines: ['The blow would deal ' + (dmg + fire + rad + ext) + '. Halve it to ' + (Math.floor(dmg / 2) + Math.floor(fire / 2) + Math.floor(rad / 2) + Math.floor(ext / 2)) + '? (the reaction)'], opts: [{ label: 'DODGE IT', value: true }, { label: 'TAKE IT', value: false }] } };
+      var ud = byAI(tgt) ? (dmg + fire + rad + ext >= 6) : yield { prompt: { who: tgt, title: tgt.name + ': UNCANNY DODGE?', lines: ['The blow would deal ' + (dmg + fire + rad + ext) + '. Halve it to ' + (Math.floor(dmg / 2) + Math.floor(fire / 2) + Math.floor(rad / 2) + Math.floor(ext / 2)) + '? (the reaction)'], opts: [{ label: 'DODGE IT', value: true }, { label: 'TAKE IT', value: false }] } };
       if (ud) { D.sfx('run'); tgt.reaction = 0; dmg = Math.floor(dmg / 2); fire = Math.floor(fire / 2); rad = Math.floor(rad / 2); ext = Math.floor(ext / 2); parts.push('{c}uncanny dodge: halved to ' + (dmg + fire + rad + ext) + '{/}'); }
     }
     // resistance to non-magical weapons (the grick): the weapon's own damage halved unless the weapon is magic
@@ -767,13 +814,17 @@
     if (tgt.resist && tgt.resist.indexOf('mundane') >= 0 && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type)) {
       var cut = dmg - Math.floor(dmg / 2); dmg -= cut; parts.push('{g}-' + cut + ': it shrugs off plain steel{/}');
     }
-    this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire + rad + ext) + '{/}'], 300, cid);
+    this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0)) + '{/}'], 300, cid);
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
     if (fire) { FX.sparkle(tgt, 'fire', 12); this.hurt(tgt, fire, 'fire'); }
     if (rad && !tgt.dead) this.hurt(tgt, rad, 'radiant');
     if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type);
+    for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1]);
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type);
+    if (o.onHit) o.onHit(tgt, crit); // (a spell attack's rider: js/grimoire.js)
     yield o.oa ? 18 : 26;
+    // a reaction to the blow (09-28, js/grimoire.js): Hellish Rebuke from one who took it and can see who gave it
+    if (D.magic.rebuke && !tgt.dead && tgt.hp > 0 && !att.dead) yield* D.magic.rebuke(this, tgt, att);
     // riders: the drow's poisoned bolt, the spider's venom
     if (!tgt.dead && tgt.hp > 0 && atk.poison && !tgt.conds.poisoned && !RU.immuneTo(tgt, 'poisoned')) {
       var sv = RU.save(tgt, 'con', atk.poison.dc);
@@ -829,6 +880,9 @@
     att.anim = 'idle';
   };
   function nameOf(u) { return u.side === 'foe' ? u.name : u.name; }
+  // a unit the AI runs (a foe, a guest, a hero on the bench): its reactions are decided, never asked (09-28, the class NPCs)
+  function byAI(u) { return u.side !== 'party' || !!u.guest; }
+  function M16() { return D.magic; }
   function slotFor(u, min) { for (var i = min - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) return i + 1; return 0; }
   function faceTo(a, b) {
     var ax = a.x + ((a.size || 1) - 1) / 2, ay = a.y + ((a.size || 1) - 1) / 2, bx = b.x + ((b.size || 1) - 1) / 2, by = b.y + ((b.size || 1) - 1) / 2;
@@ -866,8 +920,9 @@
     u.flash = 10;
     FX.float('-' + n, u, D.PAL.ramps.red[4]);
     if (u.conds.hidden) delete u.conds.hidden;
-    if (u.hp <= 0 && u.side === 'party' && !u.guest && u.feats && u.feats.relentless > 0) {
+    if (u.hp <= 0 && (u.side === 'party' && !u.guest || u.npc) && u.feats && u.feats.relentless > 0) {
       // Relentless (the 8-bit game's own, js/battle.js: Lymen, once a day): the blow that would drop him leaves him at 1 (review 09-28 #3)
+      // (a half-orc class NPC's Relentless Endurance too: js/classes.js)
       u.feats.relentless = 0; u.hp = 1; FX.ring(u, 'gold', 30); D.sfx('buff');
       this.card(['{y}' + u.name + ' refuses to fall!{/}  {g}(Relentless: once a day, at 1 HP){/}']);
       D.magic.concCheck(this, u, n);
@@ -881,11 +936,16 @@
       if (u.conc) D.magic.endConc(this, u, 'down');
       // one who runs the moment the one in charge is down (the wheelwright, when Hask falls): gone up the stair at once, before
       // anyone can cut him down -- the 8-bit's foeBolt, certain (review 09-28 #11: the wheelwright quest hangs on his getting away)
-      if (u.side === 'foe') { var self = this; this.units.forEach(function (w) { if (w.side === 'foe' && w.bolts === u.kind && !w.dead && w.hp > 0) { w.dead = true; w.fled = true; w.deadT = self.t; if (w.holding && w.holding.length) self.release(w); D.sfx('run'); self.card(['{r}' + w.name + '{/} drops what he was holding and runs for the stair. He is gone.']); } }); }
+      if (u.side === 'foe') { var self = this; this.units.forEach(function (w) { if (w.side === 'foe' && w.bolts && w.bolts === u.kind && !w.dead && w.hp > 0) { w.dead = true; w.fled = true; w.deadT = self.t; if (w.holding && w.holding.length) self.release(w); D.sfx('run'); self.card(['{r}' + w.name + '{/} drops what he was holding and runs for the stair. He is gone.']); } }); }
     } else D.magic.concCheck(this, u, n);
+    if (D.magic.onHurt && u.hp > 0) D.magic.onHurt(this, u, n, type); // (a laughing one's save with advantage, a pattern broken: js/grimoire.js)
   };
   Battle.prototype.heal = function (u, n) {
     var was = u.hp;
+    // Chill Touch (SRD 5.1): no hit points come back till the caster's next turn
+    if (u.conds.noHeal) { FX.float('no healing', u, D.PAL.ramps.violet[4]); this.card(['{p}' + u.name + ' cannot be healed: the grave\'s hand is on them.{/}'], 240); return 0; }
+    // Beacon of Hope (SRD 5.1): a heal on one under it is the most it could be (the caster's heal says so: o.max)
+    if (u.conds.beacon && arguments[2] && arguments[2].max) n = arguments[2].max;
     u.hp = Math.min(u.maxhp, u.hp + n);
     if (was <= 0 && u.hp > 0) { u.ko = false; u.anim = 'idle'; }
     FX.float('+' + (u.hp - was), u, D.PAL.ramps.moss[2]);
@@ -1077,7 +1137,7 @@
     var T = u.turn;
     if (T.bonus > 0 && u.lvl >= 2) T.bonus = 0; else T.action = 0; // Cunning Action from level 2; the Hide action before
     D.sfx('run');
-    var foes = this.units.filter(function (w) { return w.side === 'foe' && G.standing(w) && RU.canAct(w); }), self = this;
+    var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)
     var plain = foes.filter(function (w) { var l = G.los(w, u); return l.clear && !l.cover; });
     var mirror = foes.filter(function (w) { return w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); }); // (the Mirror's eye: no hiding before it, in light)
     var r = D.d(20), total = r + u.stealth + (u.conds.pwt ? 10 : 0), top = Math.max.apply(null, foes.map(function (w) { return w.perception; }).concat([0]));

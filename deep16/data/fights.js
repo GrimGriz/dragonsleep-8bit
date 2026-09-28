@@ -274,6 +274,14 @@
       looks: { barley: { name: 'Denny', sheet: 'denny_p2' } } } // Denny plays Barley here only (Griz, 09-27)
   ];
   D.fight = function (id) { return D.FIGHTS.filter(function (f) { return f.id === id; })[0] || D.FIGHTS.filter(function (f) { return f.id === 'gallery'; })[0]; };
+  // the class floor (09-28, the class NPCs: ?npc=cleric,wizard&lvl=5, and the bench): the Hex floor, lit, open, the band of class
+  // NPCs to the north and the four (or another band) at the south door. Made when asked for, never on the ladder's list
+  D.classFight = function (level, o) {
+    o = o || {};
+    return { id: 'classes', level: level, map: o.map || 'hexfloor', name: 'The Class Floor', sub: 'the Pocket DM: ' + (o.what || 'a class NPC') + ' at ' + level,
+      intro: o.intro || 'The floor is swept. Across it, someone in their own colours has come to see what you are made of.',
+      from: 'the class NPCs (deep16/js/classes.js): the SRD 5.1 classes at levels 1-6', won: 'THE FLOOR IS YOURS.', lost: 'THE FLOOR IS THEIRS.', foes: [], wave: null, noFlee: true };
+  };
   // a rung's fights: the Cocoon Gallery first on the top rung (the POC, Denny's), then the 8-bit game's set pieces, then
   // the bestiary's (the Cowork seat's first four, `bestiary`)
   function rank(f) { return f.id === 'gallery' ? -1 : f.bestiary ? 1 : 0; }

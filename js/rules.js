@@ -29,12 +29,49 @@
     paladin: {
       name: 'Paladin', hd: 10, saves: ['wis', 'cha'], armor: ['light', 'medium', 'heavy', 'shield'], weapons: ['simple', 'martial'],
       caster: 'half', cast: 'cha', primary: 'str', asi: { str: 1, cha: 1 }
+    },
+    // the other eight SRD 5.1 classes (09-28, the class NPCs: handoff-2026-09-28-npc-classes-to-six.md). No hero of the four
+    // is one of these; DEEP16's class NPCs (deep16/js/classes.js) are built on the same numbers, and the 8-bit guests may be
+    barbarian: {
+      name: 'Barbarian', hd: 12, saves: ['str', 'con'], armor: ['light', 'medium', 'shield'], weapons: ['simple', 'martial'],
+      primary: 'str', asi: { str: 2 }, unarmored: 'con'
+    },
+    bard: {
+      name: 'Bard', hd: 8, saves: ['dex', 'cha'], armor: ['light'], weapons: ['simple', 'handcrossbow', 'longsword', 'rapier', 'shortsword'],
+      caster: 'full', cast: 'cha', primary: 'cha', asi: { cha: 2 }
+    },
+    cleric: {
+      name: 'Cleric', hd: 8, saves: ['wis', 'cha'], armor: ['light', 'medium', 'heavy', 'shield'], weapons: ['simple'], // (heavy: the Life domain's)
+      caster: 'full', cast: 'wis', primary: 'wis', asi: { wis: 2 }
+    },
+    druid: {
+      name: 'Druid', hd: 8, saves: ['int', 'wis'], armor: ['light', 'medium', 'shield'], weapons: ['club', 'dagger', 'dart', 'javelin', 'mace', 'quarterstaff', 'scimitar', 'sickle', 'sling', 'spear'],
+      caster: 'full', cast: 'wis', primary: 'wis', asi: { wis: 2 }
+    },
+    monk: {
+      name: 'Monk', hd: 8, saves: ['str', 'dex'], armor: [], weapons: ['simple', 'shortsword'],
+      primary: 'dex', asi: { dex: 2 }, unarmored: 'wis'
+    },
+    ranger: {
+      name: 'Ranger', hd: 10, saves: ['str', 'dex'], armor: ['light', 'medium', 'shield'], weapons: ['simple', 'martial'],
+      caster: 'half', cast: 'wis', primary: 'dex', asi: { dex: 2 }
+    },
+    sorcerer: {
+      name: 'Sorcerer', hd: 6, saves: ['con', 'cha'], armor: [], weapons: ['dagger', 'dart', 'sling', 'quarterstaff', 'lightcrossbow'],
+      caster: 'full', cast: 'cha', primary: 'cha', asi: { cha: 2 }
+    },
+    warlock: {
+      name: 'Warlock', hd: 8, saves: ['wis', 'cha'], armor: ['light'], weapons: ['simple'],
+      caster: 'pact', cast: 'cha', primary: 'cha', asi: { cha: 2 }
     }
   };
+  // the warlock's Pact Magic (SRD 5.1): few slots, all of one level, back on a short rest
+  var SLOTS_PACT = { 1: [1], 2: [2], 3: [0, 2], 4: [0, 2], 5: [0, 0, 2], 6: [0, 0, 2], 7: [0, 0, 0, 2], 8: [0, 0, 0, 2], 9: [0, 0, 0, 0, 2] };
   R.slotsFor = function (h) {
     var c = R.CLASSES[h.cls];
     if (c.caster === 'full') return (SLOTS_FULL[h.lvl] || []).slice();
     if (c.caster === 'half') return (SLOTS_HALF[h.lvl] || []).slice();
+    if (c.caster === 'pact') return (SLOTS_PACT[h.lvl] || []).slice();
     return [];
   };
   R.sneakDice = function (lvl) { return Math.ceil(lvl / 2) + 'd6'; };
@@ -61,6 +98,14 @@
     if (h.cls === 'fighter') { f.secondWind = 1; f.actionSurge = 1; if (long) f.indomitable = h.lvl >= 9 ? 1 : 0; }
     if (h.cls === 'paladin') { f.channel = h.lvl >= 3 ? 1 : 0; if (long) { f.lay = 5 * h.lvl; f.relentless = 1; } }
     if (h.cls === 'wizard' && long) f.arcaneRecovery = 1;
+    // the other eight classes' per-rest resources (SRD 5.1; 09-28, the class NPCs)
+    if (h.cls === 'barbarian' && long) f.rage = h.lvl >= 17 ? 6 : h.lvl >= 12 ? 5 : h.lvl >= 6 ? 4 : h.lvl >= 3 ? 3 : 2;
+    if (h.cls === 'bard' && (long || h.lvl >= 5)) f.inspiration = Math.max(1, DS.mod(h.abil.cha)); // (Font of Inspiration at 5: a short rest too)
+    if (h.cls === 'cleric') f.channel = h.lvl >= 18 ? 3 : h.lvl >= 6 ? 2 : h.lvl >= 2 ? 1 : 0;
+    if (h.cls === 'druid') f.wildShape = h.lvl >= 2 ? 2 : 0;
+    if (h.cls === 'monk') { f.ki = h.lvl >= 2 ? h.lvl : 0; if (long) f.wholeness = h.lvl >= 6 ? 1 : 0; }
+    if (h.cls === 'sorcerer' && long) f.sorcery = h.lvl >= 2 ? h.lvl : 0;
+    if (h.cls === 'warlock') { h.slotsMax = R.slotsFor(h); h.slots = h.slotsMax.slice(); } // (Pact Magic comes back on a short rest)
     if (long) {
       h.slotsMax = R.slotsFor(h);
       h.slots = h.slotsMax.slice();
@@ -146,11 +191,17 @@
       ac = a.armor.base + (dm == null ? dex : Math.min(dex, dm)) + (a.armor.bonus || 0);
       if (h.conds.mageArmor && a.armor.type === 'robe') ac = Math.max(ac, 13 + dex + (a.armor.bonus || 0)); // robes aren't armor to the spell
     } else if (h.conds.mageArmor) ac = 13 + dex;
+    else {
+      // Unarmored Defense (the barbarian 10 + DEX + CON, the monk 10 + DEX + WIS, no shield for the monk); Draconic Resilience 13 + DEX
+      var uc = R.CLASSES[h.cls] && R.CLASSES[h.cls].unarmored;
+      if (uc && !(h.cls === 'monk' && h.equip.shield)) ac = Math.max(ac, 10 + dex + DS.mod(h.abil[uc]));
+      if (h.subclass === 'Draconic Bloodline') ac = Math.max(ac, 13 + dex);
+    }
     var s = R.item(h.equip.shield);
     if (s && s.shield) ac += s.shield.ac;
     var ring = R.item(h.equip.ring);
     if (ring && ring.ring && ring.ring.ac) ac += ring.ring.ac;
-    if (h.cls === 'paladin' && a && a.armor) ac += 1; // Fighting Style: Defense
+    if ((h.cls === 'paladin' || h.style === 'defense') && a && a.armor && a.armor.type !== 'robe') ac += 1; // Fighting Style: Defense (Lymen's; a class NPC's `style`)
     return ac;
   };
   // wearing real armor (robes aren't armor to Mage Armor): the spell has no one to take it (playtest 09-25 round four)
@@ -171,9 +222,16 @@
     if (it.kind === 'ring') return true;
     return false;
   };
+  // a monk weapon (SRD 5.1): the shortsword, or a simple melee weapon that is neither two-handed nor heavy; fists too
+  R.monkWeapon = function (w) {
+    var wd = w.weapon || {}, p = wd.props || [];
+    return w.id === 'unarmed' || wd.kind === 'shortsword' || (wd.group === 'simple' && p.indexOf('ranged') < 0 && p.indexOf('two-handed') < 0 && p.indexOf('heavy') < 0);
+  };
+  R.martialDie = function (lvl) { return lvl >= 17 ? '1d10' : lvl >= 11 ? '1d8' : lvl >= 5 ? '1d6' : '1d4'; };
   R.weaponAbil = function (h, w) {
     var p = w.weapon.props || [];
     if (p.indexOf('ranged') >= 0) return 'dex';
+    if (h.cls === 'monk' && R.monkWeapon(w)) return DS.mod(h.abil.dex) > DS.mod(h.abil.str) ? 'dex' : 'str'; // Martial Arts
     if (p.indexOf('finesse') >= 0) return DS.mod(h.abil.dex) > DS.mod(h.abil.str) ? 'dex' : 'str';
     return 'str';
   };
@@ -211,6 +269,7 @@
   R.attackBonus = function (h, w) {
     w = w || R.weaponOf(h);
     var b = DS.mod(h.abil[R.weaponAbil(h, w)]) + (R.isProfWeapon(h, w) ? R.prof(h.lvl) : 0) + (w.weapon.bonus || 0);
+    if (h.style === 'archery' && (w.weapon.props || []).indexOf('ranged') >= 0) b += 2; // Fighting Style: Archery (a class NPC's)
     return b;
   };
   R.damageExpr = function (h, w) {
@@ -218,6 +277,8 @@
     var dice = w.weapon.dmg;
     if (R.twoHanded(h, w) && w.weapon.versatile) dice = w.weapon.versatile;
     var mod = DS.mod(h.abil[R.weaponAbil(h, w)]) + (w.weapon.bonus || 0);
+    // Martial Arts (the monk): a fist or a monk weapon hits for the martial-arts die when that is bigger
+    if (h.cls === 'monk' && R.monkWeapon(w)) { var md = R.martialDie(h.lvl); if (w.id === 'unarmed' || +md.split('d')[1] > +String(dice).split('d')[1]) dice = md; return { dice: dice, mod: mod, type: w.weapon.type }; }
     if (w.id === 'unarmed') return { dice: '0', mod: 1 + DS.mod(h.abil.str), type: 'bludgeoning' };
     return { dice: dice, mod: mod, type: w.weapon.type };
   };
@@ -242,7 +303,7 @@
   R.spellAtk = function (h) { var c = R.CLASSES[h.cls]; return R.prof(h.lvl) + DS.mod(h.abil[c.cast || 'int']); };
   R.initBonus = function (h) { return DS.mod(h.abil.dex) + (h.cls === 'fighter' && h.lvl >= 7 ? Math.ceil(R.prof(h.lvl) / 2) : 0); }; // Remarkable Athlete
   R.critRange = function (h) { return (h.cls === 'fighter' && h.lvl >= 3) ? 19 : 20; };
-  R.attacksPerTurn = function (h) { if (h.attacks) return h.attacks; return ((h.cls === 'fighter' || h.cls === 'paladin') && h.lvl >= 5) ? 2 : 1; };
+  R.attacksPerTurn = function (h) { if (h.attacks) return h.attacks; return (/^(fighter|paladin|barbarian|ranger|monk)$/.test(h.cls) && h.lvl >= 5) ? 2 : 1; }; // Extra Attack at 5
   R.maxSlotLevel = function (h) { var m = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) m = i + 1; }); return m; };
   R.lowestSlot = function (h, min) { for (var i = (min || 1) - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) return i + 1; return 0; };
   R.cantripDice = function (sp, h) {

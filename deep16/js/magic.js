@@ -21,7 +21,8 @@
   };
   M.geo = function (id) { return D.SPELLS[id] || { shape: 'none', why: 'not on the grid yet' }; };
   M.slotLevels = function (u, lvl) { var out = []; for (var i = Math.max(1, lvl) - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) out.push(i + 1); return out; };
-  M.mod = function (u) { return D.mod(u.abil[u.cls === 'paladin' ? 'cha' : 'int']); };
+  // the caster's spellcasting modifier: its class's ability (js/rules.js R.CLASSES cast: the cleric's WIS, the warlock's CHA), or a sheet's own
+  M.mod = function (u) { var c = window.DS.R.CLASSES[u.cls]; return D.mod(u.abil[u.castAb || (c && c.cast) || 'int']); };
   function up(sp, slot) { return Math.max(0, (slot || sp.level) - sp.level); }
   M.dice = function (sp, u, slot) { // a cantrip grows with the caster's level; a slot above the spell's adds its dice
     var d = sp.dmg;
@@ -41,6 +42,11 @@
       e.slot = e.levels[0] || sp.level;
       // Dancing Lights already up: casting it again is the SRD's bonus action that moves the lights (no new concentration)
       if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') e.g = g = Object.assign({}, g, { time: 'B', move: true });
+      // a spell already up that is used again (js/grimoire.js geo: the floating weapon's swing, a mark moved): `free` spends no slot,
+      // `move` is no new bonus-action spell
+      var ex = M.EFFECT && M.EFFECT[id];
+      if (ex && ex.geo) { var g2 = ex.geo(B, u, g); if (g2) e.g = g = g2; }
+      if (g.free) e.levels = [e.level];
       var why = '';
       // under a roost (the rescue in the dens), its one law: no fire, no thunder (the 8-bit game greys them too, RULED 09-24)
       if (B.fight && B.fight.roost && /fire|thunder/.test(sp.el || '')) why = 'the roost overhead: no fire, no thunder';
@@ -53,6 +59,8 @@
       else if (g.time === 'A' && T.bonusSpell && sp.level) why = 'after a bonus-action spell, only a cantrip';
       else if (g.unarmored && !M.touchTargets(B, u, g).length) why = 'no one within reach without armour';
       else if (id === 'seeinvisibility' && u.seeInvisible) why = 'already seeing the unseen';
+      // a spell's own say (js/grimoire.js): nothing to cure, a ward already on, no metal to heat
+      if (!why && ex && ex.list) { var r = ex.list(B, u, e); if (r && r.why) why = r.why; if (r && r.g) e.g = g = r.g; }
       e.ok = !why; e.why = why;
       return e;
     }).filter(Boolean).sort(function (a, b) { return a.level - b.level || (a.name < b.name ? -1 : 1); });
@@ -60,6 +68,7 @@
 
   // a spell's grid summary, at the chosen slot: what the list and the ring say about it
   M.summary = function (e, u) {
+    if (M.EFFECT && M.EFFECT[e.id] && M.EFFECT[e.id].summary) return M.EFFECT[e.id].summary(e, u, D.battle);
     var g = e.g, sp = e.sp, d = sp.dmg ? M.dice(sp, u, e.slot) : '', n = (g.n || 1) + Math.max(0, e.slot - e.level);
     var save = sp.save ? sp.save.toUpperCase() + (sp.half ? ' half' : '') : '', conc = g.conc ? ' · conc' : '';
     switch (g.shape) {
@@ -152,7 +161,7 @@
     if (g.shape === 'touch') return M.touchTargets(B, u, g).indexOf(w) >= 0;
     var foeWanted = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe';
     if (foeWanted && (!G.hostile(u, w) || w.hp <= 0)) return false;
-    if ((g.shape === 'allies' || g.side === 'ally') && w.side !== u.side) return false;
+    if (((g.shape === 'allies' && g.side !== 'foe') || g.side === 'ally') && w.side !== u.side) return false; // (Bane: an `allies` shape aimed at foes)
     if (g.only === 'humanoid' && !M.humanoid(w)) return false;
     // "a creature you can see": Hold, Shield of Faith, Magic Missile, Acid Splash -- not Bless or Aid (SRD: "creatures of your choice
     // within range"; you know where your own are in the dark). Magic Missile at the dark: ui.js aims it at a square (the gimmick)
@@ -191,14 +200,19 @@
   M.cast = function* (B, u, id, slot, t) {
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
     if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') g = Object.assign({}, g, { time: 'B', move: true }); // (the lights are up: this is the bonus action that moves them)
-    if (g.time === 'B') { T.bonus = 0; if (!g.move) T.bonusSpell = true; } else { T.action = 0; T.spellAction = sp.level ? 'leveled' : 'cantrip'; }
-    if (sp.level) u.slots[slot - 1]--;
+    var ex0 = M.EFFECT && M.EFFECT[id]; if (ex0 && ex0.geo) g = ex0.geo(B, u, g) || g; // (the floating weapon already up: its swing)
+    if (g.time === 'B') { T.bonus = 0; if (!g.move) T.bonusSpell = true; } else { T.action = 0; T.spellAction = g.free ? T.spellAction : sp.level ? 'leveled' : 'cantrip'; }
+    if (sp.level && !g.free) u.slots[slot - 1]--;
     var head = '{y}' + u.name + '{/}: ' + sp.name.toUpperCase() + (sp.level ? ' (L' + slot + ')' : '');
     var dc = u.spellDC, n = up(sp, slot);
     if (g.shape !== 'self' && g.shape !== 'touch') { var at = t && t.x != null ? { x: t.x, y: t.y, size: 1 } : t && t.units ? t.units[0] : t; if (at) u.facing = B.faceTo(u, at); }
     u.anim = 'attack'; u.animT = B.t;
     D.sfx(M.sound(sp));
     yield 10;
+
+    // the spells built for the class NPCs (09-28, js/grimoire.js): each its own; the rest below as they were
+    var FXD = M.EFFECT && M.EFFECT[id];
+    if (FXD && FXD.cast) { yield* FXD.cast(B, u, t, slot, head, { sp: sp, g: g, dc: dc, up: n }); u.anim = 'idle'; return; }
 
     if (g.shape === 'attack' || g.shape === 'rays') {
       var shots = g.shape === 'rays' ? t.units : [t], dice = g.shape === 'rays' ? sp.dmg : M.dice(sp, u, slot);
@@ -444,7 +458,8 @@
     if (u.conds.heroism) u.temp = Math.max(u.temp || 0, u.conds.heroism.each);
     if (B && u.hp > 0 && !u.dead) M.webCatch(B, u, 'starts');
     if (B && u.hp > 0 && !u.dead) M.cloudTurn(B, u);
-    if (u.conds.restrained || u.conds.paralyzed || u.conds.asleep) u.turn.move = 0;
+    if (B && M.onStart) M.onStart(B, u); // (the class NPCs' spells: the guardians, the timers, a word of command -- js/grimoire.js)
+    if (u.conds.restrained || u.conds.paralyzed || u.conds.asleep || u.conds.incapacitated) u.turn.move = 0;
   };
   // the clouds, at the start of a turn inside one: Stinking Cloud (SRD: completely within it, CON save against poison or the
   // action is spent retching; nothing that needs no breath or shrugs off poison); Sleet Storm (DEX or prone; a concentrating
@@ -500,6 +515,7 @@
   };
   // the end: a paralyzed creature tries its save again (Hold Monster)
   M.endTurn = function (B, u) {
+    if (B && M.onEnd) M.onEnd(B, u); // (the class NPCs' spells: the saves at a turn's end, the timers -- js/grimoire.js)
     if (u.conds.poisoned && u.conds.poisoned.save && !u.conds.paralyzed) M.poisonSave(B, u);
     var p = u.conds.paralyzed;
     if (p && p.save) {
@@ -572,6 +588,8 @@
     if (!B || !a || !b || a === b) return { ok: true };
     // blindsight is not sight (SRD): the darkmantle in its own darkness, the oozes, the grimlock -- nothing on this list stops it, to its reach
     if (a.blindsight && G.dist(a, b) <= a.blindsight) return { ok: true };
+    // Mirror's Gaze (RULED 09-28, invented.json #mirrors-gaze): the marked one cannot hide from her; unseen, it gains nothing against her
+    if (b.conds && b.conds.marked && b.conds.marked.gaze && b.conds.marked.by === a.id) return { ok: true };
     if (a.conds && a.conds.blinded) return { ok: false, why: 'blinded' };
     if (a.truesight && G.dist(a, b) <= a.truesight) return { ok: true };
     if ((B.darks || []).length) {
@@ -660,10 +678,10 @@
   // breaking out of a web: an action, a STR check against the caster's DC
   M.breakFree = function* (B, u) {
     // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
-    var r = u.conds.restrained, d = u.conds.poisoned || u.conds.frightened ? Math.min(D.d(20), D.d(20)) : D.d(20), useDex = r.grapple && D.mod(u.abil.dex) > D.mod(u.abil.str);
+    var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, d = (u.conds.poisoned || u.conds.frightened ? Math.min(D.d(20), D.d(20)) : D.d(20)) + gd, useDex = r.grapple && D.mod(u.abil.dex) > D.mod(u.abil.str);
     var tot = d + D.mod(useDex ? u.abil.dex : u.abil.str) + (u.cls === 'fighter' || (useDex && u.cls === 'rogue') ? u.prof : 0);
     u.turn.action = 0;
-    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
+    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
     if (tot >= r.dc) {
       delete u.conds.restrained; u.turn.move = u.speed; u.turn.webSaved = true; // (torn free: it goes on through the web this turn)
       var by = B.units.filter(function (w) { return w.id === r.by; })[0]; if (by && by.holding) by.holding = by.holding.filter(function (w) { return w !== u; });

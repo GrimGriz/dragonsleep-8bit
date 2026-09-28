@@ -107,6 +107,7 @@
       darkvision: Math.max(D.light ? D.light.raceDV((DS.DATA.heroes[h.id] || {}).race) : 0, h.conds && h.conds.darkvision ? 60 : 0)
     };
   }
+  SV.unitOf = unitOf; // (the class NPCs are made units the same way: js/classes.js)
   SV.displaced = function (h) { var c = R.item(h.equip && h.equip.cloak); return !!(c && c.cloak && c.cloak.displacement); };
   // what a hero can cast in the fight: all he knows, or, once his day is prepared (h.prepared: the camp's, or the 8-bit
   // game's morning), his cantrips, the spells he prepared, and the ones his oath keeps ready. His book is his own everywhere
