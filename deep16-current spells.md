@@ -23,7 +23,7 @@ Mage Armor and Aid last 8 hours on the tabletop.
 
 - **The 8-bit game** holds both *until the next long rest*: sleeping lifts them, and a day longer than 8 hours never ends them early. You caught this one; it spares a recast every dungeon day.
 - **The ladder's camp** casts both ahead if you choose (CAST AHEAD): Mage Armor is on by default from rung 3 and costs a 1st-level slot, as on the tabletop (ruled 09-27: it was free until then); Aid, from rung 5, costs a 2nd-level slot for +5 HP on three of the four. Each has to be prepared first.
-- **Prepared spells.** The camp prepares the day (PREPARE SPELLS): Aurdin INT modifier + his level from his book, Lymen CHA modifier + half his level from the paladin list, Lesser Restoration always ready for Lymen from rung 5 (his oath). In the fight only the cantrips, the prepared and the oath's are on the SPELLS list. (Outside the camp, a party walking in from the 8-bit save still has everything it knows ready.)
+- **Prepared spells.** The camp prepares the day (PREPARE SPELLS): Aurdin INT modifier + his level from his book, Lymen CHA modifier + half his level from the paladin list, Lesser Restoration always ready for Lymen from rung 5 (his oath). In the fight only the cantrips, the prepared and the oath's are on the SPELLS list. The 8-bit game prepares the same way now (09-28): every rest that offers the save first asks for the day's spells (THE DAY'S SPELLS: prepare each caster, cast Mage Armor or Aid ahead), and a party walking in from the 8-bit game brings the day it prepared.
 - Aurdin's Wizard's Robes are the 8-bit game's own (AC 11 + DEX, and not armour as far as the spell cares). Under Mage Armor he stands at 13 + DEX, and the lake's +1 robes add their +1 on top.
 
 ## Aurdin (wizard, evoker)
@@ -40,7 +40,7 @@ Mage Armor and Aid last 8 hours on the tabletop.
 - **Magic Missile** (from the start). Three darts at creatures he picks within 120 ft, 1d4 + 1 force each, never missing; one more dart a slot higher.
 - **Shield** (from the start). A reaction when a blow would land: +5 AC until his next turn, that blow included. *DEEP16 only offers it when the +5 would turn the blow, and never on a natural 20; on the tabletop he may raise it on any hit.*
 - **Sleep** (from the start). A 20-ft sphere within 90 ft: 5d8 HP of sleep (+2d8 a slot higher), the lowest current HP first; a sleeper wakes when hurt. Drow are not taken (fey blood). *Undead are taken too; on the tabletop undead, and anything that can't be charmed, are not. The skeletons of the Old Cut would sleep.*
-- **Detect Magic** (from the start). *No use on the grid.*
+- **Detect Magic** (from the start). A ritual: cast from the book without preparing it, in the field. *No use on the grid.*
 - **Mage Armor** (from rung 3). Touch, a creature wearing no armour: AC 13 + DEX. On the ladder he walks in already wearing it, one 1st-level slot the poorer (above). It ends if he puts on armour (the ladder lets armour change mid-fight). In a fight it has almost no one to take it: the other three wear armour.
 
 ### 2nd level

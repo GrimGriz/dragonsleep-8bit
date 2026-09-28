@@ -52,6 +52,7 @@
     R.refresh(h, true);
     while (level && h.lvl < level) { h.xp = R.XP_LEVEL[h.lvl + 1]; R.levelUp(h); }
     h.hp = h.maxhp;
+    if (R.prepCount(h)) h.prepared = R.prepDefault(h); // a caster walks in with the build's day prepared
     return h;
   };
   // restore per-rest resources; long = long rest
@@ -89,7 +90,9 @@
       var want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0); // CON counts back to level 1
       if (base < want) { h.hp += want - base; h.maxhp += want - base; }
     }
+    var nlearn = msgs.length;
     if (lu.learn) lu.learn.forEach(function (s) { if (h.known.indexOf(s) < 0) { h.known.push(s); msgs.push(h.name + ' learns ' + DS.DATA.spells[s].name + '.'); } });
+    if (h.prepared && msgs.length > nlearn) msgs.push('New spells are prepared after a long rest.'); // (SRD: the day is chosen on waking)
     if (lu.subclass) { h.subclass = lu.subclass; msgs.push(h.name + ': ' + lu.subclass + '.'); }
     if (lu.choose) { h.pendingChoice = lu.choose; msgs.push(h.name + ' has a choice to make.'); }
     (lu.feats || []).forEach(function (t) { msgs.push(t); });
@@ -115,6 +118,9 @@
   R.migrate = function (h) {
     if (h.lvl <= 5 && h.xp >= R.XP_LEVEL[6]) h.xp = R.XP_LEVEL[6] - 1; // XP banked under the old cap of 5: one step short of 6, no more
     h.known = (h.known || []).filter(function (id) { return !!DS.DATA.spells[id]; });
+    // the day's spells (AMENDED 09-27): an older save's casters wake with the build's picks, as a new hero does
+    if (h.prepared) h.prepared = h.prepared.filter(function (id) { return !!DS.DATA.spells[id]; });
+    else if (R.prepCount(h)) h.prepared = R.prepDefault(h);
     // RULED 09-25: every level is a max hit die. An older save's heroes catch up (Aid's +5 set aside first).
     var c = R.CLASSES[h.cls], want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0);
     if (base < want) { h.maxhp += want - base; h.hp += want - base; }
@@ -216,9 +222,61 @@
     Object.keys(sp.scale).forEach(function (lv) { if (h.lvl >= +lv) d = sp.scale[lv]; });
     return d;
   };
+  // ---------------------------------------------------------------- the day's spells (SRD 5.1; AMENDED 09-27, Griz: the casters
+  // choose, "spell section to pre-save-post-sleep"). A wizard prepares INT modifier + his level from his spellbook (h.known); a
+  // paladin CHA modifier + half his level from the whole paladin list, and nothing at level 1; both only of levels they have
+  // slots for. Cantrips are always ready, and so, uncounted, are the Oath of Devotion's spells and a wizard's rituals (cast
+  // from the book as rituals, in the field). DEEP16 reads these same functions (deep16/js/save.js): one law for both games.
+  // `spellOf` is the lookup (DEEP16 passes its own, which also knows the grid's spells)
+  R.PALADIN_SPELLS = ['bless', 'curewounds', 'shieldoffaith', 'divinefavor', 'heroism', 'lesserrestoration', 'aid', 'revivify', 'daylight'];
+  function spellData(id) { return DS.DATA.spells[id]; }
+  // the oath's spells: Lesser Restoration from 5 (Zone of Truth, its pair, isn't built; nor the 3rd's pair, nor the 9th's)
+  R.oathSpells = function (h) { return h.cls === 'paladin' && h.lvl >= 5 ? ['lesserrestoration'] : []; };
+  R.prepCount = function (h) {
+    if (h.cls === 'wizard') return Math.max(1, DS.mod(h.abil.int) + h.lvl);
+    if (h.cls === 'paladin') return h.lvl >= 2 ? Math.max(1, DS.mod(h.abil.cha) + Math.floor(h.lvl / 2)) : 0;
+    return 0;
+  };
+  R.prepPool = function (h, spellOf) {
+    spellOf = spellOf || spellData;
+    var top = (h.slotsMax || R.slotsFor(h)).length, oath = R.oathSpells(h), src = h.cls === 'wizard' ? (h.known || []) : h.cls === 'paladin' ? R.PALADIN_SPELLS : [];
+    return src.filter(function (id) { var sp = spellOf(id); return sp && sp.level > 0 && sp.level <= top && !sp.ritual && oath.indexOf(id) < 0; })
+      .map(function (id, i) { return { id: id, i: i, lv: spellOf(id).level }; }).sort(function (a, b) { return a.lv - b.lv || a.i - b.i; })
+      .map(function (x) { return x.id; }); // (by level, then the book's order)
+  };
+  R.ritualsOf = function (h, spellOf) {
+    spellOf = spellOf || spellData;
+    return h.cls === 'wizard' ? (h.known || []).filter(function (id) { var sp = spellOf(id); return sp && sp.ritual; }) : [];
+  };
+  // the day the build would pick, what you get if you never touch the choice: what the levelling gave him first, the highest
+  // levels first, Mage Armor always (it's cast in the morning)
+  function prepRanked(h, spellOf) {
+    var build = h.known || [];
+    var rank = function (id) { return (id === 'mageArmor' ? 100 : 0) + (build.indexOf(id) >= 0 ? 50 : 0) + spellOf(id).level * 5; };
+    return R.prepPool(h, spellOf).sort(function (a, b) { return rank(b) - rank(a); });
+  }
+  R.prepDefault = function (h, spellOf) { return prepRanked(h, spellOf || spellData).slice(0, R.prepCount(h)); };
+  // the morning: what he chose stays; places the day has grown by (a level since) take the build's next picks, so one who
+  // never touches the choice still gets what the levelling gave him
+  R.prepFill = function (h, spellOf) {
+    spellOf = spellOf || spellData;
+    var n = R.prepCount(h), pool = R.prepPool(h, spellOf);
+    var cur = (h.prepared || []).filter(function (id) { return pool.indexOf(id) >= 0; }).slice(0, n);
+    prepRanked(h, spellOf).forEach(function (id) { if (cur.length < n && cur.indexOf(id) < 0) cur.push(id); });
+    return cur;
+  };
+  // what a hero can cast today: one who prepares nothing (a fighter, a guest) everything he knows; one who prepares, his
+  // cantrips, the day's spells, the oath's, and away from a fight the book's rituals
+  R.castable = function (h, where, spellOf) {
+    spellOf = spellOf || spellData;
+    var k = h.known || [];
+    if (!h.prepared) return k.slice();
+    var cantrips = k.filter(function (id) { var sp = spellOf(id); return sp && !sp.level; });
+    return cantrips.concat(h.prepared, R.oathSpells(h), where === 'battle' ? [] : R.ritualsOf(h, spellOf)).filter(function (id, i, a) { return a.indexOf(id) === i; });
+  };
   // spells a hero may cast now (battle or field)
   R.spellList = function (h, where) {
-    return h.known.map(function (id) { return DS.DATA.spells[id]; }).filter(function (sp) {
+    return R.castable(h, where).map(function (id) { return DS.DATA.spells[id]; }).filter(function (sp) {
       if (!sp) return false;
       if (where === 'battle' && !sp.battle) return false;
       if (where === 'field' && !sp.field) return false;

@@ -425,8 +425,7 @@
   S.cot = function* () {
     yield DS.say(L('deep.cot'));
     yield* EV.rest('inn');
-    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    yield* EV.morning();
   };
   // the Scalebeam house: the one lit door on the closed street (re-cut §5; CANON 09-26d/e). Asdis feeds you; her cot is a bed
   S.asdis = function* () {
@@ -440,8 +439,7 @@
   S.asdisRest = function* () {
     yield DS.say(L('deep.asdisRest'));
     yield* EV.rest('inn');
-    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    yield* EV.morning();
   };
   S.sleeper = function* () { // the trooper in the lit barracks offers a bunk, and means it (re-cut F4)
     var a = yield DS.ask(L('deep.sleeperOffer'), ['SLEEP', 'NOT NOW'], who('Trooper'));
@@ -521,9 +519,7 @@
   };
   function* lampRest() {
     yield* EV.rest('inn');
-    if (!DS.field || G().party.every(function (h) { return h.ko; })) return;
-    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    yield* EV.morning(); // (it asks nothing if the night's fight left nobody standing)
   }
   // the highway's mouth. The gate opens for the king (beat 2), shuts behind him when he takes the road back (beat 4),
   // opens again for Halldor's petition (beat 5), and the season musters at it when the word comes from below (beat 6)

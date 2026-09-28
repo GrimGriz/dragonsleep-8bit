@@ -46,6 +46,12 @@
   "g.innAsk": { "t": "{n} silver the night.", "src": "the-lab/pit-maps/shops-silverton.json pin 11 (8 sp the bed); party rate RULED 09-24" },
   "g.poor": { "t": "Not enough silver.", "src": "invented: connective" },
   "g.saveAsk": { "t": "Write down the day? (Save)", "src": "invented: connective" },
+  "g.prepDone": { "t": "The day's spells stay as they are. Each caster keeps what he prepared until he changes it at a rest.", "src": "invented: connective (preparing spells, SRD 5.1; AMENDED 09-27, the casters choose)" },
+  "g.prepWizard": { "t": "{name} prepares {n} spells from his book: his INT modifier plus his level. Cantrips are always ready, and a ritual is cast from the book without preparing it.", "src": "SRD 5.1 (Wizard: Preparing and Casting Spells; Ritual Casting)" },
+  "g.prepPaladin": { "t": "{name} prepares {n} spells from the paladin's list: his CHA modifier plus half his level. His oath keeps its own spells ready besides.", "src": "SRD 5.1 (Paladin: Preparing and Casting Spells; Oath Spells)" },
+  "g.prepFull": { "t": "{name} can prepare {n}. Take one off first.", "src": "invented: connective (preparing spells, SRD 5.1)" },
+  "g.prepOath": { "t": "{spell}: the Oath of Devotion keeps it ready. It does not count against the day.", "src": "SRD 5.1 (Oath of Devotion: Oath Spells)" },
+  "g.prepRitual": { "t": "{spell}: a ritual. Cast from the book in the field, without preparing it and without a slot.", "src": "SRD 5.1 (Wizard: Ritual Casting)" },
 
   "chapel.ask": { "t": "The floor's free, if the old man likes your face. Sleep?", "src": "the-lab/pit-maps/shops-silverton.json pin 30 (the floor free); ext Silverton npcs (Aldwin)" },
   "leech.greet": { "t": "Blood off the sand, the mother pays for. Anybody else's, you pay me.", "src": "wiki/the-hex.md (the leech-house; the mother pays its bills); wording clarified 09-24 (playtest: 'on the house' read as a contradiction)" },

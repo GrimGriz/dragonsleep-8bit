@@ -415,8 +415,9 @@
     ['armor', 'shield', 'ring'].forEach(function (s, i) { var it = R.item(h.equip[s]); DS.text(ctx, s.toUpperCase() + ' ' + (it ? it.name : '—'), 12 + (i % 3) * 80, 120, '#C8D0E8'); });
     var y = 134;
     if (c.cast) { DS.text(ctx, 'SPELL DC ' + R.spellDC(h) + '  ATTACK ' + DS.sgn(R.spellAtk(h)) + '  SLOTS ' + (h.slots || []).map(function (n, k) { return n + '/' + h.slotsMax[k]; }).join(' '), 12, y, '#B8B8F8'); y += 12; }
-    var sp = h.known.map(function (id) { return DS.DATA.spells[id] ? DS.DATA.spells[id].name : id; });
-    if (sp.length) { DS.wrap('Spells: ' + sp.join(', '), 234).slice(0, 3).forEach(function (l) { DS.text(ctx, l, 12, y, '#9C9C9C'); y += 10; }); y += 2; }
+    // a caster who prepares shows the day's spells (cantrips, prepared, the oath's, the book's rituals)
+    var sp = R.castable(h, 'field').map(function (id) { return DS.DATA.spells[id] ? DS.DATA.spells[id].name : id; });
+    if (sp.length) { DS.wrap((h.prepared ? 'Ready: ' : 'Spells: ') + sp.join(', '), 234).slice(0, 3).forEach(function (l) { DS.text(ctx, l, 12, y, '#9C9C9C'); y += 10; }); y += 2; }
     var feats = (d.featText || []).filter(function (f) { return (!f.lvl || f.lvl <= h.lvl) && (!f.sub || f.sub === h.subclass); }).map(function (f) { return f.t; });
     if (h.cls === 'rogue') feats.unshift('Sneak Attack ' + R.sneakDice(h.lvl));
     if (h.cls === 'paladin') feats.push('Lay on Hands pool ' + (h.feats.lay || 0));

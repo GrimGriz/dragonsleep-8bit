@@ -103,43 +103,24 @@
       stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h
     };
   }
-  // his book is his own everywhere (RULED 09-27, Griz: Misty Step is "a spell he can learn"; the POC's loan of it to every
-  // wizard of 3rd level is gone): what the 8-bit game's levelling gave him, or what he picked on the climb
-  function bookOf(h) { return (h.known || []).slice(); }
   SV.displaced = function (h) { var c = R.item(h.equip && h.equip.cloak); return !!(c && c.cloak && c.cloak.displacement); };
-  // what a hero can cast in the fight: all he knows, or, once the camp has prepared his day (h.prepared), his cantrips,
-  // the spells he prepared, and the ones his oath keeps ready
-  function knownOf(h) {
-    var k = bookOf(h);
-    if (!h.prepared) return k;
-    var cantrips = k.filter(function (id) { var sp = SV.spell(id); return sp && !sp.level; });
-    return cantrips.concat(h.prepared, SV.oath(h)).filter(function (id, i, a) { return a.indexOf(id) === i; });
-  }
+  // what a hero can cast in the fight: all he knows, or, once his day is prepared (h.prepared: the camp's, or the 8-bit
+  // game's morning), his cantrips, the spells he prepared, and the ones his oath keeps ready. His book is his own everywhere
+  // (RULED 09-27, Griz: Misty Step is "a spell he can learn"; the POC's loan of it to every wizard of 3rd level is gone):
+  // what the 8-bit game's levelling gave him, or what he picked on the climb
+  function knownOf(h) { return R.castable(h, 'battle', SV.spell); }
 
   // ---------------------------------------------------------------- the day's spells (SRD 5.1; Griz, 09-27: "spell prep should probably run
-  // before each fight"). A wizard prepares INT modifier + his level from his spellbook; a paladin CHA modifier + half his
-  // level from the whole paladin list (the ones built here), and nothing at level 1. Both only of levels they have slots for.
-  SV.PALADIN = ['bless', 'curewounds', 'shieldoffaith', 'divinefavor', 'heroism', 'lesserrestoration', 'aid', 'revivify', 'daylight'];
+  // before each fight"). The law is the 8-bit game's (js/rules.js R.prepCount, R.prepPool, R.prepDefault, R.oathSpells), one
+  // for both games since 09-28; these read it with the grid's spell lookup. Detect Magic is a ritual: never prepared, never
+  // in the pool (it does nothing in a fight)
   SV.spell = function (id) { return window.DS.DATA.spells[id] || (D.EXTRA_SPELLS || {})[id]; };
-  // the Oath of Devotion keeps its spells ready, uncounted: Lesser Restoration from 5 (Zone of Truth, its pair, isn't built;
-  // the 3rd-level pair comes at 9, and neither of those is built either)
-  SV.oath = function (h) { return h.cls === 'paladin' && h.lvl >= 5 ? ['lesserrestoration'] : []; };
-  SV.prepCount = function (h) {
-    if (h.cls === 'wizard') return Math.max(1, DS.mod(h.abil.int) + h.lvl);
-    if (h.cls === 'paladin') return h.lvl >= 2 ? Math.max(1, DS.mod(h.abil.cha) + Math.floor(h.lvl / 2)) : 0;
-    return 0;
-  };
-  SV.prepPool = function (h) {
-    var top = (h.slotsMax || []).length, oath = SV.oath(h), src = h.cls === 'wizard' ? bookOf(h) : h.cls === 'paladin' ? SV.PALADIN : [];
-    return src.filter(function (id) { var sp = SV.spell(id); return sp && sp.level > 0 && sp.level <= top && oath.indexOf(id) < 0; });
-  };
-  // the day the build would pick: what the 8-bit game's levelling gave him first, the highest levels first, Mage Armor
-  // always (it's cast at camp), Detect Magic last (a ritual: it needn't be prepared, and it does nothing in a fight)
-  SV.prepDefault = function (h) {
-    var build = h.known || [];
-    var rank = function (id) { return (id === 'mageArmor' ? 100 : 0) + (build.indexOf(id) >= 0 ? 50 : 0) + SV.spell(id).level * 5 - (id === 'detectmagic' ? 60 : 0); };
-    return SV.prepPool(h).sort(function (a, b) { return rank(b) - rank(a); }).slice(0, SV.prepCount(h));
-  };
+  SV.PALADIN = R.PALADIN_SPELLS;
+  SV.oath = function (h) { return R.oathSpells(h); };
+  SV.prepCount = function (h) { return R.prepCount(h); };
+  SV.prepPool = function (h) { return R.prepPool(h, SV.spell); };
+  SV.rituals = function (h) { return R.ritualsOf(h, SV.spell); };
+  SV.prepDefault = function (h) { return R.prepDefault(h, SV.spell); };
   // the POC's looks (RULED 09-27, Griz: "Denny should play as Barley but look like Denny for this POC"); the base art
   // is LPC (pipeline 0), Blender for special monsters (RULED 09-27: "Pipeline 0 is the way to go, maybe pipeline 1 for
   // special monsters or fights")

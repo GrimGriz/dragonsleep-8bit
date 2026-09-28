@@ -193,6 +193,75 @@
     DS.audio.play(F().map.music, true);
     yield DS.say(L('g.rested'));
   };
+  // ------------------------------------------------------------------ the morning: the day's spells, then the save
+  // AMENDED 09-27 (Griz: "add spell section to pre-save-post-sleep"; the 09-23 "no selection UI" gone, the casters choose):
+  // every rest that offers the save runs this between "Everyone wakes rested" and "Write down the day?". The casters
+  // prepare (SRD 5.1, the law in rules.js R.prepCount) and may cast ahead the two spells this game holds till the next
+  // long rest (Mage Armor and Aid; Griz 09-27 on the 8 hours: "one we may find worth keeping")
+  EV.morning = function* () {
+    var g = G();
+    if (!DS.field || g.party.every(function (h) { return h.ko; })) return; // (the night broke the rest: nobody wakes)
+    yield* EV.prepare();
+    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
+    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+  };
+  function descBox(ctx, menu) {
+    var it = menu.current(), t = it && it.desc;
+    if (!t) return;
+    DS.win(ctx, 4, 196, 248, 40);
+    var ln = DS.wrap(t, 236);
+    for (var i = 0; i < Math.min(3, ln.length); i++) DS.text(ctx, ln[i], 10, 203 + i * 10, '#E0C8A0');
+  }
+  EV.prepare = function* () {
+    var g = G(), at = 0;
+    // on waking: yesterday's choices stand, and a day grown by a level fills with the build's next picks (rules.js R.prepFill)
+    g.party.forEach(function (h) { if (R.prepCount(h) > 0) h.prepared = R.prepFill(h); });
+    while (true) {
+      var casters = g.party.filter(function (h) { return R.prepCount(h) > 0; });
+      if (!casters.length) return;
+      var rows = [{ label: 'DONE', value: 'done', desc: L('g.prepDone') }];
+      casters.forEach(function (h) {
+        rows.push({ label: 'PREPARE ' + h.name.toUpperCase(), right: h.prepared.length + '/' + R.prepCount(h), value: { prep: h },
+          desc: L(h.cls === 'wizard' ? 'g.prepWizard' : 'g.prepPaladin', { name: h.name, n: R.prepCount(h) }) });
+      });
+      // cast ahead, by whoever prepared it and has the slot. Aid on those who have it already would be a slot for nothing
+      casters.forEach(function (h) {
+        ['mageArmor', 'aid'].forEach(function (id) {
+          if (R.castable(h, 'field').indexOf(id) < 0) return;
+          var sp = DS.DATA.spells[id], slot = R.lowestSlot(h, sp.level), on = g.party.filter(function (x) { return x.conds[id]; });
+          rows.push({ label: 'CAST ' + sp.name.toUpperCase(), right: on.length ? 'ON ' + (on.length === 1 ? on[0].name.toUpperCase() : on.length) : slot ? 'L' + slot : 'NO SLOT',
+            value: { cast: sp, h: h }, disabled: !slot || (id === 'aid' && on.length > 0), desc: sp.desc });
+        });
+      });
+      var pick = yield DS.choose({ items: rows, x: 20, y: 40, w: 216, title: 'THE DAY\'S SPELLS', index: at, drawExtra: descBox });
+      if (!pick || pick === 'done') return;
+      at = rows.map(function (r) { return r.value; }).indexOf(pick);
+      if (pick.prep) yield* prepHero(pick.prep);
+      else if (pick.cast) yield* EV.fieldCast(pick.h, pick.cast);
+    }
+  };
+  // one caster's day: toggle a spell in or out; the oath's and the book's rituals are listed, always ready, uncounted
+  function* prepHero(h) {
+    var at = 0;
+    while (true) {
+      var n = R.prepCount(h), pool = R.prepPool(h);
+      h.prepared = h.prepared.filter(function (id) { return pool.indexOf(id) >= 0; }).slice(0, n);
+      var rows = pool.map(function (id) {
+        var sp = DS.DATA.spells[id], on = h.prepared.indexOf(id) >= 0;
+        return { label: (on ? '■ ' : '□ ') + sp.name, right: 'L' + sp.level, value: id, color: on ? null : '#C8D0E8', desc: sp.desc };
+      });
+      R.oathSpells(h).forEach(function (id) { var sp = DS.DATA.spells[id]; rows.push({ label: '◆ ' + sp.name, right: 'OATH', value: id, disabled: true, desc: L('g.prepOath', { spell: sp.name }) }); });
+      R.ritualsOf(h).forEach(function (id) { var sp = DS.DATA.spells[id]; rows.push({ label: '◆ ' + sp.name, right: 'RITUAL', value: id, disabled: true, desc: L('g.prepRitual', { spell: sp.name }) }); });
+      var id = yield DS.choose({ items: rows, x: 20, y: 20, w: 216, visible: Math.min(12, rows.length), index: at, drawExtra: descBox,
+        title: h.name.toUpperCase() + ': ' + h.prepared.length + ' OF ' + n + ' PREPARED' });
+      if (!id) return;
+      at = pool.indexOf(id);
+      var i = h.prepared.indexOf(id);
+      if (i >= 0) h.prepared.splice(i, 1);
+      else if (h.prepared.length >= n) { DS.audio.sfx('error'); yield DS.say(L('g.prepFull', { name: h.name, n: n })); }
+      else h.prepared.push(id);
+    }
+  }
   EV.pay = function (n) { var g = G(); if (g.silver < n) return false; g.silver -= n; DS.audio.sfx('coin'); return true; };
 
   // ------------------------------------------------------------------ field use of items / magic / skills
@@ -317,8 +386,7 @@
     if (a !== 0) return;
     if (!EV.pay(cost)) { yield DS.say(L('g.poor')); return; }
     yield* EV.rest();
-    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    yield* EV.morning();
   };
   S.chapel = function* () {
     var g = G(), D = DS.DATA.npcs.aldwin;
@@ -326,8 +394,7 @@
     var a = yield DS.ask(L('chapel.ask'), ['SLEEP', 'LEAVE'], who('Aldwin'));
     if (a === 0) {
       yield* EV.rest('inn');
-      var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-      if (s === 0) yield W8.scene(new DS.SlotScene(true));
+      yield* EV.morning();
     }
   };
   S.leech = function* () {
@@ -839,8 +906,7 @@
     if (!g.flags.wagonNight) { yield* S.wagonNight(); return; }                 // the first night: the wagon
     if (g.has('ringofbinding') && !g.flags.dueSeen) { yield* S.theDue(); return; } // a night with the ring on: the due
     yield* EV.rest();
-    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    yield* EV.morning();
   };
   S.elsbeth = function* (npc, D) {
     var g = G();
@@ -1137,8 +1203,7 @@
     yield DS.say(L('wagon.morning.' + how));
     if (how === 'inn') yield* EV.wagonGift();
     if (how !== 'inn' && g.has('ringofbinding')) yield DS.say(L('wagon.ringCold')); // the lake was fed tonight
-    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    yield* EV.morning();
   };
   // Elsbeth, after the wagon's been stopped: the lake gave it back; it should go to somebody who stops things
   EV.wagonGift = function* () {
@@ -1192,8 +1257,7 @@
     var a = yield DS.ask(L('after.doranStay'), ['STAY THE NIGHT', 'NO'], who('Doran Waterby'));
     if (a !== 0) return;
     yield* EV.rest();
-    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
-    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    yield* EV.morning();
   };
   // after the credits: CONTINUE puts you back at the lake in the morning, the corridor still open
   EV.afterTheLake = function* () {

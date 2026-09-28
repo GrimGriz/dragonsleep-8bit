@@ -158,7 +158,9 @@ before the fight. **EQUIP** from the rung's armoury, free (Silverton's racks fro
 cases from 5; the Door-Shield and the smith's from 6; dwarven plate at 8): what one hero sets down another can take up.
 **PREPARE SPELLS**, SRD counts: Aurdin INT modifier + his level from his book (Misty Step is in it from 3), Lymen CHA
 modifier + half his level from the paladin list (nothing at 1), Lesser Restoration always ready from 5 (the Oath of
-Devotion); the fight's SPELLS list is then the cantrips, the prepared, and the oath's. **CAST AHEAD** the 8-hour spells:
+Devotion); the fight's SPELLS list is then the cantrips, the prepared, and the oath's. Detect Magic is a ritual, listed and
+never prepared. The law is the 8-bit game's (`js/rules.js` `R.prepCount`/`R.prepPool`/`R.prepDefault`, one for both games
+since 09-28), whose rests run the same choice before the save. **CAST AHEAD** the 8-hour spells:
 Mage Armor (on by default, on a hero in no armour, a 1st-level slot) and Aid (three of the four, a 2nd-level slot, +5
 HP); each needs its spell prepared. **THE BUILD'S MORNING** resets to the 8-bit game's own picks. The choices are kept
 per level (`deep16.camp`); the fight starts from a copy of the morning, so RESTART starts from it again.

@@ -9409,6 +9409,36 @@
    "src": "invented: connective",
    "id": "g.saveAsk"
   },
+  "g.prepDone": {
+   "t": "The day's spells stay as they are. Each caster keeps what he prepared until he changes it at a rest.",
+   "src": "invented: connective (preparing spells, SRD 5.1; AMENDED 09-27, the casters choose)",
+   "id": "g.prepDone"
+  },
+  "g.prepWizard": {
+   "t": "{name} prepares {n} spells from his book: his INT modifier plus his level. Cantrips are always ready, and a ritual is cast from the book without preparing it.",
+   "src": "SRD 5.1 (Wizard: Preparing and Casting Spells; Ritual Casting)",
+   "id": "g.prepWizard"
+  },
+  "g.prepPaladin": {
+   "t": "{name} prepares {n} spells from the paladin's list: his CHA modifier plus half his level. His oath keeps its own spells ready besides.",
+   "src": "SRD 5.1 (Paladin: Preparing and Casting Spells; Oath Spells)",
+   "id": "g.prepPaladin"
+  },
+  "g.prepFull": {
+   "t": "{name} can prepare {n}. Take one off first.",
+   "src": "invented: connective (preparing spells, SRD 5.1)",
+   "id": "g.prepFull"
+  },
+  "g.prepOath": {
+   "t": "{spell}: the Oath of Devotion keeps it ready. It does not count against the day.",
+   "src": "SRD 5.1 (Oath of Devotion: Oath Spells)",
+   "id": "g.prepOath"
+  },
+  "g.prepRitual": {
+   "t": "{spell}: a ritual. Cast from the book in the field, without preparing it and without a slot.",
+   "src": "SRD 5.1 (Wizard: Ritual Casting)",
+   "id": "g.prepRitual"
+  },
   "chapel.ask": {
    "t": "The floor's free, if the old man likes your face. Sleep?",
    "src": "the-lab/pit-maps/shops-silverton.json pin 30 (the floor free); ext Silverton npcs (Aldwin)",
