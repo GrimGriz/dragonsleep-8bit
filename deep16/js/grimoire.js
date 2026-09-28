@@ -1320,4 +1320,14 @@
     return stop;
   };
 
+  // Weird (9th): Phantasmal Killer for a crowd -- a 30-ft sphere, WIS or frightened, and 4d10 psychic at each turn's end till it saves (concentration)
+  E.weird = {
+    summary: function () { return '30-ft sphere within 120 ft · WIS or frightened by its worst fear, 4d10 psychic at the end of each of its turns till it saves (concentration)'; },
+    cast: function* (B, u, t, slot, head, x) {
+      var sq = M.area(u, x.g, t.x, t.y), hit = []; FX.bloom(t.x, t.y, sq, 'violet');
+      yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return G.hostile(u, w); }), 'wis', x.dc, null, '', false, head + ': each sees what it fears most', { failText: 'sees it', cond: function (w) { w.conds.frightened = { by: u.id }; w.conds.killer = { dc: x.dc, by: u.id, dice: '4d10' }; hit.push(w); } });
+      if (hit.length) M.concentrate(B, u, 'weird', 'Weird', function () { hit.forEach(function (w) { if (w.conds.killer && w.conds.killer.by === u.id) { delete w.conds.killer; if (w.conds.frightened && w.conds.frightened.by === u.id) delete w.conds.frightened; } }); });
+    },
+    ai: function (B, u, e, slot, fs) { if (u.conc) return null; return TX().bestArea(B, u, e, fs, function (caught) { var sc = 0; caught.forEach(function (w) { if (!G.hostile(u, w)) return; sc += TX().pFail(w, 'wis', u.spellDC) * 40; }); return sc; }); }
+  };
 })();

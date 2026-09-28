@@ -174,7 +174,9 @@
   foresight: { shape: 'touch', side: 'ally', time: 'A' },
   massheal: { shape: 'self', time: 'A' },
   meteorswarm: { shape: 'sphere', range: 5280, r: 40, time: 'A' },
-  powerwordkill: { shape: 'single', side: 'foe', range: 60, time: 'A' }
+  powerwordkill: { shape: 'single', side: 'foe', range: 60, time: 'A' },
+  // the class NPCs' spells (09-28, batch w; js/grimoire.js)
+  weird: { shape: 'sphere', range: 120, r: 30, time: 'A', conc: true }
 };
 // spells the 8-bit game's list lacks would live here; Misty Step moved into content/spells.json on 09-27 (a learnable, grid-only spell)
 window.D16.EXTRA_SPELLS = {};

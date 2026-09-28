@@ -4244,6 +4244,17 @@
    "src": "SRD 5.1 Power Word Kill (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "powerwordkill"
+  },
+  "weird": {
+   "name": "Weird",
+   "level": 9,
+   "kind": "save",
+   "save": "wis",
+   "target": "enemies",
+   "grid": true,
+   "src": "SRD 5.1 Weird (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "sfx": "magic",
+   "id": "weird"
   }
  },
  "monsters": {

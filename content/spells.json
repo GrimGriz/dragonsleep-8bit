@@ -154,5 +154,6 @@
   "foresight": {"name": "Foresight", "level": 9, "kind": "buff", "target": "ally", "grid": true, "src": "SRD 5.1 Foresight (the class NPCs, 09-28: deep16/js/grimoire.js)"},
   "massheal": {"name": "Mass Heal", "level": 9, "kind": "heal", "target": "allies", "grid": true, "src": "SRD 5.1 Mass Heal (the class NPCs, 09-28: deep16/js/grimoire.js)"},
   "meteorswarm": {"name": "Meteor Swarm", "level": 9, "kind": "save", "save": "dex", "half": true, "dmg": "20d6", "dmg2": "20d6", "el": "fire", "target": "enemies", "grid": true, "src": "SRD 5.1 Meteor Swarm (the class NPCs, 09-28: deep16/js/grimoire.js)", "sfx": "fire"},
-  "powerwordkill": {"name": "Power Word Kill", "level": 9, "kind": "save", "target": "enemy", "grid": true, "src": "SRD 5.1 Power Word Kill (the class NPCs, 09-28: deep16/js/grimoire.js)", "sfx": "magic"}
+  "powerwordkill": {"name": "Power Word Kill", "level": 9, "kind": "save", "target": "enemy", "grid": true, "src": "SRD 5.1 Power Word Kill (the class NPCs, 09-28: deep16/js/grimoire.js)", "sfx": "magic"},
+  "weird": {"name": "Weird", "level": 9, "kind": "save", "save": "wis", "target": "enemies", "grid": true, "src": "SRD 5.1 Weird (the class NPCs, 09-28: deep16/js/grimoire.js)", "sfx": "magic"}
 }

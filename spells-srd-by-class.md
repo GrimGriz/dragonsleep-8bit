@@ -16,7 +16,7 @@ Each spell gets one verdict:
 
 | | BUILT | IN | DARK | LATER | OUT | all |
 |---|---|---|---|---|---|---|
-| **every spell** | 152 | 4 | 0 | 60 | 103 | 319 |
+| **every spell** | 153 | 3 | 0 | 60 | 103 | 319 |
 | Wizard | 95 | 1 | 0 | 40 | 68 | 204 |
 | Cleric | 53 | 2 | 0 | 10 | 40 | 105 |
 | Paladin | 19 | 0 | 0 | 0 | 12 | 31 |
@@ -434,7 +434,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Time Stop | W S |  | **LATER** | time: the caster takes 1d4+1 turns in a row, ended if it affects anyone else; turn control |
 | True Polymorph | W K B |  | **LATER** | polymorph: creature to creature or object, permanent after an hour; needs stat blocks |
 | True Resurrection | C D |  | **OUT** | nobody dies here (the fallen are only down) |
-| Weird | W |  | **IN** | sphere 30-ft radius (conc): WIS save or frightened, 4d10 psychic each turn till a WIS save |
+| Weird | W |  | **BUILT** | sphere 30-ft radius (conc): WIS save or frightened, 4d10 psychic each turn till a WIS save -- BUILT 09-28 (deep16/js/grimoire.js): Phantasmal Killer for a crowd |
 | Wish | W S |  | **LATER** | copies any spell of 8th or lower once they're built, or forces a reroll; the rest is story |
 
 ## By class
