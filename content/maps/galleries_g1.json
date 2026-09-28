@@ -146,10 +146,20 @@
 "to": "galleries_g2",
 "tx": 17,
 "ty": 26,
-"dir": "up"
+"dir": "up",
+"cond": "!lit:always"
 }
 ],
 "triggers": [
+{
+"id": "roostDoor",
+"x": 17,
+"y": 3,
+"on": "step",
+"script": "roostDoor",
+"cond": "lit:always",
+"back": "down"
+},
 {
 "id": "keeper:pollardhouse",
 "x": 3,

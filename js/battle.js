@@ -741,6 +741,9 @@
       u.buff = { id: 'sacred', name: 'Sacred Weapon', atk: Math.max(1, DS.mod(h.abil.cha)), rounds: 10 };
       DS.audio.sfx('buff'); this.elemBurst(u, 'radiant', 'rise');
       yield* this.say(nameOf(u) + "'s blade takes Kalindel's light. +" + u.buff.atk + ' to hit.', 48);
+      // the glow is bright light (SRD: 20 ft): under the roost it breaks the one law as the Light cantrip does (RULED 09-28:
+      // "paladin weapon glows and such should probably roost too"; DEEP16 the same, deep16/js/battle.js 'sacred')
+      if (this.o.roost) { this.usedFire = true; this.roostCause = 'light'; }
       return 'action';
     }
     return 'cancel';

@@ -765,7 +765,9 @@ def build_galleries():
     for y in range(8, 22, 3):
         g.put(16, y, 'I')
     g.rect(0, 20, W, 4, '"'); g.hline(0, W - 1, 21, 'P'); g.path([(17, 6), (17, 21)], ',')
-    g.warp(17, 3, 'galleries_g2', 17, 26, 'up')
+    # the mouth takes nobody carrying an always-lit thing: Ottilie stops them on it (events.js S.roostDoor; RULED 09-28)
+    g.warp(17, 3, 'galleries_g2', 17, 26, 'up', cond='!lit:always')
+    g.obj['triggers'].append({'id': 'roostDoor', 'x': 17, 'y': 3, 'on': 'step', 'script': 'roostDoor', 'cond': 'lit:always', 'back': 'down'})
     g.npc('sabeth', 13, 9, 'innlady', dir='down')
     g.npc('ottilie', 15, 5, 'oldhand', dir='down')
     g.npc('wynn', 4, 9, 'oldhand', dir='down')

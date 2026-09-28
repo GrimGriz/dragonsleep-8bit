@@ -46,7 +46,7 @@
               if (r && r.fled && f.m.traits && f.m.traits.flag) DS.G.flags[f.m.traits.flag] = 1;
             });
             b.over = d.result === 'roost' ? 'roost' : res; b.fromDeep = true; // (roost: finish() runs the swarm and RoostFail)
-            if (d.result === 'roost') { b.usedFire = true; b.roostCause = d.roost === 'daylight' ? 'light' : d.roost || 'light'; }
+            if (d.result === 'roost') { b.usedFire = true; b.roostCause = d.roost === 'fire' ? 'fire' : 'light'; } // (Light, Daylight, the paladin's glow: bright light)
             b.onClose = function (r) {
               self.finished = true; self.result = r;
               if (o.after !== false && r !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true);

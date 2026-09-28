@@ -15,7 +15,7 @@ Plain text is the spell as DEEP16 runs it on the grid. *Italic is where DEEP16 p
 - **How long.** *A one-minute spell lasts the whole fight; nothing counts down its ten rounds.* Few fights run past ten rounds, so it seldom shows.
 - **Areas catch everyone.** A cone, line, sphere or cube hits whoever stands in it, friends included, as on the tabletop. (The 8-bit game's "up to three foes" is its own shorthand; DEEP16 does not use it.)
 - **The fallen are only down.** *A hero at 0 HP is down, not dying: no death saves, and nobody dies.* Healing brings them back up.
-- **The roost's law.** Under the roost (the rescue, rung 2) fire and thunder spells are greyed out. That is the fight's rule (the 8-bit game's, ruled 09-24), not the spells'.
+- **The roost's law.** Under the roost (the rescue, rung 2) fire and thunder spells are greyed out. That is the fight's rule (the 8-bit game's, ruled 09-24), not the spells'. Bright light is the one thing left to remember (ruled 09-28, canon): Light, Daylight and now the paladin's Sacred Weapon (its glow is bright light, 20 ft) bring the roof down, in both games. A thing that is always lit (the Sunshaft Staff; an item's `light` with `when: "always"`) never gets under the roost: Ottilie stops the party at the mine's mouth and keeps it under her stool till they come up. The Flame Tongue, lit only when it burns, goes in; its IGNITE is greyed there.
 
 ## How the long spells carry
 

@@ -43,6 +43,7 @@
         else if (k === 'lead') v = G.lead === arg;
         else if (k === 'hired') v = G.hired.indexOf(arg) >= 0;
         else if (k === 'has') v = G.has(arg);
+        else if (k === 'lit') v = DS.EV.alight(arg).length > 0; // lit:always -- an always-lit thing on the party or in the pack
         else if (k === 'lvl') v = num(G.main().lvl);
         else if (k === 'renown') v = num(G.renown);
         else if (k === 'party') v = num(G.party.length);

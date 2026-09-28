@@ -818,6 +818,43 @@
     if (g.flags.roostBroken) { yield DS.say(L('g1.ottilieCold')); return; }
     yield DS.say(L(g.flags.rescued ? 'g1.ottilieRespect' : 'g1.ottilie'), who('Ottilie Skerrow'));
   };
+  // what gives light (an item's `light`: `when` "always" or "lit"): what the party wears or wields, and what's in the pack.
+  // when = 'always' (the Sunshaft Staff) or 'lit' (the Flame Tongue, only once it burns)
+  EV.alight = function (when) {
+    var g = G(), out = [];
+    var lit = function (id) { var it = id && DS.DATA.items[id]; return it && it.light && (!when || it.light.when === when) ? it : null; };
+    g.party.forEach(function (h) { Object.keys(h.equip || {}).forEach(function (s) { if (lit(h.equip[s])) out.push({ id: h.equip[s], h: h, slot: s }); }); });
+    (g.inv || []).forEach(function (s) { if (lit(s.id)) out.push({ id: s.id, h: null }); });
+    return out;
+  };
+  // the mouth (RULED 09-28, Griz: the other light sources roost too -- "have the guy out front stop the players"; only what is
+  // always lit, which he can see "even when they are sheathed"; "you can't go in there wielding that, the light would spook
+  // the roost"). The one at the mouth who refuses a stranger is Ottilie (GalleriesModule §4: "a stranger refused ... it is
+  // hers"). The mouth's warp only takes a party with nothing always lit (mapgen: cond !lit:always); this is the other half.
+  // She keeps it under her stool and gives it back at the mouth: there is no other way to set a thing down in this game
+  S.roostDoor = function* () {
+    var g = G(), O = who('Ottilie Skerrow'), all = EV.alight('always'), f = all[0], it = DS.DATA.items[f.id];
+    yield DS.say(L(f.h ? 'g1.ottilieLightWield' : 'g1.ottilieLightCarry', { item: it.name, name: f.h ? f.h.name : G().main().name }), O);
+    var a = yield DS.ask(L('g1.ottilieLightAsk'), ['LEAVE IT WITH HER', 'TURN BACK'], O);
+    if (a !== 0) return; // (the trigger steps them back off the mouth)
+    var held = g.flags.ottilieHolds = g.flags.ottilieHolds || [];
+    all.forEach(function (x) { if (x.h) x.h.equip[x.slot] = null; else g.take(x.id, 1); held.push(x.id); });
+    DS.audio.sfx('confirm');
+    yield DS.say(L('g1.ottilieLightKept'), O);
+    DS.audio.sfx('door');
+    yield* EV.warp('galleries_g2', 17, 26, 'up');
+  };
+  // back out at the mouth (or back from anywhere): what she kept comes back to the pack
+  var enterG1 = S['enter:galleries_g1'];
+  S['enter:galleries_g1'] = function* () {
+    if (enterG1) yield* enterG1();
+    var g = G(), held = g.flags.ottilieHolds;
+    if (!held || !held.length) return;
+    held.forEach(function (id) { g.give(id, 1); });
+    DS.audio.sfx('confirm');
+    yield DS.say(L('g1.ottilieLightBack', { item: held.map(function (id) { return DS.DATA.items[id].name; }).join(', ') }));
+    delete g.flags.ottilieHolds;
+  };
   S.rescue = function* () {
     var g = G();
     yield DS.say(L('g3.rescue1'));
