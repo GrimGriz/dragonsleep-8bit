@@ -716,11 +716,11 @@
       yield* EV.renown(1, 'renown.five');
       return;
     }
+    // (the page he sold for 5 sp is gone -- Griz, 09-28: "barely makes sense ... unless that's what activates the mission
+    // (shouldn't) we should probably pull it"; it never did: meeting him opens Pete's Five, and the quest log already
+    // says what the page did, five names with no return line, past the wet)
     yield DS.say(L(g.flags.fiveKnown ? 'w.edricAgain' : 'w.edricFirst'), who('Edric Pellam'));
-    if (!g.flags.fiveKnown) {
-      var a = yield DS.ask(L('w.edricPage'), ['PAY 5 SP', 'NO'], who('Edric Pellam'));
-      if (a === 0 && EV.pay(5)) { g.flags.fiveKnown = 1; g.flags.heardPete = 1; yield DS.say(L('w.edricSold'), who('Edric Pellam')); }
-    }
+    g.flags.fiveKnown = 1; g.flags.heardPete = 1;
   };
   S.bucket = function* () {
     var g = G();

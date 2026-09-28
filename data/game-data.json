@@ -9248,7 +9248,7 @@
   },
   "g.roostBroken": {
    "t": [
-    "Fire under a roosted ceiling. The whole roof shifts: millions of wings, all at once. You broke the one law.",
+    "You fired the roost. The whole roof shifts: millions of wings, all at once. You broke the one law.",
     "Sabeth will hear by nightfall. So will Ottilie."
    ],
    "src": "GalleriesModule/guano-galleries-DM.md §3 (the one law: no fire, smoke, nets or noise under a roosted ceiling)",
@@ -10079,16 +10079,6 @@
    "t": "Five names with no return line. He hasn't said whose book they'd be proof for.",
    "src": "WarrensModule/crawler-warrens-DM.md §7",
    "id": "w.edricAgain"
-  },
-  "w.edricPage": {
-   "t": "There's a page he'll let you read. For a price. He tells himself he only sells what the silver-robbers already know.",
-   "src": "wiki/the-warrens.md (the tally-book is the east's second economy; the book's shadow)",
-   "id": "w.edricPage"
-  },
-  "w.edricSold": {
-   "t": "Five names, no return line. Past the wet. None of them is a Pellam.",
-   "src": "wiki/the-warrens.md (Pete's five; none of the five is a Pellam)",
-   "id": "w.edricSold"
   },
   "w.edricFive": {
    "t": [

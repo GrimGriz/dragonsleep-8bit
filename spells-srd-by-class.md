@@ -1,7 +1,7 @@
 ---
 layer: reference, to rule. Every SRD 5.1 spell (the 2014 rules, 319 of them) with a verdict for DRAGONSLEEP -- built, in, dark, later, out -- by level and by class, and who in the game could cast it. In prep of more NPCs and foes (Griz, 09-28: "we're doing it in prep of adding more NPCs and foes - so please do the whole list"), and the first step of the other classes' combat spells (handoff-2026-09-28-deep16-after-the-review-CODE-TAB.md §3A).
 written: 2026-09-28, the Code tab on dragonsleep-8bit (config claude-opus-5-5). The spell text and the class lists: the SRD 5.1 as dnd5eapi.co serves it (/api/2014). The verdicts: the wizard 0-5, cleric 0-3, paladin 1-3 and warlock 0-3 lists (192 spells) by the seat; the other 127 by a runner under the same rubric, read by the seat (one changed: Faerie Fire is built). Rebuilt by dev/srd-spells/build_spell_doc.py (gitignored, with the SRD text cached and the verdicts as JSON).
-status: PROPOSED. Nothing here is built by being listed; every line is his to rule. The questions below are the ones that need a ruling before anything is built.
+status: PROPOSED, with Griz's rulings of 09-28 folded in (Ruled, below) and four things still open. Nothing here is built by being listed; every verdict is his to overrule.
 ---
 
 # The SRD spells, for DRAGONSLEEP
@@ -35,24 +35,30 @@ Each spell gets one verdict:
 | Aurdin | wizard (evoker) 1-9: spells to 5th | the 8-bit build (content/heroes.json) | his book; prepares INT + level (09-28) | his own: the book grows by the build's picks, or the climb's |
 | Lymen | paladin (Devotion) 2-9: spells to 3rd | the 8-bit build | the paladin list; prepares CHA + half his level; Lesser Restoration always (his oath) | the oath's others once built: Protection from Evil and Good and Sanctuary at 3, Zone of Truth at 5, Beacon of Hope and Dispel Magic at 9 |
 | Torvald Greyseam | cleric 5 of Dvalgarda: to 3rd | the-copper-egg.md (CANON 09-16f) | Spirit Guardians as a line (a stand-in), Hold, Sanctuary as two rounds unseen (a stand-in) | the SRD Priest's (a 5th-level cleric): Light, Sacred Flame, Thaumaturgy; Cure Wounds, Guiding Bolt, Sanctuary; Lesser Restoration, Spiritual Weapon; Dispel Magic, Spirit Guardians -- and Hold Person, the 8-bit's. Slots 4/3/2 |
-| Ingrith Scalebeam | cleric 4: to 2nd | deepholm-and-the-edifice.md (CANON 09-26b) | a `heals` counter (a stand-in) | Sacred Flame, Guidance, (Spare the Dying: see the questions); Cure Wounds, Healing Word, Bless, Shield of Faith; Aid, Lesser Restoration, Prayer of Healing. Slots 4/3 |
-| Amara | warlock 5, the Mirror's pact: to 3rd (two 3rd-level slots) | module-halfway-inn.md §4 | Eldritch Blast (two beams) | Eldritch Blast, Minor Illusion, Chill Touch; Hold Person, Darkness, Mirror Image, Misty Step; Hypnotic Pattern, Counterspell, Fear. Her patron isn't the SRD's Fiend: see the questions |
-| Willem Glass | wizard 5, Illusion: to 3rd | module-halfway-inn.md §4 | Ray of Frost, Phantasms (Mirror Image in round one) | Ray of Frost, Minor Illusion, Mage Hand; Shield, Color Spray, Mage Armor; Mirror Image, Blur; Hypnotic Pattern. Slots 4/3/2 |
+| Ingrith Scalebeam | cleric 4: to 2nd | deepholm-and-the-edifice.md (CANON 09-26b); no spells in the register | a `heals` counter (a stand-in) | drafted: Sacred Flame, Guidance; Cure Wounds, Healing Word, Bless, Shield of Faith; Aid, Lesser Restoration, Prayer of Healing. Slots 4/3 |
+| Amara | warlock 5, the Great Old One -- the Mirror (RE-RULED 08-29): to 3rd (two 3rd-level slots) | npcs-by-location.md §The Road; module-halfway-inn.md | Eldritch Blast (two beams) | the register's: Eldritch Blast (Agonizing Blast), *friends*, Prestidigitation; Charm Person, *hex*, Suggestion, Darkness, Fear, Gaseous Form (*italic: not SRD*); invocations Agonizing Blast, Beguiling Influence, Fiendish Vigor, Awakened Mind. At threat: Darkness, then Gaseous Form, and runs |
+| Willem Glass | wizard 5, Illusion: to 3rd | npcs-by-location.md §The Road | Ray of Frost, Phantasms (Mirror Image in round one) | the register's: Minor Illusion, Fire Bolt, Mage Hand, Prestidigitation; Disguise Self, Silent Image, Mage Armor, Shield, Invisibility, Mirror Image, *phantasmal force*, Major Image, Hypnotic Pattern. Slots 4/3/2. Flees with Amara, fights only to cover the going |
 | the drow spell-weaver | game-original from the SRD Mage (a 9th-level caster) | content/monsters.json spellweaver | Fire Bolt, a lightning line, Hold, Darkness | the SRD Mage's list (marked SW), with the 8-bit's Lightning Bolt for Fireball, Hold Person, and the drow's innate |
 | the spirit naga | SRD Spirit Naga (a 10th-level caster) | content/monsters.json naga | a lightning line, Hold | the SRD's list (marked Na): Blight, Dimension Door and Dominate Person are the new ones |
 | innate | the drow: Dancing Lights at will, Darkness and Faerie Fire once a day (SRD); the duergar: Enlarge and Invisibility (SRD actions); the darkmantle: its Darkness Aura (a trait) | SRD 5.1 | Darkness and Faerie Fire on the grid; Enlarge once | Invisibility and Dancing Lights wait on the dark |
 
 No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judged for the foes to come, as a foe would cast them at the party. So are all spells of 6th level and up: no hero reaches them (the cap is 9).
 
-## Questions for Griz
+## Ruled, 09-28
 
-1. **Spare the Dying.** Neither game has death saves (the fallen are only down), so it does nothing. The review's handoff names it for Ingrith. Leave it out, or give the grid dying (death saves) -- for the heroes, or only for the guests who can die?
-2. **Resting anywhere.** Tiny Hut, Rope Trick and Magnificent Mansion let a party rest where it stands. Rests are fixed places in this game (the inns, the cots, the lamps). Keep them out?
-3. **Dim light under the roost.** Branding Smite makes its target glow dimly (5 ft), and the drow's Dancing Lights are dim light. The law is bright light. Is dim lawful?
-4. **Amara's patron.** The SRD warlock's patron is the Fiend (Burning Hands, Command; Blindness/Deafness, Scorching Ray; Fireball, Stinking Cloud). Hers is the Mirror. Does the Mirror get its own expanded list (Mirror Image, Hypnotic Pattern, Blur?), or the plain warlock list?
-5. **Remove Curse and the Ring of Binding.** No curse in the game is lifted by a spell today. Is the ring a curse (it binds by the game's own ruling)?
-6. **Protection from Evil and Good** is Lymen's oath spell at 3. It needs creature types on the sheets (fiend, undead, fey, elemental, celestial, aberration). Add types, then build it?
-7. **The NPC lists.** Take the SRD stat blocks' own lists (the Priest for Torvald, the Mage for the spell-weaver, the Spirit Naga's), plus the 8-bit's additions, as the first NPC spell lists?
+- **Spare the Dying: out.** *"leave it out"*. Neither game has death saves; the fallen are only down.
+- **Dim light under the roost: lawful.** *"yes"*. Branding Smite's glow and the drow's Dancing Lights break nothing; the law is bright light.
+- **Amara's patron: the Great Old One, the Mirror** (the register ratified it 08-29, module-halfway-inn.md; her block in npcs-by-location.md §The Road). His word: *"Default is Yes, though I thought the 'old one' pact would have a spell selection"* -- it does: the Great Old One's expanded list is the PHB's, not the SRD's, and of it the SRD has Hideous Laughter, Detect Thoughts, Clairvoyance, Sending, Dominate Beast, Black Tentacles, Dominate Person and Telekinesis (Dissonant Whispers and Phantasmal Force are not SRD). Her own spells are the register's (the table above).
+- **Remove Curse: out.** The Ring of Binding is not a curse: *"it was to pull the chuul out of the water"* (the excuse for no swimming combat).
+- **Creature types on the sheets: yes**, *"unless there's a case against it, we're trying to mechanize as much of the ruleset into play we can, until it starts impacting play experience"*. No case against found: the cost is tagging every sheet (most are SRD monsters with their type printed), and it opens Protection from Evil and Good (Lymen's oath at 3), Hold Person's humanoids (a tag today), Banishment's other planes.
+- **The roost's word: "fired the roost"**, whatever the cause (the 8-bit line said "Fire" for Light too; mended).
+
+## Still open
+
+- **The SRD stat blocks' lists as NPC lists** (his lean yes: *"makes sense, is there a case against?"*): where the register has none (the Priest for Torvald, the Mage for the spell-weaver, the Spirit Naga's own), the register's blocks winning where they exist (Amara, Willem). The case against: more tools make a harder fight, so each NPC fight wants a re-tune; and every NPC spell wants an 8-bit battle record too (all changes cross back), so each spell is built twice.
+- **Resting anywhere.** Griz: *"these seem like things that would stay out of a combat menu. I think we should add them though. What's the case against?"* The case: the tent is a short rest (half HP, the short-rest features, no slots); Tiny Hut is a ritual, so a wizard could take a free long rest wherever a tent is allowed, every time -- full HP and every slot, the lamps and cots no longer the places a party makes for, and (since 09-28) a save offered at each one. The story clocks count long rests (the night crew's return, the assassins' due, the runner after the nest), so they would run wherever the hut goes up. If they come in: field spells only, Rope Trick a short rest like the tent, Tiny Hut a long rest only where a tent is allowed, through the same rest (the clocks, the morning, the save).
+- **Spells the register names that the SRD lacks:** Amara's *hex* and *friends*, Willem's *phantasmal force*. Build them from the register's word in our own text, or an SRD stand-in (Hex's damage is Hunter's Mark's shape)?
+- **Willem's cantrip.** The register gives him Fire Bolt; the 8-bit sheet gave him Ray of Frost (invented.json wagon-crew). Which stands?
 
 ## By level
 
@@ -62,7 +68,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 |---|---|---|---|---|
 | Acid Splash | W S | Au Wi | **BUILT** | one creature or two side by side, DEX save or 1d6 acid (2d6 at 5th) |
 | Chill Touch | W K S | Au Am Wi | **IN** | spell attack 120 ft, 1d8 necrotic; no healing till your next turn; undead at disadv vs you |
-| Dancing Lights | W S B | Au Wi Dr | **DARK** | the drow's innate at will: four lights, dim 10 ft each, moved 60 ft -- light with a position |
+| Dancing Lights | W S B | Au Wi Dr | **DARK** | the drow's innate at will: four lights, dim 10 ft each (lawful under the roost, 09-28) -- light with a position |
 | Druidcraft | D |  | **OUT** | harmless tricks: a weather omen, a bloom, a puff or sound, lighting or snuffing a candle |
 | Eldritch Blast | K | Am | **BUILT** | Amara's attack in both games (two beams at 5th, 1d10+3 force); a spell once NPCs cast |
 | Fire Bolt | W S | Au Wi SW | **BUILT** | spell attack 120 ft, 1d10 fire (2d10 at 5th); the wizard's first-ring cantrip (09-28) |
@@ -80,7 +86,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Sacred Flame | C | To In | **IN** | DEX save or 1d8 radiant (2d8 at 5th), cover no help; Torvald's and Ingrith's cantrip |
 | Shillelagh | D |  | **IN** | self, bonus action: club or staff attacks use WIS, d8 damage, magical; a druid foe's melee |
 | Shocking Grasp | W S | Au Wi | **IN** | melee spell attack 1d8 lightning, adv vs metal armour; the target loses its reaction |
-| Spare the Dying | C | To In | **OUT** | no death saves here (the fallen are only down): nothing to stabilize -- see the questions |
+| Spare the Dying | C | To In | **OUT** | RULED out 09-28 ("leave it out"): no death saves here, nothing to stabilize |
 | Thaumaturgy | C | To In | **OUT** | minor wonders: flavour |
 | True Strike | W K S B | Au Am Wi | **IN** | advantage on the first attack at one creature next turn (conc); weak, but cheap |
 | Vicious Mockery | B |  | **IN** | single: WIS save or 1d4 psychic (scales) and disadv on its next attack; a bard foe later |
@@ -128,7 +134,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Longstrider | W B D R | Au Wi | **IN** | touch: +10 ft speed for an hour; cast ahead |
 | Mage Armor | W S | Au Wi SW | **BUILT** | touch, no armour: AC 13 + DEX; holds till the long rest in the 8-bit (09-27) |
 | Magic Missile | W S | Au Wi SW | **BUILT** | three darts, 1d4+1 force each, never miss (+1 dart a slot) |
-| Protection from Evil and Good | W C P K | Au Ly To In Am Wi | **LATER** | needs creature types on the sheets (fiend, undead, fey...); Lymen's oath spell at 3 |
+| Protection from Evil and Good | W C P K | Au Ly To In Am Wi | **LATER** | needs creature types on the sheets (RULED yes 09-28, to add); Lymen's oath spell at 3 |
 | Purify Food and Drink | C P D | Ly To In | **OUT** | no food or drink in the game |
 | Sanctuary | C | Ly To In | **IN** | bonus action: WIS save to attack the warded (else pick another); ends if it attacks; Torvald's; Lymen's oath at 3 |
 | Shield | W S | Au Wi SW | **BUILT** | reaction: +5 AC till your next turn, the blow included |
@@ -153,7 +159,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Barkskin | D R |  | **IN** | touch (ally), conc: its AC can't be less than 16; a druid foe's self-buff later |
 | Blindness/Deafness | W C S B | Au To In Wi | **IN** | CON save or blinded (or deafened) a minute, a save each turn; the blinded condition |
 | Blur | W S | Au Wi | **IN** | self (conc): attackers at disadvantage -- the Cloak of Displacement's edge |
-| Branding Smite | P | Ly | **IN** | Lymen: the next hit +2d6 radiant, shows the invisible; the target glows dim 5 ft (see the questions) |
+| Branding Smite | P | Ly | **IN** | Lymen: the next hit +2d6 radiant, shows the invisible; the target glows dim 5 ft (dim is lawful under the roost, 09-28) |
 | Calm Emotions | C B | To In | **LATER** | ends charm and fear on humanoids, or makes them indifferent: needs charm and the AI |
 | Continual Flame | W C | Au To In Wi | **DARK** | a torch-bright flame that never goes out: always lit (Ottilie would stop it) |
 | Darkness | W K S | Au Am Wi Dr | **BUILT** | the drow's innate on the grid (15-ft sphere; swallows Light, Daylight burns it); a spell for Amara with the dark |
@@ -185,7 +191,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Prayer of Healing | C | To In | **IN** | field: up to six, 2d8 + mod each, 10 minutes; a rest-side heal |
 | Protection from Poison | C P D R | Ly To In | **IN** | touch: ends poison; adv on saves against it and resistance to poison damage, an hour |
 | Ray of Enfeeblement | W K | Au Am Wi | **IN** | spell attack: its STR weapon damage halved (conc); a CON save each turn ends it |
-| Rope Trick | W | Au Wi | **OUT** | a hideaway to rest in: rests are fixed places |
+| Rope Trick | W | Au Wi | **OUT** | a hideaway to rest in: rests are fixed places -- Griz leans in (a field spell, 09-28): see still open |
 | Scorching Ray | W S | Au Wi | **BUILT** | three rays, 2d6 fire each (+1 ray a slot); greyed under the roost |
 | See Invisibility | W S B | Au Wi | **DARK** | sees the invisible and the ethereal: waits on the dark |
 | Shatter | W K S B | Au Am Wi | **BUILT** | 10-ft sphere, CON save 3d8 thunder (half); greyed under the roost |
@@ -229,7 +235,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Phantom Steed | W | Au Wi | **OUT** | a horse for travel |
 | Plant Growth | B D R |  | **LATER** | needs plant tiles: plants within 100 ft cost 4 ft per foot moved; the harvest use is moot |
 | Protection From Energy | W C S D R | Au To Wi | **IN** | touch (conc): resistance to acid, cold, fire, lightning or thunder |
-| Remove Curse | W C P K | Au Ly To Am Wi | **OUT** | no curses in the game to lift -- see the questions (the Ring of Binding) |
+| Remove Curse | W C P K | Au Ly To Am Wi | **OUT** | no curses in the game to lift (the Ring of Binding is not one, RULED 09-28) |
 | Revivify | C P | Ly To | **BUILT** | 8-bit field: a diamond brings one who is down back at 1 HP; the grid: nobody dies |
 | Sending | W C B | Au To Wi | **OUT** | a message across any distance |
 | Sleet Storm | W S D | Au Wi | **DARK** | 40-ft cylinder: heavily obscured, difficult, DEX or prone, concentration shaken |
@@ -238,7 +244,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Speak with Plants | B D R |  | **OUT** | questioning plants; its brush-to-difficult-terrain side is minor and needs plant tiles |
 | Spirit Guardians | C | To | **IN** | aura 15 ft (conc): foes entering or starting there WIS save 3d8 radiant (half), half speed; Torvald's |
 | Stinking Cloud | W S B | Au Wi | **DARK** | 20-ft sphere heavily obscured; CON save or lose the action -- the obscuring waits on the dark |
-| Tiny Hut | W B | Au Wi | **OUT** | a dome to rest in anywhere: rests are fixed places by design -- see the questions |
+| Tiny Hut | W B | Au Wi | **OUT** | a dome to rest in anywhere: rests are fixed places by design -- Griz leans in (a field spell, 09-28): see still open |
 | Tongues | W C K S B | Au To Am Wi | **OUT** | any language: social |
 | Vampiric Touch | W K | Au Am Wi | **IN** | melee spell attack 3d6 necrotic, heals half (conc; again each action) |
 | Water Breathing | W S D R | Au Wi Na | **OUT** | the water is hand-waved: nobody swims; the naga's list has it |
@@ -371,7 +377,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Finger of Death | W K S |  | **IN** | single: CON save 7d8+30 necrotic (half); the zombie rider is moot, nobody dies; a lich |
 | Fire Storm | C S D |  | **IN** | ten 10-ft cubes laid as the caster likes, DEX save 7d10 fire (half); can spare plants |
 | Forcecage | W K B |  | **LATER** | a force prison, no save, 1 hr: none leave but by teleport and a CHA save; needs walls |
-| Magnificent Mansion | W B |  | **OUT** | a hideaway to rest in; rests are fixed places by design |
+| Magnificent Mansion | W B |  | **OUT** | a hideaway to rest in; rests are fixed places by design -- Griz leans in (a field spell, 09-28): see still open |
 | Mirage Arcane | W B D |  | **OUT** | terrain illusion over a square mile for 10 days: scenery, not a fight |
 | Plane Shift | W C K S D |  | **OUT** | planar travel; its banishing touch would send a hero off-world for good |
 | Prismatic Spray | W S |  | **IN** | cone 60 ft, DEX save, a d8 ray each: 10d6 of five types, restrain-to-stone, blind-to-banish |

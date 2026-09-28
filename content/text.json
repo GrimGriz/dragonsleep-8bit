@@ -12,7 +12,7 @@
   "wall.text": { "t": "Coming in an expansion pack! Donate to support it!", "src": "handoff-2026-09-23-dragonsleep-8bit-spec.md §5 (the two expansion walls)" },
 
   "g.slide": { "t": "The guano gives under you. You go down the slide in a rush of dust and land hard in the dark below.", "src": "GalleriesModule/guano-galleries-DM.md §2 (the guano-slide; the other way down)" },
-  "g.roostBroken": { "t": ["Fire under a roosted ceiling. The whole roof shifts: millions of wings, all at once. You broke the one law.", "Sabeth will hear by nightfall. So will Ottilie."], "src": "GalleriesModule/guano-galleries-DM.md §3 (the one law: no fire, smoke, nets or noise under a roosted ceiling)" },
+  "g.roostBroken": { "t": ["You fired the roost. The whole roof shifts: millions of wings, all at once. You broke the one law.", "Sabeth will hear by nightfall. So will Ottilie."], "src": "GalleriesModule/guano-galleries-DM.md §3 (the one law: no fire, smoke, nets or noise under a roosted ceiling)" },
   "g.got": { "t": "Received: {item}.", "src": "invented: connective" },
   "g.empty": { "t": "Empty.", "src": "invented: connective" },
   "g.found": { "t": "Found {item}!", "src": "invented: connective" },
@@ -173,8 +173,6 @@
   "w.skarnAfterDead": { "t": "Skarn hears it out and looks past you at the pens. Dead stock. He has already sent on the lantern-token.", "src": "wiki/the-warrens.md (stage 2: Skarn sends on the lantern-token; dead stock → Dunmore)" },
   "w.edricFirst": { "t": ["The tally-house. Edric Pellam keeps the book: doses out, weights in, who came back short. He reads it aloud like a man who hates what he is good at.", "You're in the book now. The cradles are open to you: the pens are the gated mouths along the mountain, Two, Four and Five. Walk up to one to work a shift."], "src": "wiki/the-warrens.md (the Pellams); WarrensModule/crawler-warrens-DM.md §4" },
   "w.edricAgain": { "t": "Five names with no return line. He hasn't said whose book they'd be proof for.", "src": "WarrensModule/crawler-warrens-DM.md §7" },
-  "w.edricPage": { "t": "There's a page he'll let you read. For a price. He tells himself he only sells what the silver-robbers already know.", "src": "wiki/the-warrens.md (the tally-book is the east's second economy; the book's shadow)" },
-  "w.edricSold": { "t": "Five names, no return line. Past the wet. None of them is a Pellam.", "src": "wiki/the-warrens.md (Pete's five; none of the five is a Pellam)" },
   "w.edricFive": { "t": ["You set the five's gear on the board. Edric writes five return lines, slowly, in a clerk's hand.", "A family in the Shaft Rows will have something to bury."], "src": "WarrensModule/crawler-warrens-DM.md (recovering the five ends the adventure: proof for Edric's book, a burial for a Rows family)" },
   "renown.five": { "t": "Pete's five came back up.", "src": "invented: connective" },
   "w.bucketTake": { "t": "The bucket station: a timber platform and a bucket of carrion, lowered at the deep station before every deep shift. The book calls it 'deep-station allowance'. You take the bucket.", "src": "WarrensModule/crawler-warrens-DM.md §2 (the bucket station; Edric's 'deep-station allowance')" },
