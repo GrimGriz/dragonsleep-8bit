@@ -9,6 +9,16 @@
   var M = D.magic = {};
 
   M.data = function (id) { return (window.DS.DATA.spells[id]) || (D.EXTRA_SPELLS || {})[id]; };
+  // house rules the seat proposes, each a switch (torchdark, 09-28): Magic Missile may be aimed at a square the caster cannot see
+  // into -- "at the darkness" -- and its darts strike whatever stands there. OPEN for Griz's word (handoff 09-28 §3G)
+  D.RULES = D.RULES || {}; if (D.RULES.missilesAtTheDark == null) D.RULES.missilesAtTheDark = true;
+  // a square Magic Missile may be thrown at blind: open, in range and line, and one the caster cannot see into (dark, darkness, fog)
+  M.missileDark = function (B, u, g, x, y) {
+    if (!D.RULES.missilesAtTheDark || g.shape !== 'darts') return false;
+    var s = G.map.at(x, y); if (!s || !s.open || !M.inRange(u, g, x, y)) return false;
+    var v = M.seeWhy(B, u, { x: x, y: y, size: 1, conds: {} });
+    return !v.ok && (v.why === 'dark' || v.why === 'darkness' || v.why === 'fog' || v.why === 'the cloud' || v.why === 'sleet');
+  };
   M.geo = function (id) { return D.SPELLS[id] || { shape: 'none', why: 'not on the grid yet' }; };
   M.slotLevels = function (u, lvl) { var out = []; for (var i = Math.max(1, lvl) - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) out.push(i + 1); return out; };
   M.mod = function (u) { return D.mod(u.abil[u.cls === 'paladin' ? 'cha' : 'int']); };
@@ -29,6 +39,8 @@
       if (!sp || (!sp.battle && !sp.grid && g.shape !== 'none')) return null; // (grid: a spell only DEEP16's fights can use, Misty Step)
       var e = { id: id, name: sp.name, level: sp.level, g: g, sp: sp, levels: sp.level ? M.slotLevels(u, sp.level) : [0] };
       e.slot = e.levels[0] || sp.level;
+      // Dancing Lights already up: casting it again is the SRD's bonus action that moves the lights (no new concentration)
+      if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') e.g = g = Object.assign({}, g, { time: 'B', move: true });
       var why = '';
       // under a roost (the rescue in the dens), its one law: no fire, no thunder (the 8-bit game greys them too, RULED 09-24)
       if (B.fight && B.fight.roost && /fire|thunder/.test(sp.el || '')) why = 'the roost overhead: no fire, no thunder';
@@ -36,12 +48,11 @@
       else if (sp.level && !e.levels.length) why = 'no slot of level ' + sp.level + ' or higher';
       else if (g.time === 'B' && !T.bonus) why = 'the bonus action is spent';
       else if (g.time === 'A' && (!T.action || T.attacksLeft)) why = 'the action is spent';
-      else if (g.time === 'B' && T.spellAction === 'leveled') why = 'a levelled spell was cast this turn: no bonus-action spell too';
-      else if (g.time === 'B' && T.bonusSpell) why = 'one bonus-action spell a turn';
+      else if (g.time === 'B' && !g.move && T.spellAction === 'leveled') why = 'a levelled spell was cast this turn: no bonus-action spell too';
+      else if (g.time === 'B' && !g.move && T.bonusSpell) why = 'one bonus-action spell a turn';
       else if (g.time === 'A' && T.bonusSpell && sp.level) why = 'after a bonus-action spell, only a cantrip';
       else if (g.unarmored && !M.touchTargets(B, u, g).length) why = 'no one within reach without armour';
-      else if (id === 'daylight' && !(B.darks || []).length && B.bright) why = 'the place is already lit';
-      else if (id === 'light' && B.bright) why = 'the place is already lit';
+      else if (id === 'seeinvisibility' && u.seeInvisible) why = 'already seeing the unseen';
       e.ok = !why; e.why = why;
       return e;
     }).filter(Boolean).sort(function (a, b) { return a.level - b.level || (a.name < b.name ? -1 : 1); });
@@ -58,18 +69,26 @@
       case 'splash': return 'a foe within ' + g.range + ' ft (and one beside it) · DEX · ' + d + ' acid';
       case 'cone': return g.len + '-ft cone · ' + save + ' · ' + d + ' ' + sp.el;
       case 'line': return g.len + '-ft line · ' + save + ' · ' + d + ' ' + sp.el;
-      case 'sphere': if (e.id === 'daylight') return '60-ft sphere of daylight within 60 ft · dispels a Darkness it touches';
+      case 'sphere': if (e.id === 'daylight') return '60-ft sphere of daylight within 60 ft: bright 60, dim 60 more · burns away a Darkness it touches' + roostNote(B);
+        if (e.id === 'dancinglights') return (g.move ? 'move the four lights (a bonus action)' : 'four hovering lights, dim 10 ft each, at a point within 120 ft') + conc + ' · dim: lawful under a roost';
+        if (e.id === 'fogcloud') return '20-ft sphere of fog within 120 ft: nothing sees in, out or across it' + conc;
+        if (e.id === 'stinkingcloud') return '20-ft sphere within 90 ft: fog, and CON or lose the action each turn inside' + conc;
+        if (e.id === 'sleetstorm') return '40-ft sphere within 150 ft: fog, ice underfoot (DEX or prone, difficult), flames out' + conc;
         return e.id === 'sleep' ? (g.pool + g.poolUp * Math.max(0, e.slot - 1)) + 'd8 HP of sleep, ' + g.r + '-ft sphere within ' + g.range + ' ft' : g.r + '-ft sphere within ' + g.range + ' ft · ' + save + ' · ' + d + (sp.dmg2 ? ' + ' + sp.dmg2 : '') + ' ' + sp.el;
       case 'cube': return g.size + '-ft cube within ' + g.range + ' ft · DEX or restrained' + conc;
       case 'wave': return '15-ft cube out from you · CON half · ' + d + ' thunder, a failed save pushed 10 ft';
       case 'single': return e.id === 'holdmonster' ? 'a foe within 90 ft · WIS or paralyzed' + conc : e.id === 'holdperson' ? 'a humanoid within 60 ft · WIS or paralyzed' + conc : 'an ally within ' + g.range + ' ft · +2 AC' + conc;
       case 'allies': return 'up to ' + n + ' within ' + g.range + ' ft · ' + (e.id === 'bless' ? '+1d4 to attacks and saves' + conc : '+' + 5 * Math.max(1, e.slot - 1) + ' max HP');
-      case 'self': return e.id === 'light' ? 'bright light for the fight: what hates light loses a turn, then fights at disadvantage' + (D.battle && D.battle.fight && D.battle.fight.roost ? ' -- {r}UNDER THE ROOST{/}' : '') : '+1d4 radiant on weapon hits' + conc;
+      case 'self': return ({ seeinvisibility: 'you see the invisible for the fight', mislead: 'invisible (till you attack or cast), and a false double' + conc, passwithouttrace: '+10 Stealth to all of yours within 30 ft' + conc }[e.id]) || '+1d4 radiant on weapon hits' + conc;
       case 'teleport': return '30 ft, to a square you can see';
-      case 'touch': return 'touch · ' + ({ curewounds: (1 + Math.max(0, e.slot - 1)) + 'd8' + RU.sign(M.mod(u)) + ' healing', mageArmor: 'no armour: AC 13 + DEX', greaterinvisibility: 'invisible' + conc, stoneskin: 'half from blades, bolts, bites' + conc, heroism: 'fearless, temp HP each turn' + conc, lesserrestoration: 'ends poison, paralysis, blindness' }[e.id] || '');
+      case 'touch': return 'touch · ' + ({ curewounds: (1 + Math.max(0, e.slot - 1)) + 'd8' + RU.sign(M.mod(u)) + ' healing', mageArmor: 'no armour: AC 13 + DEX', greaterinvisibility: 'invisible' + conc, stoneskin: 'half from blades, bolts, bites' + conc, heroism: 'fearless, temp HP each turn' + conc, lesserrestoration: 'ends poison, paralysis, blindness',
+        light: 'a light on you or an ally beside you: bright 20 ft, dim 20 more, for the fight' + roostNote(B), darkvision: 'sees in the dark to 60 ft', invisibility: 'unseen till they attack or cast' + conc,
+        continualflame: 'a heatless flame on them: bright 20 ft, dim 20 more, and it never goes out' + roostNote(B), trueseeing: 'truesight 120 ft: the dark, the invisible, the fog' }[e.id] || '');
     }
     return g.why || '';
   };
+
+  function roostNote(B) { return B && B.fight && B.fight.roost ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : ''; }
 
   // ------------------------------------------------------------------ shapes
   M.inRange = function (u, g, x, y) { return Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= (g.range || 0) && G.losPoint(u.x, u.y, x, y); };
@@ -135,7 +154,9 @@
     if (foeWanted && (!G.hostile(u, w) || w.hp <= 0)) return false;
     if ((g.shape === 'allies' || g.side === 'ally') && w.side !== u.side) return false;
     if (g.only === 'humanoid' && !M.humanoid(w)) return false;
-    if ((g.shape === 'single' || g.shape === 'darts' || g.shape === 'allies' || g.shape === 'splash') && w !== u && !M.sees(B, u, w)) return false; // (a creature you can see)
+    // "a creature you can see": Hold, Shield of Faith, Magic Missile, Acid Splash -- not Bless or Aid (SRD: "creatures of your choice
+    // within range"; you know where your own are in the dark). Magic Missile at the dark: ui.js aims it at a square (the gimmick)
+    if ((g.shape === 'single' || g.shape === 'darts' || g.shape === 'splash') && w !== u && !M.sees(B, u, w)) return false;
     if (G.dist(u, w) > (g.range || 5)) return false;
     return G.los(u, w).clear || w === u;
   };
@@ -169,7 +190,8 @@
   };
   M.cast = function* (B, u, id, slot, t) {
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
-    if (g.time === 'B') { T.bonus = 0; T.bonusSpell = true; } else { T.action = 0; T.spellAction = sp.level ? 'leveled' : 'cantrip'; }
+    if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') g = Object.assign({}, g, { time: 'B', move: true }); // (the lights are up: this is the bonus action that moves them)
+    if (g.time === 'B') { T.bonus = 0; if (!g.move) T.bonusSpell = true; } else { T.action = 0; T.spellAction = sp.level ? 'leveled' : 'cantrip'; }
     if (sp.level) u.slots[slot - 1]--;
     var head = '{y}' + u.name + '{/}: ' + sp.name.toUpperCase() + (sp.level ? ' (L' + slot + ')' : '');
     var dc = u.spellDC, n = up(sp, slot);
@@ -186,11 +208,15 @@
         yield* B.attack(u, shots[i], { name: sp.name, atk: u.spellAtk, dice: dice, mod: 0, type: sp.el, spell: true, ranged: true, range: [g.range, g.range], fx: 'fire' });
       }
     } else if (g.shape === 'darts') {
-      var darts = t.units, lines = [head + ' -- ' + darts.length + ' darts, each 1d4+1 force, never missing'], tot = {};
+      // "Magic Missile at the darkness" (Griz, 09-28: "we have to do [the] magic missile at the darkness gimmick somewhere in the
+      // game"): a dart aimed at a square the caster cannot see into (t.units holds { x, y, dark: true }) flies anyway. Whatever
+      // stands there takes it -- the darts never miss -- and an empty square takes nothing but the slot. RULES.missilesAtTheDark
+      var darts = t.units.map(function (w) { if (!w.dark) return w; var at = G.occupant(w.x, w.y); return (at && at.hp > 0 && !at.dead && G.hostile(u, at)) ? at : { x: w.x, y: w.y, size: 1, dark: true, id: 'dark' + w.x + ',' + w.y, name: 'the darkness' }; });
+      var lines = [head + ' -- ' + darts.length + ' darts, each 1d4+1 force, never missing' + (t.units.some(function (w) { return w.dark; }) ? '  {p}AT THE DARKNESS{/}' : '')], tot = {}, who = {};
       for (var k = 0; k < darts.length; k++) { FX.projectile(u, darts[k], 'fire'); }
       yield { fx: 1 };
-      darts.forEach(function (w) { var r = D.roll('1d4+1'); tot[w.id] = (tot[w.id] || 0) + r.total; });
-      Object.keys(tot).forEach(function (wid) { var w = B.units.filter(function (x) { return x.id === wid; })[0]; lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}'); B.hurt(w, tot[wid], 'force'); });
+      darts.forEach(function (w) { var r = D.roll('1d4+1'); tot[w.id] = (tot[w.id] || 0) + r.total; who[w.id] = w; });
+      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force'); });
       B.card(lines, 360); yield 30;
     } else if (g.shape === 'splash') {
       var first = t, second = B.units.filter(function (w) { return w !== first && G.hostile(u, w) && G.standing(w) && G.dist(first, w) <= 5; })[0];
@@ -258,7 +284,34 @@
         M.concentrate(B, u, id, sp.name, function () { delete u.conds.divineFavor; });
         B.card([head + ': his weapon hits take {y}+1d4 radiant{/} (concentration).']);
       } else if (id === 'light') {
-        yield* M.brighten(B, u, 'light', head);
+        // SRD 5.1: on an object (his staff, her blade): bright 20 ft, dim 20 more, an hour -- it goes where they go
+        w2.conds.light = { by: u.id };
+        yield* M.brighten(B, u, 'light', head + ' on ' + (w2 === u ? 'his own gear' : w2.name) + ': a steady light, {y}bright 20 ft{/} and dim 20 more.', { x: w2.x, y: w2.y, bright: 20 });
+      } else if (id === 'continualflame') {
+        w2.conds.continualFlame = { by: u.id }; if (w2.src) { w2.src.conds = w2.src.conds || {}; w2.src.conds.continualFlame = (w2.src.equip && w2.src.equip.weapon) || true; } // (on the weapon in hand; it never goes out: the 8-bit sheet keeps it, js/embed.js)
+        yield* M.brighten(B, u, 'flame', head + ' on ' + (w2 === u ? 'his own gear' : w2.name) + ': a flame with no heat in it, {o}bright 20 ft{/} and dim 20 more, that will not go out.', { x: w2.x, y: w2.y, bright: 20 });
+      } else if (id === 'darkvision') {
+        w2.darkvision = Math.max(w2.darkvision || 0, 60); w2.conds.darkvision = { by: u.id };
+        B.card([head + ' on ' + w2.name + ': the dark opens out to {c}60 ft{/}, grey and plain.']);
+      } else if (id === 'invisibility') {
+        w2.conds.invisible = { by: u.id, ends: true }; delete w2.conds.hidden;
+        M.concentrate(B, u, id, sp.name, function () { delete w2.conds.invisible; });
+        B.card([head + ' on ' + w2.name + ': gone from sight till they attack or cast (concentration).']);
+      } else if (id === 'trueseeing') {
+        w2.truesight = 120; w2.conds.truesight = { by: u.id };
+        B.card([head + ' on ' + w2.name + ': {c}truesight{/} to 120 ft -- the dark, the fog and the invisible are nothing to them.']);
+      } else if (id === 'seeinvisibility') {
+        u.seeInvisible = true; u.conds.seeInvisible = { by: u.id };
+        B.card([head + ': the invisible stand plain to him, ghostly and grey.']);
+      } else if (id === 'mislead') {
+        u.conds.invisible = { by: u.id, ends: true }; u.images = Math.max(u.images || 0, 1); delete u.conds.hidden;
+        M.concentrate(B, u, id, sp.name, function () { delete u.conds.invisible; u.images = 0; });
+        B.card([head + ': he is gone, and a double of him stands where he stood (a blow may go at it; the invisibility ends if he attacks or casts; concentration).']);
+      } else if (id === 'passwithouttrace') {
+        var veiled = B.units.filter(function (w) { return w.side === u.side && G.standing(w) && G.dist(u, w) <= 30; });
+        veiled.forEach(function (w) { w.conds.pwt = { by: u.id }; });
+        M.concentrate(B, u, id, sp.name, function () { lift(B, veiled, 'pwt'); });
+        B.card([head + ': a veil of shadow over ' + veiled.map(function (w) { return w.name; }).join(', ') + ' -- {c}+10 Stealth{/} (concentration).']);
       }
       FX.sparkle(w2, g.shape === 'self' || id === 'divinefavor' ? 'gold' : 'glow', 14);
       yield 30;
@@ -272,21 +325,56 @@
   // every area spell: the squares, one damage roll, each creature's save (Evasion for a DEX save), conditions
   function* area(B, u, id, sp, g, slot, cx, cy, head) {
     var sq = M.area(u, g, cx, cy), dc = u.spellDC;
-    var ramp = sp.el === 'cold' || sp.el === 'lightning' ? 'glow' : sp.el === 'thunder' ? 'silver' : sp.el === 'force' ? 'bone' : 'fire';
+    var ramp = id === 'daylight' || id === 'dancinglights' ? 'bone' : id === 'fogcloud' || id === 'sleetstorm' ? 'silver' : id === 'stinkingcloud' ? 'moss' : sp.el === 'cold' || sp.el === 'lightning' ? 'glow' : sp.el === 'thunder' ? 'silver' : sp.el === 'force' ? 'bone' : 'fire';
     if (g.shape === 'sphere' || g.shape === 'cube') { FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 }; }
     var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave';
     FX.bloom(fromMe ? u.x : cx, fromMe ? u.y : cy, sq, ramp);
     var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq); });
     var lines = [];
     if (id === 'daylight') {
-      var burnt = (B.darks || []).filter(function (dk) { return dk.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); });
-      lines.push(head + '  a sphere of daylight' + (burnt.length ? ': {y}the darkness burns away{/}' : B.bright ? '' : ': bright light fills the place'));
+      // SRD 5.1: bright 60 ft and dim 60 more from a point; on a creature's square it goes with them; a Darkness of 3rd level or
+      // lower it overlaps is dispelled (the darkmantle's aura too)
+      var burnt = (B.darks || []).filter(function (dk) { return dk.kind !== 'fog' && dk.kind !== 'sleet' && dk.kind !== 'stink' && M.darkSq(B, dk).some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); });
+      var bearer = B.units.filter(function (w) { return G.standing(w) && w.side === u.side && G.inArea(w, [[cx, cy]]); })[0];
+      if (bearer) bearer.conds.daylight = { by: u.id }; else B.lights = (B.lights || []).concat([{ id: 'daylight' + u.id, kind: 'daylight', x: cx, y: cy, bright: 60, dim: 60, color: 'bone', by: u.id }]);
+      lines.push(head + '  a sphere of daylight' + (bearer ? ' about ' + bearer.name : '') + ': {y}bright 60 ft{/} and dim 60 more' + (burnt.length ? ' -- {y}the darkness burns away{/}' : ''));
       burnt.forEach(function (dk) {
         var by = B.units.filter(function (w) { return w.id === dk.by; })[0];
-        if (by && by.conc && by.conc.id === 'darkness') M.endConc(B, by, 'Daylight');
+        if (by && by.conc && (by.conc.id === 'darkness' || by.conc.id === 'aura')) M.endConc(B, by, 'Daylight');
         else B.darks = (B.darks || []).filter(function (x) { return x !== dk; });
       });
-      yield* M.brighten(B, u, 'daylight', null); // (and it is bright light: what hates light hates it, and under the roost it is the roof)
+      B.card(lines.slice(0, 7), 420);
+      yield* M.brighten(B, u, 'daylight', null, { x: cx, y: cy, bright: 60 }); // (bright light: what hates light hates it, and under the roost it is the roof)
+      yield { fx: 1 };
+      yield 30;
+      return;
+    } else if (id === 'dancinglights') {
+      // SRD 5.1: up to four torch-sized lights, dim 10 ft each, within 120 ft; a bonus action moves them 60 ft. Here the four
+      // hover over the point and its three neighbours (a patch of dim light 20 ft across); casting again while they burn moves them
+      var spots = [[cx, cy], [cx + 1, cy], [cx, cy + 1], [cx + 1, cy + 1]].filter(function (q) { var s = G.map.at(q[0], q[1]); return s && s.open; });
+      if (!spots.length) spots = [[cx, cy]];
+      B.lights = (B.lights || []).filter(function (l) { return !(l.kind === 'dance' && l.by === u.id); });
+      spots.forEach(function (q, i) { B.lights.push({ id: 'dance' + u.id + i, kind: 'dance', x: q[0], y: q[1], bright: 0, dim: 10, color: 'glow', by: u.id }); });
+      if (!(u.conc && u.conc.id === 'dancinglights')) M.concentrate(B, u, id, sp.name, function () { B.lights = (B.lights || []).filter(function (l) { return !(l.kind === 'dance' && l.by === u.id); }); B.card(['{g}The dancing lights wink out.{/}'], 300); });
+      lines.push(head + (g.move ? ': the lights drift to a new place.' : '  four lights, no bigger than torches, hover and shed {c}dim light{/} 10 ft round each (concentration; a bonus action moves them).'));
+      D.sfx('buff');
+    } else if (id === 'fogcloud' || id === 'stinkingcloud' || id === 'sleetstorm') {
+      // heavily obscured (SRD): nothing sees into, out of or across it -- the same geometry as Darkness (sees), darkvision no help.
+      // Stinking Cloud: CON or the action is lost, each turn inside (startTurn). Sleet Storm: ice underfoot (difficult, DEX or
+      // prone on entering or starting there), flames doused, a caster inside checks CON to hold concentration
+      var kind = id === 'fogcloud' ? 'fog' : id === 'stinkingcloud' ? 'stink' : 'sleet';
+      var rec = { by: u.id, sq: sq, kind: kind, dc: dc };
+      B.darks = (B.darks || []).concat([rec]);
+      M.concentrate(B, u, id, sp.name, function () { B.darks = (B.darks || []).filter(function (x) { return x !== rec; }); B.card(['{g}The ' + (kind === 'fog' ? 'fog thins and is gone' : kind === 'stink' ? 'yellow cloud drifts apart' : 'sleet stops') + '.{/}'], 300); });
+      lines.push(head + '  a ' + g.r + '-ft sphere of ' + (kind === 'fog' ? 'fog' : kind === 'stink' ? 'yellow, nauseating gas' : 'freezing sleet') + ': {c}nothing sees in, out or across it{/} (concentration)');
+      if (kind === 'stink') lines.push('  each turn inside: CON DC ' + dc + ' or the action goes on retching');
+      if (kind === 'sleet') {
+        lines.push('  ice underfoot: difficult ground, DEX DC ' + dc + ' or prone; flames go out');
+        var out = D.light ? D.light.douseIn(B, sq) : []; if (out.length) lines.push('  {o}' + out.join(', ') + ' put out by the sleet{/}');
+        caught.forEach(function (w) { if (w.conds.prone || w.noProne || RU.immuneTo(w, 'prone')) return; var sv = RU.save(w, 'dex', dc); lines.push('  ' + w.name + ': DEX ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}keeps their feet{/}' : '{o}down on the ice{/}')); if (!sv.ok) w.conds.prone = true; });
+      }
+      if (D.light && B.lightMap) B.lightMap = null;
+      D.sfx('magic');
     } else if (id === 'sleep') {
       var pool = D.roll((g.pool + g.poolUp * Math.max(0, slot - 1)) + 'd8'), left = pool.total;
       lines.push(head + '  ' + (g.pool + g.poolUp * Math.max(0, slot - 1)) + 'd8 = ' + pool.total + ' HP of sleep, the weakest first');
@@ -343,7 +431,42 @@
   M.startTurn = function (B, u) {
     if (u.conds.heroism) u.temp = Math.max(u.temp || 0, u.conds.heroism.each);
     if (B && u.hp > 0 && !u.dead) M.webCatch(B, u, 'starts');
+    if (B && u.hp > 0 && !u.dead) M.cloudTurn(B, u);
     if (u.conds.restrained || u.conds.paralyzed || u.conds.asleep) u.turn.move = 0;
+  };
+  // the clouds, at the start of a turn inside one: Stinking Cloud (SRD: completely within it, CON save against poison or the
+  // action is spent retching; nothing that needs no breath or shrugs off poison); Sleet Storm (DEX or prone; a concentrating
+  // caster CON DC or loses the spell)
+  M.cloudTurn = function (B, u) {
+    var who = u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}';
+    var stink = (B.darks || []).filter(function (d) { return d.kind === 'stink' && G.foot(u).every(function (p) { return d.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); })[0];
+    if (stink && !(RU.immuneTo(u, 'poisoned') || (u.immune && u.immune.indexOf('poison') >= 0))) {
+      var sv = RU.save(u, 'con', stink.dc);
+      B.card([who + ' in the yellow cloud: CON ' + RU.saveText(sv) + ' vs DC ' + stink.dc + '  ' + (sv.ok ? '{n}holds it down{/}' : '{o}retching and reeling: the action is gone{/}')]);
+      if (!sv.ok) { u.turn.action = 0; u.turn.attacksLeft = 0; }
+    }
+    var sleet = (B.darks || []).filter(function (d) { return d.kind === 'sleet' && G.inArea(u, d.sq); })[0];
+    if (sleet) {
+      if (u.turn) u.turn.sleetSaved = true; // (one save a turn: starting in it counts)
+      if (!u.conds.prone && !u.noProne && !RU.immuneTo(u, 'prone')) {
+        var s2 = RU.save(u, 'dex', sleet.dc);
+        B.card([who + ' on the ice: DEX ' + RU.saveText(s2) + ' vs DC ' + sleet.dc + '  ' + (s2.ok ? '{n}keeps their feet{/}' : '{o}down{/}')]);
+        if (!s2.ok) { u.conds.prone = true; u.turn.move = Math.floor(u.speed / 2); }
+      }
+      if (u.conc && u.conc.id !== 'sleetstorm') { var s3 = RU.save(u, 'con', sleet.dc); B.card([who + ' holds ' + u.conc.name + ' in the sleet? CON ' + RU.saveText(s3) + ' vs DC ' + sleet.dc + '  ' + (s3.ok ? '{n}HELD{/}' : '{o}LOST{/}')]); if (!s3.ok) M.endConc(B, u, 'the sleet'); }
+    }
+  };
+  // ice underfoot (Sleet Storm): difficult ground (grid.js stepCost)
+  M.icy = function (B, x, y) { return (B.darks || []).some(function (d) { return d.kind === 'sleet' && d.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };
+  // a sleet storm entered during a move: the SRD's save for the first square of it that turn (battle.js moveAlong)
+  M.sleetCatch = function (B, u) {
+    var d = (B.darks || []).filter(function (x) { return x.kind === 'sleet' && G.inArea(u, x.sq); })[0];
+    if (!d || u.conds.prone || u.noProne || RU.immuneTo(u, 'prone') || (u.turn && u.turn.sleetSaved)) return false;
+    if (u.turn) u.turn.sleetSaved = true;
+    var sv = RU.save(u, 'dex', d.dc), who = u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}';
+    B.card([who + ' steps onto the ice: DEX ' + RU.saveText(sv) + ' vs DC ' + d.dc + '  ' + (sv.ok ? '{n}keeps their feet{/}' : '{o}down on the ice{/}')]);
+    if (sv.ok) return false;
+    u.conds.prone = true; return true;
   };
   // SRD Web (09-27: Griz, "I wasn't sure it was applied appropriately (guy looked like he had it but was running around)"):
   // "Each creature that starts its turn in the webs or that enters them during its turn must make a Dexterity saving throw.
@@ -374,39 +497,82 @@
       if (sv.ok) { delete u.conds.paralyzed; var c = B.units.filter(function (w) { return w.conc && (w.conc.id === 'holdmonster' || w.conc.id === 'holdperson') && w.id === p.by; })[0]; if (c) delete c.conc; }
     }
   };
-  // ------------------------------------------------------------------ bright light: the Light cantrip and Daylight (the 8-bit battle's dazzle, crossed 09-28).
-  // The place is lit for the fight (B.bright): whatever hid is seen, and what hates light (lightSensitive: the drow, the duergar,
-  // the cloaker) loses its next turn the first time and attacks at disadvantage while the light holds (rules.js edges). Under a
-  // roost it is the one law broken (RULED 09-28, canon): the fight ends 'roost' and the 8-bit game's RoostFail runs
-  M.brighten = function* (B, u, source, head) {
-    var first = !B.bright;
-    B.bright = true; B.brightBy = source === 'daylight' ? 'daylight' : (B.brightBy || 'light');
-    var shy = B.units.filter(function (w) { return w.side === 'foe' && G.standing(w) && w.lightSensitive; });
-    B.units.forEach(function (w) { if (w.side === 'foe' && w.conds.hidden) { delete w.conds.hidden; w.hidden0 = false; } });
-    var lines = head ? [head + ': bright light fills the place.'] : [];
-    if (shy.length) { shy.forEach(function (w) { w.flash = 16; if (first) w.conds.recoiling = true; }); lines.push('  ' + shy.map(function (w) { return w.name; }).join(', ') + (first ? ': {o}recoils, shrinking up away from it{/} -- no next turn, and disadvantage while the light holds' : ': {o}still dazzled{/}')); }
-    if (B.fight && B.fight.roost && !B.roostBroken) { B.roostBroken = source; lines.push('{r}Bright light under a roosted ceiling.{/}'); D.sfx('encounter'); }
+  // ------------------------------------------------------------------ bright light with a place (torchdark, 09-28): a light lit -- the Light cantrip,
+  // Daylight, a torch struck or thrown, a Continual Flame, Sacred Weapon's glow -- lights the squares within its bright reach
+  // (js/light.js). Whatever hid in that reach is seen; what hates light (lightSensitive: the drow, the duergar, the cloaker)
+  // caught in bright light loses its next turn the first time and attacks at disadvantage while it stands in it (rules.js
+  // edges: dazzled). Under a roost any bright light is the one law broken (RULED 09-28, canon): the fight ends 'roost' and
+  // the 8-bit game's RoostFail runs. `src` { x, y, bright }: where the light is and how far it is bright
+  M.brighten = function* (B, u, source, head, src) {
+    var Lt = D.light, lines = head ? [head] : [];
+    if (B.lightMap) B.lightMap = null;
+    if (!B.dark && src && src.bright > 0) B.brightLit = true; // (a lit place: the old fight-wide dazzle for what hates light, rules.js edges)
+    var reach = function (w) { return src && Math.hypot(w.x + ((w.size || 1) - 1) / 2 - src.x, w.y + ((w.size || 1) - 1) / 2 - src.y) * 5 <= (src.bright || 0) + 2.5; };
+    var lit = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && (!B.dark || !src || reach(w) || (Lt && Lt.brightAt(B, w))); });
+    var shy = lit.filter(function (w) { return w.lightSensitive; }), shown = [];
+    lit.forEach(function (w) { if (w.conds.hidden && (!B.dark || (Lt && Lt.brightAt(B, w)))) { delete w.conds.hidden; w.hidden0 = false; shown.push(w.name); } });
+    if (shown.length) lines.push('  {c}' + shown.join(', ') + ' shown up by the light{/}');
+    if (shy.length) {
+      var fresh = shy.filter(function (w) { return !w.recoiled; });
+      shy.forEach(function (w) { w.flash = 16; if (!w.recoiled) { w.recoiled = true; w.conds.recoiling = true; } });
+      lines.push('  ' + shy.map(function (w) { return w.name; }).join(', ') + (fresh.length ? ': {o}recoils, shrinking up away from it{/} -- no next turn, and disadvantage while it stands in bright light' : ': {o}dazzled{/}'));
+    }
+    if (B.fight && B.fight.roost && !B.roostBroken && (!src || src.bright > 0)) { B.roostBroken = source; lines.push('{r}Bright light under a roosted ceiling.{/}'); D.sfx('encounter'); }
     if (lines.length) B.card(lines, 420);
-    FX.ring(u, 'glow', 40);
+    FX.ring(u, source === 'torch' || source === 'flame' ? 'fire' : 'glow', 40);
     yield 30;
   };
 
-  // ------------------------------------------------------------------ Darkness (SRD 5.1; Griz 09-27: "We'll have to deal with darkness, at least the
-  // magical kind"): a 15-ft-radius sphere of magical darkness. Nothing sees into it, out of it or across it (darkvision neither):
-  // an unseen target is attacked at disadvantage and an unseen attacker attacks with advantage (rules.js edges), no opportunity
-  // attack on one you cannot see (battle.js moveAlong), a spell that needs its target seen cannot take one (targetOK), and the
-  // foes pick only targets they can see (ai.js visibleFrom). Concentration: it lifts when the caster's does
-  M.darkAt = function (B, x, y) { return (B.darks || []).some(function (d) { return d.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };
+  // ------------------------------------------------------------------ what a creature can see (torchdark, 09-28): the one question the rules ask.
+  // In order: a blinded creature sees nothing; truesight sees all; magical darkness (SRD 5.1 Darkness; Griz 09-27: "We'll have
+  // to deal with darkness, at least the magical kind"), fog, sleet and the stinking cloud are heavily obscured -- nothing sees
+  // into, out of or across one (darkvision neither; Devil's Sight through darkness only); the invisible are unseen unless
+  // outlined by Faerie Fire or the looker sees the invisible; then the light (js/light.js seesBy: dim is enough, in the dark
+  // only darkvision to its reach). An unseen target is attacked at -4 for want of light (his table) or at disadvantage for
+  // the rest (SRD); an unseen attacker attacks with advantage (rules.js edges); no opportunity attack on one you cannot see
+  // (battle.js moveAlong); a spell that needs its target seen cannot take one (targetOK); the foes pick only targets they
+  // can see (ai.js heroes, visibleFrom)
+  M.darkSq = function (B, d) { // the squares a darkness covers now (the darkmantle's aura goes where it goes)
+    if (!d.follow) return d.sq;
+    var w = B.units.filter(function (x) { return x.id === d.follow; })[0];
+    if (!w || w.dead) return [];
+    var cx = w.x + ((w.size || 1) - 1) / 2, cy = w.y + ((w.size || 1) - 1) / 2, k = Math.round(cx) + ',' + Math.round(cy);
+    if (d.at !== k) { d.at = k; d.sq = G.sphere(Math.round(cx), Math.round(cy), d.r || 15); }
+    return d.sq;
+  };
+  M.darkKindAt = function (B, x, y) {
+    var ds = B.darks || [];
+    for (var i = 0; i < ds.length; i++) { var sq = M.darkSq(B, ds[i]); for (var j = 0; j < sq.length; j++) if (sq[j][0] === x && sq[j][1] === y) return ds[i].kind || 'darkness'; }
+    return null;
+  };
+  M.darkAt = function (B, x, y) { return !!M.darkKindAt(B, x, y); };
   M.inDark = function (B, u) { return G.foot(u).some(function (p) { return M.darkAt(B, p[0], p[1]); }); };
-  M.sees = function (B, a, b) {
-    if (!B || !(B.darks || []).length || a === b || a.devilSight) return true;
-    if (M.inDark(B, a) || M.inDark(B, b)) return false;
+  function obscuredBetween(B, a, b) {
+    var k = M.darkKindAt(B, a.x, a.y) || M.darkKindAt(B, b.x, b.y);
+    if (!k) { var ka = null; G.foot(a).forEach(function (p) { ka = ka || M.darkKindAt(B, p[0], p[1]); }); G.foot(b).forEach(function (p) { ka = ka || M.darkKindAt(B, p[0], p[1]); }); k = ka; }
+    if (k) return k;
     var x0 = a.x + ((a.size || 1) - 1) / 2, y0 = a.y + ((a.size || 1) - 1) / 2, dx = b.x + ((b.size || 1) - 1) / 2 - x0, dy = b.y + ((b.size || 1) - 1) / 2 - y0;
     var n = Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) * 2);
-    for (var i = 1; i < n; i++) if (M.darkAt(B, Math.round(x0 + dx * i / n), Math.round(y0 + dy * i / n))) return false; // (across it)
-    return true;
+    for (var i = 1; i < n; i++) { var kk = M.darkKindAt(B, Math.round(x0 + dx * i / n), Math.round(y0 + dy * i / n)); if (kk) return kk; } // (across it)
+    return null;
+  }
+  M.seeWhy = function (B, a, b) {
+    if (!B || !a || !b || a === b) return { ok: true };
+    // blindsight is not sight (SRD): the darkmantle in its own darkness, the oozes, the grimlock -- nothing on this list stops it, to its reach
+    if (a.blindsight && G.dist(a, b) <= a.blindsight) return { ok: true };
+    if (a.conds && a.conds.blinded) return { ok: false, why: 'blinded' };
+    if (a.truesight && G.dist(a, b) <= a.truesight) return { ok: true };
+    if ((B.darks || []).length) {
+      var k = obscuredBetween(B, a, b);
+      if (k && !(a.devilSight && k === 'darkness')) return { ok: false, why: k === 'darkness' ? 'darkness' : k === 'stink' ? 'the cloud' : k };
+    }
+    if (b.conds && b.conds.invisible && !b.conds.faerie && !a.seeInvisible) return { ok: false, why: 'invisible' };
+    if (D.light) { var s = D.light.seesBy(B, a, b); if (!s.ok) return { ok: false, why: s.why }; if (s.dv) return { ok: true, dv: true }; }
+    return { ok: true };
   };
-  // a foe's Darkness (Amara's, the turn she breaks for the way out): over as many of them as it can cover, within its range
+  M.sees = function (B, a, b) { return M.seeWhy(B, a, b).ok; };
+  // a foe's Darkness (Amara's, the turn she breaks for the way out; the drow's innate): over as many of them as it can cover,
+  // within its range. A Light (a spell of 2nd level or lower) under it is dispelled; a Daylight it would overlap burns it as it forms
   M.castDarkness = function* (B, u) {
     var K = u.darkness, hs = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w); }), best = null, bn = 0;
     hs.forEach(function (c) {
@@ -416,13 +582,35 @@
     });
     if (!best) return false;
     u.turn.action = 0; K.used = true;
-    if (B.bright && B.brightBy === 'daylight') { D.sfx('magic'); B.card(['{r}' + u.name + '{/} calls up darkness -- and the daylight burns it away as it forms.'], 300); yield 30; return true; }
-    if (B.bright) { B.bright = false; B.brightBy = null; B.card(['{r}' + u.name + '{/} swallows the light.'], 300); } // (the Light cantrip: dispelled)
-    B.darks = (B.darks || []).concat([{ by: u.id, sq: best.sq }]);
-    M.concentrate(B, u, 'darkness', 'Darkness', function () { B.darks = (B.darks || []).filter(function (d) { return d.by !== u.id; }); B.card(['{p}The darkness lifts.{/}'], 300); });
+    var Lt = D.light, all = Lt ? Lt.all(B) : [];
+    var inSq = function (x, y) { return best.sq.some(function (q) { return q[0] === Math.round(x) && q[1] === Math.round(y); }); };
+    var near = function (l, r) { return best.sq.some(function (q) { return Math.hypot(q[0] - l.x, q[1] - l.y) * 5 <= r; }); };
+    if (all.some(function (l) { return l.kind === 'daylight' && near(l, l.bright); })) { D.sfx('magic'); B.card(['{r}' + u.name + '{/} calls up darkness -- and the daylight burns it away as it forms.'], 300); yield 30; return true; }
+    var gone = [];
+    B.units.forEach(function (w) { if (w.conds.light && inSq(w.x, w.y)) { delete w.conds.light; gone.push(w.name + '\'s light'); } });
+    B.units.forEach(function (w) { if (w.conc && w.conc.id === 'dancinglights' && (B.lights || []).some(function (l) { return l.kind === 'dance' && l.by === w.id && inSq(l.x, l.y); })) { M.endConc(B, w, 'the darkness'); gone.push('the dancing lights'); } });
+    if (gone.length) B.card(['{r}' + u.name + '{/} swallows ' + gone.join(', ') + '.'], 300);
+    B.darks = (B.darks || []).concat([{ by: u.id, sq: best.sq, kind: 'darkness' }]);
+    if (B.lightMap) B.lightMap = null;
+    M.concentrate(B, u, 'darkness', 'Darkness', function () { B.darks = (B.darks || []).filter(function (d) { return d.by !== u.id; }); if (B.lightMap) B.lightMap = null; B.card(['{p}The darkness lifts.{/}'], 300); });
     D.sfx('magic'); FX.ring(best.c, 'violet', 44);
     var under = hs.filter(function (w) { return G.inArea(w, best.sq); }).map(function (w) { return w.name; });
     B.card(['{r}' + u.name + ' throws darkness over ' + under.join(', ') + '!{/}  {g}(15 ft of it: nobody sees in, out or across; concentration){/}'], 420);
+    yield 40;
+    return true;
+  };
+  // the darkmantle's Darkness Aura (SRD 5.1, 1/day): 15 ft of magical darkness that moves with it while it concentrates; a light
+  // spell of 2nd level or lower it overlaps is dispelled (ai.js brute casts it; darkSq follows the creature)
+  M.castAura = function* (B, u) {
+    u.turn.action = 0; u.aura.used = true;
+    var rec = { by: u.id, sq: [], kind: 'darkness', follow: u.id, r: 15 };
+    B.darks = (B.darks || []).concat([rec]); M.darkSq(B, rec);
+    if (B.lightMap) B.lightMap = null;
+    M.concentrate(B, u, 'aura', 'Darkness Aura', function () { B.darks = (B.darks || []).filter(function (d) { return d !== rec; }); if (B.lightMap) B.lightMap = null; B.card(['{p}The dark round the darkmantle thins away.{/}'], 300); });
+    var gone = [];
+    B.units.forEach(function (w) { if (w.conds.light && G.inArea(w, rec.sq)) { delete w.conds.light; gone.push(w.name + '\'s light'); } });
+    D.sfx('magic'); FX.ring(u, 'violet', 44);
+    B.card(['{r}The ' + B.shortName(u) + '{/} pulls the dark in round itself: {p}15 ft of magical darkness{/} that goes where it goes' + (gone.length ? ', and ' + gone.join(', ') + ' goes out' : '') + '.  {g}(concentration){/}'], 420);
     yield 40;
     return true;
   };

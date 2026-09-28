@@ -45,6 +45,7 @@ window.D16.MAPS.gulch = {
 window.D16.MAPS.pool = {
   name: 'The Deepest Pool',
   sub: 'the Warrens, under the fall',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '##################',
@@ -73,6 +74,7 @@ window.D16.MAPS.pool = {
 window.D16.MAPS.camp = {
   name: 'The Cut Seal',
   sub: 'the king\'s road, leg one: the camp',
+  dark: true, lights: [[9, 6, 20, 'fire']], // torchdark (09-28): dark ground; the goblins' fire
   step: 20,
   rows: [
     '####################',
@@ -101,6 +103,7 @@ window.D16.MAPS.camp = {
 window.D16.MAPS.cut = {
   name: 'The North Cut',
   sub: 'off the king\'s road',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '##################',
@@ -128,6 +131,7 @@ window.D16.MAPS.cut = {
 window.D16.MAPS.nest = {
   name: 'The Nest',
   sub: 'the gallery\'s end, below the halls',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '####################',
@@ -156,6 +160,7 @@ window.D16.MAPS.nest = {
 window.D16.MAPS.trollcave = {
   name: 'The Troll Hole',
   sub: 'the king\'s road, leg four',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '####################',
@@ -183,6 +188,7 @@ window.D16.MAPS.trollcave = {
 window.D16.MAPS.lamp = {
   name: 'Third Lamp',
   sub: 'the king\'s road: the station, taken',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '####################',
@@ -211,6 +217,7 @@ window.D16.MAPS.lamp = {
 window.D16.MAPS.threshold = {
   name: 'Deepholm\'s Door',
   sub: 'the made road\'s end',
+  dark: true, lights: [[9, 1, 20, 'glow']], // torchdark (09-28): dark ground; "a light that is not a lamp" at the door
   step: 20,
   rows: [
     '####################',
@@ -238,6 +245,7 @@ window.D16.MAPS.threshold = {
 window.D16.MAPS.barricade = {
   name: 'The Fallback Line',
   sub: 'the king\'s road, leg four',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '########====########',
@@ -265,6 +273,7 @@ window.D16.MAPS.barricade = {
 window.D16.MAPS.giantcamp = {
   name: 'The Giant\'s Camp',
   sub: 'the king\'s road, leg three',
+  dark: true, lights: [[9, 6, 20, 'fire']], // torchdark (09-28): dark ground; the duergar's fire
   step: 20,
   rows: [
     '####################',
@@ -292,6 +301,7 @@ window.D16.MAPS.giantcamp = {
 window.D16.MAPS.roost = {
   name: 'The Dens',
   sub: 'the galleries, under the roost',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '##################',
@@ -319,6 +329,7 @@ window.D16.MAPS.roost = {
 window.D16.MAPS.drain = {
   name: 'The Drain Cut',
   sub: 'under the station',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '##################',
@@ -346,6 +357,7 @@ window.D16.MAPS.drain = {
 window.D16.MAPS.restcamp = {
   name: 'The Rest',
   sub: 'the king\'s road, past Torvald',
+  dark: true, lights: [[10, 6, 20, 'fire']], // torchdark (09-28): dark ground; the party's own fire, where it lay down
   step: 20,
   rows: [
     '########====########',
@@ -402,6 +414,7 @@ window.D16.MAPS.bridge = {
 window.D16.MAPS.northroad = {
   name: 'The Road North',
   sub: 'past the gulch, at night',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   ground: 'earth',
   road: 'y',
@@ -461,6 +474,7 @@ window.D16.MAPS.snootroad = {
 window.D16.MAPS.burial = {
   name: 'The Burial',
   sub: 'under the old hold, the night shift',
+  dark: true, lights: [[12, 2, 30, 'gold']], // torchdark (09-28): dark ground; the lamp by the stair
   step: 20,
   rows: [
     '####################',
@@ -490,6 +504,7 @@ window.D16.MAPS.burial = {
 window.D16.MAPS.siphon = {
   name: 'The Siphon Stair',
   sub: 'the Warrens, holding the stair',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '####################',
@@ -517,6 +532,7 @@ window.D16.MAPS.siphon = {
 window.D16.MAPS.grickden = {
   name: 'The Grick Den',
   sub: 'south of the king\'s road',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '####################',
@@ -543,6 +559,7 @@ window.D16.MAPS.grickden = {
 window.D16.MAPS.breach = {
   name: 'The Breach',
   sub: 'the king\'s road, leg two',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '########====########',
@@ -569,6 +586,7 @@ window.D16.MAPS.breach = {
 window.D16.MAPS.deep = {
   name: 'The Deep Gallery',
   sub: 'the galleries, below the roost',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '####################',
@@ -598,6 +616,7 @@ window.D16.MAPS.deep = {
 window.D16.MAPS.yard = {
   name: 'The Inn Yard',
   sub: 'the Halfway Inn, at night',
+  dark: true, // torchdark (09-28): the inn's door lamp (already there)
   step: 20,
   ground: 'earth',
   road: 'y',
@@ -634,6 +653,7 @@ window.D16.MAPS.yard = {
 window.D16.MAPS.causeway = {
   name: 'The Causeway',
   sub: 'the king\'s road, leg four: the black water',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '########====########',
@@ -660,6 +680,7 @@ window.D16.MAPS.causeway = {
 window.D16.MAPS.cutwalls = {
   name: 'The Cut',
   sub: 'the king\'s road, leg four: the made road',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '#######======#######',
@@ -686,6 +707,7 @@ window.D16.MAPS.cutwalls = {
 window.D16.MAPS.roperfork = {
   name: 'The Fork',
   sub: 'the king\'s road, leg two',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '####################',
@@ -713,6 +735,7 @@ window.D16.MAPS.roperfork = {
 window.D16.MAPS.settling = {
   name: 'The Settling Pools',
   sub: 'the Warrens, the lower works',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '##################',
@@ -740,6 +763,7 @@ window.D16.MAPS.settling = {
 window.D16.MAPS.floodstair = {
   name: 'The Flooded Stair',
   sub: 'the Warrens, Pete\'s Five',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '##################',
@@ -767,6 +791,7 @@ window.D16.MAPS.floodstair = {
 window.D16.MAPS.point = {
   name: 'The Point',
   sub: 'the lake, at night',
+  dark: true, lights: [[10, 7, 30, 'gold']], // torchdark (09-28): dark ground; the lantern post
   step: 20,
   ground: 'earth',
   rows: [
@@ -822,6 +847,7 @@ window.D16.MAPS.hexfloor = {
 window.D16.MAPS.seamwall = {
   name: 'The Seam',
   sub: 'the king\'s road, leg three',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
   step: 20,
   rows: [
     '####################',

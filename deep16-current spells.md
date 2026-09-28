@@ -102,3 +102,13 @@ The tabletop gaps worth closing, small ones first:
 9. Being held, stunned or asleep ends concentration.
 10. Stoneskin turns nonmagical blows only.
 11. ~~Mage Armor on the ladder costs its slot~~ (done 09-27).
+
+## Torchdark (09-28): the dark, and the light with a place
+
+Added after the reference above was written (the code tab, 09-28; `deep16/js/light.js`, `magic.js seeWhy`, `rules.js edges`):
+- **Dark ground.** A map marked `dark` (the 8-bit maps' `dark`, read across) is dark but for its own lamps and fires and what the party brings. Every light has a place: bright so far, dim as far again. Dim light is enough to see by (the SRD's lightly obscured). The player sees the whole grid; what no one of the four sees is greyed.
+- **Sight.** A creature sees another if its blindsight reaches it; else if it is not blinded and (truesight, or no magical darkness or fog between, and the target not invisible to it, and the target in light or within its darkvision). *Shooting blind -- an attack at a creature unseen for want of light -- takes -4 (Griz's table); magical darkness, fog, invisibility and blindness keep the tabletop's disadvantage.* An unseen attacker has advantage. A spell that wants "a creature you can see" cannot take one unseen (Bless and Aid need no sight).
+- **Torches are hands.** ITEM lights one (an action; the Thief's bonus): a free hand, none under the roost. DROP (free) leaves it burning; THROW (an action) lands it within 20 ft; DOUSE (free) stows it; TAKE UP (free) the one at your feet. Lymen (sword and shield) and Barley (the flail) have no hand for one.
+- **Light** is the SRD's now: on the caster's or an ally's gear, bright 20 ft, dim 20 more; **Daylight** a 60-ft sphere at a point (on a creature it goes with them), burning a Darkness it touches. **Sacred Weapon**, the **Flame Tongue** lit and the **Sunshaft Staff** shine as their items say. What hates light is dazzled in bright light the party made, not by its own fire.
+- **New:** Dancing Lights (four dim lights, a bonus action moves them), Fog Cloud, Stinking Cloud, Sleet Storm (all heavily obscured: as Darkness to sight; the cloud's CON each turn inside; the sleet's ice, DEX or prone, flames out), Continual Flame (no ruby), Darkvision (60 ft; to the 8-bit till the long rest), Invisibility (till they attack or cast), See Invisibility, Mislead (invisible and one image), Pass Without Trace (+10 Stealth), True Seeing. The darkmantle's Darkness Aura moves with it; its crush blinds; the cloaker's fold blinds; the duergar go invisible before closing.
+- *Magic Missile at the darkness:* a dart may be aimed at a square the caster cannot see into; it strikes what stands there. A switch, on; Griz's to keep or cut.

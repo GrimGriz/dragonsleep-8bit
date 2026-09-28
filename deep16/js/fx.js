@@ -40,7 +40,8 @@
   };
   // the fireball: the bead, then a bloom over every square of the template, square by square outward
   FX.bloom = function (cx, cy, squares, ramp) {
-    var C = ramp === 'violet' ? [P('violet', 5), P('violet', 4), P('violet', 3), P('violet', 2)] : [P('fire', 2), P('fire', 1), P('fire', 0), P('red', 2)];
+    var pk = function (r, i) { var rp = D.PAL.ramps[r] || D.PAL.ramps.fire; return rp[Math.max(0, Math.min(i, rp.length - 1))]; };
+    var C = ramp === 'violet' ? [P('violet', 5), P('violet', 4), P('violet', 3), P('violet', 2)] : ramp && ramp !== 'fire' && D.PAL.ramps[ramp] ? [pk(ramp, 5), pk(ramp, 4), pk(ramp, 3), pk(ramp, 2)] : [P('fire', 2), P('fire', 1), P('fire', 0), P('red', 2)];
     return FX.add({ kind: 'bloom', blocking: true, dur: 46, draw: function (ctx) {
       var t = this.t;
       squares.forEach(function (q) {
@@ -52,7 +53,27 @@
         ctx.globalAlpha = 1;
       });
       var s = scr(cx, cy, 0);
-      if (t < 18 && ramp !== 'violet') { ctx.fillStyle = P('fire', 2); var r = 4 + t * 2; ctx.fillRect(s.x - r, s.y - r / 2 - 10, r * 2, r); }
+      if (t < 18 && (!ramp || ramp === 'fire')) { ctx.fillStyle = P('fire', 2); var r = 4 + t * 2; ctx.fillRect(s.x - r, s.y - r / 2 - 10, r * 2, r); }
+    } });
+  };
+  // the roost coming down over the iso map (the 8-bit game's js/battle.js swarm(), 160 frames of bats from the top, a shake every
+  // ten): drawn over the whole screen, the world darkening under it; battle.js finish('roost') waits on it before the hand-off
+  FX.swarm = function () {
+    var bats = [], W = D.W, H = D.H;
+    function bat() { return { x: Math.random() * W, y: -8 - Math.random() * 40, vx: (Math.random() - 0.5) * 3, vy: 1.6 + Math.random() * 3.6, ph: Math.floor(Math.random() * 8) }; }
+    return FX.add({ kind: 'swarm', screen: true, dur: 210, draw: function (ctx) {
+      var t = this.t;
+      if (t < 160) for (var k = 0; k < 3 + (t >> 3) && bats.length < 900; k++) bats.push(bat());
+      ctx.globalAlpha = Math.min(0.75, t / 200); ctx.fillStyle = '#0a0608'; ctx.fillRect(0, 0, W, H); ctx.globalAlpha = 1;
+      for (var i = 0; i < bats.length; i++) {
+        var b = bats[i];
+        b.x += b.vx + Math.sin((t + b.ph * 7) / 5) * 0.8; b.y += b.vy;
+        if (b.y > H + 10) { b.y = -8; b.x = Math.random() * W; }
+        var up = ((t + b.ph) >> 2) & 1, x = Math.round(b.x), y = Math.round(b.y);
+        ctx.fillStyle = ['#1a1418', '#3a2e30', '#5a4a48'][i % 3];
+        ctx.fillRect(x - 1, y, 3, 3);
+        if (up) { ctx.fillRect(x - 5, y - 2, 4, 2); ctx.fillRect(x + 2, y - 2, 4, 2); } else { ctx.fillRect(x - 5, y + 2, 4, 2); ctx.fillRect(x + 2, y + 2, 4, 2); }
+      }
     } });
   };
   FX.sparkle = function (u, ramp, n) {

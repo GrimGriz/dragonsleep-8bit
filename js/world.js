@@ -430,8 +430,8 @@
   Field.prototype.drawDark = function (ctx, cx, cy) {
     if (!darkBuf) { darkBuf = document.createElement('canvas'); darkBuf.width = 256; darkBuf.height = 240; }
     var d = darkBuf.getContext('2d'), m = this.map, lights = [];
-    var lamp = DS.G.has && DS.G.has('ledgerlamp');
-    lights.push({ x: this.px - cx + 8, y: this.py - cy + 8, r: this.lightR || (m.src.highway ? (lamp ? 84 : 56) : (m.src.lightR || 72)) });
+    var lamp = DS.G.has && DS.G.has('ledgerlamp'), torch = !!(DS.G.flags && DS.G.flags.torchBy); // (a torch carried: events.js useFieldItem; torchdark 09-28)
+    lights.push({ x: this.px - cx + 8, y: this.py - cy + 8, r: (this.lightR || (m.src.highway ? (lamp ? 84 : 56) : (m.src.lightR || 72))) * (torch ? 1.3 : 1) * (torch ? 0.97 + 0.03 * Math.sin(DS.frame / 6) : 1), warm: torch, torch: torch });
     // the ledger-lamp shows the seals: a whole one white, a cut one red (spec §6.2: the surveyor's instrument of the road)
     var seals = lamp ? (m.src.seals || []).map(function (q) { return { x: q.x, y: q.y, r: 22, col: q.cut ? 'rgba(255,70,40,0.42)' : 'rgba(210,225,255,0.34)' }; }) : [];
     (m.src.lights || []).concat(this.lights || [], seals).forEach(function (l) {
@@ -449,10 +449,10 @@
       d.fillStyle = g; d.fillRect(l.x - l.r * 1.4, l.y - l.r * 1.4, l.r * 2.8, l.r * 2.8);
     });
     ctx.drawImage(darkBuf, 0, 0);
-    // a kept flame warms what it lights
+    // a kept flame warms what it lights (and a torch in the party's hand)
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    lights.slice(1).forEach(function (l) {
-      if (!l.warm) return;
+    lights.forEach(function (l, i) {
+      if (!l.warm || (i === 0 && !l.torch)) return;
       var g = ctx.createRadialGradient(l.x, l.y, 0, l.x, l.y, l.r);
       g.addColorStop(0, l.col || 'rgba(255,170,80,0.16)'); g.addColorStop(1, 'rgba(255,170,80,0)');
       ctx.fillStyle = g; ctx.fillRect(l.x - l.r, l.y - l.r, l.r * 2, l.r * 2);

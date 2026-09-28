@@ -45,6 +45,29 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
   8-bit game's `../js/font.js`, `../data/data.js` and `../js/rules.js`, so the lettering and the character maths are
   the 8-bit game's own. Nothing here is loaded by the 8-bit game.
 
+## Torchdark — the dark, and the light with a place (09-28)
+
+Griz, 09-28: *"The players will need to be able to still see in the dark, even if the characters can't. I think shooting
+blind is just handled with a -4."* So: a map marked `dark` (the 8-bit maps' own `dark`, carried across the seam; 26 of
+the grid's maps) is dark but for the lamps and fires it keeps (`lights: [x, y, r, color, dimOnly]`) and what the party
+brings — a torch in hand, the Light cantrip on someone's gear, a burning blade, the Sunshaft staff, Sacred Weapon's glow,
+Daylight at a point. Every light is bright so far and dim as far again; dim light is enough to see by. **The player
+sees the whole grid**; what no one of the four can see is greyed and dimmed (the campfire's light pass, `js/light.js`).
+Each character sees by the light a creature stands in and by its own darkvision (Lymen 60 ft, the dwarves; the sheets
+say who else: `data/foes.js` `darkvision`, `blindsight`, `blind`). **An attack at a creature the attacker cannot see for
+want of light takes -4** (his table); magical darkness, fog, the invisible and blindness keep the SRD's disadvantage; an
+unseen attacker has advantage; a spell that wants "a creature you can see" cannot take one unseen. The AI reads the
+same rule. **Torches are hands:** ITEM lights one (an action; the Thief's bonus) if a hand is free — a two-handed
+weapon takes both, a shield one — so Aurdin or Vivian carries it and Lymen cannot; DROP leaves it burning where it
+fell, THROW lands it within 20 ft, DOUSE stows it, TAKE UP the one at your feet; a versatile weapon held with a torch
+hits for its one-handed die; under the roost it is fire, greyed. The eleven spells that waited on the dark are built
+(Dancing Lights, Fog Cloud, Continual Flame, Darkvision, Invisibility, See Invisibility, Sleet Storm, Stinking Cloud,
+Mislead, Pass Without Trace, True Seeing), and the sheets' sight todos (the darkmantle's aura and blinding crush, the
+cloaker's fold, the duergar's Invisibility). "Magic Missile at the darkness": a dart aimed at a square the caster cannot
+see into strikes what stands there (`D.RULES.missilesAtTheDark`, a switch). The roost coming down is drawn over the
+map before the hand-off. Open for Griz: the torch's action (a switch, `L.LIGHT_COST`), whether the -4 also covers
+spells and melee (it does as built), the dark maps map by map.
+
 ## The ladder (`?ladder`) — the leveling simulator
 
 https://grimgriz.github.io/dragonsleep-8bit/deep16/?ladder · Griz, 09-27: *"win this fight, level up, and we slowly

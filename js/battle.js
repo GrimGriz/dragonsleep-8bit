@@ -20,6 +20,10 @@
     var self = this;
     this.kind = 'battle'; this.opaque = true; this.o = o;
     this.round = 1; this.msg = ''; this.fx = []; this.nums = []; this.bright = !!o.bright; this.over = null;
+    // torchdark (09-28): a dark place (the map's `dark`, the night's tint: events.js EV.fight) is dark till someone makes a light.
+    // `lit`: light enough to see by (a torch, the Light cantrip, Dancing Lights, a burning blade); `bright`: bright light (the
+    // dazzle, the roost's one law). Without light whoever has no darkvision attacks blind: -4 to hit (Griz's table; blindPen)
+    this.dark = !!o.dark && !o.bright; this.lit = !this.dark; this.torchBy = o.torch || null;
     this.flashT = 0; this.shake = 0; this.intro = 32;
     this.bg = DS.battleBg(o.bg || 'plains');
     var party = DS.G.party;
@@ -41,8 +45,14 @@
     this.layoutFoes();
     this.layoutHeroes();
     this.tauntWearer = null;
+    // a light the party carries in (the Sunshaft staff, a Continual Flame, a torch lit in the field): the place is lit from the first round
+    if (this.dark && (this.heroes.some(function (u) { return R.carriesLight(u.h); }) || (this.torchBy && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })))) { this.lit = true; this.bright = true; }
   }
   DS.Battle = Battle;
+  // who sees in the dark without a light: a hero by blood or the day's spell (R.darkvision), a monster by its sheet's senses
+  Battle.prototype.seesDark = function (u) { return isHero(u) ? R.darkvision(u.h) > 0 : !!(u.m.senses && (u.m.senses.darkvision || u.m.senses.blindsight)); };
+  // shooting blind (RULED 09-28: "a -4"): in the dark, with no light made, an attacker with no darkvision takes -4 to hit
+  Battle.prototype.blindPen = function (a) { return this.dark && !this.lit && !this.seesDark(a) ? -4 : 0; };
   Battle.prototype.makeFoe = function (m, nm) {
     return {
       side: 'foe', m: m, id: m.id, name: nm, hp: m.hp, maxhp: m.hp, conds: {}, buff: null, dead: false, art: DS.monsterArt(m.art || m.id, m.tint),
@@ -197,7 +207,8 @@
     var adv = 0, dis = 0;
     if (a.conds.hidden) adv++;
     if (a.conds.invisible) adv++;
-    if (t.conds.invisible) dis++;
+    if (t.conds.invisible && !a.conds.seeInvisible) dis++;
+    if (this.dark && !this.lit && this.seesDark(a) && !this.seesDark(t)) adv++; // unseen attacker (SRD): the one who sees in the dark on the one who does not
     if (a.conds.reckless) adv++;
     if (t.conds.reckless) adv++;
     if (a.conds.poisoned || a.conds.frightened || a.conds.restrained || a.conds.blinded || a.conds.prone) dis++;
@@ -296,6 +307,8 @@
     if (this.o.introText) yield* this.say(this.o.introText, 70);
     for (var hk = 0; hk < (DS.battleHooks || []).length; hk++) yield* DS.battleHooks[hk](this);
     if (this.o.roost) yield* this.say('Overhead, the roost: millions of sleeping wings. No fire. No bright light.', 60);
+    if (this.dark && !this.lit) yield* this.hold('Dark. Nobody without darkvision can see to aim: -4 to hit until somebody makes a light.');
+    else if (this.dark && this.torchBy) { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy; })[0]; if (tb) yield* this.say(nameOf(tb) + ' holds the torch up.', 40); }
     // Sense Magic: the chuul feels a ring of binding coming
     var ringU = this.heroes.filter(function (u) { var r = R.item(u.h.equip.ring); return r && r.ring && r.ring.taunt; })[0];
     if (ringU) {
@@ -472,6 +485,7 @@
     // conditions that ride on another
     Object.keys(u.conds).forEach(function (k) { var c = u.conds[k]; if (c && c.linked && !u.conds[c.linked]) { delete u.conds[k]; msgs.push(plain(u) + ' can move again.'); } });
     if (u.buff && u.buff.rounds != null && --u.buff.rounds <= 0) { msgs.push(plain(u) + "'s " + u.buff.name + ' fades.'); u.buff = null; }
+    if (this.cloud && isHero(u) && !u.guest && --this.cloud.rounds <= 0) { msgs.push(this.cloud.kind === 'fog' ? 'The fog thins and is gone.' : this.cloud.kind === 'stink' ? 'The yellow cloud drifts apart.' : 'The sleet stops.'); this.cloud = null; }
     for (var i = 0; i < msgs.length; i++) yield* this.say(msgs[i], 34);
   };
 
@@ -514,7 +528,7 @@
       var held = u.conds.grappled || u.conds.engulfed || (u.conds.restrained && u.conds.restrained.escape);
       var skills = this.skillList(u, st);
       var castable = R.spellList(h, 'battle').concat(h.cls === 'paladin' && R.maxSlotLevel(h) > 0 ? [DS.DATA.spells.smite] : []);
-      var items = this.battleItems();
+      var items = this.battleItems(u);
       var fastHands = h.subclass === 'Thief' && st.bonus > 0; // Thief: ITEM as a bonus action
       var cmds = [
         { label: 'FIGHT', value: 'fight' },
@@ -578,9 +592,15 @@
     }
     return L;
   };
-  Battle.prototype.battleItems = function () {
+  Battle.prototype.battleItems = function (u) {
+    var self = this;
     return DS.G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && it.use && it.use.battle && s.n > 0; })
-      .map(function (s) { var it = DS.DATA.items[s.id]; return { label: it.name, right: 'x' + s.n, value: s.id }; });
+      .map(function (s) {
+        var it = DS.DATA.items[s.id];
+        // a torch (torchdark 09-28): a free hand to hold it, and never under the roost (greyed, as the grid greys it)
+        if (it.use.effect === 'light' && u) { if (self.o.roost) return { label: it.name, right: 'ROOST', value: s.id, disabled: true }; if (!R.freeHands(u.h)) return { label: it.name, right: 'hands', value: s.id, disabled: true }; }
+        return { label: it.name, right: 'x' + s.n, value: s.id };
+      });
   };
   // target pickers ----------------------------------------------------------
   Battle.prototype.pickFoe = function* (filter) {
@@ -622,10 +642,11 @@
       // Cutthroat's Opening Cut: first round, a foe that hasn't moved yet
       var opening = h.subclass === 'Cutthroat' && this.round === 1 && !isHero(t) && !t.acted;
       if (opening) adv = adv < 0 ? 0 : 1;
-      var nat = this.d20(adv);
+      var nat = this.d20(adv), pen = this.blindPen(u), blindTxt = pen ? ' (blind: ' + pen + ')' : '';
       var bonus = R.attackBonus(h, w) + (u.buff && u.buff.atk ? u.buff.atk : 0) + (u.buff && u.buff.id === 'bless' ? DS.d(4) : 0);
-      var total = nat + bonus, ac = this.acOf(t);
+      var total = nat + bonus + pen, ac = this.acOf(t);
       var wasHidden = !!u.conds.hidden; delete u.conds.hidden;
+      if (u.conds.invisible && u.conds.invisible.ends) delete u.conds.invisible; // (Invisibility, Mislead: the swing had its advantage; the spell is gone)
       // the cloaker's phantasms: a hit may land on an image
       if (!isHero(t) && t.images > 0 && nat !== 20 && DS.d(t.images + 1) > 1 && total >= ac) {
         t.images--; DS.audio.sfx('miss');
@@ -634,7 +655,7 @@
       }
       if (nat === 1 || (nat !== 20 && total < ac)) {
         DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C');
-        yield* this.say(nameOf(u) + ' attacks ' + nameOf(t) + '... and misses.', 34);
+        yield* this.say(nameOf(u) + ' attacks ' + nameOf(t) + '... and misses.' + blindTxt, 34);
         continue;
       }
       var crit = nat >= R.critRange(h) || (melee && incap(t)) || opening;
@@ -665,7 +686,7 @@
       if (crit) { this.flashT = 6; this.shake = 6; }
       this.num(t, dealt, crit ? '#F8D878' : '#F8F8F8');
       var imm = dealt === 0 ? ' No effect!' : '';
-      yield* this.say((crit ? 'Critical! ' : '') + nameOf(u) + ' hits ' + nameOf(t) + ' for ' + dealt + '.' + extra + imm, crit ? 48 : 38);
+      yield* this.say((crit ? 'Critical! ' : '') + nameOf(u) + ' hits ' + nameOf(t) + ' for ' + dealt + '.' + extra + imm + blindTxt, crit ? 48 : 38);
       yield* this.flushMsg();
       if (down(t)) yield* this.say(nameOf(t) + ' is defeated!', 30);
     }
@@ -674,6 +695,7 @@
   Battle.prototype.tryRun = function* (u) {
     if (this.o.canRun === false) { yield* this.say('There is no running from this!', 40); return; }
     if (this.liveHeroes().some(function (x) { return x.conds.grappled || x.conds.engulfed; })) { yield* this.say('Someone is held fast. No one leaves.', 40); return; }
+    if (this.cloud && this.cloud.kind === 'fog') { DS.audio.sfx('run'); yield* this.say('The party slips away under the fog.', 36); this.over = 'run'; return; } // (Fog Cloud: nothing sees out of it)
     var best = 0; this.liveFoes().forEach(function (f) { best = Math.max(best, DS.mod(f.m.abil.dex || 10)); });
     var roll = DS.d(20) + DS.mod(u.h.abil.dex);
     if (roll >= 10 + best) { DS.audio.sfx('run'); yield* this.say('The party slips away!', 36); this.over = 'run'; }
@@ -812,15 +834,26 @@
     u.pose = 'cast'; u.poseT = 60;
     DS.audio.sfx(sp.sfx || 'magic');
     yield* this.say(nameOf(u) + ' casts ' + sp.name + '!', 34);
-    if (this.o.roost && (sp.kind === 'light' || sp.el === 'fire' || sp.el === 'thunder')) { // bright light (or fire) under the roost
-      this.usedFire = true; this.roostCause = sp.kind === 'light' ? 'light' : 'fire'; u.pose = null; return true;
+    if (u.conds.invisible && u.conds.invisible.ends) delete u.conds.invisible; // (Invisibility, Mislead: a spell cast ends it)
+    if (this.o.roost && ((sp.kind === 'light' && !sp.dim) || sp.buff === 'continualFlame' || sp.el === 'fire' || sp.el === 'thunder')) { // bright light (or fire) under the roost; dim light is lawful (RULED 09-28)
+      this.usedFire = true; this.roostCause = sp.el === 'fire' ? 'fire' : 'light'; u.pose = null; return true;
     }
     var up = slot ? slot - sp.level : 0, dc = R.spellDC(h), atk = R.spellAtk(h);
     var k = sp.kind;
     if (k === 'light') {
+      this.lit = true;
+      if (sp.dim) { this.flashT = 4; yield* this.say('Four small lights hover and turn. Dim, but light enough to see by.', 44); return true; } // Dancing Lights
       this.flashT = 10;
       this.foes.forEach(function (f) { f.conds.revealed = true; });
       yield* this.dazzle(nameOf(u) + "'s light floods the dark.");
+      return true;
+    }
+    // the clouds (torchdark 09-28), FF-simple: a Fog Cloud over the party (RUN gets away untried); a Stinking Cloud or a Sleet Storm
+    // over the foes (each turn inside: CON or the turn is lost; DEX or prone). Ten rounds
+    if (k === 'cloud') {
+      this.cloud = { kind: sp.cloud, rounds: 10, dc: dc, save: sp.save };
+      this.elemBurst(sp.cloud === 'fog' ? u : this.liveFoes()[0] || u, sp.cloud === 'sleet' ? 'cold' : sp.cloud === 'stink' ? 'poison' : 'buff', 'rise');
+      yield* this.say(sp.cloud === 'fog' ? 'Fog rolls out thick round the party. Nothing sees in, out or across it.' : sp.cloud === 'stink' ? 'A yellow, nauseating cloud settles over them.' : 'Freezing sleet comes down over them. The ground ices.', 48);
       return true;
     }
     for (var i = 0; i < targets.length && !this.over; i++) {
@@ -835,11 +868,11 @@
       if (k === 'attack') {
         var rays = (sp.rays || 1) + (sp.rayUp ? up : 0);
         for (var r = 0; r < rays && !down(t); r++) {
-          var adv = this.advantage(u, t, false), nat = this.d20(adv);
+          var adv = this.advantage(u, t, false), nat = this.d20(adv), bp = this.blindPen(u);
           var dice = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
           this.bolt(u, t, (ELEM[sp.el] || ELEM.force)[0]);
           yield this.wait(10);
-          if (nat === 1 || (nat !== 20 && nat + atk < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('It misses ' + nameOf(t) + '.', 26); continue; }
+          if (nat === 1 || (nat !== 20 && nat + atk + bp < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('It misses ' + nameOf(t) + '.' + (bp ? ' (blind: ' + bp + ')' : ''), 26); continue; }
           var d = this.hurt(t, DS.roll(dice, { crit: nat === 20 }), sp.el, { magicWeapon: true });
           if (sp.cond && !down(t)) t.conds[sp.cond] = { rounds: 1 };
           this.elemBurst(t, sp.el); t.flash = 12; DS.audio.sfx('hit'); this.num(t, d, '#F8D878');
@@ -886,7 +919,11 @@
         if (down(t)) continue;
         if (sp.buff === 'shield') { t.conds.shielded = true; }
         else if (sp.buff === 'mageArmor') { t.h.conds.mageArmor = true; }
-        else if (sp.buff === 'invisible') { t.conds.invisible = { rounds: 10 }; delete t.conds.hidden; }
+        else if (sp.buff === 'invisible') { t.conds.invisible = { rounds: 10, ends: sp.id === 'invisibility' }; delete t.conds.hidden; } // (the 2nd-level one ends when they attack or cast; Greater does not)
+        else if (sp.buff === 'mislead') { t.conds.invisible = { rounds: 10, ends: true }; delete t.conds.hidden; }
+        else if (sp.buff === 'seeInvisible') { t.conds.seeInvisible = { rounds: 10 }; }
+        else if (sp.buff === 'darkvision') { t.h.conds.darkvision = true; }
+        else if (sp.buff === 'continualFlame') { t.h.conds.continualFlame = t.h.equip.weapon || t.h.equip.armor || true; this.lit = true; this.flashT = 8; yield* this.dazzle(nameOf(u) + ' sets a flame on ' + plain(t) + "'s " + (R.item(t.h.equip.weapon) ? R.item(t.h.equip.weapon).name.toLowerCase() : 'gear') + ' that gives no heat.'); }
         else if (sp.buff === 'stoneskin') { t.conds.stoneskin = { rounds: 10 }; }
         else if (sp.buff === 'aid') { t.h.maxhp += 5 * (1 + up); t.h.hp += 5 * (1 + up); t.h.conds.aid = (t.h.conds.aid || 0) + 5 * (1 + up); }
         else {
@@ -906,7 +943,8 @@
     }
     if (k === 'buff') {
       var bt = targets.map(plain).join(', ');
-      yield* this.say(bt + (sp.buff === 'shield' ? ' raises a shield of force. +5 AC.' : sp.buff === 'shieldOfFaith' ? ': +2 AC.' : sp.buff === 'bless' ? ': blessed.' : sp.buff === 'mageArmor' ? ': mage armor.' : sp.buff === 'aid' ? ': +' + 5 * (1 + up) + ' max HP.' : sp.buff === 'heroism' ? ': heroism. No fear, and +' + Math.max(1, DS.mod(h.abil.cha)) + ' temporary HP at the start of each turn.' : ': ' + sp.name + '.'), 40);
+      yield* this.say(bt + (sp.buff === 'shield' ? ' raises a shield of force. +5 AC.' : sp.buff === 'shieldOfFaith' ? ': +2 AC.' : sp.buff === 'bless' ? ': blessed.' : sp.buff === 'mageArmor' ? ': mage armor.' : sp.buff === 'aid' ? ': +' + 5 * (1 + up) + ' max HP.' : sp.buff === 'heroism' ? ': heroism. No fear, and +' + Math.max(1, DS.mod(h.abil.cha)) + ' temporary HP at the start of each turn.'
+        : sp.buff === 'invisible' ? ': gone from sight' + (sp.id === 'invisibility' ? ', till they attack or cast.' : '.') : sp.buff === 'mislead' ? ': gone, and a double stands in the place.' : sp.buff === 'seeInvisible' ? ': the invisible stand plain.' : sp.buff === 'darkvision' ? ': darkvision, sixty feet.' : sp.buff === 'continualFlame' ? ': a light that will not go out.' : ': ' + sp.name + '.'), 40);
     }
     u.pose = null;
     return true;
@@ -956,10 +994,12 @@
       if (use.el === 'fire') this.usedFire = true;
       yield* this.say(nameOf(u) + ' throws ' + it.name + '! ' + nameOf(t) + ' takes ' + d + '.', 42);
       yield* this.flushMsg();
-    } else if (use.effect === 'light') {
+    } else if (use.effect === 'light') { // a torch (torchdark 09-28): a free hand to hold it (R.freeHands); the light for the fight
+      if (!R.freeHands(u.h)) { DS.G.give(id, 1); DS.audio.sfx('error'); yield* this.say('No free hand for a torch: ' + R.handsWhy(u.h) + '.', 44); return false; }
+      u.h.equip.torch = 1; this.torchBy = u.h.id; this.lit = true;
       this.flashT = 8; this.usedFire = true; this.roostCause = 'light';
       if (this.o.roost) return true; // the torch is lit under the roost: that's the end of it
-      yield* this.dazzle(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.');
+      yield* this.dazzle(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.' + (this.dark ? ' Twenty feet of the dark gives way.' : ''));
     } else if (use.effect === 'fortify') { // Marta's bat-wing pie: +2 CON (a +1 to CON saves) and +5 HP for the fight
       if (t.fortified) { DS.G.give(id, 1); yield* this.say(nameOf(t) + ' has already eaten.', 30); return false; }
       t.fortified = true; t.h.maxhp += 5; t.h.hp += 5;
@@ -1001,6 +1041,15 @@
       yield* this.say(nameOf(f) + ' comes back out of the wall!', 36);
     }
     if (this.runner() === f) { yield* this.foeFlee(f); return; }
+    // the clouds over them (torchdark): the stinking cloud's CON or the turn goes on retching; the sleet's DEX or down on the ice
+    if (this.cloud && this.cloud.kind === 'stink' && (m.condImmune || []).indexOf('poisoned') < 0 && (m.immune || []).indexOf('poison') < 0) {
+      var sc = this.save(f, 'con', this.cloud.dc, { poison: true });
+      if (!sc.success) { yield* this.say(nameOf(f) + ' retches and reels in the yellow cloud. (' + sc.total + ' vs DC ' + this.cloud.dc + ')', 40); return; }
+    }
+    if (this.cloud && this.cloud.kind === 'sleet' && !f.conds.prone && (m.condImmune || []).indexOf('prone') < 0) {
+      var ss = this.save(f, 'dex', this.cloud.dc);
+      if (!ss.success) { f.conds.prone = true; yield* this.say(nameOf(f) + ' goes down on the ice. (' + ss.total + ' vs DC ' + this.cloud.dc + ')', 36); return; }
+    }
     if (f.conds.frightened && DS.d(2) === 1) { yield* this.say(nameOf(f) + ' cowers.', 30); return; }
     if (f.conds.restrained && f.conds.restrained.escape) {
       if (this.check(f, 'str', 'Athletics') >= f.conds.restrained.escape) { delete f.conds.restrained; yield* this.say(nameOf(f) + ' tears free of the web.', 32); }
@@ -1042,8 +1091,8 @@
     var melee = !atk.ranged;
     var adv = this.advantage(f, t, melee);
     if (atk.autoHitHeld && f.holding.indexOf(t) >= 0) adv = 1;
-    var dazzle = this.bright && f.m.traits && f.m.traits.lightSensitive ? ' (dazzled: disadvantage)' : '';
-    var nat = this.d20(adv), tot = nat + atk.hit, ac = this.acOf(t);
+    var bp = this.blindPen(f), dazzle = (this.bright && f.m.traits && f.m.traits.lightSensitive ? ' (dazzled: disadvantage)' : '') + (bp ? ' (blind: ' + bp + ')' : '');
+    var nat = this.d20(adv), tot = nat + atk.hit + bp, ac = this.acOf(t);
     if (atk.dmg === '0' && (nat === 20 || (nat !== 1 && tot >= ac))) { // a grab that does no harm by itself (the roper's tendrils)
       yield* this.say(nameOf(f) + ' ' + (atk.verb || 'reaches for') + ' ' + nameOf(t) + '.', 30);
       yield* this.applyRider(f, t, atk, true);
@@ -1233,6 +1282,9 @@
       u.conds = {}; u.buff = null;
       if (u.fortified) { u.h.maxhp -= 5; u.h.hp = Math.min(u.h.hp, u.h.maxhp); u.fortified = false; }
     });
+    // a torch lit in the fight burns on into the dark map (the field's glow; events.js puts it out at a rest or a door)
+    if (this.torchBy && this.dark && this.over !== 'roost') { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy && !down(u); })[0]; if (tb) { DS.G.flags.torchBy = tb.h.id; tb.h.equip.torch = 1; } }
+    if (!DS.G.flags.torchBy) this.heroes.forEach(function (u) { delete u.h.equip.torch; });
     if (this.over === 'roost') { // the roof lets go: bats fill the screen, then the other kind of name
       yield* this.swarm();
       DS.audio.play('gameover');
@@ -1333,6 +1385,8 @@
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 256, 240);
     ctx.drawImage(this.bg, sx, 20);
     if (this.bright) { ctx.globalAlpha = 0.12; ctx.fillStyle = '#F8F0C0'; ctx.fillRect(0, 20, 256, 132); ctx.globalAlpha = 1; }
+    if (this.dark && !this.lit) { ctx.globalAlpha = 0.5; ctx.fillStyle = '#04061a'; ctx.fillRect(0, 20, 256, 132); ctx.globalAlpha = 1; } // (the dark: the player sees, the characters don't)
+    if (this.cloud) { ctx.globalAlpha = 0.22; ctx.fillStyle = this.cloud.kind === 'fog' ? '#c8ccd8' : this.cloud.kind === 'stink' ? '#a8c040' : '#a8d8f8'; ctx.fillRect(this.cloud.kind === 'fog' ? 128 : 0, 20, 128, 132); ctx.globalAlpha = 1; }
     var self = this, act = this.active;
     // foes
     this.foes.forEach(function (f) {

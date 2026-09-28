@@ -12,6 +12,8 @@ An 8-bit, turn-based RPG of Silverton and the Silverton–Pit corridor, in the s
 
 **Past the door, 16-bit:** [`deep16/`](deep16/README.md) is a proof of concept of the world beyond Deepholm's door at a Diablo angle, on a 5-ft grid with more of the 5E rules (https://grimgriz.github.io/dragonsleep-8bit/deep16/, or PAST THE DOOR after the expansion's credits).
 
+**The dark (09-28):** the mines, the wet, the Burial and the road under the mountain are dark. You see the map; the characters see by their torches (a hand each), their lights and their darkvision, and whoever swings at what they cannot see does it at -4 until somebody makes a light. Torches are a silver at the Provisioner's, the Chandler's and the garrison stores.
+
 ## What's in it
 
 - **Silverton** — Fountain Street, the Weigh-House bounty board, the Hex and its fight card, vice row, the Shaft Rows, shops, the mission chapel, the leech-house, Winters' Acquisitions & Estates.

@@ -33,5 +33,6 @@ window.D16.MAPS.cavern = {
   ],
   // when those three are down: the cocoon at (5, 1) splits, and what was in it drops to the nearest free floor
   wave: { id: 'drider', kind: 'drider', from: [5, 1] },
-  lights: [[3, 1, 40, 'violet'], [5, 1, 40, 'violet']]
+  dark: true, // torchdark (09-28): off the road below Third Lamp, no lamp of its own
+  lights: [[3, 1, 40, 'violet', 1], [5, 1, 40, 'violet', 1]] // the cocoons' glow: dim, 40 ft (nothing bright: a rogue can still hide in it)
 };

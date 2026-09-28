@@ -10,9 +10,17 @@
 
   // "The troll", but "Willem" (a foe with a name of its own is `named`)
   function the(B, u) { return (u.named ? '' : 'The ') + B.shortName(u); }
+  // the foes a creature knows of: those it can see (magic.js seeWhy: the light, the dark, its darkvision, the fog, the invisible)
+  // and any beside it (heard, felt); a hidden one only beside it (torchdark, 09-28)
   function heroes(B, u) {
-    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && ((!w.conds.hidden && !w.conds.invisible) || G.dist(u, w) <= 5); });
+    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && ((!w.conds.hidden && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); });
+    if (seen.length) return seen;
+    // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
+    // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)
+    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.conds.hidden; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
   }
+  // the creature's own eyes from another square (the AI weighing a move)
+  function eyesAt(u, x, y) { return { x: x, y: y, size: u.size || 1, darkvision: u.darkvision, blindsight: u.blindsight, blind: u.blind, truesight: u.truesight, devilSight: u.devilSight, seeInvisible: u.seeInvisible, conds: u.conds }; }
   // the square to walk to: in reach of the target for least movement, else as close as the move allows
   function approach(u, tgt, rm, reach) {
     var best = null, bs = Infinity;
@@ -152,12 +160,14 @@
     yield { fx: 1 };
     yield 30;
   }
-  function visibleFrom(u, x, y, hs) { return hs.filter(function (w) { var l = G.los(u, w, x, y); return l.clear && D.magic.sees(D.battle, { x: x, y: y, size: u.size || 1 }, w); }); }
+  function visibleFrom(u, x, y, hs) { return hs.filter(function (w) { var l = G.los(u, w, x, y); return l.clear && D.magic.sees(D.battle, eyesAt(u, x, y), w); }); }
+  // a bright light near the drow: they throw their Darkness at once, to swallow it (the Light cantrip, a torch); else on the 8-bit's chance
+  function wantsDark(B, u) { return D.light.brightNear(B, u, 60) || D.d(100) <= u.darkness.chance * 100; }
   function* drow(B, u) {
     var T = u.turn, hs = heroes(B, u), bow = u.attacks.crossbow, blade = u.attacks.shortsword, self = this;
     if (!hs.length) { B.card(['{g}The captain looks for someone to shoot and finds no one.{/}']); yield 30; return; }
     // innate Darkness, once (the 8-bit's chance, or at once to swallow a Light): review 09-28 #6
-    if (u.darkness && u.darkness.chance != null && !u.darkness.used && T.action && (B.bright || D.d(100) <= u.darkness.chance * 100)) {
+    if (u.darkness && u.darkness.chance != null && !u.darkness.used && T.action && wantsDark(B, u)) {
       if (yield* D.magic.castDarkness(B, u)) return;
     }
     // Faerie Fire, once: on the biggest cluster (two or more, or anyone on the first round)
@@ -271,7 +281,7 @@
     var T = u.turn, W = u.weave, hs = heroes(B, u), bolt = u.attacks.firebolt;
     if (!hs.length) return;
     // innate Darkness, once (the weaver's, the 8-bit's `darkness` special; at once to swallow a Light): review 09-28 #6
-    if (u.darkness && u.darkness.chance != null && !u.darkness.used && T.action && (B.bright || D.d(100) <= u.darkness.chance * 100)) {
+    if (u.darkness && u.darkness.chance != null && !u.darkness.used && T.action && wantsDark(B, u)) {
       if (yield* D.magic.castDarkness(B, u)) return;
     }
     if (W.bolt.spent) { var rc = D.d(6); if (rc >= W.bolt.recharge) { W.bolt.spent = false; B.card(['{g}' + the(B, u) + ' ' + (W.bolt.again || 'draws the dark in again') + ' (d6 ' + rc + ').{/}'], 200); yield 12; } }
@@ -342,9 +352,9 @@
     var shot = { name: 'Web', atk: W.atk, dice: '0', mod: 0, type: 'web', range: W.range, ranged: true, fx: 'bolt' };
     u.facing = B.faceTo(u, tgt); u.anim = 'attack'; u.animT = B.t;
     FX.projectile(u, tgt, 'bolt'); yield { fx: 1 };
-    var e = RU.edges(u, tgt, shot), r = RU.d20(e.net), tot = r.pick + W.atk, ac = RU.ac(tgt) + G.los(u, tgt).cover;
+    var e = RU.edges(u, tgt, shot), r = RU.d20(e.net), tot = r.pick + W.atk + (e.pen || 0), ac = RU.ac(tgt) + G.los(u, tgt).cover;
     var hit = r.pick === 20 || (r.pick !== 1 && tot >= ac);
-    var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
+    var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '') + (e.pen ? '  {o}' + e.penWhy + ' ' + e.pen + '{/}' : '');
     B.card(['{r}' + u.name + '{/} > {y}' + tgt.name + '{/}  WEB (recharge ' + W.recharge + '-6)', 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + r.pick + ' ' + RU.sign(W.atk) + ' = ' + tot + '  vs AC ' + ac + '  ' + (hit ? '{n}HIT{/}: {o}RESTRAINED{/} {g}(escape DC ' + W.dc + ', an action){/}' : '{g}MISS{/}') + why], 360);
     D.sfx(hit ? 'hit' : 'miss');
     if (hit) { tgt.conds.restrained = { dc: W.dc, by: u.id }; FX.ring(tgt, 'bone', 26); FX.sparkle(tgt, 'bone', 12); }
@@ -476,8 +486,21 @@
       B.card(['{r}' + the(B, u) + '{/} catches a second wind.  +' + sw.total]); yield 20;
     }
     // innate Darkness (the drow, the captain, the weaver: once, on the 8-bit's chance, or at once to swallow a Light): magic.js castDarkness
-    if (u.darkness && u.darkness.chance != null && !u.darkness.used && T.action && hs.length && (B.bright || D.d(100) <= u.darkness.chance * 100)) {
+    if (u.darkness && u.darkness.chance != null && !u.darkness.used && T.action && hs.length && wantsDark(B, u)) {
       if (yield* D.magic.castDarkness(B, u)) return;
+    }
+    // the darkmantle's Darkness Aura (SRD, 1/day; torchdark 09-28): the dark pulled in round it the turn it first has someone to
+    // hunt -- it hunts by blindsight, they do not (magic.js castAura; the sphere goes where it goes)
+    if (u.aura && !u.aura.used && T.action && hs.length && !u.conds.hidden) { if (yield* D.magic.castAura(B, u)) return; }
+    // the duergar's Invisibility (SRD, an action; torchdark 09-28): with no one in reach yet it fades from sight and closes unseen;
+    // the first blow, a spell or its Enlarge ends it (battle.js attack)
+    if (u.invis && !u.invis.used && !u.conds.invisible && T.action && hs.length && !hs.some(function (w) { return G.dist(u, w) <= reachOf(u); })) {
+      T.action = 0; u.invis.used = true; u.conds.invisible = { ends: true }; delete u.conds.hidden; D.sfx('magic'); FX.sparkle(u, 'silver', 18);
+      B.card(['{r}' + the(B, u) + '{/} fades out of sight.  {g}(Invisibility: till it attacks, casts or grows){/}'], 360);
+      yield 30;
+      var closeOn = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], e0 = approach(u, closeOn, G.reach(u, T.move), reachOf(u));
+      if (e0 && (e0.x !== u.x || e0.y !== u.y)) yield* walkTo(B, u, e0);
+      return;
     }
     // it bolts (the wheelwright, when Hask is down): Dash for the map's exit and gone -- the player's opportunity attacks are
     // the only stop. (Amara and Willem, who fight only to get away, give ground a step at a time instead: shooter())
@@ -546,9 +569,10 @@
     var inReachNow = heroes(B, u).filter(function (w) { return G.dist(u, w) <= reachOf(u); });
     // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow)
     if (!inReachNow.length && ranged.length) { if (yield* volley(B, u)) return; }
-    // Enlarge (the duergar), once, when there is no one to hit yet: its pick hits for the bigger dice from now on
+    // Enlarge (the duergar), once, when there is no one to hit yet: its pick hits for the bigger dice from now on (and its Invisibility ends)
     if (!inReachNow.length && u.enlarge && !u.enlarge.used) {
       T.action = 0; u.enlarge.used = true;
+      if (u.conds.invisible && u.conds.invisible.ends) { delete u.conds.invisible; B.card(['{g}' + the(B, u) + ' comes back into sight, swelling.{/}'], 200); }
       var big = {}; Object.keys(u.attacks).forEach(function (k) { big[k] = Object.assign({}, u.attacks[k]); if (!big[k].ranged) big[k].dice = u.enlarge.dice; }); u.attacks = big;
       D.sfx('buff'); FX.ring(u, 'stone', 30); B.card(['{r}' + the(B, u) + '{/} swells to twice its size!  {g}(Enlarge: its blows hit for ' + u.enlarge.dice + '){/}']);
       yield 30; return;

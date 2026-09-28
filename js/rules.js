@@ -64,7 +64,9 @@
     if (long) {
       h.slotsMax = R.slotsFor(h);
       h.slots = h.slotsMax.slice();
+      var flame = h.conds && h.conds.continualFlame; // (a Continual Flame never goes out: it outlasts the night)
       h.hp = h.maxhp; h.ko = false; h.conds = {}; h.buff = null;
+      if (flame) h.conds.continualFlame = flame;
       if (h.id === 'lymen') f.relentless = 1;
     }
     if (!h.slots) { h.slotsMax = R.slotsFor(h); h.slots = h.slotsMax.slice(); }
@@ -178,7 +180,29 @@
   R.twoHanded = function (h, w) {
     var p = w.weapon.props || [];
     if (p.indexOf('two-handed') >= 0) return true;
-    return p.indexOf('versatile') >= 0 && !h.equip.shield;
+    return p.indexOf('versatile') >= 0 && !h.equip.shield && !h.equip.torch; // (a torch in the other hand: one-handed)
+  };
+  // ---------------------------------------------------------------- torchdark (09-28; Griz: "Aurdin would pretty much have to carry it lest lyman
+  // drop shield"). Hands: a two-handed weapon takes both, a shield one, a torch one, fists none. One law for both games
+  // (DEEP16 reads these too: deep16/js/light.js). Darkvision by blood (SRD 5.1) off the sheet's race, or the day's Darkvision
+  // spell (conds.darkvision, till the long rest). A light carried in: the Sunshaft staff (always lit), a Continual Flame
+  R.freeHands = function (h) {
+    var w = R.weaponOf(h), p = w.weapon.props || [];
+    var used = (w.id === 'unarmed' ? 0 : p.indexOf('two-handed') >= 0 ? 2 : 1) + (h.equip.shield ? 1 : 0) + (h.equip.torch ? 1 : 0);
+    return Math.max(0, 2 - used);
+  };
+  R.handsWhy = function (h) {
+    var w = R.weaponOf(h), p = w.weapon.props || [], bits = [];
+    if (w.id !== 'unarmed') bits.push((p.indexOf('two-handed') >= 0 ? 'both hands on the ' : 'the ') + w.name.toLowerCase());
+    if (h.equip.shield) bits.push('the shield');
+    if (h.equip.torch) bits.push('a torch already');
+    return bits.join(' and ') || 'both hands full';
+  };
+  R.RACE_DV = { 'Half-orc': 60, 'Dwarf': 60, 'Elf': 60, 'Gnome': 60, 'Tiefling': 60, 'Drow': 120 };
+  R.darkvision = function (h) { var d = DS.DATA.heroes[h.id]; return Math.max(R.RACE_DV[d && d.race] || 0, h.conds && h.conds.darkvision ? 60 : 0); };
+  R.carriesLight = function (h) {
+    if (h.conds && h.conds.continualFlame) return true;
+    return Object.keys(h.equip || {}).some(function (s) { var it = R.item(h.equip[s]); return !!(it && it.light && it.light.when === 'always'); });
   };
   R.attackBonus = function (h, w) {
     w = w || R.weaponOf(h);
@@ -288,6 +312,6 @@
   R.canAct = function (u) { return !u.ko && u.hp > 0 && !u.conds.paralyzed && !u.conds.asleep && !u.conds.stunned; };
   R.CONDS = {
     poisoned: 'PSN', frightened: 'FRT', restrained: 'RST', prone: 'PRN', asleep: 'SLP', paralyzed: 'PAR', grappled: 'GRP',
-    blinded: 'BLD', hidden: 'HID', stunned: 'STN', engulfed: 'ENG', invisible: 'INV', stoneskin: 'STN'
+    blinded: 'BLD', hidden: 'HID', stunned: 'STN', engulfed: 'ENG', invisible: 'INV', stoneskin: 'STN', seeInvisible: 'SEE'
   };
 })();

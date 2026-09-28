@@ -77,9 +77,13 @@
       var seer = g.party.some(function (h) { if (h.ko) return false; var w = DS.R.item(h.equip && h.equip.weapon); return !!(w && w.weapon && w.weapon.reveals); });
       // the fight is the 8-bit scene's own foes (RULED 09-28, Griz: "8-bit's list"), and its opening: who was caught unaware
       // (`surprised`), whether the light was already on them (`revealed`), what a foe who yields says (`yieldText`)
+      // torchdark (09-28): whether it is dark where the fight is (the 8-bit map's `dark`, the night's tint: EV.darkHere), and who
+      // walked in holding a lit torch (the field's g.flags.torchBy)
+      var dark = o.dark != null ? !!o.dark : (DS.EV.darkHere ? DS.EV.darkHere() : false);
       if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
         canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null, enemies: o.enemies || null,
-        surprised: o.surprised || null, revealed: !!o.revealed || seer, yieldText: o.yieldText || null } }, '*');
+        surprised: o.surprised || null, revealed: !!o.revealed || seer, yieldText: o.yieldText || null,
+        dark: dark, torch: o.torch || g.flags.torchBy || null } }, '*');
       if (m.type === 'd16:done' || m.type === 'd16:refuse') {
         window.removeEventListener('message', onMsg);
         fr.parentNode.removeChild(fr);
@@ -112,6 +116,12 @@
       else if (h.conds.mageArmor && r.equip && DS.R.armored(Object.assign({}, h, { equip: r.equip }))) delete h.conds.mageArmor; // (armour put on in the fight ends it)
       // EQUIP in the fight (a weapon drawn, a shield on or off) crosses back (RULED 09-28: "all changes in 16 should cross back to 8bit")
       if (r.equip && h.equip) ['weapon', 'shield', 'armor'].forEach(function (k) { if (k in r.equip) h.equip[k] = r.equip[k]; });
+      // torchdark: the day's Darkvision and a Continual Flame stay on him; a torch still burning in his hand burns on into the map
+      if (r.darkvision) h.conds.darkvision = true;
+      if (r.continualFlame && !h.conds.continualFlame) h.conds.continualFlame = h.equip.weapon || true;
+      if (r.torch && DS.EV.darkHere && DS.EV.darkHere()) { g.flags.torchBy = h.id; h.equip.torch = 1; }
+      else if (g.flags.torchBy === h.id) { delete g.flags.torchBy; delete h.equip.torch; } // (dropped, thrown, put out or spent in the fight)
+      if (!r.torch) delete h.equip.torch;
     });
     // the pack: what the fight used is gone (a potion drunk, a bolt loosed), never below none. The party fights with only
     // what it brought (no crossbow lent here, Griz 09-27)

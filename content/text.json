@@ -727,5 +727,12 @@
   "deep.wintersPaid": {"t": "It goes into a drawer that locks. He writes nothing down, which for Winters is a kind of shouting.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts)"},
   "deep.luciaCurl": {"t": "Lucia looks at the curl of copper for a long time. \"Give it here.\" That is all she says.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8 (Lucia pays nothing, tells the party nothing, and takes it)"},
   "deep.luciaTook": {"t": "She puts it with something else in a cloth, and her mortar starts again. From then on, the antitoxin is at cost for you.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8 (from then on Mama's Pharmakaiea sells the party antitoxin at cost; neither says the word egg)"},
-  "deep.luciaAtCost": {"t": "Antitoxin at cost, for you. Mama says.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8"}
+  "deep.luciaAtCost": {"t": "Antitoxin at cost, for you. Mama says.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8"},
+  "g.torchLit": {"t": "{name} strikes a light and carries the torch. Twenty feet of the dark gives way.", "src": "SRD 5.1 (Torch); torchdark 09-28"},
+  "g.torchNoHand": {"t": "No free hand for a torch: {why}.", "src": "torchdark 09-28 (Griz: 'lest lyman drop shield')"},
+  "g.torchNoNeed": {"t": "It is light enough here to see by. Save the torch.", "src": "invented: connective"},
+  "g.torchAlready": {"t": "{name} carries a torch already. One is enough.", "src": "invented: connective"},
+  "g.darkvision": {"t": "{name}: darkvision. The dark opens out to sixty feet, grey and plain, until the next long rest.", "src": "SRD 5.1 (Darkvision)"},
+  "g.continualFlame": {"t": "{name}'s weapon takes a flame with no heat in it, torch-bright. It will not go out.", "src": "SRD 5.1 (Continual Flame)"},
+  "g.flameNothing": {"t": "Nothing in hand to put a flame on.", "src": "invented: connective"}
 }

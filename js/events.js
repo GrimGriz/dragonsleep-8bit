@@ -31,6 +31,7 @@
   // ------------------------------------------------------------------ movement & maps
   EV.warp = function* (to, tx, ty, dir, w) {
     var prev = F().map ? F().map.src.name : null;
+    if (F().map && to !== F().map.id) EV.torchOut(); // (another map: the field torch is done)
     yield DS.fade(1, 12);
     F().load(to, tx, ty, dir);
     var nm = F().map.src.name;
@@ -60,11 +61,13 @@
     grp.e.forEach(function (e) { var n = e[1] + DS.rint(e[2] - e[1] + 1); for (var i = 0; i < n; i++) list.push(e[0]); });
     return { list: list, grp: grp, Z: Z };
   };
+  // is it dark where the party stands (torchdark 09-28): the map's `dark`, or the night a script dropped over it (the wagon night's tint)
+  EV.darkHere = function () { var f = F(); return !!(f && f.map && (f.map.src.dark || f.tint || f.map.src.tint)); };
   EV.encounter = function* (zone) {
     var p = EV.pickGroup(zone), m = F().map.src;
     if (!p.list.length) return;
     if (p.grp.flee && Math.random() < p.grp.flee) { yield DS.say(L(p.grp.fleeText || 'w.nightcrewGone')); return; }
-    var res = yield DS.battle({ enemies: p.list, bg: p.Z.bg || m.bg, music: p.Z.music, roost: !!m.roost, zone: zone });
+    var res = yield DS.battle({ enemies: p.list, bg: p.Z.bg || m.bg, music: p.Z.music, roost: !!m.roost, zone: zone, dark: EV.darkHere(), torch: G().flags.torchBy || null });
     if (res === 'lose') return;
     yield* EV.afterBattle();
   };
@@ -78,7 +81,7 @@
   };
   EV.fight = function* (enemies, o) {
     var m = F().map.src;
-    o = Object.assign({ enemies: enemies, bg: m.bg, roost: !!m.roost }, o || {});
+    o = Object.assign({ enemies: enemies, bg: m.bg, roost: !!m.roost, dark: EV.darkHere(), torch: G().flags.torchBy || null }, o || {});
     var res = yield DS.battle(o);
     if (res !== 'lose' && !o.lossOk) yield* EV.afterBattle();
     return res;
@@ -182,7 +185,7 @@
     yield DS.say(L('g.joins', { name: h.name, lvl: h.lvl }));
     return true;
   };
-  EV.longRest = function () { G().party.forEach(function (h) { if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true); }); };
+  EV.longRest = function () { EV.torchOut(); G().party.forEach(function (h) { if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true); }); };
   EV.rest = function* (song) {
     var g = G();
     yield DS.fade(1, 24);
@@ -291,8 +294,16 @@
       yield DS.say(L('g.chalk'));
     } else if (use.effect === 'read') { // Katarina's book: the first page of Book One
       yield W8.scene(new DS.BookScene('BOOK ONE', L('kat.book')));
+    } else if (use.effect === 'light') { // a torch carried on a dark map (torchdark 09-28): a free hand; it burns till a rest or another map
+      if (!EV.darkHere()) { yield DS.say(L('g.torchNoNeed')); return; }
+      if (g.flags.torchBy) { var tb = g.party.filter(function (x) { return x.id === g.flags.torchBy; })[0]; yield DS.say(L('g.torchAlready', { name: tb ? tb.name : 'Someone' })); return; }
+      if (!R.freeHands(h)) { yield DS.say(L('g.torchNoHand', { why: R.handsWhy(h) })); return; }
+      g.take(id, 1); g.flags.torchBy = h.id; h.equip.torch = 1; DS.audio.sfx('fire');
+      yield DS.say(L('g.torchLit', { name: h.name }));
     }
   };
+  // the field torch goes out: at a rest, or leaving the map (the hour is up; nothing is said)
+  EV.torchOut = function () { var g = G(); if (!g.flags.torchBy) return; g.party.forEach(function (h) { delete h.equip.torch; }); delete g.flags.torchBy; };
   EV.fieldCast = function* (h, sp) {
     var g = G();
     var slot = sp.level && !sp.ritual ? R.lowestSlot(h, sp.level) : 0;
@@ -308,6 +319,11 @@
       if (sp.kind === 'heal') { var n = Math.min(t.maxhp - t.hp, DS.roll(sp.dmg.replace(/^(\d+)d/, function (m, k) { return (+k + (slot - sp.level)) + 'd'; })) + DS.mod(h.abil.cha)); t.hp += n; yield DS.say(L('g.healed', { name: t.name, n: n })); }
       else if (sp.kind === 'cure') yield DS.say(L('g.cured', { name: t.name }));
       else if (sp.buff === 'mageArmor') { t.conds.mageArmor = true; yield DS.say(L('g.mageArmor', { name: t.name, ac: R.ac(t) })); }
+      else if (sp.buff === 'darkvision') { t.conds.darkvision = true; yield DS.say(L('g.darkvision', { name: t.name })); } // (till the long rest: R.refresh)
+      else if (sp.buff === 'continualFlame') { // on the weapon in hand: it is always lit from now on (EV.alight; Ottilie stops it at the mouth)
+        if (!t.equip.weapon) { if (slot) h.slots[slot - 1]++; yield DS.say(L('g.flameNothing')); return; }
+        t.conds.continualFlame = t.equip.weapon; yield DS.say(L('g.continualFlame', { name: t.name }));
+      }
       return;
     }
     if (sp.buff === 'aid') {
@@ -831,8 +847,14 @@
   EV.alight = function (when) {
     var g = G(), out = [];
     var lit = function (id) { var it = id && DS.DATA.items[id]; return it && it.light && (!when || it.light.when === when) ? it : null; };
-    g.party.forEach(function (h) { Object.keys(h.equip || {}).forEach(function (s) { if (lit(h.equip[s])) out.push({ id: h.equip[s], h: h, slot: s }); }); });
+    g.party.forEach(function (h) { Object.keys(h.equip || {}).forEach(function (s) { if (s !== 'torch' && lit(h.equip[s])) out.push({ id: h.equip[s], h: h, slot: s }); }); });
     (g.inv || []).forEach(function (s) { if (lit(s.id)) out.push({ id: s.id, h: null }); });
+    // a Continual Flame (torchdark 09-28) is always lit: it rides the weapon it was set on, in hand or in the pack
+    if (!when || when === 'always') g.party.forEach(function (h) {
+      var cf = h.conds && h.conds.continualFlame; if (!cf || typeof cf !== 'string' || !DS.DATA.items[cf]) return;
+      var slot = Object.keys(h.equip || {}).filter(function (s) { return h.equip[s] === cf; })[0];
+      if (slot) out.push({ id: cf, h: h, slot: slot }); else if (g.count(cf)) out.push({ id: cf, h: null });
+    });
     return out;
   };
   // the mouth (RULED 09-28, Griz: the other light sources roost too -- "have the guy out front stop the players"; only what is
@@ -1149,7 +1171,7 @@
     var solo = outside.length === 1 && party.length > 1 ? g.party.indexOf(outside[0]) : null;
     if (W.kat && !W.kat.hidden) { W.kat.pathSpeed = 2; W.kat.path = DS.pathTo(F().map, W.kat.x, W.kat.y, 13, 11).concat(['hide']); yield arrived([W.kat]); } // she's inside before the first blade clears (Griz 09-25)
     DS.fledIds = null;
-    var res = yield DS.battle({ enemies: ['amara', 'willem'], bg: 'lake', music: 'boss', canRun: false, solo: solo, join: solo != null ? 2 : 0, darkness: true, returnSong: 'lake', deep16: 'wagonnight' });
+    var res = yield DS.battle({ enemies: ['amara', 'willem'], bg: 'lake', music: 'boss', canRun: false, solo: solo, join: solo != null ? 2 : 0, darkness: true, dark: true, returnSong: 'lake', deep16: 'wagonnight' }); // (dark: the yard at night; the inn's door lamp on the grid)
     if (res === 'lose') return;
     g.flags.glamourBroken = 1; g.flags.glamourSeen = 1;
     if (W.wagon) W.wagon.def = Object.assign({}, W.wagon.def, { prop: 'wagonKids' });
@@ -1197,7 +1219,7 @@
     yield DS.say(L('wagon.caught1'), { top: true });
     DS.fledIds = null;
     // fought in DEEP16 (story-fights): the road north, and they run again from the first turn (deep16/data/fights.js roadcatch1)
-    var r2 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false, deep16: 'roadcatch1', deep16Only: who });
+    var r2 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false, dark: true, deep16: 'roadcatch1', deep16Only: who }); // (the road at night)
     f.npcs = f.npcs.filter(function (n) { return riders.indexOf(n) < 0; });
     if (r2 === 'lose') return;
     if (r2 === 'win') { g.flags.wagonOutcome = 'road'; yield DS.say(L('wagon.roadDone'), { top: true }); yield* EV.wagonAfterChase(); return; }
@@ -1222,7 +1244,7 @@
       real: real, fake: fakes, goal: { x: 30, y: 13 }, hold: HOLD,
       caught: function* () {
         yield DS.say(L('wagon.caught2'), { top: true });
-        var r3 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false, noFlee: true, deep16: 'roadcatch2', deep16Only: who });
+        var r3 = yield DS.battle({ enemies: who, bg: 'road', music: 'boss', canRun: false, noFlee: true, dark: true, deep16: 'roadcatch2', deep16Only: who });
         F().npcs = F().npcs.filter(function (n) { return all.indexOf(n) < 0; });
         if (r3 === 'lose') return;
         g.flags.wagonOutcome = 'road';

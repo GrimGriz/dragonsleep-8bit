@@ -33,7 +33,9 @@
       type: 'd16:done', result: res || 'escaped',
       party: B.units.concat(B.reserve || [], B.stayed || []).filter(function (u) { return u.side === 'party'; }).map(function (u) { // (reserve: still in the inn when it ended)
         return { id: u.id, guest: !!u.guest, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left,
-          equip: u.src && u.src.equip ? JSON.parse(JSON.stringify(u.src.equip)) : null }; // (EQUIP in the fight crosses back: RULED 09-28)
+          equip: u.src && u.src.equip ? JSON.parse(JSON.stringify(u.src.equip)) : null, // (EQUIP in the fight crosses back: RULED 09-28)
+          // torchdark (09-28): the day's Darkvision and a Continual Flame stay on him; a torch still burning in his hand walks out with him
+          darkvision: !!u.conds.darkvision, continualFlame: !!(u.conds.continualFlame || (u.src && u.src.conds && u.src.conds.continualFlame)), torch: !!(u.torch && u.torch.lit && u.hp > 0) };
       }),
       // the rest came out of the inn (the lone investigator's fight, Battle.joinReserve): the 8-bit battle's `solo` is over, and its
       // XP is split among everyone standing (review 09-28 #2)

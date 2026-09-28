@@ -68,6 +68,13 @@
     var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     this.inv = this.o.embed ? pack : D.save.armoury(pack);
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
+    // torchdark (09-28): dark ground -- the fight's own word, else the 8-bit map's `dark` when the fight is fought from there
+    // (js/embed.js), else the grid map's -- and the lights the place keeps (a lamp, a fire, a glow: [x, y, r, color, dimOnly]);
+    // a torch the party walked in holding (the 8-bit field's) is in that hero's hand from the first round
+    this.dark = F.dark != null ? !!F.dark : (this.o.embed && this.o.embed.dark != null) ? !!this.o.embed.dark : !!m.def.dark;
+    this.lights = (F.lights || m.def.lights || []).map(function (l, i) { return { id: 'map' + i, kind: 'map', x: l[0], y: l[1], bright: l[4] ? 0 : l[2], dim: l[2], color: l[3] || 'gold', flame: !l[3] || l[3] === 'gold' || l[3] === 'fire' }; });
+    var torchBy = this.o.embed && this.o.embed.torch;
+    if (torchBy) this.units.forEach(function (u) { if (u.id === torchBy && u.side === 'party' && u.hp > 0 && D.light.handsFree(u) > 0) { u.torch = { lit: true }; D.light.regrip(u); } });
     // strung webs a fight starts with (Web Gulch): difficult ground for all but the web-walkers, drawn like the spell's
     var webs = F.webs || m.def.webs;
     this.webs = webs ? [{ by: 'the ground', sq: webs.slice() }] : [];
@@ -163,7 +170,11 @@
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
       darkness: d.darkness ? { r: d.darkness.r, range: d.darkness.range, chance: d.darkness.chance, used: false } : null, // (Amara's, once, the turn she runs; the drow's on the 8-bit's chance: magic.js castDarkness)
-      hidden0: !!f.hidden
+      hidden0: !!f.hidden,
+      // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
+      // and what it does with the dark itself (the darkmantle's aura, the duergar's Invisibility: ai.js brute)
+      darkvision: d.darkvision || 0, blindsight: d.blindsight || 0, blind: !!d.blind, truesight: d.truesight || 0, devilSight: !!d.devilSight,
+      aura: d.darknessAura ? { used: false } : null, invis: d.invisibility ? { used: false } : null
     };
   };
   // a damage type against a foe's resistances, immunities and vulnerabilities (SRD: immune 0, resist half, vulnerable x2)
@@ -201,6 +212,7 @@
       var r = w.conds.restrained;
       if (r && r.by === u.id && r.grapple && (!only || only === w)) delete w.conds.restrained;
       if (w.conds.stunned && w.conds.stunned.by === u.id && !only) delete w.conds.stunned;
+      if (w.conds.blinded && w.conds.blinded.by === u.id && w.conds.blinded.held && (!only || only === w)) delete w.conds.blinded; // (the darkmantle off his head, the cloaker's fold)
     });
     u.holding = (u.holding || []).filter(function (w) { return only && w !== only && w.conds.restrained && w.conds.restrained.by === u.id; });
   };
@@ -219,6 +231,7 @@
   Battle.prototype.answer = function (v) { this.req = null; this.step(v); };
   Battle.prototype.update = function () {
     this.t++;
+    if (this.shakeT > 0) this.shakeT--;
     FX.update();
     this.units.forEach(function (u) { if (u.flash > 0) u.flash--; if (u.tween) { u.tween.t++; if (u.tween.t >= u.tween.dur) delete u.tween; } });
     this.cards = this.cards.filter(function (c) { return this.t - c.t0 < c.life; }, this);
@@ -383,6 +396,9 @@
       if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id) delete w.conds[c]; }); });
       if (incap && s.conc) D.magic.endConc(self, s, gone ? 'gone' : 'incapacitated');
       if (incap && s.holding && s.holding.length) self.release(s);
+      // a blinding hold (the darkmantle over the head, the cloaker's fold) ends with the grip, however the grip ended
+      var bl = s.conds.blinded;
+      if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? 'The ' + shortName(s) : s.name) + ' can see again.{/}'], 200); }
     });
   };
 
@@ -405,7 +421,9 @@
     // the glamour broken: the riders are what they were all along (the wagon yard's children)
     if (o === 'won') this.riders.forEach(function (r) { if (r.after) { r.sheet = r.after; FX.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
     if (o !== 'fled' && o !== 'yielded') D.music(o === 'won' ? 'victory' : 'gameover'); // (one got away: the boss tune runs on into the chase)
-    if (o === 'roost') { D.sfx('encounter'); this.card(['{r}' + (this.roostBroken === 'daylight' ? 'Daylight' : 'Bright light') + ' under a roosted ceiling. The whole roof shifts at once: millions of wings.{/}'], 1e9); yield 90; }
+    // the roost coming down as a picture on the grid (torchdark 09-28; the 8-bit's swarm() the model): the ceiling lets go over the
+    // iso map, the shake every ten frames, then the hand-off to the 8-bit game's RoostFail as before
+    if (o === 'roost') { D.sfx('encounter'); this.card(['{r}' + (this.roostBroken === 'daylight' ? 'Daylight' : 'Bright light') + ' under a roosted ceiling. The whole roof shifts at once: millions of wings.{/}'], 1e9); FX.swarm(); this.shakeT = 170; for (var sk = 0; sk < 17; sk++) { D.sfx('miss'); yield 10; } yield 30; }
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
     var head = o === 'roost' ? '{r}THE ROOST COMES DOWN.{/}' : o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
@@ -463,6 +481,15 @@
       var roostF = this.fight && this.fight.roost && !u.conds.ablaze;
       out.push({ id: u.conds.ablaze ? 'douse' : 'ignite', label: u.conds.ablaze ? 'DOUSE' : 'IGNITE', cost: 'B', icon: 'sacred', ok: T.bonus > 0 && !roostF, why: roostF ? 'the roost overhead: no fire' : 'the bonus action is spent', note: u.conds.ablaze ? 'the blade goes dark' : u.weapon.name + ': +' + u.weapon.flame + ' fire on a hit, light 40 ft' });
     }
+    // torches are hands (torchdark, 09-28; the lighting is ITEM: a torch out of the pack, an action): the lit one in his hand may be
+    // dropped (the turn's free hand on an object: it burns where it falls), thrown to a square within 20 ft (an action), or put out
+    // (free, back in the pack); one burning at his feet is taken up (free, a free hand)
+    var Lt = D.light, freeWhy = 'the free hand on an object is spent this turn';
+    if (u.torch && !u.guest) {
+      out.push({ id: 'droptorch', label: 'DROP TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj, why: freeWhy, note: 'it burns where it falls' });
+      out.push({ id: 'throwtorch', label: 'THROW TORCH', cost: 'A', icon: 'torch', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', tool: 'torch', note: 'to a square within 20 ft: it burns there' });
+      out.push({ id: 'dousetorch', label: 'DOUSE TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj, why: freeWhy, note: 'out, and back in the pack' });
+    } else if (!u.guest && Lt.torchAt(this, u.x, u.y)) out.push({ id: 'pickuptorch', label: 'TAKE UP TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj && Lt.handsFree(u) > 0, why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'the one burning at your feet' });
     if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay', note: 'a pool of ' + (u.feats.lay || 0) + ' HP (long rest), touch' });
     // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
     if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a short rest brings it back)', note: '+' + Math.max(1, D.mod(u.abil.cha)) + ' to hit for a minute; Channel Divinity ' + (u.feats.channel > 0 ? '1/1' : '0/1') + ' (short rest)' + (this.fight && this.fight.roost ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : '') });
@@ -507,10 +534,15 @@
       case 'cast': {
         yield* D.magic.cast(this, u, c.id, c.slot, c.target);
         if (u.conds.hidden && D.magic.data(c.id).kind !== 'buff') delete u.conds.hidden;
+        if (!(c.id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights' && u.turn.bonusSpell === false)) this.endInvis(u, 'the spell'); // (Invisibility, Mislead: a spell cast ends it)
         return;
       }
       case 'item': { yield* this.useItem(u, c.id, c.target); return; }
       case 'breakfree': { yield* D.magic.breakFree(this, u); return; }
+      case 'droptorch': T.freeObj = true; D.light.dropTorch(this, u); return;
+      case 'dousetorch': T.freeObj = true; D.light.douseTorch(this, u); return;
+      case 'pickuptorch': T.freeObj = true; D.light.pickUp(this, u); return;
+      case 'throwtorch': { yield* D.light.throwTorch(this, u, c.x, c.y); return; }
       case 'dashmove': {
         var far = G.reach(u, T.move + u.speed)[c.x + ',' + c.y], opts = [];
         if (!far || u.conds.restrained) return;
@@ -614,8 +646,19 @@
       yield STEP_FRAMES;
       // into a spell's web (from outside it): the SRD's save for one who enters it during its turn; stuck, it stops there
       if (!u.ethereal && !wasIn && D.magic.webCatch(this, u, 'enters')) { if (o && o.spend) T.move = 0; yield 24; break; }
+      // onto a Sleet Storm's ice (the first square of it this turn): DEX or down, and the move ends there
+      if (!u.ethereal && D.magic.sleetCatch(this, u)) { if (o && o.spend) T.move = 0; yield 24; break; }
     }
     u.anim = 'idle';
+  };
+  // Invisibility and Mislead end for one who attacks or casts (SRD); the caster's concentration goes with them (Greater
+  // Invisibility, the duergar's own, keep on: theirs has no `ends`)
+  Battle.prototype.endInvis = function (u, why) {
+    var iv = u.conds.invisible;
+    if (!iv || !iv.ends) return;
+    var caster = iv.by && this.units.filter(function (w) { return w.id === iv.by && w.conc && (w.conc.id === 'invisibility' || w.conc.id === 'mislead'); })[0];
+    if (caster) D.magic.endConc(this, caster, why); else { delete u.conds.invisible; this.card(['{g}' + (u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' is seen again (' + why + ').{/}'], 240); }
+    if (u.conds.invisible && u.conds.invisible.ends) delete u.conds.invisible; // (the undo missed it: a foe's own)
   };
 
   // ------------------------------------------------------------------ an attack: the roll, the reactions, the damage
@@ -630,6 +673,7 @@
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
     if (att.side === 'foe' && att.conds.hidden) delete att.conds.hidden; // a foe that strikes from hiding is seen (the gricks)
+    this.endInvis(att, 'the attack'); // (Invisibility: the swing has its advantage, then the spell is gone)
     // false images (the cloaker's phantasms, Willem's): a d20 says whether the blow goes at an image (3: 6+, 2: 8+, 1: 11+)
     if (tgt.images > 0 && !atk.save) {
       var need = [0, 11, 8, 6][Math.min(3, tgt.images)], id20 = D.d(20);
@@ -643,7 +687,7 @@
     }
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) delete tgt.conds.helped; // help is spent on the first swing
     var sacred = att.conds.sacred && !atk.spell && !atk.ranged ? att.conds.sacred.atk : 0;
-    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, total = nat + atk.atk + bless + sacred;
+    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, pen = e.pen || 0, total = nat + atk.atk + bless + sacred + pen;
     var critAt = att.crit || 20;
     var hit = nat === 20 || (nat !== 1 && total >= ac)
       || !!(atk.autoHitHeld && tgt.conds.restrained && tgt.conds.restrained.by === att.id); // the cloaker's bite on the one it has engulfed
@@ -651,7 +695,7 @@
       || (att.assassinate && tgt.conds.surprised) // Assassinate: any hit on one caught unaware is a critical
       || (att.subclass === 'Cutthroat' && this.round === 1 && !tgt.acted)); // Opening Cut (the game's Cutthroat): the same, in the first round
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
-    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
+    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn
     if (hit && nat !== 20 && tgt.cls === 'wizard' && tgt.reaction > 0 && !tgt.conds.shield && RU.canAct(tgt) && tgt.known.indexOf('shield') >= 0 && slotFor(tgt, 1) && total < ac + 5 && !tgt.guest) {
@@ -744,6 +788,13 @@
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
       this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED and RESTRAINED{/}  {g}(escape DC ' + atk.grapple.dc + ', an action){/}']);
       yield 30;
+      // a hold over the eyes (torchdark 09-28: the sheet todos): the cloaker's fold blinds the one it engulfs; the darkmantle's
+      // crush blinds when it had advantage on the roll (SRD: it engulfs the head). Blind till the grip is broken (release)
+      if (atk.blindHeld && !tgt.conds.blinded && (atk.blindHeld === 'always' || e.net > 0)) {
+        tgt.conds.blinded = { by: att.id, held: true };
+        this.card(['{r}' + nameOf(tgt) + '{/} is {o}BLINDED{/}: ' + (atk.blindHeld === 'always' ? 'folded inside it' : 'it is over his head') + ' -- nothing seen till the grip is broken.']);
+        yield 24;
+      }
       // Reel (the roper's tendril): the one it holds is dragged in to its side
       if (atk.reel && G.dist(att, tgt) > 5) {
         var rs = null, rd = Infinity, S = att.size || 1;
@@ -824,7 +875,7 @@
     if (u.hp <= 0) {
       u.anim = 'hurt'; u.animT = this.t;
       D.sfx(u.side === 'party' ? 'ko' : 'die');
-      if (u.side === 'party') { u.ko = true; delete u.conds.ablaze; this.card(['{r}' + u.name + ' goes down.{/}']); }
+      if (u.side === 'party') { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside him.{/}' : '')]); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); if (u.holding && u.holding.length) this.release(u); }
       if (u.conc) D.magic.endConc(this, u, 'down');
       // one who runs the moment the one in charge is down (the wheelwright, when Hask falls): gone up the stair at once, before
@@ -857,7 +908,7 @@
     this.inv.forEach(function (s) {
       var it = window.DS.DATA.items[s.id];
       if (!it || it.kind !== 'weapon' || s.n <= 0 || !R.canEquip(h, it)) return;
-      var wd = it.weapon, two = (wd.props || []).indexOf('two-handed') >= 0, why = busy || (two && h.equip.shield ? 'two hands: the shield comes off first' : '');
+      var wd = it.weapon, two = (wd.props || []).indexOf('two-handed') >= 0, why = busy || (two && h.equip.shield ? 'two hands: the shield comes off first' : two && u.torch ? 'two hands: the torch goes down first' : '');
       var ammo = wd.ammo ? ', ' + (packOf(B, wd.ammo) ? packOf(B, wd.ammo).n : 0) + ' ' + B.itemName(wd.ammo).toLowerCase() : '';
       out.push({ kind: 'weapon', id: s.id, label: it.name, note: wd.dmg + ' ' + wd.type + (wd.range ? ', ' + wd.range.join('/') + ' ft' : ', melee') + ammo, ok: !why, why: why });
     });
@@ -875,7 +926,7 @@
     if (h.equip.shield) out.push({ kind: 'shieldoff', label: 'SHIELD OFF', note: 'into the pack: -' + ((R.item(h.equip.shield).shield || {}).ac || 2) + ' AC', ok: !busy, why: busy });
     else {
       var sh = this.inv.filter(function (s) { var it = window.DS.DATA.items[s.id]; return it && it.kind === 'shield' && s.n > 0 && R.canEquip(h, it); })[0];
-      if (sh) out.push({ kind: 'shieldon', id: sh.id, label: 'SHIELD ON: ' + this.itemName(sh.id), note: '', ok: !busy && !curTwo, why: busy || (curTwo ? 'the weapon takes both hands' : '') });
+      if (sh) out.push({ kind: 'shieldon', id: sh.id, label: 'SHIELD ON: ' + this.itemName(sh.id), note: '', ok: !busy && !curTwo && !u.torch, why: busy || (curTwo ? 'the weapon takes both hands' : u.torch ? 'the torch is in that hand' : '') });
     }
     return out;
   };
@@ -923,13 +974,19 @@
   };
 
   // ------------------------------------------------------------------ items: the save's own (a potion, a kit, an antitoxin, an oil flask)
-  var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1 };
+  var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1, light: 1 };
+  // a torch is lit as a bonus action by the Thief (Fast Hands), or by anyone if the seat's default is flipped (js/light.js LIGHT_COST)
+  function torchFast(u) { return u.subclass === 'Thief' || D.light.LIGHT_COST === 'B'; }
   Battle.prototype.itemList = function (u) {
-    var T = u.turn, roost = this.fight && this.fight.roost;
+    var T = u.turn, roost = this.fight && this.fight.roost, self = this;
     return (this.inv || []).map(function (s) {
       var it = window.DS.DATA.items[s.id];
       if (!it || !it.use || !it.use.battle || !ITEM_OK[it.use.effect] || s.n <= 0) return null;
-      if (roost && it.use.effect === 'damage') return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
+      if (roost && (it.use.effect === 'damage' || it.use.effect === 'light')) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
+      if (it.use.effect === 'light') { // a torch (torchdark 09-28): a free hand, and the action (or the Thief's bonus)
+        var cl = D.light.canLight(self, u), can = (torchFast(u) && T.bonus > 0) || (T.action > 0 && !T.attacksLeft);
+        return { id: s.id, name: it.name, n: s.n, use: it.use, ok: cl.ok && can && !u.guest, why: !cl.ok ? cl.why : can ? '' : 'the action is spent', cost: torchFast(u) && T.bonus > 0 ? 'B' : 'A' };
+      }
       return { id: s.id, name: it.name, n: s.n, use: it.use, ok: (u.subclass === 'Thief' && T.bonus > 0) || (T.action > 0 && !T.attacksLeft), why: T.action > 0 ? '' : 'the action is spent' };
     }).filter(Boolean);
   };
@@ -937,6 +994,7 @@
     var use = window.DS.DATA.items[id].use;
     if (!w || w.dead) return false;
     if (use.effect === 'damage') return G.hostile(u, w) && w.hp > 0 && G.dist(u, w) <= 20 && G.los(u, w).clear;
+    if (use.effect === 'light') return w === u;
     if (w.side !== u.side || (w !== u && G.dist(u, w) > 5)) return false;
     if (use.effect === 'revive') return w.hp <= 0;
     if (use.effect === 'heal') return w.hp < w.maxhp;
@@ -944,7 +1002,8 @@
   };
   Battle.prototype.useItem = function* (u, id, w) {
     var it = window.DS.DATA.items[id], use = it.use, s = this.inv.filter(function (x) { return x.id === id; })[0];
-    if (u.subclass === 'Thief' && u.turn.bonus > 0) u.turn.bonus = 0; else u.turn.action = 0; // Fast Hands
+    if (((use.effect === 'light' && torchFast(u)) || u.subclass === 'Thief') && u.turn.bonus > 0) u.turn.bonus = 0; else u.turn.action = 0; // Fast Hands
+    if (use.effect === 'light') { yield* D.light.lightTorch(this, u); yield 20; return; } // (lightTorch takes it from the pack)
     s.n--;
     var who = w === u ? 'drinks' : 'gives ' + w.name;
     if (use.effect === 'heal') { var r = D.roll(use.dice), got = this.heal(w, r.total); this.card(['{y}' + u.name + '{/} ' + who + ' a ' + it.name + ': ' + use.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {n}' + r.total + '{/}' + (got < r.total ? ' (' + got + ' to full)' : '')]); FX.sparkle(w, 'moss', 12); }

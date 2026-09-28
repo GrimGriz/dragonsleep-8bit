@@ -11,7 +11,20 @@
 (window.D16 = window.D16 || {}).SPELLS = {
   firebolt: { shape: 'attack', range: 120, time: 'A' },
   acidsplash: { shape: 'splash', range: 60, time: 'A' },
-  light: { shape: 'self', time: 'A' }, // bright light for the fight (magic.js brighten; the 8-bit's dazzle, crossed 09-28)
+  // Light (SRD 5.1; torchdark 09-28): on an object he holds, or an ally's beside him: bright 20 ft and dim 20 more, going where they go (js/light.js)
+  light: { shape: 'touch', side: 'ally', time: 'A' },
+  // the spells that waited on the dark (spells-srd-by-class.md, DARK; torchdark 09-28)
+  dancinglights: { shape: 'sphere', range: 120, r: 10, time: 'A', conc: true },   // four dim lights at a point; a bonus action (casting again) moves them
+  fogcloud: { shape: 'sphere', range: 120, r: 20, time: 'A', conc: true },        // heavily obscured: nothing sees in, out or across
+  continualflame: { shape: 'touch', side: 'ally', time: 'A' },                    // a torch-bright heatless flame on their gear, for good
+  darkvision: { shape: 'touch', side: 'ally', time: 'A' },                        // 60 ft in the dark
+  invisibility: { shape: 'touch', side: 'ally', time: 'A', conc: true },          // till they attack or cast
+  seeinvisibility: { shape: 'self', time: 'A' },
+  stinkingcloud: { shape: 'sphere', range: 90, r: 20, time: 'A', conc: true },    // fog, and CON or the action goes each turn inside
+  sleetstorm: { shape: 'sphere', range: 150, r: 40, time: 'A', conc: true },      // fog, ice (difficult; DEX or prone), flames out
+  mislead: { shape: 'self', time: 'A', conc: true },                              // invisible, and a false double
+  passwithouttrace: { shape: 'self', time: 'A', conc: true },                     // +10 Stealth for all of yours within 30 ft
+  trueseeing: { shape: 'touch', side: 'ally', time: 'A' },                        // truesight 120 ft
   burninghands: { shape: 'cone', len: 15, time: 'A' },
   magicmissile: { shape: 'darts', range: 120, n: 3, time: 'A' },
   shield: { shape: 'reaction', why: 'a reaction: offered when a blow would land' },

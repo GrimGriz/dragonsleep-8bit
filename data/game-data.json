@@ -1784,10 +1784,16 @@
    "use": {
     "effect": "light",
     "target": "self",
-    "battle": true
+    "battle": true,
+    "field": true
    },
-   "desc": "Bright light for the fight. Some things hate it.",
-   "src": "the-lab/pit-maps/shops-silverton.json pin 15 (torches, ten 1 sp); SRD 5.1 Torch",
+   "light": {
+    "bright": 20,
+    "dim": 20,
+    "when": "lit"
+   },
+   "desc": "Bright light 20 ft and dim 20 more, for an hour. It takes a hand to carry. Some things hate it.",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 15 (torches, ten 1 sp); SRD 5.1 Torch (bright 20, dim 20); torchdark 09-28 (a hand)",
    "id": "torch"
   },
   "tent": {
@@ -2819,10 +2825,150 @@
    "desc": "A sphere of daylight. Things that hate light, hate it more.",
    "src": "SRD 5.1 (Daylight; spec §9: the Sunshaft's own spell)",
    "id": "daylight"
+  },
+  "dancinglights": {
+   "name": "Dancing Lights",
+   "level": 0,
+   "kind": "light",
+   "dim": true,
+   "target": "self",
+   "battle": true,
+   "sfx": "buff",
+   "desc": "Cantrip. Four hovering lights, dim 10 ft round each; a bonus action moves them. Light enough to see by, and lawful under a roost.",
+   "src": "SRD 5.1 (Dancing Lights); torchdark 09-28 (the DARK verdict of the spell list; dim light lawful under the roost RULED 09-28)",
+   "id": "dancinglights"
+  },
+  "fogcloud": {
+   "name": "Fog Cloud",
+   "level": 1,
+   "kind": "cloud",
+   "cloud": "fog",
+   "target": "self",
+   "battle": true,
+   "sfx": "magic",
+   "desc": "A 20-ft sphere of fog: nothing sees in, out or across it. Here, RUN slips away under it untried.",
+   "src": "SRD 5.1 (Fog Cloud); torchdark 09-28",
+   "id": "fogcloud"
+  },
+  "continualflame": {
+   "name": "Continual Flame",
+   "level": 2,
+   "kind": "buff",
+   "buff": "continualFlame",
+   "target": "ally",
+   "battle": true,
+   "field": true,
+   "desc": "A heatless flame, torch-bright, on an ally's weapon. It never goes out, and it is always lit: the roost's mouth will stop it.",
+   "src": "SRD 5.1 (Continual Flame); torchdark 09-28 (the ruby not asked for: nothing but the rest spells consumes a component, RULED 09-28)",
+   "id": "continualflame"
+  },
+  "darkvision": {
+   "name": "Darkvision",
+   "level": 2,
+   "kind": "buff",
+   "buff": "darkvision",
+   "target": "ally",
+   "battle": true,
+   "field": true,
+   "desc": "An ally sees in the dark to 60 ft, grey and plain, until the next long rest.",
+   "src": "SRD 5.1 (Darkvision); torchdark 09-28",
+   "id": "darkvision"
+  },
+  "invisibility": {
+   "name": "Invisibility",
+   "level": 2,
+   "kind": "buff",
+   "buff": "invisible",
+   "target": "ally",
+   "battle": true,
+   "sfx": "magic",
+   "desc": "An ally goes unseen: attacks by them have advantage, at them disadvantage, till they attack or cast.",
+   "src": "SRD 5.1 (Invisibility); torchdark 09-28",
+   "id": "invisibility"
+  },
+  "seeinvisibility": {
+   "name": "See Invisibility",
+   "level": 2,
+   "kind": "buff",
+   "buff": "seeInvisible",
+   "target": "self",
+   "battle": true,
+   "desc": "You see the invisible for the fight, ghostly and grey.",
+   "src": "SRD 5.1 (See Invisibility); torchdark 09-28",
+   "id": "seeinvisibility"
+  },
+  "stinkingcloud": {
+   "name": "Stinking Cloud",
+   "level": 3,
+   "kind": "cloud",
+   "cloud": "stink",
+   "save": "con",
+   "el": "poison",
+   "target": "enemies",
+   "battle": true,
+   "sfx": "poison",
+   "desc": "A 20-ft sphere of yellow, nauseating gas over the foes: each turn inside it, CON save or the turn goes on retching.",
+   "src": "SRD 5.1 (Stinking Cloud); torchdark 09-28",
+   "id": "stinkingcloud"
+  },
+  "sleetstorm": {
+   "name": "Sleet Storm",
+   "level": 3,
+   "kind": "cloud",
+   "cloud": "sleet",
+   "save": "dex",
+   "el": "cold",
+   "target": "enemies",
+   "battle": true,
+   "sfx": "frost",
+   "desc": "Freezing sleet over the foes: ice underfoot, DEX save each turn or prone; exposed flames go out.",
+   "src": "SRD 5.1 (Sleet Storm); torchdark 09-28",
+   "id": "sleetstorm"
+  },
+  "mislead": {
+   "name": "Mislead",
+   "level": 5,
+   "kind": "buff",
+   "buff": "mislead",
+   "target": "self",
+   "battle": true,
+   "sfx": "magic",
+   "desc": "You go invisible, and a double of you stands where you stood, till you attack or cast.",
+   "src": "SRD 5.1 (Mislead); torchdark 09-28",
+   "id": "mislead"
+  },
+  "passwithouttrace": {
+   "name": "Pass Without Trace",
+   "level": 2,
+   "kind": "buff",
+   "buff": "pwt",
+   "target": "self",
+   "battle": false,
+   "field": false,
+   "grid": true,
+   "desc": "A veil of shadow and silence: +10 Stealth for all of yours within 30 ft.",
+   "src": "SRD 5.1 (Pass Without Trace); torchdark 09-28 (the grid only: no druid or ranger casts yet)",
+   "id": "passwithouttrace"
+  },
+  "trueseeing": {
+   "name": "True Seeing",
+   "level": 6,
+   "kind": "buff",
+   "buff": "truesight",
+   "target": "ally",
+   "battle": false,
+   "field": false,
+   "grid": true,
+   "desc": "Truesight 120 ft: the dark, the fog and the invisible are nothing to them.",
+   "src": "SRD 5.1 (True Seeing); torchdark 09-28 (the grid only: no hero reaches 6th)",
+   "id": "trueseeing"
   }
  },
  "monsters": {
   "giantrat": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Giant Rat",
    "art": "rat",
    "cr": "1/8",
@@ -2857,6 +3003,9 @@
    "xp": 25
   },
   "ratswarm": {
+   "senses": {
+    "darkvision": 30
+   },
    "name": "Rat Swarm",
    "art": "ratswarm",
    "cr": "1/4",
@@ -2902,6 +3051,10 @@
    "xp": 50
   },
   "darkmantle": {
+   "senses": {
+    "blindsight": 60,
+    "blind": true
+   },
    "name": "Darkmantle",
    "art": "darkmantle",
    "cr": "1/2",
@@ -2949,6 +3102,9 @@
    "xp": 100
   },
   "crawler": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Crawler",
    "art": "crawler",
    "cr": "2",
@@ -3009,6 +3165,10 @@
    "xp": 450
   },
   "grayooze": {
+   "senses": {
+    "blindsight": 60,
+    "blind": true
+   },
    "name": "Gray Ooze",
    "art": "grayooze",
    "cr": "1/2",
@@ -3053,6 +3213,10 @@
    "xp": 100
   },
   "ochrejelly": {
+   "senses": {
+    "blindsight": 60,
+    "blind": true
+   },
    "name": "Ochre Jelly",
    "art": "ochrejelly",
    "cr": "2",
@@ -3102,6 +3266,9 @@
    "xp": 450
   },
   "otyugh": {
+   "senses": {
+    "darkvision": 120
+   },
    "name": "Otyugh",
    "art": "otyugh",
    "cr": "5",
@@ -3162,6 +3329,10 @@
    "xp": 1800
   },
   "keeper": {
+   "senses": {
+    "blindsight": 30,
+    "blind": true
+   },
    "name": "The Keeper",
    "art": "keeper",
    "cr": "3",
@@ -3227,6 +3398,9 @@
    "xp": 700
   },
   "giantbat": {
+   "senses": {
+    "blindsight": 60
+   },
    "name": "Giant Bat",
    "art": "bat",
    "cr": "1/4",
@@ -3272,6 +3446,9 @@
    "xp": 50
   },
   "batswarm": {
+   "senses": {
+    "blindsight": 60
+   },
    "name": "Bat Swarm",
    "art": "batswarm",
    "cr": "1/4",
@@ -3325,6 +3502,9 @@
    "xp": 50
   },
   "stirge": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Stirge",
    "art": "stirge",
    "cr": "1/8",
@@ -3357,6 +3537,9 @@
    "xp": 25
   },
   "cloaker": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Cloaker",
    "art": "cloaker",
    "cr": "8",
@@ -3419,6 +3602,10 @@
    "xp": 3900
   },
   "giantspider": {
+   "senses": {
+    "darkvision": 60,
+    "blindsight": 10
+   },
    "name": "Giant Spider",
    "art": "spider",
    "cr": "1",
@@ -3475,6 +3662,10 @@
    "xp": 200
   },
   "wolfspider": {
+   "senses": {
+    "darkvision": 60,
+    "blindsight": 10
+   },
    "name": "Wolf Spider",
    "art": "wolfspider",
    "cr": "1/4",
@@ -3523,6 +3714,9 @@
    "xp": 50
   },
   "ettercap": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Ettercap",
    "art": "ettercap",
    "cr": "2",
@@ -3598,6 +3792,9 @@
    "xp": 450
   },
   "gnoll": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Gnoll",
    "art": "gnoll",
    "cr": "1/2",
@@ -3645,6 +3842,9 @@
    "xp": 100
   },
   "gloryseeker": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Glory-Seeker",
    "art": "gnoll",
    "tint": "#a04030",
@@ -3723,6 +3923,9 @@
    "xp": 10
   },
   "wisp": {
+   "senses": {
+    "darkvision": 120
+   },
    "name": "Will-o'-Wisp",
    "art": "wisp",
    "cr": "2",
@@ -3774,6 +3977,9 @@
    "xp": 450
   },
   "firebeetle": {
+   "senses": {
+    "blindsight": 30
+   },
    "name": "Fire Beetle",
    "art": "beetle",
    "cr": "0",
@@ -3814,6 +4020,9 @@
    "xp": 10
   },
   "giantfrog": {
+   "senses": {
+    "darkvision": 30
+   },
    "name": "Giant Frog",
    "art": "frog",
    "cr": "1/4",
@@ -3849,6 +4058,9 @@
    "xp": 50
   },
   "snake": {
+   "senses": {
+    "blindsight": 10
+   },
    "name": "Poison Snake",
    "art": "snake",
    "cr": "1/8",
@@ -3897,6 +4109,9 @@
    "xp": 25
   },
   "insectswarm": {
+   "senses": {
+    "blindsight": 10
+   },
    "name": "Insect Swarm",
    "art": "insects",
    "cr": "1/2",
@@ -4231,6 +4446,9 @@
    "xp": 50
   },
   "worg": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Worg",
    "art": "wolf",
    "tint": "#2a2a3a",
@@ -4342,6 +4560,9 @@
    "xp": 450
   },
   "centipede": {
+   "senses": {
+    "blindsight": 30
+   },
    "name": "Centipede",
    "art": "centipede",
    "cr": "1/4",
@@ -4688,6 +4909,9 @@
    "xp": 700
   },
   "chuul": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Chuul",
    "art": "chuul",
    "cr": "4",
@@ -4867,6 +5091,9 @@
    "xp": 100
   },
   "goblin": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Goblin",
    "art": "goblin",
    "cr": "1/4",
@@ -4898,6 +5125,9 @@
    "xp": 50
   },
   "hobgoblin": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Hobgoblin",
    "art": "hobgoblin",
    "cr": "1/2",
@@ -4930,6 +5160,9 @@
    "xp": 100
   },
   "bugbear": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Bugbear",
    "art": "bugbear",
    "cr": "1",
@@ -4962,6 +5195,9 @@
    "xp": 200
   },
   "bugbearchief": {
+   "senses": {
+    "darkvision": 60
+   },
    "short": "Chief",
    "name": "Bugbear Chief",
    "art": "bugbear",
@@ -5000,6 +5236,9 @@
    "xp": 700
   },
   "hobsergeant": {
+   "senses": {
+    "darkvision": 60
+   },
    "short": "Sergeant",
    "name": "Hobgoblin Sgt.",
    "art": "hobgoblin",
@@ -5038,6 +5277,9 @@
    "xp": 700
   },
   "grick": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Grick",
    "art": "grick",
    "cr": "2",
@@ -5083,6 +5325,9 @@
    "xp": 450
   },
   "mouther": {
+   "senses": {
+    "darkvision": 60
+   },
    "short": "Mouther",
    "name": "Gibbering Mouther",
    "art": "mouther",
@@ -5143,6 +5388,10 @@
    "xp": 450
   },
   "cube": {
+   "senses": {
+    "blindsight": 60,
+    "blind": true
+   },
    "short": "Cube",
    "name": "Gelatinous Cube",
    "art": "cube",
@@ -5198,6 +5447,10 @@
    "xp": 450
   },
   "pudding": {
+   "senses": {
+    "blindsight": 60,
+    "blind": true
+   },
    "short": "Pudding",
    "name": "Black Pudding",
    "art": "pudding",
@@ -5247,6 +5500,9 @@
    "xp": 1100
   },
   "roper": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Roper",
    "art": "roper",
    "cr": "5",
@@ -5301,6 +5557,10 @@
    "xp": 1800
   },
   "bulette": {
+   "senses": {
+    "darkvision": 60,
+    "blindsight": 60
+   },
    "name": "Bulette",
    "art": "bulette",
    "cr": "5",
@@ -5349,6 +5609,9 @@
    "xp": 1800
   },
   "duergar": {
+   "senses": {
+    "darkvision": 120
+   },
    "name": "Duergar",
    "art": "duergar",
    "cr": "1",
@@ -5406,6 +5669,10 @@
    "xp": 200
   },
   "grimlock": {
+   "senses": {
+    "blindsight": 30,
+    "blind": true
+   },
    "name": "Grimlock",
    "art": "grimlock",
    "cr": "1/4",
@@ -5442,6 +5709,10 @@
    "xp": 50
   },
   "xorn": {
+   "senses": {
+    "darkvision": 60,
+    "blindsight": 60
+   },
    "name": "Xorn",
    "art": "xorn",
    "cr": "5",
@@ -5489,6 +5760,9 @@
    "xp": 1800
   },
   "drow": {
+   "senses": {
+    "darkvision": 120
+   },
    "name": "Drow",
    "art": "drow",
    "cr": "1/4",
@@ -5554,6 +5828,9 @@
    "xp": 50
   },
   "drowcaptain": {
+   "senses": {
+    "darkvision": 120
+   },
    "short": "Captain",
    "name": "Drow Blade-Captain",
    "art": "drowcaptain",
@@ -5602,6 +5879,9 @@
    "xp": 1800
   },
   "spellweaver": {
+   "senses": {
+    "darkvision": 120
+   },
    "short": "Weaver",
    "name": "Drow Spell-Weaver",
    "art": "spellweaver",
@@ -5720,6 +6000,9 @@
    "xp": 3900
   },
   "torvald": {
+   "senses": {
+    "darkvision": 60
+   },
    "short": "Cleric",
    "name": "Dwarf Cleric",
    "art": "torvald",
@@ -5794,6 +6077,9 @@
    "xp": 700
   },
   "ogre": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Ogre",
    "art": "bugbear",
    "tint": "#c0a868",
@@ -5826,6 +6112,9 @@
    "xp": 450
   },
   "ettin": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Ettin",
    "art": "bugbear",
    "tint": "#8a6a9a",
@@ -5869,6 +6158,9 @@
    "xp": 1100
   },
   "phasespider": {
+   "senses": {
+    "darkvision": 60
+   },
    "short": "Phase Spider",
    "name": "Phase Spider",
    "art": "spider",
@@ -5922,6 +6214,9 @@
    "xp": 700
   },
   "broodmother": {
+   "senses": {
+    "darkvision": 60
+   },
    "short": "Broodmother",
    "name": "Broodmother",
    "art": "broodmother",
@@ -5984,6 +6279,9 @@
    "xp": 2300
   },
   "stonegiant": {
+   "senses": {
+    "darkvision": 60
+   },
    "short": "Stone Giant",
    "name": "Stone Giant",
    "art": "orcfighter",
@@ -6038,6 +6336,9 @@
    "xp": 2900
   },
   "troll": {
+   "senses": {
+    "darkvision": 60
+   },
    "name": "Troll",
    "art": "gnoll",
    "tint": "#3a8a3a",
@@ -6085,6 +6386,9 @@
    "xp": 1800
   },
   "naga": {
+   "senses": {
+    "darkvision": 60
+   },
    "short": "Naga",
    "name": "Spirit Naga",
    "art": "snake",
@@ -6159,6 +6463,10 @@
    "xp": 3900
   },
   "earthelemental": {
+   "senses": {
+    "darkvision": 60,
+    "blindsight": 60
+   },
    "short": "Elemental",
    "name": "Earth Elemental",
    "art": "xorn",
@@ -12999,6 +13307,41 @@
    "t": "Antitoxin at cost, for you. Mama says.",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8",
    "id": "deep.luciaAtCost"
+  },
+  "g.torchLit": {
+   "t": "{name} strikes a light and carries the torch. Twenty feet of the dark gives way.",
+   "src": "SRD 5.1 (Torch); torchdark 09-28",
+   "id": "g.torchLit"
+  },
+  "g.torchNoHand": {
+   "t": "No free hand for a torch: {why}.",
+   "src": "torchdark 09-28 (Griz: 'lest lyman drop shield')",
+   "id": "g.torchNoHand"
+  },
+  "g.torchNoNeed": {
+   "t": "It is light enough here to see by. Save the torch.",
+   "src": "invented: connective",
+   "id": "g.torchNoNeed"
+  },
+  "g.torchAlready": {
+   "t": "{name} carries a torch already. One is enough.",
+   "src": "invented: connective",
+   "id": "g.torchAlready"
+  },
+  "g.darkvision": {
+   "t": "{name}: darkvision. The dark opens out to sixty feet, grey and plain, until the next long rest.",
+   "src": "SRD 5.1 (Darkvision)",
+   "id": "g.darkvision"
+  },
+  "g.continualFlame": {
+   "t": "{name}'s weapon takes a flame with no heat in it, torch-bright. It will not go out.",
+   "src": "SRD 5.1 (Continual Flame)",
+   "id": "g.continualFlame"
+  },
+  "g.flameNothing": {
+   "t": "Nothing in hand to put a flame on.",
+   "src": "invented: connective",
+   "id": "g.flameNothing"
   }
  },
  "rumors": [

@@ -54,8 +54,9 @@
       if (!bare && id === 'aurdin' && h.known.indexOf('mageArmor') >= 0 && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
       return h;
     });
-    var inv = L >= 9 ? [{ id: 'potion', n: 3 }, { id: 'greaterpotion', n: 1 }, { id: 'antitoxin', n: 1 }, { id: 'kit', n: 1 }, { id: 'oil', n: 2 }]
-      : L >= 5 ? [{ id: 'potion', n: 3 }, { id: 'antitoxin', n: 1 }, { id: 'oil', n: 1 }] : [{ id: 'potion', n: 2 }];
+    // (and torches, since the dark: the 8-bit game's party buys its own at the Provisioner's, a silver each)
+    var inv = L >= 9 ? [{ id: 'potion', n: 3 }, { id: 'greaterpotion', n: 1 }, { id: 'antitoxin', n: 1 }, { id: 'kit', n: 1 }, { id: 'oil', n: 2 }, { id: 'torch', n: 3 }]
+      : L >= 5 ? [{ id: 'potion', n: 3 }, { id: 'antitoxin', n: 1 }, { id: 'oil', n: 1 }, { id: 'torch', n: 3 }] : [{ id: 'potion', n: 2 }, { id: 'torch', n: 2 }];
     return { party: party, guests: [], inv: SV.armoury(inv), flags: { lakeDone: 1, expansionDone: L >= 9 ? 1 : 0 }, fixture: true, level: L };
   };
   // every pack DEEP16 fights with carries a light crossbow and twenty bolts (Griz, 09-27: "at least one crossbow/bolts in
@@ -100,7 +101,10 @@
       resist: h.resist || null, // (the 8-bit game's guests: Dwarven Resilience, poison halved)
       weapon: wp, attacksBase: R.attacksPerTurn(h), attacks: wp.loading ? 1 : R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
       saves: { str: R.saveBonus(h, 'str'), dex: R.saveBonus(h, 'dex'), con: R.saveBonus(h, 'con'), int: R.saveBonus(h, 'int'), wis: R.saveBonus(h, 'wis'), cha: R.saveBonus(h, 'cha') },
-      stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h
+      stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h,
+      // what he sees the dark by (torchdark 09-28): his blood (the 8-bit sheet's race: Lymen the half-orc, the dwarves), or the
+      // Darkvision spell cast on him that day (the 8-bit's conds, till the long rest)
+      darkvision: Math.max(D.light ? D.light.raceDV((DS.DATA.heroes[h.id] || {}).race) : 0, h.conds && h.conds.darkvision ? 60 : 0)
     };
   }
   SV.displaced = function (h) { var c = R.item(h.equip && h.equip.cloak); return !!(c && c.cloak && c.cloak.displacement); };

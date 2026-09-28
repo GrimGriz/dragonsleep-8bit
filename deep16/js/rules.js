@@ -13,7 +13,7 @@
 
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {
-    u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0 };
+    u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false }; // (freeObj: the turn's one free hand on an object -- a torch dropped, put out or taken up)
     u.reaction = 1;
     delete u.conds.dodge;
     u.acted = true; // it has had a turn (the Cutthroat's Opening Cut reads it)
@@ -58,9 +58,10 @@
     var adv = [], dis = [], melee = !atk.ranged && !atk.spell;
     if (att.conds.poisoned) dis.push('poisoned');
     if (att.conds.frightened) dis.push('frightened');
-    // bright light (the Light cantrip, Daylight: battle.js B.bright) on one that hates it (the 8-bit's lightSensitive: drow, duergar,
-    // the cloaker), and a wounded guest swinging anyway (Halldor at a third of himself, the 8-bit js/battle.js) -- review 09-28 #7, #4
-    if (att.lightSensitive && D.battle && D.battle.bright) dis.push('dazzled');
+    // bright light where it stands (js/light.js: a torch's reach, the Light cantrip, Daylight) on one that hates it (the 8-bit's
+    // lightSensitive: drow, duergar, the cloaker) -- in the dark, or once a light has been lit in a lit place (the old fight-wide
+    // dazzle) -- and a wounded guest swinging anyway (Halldor at a third of himself, the 8-bit js/battle.js) -- review 09-28 #7, #4
+    if (att.lightSensitive && D.battle && D.light && (D.battle.dark ? D.light.litByParty(D.battle, att) : D.battle.brightLit)) dis.push('dazzled');
     if (att.guest && att.src && att.src.wounded) dis.push('wounded');
     // prone (09-27: the wolves' and worgs' knockdown, Talmok's, the bulette's Leap, the giant's rock): a prone attacker is at
     // disadvantage; a prone target is easy to hit from beside it and hard from afar
@@ -70,11 +71,16 @@
     if (att.reckless && melee) adv.push('reckless');
     if (tgt.reckless && melee) adv.push('reckless target');
     if (att.conds.hidden) adv.push('unseen');
-    // magical darkness (magic.js sees): who cannot see whom
-    var DB = D.battle;
-    if (DB && (DB.darks || []).length && D.magic) { if (!D.magic.sees(DB, att, tgt)) dis.push('unseen target: darkness'); if (!D.magic.sees(DB, tgt, att)) adv.push('unseen attacker: darkness'); }
-    if (att.conds.invisible && !att.conds.faerie) adv.push('invisible');
-    if (tgt.conds.invisible && !att.conds.invisible && !tgt.conds.faerie) dis.push('invisible target'); // (outlined: no good being unseen)
+    // who cannot see whom (magic.js seeWhy: blinded, magical darkness, fog, the invisible, the dark). An unseen target is attacked
+    // at -4 for want of light (RULED 09-28, his table: "shooting blind is just handled with a -4") or at disadvantage for the rest
+    // (SRD); an unseen attacker attacks with advantage; a blinded creature is both
+    var DB = D.battle, pen = 0, penWhy = '';
+    if (DB && D.magic) {
+      var v1 = D.magic.seeWhy(DB, att, tgt);
+      if (!v1.ok) { if (v1.why === 'dark' && D.light) { pen = D.light.BLIND; penWhy = 'blind'; } else dis.push(v1.why === 'blinded' ? 'blinded' : 'unseen target: ' + v1.why); }
+      var v2 = D.magic.seeWhy(DB, tgt, att);
+      if (!v2.ok) adv.push(v2.why === 'blinded' ? 'blinded target' : 'unseen attacker: ' + v2.why);
+    }
     if (att.conds.restrained) dis.push('restrained');
     if (tgt.conds.restrained) adv.push('restrained target');
     if (tgt.conds.paralyzed || tgt.conds.asleep) adv.push(tgt.conds.asleep ? 'asleep' : 'paralyzed');
@@ -97,7 +103,7 @@
       if (G.foesNear(att, ax == null ? att.x : ax, ay == null ? att.y : ay, 5).length) dis.push('in melee');
       if (atk.range && G.dist(att, tgt, ax, ay) > atk.range[0]) dis.push('long range');
     }
-    return { adv: adv, dis: dis, net: adv.length && !dis.length ? 1 : dis.length && !adv.length ? -1 : 0 };
+    return { adv: adv, dis: dis, net: adv.length && !dis.length ? 1 : dis.length && !adv.length ? -1 : 0, pen: pen, penWhy: penWhy };
   };
   // a save's numbers for a card: the d20, the bonus, and what's in it (the aura, Bless)
   RU.saveText = function (sv) {

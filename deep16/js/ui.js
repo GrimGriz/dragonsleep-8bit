@@ -92,7 +92,7 @@
   // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
   // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
   // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, leave: 1 };
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1 };
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -274,7 +274,7 @@
       B.list = { kind: c.sub, items: items, sel: first }; B.ringB = null;
       return;
     }
-    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: pick a foe beside you; the next ally to swing at it has advantage.{/}'], 200); return; }
+    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: pick a foe beside you; the next ally to swing at it has advantage.{/}'], 200); if (c.tool === 'torch') B.card(['{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}'], 100000); return; }
     UI.command(B, u, { do: c.id });
   }
   function levelRing(B, u) {
@@ -345,16 +345,20 @@
     if (tool === 'help') return foe && G.dist(u, foe) <= 5 ? 'ok' : 'no';
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
     if (tool === 'item') return B.itemTargetOK(u, B.itemId, w) ? 'ok' : 'no';
+    if (tool === 'torch') return UI.throwSq(u, x, y) ? 'ok' : 'no';
     if (tool === 'spell') {
       var g = B.spell.g, M = D.magic;
       if (g.shape === 'sphere' || g.shape === 'cube') return M.inRange(u, g, x, y) ? 'ok' : 'no';
       if (g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') return M.area(u, g, x, y).length ? 'ok' : 'no';
       if (g.shape === 'teleport') return B.mistyTargets(u).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
       if (g.shape === 'allies' && B.picks.length && !(w && M.targetOK(B, u, g, w))) return 'self';
-      return w && M.targetOK(B, u, g, w) ? 'ok' : 'no';
+      if (w && M.targetOK(B, u, g, w)) return 'ok';
+      return M.missileDark(B, u, g, x, y) ? 'ok' : 'no'; // (Magic Missile at the darkness: a square the caster cannot see into)
     }
     return 'no';
   };
+  // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
+  UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
     var T = u.turn, tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
@@ -372,11 +376,12 @@
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe }); return B.card(['{o}Help: pick a foe beside you.{/}'], 120); }
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
     if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w }); return B.card(['{o}Not a target for that.{/}'], 120); }
+    if (tool === 'torch') { if (v === 'ok') return UI.command(B, u, { do: 'throwtorch', x: x, y: y }); return B.card(['{o}Throw it to a square within 20 ft you can see.{/}'], 120); }
     if (tool === 'spell') {
-      var S = B.spell, g = S.g, cast = function (t) { UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: t }); };
+      var S = B.spell, g = S.g, M = D.magic, cast = function (t) { UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: t }); };
       if (g.shape === 'rays' || g.shape === 'darts') {
         if (v !== 'ok') return;
-        B.picks.push(w);
+        B.picks.push(w && M.targetOK(B, u, g, w) ? w : { x: x, y: y, size: 1, dark: true, name: 'the dark' }); // (a dart at the darkness)
         if (B.picks.length >= S.n) return cast({ units: B.picks.slice() });
         return B.card(['{y}' + S.name + '{/}: ' + B.picks.length + ' of ' + S.n + ' aimed.  {g}X takes the last back{/}'], 100000);
       }
@@ -480,6 +485,7 @@
     D.iso.inWorld = true; // (before the figures are placed: their positions are the world canvas's)
     try {
       B.units.forEach(function (u) { var o = unitObj(B, u); if (o) objs.push(o); });
+      D.light.props(B).forEach(function (o) { objs.push(o); }); // a torch on the floor, dancing lights, a daylight set at a point
       // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
       (B.riders || []).forEach(function (r) {
         var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2, r.y + (f[1] - 1) / 2, r.gz), s = D.iso.toScreen(c.x, c.y);
@@ -492,10 +498,12 @@
       FX.list.forEach(function (f) { if (!f.screen) objs.push({ depth: 1e6, gz: 0, draw: function (c) { f.draw(c); } }); });
       DEFER = objs; WCTX = wx;
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
+      if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
     } finally { D.iso.inWorld = false; DEFER = null; WCTX = null; }
     var dev = z * D.R;
     ctx.imageSmoothingEnabled = Math.abs(dev - Math.round(dev)) > 1e-6;
-    ctx.drawImage(wc, 0, 0, vw, vh, 0, 0, vw * z, vh * z);
+    var shk = B.shakeT > 0 && (B.shakeT % 10) < 4; // (the roost coming down: a shake every ten frames, as the 8-bit's swarm)
+    ctx.drawImage(wc, 0, 0, vw, vh, shk ? Math.round((Math.random() - 0.5) * 6) : 0, shk ? Math.round((Math.random() - 0.5) * 4) : 0, vw * z, vh * z);
     ctx.imageSmoothingEnabled = false;
     FX.list.forEach(function (f) { if (f.screen) f.draw(ctx); });
     strip(ctx, B);
@@ -535,6 +543,8 @@
         if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;
         if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.2 : 0.5; // (inside the darkness: a shape, if that)
+        // in the dark where no one of the party sees (torchdark 09-28): the player sees it still, grey and faint; by darkvision, grey
+        if (B.dark && u.side === 'foe' && !down && !u.flash) { var ps = D.light.partySees(B, u); if (ps < 2) { o.alpha = Math.min(o.alpha == null ? 1 : o.alpha, ps === 1 ? 0.85 : 0.6); o.tint = R('stone', 3); o.tintAlpha = ps === 1 ? 0.3 : 0.5; } }
         if (u.flash > 0) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
@@ -583,7 +593,13 @@
     });
     // a web on the floor
     (B.webs || []).forEach(function (wb) { wb.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], R('bone', 1), 0.22, 3); }); });
-    (B.darks || []).forEach(function (dk) { dk.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], '#040308', 0.86); }); }); // magical darkness
+    // magical darkness, and the clouds that are heavily obscured like it: fog (pale), a stinking cloud (yellow-green), sleet (cold)
+    (B.darks || []).forEach(function (dk) {
+      var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? R('moss', 2) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;
+      D.magic.darkSq(B, dk).forEach(function (q) { fillSq(ctx, q[0], q[1], col, a); });
+    });
+    // a torch's throw: the squares within 20 ft it may land on
+    if (u && B.tool === 'torch') for (var ty = u.y - 4; ty <= u.y + 4; ty++) for (var tx = u.x - 4; tx <= u.x + 4; tx++) if (UI.throwSq(u, tx, ty)) lineSq(ctx, tx, ty, R('gold', 3), 0.5, 4);
     if (B.active && !B.active.ethereal) G.foot(B.active).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9, 3); });
     if (!u) return;
     var T = u.turn, tool = B.tool, cx = B.cursor.x, cy = B.cursor.y;
@@ -688,10 +704,17 @@
         else if (l.cover && d > 5) bits.push('{c}half cover (+2): ' + l.why + '{/}');
         if (e.adv.length) bits.push('{n}adv: ' + e.adv.join(', ') + '{/}');
         if (e.dis.length) bits.push('{o}dis: ' + e.dis.join(', ') + '{/}');
+        if (e.pen) bits.push('{o}' + e.penWhy + ' ' + e.pen + '{/}');
         lines.push(bits.join('  '));
+        // who sees whom (torchdark): what the hero can't see, and what can't see him
+        var s1 = D.magic.seeWhy(B, u, w), s2 = D.magic.seeWhy(B, w, u), sb = [];
+        if (!s1.ok) sb.push('{o}unseen by ' + u.name + ': ' + s1.why + '{/}'); else if (s1.dv) sb.push('{c}seen by darkvision{/}');
+        if (!s2.ok) sb.push('{n}it cannot see ' + u.name + ': ' + s2.why + '{/}');
+        if (sb.length) lines.push(sb.join('  '));
       }
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
+      if (B.dark) { var lv = D.light.levelAt(B, B.cursor.x, B.cursor.y), ps = D.light.partySeesSq(B, B.cursor.x, B.cursor.y); lines.push('{g}' + D.light.name(lv) + ' here' + (lv === 0 ? (ps === 1 ? ' (one of yours sees it by darkvision)' : ' (no one of yours sees it)') : '') + '{/}'); }
       B.units.forEach(function (p) {
         if (p.cls !== 'paladin' || p.lvl < 6 || !G.standing(p) || !RU.canAct(p) || Math.max(Math.abs(B.cursor.x - p.x), Math.abs(B.cursor.y - p.y)) > 2) return;
         lines.push('{y}' + p.name + '\'s aura{/}: allies here add +' + Math.max(1, D.mod(p.abil.cha)) + ' to saving throws');
@@ -717,8 +740,17 @@
     if (w.conds.faerie) c.push('{p}faerie fire{/}');
     if (w.conds.hidden) c.push('{c}hidden{/}');
     if (w.conds.invisible) c.push('{c}invisible{/}');
+    if (w.conds.blinded) c.push('{o}blinded{/}');
     if (w.conds.dodge) c.push('{c}dodging{/}');
     if (w.conds.ablaze) c.push('{o}blade ablaze{/}');
+    if (w.torch) c.push('{o}torch in hand{/}');
+    if (w.conds.light) c.push('{y}light{/}');
+    if (w.conds.daylight) c.push('{y}daylight{/}');
+    if (w.conds.continualFlame) c.push('{o}continual flame{/}');
+    if (w.conds.darkvision) c.push('{c}darkvision{/}');
+    if (w.conds.seeInvisible) c.push('{c}sees the invisible{/}');
+    if (w.conds.truesight) c.push('{c}truesight{/}');
+    if (w.conds.pwt) c.push('{c}veiled{/}');
     if (w.displacement) c.push(w.conds.displaceOff ? '{g}displacement (next turn){/}' : '{c}displaced{/}');
     if (w.conds.shield) c.push('{c}shield{/}');
     if (w.conds.shieldOfFaith) c.push('{c}faith +2{/}');
@@ -804,7 +836,7 @@
     if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.sp) D.text(ctx, '{g}' + D.magic.summary(cur, u) + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.note) D.text(ctx, '{g}' + cur.note + '{/}', x + 6, sy, R('accent', 2));
-    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire' }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
+    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire', light: 'a torch, lit: bright 20 ft, dim 20 more; it takes a hand' }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
   }
 
   // ------------------------------------------------------------------ WINDOW: Chrono Trigger's command window, a pointing hand
@@ -916,6 +948,7 @@
     D.text(ctx, 'Level ' + (Math.min.apply(null, lv) === Math.max.apply(null, lv) ? lv[0] : Math.min.apply(null, lv) + '-' + Math.max.apply(null, lv)) + '.  ' + (B.intro || ''), D.W / 2, 150, R('accent', 2), 'center');
     if (B.canSwap) D.text(ctx, B.o.fixture ? '2: walk in from the 8-bit save instead' : '2: walk in as the fixture instead (the four at level 9; the fight is built for them)', D.W / 2, 164, R('silver', 5), 'center');
     D.text(ctx, 'menu: ' + UI.opts.style.toUpperCase() + (UI.opts.style === 'ring' ? ' (M or Tab, then MENU)' : ' (M or X/Esc, then MENU)'), D.W / 2, 194, R('stone', 5), 'center');
+    if (B.dark) D.text(ctx, 'DARK GROUND: the four see by their lights and darkvision. You see it all: what they cannot is grey.', D.W / 2, 208, R('fire', 1), 'center');
     if ((B.t >> 5) & 1) D.text(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }
   function inspect(ctx, u) {
@@ -935,6 +968,14 @@
     if (u.surprise) lines.push('{p}Surprise Attack{/}: +' + u.surprise + ' on the first round\'s hits');
     var dt = [u.immune ? 'immune ' + u.immune.join(', ') : '', u.resist ? 'resists ' + u.resist.join(', ') : '', u.vulnerable ? 'vulnerable ' + u.vulnerable.join(', ') : ''].filter(Boolean);
     if (dt.length) lines.push('{p}' + dt.join('  ·  ') + '{/}');
+    // senses (torchdark): what it sees the dark by
+    var sen = [];
+    if (u.truesight) sen.push('truesight ' + u.truesight + ' ft');
+    if (u.darkvision) sen.push('darkvision ' + u.darkvision + ' ft');
+    if (u.blindsight) sen.push('blindsight ' + u.blindsight + ' ft' + (u.blind ? ' (blind past it)' : ''));
+    if (u.devilSight) sen.push('sees through magical darkness');
+    if (u.seeInvisible) sen.push('sees the invisible');
+    lines.push(sen.length ? '{c}' + sen.join(', ') + '{/}' : '{g}no darkvision: it sees by light{/}');
     var c = conds(u).trim(); if (c) lines.push(c);
     var w = 0; lines.forEach(function (l) { w = Math.max(w, D.textWidth(l)); });
     box(ctx, 6, 40, w + 12, lines.length * 9 + 8, u.side === 'foe' ? R('red', 3) : R('glow', 1));
