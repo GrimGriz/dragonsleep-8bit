@@ -38,6 +38,9 @@
     return (u.known || []).map(function (id) {
       var sp = M.data(id), g = M.geo(id);
       if (!sp || (!sp.battle && !sp.grid && g.shape !== 'none')) return null; // (grid: a spell only DEEP16's fights can use, Misty Step)
+      // not for a fight at all (Rope Trick, Tiny Hut, Detect Magic, Revivify where nobody dies, one not built): off the ring, not greyed
+      // on it (Griz 09-28g: "no reason to have spells that aren't for a fight there"). A reaction (Shield) stays, greyed till it's asked
+      if (g.shape === 'none') return null;
       var e = { id: id, name: sp.name, level: sp.level, g: g, sp: sp, levels: sp.level ? M.slotLevels(u, sp.level) : [0] };
       e.slot = e.levels[0] || sp.level;
       // Dancing Lights already up: casting it again is the SRD's bonus action that moves the lights (no new concentration)
