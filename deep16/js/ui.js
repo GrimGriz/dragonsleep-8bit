@@ -96,9 +96,17 @@
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
+  // the wizard's cantrip in the swing's place on the first ring, his staff among the ACTIONS (Griz, 09-28: "put Aurdin's attack
+  // in with his 'dodge/dash' and the default wizard cantrip ... on the first ring where it was ... still keep it in [the] list")
+  var QUICK = { wizard: 'firebolt' };
+  function quickSpell(B, u) {
+    var id = !u.guest && QUICK[u.cls], e = id && D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
+    return e ? Object.assign(e, { kind: 'spell', label: e.name.toUpperCase(), quick: true }) : null;
+  }
   UI.cmds = function (B, u) {
-    var c = B.commands(u), top = {}, sk = [], ac = [];
-    c.forEach(function (x) { if (SKILLS[x.id]) sk.push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    var c = B.commands(u), top = {}, sk = [], ac = [], q = quickSpell(B, u);
+    c.forEach(function (x) { if (SKILLS[x.id] || (q && x.id === 'attack')) (SKILLS[x.id] ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    if (q) top.attack = q;
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
     ['attack', 'hide', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
@@ -250,6 +258,7 @@
     if (idx != null) B.cmdSel = idx;
     if (!c) return;
     if (!c.ok) { D.sfx('error'); B.card(['{g}' + c.label + ': ' + (c.why || 'not now') + '.{/}'], 120); return; }
+    if (c.quick) { B.list = { kind: 'spells', items: [c], sel: 0 }; return pickListItem(B, u, c, 0); } // (the cantrip on the first ring)
     D.sfx('confirm');
     if (c.id === 'end') return UI.command(B, u, { do: 'end' });
     if (c.sub === 'spells' && UI.opts.style === 'ring') { B.list = levelRing(B, u); B.ringB = null; return; }

@@ -784,7 +784,24 @@
       if (unarmored && !this.heroes.some(unarmored)) { yield* this.say('No one here goes unarmored. Mage Armor has no one to take it.', 40); return false; }
       var ta = yield* this.pickAlly(unarmored || (sp.kind === 'heal' ? function (x) { return true; } : null)); if (!ta) return false; targets = [ta]; // (a healing spell may go to one who is down: SRD, RULED 09-28)
     }
-    else if (sp.target === 'allies') targets = this.liveHeroes().slice(0, sp.max || 4);
+    else if (sp.target === 'allies') {
+      // "up to three creatures of your choice" (SRD: Aid, Bless), the caster one of them if he likes (Griz, 09-28: Lymen's own
+      // Aid). One too many standing: pick who goes without; more: pick them one by one, X when that's enough
+      var live = this.liveHeroes(), max = sp.max || 4;
+      if (live.length <= max) targets = live;
+      else if (live.length === max + 1) {
+        this.msg = sp.name + ': who goes without?';
+        var left = yield* this.pickAlly(); if (!left) return false;
+        targets = live.filter(function (x) { return x !== left; });
+      } else {
+        while (targets.length < max) {
+          this.msg = sp.name + ': on whom? (' + (targets.length + 1) + ' of ' + max + (targets.length ? ', X for enough' : '') + ')';
+          var pk = yield* this.pickAlly(function (x) { return !down(x) && targets.indexOf(x) < 0; });
+          if (!pk) { if (!targets.length) return false; break; }
+          targets.push(pk);
+        }
+      }
+    }
     else if (sp.target === 'self') targets = [u];
     else if (sp.target === 'revive') { // Revivify: a diamond, and someone to bring back
       if (!DS.G.count('diamond')) { yield* this.say('Revivify needs a diamond worth 300 gp. There is none in the pack.', 44); return false; }

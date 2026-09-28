@@ -164,9 +164,14 @@
           { label: (mi.on ? '[x] ' : '[ ] ') + 'MAGE ARMOR on ' + mi.target.name, right: mi.why || '1st-level slot', ok: !mi.why || mi.on, why: mi.why, hero: mi.target.id,
             act: function () { st.cast.mageArmor.on = !st.cast.mageArmor.on; self.changed(); }, cycle: function (d) { self.cycleMage(d); },
             desc: 'Aurdin, on a creature in no armour: AC 13 + DEX for 8 hours. Robes are not armour to it. It ends if the wearer puts on armour.' },
+          // the target by a click as well as left/right (a mouse or the phone pad has no left/right on a row -- Griz, 09-28)
+          { label: '     on whom: ' + mi.target.name, right: 'next', act: function () { self.cycleMage(1); }, hero: mi.target.id,
+            desc: 'Whom Aurdin casts it on: anyone in no armour (robes are not armour to it), himself included.' },
           { label: (ai.on ? '[x] ' : '[ ] ') + 'AID on ' + ai.targets.map(function (h) { return h.name; }).join(', '), right: ai.why || '2nd-level slot, +5 HP', ok: !ai.why || ai.on, why: ai.why,
             act: function () { st.cast.aid.on = !st.cast.aid.on; self.changed(); }, cycle: function (d) { self.cycleAid(d); },
-            desc: 'Lymen, on three of the four: +5 to their maximum and current HP for 8 hours.' }
+            desc: 'Lymen, on three of the four: +5 to their maximum and current HP for 8 hours.' },
+          { label: '     goes without: ' + (this.data.party.filter(function (h) { return h.id === st.cast.aid.out; })[0] || {}).name, right: 'next', act: function () { self.cycleAid(1); },
+            desc: 'Aid takes three of the four (SRD: up to three creatures of the caster\'s choice). Lymen may be one of them: pick who goes without.' }
         ] };
       }
     }

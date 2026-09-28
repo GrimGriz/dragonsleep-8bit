@@ -311,8 +311,16 @@
       return;
     }
     if (sp.buff === 'aid') {
+      // up to three of the caster's choice, himself among them if he likes (SRD; Griz, 09-28: Lymen's own Aid): four in the
+      // party, one goes without
+      var up3 = g.party.filter(function (x) { return !x.ko; });
+      if (up3.length > 3) {
+        var out = yield DS.choose({ items: up3.map(function (x) { return { label: x.name, right: x.hp + '/' + x.maxhp, value: x }; }), x: 60, y: 60, w: 136, title: 'WHO GOES WITHOUT?' });
+        if (!out) return;
+        up3 = up3.filter(function (x) { return x !== out; });
+      }
       if (slot) h.slots[slot - 1]--;
-      g.party.slice(0, 3).forEach(function (x) { if (!x.ko) { x.maxhp += 5; x.hp += 5; x.conds.aid = (x.conds.aid || 0) + 5; } });
+      up3.slice(0, 3).forEach(function (x) { x.maxhp += 5; x.hp += 5; x.conds.aid = (x.conds.aid || 0) + 5; });
       DS.audio.sfx('buff'); yield DS.say(L('g.aid')); return;
     }
     if (sp.kind === 'light') { DS.audio.sfx('magic'); yield DS.say(L('g.light')); return; }
