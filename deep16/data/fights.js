@@ -181,8 +181,8 @@
       ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 3 },
       intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Binding.)',
       // inside the 8-bit game (js/embed.js): the ring on whoever wears it, or on nobody (the 8-bit S.lakeFight's lake.rises / risesNoRing)
-      introRing: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. ({ring} wears the Ring of Binding.)',
-      introNoRing: 'The water off the point heaves. It comes up out of the deep, and you are not ready for it.',
+      introRing: 'It turns toward the ring before it turns toward anything else. ({ring} wears the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on them.)', // (the 8-bit box has said the water heaves)
+      introNoRing: 'Nobody wears the Ring of Binding. It turns toward whoever is nearest the water.',
       from: 'the 8-bit game: events.js S.lakeFight, the base game\'s capstone (the chuul; the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on the wearer). The water hand-waved: it swims, nobody else does', won: 'THE DEEP IS ONLY WATER NOW.',
       foes: [{ id: 'chuul', kind: 'chuul', at: [8, 2] }], wave: null },
     { id: 'xorns', level: 8, map: 'seamwall', name: 'The Seam', sub: 'the king\'s road, leg three', music: 'boss',

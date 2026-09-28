@@ -13,7 +13,7 @@
       shortsword: { name: 'Shortsword', atk: 7, dice: '1d6', mod: 4, type: 'piercing', extra: '2d6', extraType: 'poison', reach: 5 },
       crossbow: { name: 'Hand Crossbow', atk: 7, dice: '1d6', mod: 4, type: 'piercing', range: [30, 120], ranged: true, poison: { dc: 13 } }
     },
-    multi: 2, faerieFire: { dc: 12, range: 60, cube: 4 },
+    multi: 2, faerieFire: { dc: 12, range: 60, cube: 4 }, darkness: { r: 15, range: 60, chance: 0.3 }, lightSensitive: true, // (innate Darkness once on the 8-bit's chance; sunlight sensitivity: crossed 09-28)
     src: 'content/monsters.json drowcaptain (game-original, CR 5) + SRD 5.1 Drow (hand crossbow, poison, Faerie Fire)'
   },
   phasespider: {
@@ -177,7 +177,8 @@
     attacks: { firebolt: { name: 'Fire Bolt', atk: 6, dice: '2d10', mod: 0, type: 'fire', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
     multi: 1, fey: true,
     weave: { bolt: { dc: 14, dice: '8d6', type: 'lightning', len: 100, recharge: 5 }, hold: { dc: 14, range: 60 } },
-    src: 'content/monsters.json spellweaver (game-original, CR 6): Fire Bolt; a line of lightning (recharge 5-6, DEX 14, 8d6); Hold once (WIS 14, paralyzed, a save each turn)', todo: 'Darkness and light sensitivity are not read'
+    darkness: { r: 15, range: 60, chance: 0.35 }, lightSensitive: true, // (the 8-bit's `darkness` special, once; sunlight sensitivity: crossed 09-28)
+    src: 'content/monsters.json spellweaver (game-original, CR 6): Fire Bolt; a line of lightning (recharge 5-6, DEX 14, 8d6); Hold once (WIS 14, paralyzed, a save each turn)'
   },
   drowling: {
     name: 'Drow', sheet: 'drow_p1', humanoid: true, cr: '1/4', ac: 15, hp: 13, speed: 30, size: 1, reach: 5,
@@ -187,8 +188,8 @@
       shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
       crossbow: { name: 'Hand Crossbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true, poison: { dc: 13 } }
     },
-    multi: 1, fey: true,
-    src: 'SRD 5.1 Drow (CR 1/4); content/monsters.json drow (the pipeline-1 drow sheet; the captains keep the LPC one)', todo: 'Darkness and light sensitivity are not read'
+    multi: 1, fey: true, darkness: { r: 15, range: 60, chance: 0.2 }, lightSensitive: true, // (innate Darkness once on the 8-bit's chance; sunlight sensitivity: crossed 09-28)
+    src: 'SRD 5.1 Drow (CR 1/4); content/monsters.json drow (the pipeline-1 drow sheet; the captains keep the LPC one)'
   },
   // the sect blades (deep.js, the first rest after Torvald): Sneak Attack, and Assassinate on a party caught unaware
   assassin: {
@@ -216,8 +217,8 @@
     abil: { str: 14, dex: 11, con: 14, int: 11, wis: 10, cha: 9 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: -1 },
     attacks: { warpick: { name: 'War Pick', atk: 4, dice: '1d8', mod: 2, type: 'piercing', reach: 5 } },
-    multi: 1, resist: ['poison'], enlarge: { dice: '2d8' },
-    src: 'SRD 5.1 Duergar (CR 1): war pick; Enlarge once (an action: its pick hits for 2d8+2); content/monsters.json duergar', todo: 'Invisibility and light sensitivity are not read'
+    multi: 1, resist: ['poison'], enlarge: { dice: '2d8' }, lightSensitive: true,
+    src: 'SRD 5.1 Duergar (CR 1): war pick; Enlarge once (an action: its pick hits for 2d8+2); content/monsters.json duergar', todo: 'Invisibility is not read'
   },
   // the rescue in the dens (events.js, quest `cull`): the roost overhead, and its one law -- no fire, no thunder
   giantbat: {
@@ -266,7 +267,8 @@
       longsword: { name: 'Longsword', atk: 4, dice: '1d8', mod: 2, type: 'slashing', reach: 5 },
       crossbow: { name: 'Light Crossbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', range: [80, 320], ranged: true }
     },
-    multi: 1, src: 'dominion-patrol-the-fare-home.pdf LINE SOLDIERS (fighter 2, sword and shield: AC 19, HP 20, longsword +4 1d8+2, light crossbow +3 1d8+1 80/320)', todo: 'Second Wind (1d10+2) and Action Surge are not read'
+    multi: 1, secondWind: '1d10+2', actionSurge: true, // (ai.js brute: once each; review 09-28 #16)
+    src: 'dominion-patrol-the-fare-home.pdf LINE SOLDIERS (fighter 2, sword and shield: AC 19, HP 20, longsword +4 1d8+2, light crossbow +3 1d8+1 80/320)'
   },
   veteran: {
     name: 'Sergeant', sheet: 'veteran_p1', cr: '3', ac: 17, hp: 58, speed: 30, size: 1, reach: 5,
@@ -374,11 +376,11 @@
       bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 3, type: 'piercing', reach: 5, grapple: { dc: 16, max: 1 }, autoHitHeld: true },
       tail: { name: 'Tail', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 10 }
     },
-    multi: ['bite', 'tail'], moan: { dc: 13, recharge: 5 }, phantasms: 'bloodied', transfer: true,
-    src: 'SRD 5.1 Cloaker (CR 8, fly 40 read as moving 40); content/monsters.json cloaker: the bite engulfs (read as a grip, escape DC 16, its bite then always lands), Damage Transfer, Moan (WIS 13, frightened), Phantasms once when bloodied', todo: 'light sensitivity and the engulfed one\'s blindness are not read'
+    multi: ['bite', 'tail'], moan: { dc: 13, recharge: 5 }, phantasms: 'bloodied', transfer: true, lightSensitive: true,
+    src: 'SRD 5.1 Cloaker (CR 8, fly 40 read as moving 40); content/monsters.json cloaker: the bite engulfs (read as a grip, escape DC 16, its bite then always lands), Damage Transfer, Moan (WIS 13, frightened), Phantasms once when bloodied', todo: 'the engulfed one\'s blindness is not read'
   },
   amara: {
-    named: true, name: 'Amara', sheet: 'amara_p1', cr: '3', ac: 13, hp: 38, speed: 30, size: 1, reach: 5,
+    named: true, name: 'Amara', sheet: 'amara_p1', cr: '3', ac: 13, hp: 45, // (warlock 5 at a max d8+1 a level, RULED 09-28) speed: 30, size: 1, reach: 5,
     abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
     saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
     attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
@@ -386,7 +388,7 @@
     src: 'content/monsters.json amara (the 8-bit game\'s own warlock): two beams of Eldritch Blast; when she runs, Darkness first (npcs-by-location.md her spells: darkness; module-halfway-inn.md "darkness over the yard"). No Devil\'s Sight: she is as blind in it as anyone'
   },
   willem: {
-    named: true, name: 'Willem Glass', sheet: 'willem_p1', cr: '3', ac: 12, hp: 30, speed: 30, size: 1, reach: 5,
+    named: true, name: 'Willem Glass', sheet: 'willem_p1', cr: '3', ac: 12, hp: 35, // (wizard 5 at a max d6+1 a level, RULED 09-28) speed: 30, size: 1, reach: 5,
     abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 }, init: 2, perception: 11,
     saves: { str: -1, dex: 2, con: 1, int: 5, wis: 3, cha: 0 },
     attacks: { frost: { name: 'Ray of Frost', atk: 6, dice: '2d8', mod: 0, type: 'cold', ranged: true, spell: true, range: [60, 60], fx: 'bolt' } },
@@ -397,12 +399,16 @@
   // shouldn't end in a fight, but given the weight of the scene ... redo it in 16"): a remedy in his pack for someone sick up
   // top, and he will not be held. He yields when he is beaten (`yields`: at half his hit points, standing, the fight is over)
   torvald: {
-    name: 'Dwarf Cleric', sheet: 'torvald_p0', cr: '3', ac: 13, hp: 40, speed: 25, size: 1, reach: 5,
+    name: 'Dwarf Cleric', sheet: 'torvald_p0', cr: '3', ac: 13, hp: 50, speed: 25, size: 1, reach: 5, // (hp: cleric 5 at a max d8+2 a level, RULED 09-28)
     abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 }, init: 0, perception: 13,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 5, cha: 3 },
     attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: 1, yields: true,
-    src: 'content/monsters.json torvald (the Dwarf Cleric: AC 13, 40 HP, mace +4 1d6+2; yields at half, the 8-bit battle.js)'
+    multi: 1, yields: true, resist: ['poison'],
+    // the cleric's kit, crossed from the 8-bit sheet (review 09-28 #1): Hold Person once (WIS 13, a save each turn) and the Dormant's
+    // spirits as the weaver's line (3d8 radiant, WIS 13 half, recharge 5) -- a line where the 8-bit's Spirit Guardians is a burst on all;
+    // the true spell waits on the other-classes spells pass (handoff 09-28). Sanctuary at bloodied is moot: he yields there
+    weave: { bolt: { dc: 13, dice: '3d8', type: 'radiant', len: 30, recharge: 5, text: 'calls on the Dormant, and spirits wheel out from him, cold as a vault!', again: 'gathers the spirits again' }, hold: { dc: 13, range: 60, text: 'points. "Be still."' } },
+    src: 'content/monsters.json torvald (the Dwarf Cleric: AC 13, mace +4 1d6+2; Spirit Guardians 3d8 radiant WIS 13 half recharge 5; Hold once WIS 13; poison resistance; yields at half, the 8-bit battle.js)'
   },
   // ------------------------------------------------------------------ batch six (09-27): the causeway, the cut, the roper, the settling pools
   // the spirit naga (deep.js S.naga, leg four): "Halfway over, the water stands up." It keeps to the black water (bound '~'),
