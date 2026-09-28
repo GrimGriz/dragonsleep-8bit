@@ -673,7 +673,8 @@
       return;
     }
     if (a === 1) {
-      var res = yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, introText: L('w.landlordRises') });
+      // fought in DEEP16 (story-fights-2; deep16/data/fights.js landlord, js/embed.js)
+      var res = yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, introText: L('w.landlordRises'), deep16: 'landlord' });
       if (res === 'win') g.flags.otyughDead = 1;
     }
   };
@@ -700,14 +701,14 @@
       if (!g.has('rope')) { yield DS.say(L('w.noRope')); return; }
       if (g.flags.keeperAwake) {
         yield DS.say(L('w.ropeAwake'));
-        var r1 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false });
+        var r1 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper' }); // (DEEP16: deep16/data/fights.js keeper)
         if (r1 !== 'win') return;
         g.flags.keeperDone = 1;
       }
       yield DS.say(L('w.ropeOut'));
     } else if (a === 1) {
       yield DS.say(L('w.wade'));
-      var r2 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false });
+      var r2 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper' });
       if (r2 !== 'win') return;
       g.flags.keeperDone = 1;
       yield DS.say(L('w.keeperGone'));
@@ -722,7 +723,7 @@
     var g = G();
     if (g.flags.stockDead && g.flags.fiveRecovered && !g.flags.lineBroken) {
       yield DS.say(L('w.lineHolds'));
-      var res = yield* EV.fight(['guard', 'guard', 'guard', 'guard', 'guard', 'veteran'], { bg: 'plains', canRun: true });
+      var res = yield* EV.fight(['guard', 'guard', 'guard', 'guard', 'guard', 'veteran'], { bg: 'plains', canRun: true, deep16: 'line' }); // (DEEP16: the bridge)
       if (res === 'win') { g.flags.lineBroken = 1; F().refreshNpcs(); yield DS.say(L('w.lineBroken')); }
     }
   };
@@ -753,7 +754,8 @@
   S.rescue = function* () {
     var g = G();
     yield DS.say(L('g3.rescue1'));
-    var res = yield* EV.fight(['giantbat', 'giantbat', 'giantbat', 'giantbat'], { bg: 'guano', introText: L('g3.rescueIntro') });
+    // fought in DEEP16 under its roost (deep16/data/fights.js rescue: fire and thunder greyed, as here)
+    var res = yield* EV.fight(['giantbat', 'giantbat', 'giantbat', 'giantbat'], { bg: 'guano', introText: L('g3.rescueIntro'), deep16: 'rescue' });
     if (res !== 'win') return;
     g.flags.rescued = 1; g.flags.cullDone = 1;
     yield DS.say(L('g3.rescue2'));
@@ -793,7 +795,7 @@
   S.snared = function* (arg, t) {
     var g = G();
     yield DS.say(L('gulch.snared'));
-    var res = yield* EV.fight(['wolfspider', 'wolfspider', 'giantspider'], { bg: 'gulch' });
+    var res = yield* EV.fight(['wolfspider', 'wolfspider', 'giantspider'], { bg: 'gulch', deep16: 'snared' }); // (DEEP16: deep16/data/fights.js snared)
     if (res === 'win') {
       F().map.setTile(18, 17, 'gulch');
       yield DS.say(L('gulch.snaredFree')); g.silver += 12; DS.audio.sfx('coin');
@@ -813,7 +815,7 @@
     var g = G();
     if (g.flags.snootDone) return;
     yield DS.say(L('road.snoot'));
-    var res = yield* EV.fight(['gloryseeker', 'gnoll', 'gnoll', 'hyena', 'hyena'], { bg: 'gnoll', music: 'boss', canRun: true });
+    var res = yield* EV.fight(['gloryseeker', 'gnoll', 'gnoll', 'hyena', 'hyena'], { bg: 'gnoll', music: 'boss', canRun: true, deep16: 'snoot' }); // (DEEP16: deep16/data/fights.js snoot)
     if (res === 'win') {
       g.flags.snootDone = 1; yield DS.say(L('road.snootDone'));
       g.give('anchorpin', 1); DS.audio.sfx('chest'); yield DS.say(L('road.snootPin'));
@@ -1227,7 +1229,8 @@
     var g = G();
     var ring = g.party.some(function (h) { return h.equip.ring === 'ringofbinding' && !h.ko; });
     yield DS.say(L(ring ? 'lake.rises' : 'lake.risesNoRing'));
-    var res = yield* EV.fight(['chuul'], { bg: 'lake', music: 'boss', canRun: false, introText: ring ? L('lake.senseMagic') : null });
+    // fought in DEEP16 (deep16/data/fights.js chuul): the ring on whoever wears it, the water hand-waved (it swims, nobody else does)
+    var res = yield* EV.fight(['chuul'], { bg: 'lake', music: 'boss', canRun: false, introText: ring ? L('lake.senseMagic') : null, deep16: 'chuul' });
     if (res !== 'win') return;
     g.flags.lakeDone = 1;
     yield DS.say(L('lake.after'));

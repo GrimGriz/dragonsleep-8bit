@@ -172,6 +172,9 @@
     { id: 'chuul', level: 4, map: 'point', name: 'The Thing in the Lake', sub: 'the point, at night', music: 'boss',
       ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 3 },
       intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Binding.)',
+      // inside the 8-bit game (js/embed.js): the ring on whoever wears it, or on nobody (the 8-bit S.lakeFight's lake.rises / risesNoRing)
+      introRing: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. ({ring} wears the Ring of Binding.)',
+      introNoRing: 'The water off the point heaves. It comes up out of the deep, and you are not ready for it.',
       from: 'the 8-bit game: events.js S.lakeFight, the base game\'s capstone (the chuul; the Ring of Binding: +3 CON saves, and on rounds 1, 4, 7 and 10 it must turn on the wearer). The water hand-waved: it swims, nobody else does', won: 'THE DEEP IS ONLY WATER NOW.',
       foes: [{ id: 'chuul', kind: 'chuul', at: [8, 2] }], wave: null },
     { id: 'xorns', level: 8, map: 'seamwall', name: 'The Seam', sub: 'the king\'s road, leg three', music: 'boss',

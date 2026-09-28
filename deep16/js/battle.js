@@ -56,8 +56,16 @@
     this.webs = webs ? [{ by: 'the ground', sq: webs.slice() }] : [];
     // a Ring of Binding (the lake: fight.ring { hero, rounds, con }): its wearer saves CON better, and on the named rounds
     // the thing in the water must turn on them (ai.js brute)
-    this.taunt = null;
-    if (F.ring) { var rw = party.filter(function (u) { return u.id === F.ring.hero; })[0]; if (rw) { rw.saves = Object.assign({}, rw.saves); rw.saves.con += F.ring.con || 0; rw.ring = true; this.taunt = { u: rw, rounds: F.ring.rounds }; } }
+    this.taunt = null; this.intro = F.intro;
+    var ring = F.ring;
+    // inside the 8-bit game the ring is whoever wears it, standing (its S.lakeFight), and its +3 is already in their saves
+    // (the 8-bit R.saveBonus); nobody wearing it, no taunt, and the card says so (fight.introNoRing)
+    if (ring && this.o.embed) {
+      var wr = party.filter(function (u) { return u.hp > 0 && u.src && u.src.equip && u.src.equip.ring === 'ringofbinding'; })[0];
+      ring = wr ? Object.assign({}, ring, { hero: wr.id, con: 0 }) : null;
+      this.intro = wr ? (F.introRing || F.intro).replace('{ring}', wr.name) : F.introNoRing || F.intro;
+    }
+    if (ring) { var rw = party.filter(function (u) { return u.id === ring.hero; })[0]; if (rw) { rw.saves = Object.assign({}, rw.saves); rw.saves.con += ring.con || 0; rw.ring = true; this.taunt = { u: rw, rounds: ring.rounds }; } }
     FX.clear();
     this.t = 0; this.cards = []; this.round = 0; this.order = []; this.active = null;
     this.tool = 'move'; this.cursor = { x: 5, y: 10 }; this.req = null; this.wait = 0; this.waitFx = false; this.result = null;

@@ -29,6 +29,8 @@
               for (var i = 0; i < back.length; i++) if (back[i].kind === f.id) { k = i; break; }
               var r = k >= 0 ? back.splice(k, 1)[0] : null;
               if (res === 'win' || (r && (r.dead || r.fled))) { f.dead = true; f.fade = 0; if (r && r.fled) f.fled = true; }
+              // one who ran carries his flag out with him, as the 8-bit foeBolt does (the wheelwright: wheelwrightRan)
+              if (r && r.fled && f.m.traits && f.m.traits.flag) DS.G.flags[f.m.traits.flag] = 1;
             });
             b.over = res; b.fromDeep = true;
             b.onClose = function (r) {

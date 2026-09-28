@@ -262,7 +262,8 @@
       }
       if (pick === 'fight') {
         DS.G.flags.wheelwrightRan = 0;
-        var res = yield* EV.fight(['hask', 'wheelwright', 'crewman', 'crewman'], { bg: 'dwarf', music: 'boss', canRun: true, introText: L('deep.crewFight') });
+        // fought in DEEP16 (deep16/data/fights.js crew): the wheelwright bolts when Hask falls, and carries wheelwrightRan out (js/embed.js)
+        var res = yield* EV.fight(['hask', 'wheelwright', 'crewman', 'crewman'], { bg: 'dwarf', music: 'boss', canRun: true, introText: L('deep.crewFight'), deep16: 'crew' });
         if (res === 'win') {
           g.flags.crewDealt = 1; if (back) g.flags.noEscort = 1; delete g.flags.crewBack;
           F().refreshNpcs();
@@ -1269,7 +1270,7 @@
   S.holdStair = function* () {
     var g = G();
     yield DS.say(L('deep.holdStair'));
-    var res = yield* EV.fight(['crewboss', 'thug', 'thug', 'robber', 'robber'], { bg: 'dwarf', music: 'boss', canRun: true });
+    var res = yield* EV.fight(['crewboss', 'thug', 'thug', 'robber', 'robber'], { bg: 'dwarf', music: 'boss', canRun: true, deep16: 'stair' }); // (DEEP16: the siphon)
     if (res !== 'win') { if (res === 'run') yield F().walk(['right']); return; }
     yield DS.fade(1, 30);
     yield DS.say(L('deep.holdNights'), { top: true });
