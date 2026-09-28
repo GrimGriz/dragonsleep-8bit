@@ -281,14 +281,14 @@
   },
   // the Snoot's glory-seekers on the road south (events.js S.snoot)
   gloryseeker: {
-    name: 'Glory-Seeker', type: 'humanoid', sheet: 'gloryseeker_p1', cr: '1', ac: 15, hp: 38, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Glory-Seeker', type: 'humanoid', sheet: 'gloryseeker_p2', cr: '1', ac: 15, hp: 38, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 16, dex: 12, con: 13, int: 7, wis: 10, cha: 9 }, init: 1, perception: 10,
     saves: { str: 3, dex: 1, con: 1, int: -2, wis: 0, cha: -1 },
     attacks: { spear: { name: 'Spear', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5 }, bite: { name: 'Bite', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
     multi: ['spear', 'bite'], src: 'content/monsters.json gloryseeker (the 8-bit game\'s own: the Snoot\'s young blood, from the SRD gnoll)'
   },
   gnoll: {
-    name: 'Gnoll', type: 'humanoid', sheet: 'gnoll_p1', cr: '1/2', ac: 15, hp: 22, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Gnoll', type: 'humanoid', sheet: 'gnoll_p2', cr: '1/2', ac: 15, hp: 22, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 }, init: 1, perception: 10,
     saves: { str: 2, dex: 1, con: 0, int: -2, wis: 0, cha: -2 },
     attacks: { spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 }, bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 } },
