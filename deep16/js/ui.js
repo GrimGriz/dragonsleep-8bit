@@ -48,7 +48,10 @@
     }
     if (req.prompt) { B.sel = 0; D.sfx('popup'); }
     if (req.entry) B.entryT = B.t;
-    if (req.scene) { req.scene.t = 0; if (req.scene.clip) D.clip(req.scene.clip); } // a cutscene beat: its clip starts with it
+    if (req.scene) { // a cutscene beat: its clip starts with it, and the beat holds at least as long as the clip runs
+      var sc = req.scene; sc.t = 0;
+      if (sc.clip) { var a = D.clip(sc.clip); if (a) a.addEventListener('loadedmetadata', function () { if (isFinite(a.duration)) sc.frames = Math.max(sc.frames || 0, Math.ceil(a.duration * 60) + 40); }); }
+    }
   };
   function reachCache(B, u) {
     var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
