@@ -85,7 +85,8 @@
     // blocks' lists where the register has none) and the 8-bit's Hold Person; the register gives no domain, so none (flagged); his
     // numbers the 8-bit sheet's (content/monsters.json torvald: AC 13, a max d8+2 a level). His spirits are the Dormant's, cold
     // His domain the Vigil, Dvalgarda's (09-28g, the seat's on Griz's "Sufficiently distinct"; invented.json #the-vigil)
-    torvald: { cls: 'cleric', lvl: 5, race: 'dwarf', subclass: 'the Vigil', abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 },
+    torvald: { name: 'Torvald', named: true, cls: 'cleric', lvl: 5, race: 'dwarf', subclass: 'the Vigil', // (the name for the Pocket DM; his fight's card keeps 'Dwarf Cleric')
+      abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainshirt' }, noPrecast: true,
       known: ['sacredflame', 'light', 'curewounds', 'guidingbolt', 'sanctuary', 'lesserrestoration', 'spiritualweapon', 'holdperson', 'dispelmagic', 'spiritguardians'],
       guardianText: 'calls on the Dormant, and spirits wheel out from him, cold as a vault' },
@@ -100,7 +101,7 @@
     // Willem Glass, wizard 5 of illusion (npcs-by-location.md §The Road): Ray of Frost (RULED 09-28), Blur for Phantasmal Force (the ear
     // file, dist-4); the illusion school is the PHB's: his tradition is our own, the Rimeglass (09-28g, the seat's on Griz's "Sufficiently
     // distinct"; invented.json #the-rimeglass). The 8-bit sheet's AC 12: no Mage Armor up
-    willem: { cls: 'wizard', lvl: 5, race: 'human', subclass: 'the Rimeglass', abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 },
+    willem: { name: 'Willem', named: true, cls: 'wizard', lvl: 5, race: 'human', subclass: 'the Rimeglass', abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 },
       equip: { weapon: 'quarterstaff', armor: null }, noPrecast: true,
       known: ['rayoffrost', 'minorillusion', 'mageArmor', 'shield', 'mirrorimage', 'invisibility', 'blur', 'hypnoticpattern'] },
     // Talmok, barbarian 3, Bloodsnout's champion at the Hex (the-hex.md, RULED 09-01): the register's block (npcs-by-location.md §TALMOK:
