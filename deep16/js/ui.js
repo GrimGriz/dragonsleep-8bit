@@ -393,11 +393,14 @@
   // the hero whose turn it is, for EQUIP (a guest's gear is its own)
   function gearHero(B) { var u = B && B.req && B.req.turn; return u && u.side === 'party' && !u.guest && u.src ? u : null; }
   function menuItems(B) {
-    var g = gearHero(B), eq = g ? [['equip', 'EQUIP: ' + g.name.toUpperCase()]] : [];
+    var g = gearHero(B), eq = g ? [['equip', 'EQUIP: ' + g.name.toUpperCase()]] : [], story = !!(B && B.o.embed);
+    // inside the 8-bit game the fight is the story's: no restart, no ladder, no way round it (the party, the menu's style and
+    // the volumes stay). THE GATE (the sprites) is gone from the menu (Griz 09-28); ?gate still opens it
     return [['resume', 'RESUME']].concat(eq, [['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
-      ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >'],
-      ['restart', 'RESTART THE FIGHT'], ['gate', 'THE GATE (the sprites)']].filter(function () { return !(B && B.o.embed); }),
-      B && B.o.onDone ? [] : [['ladder', 'THE LADDER']], B && B.o.embed ? [] : [['out', UI.backLabel()]]); // inside the 8-bit game the fight is the story's: no restart, no way round it
+      ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >']],
+      story ? [] : [['restart', 'RESTART THE FIGHT']],
+      story || (B && B.o.onDone) ? [] : [['ladder', 'THE LADDER']],
+      story ? [] : [['out', UI.backLabel()]]);
   }
   // EQUIP's panel: the weapons in the pack this hero can use, and the shield off or on; each costs the action
   function gearInput(B) {
@@ -444,7 +447,6 @@
     if (id === 'music') setVol('musicVol', vol('musicVol') > 0 ? 0 : 0.5); // E: off, or back on
     if (id === 'sounds') setVol('sfxVol', vol('sfxVol') > 0 ? 0 : 0.7);
     if (id === 'restart') { D.pop(); D.push(new D.Battle(B.o)); }
-    if (id === 'gate') location.search = '?gate';
     if (id === 'ladder') location.search = '?ladder';
     if (id === 'out') { if (B.o.onDone) { D.pop(); B.o.onDone(null); } else location.href = '../'; } // the ladder, or back to the 8-bit game: nothing is written
   };
