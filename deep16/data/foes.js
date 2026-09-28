@@ -176,7 +176,9 @@
     saves: { str: -1, dex: 2, con: 0, int: 3, wis: 1, cha: 0 },
     attacks: { firebolt: { name: 'Fire Bolt', atk: 6, dice: '2d10', mod: 0, type: 'fire', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
     multi: 1, fey: true,
-    weave: { bolt: { dc: 14, dice: '8d6', type: 'lightning', len: 100, recharge: 5 }, hold: { dc: 14, range: 60 } },
+    // the SRD Mage's list (RULED 09-28: the stat blocks' lists as the NPC lists; the 8-bit's Lightning Bolt for Fireball, and Hold Person):
+    // a 9th-level caster, INT, DC 14, +6 -- cast through the real spells by the class tactics (js/tactics.js); the old weave retired
+    caster: { lvl: 9, ab: 'int', dc: 14, atk: 6, slots: [4, 3, 3, 3, 1], known: ['firebolt', 'light', 'magicmissile', 'shield', 'mageArmor', 'mistystep', 'holdperson', 'lightningbolt', 'greaterinvisibility', 'icestorm', 'coneofcold'] },
     darkness: { r: 15, range: 60, chance: 0.35 }, lightSensitive: true, // (the 8-bit's `darkness` special, once; sunlight sensitivity: crossed 09-28)
     src: 'content/monsters.json spellweaver (game-original, CR 6): Fire Bolt; a line of lightning (recharge 5-6, DEX 14, 8d6); Hold once (WIS 14, paralyzed, a save each turn)'
   },
@@ -384,7 +386,7 @@
     abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 }, init: 2, perception: 10,
     saves: { str: -1, dex: 2, con: 1, int: 1, wis: 2, cha: 5 },
     attacks: { blast: { name: 'Eldritch Blast', atk: 6, dice: '1d10', mod: 3, type: 'force', ranged: true, spell: true, range: [120, 120], fx: 'fire' } },
-    multi: ['blast', 'blast'], flees: true, darkness: { r: 15, range: 60 }, mirrorEye: true, // (the Mirror's eye: RULED 09-28, all the Mirror's warlocks; magic.js inMirror)
+    multi: ['blast', 'blast'], flees: true, darkness: { r: 15, range: 60 }, mirrorEye: true, build: 'amara', // (09-28: built as warlock 5 of the Mirror with her register's spells, js/classes.js NPC.NAMED; this sheet's numbers stand) // (the Mirror's eye: RULED 09-28, all the Mirror's warlocks; magic.js inMirror)
     src: 'content/monsters.json amara (the 8-bit game\'s own warlock): two beams of Eldritch Blast; when she runs, Darkness first (npcs-by-location.md her spells: darkness; module-halfway-inn.md "darkness over the yard"). No Devil\'s Sight: she is as blind in it as anyone'
   },
   willem: {
@@ -392,7 +394,7 @@
     abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 }, init: 2, perception: 11,
     saves: { str: -1, dex: 2, con: 1, int: 5, wis: 3, cha: 0 },
     attacks: { frost: { name: 'Ray of Frost', atk: 6, dice: '2d8', mod: 0, type: 'cold', ranged: true, spell: true, range: [60, 60], fx: 'bolt' } },
-    multi: 1, flees: true, phantasms: 'start',
+    multi: 1, flees: true, phantasms: 'start', build: 'willem', // (09-28: built as wizard 5 with his register's spells -- Mirror Image is the spell now, js/classes.js)
     src: 'content/monsters.json willem (the 8-bit game\'s own illusionist): Ray of Frost; Phantasms at once (three false images); he gives ground toward the horses, shooting', todo: 'the ray\'s slow is not read'
   },
   // the cleric at Deepholm's door (the 8-bit game's deep.js EV.torvald, HOLD HIM; Griz 09-28: "under most circumstances it
@@ -403,11 +405,9 @@
     abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 }, init: 0, perception: 13,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 5, cha: 3 },
     attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: 1, yields: true, resist: ['poison'],
-    // the cleric's kit, crossed from the 8-bit sheet (review 09-28 #1): Hold Person once (WIS 13, a save each turn) and the Dormant's
-    // spirits as the weaver's line (3d8 radiant, WIS 13 half, recharge 5) -- a line where the 8-bit's Spirit Guardians is a burst on all;
-    // the true spell waits on the other-classes spells pass (handoff 09-28). Sanctuary at bloodied is moot: he yields there
-    weave: { bolt: { dc: 13, dice: '3d8', type: 'radiant', len: 30, recharge: 5, text: 'calls on the Dormant, and spirits wheel out from him, cold as a vault!', again: 'gathers the spirits again' }, hold: { dc: 13, range: 60, text: 'points. "Be still."' } },
+    multi: 1, yields: true, resist: ['poison'], build: 'torvald', // (09-28: built as cleric 5 with the SRD Priest's list, js/classes.js NPC.NAMED)
+    // the cleric's kit (review 09-28 #1) was a stand-in weave (the spirits as a line, Hold once); since 09-28 he casts the real spells:
+    // Spirit Guardians as the ring, Spiritual Weapon, Sanctuary, Guiding Bolt, Sacred Flame, Hold Person (js/classes.js NPC.NAMED.torvald)
     src: 'content/monsters.json torvald (the Dwarf Cleric: AC 13, mace +4 1d6+2; Spirit Guardians 3d8 radiant WIS 13 half recharge 5; Hold once WIS 13; poison resistance; yields at half, the 8-bit battle.js)'
   },
   // ------------------------------------------------------------------ batch six (09-27): the causeway, the cut, the roper, the settling pools
@@ -419,7 +419,9 @@
     saves: { str: 4, dex: 6, con: 5, int: 3, wis: 5, cha: 6 },
     attacks: { bite: { name: 'Bite', atk: 7, dice: '1d6', mod: 4, type: 'piercing', reach: 10, save: { ab: 'con', dc: 13, dice: '7d8', type: 'poison', half: true } } },
     multi: 1, immune: ['poison'], bound: '~',
-    weave: { bolt: { dc: 14, dice: '8d6', type: 'lightning', len: 100, recharge: 5, text: 'speaks, and lightning runs along the water!', again: 'gathers the storm again' }, hold: { dc: 14, range: 60, text: 'turns its eyes on them' } },
+    // the SRD Spirit Naga's list (RULED 09-28): a 10th-level caster, INT, DC 14, +6 -- Ray of Frost, Sleep, Hold Person, Lightning Bolt
+    // built; Blight and Dimension Door wait on the 4th level (IN), Dominate Person on control (LATER); the old weave retired
+    caster: { lvl: 10, ab: 'int', dc: 14, atk: 6, slots: [4, 3, 3, 3, 2], known: ['rayoffrost', 'sleep', 'holdperson', 'lightningbolt', 'blight', 'dimensiondoor'] },
     src: 'SRD 5.1 Spirit Naga (CR 8); content/monsters.json naga (its spells as the 8-bit game has them: Hold once, a line of lightning on a recharge)', todo: 'its rejuvenation is not read'
   },
   // the made road's cut (deep.js S.elemental): "the cut's walls move"

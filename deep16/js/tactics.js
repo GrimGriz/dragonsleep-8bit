@@ -392,6 +392,9 @@
     B.focus(u);
     // Fear's run (SRD 5.1): the Dash, away from the one it fears, and nothing else
     if (M.mustFlee && M.mustFlee(u)) { yield* TX.fleeFear(B, u); return; }
+    // one who fights only to get away (Amara and Willem on the road): the way out first, and what it can throw from there
+    var exits = (B.fight && B.fight.exit) || (B.map && B.map.def.exit) || [];
+    if (u.flees && exits.length) { yield* fleeTurn(B, u, exits); return; }
     var fs = foesOf(B, u);
     if (!fs.length) {
       // no one it knows of: toward the nearest it can hear, then wait
@@ -432,6 +435,28 @@
     if (e) yield* walk(B, u, e);
   }
   TX.act = act;
+  // the run (the shooter's, ai.js, for a class caster): her Darkness the turn she breaks (the 8-bit's "Amara throws darkness over the
+  // yard!", paid from a slot when she has one); a step toward the way out (a stride in the 8-bit yard, fight.runWhenHurt or fledEnds);
+  // gone at the edge; else the best spell or shot from where she stands
+  function* fleeTurn(B, u, exits) {
+    var T = u.turn;
+    if (u.darkness && !u.darkness.used && T.action) { var lv = M.slotLevels(u, 2)[0]; if (yield* M.castDarkness(B, u)) { if (lv && u.darkness.spell) u.slots[lv - 1]--; } }
+    if (u.dead || u.hp <= 0) return;
+    var rx = G.reach(u, B.fight.runWhenHurt || B.fight.fledEnds ? T.move : Math.min(T.move, 15)), go = null, gd = Infinity;
+    Object.keys(rx).forEach(function (k) { var e = rx[k]; if (!e.stand) return; var d = Math.min.apply(null, exits.map(function (x) { return Math.max(Math.abs(x[0] - e.x), Math.abs(x[1] - e.y)); })) * 10 + e.cost / 10; if (d < gd) { gd = d; go = e; } });
+    if (go && (go.x !== u.x || go.y !== u.y)) { yield* walk(B, u, go); if (u.dead || u.hp <= 0) return; }
+    if (exits.some(function (x) { return x[0] === u.x && x[1] === u.y; })) {
+      u.dead = true; u.fled = true; u.deadT = B.t; D.sfx('run');
+      B.card(['{o}' + u.name + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30; return;
+    }
+    if (!T.action && !T.bonus) return;
+    var mv = T.move; T.move = 0; // (from where she stands)
+    var fs = foesOf(B, u), allies = alliesOf(B, u);
+    var plans = weaponPlans(B, u, fs).concat(spellPlans(B, u, fs, allies)).filter(function (p) { return !p.bonus || T.bonus; }).sort(function (a, b) { return b.score - a.score; });
+    T.move = mv;
+    if (plans[0] && plans[0].score > 0.5) yield* plans[0].go();
+    else { B.card(['{g}' + u.name + ' makes for the way out.{/}']); yield 16; }
+  }
   TX.fleeFear = function* (B, u) {
     var T = u.turn;
     if (T.action && !u.conds.restrained) { T.action = 0; T.move += u.speed; }
@@ -495,6 +520,21 @@
     if (!T.bonus) return;
     var plans = spellPlans(B, u, foesOf(B, u), alliesOf(B, u)).filter(function (p) { return p.bonus; }).sort(function (a, b) { return b.score - a.score; });
     if (plans[0] && plans[0].score > 2) yield* plans[0].go();
+  });
+  // a stat block's own routine (a monster that casts: the spell-weaver, the naga): its attacks as the bestiary runs them (ai.js brute),
+  // weighed against its spells by what the routine should deal to the nearest it can reach
+  TX.ACTIONS.push(function (B, u, fs) {
+    if (!u.attacks || typeof u.attacks !== 'object' || !u.turn.action) return null;
+    var reach = AI.reachOf(u), ranged = Object.keys(u.attacks).some(function (k) { return u.attacks[k].ranged; });
+    var t = fs.filter(function (w) { return G.dist(u, w) <= u.turn.move + reach || (ranged && M.sees(B, u, w)); }).sort(function (a, b) { return a.hp - b.hp; })[0];
+    if (!t) return null;
+    return { kind: 'routine', why: 'its attacks on ' + t.name, score: TX.worth(TX.dpr(u), t), go: function* () { yield* AI.brute(B, u); } };
+  });
+  // innate Darkness (the drow's, the weaver's: once, on the 8-bit's chance, or at once to swallow a Light), as the brutes throw it
+  TX.FIRST.push(function* (B, u) {
+    var T = u.turn;
+    if (!u.darkness || u.darkness.chance == null || u.darkness.used || !T.action || !AI.wantsDark(B, u)) return;
+    yield* M.castDarkness(B, u);
   });
   // Lay on Hands (the paladin): the pool on the worst off beside him, when it's needed
   TX.ACTIONS.push(function (B, u, fs, allies) {

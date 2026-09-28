@@ -85,7 +85,9 @@
     DS.G = { flags: data.flags || { lakeDone: 1 } };
     var out = [];
     (data.party || []).forEach(function (h) { out.push(unitOf(h, false, fight)); });
-    (data.guests || []).forEach(function (g) { out.push(unitOf(g, true, fight)); });
+    // the guests fight by the class tactics (09-28, js/tactics.js: Pyro's Action Surge, Halldor's wound, Ingrith's spells laid over her
+    // 8-bit sheet by js/classes.js NPC.overlay) -- guest()'s healer counter and surgeAI are retired on the grid
+    (data.guests || []).forEach(function (g) { var u = unitOf(g, true, fight); u.classAI = true; if (D.npc) D.npc.overlay(u, g); out.push(u); });
     return out;
   };
   function unitOf(h, guest, fight) {

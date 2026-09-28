@@ -68,7 +68,31 @@
   NPC.NAMED = {
     // Higertha, the druid at Mama's Pharmakaiea in the Hex (RULED 09-28: "Higertha is half-orc Druid"); the register sets no level,
     // so she stands at any. Her circle's land is the seat's draft (invented.json #higertha-druid): the mountain, the Pit's
-    higertha: { name: 'Higertha', cls: 'druid', race: 'halforc', named: true, land: 'mountain' }
+    higertha: { name: 'Higertha', cls: 'druid', race: 'halforc', named: true, land: 'mountain', look: 'ingrith_p0' },
+    // Torvald Greyseam, cleric 5 of Dvalgarda (the-copper-egg.md, CANON 09-16f): the SRD Priest's list (RULED 09-28: the SRD stat
+    // blocks' lists where the register has none) and the 8-bit's Hold Person; the register gives no domain, so none (flagged); his
+    // numbers the 8-bit sheet's (content/monsters.json torvald: AC 13, a max d8+2 a level). His spirits are the Dormant's, cold
+    torvald: { cls: 'cleric', lvl: 5, race: 'dwarf', subclass: null, abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 },
+      equip: { weapon: 'mace', armor: 'chainshirt' }, noPrecast: true,
+      known: ['sacredflame', 'light', 'curewounds', 'guidingbolt', 'sanctuary', 'lesserrestoration', 'spiritualweapon', 'holdperson', 'dispelmagic', 'spiritguardians'],
+      guardianText: 'calls on the Dormant, and spirits wheel out from him, cold as a vault' },
+    // Amara, warlock 5 of the Mirror (npcs-by-location.md §The Road, RE-RULED 08-29): the register's list with the ear file's fold
+    // (Mirror's Gaze for Hex, Minor Illusion for Friends; the asking is Command, RULED 09-28); Agonizing Blast; Fiendish Vigor (False
+    // Life at will: she walks in with it); the Mirror's eye. Charm Person and Suggestion wait on charm (LATER), Gaseous Form is OUT
+    amara: { cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
+      equip: { weapon: 'dagger', armor: 'leather' },
+      known: ['eldritchblast', 'minorillusion', 'mirrorsgaze', 'command', 'darkness', 'fear', 'charmperson', 'suggestion'],
+      invocations: ['agonizing', 'fiendishvigor'] },
+    // Willem Glass, wizard 5 of illusion (npcs-by-location.md §The Road): Ray of Frost (RULED 09-28), Blur for Phantasmal Force (the ear
+    // file, dist-4); the illusion school is the PHB's, so none of its features (flagged). The 8-bit sheet's AC 12: no Mage Armor up
+    willem: { cls: 'wizard', lvl: 5, race: 'human', subclass: null, abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 },
+      equip: { weapon: 'quarterstaff', armor: null }, noPrecast: true,
+      known: ['rayoffrost', 'minorillusion', 'mageArmor', 'shield', 'mirrorimage', 'invisibility', 'blur', 'hypnoticpattern'] },
+    // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b): the 8-bit game keeps her a fighter with a `heals`
+    // counter (content/heroes.json, flagged: the register says cleric); on the grid her 8-bit sheet stands (HP, AC, mace) and a
+    // cleric's casting is laid over it -- the drafted list (spells-srd-by-class.md), slots 4/3, WIS
+    ingrith: { overlay: true, cls: 'cleric', lvl: 4, slots: [4, 3],
+      known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration'] }
   };
 
   // spells known or prepared at a level: the class's list to the highest slot it has, as many as it may know (or prepare),
@@ -104,8 +128,9 @@
     var abil = {};
     c.prio.forEach(function (k, i) { abil[k] = ARRAY[i]; });
     Object.keys(race.abil).forEach(function (k) { abil[k] += race.abil[k]; });
+    if (spec.abil) abil = JSON.parse(JSON.stringify(spec.abil)); // (a named one's register numbers, as they stand)
     // Ability Score Improvements (4, 8; the fighter's 6 too): +2 to the first ability not yet at 20, split over the next if need be
-    (c.asiAt || [4, 8]).forEach(function (at) {
+    (spec.abil ? [] : c.asiAt || [4, 8]).forEach(function (at) {
       if (lvl < at) return;
       var left = 2;
       c.prio.forEach(function (k) { var room = 20 - abil[k], g = Math.min(room, left); if (g > 0) { abil[k] += g; left -= g; } });
@@ -114,12 +139,14 @@
     var hp = spec.maxhp ? lvl * Math.max(1, hd + con) : hd + con + (lvl - 1) * (hd / 2 + 1 + con);
     hp += (race.hpLevel || 0) * lvl;
     var sub = c.sub && lvl >= c.sub[0] ? c.sub[1] : null;
+    if ('subclass' in spec) sub = spec.subclass;
     if (cls === 'warlock' && spec.patron === 'mirror') sub = 'The Mirror';
     if (sub === 'Draconic Bloodline') hp += lvl; // Draconic Resilience: +1 HP a level
+    if (spec.hp) hp = spec.hp; // (a named one's sheet: its register's number)
     var h = {
       id: spec.id || ('npc-' + cls + lvl), name: spec.name || (RC.name + ' ' + lvl), cls: cls, lvl: lvl, xp: R.XP_LEVEL[lvl],
       base: JSON.parse(JSON.stringify(abil)), abil: abil, maxhp: hp, hp: hp,
-      equip: { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null },
+      equip: Object.assign({ weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }, spec.equip || {}),
       known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: c.style || null,
       skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: c.kit.alt || null, land: spec.land || null
     };
@@ -135,14 +162,15 @@
       var cc = c;
       if (spec.spells) cc = Object.assign({}, c, { spells: spec.spells });
       if (sub === 'The Mirror') { cc = Object.assign({}, cc, { spells: JSON.parse(JSON.stringify(cc.spells)) }); Object.keys(NPC.MIRROR).forEach(function (k) { if (lvl >= +k) NPC.MIRROR[k].forEach(function (id) { var L = +k >= 5 ? 3 : +k >= 3 ? 2 : 1; cc.spells[L] = [id].concat((cc.spells[L] || []).filter(function (x) { return x !== id; })); }); }); }
-      h.known = spellsFor(cc, cls, lvl, abil, sub);
+      h.known = spec.known ? spec.known.slice() : spellsFor(cc, cls, lvl, abil, sub);
     }
     if (cls === 'warlock') {
-      var inv = []; Object.keys(c.invocations || {}).forEach(function (k) { if (lvl >= +k) inv = c.invocations[k].slice(); }); h.invocations = inv;
+      var inv = []; Object.keys(c.invocations || {}).forEach(function (k) { if (lvl >= +k) inv = c.invocations[k].slice(); }); h.invocations = spec.invocations ? spec.invocations.slice() : inv;
       if (sub === 'The Mirror') h.mirrorEye = true; // (RULED 09-28: the pact of the Mirror's class feature)
     }
+    if (spec.guardianText) h.guardianText = spec.guardianText;
     // a caster who wears no armour walks in under Mage Armor, cast that morning and paid for (the fixture's Aurdin: save.js)
-    if (h.known.indexOf('mageArmor') >= 0 && !R.armored(h) && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
+    if (!spec.noPrecast && h.known.indexOf('mageArmor') >= 0 && !R.armored(h) && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
     h.hp = h.maxhp;
     return h;
   };
@@ -164,9 +192,41 @@
     if (race.savage) u.savage = true;
     if (h.mirrorEye) u.mirrorEye = true;
     u.invocations = h.invocations || null;
+    if (h.guardianText) u.guardianText = h.guardianText;
+    // Fiendish Vigor (an invocation): False Life at will -- she walks in with it
+    if ((u.invocations || []).indexOf('fiendishvigor') >= 0) u.temp = Math.max(u.temp || 0, D.roll('1d4+4').total);
+    if (h.cls === 'barbarian' && h.lvl >= 2) u.conds.dangerSense = true;
     u.facing = 1;
     // a second weapon to draw (the class AI's): a bow for the swordsman, a sword for the bowman, handaxes to throw
     if (h.alt) { var h2 = Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: h.alt, shield: DS.DATA.items[h.alt] && (DS.DATA.items[h.alt].weapon.props || []).indexOf('two-handed') >= 0 ? null : h.equip.shield }) }); u.alt = D.save.weaponOf(h2); if (NPC.THROWN[h.alt]) { u.alt.ranged = true; u.alt.thrown = true; u.alt.range = NPC.THROWN[h.alt]; } }
+    return u;
+  };
+  // a named foe of the bestiary built by its class (data/foes.js `build`: Torvald, Amara, Willem): the class unit, and everything the
+  // fight and the 8-bit seam read off the sheet kept -- its kind and its place in the 8-bit list, its art, its name, its register HP,
+  // and the story's own ways (yields, flees, the traces, a Darkness thrown as she runs)
+  NPC.fromFoe = function (B, f, d) {
+    var spec = Object.assign({ id: f.id }, NPC.NAMED[d.build], { hp: d.hp, name: d.name });
+    var u = NPC.unit(NPC.sheet(spec), 'foe', { id: f.id, sheet: d.sheet, named: d.named });
+    u.kind = f.kind; u.i8 = f.i8; u.cr = d.cr; u.named = !!d.named;
+    u.x = f.at ? f.at[0] : 0; u.y = f.at ? f.at[1] : 0; u.facing = 1; u.speed = d.speed || u.speed; // (where the fight stands it, as makeFoe does)
+    u.hidden0 = !!f.hidden; u.traces = !!f.traces; u.ethereal = !!f.ethereal;
+    u.yields = !!d.yields; u.flees = !!d.flees && !(B.fight && (B.fight.noFlee || B.fight.runWhenHurt));
+    u.darkness = d.darkness ? { r: d.darkness.r, range: d.darkness.range, chance: d.darkness.chance, used: false, spell: true } : null;
+    u.darkvision = Math.max(u.darkvision || 0, d.darkvision || 0);
+    if (d.resist) u.resist = (u.resist || []).concat(d.resist).filter(function (x, i, a) { return a.indexOf(x) === i; });
+    u.lightSensitive = !!d.lightSensitive; u.condImmune = d.condImmune || null; u.perception = d.perception || u.perception;
+    u.type = d.type || 'humanoid';
+    return u;
+  };
+  // a guest of the 8-bit game whose register class the 8-bit sheet does not carry (Ingrith: a fighter there, a cleric in the
+  // register): the grid lays the class's casting over the 8-bit unit -- its spells, its slots (what it spent stays spent: the
+  // 8-bit sheet keeps them till its long rest), its DC by the class's ability
+  NPC.overlay = function (u, h) {
+    var o = NPC.NAMED[h.id]; if (!o || !o.overlay) return u;
+    var RC = R.CLASSES[o.cls], ab = RC.cast, prof = R.prof(u.lvl);
+    u.cls = o.cls; u.known = o.known.slice();
+    u.slots = h.slots && h.slots.length === o.slots.length ? h.slots.slice() : o.slots.slice(); u.slotsMax = o.slots.slice();
+    u.spellDC = 8 + prof + DS.mod(u.abil[ab]); u.spellAtk = prof + DS.mod(u.abil[ab]);
     return u;
   };
   // thrown weapons read as ranged when thrown (SRD 5.1: the handaxe, the dagger 20/60)

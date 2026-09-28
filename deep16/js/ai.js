@@ -609,6 +609,7 @@
   }
 
   // the helpers the class tactics share (js/tactics.js)
+  AI.brute = brute; AI.wantsDark = function (B, u) { return wantsDark(B, u); };
   AI.heroes = heroes; AI.approach = approach; AI.walkTo = walkTo; AI.visibleFrom = visibleFrom; AI.eyesAt = eyesAt; AI.reachOf = reachOf; AI.the = the;
   function* guest(B, u) {
     var T = u.turn, fs = heroes(B, u), h = u.src || {}, f = u.feats || {};

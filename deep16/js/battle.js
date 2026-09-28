@@ -161,6 +161,13 @@
   };
   Battle.prototype.makeFoe = function (f) {
     var d = D.FOES[f.kind];
+    if (d.build && D.npc && D.npc.NAMED[d.build]) return D.npc.fromFoe(this, f, d); // (a named caster built by its class: js/classes.js)
+    var u = this.makeFoe0(f, d);
+    // a stat block's spells (the SRD Mage, the Spirit Naga: data/foes.js `caster`), cast for real by the class tactics (js/tactics.js)
+    if (d.caster) { var cs = d.caster; u.known = cs.known.slice(); u.slots = cs.slots.slice(); u.slotsMax = cs.slots.slice(); u.spellDC = cs.dc; u.spellAtk = cs.atk; u.castAb = cs.ab; u.lvl = cs.lvl; u.prof = Math.ceil(1 + cs.lvl / 4); u.classAI = true; u.weave = null; }
+    return u;
+  };
+  Battle.prototype.makeFoe0 = function (f, d) {
     return {
       id: f.id, kind: f.kind, name: d.name, i8: f.i8, side: 'foe', sheet: d.sheet, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1,
       hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
