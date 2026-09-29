@@ -1,5 +1,6 @@
 /* DRAGONSLEEP — a four-voice chip synth (2 pulse, triangle, noise) and the game's music.
-   Every tune here is an original composition written for this game. */
+   Every tune here is an original composition written for this game, except the corridor's: that one is transcribed
+   from a sheet Griz brought (09-29). */
 'use strict';
 (function () {
   var DS = window.DS;
@@ -25,6 +26,11 @@
       for (var j = 1; j < n; j++) { re[j] = (2 / (j * Math.PI)) * Math.sin(j * Math.PI * duty); im[j] = 0; }
       waves[duty] = c.createPeriodicWave(re, im);
     });
+    // the soft voice (09-29, the corridor: Griz asked for "a prettier instrument" under the flutes): a wavetable, the Famicom
+    // Disk System's extra channel in spirit. Every harmonic, falling away fast, so it sings where a pulse buzzes.
+    var sre = new Float32Array(32), sim = new Float32Array(32);
+    for (var h = 1; h < 32; h++) sim[h] = Math.pow(h, -1.6) * (h > 8 ? Math.pow(0.8, h - 8) : 1);
+    waves.soft = c.createPeriodicWave(sre, sim);
     noiseBuf = c.createBuffer(1, c.sampleRate, c.sampleRate);
     var d = noiseBuf.getChannelData(0), reg = 1;
     for (var i = 0; i < d.length; i++) { // LFSR-flavoured noise
@@ -50,6 +56,7 @@
   }
   // voices ------------------------------------------------------------------
   function tone(bus, type, midi, t, dur, vol, duty, slide) {
+    if (type === 'soft') return softTone(bus, midi, t, dur, vol);
     var c = AU.ctx, o = c.createOscillator(), g = c.createGain();
     if (type === 'pulse') o.setPeriodicWave(waves[duty || 0.5]); else o.type = type;
     o.frequency.setValueAtTime(freq(midi), t);
@@ -62,6 +69,30 @@
     g.gain.linearRampToValueAtTime(0.0001, t + dur);
     o.connect(g); g.connect(bus);
     o.start(t); o.stop(t + dur + 0.02);
+  }
+  // two soft oscillators a hair apart (a slow shimmer), a breath in rather than a click, and a vibrato that wakes on the
+  // long notes
+  function softTone(bus, midi, t, dur, vol) {
+    var c = AU.ctx, g = c.createGain(), end = t + dur, f = freq(midi);
+    var a = Math.min(0.04, dur / 3), rel = Math.min(0.08, dur / 3);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol, t + a);
+    g.gain.linearRampToValueAtTime(vol * 0.8, t + Math.min(dur * 0.5, 0.3));
+    g.gain.setValueAtTime(vol * 0.8, end - rel);
+    g.gain.linearRampToValueAtTime(0.0001, end);
+    g.connect(bus);
+    var vib = null, depth = null;
+    if (dur > 0.4) {
+      vib = c.createOscillator(); depth = c.createGain(); vib.frequency.value = 5.2;
+      depth.gain.setValueAtTime(0, t + 0.2); depth.gain.linearRampToValueAtTime(f * 0.006, t + Math.min(dur, 0.6));
+      vib.connect(depth); vib.start(t); vib.stop(end + 0.02);
+    }
+    [-4, 4].forEach(function (cents) {
+      var o = c.createOscillator(), half = c.createGain();
+      o.setPeriodicWave(waves.soft); o.frequency.setValueAtTime(f, t); o.detune.value = cents; half.gain.value = 0.5;
+      if (depth) depth.connect(o.frequency);
+      o.connect(half); half.connect(g); o.start(t); o.stop(end + 0.02);
+    });
   }
   function noise(bus, t, dur, vol, hp, lp) {
     var c = AU.ctx, s = c.createBufferSource(), g = c.createGain(), f = c.createBiquadFilter();
@@ -97,35 +128,45 @@
   var DRUM = { // k kick, s snare, h hat, - rest (each char = one 16th)
     rock: 'k-h-s-h-k-k-s-h-', battle: 'k-hkshk-k-hksh-h', battle2: 'khhkshkhkkhkshsh', march: 'k---s---k-k-s---',
     light: 'k-------s---h---', drip: '--------h-------', none: '----------------',
-    anvil: 'k-----h-k-----hh' // Solskaft: a hammer somewhere below, always
+    anvil: 'k-----h-k-----hh', // Solskaft: a hammer somewhere below, always
+    footfall: 'k-----' // the corridor's 3/8: one soft step a bar (the hats went, 09-29: Griz didn't like them)
   };
-  function parseMel(str) {
+  function parseMel(str, shift) {
     var out = [];
     str.trim().split(/\s+/).forEach(function (tok) {
       if (!tok || tok === '|') return;
       var parts = tok.split('.');
       var len = parseInt(parts[1], 10) || 1;
-      out.push([parts[0] === 'r' ? null : noteMidi(parts[0]), len]);
+      out.push([parts[0] === 'r' ? null : noteMidi(parts[0]) + (shift || 0), len]);
     });
     return out;
   }
   function buildSong(def) {
-    var chords = def.chords.split(/\s+/).map(chord);
+    // def.bar: 16ths to a chord (16, a 4/4 bar, unless the song says; the corridor is 3/8, so 6). def.shift moves the melody
+    // and def.second by semitones. def.second, a written line, takes the second pulse from the pad pattern; def.third takes
+    // the triangle from the bass pattern and is written where it sounds (no shift).
+    var chords = def.chords.split(/\s+/).map(chord), n = def.bar || 16;
     var bass = [], pad = [], drums = [];
     chords.forEach(function (c) {
-      bass = bass.concat((BASS[def.bass] || BASS.walk)(c));
-      pad = pad.concat((PAD[def.pad] || PAD.none)(c));
+      bass = bass.concat((BASS[def.bass] || BASS.walk)(c, n));
+      pad = pad.concat((PAD[def.pad] || PAD.none)(c, n));
       var pat = DRUM[def.drums || 'none'];
-      for (var i = 0; i < 16; i++) drums.push([pat[i] === '-' ? null : pat[i], 1]);
+      for (var i = 0; i < n; i++) drums.push([pat[i % pat.length] === '-' ? null : pat[i % pat.length], 1]);
     });
-    var mel = parseMel(def.melody);
+    var mel = parseMel(def.melody, def.shift);
     var tot = mel.reduce(function (s, n) { return s + n[1]; }, 0);
-    if (tot !== chords.length * 16) console.warn('song length mismatch', def.id, tot, chords.length * 16);
+    if (tot !== chords.length * n) console.warn('song length mismatch', def.id, tot, chords.length * n);
+    [['second', def.shift], ['third', 0]].forEach(function (w) {
+      if (!def[w[0]]) return;
+      var line = parseMel(def[w[0]], w[1]), t = line.reduce(function (s, n) { return s + n[1]; }, 0);
+      if (t !== chords.length * n) console.warn('song length mismatch (' + w[0] + ' line)', def.id, t, chords.length * n);
+      if (w[0] === 'second') pad = line; else bass = line;
+    });
     return {
       id: def.id, step: 60 / def.bpm / 4, loop: def.loop !== false,
       tracks: [
-        { kind: 'pulse', duty: def.duty || 0.25, vol: def.melVol || 0.16, notes: mel },
-        { kind: 'pulse', duty: 0.5, vol: def.padVol || 0.07, notes: pad },
+        { kind: def.voice || 'pulse', duty: def.duty || 0.25, vol: def.melVol || 0.16, notes: mel },
+        { kind: def.voice2 || 'pulse', duty: def.duty2 || 0.5, vol: def.padVol || 0.07, notes: pad },
         { kind: 'triangle', vol: def.bassVol || 0.22, notes: bass },
         { kind: 'noise', vol: def.drumVol || 0.1, notes: drums }
       ]
@@ -216,6 +257,27 @@
       bpm: 76, bass: 'halves', pad: 'arp8', drums: 'none', duty: 0.125, melVol: 0.11, padVol: 0.04,
       chords: 'Am F Am F Dm Am E E',
       melody: 'r.4 E6.4 D6.4 C6.4 | A5.12 r.4 | r.4 E6.4 F6.4 E6.4 | C6.12 r.4 | r.4 D6.4 F6.4 A6.4 | E6.12 r.4 | G#5.4 B5.4 E6.4 D6.4 | B5.12 r.4'
+    },
+    corridor: { // the world map. Griz's sheet (09-29; a songscription transcription, 3/8, quarter = 79, B minor), its bars 19-55
+      // as the loop: the tune twice, then its answer; bar 55's riff hands back to bar 19 the way bar 18's does. Written at the
+      // sheet's pitch, played an octave down (shift -12; two was too deep, his word). The sheet's flats read strictly: Db = C#,
+      // Gb = F#, Cb = B. The high line on the triangle is ours (09-29, on his ask for "higher note accompaniment in good places"):
+      // bare the first time through but for an echo over the riff, sixths above the tune the second time and through the answer.
+      // The tune and the riff sing in the soft voice (take 3: the pulse was too far from the flutes, his word).
+      bpm: 79, bar: 6, shift: -12, drums: 'footfall', voice: 'soft', melVol: 0.26, voice2: 'soft', padVol: 0.24,
+      bassVol: 0.07, drumVol: 0.06,
+      chords: 'Em Bm Bm Bm Bm Em Em Em Em Em Bm Bm Bm Bm Em Em Em Em Em Em Bm Bm Bm Em Em Em Em Em Em Bm Bm Bm Em Em Em Em Em',
+      melody: 'r.2 D4.2 C#4.2 | D4.6 | B3.2 B3.4 | r.6 | r.4 F#4.2 | F#4.2 E4.1 E4.3 | E4.2 D4.1 D4.2 D4.1 | D4.2 C#4.2 r.1 C#4.1 | C#4.1 C#4.3 r.2 |' +
+        ' r.2 C#4.2 C#4.2 | C#4.2 D4.2 C#4.2 | B3.2 B3.4 | r.6 | r.4 F#4.2 | F#4.2 E4.1 E4.3 | E4.2 D4.2 r.2 | D4.2 C#4.1 D4.3 | C#4.2 r.4 |' +
+        ' r.6 | r.2 G4.2 G4.2 | G4.4 F#4.2 | F#4.2 r.4 | r.2 F#4.1 F#4.3 | F#4.2 E4.2 E4.1 E4.3 E4.2 F#4.2 | F#4.1 E4.3 F#4.2 | G4.2 r.4 |' +
+        ' r.6 | r.2 G3.2 G3.2 | G3.4 F#3.2 | F#3.2 r.4 | r.4 F#4.2 | F#4.4 E4.2 | E4.2 D4.1 D4.1 D4.2 | D4.2 C#4.2 D4.2 | D4.2 C#4.4 | r.6',
+      second: 'r.18 | r.2 D3.1 C#3.1 D3.2 | r.24 | r.2 G3.1 F#3.1 G3.2 | r.18 | r.2 D3.1 C#3.1 D3.2 | r.24 | r.2 G3.1 F#3.1 G3.2 |' +
+        ' r.2 G3.1 F#3.1 G3.2 | r.12 | r.2 D3.1 C#3.1 D3.2 | r.24 | r.2 G3.1 F#3.1 G3.2 | r.2 G3.1 F#3.1 G3.2 | r.12 |' +
+        ' r.2 D3.1 C#3.1 D3.2 | r.30 | r.2 G3.1 F#3.1 G3.2',
+      third: 'r.18 | r.2 F#5.2 D5.2 | C#5.2 B4.2 r.2 | r.24 |' +
+        ' r.2 E5.4 | E5.2 F#5.2 E5.2 | D5.6 | r.2 F#5.2 D5.2 | C#5.2 B4.2 r.2 | D5.2 C#5.4 | C#5.2 B4.2 D5.2 | B4.2 A4.1 B4.3 | A4.2 r.4 |' +
+        ' r.6 | r.2 B4.2 B4.2 | B4.4 A4.2 | A4.2 r.4 | r.2 D5.4 | D5.2 C#5.4 | B4.4 D5.2 | D5.1 C#5.3 D5.2 | E5.2 r.4 |' +
+        ' r.6 | r.2 B4.2 B4.2 | B4.4 A4.2 | A4.2 r.4 | r.6 | D5.4 C#5.2 | C#5.2 B4.4 | B4.2 A4.2 B4.2 | B4.2 A4.4 | r.6'
     }
   };
   var SONGS = {};

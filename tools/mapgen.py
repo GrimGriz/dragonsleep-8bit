@@ -296,7 +296,7 @@ def build_world():
     g.zone('verge', 43, 30, 21, 28)
     g.zone('south', 0, 31, W, 27)
     g.zone('north', 0, 0, W, 31)
-    save('world', g, 'world', 'The Corridor', music='field', bg='plains', outside=True,
+    save('world', g, 'world', 'The Corridor', music='corridor', bg='plains', outside=True,
          tileZones={'road': None}, roadSafe=True, void='#000')
 
 
