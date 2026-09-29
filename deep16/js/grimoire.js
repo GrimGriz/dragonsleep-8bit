@@ -681,6 +681,7 @@
       var ux = u.x, uy = u.y; u.drawAt = { x: ux, y: uy }; u.x = t.x + (t.x > ux ? -1 : t.x < ux ? 1 : 0); u.y = t.y + (t.y > uy ? -1 : t.y < uy ? 1 : 0);
       try { yield* B.attack(u, t, at); } finally { u.x = ux; u.y = uy; delete u.drawAt; }
     },
+    againName: 'Spiritual Weapon: swing',
     ai: function (B, u, e, slot, fs) {
       var sw = spiritOf(B, u), d = avg(sw ? sw.dice : more('1d8', Math.floor(Math.max(0, slot - 2) / 2))) + M.mod(u), best = null;
       fs.forEach(function (t) {
@@ -688,6 +689,9 @@
         var sc = TX().worth(TX().pHit(u.spellAtk, RU.ac(t), 0) * d, t) * (sw ? 1 : 2.5); // (first cast: a minute of them)
         if (!best || sc > best.score) best = { score: sc, t: t };
       });
+      // nobody within its 20 ft and a reach (Griz, 09-29: "it hangs in the air and does nothing the rest of the fight"): the bonus action
+      // still moves it -- 20 ft toward the nearest foe, so next turn it strikes (the cast's drift)
+      if (!best && sw) { var near = fs.filter(function (t) { return G.standing(t); }).sort(function (a, b) { return G.dist(a, sw) - G.dist(b, sw); })[0]; if (near) best = { score: 2.5, t: near }; }
       return best;
     }
   };
@@ -867,6 +871,7 @@
   // its reverting are not read.)
   E.moonbeam = {
     geo: function (B, u, g) { return zoneOf(B, u, 'moonbeam') ? Object.assign({}, g, { free: true, move: true, again: true }) : null; },
+    againName: 'Moonbeam: move the beam',
     summary: function (e, u) { var z = D.battle && zoneOf(D.battle, u); return (z ? 'an action · the beam moves up to 60 ft: ' : 'a shaft of pale light, 5 ft round, at a point within 120 ft (concentration; an action moves it 60 ft): ') + 'entering it or starting a turn in it, CON or ' + (z ? z.dice : dice(e.sp, u, e.slot)) + ' radiant (half)'; },
     cast: function* (B, u, t, slot, head, x) {
       var z = zoneOf(B, u, 'moonbeam');
@@ -902,6 +907,7 @@
   // and that creature saves. Bright light 20 ft and dim 20 more. (Fire: refused under a roost, as every fire is.)
   E.flamingsphere = {
     geo: function (B, u, g) { return zoneOf(B, u, 'flamingsphere') ? Object.assign({}, g, { free: true, move: true, again: true, time: 'B' }) : null; },
+    againName: 'Flaming Sphere: roll it',
     summary: function (e, u) { var z = D.battle && zoneOf(D.battle, u); return (z ? 'bonus action · the sphere rolls up to 30 ft and rams what it meets: ' : 'a ball of fire, 5 ft across, at a free square within 60 ft (concentration; a bonus action rolls it 30 ft): ') + 'ending a turn within 5 ft of it, or rammed, DEX or ' + (z ? z.dice : dice(e.sp, u, e.slot)) + ' fire (half) · bright 20 ft'; },
     cast: function* (B, u, t, slot, head, x) {
       var z = zoneOf(B, u, 'flamingsphere');
@@ -1277,6 +1283,7 @@
   // ------------------------------------------------------------------ 7th
   E.arcanesword = {
     geo: function (B, u, g) { return (B.spirits || []).some(function (s) { return s.by === u.id && s.sword && s.rounds > 0; }) ? Object.assign({}, g, { free: true, move: true, again: true, time: 'B' }) : null; },
+    againName: 'Arcane Sword: swing',
     summary: function (e) { return (e.g.again ? 'bonus action · the sword moves 20 ft and strikes: ' : 'a sword of force within 60 ft (concentration); it strikes: ') + '3d10 force'; },
     cast: function* (B, u, t, slot, head, x) {
       var sw = (B.spirits || []).filter(function (s) { return s.by === u.id && s.sword; })[0];

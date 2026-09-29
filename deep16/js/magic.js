@@ -48,7 +48,7 @@
       // a spell already up that is used again (js/grimoire.js geo: the floating weapon's swing, a mark moved): `free` spends no slot,
       // `move` is no new bonus-action spell
       var ex = M.EFFECT && M.EFFECT[id];
-      if (ex && ex.geo) { var g2 = ex.geo(B, u, g); if (g2) e.g = g = g2; }
+      if (ex && ex.geo) { var g2 = ex.geo(B, u, g); if (g2) { e.g = g = g2; if (g.again && ex.againName) e.name = ex.againName; } } // (the ring says what casting it again does: the swing, the beam moved -- 09-29)
       if (g.free) e.levels = [e.level];
       var why = '';
       // under a roost (the rescue in the dens), its one law: no fire, no thunder (the 8-bit game greys them too, RULED 09-24)
