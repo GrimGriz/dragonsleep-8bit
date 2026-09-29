@@ -550,13 +550,28 @@
     ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 5 && !(w.temp > 0); }).sort(function (a, b) { return foesAt(B, b) - foesAt(B, a); })[0]; return t ? { score: 7 * 0.8, t: t, keep: 1 } : null; }
   };
   function foesAt(B, w) { return B.units.filter(function (x) { return G.hostile(w, x) && G.standing(x) && G.dist(w, x) <= 10; }).length; }
+  // Enlarge and Reduce (09-29): ONE record a creature (conds.enlarged, `down` for Reduce: the +1d4 and the drawn size key off its being
+  // there, so it never stacks), and the casting that laid it owns it. A second casting takes over -- the first caster lets go through
+  // endConc, whichever way it was -- and a concentration that ends takes down only the record it laid (u.conc.rec), never a newer one
+  function sizeTakeOver(B, u, t) {
+    var old = t.conds.enlarged, c = old && B.units.filter(function (w) { return w.conc && w.conc.id === 'enlargereduce' && w.conc.rec === old; })[0];
+    if (c && c !== u) M.endConc(B, c, 'a new casting on ' + t.name); // (c === u: his own new concentration lets the old one go, below)
+  }
+  function sizeUndo(t, rec) { return function () { if (t.conds.enlarged === rec) { var k0 = D.spr.scaleOf(t); delete t.conds.enlarged; D.spr.regrow(t, k0); } }; }
   E.enlargereduce = {
-    summary: function () { return 'a creature within 30 ft · an ally enlarged (+1d4 weapon damage, strong), a foe reduced on a failed CON (-1d4) (concentration)'; },
+    summary: function () { return 'a creature within 30 ft · an ally enlarged (+1d4 weapon damage, +5 ft reach, strong, drawn 1.5x), a foe reduced on a failed CON (-1d4, 0.7x); not one already so (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
-      if (t.side === u.side) { t.conds.enlarged = { by: u.id }; M.concentrate(B, u, 'enlargereduce', 'Enlarge', function () { delete t.conds.enlarged; }); FX.ring(t, 'stone', 30); B.card([head + ': ' + t.name + ' swells to twice their size (+1d4 on weapon hits; concentration).']); yield 20; return; }
-      var hit = false;
-      yield* saveAll(B, u, [t], 'con', x.dc, null, '', false, head + ' on ' + nm(B, t), { failText: 'shrinks', cond: function (w) { w.conds.enlarged = { by: u.id, down: true }; hit = true; } });
-      if (hit) M.concentrate(B, u, 'enlargereduce', 'Reduce', function () { delete t.conds.enlarged; });
+      var k0 = D.spr.scaleOf(t);
+      if (t.side === u.side) {
+        var had = t.conds.enlarged && !t.conds.enlarged.down, rec = { by: u.id };
+        sizeTakeOver(B, u, t); t.conds.enlarged = rec;
+        M.concentrate(B, u, 'enlargereduce', 'Enlarge', sizeUndo(t, rec)); u.conc.rec = rec;
+        D.spr.regrow(t, k0); FX.ring(t, 'stone', 30);
+        B.card(had ? [head + ': ' + t.name + ' is already enlarged.', '{g}(no further growth; the new casting takes hold, concentration){/}'] : [head + ': ' + t.name + ' swells to twice their size.', '{g}(+1d4 on weapon hits, +5 ft reach; concentration){/}']); yield 20; return;
+      }
+      var hit = false, down = { by: u.id, down: true };
+      yield* saveAll(B, u, [t], 'con', x.dc, null, '', false, head + ' on ' + nm(B, t), { failText: 'shrinks', cond: function (w) { sizeTakeOver(B, u, w); w.conds.enlarged = down; hit = true; D.spr.regrow(w, k0); } });
+      if (hit) { M.concentrate(B, u, 'enlargereduce', 'Reduce', sizeUndo(t, down)); u.conc.rec = down; }
     },
     ai: function (B, u, e, slot, fs, allies) {
       if (u.conc) return null;
@@ -873,7 +888,7 @@
       if (pick) yield* D.ai.walkTo(B, u, pick);
     } else if (r <= 6) { B.card(['{p}' + Nm(B, u) + ' stands and stares (d10 ' + r + ').{/}'], 240); yield 16; }
     else {
-      var near = B.units.filter(function (w) { return w !== u && G.standing(w) && G.dist(u, w) <= (u.reach || 5); }), w = near[D.rint(Math.max(1, near.length))];
+      var near = B.units.filter(function (w) { return w !== u && G.standing(w) && G.dist(u, w) <= G.reachOf(u); }), w = near[D.rint(Math.max(1, near.length))];
       B.card(['{p}' + Nm(B, u) + ' lashes out at random (d10 ' + r + ').{/}'], 240);
       if (w) { var atk = u.weapon || (u.attacks && u.attacks[Object.keys(u.attacks)[0]]); if (atk && typeof atk === 'object' && atk.name) yield* B.attack(u, w, atk); } else yield 16;
     }

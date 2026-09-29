@@ -109,7 +109,10 @@
     var dx = Math.max(0, bx - (ax + as - 1), ax - (bx + bs - 1)), dy = Math.max(0, by - (ay + as - 1), ay - (by + bs - 1));
     return Math.max(dx, dy) * 5;
   };
-  G.inReach = function (a, b, ax, ay, reach) { return G.dist(a, b, ax, ay) <= (reach || a.reach || 5); };
+  // a creature's melee reach in feet, the one place it is read (Enlarge, 09-29: an enlarged creature reaches 5 ft further; reduced does
+  // not go below its own). `base` is a weapon's own reach where it has one (a glaive, a giant's fist); ranged is nothing to do with it
+  G.reachOf = function (u, base) { var e = u.conds && u.conds.enlarged; return (base || u.reach || 5) + (e && !e.down ? 5 : 0); };
+  G.inReach = function (a, b, ax, ay, reach) { return G.dist(a, b, ax, ay) <= G.reachOf(a, reach); };
   G.foesNear = function (u, x, y, ft) {
     return G.units.filter(function (w) { return G.standing(w) && G.hostile(u, w) && G.dist(u, w, x, y) <= (ft || 5); });
   };

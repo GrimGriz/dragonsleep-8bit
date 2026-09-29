@@ -10,7 +10,7 @@
   function nm(B, w) { return w.side === 'foe' ? (w.named ? B.shortName(w) : 'the ' + B.shortName(w)) : w.name; }
   function Nm(B, w) { var s = nm(B, w); return s.charAt(0).toUpperCase() + s.slice(1); }
   function feat(u, k) { return u.feats && u.feats[k] > 0; }
-  function foesBeside(B, u) { return B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= (u.reach || 5); }); }
+  function foesBeside(B, u) { return B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= G.reachOf(u); }); }
   function kiDC(u) { return 8 + u.prof + D.mod(u.abil.wis); }
 
   // ------------------------------------------------------------------ the wizard: Sculpt Spells (evocation 2), Potent Cantrip (6)
@@ -38,7 +38,7 @@
   TX.FIRST.unshift(function* (B, u) {
     if (u.cls !== 'barbarian' || u.conds.raging || !feat(u, 'rage') || !u.turn.bonus || u.conds.incapacitated) return;
     var fs = TX.foesOf(B, u);
-    if (!fs.some(function (t) { return G.dist(u, t) <= u.turn.move + (u.reach || 5) + (u.turn.action ? 0 : 0); })) return;
+    if (!fs.some(function (t) { return G.dist(u, t) <= u.turn.move + G.reachOf(u) + (u.turn.action ? 0 : 0); })) return;
     F.rage(B, u);
     yield 20;
   });
@@ -313,7 +313,7 @@
   };
   // ANSWER BACK (6): raging, one who misses him in melee gets one blow back (the reaction) -- battle.js attack calls it on a miss
   F.answerBack = function* (B, att, tgt, atk, melee) {
-    if (!melee || atk.spell || !sub(tgt, 'Path of the Sand', 6) || !tgt.conds.raging || tgt.reaction <= 0 || !RU.canAct(tgt) || att.dead || att.hp <= 0 || G.dist(tgt, att) > (tgt.reach || 5) || !tgt.weapon) return;
+    if (!melee || atk.spell || !sub(tgt, 'Path of the Sand', 6) || !tgt.conds.raging || tgt.reaction <= 0 || !RU.canAct(tgt) || att.dead || att.hp <= 0 || G.dist(tgt, att) > G.reachOf(tgt) || !tgt.weapon) return;
     tgt.reaction = 0;
     B.card(['{r}' + Nm(B, tgt) + ' answers back!{/}  {g}(the reaction){/}'], 200);
     yield* B.attack(tgt, att, tgt.weapon, { oa: true });

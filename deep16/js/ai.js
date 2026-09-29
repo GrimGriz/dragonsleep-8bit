@@ -27,7 +27,7 @@
     Object.keys(rm).forEach(function (k) {
       var e = rm[k];
       if (!e.stand) return;
-      var d = G.dist(u, tgt, e.x, e.y), s = (d <= (reach || u.reach) ? 0 : 1000 + d * 10) + e.cost;
+      var d = G.dist(u, tgt, e.x, e.y), s = (d <= (reach || G.reachOf(u)) ? 0 : 1000 + d * 10) + e.cost;
       if (s < bs) { bs = s; best = e; }
     });
     return best;
@@ -116,18 +116,18 @@
       FX.sparkle(u, 'violet', 22); FX.ring(u, 'violet', 36);
       B.card(['{r}The phase spider{/} steps out of the rock ' + (G.dist(u, tgt) <= 5 ? 'beside ' : 'near ') + tgt.name + '!', '{g}(Ethereal Jaunt, a bonus action: back on the Material Plane){/}']);
       yield 30;
-      if (G.dist(u, tgt) <= u.reach && T.action) { T.action = 0; yield* B.attack(u, tgt, bite); }
+      if (G.dist(u, tgt) <= G.reachOf(u) && T.action) { T.action = 0; yield* B.attack(u, tgt, bite); }
       return;
     }
     // on this plane: bite the weakest in reach, else close and bite; then fade (a bonus action)
-    var near = hs.filter(function (w) { return G.dist(u, w) <= u.reach; }).sort(function (a, b) { return a.hp - b.hp; });
+    var near = hs.filter(function (w) { return G.dist(u, w) <= G.reachOf(u); }).sort(function (a, b) { return a.hp - b.hp; });
     var t2 = near[0];
     if (!t2) {
       t2 = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       yield* walkTo(B, u, approach(u, t2, G.reach(u, T.move)));
       if (u.dead || u.hp <= 0) return;
     }
-    if (G.dist(u, t2) <= u.reach && !t2.dead && T.action) { T.action = 0; yield* B.attack(u, t2, bite); }
+    if (G.dist(u, t2) <= G.reachOf(u) && !t2.dead && T.action) { T.action = 0; yield* B.attack(u, t2, bite); }
     if (u.dead || u.hp <= 0) return;
     if (T.bonus) {
       T.bonus = 0; u.ethereal = true; D.sfx('run');
@@ -254,10 +254,10 @@
       var cube = bestCube(B, u, u.faerie.cube, u.faerie.range);
       if (cube && cube.count >= 3) { yield* faerieFire(B, u, cube); return; }
     }
-    var inReach = function () { return heroes(B, u).filter(function (w) { return G.dist(u, w) <= u.reach; }); };
+    var inReach = function () { return heroes(B, u).filter(function (w) { return G.dist(u, w) <= G.reachOf(u); }); };
     if (!inReach().length) {
       var tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], e = approach(u, tgt, G.reach(u, T.move));
-      if (e && G.dist(u, tgt, e.x, e.y) <= u.reach) { yield* walkTo(B, u, e); if (u.dead || u.hp <= 0) return; }
+      if (e && G.dist(u, tgt, e.x, e.y) <= G.reachOf(u)) { yield* walkTo(B, u, e); if (u.dead || u.hp <= 0) return; }
     }
     if (!T.action) return;
     T.action = 0;
@@ -359,7 +359,7 @@
   // a list of attack names in order, or a count of the first attack -- on the weakest in reach each time
   // the bestiary's traits (09-27, the ladder): a Web shot on a recharge (the giant spider, the ettercap), a grip held
   // and a Tentacle Slam (the otyugh), a creature bound to its ground (bound: the chars of the squares it keeps to)
-  function reachOf(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r, u.attacks[k].reach || 0); }); return r; }
+  function reachOf(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r, u.attacks[k].reach || 0); }); return G.reachOf(u, r); }
   function* webShot(B, u, tgt) {
     var W = u.web, T = u.turn;
     T.action = 0; W.ready = false;
@@ -566,7 +566,7 @@
         if (u.dead || u.hp <= 0) return;
         // then close on whoever is caught, for next turn's bite
         var caught = hs.filter(function (w) { return w.conds.restrained; })[0] || free[0];
-        if (G.dist(u, caught) > u.reach) yield* walkTo(B, u, approach(u, caught, G.reach(u, T.move)));
+        if (G.dist(u, caught) > G.reachOf(u)) yield* walkTo(B, u, approach(u, caught, G.reach(u, T.move)));
         return;
       }
     }
@@ -590,6 +590,7 @@
       T.action = 0; u.enlarge.used = true;
       if (u.conds.invisible && u.conds.invisible.ends) { delete u.conds.invisible; B.card(['{g}' + the(B, u) + ' comes back into sight, swelling.{/}'], 200); }
       var big = {}; Object.keys(u.attacks).forEach(function (k) { big[k] = Object.assign({}, u.attacks[k]); if (!big[k].ranged) big[k].dice = u.enlarge.dice; }); u.attacks = big;
+      var k0 = D.spr.scaleOf(u); u.grown = true; D.spr.regrow(u, k0); // (the look alone: drawn 1.5x, no conds.enlarged -- its dice are already the grown ones)
       D.sfx('buff'); FX.ring(u, 'stone', 30); B.card(['{r}' + the(B, u) + '{/} swells to twice its size!  {g}(Enlarge: its blows hit for ' + u.enlarge.dice + '){/}']);
       yield 30; return;
     }
@@ -607,7 +608,7 @@
       // attack only for the held (the Keeper's Drag Under, the chuul's tentacles) goes at one it holds, or not at all
       var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u);
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
-      var t = pool.filter(function (w) { return G.dist(u, w) <= (atk.reach || u.reach); }).sort(function (a, b) {
+      var t = pool.filter(function (w) { return G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) {
         if (atk.grapple) { var ha = u.holding.indexOf(a) >= 0, hb = u.holding.indexOf(b) >= 0; if (ha !== hb) return ha ? 1 : -1; }
         return a.hp - b.hp;
       })[0];
@@ -640,14 +641,14 @@
       B.card(['{y}' + u.name + '{/}: SECOND WIND  +' + r.total]); yield 20;
     }
     var tgt = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
-    if (G.dist(u, tgt) > u.reach) yield* walkTo(B, u, approach(u, tgt, G.reach(u, T.move)));
+    if (G.dist(u, tgt) > G.reachOf(u)) yield* walkTo(B, u, approach(u, tgt, G.reach(u, T.move)));
     if (u.hp <= 0 || !T.action) return;
     T.action = 0;
     // Action Surge (Pyro: the 8-bit's `surgeAI`), once, when two or more stand against him: the attacks over again
-    var rounds = h.surgeAI && f.actionSurge && !h.wounded && heroes(B, u).filter(function (w) { return G.dist(u, w) <= u.reach; }).length >= 2 ? 2 : 1;
+    var rounds = h.surgeAI && f.actionSurge && !h.wounded && heroes(B, u).filter(function (w) { return G.dist(u, w) <= G.reachOf(u); }).length >= 2 ? 2 : 1;
     if (rounds > 1) { f.actionSurge = 0; D.sfx('buff'); B.card(['{y}' + u.name + '{/} surges!  {g}(Action Surge: the attacks again){/}']); yield 16; }
     for (var rr = 0; rr < rounds; rr++) for (var k = 0; k < (u.attacks || 1); k++) {
-      var t = heroes(B, u).filter(function (w) { return G.dist(u, w) <= u.reach; })[0];
+      var t = heroes(B, u).filter(function (w) { return G.dist(u, w) <= G.reachOf(u); })[0];
       if (!t) break;
       yield* B.attack(u, t, u.weapon);
       if (u.hp <= 0) return;

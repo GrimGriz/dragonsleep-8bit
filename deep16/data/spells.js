@@ -101,7 +101,7 @@
   blur: { shape: 'self', time: 'A', conc: true },
   brandingsmite: { shape: 'self', time: 'B', conc: true },
   enhanceability: { shape: 'touch', side: 'ally', time: 'A', conc: true },
-  enlargereduce: { shape: 'single', range: 30, time: 'A', conc: true },
+  enlargereduce: { shape: 'single', range: 30, time: 'A', conc: true, noStack: 'enlarged' }, // (noStack: no target already carrying the same way -- js/magic.js targetWhy; the other way replaces)
   flameblade: { shape: 'self', time: 'B', conc: true },
   gustofwind: { shape: 'line', len: 60, time: 'A' },
   heatmetal: { shape: 'single', side: 'foe', range: 60, time: 'A', conc: true },

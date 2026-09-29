@@ -96,7 +96,7 @@
   // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
   // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
   // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1 };
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1 };
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -206,7 +206,7 @@
     var best = null, bd = -1e9, z = D.iso.zoom;
     B.units.forEach(function (u) {
       if (u.dead || u.ethereal) return;
-      var p = unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * z;
+      var p = unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z;
       if (mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z && p.depth > bd) { bd = p.depth; best = u; }
     });
     return best;
@@ -426,7 +426,11 @@
         if (B.picks.length >= S.n) return cast({ units: B.picks.slice() });
         return B.card(['{y}' + S.name + '{/}: ' + (B.picks.length ? B.picks.map(function (p) { return p.name; }).join(', ') : 'no one yet') + ' (' + B.picks.length + ' of ' + S.n + ').  {g}CAST below, or E off a target, casts with these{/}'], 100000);
       }
-      if (v !== 'ok') return;
+      if (v !== 'ok') { // (a target the spell itself turns away: Enlarge on one already enlarged -- say why, js/magic.js targetWhy)
+        var refused = w && M.targetWhy(u, g, w);
+        if (refused) { D.sfx('error'); B.card(['{o}' + S.name + ': ' + (w.side === 'foe' ? 'the ' + B.shortName(w) : w.name) + ' is ' + refused + '.{/}'], 120); }
+        return;
+      }
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'teleport') return cast({ x: x, y: y });
       return cast(w);
     }
@@ -622,7 +626,7 @@
     var obj = {
       depth: p.depth, gz: p.gz, layer: 1, unit: u, draw: function (ctx) {
         var o = { color: u.side === 'foe' ? R('violet', 3) : R('silver', 4) }, anim = u.anim, t = B.t - (u.animT || 0);
-        var down = u.dead || u.hp <= 0;
+        var down = u.dead || u.hp <= 0, sk = D.spr.scaleOf(u); // (sk: Enlarge and Reduce draw it bigger or smaller about its foot, sprites.js scaleOf)
         // the cloaker hangs as a cloak until something hurts it (Griz, 09-29)
         if (!down && u.sheet === 'cloaker_p2' && !u.woken && anim === 'idle' && has('roost')) anim = 'roost';
         if (down) {
@@ -643,16 +647,18 @@
         else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; }
         if (!u.ethereal && !(u.dead && !has('hurt'))) {
           var s = u.size || 1;
-          ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 10 * s + 1, 4 * s + 1, 0, 0, 7); ctx.fill();
+          ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 10 * s * sk + 1, 4 * s * sk + 1, 0, 0, 7); ctx.fill();
         }
         // a rider's body (the drider's spider half) goes dark unless something else tints it; the rider on top
         var body = u.rider && !o.tint ? Object.assign({}, o, { tint: R('outline', 0), tintAlpha: 0.5 }) : o;
+        if (sk !== 1) { ctx.save(); ctx.translate(p.x, p.y); ctx.scale(sk, sk); ctx.translate(-p.x, -p.y); } // (the figure and what stands behind it, grown about the foot)
         if (D.looks && !down && !u.ethereal) D.looks.behind(ctx, B, u, p, anim === 'hurt' && !has('hurt') ? 'idle' : anim, t, o); // (false images, blur, haste: js/looks.js)
         D.spr.draw(ctx, u.sheet, anim === 'hurt' && !has('hurt') ? 'idle' : anim, u.facing || 0, t, p.x, p.y, body);
         // what was drawn, for the x-ray after the world (a standing figure only: the fallen lie low)
-        var hw = 10 * (u.size || 1);
-        obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, x: p.x, y: p.y, box: [p.x - hw, p.y - D.spr.unitTop(u), p.x + hw, p.y] };
+        var hw = 10 * (u.size || 1) * sk;
+        obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - D.spr.unitTop(u), p.x + hw, p.y] };
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
+        if (sk !== 1) ctx.restore();
         if (D.looks && !down && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js)
         if (!u.dead && !u.ethereal) {
           var top = D.spr.unitTop(u), w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
@@ -698,7 +704,7 @@
       }
       if (hid / 40 < XRAY) return;
       var col = u === hero ? R('gold', 4) : u.side === 'foe' ? R('red', 4) : R('glow', 2);
-      D.spr.outline(ctx, u.sheet, o.shown.anim === 'hurt' && !D.spr.anim(u.sheet, 'hurt') ? 'idle' : o.shown.anim, u.facing || 0, o.shown.t, o.shown.x, o.shown.y, col, { alpha: 0.9, once: o.shown.once });
+      D.spr.outline(ctx, u.sheet, o.shown.anim === 'hurt' && !D.spr.anim(u.sheet, 'hurt') ? 'idle' : o.shown.anim, u.facing || 0, o.shown.t, o.shown.x, o.shown.y, col, { alpha: 0.9, once: o.shown.once, scale: o.shown.k });
     });
   }
   UI.xray = xray;
@@ -877,7 +883,7 @@
     if (w.conds.blinded) c.push('{o}blinded{/}');
     if (w.conds.dodge) c.push('{c}dodging{/}');
     if (w.conds.ablaze) c.push('{o}blade ablaze{/}');
-    if (w.torch) c.push('{o}torch in hand{/}');
+    if (w.torch) c.push('{o}' + (w.torch.kind === 'lantern' ? (w.torch.hood ? 'lantern in hand, hooded' : 'lantern in hand') : 'torch in hand') + '{/}');
     if (w.conds.light) c.push('{y}light{/}');
     if (w.conds.daylight) c.push('{y}daylight{/}');
     if (w.conds.continualFlame) c.push('{o}continual flame{/}');
@@ -970,7 +976,7 @@
     if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.sp) D.text(ctx, '{g}' + D.magic.summary(cur, u) + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.note) D.text(ctx, '{g}' + cur.note + '{/}', x + 6, sy, R('accent', 2));
-    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire', light: 'a torch, lit: bright 20 ft, dim 20 more; it takes a hand' }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
+    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire', light: cur.id === 'lantern' ? 'a hooded lantern, lit: bright 30 ft, dim 30 more; hood down, dim 5 ft and a roost sleeps; it takes a hand' : 'a torch, lit: bright 20 ft, dim 20 more; it takes a hand' }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
   }
 
   // ------------------------------------------------------------------ WINDOW: Chrono Trigger's command window, a pointing hand

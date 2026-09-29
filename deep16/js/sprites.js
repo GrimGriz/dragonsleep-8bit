@@ -56,6 +56,7 @@
     ox.globalCompositeOperation = 'source-over';
     ctx.save();
     if (o && o.alpha != null) ctx.globalAlpha = o.alpha;
+    if (o && o.scale && o.scale !== 1) { ctx.translate(x, y); ctx.scale(o.scale, o.scale); ctx.translate(-x, -y); } // (o.scale: a grown or shrunk figure, about its foot)
     ctx.drawImage(oc, Math.round(x - f.ax) - 1, Math.round(y - f.ay) - 1);
     ctx.restore();
   };
@@ -76,8 +77,20 @@
     S.draw(ctx, u.rider, S.anim(u.rider, anim) ? anim : 'idle', f, t, rx, foot, o);
     ctx.restore();
   };
-  // how tall a unit stands above its foot (HP bars, labels, picking)
-  S.unitTop = function (u) { return u.rider ? S.RIDE.lift - S.RIDE.cut + S.top(u.rider) : S.top(u.sheet); };
+  // how big a figure is drawn (Enlarge, 09-29): conds.enlarged 1.5x, Reduce (.down) 0.7x, the duergar's own Enlarge (u.grown: a flag for
+  // the look alone, ai.js) 1.5x -- about its foot; the footprint (u.size) stays. A change eases in over SCALE.frames from the size it
+  // had, with a little overshoot (S.regrow(u, from) marks the change; the pulse at the cast)
+  S.SCALE = { up: 1.5, down: 0.7, frames: 26 };
+  S.scaleTarget = function (u) { var e = u.conds && u.conds.enlarged; return e ? (e.down ? S.SCALE.down : S.SCALE.up) : u.grown ? S.SCALE.up : 1; };
+  S.scaleOf = function (u) {
+    var to = S.scaleTarget(u), g = u.scaleEase, a = g && D.battle ? (D.battle.t - g.t) / S.SCALE.frames : 1;
+    if (!g || a >= 1 || a < 0 || g.from === to) return to;
+    var b = a - 1, ease = 1 + 2.70158 * b * b * b + 1.70158 * b * b; // (ease-out-back: it swells past and settles)
+    return g.from + (to - g.from) * ease;
+  };
+  S.regrow = function (u, from) { if (from !== S.scaleTarget(u)) u.scaleEase = { from: from, t: D.battle ? D.battle.t : 0 }; };
+  // how tall a unit stands above its foot (HP bars, labels, picking): the figure as drawn, so a grown one's bar sits on its head
+  S.unitTop = function (u) { return (u.rider ? S.RIDE.lift - S.RIDE.cut + S.top(u.rider) : S.top(u.sheet)) * S.scaleOf(u); };
 
   // until a sheet exists: a capsule in the unit's colour, so the grid can be built before the art lands
   S.placeholder = function (ctx, name, x, y, o) {

@@ -160,9 +160,18 @@
       return true;
     });
   };
+  // why w is no target for a spell that would only lay again what is already on it (g.noStack, the condition's name), or '': Enlarge on
+  // one already enlarged, Reduce on one already reduced -- one record a creature, never two. The other way is a replacement and is let
+  // through (js/grimoire.js takes the old casting down). The picker greys it, and the click says why (js/ui.js)
+  M.targetWhy = function (u, g, w) {
+    var c = g && g.noStack && w && w.conds && w.conds[g.noStack];
+    if (!c) return '';
+    return !!c.down === (w.side !== u.side) ? 'already ' + (c.down ? 'reduced' : 'enlarged') : '';
+  };
   // is w a target for this spell from u (single, attack, rays, darts, splash, allies, touch)?
   M.targetOK = function (B, u, g, w) {
     if (!w || w.dead || w.ethereal) return false;
+    if (M.targetWhy(u, g, w)) return false;
     if (g.shape === 'touch') return M.touchTargets(B, u, g).indexOf(w) >= 0;
     var foeWanted = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe';
     if (foeWanted && (!G.hostile(u, w) || w.hp <= 0)) return false;
@@ -724,7 +733,10 @@
   // breaking out of a web: an action, a STR check against the caster's DC
   M.breakFree = function* (B, u) {
     // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
-    var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, d = (u.conds.poisoned || u.conds.frightened || r.weak ? Math.min(D.d(20), D.d(20)) : D.d(20)) + gd, useDex = (r.grapple || r.kind === 'tentacles') && D.mod(u.abil.dex) > D.mod(u.abil.str); // (r.weak: the roper's tendril, js/traits.js)
+    var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, useDex = (r.grapple || r.kind === 'tentacles') && D.mod(u.abil.dex) > D.mod(u.abil.str); // (r.weak: the roper's tendril, js/traits.js)
+    // a STR check: Enlarge is advantage on it, Reduce disadvantage (SRD), against poisoned, frightened and the weak grip's disadvantage
+    var en = !useDex && u.conds.enlarged, adv = !!(en && !en.down), dis = !!(u.conds.poisoned || u.conds.frightened || r.weak || (en && en.down));
+    var d = (dis && !adv ? Math.min(D.d(20), D.d(20)) : adv && !dis ? Math.max(D.d(20), D.d(20)) : D.d(20)) + gd;
     var tot = d + D.mod(useDex ? u.abil.dex : u.abil.str) + (u.cls === 'fighter' || (useDex && u.cls === 'rogue') ? u.prof : 0);
     u.turn.action = 0;
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);

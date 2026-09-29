@@ -81,8 +81,9 @@
     // a torch the party walked in holding (the 8-bit field's, or the camp's A TORCH IN HAND) is in that hero's hand from the first round
     this.dark = F.dark != null ? !!F.dark : (this.o.embed && this.o.embed.dark != null) ? !!this.o.embed.dark : !!m.def.dark;
     this.lights = (F.lights || m.def.lights || []).map(function (l, i) { return { id: 'map' + i, kind: 'map', x: l[0], y: l[1], bright: l[4] ? 0 : l[2], dim: l[2], color: l[3] || 'gold', flame: !l[3] || l[3] === 'gold' || l[3] === 'fire' }; });
-    var torchBy = (this.o.embed && this.o.embed.torch) || this.o.torch;
-    if (torchBy) this.units.forEach(function (u) { if (u.id === torchBy && u.side === 'party' && u.hp > 0 && D.light.handsFree(u) > 0) { u.torch = { lit: true }; D.light.regrip(u); } });
+    var torchBy = (this.o.embed && this.o.embed.torch) || this.o.torch, torchKind = (this.o.embed && this.o.embed.torchKind) || this.o.torchKind || 'torch';
+    // (a lantern walked in under a roost has its hood down: dim 5 ft, and the roof sleeps -- RULED 09-29)
+    if (torchBy) this.units.forEach(function (u) { if (u.id === torchBy && u.side === 'party' && u.hp > 0 && D.light.handsFree(u) > 0) { u.torch = torchKind === 'lantern' ? { lit: true, kind: 'lantern', hood: !!F.roost } : { lit: true }; D.light.regrip(u); } });
     // strung webs a fight starts with (Web Gulch): difficult ground for all but the web-walkers, drawn like the spell's
     var webs = F.webs || m.def.webs;
     this.webs = webs ? [{ by: 'the ground', sq: webs.slice() }] : [];
@@ -526,11 +527,19 @@
     // dropped (the turn's free hand on an object: it burns where it falls), thrown to a square within 20 ft (an action), or put out
     // (free, back in the pack); one burning at his feet is taken up (free, a free hand)
     var Lt = D.light, freeWhy = 'the free hand on an object is spent this turn';
-    if (u.torch && !u.guest) {
+    var floorLight = !u.torch && !u.guest && Lt.torchAt(this, u.x, u.y);
+    if (u.torch && !u.guest && Lt.kindOf(u.torch) === 'lantern') {
+      // the hooded lantern (RULED 09-29): the hood is the free hand on an object; up is bright light (under a roost, the one law: refused)
+      var roostL = this.fight && this.fight.roost;
+      if (u.torch.hood) out.push({ id: 'hoodup', label: 'HOOD UP', cost: 'F', icon: 'lantern', ok: !T.freeObj && !roostL, why: roostL ? 'the roost overhead: bright light would wake it' : freeWhy, note: 'bright 30 ft and dim 30 more' + (roostL ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : '') });
+      else out.push({ id: 'hooddown', label: 'HOOD DOWN', cost: 'F', icon: 'lantern', ok: !T.freeObj, why: freeWhy, note: 'dim light 5 ft only: nothing is dazzled, and a roost sleeps' });
+      out.push({ id: 'droptorch', label: 'SET DOWN LANTERN', cost: 'F', icon: 'lantern', ok: !T.freeObj, why: freeWhy, note: 'it burns where it stands' });
+      out.push({ id: 'dousetorch', label: 'DOUSE LANTERN', cost: 'F', icon: 'lantern', ok: !T.freeObj, why: freeWhy, note: 'out, and back in the pack' });
+    } else if (u.torch && !u.guest) {
       out.push({ id: 'droptorch', label: 'DROP TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj, why: freeWhy, note: 'it burns where it falls' });
       out.push({ id: 'throwtorch', label: 'THROW TORCH', cost: 'A', icon: 'torch', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', tool: 'torch', note: 'to a square within 20 ft: it burns there' });
       out.push({ id: 'dousetorch', label: 'DOUSE TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj, why: freeWhy, note: 'out, and back in the pack' });
-    } else if (!u.guest && Lt.torchAt(this, u.x, u.y)) out.push({ id: 'pickuptorch', label: 'TAKE UP TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj && Lt.handsFree(u) > 0, why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'the one burning at your feet' });
+    } else if (floorLight) out.push({ id: 'pickuptorch', label: floorLight.kind === 'lantern' ? 'TAKE UP LANTERN' : 'TAKE UP TORCH', cost: 'F', icon: floorLight.kind === 'lantern' ? 'lantern' : 'torch', ok: !T.freeObj && Lt.handsFree(u) > 0, why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'the one burning at your feet' });
     if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay', note: 'a pool of ' + (u.feats.lay || 0) + ' HP (long rest), touch' });
     // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
     if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a short rest brings it back)', note: '+' + Math.max(1, D.mod(u.abil.cha)) + ' to hit for a minute; Channel Divinity ' + (u.feats.channel > 0 ? '1/1' : '0/1') + ' (short rest)' + (this.fight && this.fight.roost ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : '') });
@@ -588,6 +597,8 @@
       case 'dousetorch': T.freeObj = true; D.light.douseTorch(this, u); return;
       case 'pickuptorch': T.freeObj = true; D.light.pickUp(this, u); return;
       case 'throwtorch': { yield* D.light.throwTorch(this, u, c.x, c.y); return; }
+      case 'hooddown': T.freeObj = true; yield* D.light.hood(this, u, true); return;
+      case 'hoodup': T.freeObj = true; yield* D.light.hood(this, u, false); return;
       case 'dashmove': {
         var far = G.reach(u, T.move + u.speed)[c.x + ',' + c.y], opts = [];
         if (!far || u.conds.restrained) return;
@@ -662,7 +673,7 @@
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
         var prov = this.units.filter(function (w) {
           return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && !(w.weapon && w.weapon.ranged)
-            && G.dist(w, u) <= w.reach && G.dist(w, u, null, null, nx, ny) > w.reach && !(w.conds.hidden && false)
+            && G.dist(w, u) <= G.reachOf(w) && G.dist(w, u, null, null, nx, ny) > G.reachOf(w) && !(w.conds.hidden && false)
             && D.magic.sees(D.battle, w, u); // (a creature you can see: not into or out of darkness)
         });
         for (var k = 0; k < prov.length; k++) {
@@ -1097,7 +1108,7 @@
   Battle.prototype.leave = function* (u) {
     var T = u.turn;
     if (!T.disengaged) {
-      var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && G.dist(w, u) <= w.reach && !(w.weapon && w.weapon.ranged); });
+      var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && G.dist(w, u) <= G.reachOf(w) && !(w.weapon && w.weapon.ranged); });
       for (var k = 0; k < prov.length; k++) {
         var w = prov[k], keys = Object.keys(w.attacks || {}).filter(function (key) { return !w.attacks[key].ranged; }), atk = w.weapon || (keys.length ? w.attacks[keys[0]] : null);
         if (!atk) continue;
@@ -1124,9 +1135,9 @@
     return (this.inv || []).map(function (s) {
       var it = window.DS.DATA.items[s.id];
       if (!it || !it.use || !it.use.battle || !ITEM_OK[it.use.effect] || s.n <= 0) return null;
-      if (roost && (it.use.effect === 'damage' || it.use.effect === 'light')) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
-      if (it.use.effect === 'light') { // a torch (torchdark 09-28): a free hand, and the action (or the Thief's bonus)
-        var cl = D.light.canLight(self, u), can = (torchFast(u) && T.bonus > 0) || (T.action > 0 && !T.attacksLeft);
+      if (roost && (it.use.effect === 'damage' || (it.use.effect === 'light' && s.id !== 'lantern'))) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
+      if (it.use.effect === 'light') { // a torch (torchdark 09-28), or a lantern (09-29; under a roost it is lit hood down): a free hand, and the action (or the Thief's bonus)
+        var cl = D.light.canLight(self, u, s.id), can = (torchFast(u) && T.bonus > 0) || (T.action > 0 && !T.attacksLeft);
         return { id: s.id, name: it.name, n: s.n, use: it.use, ok: cl.ok && can && !u.guest, why: !cl.ok ? cl.why : can ? '' : 'the action is spent', cost: torchFast(u) && T.bonus > 0 ? 'B' : 'A' };
       }
       return { id: s.id, name: it.name, n: s.n, use: it.use, ok: (u.subclass === 'Thief' && T.bonus > 0) || (T.action > 0 && !T.attacksLeft), why: T.action > 0 ? '' : 'the action is spent' };
@@ -1157,7 +1168,7 @@
   Battle.prototype.useItem = function* (u, id, w) {
     var it = window.DS.DATA.items[id], use = it.use, s = this.inv.filter(function (x) { return x.id === id; })[0];
     if (((use.effect === 'light' && torchFast(u)) || u.subclass === 'Thief') && u.turn.bonus > 0) u.turn.bonus = 0; else u.turn.action = 0; // Fast Hands
-    if (use.effect === 'light') { yield* D.light.lightTorch(this, u); yield 20; return; } // (lightTorch takes it from the pack)
+    if (use.effect === 'light') { yield* D.light.lightTorch(this, u, id); yield 20; return; } // (lightTorch takes it from the pack)
     s.n--;
     var who = w === u ? 'drinks' : 'gives ' + w.name;
     if (use.effect === 'heal') { var r = D.roll(use.dice), got = this.heal(w, r.total); this.card(['{y}' + u.name + '{/} ' + who + ' a ' + it.name + ': ' + use.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {n}' + r.total + '{/}' + (got < r.total ? ' (' + got + ' to full)' : '')]); FX.sparkle(w, 'moss', 12); }
@@ -1287,7 +1298,7 @@
   Battle.prototype.canHit = function (u, w) {
     var wp = u.weapon;
     if (wp && wp.ranged) return G.dist(u, w) <= wp.range[1] && G.los(u, w).clear;
-    return G.dist(u, w) <= u.reach;
+    return G.dist(u, w) <= G.reachOf(u);
   };
   Battle.prototype.focus = function (u) { var c = FX.at(u); D.iso.lookAt(c.gx, c.gy, c.gz); };
   Battle.prototype.keepInView = function (u) {

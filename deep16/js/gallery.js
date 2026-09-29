@@ -2,7 +2,8 @@
    grid cast in turn, at game speed, on the class floor: a caster (a wizard for the arcane, a cleric for the divine), a friend
    beside him, three foes a few squares off. Between casts everyone is made whole again and whatever the last spell left on the
    floor is swept away. Keys: left/right the spell before or after, up/down ten at a time, E (or A) cast it again, M the menu.
-   &spell=<id> starts at that spell; &auto casts on down the list by itself; &only=a,b,c keeps to those. It rides the class
+   &spell=<id> starts at that spell; &auto casts on down the list by itself; &only=a,b,c keeps to those; &keep skips the sweep between
+   casts (a testground: E casts the same spell again at the same creature, on whatever the last cast left -- Enlarge twice). It rides the class
    floor's battle (js/classes.js D.npcFight) and runs the spell through the battle's own exec, so what it shows is what a fight
    shows. The same pick of target as the bench's mode=spells (dev/bench16.js). */
 'use strict';
@@ -14,7 +15,7 @@
 
   D.fxGallery = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
-    var only = get('only'), auto = /[?&]auto\b/.test(q);
+    var only = get('only'), auto = /[?&]auto\b/.test(q), keep = /[?&]keep\b/.test(q); // (&keep: the stage is not swept between casts -- a testground: E casts again at the same one)
     var ids = Object.keys(D.SPELLS).filter(function (id) {
       var g = D.magic.geo(id), sp = D.magic.data(id);
       return sp && g.shape !== 'none' && g.shape !== 'reaction';
@@ -53,26 +54,29 @@
       D.grid.setup(D.grid.map, B.units);
     }
     function* loop() {
-      for (;;) {
-        reset();
+      for (var round = 0; ; round++) {
+        if (!keep || !round) reset(); // (&keep: only the first time, to set the stage; after it what the last cast did stays)
         var id = S.ids[S.i], sp = D.magic.data(id);
         var P = S.units.filter(function (w) { return w.side === 'party'; }), wiz = P[0], cle = P[1], mate = P[2];
         var u = divine(id) ? cle : wiz, pal = u === wiz ? cle : wiz;
         u.known = [id]; u.slots = [4, 3, 3, 3, 2, 1, 1, 1, 1]; u.slotsMax = u.slots.slice();
-        mate.hp = Math.floor(mate.maxhp / 3); // (a heal wants someone hurt)
+        if (!keep || !round) mate.hp = Math.floor(mate.maxhp / 3); // (a heal wants someone hurt)
         B.round = 1; D.rules.startTurn(u);
         var foes = S.units.filter(function (w) { return w.side === 'foe'; });
         var e = D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
         B.clearCards();
         B.card(['{y}' + (S.i + 1) + ' / ' + S.ids.length + '   ' + sp.name.toUpperCase() + '{/}' + (sp.level ? '  (level ' + sp.level + ')' : '  (cantrip)'),
-          '{g}' + [sp.el || sp.kind || '', D.magic.geo(id).shape].filter(Boolean).join(' · ') + '   left/right the next, up/down ten, E again{/}'], 1e9, 'gallery');
+          '{g}' + [sp.el || sp.kind || '', D.magic.geo(id).shape].filter(Boolean).join(' · ') + '   left/right the next, up/down ten, E again' + (keep ? '  ·  &keep: no sweep between casts' : '') + '{/}'], 1e9, 'gallery');
         if (!e || !e.ok) { B.card(['{r}' + sp.name + ': not castable here (' + (e ? e.why : 'no entry') + '){/}'], 1e9, 'gallery-why'); }
         else {
           var ev = (D.magic.EFFECT[id] && D.magic.EFFECT[id].ai) || D.tactics.EVAL[id] || D.tactics.EVAL['shape:' + e.g.shape], t = null;
           var pick = null; try { pick = ev ? ev(B, u, e, e.slot, D.tactics.foesOf(B, u), D.tactics.alliesOf(B, u)) : null; } catch (x) { pick = null; }
           t = pick && pick.t;
+          // &keep, the same spell again: at the same creature as the last cast (a second Enlarge on the one already enlarged), whatever the weighing says now
+          if (keep && S.last && S.last.id === id && S.last.t && S.last.t.conds && S.last.t.hp > 0) t = S.last.t;
           if (!t) t = e.g.shape === 'self' ? u : /touch|allies/.test(e.g.shape) || e.g.side === 'ally' ? (e.g.shape === 'allies' ? { units: [u, pal, mate] } : (D.grid.dist(u, mate) <= 5 ? mate : u))
             : /sphere|cube|cone|line|wave|teleport/.test(e.g.shape) ? { x: foes[0].x, y: foes[0].y } : /rays|darts/.test(e.g.shape) ? { units: [foes[0], foes[1], foes[0]].slice(0, e.g.n || 3) } : foes[0];
+          S.last = { id: id, t: t };
           var f0 = t.units ? t.units[0] : t;
           if (f0 && f0.x != null) { var mx = Math.round((u.x + f0.x) / 2), my = Math.round((u.y + f0.y) / 2); D.iso.lookAt(mx, my, D.grid.map.gz(mx, my)); }
           yield 20;

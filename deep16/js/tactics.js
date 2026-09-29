@@ -99,7 +99,7 @@
     var squares = [here];
     Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.stand && !(e.x === u.x && e.y === u.y)) squares.push(e); });
     weapons(u).forEach(function (wp) {
-      var n = attacksWith(u, wp), rng = wp.ranged ? wp.range[1] : (wp.reach || u.reach || 5);
+      var n = attacksWith(u, wp), rng = wp.ranged ? wp.range[1] : G.reachOf(u, wp.reach);
       var best = null;
       fs.forEach(function (t) {
         if (!M.sees(B, u, t) && G.dist(u, t) > 5 && wp.ranged) return;
@@ -129,7 +129,7 @@
     if (u.dead || u.hp <= 0) return;
     if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = attacksWith(u, wp); }
     var keep = u.weapon; u.weapon = wp;
-    var rng = wp.ranged ? wp.range[1] : (wp.reach || u.reach || 5), first = true;
+    var rng = wp.ranged ? wp.range[1] : G.reachOf(u, wp.reach), first = true;
     // Reckless Attack (the barbarian, 2): advantage on its STR swings this turn, and at it till its next (js/features.js decides)
     if (!wp.ranged && D.features && D.features.reckless(u) && !u.conds.reckless) { u.conds.reckless = { till: { who: u.id, at: 'start', n: 1 } }; B.card(['{r}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' swings recklessly.{/}'], 160); }
     while (T.attacksLeft > 0 && !u.dead && u.hp > 0) {
@@ -348,7 +348,7 @@
   // at -- worth it to one hurt and pressed (built in magic.js; no weighing had it, so no AI cast it)
   EV.mislead = function (B, u, e, slot, fs) {
     if (u.conc || u.conds.invisible || u.hp > u.maxhp * 0.5) return null;
-    var th = fs.filter(function (t) { return G.dist(u, t) <= (t.reach || 5) + (t.speed || 30); }).reduce(function (s, t) { return s + TX.dpr(t); }, 0);
+    var th = fs.filter(function (t) { return G.dist(u, t) <= G.reachOf(t) + (t.speed || 30); }).reduce(function (s, t) { return s + TX.dpr(t); }, 0);
     return th ? { score: th * 0.6 + 2, t: u, keep: th * 0.4 } : null;
   };
   EV.stoneskin = function (B, u, e, slot, fs, allies) {
@@ -412,7 +412,7 @@
     if (!fs.length) {
       // no one it knows of: toward the nearest it can hear, then wait
       var any = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.conds.hidden; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
-      if (any) yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), u.reach));
+      if (any) yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), G.reachOf(u)));
       return;
     }
     // the features and bonus actions that go first (js/tactics.js TX.FIRST: rage, the marks, a word of healing to the fallen)
@@ -447,7 +447,7 @@
     var near = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (!near) return;
     var rm = G.reach(u, T.move + (T.action ? u.speed : 0));
-    var e = AI.approach(u, near, rm, u.reach);
+    var e = AI.approach(u, near, rm, G.reachOf(u));
     if (e && T.action && e.cost > T.move && !u.conds.restrained) { T.action = 0; T.move += u.speed; B.card(['{g}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' dashes.{/}'], 160); }
     if (e) yield* walk(B, u, e);
   }
@@ -518,7 +518,7 @@
   TX.AFTER.push(function* (B, u) {
     var T = u.turn;
     if (!u.conds.frenzy || !u.conds.raging || !T.bonus || u.conds.disarmed) return;
-    var t = foesOf(B, u).filter(function (w) { return G.dist(u, w) <= (u.weapon.reach || u.reach || 5); }).sort(function (a, b) { return a.hp - b.hp; })[0];
+    var t = foesOf(B, u).filter(function (w) { return G.dist(u, w) <= G.reachOf(u, u.weapon.reach); }).sort(function (a, b) { return a.hp - b.hp; })[0];
     if (!t) return;
     T.bonus = 0; B.card(['{r}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' is in a frenzy!{/}  {g}(a swing for the bonus action){/}'], 160);
     yield* B.attack(u, t, u.weapon);
