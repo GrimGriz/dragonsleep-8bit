@@ -1,5 +1,9 @@
 /* DEEP16 — boot. The fight by default; ?ladder = the ladder (the leveling simulator); ?gate = the stop-and-look gate; ?view = the cavern with a cursor; ?stats = the frame-rate overlay;
-   ?scale=N forces an integer scale. */
+   ?scale=N forces an integer scale.
+   ?ladder&party=ours = the tester ladder (09-28h, Griz: "a tester version of the ladder with them as the party"): Talmok, Willem,
+   Katarina and Torvald at each rung's level, no camp, both sides run by the class AI -- you watch (js/ladder.js).
+   ?npc=cleric,wizard&lvl=5 = the class floor (&vs=fighter,rogue a band instead of the four; talmok:7 names a level; &watch: your
+   side run by the class AI too) (js/classes.js). */
 'use strict';
 (function () {
   var D = window.D16, q = location.search;
@@ -14,7 +18,7 @@
     if (D.embed.on) D.embed.boot(); // inside the 8-bit game: the fight and the party come by postMessage (js/embed.js)
     else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
     else if (/[?&]npc=/.test(q)) D.push(D.npcFight(q)); // the class floor: ?npc=cleric,wizard&lvl=5 (&vs=fighter,rogue: a band instead of the four) (js/classes.js)
-    else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder());
+    else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder({ party: /[?&]party=ours\b/.test(q) ? 'ours' : null })); // (&party=ours: the tester ladder)
     else if (/[?&]gate\b/.test(q)) D.push(new D.Gate());
     else if (/[?&]view\b/.test(q)) D.push(new D.MapView('cavern'));
     else D.push(new D.Battle());

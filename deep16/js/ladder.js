@@ -13,10 +13,15 @@
   // level-2 starts (js/save.js SV.levelOne), so rung 1 is fought at 1
   function low() { return 1; }
 
-  function Ladder() { this.t = 0; }
+  // o.party 'ours' (?ladder&party=ours): the tester ladder (09-28h, Griz: "can we do the levels for the original classes up to nine
+  // and do a tester version of the ladder with them as the party?" -- "the off SRD ones we made to 9"; "AI now, buttons later"):
+  // Talmok, Willem, Katarina and Torvald built at the rung's level (js/classes.js NPC.ours), no camp, straight to the fight, and every
+  // unit on both sides run by the class AI (a watch: battle.js o.watch). Its progress is kept apart (deep16.ladder.ours); no climb
+  function Ladder(o) { this.t = 0; this.o = o || {}; this.ours = this.o.party === 'ours'; }
   D.Ladder = Ladder;
+  Ladder.prototype.key = function () { return this.ours ? KEY + '.ours' : KEY; };
   Ladder.prototype.enter = function () {
-    var st = D.store.get(KEY) || {};
+    var st = D.store.get(this.key()) || {};
     this.won = st.won || {};              // level -> true
     this.wonF = st.wonF || {};            // fight id -> true
     this.pick = st.pick || {};            // level -> which of the rung's fights (a rung may hold several: left/right)
@@ -25,7 +30,7 @@
     this.card = null;                     // the level-up card, after a win
     D.music('title');
   };
-  Ladder.prototype.save = function () { D.store.set(KEY, { won: this.won, wonF: this.wonF, pick: this.pick, at: this.sel }); };
+  Ladder.prototype.save = function () { D.store.set(this.key(), { won: this.won, wonF: this.wonF, pick: this.pick, at: this.sel }); };
   // the rung's chosen fight (the set piece first; the others by left/right)
   Ladder.prototype.cur = function (L) { var fs = D.fightsAt(L); return fs.length ? fs[((this.pick[L] || 0) % fs.length + fs.length) % fs.length] : null; };
 
@@ -38,11 +43,34 @@
       return { name: look.name || h.name, cls: h.cls, lvl: h.lvl, hp: h.maxhp - hp0, msgs: msgs };
     });
   }
+  // the tester ladder's card: what each of our four gains going from L to L+1 -- the features (their own and the class's), the
+  // scores, the slots, the spells new to the list (js/classes.js builds both sheets)
+  var OURS_AT = {
+    talmok: { 2: 'Reckless Attack, Danger Sense', 3: 'the Path of the Sand: First Blood, Down in the Sand', 5: 'Extra Attack, Fast Movement', 6: 'Answer Back; a fourth rage', 7: 'Feral Instinct', 9: 'Brutal Critical; rage +3' },
+    willem: { 2: 'the Rimeglass: Rime Doubles', 6: 'Rime Step' },
+    katarina: { 2: 'Channel Divinity: the Doubling, Turn Undead', 5: 'Destroy Undead (CR 1/2)', 6: 'the Showing; a second Channel Divinity', 8: 'Divine Strike (1d8 psychic); Destroy Undead (CR 1)' },
+    torvald: { 2: 'Channel Divinity: Hold the Door, Turn Undead', 5: 'Destroy Undead (CR 1/2)', 6: 'Wakeful; a second Channel Divinity', 8: 'Divine Strike (1d8 radiant); Destroy Undead (CR 1)' }
+  };
+  function oursGains(L) {
+    var N = D.npc, R = DS.R;
+    return N.OURS.map(function (k) {
+      var a = N.sheet(N.spec(k + ':' + L)), b = N.sheet(N.spec(k + ':' + (L + 1))), msgs = [];
+      if (OURS_AT[k][L + 1]) msgs.push(OURS_AT[k][L + 1] + '.');
+      var up = R.ABIL.filter(function (s) { return b.abil[s] > a.abil[s]; }).map(function (s) { return s.toUpperCase() + ' +' + (b.abil[s] - a.abil[s]); });
+      if (up.length) msgs.push(up.join(', ') + '.');
+      var nw = (b.known || []).filter(function (id) { return (a.known || []).indexOf(id) < 0 && D.magic.data(id); }).map(function (id) { return D.magic.data(id).name; });
+      if (nw.length) msgs.push('New: ' + nw.join(', ') + '.');
+      if ((b.slotsMax || []).join() !== (a.slotsMax || []).join()) msgs.push('Slots ' + b.slotsMax.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') + '.');
+      return { name: b.name, cls: b.cls, lvl: b.lvl, hp: b.maxhp - a.maxhp, msgs: msgs };
+    });
+  }
 
   Ladder.prototype.fight = function (L) {
     var F = this.cur(L), self = this;
     if (!F) { D.sfx('error'); return; }
     D.sfx('confirm');
+    // the tester ladder: our four at L, straight into the fight, and you watch
+    if (this.ours) { D.push(new D.Battle({ ladder: true, watch: true, fight: F.id, npc: { party: D.npc.ours(L, F), foes: [] }, onDone: function (res) { self.done(L, res, F); } })); return; }
     // the camp first (js/camp.js): the gear, the day's spells, what's cast before the fight; then the fight
     D.push(new D.Camp(L, F, function (res) { self.done(L, res, F); }));
   };
@@ -50,7 +78,7 @@
     D.music('title');
     if (res !== 'won') return;
     this.won[L] = true; if (F) this.wonF[F.id] = true;
-    if (L < 9) { this.card = { from: L, rows: gains(L, this.cur(L + 1)) }; this.sel = L + 1; D.sfx('levelup'); }
+    if (L < 9) { this.card = { from: L, rows: this.ours ? oursGains(L) : gains(L, this.cur(L + 1)) }; this.sel = L + 1; D.sfx('levelup'); }
     else this.card = { top: true };
     this.save();
   };
@@ -60,7 +88,7 @@
     if (this.leaving) return this.leaveInput();
     // C, or the button top right: the climb (js/climb.js), one party from 1 to 9
     var cb = this.climbBtn, mm = I.mouse;
-    if (!this.card && (I.pressed('center') || (mm.click && cb && mm.x >= cb.x && mm.x < cb.x + cb.w && mm.y >= cb.y && mm.y < cb.y + cb.h))) { D.sfx('confirm'); D.pop(); D.push(new D.Climb()); return; }
+    if (!this.card && !this.ours && (I.pressed('center') || (mm.click && cb && mm.x >= cb.x && mm.x < cb.x + cb.w && mm.y >= cb.y && mm.y < cb.y + cb.h))) { D.sfx('confirm'); D.pop(); D.push(new D.Climb()); return; }
     if (this.card) {
       if (I.pressed('a') || I.pressed('b') || I.mouse.click) { D.sfx('confirm'); this.card = null; }
       return;
@@ -91,8 +119,8 @@
     ctx.fillStyle = '#07060c'; ctx.fillRect(0, 0, D.W, D.H);
     // a faint rope of rungs up the left, for the look of it
     ctx.fillStyle = P('stone', 1); for (var y = 30; y < 250; y += 4) { ctx.fillRect(10, y, 1, 2); ctx.fillRect(22, y, 1, 2); }
-    ctx.save(); ctx.translate(D.W / 2, 8); ctx.scale(2, 2); D.text(ctx, 'THE LADDER', 0, 0, P('gold', 4), 'center'); ctx.restore();
-    D.text(ctx, 'win the fight, go up a level -- the four from the 8-bit game, built at each level by its own rules', D.W / 2, 26, P('silver', 5), 'center');
+    ctx.save(); ctx.translate(D.W / 2, 8); ctx.scale(2, 2); D.text(ctx, this.ours ? 'THE LADDER: OURS' : 'THE LADDER', 0, 0, P('gold', 4), 'center'); ctx.restore();
+    D.text(ctx, this.ours ? 'the tester ladder -- Talmok, Willem, Katarina and Torvald at each level; the class AI runs both sides, you watch' : 'win the fight, go up a level -- the four from the 8-bit game, built at each level by its own rules', D.W / 2, 26, P('silver', 5), 'center');
     this.rows = [];
     var x = 32, w = 250;
     for (var L = 9; L >= this.lo; L--) {
@@ -121,7 +149,7 @@
       var cnt = {}; foes.forEach(function (n) { cnt[n] = (cnt[n] || 0) + 1; });
       put('foes: ' + Object.keys(cnt).map(function (n) { return (cnt[n] > 1 ? cnt[n] + ' ' : '') + n; }).join(', '), P('red', 4));
     } else put('{g}no fight on this rung yet{/}', P('accent', 2));
-    if (this.sel < this.start) put('{o}level-' + this.sel + ' sheets owed: they fight it at ' + this.start + '{/}', P('accent', 2));
+    if (this.sel < this.start && !this.ours) put('{o}level-' + this.sel + ' sheets owed: they fight it at ' + this.start + '{/}', P('accent', 2));
     var party = this.partyAt(this.sel);
     var p0 = Math.max(112, ty + 4), ph = Math.min(28, Math.floor((232 - p0) / 4)); // the four close up when the rung's words run long
     party.forEach(function (h, i) {
@@ -130,26 +158,34 @@
       D.text(ctx, 'HP ' + h.hp + '  AC ' + h.ac + '  ' + h.weapon, bx + 6, yy + 9, P('silver', 5));
       if (h.slots) D.text(ctx, h.slots, bx + 6, yy + 18, P('accent', 2));
     });
-    D.hint(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E fight  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
+    D.hint(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E ' + (this.ours ? 'watch' : 'fight') + '  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
+    if (this.ours) { this.climbBtn = null; if (this.card) this.drawCard(ctx); if (this.leaving) this.drawLeave(ctx); return; } // (no climb: the climb is the four heroes')
     var cb = this.climbBtn = { x: D.W - 104, y: 4, w: 98, h: 17 }, cl = D.climb && D.climb.load();
     ctx.fillStyle = P('violet', 1); ctx.fillRect(cb.x, cb.y, cb.w, cb.h); ctx.strokeStyle = P('violet', 4); ctx.strokeRect(cb.x + 0.5, cb.y + 0.5, cb.w - 1, cb.h - 1);
     D.hint(ctx, '{p}THE CLIMB{/}  (C)', cb.x + cb.w / 2, cb.y + 2, P('bone', 1), 'center');
     D.text(ctx, cl ? 'level ' + cl.level + ', run ' + cl.run : 'one party, 1 to 9', cb.x + cb.w / 2, cb.y + 10, P('stone', 5), 'center');
     if (this.card) this.drawCard(ctx);
-    if (this.leaving) {
-      var lw = 300, lx = (D.W - lw) / 2;
-      box(ctx, lx, 104, lw, 46);
-      D.text(ctx, '{y}LEAVE THE LADDER?{/}', D.W / 2, 112, P('gold', 4), 'center');
-      D.text(ctx, 'for the first fight past the door (the Cocoon Gallery)', D.W / 2, 124, P('bone', 1), 'center');
-      D.hint(ctx, '{g}E leave  ·  X stay{/}', D.W / 2, 137, P('accent', 2), 'center');
-    }
+    if (this.leaving) this.drawLeave(ctx);
+  };
+  Ladder.prototype.drawLeave = function (ctx) {
+    var lw = 300, lx = (D.W - lw) / 2;
+    box(ctx, lx, 104, lw, 46);
+    D.text(ctx, '{y}LEAVE THE LADDER?{/}', D.W / 2, 112, P('gold', 4), 'center');
+    D.text(ctx, 'for the first fight past the door (the Cocoon Gallery)', D.W / 2, 124, P('bone', 1), 'center');
+    D.hint(ctx, '{g}E leave  ·  X stay{/}', D.W / 2, 137, P('accent', 2), 'center');
   };
   // a light read of the four at a level (cached per level and fight: a fight may give them its own looks)
   Ladder.prototype.partyAt = function (L) {
     this.cache = this.cache || {};
     var F = this.cur(L), key = L + ':' + (F ? F.id : '');
     if (this.cache[key]) return this.cache[key];
-    var R = DS.R, data = D.save.fixture(L);
+    var R = DS.R;
+    // the tester ladder: our four as js/classes.js builds them at L
+    if (this.ours) return (this.cache[key] = D.npc.ours(L, F).map(function (k) {
+      var h = D.npc.sheet(D.npc.spec(k)), w = R.weaponOf(h);
+      return { name: h.name, cls: h.cls, lvl: h.lvl + (h.subclass ? ' (' + h.subclass + ')' : ''), hp: h.maxhp, ac: R.ac(h), weapon: w ? w.name : '', slots: h.slotsMax && h.slotsMax.length ? 'slots ' + h.slotsMax.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : '' };
+    }));
+    var data = D.save.fixture(L);
     return (this.cache[key] = data.party.map(function (h) {
       var look = D.save.look(h.id, F), w = R.weaponOf(h);
       return { name: look.name || h.name, cls: h.cls, lvl: h.lvl, hp: h.maxhp, ac: R.ac(h), weapon: w ? w.name : '', slots: h.slotsMax && h.slotsMax.length ? 'slots ' + h.slotsMax.map(function (n, k) { return (k + 1) + ':' + n; }).join(' ') : '' };
