@@ -566,6 +566,7 @@
         return;
       }
       case 'attack': {
+        if (!c.target || c.target.dead || c.target.hp <= 0) return; // (no target: nothing is spent -- a stray command burned Katarina's action 09-29)
         if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon (the turn is spent picking it up).{/}'], 200); return; }
         if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = T.slowed ? 1 : u.attacks + (T.hasteAction ? 1 : 0); } // (Haste's one more, Slow's one: js/grimoire.js)
         if (u.weapon.ammo && !this.ammoLeft(u)) { this.card(['{o}' + u.name + ' has no ' + this.itemName(u.weapon.ammo).toLowerCase() + ' left.{/}'], 120); return; }
