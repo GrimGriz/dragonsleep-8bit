@@ -309,9 +309,18 @@
         for (var k = 0; k < hgt; k += 1) { var q = k / hgt; px(c, bx + Math.sin(q * 5 + i) * 2.5 + sway * q, by - k, q > 0.75 ? E.c[1] : q > 0.35 ? E.c[2] : E.c[3], q < 0.5 ? 2 : 1); }
         px(c, bx + sway + 3, by - hgt * 0.55, E.c[0], 3); px(c, bx + sway * 0.6 - 3, by - hgt * 0.3, E.c[1], 2); // (leaves)
       }
-    } else if (g.kind === 'spikes') { // Spike Growth: thorns in the earth, hard to see
-      E = FX.EL.nature;
-      for (i = 0; i < 7; i++) { var sx = s.x + (hsh(x + i * 3, y) - 0.5) * 36, sy = s.y + (hsh(x, y + i * 3) - 0.5) * 16; px(c, sx, sy, P('leather', 1), 2); px(c, sx, sy - 2, E.c[2]); px(c, sx, sy - 3, (t + i * 7) % 60 < 4 ? E.c[0] : E.c[1]); }
+    } else if (g.kind === 'spikes') { // Spike Growth: tiny stalagmites, stone cones rising from the floor, a glint on a tip now and then
+      for (i = 0; i < 7; i++) {
+        var dy = ((i + hsh(x, y + i * 3)) / 7 - 0.5) * 18, half = (32 - Math.abs(dy) * 2) * 0.8; // (bands run back to front, so the near cones overlap the far ones)
+        var sx = Math.round(s.x + (hsh(x + i * 3, y) * 2 - 1) * half), sy = Math.round(s.y + dy);
+        var sh = 4 + Math.floor(hsh(x + i, y + i * 2) * 5), sw = sh > 7 ? 4 : sh > 5 ? 3 : 2; // (4 to 8 tall, 2 to 4 wide at the foot)
+        c.globalAlpha = 0.55; for (var j = 0; j <= sw; j++) px(c, sx - Math.floor(sw / 2) + j, sy + 1, P('outline', 0), 1); c.globalAlpha = 1; // (a shadow at the foot)
+        for (var k3 = 0; k3 < sh; k3++) {
+          var w3 = k3 === sh - 1 ? 1 : Math.max(1, Math.round(sw * (1 - k3 / sh))), l3 = sx - Math.floor(w3 / 2), lv = k3 === sh - 1 ? 6 : k3 < sh * 0.34 ? 3 : k3 < sh * 0.7 ? 4 : 5;
+          for (var m = 0; m < w3; m++) px(c, l3 + m, sy - k3, P('stone', w3 > 1 && m === 0 ? lv + 1 : w3 > 2 && m === w3 - 1 ? lv - 1 : lv), 1); // (lit on the left, the base a shade darker than the tip)
+        }
+        if ((t + i * 7 + h * 60) % 60 < 4) px(c, sx, sy - sh + 1, P('stone', 7), 1);
+      }
     } else if (g.kind === 'grease') { // Grease: a dark sheen, a glint sliding over it
       D.iso.rhombus(c, x, y, D.iso.map.gz(x, y), 2); c.globalAlpha = 0.45; c.fillStyle = P('stone', 1); c.fill(); c.globalAlpha = 1;
       var gl = ((t * 0.5 + h * 60) % 60) / 60; c.globalAlpha = 0.6 * Math.sin(Math.PI * gl); px(c, s.x - 14 + gl * 28, s.y - 3 + gl * 4, P('bone', 1), 2); px(c, s.x - 12 + gl * 28, s.y - 2 + gl * 4, P('silver', 5)); c.globalAlpha = 1;
