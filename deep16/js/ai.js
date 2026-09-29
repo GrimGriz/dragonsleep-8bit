@@ -41,6 +41,7 @@
   AI.turn = function* (B, u) {
     RU.startTurn(u);
     if (u.dead) return;
+    if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(B, u))) delete u.conds.surprised; // (Feral Instinct, js/features.js: he rages, and acts)
     if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
     if (u.conds.recoiling) { delete u.conds.recoiling; B.card(['{g}' + the(B, u) + ' recoils from the light, shrinking up away from it: no turn.{/}']); yield 30; return; }
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }

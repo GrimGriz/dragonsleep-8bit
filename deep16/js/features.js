@@ -40,6 +40,24 @@
   });
   // Reckless Attack (2): the first swing of the turn decides -- advantage on its STR swings, and at it, till its next turn
   F.reckless = function (u) { return u.cls === 'barbarian' && u.lvl >= 2 && u.hp > u.maxhp * 0.35; };
+  // Feral Instinct (7; 09-28h, the levels to nine): advantage on initiative (js/classes.js u.initAdv, battle.js run), and caught
+  // unaware he acts all the same on his first turn if he rages before anything else (a use of Rage and the bonus action; not if he
+  // is incapacitated, or already raging with nothing to pay). ai.js turn and battle.js heroTurn ask; true: he acts
+  F.feral = function* (B, u) {
+    if (u.cls !== 'barbarian' || u.lvl < 7 || !u.turn) return false;
+    var s = u.conds.surprised; delete u.conds.surprised; var can = RU.canAct(u); u.conds.surprised = s; // (able, but for the surprise)
+    if (!can) return false;
+    if (!u.conds.raging) {
+      if (!feat(u, 'rage') || !u.turn.bonus) return false;
+      u.turn.bonus = 0; u.feats.rage--;
+      u.conds.raging = { dmg: u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.' };
+      if (u.subclass === 'Path of the Berserker') u.conds.frenzy = true;
+      D.sfx('crit'); FX.ring(u, 'red', 34);
+    }
+    B.card(['{r}' + Nm(B, u) + ': FERAL INSTINCT -- caught unaware, he rages and comes on all the same!{/}  {g}(+' + u.conds.raging.dmg + ' damage, blades and blows halved){/}'], 300);
+    yield 20;
+    return true;
+  };
   // ------------------------------------------------------------------ the monk: Martial Arts, Flurry of Blows, Patient Defense, Stunning Strike,
   // Open Hand Technique, Deflect Missiles, Ki-Empowered Strikes, Wholeness of Body
   F.fist = function (u) {
@@ -417,4 +435,26 @@
   });
   // WAKEFUL (6): magic cannot put him, or one of his within 10 ft, to sleep (magic.js Sleep asks)
   M.wakeful = function (B, w) { return B.units.some(function (k) { return sub(k, 'the Vigil', 6) && k.side === w.side && G.standing(k) && G.dist(k, w) <= 10; }); };
+
+  // ------------------------------------------------------------------ DIVINE STRIKE (8; 09-28h, Griz: "can we do the levels for the original
+  // classes up to nine" -- the seat's drafts for our two domains, standing as approved): the SRD Life Domain's feature, in each domain's
+  // own kind. Once on each of the cleric's turns, a creature it hits with a weapon attack takes 1d8 more (2d8 at 14): the Window's
+  // psychic ("the glass shows it a crack"), the Vigil's radiant (the Dormant's cold light); and the SRD's own Life Domain's radiant,
+  // since the class NPC's cleric carries it. Dealt as its own blow so the card shows it (Colossus Slayer's way)
+  var STRIKE = { 'the Window': 'psychic', 'the Vigil': 'radiant', 'Life Domain': 'radiant' };
+  F.strikeType = function (u) { return u && u.cls === 'cleric' && u.lvl >= 8 && STRIKE[u.subclass] || null; };
+  // (the class AI's weighing, tactics.js swing: what the strike adds to this turn's first blow)
+  F.strikeBonus = function (u, wp) { return F.strikeType(u) && !(wp && wp.spell) && !(u.turn && u.turn.divineStrike) ? (u.lvl >= 14 ? 9 : 4.5) : 0; };
+  var onWeaponHit2 = M.onWeaponHit;
+  M.onWeaponHit = function* (B, att, tgt, atk, crit) {
+    if (onWeaponHit2) yield* onWeaponHit2(B, att, tgt, atk, crit);
+    var ty = F.strikeType(att);
+    if (!ty || atk.spell || !att.turn || att.turn.divineStrike || B.active !== att || tgt.dead || tgt.hp <= 0) return;
+    att.turn.divineStrike = true;
+    var dd = (att.lvl >= 14 ? 2 : 1) + 'd8', r = D.roll(dd, { crit: crit });
+    FX.sparkle(tgt, ty === 'psychic' ? 'violet' : 'gold', 12);
+    B.card(['  ' + (ty === 'psychic' ? '{p}divine strike{/}: the glass shows ' + nm(B, tgt) + ' a crack' : '{y}divine strike{/}') + '  ' + dd + ' [' + r.rolls.join(',') + '] = {r}' + r.total + '{/} ' + ty], 200);
+    B.hurt(tgt, r.total, ty);
+    yield 8;
+  };
 })();

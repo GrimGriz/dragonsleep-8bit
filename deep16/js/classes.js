@@ -69,9 +69,20 @@
   // js/features.js. The Window: Tronupholen's menders (Kat's, "Cleric of trickster deity trapped in mirror"); the Vigil: Dvalgarda's,
   // the Ward of the Dormant (Torvald's; the register names no domain). The Rimeglass (Willem's) and the Path of the Sand (Talmok's) have
   // no spells of their own
+  // (7th and 9th, 09-28h, Griz: "can we do the levels for the original classes up to nine" -- the seat's drafts, standing as approved:
+  // the Window's Greater Invisibility and Confusion, Mislead and Hold Monster; the Vigil's Guardian of Faith and Freedom of Movement,
+  // Hold Monster and Dispel Evil and Good. All eight are built on the grid)
   NPC.SUBS = {
-    'the Window': { always: { 1: ['disguiseself', 'silentimage'], 3: ['blur', 'passwithouttrace'], 5: ['hypnoticpattern', 'clairvoyance'] }, uses: 'handOnNeck' },
-    'the Vigil': { always: { 1: ['sanctuary', 'protectionfromevilandgood'], 3: ['holdperson', 'wardingbond'], 5: ['spiritguardians', 'glyphofwarding'] }, uses: 'keepersWard' }
+    'the Window': { always: { 1: ['disguiseself', 'silentimage'], 3: ['blur', 'passwithouttrace'], 5: ['hypnoticpattern', 'clairvoyance'], 7: ['greaterinvisibility', 'confusion'], 9: ['mislead', 'holdmonster'] }, uses: 'handOnNeck' },
+    'the Vigil': { always: { 1: ['sanctuary', 'protectionfromevilandgood'], 3: ['holdperson', 'wardingbond'], 5: ['spiritguardians', 'glyphofwarding'], 7: ['guardianoffaith', 'freedomofmovement'], 9: ['holdmonster', 'dispelevilandgood'] }, uses: 'keepersWard' }
+  };
+  // our four (09-28h, Griz: "the off SRD ones we made to 9"; "AI now, buttons later"): the tester ladder's party (js/ladder.js
+  // ?ladder&party=ours), each built at the rung's level. One who is across the floor on that rung (the Wagon Yard's Willem, the
+  // Card's Top's Talmok) sits it out: three of ours, not a man against himself (the seat's call; flagged)
+  NPC.OURS = ['talmok', 'willem', 'katarina', 'torvald'];
+  NPC.ours = function (L, F) {
+    var there = F ? (F.foes || (D.MAPS[F.map] || {}).foes || []).map(function (f) { return f.kind; }) : [];
+    return NPC.OURS.filter(function (k) { return there.indexOf(k) < 0; }).map(function (k) { return k + ':' + L; });
   };
   function subAlways(sub, lvl) { var a = [], s = NPC.SUBS[sub]; Object.keys((s && s.always) || {}).forEach(function (k) { if (lvl >= +k) a = a.concat(s.always[k]); }); return a; }
 
@@ -87,8 +98,11 @@
     // His domain the Vigil, Dvalgarda's (09-28g, the seat's on Griz's "Sufficiently distinct"; invented.json #the-vigil)
     torvald: { name: 'Torvald', named: true, cls: 'cleric', lvl: 5, race: 'dwarf', subclass: 'the Vigil', // (the name for the Pocket DM; his fight's card keeps 'Dwarf Cleric')
       abil: { str: 14, dex: 10, con: 14, int: 11, wis: 16, cha: 13 },
-      equip: { weapon: 'mace', armor: 'chainshirt' }, noPrecast: true,
+      equip: { weapon: 'mace', armor: 'chainshirt' }, noPrecast: true, look: 'torvald_p0', // (his own figure off the story's card: the Pocket DM, the tester ladder)
       known: ['sacredflame', 'light', 'curewounds', 'guidingbolt', 'sanctuary', 'lesserrestoration', 'spiritualweapon', 'holdperson', 'dispelmagic', 'spiritguardians'],
+      // past his register's 5th (09-28h, Griz: "can we do the levels for the original classes up to nine"; the seat's picks, standing as
+      // approved): the ward-keeper's -- Death Ward, Banishment, Mass Cure Wounds, Greater Restoration, Protection from Energy
+      grow: { 0: ['guidance', 'resistance'], 3: ['protectionfromenergy', 'masshealingword'], 4: ['deathward', 'banishment'], 5: ['masscurewounds', 'greaterrestoration'] },
       guardianText: 'calls on the Dormant, and spirits wheel out from him, cold as a vault' },
     // Amara, warlock 5 of the Mirror (npcs-by-location.md §The Road, RE-RULED 08-29): the register's list with the ear file's fold
     // (Mirror's Gaze for Hex, Minor Illusion for Friends; the asking is Command, RULED 09-28); Agonizing Blast; Fiendish Vigor (False
@@ -102,8 +116,11 @@
     // file, dist-4); the illusion school is the PHB's: his tradition is our own, the Rimeglass (09-28g, the seat's on Griz's "Sufficiently
     // distinct"; invented.json #the-rimeglass). The 8-bit sheet's AC 12: no Mage Armor up
     willem: { name: 'Willem', named: true, cls: 'wizard', lvl: 5, race: 'human', subclass: 'the Rimeglass', abil: { str: 9, dex: 14, con: 12, int: 17, wis: 12, cha: 11 },
-      equip: { weapon: 'quarterstaff', armor: null }, noPrecast: true,
-      known: ['rayoffrost', 'minorillusion', 'mageArmor', 'shield', 'mirrorimage', 'invisibility', 'blur', 'hypnoticpattern'] },
+      equip: { weapon: 'quarterstaff', armor: null }, noPrecast: true, look: 'willem_p1',
+      known: ['rayoffrost', 'minorillusion', 'mageArmor', 'shield', 'mirrorimage', 'invisibility', 'blur', 'hypnoticpattern'],
+      // past his register's 5th (09-28h; the seat's picks): illusion with the cold in it -- Sleet Storm, Phantasmal Killer, Greater
+      // Invisibility, Ice Storm, Cone of Cold, Mislead, Hold Monster; below it, Color Spray, Magic Missile, Sleep; Chill Touch, Shocking Grasp
+      grow: { 0: ['chilltouch', 'shockinggrasp'], 1: ['colorspray', 'magicmissile', 'sleep'], 2: ['holdperson'], 3: ['sleetstorm', 'fear', 'slow'], 4: ['phantasmalkiller', 'greaterinvisibility', 'icestorm'], 5: ['coneofcold', 'mislead', 'holdmonster'] } },
     // Talmok, barbarian 3, Bloodsnout's champion at the Hex (the-hex.md, RULED 09-01): the register's block (npcs-by-location.md §TALMOK:
     // pit fists, rages on first blood, wrestles to the sand) and its Totem Warrior (Bear), the PHB's -- his path is our own, the Path of
     // the Sand (09-28g; invented.json #path-of-the-sand), and its 3rd-level features are what his block already did. The register gives
@@ -146,6 +163,35 @@
     out = cantrips.concat(always, take);
     return out.filter(function (id, i) { return out.indexOf(id) === i; });
   }
+  // a named one built away from its register's level (09-28h: the Pocket DM's talmok:7, the tester ladder): the register's own list
+  // kept where the slots reach (cut from the lowest when the level prepares fewer), then its `grow` (the seat's picks past the
+  // register, the highest level first), then the class's list, to the count the level knows or prepares; the cantrips the same
+  // way. The domain's always-prepared on top, uncounted
+  function awayList(c, cls, lvl, abil, own, grow) {
+    var slots = R.slotsFor({ cls: cls, lvl: lvl }), top = 0;
+    slots.forEach(function (n, i) { if (n > 0) top = i + 1; });
+    var lv = function (id) { var s = DS.DATA.spells[id] || (D.EXTRA_SPELLS || {})[id]; return s ? s.level || 0 : -1; };
+    var sp = c.spells || {}, g = grow || {}, uniq = function (id, i, a) { return a.indexOf(id) === i; };
+    var nc = c.cantrips ? c.cantrips[lvl - 1] : 0;
+    var n = c.known ? c.known[lvl - 1] : c.prepares ? Math.max(1, DS.mod(abil[c.prepares]) + (c.half ? Math.floor(lvl / 2) : lvl)) : 0;
+    var always = [];
+    Object.keys(c.always || {}).forEach(function (k) { if (lvl >= +k) always = always.concat(c.always[k]); });
+    // (one of the register's the game has no record of -- Willem's Minor Illusion -- counts as a cantrip known)
+    var ownC = own.filter(function (id) { return lv(id) === 0; }), ownX = own.filter(function (id) { return lv(id) < 0; });
+    var cantrips = ownC.concat(g[0] || [], sp[0] || []).filter(uniq).slice(0, Math.max(nc - ownX.length, ownC.length));
+    var take = own.filter(function (id) { var L = lv(id); return L >= 1 && L <= top && always.indexOf(id) < 0; });
+    if (take.length > n) take = take.slice().sort(function (a, b) { return lv(b) - lv(a); }).slice(0, n);
+    var more = function (id) { if (take.length < n && take.indexOf(id) < 0 && always.indexOf(id) < 0) take.push(id); };
+    for (var L = top; L >= 1; L--) (g[L] || []).forEach(more);
+    // the class's list, a level at a time from the top, round and round (spellsFor's habit)
+    for (var r = 0; r < 20 && take.length < n; r++) {
+      var got = 0;
+      for (var L2 = top; L2 >= 1 && take.length < n; L2--) { var nx = (sp[L2] || []).filter(function (id) { return take.indexOf(id) < 0 && always.indexOf(id) < 0; })[0]; if (nx) { take.push(nx); got++; } }
+      if (!got) break;
+    }
+    // (one the game has no record of stays listed, as the register has it: M.list leaves it off the ring)
+    return cantrips.concat(always, take, ownX).filter(uniq);
+  }
 
   // ------------------------------------------------------------------ the sheet (the 8-bit game's shape: js/rules.js reads it)
   // spec: { cls, lvl, race, name, named, spells (a list over the class's), maxhp (true: a max hit die a level), land, patron }
@@ -157,8 +203,10 @@
     c.prio.forEach(function (k, i) { abil[k] = ARRAY[i]; });
     Object.keys(race.abil).forEach(function (k) { abil[k] += race.abil[k]; });
     if (spec.abil) abil = JSON.parse(JSON.stringify(spec.abil)); // (a named one's register numbers, as they stand)
-    // Ability Score Improvements (4, 8; the fighter's 6 too): +2 to the first ability not yet at 20, split over the next if need be
-    (spec.abil ? [] : c.asiAt || [4, 8]).forEach(function (at) {
+    // Ability Score Improvements (4, 8; the fighter's 6 too): +2 to the first ability not yet at 20, split over the next if need be.
+    // A named one's register numbers stand at its register's level; built past it (spec.away: that level), the ones after it come
+    // on top (09-28h: Talmok's STR 16 is 18 at 4 and 20 at 8)
+    (spec.abil ? (spec.away ? (c.asiAt || [4, 8]).filter(function (at) { return at > spec.away; }) : []) : c.asiAt || [4, 8]).forEach(function (at) {
       if (lvl < at) return;
       var left = 2;
       c.prio.forEach(function (k) { var room = 20 - abil[k], g = Math.min(room, left); if (g > 0) { abil[k] += g; left -= g; } });
@@ -170,7 +218,7 @@
     if ('subclass' in spec) sub = spec.subclass;
     if (cls === 'warlock' && spec.patron === 'mirror') sub = 'The Mirror';
     if (sub === 'Draconic Bloodline') hp += lvl; // Draconic Resilience: +1 HP a level
-    if (spec.hp) hp = spec.hp; // (a named one's sheet: its register's number)
+    if (spec.hp && !spec.away) hp = spec.hp; // (a named one's sheet: its register's number; away from its level, the SRD's average)
     var h = {
       id: spec.id || ('npc-' + cls + lvl), name: spec.name || (RC.name + ' ' + lvl), cls: cls, lvl: lvl, xp: R.XP_LEVEL[lvl],
       base: JSON.parse(JSON.stringify(abil)), abil: abil, maxhp: hp, hp: hp,
@@ -192,7 +240,8 @@
       if (sub === 'The Mirror') { cc = Object.assign({}, cc, { spells: JSON.parse(JSON.stringify(cc.spells)) }); Object.keys(NPC.MIRROR).forEach(function (k) { if (lvl >= +k) NPC.MIRROR[k].forEach(function (id) { var L = +k >= 5 ? 3 : +k >= 3 ? 2 : 1; cc.spells[L] = [id].concat((cc.spells[L] || []).filter(function (x) { return x !== id; })); }); }); }
       if (NPC.SUBS[sub] && NPC.SUBS[sub].always) cc = Object.assign({}, cc, { always: NPC.SUBS[sub].always }); // (our own domains' lists, in the Life Domain's place)
       // a named one's own list, with its domain's always-prepared spells on top (09-28g: Torvald's Vigil)
-      h.known = spec.known ? spec.known.concat(subAlways(sub, lvl)).filter(function (id, i, a) { return a.indexOf(id) === i; }) : spellsFor(cc, cls, lvl, abil, sub);
+      h.known = spec.known && spec.away ? awayList(cc, cls, lvl, abil, spec.known, spec.grow)
+        : spec.known ? spec.known.concat(subAlways(sub, lvl)).filter(function (id, i, a) { return a.indexOf(id) === i; }) : spellsFor(cc, cls, lvl, abil, sub);
     }
     // our own subclasses' per-rest uses (js/features.js): the Window's Hand on the Neck, the Vigil's Keeper's Ward -- WIS a long rest
     if (NPC.SUBS[sub] && NPC.SUBS[sub].uses) h.feats[NPC.SUBS[sub].uses] = Math.max(1, DS.mod(abil.wis));
@@ -202,7 +251,8 @@
     }
     if (spec.guardianText) h.guardianText = spec.guardianText;
     // a caster who wears no armour walks in under Mage Armor, cast that morning and paid for (the fixture's Aurdin: save.js)
-    if (!spec.noPrecast && h.known.indexOf('mageArmor') >= 0 && !R.armored(h) && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
+    // (a named one away from its register walks in as the class's own would: Willem at 7 has his Mage Armor up)
+    if ((!spec.noPrecast || spec.away) && h.known.indexOf('mageArmor') >= 0 && !R.armored(h) && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
     h.hp = h.maxhp;
     return h;
   };
@@ -228,6 +278,7 @@
     // Fiendish Vigor (an invocation): False Life at will -- she walks in with it
     if ((u.invocations || []).indexOf('fiendishvigor') >= 0) u.temp = Math.max(u.temp || 0, D.roll('1d4+4').total);
     if (h.cls === 'barbarian' && h.lvl >= 2) u.conds.dangerSense = true;
+    if (h.cls === 'barbarian' && h.lvl >= 7) u.initAdv = true; // Feral Instinct (7): advantage on initiative (battle.js run); the surprise half is js/features.js F.feral
     u.facing = 1;
     // a second weapon to draw (the class AI's): a bow for the swordsman, a sword for the bowman, handaxes to throw
     if (h.alt) { var h2 = Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: h.alt, shield: DS.DATA.items[h.alt] && (DS.DATA.items[h.alt].weapon.props || []).indexOf('two-handed') >= 0 ? null : h.equip.shield }) }); u.alt = D.save.weaponOf(h2); if (NPC.THROWN[h.alt]) { u.alt.ranged = true; u.alt.thrown = true; u.alt.range = NPC.THROWN[h.alt]; } }
@@ -267,21 +318,24 @@
   // thrown weapons read as ranged when thrown (SRD 5.1: the handaxe, the dagger 20/60)
   NPC.THROWN = { handaxe: [20, 60], dagger: [20, 60] };
 
-  // a spec from a word: 'cleric', 'higertha', 'cleric:5', 'druid:3:dwarf'
+  // a spec from a word: 'cleric', 'higertha', 'cleric:5', 'druid:3:dwarf'. A named one stands at its register's level (the story's
+  // Talmok 3, Willem 5, Torvald 5) unless the word names another -- 'talmok:7' (09-28h: the Pocket DM, the tester ladder); built
+  // away from it, `away` carries the register's level (NPC.sheet: the ASIs after it, the average HP, awayList)
   NPC.spec = function (word, lvl) {
     var bits = String(word).toLowerCase().split(':'), key = bits[0], L = +bits[1] || lvl || 1;
     var named = NPC.NAMED[key];
-    if (named) return Object.assign({ id: key }, named, { lvl: named.lvl || L });
+    if (named) { var at = Math.max(1, Math.min(9, +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && at !== named.lvl ? named.lvl : 0 }); }
     if (!C[key]) return null;
     return { cls: key, lvl: L, race: bits[2] || 'human' };
   };
   // the class floor from a URL: ?npc=cleric,wizard&lvl=5 -- those against the four at that level; &vs=fighter,rogue -- a band instead
-  // of the four (yours to run); an entry like higertha or druid:3:dwarf names one (NPC.spec)
+  // of the four (yours to run); an entry like higertha or druid:3:dwarf names one (NPC.spec); &watch -- your side run by the class
+  // AI too, and you watch (09-28h: the class NPCs handoff's "a small, welcome addition")
   D.npcFight = function (q, o) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var L = Math.max(1, Math.min(9, +(get('lvl') || get('level')) || 5)), foes = (get('npc') || 'fighter').split(',').filter(Boolean), vs = get('vs');
     var what = foes.map(function (w) { var s = NPC.spec(w, L); return s ? (s.name || R.CLASSES[s.cls].name) : w; }).join(', ');
-    return new D.Battle(Object.assign({ npc: { foes: foes, party: vs ? vs.split(',').filter(Boolean) : null }, fightDef: D.classFight(L, { what: what }) }, o || {}));
+    return new D.Battle(Object.assign({ npc: { foes: foes, party: vs ? vs.split(',').filter(Boolean) : null }, watch: /[?&]watch\b/.test(q), fightDef: D.classFight(L, { what: what }) }, o || {}));
   };
   NPC.build = function (word, lvl, side, o) {
     var sp = typeof word === 'string' ? NPC.spec(word, lvl) : word;
