@@ -51,8 +51,8 @@
     this.rebuild();
   };
   Camp.prototype.fresh = function () {
-    if (this.o.ours) return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: null }, aid: { on: false, out: null }, light: { on: null, who: null } }, torch: null };
-    return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: 'aurdin' }, aid: { on: false, out: 'lymen' } } };
+    if (this.o.ours) return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: null }, aid: { on: false, out: null }, light: { on: null, who: null } }, torch: null, torchKind: 'torch' };
+    return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: 'aurdin' }, aid: { on: false, out: 'lymen' } }, torchKind: 'torch' };
   };
   Camp.prototype.save = function () {
     if (this.o.climb) { this.o.climb.setCamp(this.st); return; }
@@ -108,14 +108,16 @@
     info.aid = { why: awhy, targets: at, on: aid.on && !awhy };
     // a torch in hand (Griz, 09-28h: "Can we add 'Aurdin torch' as a campfire prepare?"): lit at the camp, out of the pack, so
     // nobody spends the fight's first action on the tinderbox; it takes a hand, as on the grid (js/light.js L.handsFree)
-    var tb = by[st.torch], tpack = (data.inv || []).filter(function (s) { return s.id === 'torch'; })[0], twhy = '';
+    // (09-29: or a hooded lantern, when the pack has one -- bright 30 and dim 30, hood down in the fight: dim 5 ft and a roost sleeps)
+    var kind = st.torchKind === 'lantern' ? 'lantern' : 'torch', kinds = ['torch', 'lantern'].filter(function (k) { return (data.inv || []).some(function (s) { return s.id === k && s.n > 0; }); });
+    var tb = by[st.torch], tpack = (data.inv || []).filter(function (s) { return s.id === kind; })[0], twhy = '';
     if (tb) {
-      if (!tpack || tpack.n < 1) twhy = 'no torch in the pack';
+      if (!tpack || tpack.n < 1) twhy = 'no ' + kind + ' in the pack';
       else if (twoHanded(tb.equip.weapon)) twhy = tb.name + '\'s ' + item(tb.equip.weapon).name + ' takes both hands';
       else if (tb.equip.weapon && tb.equip.shield) twhy = tb.name + ' has a weapon and a shield';
-      if (!twhy) { tpack.n--; data.torchBy = tb.id; }
+      if (!twhy) { tpack.n--; data.torchBy = tb.id; data.torchKind = kind; }
     }
-    info.torch = { who: tb || null, why: twhy, on: !!tb && !twhy, left: tpack ? tpack.n : 0 };
+    info.torch = { who: tb || null, why: twhy, on: !!tb && !twhy, left: tpack ? tpack.n : 0, kind: kind, kinds: kinds };
     this.info = info;
     return data;
   };
@@ -161,13 +163,13 @@
     var li = st.cast.light || {}, lc = knows('light'), lt = by[li.who] || front, lon = li.on != null ? !!li.on : this.dark(), lwhy = lc ? '' : 'nobody knows it';
     if (lon && !lwhy) lt.spec.conds.light = { by: lc.id };
     info.light = { why: lwhy, target: lt, caster: lc, on: lon && !lwhy };
-    // a torch in hand: it takes a hand (no pack to count here)
-    var tb = by[st.torch], twhy = '';
+    // a torch, or a hooded lantern (09-29), in hand: it takes a hand (no pack to count here: our four have both)
+    var kind = st.torchKind === 'lantern' ? 'lantern' : 'torch', tb = by[st.torch], twhy = '';
     if (tb) {
       if (twoHanded(tb.equip.weapon)) twhy = tb.name + '\'s ' + item(tb.equip.weapon).name + ' takes both hands';
       else if (tb.equip.weapon && tb.equip.weapon !== 'unarmed' && tb.equip.shield) twhy = tb.name + ' has a weapon and a shield';
     }
-    info.torch = { who: tb || null, why: twhy, on: !!tb && !twhy, left: 1 };
+    info.torch = { who: tb || null, why: twhy, on: !!tb && !twhy, left: 1, kind: kind, kinds: ['torch', 'lantern'] };
     // the sheets as the fight will build them, the casts laid on; the lists' names point at these
     var fin = specs.map(function (sp) { var h = N.sheet(sp); h.spec = sp; h.prepared = self.pinfo[h.id] ? sp.prepared : null; return h; });
     ['mageArmor', 'aid', 'light'].forEach(function (k) { var x = info[k]; x.target = at(fin, x.target); x.caster = at(fin, x.caster); if (x.targets) x.targets = x.targets.map(function (t) { return at(fin, t); }); if (x.out) x.out = at(fin, x.out); });
@@ -198,9 +200,9 @@
         { label: 'EQUIP', right: armoury(this.L).length + ' in the armoury', act: go('hero'), desc: 'Weapons, armour, shields and rings from the armoury, free: nobody is fighting yet. What one hero sets down, another can take up.' },
         { label: 'PREPARE SPELLS', right: hs.filter(function (h) { return h.prepared; }).map(function (h) { return (self.o.ours ? h.name.charAt(0) : h.name) + ' ' + h.prepared.length + '/' + self.prepCount(h); }).join('  '), act: go('caster'), desc: this.o.ours ? 'The day\'s spells. Willem prepares INT + his level from his book (the register\'s list and the Rimeglass\'s growth); Katarina and Torvald WIS + level from the cleric\'s list. Cantrips and the domain\'s own are always ready.' : 'The day\'s spells. Aurdin prepares INT + his level from his book; Lymen CHA + half his level from the paladin list. Cantrips, and Lymen\'s oath spells, are always ready.' },
         { label: 'CAST AHEAD', right: [this.info.mageArmor.on ? 'mage armor' : '', this.info.aid.on ? 'aid' : '', this.info.light && this.info.light.on ? 'light' : ''].filter(Boolean).join(', ') || 'nothing', act: go('cast'), desc: 'The 8-hour spells, cast this morning: they are on when the fight starts, and their slots are spent.' },
-        { label: 'A TORCH IN HAND', right: this.info.torch.why || (this.info.torch.who ? this.info.torch.who.name : 'nobody'), ok: !this.info.torch.why || !!this.info.torch.who,
+        { label: 'A LIGHT IN HAND', right: this.info.torch.why || (this.info.torch.who ? this.info.torch.who.name + ', ' + (this.info.torch.kind === 'lantern' ? 'lantern' : 'torch') : 'nobody'), ok: !this.info.torch.why || !!this.info.torch.who,
           act: function () { self.cycleTorch(1); }, cycle: function (d) { self.cycleTorch(d); },
-          desc: 'Who walks in holding a torch lit at the camp, from the pack: bright 20 ft and dim 20 more from the first round, and no action spent on the tinderbox. It takes a hand (a versatile weapon is held in one); not with a two-handed weapon, or a weapon and a shield. Left/right or E: who.' + ((this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark) ? '  This fight is in the dark.' : '  This fight is not in the dark.') },
+          desc: 'Who walks in holding a light lit at the camp, from the pack: a torch (bright 20 ft, dim 20 more) or a hooded lantern (bright 30 ft, dim 30 more; HOOD DOWN in the fight for dim 5 ft only, and a roost sleeps), from the first round, no action spent on the tinderbox. It takes a hand (a versatile weapon is held in one); not with a two-handed weapon, or a weapon and a shield. Left/right or E: who, and which.' + ((this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark) ? '  This fight is in the dark.' : '  This fight is not in the dark.') },
         { label: 'FIGHT', right: this.F.name, act: function () { self.fight(); }, desc: this.F.intro || '' },
         this.o.ours
           ? { label: 'THE CLASS\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to how the class builds them: their own kits, the register\'s lists, Mage Armor on Willem, Light on the front man when the fight is dark.' }
@@ -314,10 +316,15 @@
     this.st.cast.mageArmor.who = ok[((i < 0 ? 0 : i + d) % ok.length + ok.length) % ok.length].id;
     this.changed();
   };
-  Camp.prototype.cycleTorch = function (d) { // nobody, then Aurdin first (his word), then the rest in the party's order
-    var ids = [null].concat(this.o.ours ? [] : ['aurdin'], this.data.party.map(function (h) { return h.id; }).filter(function (id) { return id !== 'aurdin'; }));
-    var i = ids.indexOf(this.st.torch || null);
-    this.st.torch = ids[((i + d) % ids.length + ids.length) % ids.length];
+  Camp.prototype.cycleTorch = function (d) { // nobody, then Aurdin first (his word), then the rest in the party's order -- each with a torch, then a lantern when the pack has one
+    var kinds = (this.info.torch && this.info.torch.kinds && this.info.torch.kinds.length) ? this.info.torch.kinds : ['torch'];
+    var heroes = [].concat(this.o.ours ? [] : ['aurdin'], this.data.party.map(function (h) { return h.id; }).filter(function (id) { return id !== 'aurdin'; }));
+    var opts = [{ id: null, kind: 'torch' }];
+    heroes.forEach(function (id) { kinds.forEach(function (k) { opts.push({ id: id, kind: k }); }); });
+    var cur = this.st.torch || null, ck = this.st.torchKind === 'lantern' ? 'lantern' : 'torch', i = 0;
+    opts.forEach(function (o, j) { if (o.id === cur && (cur == null || o.kind === ck)) i = j; });
+    var o = opts[((i + d) % opts.length + opts.length) % opts.length];
+    this.st.torch = o.id; this.st.torchKind = o.kind;
     this.changed();
   };
   Camp.prototype.cycleAid = function (d) {
@@ -338,17 +345,17 @@
     D.sfx('confirm');
     // our four (o.ours): the fight builds them from the morning's specs (battle.js o.npc.party); a watch, or your play, recorded (record.js)
     if (this.o.ours) {
-      var O = this.o.ours, tw = this.info.torch.on ? this.info.torch.who.id : null;
+      var O = this.o.ours, tw = this.info.torch.on ? this.info.torch.who.id : null, tk = this.info.torch.kind;
       this.rebuild();
       var ob = new D.Battle({ ladder: true, watch: !O.play, record: O.play ? { fight: this.F.id, name: this.F.name, level: this.L } : null, fight: this.F.id,
-        npc: { party: this.specs, foes: [] }, torch: tw, onDone: function (res) { if (ob.rec) D.rec.finish(ob, res); self.leave(res); } });
+        npc: { party: this.specs, foes: [] }, torch: tw, torchKind: tk, onDone: function (res) { if (ob.rec) D.rec.finish(ob, res); self.leave(res); } });
       D.push(ob); return;
     }
     var data = this.build();
     // the climb: the gear chosen here goes with the party from now on
     if (this.o.climb) { this.o.climb.keep(data.party); this.st.equip = {}; this.save(); }
     // (who went down in it, for the climb's campfire: the DM's hands bring them back -- climb.js)
-    var fb = new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, torch: data.torchBy, onDone: function (res) {
+    var fb = new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, torch: data.torchBy, torchKind: data.torchKind, onDone: function (res) {
       var down = (fb.units || []).filter(function (u) { return u.side === 'party' && !u.guest && (u.ko || u.hp <= 0); }).map(function (u) { return u.id; });
       self.leave(res, { down: down });
     } });

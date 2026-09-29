@@ -37,7 +37,7 @@
         return { id: u.id, guest: !!u.guest, hp: Math.max(0, Math.min(u.hp, mx)), maxhp: mx, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left,
           equip: u.src && u.src.equip ? JSON.parse(JSON.stringify(u.src.equip)) : null, // (EQUIP in the fight crosses back: RULED 09-28)
           // torchdark (09-28): the day's Darkvision and a Continual Flame stay on him; a torch still burning in his hand walks out with him
-          darkvision: !!u.conds.darkvision, continualFlame: !!(u.conds.continualFlame || (u.src && u.src.conds && u.src.conds.continualFlame)), torch: !!(u.torch && u.torch.lit && u.hp > 0) };
+          darkvision: !!u.conds.darkvision, continualFlame: !!(u.conds.continualFlame || (u.src && u.src.conds && u.src.conds.continualFlame)), torch: u.torch && u.torch.lit && u.hp > 0 ? (u.torch.kind === 'lantern' ? 'lantern' : 'torch') : false }; // (09-29: which light, so the field keeps a lantern as a lantern)
       }),
       // the rest came out of the inn (the lone investigator's fight, Battle.joinReserve): the 8-bit battle's `solo` is over, and its
       // XP is split among everyone standing (review 09-28 #2)

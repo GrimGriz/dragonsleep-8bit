@@ -22,7 +22,8 @@
     move: ['............', '...oo.......', '..oLLo......', '..oLLo..oo..', '..oLLo.oLLo.', '...oo..oLLo.', '.......oLLo.', '..oo....oo..', '.oLLo.......', '.oLLo.......', '..oo........', '............'],
     end: ['..oooooooo..', '..oggggggo..', '...ogwwgo...', '....owwo....', '.....oo.....', '....owwo....', '...ogwwgo...', '..oggwwggo..', '..oggggggo..', '..oooooooo..', '............', '............'],
     back: ['............', '....o.......', '...oco......', '..occooooo..', '.occcccccco.', '..occooooco.', '...oco...co.', '....o...oco.', '.......occo.', '...ooooocco.', '...occcccoo.', '...ooooooo..'],
-    torch: ['.....oo.....', '....oGGo....', '...oGwwGo...', '...oGRRGo...', '....oRRo....', '....oLLo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '.....oo.....']
+    torch: ['.....oo.....', '....oGGo....', '...oGwwGo...', '...oGRRGo...', '....oRRo....', '....oLLo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '....oLlo....', '.....oo.....'],
+    lantern: ['.....oo.....', '....o..o....', '....oooo....', '...oLLLLo...', '..oLwwwwLo..', '..oLwGGwLo..', '..oLwRRwLo..', '..oLwGGwLo..', '..oLwwwwLo..', '...oLLLLo...', '....oooo....', '............']
   };
   function hex(c) { return c; }
   var BASE = function () {

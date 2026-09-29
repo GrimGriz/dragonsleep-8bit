@@ -39,7 +39,7 @@
   // the state at the start of one of our four's turns, and what the AI would do there
   function turnStart(B, u) {
     var live = function (w) { return !w.dead && w.hp > 0 && !w.left && !w.fled; };
-    var o = { slots: u.slots && u.slots.slice(), conds: Object.keys(u.conds || {}), torch: !!(u.torch && u.torch.lit),
+    var o = { slots: u.slots && u.slots.slice(), conds: Object.keys(u.conds || {}), torch: u.torch && u.torch.lit ? (u.torch.kind === 'lantern' ? (u.torch.hood ? 'lantern (hooded)' : 'lantern') : true) : false,
       foes: B.units.filter(function (w) { return w.side !== u.side && live(w); }).map(function (w) { return brief(B, w, u); }),
       allies: B.units.filter(function (w) { return w.side === u.side && w !== u && live(w); }).map(function (w) { return brief(B, w, u); }),
       ai: plans(B, u, false, 3), aiBonus: plans(B, u, true, 2) };

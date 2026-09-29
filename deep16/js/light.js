@@ -17,6 +17,14 @@
   // one switch in js/rules.js R.BLIND (AMENDED 09-28: the -4 was AD&D's number; the game's law is the SRD 5.1)
   L.BLIND = (window.DS && window.DS.R && window.DS.R.BLIND != null) ? window.DS.R.BLIND : 'disadvantage';
   L.TORCH = { bright: 20, dim: 20 };   // SRD 5.1 torch: bright 20 ft, dim 20 more, an hour (no fight runs that long)
+  // the hooded lantern (RULED 09-29, Griz: "like a mode that sort of lights and doesn't wake the bats"): SRD 5.1 bright 30 ft and
+  // dim 30 more; hood down, dim light 5 ft only -- no bright light, so nothing that hates light is dazzled and a roost sleeps.
+  // It takes a hand like a torch, is not spent (put out, it goes back in the pack), and is never thrown
+  L.LANTERN = { bright: 30, dim: 30, hood: { bright: 0, dim: 5 } };
+  // the light in a hand: u.torch = { lit, kind ('torch' | 'lantern'), hood }; kind unset is a torch (the fights before 09-29)
+  L.kindOf = function (t) { return (t && t.kind) || 'torch'; };
+  L.radii = function (t) { return L.kindOf(t) === 'lantern' ? (t.hood ? L.LANTERN.hood : L.LANTERN) : L.TORCH; };
+  L.kindName = function (t) { return L.kindOf(t) === 'lantern' ? 'lantern' : 'torch'; };
   L.LIGHT_COST = 'A';                  // lighting a torch: an action (SRD 5.1 tinderbox: "takes an action"); the Thief's Fast Hands make it a bonus. RULED 09-28h (Griz: "yes to action cost"); 'B' would make it a bonus action for all
   // who sees in the dark by blood (SRD 5.1), keyed on the 8-bit sheets' `race`
   L.RACE_DV = { 'Half-orc': 60, 'Dwarf': 60, 'Elf': 60, 'Gnome': 60, 'Tiefling': 60, 'Drow': 120, 'Human': 0, 'Halfling': 0 };
@@ -31,7 +39,7 @@
     if (!u || u.dead || u.ethereal || u.left) return out;
     var cx = u.x + ((u.size || 1) - 1) / 2, cy = u.y + ((u.size || 1) - 1) / 2;
     var add = function (b, d, color, flame, kind) { out.push({ x: cx, y: cy, bright: b, dim: d, color: color, flame: !!flame, kind: kind, unit: u }); };
-    if (u.torch && u.torch.lit) add(L.TORCH.bright, L.TORCH.dim, 'gold', true, 'torch');
+    if (u.torch && u.torch.lit) { var tr = L.radii(u.torch); add(tr.bright, tr.dim, 'gold', true, L.kindOf(u.torch)); }
     if (u.conds.light) add(20, 20, 'glow', false, 'light');                       // the Light cantrip, on him or his gear
     if (u.conds.daylight) add(60, 60, 'bone', false, 'daylight');                 // Daylight cast on a point he stood on: it goes with him
     if (u.conds.sacred && u.hp > 0) add(20, 20, 'gold', false, 'sacred');         // Sacred Weapon's glow (SRD: bright 20 ft)
@@ -66,7 +74,7 @@
       var lx = Math.round(l.x), ly = Math.round(l.y), R = Math.ceil((l.bright + l.dim) / 5);
       for (var y = ly - R; y <= ly + R; y++) for (var x = lx - R; x <= lx + R; x++) {
         var s = m.at(x, y); if (!s || !s.open) continue;
-        var d = Math.hypot(x - l.x, y - l.y) * 5, v = d <= l.bright + 0.01 ? 2 : d <= l.bright + l.dim + 0.01 ? 1 : 0;
+        var d = Math.hypot(x - l.x, y - l.y) * 5, v = l.bright > 0 && d <= l.bright + 0.01 ? 2 : d <= l.bright + l.dim + 0.01 ? 1 : 0; // (a dim-only light -- a hooded lantern, a dim lamp, Dancing Lights -- is dim on its own square too: 09-29)
         if (!v) continue;
         var i2 = y * m.w + x;
         if (lv[i2] >= v) continue;
@@ -151,7 +159,7 @@
     var h = L.handsUsed(u), bits = [];
     if (h.two) bits.push('both hands on the ' + u.weapon.name.toLowerCase()); else if (h.weapon) bits.push('the ' + u.weapon.name.toLowerCase());
     if (h.sh) bits.push('the shield');
-    if (h.torch) bits.push('a torch already');
+    if (h.torch) bits.push('a ' + L.kindName(u.torch) + ' already');
     return 'no free hand: ' + (bits.join(' and ') || 'both hands full');
   };
   // the weapon in hand again (a torch taken up or set down changes a versatile weapon's grip)
@@ -163,34 +171,56 @@
 
   // ---------------------------------------------------------------- torches: in the pack (B.inv), in a hand (u.torch), on the floor (B.lights, kind 'torch')
   function packOf(B, id) { return (B.inv || []).filter(function (x) { return x.id === id; })[0]; }
-  L.torchesInPack = function (B) { var s = packOf(B, 'torch'); return s ? s.n : 0; };
-  L.torchAt = function (B, x, y) { return (B.lights || []).filter(function (l) { return l.kind === 'torch' && l.x === x && l.y === y; })[0] || null; };
-  L.canLight = function (B, u) {
-    if (u.torch) return { ok: false, why: 'a torch in hand already' };
-    if (!L.torchesInPack(B)) return { ok: false, why: 'no torch in the pack' };
-    if (B.fight && B.fight.roost) return { ok: false, why: 'the roost overhead: no fire' };
+  L.inPack = function (B, id) { var s = packOf(B, id || 'torch'); return s ? s.n : 0; };
+  L.torchesInPack = function (B) { return L.inPack(B, 'torch'); };
+  // a torch or a lantern burning on that square
+  L.torchAt = function (B, x, y) { return (B.lights || []).filter(function (l) { return (l.kind === 'torch' || l.kind === 'lantern') && l.x === x && l.y === y; })[0] || null; };
+  // may he light one (`id`: 'torch' or 'lantern')? Under a roost a torch is no (its one law: no fire); a lantern is lit hood down
+  L.canLight = function (B, u, id) {
+    id = id || 'torch';
+    if (u.torch) return { ok: false, why: 'a ' + L.kindName(u.torch) + ' in hand already' };
+    if (!L.inPack(B, id)) return { ok: false, why: 'no ' + id + ' in the pack' };
+    if (B.fight && B.fight.roost && id !== 'lantern') return { ok: false, why: 'the roost overhead: no fire' };
     if (!L.handsFree(u)) return { ok: false, why: L.handsWhy(u) };
     return { ok: true, why: '' };
   };
-  // light one: a torch out of the pack, in the free hand; the light-shy recoil from it (magic.js brighten)
-  L.lightTorch = function* (B, u) {
-    var s = packOf(B, 'torch'), M = D.magic;
+  // light one: a torch (or a lantern) out of the pack, in the free hand; the light-shy recoil from it (magic.js brighten). A lantern
+  // lit under a roost starts with its hood down: dim 5 ft, and the roof sleeps
+  L.lightTorch = function* (B, u, id) {
+    id = id || 'torch';
+    var s = packOf(B, id), M = D.magic, lantern = id === 'lantern', hood = lantern && !!(B.fight && B.fight.roost);
     if (!s || s.n <= 0) return;
-    s.n--; u.torch = { lit: true }; L.regrip(u);
+    s.n--; u.torch = lantern ? { lit: true, kind: 'lantern', hood: hood } : { lit: true }; L.regrip(u);
+    var r = L.radii(u.torch), grip = L.handsUsed(u).weapon === 1 && u.weapon.props.indexOf('versatile') >= 0 ? '  {g}(the ' + u.weapon.name.toLowerCase() + ' in one hand){/}' : '';
     D.sfx('fire'); D.fx.sparkle(u, 'fire', 14);
-    yield* M.brighten(B, u, 'torch', '{y}' + u.name + '{/} strikes a light: a torch, {o}bright 20 ft{/} and dim 20 more.' + (L.handsUsed(u).weapon === 1 && u.weapon.props.indexOf('versatile') >= 0 ? '  {g}(the ' + u.weapon.name.toLowerCase() + ' in one hand){/}' : ''), { x: u.x, y: u.y, bright: L.TORCH.bright });
+    if (hood) { if (B.lightMap) B.lightMap = null; B.card(['{y}' + u.name + '{/} lights the lantern with the hood down: {o}dim light 5 ft{/}, and nothing overhead stirs.' + grip], 420); yield 30; return; }
+    yield* M.brighten(B, u, 'torch', '{y}' + u.name + '{/} strikes a light: a ' + (lantern ? 'hooded lantern' : 'torch') + ', {o}bright ' + r.bright + ' ft{/} and dim ' + r.dim + ' more.' + grip, { x: u.x, y: u.y, bright: r.bright });
   };
-  function place(B, x, y, by) { var n = (B.torchSeq = (B.torchSeq || 0) + 1); B.lights = (B.lights || []).concat([{ id: 'torch' + n, kind: 'torch', x: x, y: y, bright: L.TORCH.bright, dim: L.TORCH.dim, color: 'gold', flame: true, by: by }]); }
+  // the hood (a lantern in hand; the turn's free hand on an object): down, dim 5 ft and no bright light; up, bright 30 ft again --
+  // the light-shy recoil, the hidden are shown, and under a roost it is the one law broken (battle.js refuses HOOD UP there)
+  L.hood = function* (B, u, down) {
+    if (!u.torch || L.kindOf(u.torch) !== 'lantern' || !!u.torch.hood === !!down) return;
+    u.torch.hood = !!down;
+    if (B.lightMap) B.lightMap = null;
+    if (down) { B.card(['{y}' + u.name + '{/} lowers the hood: {o}dim light 5 ft{/}, no more.']); return; }
+    D.sfx('fire');
+    yield* D.magic.brighten(B, u, 'torch', '{y}' + u.name + '{/} raises the hood: {o}bright ' + L.LANTERN.bright + ' ft{/} and dim ' + L.LANTERN.dim + ' more.', { x: u.x, y: u.y, bright: L.LANTERN.bright });
+  };
+  // a light set down on a square keeps its kind and its hood
+  function place(B, x, y, by, t) {
+    var n = (B.torchSeq = (B.torchSeq || 0) + 1), r = L.radii(t);
+    B.lights = (B.lights || []).concat([{ id: 'torch' + n, kind: L.kindOf(t), hood: !!(t && t.hood), x: x, y: y, bright: r.bright, dim: r.dim, color: 'gold', flame: true, by: by }]);
+  }
   // set down where he stands (the turn's free hand on an object): it keeps burning there
   L.dropTorch = function (B, u, silent) {
     if (!u.torch) return;
-    delete u.torch; L.regrip(u);
-    place(B, u.x, u.y, u.id);
-    if (!silent) B.card(['{y}' + u.name + '{/} drops the torch. It burns where it fell.']);
+    var t = u.torch; delete u.torch; L.regrip(u);
+    place(B, u.x, u.y, u.id, t);
+    if (!silent) B.card(['{y}' + u.name + '{/} ' + (L.kindOf(t) === 'lantern' ? 'sets the lantern down. It burns where it stands.' : 'drops the torch. It burns where it fell.')]);
   };
   // thrown (an action): it lands on a square within 20 ft it can see and burns there -- the way to light up the far end
   L.throwTorch = function* (B, u, x, y) {
-    if (!u.torch) return;
+    if (!u.torch || L.kindOf(u.torch) === 'lantern') return; // (a lantern is set down, never thrown)
     u.turn.action = 0; u.facing = B.faceTo(u, { x: x, y: y, size: 1 }); u.anim = 'attack'; u.animT = B.t;
     D.fx.projectile(u, { x: x, y: y, size: 1 }, 'fire'); yield { fx: 1 };
     delete u.torch; L.regrip(u);
@@ -202,23 +232,23 @@
   // put it out (free): back in the pack, unspent
   L.douseTorch = function (B, u) {
     if (!u.torch) return;
-    delete u.torch; L.regrip(u);
-    var s = packOf(B, 'torch'); if (s) s.n++; else B.inv.push({ id: 'torch', n: 1 });
-    B.card(['{y}' + u.name + '{/} puts the torch out and stows it.']);
+    var id = L.kindOf(u.torch) === 'lantern' ? 'lantern' : 'torch'; delete u.torch; L.regrip(u);
+    var s = packOf(B, id); if (s) s.n++; else (B.inv = B.inv || []).push({ id: id, n: 1 });
+    B.card(['{y}' + u.name + '{/} puts the ' + id + ' out and stows it.']);
   };
   // pick up the one burning at his feet (free, a free hand)
   L.pickUp = function (B, u) {
     var t = L.torchAt(B, u.x, u.y); if (!t || u.torch) return;
     B.lights = B.lights.filter(function (l) { return l !== t; });
-    u.torch = { lit: true }; L.regrip(u);
-    B.card(['{y}' + u.name + '{/} takes up the torch again.']);
+    u.torch = t.kind === 'lantern' ? { lit: true, kind: 'lantern', hood: !!t.hood } : { lit: true }; L.regrip(u);
+    B.card(['{y}' + u.name + '{/} takes up the ' + (t.kind === 'lantern' ? 'lantern' : 'torch') + ' again.']);
   };
   // a fall (battle.js hurt): the torch goes down with him and burns on the floor
   L.fell = function (B, u) { if (u.torch) L.dropTorch(B, u, true); };
   // exposed flames doused in an area (Sleet Storm): torches in hand and on the floor
   L.douseIn = function (B, sq) {
     var out = [];
-    (B.units || []).forEach(function (u) { if (u.torch && G.inArea(u, sq)) { delete u.torch; L.regrip(u); out.push(u.name + '\'s torch'); } });
+    (B.units || []).forEach(function (u) { if (u.torch && L.kindOf(u.torch) !== 'lantern' && G.inArea(u, sq)) { delete u.torch; L.regrip(u); out.push(u.name + '\'s torch'); } }); // (a lantern's flame is not exposed: it burns on)
     B.lights = (B.lights || []).filter(function (l) { var hit = l.kind === 'torch' && sq.some(function (q) { return q[0] === l.x && q[1] === l.y; }); if (hit) out.push('a torch on the floor'); return !hit; });
     return out;
   };
@@ -263,12 +293,19 @@
   };
   // the lights that stand on the floor, drawn in the sort: a dropped torch, Dancing Lights, a Daylight set at a point
   L.props = function (B) {
-    return (B.lights || []).filter(function (l) { return l.kind === 'torch' || l.kind === 'dance' || l.kind === 'daylight'; }).map(function (l) {
+    return (B.lights || []).filter(function (l) { return l.kind === 'torch' || l.kind === 'lantern' || l.kind === 'dance' || l.kind === 'daylight'; }).map(function (l) {
       return { depth: l.x + l.y + 0.4, gz: B.map.gz(l.x, l.y), layer: 1, draw: function (ctx) {
         var c = D.iso.center(l.x, l.y, B.map.gz(l.x, l.y)), s = D.iso.toScreen(c.x, c.y), P = D.PAL.ramps;
         if (l.kind === 'torch') {
           ctx.fillStyle = P.leather[2]; ctx.fillRect(s.x - 5, s.y - 3, 10, 2); ctx.fillStyle = P.leather[3]; ctx.fillRect(s.x - 5, s.y - 4, 10, 1);
           if (D.campfire) D.campfire.flames(ctx, s.x + 5, s.y - 4, B.t + l.x * 9, 0.5);
+        } else if (l.kind === 'lantern') {
+          // a hooded lantern set down: a dark cage on a plate, a ring on top, the glass lit; hood down, a slit of light at the foot
+          var fl = 0.6 + 0.4 * Math.sin(B.t / 5 + l.x);
+          ctx.fillStyle = P.outline[0]; ctx.fillRect(s.x - 3, s.y - 3, 6, 2); ctx.fillRect(s.x - 2, s.y - 11, 4, 1); ctx.fillRect(s.x - 3, s.y - 10, 1, 7); ctx.fillRect(s.x + 2, s.y - 10, 1, 7);
+          ctx.fillStyle = P.gold[2]; ctx.fillRect(s.x - 1, s.y - 13, 2, 1); ctx.fillRect(s.x - 2, s.y - 12, 1, 1); ctx.fillRect(s.x + 1, s.y - 12, 1, 1);
+          if (l.hood) { ctx.fillStyle = P.leather[1]; ctx.fillRect(s.x - 2, s.y - 10, 4, 7); ctx.globalAlpha = 0.5 + 0.3 * fl; ctx.fillStyle = P.gold[4]; ctx.fillRect(s.x - 2, s.y - 4, 4, 1); ctx.globalAlpha = 1; }
+          else { ctx.globalAlpha = 0.85; ctx.fillStyle = P.gold[3]; ctx.fillRect(s.x - 2, s.y - 10, 4, 7); ctx.globalAlpha = 1; ctx.fillStyle = P.fire[1]; ctx.fillRect(s.x - 1, s.y - 8 + (fl > 0.8 ? -1 : 0), 2, 3); ctx.fillStyle = P.bone[2]; ctx.fillRect(s.x - 1, s.y - 6, 2, 1); }
         } else if (l.kind === 'dance') {
           // (the spell animation pass, 09-28h: the drow's lights were lackluster) a flickering will-o'-light, sparks turning about it
           var k = 2.4 + Math.sin(B.t / 8 + l.x * 2) * 0.6 + ((B.t + l.x * 5) % 13 < 2 ? 0.8 : 0), yy = s.y - 22 + Math.sin(B.t / 11 + l.y * 3) * 3, xx = s.x + Math.sin(B.t / 17 + l.x) * 2;

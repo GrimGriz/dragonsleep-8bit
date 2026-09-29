@@ -60,7 +60,11 @@ for both games); an unseen attacker has advantage, so two blind fighters roll st
 can see" cannot take one unseen. The AI reads the same rule. **Torches are hands:** ITEM lights one (an action; the Thief's bonus) if a hand is free — a two-handed
 weapon takes both, a shield one — so Aurdin or Vivian carries it and Lymen cannot; DROP leaves it burning where it
 fell, THROW lands it within 20 ft, DOUSE stows it, TAKE UP the one at your feet; a versatile weapon held with a torch
-hits for its one-handed die; under the roost it is fire, greyed. The eleven spells that waited on the dark are built
+hits for its one-handed die; under the roost it is fire, greyed. **The hooded lantern** (RULED 09-29: *"like a mode that
+sort of lights and doesn't wake the bats"*): fifty silver at the Provisioner's or the Chandler's, bright 30 ft and dim 30
+more, a hand like a torch, never thrown and never spent (doused or put away it goes back in the pack); HOOD DOWN gives
+dim light 5 ft only, so nothing light-shy is dazzled and a roost sleeps -- under a roost it is lit hood down and HOOD UP
+is refused; the camp's A LIGHT IN HAND walks in with either. The eleven spells that waited on the dark are built
 (Dancing Lights, Fog Cloud, Continual Flame, Darkvision, Invisibility, See Invisibility, Sleet Storm, Stinking Cloud,
 Mislead, Pass Without Trace, True Seeing), and the sheets' sight todos (the darkmantle's aura and blinding crush, the
 cloaker's fold, the duergar's Invisibility). "Magic Missile at the darkness": a dart aimed at a square the caster cannot

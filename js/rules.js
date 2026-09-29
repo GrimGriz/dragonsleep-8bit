@@ -253,7 +253,7 @@
     var w = R.weaponOf(h), p = w.weapon.props || [], bits = [];
     if (w.id !== 'unarmed') bits.push((p.indexOf('two-handed') >= 0 ? 'both hands on the ' : 'the ') + w.name.toLowerCase());
     if (h.equip.shield) bits.push('the shield');
-    if (h.equip.torch) bits.push('a torch already');
+    if (h.equip.torch) bits.push('a light in that hand already');
     return bits.join(' and ') || 'both hands full';
   };
   // shooting blind (an attack at a creature the attacker cannot see for want of light): 'disadvantage' is the SRD 5.1's rule

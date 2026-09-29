@@ -83,7 +83,7 @@
       if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
         canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null, enemies: o.enemies || null,
         surprised: o.surprised || null, revealed: !!o.revealed || seer, yieldText: o.yieldText || null,
-        dark: dark, torch: o.torch || g.flags.torchBy || null } }, '*');
+        dark: dark, torch: o.torch || g.flags.torchBy || null, torchKind: g.flags.torchKind || 'torch' } }, '*');
       if (m.type === 'd16:done' || m.type === 'd16:refuse') {
         window.removeEventListener('message', onMsg);
         fr.parentNode.removeChild(fr);
@@ -119,8 +119,9 @@
       // torchdark: the day's Darkvision and a Continual Flame stay on him; a torch still burning in his hand burns on into the map
       if (r.darkvision) h.conds.darkvision = true;
       if (r.continualFlame && !h.conds.continualFlame) h.conds.continualFlame = h.equip.weapon || true;
-      if (r.torch && DS.EV.darkHere && DS.EV.darkHere()) { g.flags.torchBy = h.id; h.equip.torch = 1; }
-      else if (g.flags.torchBy === h.id) { delete g.flags.torchBy; delete h.equip.torch; } // (dropped, thrown, put out or spent in the fight)
+      if (r.torch && DS.EV.darkHere && DS.EV.darkHere()) { g.flags.torchBy = h.id; g.flags.torchKind = r.torch === 'lantern' ? 'lantern' : 'torch'; h.equip.torch = 1; }
+      else if (g.flags.torchBy === h.id) { delete g.flags.torchBy; delete g.flags.torchKind; delete h.equip.torch; if (r.torch === 'lantern') g.give('lantern', 1); } // (dropped, thrown, put out or spent in the fight; a lantern still lit where it is light enough is put away, back in the pack -- 09-29)
+      else if (r.torch === 'lantern') g.give('lantern', 1);
       if (!r.torch) delete h.equip.torch;
     });
     // the pack: what the fight used is gone (a potion drunk, a bolt loosed), never below none. The party fights with only

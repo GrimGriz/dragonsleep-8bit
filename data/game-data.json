@@ -1816,6 +1816,29 @@
    "src": "the-lab/pit-maps/shops-silverton.json pin 15 (torches, ten 1 sp); SRD 5.1 Torch (bright 20, dim 20); torchdark 09-28 (a hand)",
    "id": "torch"
   },
+  "lantern": {
+   "name": "Hooded Lantern",
+   "kind": "use",
+   "price": 50,
+   "use": {
+    "effect": "light",
+    "target": "self",
+    "battle": true,
+    "field": true
+   },
+   "light": {
+    "bright": 30,
+    "dim": 30,
+    "when": "lit",
+    "hood": {
+     "bright": 0,
+     "dim": 5
+    }
+   },
+   "desc": "Bright light 30 ft and dim 30 more. Hood down, a glimmer of 5 ft that wakes nothing overhead. It takes a hand, and it is not spent: put out, it goes back in the pack.",
+   "src": "SRD 5.1 Hooded Lantern (5 gp; bright 30, dim 30; hooded: dim 5 ft) at the x10 economy (invented.json#economy); RULED 09-29 (Griz: the hood 'lights and doesn't wake the bats'; invented.json#hooded-lantern)",
+   "id": "lantern"
+  },
   "tent": {
    "name": "Tent",
    "kind": "use",
@@ -8890,9 +8913,10 @@
     "rope",
     "tent",
     "torch",
+    "lantern",
     "simples"
    ],
-   "src": "the-lab/pit-maps/shops-silverton.json pin 15",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 15; the hooded lantern 09-29 (invented.json#hooded-lantern)",
    "id": "marko"
   },
   "kasten": {
@@ -8903,9 +8927,10 @@
    "items": [
     "oil",
     "torch",
+    "lantern",
     "candle"
    ],
-   "src": "the-lab/pit-maps/shops-silverton.json pin 16",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 16; the hooded lantern 09-29 (invented.json#hooded-lantern)",
    "id": "kasten"
   },
   "lisbet": {
@@ -14657,9 +14682,19 @@
    "id": "g.torchNoNeed"
   },
   "g.torchAlready": {
-   "t": "{name} carries a torch already. One is enough.",
+   "t": "{name} carries a light already. One is enough.",
    "src": "invented: connective",
    "id": "g.torchAlready"
+  },
+  "g.lanternLit": {
+   "t": "{name} lights the hooded lantern and carries it. Thirty feet of the dark gives way.",
+   "src": "SRD 5.1 (Hooded Lantern); the lantern 09-29",
+   "id": "g.lanternLit"
+  },
+  "g.lanternNoNeed": {
+   "t": "It is light enough here to see by. Save the oil.",
+   "src": "invented: connective",
+   "id": "g.lanternNoNeed"
   },
   "g.darkvision": {
    "t": "{name}: darkvision. The dark opens out to sixty feet, grey and plain, until the next long rest.",

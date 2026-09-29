@@ -32,7 +32,7 @@
     // torchdark (09-28): a dark place (the map's `dark`, the night's tint: events.js EV.fight) is dark till someone makes a light.
     // `lit`: light enough to see by (a torch, the Light cantrip, Dancing Lights, a burning blade); `bright`: bright light (the
     // dazzle, the roost's one law). Without light whoever has no darkvision attacks blind: -4 to hit (Griz's table; blindPen)
-    this.dark = !!o.dark && !o.bright; this.lit = !this.dark; this.torchBy = o.torch || null;
+    this.dark = !!o.dark && !o.bright; this.lit = !this.dark; this.torchBy = o.torch || null; this.torchKind = o.torchKind || DS.G.flags.torchKind || 'torch';
     this.flashT = 0; this.shake = 0; this.intro = 32;
     this.bg = DS.battleBg(o.bg || 'plains');
     var party = DS.G.party;
@@ -55,7 +55,8 @@
     this.layoutHeroes();
     this.tauntWearer = null;
     // a light the party carries in (the Sunshaft staff, a Continual Flame, a torch lit in the field): the place is lit from the first round
-    if (this.dark && (this.heroes.some(function (u) { return R.carriesLight(u.h); }) || (this.torchBy && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })))) { this.lit = true; this.bright = true; }
+    // (a lantern walked in under a roost is hooded -- 09-29: light enough to see by, no bright light, the roof sleeps)
+    if (this.dark && (this.heroes.some(function (u) { return R.carriesLight(u.h); }) || (this.torchBy && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })))) { this.lit = true; this.bright = !(this.torchKind === 'lantern' && this.o.roost) || this.heroes.some(function (u) { return R.carriesLight(u.h); }); }
   }
   DS.Battle = Battle;
   // who sees in the dark without a light: a hero by blood or the day's spell (R.darkvision), a monster by its sheet's senses
@@ -324,7 +325,7 @@
     for (var hk = 0; hk < (DS.battleHooks || []).length; hk++) yield* DS.battleHooks[hk](this);
     if (this.o.roost) yield* this.say('Overhead, the roost: millions of sleeping wings. No fire. No bright light.', 60);
     if (this.dark && !this.lit) yield* this.hold('Dark. Nobody without darkvision can see to aim: ' + (typeof R.BLIND === 'number' ? R.BLIND + ' to hit' : 'disadvantage') + ' until somebody makes a light.');
-    else if (this.dark && this.torchBy) { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy; })[0]; if (tb) yield* this.say(nameOf(tb) + ' holds the torch up.', 40); }
+    else if (this.dark && this.torchBy) { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy; })[0]; if (tb) yield* this.say(nameOf(tb) + (this.torchKind === 'lantern' ? (this.o.roost ? ' keeps the lantern low, hood down.' : ' holds the lantern up.') : ' holds the torch up.'), 40); }
     // Sense Magic: the chuul feels a ring of binding coming
     var ringU = this.heroes.filter(function (u) { var r = R.item(u.h.equip.ring); return r && r.ring && r.ring.taunt; })[0];
     if (ringU) {
@@ -730,7 +731,7 @@
       .map(function (s) {
         var it = DS.DATA.items[s.id];
         // a torch (torchdark 09-28): a free hand to hold it, and never under the roost (greyed, as the grid greys it)
-        if (it.use.effect === 'light' && u) { if (self.o.roost) return { label: it.name, right: 'ROOST', value: s.id, disabled: true }; if (!R.freeHands(u.h)) return { label: it.name, right: 'hands', value: s.id, disabled: true }; }
+        if (it.use.effect === 'light' && u) { if (self.o.roost && s.id !== 'lantern') return { label: it.name, right: 'ROOST', value: s.id, disabled: true }; if (!R.freeHands(u.h)) return { label: it.name, right: 'hands', value: s.id, disabled: true }; } // (a lantern is lit hood down under the roost: 09-29)
         return { label: it.name, right: 'x' + s.n, value: s.id };
       });
   };
@@ -1168,12 +1169,16 @@
       if (use.el === 'fire') this.usedFire = true;
       yield* this.say(nameOf(u) + ' throws ' + it.name + '! ' + nameOf(t) + ' takes ' + d + '.', 42);
       yield* this.flushMsg();
-    } else if (use.effect === 'light') { // a torch (torchdark 09-28): a free hand to hold it (R.freeHands); the light for the fight
-      if (!R.freeHands(u.h)) { DS.G.give(id, 1); DS.audio.sfx('error'); yield* this.say('No free hand for a torch: ' + R.handsWhy(u.h) + '.', 44); return false; }
-      u.h.equip.torch = 1; this.torchBy = u.h.id; this.lit = true;
+    } else if (use.effect === 'light') { // a torch (torchdark 09-28) or a hooded lantern (09-29): a free hand to hold it (R.freeHands); the light for the fight
+      var lantern = id === 'lantern';
+      if (!R.freeHands(u.h)) { DS.G.give(id, 1); DS.audio.sfx('error'); yield* this.say('No free hand for a ' + (lantern ? 'lantern' : 'torch') + ': ' + R.handsWhy(u.h) + '.', 44); return false; }
+      u.h.equip.torch = 1; this.torchBy = u.h.id; this.torchKind = lantern ? 'lantern' : 'torch'; this.lit = true;
+      if (lantern && this.o.roost) { // the hood down (RULED 09-29): dim light, enough to see by, no bright light -- the roost sleeps
+        this.flashT = 4; yield* this.say(nameOf(u) + ' lights the lantern, hood down. A little light, and nothing overhead stirs.', 50); return true;
+      }
       this.flashT = 8; this.usedFire = true; this.roostCause = 'light';
       if (this.o.roost) return true; // the torch is lit under the roost: that's the end of it
-      yield* this.dazzle(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.' + (this.dark ? ' Twenty feet of the dark gives way.' : ''));
+      yield* this.dazzle(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.' + (this.dark ? (lantern ? ' Thirty feet of the dark gives way.' : ' Twenty feet of the dark gives way.') : ''));
     } else if (use.effect === 'fortify') { // Marta's bat-wing pie: +2 CON (a +1 to CON saves) and +5 HP for the fight
       if (t.fortified) { DS.G.give(id, 1); yield* this.say(nameOf(t) + ' has already eaten.', 30); return false; }
       t.fortified = true; t.h.maxhp += 5; t.h.hp += 5;
@@ -1462,8 +1467,9 @@
       if (u.fortified) { u.h.maxhp -= 5; u.h.hp = Math.min(u.h.hp, u.h.maxhp); u.fortified = false; }
     });
     // a torch lit in the fight burns on into the dark map (the field's glow; events.js puts it out at a rest or a door)
-    if (this.torchBy && this.dark && this.over !== 'roost') { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy && !down(u); })[0]; if (tb) { DS.G.flags.torchBy = tb.h.id; tb.h.equip.torch = 1; } }
-    if (!DS.G.flags.torchBy) this.heroes.forEach(function (u) { delete u.h.equip.torch; });
+    // (a lantern is not spent -- 09-29: carried out onto lit ground it goes back in the pack)
+    if (this.torchBy && this.dark && this.over !== 'roost') { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy && !down(u); })[0]; if (tb) { DS.G.flags.torchBy = tb.h.id; DS.G.flags.torchKind = this.torchKind; tb.h.equip.torch = 1; } }
+    if (!DS.G.flags.torchBy) { if (this.torchBy && this.torchKind === 'lantern' && this.over !== 'roost' && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })) DS.G.give('lantern', 1); this.heroes.forEach(function (u) { delete u.h.equip.torch; }); }
     if (this.over === 'roost') { // the roof lets go: bats fill the screen, then the other kind of name
       yield* this.swarm();
       DS.audio.play('gameover');
