@@ -565,7 +565,12 @@
     var g = ctx.createRadialGradient(D.W / 2, D.H / 2 - 10, 10, D.W / 2, D.H / 2 - 10, 210);
     g.addColorStop(0, red ? 'rgba(150,26,36,0.55)' : 'rgba(70,84,140,0.4)'); g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, D.W, D.H);
-    var foot = sc.face ? Math.round(D.H / 2 + top * k * (sc.faceAt || 0.72)) : Math.round(D.H / 2 + top * k / 2 - 8);
+    // `zoomFrom` (Griz, 09-29: the change from the cloak to the monster "could be smoother"): the scene opens at that scale and eases
+    // into its own over the first half second, the foot going with it, so a cut from the last scene's figure becomes a push-in
+    var zf = sc.zoomFrom, ez = zf ? (function (x) { return x * x * (3 - 2 * x); })(Math.min(1, t / 34)) : 1;
+    var footNow = sc.face ? Math.round(D.H / 2 + top * k * (sc.faceAt || 0.72)) : Math.round(D.H / 2 + top * k / 2 - 8);
+    var foot = zf ? Math.round((D.H / 2 + top * zf / 2 - 8) + (footNow - (D.H / 2 + top * zf / 2 - 8)) * ez) : footNow;
+    if (zf) k = zf + (k - zf) * ez;
     var o = {}; if (sc.hit && t < 44 && ((t >> 2) & 1)) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
     var anim = sc.anim && D.spr.anim(u.sheet, sc.anim) ? sc.anim : 'idle';
     if (anim === 'attack' || (sc.swoop && anim === 'fly')) { o.once = true; }
@@ -573,8 +578,12 @@
     // growing as it comes, through its flight's eight poses, the last held -- toward whoever it is coming for, at the left
     var px0 = D.W / 2, py0 = foot, kk = k;
     if (sc.swoop) { var pr = Math.min(1, t / Math.max(1, (sc.frames || 84) - 24)), ee = pr * pr * (3 - 2 * pr); px0 = D.W + 90 - (D.W + 90 - D.W * 0.24) * ee; py0 = foot - 46 + 72 * ee; kk = k * (0.75 + 0.95 * ee); }
-    ctx.save(); ctx.translate(px0, py0); ctx.scale(kk, kk);
-    D.spr.draw(ctx, u.sheet, anim, sc.facing == null ? 0 : sc.facing, anim === 'attack' ? Math.min(t, 60) : t, 0, 0, o);
+    // `morph` { from, at, dur }: the figure starts as another of its animations (the cloaker hung as a cloak) and dissolves into its own
+    // over `dur` ticks from `at`, trembling as it changes -- the unfurling
+    var ma = sc.morph && D.spr.anim(u.sheet, sc.morph.from) ? Math.max(0, Math.min(1, (t - sc.morph.at) / sc.morph.dur)) : 1, shake = sc.morph && ma > 0 && ma < 1 ? Math.sin(t * 2.3) * 2.2 * Math.sin(Math.PI * ma) : 0;
+    ctx.save(); ctx.translate(px0 + shake, py0); ctx.scale(kk, kk);
+    var facing = sc.facing == null ? 0 : sc.facing, one = function (an, al) { var oo = Object.assign({}, o); if (al < 1) oo.alpha = al; D.spr.draw(ctx, u.sheet, an, facing, an === 'attack' ? Math.min(t, 60) : t, 0, 0, oo); };
+    if (sc.morph && ma < 1) { one(sc.morph.from, 1 - ma * ma); if (ma > 0) one(anim, ma); } else one(anim, 1);
     ctx.restore();
     if (sc.hit) for (var i = 0; i < 3; i++) { // the darts landing: three bursts up the body, in turn
       var tt = t - i * 9; if (tt < 0 || tt > 32) continue;

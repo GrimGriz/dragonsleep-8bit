@@ -257,8 +257,9 @@
       if (gim && struck.length) {
         B.gimmickDone = true;
         var c = struck[0]; if (!c.dead && c.hp > 0) c.grudge = u.id;
-        yield { scene: { who: c, anim: c.sheet === 'cloaker_p2' ? 'roost' : null, scale: 1.3, frames: 110, hit: true, caption: 'THE DARTS FIND IT.' } }; // (hung as a cloak on the roof when the darts land: Griz, 09-29)
-        yield { scene: { who: c, face: true, faceAt: 0.37, scale: 3, frames: 210, tone: 'red', clip: 'audio/the_darkness_attacks_back.mp3', caption: 'AND THE DARKNESS ATTACKS BACK.' } };
+        // hung as a cloak on the roof when the darts land, then unfurling into itself (Griz, 09-29: the change "could be smoother")
+        yield { scene: { who: c, morph: c.sheet === 'cloaker_p2' ? { from: 'roost', at: 62, dur: 46 } : null, scale: 1.3, frames: 130, hit: true, caption: 'THE DARTS FIND IT.' } };
+        yield { scene: { who: c, face: true, faceAt: 0.37, zoomFrom: 1.3, scale: 3, frames: 210, tone: 'red', clip: 'audio/the_darkness_attacks_back.mp3', caption: 'AND THE DARKNESS ATTACKS BACK.' } };
         // and it comes: the sheet's flight, played as drawn, across the screen at the caster (a sheet with no `fly` flies as it idles)
         yield { scene: { who: c, anim: 'fly', swoop: true, facing: 2, scale: 1.4, frames: 84, tone: 'red', caption: 'IT COMES FOR ' + String(u.name).toUpperCase() + '.' } };
       }
