@@ -533,6 +533,8 @@
     if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay', note: 'a pool of ' + (u.feats.lay || 0) + ' HP (long rest), touch' });
     // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
     if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a short rest brings it back)', note: '+' + Math.max(1, D.mod(u.abil.cha)) + ' to hit for a minute; Channel Divinity ' + (u.feats.channel > 0 ? '1/1' : '0/1') + ' (short rest)' + (this.fight && this.fight.roost ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : '') });
+    // the class features the AI runs for itself, as buttons when the player runs one (js/features.js F.commands; SKILLS)
+    if (D.features && D.features.commands) out = out.concat(D.features.commands(this, u));
     // DASH, DISENGAGE, DODGE, HELP: the same ACTIONS for all four (Griz, 09-27: "uniform like the paladin"). The rogue's
     // Dash and Disengage are Cunning Action's (the bonus action) while she has the bonus, the plain actions after
     if (cun) {
@@ -644,6 +646,7 @@
       }
       case 'hide': { yield* this.hide(u); return; }
       case 'lay': { yield* this.layOnHands(u, c.target, c.cure); return; }
+      default: if (D.features && D.features.exec) yield* D.features.exec(this, u, c); // (a class feature's button: js/features.js)
     }
   };
 

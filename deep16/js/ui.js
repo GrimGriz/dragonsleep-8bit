@@ -109,7 +109,8 @@
   }
   UI.cmds = function (B, u) {
     var c = B.commands(u), top = {}, sk = [], ac = [], q = quickSpell(B, u);
-    c.forEach(function (x) { if (SKILLS[x.id] || (q && x.id === 'attack')) (SKILLS[x.id] ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own)
+    c.forEach(function (x) { if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
     ['attack', 'hide', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });

@@ -27,15 +27,19 @@
   // Rage (a bonus action; SRD 5.1): +2 to STR melee damage, blades and blows halved (battle.js hurt), advantage on STR checks and saves;
   // a minute (ten of its turns). Frenzy (the Berserker, 3): while raging, a bonus-action swing each turn after
   RU.saveAdv = function (u, ab) { return (ab === 'str' && !!u.conds.raging) || (ab === 'dex' && u.cls === 'barbarian' && u.lvl >= 2 && !u.conds.blinded); };
-  TX.FIRST.unshift(function* (B, u) {
-    if (u.cls !== 'barbarian' || u.conds.raging || !feat(u, 'rage') || !u.turn.bonus || u.conds.incapacitated) return;
-    var fs = TX.foesOf(B, u);
-    if (!fs.some(function (t) { return G.dist(u, t) <= u.turn.move + (u.reach || 5) + (u.turn.action ? 0 : 0); })) return;
+  // (the rage begun: the AI's first thing, the player's RAGE -- F.commands below)
+  F.rage = function (B, u) {
     u.turn.bonus = 0; u.feats.rage--;
     u.conds.raging = { dmg: u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.' };
     if (u.subclass === 'Path of the Berserker') u.conds.frenzy = true;
     D.sfx('crit'); FX.ring(u, 'red', 34);
     B.card(['{r}' + Nm(B, u) + ' RAGES!{/}  {g}(+' + u.conds.raging.dmg + ' damage, blades and blows halved' + (u.conds.frenzy ? ', and the frenzy: a swing for the bonus action' : '') + '){/}'], 300);
+  };
+  TX.FIRST.unshift(function* (B, u) {
+    if (u.cls !== 'barbarian' || u.conds.raging || !feat(u, 'rage') || !u.turn.bonus || u.conds.incapacitated) return;
+    var fs = TX.foesOf(B, u);
+    if (!fs.some(function (t) { return G.dist(u, t) <= u.turn.move + (u.reach || 5) + (u.turn.action ? 0 : 0); })) return;
+    F.rage(B, u);
     yield 20;
   });
   // Reckless Attack (2): the first swing of the turn decides -- advantage on its STR swings, and at it, till its next turn
@@ -195,19 +199,23 @@
     var dead = fs.filter(function (w) { return w.type === 'undead' && G.dist(u, w) <= 30 && !w.conds.turned; });
     if (!dead.length) return null;
     var dc = u.spellDC, sc = dead.reduce(function (s, w) { return s + TX.pFail(w, 'wis', dc) * TX.dpr(w) * 3; }, 0);
-    return { kind: 'feature', why: 'Turn Undead', score: sc, go: function* () {
-      u.turn.action = 0; u.feats.channel--; D.sfx('buff'); FX.ring(u, 'gold', 60);
-      var lines = ['{y}' + Nm(B, u) + '{/} presents the holy symbol: TURN UNDEAD  WIS DC ' + dc], gone = [];
-      dead.forEach(function (w) {
-        var sv = RU.save(w, 'wis', dc), destroy = !sv.ok && u.lvl >= 5 && crNum(w.cr) <= (u.lvl >= 17 ? 4 : u.lvl >= 14 ? 3 : u.lvl >= 11 ? 2 : u.lvl >= 8 ? 1 : 0.5);
-        lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}stands{/}' : destroy ? '{y}DESTROYED{/}' : '{o}turned{/}'));
-        if (destroy) gone.push(w); else if (!sv.ok) { w.conds.turned = { by: u.id }; w.conds.frightened = { by: u.id }; w.conds.feared = { by: u.id }; }
-      });
-      B.card(lines.slice(0, 8), 420); yield { fx: 1 };
-      gone.forEach(function (w) { B.hurt(w, w.hp + (w.temp || 0), 'radiant'); });
-      yield 24;
-    } };
+    return { kind: 'feature', why: 'Turn Undead', score: sc, go: function* () { yield* F.turnUndead(B, u, dead); } };
   });
+  // (the dead within 30 ft that are not turned already: the AI's plan and the player's TURN UNDEAD)
+  F.undeadNear = function (B, u) { return hostileNear(B, u, 30).filter(function (w) { return w.type === 'undead' && !w.conds.turned; }); };
+  F.turnUndead = function* (B, u, dead) {
+    var dc = u.spellDC;
+    u.turn.action = 0; u.feats.channel--; D.sfx('buff'); FX.ring(u, 'gold', 60);
+    var lines = ['{y}' + Nm(B, u) + '{/} presents the holy symbol: TURN UNDEAD  WIS DC ' + dc], gone = [];
+    dead.forEach(function (w) {
+      var sv = RU.save(w, 'wis', dc), destroy = !sv.ok && u.lvl >= 5 && crNum(w.cr) <= (u.lvl >= 17 ? 4 : u.lvl >= 14 ? 3 : u.lvl >= 11 ? 2 : u.lvl >= 8 ? 1 : 0.5);
+      lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}stands{/}' : destroy ? '{y}DESTROYED{/}' : '{o}turned{/}'));
+      if (destroy) gone.push(w); else if (!sv.ok) { w.conds.turned = { by: u.id }; w.conds.frightened = { by: u.id }; w.conds.feared = { by: u.id }; }
+    });
+    B.card(lines.slice(0, 8), 420); yield { fx: 1 };
+    gone.forEach(function (w) { B.hurt(w, w.hp + (w.temp || 0), 'radiant'); });
+    yield 24;
+  };
   var onHurt0 = M.onHurt;
   M.onHurt = function (B, u, n, type) { if (onHurt0) onHurt0(B, u, n, type); if (u.conds.turned) { delete u.conds.turned; if (u.conds.feared && !u.conds.feared.dc) delete u.conds.feared; B.card(['{g}' + Nm(B, u) + ' is hurt out of its terror.{/}'], 200); } };
 
@@ -361,21 +369,24 @@
       if (!best || sc > best.sc) best = { t: w, sc: sc };
     });
     if (!best || best.sc < 2 || best.sc <= bestBonusSpell(B, u)) return;
-    var t = best.t;
-    T.bonus = 0; u.feats.handOnNeck--; t.conds.glassHand = { by: u.id, till: { who: u.id, at: 'start', n: 1 } };
-    FX.sparkle(t, 'violet', 12);
-    B.card(['{y}' + Nm(B, u) + '{/}: THE HAND ON THE NECK on ' + (t === u ? 'herself' : t.name) + ' {g}(the glass takes the first blow that would land){/}'], 220); yield 10;
+    F.handOnNeck(B, u, best.t); yield 10;
   });
+  F.handOnNeck = function (B, u, t) {
+    u.turn.bonus = 0; u.feats.handOnNeck--; t.conds.glassHand = { by: u.id, till: { who: u.id, at: 'start', n: 1 } };
+    FX.sparkle(t, 'violet', 12);
+    B.card(['{y}' + Nm(B, u) + '{/}: THE HAND ON THE NECK on ' + (t === u ? 'herself' : t.name) + ' {g}(the glass takes the first blow that would land){/}'], 220);
+  };
   // THE DOUBLING (2; Channel Divinity): two glass doubles step out of her mirror -- a blow at her may strike one instead (Mirror Image's)
   TX.ACTIONS.push(function (B, u, fs) {
     if (!sub(u, 'the Window', 2) || !feat(u, 'channel') || !u.turn.action || u.turn.attacksLeft || (u.images || 0) > 0 || (u.side === 'party' && !u.guest)) return null;
     var th = fs.filter(function (w) { return G.dist(u, w) <= 60; }).reduce(function (s, w) { return s + TX.dpr(w); }, 0);
     if (!th) return null;
-    return { kind: 'feature', why: 'the Doubling', score: th * 0.3 * 2 + (u.hp < u.maxhp / 2 ? 3 : 0), go: function* () {
-      u.turn.action = 0; u.feats.channel--; u.images = 2; D.sfx('magic'); FX.sparkle(u, 'violet', 24);
-      B.card(['{y}' + Nm(B, u) + '{/} lifts her mirror: THE DOUBLING -- three of her, and which is which?  {g}(Channel Divinity){/}'], 300); yield 20;
-    } };
+    return { kind: 'feature', why: 'the Doubling', score: th * 0.3 * 2 + (u.hp < u.maxhp / 2 ? 3 : 0), go: function* () { yield* F.doubling(B, u); } };
   });
+  F.doubling = function* (B, u) {
+    u.turn.action = 0; u.feats.channel--; u.images = 2; D.sfx('magic'); FX.sparkle(u, 'violet', 24);
+    B.card(['{y}' + Nm(B, u) + '{/} lifts her mirror: THE DOUBLING -- three of her, and which is which?  {g}(Channel Divinity){/}'], 300); yield 20;
+  };
   // THE SHOWING (6; Channel Divinity): one within 30 ft that can see her mirror, WIS -- Tronupholen shows it something in the glass
   // (he shows, never speaks), and it can do nothing till its next turn is over
   TX.ACTIONS.push(function (B, u, fs) {
@@ -384,14 +395,17 @@
     fs.forEach(function (w) { if (G.dist(u, w) > 30 || w.conds.incapacitated || RU.immuneTo(w, 'incapacitated') || !M.sees(B, w, u)) return; var sc = TX.pFail(w, 'wis', u.spellDC) * (TX.dpr(w) * 1.6 + 2); if (!best || sc > best.score) best = { t: w, score: sc }; });
     if (!best) return null;
     var t = best.t;
-    return { kind: 'feature', why: 'the Showing at ' + t.name, score: best.score, go: function* () {
-      u.turn.action = 0; u.feats.channel--; D.sfx('magic'); FX.ring(u, 'violet', 40);
-      var sv = RU.save(t, 'wis', u.spellDC);
-      B.card(['{y}' + Nm(B, u) + '{/} turns her mirror on ' + nm(B, t) + ': THE SHOWING  WIS ' + RU.saveText(sv) + ' vs DC ' + u.spellDC + '  ' + (sv.ok ? '{n}it looks away{/}' : '{p}it is shown something, and can do nothing{/}')], 320);
-      if (!sv.ok) t.conds.incapacitated = { by: u.id, till: { who: t.id, at: 'end', n: 1 }, endText: '{who} comes back from the glass.' };
-      yield 20;
-    } };
+    return { kind: 'feature', why: 'the Showing at ' + t.name, score: best.score, go: function* () { yield* F.showing(B, u, t); } };
   });
+  // (who the Showing may go to: within 30 ft, seeing her mirror, able to be held)
+  F.showable = function (B, u) { return hostileNear(B, u, 30).filter(function (w) { return !w.conds.incapacitated && !RU.immuneTo(w, 'incapacitated') && M.sees(B, w, u); }); };
+  F.showing = function* (B, u, t) {
+    u.turn.action = 0; u.feats.channel--; D.sfx('magic'); FX.ring(u, 'violet', 40);
+    var sv = RU.save(t, 'wis', u.spellDC);
+    B.card(['{y}' + Nm(B, u) + '{/} turns her mirror on ' + nm(B, t) + ': THE SHOWING  WIS ' + RU.saveText(sv) + ' vs DC ' + u.spellDC + '  ' + (sv.ok ? '{n}it looks away{/}' : '{p}it is shown something, and can do nothing{/}')], 320);
+    if (!sv.ok) t.conds.incapacitated = { by: u.id, till: { who: t.id, at: 'end', n: 1 }, endText: '{who} comes back from the glass.' };
+    yield 20;
+  };
 
   // ------------------------------------------------------------------ the Vigil (Torvald's; the cleric's domain, 1): Dvalgarda's, the Ward of
   // the Dormant, whose sect keeps the vigil over the sleeping Silver and the egg. KEEPER'S WARD (1; WIS a long rest): a bonus action,
@@ -406,11 +420,13 @@
       if (!best || sc > best.sc) best = { t: w, sc: sc };
     });
     if (!best || best.sc < 2 || best.sc <= bestBonusSpell(B, u)) return;
-    var t = best.t;
-    T.bonus = 0; u.feats.keepersWard--; t.conds.keeperWard = { by: u.id, n: u.lvl, till: { who: u.id, at: 'start', n: 1 } };
-    FX.ring(t, 'silver', 26);
-    B.card(['{y}' + Nm(B, u) + '{/}: KEEPER\'S WARD on ' + (t === u ? 'himself' : t.name) + ' {g}(the next blow cut by 1d8 + ' + u.lvl + '){/}'], 220); yield 10;
+    F.keepersWard(B, u, best.t); yield 10;
   });
+  F.keepersWard = function (B, u, t) {
+    u.turn.bonus = 0; u.feats.keepersWard--; t.conds.keeperWard = { by: u.id, n: u.lvl, till: { who: u.id, at: 'start', n: 1 } };
+    FX.ring(t, 'silver', 26);
+    B.card(['{y}' + Nm(B, u) + '{/}: KEEPER\'S WARD on ' + (t === u ? 'himself' : t.name) + ' {g}(the next blow cut by 1d8 + ' + u.lvl + '){/}'], 220);
+  };
   // (battle.js hurt asks before the damage lands: what is left of it)
   M.preHurt = function (B, u, n) {
     var kw = u && u.conds && u.conds.keeperWard;
@@ -424,15 +440,18 @@
   // HOLD THE DOOR (2; Channel Divinity): the ones who would hem him in -- each foe within 10 ft, STR save or shoved 10 ft away from him
   TX.ACTIONS.push(function (B, u, fs) {
     if (!sub(u, 'the Vigil', 2) || !feat(u, 'channel') || !u.turn.action || u.turn.attacksLeft || (u.side === 'party' && !u.guest)) return null;
-    var close = hostileNear(B, u, 10).filter(function (w) { return !w.bound && (w.size || 1) <= 2; });
+    var close = F.doorFoes(B, u);
     if (close.length < 2) return null;
-    return { kind: 'feature', why: 'Hold the Door', score: close.reduce(function (s, w) { return s + TX.pFail(w, 'str', u.spellDC) * (TX.dpr(w) * 0.9 + 2); }, 0), go: function* () {
-      u.turn.action = 0; u.feats.channel--; D.sfx('crit'); FX.ring(u, 'silver', 50);
-      var lines = ['{y}' + Nm(B, u) + '{/} plants his feet: HOLD THE DOOR  STR DC ' + u.spellDC + '  {g}(Channel Divinity){/}'];
-      close.forEach(function (w) { var sv = RU.save(w, 'str', u.spellDC); lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}holds its ground{/}' : '{o}shoved back{/}')); if (!sv.ok) M.push(B, u, w, 2); });
-      B.card(lines.slice(0, 8), 360); yield 24;
-    } };
+    return { kind: 'feature', why: 'Hold the Door', score: close.reduce(function (s, w) { return s + TX.pFail(w, 'str', u.spellDC) * (TX.dpr(w) * 0.9 + 2); }, 0), go: function* () { yield* F.holdDoor(B, u, close); } };
   });
+  // (the ones Hold the Door can shove: within 10 ft, not bound to their ground, Large or smaller)
+  F.doorFoes = function (B, u) { return hostileNear(B, u, 10).filter(function (w) { return !w.bound && (w.size || 1) <= 2; }); };
+  F.holdDoor = function* (B, u, close) {
+    u.turn.action = 0; u.feats.channel--; D.sfx('crit'); FX.ring(u, 'silver', 50);
+    var lines = ['{y}' + Nm(B, u) + '{/} plants his feet: HOLD THE DOOR  STR DC ' + u.spellDC + '  {g}(Channel Divinity){/}'];
+    close.forEach(function (w) { var sv = RU.save(w, 'str', u.spellDC); lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}holds its ground{/}' : '{o}shoved back{/}')); if (!sv.ok) M.push(B, u, w, 2); });
+    B.card(lines.slice(0, 8), 360); yield 24;
+  };
   // WAKEFUL (6): magic cannot put him, or one of his within 10 ft, to sleep (magic.js Sleep asks)
   M.wakeful = function (B, w) { return B.units.some(function (k) { return sub(k, 'the Vigil', 6) && k.side === w.side && G.standing(k) && G.dist(k, w) <= 10; }); };
 
@@ -456,5 +475,70 @@
     B.card(['  ' + (ty === 'psychic' ? '{p}divine strike{/}: the glass shows ' + nm(B, tgt) + ' a crack' : '{y}divine strike{/}') + '  ' + dd + ' [' + r.rolls.join(',') + '] = {r}' + r.total + '{/} ' + ty], 200);
     B.hurt(tgt, r.total, ty);
     yield 8;
+  };
+
+  // ------------------------------------------------------------------ the player's buttons (09-29, Griz running our four on the tester
+  // ladder, ?ladder&party=ours&play: "AI now, buttons later" -- now). What the AI above does for itself, on the ring's SKILLS for one the
+  // player runs: battle.js commands() lists F.commands, battle.js exec hands their ids to F.exec. One that goes to a single creature asks
+  // which by a prompt of those it may go to (the play record keeps the answer: js/record.js)
+  function mine(u) { return u.side === 'party' && !u.guest; }
+  function chan(u) { return feat(u, 'channel'); }
+  var CHAN_WHY = 'Channel Divinity is spent (a short rest brings it back)';
+  F.commands = function (B, u) {
+    if (!mine(u)) return [];
+    var T = u.turn, out = [], act = T.action > 0 && !T.attacksLeft;
+    if (u.cls === 'barbarian') {
+      out.push({ id: 'rage', label: 'RAGE', cost: 'B', icon: 'surge', skill: true, ok: T.bonus > 0 && feat(u, 'rage') && !u.conds.raging && !u.conds.incapacitated,
+        why: u.conds.raging ? 'raging already' : !feat(u, 'rage') ? 'no rage left (a long rest)' : 'the bonus action is spent',
+        note: '+' + (u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2) + ' STR damage, blades and blows halved, a minute; ' + ((u.feats && u.feats.rage) || 0) + ' left' });
+      if (u.lvl >= 2) out.push({ id: 'reckless', label: 'RECKLESS', cost: 'F', icon: 'attack', skill: true, ok: !u.conds.reckless && !T.attackAction && (T.action > 0 || T.attacksLeft > 0),
+        why: u.conds.reckless ? 'reckless already, till your next turn' : 'it is decided on the turn\'s first swing', note: 'advantage on STR swings this turn; swings at you have it too till your next' });
+    }
+    if (u.cls === 'cleric' && u.lvl >= 2) out.push({ id: 'turnundead', label: 'TURN UNDEAD', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.undeadNear(B, u).length > 0,
+      why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no undead within 30 ft', note: 'the dead within 30 ft: WIS DC ' + u.spellDC + ' or turned' + (u.lvl >= 5 ? ' (the weakest destroyed)' : '') });
+    if (sub(u, 'the Window', 1)) out.push({ id: 'handonneck', label: 'HAND ON THE NECK', cost: 'B', icon: 'lay', skill: true, ok: T.bonus > 0 && feat(u, 'handOnNeck'),
+      why: !feat(u, 'handOnNeck') ? 'spent (a long rest brings it back)' : 'the bonus action is spent', note: 'touch: the first blow to land on them is rolled again' });
+    if (sub(u, 'the Window', 2)) out.push({ id: 'doubling', label: 'THE DOUBLING', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && !(u.images > 0),
+      why: !chan(u) ? CHAN_WHY : u.images > 0 ? 'the doubles stand already' : 'the action is spent', note: 'two glass doubles: a blow at her may strike one' });
+    if (sub(u, 'the Window', 6)) out.push({ id: 'showing', label: 'THE SHOWING', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.showable(B, u).length > 0,
+      why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no one within 30 ft sees her mirror', note: 'one within 30 ft: WIS DC ' + u.spellDC + ' or it can do nothing' });
+    if (sub(u, 'the Vigil', 1)) out.push({ id: 'keepersward', label: 'KEEPER\'S WARD', cost: 'B', icon: 'lay', skill: true, ok: T.bonus > 0 && feat(u, 'keepersWard'),
+      why: !feat(u, 'keepersWard') ? 'spent (a long rest brings it back)' : 'the bonus action is spent', note: 'one within 30 ft: the next blow cut by 1d8 + ' + u.lvl });
+    if (sub(u, 'the Vigil', 2)) out.push({ id: 'holddoor', label: 'HOLD THE DOOR', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.doorFoes(B, u).length > 0,
+      why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no foe within 10 ft to shove', note: 'each foe within 10 ft: STR DC ' + u.spellDC + ' or shoved 10 ft' });
+    return out;
+  };
+  // one of those it may go to, asked (0: not now)
+  function* pickOne(B, u, title, list, line) {
+    if (!list.length) return null;
+    var opts = list.slice(0, 6).map(function (w, i) { return { label: (w === u ? 'YOURSELF' : Nm(B, w).toUpperCase() + ' (' + G.dist(u, w) + ' FT)'), value: i + 1 }; });
+    opts.push({ label: 'NOT NOW', value: 0 });
+    var v = yield { prompt: { who: u, title: u.name + ': ' + title, lines: [line], opts: opts } };
+    return v ? list[v - 1] : null;
+  }
+  function alliesWithin(B, u, ft) { return B.units.filter(function (w) { return w.side === u.side && G.standing(w) && (w === u || G.dist(u, w) <= ft); }); }
+  F.exec = function* (B, u, c) {
+    var t;
+    switch (c.do) {
+      case 'rage': F.rage(B, u); yield 20; return;
+      case 'reckless':
+        u.conds.reckless = { till: { who: u.id, at: 'start', n: 1 } }; D.sfx('crit');
+        B.card(['{r}' + u.name + ' swings recklessly.{/}  {g}(advantage on STR swings this turn; at him too till his next){/}'], 200); return;
+      case 'turnundead': yield* F.turnUndead(B, u, F.undeadNear(B, u)); return;
+      case 'doubling': yield* F.doubling(B, u); return;
+      case 'holddoor': yield* F.holdDoor(B, u, F.doorFoes(B, u)); return;
+      case 'showing':
+        t = yield* pickOne(B, u, 'THE SHOWING', F.showable(B, u), 'Which of them is shown the glass? (WIS DC ' + u.spellDC + ')');
+        if (t) yield* F.showing(B, u, t);
+        return;
+      case 'handonneck':
+        t = yield* pickOne(B, u, 'THE HAND ON THE NECK', alliesWithin(B, u, 5).filter(function (w) { return !w.conds.glassHand; }), 'A touch: yourself, or one beside you.');
+        if (t) { F.handOnNeck(B, u, t); yield 10; }
+        return;
+      case 'keepersward':
+        t = yield* pickOne(B, u, 'KEEPER\'S WARD', alliesWithin(B, u, 30).filter(function (w) { return !w.conds.keeperWard; }), 'Yourself, or one within 30 ft.');
+        if (t) { F.keepersWard(B, u, t); yield 10; }
+        return;
+    }
   };
 })();

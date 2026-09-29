@@ -101,8 +101,9 @@
       if (I.pressed('a') || I.pressed('b') || I.mouse.click) { D.sfx('confirm'); this.card = null; }
       return;
     }
-    if (this.ours && I.pressed('play')) { this.play = !this.play; D.sfx('confirm'); this.save(); }
-    if (this.ours && I.pressed('rec')) { this.saved = D.rec.save(); D.sfx(this.saved ? 'confirm' : 'error'); }
+    var inBtn = function (b) { return mm.click && b && mm.x >= b.x && mm.x < b.x + b.w && mm.y >= b.y && mm.y < b.y + b.h; };
+    if (this.ours && (I.pressed('play') || inBtn(this.playBtn))) { this.play = !this.play; D.sfx('confirm'); this.save(); return; }
+    if (this.ours && (I.pressed('rec') || inBtn(this.recBtn))) { this.saved = D.rec.save(); D.sfx(this.saved ? 'confirm' : 'error'); return; }
     var s0 = this.sel;
     if (I.repeat('up')) this.sel = Math.min(9, this.sel + 1);
     if (I.repeat('down')) this.sel = Math.max(this.lo, this.sel - 1);
@@ -170,9 +171,12 @@
     });
     D.hint(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E ' + (this.ours ? (this.play ? 'play' : 'watch') : 'fight') + '  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
     if (this.ours) {
-      // P: play or watch; R: the record to a file
-      var n = D.rec.count();
-      D.text(ctx, '{y}P{/} ' + (this.play ? '{y}YOU PLAY{/}' : 'you watch') + '   {y}R{/} save ' + n + ' recorded fight' + (n === 1 ? '' : 's'), bx + 6, 240, P('silver', 5));
+      // P: play or watch; R: the record to a file (each a click or a tap too: a tester on a phone has no keys)
+      var n = D.rec.count(), x0 = bx + 6;
+      var w1 = D.text(ctx, '{y}P{/} ' + (this.play ? '{y}YOU PLAY{/}' : 'you watch'), x0, 240, P('silver', 5)), x1 = x0 + w1 + 14;
+      var w2 = D.text(ctx, '{y}R{/} save ' + n + ' recorded fight' + (n === 1 ? '' : 's'), x1, 240, P('silver', 5));
+      this.playBtn = { x: x0 - 3, y: 237, w: w1 + 6, h: 12 }; this.recBtn = { x: x1 - 3, y: 237, w: w2 + 6, h: 12 };
+      ctx.strokeStyle = P('stone', 3); ctx.strokeRect(this.playBtn.x + 0.5, this.playBtn.y + 0.5, this.playBtn.w - 1, this.playBtn.h - 1); ctx.strokeRect(this.recBtn.x + 0.5, this.recBtn.y + 0.5, this.recBtn.w - 1, this.recBtn.h - 1);
       if (this.saved) D.text(ctx, '{g}saved: ' + this.saved + '{/}', bx + 6, 249, P('accent', 2));
       this.climbBtn = null; if (this.card) this.drawCard(ctx); if (this.leaving) this.drawLeave(ctx); return; // (no climb: the climb is the four heroes')
     }
