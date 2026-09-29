@@ -361,18 +361,88 @@
         });
       });
     });
-    // a creature under Sanctuary, Protection from Evil and Good, a warding bond, the holy aura: a soft ring of light at its feet
+    // a creature under Sanctuary, Protection from Evil and Good, a warding bond, Death Ward, Protection from Poison, the holy aura: a soft
+    // ring of light at its feet, one for each ward (09-29: each past the first stands a step further out, so two wards read as two
+    // rings): the bond pale platinum-blue, Death Ward studded at its four points, the poison ward green and broken
     B.units.forEach(function (u) {
       if (u.dead || u.hp <= 0) return;
-      var cd = u.conds, kind = cd.holyAura ? 3 : cd.sanctuary ? 2 : cd.pfeg || cd.wardingBond || cd.deathWard || cd.beacon ? 1 : 0;
-      if (!kind) return;
-      var p = D.ui.unitPos(B, u), E = FX.EL.holy, pul = 0.5 + 0.3 * Math.sin(t / 12 + u.x);
-      ctx.save(); ctx.globalAlpha = (kind === 3 ? 0.55 : 0.35) * pul; ctx.strokeStyle = kind === 2 ? E.c[0] : E.c[1]; ctx.lineWidth = kind === 3 ? 2 : 1;
-      ctx.beginPath(); ctx.ellipse(p.x, p.y, 13 + kind * 2, 6 + kind, 0, 0, 7); ctx.stroke();
-      if (kind >= 2) { ctx.setLineDash([2, 3]); ctx.lineDashOffset = -t / 3; ctx.beginPath(); ctx.ellipse(p.x, p.y, 17 + kind * 2, 8 + kind, 0, 0, 7); ctx.stroke(); }
+      var cd = u.conds, list = [];
+      if (cd.holyAura) list.push([3, 'holy']);
+      if (cd.sanctuary) list.push([2, 'holy']);
+      if (cd.pfeg || cd.beacon) list.push([1, 'holy']);
+      if (cd.wardingBond) list.push([1, 'bond']);
+      if (cd.deathWard) list.push([1, 'death']);
+      if (cd.poisonWard) list.push([1, 'poison']);
+      if (!list.length) return;
+      var p = D.ui.unitPos(B, u), pul = 0.75 + 0.25 * Math.sin(t / 12 + u.x);
+      list.forEach(function (w, n) {
+        var kind = w[0], E = w[1] === 'bond' ? FX.EL.cold : w[1] === 'poison' ? FX.EL.nature : FX.EL.holy, rx = 13 + kind * 2 + n * 4, ry = 6 + kind + n * 2;
+        ctx.save(); ctx.strokeStyle = kind === 2 ? E.c[0] : E.c[1]; ctx.lineWidth = kind === 3 ? 2 : 1;
+        if (w[1] === 'poison') { ctx.setLineDash([3, 2]); ctx.lineDashOffset = t / 4; }
+        ctx.beginPath(); ctx.ellipse(p.x, p.y, rx, ry, 0, 0, 7);
+        ctx.globalAlpha = 0.09 * pul; ctx.fillStyle = E.c[2]; ctx.fill(); // (a faint light on the floor within it, so the ring reads on a dithered floor)
+        ctx.globalAlpha = (kind === 3 ? 0.85 : 0.7) * pul; ctx.stroke();
+        if (kind >= 2) { ctx.setLineDash([2, 3]); ctx.lineDashOffset = -t / 3; ctx.beginPath(); ctx.ellipse(p.x, p.y, rx + 4, ry + 2, 0, 0, 7); ctx.stroke(); }
+        ctx.restore();
+        if (w[1] === 'death') for (var sk = 0; sk < 4; sk++) { var sa = t / 90 + sk * Math.PI / 2; ctx.globalAlpha = 0.5 + 0.4 * pul; px(ctx, p.x + Math.cos(sa) * rx, p.y + Math.sin(sa) * ry, E.c[0], 2); ctx.globalAlpha = 1; }
+      });
+    });
+    // a thread along the floor from the one who holds a bond to the one it holds (09-29): a warding bond (platinum, from the caster), Hunter's
+    // Mark and Mirror's Gaze (red, violet: from the hunter to the quarry), a grapple (bone: from the grappler to the held), a spark running its length
+    B.units.forEach(function (u) {
+      if (u.dead || u.hp <= 0 || u.left || u.ethereal) return;
+      var cd = u.conds, ties = [];
+      if (cd.wardingBond && cd.wardingBond.by) ties.push([cd.wardingBond.by, FX.EL.cold.c[1], 0.8, 'bond']);
+      if (cd.marked && cd.marked.by) ties.push([cd.marked.by, cd.marked.gaze ? P('violet', 5) : P('red', 3), 0.7, 'hunt']);
+      if (cd.restrained && cd.restrained.grapple && cd.restrained.by) ties.push([cd.restrained.by, P('bone', 1), 0.9, 'grip']);
+      ties.forEach(function (tie) {
+        var src = B.units.filter(function (w) { return w.id === tie[0]; })[0]; if (!src || src === u || src.dead || src.hp <= 0 || src.left || src.ethereal) return;
+        var a = D.ui.unitPos(B, src), b = D.ui.unitPos(B, u), k = (t % 50) / 50;
+        ctx.save(); ctx.globalAlpha = tie[2]; ctx.strokeStyle = tie[1]; ctx.lineWidth = 1; ctx.setLineDash(tie[3] === 'grip' ? [5, 1] : [3, 3]); ctx.lineDashOffset = -t / 3;
+        ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); ctx.restore();
+        ctx.globalAlpha = Math.sin(Math.PI * k); px(ctx, a.x + (b.x - a.x) * k, a.y + (b.y - a.y) * k, tie[1], 2); ctx.globalAlpha = 1;
+        // at the hunter's foot, a small ring of its own colour, so the one who hunts can be picked out from the one who is hunted
+        if (tie[3] === 'hunt' || tie[3] === 'bond') { ctx.save(); ctx.globalAlpha = 0.6; ctx.strokeStyle = tie[1]; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(a.x, a.y, 7, 3, 0, 0, 7); ctx.stroke(); ctx.restore(); }
+      });
+    });
+    // the paladin's aura (RU.auraOf: Protection from 6, Devotion from 7), 09-29. js/ui.js overlay already lays the gold protection ring (dashed,
+    // 2.9 squares, its own copy of the paladin test); this adds Devotion's line, a second, paler one inside it. AURA_RING: set it true, and
+    // take that block out of js/ui.js overlay, to have the protection ring drawn from here as well (one test for rules and looks)
+    var RU = D.rules, AURA_RING = false;
+    if (RU && RU.auraOf) B.units.forEach(function (pa) {
+      var au = RU.auraOf(pa); if (!au) return;
+      var q = D.ui.unitPos(B, pa), pl = 0.6 + 0.4 * Math.sin(t / 20), rr = au.r / 5 * 1.45 * Math.SQRT2; // (10 ft: 2.9 squares, the corners of the 5x5 block within it)
+      ctx.save();
+      if (AURA_RING) { ctx.beginPath(); ctx.ellipse(q.x, q.y, rr * D.iso.TW / 2, rr * D.iso.TH / 2, 0, 0, 7); ctx.globalAlpha = 0.06; ctx.fillStyle = P('gold', 3); ctx.fill(); ctx.globalAlpha = 0.75; ctx.strokeStyle = P('gold', 3); ctx.setLineDash([4, 3]); ctx.stroke(); ctx.setLineDash([]); }
+      if (au.devotion) { var ri = rr - 0.5 * Math.SQRT2; ctx.beginPath(); ctx.ellipse(q.x, q.y, ri * D.iso.TW / 2, ri * D.iso.TH / 2, 0, 0, 7); ctx.globalAlpha = 0.28 + 0.14 * pl; ctx.strokeStyle = P('bone', 2); ctx.lineWidth = 1; ctx.stroke(); }
       ctx.restore();
     });
+    // the zones that move (09-29): Moonbeam's squares washed pale and the Flaming Sphere's reach warm, so one can see what is in them, and a
+    // ring at the feet of each creature caught in one (the beam takes whoever enters it or starts a turn there; the sphere whoever ends a turn beside it)
+    (B.zones || []).forEach(function (z) {
+      var moon = z.id === 'moonbeam', sqs = zoneSquares(z), ZC = moon ? [P('bone', 2), P('glow', 2)] : [P('fire', 1), P('fire', 0)], zp = 0.6 + 0.4 * Math.sin(t / 10);
+      sqs.forEach(function (q) {
+        onSq(q[0], q[1], function (c) {
+          D.iso.rhombus(c, q[0], q[1], D.iso.map.gz(q[0], q[1]), 2); c.globalAlpha = 0.08 + 0.06 * zp; c.fillStyle = ZC[0]; c.fill();
+          c.globalAlpha = 0.3 * zp; c.strokeStyle = ZC[1]; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1;
+        });
+      });
+      B.units.forEach(function (u) {
+        if (!G.standing(u) || u.left || u.fled || !(moon ? G.inArea(u, sqs) : G.dist(u, { x: z.x, y: z.y, size: 1 }) <= 5)) return;
+        var p = D.ui.unitPos(B, u);
+        ctx.save(); ctx.globalAlpha = 0.75; ctx.strokeStyle = ZC[1]; ctx.lineWidth = 1; ctx.setLineDash([3, 2]); ctx.lineDashOffset = t / 4;
+        ctx.beginPath(); ctx.ellipse(p.x, p.y, 12, 5.5, 0, 0, 7); ctx.stroke(); ctx.restore();
+        ctx.globalAlpha = 0.6; px(ctx, p.x + Math.cos(t / 9) * 12, p.y + Math.sin(t / 9) * 5.5, ZC[0], 2); ctx.globalAlpha = 1;
+      });
+    });
   };
+  // the squares a zone bites: the beam's (js/grimoire.js zoneSq), and every open square within 5 ft of the sphere
+  function zoneSquares(z) {
+    if (z.id === 'moonbeam') return M.zoneSq ? M.zoneSq(z) : [[z.x, z.y]];
+    var out = [];
+    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var s = G.map.at(z.x + dx, z.y + dy); if (s && s.open) out.push([z.x + dx, z.y + dy]); }
+    return out;
+  }
   function groundSq(c, g, x, y, t) {
     var s = sq(x, y), h = hsh(x, y), i, E;
     if (g.kind === 'vines') { // Entangle: green tendrils, swaying, a leaf here and there
@@ -433,6 +503,8 @@
     }
     if (u.conds.blur) { var jx = Math.sin(B.t / 3) * 2; D.spr.draw(ctx, u.sheet, anim, u.facing || 0, t, p.x + jx, p.y, { alpha: 0.3, tint: E.c[1], tintAlpha: 0.4 }); D.spr.draw(ctx, u.sheet, anim, u.facing || 0, t, p.x - jx, p.y, { alpha: 0.3, tint: E.c[2], tintAlpha: 0.4 }); }
     if (u.conds.hasted && anim !== 'idle') { var hf = FACE_BACK[(u.facing || 0) % 8]; for (var h2 = 1; h2 <= 2; h2++) D.spr.draw(ctx, u.sheet, anim, u.facing || 0, t - h2 * 3, p.x + hf[0] * h2 * 4, p.y + hf[1] * h2 * 2, { alpha: 0.35 - h2 * 0.1, tint: FX.EL.cold.c[2], tintAlpha: 0.6 }); }
+    // Blink: a moment in every fifty or so the figure slips a step to either side, violet, and is back (while it is solid; when it is out of the world js/ui.js fades it)
+    if (u.conds.blink) { var bk = (B.t + uph(u)) % 52; if (bk < 7) { var bo = 6 * Math.sin(Math.PI * bk / 7); [-1, 1].forEach(function (sd) { D.spr.draw(ctx, u.sheet, anim, u.facing || 0, t, p.x + sd * bo, p.y, { alpha: 0.4, tint: E.c[2], tintAlpha: 0.55 }); }); } }
   };
   var FACE_BACK = [[0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1]];
   function shatter(u, off) {
@@ -451,7 +523,8 @@
     var c = u.conds;
     if (c.stoneskin || c.stoning) return [P('stone', 5), 0.35];
     if (c.barkskin) return [P('leather', 3), 0.3];
-    if (c.raging) return [P('red', 3), 0.12 + 0.08 * Math.sin(B.t / 6)];
+    // (a barbarian's Rage is a condition; a foe that rages when hurt -- rageOnHit, js/battle.js -- is a flag on the creature itself)
+    if (c.raging || u.raging) return [P('red', 3), 0.12 + 0.08 * Math.sin(B.t / 6)];
     if (c.enlarged) return null;
     if (c.ablaze || c.heated) return [P('fire', 1), 0.18 + 0.1 * Math.sin(B.t / 4)];
     if (c.frosted) return [FX.EL.cold.c[1], 0.3];
@@ -510,7 +583,118 @@
     // Heroism: a gold glint now and then; Fire Shield: flames about it
     if (c.heroism && (t % 40) < 6) FX.star(ctx, hx, hy + 2, FX.EL.holy, 4);
     if (c.fireShield) { E = FX.EL.fire; for (var fs = 0; fs < 6; fs++) { var fa2 = t / 12 + fs * 1.05, fy = (t * 0.8 + fs * 5) % 10; px(ctx, p.x + Math.cos(fa2) * 12, p.y - top / 2 + Math.sin(fa2) * 6 - fy, fy < 4 ? E.c[0] : E.c[1], 2); } }
+    overMore(ctx, B, u, p, top, hx, hy);
   };
+
+  // ------------------------------------------------------------------ the rest of what lasts (09-29; Griz: "Approve your recommend on the status
+  // effect visuals for players" -- every lasting condition a player would act on gets a mark: a buff worth keeping up, a debuff worth curing
+  // or exploiting; the instantaneous and the self-evident -- prone, dead, the fade of invisible or hidden, a size grown -- do not).
+  // The head has one crowded spot already (the wheel, the sun, the sigil), so what is left goes elsewhere and each in a place of its own:
+  // small badges in a row above the head (a dark plaque, its edge violet for a curse or a loss and gold for a gift, an icon on it), the
+  // body (brackets, clamps, a sheen, guards), the hands, the heels. The long buffs (Mage Armor, Aid, Longstrider) move only now and
+  // then, so a creature carrying four things is not a smear. Floor rings, threads and zones are LK.ground's.
+  function uph(u) { var s = String(u.id || u.name || 'x'), h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 997; return h; } // (a phase of its own, from its name)
+  // a pixel with a dark drop shadow under it, so a mark of a pixel or two shows against a pale sprite as against a dark floor
+  function dpx(ctx, x, y, c, s) { var a = ctx.globalAlpha; ctx.globalAlpha = a * 0.6; px(ctx, x + 1, y + 1, P('outline', 0), s); ctx.globalAlpha = a; px(ctx, x, y, c, s); }
+  function plus(ctx, x, y, E) { for (var d = 1; d <= 2; d++) { dpx(ctx, x - d, y, E.c[1]); dpx(ctx, x + d, y, E.c[1]); dpx(ctx, x, y - d, E.c[1]); dpx(ctx, x, y + d, E.c[1]); } dpx(ctx, x, y, E.c[0], 2); }
+  function chev(ctx, x, y, E) { dpx(ctx, x, y, E.c[0], 2); for (var d = 1; d <= 3; d++) { dpx(ctx, x - d, y + d, d < 3 ? E.c[1] : E.c[2]); dpx(ctx, x + d, y + d, d < 3 ? E.c[1] : E.c[2]); } }
+  // an icon: rows of letters, one pixel each, the colour of each letter from `col` (a letter with none is left clear); x, y its middle
+  function icon(ctx, x, y, rows, col) {
+    var w = rows[0].length, ox = Math.round(x) - Math.floor(w / 2), oy = Math.round(y) - 2;
+    for (var r = 0; r < rows.length; r++) for (var q = 0; q < w; q++) { var ch = rows[r].charAt(q); if (ch !== '.' && col[ch]) { ctx.fillStyle = col[ch]; ctx.fillRect(ox + q, oy + r, 1, 1); } }
+  }
+  // the plaque behind an icon: 9 by 7, dark, an edge of the given colour (the icon is 5 tall, at most 7 wide)
+  function badge(ctx, x, y, edge) {
+    x = Math.round(x); y = Math.round(y);
+    ctx.globalAlpha = 0.7; ctx.fillStyle = P('outline', 0); ctx.fillRect(x - 4, y - 3, 9, 7);
+    ctx.globalAlpha = 0.65; ctx.fillStyle = edge; ctx.fillRect(x - 4, y - 3, 9, 1); ctx.fillRect(x - 4, y + 3, 9, 1); ctx.fillRect(x - 4, y - 3, 1, 7); ctx.fillRect(x + 4, y - 3, 1, 7);
+    ctx.globalAlpha = 1;
+  }
+  var ICON_SHUT = ['.......', '#.....#', '.#####.', '.#.#.#.', '.......'], ICON_EYE = ['..###..', '.#ooo#.', '#ooXoo#', '.#ooo#.', '..###..'];
+  var ICON_NOHEAL = ['x.#..', '.x#..', '##x##', '..#x.', '..#.x'], ICON_CROWN = ['H..H..H', 'MM.M.MM', 'MMMMMMM', 'DDDDDDD', '.......'];
+  var ICON_SHIELD = ['hhhhh', '#ooo#', '#ooo#', '.#o#.', '..#..'], ICON_THOUGHT = ['.###...', '#...#..', '.###...', '....o..', '.....o.'];
+  var ICON_BANG = ['..#..', '..#..', '..#..', '.....', '..#..'], ICON_CLOUD = ['..AAA..', '.ABBBB.', 'BBBBBBC', '...Z...', '..Z....'];
+  var ICON_HELD = ['..#..', '.#o#.', '#oXo#', '.#o#.', '..#..'];
+  var RING8 = [[0, -2], [1, -1], [2, 0], [1, 1], [0, 2], [-1, 1], [-2, 0], [-1, -1]];
+  // the colours of the spell a creature holds (its school's, or the element of its damage: LK.of), asked once per spell
+  var CONC_EL = {};
+  function concEl(id) { if (!CONC_EL[id]) { var el = 'arcane'; try { el = LK.of(id).el; } catch (e) { el = 'arcane'; } CONC_EL[id] = FX.EL[el] || FX.EL.arcane; } return CONC_EL[id]; }
+  function overMore(ctx, B, u, p, top, hx, hy) {
+    // bw: half the width of the sprite, a foot-soldier's 13 and more for a big creature, so the body marks stand clear of it
+    var c = u.conds, t = B.t, ph = uph(u), E, i, k, bodyY = p.y - top * 0.5, hb = FACE_BACK[(u.facing || 0) % 8], bw = (13 + 9 * ((u.size || 1) - 1)) * (D.spr.scaleOf ? D.spr.scaleOf(u) : 1);
+
+    // badges over the head, in a row centred on it and clear of the wheel, the sun and the sigil: blinded (a closed eye), unable to heal
+    // (Chill Touch: a plus struck through), the mind gone (Feeblemind: an empty thought), unable to act with no other sign of it (a slow
+    // ellipsis), caught off guard (the first round: a bang); then the gifts: heroism (a crown), foresight (an open eye, blinking now
+    // and then), a ward against one kind of harm (Protection from Energy: a shield in its colour), Freedom of Movement (a ring with a
+    // gap that turns), Mind Blank (a sealed ring), a storm called (Call Lightning: a cloud that flashes)
+    var by = c.beacon ? (c.blessed || c.guided || c.inspired || c.helped ? hy - 10 : hy - 5) - 9 : c.marked || c.branded ? hy - 12 : c.blessed || c.guided || c.inspired || c.helped || c.baned || c.cursed || c.contagion ? hy - 8 : hy - 4;
+    var L = [], VI = P('violet', 3), GO = P('gold', 3);
+    if (c.blinded) L.push(function (x) { badge(ctx, x, by, VI); icon(ctx, x, by, ICON_SHUT, { '#': P('silver', 5) }); });
+    if (c.noHeal) L.push(function (x) { badge(ctx, x, by, P('glow', 0)); icon(ctx, x, by, ICON_NOHEAL, { '#': P('glow', 2), x: P('red', 3) }); });
+    if (c.feeble) L.push(function (x) { badge(ctx, x, by, VI); icon(ctx, x, by, ICON_THOUGHT, { '#': P('stone', 5), o: (t >> 4) & 1 ? P('stone', 4) : P('stone', 3) }); });
+    if (c.incapacitated && !(c.paralyzed || c.stunned || c.asleep || c.laughing || c.hypnotized)) L.push(function (x) { badge(ctx, x, by, VI); for (var d = 0; d < 3; d++) px(ctx, x - 2 + d * 2, by + 1, Math.floor(t / 9) % 3 === d ? P('bone', 1) : P('stone', 4)); });
+    if (c.surprised) L.push(function (x) { badge(ctx, x, by, P('fire', 1)); icon(ctx, x, by, ICON_BANG, { '#': (t >> 3) & 1 ? P('bone', 2) : P('gold', 4) }); });
+    if (c.heroism) L.push(function (x) { var HE = FX.EL.holy; badge(ctx, x, by, GO); icon(ctx, x, by, ICON_CROWN, { H: HE.c[0], M: HE.c[1], D: HE.c[2] }); });
+    if (c.foresight) L.push(function (x) { badge(ctx, x, by, GO); var shut = (t + ph) % 100 < 5; icon(ctx, x, by, shut ? ICON_SHUT : ICON_EYE, { '#': shut ? P('bone', 1) : P('gold', 3), o: P('bone', 2), X: P('glow', 1) }); });
+    if (c.energyWard) L.push(function (x) { var EW = FX.EL[c.energyWard.type] || FX.EL.arcane; badge(ctx, x, by, EW.c[2]); icon(ctx, x, by, ICON_SHIELD, { h: EW.c[0], '#': EW.c[1], o: EW.c[2] }); });
+    if (c.freeMove) L.push(function (x) { badge(ctx, x, by, GO); var gap = Math.floor(t / 7) % 8; RING8.forEach(function (q, j) { if (j !== gap && j !== (gap + 1) % 8) px(ctx, x + q[0], by + q[1], P('glow', 2)); }); px(ctx, x + RING8[gap][0], by + RING8[gap][1], P('bone', 2)); });
+    if (c.mindBlank) L.push(function (x) { badge(ctx, x, by, P('violet', 4)); RING8.forEach(function (q) { px(ctx, x + q[0], by + q[1], P('violet', 5)); }); px(ctx, x, by, (t >> 4) & 1 ? P('bone', 2) : P('violet', 4)); });
+    if (c.storm) L.push(function (x) { var TE = FX.EL.thunder, fl = (t + ph) % 34 < 5; badge(ctx, x, by, P('blue', 3)); icon(ctx, x, by, ICON_CLOUD, { A: TE.c[1], B: TE.c[2], C: TE.c[3], Z: fl ? FX.EL.lightning.c[1] : null }); });
+    // a spell held (either side; Griz's rule: a held spell on a foe is one to act on -- strike the caster and it may break): the last badge in
+    // the row, a diamond in the spell's own colours with a bright heart that beats, so a caster who is holding something can be picked out
+    if (u.conc) L.push(function (x) { var CE = concEl(u.conc.id); badge(ctx, x, by, CE.c[1]); icon(ctx, x, by, ICON_HELD, { '#': CE.c[0], o: CE.c[1], X: (t + ph) % 44 < 22 ? P('bone', 2) : CE.c[0] }); });
+    L.forEach(function (f, n) { f(Math.round(hx + (n - (L.length - 1) / 2) * 10)); });
+
+    // held (Hold Person, Hold Monster, the spider's venom): four violet corner brackets round the body, a bright spark going round them
+    // (the figure itself is frozen and tinted by js/ui.js)
+    if (c.paralyzed) {
+      var bx0 = p.x - bw - 3, bx1 = p.x + bw + 3, by0 = p.y - top - 1, by1 = p.y + 2, lk = 0.65 + 0.3 * Math.sin(t / 7), sp = Math.floor(t / 7) % 4;
+      [[bx0, by0, 1, 1], [bx1, by0, -1, 1], [bx1, by1, -1, -1], [bx0, by1, 1, -1]].forEach(function (q, j) {
+        ctx.globalAlpha = lk;
+        for (var a = 0; a < 5; a++) { dpx(ctx, q[0] + q[2] * a * 2, q[1], P('violet', 5), 2); if (a) dpx(ctx, q[0], q[1] + q[3] * a * 2, P('violet', 5), 2); }
+        ctx.globalAlpha = 1;
+        if (j === sp) dpx(ctx, q[0] + q[2] * 3, q[1] + q[3] * 3, P('bone', 2), 3);
+      });
+    }
+    // grappled (the roper's tendril, a giant's grip): a pair of bone clamps at the waist, squeezing (and, under the feet, the thread to the one who holds: LK.ground)
+    if (c.restrained && c.restrained.grapple) {
+      var gy = p.y - top * 0.42, gq = Math.round(Math.sin(t / 9));
+      for (k = -1; k <= 1; k += 2) { for (i = -2; i <= 2; i++) dpx(ctx, p.x + k * (bw + 1 - gq), gy + i * 2, P('bone', 1), 2); dpx(ctx, p.x + k * (bw - 2 - gq), gy - 4, P('bone', 1), 2); dpx(ctx, p.x + k * (bw - 2 - gq), gy + 4, P('bone', 1), 2); }
+    }
+    // Ray of Enfeeblement: the strength running out of the arm, dull drops falling past it (at the edge of the sprite, where they can be seen)
+    if (c.enfeebled) { for (i = 0; i < 3; i++) { var eph = (t * 0.55 + i * 10) % 30; ctx.globalAlpha = 1 - eph / 30; dpx(ctx, p.x + bw - 3 + (i % 2) * 4, bodyY + 2 + eph * 0.9, i % 2 ? P('violet', 5) : P('stone', 6), 2); } ctx.globalAlpha = 1; }
+    // Reckless Attack (till its next turn: every blow at it has the advantage): red slashes flung out to either side, the pair flipping like arms in a swing
+    if (c.reckless) { var rf = (t >> 3) & 1, rly = p.y - top * 0.46; for (k = -1; k <= 1; k += 2) for (i = 0; i < 4; i++) dpx(ctx, p.x + k * (bw + 1 + i * 2), rly + (rf ? -i * 2 : i * 2), i > 1 ? P('red', 4) : P('red', 3), 2); }
+    // Dodge (till its next turn: blows at it are at a disadvantage): a pale guard, a thin arc to either side of the chest
+    if (c.dodge) { E = FX.EL.cold; ctx.globalAlpha = 0.75 + 0.2 * Math.sin(t / 10); for (k = 0; k < 6; k++) { var da = Math.sin(Math.PI * k / 5) * 3, dy = p.y - top * 0.66 + k * top * 0.09; dpx(ctx, p.x - bw - 3 - da, dy, E.c[1], 2); dpx(ctx, p.x + bw + 3 + da, dy, E.c[1], 2); } ctx.globalAlpha = 1; }
+    // Irresistible Dance: the feet will not keep still, they hop in turn, and a note or two drifts up (the violet motes are Faerie Fire's, which it carries as well)
+    if (c.dancing) {
+      E = FX.EL.charm; var dh = (t >> 3) & 1, dn = (t * 0.6 + ph) % 36;
+      dpx(ctx, p.x - 5, p.y - (dh ? 3 : 0), E.c[1], 3); dpx(ctx, p.x + 5, p.y - (dh ? 0 : 3), E.c[2], 3);
+      ctx.globalAlpha = 1 - dn / 36; var nx = p.x + bw + 2 + Math.sin(dn / 5) * 2, ny = p.y - top * 0.35 - dn * 0.8; dpx(ctx, nx, ny, E.c[0], 2); dpx(ctx, nx + 1, ny - 2, E.c[0]); dpx(ctx, nx + 1, ny - 3, E.c[0]); dpx(ctx, nx + 1, ny - 4, E.c[0]); ctx.globalAlpha = 1;
+    }
+    // Mage Armor: a sheen of force slides across the chest now and then, blue-white
+    if (c.mageArmor) { var ms = (t + ph) % 84; if (ms < 26) { E = FX.EL.arcane; var mx = p.x - (bw - 3) + ms * (bw - 3) / 13, my = p.y - top * 0.4; ctx.globalAlpha = Math.min(1, 1.3 * Math.sin(Math.PI * ms / 26)); for (i = -5; i <= 5; i++) { dpx(ctx, mx + i * 1.3, my - i * 1.9, E.c[0], 2); px(ctx, mx + i * 1.3 + 3, my - i * 1.9, E.c[1], 2); } ctx.globalAlpha = 1; } }
+    // Aid (the day through): a small gold plus rises off the left shoulder every so often; Regenerate: a green one, steadier; Enhance Ability: two gold chevrons rise off the right
+    if (c.aid) { var aq = (t + ph * 3) % 120; if (aq < 44) { ctx.globalAlpha = Math.sin(Math.PI * aq / 44); plus(ctx, p.x - bw, bodyY - aq * 0.32, FX.EL.holy); ctx.globalAlpha = 1; } }
+    if (c.regenerating) { var rq = (t + ph * 5) % 70; ctx.globalAlpha = Math.sin(Math.PI * rq / 70); plus(ctx, p.x - bw, bodyY + 6 - rq * 0.25, FX.EL.heal); ctx.globalAlpha = 1; }
+    if (c.enhanced) { var eq = (t + ph * 2) % 90; if (eq < 40) { ctx.globalAlpha = Math.sin(Math.PI * eq / 40); chev(ctx, p.x + bw, bodyY - eq * 0.3, FX.EL.holy); chev(ctx, p.x + bw, bodyY + 6 - eq * 0.3, FX.EL.holy); ctx.globalAlpha = 1; } }
+    // Longstrider and Expeditious Retreat: two short green dashes stream off the heels, back the way it did not go
+    if (c.longstrider || c.retreat) {
+      E = FX.EL.nature;
+      for (i = 0; i < 2; i++) {
+        var lp = (t * 0.9 + i * 12) % 24, ld = 7 + lp * 0.6, lx = p.x + hb[0] * ld, ly = p.y - 3 - i * 5 + hb[1] * ld * 0.5;
+        ctx.globalAlpha = 1 - lp / 24; ctx.fillStyle = P('outline', 0); if (hb[0]) ctx.fillRect(Math.round(lx - 3) + 1, Math.round(ly) + 1, 6, 2); else ctx.fillRect(Math.round(lx) + 1, Math.round(ly - 3) + 1, 2, 6);
+        ctx.fillStyle = i ? E.c[1] : E.c[0]; if (hb[0]) ctx.fillRect(Math.round(lx - 3), Math.round(ly), 6, 2); else ctx.fillRect(Math.round(lx), Math.round(ly - 3), 2, 6);
+      }
+      ctx.globalAlpha = 1;
+    }
+    // Pass without Trace: smoke-grey wisps at the feet, drifting up and thinning
+    if (c.pwt) for (i = 0; i < 3; i++) { var wp = (t * 0.35 + i * 14) % 42; glow(ctx, p.x - 8 + i * 8 + Math.sin(wp / 7 + i) * 2, p.y - 1 - wp * 0.2, i % 2 ? P('stone', 4) : P('violet', 3), 4 + wp / 10, 0.5 * (1 - wp / 42)); }
+    // Vampiric Touch waiting: the hand dark with it, a violet glow and a green glint (the touch is the caster's action each turn)
+    if (c.vampiric) { E = FX.EL.necrotic; var vh = FX.hands(u); glow(ctx, vh.x, vh.y, E.c[1], 6, 0.22 + 0.12 * Math.sin(t / 8)); px(ctx, vh.x, vh.y, E.c[0], 2); if ((t >> 2) % 6 === 0) FX.star(ctx, vh.x, vh.y, E, 3); }
+  }
   function orbit(ctx, x, y, E, n, t, r) { for (var i = 0; i < n; i++) { var a = t / 12 + i * Math.PI * 2 / n, ox = x + Math.cos(a) * r, oy = y + Math.sin(a) * r * 0.35; glow(ctx, ox, oy, E.c[2], 3, 0.3); px(ctx, ox, oy, E.c[i % 2 ? 1 : 0], 2); } }
   function bubbles(ctx, x, y, E, t) { for (var i = 0; i < 3; i++) { var ph = (t * 0.5 + i * 9) % 26; ctx.globalAlpha = 1 - ph / 26; var bx = x - 6 + i * 6 + Math.sin(ph / 4 + i) * 2, by = y - ph; px(ctx, bx - 1, by, E.c[0]); px(ctx, bx + 1, by, E.c[0]); px(ctx, bx, by - 1, E.c[0]); px(ctx, bx, by + 1, E.c[0]); } ctx.globalAlpha = 1; }
 })();
