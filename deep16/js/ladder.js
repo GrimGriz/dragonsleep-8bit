@@ -114,7 +114,8 @@
     if (I.pressed('b') || I.pressed('menu')) { D.sfx('popup'); this.leaving = true; }
   };
   Ladder.prototype.leaveInput = function () {
-    if (I.pressed('a')) { D.sfx('confirm'); location.href = './'; return; }
+    // to the 8-bit game's title, whose menu has both ladders (Griz, 09-29: the proof of concept's page came up blank)
+    if (I.pressed('a')) { D.sfx('confirm'); location.href = '../'; return; }
     if (I.pressed('b') || I.pressed('menu') || I.mouse.click) { D.sfx('cancel'); this.leaving = false; }
   };
 
@@ -187,7 +188,7 @@
     var lw = 300, lx = (D.W - lw) / 2;
     box(ctx, lx, 104, lw, 46);
     D.text(ctx, '{y}LEAVE THE LADDER?{/}', D.W / 2, 112, P('gold', 4), 'center');
-    D.text(ctx, 'for the first fight past the door (the Cocoon Gallery)', D.W / 2, 124, P('bone', 1), 'center');
+    D.text(ctx, 'back to the 8-bit game (its title has both ladders)', D.W / 2, 124, P('bone', 1), 'center');
     D.hint(ctx, '{g}E leave  ·  X stay{/}', D.W / 2, 137, P('accent', 2), 'center');
   };
   // a light read of the four at a level (cached per level and fight: a fight may give them its own looks)
