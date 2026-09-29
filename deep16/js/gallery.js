@@ -67,7 +67,10 @@
       var wrapAt = 440, rules = '';
       try { rules = e ? D.magic.summary(e, u) : ''; } catch (x) { rules = ''; }
       var lines = ['{y}' + (S.i + 1) + ' / ' + S.ids.length + '   ' + sp.name.toUpperCase() + '{/}' + (sp.level ? '  (level ' + sp.level + ')' : '  (cantrip)')];
-      if (sp.desc) lines = lines.concat(D.wrap(sp.desc, wrapAt));
+      // the creature types they name show as their glyphs (Griz, 09-29), and "(inspect)" once after both when any is named
+      var desc = D.typeText(sp.desc || '', true); rules = D.typeText(rules, true);
+      if (/\{:/.test(desc + rules)) { if (rules) rules += ' (inspect)'; else desc += ' {g}(inspect){/}'; }
+      if (desc) lines = lines.concat(D.wrap(desc, wrapAt));
       if (rules) lines = lines.concat(D.wrap(rules, wrapAt).map(function (l) { return '{g}' + l + '{/}'; }));
       lines.push('{g}left/right the next · up/down ten · E again{/}');
       B.clearCards(); S.card = null;

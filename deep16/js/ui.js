@@ -709,6 +709,53 @@
   }
   UI.xray = xray;
 
+  // ------------------------------------------------------------------ the creature types (Griz, 09-29: "emoji's for the creature classes ...
+  // wait, emoji's didn't exist in 8 or 16bit..."; then, having watched them over the foes: "add it to the right-click inspect and don't do the
+  // thing I said (protection spell)"): a 9x9 pixel glyph per SRD type on a dark chip, the 16-bit status icon's way, shown in the inspect panel
+  // beside the creature's type
+  var GLYPH = {
+    aberration: ['...kkk...', '.kkwwwkk.', 'kwwvvvwwk', 'kwvvpvvwk', 'kwwvvvwwk', '.kkwwwkk.', '...kkk...'],
+    beast: ['..ll.ll..', '..ll.ll..', 'll.....ll', 'll.....ll', '...lll...', '..lllll..', '.lllllll.', '.lllllll.', '..ll.ll..'],
+    celestial: ['..ggggg..', '.g.....g.', '..ggggg..', '....y....', '...yyy...', '.yyyyyyy.', '...yyy...', '..yy.yy..', '.y.....y.'],
+    construct: ['...s.s...', '..sssss..', '.ssdddss.', 'ssdd.ddss', '.sd...ds.', 'ssdd.ddss', '.ssdddss.', '..sssss..', '...s.s...'],
+    dragon: ['r........', 'rr.......', 'rrr..r...', 'rrRr.rr..', 'rrRRrrrr.', '.rrRRRrrr', '..rrRRrr.', '...rrrr..', '.....rr..'],
+    elemental: ['....f....', '...fFf...', '..fFFf...', '..fFFFf..', '.fFFFFf..', '.ffFFff..', 'bb.fff.bb', '.bbb.bbb.', '..b...b..'],
+    fey: ['.aa...aa.', 'aaaa.aaaa', 'aaaamaaaa', '.aaamaaa.', '...mmm...', '.aaamaaa.', 'aaa.m.aaa', '.a..m..a.'],
+    fiend: ['r.......r', 'rr.....rr', '.rr...rr.', '.rrrrrrr.', 'rrRrrrRrr', 'rrrrrrrrr', '.rr.r.rr.', '..rrrrr..', '...rrr...'],
+    giant: ['...ttt...', '.ttTTTtt.', 'tTTTTTTTt', 'tTTtTTTTt', 'tTTTTTtTt', 'tTTTTTTTt', '.tTTTTTt.', '..ttttt..'],
+    humanoid: ['...bbb...', '...bbb...', '....b....', '.bbbbbbb.', '...bbb...', '...bbb...', '..bb.bb..', '..b...b..', '..b...b..'],
+    monstrosity: ['o..o..o..', 'o..o..o..', '.o..o..o.', '.o..o..o.', '..o..o..o', '..o..o..o', '...o..o..'],
+    ooze: ['...ggg...', '..gGGGg..', '.gGGGGGg.', 'gGGGGGGGg', 'gGGGGGGGg', '.gGGgGGg.', '..g..g.g.', '..g....g.', '.......g.'],
+    plant: ['.MM...MM.', 'MMMM.MMMM', '.MMMMMMM.', '...MmM...', '....m....', '....m....', '..lllll..', '.lllllll.'],
+    undead: ['..wwwww..', '.wwwwwww.', 'wwwwwwwww', 'wkkwwwkkw', 'wkkwwwkkw', 'wwwwkwwww', '.wwwwwww.', '..wkwkw..', '..wwwww..']
+  };
+  var GCOL = {
+    aberration: { k: ['outline', 0], w: ['bone', 0], v: ['violet', 4], p: ['violet', 1] }, beast: { l: ['leather', 3] },
+    celestial: { g: ['gold', 4], y: ['gold', 3] }, construct: { s: ['silver', 5], d: ['silver', 3] }, dragon: { r: ['red', 3], R: ['gold', 3] },
+    elemental: { f: ['fire', 0], F: ['fire', 2], b: ['glow', 1] }, fey: { a: ['accent', 0], m: ['orc', 3] }, fiend: { r: ['red', 3], R: ['fire', 2] },
+    giant: { t: ['stone', 4], T: ['stone', 6] }, humanoid: { b: ['bone', 0] }, monstrosity: { o: ['red', 4] },
+    ooze: { g: ['orc', 3], G: ['orc', 2] }, plant: { M: ['orc', 3], m: ['orc', 2], l: ['leather', 2] }, undead: { w: ['bone', 1], k: ['outline', 0] }
+  };
+  UI.typeOf = function (u) { return u.type || 'humanoid'; }; // (the class NPCs and the heroes are people)
+  // one chip: 11x11, the glyph centred in it; edge 'gold' | 'grey'; cross: a red X over it; alpha for the faint ones
+  UI.drawGlyph = function (ctx, type, x, y, o) {
+    var rows = GLYPH[type], col = GCOL[type]; if (!rows) return;
+    o = o || {}; ctx.save(); ctx.globalAlpha = o.alpha == null ? 1 : o.alpha;
+    if (o.bare) { // (inline in a line of text, core.js D.text: the glyph alone over a one-pixel shadow)
+      var by = y - 4 + Math.floor((9 - rows.length) / 2);
+      ctx.fillStyle = '#05040a'; rows.forEach(function (row, j) { for (var i = 0; i < row.length; i++) if (col[row[i]]) ctx.fillRect(x - 3 + i, by + j + 1, 1, 1); });
+      rows.forEach(function (row, j) { for (var i = 0; i < row.length; i++) { var cb = col[row[i]]; if (!cb) continue; ctx.fillStyle = R(cb[0], cb[1]); ctx.fillRect(x - 4 + i, by + j, 1, 1); } });
+      ctx.restore(); return;
+    }
+    ctx.fillStyle = R('outline', 0); ctx.fillRect(x - 5, y - 5, 11, 11);
+    ctx.fillStyle = o.edge === 'gold' ? R('gold', 3) : R('silver', 3);
+    ctx.fillRect(x - 5, y - 6, 11, 1); ctx.fillRect(x - 5, y + 6, 11, 1); ctx.fillRect(x - 6, y - 5, 1, 11); ctx.fillRect(x + 6, y - 5, 1, 11);
+    var oy = y - 4 + Math.floor((9 - rows.length) / 2);
+    rows.forEach(function (row, j) { for (var i = 0; i < row.length; i++) { var c = col[row[i]]; if (!c) continue; ctx.fillStyle = R(c[0], c[1]); ctx.fillRect(x - 4 + i, oy + j, 1, 1); } });
+    if (o.cross) { ctx.fillStyle = R('red', 4); for (var k = -5; k <= 5; k++) { ctx.fillRect(x + k, y + k, 1, 1); ctx.fillRect(x + k, y - k, 1, 1); } }
+    ctx.restore();
+  };
+
   // the overlay: squares on the ledge are drawn after the ledge's tiles (deferred into the sort), the rest at once
   function onSq(x, y, fn) {
     var z = G.map.gz(x, y);
@@ -723,7 +770,7 @@
     // on him"). Its radius, 2.9 squares, takes in the centre of every square within 10 ft -- the 5x5 block the rules
     // count, corners too -- and none past it; the cursor inside says what it is
     B.units.forEach(function (p) {
-      if (p.cls !== 'paladin' || p.lvl < 6 || !G.standing(p) || !RU.canAct(p)) return;
+      if (!RU.auraOf(p)) return; // (the one test: js/rules.js; Devotion's inner line is js/looks.js LK.ground's)
       var q = unitPos(B, p), r = 2.9 * Math.SQRT2;
       ctx.save(); ctx.beginPath(); ctx.ellipse(q.x, q.y, r * D.iso.TW / 2, r * D.iso.TH / 2, 0, 0, Math.PI * 2);
       ctx.globalAlpha = 0.06; ctx.fillStyle = R('gold', 3); ctx.fill();
@@ -856,8 +903,9 @@
       var k = B.cursor.x + ',' + B.cursor.y;
       if (B.dark) { var lv = D.light.levelAt(B, B.cursor.x, B.cursor.y), ps = D.light.partySeesSq(B, B.cursor.x, B.cursor.y); lines.push('{g}' + D.light.name(lv) + ' here' + (lv === 0 ? (ps === 1 ? ' (one of yours sees it by darkvision)' : ' (no one of yours sees it)') : '') + '{/}'); }
       B.units.forEach(function (p) {
-        if (p.cls !== 'paladin' || p.lvl < 6 || !G.standing(p) || !RU.canAct(p) || Math.max(Math.abs(B.cursor.x - p.x), Math.abs(B.cursor.y - p.y)) > 2) return;
-        lines.push('{y}' + p.name + '\'s aura{/}: allies here add +' + Math.max(1, D.mod(p.abil.cha)) + ' to saving throws');
+        var au = RU.auraOf(p);
+        if (!au || Math.max(Math.abs(B.cursor.x - p.x), Math.abs(B.cursor.y - p.y)) > 2) return;
+        lines.push('{y}' + p.name + '\'s aura{/}: allies here add +' + au.protect + ' to saving throws' + (au.devotion ? ' and can\'t be charmed' : ''));
       });
       (flankSpots(B, u)[k] || []).forEach(function (fe) { lines.push('{y}flanking{/} the ' + B.shortName(fe.foe) + ' with ' + fe.ally.name + ': advantage in melee, both'); });
       if (u.cls === 'rogue') {
@@ -974,7 +1022,7 @@
     var cur = rows[L.sel];
     var sy = y + h - 10;
     if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, sy, R('accent', 2));
-    else if (cur && cur.sp) D.text(ctx, '{g}' + D.magic.summary(cur, u) + '{/}', x + 6, sy, R('accent', 2));
+    else if (cur && cur.sp) D.text(ctx, '{g}' + D.typeText(D.magic.summary(cur, u)) + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.note) D.text(ctx, '{g}' + cur.note + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire', light: cur.id === 'lantern' ? 'a hooded lantern, lit: bright 30 ft, dim 30 more; hood down, dim 5 ft and a roost sleeps; it takes a hand' : 'a torch, lit: bright 20 ft, dim 20 more; it takes a hand' }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
   }
@@ -1048,7 +1096,7 @@
     var lw = D.textWidth(label) + 10, ly = cy + ry + 16;
     box(ctx, Math.round(cx - lw / 2), ly, lw, 12, R('gold', 3));
     D.text(ctx, label, cx, ly + 2, cur.ok ? R('bone', 2) : R('stone', 4), 'center');
-    var sub = !cur.ok && cur.why ? cur.why : cur.kind === 'spell' ? D.magic.summary(cur, u) : cur.note || '';
+    var sub = !cur.ok && cur.why ? cur.why : cur.kind === 'spell' ? D.typeText(D.magic.summary(cur, u)) : cur.note || ''; // (the creature types as their glyphs)
     if (sub) { var ww = D.textWidth(sub) + 8; box(ctx, Math.round(cx - ww / 2), ly + 13, ww, 11, R('stone', 3)); D.text(ctx, '{g}' + sub + '{/}', cx, ly + 15, R('accent', 2), 'center'); }
   }
   function initials(name) { var w = name.split(' ').filter(function (x) { return !/^(of|the)$/i.test(x); }); return w.length > 1 ? w.map(function (x) { return x[0]; }).join('').slice(0, 2) : name.slice(0, 2); }
@@ -1092,7 +1140,8 @@
     if ((B.t >> 5) & 1) D.hint(ctx, 'E to begin', D.W / 2, 180, R('glow', 2), 'center');
   }
   function inspect(ctx, u) {
-    var lines = ['{' + (u.side === 'foe' ? 'r' : 'c') + '}' + u.name + '{/}' + (u.cls ? '  ' + u.cls + ' ' + u.lvl : ''), 'HP ' + u.hp + '/' + u.maxhp + '  AC ' + RU.ac(u) + '  speed ' + u.speed + ' ft' + (u.size > 1 ? '  Large' : '')];
+    var ty = UI.typeOf(u);
+    var lines = ['{' + (u.side === 'foe' ? 'r' : 'c') + '}' + u.name + '{/}' + (u.cls ? '  ' + u.cls + ' ' + u.lvl : '') + '  {g}' + ty + '{/}', 'HP ' + u.hp + '/' + u.maxhp + '  AC ' + RU.ac(u) + '  speed ' + u.speed + ' ft' + (u.size > 1 ? '  Large' : '')];
     if (u.weapon) lines.push(u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' ' + u.weapon.type + (u.attacks > 1 ? ', x' + u.attacks : ''));
     if (u.attacks && !u.weapon) Object.keys(u.attacks).forEach(function (k) { var a = u.attacks[k]; lines.push(a.name + ' ' + RU.sign(a.atk) + ', ' + a.dice + RU.sign(a.mod) + ' ' + a.type + (a.range ? ', ' + a.range.join('/') + ' ft' : '') + (a.extra ? ' +' + a.extra + ' ' + a.extraType : '') + (a.save ? ', DC ' + a.save.dc + ' ' + a.save.ab.toUpperCase() + ' or ' + a.save.dice + ' ' + a.save.type : '') + (a.poison ? ', DC ' + a.poison.dc + ' CON or poisoned' : '') + (a.reach > 5 ? ', reach ' + a.reach + ' ft' : '') + (a.grapple ? ', grips (escape DC ' + a.grapple.dc + ')' : '')); });
     if (u.jaunt) lines.push('{p}Ethereal Jaunt{/} (bonus action): steps out of the world, and back.');
@@ -1118,8 +1167,9 @@
     lines.push(sen.length ? '{c}' + sen.join(', ') + '{/}' : '{g}no darkvision: it sees by light{/}');
     var c = conds(u).trim(); if (c) lines.push(c);
     var w = 0; lines.forEach(function (l) { w = Math.max(w, D.textWidth(l)); });
-    box(ctx, 6, 40, w + 12, lines.length * 9 + 8, u.side === 'foe' ? R('red', 3) : R('glow', 1));
+    box(ctx, 6, 40, w + 28, lines.length * 9 + 8, u.side === 'foe' ? R('red', 3) : R('glow', 1));
     lines.forEach(function (l, k) { D.text(ctx, l, 12, 44 + k * 9, R('bone', 1)); });
+    UI.drawGlyph(ctx, ty, 6 + w + 28 - 10, 50); // (its creature type: the glyphs above)
   }
   function menu(ctx, B) {
     var M = B.menu;

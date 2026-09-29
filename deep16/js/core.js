@@ -339,17 +339,57 @@
 
   // ---------------------------------------------------------------- text: the 8-bit game's own bitmap font (../js/font.js), with a drop shadow
   // so the lettering carries across the seam. {y}...{/} colour codes work as there.
+  // {:undead} in a line draws that creature type's 9x9 glyph where it stands, 10 px wide (js/ui.js UI.drawGlyph; Griz, 09-29: "use the
+  // symbols in the spell description, maybe add (inspect)"). D.typeText puts one after each type a spell's words name.
+  var GT = /\{:([a-z]+)\}/g, GW = 10;
+  function glyphSplit(s) { var out = [], last = 0, m; GT.lastIndex = 0; while ((m = GT.exec(s))) { out.push(s.slice(last, m.index)); out.push({ g: m[1] }); last = GT.lastIndex; } out.push(s.slice(last)); return out; }
   D.text = function (ctx, s, x, y, color, align) {
-    var DS = window.DS, w = DS.textWidth(s);
+    var DS = window.DS, w = D.textWidth(s);
+    s = String(s);
     if (align === 'center') x -= Math.round(w / 2);
     if (align === 'right') x -= w;
-    DS.text(ctx, DS.stripCodes(s), x + 1, y + 1, '#05040a');
-    DS.text(ctx, s, x, y, color || '#e8e4d8');
+    if (s.indexOf('{:') < 0) {
+      DS.text(ctx, DS.stripCodes(s), x + 1, y + 1, '#05040a');
+      DS.text(ctx, s, x, y, color || '#e8e4d8');
+      return w;
+    }
+    var cx = x, open = '';
+    glyphSplit(s).forEach(function (seg) {
+      if (typeof seg !== 'string') { if (D.ui && D.ui.drawGlyph) D.ui.drawGlyph(ctx, seg.g, cx + 4, y + 3, { bare: true }); cx += GW; return; }
+      if (!seg) return;
+      var t = open + seg;
+      DS.text(ctx, DS.stripCodes(t), cx + 1, y + 1, '#05040a');
+      cx += DS.text(ctx, t, cx, y, color || '#e8e4d8');
+      var m = seg.match(/\{([a-z\/])\}/g); if (m) { var l = m[m.length - 1]; open = l === '{/}' ? '' : l; } // (a colour carries across a glyph)
+    });
     return w;
   };
   D.hint = function (ctx, s, x, y, color, align) { return D.text(ctx, D.keys(s), x, y, color, align); }; // a line naming keys
-  D.textWidth = function (s) { return window.DS.textWidth(s); };
-  D.wrap = function (s, w) { return window.DS.wrap(s, w); };
+  D.textWidth = function (s) { var n = 0; s = String(s).replace(GT, function () { n++; return ''; }); return window.DS.textWidth(s) + n * GW; };
+  D.wrap = function (s, w) {
+    if (String(s).indexOf('{:') < 0) return window.DS.wrap(s, w);
+    var out = []; // (the 8-bit's wrap, measuring with the glyphs' width)
+    String(s).split('\n').forEach(function (para) {
+      var line = '', open = '';
+      para.split(' ').forEach(function (wd) {
+        var test = line ? line + ' ' + wd : wd;
+        if (D.textWidth(test) > w && line) { out.push(line); line = open + wd; } else line = test;
+        var m = wd.match(/\{([a-z\/])\}/g); if (m) { var last = m[m.length - 1]; open = last === '{/}' ? '' : last; }
+      });
+      out.push(line);
+    });
+    return out;
+  };
+  // a spell's words with a glyph after each creature type they name, and "(inspect)" after them when any is named (right-click shows a
+  // creature's type); noHint leaves the "(inspect)" off (a caller that puts it once after two texts)
+  var TYPEWORD = [[/\b(aberrations?)\b/gi, 'aberration'], [/\b(celestials?)\b/gi, 'celestial'], [/\b(elementals?)\b/gi, 'elemental'], [/\b(fey)\b/gi, 'fey'],
+    [/\b(fiends?)\b/gi, 'fiend'], [/\b(undead|the dead)\b/gi, 'undead'], [/\b(humanoids?)\b/gi, 'humanoid'], [/\b(beasts?)\b/gi, 'beast'],
+    [/\b(constructs?)\b/gi, 'construct'], [/\b(oozes?)\b/gi, 'ooze'], [/\b(monstrosit(?:y|ies))\b/gi, 'monstrosity']];
+  D.typeText = function (s, noHint) {
+    var hit = false; s = String(s || '');
+    TYPEWORD.forEach(function (p) { s = s.replace(p[0], function (w) { hit = true; return w + '{:' + p[1] + '}'; }); });
+    return hit && !noHint ? s + ' {g}(inspect){/}' : s;
+  };
 
   // ---------------------------------------------------------------- assets
   D.images = {};

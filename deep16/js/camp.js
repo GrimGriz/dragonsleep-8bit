@@ -240,7 +240,7 @@
         var c = this.hero(this.pick.hero), n2 = self.prepCount(c), ours = !!this.o.ours, oath = ours ? self.pinfo[c.id].always : SV.oath(c);
         var rows2 = self.prepPool(c).map(function (id) {
           var sp = SV.spell(id), on = c.prepared.indexOf(id) >= 0;
-          return { label: (on ? '[x] ' : '[ ] ') + sp.name, right: 'L' + sp.level + (D.SPELLS[id] && D.SPELLS[id].shape === 'none' ? '  no use in a fight' : ''), on: on, desc: sp.desc, hero: c.id,
+          return { label: (on ? '[x] ' : '[ ] ') + sp.name, right: 'L' + sp.level + (D.SPELLS[id] && D.SPELLS[id].shape === 'none' ? '  no use in a fight' : ''), on: on, desc: D.typeText(sp.desc), hero: c.id,
             act: function () { self.togglePrep(c, id); } };
         });
         oath.forEach(function (id) { rows2.push({ label: '[*] ' + SV.spell(id).name, right: ours ? 'domain: always ready' : 'oath: always ready', ok: false, why: ours ? (c.subclass || 'the domain') + ' keeps it ready' : 'the Oath of Devotion keeps it ready', hero: c.id, desc: SV.spell(id).desc }); });

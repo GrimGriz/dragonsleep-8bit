@@ -307,7 +307,7 @@
         var sp = SV.spell(id); return sp && (c.kind === 'cantrip' ? !sp.level : sp.level && sp.level <= top) && (h.known || []).indexOf(id) < 0;
       }).map(function (id) {
         var sp = SV.spell(id), g = D.SPELLS[id], on = self.temp.indexOf(id) >= 0, built = !!g && g.why !== 'not on the grid yet';
-        return { label: (on ? '[x] ' : '[ ] ') + sp.name, right: (sp.level ? 'L' + sp.level : 'cantrip') + (!built ? '  not built yet' : g.shape === 'none' ? '  no use in a fight' : ''), ok: built, why: 'not on the grid yet', desc: sp.desc,
+        return { label: (on ? '[x] ' : '[ ] ') + sp.name, right: (sp.level ? 'L' + sp.level : 'cantrip') + (!built ? '  not built yet' : g.shape === 'none' ? '  no use in a fight' : ''), ok: built, why: 'not on the grid yet', desc: D.typeText(sp.desc),
           act: function () { self.toggle(id, c.n, function (t) { var o = {}; o[c.kind === 'cantrip' ? 'cantrip' : 'spells'] = t.slice(); return o; }); } };
       }) };
     }
