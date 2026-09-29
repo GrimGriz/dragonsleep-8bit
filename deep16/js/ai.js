@@ -364,7 +364,7 @@
     var W = u.web, T = u.turn;
     T.action = 0; W.ready = false;
     var shot = { name: 'Web', atk: W.atk, dice: '0', mod: 0, type: 'web', range: W.range, ranged: true, fx: 'bolt' };
-    u.facing = B.faceTo(u, tgt); u.anim = 'attack'; u.animT = B.t;
+    u.facing = B.faceTo(u, tgt); u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; // (a sheet's throw row, if it has one: the ettercap's Web Shot)
     FX.projectile(u, tgt, 'bolt'); yield { fx: 1 };
     var e = RU.edges(u, tgt, shot), r = RU.d20(e.net), tot = r.pick + W.atk + (e.pen || 0), ac = RU.ac(tgt) + G.los(u, tgt).cover;
     var hit = r.pick === 20 || (r.pick !== 1 && tot >= ac);

@@ -1003,6 +1003,8 @@
     if (u.traces) this.hitAtTraces = true; // (nothing shows now: from their next moves they run, or he turns to fight: ai.js turn)
     if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
     u.flash = 10;
+    // a sheet with a hit row flinches (played once, ui.js unitObj) when the blow doesn't drop it and it isn't mid-swing or mid-stride
+    if (u.hp > 0 && (!u.anim || u.anim === 'idle' || u.anim === 'flinch') && D.spr.anim(u.sheet, 'flinch')) { u.anim = 'flinch'; u.animT = this.t; }
     FX.float('-' + n, u, D.PAL.ramps.red[4]);
     if (u.conds.hidden) delete u.conds.hidden;
     if (u.hp <= 0 && (u.side === 'party' && !u.guest || u.npc) && u.feats && u.feats.relentless > 0) {

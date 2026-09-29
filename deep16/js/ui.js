@@ -633,7 +633,7 @@
           if (has('hurt')) { anim = 'hurt'; o.once = true; }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }
-        } else if (anim === 'attack' || anim === 'cast') { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) anim = 'idle'; }
+        } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch') { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) anim = 'idle'; }
         if (anim === 'idle' || anim === 'walk' || anim === 'roost') t = u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;

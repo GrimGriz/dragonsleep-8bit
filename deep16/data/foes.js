@@ -70,7 +70,7 @@
   // The braiding ettercap of Web Gulch (events.js S.ettercap: it fights beside a giant spider). SRD 5.1 as written; its
   // Web in the SRD's form (a ranged attack, where the 8-bit game rolls a DEX save).
   ettercap: {
-    name: 'Ettercap', type: 'monstrosity', sheet: 'ettercap_p1', cr: '2', ac: 13, hp: 44, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Ettercap', type: 'monstrosity', sheet: 'ettercap_p2', cr: '2', ac: 13, hp: 44, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 14, dex: 15, con: 13, int: 7, wis: 12, cha: 8 }, init: 2, perception: 13,
     saves: { str: 2, dex: 2, con: 1, int: -2, wis: 1, cha: -1 },
     attacks: {
@@ -84,7 +84,7 @@
   // SRD 5.1 Otyugh as the 8-bit game has it (no disease, no stench): bite and two tentacles, a tentacle grips (up to two),
   // and on half its turns it slams what it holds (CON 14, 2d6+3, stunned). bound '~': it keeps to its pool, not slowed there.
   otyugh: {
-    name: 'Otyugh', type: 'aberration', sheet: 'otyugh_p1', cr: '5', ac: 14, hp: 114, speed: 30, size: 2, reach: 5, darkvision: 120,
+    name: 'Otyugh', type: 'aberration', sheet: 'otyugh_p2', cr: '5', ac: 14, hp: 114, speed: 30, size: 2, reach: 5, darkvision: 120,
     abil: { str: 16, dex: 11, con: 19, int: 6, wis: 13, cha: 6 }, init: 0, perception: 11,
     saves: { str: 3, dex: 0, con: 7, int: -2, wis: 1, cha: -2 },
     attacks: {
@@ -295,7 +295,7 @@
     multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28)'
   },
   hyena: {
-    name: 'Hyena', type: 'beast', sheet: 'hyena_p1', cr: '0', ac: 11, hp: 5, speed: 50, size: 1, reach: 5,
+    name: 'Hyena', type: 'beast', sheet: 'hyena_p2', cr: '0', ac: 11, hp: 5, speed: 50, size: 1, reach: 5,
     abil: { str: 11, dex: 13, con: 12, int: 2, wis: 12, cha: 5 }, init: 1, perception: 13,
     saves: { str: 0, dex: 1, con: 1, int: -4, wis: 1, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 2, dice: '1d6', mod: 0, type: 'piercing', reach: 5 } },
