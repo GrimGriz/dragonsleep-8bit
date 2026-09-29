@@ -371,7 +371,7 @@
     src: 'SRD 5.1 Bulette (CR 5, Large); content/monsters.json bulette (its Deadly Leap as the 8-bit game reads it: DEX 16, 6d6, two of them, half on a save and prone on a failure; recharge 5-6)', todo: 'the burrow is not read'
   },
   cloaker: {
-    name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p1', cr: '8', ac: 14, hp: 78, speed: 40, size: 2, reach: 5, darkvision: 60,
+    name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,
     saves: { str: 3, dex: 2, con: 1, int: 1, wis: 1, cha: 2 },
     attacks: {
