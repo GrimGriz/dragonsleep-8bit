@@ -258,7 +258,7 @@
         B.gimmickDone = true;
         var c = struck[0]; if (!c.dead && c.hp > 0) c.grudge = u.id;
         yield { scene: { who: c, scale: 1.3, frames: 110, hit: true, caption: 'THE DARTS FIND IT.' } };
-        yield { scene: { who: c, face: true, faceAt: 0.29, scale: 3, frames: 210, tone: 'red', clip: 'audio/the_darkness_attacks_back.mp3', caption: 'AND THE DARKNESS ATTACKS BACK.' } };
+        yield { scene: { who: c, face: true, faceAt: 0.37, scale: 3, frames: 210, tone: 'red', clip: 'audio/the_darkness_attacks_back.mp3', caption: 'AND THE DARKNESS ATTACKS BACK.' } };
       }
     } else if (g.shape === 'splash') {
       var first = t, second = B.units.filter(function (w) { return w !== first && G.hostile(u, w) && G.standing(w) && G.dist(first, w) <= 5; })[0];
