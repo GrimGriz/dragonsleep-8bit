@@ -111,7 +111,9 @@
   };
   // a creature's melee reach in feet, the one place it is read (Enlarge, 09-29: an enlarged creature reaches 5 ft further; reduced does
   // not go below its own). `base` is a weapon's own reach where it has one (a glaive, a giant's fist); ranged is nothing to do with it
-  G.reachOf = function (u, base) { var e = u.conds && u.conds.enlarged; return (base || u.reach || 5) + (e && !e.down ? 5 : 0); };
+  // (Enlarge and reach: the SRD 5.1 gives none -- +1d4, STR advantage, a size larger -- so the +5 ft is a house rule, off unless
+  // D.RULES.enlargeReach is set; Griz 09-29: "check rules if you can, that was my remember guess")
+  G.reachOf = function (u, base) { var e = u.conds && u.conds.enlarged; return (base || u.reach || 5) + (e && !e.down && D.RULES && D.RULES.enlargeReach ? 5 : 0); };
   G.inReach = function (a, b, ax, ay, reach) { return G.dist(a, b, ax, ay) <= G.reachOf(a, reach); };
   G.foesNear = function (u, x, y, ft) {
     return G.units.filter(function (w) { return G.standing(w) && G.hostile(u, w) && G.dist(u, w, x, y) <= (ft || 5); });

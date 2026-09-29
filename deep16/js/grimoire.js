@@ -559,7 +559,7 @@
   }
   function sizeUndo(t, rec) { return function () { if (t.conds.enlarged === rec) { var k0 = D.spr.scaleOf(t); delete t.conds.enlarged; D.spr.regrow(t, k0); } }; }
   E.enlargereduce = {
-    summary: function () { return 'a creature within 30 ft · an ally enlarged (+1d4 weapon damage, +5 ft reach, strong, drawn 1.5x), a foe reduced on a failed CON (-1d4, 0.7x); not one already so (concentration)'; },
+    summary: function () { return 'a creature within 30 ft · an ally enlarged (+1d4 weapon damage, strong' + (D.RULES && D.RULES.enlargeReach ? ', +5 ft reach' : '') + ', drawn 1.5x), a foe reduced on a failed CON (-1d4, 0.7x); not one already so (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
       var k0 = D.spr.scaleOf(t);
       if (t.side === u.side) {
@@ -567,7 +567,7 @@
         sizeTakeOver(B, u, t); t.conds.enlarged = rec;
         M.concentrate(B, u, 'enlargereduce', 'Enlarge', sizeUndo(t, rec)); u.conc.rec = rec;
         D.spr.regrow(t, k0); FX.ring(t, 'stone', 30);
-        B.card(had ? [head + ': ' + t.name + ' is already enlarged.', '{g}(no further growth; the new casting takes hold, concentration){/}'] : [head + ': ' + t.name + ' swells to twice their size.', '{g}(+1d4 on weapon hits, +5 ft reach; concentration){/}']); yield 20; return;
+        B.card(had ? [head + ': ' + t.name + ' is already enlarged.', '{g}(no further growth; the new casting takes hold, concentration){/}'] : [head + ': ' + t.name + ' swells to twice their size.', '{g}(+1d4 on weapon hits' + (D.RULES && D.RULES.enlargeReach ? ', +5 ft reach' : '') + '; concentration){/}']); yield 20; return;
       }
       var hit = false, down = { by: u.id, down: true };
       yield* saveAll(B, u, [t], 'con', x.dc, null, '', false, head + ' on ' + nm(B, t), { failText: 'shrinks', cond: function (w) { sizeTakeOver(B, u, w); w.conds.enlarged = down; hit = true; D.spr.regrow(w, k0); } });

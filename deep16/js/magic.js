@@ -12,6 +12,7 @@
   // house rules the seat proposes, each a switch (torchdark, 09-28): Magic Missile may be aimed at a square the caster cannot see
   // into -- "at the darkness" -- and its darts strike whatever stands there. OPEN for Griz's word (handoff 09-28 §3G)
   D.RULES = D.RULES || {}; if (D.RULES.missilesAtTheDark == null) D.RULES.missilesAtTheDark = true;
+  if (D.RULES.enlargeReach == null) D.RULES.enlargeReach = false; // (Enlarge +5 ft reach: a house rule, not the SRD's -- off; js/grid.js G.reachOf, 09-29)
   // a square Magic Missile may be thrown at blind: open, in range and line, and one the caster cannot see into (dark, darkness, fog)
   M.missileDark = function (B, u, g, x, y) {
     if (!D.RULES.missilesAtTheDark || g.shape !== 'darts') return false;

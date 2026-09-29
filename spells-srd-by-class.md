@@ -139,7 +139,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Faerie Fire | D | Dr | **BUILT** | the drow's innate on the grid: 20-ft cube, DEX save or outlined -- attacks at adv, no hiding (conc); as a spell too (09-28: any caster, deep16/js/grimoire.js) |
 | False Life | W S | Au Wi | **BUILT** | self: 1d4+4 temp HP for an hour (+5 a slot); cast ahead like Mage Armor -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Feather Fall | W S B | Au Wi | **OUT** | no falls to break in a fight; the guano slide is a save |
-| Find Familiar | W | Au Wi | **OUT** | cut from the game (invented.json no-familiar) |
+| Find Familiar | W | Au Wi | **LATER** | was OUT (invented.json no-familiar, Griz 09-24); REINSTATED 09-29 on his word ("familiars are pretty sweet - let's reinstate"): a ritual from the worldmap menu, the familiar picked by biome (his lean); on the grid a beast-shaped spirit on the party side that takes the Help action and lends its eyes; a spec is owed (handoff-2026-09-29-the-druid-and-the-familiar.md) |
 | Floating Disk | W | Au Wi | **OUT** | carries 500 lb: the pack is unlimited |
 | Fog Cloud | W S D R | Au Wi | **BUILT** | 20-ft sphere heavily obscured (conc): blocks sight both ways -- BUILT 09-28 (torchdark): heavily obscured on the grid (nothing sees in, out or across); the 8-bit: RUN slips away under it |
 | Goodberry | D R |  | **OUT** | ten 1-HP berries (an action each) and a day's food; no caster for it, at most an item |
