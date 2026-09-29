@@ -573,7 +573,8 @@
     if (zf) k = zf + (k - zf) * ez;
     var o = {}; if (sc.hit && t < 44 && ((t >> 2) & 1)) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
     var anim = sc.anim && D.spr.anim(u.sheet, sc.anim) ? sc.anim : 'idle';
-    if (anim === 'attack' || (sc.swoop && anim === 'fly')) { o.once = true; }
+    if (anim === 'attack' || anim === 'reveal' || (sc.swoop && anim === 'fly')) { o.once = true; }
+    var tA = Math.max(0, t - (sc.animAt || 0)); // (`animAt`: the tick its animation starts from -- the reveal plays from its own first frame)
     // `swoop` (Griz, 09-29: the sheet "looks like a sequence to play at the end of the easter egg"): the figure flies in from the right,
     // growing as it comes, through its flight's eight poses, the last held -- toward whoever it is coming for, at the left
     var px0 = D.W / 2, py0 = foot, kk = k;
@@ -582,8 +583,15 @@
     // over `dur` ticks from `at`, trembling as it changes -- the unfurling
     var ma = sc.morph && D.spr.anim(u.sheet, sc.morph.from) ? Math.max(0, Math.min(1, (t - sc.morph.at) / sc.morph.dur)) : 1, shake = sc.morph && ma > 0 && ma < 1 ? Math.sin(t * 2.3) * 2.2 * Math.sin(Math.PI * ma) : 0;
     ctx.save(); ctx.translate(px0 + shake, py0); ctx.scale(kk, kk);
-    var facing = sc.facing == null ? 0 : sc.facing, one = function (an, al) { var oo = Object.assign({}, o); if (al < 1) oo.alpha = al; D.spr.draw(ctx, u.sheet, an, facing, an === 'attack' ? Math.min(t, 60) : t, 0, 0, oo); };
-    if (sc.morph && ma < 1) { one(sc.morph.from, 1 - ma * ma); if (ma > 0) one(anim, ma); } else one(anim, 1);
+    // `morph.animAt`: the target plays from that tick; `morph.hold`: the figure it leaves is held on its last frame; `over` { anim, alpha }:
+    // a faint second drawing laid over the figure, pulsing and swelling (the cloaker's Moan, the phantasm heads)
+    var facing = sc.facing == null ? 0 : sc.facing, one = function (an, al, tt, once) { var oo = Object.assign({}, o); if (al < 1) oo.alpha = al; if (once) oo.once = true; D.spr.draw(ctx, u.sheet, an, facing, an === 'attack' ? Math.min(tt, 60) : tt, 0, 0, oo); };
+    if (sc.morph && ma < 1) { one(sc.morph.from, 1 - ma * ma, sc.morph.hold ? 99999 : t, sc.morph.hold); if (ma > 0) one(anim, ma, tA); } else one(anim, 1, tA);
+    if (sc.over && D.spr.anim(u.sheet, sc.over.anim)) {
+      var pu = 0.5 + 0.5 * Math.sin(t / 5), fade = Math.min(1, t / 20);
+      ctx.save(); ctx.scale(1.05 + 0.1 * pu, 1.05 + 0.1 * pu); ctx.globalAlpha = (sc.over.alpha || 0.65) * fade * (0.75 + 0.25 * pu);
+      D.spr.draw(ctx, u.sheet, sc.over.anim, facing, t, 0, 0, {}); ctx.restore();
+    }
     ctx.restore();
     if (sc.hit) for (var i = 0; i < 3; i++) { // the darts landing: three bursts up the body, in turn
       var tt = t - i * 9; if (tt < 0 || tt > 32) continue;
@@ -615,12 +623,14 @@
       depth: p.depth, gz: p.gz, layer: 1, unit: u, draw: function (ctx) {
         var o = { color: u.side === 'foe' ? R('violet', 3) : R('silver', 4) }, anim = u.anim, t = B.t - (u.animT || 0);
         var down = u.dead || u.hp <= 0;
+        // the cloaker hangs as a cloak until something hurts it (Griz, 09-29)
+        if (!down && u.sheet === 'cloaker_p2' && !u.woken && anim === 'idle' && has('roost')) anim = 'roost';
         if (down) {
           if (has('hurt')) { anim = 'hurt'; o.once = true; }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }
         } else if (anim === 'attack' || anim === 'cast') { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) anim = 'idle'; }
-        if (anim === 'idle' || anim === 'walk') t = u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
+        if (anim === 'idle' || anim === 'walk' || anim === 'roost') t = u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;
         if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.2 : 0.5; // (inside the darkness: a shape, if that)

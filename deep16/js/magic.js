@@ -258,10 +258,24 @@
         B.gimmickDone = true;
         var c = struck[0]; if (!c.dead && c.hp > 0) c.grudge = u.id;
         // hung as a cloak on the roof when the darts land, then unfurling into itself (Griz, 09-29: the change "could be smoother")
-        yield { scene: { who: c, morph: c.sheet === 'cloaker_p2' ? { from: 'roost', at: 62, dur: 46 } : null, scale: 1.3, frames: 130, hit: true, caption: 'THE DARTS FIND IT.' } };
-        yield { scene: { who: c, face: true, faceAt: 0.37, zoomFrom: 1.3, scale: 3, frames: 210, tone: 'red', clip: 'audio/the_darkness_attacks_back.mp3', caption: 'AND THE DARKNESS ATTACKS BACK.' } };
-        // and it comes: the sheet's flight, played as drawn, across the screen at the caster (a sheet with no `fly` flies as it idles)
-        yield { scene: { who: c, anim: 'fly', swoop: true, facing: 2, scale: 1.4, frames: 84, tone: 'red', caption: 'IT COMES FOR ' + String(u.name).toUpperCase() + '.' } };
+        // the reveal (Griz, 09-29): the cloak opens, the scream, the wings wrap, the flight -- panels 3(mirrored, with 4's head),4,7,5,6 of the cloak sheet
+        var cl = c.sheet === 'cloaker_p2';
+        yield { scene: { who: c, anim: cl ? 'reveal' : null, animAt: 70, morph: cl ? { from: 'roost', at: 58, dur: 12 } : null, scale: 1.3, frames: cl ? 200 : 130, hit: true, caption: 'THE DARTS FIND IT.' } };
+        yield { scene: { who: c, face: true, faceAt: 0.37, zoomFrom: 1.3, morph: cl ? { from: 'reveal', hold: true, at: 6, dur: 36 } : null, scale: 3, frames: 210, tone: 'red', clip: 'audio/the_darkness_attacks_back.mp3', caption: 'AND THE DARKNESS ATTACKS BACK.' } };
+        // and not a dive: it moans (the phantasm heads, #8 of the cloak sheet) -- the real Moan, WIS or frightened, spent here so it doesn't repeat
+        var MO = c.moan;
+        yield { scene: { who: c, over: { anim: 'moan', alpha: 0.7 }, facing: 0, scale: 2.2, frames: 120, tone: 'red', caption: 'IT MOANS.' } };
+        if (MO && !c.dead && c.hp > 0) {
+          MO.ready = false; D.sfx('encounter');
+          var ml = ['{r}' + c.name + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
+          B.units.filter(function (w) { return G.hostile(c, w) && G.standing(w) && G.dist(c, w) <= (MO.range || 60); }).forEach(function (w) {
+            if (w.conds.heroism) { ml.push('  ' + w.name + ': {n}fearless{/} (Heroism)'); return; }
+            var sv = RU.save(w, 'wis', MO.dc);
+            ml.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/}' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
+            if (!sv.ok) w.conds.frightened = { by: c.id, fresh: true };
+          });
+          B.card(ml, 420); yield 40;
+        }
       }
     } else if (g.shape === 'splash') {
       var first = t, second = B.units.filter(function (w) { return w !== first && G.hostile(u, w) && G.standing(w) && G.dist(first, w) <= 5; })[0];

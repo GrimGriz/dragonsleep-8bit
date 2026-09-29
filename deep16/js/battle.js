@@ -954,6 +954,7 @@
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
   Battle.prototype.hurt = function (u, n, type) {
     if (n <= 0) return;
+    u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
     if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
     // Talmok rages when he is first hit: blades and fists do half from then on, his own blows +2

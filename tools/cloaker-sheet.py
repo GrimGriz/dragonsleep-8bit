@@ -124,12 +124,64 @@ def roost_frame(cut, dy=0):
     return out
 
 
+def box_frame(img, dx=0, dy=0, sc=SCALE):
+    """a pose that has no eyes to anchor on, placed by the middle of its box."""
+    nw, nh = max(1, round(img.size[0] * sc)), max(1, round(img.size[1] * sc))
+    a = pix.pixelate(img.resize((nw, nh), Image.BOX), 1, do_lift=False)
+    out = np.zeros((FH, FW, 4), dtype=np.uint8)
+    ox, oy = FW // 2 - a.shape[1] // 2 + dx, 62 - a.shape[0] // 2 + dy
+    y0, y1 = max(0, oy), min(FH, oy + a.shape[0]); x0, x1 = max(0, ox), min(FW, ox + a.shape[1])
+    if y1 > y0 and x1 > x0:
+        out[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
+    return out
+
+
+def unfurl_first(s1):
+    """the reveal's first pose (Griz, 09-29): panel 3, the cloak opening, mirrored, with panel 4's screaming head where the hood is dark."""
+    a3, _ = cell(s1, 3)
+    a3 = a3.transpose(Image.FLIP_LEFT_RIGHT)
+    a4, _ = cell(s1, 4)
+    head = a4.crop((46, 0, 118, 96)).resize((66, 88), Image.BOX)
+    layer = Image.new('RGBA', a3.size, (0, 0, 0, 0))
+    layer.paste(head, (104, 0), head)
+    return Image.alpha_composite(a3, layer)
+
+
+def ghost_cut(s1, n=8):
+    """panel 8, the phantasm: three ghost heads on a checkerboard they are drawn over. The ghost is the lavender (blue and red over green)
+    and the dark of the eyes and mouths; the checker is neutral. Hard-edged here (the palette has no half-alpha): the scene draws it faint."""
+    col, row = (n - 1) % 4, (n - 1) // 4
+    x0, y0 = col * CW + 4, row * CH + 4
+    c = s1[y0:y0 + CH - 8, x0:x0 + CW - 8]
+    lav = (c[..., 0] + c[..., 2]) // 2 - c[..., 1]
+    m = (lav > 9) | (c.max(-1) < 175)
+    m = ndimage.binary_opening(m, iterations=1)
+    m = ndimage.binary_closing(m, iterations=3)
+    lab, k = ndimage.label(m)
+    keep = np.zeros_like(m)
+    for i, s in enumerate(ndimage.find_objects(lab)):
+        if (lab[s] == i + 1).sum() >= 400 and not (s[0].stop < 56 and s[1].stop < 90):
+            keep |= lab == i + 1
+    keep = ndimage.binary_fill_holes(keep)
+    ys, xs = np.where(keep)
+    cc = c[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    am = keep[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+    return Image.fromarray(np.dstack([cc.astype(np.uint8), (am * 255).astype(np.uint8)]), 'RGBA')
+
+
 def build():
     cuts = cuts_all()
     # the roost (Griz, 09-29: "have him be in that form when we show the magic missiles hitting"): the cloak hung on the roof, from the
     # first sheet's first two panels, a two-frame sway; the easter egg's hit scene shows it (js/magic.js), the same from every side
     s1 = np.asarray(Image.open(os.path.join(SRC, 'cloaker_grok_1.png')).convert('RGB')).astype(np.int32)
     roost = [roost_frame(cell(s1, 1)), roost_frame(cell(s1, 2)), roost_frame(cell(s1, 1), dy=1), roost_frame(cell(s1, 2), dy=1)]
+    # the reveal (Griz, 09-29: "4, 7, 5, 6 is the order", a modified mirror of 3 with 4's head before 4): the cloak opens, the scream, the
+    # wrap of its wings, the flight left -- all from the first sheet; the scene runs it, and it dissolves into the idle after
+    f3, f4, f7, f5, f6 = unfurl_first(s1), cell(s1, 4)[0], cell(s1, 7)[0], cell(s1, 5)[0], cell(s1, 6)[0]
+    reveal = [box_frame(f3, dx=-1), box_frame(f3, dx=1), box_frame(f4), box_frame(f4, dy=-1), box_frame(f7), box_frame(f7, dx=1), box_frame(f5), box_frame(f6)]
+    # the moan (#8, the ghost heads): a pulse, growing and settling; the scene draws it faint
+    g8 = ghost_cut(s1)
+    moan = [box_frame(g8, sc=SCALE * s, dx=j) for s, j in ((0.92, 0), (0.99, -1), (1.06, 1), (1.12, -1), (1.06, 1), (0.99, 0))]
     POSE_DY = {'p4': 2, 'p5': 9, 'p6': 9, 'p7': 7, 'p8': 3}     # the dive and the swept-back poses carry the tail high above the eyes: seat them lower
     def P(k, **kw):
         kw['dy'] = kw.get('dy', 0) + POSE_DY.get(k, 0)
@@ -139,7 +191,7 @@ def build():
     DIR = {0: (0, 1), 1: (-1, 1), 2: (-1, 0), 3: (-1, -1), 4: (0, -1), 5: (1, -1), 6: (1, 0), 7: (1, 1)}
     MIR = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 1, 6: 1, 7: 1}
     FLAP = ['p1', 'p2', 'p3', 'p3', 'p4', 'p4', 'p8', 'p1']      # the flap, slowed: out, up, up, swept back, back out
-    frames = {'idle': [], 'walk': [], 'attack': [], 'hurt': [], 'fly': [], 'roost': [roost] * 8}
+    frames = {'idle': [], 'walk': [], 'attack': [], 'hurt': [], 'fly': [], 'roost': [roost] * 8, 'reveal': [reveal] * 8, 'moan': [moan] * 8}
     for f in range(8):
         m = bool(MIR[f]); dxv, dyv = DIR[f]
         # the sheet as it was drawn, 1 to 8: the flight in and the dive (Griz: "a sequence to play at the end of the easter egg")
@@ -161,7 +213,7 @@ def build():
     pix.write_sheet(NAME, frames, FW, FH, AX, AY, top)
     mp = os.path.join(ROOT, 'deep16', 'art', NAME + '.json')
     meta = json.load(open(mp))
-    for a, fps in (('idle', 5), ('walk', 9), ('attack', 12), ('hurt', 8), ('fly', 9), ('roost', 2)):
+    for a, fps in (('idle', 5), ('walk', 9), ('attack', 12), ('hurt', 8), ('fly', 9), ('roost', 2), ('reveal', 6), ('moan', 8)):
         meta['anims'][a]['fps'] = fps
     meta['source'] = 'generated by Griz (2026-09-29, the third cloaker sheet), keyed, posed and snapped by tools/cloaker-sheet.py'
     json.dump(meta, open(mp, 'w'), indent=1)
