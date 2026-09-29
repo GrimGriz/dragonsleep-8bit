@@ -17,7 +17,9 @@
   D.d = function (s) { return 1 + D.rint(s); };
   D.parseDice = function (expr) {
     var m = /^(\d*)d(\d+)\s*([+-]\s*\d+)?$/.exec(String(expr).replace(/\s+/g, ''));
-    if (!m) return { n: 0, s: 0, m: +expr || 0 };
+    // no dice: a flat number, or a sum of them -- the fists' '0' with the STR on it, '0+5' (09-28h: it read as nothing, and Talmok's
+    // pit fists hit for 0 and his rage)
+    if (!m) { var k = 0; String(expr).replace(/\s+/g, '').replace(/([+-]?)(\d+)/g, function (x, sg, n) { k += (sg === '-' ? -1 : 1) * +n; return x; }); return { n: 0, s: 0, m: k }; }
     return { n: +(m[1] || 1), s: +m[2], m: m[3] ? +m[3].replace(/\s+/g, '') : 0 };
   };
   D.roll = function (expr, o) { // o.gwf: reroll 1s and 2s once (Great Weapon Fighting); o.crit: double the dice

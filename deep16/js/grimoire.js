@@ -805,7 +805,7 @@
   var onStart0 = M.onStart;
   M.onStart = function (B, u) {
     onStart0(B, u);
-    (B.spirits || []).forEach(function (s) { if (s.by === u.id && --s.rounds <= 0) B.card(['{g}' + u.name + '\'s spectral weapon fades.{/}'], 200); });
+    (B.spirits || []).forEach(function (s) { if (s.by === u.id && s.rounds > 0 && --s.rounds <= 0) B.card(['{g}' + u.name + '\'s spectral weapon fades.{/}'], 200); }); // (once: 09-28h, it said so every turn after)
     if (u.ethereal && u.conds.blink) { u.ethereal = false; FX.sparkle(u, 'violet', 14); B.card(['{p}' + u.name + ' blinks back into the world.{/}'], 200); }
     // Warding Bond: it breaks when the two are more than 60 ft apart, or the binder is down
     var wb = u.conds.wardingBond; if (wb) { var by = B.units.filter(function (w) { return w.id === wb.by; })[0]; if (!by || by.hp <= 0 || G.dist(by, u) > 60) delete u.conds.wardingBond; }

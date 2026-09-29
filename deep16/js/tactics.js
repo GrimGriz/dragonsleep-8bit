@@ -85,6 +85,7 @@
     var p = TX.pHit(wp.atk + (e.pen || 0) + (u.conds.blessed ? 2.5 : 0), ac, e.net), d = avg(wp.dice) + (wp.mod || 0);
     if (u.conds.raging && !wp.ranged) d += 2;
     if (u.conds.divineFavor) d += 2.5;
+    if (D.features && D.features.strikeBonus) d += D.features.strikeBonus(u, wp); // (a cleric's Divine Strike, 8: once a turn, and a cleric swings once)
     if (t.conds.marked && t.conds.marked.by === u.id) d += 3.5;
     var sneak = 0;
     if (u.cls === 'rogue' && (wp.finesse || wp.ranged) && e.net >= 0 && (e.net > 0 || B.units.some(function (w) { return w !== u && w.side === u.side && G.standing(w) && G.dist(w, t) <= 5; }))) sneak = avg(RU.sneakDice(u));
@@ -341,6 +342,13 @@
     var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 5 && !w.conds.invisible; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0];
     return t ? { score: TX.dpr(t) * 0.5 * 3, t: t } : null;
   };
+  // Mislead (09-28h: the Window's 9th, Willem's 5th past his register): unseen till it attacks or casts, and a double for a blow to go
+  // at -- worth it to one hurt and pressed (built in magic.js; no weighing had it, so no AI cast it)
+  EV.mislead = function (B, u, e, slot, fs) {
+    if (u.conc || u.conds.invisible || u.hp > u.maxhp * 0.5) return null;
+    var th = fs.filter(function (t) { return G.dist(u, t) <= (t.reach || 5) + (t.speed || 30); }).reduce(function (s, t) { return s + TX.dpr(t); }, 0);
+    return th ? { score: th * 0.6 + 2, t: u, keep: th * 0.4 } : null;
+  };
   EV.stoneskin = function (B, u, e, slot, fs, allies) {
     if (u.conc) return null;
     var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 5 && !w.conds.stoneskin; }).sort(function (a, b) { return foesNear(B, b) - foesNear(B, a); })[0];
@@ -395,6 +403,9 @@
     // one who fights only to get away (Amara and Willem on the road): the way out first, and what it can throw from there
     var exits = (B.fight && B.fight.exit) || (B.map && B.map.def.exit) || [];
     if (u.flees && exits.length) { yield* fleeTurn(B, u, exits); return; }
+    // one it holds out of the fight (Banishment, Resilient Sphere, Maze) and no other foe standing: it lets go, so the fight can be
+    // finished (09-28h: the tester ladder's Brood stalled eighty thousand rounds, the broodmother banished and nothing else to hit)
+    if (u.conc && !foesOf(B, u).length && B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && w.conds.banished && w.conds.banished.by === u.id; })) { M.endConc(B, u, 'to finish it'); yield 16; }
     var fs = foesOf(B, u);
     if (!fs.length) {
       // no one it knows of: toward the nearest it can hear, then wait

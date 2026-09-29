@@ -24,10 +24,11 @@
     this.canSwap = !this.o.ladder && !this.o.npc && !this.o.embed && (this.o.fixture || this.from.from !== 'the fixture');
     var party = D.save.units(this.from.data, this.o.climb ? Object.assign({}, F, { looks: null }) : F); // the climb: Barley is Barley
     // the class floor (js/classes.js): a band of class NPCs instead of the four when asked (class against class), and on the bench
-    // everyone on the party's side is run by the class tactics too (js/tactics.js)
+    // everyone on the party's side is run by the class tactics too (js/tactics.js); so in a watch (09-28h: ?npc=...&watch, and the
+    // tester ladder, ?ladder&party=ours: "AI now, buttons later")
     var NB = this.o.npc;
     if (NB && NB.party) party = NB.party.map(function (w, i) { return D.npc.build(w, F.level, 'party', { id: 'p' + i + '-' + String(w).split(':')[0] }); }).filter(Boolean);
-    if (NB && this.o.bench) party.forEach(function (u) { u.guest = true; u.classAI = true; });
+    if (NB && (this.o.bench || this.o.watch)) party.forEach(function (u) { u.guest = true; u.classAI = true; });
     var entry = (F.entry || m.def.entry).slice();
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
     // the party came in by), and a map's named doors (`doors`: the inn's); a map closed all round keeps the way in
@@ -337,7 +338,7 @@
     D.music(this.fight.music || 'battle'); // (it starts on the first key or click: browsers hold sound till then; a set piece's boss tune)
     yield { entry: true };
     // initiative: d20 + DEX (and the fighter's Remarkable Athlete), rolled once
-    var rolls = this.units.map(function (u) { var d = D.d(20); u.initRoll = d + u.init; return { u: u, d: d }; });
+    var rolls = this.units.map(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init; return { u: u, d: d }; }); // (initAdv: the barbarian's Feral Instinct, 7)
     this.order = this.units.slice().sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
     yield 50;
@@ -465,6 +466,7 @@
   Battle.prototype.heroTurn = function* (u) {
     RU.startTurn(u);
     this.focus(u);
+    if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(this, u))) delete u.conds.surprised; // (Feral Instinct: he rages, and acts)
     if (u.conds.surprised) { delete u.conds.surprised; this.card(['{g}' + u.name + ' is caught unaware: no turn this round.{/}']); yield 40; return; }
     if (RU.canAct(u)) D.sfx('popup'); // your turn
     if (!RU.canAct(u)) {
@@ -785,6 +787,8 @@
     var dr = RU.damage(dice, atk.mod, { crit: crit, gwf: atk.gwf }), dmg = dr.total, parts = [dice + RU.sign(atk.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(atk.mod) + ' = ' + dr.total + ' ' + atk.type];
     // Savage Attacks (the half-orc, SRD 5.1): a melee critical rolls one of the weapon's dice once more
     if (crit && melee && att.savage && /d/.test(dice)) { var sv0 = D.roll('1' + String(dice).replace(/^\d*/, '')); dmg += sv0.total; parts.push('{o}savage +' + sv0.total + '{/}'); }
+    // Brutal Critical (the barbarian, 9; SRD 5.1): the same, once more (two at 13, three at 17). Fists have no die: nothing to add
+    if (crit && melee && att.cls === 'barbarian' && att.lvl >= 9 && /d/.test(dice)) { var bc9 = D.roll((att.lvl >= 17 ? 3 : att.lvl >= 13 ? 2 : 1) + String(dice).replace(/^\d*/, '')); dmg += bc9.total; parts.push('{o}brutal +' + bc9.total + '{/}'); }
     // the class NPCs' riders (09-28): Rage's +2 on a STR blow; Enlarge's +1d4 (Reduce's -1d4); Ray of Enfeeblement halves a STR weapon's
     var strBlow = melee && !atk.finesse || (atk.finesse && att.abil && att.abil.str >= att.abil.dex && melee);
     if (att.conds.raging && strBlow) { dmg += att.conds.raging.dmg || 2; parts.push('{o}rage +' + (att.conds.raging.dmg || 2) + '{/}'); }
