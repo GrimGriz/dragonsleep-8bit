@@ -13,14 +13,18 @@
 
   // draw one frame; t in frames at 60 Hz; returns the sprite's height above the foot (for labels and HP bars)
   // o.once: play through once and hold the last frame (an attack, a fall); o.alpha; o.flip: mirror; o.tint: a flash colour
+  // the frame a sheet shows for anim and facing at t (S.draw and S.outline share it)
+  function frameOf(sh, anim, facing, t, o) {
+    var a = sh.anims[anim] || sh.anims.idle;
+    var fw = a.fw || sh.fw, fh = a.fh || sh.fh, ax = a.ax != null ? a.ax : sh.ax, ay = a.ay != null ? a.ay : sh.ay;
+    var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.once ? Math.min(a.frames - 1, n) : n % a.frames;
+    return { img: D.images[sh.image], sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay };
+  }
   S.draw = function (ctx, name, anim, facing, t, x, y, o) {
     var sh = D.SHEETS && D.SHEETS[name];
     if (!sh || !S.has(name)) return S.placeholder(ctx, name, x, y, o);
-    var a = sh.anims[anim] || sh.anims.idle, img = D.images[sh.image];
-    var fw = a.fw || sh.fw, fh = a.fh || sh.fh, ax = a.ax != null ? a.ax : sh.ax, ay = a.ay != null ? a.ay : sh.ay;
-    var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.once ? Math.min(a.frames - 1, n) : n % a.frames;
-    var sy = (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh;
-    var dx = Math.round(x - ax), dy = Math.round(y - ay);
+    var f = frameOf(sh, anim, facing, t, o), img = f.img, fw = f.fw, fh = f.fh, ay = f.ay, sy = f.sy;
+    var dx = Math.round(x - f.ax), dy = Math.round(y - ay), fr = f.sx / fw;
     ctx.save();
     if (o && o.alpha != null) ctx.globalAlpha = o.alpha;
     if (o && o.lie) { ctx.translate(x, y); ctx.rotate(-Math.PI / 2); ctx.translate(-x, -y + 6); }
@@ -39,6 +43,22 @@
   };
   var tintCv = {};
   S.tintCanvas = function (w, h) { var k = w + 'x' + h; if (!tintCv[k]) { tintCv[k] = document.createElement('canvas'); tintCv[k].width = w; tintCv[k].height = h; } return tintCv[k]; };
+  // the frame's outline alone, in one colour: its silhouette grown a pixel each way, the silhouette cut out of it
+  // (the x-ray: a figure hidden behind another shows through as this -- ui.js xray)
+  S.outline = function (ctx, name, anim, facing, t, x, y, color, o) {
+    var sh = D.SHEETS && D.SHEETS[name];
+    if (!sh || !S.has(name)) return;
+    var f = frameOf(sh, anim, facing, t, o), w = f.fw + 2, h = f.fh + 2, oc = S.tintCanvas(w, h), ox = oc.getContext('2d');
+    ox.globalCompositeOperation = 'source-over'; ox.clearRect(0, 0, w, h);
+    [[0, 1], [2, 1], [1, 0], [1, 2]].forEach(function (d) { ox.drawImage(f.img, f.sx, f.sy, f.fw, f.fh, d[0], d[1], f.fw, f.fh); });
+    ox.globalCompositeOperation = 'source-in'; ox.fillStyle = color; ox.fillRect(0, 0, w, h);
+    ox.globalCompositeOperation = 'destination-out'; ox.drawImage(f.img, f.sx, f.sy, f.fw, f.fh, 1, 1, f.fw, f.fh);
+    ox.globalCompositeOperation = 'source-over';
+    ctx.save();
+    if (o && o.alpha != null) ctx.globalAlpha = o.alpha;
+    ctx.drawImage(oc, Math.round(x - f.ax) - 1, Math.round(y - f.ay) - 1);
+    ctx.restore();
+  };
   S.anim = function (name, anim) { var sh = D.SHEETS && D.SHEETS[name]; return sh && sh.anims[anim]; };
   // how long an anim takes to play once, in frames at 60 Hz
   S.duration = function (name, anim) { var a = S.anim(name, anim); return a ? Math.ceil(a.frames * 60 / (a.fps || 8)) : 0; };

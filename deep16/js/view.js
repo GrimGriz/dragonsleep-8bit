@@ -5,7 +5,7 @@
   var D = window.D16, I = D.input;
 
   D.MAPS.gate = {
-    name: 'The Gate Floor', sub: 'seven figures, two pipelines', step: 20,
+    name: 'The Gate Floor', sub: 'seven figures, two pipelines', step: 10,
     rows: (function () {
       var r = [];
       for (var y = 0; y < 16; y++) {

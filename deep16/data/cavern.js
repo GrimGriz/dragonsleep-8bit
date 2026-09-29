@@ -8,7 +8,7 @@
 window.D16.MAPS.cavern = {
   name: 'The Cocoon Gallery',
   sub: 'off the road, below Third Lamp',
-  step: 20, // px per step of elevation (a step is ~2.5 ft; the ledge is two)
+  step: 10, // px per step of elevation (a step is ~2.5 ft; the ledge is two). 20 until 09-28: taller than a row's 16 px on screen, a raised square drew over the lower one behind it (Vivian and a thug on the siphon stair read as one square)
   rows: [
     '####################',
     '###c.c###LLLLLLLL###',

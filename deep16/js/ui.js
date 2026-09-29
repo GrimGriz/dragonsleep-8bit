@@ -533,6 +533,7 @@
       DEFER = objs; WCTX = wx;
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
       if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
+      xray(wx, B, objs, hero || B.active); // a figure hidden behind another shows through as its outline
     } finally { D.iso.inWorld = false; DEFER = null; WCTX = null; }
     var dev = z * D.R;
     ctx.imageSmoothingEnabled = Math.abs(dev - Math.round(dev)) > 1e-6;
@@ -596,8 +597,8 @@
     var p = unitPos(B, u), has = function (a) { return !!D.spr.anim(u.sheet, a); };
     if (u.left) return null; // out of the fight, the way they came in
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
-    return {
-      depth: p.depth, gz: p.gz, layer: 1, draw: function (ctx) {
+    var obj = {
+      depth: p.depth, gz: p.gz, layer: 1, unit: u, draw: function (ctx) {
         var o = { color: u.side === 'foe' ? R('violet', 3) : R('silver', 4) }, anim = u.anim, t = B.t - (u.animT || 0);
         var down = u.dead || u.hp <= 0;
         if (down) {
@@ -624,6 +625,9 @@
         var body = u.rider && !o.tint ? Object.assign({}, o, { tint: R('outline', 0), tintAlpha: 0.5 }) : o;
         if (D.looks && !down && !u.ethereal) D.looks.behind(ctx, B, u, p, anim === 'hurt' && !has('hurt') ? 'idle' : anim, t, o); // (false images, blur, haste: js/looks.js)
         D.spr.draw(ctx, u.sheet, anim === 'hurt' && !has('hurt') ? 'idle' : anim, u.facing || 0, t, p.x, p.y, body);
+        // what was drawn, for the x-ray after the world (a standing figure only: the fallen lie low)
+        var hw = 10 * (u.size || 1);
+        obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, x: p.x, y: p.y, box: [p.x - hw, p.y - D.spr.unitTop(u), p.x + hw, p.y] };
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
         if (D.looks && !down && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js)
         if (!u.dead && !u.ethereal) {
@@ -637,7 +641,43 @@
         }
       }
     };
+    return obj;
   }
+
+  // the x-ray (Griz, 09-28, the siphon stair: Vivian a step down behind a thug read as one square with him): a figure
+  // mostly hidden behind what is drawn after it -- another figure, a stalagmite, a tree, a block, a raised square -- has
+  // its outline drawn over everything, in its side's colour (gold for the one whose turn it is)
+  var XRAY = 0.4; // how much of a figure must be hidden before it shows through
+  function drawnAfter(a, b) { return (b.depth - a.depth || b.gz - a.gz || (b.layer || 0) - (a.layer || 0)) > 0; }
+  function xray(ctx, B, objs, hero) {
+    var iso = D.iso, HW = iso.TW / 2, HH = iso.TH / 2, shown = objs.filter(function (o) { return o.shown; }), cover = [];
+    shown.forEach(function (o) { var b = o.shown.box; cover.push({ o: o, box: b, hit: function (x, y) { return x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3]; } }); });
+    (iso.map.props || []).forEach(function (p) {
+      if (!p.sq || (p.alpha != null && p.alpha < 0.6)) return;
+      if (p.kind === 'tile') { // a raised square: its top and the face below it, down to the floor
+        var c = iso.center(p.sq.x, p.sq.y, p.gz), s = iso.toScreen(c.x, c.y);
+        cover.push({ o: p, box: [s.x - HW, s.y - HH, s.x + HW, s.y + HH + p.gz], hit: function (x, y) { var k = 1 - Math.abs(x - s.x) / HW; return k >= 0 && y >= s.y - HH * k && y <= s.y + HH * k + p.gz; } });
+        return;
+      }
+      if (!p.img || p.kind === 'stone') return;
+      var cx = p.fx != null ? p.fx - 0.5 : p.sq.x, cy = p.fy != null ? p.fy - 0.5 : p.sq.y, c2 = iso.center(cx, cy, p.gz), s2 = iso.toScreen(c2.x, c2.y);
+      var bx = [s2.x - p.img.ax, s2.y - p.img.ay, s2.x - p.img.ax + p.img.canvas.width, s2.y - p.img.ay + p.img.canvas.height];
+      cover.push({ o: p, box: bx, hit: function (x, y) { return x >= bx[0] && x <= bx[2] && y >= bx[1] && y <= bx[3]; } });
+    });
+    shown.forEach(function (o) {
+      var u = o.unit, b = o.shown.box, hid = 0;
+      var over = cover.filter(function (c) { return c.o !== o && drawnAfter(o, c.o) && c.box[0] < b[2] && c.box[2] > b[0] && c.box[1] < b[3] && c.box[3] > b[1]; });
+      if (!over.length) return;
+      for (var i = 0; i < 5; i++) for (var j = 0; j < 8; j++) {
+        var x = b[0] + (b[2] - b[0]) * (i + 0.5) / 5, y = b[1] + (b[3] - b[1]) * (j + 0.5) / 8;
+        if (over.some(function (c) { return c.hit(x, y); })) hid++;
+      }
+      if (hid / 40 < XRAY) return;
+      var col = u === hero ? R('gold', 4) : u.side === 'foe' ? R('red', 4) : R('glow', 2);
+      D.spr.outline(ctx, u.sheet, o.shown.anim === 'hurt' && !D.spr.anim(u.sheet, 'hurt') ? 'idle' : o.shown.anim, u.facing || 0, o.shown.t, o.shown.x, o.shown.y, col, { alpha: 0.9, once: o.shown.once });
+    });
+  }
+  UI.xray = xray;
 
   // the overlay: squares on the ledge are drawn after the ledge's tiles (deferred into the sort), the rest at once
   function onSq(x, y, fn) {

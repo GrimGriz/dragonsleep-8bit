@@ -196,7 +196,7 @@
       Object.keys(rm).forEach(function (k) {
         var e = rm[k]; if (!e.stand) return;
         var near = Math.min.apply(null, hs.map(function (w) { return G.dist(u, w, e.x, e.y); }));
-        var s = near + G.gzAt(u, e.x, e.y) / 4 - e.cost / 20;
+        var s = near + G.gzAt(u, e.x, e.y) / G.map.def.step * 5 - e.cost / 20; // (height in steps: the ledge is worth 10, as when a step was 20 px)
         if (s > bs) { bs = s; best = e; }
       });
       B.card(['{r}' + u.name + '{/} breaks away, bleeding.']);
