@@ -315,7 +315,7 @@
       var ht = visibleFrom(u, u.x, u.y, hs).filter(function (w) { return !w.conds.paralyzed && G.dist(u, w) <= W.hold.range && !w.fey; })
         .sort(function (a, b) { return (b.attacks || 1) * (b.lvl || 1) + b.maxhp / 20 - ((a.attacks || 1) * (a.lvl || 1) + a.maxhp / 20); })[0];
       if (ht) {
-        T.action = 0; W.hold.used = true; u.anim = 'attack'; u.animT = B.t; D.sfx('magic'); FX.ring(ht, 'violet', 40);
+        T.action = 0; W.hold.used = true; u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; D.sfx('charm'); FX.ring(ht, 'violet', 40); FX.reach(u, ht, 'charm');
         var sv = RU.save(ht, 'wis', W.hold.dc);
         B.card(['{r}' + the(B, u) + '{/} ' + (W.hold.text || 'closes a hand') + ': HOLD {y}' + ht.name + '{/}.  WIS ' + RU.saveText(sv) + ' vs DC ' + W.hold.dc + '  ' + (sv.ok ? '{n}SHRUGS IT OFF{/}' : '{p}PARALYZED{/} {g}(a WIS save at the end of each turn){/}')], 400);
         if (!sv.ok) { ht.conds.paralyzed = { save: 'wis', dc: W.hold.dc, by: u.id }; D.magic.concentrate(B, u, 'holdperson', 'Hold Person', function () { if (ht.conds.paralyzed && ht.conds.paralyzed.by === u.id) delete ht.conds.paralyzed; }); }
@@ -326,7 +326,7 @@
     if (!W.bolt.spent) {
       var ln = bestLine(B, u, W.bolt.len);
       if (ln && ln.count >= 2) {
-        T.action = 0; W.bolt.spent = true; u.anim = 'attack'; u.animT = B.t; D.sfx('magic');
+        T.action = 0; W.bolt.spent = true; u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; D.sfx('zap2');
         u.facing = B.faceTo(u, ln.t);
         FX.bloom(u.x, u.y, ln.sq, 'glow');
         var roll = D.roll(W.bolt.dice), lines = ['{r}' + the(B, u) + '{/} ' + (W.bolt.text || 'draws the dark into a line of lightning!') + '  ' + W.bolt.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + W.bolt.dc], hits = [];

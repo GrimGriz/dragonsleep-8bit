@@ -212,9 +212,9 @@
     var head = '{y}' + u.name + '{/}: ' + sp.name.toUpperCase() + (sp.level ? ' (L' + slot + ')' : '');
     var dc = u.spellDC, n = up(sp, slot);
     if (g.shape !== 'self' && g.shape !== 'touch') { var at = t && t.x != null ? { x: t.x, y: t.y, size: 1 } : t && t.units ? t.units[0] : t; if (at) u.facing = B.faceTo(u, at); }
-    u.anim = 'attack'; u.animT = B.t;
+    u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; // (a caster's own pose where the sheet has one: the spell animation pass, 09-28h)
     D.sfx(M.sound(sp));
-    yield Math.max(10, Math.round((D.spr.duration(u.sheet, 'attack') || 18) * 0.55)); // (the release at the height of the cast pose: the spell animation pass, 09-28h)
+    yield Math.max(10, Math.round((D.spr.duration(u.sheet, u.anim) || 18) * 0.55)); // (the release at the height of the cast pose)
 
     // the spells built for the class NPCs (09-28, js/grimoire.js): each its own; the rest below as they were
     var FXD = M.EFFECT && M.EFFECT[id];

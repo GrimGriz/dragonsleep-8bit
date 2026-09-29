@@ -444,8 +444,10 @@ def build_figure(fid, fig):
     os.makedirs(odir, exist_ok=True)
     meta = {'frame_w': F, 'frame_h': F, 'anims': {}, 'foot': None, 'layers': [], 'notes': ''}
     stacks = {}
-    # (a figure's `extra` animations ride along: the four heroes sit at the campfire -- Griz 09-28, the camp's backdrop)
-    for anim, src in (('idle', 'idle'), ('walk', 'walk'), ('attack', fig['attack']), ('hurt', 'hurt')) + tuple((x, x) for x in fig.get('extra', [])):
+    # (a figure's `extra` animations ride along: the four heroes sit at the campfire -- Griz 09-28, the camp's backdrop; an extra may
+    # be named apart from its LPC source, as the casters' ('cast', 'spellcast') -- the spell animation pass, 09-28h: "yes, all the
+    # casters we have casting if we can")
+    for anim, src in (('idle', 'idle'), ('walk', 'walk'), ('attack', fig['attack']), ('hurt', 'hurt')) + tuple((x, x) if isinstance(x, str) else tuple(x) for x in fig.get('extra', [])):
         if isinstance(src, tuple):
             src_anim, custom = src
         else:
@@ -620,7 +622,7 @@ FIGURES = {
                   'attack = slash (6 frames, 64px) with the dagger\'s own slash sheets'],
     },
     'lymen': {
-        'extra': ['sit'],
+        'extra': ['sit', ('cast', 'spellcast')],
         'body': 'male', 'skin': 'pale_green', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
         'items': [
             {'def': 'body/body.json'},
@@ -639,6 +641,7 @@ FIGURES = {
                   'the round shield has no hurt sheet in the generator, so it is absent from hurt.png'],
     },
     'drow': {
+        'extra': [('cast', 'spellcast')],
         'body': 'female', 'skin': 'all.lpcr.purple', 'eyes': 'red', 'attack': 'thrust',
         'items': [
             {'def': 'body/body.json'},
@@ -735,6 +738,7 @@ FIGURES = {
         'notes': ['the warhammer as the generator\'s mace'],
     },
     'ingrith_full': {  # Ingrith Scalebeam, a cleric of Rekknar: a grey robe over mail, dark hair, the mace
+        'extra': [('cast', 'spellcast')],
         'body': 'female', 'skin': 'light', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
         'items': [
             {'def': 'body/body.json'},
@@ -747,6 +751,7 @@ FIGURES = {
         'notes': ['the robe (the generator\'s, female body) in white (its light gray is near-black); her chainmail under it is not drawn'],
     },
     'torvald_full': {  # the cleric at Deepholm's door: a cleric's coat under a traveling cloak, a hood, a beard, the mace
+        'extra': [('cast', 'spellcast')],
         'body': 'male', 'skin': 'lpcr.tan', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
         'items': [
             {'def': 'body/body.json'},
@@ -777,6 +782,7 @@ FIGURES = {
         'notes': ['the barbarian: leather over a bare arm, a war axe for the greataxe'],
     },
     'npcbard': {
+        'extra': [('cast', 'spellcast')],
         'body': 'female', 'skin': 'light', 'eyes': 'blue', 'attack': 'slash',
         'items': [
             {'def': 'body/body.json'},
@@ -791,6 +797,7 @@ FIGURES = {
         'notes': ['the bard: red sleeves and a purple cape, a blade (the rapier drawn as the dagger)'],
     },
     'npccleric': {
+        'extra': [('cast', 'spellcast')],
         'body': 'male', 'skin': 'light', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
         'items': [
             {'def': 'body/body.json'},
@@ -805,6 +812,7 @@ FIGURES = {
         'notes': ['the cleric (Life): chain, a round shield, the mace'],
     },
     'npcdruid': {
+        'extra': [('cast', 'spellcast')],
         'body': 'female', 'skin': 'pale_green', 'eyes': 'brown', 'attack': ('thrust', 'thrust_oversize'),
         'items': [
             {'def': 'body/body.json'},
@@ -842,6 +850,7 @@ FIGURES = {
         'notes': ['the monk (Open Hand): bare to the waist, saffron trousers, a white sash, empty hands'],
     },
     'npcpaladin': {
+        'extra': [('cast', 'spellcast')],
         'body': 'female', 'skin': 'light', 'eyes': 'green', 'attack': ('slash', 'slash_oversize'),
         'items': [
             {'def': 'body/body.json'},
@@ -856,6 +865,7 @@ FIGURES = {
         'notes': ['the paladin (Devotion): gilt plate, the shield and the sword'],
     },
     'npcranger': {
+        'extra': [('cast', 'spellcast')],
         'body': 'female', 'skin': 'bronze', 'eyes': 'green', 'attack': 'shoot',
         'items': [
             {'def': 'body/body.json'},
@@ -893,6 +903,7 @@ FIGURES = {
         'notes': ['the sorcerer (Draconic, fire): a red robe, white hair, the spell in her hands'],
     },
     'npcwarlock': {
+        'extra': [('cast', 'spellcast')],
         'body': 'male', 'skin': 'light', 'eyes': 'purple', 'attack': 'slash',
         'items': [
             {'def': 'body/body.json'},

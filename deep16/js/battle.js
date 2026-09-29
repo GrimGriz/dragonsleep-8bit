@@ -709,9 +709,10 @@
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     att.facing = faceTo(att, tgt);
     // a spell's shot leaves at the height of the cast pose (the spell animation pass, 09-28h): the pose the cast began runs on
-    var posing = atk.spell && att.anim === 'attack' && this.t - (att.animT || 0) < (D.spr.duration(att.sheet, 'attack') || 18);
-    if (!posing) { att.anim = 'attack'; att.animT = this.t; }
-    if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, 'attack') || 18) * 0.55) - (this.t - att.animT)) : 10;
+    var posing = atk.spell && (att.anim === 'attack' || att.anim === 'cast') && this.t - (att.animT || 0) < (D.spr.duration(att.sheet, att.anim) || 18);
+    // (a spell's shot, or a floating weapon sent at its mark, from the cast pose where the sheet has one)
+    if (!posing) { att.anim = atk.spell && (!melee || atk.spirit) && D.spr.anim(att.sheet, 'cast') ? 'cast' : 'attack'; att.animT = this.t; }
+    if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : 10;
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);

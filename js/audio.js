@@ -287,7 +287,33 @@
     grab: function (t) { tone(sfxBus, 'pulse', 43, t, 0.12, 0.2, 0.5, 5); noise(sfxBus, t, 0.1, 0.3, 800, 0.6); },
     poison: function (t) { [60, 61, 60, 59].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.06, 0.06, 0.1, 0.125); }); },
     error: function (t) { tone(sfxBus, 'pulse', 50, t, 0.12, 0.14, 0.5); },
-    popup: function (t) { [76, 83, 88].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.05, 0.08, 0.12, 0.25); }); }
+    popup: function (t) { [76, 83, 88].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.05, 0.08, 0.12, 0.25); }); },
+    // ------------------------------------------------ the spells' voices (the spell animation pass, 09-28h; Griz: "one per element and
+    // an additional alternate for special cases"): fire, frost and zap were here already; each element has its own now, and a
+    // heavier second (…2) for the big ones and the signatures (a fireball's boom, the bolt's thunderclap, a sunburst's choir)
+    fire2: function (t) { noise(sfxBus, t, 0.9, 0.55, 220, 0.5); noise(sfxBus, t + 0.04, 0.5, 0.35, 900, 0.5); tone(sfxBus, 'triangle', 40, t, 0.6, 0.28, null, -12); tone(sfxBus, 'pulse', 52, t, 0.25, 0.12, 0.5, -14); },
+    frost2: function (t) { for (var i = 0; i < 5; i++) noise(sfxBus, t + i * 0.05, 0.08, 0.28, 6500 - i * 500, 2); [98, 93, 96, 91, 94].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.045, 0.1, 0.12); }); },
+    zap2: function (t) { noise(sfxBus, t, 0.08, 0.6, 3200, 0.6); for (var i = 0; i < 8; i++) tone(sfxBus, 'pulse', 74 + (i % 3) * 7, t + i * 0.02, 0.02, 0.13, 0.125); noise(sfxBus, t + 0.12, 1.0, 0.4, 160, 0.4); },
+    thunder: function (t) { noise(sfxBus, t, 0.55, 0.5, 180, 0.5); tone(sfxBus, 'triangle', 38, t, 0.4, 0.25, null, -8); },
+    thunder2: function (t) { noise(sfxBus, t, 0.8, 0.6, 140, 0.4); tone(sfxBus, 'triangle', 36, t, 0.6, 0.3, null, -10); noise(sfxBus, t + 0.3, 0.6, 0.3, 200, 0.5); },
+    acid: function (t) { noise(sfxBus, t, 0.4, 0.3, 2600, 1.2); [62, 64, 61, 63].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + 0.05 + i * 0.07, 0.04, 0.08, 0.125); }); },
+    acid2: function (t) { noise(sfxBus, t, 0.8, 0.35, 2200, 1); for (var i = 0; i < 7; i++) tone(sfxBus, 'pulse', 58 + (i * 5) % 9, t + i * 0.06, 0.04, 0.08, 0.125); },
+    poison2: function (t) { noise(sfxBus, t, 0.8, 0.25, 900, 0.7); [60, 61, 59, 60, 58].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.08, 0.07, 0.09, 0.125); }); },
+    necrotic: function (t) { [55, 52, 49].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.09, 0.12, 0.11, 0.125, -1); }); noise(sfxBus, t, 0.5, 0.15, 400, 0.6); },
+    necrotic2: function (t) { tone(sfxBus, 'triangle', 36, t, 0.9, 0.25, null, -3); tone(sfxBus, 'pulse', 43, t, 0.7, 0.08, 0.125, -2); noise(sfxBus, t, 0.9, 0.2, 300, 0.5); },
+    radiant: function (t) { [84, 88, 91, 96].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.04, 0.22, 0.13); }); },
+    radiant2: function (t) { [72, 76, 79, 84, 88].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.03, 0.7, 0.1); }); tone(sfxBus, 'pulse', 96, t + 0.1, 0.4, 0.05, 0.125); },
+    force: function (t) { tone(sfxBus, 'pulse', 91, t, 0.08, 0.13, 0.25, -24); tone(sfxBus, 'pulse', 86, t + 0.06, 0.08, 0.11, 0.25, -24); },
+    force2: function (t) { tone(sfxBus, 'pulse', 50, t, 0.3, 0.16, 0.5, 12); tone(sfxBus, 'pulse', 62, t + 0.02, 0.3, 0.1, 0.25, -12); noise(sfxBus, t, 0.2, 0.2, 1200, 1); },
+    psychic: function (t) { for (var i = 0; i < 8; i++) tone(sfxBus, 'triangle', i % 2 ? 77 : 76, t + i * 0.03, 0.03, 0.1); tone(sfxBus, 'triangle', 83, t + 0.24, 0.15, 0.1); },
+    psychic2: function (t) { [76, 77, 82, 83].forEach(function (m) { tone(sfxBus, 'triangle', m, t, 0.6, 0.07); }); noise(sfxBus, t, 0.5, 0.12, 5000, 3); },
+    heal2: function (t) { [72, 76, 79, 84, 88, 91, 96].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.05, 0.2, 0.18); }); },
+    holy2: function (t) { [67, 72, 76, 79].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.09, 0.3, 0.1, 0.25); }); tone(sfxBus, 'triangle', 84, t + 0.36, 0.4, 0.12); },
+    magic2: function (t) { [67, 71, 74, 79, 83, 86, 91, 95].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.03, 0.08, 0.1, 0.125); }); noise(sfxBus, t, 0.3, 0.1, 7000, 2); },
+    charm: function (t) { [86, 83, 79, 83].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.07, 0.12, 0.12); }); },
+    shadow: function (t) { noise(sfxBus, t, 0.6, 0.2, 250, 0.5); tone(sfxBus, 'triangle', 40, t, 0.5, 0.2, null, -5); tone(sfxBus, 'pulse', 47, t + 0.1, 0.3, 0.06, 0.125, -4); },
+    nature: function (t) { noise(sfxBus, t, 0.4, 0.2, 1300, 0.8); [60, 67, 64].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + 0.05 + i * 0.06, 0.08, 0.14); }); },
+    earth: function (t) { noise(sfxBus, t, 0.7, 0.5, 140, 0.5); tone(sfxBus, 'triangle', 33, t, 0.5, 0.3, null, -4); }
   };
   AU.sfx = function (id) {
     if (!AU.ctx || AU.ctx.state !== 'running' || !SFX[id]) return;

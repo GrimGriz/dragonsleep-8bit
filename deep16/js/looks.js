@@ -48,6 +48,23 @@
     return { id: id, el: el, dmgEl: FX.EL[sp.el] ? sp.el : null, travel: travel, shape: g.shape, reach: !SHOOTS[id] && /^(single|touch|allies)$/.test(g.shape), sky: SKY[id] };
   };
 
+  // the sound of a cast (js/audio.js, shared with the 8-bit game): the element's voice, and its heavier second for the big ones and
+  // the signatures (Griz 09-28h: "one per element and an additional alternate for special cases")
+  var VOICE = { fire: 'fire', cold: 'frost', lightning: 'zap', thunder: 'thunder', acid: 'acid', poison: 'poison', necrotic: 'necrotic', radiant: 'radiant',
+    force: 'force', psychic: 'psychic', heal: 'heal', holy: 'buff', arcane: 'magic', charm: 'charm', shadow: 'shadow', nature: 'nature', earth: 'earth' };
+  var SECOND = { fire: 'fire2', cold: 'frost2', lightning: 'zap2', thunder: 'thunder2', acid: 'acid2', poison: 'poison2', necrotic: 'necrotic2', radiant: 'radiant2',
+    force: 'force2', psychic: 'psychic2', heal: 'heal2', holy: 'holy2', arcane: 'magic2', charm: 'psychic2', shadow: 'necrotic2', nature: 'nature', earth: 'earth' };
+  var BIG = 'fireball meteorswarm firestorm delayedblastfireball flamestrike coneofcold icestorm freezingsphere lightningbolt chainlightning calllightning shatter ' +
+    'sunburst sunbeam guidingbolt disintegrate eldritchblast circleofdeath fingerofdeath harm weird feeblemind phantasmalkiller massheal heal masscurewounds ' +
+    'holyaura divineword spiritguardians prismaticspray earthquake blacktentacles insectplague cloudkill mirrorimage hypnoticpattern powerwordkill powerwordstun';
+  var BIGSET = {}; BIG.split(' ').forEach(function (id) { BIGSET[id] = 1; });
+  // (a big area spell: its voice at the hands, the heavy one where it lands -- the bloom below; a big one at a creature: the heavy one
+  // at once)
+  LK.sound = function (id) { var L = LK.of(id); return (BIGSET[id] && !/^(sphere|cube|cone|line|wave)$/.test(L.shape) ? SECOND : VOICE)[L.el] || 'magic'; };
+  LK.landSound = function (id) { var L = LK.of(id); return BIGSET[id] ? SECOND[L.dmgEl || L.el] : null; };
+  var sound0 = M.sound;
+  M.sound = function (sp) { var c = FX.ctx; return c && c.id ? LK.sound(c.id) : sound0(sp); };
+
   // ------------------------------------------------------------------ the hooks
   // the cast: the context every shot and bloom inside it reads, the flare at the hands, the drift to whom it reaches
   var cast0 = M.cast;
@@ -76,6 +93,7 @@
     if (c && c.dmgEl && DEFAULT_RAMPS[ramp || 'fire']) ramp = c.dmgEl;
     var f = bloom0.call(this, cx, cy, squares, ramp, { core: !(c && /^(cone|line|wave)$/.test(c.shape)) });
     if (!c || !c.caster || !squares || !squares.length) return f;
+    var ls = LK.landSound(c.id); if (ls) D.sfx(ls);
     var u = c.caster, el = c.dmgEl || c.el;
     if (/^(cone|line|wave)$/.test(c.shape)) {
       FX.stream(u, squares, el);

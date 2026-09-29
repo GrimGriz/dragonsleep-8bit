@@ -315,7 +315,8 @@
       "anims": {
         "idle": "2H_Melee_Idle",
         "attack": "2H_Ranged_Shoot",
-        "walk": "Walking_A"
+        "walk": "Walking_A",
+        "cast": "Spellcast_Shoot"
       }
     },
     "assassin": {
@@ -499,14 +500,14 @@
       "file": "kaykit/Rogue_Hooded.glb",
       "show": ["Rogue_ArmLeft", "Rogue_ArmRight", "Rogue_Body", "Rogue_Cape", "Rogue_Head_Hooded", "Rogue_LegLeft", "Rogue_LegRight"],
       "grade": { "hue": -60, "sat": 0.8, "val": 0.85 },
-      "anims": { "idle": "Idle", "attack": "1H_Ranged_Shoot", "walk": "Walking_A" }
+      "anims": { "idle": "Idle", "attack": "1H_Ranged_Shoot", "walk": "Walking_A", "cast": "Spellcast_Shoot" }
     },
     "willem": {
       "_note": "Willem Glass (the wagon's illusionist): the KayKit Mage, hatted, a wand, turned to glass-green.",
       "file": "kaykit/Mage.glb",
       "show": ["Mage_ArmLeft", "Mage_ArmRight", "Mage_Body", "Mage_Head", "Mage_Hat", "Mage_LegLeft", "Mage_LegRight", "1H_Wand"],
       "grade": { "hue": 90, "sat": 0.7, "val": 0.9 },
-      "anims": { "idle": "Idle", "attack": "1H_Ranged_Shoot", "walk": "Walking_A" }
+      "anims": { "idle": "Idle", "attack": "1H_Ranged_Shoot", "walk": "Walking_A", "cast": "Spellcast_Shoot" }
     },
     "naga": {
       "_note": "the spirit naga of the causeway (SRD 5.1, Large): the Quaternius angry snake at two squares, turned to the black water's blue-green.",

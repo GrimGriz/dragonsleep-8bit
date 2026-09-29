@@ -2,7 +2,7 @@
 'use strict';
 (window.D16 = window.D16 || {}).SHEETS = {
 "amara_p1": {
-"image": "art/amara_p1.png?v=47f37493e2",
+"image": "art/amara_p1.png?v=fe146ab9b6",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -35,6 +35,15 @@
 "ay": 84,
 "frames": 8,
 "fps": 12
+},
+"cast": {
+"y": 2304,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 10
 }
 }
 },
@@ -1012,7 +1021,7 @@
 }
 },
 "drow_p0": {
-"image": "art/drow_p0.png?v=35b3aa15c8",
+"image": "art/drow_p0.png?v=f44c92b74c",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -1053,6 +1062,15 @@
 "ax": 32,
 "ay": 61,
 "frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
 "fps": 10
 }
 }
@@ -2104,7 +2122,7 @@
 }
 },
 "ingrith_p0": {
-"image": "art/ingrith_p0.png?v=b91f70290d",
+"image": "art/ingrith_p0.png?v=8ccd8ddf07",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -2145,6 +2163,15 @@
 "ax": 32,
 "ay": 61,
 "frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
 "fps": 10
 }
 }
@@ -2316,7 +2343,7 @@
 }
 },
 "lymen_p0": {
-"image": "art/lymen_p0.png?v=eac368c8cf",
+"image": "art/lymen_p0.png?v=d8ba57d585",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -2367,6 +2394,15 @@
 "ay": 61,
 "frames": 3,
 "fps": 2
+},
+"cast": {
+"y": 3584,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
 }
 }
 },
@@ -2519,7 +2555,7 @@
 }
 },
 "npcbard_p0": {
-"image": "art/npcbard_p0.png?v=23d407d523",
+"image": "art/npcbard_p0.png?v=5f1a00021d",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -2561,11 +2597,20 @@
 "ay": 61,
 "frames": 6,
 "fps": 10
+},
+"cast": {
+"y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
 }
 }
 },
 "npccleric_p0": {
-"image": "art/npccleric_p0.png?v=4f551206f1",
+"image": "art/npccleric_p0.png?v=7cb8881ef8",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -2607,11 +2652,20 @@
 "ay": 61,
 "frames": 6,
 "fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
 }
 }
 },
 "npcdruid_p0": {
-"image": "art/npcdruid_p0.png?v=d497855172",
+"image": "art/npcdruid_p0.png?v=3dc0c1179b",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -2652,6 +2706,15 @@
 "ax": 32,
 "ay": 61,
 "frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
 "fps": 10
 }
 }
@@ -2749,7 +2812,7 @@
 }
 },
 "npcpaladin_p0": {
-"image": "art/npcpaladin_p0.png?v=7b2ae6d957",
+"image": "art/npcpaladin_p0.png?v=b9b46c729a",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -2791,11 +2854,20 @@
 "ay": 61,
 "frames": 6,
 "fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
 }
 }
 },
 "npcranger_p0": {
-"image": "art/npcranger_p0.png?v=e3c4b6ed19",
+"image": "art/npcranger_p0.png?v=3edb9d5358",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -2836,6 +2908,15 @@
 "ax": 32,
 "ay": 61,
 "frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
 "fps": 10
 }
 }
@@ -2933,7 +3014,7 @@
 }
 },
 "npcwarlock_p0": {
-"image": "art/npcwarlock_p0.png?v=871c384641",
+"image": "art/npcwarlock_p0.png?v=3424023b8b",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -2974,6 +3055,15 @@
 "ax": 32,
 "ay": 61,
 "frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
 "fps": 10
 }
 }
@@ -3487,7 +3577,7 @@
 }
 },
 "spellweaver_p1": {
-"image": "art/spellweaver_p1.png?v=c4aaa3e32b",
+"image": "art/spellweaver_p1.png?v=3591844ecf",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -3520,6 +3610,15 @@
 "ay": 84,
 "frames": 8,
 "fps": 12
+},
+"cast": {
+"y": 2304,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 10
 }
 }
 },
@@ -3598,7 +3697,7 @@
 }
 },
 "torvald_p0": {
-"image": "art/torvald_p0.png?v=560d5c96e0",
+"image": "art/torvald_p0.png?v=13fa5e36dd",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -3639,6 +3738,15 @@
 "ax": 32,
 "ay": 61,
 "frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
 "fps": 10
 }
 }
@@ -3884,7 +3992,7 @@
 }
 },
 "willem_p1": {
-"image": "art/willem_p1.png?v=00fe636a3a",
+"image": "art/willem_p1.png?v=f47e866b26",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -3917,6 +4025,15 @@
 "ay": 84,
 "frames": 8,
 "fps": 12
+},
+"cast": {
+"y": 2304,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 8,
+"fps": 10
 }
 }
 },
