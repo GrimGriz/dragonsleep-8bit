@@ -270,9 +270,14 @@
           ctx.fillStyle = P.leather[2]; ctx.fillRect(s.x - 5, s.y - 3, 10, 2); ctx.fillStyle = P.leather[3]; ctx.fillRect(s.x - 5, s.y - 4, 10, 1);
           if (D.campfire) D.campfire.flames(ctx, s.x + 5, s.y - 4, B.t + l.x * 9, 0.5);
         } else if (l.kind === 'dance') {
-          var k = 2 + Math.sin(B.t / 8 + l.x * 2) * 0.6, yy = s.y - 20 + Math.sin(B.t / 11 + l.y * 3) * 2;
-          ctx.globalAlpha = 0.35; ctx.fillStyle = P.glow[1]; ctx.beginPath(); ctx.ellipse(s.x, yy, k * 3, k * 3, 0, 0, 7); ctx.fill();
-          ctx.globalAlpha = 0.95; ctx.fillStyle = P.glow[2]; ctx.beginPath(); ctx.ellipse(s.x, yy, k, k, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+          // (the spell animation pass, 09-28h: the drow's lights were lackluster) a flickering will-o'-light, sparks turning about it
+          var k = 2.4 + Math.sin(B.t / 8 + l.x * 2) * 0.6 + ((B.t + l.x * 5) % 13 < 2 ? 0.8 : 0), yy = s.y - 22 + Math.sin(B.t / 11 + l.y * 3) * 3, xx = s.x + Math.sin(B.t / 17 + l.x) * 2;
+          ctx.globalAlpha = 0.18; ctx.fillStyle = P.glow[1]; ctx.beginPath(); ctx.ellipse(s.x, s.y, 10, 4, 0, 0, 7); ctx.fill();
+          ctx.globalAlpha = 0.3; ctx.fillStyle = P.glow[1]; ctx.beginPath(); ctx.ellipse(xx, yy, k * 3.4, k * 3.4, 0, 0, 7); ctx.fill();
+          ctx.globalAlpha = 0.95; ctx.fillStyle = P.glow[2]; ctx.beginPath(); ctx.ellipse(xx, yy, k, k, 0, 0, 7); ctx.fill();
+          ctx.fillStyle = P.bone[2]; ctx.fillRect(Math.round(xx - 1), Math.round(yy - 1), 2, 2);
+          for (var sp = 0; sp < 3; sp++) { var sa = B.t / 9 + sp * 2.09 + l.y; ctx.globalAlpha = 0.8; ctx.fillStyle = sp ? P.glow[2] : P.bone[2]; ctx.fillRect(Math.round(xx + Math.cos(sa) * 7), Math.round(yy + Math.sin(sa) * 3), sp ? 1 : 2, sp ? 1 : 2); }
+          ctx.globalAlpha = 1;
         } else if (l.kind === 'daylight') {
           ctx.globalAlpha = 0.8 + 0.2 * Math.sin(B.t / 9); ctx.fillStyle = P.bone[2]; ctx.beginPath(); ctx.ellipse(s.x, s.y - 16, 4, 4, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
         }

@@ -519,6 +519,7 @@
     try {
       B.units.forEach(function (u) { var o = unitObj(B, u); if (o) objs.push(o); });
       D.light.props(B).forEach(function (o) { objs.push(o); }); // a torch on the floor, dancing lights, a daylight set at a point
+      if (D.looks) D.looks.props(B).forEach(function (o) { objs.push(o); }); // the floating weapons, the guardian, the spirits' wheel (js/looks.js)
       // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
       (B.riders || []).forEach(function (r) {
         var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2, r.y + (f[1] - 1) / 2, r.gz), s = D.iso.toScreen(c.x, c.y);
@@ -585,7 +586,7 @@
   }
 
   function unitPos(B, u) {
-    var s = u.size || 1, gx = u.x, gy = u.y, gz = G.gzAt(u, u.x, u.y);
+    var s = u.size || 1, gx = u.drawAt ? u.drawAt.x : u.x, gy = u.drawAt ? u.drawAt.y : u.y, gz = G.gzAt(u, gx, gy); // (drawAt: where a caster stands while his floating weapon swings)
     if (u.tween) { var k = u.tween.t / u.tween.dur; gx = u.tween.fx + (u.x - u.tween.fx) * k; gy = u.tween.fy + (u.y - u.tween.fy) * k; gz = u.tween.fz + (gz - u.tween.fz) * k; }
     var c = D.iso.center(gx + (s - 1) / 2, gy + (s - 1) / 2, gz), p = D.iso.toScreen(c.x, c.y);
     return { x: p.x, y: p.y, depth: gx + gy + (s - 1) + 0.6, gz: gz };
@@ -610,7 +611,8 @@
         if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.2 : 0.5; // (inside the darkness: a shape, if that)
         // in the dark where no one of the party sees (torchdark 09-28): the player sees it still, grey and faint; by darkvision, grey
         if (B.dark && u.side === 'foe' && !down && !u.flash) { var ps = D.light.partySees(B, u); if (ps < 2) { o.alpha = Math.min(o.alpha == null ? 1 : o.alpha, ps === 1 ? 0.85 : 0.6); o.tint = R('stone', 3); o.tintAlpha = ps === 1 ? 0.3 : 0.5; } }
-        if (u.flash > 0) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
+        var lt = D.looks && !down && D.looks.tint(u, B); if (lt) { o.tint = lt[0]; o.tintAlpha = lt[1]; } // (stoneskin, barkskin, rage: js/looks.js)
+        if (u.flash > 0) { var fe = u.flashEl && FX.EL && FX.EL[u.flashEl]; o.tint = fe ? fe.c[1] : R('bone', 2); o.tintAlpha = fe ? 0.55 : 0.85; } // (a blow of an element flashes its colour: js/looks.js)
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
         else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; }
@@ -620,8 +622,10 @@
         }
         // a rider's body (the drider's spider half) goes dark unless something else tints it; the rider on top
         var body = u.rider && !o.tint ? Object.assign({}, o, { tint: R('outline', 0), tintAlpha: 0.5 }) : o;
+        if (D.looks && !down && !u.ethereal) D.looks.behind(ctx, B, u, p, anim === 'hurt' && !has('hurt') ? 'idle' : anim, t, o); // (false images, blur, haste: js/looks.js)
         D.spr.draw(ctx, u.sheet, anim === 'hurt' && !has('hurt') ? 'idle' : anim, u.facing || 0, t, p.x, p.y, body);
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
+        if (D.looks && !down && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js)
         if (!u.dead && !u.ethereal) {
           var top = D.spr.unitTop(u), w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
           ctx.fillStyle = R('outline', 0); ctx.fillRect(bx - 1, by - 1, w + 2, 4);
@@ -663,6 +667,7 @@
       var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? R('moss', 2) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;
       D.magic.darkSq(B, dk).forEach(function (q) { fillSq(ctx, q[0], q[1], col, a); });
     });
+    if (D.looks) D.looks.ground(ctx, B, onSq); // the spell ground, holy rings, the darkness's edge (js/looks.js)
     // a torch's throw: the squares within 20 ft it may land on
     if (u && B.tool === 'torch') for (var ty = u.y - 4; ty <= u.y + 4; ty++) for (var tx = u.x - 4; tx <= u.x + 4; tx++) if (UI.throwSq(u, tx, ty)) lineSq(ctx, tx, ty, R('gold', 3), 0.5, 4);
     if (B.active && !B.active.ethereal) G.foot(B.active).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9, 3); });

@@ -662,8 +662,9 @@
       sw.x = t.x; sw.y = t.y;
       FX.sparkle({ x: t.x, y: t.y, size: 1 }, 'glow', 18);
       var at = { name: 'Spiritual Weapon', atk: u.spellAtk, dice: sw.dice, mod: M.mod(u), type: 'force', spell: true, touch: true, ranged: false, fx: 'bolt', spirit: true };
-      var ux = u.x, uy = u.y; u.x = t.x + (t.x > ux ? -1 : t.x < ux ? 1 : 0); u.y = t.y + (t.y > uy ? -1 : t.y < uy ? 1 : 0); // (the swing comes from beside the target)
-      try { yield* B.attack(u, t, at); } finally { u.x = ux; u.y = uy; }
+      // (the swing comes from beside the target; the caster is drawn where he stands, the weapon swings: js/looks.js)
+      var ux = u.x, uy = u.y; u.drawAt = { x: ux, y: uy }; u.x = t.x + (t.x > ux ? -1 : t.x < ux ? 1 : 0); u.y = t.y + (t.y > uy ? -1 : t.y < uy ? 1 : 0);
+      try { yield* B.attack(u, t, at); } finally { u.x = ux; u.y = uy; delete u.drawAt; }
     },
     ai: function (B, u, e, slot, fs) {
       var sw = spiritOf(B, u), d = avg(sw ? sw.dice : more('1d8', Math.floor(Math.max(0, slot - 2) / 2))) + M.mod(u), best = null;
@@ -1134,8 +1135,8 @@
       var sw = (B.spirits || []).filter(function (s) { return s.by === u.id && s.sword; })[0];
       if (!sw) { sw = { by: u.id, x: t.x, y: t.y, dice: '3d10', rounds: 10, sword: true }; B.spirits = (B.spirits || []).concat([sw]); M.concentrate(B, u, 'arcanesword', 'Arcane Sword', function () { sw.rounds = 0; }); B.card([head + ': a shimmering sword of force hangs beside ' + nm(B, t) + '.'], 240); }
       sw.x = t.x; sw.y = t.y; FX.sparkle({ x: t.x, y: t.y, size: 1 }, 'glow', 18);
-      var ux = u.x, uy = u.y; u.x = t.x + (t.x > ux ? -1 : t.x < ux ? 1 : 0); u.y = t.y + (t.y > uy ? -1 : t.y < uy ? 1 : 0);
-      try { yield* B.attack(u, t, { name: 'Arcane Sword', atk: u.spellAtk, dice: '3d10', mod: 0, type: 'force', spell: true, touch: true, fx: 'bolt' }); } finally { u.x = ux; u.y = uy; }
+      var ux = u.x, uy = u.y; u.drawAt = { x: ux, y: uy }; u.x = t.x + (t.x > ux ? -1 : t.x < ux ? 1 : 0); u.y = t.y + (t.y > uy ? -1 : t.y < uy ? 1 : 0);
+      try { yield* B.attack(u, t, { name: 'Arcane Sword', atk: u.spellAtk, dice: '3d10', mod: 0, type: 'force', spell: true, touch: true, fx: 'bolt', spirit: true }); } finally { u.x = ux; u.y = uy; delete u.drawAt; }
     },
     ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (G.dist(u, t) > 60) return; var sc = TX().worth(TX().pHit(u.spellAtk, RU.ac(t), 0) * 16.5, t) * (e.g.again ? 1 : 3); if (!best || sc > best.score) best = { score: sc, t: t, keep: 12 }; }); return best; }
   };

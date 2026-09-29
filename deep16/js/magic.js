@@ -214,7 +214,7 @@
     if (g.shape !== 'self' && g.shape !== 'touch') { var at = t && t.x != null ? { x: t.x, y: t.y, size: 1 } : t && t.units ? t.units[0] : t; if (at) u.facing = B.faceTo(u, at); }
     u.anim = 'attack'; u.animT = B.t;
     D.sfx(M.sound(sp));
-    yield 10;
+    yield Math.max(10, Math.round((D.spr.duration(u.sheet, 'attack') || 18) * 0.55)); // (the release at the height of the cast pose: the spell animation pass, 09-28h)
 
     // the spells built for the class NPCs (09-28, js/grimoire.js): each its own; the rest below as they were
     var FXD = M.EFFECT && M.EFFECT[id];
