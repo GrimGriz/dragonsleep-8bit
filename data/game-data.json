@@ -6103,7 +6103,7 @@
     "fists": {
      "name": "Pit Fists",
      "hit": 5,
-     "dmg": "4",
+     "dmg": "1d4+3",
      "rage": 2,
      "type": "bludgeoning",
      "verb": "hammers",
