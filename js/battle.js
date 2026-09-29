@@ -18,7 +18,10 @@
   // what Protection from Evil and Good wards against (SRD 5.1): aberrations, celestials, elementals, fey, fiends and the dead
   function otherworld(u) { return /^(aberration|celestial|elemental|fey|fiend|undead)$/.test(tags(u)[0] || ''); }
   // one ward-able condition from one otherworldly (frightened, charmed) on one under the ward: nothing
-  function pfegStops(t, f, cond) { return !!(t && t.conds.pfeg && f && otherworld(f) && /frightened|charmed/.test(cond || '')); }
+  function pfegStops(t, f, cond) { return !!(t && t.conds.pfeg && f && otherworld(f) && /frightened|charmed/.test(cond || '')) || devotionStops(t, cond); }
+  // Aura of Devotion (paladin 7; the Oath of Devotion is the 8-bit's one oath, R.oathSpells): while he stands the party can't be charmed
+  var cur = null; // (the battle running: Battle() sets it)
+  function devotionStops(t, cond) { return !!(cur && t && isHero(t) && cond === 'charmed' && cur.heroes.some(function (x) { return !x.guest && x.h.cls === 'paladin' && x.h.lvl >= 7 && !down(x); })); }
   // the minute's spells running out (09-28g): what the card says as each goes
   var END_TEXT = { spiritWeapon: "'s spiritual weapon fades.", magicWeapon: "'s weapon is plain steel again.", branding: "'s waiting light goes out.",
     pfeg: "'s ward against the otherworldly fades.", sanctuary: "'s sanctuary fades." };
@@ -26,7 +29,7 @@
   function deafTo(u) { return tags(u)[0] === 'undead' || abil(u, 'int') <= 3; }
 
   function Battle(o) {
-    var self = this;
+    var self = this; cur = this;
     this.kind = 'battle'; this.opaque = true; this.o = o;
     this.round = 1; this.msg = ''; this.fx = []; this.nums = []; this.bright = !!o.bright; this.over = null;
     // torchdark (09-28): a dark place (the map's `dark`, the night's tint: events.js EV.fight) is dark till someone makes a light.

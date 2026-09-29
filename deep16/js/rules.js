@@ -16,7 +16,8 @@
     return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0) + ward;
   };
   // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
-  RU.immuneTo = function (u, cond) { return !!(u && ((u.condImmune && u.condImmune.indexOf(cond) >= 0) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond)))); }; // (Freedom of Movement: js/grimoire.js)
+  RU.immuneTo = function (u, cond) { return !!(u && ((u.condImmune && u.condImmune.indexOf(cond) >= 0) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond))
+    || (/^(charmed|hypnotized)$/.test(cond) && G.units && RU.inAura(u, 'devotion')))); }; // (Freedom of Movement: js/grimoire.js; Aura of Devotion: RU.auraOf below)
 
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {
@@ -35,15 +36,25 @@
     if (D.magic) D.magic.startTurn(D.battle, u);
   };
 
-  // Aura of Protection: while the paladin stands, allies within 10 ft (and he) add his CHA to saves
-  RU.aura = function (u) {
+  // A paladin's auras (SRD 5.1), up while he stands and can act (conscious): Aura of Protection from 6 (he and allies within
+  // 10 ft add his CHA to saves), Aura of Devotion from 7 for the Oath of Devotion (they can't be charmed). null when none is up.
+  // One test for the rules and the looks (js/looks.js draws the ring from it).
+  RU.auraOf = function (p) {
+    if (!p || p.cls !== 'paladin' || p.lvl < 6 || !G.standing(p) || !RU.canAct(p)) return null; // (either side: a class NPC paladin's too)
+    return { r: 10, protect: Math.max(1, D.mod(p.abil.cha)), devotion: p.lvl >= 7 && RU.devoted(p) };
+  };
+  RU.devoted = function (p) { return /devotion/i.test(p.subclass || '') || p.id === 'lymen'; }; // (Lymen's oath is Devotion: its spells are PfEG and Sanctuary)
+  RU.inAura = function (u, key) {
     var best = 0;
     G.units.forEach(function (p) {
-      if (p.cls !== 'paladin' || p.lvl < 6 || p.side !== u.side || !G.standing(p) || !RU.canAct(p)) return; // (either side: a class NPC paladin's too)
-      if (p === u || G.dist(p, u) <= 10) best = Math.max(best, Math.max(1, D.mod(p.abil.cha)));
+      if (p.side !== u.side) return;
+      var a = RU.auraOf(p); if (!a || !a[key] || (p !== u && G.dist(p, u) > a.r)) return;
+      best = Math.max(best, a[key] === true ? 1 : a[key]);
     });
     return best;
   };
+  // Aura of Protection: while the paladin stands, allies within 10 ft (and he) add his CHA to saves
+  RU.aura = function (u) { return RU.inAura(u, 'protect'); };
   RU.save = function (u, ab, dc) {
     var c = u.conds, bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u) + (c.wardingBond ? 1 : 0) - (ab === 'dex' && c.slowed ? 2 : 0);
     // advantage: Dodge and Haste on DEX; Beacon of Hope on WIS; a creature's own (Danger Sense, Magic Resistance: o.adv). Disadvantage: restrained on DEX
