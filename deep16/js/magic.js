@@ -284,7 +284,8 @@
         B.card([head + ': ' + who.map(function (w) { return w.name; }).join(', ') + ' -- {y}+1d4{/} to attack rolls and saves (concentration).']);
       } else if (id === 'aid') {
         var add = 5 * Math.max(1, slot - 1);
-        who.forEach(function (w) { w.maxhp += add; w.hp = w.hp > 0 ? w.hp + add : add; if (w.ko) { w.ko = false; w.anim = 'idle'; } FX.sparkle(w, 'gold', 10); FX.float('+' + add, w, D.PAL.ramps.moss[2]); });
+        // (the same spell's effects don't combine, SRD 5.1: Aid on one already aided raises it only to the higher -- 09-28h, it stacked)
+        who.forEach(function (w) { var had = +(w.conds.aid || (w.src && w.src.conds && w.src.conds.aid) || 0), more = Math.max(0, add - had); w.conds.aid = Math.max(had, add); if (!more) return; w.maxhp += more; w.hp = w.hp > 0 ? w.hp + more : more; if (w.ko) { w.ko = false; w.anim = 'idle'; } FX.sparkle(w, 'gold', 10); FX.float('+' + more, w, D.PAL.ramps.moss[2]); });
         B.card([head + ': ' + who.map(function (w) { return w.name; }).join(', ') + ' -- {n}+' + add + ' max HP{/} and as much again.']);
       }
       yield 30;

@@ -1092,7 +1092,7 @@
         else if (sp.buff === 'darkvision') { t.h.conds.darkvision = true; }
         else if (sp.buff === 'continualFlame') { t.h.conds.continualFlame = t.h.equip.weapon || t.h.equip.armor || true; this.lit = true; this.flashT = 8; yield* this.dazzle(nameOf(u) + ' sets a flame on ' + plain(t) + "'s " + (R.item(t.h.equip.weapon) ? R.item(t.h.equip.weapon).name.toLowerCase() : 'gear') + ' that gives no heat.'); }
         else if (sp.buff === 'stoneskin') { t.conds.stoneskin = { rounds: 10 }; }
-        else if (sp.buff === 'aid') { t.h.maxhp += 5 * (1 + up); t.h.hp += 5 * (1 + up); t.h.conds.aid = (t.h.conds.aid || 0) + 5 * (1 + up); }
+        else if (sp.buff === 'aid') { var had8 = t.h.conds.aid || 0, a8 = 5 * (1 + up), more8 = Math.max(0, a8 - had8); t.h.maxhp += more8; t.h.hp += more8; t.h.conds.aid = Math.max(had8, a8); } // (the same spell doesn't combine, SRD 5.1: the higher Aid stands -- 09-28h, it stacked)
         // Lymen's list (09-28g; the grid's since 09-28, deep16/js/grimoire.js): for the fight (ten rounds, a minute), on the unit
         else if (sp.buff === 'branding') { t.conds.branding = { dice: (2 + up) + 'd6', rounds: 10 }; }
         else if (sp.buff === 'magicWeapon') { t.conds.magicWeapon = { b: slot >= 6 ? 3 : slot >= 4 ? 2 : 1, rounds: 10 }; }
