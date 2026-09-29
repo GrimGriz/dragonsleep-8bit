@@ -279,6 +279,8 @@
     var mod = DS.mod(h.abil[R.weaponAbil(h, w)]) + (w.weapon.bonus || 0);
     // Martial Arts (the monk): a fist or a monk weapon hits for the martial-arts die when that is bigger
     if (h.cls === 'monk' && R.monkWeapon(w)) { var md = R.martialDie(h.lvl); if (w.id === 'unarmed' || +md.split('d')[1] > +String(dice).split('d')[1]) dice = md; return { dice: dice, mod: mod, type: w.weapon.type }; }
+    // PIT FISTS (the Path of the Sand, 3rd; 09-28h, Griz on Talmok's fists: "Almost certainly"): 1d4 + STR, 1d6 from the 6th
+    if (w.id === 'unarmed' && h.subclass === 'Path of the Sand' && h.lvl >= 3) return { dice: h.lvl >= 6 ? '1d6' : '1d4', mod: DS.mod(h.abil.str), type: 'bludgeoning' };
     if (w.id === 'unarmed') return { dice: '0', mod: 1 + DS.mod(h.abil.str), type: 'bludgeoning' };
     return { dice: dice, mod: mod, type: w.weapon.type };
   };

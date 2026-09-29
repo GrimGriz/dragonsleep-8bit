@@ -596,9 +596,9 @@
     name: 'Talmok', type: 'humanoid', named: true, sheet: 'talmok_p1', cr: '2', ac: 15, hp: 35, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 14, con: 16, int: 9, wis: 13, cha: 11 }, init: 2, perception: 11,
     saves: { str: 5, dex: 2, con: 5, int: -1, wis: 1, cha: 0 },
-    attacks: { fists: { name: 'Pit Fists', atk: 5, dice: '1d1', mod: 3, type: 'bludgeoning', reach: 5, rage: 2, prone: 13 } },
+    attacks: { fists: { name: 'Pit Fists', atk: 5, dice: '1d4', mod: 3, type: 'bludgeoning', reach: 5, rage: 2, prone: 13 } },
     multi: ['fists', 'fists'], reckless: true, rageOnHit: true,
-    src: 'content/monsters.json talmok (the 8-bit game\'s own pit fighter): Pit Fists for a flat 4 (+2 raging), reckless, rages on the first hit (here: two blows a turn, as a CR 2 brawler); the fists knock prone (STR 13)'
+    src: 'content/monsters.json talmok (the 8-bit game\'s own pit fighter): Pit Fists 1d4+3 (+2 raging; a flat 4 till 09-28h, the SRD unarmed strike: the Path of the Sand and its PIT FISTS give them the die), reckless, rages on the first hit (here: two blows a turn, as a CR 2 brawler); the fists knock prone (STR 13)'
   },
   berserker: {
     name: 'Visiting Barbarian', type: 'humanoid', sheet: 'berserker_p1', cr: '2', ac: 13, hp: 67, speed: 30, size: 1, reach: 5,

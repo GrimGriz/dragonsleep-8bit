@@ -433,7 +433,7 @@
   };
   E.sanctuary = {
     summary: function () { return 'bonus action · an ally within 30 ft (or you) · a foe must save WIS to strike or spell them; it ends if they attack'; },
-    cast: function* (B, u, t, slot, head, x) { t.conds.sanctuary = { dc: x.dc, by: u.id }; FX.ring(t, 'gold', 34); B.card([head + ' on ' + t.name + ': a ward -- whoever would strike must first save WIS ' + x.dc + '.']); yield 16; },
+    cast: function* (B, u, t, slot, head, x) { var sa = t.conds.sanctuary = { dc: x.dc, by: u.id }; M.expire(B, u, 'sanctuary', function () { if (t.conds.sanctuary === sa) delete t.conds.sanctuary; }); FX.ring(t, 'gold', 34); B.card([head + ' on ' + t.name + ': a ward -- whoever would strike must first save WIS ' + x.dc + '.']); yield 16; },
     ai: function (B, u, e, slot, fs, allies) {
       var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 30 && !w.conds.sanctuary && w.hp < w.maxhp * 0.4; }).sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })[0];
       if (!t) return null;
@@ -628,7 +628,7 @@
   };
   E.mirrorimage = {
     summary: function () { return 'yourself · three illusory doubles: a blow may strike one instead (a minute)'; },
-    cast: function* (B, u, t, slot, head) { u.images = 3; FX.sparkle(u, 'violet', 24); B.card([head + ': three of him, and which is which?']); yield 20; },
+    cast: function* (B, u, t, slot, head) { u.images = 3; M.expire(B, u, 'mirrorimage', function () { u.images = 0; }); FX.sparkle(u, 'violet', 24); B.card([head + ': three of him, and which is which?']); yield 20; }, // (a minute: M.expire)
     ai: function (B, u, e, slot, fs) { if ((u.images || 0) > 1) return null; var th = fs.filter(function (w) { return G.dist(u, w) <= 60; }).reduce(function (s, w) { return s + TX().dpr(w); }, 0); return { score: th * 0.35 * 2 + (u.hp < u.maxhp / 2 ? 3 : 0), t: u }; }
   };
   E.protectionfrompoison = {
@@ -701,7 +701,7 @@
   };
   E.blink = {
     summary: function () { return 'yourself, a minute · at each turn\'s end, an even chance to slip into the Ethereal till your next turn'; },
-    cast: function* (B, u, t, slot, head) { u.conds.blink = { rounds: 10 }; FX.sparkle(u, 'violet', 18); B.card([head + ': he flickers at the edge of the world.']); yield 16; },
+    cast: function* (B, u, t, slot, head) { u.conds.blink = { rounds: 10 }; M.expire(B, u, 'blink', function () { delete u.conds.blink; if (u.ethereal) u.ethereal = false; }); FX.sparkle(u, 'violet', 18); B.card([head + ': he flickers at the edge of the world.']); yield 16; },
     ai: function (B, u, e, slot, fs) { if (u.conds.blink) return null; var th = fs.filter(function (w) { return G.dist(u, w) <= 60; }).reduce(function (s, w) { return s + TX().dpr(w); }, 0); return { score: th * 0.4 * 2, t: u }; }
   };
   E.calllightning = {

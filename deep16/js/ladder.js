@@ -46,7 +46,7 @@
   // the tester ladder's card: what each of our four gains going from L to L+1 -- the features (their own and the class's), the
   // scores, the slots, the spells new to the list (js/classes.js builds both sheets)
   var OURS_AT = {
-    talmok: { 2: 'Reckless Attack, Danger Sense', 3: 'the Path of the Sand: First Blood, Down in the Sand', 5: 'Extra Attack, Fast Movement', 6: 'Answer Back; a fourth rage', 7: 'Feral Instinct', 9: 'Brutal Critical; rage +3' },
+    talmok: { 2: 'Reckless Attack, Danger Sense', 3: 'the Path of the Sand: First Blood, Down in the Sand, Pit Fists (1d4)', 5: 'Extra Attack, Fast Movement', 6: 'Answer Back; Pit Fists 1d6; a fourth rage', 7: 'Feral Instinct', 9: 'Brutal Critical; rage +3' },
     willem: { 2: 'the Rimeglass: Rime Doubles', 6: 'Rime Step' },
     katarina: { 2: 'Channel Divinity: the Doubling, Turn Undead', 5: 'Destroy Undead (CR 1/2)', 6: 'the Showing; a second Channel Divinity', 8: 'Divine Strike (1d8 psychic); Destroy Undead (CR 1)' },
     torvald: { 2: 'Channel Divinity: Hold the Door, Turn Undead', 5: 'Destroy Undead (CR 1/2)', 6: 'Wakeful; a second Channel Divinity', 8: 'Divine Strike (1d8 radiant); Destroy Undead (CR 1)' }
@@ -54,7 +54,7 @@
   function oursGains(L) {
     var N = D.npc, R = DS.R;
     return N.OURS.map(function (k) {
-      var a = N.sheet(N.spec(k + ':' + L)), b = N.sheet(N.spec(k + ':' + (L + 1))), msgs = [];
+      var a = N.sheet(N.spec(k + ':' + L + ':grown')), b = N.sheet(N.spec(k + ':' + (L + 1) + ':grown')), msgs = []; // (the grown builds: 09-28h)
       if (OURS_AT[k][L + 1]) msgs.push(OURS_AT[k][L + 1] + '.');
       var up = R.ABIL.filter(function (s) { return b.abil[s] > a.abil[s]; }).map(function (s) { return s.toUpperCase() + ' +' + (b.abil[s] - a.abil[s]); });
       if (up.length) msgs.push(up.join(', ') + '.');

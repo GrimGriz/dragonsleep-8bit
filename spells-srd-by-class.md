@@ -77,6 +77,8 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 - **Lighting a torch costs an action** (the SRD tinderbox): *"yes to action cost"* (`deep16/js/light.js L.LIGHT_COST 'A'`).
 - **The spell animation pass** (handoff-2026-09-28-spell-animation-pass.md §4): both games (*"might as well pretty spells it now"*; the 8-bit gets sprites where it needs them, entangling vines first); code for most, a visible double for whatever makes mirror images (to pop), the terrain art where it serves; the 15 ramps as they are (*"you creative from 15 sounds fine"*); an animation takes as long as it needs (*"The lack of spirit weapon as such is what made me see the need for this pass"*); a sound per element and an alternate for special cases; the cast pose for every caster we have. Fireball and Lightning Bolt are decent as they are; the drow's spells were lackluster.
 
+- **Spell durations kept on the grid** (*"spell durations are theoretically important"*): every SRD spell's duration in rounds (`deep16/data/durations.js`, from the SRD cache by `tools/deep16-durations.py`); a concentration spell lets go when its time is up, at the start of the caster's turn (a minute is ten rounds: Hold Person, Bless, Haste, Banishment...); Mirror Image, Sanctuary and Blink end at their minute too. The 8-bit battle already ran its spells ten rounds.
+
 ## Still open
 
 - Nothing from 09-28's list: all ruled 09-28g (above). The four subclasses are the seat's drafts, standing as approved: his word to redirect any of them.

@@ -80,9 +80,13 @@
   // ?ladder&party=ours), each built at the rung's level. One who is across the floor on that rung (the Wagon Yard's Willem, the
   // Card's Top's Talmok) sits it out: three of ours, not a man against himself (the seat's call; flagged)
   NPC.OURS = ['talmok', 'willem', 'katarina', 'torvald'];
+  // the tester ladder's four at L, each the grown build (09-28h, Griz: "grown builds please": no dip at a register's own level). One of
+  // ours who is that rung's foe (Willem in the Wagon Yard, Talmok on the Card's Top) is swapped for an alternate (Griz: "swap in
+  // alternates (your choice) rather than mirror"): Higertha, the Hex's druid, who stands at any level; then a paladin
+  NPC.ALTS = ['higertha', 'paladin'];
   NPC.ours = function (L, F) {
-    var there = F ? (F.foes || (D.MAPS[F.map] || {}).foes || []).map(function (f) { return f.kind; }) : [];
-    return NPC.OURS.filter(function (k) { return there.indexOf(k) < 0; }).map(function (k) { return k + ':' + L; });
+    var there = F ? (F.foes || (D.MAPS[F.map] || {}).foes || []).map(function (f) { return f.kind; }) : [], alts = NPC.ALTS.filter(function (k) { return there.indexOf(k) < 0; });
+    return NPC.OURS.map(function (k) { return there.indexOf(k) < 0 ? k + ':' + L + ':grown' : (alts.shift() || 'fighter') + ':' + L; });
   };
   function subAlways(sub, lvl) { var a = [], s = NPC.SUBS[sub]; Object.keys((s && s.always) || {}).forEach(function (k) { if (lvl >= +k) a = a.concat(s.always[k]); }); return a; }
 
@@ -130,7 +134,8 @@
     // Katarina, the mender (serial-castegut/BIBLE.md: a cleric of Tronupholen, the Fey in the Mirror, CANON 08-06). RULED 09-28g (Griz):
     // "Kat supposed to be Cleric of trickster deity trapped in mirror" -- her domain is our own, the Window (invented.json #the-window).
     // Her level is unruled in the register (cleric 2 or 3, BIBLE 08-27), so she stands at any, as Higertha does; human, generic numbers
-    katarina: { name: 'Katarina', cls: 'cleric', race: 'human', subclass: 'the Window', named: true,
+    // RULED 09-28h (Griz): "at campaign start she's just hit 3" -- her register's level is 3
+    katarina: { name: 'Katarina', cls: 'cleric', lvl: 3, race: 'human', subclass: 'the Window', named: true,
       equip: { weapon: 'mace', armor: 'leather', shield: 'shield' } },
     // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b). RULED 09-28g (Griz: "Yes, she's meant to be Cleric"):
     // her 8-bit sheet is a cleric's now (content/heroes.json: the d8's average HP, slots 4/3, the drafted list and the Life Domain's
@@ -324,7 +329,8 @@
   NPC.spec = function (word, lvl) {
     var bits = String(word).toLowerCase().split(':'), key = bits[0], L = +bits[1] || lvl || 1;
     var named = NPC.NAMED[key];
-    if (named) { var at = Math.max(1, Math.min(9, +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && at !== named.lvl ? named.lvl : 0 }); }
+    // ('talmok:5:grown': the grown build even at the register's own level -- the tester ladder, 09-28h: "grown builds please")
+    if (named) { var at = Math.max(1, Math.min(9, +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && (at !== named.lvl || bits[2] === 'grown') ? named.lvl : 0 }); }
     if (!C[key]) return null;
     return { cls: key, lvl: L, race: bits[2] || 'human' };
   };

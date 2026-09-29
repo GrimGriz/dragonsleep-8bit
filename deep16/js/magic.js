@@ -176,9 +176,19 @@
   };
 
   // ------------------------------------------------------------------ concentration
+  // a spell's duration in rounds (SRD 5.1: deep16/data/durations.js; 09-28h, Griz: "spell durations are theoretically important"),
+  // or null for one the SRD doesn't time (our own) or for as long as a fight lasts
+  M.duration = function (id) { var d = D.DURATION && D.DURATION[String(id).toLowerCase().replace(/[^a-z0-9]/g, '')]; return d ? d.r : null; };
   M.concentrate = function (B, u, id, name, undo) {
     if (u.conc) M.endConc(B, u, 'a new spell');
-    u.conc = { id: id, name: name, undo: undo };
+    var r = M.duration(id);
+    u.conc = { id: id, name: name, undo: undo, till: r && B && B.round != null ? B.round + r : null }; // (its time runs out at the start of his turn, r rounds on)
+  };
+  // a timed effect that isn't concentration (Mirror Image, Sanctuary, Blink: a minute): undone at the start of the caster's turn when
+  // its time is up
+  M.expire = function (B, u, id, undo) {
+    var r = M.duration(id); if (!r || !B || B.round == null) return;
+    (B.expiries = B.expiries || []).push({ by: u.id, till: B.round + r, undo: undo, id: id });
   };
   M.endConc = function (B, u, why) {
     if (!u.conc) return;
@@ -471,6 +481,9 @@
   // ------------------------------------------------------------------ the conditions' turns
   // the start of a creature's turn: Heroism's temporary HP; a restrained or paralyzed creature has no move
   M.startTurn = function (B, u) {
+    // durations (09-28h): a spell held past its time lets go; a timed effect of his that has run its course ends
+    if (B && u.conc && u.conc.till != null && B.round >= u.conc.till) M.endConc(B, u, 'its time is up');
+    if (B && B.expiries && B.expiries.length) B.expiries = B.expiries.filter(function (e) { if (e.by !== u.id || B.round < e.till) return true; try { e.undo(); } catch (x) { } return false; });
     if (u.conds.heroism) u.temp = Math.max(u.temp || 0, u.conds.heroism.each);
     if (B && u.hp > 0 && !u.dead) M.webCatch(B, u, 'starts');
     if (B && u.hp > 0 && !u.dead) M.cloudTurn(B, u);
