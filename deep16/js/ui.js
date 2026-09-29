@@ -865,7 +865,9 @@
   function cards(ctx, B) {
     var y = 15;
     B.cards.forEach(function (c, i) {
-      var lines = c.lines.filter(function (l) { return l; }), w = 0;
+      // a line wider than the screen wraps onto the next (Griz, 09-29: "spell can be complicated, add a line"), colour codes and glyphs kept
+      var lines = [], w = 0;
+      c.lines.filter(function (l) { return l; }).forEach(function (l) { (D.textWidth(l) > D.W - 18 ? D.wrap(l, D.W - 18) : [l]).forEach(function (x) { lines.push(x); }); });
       lines.forEach(function (l) { w = Math.max(w, D.textWidth(l)); });
       w = Math.min(D.W - 8, w + 10);
       var x = Math.round((D.W - w) / 2), h = lines.length * 9 + 5;
@@ -1023,7 +1025,7 @@
     var sy = y + h - 10;
     if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.sp) D.text(ctx, '{g}' + D.typeText(D.magic.summary(cur, u)) + '{/}', x + 6, sy, R('accent', 2));
-    else if (cur && cur.note) D.text(ctx, '{g}' + cur.note + '{/}', x + 6, sy, R('accent', 2));
+    else if (cur && cur.note) D.text(ctx, '{g}' + D.typeText(cur.note, true) + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire', light: cur.id === 'lantern' ? 'a hooded lantern, lit: bright 30 ft, dim 30 more; hood down, dim 5 ft and a roost sleeps; it takes a hand' : 'a torch, lit: bright 20 ft, dim 20 more; it takes a hand' }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
   }
 
@@ -1096,7 +1098,7 @@
     var lw = D.textWidth(label) + 10, ly = cy + ry + 16;
     box(ctx, Math.round(cx - lw / 2), ly, lw, 12, R('gold', 3));
     D.text(ctx, label, cx, ly + 2, cur.ok ? R('bone', 2) : R('stone', 4), 'center');
-    var sub = !cur.ok && cur.why ? cur.why : cur.kind === 'spell' ? D.typeText(D.magic.summary(cur, u)) : cur.note || ''; // (the creature types as their glyphs)
+    var sub = !cur.ok && cur.why ? cur.why : cur.kind === 'spell' ? D.typeText(D.magic.summary(cur, u)) : D.typeText(cur.note || '', true); // (the creature types as their glyphs)
     if (sub) { var ww = D.textWidth(sub) + 8; box(ctx, Math.round(cx - ww / 2), ly + 13, ww, 11, R('stone', 3)); D.text(ctx, '{g}' + sub + '{/}', cx, ly + 15, R('accent', 2), 'center'); }
   }
   function initials(name) { var w = name.split(' ').filter(function (x) { return !/^(of|the)$/i.test(x); }); return w.length > 1 ? w.map(function (x) { return x[0]; }).join('').slice(0, 2) : name.slice(0, 2); }

@@ -460,7 +460,7 @@
   };
   E.protectionfromevilandgood = {
     summary: function () { return 'touch · aberrations, celestials, elementals, fey, fiends and the dead attack them at disadvantage (concentration)'; },
-    cast: function* (B, u, t, slot, head) { t.conds.pfeg = { by: u.id }; M.concentrate(B, u, 'protectionfromevilandgood', 'Protection from Evil and Good', function () { delete t.conds.pfeg; }); FX.ring(t, 'gold', 30); B.card([head + ' on ' + t.name + ': a ward against the otherworldly and the dead (concentration).']); yield 16; },
+    cast: function* (B, u, t, slot, head) { t.conds.pfeg = { by: u.id }; M.concentrate(B, u, 'protectionfromevilandgood', 'Protection from Evil and Good', function () { delete t.conds.pfeg; }); FX.ring(t, 'gold', 30); B.card([head + ' on ' + t.name + ':', '  a ward against ' + D.typeText('the otherworldly and the dead', true) + ' (concentration).']); yield 16; },
     ai: function (B, u, e, slot, fs, allies) {
       if (u.conc) return null;
       var bad = fs.filter(function (w) { return /aberration|celestial|elemental|fey|fiend|undead/.test(w.type || ''); });

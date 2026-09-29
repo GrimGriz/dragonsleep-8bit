@@ -380,15 +380,22 @@
     });
     return out;
   };
-  // a spell's words with a glyph after each creature type they name, and "(inspect)" after them when any is named (right-click shows a
-  // creature's type); noHint leaves the "(inspect)" off (a caller that puts it once after two texts)
-  var TYPEWORD = [[/\b(aberrations?)\b/gi, 'aberration'], [/\b(celestials?)\b/gi, 'celestial'], [/\b(elementals?)\b/gi, 'elemental'], [/\b(fey)\b/gi, 'fey'],
-    [/\b(fiends?)\b/gi, 'fiend'], [/\b(undead|the dead)\b/gi, 'undead'], [/\b(humanoids?)\b/gi, 'humanoid'], [/\b(beasts?)\b/gi, 'beast'],
-    [/\b(constructs?)\b/gi, 'construct'], [/\b(oozes?)\b/gi, 'ooze'], [/\b(monstrosit(?:y|ies))\b/gi, 'monstrosity']];
+  // a spell's words with each creature type they name shown as its glyph in place of the word (Griz, 09-29: "meant in lieu of the words - we
+  // have a lot of words on screen that go by fast"), a list of them run together, and "(inspect)" after when any is named (right-click shows
+  // a creature's type); noHint leaves the "(inspect)" off (the fast cards, or a caller that puts it once after two texts). Lower case only,
+  // so a name (Turn Undead, Fey Ancestry) keeps its words
+  // (one pass, so a glyph put in is never matched again)
+  var TYPEWORD = /\b(the otherworldly|the dead|undead|aberrations?|celestials?|elementals?|fey|fiends?|humanoids?|beasts?|constructs?|oozes?|monstrosit(?:y|ies))\b/g;
+  function typeToken(w) {
+    if (w === 'the otherworldly') return '{:aberration}{:celestial}{:elemental}{:fey}{:fiend}';
+    if (w === 'the dead' || w === 'undead') return '{:undead}';
+    return '{:' + (/^monstrosit/.test(w) ? 'monstrosity' : w === 'fey' ? 'fey' : w.replace(/s$/, '')) + '}';
+  }
   D.typeText = function (s, noHint) {
-    var hit = false; s = String(s || '');
-    TYPEWORD.forEach(function (p) { s = s.replace(p[0], function (w) { hit = true; return w + '{:' + p[1] + '}'; }); });
-    return hit && !noHint ? s + ' {g}(inspect){/}' : s;
+    var s0 = String(s || ''); s = s0.replace(TYPEWORD, typeToken);
+    if (s === s0) return s;
+    s = s.replace(/\}(?:,? and |, )(?=\{:)/g, '}'); // (a list of types: the glyphs side by side)
+    return noHint ? s : s + ' {g}(inspect){/}';
   };
 
   // ---------------------------------------------------------------- assets
