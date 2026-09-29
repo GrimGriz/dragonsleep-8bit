@@ -223,24 +223,30 @@
   // of CR 1/4 with no flying or swimming till 4, 1/2 till 8) -- the wolf from the bestiary. Its HP is its own; at 0 the druid comes
   // back with the rest of the blow; no spells cast in it
   F.BEASTS = { 2: 'wolf', 4: 'wolf', 8: 'giantspider' };
-  F.wildShape = function* (B, u) {
-    var kind = u.lvl >= 8 ? F.BEASTS[8] : F.BEASTS[2], d = D.FOES[kind];
+  // the shapes on offer (the Circle of the Land: CR 1/4 with no flying or swimming from 2, swimming from 4, CR 1 from 8), of the beasts
+  // the bestiary has; the player picks (F.commands WILD SHAPE, 09-29), the AI takes F.BEASTS' by level
+  F.SHAPES = [{ kind: 'wolf', lvl: 2 }, { kind: 'wolfspider', lvl: 2 }, { kind: 'axebeak', lvl: 2 }, { kind: 'giantfrog', lvl: 4 }, { kind: 'giantspider', lvl: 8 }];
+  F.beastsFor = function (u) { return F.SHAPES.filter(function (s) { return u.lvl >= s.lvl && D.FOES[s.kind]; }).map(function (s) { return s.kind; }); };
+  F.wildShape = function* (B, u, kind) {
+    kind = kind || (u.lvl >= 8 ? F.BEASTS[8] : F.BEASTS[2]);
+    var d = D.FOES[kind];
     if (!d) return;
     u.turn.action = 0; u.feats.wildShape--;
     var bite = d.attacks[Object.keys(d.attacks)[0]];
     u.beast = { kind: kind, hp: d.hp, maxhp: d.hp, keep: { weapon: u.weapon, alt: u.alt, baseAC: u.baseAC, speed: u.speed, sheet: u.sheet, abil: u.abil, attacks: u.attacks, attacksBase: u.attacksBase, packTactics: u.packTactics, known: u.known } };
-    u.weapon = { name: bite.name, atk: bite.atk, dice: bite.dice, mod: bite.mod, type: bite.type, prone: bite.prone, magic: false };
+    // (the whole attack, so the spider's poison and the frog's grip ride with the bite; the figure keeps its own square -- a Large shape stands in one)
+    u.weapon = Object.assign({}, bite, { magic: false });
     u.alt = null; u.baseAC = d.ac; u.speed = d.speed; u.sheet = d.sheet; u.abil = Object.assign({}, u.abil, { str: d.abil.str, dex: d.abil.dex, con: d.abil.con }); u.attacks = 1; u.attacksBase = 1; u.packTactics = !!d.packTactics; u.known = [];
     u.turn.move = Math.max(u.turn.move, d.speed - (u.keep0 || 0));
     FX.sparkle(u, 'moss', 24); D.sfx('buff');
     B.card(['{y}' + Nm(B, u) + '{/}: WILD SHAPE -- a ' + d.name.toLowerCase() + ' where the druid stood  {g}(' + d.hp + ' HP of its own){/}'], 300);
     yield 24;
   };
-  F.unshape = function (B, u, over) {
+  F.unshape = function (B, u, over, willing) {
     var k = u.beast.keep; delete u.beast;
     Object.keys(k).forEach(function (f) { u[f] = k[f]; });
     FX.sparkle(u, 'moss', 16);
-    B.card(['{g}' + Nm(B, u) + ' is thrown back into their own shape.{/}'], 240);
+    B.card(['{g}' + Nm(B, u) + (willing ? ' takes their own shape again.' : ' is thrown back into their own shape.') + '{/}'], 240);
     if (over > 0) B.hurt(u, over, 'bludgeoning');
   };
   TX.ACTIONS.push(function (B, u, fs) {
@@ -494,6 +500,10 @@
       if (u.lvl >= 2) out.push({ id: 'reckless', label: 'RECKLESS', cost: 'F', icon: 'attack', skill: true, ok: !u.conds.reckless && !T.attackAction && (T.action > 0 || T.attacksLeft > 0),
         why: u.conds.reckless ? 'reckless already, till your next turn' : 'it is decided on the turn\'s first swing', note: 'advantage on STR swings this turn; swings at you have it too till your next' });
     }
+    // the druid (09-29, Higertha to nine): Wild Shape, and the way back
+    if (u.cls === 'druid' && u.lvl >= 2 && !u.beast) out.push({ id: 'wildshape', label: 'WILD SHAPE', cost: 'A', icon: 'skills', skill: true, ok: act && feat(u, 'wildShape'),
+      why: !feat(u, 'wildShape') ? 'no shape left (a short rest brings two back)' : 'the action is spent', note: 'a beast\'s shape (' + F.beastsFor(u).map(function (k) { return D.FOES[k].name.toLowerCase(); }).join(', ') + '): its hit points take the blows first, no spells; ' + ((u.feats && u.feats.wildShape) || 0) + ' left (short rest)' });
+    if (u.cls === 'druid' && u.beast) out.push({ id: 'unshape', label: 'OWN SHAPE', cost: 'B', icon: 'skills', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'back to the druid (the beast\'s hit points left behind)' });
     if (u.cls === 'cleric' && u.lvl >= 2) out.push({ id: 'turnundead', label: 'TURN UNDEAD', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.undeadNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no undead within 30 ft', note: 'the dead within 30 ft: WIS DC ' + u.spellDC + ' or turned' + (u.lvl >= 5 ? ' (the weakest destroyed)' : '') });
     if (sub(u, 'the Window', 1)) out.push({ id: 'handonneck', label: 'HAND ON THE NECK', cost: 'B', icon: 'lay', skill: true, ok: T.bonus > 0 && feat(u, 'handOnNeck'),
@@ -524,6 +534,13 @@
       case 'reckless':
         u.conds.reckless = { till: { who: u.id, at: 'start', n: 1 } }; D.sfx('crit');
         B.card(['{r}' + u.name + ' swings recklessly.{/}  {g}(advantage on STR swings this turn; at him too till his next){/}'], 200); return;
+      case 'wildshape': {
+        var ks = F.beastsFor(u);
+        var pick = yield { prompt: { who: u, title: u.name + ': WILD SHAPE', lines: ['Which beast? Its hit points take the blows first; no spells while in it; a bonus action ends it.'], opts: ks.map(function (k, i) { var d = D.FOES[k]; return { label: d.name.toUpperCase() + ' (' + d.hp + ' HP, AC ' + d.ac + ', ' + d.speed + ' FT)', value: i + 1 }; }).concat([{ label: 'NOT NOW', value: 0 }]) } };
+        if (pick) yield* F.wildShape(B, u, ks[pick - 1]);
+        return;
+      }
+      case 'unshape': u.turn.bonus = 0; F.unshape(B, u, 0, true); yield 12; return;
       case 'turnundead': yield* F.turnUndead(B, u, F.undeadNear(B, u)); return;
       case 'doubling': yield* F.doubling(B, u); return;
       case 'holddoor': yield* F.holdDoor(B, u, F.doorFoes(B, u)); return;

@@ -223,6 +223,16 @@ INFO (inspect what the cursor is on). On the board a tap points, a second tap on
 a long press inspects. Turned sideways the pad sits either side of the board; upright it sits below and the board is
 small. What each spell does, against the tabletop: `../deep16-current spells.md` (reading-lamp format).
 
+**The druid to nine** (09-29, Griz: *"we'll have to do her spells for at least up to 9 ... druid beast form ... and other class
+features"*): the first zones that move -- **Moonbeam** (a 5-ft shaft of pale light, CON 2d10 radiant on entering it or
+starting a turn in it; an action moves it 60 ft) and **Flaming Sphere** (a ball of fire, DEX 2d6 to whoever ends a turn
+within 5 ft; a bonus action rolls it 30 ft and rams what it meets; it lights 20 ft) -- moved by casting the spell again,
+as the spiritual weapon is swung (`js/grimoire.js` B.zones; `js/looks.js`); **WILD SHAPE** on the ring for a druid the
+player runs, with the pick (wolf, wolf spider, axe beak; the giant frog from 4; the giant spider from 8) and **OWN SHAPE**
+to end it (`js/features.js`); the **Circle of the Land's circle spells** by land, always prepared (`js/classes.js lands`):
+Higertha's mountain, a generic druid's Underdark. `dev/bench16.py mode=zones` checks them. Still to build for the list:
+summons (Conjure Animals and kin), walls (Wall of Fire, Stone, Thorns, Wind Wall), Polymorph, charm the AI honours.
+
 ## Not in the POC
 
 Story beyond the entry card; shops; rests; writing back to the 8-bit save; flight (bats and cloakers

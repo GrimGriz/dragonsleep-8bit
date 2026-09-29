@@ -16,14 +16,14 @@ Each spell gets one verdict:
 
 | | BUILT | IN | DARK | LATER | OUT | all |
 |---|---|---|---|---|---|---|
-| **every spell** | 153 | 3 | 0 | 60 | 103 | 319 |
-| Wizard | 95 | 1 | 0 | 40 | 68 | 204 |
+| **every spell** | 155 | 3 | 0 | 58 | 103 | 319 |
+| Wizard | 96 | 1 | 0 | 39 | 68 | 204 |
 | Cleric | 53 | 2 | 0 | 10 | 40 | 105 |
 | Paladin | 19 | 0 | 0 | 0 | 12 | 31 |
 | Warlock | 32 | 0 | 0 | 12 | 20 | 64 |
 | Sorcerer | 74 | 0 | 0 | 23 | 23 | 120 |
 | Bard | 47 | 0 | 0 | 17 | 47 | 111 |
-| Druid | 46 | 2 | 0 | 23 | 35 | 106 |
+| Druid | 48 | 2 | 0 | 21 | 35 | 106 |
 | Ranger | 15 | 0 | 0 | 7 | 15 | 37 |
 
 **Who**, in the tables: **Au** Aurdin (wizard, spells to 5th), **Ly** Lymen (paladin to 3rd, and his Oath of Devotion's spells), **To** Torvald (cleric 5), **In** Ingrith (cleric 4), **Am** Amara (warlock 5), **Wi** Willem (wizard 5), **SW** the drow spell-weaver (the SRD Mage's own list), **Na** the spirit naga (the SRD's own list), **Dr** the drow's innate, **Du** the duergar's. A hero or a classed NPC is marked for every spell his class and level reach; the two SRD stat blocks only for the spells they have. **Classes**: W wizard, C cleric, P paladin, K warlock, S sorcerer, B bard, D druid, R ranger.
@@ -194,7 +194,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Find Steed | P | Ly | **OUT** | no mounts in the fights (the horses are written out) |
 | Find Traps | C D R | To In | **OUT** | senses traps' presence: the map's traps are its own |
 | Flame Blade | D |  | **BUILT** | self (conc), then a melee spell attack each action, 3d6 fire; sheds light; a druid foe -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
-| Flaming Sphere | W D | Au Wi | **LATER** | a rolling 5-ft ball of fire (DEX 2d6) moved by bonus action: needs a moving thing on the grid |
+| Flaming Sphere | W D | Au Wi | **BUILT** | a rolling 5-ft ball of fire (DEX 2d6, half) rolled 30 ft by a bonus action, ramming what it meets; ending a turn within 5 ft of it saves too; bright 20 ft -- BUILT 09-29 (the druid to nine, deep16/js/grimoire.js: the first zone that moves; grid-only) |
 | Gentle Repose | W C | Au To In Wi | **OUT** | keeps a corpse fresh: nobody dies |
 | Gust of Wind | W S D | Au Wi | **BUILT** | 60-ft line, STR save or pushed 15 ft; puts out flames and blows fog away -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Heat Metal | B D |  | **BUILT** | worn/held metal (conc): 2d8 fire, no save, again by bonus action; CON or drop it, else disadv -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
@@ -209,7 +209,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Magic Weapon | W P | Au Ly Wi | **BUILT** | bonus action (conc, an hour): a weapon becomes +1 and magical -- plain-steel resistance no longer halves it -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#lymen-both-games) |
 | Mirror Image | W K S | Au Am Wi | **BUILT** | self: three duplicates, a hit may strike one instead (d20 by count); Willem's phantasms -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Misty Step | W K S | Au Am Wi SW | **BUILT** | grid only: a 30-ft teleport, bonus action |
-| Moonbeam | D |  | **LATER** | a beam moved 60 ft by action: CON save 2d10 radiant on entry or start; needs moving zones |
+| Moonbeam | D |  | **BUILT** | a 5-ft beam moved 60 ft by an action: CON 2d10 radiant (half) on entering it or starting a turn in it -- BUILT 09-29 (the druid to nine, deep16/js/grimoire.js: a zone that moves; grid-only) |
 | Pass Without Trace | D R |  | **BUILT** | +10 Stealth for all within 30 ft, no tracks: its point is going unseen; waits on hiding -- BUILT 09-28 (torchdark): +10 Stealth to all within 30 ft on the grid (grid only: no druid or ranger casts yet) |
 | Prayer of Healing | C | To In | **IN** | field: up to six, 2d8 + mod each, 10 minutes; a rest-side heal |
 | Protection from Poison | C P D R | Ly To In | **BUILT** | touch: ends poison; adv on saves against it and resistance to poison damage, an hour -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |

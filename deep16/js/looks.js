@@ -233,9 +233,39 @@
       for (var k = 1; k <= 3; k++) { var an2 = an - k * 0.08; ctx.globalAlpha = 0.5 - k * 0.14; px(ctx, p.x + Math.cos(an2) * rx, p.y + Math.sin(an2) * ry - 12, E.c[2], 2); ctx.globalAlpha = 1; }
     }
   }
+  // Moonbeam (09-29): a shaft of pale light standing on its squares, motes drifting up it
+  function drawBeam(ctx, B, z) {
+    var s = sq(z.x, z.y), t = B.t, w = D.iso.TW * 1.2, h = 96, pul = 0.8 + 0.2 * Math.sin(t / 9);
+    ctx.save();
+    ctx.globalAlpha = 0.16 * pul; ctx.fillStyle = P('bone', 2);
+    ctx.beginPath(); ctx.ellipse(s.x, s.y, w * 0.55, w * 0.27, 0, 0, 7); ctx.fill();
+    var g = ctx.createLinearGradient(0, s.y - h, 0, s.y);
+    g.addColorStop(0, 'rgba(252,252,244,0)'); g.addColorStop(0.35, 'rgba(232,240,255,0.10)'); g.addColorStop(1, 'rgba(252,252,244,0.30)');
+    ctx.globalAlpha = pul; ctx.fillStyle = g; ctx.fillRect(s.x - w * 0.4, s.y - h, w * 0.8, h);
+    ctx.globalAlpha = 0.5 * pul; ctx.fillStyle = P('glow', 2); ctx.fillRect(Math.round(s.x - w * 0.4), s.y - h, 1, h); ctx.fillRect(Math.round(s.x + w * 0.4) - 1, s.y - h, 1, h);
+    for (var i = 0; i < 7; i++) { var ph = (t * 0.7 + i * 13) % 90; ctx.globalAlpha = (1 - ph / 90) * 0.9; px(ctx, s.x + Math.sin(i * 2.3 + t / 20) * w * 0.32, s.y - 4 - ph, i % 2 ? P('bone', 2) : P('glow', 2), i % 3 ? 1 : 2); }
+    ctx.restore();
+  }
+  // Flaming Sphere (09-29): a ball of fire on its square, rolling (its dark spots turn), sparks off it, a shadow under
+  function drawSphere(ctx, B, z) {
+    var s = sq(z.x, z.y), t = B.t, r = 7 + Math.sin(t / 4) * 0.6, cy = s.y - 7;
+    ctx.save();
+    ctx.globalAlpha = 0.35; ctx.fillStyle = P('outline', 0); ctx.beginPath(); ctx.ellipse(s.x, s.y - 1, 8, 3.5, 0, 0, 7); ctx.fill();
+    ctx.globalAlpha = 0.25; ctx.fillStyle = P('fire', 1); ctx.beginPath(); ctx.ellipse(s.x, cy, r + 6, r + 4, 0, 0, 7); ctx.fill();
+    ctx.globalAlpha = 1; ctx.fillStyle = P('fire', 0); ctx.beginPath(); ctx.ellipse(s.x, cy, r, r, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = P('fire', 1); ctx.beginPath(); ctx.ellipse(s.x - 1, cy - 1, r * 0.72, r * 0.72, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = P('fire', 2); ctx.beginPath(); ctx.ellipse(s.x - 2, cy - 2, r * 0.4, r * 0.4, 0, 0, 7); ctx.fill();
+    for (var i = 0; i < 4; i++) { var an = t / 7 + i * 1.57; px(ctx, s.x + Math.cos(an) * r * 0.7, cy + Math.sin(an) * r * 0.7, i % 2 ? P('fire', 0) : P('red', 3), 2); }
+    for (var k = 0; k < 4; k++) { var ph = (t * 1.3 + k * 11) % 24; ctx.globalAlpha = 1 - ph / 24; px(ctx, s.x + Math.sin(k * 1.9 + t / 5) * 6, cy - r - ph * 0.8, k % 2 ? P('fire', 2) : P('bone', 2), 1); }
+    ctx.restore();
+  }
   // the things that stand up off the floor, in the depth sort with the figures (ui.js drawBattle)
   LK.props = function (B) {
     var out = [];
+    // the zones that move (09-29): the moonbeam's shaft, the flaming sphere rolling
+    (B.zones || []).forEach(function (z) {
+      out.push({ depth: z.x + z.y + (z.id === 'moonbeam' ? 0.3 : 0.5), gz: D.iso.map.gz(z.x, z.y), layer: 1, draw: function (ctx) { if (z.id === 'moonbeam') drawBeam(ctx, B, z); else drawSphere(ctx, B, z); } });
+    });
     (B.spirits || []).forEach(function (sw) { if (sw.rounds > 0 || sw.rounds == null) out.push({ depth: sw.x + sw.y + 0.7, gz: D.iso.map.gz(sw.x, sw.y), layer: 1, draw: function (ctx) { drawWeapon(ctx, B, sw); } }); });
     (B.wards || []).forEach(function (wd) { if (wd.left > 0) out.push({ depth: wd.x + wd.y + 0.6, gz: D.iso.map.gz(wd.x, wd.y), layer: 1, draw: function (ctx) { drawWard(ctx, B, wd); } }); });
     (B.auras || []).forEach(function (a) {

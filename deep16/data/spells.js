@@ -110,6 +110,9 @@
   protectionfrompoison: { shape: 'touch', side: 'ally', time: 'A' },
   rayofenfeeblement: { shape: 'attack', range: 60, time: 'A', conc: true },
   spikegrowth: { shape: 'sphere', range: 150, r: 20, time: 'A', conc: true },
+  // the zones that move (the druid to nine, 09-29; js/grimoire.js): cast again to move them (the beam by an action, the sphere by a bonus action)
+  moonbeam: { shape: 'sphere', range: 120, r: 5, time: 'A', conc: true },
+  flamingsphere: { shape: 'sphere', range: 60, r: 5, time: 'A', conc: true },
   spiritualweapon: { shape: 'single', side: 'foe', range: 60, time: 'B' },
   wardingbond: { shape: 'touch', side: 'ally', time: 'A' },
   beaconofhope: { shape: 'self', time: 'A', conc: true },

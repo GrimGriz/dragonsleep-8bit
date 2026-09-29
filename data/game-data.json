@@ -3566,6 +3566,36 @@
    "sfx": "magic",
    "id": "spikegrowth"
   },
+  "moonbeam": {
+   "name": "Moonbeam",
+   "level": 2,
+   "kind": "save",
+   "save": "con",
+   "half": true,
+   "dmg": "2d10",
+   "upDice": 1,
+   "el": "radiant",
+   "target": "enemies",
+   "grid": true,
+   "src": "SRD 5.1 Moonbeam (the druid to nine, 09-29: deep16/js/grimoire.js, a zone the caster moves)",
+   "sfx": "magic",
+   "id": "moonbeam"
+  },
+  "flamingsphere": {
+   "name": "Flaming Sphere",
+   "level": 2,
+   "kind": "save",
+   "save": "dex",
+   "half": true,
+   "dmg": "2d6",
+   "upDice": 1,
+   "el": "fire",
+   "target": "enemies",
+   "grid": true,
+   "src": "SRD 5.1 Flaming Sphere (the druid to nine, 09-29: deep16/js/grimoire.js, a zone the caster rolls)",
+   "sfx": "fire",
+   "id": "flamingsphere"
+  },
   "spiritualweapon": {
    "name": "Spiritual Weapon",
    "level": 2,

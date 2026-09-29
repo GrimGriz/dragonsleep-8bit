@@ -41,7 +41,11 @@
       spells: { 0: ['sacredflame', 'guidance', 'light', 'resistance'], 1: ['guidingbolt', 'healingword', 'shieldoffaith', 'sanctuary', 'command', 'bane', 'inflictwounds'], 2: ['holdperson', 'aid', 'blindnessdeafness', 'wardingbond'], 3: ['spiritguardians', 'masshealingword', 'dispelmagic', 'bestowcurse', 'daylight'], 4: ['guardianoffaith', 'banishment', 'freedomofmovement', 'deathward'], 5: ['flamestrike', 'masscurewounds', 'insectplague', 'greaterrestoration', 'dispelevilandgood', 'contagion'] } },
     druid: { prio: ['wis', 'con', 'dex', 'int', 'cha', 'str'], kit: { weapon: 'scimitar', armor: 'leather', shield: 'shield' }, sub: [2, 'Circle of the Land'], look: 'npcdruid_p0',
       cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], prepares: 'wis', landCantrip: 'poisonspray',
-      spells: { 0: ['produceflame', 'shillelagh', 'guidance', 'resistance'], 1: ['entangle', 'faeriefire', 'healingword', 'curewounds', 'fogcloud', 'thunderwave'], 2: ['barkskin', 'flameblade', 'heatmetal', 'spikegrowth', 'gustofwind', 'enhanceability'], 3: ['calllightning', 'dispelmagic', 'protectionfromenergy', 'sleetstorm', 'daylight'], 4: ['blight', 'confusion', 'icestorm', 'freedomofmovement'], 5: ['insectplague', 'masscurewounds', 'greaterrestoration', 'contagion'] } },
+      // the Circle of the Land's circle spells (SRD 5.1), always prepared, by druid level -- the built ones only (spider climb, meld into
+      // stone, stone shape, passwall and gaseous form are OUT; wall of stone and cloudkill LATER): Higertha's mountain (invented.json
+      // #higertha-druid), the generic druid's Underdark (the Pit's; the seat's call, 09-29)
+      lands: { mountain: { 3: ['spikegrowth'], 5: ['lightningbolt'], 7: ['stoneskin'] }, underdark: { 3: ['web'], 5: ['stinkingcloud'], 7: ['greaterinvisibility'], 9: ['insectplague'] } },
+      spells: { 0: ['produceflame', 'shillelagh', 'guidance', 'resistance'], 1: ['entangle', 'faeriefire', 'healingword', 'curewounds', 'fogcloud', 'thunderwave'], 2: ['barkskin', 'moonbeam', 'flamingsphere', 'flameblade', 'heatmetal', 'spikegrowth', 'gustofwind', 'enhanceability'], 3: ['calllightning', 'dispelmagic', 'protectionfromenergy', 'sleetstorm', 'daylight'], 4: ['blight', 'confusion', 'icestorm', 'freedomofmovement'], 5: ['insectplague', 'masscurewounds', 'greaterrestoration', 'contagion'] } },
     fighter: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greatsword', armor: 'chainmail', alt: 'handaxe' }, style: 'gwf', sub: [3, 'Champion'], look: 'npcfighter_p0', asiAt: [4, 6, 8] },
     monk: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'shortsword', alt: 'dagger' }, sub: [3, 'Way of the Open Hand'], look: 'npcmonk_p0' },
     paladin: { prio: ['str', 'cha', 'con', 'wis', 'dex', 'int'], kit: { weapon: 'longsword', armor: 'chainmail', shield: 'shield', alt: 'handaxe' }, style: 'defense', sub: [3, 'Oath of Devotion'], look: 'npcpaladin_p0', prepares: 'cha', half: true,
@@ -58,7 +62,7 @@
       spells: { 0: ['eldritchblast', 'chilltouch', 'poisonspray'], 1: ['hellishrebuke', 'command', 'burninghands', 'expeditiousretreat'], 2: ['scorchingray', 'darkness', 'mirrorimage', 'holdperson'], 3: ['fireball', 'fear', 'vampirictouch'], 4: ['blight', 'fireshield', 'dimensiondoor', 'banishment'], 5: ['flamestrike', 'holdmonster'] } },
     wizard: { prio: ['int', 'con', 'dex', 'wis', 'cha', 'str'], kit: { weapon: 'quarterstaff', armor: 'robes' }, sub: [2, 'School of Evocation'], look: 'npcwizard_p0',
       cantrips: [3, 3, 3, 4, 4, 4, 4, 4, 4], prepares: 'int',
-      spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'chilltouch', 'light'], 1: ['magicmissile', 'shield', 'mageArmor', 'burninghands', 'sleep', 'colorspray', 'grease', 'hideouslaughter', 'falselife'], 2: ['scorchingray', 'mistystep', 'holdperson', 'web', 'shatter', 'mirrorimage', 'acidarrow', 'blur'], 3: ['fireball', 'lightningbolt', 'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch'], 4: ['icestorm', 'blacktentacles', 'phantasmalkiller', 'greaterinvisibility', 'dimensiondoor', 'fireshield', 'banishment', 'confusion', 'resilientsphere', 'stoneskin', 'blight'], 5: ['coneofcold', 'holdmonster', 'mislead'] } }
+      spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'chilltouch', 'light'], 1: ['magicmissile', 'shield', 'mageArmor', 'burninghands', 'sleep', 'colorspray', 'grease', 'hideouslaughter', 'falselife'], 2: ['scorchingray', 'mistystep', 'holdperson', 'web', 'shatter', 'mirrorimage', 'flamingsphere', 'acidarrow', 'blur'], 3: ['fireball', 'lightningbolt', 'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch'], 4: ['icestorm', 'blacktentacles', 'phantasmalkiller', 'greaterinvisibility', 'dimensiondoor', 'fireshield', 'banishment', 'confusion', 'resilientsphere', 'stoneskin', 'blight'], 5: ['coneofcold', 'holdmonster', 'mislead'] } }
   };
   // the Mirror's warlocks (RULED 09-28): the pact of the Mirror's expanded list and its eye (invented.json #pact-of-the-mirror). Its 1st
   // TRIMMED to two, the SRD's patrons' count (RULED 09-28g, Griz: "Trim"): the two his words named, Glass Whisper and Command (the
@@ -147,7 +151,13 @@
 
   // spells known or prepared at a level: the class's list to the highest slot it has, as many as it may know (or prepare),
   // each level's first; always-prepared ones on top
-  function spellsFor(c, cls, lvl, abil, sub) {
+  // a land's circle spells the level has reached, of those the grid casts (the Circle of the Land, 09-29)
+  function landSpells(c, lvl, land) {
+    var out = [], L = land && c.lands && c.lands[land];
+    if (L) Object.keys(L).forEach(function (k) { if (lvl >= +k) out = out.concat(L[k].filter(function (id) { return !!D.SPELLS[id]; })); });
+    return out;
+  }
+  function spellsFor(c, cls, lvl, abil, sub, land) {
     var h0 = { cls: cls, lvl: lvl }, slots = R.slotsFor(h0), top = 0;
     slots.forEach(function (n, i) { if (n > 0) top = i + 1; });
     var sp = c.spells || {}, out = [], cantrips = [];
@@ -163,7 +173,7 @@
     var byLv = {}; pool.forEach(function (id) { var L2 = 0; for (var k = 1; k <= 9; k++) if ((sp[k] || []).indexOf(id) >= 0) L2 = k; if (!L2) L2 = 3; (byLv[L2] = byLv[L2] || []).push(id); });
     var take = [], rounds = 0;
     while (take.length < n && rounds < 20) { for (var L3 = top; L3 >= 1 && take.length < n; L3--) { var q = byLv[L3] || []; var nx = q.filter(function (id) { return take.indexOf(id) < 0; })[0]; if (nx) take.push(nx); } rounds++; if (!pool.some(function (id) { return take.indexOf(id) < 0; })) break; }
-    var always = [];
+    var always = landSpells(c, lvl, land);
     Object.keys(c.always || {}).forEach(function (k) { if (lvl >= +k) always = always.concat(c.always[k]); });
     out = cantrips.concat(always, take);
     return out.filter(function (id, i) { return out.indexOf(id) === i; });
@@ -172,14 +182,14 @@
   // kept where the slots reach (cut from the lowest when the level prepares fewer), then its `grow` (the seat's picks past the
   // register, the highest level first), then the class's list, to the count the level knows or prepares; the cantrips the same
   // way. The domain's always-prepared on top, uncounted
-  function awayList(c, cls, lvl, abil, own, grow) {
+  function awayList(c, cls, lvl, abil, own, grow, land) {
     var slots = R.slotsFor({ cls: cls, lvl: lvl }), top = 0;
     slots.forEach(function (n, i) { if (n > 0) top = i + 1; });
     var lv = function (id) { var s = DS.DATA.spells[id] || (D.EXTRA_SPELLS || {})[id]; return s ? s.level || 0 : -1; };
     var sp = c.spells || {}, g = grow || {}, uniq = function (id, i, a) { return a.indexOf(id) === i; };
     var nc = c.cantrips ? c.cantrips[lvl - 1] : 0;
     var n = c.known ? c.known[lvl - 1] : c.prepares ? Math.max(1, DS.mod(abil[c.prepares]) + (c.half ? Math.floor(lvl / 2) : lvl)) : 0;
-    var always = [];
+    var always = landSpells(c, lvl, land);
     Object.keys(c.always || {}).forEach(function (k) { if (lvl >= +k) always = always.concat(c.always[k]); });
     // (one of the register's the game has no record of -- Willem's Minor Illusion -- counts as a cantrip known)
     var ownC = own.filter(function (id) { return lv(id) === 0; }), ownX = own.filter(function (id) { return lv(id) < 0; });
@@ -229,7 +239,8 @@
       base: JSON.parse(JSON.stringify(abil)), abil: abil, maxhp: hp, hp: hp,
       equip: Object.assign({ weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }, spec.equip || {}),
       known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: c.style || null,
-      skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: 'alt' in spec ? spec.alt : (c.kit.alt || null), land: spec.land || null
+      skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: 'alt' in spec ? spec.alt : (c.kit.alt || null),
+      land: spec.land || (cls === 'druid' ? 'underdark' : null) // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
     };
     // skills the grid reads (Stealth, Perception): written at the level-1 proficiency, as the 8-bit sheets are (R.skill grows them)
     if (/rogue|ranger|monk|bard/.test(cls)) h.skills.Stealth = DS.mod(abil.dex) + 2;
@@ -245,11 +256,11 @@
       if (sub === 'The Mirror') { cc = Object.assign({}, cc, { spells: JSON.parse(JSON.stringify(cc.spells)) }); Object.keys(NPC.MIRROR).forEach(function (k) { if (lvl >= +k) NPC.MIRROR[k].forEach(function (id) { var L = +k >= 5 ? 3 : +k >= 3 ? 2 : 1; cc.spells[L] = [id].concat((cc.spells[L] || []).filter(function (x) { return x !== id; })); }); }); }
       if (NPC.SUBS[sub] && NPC.SUBS[sub].always) cc = Object.assign({}, cc, { always: NPC.SUBS[sub].always }); // (our own domains' lists, in the Life Domain's place)
       // a named one's own list, with its domain's always-prepared spells on top (09-28g: Torvald's Vigil)
-      h.known = spec.known && spec.away ? awayList(cc, cls, lvl, abil, spec.known, spec.grow)
-        : spec.known ? spec.known.concat(subAlways(sub, lvl)).filter(function (id, i, a) { return a.indexOf(id) === i; }) : spellsFor(cc, cls, lvl, abil, sub);
+      h.known = spec.known && spec.away ? awayList(cc, cls, lvl, abil, spec.known, spec.grow, h.land)
+        : spec.known ? spec.known.concat(subAlways(sub, lvl), landSpells(cc, lvl, h.land)).filter(function (id, i, a) { return a.indexOf(id) === i; }) : spellsFor(cc, cls, lvl, abil, sub, h.land);
       // the camp's morning (js/camp.js o.ours, 09-29): the day's spells as chosen there, over the cantrips and the always-prepared
       if (spec.prepared) {
-        var alw = alwaysOf(cc, sub, lvl), keep = h.known.filter(function (id) { var s = D.magic.data(id); return !s || !(s.level > 0) || alw.indexOf(id) >= 0; });
+        var alw = alwaysOf(cc, sub, lvl, h.land), keep = h.known.filter(function (id) { var s = D.magic.data(id); return !s || !(s.level > 0) || alw.indexOf(id) >= 0; });
         h.known = keep.concat(spec.prepared).filter(function (id, i, a) { return a.indexOf(id) === i; });
       }
     }
@@ -274,9 +285,9 @@
     return h;
   };
   // the always-prepared at a level: our own domain's list (in the Life Domain's place), else the class's
-  function alwaysOf(c, sub, lvl) {
-    if (NPC.SUBS[sub] && NPC.SUBS[sub].always) return subAlways(sub, lvl);
-    var a = []; Object.keys(c.always || {}).forEach(function (k) { if (lvl >= +k) a = a.concat(c.always[k]); }); return a;
+  function alwaysOf(c, sub, lvl, land) {
+    if (NPC.SUBS[sub] && NPC.SUBS[sub].always) return subAlways(sub, lvl).concat(landSpells(c, lvl, land));
+    var a = landSpells(c, lvl, land); Object.keys(c.always || {}).forEach(function (k) { if (lvl >= +k) a = a.concat(c.always[k]); }); return a;
   }
   // the tester ladder's camp (js/camp.js o.ours, 09-29): what one of ours may prepare at the spec's level -- the register's list, the
   // grow picks and the class's list to the highest slot, the built ones only (a spell not built yet is simply not on it); how many (the

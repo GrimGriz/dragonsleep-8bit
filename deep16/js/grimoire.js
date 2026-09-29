@@ -834,6 +834,138 @@
   // Fear's run and a frightened one's: on its turn, away from the one it fears (the class tactics and the brutes ask this)
   M.mustFlee = function (u) { return !!(u.conds.feared && u.conds.frightened); };
 
+  // ------------------------------------------------------------------ the zones that move (the druid to nine, 09-29): Moonbeam and Flaming Sphere.
+  // A thing at a point the caster moves by casting the spell again (the floating weapon's pattern): the beam by an action, 60 ft; the
+  // sphere by a bonus action, 30 ft, ramming what it meets. B.zones: { id, by, x, y, dice, dc, save, type, hit }. The beam (5 ft round)
+  // takes whoever enters it (the first time in a turn) or starts a turn in it: CON, 2d10 radiant, half. The sphere (one square) takes
+  // whoever ends a turn within 5 ft of it, or is rammed: DEX, 2d6 fire, half; it sheds light as a torch does (B.lights, kind 'sphere').
+  // Both concentration; both take anyone in the way, friend or foe -- the AI keeps its own out of them
+  function zoneOf(B, u, id) { return (B.zones || []).filter(function (z) { return z.by === u.id && z.id === id; })[0] || null; }
+  function zoneSq(z) { return G.sphere(z.x, z.y, 5); }
+  M.zoneSq = zoneSq;
+  function zoneCaught(B, z) { var sq = zoneSq(z); return B.units.filter(function (w) { return G.standing(w) && G.inArea(w, sq); }); }
+  // one save against the zone: once a turn for the beam (the round and whose turn it is name the turn); every time for a ram or a turn's end
+  function zoneHit(B, z, w, how, every) {
+    if (!G.standing(w)) return;
+    var key = B.round + ':' + (B.active ? B.active.id : '-');
+    if (!every) { if (z.hit[w.id] === key) return; z.hit[w.id] = key; }
+    var r = D.roll(z.dice), sv = RU.save(w, z.save, z.dc), d = sv.ok ? Math.floor(r.total / 2) : r.total;
+    FX.sparkle(w, z.id === 'moonbeam' ? 'bone' : 'fire', 12);
+    B.card([Nm(B, w) + ' ' + how + ': ' + z.save.toUpperCase() + ' ' + RU.saveText(sv) + ' vs DC ' + z.dc + '  ' + z.dice + ' ' + RU.fmtRolls(r.rolls) + ' -> {r}' + d + '{/} ' + z.type], 300);
+    B.hurt(w, d, z.type);
+  }
+  function zoneWorth(B, u, z, caught, d) { var sc = 0; caught.forEach(function (w) { var pf = TX().pFail(w, z.save, u.spellDC), v = pf * d + (1 - pf) * d / 2; sc += G.hostile(u, w) ? TX().worth(v, w) : -1.5 * v; }); return sc; }
+  function sphereLight(B, u) { return (B.lights || []).filter(function (l) { return l.id === 'sphere' + u.id; })[0]; }
+  // the nearest free open square to a point (the sphere wants an unoccupied space)
+  function freeNear(x, y) {
+    var best = null, bd = 99;
+    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var s = G.map.at(x + dx, y + dy); if (!s || !s.open || G.occupant(x + dx, y + dy)) continue; var dd = Math.abs(dx) + Math.abs(dy); if (dd < bd) { bd = dd; best = { x: x + dx, y: y + dy }; } }
+    return best;
+  }
+  // Moonbeam (SRD 5.1): a 5-ft-radius shaft of pale light at a point within 120 ft (concentration, a minute); entering it or starting a
+  // turn in it, CON or 2d10 radiant (half; a d10 more a slot); an action moves it up to 60 ft. (The shapechanger's disadvantage and
+  // its reverting are not read.)
+  E.moonbeam = {
+    geo: function (B, u, g) { return zoneOf(B, u, 'moonbeam') ? Object.assign({}, g, { free: true, move: true, again: true }) : null; },
+    summary: function (e, u) { var z = D.battle && zoneOf(D.battle, u); return (z ? 'an action · the beam moves up to 60 ft: ' : 'a shaft of pale light, 5 ft round, at a point within 120 ft (concentration; an action moves it 60 ft): ') + 'entering it or starting a turn in it, CON or ' + (z ? z.dice : dice(e.sp, u, e.slot)) + ' radiant (half)'; },
+    cast: function* (B, u, t, slot, head, x) {
+      var z = zoneOf(B, u, 'moonbeam');
+      if (!z) {
+        z = { id: 'moonbeam', by: u.id, x: t.x, y: t.y, dice: dice(x.sp, u, slot), dc: x.dc, save: 'con', type: 'radiant', hit: {} };
+        B.zones = (B.zones || []).concat([z]);
+        M.concentrate(B, u, 'moonbeam', 'Moonbeam', function () { B.zones = (B.zones || []).filter(function (q) { return q !== z; }); B.card(['{g}The moonbeam fades.{/}'], 240); });
+        D.sfx('magic'); FX.bloom(t.x, t.y, zoneSq(z), 'bone');
+        B.card([head + ': a shaft of pale light falls from nowhere (concentration; an action moves it 60 ft).'], 360);
+      } else {
+        var far = Math.max(Math.abs(t.x - z.x), Math.abs(t.y - z.y));
+        if (far > 12) { var k = 12 / far; t = { x: Math.round(z.x + (t.x - z.x) * k), y: Math.round(z.y + (t.y - z.y) * k) }; } // (60 ft of the way toward it)
+        z.x = t.x; z.y = t.y; D.sfx('magic'); FX.bloom(z.x, z.y, zoneSq(z), 'bone');
+        B.card(['{y}' + u.name + '{/} moves the moonbeam.'], 200);
+      }
+      yield 20;
+      zoneCaught(B, z).forEach(function (w) { zoneHit(B, z, w, 'is caught in the moonbeam'); });
+      yield 20;
+    },
+    ai: function (B, u, e, slot, fs) {
+      var z = zoneOf(B, u, 'moonbeam');
+      if (!z && u.conc) return null;
+      var d = avg(z ? z.dice : dice(e.sp, u, slot)), zz = z || { save: 'con' };
+      var b = TX().bestArea(B, u, Object.assign({}, e, { g: Object.assign({}, e.g, { shape: 'sphere', r: 5 }) }), fs, function (caught) { return zoneWorth(B, u, zz, caught, d); });
+      if (!b || b.score <= 0) return null;
+      if (z) { if (Math.max(Math.abs(b.t.x - z.x), Math.abs(b.t.y - z.y)) > 12) return null; if (b.score <= zoneWorth(B, u, z, zoneCaught(B, z), d) + 1) return null; }
+      else { b.score *= 2.2; b.keep = b.score * 0.5; }
+      return b;
+    }
+  };
+  // Flaming Sphere (SRD 5.1): a 5-ft ball of fire at a free square within 60 ft (concentration, a minute); whoever ends a turn within
+  // 5 ft of it, DEX or 2d6 fire (half; a d6 more a slot); a bonus action rolls it up to 30 ft, and rammed into a creature it stops
+  // and that creature saves. Bright light 20 ft and dim 20 more. (Fire: refused under a roost, as every fire is.)
+  E.flamingsphere = {
+    geo: function (B, u, g) { return zoneOf(B, u, 'flamingsphere') ? Object.assign({}, g, { free: true, move: true, again: true, time: 'B' }) : null; },
+    summary: function (e, u) { var z = D.battle && zoneOf(D.battle, u); return (z ? 'bonus action · the sphere rolls up to 30 ft and rams what it meets: ' : 'a ball of fire, 5 ft across, at a free square within 60 ft (concentration; a bonus action rolls it 30 ft): ') + 'ending a turn within 5 ft of it, or rammed, DEX or ' + (z ? z.dice : dice(e.sp, u, e.slot)) + ' fire (half) · bright 20 ft'; },
+    cast: function* (B, u, t, slot, head, x) {
+      var z = zoneOf(B, u, 'flamingsphere');
+      if (!z) {
+        var at = freeNear(t.x, t.y);
+        if (!at) { B.card(['{o}No room for the sphere there.{/}'], 200); return; }
+        z = { id: 'flamingsphere', by: u.id, x: at.x, y: at.y, dice: dice(x.sp, u, slot), dc: x.dc, save: 'dex', type: 'fire', hit: {} };
+        B.zones = (B.zones || []).concat([z]);
+        B.lights = (B.lights || []).concat([{ id: 'sphere' + u.id, kind: 'sphere', x: z.x, y: z.y, bright: 20, dim: 20, color: 'fire', flame: true, by: u.id }]);
+        if (B.lightMap) B.lightMap = null;
+        M.concentrate(B, u, 'flamingsphere', 'Flaming Sphere', function () { B.zones = (B.zones || []).filter(function (q) { return q !== z; }); B.lights = (B.lights || []).filter(function (l) { return l.id !== 'sphere' + u.id; }); if (B.lightMap) B.lightMap = null; B.card(['{g}The flaming sphere gutters out.{/}'], 240); });
+        D.sfx('fire'); FX.sparkle({ x: z.x, y: z.y, size: 1 }, 'fire', 24);
+        yield* M.brighten(B, u, 'flame', head + ': a ball of fire, 5 ft across, rolls out (concentration; a bonus action rolls it 30 ft).', { x: z.x, y: z.y, bright: 20 });
+        return;
+      }
+      // the roll: up to 30 ft toward the point, square by square; a creature in the way is rammed, and the sphere stops before it
+      var steps = 0, rammed = null, line = G.line(z.x, z.y, t.x, t.y).slice(1);
+      for (var i = 0; i < line.length && steps < 6; i++) {
+        var q = line[i], s = G.map.at(q[0], q[1]); if (!s || !s.open) break;
+        var occ = G.occupant(q[0], q[1]); if (occ) { rammed = occ; break; }
+        z.x = q[0]; z.y = q[1]; steps++;
+      }
+      var lt = sphereLight(B, u); if (lt) { lt.x = z.x; lt.y = z.y; } if (B.lightMap) B.lightMap = null;
+      D.sfx('fire'); FX.sparkle({ x: z.x, y: z.y, size: 1 }, 'fire', 16);
+      B.card(['{y}' + u.name + '{/} rolls the flaming sphere ' + (steps * 5) + ' ft' + (rammed ? ' -- into ' + nm(B, rammed) + '!' : '.')], 240);
+      yield 16;
+      if (rammed) { zoneHit(B, z, rammed, 'is rammed by the flaming sphere', true); yield 16; }
+    },
+    ai: function (B, u, e, slot, fs) {
+      var z = zoneOf(B, u, 'flamingsphere'), d = avg(z ? z.dice : dice(e.sp, u, slot)), best = null, zz = z || { save: 'dex' };
+      if (!z) {
+        if (u.conc) return null;
+        fs.forEach(function (w) {
+          if (G.dist(u, w) > 60 || !G.los(u, w).clear) return;
+          for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+            var x = w.x + dx, y = w.y + dy, s = G.map.at(x, y); if ((!dx && !dy) || !s || !s.open || G.occupant(x, y) || G.dist(u, { x: x, y: y, size: 1 }) > 60) continue;
+            var near = B.units.filter(function (v) { return G.standing(v) && G.dist(v, { x: x, y: y, size: 1 }) <= 5; });
+            var sc = zoneWorth(B, u, zz, near, d) * 1.6;
+            if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: { x: x, y: y }, keep: sc * 0.5 };
+          }
+        });
+        return best;
+      }
+      // the roll (a free bonus action): ram the best one within 30 ft along a clear line; beside a foe already, stay; else roll toward the nearest
+      var here = { x: z.x, y: z.y, size: 1 };
+      fs.forEach(function (w) {
+        var dd = G.dist(w, here); if (dd > 30 || dd <= 5 || !G.losPoint(z.x, z.y, w.x, w.y)) return;
+        var pf = TX().pFail(w, 'dex', u.spellDC), sc = TX().worth(pf * d + (1 - pf) * d / 2, w);
+        if (!best || sc > best.score) best = { score: sc, t: { x: w.x, y: w.y } };
+      });
+      if (best) return best;
+      if (fs.some(function (w) { return G.dist(w, here) <= 5; })) return null;
+      var nearest = null, nd = 1e9; fs.forEach(function (w) { var dd = G.dist(w, here); if (dd < nd) { nd = dd; nearest = w; } });
+      return nearest ? { score: 1, t: { x: nearest.x, y: nearest.y } } : null;
+    }
+  };
+  // the beam's start of a turn and stepping in; the sphere's end of a turn beside it
+  var onStartZ = M.onStart;
+  M.onStart = function (B, u) { onStartZ(B, u); (B.zones || []).forEach(function (z) { if (z.id === 'moonbeam' && G.inArea(u, zoneSq(z))) zoneHit(B, z, u, 'starts its turn in the moonbeam'); }); };
+  var onEndZ = M.onEnd;
+  M.onEnd = function (B, u) { onEndZ(B, u); (B.zones || []).forEach(function (z) { if (z.id === 'flamingsphere' && G.standing(u) && G.dist(u, { x: z.x, y: z.y, size: 1 }) <= 5) zoneHit(B, z, u, 'ends its turn beside the flaming sphere', true); }); };
+  var stepIntoZ = M.stepInto;
+  M.stepInto = function (B, u) { var stop = stepIntoZ(B, u); (B.zones || []).forEach(function (z) { if (z.id === 'moonbeam' && G.inArea(u, zoneSq(z))) zoneHit(B, z, u, 'steps into the moonbeam'); }); return stop || u.hp <= 0; };
+
   // ------------------------------------------------------------------ 4th level (09-28, batch D: the foes' casters and the NPCs past 6)
   // Banishment (SRD 5.1): CHA or gone from the field while the caster holds it; one from another plane (fiend, celestial, elemental, fey)
   // does not come back if it is held the full minute -- here, the fight

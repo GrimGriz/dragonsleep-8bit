@@ -48,7 +48,7 @@
         w.images = 0; w._imgs = 0; w.anim = 'idle'; w.animT = B.t; w.torch = null; w.fled = false; w.left = false;
         w.slots = h.slots.slice(); w.known = h.known.slice();
       });
-      ['grounds', 'auras', 'wards', 'spirits', 'darks', 'webs'].forEach(function (k) { if (B[k]) B[k] = []; });
+      ['grounds', 'auras', 'wards', 'spirits', 'darks', 'webs', 'zones'].forEach(function (k) { if (B[k]) B[k] = []; });
       B.lights = (B.lights || []).filter(function (l) { return l.kind === 'map'; });
       B.lightMap = null;
       D.grid.setup(D.grid.map, B.units);
