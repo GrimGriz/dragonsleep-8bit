@@ -428,14 +428,18 @@
     for (var j = 0; j < TX.AFTER.length; j++) { yield* TX.AFTER[j](B, u); if (u.dead || u.hp <= 0 || B.over()) return; }
     yield* keepOff(B, u);
   };
+  // every plan for u's action weighed, best first; `bonus`: the bonus-action spells instead (the play record reads both: js/record.js)
+  TX.plans = function (B, u, bonus) {
+    var fs = foesOf(B, u), allies = alliesOf(B, u), sp = spellPlans(B, u, fs, allies);
+    var plans = bonus ? sp.filter(function (p) { return p.bonus; }) : weaponPlans(B, u, fs).concat(sp.filter(function (p) { return !p.bonus; }));
+    if (!bonus) TX.ACTIONS.forEach(function (f) { var p = f(B, u, fs, allies); if (p) plans = plans.concat(p); });
+    return plans.sort(function (a, b) { return b.score - a.score; });
+  };
   // the action: every plan weighed, the best taken; nothing worth doing -- close in (Dash), or Dodge
   function* act(B, u) {
     var T = u.turn;
     if (!T.action && !T.attacksLeft) return;
-    var fs = foesOf(B, u), allies = alliesOf(B, u);
-    var plans = weaponPlans(B, u, fs).concat(spellPlans(B, u, fs, allies).filter(function (p) { return !p.bonus; }));
-    TX.ACTIONS.forEach(function (f) { var p = f(B, u, fs, allies); if (p) plans = plans.concat(p); });
-    plans.sort(function (a, b) { return b.score - a.score; });
+    var fs = foesOf(B, u), plans = TX.plans(B, u);
     var pick = plans[0];
     if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ': ' + plans.slice(0, 3).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | '));
     if (pick && pick.score > 0.5) { yield* pick.go(); return; }

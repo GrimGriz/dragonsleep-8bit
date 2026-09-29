@@ -105,6 +105,7 @@
     KeyQ: 'ring',
     Minus: 'zoomout', NumpadSubtract: 'zoomout', Equal: 'zoomin', NumpadAdd: 'zoomin',
     Backquote: 'stats',
+    KeyP: 'play', KeyR: 'rec',
     Digit1: 'n1', Digit2: 'n2', Digit3: 'n3', Digit4: 'n4', Digit5: 'n5', Digit6: 'n6', Digit7: 'n7', Digit8: 'n8', Digit9: 'n9',
     Numpad1: 'n1', Numpad2: 'n2', Numpad3: 'n3', Numpad4: 'n4', Numpad5: 'n5', Numpad6: 'n6', Numpad7: 'n7', Numpad8: 'n8', Numpad9: 'n9'
   };

@@ -17,6 +17,7 @@
   // and do a tester version of the ladder with them as the party?" -- "the off SRD ones we made to 9"; "AI now, buttons later"):
   // Talmok, Willem, Katarina and Torvald built at the rung's level (js/classes.js NPC.ours), no camp, straight to the fight, and every
   // unit on both sides run by the class AI (a watch: battle.js o.watch). Its progress is kept apart (deep16.ladder.ours); no climb
+  // P on it (or &play): YOU PLAY -- our four are yours to run, and every move is recorded (js/record.js); R saves the record to a file
   function Ladder(o) { this.t = 0; this.o = o || {}; this.ours = this.o.party === 'ours'; }
   D.Ladder = Ladder;
   Ladder.prototype.key = function () { return this.ours ? KEY + '.ours' : KEY; };
@@ -28,9 +29,11 @@
     this.lo = 1; this.start = low();
     this.sel = Math.min(9, Math.max(this.lo, st.at || this.lo));
     this.card = null;                     // the level-up card, after a win
+    this.play = this.ours && (!!this.o.play || !!st.play); // the tester ladder: you play our four (recorded), or watch the AI run them
+    this.saved = null;                    // the file R last saved
     D.music('title');
   };
-  Ladder.prototype.save = function () { D.store.set(this.key(), { won: this.won, wonF: this.wonF, pick: this.pick, at: this.sel }); };
+  Ladder.prototype.save = function () { D.store.set(this.key(), { won: this.won, wonF: this.wonF, pick: this.pick, at: this.sel, play: this.play || undefined }); };
   // the rung's chosen fight (the set piece first; the others by left/right)
   Ladder.prototype.cur = function (L) { var fs = D.fightsAt(L); return fs.length ? fs[((this.pick[L] || 0) % fs.length + fs.length) % fs.length] : null; };
 
@@ -69,8 +72,13 @@
     var F = this.cur(L), self = this;
     if (!F) { D.sfx('error'); return; }
     D.sfx('confirm');
-    // the tester ladder: our four at L, straight into the fight, and you watch
-    if (this.ours) { D.push(new D.Battle({ ladder: true, watch: true, fight: F.id, npc: { party: D.npc.ours(L, F), foes: [] }, onDone: function (res) { self.done(L, res, F); } })); return; }
+    // the tester ladder: our four at L, straight into the fight; you watch, or you play them and it is recorded (js/record.js).
+    // (the record is finished off D.battle: a RESTART's new fight is the one that ends)
+    if (this.ours) {
+      D.push(new D.Battle({ ladder: true, watch: !this.play, record: this.play ? { fight: F.id, name: F.name, level: L } : null, fight: F.id, npc: { party: D.npc.ours(L, F), foes: [] },
+        onDone: function (res) { if (D.battle && D.battle.rec) D.rec.finish(D.battle, res); self.done(L, res, F); } }));
+      return;
+    }
     // the camp first (js/camp.js): the gear, the day's spells, what's cast before the fight; then the fight
     D.push(new D.Camp(L, F, function (res) { self.done(L, res, F); }));
   };
@@ -93,6 +101,8 @@
       if (I.pressed('a') || I.pressed('b') || I.mouse.click) { D.sfx('confirm'); this.card = null; }
       return;
     }
+    if (this.ours && I.pressed('play')) { this.play = !this.play; D.sfx('confirm'); this.save(); }
+    if (this.ours && I.pressed('rec')) { this.saved = D.rec.save(); D.sfx(this.saved ? 'confirm' : 'error'); }
     var s0 = this.sel;
     if (I.repeat('up')) this.sel = Math.min(9, this.sel + 1);
     if (I.repeat('down')) this.sel = Math.max(this.lo, this.sel - 1);
@@ -120,7 +130,7 @@
     // a faint rope of rungs up the left, for the look of it
     ctx.fillStyle = P('stone', 1); for (var y = 30; y < 250; y += 4) { ctx.fillRect(10, y, 1, 2); ctx.fillRect(22, y, 1, 2); }
     ctx.save(); ctx.translate(D.W / 2, 8); ctx.scale(2, 2); D.text(ctx, this.ours ? 'THE LADDER: OURS' : 'THE LADDER', 0, 0, P('gold', 4), 'center'); ctx.restore();
-    D.text(ctx, this.ours ? 'the tester ladder -- Talmok, Willem, Katarina and Torvald at each level; the class AI runs both sides, you watch' : 'win the fight, go up a level -- the four from the 8-bit game, built at each level by its own rules', D.W / 2, 26, P('silver', 5), 'center');
+    D.text(ctx, this.ours ? 'Talmok, Willem, Katarina and Torvald at each level -- ' + (this.play ? 'YOU play them, every move recorded' : 'the class AI runs both sides, you watch') : 'win the fight, go up a level -- the four from the 8-bit game, built at each level by its own rules', D.W / 2, 26, P('silver', 5), 'center');
     this.rows = [];
     var x = 32, w = 250;
     for (var L = 9; L >= this.lo; L--) {
@@ -158,8 +168,14 @@
       D.text(ctx, 'HP ' + h.hp + '  AC ' + h.ac + '  ' + h.weapon, bx + 6, yy + 9, P('silver', 5));
       if (h.slots) D.text(ctx, h.slots, bx + 6, yy + 18, P('accent', 2));
     });
-    D.hint(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E ' + (this.ours ? 'watch' : 'fight') + '  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
-    if (this.ours) { this.climbBtn = null; if (this.card) this.drawCard(ctx); if (this.leaving) this.drawLeave(ctx); return; } // (no climb: the climb is the four heroes')
+    D.hint(ctx, 'up/down or ' + this.lo + '-9 choose  ·  left/right: a rung with more fights  ·  E ' + (this.ours ? (this.play ? 'play' : 'watch') : 'fight') + '  ·  X back', D.W / 2, D.H - 12, P('stone', 5), 'center');
+    if (this.ours) {
+      // P: play or watch; R: the record to a file
+      var n = D.rec.count();
+      D.text(ctx, '{y}P{/} ' + (this.play ? '{y}YOU PLAY{/}' : 'you watch') + '   {y}R{/} save ' + n + ' recorded fight' + (n === 1 ? '' : 's'), bx + 6, 240, P('silver', 5));
+      if (this.saved) D.text(ctx, '{g}saved: ' + this.saved + '{/}', bx + 6, 249, P('accent', 2));
+      this.climbBtn = null; if (this.card) this.drawCard(ctx); if (this.leaving) this.drawLeave(ctx); return; // (no climb: the climb is the four heroes')
+    }
     var cb = this.climbBtn = { x: D.W - 104, y: 4, w: 98, h: 17 }, cl = D.climb && D.climb.load();
     ctx.fillStyle = P('violet', 1); ctx.fillRect(cb.x, cb.y, cb.w, cb.h); ctx.strokeStyle = P('violet', 4); ctx.strokeRect(cb.x + 0.5, cb.y + 0.5, cb.w - 1, cb.h - 1);
     D.hint(ctx, '{p}THE CLIMB{/}  (C)', cb.x + cb.w / 2, cb.y + 2, P('bone', 1), 'center');
