@@ -27,7 +27,8 @@
     // everyone on the party's side is run by the class tactics too (js/tactics.js); so in a watch (09-28h: ?npc=...&watch, and the
     // tester ladder, ?ladder&party=ours: "AI now, buttons later")
     var NB = this.o.npc;
-    if (NB && NB.party) party = NB.party.map(function (w, i) { return D.npc.build(w, F.level, 'party', { id: 'p' + i + '-' + String(w).split(':')[0] }); }).filter(Boolean);
+    // (a word -- 'talmok:5:grown' -- or a spec the camp made up for the morning, js/camp.js o.ours; its id is the camp's)
+    if (NB && NB.party) party = NB.party.map(function (w, i) { return D.npc.build(w, F.level, 'party', { id: typeof w === 'string' ? 'p' + i + '-' + String(w).split(':')[0] : w.id }); }).filter(Boolean);
     if (NB && (this.o.bench || this.o.watch)) party.forEach(function (u) { u.guest = true; u.classAI = true; });
     var entry = (F.entry || m.def.entry).slice();
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth

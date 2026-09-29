@@ -15,7 +15,7 @@
 
   // o.party 'ours' (?ladder&party=ours): the tester ladder (09-28h, Griz: "can we do the levels for the original classes up to nine
   // and do a tester version of the ladder with them as the party?" -- "the off SRD ones we made to 9"; "AI now, buttons later"):
-  // Talmok, Willem, Katarina and Torvald built at the rung's level (js/classes.js NPC.ours), no camp, straight to the fight, and every
+  // Talmok, Willem, Katarina and Torvald built at the rung's level (js/classes.js NPC.ours), a camp of their own first (camp.js o.ours), and every
   // unit on both sides run by the class AI (a watch: battle.js o.watch). Its progress is kept apart (deep16.ladder.ours); no climb
   // P on it (or &play): YOU PLAY -- our four are yours to run, and every move is recorded (js/record.js); R saves the record to a file
   function Ladder(o) { this.t = 0; this.o = o || {}; this.ours = this.o.party === 'ours'; }
@@ -74,13 +74,9 @@
     D.sfx('confirm');
     // the tester ladder: our four at L, straight into the fight; you watch, or you play them and it is recorded (js/record.js).
     // (the record is finished off D.battle: a RESTART's new fight is the one that ends)
-    if (this.ours) {
-      D.push(new D.Battle({ ladder: true, watch: !this.play, record: this.play ? { fight: F.id, name: F.name, level: L } : null, fight: F.id, npc: { party: D.npc.ours(L, F), foes: [] },
-        onDone: function (res) { if (D.battle && D.battle.rec) D.rec.finish(D.battle, res); self.done(L, res, F); } }));
-      return;
-    }
-    // the camp first (js/camp.js): the gear, the day's spells, what's cast before the fight; then the fight
-    D.push(new D.Camp(L, F, function (res) { self.done(L, res, F); }));
+    // the camp first (js/camp.js): the gear, the day's spells, what's cast before the fight; then the fight. The tester ladder's camp is
+    // our four's (o.ours, 09-29: the fight builds them from the morning's specs; you watch it, or play it and it is recorded)
+    D.push(new D.Camp(L, F, function (res) { self.done(L, res, F); }, this.ours ? { ours: { party: D.npc.ours(L, F), play: this.play } } : null));
   };
   Ladder.prototype.done = function (L, res, F) {
     D.music('title');

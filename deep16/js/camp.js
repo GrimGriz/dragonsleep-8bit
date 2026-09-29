@@ -3,7 +3,11 @@
    choices. EQUIP from the rung's armoury (free: nobody is fighting yet). PREPARE the day's spells (js/save.js: a wizard
    INT modifier + level from his book, a paladin CHA modifier + half his level from his list, the oath's always ready).
    CAST AHEAD the 8-hour spells, Mage Armor and Aid: they walk into the fight already on, and their slots are spent.
-   The choices are kept per level (deep16.camp), so a rung fought again starts from the last morning. */
+   The choices are kept per level (deep16.camp), so a rung fought again starts from the last morning.
+   o.ours (09-29, the light handoff's Â§3b, Griz: a camp for the tester ladder "so we can test equipment etc"): our four's morning. No hero
+   record stands behind them, so the choices become specs (js/classes.js NPC.sheet reads equip, prepared, conds, spend, aid, mageArmor);
+   the fight builds its units from those specs (battle.js o.npc.party), and this screen shows the sheets the same specs make. Kept per
+   level in deep16.camp.ours. No campfire (Griz: skip the image). */
 'use strict';
 (function () {
   var D = window.D16, I = D.input, DS = window.DS, SV = D.save;
@@ -39,18 +43,31 @@
   D.Camp = Camp;
   Camp.prototype.opaque = true;
   Camp.prototype.enter = function () {
-    var all = D.store.get(KEY) || {}, cl = this.o.climb;
-    this.st = cl ? (cl.campState() || this.fresh()) : all[this.L] || this.fresh();
-    this.base = cl ? cl.rested() : SV.fixture(this.L, { bare: true });
+    var all = D.store.get(KEY) || {}, cl = this.o.climb, ours = this.o.ours;
+    this.st = cl ? (cl.campState() || this.fresh()) : ours ? ((D.store.get(KEY + '.ours') || {})[this.L] || this.fresh()) : all[this.L] || this.fresh();
+    if (ours) this.st.cast.light = this.st.cast.light || { on: null, who: null };
+    this.base = cl ? cl.rested() : ours ? null : SV.fixture(this.L, { bare: true });
     this.mode = 'menu'; this.sel = 0; this.top = 0; this.stack = []; this.msg = null;
     this.rebuild();
   };
-  Camp.prototype.fresh = function () { return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: 'aurdin' }, aid: { on: false, out: 'lymen' } } }; };
+  Camp.prototype.fresh = function () {
+    if (this.o.ours) return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: null }, aid: { on: false, out: null }, light: { on: null, who: null } }, torch: null };
+    return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: 'aurdin' }, aid: { on: false, out: 'lymen' } } };
+  };
   Camp.prototype.save = function () {
     if (this.o.climb) { this.o.climb.setCamp(this.st); return; }
+    if (this.o.ours) { var oa = D.store.get(KEY + '.ours') || {}; oa[this.L] = this.st; D.store.set(KEY + '.ours', oa); return; }
     var all = D.store.get(KEY) || {}; all[this.L] = this.st; D.store.set(KEY, all);
   };
-  Camp.prototype.look = function (id) { return SV.look(id, this.o.climb ? null : this.F); }; // the climb: Barley is Barley
+  Camp.prototype.look = function (id) {
+    if (this.o.ours) { var h = this.hero(id); return h ? { name: h.name, sheet: D.npc.lookOf(h.spec) } : {}; } // (a named one's own figure, else the class's)
+    return SV.look(id, this.o.climb ? null : this.F); // the climb: Barley is Barley
+  };
+  Camp.prototype.dark = function () { return !!(this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark); };
+  // the day's spells: the heroes' by js/save.js; our four's by js/classes.js NPC.prepInfo (o.ours)
+  Camp.prototype.prepCount = function (h) { return this.o.ours ? (this.pinfo[h.id] ? this.pinfo[h.id].n : 0) : SV.prepCount(h); };
+  Camp.prototype.prepPool = function (h) { return this.o.ours ? (this.pinfo[h.id] ? this.pinfo[h.id].pool : []) : SV.prepPool(h); };
+  Camp.prototype.isCaster = function (h) { return this.o.ours ? !!this.pinfo[h.id] : h.cls === 'wizard' || h.cls === 'paladin'; };
 
   // ------------------------------------------------------------------ the morning, built from the choices
   Camp.prototype.build = function () {
@@ -102,7 +119,62 @@
     this.info = info;
     return data;
   };
-  Camp.prototype.rebuild = function () { this.data = this.build(); };
+  Camp.prototype.rebuild = function () { this.data = this.o.ours ? this.buildOurs() : this.build(); };
+
+  // ------------------------------------------------------------------ our four's morning (o.ours). The class's own morning first (its kit, its
+  // list), the choices laid over it as specs, and the sheets those specs make, so what is shown is what the fight will build
+  Camp.prototype.buildOurs = function () {
+    var N = D.npc, R = DS.R, st = this.st, self = this, info = {}, at = function (hs, h) { return h ? hs.filter(function (x) { return x.id === h.id; })[0] || null : null; };
+    var base = this.o.ours.party.map(function (w, i) { var s = N.spec(w); s.id = 'p' + i + '-' + String(w).split(':')[0]; s.mageArmor = false; return s; });
+    var own = base.map(function (s) { return N.sheet(s); });
+    // the armoury: one of each; what one sets down goes back in it, for anyone
+    var avail = {}; armoury(this.L).forEach(function (id) { avail[id] = (avail[id] || 0) + 1; });
+    var give = function (id) { if (id) avail[id] = (avail[id] || 0) + 1; };
+    var take = function (id) { if (!id || !avail[id]) return false; avail[id]--; return true; };
+    var eq = own.map(function (h) { var e = Object.assign({}, h.equip), ch = st.equip[h.id] || {}; Object.keys(ch).forEach(function (sl) { if (ch[sl] === h.equip[sl]) return; give(h.equip[sl]); e[sl] = null; }); return e; });
+    own.forEach(function (h, i) { var ch = st.equip[h.id] || {}; Object.keys(ch).forEach(function (sl) { if (ch[sl] === h.equip[sl] || !ch[sl]) return; if (take(ch[sl])) eq[i][sl] = ch[sl]; else if (take(h.equip[sl])) eq[i][sl] = h.equip[sl]; }); });
+    this.avail = avail;
+    // the day's spells (js/classes.js NPC.prepInfo: the pool, the count, the class's default day)
+    this.pinfo = {};
+    var specs = base.map(function (s, i) {
+      var sp = Object.assign({}, s, { equip: eq[i], conds: {}, spend: [], aid: 0 }), pi = N.prepInfo(s);
+      if (pi) { self.pinfo[s.id] = pi; sp.prepared = (st.prep[s.id] || pi.def).filter(function (id) { return pi.pool.indexOf(id) >= 0; }).slice(0, pi.n); }
+      return sp;
+    });
+    var hs = specs.map(function (sp) { var h = N.sheet(sp); h.spec = sp; return h; }), by = {}; hs.forEach(function (h) { by[h.id] = h; });
+    var knows = function (id, lv) { return hs.filter(function (h) { return h.known.indexOf(id) >= 0 && (!lv || slotAt(h, lv) >= 0); })[0] || null; };
+    var could = function (id) { return Object.keys(self.pinfo).some(function (k) { return self.pinfo[k].pool.indexOf(id) >= 0; }); }; // (on someone's list, just not prepared today)
+    var front = hs.filter(function (h) { return /barbarian|fighter|paladin|monk/.test(h.cls); })[0] || hs[0];
+    // Mage Armor: whoever knows it (Willem), on a creature in no armour -- himself unless told otherwise
+    var ma = st.cast.mageArmor, mc = knows('mageArmor', 1), mt = by[ma.who] || mc || hs[0], mwhy = '';
+    if (!mc) mwhy = knows('mageArmor') ? 'no 1st-level slot left' : could('mageArmor') ? 'not prepared' : 'nobody knows it';
+    else if (R.armored(mt)) mwhy = mt.name + ' wears armour';
+    if (ma.on && !mwhy) { mc.spec.spend.push(1); mt.spec.conds.mageArmor = 1; }
+    info.mageArmor = { why: mwhy, target: mt, caster: mc, on: ma.on && !mwhy };
+    // Aid: a cleric with it prepared and a 2nd-level slot, on three of the four (the caster goes without unless told otherwise)
+    var aid = st.cast.aid, ac = knows('aid', 2), out = by[aid.out] || ac || hs[hs.length - 1], tg = hs.filter(function (h) { return h !== out; }).slice(0, 3), awhy = '';
+    if (!ac) awhy = knows('aid') ? 'no 2nd-level slot left' : could('aid') ? 'not prepared' : 'nobody has it yet';
+    if (aid.on && !awhy) { ac.spec.spend.push(2); tg.forEach(function (h) { h.spec.aid = 5; }); }
+    info.aid = { why: awhy, targets: tg, out: out, caster: ac, on: aid.on && !awhy };
+    // Light: a cantrip, free, on the front man's gear (RULED 09-29: "the various participants should already be holding torch, lantern, or
+    // someone glowing with Light as logical"): on by itself when the fight is in the dark
+    var li = st.cast.light || {}, lc = knows('light'), lt = by[li.who] || front, lon = li.on != null ? !!li.on : this.dark(), lwhy = lc ? '' : 'nobody knows it';
+    if (lon && !lwhy) lt.spec.conds.light = { by: lc.id };
+    info.light = { why: lwhy, target: lt, caster: lc, on: lon && !lwhy };
+    // a torch in hand: it takes a hand (no pack to count here)
+    var tb = by[st.torch], twhy = '';
+    if (tb) {
+      if (twoHanded(tb.equip.weapon)) twhy = tb.name + '\'s ' + item(tb.equip.weapon).name + ' takes both hands';
+      else if (tb.equip.weapon && tb.equip.weapon !== 'unarmed' && tb.equip.shield) twhy = tb.name + ' has a weapon and a shield';
+    }
+    info.torch = { who: tb || null, why: twhy, on: !!tb && !twhy, left: 1 };
+    // the sheets as the fight will build them, the casts laid on; the lists' names point at these
+    var fin = specs.map(function (sp) { var h = N.sheet(sp); h.spec = sp; h.prepared = self.pinfo[h.id] ? sp.prepared : null; return h; });
+    ['mageArmor', 'aid', 'light'].forEach(function (k) { var x = info[k]; x.target = at(fin, x.target); x.caster = at(fin, x.caster); if (x.targets) x.targets = x.targets.map(function (t) { return at(fin, t); }); if (x.out) x.out = at(fin, x.out); });
+    info.torch.who = at(fin, info.torch.who);
+    this.info = info; this.specs = specs;
+    return { party: fin };
+  };
   Camp.prototype.hero = function (id) { return this.data.party.filter(function (h) { return h.id === id; })[0]; };
 
   // what a hero's numbers would be with one slot changed (for the lists' right-hand column)
@@ -124,13 +196,15 @@
     switch (this.mode) {
       case 'menu': return { title: 'THE CAMP', rows: [
         { label: 'EQUIP', right: armoury(this.L).length + ' in the armoury', act: go('hero'), desc: 'Weapons, armour, shields and rings from the armoury, free: nobody is fighting yet. What one hero sets down, another can take up.' },
-        { label: 'PREPARE SPELLS', right: hs.filter(function (h) { return h.prepared; }).map(function (h) { return h.name + ' ' + h.prepared.length + '/' + SV.prepCount(h); }).join('  '), act: go('caster'), desc: 'The day\'s spells. Aurdin prepares INT + his level from his book; Lymen CHA + half his level from the paladin list. Cantrips, and Lymen\'s oath spells, are always ready.' },
-        { label: 'CAST AHEAD', right: [this.info.mageArmor.on ? 'mage armor' : '', this.info.aid.on ? 'aid' : ''].filter(Boolean).join(', ') || 'nothing', act: go('cast'), desc: 'The 8-hour spells, cast this morning: they are on when the fight starts, and their slots are spent.' },
+        { label: 'PREPARE SPELLS', right: hs.filter(function (h) { return h.prepared; }).map(function (h) { return h.name + ' ' + h.prepared.length + '/' + self.prepCount(h); }).join('  '), act: go('caster'), desc: this.o.ours ? 'The day\'s spells. Willem prepares INT + his level from his book (the register\'s list and the Rimeglass\'s growth); Katarina and Torvald WIS + level from the cleric\'s list. Cantrips and the domain\'s own are always ready.' : 'The day\'s spells. Aurdin prepares INT + his level from his book; Lymen CHA + half his level from the paladin list. Cantrips, and Lymen\'s oath spells, are always ready.' },
+        { label: 'CAST AHEAD', right: [this.info.mageArmor.on ? 'mage armor' : '', this.info.aid.on ? 'aid' : '', this.info.light && this.info.light.on ? 'light' : ''].filter(Boolean).join(', ') || 'nothing', act: go('cast'), desc: 'The 8-hour spells, cast this morning: they are on when the fight starts, and their slots are spent.' },
         { label: 'A TORCH IN HAND', right: this.info.torch.why || (this.info.torch.who ? this.info.torch.who.name : 'nobody'), ok: !this.info.torch.why || !!this.info.torch.who,
           act: function () { self.cycleTorch(1); }, cycle: function (d) { self.cycleTorch(d); },
           desc: 'Who walks in holding a torch lit at the camp, from the pack: bright 20 ft and dim 20 more from the first round, and no action spent on the tinderbox. It takes a hand (a versatile weapon is held in one); not with a two-handed weapon, or a weapon and a shield. Left/right or E: who.' + ((this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark) ? '  This fight is in the dark.' : '  This fight is not in the dark.') },
         { label: 'FIGHT', right: this.F.name, act: function () { self.fight(); }, desc: this.F.intro || '' },
-        this.o.climb
+        this.o.ours
+          ? { label: 'THE CLASS\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to how the class builds them: their own kits, the register\'s lists, Mage Armor on Willem, Light on the front man when the fight is dark.' }
+          : this.o.climb
           ? { label: 'RESET THE MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'The day\'s spells back to the default picks from what they know, Mage Armor on Aurdin if he knows it, and today\'s gear changes undone.' }
           : { label: 'THE BUILD\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to the 8-bit game\'s own picks: their own gear, the build\'s spells, Mage Armor on Aurdin.' },
         { label: this.o.climb ? 'BACK TO THE CLIMB' : 'BACK TO THE LADDER', right: '', act: function () { self.leave(null); }, desc: '' }
@@ -156,22 +230,23 @@
         if (!rows.length) rows.push({ label: '(nothing here ' + h2.name + ' can use)', ok: false, why: 'the armoury has nothing for that slot' });
         return { title: h2.name.toUpperCase() + ': ' + slot.toUpperCase(), rows: rows };
       }
-      case 'caster': return { title: 'PREPARE WHOSE SPELLS?', rows: hs.filter(function (h) { return h.cls === 'wizard' || h.cls === 'paladin'; }).map(function (h) {
-        var n = SV.prepCount(h);
+      case 'caster': return { title: 'PREPARE WHOSE SPELLS?', rows: hs.filter(function (h) { return self.isCaster(h); }).map(function (h) {
+        var n = self.prepCount(h);
         return { label: h.name.toUpperCase(), right: n ? h.prepared.length + ' of ' + n + ' prepared' : 'no spells yet', ok: !!n, why: 'a paladin has no spells until level 2', act: go('spells', { hero: h.id }), hero: h.id };
       }) };
       case 'spells': {
-        var c = this.hero(this.pick.hero), n2 = SV.prepCount(c), oath = SV.oath(c);
-        var rows2 = SV.prepPool(c).map(function (id) {
+        var c = this.hero(this.pick.hero), n2 = self.prepCount(c), ours = !!this.o.ours, oath = ours ? self.pinfo[c.id].always : SV.oath(c);
+        var rows2 = self.prepPool(c).map(function (id) {
           var sp = SV.spell(id), on = c.prepared.indexOf(id) >= 0;
           return { label: (on ? '[x] ' : '[ ] ') + sp.name, right: 'L' + sp.level + (D.SPELLS[id] && D.SPELLS[id].shape === 'none' ? '  no use in a fight' : ''), on: on, desc: sp.desc, hero: c.id,
             act: function () { self.togglePrep(c, id); } };
         });
-        oath.forEach(function (id) { rows2.push({ label: '[*] ' + SV.spell(id).name, right: 'oath: always ready', ok: false, why: 'the Oath of Devotion keeps it ready', hero: c.id, desc: SV.spell(id).desc }); });
-        SV.rituals(c).forEach(function (id) { rows2.push({ label: '[*] ' + SV.spell(id).name, right: 'ritual: from the book', ok: false, why: 'a ritual: cast from the book, never prepared', hero: c.id, desc: SV.spell(id).desc }); });
+        oath.forEach(function (id) { rows2.push({ label: '[*] ' + SV.spell(id).name, right: ours ? 'domain: always ready' : 'oath: always ready', ok: false, why: ours ? (c.subclass || 'the domain') + ' keeps it ready' : 'the Oath of Devotion keeps it ready', hero: c.id, desc: SV.spell(id).desc }); });
+        (ours ? [] : SV.rituals(c)).forEach(function (id) { rows2.push({ label: '[*] ' + SV.spell(id).name, right: 'ritual: from the book', ok: false, why: 'a ritual: cast from the book, never prepared', hero: c.id, desc: SV.spell(id).desc }); });
         return { title: c.name.toUpperCase() + ': ' + c.prepared.length + ' OF ' + n2 + ' PREPARED', rows: rows2 };
       }
       case 'cast': {
+        if (this.o.ours) return this.castListOurs();
         var mi = this.info.mageArmor, ai = this.info.aid;
         return { title: 'CAST AHEAD (left/right: on whom)', rows: [
           { label: (mi.on ? '[x] ' : '[ ] ') + 'MAGE ARMOR on ' + mi.target.name, right: mi.why || '1st-level slot', ok: !mi.why || mi.on, why: mi.why, hero: mi.target.id,
@@ -191,6 +266,31 @@
     return { title: '', rows: [] };
   };
 
+  // CAST AHEAD for our four (o.ours): whoever knows the spell casts it -- Mage Armor (Willem), Aid (a cleric from 3), Light (a cleric's
+  // cantrip, free) on the front man
+  Camp.prototype.castListOurs = function () {
+    var self = this, st = this.st, mi = this.info.mageArmor, ai = this.info.aid, li = this.info.light, nm = function (h) { return h ? h.name : 'nobody'; };
+    return { title: 'CAST AHEAD (left/right: on whom)', rows: [
+      { label: (mi.on ? '[x] ' : '[ ] ') + 'MAGE ARMOR on ' + nm(mi.target), right: mi.why || '1st-level slot', ok: !mi.why || mi.on, why: mi.why, hero: mi.target && mi.target.id,
+        act: function () { st.cast.mageArmor.on = !st.cast.mageArmor.on; self.changed(); }, cycle: function (d) { self.cycleMage(d); },
+        desc: (mi.caster ? mi.caster.name : 'A wizard') + ', on a creature in no armour: AC 13 + DEX for 8 hours. Robes are not armour to it. It ends if the wearer puts on armour.' },
+      { label: '     on whom: ' + nm(mi.target), right: 'next', act: function () { self.cycleMage(1); }, hero: mi.target && mi.target.id, desc: 'Whom it is cast on: anyone in no armour, the caster included. Talmok fights bare: it fits him.' },
+      { label: (ai.on ? '[x] ' : '[ ] ') + 'AID on ' + ai.targets.map(nm).join(', '), right: ai.why || '2nd-level slot, +5 HP', ok: !ai.why || ai.on, why: ai.why,
+        act: function () { st.cast.aid.on = !st.cast.aid.on; self.changed(); }, cycle: function (d) { self.cycleAid(d); },
+        desc: (ai.caster ? ai.caster.name : 'A cleric') + ', on three of the four: +5 to their maximum and current HP for 8 hours.' },
+      { label: '     goes without: ' + nm(ai.out), right: 'next', act: function () { self.cycleAid(1); }, desc: 'Aid takes three of the four (SRD: up to three creatures). Pick who goes without.' },
+      { label: (li.on ? '[x] ' : '[ ] ') + 'LIGHT on ' + nm(li.target), right: li.why || 'a cantrip: free', ok: !li.why || li.on, why: li.why, hero: li.target && li.target.id,
+        act: function () { st.cast.light.on = !li.on; self.changed(); }, cycle: function (d) { self.cycleLight(d); },
+        desc: (li.caster ? li.caster.name : 'A cleric') + ' puts Light on the front man\'s gear: bright 20 ft and dim 20 more for an hour, no hand taken. On by itself when the fight is in the dark' + (this.dark() ? ' -- as this one is.' : '; this one is not.') },
+      { label: '     on whom: ' + nm(li.target), right: 'next', act: function () { self.cycleLight(1); }, hero: li.target && li.target.id, desc: 'Whom the Light goes on: the one who meets the foes first, so they are lit where he stands.' }
+    ] };
+  };
+  Camp.prototype.cycleLight = function (d) {
+    var ids = this.data.party.map(function (h) { return h.id; }), cur = this.info.light.target ? this.info.light.target.id : null, i = ids.indexOf(cur);
+    this.st.cast.light.who = ids[((i + d) % ids.length + ids.length) % ids.length];
+    this.changed();
+  };
+
   Camp.prototype.changed = function () { this.save(); this.rebuild(); D.sfx('confirm'); };
   Camp.prototype.setEquip = function (h, slot, id) {
     var e = this.st.equip[h.id] = this.st.equip[h.id] || {};
@@ -202,7 +302,7 @@
   Camp.prototype.togglePrep = function (h, id) {
     var cur = h.prepared.slice(), i = cur.indexOf(id);
     if (i >= 0) cur.splice(i, 1);
-    else if (cur.length >= SV.prepCount(h)) { D.sfx('error'); this.say(h.name + ' can prepare ' + SV.prepCount(h) + ': take one off first.'); return; }
+    else if (cur.length >= this.prepCount(h)) { D.sfx('error'); this.say(h.name + ' can prepare ' + this.prepCount(h) + ': take one off first.'); return; }
     else cur.push(id);
     this.st.prep[h.id] = cur;
     this.changed();
@@ -215,7 +315,7 @@
     this.changed();
   };
   Camp.prototype.cycleTorch = function (d) { // nobody, then Aurdin first (his word), then the rest in the party's order
-    var ids = [null, 'aurdin'].concat(this.data.party.map(function (h) { return h.id; }).filter(function (id) { return id !== 'aurdin'; }));
+    var ids = [null].concat(this.o.ours ? [] : ['aurdin'], this.data.party.map(function (h) { return h.id; }).filter(function (id) { return id !== 'aurdin'; }));
     var i = ids.indexOf(this.st.torch || null);
     this.st.torch = ids[((i + d) % ids.length + ids.length) % ids.length];
     this.changed();
@@ -236,6 +336,14 @@
     var self = this;
     this.save();
     D.sfx('confirm');
+    // our four (o.ours): the fight builds them from the morning's specs (battle.js o.npc.party); a watch, or your play, recorded (record.js)
+    if (this.o.ours) {
+      var O = this.o.ours, tw = this.info.torch.on ? this.info.torch.who.id : null;
+      this.rebuild();
+      var ob = new D.Battle({ ladder: true, watch: !O.play, record: O.play ? { fight: this.F.id, name: this.F.name, level: this.L } : null, fight: this.F.id,
+        npc: { party: this.specs, foes: [] }, torch: tw, onDone: function (res) { if (ob.rec) D.rec.finish(ob, res); self.leave(res); } });
+      D.push(ob); return;
+    }
     var data = this.build();
     // the climb: the gear chosen here goes with the party from now on
     if (this.o.climb) { this.o.climb.keep(data.party); this.st.equip = {}; this.save(); }
@@ -284,11 +392,14 @@
   Camp.prototype.draw = function (ctx) {
     var R = DS.R, self = this, hs = this.data.party, L = this.list(), row = L.rows[this.sel], focus = row && row.hero;
     // the backdrop: the four round the fire in a night clearing (Griz, 09-28), the panels over it let it through
-    D.campfire.draw(ctx, { cx: FIRE_AT[0], cy: FIRE_AT[1], t: this.t, dim: 0.8, heroes: hs.map(function (h) { return { id: h.id, sheet: self.look(h.id).sheet || h.id + '_p0' }; }) });
-    var seat = focus && D.campfire.seatAt(focus, FIRE_AT[0], FIRE_AT[1]);
+    if (this.o.ours) { ctx.fillStyle = '#07060c'; ctx.fillRect(0, 0, D.W, D.H); } // (no campfire for the tester ladder's four: Griz, 09-29)
+    else {
+      D.campfire.draw(ctx, { cx: FIRE_AT[0], cy: FIRE_AT[1], t: this.t, dim: 0.8, heroes: hs.map(function (h) { return { id: h.id, sheet: self.look(h.id).sheet || h.id + '_p0' }; }) });
+      var seat = focus && D.campfire.seatAt(focus, FIRE_AT[0], FIRE_AT[1]);
     if (seat) { var bob = Math.round(Math.sin(this.t / 8) * 2); D.text(ctx, '▼', seat.x, seat.y - 50 + bob, P('gold', 4), 'center'); }
+    }
     ctx.save(); ctx.translate(6, 5); ctx.scale(2, 2); D.text(ctx, 'THE CAMP', 0, 0, P('gold', 4)); ctx.restore();
-    D.text(ctx, (this.o.climb ? '{p}the climb{/}  ·  ' : '') + 'level ' + this.L + '  ·  before {y}' + this.F.name + '{/}  ·  ' + (this.F.sub || ''), 98, 9, P('silver', 5));
+    D.text(ctx, (this.o.climb ? '{p}the climb{/}  ·  ' : this.o.ours ? '{p}ours{/}  ·  ' : '') + 'level ' + this.L + '  ·  before {y}' + this.F.name + '{/}  ·  ' + (this.F.sub || ''), 98, 9, P('silver', 5));
     // the four
     hs.forEach(function (h, i) {
       var x = 6, y = PY + i * 56, w = 232, hh = 53, look = self.look(h.id), on = focus === h.id;
@@ -307,7 +418,7 @@
       if (h.conds.mageArmor) bits.push('{c}mage armor{/}');
       if (h.conds.aid) bits.push('{n}aid +' + h.conds.aid + '{/}');
       D.text(ctx, bits.join('  '), x + 40, y + 34, P('accent', 2));
-      if (h.prepared) D.text(ctx, D.wrap(h.prepared.length + '/' + SV.prepCount(h) + ': ' + h.prepared.map(function (id) { return SV.spell(id).name; }).join(', '), w - 46)[0], x + 40, y + 43, P('stone', 5));
+      if (h.prepared) D.text(ctx, D.wrap(h.prepared.length + '/' + self.prepCount(h) + ': ' + h.prepared.map(function (id) { return SV.spell(id).name; }).join(', '), w - 46)[0], x + 40, y + 43, P('stone', 5));
     });
     // the list, as tall as its rows (the fire shows below it), and the chosen row's words in their own box at the foot
     var shown = Math.min(VIS, L.rows.length);

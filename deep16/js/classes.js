@@ -247,6 +247,11 @@
       // a named one's own list, with its domain's always-prepared spells on top (09-28g: Torvald's Vigil)
       h.known = spec.known && spec.away ? awayList(cc, cls, lvl, abil, spec.known, spec.grow)
         : spec.known ? spec.known.concat(subAlways(sub, lvl)).filter(function (id, i, a) { return a.indexOf(id) === i; }) : spellsFor(cc, cls, lvl, abil, sub);
+      // the camp's morning (js/camp.js o.ours, 09-29): the day's spells as chosen there, over the cantrips and the always-prepared
+      if (spec.prepared) {
+        var alw = alwaysOf(cc, sub, lvl), keep = h.known.filter(function (id) { var s = D.magic.data(id); return !s || !(s.level > 0) || alw.indexOf(id) >= 0; });
+        h.known = keep.concat(spec.prepared).filter(function (id, i, a) { return a.indexOf(id) === i; });
+      }
     }
     // our own subclasses' per-rest uses (js/features.js): the Window's Hand on the Neck, the Vigil's Keeper's Ward -- WIS a long rest
     if (NPC.SUBS[sub] && NPC.SUBS[sub].uses) h.feats[NPC.SUBS[sub].uses] = Math.max(1, DS.mod(abil.wis));
@@ -257,10 +262,41 @@
     if (spec.guardianText) h.guardianText = spec.guardianText;
     // a caster who wears no armour walks in under Mage Armor, cast that morning and paid for (the fixture's Aurdin: save.js)
     // (a named one away from its register walks in as the class's own would: Willem at 7 has his Mage Armor up)
-    if ((!spec.noPrecast || spec.away) && h.known.indexOf('mageArmor') >= 0 && !R.armored(h) && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
+    // (the camp says yes or no itself: spec.mageArmor)
+    var wantMA = spec.mageArmor != null ? !!spec.mageArmor : (!spec.noPrecast || spec.away);
+    if (wantMA && h.known.indexOf('mageArmor') >= 0 && !R.armored(h) && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
+    // the camp's morning (js/camp.js o.ours): what was cast on him before the fight (Mage Armor, Light -- the grid's conditions), the
+    // slot levels he spent casting ahead, and Aid's +5
+    if (spec.conds) Object.keys(spec.conds).forEach(function (k) { h.conds[k] = spec.conds[k]; });
+    (spec.spend || []).forEach(function (lv) { for (var i = lv - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) { h.slots[i]--; break; } });
+    if (spec.aid) { h.maxhp += spec.aid; h.conds.aid = spec.aid; }
     h.hp = h.maxhp;
     return h;
   };
+  // the always-prepared at a level: our own domain's list (in the Life Domain's place), else the class's
+  function alwaysOf(c, sub, lvl) {
+    if (NPC.SUBS[sub] && NPC.SUBS[sub].always) return subAlways(sub, lvl);
+    var a = []; Object.keys(c.always || {}).forEach(function (k) { if (lvl >= +k) a = a.concat(c.always[k]); }); return a;
+  }
+  // the tester ladder's camp (js/camp.js o.ours, 09-29): what one of ours may prepare at the spec's level -- the register's list, the
+  // grow picks and the class's list to the highest slot, the built ones only (a spell not built yet is simply not on it); how many (the
+  // class's count); the domain's always-prepared, uncounted; and the class's own default day. Null for one who casts nothing
+  NPC.prepInfo = function (spec) {
+    var c = C[spec.cls], RC = R.CLASSES[spec.cls];
+    if (!c || !RC || !RC.caster || !(c.prepares || c.known)) return null;
+    var h = NPC.sheet(Object.assign({}, spec, { prepared: null, conds: null, spend: null, aid: 0, mageArmor: false }));
+    var lv = function (id) { var s = D.magic.data(id); return s ? s.level || 0 : -1; }, uniq = function (id, i, a) { return a.indexOf(id) === i; };
+    var top = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) top = i + 1; });
+    var n = c.known ? c.known[h.lvl - 1] : Math.max(1, DS.mod(h.abil[c.prepares]) + (c.half ? Math.floor(h.lvl / 2) : h.lvl));
+    if (c.half && h.lvl < 2) n = 0;
+    var alw = alwaysOf(c, h.subclass, h.lvl), g = spec.grow || {}, sp = c.spells || {}, pool = (spec.known || []).slice();
+    for (var L = 1; L <= top; L++) pool = pool.concat(g[L] || [], sp[L] || []);
+    pool = pool.filter(uniq).filter(function (id) { var L2 = lv(id); return L2 >= 1 && L2 <= top && alw.indexOf(id) < 0; })
+      .map(function (id, i) { return { id: id, i: i, lv: lv(id) }; }).sort(function (a, b) { return a.lv - b.lv || a.i - b.i; }).map(function (x) { return x.id; });
+    return { n: n, top: top, pool: pool, always: alw.filter(function (id) { return lv(id) >= 0 && lv(id) <= top; }), def: h.known.filter(function (id) { return lv(id) >= 1 && alw.indexOf(id) < 0; }) };
+  };
+  // the figure the camp draws for a spec: a named one's own, else the class's
+  NPC.lookOf = function (spec) { return spec.look || (C[spec.cls] && C[spec.cls].look) || null; };
 
   // ------------------------------------------------------------------ the unit (on either side): the heroes' shape (save.js unitOf), and the rest
   NPC.unit = function (h, side, o) {
