@@ -307,9 +307,11 @@
     return { score: sc, t: { units: who }, keep: sc * 0.6 };
   };
   EV.aid = function (B, u, e, slot, fs, allies) {
-    var add = 5 * Math.max(1, slot - 1), who = allies.filter(function (w) { return !w.dead && G.dist(u, w) <= 30; }).sort(function (a, b) { return (a.hp / a.maxhp) - (b.hp / b.maxhp); }).slice(0, 3 + Math.max(0, slot - 2));
+    // (what it adds over the Aid already on each: the same spell doesn't combine -- 09-28h; one already aided at this slot gains nothing)
+    var add = 5 * Math.max(1, slot - 1), had = function (w) { return +(w.conds.aid || (w.src && w.src.conds && w.src.conds.aid) || 0); };
+    var who = allies.filter(function (w) { return !w.dead && G.dist(u, w) <= 30 && add > had(w); }).sort(function (a, b) { return (a.hp / a.maxhp) - (b.hp / b.maxhp); }).slice(0, 3 + Math.max(0, slot - 2));
     if (!who.length) return null;
-    var sc = who.reduce(function (s, w) { return s + (w.hp <= 0 ? add * 3 + TX.dpr(w) : w.hp < w.maxhp / 2 ? add * 1.3 : add * 0.7); }, 0);
+    var sc = who.reduce(function (s, w) { var more = add - had(w); return s + (w.hp <= 0 ? more * 3 + TX.dpr(w) : w.hp < w.maxhp / 2 ? more * 1.3 : more * 0.7); }, 0);
     return { score: sc, t: { units: who } };
   };
   EV.shieldoffaith = function (B, u, e, slot, fs, allies) {
