@@ -1,7 +1,7 @@
 ---
 title: DEEP16 art wanted -- the generated sheets, in order
 made: 2026-09-28 (Code tab), for Griz's free GPT / Grok image runs, planned at two a day
-how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop what comes back in the repo root (any name; say which creature) and the seat cuts it the chuul's way (pipeline 2: tools/chuul-sheet.py, crawler-sheet.py, gnoll-sheet.py)
+how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop what comes back in the repo root (any name; say which creature) and the seat files it in `deep16/_src/` as `<creature>_grok_N.png` (gitignored: that folder is where the generated sheets live; tester screenshots go in `deep16/_src/tester-feedback/`) and cuts it the chuul's way (pipeline 2: tools/chuul-sheet.py, crawler-sheet.py, gnoll-sheet.py)
 ---
 
 # DEEP16 art wanted

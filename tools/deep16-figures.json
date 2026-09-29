@@ -507,7 +507,7 @@
       "file": "kaykit/Mage.glb",
       "show": ["Mage_ArmLeft", "Mage_ArmRight", "Mage_Body", "Mage_Head", "Mage_Hat", "Mage_LegLeft", "Mage_LegRight", "1H_Wand"],
       "grade": { "hue": 90, "sat": 0.7, "val": 0.9 },
-      "anims": { "idle": "Idle", "attack": "1H_Ranged_Shoot", "walk": "Walking_A", "cast": "Spellcast_Shoot" }
+      "anims": { "idle": "Idle", "attack": "1H_Ranged_Shoot", "walk": "Walking_A", "cast": "Spellcast_Shoot", "sit": "Sit_Floor_Idle" }
     },
     "naga": {
       "_note": "the spirit naga of the causeway (SRD 5.1, Large): the Quaternius angry snake at two squares, turned to the black water's blue-green.",
@@ -687,7 +687,7 @@
       "file": "kaykit/Barbarian.glb",
       "show": ["Barbarian_ArmLeft", "Barbarian_ArmRight", "Barbarian_Body", "Barbarian_Head", "Barbarian_LegLeft", "Barbarian_LegRight"],
       "grade": { "hue": 30, "sat": 0.9, "val": 0.85 },
-      "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Chop", "walk": "Walking_A" }
+      "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Chop", "walk": "Walking_A", "sit": "Sit_Floor_Idle" }
     },
     "berserker": {
       "_note": "the visiting barbarian on the Hex card (SRD berserker): the KayKit Barbarian with its great axe, blood-dark.",

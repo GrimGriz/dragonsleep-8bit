@@ -2610,7 +2610,7 @@
 }
 },
 "npccleric_p0": {
-"image": "art/npccleric_p0.png?v=7cb8881ef8",
+"image": "art/npccleric_p0.png?v=364c7801a4",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -2653,8 +2653,17 @@
 "frames": 6,
 "fps": 10
 },
-"cast": {
+"sit": {
 "y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 3,
+"fps": 2
+},
+"cast": {
+"y": 3584,
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -3660,7 +3669,7 @@
 }
 },
 "talmok_p1": {
-"image": "art/talmok_p1.png?v=170e5a1a02",
+"image": "art/talmok_p1.png?v=2e42fadeaa",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -3693,11 +3702,20 @@
 "ay": 84,
 "frames": 8,
 "fps": 12
+},
+"sit": {
+"y": 2304,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 2,
+"fps": 2
 }
 }
 },
 "torvald_p0": {
-"image": "art/torvald_p0.png?v=13fa5e36dd",
+"image": "art/torvald_p0.png?v=381c5649af",
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -3740,8 +3758,17 @@
 "frames": 6,
 "fps": 10
 },
-"cast": {
+"sit": {
 "y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 3,
+"fps": 2
+},
+"cast": {
+"y": 3584,
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -3992,7 +4019,7 @@
 }
 },
 "willem_p1": {
-"image": "art/willem_p1.png?v=f47e866b26",
+"image": "art/willem_p1.png?v=8f76a057dd",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -4026,8 +4053,17 @@
 "frames": 8,
 "fps": 12
 },
-"cast": {
+"sit": {
 "y": 2304,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 2,
+"fps": 2
+},
+"cast": {
+"y": 3072,
 "fw": 96,
 "fh": 96,
 "ax": 48,

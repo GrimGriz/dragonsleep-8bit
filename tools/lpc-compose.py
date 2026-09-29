@@ -751,7 +751,7 @@ FIGURES = {
         'notes': ['the robe (the generator\'s, female body) in white (its light gray is near-black); her chainmail under it is not drawn'],
     },
     'torvald_full': {  # the cleric at Deepholm's door: a cleric's coat under a traveling cloak, a hood, a beard, the mace
-        'extra': [('cast', 'spellcast')],
+        'extra': ['sit', ('cast', 'spellcast')],  # (sit: the tester camp's fire, 09-29)
         'body': 'male', 'skin': 'lpcr.tan', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
         'items': [
             {'def': 'body/body.json'},
@@ -797,7 +797,7 @@ FIGURES = {
         'notes': ['the bard: red sleeves and a purple cape, a blade (the rapier drawn as the dagger)'],
     },
     'npccleric': {
-        'extra': [('cast', 'spellcast')],
+        'extra': ['sit', ('cast', 'spellcast')],  # (sit: Katarina at the tester camp's fire, 09-29)
         'body': 'male', 'skin': 'light', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
         'items': [
             {'def': 'body/body.json'},
