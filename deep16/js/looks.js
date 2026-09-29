@@ -73,6 +73,13 @@
     FX.ctx = { id: id, el: L.el, dmgEl: L.dmgEl, travel: L.travel, caster: u, shape: L.shape, sky: L.sky };
     FX.flare(u, L.el);
     if (L.reach && t) (t.units ? t.units : [t]).forEach(function (w) { if (w && w !== u && w.sheet) FX.reach(u, w, L.el); });
+    // Beacon of Hope, 09-29 (Griz: "for beacon of hope can we get a sunbeam coming down on the caster"). The spell is a self cast, so
+    // nothing reaches anyone by itself: a sunbeam comes down on the caster, and the gold drifts out to each ally in 30 ft who will
+    // carry the hope (the same reckoning as js/grimoire.js E.beaconofhope makes, done here only to know where to send the motes).
+    if (id === 'beaconofhope') {
+      sunbeam(u);
+      B.units.forEach(function (w) { if (w && w !== u && w.side === u.side && !w.dead && w.hp > 0 && w.sheet && G.dist(u, w) <= 30) FX.reach(u, w, 'holy'); });
+    }
     try { yield* cast0.apply(this, arguments); } finally { FX.ctx = prev; }
   };
   // the arrival: a hurt of an element on the body; the flash in its colour (a blade's flash stays white)
@@ -116,6 +123,42 @@
       ctx.globalAlpha = 0.35 * k; ctx.fillStyle = E.c[2]; ctx.fillRect(Math.round(s.x - w), Math.round(s.y - 200), w * 2, 200);
       ctx.globalAlpha = 0.6 * k; ctx.fillStyle = E.c[1]; ctx.fillRect(Math.round(s.x - w / 2), Math.round(s.y - 200), w, 200);
       ctx.globalAlpha = 0.9 * k; ctx.fillStyle = E.c[0]; ctx.fillRect(Math.round(s.x - 2), Math.round(s.y - 200), 4, 200);
+      ctx.globalAlpha = 1;
+    } });
+  }
+  // Beacon of Hope's sunbeam, 09-29 (Griz: "a sunbeam coming down on the caster"). Sunlight, not a strike: a broad column that widens
+  // as it goes up, gold at the edge and bone-white at the heart, coming down from the top of the screen to the caster's feet in the
+  // first dozen ticks, with a few pale streaks sliding in it and dust drifting down through it. It leaves a pool of light on the floor
+  // and a flash at the crown where it lands, then thins away. It stays 50 ticks, longer than Flame Strike's column, and never blocks.
+  function sunbeam(u) {
+    var E = FX.el('holy'), H = 200, dust = [];
+    for (var i = 0; i < 20; i++) dust.push({ x: Math.random() * 2 - 1, d: Math.random() * 60, sp: 0.7 + Math.random() * 0.7, c: i % 3 });
+    FX.add({ kind: 'sunbeam', dur: 50, draw: function (ctx) {
+      var t = this.t, T = this.dur, b = FX.body(u), k = Math.min(1, t / 8) * Math.min(1, (T - t) / 16), fall = Math.min(1, t / 12), y, w;
+      // the column, row by row from its foot: the edge, the body and the heart, each a little wider at the top and a little fainter
+      for (y = 0; y < H; y += 2) {
+        var q = y / H;
+        if (q < 1 - fall) continue;
+        w = 9 + q * 13;
+        ctx.globalAlpha = 0.17 * k * (1 - q * 0.45); ctx.fillStyle = E.c[1]; ctx.fillRect(Math.round(b.x - w), Math.round(b.y - y), Math.round(w * 2), 2);
+        ctx.globalAlpha = 0.4 * k * (1 - q * 0.45); ctx.fillStyle = E.c[1]; ctx.fillRect(Math.round(b.x - w * 0.55), Math.round(b.y - y), Math.round(w * 1.1), 2);
+        ctx.globalAlpha = 0.75 * k * (1 - q * 0.45); ctx.fillStyle = E.c[0]; ctx.fillRect(Math.round(b.x - 2 - q * 2), Math.round(b.y - y), 4 + Math.round(q * 4), 2);
+      }
+      // pale streaks sliding sideways through it, and dust falling down it
+      for (var s = 0; s < 3 && fall >= 1; s++) {
+        var sx = b.x + Math.sin(t / 11 + s * 2.3) * 7;
+        ctx.globalAlpha = 0.4 * k; ctx.fillStyle = E.c[0]; ctx.fillRect(Math.round(sx), Math.round(b.y - H * 0.8), 1, Math.round(H * 0.8));
+      }
+      dust.forEach(function (m) {
+        var ph = ((t * m.sp + m.d) % 60) / 60, my = b.y - H * 0.6 * (1 - ph);
+        if (t < 10) return;
+        ctx.globalAlpha = k * Math.sin(Math.PI * ph); px(ctx, b.x + m.x * (8 + (1 - ph) * 8) + Math.sin(t / 9 + m.d) * 1.5, my, E.c[m.c], m.c ? 1 : 2);
+      });
+      // the pool of light where it lands, and the flash at the crown
+      ctx.globalAlpha = 1;
+      glow(ctx, b.x, b.y, E.c[2], 22, 0.3 * k); glow(ctx, b.x, b.y, E.c[1], 13, 0.35 * k); glow(ctx, b.x, b.y, E.c[0], 6, 0.3 * k);
+      ctx.save(); ctx.globalAlpha = 0.5 * k; ctx.strokeStyle = E.c[1]; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(b.x, b.y, 15 + (t % 25) * 0.3, 7 + (t % 25) * 0.15, 0, 0, 7); ctx.stroke(); ctx.restore();
+      if (t >= 8 && t < 24) { var fk = (t - 8) / 16; ctx.globalAlpha = 1 - fk; glow(ctx, b.x, b.y - b.top, E.c[0], 5 + fk * 9, 0.4 * (1 - fk)); ctx.globalAlpha = 1 - fk; FX.star(ctx, b.x, b.y - b.top, E, 3 + Math.round(fk * 7)); }
       ctx.globalAlpha = 1;
     } });
   }
@@ -421,6 +464,23 @@
     // blessed: gold motes wheeling over the head; baned, cursed: dark ones
     if (c.blessed || c.guided || c.inspired || c.helped) orbit(ctx, hx, hy, FX.EL.holy, 2, t, 7);
     if (c.baned || c.cursed || c.contagion) orbit(ctx, hx, hy, FX.EL.shadow, 2, t + 40, 7);
+    // Beacon of Hope, 09-29 (Griz: "a status effect animation for 'maximized healing with wis bonus' or what-have-you until the spell
+    // gets dropped"). A small sun over the head of each one who has hope on them: a gold disc with a bright spot, eight short rays that
+    // turn slowly, and about once a second the whole sun flares, the disc swelling and the rays lengthening. It is drawn from the
+    // condition itself, so it goes when the caster's concentration lifts it. It rides a few pixels above blessed's wheeling motes
+    // when the same creature has both, and sits about where the other head marks do when it does not.
+    if (c.beacon) {
+      E = FX.EL.holy;
+      var bsy = c.blessed || c.guided || c.inspired || c.helped ? hy - 10 : hy - 5, bph = t % 64, bfl = bph < 12 ? Math.sin(Math.PI * bph / 12) : 0, bsa = t / 60;
+      glow(ctx, hx, bsy, E.c[2], 5 + bfl * 4, 0.25 + bfl * 0.3);
+      for (var bri = 0; bri < 8; bri++) {
+        var bsn = bsa + bri * Math.PI / 4, bsl = (bri % 2 ? 4 : 5) + (bfl > 0.5 ? 1 : 0);
+        for (var brr = 3; brr <= bsl; brr++) px(ctx, hx + Math.cos(bsn) * brr, bsy + Math.sin(bsn) * brr, brr < 5 ? E.c[1] : E.c[2], 1);
+      }
+      px(ctx, hx, bsy, E.c[1], bfl > 0.5 ? 4 : 3);
+      px(ctx, hx - 1, bsy - 1, E.c[0], bfl > 0.5 ? 2 : 1);
+      if (bfl > 0.15) FX.star(ctx, hx, bsy, E, 3 + Math.round(bfl * 4));
+    }
     // marked (Hunter's Mark, the Hex): a red sigil over the head
     if (c.marked || c.branded) { E = FX.EL.fire; var mk = (t >> 3) & 1; px(ctx, hx, hy - 4, P('red', 4), 2); px(ctx, hx - 3, hy - 4, P('red', 3)); px(ctx, hx + 3, hy - 4, P('red', 3)); px(ctx, hx, hy - 7, P('red', 3)); px(ctx, hx, hy - 1, P('red', 3)); if (mk) glow(ctx, hx, hy - 4, P('red', 2), 5, 0.3); }
     // hasted: blue ticks at the heels; slowed: a heavy drip
