@@ -442,7 +442,7 @@
     });
     if (L.rows.length > VIS) D.text(ctx, (this.top + 1) + '-' + Math.min(L.rows.length, this.top + VIS) + ' of ' + L.rows.length, PX + PW - 7, PY + 5, P('stone', 5), 'right');
     // the chosen row's words
-    var desc = row ? (row.ok === false && row.why ? '{o}' + row.why + '{/}' + (row.desc ? '  ' + row.desc : '') : row.desc || '') : '';
+    var desc = D.keys(row ? (row.ok === false && row.why ? '{o}' + row.why + '{/}' + (row.desc ? '  ' + row.desc : '') : row.desc || '') : ''); // (D.keys: a phone reads A and B, not E and X)
     // as many lines as the room under the list gives (the torch's words ran past four and were cut on a phone: Griz, 09-29)
     var listBot = PY + 18 + shown * ROW + 5, maxL = Math.max(4, Math.min(9, Math.floor((D.H - 18 - 6 - listBot - 3) / 8)));
     var dl = D.wrap(desc, PW - 12).slice(0, maxL), said = this.msg && this.t - this.msg.t < 150;

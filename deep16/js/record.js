@@ -52,6 +52,31 @@
     if (r.last && ls.length > r.logAt) r.last.then = (r.last.then || []).concat(ls.slice(r.logAt).map(logText));
     r.logAt = ls.length;
   }
+  // what the answer came from, so a slip (a click that was meant for the wheel, the space bar early) can be told from a choice:
+  // a mouse click (with where), the END key (space), the confirm key, another key by its name, or code (a helper, a test)
+  function via() {
+    var I = D.input, m = I.mouse, E = I.edge || {}, k = Object.keys(E).filter(function (n) { return E[n]; });
+    if (m.click) return 'click ' + m.x + ',' + m.y;
+    if (E.end) return 'space (END)';
+    if (E.a) return 'confirm key';
+    return k.length ? 'key ' + k.join('+') : 'code';
+  }
+  var short = function (c) {
+    if (!c || typeof c !== 'object') return String(c);
+    var t = c.target && typeof c.target === 'object' ? (c.target.name || c.target.id || (c.target.units ? c.target.units.length + ' aimed' : '')) : c.target;
+    return c.do + (c.id ? ' ' + c.id : '') + (c.slot ? ' L' + c.slot : '') + (t ? ' -> ' + t : '') + (c.x != null ? ' to ' + c.x + ',' + c.y : '');
+  };
+  // the fight as plain reading, for comparing tactics: each turn's start, each answer with how it was made, and what the log said after
+  function transcript(steps) {
+    var out = [];
+    steps.forEach(function (s) {
+      if (s.turnStart) out.push('', '== R' + s.round + ' ' + s.who + '  hp ' + s.hp + '  at ' + s.at.join(',') + '  AI would: ' + (s.turnStart.ai || []).map(function (a) { return a.why + ' ' + a.score; }).join(' | '));
+      out.push('  ' + (s.cmd ? short(s.cmd) : (s.prompt ? '[' + s.prompt.title + '] ' + s.answer : '?')) + '   (' + s.via + ')' + (s.left ? '  left: move ' + s.left.move + ', action ' + s.left.action + ', bonus ' + s.left.bonus : ''));
+      (s.screen || []).forEach(function (l) { out.push('      on screen: ' + l); });
+      (s.then || []).forEach(function (l) { out.push('      ' + l); });
+    });
+    return out;
+  }
   function note(B, v) {
     var r = B.rec, req = B.req;
     if (!req || r.done) return;
@@ -59,7 +84,9 @@
     if (!u || u.side !== 'party') return; // (a prompt of the foes' is the AI's; only ours are the player's)
     flush(B);
     if (!r.party.length) r.party = B.units.filter(function (w) { return w.side === 'party'; }).map(sheet);
-    var step = { round: B.round, who: u.id, at: [u.x, u.y], hp: u.hp };
+    var step = { round: B.round, who: u.id, at: [u.x, u.y], hp: u.hp, via: via() };
+    var shown = (B.cards || []).map(function (c) { return (c.lines || []).map(function (l) { return window.DS.stripCodes(String(l)); }).join(' / '); }).filter(Boolean);
+    if (shown.length) step.screen = shown; // (the cards on the screen when it was answered: what the player was looking at)
     if (req.turn) {
       var key = B.round + ':' + u.id;
       if (r.turnKey !== key) { r.turnKey = key; step.turnStart = turnStart(B, u); }
@@ -84,6 +111,7 @@
     r.done = true; r.result = result; r.rounds = B.round; r.ended = new Date().toISOString();
     r.partyEnd = B.units.filter(function (w) { return w.side === 'party'; }).map(function (w) { return { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; });
     r.log = (B.logEntries || []).map(logText);
+    try { r.transcript = transcript(r.steps); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
     var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'done') out[k] = r[k]; });
     var all = D.store.get(KEY) || [];
     all.push(out);

@@ -388,7 +388,7 @@
       if (r.right) D.text(ctx, r.right, PX + PW - 7, ry + 1, dim ? P('stone', 4) : P('stone', 6), 'right');
     });
     var row = L.rows[this.sel], desc = row && row.desc ? row.desc : L.desc || '';
-    D.wrap(desc, PW - 12).slice(0, 5).forEach(function (l, j) { D.text(ctx, l, PX + 6, PY + 176 + j * 8, P('bone', 2)); });
+    D.wrap(desc, PW - 12).slice(0, 7).forEach(function (l, j) { D.text(ctx, l, PX + 6, PY + 164 + j * 8, P('bone', 2)); }); // (seven lines from just under the rows: five cut a long spell's words on a phone)
     D.hint(ctx, 'up/down choose  ·  E pick  ·  X take a pick back', D.W / 2, D.H - 10, P('stone', 5), 'center');
   };
 })();

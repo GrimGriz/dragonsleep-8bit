@@ -568,8 +568,12 @@
     var foot = sc.face ? Math.round(D.H / 2 + top * k * (sc.faceAt || 0.72)) : Math.round(D.H / 2 + top * k / 2 - 8);
     var o = {}; if (sc.hit && t < 44 && ((t >> 2) & 1)) { o.tint = R('bone', 2); o.tintAlpha = 0.85; }
     var anim = sc.anim && D.spr.anim(u.sheet, sc.anim) ? sc.anim : 'idle';
-    if (anim === 'attack') { o.once = true; }
-    ctx.save(); ctx.translate(D.W / 2, foot); ctx.scale(k, k);
+    if (anim === 'attack' || (sc.swoop && anim === 'fly')) { o.once = true; }
+    // `swoop` (Griz, 09-29: the sheet "looks like a sequence to play at the end of the easter egg"): the figure flies in from the right,
+    // growing as it comes, through its flight's eight poses, the last held -- toward whoever it is coming for, at the left
+    var px0 = D.W / 2, py0 = foot, kk = k;
+    if (sc.swoop) { var pr = Math.min(1, t / Math.max(1, (sc.frames || 84) - 24)), ee = pr * pr * (3 - 2 * pr); px0 = D.W + 90 - (D.W + 90 - D.W * 0.24) * ee; py0 = foot - 46 + 72 * ee; kk = k * (0.75 + 0.95 * ee); }
+    ctx.save(); ctx.translate(px0, py0); ctx.scale(kk, kk);
     D.spr.draw(ctx, u.sheet, anim, sc.facing == null ? 0 : sc.facing, anim === 'attack' ? Math.min(t, 60) : t, 0, 0, o);
     ctx.restore();
     if (sc.hit) for (var i = 0; i < 3; i++) { // the darts landing: three bursts up the body, in turn

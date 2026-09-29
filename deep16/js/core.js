@@ -152,7 +152,16 @@
     [/\bSPACE\b/g, 'Y', '△'], [/\bE\b/g, 'A', '✕'], [/\bX\b/g, 'B', '○'], [/\bM\b/g, 'START', 'OPTIONS'], [/\bC\b/g, 'R3', 'R3'],
     [/\bQ\b/g, 'RIGHT STICK', 'RIGHT STICK']
   ];
-  D.keys = function (s) { var P = window.DS.pad; return P ? P.say(s, SAY) : s; };
+  // on a phone the hand is on the touch pad (A, B, MENU, END on the screen): a hint says those, not E and X (tester, 09-29)
+  var SAYT = [
+    [/\bM or Tab\b/g, 'MENU'], [/\bX\/Esc\b/g, 'B'], [/wheel or -\/= zoom/g, '-/+ zoom'], [/\bC recentre  /g, ''], [/\bSPACE\b/g, 'END'],
+    [/\bE\b/g, 'A'], [/\bX\b/g, 'B'], [/\bM\b/g, 'MENU']
+  ];
+  D.keys = function (s) {
+    var P = window.DS.pad, t = P ? P.say(s, SAY) : s;
+    if (t === s && D.touch) SAYT.forEach(function (r) { t = t.replace(r[0], r[1]); });
+    return t;
+  };
   I.stickWay = null; // the way the left stick is pressing the four, if it is (the grid takes the stick's own path instead)
   I.pollPad = function () {
     var P = window.DS.pad;
