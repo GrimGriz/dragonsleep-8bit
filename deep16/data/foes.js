@@ -363,7 +363,7 @@
     src: 'SRD 5.1 Grick (CR 2): tentacles then beak; resists bludgeoning, piercing and slashing from non-magical weapons (read: battle.js); Stone Camouflage as starting hidden (the fight\'s foe: hidden)'
   },
   bulette: {
-    name: 'Bulette', type: 'monstrosity', sheet: 'bulette_p1', cr: '5', ac: 17, hp: 94, speed: 40, size: 2, reach: 5, darkvision: 60, blindsight: 60,
+    name: 'Bulette', type: 'monstrosity', sheet: 'bulette_p2', cr: '5', ac: 17, hp: 94, speed: 40, size: 2, reach: 5, darkvision: 60, blindsight: 60,
     abil: { str: 19, dex: 11, con: 21, int: 2, wis: 10, cha: 5 }, init: 0, perception: 16,
     saves: { str: 4, dex: 0, con: 5, int: -4, wis: 0, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 7, dice: '4d12', mod: 4, type: 'piercing', reach: 5 } },
