@@ -746,6 +746,8 @@
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
+    // a Wind Wall between them (js/walls.js): an arrow, a bolt, a thrown weapon is torn upward and misses
+    if (D.walls && D.walls.windStops(this, att, tgt, atk)) { this.card([(att.side === 'foe' ? '{r}' + shortName(att) + '{/}' : '{y}' + att.name + '{/}') + ': ' + (atk.name || 'the shot') + ' -- the wind wall tears it upward.  {g}MISS{/}']); D.sfx('miss'); yield 20; att.anim = 'idle'; return; }
     if (att.side === 'foe' && att.conds.hidden) delete att.conds.hidden; // a foe that strikes from hiding is seen (the gricks)
     this.endInvis(att, 'the attack'); // (Invisibility: the swing has its advantage, then the spell is gone)
     // false images (the cloaker's phantasms, Willem's): a d20 says whether the blow goes at an image (3: 6+, 2: 8+, 1: 11+)

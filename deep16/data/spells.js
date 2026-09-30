@@ -146,6 +146,11 @@
   flamestrike: { shape: 'sphere', range: 60, r: 10, time: 'A' },
   greaterrestoration: { shape: 'touch', side: 'ally', time: 'A' },
   insectplague: { shape: 'sphere', range: 300, r: 20, time: 'A', conc: true },
+  // the walls (the druid to twelve, 09-30: js/walls.js): a run of squares across your line to the point, centred on it
+  windwall: { shape: 'wall', range: 120, len: 50, time: 'A', conc: true, side: 'any' },
+  walloffire: { shape: 'wall', range: 120, len: 60, time: 'A', conc: true, side: 'any' },
+  wallofstone: { shape: 'wall', range: 120, len: 60, time: 'A', conc: true, side: 'any' },
+  wallofthorns: { shape: 'wall', range: 120, len: 60, time: 'A', conc: true, side: 'any' },
   // the summons (the druid to twelve, 09-30: data/summons.js, js/grimoire.js summonSpell): the point they gather round, within 60 ft
   conjureanimals: { shape: 'sphere', range: 60, r: 10, time: 'A', conc: true, side: 'any' },
   conjurewoodlandbeings: { shape: 'sphere', range: 60, r: 10, time: 'A', conc: true, side: 'any' },

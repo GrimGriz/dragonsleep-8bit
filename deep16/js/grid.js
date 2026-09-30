@@ -41,8 +41,11 @@
     return hi - lo <= G.map.def.step; // a Large body can straddle one step, not the ledge
   }
   // may u end its move here (o.ghost: an ethereal mover ignores creatures)
+  // (a wall's squares, js/walls.js: nothing stands or passes in stone; a small flier does not cross the wind)
+  function wallBars(u, x, y) { if (!G.wallAt) return false; var f = G.foot(u, x, y); for (var i = 0; i < f.length; i++) { var w = G.wallAt(f[i][0], f[i][1]); if (w && (w.solid || (w.kind === 'wind' && u.flies && (u.size || 1) <= 1))) return true; } return false; }
   G.canStand = function (u, x, y, o) {
     if (!footWalkable(u, x, y)) return false;
+    if (wallBars(u, x, y)) return false;
     if (o && o.ghost) return true;
     var f = G.foot(u, x, y);
     for (var i = 0; i < f.length; i++) if (G.occupant(f[i][0], f[i][1], u)) return false;
@@ -51,6 +54,7 @@
   // may u pass through here (allies yes, foes no; a creature who is down still blocks its foes)
   G.canPass = function (u, x, y, o) {
     if (!footWalkable(u, x, y, true)) return false;
+    if (wallBars(u, x, y)) return false;
     if (o && o.ghost) return true;
     var f = G.foot(u, x, y);
     for (var i = 0; i < f.length; i++) { var w = G.occupant(f[i][0], f[i][1], u); if (w && G.hostile(u, w)) return false; }
@@ -69,9 +73,10 @@
     var f = G.foot(u, x1, y1);
     // a creature bound to its ground (the otyugh will not leave its pool: bound '~') moves only there, and not slowed by it
     if (u.bound) { for (var j = 0; j < f.length; j++) if (u.bound.indexOf(G.map.at(f[j][0], f[j][1]).ch) < 0) return Infinity; }
-    if (u.conds && u.conds.freeMove) return 5; // (Freedom of Movement: no ground slows it)
-    for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if ((s.difficult && !(u.bound && u.bound.indexOf(s.ch) >= 0) && !(u.swims && s.ch === '~') && !u.landsStride) || (!u.webWalker && D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.icy && D.magic.icy(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.rough && D.magic.rough(D.battle, f[i][0], f[i][1], u))) return 10; } // (a web, the ice of a Sleet Storm, a spell's ground: grease, vines, spikes, the guardians' ring)
-    return 5;
+    var thorn = G.wallAt && G.wallAt(x1, y1), extra = thorn && thorn.cost && !u.ethereal ? thorn.cost : 0; // (Wall of Thorns: 4 ft of movement a foot -- 20 more a square)
+    if (u.conds && u.conds.freeMove) return 5 + extra; // (Freedom of Movement: no ground slows it; the thorns are the wall's, not the ground's)
+    for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if ((s.difficult && !(u.bound && u.bound.indexOf(s.ch) >= 0) && !(u.swims && s.ch === '~') && !u.landsStride) || (!u.webWalker && D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.icy && D.magic.icy(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.rough && D.magic.rough(D.battle, f[i][0], f[i][1], u))) return 10 + extra; } // (a web, the ice of a Sleet Storm, a spell's ground: grease, vines, spikes, the guardians' ring)
+    return 5 + extra;
   };
   var N8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
   // Dijkstra from where u stands out to `budget` feet: { 'x,y': { x, y, cost, prev, stand } }
@@ -134,7 +139,7 @@
   // a point's line of sight to another point: only rock blocks (for spells and templates)
   G.losPoint = function (x0, y0, x1, y1) {
     var L = G.line(x0, y0, x1, y1);
-    for (var i = 0; i < L.length; i++) { var s = G.map.at(L[i][0], L[i][1]); if (!s || !s.open) return false; }
+    for (var i = 0; i < L.length; i++) { var s = G.map.at(L[i][0], L[i][1]); if (!s || !s.open) return false; if (G.wallAt) { var w = G.wallAt(L[i][0], L[i][1]); if (w && w.solid && !(L[i][0] === x0 && L[i][1] === y0)) return false; } } // (a Wall of Stone as the rock)
     return true;
   };
   // creature to creature: { clear, cover (0 or 2), why } -- the best line over both footprints
@@ -151,6 +156,7 @@
           var inA = x >= (ax == null ? a.x : ax) && y >= (ay == null ? a.y : ay) && x < (ax == null ? a.x : ax) + (a.size || 1) && y < (ay == null ? a.y : ay) + (a.size || 1);
           var inB = x >= b.x && y >= b.y && x < b.x + (b.size || 1) && y < b.y + (b.size || 1);
           if (inA || inB) continue;
+          var wl = G.wallAt && G.wallAt(x, y); if (wl && wl.sight) { clear = false; break; } // (a wall of fire, thorns or stone: js/walls.js)
           if (s.pillar) { cover = 2; why = s.stands || 'a stalagmite'; }
           var w = G.occupant(x, y);
           if (w && w !== a && w !== b && cover < 2) { cover = 2; why = w.name; }

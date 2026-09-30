@@ -114,6 +114,7 @@
     if (c && c.by) { var src = B.units.filter(function (w) { return w.id === c.by; })[0]; if (src && src.conc && c.single && src.conc.id === c.spell) delete src.conc; }
   }
   M.endCond = endCond;
+  M.saveAll = saveAll; // (js/walls.js raises its walls with it)
   // hurt while laughing: the save again, with advantage (SRD 5.1); a hypnotized one wakes
   M.onHurt = function (B, u, n, type) {
     var c = u.conds;

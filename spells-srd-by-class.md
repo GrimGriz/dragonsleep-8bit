@@ -272,7 +272,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Vampiric Touch | W K | Au Am Wi | **BUILT** | melee spell attack 3d6 necrotic, heals half (conc; again each action) -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Water Breathing | W S D R | Au Wi Na | **OUT** | the water is hand-waved: nobody swims; the naga's list has it |
 | Water Walk | C S D R | To | **OUT** | the water is hand-waved |
-| Wind Wall | D R |  | **LATER** | a wall of wind up to 50 ft: STR save 3d8 (half), arrows through it miss; needs walls |
+| Wind Wall | D R |  | **BUILT** (09-30) | a wall of wind 50 ft long: STR save 3d8 (half) as it rises; arrows, bolts and thrown weapons across it miss; a small flier cannot cross; sight passes (`deep16/js/walls.js`) |
 
 ### 4th (31)
 
@@ -308,7 +308,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Secret Chest | W | Au | **OUT** | storage |
 | Stone Shape | W C D | Au | **OUT** | reshapes stone: the maps' walls are the story's |
 | Stoneskin | W S D R | Au | **BUILT** | touch (conc): resistance to nonmagical blades, bolts, bites |
-| Wall of Fire | W S D | Au | **LATER** | walls (and fire: greyed under the roost) |
+| Wall of Fire | W S D | Au | **BUILT** (09-30, the grid's; not on Aurdin's 8-bit list yet) | 60 ft long, opaque, lit: DEX 5d8 (half) as it rises; 5d8 to whoever enters it, ends a turn in it or within 10 ft of its far side (the side away from the caster: the seat's call); greyed under the roost (`deep16/js/walls.js`) |
 
 ### 5th (37)
 
@@ -350,7 +350,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Teleportation Circle | W S B | Au | **OUT** | travel |
 | Tree Stride | D R |  | **LATER** | needs trees on the grid: into one tree, out of a like tree within 500 ft; a druid foe |
 | Wall of Force | W | Au | **LATER** | walls |
-| Wall of Stone | W S D | Au | **LATER** | walls |
+| Wall of Stone | W S D | Au | **BUILT** (09-30, the grid's) | 60 ft of it (the seat's length; the SRD allows ten 10-ft panels): nothing passes or sees through; those where it rises are pushed out, the caster's own to his side; the panels' AC and HP not built -- it stands till concentration goes (`deep16/js/walls.js`) |
 
 ### 6th (31)
 
@@ -384,7 +384,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Transport via Plants | D |  | **OUT** | travel: step into one big plant and out of another anywhere |
 | True Seeing | W C K S B |  | **BUILT** | truesight 120 ft for an hour: sees the invisible, through darkness and illusion -- BUILT 09-28 (torchdark): truesight 120 ft on the grid (grid only: no hero reaches 6th) |
 | Wall of Ice | W |  | **LATER** | a wall of ice (panels or dome, 30 HP a section): DEX save 10d6 cold; needs walls |
-| Wall of Thorns | D |  | **LATER** | a wall of thorns that blocks sight: DEX save 7d8, slow and painful to cross; needs walls |
+| Wall of Thorns | D |  | **BUILT** (09-30) | 60 ft long, blocks sight: DEX 7d8 piercing (half) as it grows; 20 ft of movement more a square; DEX 7d8 slashing (half) on entering it or ending a turn in it (`deep16/js/walls.js`) |
 | Wind Walk | D |  | **OUT** | travel: cloud form flying 300 ft, can only Dash; a minute to change back |
 | Word of Recall | C |  | **OUT** | travel: the caster and five teleport to a sanctuary; at most a foe priest's escape |
 
@@ -464,8 +464,8 @@ The same verdicts, a line a level: each class's own SRD list.
 - **1st:** Alarm (OUT), Burning Hands (BUILT), Charm Person (LATER), Color Spray (IN), Comprehend Languages (OUT), Detect Magic (BUILT), Disguise Self (OUT), Expeditious Retreat (IN), False Life (IN), Feather Fall (OUT), Find Familiar (OUT), Floating Disk (OUT), Fog Cloud (BUILT), Grease (IN), Hideous Laughter (IN), Identify (OUT), Illusory Script (OUT), Jump (OUT), Longstrider (IN), Mage Armor (BUILT), Magic Missile (BUILT), Protection from Evil and Good (LATER), Shield (BUILT), Silent Image (LATER), Sleep (BUILT), Thunderwave (BUILT), Unseen Servant (OUT)
 - **2nd:** Acid Arrow (IN), Alter Self (OUT), Arcane Lock (OUT), Arcanist's Magic Aura (OUT), Blindness/Deafness (IN), Blur (IN), Continual Flame (BUILT), Darkness (BUILT), Darkvision (BUILT), Detect Thoughts (OUT), Enlarge/Reduce (IN), Flaming Sphere (LATER), Gentle Repose (OUT), Gust of Wind (IN), Hold Person (BUILT), Invisibility (BUILT), Knock (OUT), Levitate (LATER), Locate Object (OUT), Magic Mouth (OUT), Magic Weapon (IN), Mirror Image (IN), Misty Step (BUILT), Ray of Enfeeblement (IN), Rope Trick (IN), Scorching Ray (BUILT), See Invisibility (BUILT), Shatter (BUILT), Spider Climb (OUT), Suggestion (LATER), Web (BUILT)
 - **3rd:** Animate Dead (LATER), Bestow Curse (IN), Blink (IN), Clairvoyance (OUT), Counterspell (LATER), Dispel Magic (IN), Fear (IN), Fireball (BUILT), Fly (LATER), Gaseous Form (OUT), Glyph of Warding (OUT), Haste (IN), Hypnotic Pattern (IN), Lightning Bolt (BUILT), Magic Circle (OUT), Major Image (LATER), Nondetection (OUT), Phantom Steed (OUT), Protection From Energy (IN), Remove Curse (OUT), Sending (OUT), Sleet Storm (BUILT), Slow (IN), Stinking Cloud (BUILT), Tiny Hut (IN), Tongues (OUT), Vampiric Touch (IN), Water Breathing (OUT)
-- **4th:** Arcane Eye (OUT), Banishment (IN), Black Tentacles (IN), Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Control Water (OUT), Dimension Door (IN), Fabricate (OUT), Faithful Hound (LATER), Fire Shield (IN), Greater Invisibility (BUILT), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Phantasmal Killer (IN), Polymorph (LATER), Private Sanctum (OUT), Resilient Sphere (IN), Secret Chest (OUT), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (LATER)
-- **5th:** Animate Objects (LATER), Arcane Hand (LATER), Cloudkill (LATER), Cone of Cold (BUILT), Conjure Elemental (LATER), Contact Other Plane (OUT), Creation (OUT), Dominate Person (LATER), Dream (OUT), Geas (OUT), Hold Monster (BUILT), Legend Lore (OUT), Mislead (BUILT), Modify Memory (OUT), Passwall (OUT), Planar Binding (OUT), Scrying (OUT), Seeming (OUT), Telekinesis (LATER), Telepathic Bond (OUT), Teleportation Circle (OUT), Wall of Force (LATER), Wall of Stone (LATER)
+- **4th:** Arcane Eye (OUT), Banishment (IN), Black Tentacles (IN), Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Control Water (OUT), Dimension Door (IN), Fabricate (OUT), Faithful Hound (LATER), Fire Shield (IN), Greater Invisibility (BUILT), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Phantasmal Killer (IN), Polymorph (LATER), Private Sanctum (OUT), Resilient Sphere (IN), Secret Chest (OUT), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (BUILT)
+- **5th:** Animate Objects (LATER), Arcane Hand (LATER), Cloudkill (LATER), Cone of Cold (BUILT), Conjure Elemental (LATER), Contact Other Plane (OUT), Creation (OUT), Dominate Person (LATER), Dream (OUT), Geas (OUT), Hold Monster (BUILT), Legend Lore (OUT), Mislead (BUILT), Modify Memory (OUT), Passwall (OUT), Planar Binding (OUT), Scrying (OUT), Seeming (OUT), Telekinesis (LATER), Telepathic Bond (OUT), Teleportation Circle (OUT), Wall of Force (LATER), Wall of Stone (BUILT)
 - **6th:** Chain Lightning (IN), Circle of Death (IN), Contingency (LATER), Create Undead (LATER), Disintegrate (IN), Eyebite (IN), Flesh to Stone (IN), Freezing Sphere (IN), Globe of Invulnerability (IN), Guards and Wards (OUT), Instant Summons (OUT), Irresistible Dance (IN), Magic Jar (LATER), Mass Suggestion (LATER), Move Earth (OUT), Programmed Illusion (OUT), Sunbeam (IN), True Seeing (BUILT), Wall of Ice (LATER)
 - **7th:** Arcane Sword (IN), Delayed Blast Fireball (IN), Etherealness (IN), Finger of Death (IN), Forcecage (LATER), Magnificent Mansion (OUT), Mirage Arcane (OUT), Plane Shift (OUT), Prismatic Spray (IN), Project Image (OUT), Reverse Gravity (LATER), Sequester (OUT), Simulacrum (LATER), Symbol (IN), Teleport (OUT)
 - **8th:** Antimagic Field (LATER), Antipathy/Sympathy (LATER), Clone (OUT), Control Weather (OUT), Demiplane (OUT), Dominate Monster (LATER), Feeblemind (IN), Incendiary Cloud (LATER), Maze (IN), Mind Blank (IN), Power Word Stun (IN), Sunburst (IN)
@@ -511,8 +511,8 @@ The same verdicts, a line a level: each class's own SRD list.
 - **1st:** Burning Hands (BUILT), Charm Person (LATER), Color Spray (IN), Comprehend Languages (OUT), Detect Magic (BUILT), Disguise Self (OUT), Expeditious Retreat (IN), False Life (IN), Feather Fall (OUT), Fog Cloud (BUILT), Jump (OUT), Mage Armor (BUILT), Magic Missile (BUILT), Shield (BUILT), Silent Image (LATER), Sleep (BUILT), Thunderwave (BUILT)
 - **2nd:** Alter Self (OUT), Blindness/Deafness (IN), Blur (IN), Darkness (BUILT), Darkvision (BUILT), Detect Thoughts (OUT), Enhance Ability (IN), Enlarge/Reduce (IN), Gust of Wind (IN), Hold Person (BUILT), Invisibility (BUILT), Knock (OUT), Levitate (LATER), Mirror Image (IN), Misty Step (BUILT), Scorching Ray (BUILT), See Invisibility (BUILT), Shatter (BUILT), Spider Climb (OUT), Suggestion (LATER), Web (BUILT)
 - **3rd:** Blink (IN), Clairvoyance (OUT), Counterspell (LATER), Daylight (BUILT), Dispel Magic (IN), Fear (IN), Fireball (BUILT), Fly (LATER), Gaseous Form (OUT), Haste (IN), Hypnotic Pattern (IN), Lightning Bolt (BUILT), Major Image (LATER), Protection From Energy (IN), Sleet Storm (BUILT), Slow (IN), Stinking Cloud (BUILT), Tongues (OUT), Water Breathing (OUT), Water Walk (OUT)
-- **4th:** Banishment (IN), Blight (IN), Confusion (IN), Dimension Door (IN), Dominate Beast (LATER), Greater Invisibility (BUILT), Ice Storm (BUILT), Polymorph (LATER), Stoneskin (BUILT), Wall of Fire (LATER)
-- **5th:** Animate Objects (LATER), Cloudkill (LATER), Cone of Cold (BUILT), Creation (OUT), Dominate Person (LATER), Hold Monster (BUILT), Insect Plague (IN), Seeming (OUT), Telekinesis (LATER), Teleportation Circle (OUT), Wall of Stone (LATER)
+- **4th:** Banishment (IN), Blight (IN), Confusion (IN), Dimension Door (IN), Dominate Beast (LATER), Greater Invisibility (BUILT), Ice Storm (BUILT), Polymorph (LATER), Stoneskin (BUILT), Wall of Fire (BUILT)
+- **5th:** Animate Objects (LATER), Cloudkill (LATER), Cone of Cold (BUILT), Creation (OUT), Dominate Person (LATER), Hold Monster (BUILT), Insect Plague (IN), Seeming (OUT), Telekinesis (LATER), Teleportation Circle (OUT), Wall of Stone (BUILT)
 - **6th:** Chain Lightning (IN), Circle of Death (IN), Disintegrate (IN), Eyebite (IN), Globe of Invulnerability (IN), Mass Suggestion (LATER), Move Earth (OUT), Sunbeam (IN), True Seeing (BUILT)
 - **7th:** Delayed Blast Fireball (IN), Etherealness (IN), Finger of Death (IN), Fire Storm (IN), Plane Shift (OUT), Prismatic Spray (IN), Reverse Gravity (LATER), Teleport (OUT)
 - **8th:** Dominate Monster (LATER), Earthquake (IN), Incendiary Cloud (LATER), Power Word Stun (IN), Sunburst (IN)
@@ -536,10 +536,10 @@ The same verdicts, a line a level: each class's own SRD list.
 - **Cantrips:** Druidcraft (OUT), Guidance (IN), Mending (OUT), Poison Spray (IN), Produce Flame (IN), Resistance (IN), Shillelagh (IN)
 - **1st:** Animal Friendship (LATER), Charm Person (LATER), Create or Destroy Water (OUT), Cure Wounds (BUILT), Detect Magic (BUILT), Detect Poison and Disease (OUT), Entangle (IN), Faerie Fire (BUILT), Fog Cloud (BUILT), Goodberry (OUT), Healing Word (IN), Jump (OUT), Longstrider (IN), Purify Food and Drink (OUT), Speak with Animals (OUT), Thunderwave (BUILT)
 - **2nd:** Animal Messenger (OUT), Barkskin (IN), Darkvision (BUILT), Enhance Ability (IN), Find Traps (OUT), Flame Blade (IN), Flaming Sphere (LATER), Gust of Wind (IN), Heat Metal (IN), Hold Person (BUILT), Lesser Restoration (BUILT), Locate Animals or Plants (OUT), Locate Object (OUT), Moonbeam (LATER), Pass Without Trace (BUILT), Protection from Poison (IN), Spike Growth (IN)
-- **3rd:** Call Lightning (IN), Conjure Animals (BUILT), Create Food and Water (OUT), Daylight (BUILT), Dispel Magic (IN), Plant Growth (LATER), Protection From Energy (IN), Sleet Storm (BUILT), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (LATER)
-- **4th:** Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Conjure Woodland Beings (BUILT, waits for a fey), Control Water (OUT), Divination (OUT), Dominate Beast (LATER), Freedom of Movement (IN), Giant Insect (LATER), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Polymorph (LATER), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (LATER)
-- **5th:** Antilife Shell (LATER), Awaken (OUT), Commune With Nature (OUT), Conjure Elemental (LATER), Contagion (IN), Geas (OUT), Greater Restoration (IN), Insect Plague (IN), Mass Cure Wounds (IN), Planar Binding (OUT), Reincarnate (OUT), Scrying (OUT), Tree Stride (LATER), Wall of Stone (LATER)
-- **6th:** Conjure Fey (LATER), Find the Path (OUT), Heal (IN), Heroes' Feast (IN), Move Earth (OUT), Sunbeam (IN), Transport via Plants (OUT), Wall of Thorns (LATER), Wind Walk (OUT)
+- **3rd:** Call Lightning (IN), Conjure Animals (BUILT), Create Food and Water (OUT), Daylight (BUILT), Dispel Magic (IN), Plant Growth (LATER), Protection From Energy (IN), Sleet Storm (BUILT), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (BUILT)
+- **4th:** Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Conjure Woodland Beings (BUILT, waits for a fey), Control Water (OUT), Divination (OUT), Dominate Beast (LATER), Freedom of Movement (IN), Giant Insect (LATER), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Polymorph (LATER), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (BUILT)
+- **5th:** Antilife Shell (LATER), Awaken (OUT), Commune With Nature (OUT), Conjure Elemental (LATER), Contagion (IN), Geas (OUT), Greater Restoration (IN), Insect Plague (IN), Mass Cure Wounds (IN), Planar Binding (OUT), Reincarnate (OUT), Scrying (OUT), Tree Stride (LATER), Wall of Stone (BUILT)
+- **6th:** Conjure Fey (LATER), Find the Path (OUT), Heal (IN), Heroes' Feast (IN), Move Earth (OUT), Sunbeam (IN), Transport via Plants (OUT), Wall of Thorns (BUILT), Wind Walk (OUT)
 - **7th:** Fire Storm (IN), Mirage Arcane (OUT), Plane Shift (OUT), Regenerate (IN), Reverse Gravity (LATER)
 - **8th:** Animal Shapes (LATER), Antipathy/Sympathy (LATER), Control Weather (OUT), Earthquake (IN), Feeblemind (IN), Sunburst (IN)
 - **9th:** Foresight (IN), Shapechange (LATER), Storm of Vengeance (IN), True Resurrection (OUT)
@@ -548,7 +548,7 @@ The same verdicts, a line a level: each class's own SRD list.
 
 - **1st:** Alarm (OUT), Animal Friendship (LATER), Cure Wounds (BUILT), Detect Magic (BUILT), Detect Poison and Disease (OUT), Fog Cloud (BUILT), Goodberry (OUT), Hunter's Mark (IN), Jump (OUT), Longstrider (IN), Speak with Animals (OUT)
 - **2nd:** Animal Messenger (OUT), Barkskin (IN), Darkvision (BUILT), Find Traps (OUT), Lesser Restoration (BUILT), Locate Animals or Plants (OUT), Locate Object (OUT), Pass Without Trace (BUILT), Protection from Poison (IN), Silence (LATER), Spike Growth (IN)
-- **3rd:** Conjure Animals (BUILT), Daylight (BUILT), Nondetection (OUT), Plant Growth (LATER), Protection From Energy (IN), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (LATER)
+- **3rd:** Conjure Animals (BUILT), Daylight (BUILT), Nondetection (OUT), Plant Growth (LATER), Protection From Energy (IN), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (BUILT)
 - **4th:** Conjure Woodland Beings (BUILT, waits for a fey), Freedom of Movement (IN), Locate Creature (OUT), Stoneskin (BUILT)
 - **5th:** Commune With Nature (OUT), Tree Stride (LATER)
 

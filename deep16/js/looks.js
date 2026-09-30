@@ -24,10 +24,10 @@
     arcane: 'mageArmor shield invisibility greaterinvisibility seeinvisibility darkvision trueseeing mistystep dimensiondoor blink etherealness mislead mirrorimage blur detectmagic dispelmagic enlargereduce haste slow longstrider expeditiousretreat globeofinvulnerability resilientsphere banishment maze mindblank foresight protectionfromenergy freedomofmovement enhanceability truestrike arcanesword',
     charm: 'sleep command hideouslaughter hypnoticpattern confusion holdperson holdmonster mirrorsgaze irresistibledance powerwordstun colorspray prismaticspray symbol faeriefire',
     shadow: 'darkness bane bestowcurse blindnessdeafness fear eyebite powerwordkill passwithouttrace blacktentacles falselife',
-    nature: 'entangle spikegrowth barkskin shillelagh huntersmark insectplague conjureanimals conjurewoodlandbeings',
-    earth: 'grease stoneskin fleshtostone earthquake web',
+    nature: 'entangle spikegrowth barkskin shillelagh huntersmark insectplague conjureanimals conjurewoodlandbeings wallofthorns',
+    earth: 'grease stoneskin fleshtostone earthquake web wallofstone',
     cold: 'icestorm fogcloud',
-    thunder: 'gustofwind'
+    thunder: 'gustofwind windwall'
   };
   var LOOKOF = {};
   Object.keys(SCHOOL).forEach(function (el) { SCHOOL[el].split(' ').forEach(function (id) { LOOKOF[id] = el; }); });
