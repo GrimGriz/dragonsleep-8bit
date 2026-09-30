@@ -457,7 +457,7 @@
     var d = DS.DATA.heroes[id];
     key = key || id; o = o || {};
     var h = R.makeHero(id, d.level);
-    h.attacks = d.attacks; h.resist = d.resist; h.guest = true; h.surgeAI = !!d.surgeAI;
+    h.attacks = d.attacks; h.resist = d.resist; h.guest = true; h.surgeAI = !!d.surgeAI; h.script = d.script || null; // (Pyro's measure: js/pyro.js)
     if (key !== id) h.name = o.name || h.name;
     if (d.healer) { h.healer = d.healer; h.feats.heals = d.healer; }
     if (o.wounded) { h.wounded = true; h.hp = Math.max(1, Math.round(h.maxhp / 3)); } // Halldor: a third of himself, and he won't sit out
@@ -477,7 +477,7 @@
     baseStartFrom(data);
     (G().guests || []).forEach(function (x) {
       var d = DS.DATA.heroes[x.h.id];
-      if (!d || x.h.cls === d.cls) return;
+      if (!d || (x.h.cls === d.cls && x.h.lvl === d.level)) return; // (or a sheet since grown: Pyro to 12, 09-30)
       var nh = EV.guestSheet(x.h.id, x.id, { name: x.h.name, wounded: x.h.wounded });
       nh.ko = !!x.h.ko; nh.hp = nh.ko ? 0 : Math.max(1, Math.min(nh.hp, Math.round(nh.maxhp * x.h.hp / Math.max(1, x.h.maxhp))));
       x.h = nh;
@@ -488,7 +488,9 @@
   EV.hasGuest = function (key) { return (G().guests || []).some(function (x) { return x.id === key; }); };
   // every road fight is built for the four AND the guests walking with them (re-cut §3: "Pyro alone is worth two heroes;
   // a fight with Pyro, the captain and troopers must be built for a party of seven or it is a walk")
-  var GUEST_WEIGHT = { pyro: 2, halldor: 1, brann: 1, hedda: 1, ingrith: 0.5, trooper: 0.5 };
+  // (Pyro 1, not 2, since his measure (09-30b, js/pyro.js): he holds back to one swing a turn till it goes bad, so the road is built for
+  // the four and a wall beside them -- the seat's call, one number to flip)
+  var GUEST_WEIGHT = { pyro: 1, halldor: 1, brann: 1, hedda: 1, ingrith: 0.5, trooper: 0.5 };
   EV.guestWeight = function () {
     return (G().guests || []).reduce(function (s, x) { if (x.h.ko) return s; var w = GUEST_WEIGHT[x.h.id] || 0.5; return s + (x.h.wounded ? w / 2 : w); }, 0);
   };

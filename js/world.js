@@ -20,7 +20,7 @@
     G.give = function (id, n) { n = n || 1; var s = G.inv.filter(function (q) { return q.id === id; })[0]; if (s) s.n += n; else G.inv.push({ id: id, n: n }); };
     G.take = function (id, n) { n = n || 1; var s = G.inv.filter(function (q) { return q.id === id; })[0]; if (!s) return false; s.n -= n; if (s.n <= 0) G.inv.splice(G.inv.indexOf(s), 1); return true; };
     G.count = function (id) { var s = G.inv.filter(function (q) { return q.id === id; })[0]; return s ? s.n : 0; };
-    G.has = function (id) { if (G.count(id) > 0) return true; return G.party.some(function (h) { return h.equip.weapon === id || h.equip.armor === id || h.equip.shield === id || h.equip.ring === id; }); };
+    G.has = function (id) { if (G.count(id) > 0) return true; if (id === 'ledgerlamp' && G.flags && G.flags.torchBy && G.flags.torchKind === 'ledgerlamp') return true; /* (the Ledger-Lamp lit in a hand is out of the pack, and still the party's: the highway's light, the seals and the roper's check read possession -- 09-30) */ return G.party.some(function (h) { return h.equip.weapon === id || h.equip.armor === id || h.equip.shield === id || h.equip.ring === id; }); };
     G.main = function () { return G.party.filter(function (h) { return h.id === G.lead; })[0] || G.party[0]; };
     G.hero = function (id) { return G.party.filter(function (h) { return h.id === id; })[0]; };
   }

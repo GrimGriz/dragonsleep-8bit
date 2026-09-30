@@ -149,6 +149,13 @@
     // Ingrith Scalebeam, cleric 4 (deepholm-and-the-edifice.md, CANON 09-26b). RULED 09-28g (Griz: "Yes, she's meant to be Cleric"):
     // her 8-bit sheet is a cleric's now (content/heroes.json: the d8's average HP, slots 4/3, the drafted list and the Life Domain's
     // Spiritual Weapon), so the grid reads her as it reads the heroes; the overlay stays only for a sheet still a fighter's
+    // Pyronimus, King of Solskaft (content/heroes.json pyro; RULED 09-30, Griz: "Gonna have to Pyro NPC up to 12, he's key"): fighter 12,
+    // the Champion, two maces -- the plain one and the Mace of Disruption -- by Two-Weapon Fighting and, at 10, our Hammer and Tongs
+    // (invented.json #hammer-and-tongs); +3 dwarven plate and the King's Mantle (RULED 09-30b). His turn is his own (js/pyro.js): on the
+    // Pocket DM (?npc=pyro) and as a foe he fights at full. Past the class's 9 by name only (maxLvl: 09-30, "past 9 for special NPCs")
+    pyro: { name: 'Pyro', named: true, cls: 'fighter', lvl: 12, maxLvl: 12, race: 'dwarf', subclass: 'Champion', look: 'pyro_p0', script: 'measure',
+      abil: { str: 20, dex: 14, con: 16, int: 11, wis: 13, cha: 15 }, hp: 112, noPrecast: true,
+      equip: { weapon: 'mace', offhand: 'macedisruption', armor: 'kingsplate', shield: null, cloak: 'kingsmantle' } },
     ingrith: { overlay: true, cls: 'cleric', lvl: 4, slots: [4, 3], subclass: 'Life Domain', race: 'dwarf', abil: { str: 12, dex: 10, con: 14, int: 13, wis: 16, cha: 13 },
       equip: { weapon: 'mace', armor: 'chainmail', shield: 'shield' }, hp: 31,
       known: ['sacredflame', 'guidance', 'curewounds', 'healingword', 'bless', 'shieldoffaith', 'aid', 'lesserrestoration', 'spiritualweapon'] }
@@ -216,7 +223,7 @@
   // ------------------------------------------------------------------ the sheet (the 8-bit game's shape: js/rules.js reads it)
   // spec: { cls, lvl, race, name, named, spells (a list over the class's), maxhp (true: a max hit die a level), land, patron }
   NPC.sheet = function (spec) {
-    var cls = spec.cls, c = C[cls], RC = R.CLASSES[cls], lvl = Math.max(1, Math.min(NPC.maxLvl(cls), spec.lvl || 1));
+    var cls = spec.cls, c = C[cls], RC = R.CLASSES[cls], lvl = Math.max(1, Math.min(NPC.maxLvl(cls, spec), spec.lvl || 1));
     if (!c || !RC) throw new Error('DEEP16: no class ' + cls);
     var race = NPC.RACES[spec.race || 'human'] || NPC.RACES.human;
     var abil = {};
@@ -245,7 +252,8 @@
       equip: Object.assign({ weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }, spec.equip || {}),
       known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: c.style || null,
       skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: 'alt' in spec ? spec.alt : (c.kit.alt || null),
-      land: spec.land || (cls === 'druid' ? 'underdark' : null) // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
+      land: spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
+      script: spec.script || null // (a named one's own turn: js/pyro.js)
     };
     // skills the grid reads (Stealth, Perception): written at the level-1 proficiency, as the 8-bit sheets are (R.skill grows them)
     if (/rogue|ranger|monk|bard/.test(cls)) h.skills.Stealth = DS.mod(abil.dex) + 2;
@@ -404,7 +412,7 @@
   // boys at some point)"; 09-30: "the above 9's we're just prepping in case we have combat involving special NPCs"). The URL's lvl may say 12;
   // NPC.sheet holds each class at its own ceiling
   NPC.MAXLVL = { druid: 12 };
-  NPC.maxLvl = function (cls) { return NPC.MAXLVL[cls] || 9; };
+  NPC.maxLvl = function (cls, named) { return (named && named.maxLvl) || NPC.MAXLVL[cls] || 9; }; // (a named one may stand past its class's: Pyro's 12)
   // a spec from a word: 'cleric', 'higertha', 'cleric:5', 'druid:3:dwarf'. A named one stands at its register's level (the story's
   // Talmok 3, Willem 5, Torvald 5) unless the word names another -- 'talmok:7' (09-28h: the Pocket DM, the tester ladder); built
   // away from it, `away` carries the register's level (NPC.sheet: the ASIs after it, the average HP, awayList)
@@ -412,7 +420,7 @@
     var bits = String(word).toLowerCase().split(':'), key = bits[0], L = +bits[1] || lvl || 1;
     var named = NPC.NAMED[key];
     // ('talmok:5:grown': the grown build even at the register's own level -- the tester ladder, 09-28h: "grown builds please")
-    if (named) { var at = Math.max(1, Math.min(NPC.maxLvl(named.cls), +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && (at !== named.lvl || bits[2] === 'grown') ? named.lvl : 0 }); }
+    if (named) { var at = Math.max(1, Math.min(NPC.maxLvl(named.cls, named), +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && (at !== named.lvl || bits[2] === 'grown') ? named.lvl : 0 }); }
     if (!C[key]) return null;
     var gen = { cls: key, lvl: L, race: bits[2] || 'human' };
     if (C[key].pact) gen.pact = C[key].pact; // (the generic warlock takes the Tome; a named one -- Amara -- names her own or none)

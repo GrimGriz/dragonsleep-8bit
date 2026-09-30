@@ -953,7 +953,7 @@
     if (w.conds.blinded) c.push('{o}blinded{/}');
     if (w.conds.dodge) c.push('{c}dodging{/}');
     if (w.conds.ablaze) c.push('{o}blade ablaze{/}');
-    if (w.torch) c.push('{o}' + (w.torch.kind === 'lantern' ? (w.torch.hood ? 'lantern in hand, hooded' : 'lantern in hand') : 'torch in hand') + '{/}');
+    if (w.torch) c.push('{o}' + (w.torch.kind === 'lantern' ? (w.torch.hood ? D.light.word(w.torch) + ' in hand, hooded' : D.light.word(w.torch) + ' in hand') : 'torch in hand') + '{/}');
     if (w.conds.light) c.push('{y}light{/}');
     if (w.conds.daylight) c.push('{y}daylight{/}');
     if (w.conds.continualFlame) c.push('{o}continual flame{/}');
@@ -1046,7 +1046,7 @@
     if (cur && !cur.ok && cur.why) D.text(ctx, '{g}' + cur.why + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.sp) D.text(ctx, '{g}' + D.typeText(D.magic.summary(cur, u)) + '{/}', x + 6, sy, R('accent', 2));
     else if (cur && cur.note) D.text(ctx, '{g}' + D.typeText(cur.note, true) + '{/}', x + 6, sy, R('accent', 2));
-    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire', light: cur.id === 'lantern' ? 'a hooded lantern, lit: bright 30 ft, dim 30 more; hood down, dim 5 ft and a roost sleeps; it takes a hand' : 'a torch, lit: bright 20 ft, dim 20 more; it takes a hand' }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
+    else if (cur && cur.use) D.text(ctx, '{g}' + ({ heal: cur.use.dice + ' healing, touch', revive: 'a fallen ally beside you, up on 1 HP', antitoxin: 'ends poison, touch', cure: 'ends poison, touch', damage: 'thrown, 20 ft: DEX DC ' + (cur.use.dc || 10) + ' or ' + cur.use.dice + ' fire', light: D.light.blurb(cur.id) }[cur.use.effect] || '') + '{/}', x + 6, sy, R('accent', 2));
   }
 
   // ------------------------------------------------------------------ WINDOW: Chrono Trigger's command window, a pointing hand

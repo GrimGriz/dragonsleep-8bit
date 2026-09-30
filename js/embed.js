@@ -30,6 +30,9 @@
             // the rest of the party came out of the inn during the fight: no longer a lone fighter's battle, so the XP is split
             // among everyone standing, as the 8-bit's own joinParty leaves it (review 09-28 #2)
             if (d.joined && o.solo != null) o.solo = null;
+            // (the light as the grid left it, not as the field had it: a lantern or the Ledger-Lamp put out or set down on the grid is in the pack, and the
+            // 8-bit battle's own ending must not light a phantom torch for the one who walked in holding it -- 09-30)
+            o.torch = DS.G.flags.torchBy || null; delete o.torchKind;
             var b = new DS.Battle(o);
             // the 8-bit foes as DEEP16 left them: on a win all down (one who got away gives no XP), else as they stood. Each
             // DEEP16 foe knows its place in the 8-bit list (i8); a fight built without the list is matched by kind
@@ -119,9 +122,11 @@
       // torchdark: the day's Darkvision and a Continual Flame stay on him; a torch still burning in his hand burns on into the map
       if (r.darkvision) h.conds.darkvision = true;
       if (r.continualFlame && !h.conds.continualFlame) h.conds.continualFlame = h.equip.weapon || true;
-      if (r.torch && DS.EV.darkHere && DS.EV.darkHere()) { g.flags.torchBy = h.id; g.flags.torchKind = r.torch === 'lantern' ? 'lantern' : 'torch'; h.equip.torch = 1; }
-      else if (g.flags.torchBy === h.id) { delete g.flags.torchBy; delete g.flags.torchKind; delete h.equip.torch; if (r.torch === 'lantern') g.give('lantern', 1); } // (dropped, thrown, put out or spent in the fight; a lantern still lit where it is light enough is put away, back in the pack -- 09-29)
-      else if (r.torch === 'lantern') g.give('lantern', 1);
+      // (r.torch is 'torch', 'lantern' or a hooded light's pack id -- the Ledger-Lamp's 'ledgerlamp', 09-30 -- or false; the hooded ones are never spent)
+      var lk = DS.R.hooded(r.torch) ? r.torch : (r.torch ? 'torch' : false), hoodedLit = lk && lk !== 'torch';
+      if (r.torch && DS.EV.darkHere && DS.EV.darkHere()) { g.flags.torchBy = h.id; g.flags.torchKind = lk; h.equip.torch = 1; }
+      else if (g.flags.torchBy === h.id) { delete g.flags.torchBy; delete g.flags.torchKind; delete h.equip.torch; if (hoodedLit) g.give(lk, 1); } // (dropped, thrown, put out or spent in the fight; a lantern still lit where it is light enough is put away, back in the pack -- 09-29)
+      else if (hoodedLit) g.give(lk, 1);
       if (!r.torch) delete h.equip.torch;
     });
     // the wizard's familiar (Find Familiar, js/familiar.js): fallen on the grid, it is gone till the ritual calls it back
@@ -131,6 +136,9 @@
     var i0 = d.inv0 || {}, i1 = d.inv1 || {};
     Object.keys(i0).forEach(function (id) { var used = i0[id] - (i1[id] || 0), have = g.count(id); if (used > 0 && have > 0) g.take(id, Math.min(used, have)); });
     Object.keys(i1).forEach(function (id) { var got = (i1[id] || 0) - (i0[id] || 0); if (got > 0) g.give(id, got); }); // (a weapon stowed in the fight is back in the pack)
+    // the flags the fight set (the Settling's, 09-30), and Pyro's measure (js/pyro.js reads DS.pyroBack as the 8-bit battle ends)
+    if (d.flags) Object.keys(d.flags).forEach(function (k) { g.flags[k] = d.flags[k]; });
+    DS.pyroBack = d.pyro || null;
     if (d.result === 'fled') DS.fledIds = (d.away || []).slice();
     if (d.result === 'yielded') DS.battleYielded = true; // (his words were on DEEP16's card; the scene asks what you do with him)
     return RESULT[d.result] || 'run';

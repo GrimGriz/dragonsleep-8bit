@@ -79,9 +79,12 @@
       flame: wd.flame || null, // Flame Tongue: a bonus action lights it (battle.js IGNITE)
       // the 8-bit game's named weapons (09-28g, Griz: "make sure items are being loaded into the 16bit fights"): the Winnower's
       // critical knocks flat, the Greyseam knife's Sneak Attack poisons (battle.js attack, as the 8-bit battle.js heroAttack)
-      onCrit: wd.onCrit || null, sneakPoison: wd.sneakPoison || 0
+      onCrit: wd.onCrit || null, sneakPoison: wd.sneakPoison || 0,
+      disrupt: wd.disrupt || null // the Mace of Disruption (SRD 5.1; Pyro's, 09-30): battle.js attack
     };
   };
+  // the weapon in the other hand (Pyro's two maces, 09-30: equip.offhand), read as the main one is
+  SV.offhandOf = function (h) { return h.equip && h.equip.offhand ? SV.weaponOf(Object.assign({}, h, { equip: Object.assign({}, h.equip, { weapon: h.equip.offhand }) })) : null; };
 
   // the heroes and guests as DEEP16 units: everything the grid needs, read off the 8-bit sheet
   SV.units = function (data, fight) {
@@ -104,6 +107,7 @@
       feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass,
       displacement: SV.displaced(h), // a Cloak of Displacement (rules.js edges)
       resist: h.resist || null, // (the 8-bit game's guests: Dwarven Resilience, poison halved)
+      offhand: SV.offhandOf(h), script: h.script || null, // (a named NPC's own turn: js/pyro.js, 09-30)
       weapon: wp, attacksBase: R.attacksPerTurn(h), attacks: wp.loading ? 1 : R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
       saves: { str: R.saveBonus(h, 'str'), dex: R.saveBonus(h, 'dex'), con: R.saveBonus(h, 'con'), int: R.saveBonus(h, 'int'), wis: R.saveBonus(h, 'wis'), cha: R.saveBonus(h, 'cha') },
       stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h,

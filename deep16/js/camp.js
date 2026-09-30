@@ -111,10 +111,12 @@
     // a torch in hand (Griz, 09-28h: "Can we add 'Aurdin torch' as a campfire prepare?"): lit at the camp, out of the pack, so
     // nobody spends the fight's first action on the tinderbox; it takes a hand, as on the grid (js/light.js L.handsFree)
     // (09-29: or a hooded lantern, when the pack has one -- bright 30 and dim 30, hood down in the fight: dim 5 ft and a roost sleeps)
-    var kind = st.torchKind === 'lantern' ? 'lantern' : 'torch', kinds = ['torch', 'lantern'].filter(function (k) { return (data.inv || []).some(function (s) { return s.id === k && s.n > 0; }); });
+    // (09-30: and the Ledger-Lamp when the pack has it -- a hooded light of its own, bright 40 and dim 40, never spent; any pack item whose use is `light`)
+    var lights = ['torch', 'lantern'].concat(Object.keys(DS.DATA.items).filter(function (k) { var u = DS.DATA.items[k].use; return k !== 'torch' && k !== 'lantern' && u && u.effect === 'light'; })),
+      kinds = lights.filter(function (k) { return (data.inv || []).some(function (s) { return s.id === k && s.n > 0; }); }), kind = lights.indexOf(st.torchKind) >= 0 ? st.torchKind : 'torch';
     var tb = by[st.torch], tpack = (data.inv || []).filter(function (s) { return s.id === kind; })[0], twhy = '';
     if (tb) {
-      if (!tpack || tpack.n < 1) twhy = 'no ' + kind + ' in the pack';
+      if (!tpack || tpack.n < 1) twhy = 'no ' + D.light.word(kind) + ' in the pack';
       else if (twoHanded(tb.equip.weapon)) twhy = tb.name + '\'s ' + item(tb.equip.weapon).name + ' takes both hands';
       else if (tb.equip.weapon && tb.equip.shield) twhy = tb.name + ' has a weapon and a shield';
       if (!twhy) { tpack.n--; data.torchBy = tb.id; data.torchKind = kind; }
@@ -210,9 +212,9 @@
         { label: 'PREPARE SPELLS', right: hs.filter(function (h) { return h.prepared; }).map(function (h) { return (self.o.ours ? h.name.charAt(0) : h.name) + ' ' + h.prepared.length + '/' + self.prepCount(h); }).join('  '), act: go('caster'), desc: this.o.ours ? 'The day\'s spells. Willem prepares INT + his level from his book (the register\'s list and the Rimeglass\'s growth); Katarina and Torvald WIS + level from the cleric\'s list. Cantrips and the domain\'s own are always ready.' : 'The day\'s spells. Aurdin prepares INT + his level from his book; Lymen CHA + half his level from the paladin list. Cantrips, and Lymen\'s oath spells, are always ready.' },
         // (RULED 09-30, Griz: "what's in there should be dependent on party members": only what someone in the party has on their list)
         this.castAny() ? { label: 'CAST AHEAD', right: [this.info.mageArmor.on ? 'mage armor' : '', this.info.aid.on ? 'aid' : '', this.info.light && this.info.light.on ? 'light' : '', this.info.elemental && this.info.elemental.on ? D.FOES[this.info.elemental.kind].name.toLowerCase() : ''].filter(Boolean).join(', ') || 'nothing', act: go('cast'), desc: 'The long spells, cast this morning: they are on when the fight starts, and their slots are spent. Only what someone in the party can cast is here.' } : null,
-        { label: 'A LIGHT IN HAND', right: this.info.torch.why || (this.info.torch.who ? this.info.torch.who.name + ', ' + (this.info.torch.kind === 'lantern' ? 'lantern' : 'torch') : 'nobody'), ok: !this.info.torch.why || !!this.info.torch.who,
+        { label: 'A LIGHT IN HAND', right: this.info.torch.why || (this.info.torch.who ? this.info.torch.who.name + ', ' + D.light.word(this.info.torch.kind) : 'nobody'), ok: !this.info.torch.why || !!this.info.torch.who,
           act: function () { self.cycleTorch(1); }, cycle: function (d) { self.cycleTorch(d); },
-          desc: 'Who walks in holding a light lit at the camp, from the pack: a torch (bright 20 ft, dim 20 more) or a hooded lantern (bright 30 ft, dim 30 more; HOOD DOWN in the fight for dim 5 ft only, and a roost sleeps), from the first round, no action spent on the tinderbox. It takes a hand (a versatile weapon is held in one); not with a two-handed weapon, or a weapon and a shield. Left/right or E: who, and which.' + ((this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark) ? '  This fight is in the dark.' : '  This fight is not in the dark.') },
+          desc: 'Who walks in holding a light lit at the camp, from the pack: a torch (bright 20 ft, dim 20 more) or a hooded lantern (bright 30 ft, dim 30 more; HOOD DOWN in the fight for dim 5 ft only, and a roost sleeps), or the Ledger-Lamp when the pack has it (the lantern\'s law, bright 40 ft and dim 40 more, never runs dry), from the first round, no action spent on the tinderbox. It takes a hand (a versatile weapon is held in one); not with a two-handed weapon, or a weapon and a shield. Left/right or E: who, and which.' + ((this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark) ? '  This fight is in the dark.' : '  This fight is not in the dark.') },
         // Find Familiar at the camp (Griz, 09-29: "yes - at appropriate level if caster in party"): a wizard of any level (it's his 1st-level ritual)
         this.famWiz() ? { label: 'A FAMILIAR', right: this.st.familiar ? this.famWiz().name + ', ' + DS.R.FAMILIARS[this.st.familiar].name : 'none', act: function () { self.cycleFamiliar(1); }, cycle: function (d) { self.cycleFamiliar(d); },
           desc: 'Find Familiar, called at the camp: a spirit in the shape of a small creature rides ' + this.famWiz().name + ' -- the owls on his shoulder, the rest at his feet -- and takes the Help action on the foe the party is on (the next blow at it with advantage). The owl flies back out untouched; the others stay, and carry his touch spells to what is beside them. It cannot attack, and has 1 or 2 HP.' } : null,
@@ -344,7 +346,7 @@
     var heroes = [].concat(this.o.ours ? [] : ['aurdin'], this.data.party.map(function (h) { return h.id; }).filter(function (id) { return id !== 'aurdin'; }));
     var opts = [{ id: null, kind: 'torch' }];
     heroes.forEach(function (id) { kinds.forEach(function (k) { opts.push({ id: id, kind: k }); }); });
-    var cur = this.st.torch || null, ck = this.st.torchKind === 'lantern' ? 'lantern' : 'torch', i = 0;
+    var cur = this.st.torch || null, ck = kinds.indexOf(this.st.torchKind) >= 0 ? this.st.torchKind : 'torch', i = 0;
     opts.forEach(function (o, j) { if (o.id === cur && (cur == null || o.kind === ck)) i = j; });
     var o = opts[((i + d) % opts.length + opts.length) % opts.length];
     this.st.torch = o.id; this.st.torchKind = o.kind;

@@ -265,6 +265,9 @@
   R.BLIND = 'disadvantage';
   R.RACE_DV = { 'Half-orc': 60, 'Dwarf': 60, 'Elf': 60, 'Gnome': 60, 'Tiefling': 60, 'Drow': 120 };
   R.darkvision = function (h) { var d = DS.DATA.heroes[h.id]; return Math.max(R.RACE_DV[d && d.race] || 0, h.conds && h.conds.darkvision ? 60 : 0); };
+  // a hooded light (RULED 09-29 the hooded lantern; 09-30 the Ledger-Lamp, "like a lantern but better"): 'lantern', or a pack item whose `light`
+  // has a `hood` (the Ledger-Lamp). `k` is a pack id, or the field's g.flags.torchKind ('torch' | 'lantern' | 'ledgerlamp'). One law, both games
+  R.hooded = function (k) { var it = k && k !== 'torch' ? R.item(k) : null; return k === 'lantern' || !!(it && it.light && it.light.hood); };
   R.carriesLight = function (h) {
     if (h.conds && h.conds.continualFlame) return true;
     return Object.keys(h.equip || {}).some(function (s) { var it = R.item(h.equip[s]); return !!(it && it.light && it.light.when === 'always'); });
@@ -287,6 +290,9 @@
     if (w.id === 'unarmed') return { dice: '0', mod: 1 + DS.mod(h.abil.str), type: 'bludgeoning' };
     return { dice: dice, mod: mod, type: w.weapon.type };
   };
+  // a cloak against spells (the King's Mantle, Pyro's: +5 to saving throws against spells, RULED 09-30b): both games add it when the
+  // save is against a spell (the 8-bit battle's spellNow; the grid's B.spellNow, deep16/js/pyro.js)
+  R.spellSave = function (h) { var c = R.item(h && h.equip && h.equip.cloak); return (c && c.cloak && c.cloak.spellSave) || 0; };
   R.saveBonus = function (h, ab) {
     var b = DS.mod(h.abil[ab]);
     if (h.saveProf && h.saveProf.indexOf(ab) >= 0) b += R.prof(h.lvl);
@@ -308,7 +314,7 @@
   R.spellAtk = function (h) { var c = R.CLASSES[h.cls]; return R.prof(h.lvl) + DS.mod(h.abil[c.cast || 'int']); };
   R.initBonus = function (h) { return DS.mod(h.abil.dex) + (h.cls === 'fighter' && h.lvl >= 7 ? Math.ceil(R.prof(h.lvl) / 2) : 0); }; // Remarkable Athlete
   R.critRange = function (h) { return (h.cls === 'fighter' && h.lvl >= 3) ? 19 : 20; };
-  R.attacksPerTurn = function (h) { if (h.attacks) return h.attacks; return (/^(fighter|paladin|barbarian|ranger|monk)$/.test(h.cls) && h.lvl >= 5) ? 2 : 1; }; // Extra Attack at 5
+  R.attacksPerTurn = function (h) { if (h.attacks) return h.attacks; if (h.cls === 'fighter' && h.lvl >= 11) return 3; return (/^(fighter|paladin|barbarian|ranger|monk)$/.test(h.cls) && h.lvl >= 5) ? 2 : 1; }; // Extra Attack at 5; the fighter's second at 11 (SRD 5.1; the named past 9, 09-30)
   R.maxSlotLevel = function (h) { var m = 0; (h.slotsMax || []).forEach(function (n, i) { if (n > 0) m = i + 1; }); return m; };
   R.lowestSlot = function (h, min) { for (var i = (min || 1) - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) return i + 1; return 0; };
   R.cantripDice = function (sp, h) {

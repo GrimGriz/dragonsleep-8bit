@@ -295,16 +295,16 @@
     } else if (use.effect === 'read') { // Katarina's book: the first page of Book One
       yield W8.scene(new DS.BookScene('BOOK ONE', L('kat.book')));
     } else if (use.effect === 'light') { // a torch, or a hooded lantern (09-29), carried on a dark map (torchdark 09-28): a free hand; it burns till a rest or another map
-      var lantern = id === 'lantern';
-      if (!EV.darkHere()) { yield DS.say(L(lantern ? 'g.lanternNoNeed' : 'g.torchNoNeed')); return; }
+      var lantern = R.hooded(id), lamp = lantern && id !== 'lantern'; // (the Ledger-Lamp, 09-30, is a hooded light of its own: 40 ft, never spent -- torchKind 'ledgerlamp')
+      if (!EV.darkHere()) { yield DS.say(L(lamp ? 'g.lampNoNeed' : lantern ? 'g.lanternNoNeed' : 'g.torchNoNeed')); return; }
       if (g.flags.torchBy) { var tb = g.party.filter(function (x) { return x.id === g.flags.torchBy; })[0]; yield DS.say(L('g.torchAlready', { name: tb ? tb.name : 'Someone' })); return; }
       if (!R.freeHands(h)) { yield DS.say(L('g.torchNoHand', { why: R.handsWhy(h) })); return; }
-      g.take(id, 1); g.flags.torchBy = h.id; g.flags.torchKind = lantern ? 'lantern' : 'torch'; h.equip.torch = 1; DS.audio.sfx('fire');
-      yield DS.say(L(lantern ? 'g.lanternLit' : 'g.torchLit', { name: h.name }));
+      g.take(id, 1); g.flags.torchBy = h.id; g.flags.torchKind = lantern ? id : 'torch'; h.equip.torch = 1; DS.audio.sfx('fire');
+      yield DS.say(L(lamp ? 'g.lampLit' : lantern ? 'g.lanternLit' : 'g.torchLit', { name: h.name }));
     }
   };
   // the field torch goes out: at a rest, or leaving the map (the hour is up; nothing is said)
-  EV.torchOut = function () { var g = G(); if (!g.flags.torchBy) return; g.party.forEach(function (h) { delete h.equip.torch; }); if (g.flags.torchKind === 'lantern') g.give('lantern', 1); delete g.flags.torchBy; delete g.flags.torchKind; }; // (a lantern is not spent: put away, back in the pack)
+  EV.torchOut = function () { var g = G(); if (!g.flags.torchBy) return; g.party.forEach(function (h) { delete h.equip.torch; }); if (R.hooded(g.flags.torchKind)) g.give(g.flags.torchKind, 1); delete g.flags.torchBy; delete g.flags.torchKind; }; // (a lantern is not spent: put away, back in the pack; nor the Ledger-Lamp, 09-30: back as 'ledgerlamp')
   EV.fieldCast = function* (h, sp) {
     var g = G();
     var slot = sp.level && !sp.ritual ? R.lowestSlot(h, sp.level) : 0;

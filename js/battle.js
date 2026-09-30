@@ -15,6 +15,8 @@
   function abil(u, a) { return isHero(u) ? u.h.abil[a] : (u.m.abil[a] || 10); }
   function incap(u) { return u.conds.paralyzed || u.conds.asleep || u.conds.stunned; }
   function tags(u) { return isHero(u) ? ['humanoid'] : (u.m.tags || []); }
+  // what to call the light in a hero's hand in a line: 'torch', 'lantern', or the item's own name (the Ledger-Lamp, 09-30)
+  function lightWord(k) { var it = k && k !== 'torch' && k !== 'lantern' ? DS.DATA.items[k] : null; return it ? it.name : k === 'lantern' ? 'lantern' : 'torch'; }
   // what Protection from Evil and Good wards against (SRD 5.1): aberrations, celestials, elementals, fey, fiends and the dead
   function otherworld(u) { return /^(aberration|celestial|elemental|fey|fiend|undead)$/.test(tags(u)[0] || ''); }
   // one ward-able condition from one otherworldly (frightened, charmed) on one under the ward: nothing
@@ -59,7 +61,7 @@
     this.tauntWearer = null;
     // a light the party carries in (the Sunshaft staff, a Continual Flame, a torch lit in the field): the place is lit from the first round
     // (a lantern walked in under a roost is hooded -- 09-29: light enough to see by, no bright light, the roof sleeps)
-    if (this.dark && (this.heroes.some(function (u) { return R.carriesLight(u.h); }) || (this.torchBy && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })))) { this.lit = true; this.bright = !(this.torchKind === 'lantern' && this.o.roost) || this.heroes.some(function (u) { return R.carriesLight(u.h); }); }
+    if (this.dark && (this.heroes.some(function (u) { return R.carriesLight(u.h); }) || (this.torchBy && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })))) { this.lit = true; this.bright = !(R.hooded(this.torchKind) && this.o.roost) ||this.heroes.some(function (u) { return R.carriesLight(u.h); }); }
   }
   DS.Battle = Battle;
   // who sees in the dark without a light: a hero by blood or the day's spell (R.darkvision), a monster by its sheet's senses
@@ -193,7 +195,7 @@
     return p ? Math.max(1, DS.mod(p.h.abil.cha)) : 0;
   };
   Battle.prototype.saveMod = function (u, ab) {
-    if (isHero(u)) return R.saveBonus(u.h, ab) + (ab === 'con' && u.fortified ? 1 : 0) + this.aura(); // Marta's pie: +2 CON
+    if (isHero(u)) return R.saveBonus(u.h, ab) + (ab === 'con' && u.fortified ? 1 : 0) + this.aura() + (this.spellNow ? R.spellSave(u.h) : 0); // Marta's pie: +2 CON; a cloak against spells (the King's Mantle: js/pyro.js sets spellNow)
     var s = u.m.saves && u.m.saves[ab];
     return s != null ? s : DS.mod(abil(u, ab));
   };
@@ -331,7 +333,7 @@
     for (var hk = 0; hk < (DS.battleHooks || []).length; hk++) yield* DS.battleHooks[hk](this);
     if (this.o.roost) yield* this.say('Overhead, the roost: millions of sleeping wings. No fire. No bright light.', 60);
     if (this.dark && !this.lit) yield* this.hold('Dark. Nobody without darkvision can see to aim: ' + (typeof R.BLIND === 'number' ? R.BLIND + ' to hit' : 'disadvantage') + ' until somebody makes a light.');
-    else if (this.dark && this.torchBy) { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy; })[0]; if (tb) yield* this.say(nameOf(tb) + (this.torchKind === 'lantern' ? (this.o.roost ? ' keeps the lantern low, hood down.' : ' holds the lantern up.') : ' holds the torch up.'), 40); }
+    else if (this.dark && this.torchBy) { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy; })[0]; if (tb) yield* this.say(nameOf(tb) + (R.hooded(this.torchKind) ? (this.o.roost ? ' keeps the ' + lightWord(this.torchKind) + ' low, hood down.' : ' holds the ' + lightWord(this.torchKind) + ' up.') : ' holds the torch up.'), 40); }
     // Sense Magic: the chuul feels a ring of binding coming
     var ringU = this.heroes.filter(function (u) { var r = R.item(u.h.equip.ring); return r && r.ring && r.ring.taunt; })[0];
     if (ringU) {
@@ -564,6 +566,7 @@
   Battle.prototype.guestTurn = function* (u) {
     var foes = this.liveFoes(), self = this;
     if (!foes.length) return;
+    if (u.h.script && DS.scripts8 && DS.scripts8[u.h.script]) { yield* DS.scripts8[u.h.script].call(this, u); return; } // (a named guest's own turn: Pyro's measure, js/pyro.js)
     var hurt = this.liveHeroes().filter(function (x) { return x.h.hp < x.h.maxhp / 2; }).sort(function (a, b) { return a.h.hp / a.h.maxhp - b.h.hp / b.h.maxhp; })[0];
     if (u.h.healer && (u.h.feats.heals || 0) > 0 && hurt) { // a guest who heals by a counter (an older sheet's; Ingrith is a cleric since 09-28g)
       u.h.feats.heals--; var hv = this.heal(hurt, DS.roll('2d8+3'));
@@ -747,7 +750,7 @@
       .map(function (s) {
         var it = DS.DATA.items[s.id];
         // a torch (torchdark 09-28): a free hand to hold it, and never under the roost (greyed, as the grid greys it)
-        if (it.use.effect === 'light' && u) { if (self.o.roost && s.id !== 'lantern') return { label: it.name, right: 'ROOST', value: s.id, disabled: true }; if (!R.freeHands(u.h)) return { label: it.name, right: 'hands', value: s.id, disabled: true }; } // (a lantern is lit hood down under the roost: 09-29)
+        if (it.use.effect === 'light' && u) { if (self.o.roost && !R.hooded(s.id)) return { label: it.name, right: 'ROOST', value: s.id, disabled: true }; if (!R.freeHands(u.h)) return { label: it.name, right: 'hands', value: s.id, disabled: true }; } // (a lantern is lit hood down under the roost: 09-29)
         return { label: it.name, right: 'x' + s.n, value: s.id };
       });
   };
@@ -783,7 +786,7 @@
 
   // ------------------------------------------------------------------ attacks
   Battle.prototype.heroAttack = function* (u, t, st, smite) {
-    var h = u.h, w = R.weaponOf(h), n = R.attacksPerTurn(h), self = this;
+    var h = u.h, w = st.w || R.weaponOf(h), n = st.n || R.attacksPerTurn(h), self = this; // (st.w, st.n: a script's own swings -- Pyro's, js/pyro.js)
     u.pose = 'act'; u.poseT = 999;
     for (var a = 0; a < n && !this.over; a++) {
       if (down(t) || t.conds.ethereal) { var alt = this.liveFoes(); if (!alt.length) break; t = DS.pick(alt); }
@@ -829,11 +832,19 @@
         this.elemBurst(t, 'radiant');
       }
       if (u.buff && u.buff.id === 'divineFavor') rad += DS.d(4);
+      // the Mace of Disruption (SRD 5.1; Pyro's, 09-30): a fiend or undead takes 2d6 radiant more, and after the blow the save below
+      var dis = w.weapon.disrupt && w.weapon.disrupt.vs.some(function (k) { return tags(t).indexOf(k) >= 0; }) ? w.weapon.disrupt : null;
+      if (dis) { rad += DS.roll(dis.dice, { crit: crit }); extra += ' Disruption!'; this.elemBurst(t, 'radiant'); }
       // Branding Smite (09-28g): the waiting light goes into this blow, and the one struck glows (no invisibility on it)
       if (u.conds.branding) { rad += DS.roll(u.conds.branding.dice, { crit: crit }); delete u.conds.branding; t.conds.revealed = true; delete t.conds.invisible; extra += ' Branded!'; this.elemBurst(t, 'radiant'); }
       var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 || mw > 0 });
       if (rad) dealt += this.hurt(t, rad, 'radiant', {});
       var tImm = function (c) { return !isHero(t) && (t.m.condImmune || []).indexOf(c) >= 0; };
+      // disruption: one left at 25 HP or fewer saves WIS 15 or is destroyed; one that saves is frightened of him a round
+      if (dis && !down(t) && t.hp <= dis.hp) {
+        if (!this.save(t, 'wis', dis.dc).success) { dealt += this.hurt(t, t.hp, 'radiant', {}); extra += ' Destroyed!'; }
+        else if (!tImm('frightened')) { t.conds.frightened = { rounds: 1 }; extra += ' Frightened!'; }
+      }
       if (crit && w.weapon.onCrit === 'prone' && !down(t) && !t.conds.prone && !tImm('prone')) { t.conds.prone = true; extra += ' Knocked flat!'; } // the Winnower threshes
       if (sneaked && w.weapon.sneakPoison && !down(t) && !tImm('poisoned')) { // the Greyseam knife
         if (!this.save(t, 'con', w.weapon.sneakPoison).success) { t.conds.poisoned = { rounds: 1 }; extra += ' Poisoned!'; }
@@ -1197,15 +1208,15 @@
       yield* this.say(nameOf(u) + ' throws ' + it.name + '! ' + nameOf(t) + ' takes ' + d + '.', 42);
       yield* this.flushMsg();
     } else if (use.effect === 'light') { // a torch (torchdark 09-28) or a hooded lantern (09-29): a free hand to hold it (R.freeHands); the light for the fight
-      var lantern = id === 'lantern';
-      if (!R.freeHands(u.h)) { DS.G.give(id, 1); DS.audio.sfx('error'); yield* this.say('No free hand for a ' + (lantern ? 'lantern' : 'torch') + ': ' + R.handsWhy(u.h) + '.', 44); return false; }
-      u.h.equip.torch = 1; this.torchBy = u.h.id; this.torchKind = lantern ? 'lantern' : 'torch'; this.lit = true;
+      var lantern = R.hooded(id), lamp = lantern && id !== 'lantern', feet = { 20: 'Twenty', 30: 'Thirty', 40: 'Forty' }[it.light && it.light.bright] || 'A good stretch'; // (the Ledger-Lamp, 09-30: a hooded light of its own, forty feet, never spent)
+      if (!R.freeHands(u.h)) { DS.G.give(id, 1); DS.audio.sfx('error'); yield* this.say('No free hand for ' + (lamp ? 'the ' + it.name : 'a ' + (lantern ? 'lantern' : 'torch')) + ': ' + R.handsWhy(u.h) + '.', 44); return false; }
+      u.h.equip.torch = 1; this.torchBy = u.h.id; this.torchKind = lantern ? id : 'torch'; this.lit = true;
       if (lantern && this.o.roost) { // the hood down (RULED 09-29): dim light, enough to see by, no bright light -- the roost sleeps
-        this.flashT = 4; yield* this.say(nameOf(u) + ' lights the lantern, hood down. A little light, and nothing overhead stirs.', 50); return true;
+        this.flashT = 4; yield* this.say(nameOf(u) + ' lights the ' + lightWord(id) + ', hood down. A little light, and nothing overhead stirs.', 50); return true;
       }
       this.flashT = 8; this.usedFire = true; this.roostCause = 'light';
       if (this.o.roost) return true; // the torch is lit under the roost: that's the end of it
-      yield* this.dazzle(nameOf(u) + ' lights a ' + it.name.toLowerCase() + '.' + (this.dark ? (lantern ? ' Thirty feet of the dark gives way.' : ' Twenty feet of the dark gives way.') : ''));
+      yield* this.dazzle(nameOf(u) + ' lights ' + (lamp ? 'the ' + it.name : 'a ' + it.name.toLowerCase()) + '.' + (this.dark ? ' ' + feet + ' feet of the dark gives way.' : ''));
     } else if (use.effect === 'fortify') { // Marta's bat-wing pie: +2 CON (a +1 to CON saves) and +5 HP for the fight
       if (t.fortified) { DS.G.give(id, 1); yield* this.say(nameOf(t) + ' has already eaten.', 30); return false; }
       t.fortified = true; t.h.maxhp += 5; t.h.hp += 5;
@@ -1498,7 +1509,8 @@
     // a torch lit in the fight burns on into the dark map (the field's glow; events.js puts it out at a rest or a door)
     // (a lantern is not spent -- 09-29: carried out onto lit ground it goes back in the pack)
     if (this.torchBy && this.dark && this.over !== 'roost') { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy && !down(u); })[0]; if (tb) { DS.G.flags.torchBy = tb.h.id; DS.G.flags.torchKind = this.torchKind; tb.h.equip.torch = 1; } }
-    if (!DS.G.flags.torchBy) { if (this.torchBy && this.torchKind === 'lantern' && this.over !== 'roost' && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })) DS.G.give('lantern', 1); this.heroes.forEach(function (u) { delete u.h.equip.torch; }); }
+    // (the Ledger-Lamp, 09-30, is never lost: back in the pack whoever holds it at the end, a fall or a roost or no)
+    if (!DS.G.flags.torchBy) { if (this.torchBy && R.hooded(this.torchKind) && (this.torchKind !== 'lantern' || (this.over !== 'roost' && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })))) DS.G.give(this.torchKind, 1); this.heroes.forEach(function (u) { delete u.h.equip.torch; }); }
     if (this.over === 'roost') { // the roof lets go: bats fill the screen, then the other kind of name
       yield* this.swarm();
       DS.audio.play('gameover');

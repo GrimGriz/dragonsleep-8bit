@@ -88,7 +88,13 @@
     this.lights = (F.lights || m.def.lights || []).map(function (l, i) { return { id: 'map' + i, kind: 'map', x: l[0], y: l[1], bright: l[4] ? 0 : l[2], dim: l[2], color: l[3] || 'gold', flame: !l[3] || l[3] === 'gold' || l[3] === 'fire' }; });
     var torchBy = (this.o.embed && this.o.embed.torch) || this.o.torch, torchKind = (this.o.embed && this.o.embed.torchKind) || this.o.torchKind || 'torch';
     // (a lantern walked in under a roost has its hood down: dim 5 ft, and the roof sleeps -- RULED 09-29)
-    if (torchBy) this.units.forEach(function (u) { if (u.id === torchBy && u.side === 'party' && u.hp > 0 && D.light.handsFree(u) > 0) { u.torch = torchKind === 'lantern' ? { lit: true, kind: 'lantern', hood: !!F.roost } : { lit: true }; D.light.regrip(u); } });
+    // (the Ledger-Lamp, 09-30, walks in as a lantern with its own id: torchKind 'ledgerlamp'. If nobody can take it up -- the bearer is down, or his hands are full -- it is
+    // put in the pack, and the seam hands it back to the 8-bit game's: a lantern is never lost)
+    if (torchBy) {
+      var torchHeld = false;
+      this.units.forEach(function (u) { if (u.id === torchBy && u.side === 'party' && u.hp > 0 && D.light.handsFree(u) > 0) { u.torch = D.light.isLantern(torchKind) ? D.light.make(torchKind, !!F.roost) : { lit: true }; D.light.regrip(u); torchHeld = true; } });
+      if (!torchHeld && D.light.isLantern(torchKind)) { var lp = this.inv.filter(function (s) { return s.id === torchKind; })[0]; if (lp) lp.n++; else this.inv.push({ id: torchKind, n: 1 }); this.lampReturned = torchKind; }
+    }
     // strung webs a fight starts with (Web Gulch): difficult ground for all but the web-walkers, drawn like the spell's
     var webs = F.webs || m.def.webs;
     this.webs = webs ? [{ by: 'the ground', sq: webs.slice() }] : [];
@@ -543,16 +549,17 @@
     var floorLight = !u.torch && !u.guest && Lt.torchAt(this, u.x, u.y);
     if (u.torch && !u.guest && Lt.kindOf(u.torch) === 'lantern') {
       // the hooded lantern (RULED 09-29): the hood is the free hand on an object; up is bright light (under a roost, the one law: refused)
-      var roostL = this.fight && this.fight.roost;
-      if (u.torch.hood) out.push({ id: 'hoodup', label: 'HOOD UP', cost: 'F', icon: 'lantern', ok: !T.freeObj && !roostL, why: roostL ? 'the roost overhead: bright light would wake it' : freeWhy, note: 'bright 30 ft and dim 30 more' + (roostL ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : '') });
+      // (the Ledger-Lamp, 09-30, is the same law at its own radii: the wheel reads them off the light, and calls it a LAMP)
+      var roostL = this.fight && this.fight.roost, upR = Lt.radii(Lt.make(u.torch.item, false)), lampTag = Lt.tag(u.torch);
+      if (u.torch.hood) out.push({ id: 'hoodup', label: 'HOOD UP', cost: 'F', icon: 'lantern', ok: !T.freeObj && !roostL, why: roostL ? 'the roost overhead: bright light would wake it' : freeWhy, note: 'bright ' + upR.bright + ' ft and dim ' + upR.dim + ' more' + (roostL ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : '') });
       else out.push({ id: 'hooddown', label: 'HOOD DOWN', cost: 'F', icon: 'lantern', ok: !T.freeObj, why: freeWhy, note: 'dim light 5 ft only: nothing is dazzled, and a roost sleeps' });
-      out.push({ id: 'droptorch', label: 'SET DOWN LANTERN', cost: 'F', icon: 'lantern', ok: !T.freeObj, why: freeWhy, note: 'it burns where it stands' });
-      out.push({ id: 'dousetorch', label: 'DOUSE LANTERN', cost: 'F', icon: 'lantern', ok: !T.freeObj, why: freeWhy, note: 'out, and back in the pack' });
+      out.push({ id: 'droptorch', label: 'SET DOWN ' + lampTag, cost: 'F', icon: 'lantern', ok: !T.freeObj, why: freeWhy, note: 'it burns where it stands' });
+      out.push({ id: 'dousetorch', label: 'DOUSE ' + lampTag, cost: 'F', icon: 'lantern', ok: !T.freeObj, why: freeWhy, note: 'out, and back in the pack' });
     } else if (u.torch && !u.guest) {
       out.push({ id: 'droptorch', label: 'DROP TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj, why: freeWhy, note: 'it burns where it falls' });
       out.push({ id: 'throwtorch', label: 'THROW TORCH', cost: 'A', icon: 'torch', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', tool: 'torch', note: 'to a square within 20 ft: it burns there' });
       out.push({ id: 'dousetorch', label: 'DOUSE TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj, why: freeWhy, note: 'out, and back in the pack' });
-    } else if (floorLight) out.push({ id: 'pickuptorch', label: floorLight.kind === 'lantern' ? 'TAKE UP LANTERN' : 'TAKE UP TORCH', cost: 'F', icon: floorLight.kind === 'lantern' ? 'lantern' : 'torch', ok: !T.freeObj && Lt.handsFree(u) > 0, why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'the one burning at your feet' });
+    } else if (floorLight) out.push({ id: 'pickuptorch', label: 'TAKE UP ' + Lt.tag(floorLight), cost: 'F', icon: floorLight.kind === 'lantern' ? 'lantern' : 'torch', ok: !T.freeObj && Lt.handsFree(u) > 0, why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'the one burning at your feet' });
     if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay', note: 'a pool of ' + (u.feats.lay || 0) + ' HP (long rest), touch' });
     // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
     if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a short rest brings it back)', note: '+' + Math.max(1, D.mod(u.abil.cha)) + ' to hit for a minute; Channel Divinity ' + (u.feats.channel > 0 ? '1/1' : '0/1') + ' (short rest)' + (this.fight && this.fight.roost ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : '') });
@@ -850,6 +857,9 @@
     // the riders land as their own kind of damage (09-28: the ochre jelly is immune to slashing, not to a smite): fire, radiant, a foe's extra
     var fire = 0, rad = 0, ext = 0, xtra = []; // (xtra: [n, type] riders of their own kind: a mark's psychic, a curse's necrotic)
     if (atk.flame && att.conds.ablaze && !atk.spell) { var fl = D.roll(atk.flame, { crit: crit }); fire = fl.total; parts.push('{o}flame ' + atk.flame + ' ' + RU.fmtRolls(fl.rolls) + ' = ' + fl.total + ' fire{/}'); }
+    // the Mace of Disruption (SRD 5.1; Pyro's, 09-30): a fiend or undead takes 2d6 radiant more (and after the blow, the save below)
+    var dis = atk.disrupt && !atk.spell && atk.disrupt.vs.indexOf(tgt.type || '') >= 0 ? atk.disrupt : null;
+    if (dis) { var dr = D.roll(dis.dice, { crit: crit }); rad += dr.total; parts.push('{y}disruption ' + dis.dice + ' ' + RU.fmtRolls(dr.rolls) + ' = ' + dr.total + ' radiant{/}'); }
     if (att.conds.divineFavor && !atk.spell) { var df = D.roll('1d4', { crit: crit }); rad += df.total; parts.push('{y}favor 1d4 [' + df.rolls.join(',') + '] radiant{/}'); }
     // the marks (09-28, js/grimoire.js): Hunter's Mark (+1d6 on a weapon's hit), Mirror's Gaze (+1d6 psychic on any of her hits), Bestow
     // Curse's +1d8 necrotic, Branding Smite's +2d6 radiant on the next weapon hit (and the struck one glows, seen)
@@ -905,6 +915,15 @@
     if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type);
     for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1]);
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type);
+    // disruption: one left at 25 HP or fewer saves WIS DC 15 or is destroyed; on a success it is frightened of the wielder till the
+    // end of his next turn (`fresh`: the Slam's idiom -- ai.js's end-of-turn sweep spares it once)
+    if (dis && !tgt.dead && tgt.hp > 0 && tgt.hp <= dis.hp) {
+      var dsv = RU.save(tgt, 'wis', dis.dc, false, 'frightened');
+      this.card(['  {y}the mace of disruption{/}: ' + nameOf(tgt) + ' WIS ' + RU.saveText(dsv) + ' vs DC ' + dis.dc + '  ' + (dsv.ok ? '{o}FRIGHTENED{/}' : '{y}DESTROYED{/}')], 260);
+      FX.ring(tgt, 'gold', 30); FX.sparkle(tgt, 'gold', 18);
+      if (!dsv.ok) this.hurt(tgt, tgt.hp, 'radiant');
+      else if (!RU.immuneTo(tgt, 'frightened')) tgt.conds.frightened = { by: att.id, fresh: true };
+    }
     // the 8-bit game's named weapons (09-28g): the Winnower threshes one flat on a critical; the Greyseam knife's Sneak Attack
     // poisons, CON 13, till the end of its next turn (the 8-bit battle's own reading, js/battle.js heroAttack)
     if (crit && atk.onCrit === 'prone' && !atk.spell && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')) {
@@ -1161,7 +1180,7 @@
     return (this.inv || []).map(function (s) {
       var it = window.DS.DATA.items[s.id];
       if (!it || !it.use || !it.use.battle || !ITEM_OK[it.use.effect] || s.n <= 0) return null;
-      if (roost && (it.use.effect === 'damage' || (it.use.effect === 'light' && s.id !== 'lantern'))) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
+      if (roost && (it.use.effect === 'damage' || (it.use.effect === 'light' && !D.light.isLantern(s.id)))) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
       if (it.use.effect === 'light') { // a torch (torchdark 09-28), or a lantern (09-29; under a roost it is lit hood down): a free hand, and the action (or the Thief's bonus)
         var cl = D.light.canLight(self, u, s.id), can = (torchFast(u) && T.bonus > 0) || (T.action > 0 && !T.attacksLeft);
         return { id: s.id, name: it.name, n: s.n, use: it.use, ok: cl.ok && can && !u.guest, why: !cl.ok ? cl.why : can ? '' : 'the action is spent', cost: torchFast(u) && T.bonus > 0 ? 'B' : 'A' };

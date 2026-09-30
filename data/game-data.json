@@ -763,30 +763,32 @@
    "fullName": "Pyronimus",
    "guest": true,
    "cls": "fighter",
-   "level": 9,
+   "level": 12,
    "race": "Dwarf",
    "background": "King of Solskaft",
    "abil": {
-    "str": 18,
+    "str": 20,
     "dex": 14,
     "con": 16,
     "int": 11,
     "wis": 13,
     "cha": 15
    },
-   "hp": 85,
+   "hp": 112,
    "equip": {
     "weapon": "mace",
-    "armor": "dwarfplate",
+    "offhand": "macedisruption",
+    "armor": "kingsplate",
     "shield": null,
-    "ring": null
+    "ring": null,
+    "cloak": "kingsmantle"
    },
    "saveProf": [
     "str",
     "con"
    ],
    "skills": {
-    "Athletics": 8,
+    "Athletics": 9,
     "Insight": 5,
     "Intimidation": 6
    },
@@ -794,14 +796,16 @@
    "weaponArt": "maces",
    "attacks": 3,
    "surgeAI": true,
+   "script": "measure",
+   "subclassStart": "Champion",
    "resist": [
     "poison"
    ],
    "levels": {},
    "featText": [],
-   "classLine": "Fighter 9 · two hand maces",
+   "classLine": "Fighter 12 · two maces",
    "blurb": "Solskaft's only king, at the vault door. Ran with Winters and Tarlyn in the Orc War, and likes adventurers.",
-   "src": "wiki/deepholm-and-the-edifice.md (Pyronimus, fighter 9); wiki/solskaft.md (dual-wields hand maces: CANON 09-26c); handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 2 (sheet PROPOSED: Two-Weapon Fighting, mace in each hand, Extra Attack, Second Wind, Action Surge, Indomitable; HP ~85; RULED 09-26d fighter 9). attacks 3 = Extra Attack's two and the off-hand's one",
+   "src": "wiki/deepholm-and-the-edifice.md (Pyronimus, fighter 9); wiki/solskaft.md (dual-wields hand maces: CANON 09-26c); handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 2 (sheet PROPOSED: Two-Weapon Fighting, mace in each hand, Extra Attack, Second Wind, Action Surge, Indomitable; HP ~85; RULED 09-26d fighter 9). attacks 3 = Extra Attack's two and the off-hand's one. RULED 09-30 (Griz: 'Gonna have to Pyro NPC up to 12, he's key'; the Mace of Disruption in his off-hand) and 09-30b ('+3 dwarven plate, and a cloak +5 to saves vs spells'; the off-hand style, five swings at 12): fighter 12, the Champion, STR 20 by the 12th's ASI (the seat's), HP 112 (the 9's average on); attacks 3 = Extra Attack at 5 and 11, the off-hand's in js/pyro.js and deep16/js/pyro.js (his measure: every fight he walks in)",
    "id": "pyro"
   },
   "halldor": {
@@ -2270,8 +2274,23 @@
    "kind": "key",
    "price": 0,
    "noSell": true,
-   "desc": "A dwarven lamp under warranty, from Ingrith. It lights further than a torch, and shows the road's seals: white where whole, red where cut.",
-   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (the ledgerlamp key item)",
+   "use": {
+    "effect": "light",
+    "target": "self",
+    "battle": true,
+    "field": true
+   },
+   "light": {
+    "bright": 40,
+    "dim": 40,
+    "when": "lit",
+    "hood": {
+     "bright": 0,
+     "dim": 5
+    }
+   },
+   "desc": "A dwarven lamp under warranty, from Ingrith. It lights further than a torch, and shows the road's seals: white where whole, red where cut. Bright 40 ft and dim 40 more; hood down, a glimmer of 5 ft. It never runs dry.",
+   "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.2 (the ledgerlamp key item); RULED 09-30 (Griz: 'now should function like a lantern but better' -- '3 perfect'): the hooded lantern's law at 40/40, never spent (invented.json#ledger-lamp-light)",
    "id": "ledgerlamp"
   },
   "truesilver": {
@@ -2344,6 +2363,65 @@
    "desc": "AC 18. Heavy. Dwarven plate, a patrol-captain's, fitted for a dwarf and let out by the smith for anyone else.",
    "src": "SRD 5.1 (Plate, AC 18); handoff-2026-09-26-dragonsleep-spine-recut.md §2 (Pyro's kit; the nest's cocoons, PROPOSED)",
    "id": "dwarfplate"
+  },
+  "macedisruption": {
+   "name": "Mace of Disruption",
+   "kind": "weapon",
+   "price": 5000,
+   "noSell": true,
+   "weapon": {
+    "dmg": "1d6",
+    "type": "bludgeoning",
+    "group": "simple",
+    "kind": "mace",
+    "props": [],
+    "magic": true,
+    "disrupt": {
+     "dice": "2d6",
+     "type": "radiant",
+     "vs": [
+      "fiend",
+      "undead"
+     ],
+     "hp": 25,
+     "dc": 15
+    }
+   },
+   "light": {
+    "bright": 20,
+    "dim": 20,
+    "when": "always"
+   },
+   "desc": "A mace that burns white in the hand: bright light 20 ft and dim 20 more. A fiend or undead it hits takes 2d6 radiant more; one left at 25 HP or fewer saves (WIS 15) or is destroyed, and one that saves is frightened of its wielder till his next turn is over.",
+   "src": "SRD 5.1 (Mace of Disruption: weapon (mace), rare, requires attunement; its attunement not counted); RULED 09-30 (Griz: Pyro's off-hand, 'if it's in our available magic items via SRD, clearly magical')",
+   "id": "macedisruption"
+  },
+  "kingsplate": {
+   "name": "Dwarven Plate +3",
+   "kind": "armor",
+   "price": 0,
+   "noSell": true,
+   "armor": {
+    "base": 18,
+    "type": "heavy",
+    "dexMax": 0,
+    "bonus": 3
+   },
+   "desc": "AC 21. Heavy. The king's own plate, Solskaft-made.",
+   "src": "SRD 5.1 (Dwarven Plate, +2 AC) at +3 by Griz's word (RULED 09-30b: 'Also give him +3 dwarven plate'); invented.json#pyro-kit",
+   "id": "kingsplate"
+  },
+  "kingsmantle": {
+   "name": "King's Mantle",
+   "kind": "cloak",
+   "price": 0,
+   "noSell": true,
+   "cloak": {
+    "spellSave": 5
+   },
+   "desc": "A king's grey mantle, lined with something that is not wool. +5 to saving throws against spells.",
+   "src": "invented (RULED 09-30b, Griz: 'a cloak +5 to saves vs spells'); name and words the seat's draft, invented.json#pyro-kit",
+   "id": "kingsmantle"
   },
   "sunshaftstaff": {
    "name": "Sunshaft Staff",
@@ -13671,6 +13749,62 @@
    "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beat 2 (the seat's draft, verbatim); Griz 09-26c: 'I want to change Pyro to highly sympathetic with the adventurers'",
    "id": "deep.pyroFirst"
   },
+  "pyro.m2Down": {
+   "t": "Up, you. Winters never lay down in a fight he could still lose.",
+   "src": "RULED 09-30/09-30b (Griz: 'him say something (he's taking the measure of the party)'); the seat's draft (RULED 09-24: no [GRIZ] stubs), invented.json#pyro-measure",
+   "id": "pyro.m2Down"
+  },
+  "pyro.m2Hurt": {
+   "t": "You let an old dwarf take all that? Then watch. Once.",
+   "src": "RULED 09-30/09-30b (his measure, at half his HP); the seat's draft, invented.json#pyro-measure",
+   "id": "pyro.m2Hurt"
+  },
+  "pyro.m2Draw": {
+   "t": "The king draws the second mace from his belt. It burns white in his hand.",
+   "src": "RULED 09-30 (the Mace of Disruption, 'clearly magical'; he 'start[s] using' it at the second phase)",
+   "id": "pyro.m2Draw"
+  },
+  "pyro.m2Xp": {
+   "t": "He has taken your measure. The party loses half its XP.",
+   "src": "RULED 09-30b (Griz: 'the party either loses half XP and continues')",
+   "id": "pyro.m2Xp"
+  },
+  "pyro.m3": {
+   "t": "Run, then. I'll finish it. I always do.",
+   "src": "RULED 09-30/09-30b (a character exits the fight: full level 12 to the end, then the save); the seat's draft, invented.json#pyro-measure",
+   "id": "pyro.m3"
+  },
+  "pyro.m3Flip": {
+   "t": "He turns the white mace into his right hand.",
+   "src": "RULED 09-30b (Griz: 'he flips the mace of disruption to main hand if a party character has exited the fight')",
+   "id": "pyro.m3Flip"
+  },
+  "fail.pyroTitle": {
+   "t": [
+    "FOUND",
+    "WANTING"
+   ],
+   "src": "RULED 09-30b ('it goes so bad they have to reload'); the seat's draft, invented.json#pyro-measure",
+   "id": "fail.pyroTitle"
+  },
+  "fail.pyro": {
+   "t": "The king finishes it alone, and walks back up the road to his door without a word. Solskaft's road goes on without you.",
+   "src": "RULED 09-30b; the seat's draft, invented.json#pyro-measure",
+   "id": "fail.pyro"
+  },
+  "fail.pyroDownTitle": {
+   "t": [
+    "THE KING",
+    "FALLS"
+   ],
+   "src": "RULED 09-30 (Griz: 'If he ever goes down player has to load from a save'); the seat's draft, invented.json#pyro-measure",
+   "id": "fail.pyroDownTitle"
+  },
+  "fail.pyroDown": {
+   "t": "Solskaft's only king falls on his own road, walking it at your side. There is no coming back from that.",
+   "src": "RULED 09-30; the seat's draft, invented.json#pyro-measure",
+   "id": "fail.pyroDown"
+  },
   "deep.pyro1": {
    "t": "I ran the Orc War with Winters and Tarlyn. Three fools with more nerve than sense. You remind me of them, which is a compliment, and a warning.",
    "src": "wiki/deepholm-and-the-edifice.md (the Orc War); spine-recut §2 beat 2 (sympathetic); drafted by the code tab, PROPOSED",
@@ -14943,6 +15077,16 @@
    "t": "It is light enough here to see by. Save the oil.",
    "src": "invented: connective",
    "id": "g.lanternNoNeed"
+  },
+  "g.lampLit": {
+   "t": "{name} lights the Ledger-Lamp and carries it. Forty feet of the dark gives way.",
+   "src": "RULED 09-30 (Griz: 'now should function like a lantern but better' -- '3 perfect'): the hooded lantern's law at 40/40, never spent (the g.lanternLit line at forty feet)",
+   "id": "g.lampLit"
+  },
+  "g.lampNoNeed": {
+   "t": "It is light enough here to see by. The lamp will keep; it never runs dry.",
+   "src": "invented: connective (the Ledger-Lamp, RULED 09-30: never runs dry)",
+   "id": "g.lampNoNeed"
   },
   "g.darkvision": {
    "t": "{name}: darkvision. The dark opens out to sixty feet, grey and plain, until the next long rest.",

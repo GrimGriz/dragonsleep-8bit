@@ -21,10 +21,33 @@
   // dim 30 more; hood down, dim light 5 ft only -- no bright light, so nothing that hates light is dazzled and a roost sleeps.
   // It takes a hand like a torch, is not spent (put out, it goes back in the pack), and is never thrown
   L.LANTERN = { bright: 30, dim: 30, hood: { bright: 0, dim: 5 } };
-  // the light in a hand: u.torch = { lit, kind ('torch' | 'lantern'), hood }; kind unset is a torch (the fights before 09-29)
+  // the light in a hand: u.torch = { lit, kind ('torch' | 'lantern'), item, hood }; kind unset is a torch (the fights before 09-29).
+  // `item` is the pack's id when the lantern is not the plain hooded lantern: the Ledger-Lamp (RULED 09-30, Griz: "now should function
+  // like a lantern but better" -- '3 perfect'), a lantern-kind light that reads its own `light` record (bright 40, dim 40, hood 0/5),
+  // never spent, and put out it is the pack's again. A hooded light is any pack item whose `light` record has a `hood`
   L.kindOf = function (t) { return (t && t.kind) || 'torch'; };
-  L.radii = function (t) { return L.kindOf(t) === 'lantern' ? (t.hood ? L.LANTERN.hood : L.LANTERN) : L.TORCH; };
+  L.isLantern = function (id) { var l = itemLight(id); return id === 'lantern' || !!(l && l.hood); };
+  L.make = function (id, hood) { var t = { lit: true, kind: 'lantern', hood: !!hood }; if (id && id !== 'lantern') t.item = id; return t; }; // (a hooded light in a hand)
+  L.radii = function (t) {
+    if (L.kindOf(t) !== 'lantern') return L.TORCH;
+    var base = (t.item && itemLight(t.item)) || L.LANTERN;
+    return t.hood ? (base.hood || L.LANTERN.hood) : base;
+  };
   L.kindName = function (t) { return L.kindOf(t) === 'lantern' ? 'lantern' : 'torch'; };
+  // what to call it in a line: 'torch', 'lantern', or the item's own name (the Ledger-Lamp); `x` is a light in a hand or on the floor, or a pack id
+  L.word = function (x) {
+    var id = typeof x === 'string' ? x : (x && x.item), it = id && id !== 'torch' && id !== 'lantern' && window.DS && window.DS.DATA && window.DS.DATA.items[id];
+    if (it) return it.name;
+    return typeof x === 'string' ? (L.isLantern(x) ? 'lantern' : 'torch') : L.kindName(x);
+  };
+  L.tag = function (x) { var id = typeof x === 'string' ? x : (x && x.item); return id && id !== 'lantern' && id !== 'torch' ? 'LAMP' : L.kindName(typeof x === 'string' ? { kind: L.isLantern(x) ? 'lantern' : 'torch' } : x).toUpperCase(); }; // (a wheel label)
+  // the ITEM list's line under a light in the pack
+  L.blurb = function (id) {
+    var r = L.radii(L.isLantern(id) ? L.make(id, false) : { lit: true });
+    if (id === 'lantern') return 'a hooded lantern, lit: bright ' + r.bright + ' ft, dim ' + r.dim + ' more; hood down, dim 5 ft and a roost sleeps; it takes a hand';
+    if (L.isLantern(id)) return 'the ' + L.word(id) + ', lit: bright ' + r.bright + ' ft, dim ' + r.dim + ' more; hood down, dim 5 ft, a roost sleeps; never dry; one hand'; // (one line, no wider than the lantern's: the panel does not wrap it)
+    return 'a torch, lit: bright ' + r.bright + ' ft, dim ' + r.dim + ' more; it takes a hand';
+  };
   L.LIGHT_COST = 'A';                  // lighting a torch: an action (SRD 5.1 tinderbox: "takes an action"); the Thief's Fast Hands make it a bonus. RULED 09-28h (Griz: "yes to action cost"); 'B' would make it a bonus action for all
   // who sees in the dark by blood (SRD 5.1), keyed on the 8-bit sheets' `race`
   L.RACE_DV = { 'Half-orc': 60, 'Dwarf': 60, 'Elf': 60, 'Gnome': 60, 'Tiefling': 60, 'Drow': 120, 'Human': 0, 'Halfling': 0 };
@@ -48,6 +71,8 @@
     if (cf && (typeof cf !== 'string' || (u.weapon && u.weapon.id === cf))) add(20, 20, 'fire', false, 'flame'); // torch-bright, no heat
     var wl = u.weapon && itemLight(u.weapon.id);
     if (wl && (wl.when === 'always' || (wl.when === 'lit' && u.conds.ablaze))) add(wl.bright, wl.dim, wl.when === 'lit' ? 'fire' : 'bone', wl.when === 'lit', 'weapon');
+    var ol = u.offhand && !u.offhandSheathed && itemLight(u.offhand.id); // (the other hand's: Pyro's Mace of Disruption once it is out, js/pyro.js)
+    if (ol && ol.when === 'always') add(ol.bright, ol.dim, 'bone', false, 'weapon');
     return out;
   };
   L.all = function (B) {
@@ -192,25 +217,25 @@
   // may he light one (`id`: 'torch' or 'lantern')? Under a roost a torch is no (its one law: no fire); a lantern is lit hood down
   L.canLight = function (B, u, id) {
     id = id || 'torch';
-    if (u.torch) return { ok: false, why: 'a ' + L.kindName(u.torch) + ' in hand already' };
-    if (!L.inPack(B, id)) return { ok: false, why: 'no ' + id + ' in the pack' };
-    if (B.fight && B.fight.roost && id !== 'lantern') return { ok: false, why: 'the roost overhead: no fire' };
+    if (u.torch) return { ok: false, why: 'a ' + L.word(u.torch) + ' in hand already' };
+    if (!L.inPack(B, id)) return { ok: false, why: 'no ' + L.word(id) + ' in the pack' };
+    if (B.fight && B.fight.roost && !L.isLantern(id)) return { ok: false, why: 'the roost overhead: no fire' };
     if (!L.handsFree(u)) return { ok: false, why: L.handsWhy(u) };
     return { ok: true, why: '' };
   };
-  // light one: a torch (or a lantern) out of the pack, in the free hand; the light-shy recoil from it (magic.js brighten). A lantern
-  // lit under a roost starts with its hood down: dim 5 ft, and the roof sleeps
+  // light one: a torch (or a lantern, or the Ledger-Lamp) out of the pack, in the free hand; the light-shy recoil from it (magic.js brighten).
+  // A hooded light lit under a roost starts with its hood down: dim 5 ft, and the roof sleeps
   L.lightTorch = function* (B, u, id) {
     id = id || 'torch';
-    var s = packOf(B, id), M = D.magic, lantern = id === 'lantern', hood = lantern && !!(B.fight && B.fight.roost);
+    var s = packOf(B, id), M = D.magic, lantern = L.isLantern(id), hood = lantern && !!(B.fight && B.fight.roost);
     if (!s || s.n <= 0) return;
-    s.n--; u.torch = lantern ? { lit: true, kind: 'lantern', hood: hood } : { lit: true }; L.regrip(u);
+    s.n--; u.torch = lantern ? L.make(id, hood) : { lit: true }; L.regrip(u);
     var r = L.radii(u.torch), grip = L.handsUsed(u).weapon === 1 && u.weapon.props.indexOf('versatile') >= 0 ? '  {g}(the ' + u.weapon.name.toLowerCase() + ' in one hand){/}' : '';
     D.sfx('fire'); D.fx.sparkle(u, 'fire', 14);
-    if (hood) { if (B.lightMap) B.lightMap = null; B.card(['{y}' + u.name + '{/} lights the lantern with the hood down: {o}dim light 5 ft{/}, and nothing overhead stirs.' + grip], 420); yield 30; return; }
-    yield* M.brighten(B, u, 'torch', '{y}' + u.name + '{/} strikes a light: a ' + (lantern ? 'hooded lantern' : 'torch') + ', {o}bright ' + r.bright + ' ft{/} and dim ' + r.dim + ' more.' + grip, { x: u.x, y: u.y, bright: r.bright });
+    if (hood) { if (B.lightMap) B.lightMap = null; B.card(['{y}' + u.name + '{/} lights the ' + L.word(u.torch) + ' with the hood down: {o}dim light 5 ft{/}, and nothing overhead stirs.' + grip], 420); yield 30; return; }
+    yield* M.brighten(B, u, 'torch', '{y}' + u.name + '{/} strikes a light: ' + (id === 'lantern' ? 'a hooded lantern' : lantern ? 'the ' + L.word(id) : 'a torch') + ', {o}bright ' + r.bright + ' ft{/} and dim ' + r.dim + ' more.' + grip, { x: u.x, y: u.y, bright: r.bright });
   };
-  // the hood (a lantern in hand; the turn's free hand on an object): down, dim 5 ft and no bright light; up, bright 30 ft again --
+  // the hood (a lantern in hand; the turn's free hand on an object): down, dim 5 ft and no bright light; up, its bright light again --
   // the light-shy recoil, the hidden are shown, and under a roost it is the one law broken (battle.js refuses HOOD UP there)
   L.hood = function* (B, u, down) {
     if (!u.torch || L.kindOf(u.torch) !== 'lantern' || !!u.torch.hood === !!down) return;
@@ -218,19 +243,21 @@
     if (B.lightMap) B.lightMap = null;
     if (down) { B.card(['{y}' + u.name + '{/} lowers the hood: {o}dim light 5 ft{/}, no more.']); return; }
     D.sfx('fire');
-    yield* D.magic.brighten(B, u, 'torch', '{y}' + u.name + '{/} raises the hood: {o}bright ' + L.LANTERN.bright + ' ft{/} and dim ' + L.LANTERN.dim + ' more.', { x: u.x, y: u.y, bright: L.LANTERN.bright });
+    var up = L.radii(u.torch);
+    yield* D.magic.brighten(B, u, 'torch', '{y}' + u.name + '{/} raises the hood: {o}bright ' + up.bright + ' ft{/} and dim ' + up.dim + ' more.', { x: u.x, y: u.y, bright: up.bright });
   };
-  // a light set down on a square keeps its kind and its hood
+  // a light set down on a square keeps its kind, its hood and its pack id (a lantern is 'lantern', the Ledger-Lamp 'ledgerlamp': the seam
+  // -- embed.js -- puts one left burning back in the pack as the fight ends: a lantern is never lost)
   function place(B, x, y, by, t) {
-    var n = (B.torchSeq = (B.torchSeq || 0) + 1), r = L.radii(t);
-    B.lights = (B.lights || []).concat([{ id: 'torch' + n, kind: L.kindOf(t), hood: !!(t && t.hood), x: x, y: y, bright: r.bright, dim: r.dim, color: 'gold', flame: true, by: by }]);
+    var n = (B.torchSeq = (B.torchSeq || 0) + 1), r = L.radii(t), lantern = L.kindOf(t) === 'lantern';
+    B.lights = (B.lights || []).concat([{ id: 'torch' + n, kind: L.kindOf(t), hood: !!(t && t.hood), item: lantern ? (t.item || 'lantern') : undefined, x: x, y: y, bright: r.bright, dim: r.dim, color: 'gold', flame: true, by: by }]);
   }
   // set down where he stands (the turn's free hand on an object): it keeps burning there
   L.dropTorch = function (B, u, silent) {
     if (!u.torch) return;
     var t = u.torch; delete u.torch; L.regrip(u);
     place(B, u.x, u.y, u.id, t);
-    if (!silent) B.card(['{y}' + u.name + '{/} ' + (L.kindOf(t) === 'lantern' ? 'sets the lantern down. It burns where it stands.' : 'drops the torch. It burns where it fell.')]);
+    if (!silent) B.card(['{y}' + u.name + '{/} ' + (L.kindOf(t) === 'lantern' ? 'sets the ' + L.word(t) + ' down. It burns where it stands.' : 'drops the torch. It burns where it fell.')]);
   };
   // thrown (an action): it lands on a square within 20 ft it can see and burns there -- the way to light up the far end
   L.throwTorch = function* (B, u, x, y) {
@@ -246,16 +273,16 @@
   // put it out (free): back in the pack, unspent
   L.douseTorch = function (B, u) {
     if (!u.torch) return;
-    var id = L.kindOf(u.torch) === 'lantern' ? 'lantern' : 'torch'; delete u.torch; L.regrip(u);
+    var t = u.torch, id = L.kindOf(t) === 'lantern' ? (t.item || 'lantern') : 'torch'; delete u.torch; L.regrip(u); // (the pack's own id: 'ledgerlamp' goes back as itself)
     var s = packOf(B, id); if (s) s.n++; else (B.inv = B.inv || []).push({ id: id, n: 1 });
-    B.card(['{y}' + u.name + '{/} puts the ' + id + ' out and stows it.']);
+    B.card(['{y}' + u.name + '{/} puts the ' + L.word(t) + ' out and stows it.']);
   };
   // pick up the one burning at his feet (free, a free hand)
   L.pickUp = function (B, u) {
     var t = L.torchAt(B, u.x, u.y); if (!t || u.torch) return;
     B.lights = B.lights.filter(function (l) { return l !== t; });
-    u.torch = t.kind === 'lantern' ? { lit: true, kind: 'lantern', hood: !!t.hood } : { lit: true }; L.regrip(u);
-    B.card(['{y}' + u.name + '{/} takes up the ' + (t.kind === 'lantern' ? 'lantern' : 'torch') + ' again.']);
+    u.torch = t.kind === 'lantern' ? L.make(t.item, t.hood) : { lit: true }; L.regrip(u);
+    B.card(['{y}' + u.name + '{/} takes up the ' + L.word(t) + ' again.']);
   };
   // a fall (battle.js hurt): the torch goes down with him and burns on the floor
   L.fell = function (B, u) { if (u.torch) L.dropTorch(B, u, true); };
