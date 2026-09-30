@@ -5,13 +5,15 @@
   var DS = window.DS;
   var R = DS.R = {};
   R.ABIL = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-  R.XP_LEVEL = [0, 0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000]; // xp needed to BE level n (5E 2014)
+  R.XP_LEVEL = [0, 0, 300, 900, 2700, 6500, 14000, 23000, 34000, 48000, 64000, 85000, 100000]; // xp needed to BE level n (5E 2014; 10-12 for DEEP16's NPCs past the cap, 09-30)
   R.CAP = 9; // the dwarven expansion raises the cap 5 -> 9 (spec §9) ...
   R.cap = function () { return DS.G && DS.G.flags && DS.G.flags.lakeDone ? R.CAP : 5; }; // ... once the chuul is dead: the base game stays capped at 5
   R.CR_XP = { '0': 10, '1/8': 25, '1/4': 50, '1/2': 100, '1': 200, '2': 450, '3': 700, '4': 1100, '5': 1800, '6': 2300, '7': 2900, '8': 3900, '9': 5000 };
   R.prof = function (lvl) { return lvl >= 9 ? 4 : lvl >= 5 ? 3 : 2; };
-  var SLOTS_FULL = { 1: [2], 2: [3], 3: [4, 2], 4: [4, 3], 5: [4, 3, 2], 6: [4, 3, 3], 7: [4, 3, 3, 1], 8: [4, 3, 3, 2], 9: [4, 3, 3, 3, 1] };
-  var SLOTS_HALF = { 1: [], 2: [2], 3: [3], 4: [3], 5: [4, 2], 6: [4, 2], 7: [4, 3], 8: [4, 3], 9: [4, 3, 2] };
+  // (10-12: the SRD 5.1's rows, for DEEP16's class NPCs past the heroes' cap -- the druid to twelve, Griz 09-29: "game probably gonna get to
+  // the big boys at some point"; 09-30: "the above 9's we're just prepping in case we have combat involving special NPCs")
+  var SLOTS_FULL = { 1: [2], 2: [3], 3: [4, 2], 4: [4, 3], 5: [4, 3, 2], 6: [4, 3, 3], 7: [4, 3, 3, 1], 8: [4, 3, 3, 2], 9: [4, 3, 3, 3, 1], 10: [4, 3, 3, 3, 2], 11: [4, 3, 3, 3, 2, 1], 12: [4, 3, 3, 3, 2, 1] };
+  var SLOTS_HALF = { 1: [], 2: [2], 3: [3], 4: [3], 5: [4, 2], 6: [4, 2], 7: [4, 3], 8: [4, 3], 9: [4, 3, 2], 10: [4, 3, 2], 11: [4, 3, 3], 12: [4, 3, 3] };
 
   R.CLASSES = {
     fighter: {
@@ -66,7 +68,7 @@
     }
   };
   // the warlock's Pact Magic (SRD 5.1): few slots, all of one level, back on a short rest
-  var SLOTS_PACT = { 1: [1], 2: [2], 3: [0, 2], 4: [0, 2], 5: [0, 0, 2], 6: [0, 0, 2], 7: [0, 0, 0, 2], 8: [0, 0, 0, 2], 9: [0, 0, 0, 0, 2] };
+  var SLOTS_PACT = { 1: [1], 2: [2], 3: [0, 2], 4: [0, 2], 5: [0, 0, 2], 6: [0, 0, 2], 7: [0, 0, 0, 2], 8: [0, 0, 0, 2], 9: [0, 0, 0, 0, 2], 10: [0, 0, 0, 0, 2], 11: [0, 0, 0, 0, 3], 12: [0, 0, 0, 0, 3] };
   R.slotsFor = function (h) {
     var c = R.CLASSES[h.cls];
     if (c.caster === 'full') return (SLOTS_FULL[h.lvl] || []).slice();

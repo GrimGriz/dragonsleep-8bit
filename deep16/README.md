@@ -223,6 +223,8 @@ INFO (inspect what the cursor is on). On the board a tap points, a second tap on
 a long press inspects. Turned sideways the pad sits either side of the board; upright it sits below and the board is
 small. What each spell does, against the tabletop: `../deep16-current spells.md` (reading-lamp format).
 
+**The druid to twelve, step 0** (09-30, Griz 09-29: *"please complete druid to 12 (game probably gonna get to the big boys at some point)"*; 09-30: *"the above 9's we're just prepping in case we have combat involving special NPCs"*): the SRD's slot rows 10-12 (full, half and pact, `js/rules.js`), `NPC.MAXLVL` (the druid 12, every other class 9), the 4th cantrip at 10, the ASI at 12, Heal and Sunbeam on the druid's 6th; **Land's Stride** (6: nonmagical difficult ground costs nothing, advantage on Entangle's save) and **Nature's Ward** (10: poison, disease, and no elemental or fey charm or fright, where the caller names the source: `RU.immuneTo(u, cond, by)`); Wild Shape's flier at 8 (the giant bat, with the beast's STR/DEX/CON saves and senses). The ladder, the climb and the 8-bit cap stay at 9; the four meet a druid 12 at 9. Watch it: `?npc=druid:12&lvl=12`. Bench `mode=druid12`. Next: the summons, the walls, Polymorph, Dominate Beast (the handoff's §5).
+
 **The druid to nine** (09-29, Griz: *"we'll have to do her spells for at least up to 9 ... druid beast form ... and other class
 features"*): the first zones that move -- **Moonbeam** (a 5-ft shaft of pale light, CON 2d10 radiant on entering it or
 starting a turn in it; an action moves it 60 ft) and **Flaming Sphere** (a ball of fire, DEX 2d6 to whoever ends a turn

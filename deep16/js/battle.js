@@ -19,7 +19,7 @@
     // from the camp (js/camp.js): the four as the morning left them; copied, so RESTART starts from the camp again
     // inside the 8-bit game (js/embed.js, this.o.embed): the party it handed over, as it stood when the fight began
     if (this.o.data) this.from = { from: this.o.embed ? 'the 8-bit game' : 'the camp', when: null, data: JSON.parse(JSON.stringify(this.o.data)) };
-    else if (this.o.ladder || this.o.npc) this.from = { from: this.o.npc ? 'the class floor' : 'the ladder', when: null, data: D.save.fixture(F.level) };
+    else if (this.o.ladder || this.o.npc) this.from = { from: this.o.npc ? 'the class floor' : 'the ladder', when: null, data: D.save.fixture(Math.min(9, F.level)) }; // (the four stop at 9: a druid 12 on the class floor meets them at 9)
     else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
     this.canSwap = !this.o.ladder && !this.o.npc && !this.o.embed && (this.o.fixture || this.from.from !== 'the fixture');
     var party = D.save.units(this.from.data, this.o.climb ? Object.assign({}, F, { looks: null }) : F); // the climb: Barley is Barley

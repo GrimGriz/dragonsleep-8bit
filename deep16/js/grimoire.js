@@ -34,7 +34,7 @@
     list.forEach(function (w) {
       if (o.skip && o.skip(w)) { lines.push('  ' + Nm(B, w) + ': {g}' + o.skip(w) + '{/}'); return; }
       if (M.globed && M.globed(B, u, w, o.slot || 5)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; }
-      var sv = RU.save(w, ab, dc), ev = ab === 'dex' && w.cls === 'rogue' && w.lvl >= 7, d = 0;
+      var sv = RU.save(w, ab, dc, o.adv && o.adv(w)), ev = ab === 'dex' && w.cls === 'rogue' && w.lvl >= 7, d = 0;
       if (r) d = sv.ok ? (ev ? 0 : half ? Math.floor(r.total / 2) : 0) : (ev ? Math.floor(r.total / 2) : r.total);
       lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}' + (o.failText ? ' {p}' + o.failText + '{/}' : '')) + (r ? ' -> {r}' + d + '{/}' : ''));
       if (d) hits.push([w, d]);
@@ -54,7 +54,7 @@
   // ground a spell leaves (grease, vines, spikes): difficult, and what it does to those who enter it (M.stepInto) or end a turn on it
   M.groundAt = function (B, x, y) { return (B.grounds || []).filter(function (g) { return g.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };
   M.rough = function (B, x, y, u) {
-    if ((B.grounds || []).some(function (g) { return g.difficult && g.sq.some(function (q) { return q[0] === x && q[1] === y; }) && !(g.kind === 'vines' && u && u.landsStride); })) return true;
+    if ((B.grounds || []).some(function (g) { return g.difficult && g.sq.some(function (q) { return q[0] === x && q[1] === y; }); })) return true; // (a spell's ground is magical: Land's Stride does not waive it -- the SRD gives it advantage on Entangle's save instead)
     // the guardians' ring: half speed for the caster's foes inside it (SRD 5.1 Spirit Guardians)
     return (B.auras || []).some(function (a) { var c = B.units.filter(function (w) { return w.id === a.by; })[0]; return c && u && G.hostile(c, u) && Math.max(Math.abs(x - c.x), Math.abs(y - c.y)) * 5 <= a.r; });
   };
@@ -339,7 +339,7 @@
       var sq = M.area(u, x.g, t.x, t.y), rec = { kind: 'vines', sq: sq, by: u.id, difficult: true };
       B.grounds = (B.grounds || []).concat([rec]); FX.bloom(t.x, t.y, sq, 'moss');
       var held = [];
-      yield* saveAll(B, u, caughtIn(B, sq), 'str', x.dc, null, '', false, head + ': grasping weeds and vines burst from the ground', { skip: function (w) { return RU.immuneTo(w, 'restrained') ? 'nothing holds it' : ''; }, failText: 'restrained', cond: function (w) { w.conds.restrained = { dc: x.dc, by: u.id, kind: 'vines' }; held.push(w); } });
+      yield* saveAll(B, u, caughtIn(B, sq), 'str', x.dc, null, '', false, head + ': grasping weeds and vines burst from the ground', { skip: function (w) { return RU.immuneTo(w, 'restrained') ? 'nothing holds it' : ''; }, adv: function (w) { return !!w.landsStride; }, failText: 'restrained', cond: function (w) { w.conds.restrained = { dc: x.dc, by: u.id, kind: 'vines' }; held.push(w); } }); // (Land's Stride: advantage on the save against magically made plants, SRD)
       M.concentrate(B, u, 'entangle', 'Entangle', function () { removeGround(B, rec); B.units.forEach(function (w) { var r = w.conds.restrained; if (r && r.by === u.id && !r.grapple) delete w.conds.restrained; }); B.card(['{g}The vines wither.{/}'], 240); });
     },
     ai: function (B, u, e, slot, fs) { return TX().bestArea(B, u, e, fs, function (caught) { var sc = 0; caught.forEach(function (w) { if (RU.immuneTo(w, 'restrained')) return; sc += (G.hostile(u, w) ? 1 : -1.3) * TX().pFail(w, 'str', u.spellDC) * (TX().dpr(w) * 0.6 + 4) * 2; }); return sc; }); }
@@ -1191,7 +1191,7 @@
     return stop || u.hp <= 0;
   };
 
-  // ------------------------------------------------------------------ 6th to 9th level (09-28, batch E): no hero or class NPC reaches them (the cap is 9);
+  // ------------------------------------------------------------------ 6th to 9th level (09-28, batch E): no hero or class NPC reaches them (the cap is 9; the druid 12 casts 6ths: Heal, Sunbeam);
   // they are the foes' -- a lich, an archmage, a high priest to come -- built now so the story finds them ready
   function oneSave(id, name, ab, dexpr, type, half, o) {
     o = o || {};

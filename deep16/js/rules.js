@@ -16,7 +16,8 @@
     return ac + (c.shield ? 5 : 0) + (c.shieldOfFaith ? 2 : 0) + (c.hasted ? 2 : 0) - (c.slowed ? 2 : 0) + (c.wardingBond ? 1 : 0) + ward;
   };
   // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
-  RU.immuneTo = function (u, cond) { return !!(u && ((u.condImmune && u.condImmune.indexOf(cond) >= 0) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond))
+  // (by: the one laying it, where the caller knows -- Nature's Ward, the druid's 10: no elemental or fey charms or frightens it)
+  RU.immuneTo = function (u, cond, by) { return !!(u && ((u.condImmune && u.condImmune.indexOf(cond) >= 0) || (u.natureWard && by && /^(elemental|fey)$/.test(by.type) && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond))
     || (/^(charmed|hypnotized)$/.test(cond) && G.units && RU.inAura(u, 'devotion')))); }; // (Freedom of Movement: js/grimoire.js; Aura of Devotion: RU.auraOf below)
 
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
@@ -55,10 +56,10 @@
   };
   // Aura of Protection: while the paladin stands, allies within 10 ft (and he) add his CHA to saves
   RU.aura = function (u) { return RU.inAura(u, 'protect'); };
-  RU.save = function (u, ab, dc) {
+  RU.save = function (u, ab, dc, adv0) { // (adv0: an advantage the caller knows of -- Land's Stride against Entangle)
     var c = u.conds, bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u) + (c.wardingBond ? 1 : 0) - (ab === 'dex' && c.slowed ? 2 : 0);
     // advantage: Dodge and Haste on DEX; Beacon of Hope on WIS; a creature's own (Danger Sense, Magic Resistance: o.adv). Disadvantage: restrained on DEX
-    var adv = (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
+    var adv = !!adv0 || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
     if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || c.incapacitated && c.laughing)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true };
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;

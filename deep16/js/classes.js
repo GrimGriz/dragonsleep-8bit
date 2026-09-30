@@ -1,5 +1,5 @@
 /* DEEP16 — the class NPCs (handoff-2026-09-28-npc-classes-to-six.md; Griz 09-28: "build NPC of each class out to level 6 and
-   combat test them"). A sheet for any of the twelve SRD 5.1 classes at levels 1-9, built by the SRD's own tables and by
+   combat test them"). A sheet for any of the twelve SRD 5.1 classes at levels 1-9 (the druid to 12: NPC.MAXLVL), built by the SRD's own tables and by
    the 8-bit game's rules (js/rules.js R.CLASSES, R.ac, R.attackBonus, R.spellDC ...), then made a grid unit the way the
    heroes are (js/save.js SV.unitOf). The spells are the grid's (data/spells.js + content/spells.json); a spell not built yet
    is simply not on the list (magic.js M.list).
@@ -27,7 +27,7 @@
 
   // ------------------------------------------------------------------ the twelve, levels 1-6 (the SRD's tables; spells by level of the NPC).
   // prio: where the standard array goes. kit: the SRD starting kit's weapon, armour, shield, and a second weapon (alt: the ranged
-  // one, or the melee one for a bow). sub: the SRD's one subclass and the level it comes. cantrips / known by class level (1-9).
+  // one, or the melee one for a bow). sub: the SRD's one subclass and the level it comes. cantrips / known by class level (1-9; the druid's to 12).
   // spells: what the NPC knows or prepares at each level it reaches (the test vehicle's list: chosen to put every built spell
   // of its class through a fight); `always`: the domain's or the oath's, prepared and uncounted
   var C = NPC.CLASSES = {
@@ -40,12 +40,12 @@
       always: { 1: ['bless', 'curewounds'], 3: ['lesserrestoration', 'spiritualweapon'], 5: ['beaconofhope', 'revivify'], 7: ['deathward', 'guardianoffaith'], 9: ['masscurewounds'] },
       spells: { 0: ['sacredflame', 'guidance', 'light', 'resistance'], 1: ['guidingbolt', 'healingword', 'shieldoffaith', 'sanctuary', 'command', 'bane', 'inflictwounds'], 2: ['holdperson', 'aid', 'blindnessdeafness', 'wardingbond'], 3: ['spiritguardians', 'masshealingword', 'dispelmagic', 'bestowcurse', 'daylight'], 4: ['guardianoffaith', 'banishment', 'freedomofmovement', 'deathward'], 5: ['flamestrike', 'masscurewounds', 'insectplague', 'greaterrestoration', 'dispelevilandgood', 'contagion'] } },
     druid: { prio: ['wis', 'con', 'dex', 'int', 'cha', 'str'], kit: { weapon: 'scimitar', armor: 'leather', shield: 'shield' }, sub: [2, 'Circle of the Land'], look: 'npcdruid_p0',
-      cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], prepares: 'wis', landCantrip: 'poisonspray',
+      cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4], prepares: 'wis', landCantrip: 'poisonspray', asiAt: [4, 8, 12], // (to twelve, 09-30: the 4th cantrip at 10, the ASI at 12)
       // the Circle of the Land's circle spells (SRD 5.1), always prepared, by druid level -- the built ones only (spider climb, meld into
       // stone, stone shape, passwall and gaseous form are OUT; wall of stone and cloudkill LATER): Higertha's mountain (invented.json
       // #higertha-druid), the generic druid's Underdark (the Pit's; the seat's call, 09-29)
       lands: { mountain: { 3: ['spikegrowth'], 5: ['lightningbolt'], 7: ['stoneskin'] }, underdark: { 3: ['web'], 5: ['stinkingcloud'], 7: ['greaterinvisibility'], 9: ['insectplague'] } },
-      spells: { 0: ['produceflame', 'shillelagh', 'guidance', 'resistance'], 1: ['entangle', 'faeriefire', 'healingword', 'curewounds', 'fogcloud', 'thunderwave'], 2: ['barkskin', 'moonbeam', 'flamingsphere', 'flameblade', 'heatmetal', 'spikegrowth', 'gustofwind', 'enhanceability'], 3: ['calllightning', 'dispelmagic', 'protectionfromenergy', 'sleetstorm', 'daylight'], 4: ['blight', 'confusion', 'icestorm', 'freedomofmovement'], 5: ['insectplague', 'masscurewounds', 'greaterrestoration', 'contagion'] } },
+      spells: { 0: ['produceflame', 'shillelagh', 'guidance', 'resistance'], 1: ['entangle', 'faeriefire', 'healingword', 'curewounds', 'fogcloud', 'thunderwave'], 2: ['barkskin', 'moonbeam', 'flamingsphere', 'flameblade', 'heatmetal', 'spikegrowth', 'gustofwind', 'enhanceability'], 3: ['calllightning', 'dispelmagic', 'protectionfromenergy', 'sleetstorm', 'daylight'], 4: ['blight', 'confusion', 'icestorm', 'freedomofmovement'], 5: ['insectplague', 'masscurewounds', 'greaterrestoration', 'contagion'], 6: ['heal', 'sunbeam'] } },
     fighter: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greatsword', armor: 'chainmail', alt: 'handaxe' }, style: 'gwf', sub: [3, 'Champion'], look: 'npcfighter_p0', asiAt: [4, 6, 8] },
     monk: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'shortsword', alt: 'dagger' }, sub: [3, 'Way of the Open Hand'], look: 'npcmonk_p0' },
     paladin: { prio: ['str', 'cha', 'con', 'wis', 'dex', 'int'], kit: { weapon: 'longsword', armor: 'chainmail', shield: 'shield', alt: 'handaxe' }, style: 'defense', sub: [3, 'Oath of Devotion'], look: 'npcpaladin_p0', prepares: 'cha', half: true,
@@ -211,7 +211,7 @@
   // ------------------------------------------------------------------ the sheet (the 8-bit game's shape: js/rules.js reads it)
   // spec: { cls, lvl, race, name, named, spells (a list over the class's), maxhp (true: a max hit die a level), land, patron }
   NPC.sheet = function (spec) {
-    var cls = spec.cls, c = C[cls], RC = R.CLASSES[cls], lvl = Math.max(1, Math.min(9, spec.lvl || 1));
+    var cls = spec.cls, c = C[cls], RC = R.CLASSES[cls], lvl = Math.max(1, Math.min(NPC.maxLvl(cls), spec.lvl || 1));
     if (!c || !RC) throw new Error('DEEP16: no class ' + cls);
     var race = NPC.RACES[spec.race || 'human'] || NPC.RACES.human;
     var abil = {};
@@ -330,6 +330,10 @@
     // Fiendish Vigor (an invocation): False Life at will -- she walks in with it
     if ((u.invocations || []).indexOf('fiendishvigor') >= 0) u.temp = Math.max(u.temp || 0, D.roll('1d4+4').total);
     if (h.cls === 'barbarian' && h.lvl >= 2) u.conds.dangerSense = true;
+    // the Circle of the Land (SRD 5.1): Land's Stride (6) -- nonmagical difficult ground costs nothing (grid.js stepCost), advantage on the save
+    // against magically made plants (Entangle); Nature's Ward (10) -- no poison, no disease, and no elemental or fey charms or frightens it
+    if (h.cls === 'druid' && h.lvl >= 6) u.landsStride = true;
+    if (h.cls === 'druid' && h.lvl >= 10) { u.natureWard = true; u.immune = (u.immune || []).concat(['poison']); u.condImmune = (u.condImmune || []).concat(['poisoned', 'diseased']); }
     if (h.cls === 'barbarian' && h.lvl >= 7) u.initAdv = true; // Feral Instinct (7): advantage on initiative (battle.js run); the surprise half is js/features.js F.feral
     u.facing = 1;
     // a second weapon to draw (the class AI's): a bow for the swordsman, a sword for the bowman, handaxes to throw
@@ -370,6 +374,11 @@
   // thrown weapons read as ranged when thrown (SRD 5.1: the handaxe, the dagger 20/60)
   NPC.THROWN = { handaxe: [20, 60], dagger: [20, 60] };
 
+  // how high a class NPC goes: 9 (the heroes' cap), the druid 12 (09-29, Griz: "please complete druid to 12 (game probably gonna get to the big
+  // boys at some point)"; 09-30: "the above 9's we're just prepping in case we have combat involving special NPCs"). The URL's lvl may say 12;
+  // NPC.sheet holds each class at its own ceiling
+  NPC.MAXLVL = { druid: 12 };
+  NPC.maxLvl = function (cls) { return NPC.MAXLVL[cls] || 9; };
   // a spec from a word: 'cleric', 'higertha', 'cleric:5', 'druid:3:dwarf'. A named one stands at its register's level (the story's
   // Talmok 3, Willem 5, Torvald 5) unless the word names another -- 'talmok:7' (09-28h: the Pocket DM, the tester ladder); built
   // away from it, `away` carries the register's level (NPC.sheet: the ASIs after it, the average HP, awayList)
@@ -377,7 +386,7 @@
     var bits = String(word).toLowerCase().split(':'), key = bits[0], L = +bits[1] || lvl || 1;
     var named = NPC.NAMED[key];
     // ('talmok:5:grown': the grown build even at the register's own level -- the tester ladder, 09-28h: "grown builds please")
-    if (named) { var at = Math.max(1, Math.min(9, +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && (at !== named.lvl || bits[2] === 'grown') ? named.lvl : 0 }); }
+    if (named) { var at = Math.max(1, Math.min(NPC.maxLvl(named.cls), +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && (at !== named.lvl || bits[2] === 'grown') ? named.lvl : 0 }); }
     if (!C[key]) return null;
     return { cls: key, lvl: L, race: bits[2] || 'human' };
   };
@@ -386,7 +395,7 @@
   // AI too, and you watch (09-28h: the class NPCs handoff's "a small, welcome addition")
   D.npcFight = function (q, o) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
-    var L = Math.max(1, Math.min(9, +(get('lvl') || get('level')) || 5)), foes = (get('npc') || 'fighter').split(',').filter(Boolean), vs = get('vs');
+    var L = Math.max(1, Math.min(12, +(get('lvl') || get('level')) || 5)), foes = (get('npc') || 'fighter').split(',').filter(Boolean), vs = get('vs');
     var what = foes.map(function (w) { var s = NPC.spec(w, L); return s ? (s.name || R.CLASSES[s.cls].name) : w; }).join(', ');
     return new D.Battle(Object.assign({ npc: { foes: foes, party: vs ? vs.split(',').filter(Boolean) : null }, watch: /[?&]watch\b/.test(q), fightDef: D.classFight(L, { what: what }) }, o || {}));
   };

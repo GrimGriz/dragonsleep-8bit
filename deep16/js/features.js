@@ -225,7 +225,8 @@
   F.BEASTS = { 2: 'wolf', 4: 'wolf', 8: 'giantspider' };
   // the shapes on offer (the Circle of the Land: CR 1/4 with no flying or swimming from 2, swimming from 4, CR 1 from 8), of the beasts
   // the bestiary has; the player picks (F.commands WILD SHAPE, 09-29), the AI takes F.BEASTS' by level
-  F.SHAPES = [{ kind: 'wolf', lvl: 2 }, { kind: 'wolfspider', lvl: 2 }, { kind: 'axebeak', lvl: 2 }, { kind: 'giantfrog', lvl: 4 }, { kind: 'giantspider', lvl: 8 }];
+  // (8: flying allowed -- the giant bat, CR 1/4, flies 60 with blindsight: the druid to twelve, 09-30; the bestiary's own giant bats still go round)
+  F.SHAPES = [{ kind: 'wolf', lvl: 2 }, { kind: 'wolfspider', lvl: 2 }, { kind: 'axebeak', lvl: 2 }, { kind: 'giantfrog', lvl: 4 }, { kind: 'giantspider', lvl: 8 }, { kind: 'giantbat', lvl: 8, flies: true }];
   F.beastsFor = function (u) { return F.SHAPES.filter(function (s) { return u.lvl >= s.lvl && D.FOES[s.kind]; }).map(function (s) { return s.kind; }); };
   F.wildShape = function* (B, u, kind) {
     kind = kind || (u.lvl >= 8 ? F.BEASTS[8] : F.BEASTS[2]);
@@ -233,10 +234,16 @@
     if (!d) return;
     u.turn.action = 0; u.feats.wildShape--;
     var bite = d.attacks[Object.keys(d.attacks)[0]];
-    u.beast = { kind: kind, hp: d.hp, maxhp: d.hp, keep: { weapon: u.weapon, alt: u.alt, baseAC: u.baseAC, speed: u.speed, sheet: u.sheet, abil: u.abil, attacks: u.attacks, attacksBase: u.attacksBase, packTactics: u.packTactics, known: u.known } };
+    var shp = F.SHAPES.filter(function (s) { return s.kind === kind; })[0];
+    u.beast = { kind: kind, hp: d.hp, maxhp: d.hp, keep: { weapon: u.weapon, alt: u.alt, baseAC: u.baseAC, speed: u.speed, sheet: u.sheet, abil: u.abil, saves: u.saves, attacks: u.attacks, attacksBase: u.attacksBase, packTactics: u.packTactics, known: u.known, flies: u.flies, blindsight: u.blindsight } };
     // (the whole attack, so the spider's poison and the frog's grip ride with the bite; the figure keeps its own square -- a Large shape stands in one)
     u.weapon = Object.assign({}, bite, { magic: false });
     u.alt = null; u.baseAC = d.ac; u.speed = d.speed; u.sheet = d.sheet; u.abil = Object.assign({}, u.abil, { str: d.abil.str, dex: d.abil.dex, con: d.abil.con }); u.attacks = 1; u.attacksBase = 1; u.packTactics = !!d.packTactics; u.known = [];
+    // (the beast's STR, DEX and CON saves -- the druid is proficient in none of the three: SRD 5.1 Wild Shape; its senses; a flier flies)
+    var sv0 = u.saves || {}; ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(function (k) { if (sv0[k] == null) sv0[k] = D.mod(u.beast.keep.abil[k]); });
+    u.saves = Object.assign({}, sv0, { str: d.saves ? d.saves.str : D.mod(d.abil.str), dex: d.saves ? d.saves.dex : D.mod(d.abil.dex), con: d.saves ? d.saves.con : D.mod(d.abil.con) });
+    if (d.blindsight) u.blindsight = Math.max(u.blindsight || 0, d.blindsight);
+    u.flies = !!(shp && shp.flies);
     u.turn.move = Math.max(u.turn.move, d.speed - (u.keep0 || 0));
     FX.sparkle(u, 'moss', 24); D.sfx('buff');
     B.card(['{y}' + Nm(B, u) + '{/}: WILD SHAPE -- a ' + d.name.toLowerCase() + ' where the druid stood  {g}(' + d.hp + ' HP of its own){/}'], 300);
