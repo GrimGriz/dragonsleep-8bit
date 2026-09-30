@@ -740,5 +740,12 @@
   "g.ropeTrick": {"t": "A rope climbs into the air and hangs there. One by one you go up it and pull it in after you. A short rest, out of the world.", "src": "invented: connective (the resting spells, RULED 09-28)"},
   "g.tinyHut": {"t": "The whorl breaks with a sound like a bell. A dome of shimmering force closes over the party for the night.", "src": "invented: connective (the resting spells, RULED 09-28)"},
   "g.noComponent": {"t": "The spell wants {item}, and there is none in the pack.", "src": "invented: connective (the resting spells, RULED 09-28)"},
-  "g.noRestHere": {"t": "Not here: nowhere a tent could go.", "src": "invented: connective (the resting spells, RULED 09-28)"}
+  "g.noRestHere": {"t": "Not here: nowhere a tent could go.", "src": "invented: connective (the resting spells, RULED 09-28)"},
+  "fam.ritual": {"t": "Charcoal, incense and herbs smoulder in a brass brazier. An hour goes by in the words.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
+  "fam.come": {"t": "Something answers. A spirit takes the shape of {a} and settles on {name}'s shoulder.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
+  "fam.change": {"t": "{name}'s {old} ripples like smoke, and is {a}.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
+  "fam.keep": {"t": "{name}'s {form} serves already. Burn another bundle of herbs for a new shape?", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
+  "fam.darts": {"t": "{name}'s {form} darts out among the foes: the next blow lands the better for it.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
+  "fam.caught": {"t": "{name}'s {form} is caught in it, and is gone.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
+  "fam.buffeted": {"t": "{name}'s {form} is buffeted, and holds on.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"}
 }

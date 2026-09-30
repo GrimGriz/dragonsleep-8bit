@@ -264,7 +264,8 @@
     "magicmissile",
     "shield",
     "sleep",
-    "detectmagic"
+    "detectmagic",
+    "findfamiliar"
    ],
    "classLine": "Wizard 2 · an evoker by aspiration",
    "blurb": "Sixteen, INT 17, WIS 9: he knows, and asks the wrong people. A farm boy off Newland who walked away from the sun chapels, came in with the Glowseep crews' haul, and slept on Aldwin's floor.",
@@ -2441,6 +2442,14 @@
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-6",
    "id": "fatheraxe"
   },
+  "callingherbs": {
+   "name": "Calling Herbs",
+   "kind": "part",
+   "price": 500,
+   "desc": "Charcoal, incense and herbs Mama mixes for the burning. A wizard burns one bundle in a brass brazier to call a familiar, or give it a new shape.",
+   "src": "invented (RULED 09-29, Griz: \"i'd like to add a material component for 500 sp only mama sells despite our normal hand-wave of components\"): the SRD Find Familiar's 10 gp of charcoal, incense and herbs, consumed",
+   "id": "callingherbs"
+  },
   "domewhorl": {
    "name": "Dome Whorl",
    "kind": "part",
@@ -3787,6 +3796,18 @@
    "desc": "A dome of force over the party for the night: a long rest where a tent could go. Cast from the book as a ritual; it breaks a Dome Whorl.",
    "src": "SRD 5.1 Leomund's Tiny Hut (the SRD's Tiny Hut, a ritual); RULED 09-28: a long rest where a tent goes, counted with the rest (clocks, morning, save), spending a snail shell from Percy's",
    "id": "tinyhut"
+  },
+  "findfamiliar": {
+   "name": "Find Familiar",
+   "level": 1,
+   "ritual": true,
+   "kind": "familiar",
+   "component": "callingherbs",
+   "target": "self",
+   "field": true,
+   "desc": "An hour's ritual: a spirit takes the shape of a small creature of the ground you stand on, and serves you. It darts at the foes so the next blow lands better; a blast that catches you ends it.",
+   "src": "SRD 5.1 Find Familiar (a ritual: from the book, no slot); REINSTATED 09-29 (Griz): cast from the field menu, the shape by the ground; a bundle of Calling Herbs burned each casting, 500 sp at Mama's only (RULED 09-29, Griz: past the usual hand-wave of components); the 8-bit battle: the first ally to attack after the wizard's turn, if he does not attack, has advantage (his own attack if he does); not a target, but a blast that catches the wizard catches it (RULED 09-29)",
+   "id": "findfamiliar"
   },
   "banishment": {
    "name": "Banishment",
@@ -9006,11 +9027,13 @@
     "potion",
     "greaterpotion",
     "antitoxin",
-    "kit"
+    "kit",
+    "callingherbs"
    ],
    "prices": {
     "potion": 450,
-    "greaterpotion": 1400
+    "greaterpotion": 1400,
+    "callingherbs": 500
    },
    "thanks": [
     "Mama says take it with food.",
@@ -14760,6 +14783,41 @@
    "t": "Not here: nowhere a tent could go.",
    "src": "invented: connective (the resting spells, RULED 09-28)",
    "id": "g.noRestHere"
+  },
+  "fam.ritual": {
+   "t": "Charcoal, incense and herbs smoulder in a brass brazier. An hour goes by in the words.",
+   "src": "invented: connective (Find Familiar, REINSTATED 09-29)",
+   "id": "fam.ritual"
+  },
+  "fam.come": {
+   "t": "Something answers. A spirit takes the shape of {a} and settles on {name}'s shoulder.",
+   "src": "invented: connective (Find Familiar, REINSTATED 09-29)",
+   "id": "fam.come"
+  },
+  "fam.change": {
+   "t": "{name}'s {old} ripples like smoke, and is {a}.",
+   "src": "invented: connective (Find Familiar, REINSTATED 09-29)",
+   "id": "fam.change"
+  },
+  "fam.keep": {
+   "t": "{name}'s {form} serves already. Burn another bundle of herbs for a new shape?",
+   "src": "invented: connective (Find Familiar, REINSTATED 09-29)",
+   "id": "fam.keep"
+  },
+  "fam.darts": {
+   "t": "{name}'s {form} darts out among the foes: the next blow lands the better for it.",
+   "src": "invented: connective (Find Familiar, REINSTATED 09-29)",
+   "id": "fam.darts"
+  },
+  "fam.caught": {
+   "t": "{name}'s {form} is caught in it, and is gone.",
+   "src": "invented: connective (Find Familiar, REINSTATED 09-29)",
+   "id": "fam.caught"
+  },
+  "fam.buffeted": {
+   "t": "{name}'s {form} is buffeted, and holds on.",
+   "src": "invented: connective (Find Familiar, REINSTATED 09-29)",
+   "id": "fam.buffeted"
   }
  },
  "rumors": [

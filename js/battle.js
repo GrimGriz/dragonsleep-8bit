@@ -238,6 +238,7 @@
     if (!isHero(a) && a.m.traits && a.m.traits.lightSensitive && this.bright) dis++;
     if (!isHero(t) && t.m.traits && t.m.traits.unseen && !t.conds.revealed) dis++;
     if (t.conds.engulfed && !isHero(a) && a.holding.indexOf(t) >= 0) adv++;
+    if (this.famHelps && this.famHelps(a, t)) adv++; // (the familiar on the wizard's shoulder: js/familiar.js)
     return adv && !dis ? 1 : dis && !adv ? -1 : 0;
   };
   Battle.prototype.d20 = function (adv) {
@@ -1435,6 +1436,7 @@
         if (!sb.success && sp.cond && !down(tb) && !pfegStops(tb, f, sp.cond)) { tb.conds[sp.cond] = sp.cond === 'prone' ? true : { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null }; line += ' ' + (sp.condText || (sp.cond.charAt(0).toUpperCase() + sp.cond.slice(1) + '!')); }
         this.shake = 4; DS.audio.sfx(db ? 'hit' : 'miss');
         yield* this.note(tb, line, 36);
+        if (sp.dmg && this.famSplash) yield* this.famSplash(tb, db0); // (a blast that catches the wizard catches his familiar: js/familiar.js)
         if (down(tb)) yield* this.note(tb, nameOf(tb) + ' falls!', 34);
       }
       return;

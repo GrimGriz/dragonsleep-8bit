@@ -19,7 +19,7 @@
   "cassia": { "name": "Coaching Inn", "keeper": "Cassia", "price": 8, "partyPrice": 16, "greeting": "Eight silver the good bed. A company takes the long room: sixteen, however many of you.",
     "src": "the-lab/pit-maps/shops-silverton.json pin 11 (bed, comfortable, the night 8 sp); party rate RULED 09-24 (Griz: 8 alone, a set 16 for the party)" },
   "lucia": { "name": "Mama's Pharmakaiea", "keeper": "Lucia", "look": "lucia", "greeting": "Mama mixes, I sell. Stitches are Davos. Anything that goes in a mouth is us.",
-    "items": ["simples", "potion", "greaterpotion", "antitoxin", "kit"], "prices": { "potion": 450, "greaterpotion": 1400 },
+    "items": ["simples", "potion", "greaterpotion", "antitoxin", "kit", "callingherbs"], "prices": { "potion": 450, "greaterpotion": 1400, "callingherbs": 500 },
     "thanks": ["Mama says take it with food.", "Two swallows, not one.", "For the sand or the road, it works the same."],
     "src": "wiki/the-hex.md (Mama's Pharmakaiea, shop card 'Consult Lucia'); a shop RULED 09-24 (Griz); stock invented.json#mamas" },
   "percy": { "name": "Percy's Particulars", "keeper": "Percy & Ned Halloway", "look": "percy", "greeting": "Road harvest rendered, jarred and priced. I pay a fifth of what it sells for once it's rendered. That's the rendering.",

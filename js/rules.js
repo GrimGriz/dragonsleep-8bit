@@ -172,6 +172,7 @@
     var c = R.CLASSES[h.cls], want = h.lvl * Math.max(1, c.hd + DS.mod(h.abil.con)), base = h.maxhp - ((h.conds && h.conds.aid) || 0);
     if (base < want) { h.maxhp += want - base; h.hp += want - base; }
     if (h.id === 'aurdin' && !h.equip.armor && DS.DATA.items.robes) h.equip.armor = 'robes'; // 09-25: robes for the armor slot
+    if (h.id === 'aurdin' && DS.DATA.spells.findfamiliar && h.known.indexOf('findfamiliar') < 0) h.known.push('findfamiliar'); // 09-29: the ritual in his book
     var d = DS.DATA.heroes[h.id], arch = (d && d.archetypes) || [];
     if (arch.length && h.lvl >= 3 && !arch.some(function (a) { return a.name === h.subclass; })) { h.subclass = null; h.pendingChoice = 'archetype'; }
   };
@@ -386,5 +387,34 @@
   R.CONDS = {
     poisoned: 'PSN', frightened: 'FRT', restrained: 'RST', prone: 'PRN', asleep: 'SLP', paralyzed: 'PAR', grappled: 'GRP',
     blinded: 'BLD', hidden: 'HID', stunned: 'STN', engulfed: 'ENG', invisible: 'INV', stoneskin: 'STN', seeInvisible: 'SEE'
+  };
+
+  // ---------------------------------------------------------------- Find Familiar (SRD 5.1; REINSTATED 09-29, Griz: "familiars are pretty sweet -
+  // let's reinstate"; cast from the field menu, the shape picked by where you stand: "select by biome"). The forms' numbers are the SRD's
+  // (a spirit in the shape, fey by default); `sheet` is DEEP16's figure for it (a form with no sheet yet is left off the pick). The
+  // snowy owl is the owl in the snowfield's feathers. Both games read this: js/familiar.js (the ritual, the 8-bit shoulder) and
+  // deep16/js/familiar.js (the grid's familiar)
+  R.FAMILIARS = {
+    owl: { name: 'owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, sheet: 'owl_p2', gift: 'flies 60 ft; sees 120 ft in the dark; swoops in and out of reach unharmed' },
+    snowyowl: { name: 'snowy owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, sheet: 'snowyowl_p2', gift: 'an owl in the snowfield\'s feathers: flies 60 ft, sees 120 ft in the dark, swoops in and out unharmed' },
+    bat: { name: 'bat', ac: 12, hp: 1, speed: 5, fly: 30, blindsight: 60, sheet: 'giantbat_p1', scale: 0.45, gift: 'flies 30 ft; hears its way 60 ft in any dark; carries a touch spell' },
+    rat: { name: 'rat', ac: 10, hp: 1, speed: 20, darkvision: 30, sheet: 'giantrat_p1', scale: 0.5, gift: 'quick and small; sees 30 ft in the dark; carries a touch spell' },
+    spider: { name: 'spider', ac: 12, hp: 1, speed: 20, darkvision: 30, webWalker: true, sheet: 'wolfspider_p1', scale: 0.4, gift: 'webs do not hold it; sees 30 ft in the dark; carries a touch spell' },
+    frog: { name: 'frog', ac: 11, hp: 1, speed: 20, swim: 20, darkvision: 30, sheet: 'giantfrog_p1', scale: 0.45, gift: 'swims; sees 30 ft in the dark; carries a touch spell' },
+    snake: { name: 'poisonous snake', ac: 13, hp: 2, speed: 30, swim: 30, blindsight: 10, sheet: 'snake_p1', scale: 0.55, gift: 'swims; the hardiest of them (2 HP); carries a touch spell' }
+  };
+  // the world map's ground (content/maps/world.json legend) -> the shapes a spirit takes there; off the world map: the caves' or the town's
+  R.FAM_GROUND = {
+    snow: { tiles: 'o*', forms: ['snowyowl'] },
+    fields: { tiles: '.,nfyp=bv134567g', forms: ['owl', 'rat'] },
+    forest: { tiles: 'tz', forms: ['owl', 'spider'] },
+    water: { tiles: '~w%r', forms: ['frog', 'snake'] },
+    stone: { tiles: '^xcuse', forms: ['bat', 'spider', 'snake'] },
+    cave: { tiles: '28', forms: ['bat', 'rat', 'spider'] }
+  };
+  R.famForms = function (tile, mapKind) {
+    if (mapKind && mapKind !== 'world') return mapKind === 'town' ? ['rat', 'owl'] : ['bat', 'rat', 'spider'];
+    for (var k in R.FAM_GROUND) if (R.FAM_GROUND[k].tiles.indexOf(tile) >= 0) return R.FAM_GROUND[k].forms;
+    return ['owl'];
   };
 })();
