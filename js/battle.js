@@ -729,6 +729,9 @@
     if (h.cls === 'paladin') {
       if (f.lay > 0) L.push({ label: 'LAY ON HANDS', value: 'lay', right: f.lay });
       if (f.channel && h.lvl >= 3) L.push({ label: 'SACRED WEAPON', value: 'sacred', right: 'CD' });
+      // Turn the Unholy (Oath of Devotion 3, the same Channel Divinity; RULED 09-30, Griz: "pretty sure he's supposed to have it"): the fiends
+      // and the undead before him save WIS or cower, as the cleric's Turn Undead makes them
+      if (f.channel && h.lvl >= 3) L.push({ label: 'TURN THE UNHOLY', value: 'unholy', right: 'CD', disabled: !this.foes.some(function (x) { return !x.dead && x.hp > 0 && /^(undead|fiend)$/.test(tags(x)[0]) && !x.conds.frightened; }) });
     }
     return L;
   };
@@ -913,6 +916,15 @@
       // the glow is bright light (SRD: 20 ft): under the roost it breaks the one law as the Light cantrip does (RULED 09-28:
       // "paladin weapon glows and such should probably roost too"; DEEP16 the same, deep16/js/battle.js 'sacred')
       if (this.o.roost) { this.usedFire = true; this.roostCause = 'light'; }
+      return 'action';
+    }
+    if (sk === 'unholy') {
+      var self2 = this, foul = this.foes.filter(function (x) { return !x.dead && x.hp > 0 && /^(undead|fiend)$/.test(tags(x)[0]) && !x.conds.frightened; }), turned = [];
+      f.channel = 0;
+      DS.audio.sfx('buff'); this.flashT = 6;
+      yield* this.say(nameOf(u) + " presents Kalindel's light: TURN THE UNHOLY.", 44);
+      foul.forEach(function (x) { if (!self2.save(x, 'wis', R.spellDC(h)).success) { x.conds.frightened = { rounds: 10 }; turned.push(plain(x)); } });
+      yield* this.say(turned.length ? turned.join(', ') + (turned.length > 1 ? ' turn' : ' turns') + ' from him and cower.' : 'Nothing unholy gives ground.', 40);
       return 'action';
     }
     return 'cancel';

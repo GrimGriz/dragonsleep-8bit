@@ -115,6 +115,21 @@
       if (u.dead || u.hp <= 0) return;
     }
   });
+  // the same strikes for the player's monk (the ring's FLURRY OF BLOWS / BONUS STRIKE): each strike asks at whom when more than one stands beside
+  F.bonusStrikes = function* (B, u) {
+    var T = u.turn, fist = F.fist(u), flurry = u.lvl >= 2 && feat(u, 'ki'), n = flurry ? 2 : 1;
+    T.bonus = 0; if (flurry) u.feats.ki--;
+    B.card(['{y}' + Nm(B, u) + '{/}: ' + (flurry ? 'FLURRY OF BLOWS  {g}(1 ki, ' + u.feats.ki + ' left){/}' : 'a strike of the martial arts {g}(bonus action){/}')], 200);
+    for (var i = 0; i < n; i++) {
+      var near = foesBeside(B, u); if (!near.length) break;
+      var t = near.length > 1 ? yield* pickOne(B, u, flurry ? 'FLURRY OF BLOWS' : 'BONUS STRIKE', near, 'Strike ' + (i + 1) + ' of ' + n + ': at whom?') : near[0];
+      if (!t) { if (!i) { T.bonus = 1; if (flurry) u.feats.ki++; } break; } // (not now, before a blow: nothing spent)
+      var keep = u.weapon; u.weapon = fist; T.flurry = flurry;
+      yield* B.attack(u, t, fist);
+      u.weapon = keep; T.flurry = false;
+      if (u.dead || u.hp <= 0) return;
+    }
+  };
   // Stunning Strike (5) and Open Hand Technique (3): what the monk does with a hit (battle.js attack asks, M.onWeaponHit)
   M.onWeaponHit = function* (B, att, tgt, atk, crit) {
     if (tgt.dead || tgt.hp <= 0) return;
@@ -132,6 +147,17 @@
       B.card(['  {y}stunning strike{/} {g}(1 ki){/}: ' + Nm(B, tgt) + ' CON ' + RU.saveText(s2) + ' vs DC ' + kiDC(att) + '  ' + (s2.ok ? '{n}shakes it off{/}' : '{p}STUNNED{/}')], 300);
       if (!s2.ok) { tgt.conds.stunned = { by: att.id, till: { who: att.id, at: 'end', n: 2 } }; FX.ring(tgt, 'gold', 26); }
       yield 16;
+    }
+    // the player's monk is asked, on each melee hit while ki lasts (SRD 5.1: no limit a turn but the ki)
+    else if (att.cls === 'monk' && att.lvl >= 5 && feat(att, 'ki') && att.side === 'party' && !att.guest && !atk.ranged && !tgt.conds.stunned && !RU.immuneTo(tgt, 'stunned') && tgt.hp > 0) {
+      var yes = yield { prompt: { who: att, title: att.name + ': STUNNING STRIKE?', lines: ['1 ki (' + att.feats.ki + ' left): ' + Nm(B, tgt) + ' saves CON against DC ' + kiDC(att) + ' or is stunned till the end of your next turn.'], opts: [{ label: 'STUN', value: true }, { label: 'NOT THIS TIME', value: false }] } };
+      if (yes) {
+        att.feats.ki--;
+        var s3 = RU.save(tgt, 'con', kiDC(att), false, 'stunned');
+        B.card(['  {y}stunning strike{/} {g}(1 ki){/}: ' + Nm(B, tgt) + ' CON ' + RU.saveText(s3) + ' vs DC ' + kiDC(att) + '  ' + (s3.ok ? '{n}shakes it off{/}' : '{p}STUNNED{/}')], 300);
+        if (!s3.ok) { tgt.conds.stunned = { by: att.id, till: { who: att.id, at: 'end', n: 2 } }; FX.ring(tgt, 'gold', 26); }
+        yield 16;
+      }
     }
     // Colossus Slayer (the Hunter ranger, 3): once a turn, +1d8 on a weapon hit on one already hurt
     // (dealt as its own blow so the card shows it)
@@ -341,7 +367,7 @@
   // The AI turns them when two or more are near, or one that hits hard; the player's TURN THE UNHOLY button (F.commands). Class NPCs only:
   // Lymen, of the same oath, has Sacred Weapon in the 8-bit game and no more (his hero sheet is that game's)
   F.unholyNear = function (B, u) { return hostileNear(B, u, 30).filter(function (w) { return (w.type === 'undead' || w.type === 'fiend') && !w.conds.turned; }); };
-  F.unholy = function (u) { return !!(u.npc && u.cls === 'paladin' && u.lvl >= 3 && RU.devoted(u)); };
+  F.unholy = function (u) { return !!(u.cls === 'paladin' && u.lvl >= 3 && RU.devoted(u)); }; // (Lymen's too: RULED 09-30, Griz: "pretty sure he's supposed to have it")
   TX.ACTIONS.push(function (B, u, fs) {
     if (!F.unholy(u) || !feat(u, 'channel') || !u.turn.action || u.turn.attacksLeft || (u.side === 'party' && !u.guest)) return null;
     var foul = F.unholyNear(B, u), dc = u.spellDC;
@@ -788,6 +814,15 @@
       out.push({ id: 'stepdisengage', label: 'STEP: DISENGAGE', cost: 'B', icon: 'disengage', skill: true, ok: kiOk && !T.disengaged, why: T.disengaged ? 'disengaged already' : kiWhy, note: 'Step of the Wind, 1 ki: leaving reach provokes nothing this turn; ' + kiLeft });
       out.push({ id: 'stepdash', label: 'STEP: DASH', cost: 'B', icon: 'dash', skill: true, ok: kiOk && !u.conds.restrained, why: u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : kiWhy, note: 'Step of the Wind, 1 ki: +' + u.speed + ' ft this turn; ' + kiLeft });
     }
+    // the player's monk (RULED 09-30, Griz: "yes please"): after the Attack action, the bonus action's strikes -- Flurry of Blows (2, 1 ki, two
+    // unarmed strikes) or Martial Arts' one without ki -- and Wholeness of Body (the Open Hand's 6: an action, three times its level in HP, a long rest)
+    if (u.cls === 'monk') {
+      var fl = u.lvl >= 2 && feat(u, 'ki'), besideN = foesBeside(B, u).length;
+      out.push({ id: 'flurry', label: fl ? 'FLURRY OF BLOWS' : 'BONUS STRIKE', cost: 'B', icon: 'attack', skill: true, ok: !!T.attackAction && T.bonus > 0 && besideN > 0 && !u.conds.disarmed,
+        why: !T.attackAction ? 'after the Attack action' : T.bonus <= 0 ? 'the bonus action is spent' : 'no foe beside you', note: fl ? '1 ki: two unarmed strikes at foes beside you; ' + ((u.feats && u.feats.ki) || 0) + ' ki left' : 'Martial Arts: one unarmed strike' + (u.lvl >= 2 ? ' (no ki left)' : '') });
+      if (u.lvl >= 6 && u.subclass === 'Way of the Open Hand') out.push({ id: 'wholeness', label: 'WHOLENESS OF BODY', cost: 'A', icon: 'heal', skill: true, ok: act && feat(u, 'wholeness') && u.hp < u.maxhp,
+        why: !feat(u, 'wholeness') ? 'used (a long rest brings it back)' : !act ? 'the action is spent' : 'unhurt', note: 'heal yourself ' + 3 * u.lvl + ' HP, once a long rest' });
+    }
     if (F.unholy(u)) out.push({ id: 'turnunholy', label: 'TURN THE UNHOLY', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.unholyNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no fiend or undead within 30 ft', note: 'fiends and undead within 30 ft: WIS DC ' + u.spellDC + ' or turned for a minute (the Channel Divinity Sacred Weapon uses)' });
     if (u.cls === 'bard' && u.lvl >= 6) out.push({ id: 'countercharm', label: 'COUNTERCHARM', cost: 'A', icon: 'sacred', skill: true, ok: act && !u.conds.countercharm && !u.conds.incapacitated,
@@ -836,6 +871,8 @@
       case 'turnundead': yield* F.turnUndead(B, u, F.undeadNear(B, u)); return;
       case 'turnunholy': yield* F.turnUndead(B, u, F.unholyNear(B, u), { name: 'TURN THE UNHOLY', noDestroy: true }); return;
       case 'patient': yield* F.patient(B, u); return;
+      case 'flurry': yield* F.bonusStrikes(B, u); return;
+      case 'wholeness': { u.turn.action = 0; u.feats.wholeness = 0; var gotW = B.heal(u, 3 * u.lvl); D.sfx('heal'); FX.sparkle(u, 'moss', 16); B.card(['{y}' + Nm(B, u) + '{/}: WHOLENESS OF BODY  {n}+' + gotW + ' HP{/}  {g}(a long rest brings it back){/}'], 240); yield 16; return; }
       case 'stepdisengage': yield* F.stepWind(B, u, 'disengage'); return;
       case 'stepdash': yield* F.stepWind(B, u, 'dash'); return;
       case 'countercharm': yield* F.countercharm(B, u); return;
