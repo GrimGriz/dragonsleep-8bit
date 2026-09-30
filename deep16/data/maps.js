@@ -933,6 +933,7 @@ window.D16.MAPS.bog = {
   var W8 = R8[0].length, rows = [];
   for (var gy = 0; gy < W8; gy++) { var r = ''; for (var gx = 0; gx < R8.length; gx++) r += R8[gx][W8 - 1 - gy]; rows.push(r); }
   var from8 = function (x, y, s) { return [y, W8 - (x + (s || 1))]; };
+  var to8 = function (gx, gy) { return [W8 - 1 - gy, gx]; }; // (and back: a grid square to the 8-bit's -- the square the party walked off at, 09-30d)
   var at8 = function (list) { return list.map(function (p) { return from8(p[0], p[1]); }); };
   window.D16.MAPS.wet = {
     name: 'The Wet',
@@ -940,7 +941,7 @@ window.D16.MAPS.bog = {
     dark: true, // (the 8-bit map's `dark`: no lamp of its own)
     step: 10,
     deepWater: 'D~',
-    rows8: R8, rows: rows, from8: from8,
+    rows8: R8, rows: rows, from8: from8, to8: to8,
     entry: at8([[2, 12], [2, 13], [3, 12], [3, 13], [2, 11]]),
     doors: at8([[1, 12], [1, 13]]),
     foes: [],

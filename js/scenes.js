@@ -369,12 +369,20 @@
       // in-fight equip change" -- the field's equip holds to it too, or the field could hand a fight three hands' worth)
       var lit = !!h.equip.torch;
       var items = slots.map(function (s) { var it = R.item(h.equip[s[0]]); return { label: s[1], right: it ? it.name : (s[0] === 'shield' && lit ? 'a light in hand' : '—'), value: s[0], disabled: (fight && (acted || s[0] === 'armor' || s[0] === 'ring')) || (s[0] === 'shield' && lit && !h.equip.shield) }; });
+      // the light in his hand: a lantern or the lamp stays lit till it is put away here (RULED 09-30d: "using a lantern should stick"); the field's only
+      var lk = lit && G.flags.torchBy === h.id ? (G.flags.torchKind || 'torch') : null, hooded = lk && R.hooded(lk);
+      if (lk) items.push({ label: 'LIGHT', right: (DS.DATA.items[lk] || { name: 'Torch' }).name, value: 'light', disabled: fight });
       var slot = yield DS.choose({
         items: items, x: 20, y: 30, w: 216, title: h.name + '   AC ' + R.ac(h) + '   ATK ' + DS.sgn(R.attackBonus(h)) + ' ' + dmgText(h),
         drawExtra: function (ctx) { DS.win(ctx, 20, 100, 216, fight ? 41 : 30); DS.text(ctx, 'Proficient: ' + R.CLASSES[h.cls].armor.join(', ') + (R.CLASSES[h.cls].armor.length ? '' : 'no armor'), 28, 108, '#9C9C9C'); DS.text(ctx, 'Weapons: ' + R.CLASSES[h.cls].weapons.join(', '), 28, 119, '#9C9C9C');
           if (fight) DS.text(ctx, acted ? 'Action spent: no changes now.' : 'In a fight: weapon, shield, before acting.', 28, 130, '#F8D878'); }
       });
       if (!slot) return;
+      if (slot === 'light') { // (a torch put out is spent; a lantern or the lamp goes back in the pack)
+        var off = yield DS.choose({ items: [{ label: hooded ? '(put it away)' : '(put it out)', right: hooded ? 'to the pack' : 'spent', value: 'off' }], x: 30, y: 60, w: 196, title: 'EQUIP LIGHT' });
+        if (off) { DS.EV.torchOut(true); DS.audio.sfx('confirm'); }
+        continue;
+      }
       var cands = G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && it.kind === slot && R.canEquip(h, it); })
         .map(function (s) { var it = DS.DATA.items[s.id], two = !!(it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0); return { label: it.name, right: two && lit ? 'both hands' : compare(h, slot, it), value: s.id, disabled: two && lit }; });
       if (h.equip[slot]) cands.unshift({ label: '(remove)', value: '__none' });

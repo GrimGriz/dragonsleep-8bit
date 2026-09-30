@@ -279,15 +279,21 @@
     return tturn0 ? yield* tturn0(B, u) : false;
   };
 
-  // ------------------------------------------------------------------ the end: one out takes them all; quiet, or won; what died, for the 8-bit
+  // ------------------------------------------------------------------ the end: the wet keeps them till one of them walks off it; what died, for the 8-bit
+  // (RULED 09-30d, Griz: "Can we keep on the grid after everything is dead (or as yet unrevealed) ... and do have the xp award when the
+  // players finally leave it"): nothing dead, asleep or quiet ends it now -- only one of the party off the south edge or up the stair (all of
+  // them out: a win if something died here, its XP at the 8-bit's Victory; else a run), or all of them down (lost). A hero down: the herd comes
   var over0 = BP.over;
   BP.over = function () {
     var o = over0.apply(this, arguments);
     if (!on(this) || o === 'lost' || o === 'pyro' || o === 'roost') return o;
     if (this.fight.oneLeavesAll && ours(this).some(function (w) { return w.left; })) return 'escaped';
-    var awake = this.units.filter(function (w) { return w.side === 'foe' && !w.dead && w.hp > 0 && !w.dormant && !w.ethereal; });
-    if (awake.length || downed(this).length) return null; // (a hero down: the herd is coming -- nothing is over)
-    return W.killed(this).length ? 'won' : 'quiet';
+    return null;
+  };
+  // where the one who walked out left the grid, in the 8-bit map's squares (data/maps.js wet to8): the 8-bit puts the party there (js/events.js EV.wetOut)
+  W.exitOf = function (B) {
+    var w = ours(B).filter(function (u) { return u.left && !u.summon; })[0], to8 = B.map && B.map.def && B.map.def.to8;
+    return w && to8 ? to8(w.x, w.y) : null;
   };
   // the 8-bit game's ids of what died here: the three by name, each crawler
   W.killed = function (B) {
@@ -305,11 +311,11 @@
     if (on(this)) {
       var k = W.killed(this), F8 = this.flags8, self = this;
       Object.keys(FLAG8).forEach(function (r) { if (self.wet.present[r] && !self.wet.sleepers[r] && k.indexOf(ID8[r]) >= 0) F8[FLAG8[r]] = 1; });
+      if (o === 'escaped' && k.length) o = 'won'; // (walked out with something dead behind them: a win, its XP as they come up)
       this.enemies8 = o === 'won' ? k : null;
-      if (o === 'quiet') {
-        this.result = 'escaped'; D.music('victory'); yield 30;
-        this.card(['{y}THE WET GOES QUIET.{/}', D.keys('{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? 'E back to the ladder' : 'E fight again') + ' · M the menu{/}')], 1e9);
-      } else yield* finish0.apply(this, arguments);
+      this.exit8 = o === 'lost' ? null : W.exitOf(this);
+      yield* finish0.call(this, o);
+      if (o === 'escaped' && window.DS && window.DS.audio && window.DS.audio.stop) window.DS.audio.stop(); // (a walk-out: no game-over tune)
       // no end card (RULED 09-30c: "no press e, just go"): a beat to read the head, and back
       if (this.fight.noCards && this.o.onDone) { yield 50; if (D.top && D.top() === this) D.pop(); else if (D.pop) D.pop(); this.o.onDone(this.result); }
       return;

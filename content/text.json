@@ -182,6 +182,7 @@
   "w.landlordAsk": { "t": "The deepest pool, under the fall. Something big shifts in it. It wants food, not blood.", "src": "WarrensModule/crawler-warrens-DM.md §2 (not a fight, a landlord)" },
   "w.landlordFeed": { "t": ["The bucket goes down. The water churns and settles. A shift's peace, bought.", "Fed, it tells you things in pictures: what comes down the stream from the cavern above. Fungal light. Clacking in the dark. A channel too small to follow."], "src": "WarrensModule/crawler-warrens-DM.md §2 (fed, it tells things in pictures); wiki/the-warrens.md (the clacker cavern, off-sheet)" },
   "w.landlordFed": { "t": "The pool is still. It has had its bucket.", "src": "invented: connective" },
+  "w.fedXp": { "t": "The landlord is fed, and lets the wet be. 500 XP for the bucket: each fighter standing gains {n} XP.", "src": "RULED 09-30d (Griz: '500 xp if we aren't giving any for bucket the landlord'); the line invented: connective" },
   "w.landlordRises": { "t": "It rises from its pool, all eye-stalk and tentacle. It will not leave the water.", "src": "WarrensModule/crawler-warrens-DM.md §2 (does not leave its pool)" },
   "w.poolQuiet": { "t": "The deepest pool is quiet now. Nobody feeds it anything.", "src": "invented: connective" },
   "w.jelly": { "t": "The second settling pool heaves. Something the colour of old mustard slides up out of it.", "src": "wiki/the-warrens.md (an ochre jelly in the settling pool)" },

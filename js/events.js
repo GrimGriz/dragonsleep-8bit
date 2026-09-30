@@ -31,7 +31,7 @@
   // ------------------------------------------------------------------ movement & maps
   EV.warp = function* (to, tx, ty, dir, w) {
     var prev = F().map ? F().map.src.name : null;
-    if (F().map && to !== F().map.id) EV.torchOut(); // (another map: the field torch is done)
+    if (F().map && to !== F().map.id) EV.torchOut(); // (another map: the field torch is done; a lantern or the lamp stays lit in the hand -- 09-30d)
     yield DS.fade(1, 12);
     F().load(to, tx, ty, dir);
     var nm = F().map.src.name;
@@ -297,7 +297,8 @@
     } else if (use.effect === 'light') { // a torch, or a hooded lantern (09-29), carried on a dark map (torchdark 09-28): a free hand; it burns till a rest or another map
       var lantern = R.hooded(id), lamp = lantern && id !== 'lantern'; // (the Ledger-Lamp, 09-30, is a hooded light of its own: 40 ft, never spent -- torchKind 'ledgerlamp')
       // (lit anywhere now, with a free hand, to walk into the next fight holding it -- RULED 09-30c, Griz: "need to be able to use lantern/torch
-      // on char with available hand before a fight (currently scolds me to save the torch/oil)"; it still goes out at a rest or leaving the map)
+      // on char with available hand before a fight (currently scolds me to save the torch/oil)"; a torch still goes out at a rest or leaving the
+      // map, a lantern or the lamp stays lit till EQUIP's LIGHT puts it away -- RULED 09-30d)
       var dark = EV.darkHere();
       if (g.flags.torchBy) { var tb = g.party.filter(function (x) { return x.id === g.flags.torchBy; })[0]; yield DS.say(L('g.torchAlready', { name: tb ? tb.name : 'Someone' })); return; }
       if (!R.freeHands(h)) { yield DS.say(L('g.torchNoHand', { why: R.handsWhy(h) })); return; }
@@ -306,7 +307,9 @@
     }
   };
   // the field torch goes out: at a rest, or leaving the map (the hour is up; nothing is said)
-  EV.torchOut = function () { var g = G(); if (!g.flags.torchBy) return; g.party.forEach(function (h) { delete h.equip.torch; }); if (R.hooded(g.flags.torchKind)) g.give(g.flags.torchKind, 1); delete g.flags.torchBy; delete g.flags.torchKind; }; // (a lantern is not spent: put away, back in the pack; nor the Ledger-Lamp, 09-30: back as 'ledgerlamp')
+  // (a lantern or the Ledger-Lamp does not go out: lit, it stays in the hand, map to map and through a rest, till EQUIP's LIGHT puts it away --
+  // RULED 09-30d, Griz: "I don't mind torches working that way, but using a lantern should stick". `all`: put away whatever is lit)
+  EV.torchOut = function (all) { var g = G(); if (!g.flags.torchBy || (!all && R.hooded(g.flags.torchKind))) return; g.party.forEach(function (h) { delete h.equip.torch; }); if (R.hooded(g.flags.torchKind)) g.give(g.flags.torchKind, 1); delete g.flags.torchBy; delete g.flags.torchKind; }; // (a lantern is not spent: put away, back in the pack; nor the Ledger-Lamp, 09-30: back as 'ledgerlamp')
   EV.fieldCast = function* (h, sp) {
     var g = G();
     var slot = sp.level && !sp.ritual ? R.lowestSlot(h, sp.level) : 0;
@@ -774,26 +777,51 @@
   S.landlord = function* () {
     var g = G();
     if (g.flags.otyughDead) { yield DS.say(L('w.poolQuiet')); return; }
-    if (g.flags.otyughFed) { yield DS.say(L('w.landlordFed')); return; }
+    if (g.flags.otyughFed) { yield DS.say(L('w.landlordFed')); yield* EV.fedXp(); return; } // (fed before the bucket paid: it pays now)
     var opts = [g.has('bucket') ? 'LOWER THE BUCKET' : 'WAIT', 'FIGHT IT', 'STEP BACK'];
     var a = yield DS.ask(L('w.landlordAsk'), opts);
     if (a === 0 && g.has('bucket')) {
       g.take('bucket', 1); g.flags.otyughFed = 1; DS.audio.sfx('splash');
       yield DS.say(L('w.landlordFeed'));
       g.flags['heard:r-stream'] = 1;
+      yield* EV.fedXp();
       return;
     }
     if (a === 1) {
       // fought in DEEP16: THE SETTLING (RULED 09-30), the wet as one grid, the lead on his own square, the landlord awake
       // (deep16/js/wet.js); what died there comes back as the flags (otyughDead, jellyDead, oozeDead: js/embed.js)
-      yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, introText: L('w.landlordRises'), deep16: 'wet', wake: 'landlord', at: [g.x, g.y] });
+      var res = yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, introText: L('w.landlordRises'), deep16: 'wet', wake: 'landlord', at: [g.x, g.y] });
+      yield* EV.wetOut(res);
     }
   };
   // the Settling (RULED 09-30, 09-30c): the jelly's spots (both shores of its pool) and the pool ooze's puddle put the lead on the wet's grid
   // on the same square, that one awake and the rest asleep till theirs are stepped on; the southern ooze is the 8-bit's own fight, a second
   // ooze ("Anything exit row and south stays 8bit"). Each trigger comes back till its creature is dead (mapgen.py)
-  S.jelly = function* () { var g = G(); yield DS.say(L('w.jelly')); yield* EV.fight(['ochrejelly'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'jelly', at: [g.x, g.y] }); };
-  S.poolOoze = function* () { var g = G(); yield DS.say(L('w.ooze')); yield* EV.fight(['grayooze'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'poolooze', at: [g.x, g.y] }); };
+  S.jelly = function* () { var g = G(); yield DS.say(L('w.jelly')); var res = yield* EV.fight(['ochrejelly'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'jelly', at: [g.x, g.y] }); yield* EV.wetOut(res); };
+  S.poolOoze = function* () { var g = G(); yield DS.say(L('w.ooze')); var res = yield* EV.fight(['grayooze'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'poolooze', at: [g.x, g.y] }); yield* EV.wetOut(res); };
+  // out of the wet (RULED 09-30d, Griz: "Can we keep on the grid after everything is dead (or as yet unrevealed) ... and do have the xp award
+  // when the players finally leave it (500 xp if we aren't giving any for bucket the landlord)"): the grid keeps them till one of them walks
+  // off it (deep16/js/wet.js), and they come up where he left it -- the south edge's own square, or up the stair to the hall above
+  // (DS.wetExit, the 8-bit square, js/embed.js). The kills' XP was the 8-bit battle's Victory; the bucket's comes here
+  EV.wetOut = function* (res) {
+    var g = G(), f = F(), at = DS.wetExit; DS.wetExit = null;
+    if (res === 'lose') return;
+    yield* EV.fedXp();
+    if (!at || !f.map || f.map.id !== 'warrens_d') return;
+    var w = f.warpAt(at[0], at[1]);
+    if (w) { DS.audio.sfx(w.sfx || 'door'); yield* EV.warp(w.to, w.tx, w.ty, w.dir || g.dir, w); return; }
+    g.x = at[0]; g.y = at[1]; g.dir = 'down'; f.px = at[0] * 16; f.py = at[1] * 16; f.moving = false; f.resetEncounter();
+  };
+  // the landlord fed from the bucket, on the grid or at its rim: 500 XP (RULED 09-30d), shared like a fight's among those standing, once
+  EV.fedXp = function* () {
+    var g = G(); if (!g.flags.otyughFed || g.flags.otyughFedXp) return;
+    g.flags.otyughFedXp = 1;
+    var living = g.party.filter(function (h) { return !h.ko; }), each = living.length ? Math.floor(500 / living.length) : 0, ups = [];
+    living.forEach(function (h) { ups = ups.concat(R.gainXP(h, each)); });
+    DS.audio.sfx('levelup');
+    yield DS.say(L('w.fedXp', { n: each }));
+    if (ups.length) { DS.audio.sfx('levelup'); yield DS.say(ups); }
+  };
   S.oozeFight = function* () { yield DS.say(L('w.ooze')); var res = yield* EV.fight(['grayooze'], { bg: 'wet' }); if (res === 'win') G().flags.oozeDead = 1; };
   S.mark = function* () {
     var g = G();

@@ -1510,8 +1510,8 @@
       if (u.fortified) { u.h.maxhp -= 5; u.h.hp = Math.min(u.h.hp, u.h.maxhp); u.fortified = false; }
     });
     // a torch lit in the fight burns on into the dark map (the field's glow; events.js puts it out at a rest or a door)
-    // (a lantern is not spent -- 09-29: carried out onto lit ground it goes back in the pack)
-    if (this.torchBy && this.dark && this.over !== 'roost') { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy && !down(u); })[0]; if (tb) { DS.G.flags.torchBy = tb.h.id; DS.G.flags.torchKind = this.torchKind; tb.h.equip.torch = 1; } }
+    // (a lantern is not spent -- 09-29; and it stays in the hand, dark or light, till EQUIP's LIGHT puts it away -- 09-30d)
+    if (this.torchBy && (this.dark || R.hooded(this.torchKind)) && this.over !== 'roost') { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy && !down(u); })[0]; if (tb) { DS.G.flags.torchBy = tb.h.id; DS.G.flags.torchKind = this.torchKind; tb.h.equip.torch = 1; } }
     // (the Ledger-Lamp, 09-30, is never lost: back in the pack whoever holds it at the end, a fall or a roost or no)
     if (!DS.G.flags.torchBy) { if (this.torchBy && R.hooded(this.torchKind) && (this.torchKind !== 'lantern' || (this.over !== 'roost' && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })))) DS.G.give(this.torchKind, 1); this.heroes.forEach(function (u) { delete u.h.equip.torch; }); }
     if (this.over === 'roost') { // the roof lets go: bats fill the screen, then the other kind of name

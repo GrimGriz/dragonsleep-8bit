@@ -127,8 +127,9 @@
       if (r.continualFlame && !h.conds.continualFlame) h.conds.continualFlame = h.equip.weapon || true;
       // (r.torch is 'torch', 'lantern' or a hooded light's pack id -- the Ledger-Lamp's 'ledgerlamp', 09-30 -- or false; the hooded ones are never spent)
       var lk = DS.R.hooded(r.torch) ? r.torch : (r.torch ? 'torch' : false), hoodedLit = lk && lk !== 'torch';
-      if (r.torch && DS.EV.darkHere && DS.EV.darkHere()) { g.flags.torchBy = h.id; g.flags.torchKind = lk; h.equip.torch = 1; }
-      else if (g.flags.torchBy === h.id) { delete g.flags.torchBy; delete g.flags.torchKind; delete h.equip.torch; if (hoodedLit) g.give(lk, 1); } // (dropped, thrown, put out or spent in the fight; a lantern still lit where it is light enough is put away, back in the pack -- 09-29)
+      // (a lantern or the lamp still lit in his hand stays there, dark here or not: it sticks -- RULED 09-30d)
+      if (r.torch && (hoodedLit || (DS.EV.darkHere && DS.EV.darkHere()))) { g.flags.torchBy = h.id; g.flags.torchKind = lk; h.equip.torch = 1; }
+      else if (g.flags.torchBy === h.id) { delete g.flags.torchBy; delete g.flags.torchKind; delete h.equip.torch; if (hoodedLit) g.give(lk, 1); } // (dropped, thrown, put out or spent in the fight: a torch is done)
       else if (hoodedLit) g.give(lk, 1);
       if (!r.torch) delete h.equip.torch;
     });
@@ -142,6 +143,7 @@
     // the flags the fight set (the Settling's, 09-30), and Pyro's measure (js/pyro.js reads DS.pyroBack as the 8-bit battle ends)
     if (d.flags) Object.keys(d.flags).forEach(function (k) { g.flags[k] = d.flags[k]; });
     DS.pyroBack = d.pyro || null;
+    DS.wetExit = d.exit8 || null; // (the Settling's way out: the 8-bit square the party walked off the grid at -- EV.wetOut, 09-30d)
     if (d.result === 'fled') DS.fledIds = (d.away || []).slice();
     if (d.result === 'yielded') DS.battleYielded = true; // (his words were on DEEP16's card; the scene asks what you do with him)
     return RESULT[d.result] || 'run';
