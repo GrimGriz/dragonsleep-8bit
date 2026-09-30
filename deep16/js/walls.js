@@ -224,6 +224,36 @@
       yield 24;
     }
   };
+  // Conjure Elemental (SRD 5.1, 5th, a minute to cast, concentration, an hour): cast at the camp (RULED 09-30, Griz: "Let's add the earth
+  // elemental to camp and hold off on the rest"; js/camp.js CAST AHEAD), so it walks into the fight beside its caster, on his side, run by
+  // the fight, with an initiative of its own. It goes at 0 HP. If his concentration breaks it does not go: it breaks loose, hostile to him and
+  // his (SRD: "you lose control of the elemental, it becomes hostile toward you and your companions"), and it is a foe like any other then.
+  // The kinds: the world's elementals of CR 5 or less (data/summons.js D.pool: the earth elemental, the xorn, and what is drawn later)
+  W.elementals = function () { return D.pool('elemental', 5).map(function (p) { return p.kind; }).sort(function (a, b) { return (a === 'earthelemental' ? -1 : 0) - (b === 'earthelemental' ? -1 : 0); }); };
+  W.seatConjured = function (B) {
+    B.units.filter(function (u) { return u.conjured && G.standing(u); }).forEach(function (u) {
+      var kind = D.FOES[u.conjured] ? u.conjured : W.elementals()[0]; if (!kind) return;
+      var w = B.makeFoe({ id: 'conj-' + u.id, kind: kind }), spot = null, bd = Infinity;
+      for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
+        if (!G.canStand(w, x, y)) continue;
+        var d = G.dist(u, { x: x, y: y, size: w.size || 1 }) + (y < u.y ? 0.5 : 0); if (d < bd) { bd = d; spot = [x, y]; }
+      }
+      if (!spot) return;
+      w.x = spot[0]; w.y = spot[1]; w.side = u.side; w.guest = true; w.summon = { by: u.id, id: 'conjureelemental' }; w.name = u.name + '\'s ' + D.FOES[kind].name.toLowerCase();
+      w.anim = 'idle'; w.animT = 0; w.flash = 0; w.reaction = 1; w.conds = w.conds || {}; w.facing = u.facing || 5;
+      B.units.push(w);
+      M.concentrate(B, u, 'conjureelemental', 'Conjure Elemental', function () { breakLoose(B, w, u); });
+      u.conc.value = 500; // (the class AI never trades it for another concentration: that would loose it on its own side)
+      delete u.conjured;
+    });
+  };
+  function breakLoose(B, w, u) {
+    if (!w.summon || w.dead || w.hp <= 0) return;
+    delete w.summon; w.loose = true; w.side = u.side === 'party' ? 'foe' : 'party'; w.guest = true;
+    FX.sparkle(w, 'stone', 16); D.sfx('earth');
+    B.card(['{r}' + w.name + ' breaks loose!{/} It turns on ' + u.name + ' and ' + (u.side === 'party' ? 'the party' : 'its own') + '.'], 360);
+    w.name = 'Loose ' + D.FOES[w.kind].name;
+  }
   // the grid's extra cost of a square (grid.js stepCost): a Wall of Thorns' 20, Plant Growth's 20
   G.extraAt = function (u, x, y) {
     if (u.ethereal) return 0;

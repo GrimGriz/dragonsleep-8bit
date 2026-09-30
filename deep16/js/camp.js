@@ -46,13 +46,14 @@
     var all = D.store.get(KEY) || {}, cl = this.o.climb, ours = this.o.ours;
     this.st = cl ? (cl.campState() || this.fresh()) : ours ? ((D.store.get(KEY + '.ours') || {})[this.L] || this.fresh()) : all[this.L] || this.fresh();
     if (ours) this.st.cast.light = this.st.cast.light || { on: null, who: null };
+    this.st.cast.elemental = this.st.cast.elemental || { on: false, kind: null };
     this.base = cl ? cl.rested() : ours ? null : SV.fixture(this.L, { bare: true });
     this.mode = 'menu'; this.sel = 0; this.top = 0; this.stack = []; this.msg = null;
     this.rebuild();
   };
   Camp.prototype.fresh = function () {
-    if (this.o.ours) return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: null }, aid: { on: false, out: null }, light: { on: null, who: null } }, torch: null, torchKind: 'torch' };
-    return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: 'aurdin' }, aid: { on: false, out: 'lymen' } }, torchKind: 'torch' };
+    if (this.o.ours) return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: null }, aid: { on: false, out: null }, light: { on: null, who: null }, elemental: { on: false, kind: null } }, torch: null, torchKind: 'torch' };
+    return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: 'aurdin' }, aid: { on: false, out: 'lymen' }, elemental: { on: false, kind: null } }, torchKind: 'torch' };
   };
   Camp.prototype.save = function () {
     if (this.o.climb) { this.o.climb.setCamp(this.st); return; }
@@ -100,12 +101,13 @@
     else if (R.armored(mt)) mwhy = mt.name + ' wears armour';
     else if (slotAt(az, 1) < 0) mwhy = 'no slot left';
     if (ma.on && !mwhy) { az.slots[slotAt(az, 1)]--; mt.conds.mageArmor = 1; }
-    info.mageArmor = { why: mwhy, target: mt, on: ma.on && !mwhy };
+    info.mageArmor = { why: mwhy, target: mt, on: ma.on && !mwhy, has: !!az && SV.prepPool(az).indexOf('mageArmor') >= 0 };
     var aid = st.cast.aid, at = hs.filter(function (h) { return h.id !== aid.out; }).slice(0, 3), awhy = '';
     if (!ly || !ly.prepared || ly.prepared.indexOf('aid') < 0) awhy = ly && SV.prepPool(ly).indexOf('aid') >= 0 ? 'not prepared' : 'Lymen has it from level 5';
     else if (slotAt(ly, 2) < 0) awhy = 'no 2nd-level slot left';
     if (aid.on && !awhy) { ly.slots[slotAt(ly, 2)]--; at.forEach(function (h) { h.maxhp += 5; h.hp += 5; h.conds.aid = (h.conds.aid || 0) + 5; }); }
-    info.aid = { why: awhy, targets: at, on: aid.on && !awhy };
+    info.aid = { why: awhy, targets: at, on: aid.on && !awhy, has: !!ly && SV.prepPool(ly).indexOf('aid') >= 0 };
+    info.elemental = { has: false };
     // a torch in hand (Griz, 09-28h: "Can we add 'Aurdin torch' as a campfire prepare?"): lit at the camp, out of the pack, so
     // nobody spends the fight's first action on the tinderbox; it takes a hand, as on the grid (js/light.js L.handsFree)
     // (09-29: or a hooded lantern, when the pack has one -- bright 30 and dim 30, hood down in the fight: dim 5 ft and a roost sleeps)
@@ -152,17 +154,24 @@
     if (!mc) mwhy = knows('mageArmor') ? 'no 1st-level slot left' : could('mageArmor') ? 'not prepared' : 'nobody knows it';
     else if (R.armored(mt)) mwhy = mt.name + ' wears armour';
     if (ma.on && !mwhy) { mc.spec.spend.push(1); mt.spec.conds.mageArmor = 1; }
-    info.mageArmor = { why: mwhy, target: mt, caster: mc, on: ma.on && !mwhy };
+    info.mageArmor = { why: mwhy, target: mt, caster: mc, on: ma.on && !mwhy, has: !!knows('mageArmor') || could('mageArmor') };
     // Aid: a cleric with it prepared and a 2nd-level slot, on three of the four (the caster goes without unless told otherwise)
     var aid = st.cast.aid, ac = knows('aid', 2), out = by[aid.out] || ac || hs[hs.length - 1], tg = hs.filter(function (h) { return h !== out; }).slice(0, 3), awhy = '';
     if (!ac) awhy = knows('aid') ? 'no 2nd-level slot left' : could('aid') ? 'not prepared' : 'nobody has it yet';
     if (aid.on && !awhy) { ac.spec.spend.push(2); tg.forEach(function (h) { h.spec.aid = 5; }); }
-    info.aid = { why: awhy, targets: tg, out: out, caster: ac, on: aid.on && !awhy };
+    info.aid = { why: awhy, targets: tg, out: out, caster: ac, on: aid.on && !awhy, has: !!knows('aid') || could('aid') };
     // Light: a cantrip, free, on the front man's gear (RULED 09-29: "the various participants should already be holding torch, lantern, or
     // someone glowing with Light as logical"): on by itself when the fight is in the dark
     var li = st.cast.light || {}, lc = knows('light'), lt = by[li.who] || front, lon = li.on != null ? !!li.on : this.dark(), lwhy = lc ? '' : 'nobody knows it';
     if (lon && !lwhy) lt.spec.conds.light = { by: lc.id };
-    info.light = { why: lwhy, target: lt, caster: lc, on: lon && !lwhy };
+    info.light = { why: lwhy, target: lt, caster: lc, on: lon && !lwhy, has: !!lc };
+    // Conjure Elemental (RULED 09-30, Griz: "Let's add the earth elemental to camp and hold off on the rest"): a minute to cast, so the camp's;
+    // whoever has it prepared and a 5th-level slot; the elemental walks in beside him and holds his concentration (js/walls.js W.seatConjured)
+    var el = st.cast.elemental || { on: false }, ec = knows('conjureelemental', 5), kinds = D.walls ? D.walls.elementals() : [], ek = kinds.indexOf(el.kind) >= 0 ? el.kind : kinds[0], ewhy = '';
+    if (!ec) ewhy = knows('conjureelemental') ? 'no 5th-level slot left' : could('conjureelemental') ? 'not prepared' : 'nobody has it';
+    else if (!ek) ewhy = 'no elemental in the world to answer';
+    if (el.on && !ewhy) { ec.spec.spend.push(5); ec.spec.conjured = ek; }
+    info.elemental = { why: ewhy, caster: ec, kind: ek, kinds: kinds, on: !!el.on && !ewhy, has: !!knows('conjureelemental') || could('conjureelemental') };
     // a torch, or a hooded lantern (09-29), in hand: it takes a hand (no pack to count here: our four have both)
     var kind = st.torchKind === 'lantern' ? 'lantern' : 'torch', tb = by[st.torch], twhy = '';
     if (tb) {
@@ -172,7 +181,7 @@
     info.torch = { who: tb || null, why: twhy, on: !!tb && !twhy, left: 1, kind: kind, kinds: ['torch', 'lantern'] };
     // the sheets as the fight will build them, the casts laid on; the lists' names point at these
     var fin = specs.map(function (sp) { var h = N.sheet(sp); h.spec = sp; h.prepared = self.pinfo[h.id] ? sp.prepared : null; return h; });
-    ['mageArmor', 'aid', 'light'].forEach(function (k) { var x = info[k]; x.target = at(fin, x.target); x.caster = at(fin, x.caster); if (x.targets) x.targets = x.targets.map(function (t) { return at(fin, t); }); if (x.out) x.out = at(fin, x.out); });
+    ['mageArmor', 'aid', 'light', 'elemental'].forEach(function (k) { var x = info[k]; x.target = at(fin, x.target); x.caster = at(fin, x.caster); if (x.targets) x.targets = x.targets.map(function (t) { return at(fin, t); }); if (x.out) x.out = at(fin, x.out); });
     info.torch.who = at(fin, info.torch.who);
     this.info = info; this.specs = specs;
     return { party: fin };
@@ -199,7 +208,8 @@
       case 'menu': return { title: 'THE CAMP', rows: [
         { label: 'EQUIP', right: armoury(this.L).length + ' in the armoury', act: go('hero'), desc: 'Weapons, armour, shields and rings from the armoury, free: nobody is fighting yet. What one hero sets down, another can take up.' },
         { label: 'PREPARE SPELLS', right: hs.filter(function (h) { return h.prepared; }).map(function (h) { return (self.o.ours ? h.name.charAt(0) : h.name) + ' ' + h.prepared.length + '/' + self.prepCount(h); }).join('  '), act: go('caster'), desc: this.o.ours ? 'The day\'s spells. Willem prepares INT + his level from his book (the register\'s list and the Rimeglass\'s growth); Katarina and Torvald WIS + level from the cleric\'s list. Cantrips and the domain\'s own are always ready.' : 'The day\'s spells. Aurdin prepares INT + his level from his book; Lymen CHA + half his level from the paladin list. Cantrips, and Lymen\'s oath spells, are always ready.' },
-        { label: 'CAST AHEAD', right: [this.info.mageArmor.on ? 'mage armor' : '', this.info.aid.on ? 'aid' : '', this.info.light && this.info.light.on ? 'light' : ''].filter(Boolean).join(', ') || 'nothing', act: go('cast'), desc: 'The 8-hour spells, cast this morning: they are on when the fight starts, and their slots are spent.' },
+        // (RULED 09-30, Griz: "what's in there should be dependent on party members": only what someone in the party has on their list)
+        this.castAny() ? { label: 'CAST AHEAD', right: [this.info.mageArmor.on ? 'mage armor' : '', this.info.aid.on ? 'aid' : '', this.info.light && this.info.light.on ? 'light' : '', this.info.elemental && this.info.elemental.on ? D.FOES[this.info.elemental.kind].name.toLowerCase() : ''].filter(Boolean).join(', ') || 'nothing', act: go('cast'), desc: 'The long spells, cast this morning: they are on when the fight starts, and their slots are spent. Only what someone in the party can cast is here.' } : null,
         { label: 'A LIGHT IN HAND', right: this.info.torch.why || (this.info.torch.who ? this.info.torch.who.name + ', ' + (this.info.torch.kind === 'lantern' ? 'lantern' : 'torch') : 'nobody'), ok: !this.info.torch.why || !!this.info.torch.who,
           act: function () { self.cycleTorch(1); }, cycle: function (d) { self.cycleTorch(d); },
           desc: 'Who walks in holding a light lit at the camp, from the pack: a torch (bright 20 ft, dim 20 more) or a hooded lantern (bright 30 ft, dim 30 more; HOOD DOWN in the fight for dim 5 ft only, and a roost sleeps), from the first round, no action spent on the tinderbox. It takes a hand (a versatile weapon is held in one); not with a two-handed weapon, or a weapon and a shield. Left/right or E: who, and which.' + ((this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark) ? '  This fight is in the dark.' : '  This fight is not in the dark.') },
@@ -253,19 +263,18 @@
       case 'cast': {
         if (this.o.ours) return this.castListOurs();
         var mi = this.info.mageArmor, ai = this.info.aid;
-        return { title: 'CAST AHEAD (left/right: on whom)', rows: [
+        return { title: 'CAST AHEAD (left/right: on whom)', rows: [].concat(!mi.has ? [] : [
           { label: (mi.on ? '[x] ' : '[ ] ') + 'MAGE ARMOR on ' + mi.target.name, right: mi.why || '1st-level slot', ok: !mi.why || mi.on, why: mi.why, hero: mi.target.id,
             act: function () { st.cast.mageArmor.on = !st.cast.mageArmor.on; self.changed(); }, cycle: function (d) { self.cycleMage(d); },
             desc: 'Aurdin, on a creature in no armour: AC 13 + DEX for 8 hours. Robes are not armour to it. It ends if the wearer puts on armour.' },
           // the target by a click as well as left/right (a mouse or the phone pad has no left/right on a row -- Griz, 09-28)
           { label: '     on whom: ' + mi.target.name, right: 'next', act: function () { self.cycleMage(1); }, hero: mi.target.id,
-            desc: 'Whom Aurdin casts it on: anyone in no armour (robes are not armour to it), himself included.' },
+            desc: 'Whom Aurdin casts it on: anyone in no armour (robes are not armour to it), himself included.' }], !ai.has ? [] : [
           { label: (ai.on ? '[x] ' : '[ ] ') + 'AID on ' + ai.targets.map(function (h) { return h.name; }).join(', '), right: ai.why || '2nd-level slot, +5 HP', ok: !ai.why || ai.on, why: ai.why,
             act: function () { st.cast.aid.on = !st.cast.aid.on; self.changed(); }, cycle: function (d) { self.cycleAid(d); },
             desc: 'Lymen, on three of the four: +5 to their maximum and current HP for 8 hours.' },
           { label: '     goes without: ' + (this.data.party.filter(function (h) { return h.id === st.cast.aid.out; })[0] || {}).name, right: 'next', act: function () { self.cycleAid(1); },
-            desc: 'Aid takes three of the four (SRD: up to three creatures of the caster\'s choice). Lymen may be one of them: pick who goes without.' }
-        ] };
+            desc: 'Aid takes three of the four (SRD: up to three creatures of the caster\'s choice). Lymen may be one of them: pick who goes without.' }]) };
       }
     }
     return { title: '', rows: [] };
@@ -274,21 +283,32 @@
   // CAST AHEAD for our four (o.ours): whoever knows the spell casts it -- Mage Armor (Willem), Aid (a cleric from 3), Light (a cleric's
   // cantrip, free) on the front man
   Camp.prototype.castListOurs = function () {
-    var self = this, st = this.st, mi = this.info.mageArmor, ai = this.info.aid, li = this.info.light, nm = function (h) { return h ? h.name : 'nobody'; };
-    return { title: 'CAST AHEAD (left/right: on whom)', rows: [
+    var self = this, st = this.st, mi = this.info.mageArmor, ai = this.info.aid, li = this.info.light, ei = this.info.elemental, nm = function (h) { return h ? h.name : 'nobody'; };
+    return { title: 'CAST AHEAD (left/right: on whom)', rows: [].concat(!mi.has ? [] : [
       { label: (mi.on ? '[x] ' : '[ ] ') + 'MAGE ARMOR on ' + nm(mi.target), right: mi.why || '1st-level slot', ok: !mi.why || mi.on, why: mi.why, hero: mi.target && mi.target.id,
         act: function () { st.cast.mageArmor.on = !st.cast.mageArmor.on; self.changed(); }, cycle: function (d) { self.cycleMage(d); },
         desc: (mi.caster ? mi.caster.name : 'A wizard') + ', on a creature in no armour: AC 13 + DEX for 8 hours. Robes are not armour to it. It ends if the wearer puts on armour.' },
-      { label: '     on whom: ' + nm(mi.target), right: 'next', act: function () { self.cycleMage(1); }, hero: mi.target && mi.target.id, desc: 'Whom it is cast on: anyone in no armour, the caster included. Talmok fights bare: it fits him.' },
+      { label: '     on whom: ' + nm(mi.target), right: 'next', act: function () { self.cycleMage(1); }, hero: mi.target && mi.target.id, desc: 'Whom it is cast on: anyone in no armour, the caster included. Talmok fights bare: it fits him.' }], !ai.has ? [] : [
       { label: (ai.on ? '[x] ' : '[ ] ') + 'AID on ' + ai.targets.map(nm).join(', '), right: ai.why || '2nd-level slot, +5 HP', ok: !ai.why || ai.on, why: ai.why,
         act: function () { st.cast.aid.on = !st.cast.aid.on; self.changed(); }, cycle: function (d) { self.cycleAid(d); },
         desc: (ai.caster ? ai.caster.name : 'A cleric') + ', on three of the four: +5 to their maximum and current HP for 8 hours.' },
-      { label: '     goes without: ' + nm(ai.out), right: 'next', act: function () { self.cycleAid(1); }, desc: 'Aid takes three of the four (SRD: up to three creatures). Pick who goes without.' },
+      { label: '     goes without: ' + nm(ai.out), right: 'next', act: function () { self.cycleAid(1); }, desc: 'Aid takes three of the four (SRD: up to three creatures). Pick who goes without.' }], !li.has ? [] : [
       { label: (li.on ? '[x] ' : '[ ] ') + 'LIGHT on ' + nm(li.target), right: li.why || 'a cantrip: free', ok: !li.why || li.on, why: li.why, hero: li.target && li.target.id,
         act: function () { st.cast.light.on = !li.on; self.changed(); }, cycle: function (d) { self.cycleLight(d); },
         desc: (li.caster ? li.caster.name : 'A cleric') + ' puts Light on the front man\'s gear: bright 20 ft and dim 20 more for an hour, no hand taken. On by itself when the fight is in the dark' + (this.dark() ? ' -- as this one is.' : '; this one is not.') },
-      { label: '     on whom: ' + nm(li.target), right: 'next', act: function () { self.cycleLight(1); }, hero: li.target && li.target.id, desc: 'Whom the Light goes on: the one who meets the foes first, so they are lit where he stands.' }
-    ] };
+      { label: '     on whom: ' + nm(li.target), right: 'next', act: function () { self.cycleLight(1); }, hero: li.target && li.target.id, desc: 'Whom the Light goes on: the one who meets the foes first, so they are lit where he stands.' }], !ei || !ei.has ? [] : [
+      { label: (ei.on ? '[x] ' : '[ ] ') + 'CONJURE ELEMENTAL: ' + (ei.kind ? D.FOES[ei.kind].name.toUpperCase() : '-'), right: ei.why || '5th-level slot', ok: !ei.why || ei.on, why: ei.why, hero: ei.caster && ei.caster.id,
+        act: function () { st.cast.elemental.on = !st.cast.elemental.on; self.changed(); }, cycle: function (d) { self.cycleElemental(d); },
+        desc: (ei.caster ? ei.caster.name : 'A druid or a wizard') + ' spends the minute it takes this morning: an elemental of CR 5 or less walks into the fight beside him, his to command, with its own initiative, and holds his concentration. If that breaks -- a hard blow, another spell that wants it -- it breaks loose and turns on the party.' },
+      { label: '     which: ' + (ei.kind ? D.FOES[ei.kind].name : 'none'), right: ei.kinds.length > 1 ? 'next' : '', act: function () { self.cycleElemental(1); }, desc: 'The world\'s elementals of CR 5 or less: ' + ei.kinds.map(function (k) { return D.FOES[k].name; }).join(', ') + '.' }
+    ]) };
+  };
+  Camp.prototype.castAny = function () { var i = this.info; return !!((i.mageArmor && i.mageArmor.has) || (i.aid && i.aid.has) || (i.light && i.light.has) || (i.elemental && i.elemental.has)); };
+  Camp.prototype.cycleElemental = function (d) {
+    var ks = (this.info.elemental && this.info.elemental.kinds) || []; if (!ks.length) return;
+    var i = Math.max(0, ks.indexOf(this.st.cast.elemental.kind));
+    this.st.cast.elemental.kind = ks[((i + d) % ks.length + ks.length) % ks.length];
+    this.changed();
   };
   Camp.prototype.cycleLight = function (d) {
     var ids = this.data.party.map(function (h) { return h.id; }), cur = this.info.light.target ? this.info.light.target.id : null, i = ids.indexOf(cur);

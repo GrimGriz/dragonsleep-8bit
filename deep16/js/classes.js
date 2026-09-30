@@ -45,7 +45,7 @@
       // stone, stone shape, passwall and gaseous form are OUT; wall of stone and cloudkill LATER): Higertha's mountain (invented.json
       // #higertha-druid), the generic druid's Underdark (the Pit's; the seat's call, 09-29)
       lands: { mountain: { 3: ['spikegrowth'], 5: ['lightningbolt'], 7: ['stoneskin'], 9: ['wallofstone'] }, underdark: { 3: ['web'], 5: ['stinkingcloud'], 7: ['greaterinvisibility'], 9: ['insectplague', 'cloudkill'] } },
-      spells: { 0: ['produceflame', 'shillelagh', 'guidance', 'resistance'], 1: ['entangle', 'faeriefire', 'healingword', 'curewounds', 'fogcloud', 'thunderwave', 'animalfriendship', 'charmperson'], 2: ['barkskin', 'moonbeam', 'flamingsphere', 'flameblade', 'heatmetal', 'spikegrowth', 'gustofwind', 'enhanceability'], 3: ['conjureanimals', 'windwall', 'calllightning', 'dispelmagic', 'protectionfromenergy', 'sleetstorm', 'daylight', 'plantgrowth'], 4: ['walloffire', 'blight', 'confusion', 'icestorm', 'freedomofmovement', 'conjurewoodlandbeings', 'polymorph', 'dominatebeast', 'giantinsect'], 5: ['wallofstone', 'insectplague', 'masscurewounds', 'greaterrestoration', 'contagion', 'antilifeshell'], 6: ['wallofthorns', 'heal', 'sunbeam'] } },
+      spells: { 0: ['produceflame', 'shillelagh', 'guidance', 'resistance'], 1: ['entangle', 'faeriefire', 'healingword', 'curewounds', 'fogcloud', 'thunderwave', 'animalfriendship', 'charmperson'], 2: ['barkskin', 'moonbeam', 'flamingsphere', 'flameblade', 'heatmetal', 'spikegrowth', 'gustofwind', 'enhanceability'], 3: ['conjureanimals', 'windwall', 'calllightning', 'dispelmagic', 'protectionfromenergy', 'sleetstorm', 'daylight', 'plantgrowth'], 4: ['walloffire', 'blight', 'confusion', 'icestorm', 'freedomofmovement', 'conjurewoodlandbeings', 'polymorph', 'dominatebeast', 'giantinsect'], 5: ['wallofstone', 'insectplague', 'masscurewounds', 'greaterrestoration', 'contagion', 'antilifeshell', 'conjureelemental'], 6: ['wallofthorns', 'heal', 'sunbeam'] } },
     fighter: { prio: ['str', 'con', 'dex', 'wis', 'cha', 'int'], kit: { weapon: 'greatsword', armor: 'chainmail', alt: 'handaxe' }, style: 'gwf', sub: [3, 'Champion'], look: 'npcfighter_p0', asiAt: [4, 6, 8] },
     monk: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'shortsword', alt: 'dagger' }, sub: [3, 'Way of the Open Hand'], look: 'npcmonk_p0' },
     paladin: { prio: ['str', 'cha', 'con', 'wis', 'dex', 'int'], kit: { weapon: 'longsword', armor: 'chainmail', shield: 'shield', alt: 'handaxe' }, style: 'defense', sub: [3, 'Oath of Devotion'], look: 'npcpaladin_p0', prepares: 'cha', half: true,
@@ -62,7 +62,7 @@
       spells: { 0: ['eldritchblast', 'chilltouch', 'poisonspray'], 1: ['hellishrebuke', 'command', 'burninghands', 'expeditiousretreat'], 2: ['scorchingray', 'darkness', 'mirrorimage', 'holdperson'], 3: ['fireball', 'fear', 'vampirictouch'], 4: ['blight', 'fireshield', 'dimensiondoor', 'banishment'], 5: ['flamestrike', 'holdmonster'] } },
     wizard: { prio: ['int', 'con', 'dex', 'wis', 'cha', 'str'], kit: { weapon: 'quarterstaff', armor: 'robes' }, sub: [2, 'School of Evocation'], look: 'npcwizard_p0',
       cantrips: [3, 3, 3, 4, 4, 4, 4, 4, 4], prepares: 'int',
-      spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'chilltouch', 'light'], 1: ['magicmissile', 'shield', 'mageArmor', 'burninghands', 'sleep', 'colorspray', 'grease', 'hideouslaughter', 'falselife', 'charmperson'], 2: ['scorchingray', 'mistystep', 'holdperson', 'web', 'shatter', 'mirrorimage', 'flamingsphere', 'acidarrow', 'blur'], 3: ['fireball', 'lightningbolt', 'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch'], 4: ['icestorm', 'blacktentacles', 'phantasmalkiller', 'greaterinvisibility', 'dimensiondoor', 'fireshield', 'banishment', 'confusion', 'resilientsphere', 'stoneskin', 'blight', 'walloffire', 'polymorph'], 5: ['coneofcold', 'holdmonster', 'mislead', 'wallofstone', 'cloudkill'] } }
+      spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'chilltouch', 'light'], 1: ['magicmissile', 'shield', 'mageArmor', 'burninghands', 'sleep', 'colorspray', 'grease', 'hideouslaughter', 'falselife', 'charmperson'], 2: ['scorchingray', 'mistystep', 'holdperson', 'web', 'shatter', 'mirrorimage', 'flamingsphere', 'acidarrow', 'blur'], 3: ['fireball', 'lightningbolt', 'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch'], 4: ['icestorm', 'blacktentacles', 'phantasmalkiller', 'greaterinvisibility', 'dimensiondoor', 'fireshield', 'banishment', 'confusion', 'resilientsphere', 'stoneskin', 'blight', 'walloffire', 'polymorph'], 5: ['coneofcold', 'holdmonster', 'mislead', 'wallofstone', 'cloudkill', 'conjureelemental'] } }
   };
   // the Mirror's warlocks (RULED 09-28): the pact of the Mirror's expanded list and its eye (invented.json #pact-of-the-mirror). Its 1st
   // TRIMMED to two, the SRD's patrons' count (RULED 09-28g, Griz: "Trim"): the two his words named, Glass Whisper and Command (the
@@ -281,6 +281,7 @@
     if (spec.conds) Object.keys(spec.conds).forEach(function (k) { h.conds[k] = spec.conds[k]; });
     (spec.spend || []).forEach(function (lv) { for (var i = lv - 1; i < (h.slots || []).length; i++) if (h.slots[i] > 0) { h.slots[i]--; break; } });
     if (spec.aid) { h.maxhp += spec.aid; h.conds.aid = spec.aid; }
+    if (spec.conjured) h.conjured = spec.conjured; // (Conjure Elemental cast at the camp: the kind that walks in beside him -- js/walls.js)
     h.hp = h.maxhp;
     return h;
   };
@@ -326,6 +327,7 @@
     if (race.savage) u.savage = true;
     if (h.mirrorEye) u.mirrorEye = true;
     u.invocations = h.invocations || null;
+    if (h.conjured) u.conjured = h.conjured; // (seated by battle.js as the fight begins: js/walls.js W.seatConjured)
     if (h.guardianText) u.guardianText = h.guardianText;
     // Fiendish Vigor (an invocation): False Life at will -- she walks in with it
     if ((u.invocations || []).indexOf('fiendishvigor') >= 0) u.temp = Math.max(u.temp || 0, D.roll('1d4+4').total);

@@ -402,11 +402,12 @@
   // dark: blindsight), senseHidden (ft: the hidden and the invisible are seen), webWalker, webDC (+ to his Web's save DC), charmDC (+ to
   // the save DC of his spells that charm), persuasion ('adv': a familiar may take the Help action on a check, SRD), alarm (he is never
   // caught off guard: it croaks). A perk is its CASTER's, whoever that is -- the NPC casters and the Pocket DM's have them too (his word).
-  // `help`: 'auto' the owls (Flyby), 'never' the bat ("have it flutter around his head"), else on the caster's order (the grid)
+  // `help`: 'auto' the owls (Flyby), else on the caster's order (the grid; the bat too -- RULED 09-30, Griz: "i think the bat not helping is out
+  // of balance and should be orderable in the 16 and let it keep doing it in the 8"). `perch`: 'head' the bat ("have it flutter around his head")
   R.FAMILIARS = {
     owl: { name: 'owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, help: 'auto', perk: {}, sheet: 'owl_p2', scale: 0.75, gift: 'flies 60 ft; sees 120 ft in the dark; swoops in to help and out of reach unharmed' },
     snowyowl: { name: 'snowy owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, help: 'auto', perk: {}, sheet: 'snowyowl_p2', scale: 0.75, gift: 'an owl in the snowfield\'s feathers: flies 60 ft, swoops in to help and out of reach unharmed' },
-    bat: { name: 'bat', ac: 12, hp: 1, speed: 5, fly: 30, blindsight: 60, help: 'never', perk: { sonar: 15 }, sheet: 'giantbat_p1', scale: 0.45, gift: 'flutters about his head; lends him its ears: he knows what is within 15 ft in any dark; carries a touch spell' },
+    bat: { name: 'bat', ac: 12, hp: 1, speed: 5, fly: 30, blindsight: 60, perch: 'head', perk: { sonar: 15 }, sheet: 'giantbat_p1', scale: 0.45, gift: 'flutters about his head; lends him its ears: he knows what is within 15 ft in any dark; carries a touch spell' },
     rat: { name: 'rat', ac: 10, hp: 1, speed: 20, darkvision: 30, perk: { darkvision: 30 }, sheet: 'giantrat_p1', scale: 0.5, gift: 'lends him its eyes: darkvision 30 ft; quick and small; carries a touch spell' },
     spider: { name: 'spider', ac: 12, hp: 1, speed: 20, darkvision: 30, webWalker: true, perk: { webWalker: true, webDC: 1 }, sheet: 'wolfspider_p1', scale: 0.4, gift: 'webs do not hold him or it; his Web holds the tighter (+1); carries a touch spell' },
     frog: { name: 'frog', ac: 11, hp: 1, speed: 20, swim: 20, darkvision: 30, perk: { alarm: true }, sheet: 'giantfrog_p1', scale: 0.45, gift: 'croaks when danger comes: he is never caught off guard; swims; carries a touch spell' },

@@ -11,8 +11,8 @@
    - a touch spell on one not beside the caster goes by the familiar when a square beside that one is within the familiar's movement,
      from where it is (his square, riding): it goes there as the spell is cast (M.cast: FM.carries / FM.carry), and its own turn after
      his is what is left of that movement, spent heading home;
-   - Help: the owls on their own (Flyby: in, help, out unharmed); the bat never ("have it flutter around his head"); the others when he
-     orders it (FAMILIAR: HELP, free: "it always obeys your commands"); the AI's casters order it for themselves;
+   - Help: the owls on their own (Flyby: in, help, out unharmed); the others, the bat among them, when he orders it (FAMILIAR: HELP,
+     free: "it always obeys your commands"; the bat's RULED 09-30: "should be orderable in the 16"); the AI's casters order it for themselves;
    - it rides (Griz, 09-29: the owls on his shoulder, the others at his feet, the bat about his head) whenever it gets back into his
      square: untargetable then, and caught by any area that catches him; short of his square when its movement runs out, it holds a
      square of its own and the foes may strike it;
@@ -59,7 +59,7 @@
     var mx = master.x, my = master.y;
     Object.defineProperty(u, 'x', { get: function () { return u.riding ? master.x : mx; }, set: function (v) { mx = v; }, enumerable: true, configurable: true });
     Object.defineProperty(u, 'y', { get: function () { return u.riding ? master.y : my; }, set: function (v) { my = v; }, enumerable: true, configurable: true });
-    u.riding = true; u.perch = d.help === 'never' ? 'head' : d.fly ? 'shoulder' : 'feet'; u.master = master;
+    u.riding = true; u.perch = d.perch || (d.fly ? 'shoulder' : 'feet'); u.master = master;
     // what it lends him, while it is here: his own senses read through (a Darkvision spell on him still sets his own)
     var P = d.perk || {};
     function lend(key, fn) {

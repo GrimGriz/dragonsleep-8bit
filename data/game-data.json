@@ -3605,6 +3605,16 @@
    "sfx": "holy2",
    "id": "antilifeshell"
   },
+  "conjureelemental": {
+   "name": "Conjure Elemental",
+   "level": 5,
+   "kind": "summon",
+   "target": "point",
+   "grid": true,
+   "src": "SRD 5.1 Conjure Elemental (a minute to cast: at the camp, CAST AHEAD -- RULED 09-30, Griz: \"Let's add the earth elemental to camp and hold off on the rest\"; deep16/js/camp.js, deep16/js/walls.js)",
+   "sfx": "earth",
+   "id": "conjureelemental"
+  },
   "cloudkill": {
    "name": "Cloudkill",
    "level": 5,

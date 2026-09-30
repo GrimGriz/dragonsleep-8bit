@@ -151,6 +151,7 @@
   giantinsect: { shape: 'sphere', range: 30, r: 5, time: 'A', conc: true, side: 'any' },
   antilifeshell: { shape: 'self', time: 'A', conc: true },
   cloudkill: { shape: 'sphere', range: 120, r: 20, time: 'A', conc: true },
+  conjureelemental: { shape: 'none' }, // (a minute to cast: the camp's, never the fight's -- js/camp.js CAST AHEAD, js/walls.js)
   // shapes and charms (the druid to twelve, 09-30: js/grimoire.js, js/features.js F.morph)
   polymorph: { shape: 'single', range: 60, time: 'A', conc: true, side: 'any' },
   dominatebeast: { shape: 'single', range: 60, time: 'A', conc: true, side: 'foe', only: 'beast' },

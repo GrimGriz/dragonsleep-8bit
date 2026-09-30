@@ -80,6 +80,7 @@
     var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     this.inv = this.o.embed ? pack : D.save.armoury(pack);
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
+    if (D.walls && D.walls.seatConjured) D.walls.seatConjured(this); // (an elemental conjured at the camp walks in beside its caster: js/walls.js)
     // torchdark (09-28): dark ground -- the fight's own word, else the 8-bit map's `dark` when the fight is fought from there
     // (js/embed.js), else the grid map's -- and the lights the place keeps (a lamp, a fire, a glow: [x, y, r, color, dimOnly]);
     // a torch the party walked in holding (the 8-bit field's, or the camp's A TORCH IN HAND) is in that hero's hand from the first round
@@ -314,7 +315,7 @@
     // are still on their way out of the inn (this.reserve)
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
     // (nor do summoned creatures: they go when their caster's concentration does)
-    if (!this.alive('party').filter(function (u) { return !u.familiar && !u.summon && !u.dominated; }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
+    if (!this.alive('party').filter(function (u) { return !u.familiar && !u.summon && !u.dominated && !u.loose; }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
