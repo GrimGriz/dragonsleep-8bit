@@ -621,6 +621,8 @@
   UI.unitPos = unitPos;
   function unitObj(B, u) {
     var p = unitPos(B, u), has = function (a) { return !!D.spr.anim(u.sheet, a); };
+    // a familiar riding its wizard (js/familiar.js): the owls perched on his shoulder, the rest at his feet, drawn just after him
+    if (u.riding && u.master) { var mp = unitPos(B, u.master), mt = D.spr.unitTop(u.master); p = u.perch === 'shoulder' ? { x: mp.x + 5, y: mp.y - Math.round(mt * 0.68), depth: mp.depth + 0.02, gz: mp.gz } : { x: mp.x + 9, y: mp.y + 3, depth: mp.depth + 0.03, gz: mp.gz }; }
     if (u.left) return null; // out of the fight, the way they came in
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
     var obj = {
@@ -645,7 +647,7 @@
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
         else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; }
-        if (!u.ethereal && !(u.dead && !has('hurt'))) {
+        if (!u.ethereal && !(u.dead && !has('hurt')) && !(u.riding && u.perch === 'shoulder')) {
           var s = u.size || 1;
           ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 10 * s * sk + 1, 4 * s * sk + 1, 0, 0, 7); ctx.fill();
         }
@@ -660,7 +662,7 @@
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
         if (sk !== 1) ctx.restore();
         if (D.looks && !down && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js)
-        if (!u.dead && !u.ethereal) {
+        if (!u.dead && !u.ethereal && !u.riding) {
           var top = D.spr.unitTop(u), w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
           ctx.fillStyle = R('outline', 0); ctx.fillRect(bx - 1, by - 1, w + 2, 4);
           ctx.fillStyle = R('stone', 1); ctx.fillRect(bx, by, w, 2);

@@ -54,6 +54,7 @@
     // nearest free squares behind the first
     var seat = {};
     party.forEach(function (u, i) {
+      if (u.riding) return; // (the familiar rides its wizard: js/familiar.js)
       var e = entry[i];
       if (!e || seat[e[0] + ',' + e[1]]) {
         var bd = Infinity, e0 = entry[0];

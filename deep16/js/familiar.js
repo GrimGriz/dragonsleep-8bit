@@ -37,6 +37,13 @@
     u.flies = !!d.fly; u.flyby = !!d.flyby; u.drawScale = d.scale || 1; u.lvl = 0; u.cls = null; u.known = []; u.slots = [];
     if (d.darkvision) u.darkvision = d.darkvision;
     if (d.blindsight) u.blindsight = d.blindsight;
+    // it rides (Griz, 09-29: "still needs to ride shoulder (or sitting at casters feet)"): the owls on the wizard's shoulder, the rest at his
+    // feet. While it rides its square is his (a getter: every area that catches him catches it), it holds no square of its own, and the
+    // foes' AI does not single it out (ai.js heroes); out on the field it is a creature like any other (SRD: it can be struck)
+    var mx = master.x, my = master.y;
+    Object.defineProperty(u, 'x', { get: function () { return u.riding ? master.x : mx; }, set: function (v) { mx = v; }, enumerable: true, configurable: true });
+    Object.defineProperty(u, 'y', { get: function () { return u.riding ? master.y : my; }, set: function (v) { my = v; }, enumerable: true, configurable: true });
+    u.riding = true; u.perch = d.fly ? 'shoulder' : 'feet'; u.master = master;
     return u;
   };
   FM.of = function (B, master) { return B.units.filter(function (w) { return w.familiar === master.id; })[0] || null; };
@@ -50,6 +57,7 @@
     var tgt = foes.map(function (f) { return { f: f, n: mates.filter(function (a) { return G.dist(a, f) <= 5; }).length, d: G.dist(u, f) }; })
       .sort(function (a, b) { return b.n - a.n || a.d - b.d; })[0].f;
     var budget = u.flyby ? Math.floor(T.move / 2) : T.move; // (an owl keeps half its flight for the way back)
+    var rode = u.riding; if (rode) { var sx = u.x, sy = u.y; u.riding = false; u.x = sx; u.y = sy; } // (down off him, from his square)
     var e = AI.approach(u, tgt, G.reach(u, budget), 5);
     if (e && G.dist(u, tgt, e.x, e.y) <= 5 && T.action) {
       yield* go(B, u, e);
@@ -58,12 +66,16 @@
       yield* B.exec(u, { do: 'help', target: tgt });
       u.helpedRound = B.round;
       yield 18;
-      if (u.flyby && T.move > 0 && master) yield* go(B, u, safeBy(B, u, master, G.reach(u, T.move)));
+      if (u.flyby && T.move > 0 && master) { yield* go(B, u, safeBy(B, u, master, G.reach(u, T.move))); remount(B, u, master); }
       return;
     }
-    // nothing to reach this turn: keep by the wizard, out of reach of the foes
+    // nothing to reach this turn: back to the wizard, and up (or at his feet) again
+    if (rode) { u.riding = true; return; }
     if (master && G.dist(u, master) > 5) yield* go(B, u, safeBy(B, u, master, G.reach(u, T.move)));
+    remount(B, u, master);
   };
+  // beside its wizard, standing, it is up on his shoulder (or at his feet) again
+  function remount(B, u, master) { if (master && G.standing(master) && u.hp > 0 && G.dist(u, master) <= 5) { u.riding = true; u.facing = master.facing; } }
   function* go(B, u, e) {
     if (!e || (e.x === u.x && e.y === u.y)) return;
     var path = G.path(G.reach(u, u.turn.move), e.x, e.y);
@@ -113,10 +125,11 @@
     u.turn.action = 0;
     if (c.do === 'dismissfam') {
       FX.sparkle(f, 'glow', 14); D.sfx('magic');
-      f.away = true; f.left = true; f.dead = true; f.deadT = B.t;
+      f.away = true; f.left = true; f.dead = true; f.deadT = B.t; f.riding = false;
       B.card(['{y}' + u.name + '{/} sends ' + f.name.replace(/^.*'s /, 'the ') + ' away, into its pocket of the world.']);
       yield 20; return;
     }
+    if (G.standing(u)) { f.away = false; f.left = false; f.dead = false; f.riding = true; f.anim = 'idle'; f.animT = B.t; FX.sparkle(u, 'glow', 14); D.sfx('magic'); B.card(['{y}' + u.name + '{/} calls, and ' + f.name.replace(/^.*'s /, 'the ') + ' is back with him.']); yield 20; return; }
     var spot = null, bd = Infinity;
     for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
       if (G.dist(u, { x: x, y: y, size: 1 }) > 30 || G.occupant(x, y) || !G.canStand(f, x, y)) continue;
