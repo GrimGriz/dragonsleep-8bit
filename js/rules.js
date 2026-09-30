@@ -394,15 +394,24 @@
   // (a spirit in the shape, fey by default); `sheet` is DEEP16's figure for it (a form with no sheet yet is left off the pick). The
   // snowy owl is the owl in the snowfield's feathers. Both games read this: js/familiar.js (the ritual, the 8-bit shoulder) and
   // deep16/js/familiar.js (the grid's familiar)
+  // `perk` is what each lends its caster (RULED 09-30, Griz: "rat grants nightvision, spider buffs web spell and gives 'webwalk' ...
+  // snake sense hidden within 15 feet (counts as vision)" · "Agreed with vision range." · "EXCELLENT call on the frog. will need
+  // audible." · "Snake still charm related spells, diplomacy and persuasion checks by caster"): darkvision (ft), sonar (ft through any
+  // dark: blindsight), senseHidden (ft: the hidden and the invisible are seen), webWalker, webDC (+ to his Web's save DC), charmDC (+ to
+  // the save DC of his spells that charm), persuasion ('adv': a familiar may take the Help action on a check, SRD), alarm (he is never
+  // caught off guard: it croaks). A perk is its CASTER's, whoever that is -- the NPC casters and the Pocket DM's have them too (his word).
+  // `help`: 'auto' the owls (Flyby), 'never' the bat ("have it flutter around his head"), else on the caster's order (the grid)
   R.FAMILIARS = {
-    owl: { name: 'owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, sheet: 'owl_p2', scale: 0.75, gift: 'flies 60 ft; sees 120 ft in the dark; swoops in and out of reach unharmed' },
-    snowyowl: { name: 'snowy owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, sheet: 'snowyowl_p2', scale: 0.75, gift: 'an owl in the snowfield\'s feathers: flies 60 ft, sees 120 ft in the dark, swoops in and out unharmed' },
-    bat: { name: 'bat', ac: 12, hp: 1, speed: 5, fly: 30, blindsight: 60, sheet: 'giantbat_p1', scale: 0.45, gift: 'flies 30 ft; hears its way 60 ft in any dark; carries a touch spell' },
-    rat: { name: 'rat', ac: 10, hp: 1, speed: 20, darkvision: 30, sheet: 'giantrat_p1', scale: 0.5, gift: 'quick and small; sees 30 ft in the dark; carries a touch spell' },
-    spider: { name: 'spider', ac: 12, hp: 1, speed: 20, darkvision: 30, webWalker: true, sheet: 'wolfspider_p1', scale: 0.4, gift: 'webs do not hold it; sees 30 ft in the dark; carries a touch spell' },
-    frog: { name: 'frog', ac: 11, hp: 1, speed: 20, swim: 20, darkvision: 30, sheet: 'giantfrog_p1', scale: 0.45, gift: 'swims; sees 30 ft in the dark; carries a touch spell' },
-    snake: { name: 'poisonous snake', ac: 13, hp: 2, speed: 30, swim: 30, blindsight: 10, sheet: 'snake_p1', scale: 0.55, gift: 'swims; the hardiest of them (2 HP); carries a touch spell' }
+    owl: { name: 'owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, help: 'auto', perk: {}, sheet: 'owl_p2', scale: 0.75, gift: 'flies 60 ft; sees 120 ft in the dark; swoops in to help and out of reach unharmed' },
+    snowyowl: { name: 'snowy owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, help: 'auto', perk: {}, sheet: 'snowyowl_p2', scale: 0.75, gift: 'an owl in the snowfield\'s feathers: flies 60 ft, swoops in to help and out of reach unharmed' },
+    bat: { name: 'bat', ac: 12, hp: 1, speed: 5, fly: 30, blindsight: 60, help: 'never', perk: { sonar: 15 }, sheet: 'giantbat_p1', scale: 0.45, gift: 'flutters about his head; lends him its ears: he knows what is within 15 ft in any dark; carries a touch spell' },
+    rat: { name: 'rat', ac: 10, hp: 1, speed: 20, darkvision: 30, perk: { darkvision: 30 }, sheet: 'giantrat_p1', scale: 0.5, gift: 'lends him its eyes: darkvision 30 ft; quick and small; carries a touch spell' },
+    spider: { name: 'spider', ac: 12, hp: 1, speed: 20, darkvision: 30, webWalker: true, perk: { webWalker: true, webDC: 1 }, sheet: 'wolfspider_p1', scale: 0.4, gift: 'webs do not hold him or it; his Web holds the tighter (+1); carries a touch spell' },
+    frog: { name: 'frog', ac: 11, hp: 1, speed: 20, swim: 20, darkvision: 30, perk: { alarm: true }, sheet: 'giantfrog_p1', scale: 0.45, gift: 'croaks when danger comes: he is never caught off guard; swims; carries a touch spell' },
+    snake: { name: 'poisonous snake', ac: 13, hp: 2, speed: 30, swim: 30, blindsight: 10, perk: { senseHidden: 15, charmDC: 1, persuasion: 'adv' }, sheet: 'snake_p1', scale: 0.55, gift: 'he senses the hidden and unseen within 15 ft; his charms bite deeper (+1), his Persuasion has advantage' }
   };
+  // the spells that charm (the snake's charmDC; the SRD's enchantments that lay the charmed condition or take the will): both games
+  R.CHARM_SPELLS = ['charmperson', 'animalfriendship', 'hypnoticpattern', 'irresistibledance', 'suggestion', 'masssuggestion', 'dominatebeast', 'dominateperson', 'dominatemonster', 'geas'];
   // the world map's ground (content/maps/world.json legend) -> the shapes a spirit takes there; off the world map: the caves' or the town's
   R.FAM_GROUND = {
     snow: { tiles: 'o*', forms: ['snowyowl'] },

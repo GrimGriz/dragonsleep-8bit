@@ -95,7 +95,8 @@
     if ((att.reckless || att.conds.reckless) && melee) adv.push('reckless');
     if ((tgt.reckless || tgt.conds.reckless) && melee) adv.push('reckless target'); // (a class barbarian's Reckless Attack: js/tactics.js)
     var DB = D.battle, pen = 0, penWhy = '', mirror = function (eye, seen) { return !!(D.magic && DB && eye.mirrorEye && D.magic.inMirror(DB, eye, seen)); };
-    if (att.conds.hidden && !mirror(tgt, att)) adv.push('unseen'); // (the Mirror's eye on her: no hiding in front of it)
+    var senses = function (a, b) { return !!(a.senseHidden && G.dist(a, b) <= a.senseHidden); }; // (the snake familiar's caster: the hidden within 15 ft, RULED 09-30)
+    if (att.conds.hidden && !mirror(tgt, att) && !senses(tgt, att)) adv.push('unseen'); // (the Mirror's eye on her: no hiding in front of it)
     // who cannot see whom (magic.js seeWhy: blinded, magical darkness, fog, the invisible, the dark). An unseen target is attacked
     // at disadvantage (SRD 5.1; AMENDED 09-28 from his -4, which was AD&D's -- R.BLIND keeps the flat penalty as a switch); an
     // unseen attacker attacks with advantage; a blinded creature is both
@@ -112,7 +113,7 @@
     if (tgt.conds.surprised && att.assassinate) adv.push('assassinate');
     // Pack Tactics (the rats, the wolves): advantage while an ally of the attacker who can act stands within 5 ft of the target
     if (att.packTactics && G.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) adv.push('pack tactics');
-    if (tgt.conds.hidden && G.dist(att, tgt, ax, ay) > 5 && !mirror(att, tgt)) dis.push('unseen target');
+    if (tgt.conds.hidden && G.dist(att, tgt, ax, ay) > 5 && !mirror(att, tgt) && !(att.senseHidden && G.dist(att, tgt, ax, ay) <= att.senseHidden)) dis.push('unseen target');
     if (tgt.conds.faerie) adv.push('faerie fire');
     // the class NPCs' spells (09-28, js/grimoire.js): Guiding Bolt's glow (the next attack at it), Vicious Mockery (its own next attack),
     // True Strike (the caster's first at it), Blur (at the blurred: not for blindsight or truesight), Reckless Attack's price

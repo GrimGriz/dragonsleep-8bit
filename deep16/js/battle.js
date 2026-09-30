@@ -322,6 +322,7 @@
     var self = this, come = this.reserve, e0 = (this.fight.entry || this.map.def.entry)[0], names = [];
     this.reserve = [];
     come.forEach(function (u) {
+      if (u.familiar) { self.units.push(u); return; } // (a familiar comes riding its wizard, and has no initiative of its own)
       var at = null, bd = Infinity;
       for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) { if (!G.canStand(u, x, y)) continue; var d = Math.hypot(x - e0[0], y - e0[1]); if (d < bd) { bd = d; at = [x, y]; } }
       if (!at) return;
@@ -346,7 +347,8 @@
     yield { entry: true };
     // initiative: d20 + DEX (and the fighter's Remarkable Athlete), rolled once
     var rolls = this.units.map(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init; return { u: u, d: d }; }); // (initAdv: the barbarian's Feral Instinct, 7)
-    this.order = this.units.slice().sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
+    // (a familiar has no initiative: its turn comes right after its caster's -- RULED 09-30, js/familiar.js FM.after)
+    this.order = this.units.filter(function (u) { return !u.familiar; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
     yield 50;
     // an ambush (the sect blades at the rest): the foes' Stealth, rolled once, against each hero's passive Perception;
@@ -373,6 +375,7 @@
       D.sfx(caught.length ? 'encounter' : 'popup');
       yield 70;
     }
+    if (D.familiar && D.familiar.alarm) yield* D.familiar.alarm(this); // (the frog familiar's croak: its caster is never caught off guard)
     while (true) {
       this.round++;
       if (this.reserve.length && this.round >= ((this.o.embed && this.o.embed.join) || 2)) yield* this.joinReserve();
@@ -383,6 +386,7 @@
         if (u.side === 'party' && !u.guest) yield* this.heroTurn(u);
         else yield* D.ai.turn(this, u);
         this.active = null;
+        if (D.familiar && !u.familiar) yield* D.familiar.after(this, u); // (his familiar's turn, right after his: js/familiar.js)
         yield* this.wave();
         this.sweep();
         var o = this.over();

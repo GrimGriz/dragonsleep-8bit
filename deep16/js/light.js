@@ -144,6 +144,20 @@
     B.partyMap = { k: k, v: out, w: m.w };
     return B.partyMap;
   };
+  // what ONE creature senses, square by square: 2 by blindsight or truesight (the bat familiar's sonar), 1 by darkvision, 0 nothing (the
+  // player's-turn filter on a dark map with no light: L.pass)
+  L.senseMap = function (B, u) {
+    var m = B.map, bs = Math.max(u.blindsight || 0, u.truesight || 0), dv = u.darkvision || 0;
+    var k = u.x + ',' + u.y + '|' + bs + '|' + dv;
+    if (B.senseMap && B.senseMap.k === k && B.senseMap.u === u) return B.senseMap;
+    var out = new Array(m.w * m.h);
+    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
+      var i = y * m.w + x, s = m.sq[i], d = G.dist(u, { x: x, y: y, size: 1 });
+      out[i] = !s.open ? 0 : d <= bs ? 2 : d <= dv && G.losPoint(u.x, u.y, x, y) ? 1 : 0;
+    }
+    B.senseMap = { k: k, u: u, v: out, w: m.w, bs: bs };
+    return B.senseMap;
+  };
   L.partySeesSq = function (B, x, y) { var pm = L.partyMap(B); return pm ? (pm.v[y * pm.w + x] || 0) : 2; };
   L.partySees = function (B, u) { var best = 0; G.foot(u).forEach(function (p) { best = Math.max(best, L.partySeesSq(B, p[0], p[1])); }); return best; };
 
@@ -268,7 +282,8 @@
     l.globalCompositeOperation = 'source-over';
     l.fillStyle = 'rgb(52,56,86)'; l.fillRect(0, 0, W, H);   // the night: blue-black, not black -- the player sees
     l.globalCompositeOperation = 'lighter';
-    L.all(B).forEach(function (lg) {
+    var lights = L.all(B);
+    lights.forEach(function (lg) {
       var gx = Math.round(lg.x), gy = Math.round(lg.y), c = iso.center(lg.x, lg.y, m.gz(gx, gy)), s = iso.toScreen(c.x, c.y);
       var f = lg.flame ? flick(t + gx * 7 + gy * 3) : 0, hw = iso.TW / 2;
       var rb = (lg.bright / 5) * hw * (1 + f * 0.05), rd = ((lg.bright + lg.dim) / 5) * hw * (1 + f * 0.03);
@@ -289,6 +304,21 @@
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
     ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(6,6,16,0.4)';
     for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2]) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
+    // the hero's own senses (RULED 09-30, Griz: "when map = no light source and player turn, active player vision filter on dark map (i.e.
+    // bat familiar sonar sight filter unless light on map)"): on his turn, with no light anywhere, what he does not sense goes darker still
+    // (the player still sees it); darkvision's reach stays grey; blindsight's -- the bat's sonar -- is cool, with a ping running out from him
+    var a = B.active;
+    if (a && a.side === 'party' && !a.guest && G.standing(a) && !lights.length) {
+      var sm = L.senseMap(B, a), ping = sm.bs ? ((t % 48) / 48) * sm.bs : -99;
+      for (var y4 = 0; y4 < m.h; y4++) for (var x4 = 0; x4 < m.w; x4++) {
+        var i4 = y4 * m.w + x4, s4 = m.sq[i4], v4 = sm.v[i4]; if (!s4.open || v4 === 1) continue;
+        iso.rhombus(ctx, x4, y4, s4.gz, 0);
+        if (!v4) { ctx.fillStyle = 'rgba(2,2,10,0.5)'; ctx.fill(); continue; }
+        ctx.fillStyle = 'rgba(70,150,190,0.12)'; ctx.fill();
+        var d4 = G.dist(a, { x: x4, y: y4, size: 1 });
+        if (Math.abs(d4 - ping) <= 2.5) { ctx.strokeStyle = 'rgba(150,230,255,' + (0.7 * (1 - ping / (sm.bs + 5))).toFixed(2) + ')'; ctx.lineWidth = 1; ctx.stroke(); }
+      }
+    }
     ctx.restore();
   };
   // the lights that stand on the floor, drawn in the sort: a dropped torch, Dancing Lights, a Daylight set at a point

@@ -625,7 +625,11 @@
     // (it faces as he does -- Griz, 09-29: "facing left when he's facing north" -- and sits on the shoulder, not above the ear; the shoulder
     // is the one on the viewer's left while he faces toward the viewer, on the right while he faces away)
     if (u.riding && u.master) { var mf = u.master.facing || 0, fore = mf === 0 || mf === 1 || mf === 2 || mf === 7, mp = unitPos(B, u.master), mt = D.spr.unitTop(u.master); u.facing = mf;
-      p = u.perch === 'shoulder' ? { x: mp.x + (fore ? -9 : 9), y: mp.y - Math.round(mt * 0.48), depth: mp.depth + 0.02, gz: mp.gz } : { x: mp.x + (fore ? 9 : -9), y: mp.y + 3, depth: mp.depth + 0.03, gz: mp.gz }; }
+      // (the bat flutters about his head -- Griz, 09-30: "have it flutter around his head" -- a slow loop, in front of him and behind)
+      var ba = B.t / 13 + (u.id || '').length;
+      p = u.perch === 'shoulder' ? { x: mp.x + (fore ? -9 : 9), y: mp.y - Math.round(mt * 0.48), depth: mp.depth + 0.02, gz: mp.gz }
+        : u.perch === 'head' ? { x: mp.x + Math.round(11 * Math.cos(ba)), y: mp.y - Math.round(mt * 0.92) + Math.round(3 * Math.sin(ba * 2)), depth: mp.depth + (Math.sin(ba) > 0 ? 0.02 : -0.02), gz: mp.gz }
+        : { x: mp.x + (fore ? 9 : -9), y: mp.y + 3, depth: mp.depth + 0.03, gz: mp.gz }; }
     if (u.left) return null; // out of the fight, the way they came in
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
     var obj = {
@@ -650,7 +654,7 @@
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
         else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; }
-        if (!u.ethereal && !(u.dead && !has('hurt')) && !(u.riding && u.perch === 'shoulder')) {
+        if (!u.ethereal && !(u.dead && !has('hurt')) && !(u.riding && (u.perch === 'shoulder' || u.perch === 'head'))) {
           var s = u.size || 1;
           ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 10 * s * sk + 1, 4 * s * sk + 1, 0, 0, 7); ctx.fill();
         }
@@ -658,7 +662,9 @@
         var body = u.rider && !o.tint ? Object.assign({}, o, { tint: R('outline', 0), tintAlpha: 0.5 }) : o;
         if (sk !== 1) { ctx.save(); ctx.translate(p.x, p.y); ctx.scale(sk, sk); ctx.translate(-p.x, -p.y); } // (the figure and what stands behind it, grown about the foot)
         if (D.looks && !down && !u.ethereal) D.looks.behind(ctx, B, u, p, anim === 'hurt' && !has('hurt') ? 'idle' : anim, t, o); // (false images, blur, haste: js/looks.js)
-        D.spr.draw(ctx, u.sheet, anim === 'hurt' && !has('hurt') ? 'idle' : anim, u.facing || 0, t, p.x, p.y, body);
+        // (a flier whose sheet walks on the ground -- the bat stand-in -- is drawn up in the air when out on the field, bobbing; its shadow stays below)
+        var lift = u.lift && !u.riding && !down ? u.lift + Math.round(2 * Math.sin(B.t / 6)) : 0;
+        D.spr.draw(ctx, u.sheet, anim === 'hurt' && !has('hurt') ? 'idle' : anim, u.facing || 0, t, p.x, p.y - lift, body);
         // what was drawn, for the x-ray after the world (a standing figure only: the fallen lie low)
         var hw = 10 * (u.size || 1) * sk;
         obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - D.spr.unitTop(u), p.x + hw, p.y] };
@@ -858,8 +864,10 @@
     if (!B.order.length) return;
     var x = 4;
     x += D.text(ctx, 'R' + B.round, x, 3, R('gold', 3)) + 6;
-    B.order.forEach(function (u) {
-      var name = B.shortName(u) + (u.ethereal ? '~' : ''), w = D.textWidth(name) + 6;
+    var list = []; // (a familiar right after its caster: it has no initiative of its own, RULED 09-30)
+    B.order.forEach(function (u) { list.push(u); var f = D.familiar && D.familiar.of(B, u); if (f && !f.away) list.push(f); });
+    list.forEach(function (u) {
+      var name = (u.familiar && D.familiar ? D.familiar.stripName(u) : B.shortName(u)) + (u.ethereal ? '~' : ''), w = D.textWidth(name) + 6;
       var col = u.dead || u.hp <= 0 ? R('accent', 2) : u.side === 'foe' ? R('red', 4) : R('glow', 2);
       if (u === B.active) { ctx.fillStyle = R('gold', 1); ctx.fillRect(x - 1, 1, w, 11); ctx.strokeStyle = R('gold', 3); ctx.strokeRect(x - 0.5, 1.5, w - 1, 10); }
       D.text(ctx, name, x + 2, 3, u === B.active ? R('gold', 4) : col);

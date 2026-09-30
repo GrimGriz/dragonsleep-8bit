@@ -227,16 +227,18 @@
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
     if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') g = Object.assign({}, g, { time: 'B', move: true }); // (the lights are up: this is the bonus action that moves them)
     var ex0 = M.EFFECT && M.EFFECT[id]; if (ex0 && ex0.geo) g = ex0.geo(B, u, g) || g; // (the floating weapon already up: its swing)
-    if ((g.shape === 'touch' || (g.shape === 'attack' && (g.range || 5) <= 5)) && D.familiar) D.familiar.spend(B, u, t); // (a touch spell the familiar carries: its reaction)
+    var carry = (g.shape === 'touch' || (g.shape === 'attack' && (g.range || 5) <= 5)) && D.familiar && D.familiar.carries(B, u, t); // (a touch spell the familiar carries: its turn's movement, RULED 09-30)
     if (T.quicken && g.time === 'A' && sp.level) g = Object.assign({}, g, { time: 'B' }); // (Quickened Spell: js/features.js)
     if (g.time === 'B') { T.bonus = 0; if (!g.move) T.bonusSpell = true; } else { T.action = 0; T.spellAction = g.free ? T.spellAction : sp.level ? 'leveled' : 'cantrip'; }
     if (sp.level && !g.free) u.slots[slot - 1]--;
     var head = '{y}' + u.name + '{/}: ' + sp.name.toUpperCase() + (sp.level ? ' (L' + slot + ')' : '');
     var dc = u.spellDC, n = up(sp, slot);
+    if (u.famPerk) dc += (id === 'web' ? u.famPerk('webDC') : 0) + (window.DS.R.CHARM_SPELLS.indexOf(id) >= 0 ? u.famPerk('charmDC') : 0); // (the spider's and the snake's, js/familiar.js)
     if (g.shape !== 'self' && g.shape !== 'touch') { var at = t && t.x != null ? { x: t.x, y: t.y, size: 1 } : t && t.units ? t.units[0] : t; if (at) u.facing = B.faceTo(u, at); }
     u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; // (a caster's own pose where the sheet has one: the spell animation pass, 09-28h)
     D.sfx(M.sound(sp));
     yield Math.max(10, Math.round((D.spr.duration(u.sheet, u.anim) || 18) * 0.55)); // (the release at the height of the cast pose)
+    if (carry && !(yield* D.familiar.carry(B, u, t))) { u.anim = 'idle'; return; } // (it goes with the spell; one lost on the way loses it)
 
     // the spells built for the class NPCs (09-28, js/grimoire.js): each its own; the rest below as they were
     var FXD = M.EFFECT && M.EFFECT[id];
@@ -654,7 +656,7 @@
       var k = obscuredBetween(B, a, b);
       if (k && !(a.devilSight && k === 'darkness')) return { ok: false, why: k === 'darkness' ? 'darkness' : k === 'stink' ? 'the cloud' : k };
     }
-    if (b.conds && b.conds.invisible && !b.conds.faerie && !a.seeInvisible && !M.inMirror(B, a, b)) return { ok: false, why: 'invisible' };
+    if (b.conds && b.conds.invisible && !b.conds.faerie && !a.seeInvisible && !M.inMirror(B, a, b) && !(a.senseHidden && G.dist(a, b) <= a.senseHidden)) return { ok: false, why: 'invisible' }; // (senseHidden: the snake familiar's caster, RULED 09-30)
     if (D.light) { var s = D.light.seesBy(B, a, b); if (!s.ok) return { ok: false, why: s.why }; if (s.dv) return { ok: true, dv: true }; }
     return { ok: true };
   };

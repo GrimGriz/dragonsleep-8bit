@@ -375,7 +375,9 @@
     charm: function (t) { [86, 83, 79, 83].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.07, 0.12, 0.12); }); },
     shadow: function (t) { noise(sfxBus, t, 0.6, 0.2, 250, 0.5); tone(sfxBus, 'triangle', 40, t, 0.5, 0.2, null, -5); tone(sfxBus, 'pulse', 47, t + 0.1, 0.3, 0.06, 0.125, -4); },
     nature: function (t) { noise(sfxBus, t, 0.4, 0.2, 1300, 0.8); [60, 67, 64].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + 0.05 + i * 0.06, 0.08, 0.14); }); },
-    earth: function (t) { noise(sfxBus, t, 0.7, 0.5, 140, 0.5); tone(sfxBus, 'triangle', 33, t, 0.5, 0.3, null, -4); }
+    earth: function (t) { noise(sfxBus, t, 0.7, 0.5, 140, 0.5); tone(sfxBus, 'triangle', 33, t, 0.5, 0.3, null, -4); },
+    // the frog familiar's warning (RULED 09-30, Griz: "EXCELLENT call on the frog. will need audible."): a two-note croak, rib-bit
+    croak: function (t) { tone(sfxBus, 'pulse', 43, t, 0.09, 0.22, 0.125, -5); noise(sfxBus, t, 0.05, 0.12, 600, 0.6); tone(sfxBus, 'pulse', 50, t + 0.15, 0.13, 0.22, 0.125, -9); noise(sfxBus, t + 0.15, 0.06, 0.12, 700, 0.6); }
   };
   AU.sfx = function (id) {
     if (!AU.ctx || AU.ctx.state !== 'running' || !SFX[id]) return;
