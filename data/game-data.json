@@ -3575,6 +3575,50 @@
    "sfx": "magic",
    "id": "spikegrowth"
   },
+  "charmperson": {
+   "name": "Charm Person",
+   "level": 1,
+   "kind": "charm",
+   "save": "wis",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Charm Person (the druid to twelve, 09-30: deep16/js/grimoire.js; charmed: it will not strike or target its charmer, ai.js heroes)",
+   "sfx": "charm",
+   "id": "charmperson"
+  },
+  "animalfriendship": {
+   "name": "Animal Friendship",
+   "level": 1,
+   "kind": "charm",
+   "save": "wis",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Animal Friendship (the druid to twelve, 09-30: deep16/js/grimoire.js)",
+   "sfx": "charm",
+   "id": "animalfriendship"
+  },
+  "polymorph": {
+   "name": "Polymorph",
+   "level": 4,
+   "kind": "shape",
+   "save": "wis",
+   "target": "any",
+   "grid": true,
+   "src": "SRD 5.1 Polymorph (the druid to twelve, 09-30: deep16/js/grimoire.js, deep16/js/features.js F.morph; the beasts are the world's, deep16/data/summons.js D.pool)",
+   "sfx": "magic",
+   "id": "polymorph"
+  },
+  "dominatebeast": {
+   "name": "Dominate Beast",
+   "level": 4,
+   "kind": "charm",
+   "save": "wis",
+   "target": "enemy",
+   "grid": true,
+   "src": "SRD 5.1 Dominate Beast (the druid to twelve, 09-30: deep16/js/grimoire.js; it fights for the caster's side, a save each time it is hurt)",
+   "sfx": "charm",
+   "id": "dominatebeast"
+  },
   "windwall": {
    "name": "Wind Wall",
    "level": 3,

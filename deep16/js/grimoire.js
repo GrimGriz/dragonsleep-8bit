@@ -1242,6 +1242,127 @@
   }
   E.conjureanimals = summonSpell('conjureanimals');
   E.conjurewoodlandbeings = summonSpell('conjurewoodlandbeings');
+  // ------------------------------------------------------------------ shapes and charms (the druid to twelve, step 3 and 4, 09-30)
+  // Polymorph (SRD 5.1, 4th, concentration): a creature he can see within 60 ft becomes a beast of its CR or less (a hero's or a class
+  // NPC's: its level) -- a foe on a failed WIS save, an ally willingly. The beasts are the world's (data/summons.js D.pool: the same
+  // place the summons draw from). Its hit points are the beast's, its own kept behind them (features.js F.morph, Battle.hurt's pool);
+  // no spells; at the beast's 0 it comes back with the rest of the blow, and the spell is over
+  function capOf(t) { return t.cls || t.side === 'party' || t.cr == null ? (t.lvl || 1) : D.crNum(t.cr); }
+  function beastWorth(p) { var d = p.d, best = 0; Object.keys(d.attacks || {}).forEach(function (k) { var a = d.attacks[k]; best = Math.max(best, avg(a.dice) + (a.mod || 0)); }); return best * Math.max(1, d.multi || 1) + d.hp * 0.1; }
+  E.polymorph = {
+    summary: function (e, u) { var P = D.pool('beast'); return 'a creature you can see within 60 ft (concentration): a foe on a failed WIS, an ally willing -- a beast of its CR or less (the world has ' + P.length + ': ' + P.slice(0, 3).map(function (p) { return p.d.name.toLowerCase() + ' CR ' + p.cr; }).join(', ') + (P.length > 3 ? '...' : '') + '); the beast\'s hit points first, no spells'; },
+    cast: function* (B, u, t, slot, head, x) {
+      if (!t || t.hp <= 0 || t.dead) return;
+      if (t.beast || t.shapechanger) { B.card([head + ': ' + nm(B, t) + (t.beast ? ' is in another shape already.' : ' is a shapechanger: it slides off.')], 220); yield 16; return; }
+      var P = D.pool('beast', capOf(t)), foe = G.hostile(u, t);
+      if (!P.length) { B.card([head + ': no beast in the world small enough for ' + nm(B, t) + '.'], 220); yield 16; return; }
+      if (foe) { var sv = RU.save(t, 'wis', x.dc); B.card([head + ' on ' + nm(B, t) + ': WIS ' + RU.saveText(sv) + ' vs DC ' + x.dc + '  ' + (sv.ok ? '{n}it keeps its shape{/}' : '{o}it changes{/}')], 260); if (sv.ok) { yield 20; return; } }
+      var ranked = P.slice().sort(function (a, b) { return beastWorth(a) - beastWorth(b); }), pick = null;
+      if (u.guest || u.side !== 'party') pick = foe ? ranked[0] : ranked[ranked.length - 1];
+      else {
+        var list = foe ? ranked : ranked.slice().reverse();
+        var ch = yield { prompt: { who: u, title: u.name + ': POLYMORPH', lines: [foe ? 'What does it become? (the weakest first)' : 'What does ' + t.name + ' become? (the strongest first)'], opts: list.map(function (p, i) { return { label: p.d.name.toUpperCase() + '  (CR ' + p.cr + ', ' + p.d.hp + ' HP, AC ' + p.d.ac + ')', value: i + 1 }; }) } };
+        pick = list[Math.max(1, ch || 1) - 1];
+      }
+      D.features.morph(B, t, pick.kind, u);
+      FX.sparkle(t, 'moss', 20); D.sfx('magic2');
+      B.card(['{y}' + Nm(B, t) + '{/} is ' + (/^[aeiou]/i.test(pick.d.name) ? 'an ' : 'a ') + pick.d.name.toLowerCase() + ' now  {g}(' + pick.d.hp + ' HP of its own, AC ' + pick.d.ac + '){/}'], 300);
+      M.concentrate(B, u, 'polymorph', 'Polymorph', function () { if (t.beast && t.beast.morph && t.beast.morph.by === u.id) D.features.unshape(B, t, 0, true); });
+      u.conc.t = t;
+      yield 24;
+    },
+    // the AI makes the most dangerous foe it can see a harmless beast
+    ai: function (B, u, e, slot, fs) {
+      if (u.conc) return null;
+      var best = null;
+      fs.forEach(function (f) {
+        if (f.beast || f.hp <= 0 || G.dist(u, f) > 60 || !M.sees(B, u, f)) return;
+        var P = D.pool('beast', capOf(f)); if (!P.length) return;
+        var low = P.slice().sort(function (a, b) { return beastWorth(a) - beastWorth(b); })[0];
+        var sc = TX().pFail(f, 'wis', u.spellDC) * Math.max(0, TX().dpr(f) - beastWorth(low) * 0.5) * 3;
+        if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: f, keep: sc * 0.6 };
+      });
+      return best;
+    }
+  };
+  // Dominate Beast (SRD 5.1, 4th, concentration): a beast he can see within 60 ft, WIS with advantage (it is being fought: always, here)
+  // or it fights for his side till the spell ends; each time it is hurt, WIS again, and a success frees it (M.onHurt below)
+  E.dominatebeast = {
+    summary: function () { return 'a beast you can see within 60 ft (concentration) · WIS, with advantage (it is being fought) -- failed, it fights for you; each time it is hurt it saves again'; },
+    cast: function* (B, u, t, slot, head, x) {
+      if (!t || t.hp <= 0 || t.type !== 'beast') { B.card([head + ': ' + (t ? nm(B, t) : 'that') + ' is no beast.'], 200); yield 16; return; }
+      if (RU.immuneTo(t, 'charmed', u)) { B.card([head + ': ' + nm(B, t) + ' is proof against it.'], 200); yield 16; return; }
+      var sv = RU.save(t, 'wis', x.dc, G.hostile(u, t));
+      B.card([head + ' on ' + nm(B, t) + ': WIS ' + RU.saveText(sv) + ' vs DC ' + x.dc + '  ' + (sv.ok ? '{n}it shakes him off{/}' : '{o}it is his{/}')], 260);
+      if (sv.ok) { yield 20; return; }
+      t.dominated = { by: u.id, side0: t.side, guest0: t.guest, dc: x.dc };
+      t.side = u.side; t.guest = true; t.conds.charmed = { by: u.id, dominated: true };
+      FX.sparkle(t, 'violet', 18); D.sfx('charm');
+      M.concentrate(B, u, 'dominatebeast', 'Dominate Beast', function () { freeDominated(B, t, u); });
+      u.conc.t = t;
+      yield 24;
+    },
+    ai: function (B, u, e, slot, fs) {
+      if (u.conc) return null;
+      var best = null;
+      fs.forEach(function (f) {
+        if (f.type !== 'beast' || f.hp <= 0 || G.dist(u, f) > 60 || !M.sees(B, u, f) || RU.immuneTo(f, 'charmed', u)) return;
+        var pf = TX().pFail(f, 'wis', u.spellDC); pf = pf * pf; // (advantage)
+        var sc = pf * TX().dpr(f) * 3 * 2 + pf * f.hp * 0.1;
+        if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: f, keep: sc * 0.6 };
+      });
+      return best;
+    }
+  };
+  function freeDominated(B, t, u) {
+    if (!t.dominated || t.dominated.by !== u.id) return;
+    t.side = t.dominated.side0; t.guest = t.dominated.guest0; delete t.dominated;
+    if (t.conds.charmed && t.conds.charmed.dominated) delete t.conds.charmed;
+    if (t.hp > 0 && !t.dead) B.card(['{g}' + Nm(B, t) + ' is its own again.{/}'], 240);
+  }
+  // Charm Person and Animal Friendship (SRD 5.1, 1st): WIS or charmed by him -- it will not strike or target him (ai.js heroes), and the
+  // charm breaks when he or his companions harm it (M.onHurt below). Charm Person: a humanoid, the save with advantage (it is being fought).
+  // Animal Friendship: a beast of INT 3 or less
+  function charmSpell(id, what, test, adv) {
+    return {
+      summary: function () { return what + ' you can see within ' + (id === 'charmperson' ? 30 : 30) + ' ft · WIS' + (adv ? ', with advantage (it is being fought)' : '') + ' or charmed: it will not strike or target you; harm from you or yours breaks it'; },
+      cast: function* (B, u, t, slot, head, x) {
+        if (!t || t.hp <= 0 || !test(t)) { B.card([head + ': ' + (t ? nm(B, t) : 'that') + ' is not ' + what + '.'], 200); yield 16; return; }
+        if (RU.immuneTo(t, 'charmed', u)) { B.card([head + ': ' + nm(B, t) + ' is proof against it.'], 200); yield 16; return; }
+        var sv = RU.save(t, 'wis', x.dc, adv && G.hostile(u, t));
+        B.card([head + ' on ' + nm(B, t) + ': WIS ' + RU.saveText(sv) + ' vs DC ' + x.dc + '  ' + (sv.ok ? '{n}saved{/}' : '{o}charmed{/}: it will not raise a hand to ' + u.name)], 260);
+        if (!sv.ok) { t.conds.charmed = { by: u.id, breaks: true }; FX.sparkle(t, 'violet', 14); D.sfx('charm'); }
+        yield 20;
+      },
+      // the AI charms the foe standing over it (the one it would most like not to be hit by)
+      ai: function (B, u, e, slot, fs) {
+        var best = null;
+        fs.forEach(function (f) {
+          if (!test(f) || f.conds.charmed || G.dist(u, f) > 30 || G.dist(u, f) > 5 + (f.speed || 30) || !M.sees(B, u, f) || RU.immuneTo(f, 'charmed', u)) return;
+          var pf = TX().pFail(f, 'wis', u.spellDC); if (adv) pf = pf * pf;
+          var sc = pf * TX().dpr(f) * 1.5;
+          if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: f };
+        });
+        return best;
+      }
+    };
+  }
+  E.charmperson = charmSpell('charmperson', 'a humanoid', function (t) { return M.humanoid(t); }, true);
+  E.animalfriendship = charmSpell('animalfriendship', 'a beast of little wit', function (t) { return t.type === 'beast' && (t.abil ? t.abil.int : 10) <= 3; }, false);
+  // hurt: a dominated beast saves again (a success frees it); a charm breaks on harm from the charmer's side (the one whose turn it is)
+  var onHurtC = M.onHurt;
+  M.onHurt = function (B, u, n, type) {
+    if (onHurtC) onHurtC(B, u, n, type);
+    if (!n || u.hp <= 0) return;
+    var dm = u.dominated;
+    if (dm) {
+      var by = B.units.filter(function (w) { return w.id === dm.by; })[0], sv = RU.save(u, 'wis', dm.dc);
+      B.card([Nm(B, u) + ', hurt, fights the domination: WIS ' + RU.saveText(sv) + ' vs DC ' + dm.dc + '  ' + (sv.ok ? '{n}FREE{/}' : '{o}still his{/}')], 220);
+      if (sv.ok && by && by.conc && by.conc.id === 'dominatebeast') M.endConc(B, by, 'it broke free'); else if (sv.ok) freeDominated(B, u, by || { id: dm.by });
+    }
+    var ch = u.conds.charmed;
+    if (ch && ch.breaks && B.active) { var cb = B.units.filter(function (w) { return w.id === ch.by; })[0]; if (cb && B.active.side === cb.side) { delete u.conds.charmed; B.card(['{g}The charm on ' + nm(B, u) + ' breaks.{/}'], 200); } }
+  };
   E.masscurewounds = {
     summary: function (e, u) { return 'up to six allies within 60 ft · ' + more('3d8', Math.max(0, e.slot - 5)) + RU.sign(M.mod(u) + lifeBonus(u, e.slot)) + ' each'; },
     cast: function* (B, u, t, slot, head, x) { var list = (t.units || [t]).slice(0, 6); for (var i = 0; i < list.length; i++) yield* healOne(B, u, list[i], x.sp, slot, head, '3d8'); yield 16; },

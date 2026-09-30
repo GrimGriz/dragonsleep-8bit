@@ -306,7 +306,7 @@
     // bright light under the roost (the Light cantrip, Daylight): the roof lets go -- the 8-bit game's RoostFail runs on it
     // (RULED 09-28: the roost law is canon; fire and thunder stay greyed, the one thing to remember is not to cast light)
     if (this.roostBroken) return 'roost';
-    if (!this.alive('foe').filter(function (u) { return !u.summon; }).length) return 'won';
+    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated; }).length) return 'won';
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
     // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
@@ -314,7 +314,7 @@
     // are still on their way out of the inn (this.reserve)
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
     // (nor do summoned creatures: they go when their caster's concentration does)
-    if (!this.alive('party').filter(function (u) { return !u.familiar && !u.summon; }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
+    if (!this.alive('party').filter(function (u) { return !u.familiar && !u.summon && !u.dominated; }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's

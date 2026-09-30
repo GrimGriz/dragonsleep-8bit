@@ -146,6 +146,11 @@
   flamestrike: { shape: 'sphere', range: 60, r: 10, time: 'A' },
   greaterrestoration: { shape: 'touch', side: 'ally', time: 'A' },
   insectplague: { shape: 'sphere', range: 300, r: 20, time: 'A', conc: true },
+  // shapes and charms (the druid to twelve, 09-30: js/grimoire.js, js/features.js F.morph)
+  polymorph: { shape: 'single', range: 60, time: 'A', conc: true, side: 'any' },
+  dominatebeast: { shape: 'single', range: 60, time: 'A', conc: true, side: 'foe', only: 'beast' },
+  charmperson: { shape: 'single', range: 30, time: 'A', side: 'foe', only: 'humanoid' },
+  animalfriendship: { shape: 'single', range: 30, time: 'A', side: 'foe', only: 'beast' },
   // the walls (the druid to twelve, 09-30: js/walls.js): a run of squares across your line to the point, centred on it
   windwall: { shape: 'wall', range: 120, len: 50, time: 'A', conc: true, side: 'any' },
   walloffire: { shape: 'wall', range: 120, len: 60, time: 'A', conc: true, side: 'any' },

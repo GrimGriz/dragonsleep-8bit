@@ -13,11 +13,12 @@
   // the foes a creature knows of: those it can see (magic.js seeWhy: the light, the dark, its darkvision, the fog, the invisible)
   // and any beside it (heard, felt); a hidden one only beside it (torchdark, 09-28)
   function heroes(B, u) {
-    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.riding && (((!w.conds.hidden || D.magic.inMirror(B, u, w)) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
+    var ch = u.conds && u.conds.charmed, charmer = ch && ch.by; // (charmed: never its charmer -- SRD 5.1; Charm Person, Animal Friendship)
+    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.riding && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w)) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
     if (seen.length) return seen;
     // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
     // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)
-    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.riding && !w.conds.hidden; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.riding && !w.conds.hidden && w.id !== charmer; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
   }
   // the creature's own eyes from another square (the AI weighing a move)
   function eyesAt(u, x, y) { return { x: x, y: y, size: u.size || 1, darkvision: u.darkvision, blindsight: u.blindsight, blind: u.blind, truesight: u.truesight, devilSight: u.devilSight, seeInvisible: u.seeInvisible, conds: u.conds }; }
@@ -67,7 +68,7 @@
     if (handled) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     if (u.traces) yield* traces(B, u);
     else if (u.familiar && D.familiar) yield* D.familiar.turn(B, u); // a wizard's familiar: Help, and the owl flies back out (js/familiar.js)
-    else if (u.summon) yield* brute(B, u); // a summoned creature (js/grimoire.js summonSpell): it fights for its caster's side, as if commanded (RULED 09-30)
+    else if ((u.summon || u.dominated) && !u.classAI) yield* brute(B, u); // a summoned creature, or a beast dominated for its caster (js/grimoire.js) (js/grimoire.js summonSpell): it fights for its caster's side, as if commanded (RULED 09-30)
     else if (u.classAI && D.tactics) yield* D.tactics.turn(B, u); // a class NPC (js/classes.js), or a hero on the bench: the class's own tactics (js/tactics.js)
     else if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'drow') yield* drow(B, u);

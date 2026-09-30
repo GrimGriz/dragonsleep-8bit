@@ -21,18 +21,26 @@
     // from an 8th. The bestiary has no fey yet: the spell waits, greyed, for the first one drawn
     conjurewoodlandbeings: { name: 'Conjure Woodland Beings', type: 'fey', range: 60, options: [[1, 2], [2, 1], [4, 0.5], [8, 0.25]], upcast: { 6: 2, 8: 3 } }
   };
+  // the world's creatures of a type, up to a challenge rating: the one place a spell looks for them (the summons here; Polymorph's new
+  // shapes, js/grimoire.js), the strongest first
+  D.pool = function (type, maxCr) {
+    var out = [];
+    Object.keys(D.FOES).forEach(function (k) {
+      var d = D.FOES[k];
+      if (!d || d.type !== type || d.summon === false || d.named || d.bound || d.build || !d.sheet || /^fam_/.test(k)) return;
+      if (maxCr != null && D.crNum(d.cr) > maxCr) return;
+      out.push({ kind: k, cr: d.cr, d: d });
+    });
+    return out.sort(function (a, b) { return D.crNum(b.cr) - D.crNum(a.cr) || a.d.name.localeCompare(b.d.name); });
+  };
   // the bestiary's creatures a spell may call from a slot: each with the most the spell's options allow of it, the strongest first
   D.summonPool = function (id, slot) {
     var S = D.SUMMON[id]; if (!S) return [];
     var mult = 1; Object.keys(S.upcast || {}).forEach(function (k) { if ((slot || 0) >= +k) mult = Math.max(mult, S.upcast[k]); });
-    var out = [];
-    Object.keys(D.FOES).forEach(function (k) {
-      var d = D.FOES[k];
-      if (!d || d.type !== S.type || d.summon === false || d.named || d.bound || d.build || !d.sheet || /^fam_/.test(k)) return;
-      var c = D.crNum(d.cr), n = 0;
+    return D.pool(S.type).map(function (p) {
+      var c = D.crNum(p.cr), n = 0;
       S.options.forEach(function (o) { if (c <= o[1]) n = Math.max(n, o[0]); });
-      if (n) out.push({ kind: k, n: n * mult, cr: d.cr, d: d });
-    });
-    return out.sort(function (a, b) { return D.crNum(b.cr) - D.crNum(a.cr) || a.d.name.localeCompare(b.d.name); });
+      return n ? { kind: p.kind, n: n * mult, cr: p.cr, d: p.d } : null;
+    }).filter(Boolean);
   };
 })();

@@ -28,10 +28,10 @@
     D.canvas.focus();
   };
   E.done = function (B, res) {
-    var foes = B.units.filter(function (u) { return u.side === 'foe'; });
+    var foes = B.units.filter(function (u) { return (u.side === 'foe' || (u.dominated && u.dominated.side0 === 'foe')) && !u.summon; }); // (a beast dominated for a while is still the 8-bit's foe)
     send({
       type: 'd16:done', result: res || 'escaped',
-      party: B.units.concat(B.reserve || [], B.stayed || []).filter(function (u) { return u.side === 'party' && !u.summon; }).map(function (u) { // (reserve: still in the inn when it ended; a summoned creature is the fight's alone)
+      party: B.units.concat(B.reserve || [], B.stayed || []).filter(function (u) { return u.side === 'party' && !u.summon && !u.dominated; }).map(function (u) { // (reserve: still in the inn when it ended; a summoned creature is the fight's alone)
         // (the bat-wing pie's +5 is the fight's alone, as the 8-bit battle's finish() takes it back: never read there as Aid)
         var mx = u.maxhp - (u.fortified ? 5 : 0);
         return { id: u.id, guest: !!u.guest, hp: Math.max(0, Math.min(u.hp, mx)), maxhp: mx, slots: (u.slots || []).slice(), feats: u.feats || {}, mageArmor: !!u.conds.mageArmor, left: !!u.left,

@@ -178,6 +178,7 @@
     if (foeWanted && (!G.hostile(u, w) || w.hp <= 0)) return false;
     if (((g.shape === 'allies' && g.side !== 'foe') || g.side === 'ally') && w.side !== u.side) return false; // (Bane: an `allies` shape aimed at foes)
     if (g.only === 'humanoid' && !M.humanoid(w)) return false;
+    if (g.only === 'beast' && w.type !== 'beast') return false; // (Dominate Beast, Animal Friendship)
     // "a creature you can see": Hold, Shield of Faith, Magic Missile, Acid Splash -- not Bless or Aid (SRD: "creatures of your choice
     // within range"; you know where your own are in the dark). Magic Missile at the dark: ui.js aims it at a square (the gimmick)
     if ((g.shape === 'single' || g.shape === 'darts' || g.shape === 'splash') && w !== u && !M.sees(B, u, w)) return false;

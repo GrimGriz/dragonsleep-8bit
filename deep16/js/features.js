@@ -249,11 +249,32 @@
     B.card(['{y}' + Nm(B, u) + '{/}: WILD SHAPE -- a ' + d.name.toLowerCase() + ' where the druid stood  {g}(' + d.hp + ' HP of its own){/}'], 300);
     yield 24;
   };
+  // Polymorph (SRD 5.1; js/grimoire.js E.polymorph): a creature made a beast -- its statistics the beast's, mind and all; its own hit points
+  // kept behind the beast's (Battle.hurt's pool, as Wild Shape's); no spells. A foe the bestiary runs fights with the beast's own attacks; a
+  // hero or a class NPC with its best one as a weapon (its turn is still its own). Its footprint stays its own (a giant made a rat keeps
+  // his square; the rat is drawn in it)
+  var MORPH_KEEP = ['weapon', 'alt', 'baseAC', 'speed', 'sheet', 'abil', 'saves', 'attacks', 'attacksBase', 'multi', 'packTactics', 'known', 'flies', 'blindsight', 'darkvision', 'type', 'resist', 'immune', 'condImmune', 'web', 'slam', 'weave', 'reach', 'drawScale', 'regen', 'split'];
+  F.morph = function (B, u, kind, by) {
+    var d = D.FOES[kind]; if (!d) return false;
+    var keep = {}; MORPH_KEEP.forEach(function (k) { keep[k] = u[k]; });
+    u.beast = { kind: kind, hp: d.hp, maxhp: d.hp, keep: keep, morph: { by: by.id } };
+    var bite = d.attacks[Object.keys(d.attacks)[0]];
+    u.baseAC = d.ac; u.speed = d.speed; u.sheet = d.sheet; u.abil = Object.assign({}, d.abil); u.saves = Object.assign({}, d.saves || {});
+    ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(function (k) { if (u.saves[k] == null) u.saves[k] = D.mod(u.abil[k]); });
+    u.known = []; u.type = d.type || 'beast'; u.resist = d.resist || null; u.immune = d.immune || null; u.condImmune = d.condImmune || null;
+    u.flies = false; u.blindsight = d.blindsight || 0; u.darkvision = d.darkvision || 0; u.packTactics = !!d.packTactics;
+    u.web = null; u.slam = null; u.weave = null; u.reach = d.reach || 5; u.drawScale = 1; u.regen = 0; u.split = false;
+    if (u.cls || u.side === 'party') { u.weapon = Object.assign({}, bite, { magic: false }); u.alt = null; u.attacks = d.multi || 1; u.attacksBase = u.attacks; }
+    else { u.attacks = JSON.parse(JSON.stringify(d.attacks)); u.multi = d.multi || 1; }
+    return true;
+  };
   F.unshape = function (B, u, over, willing) {
-    var k = u.beast.keep; delete u.beast;
+    var k = u.beast.keep, mb = u.beast.morph; delete u.beast;
     Object.keys(k).forEach(function (f) { u[f] = k[f]; });
     FX.sparkle(u, 'moss', 16);
     B.card(['{g}' + Nm(B, u) + (willing ? ' takes their own shape again.' : ' is thrown back into their own shape.') + '{/}'], 240);
+    // (a Polymorph undone by the blow ends the spell: SRD "until the target drops to 0 hit points")
+    if (mb) { var cst = B.units.filter(function (w) { return w.id === mb.by; })[0]; if (cst && cst.conc && cst.conc.id === 'polymorph' && cst.conc.t === u) delete cst.conc; }
     if (over > 0) B.hurt(u, over, 'bludgeoning');
   };
   TX.ACTIONS.push(function (B, u, fs) {
@@ -510,7 +531,7 @@
     // the druid (09-29, Higertha to nine): Wild Shape, and the way back
     if (u.cls === 'druid' && u.lvl >= 2 && !u.beast) out.push({ id: 'wildshape', label: 'WILD SHAPE', cost: 'A', icon: 'skills', skill: true, ok: act && feat(u, 'wildShape'),
       why: !feat(u, 'wildShape') ? 'no shape left (a short rest brings two back)' : 'the action is spent', note: 'a beast\'s shape (' + F.beastsFor(u).map(function (k) { return D.FOES[k].name.toLowerCase(); }).join(', ') + '): its hit points take the blows first, no spells; ' + ((u.feats && u.feats.wildShape) || 0) + ' left (short rest)' });
-    if (u.cls === 'druid' && u.beast) out.push({ id: 'unshape', label: 'OWN SHAPE', cost: 'B', icon: 'skills', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'back to the druid (the beast\'s hit points left behind)' });
+    if (u.cls === 'druid' && u.beast && !u.beast.morph) out.push({ id: 'unshape', label: 'OWN SHAPE', cost: 'B', icon: 'skills', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'back to the druid (the beast\'s hit points left behind)' });
     if (u.cls === 'cleric' && u.lvl >= 2) out.push({ id: 'turnundead', label: 'TURN UNDEAD', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.undeadNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no undead within 30 ft', note: 'the dead within 30 ft: WIS DC ' + u.spellDC + ' or turned' + (u.lvl >= 5 ? ' (the weakest destroyed)' : '') });
     if (sub(u, 'the Window', 1)) out.push({ id: 'handonneck', label: 'HAND ON THE NECK', cost: 'B', icon: 'lay', skill: true, ok: T.bonus > 0 && feat(u, 'handOnNeck'),

@@ -119,11 +119,11 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Spell | Classes | Who | Verdict | In the game |
 |---|---|---|---|---|
 | Alarm | W R | Au Wi | **OUT** | a ward that wakes the camp: rests are fixed places, nothing ambushes them |
-| Animal Friendship | B D R |  | **LATER** | needs a charmed condition: a beast (INT 3 or less) fails WIS, won't attack you; harm ends it |
+| Animal Friendship | B D R |  | **BUILT** (09-30, the grid's) | a beast of INT 3 or less, WIS or charmed: it will not strike or target the caster (ai.js heroes); harm from his side breaks it |
 | Bane | C B | To In | **BUILT** | up to three, CHA save: -1d4 to attacks and saves (conc) -- Bless's mirror; a cleric foe's -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Bless | C P | Ly To In | **BUILT** | up to three: +1d4 to attacks and saves (conc) |
 | Burning Hands | W S | Au Wi | **BUILT** | 15-ft cone, DEX save 3d6 fire (half); greyed under the roost |
-| Charm Person | W K S B D | Au Am Wi Na | **LATER** | charmed: it won't attack the caster -- needs the AI to honour charm; the naga's, Amara's |
+| Charm Person | W K S B D | Au Am Wi Na | **BUILT** (09-30, the grid's; Amara's known list reaches it now) | a humanoid, WIS with advantage (it is being fought) or charmed: it will not strike or target the caster; harm from his side breaks it; the AI charms the foe standing over it |
 | Color Spray | W S | Au Wi | **BUILT** | 15-ft cone, 6d10 HP of creatures (lowest first) blinded till your next turn -- Sleep's way -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Command | C P | Ly To In | **BUILT** | one word, WIS save: FLEE (moves away), GROVEL (prone), HALT (loses its turn), DROP -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#lymen-both-games) |
 | Comprehend Languages | W K S B | Au Am Wi | **OUT** | reading and hearing any language: social |
@@ -290,7 +290,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Death Ward | C P |  | **BUILT** | touch (ally), 8 hr: the first drop to 0 HP leaves it at 1 instead; a foe priest's champion -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Dimension Door | W K S B | Au Na | **BUILT** | teleport 500 ft with one ally: across the field or off it; the naga's -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Divination | D |  | **OUT** | divination: one question about the next 7 days, a cryptic reply |
-| Dominate Beast | S D |  | **LATER** | control of a creature: a beast fails WIS and obeys the caster; needs dominate |
+| Dominate Beast | S D |  | **BUILT** (09-30) | a beast, WIS with advantage or it fights for the caster's side (the AI runs it) while concentration holds; each time it is hurt it saves again |
 | Fabricate | W | Au | **OUT** | crafting |
 | Faithful Hound | W | Au | **LATER** | an invisible watchdog that bites: a summon |
 | Fire Shield | W | Au | **BUILT** | self: warm or chill -- resistance to one, and 2d8 back at whoever strikes you in melee -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
@@ -302,7 +302,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Ice Storm | W S D | Au SW | **BUILT** | 20-ft cylinder, DEX save 2d8 bludgeoning + 4d6 cold (half), difficult |
 | Locate Creature | W C P B D R | Au | **OUT** | divination |
 | Phantasmal Killer | W | Au | **BUILT** | WIS save: frightened, 4d10 psychic at each turn's end till a save (conc) -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
-| Polymorph | W S B D | Au | **LATER** | needs stat blocks to become (a beast's sheet): a foe made a toad, later |
+| Polymorph | W S B D | Au | **BUILT** (09-30, the grid's) | a foe (WIS) or a friend made a beast of its CR or level or less -- the world's beasts (`deep16/data/summons.js D.pool`); its HP behind the beast's; no spells; the player picks, the AI makes a foe the weakest beast (`deep16/js/features.js F.morph`) |
 | Private Sanctum | W | Au | **OUT** | a warded room: set-up |
 | Resilient Sphere | W | Au | **BUILT** | DEX save: sealed in a sphere (conc) -- one foe out of the fight, or a friend kept safe -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Secret Chest | W | Au | **OUT** | storage |
@@ -461,15 +461,15 @@ The same verdicts, a line a level: each class's own SRD list.
 ### Wizard (204)
 
 - **Cantrips:** Acid Splash (BUILT), Chill Touch (IN), Dancing Lights (BUILT), Fire Bolt (BUILT), Light (BUILT), Mage Hand (OUT), Mending (OUT), Message (OUT), Minor Illusion (LATER), Poison Spray (IN), Prestidigitation (OUT), Ray of Frost (IN), Shocking Grasp (IN), True Strike (IN)
-- **1st:** Alarm (OUT), Burning Hands (BUILT), Charm Person (LATER), Color Spray (IN), Comprehend Languages (OUT), Detect Magic (BUILT), Disguise Self (OUT), Expeditious Retreat (IN), False Life (IN), Feather Fall (OUT), Find Familiar (OUT), Floating Disk (OUT), Fog Cloud (BUILT), Grease (IN), Hideous Laughter (IN), Identify (OUT), Illusory Script (OUT), Jump (OUT), Longstrider (IN), Mage Armor (BUILT), Magic Missile (BUILT), Protection from Evil and Good (LATER), Shield (BUILT), Silent Image (LATER), Sleep (BUILT), Thunderwave (BUILT), Unseen Servant (OUT)
+- **1st:** Alarm (OUT), Burning Hands (BUILT), Charm Person (BUILT), Color Spray (IN), Comprehend Languages (OUT), Detect Magic (BUILT), Disguise Self (OUT), Expeditious Retreat (IN), False Life (IN), Feather Fall (OUT), Find Familiar (OUT), Floating Disk (OUT), Fog Cloud (BUILT), Grease (IN), Hideous Laughter (IN), Identify (OUT), Illusory Script (OUT), Jump (OUT), Longstrider (IN), Mage Armor (BUILT), Magic Missile (BUILT), Protection from Evil and Good (LATER), Shield (BUILT), Silent Image (LATER), Sleep (BUILT), Thunderwave (BUILT), Unseen Servant (OUT)
 - **2nd:** Acid Arrow (IN), Alter Self (OUT), Arcane Lock (OUT), Arcanist's Magic Aura (OUT), Blindness/Deafness (IN), Blur (IN), Continual Flame (BUILT), Darkness (BUILT), Darkvision (BUILT), Detect Thoughts (OUT), Enlarge/Reduce (IN), Flaming Sphere (LATER), Gentle Repose (OUT), Gust of Wind (IN), Hold Person (BUILT), Invisibility (BUILT), Knock (OUT), Levitate (LATER), Locate Object (OUT), Magic Mouth (OUT), Magic Weapon (IN), Mirror Image (IN), Misty Step (BUILT), Ray of Enfeeblement (IN), Rope Trick (IN), Scorching Ray (BUILT), See Invisibility (BUILT), Shatter (BUILT), Spider Climb (OUT), Suggestion (LATER), Web (BUILT)
 - **3rd:** Animate Dead (LATER), Bestow Curse (IN), Blink (IN), Clairvoyance (OUT), Counterspell (LATER), Dispel Magic (IN), Fear (IN), Fireball (BUILT), Fly (LATER), Gaseous Form (OUT), Glyph of Warding (OUT), Haste (IN), Hypnotic Pattern (IN), Lightning Bolt (BUILT), Magic Circle (OUT), Major Image (LATER), Nondetection (OUT), Phantom Steed (OUT), Protection From Energy (IN), Remove Curse (OUT), Sending (OUT), Sleet Storm (BUILT), Slow (IN), Stinking Cloud (BUILT), Tiny Hut (IN), Tongues (OUT), Vampiric Touch (IN), Water Breathing (OUT)
-- **4th:** Arcane Eye (OUT), Banishment (IN), Black Tentacles (IN), Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Control Water (OUT), Dimension Door (IN), Fabricate (OUT), Faithful Hound (LATER), Fire Shield (IN), Greater Invisibility (BUILT), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Phantasmal Killer (IN), Polymorph (LATER), Private Sanctum (OUT), Resilient Sphere (IN), Secret Chest (OUT), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (BUILT)
+- **4th:** Arcane Eye (OUT), Banishment (IN), Black Tentacles (IN), Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Control Water (OUT), Dimension Door (IN), Fabricate (OUT), Faithful Hound (LATER), Fire Shield (IN), Greater Invisibility (BUILT), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Phantasmal Killer (IN), Polymorph (BUILT), Private Sanctum (OUT), Resilient Sphere (IN), Secret Chest (OUT), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (BUILT)
 - **5th:** Animate Objects (LATER), Arcane Hand (LATER), Cloudkill (LATER), Cone of Cold (BUILT), Conjure Elemental (LATER), Contact Other Plane (OUT), Creation (OUT), Dominate Person (LATER), Dream (OUT), Geas (OUT), Hold Monster (BUILT), Legend Lore (OUT), Mislead (BUILT), Modify Memory (OUT), Passwall (OUT), Planar Binding (OUT), Scrying (OUT), Seeming (OUT), Telekinesis (LATER), Telepathic Bond (OUT), Teleportation Circle (OUT), Wall of Force (LATER), Wall of Stone (BUILT)
 - **6th:** Chain Lightning (IN), Circle of Death (IN), Contingency (LATER), Create Undead (LATER), Disintegrate (IN), Eyebite (IN), Flesh to Stone (IN), Freezing Sphere (IN), Globe of Invulnerability (IN), Guards and Wards (OUT), Instant Summons (OUT), Irresistible Dance (IN), Magic Jar (LATER), Mass Suggestion (LATER), Move Earth (OUT), Programmed Illusion (OUT), Sunbeam (IN), True Seeing (BUILT), Wall of Ice (LATER)
 - **7th:** Arcane Sword (IN), Delayed Blast Fireball (IN), Etherealness (IN), Finger of Death (IN), Forcecage (LATER), Magnificent Mansion (OUT), Mirage Arcane (OUT), Plane Shift (OUT), Prismatic Spray (IN), Project Image (OUT), Reverse Gravity (LATER), Sequester (OUT), Simulacrum (LATER), Symbol (IN), Teleport (OUT)
 - **8th:** Antimagic Field (LATER), Antipathy/Sympathy (LATER), Clone (OUT), Control Weather (OUT), Demiplane (OUT), Dominate Monster (LATER), Feeblemind (IN), Incendiary Cloud (LATER), Maze (IN), Mind Blank (IN), Power Word Stun (IN), Sunburst (IN)
-- **9th:** Astral Projection (OUT), Foresight (IN), Gate (LATER), Imprisonment (OUT), Meteor Swarm (IN), Power Word Kill (IN), Prismatic Wall (LATER), Shapechange (LATER), Time Stop (LATER), True Polymorph (LATER), Weird (IN), Wish (LATER)
+- **9th:** Astral Projection (OUT), Foresight (IN), Gate (LATER), Imprisonment (OUT), Meteor Swarm (IN), Power Word Kill (IN), Prismatic Wall (LATER), Shapechange (LATER), Time Stop (LATER), True Polymorph (BUILT), Weird (IN), Wish (LATER)
 
 ### Cleric (105)
 
@@ -495,7 +495,7 @@ The same verdicts, a line a level: each class's own SRD list.
 ### Warlock (64)
 
 - **Cantrips:** Chill Touch (IN), Eldritch Blast (BUILT), Mage Hand (OUT), Minor Illusion (LATER), Poison Spray (IN), Prestidigitation (OUT), True Strike (IN)
-- **1st:** Charm Person (LATER), Comprehend Languages (OUT), Expeditious Retreat (IN), Hellish Rebuke (IN), Illusory Script (OUT), Protection from Evil and Good (LATER), Unseen Servant (OUT)
+- **1st:** Charm Person (BUILT), Comprehend Languages (OUT), Expeditious Retreat (IN), Hellish Rebuke (IN), Illusory Script (OUT), Protection from Evil and Good (LATER), Unseen Servant (OUT)
 - **2nd:** Darkness (BUILT), Enthrall (OUT), Hold Person (BUILT), Invisibility (BUILT), Mirror Image (IN), Misty Step (BUILT), Ray of Enfeeblement (IN), Shatter (BUILT), Spider Climb (OUT), Suggestion (LATER)
 - **3rd:** Counterspell (LATER), Dispel Magic (IN), Fear (IN), Fly (LATER), Gaseous Form (OUT), Hypnotic Pattern (IN), Magic Circle (OUT), Major Image (LATER), Remove Curse (OUT), Tongues (OUT), Vampiric Touch (IN)
 - **4th:** Banishment (IN), Blight (IN), Dimension Door (IN), Hallucinatory Terrain (OUT)
@@ -503,15 +503,15 @@ The same verdicts, a line a level: each class's own SRD list.
 - **6th:** Circle of Death (IN), Conjure Fey (LATER), Create Undead (LATER), Eyebite (IN), Flesh to Stone (IN), Mass Suggestion (LATER), True Seeing (BUILT)
 - **7th:** Etherealness (IN), Finger of Death (IN), Forcecage (LATER), Plane Shift (OUT)
 - **8th:** Demiplane (OUT), Dominate Monster (LATER), Feeblemind (IN), Glibness (OUT), Power Word Stun (IN)
-- **9th:** Astral Projection (OUT), Foresight (IN), Imprisonment (OUT), Power Word Kill (IN), True Polymorph (LATER)
+- **9th:** Astral Projection (OUT), Foresight (IN), Imprisonment (OUT), Power Word Kill (IN), True Polymorph (BUILT)
 
 ### Sorcerer (120)
 
 - **Cantrips:** Acid Splash (BUILT), Chill Touch (IN), Dancing Lights (BUILT), Fire Bolt (BUILT), Light (BUILT), Mage Hand (OUT), Mending (OUT), Message (OUT), Minor Illusion (LATER), Poison Spray (IN), Prestidigitation (OUT), Ray of Frost (IN), Shocking Grasp (IN), True Strike (IN)
-- **1st:** Burning Hands (BUILT), Charm Person (LATER), Color Spray (IN), Comprehend Languages (OUT), Detect Magic (BUILT), Disguise Self (OUT), Expeditious Retreat (IN), False Life (IN), Feather Fall (OUT), Fog Cloud (BUILT), Jump (OUT), Mage Armor (BUILT), Magic Missile (BUILT), Shield (BUILT), Silent Image (LATER), Sleep (BUILT), Thunderwave (BUILT)
+- **1st:** Burning Hands (BUILT), Charm Person (BUILT), Color Spray (IN), Comprehend Languages (OUT), Detect Magic (BUILT), Disguise Self (OUT), Expeditious Retreat (IN), False Life (IN), Feather Fall (OUT), Fog Cloud (BUILT), Jump (OUT), Mage Armor (BUILT), Magic Missile (BUILT), Shield (BUILT), Silent Image (LATER), Sleep (BUILT), Thunderwave (BUILT)
 - **2nd:** Alter Self (OUT), Blindness/Deafness (IN), Blur (IN), Darkness (BUILT), Darkvision (BUILT), Detect Thoughts (OUT), Enhance Ability (IN), Enlarge/Reduce (IN), Gust of Wind (IN), Hold Person (BUILT), Invisibility (BUILT), Knock (OUT), Levitate (LATER), Mirror Image (IN), Misty Step (BUILT), Scorching Ray (BUILT), See Invisibility (BUILT), Shatter (BUILT), Spider Climb (OUT), Suggestion (LATER), Web (BUILT)
 - **3rd:** Blink (IN), Clairvoyance (OUT), Counterspell (LATER), Daylight (BUILT), Dispel Magic (IN), Fear (IN), Fireball (BUILT), Fly (LATER), Gaseous Form (OUT), Haste (IN), Hypnotic Pattern (IN), Lightning Bolt (BUILT), Major Image (LATER), Protection From Energy (IN), Sleet Storm (BUILT), Slow (IN), Stinking Cloud (BUILT), Tongues (OUT), Water Breathing (OUT), Water Walk (OUT)
-- **4th:** Banishment (IN), Blight (IN), Confusion (IN), Dimension Door (IN), Dominate Beast (LATER), Greater Invisibility (BUILT), Ice Storm (BUILT), Polymorph (LATER), Stoneskin (BUILT), Wall of Fire (BUILT)
+- **4th:** Banishment (IN), Blight (IN), Confusion (IN), Dimension Door (IN), Dominate Beast (BUILT), Greater Invisibility (BUILT), Ice Storm (BUILT), Polymorph (BUILT), Stoneskin (BUILT), Wall of Fire (BUILT)
 - **5th:** Animate Objects (LATER), Cloudkill (LATER), Cone of Cold (BUILT), Creation (OUT), Dominate Person (LATER), Hold Monster (BUILT), Insect Plague (IN), Seeming (OUT), Telekinesis (LATER), Teleportation Circle (OUT), Wall of Stone (BUILT)
 - **6th:** Chain Lightning (IN), Circle of Death (IN), Disintegrate (IN), Eyebite (IN), Globe of Invulnerability (IN), Mass Suggestion (LATER), Move Earth (OUT), Sunbeam (IN), True Seeing (BUILT)
 - **7th:** Delayed Blast Fireball (IN), Etherealness (IN), Finger of Death (IN), Fire Storm (IN), Plane Shift (OUT), Prismatic Spray (IN), Reverse Gravity (LATER), Teleport (OUT)
@@ -521,23 +521,23 @@ The same verdicts, a line a level: each class's own SRD list.
 ### Bard (111)
 
 - **Cantrips:** Dancing Lights (BUILT), Light (BUILT), Mage Hand (OUT), Mending (OUT), Message (OUT), Minor Illusion (LATER), Prestidigitation (OUT), True Strike (IN), Vicious Mockery (IN)
-- **1st:** Animal Friendship (LATER), Bane (IN), Charm Person (LATER), Comprehend Languages (OUT), Cure Wounds (BUILT), Detect Magic (BUILT), Disguise Self (OUT), Feather Fall (OUT), Healing Word (IN), Heroism (BUILT), Hideous Laughter (IN), Identify (OUT), Illusory Script (OUT), Longstrider (IN), Silent Image (LATER), Sleep (BUILT), Speak with Animals (OUT), Thunderwave (BUILT), Unseen Servant (OUT)
+- **1st:** Animal Friendship (BUILT), Bane (IN), Charm Person (BUILT), Comprehend Languages (OUT), Cure Wounds (BUILT), Detect Magic (BUILT), Disguise Self (OUT), Feather Fall (OUT), Healing Word (IN), Heroism (BUILT), Hideous Laughter (IN), Identify (OUT), Illusory Script (OUT), Longstrider (IN), Silent Image (LATER), Sleep (BUILT), Speak with Animals (OUT), Thunderwave (BUILT), Unseen Servant (OUT)
 - **2nd:** Animal Messenger (OUT), Blindness/Deafness (IN), Calm Emotions (LATER), Detect Thoughts (OUT), Enhance Ability (IN), Enthrall (OUT), Heat Metal (IN), Hold Person (BUILT), Invisibility (BUILT), Knock (OUT), Lesser Restoration (BUILT), Locate Animals or Plants (OUT), Locate Object (OUT), Magic Mouth (OUT), See Invisibility (BUILT), Shatter (BUILT), Silence (LATER), Suggestion (LATER), Zone of Truth (OUT)
 - **3rd:** Bestow Curse (IN), Clairvoyance (OUT), Dispel Magic (IN), Fear (IN), Glyph of Warding (OUT), Hypnotic Pattern (IN), Major Image (LATER), Nondetection (OUT), Plant Growth (LATER), Sending (OUT), Speak with Dead (OUT), Speak with Plants (OUT), Stinking Cloud (BUILT), Tiny Hut (IN), Tongues (OUT)
-- **4th:** Compulsion (LATER), Confusion (IN), Dimension Door (IN), Freedom of Movement (IN), Greater Invisibility (BUILT), Hallucinatory Terrain (OUT), Locate Creature (OUT), Polymorph (LATER)
+- **4th:** Compulsion (LATER), Confusion (IN), Dimension Door (IN), Freedom of Movement (IN), Greater Invisibility (BUILT), Hallucinatory Terrain (OUT), Locate Creature (OUT), Polymorph (BUILT)
 - **5th:** Animate Objects (LATER), Awaken (OUT), Dominate Person (LATER), Dream (OUT), Geas (OUT), Greater Restoration (IN), Hold Monster (BUILT), Legend Lore (OUT), Mass Cure Wounds (IN), Mislead (BUILT), Modify Memory (OUT), Planar Binding (OUT), Raise Dead (OUT), Scrying (OUT), Seeming (OUT), Teleportation Circle (OUT)
 - **6th:** Eyebite (IN), Find the Path (OUT), Guards and Wards (OUT), Irresistible Dance (IN), Mass Suggestion (LATER), Programmed Illusion (OUT), True Seeing (BUILT)
 - **7th:** Arcane Sword (IN), Etherealness (IN), Forcecage (LATER), Magnificent Mansion (OUT), Mirage Arcane (OUT), Project Image (OUT), Regenerate (IN), Resurrection (OUT), Symbol (IN), Teleport (OUT)
 - **8th:** Dominate Monster (LATER), Feeblemind (IN), Glibness (OUT), Mind Blank (IN), Power Word Stun (IN)
-- **9th:** Foresight (IN), Power Word Kill (IN), True Polymorph (LATER)
+- **9th:** Foresight (IN), Power Word Kill (IN), True Polymorph (BUILT)
 
 ### Druid (106)
 
 - **Cantrips:** Druidcraft (OUT), Guidance (IN), Mending (OUT), Poison Spray (IN), Produce Flame (IN), Resistance (IN), Shillelagh (IN)
-- **1st:** Animal Friendship (LATER), Charm Person (LATER), Create or Destroy Water (OUT), Cure Wounds (BUILT), Detect Magic (BUILT), Detect Poison and Disease (OUT), Entangle (IN), Faerie Fire (BUILT), Fog Cloud (BUILT), Goodberry (OUT), Healing Word (IN), Jump (OUT), Longstrider (IN), Purify Food and Drink (OUT), Speak with Animals (OUT), Thunderwave (BUILT)
+- **1st:** Animal Friendship (BUILT), Charm Person (BUILT), Create or Destroy Water (OUT), Cure Wounds (BUILT), Detect Magic (BUILT), Detect Poison and Disease (OUT), Entangle (IN), Faerie Fire (BUILT), Fog Cloud (BUILT), Goodberry (OUT), Healing Word (IN), Jump (OUT), Longstrider (IN), Purify Food and Drink (OUT), Speak with Animals (OUT), Thunderwave (BUILT)
 - **2nd:** Animal Messenger (OUT), Barkskin (IN), Darkvision (BUILT), Enhance Ability (IN), Find Traps (OUT), Flame Blade (IN), Flaming Sphere (LATER), Gust of Wind (IN), Heat Metal (IN), Hold Person (BUILT), Lesser Restoration (BUILT), Locate Animals or Plants (OUT), Locate Object (OUT), Moonbeam (LATER), Pass Without Trace (BUILT), Protection from Poison (IN), Spike Growth (IN)
 - **3rd:** Call Lightning (IN), Conjure Animals (BUILT), Create Food and Water (OUT), Daylight (BUILT), Dispel Magic (IN), Plant Growth (LATER), Protection From Energy (IN), Sleet Storm (BUILT), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (BUILT)
-- **4th:** Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Conjure Woodland Beings (BUILT, waits for a fey), Control Water (OUT), Divination (OUT), Dominate Beast (LATER), Freedom of Movement (IN), Giant Insect (LATER), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Polymorph (LATER), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (BUILT)
+- **4th:** Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Conjure Woodland Beings (BUILT, waits for a fey), Control Water (OUT), Divination (OUT), Dominate Beast (BUILT), Freedom of Movement (IN), Giant Insect (LATER), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Polymorph (BUILT), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (BUILT)
 - **5th:** Antilife Shell (LATER), Awaken (OUT), Commune With Nature (OUT), Conjure Elemental (LATER), Contagion (IN), Geas (OUT), Greater Restoration (IN), Insect Plague (IN), Mass Cure Wounds (IN), Planar Binding (OUT), Reincarnate (OUT), Scrying (OUT), Tree Stride (LATER), Wall of Stone (BUILT)
 - **6th:** Conjure Fey (LATER), Find the Path (OUT), Heal (IN), Heroes' Feast (IN), Move Earth (OUT), Sunbeam (IN), Transport via Plants (OUT), Wall of Thorns (BUILT), Wind Walk (OUT)
 - **7th:** Fire Storm (IN), Mirage Arcane (OUT), Plane Shift (OUT), Regenerate (IN), Reverse Gravity (LATER)
@@ -546,7 +546,7 @@ The same verdicts, a line a level: each class's own SRD list.
 
 ### Ranger (37)
 
-- **1st:** Alarm (OUT), Animal Friendship (LATER), Cure Wounds (BUILT), Detect Magic (BUILT), Detect Poison and Disease (OUT), Fog Cloud (BUILT), Goodberry (OUT), Hunter's Mark (IN), Jump (OUT), Longstrider (IN), Speak with Animals (OUT)
+- **1st:** Alarm (OUT), Animal Friendship (BUILT), Cure Wounds (BUILT), Detect Magic (BUILT), Detect Poison and Disease (OUT), Fog Cloud (BUILT), Goodberry (OUT), Hunter's Mark (IN), Jump (OUT), Longstrider (IN), Speak with Animals (OUT)
 - **2nd:** Animal Messenger (OUT), Barkskin (IN), Darkvision (BUILT), Find Traps (OUT), Lesser Restoration (BUILT), Locate Animals or Plants (OUT), Locate Object (OUT), Pass Without Trace (BUILT), Protection from Poison (IN), Silence (LATER), Spike Growth (IN)
 - **3rd:** Conjure Animals (BUILT), Daylight (BUILT), Nondetection (OUT), Plant Growth (LATER), Protection From Energy (IN), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (BUILT)
 - **4th:** Conjure Woodland Beings (BUILT, waits for a fey), Freedom of Movement (IN), Locate Creature (OUT), Stoneskin (BUILT)
