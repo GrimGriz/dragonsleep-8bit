@@ -353,7 +353,7 @@
   Battle.prototype.run = function* () {
     var self = this;
     D.music(this.fight.music || 'battle'); // (it starts on the first key or click: browsers hold sound till then; a set piece's boss tune)
-    yield { entry: true };
+    if (!this.fight.noCards) yield { entry: true }; // (the wet has none: RULED 09-30c, "no press e, just go")
     // initiative: d20 + DEX (and the fighter's Remarkable Athlete), rolled once
     var rolls = this.units.map(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init; return { u: u, d: d }; }); // (initAdv: the barbarian's Feral Instinct, 7)
     // (a familiar has no initiative: its turn comes right after its caster's -- RULED 09-30, js/familiar.js FM.after)

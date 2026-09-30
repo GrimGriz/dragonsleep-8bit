@@ -787,10 +787,12 @@
       yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, introText: L('w.landlordRises'), deep16: 'wet', wake: 'landlord', at: [g.x, g.y] });
     }
   };
-  // the Settling (RULED 09-30): the jelly's and the ooze's squares put the lead on the wet's grid on the same square, that one awake
-  // and the rest asleep till theirs are stepped on; their triggers come back till they are dead (mapgen.py: !flag:jellyDead / oozeDead)
+  // the Settling (RULED 09-30, 09-30c): the jelly's spots (both shores of its pool) and the pool ooze's puddle put the lead on the wet's grid
+  // on the same square, that one awake and the rest asleep till theirs are stepped on; the southern ooze is the 8-bit's own fight, a second
+  // ooze ("Anything exit row and south stays 8bit"). Each trigger comes back till its creature is dead (mapgen.py)
   S.jelly = function* () { var g = G(); yield DS.say(L('w.jelly')); yield* EV.fight(['ochrejelly'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'jelly', at: [g.x, g.y] }); };
-  S.oozeFight = function* () { var g = G(); yield DS.say(L('w.ooze')); yield* EV.fight(['grayooze'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'ooze', at: [g.x, g.y] }); };
+  S.poolOoze = function* () { var g = G(); yield DS.say(L('w.ooze')); yield* EV.fight(['grayooze'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'poolooze', at: [g.x, g.y] }); };
+  S.oozeFight = function* () { yield DS.say(L('w.ooze')); var res = yield* EV.fight(['grayooze'], { bg: 'wet' }); if (res === 'win') G().flags.oozeDead = 1; };
   S.mark = function* () {
     var g = G();
     // once the stair is drained, fought or flooded again, the mark is only a mark (re-cut F1: it still offered to wake the keeper)

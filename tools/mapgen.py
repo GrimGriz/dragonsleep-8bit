@@ -718,10 +718,16 @@ def build_warrens():
     g.trig('bucket', 13, 5, 'bucket', on='use')
     g.trig('landlord', 4, 2, 'landlord', on='use', w=9, h=7)
     g.trig('landlordStep', 7, 8, 'landlordNear', on='step', w=4, h=1)
-    # the Settling (RULED 09-30, Griz: "reset the trigger tiles for the oozes if they haven't been killed"; the ooze's with "an extra
-    # square of sensitivity" all round): each comes back till its creature is dead (the grid writes the flag: deep16/js/wet.js)
-    g.trig('jelly', 22, 14, 'jelly', on='step', w=3, h=1, cond='!flag:jellyDead')
-    g.trig('ooze', 11, 15, 'oozeFight', on='step', w=3, h=3, cond='!flag:oozeDead')
+    # the Settling (RULED 09-30, Griz: "reset the trigger tiles for the oozes if they haven't been killed"; 09-30c: "where lymen and barley
+    # are (north and south shores of jelly pool) should be jelly trigger spots, both go dead when jelly dies ... Where Aurdin is grey ooze
+    # pool trigger spot ... and dies when the ooze does. Anything exit row and south stays 8bit"): the jelly's on both shores of its pool
+    # and the pool ooze's at its puddle take the party onto the wet's grid (deep16/js/wet.js writes their flags); the southern ooze is the
+    # 8-bit's own fight, a second ooze. Each comes back till its creature is dead
+    g.trig('jelly', 21, 14, 'jelly', on='step', w=4, h=1, cond='!flag:jellyDead')
+    g.trig('jellyNorth', 22, 9, 'jelly', on='step', cond='!flag:jellyDead')
+    g.put(29, 13, 'o')                                        # the pool ooze's puddle, on the east arm's south shore
+    g.trig('poolOoze', 29, 13, 'poolOoze', on='step', cond='!flag:poolOozeDead')
+    g.trig('ooze', 12, 16, 'oozeFight', on='step', cond='!flag:oozeDead')
     g.trig('mark', 22, 19, 'mark', on='use')
     g.trig('stair', 19, 20, 'stair', on='use', w=1, h=4, cond='!flag:stairHook | flag:keeperWater')
     g.put(19, 20, 'n'); g.put(19, 21, 'n'); g.put(19, 22, 'n'); g.put(19, 23, 'n')

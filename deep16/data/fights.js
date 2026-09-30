@@ -38,16 +38,21 @@
     // and the crawlers come out of the pens (`pens`). One of the party off the edge takes them all back up to the 8-bit map
     // (oneLeavesAll). What is dead stays dead (the flags, through the seam). Every square here is the 8-bit map's: the grid is
     // turned (data/maps.js wet from8), and deep16/js/wet.js turns these with it
-    { id: 'wet', story: true, level: 4, map: 'wet', name: 'The Wet', sub: 'the Warrens, the settling pools', music: 'boss', settling: true, oneLeavesAll: true,
+    { id: 'wet', story: true, map: 'wet', name: 'The Wet', sub: 'the Warrens, the settling pools', music: 'boss', settling: true, oneLeavesAll: true,
+      noCards: true, // (RULED 09-30c: "This should stay off the ladder, and probably not have start or end cards (no press e, just go)" -- no level: off the ladder)
       intro: 'Black water under the fall; the pools settling in the dark.',
-      from: 'the 8-bit game: the Warrens, the wet (events.js S.jelly, S.oozeFight, S.landlord; js/wet.js)', won: 'THE WET GOES QUIET.', lost: 'THE HERD TAKES THEM.',
+      from: 'the 8-bit game: the Warrens, the wet (events.js S.jelly, S.poolOoze, S.landlord; js/wet.js)', won: 'THE WET GOES QUIET.', lost: 'THE HERD TAKES THEM.',
       foes: [{ id: 'otyugh', kind: 'otyugh', at: [7, 3], wet: 'landlord' }, { id: 'jelly', kind: 'ochrejelly', at: [22, 12], wet: 'jelly' },
-             { id: 'ooze', kind: 'grayooze', at: [12, 16], wet: 'ooze' }],
-      // the squares that wake a sleeper, the 8-bit's own (mapgen.py warrens_d): the jelly's three, the ooze's with one more square of
-      // sensitivity all round (Griz, 09-30: "give the second puddle trigger an extra square of sensitivity"), the picture's four
-      triggers: { jelly: [[22, 14], [23, 14], [24, 14]], ooze: [[11, 15], [12, 15], [13, 15], [11, 16], [12, 16], [13, 16], [11, 17], [12, 17], [13, 17]],
-        picture: [[7, 8], [8, 8], [9, 8], [10, 8]] },
-      bucket: [13, 5], pens: [[15, 6], [35, 6], [24, 16]], wave: null },
+             { id: 'poolooze', kind: 'grayooze', at: [29, 13], wet: 'poolooze' }],
+      // the 8-bit's trigger spots (RULED 09-30c, Griz: "where lymen and barley are (north and south shores of jelly pool) should be jelly
+      // trigger spots, both go dead when jelly dies ... Where Aurdin is grey ooze pool trigger spot ... and dies when the ooze does. Anything
+      // exit row and south stays 8bit"): the jelly's on both shores of its pool, the pool ooze's at its puddle. On the grid a sleeper wakes
+      // from the 3 x 3 round any of its spots (09-30b: "the center of a 9-tile square ... that will add the untriggered slime/ooze to the
+      // fight"); the picture's four squares at the landlord's rim
+      spots: { jelly: [[21, 14], [22, 14], [23, 14], [24, 14], [22, 9]], poolooze: [[29, 13]] }, picture: [[7, 8], [8, 8], [9, 8], [10, 8]],
+      // the herd comes in over the south edge, out of the dark (RULED 09-30c: "the fallen attracted crawlers should come in from the southern
+      // edge, 1 west of aurdin's e-w coordinate, and 5 squares east of 'crawlerspawn1'"): just past the edge, off the grid
+      bucket: [13, 5], entrances: [[28, 19], [33, 19]], wave: null },
     // the expansion's (deep.js). The 8-bit game sizes them for its guests (EV.guestWeight: Pyro is worth two); the ladder
     // is the four, so each is sized hard for four by the DMG table (and says what the 8-bit game's list was)
     { id: 'cutseal', level: 5, map: 'camp', name: 'The Cut Seal', sub: 'the king\'s road, leg one', music: 'boss',

@@ -19,7 +19,8 @@
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx, AI = D.ai, TR = D.traits, BP = D.Battle.prototype;
   var W = D.wet = {};
-  var ID8 = { landlord: 'otyugh', jelly: 'ochrejelly', ooze: 'grayooze' }; // (the 8-bit game's ids, for the ending's XP)
+  var ID8 = { landlord: 'otyugh', jelly: 'ochrejelly', poolooze: 'grayooze' }; // (the 8-bit game's ids, for the ending's XP)
+  var FLAG8 = { landlord: 'otyughDead', jelly: 'jellyDead', poolooze: 'poolOozeDead' }; // (and their flags: the dead stay dead)
   function on(B) { return !!(B && B.fight && B.fight.settling && B.wet); }
   function fl(B) { return (B.from && B.from.data && B.from.data.flags) || {}; }
   // the party on the wet floor: anyone of theirs who can bleed (not a summoned thing, not a familiar)
@@ -35,13 +36,15 @@
     if (F0 && F0.settling) {
       // what is dead stays dead (the 8-bit flags, through the seam); the grid holds the wet's own creatures, not the 8-bit scene's
       // list -- the ending counts what it killed here (B.enemies8, js/embed.js)
-      var f8 = (this.o.data && this.o.data.flags) || {}, gone = { landlord: f8.otyughDead, jelly: f8.jellyDead, ooze: f8.oozeDead };
+      var f8 = (this.o.data && this.o.data.flags) || {}, gone = {}; Object.keys(FLAG8).forEach(function (r) { gone[r] = f8[FLAG8[r]]; });
       // the fight's squares are the 8-bit map's; the grid is turned (RULED 09-30b: counter-clockwise; data/maps.js wet from8)
       var c = (D.MAPS[F0.map] && D.MAPS[F0.map].from8) || function (x, y) { return [x, y]; }, cl = function (l) { return (l || []).map(function (p) { return c(p[0], p[1]); }); };
-      var T0 = F0.triggers || {}, T1 = {}; Object.keys(T0).forEach(function (k) { T1[k] = cl(T0[k]); });
+      // each sleeper's spots, and the 3 x 3 round each (the 8-bit's squares, turned); the picture's squares as they are
+      var T1 = { picture: cl(F0.picture) }, ring = function (l) { var o = [], seen = {}; (l || []).forEach(function (p) { for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var k = (p[0] + dx) + ',' + (p[1] + dy); if (!seen[k]) { seen[k] = 1; o.push([p[0] + dx, p[1] + dy]); } } }); return o; };
+      Object.keys(F0.spots || {}).forEach(function (k) { T1[k] = cl(ring(F0.spots[k])); });
       this.o.fightDef = Object.assign({}, F0, {
         foes: F0.foes.filter(function (f) { return !gone[f.wet]; }).map(function (f) { return Object.assign({}, f, { at: c(f.at[0], f.at[1], (D.FOES[f.kind] || {}).size || 1) }); }),
-        triggers: T1, pens: cl(F0.pens), bucket: F0.bucket ? c(F0.bucket[0], F0.bucket[1]) : null });
+        triggers: T1, entrances: cl(F0.entrances), bucket: F0.bucket ? c(F0.bucket[0], F0.bucket[1]) : null });
       if (this.o.embed) this.o.embed = Object.assign({}, this.o.embed, { enemies: null, only: null, at: this.o.embed.at ? c(this.o.embed.at[0], this.o.embed.at[1]) : null });
     }
     enter0.apply(this, arguments);
@@ -54,16 +57,16 @@
     var self = B;
     B.units.slice().forEach(function (u) {
       if (u.side !== 'foe') return;
-      var role = { otyugh: 'landlord', jelly: 'jelly', ooze: 'ooze' }[u.id]; if (!role) return;
+      var role = { otyugh: 'landlord', jelly: 'jelly', poolooze: 'poolooze' }[u.id]; if (!role) return;
       u.wet = role; B.wet.present[role] = true;
       if (role === 'landlord') { u.bound = 'D'; if (f8.otyughFed) u.fed = true; } // (it keeps to its deep water under the fall)
       if (role === 'jelly') u.swims = true; // (it lives in the settling pool, and comes out of it)
       if (role === wake && !u.fed) return; // (the one whose square the lead stands on is awake)
       if (role === 'landlord') { u.dormant = true; return; } // (in sight, in its pool: it waits -- the table decides whether it is fought)
-      // the ooze in its puddle, the jelly under the pool: not there at all till their squares are stepped on
+      // the ooze in its puddle at the pool's edge, the jelly under the pool: not there at all till their squares are stepped on
       self.units.splice(self.units.indexOf(u), 1); B.wet.sleepers[role] = u;
     });
-    // one of them where a hero stands (the lead on the ooze's own puddle): out onto the nearest free square
+    // one of them where a hero stands (the lead on the pool ooze's own puddle): out onto the nearest free square
     B.units.forEach(function (u) { if (u.side === 'foe' && B.units.some(function (w) { return w !== u && w.side === 'party' && G.dist(u, w) === 0; })) W.shift(B, u); });
     // the bucket on its square (the 8-bit's (13, 5)): unless the party carries it, or the landlord has had it
     var has = (B.inv || []).some(function (s) { return s.id === 'bucket' && s.n > 0; });
@@ -71,7 +74,7 @@
     var woke = B.units.filter(function (u) { return u.wet === wake; })[0];
     if (woke) B.card(['{r}' + W.WAKE[wake] + '{/}'], 360);
   };
-  W.WAKE = { landlord: 'The water under the fall heaves: the landlord rises, all eye-stalk and tentacle.', jelly: 'Something ochre heaves up out of the settling pool.', ooze: 'The puddle underfoot moves.' };
+  W.WAKE = { landlord: 'The water under the fall heaves: the landlord rises, all eye-stalk and tentacle.', jelly: 'Something ochre heaves up out of the settling pool.', poolooze: 'The puddle at the pool\'s edge moves.' };
   // the nearest square it may stand on, free of everyone
   W.shift = function (B, u) {
     var best = null, bd = Infinity, x0 = u.x, y0 = u.y;
@@ -122,7 +125,7 @@
   };
   W.stepped = function* (B, u, sq) {
     var T = B.fight.triggers || {}, self = B;
-    ['jelly', 'ooze'].forEach(function (role) {
+    ['jelly', 'poolooze'].forEach(function (role) {
       var s = self.wet.sleepers[role];
       if (s && sq.some(function (p) { return inSet(T[role], p[0], p[1]); })) W.wake(self, s, 'stepped');
     });
@@ -220,21 +223,25 @@
     var long = downed(this).filter(function (w) { return P.downAt[w.id] < r; });
     if (!long.length) return;
     var n = Math.min(2, D.d(2)), got = 0;
-    for (var i = 0; i < n; i++) if (W.crawlerOut(this, long[0])) got++;
-    if (got) { D.sfx('encounter'); this.card(['{r}Blood on the stone. ' + (got > 1 ? 'Two crawlers come' : 'A crawler comes') + ' out of the herd, for ' + long[0].name + '.{/}  {g}(a round they are down, the herd comes: get them up, or get out){/}'], 420); yield 40; }
+    for (var i = 0; i < n; i++) if (W.crawlerOut(this, long[0], i)) got++;
+    if (got) { D.sfx('encounter'); this.card(['{r}Blood on the stone. ' + (got > 1 ? 'Two crawlers come' : 'A crawler comes') + ' in out of the dark to the south, for ' + long[0].name + '.{/}  {g}(a round they are down, the herd comes: get them up, or get out){/}'], 420); yield 40; this.units.forEach(function (w) { if (w.wetCrawler && w.anim === 'walk') w.anim = 'idle'; }); }
   };
-  W.crawlerOut = function (B, prey) {
-    var pens = (B.fight.pens || []).slice().sort(function (a, b) { return Math.hypot(a[0] - prey.x, a[1] - prey.y) - Math.hypot(b[0] - prey.x, b[1] - prey.y); });
+  // in over the south edge, out of the dark (RULED 09-30c): the entrance nearest the downed first, the other for a second; each crawler on
+  // the free square nearest its entrance, walking in from past the edge
+  W.crawlerOut = function (B, prey, k) {
+    var ways = (B.fight.entrances || []).slice().sort(function (a, b) { return Math.hypot(a[0] - prey.x, a[1] - prey.y) - Math.hypot(b[0] - prey.x, b[1] - prey.y); });
+    if (k && ways.length > 1) ways.push(ways.shift()); // (a second this round: the other way in)
     var n = ++B.wet.crawlers, u = B.makeFoe({ id: 'crawler' + n, kind: 'crawler', at: [0, 0] });
-    for (var pi = 0; pi < pens.length; pi++) {
-      var pen = pens[pi], best = null, bd = Infinity;
-      for (var y = pen[1] - 3; y <= pen[1] + 3; y++) for (var x = pen[0] - 3; x <= pen[0] + 3; x++) {
+    for (var pi = 0; pi < ways.length; pi++) {
+      var pen = ways[pi], best = null, bd = Infinity;
+      for (var y = pen[1] - 4; y <= pen[1] + 4; y++) for (var x = pen[0] - 4; x <= pen[0] + 4; x++) {
         if (!G.canStand(u, x, y)) continue;
         var d = Math.hypot(x + 0.5 - pen[0], y + 0.5 - pen[1]);
         if (d < bd) { bd = d; best = [x, y]; }
       }
       if (best) {
-        u.x = best[0]; u.y = best[1]; u.facing = 0; u.anim = 'idle'; u.animT = B.t; u.reaction = 1;
+        u.x = best[0]; u.y = best[1]; u.facing = 0; u.anim = 'walk'; u.animT = B.t; u.reaction = 1;
+        u.tween = { fx: pen[0], fy: pen[1], fz: 0, t: 0, dur: 30 }; // (out of the dark past the edge)
         u.speed = Math.floor((u.speed || 30) / 2); // (09-30b: "Half normal movement speed")
         u.wetCrawler = true;
         B.units.push(u);
@@ -296,16 +303,16 @@
   var finish0 = BP.finish;
   BP.finish = function* (o) {
     if (on(this)) {
-      var k = W.killed(this), F8 = this.flags8;
-      if (k.indexOf('otyugh') >= 0) F8.otyughDead = 1;
-      if (k.indexOf('ochrejelly') >= 0) F8.jellyDead = 1;
-      if (k.indexOf('grayooze') >= 0) F8.oozeDead = 1;
+      var k = W.killed(this), F8 = this.flags8, self = this;
+      Object.keys(FLAG8).forEach(function (r) { if (self.wet.present[r] && !self.wet.sleepers[r] && k.indexOf(ID8[r]) >= 0) F8[FLAG8[r]] = 1; });
       this.enemies8 = o === 'won' ? k : null;
       if (o === 'quiet') {
         this.result = 'escaped'; D.music('victory'); yield 30;
         this.card(['{y}THE WET GOES QUIET.{/}', D.keys('{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? 'E back to the ladder' : 'E fight again') + ' · M the menu{/}')], 1e9);
-        return;
-      }
+      } else yield* finish0.apply(this, arguments);
+      // no end card (RULED 09-30c: "no press e, just go"): a beat to read the head, and back
+      if (this.fight.noCards && this.o.onDone) { yield 50; if (D.top && D.top() === this) D.pop(); else if (D.pop) D.pop(); this.o.onDone(this.result); }
+      return;
     }
     yield* finish0.apply(this, arguments);
   };
