@@ -67,6 +67,7 @@
     if (handled) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     if (u.traces) yield* traces(B, u);
     else if (u.familiar && D.familiar) yield* D.familiar.turn(B, u); // a wizard's familiar: Help, and the owl flies back out (js/familiar.js)
+    else if (u.summon) yield* brute(B, u); // a summoned creature (js/grimoire.js summonSpell): it fights for its caster's side, as if commanded (RULED 09-30)
     else if (u.classAI && D.tactics) yield* D.tactics.turn(B, u); // a class NPC (js/classes.js), or a hero on the bench: the class's own tactics (js/tactics.js)
     else if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'drow') yield* drow(B, u);

@@ -3575,6 +3575,26 @@
    "sfx": "magic",
    "id": "spikegrowth"
   },
+  "conjureanimals": {
+   "name": "Conjure Animals",
+   "level": 3,
+   "kind": "summon",
+   "target": "point",
+   "grid": true,
+   "src": "SRD 5.1 Conjure Animals (the druid to twelve, 09-30: deep16/data/summons.js, deep16/js/grimoire.js summonSpell; RULED 09-30, Griz: the caster picks from the bestiary by CR, and they fight as if commanded)",
+   "sfx": "nature",
+   "id": "conjureanimals"
+  },
+  "conjurewoodlandbeings": {
+   "name": "Conjure Woodland Beings",
+   "level": 4,
+   "kind": "summon",
+   "target": "point",
+   "grid": true,
+   "src": "SRD 5.1 Conjure Woodland Beings (the druid to twelve, 09-30: the frame is built; the bestiary has no fey yet, so it waits greyed)",
+   "sfx": "nature",
+   "id": "conjurewoodlandbeings"
+  },
   "moonbeam": {
    "name": "Moonbeam",
    "level": 2,

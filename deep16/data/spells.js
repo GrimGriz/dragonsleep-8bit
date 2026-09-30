@@ -146,6 +146,9 @@
   flamestrike: { shape: 'sphere', range: 60, r: 10, time: 'A' },
   greaterrestoration: { shape: 'touch', side: 'ally', time: 'A' },
   insectplague: { shape: 'sphere', range: 300, r: 20, time: 'A', conc: true },
+  // the summons (the druid to twelve, 09-30: data/summons.js, js/grimoire.js summonSpell): the point they gather round, within 60 ft
+  conjureanimals: { shape: 'sphere', range: 60, r: 10, time: 'A', conc: true, side: 'any' },
+  conjurewoodlandbeings: { shape: 'sphere', range: 60, r: 10, time: 'A', conc: true, side: 'any' },
   masscurewounds: { shape: 'allies', range: 60, n: 6, time: 'A' },
   // the class NPCs' spells (09-28, batch e; js/grimoire.js)
   chainlightning: { shape: 'single', side: 'foe', range: 150, time: 'A' },

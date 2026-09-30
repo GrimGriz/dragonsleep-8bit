@@ -237,7 +237,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Blink | W S | Au Wi | **BUILT** | self: at each turn's end, 50% ethereal (the engine's) till the next -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Call Lightning | D |  | **BUILT** | needs room overhead (conc): 5-ft-radius bolt, DEX save 3d10 lightning (half), again each action -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: no 8-bit record) |
 | Clairvoyance | W C S B | Au To Wi | **OUT** | divination: a far sensor |
-| Conjure Animals | D R |  | **LATER** | summons: fey beasts (one CR 2 up to eight CR 1/4) that obey the caster; needs summons |
+| Conjure Animals | D R |  | **BUILT** (09-30) | summons: fey beasts (one CR 2 up to eight CR 1/4; x2 at 5th); the caster picks from the bestiary by type and CR (`deep16/data/summons.js`: a beast drawn into the world joins the pool); one initiative for the lot; they fight as if commanded (RULED 09-30, Griz: "I like it. Build a frame so that it's pulling those selections from a place where more to choose from might go as the world expands") |
 | Counterspell | W K S | Au Am Wi SW | **LATER** | a reaction to a foe's casting: waits on foes casting through the spell system; the Mage's |
 | Create Food and Water | C P D | Ly To | **OUT** | no food in the game |
 | Daylight | C P S D R | Ly To | **BUILT** | bright light fight-wide, burns magical Darkness; under the roost the roof comes down |
@@ -285,7 +285,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Compulsion | B |  | **LATER** | a charm that drives movement: WIS save, then it must move the way you point; forced moves |
 | Confusion | W S B D | Au | **BUILT** | 10-ft sphere, WIS save (conc): each turn a d10 -- wander, stand, strike at random -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Conjure Minor Elementals | W D | Au | **LATER** | summons: elementals that obey |
-| Conjure Woodland Beings | D R |  | **LATER** | summons: fey (one CR 2 up to eight CR 1/4) that obey the caster; needs summons |
+| Conjure Woodland Beings | D R |  | **BUILT, waiting** (09-30) | summons: fey (one CR 2 up to eight CR 1/4); the same frame as Conjure Animals -- greyed until the bestiary has a fey to answer |
 | Control Water | W C D | Au | **OUT** | the water is hand-waved |
 | Death Ward | C P |  | **BUILT** | touch (ally), 8 hr: the first drop to 0 HP leaves it at 1 instead; a foe priest's champion -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Dimension Door | W K S B | Au Na | **BUILT** | teleport 500 ft with one ally: across the field or off it; the naga's -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
@@ -536,8 +536,8 @@ The same verdicts, a line a level: each class's own SRD list.
 - **Cantrips:** Druidcraft (OUT), Guidance (IN), Mending (OUT), Poison Spray (IN), Produce Flame (IN), Resistance (IN), Shillelagh (IN)
 - **1st:** Animal Friendship (LATER), Charm Person (LATER), Create or Destroy Water (OUT), Cure Wounds (BUILT), Detect Magic (BUILT), Detect Poison and Disease (OUT), Entangle (IN), Faerie Fire (BUILT), Fog Cloud (BUILT), Goodberry (OUT), Healing Word (IN), Jump (OUT), Longstrider (IN), Purify Food and Drink (OUT), Speak with Animals (OUT), Thunderwave (BUILT)
 - **2nd:** Animal Messenger (OUT), Barkskin (IN), Darkvision (BUILT), Enhance Ability (IN), Find Traps (OUT), Flame Blade (IN), Flaming Sphere (LATER), Gust of Wind (IN), Heat Metal (IN), Hold Person (BUILT), Lesser Restoration (BUILT), Locate Animals or Plants (OUT), Locate Object (OUT), Moonbeam (LATER), Pass Without Trace (BUILT), Protection from Poison (IN), Spike Growth (IN)
-- **3rd:** Call Lightning (IN), Conjure Animals (LATER), Create Food and Water (OUT), Daylight (BUILT), Dispel Magic (IN), Plant Growth (LATER), Protection From Energy (IN), Sleet Storm (BUILT), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (LATER)
-- **4th:** Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Conjure Woodland Beings (LATER), Control Water (OUT), Divination (OUT), Dominate Beast (LATER), Freedom of Movement (IN), Giant Insect (LATER), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Polymorph (LATER), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (LATER)
+- **3rd:** Call Lightning (IN), Conjure Animals (BUILT), Create Food and Water (OUT), Daylight (BUILT), Dispel Magic (IN), Plant Growth (LATER), Protection From Energy (IN), Sleet Storm (BUILT), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (LATER)
+- **4th:** Blight (IN), Confusion (IN), Conjure Minor Elementals (LATER), Conjure Woodland Beings (BUILT, waits for a fey), Control Water (OUT), Divination (OUT), Dominate Beast (LATER), Freedom of Movement (IN), Giant Insect (LATER), Hallucinatory Terrain (OUT), Ice Storm (BUILT), Locate Creature (OUT), Polymorph (LATER), Stone Shape (OUT), Stoneskin (BUILT), Wall of Fire (LATER)
 - **5th:** Antilife Shell (LATER), Awaken (OUT), Commune With Nature (OUT), Conjure Elemental (LATER), Contagion (IN), Geas (OUT), Greater Restoration (IN), Insect Plague (IN), Mass Cure Wounds (IN), Planar Binding (OUT), Reincarnate (OUT), Scrying (OUT), Tree Stride (LATER), Wall of Stone (LATER)
 - **6th:** Conjure Fey (LATER), Find the Path (OUT), Heal (IN), Heroes' Feast (IN), Move Earth (OUT), Sunbeam (IN), Transport via Plants (OUT), Wall of Thorns (LATER), Wind Walk (OUT)
 - **7th:** Fire Storm (IN), Mirage Arcane (OUT), Plane Shift (OUT), Regenerate (IN), Reverse Gravity (LATER)
@@ -548,7 +548,7 @@ The same verdicts, a line a level: each class's own SRD list.
 
 - **1st:** Alarm (OUT), Animal Friendship (LATER), Cure Wounds (BUILT), Detect Magic (BUILT), Detect Poison and Disease (OUT), Fog Cloud (BUILT), Goodberry (OUT), Hunter's Mark (IN), Jump (OUT), Longstrider (IN), Speak with Animals (OUT)
 - **2nd:** Animal Messenger (OUT), Barkskin (IN), Darkvision (BUILT), Find Traps (OUT), Lesser Restoration (BUILT), Locate Animals or Plants (OUT), Locate Object (OUT), Pass Without Trace (BUILT), Protection from Poison (IN), Silence (LATER), Spike Growth (IN)
-- **3rd:** Conjure Animals (LATER), Daylight (BUILT), Nondetection (OUT), Plant Growth (LATER), Protection From Energy (IN), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (LATER)
-- **4th:** Conjure Woodland Beings (LATER), Freedom of Movement (IN), Locate Creature (OUT), Stoneskin (BUILT)
+- **3rd:** Conjure Animals (BUILT), Daylight (BUILT), Nondetection (OUT), Plant Growth (LATER), Protection From Energy (IN), Speak with Plants (OUT), Water Breathing (OUT), Water Walk (OUT), Wind Wall (LATER)
+- **4th:** Conjure Woodland Beings (BUILT, waits for a fey), Freedom of Movement (IN), Locate Creature (OUT), Stoneskin (BUILT)
 - **5th:** Commune With Nature (OUT), Tree Stride (LATER)
 

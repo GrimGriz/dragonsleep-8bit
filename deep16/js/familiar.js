@@ -38,7 +38,7 @@
   function formOf(f) { return R.FAMILIARS[String(f.kind).replace(/^fam_/, '')]; }
   function here(f) { return !!f && f.hp > 0 && !f.dead && !f.away && !f.left; }
   // a caster the fight runs (a class NPC, a guest, a foe, a hero on the bench): he orders its Help himself
-  function aiRun(m) { return !!(m && (m.guest || m.classAI || m.side === 'foe')); }
+  function aiRun(m) { return !!(m && (m.guest || m.side !== 'party')); } // (classAI marks every class NPC, the player's own too: guest is the fight's)
 
   // the familiar the 8-bit game's save carries, seated with the party when its wizard is in the fight (battle.js, as the party is made)
   FM.unit = function (B, data, party) {

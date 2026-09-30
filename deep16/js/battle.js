@@ -306,14 +306,15 @@
     // bright light under the roost (the Light cantrip, Daylight): the roof lets go -- the 8-bit game's RoostFail runs on it
     // (RULED 09-28: the roost law is canon; fire and thunder stay greyed, the one thing to remember is not to cast light)
     if (this.roostBroken) return 'roost';
-    if (!this.alive('foe').length) return 'won';
+    if (!this.alive('foe').filter(function (u) { return !u.summon; }).length) return 'won';
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
     // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
     // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27), or the rest
     // are still on their way out of the inn (this.reserve)
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
-    if (!this.alive('party').filter(function (u) { return !u.familiar; }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar; }) ? 'escaped' : 'lost';
+    // (nor do summoned creatures: they go when their caster's concentration does)
+    if (!this.alive('party').filter(function (u) { return !u.familiar && !u.summon; }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
@@ -435,6 +436,8 @@
   Battle.prototype.sweep = function () {
     var self = this;
     this.units.forEach(function (s) {
+      // a summoned creature at 0 HP is gone (SRD: "it disappears when it drops to 0 hit points")
+      if (s.summon && s.hp <= 0 && !s.dead) { s.dead = true; s.left = true; s.deadT = self.t; FX.sparkle(s, 'moss', 8); }
       var gone = s.dead || s.fled || s.left || s.hp <= 0, incap = gone || s.conds.paralyzed || s.conds.stunned || s.conds.asleep;
       if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id) delete w.conds[c]; }); });
       if (incap && s.conc) D.magic.endConc(self, s, gone ? 'gone' : 'incapacitated');

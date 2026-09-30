@@ -1150,6 +1150,97 @@
     },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; return TX().bestArea(B, u, e, fs, function (caught) { return TX().areaWorth(B, u, Object.assign({}, e, { sp: Object.assign({}, e.sp, { dmg: '4d10', half: true, save: 'con' }) }), 0, caught) * 2; }); }
   };
+  // ------------------------------------------------------------------ the summons (the druid to twelve, 09-30; Griz: "I like it. Build a frame
+  // so that it's pulling those selections from a place where more to choose from might go as the world expands"): the caster picks the
+  // creature from the pool (data/summons.js D.summonPool: the bestiary by type and CR), the count the most the spell allows of it; they
+  // appear on free squares he can see nearest the point, within range; one initiative for the lot (SRD: "Roll initiative for the
+  // summoned creatures as a group"); they fight under the AI as if commanded (RULED 09-30, the SRD's defend-only waived: ai.js brute);
+  // each goes at 0 HP (battle.js sweep), all of them when his concentration ends
+  function aiRunU(u) { return !!(u.guest || u.side !== 'party'); }
+  function plural(name, n) {
+    if (n === 1) return name;
+    var up = name === name.toUpperCase(), s = function (x) { return up ? x.toUpperCase() : x; };
+    if (/^swarm of /i.test(name)) return name.replace(/^(swarm)/i, function (m) { return m + s('s'); }); // (swarms of rats)
+    if (/wolf$/i.test(name)) return name.replace(/f$/i, s('ves'));
+    if (/(s|x|ch|sh)$/i.test(name)) return name + s('es');
+    if (/[^aeiou]y$/i.test(name)) return name.replace(/y$/i, s('ies'));
+    return name + s('s');
+  }
+  // a creature's worth to its side for a few rounds: its best blow (a hit six times in ten) times its blows, and its hit points as a wall
+  function summonWorth(p) {
+    var d = p.d, best = 0;
+    Object.keys(d.attacks || {}).forEach(function (k) { var a = d.attacks[k]; best = Math.max(best, avg(a.dice) + (a.mod || 0)); });
+    return p.n * (best * 0.6 * Math.max(1, d.multi || 1) + d.hp * 0.04);
+  }
+  function bestSummon(P) { var best = null; P.forEach(function (p) { if (!best || summonWorth(p) > summonWorth(best)) best = p; }); return best; }
+  function* summon(B, u, id, pick, t, head) {
+    var S = D.SUMMON[id], at = t && t.x != null ? t : u, d = pick.d, made = [], tag = id + '-' + u.id + '-' + B.t;
+    var spots = [];
+    for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
+      var q = { x: x, y: y, size: d.size || 1, conds: {} };
+      if (G.dist(u, q) > S.range || !G.losPoint(u.x, u.y, x, y) || !M.sees(B, u, q)) continue;
+      spots.push({ x: x, y: y, k: Math.max(Math.abs(x - at.x), Math.abs(y - at.y)) + 0.01 * Math.hypot(x - at.x, y - at.y) });
+    }
+    spots.sort(function (a, b) { return a.k - b.k; });
+    var roll = D.d(20);
+    for (var i = 0; i < pick.n; i++) {
+      var w = B.makeFoe({ id: tag + '-' + i, kind: pick.kind });
+      var spot = null;
+      for (var j = 0; j < spots.length && !spot; j++) if (G.canStand(w, spots[j].x, spots[j].y)) spot = spots.splice(j, 1)[0];
+      if (!spot) break;
+      w.x = spot.x; w.y = spot.y; w.side = u.side; w.guest = true; w.summon = { by: u.id, id: id, tag: tag };
+      if (pick.n > 1) w.name = d.name + ' ' + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.charAt(i % 26);
+      w.anim = 'idle'; w.animT = B.t; w.flash = 0; w.reaction = 1; w.conds = w.conds || {}; w.facing = u.facing;
+      w.initRoll = roll + (w.init || 0);
+      B.units.push(w); made.push(w);
+      FX.sparkle(w, 'moss', 12);
+    }
+    if (!made.length) { B.card([head + ': {o}no room he can see for them.{/}'], 240); return; }
+    // one initiative for the lot, dealt in together
+    var k = 0; while (k < B.order.length && (B.order[k].initRoll > made[0].initRoll || (B.order[k].initRoll === made[0].initRoll && B.order[k] === u))) k++;
+    Array.prototype.splice.apply(B.order, [k, 0].concat(made));
+    D.sfx('nature');
+    var what = made.length + ' ' + plural(d.name.toLowerCase(), made.length);
+    B.card([head + ': ' + what + (made.length === 1 ? ' steps' : ' step') + ' out of the air, his to command.  {g}initiative ' + made[0].initRoll + '{/}'], 320);
+    M.concentrate(B, u, id, S.name, function () {
+      var left = made.filter(function (w) { return !w.dead; });
+      left.forEach(function (w) { FX.sparkle(w, 'moss', 10); w.dead = true; w.left = true; w.deadT = B.t; });
+      if (left.length) B.card(['{g}The ' + plural(d.name.toLowerCase(), 2) + ' ' + (S.type === 'beast' ? 'go back to being spirits, and are gone' : 'are gone') + '.{/}'], 240);
+    });
+    yield 30;
+  }
+  function summonSpell(id) {
+    return {
+      list: function (B, u, e) { return D.summonPool(id, e.slot || e.level).length ? null : { why: 'nothing of its kind in the world to answer yet' }; },
+      summary: function (e, u) {
+        var S = D.SUMMON[id], P = D.summonPool(id, (e && e.slot) || (e && e.sp && e.sp.level) || 3);
+        return (S.type === 'beast' ? 'fey spirits in beasts\' shapes' : 'fey creatures') + ' round a point within ' + S.range + ' ft (concentration): '
+          + (P.length ? P.slice(0, 3).map(function (p) { return p.n + ' ' + plural(p.d.name.toLowerCase(), p.n); }).join(', ') + (P.length > 3 ? ', or another' : '') : 'none in the world yet')
+          + '; they fight at your word, each gone at 0 HP';
+      },
+      cast: function* (B, u, t, slot, head) {
+        var P = D.summonPool(id, slot);
+        if (!P.length) { B.card([head + ': nothing answers.'], 200); yield 16; return; }
+        var pick = aiRunU(u) ? bestSummon(P) : null;
+        if (!pick) {
+          var ch = yield { prompt: { who: u, title: u.name + ': ' + D.SUMMON[id].name.toUpperCase(), lines: ['What answers? The most the spell allows of each.'], opts: P.map(function (p, i) { return { label: p.n + ' ' + plural(p.d.name.toUpperCase(), p.n) + '  (CR ' + p.cr + ', ' + p.d.hp + ' HP, AC ' + p.d.ac + ')', value: i + 1 }; }) } };
+          pick = P[Math.max(1, ch || 1) - 1];
+        }
+        yield* summon(B, u, id, pick, t, head);
+      },
+      // the AI calls them when a fight is on and he holds nothing better: to the foe nearest him (the free squares round it he can see)
+      ai: function (B, u, e, slot, fs) {
+        if (u.conc || !fs.length) return null;
+        var P = D.summonPool(id, slot); if (!P.length) return null;
+        var p = bestSummon(P), f = fs.filter(function (w) { return M.sees(B, u, w); }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+        if (!f) return null;
+        var sc = summonWorth(p) * 2.5;
+        return { score: sc, t: { x: f.x, y: f.y }, keep: sc * 0.5 };
+      }
+    };
+  }
+  E.conjureanimals = summonSpell('conjureanimals');
+  E.conjurewoodlandbeings = summonSpell('conjurewoodlandbeings');
   E.masscurewounds = {
     summary: function (e, u) { return 'up to six allies within 60 ft · ' + more('3d8', Math.max(0, e.slot - 5)) + RU.sign(M.mod(u) + lifeBonus(u, e.slot)) + ' each'; },
     cast: function* (B, u, t, slot, head, x) { var list = (t.units || [t]).slice(0, 6); for (var i = 0; i < list.length; i++) yield* healOne(B, u, list[i], x.sp, slot, head, '3d8'); yield 16; },
