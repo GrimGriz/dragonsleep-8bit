@@ -589,6 +589,7 @@
       }
       case 'attack': {
         if (!c.target || c.target.dead || c.target.hp <= 0) return; // (no target: nothing is spent -- a stray command burned Katarina's action 09-29)
+        if (RU.charmedBy(u, c.target)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (c.target.side === 'foe' ? 'the ' + shortName(c.target) : c.target.name) + '.{/}'], 200); return; }
         if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon (the turn is spent picking it up).{/}'], 200); return; }
         if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = T.slowed ? 1 : u.attacks + (T.hasteAction ? 1 : 0); } // (Haste's one more, Slow's one: js/grimoire.js)
         if (u.weapon.ammo && !this.ammoLeft(u)) { this.card(['{o}' + u.name + ' has no ' + this.itemName(u.weapon.ammo).toLowerCase() + ' left.{/}'], 120); return; }
@@ -687,7 +688,7 @@
         var prov = this.units.filter(function (w) {
           return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !(w.weapon && w.weapon.ranged)
             && G.dist(w, u) <= G.reachOf(w) && G.dist(w, u, null, null, nx, ny) > G.reachOf(w) && !(w.conds.hidden && false)
-            && D.magic.sees(D.battle, w, u); // (a creature you can see: not into or out of darkness)
+            && D.magic.sees(D.battle, w, u) && !RU.charmedBy(w, u); // (a creature you can see: not into or out of darkness; and never at its charmer)
         });
         for (var k = 0; k < prov.length; k++) {
           var w = prov[k], take = true;
@@ -1323,6 +1324,7 @@
   };
   // can u's weapon reach w from where u stands? A ranged one (a hero's crossbow) out to its long range, if it can see w
   Battle.prototype.canHit = function (u, w) {
+    if (RU.charmedBy(u, w)) return false; // (charmed: never its charmer)
     var wp = u.weapon;
     if (wp && wp.ranged) return G.dist(u, w) <= wp.range[1] && G.los(u, w).clear;
     return G.dist(u, w) <= G.reachOf(u);

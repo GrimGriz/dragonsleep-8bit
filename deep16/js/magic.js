@@ -165,6 +165,8 @@
   // one already enlarged, Reduce on one already reduced -- one record a creature, never two. The other way is a replacement and is let
   // through (js/grimoire.js takes the old casting down). The picker greys it, and the click says why (js/ui.js)
   M.targetWhy = function (u, g, w) {
+    // charmed: no harmful spell at its charmer (SRD 5.1; RULED 09-30)
+    if (w && RU.charmedBy(u, w) && g && (g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe')) return 'charmed by it';
     var c = g && g.noStack && w && w.conds && w.conds[g.noStack];
     if (!c) return '';
     return !!c.down === (w.side !== u.side) ? 'already ' + (c.down ? 'reduced' : 'enlarged') : '';

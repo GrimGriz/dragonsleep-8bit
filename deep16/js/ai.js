@@ -80,7 +80,7 @@
     // a Slam's stun and a Moan's fright last till the end of the foe's next turn
     // (not the fright of the turned -- a prayer's, a minute by the turned one's own clock, js/features.js F.setTurned. NOTE, 09-30, not touched: Fear's and
     // the Killer's fright is swept here too when an AI caster ends its turn, so `feared` stays and `frightened` does not, and M.mustFlee is false)
-    B.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { var s = w.conds[c]; if (s && s.by === u.id && !(c === 'frightened' && w.conds.turned)) { if (s.fresh) s.fresh = false; else delete w.conds[c]; } }); });
+    B.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { var s = w.conds[c]; if (s && s.by === u.id && !(c === 'frightened' && (w.conds.turned || (w.conds.feared && w.conds.feared.by === u.id) || (w.conds.killer && w.conds.killer.by === u.id)))) { if (s.fresh) s.fresh = false; else delete w.conds[c]; } }); }); // (a spell's fright -- Fear, Phantasmal Killer, Weird -- holds as long as the spell: RULED 09-30, Griz: "yes", it bites)
     D.magic.endTurn(B, u);
     u.anim = 'idle';
     yield 16;

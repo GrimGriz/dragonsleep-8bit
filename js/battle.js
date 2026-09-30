@@ -693,6 +693,7 @@
       } else if (cmd === 'skill') {
         var sk = yield DS.choose({ items: skills, x: 0, y: 156 - Math.max(0, skills.length * 11 - 50), w: 120, rowH: 11, pad: 7 });
         if (!sk) continue;
+        if (sk === 'channel') { var chl = this.channelList(u); sk = yield DS.choose({ items: chl, x: 0, y: 156 - Math.max(0, chl.length * 11 - 50), w: 120, rowH: 11, pad: 7, title: 'CHANNEL DIVINITY' }); if (!sk) continue; }
         var res = yield* this.useSkill(u, sk, st);
         if (res === 'cancel') continue;
         if (res === 'bonus') { st.bonus = 0; continue; }
@@ -728,12 +729,17 @@
     }
     if (h.cls === 'paladin') {
       if (f.lay > 0) L.push({ label: 'LAY ON HANDS', value: 'lay', right: f.lay });
-      if (f.channel && h.lvl >= 3) L.push({ label: 'SACRED WEAPON', value: 'sacred', right: 'CD' });
-      // Turn the Unholy (Oath of Devotion 3, the same Channel Divinity; RULED 09-30, Griz: "pretty sure he's supposed to have it"): the fiends
-      // and the undead before him save WIS or cower, as the cleric's Turn Undead makes them
-      if (f.channel && h.lvl >= 3) L.push({ label: 'TURN THE UNHOLY', value: 'unholy', right: 'CD', disabled: !this.foes.some(function (x) { return !x.dead && x.hp > 0 && /^(undead|fiend)$/.test(tags(x)[0]) && !x.conds.frightened; }) });
+      // CHANNEL DIVINITY (RULED 09-30, Griz: "should the channel divinity be a button similar to spells?" -- "yes"): one entry, the use left,
+      // and its list: Sacred Weapon and Turn the Unholy (Oath of Devotion 3; "pretty sure he's supposed to have it")
+      if (h.lvl >= 3) L.push({ label: 'CHANNEL DIVINITY', value: 'channel', right: (f.channel ? 1 : 0) + '/1', disabled: !f.channel });
     }
     return L;
+  };
+  // the Channel Divinity's list (the paladin's two: Sacred Weapon; Turn the Unholy, the fiends and undead before him saving WIS or cowering,
+  // as the cleric's Turn Undead makes them)
+  Battle.prototype.channelList = function (u) {
+    return [{ label: 'SACRED WEAPON', value: 'sacred', right: 'action' },
+      { label: 'TURN THE UNHOLY', value: 'unholy', right: 'action', disabled: !this.foes.some(function (x) { return !x.dead && x.hp > 0 && /^(undead|fiend)$/.test(tags(x)[0]) && !x.conds.frightened; }) }];
   };
   Battle.prototype.battleItems = function (u) {
     var self = this;
@@ -1398,7 +1404,7 @@
       var list = this.liveHeroes();
       for (var i = 0; i < list.length; i++) {
         var s2 = this.save(list[i], 'wis', sp.dc);
-        if (!s2.success && !(list[i].buff && list[i].buff.id === 'heroism') && !pfegStops(list[i], f, 'frightened')) { list[i].conds.frightened = { rounds: 2, save: { ab: 'wis', dc: sp.dc } }; yield* this.hold(nameOf(list[i]) + ' is frightened! Disadvantage to attack.'); }
+        if (!s2.success && !(list[i].buff && list[i].buff.id === 'heroism') && !pfegStops(list[i], f, 'frightened') && !R.fearWard(list[i].h)) { list[i].conds.frightened = { rounds: 2, save: { ab: 'wis', dc: sp.dc } }; yield* this.hold(nameOf(list[i]) + ' is frightened! Disadvantage to attack.'); }
       }
       return;
     }

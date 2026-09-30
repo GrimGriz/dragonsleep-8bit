@@ -10,7 +10,7 @@
   function nm(B, w) { return w.side === 'foe' ? (w.named ? B.shortName(w) : 'the ' + B.shortName(w)) : w.name; }
   function Nm(B, w) { var s = nm(B, w); return s.charAt(0).toUpperCase() + s.slice(1); }
   function feat(u, k) { return u.feats && u.feats[k] > 0; }
-  function foesBeside(B, u) { return B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= G.reachOf(u); }); }
+  function foesBeside(B, u) { return B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= G.reachOf(u) && !RU.charmedBy(u, w); }); } // (charmed: never its charmer)
   function kiDC(u) { return 8 + u.prof + D.mod(u.abil.wis); }
 
   // ------------------------------------------------------------------ the wizard: Sculpt Spells (evocation 2), Potent Cantrip (6)
@@ -318,6 +318,14 @@
     } };
   });
 
+  // the same, for a Life cleric the player runs (the CHANNEL DIVINITY list): the lowest first, each to half its maximum, from 5 x her level
+  F.lifeLow = function (B, u) { return B.units.filter(function (w) { return w.side === u.side && !w.dead && !w.left && G.dist(u, w) <= 30 && w.hp < w.maxhp / 2 && w.type !== 'undead' && w.type !== 'construct'; }); };
+  F.preserveLife = function* (B, u) {
+    u.turn.action = 0; u.feats.channel--; var left = 5 * u.lvl, got = [];
+    F.lifeLow(B, u).sort(function (a, b) { return a.hp - b.hp; }).forEach(function (w) { var g = Math.min(left, Math.floor(w.maxhp / 2) - Math.max(0, w.hp)); if (g > 0) { left -= g; B.heal(w, g); got.push(w.name + ' +' + g); } });
+    D.sfx('heal'); FX.ring(u, 'gold', 50);
+    B.card(['{y}' + Nm(B, u) + '{/}: PRESERVE LIFE  {n}' + (got.join(', ') || 'nobody needed it') + '{/}  {g}(Channel Divinity){/}'], 300); yield 24;
+  };
   // Turn Undead (every cleric, 2; Channel Divinity): the dead within 30 ft that see or hear it save WIS or are turned -- they run from it
   // and do nothing else till hurt (a minute); Destroy Undead (5): a CR of 1/2 or less that fails is destroyed outright
   function crNum(cr) { return cr == null ? 99 : String(cr).indexOf('/') > 0 ? +cr.split('/')[0] / +cr.split('/')[1] : +cr; }
@@ -805,6 +813,8 @@
     if (u.cls === 'druid' && u.lvl >= 2 && !u.beast) out.push({ id: 'wildshape', label: 'WILD SHAPE', cost: 'A', icon: 'skills', skill: true, ok: act && feat(u, 'wildShape'),
       why: !feat(u, 'wildShape') ? 'no shape left (a short rest brings two back)' : 'the action is spent', note: 'a beast\'s shape (' + F.beastsFor(u).map(function (k) { return D.FOES[k].name.toLowerCase(); }).join(', ') + '): its hit points take the blows first, no spells; ' + ((u.feats && u.feats.wildShape) || 0) + ' left (short rest)' });
     if (u.cls === 'druid' && u.beast && !u.beast.morph) out.push({ id: 'unshape', label: 'OWN SHAPE', cost: 'B', icon: 'skills', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'back to the druid (the beast\'s hit points left behind)' });
+    if (u.cls === 'cleric' && u.lvl >= 2 && u.subclass === 'Life Domain') out.push({ id: 'preservelife', label: 'PRESERVE LIFE', cost: 'A', icon: 'heal', skill: true, ok: act && chan(u) && F.lifeLow(B, u).length > 0,
+      why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'nobody within 30 ft is under half', note: 'heal ' + 5 * u.lvl + ' HP among friends within 30 ft, the lowest first, none past half its maximum' });
     if (u.cls === 'cleric' && u.lvl >= 2) out.push({ id: 'turnundead', label: 'TURN UNDEAD', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.undeadNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no undead within 30 ft', note: 'the dead within 30 ft: WIS DC ' + u.spellDC + ' or turned' + (u.lvl >= 5 ? ' (the weakest destroyed)' : '') });
     // 09-30, the class feature gaps: the monk's ki bonus actions, the paladin's Turn the Unholy, the bard's Countercharm, the sorcerer's metamagic
@@ -869,6 +879,7 @@
       }
       case 'unshape': u.turn.bonus = 0; F.unshape(B, u, 0, true); yield 12; return;
       case 'turnundead': yield* F.turnUndead(B, u, F.undeadNear(B, u)); return;
+      case 'preservelife': yield* F.preserveLife(B, u); return;
       case 'turnunholy': yield* F.turnUndead(B, u, F.unholyNear(B, u), { name: 'TURN THE UNHOLY', noDestroy: true }); return;
       case 'patient': yield* F.patient(B, u); return;
       case 'flurry': yield* F.bonusStrikes(B, u); return;

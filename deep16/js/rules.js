@@ -23,6 +23,9 @@
 
   // Evasion (SRD 5.1: the rogue's 7, the monk's 7): a DEX save for half -- none on a success, half on a failure; not while incapacitated
   // (the one test for the spells' saves, the breath weapons', the bolts': js/magic.js, js/grimoire.js, js/battle.js, js/ai.js)
+  // charmed (SRD 5.1): it cannot attack its charmer or target it with harmful abilities or magical effects -- the AI's lists (ai.js heroes)
+  // and the player's hands alike (RULED 09-30, Griz: "yes": battle.js canHit and the attack, magic.js targetOK, the opportunity attack)
+  RU.charmedBy = function (u, w) { var c = u && w && u.conds && u.conds.charmed; return !!(c && c.by === w.id); };
   RU.evasion = function (u) {
     if (!u || !(u.cls === 'rogue' || u.cls === 'monk') || u.lvl < 7 || u.hp <= 0 || u.dead) return false;
     var c = u.conds || {};
@@ -108,6 +111,7 @@
       var lk = RU.darkLuck(u, dc - res.total);
       if (lk) { res.luck = lk; res.bonus += lk; res.total += lk; res.ok = res.total >= dc; }
     }
+    if (!res.ok && against && /^(frightened|feared)$/.test(against) && window.DS.R.fearWard(u.src)) res.ok = true; // (js/rules.js R.fearWard: hidden by ruling -- nothing says why)
     return res;
   };
   // Dark One's Own Luck's die for a roll that falls short by `deficit`: 0 when it does not apply (not the Fiend's 6th, spent, or the roll is
