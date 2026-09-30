@@ -54,10 +54,15 @@
     ranger: { prio: ['dex', 'wis', 'con', 'str', 'int', 'cha'], kit: { weapon: 'longbow', armor: 'scalemail', alt: 'shortsword' }, style: 'archery', sub: [3, 'Hunter'], look: 'npcranger_p0',
       known: [0, 2, 3, 3, 4, 4, 5, 5, 6], spells: { 1: ['huntersmark', 'curewounds', 'fogcloud', 'longstrider', 'animalfriendship'], 2: ['spikegrowth', 'passwithouttrace', 'barkskin'], 3: ['conjureanimals'] } },
     rogue: { prio: ['dex', 'con', 'wis', 'int', 'cha', 'str'], kit: { weapon: 'rapier', armor: 'leather', alt: 'shortbow' }, sub: [3, 'Thief'], look: 'npcrogue_p0', expertise: ['Stealth', 'Perception'] },
-    sorcerer: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', alt: 'dagger' }, sub: [1, 'Draconic Bloodline'], look: 'npcsorcerer_p0', ancestry: 'fire',
+    // metamagic (SRD 5.1, 3rd: two options; a third at 10, a fourth at 17): the generic sorcerer knows Quickened and Twinned; Careful and
+    // Heightened are built (js/features.js) for a spec that lists them -- { cls: 'sorcerer', metamagic: ['careful', 'heightened'] }
+    sorcerer: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', alt: 'dagger' }, sub: [1, 'Draconic Bloodline'], look: 'npcsorcerer_p0', ancestry: 'fire', metamagic: ['quickened', 'twinned'],
       cantrips: [4, 4, 4, 5, 5, 5, 5, 5, 5], known: [2, 3, 4, 5, 6, 7, 8, 9, 10],
       spells: { 0: ['firebolt', 'rayofrost', 'shockinggrasp', 'poisonspray', 'chilltouch'], 1: ['magicmissile', 'shield', 'burninghands', 'colorspray'], 2: ['scorchingray', 'mistystep', 'mirrorimage'], 3: ['fireball', 'haste'], 4: ['icestorm', 'greaterinvisibility', 'dimensiondoor', 'blight', 'banishment', 'walloffire', 'polymorph', 'dominatebeast'], 5: ['coneofcold', 'insectplague', 'holdmonster', 'wallofstone', 'cloudkill'] } },
-    warlock: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', armor: 'leather', alt: 'dagger' }, sub: [1, 'The Fiend'], look: 'npcwarlock_p0',
+    // Pact Boon (SRD 5.1, 3rd): the generic warlock (NPC.spec) takes the Tome -- three cantrips from other classes' lists (`tome`, the seat's
+    // pick 09-30: Fire Bolt, Sacred Flame, Vicious Mockery); a spec may say pact: 'blade' (a pact weapon: a rapier, proficient, magical) or
+    // its own tome. The Chain (a familiar in imp, pseudodragon, quasit or sprite form) waits on sheets for those four: not built
+    warlock: { prio: ['cha', 'con', 'dex', 'wis', 'int', 'str'], kit: { weapon: 'lightcrossbow', armor: 'leather', alt: 'dagger' }, sub: [1, 'The Fiend'], look: 'npcwarlock_p0', pact: 'tome', tome: ['firebolt', 'sacredflame', 'viciousmockery'],
       cantrips: [2, 2, 2, 3, 3, 3, 3, 3, 3], known: [2, 3, 4, 5, 6, 7, 8, 9, 10], invocations: { 2: ['agonizing', 'devilsight'], 5: ['agonizing', 'devilsight', 'repelling'] },
       spells: { 0: ['eldritchblast', 'chilltouch', 'poisonspray'], 1: ['hellishrebuke', 'command', 'burninghands', 'expeditiousretreat'], 2: ['scorchingray', 'darkness', 'mirrorimage', 'holdperson'], 3: ['fireball', 'fear', 'vampirictouch'], 4: ['blight', 'fireshield', 'dimensiondoor', 'banishment'], 5: ['flamestrike', 'holdmonster'] } },
     wizard: { prio: ['int', 'con', 'dex', 'wis', 'cha', 'str'], kit: { weapon: 'quarterstaff', armor: 'robes' }, sub: [2, 'School of Evocation'], look: 'npcwizard_p0',
@@ -249,6 +254,16 @@
     R.refresh(h, true);
     if (!(race.relentless)) delete h.feats.relentless; // (R.refresh gives every paladin Lymen's half-orc Relentless)
     else h.feats.relentless = 1;
+    // the class features past the 8-bit game's refresh (09-30; js/features.js): the Fiend's Dark One's Own Luck (6; a short rest), the
+    // sorcerer's metamagic (3: two options, a third at 10, a fourth at 17), the Hunter's Defensive Tactics (7: Escape the Horde unless the spec
+    // says 'multiattack' or 'steelwill'), the warlock's Pact Boon (3: below)
+    if (sub === 'The Fiend' && lvl >= 6) h.feats.darkLuck = 1;
+    if (cls === 'sorcerer' && lvl >= 3) h.metamagic = (spec.metamagic || c.metamagic || []).slice(0, lvl >= 17 ? 4 : lvl >= 10 ? 3 : 2);
+    if (cls === 'ranger' && sub === 'Hunter' && lvl >= 7) h.hunterDef = spec.hunterDefense || 'horde';
+    if (cls === 'warlock' && lvl >= 3 && spec.pact === 'blade') { // the pact weapon in hand; what it carried takes the second place
+      var carried = h.equip.weapon; h.pact = 'blade'; h.equip.weapon = spec.pactForm || 'rapier';
+      if (!('alt' in spec)) h.alt = carried !== h.equip.weapon ? carried : c.kit.alt;
+    }
     // the spells: the class's list (or the spec's), cut to what the level knows or prepares
     if (RC.caster) {
       var cc = c;
@@ -263,6 +278,12 @@
         var alw = alwaysOf(cc, sub, lvl, h.land), keep = h.known.filter(function (id) { var s = D.magic.data(id); return !s || !(s.level > 0) || alw.indexOf(id) >= 0; });
         h.known = keep.concat(spec.prepared).filter(function (id, i, a) { return a.indexOf(id) === i; });
       }
+    }
+    // Pact of the Tome (SRD 5.1, 3rd): the Book of Shadows -- three cantrips from any class's list, cast at will, and not counted against the
+    // cantrips known; warlock spells for her though they are not on its list (the built ones only: a cantrip not built is not on the ring)
+    if (cls === 'warlock' && lvl >= 3 && spec.pact === 'tome') {
+      h.pact = 'tome'; h.tome = (spec.tome || c.tome || []).filter(function (id) { return !!D.SPELLS[id]; });
+      h.known = h.known.concat(h.tome).filter(function (id, i, a) { return a.indexOf(id) === i; });
     }
     // our own subclasses' per-rest uses (js/features.js): the Window's Hand on the Neck, the Vigil's Keeper's Ward -- WIS a long rest
     if (NPC.SUBS[sub] && NPC.SUBS[sub].uses) h.feats[NPC.SUBS[sub].uses] = Math.max(1, DS.mod(abil.wis));
@@ -326,6 +347,9 @@
     if (race.fey) u.fey = true; // (Fey Ancestry: no magic puts it to sleep)
     if (race.savage) u.savage = true;
     if (h.mirrorEye) u.mirrorEye = true;
+    u.metamagic = h.metamagic || null; u.hunterDef = h.hunterDef || null; u.pact = h.pact || null; u.tome = h.tome || null; // (js/features.js reads them)
+    // Pact of the Blade (SRD 5.1): proficient with the pact weapon while she wields it, and it counts as magical
+    if (h.pact === 'blade' && u.weapon) { u.weapon = Object.assign({}, u.weapon, { magic: true, pact: true, name: u.weapon.name + ' (pact)' }); if (!R.isProfWeapon(h, R.weaponOf(h))) u.weapon.atk += R.prof(h.lvl); }
     u.invocations = h.invocations || null;
     if (h.conjured) u.conjured = h.conjured; // (seated by battle.js as the fight begins: js/walls.js W.seatConjured)
     if (h.guardianText) u.guardianText = h.guardianText;
@@ -390,7 +414,9 @@
     // ('talmok:5:grown': the grown build even at the register's own level -- the tester ladder, 09-28h: "grown builds please")
     if (named) { var at = Math.max(1, Math.min(NPC.maxLvl(named.cls), +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && (at !== named.lvl || bits[2] === 'grown') ? named.lvl : 0 }); }
     if (!C[key]) return null;
-    return { cls: key, lvl: L, race: bits[2] || 'human' };
+    var gen = { cls: key, lvl: L, race: bits[2] || 'human' };
+    if (C[key].pact) gen.pact = C[key].pact; // (the generic warlock takes the Tome; a named one -- Amara -- names her own or none)
+    return gen;
   };
   // the class floor from a URL: ?npc=cleric,wizard&lvl=5 -- those against the four at that level; &vs=fighter,rogue -- a band instead
   // of the four (yours to run); an entry like higertha or druid:3:dwarf names one (NPC.spec); &watch -- your side run by the class

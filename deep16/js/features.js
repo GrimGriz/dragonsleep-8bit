@@ -28,10 +28,38 @@
   // a minute (ten of its turns). Frenzy (the Berserker, 3): while raging, a bonus-action swing each turn after
   RU.saveAdv = function (u, ab) { return (ab === 'str' && !!u.conds.raging) || (ab === 'dex' && u.cls === 'barbarian' && u.lvl >= 2 && !u.conds.blinded); };
   // (the rage begun: the AI's first thing, the player's RAGE -- F.commands below)
+  // the rage as a condition: the damage, a minute, and what ends with it (Mindless Rage's suspended fear and charm come back: F.mindlessEnd)
+  F.rageCond = function (u) { return { dmg: u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.', onEnd: function (w) { F.mindlessEnd(w); } }; };
+  // Mindless Rage (the Berserker, 6; SRD 5.1): while raging it cannot be charmed or frightened (js/rules.js RU.immuneTo), and a charm or a
+  // fright it has when the rage begins is suspended for the rage's length (put by; it comes back when the rage ends, if what laid it still
+  // holds: its caster on his feet, and his concentration where the spell needs it)
+  F.mindless = function (B, u) {
+    if (u.subclass !== 'Path of the Berserker' || u.lvl < 6) return;
+    var held = [];
+    ['charmed', 'frightened', 'feared'].forEach(function (k) { if (u.conds[k]) { held.push([k, u.conds[k]]); delete u.conds[k]; } });
+    if (!held.length) return;
+    u.suspended = (u.suspended || []).concat(held);
+    B.card(['  {c}Mindless Rage{/}: ' + held.map(function (h) { return h[0] === 'feared' ? 'the terror' : h[0]; }).filter(function (x, i, a) { return a.indexOf(x) === i; }).join(' and ') + ' on ' + nm(B, u) + ' is suspended for the rage'], 240);
+  };
+  F.mindlessEnd = function (u) {
+    var B = D.battle, held = u.suspended; delete u.suspended;
+    if (!held || !B || u.dead || u.hp <= 0) return;
+    var back = [], hasFear = held.some(function (h) { return h[0] === 'feared'; });
+    held.forEach(function (h) {
+      var k = h[0], c = h[1], src = c && c.by && B.units.filter(function (w) { return w.id === c.by; })[0];
+      if (u.conds[k]) return; // (laid again since: it stands)
+      if (c && c.fresh) return; // (a moan's, a slam's: gone with the turn it was for)
+      if (c && c.by && (!src || src.dead || src.hp <= 0)) return; // (what laid it is gone)
+      if (c && c.by && (k === 'feared' || (k === 'frightened' && hasFear) || c.dc) && !(src && src.conc)) return; // (a Fear that was let go)
+      u.conds[k] = c; back.push(k);
+    });
+    if (back.length) B.card(['{g}' + (u.side === 'foe' ? 'The ' + B.shortName(u) : u.name) + '\'s rage is over: the ' + (hasFear ? 'terror' : back.join(' and ')) + ' comes back.{/}'], 240);
+  };
   F.rage = function (B, u) {
     u.turn.bonus = 0; u.feats.rage--;
-    u.conds.raging = { dmg: u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.' };
+    u.conds.raging = F.rageCond(u);
     if (u.subclass === 'Path of the Berserker') u.conds.frenzy = true;
+    F.mindless(B, u);
     D.sfx('crit'); FX.ring(u, 'red', 34);
     B.card(['{r}' + Nm(B, u) + ' RAGES!{/}  {g}(+' + u.conds.raging.dmg + ' damage, blades and blows halved' + (u.conds.frenzy ? ', and the frenzy: a swing for the bonus action' : '') + '){/}'], 300);
   };
@@ -54,8 +82,9 @@
     if (!u.conds.raging) {
       if (!feat(u, 'rage') || !u.turn.bonus) return false;
       u.turn.bonus = 0; u.feats.rage--;
-      u.conds.raging = { dmg: u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.' };
+      u.conds.raging = F.rageCond(u);
       if (u.subclass === 'Path of the Berserker') u.conds.frenzy = true;
+      F.mindless(B, u);
       D.sfx('crit'); FX.ring(u, 'red', 34);
     }
     B.card(['{r}' + Nm(B, u) + ': FERAL INSTINCT -- caught unaware, he rages and comes on all the same!{/}  {g}(+' + u.conds.raging.dmg + ' damage, blades and blows halved){/}'], 300);
@@ -125,11 +154,56 @@
     if (u.cls !== 'monk' || u.lvl < 6 || !feat(u, 'wholeness') || u.hp > u.maxhp * 0.35 || !u.turn.action) return null;
     return { kind: 'feature', why: 'Wholeness of Body', score: Math.min(u.maxhp - u.hp, 3 * u.lvl) * 1.3, go: function* () { u.turn.action = 0; u.feats.wholeness = 0; var got = B.heal(u, 3 * u.lvl); D.sfx('heal'); B.card(['{y}' + Nm(B, u) + '{/}: WHOLENESS OF BODY  {n}+' + got + '{/}'], 240); yield 20; } };
   });
-  TX.AFTER.push(function* (B, u) {
+  // Patient Defense (2; SRD 5.1): 1 ki, the Dodge action as a bonus action -- attacks against it at disadvantage, advantage on its DEX
+  // saves, till its next turn (rules.js edges and save read conds.dodge). The AI's and the player's PATIENT DEFENSE button (F.commands)
+  F.patient = function* (B, u) {
+    var T = u.turn; T.bonus = 0; u.feats.ki--; u.conds.dodge = true; FX.ring(u, 'silver', 22); D.sfx('buff');
+    B.card(['{y}' + Nm(B, u) + '{/}: PATIENT DEFENSE  {g}(1 ki, ' + u.feats.ki + ' left: the Dodge, as a bonus action){/}'], 200); yield 12;
+  };
+  // Step of the Wind (2; SRD 5.1): 1 ki, Disengage or Dash as a bonus action (the jump's doubling is not read: the grid has no jump)
+  F.stepWind = function* (B, u, how) {
+    var T = u.turn; T.bonus = 0; u.feats.ki--; FX.sparkle(u, 'silver', 12); D.sfx('run');
+    if (how === 'dash') T.move += u.speed; else T.disengaged = true;
+    B.card(['{y}' + Nm(B, u) + '{/}: STEP OF THE WIND  {g}(1 ki, ' + u.feats.ki + ' left: ' + (how === 'dash' ? 'Dash, +' + u.speed + ' ft' : 'Disengage: leaving reach provokes nothing') + ', as a bonus action){/}'], 200); yield 12;
+  };
+  // a square within its move where fewer foes stand beside it (the way out of a crowd)
+  function lessCrowded(B, u, n) {
+    var rm = G.reach(u, u.turn.move);
+    return Object.keys(rm).some(function (k) { var e = rm[k]; return e.stand && G.foesNear(u, e.x, e.y, 5).length < n; });
+  }
+  // what the monk's bonus action goes to after the Attack action (the AI's weighing, in hit points): Flurry of Blows (two strikes), Patient
+  // Defense (a Dodge: a foe's blows at disadvantage, about two in five gone), or the Step of the Wind's Disengage out of a crowd. A hurt
+  // monk weighs the two defences up (life); a whole one only strikes. null: none of the three (no ki, no foe beside)
+  F.monkPick = function (B, u) {
     var T = u.turn;
-    if (u.cls !== 'monk' || u.lvl < 2 || !T.bonus || !feat(u, 'ki') || u.hp > u.maxhp * 0.4 || !foesBeside(B, u).length) return;
-    T.bonus = 0; u.feats.ki--; u.conds.dodge = true;
-    B.card(['{y}' + Nm(B, u) + '{/}: PATIENT DEFENSE  {g}(1 ki: a Dodge){/}'], 200); yield 12;
+    if (u.cls !== 'monk' || u.lvl < 2 || !T.bonus || !feat(u, 'ki') || u.conds.incapacitated) return null;
+    var near = foesBeside(B, u); if (!near.length) return null;
+    var frac = u.hp / Math.max(1, u.maxhp), life = 1 + (1 - frac) * 1.5, inc = near.reduce(function (s, w) { return s + TX.dpr(w); }, 0), fv = 0;
+    if (T.attackAction && !u.conds.disarmed) {
+      var fist = F.fist(u), tg = near.slice().sort(function (a, b) { return a.hp - b.hp; })[0];
+      if (fist && tg) fv = 2 * TX.pHit(fist.atk, RU.ac(tg), 0) * (TX.avg(fist.dice) + (fist.mod || 0));
+    }
+    var pv = frac < 0.6 && !u.conds.dodge ? 0.4 * inc * life : 0;
+    var sv = frac < 0.5 && T.move >= 10 && !u.conds.restrained && (near.length >= 2 || frac < 0.35) && lessCrowded(B, u, near.length) ? 0.55 * inc * life * (near.length >= 2 ? 1 : 0.7) - 3 : 0;
+    if (sv > Math.max(fv, pv) + 1) return 'step';
+    if (pv > fv + 1) return 'patient';
+    return 'flurry';
+  };
+  TX.AFTER.unshift(function* (B, u) { // (ahead of the Flurry above: it takes the bonus action if this one does not)
+    var pick = F.monkPick(B, u);
+    if (pick === 'patient') yield* F.patient(B, u);
+    else if (pick === 'step') yield* F.stepWind(B, u, 'disengage'); // (tactics.js keepOff then walks it to the square with fewer foes beside it)
+  });
+  // the Dash: a foe out of reach by the walk this turn, and in reach by the walk and the Dash -- the ki for the bonus action, and the action to strike
+  TX.FIRST.push(function* (B, u) {
+    var T = u.turn;
+    if (u.cls !== 'monk' || u.lvl < 2 || !T.bonus || !feat(u, 'ki') || u.conds.restrained || u.conds.incapacitated || (u.side === 'party' && !u.guest)) return;
+    var fs = TX.foesOf(B, u); if (!fs.length) return;
+    // (a thrown weapon from where the walk leaves it is a swing too: the dagger's 60 ft -- then the ki stays)
+    var thrown = u.alt && u.alt.ranged && !u.conds.disarmed ? u.alt.range[1] : 0;
+    var can = function (mv) { var rm = G.reach(u, mv); return fs.some(function (t) { return Object.keys(rm).some(function (k) { var e = rm[k]; return e.stand && G.dist(u, t, e.x, e.y) <= Math.max(G.reachOf(u), thrown); }); }); };
+    if (can(T.move) || !can(T.move + u.speed)) return;
+    yield* F.stepWind(B, u, 'dash');
   });
 
   // ------------------------------------------------------------------ the rogue: Cunning Action for the AI's rogues (the player's has the ring's)
@@ -175,6 +249,33 @@
     B.card(['{y}' + Nm(B, bard) + '{/}: CUTTING WORDS -- ' + r + ' off the roll'], 200);
     return r;
   };
+  // Countercharm (6; SRD 5.1): an action; a performance till the end of its next turn -- it and the friends within 30 ft who can hear it have
+  // advantage on saves against being frightened or charmed (js/rules.js RU.save `against`: Fear, Hypnotic Pattern, Charm Person, the moan ...).
+  // Ends early if it is incapacitated (RU.countercharmed asks). The AI sings it when a foe that frightens or charms is up, or a friend is under such
+  // a spell; the player's COUNTERCHARM button (F.commands)
+  var FEARSOME = ['fear', 'hypnoticpattern', 'charmperson', 'animalfriendship', 'dominatebeast', 'phantasmalkiller', 'weird', 'eyebite'];
+  F.countercharm = function* (B, u) {
+    u.turn.action = 0; u.conds.countercharm = { till: { who: u.id, at: 'end', n: 2 }, endText: '{who}\'s countercharm ends.' };
+    D.sfx('buff'); FX.ring(u, 'gold', 60);
+    var n = TX.alliesOf(B, u).filter(function (w) { return G.standing(w) && (w === u || G.dist(u, w) <= 30); }).length;
+    B.card(['{y}' + Nm(B, u) + '{/}: COUNTERCHARM  {g}(a song till the end of its next turn: advantage on saves against being frightened or charmed, ' + n + ' within 30 ft){/}'], 300); yield 24;
+  };
+  // a foe that frightens or charms: the cloaker's moan (ready), a caster with the spells to (a slot left), a bard
+  function fearsome(w) {
+    if (w.moan && w.moan.ready && (w.moan.cond || 'frightened') === 'frightened') return true;
+    if (w.cls === 'bard' && w.lvl >= 6) return false; // (its own song is its concern)
+    var top = 0; (w.slots || []).forEach(function (n, i) { if (n > 0) top = i + 1; });
+    return !!top && (w.known || []).some(function (id) { var sp = M.data(id); return FEARSOME.indexOf(id) >= 0 && sp && sp.level <= top; });
+  }
+  TX.ACTIONS.push(function (B, u, fs, allies) {
+    if (u.cls !== 'bard' || u.lvl < 6 || !u.turn.action || u.turn.attacksLeft || u.conds.countercharm || (u.side === 'party' && !u.guest)) return null;
+    var near = allies.filter(function (w) { return G.standing(w) && (w === u || G.dist(u, w) <= 30); });
+    var srcs = fs.filter(function (w) { return fearsome(w) && G.dist(u, w) <= 150; });
+    var under = near.filter(function (w) { return (w.conds.feared && w.conds.feared.dc) || (w.conds.charmed && !w.conds.charmed.dominated); });
+    if (!srcs.length && !under.length) return null;
+    var sc = srcs.length * near.reduce(function (s, w) { return s + TX.dpr(w); }, 0) * 0.3 + under.reduce(function (s, w) { return s + TX.dpr(w) * 0.6; }, 0); // (a save at advantage fails a fifth less often; a Fear costs a friend two rounds)
+    return { kind: 'feature', why: 'Countercharm', score: Math.min(sc, 20), go: function* () { yield* F.countercharm(B, u); } };
+  });
 
   // ------------------------------------------------------------------ the cleric: Preserve Life (Life 2, Channel Divinity)
   TX.ACTIONS.push(function (B, u, fs, allies) {
@@ -203,21 +304,52 @@
   });
   // (the dead within 30 ft that are not turned already: the AI's plan and the player's TURN UNDEAD)
   F.undeadNear = function (B, u) { return hostileNear(B, u, 30).filter(function (w) { return w.type === 'undead' && !w.conds.turned; }); };
-  F.turnUndead = function* (B, u, dead) {
-    var dc = u.spellDC;
+  // (o: { name, noDestroy } -- the paladin's Turn the Unholy is this prayer with fiends among them, and no Destroy Undead)
+  F.turnUndead = function* (B, u, dead, o) {
+    o = o || {};
+    var dc = u.spellDC, name = o.name || 'TURN UNDEAD';
     u.turn.action = 0; u.feats.channel--; D.sfx('buff'); FX.ring(u, 'gold', 60);
-    var lines = ['{y}' + Nm(B, u) + '{/} presents the holy symbol: TURN UNDEAD  WIS DC ' + dc], gone = [];
+    var lines = ['{y}' + Nm(B, u) + '{/} presents the holy symbol: ' + name + '  WIS DC ' + dc], gone = [];
     dead.forEach(function (w) {
-      var sv = RU.save(w, 'wis', dc), destroy = !sv.ok && u.lvl >= 5 && crNum(w.cr) <= (u.lvl >= 17 ? 4 : u.lvl >= 14 ? 3 : u.lvl >= 11 ? 2 : u.lvl >= 8 ? 1 : 0.5);
+      var sv = RU.save(w, 'wis', dc, false, 'turned'), destroy = !o.noDestroy && !sv.ok && u.lvl >= 5 && crNum(w.cr) <= (u.lvl >= 17 ? 4 : u.lvl >= 14 ? 3 : u.lvl >= 11 ? 2 : u.lvl >= 8 ? 1 : 0.5);
       lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}stands{/}' : destroy ? '{y}DESTROYED{/}' : '{o}turned{/}'));
-      if (destroy) gone.push(w); else if (!sv.ok) { w.conds.turned = { by: u.id }; w.conds.frightened = { by: u.id }; w.conds.feared = { by: u.id }; }
+      if (destroy) gone.push(w); else if (!sv.ok) F.setTurned(w, u);
     });
     B.card(lines.slice(0, 8), 420); yield { fx: 1 };
     gone.forEach(function (w) { B.hurt(w, w.hp + (w.temp || 0), 'radiant'); });
     yield 24;
   };
+  // Turned (SRD 5.1): for a minute (ten of its turns) or till it takes damage, it spends its turns moving as far from the one who turned it
+  // as it can (js/tactics.js fleeFear: the Dash, and nothing else), takes no reactions, and may not step nearer (grid.js stepCost: frightened).
+  // It carries `frightened` and `feared` beside `turned` for those; the sweeps that end a laid fright at its caster's turn's end leave it be
+  // (ai.js, battle.js), and the turned one's own clock (M.tick) takes all three away together
+  F.setTurned = function (w, u) {
+    w.reaction = 0;
+    w.conds.turned = { by: u.id, till: { who: w.id, at: 'start', n: 10 }, endText: '{who} is no longer turned.', onEnd: function (x) { F.unturn(x, u.id); } };
+    w.conds.frightened = { by: u.id }; w.conds.feared = { by: u.id };
+  };
+  F.unturn = function (x, by) {
+    if (x.conds.feared && x.conds.feared.by === by && !x.conds.feared.dc) delete x.conds.feared;
+    if (x.conds.frightened && x.conds.frightened.by === by && !x.conds.feared) delete x.conds.frightened;
+  };
   var onHurt0 = M.onHurt;
-  M.onHurt = function (B, u, n, type) { if (onHurt0) onHurt0(B, u, n, type); if (u.conds.turned) { delete u.conds.turned; if (u.conds.feared && !u.conds.feared.dc) delete u.conds.feared; B.card(['{g}' + Nm(B, u) + ' is hurt out of its terror.{/}'], 200); } };
+  M.onHurt = function (B, u, n, type) { if (onHurt0) onHurt0(B, u, n, type); if (u.conds.turned) { var by = u.conds.turned.by; delete u.conds.turned; F.unturn(u, by); B.card(['{g}' + Nm(B, u) + ' is hurt out of its terror.{/}'], 200); } };
+
+  // ------------------------------------------------------------------ the paladin: Turn the Unholy (Oath of Devotion, 3; Channel Divinity)
+  // An action: each fiend or undead within 30 ft that can see or hear it makes a WIS save (the paladin's DC) or is turned. It is Turn Undead
+  // (above) with fiends among the dead and no Destroy Undead, and it draws on the one Channel Divinity Sacred Weapon does (feats.channel).
+  // The AI turns them when two or more are near, or one that hits hard; the player's TURN THE UNHOLY button (F.commands). Class NPCs only:
+  // Lymen, of the same oath, has Sacred Weapon in the 8-bit game and no more (his hero sheet is that game's)
+  F.unholyNear = function (B, u) { return hostileNear(B, u, 30).filter(function (w) { return (w.type === 'undead' || w.type === 'fiend') && !w.conds.turned; }); };
+  F.unholy = function (u) { return !!(u.npc && u.cls === 'paladin' && u.lvl >= 3 && RU.devoted(u)); };
+  TX.ACTIONS.push(function (B, u, fs) {
+    if (!F.unholy(u) || !feat(u, 'channel') || !u.turn.action || u.turn.attacksLeft || (u.side === 'party' && !u.guest)) return null;
+    var foul = F.unholyNear(B, u), dc = u.spellDC;
+    if (!foul.length) return null;
+    var sc = foul.reduce(function (s, w) { return s + TX.pFail(w, 'wis', dc) * TX.dpr(w) * 3; }, 0);
+    if (foul.length < 2 && !foul.some(function (w) { return TX.dpr(w) >= 10 || crNum(w.cr) >= 3; })) return null; // (two or more, or one worth the prayer)
+    return { kind: 'feature', why: 'Turn the Unholy', score: sc, go: function* () { yield* F.turnUndead(B, u, foul, { name: 'TURN THE UNHOLY', noDestroy: true }); } };
+  });
 
   // ------------------------------------------------------------------ the druid: Wild Shape (2; the Circle of the Land's: an action, a beast
   // of CR 1/4 with no flying or swimming till 4, 1/2 till 8) -- the wolf from the bestiary. Its HP is its own; at 0 the druid comes
@@ -291,7 +423,7 @@
     if (u.cls !== 'sorcerer' || u.lvl < 2 || !T.bonus) return;
     var slots = (u.slots || []).reduce(function (a, n) { return a + n; }, 0);
     // Quickened Spell: the best leveled action spell, now, as the bonus action (then only a cantrip with the action)
-    if (u.lvl >= 3 && (u.feats.sorcery || 0) >= 2 && slots > 0) {
+    if (F.hasMeta(u, 'quickened') && (u.feats.sorcery || 0) >= 2 && slots > 0) {
       T.quicken = true;
       var plans = TX.spellPlansFor(B, u).filter(function (p) { return !p.bonus && p.level > 0; }).sort(function (a, b) { return b.score - a.score; });
       if (plans[0] && plans[0].score > 12) { u.feats.sorcery -= 2; B.card(['{y}' + Nm(B, u) + '{/}: QUICKENED SPELL {g}(2 sorcery points, ' + u.feats.sorcery + ' left){/}'], 200); yield* plans[0].go(); T.quicken = false; return; }
@@ -306,6 +438,106 @@
       B.card(['{y}' + Nm(B, u) + '{/}: FONT OF MAGIC -- a level-' + top + ' slot out of ' + cost[top] + ' sorcery points {g}(' + u.feats.sorcery + ' left){/}'], 200); yield 12;
     }
   });
+
+  // ------------------------------------------------------------------ the sorcerer's metamagic (3; SRD 5.1): the options a sorcerer knows are
+  // u.metamagic (js/classes.js: the generic one knows Quickened and Twinned; Careful and Heightened are here for a spec that lists them), paid
+  // in sorcery points (feats.sorcery). One option to a spell (SRD). T.meta = { name } is the spell about to be cast: the player's toggle button
+  // sets it (F.commands), the AI's plan sets it (tactics.js castGo, from F.metaPlan below) -- and the wrapper on M.cast, just under, pays for it,
+  // makes it so, and clears it. Quickened is also the AI's own, above (T.quicken, magic.js M.cast)
+  F.hasMeta = function (u, name) { var l = u.metamagic || (u.cls === 'sorcerer' && u.lvl >= 3 ? ['quickened'] : []); return l.indexOf(name) >= 0; };
+  function points(u) { return (u.feats && u.feats.sorcery) || 0; }
+  F.metaCost = function (name, sp) { return name === 'quickened' ? 2 : name === 'careful' ? 1 : name === 'heightened' ? 3 : Math.max(1, (sp && sp.level) || 0); }; // (Twinned: the spell's level, 1 for a cantrip)
+  // Twinned Spell: a spell that targets one creature and only one, and not the caster alone -- the grid's single, attack and touch shapes
+  // without concentration (the seat's call, 09-30: a twin of a concentration spell would be two records of one concentration); not Chain Lightning
+  F.twinnable = function (id, sp, g, t) {
+    if (!sp || !g || g.conc || g.free || g.shape === 'self' || id === 'chainlightning' || !/^(attack|single|touch)$/.test(g.shape)) return false;
+    return !!(t && t.id && !t.units && t.x != null);
+  };
+  // why a metamagic does nothing for this spell ('' when it does)
+  F.metaWhy = function (u, name, id, t) {
+    var sp = M.data(id), g = M.geo(id), cost = F.metaCost(name, sp);
+    if (!sp || !g) return 'no such spell';
+    if (name === 'quickened' && !(sp.level && g.time === 'A')) return 'nothing to quicken: a leveled spell that takes an action';
+    if (name === 'twinned' && !F.twinnable(id, sp, g, t)) return g.conc ? 'a spell held in concentration is not twinned (one record of it)' : 'it reaches more than one creature, or only yourself';
+    if ((name === 'careful' || name === 'heightened') && !sp.save) return 'no creature saves against it';
+    if (points(u) < cost) return 'only ' + points(u) + ' sorcery point' + (points(u) === 1 ? '' : 's') + ' of ' + cost;
+    return '';
+  };
+  // the creatures a save-spell aimed at t catches, foes first-hand for Heightened
+  function metaCaught(B, u, g, t) {
+    if (t && t.units) return t.units.filter(function (w) { return w.id && w.hp > 0; });
+    if (t && t.x != null && !t.id) return B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, M.area(u, g, t.x, t.y)); });
+    return t ? [t] : [];
+  }
+  var cast1m = M.cast;
+  M.cast = function* (B, u, id, slot, t) {
+    var T = u.turn, mm = T && T.meta;
+    if (!mm || !u.feats) return yield* cast1m.apply(this, arguments);
+    T.meta = null;
+    var name = mm.name, sp = M.data(id), g = M.geo(id), cost = F.metaCost(name, sp), why = F.metaWhy(u, name, id, t), who = Nm(B, u), label = ({ quickened: 'QUICKENED SPELL', twinned: 'TWINNED SPELL', careful: 'CAREFUL SPELL', heightened: 'HEIGHTENED SPELL' })[name];
+    if (why) { B.card(['{o}' + who + ': ' + label + '{/} does nothing here: ' + why + ' -- cast as it is.'], 240); return yield* cast1m.apply(this, arguments); }
+    var second = null, target = null;
+    if (name === 'twinned') {
+      // the second creature: the plan's, or the player's pick from those the spell may go to
+      second = mm.t2 || null;
+      if (!second) second = yield* pickOne(B, u, 'TWINNED SPELL', B.units.filter(function (w) { return w !== t && !w.dead && M.targetOK(B, u, g, w); }), 'A second creature for the same spell (' + cost + ' sorcery point' + (cost > 1 ? 's' : '') + ').');
+      if (!second) { B.card(['{g}' + who + ': no second creature for the twin -- cast as it is.{/}'], 200); return yield* cast1m.apply(this, arguments); }
+    }
+    if (name === 'heightened') {
+      target = mm.target || null;
+      if (!target) {
+        var cands = metaCaught(B, u, g, t).filter(function (w) { return G.hostile(u, w); });
+        target = cands.length > 1 ? (!mine(u) ? cands.sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0] : yield* pickOne(B, u, 'HEIGHTENED SPELL', cands, 'Which one has disadvantage on its first save? (' + cost + ' sorcery points)')) : cands[0] || null;
+      }
+    }
+    u.feats.sorcery -= cost; FX.ring(u, 'violet', 30);
+    var left = u.feats.sorcery + ' left)';
+    if (name === 'quickened') {
+      B.card(['{y}' + who + '{/}: QUICKENED SPELL  {g}(' + cost + ' sorcery points, ' + left + ': the action\'s spell, as a bonus action){/}'], 200);
+      T.quicken = true;
+      try { return yield* cast1m.apply(this, arguments); } finally { T.quicken = false; }
+    }
+    if (name === 'twinned') {
+      B.card(['{y}' + who + '{/}: TWINNED SPELL  {g}(' + cost + ' sorcery point' + (cost > 1 ? 's' : '') + ', ' + left + ': ' + sp.name + ' at ' + nm(B, t) + ' and at ' + nm(B, second) + '){/}'], 240);
+      var r1 = yield* cast1m.apply(this, arguments);
+      // the twin: the same spell, the same action, no second slot (one slot, one action, two creatures)
+      if (!u.dead && u.hp > 0 && second.hp > 0 && !second.dead) {
+        var keep = (u.slots || []).slice(), keepT = { action: T.action, bonus: T.bonus, bonusSpell: T.bonusSpell, spellAction: T.spellAction };
+        yield* cast1m.call(this, B, u, id, slot, second);
+        for (var si = 0; si < keep.length; si++) u.slots[si] = keep[si];
+        T.action = keepT.action; T.bonus = keepT.bonus; T.bonusSpell = keepT.bonusSpell; T.spellAction = keepT.spellAction;
+      }
+      return r1;
+    }
+    // Careful: up to CHA-mod of its friends caught (chosen at the save, in the order the creatures save) succeed on it; Heightened: the chosen
+    // one has disadvantage on its first save. RU.save reads B.meta for the length of this cast (the first saves only: a hold's later ones stand)
+    var n = Math.max(1, M.mod(u));
+    B.meta = { by: u, ab: sp.save };
+    if (name === 'careful') { B.meta.careful = { left: n, done: {} }; B.card(['{y}' + who + '{/}: CAREFUL SPELL  {g}(' + cost + ' sorcery point, ' + left + ': up to ' + n + ' of its friends caught in it succeed on the save){/}'], 240); }
+    else { B.meta.heightened = { target: target, used: false }; B.card(['{y}' + who + '{/}: HEIGHTENED SPELL  {g}(' + cost + ' sorcery points, ' + left + ': ' + (target ? nm(B, target) : 'the first foe to save') + ' has disadvantage on its first save){/}'], 240); }
+    try { return yield* cast1m.apply(this, arguments); } finally { B.meta = null; }
+  };
+  // the AI's weighing of a metamagic for the spell plan it has (tactics.js spellPlans, after the plan's own score): Twinned where a second
+  // good target stands for a spell that reaches one; Careful where an area would catch its friends; Heightened on a save-or-lose against
+  // one worth it and no sure thing. It raises the plan's score by what the option adds, less the points' price, and hangs `meta` on the plan
+  F.metaPlan = function (B, u, e, slot, best, ev, fs, allies) {
+    if (!u.metamagic || !u.metamagic.length || (u.turn && u.turn.quicken) || (u.side === 'party' && !u.guest)) return;
+    var p = points(u); if (!p) return;
+    if (F.hasMeta(u, 'twinned') && best.t && !best.from && F.twinnable(e.id, e.sp, e.g, best.t) && p >= F.metaCost('twinned', e.sp)) {
+      var cost = F.metaCost('twinned', e.sp), b2 = null;
+      try { b2 = ev(B, u, e, slot, fs.filter(function (w) { return w !== best.t; }), allies.filter(function (w) { return w !== best.t; })); } catch (err) { b2 = null; }
+      if (b2 && !b2.from && b2.t && b2.t !== best.t && b2.t.id && !b2.t.units && b2.score >= 2.5 * cost + 1 && M.targetOK(B, u, e.g, b2.t)) { best.score += b2.score - 0.8 * cost; best.meta = { name: 'twinned', t2: b2.t }; return; }
+    }
+    if (F.hasMeta(u, 'careful') && p >= 1 && best.caught && e.sp.save && !(M.sculpts && M.sculpts(u, e.id))) {
+      var fr = best.caught.filter(function (w) { return w.side === u.side && w.hp > 0; }).slice(0, Math.max(1, M.mod(u)));
+      var gain = fr.reduce(function (s, w) { return s + TX.areaFriendCost(u, e, slot, w, false) - TX.areaFriendCost(u, e, slot, w, true); }, 0);
+      if (gain > 3) { best.score += gain - 2; best.meta = { name: 'careful' }; return; }
+    }
+    if (F.hasMeta(u, 'heightened') && p >= 3 && best.t && best.t.id && !best.t.units && e.sp.save && !e.sp.dmg && G.hostile(u, best.t)) {
+      var pf = TX.pFail(best.t, e.sp.save, u.spellDC), hg = best.score * (1 - pf);
+      if (pf > 0.1 && pf < 0.75 && hg > 9) { best.score += hg - 7; best.meta = { name: 'heightened', target: best.t }; }
+    }
+  };
 
   // ------------------------------------------------------------------ the warlock: Dark One's Blessing (the Fiend, 1): a foe it drops gives it
   // CHA + its level in temporary HP (battle.js hurt, M.onKill)
@@ -330,7 +562,7 @@
     if (onHurt1) onHurt1(B, u, n, type);
     if (!sub(u, 'Path of the Sand', 3) || u.conds.raging || !feat(u, 'rage') || u.reaction <= 0 || u.hp <= 0 || u.dead || !RU.canAct(u)) return;
     u.reaction = 0; u.feats.rage--;
-    u.conds.raging = { dmg: u.lvl >= 16 ? 4 : u.lvl >= 9 ? 3 : 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.' };
+    u.conds.raging = F.rageCond(u);
     D.sfx('crit'); FX.ring(u, 'red', 34);
     B.card(['{r}' + Nm(B, u) + ': FIRST BLOOD -- he rages!{/}  {g}(the reaction: +' + u.conds.raging.dmg + ' damage, blades and blows halved){/}'], 300);
   };
@@ -350,7 +582,7 @@
     if (!melee || atk.spell || !sub(tgt, 'Path of the Sand', 6) || !tgt.conds.raging || tgt.reaction <= 0 || !RU.canAct(tgt) || att.dead || att.hp <= 0 || G.dist(tgt, att) > G.reachOf(tgt) || !tgt.weapon) return;
     tgt.reaction = 0;
     B.card(['{r}' + Nm(B, tgt) + ' answers back!{/}  {g}(the reaction){/}'], 200);
-    yield* B.attack(tgt, att, tgt.weapon, { oa: true });
+    yield* B.attack(tgt, att, tgt.weapon, { oa: true, answer: true }); // (a blow back, not an opportunity attack: Escape the Horde is not asked)
   };
 
   // ------------------------------------------------------------------ the Rimeglass (Willem's; the wizard's tradition, 2): illusion with the
@@ -511,6 +743,21 @@
     yield 8;
   };
 
+  // the class line of the party panel (js/ui.js), for the features past the four heroes': short, since the row is only so wide
+  F.classLine = function (u) {
+    var f = u.feats || {}, out = [];
+    if (u.cls === 'monk' && u.lvl >= 2) out.push('ki ' + (f.ki || 0) + ', patient defense, step of the wind' + (u.lvl >= 7 ? ', evasion' : ''));
+    if (F.unholy(u)) out.push('turn the unholy');
+    if (u.cls === 'bard' && u.lvl >= 6) out.push('countercharm');
+    if (u.cls === 'sorcerer' && u.metamagic && u.metamagic.length) out.push((f.sorcery || 0) + ' pts: ' + u.metamagic.join(', '));
+    if (u.cls === 'warlock' && u.pact) out.push('pact of the ' + u.pact);
+    if (u.subclass === 'The Fiend' && u.lvl >= 6) out.push('dark luck ' + (f.darkLuck ? 'ready' : 'spent'));
+    if (u.cls === 'barbarian' && u.subclass === 'Path of the Berserker' && u.lvl >= 6) out.push('mindless rage');
+    if (u.hunterDef) out.push({ horde: 'escape the horde', multiattack: 'multiattack defense', steelwill: 'steel will' }[u.hunterDef] || '');
+    if (u.cls === 'rogue' && u.subclass === 'Thief' && u.lvl >= 9) out.push('supreme sneak');
+    return out.filter(Boolean).join(', ');
+  };
+
   // ------------------------------------------------------------------ the player's buttons (09-29, Griz running our four on the tester
   // ladder, ?ladder&party=ours&play: "AI now, buttons later" -- now). What the AI above does for itself, on the ring's SKILLS for one the
   // player runs: battle.js commands() lists F.commands, battle.js exec hands their ids to F.exec. One that goes to a single creature asks
@@ -534,6 +781,23 @@
     if (u.cls === 'druid' && u.beast && !u.beast.morph) out.push({ id: 'unshape', label: 'OWN SHAPE', cost: 'B', icon: 'skills', skill: true, ok: T.bonus > 0, why: 'the bonus action is spent', note: 'back to the druid (the beast\'s hit points left behind)' });
     if (u.cls === 'cleric' && u.lvl >= 2) out.push({ id: 'turnundead', label: 'TURN UNDEAD', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.undeadNear(B, u).length > 0,
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no undead within 30 ft', note: 'the dead within 30 ft: WIS DC ' + u.spellDC + ' or turned' + (u.lvl >= 5 ? ' (the weakest destroyed)' : '') });
+    // 09-30, the class feature gaps: the monk's ki bonus actions, the paladin's Turn the Unholy, the bard's Countercharm, the sorcerer's metamagic
+    if (u.cls === 'monk' && u.lvl >= 2) {
+      var kiOk = T.bonus > 0 && feat(u, 'ki') && !u.conds.incapacitated, kiWhy = !feat(u, 'ki') ? 'no ki left (a short rest brings it back)' : 'the bonus action is spent', kiLeft = ((u.feats && u.feats.ki) || 0) + ' ki left';
+      out.push({ id: 'patient', label: 'PATIENT DEFENSE', cost: 'B', icon: 'dodge', skill: true, ok: kiOk && !u.conds.dodge, why: u.conds.dodge ? 'dodging already' : kiWhy, note: '1 ki: the Dodge as a bonus action; ' + kiLeft });
+      out.push({ id: 'stepdisengage', label: 'STEP: DISENGAGE', cost: 'B', icon: 'disengage', skill: true, ok: kiOk && !T.disengaged, why: T.disengaged ? 'disengaged already' : kiWhy, note: 'Step of the Wind, 1 ki: leaving reach provokes nothing this turn; ' + kiLeft });
+      out.push({ id: 'stepdash', label: 'STEP: DASH', cost: 'B', icon: 'dash', skill: true, ok: kiOk && !u.conds.restrained, why: u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : kiWhy, note: 'Step of the Wind, 1 ki: +' + u.speed + ' ft this turn; ' + kiLeft });
+    }
+    if (F.unholy(u)) out.push({ id: 'turnunholy', label: 'TURN THE UNHOLY', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && F.unholyNear(B, u).length > 0,
+      why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no fiend or undead within 30 ft', note: 'fiends and undead within 30 ft: WIS DC ' + u.spellDC + ' or turned for a minute (the Channel Divinity Sacred Weapon uses)' });
+    if (u.cls === 'bard' && u.lvl >= 6) out.push({ id: 'countercharm', label: 'COUNTERCHARM', cost: 'A', icon: 'sacred', skill: true, ok: act && !u.conds.countercharm && !u.conds.incapacitated,
+      why: u.conds.countercharm ? 'the song is up already' : 'the action is spent', note: 'till the end of your next turn: you and friends within 30 ft, advantage on saves against being frightened or charmed' });
+    if (u.cls === 'sorcerer' && u.lvl >= 3) (u.metamagic || []).forEach(function (mn) {
+      var on = !!(T.meta && T.meta.name === mn), cost = F.metaCost(mn, null), pt = points(u);
+      out.push({ id: 'meta-' + mn, label: mn.toUpperCase() + (on ? ' (ON)' : ''), cost: 'F', icon: 'skills', skill: true, ok: on || pt >= cost, why: 'only ' + pt + ' sorcery point' + (pt === 1 ? '' : 's') + ' of ' + cost,
+        note: ({ quickened: '2 points: the next action-spell (a leveled one) is cast as a bonus action', twinned: 'the next spell that reaches one creature also reaches a second: its level in points (1 a cantrip); not concentration',
+          careful: '1 point: the next spell creatures save against: up to ' + Math.max(1, M.mod(u)) + ' of your friends caught in it succeed', heightened: '3 points: the next spell creatures save against: one has disadvantage on its first save' })[mn] + '; ' + pt + ' points left' });
+    });
     if (sub(u, 'the Window', 1)) out.push({ id: 'handonneck', label: 'HAND ON THE NECK', cost: 'B', icon: 'lay', skill: true, ok: T.bonus > 0 && feat(u, 'handOnNeck'),
       why: !feat(u, 'handOnNeck') ? 'spent (a long rest brings it back)' : 'the bonus action is spent', note: 'touch: the first blow to land on them is rolled again' });
     if (sub(u, 'the Window', 2)) out.push({ id: 'doubling', label: 'THE DOUBLING', cost: 'A', icon: 'sacred', skill: true, ok: act && chan(u) && !(u.images > 0),
@@ -570,6 +834,11 @@
       }
       case 'unshape': u.turn.bonus = 0; F.unshape(B, u, 0, true); yield 12; return;
       case 'turnundead': yield* F.turnUndead(B, u, F.undeadNear(B, u)); return;
+      case 'turnunholy': yield* F.turnUndead(B, u, F.unholyNear(B, u), { name: 'TURN THE UNHOLY', noDestroy: true }); return;
+      case 'patient': yield* F.patient(B, u); return;
+      case 'stepdisengage': yield* F.stepWind(B, u, 'disengage'); return;
+      case 'stepdash': yield* F.stepWind(B, u, 'dash'); return;
+      case 'countercharm': yield* F.countercharm(B, u); return;
       case 'doubling': yield* F.doubling(B, u); return;
       case 'holddoor': yield* F.holdDoor(B, u, F.doorFoes(B, u)); return;
       case 'showing':
@@ -584,6 +853,13 @@
         t = yield* pickOne(B, u, 'KEEPER\'S WARD', alliesWithin(B, u, 30).filter(function (w) { return !w.conds.keeperWard; }), 'Yourself, or one within 30 ft.');
         if (t) { F.keepersWard(B, u, t); yield 10; }
         return;
+      default:
+        // a metamagic, chosen for the next spell (a second press takes it back): M.cast pays it, and does it
+        if (/^meta-/.test(c.do)) {
+          var mn = c.do.slice(5), on = u.turn.meta && u.turn.meta.name === mn;
+          u.turn.meta = on ? null : { name: mn };
+          B.card(['{y}' + u.name + '{/}: ' + (on ? 'no metamagic on the next spell.' : mn.toUpperCase() + ' -- on the next spell you cast (' + F.metaCost(mn, null) + '+ sorcery points).')], 160);
+        }
     }
   };
 })();

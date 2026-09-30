@@ -155,13 +155,15 @@
       if (!ev) return;
       var slot = slotOf(e), best = null;
       try { best = ev(B, u, e, slot, fs, allies); } catch (err) { if (D.lastError == null) D.lastError = err; best = null; }
-      if (!best || !(best.score > 0)) return;
+      if (!best) return;
+      if (D.features && D.features.metaPlan) D.features.metaPlan(B, u, e, slot, best, ev, fs, allies); // (a sorcerer's metamagic on the plan, even one its friends spoil without it: js/features.js)
+      if (!(best.score > 0)) return;
       // concentration: a new one must be worth more than what the old one still holds
       if (e.g.conc && u.conc && !(e.g.free && u.conc.id === e.id)) best.score -= (u.conc.value || 6);
       // a slot is dear: a leveled spell must beat what a cantrip or a swing would do by its level's cost (a spell already paid for is free)
       if (e.level > 0 && !e.g.free) best.score -= slot * 1.2;
       if (best.score <= 0) return;
-      out.push({ kind: 'spell', id: e.id, level: e.level, score: best.score, why: e.name + (best.t && best.t.name ? ' on ' + best.t.name : ''), bonus: e.g.time === 'B', go: castGo(B, u, e, slot, best) });
+      out.push({ kind: 'spell', id: e.id, level: e.level, score: best.score, why: e.name + (best.t && best.t.name ? ' on ' + best.t.name : '') + (best.meta ? ' (' + best.meta.name + ')' : ''), bonus: e.g.time === 'B', meta: best.meta || null, go: castGo(B, u, e, slot, best) });
     });
     return out;
   }
@@ -174,7 +176,9 @@
       if (!now) return;
       var target = best.t;
       if (best.value != null) u._castValue = best.value;
+      if (best.meta && !u.turn.quicken) u.turn.meta = best.meta; // (the metamagic the plan was weighed with: js/features.js M.cast pays and applies it)
       yield* B.exec(u, { do: 'cast', id: e.id, slot: best.slot || slot, target: target });
+      u.turn.meta = null;
       if (u.conc && u.conc.id === e.id && u.conc.value == null) u.conc.value = best.keep != null ? best.keep : Math.max(4, best.score * 0.6);
     };
   }
@@ -218,6 +222,12 @@
       if (!best || sc > best.score) best = { score: sc, t: t };
     });
     return best;
+  };
+  // what one of its own caught in an area costs it: the damage that would land (or, `spared`, what a Careful Spell leaves -- a save made:
+  // half, or none), weighed heavier for one it would drop (the AI's Careful Spell asks: js/features.js F.metaPlan)
+  TX.areaFriendCost = function (u, e, slot, w, spared) {
+    var sp = e.sp, d = avg(M.dice(sp, u, slot)) + (sp.dmg2 ? avg(sp.dmg2) : 0), pf = spared ? 0 : TX.pFail(w, sp.save || 'dex', u.spellDC), x = pf * d + (1 - pf) * (sp.half ? d / 2 : 0);
+    return (w === u ? 3 : 2) * Math.min(x, w.hp) + (x >= w.hp ? 10 : 0);
   };
   // an area that deals damage (a save for half, or none): foes' worth less friends' (an evoker sculpts his own out)
   TX.areaWorth = function (B, u, e, slot, caught) {

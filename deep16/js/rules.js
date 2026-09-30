@@ -18,7 +18,22 @@
   // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
   // (by: the one laying it, where the caller knows -- Nature's Ward, the druid's 10: no elemental or fey charms or frightens it)
   RU.immuneTo = function (u, cond, by) { return !!(u && ((u.condImmune && u.condImmune.indexOf(cond) >= 0) || (u.natureWard && by && /^(elemental|fey)$/.test(by.type) && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond))
+    || (u.conds && u.conds.raging && u.subclass === 'Path of the Berserker' && u.lvl >= 6 && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) // (Mindless Rage, the Berserker's 6: js/features.js F.mindless suspends what it had)
     || (/^(charmed|hypnotized)$/.test(cond) && G.units && RU.inAura(u, 'devotion')))); }; // (Freedom of Movement: js/grimoire.js; Aura of Devotion: RU.auraOf below)
+
+  // Evasion (SRD 5.1: the rogue's 7, the monk's 7): a DEX save for half -- none on a success, half on a failure; not while incapacitated
+  // (the one test for the spells' saves, the breath weapons', the bolts': js/magic.js, js/grimoire.js, js/battle.js, js/ai.js)
+  RU.evasion = function (u) {
+    if (!u || !(u.cls === 'rogue' || u.cls === 'monk') || u.lvl < 7 || u.hp <= 0 || u.dead) return false;
+    var c = u.conds || {};
+    return !(c.paralyzed || c.asleep || c.unconscious || c.stunned || c.incapacitated);
+  };
+  // Countercharm (the bard's 6): until the end of his next turn, he and the friends within 30 ft who can hear him have advantage on saves
+  // against being frightened or charmed -- js/features.js F.countercharm lays it on the bard; he must be able to act
+  RU.countercharmed = function (u) {
+    return !!(u && G.units && G.units.some(function (b) { return b.cls === 'bard' && b.side === u.side && b.conds && b.conds.countercharm && G.standing(b) && RU.canAct(b) && (b === u || G.dist(b, u) <= 30); }));
+  };
+  var FRIGHT_CHARM = /^(frightened|feared|charmed|hypnotized)$/;
 
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {
@@ -56,17 +71,28 @@
   };
   // Aura of Protection: while the paladin stands, allies within 10 ft (and he) add his CHA to saves
   RU.aura = function (u) { return RU.inAura(u, 'protect'); };
-  RU.save = function (u, ab, dc, adv0) { // (adv0: an advantage the caller knows of -- Land's Stride against Entangle)
+  // (adv0: an advantage the caller knows of -- Land's Stride against Entangle. against: the condition the save is against -- 'frightened',
+  // 'charmed', or any other a spell lays -- for the bard's Countercharm, the Hunter's Steel Will, and the Fiend's Dark One's Own Luck (it
+  // matters). dmg: the damage that rides on it, for that luck too)
+  RU.save = function (u, ab, dc, adv0, against, dmg) {
     var c = u.conds, bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u) + (c.wardingBond ? 1 : 0) - (ab === 'dex' && c.slowed ? 2 : 0);
+    // the sorcerer's metamagic, for the spell being cast now (js/features.js M.cast: B.meta): Careful Spell -- a chosen friend of his simply
+    // succeeds; Heightened Spell -- the chosen target has disadvantage on its first save against it
+    var mt = D.battle && D.battle.meta, heightened = false;
+    if (mt && mt.ab === ab) {
+      if (mt.careful && mt.careful.left > 0 && u.side === mt.by.side && !mt.careful.done[u.id]) { mt.careful.left--; mt.careful.done[u.id] = 1; return { rolls: [0], d20: 0, bonus: bonus, total: 99, dc: dc, ok: true, aura: 0, careful: true }; }
+      if (mt.heightened && !mt.heightened.used && G.hostile(mt.by, u) && (!mt.heightened.target || mt.heightened.target === u)) { mt.heightened.used = true; heightened = true; }
+    }
     // advantage: Dodge and Haste on DEX; Beacon of Hope on WIS; a creature's own (Danger Sense, Magic Resistance: o.adv). Disadvantage: restrained on DEX
-    var adv = !!adv0 || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
+    var ccm = !!(against && FRIGHT_CHARM.test(against) && RU.countercharmed(u)), stw = !!(against && u.hunterDef === 'steelwill' && /^(frightened|feared)$/.test(against)), counter = ccm ? 1 : stw ? 2 : 0; // (Countercharm; Steel Will, the Hunter's 7)
+    var adv = !!adv0 || counter || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = heightened || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
     if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || c.incapacitated && c.laughing)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true };
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
     // Bane (-1d4), Resistance (+1d4, once)
     var bn = c.baned ? D.d(4) : 0; bonus -= bn;
     var rs = c.resistance ? D.d(4) : 0; if (rs) { bonus += rs; delete c.resistance; }
-    var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs };
+    var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs, counter: counter && adv && !dis ? counter : 0, heightened: heightened ? 1 : 0 };
     // Bardic Inspiration (js/features.js): the die on a save it would turn
     if (!res.ok && c.inspired && D.features) { var ins = D.features.inspire(u, dc - res.total); if (ins) { res.bonus += ins; res.total += ins; res.ok = res.total >= dc; res.bless = (res.bless || 0) + ins; } }
     // Indomitable (fighter 9): a failed save is rolled again, once a day -- taken at once, and said so
@@ -75,7 +101,21 @@
       var again = D.d(20);
       res.indomitable = again; res.d20 = again; res.total = again + bonus; res.ok = res.total >= dc;
     }
+    // Dark One's Own Luck (the Fiend warlock's 6; SRD 5.1): once a short rest, a d10 on the roll, after it is seen and before it is felt.
+    // Taken at once, without asking, when the save fails by 10 or less and the failure matters -- a save against a condition (`against`),
+    // or against a heavy blow (`dmg`: as much as 40% of what the creature has left, and 12 at least)
+    if (!res.ok && (against || (dmg && dmg >= Math.max(12, u.hp * 0.4)))) {
+      var lk = RU.darkLuck(u, dc - res.total);
+      if (lk) { res.luck = lk; res.bonus += lk; res.total += lk; res.ok = res.total >= dc; }
+    }
     return res;
+  };
+  // Dark One's Own Luck's die for a roll that falls short by `deficit`: 0 when it does not apply (not the Fiend's 6th, spent, or the roll is
+  // too far short for a d10 to matter); else the d10, and the use is spent (a short rest brings it back). Saves above; the breaking of a web
+  RU.darkLuck = function (u, deficit) {
+    if (!(deficit > 0 && deficit <= 10) || !u || u.subclass !== 'The Fiend' || u.lvl < 6 || !u.feats || !(u.feats.darkLuck > 0)) return 0;
+    u.feats.darkLuck = 0;
+    return D.d(10);
   };
 
   // advantage and disadvantage for an attack, each with its reason (the card shows them)
@@ -146,7 +186,9 @@
   // a save's numbers for a card: the d20, the bonus, and what's in it (the aura, Bless)
   RU.saveText = function (sv) {
     if (sv.auto) return '{o}auto-fail{/} (held or asleep)';
+    if (sv.careful) return '{c}spared{/} (Careful Spell)';
     var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.resist) bits.push('resistance +' + sv.resist);
+    if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
     return 'd20 ' + (sv.indomitable ? sv.rolls[0] + ', again ' + sv.indomitable : sv.d20) + ' ' + RU.sign(sv.bonus) + (bits.length ? ' {y}(' + bits.join(', ') + '){/}' : '') + ' = ' + sv.total;
   };
   RU.d20 = function (net) {

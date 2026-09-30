@@ -78,7 +78,9 @@
     else yield* guest(B, u);
     if (u.side === 'foe' && D.traits && D.traits.after) yield* D.traits.after(B, u); // (the gnoll's Rampage, the goblin's Nimble Escape)
     // a Slam's stun and a Moan's fright last till the end of the foe's next turn
-    B.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { var s = w.conds[c]; if (s && s.by === u.id) { if (s.fresh) s.fresh = false; else delete w.conds[c]; } }); });
+    // (not the fright of the turned -- a prayer's, a minute by the turned one's own clock, js/features.js F.setTurned. NOTE, 09-30, not touched: Fear's and
+    // the Killer's fright is swept here too when an AI caster ends its turn, so `feared` stays and `frightened` does not, and M.mustFlee is false)
+    B.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { var s = w.conds[c]; if (s && s.by === u.id && !(c === 'frightened' && w.conds.turned)) { if (s.fresh) s.fresh = false; else delete w.conds[c]; } }); });
     D.magic.endTurn(B, u);
     u.anim = 'idle';
     yield 16;
@@ -320,7 +322,7 @@
         .sort(function (a, b) { return (b.attacks || 1) * (b.lvl || 1) + b.maxhp / 20 - ((a.attacks || 1) * (a.lvl || 1) + a.maxhp / 20); })[0];
       if (ht) {
         T.action = 0; W.hold.used = true; u.anim = D.spr.anim(u.sheet, 'cast') ? 'cast' : 'attack'; u.animT = B.t; D.sfx('charm'); FX.ring(ht, 'violet', 40); FX.reach(u, ht, 'charm');
-        var sv = RU.save(ht, 'wis', W.hold.dc);
+        var sv = RU.save(ht, 'wis', W.hold.dc, false, 'paralyzed');
         B.card(['{r}' + the(B, u) + '{/} ' + (W.hold.text || 'closes a hand') + ': HOLD {y}' + ht.name + '{/}.  WIS ' + RU.saveText(sv) + ' vs DC ' + W.hold.dc + '  ' + (sv.ok ? '{n}SHRUGS IT OFF{/}' : '{p}PARALYZED{/} {g}(a WIS save at the end of each turn){/}')], 400);
         if (!sv.ok) { ht.conds.paralyzed = { save: 'wis', dc: W.hold.dc, by: u.id }; D.magic.concentrate(B, u, 'holdperson', 'Hold Person', function () { if (ht.conds.paralyzed && ht.conds.paralyzed.by === u.id) delete ht.conds.paralyzed; }); }
         yield 40; u.anim = 'idle'; return;
@@ -336,7 +338,7 @@
         var roll = D.roll(W.bolt.dice), lines = ['{r}' + the(B, u) + '{/} ' + (W.bolt.text || 'draws the dark into a line of lightning!') + '  ' + W.bolt.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + W.bolt.dc], hits = [];
         yield 12;
         B.units.filter(function (w) { return G.standing(w) && w.side !== u.side && G.inArea(w, ln.sq); }).forEach(function (w) {
-          var s2 = RU.save(w, 'dex', W.bolt.dc), ev = w.cls === 'rogue' && w.lvl >= 7;
+          var s2 = RU.save(w, 'dex', W.bolt.dc, false, null, roll.total), ev = RU.evasion(w);
           var n = s2.ok ? (ev ? 0 : Math.floor(roll.total / 2)) : (ev ? Math.floor(roll.total / 2) : roll.total);
           lines.push('  ' + w.name + ': ' + RU.saveText(s2) + ' ' + (s2.ok ? '{n}saved{/}' : '{o}failed{/}') + (ev ? ' {c}evasion{/}' : '') + '  {r}' + n + '{/}');
           hits.push([w, n]);
@@ -462,7 +464,7 @@
     var roll = D.roll(L.dice), lines = ['{r}' + the(B, u) + '{/} leaps, and comes down on them like a falling wall!  ' + L.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + L.dc], hurt = [];
     yield 24;
     hit.forEach(function (w) {
-      var sv = RU.save(w, 'dex', L.dc), ev = w.cls === 'rogue' && w.lvl >= 7, n = sv.ok ? (ev ? 0 : Math.floor(roll.total / 2)) : (ev ? Math.floor(roll.total / 2) : roll.total);
+      var sv = RU.save(w, 'dex', L.dc, false, null, roll.total), ev = RU.evasion(w), n = sv.ok ? (ev ? 0 : Math.floor(roll.total / 2)) : (ev ? Math.floor(roll.total / 2) : roll.total);
       lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed: prone{/}') + '  {r}' + n + '{/}'); hurt.push([w, n]);
       if (!sv.ok) w.conds.prone = true; // the Leap flattens those who fail
     });
@@ -541,7 +543,8 @@
       var ml = ['{r}' + the(B, u) + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
       hs.filter(function (w) { return G.dist(u, w) <= mrange; }).forEach(function (w) {
         if (mcond === 'frightened' && w.conds.heroism) { ml.push('  ' + w.name + ': {n}fearless{/} (Heroism)'); return; }
-        var sv = RU.save(w, 'wis', MO.dc);
+        if (mcond === 'frightened' && RU.immuneTo(w, 'frightened', u)) { ml.push('  ' + w.name + ': {n}fearless{/} (proof against it)'); return; } // (Mindless Rage)
+        var sv = RU.save(w, 'wis', MO.dc, false, mcond === 'frightened' ? 'frightened' : 'stunned');
         ml.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/}' : mcond === 'stunned' ? '{p}STUNNED{/} (no turn)' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
         if (!sv.ok) w.conds[mcond] = { by: u.id, fresh: true };
       });

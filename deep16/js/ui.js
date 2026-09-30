@@ -1238,6 +1238,7 @@
       if (u.cls === 'fighter') res.push('2nd wind ' + (f.secondWind ? 'yes' : 'spent') + ', surge ' + (f.actionSurge ? 'yes' : 'spent') + ', indomitable ' + (f.indomitable ? 'yes' : 'spent'));
       if (u.cls === 'paladin') res.push('lay on hands ' + (f.lay || 0));
       if (u.cls === 'rogue') res.push('sneak ' + RU.sneakDice(u) + ', cunning action, uncanny dodge, evasion');
+      if (D.features && D.features.classLine) { var fl = D.features.classLine(u); if (fl) res.push(fl); } // (the class features past those: js/features.js -- the monk's ki, the metamagic, the pact, the luck ...)
       D.text(ctx, res.join('   '), x + 42, ry + 11, R('silver', 5));
       D.text(ctx, conds(u).trim() || '{g}no conditions{/}', x + 42, ry + 21, R('accent', 2));
     });

@@ -210,7 +210,7 @@
   };
   M.concCheck = function (B, u, dmg) {
     if (!u.conc || u.hp <= 0) return;
-    var dc = Math.max(10, Math.floor(dmg / 2)), sv = RU.save(u, 'con', dc);
+    var dc = Math.max(10, Math.floor(dmg / 2)), sv = RU.save(u, 'con', dc, false, 'concentration');
     B.card(['{y}' + u.name + '{/} holds ' + u.conc.name + '? CON ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}HELD{/}' : '{o}LOST{/}')]);
     if (!sv.ok) M.endConc(B, u, 'the blow');
   };
@@ -285,7 +285,8 @@
           var ml = ['{r}' + c.name + '{/} ' + (MO.text || 'moans. The sound gets inside you.') + '  WIS DC ' + MO.dc];
           B.units.filter(function (w) { return G.hostile(c, w) && G.standing(w) && G.dist(c, w) <= (MO.range || 60); }).forEach(function (w) {
             if (w.conds.heroism) { ml.push('  ' + w.name + ': {n}fearless{/} (Heroism)'); return; }
-            var sv = RU.save(w, 'wis', MO.dc);
+            if (RU.immuneTo(w, 'frightened', c)) { ml.push('  ' + w.name + ': {n}fearless{/} (proof against it)'); return; } // (Mindless Rage)
+            var sv = RU.save(w, 'wis', MO.dc, false, 'frightened');
             ml.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}steady{/}' : '{o}FRIGHTENED{/} (disadvantage to attack)'));
             if (!sv.ok) w.conds.frightened = { by: c.id, fresh: true };
           });
@@ -307,7 +308,7 @@
       yield* area(B, u, id, sp, g, slot, t.x, t.y, head);
     } else if (g.shape === 'single') {
       if (id === 'holdmonster' || id === 'holdperson') {
-        var sv2 = RU.save(t, 'wis', dc);
+        var sv2 = RU.save(t, 'wis', dc, false, 'paralyzed');
         B.card([head + ' on the ' + B.shortName(t) + '  WIS ' + RU.saveText(sv2) + ' vs DC ' + dc + '  ' + (sv2.ok ? '{n}SAVED{/}' : '{p}HELD FAST: paralyzed{/}')]);
         FX.ring(t, 'violet', 40);
         if (!sv2.ok && RU.immuneTo(t, 'paralyzed')) B.card(['  ' + t.name + ': {g}cannot be held{/}']);
@@ -468,7 +469,7 @@
       caught.forEach(function (w) {
         if (w.webWalker) { lines.push('  ' + w.name + ': {g}walks webs: they do not hold it{/}'); return; }
         if (RU.immuneTo(w, 'restrained')) { lines.push('  ' + w.name + ': {g}cannot be held by it{/}'); return; }
-        var sv = RU.save(w, 'dex', dc);
+        var sv = RU.save(w, 'dex', dc, false, 'restrained');
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{p}restrained{/}'));
         if (!sv.ok) { w.conds.restrained = { dc: dc, by: u.id }; stuck.push(w); }
       });
@@ -491,7 +492,7 @@
       var spared = M.sculpted ? M.sculpted(u, id, sp, caught) : [];
       caught.forEach(function (w) {
         if (spared.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}sculpted out of it{/}'); return; }
-        var sv = RU.save(w, ab, dc), evade = ab === 'dex' && w.cls === 'rogue' && w.lvl >= 7;
+        var sv = RU.save(w, ab, dc, false, null, tot), evade = ab === 'dex' && RU.evasion(w); // (Evasion: the rogue's and the monk's 7, js/rules.js)
         var d = sv.ok ? (evade ? 0 : (sp.half ? Math.floor(tot / 2) : 0)) : (evade ? Math.floor(tot / 2) : tot);
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + d + '{/}');
         hits.push([w, d, sv.ok]);
@@ -580,7 +581,7 @@
     if (u.conds.poisoned && u.conds.poisoned.save && !u.conds.paralyzed) M.poisonSave(B, u);
     var p = u.conds.paralyzed;
     if (p && p.save) {
-      var sv = RU.save(u, p.save, p.dc);
+      var sv = RU.save(u, p.save, p.dc, false, 'paralyzed');
       B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' strains against the hold: ' + p.save.toUpperCase() + ' ' + RU.saveText(sv) + ' vs DC ' + p.dc + '  ' + (sv.ok ? '{n}FREE{/}' : '{g}still held{/}')]);
       if (sv.ok && p.poison) delete u.conds.poisoned; // (the chuul's, the crawler's: paralyzed while poisoned; one save ends both)
       if (sv.ok) { delete u.conds.paralyzed; var c = B.units.filter(function (w) { return w.conc && (w.conc.id === 'holdmonster' || w.conc.id === 'holdperson') && w.id === p.by; })[0]; if (c) delete c.conc; }
@@ -745,7 +746,8 @@
     var d = (dis && !adv ? Math.min(D.d(20), D.d(20)) : adv && !dis ? Math.max(D.d(20), D.d(20)) : D.d(20)) + gd;
     var tot = d + D.mod(useDex ? u.abil.dex : u.abil.str) + (u.cls === 'fighter' || (useDex && u.cls === 'rogue') ? u.prof : 0);
     u.turn.action = 0;
-    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
+    var luck = RU.darkLuck(u, r.dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
+    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + (luck ? ' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
     if (tot >= r.dc) {
       delete u.conds.restrained; u.turn.move = u.speed; u.turn.webSaved = true; // (torn free: it goes on through the web this turn)
       var by = B.units.filter(function (w) { return w.id === r.by; })[0]; if (by && by.holding) by.holding = by.holding.filter(function (w) { return w !== u; });

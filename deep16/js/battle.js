@@ -440,7 +440,7 @@
       // a summoned creature at 0 HP is gone (SRD: "it disappears when it drops to 0 hit points")
       if (s.summon && s.hp <= 0 && !s.dead) { s.dead = true; s.left = true; s.deadT = self.t; FX.sparkle(s, 'moss', 8); }
       var gone = s.dead || s.fled || s.left || s.hp <= 0, incap = gone || s.conds.paralyzed || s.conds.stunned || s.conds.asleep;
-      if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id) delete w.conds[c]; }); });
+      if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id && !(c === 'frightened' && w.conds.turned)) delete w.conds[c]; }); }); // (a prayer's turning runs its minute out, whoever fell)
       if (incap && s.conc) D.magic.endConc(self, s, gone ? 'gone' : 'incapacitated');
       if (incap && s.holding && s.holding.length) self.release(s);
       // a blinding hold (the darkmantle over the head, the cloaker's fold) ends with the grip, however the grip ended
@@ -685,7 +685,7 @@
       // leaving a hostile's reach without Disengage provokes, right before the step
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
         var prov = this.units.filter(function (w) {
-          return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.ethereal && !(w.weapon && w.weapon.ranged)
+          return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !(w.weapon && w.weapon.ranged)
             && G.dist(w, u) <= G.reachOf(w) && G.dist(w, u, null, null, nx, ny) > G.reachOf(w) && !(w.conds.hidden && false)
             && D.magic.sees(D.battle, w, u); // (a creature you can see: not into or out of darkness)
         });
@@ -711,7 +711,7 @@
       var wasIn = D.magic.webAt(this, u);
       u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: STEP_FRAMES };
       u.x = nx; u.y = ny;
-      if (o && o.spend) T.move -= cost;
+      if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } // (moved: what it has walked this turn -- the Thief's Supreme Sneak asks)
       this.keepInView(u);
       yield STEP_FRAMES;
       // into a spell's web (from outside it): the SRD's save for one who enters it during its turn; stuck, it stops there
@@ -747,6 +747,11 @@
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;
     var ac = RU.ac(tgt) + cover, e = RU.edges(att, tgt, atk);
+    // the Hunter's Defensive Tactics (ranger 7; js/classes.js u.hunterDef): Escape the Horde -- an opportunity attack against it is at
+    // disadvantage; Multiattack Defense -- once a creature has hit it, that one's later attacks this turn meet AC +4
+    if (o.oa && !o.answer && tgt.hunterDef === 'horde') { e.dis.push('escape the horde'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
+    var madAC = tgt.hunterDef === 'multiattack' && tgt.madHit && tgt.madHit[att.id] === this.round + ':' + (this.active ? this.active.id : '-') ? 4 : 0;
+    ac += madAC;
     // a Wind Wall between them (js/walls.js): an arrow, a bolt, a thrown weapon is torn upward and misses
     if (D.walls && D.walls.shellTurns(this, att, tgt, atk)) { this.card([(att.side === 'foe' ? '{r}' + shortName(att) + '{/}' : '{y}' + att.name + '{/}') + ': the blow meets the Antilife Shell and goes nowhere.']); D.sfx('bump'); yield 20; att.anim = 'idle'; return; }
     if (D.walls && D.walls.windStops(this, att, tgt, atk)) { this.card([(att.side === 'foe' ? '{r}' + shortName(att) + '{/}' : '{y}' + att.name + '{/}') + ': ' + (atk.name || 'the shot') + ' -- the wind wall tears it upward.  {g}MISS{/}']); D.sfx('miss'); yield 20; att.anim = 'idle'; return; }
@@ -794,7 +799,7 @@
       || (att.assassinate && tgt.conds.surprised) // Assassinate: any hit on one caught unaware is a critical
       || (att.subclass === 'Cutthroat' && this.round === 1 && !tgt.acted)); // Opening Cut (the game's Cutthroat): the same, in the first round
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
-    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + glass;
+    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass;
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
     // the +5 turns the blow; one run by the AI never asks)
@@ -818,6 +823,7 @@
       return;
     }
     // damage
+    if (tgt.hunterDef === 'multiattack') { (tgt.madHit = tgt.madHit || {})[att.id] = this.round + ':' + (this.active ? this.active.id : '-'); } // (Multiattack Defense: that one meets +4 AC for the rest of the turn)
     var dice = att.swarm && atk.halfHP && att.hp <= att.maxhp / 2 ? atk.halfHP : atk.dice; // a swarm at half its hit points bites for less
     var dr = RU.damage(dice, atk.mod, { crit: crit, gwf: atk.gwf }), dmg = dr.total, parts = [dice + RU.sign(atk.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(atk.mod) + ' = ' + dr.total + ' ' + atk.type];
     // Savage Attacks (the half-orc, SRD 5.1): a melee critical rolls one of the weapon's dice once more
@@ -915,7 +921,7 @@
     if (D.magic.rebuke && !tgt.dead && tgt.hp > 0 && !att.dead) yield* D.magic.rebuke(this, tgt, att);
     // riders: the drow's poisoned bolt, the spider's venom
     if (!tgt.dead && tgt.hp > 0 && atk.poison && !tgt.conds.poisoned && !RU.immuneTo(tgt, 'poisoned')) {
-      var sv = RU.save(tgt, 'con', atk.poison.dc);
+      var sv = RU.save(tgt, 'con', atk.poison.dc, false, 'poisoned');
       this.card(['{r}' + nameOf(tgt) + '{/}: CON save vs poison  ' + RU.saveText(sv) + ' vs DC ' + sv.dc + '  ' + (sv.ok ? '{n}SAVED{/}' : '{o}POISONED{/}')]);
       // (a poison that wears off, the ettercap's: a CON save at the end of each of its turns, magic.js endTurn; the drow's lasts the fight)
       if (!sv.ok) { D.sfx('poison'); tgt.conds.poisoned = atk.poison.repeat ? { save: 'con', dc: atk.poison.dc } : true; FX.sparkle(tgt, 'moss', 10); }
@@ -954,13 +960,14 @@
     }
     // the chuul's tentacles on one it holds: CON or poisoned, and paralyzed while the poison lasts (a CON save each turn)
     if (atk.paralyze && !tgt.dead && tgt.hp > 0 && !tgt.conds.paralyzed && !RU.immuneTo(tgt, 'paralyzed') && !RU.immuneTo(tgt, 'poisoned')) {
-      var ps = RU.save(tgt, 'con', atk.paralyze.dc);
+      var ps = RU.save(tgt, 'con', atk.paralyze.dc, false, 'paralyzed');
       this.card(['{r}' + nameOf(tgt) + '{/}: CON save  ' + RU.saveText(ps) + ' vs DC ' + ps.dc + '  ' + (ps.ok ? '{n}SAVED{/}' : '{p}POISONED and PARALYZED{/} {g}(a CON save at the end of each turn){/}')]);
       if (!ps.ok) { D.sfx('poison'); tgt.conds.poisoned = { paralysis: true }; tgt.conds.paralyzed = { save: 'con', dc: atk.paralyze.dc, by: att.id, poison: true }; FX.sparkle(tgt, 'moss', 12); }
       yield 30;
     }
     if (!tgt.dead && atk.save && tgt.hp > 0) {
-      var s2 = RU.save(tgt, atk.save.ab, atk.save.dc), pr = D.roll(atk.save.dice), pd = s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;
+      var pr = D.roll(atk.save.dice), s2 = RU.save(tgt, atk.save.ab, atk.save.dc, false, null, pr.total), ev2 = atk.save.half && atk.save.ab === 'dex' && RU.evasion(tgt); // (Evasion: none on a success, half on a failure -- the breath weapons too)
+      var pd = ev2 ? (s2.ok ? 0 : Math.floor(pr.total / 2)) : s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;
       this.card(['{r}' + nameOf(tgt) + '{/}: ' + atk.save.ab.toUpperCase() + ' save  ' + RU.saveText(s2) + ' vs DC ' + s2.dc + '  ' + (s2.ok ? '{n}SAVED{/} (half)' : '{o}FAILED{/}'), atk.save.dice + ' ' + RU.fmtRolls(pr.rolls) + ' = ' + pr.total + ' ' + atk.save.type + '  = {r}' + pd + '{/}']);
       if (pd) this.hurt(tgt, pd, atk.save.type);
       yield 30;
@@ -1225,7 +1232,7 @@
     var lines = ['{y}' + u.name + '{/}: FIREBALL (L' + sl + ')  ' + dice + ' ' + RU.fmtRolls(r.rolls) + ' = {o}' + r.total + '{/} fire  DEX DC ' + u.spellDC];
     var hits = [];
     caught.forEach(function (w) {
-      var sv = RU.save(w, 'dex', u.spellDC), evade = w.cls === 'rogue' && w.lvl >= 7;
+      var sv = RU.save(w, 'dex', u.spellDC, false, null, r.total), evade = RU.evasion(w);
       var d = sv.ok ? (evade ? 0 : Math.floor(r.total / 2)) : (evade ? Math.floor(r.total / 2) : r.total);
       lines.push('  ' + nameOf(w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + d + '{/}');
       hits.push([w, d]);
@@ -1272,14 +1279,16 @@
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)
     var plain = foes.filter(function (w) { var l = G.los(w, u); return l.clear && !l.cover; });
     var mirror = foes.filter(function (w) { return w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); }); // (the Mirror's eye: no hiding before it, in light)
-    var r = D.d(20), total = r + u.stealth + (u.conds.pwt ? 10 : 0), top = Math.max.apply(null, foes.map(function (w) { return w.perception; }).concat([0]));
+    // Supreme Sneak (the Thief's 9; SRD 5.1): advantage on the Stealth check if it moved no more than half its speed this turn
+    var supreme = u.subclass === 'Thief' && u.lvl >= 9 && (T.moved || 0) <= u.speed / 2, ra = D.d(20), r = supreme ? Math.max(ra, D.d(20)) : ra;
+    var total = r + u.stealth + (u.conds.pwt ? 10 : 0), top = Math.max.apply(null, foes.map(function (w) { return w.perception; }).concat([0]));
     if (mirror.length) {
       this.card(['{y}' + u.name + '{/} tries to hide, but the mirror on ' + mirror.map(shortName).join(' and ') + ' has her: {p}nothing hides in front of the Mirror\'s eye{/}.', '{g}Get behind her, or into the dark.{/}']);
     } else if (plain.length) {
       this.card(['{y}' + u.name + '{/} tries to hide, but the ' + plain.map(shortName).join(' and the ') + ' can see her plainly (no cover).', '{g}Put a stalagmite or a body between you first.{/}']);
     } else {
       var ok = total >= top && !u.conds.faerie; // (outlined in violet light: nowhere to hide)
-      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + ' ' + RU.sign(u.stealth) + ' = ' + total + ' vs passive Perception ' + top + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
+      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + ' ' + RU.sign(u.stealth) + ' = ' + total + ' vs passive Perception ' + top + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
       if (ok) u.conds.hidden = true;
     }
     yield 30;
