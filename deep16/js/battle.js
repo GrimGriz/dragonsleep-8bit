@@ -73,7 +73,9 @@
     var only = this.o.embed && this.o.embed.only, list = this.o.embed && this.o.embed.enemies;
     var foes = (list ? this.roster(F.foes || m.def.foes, list, m, party) : (F.foes || m.def.foes).filter(function (f) { return !only || only.indexOf(f.kind) >= 0; }))
       .map(function (f) { return self.makeFoe(f); });
-    if (NB && NB.foes && NB.foes.length) foes = this.seatBand(NB.foes.map(function (w, i) { return D.npc.build(w, F.level, 'foe', { id: 'f' + i + '-' + String(w).split(':')[0] }); }).filter(Boolean), m, party);
+    // (a word that names no class and no named one may name a creature of the bestiary, data/foes.js: ?npc=hyena,hyena,hyena&vs=bard&lvl=3 --
+    // the Pocket DM's monsters dropped in, 09-30, first for Hideous Laughter's hyena)
+    if (NB && NB.foes && NB.foes.length) foes = this.seatBand(NB.foes.map(function (w, i) { var fid = 'f' + i + '-' + String(w).split(':')[0]; return D.npc.build(w, F.level, 'foe', { id: fid }) || (typeof w === 'string' && D.FOES[w] ? self.makeFoe({ id: fid, kind: w }) : null); }).filter(Boolean), m, party);
     if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
     this.units = party.concat(foes);
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party

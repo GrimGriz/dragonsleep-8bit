@@ -3,7 +3,8 @@
    ?ladder&party=ours = the tester ladder (09-28h, Griz: "a tester version of the ladder with them as the party"): Talmok, Willem,
    Katarina and Torvald at each rung's level, no camp, both sides run by the class AI -- you watch (js/ladder.js).
    ?npc=cleric,wizard&lvl=5 = the class floor (&vs=fighter,rogue a band instead of the four; talmok:7 names a level; &watch: your
-   side run by the class AI too) (js/classes.js). */
+   side run by the class AI too) (js/classes.js); a creature of the bestiary by its name too (?npc=hyena,hyena,hyena&vs=bard&lvl=3,
+   09-30). ?fxgallery&foe=hyena: the gallery's three foes that creature instead. */
 'use strict';
 (function () {
   var D = window.D16, q = location.search;

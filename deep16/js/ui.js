@@ -656,6 +656,8 @@
           else { anim = 'idle'; o.lie = true; }
         } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch') { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
         if (anim === 'idle' || anim === 'walk' || anim === 'roost') t = u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
+        // a hyena helpless with laughter rolls on the floor with it, for as long as it laughs (Hideous Laughter's easter egg, 09-30: js/grimoire.js M.hyena)
+        if (!down && u.conds.laughing && has('rofl')) { anim = 'rofl'; o.once = false; t = B.t + (u.id ? u.id.length * 7 : 0); }
         if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;
         if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.2 : 0.5; // (inside the darkness: a shape, if that)

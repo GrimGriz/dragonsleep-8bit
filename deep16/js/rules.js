@@ -46,8 +46,8 @@
     if (D.battle && D.battle.doorWardOn === u) D.battle.doorWardOn = null; // (the Door-Shield's +3 lasts till its bearer's turn)
     u.acted = true; // it has had a turn (the Cutthroat's Opening Cut reads it)
     delete u.conds.displaceOff; // a Cloak of Displacement works again from the wearer's own turn
-    // up off the floor: half its speed (09-27, prone)
-    if (u.conds.prone && u.hp > 0) { delete u.conds.prone; u.turn.move = Math.floor(u.speed / 2); if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200); }
+    // up off the floor: half its speed (09-27, prone) -- not while it laughs (SRD 5.1 Hideous Laughter: "unable to stand up for the duration")
+    if (u.conds.prone && u.hp > 0 && !u.conds.laughing) { delete u.conds.prone; u.turn.move = Math.floor(u.speed / 2); if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200); }
     delete u.conds.shield;
     D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; });
     // Sacred Weapon lasts a minute: ten of his turns (and goes out if he fell)

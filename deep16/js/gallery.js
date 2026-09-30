@@ -3,7 +3,8 @@
    wild -- 09-29), a friend beside them, three foes a few squares off. Between casts everyone is made whole again and whatever the last
    spell left on the floor is swept away. Keys: left/right the spell before or after, up/down ten at a time, E (or A) cast it again, M
    the menu. &spell=<id> starts at that spell; &auto casts on down the list by itself; &only=a,b,c keeps to those; &keep skips the
-   sweep between casts (E casts the same spell again at the same creature, on whatever the last cast left -- Enlarge twice).
+   sweep between casts (E casts the same spell again at the same creature, on whatever the last cast left -- Enlarge twice); &foe=<kind>
+   puts three of a bestiary creature (data/foes.js) where the fighters stand (&foe=hyena, for Hideous Laughter's easter egg).
    A showcase, not a testground (Griz, 09-29: "please have the animation gallery show the animation and spell description only; the
    testing rooms will have to be set-up special per spell that needs testing on demand"): the card is the spell's name, its
    description (the 8-bit game's player-facing text, where it has one) and the rules line the ring shows. It rides the class floor's
@@ -39,6 +40,10 @@
     B.enter = function () {
       enter0.apply(this, arguments);
       var P = B.units.filter(function (w) { return w.side === 'party'; }), F = B.units.filter(function (w) { return w.side === 'foe'; });
+      // &foe=hyena: the three foes are that creature of the bestiary (data/foes.js) in the fighters' place -- a testing room on demand
+      // (09-30, Hideous Laughter's hyena: ?fxgallery&spell=hideouslaughter&foe=hyena)
+      var fk = get('foe');
+      if (fk && D.FOES[fk]) { F = F.map(function (w, i) { return B.makeFoe({ id: 'gf' + i + '-' + fk, kind: fk }); }); B.units = P.concat(F); }
       // the stage: the casters at the south (the friend behind them), the foes four squares north of them, bunched so an area catches two
       var cx = Math.floor(D.grid.map.w / 2), cy = Math.floor(D.grid.map.h / 2) + 3;
       var spots = { party: [[cx, cy], [cx + 1, cy], [cx - 1, cy], [cx, cy + 1]], foe: [[cx, cy - 4], [cx + 1, cy - 5], [cx - 1, cy - 5]] };

@@ -153,6 +153,30 @@
     return G;
   };
 
+  // ------------------------------------------------------------------ the level-three start (Griz 09-30, for a testing day)
+  // "everyone just hit lvl 3 and only the silverton paper delivery and collect the party missions are done".
+  // Reached with ?lvl3 on the URL: the journal's Company (all four hired) and Winters' Errands (both errands, events.js
+  // 555-588: the one renown they pay is what lets Lymen join) are done, and nothing else -- no Warrens, no Hex card, no bounties.
+  // Each hero stands at level 3's XP to the point; Vivian's archetype asks at once, as it does at rogue 3.
+  DS.lvl3 = /[?&]lvl3\b/.test(location.search || '');
+  DS.levelThree = function (G) {
+    var f = G.flags;
+    var ids = [G.lead].concat(['barley', 'aurdin', 'vivian', 'lymen'].filter(function (id) { return id !== G.lead; }));
+    G.party = ids.map(function (id) { return R.makeHero(id, 3); });
+    G.hired = ids.slice(); G.guests = [];
+    // the purse as those two jobs leave it: 12 and 20 from Winters, a potion from Brennan's job; the hires' fees out (Barley 5,
+    // Aurdin 20, Vivian's candle 1), and Barley's five back from his bout
+    var fees = { barley: 5, aurdin: 20, vivian: 1, lymen: 0 };
+    G.silver += 12 + 20 - ids.slice(1).reduce(function (s, id) { return s + fees[id]; }, 0) + (G.lead !== 'barley' ? 5 : 0);
+    G.give('potion', 1);
+    if (G.lead !== 'vivian' && DS.DATA.items.candle) G.give('candle', 1);
+    ['wintersMet', 'heardWinters', 'wErrA', 'wSealed', 'wValued', 'wErrADone', 'wErrB', 'wSigned', 'wPaid', 'wErrBDone'].forEach(function (k) { f[k] = 1; });
+    G.renown = 1;
+    G.map = 'silverton'; G.x = 29; G.y = 8; G.dir = 'down';
+    G.time = 6 * 3600 * 60;
+    return G;
+  };
+
   // ------------------------------------------------------------------ Lead select
   function LeadSelect() { this.kind = 'lead'; this.opaque = true; this.i = 0; this.ids = ['barley', 'aurdin', 'vivian', 'lymen']; }
   LeadSelect.prototype.update = function () {
@@ -164,18 +188,20 @@
       DS.audio.sfx('confirm');
       var id = this.ids[this.i], d = DS.DATA.heroes[id];
       DS.run(function* () {
-        var ok = yield DS.ask(DS.round6 ? 'Round six, led by ' + d.name + '? The other three are already with you.' : 'Begin as ' + d.name + '? The other three can be found in play, and hired.', ['BEGIN', 'BACK']);
+        var ok = yield DS.ask(DS.round6 ? 'Round six, led by ' + d.name + '? The other three are already with you.' : DS.lvl3 ? 'Level three, led by ' + d.name + '? The other three are already with you.' : 'Begin as ' + d.name + '? The other three can be found in play, and hired.', ['BEGIN', 'BACK']);
         if (ok !== 0) return;
         DS.newGame(id); DS.bindState(DS.G);
         if (DS.round6) DS.roundSix(DS.G);
+        else if (DS.lvl3) DS.levelThree(DS.G);
         yield DS.fade(1, 30);
         DS.clearScenes();
         var F = DS.field = new DS.Field();
         DS.push(F);
-        var st = DS.round6 ? { map: DS.G.map, x: DS.G.x, y: DS.G.y, dir: DS.G.dir } : DS.DATA.config.start;
+        var st = DS.round6 || DS.lvl3 ? { map: DS.G.map, x: DS.G.x, y: DS.G.y, dir: DS.G.dir } : DS.DATA.config.start;
         F.load(st.map, st.x, st.y, st.dir);
         yield DS.fade(0, 30);
         if (DS.round6) { yield DS.say('ROUND SIX. All four of you at level 4, every quest done but the Halfway Inn and the lake. Fountain Street, and the road south is waiting.'); return; }
+        if (DS.lvl3) { yield DS.say('LEVEL THREE. All four of you just made level 3. Winters\' errands are run and the four of you have found each other; nothing else is done yet. Fountain Street.'); return; }
         yield* DS.EV.intro(id);
       });
     }

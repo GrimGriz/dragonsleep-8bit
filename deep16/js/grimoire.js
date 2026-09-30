@@ -83,6 +83,8 @@
     if (c.hasted) { T.move *= 2; T.hasteAction = 1; } // Haste: double speed, one more action (one attack, Dash, Disengage, Hide, an object)
     if (c.lethargic) { T.move = 0; T.action = 0; T.bonus = 0; delete c.lethargic; B.card(['{g}' + Nm(B, u) + ' is dragged down by the haste\'s end: no move, no action.{/}'], 240); }
     if (c.retreat) T.bonusDash = true;
+    // a hyena still laughing (the easter egg, 09-30): another fit of it as its turn comes round
+    if (c.laughing && M.hyena && M.hyena(u) && u.hp > 0) { D.sfx('cackle2'); B.card(['{p}' + Nm(B, u) + ' rolls in the dirt, cackling.{/}'], 200); }
     // Spirit Guardians: a foe that starts its turn in the ring saves (once a turn, the first time: starting or entering)
     guardians(B, u, 'starts');
     // Command: the word it heard, obeyed now
@@ -391,14 +393,18 @@
       return best;
     }
   };
+  // the hyena's easter egg (RULED 09-30, Griz: "despite the SRD, for this easer egg have the spell function on them - and them playing
+  // the animation"): a hyena is no longer too simple to find it funny (INT 2); laughing, it rolls on the floor (its sheet's rofl row,
+  // js/ui.js unitObj), cackles when the spell lands, and cackles again at the start of each turn it spends laughing (js/audio.js)
+  M.hyena = function (w) { return /^hyena_/.test(w.sheet || ''); };
   E.hideouslaughter = {
     summary: function () { return 'a foe within 30 ft · WIS · prone and helpless with laughter; a save each turn, and when hurt (concentration)'; },
     cast: function* (B, u, t, slot, head, x) {
       var dc = x.dc, hit = [];
-      yield* saveAll(B, u, [t], 'wis', dc, null, '', false, head + ' at ' + nm(B, t), { skip: function (w) { return w.abil && w.abil.int <= 4 ? 'too simple to find it funny' : ''; }, failText: 'helpless with laughter', cond: function (w) { w.conds.laughing = { dc: dc, by: u.id, spell: 'hideouslaughter', single: true }; w.conds.incapacitated = { by: u.id }; w.conds.prone = true; hit.push(w); } });
+      yield* saveAll(B, u, [t], 'wis', dc, null, '', false, head + ' at ' + nm(B, t), { skip: function (w) { return w.abil && w.abil.int <= 4 && !M.hyena(w) ? 'too simple to find it funny' : ''; }, failText: 'helpless with laughter', cond: function (w) { w.conds.laughing = { dc: dc, by: u.id, spell: 'hideouslaughter', single: true }; w.conds.incapacitated = { by: u.id }; w.conds.prone = true; hit.push(w); if (M.hyena(w)) D.sfx('cackle'); } });
       if (hit.length) M.concentrate(B, u, 'hideouslaughter', 'Hideous Laughter', function () { hit.forEach(function (w) { if (w.conds.laughing && w.conds.laughing.by === u.id) { delete w.conds.laughing; delete w.conds.incapacitated; } }); });
     },
-    ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (!M.targetOK(B, u, e.g, t) || t.conds.laughing || (t.abil && t.abil.int <= 4)) return; var pf = TX().pFail(t, 'wis', u.spellDC), sc = pf * (TX().dpr(t) * 1.8 + 4); if (!best || sc > best.score) best = { score: sc, t: t, keep: sc * 0.7 }; }); return best; }
+    ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (!M.targetOK(B, u, e.g, t) || t.conds.laughing || (t.abil && t.abil.int <= 4 && !M.hyena(t))) return; var pf = TX().pFail(t, 'wis', u.spellDC), sc = pf * (TX().dpr(t) * 1.8 + 4); if (!best || sc > best.score) best = { score: sc, t: t, keep: sc * 0.7 }; }); return best; }
   };
   // Hunter's Mark and Mirror's Gaze: a mark held by concentration; when the marked one drops, a bonus action moves it (no slot)
   function markSpell(id, name, o) {

@@ -379,8 +379,21 @@
     // the frog familiar's warning (RULED 09-30, Griz: "EXCELLENT call on the frog. will need audible."): a two-note croak, rib-bit
     croak: function (t) { tone(sfxBus, 'pulse', 43, t, 0.09, 0.22, 0.125, -5); noise(sfxBus, t, 0.05, 0.12, 600, 0.6); tone(sfxBus, 'pulse', 50, t + 0.15, 0.13, 0.22, 0.125, -9); noise(sfxBus, t + 0.15, 0.06, 0.12, 700, 0.6); },
     // chitin: a hooked claw snapping shut (the landlord's picture of the clackers, deep16/js/wet.js W.SOUND -- 09-30e)
-    clack: function (t) { noise(sfxBus, t, 0.03, 0.55, 3400, 5); noise(sfxBus, t + 0.012, 0.05, 0.3, 1500, 3); tone(sfxBus, 'pulse', 83, t, 0.018, 0.08, 0.125, -14); }
+    clack: function (t) { noise(sfxBus, t, 0.03, 0.55, 3400, 5); noise(sfxBus, t + 0.012, 0.05, 0.3, 1500, 3); tone(sfxBus, 'pulse', 83, t, 0.018, 0.08, 0.125, -14); },
+    // the hyena laughing (Hideous Laughter's easter egg, 09-30, Griz: "approximate a hyena laughter sound effect for when it lands and a
+    // slight different one for when it starts its turn under the effects"): a spotted hyena's giggle is a run of short nasal
+    // hee-hee-hees, each a quick rise and fall, with breath between. When it lands: eleven of them, quick and climbing, a little
+    // ragged in the time. At the start of a turn it spends laughing: seven, slower and running down, out of breath, and a whoop at the end
+    cackle: function (t) { [76, 79, 77, 81, 79, 83, 81, 84, 82, 86, 84].forEach(function (m, i) { hee(t + i * 0.082 + (i % 3 === 2 ? 0.018 : 0), m, 0.062, 0.13, 0.06); }); },
+    cackle2: function (t) { [81, 79, 80, 77, 78, 75, 74].forEach(function (m, i) { hee(t + i * 0.1 + (i % 2 ? 0.012 : 0), m, 0.07, 0.11, 0.11); }); tone(sfxBus, 'pulse', 70, t + 0.74, 0.26, 0.11, 0.25, 11); noise(sfxBus, t + 0.74, 0.2, 0.06, 1800, 1.2); }
   };
+  // one hee of a hyena's giggle: up and over (a nasal pulse), an octave's body under it, and a breath
+  function hee(t, m, d, vol, breath) {
+    tone(sfxBus, 'pulse', m, t, d * 0.55, vol, 0.25, 4);
+    tone(sfxBus, 'pulse', m + 4, t + d * 0.55, d * 0.45, vol * 0.8, 0.25, -7);
+    tone(sfxBus, 'triangle', m - 12, t, d * 0.8, vol * 0.6, null, 3);
+    noise(sfxBus, t + d * 0.3, d * 0.9, breath, 2400, 1.3);
+  }
   AU.sfx = function (id) {
     if (!AU.ctx || AU.ctx.state !== 'running' || !SFX[id]) return;
     try { SFX[id](now()); } catch (e) { }

@@ -23,6 +23,12 @@ drawn larger), set by the front and back stills' mean height, so they stand the 
 window (the row's own top and bottom), so a paw that lifts stays lifted and a row keeps the ground it was drawn on; each is
 placed on its torso, so the head, tail and lunge swing without moving the body. A component pass inside each row's band drops
 the frame numbers and the row labels by their size.
+The ROFL row (09-30): deep16/_src/hyena_grok_2.webp (Griz, 2026-09-30, generated; a second sheet whose rows run idle, walk
+north/south, run, bite, laugh, "ROFL (hideous laughter spell reaction)", hurt, death). Only its ROFL row is used, as `rofl`:
+its figures 2-7 ("except frame one, where they gave it 2 heads"), played there and back (2..7..3) so it rolls on the floor
+rather than jumping from its last pose to its first. They are cut at that sheet's own scale, set by its idle row's height
+the way the first sheet's is, so the rolling hyena is the standing one's size. The six sideways facings take it as the side
+rows do (mirrored for the west), S and N as hurt does. The grid plays it while a hyena laughs (deep16/js/ui.js unitObj).
 """
 import os, sys, json
 import numpy as np
@@ -48,10 +54,17 @@ BANDS = {'front': ((335, 45, 418, 173), 1), 'back': ((588, 45, 662, 173), 1),
          'attack': ((118, 456, 1135, 523), 8), 'hurt': ((118, 618, 1135, 680), 6),
          'death': ((118, 690, 1135, 752), 8)}
 
+# the second sheet (09-30): its idle row (6, for the scale) and its ROFL row (7 figures; the first, two-headed, is dropped)
+A2 = np.asarray(Image.open(os.path.join(SRC, 'hyena_grok_2.webp')).convert('RGB')).astype(np.int32)
+_v, _c = np.unique(A2.reshape(-1, 3) // 4, axis=0, return_counts=True)
+BG2 = _v[np.argmax(_c)] * 4 + 2
+BANDS2 = {'idle': ((205, 185, 1135, 263), 6), 'rofl': ((205, 579, 1135, 646), 7)}
+ROFL_LOOP = [1, 2, 3, 4, 5, 6, 5, 4, 3, 2]                             # the figures (0 is the two-headed one), there and back
 
-def frames_in(name):
+
+def frames_in(name, bands=None, A=A, BG=BG):
     """the n figures in a row's band, left to right: (cut RGBA array over the row's common window, torso-ready, the figure's own height)."""
-    (x0, y0, x1, y1), n = BANDS[name]
+    (x0, y0, x1, y1), n = (bands or BANDS)[name]
     c = A[y0:y1, x0:x1]
     m0 = np.abs(c - BG).sum(-1) > 45                                       # the figure's pixels
     m = np.pad(m0, 6)
@@ -147,27 +160,33 @@ def build():
     fa, ba = fit(rows['front'][0]['img'], stills), fit(rows['back'][0]['img'], stills)
     fS, fN = place(fa, torso_x(fa), 'front'), place(ba, torso_x(ba), 'back')
     idle_l, walk_l, atk_l, hurt_l, flinch_l = mirror(idle_r), mirror(walk_r), mirror(atk_r), mirror(hurt_r), mirror(flinch_r)
+    rows2 = {k: frames_in(k, BANDS2, A2, BG2) for k in BANDS2}
+    stand2 = np.mean([d['h'] for d in rows2['idle']]) / STAND
+    print('  second sheet: side scale %.3f (idle %.1f px of source)' % (stand2, stand2 * STAND))
+    cuts = [place(a, torso_x(a), 'rofl%d' % i) for i, a in enumerate(fit(d['img'], stand2) for d in rows2['rofl'])]
+    rofl_r = [cuts[i] for i in ROFL_LOOP]
+    rofl_l = mirror(rofl_r)
     shift = lambda fr, dx, dy: np.roll(np.roll(fr, dx, axis=1), dy, axis=0)
     dip = [0, 0, 1, 2, 3, 2, 1, 0]
 
-    frames = {'idle': [], 'walk': [], 'attack': [], 'hurt': [], 'flinch': []}
+    frames = {'idle': [], 'walk': [], 'attack': [], 'hurt': [], 'flinch': [], 'rofl': []}
     for f in range(8):                                   # facings S, SW, W, NW, N, NE, E, SE
         if f == 0:
             frames['idle'].append([fS] * 4 + [breathe(fS)] * 4)
             frames['walk'].append([shift(fS, 0, -(i % 2)) for i in range(8)])
             frames['attack'].append([shift(fS, 0, d) for d in dip])
-            frames['hurt'].append(hurt_r); frames['flinch'].append(flinch_r)
+            frames['hurt'].append(hurt_r); frames['flinch'].append(flinch_r); frames['rofl'].append(rofl_r)
         elif f == 4:
             frames['idle'].append([fN] * 4 + [breathe(fN)] * 4)
             frames['walk'].append([shift(fN, 0, -(i % 2)) for i in range(8)])
             frames['attack'].append([shift(fN, 0, -d) for d in dip])
-            frames['hurt'].append(hurt_l); frames['flinch'].append(flinch_l)
+            frames['hurt'].append(hurt_l); frames['flinch'].append(flinch_l); frames['rofl'].append(rofl_l)
         elif f in (5, 6, 7):
             frames['idle'].append(idle_r); frames['walk'].append(walk_r); frames['attack'].append(atk_r)
-            frames['hurt'].append(hurt_r); frames['flinch'].append(flinch_r)
+            frames['hurt'].append(hurt_r); frames['flinch'].append(flinch_r); frames['rofl'].append(rofl_r)
         else:
             frames['idle'].append(idle_l); frames['walk'].append(walk_l); frames['attack'].append(atk_l)
-            frames['hurt'].append(hurt_l); frames['flinch'].append(flinch_l)
+            frames['hurt'].append(hurt_l); frames['flinch'].append(flinch_l); frames['rofl'].append(rofl_l)
     for t in CLIPPED:
         print('  CLIPPED', t)
     return frames
@@ -177,9 +196,9 @@ def write(frames):
     pix.write_sheet(NAME, frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0] + frames['idle'][6], AY))
     meta_p = os.path.join(ROOT, 'deep16', 'art', NAME + '.json')
     meta = json.load(open(meta_p))
-    for k, v in {'idle': 5, 'walk': 10, 'attack': 12, 'hurt': 8, 'flinch': 12}.items():
+    for k, v in {'idle': 5, 'walk': 10, 'attack': 12, 'hurt': 8, 'flinch': 12, 'rofl': 8}.items():
         meta['anims'][k]['fps'] = v
-    meta['source'] = 'generated by Griz (2026-09-29, one sheet), cut and snapped by tools/hyena-sheet.py'
+    meta['source'] = 'generated by Griz (2026-09-29, one sheet; the rofl row from his second, 2026-09-30), cut and snapped by tools/hyena-sheet.py'
     json.dump(meta, open(meta_p, 'w'), indent=1)
 
 
