@@ -69,7 +69,7 @@
   "rope": { "name": "Hemp Rope", "kind": "tool", "price": 10, "desc": "Fifty feet. For hauling things out of water you don't want to enter.", "src": "the-lab/pit-maps/shops-silverton.json pin 15 (hemp rope, 50 ft 1 gp)" },
   "candle": { "name": "Candle", "kind": "tool", "price": 1, "desc": "One of Vivian's. It smells of the east side.", "src": "wiki/vivian.md (she sells candles to 'everyone')" },
 
-  "bucket": { "name": "Carrion Bucket", "kind": "key", "price": 0, "noSell": true, "desc": "The deep station's bucket. Something below is used to it.", "src": "WarrensModule/crawler-warrens-DM.md §2 (the bucket station)" },
+  "bucket": { "name": "Carrion Bucket", "kind": "key", "price": 0, "noSell": true, "use": { "effect": "bucket", "target": "self", "battle": true }, "desc": "The deep station's bucket. Something below is used to it. In a fight, USE it beside the deep water under the fall, or on the landlord.", "src": "WarrensModule/crawler-warrens-DM.md §2 (the bucket station)" },
   "fivetokens": { "name": "The Five's Gear", "kind": "key", "price": 0, "noSell": true, "desc": "Gear and leavings off five drowned men. Proof for a book.", "src": "wiki/the-warrens.md (Pete's five, drowned in the stair)" },
   "cloakertail": { "name": "Cloaker's Tail", "kind": "key", "price": 0, "noSell": true, "desc": "Proof for Hessle's scales.", "src": "GalleriesModule/guano-galleries-DM.md §8 (bring the tail to Hessle's board)" },
   "ettercapfangs": { "name": "Ettercap Fangs", "kind": "key", "price": 0, "noSell": true, "desc": "Proof for the Weigh-House board.", "src": "wiki/web-gulch.md (the bounty); proof-token invented.json#bounty-proof" },

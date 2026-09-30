@@ -1913,7 +1913,12 @@
    "kind": "key",
    "price": 0,
    "noSell": true,
-   "desc": "The deep station's bucket. Something below is used to it.",
+   "use": {
+    "effect": "bucket",
+    "target": "self",
+    "battle": true
+   },
+   "desc": "The deep station's bucket. Something below is used to it. In a fight, USE it beside the deep water under the fall, or on the landlord.",
    "src": "WarrensModule/crawler-warrens-DM.md §2 (the bucket station)",
    "id": "bucket"
   },
@@ -22786,19 +22791,19 @@
      ],
      "on": "step",
      "script": "jelly",
-     "once": true
+     "cond": "!flag:jellyDead"
     },
     {
      "id": "ooze",
      "rect": [
-      12,
-      16,
-      1,
-      1
+      11,
+      15,
+      3,
+      3
      ],
      "on": "step",
      "script": "oozeFight",
-     "once": true
+     "cond": "!flag:oozeDead"
     },
     {
      "id": "mark",

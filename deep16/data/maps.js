@@ -897,3 +897,43 @@ window.D16.MAPS.bog = {
   foes: [],
   wave: null
 };
+
+// The wet (the 8-bit game's warrens_d, rows 0-18: the cave, 1:1 -- a map square is a grid square, so a trigger in the 8-bit is the
+// same square here). THE SETTLING (RULED 09-30, Griz: "make a grid identical to the Wet map that covers the landlord and the 3 pools").
+// D the landlord's deep water under the fall and ~ the three settling pools: deep water here (`deepWater`), as in the 8-bit -- nothing
+// walks in it; what lives in it (the landlord, bound to D; the jelly, a swimmer) moves there. = the plank bridges; y the cradles, the
+// crawler pens (timber cribs: the herd comes out of them); the stair up at (1, 12-13) and the openings on the south edge are the ways
+// out. The bucket lies at (13, 5), where the 8-bit's crate is (deep16/js/wet.js)
+// The landlord keeps to the south of its water, against the rim where the 8-bit game.s picture squares are (7-10, 8): a body can stand beside it there
+window.D16.MAPS.wet = {
+  name: 'The Wet',
+  sub: 'the Warrens, the settling pools',
+  dark: true, // (the 8-bit map's `dark`: no lamp of its own)
+  step: 10,
+  deepWater: 'D~',
+  rows: [
+    '########~###################################',
+    '########~###################################',
+    '########~######........#.#..################',
+    '#####DDDDD.#.................#.#############',
+    '####DDDDDDDD.....................###########',
+    '####DDDDDDDD......................#.########',
+    '####DDDDDDDD...y...................y.#######',
+    '##...DDDDD====~~..................~~.#######',
+    '##..........~=~~~................~~~~.#####~',
+    '#...........~~~~~~..........~~...=~~~~~~~~~~',
+    '#.............~~..==~~~~~..~~~~~==~~....####',
+    '#.................~=~~~~~.~=~~~........#####',
+    '#.................~~~~~~~~==~~~........#####',
+    '#..................~~~~~~.............######',
+    '#...................................########',
+    '##.................................#########',
+    '###.....................y...........########',
+    '#####..........................##.....######',
+    '##########.#.................#.###.....#####'
+  ],
+  entry: [[2, 12], [2, 13], [3, 12], [3, 13], [2, 11]],
+  doors: [[1, 12], [1, 13]],
+  foes: [],
+  wave: null
+};

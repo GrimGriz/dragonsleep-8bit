@@ -782,13 +782,15 @@
       return;
     }
     if (a === 1) {
-      // fought in DEEP16 (story-fights-2; deep16/data/fights.js landlord, js/embed.js)
-      var res = yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, introText: L('w.landlordRises'), deep16: 'landlord' });
-      if (res === 'win') g.flags.otyughDead = 1;
+      // fought in DEEP16: THE SETTLING (RULED 09-30), the wet as one grid, the lead on his own square, the landlord awake
+      // (deep16/js/wet.js); what died there comes back as the flags (otyughDead, jellyDead, oozeDead: js/embed.js)
+      yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, introText: L('w.landlordRises'), deep16: 'wet', wake: 'landlord', at: [g.x, g.y] });
     }
   };
-  S.jelly = function* () { yield DS.say(L('w.jelly')); yield* EV.fight(['ochrejelly'], { bg: 'wet' }); };
-  S.oozeFight = function* () { yield DS.say(L('w.ooze')); yield* EV.fight(['grayooze'], { bg: 'wet' }); };
+  // the Settling (RULED 09-30): the jelly's and the ooze's squares put the lead on the wet's grid on the same square, that one awake
+  // and the rest asleep till theirs are stepped on; their triggers come back till they are dead (mapgen.py: !flag:jellyDead / oozeDead)
+  S.jelly = function* () { var g = G(); yield DS.say(L('w.jelly')); yield* EV.fight(['ochrejelly'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'jelly', at: [g.x, g.y] }); };
+  S.oozeFight = function* () { var g = G(); yield DS.say(L('w.ooze')); yield* EV.fight(['grayooze'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'ooze', at: [g.x, g.y] }); };
   S.mark = function* () {
     var g = G();
     // once the stair is drained, fought or flooded again, the mark is only a mark (re-cut F1: it still offered to wake the keeper)

@@ -28,14 +28,15 @@
   };
   G.hostile = function (a, b) { return a.side !== b.side; };
   G.gzAt = function (u, x, y) { var z = 0; G.foot(u, x, y).forEach(function (p) { z = Math.max(z, G.map.gz(p[0], p[1])); }); return z; };
-  function walkable(x, y) { var s = G.map.at(x, y); return !!(s && s.walk); }
+  // (deep water -- a map's `deepWater`, the Settling's pools, 09-30: only what lives there, bound to it or a swimmer, and a flier over it)
+  function walkable(x, y, u) { var s = G.map.at(x, y); return !!(s && (s.walk || (s.deep && u && (u.flies || u.swims || (u.bound && u.bound.indexOf(s.ch) >= 0))))); }
   // Earth Glide (the xorn, the earth elemental; js/traits.js): through the rock ('#', the stalagmites), never a built wall, and it stands only
   // on open ground (pass: a square it may go through)
   function glides(u, x, y) { var s = G.map.at(x, y); return !!(u && u.earthGlide && s && (s.ch === '#' || s.ch === 'P') && x > 0 && y > 0 && x < G.map.w - 1 && y < G.map.h - 1); }
   function footWalkable(u, x, y, pass) {
     var f = G.foot(u, x, y), lo = 1e9, hi = -1e9;
     for (var i = 0; i < f.length; i++) {
-      if (!walkable(f[i][0], f[i][1]) && !(pass && glides(u, f[i][0], f[i][1]))) return false;
+      if (!walkable(f[i][0], f[i][1], u) && !(pass && glides(u, f[i][0], f[i][1]))) return false;
       var z = G.map.gz(f[i][0], f[i][1]); lo = Math.min(lo, z); hi = Math.max(hi, z);
     }
     return hi - lo <= G.map.def.step; // a Large body can straddle one step, not the ledge
@@ -76,7 +77,7 @@
     if (u.bound) { for (var j = 0; j < f.length; j++) if (u.bound.indexOf(G.map.at(f[j][0], f[j][1]).ch) < 0) return Infinity; }
     var extra = G.extraAt ? G.extraAt(u, x1, y1) : 0; // (Wall of Thorns, Plant Growth: 4 ft of movement a foot -- 20 more a square; js/walls.js)
     if (u.conds && u.conds.freeMove) return 5 + extra; // (Freedom of Movement: no ground slows it; the thorns are the wall's, not the ground's)
-    for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if ((s.difficult && !(u.bound && u.bound.indexOf(s.ch) >= 0) && !(u.swims && s.ch === '~') && !u.landsStride) || (!u.webWalker && D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.icy && D.magic.icy(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.rough && D.magic.rough(D.battle, f[i][0], f[i][1], u))) return 10 + extra; } // (a web, the ice of a Sleet Storm, a spell's ground: grease, vines, spikes, the guardians' ring)
+    for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if ((s.difficult && !(u.bound && u.bound.indexOf(s.ch) >= 0) && !(u.swims && (s.ch === '~' || s.deep)) && !u.landsStride) || (!u.webWalker && D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.icy && D.magic.icy(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.rough && D.magic.rough(D.battle, f[i][0], f[i][1], u))) return 10 + extra; } // (a web, the ice of a Sleet Storm, a spell's ground: grease, vines, spikes, the guardians' ring)
     return 5 + extra;
   };
   var N8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];

@@ -33,7 +33,8 @@
     // the wizard's familiar, if the save has one and he is here (Find Familiar: js/familiar.js)
     var famData = this.o.familiar ? { flags: { familiar: this.o.familiar } } : NB ? null : this.from.data; // (the camp's pick for our four: o.familiar)
     var fam = D.familiar && famData && D.familiar.unit(this, famData, party); if (fam) party.push(fam);
-    var entry = (F.entry || m.def.entry).slice();
+    // (the Settling, 09-30: the 8-bit trigger that fired puts the lead on its own square -- embed.at -- and the rest beside him)
+    var entry = (this.o.embed && this.o.embed.at ? [this.o.embed.at] : (F.entry || m.def.entry)).slice();
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
     // the party came in by), and a map's named doors (`doors`: the inn's); a map closed all round keeps the way in
     // riders (a fight's scenery figures: the wagon's glamoured children, the team in its traces): drawn where they stand,
@@ -1172,7 +1173,7 @@
 
   // ------------------------------------------------------------------ items: the save's own (a potion, a kit, an antitoxin, an oil flask)
   // fortify (09-28g): Marta's bat-wing pie, eaten in a fight -- +2 CON (+1 to CON saves) and +5 HP till it ends (the 8-bit battle's)
-  var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1, light: 1, fortify: 1 };
+  var ITEM_OK = { heal: 1, revive: 1, antitoxin: 1, cure: 1, damage: 1, light: 1, fortify: 1, bucket: 1 }; // (bucket: the landlord's, js/wet.js)
   // a torch is lit as a bonus action by the Thief (Fast Hands), or by anyone if the seat's default is flipped (js/light.js LIGHT_COST)
   function torchFast(u) { return u.subclass === 'Thief' || D.light.LIGHT_COST === 'B'; }
   Battle.prototype.itemList = function (u) {

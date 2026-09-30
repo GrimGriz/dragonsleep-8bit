@@ -33,7 +33,8 @@
             // (the light as the grid left it, not as the field had it: a lantern or the Ledger-Lamp put out or set down on the grid is in the pack, and the
             // 8-bit battle's own ending must not light a phantom torch for the one who walked in holding it -- 09-30)
             o.torch = DS.G.flags.torchBy || null; delete o.torchKind;
-            var b = new DS.Battle(o);
+            // (the Settling, 09-30: the wet's grid holds more than the 8-bit scene sent -- the ending counts what it killed there)
+            var b = new DS.Battle(d.enemies8 && d.enemies8.length ? Object.assign({}, o, { enemies: d.enemies8 }) : o);
             // the 8-bit foes as DEEP16 left them: on a win all down (one who got away gives no XP), else as they stood. Each
             // DEEP16 foe knows its place in the 8-bit list (i8); a fight built without the list is matched by kind
             var back = (d.foes || []).slice();
@@ -85,6 +86,7 @@
       var dark = o.dark != null ? !!o.dark : (DS.EV.darkHere ? DS.EV.darkHere() : false);
       if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
         canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null, enemies: o.enemies || null,
+        at: o.at || null, wake: o.wake || null, // (the Settling: the lead's square, the trigger that fired -- deep16/js/wet.js)
         surprised: o.surprised || null, revealed: !!o.revealed || seer, yieldText: o.yieldText || null,
         dark: dark, torch: o.torch || g.flags.torchBy || null, torchKind: g.flags.torchKind || 'torch' } }, '*');
       if (m.type === 'd16:done' || m.type === 'd16:refuse') {
@@ -111,6 +113,7 @@
       if (!h) return;
       h.conds = h.conds || {};
       // Aid cast in the fight: the 8-bit game's own Aid, lifted at the next long rest (EV.longRest)
+      if (r.drained) h.maxhp = Math.max(1, h.maxhp - r.drained); // (the Settling: the crawlers fed on him while he was down -- max HP, for good, 09-30b; the grid's maxhp is already the less)
       if (r.maxhp > h.maxhp) { h.conds.aid = (h.conds.aid || 0) + r.maxhp - h.maxhp; h.maxhp = r.maxhp; }
       h.hp = Math.max(0, Math.min(h.maxhp, r.hp)); h.ko = h.hp <= 0;
       if (r.slots && h.slots) h.slots = h.slots.map(function (n, i) { return r.slots[i] == null ? n : Math.min(n, r.slots[i]); });

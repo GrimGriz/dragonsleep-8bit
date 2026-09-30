@@ -31,6 +31,21 @@
       intro: 'It rises from its pool, all eye-stalk and tentacle. It will not leave the water.',
       from: 'the 8-bit game: the Warrens, FIGHT IT instead of the bucket (events.js; the otyugh)', won: 'THE POOL GOES STILL.',
       foes: [{ id: 'otyugh', kind: 'otyugh', at: [8, 4] }], wave: null },
+    // THE SETTLING (RULED 09-30; deep16/js/wet.js): the wet as one grid -- the landlord, the three pools, the ooze and the jelly,
+    // and the herd. The 8-bit trigger that fired first puts the lead on its own square (embed.at) and wakes its creature
+    // (embed.wake); the rest sleep till their squares are stepped on (`triggers`), and the landlord till it is hurt or someone
+    // stands beside it more than three rounds. One down, and the crawlers come out of the pens (`pens`). One of the party off
+    // the edge takes them all back up to the 8-bit map (oneLeavesAll). What is dead stays dead (the flags, through the seam)
+    { id: 'wet', story: true, level: 4, map: 'wet', name: 'The Wet', sub: 'the Warrens, the settling pools', music: 'boss', settling: true, oneLeavesAll: true,
+      intro: 'Black water under the fall, and the pools settling in the dark. Something in the herd lifts its head.',
+      from: 'the 8-bit game: the Warrens, the wet (events.js S.jelly, S.oozeFight, S.landlord; js/wet.js)', won: 'THE WET GOES QUIET.', lost: 'THE HERD TAKES THEM.',
+      foes: [{ id: 'otyugh', kind: 'otyugh', at: [8, 6], wet: 'landlord' }, { id: 'jelly', kind: 'ochrejelly', at: [22, 12], wet: 'jelly' },
+             { id: 'ooze', kind: 'grayooze', at: [12, 16], wet: 'ooze' }],
+      // the squares that wake a sleeper, the 8-bit's own (mapgen.py warrens_d): the jelly's three, the ooze's with one more square of
+      // sensitivity all round (Griz, 09-30: "give the second puddle trigger an extra square of sensitivity"), the picture's four
+      triggers: { jelly: [[22, 14], [23, 14], [24, 14]], ooze: [[11, 15], [12, 15], [13, 15], [11, 16], [12, 16], [13, 16], [11, 17], [12, 17], [13, 17]],
+        picture: [[7, 8], [8, 8], [9, 8], [10, 8]] },
+      bucket: [13, 5], pens: [[15, 6], [35, 6], [24, 16]], wave: null },
     // the expansion's (deep.js). The 8-bit game sizes them for its guests (EV.guestWeight: Pyro is worth two); the ladder
     // is the four, so each is sized hard for four by the DMG table (and says what the 8-bit game's list was)
     { id: 'cutseal', level: 5, map: 'camp', name: 'The Cut Seal', sub: 'the king\'s road, leg one', music: 'boss',

@@ -44,23 +44,25 @@
   iso.noise = { vnoise: vnoise, fbm: fbm, dith: dith, rampPick: rampPick, h2: h2 };
 
   // ------------------------------------------------------------------ the map
-  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1, ',': 1, 'g': 1, 'T': 1, 'W': 1, 'V': 1, 'k': 1, 'f': 1, 'w': 1 };
+  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1, ',': 1, 'g': 1, 'T': 1, 'W': 1, 'V': 1, 'k': 1, 'f': 1, 'w': 1, 'D': 1, 'y': 1 };
+  // (the Settling, 09-30: D deep water, the landlord's under the fall; y a cradle, the crawler pens' timber crib. A map's `deepWater`
+  // names the water nothing walks in -- grid.js lets only what lives there (bound to it, or a swimmer) in)
   // set design (09-27, Griz: "proceed with set design"): the things a square can hold that stand in the way -- not walked
   // through, half cover, like a stalagmite (grid.js names them in the cover's reason). b is a built wall: rock to the rules.
   //   ,  a road (packed dirt, rutted)   g  grass   T  a tree   W  a wagon under its cover (squares side by side make one)
   //   V  a wagon's open bed (lower; a fight's `riders` stand in it)
   //   k  a woodpile or crates   f  a rail or fence (posts and bars)   w  a well   b  a building's wall
-  var STANDS = { P: 'a stalagmite', T: 'a tree', W: 'the wagon', V: 'the wagon', k: 'the woodpile', f: 'the rail', w: 'the well' };
+  var STANDS = { P: 'a stalagmite', T: 'a tree', W: 'the wagon', V: 'the wagon', k: 'the woodpile', f: 'the rail', w: 'the well', y: 'the cradle' };
   iso.load = function (def) {
     var m = { def: def, w: def.rows[0].length, h: def.rows.length, sq: [] };
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var ch = def.rows[y][x];
       m.sq.push({
         x: x, y: y, ch: ch, open: !!OPEN[ch],
-        walk: !!OPEN[ch] && ch !== 'c' && !STANDS[ch],
-        difficult: ch === 'r' || ch === '~',
+        walk: !!OPEN[ch] && ch !== 'c' && !STANDS[ch] && (def.deepWater || '').indexOf(ch) < 0, // (deep water: grid.js walkable lets its own in)
+        difficult: ch === 'r' || ch === '~', deep: (def.deepWater || '').indexOf(ch) >= 0,
         gz: ch === 'L' ? def.step * 2 : ch === '/' ? def.step : 0,
-        pillar: !!STANDS[ch], stands: STANDS[ch] || null, cocoon: ch === 'c', tree: ch === 'T', block: 'WVkfw'.indexOf(ch) >= 0 ? ch : null
+        pillar: !!STANDS[ch], stands: STANDS[ch] || null, cocoon: ch === 'c', tree: ch === 'T', block: 'WVkfwy'.indexOf(ch) >= 0 ? ch : null
       });
     }
     m.at = function (x, y) { return (x < 0 || y < 0 || x >= m.w || y >= m.h) ? null : m.sq[y * m.w + x]; };
@@ -135,8 +137,8 @@
             var fx = gx + 0.5 - Math.floor(gx + 0.5), fy = gy + 0.5 - Math.floor(gy + 0.5);
             var seam = fx < 0.04 || fy < 0.04 || (fx > 0.49 && fx < 0.53 && (Math.floor(gy + 0.5) % 2));
             col = seam ? silver[1] : rampPick(silver, 0.25 + n * 0.35, ix, iy);
-          } else if (s.ch === '~') {                              // the still pool: black water, the cave's colour in it, a rare glint
-            var edge = Math.min(nearOpen(m, gx, gy, '~'), 1);
+          } else if (s.ch === '~' || s.ch === 'D') {                              // the still pool: black water, the cave's colour in it, a rare glint
+            var edge = Math.min(nearOpen(m, gx, gy, s.ch), 1); // (D, the deep water, drawn as the pool is)
             var sheen = vnoise(gx * 2 + 0.3, gy * 5, seed + 9), glint = h2(Math.floor(gx * 11), Math.floor(gy * 22), seed + 8) > 0.992;
             col = edge < 0.1 ? stone[2] : edge < 0.2 ? stone[1] : glint ? silver[5] : sheen > 0.8 ? violet[2] : rampPick(blue, n * 0.22 + (1 - Math.min(1, edge * 2)) * 0.12, ix, iy);
           } else {
@@ -227,7 +229,8 @@
   // ------------------------------------------------------------------ the blocks: a box on the square, its faces toward +gx and +gy only where
   // the same block doesn't carry on (so a wagon two squares wide by four long is one box), lit as the rock is
   var BLOCK = { W: { h: 24, side: 'leather', top: 'silver', planks: true, wheels: true }, V: { h: 12, side: 'leather', top: 'leather', planks: true, wheels: true, bed: true }, k: { h: 14, side: 'leather', top: 'leather', planks: true, logs: true },
-    f: { h: 11, side: 'leather', top: 'leather', rail: true }, w: { h: 11, side: 'stone', top: 'stone', well: true } };
+    f: { h: 11, side: 'leather', top: 'leather', rail: true }, w: { h: 11, side: 'stone', top: 'stone', well: true },
+    y: { h: 13, side: 'leather', top: 'leather', rail: true } }; // (a cradle: a timber crib, slats and a bar -- the rail's drawing, taller)
   function blockCanvas(m, s) {
     var b = BLOCK[s.ch], hgt = b.h, W = TW, H = TH + hgt + 2, ox = HW, oy = hgt + HH;
     var same = function (x, y) { var n = m.at(x, y); return !!(n && n.ch === s.ch); };

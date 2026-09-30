@@ -718,8 +718,10 @@ def build_warrens():
     g.trig('bucket', 13, 5, 'bucket', on='use')
     g.trig('landlord', 4, 2, 'landlord', on='use', w=9, h=7)
     g.trig('landlordStep', 7, 8, 'landlordNear', on='step', w=4, h=1)
-    g.trig('jelly', 22, 14, 'jelly', on='step', w=3, h=1, once=True)
-    g.trig('ooze', 12, 16, 'oozeFight', on='step', once=True)
+    # the Settling (RULED 09-30, Griz: "reset the trigger tiles for the oozes if they haven't been killed"; the ooze's with "an extra
+    # square of sensitivity" all round): each comes back till its creature is dead (the grid writes the flag: deep16/js/wet.js)
+    g.trig('jelly', 22, 14, 'jelly', on='step', w=3, h=1, cond='!flag:jellyDead')
+    g.trig('ooze', 11, 15, 'oozeFight', on='step', w=3, h=3, cond='!flag:oozeDead')
     g.trig('mark', 22, 19, 'mark', on='use')
     g.trig('stair', 19, 20, 'stair', on='use', w=1, h=4, cond='!flag:stairHook | flag:keeperWater')
     g.put(19, 20, 'n'); g.put(19, 21, 'n'); g.put(19, 22, 'n'); g.put(19, 23, 'n')

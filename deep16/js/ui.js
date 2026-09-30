@@ -571,6 +571,7 @@
   // and then that mp3, then a close up of the cloaker showing it hit, then big close up cloaker face"): one figure blown up over
   // a vignette, a caption under it; `hit` flashes it and lands three darts up its body; `face` frames its head
   function scene(ctx, B, sc) {
+    if (sc.draw) { sc.draw(ctx, sc.t || 0, D.W, D.H); if ((sc.t || 0) > 60 && ((sc.t >> 5) & 1)) D.hint(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5)); return; } // (a picture drawn by its own hand: the landlord's, js/wet.js)
     var t = sc.t || 0, u = sc.who, k = sc.scale || 3, red = sc.tone === 'red', top = D.spr.top(u.sheet);
     ctx.fillStyle = red ? 'rgba(34,4,8,0.94)' : 'rgba(5,5,12,0.94)'; ctx.fillRect(0, 0, D.W, D.H);
     var g = ctx.createRadialGradient(D.W / 2, D.H / 2 - 10, 10, D.W / 2, D.H / 2 - 10, 210);
@@ -638,6 +639,7 @@
         : u.perch === 'head' ? { x: mp.x + Math.round(11 * Math.cos(ba)), y: mp.y - Math.round(mt * 0.92) + Math.round(3 * Math.sin(ba * 2)), depth: mp.depth + (Math.sin(ba) > 0 ? 0.02 : -0.02), gz: mp.gz }
         : { x: mp.x + (fore ? 9 : -9), y: mp.y + 3, depth: mp.depth + 0.03, gz: mp.gz }; }
     if (u.left) return null; // out of the fight, the way they came in
+    if (u.unseen) return null; // (asleep under the water or in its puddle: the Settling's, js/wet.js)
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
     var obj = {
       depth: p.depth, gz: p.gz, layer: 1, unit: u, draw: function (ctx) {

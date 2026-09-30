@@ -1184,6 +1184,7 @@
       if (!t) { if (use.target === 'revive') yield* this.say('No one is down.', 30); return false; }
     } else t = u;
     if (use.effect === 'heal' && t.h && t.h.hp >= t.h.maxhp) { yield* this.say(nameOf(t) + ' is unhurt.', 30); return false; }
+    if (use.effect === 'bucket') { yield* this.say('Nothing here takes it. It is for the deep water under the fall.', 40); return false; } // (the landlord's: the wet is fought on the grid, deep16/js/wet.js)
     DS.G.take(id, 1);
     if (use.effect === 'heal') {
       var n = this.heal(t, DS.roll(use.dice));
