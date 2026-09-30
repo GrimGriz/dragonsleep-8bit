@@ -37,7 +37,7 @@
     // stands beside it more than three rounds. One down, and the crawlers come out of the pens (`pens`). One of the party off
     // the edge takes them all back up to the 8-bit map (oneLeavesAll). What is dead stays dead (the flags, through the seam)
     { id: 'wet', story: true, level: 4, map: 'wet', name: 'The Wet', sub: 'the Warrens, the settling pools', music: 'boss', settling: true, oneLeavesAll: true,
-      intro: 'Black water under the fall, and the pools settling in the dark. Something in the herd lifts its head.',
+      intro: 'Black water under the fall; the pools settling in the dark.',
       from: 'the 8-bit game: the Warrens, the wet (events.js S.jelly, S.oozeFight, S.landlord; js/wet.js)', won: 'THE WET GOES QUIET.', lost: 'THE HERD TAKES THEM.',
       foes: [{ id: 'otyugh', kind: 'otyugh', at: [8, 6], wet: 'landlord' }, { id: 'jelly', kind: 'ochrejelly', at: [22, 12], wet: 'jelly' },
              { id: 'ooze', kind: 'grayooze', at: [12, 16], wet: 'ooze' }],
