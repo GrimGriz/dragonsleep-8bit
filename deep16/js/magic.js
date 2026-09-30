@@ -83,7 +83,7 @@
       case 'splash': return 'a foe within ' + g.range + ' ft (and one beside it) · DEX · ' + d + ' acid';
       case 'cone': return g.len + '-ft cone · ' + save + ' · ' + d + ' ' + sp.el;
       case 'line': return g.len + '-ft line · ' + save + ' · ' + d + ' ' + sp.el;
-      case 'sphere': if (e.id === 'daylight') return '60-ft sphere of daylight within 60 ft: bright 60, dim 60 more · burns away a Darkness it touches' + roostNote(B);
+      case 'sphere': if (e.id === 'daylight') return '60-ft sphere of daylight within 60 ft: bright 60, dim 60 more · burns away a Darkness it touches' + roostNote(D.battle);
         if (e.id === 'dancinglights') return (g.move ? 'move the four lights (a bonus action)' : 'four hovering lights, dim 10 ft each, at a point within 120 ft') + conc + ' · dim: lawful under a roost';
         if (e.id === 'fogcloud') return '20-ft sphere of fog within 120 ft: nothing sees in, out or across it' + conc;
         if (e.id === 'stinkingcloud') return '20-ft sphere within 90 ft: fog, and CON or lose the action each turn inside' + conc;
@@ -96,8 +96,8 @@
       case 'self': return ({ seeinvisibility: 'you see the invisible for the fight', mislead: 'invisible (till you attack or cast), and a false double' + conc, passwithouttrace: '+10 Stealth to all of yours within 30 ft' + conc }[e.id]) || '+1d4 radiant on weapon hits' + conc;
       case 'teleport': return '30 ft, to a square you can see';
       case 'touch': return 'touch · ' + ({ curewounds: (1 + Math.max(0, e.slot - 1)) + 'd8' + RU.sign(M.mod(u)) + ' healing', mageArmor: 'no armour: AC 13 + DEX', greaterinvisibility: 'invisible' + conc, stoneskin: 'half from blades, bolts, bites' + conc, heroism: 'fearless, temp HP each turn' + conc, lesserrestoration: 'ends poison, paralysis, blindness',
-        light: 'a light on you or an ally beside you: bright 20 ft, dim 20 more, for the fight' + roostNote(B), darkvision: 'sees in the dark to 60 ft', invisibility: 'unseen till they attack or cast' + conc,
-        continualflame: 'a heatless flame on them: bright 20 ft, dim 20 more, and it never goes out' + roostNote(B), trueseeing: 'truesight 120 ft: the dark, the invisible, the fog' }[e.id] || '');
+        light: 'a light on you or an ally beside you: bright 20 ft, dim 20 more, for the fight' + roostNote(D.battle), darkvision: 'sees in the dark to 60 ft', invisibility: 'unseen till they attack or cast' + conc,
+        continualflame: 'a heatless flame on them: bright 20 ft, dim 20 more, and it never goes out' + roostNote(D.battle), trueseeing: 'truesight 120 ft: the dark, the invisible, the fog' }[e.id] || '');
     }
     return g.why || '';
   };
