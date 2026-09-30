@@ -15055,6 +15055,11 @@
    "src": "torchdark 09-28 (Griz: 'lest lyman drop shield')",
    "id": "g.torchNoHand"
   },
+  "g.lightReady": {
+   "t": "{name} lights the {item} and carries it, ready for the dark.",
+   "src": "invented: connective (RULED 09-30c: a light lit where it is not yet dark, carried into the next fight)",
+   "id": "g.lightReady"
+  },
   "g.torchNoNeed": {
    "t": "It is light enough here to see by. Save the torch.",
    "src": "invented: connective",

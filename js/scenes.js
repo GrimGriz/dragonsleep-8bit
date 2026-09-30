@@ -230,10 +230,12 @@
   // ------------------------------------------------------------------ Field menu
   // o.battle: opened from a fight's commands with X/ESC (RULED 09-30c, Griz: "I thought it always opened this menu and that's how we
   // changed equip in 8-bit fights ... I couldn't turn sound off or exit the game during a fight"). The fight has its own ITEM, MAGIC and
-  // SKILL, and ORDER and SAVE wait till it is over; EQUIP, STATUS, JOURNAL, OPTIONS and QUIT are as ever (equipping costs nothing)
+  // SKILL, and ORDER and SAVE wait till it is over; STATUS, JOURNAL, OPTIONS and QUIT are as ever. EQUIP is the one whose turn it is:
+  // his weapon and shield, while he has not spent his action; armour and ring wait till the fight is over (RULED 09-30c, Griz: "weapon
+  // and shield should be changable if the character hasn't spent an action - greyed if he has")
   function FieldMenu(o) {
     var self = this;
-    this.kind = 'fieldmenu'; this.battle = (o && o.battle) || null;
+    this.kind = 'fieldmenu'; this.battle = (o && o.battle) || null; this.hero = (o && o.hero) || null; this.acted = !!(o && o.acted);
     var canSave = DS.field && DS.field.map && DS.field.map.src.save !== false, fight = !!this.battle;
     this.menu = new DS.Menu({
       items: [
@@ -320,7 +322,10 @@
       if (!s) return;
       yield* DS.EV.fieldSkill(s.h, s.s);
     }
-    if (what === 'equip') { var he = G.party.length === 1 ? G.party[0] : yield pickHero('EQUIP WHOM?'); if (he) yield* equipHero(he); }
+    if (what === 'equip') {
+      if (this.battle && this.hero) { yield* equipHero(this.hero, { fight: true, acted: this.acted }); return; }
+      var he = G.party.length === 1 ? G.party[0] : yield pickHero('EQUIP WHOM?'); if (he) yield* equipHero(he);
+    }
     if (what === 'status') { var hs = G.party.length === 1 ? G.party[0] : yield pickHero('WHOSE STATUS?'); if (hs) yield W8.scene(new StatusScene(hs)); }
     if (what === 'order') {
       var a = yield pickHero('MOVE WHOM?'); if (!a) return;
@@ -355,18 +360,23 @@
     var ln = DS.wrap(sp.desc || '', 236);
     for (var i = 0; i < Math.min(3, ln.length); i++) DS.text(ctx, ln[i], 10, 203 + i * 10, '#E0C8A0');
   }
-  function* equipHero(h) {
-    var G = DS.G;
+  function* equipHero(h, o) {
+    var G = DS.G, fight = !!(o && o.fight), acted = !!(o && o.acted);
     while (true) {
       var slots = [['weapon', 'WEAPON'], ['armor', 'ARMOR'], ['shield', 'SHIELD'], ['ring', 'RING']];
-      var items = slots.map(function (s) { var it = R.item(h.equip[s[0]]); return { label: s[1], right: it ? it.name : '—', value: s[0] }; });
+      // (in a fight: weapon and shield only, and only before his action is spent; a light in his hand -- a torch, a lantern, the lamp --
+      // leaves one hand: no shield, and no two-handed weapon. RULED 09-30c, Griz: "if lantern/torch shield and two-hand weapons grayed on
+      // in-fight equip change" -- the field's equip holds to it too, or the field could hand a fight three hands' worth)
+      var lit = !!h.equip.torch;
+      var items = slots.map(function (s) { var it = R.item(h.equip[s[0]]); return { label: s[1], right: it ? it.name : (s[0] === 'shield' && lit ? 'a light in hand' : '—'), value: s[0], disabled: (fight && (acted || s[0] === 'armor' || s[0] === 'ring')) || (s[0] === 'shield' && lit && !h.equip.shield) }; });
       var slot = yield DS.choose({
         items: items, x: 20, y: 30, w: 216, title: h.name + '   AC ' + R.ac(h) + '   ATK ' + DS.sgn(R.attackBonus(h)) + ' ' + dmgText(h),
-        drawExtra: function (ctx) { DS.win(ctx, 20, 100, 216, 30); DS.text(ctx, 'Proficient: ' + R.CLASSES[h.cls].armor.join(', ') + (R.CLASSES[h.cls].armor.length ? '' : 'no armor'), 28, 108, '#9C9C9C'); DS.text(ctx, 'Weapons: ' + R.CLASSES[h.cls].weapons.join(', '), 28, 119, '#9C9C9C'); }
+        drawExtra: function (ctx) { DS.win(ctx, 20, 100, 216, fight ? 41 : 30); DS.text(ctx, 'Proficient: ' + R.CLASSES[h.cls].armor.join(', ') + (R.CLASSES[h.cls].armor.length ? '' : 'no armor'), 28, 108, '#9C9C9C'); DS.text(ctx, 'Weapons: ' + R.CLASSES[h.cls].weapons.join(', '), 28, 119, '#9C9C9C');
+          if (fight) DS.text(ctx, acted ? 'Action spent: no changes now.' : 'In a fight: weapon, shield, before acting.', 28, 130, '#F8D878'); }
       });
       if (!slot) return;
       var cands = G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && it.kind === slot && R.canEquip(h, it); })
-        .map(function (s) { var it = DS.DATA.items[s.id]; return { label: it.name, right: compare(h, slot, it), value: s.id }; });
+        .map(function (s) { var it = DS.DATA.items[s.id], two = !!(it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0); return { label: it.name, right: two && lit ? 'both hands' : compare(h, slot, it), value: s.id, disabled: two && lit }; });
       if (h.equip[slot]) cands.unshift({ label: '(remove)', value: '__none' });
       if (!cands.length) { yield DS.say('Nothing in the pack ' + h.name + ' can use there.'); continue; }
       var pick = yield DS.choose({ items: cands, x: 30, y: 60, w: 196, visible: 8, title: 'EQUIP ' + slot.toUpperCase(), drawExtra: descBox });

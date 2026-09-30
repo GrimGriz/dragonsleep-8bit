@@ -739,6 +739,7 @@
   "deep.luciaAtCost": {"t": "Antitoxin at cost, for you. Mama says.", "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §10-8"},
   "g.torchLit": {"t": "{name} strikes a light and carries the torch. Twenty feet of the dark gives way.", "src": "SRD 5.1 (Torch); torchdark 09-28"},
   "g.torchNoHand": {"t": "No free hand for a torch: {why}.", "src": "torchdark 09-28 (Griz: 'lest lyman drop shield')"},
+  "g.lightReady": {"t": "{name} lights the {item} and carries it, ready for the dark.", "src": "invented: connective (RULED 09-30c: a light lit where it is not yet dark, carried into the next fight)"},
   "g.torchNoNeed": {"t": "It is light enough here to see by. Save the torch.", "src": "invented: connective"},
   "g.torchAlready": {"t": "{name} carries a light already. One is enough.", "src": "invented: connective"},
   "g.lanternLit": {"t": "{name} lights the hooded lantern and carries it. Thirty feet of the dark gives way.", "src": "SRD 5.1 (Hooded Lantern); the lantern 09-29"},

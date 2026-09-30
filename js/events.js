@@ -296,11 +296,13 @@
       yield W8.scene(new DS.BookScene('BOOK ONE', L('kat.book')));
     } else if (use.effect === 'light') { // a torch, or a hooded lantern (09-29), carried on a dark map (torchdark 09-28): a free hand; it burns till a rest or another map
       var lantern = R.hooded(id), lamp = lantern && id !== 'lantern'; // (the Ledger-Lamp, 09-30, is a hooded light of its own: 40 ft, never spent -- torchKind 'ledgerlamp')
-      if (!EV.darkHere()) { yield DS.say(L(lamp ? 'g.lampNoNeed' : lantern ? 'g.lanternNoNeed' : 'g.torchNoNeed')); return; }
+      // (lit anywhere now, with a free hand, to walk into the next fight holding it -- RULED 09-30c, Griz: "need to be able to use lantern/torch
+      // on char with available hand before a fight (currently scolds me to save the torch/oil)"; it still goes out at a rest or leaving the map)
+      var dark = EV.darkHere();
       if (g.flags.torchBy) { var tb = g.party.filter(function (x) { return x.id === g.flags.torchBy; })[0]; yield DS.say(L('g.torchAlready', { name: tb ? tb.name : 'Someone' })); return; }
       if (!R.freeHands(h)) { yield DS.say(L('g.torchNoHand', { why: R.handsWhy(h) })); return; }
       g.take(id, 1); g.flags.torchBy = h.id; g.flags.torchKind = lantern ? id : 'torch'; h.equip.torch = 1; DS.audio.sfx('fire');
-      yield DS.say(L(lamp ? 'g.lampLit' : lantern ? 'g.lanternLit' : 'g.torchLit', { name: h.name }));
+      yield DS.say(dark ? L(lamp ? 'g.lampLit' : lantern ? 'g.lanternLit' : 'g.torchLit', { name: h.name }) : L('g.lightReady', { name: h.name, item: DS.DATA.items[id].name.toLowerCase().replace(/^hooded /, '') }));
     }
   };
   // the field torch goes out: at a rest, or leaving the map (the hour is up; nothing is said)
