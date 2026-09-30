@@ -902,16 +902,14 @@ window.D16.MAPS.bog = {
 // same square here). THE SETTLING (RULED 09-30, Griz: "make a grid identical to the Wet map that covers the landlord and the 3 pools").
 // D the landlord's deep water under the fall and ~ the three settling pools: deep water here (`deepWater`), as in the 8-bit -- nothing
 // walks in it; what lives in it (the landlord, bound to D; the jelly, a swimmer) moves there. = the plank bridges; y the cradles, the
-// crawler pens (timber cribs: the herd comes out of them); the stair up at (1, 12-13) and the openings on the south edge are the ways
-// out. The bucket lies at (13, 5), where the 8-bit's crate is (deep16/js/wet.js)
-// The landlord keeps to the south of its water, against the rim where the 8-bit game.s picture squares are (7-10, 8): a body can stand beside it there
-window.D16.MAPS.wet = {
-  name: 'The Wet',
-  sub: 'the Warrens, the settling pools',
-  dark: true, // (the 8-bit map's `dark`: no lamp of its own)
-  step: 10,
-  deepWater: 'D~',
-  rows: [
+// crawler pens (timber cribs: the herd comes out of them); the stair up at the 8-bit's (1, 12-13) and the openings on the south edge
+// are the ways out. The bucket lies at the 8-bit's (13, 5), where its crate is (deep16/js/wet.js).
+// TURNED a quarter counter-clockwise on the screen (RULED 09-30b, Griz: "can you rotate the grid counter-clockwise"): the rows below
+// are the 8-bit map's own, north up; the grid is them turned, so the 8-bit's north lies to the upper left. The 8-bit square (x, y) is
+// the grid's (y, 43 - x); `from8` turns an 8-bit square (and a body `s` squares across) into the grid's -- the fight's triggers, pens,
+// bucket and foes are written in the 8-bit's squares and turned by it (deep16/js/wet.js), and so is the lead's square from the seam
+(function () {
+  var R8 = [
     '########~###################################',
     '########~###################################',
     '########~######........#.#..################',
@@ -931,9 +929,21 @@ window.D16.MAPS.wet = {
     '###.....................y...........########',
     '#####..........................##.....######',
     '##########.#.................#.###.....#####'
-  ],
-  entry: [[2, 12], [2, 13], [3, 12], [3, 13], [2, 11]],
-  doors: [[1, 12], [1, 13]],
-  foes: [],
-  wave: null
-};
+  ];
+  var W8 = R8[0].length, rows = [];
+  for (var gy = 0; gy < W8; gy++) { var r = ''; for (var gx = 0; gx < R8.length; gx++) r += R8[gx][W8 - 1 - gy]; rows.push(r); }
+  var from8 = function (x, y, s) { return [y, W8 - (x + (s || 1))]; };
+  var at8 = function (list) { return list.map(function (p) { return from8(p[0], p[1]); }); };
+  window.D16.MAPS.wet = {
+    name: 'The Wet',
+    sub: 'the Warrens, the settling pools',
+    dark: true, // (the 8-bit map's `dark`: no lamp of its own)
+    step: 10,
+    deepWater: 'D~',
+    rows8: R8, rows: rows, from8: from8,
+    entry: at8([[2, 12], [2, 13], [3, 12], [3, 13], [2, 11]]),
+    doors: at8([[1, 12], [1, 13]]),
+    foes: [],
+    wave: null
+  };
+})();

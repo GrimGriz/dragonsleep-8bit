@@ -34,12 +34,14 @@
     // THE SETTLING (RULED 09-30; deep16/js/wet.js): the wet as one grid -- the landlord, the three pools, the ooze and the jelly,
     // and the herd. The 8-bit trigger that fired first puts the lead on its own square (embed.at) and wakes its creature
     // (embed.wake); the rest sleep till their squares are stepped on (`triggers`), and the landlord till it is hurt or someone
-    // stands beside it more than three rounds. One down, and the crawlers come out of the pens (`pens`). One of the party off
-    // the edge takes them all back up to the 8-bit map (oneLeavesAll). What is dead stays dead (the flags, through the seam)
+    // stands at the edge of its water more than three rounds (RULED 09-30b: "the 3 rounds just the edge of his water"). One down,
+    // and the crawlers come out of the pens (`pens`). One of the party off the edge takes them all back up to the 8-bit map
+    // (oneLeavesAll). What is dead stays dead (the flags, through the seam). Every square here is the 8-bit map's: the grid is
+    // turned (data/maps.js wet from8), and deep16/js/wet.js turns these with it
     { id: 'wet', story: true, level: 4, map: 'wet', name: 'The Wet', sub: 'the Warrens, the settling pools', music: 'boss', settling: true, oneLeavesAll: true,
       intro: 'Black water under the fall; the pools settling in the dark.',
       from: 'the 8-bit game: the Warrens, the wet (events.js S.jelly, S.oozeFight, S.landlord; js/wet.js)', won: 'THE WET GOES QUIET.', lost: 'THE HERD TAKES THEM.',
-      foes: [{ id: 'otyugh', kind: 'otyugh', at: [8, 6], wet: 'landlord' }, { id: 'jelly', kind: 'ochrejelly', at: [22, 12], wet: 'jelly' },
+      foes: [{ id: 'otyugh', kind: 'otyugh', at: [7, 3], wet: 'landlord' }, { id: 'jelly', kind: 'ochrejelly', at: [22, 12], wet: 'jelly' },
              { id: 'ooze', kind: 'grayooze', at: [12, 16], wet: 'ooze' }],
       // the squares that wake a sleeper, the 8-bit's own (mapgen.py warrens_d): the jelly's three, the ooze's with one more square of
       // sensitivity all round (Griz, 09-30: "give the second puddle trigger an extra square of sensitivity"), the picture's four

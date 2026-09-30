@@ -488,9 +488,9 @@
   EV.hasGuest = function (key) { return (G().guests || []).some(function (x) { return x.id === key; }); };
   // every road fight is built for the four AND the guests walking with them (re-cut §3: "Pyro alone is worth two heroes;
   // a fight with Pyro, the captain and troopers must be built for a party of seven or it is a walk")
-  // (Pyro 1, not 2, since his measure (09-30b, js/pyro.js): he holds back to one swing a turn till it goes bad, so the road is built for
-  // the four and a wall beside them -- the seat's call, one number to flip)
-  var GUEST_WEIGHT = { pyro: 1, halldor: 1, brann: 1, hedda: 1, ingrith: 0.5, trooper: 0.5 };
+  // (Pyro 1.5, not 2, since his measure (09-30b, js/pyro.js): he holds back to one swing a turn till it goes bad -- RULED 09-30b, Griz:
+  // "do 1.5, he'll likely tank a lot in that plate")
+  var GUEST_WEIGHT = { pyro: 1.5, halldor: 1, brann: 1, hedda: 1, ingrith: 0.5, trooper: 0.5 };
   EV.guestWeight = function () {
     return (G().guests || []).reduce(function (s, x) { if (x.h.ko) return s; var w = GUEST_WEIGHT[x.h.id] || 0.5; return s + (x.h.wounded ? w / 2 : w); }, 0);
   };

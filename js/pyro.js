@@ -5,10 +5,12 @@
    Every fight he walks in, both games:
    phase 1 -- one swing of the plain mace, and that is his turn;
    phase 2 -- he is at half his HP or one of the party is down: the Mace of Disruption drawn, two swings a turn, his word, and the
-     party loses half its XP (each hero's XP halved; the level stays -- the seat's reading of "half XP", flagged for his word);
-   phase 3 -- one of the party has left the fight (here, the party's RUN; on the grid, a hero out the way they came in): the white
-     mace to his main hand, full level 12 to the end, then the save is loaded (the FOUND WANTING screen);
-   down -- the fight ends there, and the save is loaded (THE KING FALLS).
+     fight's XP is halved at its end (RULED 09-30b, Griz: "end of fight rewards /2 if pyro gets the disruptor out" -- "that fight's xp");
+   phase 3 -- one of the party has left a GRID fight (a hero out the way they came in: deep16/js/pyro.js): the white mace to his main
+     hand, full level 12 to the end, then the save is loaded (the FOUND WANTING screen). The 8-bit's RUN is no such thing (RULED
+     09-30b: "only the grid fights, no harm/foul on strategic withdrawals from random encounters");
+   down -- the fight ends there, and the save is loaded (his words: "the dwarf king fell in battle... well, obviously that didn't
+     happen. (click to load)").
    A fight fought on the grid comes back with the grid's measure (js/embed.js DS.pyroBack): its XP and its end are taken here.
    Wraps the 8-bit Battle (file order is call order: this loads after battle.js and scenes.js). */
 'use strict';
@@ -19,9 +21,6 @@
   function ko(u) { return !u || (u.h ? (u.h.ko || u.h.hp <= 0) : u.dead); }
   function king(B) { return (B.heroes || []).filter(function (u) { return u.guest && u.h && u.h.script === 'measure'; })[0] || null; }
   function measure(B) { return B.pyro8 || (B.pyro8 = { phase: 1 }); }
-  // "loses half XP": each of the party's XP halved, the level kept (R.gainXP banks from there; at the cap nothing is banked anyway)
-  function halfXp() { (DS.G.party || []).forEach(function (h) { h.xp = Math.floor((h.xp || 0) / 2); }); }
-  S8.halfXp = halfXp;
 
   // after every turn: has it gone bad?
   function* watch(B) {
@@ -34,7 +33,7 @@
       yield* B.say('Pyronimus: "' + tx(down ? 'pyro.m2Down' : 'pyro.m2Hurt') + '"', 70);
       B.burst(u, '#F8F8F8', 14, 1.2, 'rise');
       yield* B.say(tx('pyro.m2Draw'), 50);
-      halfXp(); DS.audio.sfx('error');
+      B.xpHalf = true; DS.audio.sfx('error'); // (the fight's XP, halved at its end: js/battle.js finish)
       yield* B.say(tx('pyro.m2Xp'), 60);
     }
   }
@@ -44,18 +43,7 @@
   var checkEnd0 = BP.checkEnd;
   BP.checkEnd = function () { var k = king(this); if (!this.over && k && ko(k)) { this.over = 'pyro'; return; } return checkEnd0.apply(this, arguments); };
 
-  // the party runs: that is leaving the fight -- he stays, finishes it, and the save is loaded
-  var run0 = BP.tryRun;
-  BP.tryRun = function* (u) {
-    yield* run0.apply(this, arguments);
-    var k = king(this);
-    if (this.over === 'run' && k && !ko(k)) {
-      measure(this).phase = 3; DS.audio.sfx('encounter');
-      yield* this.say('Pyronimus: "' + tx('pyro.m3') + '"', 70);
-      yield* this.say(tx('pyro.m3Flip'), 50);
-      this.over = 'pyroRun';
-    }
-  };
+  // (the party's RUN from an 8-bit fight: he goes with them, no harm, no foul -- RULED 09-30b)
 
   // ------------------------------------------------------------------ his turn
   S8.measure = function* (u) {
@@ -90,7 +78,6 @@
     if (this.fromDeep) DS.pyroBack = null;
     if (back && back.held) { if (back.down) why = 'down'; else if (back.phase >= 3) why = 'wanting'; }
     if (this.over === 'pyro') why = 'down';
-    if (this.over === 'pyroRun') why = 'wanting';
     if (why) {
       DS.audio.play('gameover');
       yield W8.frames(40);
@@ -99,7 +86,7 @@
       DS.push(new PyroFail(why));
       return;
     }
-    if (back && back.held && back.phase === 2) { halfXp(); DS.audio.sfx('error'); yield* this.say(tx('pyro.m2Xp'), 60); }
+    if (back && back.held && back.phase === 2) this.xpHalf = true; // (the grid said he drew the white mace: the ending halves the fight's XP)
     yield* finish0.apply(this, arguments);
   };
 
@@ -117,7 +104,9 @@
     this.t++;
     if (this.t === 150) {
       var any = [1, 2, 3].some(function (i) { return !!DS.loadSlot(i); });
-      this.menu = new DS.Menu({ items: [{ label: 'CONTINUE FROM A SAVE', value: 'load', disabled: !any }, { label: 'TITLE', value: 'title' }], x: 56, y: 176, w: 144, cancelable: false,
+      // (his fall: one line, and a click to load -- RULED 09-30b, "(click to load)"; the title only when there is no save to load)
+      var items = this.why === 'down' ? (any ? [{ label: 'CLICK TO LOAD', value: 'load' }] : [{ label: 'TITLE', value: 'title' }]) : [{ label: 'CONTINUE FROM A SAVE', value: 'load', disabled: !any }, { label: 'TITLE', value: 'title' }];
+      this.menu = new DS.Menu({ items: items, x: 56, y: 176, w: 144, cancelable: false,
         onSelect: function (it) { if (it.value === 'load') DS.push(new DS.SlotScene(false)); else { DS.clearScenes(); DS.push(new DS.Title()); } } });
     }
     if (this.menu) this.menu.update();
@@ -127,11 +116,11 @@
     // the white mace's light, going out
     var glow = Math.max(0, 1 - this.t / 140);
     if (glow > 0) { ctx.globalAlpha = glow * 0.5; ctx.fillStyle = '#F8F8F8'; ctx.beginPath(); ctx.arc(128, 150, 10 + this.t * 0.4, 0, Math.PI * 2); ctx.fill(); }
-    var head = tx(this.why === 'down' ? 'fail.pyroDownTitle' : 'fail.pyroTitle'), body = tx(this.why === 'down' ? 'fail.pyroDown' : 'fail.pyro');
+    var down = this.why === 'down', head = down ? [] : tx('fail.pyroTitle'), body = tx(down ? 'fail.pyroDown' : 'fail.pyro');
     if (!Array.isArray(head)) head = [String(head)];
     ctx.globalAlpha = Math.min(1, Math.max(0, (this.t - 30) / 60));
     head.forEach(function (l, i) { DS.bigText(ctx, l, 128, 44 + i * 22, 2); });
-    DS.wrap(body, 220).forEach(function (l, i) { DS.textCenter(ctx, l, 128, 104 + i * 11, '#E8E0C8'); });
+    DS.wrap(body, 220).forEach(function (l, i) { DS.textCenter(ctx, l, 128, (down ? 96 : 104) + i * 11, '#E8E0C8'); });
     ctx.globalAlpha = 1;
     if (this.menu) this.menu.draw(ctx);
   };

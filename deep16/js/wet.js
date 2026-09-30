@@ -36,8 +36,13 @@
       // what is dead stays dead (the 8-bit flags, through the seam); the grid holds the wet's own creatures, not the 8-bit scene's
       // list -- the ending counts what it killed here (B.enemies8, js/embed.js)
       var f8 = (this.o.data && this.o.data.flags) || {}, gone = { landlord: f8.otyughDead, jelly: f8.jellyDead, ooze: f8.oozeDead };
-      this.o.fightDef = Object.assign({}, F0, { foes: F0.foes.filter(function (f) { return !gone[f.wet]; }) });
-      if (this.o.embed) this.o.embed = Object.assign({}, this.o.embed, { enemies: null, only: null });
+      // the fight's squares are the 8-bit map's; the grid is turned (RULED 09-30b: counter-clockwise; data/maps.js wet from8)
+      var c = (D.MAPS[F0.map] && D.MAPS[F0.map].from8) || function (x, y) { return [x, y]; }, cl = function (l) { return (l || []).map(function (p) { return c(p[0], p[1]); }); };
+      var T0 = F0.triggers || {}, T1 = {}; Object.keys(T0).forEach(function (k) { T1[k] = cl(T0[k]); });
+      this.o.fightDef = Object.assign({}, F0, {
+        foes: F0.foes.filter(function (f) { return !gone[f.wet]; }).map(function (f) { return Object.assign({}, f, { at: c(f.at[0], f.at[1], (D.FOES[f.kind] || {}).size || 1) }); }),
+        triggers: T1, pens: cl(F0.pens), bucket: F0.bucket ? c(F0.bucket[0], F0.bucket[1]) : null });
+      if (this.o.embed) this.o.embed = Object.assign({}, this.o.embed, { enemies: null, only: null, at: this.o.embed.at ? c(this.o.embed.at[0], this.o.embed.at[1]) : null });
     }
     enter0.apply(this, arguments);
     if (this.fight && this.fight.settling) W.setup(this);
@@ -127,9 +132,10 @@
   };
 
   // ------------------------------------------------------------------ the landlord: it waits in its pool, and speaks in pictures
-  // standing beside it counts, round by round, one hero at a time; the fourth round beside it wakes it (09-30: "more than 3 rounds")
+  // standing at the edge of its water counts, round by round, one hero at a time; the fourth round there wakes it (RULED 09-30: "if
+  // character is in adjacent square more than 3 rounds"; 09-30b: "the 3 rounds just the edge of his water")
   W.landlordWaits = function* (B, u) {
-    var near = ours(B).filter(function (w) { return !w.left && w.hp > 0 && G.dist(u, w) <= 5; }), bs = B.wet.beside, woke = false;
+    var near = ours(B).filter(function (w) { return !w.left && w.hp > 0 && (G.dist(u, w) <= 5 || besideDeep(w)); }), bs = B.wet.beside, woke = false;
     ours(B).forEach(function (w) { if (near.indexOf(w) < 0) delete bs[w.id]; });
     near.forEach(function (w) { bs[w.id] = (bs[w.id] || 0) + 1; if (bs[w.id] > 3 && !u.fed) woke = true; });
     if (near.length && !B.wet.spoke) yield* W.speak(B, near[0]);

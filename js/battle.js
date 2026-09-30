@@ -1538,11 +1538,12 @@
       var K = DS.G.kills;
       this.foes.forEach(function (f) { if (f.fled) return; K[f.id] = (K[f.id] || 0) + 1; if (o.zone) K[o.zone + ':' + f.id] = (K[o.zone + ':' + f.id] || 0) + 1; });
       if (o.bonusXp) xp += o.bonusXp;
+      if (this.xpHalf) xp = Math.floor(xp / 2); // (Pyro drew the white mace: the fight's XP halved -- RULED 09-30b, js/pyro.js)
       var living = DS.G.party.filter(function (h) { return !h.ko; });
       if (o.solo != null) living = [DS.G.party[o.solo]];
       var each = living.length ? Math.floor(xp / living.length) : 0;
       var lines = ['Victory!'];
-      if (each) lines.push('Each fighter standing gains ' + each + ' XP.');
+      if (each) lines.push('Each fighter standing gains ' + each + ' XP.' + (this.xpHalf ? ' (Halved: the king drew the white mace.)' : ''));
       if (silver) { DS.G.silver += silver; lines.push('Found ' + silver + ' sp in coin and salvage.'); }
       drops.forEach(function (id) { DS.G.give(id, 1); lines.push('Found ' + DS.DATA.items[id].name + '!'); });
       // spell-component harvest: needs someone standing who has the skill for that part

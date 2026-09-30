@@ -13770,8 +13770,8 @@
    "id": "pyro.m2Draw"
   },
   "pyro.m2Xp": {
-   "t": "He has taken your measure. The party loses half its XP.",
-   "src": "RULED 09-30b (Griz: 'the party either loses half XP and continues')",
+   "t": "He has taken your measure. This fight's XP will be halved.",
+   "src": "RULED 09-30b (Griz: 'end of fight rewards /2 if pyro gets the disruptor out' -- 'that fight's xp')",
    "id": "pyro.m2Xp"
   },
   "pyro.m3": {
@@ -13797,17 +13797,9 @@
    "src": "RULED 09-30b; the seat's draft, invented.json#pyro-measure",
    "id": "fail.pyro"
   },
-  "fail.pyroDownTitle": {
-   "t": [
-    "THE KING",
-    "FALLS"
-   ],
-   "src": "RULED 09-30 (Griz: 'If he ever goes down player has to load from a save'); the seat's draft, invented.json#pyro-measure",
-   "id": "fail.pyroDownTitle"
-  },
   "fail.pyroDown": {
-   "t": "Solskaft's only king falls on his own road, walking it at your side. There is no coming back from that.",
-   "src": "RULED 09-30; the seat's draft, invented.json#pyro-measure",
+   "t": "The dwarf king fell in battle... well, obviously that didn't happen.",
+   "src": "RULED 09-30b, Griz, verbatim: 'the dwarf king fell in battle... well, obviously that didn't happen. (click to load)'",
    "id": "fail.pyroDown"
   },
   "deep.pyro1": {
