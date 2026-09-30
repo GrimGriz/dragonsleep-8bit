@@ -717,7 +717,9 @@ def build_warrens():
     g.warp(41, 27, 'warrens_c', 24, 2, 'down'); g.warp(42, 27, 'warrens_c', 24, 2, 'down')
     g.trig('bucket', 13, 5, 'bucket', on='use')
     g.trig('landlord', 4, 2, 'landlord', on='use', w=9, h=7)
-    g.trig('landlordStep', 7, 8, 'landlordNear', on='step', w=4, h=1)
+    g.trig('landlordStep', 7, 8, 'landlordNear', on='step', w=4, h=1, cond='!flag:otyughDead & !flag:otyughFed')  # (09-30g: onto the grid; fed or dead, only stone)
+    for n, (x, y) in enumerate([(15, 6), (35, 6), (24, 16)]):
+        g.trig('deepCradle%d' % n, x, y, 'deepCradle', n, on='use')  # (09-30g: the deep rate, js/events.js S.deepCradle -- this order is DEEP_CRADLES')
     # the Settling (RULED 09-30, Griz: "reset the trigger tiles for the oozes if they haven't been killed"; 09-30c: "where lymen and barley
     # are (north and south shores of jelly pool) should be jelly trigger spots, both go dead when jelly dies ... Where Aurdin is grey ooze
     # pool trigger spot ... and dies when the ooze does. Anything exit row and south stays 8bit"): the jelly's on both shores of its pool

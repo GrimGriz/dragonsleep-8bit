@@ -19,7 +19,7 @@
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx, AI = D.ai, TR = D.traits, BP = D.Battle.prototype;
   var W = D.wet = {};
-  var ID8 = { landlord: 'otyugh', jelly: 'ochrejelly', poolooze: 'grayooze' }; // (the 8-bit game's ids, for the ending's XP)
+  var ID8 = { landlord: 'otyugh', jelly: 'ochrejelly', poolooze: 'grayooze', harness: 'crawler' }; // (the 8-bit game's ids, for the ending's XP; harness: the deep-rate crawler roused at its cradle, 09-30g)
   var FLAG8 = { landlord: 'otyughDead', jelly: 'jellyDead', poolooze: 'poolOozeDead' }; // (and their flags: the dead stay dead)
   function on(B) { return !!(B && B.fight && B.fight.settling && B.wet); }
   function fl(B) { return (B.from && B.from.data && B.from.data.flags) || {}; }
@@ -37,13 +37,16 @@
       // what is dead stays dead (the 8-bit flags, through the seam); the grid holds the wet's own creatures, not the 8-bit scene's
       // list -- the ending counts what it killed here (B.enemies8, js/embed.js)
       var f8 = (this.o.data && this.o.data.flags) || {}, gone = {}; Object.keys(FLAG8).forEach(function (r) { gone[r] = f8[FLAG8[r]]; });
+      if (f8.otyughFed) gone.landlord = true; // (fed, it is under the water for good: not on the grid -- RULED 09-30g)
+      // a deep-rate crawler roused at its cradle (the 8-bit's S.deepCradle, 09-30g: "if player error makes a whip, start your combat"): awake, at its harness
+      var hz = this.o.embed && this.o.embed.harness, foes0 = F0.foes.concat(hz ? [{ id: 'harness', kind: 'crawler', at: hz, wet: 'harness' }] : []);
       // the fight's squares are the 8-bit map's; the grid is turned (RULED 09-30b: counter-clockwise; data/maps.js wet from8)
       var c = (D.MAPS[F0.map] && D.MAPS[F0.map].from8) || function (x, y) { return [x, y]; }, cl = function (l) { return (l || []).map(function (p) { return c(p[0], p[1]); }); };
       // each sleeper's spots, and the 3 x 3 round each (the 8-bit's squares, turned); the picture's squares as they are
       var T1 = { picture: cl(F0.picture) }, ring = function (l) { var o = [], seen = {}; (l || []).forEach(function (p) { for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var k = (p[0] + dx) + ',' + (p[1] + dy); if (!seen[k]) { seen[k] = 1; o.push([p[0] + dx, p[1] + dy]); } } }); return o; };
       Object.keys(F0.spots || {}).forEach(function (k) { T1[k] = cl(ring(F0.spots[k])); });
       this.o.fightDef = Object.assign({}, F0, {
-        foes: F0.foes.filter(function (f) { return !gone[f.wet]; }).map(function (f) { return Object.assign({}, f, { at: c(f.at[0], f.at[1], (D.FOES[f.kind] || {}).size || 1) }); }),
+        foes: foes0.filter(function (f) { return !gone[f.wet]; }).map(function (f) { return Object.assign({}, f, { at: c(f.at[0], f.at[1], (D.FOES[f.kind] || {}).size || 1) }); }),
         triggers: T1, entrances: cl(F0.entrances), bucket: F0.bucket ? c(F0.bucket[0], F0.bucket[1]) : null });
       if (this.o.embed) this.o.embed = Object.assign({}, this.o.embed, { enemies: null, only: null, at: this.o.embed.at ? c(this.o.embed.at[0], this.o.embed.at[1]) : null });
     }
@@ -52,12 +55,12 @@
   };
   W.setup = function (B) {
     var F = B.fight, f8 = fl(B), wake = (B.o.embed && B.o.embed.wake) || B.o.wake || null;
-    B.wet = { round: 0, downAt: {}, beside: {}, spoke: !!f8.landlordSpoke, sleepers: {}, present: {}, crawlers: 0, bucket: null };
+    B.wet = { round: 0, downAt: {}, beside: {}, spoke: !!f8.landlordSpoke, sleepers: {}, present: {}, sunk: {}, crawlers: 0, bucket: null, bucketBy: null, speakFirst: null, purge: null };
     B.flags8 = B.flags8 || {};
     var self = B;
     B.units.slice().forEach(function (u) {
       if (u.side !== 'foe') return;
-      var role = { otyugh: 'landlord', jelly: 'jelly', poolooze: 'poolooze' }[u.id]; if (!role) return;
+      var role = { otyugh: 'landlord', jelly: 'jelly', poolooze: 'poolooze', harness: 'harness' }[u.id]; if (!role) return;
       u.wet = role; B.wet.present[role] = true;
       if (role === 'landlord') { u.bound = 'D'; if (f8.otyughFed) u.fed = true; } // (it keeps to its deep water under the fall)
       if (role === 'jelly') u.swims = true; // (it lives in the settling pool, and comes out of it)
@@ -66,15 +69,28 @@
       // the ooze in its puddle at the pool's edge, the jelly under the pool: not there at all till their squares are stepped on
       self.units.splice(self.units.indexOf(u), 1); B.wet.sleepers[role] = u;
     });
+    // the roused crawler off its cradle (a timber crib: no square to stand on) onto the nearest free one
+    B.units.forEach(function (u) { if (u.wet === 'harness' && !G.canStand(u, u.x, u.y)) W.shift(B, u); });
     // one of them where a hero stands (the lead on the pool ooze's own puddle): out onto the nearest free square
     B.units.forEach(function (u) { if (u.side === 'foe' && B.units.some(function (w) { return w !== u && w.side === 'party' && G.dist(u, w) === 0; })) W.shift(B, u); });
-    // the bucket on its square (the 8-bit's (13, 5)): unless the party carries it, or the landlord has had it
+    // the milker on the square the party worked the cradle from (the lead's), the rest beside; touched, stiff with the poison (the crawler's own
+    // feelers: poisoned, and paralyzed while it lasts, a CON save each turn)
+    var E = B.o.embed || {}, mk = E.milker && ours(B).filter(function (w) { return w.id === E.milker; })[0], ld = ours(B)[0];
+    if (mk && ld && ld !== mk) { var sx = ld.x, sy = ld.y; ld.x = mk.x; ld.y = mk.y; mk.x = sx; mk.y = sy; }
+    if (mk && E.touched) { mk.conds.poisoned = { paralysis: true }; mk.conds.paralyzed = { save: 'con', dc: 13, by: 'harness', poison: true }; }
+    // the bucket on its square (the 8-bit's (13, 5)): unless the party carries it, or the landlord has had it. Carried, it is in one hand:
+    // whoever took it up (the 8-bit's lead at the station, or whoever walked onto it here), else the lead (RULED 09-30g, Griz: "Only the
+    // character that picked up the bucket should be able to use it as an item")
     var has = (B.inv || []).some(function (s) { return s.id === 'bucket' && s.n > 0; });
     if (!has && !f8.otyughFed && F.bucket) W.layBucket(B, F.bucket);
+    if (has) { var cw = ours(B).filter(function (w) { return w.id === f8.bucketBy && w.hp > 0; })[0] || ours(B).filter(function (w) { return w.hp > 0; })[0]; if (cw) { B.wet.bucketBy = cw.id; B.flags8.bucketBy = cw.id; } }
+    // in by the rim (the 8-bit's picture squares, 09-30g: "the 8-bit landlord trigger should pull them into the grid area at the trigger spot"):
+    // the landlord asleep in its water, and its picture before anyone moves
+    if (wake === 'rim' && !B.wet.spoke) B.wet.speakFirst = ours(B)[0] || null;
     var woke = B.units.filter(function (u) { return u.wet === wake; })[0];
     if (woke) B.card(['{r}' + W.WAKE[wake] + '{/}'], 360);
   };
-  W.WAKE = { landlord: 'The water under the fall heaves: the landlord rises, all eye-stalk and tentacle.', jelly: 'Something ochre heaves up out of the settling pool.', poolooze: 'The puddle at the pool\'s edge moves.' };
+  W.WAKE = { landlord: 'The water under the fall heaves: the landlord rises, all eye-stalk and tentacle.', jelly: 'Something ochre heaves up out of the settling pool.', poolooze: 'The puddle at the pool\'s edge moves.', harness: 'The crawler tears loose of its harness.' };
   // the nearest square it may stand on, free of everyone
   W.shift = function (B, u) {
     var best = null, bd = Infinity, x0 = u.x, y0 = u.y;
@@ -111,6 +127,7 @@
     if (on(this) && u.hp < hp0) {
       if (u.dormant && u.side === 'foe' && u.hp > 0) W.wake(this, u, 'hurt');
       if (u.wetCrawler) u.blooded = true;
+      if (u.side === 'party' && u.hp <= 0 && this.wet.bucketBy === u.id) W.dropBucket(this, u);
     }
     return r;
   };
@@ -149,12 +166,12 @@
   // standing at the edge of its water counts, round by round, one hero at a time; the fourth round there wakes it (RULED 09-30: "if
   // character is in adjacent square more than 3 rounds"; 09-30b: "the 3 rounds just the edge of his water")
   W.landlordWaits = function* (B, u) {
+    if (u.fed) { yield* W.sink(B, u); return true; }
     var near = ours(B).filter(function (w) { return !w.left && w.hp > 0 && (G.dist(u, w) <= 5 || besideDeep(w)); }), bs = B.wet.beside, woke = false;
     ours(B).forEach(function (w) { if (near.indexOf(w) < 0) delete bs[w.id]; });
     near.forEach(function (w) { bs[w.id] = (bs[w.id] || 0) + 1; if (bs[w.id] > 3 && !u.fed) woke = true; });
     if (near.length && !B.wet.spoke) yield* W.speak(B, near[0]);
     if (woke) { W.wake(B, u, 'patience'); return false; } // (and its turn goes on: the tentacles)
-    if (u.fed) { B.card(['{g}The landlord settles in its pool, fed.{/}'], 160); yield 12; return true; }
     // (the warning: the camera goes to it and holds long enough to read -- 09-30e, Griz: "Need a little bit longer pause for the 'the landlord
     // is looking at you' (gist) warnings cause the camera has to pan and such")
     if (B.focus) B.focus(u);
@@ -162,6 +179,25 @@
     yield 60;
     return true;
   };
+  // fed, it settles and goes under, its next turn (RULED 09-30g, Griz: "Landlord should settle and go underwater turn after bucket telepathy
+  // and be removed from having turns - even if people are at his pool edge"): off the grid now, and out of the order at the next turn's start
+  // (W.first: taken out mid-turn, the battle's loop would lose its place in the round)
+  W.sink = function* (B, u) {
+    if (B.focus) B.focus(u);
+    D.sfx('splash'); FX.sparkle(u, 'moss', 18);
+    B.card(['{g}The landlord settles, fed, and sinks out of sight under the fall.{/}'], 300);
+    yield 50;
+    B.wet.sunk[u.wet] = true; u.sunk = true;
+    var i = B.units.indexOf(u); if (i >= 0) B.units.splice(i, 1);
+    B.wet.purge = (B.wet.purge || []).concat([u]);
+  };
+  // the start of anyone's turn in the wet: the sunk out of the order; the landlord's picture first, when they came in by its rim
+  W.first = function* (B) {
+    if (B.wet.purge) { B.wet.purge.forEach(function (w) { var k = B.order.indexOf(w); if (k >= 0) B.order.splice(k, 1); }); B.wet.purge = null; }
+    var w = B.wet.speakFirst; if (w) { B.wet.speakFirst = null; if (!B.wet.spoke) yield* W.speak(B, w); }
+  };
+  var heroTurn0 = BP.heroTurn;
+  BP.heroTurn = function* (u) { if (on(this)) yield* W.first(this); yield* heroTurn0.apply(this, arguments); };
   // the first time: a picture of a bucket, in the head of whoever is nearest the water (the canon)
   W.speak = function* (B, w) {
     B.wet.spoke = true; B.flags8.landlordSpoke = 1;
@@ -192,8 +228,25 @@
     var i = G.map.props.indexOf(bk.prop); if (i >= 0) G.map.props.splice(i, 1);
     var s = (B.inv || []).filter(function (x) { return x.id === 'bucket'; })[0];
     if (s) s.n++; else (B.inv = B.inv || []).push({ id: 'bucket', n: 1 });
+    B.wet.bucketBy = u.id; B.flags8.bucketBy = u.id;
     D.sfx('popup');
-    B.card(['{y}' + u.name + '{/} picks up the bucket: the deep station\'s, rope and all.  {g}(ITEM: USE it beside the deep water, or on the landlord){/}'], 360);
+    B.card(['{y}' + u.name + '{/} picks up the bucket: the deep station\'s, rope and all.  {g}(ITEM: ' + u.name + ' may USE it beside the deep water, or on the landlord){/}'], 360);
+  };
+  // the one carrying it falls: it rolls out of the hand onto the nearest free ground, for another to take up (RULED 09-30g, Griz: "if they fall
+  // the bucket should become an item in a nearby available ground tile for a diff character to pickup")
+  W.dropBucket = function (B, u) {
+    var s = (B.inv || []).filter(function (x) { return x.id === 'bucket' && x.n > 0; })[0]; if (!s || B.wet.bucket) return;
+    var best = null, bd = Infinity;
+    for (var y = u.y - 3; y <= u.y + 3; y++) for (var x = u.x - 3; x <= u.x + 3; x++) {
+      if (x === u.x && y === u.y) continue;
+      var q = G.map.at(x, y); if (!q || !q.walk || G.occupant(x, y)) continue;
+      var d = Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) + 0.01 * Math.hypot(x - u.x, y - u.y);
+      if (d < bd) { bd = d; best = [x, y]; }
+    }
+    if (!best) return;
+    s.n--; B.wet.bucketBy = null; B.flags8.bucketBy = null;
+    W.layBucket(B, best); D.sfx('miss');
+    B.card(['{o}The bucket rolls out of ' + u.name + '\'s grip{/} onto the stone.  {g}(another may walk onto it and take it up){/}'], 360);
   };
   // USE BUCKET: beside the deep water, or touching the landlord -- fed, it does not fight, and its pictures play
   function landlordOf(B) { return B.units.filter(function (w) { return w.wet === 'landlord' && !w.dead && w.hp > 0; })[0] || null; }
@@ -202,8 +255,12 @@
   BP.itemTargetOK = function (u, id, w) { if (id === 'bucket') return w === u; return itemOK0.apply(this, arguments); };
   var itemList0 = BP.itemList;
   BP.itemList = function (u) {
-    var out = itemList0.apply(this, arguments), L = landlordOf(this);
-    out.forEach(function (e) { if (e.id !== 'bucket' || !e.ok) return; if (!(L && G.dist(u, L) <= 5) && !besideDeep(u)) { e.ok = false; e.why = 'nothing here takes it: the deep water under the fall'; } });
+    var out = itemList0.apply(this, arguments), L = landlordOf(this), by = this.wet && this.wet.bucketBy, self = this;
+    out.forEach(function (e) {
+      if (e.id !== 'bucket' || !e.ok) return;
+      if (by && by !== u.id) { var cw = self.units.filter(function (w) { return w.id === by; })[0]; e.ok = false; e.why = (cw ? cw.name : 'another') + ' carries it'; return; } // (the carrier's alone: 09-30g)
+      if (!(L && G.dist(u, L) <= 5) && !besideDeep(u)) { e.ok = false; e.why = 'nothing here takes it: the deep water under the fall'; }
+    });
     return out;
   };
   var useItem0 = BP.useItem;
@@ -213,7 +270,7 @@
     u.turn.action = 0; if (s) s.n--;
     D.sfx('splash'); FX.sparkle(L || u, 'moss', 16);
     this.card(['{y}' + u.name + '{/} lowers the bucket into the deep water. ' + (L ? 'The landlord takes it, and settles.' : 'Something below takes it.')], 360);
-    this.flags8.otyughFed = 1; this.flags8['heard:r-stream'] = 1;
+    this.flags8.otyughFed = 1; this.flags8['heard:r-stream'] = 1; this.wet.bucketBy = null; this.flags8.bucketBy = null;
     if (L) { L.fed = true; L.dormant = true; if (L.holding && L.holding.length) this.release(L); }
     yield 20;
     // fed, it tells them things in pictures: what comes down the stream (the canon's crook upstream)
@@ -269,7 +326,7 @@
       if (best) {
         u.x = best[0]; u.y = best[1]; u.facing = 0; u.anim = 'walk'; u.animT = B.t; u.reaction = 1;
         u.tween = { fx: pen[0], fy: pen[1], fz: 0, t: 0, dur: 30 }; // (out of the dark past the edge)
-        u.speed = Math.floor((u.speed || 30) / 2); // (09-30b: "Half normal movement speed")
+        // (full speed: RULED 09-30g, Griz: "restore the crawlers get attracted in to full movement speed" -- 09-30b's "Half normal movement speed" lifted)
         u.wetCrawler = true;
         B.units.push(u);
         u.initRoll = D.d(20) + u.init;
@@ -301,6 +358,7 @@
   };
   var tturn0 = TR.turn;
   TR.turn = function* (B, u) {
+    if (on(B)) yield* W.first(B);
     if (on(B) && u.dormant) return yield* W.landlordWaits(B, u);
     if (on(B) && u.wetCrawler && (yield* W.crawlerTurn(B, u))) return true;
     return tturn0 ? yield* tturn0(B, u) : false;
@@ -326,7 +384,7 @@
   W.killed = function (B) {
     var out = [];
     Object.keys(ID8).forEach(function (role) {
-      if (!B.wet.present[role] || B.wet.sleepers[role]) return;
+      if (!B.wet.present[role] || B.wet.sleepers[role] || B.wet.sunk[role]) return; // (sunk, fed: not killed)
       var alive = B.units.some(function (w) { return w.side === 'foe' && (w.wet === role || (role === 'jelly' && w.kind === 'ochrejelly')) && !w.dead && w.hp > 0; });
       if (!alive) out.push(ID8[role]);
     });

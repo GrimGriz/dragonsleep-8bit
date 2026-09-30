@@ -180,7 +180,44 @@
 1
 ],
 "on": "step",
-"script": "landlordNear"
+"script": "landlordNear",
+"cond": "!flag:otyughDead & !flag:otyughFed"
+},
+{
+"id": "deepCradle0",
+"rect": [
+15,
+6,
+1,
+1
+],
+"on": "use",
+"script": "deepCradle",
+"arg": 0
+},
+{
+"id": "deepCradle1",
+"rect": [
+35,
+6,
+1,
+1
+],
+"on": "use",
+"script": "deepCradle",
+"arg": 1
+},
+{
+"id": "deepCradle2",
+"rect": [
+24,
+16,
+1,
+1
+],
+"on": "use",
+"script": "deepCradle",
+"arg": 2
 },
 {
 "id": "jelly",

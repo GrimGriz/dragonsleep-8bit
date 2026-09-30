@@ -465,6 +465,9 @@
     this.kind = 'cradle'; this.opaque = true;
     this.h = o.hero; this.skill = o.skill || 0; this.skillName = o.skillName || 'Animal Handling'; this.draught = !!o.draught;
     this.mouth = o.mouth || 2; this.first = !o.shifts;
+    // the deep rate at the wet (09-30g): nobody settled the animal (the unrest is whole from the first draw), DC 15 not 12 (as if the milker
+    // were three worse), three silver a thimble, and a whip rouses it -- the shift is over (TarlynsPit/WarrensModule/crawler-warrens-DM.md §3)
+    this.deep = !!o.deep; this.roused = false;
     var look = DS.LOOKS[this.h.look] || DS.LOOKS.worker; this.skin = look.skin || '#e8b890';
     this.t = 0; this.ts = 1; this.phase = 'intro'; this.pt = 0;
     this.tents = []; for (var i = 0; i < TENTS; i++) this.tents.push(new Tentacle(i, i % 2 ? 584 : 642));
@@ -477,18 +480,18 @@
     this.parts = []; this.cap = null; this.anim = null; this.save = null;
     this.hand = { x: 0, y: 0 }; this.pinch = { x: 0, y: 0 }; this.jerk = false; this.thimble = { level: 0, sealed: false };
     this.fade = 1; this.dripT = 120;
-    this.sub = 'Mouth ' + (MOUTHS[this.mouth] || this.mouth) + '  ·  ' + this.h.name + '  ·  ' + this.skillName + ' ' + DS.sgn(this.skill) + (this.draught ? '  ·  draught taken' : '');
+    this.sub = (this.deep ? 'The wet  ·  the deep rate' : 'Mouth ' + (MOUTHS[this.mouth] || this.mouth)) + '  ·  ' + this.h.name + '  ·  ' + this.skillName + ' ' + DS.sgn(this.skill) + (this.draught ? '  ·  draught taken' : '');
     var tip = this.cur().tip(); this.hand.x = tip.x; this.hand.y = tip.y; this.pinch.x = tip.x; this.pinch.y = tip.y - 60;
   }
   DS.CradleScene = CradleScene;
   CradleScene.prototype.enter = function () { fxShow(true); droneStart(); };
   CradleScene.prototype.exit = function () { squeezeOff(); droneStop(); fxShow(false); };
   CradleScene.prototype.cur = function () { return this.tents[this.sel]; };
-  CradleScene.prototype.unrest = function () { return clamp((this.draws - 1) / (DRAWS - 1), 0, 1); };
+  CradleScene.prototype.unrest = function () { return this.deep ? 1 : clamp((this.draws - 1) / (DRAWS - 1), 0, 1); }; // (un-settled: whole from the start)
   CradleScene.prototype.setPhase = function (p) { this.phase = p; this.pt = 0; };
   CradleScene.prototype.caption = function (key, vars, life) { var s = DS.L(key, vars); this.cap = { s: Array.isArray(s) ? s[0] : s, t: 0, life: life || 150 }; };
   CradleScene.prototype.makeBand = function () {
-    var T = this.cur(), w = clamp(0.055 + 0.018 * this.skill, 0.035, 0.17) * T.ripe * (1 - 0.3 * this.unrest()); // the gold narrows as the settle wears (tuned 09-25)
+    var T = this.cur(), w = clamp(0.055 + 0.018 * (this.skill - (this.deep ? 3 : 0)), 0.035, 0.17) * T.ripe * (1 - 0.3 * this.unrest()); // the gold narrows as the settle wears (tuned 09-25)
     this.band = { c: 0.42 + Math.random() * 0.34, w: w, phase: Math.random() * TAU, jump: 0 };
   };
   CradleScene.prototype.bandC = function () {
@@ -544,7 +547,7 @@
   };
   CradleScene.prototype.ph_intro = function () {
     var len = this.first ? 200 : 80;
-    if (this.pt === 40) this.caption('w.cradle.enter', null, 200);
+    if (this.pt === 40) this.caption(this.deep ? 'w.cradle.enterDeep' : 'w.cradle.enter', null, 200);
     if (this.pt >= len || (this.pt > 30 && I.pressed('a'))) { this.pickNext(); this.setPhase('ready'); this.camT = { x: 512, y: 560, z: 1 }; }
   };
   CradleScene.prototype.ph_ready = function () {
@@ -565,7 +568,7 @@
     if (unrest > 0.3 && !this.twitch && Math.random() < 0.004 + 0.018 * unrest) this.twitch = { t: 0 };
     if (this.twitch) {
       this.twitch.t++;
-      if (this.twitch.t === 10) { b.jump = (Math.random() < 0.5 ? -1 : 1) * (0.06 + 0.08 * unrest); T.flinch = 12; SFX.flinch(); this.shake = 6; if (!this.twitched) { this.twitched = true; this.caption('w.cradle.twitch', null, 120); } }
+      if (this.twitch.t === 10) { b.jump = (Math.random() < 0.5 ? -1 : 1) * (0.06 + 0.08 * unrest); T.flinch = 12; SFX.flinch(); this.shake = 6; if (!this.twitched) { this.twitched = true; this.caption(this.deep ? 'w.cradle.twitchDeep' : 'w.cradle.twitch', null, 120); } }
       if (this.twitch.t > 70) this.twitch = null;
     }
     var c = this.bandC();
@@ -625,7 +628,9 @@
     if (pt === 82) { s.show1 = s.r1; s.show2 = s.r2; SFX.tick(); }
     if (pt === 120) { if (s.holds) { SFX.holds(); this.caption(this.draught && s.r2 >= s.r1 && s.r2 + s.bonus >= DC && s.r1 + s.bonus < DC ? 'w.touchShrug' : 'w.drawJerk', null, 120); } else { SFX.touch(); } }
     if (pt === 170) {
-      if (s.holds) { this.cur().state = 'jerk'; this.slots[this.draws - 1] = 'jerk'; this.save = null; this.nextDraw(); }
+      if (this.deep) this.roused = true; // (the wet: a whip rouses it, the touch held or not -- the shift is over)
+      if (s.holds && this.deep) { this.cur().state = 'jerk'; this.slots[this.draws - 1] = 'jerk'; this.save = null; this.setPhase('tally'); this.camT = { x: 512, y: 520, z: 1 }; }
+      else if (s.holds) { this.cur().state = 'jerk'; this.slots[this.draws - 1] = 'jerk'; this.save = null; this.nextDraw(); }
       else { this.touched = true; this.cur().state = 'touch'; this.slots[this.draws - 1] = 'touch'; this.save = null; this.setPhase('paralysis'); }
     }
   };
@@ -640,7 +645,7 @@
   };
   CradleScene.prototype.ph_out = function () {
     this.fade = Math.min(1, this.fade + 1 / 30);
-    if (this.pt >= 34) { this.result = { got: this.got, touched: this.touched, perfect: this.perfect }; DS.pop(this); }
+    if (this.pt >= 34) { this.result = { got: this.got, touched: this.touched, perfect: this.perfect, roused: this.roused }; DS.pop(this); }
   };
 
   // ------------------------------------------------------------------ drawing
@@ -776,8 +781,8 @@
     if (a <= 0) return;
     panel(ctx, 172, 300, 680, 360, a);
     ctx.save(); ctx.globalAlpha = a;
-    var head = DS.L(this.touched ? 'w.cradle.dragged' : 'w.cradle.done');
-    txt(ctx, head, 512, 366, { size: 34, spacing: 6, color: this.touched ? COL.red : COL.bone, align: 'center', shadow: true });
+    var head = DS.L(this.roused ? 'w.cradle.roused' : this.touched ? 'w.cradle.dragged' : 'w.cradle.done');
+    txt(ctx, head, 512, 366, { size: 34, spacing: 6, color: this.touched || this.roused ? COL.red : COL.bone, align: 'center', shadow: true });
     timber(ctx, 232, 520, 560, 30, 41);
     for (k = 0; k < DRAWS; k++) {
       var x = 272 + k * 96, st = this.slots[k];
@@ -787,7 +792,7 @@
       else if (st) drawThimble(ctx, x, 474, 0, false, 1, 0, 0.45);
       if (st === 'perfect') { ctx.save(); ctx.globalCompositeOperation = 'lighter'; ctx.fillStyle = 'rgba(240,192,96,0.3)'; ctx.beginPath(); ctx.arc(x, 498, 34, 0, TAU); ctx.fill(); ctx.restore(); }
     }
-    txt(ctx, DS.L('w.cradle.paid', { n: this.got }), 512, 596, { size: 22, color: COL.bone, align: 'center' });
+    txt(ctx, this.deep ? DS.L('w.cradle.paidDeep', { n: this.got, s: 3 * this.got }) : DS.L('w.cradle.paid', { n: this.got }), 512, 596, { size: 22, color: COL.bone, align: 'center' });
     txt(ctx, 'E', 512, 636, { size: 18, italic: true, color: COL.dim, align: 'center', alpha: 0.5 + 0.5 * Math.sin(this.t * 0.1) });
     ctx.restore();
   };

@@ -11943,6 +11943,51 @@
    "src": "wiki/the-warrens.md (the touch: poisoned and paralyzed)",
    "id": "w.cradle.dragged"
   },
+  "w.cradle.enterDeep": {
+   "t": "No settle here. The animal is awake in the harness, and it knows you are there.",
+   "src": "RULED 09-30g (Griz: 'un-settled crawlers in the harnesses'); the line invented: connective",
+   "id": "w.cradle.enterDeep"
+  },
+  "w.cradle.twitchDeep": {
+   "t": "It pulls against the harness. The slats creak.",
+   "src": "invented: connective (the deep rate, 09-30g)",
+   "id": "w.cradle.twitchDeep"
+  },
+  "w.cradle.roused": {
+   "t": "IT TEARS LOOSE",
+   "src": "WarrensModule/crawler-warrens-DM.md section 3 ('A natural 1 on the deep rate rouses the animal entirely'); RULED 09-30g, a whip rouses it",
+   "id": "w.cradle.roused"
+  },
+  "w.cradle.paidDeep": {
+   "t": "{n} sealed at the deep rate - {s} silver",
+   "src": "WarrensModule/crawler-warrens-DM.md (the deep rate: three silver a thimble)",
+   "id": "w.cradle.paidDeep"
+  },
+  "w.deepNoBook": {
+   "t": "A deep-rate station: a timber crib at the pool's edge, a crawler harnessed in it. Nobody works the deep rate without a name in the book.",
+   "src": "RULED 09-30g (Griz: 'being in the book is enough'); the line invented: connective",
+   "id": "w.deepNoBook"
+  },
+  "w.deepAsk": {
+   "t": "A deep-rate station. The animal in the harness is wild, and nobody has settled it. Three silver the sealed thimble, down here.",
+   "src": "WarrensModule/crawler-warrens-DM.md (the deep rate; DC 15 at the wet); RULED 09-30g (un-settled)",
+   "id": "w.deepAsk"
+  },
+  "w.deepPaid": {
+   "t": "{n} sealed thimble(s) at the deep rate: {s} silver.",
+   "src": "WarrensModule/crawler-warrens-DM.md (three silver a thimble)",
+   "id": "w.deepPaid"
+  },
+  "w.deepRoused": {
+   "t": "The feeler comes off the bar, and the rest of the animal comes after it. It is out of the harness.",
+   "src": "RULED 09-30g (Griz: 'if player error makes a whip, start your combat'); the line invented: connective",
+   "id": "w.deepRoused"
+  },
+  "w.touchedDeep": {
+   "t": "A tentacle finds {name}'s wrist. Everything goes stiff and far away, and there is no crew down here to drag anyone clear.",
+   "src": "wiki/the-warrens.md (the touch: poisoned and paralyzed); the line invented: connective (09-30g)",
+   "id": "w.touchedDeep"
+  },
   "w.cradle.paid": {
    "t": "{n} sealed at the board - {n} silver",
    "src": "wiki/the-warrens.md (1 sp a thimble above the wet)",
@@ -22781,7 +22826,44 @@
       1
      ],
      "on": "step",
-     "script": "landlordNear"
+     "script": "landlordNear",
+     "cond": "!flag:otyughDead & !flag:otyughFed"
+    },
+    {
+     "id": "deepCradle0",
+     "rect": [
+      15,
+      6,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "deepCradle",
+     "arg": 0
+    },
+    {
+     "id": "deepCradle1",
+     "rect": [
+      35,
+      6,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "deepCradle",
+     "arg": 1
+    },
+    {
+     "id": "deepCradle2",
+     "rect": [
+      24,
+      16,
+      1,
+      1
+     ],
+     "on": "use",
+     "script": "deepCradle",
+     "arg": 2
     },
     {
      "id": "jelly",

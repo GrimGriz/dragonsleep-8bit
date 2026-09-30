@@ -89,6 +89,7 @@
       if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
         canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null, enemies: o.enemies || null,
         at: o.at || null, wake: o.wake || null, // (the Settling: the lead's square, the trigger that fired -- deep16/js/wet.js)
+        harness: o.harness || null, milker: o.milker || null, touched: !!o.touched, // (the deep rate roused: the cradle's square, who milked, whether the touch took -- 09-30g)
         surprised: o.surprised || null, revealed: !!o.revealed || seer, yieldText: o.yieldText || null,
         dark: dark, torch: o.torch || g.flags.torchBy || null, torchKind: g.flags.torchKind || 'torch' } }, '*');
       if (m.type === 'd16:done' || m.type === 'd16:refuse') {

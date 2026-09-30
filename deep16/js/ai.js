@@ -584,7 +584,10 @@
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       var e = approach(u, tgt, G.reach(u, T.move), reachOf(u));
       if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
-      else if (u.bound) { B.card(['{g}' + the(B, u) + ' churns in its pool; no one is in its reach.{/}']); yield 20; }
+      else if (u.bound) { // (the camera on it, churning, long enough to read: out of reach it looked frozen -- 09-30g)
+        if (B.focus) B.focus(u); var churn = D.spr && D.spr.anim && D.spr.anim(u.sheet, 'flinch'); if (churn) { u.anim = 'flinch'; u.animT = B.t; }
+        B.card(['{g}' + the(B, u) + ' churns in its pool; no one is in its reach.{/}'], 260); yield 60; if (churn) { u.anim = 'idle'; u.animT = B.t; }
+      }
       else if (!ranged.length) { B.card(['{g}' + the(B, u) + ' paces: it cannot get at anyone.{/}']); yield 20; }
       if (u.dead || u.hp <= 0) return;
     }

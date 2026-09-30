@@ -104,6 +104,39 @@ HEAD: STONE GIANT -- the deep. Lean and hairless, grey skin like carved stone, h
 
 ---
 
+## The landlord's pictures (the telepathy in the Wet -- stills, not sheets; asked 09-30g)
+
+The otyugh speaks in pictures. On the grid each one fills the screen for a few seconds, blown up soft-edged and swaying, the landlord's
+eye opening and closing behind it (`deep16/js/wet.js` `W.picture`). Today they are placeholders drawn in code at 96 x 72. Any size will do
+(4:3 landscape); drop them in the repo root and say which picture, and the seat swaps them in. The order is the order they are seen: the
+bucket at first contact, then the other four in a row after it is fed ("what comes down the stream").
+
+### COMMON TAIL (pictures -- paste after each picture's head)
+
+A single still illustration, not a sprite sheet. Painterly dark fantasy, murky and dreamlike, as if seen through dirty water and through someone else's mind: soft edges, a dark vignette closing in from every corner, a sickly green-grey palette with only the small accents the head names. 4:3 landscape. No text, no border, no frame, no people.
+
+### P1. The bucket (first contact: it is hungry)
+
+HEAD: A PICTURE OF A BUCKET -- the landlord's first thought. A wooden bucket bound with iron hoops, lowered on a frayed rope out of the dark above, swinging a little; bones and scraps of carrion over its rim; thick drips falling from its bottom into black water far below. Behind the whole scene, huge and blurred, a single yellow eye.
+
+### P2. The fall
+
+HEAD: THE FALL -- an underground waterfall pouring out of a crack high in a cave wall into a black pool; the stream carries bones, broken timbers and rags down with it; spray and mist; cold blue-grey water light.
+
+### P3. The crook (the clacker cavern upstream)
+
+HEAD: THE CROOK -- a cavern forest of giant pale fungus, tall caps in lilac and bone-white glowing faintly over a still, mirror-dark cave lake; in the foreground the stream leaves the lake through a narrow channel.
+
+### P4. The clackers (hook horrors; the game never names them)
+
+HEAD: THE CLACKERS -- two tall hunched hook horrors in near darkness: vulture-like beaked heads, armoured grey bodies, long arms ending in huge curved bone hooks raised mid-clack; only their silhouettes, the pale hooks and small yellow eyes catch the light.
+
+### P5. The chimney of wings
+
+HEAD: THE CHIMNEY -- a narrow natural rock chimney seen from below, rising into darkness, filled with a spiral of thousands of bats streaming upward; a thin shaft of grey light far above.
+
+---
+
 ## Later (the ladder's bestiary rungs, no story fight yet)
 
 Each wants the same shape; a head drafted when its day comes. Worst fits first:

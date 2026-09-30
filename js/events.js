@@ -766,14 +766,17 @@
     var g = G();
     if (g.has('bucket')) { yield DS.say(L('w.bucketHave')); return; }
     if (g.flags.otyughFed) { yield DS.say(L('w.bucketEmpty')); return; }
-    g.give('bucket', 1); DS.audio.sfx('chest');
+    g.give('bucket', 1); DS.audio.sfx('chest'); g.flags.bucketBy = (g.party[0] || {}).id; // (the lead took it up: on the grid it is that hand's -- 09-30g)
     yield DS.say(L('w.bucketTake'));
   };
+  // the rim (RULED 09-30g, Griz: "the 8-bit landlord trigger should pull them into the grid area at the trigger spot" -- "carrion bucket
+  // delivery kills trigger tile triggering"): a step onto its rim takes them onto the wet's grid on that square, the landlord asleep in its
+  // water and its picture sent there (deep16/js/wet.js, wake 'rim'); fed or dead, the rim is only stone (mapgen.py's cond, and here)
   S.landlordNear = function* () {
     var g = G();
-    if (g.flags.landlordSpoke || g.flags.otyughDead) return;
-    g.flags.landlordSpoke = 1;
-    yield DS.say(L('w.landlordPicture'));
+    if (g.flags.otyughDead || g.flags.otyughFed) return;
+    var res = yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'rim', at: [g.x, g.y] });
+    yield* EV.wetOut(res);
   };
   S.landlord = function* () {
     var g = G();
@@ -798,6 +801,49 @@
   // the Settling (RULED 09-30, 09-30c): the jelly's spots (both shores of its pool) and the pool ooze's puddle put the lead on the wet's grid
   // on the same square, that one awake and the rest asleep till theirs are stepped on; the southern ooze is the 8-bit's own fight, a second
   // ooze ("Anything exit row and south stays 8bit"). Each trigger comes back till its creature is dead (mapgen.py)
+  // the deep-rate stations at the wet (RULED 09-30g, Griz: "the 8-bit crawler harnesses should instantiate the crawler milking mini-game if
+  // they've unlocked it, with the higher payout and un-settled crawlers in the harnesses" -- "being in the book is enough" -- "if player error
+  // makes a whip, start your combat that's great"): the pens' shift on a harnessed animal nobody settled, at the module's deep rate, three
+  // silver a thimble (TarlynsPit/WarrensModule/crawler-warrens-DM.md §3: "DC 15 at the wet"; "A natural 1 on the deep rate rouses the animal
+  // entirely"). A whip rouses it: the shift is over, and the fight is on the wet's grid, the crawler loose at its cradle, the milker beside it
+  var DEEP_CRADLES = [[15, 6], [35, 6], [24, 16]]; // (mapgen.py's deepCradle0-2, in this order)
+  S.deepCradle = function* (n) {
+    var g = G();
+    if (!g.flags.tallyMet) { yield DS.say(L('w.deepNoBook')); return; }
+    var a = yield DS.ask(L('w.deepAsk'), ['WORK THE DEEP RATE', 'LEAVE']);
+    if (a !== 0) return;
+    var h = g.party.length === 1 ? g.party[0] : yield DS.choose({ items: g.party.filter(function (x) { return !x.ko; }).map(function (x) { return { label: x.name, value: x }; }), x: 60, y: 80, w: 136, title: 'WHO MILKS?' });
+    if (!h) return;
+    var draught = g.count('draught') > 0; if (draught) g.take('draught', 1);
+    var ah = R.skill(h, 'Animal Handling', 'wis'), na = R.skill(h, 'Nature', 'int');
+    var best = Math.max(ah, na), skillName = na > ah ? 'Nature' : 'Animal Handling';
+    var r;
+    if (DS.CradleScene) {
+      DS.audio.stop();
+      yield DS.fade(1, 18);
+      r = yield W8.scene(new DS.CradleScene({ hero: h, skill: best, skillName: skillName, draught: draught, deep: true, shifts: (g.flags.shifts || 0) + (g.flags.deepShifts || 0) }));
+      DS.audio.play(F().map.music || 'field', true);
+      yield DS.fade(0, 18);
+    } else { // no cradle scene loaded: the register's table rule at the wet -- DC 15, a natural 1 or a touch rouses it
+      r = { got: 0, touched: false, roused: false };
+      for (var i = 0; i < 6 && !r.roused; i++) {
+        var d = DS.d(20), roll = d + best;
+        if (d === 1) r.roused = true;
+        else if (roll >= 15) r.got++;
+        else if (roll <= 10) { var sv = DS.d(20) + R.saveBonus(h, 'con'); if (draught) sv = Math.max(sv, DS.d(20) + R.saveBonus(h, 'con')); if (sv < 13) r.touched = true; r.roused = true; }
+      }
+    }
+    var got = (r && r.got) || 0, pay = 3 * got, lines = [];
+    if (r && r.touched) lines.push(L('w.touchedDeep', { name: h.name }));
+    g.silver += pay; if (pay) DS.audio.sfx('coin');
+    g.flags.deepShifts = (g.flags.deepShifts || 0) + 1;
+    lines.push(L('w.deepPaid', { n: got, s: pay }));
+    yield DS.say(lines);
+    if (!r || !r.roused) return;
+    yield DS.say(L('w.deepRoused'));
+    var res = yield* EV.fight(['crawler'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'harness', harness: DEEP_CRADLES[n] || DEEP_CRADLES[0], at: [g.x, g.y], milker: h.id, touched: !!r.touched });
+    yield* EV.wetOut(res);
+  };
   S.jelly = function* () { var g = G(); yield DS.say(L('w.jelly')); var res = yield* EV.fight(['ochrejelly'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'jelly', at: [g.x, g.y] }); yield* EV.wetOut(res); };
   S.poolOoze = function* () { var g = G(); yield DS.say(L('w.ooze')); var res = yield* EV.fight(['grayooze'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'poolooze', at: [g.x, g.y] }); yield* EV.wetOut(res); };
   // out of the wet (RULED 09-30d, Griz: "Can we keep on the grid after everything is dead (or as yet unrevealed) ... and do have the xp award
