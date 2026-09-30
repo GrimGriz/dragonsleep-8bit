@@ -605,7 +605,7 @@
     cast: function* (B, u, t, slot, head, x) {
       var sq = M.area(u, x.g, t.x, t.y); FX.bloom(u.x, u.y, sq, 'silver');
       var before = (B.darks || []).length;
-      B.darks = (B.darks || []).filter(function (d) { return !((d.kind === 'fog' || d.kind === 'stink') && d.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); })); });
+      B.darks = (B.darks || []).filter(function (d) { return !((d.kind === 'fog' || d.kind === 'stink' || d.kind === 'kill') && d.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); })); });
       if (B.darks.length < before) { B.card(['{c}The wind tears the cloud apart.{/}'], 240); if (B.lightMap) B.lightMap = null; }
       var pushed = caughtIn(B, sq).filter(function (w) { return w !== u; });
       yield* saveAll(B, u, pushed, 'str', x.dc, null, '', false, head + ': a howling wind', { failText: 'blown back', cond: function (w) { M.push(B, u, w, 3); } });
@@ -1198,11 +1198,13 @@
     }
     if (!made.length) { B.card([head + ': {o}no room he can see for them.{/}'], 240); return; }
     // one initiative for the lot, dealt in together
-    var k = 0; while (k < B.order.length && (B.order[k].initRoll > made[0].initRoll || (B.order[k].initRoll === made[0].initRoll && B.order[k] === u))) k++;
+    // (Giant Insect's act on his turn -- SRD: dealt in right after him, on his roll)
+    if (S.onTurn) made.forEach(function (w) { w.initRoll = u.initRoll || 0; });
+    var k = 0; if (S.onTurn) k = B.order.indexOf(u) + 1; else while (k < B.order.length && (B.order[k].initRoll > made[0].initRoll || (B.order[k].initRoll === made[0].initRoll && B.order[k] === u))) k++;
     Array.prototype.splice.apply(B.order, [k, 0].concat(made));
     D.sfx('nature');
     var what = made.length + ' ' + plural(d.name.toLowerCase(), made.length);
-    B.card([head + ': ' + what + (made.length === 1 ? ' steps' : ' step') + ' out of the air, his to command.  {g}initiative ' + made[0].initRoll + '{/}'], 320);
+    B.card([head + ': ' + what + (S.fixed ? (made.length === 1 ? ' swells' : ' swell') + ' to a giant\'s size, his to command.  {g}they act on his turn{/}' : (made.length === 1 ? ' steps' : ' step') + ' out of the air, his to command.  {g}initiative ' + made[0].initRoll + '{/}')], 320);
     M.concentrate(B, u, id, S.name, function () {
       var left = made.filter(function (w) { return !w.dead; });
       left.forEach(function (w) { FX.sparkle(w, 'moss', 10); w.dead = true; w.left = true; w.deadT = B.t; });
@@ -1215,7 +1217,7 @@
       list: function (B, u, e) { return D.summonPool(id, e.slot || e.level).length ? null : { why: 'nothing of its kind in the world to answer yet' }; },
       summary: function (e, u) {
         var S = D.SUMMON[id], P = D.summonPool(id, (e && e.slot) || (e && e.sp && e.sp.level) || 3);
-        return (S.type === 'beast' ? 'fey spirits in beasts\' shapes' : 'fey creatures') + ' round a point within ' + S.range + ' ft (concentration): '
+        return (S.fixed ? 'insects near you made giant' : S.type === 'beast' ? 'fey spirits in beasts\' shapes' : 'fey creatures') + ' round a point within ' + S.range + ' ft (concentration): '
           + (P.length ? P.slice(0, 3).map(function (p) { return p.n + ' ' + plural(p.d.name.toLowerCase(), p.n); }).join(', ') + (P.length > 3 ? ', or another' : '') : 'none in the world yet')
           + '; they fight at your word, each gone at 0 HP';
       },
@@ -1242,6 +1244,49 @@
   }
   E.conjureanimals = summonSpell('conjureanimals');
   E.conjurewoodlandbeings = summonSpell('conjurewoodlandbeings');
+  // Cloudkill (SRD 5.1, 5th, concentration, ten minutes): a 20-ft-radius sphere of poisonous yellow-green fog at a point within 120 ft --
+  // heavily obscured (B.darks, kind 'kill': nothing sees in, out or across it); CON or 5d8 poison (half) to one who enters it the first
+  // time on a turn or starts a turn in it (+1d8 a slot above 5th); at the start of each of his turns it rolls 10 ft away from him; a
+  // strong wind scatters it (Gust of Wind; a Wind Wall). The Underdark druid's circle spell at 9 (classes.js lands), the wizard's 5th
+  E.cloudkill = {
+    summary: function (e) { return '20-ft sphere of poison fog within 120 ft (concentration): nothing sees in, out or across it; entering it or starting a turn in it, CON or ' + more('5d8', Math.max(0, ((e && e.slot) || 5) - 5)) + ' poison (half); it rolls 10 ft away from you each of your turns'; },
+    cast: function* (B, u, t, slot, head, x) {
+      var rec = { by: u.id, sq: G.sphere(t.x, t.y, 20), kind: 'kill', dc: x.dc, dice: more('5d8', Math.max(0, slot - 5)), cx: t.x, cy: t.y };
+      B.darks = (B.darks || []).concat([rec]); B.lightMap = null;
+      FX.bloom(t.x, t.y, rec.sq, 'moss'); D.sfx('poison2');
+      B.card([head + ': a yellow-green fog rolls out, 20 ft round -- {c}nothing sees in, out or across it{/}; CON DC ' + x.dc + ' or ' + rec.dice + ' poison to whoever enters it or starts a turn in it'], 300);
+      M.concentrate(B, u, 'cloudkill', 'Cloudkill', function () { B.darks = (B.darks || []).filter(function (d) { return d !== rec; }); B.lightMap = null; B.card(['{g}The poison fog thins and is gone.{/}'], 240); });
+      yield 24;
+    },
+    ai: function (B, u, e, slot, fs) {
+      if (u.conc) return null;
+      var d = avg(more('5d8', Math.max(0, slot - 5)));
+      return TX().bestArea(B, u, e, fs, function (caught) { var sc = 0; caught.forEach(function (w) { if ((w.immune || []).indexOf('poison') >= 0) return; var pf = TX().pFail(w, 'con', u.spellDC), v = (pf * d + (1 - pf) * d / 2) * 2; sc += G.hostile(u, w) ? v : (w === u ? -v * 2 : -v * 1.3); }); return sc; });
+    }
+  };
+  function killAt(B, u) { return (B.darks || []).filter(function (d) { return d.kind === 'kill' && G.foot(u).some(function (p) { return d.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); }); }
+  function killHurt(B, u, d, what) { var sv = RU.save(u, 'con', d.dc), r = D.roll(d.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' ' + what + ': CON ' + RU.saveText(sv) + ' vs DC ' + d.dc + '  ' + d.dice + ' = {r}' + n + '{/} poison'], 240); B.hurt(u, n, 'poison'); }
+  var onStartK = M.onStart;
+  M.onStart = function (B, u) {
+    onStartK(B, u);
+    // his turn: each cloud of his rolls 10 ft away from him
+    (B.darks || []).forEach(function (d) {
+      if (d.kind !== 'kill' || d.by !== u.id) return;
+      var dx = Math.sign(d.cx - u.x), dy = Math.sign(d.cy - u.y); if (!dx && !dy) dy = -1;
+      var nx = d.cx + dx * 2, ny = d.cy + dy * 2; if (!G.map.at(nx, ny)) return;
+      d.cx = nx; d.cy = ny; d.sq = G.sphere(nx, ny, 20); B.lightMap = null;
+      B.card(['{g}The poison fog rolls on, away from ' + u.name + '.{/}'], 200);
+    });
+    if (u.hp <= 0 || u.dead) return;
+    killAt(B, u).forEach(function (d) { if (u.hp > 0) killHurt(B, u, d, 'starts its turn in the poison fog'); });
+  };
+  var stepK = M.stepInto;
+  M.stepInto = function (B, u) {
+    var stop = stepK(B, u);
+    if (u.hp > 0 && !u.dead && u.turn) killAt(B, u).forEach(function (d) { if (u.turn['kill' + d.by] || u.hp <= 0) return; u.turn['kill' + d.by] = true; killHurt(B, u, d, 'walks into the poison fog'); });
+    return stop || u.hp <= 0;
+  };
+  E.giantinsect = summonSpell('giantinsect');
   // ------------------------------------------------------------------ shapes and charms (the druid to twelve, step 3 and 4, 09-30)
   // Polymorph (SRD 5.1, 4th, concentration): a creature he can see within 60 ft becomes a beast of its CR or less (a hero's or a class
   // NPC's: its level) -- a foe on a failed WIS save, an ally willingly. The beasts are the world's (data/summons.js D.pool: the same

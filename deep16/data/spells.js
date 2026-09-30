@@ -146,6 +146,11 @@
   flamestrike: { shape: 'sphere', range: 60, r: 10, time: 'A' },
   greaterrestoration: { shape: 'touch', side: 'ally', time: 'A' },
   insectplague: { shape: 'sphere', range: 300, r: 20, time: 'A', conc: true },
+  // the druid's last (the druid to twelve, 09-30: js/walls.js, js/grimoire.js)
+  plantgrowth: { shape: 'sphere', range: 150, r: 100, time: 'A', side: 'any' },
+  giantinsect: { shape: 'sphere', range: 30, r: 5, time: 'A', conc: true, side: 'any' },
+  antilifeshell: { shape: 'self', time: 'A', conc: true },
+  cloudkill: { shape: 'sphere', range: 120, r: 20, time: 'A', conc: true },
   // shapes and charms (the druid to twelve, 09-30: js/grimoire.js, js/features.js F.morph)
   polymorph: { shape: 'single', range: 60, time: 'A', conc: true, side: 'any' },
   dominatebeast: { shape: 'single', range: 60, time: 'A', conc: true, side: 'foe', only: 'beast' },

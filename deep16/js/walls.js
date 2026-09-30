@@ -93,6 +93,8 @@
           });
         }
         B.walls = (B.walls || []).concat([w]); B.wallMap = null;
+        // (the wind keeps fog, smoke and gases at bay, SRD: a cloud it cuts through is scattered)
+        if (K.kind === 'wind') { var gone = (B.darks || []).filter(function (dk) { return (dk.kind === 'fog' || dk.kind === 'stink' || dk.kind === 'kill') && dk.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); }); if (gone.length) { B.darks = B.darks.filter(function (dk) { return gone.indexOf(dk) < 0; }); B.lightMap = null; B.card(['{g}The wind tears the cloud apart.{/}'], 220); } }
         if (K.light) { w.lights = []; sq.forEach(function (q, i) { if (i % 2 === 0) w.lights.push({ id: w.id + 'L' + i, kind: 'wall', x: q[0], y: q[1], bright: 15, dim: 15, color: 'fire', flame: true, by: u.id }); }); B.lights = (B.lights || []).concat(w.lights); B.lightMap = null; B.partyMap = null; }
         FX.bloom(t.x, t.y, sq, K.kind === 'fire' ? 'fire' : K.kind === 'thorns' ? 'moss' : K.kind === 'stone' ? 'stone' : 'glow');
         if (K.rise) {
@@ -158,6 +160,76 @@
     var winds = B.walls.filter(function (w) { return w.kind === 'wind'; }); if (!winds.length) return false;
     var L = G.line(att.x, att.y, tgt.x, tgt.y);
     return winds.some(function (w) { return L.some(function (p) { return w.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }) && !G.inArea(att, [p]) && !G.inArea(tgt, [p]); }); });
+  };
+
+
+  // ------------------------------------------------------------------ Antilife Shell and Plant Growth (the druid to twelve, 09-30)
+  // Antilife Shell (SRD 5.1, 5th, concentration, an hour): a 10-ft barrier about him that moves with him; no creature but the undead and
+  // constructs passes it or reaches through it (grid.js reads G.shellBars; a blow across it is turned: battle.js attack asks W.shellTurns);
+  // if he moves so that one is forced through it, the spell ends
+  function shelled(w) { return w.type !== 'undead' && w.type !== 'construct'; }
+  function shellsOf(B) { return (B && B.shells) || []; }
+  G.shellBars = function (u, x0, y0, x1, y1) {
+    var B = D.battle, S = shellsOf(B); if (!S.length || !shelled(u)) return false;
+    for (var i = 0; i < S.length; i++) {
+      var c = B.units.filter(function (w) { return w.id === S[i].by; })[0]; if (!c || c === u || !G.standing(c)) continue;
+      if ((G.dist(u, c, x0, y0) <= 10) !== (G.dist(u, c, x1, y1) <= 10)) return true; // (u stood at each end of the step)
+    }
+    return false;
+  };
+  W.shellTurns = function (B, att, tgt, atk) {
+    if (!atk || atk.ranged || !shellsOf(B).length) return false;
+    return shellsOf(B).some(function (s) { var c = B.units.filter(function (w) { return w.id === s.by; })[0]; if (!c || !G.standing(c)) return false; var a = att !== c && shelled(att) ? G.dist(c, att) <= 10 : null, b = tgt !== c && shelled(tgt) ? G.dist(c, tgt) <= 10 : null; if (att === c) a = true; if (tgt === c) b = true; return a !== null && b !== null && a !== b; });
+  };
+  function insideOf(B, s) { var c = B.units.filter(function (w) { return w.id === s.by; })[0]; return c ? B.units.filter(function (w) { return w !== c && G.present(w) && w.hp > 0 && shelled(w) && G.dist(c, w) <= 10; }).map(function (w) { return w.id; }).sort().join(',') : ''; }
+  E.antilifeshell = {
+    summary: function () { return 'a 10-ft barrier about you (concentration): no creature but the dead and the made passes or reaches through it; move so one is forced through, and it ends'; },
+    cast: function* (B, u, t, slot, head) {
+      var s = { by: u.id }; s.inside = insideOf(B, s);
+      B.shells = shellsOf(B).concat([s]);
+      FX.sparkle(u, 'glow', 20); D.sfx('holy2');
+      B.card([head + ': a shimmering barrier ten feet about ' + u.name + '. Nothing living comes through it.'], 280);
+      M.concentrate(B, u, 'antilifeshell', 'Antilife Shell', function () { B.shells = shellsOf(B).filter(function (x) { return x !== s; }); B.card(['{g}The barrier about ' + u.name + ' is gone.{/}'], 220); });
+      yield 24;
+    },
+    // the AI raises it when blades are coming and none is at it yet
+    ai: function (B, u, e, slot, fs) {
+      if (u.conc) return null;
+      var near = fs.filter(function (f) { return shelled(f) && G.standing(f) && G.dist(u, f) <= 10; }).length;
+      var coming = fs.filter(function (f) { return shelled(f) && G.standing(f) && !(f.weapon && f.weapon.ranged) && G.dist(u, f) > 10 && G.dist(u, f) <= 10 + (f.speed || 30); });
+      if (near || coming.length < 2) return null;
+      var sc = coming.reduce(function (a, f) { return a + TX().dpr(f); }, 0) * 1.5;
+      return { score: sc, t: u, keep: sc * 0.6 };
+    }
+  };
+  // his step (M.stepInto): one forced through by his moving -- a creature in the barrier now that was not, or out that was in -- ends it
+  var step1 = M.stepInto;
+  M.stepInto = function (B, u) {
+    var stop = step1 ? step1(B, u) : false;
+    shellsOf(B).slice().forEach(function (s) { if (s.by !== u.id) return; var now = insideOf(B, s); if (now !== s.inside && u.conc && u.conc.id === 'antilifeshell') M.endConc(B, u, 'one forced through the barrier'); });
+    return stop;
+  };
+  // Plant Growth (SRD 5.1, 3rd, an action; eight hours: the fight): the grass within 100 ft of a point grows thick -- 4 ft of movement for
+  // every foot (20 more a square). Only where there are plants (the road maps' grass): in the caves it waits, greyed
+  function plantSq(B, cx, cy) { var out = []; for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) { var s = G.map.at(x, y); if (s && s.ch === 'g' && Math.hypot(x - cx, y - cy) * 5 <= 100) out.push([x, y]); } return out; }
+  E.plantgrowth = {
+    list: function () { return G.map.sq.some(function (s) { return s.ch === 'g'; }) ? null : { why: 'no plants here to grow' }; },
+    summary: function () { return 'a point within 150 ft: the grass within 100 ft grows thick -- 20 ft more a square (the fight)'; },
+    cast: function* (B, u, t, slot, head) {
+      var sq = plantSq(B, t.x, t.y);
+      if (!sq.length) { B.card([head + ': nothing grows there.'], 200); yield 16; return; }
+      B.overgrown = (B.overgrown || {}); sq.forEach(function (q) { B.overgrown[q[0] + ',' + q[1]] = true; });
+      FX.bloom(t.x, t.y, sq, 'moss'); D.sfx('nature');
+      B.card([head + ': the grass heaves up thick and tangled -- ' + sq.length + ' squares of it, 20 ft more to cross each.'], 280);
+      yield 24;
+    }
+  };
+  // the grid's extra cost of a square (grid.js stepCost): a Wall of Thorns' 20, Plant Growth's 20
+  G.extraAt = function (u, x, y) {
+    if (u.ethereal) return 0;
+    var w = G.wallAt(x, y), B = D.battle, n = w && w.cost ? w.cost : 0;
+    if (B && B.overgrown && B.overgrown[x + ',' + y] && !(u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) n += 20;
+    return n;
   };
 
   // ------------------------------------------------------------------ the look: each square of a wall, in the world's sort

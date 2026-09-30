@@ -794,7 +794,7 @@
     (B.webs || []).forEach(function (wb) { wb.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], R('bone', 1), 0.22, 3); }); });
     // magical darkness, and the clouds that are heavily obscured like it: fog (pale), a stinking cloud (yellow-green), sleet (cold)
     (B.darks || []).forEach(function (dk) {
-      var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? R('moss', 2) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;
+      var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? R('moss', 2) : k === 'kill' ? R('moss', 3) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;
       D.magic.darkSq(B, dk).forEach(function (q) { fillSq(ctx, q[0], q[1], col, a); });
     });
     if (D.looks) D.looks.ground(ctx, B, onSq); // the spell ground, holy rings, the darkness's edge (js/looks.js)

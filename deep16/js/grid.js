@@ -62,6 +62,7 @@
   };
   G.stepCost = function (u, x0, y0, x1, y1, o) {
     if (!G.canPass(u, x1, y1, o)) return Infinity;
+    if (G.shellBars && !(o && o.ghost) && G.shellBars(u, x0, y0, x1, y1)) return Infinity; // (an Antilife Shell: js/walls.js)
     if (u.flies && !(u.conds && (u.conds.restrained || u.conds.grappled || u.conds.prone))) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it)
     if (Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) > G.map.def.step) return Infinity;
     var dx = x1 - x0, dy = y1 - y0;
@@ -73,7 +74,7 @@
     var f = G.foot(u, x1, y1);
     // a creature bound to its ground (the otyugh will not leave its pool: bound '~') moves only there, and not slowed by it
     if (u.bound) { for (var j = 0; j < f.length; j++) if (u.bound.indexOf(G.map.at(f[j][0], f[j][1]).ch) < 0) return Infinity; }
-    var thorn = G.wallAt && G.wallAt(x1, y1), extra = thorn && thorn.cost && !u.ethereal ? thorn.cost : 0; // (Wall of Thorns: 4 ft of movement a foot -- 20 more a square)
+    var extra = G.extraAt ? G.extraAt(u, x1, y1) : 0; // (Wall of Thorns, Plant Growth: 4 ft of movement a foot -- 20 more a square; js/walls.js)
     if (u.conds && u.conds.freeMove) return 5 + extra; // (Freedom of Movement: no ground slows it; the thorns are the wall's, not the ground's)
     for (var i = 0; i < f.length; i++) { var s = G.map.at(f[i][0], f[i][1]); if ((s.difficult && !(u.bound && u.bound.indexOf(s.ch) >= 0) && !(u.swims && s.ch === '~') && !u.landsStride) || (!u.webWalker && D.magic && D.battle && D.magic.webbed(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.icy && D.magic.icy(D.battle, f[i][0], f[i][1])) || (D.magic && D.battle && D.magic.rough && D.magic.rough(D.battle, f[i][0], f[i][1], u))) return 10 + extra; } // (a web, the ice of a Sleet Storm, a spell's ground: grease, vines, spikes, the guardians' ring)
     return 5 + extra;

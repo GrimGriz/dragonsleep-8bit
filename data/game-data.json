@@ -3575,6 +3575,51 @@
    "sfx": "magic",
    "id": "spikegrowth"
   },
+  "plantgrowth": {
+   "name": "Plant Growth",
+   "level": 3,
+   "kind": "ground",
+   "target": "point",
+   "grid": true,
+   "src": "SRD 5.1 Plant Growth (the druid to twelve, 09-30: deep16/js/walls.js; the grass of the road maps; in the caves it waits)",
+   "sfx": "nature",
+   "id": "plantgrowth"
+  },
+  "giantinsect": {
+   "name": "Giant Insect",
+   "level": 4,
+   "kind": "summon",
+   "target": "point",
+   "grid": true,
+   "src": "SRD 5.1 Giant Insect (the druid to twelve, 09-30: deep16/data/summons.js; the giant spiders, so far)",
+   "sfx": "nature",
+   "id": "giantinsect"
+  },
+  "antilifeshell": {
+   "name": "Antilife Shell",
+   "level": 5,
+   "kind": "ward",
+   "target": "self",
+   "grid": true,
+   "src": "SRD 5.1 Antilife Shell (the druid to twelve, 09-30: deep16/js/walls.js)",
+   "sfx": "holy2",
+   "id": "antilifeshell"
+  },
+  "cloudkill": {
+   "name": "Cloudkill",
+   "level": 5,
+   "kind": "save",
+   "save": "con",
+   "half": true,
+   "dmg": "5d8",
+   "upDice": 1,
+   "el": "poison",
+   "target": "point",
+   "grid": true,
+   "src": "SRD 5.1 Cloudkill (the druid to twelve, 09-30: deep16/js/grimoire.js; the Underdark druid's 9th)",
+   "sfx": "poison",
+   "id": "cloudkill"
+  },
   "charmperson": {
    "name": "Charm Person",
    "level": 1,

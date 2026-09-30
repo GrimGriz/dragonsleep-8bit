@@ -61,7 +61,7 @@
   function sig(B) {
     var ls = L.all(B), k = (B.map ? B.map.def.name : '') + '|';
     ls.forEach(function (l) { k += Math.round(l.x * 2) + ',' + Math.round(l.y * 2) + ',' + l.bright + ',' + l.dim + ';'; });
-    (B.darks || []).forEach(function (d) { if (d.kind !== 'fog' && d.kind !== 'sleet' && d.kind !== 'stink') k += 'D' + d.sq.length + (d.follow || '') + ';'; });
+    (B.darks || []).forEach(function (d) { if (d.kind !== 'fog' && d.kind !== 'sleet' && d.kind !== 'stink' && d.kind !== 'kill') k += 'D' + d.sq.length + (d.follow || '') + ';'; });
     return { k: k, ls: ls };
   }
   L.map = function (B) {

@@ -17,6 +17,9 @@
     // SRD 5.1 Conjure Animals (3rd, concentration, an hour): fey spirits in beasts' shapes -- one of CR 2, two of CR 1, four of CR 1/2 or
     // eight of CR 1/4 or lower; twice as many from a 5th-level slot, three times from a 7th, four from a 9th
     conjureanimals: { name: 'Conjure Animals', type: 'beast', range: 60, options: [[1, 2], [2, 1], [4, 0.5], [8, 0.25]], upcast: { 5: 2, 7: 3, 9: 4 }, fey: true },
+    // SRD 5.1 Giant Insect (4th, concentration, ten minutes): ten centipedes, three spiders, five wasps or one scorpion made giant -- here the
+    // giant ones the world has (the spiders, so far); they act on his turn (`onTurn`), not on a roll of their own
+    giantinsect: { name: 'Giant Insect', range: 30, fixed: { giantcentipede: 10, giantspider: 3, giantwasp: 5, giantscorpion: 1 }, onTurn: true },
     // SRD 5.1 Conjure Woodland Beings (4th, concentration, an hour): fey creatures, the same four options; twice from a 6th, three times
     // from an 8th. The bestiary has no fey yet: the spell waits, greyed, for the first one drawn
     conjurewoodlandbeings: { name: 'Conjure Woodland Beings', type: 'fey', range: 60, options: [[1, 2], [2, 1], [4, 0.5], [8, 0.25]], upcast: { 6: 2, 8: 3 } }
@@ -36,6 +39,7 @@
   // the bestiary's creatures a spell may call from a slot: each with the most the spell's options allow of it, the strongest first
   D.summonPool = function (id, slot) {
     var S = D.SUMMON[id]; if (!S) return [];
+    if (S.fixed) return Object.keys(S.fixed).filter(function (k) { return D.FOES[k] && D.FOES[k].sheet; }).map(function (k) { return { kind: k, n: S.fixed[k], cr: D.FOES[k].cr, d: D.FOES[k] }; });
     var mult = 1; Object.keys(S.upcast || {}).forEach(function (k) { if ((slot || 0) >= +k) mult = Math.max(mult, S.upcast[k]); });
     return D.pool(S.type).map(function (p) {
       var c = D.crNum(p.cr), n = 0;

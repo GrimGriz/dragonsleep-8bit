@@ -410,7 +410,7 @@
     if (id === 'daylight') {
       // SRD 5.1: bright 60 ft and dim 60 more from a point; on a creature's square it goes with them; a Darkness of 3rd level or
       // lower it overlaps is dispelled (the darkmantle's aura too)
-      var burnt = (B.darks || []).filter(function (dk) { return dk.kind !== 'fog' && dk.kind !== 'sleet' && dk.kind !== 'stink' && M.darkSq(B, dk).some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); });
+      var burnt = (B.darks || []).filter(function (dk) { return dk.kind !== 'fog' && dk.kind !== 'sleet' && dk.kind !== 'stink' && dk.kind !== 'kill' && M.darkSq(B, dk).some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); });
       var bearer = B.units.filter(function (w) { return G.standing(w) && w.side === u.side && G.inArea(w, [[cx, cy]]); })[0];
       if (bearer) bearer.conds.daylight = { by: u.id }; else B.lights = (B.lights || []).concat([{ id: 'daylight' + u.id, kind: 'daylight', x: cx, y: cy, bright: 60, dim: 60, color: 'bone', by: u.id }]);
       lines.push(head + '  a sphere of daylight' + (bearer ? ' about ' + bearer.name : '') + ': {y}bright 60 ft{/} and dim 60 more' + (burnt.length ? ' -- {y}the darkness burns away{/}' : ''));
@@ -655,7 +655,7 @@
     if (a.truesight && G.dist(a, b) <= a.truesight) return { ok: true };
     if ((B.darks || []).length) {
       var k = obscuredBetween(B, a, b);
-      if (k && !(a.devilSight && k === 'darkness')) return { ok: false, why: k === 'darkness' ? 'darkness' : k === 'stink' ? 'the cloud' : k };
+      if (k && !(a.devilSight && k === 'darkness')) return { ok: false, why: k === 'darkness' ? 'darkness' : k === 'stink' || k === 'kill' ? 'the cloud' : k };
     }
     if (b.conds && b.conds.invisible && !b.conds.faerie && !a.seeInvisible && !M.inMirror(B, a, b) && !(a.senseHidden && G.dist(a, b) <= a.senseHidden)) return { ok: false, why: 'invisible' }; // (senseHidden: the snake familiar's caster, RULED 09-30)
     if (D.light) { var s = D.light.seesBy(B, a, b); if (!s.ok) return { ok: false, why: s.why }; if (s.dv) return { ok: true, dv: true }; }
