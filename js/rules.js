@@ -395,8 +395,8 @@
   // snowy owl is the owl in the snowfield's feathers. Both games read this: js/familiar.js (the ritual, the 8-bit shoulder) and
   // deep16/js/familiar.js (the grid's familiar)
   R.FAMILIARS = {
-    owl: { name: 'owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, sheet: 'owl_p2', gift: 'flies 60 ft; sees 120 ft in the dark; swoops in and out of reach unharmed' },
-    snowyowl: { name: 'snowy owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, sheet: 'snowyowl_p2', gift: 'an owl in the snowfield\'s feathers: flies 60 ft, sees 120 ft in the dark, swoops in and out unharmed' },
+    owl: { name: 'owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, sheet: 'owl_p2', scale: 0.75, gift: 'flies 60 ft; sees 120 ft in the dark; swoops in and out of reach unharmed' },
+    snowyowl: { name: 'snowy owl', ac: 11, hp: 1, speed: 5, fly: 60, darkvision: 120, flyby: true, sheet: 'snowyowl_p2', scale: 0.75, gift: 'an owl in the snowfield\'s feathers: flies 60 ft, sees 120 ft in the dark, swoops in and out unharmed' },
     bat: { name: 'bat', ac: 12, hp: 1, speed: 5, fly: 30, blindsight: 60, sheet: 'giantbat_p1', scale: 0.45, gift: 'flies 30 ft; hears its way 60 ft in any dark; carries a touch spell' },
     rat: { name: 'rat', ac: 10, hp: 1, speed: 20, darkvision: 30, sheet: 'giantrat_p1', scale: 0.5, gift: 'quick and small; sees 30 ft in the dark; carries a touch spell' },
     spider: { name: 'spider', ac: 12, hp: 1, speed: 20, darkvision: 30, webWalker: true, sheet: 'wolfspider_p1', scale: 0.4, gift: 'webs do not hold it; sees 30 ft in the dark; carries a touch spell' },

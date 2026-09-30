@@ -622,7 +622,10 @@
   function unitObj(B, u) {
     var p = unitPos(B, u), has = function (a) { return !!D.spr.anim(u.sheet, a); };
     // a familiar riding its wizard (js/familiar.js): the owls perched on his shoulder, the rest at his feet, drawn just after him
-    if (u.riding && u.master) { var mp = unitPos(B, u.master), mt = D.spr.unitTop(u.master); p = u.perch === 'shoulder' ? { x: mp.x + 5, y: mp.y - Math.round(mt * 0.68), depth: mp.depth + 0.02, gz: mp.gz } : { x: mp.x + 9, y: mp.y + 3, depth: mp.depth + 0.03, gz: mp.gz }; }
+    // (it faces as he does -- Griz, 09-29: "facing left when he's facing north" -- and sits on the shoulder, not above the ear; the shoulder
+    // is the one on the viewer's left while he faces toward the viewer, on the right while he faces away)
+    if (u.riding && u.master) { var mf = u.master.facing || 0, fore = mf === 0 || mf === 1 || mf === 2 || mf === 7, mp = unitPos(B, u.master), mt = D.spr.unitTop(u.master); u.facing = mf;
+      p = u.perch === 'shoulder' ? { x: mp.x + (fore ? -9 : 9), y: mp.y - Math.round(mt * 0.62), depth: mp.depth + 0.02, gz: mp.gz } : { x: mp.x + (fore ? 9 : -9), y: mp.y + 3, depth: mp.depth + 0.03, gz: mp.gz }; }
     if (u.left) return null; // out of the fight, the way they came in
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
     var obj = {
