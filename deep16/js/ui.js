@@ -173,6 +173,7 @@
   // a cutscene beat runs its frames; after its first second E or a click moves it on
   function sceneInput(B, sc) {
     sc.t = (sc.t || 0) + 1;
+    if (sc.tick) sc.tick(sc.t); // (a picture's sounds on its own frames: the landlord's clackers, js/wet.js W.SOUND)
     if (sc.t >= (sc.frames || 120) || (sc.t > 60 && (I.pressed('a') || I.pressed('end') || I.mouse.click))) B.answer();
   }
   function promptInput(B, p) {

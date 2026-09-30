@@ -131,7 +131,7 @@
     if (u.guest || u.classAI || u.left || u.dead || u.hp <= 0 || u.conds.restrained || !B.onExit(u) || (B.o.embed && B.o.embed.canRun === false) || B.over()) return;
     var stair = ((B.map && B.map.def && B.map.def.doors) || []).some(function (q) { return q[0] === u.x && q[1] === u.y; }); // (the map's doors: the stair's squares, already the grid's)
     var near = B.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.dormant && !w.ethereal && G.dist(w, u) <= G.reachOf(w); });
-    var yes = yield { prompt: { who: u, title: 'LEAVE THE AREA?', lines: [(stair ? 'Up the stair' : 'Out of the wet to the south') + ': all of you go with ' + u.name + '.' + (near ? ' Something beside ' + u.name + ' gets its swing.' : '')], opts: [{ label: 'YES', value: true }, { label: 'NO', value: false }] } };
+    var yes = yield { prompt: { who: u, title: 'LEAVE THE AREA?', lines: [(stair ? 'Up the stair' : 'Out of the wet to the south') + ': ' + u.name + ' goes, and the party goes too.' + (near ? ' Something beside ' + u.name + ' gets its swing.' : '')], opts: [{ label: 'YES', value: true }, { label: 'NO', value: false }] } };
     if (yes) yield* B.leave(u);
   };
   W.stepped = function* (B, u, sq) {
@@ -154,8 +154,12 @@
     near.forEach(function (w) { bs[w.id] = (bs[w.id] || 0) + 1; if (bs[w.id] > 3 && !u.fed) woke = true; });
     if (near.length && !B.wet.spoke) yield* W.speak(B, near[0]);
     if (woke) { W.wake(B, u, 'patience'); return false; } // (and its turn goes on: the tentacles)
-    B.card(['{g}' + (u.fed ? 'The landlord settles in its pool, fed.' : near.length ? 'The landlord watches ' + near.map(function (w) { return w.name; }).join(', ') + ' from the water.' : 'Something watches from the deep water under the fall.') + '{/}'], 160);
-    yield 12;
+    if (u.fed) { B.card(['{g}The landlord settles in its pool, fed.{/}'], 160); yield 12; return true; }
+    // (the warning: the camera goes to it and holds long enough to read -- 09-30e, Griz: "Need a little bit longer pause for the 'the landlord
+    // is looking at you' (gist) warnings cause the camera has to pan and such")
+    if (B.focus) B.focus(u);
+    B.card(['{g}' + (near.length ? 'The landlord watches ' + near.map(function (w) { return w.name; }).join(', ') + ' from the water.' : 'Something watches from the deep water under the fall.') + '{/}'], 260);
+    yield 60;
     return true;
   };
   // the first time: a picture of a bucket, in the head of whoever is nearest the water (the canon)
@@ -215,7 +219,7 @@
     // fed, it tells them things in pictures: what comes down the stream (the canon's crook upstream)
     D.sfx('magic');
     var pics = ['fall', 'crook', 'clackers', 'bats'];
-    for (var k = 0; k < pics.length; k++) yield { scene: { draw: W.picture(pics[k]), frames: 150 } };
+    for (var k = 0; k < pics.length; k++) yield { scene: { draw: W.picture(pics[k]), frames: 150, tick: W.SOUND[pics[k]] || null } };
     this.card(['{p}Pictures, one after another, in ' + u.name + '\'s head: the stream coming down out of the hills; a cave of pale fungus and still water; hooked things clacking in the dark; and a chimney full of wings.{/}'], 480);
     yield 30;
   };
@@ -233,9 +237,21 @@
     P.round = r;
     var long = downed(this).filter(function (w) { return P.downAt[w.id] < r; });
     if (!long.length) return;
-    var n = Math.min(2, D.d(2)), got = 0;
-    for (var i = 0; i < n; i++) if (W.crawlerOut(this, long[0], i)) got++;
-    if (got) { D.sfx('encounter'); this.card(['{r}Blood on the stone. ' + (got > 1 ? 'Two crawlers come' : 'A crawler comes') + ' in out of the dark to the south, for ' + long[0].name + '.{/}  {g}(a round they are down, the herd comes: get them up, or get out){/}'], 420); yield 40; this.units.forEach(function (w) { if (w.wetCrawler && w.anim === 'walk') w.anim = 'idle'; }); }
+    var n = Math.min(2, D.d(2)), came = [];
+    for (var i = 0; i < n; i++) { var c = W.crawlerOut(this, long[0], i); if (c) came.push(c); }
+    if (!came.length) return;
+    // noticed or not (RULED 09-30e, Griz: "can we do passive perception checks silently when the crawlers show up, then cam pause on them with
+    // 'your comrades fall has attracted the herd'"): the herd's Stealth, rolled once and never shown, against each standing hero's passive
+    // Perception. Seen: the camera on them, held, and the line. Unseen: they come in out of the dark with nothing said
+    if (W.noticed(this, came)) { D.sfx('encounter'); if (this.focus) this.focus(came[0]); this.card(['{r}Your comrade\'s fall has attracted the herd.{/}'], 420); yield 75; }
+    else yield 30; // (the walk in from past the edge, unannounced)
+    this.units.forEach(function (w) { if (w.wetCrawler && w.anim === 'walk') w.anim = 'idle'; });
+  };
+  W.noticed = function (B, came) {
+    var sk = Math.max.apply(null, came.map(function (c) { return c.stealth || Math.floor(((c.abil && c.abil.dex) || 10) / 2) - 5; })), roll = D.d(20) + sk;
+    var seen = ours(B).some(function (w) { return !w.left && !w.dead && w.hp > 0 && (w.perception != null ? w.perception : 10) >= roll; });
+    B.wet.notice = { roll: roll, seen: seen }; // (for the probe; nothing on the screen)
+    return seen;
   };
   // in over the south edge, out of the dark (RULED 09-30c): the entrance nearest the downed first, the other for a second; each crawler on
   // the free square nearest its entrance, walking in from past the edge
@@ -260,10 +276,10 @@
         var at = 0; while (at < B.order.length && (B.order[at].initRoll > u.initRoll || (B.order[at].initRoll === u.initRoll && B.order[at].abil.dex >= u.abil.dex))) at++;
         B.order.splice(at, 0, u);
         FX.sparkle(u, 'moss', 16);
-        return true;
+        return u;
       }
     }
-    return false;
+    return null;
   };
   // a crawler's turn: to the downed first, and feed -- 2 of his HP maximum, for good (09-30b); struck, it forgets them and fights
   W.crawlerTurn = function* (B, u) {
@@ -358,6 +374,10 @@
       g.addColorStop(0, 'rgba(40,60,30,0)'); g.addColorStop(1, 'rgba(10,20,8,0.92)'); ctx.fillStyle = g; ctx.fillRect(0, 0, WW, HH);
     };
   };
+  // a picture's sounds, on the frames its drawing moves (the scene's `tick`, deep16/js/ui.js sceneInput): the clackers' claws snap shut at
+  // 8 and 16 of every 32 (DRAW.clackers' `open`), a clack each (09-30e, Griz: "can we add clacker sound effects for when the appropriate
+  // telepathy image shows?")
+  W.SOUND = { clackers: function (t) { var p = t % 32; if (p === 8 || p === 16) D.sfx('clack'); } };
   function drop(c, x, y, t, speed, col) { var yy = y + ((t * speed) % 30); c.fillStyle = col; c.fillRect(x, yy, 1, 2); }
   var DRAW = {
     // hungry: a bucket, lowered on a rope, dripping
