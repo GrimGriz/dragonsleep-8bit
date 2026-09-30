@@ -45,16 +45,20 @@
       DS.text(ctx, '= ' + o.total, 128, cy + 3, '#F8F8F8');
       if (this.t > 48) DS.textCenter(ctx, o.ok ? 'SUCCESS' : 'NOT ENOUGH', 128, y + h - 14, o.ok ? '#58F898' : '#F87858');
     }
+    if (o.note) DS.textCenter(ctx, o.note, 128, y + 67, '#B8F8D8'); // (a familiar lending a hand: js/familiar.js perks)
   };
   // roll it for the best hand in the party (or the one named), show it, return whether it held
   EV.check = function* (skill, ab, dc, o) {
     o = o || {};
     var g = G(), hands = o.hero ? [o.hero] : g.party.filter(function (h) { return !h.ko; });
-    var sorted = hands.slice().sort(function (a, b) { return R.skill(b, skill, ab) - R.skill(a, skill, ab); });
+    // the snake's caster has advantage on a Persuasion check (RULED 09-30; js/familiar.js DS.famPerk): worth about +3 to the hand that is best
+    function snaked(x) { return skill === 'Persuasion' && !!x && !!DS.famPerk && DS.famPerk(x.id, 'persuasion') === 'adv'; }
+    var sorted = hands.slice().sort(function (a, b) { return (R.skill(b, skill, ab) + (snaked(b) ? 3 : 0)) - (R.skill(a, skill, ab) + (snaked(a) ? 3 : 0)); });
     // a group check (all of you creeping up together) rides on the middle of the party, not its best
     var h = (o.group ? sorted[Math.floor((sorted.length - 1) / 2) + (sorted.length > 2 ? 1 : 0)] : sorted[0]) || g.main();
-    var mod = R.skill(h, skill, ab), r1 = DS.d(20), r2 = DS.d(20), nat = o.adv ? Math.max(r1, r2) : r1, total = nat + mod, ok = total >= dc;
-    yield W8.scene(new CheckScene({ skill: skill, dc: dc, name: o.group ? 'The party, at ' + h.name + "'s pace" : h.name, mod: mod, nat: nat, total: total, ok: ok, adv: o.adv }));
+    var adv = !!o.adv || snaked(h), form = snaked(h) && R.FAMILIARS[g.flags.familiar.kind];
+    var mod = R.skill(h, skill, ab), r1 = DS.d(20), r2 = DS.d(20), nat = adv ? Math.max(r1, r2) : r1, total = nat + mod, ok = total >= dc;
+    yield W8.scene(new CheckScene({ skill: skill, dc: dc, name: o.group ? 'The party, at ' + h.name + "'s pace" : h.name, mod: mod, nat: nat, total: total, ok: ok, adv: adv, note: form ? L('fam.persuade', { name: h.name, form: form.name.replace(/^poisonous /, '') }) : null }));
     return ok;
   };
 

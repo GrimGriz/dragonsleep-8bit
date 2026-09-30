@@ -14818,6 +14818,21 @@
    "t": "{name}'s {form} is buffeted, and holds on.",
    "src": "invented: connective (Find Familiar, REINSTATED 09-29)",
    "id": "fam.buffeted"
+  },
+  "fam.croak": {
+   "t": "The {form} croaks: {name} is ready.",
+   "src": "RULED 09-30 (Griz), the familiar's perks (the frog: \"EXCELLENT call on the frog. will need audible.\")",
+   "id": "fam.croak"
+  },
+  "fam.webwalk": {
+   "t": "The web will not hold {name}. The {form} knows its threads.",
+   "src": "RULED 09-30 (Griz), the familiar's perks (the spider: \"aurdin won't trigger webs he walks into\")",
+   "id": "fam.webwalk"
+  },
+  "fam.persuade": {
+   "t": "The {form} lends its charm.",
+   "src": "RULED 09-30 (Griz), the familiar's perks (the snake: \"diplomacy and persuasion checks by caster\")",
+   "id": "fam.persuade"
   }
  },
  "rumors": [

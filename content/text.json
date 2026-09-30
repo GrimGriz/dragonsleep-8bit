@@ -747,5 +747,8 @@
   "fam.keep": {"t": "{name}'s {form} serves already. Burn another bundle of herbs for a new shape?", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
   "fam.darts": {"t": "{name}'s {form} darts out among the foes: the next blow lands the better for it.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
   "fam.caught": {"t": "{name}'s {form} is caught in it, and is gone.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
-  "fam.buffeted": {"t": "{name}'s {form} is buffeted, and holds on.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"}
+  "fam.buffeted": {"t": "{name}'s {form} is buffeted, and holds on.", "src": "invented: connective (Find Familiar, REINSTATED 09-29)"},
+  "fam.croak": {"t": "The {form} croaks: {name} is ready.", "src": "RULED 09-30 (Griz), the familiar's perks (the frog: \"EXCELLENT call on the frog. will need audible.\")"},
+  "fam.webwalk": {"t": "The web will not hold {name}. The {form} knows its threads.", "src": "RULED 09-30 (Griz), the familiar's perks (the spider: \"aurdin won't trigger webs he walks into\")"},
+  "fam.persuade": {"t": "The {form} lends its charm.", "src": "RULED 09-30 (Griz), the familiar's perks (the snake: \"diplomacy and persuasion checks by caster\")"}
 }

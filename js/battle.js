@@ -223,9 +223,11 @@
     var adv = 0, dis = 0;
     // the Mirror's eye (RULED 09-28: the Mirror's warlocks; it needs light): hiding and invisibility are nothing to one who wears it
     var eyeT = this.lit && !isHero(t) && t.m.traits && t.m.traits.mirrorEye, eyeA = this.lit && !isHero(a) && a.m.traits && a.m.traits.mirrorEye;
+    // the snake's caster senses the hidden and the unseen (RULED 09-30; no ranges here, so always): as if he had See Invisible (js/familiar.js)
+    var famSees = isHero(a) && !!(DS.famPerk && DS.famPerk(a.h.id, 'senseHidden'));
     if (a.conds.hidden && !eyeT) adv++;
     if (a.conds.invisible && !eyeT) adv++;
-    if (t.conds.invisible && !a.conds.seeInvisible && !eyeA) dis++;
+    if (t.conds.invisible && !a.conds.seeInvisible && !eyeA && !famSees) dis++;
     if (t.conds.pfeg && otherworld(a)) dis++; // Protection from Evil and Good (SRD 5.1; 09-28g)
     if (this.blindTo(a) && typeof R.BLIND !== 'number') dis++; // shooting blind: the SRD's disadvantage (the -4 is the other switch)
     if (this.dark && !this.lit && this.seesDark(a) && !this.seesDark(t)) adv++; // unseen attacker (SRD): the one who sees in the dark on the one who does not
@@ -236,7 +238,7 @@
     if (t.conds.prone) { if (melee) adv++; else dis++; }
     if (!isHero(a) && a.m.traits && a.m.traits.packTactics && this.allies(a).length > 1) adv++;
     if (!isHero(a) && a.m.traits && a.m.traits.lightSensitive && this.bright) dis++;
-    if (!isHero(t) && t.m.traits && t.m.traits.unseen && !t.conds.revealed) dis++;
+    if (!isHero(t) && t.m.traits && t.m.traits.unseen && !t.conds.revealed && !famSees) dis++;
     if (t.conds.engulfed && !isHero(a) && a.holding.indexOf(t) >= 0) adv++;
     if (this.famHelps && this.famHelps(a, t)) adv++; // (the familiar on the wizard's shoulder: js/familiar.js)
     return adv && !dis ? 1 : dis && !adv ? -1 : 0;
@@ -353,11 +355,11 @@
           yield* this.hold('The ring flares! The ' + bnd[0].m.name.toLowerCase() + ' turns on ' + nameOf(this.tauntWearer) + '!');
         }
       }
-      if (this.round === 1 && this.o.surprised && !this.surpriseSaid) { this.surpriseSaid = true; yield* this.hold(this.o.surprised === 'party' ? 'Caught off guard! They have the first round.' : 'They never saw you coming. The first round is yours.'); }
+      if (this.round === 1 && this.o.surprised && !this.surpriseSaid) { this.surpriseSaid = true; yield* this.hold(this.o.surprised === 'party' ? 'Caught off guard! They have the first round.' : 'They never saw you coming. The first round is yours.'); if (this.o.surprised === 'party' && this.famCroak) yield* this.famCroak(); } // (the frog croaks: js/familiar.js)
       for (var k = 0; k < this.order.length && !this.over; k++) {
         var u = this.order[k];
         if (down(u)) continue;
-        if (this.round === 1 && ((this.o.surprised === 'party' && isHero(u)) || (this.o.surprised === 'foes' && !isHero(u)))) continue;
+        if (this.round === 1 && ((this.o.surprised === 'party' && isHero(u) && !(this.famAlarm && this.famAlarm(u))) || (this.o.surprised === 'foes' && !isHero(u)))) continue; // (the frog's caster is never surprised: js/familiar.js)
         yield* this.turn(u);
         this.checkEnd();
         if (!this.over) yield* this.bolters();
@@ -536,6 +538,7 @@
   Battle.prototype.spiritStrike = function* (u) {
     var sw = u.conds.spiritWeapon, foes = this.liveFoes(); if (!sw || !foes.length) return;
     var t = foes.slice().sort(function (a, b) { return a.hp - b.hp; })[0];
+    if (this.famWill && this.famWill(u)) yield* this.famFly(u, t); // (the familiar's help lands on this swing: it flies to the target first, js/familiar.js)
     var nat = this.d20(this.advantage(u, t, true)), atk = R.spellAtk(u.h);
     this.bolt(u, t, '#E8F0FF'); yield this.wait(8);
     if (nat === 1 || (nat !== 20 && nat + atk < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('The spiritual weapon swings at ' + nameOf(t) + ' and misses.', 30); return; }
@@ -776,6 +779,7 @@
     for (var a = 0; a < n && !this.over; a++) {
       if (down(t) || t.conds.ethereal) { var alt = this.liveFoes(); if (!alt.length) break; t = DS.pick(alt); }
       var melee = (w.weapon.props || []).indexOf('ranged') < 0;
+      if (this.famWill && this.famWill(u)) yield* this.famFly(u, t); // (the familiar's help lands on this swing: it flies to the target first, js/familiar.js)
       var adv = this.advantage(u, t, melee);
       if (h.wounded) adv--; // Halldor, a third of himself, swinging anyway
       // Cutthroat's Opening Cut: first round, a foe that hasn't moved yet
@@ -1010,7 +1014,7 @@
     if (this.o.roost && ((sp.kind === 'light' && !sp.dim) || sp.buff === 'continualFlame' || sp.el === 'fire' || sp.el === 'thunder')) { // bright light (or fire) under the roost; dim light is lawful (RULED 09-28)
       this.usedFire = true; this.roostCause = sp.el === 'fire' ? 'fire' : 'light'; u.pose = null; return true;
     }
-    var up = slot ? slot - sp.level : 0, dc = R.spellDC(h), atk = R.spellAtk(h);
+    var up = slot ? slot - sp.level : 0, dc = R.spellDC(h) + (this.famDC ? this.famDC(u, sp) : 0), atk = R.spellAtk(h); // (+ the spider's Web, the snake's charms: js/familiar.js)
     var k = sp.kind;
     if (k === 'light') {
       this.lit = true;
@@ -1040,6 +1044,7 @@
       if (k === 'attack') {
         var rays = (sp.rays || 1) + (sp.rayUp ? up : 0);
         for (var r = 0; r < rays && !down(t); r++) {
+          if (this.famWill && this.famWill(u)) yield* this.famFly(u, t); // (the familiar's help lands on this ray: it flies to the target first, js/familiar.js)
           var adv = this.advantage(u, t, false), nat = this.d20(adv), bp = this.blindPen(u);
           var dice = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
           this.bolt(u, t, (ELEM[sp.el] || ELEM.force)[0]);
@@ -1293,7 +1298,7 @@
       if (isHero(t) && nat >= 15) yield* this.doorWard(t);
       return;
     }
-    var crit = nat === 20 || (melee && incap(t)) || (this.round === 1 && this.o.surprised === 'party' && f.m.traits && f.m.traits.assassinate);
+    var crit = nat === 20 || (melee && incap(t)) || (this.round === 1 && this.o.surprised === 'party' && f.m.traits && f.m.traits.assassinate && !(this.famAlarm && this.famAlarm(t)));
     var dmg = DS.roll(f.enlarged && atk.big ? atk.big : atk.dmg, { crit: crit });
     if (atk.martial && !f.martialUsed && this.allies(f).length > 1) { dmg += DS.roll(atk.martial, { crit: crit }); f.martialUsed = this.round; } // martial advantage, once a turn
     if (atk.firstRound && this.round === 1) dmg += DS.roll(atk.firstRound, { crit: crit });
@@ -1370,6 +1375,7 @@
       var t = this.pickHeroFor(f); if (!t || t === 'none') return;
       t = yield* this.wardCheck(f, t); if (!t) return;
       yield* this.say(nameOf(f) + ' spits a web at ' + nameOf(t) + '!', 36);
+      if (this.famWebWalk && (yield* this.famWebWalk(t))) return; // (the spider's caster: no web holds him, js/familiar.js)
       var s = this.save(t, 'dex', sp.dc);
       if (s.success) yield* this.say(nameOf(t) + ' dodges the web.', 30);
       else { t.conds.restrained = { escape: sp.dc + 1 }; yield* this.note(t, nameOf(t) + ' is caught in the web! Restrained: ESCAPE (DC ' + (sp.dc + 1) + ').', 40); }
