@@ -228,16 +228,20 @@
   DS.SlotScene = SlotScene;
 
   // ------------------------------------------------------------------ Field menu
-  function FieldMenu() {
+  // o.battle: opened from a fight's commands with X/ESC (RULED 09-30c, Griz: "I thought it always opened this menu and that's how we
+  // changed equip in 8-bit fights ... I couldn't turn sound off or exit the game during a fight"). The fight has its own ITEM, MAGIC and
+  // SKILL, and ORDER and SAVE wait till it is over; EQUIP, STATUS, JOURNAL, OPTIONS and QUIT are as ever (equipping costs nothing)
+  function FieldMenu(o) {
     var self = this;
-    this.kind = 'fieldmenu';
-    var canSave = DS.field && DS.field.map && DS.field.map.src.save !== false;
+    this.kind = 'fieldmenu'; this.battle = (o && o.battle) || null;
+    var canSave = DS.field && DS.field.map && DS.field.map.src.save !== false, fight = !!this.battle;
     this.menu = new DS.Menu({
       items: [
-        { label: 'ITEM', value: 'item' }, { label: 'MAGIC', value: 'magic' }, { label: 'SKILL', value: 'skill' }, { label: 'EQUIP', value: 'equip' },
-        { label: 'STATUS', value: 'status' }, { label: 'ORDER', value: 'order', disabled: DS.G.party.length < 2 }, { label: 'JOURNAL', value: 'journal' },
-        { label: 'SAVE', value: 'save', disabled: !canSave }, { label: 'OPTIONS', value: 'options' }, { label: 'QUIT', value: 'quit' }
+        { label: 'ITEM', value: 'item', disabled: fight }, { label: 'MAGIC', value: 'magic', disabled: fight }, { label: 'SKILL', value: 'skill', disabled: fight }, { label: 'EQUIP', value: 'equip' },
+        { label: 'STATUS', value: 'status' }, { label: 'ORDER', value: 'order', disabled: fight || DS.G.party.length < 2 }, { label: 'JOURNAL', value: 'journal' },
+        { label: 'SAVE', value: 'save', disabled: fight || !canSave }, { label: 'OPTIONS', value: 'options' }, { label: 'QUIT', value: 'quit' }
       ],
+      index: fight ? 3 : 0, // (in a fight the cursor starts on EQUIP)
       x: 184, y: 4, w: 70, rowH: 12, pad: 7,
       onSelect: function (it) { DS.run(function* () { self.menu.active = false; yield* self.pick(it.value); self.menu.active = true; }); },
       onCancel: function () { DS.pop(self); }
@@ -329,7 +333,12 @@
     if (what === 'options') yield W8.scene(new Options());
     if (what === 'quit') {
       var q = yield DS.ask('Return to the title? Unsaved progress is lost.', ['STAY', 'QUIT']);
-      if (q === 1) { DS.clearScenes(); DS.push(new Title()); }
+      if (q === 1) {
+        // (from inside a fight, the fight's own scripts and the one that started it are waiting on this menu: end them, or the field
+        // would think a script still runs and never take a step again)
+        if (this.battle) DS.scripts.forEach(function (s) { s.done = true; });
+        DS.clearScenes(); DS.push(new Title());
+      }
     }
   };
   function descBox(ctx, menu) {

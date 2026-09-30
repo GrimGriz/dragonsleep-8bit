@@ -678,7 +678,9 @@
         held ? { label: 'ESCAPE', value: 'escape' } : { label: 'RUN', value: 'run', disabled: this.o.canRun === false }
       ];
       this.msg = h.name + (st.surged ? ' surges!' : '') + (st.actions > 1 ? ' (2 actions)' : '');
-      var cmd = yield DS.choose({ items: cmds, x: 0, y: 156, w: 90, h: 84, rowH: 12, pad: 8, cancelable: false, index: this.lastCmd && this.lastCmd[h.id] || 0 });
+      var cmd = yield DS.choose({ items: cmds, x: 0, y: 156, w: 90, h: 84, rowH: 12, pad: 8, index: this.lastCmd && this.lastCmd[h.id] || 0 });
+      // X/ESC on the commands: the field menu, mid-fight (RULED 09-30c) -- EQUIP, STATUS, OPTIONS, QUIT -- and back to the commands
+      if (cmd == null) { yield W8.scene(new DS.FieldMenu({ battle: this })); continue; }
       this.lastCmd = this.lastCmd || {}; this.lastCmd[h.id] = ['fight', 'magic', 'skill', 'item', 'run', 'escape'].indexOf(cmd) % 5;
       var used = false;
       if (cmd === 'fight') {
