@@ -31,7 +31,8 @@
     if (NB && NB.party) party = NB.party.map(function (w, i) { return D.npc.build(w, F.level, 'party', { id: typeof w === 'string' ? 'p' + i + '-' + String(w).split(':')[0] : w.id }); }).filter(Boolean);
     if (NB && (this.o.bench || this.o.watch)) party.forEach(function (u) { u.guest = true; u.classAI = true; });
     // the wizard's familiar, if the save has one and he is here (Find Familiar: js/familiar.js)
-    var fam = D.familiar && !NB && D.familiar.unit(this, this.from.data, party); if (fam) party.push(fam);
+    var famData = this.o.familiar ? { flags: { familiar: this.o.familiar } } : NB ? null : this.from.data; // (the camp's pick for our four: o.familiar)
+    var fam = D.familiar && famData && D.familiar.unit(this, famData, party); if (fam) party.push(fam);
     var entry = (F.entry || m.def.entry).slice();
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
     // the party came in by), and a map's named doors (`doors`: the inn's); a map closed all round keeps the way in

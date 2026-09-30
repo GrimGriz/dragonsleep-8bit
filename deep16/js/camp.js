@@ -203,6 +203,9 @@
         { label: 'A LIGHT IN HAND', right: this.info.torch.why || (this.info.torch.who ? this.info.torch.who.name + ', ' + (this.info.torch.kind === 'lantern' ? 'lantern' : 'torch') : 'nobody'), ok: !this.info.torch.why || !!this.info.torch.who,
           act: function () { self.cycleTorch(1); }, cycle: function (d) { self.cycleTorch(d); },
           desc: 'Who walks in holding a light lit at the camp, from the pack: a torch (bright 20 ft, dim 20 more) or a hooded lantern (bright 30 ft, dim 30 more; HOOD DOWN in the fight for dim 5 ft only, and a roost sleeps), from the first round, no action spent on the tinderbox. It takes a hand (a versatile weapon is held in one); not with a two-handed weapon, or a weapon and a shield. Left/right or E: who, and which.' + ((this.F.dark != null ? this.F.dark : D.MAPS[this.F.map] && D.MAPS[this.F.map].dark) ? '  This fight is in the dark.' : '  This fight is not in the dark.') },
+        // Find Familiar at the camp (Griz, 09-29: "yes - at appropriate level if caster in party"): a wizard of any level (it's his 1st-level ritual)
+        this.famWiz() ? { label: 'A FAMILIAR', right: this.st.familiar ? this.famWiz().name + ', ' + DS.R.FAMILIARS[this.st.familiar].name : 'none', act: function () { self.cycleFamiliar(1); }, cycle: function (d) { self.cycleFamiliar(d); },
+          desc: 'Find Familiar, called at the camp: a spirit in the shape of a small creature rides ' + this.famWiz().name + ' -- the owls on his shoulder, the rest at his feet -- and takes the Help action on the foe the party is on (the next blow at it with advantage). The owl flies back out untouched; the others stay, and carry his touch spells to what is beside them. It cannot attack, and has 1 or 2 HP.' } : null,
         { label: 'FIGHT', right: this.F.name, act: function () { self.fight(); }, desc: this.F.intro || '' },
         this.o.ours
           ? { label: 'THE CLASS\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to how the class builds them: their own kits, the register\'s lists, Mage Armor on Willem, Light on the front man when the fight is dark.' }
@@ -210,7 +213,7 @@
           ? { label: 'RESET THE MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'The day\'s spells back to the default picks from what they know, Mage Armor on Aurdin if he knows it, and today\'s gear changes undone.' }
           : { label: 'THE BUILD\'S MORNING', right: 'reset', act: function () { self.st = self.fresh(); self.save(); self.rebuild(); D.sfx('confirm'); }, desc: 'Back to the 8-bit game\'s own picks: their own gear, the build\'s spells, Mage Armor on Aurdin.' },
         { label: this.o.climb ? 'BACK TO THE CLIMB' : 'BACK TO THE LADDER', right: '', act: function () { self.leave(null); }, desc: '' }
-      ] };
+      ].filter(Boolean) }; // (A FAMILIAR only when a wizard is in the party)
       case 'hero': return { title: 'EQUIP WHOM?', rows: hs.map(function (h) { return { label: h.name.toUpperCase(), right: 'AC ' + R.ac(h) + '  ' + R.weaponOf(h).name, act: go('slot', { hero: h.id }), hero: h.id }; }) };
       case 'slot': {
         var h = this.hero(this.pick.hero);
@@ -327,6 +330,15 @@
     this.st.torch = o.id; this.st.torchKind = o.kind;
     this.changed();
   };
+  // the party's wizard, if it has one (the ladder's Aurdin, our Willem): the familiar's master
+  Camp.prototype.famWiz = function () { return this.data.party.filter(function (h) { return h.cls === 'wizard' && !h.ko && h.hp > 0; })[0] || null; };
+  Camp.prototype.cycleFamiliar = function (d) {
+    var ks = [null].concat(Object.keys(DS.R.FAMILIARS)), i = Math.max(0, ks.indexOf(this.st.familiar || null));
+    this.st.familiar = ks[((i + d) % ks.length + ks.length) % ks.length];
+    this.changed();
+  };
+  // the familiar the fight seats (deep16/js/familiar.js FM.unit reads flags.familiar)
+  Camp.prototype.famFlag = function () { var w = this.famWiz(), k = this.st.familiar; return w && k && DS.R.FAMILIARS[k] ? { kind: k, by: w.id, hp: DS.R.FAMILIARS[k].hp } : null; };
   Camp.prototype.cycleAid = function (d) {
     var ids = this.data.party.map(function (h) { return h.id; }), i = ids.indexOf(this.st.cast.aid.out);
     this.st.cast.aid.out = ids[((i + d) % ids.length + ids.length) % ids.length];
@@ -348,10 +360,11 @@
       var O = this.o.ours, tw = this.info.torch.on ? this.info.torch.who.id : null, tk = this.info.torch.kind;
       this.rebuild();
       var ob = new D.Battle({ ladder: true, watch: !O.play, record: O.play ? { fight: this.F.id, name: this.F.name, level: this.L } : null, fight: this.F.id,
-        npc: { party: this.specs, foes: [] }, torch: tw, torchKind: tk, onDone: function (res) { if (ob.rec) D.rec.finish(ob, res); self.leave(res); } });
+        npc: { party: this.specs, foes: [] }, torch: tw, torchKind: tk, familiar: this.famFlag(), onDone: function (res) { if (ob.rec) D.rec.finish(ob, res); self.leave(res); } });
       D.push(ob); return;
     }
     var data = this.build();
+    var ff = this.famFlag(); data.flags = Object.assign({}, data.flags || {}); if (ff) data.flags.familiar = ff; else delete data.flags.familiar;
     // the climb: the gear chosen here goes with the party from now on
     if (this.o.climb) { this.o.climb.keep(data.party); this.st.equip = {}; this.save(); }
     // (who went down in it, for the climb's campfire: the DM's hands bring them back -- climb.js)
