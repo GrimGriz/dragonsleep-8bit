@@ -1167,7 +1167,7 @@
     T.move = 0; u.left = true; u.dead = true; u.deadT = this.t; delete u.conds.ablaze;
     if (u.conc) D.magic.endConc(this, u, 'out of the fight');
     D.sfx('run');
-    this.card(['{y}' + u.name + '{/} gets out the way the party came in.  {g}(out of the fight){/}']);
+    if (!this.fight.noCards) this.card(['{y}' + u.name + '{/} gets out the way the party came in.  {g}(out of the fight){/}']); // (the wet asked already: no card -- 09-30e)
     yield 30;
   };
 

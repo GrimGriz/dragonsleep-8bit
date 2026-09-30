@@ -119,9 +119,20 @@
   var move0 = BP.moveAlong;
   BP.moveAlong = function* (u, path, o) {
     yield* move0.apply(this, arguments);
-    if (!on(this) || u.side !== 'party' || u.flies || u.summon || u.familiar) return;
+    if (!on(this) || u.side !== 'party' || u.summon || u.familiar) return;
     var sq = (path || []).map(function (p) { return [p[0], p[1]]; }).concat([[u.x, u.y]]);
-    yield* W.stepped(this, u, sq);
+    if (!u.flies) yield* W.stepped(this, u, sq);
+    yield* W.offer(this, u);
+  };
+  // at the edge of it -- the south line, or the stair -- it asks (RULED 09-30e, Griz: "Do an auto-pop-up 'leave the area? yes/no' when they hit
+  // the stairs or the south line"): YES, and he is out (a foe beside him still gets its swing), and all of them with him; NO, and he stands
+  // there (LEAVE THE FIGHT is still on the ring). A hero the AI runs is not asked
+  W.offer = function* (B, u) {
+    if (u.guest || u.classAI || u.left || u.dead || u.hp <= 0 || u.conds.restrained || !B.onExit(u) || (B.o.embed && B.o.embed.canRun === false) || B.over()) return;
+    var stair = ((B.map && B.map.def && B.map.def.doors) || []).some(function (q) { return q[0] === u.x && q[1] === u.y; }); // (the map's doors: the stair's squares, already the grid's)
+    var near = B.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.dormant && !w.ethereal && G.dist(w, u) <= G.reachOf(w); });
+    var yes = yield { prompt: { who: u, title: 'LEAVE THE AREA?', lines: [(stair ? 'Up the stair' : 'Out of the wet to the south') + ': all of you go with ' + u.name + '.' + (near ? ' Something beside ' + u.name + ' gets its swing.' : '')], opts: [{ label: 'YES', value: true }, { label: 'NO', value: false }] } };
+    if (yes) yield* B.leave(u);
   };
   W.stepped = function* (B, u, sq) {
     var T = B.fight.triggers || {}, self = B;
@@ -316,8 +327,10 @@
       this.exit8 = o === 'lost' ? null : W.exitOf(this);
       yield* finish0.call(this, o);
       if (o === 'escaped' && window.DS && window.DS.audio && window.DS.audio.stop) window.DS.audio.stop(); // (a walk-out: no game-over tune)
-      // no end card (RULED 09-30c: "no press e, just go"): a beat to read the head, and back
-      if (this.fight.noCards && this.o.onDone) { yield 50; if (D.top && D.top() === this) D.pop(); else if (D.pop) D.pop(); this.o.onDone(this.result); }
+      // no end card (RULED 09-30c: "no press e, just go"; 09-30e: not the head either -- "the wet, out the way they came in -- let's remove that"):
+      // the head the ending posts is taken down at once, a beat, and back
+      if (this.fight.noCards) this.clearCards();
+      if (this.fight.noCards && this.o.onDone) { yield 12; if (D.top && D.top() === this) D.pop(); else if (D.pop) D.pop(); this.o.onDone(this.result); }
       return;
     }
     yield* finish0.apply(this, arguments);

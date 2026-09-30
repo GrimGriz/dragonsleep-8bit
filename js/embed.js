@@ -27,6 +27,8 @@
               DS.push(b8); return;
             }
             var res = apply(d);
+            // (the Settling: up on the 8-bit square the one who walked off the grid left it by, before the ending runs -- js/events.js EV.wetLand, 09-30e)
+            if (res !== 'lose' && DS.wetExit && DS.EV.wetLand) DS.EV.wetLand(DS.wetExit);
             // the rest of the party came out of the inn during the fight: no longer a lone fighter's battle, so the XP is split
             // among everyone standing, as the 8-bit's own joinParty leaves it (review 09-28 #2)
             if (d.joined && o.solo != null) o.solo = null;
