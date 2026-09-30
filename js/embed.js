@@ -124,6 +124,8 @@
       else if (r.torch === 'lantern') g.give('lantern', 1);
       if (!r.torch) delete h.equip.torch;
     });
+    // the wizard's familiar (Find Familiar, js/familiar.js): fallen on the grid, it is gone till the ritual calls it back
+    if (d.familiar && g.flags.familiar) { if (d.familiar.gone) { g.flags.familiarGone = g.flags.familiar.kind; delete g.flags.familiar; } else g.flags.familiar.hp = d.familiar.hp; }
     // the pack: what the fight used is gone (a potion drunk, a bolt loosed), never below none. The party fights with only
     // what it brought (no crossbow lent here, Griz 09-27)
     var i0 = d.inv0 || {}, i1 = d.inv1 || {};

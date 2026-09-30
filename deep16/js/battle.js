@@ -30,6 +30,8 @@
     // (a word -- 'talmok:5:grown' -- or a spec the camp made up for the morning, js/camp.js o.ours; its id is the camp's)
     if (NB && NB.party) party = NB.party.map(function (w, i) { return D.npc.build(w, F.level, 'party', { id: typeof w === 'string' ? 'p' + i + '-' + String(w).split(':')[0] : w.id }); }).filter(Boolean);
     if (NB && (this.o.bench || this.o.watch)) party.forEach(function (u) { u.guest = true; u.classAI = true; });
+    // the wizard's familiar, if the save has one and he is here (Find Familiar: js/familiar.js)
+    var fam = D.familiar && !NB && D.familiar.unit(this, this.from.data, party); if (fam) party.push(fam);
     var entry = (F.entry || m.def.entry).slice();
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
     // the party came in by), and a map's named doors (`doors`: the inn's); a map closed all round keeps the way in
@@ -308,7 +310,8 @@
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
     // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27), or the rest
     // are still on their way out of the inn (this.reserve)
-    if (!this.alive('party').length) return this.reserve.length ? null : this.units.some(function (u) { return u.left; }) ? 'escaped' : 'lost';
+    // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
+    if (!this.alive('party').filter(function (u) { return !u.familiar; }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar; }) ? 'escaped' : 'lost';
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's

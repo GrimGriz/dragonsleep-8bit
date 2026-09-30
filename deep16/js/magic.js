@@ -156,7 +156,7 @@
   M.touchTargets = function (B, u, g) {
     return B.units.filter(function (w) {
       if (w.dead || w.side !== u.side) return false;
-      if (w !== u && G.dist(u, w) > 5) return false;
+      if (w !== u && G.dist(u, w) > 5 && !(D.familiar && D.familiar.delivers(B, u, w))) return false; // (or carried by the familiar: js/familiar.js)
       if (g.unarmored && (w.armored || w.conds.mageArmor)) return false;
       return true;
     });
@@ -181,6 +181,7 @@
     // "a creature you can see": Hold, Shield of Faith, Magic Missile, Acid Splash -- not Bless or Aid (SRD: "creatures of your choice
     // within range"; you know where your own are in the dark). Magic Missile at the dark: ui.js aims it at a square (the gimmick)
     if ((g.shape === 'single' || g.shape === 'darts' || g.shape === 'splash') && w !== u && !M.sees(B, u, w)) return false;
+    if (g.shape === 'attack' && (g.range || 5) <= 5 && D.familiar && D.familiar.delivers(B, u, w)) return true; // (a touch attack carried by the familiar)
     if (G.dist(u, w) > (g.range || 5)) return false;
     return G.los(u, w).clear || w === u;
   };
@@ -226,6 +227,7 @@
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
     if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') g = Object.assign({}, g, { time: 'B', move: true }); // (the lights are up: this is the bonus action that moves them)
     var ex0 = M.EFFECT && M.EFFECT[id]; if (ex0 && ex0.geo) g = ex0.geo(B, u, g) || g; // (the floating weapon already up: its swing)
+    if ((g.shape === 'touch' || (g.shape === 'attack' && (g.range || 5) <= 5)) && D.familiar) D.familiar.spend(B, u, t); // (a touch spell the familiar carries: its reaction)
     if (T.quicken && g.time === 'A' && sp.level) g = Object.assign({}, g, { time: 'B' }); // (Quickened Spell: js/features.js)
     if (g.time === 'B') { T.bonus = 0; if (!g.move) T.bonusSpell = true; } else { T.action = 0; T.spellAction = g.free ? T.spellAction : sp.level ? 'leveled' : 'cantrip'; }
     if (sp.level && !g.free) u.slots[slot - 1]--;

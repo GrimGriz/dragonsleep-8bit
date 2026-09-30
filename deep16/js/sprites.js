@@ -81,7 +81,7 @@
   // the look alone, ai.js) 1.5x -- about its foot; the footprint (u.size) stays. A change eases in over SCALE.frames from the size it
   // had, with a little overshoot (S.regrow(u, from) marks the change; the pulse at the cast)
   S.SCALE = { up: 1.5, down: 0.7, frames: 26 };
-  S.scaleTarget = function (u) { var e = u.conds && u.conds.enlarged; return e ? (e.down ? S.SCALE.down : S.SCALE.up) : u.grown ? S.SCALE.up : 1; };
+  S.scaleTarget = function (u) { var e = u.conds && u.conds.enlarged; return (e ? (e.down ? S.SCALE.down : S.SCALE.up) : u.grown ? S.SCALE.up : 1) * (u.drawScale || 1); }; // (drawScale: a stand-in sheet shrunk to a familiar's size)
   S.scaleOf = function (u) {
     var to = S.scaleTarget(u), g = u.scaleEase, a = g && D.battle ? (D.battle.t - g.t) / S.SCALE.frames : 1;
     if (!g || a >= 1 || a < 0 || g.from === to) return to;

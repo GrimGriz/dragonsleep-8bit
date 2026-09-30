@@ -46,7 +46,9 @@
       foes: foes.map(function (u) { return { id: u.id, kind: u.kind, i8: u.i8, dead: u.hp <= 0, fled: !!u.fled }; }), // (i8: its place in the 8-bit list)
       // who is still out there when the fight ends because one got away (fight.fledEnds: the 8-bit wagon yard): the chase's
       away: foes.filter(function (u) { return u.flees && u.hp > 0; }).map(function (u) { return u.kind; }),
-      inv0: E.inv0, inv1: counts(B.inv)
+      inv0: E.inv0, inv1: counts(B.inv),
+      // the wizard's familiar (Find Familiar): gone if it fell, else what it has left (a dismissed one is safe)
+      familiar: (function () { var f = B.units.filter(function (u) { return u.familiar; })[0]; return f ? { gone: f.hp <= 0, hp: Math.max(0, f.hp) } : null; })()
     });
   };
 })();
