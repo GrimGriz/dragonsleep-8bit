@@ -8,7 +8,9 @@
    testing rooms will have to be set-up special per spell that needs testing on demand"): the card is the spell's name, its
    description (the 8-bit game's player-facing text, where it has one) and the rules line the ring shows. It rides the class floor's
    battle (js/classes.js D.npcFight) and runs the spell through the battle's own exec, so what it shows is what a fight shows. The
-   same pick of target as the bench's mode=spells (dev/bench16.js). */
+   same pick of target as the bench's mode=spells (dev/bench16.js).
+   ?fxgallery&features is the twin for the CLASS FEATURES (09-30, the feature walk; below, D.fxFeatures): the same stage and keys, the
+   register data/features.js, dev/bench16.js mode=featurewalk, dev/feature-walk-lamp.html. Everything above it is the spell mode, as it was. */
 'use strict';
 (function () {
   var D = window.D16, I = D.input;
@@ -21,6 +23,7 @@
   }
 
   D.fxGallery = function (q) {
+    if (/[?&]features\b/.test(q)) return D.fxFeatures(q); // (the feature walk, below: &features; the spell mode is as it was)
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var only = get('only'), auto = /[?&]auto\b/.test(q), keep = /[?&]keep\b/.test(q); // (&keep: the stage is not swept between casts: E casts again at the same one)
     var ids = Object.keys(D.SPELLS).filter(function (id) {
@@ -115,6 +118,293 @@
         yield 50;
         var v = S.auto ? 1 : yield { gallery: true };
         S.i = ((S.i + (v == null ? 1 : v)) % S.ids.length + S.ids.length) % S.ids.length;
+      }
+    }
+    return B;
+  };
+
+  // ==================================================================== the feature gallery (?fxgallery&features)
+  // The feature walk (09-30; Griz, on whether the new spell-like effects go into the spell gallery: "4 separate"): the class features
+  // get a gallery of their own beside the spells', the same stage and the same keys. Every feature in the register (data/features.js,
+  // D16.FEATURES), one at a time, by class and then level: the class NPC built at the feature's level on the party side, a hurt friend
+  // beside it, a foe (or the dead, for a turning) across the floor, and the feature fired through the battle's own exec -- what the ring
+  // fires (B.commands says whether the button is there and ok; a button that is not shows why, in red). A prompt the feature asks is
+  // answered with its first option. A feature that is always on, or the class AI's alone, is its card; and where a short
+  // demonstration is cheap (a blow for a Divine Smite, a fireball at a monk for Evasion, a blow at a rogue for Uncanny Dodge) it is
+  // shown. The card is the feature's name, its class and level, and its words. &feature=<id> starts at one; &only=a,b,c keeps to
+  // those; &auto goes on by itself. The register absent (index.html not yet loading data/features.js): a card that says so.
+  var CLASS_ORDER = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard'];
+  var KIND_TAG = { button: 'a ring button', passive: 'always on', ai: 'the class AI uses it (no button)' };
+  // the stage a feature asks of the floor (all optional). foe: rows north of the hero (default 1, beside; 0 none); skel: skeletons where
+  // the foes would stand (a turning wants the dead); mate: 'hurt' (default), 'flank' (beside the foe), 'whole', or null (none);
+  // lvl: the hero built at this level for the demonstration; wiz: a wizard across the floor, to cast at the hero; hurt: the hero hurt
+  // to half; foeHurt: the foe already hurt
+  var STAGE = {
+    sneakattack: { mate: 'flank' },
+    colossusslayer: { foe: 3, foeHurt: 1 }, fightingstyle_archery: { foe: 3 }, extraattack_ranger: { foe: 3 },
+    turnundead: { skel: 2 }, turntheunholy: { skel: 2 }, destroyundead: { skel: 2 },
+    deflectmissiles: { foe: 4, mate: null }, uncannydodge: { mate: null }, firstblood: { mate: null }, answerback: { mate: null }, rimedoubles: { mate: null },
+    evasion_monk: { foe: 0, mate: null, wiz: 1 }, evasion_rogue: { foe: 0, mate: null, wiz: 1 },
+    sculptspells: { foe: 3, mate: 'flank', lvl: 5 }, potentcantrip: { foe: 3, mate: null }, elementalaffinity: { foe: 2 }, rimestep: { foe: 3 },
+    quickenedspell: { foe: 3 }, twinnedspell: { foe: 3 }, carefulspell: { foe: 2, mate: 'flank' }, heightenedspell: { foe: 2 },
+    secondwind: { hurt: 1 }, wholenessofbody: { hurt: 1 }, blessedhealer: { hurt: 1 },
+    hide: { foe: 3, nfoe: 1, mate: 'between' }, supremesneak: { foe: 3, nfoe: 1, mate: 'between' }, cunningaction: { foe: 3, nfoe: 1, mate: 'between' },
+    steelwill: { foe: 0, mate: null, wiz: 1 }, mindlessrage: { foe: 0, mate: null, wiz: 1 },
+    auraofprotection: { foe: 0, mate: 'whole', wiz: 1 }, auraofdevotion: { foe: 0, mate: 'whole', wiz: 1 }, wakeful: { foe: 0, mate: 'whole', wiz: 1 },
+    darkonesblessing: { foe: 3, foeHurt: 1 }, agonizingblast: { foe: 3 }, repellingblast: { foe: 3 }
+  };
+  // what the hero is built from beyond its class and level (js/classes.js NPC.spec); the register's subclass is added
+  var SPEC = {
+    pitfists: { equip: { weapon: 'unarmed' }, alt: null },
+    carefulspell: { metamagic: ['careful', 'heightened'] }, heightenedspell: { metamagic: ['careful', 'heightened'] },
+    // (the ranger's kit weapon, js/classes.js, is 'longbow', which content/items.json does not have -- a ranger built as it stands swings Fists; the gallery gives it the shortbow)
+    fightingstyle_archery: { equip: { weapon: 'shortbow' } }, colossusslayer: { equip: { weapon: 'shortbow' } }, extraattack_ranger: { equip: { weapon: 'shortbow' } },
+    escapethehorde: { hunterDefense: 'horde', equip: { weapon: 'shortbow' } }, multiattackdefense: { hunterDefense: 'multiattack', equip: { weapon: 'shortbow' } }, steelwill: { hunterDefense: 'steelwill', equip: { weapon: 'shortbow' } },
+    pactoftheblade: { pact: 'blade' }, mirrorseye: { patron: 'mirror' }, fiendishvigor: { invocations: ['agonizing', 'fiendishvigor'] }
+  };
+
+  D.fxFeatures = function (q) {
+    var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
+    var only = get('only'), auto = /[?&]auto\b/.test(q), FEAT = D.FEATURES || null;
+    var ids = FEAT ? Object.keys(FEAT).sort(function (a, b) {
+      var A = FEAT[a], Bq = FEAT[b];
+      return (CLASS_ORDER.indexOf(A.cls) - CLASS_ORDER.indexOf(Bq.cls)) || (A.lvl - Bq.lvl) || ((A.sub || '') < (Bq.sub || '') ? -1 : (A.sub || '') > (Bq.sub || '') ? 1 : 0) || (A.name < Bq.name ? -1 : A.name > Bq.name ? 1 : 0) || (a < b ? -1 : 1);
+    }) : [];
+    if (only) ids = only.split(',').filter(function (id) { return ids.indexOf(id) >= 0; });
+    var start = Math.max(0, ids.indexOf(get('feature') || ''));
+    var B = new D.Battle({ gallery: true, npc: { party: ['fighter:9'], foes: ['fighter:9'] },
+      fightDef: D.classFight(9, { what: 'the feature gallery', intro: 'Every class feature on the grid, one after another.' }) });
+    var S = B.gallery = { features: true, i: start, ids: ids, auto: auto, report: {}, card: null };
+    var enter0 = B.enter, cx = 0, cy = 0;
+    B.enter = function () {
+      enter0.apply(this, arguments);
+      cx = Math.floor(D.grid.map.w / 2); cy = Math.floor(D.grid.map.h / 2) + 3;
+      B.req = null;
+      B.co = loop();
+    };
+
+    // ---- the stage
+    function place(w, x, y, facing) { w.x = x; w.y = y; w.facing = facing; w.anim = 'idle'; w.animT = B.t; w.flash = 0; w.reaction = 1; w.conds = w.conds || {}; w.dead = false; w.ko = false; return w; }
+    function make(word, side, id, x, y, facing) {
+      var w = word === 'skeleton' ? B.makeFoe({ id: id, kind: 'skeleton', at: [x, y] }) : D.npc.build(word, null, side, { id: id });
+      if (!w) throw new Error('no unit for ' + word);
+      return place(w, x, y, facing);
+    }
+    function stage(id, f) {
+      var st = STAGE[id] || {}, spec = { cls: f.cls, lvl: st.lvl || f.lvl, race: 'human' };
+      if (f.sub && f.sub !== 'The Mirror') spec.subclass = f.sub;
+      if (f.cls === 'warlock') spec.pact = 'tome';
+      Object.assign(spec, SPEC[id] || {});
+      var rows = st.foe == null ? 1 : st.foe, hero = place(D.npc.build(spec, spec.lvl, 'party', { id: 'g-hero' }), cx, cy, 4);
+      var units = [], foes = [], skel = [], mate = null, wiz = null;
+      if (st.mate !== null) {
+        mate = st.mate === 'between' ? make('fighter:5', 'party', 'g-mate', cx, cy - 1, 4) // (a body in the way: cover, for a rogue who would hide)
+          : make('fighter:5', 'party', 'g-mate', cx - 1, st.mate === 'flank' ? cy - Math.max(1, rows) : cy, 4);
+        if (st.mate !== 'whole') mate.hp = Math.max(1, Math.floor(mate.maxhp / 3)); // (a heal wants someone hurt)
+        units.push(mate);
+      }
+      units.push(hero);
+      if (st.skel) { for (var s = 0; s < st.skel; s++) { var sk = make('skeleton', 'foe', 'g-sk' + s, cx + s, cy - 3, 0); skel.push(sk); units.push(sk); } }
+      else if (rows > 0) {
+        // (the foes are soft, AC 10: a demonstration should land its blow, not miss it four times running)
+        for (var k = 0; k < (st.nfoe || 2); k++) { var fo = make('fighter:9', 'foe', 'g-foe' + k, cx + k, cy - rows, 0); fo.baseAC = 10; if (st.foeHurt) fo.hp = fo.maxhp - 6; foes.push(fo); units.push(fo); }
+      }
+      if (st.wiz) { wiz = make('wizard:9', 'foe', 'g-wiz', cx, cy - 5, 0); units.push(wiz); }
+      if (st.hurt) hero.hp = Math.max(1, Math.floor(hero.maxhp / 2));
+      B.units = units; D.grid.setup(D.grid.map, B.units);
+      ['grounds', 'auras', 'wards', 'spirits', 'darks', 'webs', 'zones', 'beads', 'walls', 'shells'].forEach(function (k2) { if (B[k2]) B[k2] = []; }); B.wallMap = null; B.overgrown = null;
+      B.lights = (B.lights || []).filter(function (l) { return l.kind === 'map'; }); B.lightMap = null;
+      // (a bow needs its arrows in the pack; the pack is the fixture's)
+      if (hero.weapon && hero.weapon.ammo && !B.inv.some(function (x) { return x.id === hero.weapon.ammo; })) B.inv.push({ id: hero.weapon.ammo, n: 99 });
+      B.round = 1; B.active = hero; D.rules.startTurn(hero);
+      var tg = foes[0] || skel[0] || wiz || mate, mx = Math.round((hero.x + tg.x) / 2), my = Math.round((hero.y + tg.y) / 2);
+      D.iso.lookAt(mx, my, D.grid.map.gz(mx, my));
+      return { id: id, f: f, st: st, hero: hero, mate: mate, foes: foes, skel: skel, wiz: wiz };
+    }
+
+    // ---- the card: the feature's name, its class and level, its words (B.card does not wrap a line: wrapped here, as the spell mode's)
+    function header(id, f) {
+      var desc = D.typeText(f.words, true), lines = ['{y}' + (S.i + 1) + ' / ' + S.ids.length + '   ' + f.name.toUpperCase() + '{/}  (' + f.cls + ' ' + f.lvl + (f.sub ? ', ' + f.sub : '') + ')'];
+      if (/\{:/.test(desc)) desc += ' {g}(inspect){/}';
+      lines = lines.concat(D.wrap(desc, 440));
+      lines.push('{g}' + KIND_TAG[f.kind] + (/\bours\b|our own/i.test(f.src || '') ? ' · ours' : '') + '{/}');
+      lines.push('{g}left/right the next · up/down ten · E again{/}');
+      B.clearCards(); S.card = null;
+      B.card(lines, 1e9, 'gallery'); S.card = B.cards[B.cards.length - 1];
+    }
+    var card0 = B.card;
+    B.card = function () {
+      var r = card0.apply(this, arguments), g = S.card;
+      if (g && this.cards.indexOf(g) < 0) { this.cards.unshift(g); while (this.cards.length > 3) this.cards.splice(1, 1); }
+      return r;
+    };
+
+    // ---- firing: a feature's generator run inside this one, any prompt it asks answered with its first option
+    function* fire(gen) {
+      var v;
+      for (;;) {
+        var r = gen.next(v); v = undefined;
+        if (r.done) return r.value;
+        var y = r.value;
+        if (y && y.prompt) { v = y.prompt.opts[0].value; continue; }
+        v = yield y;
+      }
+    }
+    // a swing at t (the first on the turn as it stands when keep, a fresh turn else), again up to tries times till it lands
+    function* swing(c, t, tries, keep) {
+      var u = c.hero; t = t || c.foes[0] || c.skel[0]; if (!t) return false;
+      for (var i = 0; i < (tries || 3); i++) {
+        if (i || !keep) D.rules.startTurn(u);
+        B.active = u;
+        var hp0 = t.hp + (t.temp || 0);
+        yield* fire(B.exec(u, { do: 'attack', target: t }));
+        if (t.dead || t.hp + (t.temp || 0) < hp0) return true;
+        yield 14;
+      }
+      return false;
+    }
+    function* twice(c) { // (Extra Attack: two swings on the one action)
+      var u = c.hero, t = c.foes[0] || c.skel[0]; D.rules.startTurn(u); B.active = u;
+      yield* fire(B.exec(u, { do: 'attack', target: t })); yield 14;
+      yield* fire(B.exec(u, { do: 'attack', target: t }));
+    }
+    // a foe swings at the hero (its blow made sure to land unless o.atk says otherwise; the hero made whole between) until o.until says done
+    function* foeStrike(c, tries, o) {
+      var u = c.hero, foe = c.foes[0]; if (!foe) return;
+      for (var i = 0; i < tries; i++) {
+        D.rules.startTurn(foe); B.active = foe; u.hp = u.maxhp; u.reaction = 1;
+        var wp = Object.assign({}, o.ranged ? foe.alt : foe.weapon, { atk: o.atk != null ? o.atk : 40 });
+        yield* fire(B.attack(foe, u, wp));
+        if (o.until(c)) break;
+        yield 14;
+      }
+      B.active = u;
+    }
+    // the spell picks its target the way the spell mode does (the AI's weighing, else a plain one for its shape)
+    function autoTarget(c, e) {
+      var u = c.hero, foes = c.foes.concat(c.skel), ev = (D.magic.EFFECT[e.id] && D.magic.EFFECT[e.id].ai) || D.tactics.EVAL[e.id] || D.tactics.EVAL['shape:' + e.g.shape], pick = null;
+      try { pick = ev ? ev(B, u, e, e.slot, D.tactics.foesOf(B, u), D.tactics.alliesOf(B, u)) : null; } catch (x) { pick = null; }
+      if (pick && pick.t) return pick.t;
+      return e.g.shape === 'self' ? u : /touch|allies/.test(e.g.shape) || e.g.side === 'ally' ? (e.g.shape === 'allies' ? { units: [u].concat(c.mate ? [c.mate] : []) } : (c.mate && D.grid.dist(u, c.mate) <= 5 ? c.mate : u))
+        : /sphere|cube|cone|line|wave|teleport/.test(e.g.shape) ? { x: foes[0].x, y: foes[0].y } : /rays|darts/.test(e.g.shape) ? { units: [foes[0], foes[1] || foes[0], foes[0]].slice(0, e.g.n || 3) } : foes[0];
+    }
+    function* castOne(c, id, target) {
+      var u = c.hero;
+      if ((u.known || []).indexOf(id) < 0) u.known = (u.known || []).concat([id]);
+      var e = D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
+      if (!e || !e.ok) { B.card(['{r}' + id + ': not castable here (' + (e ? e.why : 'no entry') + '){/}'], 300); return; }
+      yield* fire(B.exec(u, { do: 'cast', id: id, slot: e.slot, target: target || autoTarget(c, e) }));
+    }
+
+    // ---- a button: what must be so before the ring offers it (PRE), who it is aimed at (AIM), and what follows to show it working (THEN)
+    var PRE = {
+      surge: function* (c) { yield* swing(c, null, 1, true); c.hero.turn.action = 0; c.hero.turn.attacksLeft = 0; }, // (Action Surge is after the action)
+      flurry: function* (c) { yield* swing(c, null, 1, true); },                                                    // (after the Attack action)
+      unshape: function* (c) { yield* D.features.wildShape(B, c.hero, 'wolf'); }                                    // (a shape to come out of)
+    };
+    var AIM = { lay: function (c) { return c.mate || c.hero; } };
+    var THEN = {
+      rage: function* (c) { yield* swing(c, null, 3, true); }, reckless: function* (c) { yield* swing(c, null, 1, true); }, sacred: function* (c) { yield* swing(c, null, 3, false); },
+      'meta-quickened': function* (c) { yield* castOne(c, 'magicmissile'); },
+      'meta-twinned': function* (c) { if (c.hero.turn.meta && c.foes[1]) c.hero.turn.meta.t2 = c.foes[1]; yield* castOne(c, 'firebolt', c.foes[0]); },
+      'meta-careful': function* (c) { yield* castOne(c, 'burninghands', { x: c.foes[0].x, y: c.foes[0].y }); },
+      'meta-heightened': function* (c) { yield* castOne(c, 'burninghands', { x: c.foes[0].x, y: c.foes[0].y }); }
+    };
+    // ---- a feature that is always on: the short demonstration, where one is cheap
+    // (the wizard across the floor casts at the hero: a fireball for Evasion and Danger Sense, a Fear for Steel Will, a Charm Person for the Aura of Devotion ...)
+    function wizCast(id) { return function* (c) {
+      var w = c.wiz; if (!w) return;
+      w.known = [id]; w.slots = [4, 3, 3, 3, 2, 1, 1, 1, 1]; w.slotsMax = w.slots.slice(); B.active = w; D.rules.startTurn(w);
+      var e = D.magic.list(B, w).filter(function (x) { return x.id === id; })[0];
+      if (!e || !e.ok) { B.card(['{r}' + id + ': not castable here (' + (e ? e.why : 'no entry') + '){/}'], 300); return; }
+      yield* fire(B.exec(w, { do: 'cast', id: id, slot: e.slot, target: /sphere|cube|cone|line|wave/.test(e.g.shape) ? { x: c.hero.x, y: c.hero.y } : c.hero }));
+      B.active = c.hero;
+    }; }
+    var evasion = wizCast('fireball');
+    function struck(c) { return c.hero.hp < c.hero.maxhp || c.hero.reaction === 0; }
+    function swings(n) { return function* (c) { yield* swing(c, null, n); }; }
+    // a spell at the foe, again on a fresh turn till it has hurt it (a bolt can miss)
+    function* castTry(c, id, tries) {
+      var t = c.foes[0];
+      for (var i = 0; i < (tries || 3); i++) {
+        if (i) { D.rules.startTurn(c.hero); B.active = c.hero; }
+        var hp0 = t.hp + (t.temp || 0);
+        yield* castOne(c, id, t);
+        if (t.dead || t.hp + (t.temp || 0) < hp0) return true;
+        yield 14;
+      }
+      return false;
+    }
+    var DEMO = {
+      sneakattack: swings(6), fightingstyle_gwf: swings(2), fightingstyle_archery: swings(5), colossusslayer: swings(5), pitfists: swings(5),
+      divinesmite: swings(5), stunningstrike: swings(5), divinestrike_life: swings(6), divinestrike_window: swings(6), divinestrike_vigil: swings(6),
+      extraattack_barbarian: twice, extraattack_fighter: twice, extraattack_monk: twice, extraattack_paladin: twice, extraattack_ranger: twice,
+      openhandtechnique: function* (c) { // (a flurry after a swing, again till the foe is down on the floor)
+        var t = c.foes[0];
+        for (var i = 0; i < 3 && !t.conds.prone; i++) { yield* swing(c, t, 1, false); yield* fire(B.exec(c.hero, { do: 'flurry' })); yield 14; }
+      },
+      downinthesand: function* (c) { yield* fire(B.exec(c.hero, { do: 'rage' })); yield* swing(c, null, 4, true); },
+      firstblood: function* (c) { yield* foeStrike(c, 4, { until: function (k) { return !!k.hero.conds.raging; } }); },
+      answerback: function* (c) { yield* fire(B.exec(c.hero, { do: 'rage' })); yield* foeStrike(c, 4, { atk: -20, until: function (k) { return k.hero.reaction === 0; } }); },
+      uncannydodge: function* (c) { yield* foeStrike(c, 5, { until: struck }); },
+      deflectmissiles: function* (c) { yield* foeStrike(c, 5, { ranged: true, until: struck }); },
+      rimedoubles: function* (c) { c.hero.images = 3; yield* foeStrike(c, 6, { atk: 40, until: function (k) { return !!(k.foes[0].conds.frosted); } }); },
+      evasion_monk: evasion, evasion_rogue: evasion,
+      destroyundead: function* (c) { yield* fire(B.exec(c.hero, { do: 'turnundead' })); },
+      discipleoflife: function* (c) { yield* castOne(c, 'curewounds', c.mate); },
+      blessedhealer: function* (c) { yield* castOne(c, 'curewounds', c.mate); },
+      elementalaffinity: function* (c) { yield* castOne(c, 'burninghands', { x: c.foes[0].x, y: c.foes[0].y }); }, // (a cantrip's attack roll carries no affinity: a spell the target saves against does)
+      sculptspells: function* (c) { yield* castOne(c, 'fireball', { x: c.foes[0].x, y: c.foes[0].y }); },
+      potentcantrip: function* (c) { yield* castOne(c, 'acidsplash', c.foes[0]); },
+      rimestep: function* (c) { yield* castOne(c, 'mirrorimage', c.hero); },
+      auraofprotection: evasion,
+      steelwill: wizCast('fear'), auraofdevotion: wizCast('charmperson'), wakeful: wizCast('sleep'),
+      mindlessrage: function* (c) { yield* fire(B.exec(c.hero, { do: 'rage' })); yield* wizCast('fear')(c); },
+      supremesneak: function* (c) { yield* fire(B.exec(c.hero, { do: 'hide' })); },
+      darkonesblessing: function* (c) { c.foes[0].hp = 1; yield* castTry(c, 'eldritchblast', 5); },
+      agonizingblast: function* (c) { yield* castTry(c, 'eldritchblast', 5); }, repellingblast: function* (c) { yield* castTry(c, 'eldritchblast', 5); },
+      pactofthetome: function* (c) { yield* castTry(c, 'sacredflame', 3); },
+      pactoftheblade: swings(5)
+    };
+
+    function* run(c) {
+      var f = c.f, u = c.hero, n0 = (B.logEntries || []).length, pre = (B.logEntries || []).slice(), how = 'card', why = '';
+      if (f.kind === 'button' && f.cmd) {
+        var cmds = f.cmd.split(/\s+/).filter(Boolean), fired = 0;
+        for (var k = 0; k < cmds.length && !why; k++) {
+          var id = cmds[k];
+          if (k) { D.rules.startTurn(u); B.active = u; }
+          if (PRE[id]) yield* fire(PRE[id](c));
+          var e = B.commands(u).filter(function (x) { return x.id === id; })[0];
+          if (!e || !e.ok) { why = id + ': ' + (e ? (e.why || 'not now') : 'no such button'); break; }
+          var cmd = { do: id }; if (AIM[id]) cmd.target = AIM[id](c);
+          yield 20;
+          yield* fire(B.exec(u, cmd)); fired++;
+          if (THEN[id]) yield* fire(THEN[id](c));
+          yield 30;
+        }
+        how = why ? 'blocked: ' + why : 'fired';
+        if (why) B.card(['{r}' + f.name + ': not usable here (' + why + '){/}'], 1e9, 'gallery-why');
+      } else if (DEMO[c.id]) { yield 20; yield* fire(DEMO[c.id](c)); how = 'demo'; }
+      S.report[c.id] = { how: how, cards: (B.logEntries || []).length - n0, tail: (B.logEntries || []).filter(function (e) { return pre.indexOf(e) < 0; }).map(function (e) { return e.text; }).slice(-24) }; // (the bench reads it: dev/bench16.js mode=featurewalk)
+    }
+
+    function* loop() {
+      for (;;) {
+        var id = S.ids[S.i], f = FEAT && id ? FEAT[id] : null;
+        B.clearCards(); S.card = null;
+        if (!f) {
+          B.card(['{r}The feature register is not loaded.{/}', 'deep16/index.html wants  <script src="data/features.js">  after data/summons.js.'], 1e9, 'gallery'); S.card = B.cards[B.cards.length - 1];
+        } else {
+          try { var c = stage(id, f); header(id, f); yield 20; yield* run(c); }
+          catch (err) {
+            S.report[id] = { how: 'error: ' + String(err && err.stack || err).slice(0, 400), cards: 0 };
+            B.card(['{r}' + f.name + ': something broke (' + String(err && err.message || err).slice(0, 90) + '){/}'], 1e9, 'gallery-why');
+          }
+        }
+        yield 50;
+        var v = S.auto ? 1 : yield { gallery: true };
+        if (S.ids.length) S.i = ((S.i + (v == null ? 1 : v)) % S.ids.length + S.ids.length) % S.ids.length;
       }
     }
     return B;

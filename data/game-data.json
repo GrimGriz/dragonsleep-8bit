@@ -1133,6 +1133,28 @@
    "src": "SRD 5.1",
    "id": "shortbow"
   },
+  "longbow": {
+   "name": "Longbow",
+   "kind": "weapon",
+   "price": 500,
+   "weapon": {
+    "dmg": "1d8",
+    "type": "piercing",
+    "group": "martial",
+    "props": [
+     "ranged",
+     "two-handed",
+     "heavy"
+    ],
+    "range": [
+     150,
+     600
+    ]
+   },
+   "desc": "1d8 piercing, ranged (150/600 ft). Uses DEX.",
+   "src": "SRD 5.1 (the class ranger's kit, deep16/js/classes.js: it named a longbow the list lacked, so the NPC rangers fought with their fists -- found by a runner 09-30)",
+   "id": "longbow"
+  },
   "shortsword": {
    "name": "Shortsword",
    "kind": "weapon",
