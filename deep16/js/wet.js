@@ -117,7 +117,7 @@
     u.dormant = false; u.fed = role === 'landlord' && why === 'fed' ? true : u.fed && why !== 'hurt';
     if (why === 'hurt') u.fed = false; // (struck, fed or not, it fights)
     FX.sparkle(u, 'moss', 20); D.sfx('encounter');
-    B.card(['{r}' + W.WAKE[role] + '{/}' + (why === 'patience' ? '  {g}(you stood at its edge too long){/}' : why === 'hurt' ? '  {g}(struck, it wakes){/}' : '')], 360);
+    B.card(['{r}' + W.WAKE[role] + '{/}' + (why === 'patience' ? '  {g}(you stood at its edge too long){/}' : why === 'hurt' ? '  {g}(struck, it wakes){/}' : why === 'rise' ? '  {g}(it was waiting){/}' : '')], 360);
     if (B.focus) B.focus(u);
   };
   // struck, it wakes; a crawler struck forgets the downed (09-30b: "If damaged, ignore downed hero")
@@ -160,6 +160,27 @@
     if (!B.wet.spoke && sq.some(function (p) { return inSet(T.picture, p[0], p[1]); })) yield* W.speak(B, u);
     var bk = B.wet.bucket;
     if (bk && sq.some(function (p) { return p[0] === bk.at[0] && p[1] === bk.at[1]; })) W.takeBucket(B, u);
+    // the landlord waiting under the water rises for anyone it could get at now (W.submerge)
+    var sl = B.wet.sleepers.landlord; if (sl && !sl.fed && W.canReach(B, sl, sl.speed || 30)) W.wake(B, sl, 'rise');
+  };
+  // can it get at anyone standing, keeping to its water, with `move` feet to spend? (the squares it could reach, and its reach from each)
+  W.canReach = function (B, u, move) {
+    var hs = ours(B).filter(function (w) { return !w.left && !w.dead && w.hp > 0; }); if (!hs.length) return false;
+    var rm = G.reach(u, move) || {}, x0 = u.x, y0 = u.y, R = G.reachOf(u), ok = false;
+    var sqs = Object.keys(rm).map(function (k) { return k.split(',').map(Number); }).concat([[x0, y0]]);
+    for (var i = 0; i < sqs.length && !ok; i++) { u.x = sqs[i][0]; u.y = sqs[i][1]; ok = hs.some(function (w) { return G.dist(u, w) <= R; }); }
+    u.x = x0; u.y = y0; return ok;
+  };
+  // awake, and no one it can get at: it sinks and waits (RULED 09-30g, Griz: "i like sink and wait, drag is good but too harsh for a reload
+  // likely coming anyway"): off the grid, out of the order at the next turn's start, its wounds kept; it rises when someone comes where it can reach
+  W.submerge = function* (B, u) {
+    if (B.focus) B.focus(u);
+    D.sfx('splash'); FX.sparkle(u, 'moss', 16);
+    B.card(['{g}The landlord sinks under the fall, and waits.{/}'], 300);
+    yield 50;
+    B.wet.sleepers[u.wet] = u; u.anim = 'idle'; u.animT = B.t;
+    var i = B.units.indexOf(u); if (i >= 0) B.units.splice(i, 1);
+    B.wet.purge = (B.wet.purge || []).concat([u]);
   };
 
   // ------------------------------------------------------------------ the landlord: it waits in its pool, and speaks in pictures
@@ -360,6 +381,7 @@
   TR.turn = function* (B, u) {
     if (on(B)) yield* W.first(B);
     if (on(B) && u.dormant) return yield* W.landlordWaits(B, u);
+    if (on(B) && u.wet === 'landlord' && !u.fed && !(u.holding && u.holding.length) && !W.canReach(B, u, (u.turn && u.turn.move) || u.speed || 30)) { yield* W.submerge(B, u); return true; }
     if (on(B) && u.wetCrawler && (yield* W.crawlerTurn(B, u))) return true;
     return tturn0 ? yield* tturn0(B, u) : false;
   };
