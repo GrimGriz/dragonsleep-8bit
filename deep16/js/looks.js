@@ -310,6 +310,12 @@
   // the things that stand up off the floor, in the depth sort with the figures (ui.js drawBattle)
   LK.props = function (B) {
     var out = [];
+    // the Globe of Invulnerability (10-01b: "a shimmering globe about" its caster had no look at all -- found filming it for Griz): a faint
+    // ring on the floor at its 10 ft (the aura's circle: js/ui.js overlay), and over it a dome the figures show through, its rim lit, a band
+    // of light sliding slowly up and down it, a glint or two on its skin. Drawn after the figures standing in it, faint enough to see them
+    (B.globes || []).forEach(function (g) {
+      out.push({ depth: g.x + g.y + 4.7, gz: D.iso.map.gz(g.x, g.y), layer: 2, draw: function (ctx) { drawGlobe(ctx, B, g); } }); // (after the front-most square inside it, 2 and 2 out: all within show through its skin)
+    });
     // the zones that move (09-29): the moonbeam's shaft, the flaming sphere rolling
     (B.zones || []).forEach(function (z) {
       if (shut(B, z, z.x, z.y)) return; // (the shaft or the ball on a square inside a globe it was cast from outside of: nothing stands there to draw)
@@ -334,6 +340,26 @@
   };
 
   // under the figures: the spell ground, the rings of a holy ward, the edge of a magical darkness (ui.js overlay)
+  function drawGlobe(ctx, B, g) {
+    var I = D.iso, c = I.center(g.x, g.y, D.iso.map.gz(g.x, g.y)), s = I.toScreen(c.x, c.y), t = B.t, E = FX.EL.arcane;
+    var rx = 2.9 * Math.SQRT2 * I.TW / 2, ry = 2.9 * Math.SQRT2 * I.TH / 2, H = rx * 0.72;   // (the aura's 10-ft circle; the dome a little lower than round, as a sphere seen from above the floor)
+    ctx.save();
+    // the skin: a soft wash, brighter toward the rim
+    var gr = ctx.createRadialGradient(s.x, s.y - H * 0.45, H * 0.2, s.x, s.y - H * 0.4, rx);
+    gr.addColorStop(0, 'rgba(150,200,255,0.03)'); gr.addColorStop(0.85, 'rgba(150,200,255,0.09)'); gr.addColorStop(1, 'rgba(190,230,255,0.16)');
+    ctx.beginPath(); ctx.ellipse(s.x, s.y, rx, H, 0, Math.PI, 2 * Math.PI); ctx.ellipse(s.x, s.y, rx, ry, 0, 0, Math.PI); ctx.fillStyle = gr; ctx.fill();
+    // the rim, and the floor's ring
+    ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(200,235,255,' + (0.42 + 0.1 * Math.sin(t / 23)).toFixed(2) + ')';
+    ctx.beginPath(); ctx.ellipse(s.x, s.y, rx, H, 0, Math.PI, 2 * Math.PI); ctx.stroke();
+    ctx.setLineDash([3, 3]); ctx.strokeStyle = 'rgba(200,235,255,0.32)'; ctx.beginPath(); ctx.ellipse(s.x, s.y, rx, ry, 0, 0, 2 * Math.PI); ctx.stroke(); ctx.setLineDash([]);
+    // a band of light sliding up and down the dome: a line of latitude, its front half bright, its back half faint
+    var ph = (t % 240) / 240, k = 0.5 - 0.5 * Math.cos(ph * 2 * Math.PI), hb = H * (0.12 + 0.8 * k), w = Math.sqrt(Math.max(0, 1 - (hb / H) * (hb / H)));
+    ctx.strokeStyle = 'rgba(210,240,255,0.22)'; ctx.beginPath(); ctx.ellipse(s.x, s.y - hb, rx * w, ry * w, 0, Math.PI, 2 * Math.PI); ctx.stroke();
+    ctx.strokeStyle = 'rgba(210,240,255,0.5)'; ctx.beginPath(); ctx.ellipse(s.x, s.y - hb, rx * w, ry * w, 0, 0, Math.PI); ctx.stroke();
+    // a glint or two on the skin
+    for (var i = 0; i < 3; i++) { var a = (t / 90 + i * 2.1) % (2 * Math.PI), tw = (t + i * 37) % 70; if (tw > 18) continue; var gx = s.x + Math.cos(a) * rx * 0.8, gy = s.y - Math.abs(Math.sin(a)) * H * 0.75 - 4; ctx.globalAlpha = Math.sin(Math.PI * tw / 18); FX.star(ctx, gx, gy, E, 3); }
+    ctx.restore();
+  }
   LK.ground = function (ctx, B, onSq) {
     var t = B.t;
     (B.grounds || []).forEach(function (g) {
