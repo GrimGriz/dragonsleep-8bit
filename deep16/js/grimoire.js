@@ -405,12 +405,32 @@
     // SRD 5.1: "When you cast this spell, and then as a bonus action on each of your turns until the spell ends, you can take the Dash action." The cast
     // is the bonus action, so the Dash that comes with it is free: this turn's feet doubled now (10-01); T.bonusDash is the turns after (battle.js RETREAT DASH)
     cast: function* (B, u, t, slot, head) { u.conds.retreat = { by: u.id }; u.turn.bonusDash = true; M.concentrate(B, u, 'expeditiousretreat', 'Expeditious Retreat', function () { delete u.conds.retreat; }); var run = u.conds.restrained || u.conds.dancing ? 0 : u.speed; u.turn.move += run; B.card([head + ': quick feet (a Dash each turn as a bonus action).', run ? '  {c}+' + run + ' ft{/} now: the Dash that comes with the cast.' : '  {g}' + (u.conds.dancing ? 'Dancing in place: no move to add a Dash to.' : 'Held fast: the Dash adds a speed of 0.') + '{/}']); yield 16; },
-    // the AI casts it to close on a foe it could not reach by the walk (js/tactics.js TX.dashBuys: nothing worth doing from here, a plan once the Dash is in); never over a concentration it holds
-    ai: function (B, u, e, slot, fs) { if (u.conc || u.conds.retreat || TX()._dashing) return null; var s = TX().dashBuys(B, u); return s > 0 ? { score: s, t: u, keep: 2.5 } : null; }
+    // the AI casts it to close on a foe it could not reach by the walk (js/tactics.js TX.dashBuys: nothing worth doing from here, a plan once the Dash is in), or to
+    // kite (below); never over a concentration it holds
+    ai: function (B, u, e, slot, fs) { if (u.conc || u.conds.retreat || TX()._dashing) return null; var s = Math.max(TX().dashBuys(B, u), retreatKite(B, u, fs)); return s > 0 ? { score: s, t: u, keep: 2.5 } : null; }
   };
+  // the kite (10-01: "the warlock AI seldom casts Expeditious Retreat" -- the only thing it was asked was the Dash that closes, and a warlock shoots from where it
+  // stands, so the ask never came). A ranged caster with melee foes that could be on it by their next turn (each one's speed and reach) wants the feet: the cast is
+  // the bonus action, and the Dash that comes with it adds a speed to the turn's walk, a bonus Dash on every turn after -- enough, on a map with the room, to stand
+  // past what any of them can cover (tactics.js keepOff runs there once the spell is up). Worth the blows it keeps off the caster, a round of the foes' damage
+  // (TX.dpr) less the slot (spellPlans); nothing where no square within the walk is clear of them all. Not for an archer, a thrower or a caster foe (the Dash
+  // outruns none of them: TX.chasers), a held or dancing caster, or one with no bonus action left
+  function retreatKite(B, u, fs) {
+    var T = u.turn, tx = TX();
+    if (!T || !T.bonus || u.conds.restrained || u.conds.dancing || !((u.weapon && u.weapon.ranged) || tx.caster(u))) return 0;
+    var chase = tx.chasers(u, fs);
+    if (!chase.length) return 0;
+    var rm = G.reach(u, T.move + u.speed), clear = Object.keys(rm).some(function (k) { var q = rm[k]; return q.stand && tx.outOfReach(u, chase, q.x, q.y); });
+    if (!clear) return 0;
+    // (the way out of a foe's reach is an opportunity attack -- half a round of its blows -- which a hurt caster pays leaving anyway, as keepOff does it with or without
+    // the spell, but a whole one standing its ground would not)
+    var worth = chase.reduce(function (s, f) { return s + tx.dpr(f); }, 0) * 0.8;
+    if (u.hp > u.maxhp * 0.6) worth -= chase.reduce(function (s, f) { return s + (G.dist(u, f) <= G.reachOf(f) ? tx.dpr(f) * 0.5 : 0); }, 0);
+    return Math.max(0, worth);
+  }
   E.falselife = {
     summary: function (e) { return 'yourself · 1d4+' + (4 + 5 * Math.max(0, e.slot - 1)) + ' temporary HP'; },
-    cast: function* (B, u, t, slot, head, x) { var r = D.roll('1d4+' + (4 + 5 * up(x.sp, slot))); u.temp = Math.max(u.temp || 0, r.total); FX.sparkle(u, 'violet', 14); B.card([head + ': a false life fills him -- {c}' + r.total + ' temporary HP{/}.']); yield 20; },
+    cast: function* (B, u, t, slot, head, x) { var r = D.roll('1d4+' + (4 + 5 * up(x.sp, slot))); u.temp = Math.max(u.temp || 0, r.total); u.conds.falseLife = { by: u.id, temp: r.total }; FX.sparkle(u, 'violet', 14); B.card([head + ': a false life fills ' + nm(B, u) + ' -- {c}' + r.total + ' temporary HP{/}.']); yield 20; }, // (conds.falseLife: what Dispel Magic ends -- its branch read a record nothing set, 10-01b's found list)
     ai: function (B, u) { return !u.temp && B.round <= 1 ? { score: 3, t: u } : null; }
   };
   E.grease = {
@@ -494,7 +514,7 @@
     // (10-01, Griz: "Yes to Longstriding Hastened Globe runners": the +10 ft is the speed's, and stands -- but a dancer "must use all its movement to dance
     // without leaving its space" and a restrained creature's "speed becomes 0, and it can't benefit from any bonus to its speed" (SRD 5.1), so cast on the
     // caster's own turn it hands such a one no feet to walk this turn, as Expeditious Retreat's Dash above hands none)
-    cast: function* (B, u, t, slot, head) { var held = t.conds.restrained || t.conds.dancing; if (!t.conds.longstrider) { t.conds.longstrider = true; t.speed += 10; if (t.turn && t === u && !held) t.turn.move += 10; if (t.turn && t === u && t.turn.moveFull != null) t.turn.moveFull += 10; } B.card([head + ' on ' + t.name + ': {c}+10 ft{/} of stride.' + (held && t === u ? '  {g}' + (t.conds.dancing ? 'Dancing in place: no move to add it to.' : 'Held fast: a bonus to speed is no use at a speed of 0.') + '{/}' : '')]); yield 16; },
+    cast: function* (B, u, t, slot, head) { var held = t.conds.restrained || t.conds.dancing; if (!t.conds.longstrider) { t.conds.longstrider = { by: u.id }; t.speed += 10; /* (a record, not `true`: the M.cast wrapper stamps where it was cast, for a Globe of Invulnerability -- 10-01c) */ if (t.turn && t === u && !held) t.turn.move += 10; if (t.turn && t === u && t.turn.moveFull != null) t.turn.moveFull += 10; } B.card([head + ' on ' + t.name + ': {c}+10 ft{/} of stride.' + (held && t === u ? '  {g}' + (t.conds.dancing ? 'Dancing in place: no move to add it to.' : 'Held fast: a bonus to speed is no use at a speed of 0.') + '{/}' : '')]); yield 16; },
     ai: function () { return null; }
   };
   E.sanctuary = {
@@ -556,7 +576,8 @@
   M.darknessAt = function* (B, u, sq, head) {
     var Lt = D.light, all = Lt ? Lt.all(B) : [];
     var inSq = function (x, y) { return sq.some(function (q) { return q[0] === Math.round(x) && q[1] === Math.round(y); }) && !(M.globed && M.globed(B, u, { x: Math.round(x), y: Math.round(y) }, 2)); }; // (a Light inside a globe the darkness is cast from outside of is not swallowed: the squares there are no part of it)
-    if (all.some(function (l) { return l.kind === 'daylight' && sq.some(function (q) { return Math.hypot(q[0] - l.x, q[1] - l.y) * 5 <= l.bright; }); })) { D.sfx('magic'); B.card([(head || u.name) + ': darkness -- and the daylight burns it away as it forms.'], 300); yield 30; return; }
+    // (the overlap that burns it: squares of the sphere the Daylight really lights -- D.light.reaches carves a globe's out of it -- and the Darkness holds: M.globed, as inSq asks it, leaves the globe's out of the Darkness too)
+    if (all.some(function (l) { return l.kind === 'daylight' && sq.some(function (q) { return Math.hypot(q[0] - l.x, q[1] - l.y) * 5 <= l.bright && !(M.globed && M.globed(B, u, { x: q[0], y: q[1] }, 2)) && (!Lt || Lt.reaches(B, l, q[0], q[1])); }); })) { D.sfx('magic'); B.card([(head || u.name) + ': darkness -- and the daylight burns it away as it forms.'], 300); yield 30; return; }
     var gone = [];
     B.units.forEach(function (w) { if (w.conds.light && inSq(w.x, w.y)) { delete w.conds.light; gone.push(w.name + '\'s light'); } });
     var rec = { by: u.id, sq: sq, kind: 'darkness' };
@@ -740,7 +761,7 @@
   };
   E.mirrorimage = {
     summary: function () { return 'yourself · three illusory doubles: a blow may strike one instead (a minute)'; },
-    cast: function* (B, u, t, slot, head) { u.images = 3; M.expire(B, u, 'mirrorimage', function () { u.images = 0; }); FX.sparkle(u, 'violet', 24); B.card([head + ': three of him, and which is which?']); yield 20; }, // (a minute: M.expire)
+    cast: function* (B, u, t, slot, head) { u.images = 3; u.conds.mirrorImage = { by: u.id }; M.expire(B, u, 'mirrorimage', function () { u.images = 0; delete u.conds.mirrorImage; }); FX.sparkle(u, 'violet', 24); B.card([head + ': three of ' + nm(B, u) + ', and which is which?']); yield 20; }, // (a minute: M.expire; conds.mirrorImage: where it was cast, for a Globe of Invulnerability -- the images are idle inside one it was cast from outside of)
     ai: function (B, u, e, slot, fs) { if ((u.images || 0) > 1) return null; var th = fs.filter(function (w) { return G.dist(u, w) <= 60; }).reduce(function (s, w) { return s + TX().dpr(w); }, 0); return { score: th * 0.35 * 2 + (u.hp < u.maxhp / 2 ? 3 : 0), t: u }; }
   };
   E.protectionfrompoison = {
@@ -843,6 +864,10 @@
     summary: function (e) { return 'a creature within 120 ft · its spells end: a hold, a web, a blessing, a haste, a ward; ' + ordinal(Math.max(3, e.slot || 3)) + ' level and lower at once, a held spell above that needs your spellcasting check, DC 10 + its level'; },
     cast: function* (B, u, t, slot, head) {
       var ended = [], held = [], top = Math.max(3, slot || 3);
+      // (10-01c: what a Globe of Invulnerability holds off the creature is still on it -- Dispel Magic cast from inside the globe ends it too: the shelf lifted
+      // while it works, M.liftVeil; cast from outside, the cast never got this far)
+      var put = M.liftVeil(B);
+      try {
       // a held spell: at or under the slot it ends outright; above it, d20 + the spellcasting modifier against 10 + its level
       var asks = function (cc) {
         var L = spellLvl(cc.id);
@@ -856,9 +881,10 @@
       // (what a spell wrote on the creature itself is taken back with it -- 10-01b, the gallery's carry-over found the same miss here:
       // Longstrider's +10 ft stayed after its dispelling, and a creature dispelled while blinked out stayed in the Ethereal for good)
       var UNDO = { longstrider: function () { t.speed -= 10; }, blink: function () { if (t.ethereal) t.ethereal = false; }, shillelagh: function () { t.weapon = t.conds.shillelagh.base; } };
-      ['mageArmor', 'sanctuary', 'wardingBond', 'longstrider', 'guided', 'noHeal', 'frosted', 'acid', 'blindedBy', 'blinded', 'commanded', 'marked', 'branded', 'poisonWard', 'resistance', 'blink', 'shillelagh'].forEach(function (k) { if (t.conds[k]) { if (k === 'blindedBy' || k === 'blinded') { if (!(t.conds.blinded && t.conds.blinded.held)) { delete t.conds.blinded; delete t.conds.blindedBy; ended.push('blindness'); } return; } if (k === 'mageArmor') t.baseAC = t.src ? window.DS.R.ac(Object.assign({}, t.src, { conds: {} })) : t.baseAC; if (UNDO[k]) UNDO[k](); delete t.conds[k]; ended.push(k); } });
-      if (t.images) { t.images = 0; ended.push('the images'); }
-      if (t.temp && t.conds.falseLife) { t.temp = 0; }
+      ['mageArmor', 'sanctuary', 'wardingBond', 'longstrider', 'guided', 'noHeal', 'frosted', 'acid', 'blindedBy', 'blinded', 'commanded', 'marked', 'branded', 'poisonWard', 'resistance', 'blink', 'shillelagh'].forEach(function (k) { if (t.conds[k]) { if (k === 'blindedBy' || k === 'blinded') { if (!(t.conds.blinded && t.conds.blinded.held)) { delete t.conds.blinded; delete t.conds.blindedBy; ended.push('blindness'); } return; } if (k === 'mageArmor') t.baseAC = t.conds.mageArmor && t.conds.mageArmor.base != null ? t.conds.mageArmor.base : t.src ? window.DS.R.ac(Object.assign({}, t.src, { conds: {} })) : t.baseAC; if (UNDO[k]) UNDO[k](); delete t.conds[k]; ended.push(k); } }); // (Mage Armor's own record keeps the AC it was cast over -- magic.js; a monster's has no 8-bit sheet to ask)
+      if (t.images) { t.images = 0; delete t.conds.mirrorImage; ended.push('the images'); }
+      if (t.conds.falseLife) { if (t.temp && t.temp <= t.conds.falseLife.temp) t.temp = 0; delete t.conds.falseLife; ended.push('false life'); } // (its temporary HP go with it -- unless more came since from something else)
+      } finally { put(); }
       FX.ring(t, 'silver', 36);
       B.card([head + ' on ' + nm(B, t) + ': ' + (ended.length ? '{c}' + ended.join(', ') + '{/} unravel.' : held.length ? '' : 'nothing on it to undo.') + (held.length ? ' {g}Holds: ' + held.join(', ') + '.{/}' : '')], 300);
       yield 24;
@@ -1430,7 +1456,7 @@
     cast: function* (B, u, t, slot, head, x) {
       var rec = { by: u.id, sq: G.sphere(t.x, t.y, 20), kind: 'kill', dc: x.dc, dice: more('5d8', Math.max(0, slot - 5)), cx: t.x, cy: t.y };
       B.darks = (B.darks || []).concat([rec]); B.lightMap = null;
-      FX.bloom(t.x, t.y, rec.sq, 'moss'); D.sfx('poison2');
+      FX.bloom(t.x, t.y, rec.sq, 'nature'); D.sfx('poison2'); // (the greens of FX.EL.nature: Stinking Cloud's burst is the acid's yellow-green, magic.js area -- 10-01, the two were the same moss)
       B.card([head + ': a yellow-green fog rolls out, 20 ft round -- {c}nothing sees in, out or across it{/}; CON DC ' + x.dc + ' or ' + rec.dice + ' poison to whoever enters it or starts a turn in it'], 300);
       M.concentrate(B, u, 'cloudkill', 'Cloudkill', function () { B.darks = (B.darks || []).filter(function (d) { return d !== rec; }); B.lightMap = null; B.card(['{g}The poison fog thins and is gone.{/}'], 240); });
       yield 24;
@@ -1707,16 +1733,59 @@
   };
   // Globe of Invulnerability (SRD 5.1): a 10-ft globe about the caster; a spell of 5th level or lower cast from outside does nothing to those in it
   E.globeofinvulnerability = {
-    summary: function (e) { return 'a 10-ft globe about you, fixed where cast · a spell of ' + (5 + Math.max(0, (e.slot || 6) - 6)) + 'th level or lower, even cast from a higher slot, does nothing to those inside, cast from outside it -- a save, an attack roll, a dart, a touch, a cantrip -- and what it leaves behind: the ground, the clouds, the webs and the walls, and what it left on a creature that has since stepped in (a phantom\'s bite, the acid\'s second, a disease, a curse\'s or a mark\'s extra die, the stone, a word of command, Fear\'s run, Confusion\'s turn) do nothing to those inside, and the places they make are no part of the globe\'s squares (no difficult ground, no wall, no fog or darkness over them, no Daylight on them); a spell used again (the next bolt, the next swing) is cast from where it was first cast, however far its caster has walked (concentration)'; },
-    cast: function* (B, u, t, slot, head) { var rec = { by: u.id, x: u.x, y: u.y, max: 5 + up({ level: 6 }, slot) }; B.globes = (B.globes || []).concat([rec]); M.concentrate(B, u, 'globeofinvulnerability', 'Globe of Invulnerability', function () { B.globes = (B.globes || []).filter(function (g) { return g !== rec; }); }); FX.ring(u, 'glow', 50); B.card([head + ': a shimmering globe about ' + u.name + ' (concentration).']); yield 20; },
-    ai: function (B, u, e, slot, fs) { if (u.conc) return null; var casters = fs.filter(function (w) { return (w.known || []).length && (w.slots || []).some(function (n) { return n > 0; }); }); return casters.length ? { score: casters.length * 10, t: u } : null; }
+    summary: function (e) { return 'a 10-ft globe swelling out from where you stand, fixed there · a spell of ' + (5 + Math.max(0, (e.slot || 6) - 6)) + 'th level or lower, even cast from a higher slot, does nothing to those inside, cast from outside it or before the globe rose -- a spell already on one inside (a hold, a fear, a blessing, Mage Armor) lies idle there, and takes hold again outside if it still lasts; a save, an attack roll, a dart, a touch, a cantrip -- and what it leaves behind: the ground, the clouds, the webs and the walls, and what it left on a creature that has since stepped in (a phantom\'s bite, the acid\'s second, a disease, a curse\'s or a mark\'s extra die, the stone, a word of command, Fear\'s run, Confusion\'s turn) do nothing to those inside, and the places they make are no part of the globe\'s squares (no difficult ground, no wall, no fog or darkness over them, no Daylight on them); a spell used again (the next bolt, the next swing) is cast from where it was first cast, however far its caster has walked (concentration)'; },
+    // (10-01c, Griz: "If the visual of the globe of invulnerability starts from it's center and expands outward to its full size - everything cast from outside of it
+    // gets cleared" ... "correction - the location targeted not the wizard as above. Build it."): the globe swells out from the square it was cast on -- the caster's,
+    // the SRD's "Self (10-foot radius)", and fixed there however the caster walks after -- and as its edge passes a creature, what was cast on it from outside (or
+    // before the globe rose) lies idle: M.globeSync, each frame of the swell. Each globe is numbered (`n`): a spell cast while it stands, by one inside it, carries the
+    // number (B.castFrom.gin, the M.cast wrapper below) and is "cast from inside" that globe wherever its target goes after
+    cast: function* (B, u, t, slot, head) {
+      B.globeN = (B.globeN || 0) + 1;
+      var rec = { by: u.id, x: u.x, y: u.y, max: 5 + up({ level: 6 }, slot), n: B.globeN, grow: 0 };
+      B.globes = (B.globes || []).concat([rec]);
+      M.concentrate(B, u, 'globeofinvulnerability', 'Globe of Invulnerability', function () { B.globes = (B.globes || []).filter(function (g) { return g !== rec; }); (B.globesGone = B.globesGone || []).push({ x: rec.x, y: rec.y, t0: B.t }); }); // (globesGone: the pop it goes out with -- looks.js)
+      B.card([head + ': a shimmering globe swells out from where ' + u.name + ' stands (concentration).']);
+      D.sfx && D.sfx('magic');
+      for (var f = 1; f <= GROW; f++) { rec.grow = f / GROW; M.globeSync(B); yield 1; }
+      delete rec.grow; M.globeSync(B);
+      yield 12;
+    },
+    // worth it against casters on the other side (as before), and for what it would lift off its own side standing about it -- a hold, a charm, a fear cast from
+    // outside -- less what it would lift off theirs, and less its own side's buffs it would still the same way (10-01c)
+    ai: function (B, u, e, slot, fs) {
+      if (u.conc) return null;
+      var casters = fs.filter(function (w) { return (w.known || []).length && (w.slots || []).some(function (n) { return n > 0; }); });
+      var probe = { by: u.id, x: u.x, y: u.y, max: 5 + Math.max(0, (slot || 6) - 6), n: -1 }, gs = B.globes, lift = 0;
+      B.globes = (gs || []).concat([probe]);
+      try {
+        B.units.forEach(function (w) {
+          if (!G.present(w) || w.hp <= 0 || !w.conds) return;
+          var v = 0; Object.keys(w.conds).forEach(function (k) { var r = w.conds[k]; if (r == null || r === false || !idleRec(B, w, k, r)) return; v += DISABLES[k] ? TX().dpr(w) * 2 + 6 : HARMS[k] ? 4 : -2; });
+          if (v) lift += G.hostile(u, w) ? -v : v;
+        });
+      } finally { B.globes = gs; }
+      var sc = casters.length * 10 + lift;
+      return sc > 0 ? { score: sc, t: u } : null;
+    }
   };
   // what the barrier counts is the spell's own level, not the slot it was cast with (SRD 5.1: "even if the spell is cast using a higher level spell
   // slot"): the cast's level, B.castLevel, set by the M.cast wrapper just below; `level` is for a caller outside a cast (a reaction) or one that
   // knows no better (a spell that still passes its slot -- js/walls.js -- is read as the cast's); with neither it is taken as 5th
+  // the globe's ground: the 5 x 5 squares about the square it was cast on; a creature is inside when a square it fills is (a Large one straddling the edge is in
+  // it -- the runner's corner test, 10-01b, read the origin square alone); while it swells (`grow`), only the squares its edge has passed. "Cast from outside":
+  // a spell carries the numbers of the globes its caster stood inside when it was cast (`gin`, stamped by the M.cast wrapper) -- one cast before a globe rose is
+  // cast from outside it, wherever its caster stood (10-01c, Griz: "everything cast before the globe has a 'where' of 'outside'"); a `from` with no numbers (a
+  // creature acting now, a bare square) is inside a globe it stands in now
+  var GROW = 36, GR = 2.9; // (the frames the swell takes; the drawn radius in squares -- looks.js drawGlobe)
+  M.globeR = function (g) { var k = g.grow == null ? 1 : g.grow; return GR * (1 - (1 - k) * (1 - k)); }; // (eased out: quick, then settling)
+  function sqIn(g, x, y) { return Math.max(Math.abs(x - g.x), Math.abs(y - g.y)) <= 2 && (g.grow == null || Math.hypot(x - g.x, y - g.y) <= M.globeR(g)); }
+  function inGlobe(g, z) { var s = z.size || 1; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) if (sqIn(g, z.x + i, z.y + j)) return true; return false; }
+  function castIn(g, from) { return from.gin ? from.gin.indexOf(g.n) >= 0 : inGlobe(g, from); }
   function globeShuts(B, from, w, lv) {
-    return (B.globes || []).some(function (g) { var inG = function (z) { return Math.max(Math.abs(z.x - g.x), Math.abs(z.y - g.y)) * 5 <= 10; }; return inG(w) && !inG(from) && lv <= g.max; });
+    return (B.globes || []).some(function (g) { return lv <= g.max && inGlobe(g, w) && !castIn(g, from); });
   }
+  // the globes a spell cast now, by z standing where it stands, is cast inside of (a globe still swelling holds no one's casting yet)
+  M.ginOf = function (B, z) { return (B.globes || []).filter(function (g) { return g.grow == null && inGlobe(g, z); }).map(function (g) { return g.n; }); };
   // "cast from outside the barrier": from where the caster stood when it was cast, not from where it is now. While a cast of the caster's is under way, B.castFrom says
   // (the wrapper below: the square it stood on -- or, for a spell used again, where the spell was FIRST cast); outside a cast, the caster's own square (a reaction, a
   // monster's own attack, the AI weighing a plan). `caster` may be a bare { x, y, id } -- M.castOrigin makes one
@@ -1732,7 +1801,7 @@
   M.castOrigin = function (B, u, g) {
     if (!B || !g || !g.free || !g.sid) return u;
     var rec = u.conc && u.conc.id === g.sid && u.conc.from ? u.conc : (B.spirits || []).filter(function (s) { return s.by === u.id && s.from && s.rounds > 0 && !!s.sword === (g.sid === 'arcanesword'); })[0];
-    return rec ? { x: rec.from.x, y: rec.from.y, id: u.id } : u;
+    return rec ? { x: rec.from.x, y: rec.from.y, id: u.id, gin: rec.from.gin || [] } : u; // (gin: the globes it was first cast inside of -- none, if before they rose)
   };
   // the lasting zones a spell leaves (10-01, Griz: "Yes to ... Globe runners"): the grounds, the clouds, the webs, the walls, the ring of guardians, the
   // beams and the guardian of faith -- whose effects land later, each turn or on entering. SRD 5.1: "Any spell of 5th level or lower cast from outside the
@@ -1759,24 +1828,136 @@
   var ZONE_KEEPS = ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads', 'lights', 'spirits', 'shells']; // ('lights': Daylight's and the Dancing Lights' places -- js/light.js L.map carves a globe's squares out of them; 'spirits': the floating weapon and the sword, whose swing asks the globe from where it was first cast -- M.castOrigin; 'shells': Antilife Shell's barrier, js/walls.js)
   var castG = M.cast;
   M.cast = function* (B, u, id, slot, t) {
-    var sp = M.data(id), prev = B.castLevel, prevFrom = B.castFrom, prevBy = B.castBy, before = {}, condsBefore = [];
+    var sp = M.data(id), prev = B.castLevel, prevFrom = B.castFrom, prevBy = B.castBy, prevBefore = B.castBefore, before = {}, condsBefore = [];
     // a spell used again (its geometry says `free`: the next bolt, the next swing) is cast, as far as the globe is concerned, from where it was FIRST cast -- not from where
     // the caster has walked to since; any other cast from the square he stands on
     var ex0 = M.EFFECT && M.EFFECT[id], g1 = ex0 && ex0.geo ? ex0.geo(B, u, M.geo(id)) : null, org = g1 && g1.free ? M.castOrigin(B, u, g1) : u;
-    B.castLevel = sp && sp.level != null ? sp.level : null; B.castFrom = { x: org.x, y: org.y }; B.castBy = u.id;
+    B.castLevel = sp && sp.level != null ? sp.level : null; B.castFrom = { x: org.x, y: org.y, gin: org.gin || M.ginOf(B, org) }; B.castBy = u.id; // (gin: the globes it is cast inside of -- 10-01c)
     ZONE_KEEPS.forEach(function (k) { before[k] = (B[k] || []).slice(); });
-    (B.units || []).forEach(function (w) { Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object') condsBefore.push(c); }); });
+    (B.units || []).forEach(function (w) { Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object') condsBefore.push(c); }); var sh = w.gshelf; if (sh) Object.keys(sh.recs).forEach(function (k) { var c = sh.recs[k].r; if (c && typeof c === 'object') condsBefore.push(c); }); }); // (and what a globe holds off it: not this cast's)
+    B.castBefore = condsBefore; // (what a globe's frames mid-cast read: js the stampOf below)
     try { yield* castG.apply(this, arguments); } finally {
       // what this cast laid, stamped where it was cast from and at what level (a record already stamped -- Moonbeam moved, the sphere rolled -- keeps its first)
       ZONE_KEEPS.forEach(function (k) { (B[k] || []).forEach(function (z) { if (before[k].indexOf(z) < 0 && !z.from) { z.from = B.castFrom; z.lv = B.castLevel != null ? B.castLevel : 5; } }); });
       // the same for what it laid ON a creature -- a condition record, an effect that sits on it and is felt each turn (Phantasmal Killer's bite, Acid Arrow's second, Contagion,
       // Bestow Curse, Hex, the stone, the command ...): where it was cast from and the spell's level, so the turn it is felt in a globe raised against the caster, M.zoneShut can say no
-      (B.units || []).forEach(function (w) { Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object' && !c.from && condsBefore.indexOf(c) < 0) { c.from = B.castFrom; c.lv = B.castLevel != null ? B.castLevel : 5; } }); });
+      (B.units || []).forEach(function (w) { Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object' && !c.from && condsBefore.indexOf(c) < 0) { c.from = B.castFrom; c.lv = B.castLevel != null ? B.castLevel : 5; c.castId = id; } }); }); // (castId: the spell, for the globe's card -- M.globeSync)
       // and on the concentration it began, for the casts that use it again (M.castOrigin)
       if (u.conc && u.conc.id === id && !u.conc.from) { u.conc.from = B.castFrom; u.conc.lv = B.castLevel != null ? B.castLevel : 5; }
-      B.castLevel = prev; B.castFrom = prevFrom; B.castBy = prevBy;
+      B.castLevel = prev; B.castFrom = prevFrom; B.castBy = prevBy; B.castBefore = prevBefore;
+      M.globeSync(B); // (what this cast laid on one inside a globe it was cast from outside of -- none, the cast's own gates saw to it -- or a globe it raised)
     }
   };
+
+  // ------------------------------------------------------------------ the globe and what is already on a creature (10-01c, RULED)
+  // Griz, asked whether a Globe of Invulnerability suspends a spell's lasting condition on one inside it: "1 it does if we can get the animation right"; "2 everything
+  // cast before the globe has a 'where' of 'outside'. it's like the globe will have to have a list of every spell cast while it exists with where it was cast, effect
+  // and target to know if bob recasts mage armor after putting up the globe (from inside) then leaves to give his friend a potion and goes back into the globe".
+  // SRD 5.1: a spell cast from outside "can't affect creatures or objects within it" -- not "ends". So the record a spell left on a creature inside a globe it was
+  // cast from outside of (or before which it was cast) is set aside whole while the creature stands there -- the shelf, w.gshelf -- and put back when it steps out
+  // or the globe falls, if the spell still lasts: its clock runs on off the shelf (the caster's concentration, B.expiries). Every reader of w.conds sees the creature
+  // as the globe leaves it -- the hold gone, the fear, the blessing. The code that ends a spell runs with the shelf lifted (M.unveil: M.endConc, the expiries, Dispel
+  // Magic), so a spell that ends while shelved ends for good. What a spell wrote on the creature itself (Mage Armor's AC, Longstrider's +10 ft, a weapon made magic,
+  // the images, a sense, the size) is taken off with the record and given back with it (BAKE). NOT shelved (the seat's calls): the hit points a spell gave (Aid,
+  // False Life, Heroism's, Enhance Ability's -- spent like any hit points); a mark of the moment (prone; Acid Arrow's second bite, spent if due inside -- 10-01b);
+  // the caster's own bookkeeping (Call Lightning's storm, a smite readied, Vampiric Touch, the Flame Blade in hand); and the lights (light.js carves those by square)
+  var SHELF = {};
+  ('asleep baned barkskin beacon blessed blinded blindedBy blink blur branded charmed commanded confused contagion cursed dancing darkvision deafened deathWard disAt divineFavor ' +
+   'energyWard enfeebled enhanced enlarged faerie feared feeble fireShield foresight freeMove frightened frosted guidance guided hasted heated heroism holyAura hypnotized ' +
+   'incapacitated invisible killer laughing longstrider mageArmor magicWeapon marked mindBlank mirrorImage mocked noHeal noReact paralyzed pfeg poisoned poisonWard pwt ' +
+   'regenerating resistance restrained retreat sanctuary seeInvisible shieldOfFaith shillelagh sickened slowed stoneskin stoning stunned truesight trueStrike wardingBond').split(' ').forEach(function (k) { SHELF[k] = 1; });
+  // a creature may come into a fight under these with no record of where they were cast (the camp's CAST AHEAD, the 8-bit sheet): cast before any globe, so from
+  // outside every one -- their levels. A generic condition with no record of a cast (a ghoul's paralysis, a dragon's fear) is no spell's: never shelved
+  var BEFORE = { mageArmor: 1, longstrider: 1, pfeg: 1, sanctuary: 1, darkvision: 2, seeInvisible: 2, magicWeapon: 2, barkskin: 2, stoneskin: 4 };
+  var BEFORE_NAME = { mageArmor: 'Mage Armor', longstrider: 'Longstrider', pfeg: 'Protection from Evil and Good', sanctuary: 'Sanctuary', darkvision: 'Darkvision', seeInvisible: 'See Invisibility', magicWeapon: 'Magic Weapon', barkskin: 'Barkskin', stoneskin: 'Stoneskin' };
+  var DISABLES = { paralyzed: 1, stunned: 1, asleep: 1, hypnotized: 1, incapacitated: 1, dancing: 1, laughing: 1, charmed: 1, confused: 1, stoning: 1, restrained: 1 }; // (the AI's weights)
+  var HARMS = { frightened: 1, feared: 1, slowed: 1, baned: 1, blinded: 1, cursed: 1, disAt: 1, marked: 1, heated: 1, killer: 1, contagion: 1, poisoned: 1, faerie: 1, enfeebled: 1, feeble: 1, sickened: 1, mocked: 1, noHeal: 1, noReact: 1, guided: 1, branded: 1, deafened: 1, commanded: 1, frosted: 1, regenerating: 0 };
+  var OUTSIDE = M.OUTSIDE = { x: -999, y: -999, gin: [] }; // (where a spell with no record of its casting was cast from: outside every globe)
+  // (a record laid by a cast still under way -- not among what was there when it began, B.castBefore -- is that cast's, though the wrapper stamps it only at
+  // the cast's end: the frames between see it so -- 10-01c, filming it, Bob's Mage Armor recast inside his globe went idle the frame it was laid)
+  function stampOf(B, k, r) {
+    if (r && typeof r === 'object' && r.from) return { from: r.from, lv: r.lv != null ? r.lv : 5 };
+    if (r && typeof r === 'object' && B.castFrom && B.castBefore && B.castBefore.indexOf(r) < 0) return { from: B.castFrom, lv: B.castLevel != null ? B.castLevel : 5 };
+    if (BEFORE[k] != null) return { from: OUTSIDE, lv: BEFORE[k] };
+    return null;
+  }
+  // a record a globe holds off this creature now
+  function idleRec(B, w, k, r) { if (!SHELF[k]) return false; var s = stampOf(B, k, r); return !!s && globeShuts(B, s.from, w, s.lv); }
+  function unarmored(w) { try { if (w.src && window.DS && window.DS.R) return window.DS.R.ac(Object.assign({}, w.src, { conds: {} })); } catch (x) { /* (a sheet the 8-bit's rules can't read: the plain figure) */ } return 10 + D.mod(w.abil ? w.abil.dex : 10); }
+  function weaponOff(w, r, e) { if (r && r.base) { e.v = w.weapon; w.weapon = r.base; } }
+  function weaponOn(w, r, e) { if (e.v) w.weapon = e.v; }
+  function sense(f) { return [function (w, r, e) { if (r && typeof r === 'object' && r.had != null) { e.v = w[f]; w[f] = r.had; } }, function (w, r, e) { if ('v' in e) w[f] = e.v; }]; }
+  function regrow(w, r, e, k0) { if (k0 != null && D.spr && D.spr.regrow) D.spr.regrow(w, k0); }
+  // [off, on]: off runs with the record already set aside, on with it put back (k0: the figure's drawn size before)
+  var BAKE = {
+    mageArmor: [function (w, r, e) { e.v = w.baseAC; w.baseAC = r && typeof r === 'object' && r.base != null ? r.base : unarmored(w); }, function (w, r, e) { if (e.v != null) w.baseAC = e.v; }],
+    longstrider: [function (w) { w.speed -= 10; }, function (w) { w.speed += 10; }],
+    shillelagh: [weaponOff, weaponOn], magicWeapon: [weaponOff, weaponOn],
+    mirrorImage: [function (w, r, e) { e.v = w.images || 0; w.images = 0; }, function (w, r, e) { w.images = e.v; }],
+    darkvision: sense('darkvision'), truesight: sense('truesight'), seeInvisible: sense('seeInvisible'),
+    enlarged: [regrow, regrow]
+  };
+  function scaleOf(w) { return D.spr && D.spr.scaleOf ? D.spr.scaleOf(w) : null; }
+  function shelfOf(w) { var s = w.gshelf; if (s && s.of !== w.conds) s = w.gshelf = null; return s; } // (a figure whose conditions were wiped since -- the gallery's reset, a climb's rest: the shelf is stale)
+  function shelve(w, k, r, sh) { var e = { r: r }, k0 = scaleOf(w); delete w.conds[k]; if (BAKE[k]) BAKE[k][0](w, r, e, k0); sh.recs[k] = e; }
+  function wake(w, k, e) { var k0 = scaleOf(w); w.conds[k] = e.r; if (BAKE[k]) BAKE[k][1](w, e.r, e, k0); }
+  function label(k, r) { var sp = r && typeof r === 'object' && r.castId ? M.data(r.castId) : null; return sp && sp.name ? sp.name : BEFORE_NAME[k] || k; }
+  function uniq(a) { return a.filter(function (x, i) { return a.indexOf(x) === i; }); }
+  function say(B, w, off, on, gone) {
+    off = uniq(off); on = uniq(on);
+    if (off.length) { FX.sparkle(w, 'glow', 16); FX.ring(w, 'glow', 18); B.card([Nm(B, w) + ' {c}inside the globe{/}: ' + off.join(', ') + (off.length > 1 ? ' lie' : ' lies') + ' idle.'], 240); }
+    if (on.length) { FX.sparkle(w, 'violet', 12); B.card([Nm(B, w) + (gone ? ', {p}the globe gone{/}: ' : ' {p}outside the globe{/}: ') + on.join(', ') + (on.length > 1 ? ' take' : ' takes') + ' hold again.'], 240); }
+  }
+  // set aside what a globe now holds off each creature, and put back what none does; `quiet`: no flare, no card. Called on every step of the fight's coroutine
+  // (battle.js step), each frame of a globe's swell, after every cast; nothing to do and quick when no globe stands and nothing is shelved
+  M.globeSync = function (B, quiet) {
+    if (!B || !B.units || B.veil) return;
+    var any = (B.globes || []).length > 0;
+    B.units.forEach(function (w) {
+      if (!w.conds) return;
+      var sh = shelfOf(w); if (!any && !sh) return;
+      var off = [], on = [], here = any && !w.dead && !w.ethereal; // (an ethereal creature -- blinked out -- stands in no globe)
+      if (sh) Object.keys(sh.recs).forEach(function (k) {
+        var e = sh.recs[k]; if (here && idleRec(B, w, k, e.r)) return;
+        delete sh.recs[k];
+        if (w.conds[k] != null) return; // (the same thing laid again since, from inside the globe: the newer stands, the older is gone)
+        wake(w, k, e); on.push(label(k, e.r));
+      });
+      if (here) Object.keys(w.conds).forEach(function (k) { var r = w.conds[k]; if (r == null || r === false || !idleRec(B, w, k, r)) return; sh = sh || (w.gshelf = { of: w.conds, recs: {} }); shelve(w, k, r, sh); off.push(label(k, r)); });
+      if (sh && !Object.keys(sh.recs).length) w.gshelf = null;
+      if (!quiet) say(B, w, off, on, !any);
+    });
+  };
+  // the shelf lifted, for code that must see what is really on a creature (a spell ending, Dispel Magic): every shelved record put back as it was; the function
+  // it returns sets aside again, quietly, what a globe still holds off, and says what it no longer does (the globe that fell)
+  M.liftVeil = function (B) {
+    var back = [];
+    if (B && B.units) B.units.forEach(function (w) { var sh = w.conds && shelfOf(w); if (!sh) return; Object.keys(sh.recs).forEach(function (k) { var e = sh.recs[k]; if (w.conds[k] != null) return; wake(w, k, e); back.push([w, k, e]); }); w.gshelf = null; });
+    if (B) B.veil = (B.veil || 0) + 1;
+    return function () {
+      if (!B) return;
+      B.veil = Math.max(0, (B.veil || 1) - 1);
+      var any = (B.globes || []).length > 0, woke = [];
+      back.forEach(function (b) {
+        var w = b[0], k = b[1], e = b[2];
+        if (w.conds[k] !== e.r) return; // (it ended)
+        if (any && !w.dead && !w.ethereal && idleRec(B, w, k, e.r)) { shelve(w, k, e.r, shelfOf(w) || (w.gshelf = { of: w.conds, recs: {} })); return; } // (as it was, its bake taken off again)
+        woke.push(b);
+      });
+      // what was held off and is not now: given back for good. (Its bake was already put back with it -- wake.)
+      var by = {}; woke.forEach(function (b) { var id = b[0].id; (by[id] = by[id] || { w: b[0], on: [] }).on.push(label(b[1], b[2].r)); });
+      Object.keys(by).forEach(function (id) { say(B, by[id].w, [], by[id].on, true); }); // (put back by the shelf's lifting: a globe that fell, never a step)
+    };
+  };
+  M.unveil = function (B, fn) { var put = M.liftVeil(B); try { return fn(); } finally { put(); } };
+  // the fight is over: everything back on, every globe gone (what is saved after -- the 8-bit's sheet, a camp -- sees the creature whole)
+  M.globeLift = function (B) {
+    if (!B || !B.units) return;
+    B.units.forEach(function (w) { var sh = w.conds && shelfOf(w); if (!sh) return; Object.keys(sh.recs).forEach(function (k) { if (w.conds[k] == null) wake(w, k, sh.recs[k]); }); w.gshelf = null; });
+    B.globes = [];
+  };
+  // what a globe holds off this creature now, { key: record } -- the condition line's "idle in the globe" (ui.js conds)
+  M.shelved = function (w) { var sh = w && w.conds && shelfOf(w); if (!sh) return null; var o = {}, n = 0; Object.keys(sh.recs).forEach(function (k) { o[k] = sh.recs[k].r; n++; }); return n ? o : null; };
   // Irresistible Dance (SRD 5.1): no first save. "A dancing creature must use all its movement to dance without leaving its space and has disadvantage
   // on Dexterity saving throws and attack rolls... other creatures have advantage on attack rolls against it. As an action, a dancing creature makes a
   // Wisdom saving throw to regain control of itself." Here: the turn's move is gone and the save is its action's (M.onStart below). The AI always spends

@@ -93,7 +93,7 @@
               if (sideOf(w, xx, yy) !== want || sq.some(function (q) { return q[0] === xx && q[1] === yy; }) || !G.canStand(v, xx, yy)) continue;
               var dd = Math.max(Math.abs(xx - v.x), Math.abs(yy - v.y)); if (dd < bd) { bd = dd; best = [xx, yy]; }
             }
-            if (best) { v.tween = { fx: v.x, fy: v.y, fz: G.gzAt(v, v.x, v.y), t: 0, dur: 8 }; v.x = best[0]; v.y = best[1]; }
+            if (best) { v.tween = { fx: v.x, fy: v.y, fz: G.gzAt(v, v.x, v.y), t: 0, dur: B.pace(8, true) }; v.x = best[0]; v.y = best[1]; } // (paced only when an AI-run unit is casting: Battle.prototype.pace)
           });
         }
         B.walls = (B.walls || []).concat([w]); B.wallMap = null;

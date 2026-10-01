@@ -644,7 +644,7 @@
         if (near > bs) { bs = near; best = [x, y]; }
       }
       if (best && bs > Math.min.apply(null, hostileNear(B, u, 200).map(function (w) { return Math.max(Math.abs(w.x - u.x), Math.abs(w.y - u.y)); }).concat([99]))) {
-        var x0 = u.x, y0 = u.y; u.x = best[0]; u.y = best[1]; u.tween = { fx: x0, fy: y0, fz: G.gzAt(u, x0, y0), t: 0, dur: 8 };
+        var x0 = u.x, y0 = u.y; u.x = best[0]; u.y = best[1]; u.tween = { fx: x0, fy: y0, fz: G.gzAt(u, x0, y0), t: 0, dur: B.pace(8, true) }; // (an AI-run caster's step through the rime keeps to its wait below: Battle.prototype.pace)
         FX.sparkle(u, 'silver', 14); B.card(['{c}' + Nm(B, u) + ' steps through the rime{/} {g}(Rime Step: 10 ft){/}'], 200); yield 10;
       }
       return r;

@@ -5,6 +5,12 @@
 (function () {
   var D = window.D16;
   var T = window.T16 = {};
+  // the pace (10-01 fa88930: D.PACE, 1.25 by default, stretches an AI turn's waits and walks a quarter longer for a person watching). The harness steps
+  // frames by hand and watches nothing, so it runs at 1, as bench16.js does: T.until's frame counts stay what they were (a whole fight run by the AI
+  // is 1400-5300 frames at 1 and a quarter more at 1.25; the pace is never persisted here, only D.PACE in this page, and a reload gives it back).
+  // T16.pace(1.5) to test the pace itself (then pass T.until / T.run a bigger max)
+  T.pace = function (p) { D.PACE = p || 1; return D.PACE; };
+  T.pace(1);
   T.B = function () { return D.battle; };
   T.until = function (pred, max) {
     D.paused = true;

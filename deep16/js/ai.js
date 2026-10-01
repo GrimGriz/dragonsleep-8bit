@@ -466,7 +466,7 @@
     });
     if (!best) return false;
     var T = u.turn; T.action = 0; L.ready = false;
-    u.tween = { fx: u.x, fy: u.y, fz: 60, t: 0, dur: 22 }; u.x = best.land[0]; u.y = best.land[1];
+    u.tween = { fx: u.x, fy: u.y, fz: 60, t: 0, dur: B.pace(22, true) }; u.x = best.land[0]; u.y = best.land[1]; // (the leap's flight is paced with its waits below, as a step is: Battle.prototype.pace)
     u.facing = B.faceTo(u, best.t); u.anim = 'attack'; u.animT = B.t; D.sfx('crit');
     var hit = [best.t].concat(hs.filter(function (w) { return w !== best.t && G.dist(w, best.t) <= 5 && G.dist(u, w) <= 5; }).slice(0, (L.targets || 2) - 1));
     var roll = D.roll(L.dice), lines = ['{r}' + the(B, u) + '{/} leaps, and comes down on them like a falling wall!  ' + L.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + L.dc], hurt = [];

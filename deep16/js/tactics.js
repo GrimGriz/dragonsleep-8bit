@@ -409,7 +409,10 @@
   };
   // Daylight: the light-haters caught in it, and a Darkness it would burn away
   EV.daylight = function (B, u, e, slot, fs) {
-    var shy = fs.filter(function (t) { return t.lightSensitive && !t.recoiled; }), dk = (B.darks || []).filter(function (d) { return d.kind === 'darkness' && !B.units.some(function (w) { return w.id === d.by && w.side === u.side; }); });
+    // (the Globe of Invulnerability, SRD 5.1: Daylight is a spell of the 3rd, and "the area within the barrier is excluded from the areas affected by such spells" -- a light-hater
+    // inside one the cast is from outside of is not lit, and a Darkness is burnt away only where it has a square outside the globe: neither counts. M.globeShuts / M.globed, js/grimoire.js)
+    var shy = fs.filter(function (t) { return t.lightSensitive && !t.recoiled && !M.globeShuts(B, u, e.g, t); }),
+      dk = (B.darks || []).filter(function (d) { return d.kind === 'darkness' && !B.units.some(function (w) { return w.id === d.by && w.side === u.side; }) && M.darkSq(B, d).some(function (q) { return !M.globed(B, u, { x: q[0], y: q[1] }, e.g.lvl); }); });
     if (!shy.length && !dk.length) return null;
     if (B.fight && B.fight.roost) return null;
     var t = (shy[0] || fs[0]);
@@ -523,20 +526,25 @@
     var ranged = (u.weapon && u.weapon.ranged) || TX.caster(u);
     if (!ranged && !T.disengaged) return; // (one who disengaged -- the rogue's Cunning Action, a goblin's -- steps back out of reach too)
     var fs = foesOf(B, u), pressed = G.foesNear(u, u.x, u.y, 5).length;
-    if (!pressed) return;
-    if (!T.disengaged && u.hp > u.maxhp * 0.6) return; // (not worth the swings at it while it is whole)
-    var off = function () { // (the square within the walk left with the fewest foes beside it: only one that frees it of some)
+    // (Expeditious Retreat up, 10-01: the run is a kite, not a step -- with a melee foe that could be on it by its next turn (TX.chasers), pressed or not and whole or not,
+    // a square past what every one of them could cover (TX.outOfReach) is worth more than any near one, and the bonus Dash is taken to reach it. It is what the
+    // grimoire's retreatKite counts the cast worth)
+    var chase = u.conds.retreat ? TX.chasers(u, fs) : [];
+    if (!pressed && !chase.length) return;
+    if (!T.disengaged && !chase.length && u.hp > u.maxhp * 0.6) return; // (not worth the swings at it while it is whole)
+    var off = function () { // (the square within the walk left with the fewest foes beside it: only one that frees it of some -- or, kiting, one that is out of reach of them all)
       var rm = G.reach(u, T.move), pick = null, ps = -1e9;
       Object.keys(rm).forEach(function (k) {
         var e = rm[k]; if (!e.stand) return;
         var n = G.foesNear(u, e.x, e.y, 5).length, sees = fs.some(function (t) { return G.los(u, t, e.x, e.y).clear; });
-        var s = -n * 20 + (sees ? 3 : 0) - e.cost / 10;
-        if (s > ps) { ps = s; pick = e; }
+        var far = chase.length > 0 && TX.outOfReach(u, chase, e.x, e.y);
+        var s = -n * 20 + (sees ? 3 : 0) - e.cost / 10 + (far ? 40 : 0);
+        if (s > ps) { ps = s; pick = e; pick.far = far; }
       });
-      return pick && G.foesNear(u, pick.x, pick.y, 5).length < pressed ? pick : null;
+      return pick && (pick.far || G.foesNear(u, pick.x, pick.y, 5).length < pressed) ? pick : null;
     };
     var pick = T.move ? off() : null;
-    if (!pick && retreat()) { yield* B.exec(u, { do: 'cdash' }); pick = off(); } // (no clear square on the walk left: the bonus action's Dash gives the feet -- Expeditious Retreat's)
+    if ((!pick || (chase.length && !pick.far)) && retreat()) { yield* B.exec(u, { do: 'cdash' }); pick = off() || pick; } // (no clear square on the walk left, or none past the foes' reach: the bonus action's Dash gives the feet -- Expeditious Retreat's)
     if (pick) yield* walk(B, u, pick);
   }
   // the bonus action's Dash (10-01). SRD 5.1, Expeditious Retreat: "When you cast this spell, and then as a bonus action on each of your turns until the spell
@@ -548,6 +556,16 @@
     if (!T || !T.bonus || u.conds.restrained || u.conds.dancing || u.dead || u.hp <= 0) return ''; // (a dancer "must use all its movement to dance without leaving its space": no feet to add a Dash to)
     if (T.bonusDash && u.conds.retreat) return 'Expeditious Retreat';
     return u.cls === 'rogue' && u.lvl >= 2 ? 'Cunning Action' : '';
+  };
+  // the kite's reckoning (10-01; the grimoire's retreatKite weighs the cast by it, keepOff runs by it): the foes it runs from are the melee ones -- standing, with no
+  // bow, thrown axe or spell to reach it from afar -- that could be on it by their next turn (a stride of their speed and a swing of their reach); a square is out of
+  // reach when every one of them is farther from it than that. (The class NPCs carry a handaxe or a dagger in the off hand and throw it at range, as many blows as the
+  // sword: the paladin that was run from, seeds 3-45 of the bench, kept throwing and the warlock that cast the spell did worse for the slot -- not a chaser)
+  TX.chasers = function (u, fs) {
+    return fs.filter(function (f) { return G.standing(f) && !(f.weapon && f.weapon.ranged) && !(f.alt && f.alt.ranged) && !TX.caster(f) && G.dist(u, f) <= G.reachOf(f) + (f.speed || 30); });
+  };
+  TX.outOfReach = function (u, chase, x, y) {
+    return chase.every(function (f) { return G.dist(u, f, x, y) > G.reachOf(f) + (f.speed || 30); });
   };
   // what a Dash would buy now: nothing worth doing from here (no plan over the 0.5 the action's own bar is), and with a stride more of walk, a plan that is -- its
   // score, or 0. (TX._dashing: a spell's `ai` that asks this, Expeditious Retreat's, is asked inside TX.plans -- it answers nothing while this is weighing)

@@ -407,6 +407,86 @@
     document.body.appendChild(pre12);
     return;
   }
+  // the Globe of Invulnerability and what is already on a creature (mode=globe1001c; RULED 10-01c, Griz: "1 it does if we can get the animation right" /
+  // "2 everything cast before the globe has a 'where' of 'outside' ... bob recasts mage armor after putting up the globe (from inside) then leaves to give his
+  // friend a potion and goes back into the globe"): a hold from outside lies idle inside and takes hold again outside; it ends for good if its caster lets go
+  // while it is shelved; a camp's Mage Armor (no record of where) is outside; Bob's recast inside stands in and out; Longstrider's +10 ft; Dispel from inside;
+  // the globe falling; the swell; the AI's worth
+  if (get('mode', '') === 'globe1001c') {
+    var repG = { checks: [], errors: [] }, MG = D.magic;
+    function okG(what, v) { repG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runG(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkG(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); return Bx; }
+    function syncG(B) { MG.globeSync(B); }
+    function runS(B, g) { var v, k = 0, st; while (g && k++ < 4000) { MG.globeSync(B); st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      var B1 = mkG('?npc=wizard:11&lvl=11&vs=fighter,wizard'), ps = B1.units.filter(function (u) { return u.side === 'party'; });
+      var ftr = ps.filter(function (u) { return u.cls === 'fighter'; })[0], bob = ps.filter(function (u) { return u.cls === 'wizard'; })[0], wz = B1.units.filter(function (u) { return u.side === 'foe'; })[0];
+      wz.x = 9; wz.y = 2; bob.x = 9; bob.y = 7; ftr.x = 10; ftr.y = 7;
+      ftr.saves = Object.assign({}, ftr.saves, { wis: -30 });
+      // the camp's Mage Armor on Bob, no record of where it was cast (a `1`, as camp.js lays it)
+      delete bob.conds.mageArmor; var bare = bob.baseAC; bob.conds.mageArmor = 1; bob.baseAC = Math.max(bare, 13 + D.mod(bob.abil.dex)); var armored = bob.baseAC;
+      // Longstrider on the fighter, by Bob, before the globe
+      D.rules.startTurn(bob); var sp0 = ftr.speed; runG(MG.cast(B1, bob, 'longstrider', 1, ftr));
+      okG('Longstrider before the globe: speed ' + sp0 + ' -> ' + ftr.speed, ftr.speed === sp0 + 10 && ftr.conds.longstrider && ftr.conds.longstrider.from);
+      // 1. Hold Person from the foe, outside
+      D.rules.startTurn(wz); runG(MG.cast(B1, wz, 'holdperson', 2, ftr));
+      okG('Hold Person from outside: held ' + !!ftr.conds.paralyzed + ', can act ' + D.rules.canAct(ftr) + ' (the foe concentrating: ' + (wz.conc && wz.conc.id) + ')', !!ftr.conds.paralyzed && !D.rules.canAct(ftr) && wz.conc && wz.conc.id === 'holdperson');
+      // 2. the globe, Bob's, beside the fighter: the swell, and what goes idle
+      D.rules.startTurn(bob); delete bob.conc;
+      var g0 = MG.cast(B1, bob, 'globeofinvulnerability', 6, bob), stG, kG = 0, seenGrow = [], heldAt = -1;
+      while (kG++ < 400) { stG = g0.next(); if (stG.done) break; var gl = (B1.globes || [])[0]; if (gl && gl.grow != null) { seenGrow.push(gl.grow); if (heldAt < 0 && !ftr.conds.paralyzed) heldAt = gl.grow; } }
+      var G1 = (B1.globes || [])[0];
+      okG('the swell: ' + seenGrow.length + ' frames, the fighter (one square off) let go at grow ' + (heldAt >= 0 ? heldAt.toFixed(2) : 'never') + ', done ' + (G1 && G1.grow == null) + ', numbered ' + (G1 && G1.n), seenGrow.length >= 20 && heldAt > 0 && heldAt < 1 && G1 && G1.grow == null && G1.n >= 1);
+      var shF = MG.shelved(ftr) || {};
+      okG('inside: the hold idle (' + Object.keys(shF).join(',') + '), can act ' + D.rules.canAct(ftr) + ', speed ' + ftr.speed + ' (Longstrider idle)', !ftr.conds.paralyzed && shF.paralyzed && D.rules.canAct(ftr) && ftr.speed === sp0 && shF.longstrider);
+      okG('Bob\'s camp Mage Armor (cast before the globe): idle, AC ' + D.rules.ac(bob) + ' (armored ' + armored + ', bare ' + bob.baseAC + ')', !bob.conds.mageArmor && (MG.shelved(bob) || {}).mageArmor && bob.baseAC < armored);
+      // 3. a fresh Hold Person from outside at the fighter inside: untouched
+      MG.endConc(B1, wz, 'test'); syncG(B1);
+      okG('the foe let go while the hold lay idle: the record ended for good (shelf ' + JSON.stringify(Object.keys(MG.shelved(ftr) || {})) + ', held ' + !!ftr.conds.paralyzed + ')', !(MG.shelved(ftr) || {}).paralyzed && !ftr.conds.paralyzed);
+      D.rules.startTurn(wz); var log0 = (B1.log || []).length; runG(MG.cast(B1, wz, 'holdperson', 2, ftr));
+      okG('a new Hold Person from outside at one inside: untouched (held ' + !!ftr.conds.paralyzed + ') -- ' + (B1.log || []).slice(log0).join(' | ').replace(/\{\/?[a-z]*\}/g, '').slice(0, 120), !ftr.conds.paralyzed);
+      // 4. out, and back: Longstrider takes hold again outside, idle inside
+      ftr.x = 14; syncG(B1);
+      okG('the fighter steps out: speed ' + ftr.speed + ', the shelf ' + JSON.stringify(Object.keys(MG.shelved(ftr) || {})), ftr.speed === sp0 + 10 && !MG.shelved(ftr));
+      ftr.x = 10; syncG(B1);
+      okG('and back in: speed ' + ftr.speed, ftr.speed === sp0);
+      // 5. Bob recasts Mage Armor inside the globe, steps out to give his friend a potion, steps back in
+      D.rules.startTurn(bob); var conc0 = bob.conc; runS(B1, MG.cast(B1, bob, 'mageArmor', 1, bob)); // (with the globe's frames between the cast's steps, as battle.js step runs it: filmed 10-01c, the recast went idle mid-cast)
+      var ma = bob.conds.mageArmor;
+      okG('Bob\'s Mage Armor recast inside: AC ' + D.rules.ac(bob) + ', cast inside globe ' + JSON.stringify(ma && ma.from && ma.from.gin) + ', the globe still his (' + (bob.conc && bob.conc.id) + ')', ma && ma.from && ma.from.gin.indexOf(G1.n) >= 0 && bob.baseAC === armored && bob.conc === conc0);
+      bob.x = 9; bob.y = 12; syncG(B1);
+      okG('Bob steps out (the potion): AC ' + D.rules.ac(bob) + ', Mage Armor the new one ' + (bob.conds.mageArmor === ma) + ', nothing shelved ' + !MG.shelved(bob) + ', the globe stays (' + (B1.globes || []).length + ')', bob.conds.mageArmor === ma && bob.baseAC === armored && !MG.shelved(bob) && (B1.globes || []).length === 1);
+      bob.x = 9; bob.y = 7; syncG(B1);
+      okG('Bob steps back in: AC ' + D.rules.ac(bob) + ', Mage Armor stands ' + (bob.conds.mageArmor === ma), bob.conds.mageArmor === ma && bob.baseAC === armored);
+      // 6. a mark laid from outside, then carried in; Dispel from inside ends it (and Longstrider with it: Dispel's list -- so it is put back after, for 7)
+      ftr.x = 14; syncG(B1); ftr.conds.marked = { by: wz.id, from: { x: 9, y: 2, gin: [] }, lv: 1, castId: 'huntersmark' }; ftr.x = 10; syncG(B1);
+      okG('a mark from outside carried in: idle (' + JSON.stringify(Object.keys(MG.shelved(ftr) || {})) + ')', !ftr.conds.marked && (MG.shelved(ftr) || {}).marked);
+      var ls0 = (MG.shelved(ftr) || {}).longstrider;
+      D.rules.startTurn(bob); runG(MG.cast(B1, bob, 'dispelmagic', 3, ftr)); syncG(B1);
+      okG('Dispel Magic from inside on it: the mark and Longstrider ended, shelf ' + JSON.stringify(Object.keys(MG.shelved(ftr) || {})) + ', speed ' + ftr.speed, !MG.shelved(ftr) && !ftr.conds.marked && !ftr.conds.longstrider && ftr.speed === sp0);
+      ftr.x = 14; syncG(B1); ftr.conds.longstrider = ls0; ftr.speed += 10; ftr.x = 10; syncG(B1); // (Longstrider again, from where it first was)
+      // 7. the globe falls: Bob's camp Mage Armor -- discarded when the new one stood -- stays the new; the fighter's Longstrider takes hold
+      MG.endConc(B1, bob, 'test'); syncG(B1);
+      okG('the globe falls: globes ' + (B1.globes || []).length + ', the fighter\'s speed ' + ftr.speed + ', shelves ' + !!MG.shelved(ftr) + '/' + !!MG.shelved(bob) + ', gone drawn ' + (B1.globesGone || []).length, !(B1.globes || []).length && ftr.speed === sp0 + 10 && !MG.shelved(ftr) && !MG.shelved(bob) && (B1.globesGone || []).length === 1);
+      // 8. the AI weighs it: a wizard beside a held friend raises it for that
+      var B2 = mkG('?npc=wizard:11,fighter:11&lvl=11&vs=wizard'), p2 = B2.units.filter(function (u) { return u.side === 'party'; })[0], fz = B2.units.filter(function (u) { return u.side === 'foe'; }), fw = fz.filter(function (u) { return u.cls === 'wizard'; })[0], ff = fz.filter(function (u) { return u.cls === 'fighter'; })[0];
+      fw.x = 9; fw.y = 7; ff.x = 10; ff.y = 7; p2.x = 9; p2.y = 2; delete fw.conc;
+      var E = MG.EFFECT.globeofinvulnerability, s0 = E.ai(B2, fw, { g: MG.geo('globeofinvulnerability') }, 6, [p2]);
+      ff.conds.paralyzed = { by: p2.id, from: { x: 9, y: 2, gin: [] }, lv: 2, castId: 'holdperson' };
+      var s1 = E.ai(B2, fw, { g: MG.geo('globeofinvulnerability') }, 6, [p2]);
+      okG('the AI: the globe worth ' + (s0 ? s0.score.toFixed(1) : 0) + ' alone, ' + (s1 ? s1.score.toFixed(1) : 0) + ' with its fighter held from outside beside it; the probe left no globe (' + (B2.globes || []).length + ')', s1 && (!s0 || s1.score > s0.score + 5) && !(B2.globes || []).length);
+      // 9. the fight's end puts everything back
+      var B3 = mkG('?npc=wizard:11&lvl=11&vs=fighter,wizard'), b3 = B3.units.filter(function (u) { return u.cls === 'wizard' && u.side === 'party'; })[0];
+      b3.conds.mageArmor = 1; D.rules.startTurn(b3); delete b3.conc; runG(MG.cast(B3, b3, 'globeofinvulnerability', 6, b3));
+      var shelved3 = !!(MG.shelved(b3) || {}).mageArmor; runG(B3.finish('won'));
+      okG('the fight ends: Mage Armor ' + (shelved3 ? 'idle, then ' : 'not idle?, then ') + 'back ' + b3.conds.mageArmor + ', globes ' + (B3.globes || []).length, shelved3 && b3.conds.mageArmor === 1 && !(B3.globes || []).length);
+    } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
+    if (errs.length) repG.errors = repG.errors.concat(errs);
+    var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
+    document.body.appendChild(preG);
+    return;
+  }
   // his rulings of 09-30 (mode=rulings0930): Fear bites (the sweep keeps a spell's fright), a charm holds a hero the player runs, CHANNEL
   // DIVINITY is a list of its own, Preserve Life's button, Lisbet's charm (hidden)
   if (get('mode', '') === 'rulings0930') {

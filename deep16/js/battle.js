@@ -273,6 +273,7 @@
   // ------------------------------------------------------------------ the coroutine
   Battle.prototype.step = function (v) {
     for (var guard = 0; guard < 200; guard++) {
+      if (this.globes && D.magic.globeSync) D.magic.globeSync(this); // (a Globe of Invulnerability: what it holds off a creature that has stepped in, set aside; what it no longer does, put back -- js/grimoire.js, 10-01c)
       var r = this.co.next(v); v = undefined;
       if (r.done) { this.co = null; return; }
       var y = r.value;
@@ -441,7 +442,7 @@
     if (!best) return;
     u.x = best[0]; u.y = best[1]; u.facing = 0;
     u.anim = 'idle'; u.animT = this.t; u.flash = 0; u.reaction = 1;
-    u.tween = { fx: w.from[0] - (u.size - 1) / 2, fy: w.from[1] - (u.size - 1) / 2, fz: 46, t: 0, dur: 26 }; // the drop from the wall
+    u.tween = { fx: w.from[0] - (u.size - 1) / 2, fy: w.from[1] - (u.size - 1) / 2, fz: 46, t: 0, dur: this.pace(26, true) }; // the drop from the wall (paced on an AI's turn, as a step is: the pace runner's found list, 10-01c)
     this.units.push(u);
     // the split cocoon stays on the wall as a husk
     this.map.props.forEach(function (p) { if (p.kind === 'cocoon' && p.sq.x === w.from[0] && p.sq.y === w.from[1]) p.alpha = 0.3; });
@@ -493,6 +494,7 @@
 
   Battle.prototype.finish = function* (o) {
     this.result = o;
+    if (D.magic && D.magic.globeLift) D.magic.globeLift(this); // (what a Globe of Invulnerability held off anyone is put back on, the globes gone: what the 8-bit's sheet saves after sees the creature whole -- js/grimoire.js, 10-01c)
     // the glamour broken: the riders are what they were all along (the wagon yard's children)
     if (o === 'won') this.riders.forEach(function (r) { if (r.after) { r.sheet = r.after; FX.sparkle({ x: r.x, y: r.y, size: 1 }, 'gold', 14); } });
     if (o !== 'fled' && o !== 'yielded') D.music(o === 'won' ? 'victory' : 'gameover'); // (one got away: the boss tune runs on into the chase)
@@ -757,6 +759,9 @@
       if (!u.ethereal && D.magic.sleetCatch(this, u)) { if (o && o.spend) T.move = 0; yield 24; break; }
       // a spell's ground (09-28, js/grimoire.js): grease underfoot, spikes, the guardians' ring -- a fall ends the move there
       if (!u.ethereal && D.magic.stepInto) { var si = D.magic.stepInto(this, u); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (si) { if (o && o.spend) T.move = 0; yield 24; break; } }
+      // out of a Globe of Invulnerability that held a spell off it (10-01c): a hold, a sleep, a web's grip, a dance takes hold again on the square it steps
+      // out onto, and the walk ends there (filming it, the fighter walked on a square held)
+      if (this.globes && D.magic.globeSync) { D.magic.globeSync(this); if (!RU.canAct(u) || u.conds.restrained || u.conds.dancing) { if (o && o.spend) T.move = 0; u.anim = 'idle'; yield 24; break; } }
     }
     u.anim = 'idle';
   };
@@ -1005,7 +1010,7 @@
           if (!G.canStand(tgt, rx, ry) || G.dist(att, tgt, null, null, rx, ry) > 5) continue;
           var dd = Math.hypot(rx - tgt.x, ry - tgt.y); if (dd < rd) { rd = dd; rs = [rx, ry]; }
         }
-        if (rs) { tgt.tween = { fx: tgt.x, fy: tgt.y, fz: 0, t: 0, dur: 18 }; tgt.x = rs[0]; tgt.y = rs[1]; this.card(['{r}' + nameOf(att) + '{/} reels ' + nameOf(tgt) + ' in.']); D.sfx('run'); yield 24; }
+        if (rs) { tgt.tween = { fx: tgt.x, fy: tgt.y, fz: 0, t: 0, dur: this.pace(18, true) }; tgt.x = rs[0]; tgt.y = rs[1]; this.card(['{r}' + nameOf(att) + '{/} reels ' + nameOf(tgt) + ' in.']); D.sfx('run'); yield 24; }
       }
     }
     // a knockdown (the wolf's bite, the worg's, Talmok's fists, the giant's rock): STR or prone

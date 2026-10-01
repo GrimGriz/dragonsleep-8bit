@@ -316,6 +316,9 @@
     (B.globes || []).forEach(function (g) {
       out.push({ depth: g.x + g.y + 4.7, gz: D.iso.map.gz(g.x, g.y), layer: 2, draw: function (ctx) { drawGlobe(ctx, B, g); } }); // (after the front-most square inside it, 2 and 2 out: all within show through its skin)
     });
+    // a globe that has fallen (its caster's concentration gone): the skin thins and lifts away over a third of a second (10-01c)
+    if (B.globesGone) B.globesGone = B.globesGone.filter(function (g) { return B.t - g.t0 < GONE; });
+    (B.globesGone || []).forEach(function (g) { out.push({ depth: g.x + g.y + 4.7, gz: D.iso.map.gz(g.x, g.y), layer: 2, draw: function (ctx) { drawGlobe(ctx, B, g, (B.t - g.t0) / GONE); } }); });
     // the zones that move (09-29): the moonbeam's shaft, the flaming sphere rolling
     (B.zones || []).forEach(function (z) {
       if (shut(B, z, z.x, z.y)) return; // (the shaft or the ball on a square inside a globe it was cast from outside of: nothing stands there to draw)
@@ -340,10 +343,24 @@
   };
 
   // under the figures: the spell ground, the rings of a holy ward, the edge of a magical darkness (ui.js overlay)
-  function drawGlobe(ctx, B, g) {
+  // (10-01c, Griz: "If the visual of the globe of invulnerability starts from it's center and expands outward to its full size - everything cast from outside of it gets
+  // cleared" -- "the location targeted not the wizard"): it swells out from the square it was cast on (M.globeR, the radius the rule reads too, so a figure's spells go
+  // idle the frame the edge reaches it), its rim a bright front while it grows; `gone` (0..1): fallen, the skin thinning and lifting as it goes
+  var GONE = 22;
+  function drawGlobe(ctx, B, g, gone) {
     var I = D.iso, c = I.center(g.x, g.y, D.iso.map.gz(g.x, g.y)), s = I.toScreen(c.x, c.y), t = B.t, E = FX.EL.arcane;
-    var rx = 2.9 * Math.SQRT2 * I.TW / 2, ry = 2.9 * Math.SQRT2 * I.TH / 2, H = rx * 0.72;   // (the aura's 10-ft circle; the dome a little lower than round, as a sphere seen from above the floor)
+    var k = (M.globeR ? M.globeR(g) : 2.9) / 2.9 * (gone ? 1 + gone * 0.18 : 1), swell = g.grow != null && !gone;
+    var rx = k * 2.9 * Math.SQRT2 * I.TW / 2, ry = k * 2.9 * Math.SQRT2 * I.TH / 2, H = rx * 0.72;   // (the aura's 10-ft circle; the dome a little lower than round, as a sphere seen from above the floor)
+    if (rx < 1) return;
     ctx.save();
+    if (gone) ctx.globalAlpha = Math.max(0, 1 - gone);
+    if (swell || gone) { // the front: a bright rim on the floor and over the dome, a spray of motes along it -- and as it falls, the rim flashing once and its motes lifting off
+      ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(225,245,255,' + (swell ? 0.9 - 0.4 * g.grow : 0.95).toFixed(2) + ')';
+      ctx.beginPath(); ctx.ellipse(s.x, s.y, rx, ry, 0, 0, 2 * Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.ellipse(s.x, s.y, rx, H, 0, Math.PI, 2 * Math.PI); ctx.stroke();
+      for (var m = 0; m < (gone ? 16 : 10); m++) { var am = m * (gone ? 0.393 : 0.628) + t / 9, up = gone ? gone * (14 + (m % 3) * 8) : 0; FX.star(ctx, s.x + Math.cos(am) * rx, s.y + Math.sin(am) * (m % 2 && gone ? H : ry) * (m % 2 && gone ? -1 : 1) - up, E, 2); }
+      ctx.lineWidth = 1;
+    }
     // the skin: a soft wash, brighter toward the rim
     var gr = ctx.createRadialGradient(s.x, s.y - H * 0.45, H * 0.2, s.x, s.y - H * 0.4, rx);
     gr.addColorStop(0, 'rgba(150,200,255,0.03)'); gr.addColorStop(0.85, 'rgba(150,200,255,0.09)'); gr.addColorStop(1, 'rgba(190,230,255,0.16)');
@@ -360,6 +377,10 @@
     for (var i = 0; i < 3; i++) { var a = (t / 90 + i * 2.1) % (2 * Math.PI), tw = (t + i * 37) % 70; if (tw > 18) continue; var gx = s.x + Math.cos(a) * rx * 0.8, gy = s.y - Math.abs(Math.sin(a)) * H * 0.75 - 4; ctx.globalAlpha = Math.sin(Math.PI * tw / 18); FX.star(ctx, gx, gy, E, 3); }
     ctx.restore();
   }
+  // the two poison clouds each their own colour (10-01, the runners' found-not-fixed: Cloudkill and Stinking Cloud were the same moss on the floor, js/ui.js). SRD 5.1: Stinking Cloud "a sphere of
+  // yellow, nauseating gas", Cloudkill "a sphere of poisonous, yellow-green fog" -- the one a sulphur yellow, the other the greener, paler, sicklier of the two. `floor` is the wash laid on
+  // the squares (here, and in the ui.js overlay, which reads it); `puff` the two colours of the gas that roils up out of it
+  LK.CLOUD = { stink: { floor: '#c8bc3c', puff: [P('gold', 4), P('orc', 3)] }, kill: { floor: '#9ee07e', puff: [P('bone', 1), P('orc', 3)] } };
   LK.ground = function (ctx, B, onSq) {
     var t = B.t;
     (B.grounds || []).forEach(function (g) {
@@ -370,7 +391,7 @@
     // yellow-green gas, sleet falling)
     (B.darks || []).forEach(function (dk) {
       var kind = dk.kind || 'darkness', sqs = D.magic.darkSq(B, dk), has = {}; sqs.forEach(function (q) { has[q[0] + ',' + q[1]] = 1; });
-      var CL = kind === 'fog' ? [P('silver', 6), P('silver', 5), P('bone', 1), 0.28] : kind === 'stink' ? [P('orc', 3), P('gold', 3), P('orc', 2), 0.3] : kind === 'kill' ? [P('moss', 2), P('gold', 2), P('moss', 2), 0.34] : kind === 'sleet' ? [P('bone', 2), P('glow', 2), P('silver', 5), 0.22] : [P('outline', 0), P('violet', 1), P('violet', 3), 0.55];
+      var CL = kind === 'fog' ? [P('silver', 6), P('silver', 5), P('bone', 1), 0.28] : kind === 'stink' ? [LK.CLOUD.stink.floor, LK.CLOUD.stink.puff[0], LK.CLOUD.stink.puff[1], 0.3] : kind === 'kill' ? [LK.CLOUD.kill.floor, LK.CLOUD.kill.puff[0], LK.CLOUD.kill.puff[1], 0.34] : kind === 'sleet' ? [P('bone', 2), P('glow', 2), P('silver', 5), 0.22] : [P('outline', 0), P('violet', 1), P('violet', 3), 0.55];
       sqs.forEach(function (q) {
         var edgeN = !has[q[0] + ',' + (q[1] - 1)], edgeW = !has[(q[0] - 1) + ',' + q[1]], edgeS = !has[q[0] + ',' + (q[1] + 1)], edgeE = !has[(q[0] + 1) + ',' + q[1]];
         onSq(q[0], q[1], function (c) {
@@ -657,7 +678,7 @@
   var ICON_NOHEAL = ['x.#..', '.x#..', '##x##', '..#x.', '..#.x'], ICON_CROWN = ['H..H..H', 'MM.M.MM', 'MMMMMMM', 'DDDDDDD', '.......'];
   var ICON_SHIELD = ['hhhhh', '#ooo#', '#ooo#', '.#o#.', '..#..'], ICON_THOUGHT = ['.###...', '#...#..', '.###...', '....o..', '.....o.'];
   var ICON_BANG = ['..#..', '..#..', '..#..', '.....', '..#..'], ICON_CLOUD = ['..AAA..', '.ABBBB.', 'BBBBBBC', '...Z...', '..Z....'];
-  var ICON_HELD = ['..#..', '.#o#.', '#oXo#', '.#o#.', '..#..'];
+  var ICON_HELD = ['..#..', '.#o#.', '#oXo#', '.#o#.', '..#..'], ICON_DOME = ['..###..', '.#...#.', '#..o..#', '#.....#', '#######'];
   var RING8 = [[0, -2], [1, -1], [2, 0], [1, 1], [0, 2], [-1, 1], [-2, 0], [-1, -1]];
   // the colours of the spell a creature holds (its school's, or the element of its damage: LK.of), asked once per spell
   var CONC_EL = {};
@@ -684,6 +705,8 @@
     if (c.freeMove) L.push(function (x) { badge(ctx, x, by, GO); var gap = Math.floor(t / 7) % 8; RING8.forEach(function (q, j) { if (j !== gap && j !== (gap + 1) % 8) px(ctx, x + q[0], by + q[1], P('glow', 2)); }); px(ctx, x + RING8[gap][0], by + RING8[gap][1], P('bone', 2)); });
     if (c.mindBlank) L.push(function (x) { badge(ctx, x, by, P('violet', 4)); RING8.forEach(function (q) { px(ctx, x + q[0], by + q[1], P('violet', 5)); }); px(ctx, x, by, (t >> 4) & 1 ? P('bone', 2) : P('violet', 4)); });
     if (c.storm) L.push(function (x) { var TE = FX.EL.thunder, fl = (t + ph) % 34 < 5; badge(ctx, x, by, P('blue', 3)); icon(ctx, x, by, ICON_CLOUD, { A: TE.c[1], B: TE.c[2], C: TE.c[3], Z: fl ? FX.EL.lightning.c[1] : null }); });
+    // spells a Globe of Invulnerability holds off it (10-01c): a little dome, a dim spark under it that wakes now and then -- what it is, on the condition line
+    if (M.shelved && M.shelved(u)) L.push(function (x) { badge(ctx, x, by, P('glow', 1)); icon(ctx, x, by, ICON_DOME, { '#': P('glow', 2), o: (t + ph) % 60 < 8 ? P('violet', 4) : P('stone', 4) }); });
     // a spell held (either side; Griz's rule: a held spell on a foe is one to act on -- strike the caster and it may break): the last badge in
     // the row, a diamond in the spell's own colours with a bright heart that beats, so a caster who is holding something can be picked out
     if (u.conc) L.push(function (x) { var CE = concEl(u.conc.id); badge(ctx, x, by, CE.c[1]); icon(ctx, x, by, ICON_HELD, { '#': CE.c[0], o: CE.c[1], X: (t + ph) % 44 < 22 ? P('bone', 2) : CE.c[0] }); });

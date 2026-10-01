@@ -1122,9 +1122,11 @@
     webFloor(B);
     // a web burning (magic.js burnWebs: out the round it caught in): embers on the square
     (B.webFire || []).forEach(function (e) { if (e.round < B.round) return; e.sq.forEach(function (q) { var fl = 0.5 + 0.5 * Math.sin(B.t / 4 + q[0] * 2 + q[1]); fillSq(ctx, q[0], q[1], R('fire', 2), 0.18 + 0.14 * fl, 2); dotSq(q[0], q[1], (B.t >> 2) % 2 ? R('fire', 2) : R('gold', 4)); }); });
-    // magical darkness, and the clouds that are heavily obscured like it: fog (pale), a stinking cloud (yellow-green), sleet (cold)
+    // magical darkness, and the clouds that are heavily obscured like it: fog (pale), a stinking cloud (sulphur yellow), Cloudkill (a paler, greener poison), sleet (cold)
+    // (10-01: the two poison clouds were the same moss; their colours are js/looks.js LK.CLOUD's, the volume drawn over this wash is theirs too)
+    var CK = (D.looks && D.looks.CLOUD) || {};
     (B.darks || []).forEach(function (dk) {
-      var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? R('moss', 2) : k === 'kill' ? R('moss', 2) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;
+      var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? (CK.stink ? CK.stink.floor : R('orc', 3)) : k === 'kill' ? (CK.kill ? CK.kill.floor : R('moss', 2)) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;
       D.magic.darkSq(B, dk).forEach(function (q) { fillSq(ctx, q[0], q[1], col, a); });
     });
     if (D.looks) D.looks.ground(ctx, B, onSq); // the spell ground, holy rings, the darkness's edge (js/looks.js)
@@ -1190,7 +1192,11 @@
       var S = B.spell, g = S.g, M = D.magic, harm = S.sp.kind === 'save' || S.sp.kind === 'attack' || S.sp.kind === 'auto';
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'wall') {
         var col = S.id === 'wallofstone' ? R('stone', 3) : S.id === 'wallofthorns' || S.id === 'conjureanimals' || S.id === 'conjurewoodlandbeings' ? R('moss', 2) : S.id === 'windwall' ? R('bone', 2) : S.id === 'web' ? R('bone', 1) : S.id === 'sleep' ? R('violet', 4) : S.sp.el === 'cold' || S.sp.el === 'lightning' ? R('glow', 1) : R('fire', 1);
-        M.area(u, g, cx, cy).forEach(function (q) { fillSq(ctx, q[0], q[1], col, 0.38); });
+        // (the Globe of Invulnerability, SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells" -- a square the spell, cast now, could not reach is not tinted.
+        // M.globed, js/grimoire.js, asks the globe against the spell's own level (S.sp.level, not the slot), from where the caster would cast it: where he stands, or, for a spell used again
+        // (g.free: Moonbeam moved, the sphere rolled), where it was first cast, M.castOrigin -- as magic.js M.globeShuts does. 10-01, the fog-and-dark runner's find: the preview tinted them)
+        var org = g.free && M.castOrigin ? M.castOrigin(B, u, g) : u, globes = (B.globes || []).length && M.globed;
+        M.area(u, g, cx, cy).forEach(function (q) { if (globes && M.globed(B, org, { x: q[0], y: q[1] }, S.sp.level)) return; fillSq(ctx, q[0], q[1], col, 0.38); });
       } else if (g.shape === 'teleport') B.mistyTargets(u, g.range).forEach(function (q) { lineSq(ctx, q[0], q[1], R('glow', 2), 0.6, 4); });
       else B.units.forEach(function (w) {
         if (!M.targetOK(B, u, g, w)) return;
@@ -1377,6 +1383,10 @@
     if (q.storm) c.push('{c}storm{/}');
     if (q.mageArmor) c.push('{c}mage armor{/}');
     if (q.aid) c.push('{y}aid +' + q.aid + '{/}');
+    // what a Globe of Invulnerability holds off it (10-01c): set aside while it stands inside, back when it steps out -- at the front of the row, so the trimming
+    // below never hides it
+    var sv = D.magic && D.magic.shelved ? D.magic.shelved(w) : null;
+    if (sv) { var idle = conds({ conds: sv, hp: 1 }).replace(/\{[a-z]*\}|\{\/\}/g, '').trim(); c.unshift('{c}idle in the globe:{/} {g}' + (idle || Object.keys(sv).join(' ')) + '{/}'); }
     var tail = [];
     if (w.conc) tail.push('{y}conc: ' + w.conc.name + '{/}');
     if (w.hp <= 0 && !w.dead) tail.push('{r}down{/}');

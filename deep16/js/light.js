@@ -69,7 +69,7 @@
     if (u.conds.sacred && u.hp > 0) add(20, 20, 'gold', false, 'sacred');         // Sacred Weapon's glow (SRD: bright 20 ft)
     // a Continual Flame rides the weapon it was set on (the 8-bit keeps the weapon's id): it shines while that weapon is in hand
     var cf = u.conds.continualFlame || (u.src && u.src.conds && u.src.conds.continualFlame);
-    if (cf && (typeof cf !== 'string' || (u.weapon && u.weapon.id === cf))) add(20, 20, 'fire', false, 'flame', cf); // torch-bright, no heat
+    if (cf && (typeof cf !== 'string' || (u.weapon && u.weapon.id === cf))) add(20, 20, 'fire', false, 'flame', typeof cf === 'object' && cf.from ? cf : { from: D.magic && D.magic.OUTSIDE, lv: 2 }); // torch-bright, no heat (one from the 8-bit sheet was cast before any globe rose: from outside every one -- 10-01c, Griz: "everything cast before the globe has a 'where' of 'outside'")
     var wl = u.weapon && itemLight(u.weapon.id);
     if (wl && (wl.when === 'always' || (wl.when === 'lit' && u.conds.ablaze))) add(wl.bright, wl.dim, wl.when === 'lit' ? 'fire' : 'bone', wl.when === 'lit', 'weapon');
     var ol = u.offhand && !u.offhandSheathed && itemLight(u.offhand.id); // (the other hand's: Pyro's Mace of Disruption once it is out, js/pyro.js)
@@ -88,7 +88,7 @@
     var ls = L.all(B), k = (B.map ? B.map.def.name : '') + '|';
     ls.forEach(function (l) { k += Math.round(l.x * 2) + ',' + Math.round(l.y * 2) + ',' + l.bright + ',' + l.dim + ';'; });
     (B.darks || []).forEach(function (d) { if (d.kind !== 'fog' && d.kind !== 'sleet' && d.kind !== 'stink' && d.kind !== 'kill') k += 'D' + d.sq.length + (d.follow || '') + ';'; });
-    (B.globes || []).forEach(function (g) { k += 'G' + g.x + ',' + g.y + ',' + g.max + ';'; }); // (a Globe of Invulnerability up or down changes where a darkness and a spell's light lie: SRD 5.1, "the area within the barrier is excluded")
+    (B.globes || []).forEach(function (g) { k += 'G' + g.x + ',' + g.y + ',' + g.max + ',' + (g.grow == null ? 1 : g.grow) + ';'; }); // (and while it swells: 10-01c) // (a Globe of Invulnerability up or down changes where a darkness and a spell's light lie: SRD 5.1, "the area within the barrier is excluded")
     return { k: k, ls: ls };
   }
   L.map = function (B) {
@@ -133,10 +133,28 @@
     var M = D.magic; // (a spell's light, cast from outside a Globe of Invulnerability the creature stands in, does not reach it: SRD 5.1, "the area within the barrier is excluded")
     return L.all(B).some(function (l) { return l.kind !== 'map' && l.bright > 0 && Math.hypot(l.x - cx, l.y - cy) * 5 <= l.bright + 2.5 && G.losPoint(Math.round(l.x), Math.round(l.y), Math.round(cx), Math.round(cy)) && !(l.from && M && M.zoneGlobed && M.zoneGlobed(B, l, { x: Math.round(cx), y: Math.round(cy) })); });
   };
-  // a bright light within `ft` of a creature (the drow's cue to throw their Darkness: at once, to swallow a Light)
+  // does the light l really lie on the square (x, y)? A light a spell laid (Daylight, Dancing Lights, Light, a Continual Flame: `from` and `lv` stamped where it was
+  // cast from) lies on no square inside a Globe of Invulnerability it was cast from outside of -- SRD 5.1: "the area within the barrier is excluded from the areas
+  // affected by such spells" -- the carve L.map makes, asked of one square for the readers that do not read the map (L.brightNear below; the Daylight a Darkness would
+  // burn away: magic.js castDarkness, grimoire.js M.darknessAt). A torch, a lamp, a map's own light has no `from`: it lies where it lies
+  L.reaches = function (B, l, x, y) {
+    var M = D.magic;
+    return !(l.from && M && M.zoneGlobed && B && (B.globes || []).length && M.zoneGlobed(B, l, { x: Math.round(x), y: Math.round(y) }));
+  };
+  // a bright light within `ft` of a creature (the drow's cue to throw their Darkness: at once, to swallow a Light). One a spell laid counts only while some square it lights
+  // bright within that reach is one a Globe of Invulnerability has not carved out of it (10-01, the fog-and-dark runner's find: the whole sphere was counted)
   L.brightNear = function (B, u, ft) {
     if (!B || !B.dark) return false;
-    return L.all(B).some(function (l) { return l.bright > 0 && Math.max(Math.abs(l.x - u.x), Math.abs(l.y - u.y)) * 5 <= ft; });
+    var carve = !!((B.globes || []).length && D.magic && D.magic.zoneGlobed);
+    return L.all(B).some(function (l) {
+      if (!(l.bright > 0) || Math.max(Math.abs(l.x - u.x), Math.abs(l.y - u.y)) * 5 > ft) return false;
+      if (!carve || !l.from) return true;
+      var lx = Math.round(l.x), ly = Math.round(l.y), R = Math.ceil(l.bright / 5), n = Math.ceil(ft / 5);
+      for (var y = Math.max(ly - R, u.y - n); y <= Math.min(ly + R, u.y + n); y++) for (var x = Math.max(lx - R, u.x - n); x <= Math.min(lx + R, u.x + n); x++) {
+        if (Math.hypot(x - l.x, y - l.y) * 5 <= l.bright + 0.01 && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= ft && L.reaches(B, l, x, y)) return true;
+      }
+      return false;
+    });
   };
   L.name = function (lv) { return lv === 2 ? 'bright light' : lv === 1 ? 'dim light' : 'dark'; };
 
@@ -438,7 +456,9 @@
   }
   // the lights that stand on the floor, drawn in the sort: a dropped torch, Dancing Lights, a Daylight set at a point
   L.props = function (B) {
-    return (B.lights || []).filter(function (l) { return l.kind === 'torch' || l.kind === 'lantern' || l.kind === 'dance' || l.kind === 'daylight'; }).map(function (l) {
+    // (a Dancing Lights orb on a square inside a Globe of Invulnerability its spell was cast from outside of is not drawn: the light there is carved out of it, L.map, and the square is
+    // no part of the spell -- SRD 5.1, "the area within the barrier is excluded". 10-01, the fog-and-dark runner's find: the orbs were still drawn inside)
+    return (B.lights || []).filter(function (l) { return (l.kind === 'torch' || l.kind === 'lantern' || l.kind === 'dance' || l.kind === 'daylight') && !(l.kind === 'dance' && !L.reaches(B, l, l.x, l.y)); }).map(function (l) {
       return { depth: l.x + l.y + 0.4, gz: B.map.gz(l.x, l.y), layer: 1, draw: function (ctx) {
         var c = D.iso.center(l.x, l.y, B.map.gz(l.x, l.y)), s = D.iso.toScreen(c.x, c.y), P = D.PAL.ramps;
         if (l.kind === 'torch') {

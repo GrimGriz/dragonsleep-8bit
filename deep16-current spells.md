@@ -74,7 +74,7 @@ Mage Armor and Aid last 8 hours on the tabletop.
 - **Shield of Faith** (from the start). A bonus action, one ally within 60 ft, concentration: +2 AC.
 - **Divine Favor** (from rung 3). A bonus action, concentration: his weapon hits add 1d4 radiant.
 - **Heroism** (from rung 4). Touch, concentration: no fear, and temporary HP equal to his CHA modifier at the start of each of its turns. *A higher slot doesn't add a second creature.*
-- **Lesser Restoration** (from rung 5). Touch. *It ends poisoned, paralyzed and blinded all at once. On the tabletop it ends one condition or one disease, and deafened is on its list.*
+- **Lesser Restoration** (from rung 5). Touch: ends one disease or one condition, blinded, deafened, paralyzed or poisoned (10-01, as the tabletop has it). Where more than one afflicts the creature, a player chooses which; a non-player caster takes the worst first (paralysis, the disease, blindness, poison, deafness). Contagion is the grid's disease: ending it ends the poison and the blinding it laid with it. A paralysing poison (the spider's) is one ailment, so ending it frees the creature. *It was every one of them at once until 10-01.*
 - **Aid** (from rung 5). Up to three within 30 ft: +5 to maximum and current HP (+10 from a 3rd-level slot), and it brings a fallen one up. *It lasts only the fight it is cast in; the 8-bit game keeps it to the long rest.*
 - **Revivify** (rung 9). *No use: nobody dies in DEEP16.*
 - **Daylight** (rung 9). *No use yet.* It is not sunlight, so the drow don't flinch; that part is the tabletop's own. It will matter once Darkness is read, because Daylight undoes it.
@@ -93,7 +93,7 @@ The tabletop gaps worth closing, small ones first:
 
 1. Sleep and Hold Monster pass over undead.
 2. Smite's extra 1d8 against undead and fiends.
-3. Lesser Restoration ends one condition, chosen.
+3. ~~Lesser Restoration ends one condition, chosen~~ (done 10-01).
 4. Ice Storm rolls its two damage types apart; the ground goes difficult.
 5. Shatter: disadvantage for creatures of stone, crystal and metal.
 6. Heroism and Hold Monster take another creature a slot higher.

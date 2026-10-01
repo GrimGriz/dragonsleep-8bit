@@ -64,7 +64,7 @@
   G.stepCost = function (u, x0, y0, x1, y1, o) {
     if (!G.canPass(u, x1, y1, o)) return Infinity;
     if (G.shellBars && !(o && o.ghost) && G.shellBars(u, x0, y0, x1, y1)) return Infinity; // (an Antilife Shell: js/walls.js)
-    if (u.flies && !(u.conds && (u.conds.restrained || u.conds.grappled || u.conds.prone))) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it)
+    if (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone))) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)
     if (Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) > G.map.def.step) return Infinity;
     var dx = x1 - x0, dy = y1 - y0;
     if (dx && dy && !footWalkable(u, x0 + dx, y0, true) && !footWalkable(u, x0, y0 + dy, true)) return Infinity; // no squeezing between two rocks at a corner

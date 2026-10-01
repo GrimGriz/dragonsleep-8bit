@@ -258,8 +258,8 @@
   M.endConc = function (B, u, why) {
     if (!u.conc) return;
     var c = u.conc; delete u.conc;
-    c.undo();
-    B.card(['{y}' + u.name + '{/} lets go of ' + c.name + (why ? ' (' + why + ')' : '') + '.']);
+    B.card(['{y}' + u.name + '{/} lets go of ' + c.name + (why ? ' (' + why + ')' : '') + '.']); // (before what its ending says: a globe falling, then what it gave back)
+    if (M.unveil) M.unveil(B, c.undo); else c.undo(); // (with what a Globe of Invulnerability holds off a creature put back first, so the spell's undo finds its record and it ends for good -- js/grimoire.js, 10-01c)
   };
   M.concCheck = function (B, u, dmg) {
     if (!u.conc || u.hp <= 0) return;
@@ -435,7 +435,7 @@
         if (ap) ap.end();
         B.card([head + ' on ' + w2.name + ': ' + (ap ? ap.label + ' ended.' + (ail.length > 1 ? ' {g}(one only: ' + ail.filter(function (a) { return a !== ap; }).map(function (a) { return a.label; }).join(', ') + ' stay' + (ail.length > 2 ? '' : 's') + '){/}' : '') : 'nothing to end.')]);
       } else if (id === 'mageArmor') {
-        w2.conds.mageArmor = true; w2.baseAC = Math.max(w2.baseAC, 13 + D.mod(w2.abil.dex));
+        var ma0 = w2.conds.mageArmor; w2.conds.mageArmor = { by: u.id, base: ma0 && ma0.base != null ? ma0.base : w2.baseAC }; w2.baseAC = Math.max(w2.baseAC, 13 + D.mod(w2.abil.dex)); // (a record, not `true`: where it was cast, for a Globe of Invulnerability, and the AC it was cast over -- what the globe and Dispel Magic give back; 10-01c)
         B.card([head + ' on ' + w2.name + ': {c}AC ' + RU.ac(w2) + '{/} (13 + DEX, no armour).']);
       } else if (id === 'greaterinvisibility') {
         w2.conds.invisible = { by: u.id }; delete w2.conds.hidden;
@@ -461,17 +461,17 @@
         w2.conds.continualFlame = { by: u.id, from: B.castFrom || null, lv: 2 }; if (w2.src) { w2.src.conds = w2.src.conds || {}; w2.src.conds.continualFlame = (w2.src.equip && w2.src.equip.weapon) || true; } // (on the weapon in hand; it never goes out: the 8-bit sheet keeps it, js/embed.js)
         yield* M.brighten(B, u, 'flame', head + ' on ' + (w2 === u ? 'his own gear' : w2.name) + ': a flame with no heat in it, {o}bright 20 ft{/} and dim 20 more, that will not go out.', { x: w2.x, y: w2.y, bright: 20 });
       } else if (id === 'darkvision') {
-        w2.darkvision = Math.max(w2.darkvision || 0, 60); w2.conds.darkvision = { by: u.id };
+        w2.conds.darkvision = { by: u.id, had: w2.darkvision || 0 }; w2.darkvision = Math.max(w2.darkvision || 0, 60); // (had: the sight it had before, given back inside a globe the spell was cast from outside of -- 10-01c)
         B.card([head + ' on ' + w2.name + ': the dark opens out to {c}60 ft{/}, grey and plain.']);
       } else if (id === 'invisibility') {
         w2.conds.invisible = { by: u.id, ends: true }; delete w2.conds.hidden;
         M.concentrate(B, u, id, sp.name, function () { delete w2.conds.invisible; });
         B.card([head + ' on ' + w2.name + ': gone from sight till they attack or cast (concentration).']);
       } else if (id === 'trueseeing') {
-        w2.truesight = 120; w2.conds.truesight = { by: u.id };
+        w2.conds.truesight = { by: u.id, had: w2.truesight || 0 }; w2.truesight = 120;
         B.card([head + ' on ' + w2.name + ': {c}truesight{/} to 120 ft -- the dark, the fog and the invisible are nothing to them.']);
       } else if (id === 'seeinvisibility') {
-        u.seeInvisible = true; u.conds.seeInvisible = { by: u.id };
+        u.conds.seeInvisible = { by: u.id, had: !!u.seeInvisible }; u.seeInvisible = true;
         B.card([head + ': the invisible stand plain to him, ghostly and grey.']);
       } else if (id === 'mislead') {
         u.conds.invisible = { by: u.id, ends: true }; u.images = Math.max(u.images || 0, 1); delete u.conds.hidden;
@@ -496,7 +496,7 @@
   // every area spell: the squares, one damage roll, each creature's save (Evasion for a DEX save), conditions
   function* area(B, u, id, sp, g, slot, cx, cy, head) {
     var sq = M.area(u, g, cx, cy), dc = u.spellDC;
-    var ramp = id === 'daylight' || id === 'dancinglights' ? 'bone' : id === 'fogcloud' || id === 'sleetstorm' ? 'silver' : id === 'stinkingcloud' ? 'moss' : sp.el === 'cold' || sp.el === 'lightning' ? 'glow' : sp.el === 'thunder' ? 'silver' : sp.el === 'force' ? 'bone' : 'fire';
+    var ramp = id === 'daylight' || id === 'dancinglights' ? 'bone' : id === 'fogcloud' || id === 'sleetstorm' ? 'silver' : id === 'stinkingcloud' ? 'acid' : sp.el === 'cold' || sp.el === 'lightning' ? 'glow' : sp.el === 'thunder' ? 'silver' : sp.el === 'force' ? 'bone' : 'fire';
     if (g.shape === 'sphere' || g.shape === 'cube') { FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 }; }
     var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave';
     FX.bloom(fromMe ? u.x : cx, fromMe ? u.y : cy, sq, ramp);
@@ -630,7 +630,7 @@
       if (u.conc.id === 'truestrike' && !u.conc.held) u.conc.held = true; else M.endConc(B, u, 'its time is up');
     }
     if (B) M.groundsTime(B, u);
-    if (B && B.expiries && B.expiries.length) B.expiries = B.expiries.filter(function (e) { if (e.by !== u.id || B.round < e.till) return true; try { e.undo(); } catch (x) { } return false; });
+    if (B && B.expiries && B.expiries.length) B.expiries = B.expiries.filter(function (e) { if (e.by !== u.id || B.round < e.till) return true; try { if (M.unveil) M.unveil(B, e.undo); else e.undo(); } catch (x) { } return false; }); // (unveiled: a Globe of Invulnerability's shelf put back first -- M.endConc)
     if (u.conds.heroism && !(B && M.zoneShut && M.zoneShut(B, u.conds.heroism, u, 'is steeled by Heroism'))) u.temp = Math.max(u.temp || 0, u.conds.heroism.each); // (the Globe of Invulnerability: Heroism's temporary HP each turn are a repeating effect of a spell cast from outside it -- nothing inside one)
     if (B && u.hp > 0 && !u.dead) M.webCatch(B, u, 'starts');
     if (B && u.hp > 0 && !u.dead) M.webFireTurn(B, u); // (a web burning about it: 2d4 fire)
@@ -788,20 +788,29 @@
     if (GCUT && d.from) GCUT.set(d, { g: B.globes, n: B.globes.length, sq: sq, f: d.from, out: out });
     return out;
   };
-  M.darkKindAt = function (B, x, y) {
-    var ds = B.darks || [];
-    for (var i = 0; i < ds.length; i++) { var sq = M.darkSq(B, ds[i]); for (var j = 0; j < sq.length; j++) if (sq[j][0] === x && sq[j][1] === y) return ds[i].kind || 'darkness'; }
-    return null;
+  // the kind of dark that lies on a square, or null. Where two lie on it (a fog laid over a Darkness) the Darkness is the one named, wherever it sits in B.darks
+  // (10-01, the fog-and-dark runner's find: the first on the list was taken, so a fog over a Darkness hid the Darkness from the light's map, light.js L.map, which
+  // asks `=== 'darkness'`: "nonmagical light can't illuminate it" -- the torch lit it). `skip`, a kind to leave out, is for the one looker to whom that kind is no
+  // dark at all: Devil's Sight sees through a Darkness, so for it the fog over the Darkness is what lies there (obscuredBetween asks with 'darkness')
+  M.darkKindAt = function (B, x, y, skip) {
+    var ds = B.darks || [], first = null;
+    for (var i = 0; i < ds.length; i++) {
+      var k = ds[i].kind || 'darkness'; if (k === skip || (first && k !== 'darkness')) continue;
+      var sq = M.darkSq(B, ds[i]);
+      for (var j = 0; j < sq.length; j++) if (sq[j][0] === x && sq[j][1] === y) { if (k === 'darkness') return k; first = k; break; }
+    }
+    return first;
   };
   M.darkAt = function (B, x, y) { return !!M.darkKindAt(B, x, y); };
   M.inDark = function (B, u) { return G.foot(u).some(function (p) { return M.darkAt(B, p[0], p[1]); }); };
   function obscuredBetween(B, a, b) {
-    var k = M.darkKindAt(B, a.x, a.y) || M.darkKindAt(B, b.x, b.y);
-    if (!k) { var ka = null; G.foot(a).forEach(function (p) { ka = ka || M.darkKindAt(B, p[0], p[1]); }); G.foot(b).forEach(function (p) { ka = ka || M.darkKindAt(B, p[0], p[1]); }); k = ka; }
+    var skip = a.devilSight ? 'darkness' : null, at = function (x, y) { return M.darkKindAt(B, x, y, skip); }; // (a Devil's-Sight looker: a Darkness is no dark to it -- a fog over one still is)
+    var k = at(a.x, a.y) || at(b.x, b.y);
+    if (!k) { var ka = null; G.foot(a).forEach(function (p) { ka = ka || at(p[0], p[1]); }); G.foot(b).forEach(function (p) { ka = ka || at(p[0], p[1]); }); k = ka; }
     if (k) return k;
     var x0 = a.x + ((a.size || 1) - 1) / 2, y0 = a.y + ((a.size || 1) - 1) / 2, dx = b.x + ((b.size || 1) - 1) / 2 - x0, dy = b.y + ((b.size || 1) - 1) / 2 - y0;
     var n = Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) * 2);
-    for (var i = 1; i < n; i++) { var kk = M.darkKindAt(B, Math.round(x0 + dx * i / n), Math.round(y0 + dy * i / n)); if (kk) return kk; } // (across it)
+    for (var i = 1; i < n; i++) { var kk = at(Math.round(x0 + dx * i / n), Math.round(y0 + dy * i / n)); if (kk) return kk; } // (across it)
     return null;
   }
   M.seeWhy = function (B, a, b) {
@@ -849,7 +858,9 @@
     u.turn.action = 0; K.used = true;
     var Lt = D.light, all = Lt ? Lt.all(B) : [];
     var inSq = function (x, y) { return best.sq.some(function (q) { return q[0] === Math.round(x) && q[1] === Math.round(y); }) && !shut({ x: Math.round(x), y: Math.round(y) }); };
-    var near = function (l, r) { return best.sq.some(function (q) { return Math.hypot(q[0] - l.x, q[1] - l.y) * 5 <= r; }); };
+    // (the overlap a Daylight is burnt away by is of the squares the Darkness holds and the Daylight lights: neither has a square inside a globe it was cast from outside of -- SRD 5.1,
+    // "the area within the barrier is excluded from the areas affected by such spells"; D.light.reaches carves the light, `shut` the Darkness)
+    var near = function (l, r) { return best.sq.some(function (q) { return Math.hypot(q[0] - l.x, q[1] - l.y) * 5 <= r && !shut({ x: q[0], y: q[1] }) && (!Lt || Lt.reaches(B, l, q[0], q[1])); }); };
     if (all.some(function (l) { return l.kind === 'daylight' && near(l, l.bright); })) { D.sfx('magic'); B.card(['{r}' + u.name + '{/} calls up darkness -- and the daylight burns it away as it forms.'], 300); yield 30; return true; }
     var gone = [];
     B.units.forEach(function (w) { if (w.conds.light && inSq(w.x, w.y)) { delete w.conds.light; gone.push(w.name + '\'s light'); } });
@@ -886,7 +897,7 @@
     if (!dx && !dy) return;
     for (var i = 0; i < n; i++) { if (!G.canStand(w, w.x + dx, w.y + dy)) break; w.x += dx; w.y += dy; moved++; }
     if (!moved) return;
-    w.tween = { fx: x0, fy: y0, fz: G.gzAt(w, x0, y0), t: 0, dur: 10 };
+    w.tween = { fx: x0, fy: y0, fz: G.gzAt(w, x0, y0), t: 0, dur: B.pace(10, true) }; // (a shove on an AI-run unit's turn keeps to the pace: Battle.prototype.pace)
     FX.float('pushed ' + moved * 5 + ' ft', w, D.PAL.ramps.silver[5]);
   };
   // a poison that wears off (09-27): the save at the end of the poisoned one's turn (M.endTurn calls it)
@@ -900,13 +911,21 @@
   // breaking out of a web: an action, a STR check against the caster's DC
   M.breakFree = function* (B, u) {
     // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
-    var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, useDex = (r.grapple || r.kind === 'tentacles') && D.mod(u.abil.dex) > D.mod(u.abil.str); // (r.weak: the roper's tendril, js/traits.js)
+    var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, grip = r.grapple || r.kind === 'tentacles', en0 = u.conds.enlarged; // (r.weak: the roper's tendril, js/traits.js)
     // a STR check: Enlarge is advantage on it, Reduce disadvantage (SRD), against poisoned, frightened and the weak grip's disadvantage
-    // ... and Enhance Ability on the ability it raised, Heat Metal's burning armour on every check (rules.js checkEdges)
-    var en = !useDex && u.conds.enlarged, ce = RU.checkEdges(u, useDex ? 'dex' : 'str'), adv = !!(en && !en.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || r.weak || (en && en.down)) || ce.dis.length > 0;
+    // ... and Enhance Ability on the ability it raised, Heat Metal's burning armour on every check (rules.js checkEdges). One ability's check, looked at:
+    // its bonus (the modifier, the proficiency of the skill its class has) and the edges on it -- 10-01: a grip's pick between STR (Athletics) and DEX
+    // (Acrobatics) weighs the edges as well as the modifier (Bull's Strength on a strong one, Cat's Grace on a nimble one: an advantage is worth about +5), not the raw modifier
+    var look = function (ab) {
+      var ce = RU.checkEdges(u, ab), s = ab === 'str';
+      var adv = !!(s && en0 && !en0.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || r.weak || (s && en0 && en0.down)) || ce.dis.length > 0;
+      var bonus = D.mod(u.abil[ab]) + (u.cls === 'fighter' || (!s && u.cls === 'rogue') ? u.prof : 0);
+      return { ce: ce, adv: adv, dis: dis, bonus: bonus, worth: bonus + (adv && !dis ? 5 : dis && !adv ? -5 : 0) };
+    };
+    var ls = look('str'), ld = look('dex'), useDex = !!grip && ld.worth > ls.worth, lk = useDex ? ld : ls, ce = lk.ce, adv = lk.adv, dis = lk.dis;
     var d = (dis && !adv ? Math.min(D.d(20), D.d(20)) : adv && !dis ? Math.max(D.d(20), D.d(20)) : D.d(20)) + gd;
     var edge = adv && !dis && ce.adv.length ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : dis && !adv && ce.dis.length ? ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}' : '';
-    var tot = d + D.mod(useDex ? u.abil.dex : u.abil.str) + (u.cls === 'fighter' || (useDex && u.cls === 'rogue') ? u.prof : 0);
+    var tot = d + lk.bonus;
     u.turn.action = 0;
     var luck = RU.darkLuck(u, r.dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
@@ -915,6 +934,15 @@
       // 10 ft off; moveFull, above), less what it has already walked (turn.moved) -- not its bare speed; a dancer none, as before. 10-01)
       delete u.conds.restrained; var T0 = u.turn; T0.move = u.conds.dancing ? 0 : Math.max(0, (T0.moveFull != null ? T0.moveFull : u.speed) - (T0.moved || 0)); T0.webSaved = true;
       var by = B.units.filter(function (w) { return w.id === r.by; })[0]; if (by && by.holding) by.holding = by.holding.filter(function (w) { return w !== u; });
+      // ... and a prone one gets up for it (SRD 5.1: standing "costs an amount of movement equal to half your speed"): rules.js startTurn would not stand it at the turn's
+      // start -- restrained is no speed to pay with -- so it comes free still flat, and went on at the full move. Half its speed comes off, as startTurn takes it (the
+      // slowed, the cold and the hasted halve and double the cost as they do the move: onStart, grimoire.js); not while it laughs or dances (startTurn's own noMove). 10-01
+      var cd = u.conds;
+      if (cd.prone && u.hp > 0 && !u.dead && !(cd.laughing || cd.dancing || cd.paralyzed || cd.stunned || cd.asleep || cd.incapacitated || u.speed === 0)) {
+        var fm = function (x) { if (cd.frosted) x = Math.max(0, x - 10); if (cd.slowed) x = Math.floor(x / 2); if (cd.hasted) x *= 2; return x; };
+        delete cd.prone; T0.move = Math.max(0, T0.move - (fm(u.speed) - fm(Math.floor(u.speed / 2))));
+        B.card(['{g}' + (u.side === 'foe' ? 'The ' + B.shortName(u) : u.name) + ' gets up (half the move).{/}'], 200);
+      }
     }
     yield 30;
   };

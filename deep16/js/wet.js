@@ -347,7 +347,7 @@
       }
       if (best) {
         u.x = best[0]; u.y = best[1]; u.facing = 0; u.anim = 'walk'; u.animT = B.t; u.reaction = 1;
-        u.tween = { fx: pen[0], fy: pen[1], fz: 0, t: 0, dur: 30 }; // (out of the dark past the edge)
+        u.tween = { fx: pen[0], fy: pen[1], fz: 0, t: 0, dur: B.pace ? B.pace(30, true) : 30 }; // (out of the dark past the edge; paced on an AI's turn, as a step is -- 10-01c)
         // (full speed: RULED 09-30g, Griz: "restore the crawlers get attracted in to full movement speed" -- 09-30b's "Half normal movement speed" lifted)
         u.wetCrawler = true;
         B.units.push(u);
