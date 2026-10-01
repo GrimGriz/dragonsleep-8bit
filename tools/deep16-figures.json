@@ -751,6 +751,19 @@
         "attack": "Punch",
         "walk": "Walk"
       }
+    },
+    "clacker": {
+      "_note": "the clacker, the realm's hook horror (the landlord's picture, dev/visions/the-clackers.jpg): our own model, built from nothing by tools/clacker-blend.py (re-run it to rebuild _src/clacker/clacker.blend). Large, but tall and narrow: drawn at 1.35 squares so it stands about 85 px (the ettin's height; at 2.0 it stood 127, over the stone giant); the frame is widened and heightened so the raised hooks and the forward strike stay in it. ATTACK frame 17 of 1-33 is the clack (with 8 frames, frame 4 of the sheet).",
+      "file": "clacker/clacker.blend",
+      "show": ["Clacker_Body", "Clacker_Bone", "Clacker_Eyes"],
+      "size_squares": 1.35,
+      "frame": [136, 196],
+      "yaw": 0,
+      "anims": {
+        "idle": "IDLE",
+        "attack": "ATTACK",
+        "walk": "WALK"
+      }
     }
   },
   "look": "matcap:toon_light.exr"
