@@ -407,6 +407,67 @@
     document.body.appendChild(pre12);
     return;
   }
+  // the bread and butter (mode=ringsurvey; 10-01c, Griz: "For classes other than rogue (hide) and wizard (fire bolt) we should do like we did for them and have
+  // the bread & butter go-to on the first ring ... warlocks probably their attack cantrip, etc) - test like warlock bugbear help reveal what should be on the
+  // ring"): each class alone, run by its tactics, against a brute and against a pack at levels 1, 3, 5, 9; every command it gives tallied (B.exec: the
+  // weapon, each spell -- a bonus action's marked -- each feature), and its turns, and the fights won. &cls=warlock,cleric keeps to those; &lv=5; &n=5
+  if (get('mode', '') === 'ringsurvey') {
+    var repS = { checks: [], errors: [], table: {} };
+    var CLS = get('cls', 'barbarian,bard,cleric,druid,fighter,monk,paladin,ranger,rogue,sorcerer,warlock,wizard').split(','), LVS = get('lv', '1,3,5,9').split(',').map(Number), NS = +get('n', 5);
+    var FOE_SETS = { 1: ['goblin,goblin', 'giantrat,giantrat,giantrat'], 3: ['bugbear', 'wolf,wolf,goblin'], 5: ['bugbearchief', 'hobgoblin,hobgoblin,gnoll'], 9: ['troll', 'ogre,bugbear,bugbear'] };
+    var exec0 = B0.exec, start0 = D.rules.startTurn, cur = null;
+    B0.exec = function (u, c) { if (cur && u === cur.u && c && c.do && c.do !== 'move' && c.do !== 'end') { var k = c.do === 'attack' ? 'attack: ' + ((u.weapon && (u.weapon.name || u.weapon.id)) || 'weapon') : c.do === 'cast' ? c.id + ((M.geo(c.id) || {}).time === 'B' ? ' (bonus)' : '') : c.do; cur.keys[k] = (cur.keys[k] || 0) + 1; } return exec0.apply(this, arguments); };
+    D.rules.startTurn = function (u) { if (cur && u === cur.u) { cur.turns++; cur.seen = {}; } return start0.apply(this, arguments); };
+    // the class tactics swing and use their features without B.exec: a weapon's swing (once a turn, not an opportunity attack, not a spell's roll) and each
+    // feature function called on it (once a turn each) are tallied too
+    function once(k) { if (!cur.seen[k]) { cur.seen[k] = 1; cur.keys[k] = (cur.keys[k] || 0) + 1; } }
+    var attack0 = B0.attack;
+    B0.attack = function (att, tgt, atk, o) { if (cur && att === cur.u && !(o && o.oa) && atk && !atk.spell) once('swing: ' + (atk.name || atk.id || 'weapon')); return attack0.apply(this, arguments); };
+    var FW = {}; Object.keys(D.features).forEach(function (nm) { var f0 = D.features[nm]; if (typeof f0 !== 'function') return; FW[nm] = f0; D.features[nm] = function (a, b) { if (cur && b === cur.u && a instanceof D.Battle) once('feat: ' + nm); return f0.apply(this, arguments); }; });
+    try {
+      CLS.forEach(function (cl) {
+        LVS.forEach(function (lv) {
+          var row = { turns: 0, keys: {}, won: 0, lost: 0, other: 0 };
+          (FOE_SETS[lv] || FOE_SETS[5]).forEach(function (fs) {
+            for (var k = 0; k < NS; k++) {
+              D.seed = seed0 + k * 31 + lv;
+              var Bf = D.npcFight('?npc=' + fs + '&lvl=' + lv + '&vs=' + cl + ':' + lv, { bench: true }); D.battle = Bf; Bf.enter();
+              var me = Bf.units.filter(function (u) { return u.side === 'party'; })[0]; if (!me) continue;
+              me.guest = true; me.classAI = true;
+              cur = { u: me, keys: row.keys, turns: 0 };
+              var rs = drive(Bf); row.turns += cur.turns; row[rs === 'won' || rs === 'lost' ? rs : 'other']++;
+              cur = null;
+            }
+          });
+          repS.table[cl + ' ' + lv] = row;
+        });
+      });
+    } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 900)); }
+    B0.exec = exec0; D.rules.startTurn = start0; B0.attack = attack0; Object.keys(FW).forEach(function (nm) { D.features[nm] = FW[nm]; });
+    if (errs.length) repS.errors = repS.errors.concat(errs.slice(0, 5));
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
+  // the first ring, each class's (mode=ring1001c; 10-01c, the ring survey's picks -- js/ui.js QUICK, BESIDE, FRONT): a player's hero of each class at 5, its
+  // commands in order, the go-to where it should stand and its weapon not lost
+  if (get('mode', '') === 'ring1001c') {
+    var repR1 = { checks: [], errors: [] };
+    var WANT = { warlock: ['ELDRITCH BLAST', 'q'], sorcerer: ['FIRE BOLT', 'q'], druid: ['PRODUCE FLAME', 'q'], wizard: ['FIRE BOLT', 'q'], cleric: ['SACRED FLAME', 'b'], bard: ['VICIOUS MOCKERY', 'b'], ranger: ["HUNTER'S MARK", 'b'], barbarian: ['RAGE', 'b'], monk: ['FLURRY OF BLOWS|BONUS STRIKE', 'b'], rogue: ['HIDE', 'b'], fighter: [null, 'a'], paladin: [null, 'a'] };
+    try {
+      Object.keys(WANT).forEach(function (cl) {
+        var Br = D.npcFight('?npc=goblin&lvl=5&vs=' + cl + ':5', {}); D.battle = Br; Br.enter(); while (!Br.order.length) Br.co.next();
+        var me = Br.units.filter(function (u) { return u.side === 'party'; })[0]; D.rules.startTurn(me);
+        var cm = D.ui.cmds(Br, me), labels = cm.map(function (x) { return x.label; }), w = WANT[cl], acts = (cm.filter(function (x) { return x.id === 'actions'; })[0] || { items: [] }).items.map(function (x) { return x.id; });
+        var sw = /^ATTACK/.test(labels[1]), ok = w[1] === 'q' ? labels[1] === w[0] && acts.indexOf('attack') >= 0 : w[1] === 'b' ? sw && new RegExp('^(' + w[0] + ')$').test(labels[2]) : sw;
+        repR1.checks.push((ok ? 'ok   ' : 'FAIL ') + cl + ': ' + labels.slice(0, 5).join(' / ') + (w[1] === 'q' ? '  (the swing in ACTIONS: ' + (acts.indexOf('attack') >= 0) + ')' : ''));
+      });
+    } catch (eR1) { repR1.errors.push(String(eR1 && eR1.stack || eR1).slice(0, 900)); }
+    if (errs.length) repR1.errors = repR1.errors.concat(errs);
+    var preR1 = document.createElement('pre'); preR1.id = 'out'; preR1.textContent = 'BENCH16 ' + JSON.stringify(repR1);
+    document.body.appendChild(preR1);
+    return;
+  }
   // the Globe of Invulnerability and what is already on a creature (mode=globe1001c; RULED 10-01c, Griz: "1 it does if we can get the animation right" /
   // "2 everything cast before the globe has a 'where' of 'outside' ... bob recasts mage armor after putting up the globe (from inside) then leaves to give his
   // friend a potion and goes back into the globe"): a hold from outside lies idle inside and takes hold again outside; it ends for good if its caster lets go

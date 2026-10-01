@@ -109,21 +109,33 @@
   }
   // the wizard's cantrip in the swing's place on the first ring, his staff among the ACTIONS (Griz, 09-28: "put Aurdin's attack
   // in with his 'dodge/dash' and the default wizard cantrip ... on the first ring where it was ... still keep it in [the] list")
-  var QUICK = { wizard: 'firebolt' };
-  function quickSpell(B, u) {
-    var id = !u.guest && QUICK[u.cls], e = id && D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
+  // the bread and butter on the first ring for the rest (10-01c, Griz: "For classes other than rogue (hide) and wizard (fire bolt) we should do like we did for them
+  // and have the bread & butter go-to on the first ring ... warlocks probably their attack cantrip, etc) - test like warlock bugbear help reveal what should be on
+  // the ring"): the ring survey (dev/bench16.js mode=ringsurvey: each class alone against a brute and a pack at 1, 3, 5 and 9, what its tactics reach for, by the share
+  // of its turns) -- QUICK: the cantrip in the swing's place, its weapon among the ACTIONS, where the weapon goes unused (the warlock's Eldritch Blast 58-71% from 3 --
+  // at 1, before Agonizing Blast, its crossbow 89%; the sorcerer's Fire Bolt 54-88% from 5; the druid's Produce Flame, the druid never swinging); BESIDE: by the swing,
+  // where the weapon still earns its keep early (the cleric's Sacred Flame 42-57% from 5, the mace 47% at 1; the bard's Vicious Mockery 23-48% from 5, the rapier 71%
+  // at 1; the ranger's Hunter's Mark, a bonus action, 67-73% from 5, the longbow its action); FRONT: the feature a martial opens or follows with, out of SKILLS
+  // (the barbarian's RAGE; the monk's BONUS STRIKE / FLURRY OF BLOWS, its Unarmed Strike a third to two thirds of its turns). The fighter, the paladin and the rogue
+  // swing first already (Greatsword 72-91%, Longsword 62-84%, Rapier 71-92%; the rogue's HIDE beside it)
+  var QUICK = { wizard: 'firebolt', sorcerer: 'firebolt', warlock: 'eldritchblast', druid: 'produceflame' };
+  var BESIDE = { cleric: 'sacredflame', bard: 'viciousmockery', ranger: 'huntersmark' };
+  var FRONT = { barbarian: 'rage', monk: 'flurry' };
+  function quickSpell(B, u, map) {
+    var id = !u.guest && (map || QUICK)[u.cls], e = id && D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
     return e ? Object.assign(e, { kind: 'spell', label: e.name.toUpperCase(), quick: true }) : null;
   }
   // the Channel Divinity's options, one list of their own beside SPELLS (RULED 09-30, Griz: "should the channel divinity be a button similar to
   // spells?" -- "yes"): they draw on one use (u.feats.channel), and the list says how many are left
   var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1 };
   UI.cmds = function (B, u) {
-    var c = B.commands(u), top = {}, sk = [], ac = [], cd = [], q = quickSpell(B, u);
+    var c = B.commands(u), top = {}, sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own)
-    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (fr && x.id === fr) { top.front = x; return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
+    if (q2) top.beside = q2;
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'hide', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    ['attack', 'beside', 'front', 'hide', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
