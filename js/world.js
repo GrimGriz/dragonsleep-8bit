@@ -8,13 +8,18 @@
   DS.DIRS = DIRS;
 
   // ------------------------------------------------------------------ game state
-  DS.newGame = function (leadId) {
-    var G = DS.G = {
-      v: 1, lead: leadId, party: [R.makeHero(leadId)], inv: [], silver: DS.DATA.config.startSilver || 10,
+  // the state a new game starts from (also what an older save is filled out from as it loads: js/scenes.js DS.migrateSave)
+  DS.freshState = function (leadId) {
+    var G = {
+      v: DS.SAVE_V || 1, lead: leadId, party: [R.makeHero(leadId)], inv: [], silver: DS.DATA.config.startSilver || 10,
       flags: {}, renown: 0, map: null, x: 0, y: 0, dir: 'down', steps: 0, time: 0, kills: {}, hired: [leadId]
     };
     (DS.DATA.config.startItems || []).forEach(function (s) { G.inv.push({ id: s[0], n: s[1] }); });
     return G;
+  };
+  DS.newGame = function (leadId) {
+    if (DS.slotUsed) DS.slotUsed(0); // (a fresh game came from no slot: the save screen marks none -- js/scenes.js)
+    return (DS.G = DS.freshState(leadId));
   };
   function bindState(G) {
     G.give = function (id, n) { n = n || 1; var s = G.inv.filter(function (q) { return q.id === id; })[0]; if (s) s.n += n; else G.inv.push({ id: id, n: n }); };

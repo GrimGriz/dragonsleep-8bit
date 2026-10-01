@@ -12,7 +12,69 @@
     return DS.store.set(SAVE_KEY + slot, data);
   };
   DS.loadSlot = function (slot) { return DS.store.get(SAVE_KEY + slot); };
+  // the slots this game came from and went to (09-30, Griz: "color the save spot loaded from and have it be the slot select by default
+  // when the 'save where' opens"; 10-01b, a load from 2 and a save to 3 marks 3: "correct, and if we're fancy they'd be similar color with
+  // the older one just slightly darker"): the newest -- loaded from or saved to -- gold, the one before it a darker gold, the cursor on the
+  // newest; a NEW GAME has none. Kept in the tab's sessionStorage, not the save, so the marks ride the trip past the door (deep16/ and back
+  // is a page load) and go with the tab
+  var SLOTS_KEY = 'ds8-slots', SLOT_GOLD = ['#F8D878', '#B89848'];
+  DS.slotsUsed = function () { try { return JSON.parse(sessionStorage.getItem(SLOTS_KEY)) || []; } catch (e) { return []; } };
+  DS.slotUsed = function (n) {
+    var s = n ? [n].concat(DS.slotsUsed().filter(function (x) { return x !== n; })).slice(0, 2) : [];
+    try { if (s.length) sessionStorage.setItem(SLOTS_KEY, JSON.stringify(s)); else sessionStorage.removeItem(SLOTS_KEY); } catch (e) {}
+  };
+  // the save's version and its file (09-30, Griz: "6 - yes" to a real save version and a file export before the next expansion; 10-01b,
+  // where: "2 continue screen"). A save says which version of the game wrote it (v). One from before is brought up to date as it loads --
+  // every field a fresh game has and the save lacks takes the fresh game's value, then MIGRATE's steps run in order -- so an expansion
+  // that adds to the state never breaks a save made before it. One newer than this page (a cached page, an old tab) is refused, not half-read
+  DS.SAVE_V = 1;
+  var MIGRATE = {}; // MIGRATE[n](d): a save at version n brought to n + 1 (a renamed flag, a moved field); none yet
+  DS.migrateSave = function (d) {
+    if (!d || !d.party || !d.party.length) return 'not a save';
+    var v = d.v || 1;
+    if (v > DS.SAVE_V) return 'made by a newer version of the game: reload the page';
+    var fresh = DS.freshState(d.lead || d.party[0].id);
+    Object.keys(fresh).forEach(function (k) { if (d[k] === undefined) d[k] = JSON.parse(JSON.stringify(fresh[k])); });
+    for (; v < DS.SAVE_V; v++) if (MIGRATE[v]) MIGRATE[v](d);
+    d.v = DS.SAVE_V;
+    return '';
+  };
+  // the file: the three slots and the grid's own keeping (the ladder's rungs, the climb, the camps) -- the whole game this browser holds,
+  // in one file, so a cleared browser or another device loses nothing (the saves live in one browser's localStorage: js/core.js DS.store)
+  var FILE_KEYS = /^(ds8-save-[123]|deep16\.(ladder|climb|camp)[\w.-]*)$/;
+  function gameKeys() { var out = {}; try { for (var i = 0; i < localStorage.length; i++) { var k = localStorage.key(i); if (FILE_KEYS.test(k)) out[k] = JSON.parse(localStorage.getItem(k)); } } catch (e) { } return out; }
+  function filed(keys) { var n = keys.filter(function (k) { return /^ds8-save-/.test(k); }).length, g = keys.length > n; return (n ? n + ' slot' + (n === 1 ? '' : 's') : '') + (n && g ? ' and ' : '') + (g ? 'the ladder' : ''); }
+  DS.exportSaves = function () {
+    var keys = gameKeys(), ks = Object.keys(keys);
+    if (!ks.length) return 'Nothing saved yet.';
+    var file = { game: 'DRAGONSLEEP', kind: 'saves', v: DS.SAVE_V, at: new Date().toISOString(), keys: keys };
+    try {
+      var url = URL.createObjectURL(new Blob([JSON.stringify(file)], { type: 'application/json' })), a = document.createElement('a');
+      a.href = url; a.download = 'dragonsleep-saves-' + file.at.slice(0, 10) + '.json'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    } catch (e) { return 'Could not write the file.'; }
+    return 'To a file: ' + filed(ks) + '.';
+  };
+  // pick a file (the browser's own picker); done(why) on a bad one, done('', file, keys) on a good one -- nothing is written yet
+  DS.importSaves = function (done) {
+    var inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = function () {
+      var f = inp.files && inp.files[0]; if (!f) return;
+      var rd = new FileReader();
+      rd.onload = function () {
+        var file = null; try { file = JSON.parse(rd.result); } catch (e) { }
+        if (!file || file.game !== 'DRAGONSLEEP' || !file.keys) return done('That file is not a DRAGONSLEEP save.');
+        if ((file.v || 1) > DS.SAVE_V) return done('A newer game made that file: reload the page.');
+        var keys = Object.keys(file.keys).filter(function (k) { return FILE_KEYS.test(k); });
+        if (!keys.length) return done('Nothing in that file to bring in.');
+        done('', file, keys);
+      };
+      rd.readAsText(f);
+    };
+    inp.click();
+  };
   DS.startFrom = function (data) {
+    DS.migrateSave(data); // (an older save filled out to this version's state)
     DS.G = data; DS.bindState(DS.G);
     DS.G.party.forEach(R.migrate);
     DS.clearScenes();
@@ -24,12 +86,12 @@
   function fmtTime(frames) { var s = Math.floor(frames / 60), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; return h + ':' + ('0' + m).slice(-2); }
   DS.fmtTime = fmtTime;
   function slotItems(saving) {
-    var out = [];
+    var out = [], used = DS.slotsUsed();
     for (var i = 1; i <= 3; i++) {
-      var d = DS.loadSlot(i);
+      var d = DS.loadSlot(i), mk = SLOT_GOLD[used.indexOf(i)]; // (gold: the slot this game last loaded from or saved to; darker: the one before)
       if (d) {
         var lead = d.party[0];
-        out.push({ label: 'SLOT ' + i + '  ' + lead.name + ' L' + lead.lvl + '  ' + (DS.DATA.maps[d.map] ? DS.DATA.maps[d.map].name : ''), right: fmtTime(d.time), value: i });
+        out.push({ label: 'SLOT ' + i + '  ' + lead.name + ' L' + lead.lvl + '  ' + (DS.DATA.maps[d.map] ? DS.DATA.maps[d.map].name : ''), right: fmtTime(d.time), value: i, color: mk, rightColor: mk });
       } else out.push({ label: 'SLOT ' + i + '  — empty —', value: i, disabled: !saving });
     }
     return out;
@@ -43,7 +105,7 @@
     var self = this, any = [1, 2, 3].some(function (i) { return !!DS.loadSlot(i); });
     // 09-29, Griz: "add at least 'combat ladder' (deep16) if not both that and 'playtester ladder' to the 8bit homescreen menu please." The first is the DEEP16 ladder, the combat engine's fifty fights; the second is the tester ladder where the player runs our four. Both leave for deep16/. Six rows are 86 tall, so the frame rides at y 124 and ends at 210, clear of the credit lines at 218.
     this.menu = new DS.Menu({
-      items: [{ label: 'NEW GAME', value: 'new' }, { label: 'CONTINUE', value: 'load', disabled: !any }, { label: 'COMBAT LADDER', value: 'ladder' }, { label: 'PLAYTESTER LADDER', value: 'tester' }, { label: 'CREDITS', value: 'credits' }, { label: '♥ SUPPORT THE EXPANSION', value: 'kofi', color: '#F8A4C0' }],
+      items: [{ label: 'NEW GAME', value: 'new' }, { label: 'CONTINUE', value: 'load', color: any ? null : '#C8D0E8' }, /* (open with no saves too: IMPORT SAVES is behind it -- 10-01b) */ { label: 'COMBAT LADDER', value: 'ladder' }, { label: 'PLAYTESTER LADDER', value: 'tester' }, { label: 'CREDITS', value: 'credits' }, { label: '♥ SUPPORT THE EXPANSION', value: 'kofi', color: '#F8A4C0' }],
       x: 44, y: 124, w: 168, rowH: 12, cancelable: false,
       onSelect: function (it) {
         if (it.value === 'new') DS.push(new LeadSelect());
@@ -233,27 +295,57 @@
   };
 
   // ------------------------------------------------------------------ save / load slots
+  // CONTINUE FROM carries the file too (10-01b, Griz: "2 continue screen"): EXPORT SAVES writes this browser's game to a file, IMPORT
+  // SAVES brings one in (asking first: the slots in the file replace the ones here)
+  function slotRows(saving) {
+    var rows = slotItems(saving);
+    if (!saving) rows.push({ label: 'EXPORT SAVES  (to a file)', value: 'export', disabled: !Object.keys(gameKeys()).length, color: '#C8D0E8' }, { label: 'IMPORT SAVES  (from a file)', value: 'import', color: '#C8D0E8' });
+    return rows;
+  }
   function SlotScene(saving) {
     var self = this;
     this.kind = 'slots'; this.saving = saving;
+    var last = DS.slotsUsed()[0], rows = slotRows(saving), first = 0;
+    while (first < rows.length - 1 && rows[first].disabled) first++; // (nothing marked: the first row there is to take -- IMPORT, on a browser with no saves)
+    if (last && rows[last - 1].disabled) last = 0; // (a marked slot since emptied: not a row to start on)
     this.menu = new DS.Menu({
-      items: slotItems(saving), x: 16, y: 80, w: 224, rowH: 14, title: saving ? 'SAVE WHERE?' : 'CONTINUE FROM',
+      items: rows, x: 16, y: 80, w: 224, rowH: 14, title: saving ? 'SAVE WHERE?' : 'CONTINUE FROM', index: last ? last - 1 : first,
       onSelect: function (it) {
+        if (it.value === 'export') { var m = DS.exportSaves(); DS.audio.sfx(/^To a file/.test(m) ? 'save' : 'error'); self.msg = m; return; }
+        if (it.value === 'import') {
+          DS.importSaves(function (why, file, keys) {
+            if (why) { DS.audio.sfx('error'); self.msg = why; return; }
+            DS.run(function* () {
+              var ok = yield DS.ask('Bring in ' + filed(keys) + ' from the file? The slots in it replace the ones here.', ['IMPORT', 'BACK']);
+              if (ok !== 0) return;
+              var bad = keys.filter(function (k) { return !DS.store.set(k, file.keys[k]); }).length;
+              DS.audio.sfx(bad ? 'error' : 'save');
+              self.msg = bad ? 'Could not write it all (storage blocked).' : 'Imported: ' + filed(keys) + '.';
+              self.menu.items = slotRows(false);
+            });
+          });
+          return;
+        }
         if (saving) {
           var ok = DS.saveGame(it.value);
           DS.audio.sfx(ok ? 'save' : 'error');
+          if (ok) DS.slotUsed(it.value);
           self.msg = ok ? 'Saved to slot ' + it.value + '.' : 'Could not save (storage blocked).';
           self.menu.items = slotItems(true); self.done = 50;
         } else {
-          var d = DS.loadSlot(it.value);
-          if (d) DS.startFrom(d);
+          var d = DS.loadSlot(it.value), why = d ? DS.migrateSave(d) : 'empty';
+          if (why) { DS.audio.sfx('error'); self.msg = 'That save was ' + why + '.'; return; }
+          DS.slotUsed(it.value); DS.startFrom(d);
         }
       },
       onCancel: function () { DS.pop(self); }
     });
   }
   SlotScene.prototype.update = function () { if (this.done > 0) { if (--this.done === 0) DS.pop(this); return; } this.menu.update(); };
-  SlotScene.prototype.draw = function (ctx) { this.menu.draw(ctx); if (this.msg) { DS.win(ctx, 40, 150, 176, 20); DS.textCenter(ctx, this.msg, 128, 156, '#F8D878'); } };
+  SlotScene.prototype.draw = function (ctx) {
+    this.menu.draw(ctx);
+    if (this.msg) { var ln = DS.wrap(this.msg, 208).slice(0, 2); DS.win(ctx, 16, this.menu.y + this.menu.h + 6, 224, 8 + ln.length * 11); ln.forEach(function (l, i) { DS.textCenter(ctx, l, 128, this.menu.y + this.menu.h + 12 + i * 11, '#F8D878'); }, this); }
+  };
   DS.SlotScene = SlotScene;
 
   // ------------------------------------------------------------------ Field menu
