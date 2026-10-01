@@ -353,14 +353,18 @@
   // on every creature within the 15 ft the snake lends him (its perk, RULED 09-30: the hidden and the unseen too -- js/familiar.js), as
   // the bat's sonar runs through its wizard's (10-01b, Griz, in his snake wizard's turn: "the snake highlight is only hitting one of the
   // goblins i would expect it to" -- it had been the hidden alone)
-  // (10-01b, seeing it: "too flashy, like a wave of water hitting that edge of the square" -- so no glow under it, half the edge, dimmer,
-  // and each flick eased in and out rather than struck)
-  var FLICK = { beat: 72, flicks: [[0, 10], [14, 24]], peak: 0.55, half: 0.25 }; // (the beat in frames; each flick's frames; its brightest; the mark's half-length, in squares)
+  // (10-01b, seeing it: "too flashy, like a wave of water hitting that edge of the square" -- no glow under it, dimmer; then "I'm seeing
+  // flashing on and off 3 times - can we get starts 33% (middle third) full, then 66% full from the middle, then that whole side with a
+  // slight dimming rather than off between flashes?"): three steps, each lit and then dimmed a little, the mark growing from the middle
+  // of the side -- a third, two thirds, all of it -- then a fade, and a rest
+  var FLICK = { beat: 100, step: 12, lit: 9, dim: 0.6, fade: 14, peak: 0.6 }; // (frames: the beat, a step, lit in a step; a step's dim; the fade after the third; the brightest)
   function tongue(ctx, B, u, t, reach) {
     if (!reach) return;
-    var ph = (t + (u.id || '').length * 11) % FLICK.beat, k = 0;
-    FLICK.flicks.forEach(function (f) { if (ph >= f[0] && ph < f[1]) k = Math.sin(Math.PI * (ph - f[0]) / (f[1] - f[0])); });
-    if (k <= 0.05) return;
+    var ph = (t + (u.id || '').length * 11) % FLICK.beat, s3 = FLICK.step * 3, stage, k;
+    if (ph < s3) { stage = Math.floor(ph / FLICK.step); k = ph % FLICK.step < FLICK.lit ? 1 : FLICK.dim; }
+    else if (ph < s3 + FLICK.fade) { stage = 2; k = FLICK.dim * (1 - (ph - s3) / FLICK.fade); }
+    else return;
+    var hl = 0.5 * (stage + 1) / 3; // (the mark's half-length along the side, in squares: a third, two thirds, the whole)
     var m = B.map, iso = D.iso, o = ((u.size || 1) - 1) / 2, cx = u.x + o, cy = u.y + o;
     B.units.forEach(function (w) {
       if (w === u || w.left || w.unseen || w.riding || !G.standing(w) || G.dist(u, w) > reach) return;
@@ -368,10 +372,9 @@
       foot.forEach(function (q) {
         var s = m.sq[q[1] * m.w + q[0]], dx = cx - q[0], dy = cy - q[1], ax = Math.abs(dx), ay = Math.abs(dy), sx = Math.sign(dx), sy = Math.sign(dy), seg = [];
         if (!s || (!ax && !ay) || Math.max(ax, ay) > near + 0.01) return; // (the squares of it nearest the snake; none under the snake itself)
-        var hl = FLICK.half;
-        if (ax > ay + 0.01) seg.push([sx * 0.5, -hl, sx * 0.5, hl]); // the middle of the side toward it
+        if (ax > ay + 0.01) seg.push([sx * 0.5, -hl, sx * 0.5, hl]); // the side toward it, from its middle out
         else if (ay > ax + 0.01) seg.push([-hl, sy * 0.5, hl, sy * 0.5]);
-        else seg.push([sx * 0.5, sy * 0.5, sx * 0.5, sy * (0.5 - hl)], [sx * 0.5, sy * 0.5, sx * (0.5 - hl), sy * 0.5]); // the corner toward it
+        else seg.push([sx * 0.5, sy * 0.5, sx * 0.5, sy * (0.5 - 2 * hl)], [sx * 0.5, sy * 0.5, sx * (0.5 - 2 * hl), sy * 0.5]); // the corner toward it, its two arms growing from the corner
         ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,170,80,' + (FLICK.peak * k).toFixed(2) + ')';
         seg.forEach(function (g) {
           var p = iso.center(q[0] + g[0], q[1] + g[1], s.gz), p2 = iso.center(q[0] + g[2], q[1] + g[3], s.gz), a = iso.toScreen(p.x, p.y), b = iso.toScreen(p2.x, p2.y);

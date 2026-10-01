@@ -259,6 +259,19 @@
     if (hb && I.mouse.moved && hk !== B.hoverKey) { B.ringStill = true; if (hb.list != null && B.list) { if (B.list.sel !== hb.list) D.sfx('cursor'); B.list.sel = hb.list; } else if (hb.idx != null && B.tool === 'menu') { if (B.cmdSel !== hb.idx) D.sfx('cursor'); B.cmdSel = hb.idx; } }
     B.hoverKey = hk;
     if (I.mouse.click && B.hoverBtn >= 0) { var bt = B.buttons[B.hoverBtn]; return bt.end ? UI.command(B, u, { do: 'end' }) : bt.cast ? castPicks(B, u) : bt.list != null ? pickListItem(B, u, B.list.items[bt.list], bt.list) : pickCommand(B, u, bt.cmd, bt.idx); }
+    // the mouse's right button (10-01b, Griz: "Rightclick on the wheel when it's not on a button close wheel, and right-click while
+    // targeting spell cancels cast (like x) - which means inspect should popup on mouseover during cast targeting so that if you're casting
+    // hold person you can check the icon while looking for a target"): on the open wheel, off its buttons, it puts the wheel down; while a
+    // spell is aimed it is X -- the last pick back, then the spell put away; and while aiming, the creature under the cursor shows its
+    // inspect without a click (B.peek: drawn as the inspect, never held, so the click that picks the target is not spent closing it).
+    // The pad's INFO and a long press still inspect (rclick without rbtn)
+    B.peek = B.tool === 'spell' && B.spell ? G.occupant(B.cursor.x, B.cursor.y) || etherealAt(B, B.cursor.x, B.cursor.y) || null : null;
+    if (I.mouse.rbtn && B.tool === 'menu' && B.hoverBtn < 0) { D.sfx('cancel'); B.tool = rest() === 'menu' ? 'move' : rest(); B.spell = null; B.picks = []; B.clearCards(); return; }
+    if (I.mouse.rbtn && B.tool === 'spell') {
+      D.sfx('cancel');
+      if (B.picks && B.picks.length) { B.picks.pop(); return; }
+      B.tool = rest(); B.spell = null; B.peek = null; B.clearCards(); return;
+    }
     if (I.mouse.rclick && !overUI(B)) { var w0 = G.occupant(B.cursor.x, B.cursor.y) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0) B.inspect = w0; return; }
     // the pad (Griz 09-28): the left stick pressed in, before anything on the wheel is chosen, drops the wheel (and a list on
     // it) and the cursor is free on the grid; with no wheel up it recentres, as C does. The right stick's left/right (or a
@@ -599,7 +612,7 @@
     if (hero && UI.opts.style === 'window') cmdWindow(ctx, B, hero);
     if (hero && UI.opts.style === 'ring') cmdRing(ctx, B, hero);
     if (hero && B.tool === 'spell' && B.spell && B.spell.g.shape === 'allies' && B.picks.length) castButton(ctx, B);
-    if (B.inspect) inspect(ctx, B.inspect);
+    var iw = B.inspect || (B.tool === 'spell' && B.spell && B.peek); if (iw) inspect(ctx, iw); // (B.peek: the one under the cursor while a spell is aimed)
     if (req && req.prompt) prompt(ctx, B, req.prompt);
     if (req && req.entry) entry(ctx, B);
     if (req && req.scene) scene(ctx, B, req.scene);

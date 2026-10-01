@@ -119,7 +119,7 @@
     var t = D.frame - I.since[b];
     return t > 14 && t % 5 === 0;
   };
-  I.clear = function () { I.edge = {}; I.mouse.click = false; I.mouse.rclick = false; I.mouse.moved = false; I.mouse.wheel = 0; };
+  I.clear = function () { I.edge = {}; I.mouse.click = false; I.mouse.rclick = false; I.mouse.rbtn = false; I.mouse.moved = false; I.mouse.wheel = 0; };
   window.addEventListener('keydown', function (e) {
     var b = KEYMAP[e.code];
     if (!b) return;
@@ -200,7 +200,7 @@
       at(e); e.preventDefault(); c.focus(); D.unlockAudio();
       if (e.button === 0) I.mouse.click = true;
       if (e.button === 1) I.mouse.drag = { x: I.mouse.x, y: I.mouse.y }; // the middle button drags the view
-      if (e.button === 2) I.mouse.rclick = true;
+      if (e.button === 2) { I.mouse.rclick = true; I.mouse.rbtn = true; } // (rbtn: the mouse's own right button -- it puts the wheel down and backs out of an aimed spell, ui.js; the pad's INFO and a long press set rclick alone, and inspect)
     });
     window.addEventListener('mouseup', function (e) { if (e.button === 1) I.mouse.drag = null; });
     c.addEventListener('contextmenu', function (e) { e.preventDefault(); });

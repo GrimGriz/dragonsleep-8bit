@@ -91,29 +91,45 @@
     if (u.carried) { T.move = Math.max(0, T.move - u.carried.spent); delete u.carried; delete u.order; yield* home(B, u, master); return; }
     var ordered = u.order === 'help'; delete u.order;
     var helps = u.help === 'auto' || (u.help !== 'never' && (ordered || aiRun(master)));
-    var mates = B.units.filter(function (w) { return w.side === u.side && w !== u && !w.familiar && G.standing(w); });
-    var foes = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.ethereal && !w.conds.invisible && !w.conds.hidden; });
-    if (helps && foes.length && T.action) {
-      // to the foe the party is on (the most of its side beside it, then the nearest)
-      var tgt = foes.map(function (f) { return { f: f, n: mates.filter(function (a) { return G.dist(a, f) <= 5; }).length, d: G.dist(u, f) }; })
-        .sort(function (a, b) { return b.n - a.n || a.d - b.d; })[0].f;
-      var budget = u.flyby ? Math.floor(T.move / 2) : T.move; // (an owl keeps half its flight for the way back)
-      var rode = u.riding; if (rode) dismount(u);
-      var e = AI.approach(u, tgt, G.reach(u, budget), 5);
-      if (e && G.dist(u, tgt, e.x, e.y) <= 5) {
-        yield* go(B, u, e);
-        if (u.hp <= 0) return;
-        u.facing = B.faceTo(u, tgt); u.anim = 'attack'; u.animT = B.t;
-        yield* B.exec(u, { do: 'help', target: tgt });
-        u.helpedRound = B.round;
-        yield 18;
-        yield* home(B, u, master); // (with what movement is left; the owl's Flyby draws no blow as it goes)
-        return;
-      }
-      if (rode) { u.riding = true; if (ordered) B.card(['{g}' + u.name + ': no foe within its reach this turn.{/}'], 200); return; }
+    var plan = helps && T.action ? FM.helpPlan(B, u, T.move) : null;
+    if (plan) {
+      if (u.riding) dismount(u);
+      yield* go(B, u, plan.e);
+      if (u.hp <= 0) return;
+      u.facing = B.faceTo(u, plan.f); u.anim = 'attack'; u.animT = B.t;
+      yield* B.exec(u, { do: 'help', target: plan.f });
+      u.helpedRound = B.round;
+      yield 18;
+      yield* home(B, u, master); // (with what movement is left; the owl's Flyby draws no blow as it goes)
+      return;
     }
+    if (u.riding) { if (ordered) B.card(['{g}' + u.name + ': no foe within its reach to help this turn.{/}'], 200); return; } // (it stays with him: it does not set out for one it cannot reach)
     yield* home(B, u, master);
   };
+  // the foe it would help, and the square it would help from, within `move` from where it is (the owls keep half their flight for the
+  // way back): the foe the party is on (the most of its side beside it, then the nearest) among those it can get beside -- or null, and
+  // it does not set out (10-01b, Griz: "a frog went to help but wasn't in range to help so went half-way and turned around and became a
+  // target. let's 'no target in help range' instead"). FAMILIAR: HELP greys on it (F.commands below)
+  var planCache = { key: null, v: null };
+  FM.helpPlan = function (B, u, move) {
+    var key = u.id + '|' + move + '|' + u.x + ',' + u.y + '|' + B.units.map(function (w) { return G.standing(w) && !w.conds.invisible && !w.conds.hidden ? w.x + ',' + w.y : ''; }).join(';');
+    if (planCache.key === key && planCache.B === B) return planCache.v; // (asked every frame the SKILLS are drawn: once while nobody moves)
+    planCache = { key: key, B: B, v: helpPlan(B, u, move) };
+    return planCache.v;
+  };
+  function helpPlan(B, u, move) {
+    if (!u.turn) u.turn = { move: u.speed, action: 1, bonus: 0, disengaged: false };
+    var mates = B.units.filter(function (w) { return w.side === u.side && w !== u && !w.familiar && G.standing(w); });
+    var foes = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.ethereal && !w.conds.invisible && !w.conds.hidden; });
+    if (!foes.length) return null;
+    var rm = G.reach(u, u.flyby ? Math.floor(move / 2) : move), best = null;
+    foes.forEach(function (f) {
+      var e = D.ai.approach(u, f, rm, 5); if (!e || G.dist(u, f, e.x, e.y) > 5) return;
+      var n = mates.filter(function (a) { return G.dist(a, f) <= 5; }).length, d = G.dist(u, f);
+      if (!best || n > best.n || (n === best.n && d < best.d)) best = { f: f, e: e, n: n, d: d };
+    });
+    return best;
+  }
   function dismount(u) { var sx = u.x, sy = u.y; u.riding = false; u.x = sx; u.y = sy; } // (down off him, from his square)
   // back into his square: a square beside him with 5 ft to spare, and up (or at his feet) again; short of it, as near him as it gets
   function* home(B, u, m) {
@@ -179,6 +195,17 @@
     return true;
   };
 
+  // ------------------------------------------------------------------ at 0 hit points (SRD 5.1 Find Familiar: "When the familiar drops to 0 hit
+  // points, it disappears, leaving behind no physical form. It reappears after you cast this spell again." -- 10-01b, Griz: "check with SRD if
+  // we're supposed to be able to resurrect familiars from zero hp, or if we should run the dismiss animation and removal when they die"):
+  // the dismiss's sparkle and sound, and it is gone for the fight -- no body to heal, no CALL FAMILIAR (that is for one sent away); the
+  // 8-bit game hears it gone (js/embed.js result.familiar) and the ritual brings it back
+  FM.vanish = function (B, f) {
+    FX.sparkle(f, 'glow', 14); D.sfx('magic');
+    f.dead = true; f.left = true; f.gone = true; f.deadT = B.t; f.riding = false; delete f.order; delete f.carried; delete f.ko;
+    B.card(['{o}' + f.name + ' is struck down, and is gone:{/} {g}no body, nothing left. Find Familiar brings it back.{/}']);
+  };
+
   // ------------------------------------------------------------------ the frog's croak (RULED 09-30): its caster is never caught off guard
   FM.alarm = function* (B) {
     var woke = B.units.filter(function (m) { return m.famPerk && m.famPerk('alarm') && m.conds.surprised; });
@@ -199,7 +226,7 @@
     var T = u.turn, act = T.action > 0 && !T.attacksLeft, nm = formOf(f).name;
     if (!f.away && f.help === 'order') {
       if (f.order === 'help') out.push({ id: 'famstay', label: 'FAMILIAR: STAY', cost: 'F', icon: 'sacred', skill: true, ok: true, note: 'the ' + nm + ' stays with you (its Help called off)' });
-      else out.push({ id: 'famhelp', label: 'FAMILIAR: HELP', cost: 'F', icon: 'sacred', skill: true, ok: !f.carried, why: 'it is out with your spell', note: 'at its turn, after yours: the ' + nm + ' goes to the foe your side is on and helps the next blow at it (it may not live)' });
+      else out.push({ id: 'famhelp', label: 'FAMILIAR: HELP', cost: 'F', icon: 'sacred', skill: true, ok: !f.carried && !!FM.helpPlan(B, f, f.speed), why: f.carried ? 'it is out with your spell' : 'no foe within its reach to help', note: 'at its turn, after yours: the ' + nm + ' goes to the foe your side is on and helps the next blow at it (it may not live)' });
     }
     if (f.away) out.push({ id: 'callfam', label: 'CALL FAMILIAR', cost: 'A', icon: 'sacred', skill: true, ok: act, why: 'the action is spent', note: 'the ' + nm + ' back from its pocket of the world, within 30 ft' });
     else out.push({ id: 'dismissfam', label: 'DISMISS FAMILIAR', cost: 'A', icon: 'sacred', skill: true, ok: act, why: 'the action is spent', note: 'the ' + nm + ' into its pocket of the world, safe till called' });
