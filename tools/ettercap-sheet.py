@@ -14,6 +14,11 @@ one), attack recovery 3 (-> the side idle, 1-2-3-2, drawn smaller on the page an
 garrote and reel rows (a victim is drawn into them), wall climb and ceiling crawl (nothing to climb on the grid), alert, web
 spin. Each group of rows is scaled by its own standing height; each frame is placed on its torso, the web throw on its body's
 left edge (the thrown web would drag the torso's middle to the right).
+The third sheet (Griz, 2026-09-30, "idle variation: sitting & braiding silk (1/1)"): deep16/_src/ettercap_grok_3.webp, eight
+frames of it on a mossy stump braiding a three-strand cord, -> `braid`. Cut from one common window (the ground stays put), scaled
+so it sits SIT px from the stump's foot to the top of its bristles, every frame placed by its left edge plus the first frame's
+torso offset (the cord swinging would drag a torso median about). The grid plays it as its idle until it has had a turn or been
+hurt (deep16/js/ui.js unitObj: "It stops braiding when it sees you"). The close-up and the details panels are not used.
 """
 import os, sys, json
 import numpy as np
@@ -39,6 +44,9 @@ def load(name):
 
 P1, BG1 = load('ettercap_grok_1.png')
 P2, BG2 = load('ettercap_grok_2.png')
+P3, BG3 = load('ettercap_grok_3.webp')
+B3 = ((20, 125, 1520, 385), 8)                           # the strip of eight, below its title (the stump's foot at ~y 370)
+SIT = 46                                                 # sitting on the stump: a little under its hunched standing height
 
 # the rows' bands (x0, y0, x1, y1), how many frames each holds, and (the web row) the columns between its frames
 B1 = {'front': ((20, 110, 320, 305), 2), 'wfront': ((340, 110, 910, 305), 4), 'wback': ((930, 110, 1520, 305), 5),
@@ -89,6 +97,30 @@ def frames_in(sheet, bg, band, n, splits=None):
     return out
 
 
+def frames_common(sheet, bg, band, n):
+    """the n figures in a band, cut over one common window (the row's own top to its lowest foot), so the ground stays put:
+    (RGBA images, each figure's left edge in the window)."""
+    x0, y0, x1, y1 = band
+    c = sheet[y0:y1, x0:x1]
+    m0 = np.abs(c - bg).sum(-1) > 45
+    lab, k = ndimage.label(ndimage.binary_closing(m0, iterations=2))
+    groups = []
+    for i, sl in sorted(enumerate(ndimage.find_objects(lab)), key=lambda t: t[1][1].start):
+        if int((lab[sl] == i + 1).sum()) < 300:
+            continue
+        if groups and sl[1].start <= groups[-1]['x1'] + 6:            # a claw or a strand held clear: the same figure
+            g = groups[-1]; g['ids'].append(i + 1); g['x1'] = max(g['x1'], sl[1].stop); g['y0'] = min(g['y0'], sl[0].start); g['y1'] = max(g['y1'], sl[0].stop)
+        else:
+            groups.append({'ids': [i + 1], 'x0': sl[1].start, 'x1': sl[1].stop, 'y0': sl[0].start, 'y1': sl[0].stop})
+    assert len(groups) == n, (band, len(groups))
+    ty, by = min(g['y0'] for g in groups), max(g['y1'] for g in groups)
+    out = []
+    for g in groups:
+        mm = ndimage.binary_fill_holes(np.isin(lab, g['ids']) & m0)[ty:by, g['x0']:g['x1']]
+        out.append(Image.fromarray(np.dstack([c[ty:by, g['x0']:g['x1']].astype(np.uint8), (mm * 255).astype(np.uint8)]), 'RGBA'))
+    return out, by - ty
+
+
 def purple(img, sat=1.8, val=1.18):
     """the hide's muted purple kept through the snap: the palette has no purple-grey, and as drawn the hide snaps to the
     silver ramp's slate and reads near black; saturated and lifted a little, the dark cool purples land in the violet ramp.
@@ -109,6 +141,26 @@ def fit(img, scale):
     w, h = img.size
     img = img.resize((max(1, round(w / scale)), max(1, round(h / scale))), Image.BOX)
     return pix.pixelate(purple(img), 1, do_lift=False)
+
+
+def fit_pad(img, scale):
+    """fit(), with a pixel of room all round for the outline (the stump's foot is the window's bottom row)."""
+    w, h = img.size
+    img = img.convert('RGBa').resize((max(1, round(w / scale)), max(1, round(h / scale))), Image.BOX).convert('RGBA')
+    pad = Image.new('RGBA', (img.width + 2, img.height + 2), (0, 0, 0, 0))
+    pad.paste(img, (1, 1))
+    return pix.pixelate(purple(pad), 1, do_lift=False)
+
+
+def place_foot(a, x_ref):
+    """the cut onto the frame with its bottom row (the window's ground, outline and all) on AY."""
+    out = np.zeros((FH, FW, 4), dtype=np.uint8)
+    ox, oy = int(round(AX - x_ref)), AY - (a.shape[0] - 1)
+    h, w = a.shape[:2]
+    y0, x0 = max(0, oy), max(0, ox)
+    y1, x1 = min(FH, oy + h), min(FW, ox + w)
+    out[y0:y1, x0:x1] = a[y0 - oy:y1 - oy, x0 - ox:x1 - ox]
+    return out
 
 
 def torso_x(a):
@@ -161,15 +213,19 @@ def build():
     web_r = [place(a, left_x(a) + lx) for a in web]
     mirror = lambda seq: [fr[:, ::-1].copy() for fr in seq]
     shift = lambda fr, dx, dy: np.roll(np.roll(fr, dx, axis=1), dy, axis=0)
+    cuts3, wh = frames_common(P3, BG3, *B3)
+    sit = [fit_pad(im, wh / SIT) for im in cuts3]
+    lx3 = torso_x(sit[0]) - left_x(sit[0])
+    braid_r = [place_foot(a, left_x(a) + lx3) for a in sit]
 
     idle_r = [recov_r[i] for i in (0, 0, 1, 1, 2, 2, 1, 1)]
-    side = {'idle': idle_r, 'walk': walk_r * 2, 'attack': claw_r, 'hurt': death_r, 'flinch': hit_r, 'cast': web_r}
+    side = {'idle': idle_r, 'walk': walk_r * 2, 'attack': claw_r, 'hurt': death_r, 'flinch': hit_r, 'cast': web_r, 'braid': braid_r}
     fS, fN = front[0], wback[0]
     dip = lambda f0, d: [f0, shift(f0, 0, d), shift(f0, 0, 2 * d), shift(f0, 0, 3 * d), shift(f0, 0, d), f0]
     south = {'idle': [front[0]] * 4 + [front[1]] * 4, 'walk': wfront * 2, 'attack': dip(fS, 1),
-             'hurt': death_r, 'flinch': hit_r, 'cast': web_r}
+             'hurt': death_r, 'flinch': hit_r, 'cast': web_r, 'braid': braid_r}
     north = {'idle': [fN] * 4 + [breathe(fN)] * 4, 'walk': wback * 2, 'attack': dip(fN, -1),
-             'hurt': mirror(death_r), 'flinch': mirror(hit_r), 'cast': mirror(web_r)}
+             'hurt': mirror(death_r), 'flinch': mirror(hit_r), 'cast': mirror(web_r), 'braid': mirror(braid_r)}
     frames = {a: [] for a in side}
     for f in range(8):                                   # facings S, SW, W, NW, N, NE, E, SE
         for a in frames:
@@ -202,7 +258,7 @@ if __name__ == '__main__':
     pix.write_sheet(NAME, frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0] + frames['idle'][6], AY))
     meta_p = os.path.join(ROOT, 'deep16', 'art', NAME + '.json')
     meta = json.load(open(meta_p))
-    for a, fps in (('idle', 4), ('walk', 8), ('attack', 10), ('hurt', 8), ('flinch', 10), ('cast', 9)):
+    for a, fps in (('idle', 4), ('walk', 8), ('attack', 10), ('hurt', 8), ('flinch', 10), ('cast', 9), ('braid', 5)):
         meta['anims'][a]['fps'] = fps
-    meta['source'] = 'generated by Griz (2026-09-29, two sheets), cut and snapped by tools/ettercap-sheet.py'
+    meta['source'] = 'generated by Griz (2026-09-29, two sheets; the braiding idle 2026-09-30), cut and snapped by tools/ettercap-sheet.py'
     json.dump(meta, open(meta_p, 'w'), indent=1)

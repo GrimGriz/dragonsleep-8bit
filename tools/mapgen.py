@@ -897,7 +897,10 @@ def build_gulch():
     g.put(17, 17, 'e'); g.put(19, 17, 'e'); g.put(18, 17, 'Q')
     g.trig('snared', 18, 17, 'snared', on='use', once=True)
     g.flagtile(18, 17, 'gulch', 'flag:trig:snared')   # was 'trig:snared', which DS.cond read as a number: the cut cocoon grew back
-    g.trig('ettercap', 29, 9, 'ettercap', on='step', w=3, h=2, cond='!flag:ettercapDone')
+    # it sits braiding at the back of the clearing, facing the way in, till the fangs are taken (js/world.js PROPS.ettercap; Griz's
+    # idle sheet, 09-30: "please add an 8-bit version in the pre-encounter map"); the trigger rings it, and E on it starts it too
+    g.npc('ettercap8', 30, 7, prop='ettercap', dir='left', idle=True, anchor='center', cond='!flag:ettercapDone & !has:ettercapfangs')
+    g.trig('ettercap', 29, 8, 'ettercap', on='step', w=3, h=3, cond='!flag:ettercapDone')
     g.chest(33, 8, 'potion', 1); g.chest(19, 24, 'kit', 2)
     g.zone('gulch', 0, 0, W, H)
     save('gulch', g, 'cave', 'Web Gulch', music='dungeon', bg='gulch', save=False, outside=True,

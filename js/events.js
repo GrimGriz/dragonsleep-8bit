@@ -1042,10 +1042,15 @@
   S.ettercap = function* () {
     var g = G();
     if (g.flags.ettercapDone || g.has('ettercapfangs')) return;
-    yield DS.say(L('gulch.ettercap'));
+    // the one braiding on the map (mapgen: ettercap8) stops at the second line, when it sees you
+    var t = [].concat(L('gulch.ettercap')), it = DS.field && EV.npc('ettercap8');
+    yield DS.say(t[0]);
+    if (it) it.still = true;
+    if (t.length > 1) yield DS.say(t.slice(1));
     // fought in DEEP16 (RULED 09-27, Griz: "replace it outright"; js/embed.js): the first 8-bit fight on the grid
     var res = yield* EV.fight(['ettercap', 'giantspider'], { bg: 'gulch', music: 'boss', canRun: true, deep16: 'ettercap' });
-    if (res === 'win') { g.give('ettercapfangs', 1); DS.audio.sfx('chest'); yield DS.say(L('gulch.fangs')); }
+    if (it) it.still = false; // (run from: back to its braiding)
+    if (res === 'win') { g.give('ettercapfangs', 1); DS.audio.sfx('chest'); if (DS.field) DS.field.refreshNpcs(); yield DS.say(L('gulch.fangs')); }
   };
 
   // --- the road south: the Snoot overlay's challenge by day

@@ -18,7 +18,7 @@ D16 = os.path.join(ROOT, 'deep16')
 SRC = os.path.join(D16, '_src')
 ART = os.path.join(D16, 'art')
 FPS = {'idle': 6, 'walk': 10, 'attack': 12, 'hurt': 10, 'die': 8, 'sit': 2, 'cast': 10, 'fly': 9, 'roost': 2, 'reveal': 6, 'moan': 8, 'flinch': 12}
-ANIM_ORDER = ['idle', 'walk', 'attack', 'hurt', 'die', 'sit', 'cast', 'fly', 'roost', 'reveal', 'moan', 'flinch', 'rofl']  # (rofl: the hyena rolling on the floor with laughter, 09-30: the Hideous Laughter easter egg)  # (flinch: a blow that lands and doesn't drop it, played once: the generated sheets' hit rows, 09-29)  # (fly: the cloaker's flight in, played as drawn -- the easter egg's ending)  # (cast: the spellcasters' own pose, the spell animation pass 09-28h)
+ANIM_ORDER = ['idle', 'walk', 'attack', 'hurt', 'die', 'sit', 'cast', 'fly', 'roost', 'reveal', 'moan', 'flinch', 'rofl', 'braid', 'run']  # (braid: the ettercap sitting on its stump braiding, till it sees you; run: the giant boar's charge -- both 09-30)  # (rofl: the hyena rolling on the floor with laughter, 09-30: the Hideous Laughter easter egg)  # (flinch: a blow that lands and doesn't drop it, played once: the generated sheets' hit rows, 09-29)  # (fly: the cloaker's flight in, played as drawn -- the easter egg's ending)  # (cast: the spellcasters' own pose, the spell animation pass 09-28h)
 # LPC has four directions; the eight facings take the nearest, the front and back diagonals leaning to down and up
 LPC_ROW = {'up': 0, 'left': 1, 'down': 2, 'right': 3}
 LPC_FOR_FACING = ['down', 'down', 'left', 'up', 'up', 'up', 'right', 'down']

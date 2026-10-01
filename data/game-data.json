@@ -10527,6 +10527,12 @@
    "src": "wiki/web-gulch.md (silk-cutters employ a drummer boy)",
    "id": "drummer"
   },
+  "ettercap8": {
+   "name": "Ettercap",
+   "script": "ettercap",
+   "src": "wiki/web-gulch.md (the braiding ettercap); Griz's idle sheet 09-30 (sitting & braiding silk), drawn on the map",
+   "id": "ettercap8"
+  },
   "doranYard": {
    "name": "Doran Waterby",
    "talk": [
@@ -17910,6 +17916,16 @@
      "look": "boy",
      "dir": "up",
      "idle": true
+    },
+    {
+     "id": "ettercap8",
+     "x": 30,
+     "y": 7,
+     "prop": "ettercap",
+     "dir": "left",
+     "idle": true,
+     "anchor": "center",
+     "cond": "!flag:ettercapDone & !has:ettercapfangs"
     }
    ],
    "chests": [
@@ -17943,9 +17959,9 @@
      "id": "ettercap",
      "rect": [
       29,
-      9,
+      8,
       3,
-      2
+      3
      ],
      "on": "step",
      "script": "ettercap",

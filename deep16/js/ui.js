@@ -650,12 +650,16 @@
         var down = u.dead || u.hp <= 0, sk = D.spr.scaleOf(u); // (sk: Enlarge and Reduce draw it bigger or smaller about its foot, sprites.js scaleOf)
         // the cloaker hangs as a cloak until something hurts it (Griz, 09-29)
         if (!down && u.sheet === 'cloaker_p2' && !u.woken && anim === 'idle' && has('roost')) anim = 'roost';
+        // the ettercap sits braiding on its stump till it has had a turn or been hurt ("It stops braiding when it sees you": Griz's
+        // idle sheet, 09-30); a creature that charges has come 20 ft and more this turn, and runs (the giant boar's sprint row)
+        if (!down && !u.woken && !u.acted && anim === 'idle' && has('braid')) anim = 'braid';
+        if (!down && anim === 'walk' && u.charge && u.turn && (u.speed - u.turn.move) >= 20 && has('run')) anim = 'run';
         if (down) {
           if (has('hurt')) { anim = 'hurt'; o.once = true; }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }
         } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch') { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
-        if (anim === 'idle' || anim === 'walk' || anim === 'roost') t = u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
+        if (anim === 'idle' || anim === 'walk' || anim === 'roost' || anim === 'braid' || anim === 'run') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         // a hyena helpless with laughter rolls on the floor with it, for as long as it laughs (Hideous Laughter's easter egg, 09-30: js/grimoire.js M.hyena)
         if (!down && u.conds.laughing && has('rofl')) { anim = 'rofl'; o.once = false; t = B.t + (u.id ? u.id.length * 7 : 0); }
         if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
@@ -789,6 +793,51 @@
   }
   function fillSq(ctx, x, y, color, alpha, inset) { onSq(x, y, function (c) { D.iso.rhombus(c, x, y, G.map.gz(x, y), inset || 1); c.globalAlpha = alpha; c.fillStyle = color; c.fill(); c.globalAlpha = 1; }); }
   function lineSq(ctx, x, y, color, alpha, inset) { onSq(x, y, function (c) { D.iso.rhombus(c, x, y, G.map.gz(x, y), inset == null ? 2 : inset); c.globalAlpha = alpha == null ? 1 : alpha; c.strokeStyle = color; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1; }); }
+  // a web on a square (the room's own, a Web spell's): spokes from a hub to the square's corners and the middles of its edges, two
+  // rings round the hub; the spokes end where the next square's begin, so a patch reads as one sheet. Where the square backs onto a
+  // wall or a higher floor (the upper-left and upper-right edges, the ones toward the far walls), strands climb the face and are
+  // tied across it; a Web spell's 20-ft cube also stands up off its near edges, a curtain the way a darkness has a wall (Griz,
+  // 09-30: "compare your zoomed shot of the ettercap to the grid right now - I think we need a bunch of webbing in the room" --
+  // "compare with what we're using for the web spell also": both were a faint tint on the floor)
+  function webSq(c, B, x, y, has, cube) {
+    var z = G.map.gz(x, y), p = D.iso.center(x, y, z), s = D.iso.toScreen(p.x, p.y), HW = D.iso.TW / 2, HH = D.iso.TH / 2;
+    var h = (x * 73 + y * 151) % 97 / 97, hx = Math.round(s.x + (h - 0.5) * 8) + 0.5, hy = Math.round(s.y + (((h * 7) % 1) - 0.5) * 4) + 0.5;
+    var ends = [[0, -HH], [HW / 2, -HH / 2], [HW, 0], [HW / 2, HH / 2], [0, HH], [-HW / 2, HH / 2], [-HW, 0], [-HW / 2, -HH / 2]].map(function (e) { return [Math.round(s.x + e[0]) + 0.5, Math.round(s.y + e[1]) + 0.5]; });
+    var pul = 0.85 + 0.15 * Math.sin(B.t / 23 + x * 1.3 + y * 0.7);
+    c.save(); c.lineWidth = 1;
+    c.strokeStyle = R('bone', 2); c.globalAlpha = 0.5 * pul; c.beginPath();
+    ends.forEach(function (e) { c.moveTo(hx, hy); c.lineTo(e[0], e[1]); });
+    c.stroke();
+    c.strokeStyle = R('bone', 1); c.globalAlpha = 0.42 * pul;
+    [0.34, 0.68].forEach(function (k) {
+      c.beginPath();
+      ends.forEach(function (e, i) { var qx = hx + (e[0] - hx) * k, qy = hy + (e[1] - hy) * k; if (i) c.lineTo(qx, qy); else c.moveTo(qx, qy); });
+      c.closePath(); c.stroke();
+    });
+    // up a wall or a ledge's face behind it: rock at (x, y-1) is behind the upper-right edge, at (x-1, y) the upper-left
+    [[x, y - 1, ends[0], ends[2]], [x - 1, y, ends[6], ends[0]]].forEach(function (w) {
+      var n = G.map.at(w[0], w[1]), up =!n || !n.open ? 34 : Math.max(0, G.map.gz(w[0], w[1]) - z) > 0 ? 18 : 0;
+      if (!up) return;
+      c.strokeStyle = R('bone', 2); c.globalAlpha = 0.45 * pul; c.beginPath();
+      var tops = [];
+      for (var k2 = 0; k2 < 3; k2++) {
+        var f = 0.2 + k2 * 0.3, bx = w[2][0] + (w[3][0] - w[2][0]) * f, by = w[2][1] + (w[3][1] - w[2][1]) * f, tp = Math.round(by - up * (0.7 + 0.3 * ((h * (k2 + 3)) % 1))) + 0.5;
+        c.moveTo(bx, by); c.lineTo(bx + (k2 - 1) * 3, tp); tops.push([bx + (k2 - 1) * 3, tp]);
+      }
+      c.moveTo(tops[0][0], tops[0][1] + 6); c.quadraticCurveTo(tops[1][0], tops[1][1] + 12, tops[2][0], tops[2][1] + 6); // a thread tied across, sagging
+      c.stroke();
+    });
+    // a Web spell's cube: a curtain up off the near edges (toward the viewer) where the web stops
+    if (cube) [[x + 1, y, ends[2], ends[4]], [x, y + 1, ends[4], ends[6]]].forEach(function (w) {
+      if (has[w[0] + ',' + w[1]]) return;
+      c.strokeStyle = R('bone', 2); c.globalAlpha = 0.32 * pul; c.beginPath();
+      for (var k3 = 0; k3 <= 4; k3++) { var f3 = k3 / 4, ex = w[2][0] + (w[3][0] - w[2][0]) * f3, ey = w[2][1] + (w[3][1] - w[2][1]) * f3; c.moveTo(ex, ey); c.lineTo(ex + (k3 % 2 ? 2 : -2), ey - 26); }
+      c.moveTo(w[2][0], w[2][1] - 18); c.quadraticCurveTo((w[2][0] + w[3][0]) / 2, (w[2][1] + w[3][1]) / 2 - 10, w[3][0], w[3][1] - 18);
+      c.moveTo(w[2][0], w[2][1] - 9); c.lineTo(w[3][0], w[3][1] - 25);
+      c.stroke();
+    });
+    c.restore();
+  }
   function dotSq(x, y, color) { onSq(x, y, function (c) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); c.fillStyle = color; c.fillRect(s.x - 1, s.y - 1, 2, 2); }); }
   function overlay(ctx, B, u) {
     // the aura of protection round a standing paladin: a dashed gold circle, 10 ft (Griz, 09-27: "auras as circles centered
@@ -802,8 +851,11 @@
       ctx.globalAlpha = 0.75; ctx.strokeStyle = R('gold', 3); ctx.lineWidth = 1; ctx.setLineDash([4, 3]); ctx.stroke();
       ctx.restore();
     });
-    // a web on the floor
-    (B.webs || []).forEach(function (wb) { wb.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], R('bone', 1), 0.22, 3); }); });
+    // a web on the floor (webSq: silk, not a stain)
+    (B.webs || []).forEach(function (wb) {
+      var has = {}; wb.sq.forEach(function (q) { has[q[0] + ',' + q[1]] = 1; });
+      wb.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], R('bone', 1), 0.07, 3); onSq(q[0], q[1], function (c) { webSq(c, B, q[0], q[1], has, !!wb.dc); }); });
+    });
     // magical darkness, and the clouds that are heavily obscured like it: fog (pale), a stinking cloud (yellow-green), sleet (cold)
     (B.darks || []).forEach(function (dk) {
       var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? R('moss', 2) : k === 'kill' ? R('moss', 3) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;

@@ -549,7 +549,7 @@
     multi: 1, src: 'SRD 5.1 Axe Beak (CR 1/4, Large); content/monsters.json axebeak (the south road, the verge)'
   },
   giantboar: {
-    name: 'Giant Boar', type: 'beast', sheet: 'giantboar_p1', cr: '2', ac: 12, hp: 42, speed: 40, size: 2, reach: 5,
+    name: 'Giant Boar', type: 'beast', sheet: 'giantboar_p2', cr: '2', ac: 12, hp: 42, speed: 40, size: 2, reach: 5,
     abil: { str: 17, dex: 10, con: 16, int: 2, wis: 7, cha: 5 }, init: 0, perception: 8,
     saves: { str: 3, dex: 0, con: 3, int: -4, wis: -2, cha: -3 },
     attacks: { tusk: { name: 'Tusk', atk: 5, dice: '2d6', mod: 3, type: 'slashing', reach: 5 } },

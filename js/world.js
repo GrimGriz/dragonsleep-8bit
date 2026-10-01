@@ -403,9 +403,10 @@
         var fr = DS.walker(DS.LOOKS[lead.look]);
         var step = (self.moving || self.pathWalk) ? ((self.px + self.py) >> 3) & 1 : 0;
         if (!self.hidePlayer) ctx.drawImage(fr[G.dir][step], self.px - cx, self.py - cy - 2);
-      } else if (s.n.def.prop) { // a drawn prop (the wagon): anchored on its lead tile, facing its travel
-        var pn = s.n, left = pn.dir === 'left', img = DS.propArt(pn.def.prop, pn.moving ? (DS.frame >> 3) : 0, left);
-        ctx.drawImage(img, left ? pn.px - cx : pn.px + 16 - img.width - cx, pn.py + 16 - img.height - cy);
+      } else if (s.n.def.prop) { // a drawn prop (the wagon): anchored on its lead tile, facing its travel; one with `idle` loops in place till it is `still`
+        var pn = s.n, left = pn.dir === 'left', img = DS.propArt(pn.def.prop, pn.moving ? (DS.frame >> 3) : pn.def.idle && !pn.still ? (DS.frame >> 5) : 0, left);
+        var ax = pn.def.anchor === 'center' ? pn.px + 8 - (img.width >> 1) : left ? pn.px : pn.px + 16 - img.width;
+        ctx.drawImage(img, ax - cx, pn.py + 16 - img.height - cy);
       } else {
         var n = s.n, frames = n.frames();
         var st = n.moving ? ((n.px + n.py) >> 3) & 1 : (n.def.idle ? (DS.frame >> 5) & 1 : 0);
@@ -641,8 +642,9 @@
   };
 
   // ------------------------------------------------------------------ props: the wagon, glamoured or not
-  var propCache = {};
+  var propCache = {}, PROPS = DS.PROPS = {};
   DS.propArt = function (kind, f, flip) {
+    if (PROPS[kind]) { var pk = kind + ':' + (f % PROPS[kind].frames) + ':' + (flip ? 1 : 0); return propCache[pk] || (propCache[pk] = PROPS[kind](f % PROPS[kind].frames, flip)); }
     var key = kind + ':' + (f & 1) + ':' + (flip ? 1 : 0);
     if (propCache[key]) return propCache[key];
     var p = new DS.Pix(56, 28), ink = '#101018', wood = '#6a4a2a', woodL = '#8a6a3a', kids = kind === 'wagonKids';
@@ -670,6 +672,50 @@
     if (flip) p = p.flipH();
     return (propCache[key] = p.canvas());
   };
+  // the braiding ettercap of Web Gulch on its stump at the strung end (Griz's idle sheet, "sitting & braiding silk", 2026-09-30,
+  // drawn down to the field by hand): the three-strand cord hangs from its claws and walks down a row a frame, the claws lifting
+  // to pass a strand over; `still` once it has seen you (events.js S.ettercap). Faces right as drawn.
+  var ETT8 = [
+    '........d.............',
+    '.....d..d..d..........',
+    '....d.d.dmdd.d........',
+    '...d.dmdmmmmmdd.d.....',
+    '....dmmmmmmmmmmdmd....',
+    '...dmlllmmmmmmmdmmmd..',
+    '..dmllllmmmmmmdmmmmmd.',
+    '..dmlllmmmmmmdmmmeEed.',
+    '..dmllmmmmmmmdmmmeeed.',
+    '..dmllmmmmllmddmdcdcd.',
+    '..dmlmmmbbmlldd.dc.c..',
+    '..dmlmmbBBbmlld.......',
+    '..dlmmmbBBbmmlld......',
+    '..dlmmmmbbmmddlllcc...',
+    '..dmmmmmmmmlllmd..c...',
+    '..ddmmmmlllllmmd...dmd',
+    '...dmmmmmmmmmmmd...dmd',
+    '...ddmmmmmmmddld..dmmd',
+    '....dddddddd.dld..dlmd',
+    '.vVvVvVv....dlmd..dmmd',
+    '.tvVvtTt....dlmd..dmld',
+    '.ttvtTtt....dlmd..dmmd',
+    '.tTttTtt....dlmd..dmmd',
+    '.tTtvTtt....dlmd..dmld',
+    '.tTttTtt....dlmd..dmmd',
+    '.tTttTtt...ddmmd..dmmd',
+    '..tTtTt...cdccdc..cdcc',
+    '..tTTTt...c.c.c...c.c.'];
+  var ETT8C = { d: '#3a2440', m: '#5e3e66', l: '#8a6a94', b: '#a88c88', B: '#d0b8b0', e: '#f83800', E: '#fcd8a8', c: '#e8e0d0',
+    w: '#f0f0f8', s: '#9898b0', t: '#5a3a1a', T: '#3a2412', v: '#3a6a22', V: '#6a9a3a' };
+  PROPS.ettercap = function (f, flip) {
+    var g = ETT8.map(function (r) { return r.split(''); }), cord = [['w', 's'], ['s', 'w'], ['w', 'w']];
+    for (var y = 14; y < 26; y++) { var k = cord[(y - f + 3) % 3]; g[y][16] = k[0]; g[y][17] = k[1]; }
+    g[26][16] = f === 1 ? 's' : 'w';
+    if (f === 1) { g[12][17] = 'c'; g[12][18] = 'c'; g[13][17] = 'l'; g[13][18] = '.'; g[14][18] = '.'; }
+    var p = DS.fromRows(g.map(function (r) { return r.join(''); }), ETT8C), q = new DS.Pix(p.w + 2, p.h + 2);
+    q.blit(p, 1, 1).outline('#101018');
+    return (flip ? q.flipH() : q).canvas();
+  };
+  PROPS.ettercap.frames = 3;
 
   // ------------------------------------------------------------------ shop signs (hung over a door)
   var signCache = {};

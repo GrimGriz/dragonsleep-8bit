@@ -34,7 +34,12 @@ window.D16.MAPS.gulch = {
     '######....########'
   ],
   entry: [[7, 12], [8, 12], [7, 13], [8, 13], [6, 11]],
-  webs: [[3, 2], [3, 3], [4, 3], [12, 3], [4, 5], [13, 5], [3, 6], [4, 6], [5, 6], [10, 6], [11, 6], [12, 6], [5, 7], [6, 7], [12, 7], [13, 7], [14, 6]],
+  // strung rim to rim (Griz, 09-30: "I think we need a bunch of webbing in the room"): the 8-bit gulch's strung end is web from
+  // wall to wall, the ettercap sitting in it. Added that day: the ledge round its seat, the floor under the ledge's ends, the back
+  // corners and the side walls; the slab and the two squares above it are left clear, so the way up is not all difficult ground
+  webs: [[3, 2], [3, 3], [4, 3], [12, 3], [4, 5], [13, 5], [3, 6], [4, 6], [5, 6], [10, 6], [11, 6], [12, 6], [5, 7], [6, 7], [12, 7], [13, 7], [14, 6],
+    [4, 1], [5, 1], [6, 1], [8, 1], [9, 1], [5, 2], [8, 2], [9, 2], [10, 2], [11, 2],
+    [2, 3], [2, 4], [3, 4], [11, 3], [12, 4], [13, 4], [1, 5], [1, 6], [2, 6], [15, 6], [15, 7], [14, 7]],
   foes: [],
   wave: null
 };
