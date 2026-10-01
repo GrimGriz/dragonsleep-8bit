@@ -86,7 +86,7 @@
     if (u.conds.raging && !wp.ranged) d += 2;
     if (u.conds.divineFavor) d += 2.5;
     if (D.features && D.features.strikeBonus) d += D.features.strikeBonus(u, wp); // (a cleric's Divine Strike, 8: once a turn, and a cleric swings once)
-    if (t.conds.marked && t.conds.marked.by === u.id) d += 3.5;
+    if (t.conds.marked && t.conds.marked.by === u.id && !(M.zoneGlobed && M.zoneGlobed(B, t.conds.marked, t))) d += 3.5; // (a mark on one inside a Globe of Invulnerability it was cast from outside of adds nothing)
     var sneak = 0;
     if (u.cls === 'rogue' && (wp.finesse || wp.ranged) && e.net >= 0 && (e.net > 0 || B.units.some(function (w) { return w !== u && w.side === u.side && G.standing(w) && G.dist(w, t) <= 5; }))) sneak = avg(RU.sneakDice(u));
     return { p: p, d: d, sneak: sneak, net: e.net };

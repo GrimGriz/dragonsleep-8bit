@@ -190,6 +190,9 @@
   var px = FX.px, glow = FX.glow;
   function sq(x, y) { var c = D.iso.center(x, y, D.iso.map.gz(x, y)); return D.iso.toScreen(c.x, c.y); }
   function hsh(a, b) { var h = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return h - Math.floor(h); } // (a steady random per square)
+  // a square (or a point, rounded to its square) inside a Globe of Invulnerability the zone was cast from outside of: "the area within the barrier is excluded from the areas
+  // affected by such spells" (SRD 5.1; M.zoneGlobed, js/grimoire.js) -- the picture draws the zone nowhere there (10-01, Griz: "let's fix it now")
+  function shut(B, z, x, y) { return !!(M.zoneGlobed && M.zoneGlobed(B, z, { x: Math.round(x), y: Math.round(y) })); }
 
   // the floating weapons, as pixel art made from shapes: a flanged spectral mace (the cleric's Spiritual Weapon) and a sword (the
   // Arcane Sword, a wizard's Spiritual Weapon), lit from the upper left, outlined. o outline, d edge, m body, h light
@@ -269,6 +272,8 @@
     for (var i = 0; i < 8; i++) {
       var an = t / 40 + i * Math.PI / 4, x = p.x + Math.cos(an) * rx, y = p.y + Math.sin(an) * ry, isFront = Math.sin(an) > 0;
       if (isFront !== front) continue;
+      // a spirit whose square is inside a Globe of Invulnerability the ring was cast from outside of is not drawn there (the screen ellipse is a world circle of R2 * 0.72 squares: back to the grid)
+      if (shut(B, a, u.x + R2 * 0.72 * Math.cos(an - Math.PI / 4), u.y + R2 * 0.72 * Math.sin(an - Math.PI / 4))) continue;
       var hy = y - 14 - Math.sin(t / 10 + i) * 3;
       glow(ctx, x, hy, E.c[2], 5, 0.25);
       // a small spirit: a head, a body that trails away the way it wheels
@@ -307,10 +312,11 @@
     var out = [];
     // the zones that move (09-29): the moonbeam's shaft, the flaming sphere rolling
     (B.zones || []).forEach(function (z) {
+      if (shut(B, z, z.x, z.y)) return; // (the shaft or the ball on a square inside a globe it was cast from outside of: nothing stands there to draw)
       out.push({ depth: z.x + z.y + (z.id === 'moonbeam' ? 0.3 : 0.5), gz: D.iso.map.gz(z.x, z.y), layer: 1, draw: function (ctx) { if (z.id === 'moonbeam') drawBeam(ctx, B, z); else drawSphere(ctx, B, z); } });
     });
     (B.spirits || []).forEach(function (sw) { if (sw.rounds > 0 || sw.rounds == null) out.push({ depth: sw.x + sw.y + 0.7, gz: D.iso.map.gz(sw.x, sw.y), layer: 1, draw: function (ctx) { drawWeapon(ctx, B, sw); } }); });
-    (B.wards || []).forEach(function (wd) { if (wd.left > 0) out.push({ depth: wd.x + wd.y + 0.6, gz: D.iso.map.gz(wd.x, wd.y), layer: 1, draw: function (ctx) { drawWard(ctx, B, wd); } }); });
+    (B.wards || []).forEach(function (wd) { if (wd.left > 0 && !shut(B, wd, wd.x, wd.y)) out.push({ depth: wd.x + wd.y + 0.6, gz: D.iso.map.gz(wd.x, wd.y), layer: 1, draw: function (ctx) { drawWard(ctx, B, wd); } }); });
     (B.auras || []).forEach(function (a) {
       var u = B.units.filter(function (w) { return w.id === a.by; })[0]; if (!u) return;
       out.push({ depth: u.x + u.y + 0.2, gz: 0, layer: 1, draw: function (ctx) { drawAura(ctx, B, a, false); } });
@@ -420,7 +426,7 @@
     // the zones that move (09-29): Moonbeam's squares washed pale and the Flaming Sphere's reach warm, so one can see what is in them, and a
     // ring at the feet of each creature caught in one (the beam takes whoever enters it or starts a turn there; the sphere whoever ends a turn beside it)
     (B.zones || []).forEach(function (z) {
-      var moon = z.id === 'moonbeam', sqs = zoneSquares(z), ZC = moon ? [P('bone', 2), P('glow', 2)] : [P('fire', 1), P('fire', 0)], zp = 0.6 + 0.4 * Math.sin(t / 10);
+      var moon = z.id === 'moonbeam', sqs = zoneSquares(z).filter(function (q) { return !shut(B, z, q[0], q[1]); }), ZC = moon ? [P('bone', 2), P('glow', 2)] : [P('fire', 1), P('fire', 0)], zp = 0.6 + 0.4 * Math.sin(t / 10);
       sqs.forEach(function (q) {
         onSq(q[0], q[1], function (c) {
           D.iso.rhombus(c, q[0], q[1], D.iso.map.gz(q[0], q[1]), 2); c.globalAlpha = 0.08 + 0.06 * zp; c.fillStyle = ZC[0]; c.fill();
@@ -428,7 +434,7 @@
         });
       });
       B.units.forEach(function (u) {
-        if (!G.standing(u) || u.left || u.fled || !(moon ? G.inArea(u, sqs) : G.dist(u, { x: z.x, y: z.y, size: 1 }) <= 5)) return;
+        if (!G.standing(u) || u.left || u.fled || !(moon ? G.inArea(u, sqs) : G.dist(u, { x: z.x, y: z.y, size: 1 }) <= 5 && !shut(B, z, u.x, u.y))) return; // (no ring at the feet of one a globe keeps it off)
         var p = D.ui.unitPos(B, u);
         ctx.save(); ctx.globalAlpha = 0.75; ctx.strokeStyle = ZC[1]; ctx.lineWidth = 1; ctx.setLineDash([3, 2]); ctx.lineDashOffset = t / 4;
         ctx.beginPath(); ctx.ellipse(p.x, p.y, 12, 5.5, 0, 0, 7); ctx.stroke(); ctx.restore();
@@ -492,6 +498,17 @@
   // afterimages. A false image struck breaks like glass where it stood
   var IMG_OFF = [[-15, 2], [15, -2], [0, -7]];
   LK.behind = function (ctx, B, u, p, anim, t, o) {
+    // Longstrider and Expeditious Retreat (10-01b, Griz, of the green dashes off the heels: "looks like the guy is pooping lines of green?
+    // Maybe green like the old bat sonar only in the tile he's in"): his own square glows green, a ring running out from his feet to its
+    // edge and again -- the 09-30 sonar's tint and ping, kept to one square, under him
+    if (u.conds.longstrider || u.conds.retreat) {
+      var lsw = D.iso.TW / 2 * (u.size || 1), lsh = D.iso.TH / 2 * (u.size || 1), EN = FX.EL.nature, lph = ((B.t + (u.id || '').length * 9) % 40) / 40, lk = 0.25 + 0.75 * lph;
+      var dia = function (k) { ctx.beginPath(); ctx.moveTo(p.x, p.y - lsh * k); ctx.lineTo(p.x + lsw * k, p.y); ctx.lineTo(p.x, p.y + lsh * k); ctx.lineTo(p.x - lsw * k, p.y); ctx.closePath(); };
+      ctx.save();
+      dia(1); ctx.globalAlpha = 0.3; ctx.fillStyle = EN.c[0]; ctx.fill(); // (the leaf green, not the moss: the moss is too dark to read on the stone)
+      dia(lk); ctx.globalAlpha = 0.95 * (1 - lph); ctx.strokeStyle = '#c8e090'; ctx.lineWidth = 1; ctx.stroke();
+      ctx.restore();
+    }
     var n = Math.max(0, u.images || 0), was = u._imgs || 0;
     if (n < was) for (var k = n; k < was; k++) { var off = IMG_OFF[k % 3]; shatter(u, off); }
     u._imgs = n;
@@ -703,16 +720,7 @@
     if (c.aid) { var aq = (t + ph * 3) % 120; if (aq < 44) { ctx.globalAlpha = Math.sin(Math.PI * aq / 44); plus(ctx, p.x - bw, bodyY - aq * 0.32, FX.EL.holy); ctx.globalAlpha = 1; } }
     if (c.regenerating) { var rq = (t + ph * 5) % 70; ctx.globalAlpha = Math.sin(Math.PI * rq / 70); plus(ctx, p.x - bw, bodyY + 6 - rq * 0.25, FX.EL.heal); ctx.globalAlpha = 1; }
     if (c.enhanced) { var eq = (t + ph * 2) % 90; if (eq < 40) { ctx.globalAlpha = Math.sin(Math.PI * eq / 40); chev(ctx, p.x + bw, bodyY - eq * 0.3, FX.EL.holy); chev(ctx, p.x + bw, bodyY + 6 - eq * 0.3, FX.EL.holy); ctx.globalAlpha = 1; } }
-    // Longstrider and Expeditious Retreat: two short green dashes stream off the heels, back the way it did not go
-    if (c.longstrider || c.retreat) {
-      E = FX.EL.nature;
-      for (i = 0; i < 2; i++) {
-        var lp = (t * 0.9 + i * 12) % 24, ld = 7 + lp * 0.6, lx = p.x + hb[0] * ld, ly = p.y - 3 - i * 5 + hb[1] * ld * 0.5;
-        ctx.globalAlpha = 1 - lp / 24; ctx.fillStyle = P('outline', 0); if (hb[0]) ctx.fillRect(Math.round(lx - 3) + 1, Math.round(ly) + 1, 6, 2); else ctx.fillRect(Math.round(lx) + 1, Math.round(ly - 3) + 1, 2, 6);
-        ctx.fillStyle = i ? E.c[1] : E.c[0]; if (hb[0]) ctx.fillRect(Math.round(lx - 3), Math.round(ly), 6, 2); else ctx.fillRect(Math.round(lx), Math.round(ly - 3), 2, 6);
-      }
-      ctx.globalAlpha = 1;
-    }
+    // (Longstrider and Expeditious Retreat: under the figure now -- LK.behind)
     // Pass without Trace: smoke-grey wisps at the feet, drifting up and thinning
     if (c.pwt) for (i = 0; i < 3; i++) { var wp = (t * 0.35 + i * 14) % 42; glow(ctx, p.x - 8 + i * 8 + Math.sin(wp / 7 + i) * 2, p.y - 1 - wp * 0.2, i % 2 ? P('stone', 4) : P('violet', 3), 4 + wp / 10, 0.5 * (1 - wp / 42)); }
     // Vampiric Touch waiting: the hand dark with it, a violet glow and a green glint (the touch is the caster's action each turn)

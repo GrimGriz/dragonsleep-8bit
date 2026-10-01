@@ -7,8 +7,9 @@ import bench16
 
 
 def main():
-    bench16.build_page()
-    page = open(os.path.join(HERE, 'bench16.html'), encoding='utf-8').read().replace('<script src="bench16.js"></script>', '<script src="pyro-probe.js"></script>')
+    built = bench16.build_page() # (a page of its own each run: bench16.py, 10-01b)
+    page = open(built, encoding='utf-8').read().replace('<script src="bench16.js"></script>', '<script src="pyro-probe.js"></script>')
+    os.remove(built)
     out = os.path.join(HERE, 'pyro-probe.html')
     open(out, 'w', encoding='utf-8').write(page)
     prof = os.path.join(tempfile.gettempdir(), 'pyro-probe-edge-%d' % os.getpid())

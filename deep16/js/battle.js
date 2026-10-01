@@ -895,9 +895,14 @@
     if (att.conds.divineFavor && !atk.spell) { var df = D.roll('1d4', { crit: crit }); rad += df.total; parts.push('{y}favor 1d4 [' + df.rolls.join(',') + '] radiant{/}'); }
     // the marks (09-28, js/grimoire.js): Hunter's Mark (+1d6 on a weapon's hit), Mirror's Gaze (+1d6 psychic on any of her hits), Bestow
     // Curse's +1d8 necrotic, Branding Smite's +2d6 radiant on the next weapon hit (and the struck one glows, seen)
-    var mk = tgt.conds.marked;
-    if (mk && mk.by === att.id && (mk.any || !atk.spell)) { var hm = D.roll('1d6', { crit: crit }); if (mk.type) xtra.push([hm.total, mk.type]); else dmg += hm.total; parts.push('{p}' + (mk.name || 'mark') + ' 1d6 [' + hm.rolls.join(',') + ']' + (mk.type ? ' ' + mk.type : '') + '{/}'); }
-    if (tgt.conds.cursed && tgt.conds.cursed.by === att.id && tgt.conds.cursed.dmg) { var bc = D.roll('1d8', { crit: crit }); xtra.push([bc.total, 'necrotic']); parts.push('{p}curse 1d8 [' + bc.rolls.join(',') + '] necrotic{/}'); }
+    // (the Globe of Invulnerability, SRD 5.1: a mark or a curse is an effect on the creature of a spell cast from where it was cast -- if that was outside a globe the creature
+    // now stands in, "the spell has no effect on them": no extra die, and the card says so; D.magic.zoneGlobed reads where from and the spell's level off the record)
+    var mk = tgt.conds.marked, mkGl = mk && mk.by === att.id && (mk.any || !atk.spell) && D.magic.zoneGlobed && D.magic.zoneGlobed(this, mk, tgt);
+    if (mk && mk.by === att.id && (mk.any || !atk.spell) && !mkGl) { var hm = D.roll('1d6', { crit: crit }); if (mk.type) xtra.push([hm.total, mk.type]); else dmg += hm.total; parts.push('{p}' + (mk.name || 'mark') + ' 1d6 [' + hm.rolls.join(',') + ']' + (mk.type ? ' ' + mk.type : '') + '{/}'); }
+    else if (mkGl) parts.push('{c}' + (mk.name || 'mark') + ': inside the globe, untouched{/}');
+    var cuGl = tgt.conds.cursed && tgt.conds.cursed.by === att.id && tgt.conds.cursed.dmg && D.magic.zoneGlobed && D.magic.zoneGlobed(this, tgt.conds.cursed, tgt);
+    if (tgt.conds.cursed && tgt.conds.cursed.by === att.id && tgt.conds.cursed.dmg && !cuGl) { var bc = D.roll('1d8', { crit: crit }); xtra.push([bc.total, 'necrotic']); parts.push('{p}curse 1d8 [' + bc.rolls.join(',') + '] necrotic{/}'); }
+    else if (cuGl) parts.push('{c}the curse: inside the globe, untouched{/}');
     if (att.conds.branding && !atk.spell) { var bs = D.roll(att.conds.branding.dice || '2d6', { crit: crit }); rad += bs.total; parts.push('{y}branding ' + (att.conds.branding.dice || '2d6') + ' [' + bs.rolls.join(',') + '] radiant{/}'); delete att.conds.branding; tgt.conds.branded = { by: att.id }; if (tgt.conds.invisible) delete tgt.conds.invisible; }
     // a foe's poisoned blade
     if (atk.extra) { var ex = D.roll(atk.extra, { crit: crit }); ext += ex.total; parts.push(atk.extra + ' ' + RU.fmtRolls(ex.rolls) + ' ' + atk.extraType); }

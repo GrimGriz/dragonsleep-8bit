@@ -28,7 +28,7 @@ At Higher Levels. If you cast this spell using a spell slot of 6th level or high
 
 *5th-level abjuration*
 
-> **The game:** A 10-ft barrier about you that moves with you (concentration, 600 rounds): no creature but the undead and constructs steps through it, and melee blows across it are turned. Ranged attacks and spells pass. Moving so that one is forced through ends it.
+> **The game:** A 10-ft barrier about you that moves with you (concentration, 600 rounds): no creature but the undead and constructs steps through it, and melee blows across it are turned. Ranged attacks and spells pass. Moving so that one is forced through ends it. A Globe of Invulnerability it was cast from outside of is a hole in it: no barrier to a step that starts or ends in the globe, nor to a blow from or at one standing in it, and one the barrier's sweep carries into or out of the globe is not forced through.
 
 **Casting Time:** 1 action
 

@@ -173,21 +173,29 @@
   // if he moves so that one is forced through it, the spell ends
   function shelled(w) { return w.type !== 'undead' && w.type !== 'construct'; }
   function shellsOf(B) { return (B && B.shells) || []; }
+  // the Globe of Invulnerability (SRD 5.1: "Any spell of 5th level or lower cast from outside the barrier can't affect creatures or objects within it ... the area within the barrier
+  // is excluded from the areas affected by such spells"; 10-01, "risk of forgetting too high, let's fix it now"). The Shell is a 5th-level spell -- stamped with where it was cast
+  // from and its level by the M.cast wrapper, like every zone -- and a globe it was cast from outside of is a HOLE in it, not a second wall: no barrier is met on a step that starts
+  // or ends on a square of the globe, a blow from or at a creature standing in it is not turned, and a creature the shell's sweep carries into or out of the globe is not "forced to
+  // pass through" (it is not an affected creature in there). Outside the globe the barrier is whole. A shell cast from inside the globe (the globe's own caster's) is the globe's friend
+  // and keeps all of it. The barrier is round the caster, who may himself stand in the hole: the barrier goes where he goes, and has no say over what is inside the globe
+  function holed(B, s, p) { return !!(M.zoneGlobed && M.zoneGlobed(B, s, p)); }
   G.shellBars = function (u, x0, y0, x1, y1) {
     var B = D.battle, S = shellsOf(B); if (!S.length || !shelled(u)) return false;
     for (var i = 0; i < S.length; i++) {
       var c = B.units.filter(function (w) { return w.id === S[i].by; })[0]; if (!c || c === u || !G.standing(c)) continue;
+      if (holed(B, S[i], { x: x0, y: y0 }) || holed(B, S[i], { x: x1, y: y1 })) continue; // (a step that starts or ends in a globe the shell was cast from outside of: the hole)
       if ((G.dist(u, c, x0, y0) <= 10) !== (G.dist(u, c, x1, y1) <= 10)) return true; // (u stood at each end of the step)
     }
     return false;
   };
   W.shellTurns = function (B, att, tgt, atk) {
     if (!atk || atk.ranged || !shellsOf(B).length) return false;
-    return shellsOf(B).some(function (s) { var c = B.units.filter(function (w) { return w.id === s.by; })[0]; if (!c || !G.standing(c)) return false; var a = att !== c && shelled(att) ? G.dist(c, att) <= 10 : null, b = tgt !== c && shelled(tgt) ? G.dist(c, tgt) <= 10 : null; if (att === c) a = true; if (tgt === c) b = true; return a !== null && b !== null && a !== b; });
+    return shellsOf(B).some(function (s) { var c = B.units.filter(function (w) { return w.id === s.by; })[0]; if (!c || !G.standing(c)) return false; if (holed(B, s, att) || holed(B, s, tgt)) return false; var a = att !== c && shelled(att) ? G.dist(c, att) <= 10 : null, b = tgt !== c && shelled(tgt) ? G.dist(c, tgt) <= 10 : null; if (att === c) a = true; if (tgt === c) b = true; return a !== null && b !== null && a !== b; });
   };
   function insideOf(B, s) { var c = B.units.filter(function (w) { return w.id === s.by; })[0]; return c ? B.units.filter(function (w) { return w !== c && G.present(w) && w.hp > 0 && shelled(w) && G.dist(c, w) <= 10; }).map(function (w) { return w.id; }).sort().join(',') : ''; }
   E.antilifeshell = {
-    summary: function () { return 'a 10-ft barrier about you (concentration): no creature but the dead and the made passes or reaches through it; move so one is forced through, and it ends'; },
+    summary: function () { return 'a 10-ft barrier about you (concentration): no creature but the dead and the made passes or reaches through it; move so one is forced through, and it ends; a Globe of Invulnerability it was cast from outside of is a hole in it -- no barrier to or from anything standing in the globe'; },
     cast: function* (B, u, t, slot, head) {
       var s = { by: u.id }; s.inside = insideOf(B, s);
       B.shells = shellsOf(B).concat([s]);
@@ -199,8 +207,10 @@
     // the AI raises it when blades are coming and none is at it yet
     ai: function (B, u, e, slot, fs) {
       if (u.conc) return null;
-      var near = fs.filter(function (f) { return shelled(f) && G.standing(f) && G.dist(u, f) <= 10; }).length;
-      var coming = fs.filter(function (f) { return shelled(f) && G.standing(f) && !(f.weapon && f.weapon.ranged) && G.dist(u, f) > 10 && G.dist(u, f) <= 10 + (f.speed || 30); });
+      // (one inside a Globe of Invulnerability the Shell would be cast from outside of is not hedged by it: it counts for nothing here)
+      var shut = function (f) { return !!(M.globeShuts && M.globeShuts(B, u, e.g, f)); };
+      var near = fs.filter(function (f) { return shelled(f) && G.standing(f) && G.dist(u, f) <= 10 && !shut(f); }).length;
+      var coming = fs.filter(function (f) { return shelled(f) && G.standing(f) && !(f.weapon && f.weapon.ranged) && G.dist(u, f) > 10 && G.dist(u, f) <= 10 + (f.speed || 30) && !shut(f); });
       if (near || coming.length < 2) return null;
       var sc = coming.reduce(function (a, f) { return a + TX().dpr(f); }, 0) * 1.5;
       return { score: sc, t: u, keep: sc * 0.6 };
@@ -210,7 +220,16 @@
   var step1 = M.stepInto;
   M.stepInto = function (B, u) {
     var stop = step1 ? step1(B, u) : false;
-    shellsOf(B).slice().forEach(function (s) { if (s.by !== u.id) return; var now = insideOf(B, s); if (now !== s.inside && u.conc && u.conc.id === 'antilifeshell') M.endConc(B, u, 'one forced through the barrier'); });
+    shellsOf(B).slice().forEach(function (s) {
+      var now = insideOf(B, s);
+      if (s.by !== u.id) { s.inside = now; return; } // (another's step: nothing living crosses the barrier but through a globe's hole, so who stands inside is simply who stands inside)
+      if (now === s.inside) return;
+      // (who changed sides: one that is no longer here is not "forced"; one standing in a globe the shell was cast from outside of is not an affected creature -- the hole)
+      var was = s.inside ? String(s.inside).split(',') : [], is = now ? now.split(',') : [], forced = false;
+      was.concat(is).forEach(function (id) { if ((was.indexOf(id) < 0) === (is.indexOf(id) < 0)) return; var w = B.units.filter(function (v) { return v.id === id; })[0]; if (w && G.present(w) && w.hp > 0 && !holed(B, s, w)) forced = true; });
+      s.inside = now;
+      if (forced && u.conc && u.conc.id === 'antilifeshell') M.endConc(B, u, 'one forced through the barrier');
+    });
     return stop;
   };
   // Plant Growth (SRD 5.1, 3rd, an action; eight hours: the fight): the grass within 100 ft of a point grows thick -- 4 ft of movement for

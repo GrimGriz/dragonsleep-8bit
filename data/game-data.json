@@ -3013,7 +3013,7 @@
    "target": "self",
    "battle": true,
    "sfx": "magic",
-   "desc": "A 20-ft sphere of fog: nothing sees in, out or across it. Here, RUN slips away under it untried.",
+   "desc": "A 20-ft sphere of fog: nothing sees in, out or across it. Here, RUN slips away under it untried. Cast from outside a Globe of Invulnerability, it does not cover the squares inside the globe.",
    "src": "SRD 5.1 (Fog Cloud); torchdark 09-28",
    "id": "fogcloud"
   },
@@ -3539,7 +3539,7 @@
    "cloud": "darkness",
    "target": "self",
    "grid": true,
-   "desc": "A 15-ft sphere of magical darkness at a point within 60 ft: no one sees in, out or across it (truesight and Devil's Sight do), and torchlight does not reach it. Concentration, 10 minutes. Not built: hanging it on an object.",
+   "desc": "A 15-ft sphere of magical darkness at a point within 60 ft: no one sees in, out or across it (truesight and Devil's Sight do), and torchlight does not reach it. Cast from outside a Globe of Invulnerability, it does not cover the squares inside the globe: they are no part of its area. Concentration, 10 minutes. Not built: hanging it on an object.",
    "src": "SRD 5.1 Darkness (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "darkness"
@@ -3748,7 +3748,7 @@
    "kind": "ward",
    "target": "self",
    "grid": true,
-   "desc": "A 10-ft barrier about you that moves with you (concentration, 600 rounds): no creature but the undead and constructs steps through it, and melee blows across it are turned. Ranged attacks and spells pass. Moving so that one is forced through ends it.",
+   "desc": "A 10-ft barrier about you that moves with you (concentration, 600 rounds): no creature but the undead and constructs steps through it, and melee blows across it are turned. Ranged attacks and spells pass. Moving so that one is forced through ends it. A Globe of Invulnerability it was cast from outside of is a hole in it: no barrier to a step that starts or ends in the globe, nor to a blow from or at one standing in it, and one the barrier's sweep carries into or out of the globe is not forced through.",
    "src": "SRD 5.1 Antilife Shell (the druid to twelve, 09-30: deep16/js/walls.js)",
    "sfx": "holy2",
    "id": "antilifeshell"
@@ -4452,7 +4452,7 @@
    "kind": "buff",
    "target": "self",
    "grid": true,
-   "desc": "A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from: save spells, spell attacks, darts, touches and cantrips alike, and what a spell leaves behind: its clouds, webs, ground and walls (Cloudkill, Stinking Cloud, Web, Grease, Spike Growth, Sleet Storm, Moonbeam, Wall of Fire, Spirit Guardians and the rest) do nothing to those inside, wherever the caster has moved since, and the globe's squares are no part of their area (no difficult ground, no wall there); raised after the zone was laid, it shelters those inside all the same (the card says so). The AI and the player's picker pass a globed target by (the click says why: inside the globe). Not built: the fog and the dark still hide what is inside.",
+   "desc": "A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from: save spells, spell attacks, darts, touches and cantrips alike, and what a spell leaves behind: its clouds, webs, ground and walls (Cloudkill, Stinking Cloud, Web, Grease, Spike Growth, Sleet Storm, Moonbeam, Wall of Fire, Spirit Guardians and the rest) do nothing to those inside, wherever the caster has moved since, and the globe's squares are no part of their area (no difficult ground, no wall there); raised after the zone was laid, it shelters those inside all the same (the card says so). What a spell left on a creature that has stepped in since is stopped too, each turn it would be felt: a Phantasmal Killer's bite, an Acid Arrow's second, Contagion's saves, the stone, a Bestow Curse's or a Hunter's Mark's extra die, a Command, Fear's run, Confusion's turn, Regenerate's and Heroism's tick, a Sanctuary ward (a Hold, a Slow, a fright and the rest that only bind it are not). A spell used again (the next Call Lightning, Sunbeam, Heat Metal flare, Moonbeam or Flaming Sphere move, Spiritual Weapon or Arcane Sword swing, Vampiric Touch, Eyebite) is cast from where it was first cast, however far its caster has walked since. The AI and the player's picker pass a globed target by (the click says why: inside the globe). The fog and the dark are no part of the globe's squares either: a Fog Cloud, Darkness, Stinking Cloud, Cloudkill or Sleet Storm cast from outside hides nothing inside it (a line of sight that crosses only the globe's squares of the cloud is clear, and one inside is not in its dark), and Daylight cast from outside does not light them.",
    "src": "SRD 5.1 Globe of Invulnerability (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "globeofinvulnerability"
   },

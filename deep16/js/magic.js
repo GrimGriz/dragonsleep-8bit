@@ -22,7 +22,9 @@
   };
   // (`lvl`, the spell's own level -- a cantrip is 0 -- is stamped on its geometry the first time it is asked for, so that M.targetWhy, which is given only
   // the geometry, can put the Globe of Invulnerability the question: every copy made of it with Object.assign carries it. 10-01)
-  M.geo = function (id) { var g = D.SPELLS[id]; if (!g) return { shape: 'none', why: 'not on the grid yet' }; if (g.lvl == null) { var sp = M.data(id); if (sp && sp.level != null) g.lvl = sp.level | 0; } return g; };
+  // (`sid`, its own id, rides with it the same way: a spell used again -- Call Lightning's bolt, a swing of the Spiritual Weapon -- asks the globe from where it was FIRST cast,
+  // and M.castOrigin, js/grimoire.js, finds that record by the id)
+  M.geo = function (id) { var g = D.SPELLS[id]; if (!g) return { shape: 'none', why: 'not on the grid yet' }; if (g.lvl == null) { var sp = M.data(id); if (sp && sp.level != null) g.lvl = sp.level | 0; } if (g.sid == null) g.sid = id; return g; };
   M.slotLevels = function (u, lvl) { var out = []; for (var i = Math.max(1, lvl) - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) out.push(i + 1); return out; };
   // the caster's spellcasting modifier: its class's ability (js/rules.js R.CLASSES cast: the cleric's WIS, the warlock's CHA), or a sheet's own
   M.mod = function (u) { var c = window.DS.R.CLASSES[u.cls]; return D.mod(u.abil[u.castAb || (c && c.cast) || 'int']); };
@@ -67,6 +69,10 @@
       else if (g.time === 'A' && T.bonusSpell && sp.level) why = 'after a bonus-action spell, only a cantrip';
       else if (g.unarmored && !M.touchTargets(B, u, g).length) why = 'no one within reach without armour or Mage Armor'; // (greyed when all have it: Griz, 10-01)
       else if (id === 'seeinvisibility' && u.seeInvisible) why = 'already seeing the unseen';
+      // a dancer (Irresistible Dance: "must use all its movement to dance without leaving its space") steps nowhere: not Misty Step, not
+      // Dimension Door -- 10-01b, Griz, a lean: "lean no since the names of those spells both imply leg action (step - and stepping through
+      // a door), but a straight teleport teleport I'd probably allow at the table" (Blink and Etherealness, the Ethereal, stay open)
+      else if (u.conds.dancing && (id === 'mistystep' || id === 'dimensiondoor')) why = 'dancing in place: no stepping out of it';
       // a spell's own say (js/grimoire.js): nothing to cure, a ward already on, no metal to heat
       if (!why && ex && ex.list) { var r = ex.list(B, u, e); if (r && r.why) why = r.why; if (r && r.g) e.g = g = r.g; }
       // a spell that takes a creature, with no creature it may take (10-01b, Griz: "check for other targeting non-fails. I have a hold
@@ -170,9 +176,11 @@
     });
   };
   // would a Globe of Invulnerability stop u's spell (the geometry g carries its level: M.geo) at w? false where no globe stands, the spell's level is not
-  // known, w is u itself, or u stands inside the globe too (M.globed, js/grimoire.js, says the rest: the level against the globe's, outside against in)
+  // known, w is u itself, or u stands inside the globe too (M.globed, js/grimoire.js, says the rest: the level against the globe's, outside against in).
+  // A spell used again (g.free: it costs no slot, it is the standing spell's next bolt, swing, flare or move) is asked from where it was first cast, not from where u
+  // stands now (M.castOrigin, js/grimoire.js)
   M.globeShuts = function (B, u, g, w) {
-    return !!(M.globed && B && B.globes && B.globes.length && g && g.lvl != null && w && w !== u && w.hp != null && M.globed(B, u, w, g.lvl));
+    return !!(M.globed && B && B.globes && B.globes.length && g && g.lvl != null && w && w !== u && w.hp != null && M.globed(B, g.free && M.castOrigin ? M.castOrigin(B, u, g) : u, w, g.lvl));
   };
   // why w is no target for a spell that would only lay again what is already on it (g.noStack, the condition's name), or '': Enlarge on
   // one already enlarged, Reduce on one already reduced -- one record a creature, never two. The other way is a replacement and is let
@@ -447,10 +455,10 @@
         B.card([head + ': his weapon hits take {y}+1d4 radiant{/} (concentration).']);
       } else if (id === 'light') {
         // SRD 5.1: on an object (his staff, her blade): bright 20 ft, dim 20 more, an hour -- it goes where they go
-        w2.conds.light = { by: u.id };
+        w2.conds.light = { by: u.id, from: B.castFrom || null, lv: 0 }; // (from and lv: where it was cast from, for a Globe of Invulnerability -- light.js L.map)
         yield* M.brighten(B, u, 'light', head + ' on ' + (w2 === u ? 'his own gear' : w2.name) + ': a steady light, {y}bright 20 ft{/} and dim 20 more.', { x: w2.x, y: w2.y, bright: 20 });
       } else if (id === 'continualflame') {
-        w2.conds.continualFlame = { by: u.id }; if (w2.src) { w2.src.conds = w2.src.conds || {}; w2.src.conds.continualFlame = (w2.src.equip && w2.src.equip.weapon) || true; } // (on the weapon in hand; it never goes out: the 8-bit sheet keeps it, js/embed.js)
+        w2.conds.continualFlame = { by: u.id, from: B.castFrom || null, lv: 2 }; if (w2.src) { w2.src.conds = w2.src.conds || {}; w2.src.conds.continualFlame = (w2.src.equip && w2.src.equip.weapon) || true; } // (on the weapon in hand; it never goes out: the 8-bit sheet keeps it, js/embed.js)
         yield* M.brighten(B, u, 'flame', head + ' on ' + (w2 === u ? 'his own gear' : w2.name) + ': a flame with no heat in it, {o}bright 20 ft{/} and dim 20 more, that will not go out.', { x: w2.x, y: w2.y, bright: 20 });
       } else if (id === 'darkvision') {
         w2.darkvision = Math.max(w2.darkvision || 0, 60); w2.conds.darkvision = { by: u.id };
@@ -470,10 +478,11 @@
         M.concentrate(B, u, id, sp.name, function () { delete u.conds.invisible; u.images = 0; });
         B.card([head + ': he is gone, and a double of him stands where he stood (a blow may go at it; the invisibility ends if he attacks or casts; concentration).']);
       } else if (id === 'passwithouttrace') {
-        var veiled = B.units.filter(function (w) { return w.side === u.side && G.standing(w) && G.dist(u, w) <= 30; });
+        // (the Globe of Invulnerability: one in range that stands inside a globe the caster is outside of is not veiled -- the card says so)
+        var inRng = B.units.filter(function (w) { return w.side === u.side && G.standing(w) && G.dist(u, w) <= 30; }), shutV = M.globed ? inRng.filter(function (w) { return M.globed(B, u, w, sp.level); }) : [], veiled = inRng.filter(function (w) { return shutV.indexOf(w) < 0; });
         veiled.forEach(function (w) { w.conds.pwt = { by: u.id }; });
         M.concentrate(B, u, id, sp.name, function () { lift(B, veiled, 'pwt'); });
-        B.card([head + ': a veil of shadow over ' + veiled.map(function (w) { return w.name; }).join(', ') + ' -- {c}+10 Stealth{/} (concentration).']);
+        B.card([head + ': a veil of shadow over ' + veiled.map(function (w) { return w.name; }).join(', ') + ' -- {c}+10 Stealth{/} (concentration).'].concat(shutV.map(function (w) { return '  ' + w.name + ': {c}inside the globe: untouched{/}'; })));
       }
       FX.sparkle(w2, g.shape === 'self' || id === 'divinefavor' ? 'gold' : 'glow', 14);
       yield 30;
@@ -502,9 +511,14 @@
     if (id === 'daylight') {
       // SRD 5.1: bright 60 ft and dim 60 more from a point; on a creature's square it goes with them; a Darkness of 3rd level or
       // lower it overlaps is dispelled (the darkmantle's aura too)
-      var burnt = (B.darks || []).filter(function (dk) { return dk.kind !== 'fog' && dk.kind !== 'sleet' && dk.kind !== 'stink' && dk.kind !== 'kill' && M.darkSq(B, dk).some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); });
-      var bearer = B.units.filter(function (w) { return G.standing(w) && w.side === u.side && G.inArea(w, [[cx, cy]]); })[0];
-      if (bearer) bearer.conds.daylight = { by: u.id }; else B.lights = (B.lights || []).concat([{ id: 'daylight' + u.id, kind: 'daylight', x: cx, y: cy, bright: 60, dim: 60, color: 'bone', by: u.id }]);
+      // (the Globe of Invulnerability, SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells" -- 10-01, Griz: "let's fix it
+      // now". The squares of the sphere inside a globe the caster is outside of are no part of the daylight: no light is laid on them, the darkness
+      // under them is not burnt, and one standing there is not the bearer it goes with (light.js L.map reads the stamp, `from` and `lv`, of the light
+      // or of the bearer's record). Where the globe's caster stands in its own globe, all of it shines)
+      var dsq = M.globed ? sq.filter(function (q) { return !M.globed(B, u, { x: q[0], y: q[1] }, sp.level); }) : sq;
+      var burnt = (B.darks || []).filter(function (dk) { return dk.kind !== 'fog' && dk.kind !== 'sleet' && dk.kind !== 'stink' && dk.kind !== 'kill' && M.darkSq(B, dk).some(function (q) { return dsq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); });
+      var bearer = B.units.filter(function (w) { return G.standing(w) && w.side === u.side && G.inArea(w, [[cx, cy]]) && !(M.globed && M.globed(B, u, w, sp.level)); })[0];
+      if (bearer) bearer.conds.daylight = { by: u.id, from: B.castFrom || null, lv: sp.level }; else B.lights = (B.lights || []).concat([{ id: 'daylight' + u.id, kind: 'daylight', x: cx, y: cy, bright: 60, dim: 60, color: 'bone', by: u.id }]);
       lines.push(head + '  a sphere of daylight' + (bearer ? ' about ' + bearer.name : '') + ': {y}bright 60 ft{/} and dim 60 more' + (burnt.length ? ' -- {y}the darkness burns away{/}' : ''));
       burnt.forEach(function (dk) {
         var by = B.units.filter(function (w) { return w.id === dk.by; })[0];
@@ -617,11 +631,12 @@
     }
     if (B) M.groundsTime(B, u);
     if (B && B.expiries && B.expiries.length) B.expiries = B.expiries.filter(function (e) { if (e.by !== u.id || B.round < e.till) return true; try { e.undo(); } catch (x) { } return false; });
-    if (u.conds.heroism) u.temp = Math.max(u.temp || 0, u.conds.heroism.each);
+    if (u.conds.heroism && !(B && M.zoneShut && M.zoneShut(B, u.conds.heroism, u, 'is steeled by Heroism'))) u.temp = Math.max(u.temp || 0, u.conds.heroism.each); // (the Globe of Invulnerability: Heroism's temporary HP each turn are a repeating effect of a spell cast from outside it -- nothing inside one)
     if (B && u.hp > 0 && !u.dead) M.webCatch(B, u, 'starts');
     if (B && u.hp > 0 && !u.dead) M.webFireTurn(B, u); // (a web burning about it: 2d4 fire)
     if (B && u.hp > 0 && !u.dead) M.cloudTurn(B, u);
     if (B && M.onStart) M.onStart(B, u); // (the class NPCs' spells: the guardians, the timers, a word of command -- js/grimoire.js)
+    u.turn.moveFull = u.turn.move; // (the turn's own walking as it was set, slowed, hasted, cold, got up from prone, a dancer's none: what tearing free of a web gives back -- breakFree, below)
     if (u.conds.restrained || u.conds.paralyzed || u.conds.asleep || u.conds.incapacitated) u.turn.move = 0;
   };
   // a spell's ground with a clock of its own (Grease, SRD 5.1: "1 minute", no concentration to end it): `till` is its rounds, `born` the round it
@@ -722,7 +737,9 @@
     if (B.lightMap) B.lightMap = null;
     if (!B.dark && src && src.bright > 0) B.brightLit = true; // (a lit place: the old fight-wide dazzle for what hates light, rules.js edges)
     var reach = function (w) { return src && Math.hypot(w.x + ((w.size || 1) - 1) / 2 - src.x, w.y + ((w.size || 1) - 1) / 2 - src.y) * 5 <= (src.bright || 0) + 2.5; };
-    var lit = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && (!B.dark || !src || reach(w) || (Lt && Lt.brightAt(B, w))); });
+    // (a light a SPELL lays -- Daylight, Light, a Continual Flame, the sphere's glow -- is no area for one inside a Globe of Invulnerability it was cast from outside
+    // of: SRD 5.1 "the area within the barrier is excluded from the areas affected by such spells". B.castLevel is set only inside a cast: a struck torch is no spell)
+    var lit = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && (!B.dark || !src || reach(w) || (Lt && Lt.brightAt(B, w))) && !(B.castLevel != null && M.globed && M.globed(B, u, w)); });
     var shy = lit.filter(function (w) { return w.lightSensitive; }), shown = [];
     lit.forEach(function (w) { if (w.conds.hidden && (!B.dark || (Lt && Lt.brightAt(B, w)))) { delete w.conds.hidden; w.hidden0 = false; shown.push(w.name); } });
     if (shown.length) lines.push('  {c}' + shown.join(', ') + ' shown up by the light{/}');
@@ -746,13 +763,30 @@
   // the rest (SRD); an unseen attacker attacks with advantage (rules.js edges); no opportunity attack on one you cannot see
   // (battle.js moveAlong); a spell that needs its target seen cannot take one (targetOK); the foes pick only targets they
   // can see (ai.js heroes, visibleFrom)
-  M.darkSq = function (B, d) { // the squares a darkness covers now (the darkmantle's aura goes where it goes)
+  function darkSqRaw(B, d) { // the squares a darkness covers now (the darkmantle's aura goes where it goes)
     if (!d.follow) return d.sq;
     var w = B.units.filter(function (x) { return x.id === d.follow; })[0];
     if (!w || w.dead) return [];
     var cx = w.x + ((w.size || 1) - 1) / 2, cy = w.y + ((w.size || 1) - 1) / 2, k = Math.round(cx) + ',' + Math.round(cy);
     if (d.at !== k) { d.at = k; d.sq = G.sphere(Math.round(cx), Math.round(cy), d.r || 15); }
     return d.sq;
+  }
+  // ...less the squares inside a Globe of Invulnerability the darkness (or the fog, the stinking cloud, Cloudkill, the sleet) was cast from outside of
+  // (SRD 5.1: "Similarly, the area within the barrier is excluded from the areas affected by such spells"; 10-01, Griz, of the Globe's last gaps: "risk of
+  // forgetting too high, let's fix it now"). One place, so every reader agrees: sight (darkKindAt, inDark, seeWhy), the light's map (light.js: no dark there
+  // for a torch to be kept out of) and the drawing (ui.js overlay, looks.js ground) all ask darkSq. A zone carries where it was cast from and its level (the
+  // M.cast wrapper, js/grimoire.js; M.zoneGlobed says the rest). Kept per zone while the globes stand as they are: the same array comes back
+  var GCUT = typeof WeakMap !== 'undefined' ? new WeakMap() : null;
+  M.darkSq = function (B, d) {
+    var sq = darkSqRaw(B, d);
+    if (!(B.globes && B.globes.length) || !M.zoneGlobed || !sq || !sq.length) return sq;
+    if (!d.from && !(B.castFrom && B.castBy === d.by)) return sq; // (not cast from anywhere we know: the darkmantle's aura, a map's own dark)
+    var c = GCUT && GCUT.get(d);
+    if (c && d.from && c.g === B.globes && c.n === B.globes.length && c.sq === sq && c.f === d.from) return c.out;
+    var out = sq.filter(function (q) { return !M.zoneGlobed(B, d, { x: q[0], y: q[1] }); });
+    if (out.length === sq.length) out = sq;
+    if (GCUT && d.from) GCUT.set(d, { g: B.globes, n: B.globes.length, sq: sq, f: d.from, out: out });
+    return out;
   };
   M.darkKindAt = function (B, x, y) {
     var ds = B.darks || [];
@@ -804,26 +838,28 @@
   // within its range. A Light (a spell of 2nd level or lower) under it is dispelled; a Daylight it would overlap burns it as it forms
   M.castDarkness = function* (B, u) {
     var K = u.darkness, hs = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w); }), best = null, bn = 0;
+    // (a spell of 2nd level cast from where she stands: a creature inside a Globe of Invulnerability she is outside of is not under it, SRD 5.1 -- the AI counts it for nothing, and the record carries where she cast it from)
+    var z0 = { by: u.id, from: { x: u.x, y: u.y }, lv: 2 }, shut = function (w) { return !!(M.zoneGlobed && M.zoneGlobed(B, z0, w)); };
     hs.forEach(function (c) {
       if (Math.max(Math.abs(c.x - u.x), Math.abs(c.y - u.y)) * 5 > K.range) return;
-      var sq = G.sphere(c.x, c.y, K.r), n = hs.filter(function (w) { return G.inArea(w, sq) && !M.inDark(B, w); }).length; // (one already in the dark counts for nothing: no second sphere on the same heads)
+      var sq = G.sphere(c.x, c.y, K.r), n = hs.filter(function (w) { return G.inArea(w, sq) && !shut(w) && !M.inDark(B, w); }).length; // (one already in the dark counts for nothing: no second sphere on the same heads)
       if (n > bn) { bn = n; best = { c: c, sq: sq }; }
     });
     if (!best) return false;
     u.turn.action = 0; K.used = true;
     var Lt = D.light, all = Lt ? Lt.all(B) : [];
-    var inSq = function (x, y) { return best.sq.some(function (q) { return q[0] === Math.round(x) && q[1] === Math.round(y); }); };
+    var inSq = function (x, y) { return best.sq.some(function (q) { return q[0] === Math.round(x) && q[1] === Math.round(y); }) && !shut({ x: Math.round(x), y: Math.round(y) }); };
     var near = function (l, r) { return best.sq.some(function (q) { return Math.hypot(q[0] - l.x, q[1] - l.y) * 5 <= r; }); };
     if (all.some(function (l) { return l.kind === 'daylight' && near(l, l.bright); })) { D.sfx('magic'); B.card(['{r}' + u.name + '{/} calls up darkness -- and the daylight burns it away as it forms.'], 300); yield 30; return true; }
     var gone = [];
     B.units.forEach(function (w) { if (w.conds.light && inSq(w.x, w.y)) { delete w.conds.light; gone.push(w.name + '\'s light'); } });
     B.units.forEach(function (w) { if (w.conc && w.conc.id === 'dancinglights' && (B.lights || []).some(function (l) { return l.kind === 'dance' && l.by === w.id && inSq(l.x, l.y); })) { M.endConc(B, w, 'the darkness'); gone.push('the dancing lights'); } });
     if (gone.length) B.card(['{r}' + u.name + '{/} swallows ' + gone.join(', ') + '.'], 300);
-    B.darks = (B.darks || []).concat([{ by: u.id, sq: best.sq, kind: 'darkness' }]);
+    B.darks = (B.darks || []).concat([{ by: u.id, sq: best.sq, kind: 'darkness', from: z0.from, lv: 2 }]);
     if (B.lightMap) B.lightMap = null;
     M.concentrate(B, u, 'darkness', 'Darkness', function () { B.darks = (B.darks || []).filter(function (d) { return d.by !== u.id; }); if (B.lightMap) B.lightMap = null; B.card(['{p}The darkness lifts.{/}'], 300); });
     D.sfx('magic'); FX.ring(best.c, 'violet', 44);
-    var under = hs.filter(function (w) { return G.inArea(w, best.sq); }).map(function (w) { return w.name; });
+    var under = hs.filter(function (w) { return G.inArea(w, best.sq) && !shut(w); }).map(function (w) { return w.name; });
     B.card(['{r}' + u.name + ' throws darkness over ' + under.join(', ') + '!{/}  {g}(15 ft of it: nobody sees in, out or across; concentration){/}'], 420);
     yield 40;
     return true;
@@ -875,7 +911,9 @@
     var luck = RU.darkLuck(u, r.dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
     if (tot >= r.dc) {
-      delete u.conds.restrained; u.turn.move = u.conds.dancing ? 0 : u.speed; u.turn.webSaved = true; // (torn free: it goes on through the web this turn)
+      // (torn free: it goes on through the web this turn, with what the turn would have left it -- the walking startTurn set (Haste's double, Slow's half, Ray of Frost's
+      // 10 ft off; moveFull, above), less what it has already walked (turn.moved) -- not its bare speed; a dancer none, as before. 10-01)
+      delete u.conds.restrained; var T0 = u.turn; T0.move = u.conds.dancing ? 0 : Math.max(0, (T0.moveFull != null ? T0.moveFull : u.speed) - (T0.moved || 0)); T0.webSaved = true;
       var by = B.units.filter(function (w) { return w.id === r.by; })[0]; if (by && by.holding) by.holding = by.holding.filter(function (w) { return w !== u; });
     }
     yield 30;

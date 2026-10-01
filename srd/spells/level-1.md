@@ -436,7 +436,7 @@ If you move more than 100 feet from the disk (typically because it can’t move 
 
 *1st-level conjuration*
 
-> **The game:** A 20-ft sphere of fog: nothing sees in, out or across it. Here, RUN slips away under it untried.
+> **The game:** A 20-ft sphere of fog: nothing sees in, out or across it. Here, RUN slips away under it untried. Cast from outside a Globe of Invulnerability, it does not cover the squares inside the globe.
 
 **Casting Time:** 1 action
 

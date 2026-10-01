@@ -30,7 +30,8 @@ def build_page():
             tags.append('<script>%s</script>' % body)
     catcher = "<script>window.onerror = function (m, s, l) { var p = document.createElement('pre'); p.textContent = 'LOADERR ' + m + ' @ ' + s + ':' + l; document.body.appendChild(p); };</script>"
     page = '<!doctype html><html><head><meta charset="utf-8"></head><body>\n' + catcher + '\n' + '\n'.join(tags) + '\n<script src="bench16.js"></script>\n</body></html>\n'
-    out = os.path.join(HERE, 'bench16.html')
+    import threading # (a page of its own each run: dev/check.py runs four at once, and one rewriting the shared page while another's Edge
+    out = os.path.join(HERE, 'bench16-%d-%d.html' % (os.getpid(), threading.get_ident())) # read it gave a LOAD FAILED -- druid12, 10-01b)
     open(out, 'w', encoding='utf-8').write(page)
     return out
 
@@ -41,7 +42,11 @@ def run(params, timeout=600):
     prof = os.path.join(tempfile.gettempdir(), 'deep16-bench-edge-%d-%d' % (os.getpid(), threading.get_ident())) # (a profile of its own: two runs at once share none -- threads too, dev/check.py)
     url = 'file:///' + page.replace('\\', '/') + '?' + urllib.parse.urlencode(params)
     cmd = [EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files', '--user-data-dir=' + prof, '--dump-dom', url]
-    p = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    try:
+        p = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    finally:
+        try: os.remove(page)
+        except OSError: pass
     dom = p.stdout.decode('utf-8', 'replace')
     m = re.search(r'BENCH16 (\{.*\})', dom, re.S)
     if not m:

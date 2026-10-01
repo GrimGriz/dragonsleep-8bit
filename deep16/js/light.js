@@ -61,14 +61,15 @@
     var out = [];
     if (!u || u.dead || u.ethereal || u.left) return out;
     var cx = u.x + ((u.size || 1) - 1) / 2, cy = u.y + ((u.size || 1) - 1) / 2;
-    var add = function (b, d, color, flame, kind) { out.push({ x: cx, y: cy, bright: b, dim: d, color: color, flame: !!flame, kind: kind, unit: u }); };
+    // (`rec`: the spell's own record on him, { by, from, lv } -- where it was cast from and its level, for a Globe of Invulnerability: L.map carves the globe's squares out of it)
+    var add = function (b, d, color, flame, kind, rec) { var l = { x: cx, y: cy, bright: b, dim: d, color: color, flame: !!flame, kind: kind, unit: u }; if (rec && typeof rec === 'object' && rec.from) { l.from = rec.from; l.lv = rec.lv; l.by = rec.by; } out.push(l); };
     if (u.torch && u.torch.lit) { var tr = L.radii(u.torch); add(tr.bright, tr.dim, 'gold', true, L.kindOf(u.torch)); }
-    if (u.conds.light) add(20, 20, 'glow', false, 'light');                       // the Light cantrip, on him or his gear
-    if (u.conds.daylight) add(60, 60, 'bone', false, 'daylight');                 // Daylight cast on a point he stood on: it goes with him
+    if (u.conds.light) add(20, 20, 'glow', false, 'light', u.conds.light);       // the Light cantrip, on him or his gear
+    if (u.conds.daylight) add(60, 60, 'bone', false, 'daylight', u.conds.daylight); // Daylight cast on a point he stood on: it goes with him
     if (u.conds.sacred && u.hp > 0) add(20, 20, 'gold', false, 'sacred');         // Sacred Weapon's glow (SRD: bright 20 ft)
     // a Continual Flame rides the weapon it was set on (the 8-bit keeps the weapon's id): it shines while that weapon is in hand
     var cf = u.conds.continualFlame || (u.src && u.src.conds && u.src.conds.continualFlame);
-    if (cf && (typeof cf !== 'string' || (u.weapon && u.weapon.id === cf))) add(20, 20, 'fire', false, 'flame'); // torch-bright, no heat
+    if (cf && (typeof cf !== 'string' || (u.weapon && u.weapon.id === cf))) add(20, 20, 'fire', false, 'flame', cf); // torch-bright, no heat
     var wl = u.weapon && itemLight(u.weapon.id);
     if (wl && (wl.when === 'always' || (wl.when === 'lit' && u.conds.ablaze))) add(wl.bright, wl.dim, wl.when === 'lit' ? 'fire' : 'bone', wl.when === 'lit', 'weapon');
     var ol = u.offhand && !u.offhandSheathed && itemLight(u.offhand.id); // (the other hand's: Pyro's Mace of Disruption once it is out, js/pyro.js)
@@ -87,13 +88,14 @@
     var ls = L.all(B), k = (B.map ? B.map.def.name : '') + '|';
     ls.forEach(function (l) { k += Math.round(l.x * 2) + ',' + Math.round(l.y * 2) + ',' + l.bright + ',' + l.dim + ';'; });
     (B.darks || []).forEach(function (d) { if (d.kind !== 'fog' && d.kind !== 'sleet' && d.kind !== 'stink' && d.kind !== 'kill') k += 'D' + d.sq.length + (d.follow || '') + ';'; });
+    (B.globes || []).forEach(function (g) { k += 'G' + g.x + ',' + g.y + ',' + g.max + ';'; }); // (a Globe of Invulnerability up or down changes where a darkness and a spell's light lie: SRD 5.1, "the area within the barrier is excluded")
     return { k: k, ls: ls };
   }
   L.map = function (B) {
     if (!B || !B.map || !B.dark) return null;
     var kk = sig(B);
     if (B.lightMap && B.lightMap.k === kk.k) return B.lightMap;
-    var m = B.map, lv = new Array(m.w * m.h), M = D.magic;
+    var m = B.map, lv = new Array(m.w * m.h), M = D.magic, carve = !!(M && M.zoneGlobed && (B.globes || []).length);
     for (var i = 0; i < lv.length; i++) lv[i] = 0;
     kk.ls.forEach(function (l) {
       var lx = Math.round(l.x), ly = Math.round(l.y), R = Math.ceil((l.bright + l.dim) / 5);
@@ -103,6 +105,10 @@
         if (!v) continue;
         var i2 = y * m.w + x;
         if (lv[i2] >= v) continue;
+        // a light a spell laid (Daylight, Dancing Lights, Light, a Continual Flame: `from` and `lv` stamped where it was cast) lies on no square inside a Globe of
+        // Invulnerability it was cast from outside of -- SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells" (10-01, Griz: "let's fix it
+        // now"; the runner's call on Daylight: it does not light the inside either, by the same sentence). A torch, a lamp, a map's own light has no `from`: lights what it lights
+        if (carve && l.from && M.zoneGlobed(B, l, { x: x, y: y })) continue;
         if (!(x === lx && y === ly) && !G.losPoint(lx, ly, x, y)) continue;
         lv[i2] = v;
       }
@@ -124,7 +130,8 @@
   // dazzled by that, never by its own campfire or the place's lamp (a map light is the creature's own ground)
   L.litByParty = function (B, u) {
     var cx = u.x + ((u.size || 1) - 1) / 2, cy = u.y + ((u.size || 1) - 1) / 2;
-    return L.all(B).some(function (l) { return l.kind !== 'map' && l.bright > 0 && Math.hypot(l.x - cx, l.y - cy) * 5 <= l.bright + 2.5 && G.losPoint(Math.round(l.x), Math.round(l.y), Math.round(cx), Math.round(cy)); });
+    var M = D.magic; // (a spell's light, cast from outside a Globe of Invulnerability the creature stands in, does not reach it: SRD 5.1, "the area within the barrier is excluded")
+    return L.all(B).some(function (l) { return l.kind !== 'map' && l.bright > 0 && Math.hypot(l.x - cx, l.y - cy) * 5 <= l.bright + 2.5 && G.losPoint(Math.round(l.x), Math.round(l.y), Math.round(cx), Math.round(cy)) && !(l.from && M && M.zoneGlobed && M.zoneGlobed(B, l, { x: Math.round(cx), y: Math.round(cy) })); });
   };
   // a bright light within `ft` of a creature (the drow's cue to throw their Darkness: at once, to swallow a Light)
   L.brightNear = function (B, u, ft) {

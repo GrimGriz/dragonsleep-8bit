@@ -50,7 +50,10 @@
       P.forEach(function (w, i) { w.x = spots.party[i][0]; w.y = spots.party[i][1]; w.facing = 4; });
       F.forEach(function (w, i) { w.x = spots.foe[i][0]; w.y = spots.foe[i][1]; w.facing = 0; });
       S.units = B.units.slice();
-      S.home = S.units.map(function (w) { return { w: w, x: w.x, y: w.y, facing: w.facing, hp: w.maxhp, slots: (w.slots || []).slice(), known: (w.known || []).slice() }; });
+      // (and what a spell writes on the figure itself, not in its conds, which reset() empties without running their undo: the weapon in hand
+      // -- Shillelagh, Magic Weapon -- its speed -- Longstrider's +10 stacked a scene at a time -- its AC, size and look. 10-01b, Griz: "in
+      // the spell gallery last time I checked the ethereal state of one spell was carrying over multiple scenes")
+      S.home = S.units.map(function (w) { return { w: w, x: w.x, y: w.y, facing: w.facing, hp: w.maxhp, slots: (w.slots || []).slice(), known: (w.known || []).slice(), weapon: w.weapon, attacks: w.attacks, speed: w.speed, baseAC: w.baseAC, size: w.size, drawScale: w.drawScale, sheet: w.sheet }; });
       B.req = null;
       B.co = loop();
     };
@@ -63,6 +66,8 @@
         w.x = h.x; w.y = h.y; w.facing = h.facing; w.maxhp = h.hp; w.hp = h.hp; w.temp = 0; w.conds = {}; w.dead = false; w.ko = false;
         w.images = 0; w._imgs = 0; w.anim = 'idle'; w.animT = B.t; w.torch = null; w.fled = false; w.left = false; w.reaction = 1;
         w.slots = h.slots.slice(); w.known = h.known.slice();
+        w.ethereal = false; w.weapon = h.weapon; w.attacks = h.attacks; w.speed = h.speed; w.baseAC = h.baseAC; w.size = h.size; w.drawScale = h.drawScale; w.sheet = h.sheet; // (out of the Ethereal, Banishment, the Maze or the sphere; the rest as it first stood)
+        delete w.corrodedAC; delete w.scaleEase; delete w.proneLook; delete w.proneT; delete w.helpedRound;
       });
       ['grounds', 'auras', 'wards', 'spirits', 'darks', 'webs', 'zones', 'beads', 'walls', 'shells'].forEach(function (k) { if (B[k]) B[k] = []; }); B.wallMap = null; B.overgrown = null;
       B.lights = (B.lights || []).filter(function (l) { return l.kind === 'map'; });

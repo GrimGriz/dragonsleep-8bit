@@ -239,7 +239,7 @@ A flame, equivalent in brightness to a torch, springs forth from an object that 
 
 *2nd-level evocation*
 
-> **The game:** A 15-ft sphere of magical darkness at a point within 60 ft: no one sees in, out or across it (truesight and Devil's Sight do), and torchlight does not reach it. Concentration, 10 minutes. Not built: hanging it on an object.
+> **The game:** A 15-ft sphere of magical darkness at a point within 60 ft: no one sees in, out or across it (truesight and Devil's Sight do), and torchlight does not reach it. Cast from outside a Globe of Invulnerability, it does not cover the squares inside the globe: they are no part of its area. Concentration, 10 minutes. Not built: hanging it on an object.
 
 **Casting Time:** 1 action
 

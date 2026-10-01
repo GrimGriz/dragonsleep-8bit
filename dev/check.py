@@ -66,11 +66,12 @@ def script(cmd):
 def main(argv):
     full = 'all' in argv
     jobs = [('spells', spells, None)] + [('fight', fight, p) for p in QUICK_FIGHTS] + [('mode ' + m, mode, m) for m in (ALL_MODES if full else QUICK_MODES)]
-    if full:
-        jobs += [(' '.join(c), script, c) for c in ALL_SCRIPTS]
     t0 = time.time()
     with ThreadPoolExecutor(4) as ex:
         res = list(ex.map(lambda j: (j[0], j[1](j[2]) if j[2] is not None else j[1]()), jobs))
+    if full: # (one at a time: the 8-bit bench and the probes each write a page by a fixed name)
+        res += [(' '.join(c), script(c)) for c in ALL_SCRIPTS]
+        jobs += ALL_SCRIPTS
     red = [line for _, lines in res for line in lines]
     for name, lines in res:
         print(('RED   ' if lines else 'ok    ') + name)

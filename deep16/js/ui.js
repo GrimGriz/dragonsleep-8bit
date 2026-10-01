@@ -896,13 +896,20 @@
     anchors.sort(function (a, b) { return a.ang - b.ang || a.z - b.z; });
     return { sq: sqs, inP: inP, hx: hx, hy: hy, hz: hz, anchors: anchors, depth: hx + hy - 1 + 0.65, gz: maxGz, cube: cube, seed: (sqs[0][0] * 31 + sqs[0][1] * 17) % 23, ties: [] };
   }
+  // the squares of a web that are drawn: a web a spell cast from outside a Globe of Invulnerability has no strands on the squares inside it (SRD 5.1: "the area
+  // within the barrier is excluded from the areas affected by such spells"; js/grimoire.js M.zoneGlobed; 10-01, Griz: "let's fix it now"). A map's own strung webs
+  // (`ground`) were not cast from anywhere, and are drawn whole
+  function webSq(B, wb) {
+    var Mg = D.magic; if (!Mg || !Mg.zoneGlobed || !(B.globes || []).length || wb.ground) return wb.sq;
+    return wb.sq.filter(function (q) { return !Mg.zoneGlobed(B, wb, { x: q[0], y: q[1] }); });
+  }
   function webGeo(B) {
-    var m = G.map, key = (B.webs || []).map(function (w) { return w.by + ':' + w.sq.map(function (q) { return q[0] + ',' + q[1]; }).join(' '); }).join('|');
+    var m = G.map, key = (B.webs || []).map(function (w) { return w.by + ':' + webSq(B, w).map(function (q) { return q[0] + ',' + q[1]; }).join(' '); }).join('|');
     if (B.webGeo && B.webGeo.key === key && B.webGeo.map === m) return B.webGeo;
     var pieces = [];
     (B.webs || []).forEach(function (wb) {
-      var cube = !!wb.dc && !wb.ground, left = {}, mine = [];
-      wb.sq.forEach(function (q) { left[q[0] + ',' + q[1]] = q; });
+      var cube = !!wb.dc && !wb.ground, left = {}, mine = [], wsq = webSq(B, wb);
+      wsq.forEach(function (q) { left[q[0] + ',' + q[1]] = q; });
       for (var guard = 0; Object.keys(left).length && guard < 400; guard++) {
         // the back-most square left begins a piece, and takes up to three more, neighbours first (a tetromino, or less)
         var start = Object.keys(left).map(function (k) { return left[k]; }).sort(function (a, b) { return (a[0] + a[1]) - (b[0] + b[1]) || a[0] - b[0]; })[0];
@@ -958,14 +965,14 @@
     ctx.restore();
   }
   function webObjs(B) {
-    if (!(B.webs || []).some(function (w) { return w.sq.length; })) return [];
+    if (!(B.webs || []).some(function (w) { return webSq(B, w).length; })) return [];
     return webGeo(B).pieces.map(function (p) { return { depth: p.depth, gz: p.gz, layer: 1, draw: function (ctx) { webPieceDraw(ctx, B, p); } }; });
   }
   // the floor under a web: the patch's outline, so where it holds reads at a glance (the overlay, under everything)
   function webFloor(B) {
     (B.webs || []).forEach(function (wb) {
-      var has = {}; wb.sq.forEach(function (q) { has[q[0] + ',' + q[1]] = 1; });
-      wb.sq.forEach(function (q) {
+      var has = {}, wsq = webSq(B, wb); wsq.forEach(function (q) { has[q[0] + ',' + q[1]] = 1; });
+      wsq.forEach(function (q) {
         fillSq(null, q[0], q[1], R('bone', 1), 0.07, 3);
         onSq(q[0], q[1], function (c) {
           var z = G.map.gz(q[0], q[1]);
@@ -1149,7 +1156,13 @@
       var fs = flankSpots(B, u);
       Object.keys(fs).forEach(function (k) { var q = k.split(','); fillSq(ctx, +q[0], +q[1], R('gold', 4), 0.8, 11); });
       var e2 = rc.move[cx + ',' + cy] || (rc.dash && rc.dash[cx + ',' + cy]);
-      if (e2 && e2.stand && !G.occupant(cx, cy, u)) (G.path(rc.dash && rc.dash[cx + ',' + cy] && !rc.move[cx + ',' + cy] ? rc.dash : rc.move, cx, cy) || []).forEach(function (q) { dotSq(q[0], q[1], R('bone', 2)); });
+      // the path's dots (10-01b, Griz: "we have pathing dots when you're selecting a tile to move to that seem to be always white - how bout we
+      // make those green for the bonus longstrider and yellow when you mouse into range that will ask you about your dash when you click"):
+      // white within the move, green on the steps Longstrider's +10 ft pays for (the last 10 ft of the turn's move), yellow past the move
+      if (e2 && e2.stand && !G.occupant(cx, cy, u)) {
+        var pmap = rc.dash && rc.dash[cx + ',' + cy] && !rc.move[cx + ',' + cy] ? rc.dash : rc.move, walked = T.moved || 0, budget = T.move + walked, ls = u.conds.longstrider ? 10 : 0;
+        (G.path(pmap, cx, cy) || []).forEach(function (q) { var st = pmap[q[0] + ',' + q[1]], c = st ? st.cost : 0; dotSq(q[0], q[1], c > T.move ? R('gold', 4) : ls && walked + c > budget - ls ? R('orc', 3) : R('bone', 2)); }); // (the leaf green: the moss ramp is too dark to read as a dot)
+      }
       // on a gem: the ally across the foe lit hard, and the line through the foe between them
       (fs[cx + ',' + cy] || []).forEach(function (fe) {
         G.foot(fe.ally).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 1, 1); });
