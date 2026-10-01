@@ -651,6 +651,13 @@
     if (u.web && !u.web.ready) { var rc = D.d(6); if (rc >= u.web.recharge) { u.web.ready = true; B.card(['{g}' + the(B, u) + ' has web again (d6 ' + rc + ').{/}'], 200); yield 12; } }
     // a grip it can no longer reach goes slack
     (u.holding || []).slice().forEach(function (w) { if (w.dead || w.hp <= 0 || !w.conds.restrained || w.conds.restrained.by !== u.id || G.dist(u, w) > reachOf(u)) B.release(u, w); });
+    // riding the one it holds (the darkmantle attached, battle.js mount; SRD 5.1: "can attack no other creature except the target", its speed 0, it moves with
+    // the target): no step of its own -- it squeezes the one it rides
+    if (u.riding && u.attached) {
+      var host = u.master, ra = Object.keys(u.attacks).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a.rides; })[0];
+      if (host && G.standing(host) && T.action && ra) { T.action = 0; yield* B.attack(u, host, ra); }
+      return;
+    }
     if (!hs.length) return;
     // the Ring of Binding (the chuul, rounds 1/4/7/10): it must turn on whoever wears the ring
     if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && hs.indexOf(B.taunt.u) >= 0) {

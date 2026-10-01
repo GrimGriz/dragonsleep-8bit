@@ -370,7 +370,7 @@
       B.list = { kind: c.sub, items: items, sel: first }; B.ringB = null;
       return;
     }
-    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake, or a hand out of a web or a grip.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); return; }
+    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake, or a hand out of a web or a grip.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); if (c.tool === 'detach') B.card([D.keys('{g}PULL IT OFF: click the friend it rides -- a STR check, an action.  X back{/}')], 100000); return; }
     UI.command(B, u, { do: c.id });
   }
   function levelRing(B, u) {
@@ -431,9 +431,13 @@
   // is (x, y) somewhere the current tool can act? 'ok' | 'no' | 'self' | 'far' (a dash away)
   UI.valid = function (B, u, x, y) {
     var tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, T = u.turn, s = G.map.at(x, y);
+    // the attack cued: a darkmantle riding a friend -- or riding you -- is struck at through that square (10-01, Griz: "attack cued looking for target, ally
+    // square you normally can't attack"; battle.js mount)
+    if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units);
     if (!s || !s.open) return 'no';
+    if (tool === 'detach') return D.Battle.pullable(u, B.units).some(function (r) { return r.master === w; }) ? 'ok' : 'no'; // (PULL IT OFF: a friend beside you with one on)
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
-      if (x === u.x && y === u.y) return 'self';
+      if (x === u.x && y === u.y && !foe) return 'self';
       if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action) ? 'ok' : 'no'; // a crossbow reaches out to its long range
       var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
       if (rc.move[k] && rc.move[k].stand) return 'ok';
@@ -460,8 +464,10 @@
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
     var T = u.turn, tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
+    if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid)
+    if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
-      if (x === u.x && y === u.y) { D.sfx('popup'); B.tool = 'menu'; return; }
+      if (x === u.x && y === u.y && !foe) { D.sfx('popup'); B.tool = 'menu'; return; }
       if (foe && v === 'ok') return UI.command(B, u, { do: 'attack', target: foe });
       if (foe) {
         D.sfx('error');
@@ -712,7 +718,9 @@
     if (u.riding && u.master) { var mf = u.master.facing || 0, fore = mf === 0 || mf === 1 || mf === 2 || mf === 7, mp = unitPos(B, u.master), mt = D.spr.unitTop(u.master); u.facing = mf;
       // (the bat flutters about his head -- Griz, 09-30: "have it flutter around his head" -- a slow loop, in front of him and behind)
       var ba = B.t / 13 + (u.id || '').length;
-      p = u.perch === 'shoulder' ? { x: mp.x + (fore ? -9 : 9), y: mp.y - Math.round(mt * 0.48), depth: mp.depth + 0.02, gz: mp.gz }
+      // (a darkmantle over the head it engulfs -- battle.js mount: sat on the head, in front of it, its foot a little below the crown)
+      p = u.perch === 'over' ? { x: mp.x, y: mp.y - mt + 13, depth: mp.depth + 0.03, gz: mp.gz }
+        : u.perch === 'shoulder' ? { x: mp.x + (fore ? -9 : 9), y: mp.y - Math.round(mt * 0.48), depth: mp.depth + 0.02, gz: mp.gz }
         : u.perch === 'head' ? { x: mp.x + Math.round(11 * Math.cos(ba)), y: mp.y - Math.round(mt * 0.92) + Math.round(3 * Math.sin(ba * 2)), depth: mp.depth + (Math.sin(ba) > 0 ? 0.02 : -0.02), gz: mp.gz }
         : { x: mp.x + (fore ? 9 : -9), y: mp.y + 3, depth: mp.depth + 0.03, gz: mp.gz }; }
     if (u.left) return null; // out of the fight, the way they came in
@@ -763,7 +771,7 @@
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
         else if (u.conds.restrained) { o.tint = R('bone', 1); o.tintAlpha = 0.3; }
-        if (!u.ethereal && !(u.dead && !has('hurt')) && !(u.riding && (u.perch === 'shoulder' || u.perch === 'head'))) {
+        if (!u.ethereal && !(u.dead && !has('hurt')) && !(u.riding && (u.perch === 'shoulder' || u.perch === 'head' || u.perch === 'over'))) {
           var s = u.size || 1;
           ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 10 * s * sk + 1, 4 * s * sk + 1, 0, 0, 7); ctx.fill();
         }
@@ -787,7 +795,7 @@
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
         if (sk !== 1) ctx.restore();
         if (D.looks && !down && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js)
-        if (!u.dead && !u.ethereal && !u.riding) {
+        if (!u.dead && !u.ethereal && (!u.riding || u.attached)) { // (a darkmantle on someone keeps its bar, over it)
           var top = tall, w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
           ctx.fillStyle = R('outline', 0); ctx.fillRect(bx - 1, by - 1, w + 2, 4);
           ctx.fillStyle = R('stone', 1); ctx.fillRect(bx, by, w, 2);
@@ -1216,6 +1224,7 @@
       }
     }
     if (tool === 'help') B.units.forEach(function (w) { if ((G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5) || D.Battle.helpable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('bone', 2) : R('moss', 3), 0.9); }); }); // (a friend to help: green)
+    if (tool === 'detach') D.Battle.pullable(u, B.units).forEach(function (r) { lineSq(ctx, r.master.x, r.master.y, R('moss', 3), 0.9); }); // (a friend with a darkmantle on: green)
     if (tool === 'lay') B.units.forEach(function (w) { if (w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9); }); });
     if (tool === 'item') B.units.forEach(function (w) { if (B.itemTargetOK(u, B.itemId, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('red', 4) : R('moss', 2), 0.9); }); });
     if (tool === 'spell') {

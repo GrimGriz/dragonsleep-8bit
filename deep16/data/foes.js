@@ -449,8 +449,8 @@
     name: 'Darkmantle', type: 'monstrosity', sheet: 'darkmantle_p1', cr: '1/2', ac: 11, hp: 22, speed: 30, size: 1, reach: 5, blindsight: 60, blind: true, darknessAura: true,
     abil: { str: 16, dex: 12, con: 13, int: 2, wis: 10, cha: 5 }, init: 1, perception: 10,
     saves: { str: 3, dex: 1, con: 1, int: -4, wis: 0, cha: -3 },
-    attacks: { crush: { name: 'Crush', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5, grapple: { dc: 13, max: 1 }, blindHeld: true } }, // (attaches: STR 13 to pull it off; over the head, blinding, when it had advantage)
-    multi: 1, src: 'SRD 5.1 Darkmantle (CR 1/2, fly 30 read as moving 30); content/monsters.json darkmantle', todo: 'its Darkness Aura and the crush\'s blinding hold are not read'
+    attacks: { crush: { name: 'Crush', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5, grapple: { dc: 13, max: 1 }, blindHeld: true, rides: true } }, // (attaches: STR 13 to pull it off -- the one it holds, or anyone beside; over the head, blinding, when it had advantage; rides: on the one it holds, battle.js mount)
+    multi: 1, src: 'SRD 5.1 Darkmantle (CR 1/2, fly 30 read as moving 30); content/monsters.json darkmantle'
   },
   // the Warrens' settling pools (events.js, warrens_d): the ochre jelly and the gray ooze
   ochrejelly: {
