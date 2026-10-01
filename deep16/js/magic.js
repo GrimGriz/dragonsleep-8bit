@@ -62,7 +62,7 @@
       else if (g.time === 'B' && !g.move && T.spellAction === 'leveled') why = 'a levelled spell was cast this turn: no bonus-action spell too';
       else if (g.time === 'B' && !g.move && T.bonusSpell) why = 'one bonus-action spell a turn';
       else if (g.time === 'A' && T.bonusSpell && sp.level) why = 'after a bonus-action spell, only a cantrip';
-      else if (g.unarmored && !M.touchTargets(B, u, g).length) why = 'no one within reach without armour';
+      else if (g.unarmored && !M.touchTargets(B, u, g).length) why = 'no one within reach without armour or Mage Armor'; // (greyed when all have it: Griz, 10-01)
       else if (id === 'seeinvisibility' && u.seeInvisible) why = 'already seeing the unseen';
       // a spell's own say (js/grimoire.js): nothing to cure, a ward already on, no metal to heat
       if (!why && ex && ex.list) { var r = ex.list(B, u, e); if (r && r.why) why = r.why; if (r && r.g) e.g = g = r.g; }
@@ -156,6 +156,7 @@
   M.touchTargets = function (B, u, g) {
     return B.units.filter(function (w) {
       if (w.dead || w.side !== u.side) return false;
+      if (w.familiar) return false; // (a familiar is no target for its side's spells -- RULED 10-01, Griz: "familiars not targetable")
       if (w !== u && G.dist(u, w) > 5 && !(D.familiar && D.familiar.delivers(B, u, w))) return false; // (or carried by the familiar: js/familiar.js)
       if (g.unarmored && (w.armored || w.conds.mageArmor)) return false;
       return true;
@@ -167,6 +168,9 @@
   M.targetWhy = function (u, g, w) {
     // charmed: no harmful spell at its charmer (SRD 5.1; RULED 09-30)
     if (w && RU.charmedBy(u, w) && g && (g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe')) return 'charmed by it';
+    // Mage Armor: not on one in armour, nor one already under it -- said, not silent (10-01, Griz in the wizard room: "think we broke the
+    // mage-armor cast select": the class floor's wizards come in with it up, so a click on any of them did nothing at all)
+    if (g && g.unarmored && w && w.conds && (w.armored || w.conds.mageArmor)) return w.conds.mageArmor ? 'already under Mage Armor' : 'in armour';
     var c = g && g.noStack && w && w.conds && w.conds[g.noStack];
     if (!c) return '';
     return !!c.down === (w.side !== u.side) ? 'already ' + (c.down ? 'reduced' : 'enlarged') : '';
@@ -179,6 +183,7 @@
     var foeWanted = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe';
     if (foeWanted && (!G.hostile(u, w) || w.hp <= 0)) return false;
     if (((g.shape === 'allies' && g.side !== 'foe') || g.side === 'ally') && w.side !== u.side) return false; // (Bane: an `allies` shape aimed at foes)
+    if (w.familiar && w.side === u.side && !foeWanted) return false; // (its own side's spells pass a familiar by -- RULED 10-01, "familiars not targetable")
     if (g.only === 'humanoid' && !M.humanoid(w)) return false;
     if (g.only === 'beast' && w.type !== 'beast') return false; // (Dominate Beast, Animal Friendship)
     // "a creature you can see": Hold, Shield of Faith, Magic Missile, Acid Splash -- not Bless or Aid (SRD: "creatures of your choice
