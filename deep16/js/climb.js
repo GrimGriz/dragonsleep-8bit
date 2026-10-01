@@ -88,10 +88,7 @@
   };
 
   // ------------------------------------------------------------------ drawing bits
-  function box(ctx, x, y, w, h, edge) {
-    ctx.fillStyle = 'rgba(10,8,16,.92)'; ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = edge || P('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-  }
+  function box(ctx, x, y, w, h) { D.win8(ctx, x, y, w, h); } // (the 8-bit game's window, as every DEEP16 menu: js/core.js D.win8, 10-01)
   function fire(ctx, x, y, t, big) {
     var fl = [P('red', 3), P('fire', 1), P('gold', 3), P('gold', 4)], n = big ? 13 : 7;
     ctx.fillStyle = P('stone', 3); ctx.fillRect(x - n / 2 - 2, y, n + 4, 2);

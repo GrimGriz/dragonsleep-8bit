@@ -46,7 +46,7 @@
       // (Griz, 09-27: all the movement spent, or the last blow struck, and the ring comes up by itself)
       if (UI.opts.style === 'ring' && B.tool === 'move' && gridDone(B, req.turn)) { B.tool = 'menu'; B.ringStill = false; }
     }
-    if (req.prompt) { B.sel = 0; D.sfx('popup'); }
+    if (req.prompt) { B.sel = 0; D.sfx('popup'); if (req.prompt.pick && req.prompt.pick[0]) { var p0 = req.prompt.pick[0]; B.cursor = { x: p0.x, y: p0.y }; showCursor(B); } } // (a pick on the grid: the cursor on the first of them)
     if (req.entry) B.entryT = B.t;
     if (req.scene) { // a cutscene beat: its clip starts with it, and the beat holds at least as long as the clip runs
       var sc = req.scene; sc.t = 0;
@@ -140,7 +140,7 @@
   var EDGE = 16; // the edge band that scrolls the view, in screen pixels (it was 4-6); past the canvas's edge, full speed
   UI.camera = function (B) {
     var m = I.mouse, iso = D.iso, cam = iso.cam, map = iso.map, bk = map.bake, z = iso.zoom;
-    var free = !m.drag && !B.menu && !(B.req && (B.req.prompt || B.req.entry));
+    var free = !m.drag && !B.menu && !(B.req && ((B.req.prompt && !B.req.prompt.pick) || B.req.entry)); // (a pick on the grid looks round as a turn does)
     if (free && m.inWin && !(m.inside && overUI(B) && m.y < D.H - 3)) {
       // past the edge counts for a band as wide again (and twice over); further out the mouse is parked, not pushing
       var push = function (d) { return d >= EDGE || d < -2 * EDGE ? 0 : d <= 0 ? 6 : 1.5 + 4.5 * (1 - d / EDGE); };
@@ -176,7 +176,21 @@
     if (sc.tick) sc.tick(sc.t); // (a picture's sounds on its own frames: the landlord's clackers, js/wet.js W.SOUND)
     if (sc.t >= (sc.frames || 120) || (sc.t > 60 && (I.pressed('a') || I.pressed('end') || I.mouse.click))) B.answer();
   }
+  // a prompt that picks one of its creatures (js/features.js pickOne): on the grid, not a row of numbered buttons -- the cursor (the arrows,
+  // the stick, the mouse) on one of the gold squares, E or a click takes it; X is not now; 1-9 still take them in the prompt's order
+  function pickAt(B, p) { return p.pick.filter(function (w) { return G.foot(w).some(function (q) { return q[0] === B.cursor.x && q[1] === B.cursor.y; }); })[0] || null; }
+  function pickInput(B, p) {
+    var n = p.opts.length, take = function (w) { var i = w ? p.pick.indexOf(w) : -1; if (i < 0) { D.sfx('error'); return; } D.sfx('confirm'); B.answer(p.opts[i].value); };
+    if (I.pressed('b')) { D.sfx('cancel'); return B.answer(p.opts[n - 1].value); }
+    for (var k = 1; k <= Math.min(9, p.pick.length); k++) if (I.pressed('n' + k)) return take(p.pick[k - 1]);
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
+    ['up', 'down', 'left', 'right'].forEach(function (d) { if (d !== I.stickWay && I.repeat(d)) moveCursor(B, d); });
+    if (I.repeat('stick')) stickCursor(B);
+    if (I.mouse.click && !overUI(B)) { var pc = UI.pickUnit(B, I.mouse.x, I.mouse.y); return take(pc && p.pick.indexOf(pc) >= 0 ? pc : pickAt(B, p)); }
+    if (I.pressed('a')) return take(pickAt(B, p));
+  }
   function promptInput(B, p) {
+    if (p.pick) return pickInput(B, p);
     var n = p.opts.length, s0 = B.sel, go = function (v) { D.sfx('confirm'); B.answer(v); };
     if (I.repeat('left') || I.repeat('up')) B.sel = (B.sel + n - 1) % n;
     if (I.repeat('right') || I.repeat('down')) B.sel = (B.sel + 1) % n;
@@ -525,6 +539,10 @@
   UI.drawBattle = function (ctx, B) {
     var req = B.req, hero = req && req.turn, objs = [];
     B.uiRects = []; B.buttons = [];
+    // whose eyes (10-01, Griz: "regardless of turn if you mouseover a party member/guest/ally it switches to their vision filter"): the
+    // mouse on one of ours -- a hero, a guest, a summoned ally -- on a dark map shows the dark as that one sees it (js/light.js L.viewMap)
+    var mo = I.mouse; B.viewAs = null;
+    if (B.dark && mo.inside && mo.y < BAR_Y && !B.menu && !(req && (req.entry || req.scene))) { var vu = UI.pickUnit(B, mo.x, mo.y); if (vu && vu.side === 'party' && G.standing(vu)) B.viewAs = vu; }
     // the world at 1:1 into its own canvas, W/zoom wide, then onto the screen at the zoom (crisp where the backing
     // scale times the zoom is whole); menus, cards and the floating numbers go on top at full size
     var z = D.iso.zoom, vw = Math.ceil(D.W / z), vh = Math.ceil(D.H / z), wc = worldCanvas(vw, vh), wx = wc.getContext('2d');
@@ -560,6 +578,7 @@
     FX.list.forEach(function (f) { if (f.screen) f.draw(ctx); });
     strip(ctx, B);
     cards(ctx, B);
+    if (B.viewAs) { var vm = D.light.viewMap(B, B.viewAs); D.text(ctx, 'EYES: ' + B.viewAs.name + ' · ' + [vm.blind ? 'blinded' : vm.dv ? 'darkvision ' + vm.dv : 'no darkvision', vm.bs ? (B.viewAs.truesight ? 'truesight ' : 'blindsight ') + vm.bs : ''].filter(Boolean).join(', '), 5, BAR_Y - 22, R('glow', 4)); } // (whose eyes the dark is drawn by: a line above the tooltip's bottom one)
     tooltip(ctx, B, hero);
     // the square under the cursor, by the grid's own numbering, top right (Griz, 10-01: "Me getting better at pointing to the tile by
     // your numbering or some standardized tile referencing"): x counts from the far upper-left wall, y from the far upper-right, so
@@ -1062,6 +1081,13 @@
     // a torch's throw: the squares within 20 ft it may land on
     if (u && B.tool === 'torch') for (var ty = u.y - 4; ty <= u.y + 4; ty++) for (var tx = u.x - 4; tx <= u.x + 4; tx++) if (UI.throwSq(u, tx, ty)) lineSq(ctx, tx, ty, R('gold', 3), 0.5, 4);
     if (B.active && !B.active.ethereal) G.foot(B.active).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9, 3); });
+    // a pick on the grid (pickInput): the ones it may go to in gold, brighter under the cursor
+    var pk = B.req && B.req.prompt && B.req.prompt.pick;
+    if (pk) {
+      var on = pickAt(B, B.req.prompt);
+      pk.forEach(function (w) { G.foot(w).forEach(function (q) { fillSq(ctx, q[0], q[1], R('gold', 3), w === on ? 0.34 : 0.13, 2); lineSq(ctx, q[0], q[1], R('gold', 4), w === on ? 1 : 0.65, 2); }); });
+      if (!on) lineSq(ctx, B.cursor.x, B.cursor.y, R('bone', 1), 0.8, 1);
+    }
     if (!u) return;
     var T = u.turn, tool = B.tool, cx = B.cursor.x, cy = B.cursor.y;
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
@@ -1157,7 +1183,7 @@
     });
   }
   function tooltip(ctx, B, u) {
-    if (B.inspect || B.list || (B.req && (B.req.prompt || B.req.entry))) return;
+    if (B.inspect || B.list || (B.req && ((B.req.prompt && !B.req.prompt.pick) || B.req.entry))) return; // (a pick on the grid keeps the tooltip)
     var w = G.occupant(B.cursor.x, B.cursor.y), lines = [];
     if (w && w !== B.active) {
       lines.push((w.side === 'foe' ? '{r}' : '{c}') + w.name + '{/}  HP ' + w.hp + '/' + w.maxhp + '  AC ' + RU.ac(w) + conds(w));
@@ -1385,6 +1411,16 @@
     ctx.strokeStyle = edge || R('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
   }
   function prompt(ctx, B, p) {
+    if (p.pick) { // a pick on the grid: its title, its line, and what's under the cursor -- no buttons (pickInput)
+      var pl = p.lines || [], on = pickAt(B, p), pw = 300, ph = 22 + pl.length * 9 + 12, px = (D.W - pw) / 2, py = BAR_Y - ph - 4;
+      box(ctx, px, py, pw, ph);
+      D.text(ctx, p.title, px + 8, py + 6, R('gold', 4));
+      pl.forEach(function (l, k) { D.text(ctx, l, px + 8, py + 18 + k * 9, R('bone', 1)); });
+      var lab = on ? p.opts[p.pick.indexOf(on)].label : null;
+      D.text(ctx, D.keys(lab ? 'E: ' + lab + '   X: not now' : 'a gold square: E or a click   X: not now'), px + 8, py + ph - 11, lab ? R('gold', 3) : R('accent', 2));
+      B.promptRects = [];
+      return;
+    }
     var w = 300, lines = p.lines || [], h = 26 + lines.length * 9 + 16, x = (D.W - w) / 2, y = BAR_Y - h - 4;
     box(ctx, x, y, w, h);
     D.text(ctx, p.title, x + 8, y + 6, R('gold', 4));
@@ -1453,20 +1489,20 @@
     var M = B.menu;
     if (M.panel === 'party') return party(ctx, B);
     if (M.panel === 'equip') return gear(ctx, B);
-    var items = menuItems(B), w = 190, h = items.length * 13 + 12, x = (D.W - w) / 2, y = 60;
-    UI.opts.style === 'window' ? winBox(ctx, x, y, w, h) : box(ctx, x, y, w, h);
+    var items = menuItems(B), w = 190, h = items.length * 13 + 12, x = (D.W - w) / 2, y = 60, W8 = D.WIN8;
+    D.win8(ctx, x, y, w, h); // (the 8-bit game's window, its field menu's look: js/core.js D.win8, 10-01)
     B.menuRects = [];
     items.forEach(function (it, i) {
       var r = { x: x + 6, y: y + 6 + i * 13, w: w - 12, h: 12 };
       B.menuRects.push(r);
-      if (i === M.sel) { ctx.fillStyle = R('gold', 1); ctx.fillRect(r.x, r.y, r.w, r.h); }
-      D.text(ctx, it[1], r.x + 6, r.y + 2, i === M.sel ? R('gold', 4) : R('bone', 1));
+      if (i === M.sel) { ctx.fillStyle = W8.sel; ctx.fillRect(r.x, r.y, r.w, r.h); D.text(ctx, '>', r.x + 1, r.y + 2, W8.gold); }
+      D.text(ctx, it[1], r.x + 8, r.y + 2, i === M.sel ? W8.gold : W8.text);
     });
   }
   // EQUIP: the hero's weapon and shield now, the pack's choices, each greyed with its reason when it can't be done
   function gear(ctx, B) {
     var M = B.menu, u = gearHero(B), opts = u ? B.gearOptions(u) : [], w = 300, rowH = 13, h = Math.max(1, opts.length) * rowH + 44, x = (D.W - w) / 2, y = 50;
-    box(ctx, x, y, w, h, R('glow', 1));
+    D.win8(ctx, x, y, w, h);
     if (!u) return;
     D.text(ctx, 'EQUIP: ' + u.name.toUpperCase(), x + 8, y + 5, R('gold', 4));
     D.hint(ctx, 'a swap costs the action  ·  X back', x + w - 8, y + 5, R('stone', 5), 'right');
@@ -1476,8 +1512,8 @@
     opts.forEach(function (o, i) {
       var r = { x: x + 6, y: y + 29 + i * rowH, w: w - 12, h: rowH - 1 };
       B.gearRects.push(r);
-      if (i === M.gsel) { ctx.fillStyle = R('gold', 1); ctx.fillRect(r.x, r.y, r.w, r.h); }
-      var col = !o.ok ? R('stone', 5) : i === M.gsel ? R('gold', 4) : R('bone', 1);
+      if (i === M.gsel) { ctx.fillStyle = D.WIN8.sel; ctx.fillRect(r.x, r.y, r.w, r.h); }
+      var col = !o.ok ? R('stone', 5) : i === M.gsel ? D.WIN8.gold : D.WIN8.text;
       D.text(ctx, o.label, r.x + 6, r.y + 2, col);
       D.text(ctx, o.ok ? o.note : o.why, r.x + r.w - 6, r.y + 2, o.ok ? R('stone', 6) : R('stone', 5), 'right');
     });
@@ -1485,7 +1521,7 @@
   // the party at a glance (the 8-bit game's status screen, in small)
   function party(ctx, B) {
     var ps = B.units.filter(function (u) { return u.side === 'party'; }), w = 440, rowH = 38, h = ps.length * rowH + 20, x = (D.W - w) / 2, y = Math.max(16, (BAR_Y - h) / 2);
-    box(ctx, x, y, w, h, R('glow', 1));
+    D.win8(ctx, x, y, w, h);
     D.text(ctx, 'THE PARTY', x + 8, y + 5, R('gold', 4));
     D.hint(ctx, 'X back', x + w - 8, y + 5, R('stone', 5), 'right');
     ps.forEach(function (u, i) {

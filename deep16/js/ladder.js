@@ -119,10 +119,7 @@
     if (I.pressed('b') || I.pressed('menu') || I.mouse.click) { D.sfx('cancel'); this.leaving = false; }
   };
 
-  function box(ctx, x, y, w, h, edge) {
-    ctx.fillStyle = 'rgba(10,8,16,.92)'; ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = edge || P('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-  }
+  function box(ctx, x, y, w, h) { D.win8(ctx, x, y, w, h); } // (the 8-bit game's window, as every DEEP16 menu: js/core.js D.win8, 10-01)
   Ladder.prototype.draw = function (ctx) {
     ctx.fillStyle = '#07060c'; ctx.fillRect(0, 0, D.W, D.H);
     // a faint rope of rungs up the left, for the look of it

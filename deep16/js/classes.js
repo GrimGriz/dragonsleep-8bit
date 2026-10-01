@@ -433,7 +433,13 @@
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var L = Math.max(1, Math.min(12, +(get('lvl') || get('level')) || 5)), foes = (get('npc') || 'fighter').split(',').filter(Boolean), vs = get('vs');
     var what = foes.map(function (w) { var s = NPC.spec(w, L); return s ? (s.name || R.CLASSES[s.cls].name) : w; }).join(', ');
-    return new D.Battle(Object.assign({ npc: { foes: foes, party: vs ? vs.split(',').filter(Boolean) : null }, watch: /[?&]watch\b/.test(q), fightDef: D.classFight(L, { what: what }) }, o || {}));
+    // a testing room's knobs (10-01, Griz: "set me up a room full of wizards with the different familiars"): &fam=owl,bat,... a familiar to
+    // each of the vs= band in order (js/rules.js R.FAMILIARS: owl, snowyowl, bat, rat, spider, frog, snake); &map= another grid map than the
+    // Hex floor (data/maps.js, data/cavern.js); &dark the dark on it (torchdark, and the eyes under the mouse: js/light.js L.viewMap)
+    var vsl = vs ? vs.split(',').filter(Boolean) : [], fams = (get('fam') || '').split(',').filter(Boolean);
+    var familiars = fams.map(function (k, i) { return vsl[i] && R.FAMILIARS[k] ? { kind: k, by: 'p' + i + '-' + vsl[i].split(':')[0] } : null; }).filter(Boolean);
+    var map = get('map'), dark = /[?&]dark\b/.test(q) ? true : null;
+    return new D.Battle(Object.assign({ npc: { foes: foes, party: vsl.length ? vsl : null }, watch: /[?&]watch\b/.test(q), familiars: familiars, fightDef: D.classFight(L, { what: what, map: map && D.MAPS[map] ? map : null, dark: dark }) }, o || {}));
   };
   NPC.build = function (word, lvl, side, o) {
     var sp = typeof word === 'string' ? NPC.spec(word, lvl) : word;

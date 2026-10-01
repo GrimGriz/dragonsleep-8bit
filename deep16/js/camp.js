@@ -426,10 +426,7 @@
   };
 
   // ------------------------------------------------------------------ drawing
-  function box(ctx, x, y, w, h, edge, a) {
-    ctx.fillStyle = 'rgba(10,8,16,' + (a || 0.92) + ')'; ctx.fillRect(x, y, w, h);
-    ctx.strokeStyle = edge || P('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, h - 1);
-  }
+  function box(ctx, x, y, w, h) { D.win8(ctx, x, y, w, h); } // (the 8-bit game's window, as every DEEP16 menu: js/core.js D.win8, 10-01)
   // a line cut to fit w px, with '..' where it was cut (from the start when `left`); the {c}-style colour tags are not counted
   function fit(s, w, left) {
     if (D.textWidth(s) <= w) return s;

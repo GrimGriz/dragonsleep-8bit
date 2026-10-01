@@ -341,6 +341,16 @@
   // so the lettering carries across the seam. {y}...{/} colour codes work as there.
   // {:undead} in a line draws that creature type's 9x9 glyph where it stands, 10 px wide (js/ui.js UI.drawGlyph; Griz, 09-29: "use the
   // symbols in the spell description, maybe add (inspect)"). D.typeText puts one after each type a spell's words name.
+  // the 8-bit game's window (js/ui.js DS.win: a navy fill inside a white-and-slate notched ring), DEEP16's menus in it (10-01, Griz:
+  // "a 'm' key menu revision such that they resemble the blue 8 bit ladder menu for unity of interface despite resolution change notions"):
+  // the M menu and its panels (js/ui.js), the camp's, the ladder's and the climb's; the fight's cards and tooltips keep their dark glass
+  D.WIN8 = { bg: '#10123a', edge: '#e8e8f4', mid: '#6e6e98', sel: '#26206a', text: '#f8f8f8', gold: '#f8d878' };
+  D.win8 = function (ctx, x, y, w, h, bg) {
+    var W8 = D.WIN8; x = Math.round(x); y = Math.round(y); w = Math.round(w); h = Math.round(h);
+    ctx.fillStyle = W8.edge; ctx.fillRect(x + 1, y, w - 2, h); ctx.fillRect(x, y + 1, w, h - 2);
+    ctx.fillStyle = W8.mid; ctx.fillRect(x + 2, y + 1, w - 4, h - 2); ctx.fillRect(x + 1, y + 2, w - 2, h - 4);
+    ctx.fillStyle = bg || W8.bg; ctx.fillRect(x + 3, y + 2, w - 6, h - 4); ctx.fillRect(x + 2, y + 3, w - 4, h - 6);
+  };
   var GT = /\{:([a-z]+)\}/g, GW = 10;
   function glyphSplit(s) { var out = [], last = 0, m; GT.lastIndex = 0; while ((m = GT.exec(s))) { out.push(s.slice(last, m.index)); out.push({ g: m[1] }); last = GT.lastIndex; } out.push(s.slice(last)); return out; }
   D.text = function (ctx, s, x, y, color, align) {

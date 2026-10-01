@@ -300,7 +300,7 @@
   // NPCs to the north and the four (or another band) at the south door. Made when asked for, never on the ladder's list
   D.classFight = function (level, o) {
     o = o || {};
-    return { id: 'classes', level: level, map: o.map || 'hexfloor', name: 'The Class Floor', sub: 'the Pocket DM: ' + (o.what || 'a class NPC') + ' at ' + level,
+    return { id: 'classes', level: level, map: o.map || 'hexfloor', dark: o.dark != null ? o.dark : undefined, name: 'The Class Floor', // (&map=, &dark: js/classes.js npcFight) sub: 'the Pocket DM: ' + (o.what || 'a class NPC') + ' at ' + level,
       intro: o.intro || 'The floor is swept. Across it, someone in their own colours has come to see what you are made of.',
       from: 'the class NPCs (deep16/js/classes.js): the SRD 5.1 classes at levels 1-6', won: 'THE FLOOR IS YOURS.', lost: 'THE FLOOR IS THEIRS.', foes: [], wave: null, noFlee: true };
   };

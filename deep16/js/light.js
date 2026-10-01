@@ -183,6 +183,24 @@
     B.senseMap = { k: k, u: u, v: out, w: m.w, bs: bs };
     return B.senseMap;
   };
+  // what ONE of ours sees, square by square, light and all (10-01, Griz: "How about regardless of turn if you mouseover a party
+  // member/guest/ally it switches to their vision filter ... it'd be cool if I could mouseover it and as a player see what the vision is like
+  // for each party member"): 2 a lit square it has a line to, or within its blindsight or truesight; 1 dark but within its darkvision and
+  // in line; 0 neither (behind the rock, past its darkvision, or it is blinded). L.pass draws it in the party's map's place while hovered
+  L.viewMap = function (B, u) {
+    var lm = L.map(B), m = B.map, bs = Math.max(u.blindsight || 0, u.truesight || 0), blind = !!(u.conds && u.conds.blinded), dv = blind ? 0 : u.darkvision || 0;
+    var k = lm.k + '|' + u.id + ':' + u.x + ',' + u.y + '|' + bs + '|' + dv + (blind ? 'b' : '');
+    if (B.viewMap && B.viewMap.k === k) return B.viewMap;
+    var out = new Array(m.w * m.h);
+    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
+      var i = y * m.w + x, s = m.sq[i], d = G.dist(u, { x: x, y: y, size: 1 });
+      if (!s.open) { out[i] = 0; continue; }
+      if (d <= bs) { out[i] = 2; continue; }
+      out[i] = blind || !G.losPoint(u.x, u.y, x, y) ? 0 : lm.lv[i] ? 2 : d <= dv ? 1 : 0;
+    }
+    B.viewMap = { k: k, u: u, v: out, w: m.w, bs: bs, dv: dv, blind: blind };
+    return B.viewMap;
+  };
   L.partySeesSq = function (B, x, y) { var pm = L.partyMap(B); return pm ? (pm.v[y * pm.w + x] || 0) : 2; };
   L.partySees = function (B, u) { var best = 0; G.foot(u).forEach(function (p) { best = Math.max(best, L.partySeesSq(B, p[0], p[1])); }); return best; };
 
@@ -327,11 +345,13 @@
     });
     ctx.save();
     ctx.globalCompositeOperation = 'multiply'; ctx.drawImage(lit, 0, 0);
-    var pm = L.partyMap(B);
+    // whose eyes: the party's together, or the one of ours under the mouse (ui.js sets B.viewAs: L.viewMap), what it can't see darker
+    var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : null, pm = va ? L.viewMap(B, va) : L.partyMap(B);
     ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#7c7c84';
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
-    ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = 'rgba(6,6,16,0.4)';
+    ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = va ? 'rgba(4,4,12,0.62)' : 'rgba(6,6,16,0.4)';
     for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2]) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
+    if (va) { ctx.restore(); return; } // (the hovered one's eyes are the whole filter: the turn's own sense pass below stays out)
     // the hero's own senses (RULED 09-30, Griz: "when map = no light source and player turn, active player vision filter on dark map (i.e.
     // bat familiar sonar sight filter unless light on map)"): on his turn, with no light anywhere, what he does not sense goes darker still
     // (the player still sees it); darkvision's reach stays grey; blindsight's -- the bat's sonar -- is cool, with a ping running out from him

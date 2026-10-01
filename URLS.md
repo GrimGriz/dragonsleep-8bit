@@ -47,6 +47,7 @@ Base: **https://grimgriz.github.io/dragonsleep-8bit/deep16/**. One mode per URL:
 - **`lvl=`** (or `level=`) sets the level, 1 to 12. Only the druid (and Pyro) go past 9.
 - **`vs=fighter,rogue`** gives you a band of your choosing to run, instead of our four. It takes the same kinds of words, except a bestiary monster (your side can't be a hyena yet).
 - **`watch`** hands your side to the class AI too, so you just watch.
+- **new 10-01:** **`fam=owl,bat,...`** gives each of the `vs=` band a familiar, in order (`owl`, `snowyowl`, `bat`, `rat`, `spider`, `frog`, `snake`); **`map=<id>`** fights on another grid map than the Hex floor; **`dark`** puts the dark on it. On a dark map, the mouse on one of yours shows the dark as that one sees it.
 
 Examples:
 
@@ -79,6 +80,8 @@ Examples:
   - [`deep16/?fxgallery&spell=hideouslaughter&foe=hyena`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?fxgallery&spell=hideouslaughter&foe=hyena): E casts it again.
   - [`deep16/?npc=hyena,hyena,hyena&vs=bard&lvl=3`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?npc=hyena,hyena,hyena&vs=bard&lvl=3): you cast it yourself, and hear the turn-start cackle as the hyenas' turns come round.
 
+- **The wizards and their familiars (10-01):**
+  - [`deep16/?npc=goblin,goblin,goblin&vs=wizard,wizard,wizard,wizard,wizard,wizard,wizard&fam=owl,snowyowl,bat,rat,spider,frog,snake&lvl=5&dark`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?npc=goblin,goblin,goblin&vs=wizard,wizard,wizard,wizard,wizard,wizard,wizard&fam=owl,snowyowl,bat,rat,spider,frog,snake&lvl=5&dark): seven wizards, one of each familiar, against three goblins on the Hex floor in the dark. Hover each wizard or familiar for its eyes.
 - **The clacker (10-01):**
   - [`deep16/?npc=clacker,clacker&lvl=4`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?npc=clacker,clacker&lvl=4): two clackers against our four at level 4; each clacks its hooks as its turn begins.
   - [`deep16/?fxgallery&foe=clacker`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?fxgallery&foe=clacker): every spell, cast at three of them.

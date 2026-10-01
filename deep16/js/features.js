@@ -855,12 +855,15 @@
       why: !chan(u) ? CHAN_WHY : !act ? 'the action is spent' : 'no foe within 10 ft to shove', note: 'each foe within 10 ft: STR DC ' + u.spellDC + ' or shoved 10 ft' });
     return out;
   };
-  // one of those it may go to, asked (0: not now)
+  // one of those it may go to, picked on the grid as a spell's target is (10-01, Griz: "I don't know why 'number selection by distance' was
+  // used instead of the normal method of selecting targets of stuff. With torvald theres 5 choices like the ability has more range, and
+  // half of the number choices are off screen"): the prompt carries the list as `pick`, and js/ui.js shows them in gold on the grid -- E or
+  // a click on one takes it, X is not now. The options stay under it (the benches and the play record answer a prompt by them; 0: not now)
   function* pickOne(B, u, title, list, line) {
     if (!list.length) return null;
-    var opts = list.slice(0, 6).map(function (w, i) { return { label: (w === u ? 'YOURSELF' : Nm(B, w).toUpperCase() + ' (' + G.dist(u, w) + ' FT)'), value: i + 1 }; });
+    var opts = list.map(function (w, i) { return { label: (w === u ? 'YOURSELF' : Nm(B, w).toUpperCase() + ' (' + G.dist(u, w) + ' FT)'), value: i + 1 }; });
     opts.push({ label: 'NOT NOW', value: 0 });
-    var v = yield { prompt: { who: u, title: u.name + ': ' + title, lines: [line], opts: opts } };
+    var v = yield { prompt: { who: u, title: u.name + ': ' + title, lines: [line], opts: opts, pick: list } };
     return v ? list[v - 1] : null;
   }
   function alliesWithin(B, u, ft) { return B.units.filter(function (w) { return w.side === u.side && G.standing(w) && (w === u || G.dist(u, w) <= ft); }); }
