@@ -764,6 +764,9 @@
             if (!atk) continue;
             yield* this.attack(w, u, atk, { oa: true });
             if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
+            // held by the blow (a grip on the hit: the darkmantle's crush, a tendril), or stunned or put down by it: no more walking -- its speed is 0
+            // (10-01, Griz in the Fork: the darkmantle's opportunity attack took Barley and he walked on a square, held from 10 ft)
+            if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
           }
         }
       }

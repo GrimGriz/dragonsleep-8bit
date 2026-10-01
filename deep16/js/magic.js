@@ -942,7 +942,11 @@
       // (torn free: it goes on through the web this turn, with what the turn would have left it -- the walking startTurn set (Haste's double, Slow's half, Ray of Frost's
       // 10 ft off; moveFull, above), less what it has already walked (turn.moved) -- not its bare speed; a dancer none, as before. 10-01)
       delete u.conds.restrained; var T0 = u.turn; T0.move = u.conds.dancing ? 0 : Math.max(0, (T0.moveFull != null ? T0.moveFull : u.speed) - (T0.moved || 0)); T0.webSaved = true;
-      var by = B.units.filter(function (w) { return w.id === r.by; })[0]; if (by && by.holding) by.holding = by.holding.filter(function (w) { return w !== u; });
+      // ... and the whole of the hold goes with the grip, now: what it held over the eyes too (the darkmantle off the head), not at the turn's end (battle.js sweep).
+      // (10-01, Griz in the Fork: Barley broke free and walked off still blind, and the darkmantle's opportunity attack had advantage on him for it)
+      var by = B.units.filter(function (w) { return w.id === r.by; })[0], bl = u.conds.blinded, sawNot = !!(by && bl && bl.held && bl.by === by.id);
+      if (by) B.release(by, u);
+      if (sawNot && !u.conds.blinded) B.card(['{g}' + (u.side === 'foe' ? 'The ' + B.shortName(u) : u.name) + ' can see again.{/}'], 200);
       // ... and a prone one gets up for it (SRD 5.1: standing "costs an amount of movement equal to half your speed"): rules.js startTurn would not stand it at the turn's
       // start -- restrained is no speed to pay with -- so it comes free still flat, and went on at the full move. Half its speed comes off, as startTurn takes it (the
       // slowed, the cold and the hasted halve and double the cost as they do the move: onStart, grimoire.js); not while it laughs or dances (startTurn's own noMove). 10-01
