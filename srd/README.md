@@ -1,0 +1,38 @@
+# The SRD 5.1, as markdown
+
+This is material from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC, available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License, https://creativecommons.org/licenses/by/4.0/legalcode. (See also `../LICENSE-SRD.md`.)
+
+Made by `tools/srd-md.py` from a PDF of the SRD 5.1 (Griz brought it in 10-01; the PDF itself stays out of the repo). Reference for the seats. The PDF has no bookmarks: the sections are cut by its printed pages. Tables come out as run-on text in places; for spells, `dev/srd-spells/srd-spells-detail.json` has the same text as structured data.
+
+- Spells by level: [spells/README.md](spells/README.md) (each marks the ones the game carries, with the game's own words)
+- Monsters by letter: [A](monsters/a.md) [B](monsters/b.md) [C](monsters/c.md) [D](monsters/d.md) [E](monsters/e.md) [F](monsters/f.md) [G](monsters/g.md) [H](monsters/h.md) [I](monsters/i.md) [K](monsters/k.md) [L](monsters/l.md) [M](monsters/m.md) [N](monsters/n.md) [O](monsters/o.md) [P](monsters/p.md) [R](monsters/r.md) [S](monsters/s.md) [T](monsters/t.md) [U](monsters/u.md) [V](monsters/v.md) [W](monsters/w.md) [X](monsters/x.md) [Z](monsters/z.md)
+
+- [Races](01-races.md) (pages 3-7)
+- [Barbarian](classes/barbarian.md) (pages 8-10)
+- [Bard](classes/bard.md) (pages 11-14)
+- [Cleric](classes/cleric.md) (pages 15-18)
+- [Druid](classes/druid.md) (pages 19-23)
+- [Fighter](classes/fighter.md) (pages 24-25)
+- [Monk](classes/monk.md) (pages 26-29)
+- [Paladin](classes/paladin.md) (pages 30-34)
+- [Ranger](classes/ranger.md) (pages 35-38)
+- [Rogue](classes/rogue.md) (pages 39-41)
+- [Sorcerer](classes/sorcerer.md) (pages 42-45)
+- [Warlock](classes/warlock.md) (pages 46-51)
+- [Wizard](classes/wizard.md) (pages 52-55)
+- [Beyond 1st level: multiclassing, levels, alignment, languages, inspiration, backgrounds](03-beyond-1st-level.md) (pages 56-61)
+- [Equipment](04-equipment.md) (pages 62-74)
+- [Feats](05-feats.md) (pages 75-75)
+- [Using ability scores](06-using-ability-scores.md) (pages 76-83)
+- [Adventuring: time, movement, the environment, resting, between adventures](07-adventuring.md) (pages 84-89)
+- [Combat](08-combat.md) (pages 90-99)
+- [Spellcasting](09-spellcasting.md) (pages 100-104)
+- [Spell lists, by class](10-spell-lists.md) (pages 105-113)
+- [Traps, diseases, madness, objects, poisons](12-traps-diseases-madness-objects-poisons.md) (pages 195-205)
+- [Magic items](13-magic-items.md) (pages 206-253)
+- [Monsters: the statistics explained](14-monster-statistics.md) (pages 254-260)
+- [Appendix PH-A: conditions](16-conditions.md) (pages 358-359)
+- [Appendix PH-B: fantasy-historical pantheons](17-pantheons.md) (pages 360-362)
+- [Appendix PH-C: the planes of existence](18-planes.md) (pages 363-365)
+- [Appendix MM-A: miscellaneous creatures](19-misc-creatures.md) (pages 366-394)
+- [Appendix MM-B: nonplayer characters](20-npcs.md) (pages 395-403)

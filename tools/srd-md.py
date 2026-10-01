@@ -1,6 +1,7 @@
 """The SRD 5.1 as markdown, a file a section, for reference (10-01, Griz: "I brought in a pdf of SRD in case it would be
 beneficial to parse the pdf and make .md of different sections for more convenient reference"). Reads dev/SRD-OGL_V5.1.pdf
-(his) and writes dev/srd/ (both gitignored: local reference for the seats on this PC, not for Pages):
+(his, gitignored) and writes srd/ at the repo root (committed: Griz, 10-01, "the SRD reference files can go on the git"; the
+SRD 5.1 is CC BY 4.0, attributed in LICENSE-SRD.md and at the top of srd/README.md):
 
   README.md                 what's where, and the game's own spells beside the SRD's
   01-races.md ... 20-npcs.md  the book's sections in its order (the classes one a file under classes/)
@@ -20,12 +21,11 @@ from pypdf import PdfReader
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PDF = os.path.join(ROOT, 'dev', 'SRD-OGL_V5.1.pdf')
-OUT = os.path.join(ROOT, 'dev', 'srd')
+OUT = os.path.join(ROOT, 'srd')
 
 # (file, title, first page, last page): the book's printed page numbers
 SECTIONS = [
-    ('00-legal.md', 'Legal information (the OGL 1.0a)', 1, 2),
-    ('01-races.md', 'Races', 3, 7),
+    ('01-races.md', 'Races', 3, 7),  # (pages 1-2, the OGL edition's legal page, left out: the game takes the SRD under CC BY 4.0)
     ('classes/barbarian.md', 'Barbarian', 8, 10), ('classes/bard.md', 'Bard', 11, 14), ('classes/cleric.md', 'Cleric', 15, 18),
     ('classes/druid.md', 'Druid', 19, 23), ('classes/fighter.md', 'Fighter', 24, 25), ('classes/monk.md', 'Monk', 26, 29),
     ('classes/paladin.md', 'Paladin', 30, 34), ('classes/ranger.md', 'Ranger', 35, 38), ('classes/rogue.md', 'Rogue', 39, 41),
@@ -225,7 +225,10 @@ def main():
         write(f, head(title, a, b) + render(L, monsters=f in ('19-misc-creatures.md', '20-npcs.md')))
         made.append(f)
     readme = ['# The SRD 5.1, as markdown', '',
-              'Made by `tools/srd-md.py` from `dev/SRD-OGL_V5.1.pdf` (Griz brought it in 10-01). Local reference, gitignored with the PDF. '
+              'This is material from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC, available at '
+              'https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution '
+              '4.0 International License, https://creativecommons.org/licenses/by/4.0/legalcode. (See also `../LICENSE-SRD.md`.)', '',
+              'Made by `tools/srd-md.py` from a PDF of the SRD 5.1 (Griz brought it in 10-01; the PDF itself stays out of the repo). Reference for the seats. '
               'The PDF has no bookmarks: the sections are cut by its printed pages. Tables come out as run-on text in places; '
               'for spells, `dev/srd-spells/srd-spells-detail.json` has the same text as structured data.', '',
               '- Spells by level: [spells/README.md](spells/README.md) (each marks the ones the game carries, with the game\'s own words)',
