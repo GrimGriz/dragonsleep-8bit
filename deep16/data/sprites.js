@@ -4806,7 +4806,7 @@
 }
 },
 "xorn_p1": {
-"image": "art/xorn_p1.png?v=47928f44e5",
+"image": "art/xorn_p1.png?v=5bbdb2082a",
 "fw": 96,
 "fh": 106,
 "ax": 48,

@@ -511,12 +511,15 @@
   // through solid rock"), and not a map whose floor is worked stone (a map's `noBurrow`). Moving under, it has its burrow speed
   function canDig(B, u) { return u.burrow > 0 && !(B.map && B.map.def && B.map.def.noBurrow) && !u.conds.restrained && !u.conds.prone && !(u.holding && u.holding.length); }
   function* sink(B, u) {
+    // (under from the first frame of the row: js/ui.js plays the row and then holds its last frame, whatever the pace -- a row played
+    // "once" that ran out before the wait did fell back to idle, and he stood whole on the floor before he went: Griz's fight, 10-01d)
+    u.under = true; u.ethereal = true;
     u.anim = 'burrow'; u.animT = B.t; D.sfx('earth'); if (!u.earthGlide) FX.ring(u, 'stone', 30);
     // (Earth Glide, the xorn's: "the xorn doesn't disturb the material it moves through" -- no dust, no mound, and nothing to follow)
     B.card(u.earthGlide ? ['{r}' + the(B, u) + '{/} sinks into the floor like a stone into water.  {g}(Earth Glide: it cannot be seen, struck or followed till it comes up){/}']
       : ['{r}' + the(B, u) + '{/} dives into the ground!  {g}(burrowing: it cannot be seen, struck or blocked till it comes up){/}'], 300);
     yield Math.max(24, D.spr.duration(u.sheet, 'burrow') || 0);
-    u.under = true; u.ethereal = true; u.anim = 'idle';
+    u.anim = 'idle';
   }
   function* rise(B, u, tgt) {
     u.under = false; u.ethereal = false; B.focus(u);

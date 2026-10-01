@@ -748,7 +748,10 @@
         }
         // under the ground (a burrower, js/ai.js, 10-01d): its mound, the Burrow row's last frame, sliding where it goes -- "like a fin through
         // water" (the 8-bit game's line for the bulette); a sheet with no Burrow row, the ethereal ghost below in earth's colour
-        if (u.under && !down && has('burrow')) { anim = 'burrow'; o.frame = D.spr.anim(u.sheet, 'burrow').frames - 1; o.once = false; }
+        if (u.under && !down && has('burrow')) { // (going under: the row from where it began, then its last frame held -- 10-01d)
+          var bf = D.spr.anim(u.sheet, 'burrow'), sinking = u.anim === 'burrow' ? Math.floor((B.t - (u.animT || 0)) * (bf.fps || 8) / 60) : bf.frames;
+          anim = 'burrow'; o.frame = Math.min(bf.frames - 1, Math.max(0, sinking)); o.once = false;
+        }
         else if (u.under && !down) { o.alpha = 0.3; o.tint = R('leather', 2); o.tintAlpha = 0.9; }
         else if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;

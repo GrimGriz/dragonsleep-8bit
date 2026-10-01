@@ -20,7 +20,7 @@ distance over each limb's thickness, nearly rigid: rock does not stretch. The ro
     IDLE 8 (loop)  WALK 8 (loop, a three-legged rotary gait)  CLAW, CLAW2, CLAW3 6 (the front-left arm, the front-right, the back arm
     over the top: the three claws of its Multiattack)  BITE 6 (the top mouth brought down onto the one in front)  SINK 6 and RISE 6
     (Earth Glide: down into the floor and up out of it, cleanly -- "the xorn doesn't disturb the material it moves through")
-    FLINCH 5  DEATH 8 (it topples over backwards; frame 5, lying, is its prone frame).
+    FLINCH 5  DEATH 8 (it settles half into the floor, its arms drooping -- Griz's ask; frame 3 is its prone frame).
 """
 import bpy, sys, os, math, importlib.util
 import numpy as np
@@ -367,18 +367,19 @@ def row_flinch(i, n):
 
 
 def row_death(i, n):
-    th = [0, 8, 22, 42, 66, 86, 82, 84][i]; P_ = pose()
-    R = Q(RIGHT, th)                    # the top goes over backwards
-    # about its own footing, lifted onto its back and drawn forward as it goes over, so it lies on the floor (not through it) and stays
-    # on its square: fallen about the back edge, it slid a body's length aside and out of its frame (10-01d)
-    sn = math.sin(math.radians(th))
-    # (the barrel's middle stands ~27 units up; gone over by th it lies 27 sin(th) behind its square: drawn forward by as much, lifted 14 -- its back's depth)
-    P_['root'][0] = R; P_['root'][1] = UP * (14.0 * sn) + FRONT * (27.0 * sn) + (UP * -0.8 if i == 7 else Vector())
-    fl = math.sin(math.pi * min(i, 6) / 6)
-    for nm in LEGNAMES:
-        P_['leg_%s.1' % nm][0] = Q(-TILT, 15 * fl)
+    """Griz, 10-01d: "For the death pose can we have him submerge half way and his arms droop?" -- it settles half into the stone it came
+    out of, the three arms falling outward and down, the barrel slumping forward; frame 3, a third of the way in and the arms half down,
+    is its prone frame (deep16/js/sprites.js S.PRONE: getting up is the row played back from there)."""
+    s = [0.0, 0.06, 0.15, 0.26, 0.36, 0.44, 0.49, 0.5][i]
+    d = [0.0, 0.15, 0.35, 0.55, 0.75, 0.9, 1.0, 1.0][i]
+    P_ = pose()
+    P_['root'][1] = UP * (-H * s)
+    P_['body'][0] = Q(TILT, 10 * d)
     for nm in ARMS:
-        P_['arm_%s.1' % nm][0] = Q(UP.cross(RADIAL[nm]), 20 * min(1.0, i / 5))
+        out = UP.cross(RADIAL[nm])          # turning about this takes the arm from straight up toward its own side
+        P_['arm_%s.1' % nm][0] = Q(out, 105 * d)
+        P_['arm_%s.2' % nm][0] = Q(out, 25 * d)
+        P_['arm_%s.3' % nm][0] = Q(out, 35 * d)
     return P_
 
 
@@ -409,4 +410,4 @@ if hasattr(ad, 'action_slot') and len(bpy.data.actions['IDLE'].slots):
     ad.action_slot = bpy.data.actions['IDLE'].slots[0]
 os.makedirs(SRC, exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=os.path.join(SRC, 'xorn.blend'))
-print('[xorn] built: %s (rows %s; yaw %.1f; prone frame 5 of DEATH)' % (os.path.join(SRC, 'xorn.blend'), ', '.join(r[0] for r in ROWS), YAW))
+print('[xorn] built: %s (rows %s; yaw %.1f; prone frame 3 of DEATH)' % (os.path.join(SRC, 'xorn.blend'), ', '.join(r[0] for r in ROWS), YAW))

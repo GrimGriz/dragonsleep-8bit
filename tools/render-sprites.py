@@ -334,5 +334,12 @@ for anim, action in F['anims'].items():
             r.filepath = os.path.join(out, anim, 'f%d_%02d.png' % (facing, i))
             bpy.ops.render.render(write_still=True)
     print('[render] %s %s done' % (FIG, anim))
-json.dump(meta, open(os.path.join(out, 'meta.json'), 'w'), indent=1)
+# a render of some rows only (D16_ONLY) keeps the other rows the folder already has: it wrote meta.json with its one row and the
+# next pixelate pass dropped the rest of the sheet (twice on the xorn, 10-01d)
+mp = os.path.join(out, 'meta.json')
+if ONLY and os.path.exists(mp):
+    old = json.load(open(mp))
+    if (old.get('fw'), old.get('fh')) == (meta['fw'], meta['fh']):
+        old['anims'].update(meta['anims']); meta['anims'] = old['anims']
+json.dump(meta, open(mp, 'w'), indent=1)
 print('[render] %s ok %dx%d anchor %d,%d' % (FIG, FW, FH, AX, AY))

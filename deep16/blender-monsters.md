@@ -103,6 +103,8 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
 
 - **The suns' aim.** The suns are aimed in the camera's frame, and a new camera's matrix is stale till the scene updates. Unaimed, the key light lands behind the figure and the stone renders near black. `blender_look.light` updates the scene first.
 - **Stale frames.** A render folder keeps old frames from an earlier render of the same figure (the xorn's blob). That's harmless, because `meta.json` says how many frames each row has.
+- **Re-rendering one row.** `D16_ONLY=<row>:<facings>` into `render/` once rewrote `meta.json` with that row alone, and the next pixel pass dropped the rest of the sheet. `render-sprites.py` now merges a partial render into the existing index; the xorn's death row was redone that way twice.
+- **Going under is a state, not just a row.** A creature is marked `under` from the first frame of its sink. `js/ui.js` plays the row from there and holds its last frame. When the row only played "once", the game's pace could run past it, and the figure stood whole on the floor before it went (Griz's own fight, 10-01d).
 - **Old files.** MZ4250's files are Blender 2.79 and open fine in 5.2.
 - **Decimating without operators.** Use `bpy.data.meshes.new_from_object` on the evaluated object.
 - **Look runners.** A look runner (Sonnet, 10-01d) found the light in 14 variants. Colour Griz is judging live is the seat's own work: *"You try instead of a runner."*
