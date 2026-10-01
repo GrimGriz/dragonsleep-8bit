@@ -1401,7 +1401,14 @@
     box(ctx, Math.round(cx - lw / 2), ly, lw, 12, R('gold', 3));
     D.text(ctx, label, cx, ly + 2, cur.ok ? R('bone', 2) : R('stone', 4), 'center');
     var sub = !cur.ok && cur.why ? cur.why : cur.kind === 'spell' ? D.typeText(D.magic.summary(cur, u)) : D.typeText(cur.note || '', true); // (the creature types as their glyphs)
-    if (sub) { var ww = D.textWidth(sub) + 8; box(ctx, Math.round(cx - ww / 2), ly + 13, ww, 11, R('stone', 3)); D.text(ctx, '{g}' + sub + '{/}', cx, ly + 15, R('accent', 2), 'center'); }
+    // its words under it, wrapped (10-01, Griz: "Spell descriptions need a second line on wheel-button mouseover, see haste Lvl 3"): up to
+    // three lines 300 px wide, the box as wide as the longest
+    if (sub) {
+      var sl = D.wrap(sub, 300).slice(0, 3), ww = Math.max.apply(null, sl.map(function (s) { return D.textWidth(s); })) + 8, sh = sl.length * 10 + 1;
+      var sy = ly + 13 + sh > BAR_Y - 2 ? ly - sh - 1 : ly + 13; // (a ring low on the screen: the words above its label, clear of the bar)
+      box(ctx, Math.round(cx - ww / 2), sy, ww, sh, R('stone', 3));
+      sl.forEach(function (s, k) { D.text(ctx, '{g}' + s + '{/}', cx, sy + 2 + k * 10, R('accent', 2), 'center'); });
+    }
   }
   function initials(name) { var w = name.split(' ').filter(function (x) { return !/^(of|the)$/i.test(x); }); return w.length > 1 ? w.map(function (x) { return x[0]; }).join('').slice(0, 2) : name.slice(0, 2); }
 
@@ -1413,27 +1420,37 @@
   function prompt(ctx, B, p) {
     if (p.pick) { // a pick on the grid: its title, its line, and what's under the cursor -- no buttons (pickInput)
       var pl = p.lines || [], on = pickAt(B, p), pw = 300, ph = 22 + pl.length * 9 + 12, px = (D.W - pw) / 2, py = BAR_Y - ph - 4;
-      box(ctx, px, py, pw, ph);
-      D.text(ctx, p.title, px + 8, py + 6, R('gold', 4));
-      pl.forEach(function (l, k) { D.text(ctx, l, px + 8, py + 18 + k * 9, R('bone', 1)); });
+      D.win8(ctx, px, py, pw, ph);
+      D.text(ctx, p.title, px + 8, py + 6, D.WIN8.gold);
+      pl.forEach(function (l, k) { D.text(ctx, l, px + 8, py + 18 + k * 9, D.WIN8.text); });
       var lab = on ? p.opts[p.pick.indexOf(on)].label : null;
       D.text(ctx, D.keys(lab ? 'E: ' + lab + '   X: not now' : 'a gold square: E or a click   X: not now'), px + 8, py + ph - 11, lab ? R('gold', 3) : R('accent', 2));
       B.promptRects = [];
       return;
     }
-    var w = 300, lines = p.lines || [], h = 26 + lines.length * 9 + 16, x = (D.W - w) / 2, y = BAR_Y - h - 4;
-    box(ctx, x, y, w, h);
-    D.text(ctx, p.title, x + 8, y + 6, R('gold', 4));
-    lines.forEach(function (l, k) { D.text(ctx, l, x + 8, y + 18 + k * 9, R('bone', 1)); });
+    // in the 8-bit game's window, as the menus are (10-01, Griz: "Can you blue the dash confirmation call and still use that number choice
+    // method (that's handy to click on) - check how long the rogues boxes get though"): the numbered buttons kept, the box as wide as its
+    // words and buttons need (a rogue's CUNNING DASH, DASH and NOT THAT FAR ran past its edge), a second row of buttons when one won't fit
+    var W8 = D.WIN8, lines = p.lines || [], maxW = D.W - 16;
+    var bws = p.opts.map(function (o, i) { return D.textWidth((i + 1) + ' ' + o.label) + 10; });
+    var need = Math.max(D.textWidth(p.title), Math.max.apply(null, lines.map(function (l) { return D.textWidth(l); }).concat([0])), bws.reduce(function (s, b) { return s + b + 6; }, -6)) + 18;
+    var w = Math.min(maxW, Math.max(300, need)), inner = w - 16, rows = [[]], rx = 0;
+    bws.forEach(function (bw, i) { if (rx && rx + bw > inner) { rows.push([]); rx = 0; } rows[rows.length - 1].push(i); rx += bw + 6; });
+    var h = 26 + lines.length * 9 + rows.length * 15 + 1, x = Math.round((D.W - w) / 2), y = BAR_Y - h - 4;
+    D.win8(ctx, x, y, w, h);
+    D.text(ctx, p.title, x + 8, y + 6, W8.gold);
+    lines.forEach(function (l, k) { D.text(ctx, l, x + 8, y + 18 + k * 9, W8.text); });
     B.promptRects = [];
-    var bx = x + 8, by = y + h - 16;
-    p.opts.forEach(function (o, i) {
-      var bw = D.textWidth((i + 1) + ' ' + o.label) + 10, r = { x: bx, y: by, w: bw, h: 12 };
-      B.promptRects.push(r);
-      ctx.fillStyle = i === B.sel ? R('gold', 1) : R('stone', 1); ctx.fillRect(r.x, r.y, r.w, r.h);
-      ctx.strokeStyle = i === B.sel ? R('gold', 4) : R('stone', 3); ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
-      D.text(ctx, (i + 1) + ' ' + o.label, r.x + 5, r.y + 2, i === B.sel ? R('gold', 4) : R('bone', 1));
-      bx += bw + 6;
+    rows.forEach(function (row, ri) {
+      var bx = x + 8, by = y + 22 + lines.length * 9 + ri * 15;
+      row.forEach(function (i) {
+        var o = p.opts[i], bw = bws[i], r = { x: bx, y: by, w: bw, h: 12 };
+        B.promptRects[i] = r;
+        ctx.fillStyle = i === B.sel ? W8.sel : '#0a0c24'; ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.strokeStyle = i === B.sel ? W8.gold : W8.mid; ctx.strokeRect(r.x + 0.5, r.y + 0.5, r.w - 1, r.h - 1);
+        D.text(ctx, (i + 1) + ' ' + o.label, r.x + 5, r.y + 2, i === B.sel ? W8.gold : W8.text);
+        bx += bw + 6;
+      });
     });
   }
   function entry(ctx, B) {
