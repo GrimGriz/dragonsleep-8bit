@@ -75,23 +75,16 @@
     var n = N(), bone = D.iso.ramp('bone'), violet = D.iso.ramp('violet'), stone = D.iso.ramp('stone');
     var W = 26, H = 40, ax = 13, ay = 34;
     var cv = canvasOf(W, H, function (put) {
-      // a faint violet glow about it (drawn first, low alpha, stepped)
-      for (var y = -30; y <= 4; y++) for (var x = -12; x <= 12; x++) {
-        var d = Math.sqrt(x * x + (y + 13) * (y + 13) * 0.5);
-        if (d > 12 || d < 7) continue;
-        if (n.dith(ax + x, ay + y) > (12 - d) / 10) continue;
-        put(ax + x, ay + y, violet[3], 90);
-      }
-      // the wrapped body: an egg on end, silk bands, a shadowed underside
+      // (no halo: it read as a light -- Griz, 09-30: "Check if the cocoons are light sources ... they're awfully bright either way")
+      // the wrapped body: an egg on end, silk bands, a shadowed underside; dull silk, violet in the shade, bone only on the lit side
       for (var y2 = -27; y2 <= 1; y2++) {
         var t = (y2 + 27) / 28, r = 7.2 * Math.sin(Math.PI * Math.pow(t, 0.8)) + 0.5;
         for (var x2 = -Math.ceil(r); x2 <= Math.ceil(r); x2++) {
           if (Math.abs(x2) > r) continue;
           var nx = x2 / Math.max(1, r);
           var band = Math.abs(((y2 * 0.9 + x2 * 0.55 + seed % 5) % 5 + 5) % 5 - 2.5) < 0.6;
-          var v = 0.62 - nx * 0.35 - t * 0.25 + (band ? -0.3 : 0) + (n.vnoise(x2 * 0.5, y2 * 0.4, seed) - 0.5) * 0.2;
-          var ramp = v < 0.3 ? violet : bone;
-          put(ax + x2, ay + y2, v < 0.3 ? n.rampPick(violet, 0.3 + v * 1.4, ax + x2, ay + y2) : n.rampPick(bone, (v - 0.3) * 1.6, ax + x2, ay + y2));
+          var v = 0.44 - nx * 0.3 - t * 0.22 + (band ? -0.24 : 0) + (n.vnoise(x2 * 0.5, y2 * 0.4, seed) - 0.5) * 0.2;
+          put(ax + x2, ay + y2, v < 0.38 ? n.rampPick(violet, 0.08 + Math.max(0, v) * 1.1, ax + x2, ay + y2) : n.rampPick(bone, (v - 0.38) * 1.2, ax + x2, ay + y2));
         }
       }
       // strands to the wall above

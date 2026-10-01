@@ -536,6 +536,7 @@
       if (D.looks) D.looks.props(B).forEach(function (o) { objs.push(o); });
       if (D.walls) D.walls.props(B).forEach(function (o) { objs.push(o); }); // the walls (js/walls.js) // the floating weapons, the guardian, the spirits' wheel (js/looks.js)
       wallWebs(B).forEach(function (o) { objs.push(o); }); // the silk up the walls behind a map's webs, and its corner webs
+      webObjs(B).forEach(function (o) { objs.push(o); }); // the webs themselves, each piece in the round at its hub
       // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
       (B.riders || []).forEach(function (r) {
         var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2, r.y + (f[1] - 1) / 2, r.gz), s = D.iso.toScreen(c.x, c.y);
@@ -794,51 +795,124 @@
   }
   function fillSq(ctx, x, y, color, alpha, inset) { onSq(x, y, function (c) { D.iso.rhombus(c, x, y, G.map.gz(x, y), inset || 1); c.globalAlpha = alpha; c.fillStyle = color; c.fill(); c.globalAlpha = 1; }); }
   function lineSq(ctx, x, y, color, alpha, inset) { onSq(x, y, function (c) { D.iso.rhombus(c, x, y, G.map.gz(x, y), inset == null ? 2 : inset); c.globalAlpha = alpha == null ? 1 : alpha; c.strokeStyle = color; c.lineWidth = 1; c.stroke(); c.globalAlpha = 1; }); }
-  // a web on a square (the room's own, a Web spell's): spokes from a hub to the square's corners and the middles of its edges, two
-  // rings round the hub; the spokes end where the next square's begin, so a patch reads as one sheet. Where the square backs onto a
-  // wall or a higher floor (the upper-left and upper-right edges, the ones toward the far walls), strands climb the face and are
-  // tied across it; a Web spell's 20-ft cube also stands up off its near edges, a curtain the way a darkness has a wall (Griz,
-  // 09-30: "compare your zoomed shot of the ettercap to the grid right now - I think we need a bunch of webbing in the room" --
-  // "compare with what we're using for the web spell also": both were a faint tint on the floor)
-  function webSq(c, B, x, y, has, cube) {
-    var z = G.map.gz(x, y), p = D.iso.center(x, y, z), s = D.iso.toScreen(p.x, p.y), HW = D.iso.TW / 2, HH = D.iso.TH / 2;
-    var h = (x * 73 + y * 151) % 97 / 97, hx = Math.round(s.x + (h - 0.5) * 8) + 0.5, hy = Math.round(s.y + (((h * 7) % 1) - 0.5) * 4) + 0.5;
-    var ends = [[0, -HH], [HW / 2, -HH / 2], [HW, 0], [HW / 2, HH / 2], [0, HH], [-HW / 2, HH / 2], [-HW, 0], [-HW / 2, -HH / 2]].map(function (e) { return [Math.round(s.x + e[0]) + 0.5, Math.round(s.y + e[1]) + 0.5]; });
-    var pul = 0.85 + 0.15 * Math.sin(B.t / 23 + x * 1.3 + y * 0.7);
-    c.save(); c.lineWidth = 1;
-    c.strokeStyle = R('bone', 2); c.globalAlpha = 0.5 * pul; c.beginPath();
-    ends.forEach(function (e) { c.moveTo(hx, hy); c.lineTo(e[0], e[1]); });
-    c.stroke();
-    c.strokeStyle = R('bone', 1); c.globalAlpha = 0.42 * pul;
-    [0.34, 0.68].forEach(function (k) {
-      c.beginPath();
-      ends.forEach(function (e, i) { var qx = hx + (e[0] - hx) * k, qy = hy + (e[1] - hy) * k; if (i) c.lineTo(qx, qy); else c.moveTo(qx, qy); });
-      c.closePath(); c.stroke();
+  // ------------------------------------------------------------------ the webs in the round (Griz, 09-30: "compare your zoomed shot of
+  // the ettercap to the grid right now - I think we need a bunch of webbing in the room" -- "compare with what we're using for the web
+  // spell also" -- "the ground tiles look like they should change display when they form tetris pieces" -- "please do volumetric math
+  // ... so the spider webs look even cooler"). Each patch of web (its squares joined edge to edge) is cut into pieces of up to four
+  // squares, and each piece is one web in the round: a hub lifted off the floor over the piece's middle; spokes down to the piece's
+  // outline on the floor, up the wall or over the ledge's lip it backs onto, and -- a Web spell's 20-ft cube -- up to the cube's top;
+  // rings that sag between the spokes; touching pieces tied hub to hub. The points are worked in the grid's own three dimensions (corner
+  // coordinates and a height in px) and projected as iso.center does; each piece is drawn in the sort at its hub, so one standing
+  // behind the hub is seen through the silk and one standing before it is in front of it. The outline stays on the floor (overlay)
+  var N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+  function webProj(x, y, z) { return D.iso.toScreen((x - y) * D.iso.TW / 2, (x + y) * D.iso.TH / 2 - z); }
+  function webPiece(m, sqs, cube) {
+    var inP = {}, anchors = [], seen = {}, wall = 0, gzSum = 0, maxGz = 0, hx = 0, hy = 0;
+    sqs.forEach(function (q) { inP[q[0] + ',' + q[1]] = 1; });
+    var add = function (x, y, z, up) { var k = x + ',' + y + ',' + z; if (seen[k]) return; seen[k] = 1; anchors.push({ x: x, y: y, z: z, up: !!up }); };
+    sqs.forEach(function (q) {
+      var s = m.at(q[0], q[1]), z = s ? s.gz : 0, sd = (q[0] * 7 + q[1] * 13) % 5;
+      gzSum += z; maxGz = Math.max(maxGz, z); hx += q[0] + 0.5; hy += q[1] + 0.5;
+      // its four edges: [toward dx, dy, corner a, corner b] in corner coordinates (square (x, y) spans x..x+1, y..y+1)
+      [[0, -1, [0, 0], [1, 0]], [1, 0, [1, 0], [1, 1]], [0, 1, [1, 1], [0, 1]], [-1, 0, [0, 1], [0, 0]]].forEach(function (e) {
+        var nx = q[0] + e[0], ny = q[1] + e[1]; if (inP[nx + ',' + ny]) return;
+        var ax = q[0] + e[2][0], ay = q[1] + e[2][1], bx = q[0] + e[3][0], by = q[1] + e[3][1], n = m.at(nx, ny);
+        add(ax, ay, z); add((ax + bx) / 2, (ay + by) / 2, z); add(bx, by, z);
+        if ((!n || !n.open) && (e[0] < 0 || e[1] < 0)) {   // a far wall behind it (the edges toward the walls you see): tied up the face
+          wall++; add((ax + bx) / 2, (ay + by) / 2, z + 34 + sd * 5, true); add(ax * 0.7 + bx * 0.3, ay * 0.7 + by * 0.3, z + 20 + sd * 3, true);
+        } else if (n && n.open && n.gz > z) add((ax + bx) / 2, (ay + by) / 2, n.gz + 3, true);   // over the lip of the ledge above it
+      });
     });
-    // up a ledge's face behind it, or (a cast web) a wall's: rock at (x, y-1) is behind the upper-right edge, at (x-1, y) the
-    // upper-left. The walls behind a map's own webs are dressed whole, floor to dark (wallWebs)
-    [[x, y - 1, ends[0], ends[2]], [x - 1, y, ends[6], ends[0]]].forEach(function (w) {
-      var n = G.map.at(w[0], w[1]), up = !n || !n.open ? (cube ? 34 : 0) : Math.max(0, G.map.gz(w[0], w[1]) - z) > 0 ? 18 : 0;
-      if (!up) return;
-      c.strokeStyle = R('bone', 2); c.globalAlpha = 0.45 * pul; c.beginPath();
-      var tops = [];
-      for (var k2 = 0; k2 < 3; k2++) {
-        var f = 0.2 + k2 * 0.3, bx = w[2][0] + (w[3][0] - w[2][0]) * f, by = w[2][1] + (w[3][1] - w[2][1]) * f, tp = Math.round(by - up * (0.7 + 0.3 * ((h * (k2 + 3)) % 1))) + 0.5;
-        c.moveTo(bx, by); c.lineTo(bx + (k2 - 1) * 3, tp); tops.push([bx + (k2 - 1) * 3, tp]);
+    var n = sqs.length; hx /= n; hy /= n;
+    if (cube) anchors.filter(function (a) { return !a.up; }).forEach(function (a) { add(a.x, a.y, a.z + 44, true); });   // the cube's top
+    var hz = gzSum / n + (cube ? 26 : 8 + n * 2 + (wall ? 6 : 0));
+    anchors.forEach(function (a) { a.ang = Math.atan2(a.y - hy, a.x - hx); });
+    anchors.sort(function (a, b) { return a.ang - b.ang || a.z - b.z; });
+    return { sq: sqs, inP: inP, hx: hx, hy: hy, hz: hz, anchors: anchors, depth: hx + hy - 1 + 0.65, gz: maxGz, cube: cube, seed: (sqs[0][0] * 31 + sqs[0][1] * 17) % 23, ties: [] };
+  }
+  function webGeo(B) {
+    var m = G.map, key = (B.webs || []).map(function (w) { return w.by + ':' + w.sq.map(function (q) { return q[0] + ',' + q[1]; }).join(' '); }).join('|');
+    if (B.webGeo && B.webGeo.key === key && B.webGeo.map === m) return B.webGeo;
+    var pieces = [];
+    (B.webs || []).forEach(function (wb) {
+      var cube = !!wb.dc && !wb.ground, left = {}, mine = [];
+      wb.sq.forEach(function (q) { left[q[0] + ',' + q[1]] = q; });
+      for (var guard = 0; Object.keys(left).length && guard < 400; guard++) {
+        // the back-most square left begins a piece, and takes up to three more, neighbours first (a tetromino, or less)
+        var start = Object.keys(left).map(function (k) { return left[k]; }).sort(function (a, b) { return (a[0] + a[1]) - (b[0] + b[1]) || a[0] - b[0]; })[0];
+        var piece = [start], open = [start]; delete left[start[0] + ',' + start[1]];
+        while (open.length && piece.length < 4) {
+          var cur = open.shift();
+          for (var i = 0; i < 4 && piece.length < 4; i++) { var k = (cur[0] + N4[i][0]) + ',' + (cur[1] + N4[i][1]); if (left[k]) { piece.push(left[k]); open.push(left[k]); delete left[k]; } }
+        }
+        mine.push(webPiece(m, piece, cube));
       }
-      c.moveTo(tops[0][0], tops[0][1] + 6); c.quadraticCurveTo(tops[1][0], tops[1][1] + 12, tops[2][0], tops[2][1] + 6); // a thread tied across, sagging
-      c.stroke();
+      // pieces of one patch that touch are tied hub to hub
+      mine.forEach(function (p, i) { mine.slice(i + 1).forEach(function (o) { if (p.sq.some(function (q) { return N4.some(function (d) { return o.inP[(q[0] + d[0]) + ',' + (q[1] + d[1])]; }); })) p.ties.push(o); }); });
+      pieces = pieces.concat(mine);
     });
-    // a Web spell's cube: a curtain up off the near edges (toward the viewer) where the web stops
-    if (cube) [[x + 1, y, ends[2], ends[4]], [x, y + 1, ends[4], ends[6]]].forEach(function (w) {
-      if (has[w[0] + ',' + w[1]]) return;
-      c.strokeStyle = R('bone', 2); c.globalAlpha = 0.32 * pul; c.beginPath();
-      for (var k3 = 0; k3 <= 4; k3++) { var f3 = k3 / 4, ex = w[2][0] + (w[3][0] - w[2][0]) * f3, ey = w[2][1] + (w[3][1] - w[2][1]) * f3; c.moveTo(ex, ey); c.lineTo(ex + (k3 % 2 ? 2 : -2), ey - 26); }
-      c.moveTo(w[2][0], w[2][1] - 18); c.quadraticCurveTo((w[2][0] + w[3][0]) / 2, (w[2][1] + w[3][1]) / 2 - 10, w[3][0], w[3][1] - 18);
-      c.moveTo(w[2][0], w[2][1] - 9); c.lineTo(w[3][0], w[3][1] - 25);
-      c.stroke();
+    return (B.webGeo = { key: key, map: m, pieces: pieces });
+  }
+  function webPieceDraw(ctx, B, p) {
+    var pul = 0.85 + 0.15 * Math.sin(B.t / 23 + p.seed), hub = { x: p.hx, y: p.hy, z: p.hz }, H = webProj(p.hx, p.hy, p.hz), A = p.anchors;
+    var at = function (a, f, sag) { return { x: hub.x + (a.x - hub.x) * f, y: hub.y + (a.y - hub.y) * f, z: hub.z + (a.z - hub.z) * f - (sag || 0) }; };
+    var P = function (q) { var s = webProj(q.x, q.y, q.z); return [s.x + 0.5, s.y + 0.5]; };
+    ctx.save(); ctx.lineWidth = 1;
+    // the spokes: floor strands brighter, the ones up a wall a little fainter
+    ctx.strokeStyle = R('bone', 2);
+    [false, true].forEach(function (up) {
+      ctx.globalAlpha = (up ? 0.4 : 0.55) * pul; ctx.beginPath();
+      A.forEach(function (a) { if (a.up !== up) return; var e = P(a); ctx.moveTo(H.x + 0.5, H.y + 0.5); ctx.lineTo(e[0], e[1]); });
+      ctx.stroke();
     });
-    c.restore();
+    // the rings: round the hub at each fraction of the way out, sagging between spokes (in height, so the sag is the world's)
+    ctx.strokeStyle = R('bone', 1);
+    [0.2, 0.42, 0.64, 0.86].forEach(function (f, j) {
+      ctx.globalAlpha = (0.5 - j * 0.06) * pul; ctx.beginPath();
+      for (var i = 0; i < A.length; i++) {
+        var a = A[i], b = A[(i + 1) % A.length], gap = (b.ang - a.ang + Math.PI * 2) % (Math.PI * 2);
+        if (A.length > 2 && gap > 2.2) continue;   // (a notch in an L: no thread across the open side)
+        var r0 = at(a, f), r1 = at(b, f), mid = { x: (r0.x + r1.x) / 2, y: (r0.y + r1.y) / 2, z: (r0.z + r1.z) / 2 - (1.5 + 3.5 * f) };
+        var s0 = P(r0), s1 = P(r1), sm = P(mid);
+        ctx.moveTo(s0[0], s0[1]); ctx.quadraticCurveTo(2 * sm[0] - (s0[0] + s1[0]) / 2, 2 * sm[1] - (s0[1] + s1[1]) / 2, s1[0], s1[1]);
+      }
+      ctx.stroke();
+    });
+    // a few stray threads from the hub's neighbourhood to the floor, so a piece is not too neat
+    ctx.globalAlpha = 0.3 * pul; ctx.strokeStyle = R('bone', 2); ctx.beginPath();
+    for (var k = 0; k < 3; k++) { var a2 = A[(p.seed * (k + 3) + k * 5) % A.length], r2 = at(a2, 0.3 + k * 0.15), e2 = P({ x: a2.x + (k - 1) * 0.15, y: a2.y - (k - 1) * 0.1, z: a2.up ? a2.z - 10 : a2.z }), s2 = P(r2); ctx.moveTo(s2[0], s2[1]); ctx.lineTo(e2[0], e2[1]); }
+    ctx.stroke();
+    // tied to the next piece of the patch: two threads, hub to hub and a lower one, sagging
+    p.ties.forEach(function (o) {
+      var o0 = { x: o.hx, y: o.hy, z: o.hz }, mid = { x: (hub.x + o0.x) / 2, y: (hub.y + o0.y) / 2, z: (hub.z + o0.z) / 2 - 5 }, s0 = P(hub), s1 = P(o0), sm = P(mid);
+      ctx.globalAlpha = 0.5 * pul; ctx.beginPath(); ctx.moveTo(s0[0], s0[1]); ctx.quadraticCurveTo(2 * sm[0] - (s0[0] + s1[0]) / 2, 2 * sm[1] - (s0[1] + s1[1]) / 2, s1[0], s1[1]); ctx.stroke();
+      var l0 = P({ x: hub.x, y: hub.y, z: hub.z * 0.5 }), l1 = P({ x: o0.x, y: o0.y, z: o0.z * 0.5 }), lm = P({ x: mid.x, y: mid.y, z: mid.z * 0.5 - 3 });
+      ctx.globalAlpha = 0.32 * pul; ctx.beginPath(); ctx.moveTo(l0[0], l0[1]); ctx.quadraticCurveTo(2 * lm[0] - (l0[0] + l1[0]) / 2, 2 * lm[1] - (l0[1] + l1[1]) / 2, l1[0], l1[1]); ctx.stroke();
+    });
+    ctx.restore();
+  }
+  function webObjs(B) {
+    if (!(B.webs || []).some(function (w) { return w.sq.length; })) return [];
+    return webGeo(B).pieces.map(function (p) { return { depth: p.depth, gz: p.gz, layer: 1, draw: function (ctx) { webPieceDraw(ctx, B, p); } }; });
+  }
+  // the floor under a web: the patch's outline, so where it holds reads at a glance (the overlay, under everything)
+  function webFloor(B) {
+    (B.webs || []).forEach(function (wb) {
+      var has = {}; wb.sq.forEach(function (q) { has[q[0] + ',' + q[1]] = 1; });
+      wb.sq.forEach(function (q) {
+        fillSq(null, q[0], q[1], R('bone', 1), 0.07, 3);
+        onSq(q[0], q[1], function (c) {
+          var z = G.map.gz(q[0], q[1]);
+          c.save(); c.lineWidth = 1; c.strokeStyle = R('bone', 1); c.globalAlpha = 0.3; c.beginPath();
+          [[0, -1, [0, 0], [1, 0]], [1, 0, [1, 0], [1, 1]], [0, 1, [1, 1], [0, 1]], [-1, 0, [0, 1], [0, 0]]].forEach(function (e) {
+            if (has[(q[0] + e[0]) + ',' + (q[1] + e[1])]) return;
+            var a = webProj(q[0] + e[2][0], q[1] + e[2][1], z), b = webProj(q[0] + e[3][0], q[1] + e[3][1], z);
+            c.moveTo(a.x + 0.5, a.y + 0.5); c.lineTo(b.x + 0.5, b.y + 0.5);
+          });
+          c.stroke(); c.restore();
+        });
+      });
+    });
   }
   // the walls behind a map's strung webs, dressed floor to dark (Griz, 09-30: "can we take it across the ceiling on the wall tiles
   // (looks like 3 high, web only on bottom 1) and fancy up ... where the floor and two walls make a corner? More back wall webbing
@@ -970,11 +1044,8 @@
       ctx.globalAlpha = 0.75; ctx.strokeStyle = R('gold', 3); ctx.lineWidth = 1; ctx.setLineDash([4, 3]); ctx.stroke();
       ctx.restore();
     });
-    // a web on the floor (webSq: silk, not a stain)
-    (B.webs || []).forEach(function (wb) {
-      var has = {}; wb.sq.forEach(function (q) { has[q[0] + ',' + q[1]] = 1; });
-      wb.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], R('bone', 1), 0.07, 3); onSq(q[0], q[1], function (c) { webSq(c, B, q[0], q[1], has, !!wb.dc && !wb.ground); }); });
-    });
+    // a web's floor: its outline (the silk itself stands in the sort: webObjs)
+    webFloor(B);
     // a web burning (magic.js burnWebs: out the round it caught in): embers on the square
     (B.webFire || []).forEach(function (e) { if (e.round < B.round) return; e.sq.forEach(function (q) { var fl = 0.5 + 0.5 * Math.sin(B.t / 4 + q[0] * 2 + q[1]); fillSq(ctx, q[0], q[1], R('fire', 2), 0.18 + 0.14 * fl, 2); dotSq(q[0], q[1], (B.t >> 2) % 2 ? R('fire', 2) : R('gold', 4)); }); });
     // magical darkness, and the clouds that are heavily obscured like it: fog (pale), a stinking cloud (yellow-green), sleet (cold)
