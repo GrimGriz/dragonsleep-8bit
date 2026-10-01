@@ -2854,7 +2854,7 @@
    "target": "ally",
    "battle": true,
    "field": true,
-   "desc": "Ends poison, paralysis or blindness.",
+   "desc": "Ends poison, paralysis or blindness. On the grid it ends one thing, as the SRD has it: paralysis, the disease (Contagion, with its poison and blinding), blindness, poison or deafness -- a player picks where there is more than one, an NPC takes the worst. Not built: any other disease.",
    "src": "SRD 5.1 (Oath of Devotion oath spell, 5th level)",
    "id": "lesserrestoration"
   },
@@ -3296,7 +3296,7 @@
    "kind": "buff",
    "target": "ally",
    "grid": true,
-   "desc": "Cantrip. Touch yourself or an adjacent ally: +1d4 to one check to break free of a grip, web or vines; the spell ends once used. Concentration. Not built: any other ability check (hiding).",
+   "desc": "Cantrip. Touch yourself or an adjacent ally: +1d4 to one ability check, once -- breaking free of a grip, web or vines, or Hide (spent after the roll, when the d4 could turn a miss); the spell ends once used. Concentration. Not built: any other ability check (the grid rolls no others).",
    "src": "SRD 5.1 Guidance (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "guidance"
   },
@@ -3355,7 +3355,7 @@
    "kind": "buff",
    "target": "self",
    "grid": true,
-   "desc": "Bonus action, yourself. Concentration, 10 minutes. From your next turn, RETREAT DASH: a Dash as your bonus action each turn. Not built: the Dash on the turn you cast it.",
+   "desc": "Bonus action, yourself. Concentration, 10 minutes. Casting it gives you a Dash that turn, free (the cast is the bonus action): your speed again in movement. From your next turn, RETREAT DASH: a Dash as your bonus action each turn. Held fast or dancing, there is no move to add a Dash to. The AI casts it to close on a foe it cannot reach by the walk, and takes the bonus Dash to close or to get clear.",
    "src": "SRD 5.1 Expeditious Retreat (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "expeditiousretreat"
   },
@@ -3609,7 +3609,7 @@
    "kind": "buff",
    "target": "ally",
    "grid": true,
-   "desc": "Touch: Bear's Endurance only, 2d6 temporary hit points and advantage on CON checks (the grid rolls none yet). Concentration, up to an hour. Not built: the other five aspects, extra targets.",
+   "desc": "Touch, concentration, up to an hour: choose one of six aspects, advantage on checks of its ability -- Bear's Endurance (CON, and 2d6 temporary HP, lost when the spell ends), Bull's Strength (STR: tearing free of a web or grip), Cat's Grace (DEX: slipping a grip, Hide), Eagle's Splendor (CHA), Fox's Cunning (INT), Owl's Wisdom (WIS). A player picks from a list, Bear's first; an NPC takes Bull's Strength for one held or webbed, else Bear's. Not built: extra targets from a higher slot; doubled carrying capacity; Cat's Grace's no-damage fall (nothing falls on the grid); the CHA, INT, WIS and CON checks themselves (the grid rolls none).",
    "src": "SRD 5.1 Enhance Ability (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "enhanceability"
   },
@@ -4452,7 +4452,7 @@
    "kind": "buff",
    "target": "self",
    "grid": true,
-   "desc": "A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from. Only the grimoire's and walls' save spells are stopped. Not built: Fireball and other core spells, attack-roll spells.",
+   "desc": "A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from: save spells, spell attacks, darts, touches and cantrips alike (the card says so). Not built: the fog, ground and walls a spell leaves are not kept out of the globe; nothing weighs the globe when choosing a target, so a foe may waste a spell on it.",
    "src": "SRD 5.1 Globe of Invulnerability (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "globeofinvulnerability"
   },
@@ -4488,8 +4488,8 @@
    "save": "wis",
    "target": "enemy",
    "grid": true,
-   "desc": "A creature within 30 ft dances (concentration, 10 rounds), no first save: no movement, its attacks and DEX saves at disadvantage, attacks at it with advantage. Each turn its action is a WIS save to stop. Not built: choosing to attack instead.",
-   "src": "SRD 5.1 Irresistible Dance (the class NPCs, 09-28: deep16/js/grimoire.js)",
+   "desc": "A creature within 30 ft dances (concentration, 10 rounds), no first save: no movement, its attacks and DEX saves at disadvantage, attacks at it with advantage. Each turn its action may be a WIS save to stop: a player's dancer is asked at its turn's start (SHAKE IT OFF: the save, the action spent; or FIGHT ON: no save, the action kept, still no move and still at disadvantage); the AI always saves.",
+   "src": "SRD 5.1 Irresistible Dance (the class NPCs, 09-28; a player's dancer chooses, 10-01: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "irresistibledance"
   },

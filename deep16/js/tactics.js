@@ -471,9 +471,11 @@
     // nothing in reach: close on the nearest (a Dash if it has nothing at range)
     var near = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (!near) return;
-    var rm = G.reach(u, T.move + (T.action ? u.speed : 0));
+    var bd = TX.bonusDash(u); // (the bonus action's Dash, Expeditious Retreat's or the rogue's Cunning Action: taken before the action's, which may keep)
+    var rm = G.reach(u, T.move + (T.action ? u.speed : 0) + (bd ? u.speed : 0));
     var e = AI.approach(u, near, rm, G.reachOf(u));
-    if (e && T.action && e.cost > T.move && !u.conds.restrained) { T.action = 0; T.move += u.speed; B.card(['{g}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' dashes.{/}'], 160); }
+    if (e && bd && e.cost > T.move) yield* B.exec(u, { do: 'cdash' });
+    if (e && T.action && e.cost > T.move && !u.conds.restrained && !u.conds.dancing) { T.action = 0; T.move += u.speed; B.card(['{g}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' dashes.{/}'], 160); }
     if (e) yield* walk(B, u, e);
   }
   TX.act = act;
@@ -501,29 +503,58 @@
   }
   TX.fleeFear = function* (B, u) {
     var T = u.turn;
-    if (T.action && !u.conds.restrained) { T.action = 0; T.move += u.speed; }
+    if (T.action && !u.conds.restrained && !u.conds.dancing) { T.action = 0; T.move += u.speed; }
+    if (TX.bonusDash(u)) yield* B.exec(u, { do: 'cdash' }); // (the bonus action's Dash on top: it only runs farther -- Expeditious Retreat, Cunning Action)
     T.fleeFrom = u.conds.feared.by;
     B.card(['{p}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' runs from its fear.{/}'], 200);
     yield* M.flee(B, u);
   };
   // a caster, a bowman: after acting, off the front if it can be
   function* keepOff(B, u) {
-    var T = u.turn;
-    if (!T.move || u.conds.restrained) return;
+    var T = u.turn, retreat = function () { return TX.bonusDash(u) === 'Expeditious Retreat'; }; // (a rogue's Cunning Action has its own say, js/features.js: Disengage or Hide)
+    if ((!T.move && !retreat()) || u.conds.restrained) return;
     var ranged = (u.weapon && u.weapon.ranged) || TX.caster(u);
     if (!ranged && !T.disengaged) return; // (one who disengaged -- the rogue's Cunning Action, a goblin's -- steps back out of reach too)
     var fs = foesOf(B, u), pressed = G.foesNear(u, u.x, u.y, 5).length;
     if (!pressed) return;
     if (!T.disengaged && u.hp > u.maxhp * 0.6) return; // (not worth the swings at it while it is whole)
-    var rm = G.reach(u, T.move), pick = null, ps = -1e9;
-    Object.keys(rm).forEach(function (k) {
-      var e = rm[k]; if (!e.stand) return;
-      var n = G.foesNear(u, e.x, e.y, 5).length, sees = fs.some(function (t) { return G.los(u, t, e.x, e.y).clear; });
-      var s = -n * 20 + (sees ? 3 : 0) - e.cost / 10;
-      if (s > ps) { ps = s; pick = e; }
-    });
-    if (pick && G.foesNear(u, pick.x, pick.y, 5).length < pressed) yield* walk(B, u, pick);
+    var off = function () { // (the square within the walk left with the fewest foes beside it: only one that frees it of some)
+      var rm = G.reach(u, T.move), pick = null, ps = -1e9;
+      Object.keys(rm).forEach(function (k) {
+        var e = rm[k]; if (!e.stand) return;
+        var n = G.foesNear(u, e.x, e.y, 5).length, sees = fs.some(function (t) { return G.los(u, t, e.x, e.y).clear; });
+        var s = -n * 20 + (sees ? 3 : 0) - e.cost / 10;
+        if (s > ps) { ps = s; pick = e; }
+      });
+      return pick && G.foesNear(u, pick.x, pick.y, 5).length < pressed ? pick : null;
+    };
+    var pick = T.move ? off() : null;
+    if (!pick && retreat()) { yield* B.exec(u, { do: 'cdash' }); pick = off(); } // (no clear square on the walk left: the bonus action's Dash gives the feet -- Expeditious Retreat's)
+    if (pick) yield* walk(B, u, pick);
   }
+  // the bonus action's Dash (10-01). SRD 5.1, Expeditious Retreat: "When you cast this spell, and then as a bonus action on each of your turns until the spell
+  // ends, you can take the Dash action"; the rogue's Cunning Action (2): "Dash, Disengage, or Hide" as a bonus action. TX.bonusDash(u): the name of the Dash
+  // the bonus action buys this turn (battle.js `cdash` takes it), or '' where there is none. The AI takes it where it wants more distance: to close on a foe
+  // (TX.dashBuys, before the action), or to get clear (keepOff, fleeFear)
+  TX.bonusDash = function (u) {
+    var T = u.turn;
+    if (!T || !T.bonus || u.conds.restrained || u.conds.dancing || u.dead || u.hp <= 0) return ''; // (a dancer "must use all its movement to dance without leaving its space": no feet to add a Dash to)
+    if (T.bonusDash && u.conds.retreat) return 'Expeditious Retreat';
+    return u.cls === 'rogue' && u.lvl >= 2 ? 'Cunning Action' : '';
+  };
+  // what a Dash would buy now: nothing worth doing from here (no plan over the 0.5 the action's own bar is), and with a stride more of walk, a plan that is -- its
+  // score, or 0. (TX._dashing: a spell's `ai` that asks this, Expeditious Retreat's, is asked inside TX.plans -- it answers nothing while this is weighing)
+  TX.dashBuys = function (B, u) {
+    var T = u.turn;
+    if (TX._dashing || u.conds.restrained || u.conds.dancing || !(T.action || T.attacksLeft)) return 0;
+    var add = 0, best = 0;
+    TX._dashing = true;
+    try {
+      var p0 = TX.plans(B, u)[0];
+      if (!(p0 && p0.score > 0.5)) { T.move += u.speed; add = u.speed; var p1 = TX.plans(B, u)[0]; best = p1 && p1.score > 0.5 ? p1.score : 0; }
+    } finally { T.move -= add; TX._dashing = false; }
+    return best;
+  };
   TX.caster = function (u) { return (u.known || []).some(function (id) { var sp = M.data(id); return sp && sp.level === 0 && (sp.dmg || sp.kind === 'attack'); }) && !/fighter|barbarian|paladin|monk|rogue|ranger/.test(u.cls || ''); };
 
   // ------------------------------------------------------------------ the class's own moves: before the action, among the actions, after it
@@ -538,6 +569,11 @@
     var fs = foesOf(B, u), allies = alliesOf(B, u);
     var plans = spellPlans(B, u, fs, allies).filter(function (p) { return p.bonus; }).sort(function (a, b) { return b.score - a.score; });
     if (plans[0] && plans[0].score > 2) yield* plans[0].go();
+  });
+  // the Dash for the bonus action (Expeditious Retreat's, the rogue's Cunning Action): when nothing is worth doing from here and a plan is once the feet are doubled
+  TX.FIRST.push(function* (B, u) {
+    if (!TX.bonusDash(u) || !TX.dashBuys(B, u)) return;
+    yield* B.exec(u, { do: 'cdash' });
   });
   // Frenzy (the Berserker, 3): while raging, a swing for the bonus action
   TX.AFTER.push(function* (B, u) {

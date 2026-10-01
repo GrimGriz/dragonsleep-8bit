@@ -169,20 +169,6 @@
     B.partyMap = { k: k, v: out, w: m.w };
     return B.partyMap;
   };
-  // what ONE creature senses, square by square: 2 by blindsight or truesight (the bat familiar's sonar), 1 by darkvision, 0 nothing (the
-  // player's-turn filter on a dark map with no light: L.pass)
-  L.senseMap = function (B, u) {
-    var m = B.map, bs = Math.max(u.blindsight || 0, u.truesight || 0), dv = u.darkvision || 0;
-    var k = u.x + ',' + u.y + '|' + bs + '|' + dv;
-    if (B.senseMap && B.senseMap.k === k && B.senseMap.u === u) return B.senseMap;
-    var out = new Array(m.w * m.h);
-    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
-      var i = y * m.w + x, s = m.sq[i], d = G.dist(u, { x: x, y: y, size: 1 });
-      out[i] = !s.open ? 0 : d <= bs ? 2 : d <= dv && G.losPoint(u.x, u.y, x, y) ? 1 : 0;
-    }
-    B.senseMap = { k: k, u: u, v: out, w: m.w, bs: bs };
-    return B.senseMap;
-  };
   // what ONE of ours sees, square by square, light and all (10-01, Griz: "How about regardless of turn if you mouseover a party
   // member/guest/ally it switches to their vision filter ... it'd be cool if I could mouseover it and as a player see what the vision is like
   // for each party member"): 2 a lit square it has a line to, or within its blindsight or truesight; 1 dark but within its darkvision and
@@ -345,30 +331,90 @@
     });
     ctx.save();
     ctx.globalCompositeOperation = 'multiply'; ctx.drawImage(lit, 0, 0);
-    // whose eyes: the party's together, or the one of ours under the mouse (ui.js sets B.viewAs: L.viewMap), what it can't see darker
-    var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : null, pm = va ? L.viewMap(B, va) : L.partyMap(B);
+    // whose eyes: the party's together, or one of ours (L.viewMap), what it can't see darker. One of ours is the one under the mouse (ui.js
+    // sets B.viewAs), or, on a hero's own turn with no light anywhere (RULED 09-30, Griz: "when map = no light source and player turn, active
+    // player vision filter on dark map (i.e. bat familiar sonar sight filter unless light on map)"), the hero whose turn it is -- the same
+    // view either way (10-01b, Griz: "the hover should be the same. when you mouseover someone in your party you should see things how they
+    // do on their turn. the too much on her turn is still an active fix though")
+    var a = B.active, own = a && a.side === 'party' && !a.guest && G.standing(a) && !lights.length ? a : null;
+    var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : own, pm = va ? L.viewMap(B, va) : L.partyMap(B);
+    B.eyes = va; // (whose eyes these are: ui.js names them over the tooltip)
     ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#7c7c84';
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
     ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = va ? 'rgba(4,4,12,0.62)' : 'rgba(6,6,16,0.4)';
     for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2]) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
-    if (va) { ctx.restore(); return; } // (the hovered one's eyes are the whole filter: the turn's own sense pass below stays out)
-    // the hero's own senses (RULED 09-30, Griz: "when map = no light source and player turn, active player vision filter on dark map (i.e.
-    // bat familiar sonar sight filter unless light on map)"): on his turn, with no light anywhere, what he does not sense goes darker still
-    // (the player still sees it); darkvision's reach stays grey; blindsight's -- the bat's sonar -- is cool, with a ping running out from him
-    var a = B.active;
-    if (a && a.side === 'party' && !a.guest && G.standing(a) && !lights.length) {
-      var sm = L.senseMap(B, a), ping = sm.bs ? ((t % 48) / 48) * sm.bs : -99;
-      for (var y4 = 0; y4 < m.h; y4++) for (var x4 = 0; x4 < m.w; x4++) {
-        var i4 = y4 * m.w + x4, s4 = m.sq[i4], v4 = sm.v[i4]; if (!s4.open || v4 === 1) continue;
-        iso.rhombus(ctx, x4, y4, s4.gz, 0);
-        if (!v4) { ctx.fillStyle = 'rgba(2,2,10,0.5)'; ctx.fill(); continue; }
-        ctx.fillStyle = 'rgba(70,150,190,0.12)'; ctx.fill();
-        var d4 = G.dist(a, { x: x4, y: y4, size: 1 });
-        if (Math.abs(d4 - ping) <= 2.5) { ctx.strokeStyle = 'rgba(150,230,255,' + (0.7 * (1 - ping / (sm.bs + 5))).toFixed(2) + ')'; ctx.lineWidth = 1; ctx.stroke(); }
-      }
-    }
+    if (va) { if (va.sense === 'tongue') tongue(ctx, B, va, t, va.blindsight || 0, false); else sonar(ctx, B, va, t); if (va.senseHidden) tongue(ctx, B, va, t, va.senseHidden, true); }
     ctx.restore();
   };
+  // the tongue (10-01b, Griz: "Talk to me about the snake vs other familiars. Are we giving it's tongue-smell nearby detection like the bats?
+  // maybe similar to the sonar with orange highlight of the tiles only on the side/corners pointing at the snake"): the snake familiar's
+  // blindsight (SRD 5.1's poisonous snake: 10 ft) is its tongue -- each creature within it has the side of its square that faces the snake
+  // lit orange, or the corner where it stands on the diagonal, flicking: two quick flicks and a rest. Its caster's sense of the hidden and
+  // the unseen within 15 ft (the snake's perk, RULED 09-30: js/familiar.js) flicks the same, on the hidden and the invisible alone
+  var FLICK = { beat: 56, flicks: [[0, 5], [9, 14]] }; // (the beat in frames; each flick's first and last frame in it)
+  function tongue(ctx, B, u, t, reach, hiddenOnly) {
+    if (!reach) return;
+    var ph = (t + (u.id || '').length * 11) % FLICK.beat, k = 0;
+    FLICK.flicks.forEach(function (f) { if (ph >= f[0] && ph < f[1]) k = 1 - 0.5 * (ph - f[0]) / (f[1] - f[0]); });
+    if (!k) return;
+    var m = B.map, iso = D.iso, o = ((u.size || 1) - 1) / 2, cx = u.x + o, cy = u.y + o;
+    B.units.forEach(function (w) {
+      if (w === u || w.left || w.unseen || w.riding || !G.standing(w) || G.dist(u, w) > reach) return;
+      if (hiddenOnly && !(w.conds.hidden || w.conds.invisible)) return;
+      var foot = G.foot(w), near = Math.min.apply(null, foot.map(function (q) { return Math.max(Math.abs(cx - q[0]), Math.abs(cy - q[1])); }));
+      foot.forEach(function (q) {
+        var s = m.sq[q[1] * m.w + q[0]], dx = cx - q[0], dy = cy - q[1], ax = Math.abs(dx), ay = Math.abs(dy), sx = Math.sign(dx), sy = Math.sign(dy), seg = [];
+        if (!s || (!ax && !ay) || Math.max(ax, ay) > near + 0.01) return; // (the squares of it nearest the snake; none under the snake itself)
+        if (ax > ay + 0.01) seg.push([sx * 0.5, -0.5, sx * 0.5, 0.5]); // the side toward it
+        else if (ay > ax + 0.01) seg.push([-0.5, sy * 0.5, 0.5, sy * 0.5]);
+        else seg.push([sx * 0.5, sy * 0.5, sx * 0.5, sy * 0.05], [sx * 0.5, sy * 0.5, sx * 0.05, sy * 0.5]); // the corner toward it
+        seg.forEach(function (g) {
+          var p = iso.center(q[0] + g[0], q[1] + g[1], s.gz), p2 = iso.center(q[0] + g[2], q[1] + g[3], s.gz), a = iso.toScreen(p.x, p.y), b = iso.toScreen(p2.x, p2.y);
+          ctx.beginPath(); ctx.moveTo(a.x + 0.5, a.y + 0.5); ctx.lineTo(b.x + 0.5, b.y + 0.5);
+          ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,120,30,' + (0.3 * k).toFixed(2) + ')'; ctx.stroke(); // (a warm glow under the line)
+          ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,184,90,' + (0.95 * k).toFixed(2) + ')'; ctx.stroke();
+        });
+      });
+    });
+  }
+  // the sonar (Griz, 09-30: "if we wanna try something fancy with the sonar like that, it'd have to be only on the npcs and party around her -
+  // or glimmers on the tiles their on if that's too much"; 10-01b, seeing the glimmers: "can we keep the highlight in the sonar pulse fashion
+  // that previously existed, it was cool, just too much ... rather than whole-square highlights we could shift to highlight lines that run
+  // the tile away from the active vision character"): the 09-30 ping runs out from the one whose eyes these are -- its front a square about
+  // it, as the grid counts distance -- and is drawn only where it crosses a creature its blindsight finds: a bright line running across that
+  // creature's squares, away from the one sensing, a fainter echo behind it. No tint, no ring over the bare floor
+  var PING = { perTile: 7, rest: 18, echo: 0.3 }; // (frames to cross a square; a rest between pings; the echo's lag, in squares)
+  function sonar(ctx, B, u, t) {
+    var bs = u.blindsight || 0, m = B.map, iso = D.iso;
+    if (!bs) return;
+    var o = ((u.size || 1) - 1) / 2, cx = u.x + o, cy = u.y + o, reach = bs / 5 + 0.5;
+    var beat = Math.ceil(reach * PING.perTile) + PING.rest, front = o + 0.5 + (t % beat) / PING.perTile; // (the front's distance from her middle, in squares: out from her own edge)
+    // where the front -- max(|du|, |dv|) = R about her middle -- crosses the square dx, dy from her middle: one segment, or an L at a corner
+    function cross(R, dx, dy) {
+      var out = [];
+      [-1, 1].forEach(function (sg) {
+        var U = sg * R, a = Math.max(dy - 0.5, -R), b = Math.min(dy + 0.5, R);
+        if (U >= dx - 0.5 && U <= dx + 0.5 && a < b) out.push([U, a, U, b]);
+        var V = sg * R, a2 = Math.max(dx - 0.5, -R), b2 = Math.min(dx + 0.5, R);
+        if (V >= dy - 0.5 && V <= dy + 0.5 && a2 < b2) out.push([a2, V, b2, V]);
+      });
+      return out;
+    }
+    ctx.lineWidth = 1;
+    B.units.forEach(function (w) {
+      if (w === u || w.left || w.unseen || w.riding || !G.standing(w) || G.dist(u, w) > bs) return;
+      G.foot(w).forEach(function (q) {
+        var s = m.sq[q[1] * m.w + q[0]]; if (!s) return;
+        [0, PING.echo].forEach(function (lag) {
+          var R = front - lag, fade = Math.max(0, 1 - (R - o) / (reach + 1)) * (lag ? 0.4 : 0.9);
+          cross(R, q[0] - cx, q[1] - cy).forEach(function (sg) {
+            var p = iso.center(cx + sg[0], cy + sg[1], s.gz), p2 = iso.center(cx + sg[2], cy + sg[3], s.gz), a = iso.toScreen(p.x, p.y), b = iso.toScreen(p2.x, p2.y);
+            ctx.strokeStyle = 'rgba(160,232,255,' + fade.toFixed(2) + ')'; ctx.beginPath(); ctx.moveTo(a.x + 0.5, a.y + 0.5); ctx.lineTo(b.x + 0.5, b.y + 0.5); ctx.stroke();
+          });
+        });
+      });
+    });
+  }
   // the lights that stand on the floor, drawn in the sort: a dropped torch, Dancing Lights, a Daylight set at a point
   L.props = function (B) {
     return (B.lights || []).filter(function (l) { return l.kind === 'torch' || l.kind === 'lantern' || l.kind === 'dance' || l.kind === 'daylight'; }).map(function (l) {

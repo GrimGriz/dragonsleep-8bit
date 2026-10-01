@@ -181,7 +181,7 @@
     var stop = false;
     M.groundAt(B, u.x, u.y).forEach(function (g) {
       if (g.kind === 'grease' && !u.conds.prone && slip(B, u, g, 'steps onto the grease')) stop = true;
-      if (g.kind === 'spikes') { var r = D.roll('2d4'); FX.float('spikes', u, D.PAL.ramps.moss[3]); B.card([Nm(B, u) + ' in the spikes: 2d4 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} piercing'], 160); B.hurt(u, r.total, 'piercing'); }
+      if (g.kind === 'spikes') { var r = D.roll('2d4'); FX.float('spikes', u, D.PAL.ramps.moss[2]); B.card([Nm(B, u) + ' in the spikes: 2d4 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} piercing'], 160); B.hurt(u, r.total, 'piercing'); }
     });
     guardians(B, u, 'comes');
     return stop || u.hp <= 0;
@@ -300,20 +300,27 @@
     }
   };
   E.guidance = {
-    summary: function () { return 'touch · +1d4 to one check to break free of a grip, web or vines (concentration); the die once, then the spell ends'; },
-    cast: function* (B, u, t, slot, head) { t.conds.guidance = { by: u.id }; M.concentrate(B, u, 'guidance', 'Guidance', function () { delete t.conds.guidance; }); B.card([head + ' on ' + t.name + ': {c}+1d4{/} to its next check to break free.']); yield 20; },
+    summary: function () { return 'touch · +1d4 to one ability check: breaking free of a grip, web or vines, or Hide (concentration); the die once, then the spell ends'; },
+    cast: function* (B, u, t, slot, head) { t.conds.guidance = { by: u.id }; M.concentrate(B, u, 'guidance', 'Guidance', function () { delete t.conds.guidance; }); B.card([head + ' on ' + t.name + ': {c}+1d4{/} to its next ability check.']); yield 20; },
     ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 5 && w.conds.restrained && !w.conds.guidance; })[0]; return t ? { score: 2, t: t, keep: 1 } : null; }
   };
-  // the die is one check's (SRD 5.1: "The spell then ends"): magic.js breakFree rolls it into the break-free check; here it is spent --
-  // the condition goes, and the caster's concentration with it
-  var breakFree0 = M.breakFree;
-  M.breakFree = function* (B, u) {
+  // the die is one check's (SRD 5.1: "add the number rolled to one ability check of its choice. It can roll the die before or after making the
+  // ability check. The spell then ends"): magic.js breakFree rolls it into the break-free check; here it is spent -- the condition goes, and the
+  // caster's concentration with it. The grid's checks that read it: the break-free (before the roll) and Hide (battle.js: after the roll, when
+  // the d4 could turn a miss -- M.spendGuidance rolls and spends it)
+  function endGuidance(B, u) {
     var g = u.conds.guidance;
-    yield* breakFree0.apply(this, arguments);
     if (!g) return;
     var by = B.units.filter(function (w) { return w.id === g.by; })[0];
     if (by && by.conc && by.conc.id === 'guidance') M.endConc(B, by, 'the die is spent'); else delete u.conds.guidance;
     delete u.conds.guidance;
+  }
+  M.spendGuidance = function (B, u) { if (!u.conds.guidance) return 0; var d = D.d(4); endGuidance(B, u); return d; };
+  var breakFree0 = M.breakFree;
+  M.breakFree = function* (B, u) {
+    var g = u.conds.guidance;
+    yield* breakFree0.apply(this, arguments);
+    if (g) endGuidance(B, u);
   };
 
   // ------------------------------------------------------------------ 1st level
@@ -382,8 +389,11 @@
   };
   E.expeditiousretreat = {
     summary: function () { return 'bonus action · Dash as a bonus action each turn (concentration)'; },
-    cast: function* (B, u, t, slot, head) { u.conds.retreat = { by: u.id }; u.turn.bonusDash = true; M.concentrate(B, u, 'expeditiousretreat', 'Expeditious Retreat', function () { delete u.conds.retreat; }); B.card([head + ': quick feet (a Dash each turn as a bonus action).']); yield 16; },
-    ai: function () { return null; }
+    // SRD 5.1: "When you cast this spell, and then as a bonus action on each of your turns until the spell ends, you can take the Dash action." The cast
+    // is the bonus action, so the Dash that comes with it is free: this turn's feet doubled now (10-01); T.bonusDash is the turns after (battle.js RETREAT DASH)
+    cast: function* (B, u, t, slot, head) { u.conds.retreat = { by: u.id }; u.turn.bonusDash = true; M.concentrate(B, u, 'expeditiousretreat', 'Expeditious Retreat', function () { delete u.conds.retreat; }); var run = u.conds.restrained || u.conds.dancing ? 0 : u.speed; u.turn.move += run; B.card([head + ': quick feet (a Dash each turn as a bonus action).', run ? '  {c}+' + run + ' ft{/} now: the Dash that comes with the cast.' : '  {g}' + (u.conds.dancing ? 'Dancing in place: no move to add a Dash to.' : 'Held fast: the Dash adds a speed of 0.') + '{/}']); yield 16; },
+    // the AI casts it to close on a foe it could not reach by the walk (js/tactics.js TX.dashBuys: nothing worth doing from here, a plan once the Dash is in); never over a concentration it holds
+    ai: function (B, u, e, slot, fs) { if (u.conc || u.conds.retreat || TX()._dashing) return null; var s = TX().dashBuys(B, u); return s > 0 ? { score: s, t: u, keep: 2.5 } : null; }
   };
   E.falselife = {
     summary: function (e) { return 'yourself · 1d4+' + (4 + 5 * Math.max(0, e.slot - 1)) + ' temporary HP'; },
@@ -584,9 +594,35 @@
     cast: function* (B, u, t, slot, head, x) { u.conds.branding = { dice: more('2d6', up(x.sp, slot)) }; M.concentrate(B, u, 'brandingsmite', 'Branding Smite', function () { delete u.conds.branding; B.units.forEach(function (w) { if (w.conds.branded && w.conds.branded.by === u.id) delete w.conds.branded; }); }); FX.sparkle(u, 'gold', 14); B.card([head + ': the blade takes a waiting light.']); yield 16; },
     ai: function (B, u, e, slot, fs) { if (u.conc || !fs.some(function (t) { return G.dist(u, t) <= u.turn.move + 5; })) return null; return { score: 7 * 0.65 + (fs.some(function (t) { return t.conds.invisible; }) ? 5 : 0), t: u, keep: 3 }; }
   };
+  var ASPECTS = [
+    { abil: 'con', label: 'BEAR\'S ENDURANCE  (2d6 temp HP, CON checks)', say: 'the bear\'s endurance' },
+    { abil: 'str', label: 'BULL\'S STRENGTH  (STR checks)', say: 'the bull\'s strength' },
+    { abil: 'dex', label: 'CAT\'S GRACE  (DEX checks)', say: 'the cat\'s grace' },
+    { abil: 'cha', label: 'EAGLE\'S SPLENDOR  (CHA checks)', say: 'the eagle\'s splendor' },
+    { abil: 'int', label: 'FOX\'S CUNNING  (INT checks)', say: 'the fox\'s cunning' },
+    { abil: 'wis', label: 'OWL\'S WISDOM  (WIS checks)', say: 'the owl\'s wisdom' }
+  ];
   E.enhanceability = {
-    summary: function () { return 'touch · Bear\'s Endurance: 2d6 temporary HP, advantage on CON checks (concentration)'; },
-    cast: function* (B, u, t, slot, head) { var r = D.roll('2d6'); t.temp = Math.max(t.temp || 0, r.total); t.conds.enhanced = { by: u.id, abil: 'con' }; M.concentrate(B, u, 'enhanceability', 'Enhance Ability', function () { delete t.conds.enhanced; }); FX.sparkle(t, 'gold', 14); B.card([head + ' on ' + t.name + ': the bear\'s endurance -- {c}' + r.total + ' temporary HP{/} (concentration).']); yield 20; },
+    summary: function () { return 'touch · you choose: Bear\'s Endurance (2d6 temporary HP, CON checks), Bull\'s Strength (STR), Cat\'s Grace (DEX), Eagle\'s Splendor (CHA), Fox\'s Cunning (INT) or Owl\'s Wisdom (WIS) -- advantage on checks of that ability (concentration)'; },
+    // the six aspects (SRD 5.1: "Choose one of the following effects"), Bear's first -- the benches take a prompt's first option. `abil` is the ability
+    // the creature has advantage on checks of (rules.js RU.checkEdges reads conds.enhanced.abil). The grid rolls only STR/DEX checks (the break-free of a
+    // grip or web, Hide): the CHA, INT and WIS aspects have nothing to act on yet, and nothing falls here for Cat's Grace
+    cast: function* (B, u, t, slot, head, x) {
+      var abil = x && x.abil;
+      if (!abil) abil = (u.side !== 'party' || u.guest) ? E.enhanceability.pick(B, u, t) : yield { prompt: { who: u, title: u.name + ': ENHANCE ABILITY', lines: ['Which aspect does ' + nm(B, t) + ' take? Advantage on checks of its ability, until the spell ends.'], opts: ASPECTS.map(function (a) { return { label: a.label, value: a.abil }; }) } };
+      var a = ASPECTS.filter(function (s) { return s.abil === abil; })[0] || ASPECTS[0], rec = { by: u.id, abil: a.abil }, r = a.abil === 'con' ? D.roll('2d6') : null;
+      if (r && r.total > (t.temp || 0)) { t.temp = r.total; rec.temp = r.total; } // (the temporary HP do not stack: the higher stands)
+      t.conds.enhanced = rec;
+      M.concentrate(B, u, 'enhanceability', 'Enhance Ability', function () { if (t.conds.enhanced === rec) delete t.conds.enhanced; if (rec.temp) t.temp = 0; }); // (SRD: the temporary HP "are lost when the spell ends")
+      FX.sparkle(t, 'gold', 14);
+      B.card([head + ' on ' + t.name + ': ' + a.say + ' -- {c}' + (r ? r.total + ' temporary HP{/} and advantage on CON checks' : 'advantage on ' + a.abil.toUpperCase() + ' checks{/}') + ' (concentration).']); yield 20;
+    },
+    // an NPC's choice: Bull's Strength for one who grapples or is held or webbed (the break-free is a STR check), Cat's Grace for one in a grip it would slip with DEX; else Bear's
+    pick: function (B, u, t) {
+      var r = t.conds.restrained;
+      if (r) return (r.grapple || r.kind === 'tentacles') && t.abil && D.mod(t.abil.dex) > D.mod(t.abil.str) ? 'dex' : 'str';
+      return (t.holding || []).length ? 'str' : 'con';
+    },
     ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 5 && !(w.temp > 0); }).sort(function (a, b) { return foesAt(B, b) - foesAt(B, a); })[0]; return t ? { score: 7 * 0.8, t: t, keep: 1 } : null; }
   };
   function foesAt(B, w) { return B.units.filter(function (x) { return G.hostile(w, x) && G.standing(x) && G.dist(w, x) <= 10; }).length; }
@@ -1635,7 +1671,7 @@
   };
   // Globe of Invulnerability (SRD 5.1): a 10-ft globe about the caster; a spell of 5th level or lower cast from outside does nothing to those in it
   E.globeofinvulnerability = {
-    summary: function (e) { return 'a 10-ft globe about you, fixed where cast · a spell of ' + (5 + Math.max(0, (e.slot || 6) - 6)) + 'th level or lower, even cast from a higher slot, does nothing to those inside -- most that ask a save; not Fireball and the old core spells, nor an attack roll (concentration)'; },
+    summary: function (e) { return 'a 10-ft globe about you, fixed where cast · a spell of ' + (5 + Math.max(0, (e.slot || 6) - 6)) + 'th level or lower, even cast from a higher slot, does nothing to those inside, cast from outside it -- a save, an attack roll, a dart, a touch, a cantrip (the fog and walls it leaves are not kept out) (concentration)'; },
     cast: function* (B, u, t, slot, head) { var rec = { by: u.id, x: u.x, y: u.y, max: 5 + up({ level: 6 }, slot) }; B.globes = (B.globes || []).concat([rec]); M.concentrate(B, u, 'globeofinvulnerability', 'Globe of Invulnerability', function () { B.globes = (B.globes || []).filter(function (g) { return g !== rec; }); }); FX.ring(u, 'glow', 50); B.card([head + ': a shimmering globe about ' + u.name + ' (concentration).']); yield 20; },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; var casters = fs.filter(function (w) { return (w.known || []).length && (w.slots || []).some(function (n) { return n > 0; }); }); return casters.length ? { score: casters.length * 10, t: u } : null; }
   };
@@ -1654,12 +1690,33 @@
   };
   // Irresistible Dance (SRD 5.1): no first save. "A dancing creature must use all its movement to dance without leaving its space and has disadvantage
   // on Dexterity saving throws and attack rolls... other creatures have advantage on attack rolls against it. As an action, a dancing creature makes a
-  // Wisdom saving throw to regain control of itself." Here: the turn's move is gone and its action goes on that save (M.onStart below -- it always
-  // spends it: it has no better use of it); the edges ride on conds.dancing (RU.edges and RU.saveDis, just after)
+  // Wisdom saving throw to regain control of itself." Here: the turn's move is gone and the save is its action's (M.onStart below). The AI always spends
+  // the action on it: it has no better use of it. A PLAYER's dancer is asked, at its turn's start (M.danceAsk, heroTurn asks it; 10-01, Griz, asked
+  // "give a player's dancer that choice (a prompt: SHAKE IT OFF (WIS save) / FIGHT ON), or keep the save automatic?": "agree, player choice, ai takes
+  // irresistible seriously ;)"): SHAKE IT OFF is the save and the action spent; FIGHT ON is no save and the action kept -- it still can't move and
+  // keeps its disadvantage. The edges ride on conds.dancing (RU.edges and RU.saveDis, just after)
   E.irresistibledance = {
-    summary: function () { return 'a creature within 30 ft · no first save: it dances in place -- no movement, its attacks and DEX saves at disadvantage, attacks at it with advantage; its action each turn is a WIS save to stop (concentration)'; },
+    summary: function () { return 'a creature within 30 ft · no first save: it dances in place -- no movement, its attacks and DEX saves at disadvantage, attacks at it with advantage; its action each turn may be a WIS save to stop (a player asked: shake it off, or fight on; the AI always saves) (concentration)'; },
     cast: function* (B, u, t, slot, head, x) { if (t.type === 'undead' || RU.immuneTo(t, 'charmed', u)) { B.card([head + ': ' + nm(B, t) + ' is proof against it.']); yield 16; return; } t.conds.dancing = { dc: x.dc, by: u.id }; M.concentrate(B, u, 'irresistibledance', 'Irresistible Dance', function () { delete t.conds.dancing; }); FX.sparkle(t, 'gold', 20); B.card([head + ': ' + nm(B, t) + ' begins to dance.']); yield 20; },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; var t = fs.filter(function (w) { return M.targetOK(B, u, Object.assign({}, e.g, { side: 'foe' }), w) && w.type !== 'undead'; }).sort(function (a, b) { return TX().dpr(b) - TX().dpr(a); })[0]; return t ? { score: TX().dpr(t) * 2.5, t: t, keep: TX().dpr(t) * 1.5 } : null; }
+  };
+  // the dance's save (SRD 5.1: "As an action, a dancing creature makes a Wisdom saving throw to regain control of itself"): the action is spent on it, a
+  // WIS save against the caster's DC; a pass ends the spell (its caster's concentration, or the condition alone if the caster is gone)
+  M.danceSave = function (B, u) {
+    var dn = u.conds.dancing; if (!dn || !u.turn) return;
+    u.turn.action = 0; u.turn.attacksLeft = 0;
+    var s3 = RU.save(u, 'wis', dn.dc), by3 = B.units.filter(function (w) { return w.id === dn.by; })[0];
+    B.card([Nm(B, u) + ' dances in place, and spends ' + (u.side === 'party' && !u.guest ? 'the' : 'its') + ' action on the save: WIS ' + RU.saveText(s3) + ' vs DC ' + dn.dc + '  ' + (s3.ok ? '{n}IT REGAINS CONTROL{/}' : '{g}still dancing{/}')], 240);
+    if (s3.ok) { if (by3 && by3.conc && by3.conc.id === 'irresistibledance') M.endConc(B, by3, 'it broke free'); else delete u.conds.dancing; }
+  };
+  // a player's dancer, at its turn's start (battle.js heroTurn): the save is an action it MAY take. 1 SHAKE IT OFF first (the benches answer every prompt
+  // with the first option), 2 FIGHT ON: no save, the action kept -- it still can't move, and keeps its disadvantage
+  M.danceAsk = function* (B, u) {
+    var dn = u.conds.dancing; if (u.turn) u.turn.danceAsk = false;
+    if (!dn || !u.turn || u.hp <= 0 || u.dead) return;
+    var shake = yield { prompt: { who: u, title: u.name + ': IRRESISTIBLE DANCE', lines: ['No move; attacks and DEX saves at disadvantage; attacks at you have advantage.', 'WIS DC ' + dn.dc + ' as your action to regain control, or keep the action and dance on.'], opts: [{ label: 'SHAKE IT OFF (WIS save, your action)', value: true }, { label: 'FIGHT ON (keep the action, dance on)', value: false }] } };
+    if (shake) M.danceSave(B, u);
+    else B.card([u.name + ' dances in place and fights on: {g}no save, the action kept.{/}'], 200);
   };
   // the dance's edges, and Eyebite's sickness on a check: rules.js asks here. Attack rolls (RU.edges): the dancer at disadvantage, everyone else at
   // it with advantage. DEX saves (RU.saveDis): traits.js sets that hook after this file loads, so the setter keeps whatever it is given and the
@@ -1860,13 +1917,13 @@
   var onStartE = M.onStart;
   M.onStart = function (B, u) {
     onStartE(B, u);
-    // Irresistible Dance: all its movement goes to the dance, its action to the save that might end it (SRD 5.1)
+    // Irresistible Dance: all its movement goes to the dance (SRD 5.1), and the action to the save that might end it. The AI's dancer always spends it
+    // (M.danceSave); a player's keeps the action whole until it is asked, at the top of its turn (M.danceAsk: battle.js heroTurn reads turn.danceAsk)
     var dn = u.conds.dancing;
     if (dn && u.hp > 0 && !u.dead && u.turn) {
-      u.turn.move = 0; u.turn.action = 0; u.turn.attacksLeft = 0;
-      var s3 = RU.save(u, 'wis', dn.dc), by3 = B.units.filter(function (w) { return w.id === dn.by; })[0];
-      B.card([Nm(B, u) + ' dances in place, and spends its action on the save: WIS ' + RU.saveText(s3) + ' vs DC ' + dn.dc + '  ' + (s3.ok ? '{n}IT REGAINS CONTROL{/}' : '{g}still dancing{/}')], 240);
-      if (s3.ok) { if (by3 && by3.conc && by3.conc.id === 'irresistibledance') M.endConc(B, by3, 'it broke free'); else delete u.conds.dancing; }
+      u.turn.move = 0;
+      if (u.side === 'party' && !u.guest) u.turn.danceAsk = true;
+      else M.danceSave(B, u);
     }
     if (u.conds.regenerating && u.hp > 0 && u.hp < u.maxhp) u.hp++;
     (B.beads || []).forEach(function (b) { if (b.by === u.id && b.grown < 10) b.grown++; });

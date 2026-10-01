@@ -197,7 +197,7 @@
   // (a damage save, where `against` would also wake Dark One's Own Luck) passes RU.vsPoison(w) as the save's `adv0` when the harm is poison
   RU.vsPoison = function (u) { return !!(u && u.conds && u.conds.poisonWard); };
   // advantage and disadvantage on an ability check of `abil` (SRD 5.1), each with its reason: Enhance Ability (conds.enhanced.abil is the aspect's
-  // ability -- the grimoire's cast sets none and is Bear's Endurance, so CON) and Heat Metal's burning armour (disAt '*': every attack roll
+  // ability, the one the caster chose among the six -- con, str, dex, cha, int, wis; a record with none is Bear's Endurance, so CON) and Heat Metal's burning armour (disAt '*': every attack roll
   // and ability check). The grid's checks: a web's or a grip's break-free (js/magic.js breakFree) and Hide (js/battle.js)
   RU.checkEdges = function (u, abil) {
     var c = (u && u.conds) || {}, adv = [], dis = [];

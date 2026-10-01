@@ -223,7 +223,7 @@
   // the Dash: a foe out of reach by the walk this turn, and in reach by the walk and the Dash -- the ki for the bonus action, and the action to strike
   TX.FIRST.push(function* (B, u) {
     var T = u.turn;
-    if (u.cls !== 'monk' || u.lvl < 2 || !T.bonus || !feat(u, 'ki') || u.conds.restrained || u.conds.incapacitated || (u.side === 'party' && !u.guest)) return;
+    if (u.cls !== 'monk' || u.lvl < 2 || !T.bonus || !feat(u, 'ki') || u.conds.restrained || u.conds.dancing || u.conds.incapacitated || (u.side === 'party' && !u.guest)) return; // (a dancer's move is all the dance: no Dash to add to it)
     var fs = TX.foesOf(B, u); if (!fs.length) return;
     // (a thrown weapon from where the walk leaves it is a swing too: the dagger's 60 ft -- then the ki stays)
     var thrown = u.alt && u.alt.ranged && !u.conds.disarmed ? u.alt.range[1] : 0;
@@ -822,7 +822,7 @@
       var kiOk = T.bonus > 0 && feat(u, 'ki') && !u.conds.incapacitated, kiWhy = !feat(u, 'ki') ? 'no ki left (a short rest brings it back)' : 'the bonus action is spent', kiLeft = ((u.feats && u.feats.ki) || 0) + ' ki left';
       out.push({ id: 'patient', label: 'PATIENT DEFENSE', cost: 'B', icon: 'dodge', skill: true, ok: kiOk && !u.conds.dodge, why: u.conds.dodge ? 'dodging already' : kiWhy, note: '1 ki: the Dodge as a bonus action; ' + kiLeft });
       out.push({ id: 'stepdisengage', label: 'STEP: DISENGAGE', cost: 'B', icon: 'disengage', skill: true, ok: kiOk && !T.disengaged, why: T.disengaged ? 'disengaged already' : kiWhy, note: 'Step of the Wind, 1 ki: leaving reach provokes nothing this turn; ' + kiLeft });
-      out.push({ id: 'stepdash', label: 'STEP: DASH', cost: 'B', icon: 'dash', skill: true, ok: kiOk && !u.conds.restrained, why: u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : kiWhy, note: 'Step of the Wind, 1 ki: +' + u.speed + ' ft this turn; ' + kiLeft });
+      out.push({ id: 'stepdash', label: 'STEP: DASH', cost: 'B', icon: 'dash', skill: true, ok: kiOk && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : kiWhy, note: 'Step of the Wind, 1 ki: +' + u.speed + ' ft this turn; ' + kiLeft });
     }
     // the player's monk (RULED 09-30, Griz: "yes please"): after the Attack action, the bonus action's strikes -- Flurry of Blows (2, 1 ki, two
     // unarmed strikes) or Martial Arts' one without ki -- and Wholeness of Body (the Open Hand's 6: an action, three times its level in HP, a long rest)

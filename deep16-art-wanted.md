@@ -11,20 +11,22 @@ how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop wha
 
 ## IN HAND (on the grid; don't regenerate)
 
-| creature | sheets | cut by | in since |
-|---|---|---|---|
-| the chuul | 2 | `tools/chuul-sheet.py` | 09-27 |
-| the crawler (the Warrens' herd) | 1 | `tools/crawler-sheet.py` | 09-27 |
-| the gnolls (and the Snoot's glory-seekers) | 2 | `tools/gnoll-sheet.py` | 09-28 |
-| the cloaker (and its close-up) | 3 | `tools/cloaker-sheet.py` | 09-29 |
-| the ettercap | 3: the third is the sitting-and-braiding idle, 09-30 (on the grid it braids till it acts or is hurt; on the 8-bit map it sits braiding at the strung end of Web Gulch) | `tools/ettercap-sheet.py` | 09-29, 09-30 |
-| **the otyugh -- the landlord** | 1 | `tools/otyugh-sheet.py` | 09-29 |
-| the hyena | 2: the second gives the ROFL row (Hideous Laughter) | `tools/hyena-sheet.py` | 09-29, 09-30 |
-| the bulette | 2 | `tools/bulette-sheet.py` | 09-29 |
-| the owls, brown and snowy (Find Familiar) | 2 each | `tools/owl-sheet.py` | 09-29 |
-| the giant boar | 1 of 2 ("WILD BOAR ... (1/2) - MOVEMENT & CORE"; it replaces the stand-in bull that charged backwards) | `tools/boar-sheet.py` | 09-30 |
-| **the landlord's five pictures** (the Wet's telepathy: the bucket, the fall, the crook, the clackers, the chimney) | 5 stills, his from `dev/visions/` | `tools/visions.py` | 10-01 |
-| **the clacker** (the realm's hook horror; the Q2 head below) | 2 from Grok (`clacker_grok_2`: idle, walk, clack, hurt, death, the turnaround; `clacker_grok_3`: the hook that replaces the sheet's own). The first, GPT's, retired: "they 'hook' with their noses by the noses growing :) also their arms are all akilter" | `tools/clacker-sheet.py` | 10-01 |
+| creature | sheets | cut by | in since | prone |
+|---|---|---|---|---|
+| the chuul | 2 | `tools/chuul-sheet.py` | 09-27 | someday |
+| the crawler (the Warrens' herd) | 1 | `tools/crawler-sheet.py` | 09-27 | someday |
+| the gnolls (and the Snoot's glory-seekers) | 2 | `tools/gnoll-sheet.py` | 09-28 | someday |
+| the cloaker (and its close-up) | 3 | `tools/cloaker-sheet.py` | 09-29 | -- (it flies) |
+| the ettercap | 3: the third is the sitting-and-braiding idle, 09-30 (on the grid it braids till it acts or is hurt; on the 8-bit map it sits braiding at the strung end of Web Gulch) | `tools/ettercap-sheet.py` | 09-29, 09-30 | someday |
+| **the otyugh -- the landlord** | 1 | `tools/otyugh-sheet.py` | 09-29 | someday |
+| the hyena | 2: the second gives the ROFL row (Hideous Laughter) | `tools/hyena-sheet.py` | 09-29, 09-30 | the ROFL row, while it laughs; else someday |
+| the bulette | 2 | `tools/bulette-sheet.py` | 09-29 | someday |
+| the owls, brown and snowy (Find Familiar) | 2 each | `tools/owl-sheet.py` | 09-29 | someday |
+| the giant boar | 1 of 2 ("WILD BOAR ... (1/2) - MOVEMENT & CORE"; it replaces the stand-in bull that charged backwards) | `tools/boar-sheet.py` | 09-30 | someday |
+| **the landlord's five pictures** (the Wet's telepathy: the bucket, the fall, the crook, the clackers, the chimney) | 5 stills, his from `dev/visions/` | `tools/visions.py` | 10-01 | -- |
+| **the clacker** (the realm's hook horror; the Q2 head below) | 2 from Grok (`clacker_grok_2`: idle, walk, clack, hurt, death, the turnaround; `clacker_grok_3`: the hook that replaces the sheet's own). The first, GPT's, retired: "they 'hook' with their noses by the noses growing :) also their arms are all akilter" | `tools/clacker-sheet.py` | 10-01 | someday |
+
+**Prone (10-01b).** Griz: *"Seems like we don't have prone for all the pretty characters we've made (and I guess we'd need at least 1 other frame for getting up from prone)"* -- *"The column for 'art someday' is appropriate if not and in other/monster cases."* The LPC figures (the heroes, Ingrith, the guests, every class NPC: the `_p0` sheets) have it already: their fall row's frame before last, on hands and knees, held while prone, and the row played back to get up (`deep16/js/sprites.js` S.proneFrame). The generated sheets' death rows end dead, so they stand while prone until a sheet brings a row for it; the Blender stand-ins (`_p1`) wait for their generated sheets. When a sheet for one of these is made again, or a new head is written, add this row to it: *"PRONE: knocked flat but alive and struggling, 2 frames: lying on the ground, then pushing itself up."* A sheet that brings it is cut into `S.PRONE` (one line) and the column says so.
 
 Still wanted below: seven creatures (the roper first).
 

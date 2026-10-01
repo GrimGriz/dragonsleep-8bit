@@ -117,7 +117,7 @@ This spell's damage increases by 1d10 when you reach 5th level (2d10), 11th leve
 
 *Divination cantrip*
 
-> **The game:** Cantrip. Touch yourself or an adjacent ally: +1d4 to one check to break free of a grip, web or vines; the spell ends once used. Concentration. Not built: any other ability check (hiding).
+> **The game:** Cantrip. Touch yourself or an adjacent ally: +1d4 to one ability check, once -- breaking free of a grip, web or vines, or Hide (spent after the roll, when the d4 could turn a miss); the spell ends once used. Concentration. Not built: any other ability check (the grid rolls no others).
 
 **Casting Time:** 1 action
 

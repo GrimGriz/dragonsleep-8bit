@@ -276,10 +276,21 @@
       var r = this.co.next(v); v = undefined;
       if (r.done) { this.co = null; return; }
       var y = r.value;
-      if (typeof y === 'number') { if (y > 0) { this.wait = y; return; } continue; }
+      if (typeof y === 'number') { if (y > 0) { this.wait = this.pace(y, true); return; } continue; }
       if (y && y.fx) { this.waitFx = true; return; }
       if (y) { this.req = y; this.onRequest(y); return; }
     }
+  };
+  // the pace (10-01, Griz: "if adjustable, slow down the ai-turn and message display times by 25%"): D.PACE (js/ui.js: 1.25 by default; the M menu's PACE row,
+  // 1 / 1.25 / 1.5) stretches the generator's waits while an AI-run unit has the turn -- a foe, a guest, a hero the class tactics run -- so what the AI does is
+  // easier to follow. A player's own steps and swings keep their time (his hero should feel the same), as does everything between turns. Rounded, never 0.
+  // Only the frames a person watches go through here (step: a wait; card: a message's life; moveAlong: a step's tween): the benches drive the coroutine
+  // and never wait, so they run at one speed whatever it is
+  Battle.prototype.pace = function (n, wait) {
+    var P = D.PACE;
+    if (!(P > 0) || P === 1 || !(n > 0)) return n;
+    if (wait && !(this.active && byAI(this.active))) return n; // (a wait is the AI's only while an AI-run unit has the turn; a message's life is the pace's whoever's turn)
+    return Math.max(1, Math.round(n * P));
   };
   Battle.prototype.answer = function (v) { this.req = null; this.step(v); };
   Battle.prototype.update = function () {
@@ -307,7 +318,7 @@
     ls.forEach(function (l) { if (l) this.logEntries.push({ id: id, text: 'R' + round + ' ' + window.DS.stripCodes(l) }); }, this);
     this.log = this.logEntries.map(function (e) { return e.text; });
     if (id && last && last.id === id) { last.lines = ls; last.t0 = this.t; return; }
-    this.cards.push({ lines: ls, t0: this.t, life: life || 300, id: id });
+    this.cards.push({ lines: ls, t0: this.t, life: this.pace(life || 300), id: id }); // (the message's time: D.PACE, whoever's turn -- Battle.prototype.pace)
     if (this.cards.length > 3) this.cards.shift();
   };
   Battle.prototype.clearCards = function () { this.cards = []; };
@@ -330,7 +341,8 @@
     // are still on their way out of the inn (this.reserve)
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
     // (nor do summoned creatures: they go when their caster's concentration does)
-    if (!this.alive('party').filter(function (u) { return !u.familiar && !u.summon && !u.dominated && !u.loose; }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
+    // (nor a hero turned to stone -- Flesh to Stone's third failed save, the foe side's test above: it never acts again; a party all stone is a lost fight, 10-01)
+    if (!this.alive('party').filter(function (u) { return !u.familiar && !u.summon && !u.dominated && !u.loose && !(u.conds && u.conds.stoning && u.conds.stoning.done); }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
@@ -512,6 +524,9 @@
     if (D.magic.mustFlee && D.magic.mustFlee(u)) { yield* D.tactics.fleeFear(this, u); yield 30; D.magic.endTurn(this, u); return; }
     // a word of Command obeyed (a foe's Command, js/grimoire.js): the turn is the word's
     if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(this, u); yield 40; D.magic.endTurn(this, u); return; }
+    // Irresistible Dance (10-01, Griz: "agree, player choice, ai takes irresistible seriously ;)"): the player's dancer is asked -- SHAKE IT OFF (the WIS
+    // save, the action spent) or FIGHT ON (no save, the action kept, no move): js/grimoire.js M.danceAsk. The AI's dancer saves in M.onStart
+    if (u.turn.danceAsk && D.magic.danceAsk) yield* D.magic.danceAsk(this, u);
     this.tool = 'move'; this.cursor = { x: u.x, y: u.y };
     while (true) {
       var cmd = yield { turn: u };
@@ -577,14 +592,14 @@
     // DASH, DISENGAGE, DODGE, HELP: the same ACTIONS for all four (Griz, 09-27: "uniform like the paladin"). The rogue's
     // Dash and Disengage are Cunning Action's (the bonus action) while she has the bonus, the plain actions after
     if (cun) {
-      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: !u.conds.restrained, why: 'held fast: her speed is 0, and a Dash adds her speed', note: 'Cunning Action: +' + u.speed + ' ft this turn', icon: 'dash' });
+      out.push({ id: 'cdash', label: 'DASH', cost: 'B', ok: !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : 'held fast: her speed is 0, and a Dash adds her speed', note: 'Cunning Action: +' + u.speed + ' ft this turn', icon: 'dash' });
       out.push({ id: 'cdisengage', label: 'DISENGAGE', cost: 'B', ok: !T.disengaged, note: 'Cunning Action: leaving reach provokes nothing', icon: 'disengage' });
     } else {
-      out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the action is spent', note: '+' + u.speed + ' ft this turn' });
+      out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the action is spent', note: '+' + u.speed + ' ft this turn' });
       out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
       // Expeditious Retreat (SRD 5.1: "as a bonus action on each of your turns until the spell ends, you can take the Dash action"): the mark
       // js/grimoire.js sets each turn (T.bonusDash) while the spell holds -- a second DASH, for the bonus action
-      if (T.bonusDash && u.conds.retreat) out.push({ id: 'cdash', label: 'RETREAT DASH', cost: 'B', ok: T.bonus > 0 && !u.conds.restrained, why: u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the bonus action is spent', note: 'Expeditious Retreat: +' + u.speed + ' ft this turn', icon: 'dash' });
+      if (T.bonusDash && u.conds.retreat) out.push({ id: 'cdash', label: 'RETREAT DASH', cost: 'B', ok: T.bonus > 0 && !u.conds.restrained && !u.conds.dancing, why: u.conds.dancing ? 'dancing in place: no move to add a Dash to' : u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the bonus action is spent', note: 'Expeditious Retreat: +' + u.speed + ' ft this turn', icon: 'dash' });
     }
     // out the way the party came in (the fight's entry squares): the tabletop's walking off the table (Griz, 09-27: the climb's escape)
     // (inside the 8-bit game, only where its own battle had RUN: this.o.embed.canRun)
@@ -634,7 +649,7 @@
       case 'hoodup': T.freeObj = true; yield* D.light.hood(this, u, false); return;
       case 'dashmove': {
         var far = G.reach(u, T.move + u.speed)[c.x + ',' + c.y], opts = [];
-        if (!far || u.conds.restrained) return;
+        if (!far || u.conds.restrained || u.conds.dancing) return;
         if (u.cls === 'rogue' && u.lvl >= 2 && T.bonus) opts.push({ label: 'CUNNING DASH (bonus)', value: 'b' });
         else if (T.bonusDash && u.conds.retreat && T.bonus) opts.push({ label: 'RETREAT DASH (bonus)', value: 'b' }); // (Expeditious Retreat)
         if (T.action && !T.attacksLeft) opts.push({ label: 'DASH (your action)', value: 'a' });
@@ -652,8 +667,8 @@
       case 'leave': { yield* this.leave(u); return; }
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
-      case 'dash': if (u.conds.restrained) return; D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
-      case 'cdash': if (u.conds.restrained) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + (u.cls === 'rogue' && u.lvl >= 2 ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + (u.cls === 'rogue' && u.lvl >= 2 ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
       case 'sacred': {
@@ -730,7 +745,7 @@
       }
       u.facing = D.spr.facingFor(nx - u.x, ny - u.y);
       var wasIn = D.magic.webAt(this, u);
-      u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: STEP_FRAMES };
+      u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: this.pace(STEP_FRAMES, true) }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
       if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } // (moved: what it has walked this turn -- the Thief's Supreme Sneak asks)
       this.keepInView(u);
@@ -776,6 +791,9 @@
     // a Wind Wall between them (js/walls.js): an arrow, a bolt, a thrown weapon is torn upward and misses
     if (D.walls && D.walls.shellTurns(this, att, tgt, atk)) { this.card([(att.side === 'foe' ? '{r}' + shortName(att) + '{/}' : '{y}' + att.name + '{/}') + ': the blow meets the Antilife Shell and goes nowhere.']); D.sfx('bump'); yield 20; att.anim = 'idle'; return; }
     if (D.walls && D.walls.windStops(this, att, tgt, atk)) { this.card([(att.side === 'foe' ? '{r}' + shortName(att) + '{/}' : '{y}' + att.name + '{/}') + ': ' + (atk.name || 'the shot') + ' -- the wind wall tears it upward.  {g}MISS{/}']); D.sfx('miss'); yield 20; att.anim = 'idle'; return; }
+    // a Globe of Invulnerability (SRD 5.1, js/grimoire.js M.globed): a spell of its level or lower, cast from outside it, "can target creatures and
+    // objects within the barrier, but the spell has no effect on them" -- a spell attack at one inside it goes nowhere (no roll, no damage, no rider)
+    if (atk.spell && D.magic.globed && D.magic.globed(this, att, tgt, atk.level)) { this.card([(att.side === 'foe' ? '{r}' + shortName(att) + '{/}' : '{y}' + att.name + '{/}') + ': ' + (atk.name || 'the spell') + ' -- it breaks on the globe about ' + nameOf(tgt) + ' and does nothing.  {c}NO EFFECT{/}']); D.sfx('bump'); yield 20; att.anim = 'idle'; return; }
     if (att.side === 'foe' && att.conds.hidden) delete att.conds.hidden; // a foe that strikes from hiding is seen (the gricks)
     this.endInvis(att, 'the attack'); // (Invisibility: the swing has its advantage, then the spell is gone)
     // false images (the cloaker's phantasms, Willem's): a d20 says whether the blow goes at an image (3: 6+, 2: 8+, 1: 11+)
@@ -1322,8 +1340,11 @@
     } else if (plain.length) {
       this.card(['{y}' + u.name + '{/} tries to hide, but the ' + plain.map(shortName).join(' and the ') + ' can see her plainly (no cover).', '{g}Put a stalagmite or a body between you first.{/}']);
     } else {
+      // Guidance (SRD 5.1: a d4 to one ability check, "before or after making the ability check"): spent after the roll, on a check the d4 could turn
+      var gd = u.conds.guidance && !u.conds.faerie && total < top && total + 4 >= top && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
+      total += gd;
       var ok = total >= top && !u.conds.faerie; // (outlined in violet light: nowhere to hide)
-      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + ' = ' + total + ' vs passive Perception ' + top + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
+      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + ' vs passive Perception ' + top + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
       if (ok) u.conds.hidden = true;
     }
     yield 30;

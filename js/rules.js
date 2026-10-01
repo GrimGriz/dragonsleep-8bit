@@ -417,7 +417,7 @@
     rat: { name: 'rat', ac: 10, hp: 1, speed: 20, darkvision: 30, perk: { darkvision: 30 }, sheet: 'giantrat_p1', scale: 0.5, gift: 'lends him its eyes: darkvision 30 ft; quick and small; carries a touch spell' },
     spider: { name: 'spider', ac: 12, hp: 1, speed: 20, darkvision: 30, webWalker: true, perk: { webWalker: true, webDC: 1 }, sheet: 'wolfspider_p1', scale: 0.4, gift: 'webs do not hold him or it; his Web holds the tighter (+1); carries a touch spell' },
     frog: { name: 'frog', ac: 11, hp: 1, speed: 20, swim: 20, darkvision: 30, perk: { alarm: true }, sheet: 'giantfrog_p1', scale: 0.45, gift: 'croaks when danger comes: he is never caught off guard; swims; carries a touch spell' },
-    snake: { name: 'poisonous snake', ac: 13, hp: 2, speed: 30, swim: 30, blindsight: 10, perk: { senseHidden: 15, charmDC: 1, persuasion: 'adv' }, sheet: 'snake_p1', scale: 0.55, gift: 'he senses the hidden and unseen within 15 ft; his charms bite deeper (+1), his Persuasion has advantage' }
+    snake: { name: 'poisonous snake', ac: 13, hp: 2, speed: 30, swim: 30, blindsight: 10, sense: 'tongue', perk: { senseHidden: 15, charmDC: 1, persuasion: 'adv' }, sheet: 'snake_p1', scale: 0.55, gift: 'he senses the hidden and unseen within 15 ft; his charms bite deeper (+1), his Persuasion has advantage' }
   };
   // Lisbet's charm (content/items.json `charm`, a ring; Charms & Chalk, Silverton): whoever wears it cannot be frightened. HIDDEN BY RULING --
   // Griz, 09-30: "let's make that charm grant immune to fear in the mechanics, but not say so anywhere the player sees". Its words stay "No

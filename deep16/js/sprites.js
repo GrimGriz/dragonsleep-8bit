@@ -17,7 +17,7 @@
   function frameOf(sh, anim, facing, t, o) {
     var a = sh.anims[anim] || sh.anims.idle;
     var fw = a.fw || sh.fw, fh = a.fh || sh.fh, ax = a.ax != null ? a.ax : sh.ax, ay = a.ay != null ? a.ay : sh.ay;
-    var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.once ? Math.min(a.frames - 1, n) : n % a.frames;
+    var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.frame != null ? Math.max(0, Math.min(a.frames - 1, o.frame)) : o && o.once ? Math.min(a.frames - 1, n) : n % a.frames; // (o.frame: one frame by number -- the prone, ui.js)
     return { img: D.images[sh.image], sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay };
   }
   S.draw = function (ctx, name, anim, facing, t, x, y, o) {
@@ -61,6 +61,15 @@
     ctx.restore();
   };
   S.anim = function (name, anim) { var sh = D.SHEETS && D.SHEETS[name]; return sh && sh.anims[anim]; };
+  // the frame a figure lies at while prone (10-01b, Griz: "Seems like we don't have prone for all the pretty characters we've made (and I
+  // guess we'd need at least 1 other frame for getting up from prone)" -- "I'd lean 'frame before last' if that's what they look like when
+  // they're almost dead but not dead yet ... we extracted 'wizard' and such from other sources and hopefully they have the frames already -
+  // those are the ones that are going to be onscreen and prone most often"): the LPC sheets' fall row (six frames, the last flat on the
+  // back) has him crumpled forward on hands and knees at its frame before last; getting up is the row played back from there. The other
+  // sheets' death rows end dead (and the owl's in feathers): none yet, -1 (deep16-art-wanted.md, PRONE someday). S.PRONE: a sheet's own
+  // frame, picked by eye off its row, where one reads
+  S.PRONE = {};
+  S.proneFrame = function (name) { if (S.PRONE[name] != null) return S.PRONE[name]; var a = S.anim(name, 'hurt'); return a && /_p0$/.test(name) && a.frames === 6 ? 4 : -1; };
   // how long an anim takes to play once, in frames at 60 Hz
   S.duration = function (name, anim) { var a = S.anim(name, anim); return a ? Math.ceil(a.frames * 60 / (a.fps || 8)) : 0; };
   S.top = function (name) { var sh = D.SHEETS && D.SHEETS[name]; return sh ? sh.top || 48 : 42; };
@@ -90,7 +99,7 @@
   };
   S.regrow = function (u, from) { if (from !== S.scaleTarget(u)) u.scaleEase = { from: from, t: D.battle ? D.battle.t : 0 }; };
   // how tall a unit stands above its foot (HP bars, labels, picking): the figure as drawn, so a grown one's bar sits on its head
-  S.unitTop = function (u) { return (u.rider ? S.RIDE.lift - S.RIDE.cut + S.top(u.rider) : S.top(u.sheet)) * S.scaleOf(u); };
+  S.unitTop = function (u) { return (u.rider ? S.RIDE.lift - S.RIDE.cut + S.top(u.rider) : S.top(u.sheet)) * S.scaleOf(u) * (u.proneLook && u.hp > 0 && S.proneFrame(u.sheet) >= 0 ? 0.6 : 1); }; // (lying prone, on hands and knees: about 0.6 of its height -- its bar, its marks, where the mouse finds it)
 
   // until a sheet exists: a capsule in the unit's colour, so the grid can be built before the art lands
   S.placeholder = function (ctx, name, x, y, o) {

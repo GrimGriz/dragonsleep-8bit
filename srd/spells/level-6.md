@@ -250,7 +250,7 @@ At Higher Levels. When you cast this spell using a spell slot of 7th level or hi
 
 *6th-level abjuration*
 
-> **The game:** A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from. Only the grimoire's and walls' save spells are stopped. Not built: Fireball and other core spells, attack-roll spells.
+> **The game:** A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from: save spells, spell attacks, darts, touches and cantrips alike (the card says so). Not built: the fog, ground and walls a spell leaves are not kept out of the globe; nothing weighs the globe when choosing a target, so a foe may waste a spell on it.
 
 **Casting Time:** 1 action
 
@@ -376,7 +376,7 @@ Dispel magic or a similar effect successfully applied to the sapphire ends this 
 
 *6th-level enchantment*
 
-> **The game:** A creature within 30 ft dances (concentration, 10 rounds), no first save: no movement, its attacks and DEX saves at disadvantage, attacks at it with advantage. Each turn its action is a WIS save to stop. Not built: choosing to attack instead.
+> **The game:** A creature within 30 ft dances (concentration, 10 rounds), no first save: no movement, its attacks and DEX saves at disadvantage, attacks at it with advantage. Each turn its action may be a WIS save to stop: a player's dancer is asked at its turn's start (SHAKE IT OFF: the save, the action spent; or FIGHT ON: no save, the action kept, still no move and still at disadvantage); the AI always saves.
 
 **Casting Time:** 1 action
 

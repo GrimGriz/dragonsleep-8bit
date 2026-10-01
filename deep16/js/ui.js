@@ -27,10 +27,15 @@
   // ------------------------------------------------------------------ options (a per-viewer convenience; the page works without storage)
   // RULED 09-27, Griz: the ring is the main menu, the window stays for those who'd rather; the bar's buttons are gone
   // (a saved 'bar' becomes the ring)
-  UI.opts = { help: false, style: 'ring', autoEnd: true };
-  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window') UI.opts.style = 'window'; if (o0.autoEnd === false) UI.opts.autoEnd = false; } } catch (e) { }
+  // PACE (10-01, Griz: "if adjustable, slow down the ai-turn and message display times by 25%"): D.PACE, read by battle.js (Battle.prototype.pace) --
+  // 1.25 by default; the M menu's PACE row cycles 1 / 1.25 / 1.5 and keeps it here with the rest; ?pace=1.5 in the address overrides it for that page only
+  UI.opts = { help: false, style: 'ring', autoEnd: true, pace: 1.25 };
+  UI.PACES = [1, 1.25, 1.5];
+  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window') UI.opts.style = 'window'; if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; } } catch (e) { }
   UI.saveOpts = function () { try { window.localStorage.setItem('deep16.opts', JSON.stringify(UI.opts)); } catch (e) { } };
   var qs = /[?&]menu=(window|ring)/.exec(location.search); if (qs) UI.opts.style = qs[1];
+  D.PACE = UI.opts.pace;
+  var pq = /[?&]pace=([0-9.]+)/.exec(location.search); if (pq && +pq[1] >= 0.5 && +pq[1] <= 3) D.PACE = +pq[1];
   // at rest: WINDOW holds its command window up (as Chrono Trigger does); RING stands on the grid ready to walk, and
   // the ring comes up on E over the hero (where the cursor starts a turn), a click on him, or Q (Griz, 09-27)
   function rest() { return UI.opts.style === 'window' ? 'menu' : 'move'; }
@@ -472,6 +477,7 @@
     // inside the 8-bit game the fight is the story's: no restart, no ladder, no way round it (the party, the menu's style and
     // the volumes stay). THE GATE (the sprites) is gone from the menu (Griz 09-28); ?gate still opens it
     return [['resume', 'RESUME']].concat(eq, [['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
+      ['pace', 'AI + MESSAGE TIME: ' + D.PACE + 'x  < >'],
       ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >']],
       story ? [] : [['restart', 'RESTART THE FIGHT']],
       story || (B && B.o.onDone) ? [] : [['ladder', 'THE LADDER']],
@@ -506,6 +512,7 @@
     if (M.sel !== s0) D.sfx('cursor');
     var styles = ['ring', 'window'], si = styles.indexOf(UI.opts.style), here = items[M.sel][0], lr = I.repeat('left') ? -1 : I.repeat('right') ? 1 : 0;
     if (here === 'style' && lr) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); D.sfx('cursor'); return; }
+    if (here === 'pace' && lr) { cyclePace(lr); D.sfx('cursor'); return; }
     if ((here === 'music' || here === 'sounds') && lr) { setVol(here === 'music' ? 'musicVol' : 'sfxVol', vol(here === 'music' ? 'musicVol' : 'sfxVol') + lr * 0.1); D.sfx('cursor'); return; }
     var pick = I.pressed('a') ? M.sel : -1;
     if (I.mouse.click && B.menuRects) B.menuRects.forEach(function (r, i) { if (hit(r)) pick = i; });
@@ -519,6 +526,7 @@
     if (id === 'equip') { M.panel = 'equip'; M.gsel = 0; }
     if (id === 'style') { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); }
     if (id === 'auto') { UI.opts.autoEnd = !UI.opts.autoEnd; UI.saveOpts(); }
+    if (id === 'pace') cyclePace(1);
     if (id === 'music') setVol('musicVol', vol('musicVol') > 0 ? 0 : 0.5); // E: off, or back on
     if (id === 'sounds') setVol('sfxVol', vol('sfxVol') > 0 ? 0 : 0.7);
     if (id === 'restart') { D.pop(); D.push(new D.Battle(B.o)); }
@@ -526,6 +534,8 @@
     if (id === 'out') { if (B.o.onDone) { D.pop(); B.o.onDone(null); } else location.href = '../'; } // the ladder, or back to the 8-bit game: nothing is written
   };
   function restyle(B) { if (B.req && B.req.turn && (B.tool === 'move' || B.tool === 'menu')) B.tool = rest(); }
+  // the PACE row: 1x / 1.25x / 1.5x, kept with the other options (D.PACE is what battle.js reads: the AI's waits and every message's time)
+  function cyclePace(lr) { var n = UI.PACES.length, i = UI.PACES.indexOf(D.PACE); i = i < 0 ? (lr > 0 ? 0 : n - 1) : (i + lr + n) % n; UI.opts.pace = D.PACE = UI.PACES[i]; UI.saveOpts(); }
   UI.resultInput = function (B) {
     UI.camera(B);
     if (I.pressed('a') || (I.mouse.click && !overUI(B))) {
@@ -578,7 +588,8 @@
     FX.list.forEach(function (f) { if (f.screen) f.draw(ctx); });
     strip(ctx, B);
     cards(ctx, B);
-    if (B.viewAs) { var vm = D.light.viewMap(B, B.viewAs); D.text(ctx, 'EYES: ' + B.viewAs.name + ' · ' + [vm.blind ? 'blinded' : vm.dv ? 'darkvision ' + vm.dv : 'no darkvision', vm.bs ? (B.viewAs.truesight ? 'truesight ' : 'blindsight ') + vm.bs : ''].filter(Boolean).join(', '), 5, BAR_Y - 22, R('glow', 4)); } // (whose eyes the dark is drawn by: a line above the tooltip's bottom one)
+    var ey = B.dark && B.eyes; // (the one under the mouse, or the hero whose turn it is on a map with no light: js/light.js L.pass)
+    if (ey) { var vm = D.light.viewMap(B, ey); D.text(ctx, 'EYES: ' + ey.name + ' · ' + [vm.blind ? 'blinded' : vm.dv ? 'darkvision ' + vm.dv : 'no darkvision', vm.bs ? (ey.truesight ? 'truesight ' : 'blindsight ') + vm.bs : ''].filter(Boolean).join(', '), 5, BAR_Y - 22, R('glow', 2)); } // (whose eyes the dark is drawn by: a line above the tooltip's bottom one)
     tooltip(ctx, B, hero);
     // the square under the cursor, by the grid's own numbering, top right (Griz, 10-01: "Me getting better at pointing to the tile by
     // your numbering or some standardized tile referencing"): x counts from the far upper-left wall, y from the far upper-right, so
@@ -679,14 +690,24 @@
         // idle sheet, 09-30); a creature that charges has come 20 ft and more this turn, and runs (the giant boar's sprint row)
         if (!down && !u.woken && !u.acted && anim === 'idle' && has('braid')) anim = 'braid';
         if (!down && anim === 'walk' && u.charge && u.turn && (u.speed - u.turn.move) >= 20 && has('run')) anim = 'run';
+        // prone (10-01b; the frame is sprites.js S.proneFrame): a figure with a frame for it falls to it when it goes prone, lies there while
+        // prone -- crawling, striking, whatever it does -- and gets up through the same frames backwards when the prone ends. Going down
+        // from prone, the fall goes on from where it lies
+        var pf = D.spr.proneFrame(u.sheet);
+        if (pf >= 0 && !down && !!u.conds.prone !== !!u.proneLook) { u.proneLook = !!u.conds.prone; u.proneT = B.t; }
         if (down) {
-          if (has('hurt')) { anim = 'hurt'; o.once = true; }
+          if (has('hurt')) { anim = 'hurt'; o.once = true; if (pf >= 0 && u.proneLook) t += Math.ceil(pf * 60 / (D.spr.anim(u.sheet, 'hurt').fps || 8)); }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }
         } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack') { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
         if (anim === 'idle' || anim === 'walk' || anim === 'roost' || anim === 'braid' || anim === 'run') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         // a hyena helpless with laughter rolls on the floor with it, for as long as it laughs (Hideous Laughter's easter egg, 09-30: js/grimoire.js M.hyena)
         if (!down && u.conds.laughing && has('rofl')) { anim = 'rofl'; o.once = false; t = B.t + (u.id ? u.id.length * 7 : 0); }
+        else if (pf >= 0 && !down && u.proneT != null) {
+          var pk = Math.floor((B.t - u.proneT) * (D.spr.anim(u.sheet, 'hurt').fps || 8) / 60);
+          if (u.proneLook) { anim = 'hurt'; o.frame = Math.min(pk, pf); }
+          else if (pk < pf) { anim = 'hurt'; o.frame = pf - 1 - pk; } // (getting up)
+        }
         if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;
         if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.2 : 0.5; // (inside the darkness: a shape, if that)
@@ -709,13 +730,13 @@
         var lift = u.lift && !u.riding && !down ? u.lift + Math.round(2 * Math.sin(B.t / 6)) : 0;
         D.spr.draw(ctx, u.sheet, anim === 'hurt' && !has('hurt') ? 'idle' : anim, u.facing || 0, t, p.x, p.y - lift, body);
         // what was drawn, for the x-ray after the world (a standing figure only: the fallen lie low)
-        var hw = 10 * (u.size || 1) * sk;
-        obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - D.spr.unitTop(u), p.x + hw, p.y] };
+        var hw = 10 * (u.size || 1) * sk, tall = D.spr.unitTop(u);
+        obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, frame: o.frame, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - tall, p.x + hw, p.y] };
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
         if (sk !== 1) ctx.restore();
         if (D.looks && !down && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js)
         if (!u.dead && !u.ethereal && !u.riding) {
-          var top = D.spr.unitTop(u), w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
+          var top = tall, w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
           ctx.fillStyle = R('outline', 0); ctx.fillRect(bx - 1, by - 1, w + 2, 4);
           ctx.fillStyle = R('stone', 1); ctx.fillRect(bx, by, w, 2);
           ctx.fillStyle = u.side === 'foe' ? R('red', 3) : u.hp <= u.maxhp / 4 ? R('fire', 1) : R('moss', 2);
@@ -758,7 +779,7 @@
       }
       if (hid / 40 < XRAY) return;
       var col = u === hero ? R('gold', 4) : u.side === 'foe' ? R('red', 4) : R('glow', 2);
-      D.spr.outline(ctx, u.sheet, o.shown.anim === 'hurt' && !D.spr.anim(u.sheet, 'hurt') ? 'idle' : o.shown.anim, u.facing || 0, o.shown.t, o.shown.x, o.shown.y, col, { alpha: 0.9, once: o.shown.once, scale: o.shown.k });
+      D.spr.outline(ctx, u.sheet, o.shown.anim === 'hurt' && !D.spr.anim(u.sheet, 'hurt') ? 'idle' : o.shown.anim, u.facing || 0, o.shown.t, o.shown.x, o.shown.y, col, { alpha: 0.9, once: o.shown.once, frame: o.shown.frame, scale: o.shown.k });
     });
   }
   UI.xray = xray;
@@ -1074,7 +1095,7 @@
     (B.webFire || []).forEach(function (e) { if (e.round < B.round) return; e.sq.forEach(function (q) { var fl = 0.5 + 0.5 * Math.sin(B.t / 4 + q[0] * 2 + q[1]); fillSq(ctx, q[0], q[1], R('fire', 2), 0.18 + 0.14 * fl, 2); dotSq(q[0], q[1], (B.t >> 2) % 2 ? R('fire', 2) : R('gold', 4)); }); });
     // magical darkness, and the clouds that are heavily obscured like it: fog (pale), a stinking cloud (yellow-green), sleet (cold)
     (B.darks || []).forEach(function (dk) {
-      var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? R('moss', 2) : k === 'kill' ? R('moss', 3) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;
+      var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? R('moss', 2) : k === 'kill' ? R('moss', 2) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;
       D.magic.darkSq(B, dk).forEach(function (q) { fillSq(ctx, q[0], q[1], col, a); });
     });
     if (D.looks) D.looks.ground(ctx, B, onSq); // the spell ground, holy rings, the darkness's edge (js/looks.js)
@@ -1227,12 +1248,15 @@
   }
   function conds(w) {
     var c = [];
-    if (w.ethereal) c.push('{p}ethereal{/}');
+    if (w.ethereal && !(w.conds.stoning && w.conds.stoning.done)) c.push('{p}ethereal{/}'); // (a hero turned to stone is out of the world too, but says stone below)
     if (w.conds.poisoned) c.push('{n}poisoned{/}');
+    if (w.conds.sickened) c.push('{n}sickened{/}'); // (Eyebite's: a WIS save at each turn's end)
+    if (w.conds.contagion) c.push('{n}diseased{/}'); // (Contagion: poisoned too, the save at each turn's end)
     if (w.conds.faerie) c.push('{p}faerie fire{/}');
     if (w.conds.hidden) c.push('{c}hidden{/}');
     if (w.conds.invisible) c.push('{c}invisible{/}');
     if (w.conds.blinded) c.push('{o}blinded{/}');
+    if (w.conds.deafened) c.push('{o}deafened{/}'); // (Divine Word's)
     if (w.conds.dodge) c.push('{c}dodging{/}');
     if (w.conds.ablaze) c.push('{o}blade ablaze{/}');
     if (w.torch) c.push('{o}' + (w.torch.kind === 'lantern' ? (w.torch.hood ? D.light.word(w.torch) + ' in hand, hooded' : D.light.word(w.torch) + ' in hand') : 'torch in hand') + '{/}');
@@ -1252,14 +1276,80 @@
     if (w.conds.divineFavor) c.push('{y}favor{/}');
     if (w.conds.sacred) c.push('{y}sacred +' + w.conds.sacred.atk + '{/}');
     if (w.conds.helped) c.push('{w}helped{/}');
-    if (w.conds.restrained) c.push(w.conds.restrained.grapple ? '{w}held{/}' : '{w}webbed{/}');
+    if (w.conds.restrained && !(w.conds.stoning && w.conds.restrained.kind === 'stone')) c.push(w.conds.restrained.grapple ? '{w}held{/}' : '{w}webbed{/}'); // (Flesh to Stone's hold says stone, below)
     if (w.conds.stunned) c.push('{p}stunned{/}');
     if (w.conds.prone) c.push('{o}prone{/}');
     if (w.swarm) c.push('{g}swarm{/}');
     if (w.conds.paralyzed) c.push('{p}held{/}');
     if (w.conds.asleep) c.push('{p}asleep{/}');
-    if (w.conc) c.push('{y}conc: ' + w.conc.name + '{/}');
-    if (w.hp <= 0 && !w.dead) c.push('{r}down{/}');
+    // what the spells and the features lay on it (10-01, the found-not-fixed list: deafened, dancing and sickened were missing, and these with them): the ones a
+    // player acts on -- a debuff to cure or work round, a buff to keep up or to spend -- debuffs first, then the buffs. The flags only a spell's own code reads
+    // stay out: noReact, metalEdge, recoiling, commanded, blindedBy, lethargic, frenzy (raging says it), turned and feared (frightened says it), killer, banished
+    // (ethereal says it), the one-turn marks (acid, frosted, glassHand), guidance and resistance (a d4 on one roll), dangerSense (every barbarian's)
+    var q = w.conds;
+    if (q.stoning) c.push(q.stoning.done ? '{o}stone{/}' : '{o}turning to stone ' + q.stoning.bad + '/3{/}');
+    if (q.frightened) c.push('{p}frightened{/}');
+    if (q.hypnotized) c.push('{p}entranced{/}'); else if (q.charmed) c.push('{p}charmed{/}');
+    if (q.laughing) c.push('{p}laughing{/}');
+    if (q.confused) c.push('{p}confused{/}');
+    if (q.dancing) c.push('{p}dancing{/}');
+    if (q.incapacitated && !(q.paralyzed || q.stunned || q.asleep || q.laughing || q.hypnotized)) c.push('{p}incapacitated{/}'); // (the rule looks.js draws its badge by)
+    if (q.surprised) c.push('{o}surprised{/}');
+    if (q.slowed) c.push('{o}slowed{/}');
+    if (q.enfeebled) c.push('{o}enfeebled{/}');
+    if (q.feeble) c.push('{o}feebleminded{/}');
+    if (q.cursed || (q.disAt && q.disAt.why === 'cursed')) c.push('{o}cursed{/}');
+    if (q.baned) c.push('{o}baned{/}');
+    if (q.noHeal) c.push('{o}no healing{/}');
+    if (q.mocked) c.push('{o}mocked{/}');
+    if (q.disarmed) c.push('{o}disarmed{/}');
+    if (q.heated) c.push('{o}heated metal{/}');
+    if (q.marked) c.push('{o}marked{/}');
+    if (q.branded) c.push('{o}branded{/}');
+    if (q.guided) c.push('{y}lit up{/}');
+    if (q.reckless) c.push('{o}reckless{/}');
+    if (q.raging) c.push('{r}raging{/}');
+    if (q.inspired) c.push('{y}inspired{/}');
+    if (q.countercharm) c.push('{y}countercharm{/}');
+    if (q.hasted) c.push('{y}hasted{/}');
+    if (q.enlarged) c.push(q.enlarged.down ? '{o}reduced{/}' : '{y}enlarged{/}');
+    if (q.blur) c.push('{c}blurred{/}');
+    if (q.sanctuary) c.push('{c}sanctuary{/}');
+    if (q.trueStrike) c.push('{c}true strike{/}');
+    if (q.retreat) c.push('{c}quick feet{/}');
+    if (q.longstrider) c.push('{c}longstrider{/}');
+    if (q.barkskin) c.push('{c}barkskin{/}');
+    if (q.pfeg) c.push('{c}evil-ward{/}');
+    if (q.energyWard) c.push('{c}ward: ' + q.energyWard.type + '{/}');
+    if (q.fireShield) c.push('{o}' + q.fireShield.type + ' shield{/}');
+    if (q.holyAura) c.push('{y}holy aura{/}');
+    if (q.beacon) c.push('{y}beacon{/}');
+    if (q.foresight) c.push('{y}foresight{/}');
+    if (q.deathWard) c.push('{y}death ward{/}');
+    if (q.poisonWard) c.push('{c}poison ward{/}');
+    if (q.freeMove) c.push('{c}free movement{/}');
+    if (q.mindBlank) c.push('{c}mind blank{/}');
+    if (q.wardingBond) c.push('{c}warding bond{/}');
+    if (q.keeperWard) c.push('{c}keeper ward{/}');
+    if (q.regenerating) c.push('{n}regenerating{/}');
+    if (q.enhanced) c.push('{c}enhanced{/}');
+    if (q.blink) c.push('{p}blinking{/}');
+    if (q.branding) c.push('{y}branding smite{/}');
+    if (q.vampiric) c.push('{p}vampiric touch{/}');
+    if (q.flameBlade) c.push('{o}flame blade{/}');
+    if (q.magicWeapon) c.push('{c}magic weapon{/}');
+    if (q.shillelagh) c.push('{c}shillelagh{/}');
+    if (q.storm) c.push('{c}storm{/}');
+    if (q.mageArmor) c.push('{c}mage armor{/}');
+    if (q.aid) c.push('{y}aid +' + q.aid + '{/}');
+    var tail = [];
+    if (w.conc) tail.push('{y}conc: ' + w.conc.name + '{/}');
+    if (w.hp <= 0 && !w.dead) tail.push('{r}down{/}');
+    // one row on a 480-px screen: what will not fit gives way to a count (the concentration and the down are kept)
+    var left = 0;
+    while (c.length > 1 && D.textWidth(c.concat(tail).join(' ')) > 300) { c.pop(); left++; }
+    if (left) c.push('{g}+' + left + '{/}');
+    c = c.concat(tail);
     return c.length ? '  ' + c.join(' ') : '';
   }
 

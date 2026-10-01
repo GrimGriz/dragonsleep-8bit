@@ -53,6 +53,7 @@
     u.lift = d.fly && !d.flyby ? 12 : 0; // (the bat stand-in's sheet walks on the ground: out on the field it is drawn up in the air, ui.js)
     if (d.darkvision) u.darkvision = d.darkvision;
     if (d.blindsight) u.blindsight = d.blindsight;
+    if (d.sense) u.sense = d.sense; // (the snake's blindsight is its tongue, not the bat's sonar: how the dark draws it, js/light.js)
     // it rides (Griz, 09-29: "still needs to ride shoulder (or sitting at casters feet)"; 09-30 the bat "flutter around his head"): the
     // owls on the wizard's shoulder, the bat about his head, the rest at his feet. While it rides its square is his (a getter: every area
     // that catches him catches it), it holds no square of its own, and the foes' AI does not single it out (ai.js heroes)

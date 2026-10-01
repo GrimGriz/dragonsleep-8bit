@@ -95,7 +95,7 @@
       case 'allies': return 'up to ' + n + ' within ' + g.range + ' ft · ' + (e.id === 'bless' ? '+1d4 to attacks and saves' + conc : '+' + 5 * Math.max(1, e.slot - 1) + ' max HP');
       case 'self': return ({ seeinvisibility: 'you see the invisible for the fight', mislead: 'invisible (till you attack or cast), and a false double' + conc, passwithouttrace: '+10 Stealth to all of yours within 30 ft' + conc }[e.id]) || '+1d4 radiant on weapon hits' + conc;
       case 'teleport': return '30 ft, to a square you can see';
-      case 'touch': return 'touch · ' + ({ curewounds: (1 + Math.max(0, e.slot - 1)) + 'd8' + RU.sign(M.mod(u)) + ' healing', mageArmor: 'no armour: AC 13 + DEX', greaterinvisibility: 'invisible' + conc, stoneskin: 'half from blades, bolts, bites' + conc, heroism: 'fearless, temp HP each turn' + conc, lesserrestoration: 'ends poison, paralysis, blindness',
+      case 'touch': return 'touch · ' + ({ curewounds: (1 + Math.max(0, e.slot - 1)) + 'd8' + RU.sign(M.mod(u)) + ' healing', mageArmor: 'no armour: AC 13 + DEX', greaterinvisibility: 'invisible' + conc, stoneskin: 'half from blades, bolts, bites' + conc, heroism: 'fearless, temp HP each turn' + conc, lesserrestoration: 'ends one: paralysis, the disease, blindness, poison or deafness',
         light: 'a light on you or an ally beside you: bright 20 ft, dim 20 more, for the fight' + roostNote(D.battle), darkvision: 'sees in the dark to 60 ft', invisibility: 'unseen till they attack or cast' + conc,
         continualflame: 'a heatless flame on them: bright 20 ft, dim 20 more, and it never goes out' + roostNote(D.battle), trueseeing: 'truesight 120 ft: the dark, the invisible, the fog' }[e.id] || '');
     }
@@ -222,6 +222,21 @@
     if (!sv.ok) M.endConc(B, u, 'the blow');
   };
   function lift(B, list, cond) { list.forEach(function (w) { delete w.conds[cond]; }); }
+  // what Lesser Restoration could end on w (SRD 5.1: "either one disease or one condition afflicting it. The condition can be blinded, deafened,
+  // paralyzed, or poisoned"), the worst first: paralysis, the disease, blindness, poison, deafness. Each { label, end() }. Contagion is the grid's one
+  // disease -- its conds.contagion, the poison it laid (poisoned.contagion) and, once it has taken hold, the blinding (blinded.by 'contagion'): ending it
+  // ends all three (as Heal does, grimoire.js cureSick), and none of the three is offered alone. A poison that paralyses (poisoned.paralysis +
+  // paralyzed.poison: the spider's, the chuul's) is one ailment: ending it frees the creature
+  function ailments(w) {
+    var c = w.conds, out = [];
+    if (c.paralyzed) out.push(c.paralyzed.poison ? { label: 'the paralysing poison', end: function () { delete c.paralyzed; delete c.poisoned; } } : { label: 'paralysis', end: function () { delete c.paralyzed; } });
+    if (c.contagion) out.push({ label: 'the disease', end: function () { delete c.contagion; if (c.poisoned && c.poisoned.contagion) delete c.poisoned; if (c.blinded && c.blinded.by === 'contagion') delete c.blinded; } });
+    if (c.blinded && c.blinded.by !== 'contagion') out.push({ label: 'blindness', end: function () { delete c.blinded; delete c.blindedBy; } });
+    if (c.poisoned && !c.poisoned.contagion && !(c.paralyzed && c.paralyzed.poison)) out.push({ label: 'poison', end: function () { delete c.poisoned; } });
+    if (c.deafened) out.push({ label: 'deafness', end: function () { delete c.deafened; } });
+    return out;
+  }
+  M.ailments = ailments;
 
   // ------------------------------------------------------------------ cast: spends the slot and the action or bonus action, then does the thing
   // the sound a spell makes as it's cast (the 8-bit game's effects)
@@ -248,6 +263,19 @@
     yield Math.max(10, Math.round((D.spr.duration(u.sheet, u.anim) || 18) * 0.55)); // (the release at the height of the cast pose)
     if (carry && !(yield* D.familiar.carry(B, u, t))) { u.anim = 'idle'; return; } // (it goes with the spell; one lost on the way loses it)
 
+    // the Globe of Invulnerability (SRD 5.1: "Such a spell can target creatures and objects within the barrier, but the spell has no effect on them"):
+    // a spell of its level or lower, cast from outside it, at a creature inside -- spent, and nothing happens. Here the spells aimed at one or more
+    // creatures (a touch, a single target, a list of allies, the grimoire's own): the attack rolls and rays are turned in Battle.attack, the darts and
+    // the splash below, the areas in area() and the save spells in grimoire.js saveAll. Not kept out of the globe: the ground, fog and walls a spell leaves
+    if (M.globed && !/^(attack|rays|darts|splash)$/.test(g.shape)) {
+      var aimed = t && t.units ? t.units : t && t.hp != null ? [t] : [], shut = aimed.filter(function (w) { return w && w.hp != null && w !== u && M.globed(B, u, w, sp.level); });
+      if (shut.length) {
+        B.card([head + ': ' + shut.map(function (w) { return w.side === 'foe' ? B.shortName(w) : w.name; }).join(', ') + (shut.length > 1 ? ' are' : ' is') + ' inside the globe -- {c}the spell has no effect{/}.']); D.sfx('bump');
+        if (shut.length === aimed.length) { yield 30; u.anim = 'idle'; return; }
+        t = Object.assign({}, t, { units: aimed.filter(function (w) { return shut.indexOf(w) < 0; }) });
+      }
+    }
+
     // the spells built for the class NPCs (09-28, js/grimoire.js): each its own; the rest below as they were
     var FXD = M.EFFECT && M.EFFECT[id];
     if (FXD && FXD.cast) {
@@ -269,12 +297,16 @@
       // stands there takes it -- the darts never miss -- and an empty square takes nothing but the slot. RULES.missilesAtTheDark
       var darts = t.units.map(function (w) { if (!w.dark) return w; var at = G.occupant(w.x, w.y); return (at && at.hp > 0 && !at.dead && G.hostile(u, at)) ? at : { x: w.x, y: w.y, size: 1, dark: true, id: 'dark' + w.x + ',' + w.y, name: 'the darkness' }; });
       var atDark = t.units.some(function (w) { return w.dark; });
+      // (the Globe of Invulnerability: a dart at one inside it, from outside, breaks on it -- a dart in the dark that finds one there as well)
+      var shutD = M.globed ? darts.filter(function (w) { return w.hp != null && M.globed(B, u, w, sp.level); }) : [];
+      darts = darts.filter(function (w) { return shutD.indexOf(w) < 0; });
       // the gimmick (Griz, 09-28, the livestreams' branding): in the fight that carries it (data/fights.js `gimmick: 'darkness'`, the cloaker's
       // deep gallery), the first Magic Missile thrown at the darkness is a cutscene -- a close-up of the caster and his clip, then the
       // cloaker hit, then its face and the line -- and the thing struck comes for the caster (ai.js brute: grudge)
       var gim = B.fight && B.fight.gimmick === 'darkness' && atDark && u.side === 'party' && !B.gimmickDone;
       if (gim) yield { scene: { who: u, anim: 'attack', facing: 0, scale: 3, frames: 250, clip: 'audio/attacking_the_darkness.mp3', caption: 'MAGIC MISSILE. AT THE DARKNESS.' } };
-      var lines = [head + ' -- ' + darts.length + ' darts, each 1d4+1 force, never missing' + (atDark ? '  {p}AT THE DARKNESS{/}' : '')], tot = {}, who = {}, struck = [];
+      var lines = [head + ' -- ' + (darts.length + shutD.length) + ' darts, each 1d4+1 force, never missing' + (atDark ? '  {p}AT THE DARKNESS{/}' : '')], tot = {}, who = {}, struck = [];
+      shutD.forEach(function (w, i) { if (shutD.indexOf(w) === i) lines.push('  ' + (w.side === 'foe' ? B.shortName(w) : w.name) + ': {c}inside the globe: ' + shutD.filter(function (x) { return x === w; }).length + ' broke on it, untouched{/}'); });
       for (var k = 0; k < darts.length; k++) { FX.projectile(u, darts[k], 'fire'); }
       yield { fx: 1 };
       darts.forEach(function (w) { var r = D.roll('1d4+1'); tot[w.id] = (tot[w.id] || 0) + r.total; who[w.id] = w; });
@@ -310,6 +342,7 @@
       var dd = M.dice(sp, u, 0), r1 = D.roll(dd), lines2 = [head + '  ' + dd + ' ' + RU.fmtRolls(r1.rolls) + ' = ' + r1.total + ' acid  DEX DC ' + dc + (potent ? ', half on a save (potent)' : ', no half')];
       FX.projectile(u, first, 'fire'); yield { fx: 1 };
       [first, second].filter(Boolean).forEach(function (w) {
+        if (M.globed && M.globed(B, u, w, sp.level)) { lines2.push('  ' + w.name + ': {c}inside the globe: untouched{/}'); return; } // (the Globe of Invulnerability, SRD 5.1)
         var sv = RU.save(w, 'dex', dc);
         lines2.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' + (potent ? ' -> ' + Math.floor(r1.total / 2) : '') : '{o}failed -> ' + r1.total + '{/}'));
         if (!sv.ok) B.hurt(w, r1.total, 'acid'); else if (potent) B.hurt(w, Math.floor(r1.total / 2), 'acid');
@@ -349,9 +382,12 @@
         var cr = D.roll((1 + n) + 'd8'), amt = cr.total + M.mod(u), got = B.heal(w2, amt);
         B.card([head + ' on ' + w2.name + ': ' + (1 + n) + 'd8' + RU.sign(M.mod(u)) + ' ' + RU.fmtRolls(cr.rolls) + ' = {n}' + amt + '{/}' + (got <= 0 ? ' (already whole)' : got < amt ? ' (' + got + ' to full)' : '')]);
       } else if (id === 'lesserrestoration') {
-        var gone = ['poisoned', 'paralyzed', 'blinded'].filter(function (c) { return w2.conds[c]; });
-        gone.forEach(function (c) { delete w2.conds[c]; });
-        B.card([head + ' on ' + w2.name + ': ' + (gone.length ? gone.join(', ') + ' ended.' : 'nothing to end.')]);
+        // ONE thing ends (the docket, "Lesser Restoration ends one condition, chosen"): a player chooses where more than one afflicts the creature
+        // (the worst is the first of the list, which the benches take); an NPC takes the worst
+        var ail = ailments(w2), ap = ail[0];
+        if (ail.length > 1 && u.side === 'party' && !u.guest) { var ci = yield { prompt: { who: u, title: u.name + ': LESSER RESTORATION', lines: [w2.name + ' is afflicted with more than the spell can end. Which one?'], opts: ail.map(function (a, i) { return { label: a.label.toUpperCase(), value: i }; }) } }; ap = ail[ci] || ail[0]; }
+        if (ap) ap.end();
+        B.card([head + ' on ' + w2.name + ': ' + (ap ? ap.label + ' ended.' + (ail.length > 1 ? ' {g}(one only: ' + ail.filter(function (a) { return a !== ap; }).map(function (a) { return a.label; }).join(', ') + ' stay' + (ail.length > 2 ? '' : 's') + '){/}' : '') : 'nothing to end.')]);
       } else if (id === 'mageArmor') {
         w2.conds.mageArmor = true; w2.baseAC = Math.max(w2.baseAC, 13 + D.mod(w2.abil.dex));
         B.card([head + ' on ' + w2.name + ': {c}AC ' + RU.ac(w2) + '{/} (13 + DEX, no armour).']);
@@ -418,6 +454,11 @@
     var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave';
     FX.bloom(fromMe ? u.x : cx, fromMe ? u.y : cy, sq, ramp);
     var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq); });
+    // the Globe of Invulnerability (SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells"): those inside it, the
+    // caster outside, are not caught; the card says so
+    var inGlobe = M.globed ? caught.filter(function (w) { return M.globed(B, u, w, sp.level); }) : [];
+    if (inGlobe.length) caught = caught.filter(function (w) { return inGlobe.indexOf(w) < 0; });
+    var globeLines = inGlobe.map(function (w) { return '  ' + w.name + ': {c}inside the globe: untouched{/}'; });
     if (sp.el === 'fire') M.burnWebs(B, sq, u.id); // (a fire area burns the webs in it: M.burnWebs)
     var lines = [];
     if (id === 'daylight') {
@@ -509,7 +550,8 @@
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + d + '{/}');
         hits.push([w, d, sv.ok]);
       });
-      if (!caught.length) lines.push('  {g}no one in it.{/}');
+      globeLines.forEach(function (l) { lines.push(l); });
+      if (!caught.length && !globeLines.length) lines.push('  {g}no one in it.{/}');
       B.card(lines.slice(0, 7), 420);
       yield { fx: 1 };
       hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el); });
@@ -518,6 +560,7 @@
       yield 30;
       return;
     }
+    if (id === 'sleep' || id === 'web' || id === 'sleetstorm') globeLines.forEach(function (l) { lines.push(l); }); // (the others lay a place -- fog, gas, lights -- and the globe does not keep that out)
     B.card(lines.slice(0, 7), 420);
     yield { fx: 1 };
     yield 30;

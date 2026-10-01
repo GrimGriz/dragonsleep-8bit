@@ -338,7 +338,7 @@
     // yellow-green gas, sleet falling)
     (B.darks || []).forEach(function (dk) {
       var kind = dk.kind || 'darkness', sqs = D.magic.darkSq(B, dk), has = {}; sqs.forEach(function (q) { has[q[0] + ',' + q[1]] = 1; });
-      var CL = kind === 'fog' ? [P('silver', 6), P('silver', 5), P('bone', 1), 0.28] : kind === 'stink' ? [P('orc', 3), P('gold', 3), P('orc', 2), 0.3] : kind === 'kill' ? [P('moss', 2), P('gold', 2), P('moss', 3), 0.34] : kind === 'sleet' ? [P('bone', 2), P('glow', 2), P('silver', 5), 0.22] : [P('outline', 0), P('violet', 1), P('violet', 3), 0.55];
+      var CL = kind === 'fog' ? [P('silver', 6), P('silver', 5), P('bone', 1), 0.28] : kind === 'stink' ? [P('orc', 3), P('gold', 3), P('orc', 2), 0.3] : kind === 'kill' ? [P('moss', 2), P('gold', 2), P('moss', 2), 0.34] : kind === 'sleet' ? [P('bone', 2), P('glow', 2), P('silver', 5), 0.22] : [P('outline', 0), P('violet', 1), P('violet', 3), 0.55];
       sqs.forEach(function (q) {
         var edgeN = !has[q[0] + ',' + (q[1] - 1)], edgeW = !has[(q[0] - 1) + ',' + q[1]], edgeS = !has[q[0] + ',' + (q[1] + 1)], edgeE = !has[(q[0] + 1) + ',' + q[1]];
         onSq(q[0], q[1], function (c) {

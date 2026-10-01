@@ -324,7 +324,7 @@ When the spell ends, the conjured plants wilt away.
 
 *1st-level transmutation*
 
-> **The game:** Bonus action, yourself. Concentration, 10 minutes. From your next turn, RETREAT DASH: a Dash as your bonus action each turn. Not built: the Dash on the turn you cast it.
+> **The game:** Bonus action, yourself. Concentration, 10 minutes. Casting it gives you a Dash that turn, free (the cast is the bonus action): your speed again in movement. From your next turn, RETREAT DASH: a Dash as your bonus action each turn. Held fast or dancing, there is no move to add a Dash to. The AI casts it to close on a foe it cannot reach by the walk, and takes the bonus Dash to close or to get clear.
 
 **Casting Time:** 1 bonus action
 

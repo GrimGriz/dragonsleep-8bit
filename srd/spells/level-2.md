@@ -297,7 +297,7 @@ Once you detect the presence of a creature in this way, you can read its thought
 
 *2nd-level transmutation*
 
-> **The game:** Touch: Bear's Endurance only, 2d6 temporary hit points and advantage on CON checks (the grid rolls none yet). Concentration, up to an hour. Not built: the other five aspects, extra targets.
+> **The game:** Touch, concentration, up to an hour: choose one of six aspects, advantage on checks of its ability -- Bear's Endurance (CON, and 2d6 temporary HP, lost when the spell ends), Bull's Strength (STR: tearing free of a web or grip), Cat's Grace (DEX: slipping a grip, Hide), Eagle's Splendor (CHA), Fox's Cunning (INT), Owl's Wisdom (WIS). A player picks from a list, Bear's first; an NPC takes Bull's Strength for one held or webbed, else Bear's. Not built: extra targets from a higher slot; doubled carrying capacity; Cat's Grace's no-damage fall (nothing falls on the grid); the CHA, INT, WIS and CON checks themselves (the grid rolls none).
 
 **Casting Time:** 1 action
 
@@ -557,7 +557,7 @@ When you cast the spell, a loud knock, audible from as far away as 300 feet, ema
 
 *2nd-level abjuration*
 
-> **The game:** Ends poison, paralysis or blindness.
+> **The game:** Ends poison, paralysis or blindness. On the grid it ends one thing, as the SRD has it: paralysis, the disease (Contagion, with its poison and blinding), blindness, poison or deafness -- a player picks where there is more than one, an NPC takes the worst. Not built: any other disease.
 
 **Casting Time:** 1 action
 
