@@ -36,6 +36,19 @@
   .row code { font-size:12px; }
   .row button, .row a.btn { background:none; border:1px solid var(--rule); color:var(--ink); border-radius:999px; padding:.15rem .6rem; cursor:pointer; font:inherit; text-decoration:none; min-height:28px; display:inline-flex; align-items:center; }
   .row button:hover, .row a.btn:hover { border-color:var(--accent); }
+  .fb { margin-top:.55rem; border-top:1px dashed var(--rule); padding-top:.5rem; }
+  .chips { display:flex; flex-wrap:wrap; gap:.35rem; font:13px system-ui,sans-serif; }
+  .chips button { background:none; border:1px solid var(--rule); color:var(--ink); border-radius:999px; padding:.15rem .6rem; cursor:pointer; font:inherit; min-height:28px; }
+  .chips button:hover { border-color:var(--accent); }
+  .chips button.on { background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .chips button.on[data-v=works] { background:#2f6d8f; border-color:#2f6d8f; color:#fff; }
+  .chips button.on[data-v=broken] { background:#8f2f1c; border-color:#8f2f1c; color:#fff; }
+  .chips button.on[data-v=unclear] { background:#a8552a; border-color:#a8552a; color:#fff; }
+  .chips button.on[data-v=hard], .chips button.on[data-v=easy] { background:#b8892a; border-color:#b8892a; color:#fff; }
+  .fb textarea { width:100%; margin-top:.4rem; font:15px/1.45 Georgia,serif; color:var(--ink); background:var(--bg); border:1px solid var(--rule); border-radius:6px; padding:.35rem .5rem; resize:vertical; min-height:2.6em; }
+  .fb textarea:focus { outline:none; border-color:var(--accent); }
+  .item.noted { border-left-width:6px; }
+  #count b { color:var(--ink); }
   #toast { position:fixed; left:50%; bottom:1.2rem; transform:translateX(-50%); background:var(--ink); color:var(--bg); font:14px system-ui,sans-serif; padding:.45rem .9rem; border-radius:6px; opacity:0; transition:opacity .2s; pointer-events:none; }
   #toast.show { opacity:1; }
   @media (max-width:560px) { body { font-size:17px; } #page { padding:1rem 1rem 3rem; } #bar { padding:.4rem .6rem; } }
@@ -47,6 +60,10 @@
   <button data-base="live" class="on">LIVE</button>
   <button data-base="local">LOCAL :8923</button>
   <span class="sp"></span>
+  <span id="count"></span>
+  <button id="copyfb" title="Copy every note and verdict, ready to paste into the chat">Copy feedback</button>
+  <button id="savefb" title="Download the notes as a situations ear-file (JSON)">Save ⬇</button>
+  <button id="clearfb" title="Wipe every note on this device">Clear</button>
   <a href="test-runs.html">test runs</a>
   <a href="playtest-lamp.html">playtest lamp</a>
   <button id="theme">Night</button>
@@ -56,6 +73,7 @@
   <div class="intro">
     <p>Each link starts a NEW GAME standing at a line of the playtest ear-file (PLAYTEST.md), at that point's level, with the story done up to there. Pick NEW GAME, pick a lead, and you're in. Nothing touches your saves unless you save.</p>
     <p>Vivian comes as a Thief; add <code>&amp;rogue=cutthroat</code> for the other. Add <code>&amp;x=anything</code> to force a fresh load past the cache (the FRESH links do it for you).</p>
+    <p>Under each one: mark it and say what happened. Notes stay on this device as you go; <b>Copy feedback</b> gives you all of them at once to paste into the chat (or <b>Save</b> them as a file for the next seat).</p>
   </div>
   <div id="list"></div>
 </main>
@@ -72,23 +90,75 @@
   if (theme) root.setAttribute('data-theme', theme);
   function toast(t) { var e = document.getElementById('toast'); e.textContent = t; e.classList.add('show'); setTimeout(function () { e.classList.remove('show'); }, 1400); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  // the feedback (10-01, Griz: "Feels like the situations sheet should have a spot for these feedbacks to give you all at once. The
+  // playtest lamp is huge and full of everything"): a verdict and a note a situation, kept on this device, copied or saved all at once
+  var FKEY = 'dsl-situations-feedback:v1', VERDICTS = [['works', '✓ works'], ['broken', '✗ broken'], ['unclear', '? unclear'], ['hard', 'too hard'], ['easy', 'too easy']];
+  var VL = {}; VERDICTS.forEach(function (v) { VL[v[0]] = v[1]; });
+  var FB = {}; try { FB = JSON.parse(get(FKEY) || '{}') || {}; } catch (e) { FB = {}; }
+  function saveFB() { put(FKEY, JSON.stringify(FB)); count(); }
+  function noted(id) { var f = FB[id]; return !!(f && (f.v || (f.note || '').trim())); }
+  function count() {
+    var S = window.DS.SITUATIONS || {}, ids = Object.keys(S), n = ids.filter(noted).length;
+    document.getElementById('count').innerHTML = '<b>' + n + '</b> of ' + ids.length + ' noted';
+  }
   function render() {
     document.querySelectorAll('#bar [data-base]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-base') === base); });
     var S = window.DS.SITUATIONS || {}, ids = Object.keys(S), html = '', group = null;
     ids.forEach(function (id, i) {
-      var s = S[id], url = BASES[base] + (s.url || '?at=' + id);
+      var s = S[id], url = BASES[base] + (s.url || '?at=' + id), f = FB[id] || {};
       if (s.group !== group) { group = s.group; html += '<h2>' + esc(group || '') + '</h2>'; }
-      html += '<div class="item' + (s.url && /deep16/.test(s.url) ? ' deep' : '') + '">' +
+      html += '<div class="item' + (s.url && /deep16/.test(s.url) ? ' deep' : '') + (noted(id) ? ' noted' : '') + '" data-id="' + esc(id) + '">' +
         '<h3><span class="n">' + (i + 1) + '</span><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(s.title) + '</a></h3>' +
         '<p class="meta">' + esc(s.pt || '') + (s.lvl ? ' · level ' + s.lvl : '') + '</p>' +
         '<p class="look">' + esc(s.look || '') + '</p>' +
         '<div class="row"><code>' + esc(url) + '</code>' +
         '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">OPEN</a>' +
         '<a class="btn" href="' + esc(url + '&x=' + Date.now().toString(36)) + '" target="_blank" rel="noopener">FRESH</a>' +
-        '<button data-copy="' + esc(url) + '">COPY</button></div></div>';
+        '<button data-copy="' + esc(url) + '">COPY</button></div>' +
+        '<div class="fb"><div class="chips">' + VERDICTS.map(function (v) { return '<button data-v="' + v[0] + '"' + (f.v === v[0] ? ' class="on"' : '') + '>' + v[1] + '</button>'; }).join('') + '</div>' +
+        '<textarea placeholder="What happened? (kept on this device till you copy or save)">' + esc(f.note || '') + '</textarea></div></div>';
     });
     list.innerHTML = html || '<p>No situations found: js/situations.js did not load.</p>';
+    count();
   }
+  list.addEventListener('click', function (e) {
+    var b = e.target.closest('.chips button'); if (!b) return;
+    var it = b.closest('.item'), id = it.getAttribute('data-id'), v = b.getAttribute('data-v'), f = FB[id] = FB[id] || {};
+    f.v = f.v === v ? '' : v; f.at = new Date().toISOString();
+    it.querySelectorAll('.chips button').forEach(function (x) { x.classList.toggle('on', x.getAttribute('data-v') === f.v); });
+    it.classList.toggle('noted', noted(id)); saveFB();
+  });
+  list.addEventListener('input', function (e) {
+    if (e.target.tagName !== 'TEXTAREA') return;
+    var it = e.target.closest('.item'), id = it.getAttribute('data-id'), f = FB[id] = FB[id] || {};
+    f.note = e.target.value; f.at = new Date().toISOString();
+    it.classList.toggle('noted', noted(id)); saveFB();
+  });
+  function stamp() { return new Date().toISOString().slice(0, 10); }
+  function feedbackText() {
+    var S = window.DS.SITUATIONS || {}, ids = Object.keys(S).filter(noted);
+    if (!ids.length) return '';
+    return ['Situations feedback (' + stamp() + ', ' + ids.length + ' noted):'].concat(ids.map(function (id) {
+      var f = FB[id], s = S[id], n = Object.keys(S).indexOf(id) + 1;
+      return n + '. ' + id + ' (' + s.title + ')' + (f.v ? ' ' + VL[f.v] : '') + ((f.note || '').trim() ? ': ' + f.note.trim().replace(/\s*\n\s*/g, ' / ') : '');
+    })).join('\n');
+  }
+  document.getElementById('copyfb').addEventListener('click', function () {
+    var t = feedbackText(); if (!t) { toast('Nothing noted yet'); return; }
+    (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast('Copied: paste it into the chat'); }, function () { window.prompt('Copy this:', t); });
+  });
+  document.getElementById('savefb').addEventListener('click', function () {
+    var S = window.DS.SITUATIONS || {}, ids = Object.keys(S).filter(noted);
+    if (!ids.length) { toast('Nothing noted yet'); return; }
+    var out = { _readme: { what: 'Playtest feedback from situations.html: one verdict and note a situation (?at=<id>, js/situations.js).', fold_back: 'Broken and unclear become the fix list; too hard / too easy are tuning; notes are the tester\'s words, verbatim.' },
+      saved_at: new Date().toISOString(), items: ids.map(function (id) { return { id: id, title: S[id].title, pt: S[id].pt, verdict: FB[id].v || '', note: FB[id].note || '', at: FB[id].at || '' }; }) };
+    var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }));
+    a.download = 'situations-ear-file-' + stamp() + '.json'; document.body.appendChild(a); a.click(); a.remove();
+  });
+  document.getElementById('clearfb').addEventListener('click', function () {
+    if (!window.confirm('Wipe every note and verdict on this device?')) return;
+    FB = {}; saveFB(); render();
+  });
   document.getElementById('bar').addEventListener('click', function (e) {
     var b = e.target.closest('[data-base]'); if (b) { base = b.getAttribute('data-base'); put('dsl-situations-base', base); render(); }
   });

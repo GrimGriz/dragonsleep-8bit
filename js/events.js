@@ -778,25 +778,16 @@
     var res = yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, deep16: 'wet', wake: 'rim', at: [g.x, g.y] });
     yield* EV.wetOut(res);
   };
+  // E at the water's edge, the landlord alive and unfed: the grid, as the rim is (10-01, Griz, testing ?at=wet: "the pictures didn't run in
+  // the 8-bit" -- "if we haven't arranged it so that they'd be pulled into the 16bit version of the wet on the 8bit with all the monsters alive
+  // - that's problematic"). The 8-bit's own LOWER THE BUCKET / FIGHT IT fed or fought it off the grid, with every sleeper in the wet left out
+  // and no picture; now the party goes onto the wet's grid on its own square, the landlord asleep in its water, its picture first (wake
+  // 'rim', deep16/js/wet.js), the bucket in the hand that carries it, to USE there (and the four pictures after); FIGHT IT is an attack there
   S.landlord = function* () {
     var g = G();
     if (g.flags.otyughDead) { yield DS.say(L('w.poolQuiet')); return; }
     if (g.flags.otyughFed) { yield DS.say(L('w.landlordFed')); yield* EV.fedXp(); return; } // (fed before the bucket paid: it pays now)
-    var opts = [g.has('bucket') ? 'LOWER THE BUCKET' : 'WAIT', 'FIGHT IT', 'STEP BACK'];
-    var a = yield DS.ask(L('w.landlordAsk'), opts);
-    if (a === 0 && g.has('bucket')) {
-      g.take('bucket', 1); g.flags.otyughFed = 1; DS.audio.sfx('splash');
-      yield DS.say(L('w.landlordFeed'));
-      g.flags['heard:r-stream'] = 1;
-      yield* EV.fedXp();
-      return;
-    }
-    if (a === 1) {
-      // fought in DEEP16: THE SETTLING (RULED 09-30), the wet as one grid, the lead on his own square, the landlord awake
-      // (deep16/js/wet.js); what died there comes back as the flags (otyughDead, jellyDead, oozeDead: js/embed.js)
-      var res = yield* EV.fight(['otyugh'], { bg: 'wet', music: 'boss', canRun: true, introText: L('w.landlordRises'), deep16: 'wet', wake: 'landlord', at: [g.x, g.y] });
-      yield* EV.wetOut(res);
-    }
+    yield* S.landlordNear();
   };
   // the Settling (RULED 09-30, 09-30c): the jelly's spots (both shores of its pool) and the pool ooze's puddle put the lead on the wet's grid
   // on the same square, that one awake and the rest asleep till theirs are stepped on; the southern ooze is the 8-bit's own fight, a second

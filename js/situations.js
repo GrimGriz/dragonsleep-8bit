@@ -65,7 +65,7 @@
   DS.SITUATIONS = {
     // ---------------------------------------------------------------- the base game (round six's state, one quest undone)
     wet: { group: 'The base game', title: 'The Wet: the bucket and the landlord', pt: '§5 the wet · the landlord\'s pictures (new 10-01)', lvl: 4,
-      look: 'E on the crate below you for the bucket, then step left to the rim: the grid, and the landlord\'s first picture. Lower the bucket (or fight it) and four more pictures come, the clackers clacking.',
+      look: 'E on the crate below you for the bucket. Then E at the water (or walk round to the stone rim south of the pool): onto the wet\'s grid with every sleeper in it, and the landlord\'s first picture before anyone moves. USE the bucket there (ITEM, by the one who carries it) and four more pictures come, the clackers clacking.',
       say: 'The Warrens\' wet. The crate below you holds the deep station\'s bucket; the landlord is in the water to the west, unfed.',
       unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 13, y: 4, dir: 'down' },
     gulch: { group: 'The base game', title: 'Web Gulch: the strung end', pt: '§7 the braiding ettercap · §11 the snared traveler', lvl: 3,
