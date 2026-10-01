@@ -511,8 +511,10 @@
   // through solid rock"), and not a map whose floor is worked stone (a map's `noBurrow`). Moving under, it has its burrow speed
   function canDig(B, u) { return u.burrow > 0 && !(B.map && B.map.def && B.map.def.noBurrow) && !u.conds.restrained && !u.conds.prone && !(u.holding && u.holding.length); }
   function* sink(B, u) {
-    u.anim = 'burrow'; u.animT = B.t; D.sfx('earth'); FX.ring(u, 'stone', 30);
-    B.card(['{r}' + the(B, u) + '{/} dives into the ground!  {g}(burrowing: it cannot be seen, struck or blocked till it comes up){/}'], 300);
+    u.anim = 'burrow'; u.animT = B.t; D.sfx('earth'); if (!u.earthGlide) FX.ring(u, 'stone', 30);
+    // (Earth Glide, the xorn's: "the xorn doesn't disturb the material it moves through" -- no dust, no mound, and nothing to follow)
+    B.card(u.earthGlide ? ['{r}' + the(B, u) + '{/} sinks into the floor like a stone into water.  {g}(Earth Glide: it cannot be seen, struck or followed till it comes up){/}']
+      : ['{r}' + the(B, u) + '{/} dives into the ground!  {g}(burrowing: it cannot be seen, struck or blocked till it comes up){/}'], 300);
     yield Math.max(24, D.spr.duration(u.sheet, 'burrow') || 0);
     u.under = true; u.ethereal = true; u.anim = 'idle';
   }
@@ -520,7 +522,7 @@
     u.under = false; u.ethereal = false; B.focus(u);
     if (tgt) u.facing = B.faceTo(u, tgt);
     u.anim = 'reveal'; u.animT = B.t; D.sfx('earth'); FX.ring(u, 'stone', 40);
-    B.card(['{r}' + the(B, u) + '{/} bursts up out of the ground' + (tgt ? (G.dist(u, tgt) <= reachOf(u) ? ' beside ' : ' near ') + tgt.name : '') + '!'], 300);
+    B.card(['{r}' + the(B, u) + '{/} ' + (u.earthGlide ? 'rises out of the floor' : 'bursts up out of the ground') + (tgt ? (G.dist(u, tgt) <= reachOf(u) ? ' beside ' : ' near ') + tgt.name : '') + '!'], 300);
     yield Math.max(24, D.spr.duration(u.sheet, 'reveal') || 0);
     u.anim = 'idle';
   }
@@ -537,7 +539,7 @@
     // the Leap's recharge, before it picks where to come up (brute does not roll it again this turn)
     if (L && !L.ready && D.d(6) >= L.recharge) L.ready = true;
     T.recharged = true;
-    if (!hs.length) { B.card(['{g}The ground heaves: something moves under it.{/}'], 160); yield 16; return; }
+    if (!hs.length) { B.card([u.earthGlide ? '{g}Nothing shows where it went.{/}' : '{g}The ground heaves: something moves under it.{/}'], 160); yield 16; return; }
     var m0 = T.move, cap = Math.min(m0, u.burrow), rm = G.reach(u, cap, { ghost: true }), leapNow = !!(L && L.ready && T.action);
     // where to come up: beside the weakest it can reach this turn (or, Leap ready, 15-30 ft off with a clear jump), the shortest dig first
     function pick(leapBand) {
@@ -560,7 +562,7 @@
       // no one it can reach this turn: closer, under the ground
       var near = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], e0 = approach(u, near, rm);
       if (e0 && (e0.x !== u.x || e0.y !== u.y)) { T.move = cap; yield* walkTo(B, u, e0, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move)); }
-      B.card(['{g}The ground heaves: something moves under it' + (near ? ', toward ' + near.name : '') + '.{/}'], 200); yield 16;
+      B.card([u.earthGlide ? '{g}Nothing shows where it went.{/}' : '{g}The ground heaves: something moves under it' + (near ? ', toward ' + near.name : '') + '.{/}'], 200); yield 16;
       return;
     }
     T.move = cap; yield* walkTo(B, u, up.e, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move));

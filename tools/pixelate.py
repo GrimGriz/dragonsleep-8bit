@@ -17,8 +17,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D16 = os.path.join(ROOT, 'deep16')
 SRC = os.path.join(D16, '_src')
 ART = os.path.join(D16, 'art')
-FPS = {'idle': 6, 'walk': 10, 'attack': 12, 'hurt': 10, 'die': 8, 'sit': 2, 'cast': 10, 'fly': 9, 'roost': 2, 'reveal': 6, 'moan': 8, 'flinch': 12}
-ANIM_ORDER = ['idle', 'walk', 'attack', 'hurt', 'die', 'sit', 'cast', 'fly', 'roost', 'reveal', 'moan', 'flinch', 'rofl', 'braid', 'run', 'clack', 'burrow']  # (burrow: going under, the bulette's, its last frame the mound it is while under -- 10-01d)  # (clack: the clacker striking its hooks together at its turn's start, 10-01)  # (braid: the ettercap sitting on its stump braiding, till it sees you; run: the giant boar's charge -- both 09-30)  # (rofl: the hyena rolling on the floor with laughter, 09-30: the Hideous Laughter easter egg)  # (flinch: a blow that lands and doesn't drop it, played once: the generated sheets' hit rows, 09-29)  # (fly: the cloaker's flight in, played as drawn -- the easter egg's ending)  # (cast: the spellcasters' own pose, the spell animation pass 09-28h)
+FPS = {'claw': 12, 'claw2': 12, 'claw3': 12, 'bite': 10, 'burrow': 8, 'idle': 6, 'walk': 10, 'attack': 12, 'hurt': 10, 'die': 8, 'sit': 2, 'cast': 10, 'fly': 9, 'roost': 2, 'reveal': 6, 'moan': 8, 'flinch': 12}
+ANIM_ORDER = ['idle', 'walk', 'attack', 'hurt', 'die', 'sit', 'cast', 'fly', 'roost', 'reveal', 'moan', 'flinch', 'rofl', 'braid', 'run', 'clack', 'burrow', 'claw', 'claw2', 'claw3', 'bite']  # (claw, claw2, claw3, bite: a row for each of a Multiattack's blows, the xorn's first -- battle.js attack, 10-01d)  # (burrow: going under, the bulette's, its last frame the mound it is while under -- 10-01d)  # (clack: the clacker striking its hooks together at its turn's start, 10-01)  # (braid: the ettercap sitting on its stump braiding, till it sees you; run: the giant boar's charge -- both 09-30)  # (rofl: the hyena rolling on the floor with laughter, 09-30: the Hideous Laughter easter egg)  # (flinch: a blow that lands and doesn't drop it, played once: the generated sheets' hit rows, 09-29)  # (fly: the cloaker's flight in, played as drawn -- the easter egg's ending)  # (cast: the spellcasters' own pose, the spell animation pass 09-28h)
 # LPC has four directions; the eight facings take the nearest, the front and back diagonals leaning to down and up
 LPC_ROW = {'up': 0, 'left': 1, 'down': 2, 'right': 3}
 LPC_FOR_FACING = ['down', 'down', 'left', 'up', 'up', 'up', 'right', 'down']
@@ -120,9 +120,12 @@ def top_of(frames, ay):
 def p1(fig):
     d = os.path.join(SRC, 'render', fig)
     meta = json.load(open(os.path.join(d, 'meta.json')))
+    # a figure may turn the lift off (pipeline 1b's toon look is lit for the palette already: Griz's pick for the xorn, "14", is lift off -- 10-01d)
+    fig_cfg = json.load(open(os.path.join(ROOT, 'tools', 'deep16-figures.json'), encoding='utf-8'))['figures'].get(fig, {})
+    lift_on = fig_cfg.get('lift', True)
     frames = {}
     for anim, info in meta['anims'].items():
-        frames[anim] = [[pixelate(Image.open(os.path.join(d, anim, 'f%d_%02d.png' % (f, i))), meta['ss']) for i in range(info['frames'])] for f in range(8)]
+        frames[anim] = [[pixelate(Image.open(os.path.join(d, anim, 'f%d_%02d.png' % (f, i))), meta['ss'], do_lift=lift_on) for i in range(info['frames'])] for f in range(8)]
     write_sheet(fig + '_p1', frames, meta['fw'], meta['fh'], meta['ax'], meta['ay'], top_of(frames['idle'][0], meta['ay']))
 
 

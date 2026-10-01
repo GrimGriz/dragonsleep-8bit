@@ -278,6 +278,15 @@ if FW != FH:   # ortho_scale covers the larger side; the render's aspect does th
 
 r = scene.render
 r.engine = 'BLENDER_WORKBENCH'
+# pipeline 1b (10-01d, deep16/blender-monsters.md): a figure whose `look` is "toon:<preset>" keeps its own cel material and is lit in
+# EEVEE by tools/blender_look.py's suns; `floor`: a holdout floor at z 0 that hides what sinks into it (the xorn's Earth Glide)
+TOON = (F.get('look') or '').startswith('toon')
+if TOON or F.get('floor'):
+    import importlib.util
+    _sp = importlib.util.spec_from_file_location('blender_look', os.path.join(ROOT, 'tools', 'blender_look.py'))
+    BLK = importlib.util.module_from_spec(_sp); _sp.loader.exec_module(BLK)
+    if F.get('floor'):
+        BLK.holdout_floor(scene)
 r.resolution_x, r.resolution_y, r.resolution_percentage = FW * SS, FH * SS, 100
 r.film_transparent = True
 r.image_settings.file_format = 'PNG'; r.image_settings.color_mode = 'RGBA'
@@ -294,6 +303,8 @@ sh.cavity_ridge_factor = 1.2; sh.cavity_valley_factor = 1.0
 sh.show_specular_highlight = False
 sh.show_shadows = False
 scene.display.render_aa = '8'
+if TOON:
+    BLK.light(scene, cam, F['look'].split(':', 1)[1] if ':' in F['look'] else '12')
 
 # ------------------------------------------------------------------ render every facing of every anim
 out = os.path.join(SRC, os.environ.get('D16_OUT', 'render'), FIG)
@@ -309,7 +320,8 @@ for anim, action in F['anims'].items():
     if R:
         rider_action(anim)
     f0, f1 = act.frame_range
-    n = NFRAMES
+    n = (F.get('frames') or {}).get(anim, NFRAMES)    # (a row's own count, and a row played once is sampled to its last frame: 10-01d)
+    once = anim in (F.get('once') or [])
     meta['anims'][anim] = {'action': action, 'frames': n}
     os.makedirs(os.path.join(out, anim), exist_ok=True)
     for facing in range(8):
@@ -317,7 +329,7 @@ for anim, action in F['anims'].items():
             continue
         arm.rotation_euler.z = base_yaw + math.radians(45 - 45 * facing)
         for i in range(n):
-            t = f0 + (f1 - f0) * i / n
+            t = f0 + (f1 - f0) * i / ((n - 1) if once and n > 1 else n)
             scene.frame_set(int(t), subframe=t - int(t))
             r.filepath = os.path.join(out, anim, 'f%d_%02d.png' % (facing, i))
             bpy.ops.render.render(write_still=True)

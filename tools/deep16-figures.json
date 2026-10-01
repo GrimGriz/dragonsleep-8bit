@@ -598,13 +598,16 @@
       "anims": { "idle": "Idle", "attack": "1H_Melee_Attack_Chop", "walk": "Walking_A" }
     },
     "xorn": {
-      "_note": "the xorn (SRD 5.1, Medium): Quaternius Blob/GreenSpikyBlob (the otyugh's model) at a square and a bit, turned to stone grey -- a loose fit; the three-fold body is lost.",
-      "file": "quaternius/ultimate-monsters/Blob/Blends/GreenSpikyBlob.blend",
-      "show": ["GreenSpiky_Blob", "GreenSpiky_Blob.002"],
-      "grade": { "hue": 0, "sat": 0.15, "val": 0.75 },
-      "size_squares": 1.3,
-      "yaw": 0,
-      "anims": { "idle": "Idle", "attack": "Bite_Front", "walk": "Walk" }
+      "_note": "the xorn (SRD 5.1, Medium): MZ4250's printable Xorn (Thingiverse 2847683, CC BY 4.0), rigged and posed by tools/xorn-blend.py -- pipeline 1b, deep16/blender-monsters.md (10-01d). The toon look, light preset 13 with the pixel lift on: Griz's pick, '17' (the high key, eyes, white teeth), 'but go back to unpainted mouth'. (Till then the Quaternius green blob stood in, 'the three-fold body lost'.) yaw: its front between two arms, as the build prints it.",
+      "file": "xorn/xorn.blend",
+      "show": ["Xorn_Body"],
+      "look": "toon:13", "lift": true, "floor": true,
+      "size_squares": 1.2,
+      "yaw": 11.3,
+      "anims": { "idle": "IDLE", "walk": "WALK", "attack": "CLAW", "claw": "CLAW", "claw2": "CLAW2", "claw3": "CLAW3", "bite": "BITE",
+                 "burrow": "SINK", "reveal": "RISE", "flinch": "FLINCH", "hurt": "DEATH" },
+      "frames": { "idle": 8, "walk": 8, "attack": 6, "claw": 6, "claw2": 6, "claw3": 6, "bite": 6, "burrow": 6, "reveal": 6, "flinch": 5, "hurt": 8 },
+      "once": ["attack", "claw", "claw2", "claw3", "bite", "burrow", "reveal", "flinch", "hurt"]
     },
     "bandit": {
       "_note": "a road bandit (SRD bandit): KayKit Rogue_Hooded, a knife, in road-dust brown.",

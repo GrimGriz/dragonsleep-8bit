@@ -812,6 +812,13 @@
     var posing = atk.spell && (att.anim === 'attack' || att.anim === 'cast') && this.t - (att.animT || 0) < (D.spr.duration(att.sheet, att.anim) || 18);
     // (a spell's shot, or a floating weapon sent at its mark, from the cast pose where the sheet has one)
     if (!posing) { att.anim = atk.spell && (!melee || atk.spirit) && D.spr.anim(att.sheet, 'cast') ? 'cast' : 'attack'; att.animT = this.t; }
+    // a row of its own for the blow, where the sheet has one (10-01d, the xorn first: Griz, "since this is prototype, go fancy"): the
+    // attack's name (claw, bite), and its second and third use in a turn the numbered rows (claw2, claw3: a blow from each of its arms)
+    if (!posing && att.anim === 'attack' && atk.name) {
+      var rk = String(atk.name).toLowerCase().replace(/[^a-z]/g, ''), rt = att.turn || {}, rn = ((rt.rowN = rt.rowN || {})[rk] = (rt.rowN[rk] || 0) + 1);
+      var rw = rn > 1 && D.spr.anim(att.sheet, rk + rn) ? rk + rn : rk;
+      if (rk && D.spr.anim(att.sheet, rw)) att.anim = rw;
+    }
     if (!o.oa) yield atk.spell && !melee ? Math.max(4, Math.round((D.spr.duration(att.sheet, att.anim) || 18) * 0.55) - (this.t - att.animT)) : 10;
     if (!melee) { FX.projectile(att, tgt, atk.fx || 'bolt'); yield { fx: 1 }; }
     var los = G.los(att, tgt), cover = melee && G.dist(att, tgt) <= 5 ? 0 : los.cover;

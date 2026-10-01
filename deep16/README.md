@@ -138,6 +138,9 @@ outline. Sheets are `art/<figure>_p<N>.png` + `.json` (per-animation frame sizes
   --disable-autoexec --python tools/render-sprites.py — <figure> 8` renders a CC0 model (KayKit, or the OpenGameArt
   spider) at the dimetric angle — orthographic, X 60°, Z 45°, the toon matcap — per `tools/deep16-figures.json`
   (which parts show, the atlas recolours, the actions); then `python tools/pixelate.py p1 all`.
+- **Pipeline 1b, a printable model rigged** (`xorn_p1`, 10-01d): a free print model (CC BY / CC0) with its Blender sources, coloured,
+  skeletoned and posed in code by `tools/<creature>-blend.py`, lit in the toon look (`tools/blender_look.py`, a figure's `"look":
+  "toon:13"`), rendered by `render-sprites.py` like pipeline 1. The whole recipe, walked once on the xorn: **`deep16/blender-monsters.md`**.
 - **Pipeline 2, generated** (`denny_p2`): Griz's generated character sheet, cut and cleaned by `python tools/denny-sheet.py`.
 - Then `python tools/deep16-build.py` (the palette and sprite manifest as JS; `?v=` stamps on `index.html`).
 - The downloaded packs live in `_src/` (gitignored). Credits and licences: `CREDITS.md` (the LPC-derived sheets are

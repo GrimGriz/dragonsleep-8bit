@@ -23,10 +23,21 @@ stalagmites, cocoons and rubble are drawn in code (`deep16/js/iso.js`, `deep16/j
   `ochrejelly_p1`, `ochrejellym_p1`, `grayooze_p1`); Animals Wolf (`worg_p1`), Husky (`hyena_p1`), Horse and Horse_White (`horse_p1`, `horsegrey_p1`: the wagon's team); Ultimate Monsters Big
   Alien (`ettercap_p1`), BlueDemon (`stonegiant_p1`, `earthelemental_p1`), Cactoro (`roper_p1`), Dino (`bulette_p1`),
   Frog (`chuul_p1`), Monkroose (`bugbearchief_p1`), Orc (`hobgoblin_p1`), Orc_Skull (`hobsergeant_p1`), Tribal
-  (`gnoll_p1`, `gloryseeker_p1`); Blob GreenSpikyBlob (`otyugh_p1`, `xorn_p1`); Flying Ghost (`cloaker_p1`), Glub
+  (`gnoll_p1`, `gloryseeker_p1`); Blob GreenSpikyBlob (`otyugh_p1`; `xorn_p1` till 10-01d); Flying Ghost (`cloaker_p1`), Glub
   (`darkmantle_p1`), Squidle (`grick_p1`). KayKit Adventurers again for the people: Knight (`guard_p1`, `veteran_p1`),
   Barbarian (`hask_p1`, `crewman_p1`, `brawler_p1`, `duergar_p1`), Rogue (`wheelwright_p1`), Rogue_Hooded (`assassin_p1`,
   `amara_p1`), Mage (`spellweaver_p1`, `willem_p1`); the OpenGameArt spider at three squares (`broodmother_p1`).
+
+## Pipeline 1b — a printable model, rigged and posed (`*_p1` with a `toon` look), CC BY — attribution required
+
+The recipe: `deep16/blender-monsters.md`. Each model's files live in `deep16/_src/<creature>/` (gitignored); its build script in `tools/`.
+
+- **Xorn** — **mz4250**, Thingiverse thing:2847683, https://www.thingiverse.com/thing:2847683 — licensed under
+  **Creative Commons Attribution 4.0** (https://creativecommons.org/licenses/by/4.0/). Used: `Xorn_Updated.blend` (his base mesh)
+  and `Xorn_Updated_sculpted.blend` (the sculpt). **Changed** by `tools/xorn-blend.py` (10-01d): the print base dropped, the sculpt
+  decimated to 300k triangles, coloured (speckled grey and brown stone, gems, eyes, teeth, the throat), rigged with a skeleton found
+  in the base mesh, posed into ten rows in code, rendered in the toon look (`tools/blender_look.py`) and snapped to the DEEP16
+  palette (`xorn_p1`). His Patreon: https://www.patreon.com/mz4250.
 
 ## Pipeline 2 — generated (`denny_p2`, `chuul_p2`, `crawler_p2`, `gnoll_p2`, `gloryseeker_p2`, `cloaker_p2`, `ettercap_p2`, `otyugh_p2`, `hyena_p2`, `bulette_p2`, `owl_p2`, `snowyowl_p2`)
 
