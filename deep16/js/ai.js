@@ -534,7 +534,9 @@
     if (!u.under) {
       var inReach = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u); });
       pressed = u.hp <= u.maxhp / 2 && inReach.length >= 2;
-      if (!hs.length || !canDig(B, u) || (inReach.length && !pressed)) { yield* brute(B, u); return; }
+      // (a burrower with `walkWithin` walks to one that close, on its feet -- the xorn, 15 ft: Griz, 10-01d, "have them walk within 15")
+      var walks = !inReach.length && u.walkWithin && hs.some(function (w) { return G.dist(u, w) <= u.walkWithin; });
+      if (!hs.length || !canDig(B, u) || (inReach.length && !pressed) || walks) { yield* brute(B, u); return; }
       yield* sink(B, u);
     }
     var all = hs;

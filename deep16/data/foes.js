@@ -517,6 +517,7 @@
     saves: { str: 3, dex: 0, con: 6, int: 0, wis: 0, cha: 0 },
     attacks: { claw: { name: 'Claw', atk: 6, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, bite: { name: 'Bite', atk: 6, dice: '3d6', mod: 3, type: 'piercing', reach: 5 } },
     multi: ['claw', 'claw', 'claw', 'bite'], resist: ['mundane'], earthGlide: true, burrow: 20, // (SRD 5.1 "burrow 20 ft.": under the floor and up beside you, unseen -- Earth Glide leaves no mound: js/ai.js burrower, 10-01d)
+    walkWithin: 15, // (it walks to anyone within 15 ft, and goes under for farther: Griz, 10-01d, "have them walk within 15")
     src: 'SRD 5.1 Xorn (CR 5): three claws and a bite; resists plain steel (the SRD\'s non-adamantine); content/monsters.json xorn; Earth Glide: through the rock, standing only on open ground (js/grid.js, 09-28)'
   },
   // ------------------------------------------------------------------ the bestiary from the 8-bit game's random tables (content/encounters.json), 09-27

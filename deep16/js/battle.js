@@ -216,7 +216,7 @@
       ethereal: !!f.ethereal || !!f.under, // a phase spider may start in the rock (the north cut: "They come out of the walls")
       // a burrower (SRD 5.1 burrow; the bulette, 10-01d: js/ai.js burrower): under the ground it is out of reach the way an ethereal one is
       // (ethereal too, for every rule that asks), drawn as its mound (js/ui.js); a fight may start it there (fights.js `under`)
-      burrow: d.burrow || 0, under: !!f.under,
+      burrow: d.burrow || 0, under: !!f.under, walkWithin: d.walkWithin || 0,
       weave: d.weave ? JSON.parse(JSON.stringify(d.weave)) : null, sneak: d.sneak || null, assassinate: !!d.assassinate, stealth: d.stealth || 0,
       enlarge: d.enlarge ? { dice: d.enlarge.dice, used: false } : null, split: !!d.split, small: d.small || null,
       bolts: d.bolts || null, // runs for the map's exit when the named one falls (the wheelwright, when Hask does)
