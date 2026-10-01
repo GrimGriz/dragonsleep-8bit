@@ -24,7 +24,7 @@ how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop wha
 | the owls, brown and snowy (Find Familiar) | 2 each | `tools/owl-sheet.py` | 09-29 |
 | the giant boar | 1 of 2 ("WILD BOAR ... (1/2) - MOVEMENT & CORE"; it replaces the stand-in bull that charged backwards) | `tools/boar-sheet.py` | 09-30 |
 | **the landlord's five pictures** (the Wet's telepathy: the bucket, the fall, the crook, the clackers, the chimney) | 5 stills, his from `dev/visions/` | `tools/visions.py` | 10-01 |
-| **the clacker** (the realm's hook horror; the Q2 head below) | 1: idle, walk, hook, clack, climb (not used), hurt, death | `tools/clacker-sheet.py` | 10-01 |
+| **the clacker** (the realm's hook horror; the Q2 head below) | 2 from Grok (`clacker_grok_2`: idle, walk, clack, hurt, death, the turnaround; `clacker_grok_3`: the hook that replaces the sheet's own). The first, GPT's, retired: "they 'hook' with their noses by the noses growing :) also their arms are all akilter" | `tools/clacker-sheet.py` | 10-01 |
 
 Still wanted below: seven creatures (the roper first).
 
