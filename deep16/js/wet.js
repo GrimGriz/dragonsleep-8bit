@@ -57,6 +57,7 @@
     var F = B.fight, f8 = fl(B), wake = (B.o.embed && B.o.embed.wake) || B.o.wake || null;
     B.wet = { round: 0, downAt: {}, beside: {}, spoke: !!f8.landlordSpoke, sleepers: {}, present: {}, sunk: {}, crawlers: 0, bucket: null, bucketBy: null, speakFirst: null, purge: null };
     B.flags8 = B.flags8 || {};
+    W.loadPictures(); // his paintings, fetched now so they are in before the landlord sends one
     var self = B;
     B.units.slice().forEach(function (u) {
       if (u.side !== 'foe') return;
@@ -433,12 +434,37 @@
   };
 
   // ------------------------------------------------------------------ the pictures (the telepathy: screen effects, not a text box)
-  // each drawn small (96 x 72) in a few colours and blown up soft-edged, swaying, the landlord's eye behind it
+  // his paintings (10-01, from his image runs, dev/visions/: "Landlord telepathy art dev/visions"), brought to 360 wide and a palette of
+  // their own by tools/visions.py; each fades in over the dark, swaying and breathing, a vignette closing from the corners. The clackers'
+  // jolts on each clack (W.SOUND's frames). Till a painting is in (or if one fails) the code's 96 x 72 sketch below stands in for it.
+  W.PICS = { bucket: 'bucket.png?v=009f57bc70', fall: 'fall.png?v=595293ecd2', crook: 'crook.png?v=1327d44854', clackers: 'clackers.png?v=a95a75de7b', bats: 'bats.png?v=a73a9d9a21' };
+  var IMG = {};
+  W.loadPictures = function () {
+    Object.keys(W.PICS).forEach(function (k) { if (IMG[k]) return; var im = new Image(); im.src = 'art/visions/' + W.PICS[k]; IMG[k] = im; });
+  };
+  function vignette(ctx, WW, HH) {
+    var g = ctx.createRadialGradient(WW / 2, HH / 2, Math.min(WW, HH) * 0.2, WW / 2, HH / 2, Math.max(WW, HH) * 0.62);
+    g.addColorStop(0, 'rgba(40,60,30,0)'); g.addColorStop(1, 'rgba(10,20,8,0.92)'); ctx.fillStyle = g; ctx.fillRect(0, 0, WW, HH);
+  }
+  // each sketch drawn small (96 x 72) in a few colours and blown up soft-edged, swaying, the landlord's eye behind it
   var PAL = { bg: '#0c0a10', ink: '#1a2420', murk: '#2c3a30', sick: '#6a8a4a', pale: '#b8c8a0', wood: '#6b4a2c', woodL: '#8a6a44', rope: '#9a8a6a', water: '#2a4458', waterL: '#5a8aa0', bone: '#d8d0b8', fungus: '#c8b8d8', fungusD: '#7a6a90', eye: '#e8d060' };
   W.picture = function (kind) {
     var cv = document.createElement('canvas'); cv.width = 96; cv.height = 72;
     var c = cv.getContext('2d');
+    W.loadPictures();
     return function (ctx, t, WW, HH) {
+      var im = IMG[kind] || IMG.bucket;
+      if (im && im.complete && im.naturalWidth) {
+        ctx.fillStyle = 'rgba(6,8,6,0.96)'; ctx.fillRect(0, 0, WW, HH);
+        var p = t % 32, jolt = kind === 'clackers' && (p === 8 || p === 9 || p === 16 || p === 17) ? 1.015 : 1;
+        var fd = Math.min(1, t / 25), sw = Math.sin(t / 17) * 3, kk = Math.min(WW / im.width, HH / im.height) * 0.9;
+        ctx.save(); ctx.globalAlpha = fd; ctx.imageSmoothingEnabled = true;
+        ctx.translate(WW / 2 + sw, HH / 2 - 6); ctx.scale(kk * (1 + 0.02 * Math.sin(t / 11)) * jolt, kk * jolt);
+        ctx.drawImage(im, -im.width / 2, -im.height / 2);
+        ctx.restore();
+        vignette(ctx, WW, HH);
+        return;
+      }
       c.fillStyle = PAL.bg; c.fillRect(0, 0, 96, 72);
       (DRAW[kind] || DRAW.bucket)(c, t);
       // the landlord's one eye, behind the picture, opening and closing
@@ -450,8 +476,7 @@
       ctx.translate(WW / 2 + sway, HH / 2 - 6); ctx.scale(k * (1 + 0.02 * Math.sin(t / 11)), k);
       ctx.drawImage(cv, -48, -36);
       ctx.restore();
-      var g = ctx.createRadialGradient(WW / 2, HH / 2, Math.min(WW, HH) * 0.2, WW / 2, HH / 2, Math.max(WW, HH) * 0.62);
-      g.addColorStop(0, 'rgba(40,60,30,0)'); g.addColorStop(1, 'rgba(10,20,8,0.92)'); ctx.fillStyle = g; ctx.fillRect(0, 0, WW, HH);
+      vignette(ctx, WW, HH);
     };
   };
   // a picture's sounds, on the frames its drawing moves (the scene's `tick`, deep16/js/ui.js sceneInput): the clackers' claws snap shut at

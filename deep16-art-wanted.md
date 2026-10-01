@@ -23,8 +23,9 @@ how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop wha
 | the bulette | 2 | `tools/bulette-sheet.py` | 09-29 |
 | the owls, brown and snowy (Find Familiar) | 2 each | `tools/owl-sheet.py` | 09-29 |
 | the giant boar | 1 of 2 ("WILD BOAR ... (1/2) - MOVEMENT & CORE"; it replaces the stand-in bull that charged backwards) | `tools/boar-sheet.py` | 09-30 |
+| **the landlord's five pictures** (the Wet's telepathy: the bucket, the fall, the crook, the clackers, the chimney) | 5 stills, his from `dev/visions/` | `tools/visions.py` | 10-01 |
 
-Still wanted below: seven creatures (the roper first) and the landlord's five pictures, which are stills for the Wet's telepathy, not a sprite sheet.
+Still wanted below: seven creatures (the roper first). And, LATER, the clackers themselves (the last section): the landlord has shown them; nothing in the game fights as one yet.
 
 What the cutter needs from a sheet (the gnoll sheets were right): a turnaround of stills (front, right, back, left), then rows of frames all facing right in side view; every frame apart from its neighbours; one scale for the whole sheet. Colour needn't be exact: every sheet is regraded and snapped to DEEP16's 64 colours. (The boar sheet drew its lower rows smaller than its walk; the cutter evens that out, but one scale is still best.)
 
@@ -90,11 +91,11 @@ HEAD: STONE GIANT -- the deep. Lean and hairless, grey skin like carved stone, h
 
 ---
 
-## The landlord's pictures (the telepathy in the Wet -- stills, not sheets; asked 09-30g; STILL WANTED)
+## The landlord's pictures (the telepathy in the Wet -- stills, not sheets; asked 09-30g; IN HAND 10-01)
 
-The landlord's own sheet is in (IN HAND above); these are different. The otyugh speaks in pictures. On the grid each one fills the screen for a few seconds, blown up soft-edged and swaying, the landlord's
-eye opening and closing behind it (`deep16/js/wet.js` `W.picture`). Today they are placeholders drawn in code at 96 x 72. Any size will do
-(4:3 landscape); drop them in the repo root and say which picture, and the seat swaps them in. The order is the order they are seen: the
+**In:** his five from `dev/visions/` (10-01), cut by `tools/visions.py` to 360 wide and a palette each, drawn by `deep16/js/wet.js` `W.picture` (the code's 96 x 72 sketches stand in only till they load). The prompts below are kept for a re-roll.
+
+The landlord's own sheet is in (IN HAND above); these are different. The otyugh speaks in pictures. On the grid each one fills the screen for a few seconds, swaying, breathing, a vignette closing in (`deep16/js/wet.js` `W.picture`). The order is the order they are seen: the
 bucket at first contact, then the other four in a row after it is fed ("what comes down the stream").
 
 ### COMMON TAIL (pictures -- paste after each picture's head)
@@ -135,5 +136,25 @@ Each wants the same shape; a head drafted when its day comes. Worst fits first:
 - the bugbear chief, the ogre (a monkey and an orc today)
 - the hobgoblin, the grimlock, the axe beak
 - the boar's second sheet, if it comes (its title says 1/2): welcome, not needed -- the first has every row the grid plays
+
+---
+
+## LATER: the clackers (the landlord's picture made flesh; asked 10-01)
+
+Griz, 10-01: *"we're going to need an art-prompt description of the clackers it has envisioned to hope for something close when we eventually model it, try make one of those in blender so we have it later"*. The look below is read off the landlord's picture (`dev/visions/the-clackers.jpg`, the fourth it sends when fed) and the wiki's clacker cavern (`TarlynsPit/wiki/the-warrens.md`: a hook horror colony crowning the crook; the clacking is their language). The game never names them. Nothing fights as one yet, so neither prompt is due; they wait for the day the crook opens.
+
+**The look, in words (for any prompt, any tool):** a hook horror. Tall and hunched, about nine feet if it ever straightened, its back bowed so the head hangs forward below the line of the shoulders. A small vulture's head on a thick neck: a long down-curved beak, pale bone, hooked at the tip; two small round yellow eyes set close above the beak's root; no ears, no crest. The whole body sheathed in small overlapping plates like cobblestones or old scales, dark green-grey, lighter on the ridges and black in the seams; a heavy chest and shoulders, a narrow waist. No hands: each long forearm ends in one huge curved hook of pale ivory bone, longer than the forearm, smooth and worn bright on its inner edge. At rest the hooks are carried raised and folded back, so they rise above the shoulders and curl forward over the head like a pair of scythes. Long bent legs, clawed feet, a stalking gait. The only colours are the grey-green hide, the bone of the beak and hooks, and the yellow of the eyes. It talks by striking its hooks together: clack, clack.
+
+### Q1. The clacker, a model sheet (for modelling it in 3D)
+
+Paste alone (not with the COMMON TAIL above):
+
+HEAD: CHARACTER MODEL SHEET FOR 3D MODELLING -- a hook horror: [paste the look, in words, above]. Orthographic views of the whole creature side by side, the same scale and the same baseline in each: FRONT, SIDE (facing right), BACK, and THREE-QUARTER FRONT; in each view it stands in its neutral hunch with the hooks raised over the shoulders. Beneath: a close-up of the head in profile and from the front (the beak, the eyes, how the plates run over the skull), a close-up of one forearm and its hook from the side (where bone meets plate), and a small figure of a human man beside the side view for scale. Flat even studio lighting, no cast shadows, no perspective, a plain light-grey background, clean lines. Concept art, not a painting: every form readable. No text but the view labels.
+
+### Q2. The clacker, a sprite sheet (for the grid, the day it fights)
+
+HEAD: THE CLACKER -- a hook horror out of the deep caves: [paste the look, in words, above]. Large: twice a man's height hunched. Rows: Idle (8, the head bobbing, the hooks flexing), Walk (8, the hunched stride, hooks held high), Hook (8, one hook swung down and across), Clack (6, both hooks raised and struck together over the head: their speech and their war-cry), Climb (6, hooking up a rock wall), Hurt (6), Death (8).
+
+**The model:** a first one in Blender, built by script so the repo keeps it (`deep16/_src/` is gitignored): see the line added below when it lands.
 
 Spell looks are NOT on this list: the pass draws them in code (and Blender can render a floating weapon), so the generator's days go to creatures.
