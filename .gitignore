@@ -1,4 +1,8 @@
-dev/
+# dev/: the benches and probes are tracked, the rest stays local (10-01b, Griz's nod on the gate: "1 nod") -- the screenshots, his
+# SRD PDF and the paintings' sources, the generated pages and lamps, the ear files, the spell-register builders (dev/srd-spells/)
+dev/*
+!dev/*.py
+!dev/*.js
 __pycache__/
 *.pyc
 .DS_Store
