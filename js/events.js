@@ -268,6 +268,19 @@
   EV.pay = function (n) { var g = G(); if (g.silver < n) return false; g.silver -= n; DS.audio.sfx('coin'); return true; };
 
   // ------------------------------------------------------------------ field use of items / magic / skills
+  // a spell sheet (use.effect 'learn'): who may copy it -- a caster of its class (a wizard: the SRD's "Copying a Spell into the Book"), who has a slot of
+  // its level (SRD: "a spell ... of a level for which you have spell slots"), and doesn't know it already. '' when h may; else why not. h null: anyone in the party
+  EV.learnWhy = function (id, h) {
+    var use = DS.DATA.items[id].use, sp = DS.DATA.spells[use.spell], cls = use.cls || 'wizard', lvl = sp.level || 0;
+    var can = function (x) { return x.cls === cls && (lvl === 0 || ((x.slotsMax || [])[lvl - 1] || 0) > 0) && (x.known || []).indexOf(use.spell) < 0; };
+    if (h ? can(h) : G().party.some(can)) return '';
+    var cl = G().party.filter(function (x) { return x.cls === cls; });
+    if (!cl.length) return 'No one here can learn from this: it wants a ' + cls + '.';
+    if (h && h.cls !== cls) return h.name + ' can make nothing of it: it wants a ' + cls + '.';
+    var w = h || cl[0];
+    if ((w.known || []).indexOf(use.spell) >= 0) return w.name + ' knows ' + sp.name + ' already.';
+    return w.name + ' can\'t yet cast a spell of its level (' + lvl + '): the sheet waits.';
+  };
   EV.useFieldItem = function* (id, h) {
     var it = DS.DATA.items[id], use = it.use, g = G();
     if (use.effect === 'heal') {
@@ -292,6 +305,11 @@
     } else if (use.effect === 'ward') {
       g.take(id, 1); F().encounterIn += 60; DS.audio.sfx('magic');
       yield DS.say(L('g.chalk'));
+    } else if (use.effect === 'learn') { // a spell sheet (RULED 10-01c, Griz: "Have the sheets be items that become learnable by appropriate class caster if one is in the party, unusable if not. Items disappear when caster learns spell.")
+      var why = EV.learnWhy(id, h), sp0 = DS.DATA.spells[use.spell];
+      if (why) { yield DS.say(why); return; }
+      h.known.push(use.spell); g.take(id, 1); DS.audio.sfx('magic');
+      yield DS.say([h.name + ' copies ' + sp0.name + ' into the spellbook. The sheet is spent.'].concat(h.prepared ? ['New spells are prepared after a long rest.'] : []));
     } else if (use.effect === 'read') { // Katarina's book: the first page of Book One
       yield W8.scene(new DS.BookScene('BOOK ONE', L('kat.book')));
     } else if (use.effect === 'light') { // a torch, or a hooded lantern (09-29), carried on a dark map (torchdark 09-28): a free hand; it burns till a rest or another map
@@ -753,6 +771,10 @@
       g.take('fivetokens', 1); g.flags.fiveDone = 1;
       yield DS.say(L('w.edricFive'), who('Edric Pellam'));
       g.silver += 50; DS.audio.sfx('coin'); yield DS.say(L('g.foundSilver', { n: 50 }));
+      // Pete's page out of the pledge box: the crews' working for the rails, his debt closed with the five home (RULED 10-01c, Griz: "try to pick a good spell for
+      // one NPC in both the warrens (at the surface) and Galleries" -- the seat's pick, Grease: invented.json#warrens-grease)
+      yield DS.say(L('w.edricPage'), who('Edric Pellam'));
+      g.give('sheet_grease', 1); DS.audio.sfx('chest'); yield DS.say(L('g.got', { item: DS.DATA.items.sheet_grease.name }));
       yield* EV.renown(1, 'renown.five');
       return;
     }
@@ -1011,13 +1033,64 @@
     yield DS.say(L('g4.cloaker'));
     // fought in DEEP16 (Griz 09-27: "Let's get the cloaker fight in there as well"; deep16/data/fights.js cloaker, js/embed.js)
     var res = yield* EV.fight(['cloaker'], { bg: 'deep', music: 'boss', canRun: true, deep16: 'cloaker' });
-    if (res === 'win') { g.give('cloakertail', 1); DS.audio.sfx('chest'); yield DS.say(L('g4.tail')); }
+    if (res === 'win') {
+      g.flags.cloakerKilled = 1; // (dead, the tail not yet turned in: cloakerDone is Hessle's paying)
+      g.give('cloakertail', 1); DS.audio.sfx('chest'); yield DS.say(L('g4.tail'));
+      // Dace saw it make its doubles, and wrote down how (RULED 10-01c, Griz: "gotta be guest the kid to the cloaker cavern to get the spell sheet to learn it from"
+      // -- "only spell if they somehow succeed with the cloaker hunting him": he keeps his cloak)
+      if (EV.hasGuest('dace')) {
+        g.flags.daceSheet = 1; g.flags.daceDone = 1; yield DS.say(L('dace.sheet'), who('Corwen Dace'));
+        g.give('sheet_mirrorimage', 1); DS.audio.sfx('chest'); yield DS.say(L('g.got', { item: DS.DATA.items.sheet_mirrorimage.name }));
+        yield* daceHome();
+      }
+    }
     else if (res === 'run') { yield DS.say(L('g4.ranUp')); yield* EV.warp('galleries_g3', 50, 9, 'left'); }
   };
+  // Corwen Dace, who always tries to talk people into taking him into the deep gallery (CANON 09-22) -- taken, he walks with the party as a guest till
+  // the cloaker is dead; if he falls, it is over (RULED 10-01c, Griz: "game over if the kid falls, cloaker focuses on kid if they bring him to that fight")
+  // (RULED 10-01c, Griz: "Meant to be hard, tactical error taking him someplace they don't know how dangerous, thus the requested back out" -- before the cloaker
+  // is dead he is hunted and his fall ends it; after, he asks again, and the walk down is his thanks: the cloak or the page, the party's pick)
+  var cloakerDead = function () { var g = G(); return !!(g.flags.cloakerKilled || g.flags.cloakerDone || g.has('cloakertail')); };
   S.dace = function* (npc, D) {
     var g = G();
     g.flags.daceLight = 1;
+    if (!g.flags.daceDone && !EV.hasGuest('dace')) {
+      var after = cloakerDead();
+      if (!after) yield* EV.dialog(D);
+      var a = yield DS.ask(L(after ? 'dace.askAfter' : 'dace.ask'), ['TAKE HIM', 'NOT TODAY'], who('Corwen Dace'));
+      if (a !== 0) { yield DS.say(L('dace.notToday'), who('Corwen Dace')); return; } // (DS.ask: the index of the answer)
+      EV.addGuest('dace'); var dh = EV.guestOf('dace'); if (dh) dh.conds = Object.assign(dh.conds || {}, { mageArmor: 1 }); // (his armour already on: CANON AC 15 with mage armor; the Cloak of Displacement on his sheet)
+      g.flags.daceWith = 1; if (after) g.flags.daceAfter = 1; F().refreshNpcs();
+      yield DS.say(L('dace.join'), who('Corwen Dace'));
+      return;
+    }
     yield* EV.dialog(D);
+  };
+  // Dace back to his place by the beam (the guest gone, his own square again)
+  function* daceHome() { var g = G(); EV.dropGuest('dace'); delete g.flags.daceWith; delete g.flags.daceAfter; if (F() && F().refreshNpcs) F().refreshNpcs(); yield DS.say(L('dace.home')); }
+  // Old Wynn, the house's elder: the way to send Dace home before the deep gallery (RULED 10-01c, Griz: "Let the party talk to the Grandad to back out of the escort,
+  // telling the kid maybe they'll take him down later")
+  S.wynn = function* (npc, D) {
+    var g = G();
+    if (EV.hasGuest('dace') && !g.flags.daceDone) {
+      var a = yield DS.ask(L('wynn.ask'), ['SEND HIM HOME', 'HE COMES'], who('Old Wynn Pollard'));
+      if (a === 0) { EV.dropGuest('dace'); delete g.flags.daceWith; delete g.flags.daceAfter; F().refreshNpcs(); yield DS.say(L('wynn.home'), who('Old Wynn Pollard')); }
+      else yield DS.say(L('wynn.keep'), who('Old Wynn Pollard'));
+      return;
+    }
+    yield* EV.dialog(D);
+  };
+  // the deep gallery with Dace, the cloaker dead (the trigger galleries_g4 daceDeep): his thanks, the party's pick -- the Cloak of Displacement off his back, or the
+  // page of the thing's doubles (RULED 10-01c, Griz: "let them choose between it and spell as reward if they escort him after")
+  S.daceDeep = function* () {
+    var g = G();
+    if (!EV.hasGuest('dace') || g.flags.daceDone) return;
+    g.flags.daceDone = 1;
+    yield DS.say(L('dace.deep'), who('Corwen Dace'));
+    var a = yield DS.ask(L('dace.choose'), ['THE CLOAK', 'THE PAGE'], who('Corwen Dace'));
+    var id = a === 0 ? 'cloakdisplacement' : 'sheet_mirrorimage';
+    g.give(id, 1); DS.audio.sfx('chest'); yield DS.say(L('g.got', { item: DS.DATA.items[id].name }));
+    yield* daceHome();
   };
 
   // --- Web Gulch
@@ -1397,13 +1470,47 @@
     if (!g.has('ringofbinding')) { g.flags.elsbethSent = 1; yield DS.say(L('inn.elsbethWinters'), who('Elsbeth')); }
     if (home) els.path = DS.pathTo(f.map, els.x, els.y, home.x, home.y).concat(['face:' + home.dir]); // and back to the tub
   };
+  // the quests the journal never names (RULED 10-01c, Griz: "Needs to be the first of potentially many 'unjournaled' quests"): each by its flags --
+  // `open` once it is asked, `done` once it is answered, `lost` when the chance is gone -- for a tally, a play record, an ending to read; no JOURNAL line
+  EV.UNJOURNALED = [
+    { id: 'katInk', name: 'Ink for Katarina', open: 'flag:katInk', done: 'flag:katVision', lost: 'flag:katGone & !flag:katVision' }
+  ];
+  // Katarina's vision (RULED 10-01c, Griz: "First time Barley in party when talk to Kat, only if before wagon event has been triggered, Barley says 'You're
+  // with the Dominion' - Kat breaks into: My deity gave me a vision, and when it ended I had used up all my ink. If you bring me another bottle, I'll tell you
+  // the vision ... If they have ink then, or manage to get her some before she vanishes from play in one of the various ways, she say her vision was of Aurdin
+  // laughing, and gives the party how he'll learn hideous laughter. Can be the same time she hands over the book. Not there if they get the book out of the
+  // drawer thing."): the bottle given, the vision told, and the page she wrote it on -- the sheet for Hideous Laughter
+  function* katVision() {
+    var g = G();
+    g.take('ink', 1); g.flags.katVision = 1;
+    yield DS.say(L('kat.inkGiven'));
+    yield DS.say(L('kat.vision'), who('Katarina'));
+    g.give('sheet_hideouslaughter', 1); DS.audio.sfx('chest');
+    yield DS.say(L('g.got', { item: DS.DATA.items.sheet_hideouslaughter.name }));
+  }
   // the day after: Katarina gives the party her book and heads south (RULED 09-24)
   S.katarina = function* (npc, D) {
     var g = G();
-    if (!g.flags.wagonNight) { yield* EV.dialog(D); return; }
+    if (!g.flags.wagonNight) {
+      // Barley, the first time he is with the party when they sit by her (and only before the wagon's night)
+      if (!g.flags.katInk && g.party.some(function (h) { return h.id === 'barley'; })) {
+        g.flags.katInk = 1;
+        yield DS.say(L('kat.dominion'), who('Barley'));
+        yield DS.say(L('kat.ink'), who('Katarina'));
+        if (g.has('ink')) yield* katVision();
+        return;
+      }
+      if (g.flags.katInk && !g.flags.katVision) {
+        if (g.has('ink')) { yield* katVision(); return; }
+        yield DS.say(L('kat.inkWait'), who('Katarina'));
+        return;
+      }
+      yield* EV.dialog(D); return;
+    }
     g.flags.katGone = 1; g.give('katbook', 1); DS.audio.sfx('chest');
     yield DS.say(L('kat.gives'), who('Katarina'));
     yield DS.say(L('g.got', { item: DS.DATA.items.katbook.name }));
+    if (g.flags.katInk && !g.flags.katVision && g.has('ink')) yield* katVision(); // (the ink in time: with the book, before she goes)
     yield DS.say(L('kat.south'));
     npc.hidden = true;
   };

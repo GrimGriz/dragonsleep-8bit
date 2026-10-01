@@ -260,12 +260,15 @@
    "spells": [
     "firebolt",
     "light",
+    "acidsplash",
     "burninghands",
     "magicmissile",
     "shield",
     "sleep",
     "detectmagic",
-    "findfamiliar"
+    "findfamiliar",
+    "mageArmor",
+    "thunderwave"
    ],
    "classLine": "Wizard 2 · an evoker by aspiration",
    "blurb": "Sixteen, INT 17, WIS 9: he knows, and asks the wrong people. A farm boy off Newland who walked away from the sun chapels, came in with the Glowseep crews' haul, and slept on Aldwin's floor.",
@@ -285,7 +288,6 @@
     "3": {
      "learn": [
       "scorchingray",
-      "mageArmor",
       "ropetrick"
      ]
     },
@@ -296,19 +298,20 @@
      },
      "learn": [
       "web",
-      "shatter"
+      "shatter",
+      "dancinglights"
      ]
     },
     "5": {
      "learn": [
       "fireball",
-      "lightningbolt",
-      "tinyhut"
+      "lightningbolt"
      ]
     },
     "6": {
      "learn": [
-      "acidsplash"
+      "tinyhut",
+      "stinkingcloud"
      ],
      "feats": [
       "Potent Cantrip: a foe who saves against a cantrip still takes half."
@@ -325,7 +328,8 @@
       "int": 2
      },
      "learn": [
-      "stoneskin"
+      "stoneskin",
+      "holdperson"
      ]
     },
     "9": {
@@ -342,6 +346,7 @@
     "wiki/aurdin.md",
     "handoff-2026-09-23-dragonsleep-8bit-spec.md §11-B"
    ],
+   "srdBook": "RULED 10-01c (Griz: \"match SRD expectations when possible\"): the SRD wizard's count -- 3 cantrips and 8 spells at 2, two a level after, a 4th cantrip at 4; js/rules.js migrate teaches an older save what is due",
    "id": "aurdin"
   },
   "vivian": {
@@ -896,6 +901,56 @@
    "blurb": "One of the season's troops.",
    "src": "handoff-2026-09-26-dragonsleep-spine-recut.md §2 beats 3 and 5 (the captain's unit); sheet PROPOSED",
    "id": "trooper"
+  },
+  "dace": {
+   "name": "Dace",
+   "fullName": "Corwen Dace",
+   "guest": true,
+   "vital": true,
+   "cls": "wizard",
+   "level": 1,
+   "race": "Human",
+   "background": "Guild artisan (the house's own)",
+   "abil": {
+    "str": 10,
+    "dex": 14,
+    "con": 13,
+    "int": 16,
+    "wis": 12,
+    "cha": 14
+   },
+   "hp": 7,
+   "equip": {
+    "weapon": "dagger",
+    "armor": null,
+    "shield": null,
+    "ring": null,
+    "cloak": "cloakdisplacement"
+   },
+   "saveProf": [
+    "int",
+    "wis"
+   ],
+   "skills": {
+    "Arcana": 5,
+    "Investigation": 5,
+    "Insight": 3,
+    "Persuasion": 4
+   },
+   "look": "clerk",
+   "weaponArt": "dagger",
+   "attacks": 1,
+   "spells": [
+    "light",
+    "mageArmor",
+    "sleep"
+   ],
+   "levels": {},
+   "featText": [],
+   "classLine": "Budding wizard, first year",
+   "blurb": "The house's ambitious grandson: forty-four, and the book a year old. He has wanted the deep gallery all his life.",
+   "src": "TarlynsPit/npcs-by-location.md CORWEN DACE (CANON 09-22: Wizard 1, rolled -- AC 12, 15 with mage armor; HP 7; light, sleep, mage armor among his); RULED 10-01c (Griz: the escort to the cloaker cavern -- 'game over if the kid falls, cloaker focuses on kid'); the 8-bit's spells of his only (mage hand, minor illusion, alarm, feather fall unbuilt)",
+   "id": "dace"
   }
  },
  "items": {
@@ -975,6 +1030,7 @@
     "dmg": "1d4",
     "type": "bludgeoning",
     "group": "simple",
+    "kind": "club",
     "props": [
      "light"
     ]
@@ -1009,6 +1065,7 @@
     "dmg": "1d6",
     "type": "bludgeoning",
     "group": "simple",
+    "kind": "mace",
     "props": []
    },
    "desc": "1d6 bludgeoning. Vilar's book price: five gold.",
@@ -1024,6 +1081,7 @@
     "versatile": "1d8",
     "type": "piercing",
     "group": "simple",
+    "kind": "spear",
     "props": [
      "versatile"
     ]
@@ -1040,6 +1098,7 @@
     "dmg": "1d6",
     "type": "slashing",
     "group": "simple",
+    "kind": "handaxe",
     "props": [
      "light"
     ]
@@ -1124,6 +1183,7 @@
     "dmg": "1d6",
     "type": "piercing",
     "group": "simple",
+    "kind": "shortbow",
     "props": [
      "ranged",
      "two-handed"
@@ -1145,6 +1205,7 @@
     "dmg": "1d8",
     "type": "piercing",
     "group": "martial",
+    "kind": "longbow",
     "props": [
      "ranged",
      "two-handed",
@@ -1185,6 +1246,7 @@
     "dmg": "1d6",
     "type": "slashing",
     "group": "martial",
+    "kind": "scimitar",
     "props": [
      "finesse",
      "light"
@@ -1238,6 +1300,7 @@
     "versatile": "1d10",
     "type": "slashing",
     "group": "martial",
+    "kind": "battleaxe",
     "props": [
      "versatile"
     ]
@@ -1255,6 +1318,7 @@
     "versatile": "1d10",
     "type": "bludgeoning",
     "group": "martial",
+    "kind": "warhammer",
     "props": [
      "versatile"
     ]
@@ -1271,6 +1335,7 @@
     "dmg": "1d8",
     "type": "bludgeoning",
     "group": "martial",
+    "kind": "flail",
     "props": []
    },
    "desc": "1d8 bludgeoning. One hand.",
@@ -1285,6 +1350,7 @@
     "dmg": "1d12",
     "type": "slashing",
     "group": "martial",
+    "kind": "greataxe",
     "props": [
      "heavy",
      "two-handed"
@@ -1302,6 +1368,7 @@
     "dmg": "2d6",
     "type": "slashing",
     "group": "martial",
+    "kind": "greatsword",
     "props": [
      "heavy",
      "two-handed"
@@ -1319,6 +1386,7 @@
     "dmg": "2d6",
     "type": "bludgeoning",
     "group": "martial",
+    "kind": "maul",
     "props": [
      "heavy",
      "two-handed"
@@ -2266,6 +2334,7 @@
     "dmg": "1d4",
     "type": "bludgeoning",
     "group": "simple",
+    "kind": "lighthammer",
     "props": [
      "light"
     ]
@@ -2550,10 +2619,66 @@
   "callingherbs": {
    "name": "Calling Herbs",
    "kind": "part",
-   "price": 500,
+   "price": 50,
    "desc": "Charcoal, incense and herbs Mama mixes for the burning. A wizard burns one bundle in a brass brazier to call a familiar, or give it a new shape.",
    "src": "invented (RULED 09-29, Griz: \"i'd like to add a material component for 500 sp only mama sells despite our normal hand-wave of components\"): the SRD Find Familiar's 10 gp of charcoal, incense and herbs, consumed",
    "id": "callingherbs"
+  },
+  "ink": {
+   "name": "Bottle of Ink",
+   "kind": "part",
+   "price": 100,
+   "desc": "A one-ounce bottle of black ink, stoppered and waxed.",
+   "src": "SRD 5.1 (ink, 1-ounce bottle, 10 gp: here 100 sp); sold at Lisbet's (invented.json#ink-at-lisbets); Katarina's want (RULED 10-01c, Griz)",
+   "id": "ink"
+  },
+  "sheet_hideouslaughter": {
+   "name": "Sheet: Hideous Laughter",
+   "kind": "use",
+   "price": 0,
+   "noSell": true,
+   "use": {
+    "effect": "learn",
+    "spell": "hideouslaughter",
+    "cls": "wizard",
+    "target": "ally",
+    "field": true
+   },
+   "desc": "A wizard's working of Hideous Laughter (a 1st-level spell), written out to be copied. A wizard who can cast spells of its level copies it into the spellbook, and the sheet is spent.",
+   "src": "Katarina's vision, written down (RULED 10-01c, Griz: 'she say her vision was of Aurdin laughing, and gives the party how he'll learn hideous laughter'); invented.json#kat-ink",
+   "id": "sheet_hideouslaughter"
+  },
+  "sheet_grease": {
+   "name": "Sheet: Grease",
+   "kind": "use",
+   "price": 0,
+   "noSell": true,
+   "use": {
+    "effect": "learn",
+    "spell": "grease",
+    "cls": "wizard",
+    "target": "ally",
+    "field": true
+   },
+   "desc": "A wizard's working of Grease (a 1st-level spell), written out to be copied. A wizard who can cast spells of its level copies it into the spellbook, and the sheet is spent.",
+   "src": "Pete's page, out of the Tally-House's pledge box: the crews' working for the rails (RULED 10-01c, Griz: 'try to pick a good spell for one NPC in ... the warrens (at the surface)' -- the seat's pick: Edric Pellam, when Pete's Five comes home); invented.json#warrens-grease",
+   "id": "sheet_grease"
+  },
+  "sheet_mirrorimage": {
+   "name": "Sheet: Mirror Image",
+   "kind": "use",
+   "price": 0,
+   "noSell": true,
+   "use": {
+    "effect": "learn",
+    "spell": "mirrorimage",
+    "cls": "wizard",
+    "target": "ally",
+    "field": true
+   },
+   "desc": "A wizard's working of Mirror Image (a 2nd-level spell), written out to be copied. A wizard who can cast spells of its level copies it into the spellbook, and the sheet is spent.",
+   "src": "Corwen Dace's notes on the cloaker's Phantasms, written up for a wizard (RULED 10-01c, Griz: 'gotta be guest the kid to the cloaker cavern to get the spell sheet to learn it from'); invented.json#dace-escort",
+   "id": "sheet_mirrorimage"
   },
   "domewhorl": {
    "name": "Dome Whorl",
@@ -3375,8 +3500,10 @@
    "kind": "save",
    "save": "dex",
    "cond": "prone",
-   "target": "enemies",
+   "target": "cone",
+   "battle": true,
    "grid": true,
+   "note8": "the 8-bit battle (RULED 10-01c, Griz: 'work a simplified version into 8-bit battles'): up to three foes, DEX or prone",
    "desc": "A 10-ft square within 60 ft becomes difficult ground: creatures in it save DEX or fall prone, and so does anyone who steps in or ends a turn there. Lasts a minute (ten rounds), no concentration.",
    "src": "SRD 5.1 Grease (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
@@ -3429,9 +3556,15 @@
    "level": 1,
    "kind": "save",
    "save": "wis",
-   "cond": "incapacitated",
+   "cond": "laughing",
+   "repeat": true,
+   "rounds": 10,
+   "minInt": 5,
+   "prone": true,
    "target": "enemy",
+   "battle": true,
    "grid": true,
+   "note8": "the 8-bit battle (RULED 10-01c, Griz: 'laughter is single target (no 8-bit easter egg)'): one foe, WIS or prone and helpless with laughter, the save again each turn; INT 4 or less unmoved",
    "desc": "A foe within 30 ft makes a WIS save or falls prone and incapacitated with laughter, saving again at the end of each of its turns and, with advantage, when hurt. INT 4 or less is unmoved. Concentration, a minute.",
    "src": "SRD 5.1 Hideous Laughter (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
@@ -3681,8 +3814,11 @@
    "name": "Mirror Image",
    "level": 2,
    "kind": "buff",
+   "buff": "mirror",
    "target": "self",
+   "battle": true,
    "grid": true,
+   "note8": "the 8-bit battle (RULED 10-01c): three images; a hit on the caster may burst one instead",
    "desc": "Yourself: three illusory doubles for a minute. An attack on you may land on one instead (d20: 6+ with three, 8+ with two, 11+ with one); a hit pops it, AC 10 + DEX. Not built: foes with blindsight or truesight ignoring them.",
    "src": "SRD 5.1 Mirror Image (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "mirrorimage"
@@ -9389,9 +9525,10 @@
    "greeting": "Warding chalk, five coppers the stick. Charms: no promises made.",
    "items": [
     "chalk",
-    "charm"
+    "charm",
+    "ink"
    ],
-   "src": "the-lab/pit-maps/shops-silverton.json pin 33",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 33; ink (invented.json#ink-at-lisbets: chalk and ink, the writing-stall)",
    "id": "lisbet"
   },
   "tally": {
@@ -9431,7 +9568,7 @@
    "prices": {
     "potion": 450,
     "greaterpotion": 1400,
-    "callingherbs": 500
+    "callingherbs": 50
    },
    "thanks": [
     "Mama says take it with food.",
@@ -9531,6 +9668,30 @@
    ],
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.5 (the Copperbottom smith: repairs; dwarven-made mundane gear; nothing magic is sold, CANON's shape); splint: better armor than the surface sells (wiki/deepholm-and-the-edifice.md, dwarven favor)",
    "id": "copperbottom"
+  },
+  "lamp2": {
+   "name": "Lamp Stores",
+   "keeper": "Gudrun Tallowmark",
+   "look": "dclerk",
+   "greeting": "Second Lamp stores. Rope, oil, cord for the road -- and the calling herbs, for the wizards who walk it alone.",
+   "items": [
+    "rope",
+    "oil",
+    "torch",
+    "lantern",
+    "simples",
+    "callingherbs"
+   ],
+   "prices": {
+    "callingherbs": 50
+   },
+   "thanks": [
+    "Mind the side cut north. Boots go up it.",
+    "Lamp to lamp, and keep to the made road.",
+    "Burn the herbs in brass, not iron. Iron sulks."
+   ],
+   "src": "RULED 10-01c (Griz: 'if not add dwarven provisioner (probably lamp 2) that sells. Lower price to 50 sp.'); invented.json#lamp2-stores",
+   "id": "lamp2"
   },
   "dagny": {
    "name": "The Toll-Grille",
@@ -10494,6 +10655,7 @@
   },
   "wynn": {
    "name": "Old Wynn Pollard",
+   "script": "wynn",
    "talk": [
     {
      "say": [
@@ -10834,6 +10996,12 @@
    "script": "quartermaster",
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4 (the quartermaster, a Scalebeam clerk; one of Ingrith's two underlings)",
    "id": "quartermaster"
+  },
+  "lamp2prov": {
+   "name": "Gudrun Tallowmark",
+   "script": "lamp2prov",
+   "src": "RULED 10-01c (Griz: a dwarven provisioner at the Second Lamp); invented.json#lamp2-stores",
+   "id": "lamp2prov"
   },
   "ragna": {
    "name": "Ragna Copperbottom",
@@ -12946,6 +13114,113 @@
    "t": "She pays out her nights, takes up her bag, and walks south, toward the Pit.",
    "src": "RULED 09-24 (heading south)",
    "id": "kat.south"
+  },
+  "dace.askAfter": {
+   "t": "\"It's dead? Then there's no reason left to say no. Take me down -- I want to see where it lived. I'll make it worth the climb.\"",
+   "src": "RULED 10-01c (Griz: 'If they take him after they kill the cloaker ... choose between it and spell as reward'); the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "dace.askAfter"
+  },
+  "wynn.ask": {
+   "t": "Old Wynn turns his half-blind eyes toward Dace, behind you. \"Bringing him down, are you?\"",
+   "src": "RULED 10-01c (Griz: 'Let the party talk to the Grandad to back out of the escort'); Wynn the house's elder (71: the wiki's ages make him no grandfather of a man of 44 -- the seat's reading of 'the Grandad'); the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "wynn.ask"
+  },
+  "wynn.home": {
+   "t": [
+    "\"Dace. Home.\" The old man says it once, the way the drives are called.",
+    "You tell Dace maybe you'll take him down later.",
+    "\"Later,\" Dace says. \"Later's a long way down.\" But he goes back to his place by the beam."
+   ],
+   "src": "RULED 10-01c (Griz: 'telling the kid maybe they'll take him down later'); the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "wynn.home"
+  },
+  "wynn.keep": {
+   "t": "\"Then bring him back up.\" Wynn shakes his rattle once, and the drive goes on.",
+   "src": "seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "wynn.keep"
+  },
+  "dace.deep": {
+   "t": [
+    "Dace walks the deep gallery slowly, the light high on his staff, reading the walls where the thing hung.",
+    "\"Here. It folded itself here, every day of my life.\" He sits down on the stone and writes until the page is full."
+   ],
+   "src": "RULED 10-01c; the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "dace.deep"
+  },
+  "dace.choose": {
+   "t": "\"I said I'd make it worth the climb. The cloak's my grandfather's -- it stood to one side of every blow he ever took. Or the page: how the thing made its doubles, written for a wizard. One of them.\"",
+   "src": "RULED 10-01c (Griz: 'put the cloak of displacement on him and let them choose between it and spell as reward if they escort him after'); 'my grandfather's' the seat's (the house's original gatherer, the wiki's third family)",
+   "id": "dace.choose"
+  },
+  "dace.ask": {
+   "t": "\"Take me down with you. The deep gallery has no roost -- a light is lawful there, and I can carry one. Forty-four years I've looked at that ladder. Ottilie will say no. She always says no. You don't have to.\"",
+   "src": "CANON 09-22 (Griz: 'Always tries to talk people into taking him into the deep gallery'); the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "dace.ask"
+  },
+  "dace.notToday": {
+   "t": "\"Next time, then. There's always a next time with me. Ask anyone.\"",
+   "src": "seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "dace.notToday"
+  },
+  "dace.join": {
+   "t": [
+    "Corwen Dace takes up his staff and his year-old book, and the light comes up on the staff's head.",
+    "Dace walks with you. If he falls, it is over: the house will not forgive it, and neither will you."
+   ],
+   "src": "RULED 10-01c (Griz: 'game over if the kid falls'); the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "dace.join"
+  },
+  "dace.sheet": {
+   "t": [
+    "Dace is on his knees by the thing before it has stopped moving, writing. \"Three of it. Three, and only one of it real. It wasn't hiding -- it was *arguing* with the light.\"",
+    "He tears out the page and holds it out. \"I can't cast it yet. Your wizard can. Take it before Ottilie sees what I've been doing down here.\""
+   ],
+   "src": "RULED 10-01c (Griz: 'gotta be guest the kid to the cloaker cavern to get the spell sheet to learn it from'): the cloaker's Phantasms (SRD: three illusory duplicates) -> Mirror Image; the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "dace.sheet"
+  },
+  "dace.home": {
+   "t": "Dace climbs back up to the house to tell it everything, and does not wait to be thanked.",
+   "src": "seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "dace.home"
+  },
+  "w.edricPage": {
+   "t": [
+    "\"One more thing. Pete pledged a page against his tally, two seasons gone. Hedge-craft -- the crews used it on the rails when the carts stuck. With the five home, his debt's closed.\"",
+    "He slides a folded page across the board. \"It's no use to me. I can only count.\""
+   ],
+   "src": "RULED 10-01c (Griz: 'try to pick a good spell for one NPC in both the warrens (at the surface) and Galleries') -- the seat's pick: Grease, from Edric Pellam when Pete's Five comes home; the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "w.edricPage"
+  },
+  "kat.dominion": {
+   "t": "\"You're with the Dominion.\"",
+   "src": "RULED 10-01c (Griz, verbatim): 'Barley says \"You're with the Dominion\"'",
+   "id": "kat.dominion"
+  },
+  "kat.ink": {
+   "t": [
+    "She breaks in before he can say more.",
+    "\"My deity gave me a vision, and when it ended I had used up all my ink. If you bring me another bottle, I'll tell you the vision.\""
+   ],
+   "src": "RULED 10-01c (Griz, verbatim) ('Kat breaks into: ...'); the first line seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "kat.ink"
+  },
+  "kat.inkWait": {
+   "t": "\"A bottle of ink, and I'll tell you what I saw. It keeps. Nothing I see like that fades.\"",
+   "src": "seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "kat.inkWait"
+  },
+  "kat.inkGiven": {
+   "t": "You set the bottle by her book. She works the stopper loose, and her hand is steady again.",
+   "src": "seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "kat.inkGiven"
+  },
+  "kat.vision": {
+   "t": [
+    "\"I saw Aurdin laughing. Flat in the dust on the hills, laughing -- and all round the wizard the spotted dogs of the tribe that laughs, laughing with him, rolling helpless in the grass.\"",
+    "She writes it out fast, tears the page free, and folds it into your hand. \"This is how the wizard learns it. It was given to me to give.\""
+   ],
+   "src": "RULED 10-01c (Griz: 'she say her vision was of Aurdin laughing' -- 'Kat and the Gnoll laughter that leads to the easter egg': the hyenas of the Gnoll Hills, wiki/gnoll-hills.md 'the tribe that laughs'; Hideous Laughter on a hyena, invented.json#hyena-laughter-egg); the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "id": "kat.vision"
   },
   "renown.katbook": {
    "t": "Androit has the true history he wanted, in a mender's hand.",
@@ -17325,7 +17600,8 @@
      "x": 25,
      "y": 10,
      "look": "clerk",
-     "wander": 1
+     "wander": 1,
+     "cond": "!flag:daceWith"
     }
    ],
    "warps": [
@@ -17906,6 +18182,18 @@
      "on": "step",
      "script": "cloaker",
      "cond": "!flag:cloakerDone"
+    },
+    {
+     "id": "daceDeep",
+     "rect": [
+      5,
+      8,
+      28,
+      16
+     ],
+     "on": "step",
+     "script": "daceDeep",
+     "cond": "flag:daceAfter & !flag:daceDone"
     }
    ]
   },
@@ -19139,6 +19427,14 @@
      "y": 11,
      "look": "dtrooper2",
      "dir": "down"
+    },
+    {
+     "id": "lamp2prov",
+     "x": 74,
+     "y": 9,
+     "look": "dclerk",
+     "dir": "left",
+     "name": "Gudrun Tallowmark"
     }
    ],
    "warps": [

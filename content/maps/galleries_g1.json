@@ -136,7 +136,8 @@
 "x": 25,
 "y": 10,
 "look": "clerk",
-"wander": 1
+"wander": 1,
+"cond": "!flag:daceWith"
 }
 ],
 "warps": [

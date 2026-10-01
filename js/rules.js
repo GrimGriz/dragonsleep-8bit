@@ -175,6 +175,13 @@
     if (base < want) { h.maxhp += want - base; h.hp += want - base; }
     if (h.id === 'aurdin' && !h.equip.armor && DS.DATA.items.robes) h.equip.armor = 'robes'; // 09-25: robes for the armor slot
     if (h.id === 'aurdin' && DS.DATA.spells.findfamiliar && h.known.indexOf('findfamiliar') < 0) h.known.push('findfamiliar'); // 09-29: the ritual in his book
+    // what his sheet says is due by his level, learned now (10-01c: Aurdin's book filled to the SRD's count -- "match SRD expectations when possible" --
+    // an older save's Aurdin had fewer; nothing is taken away, a sheet's spell included)
+    var dd = DS.DATA.heroes[h.id];
+    if (dd && dd.levels && h.known && !h.guest) {
+      var due = (dd.spells || []).slice(); for (var lv = 2; lv <= h.lvl; lv++) due = due.concat((dd.levels[lv] && dd.levels[lv].learn) || []);
+      due.forEach(function (s) { if (DS.DATA.spells[s] && h.known.indexOf(s) < 0) h.known.push(s); });
+    }
     var d = DS.DATA.heroes[h.id], arch = (d && d.archetypes) || [];
     if (arch.length && h.lvl >= 3 && !arch.some(function (a) { return a.name === h.subclass; })) { h.subclass = null; h.pendingChoice = 'archetype'; }
   };

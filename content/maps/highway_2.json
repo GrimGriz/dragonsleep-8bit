@@ -163,6 +163,14 @@
 "y": 11,
 "look": "dtrooper2",
 "dir": "down"
+},
+{
+"id": "lamp2prov",
+"x": 74,
+"y": 9,
+"look": "dclerk",
+"dir": "left",
+"name": "Gudrun Tallowmark"
 }
 ],
 "warps": [

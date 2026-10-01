@@ -404,7 +404,7 @@
     var G = DS.G;
     if (what === 'item') {
       while (true) {
-        var items = G.inv.map(function (s) { var it = DS.DATA.items[s.id]; return { label: it.name, right: 'x' + s.n, value: s.id, color: it.kind === 'key' ? '#F8D878' : null }; });
+        var items = G.inv.map(function (s) { var it = DS.DATA.items[s.id], dead = it.use && it.use.effect === 'learn' && !!DS.EV.learnWhy(s.id, null); return { label: it.name, right: 'x' + s.n, value: s.id, color: it.kind === 'key' ? '#F8D878' : dead ? '#6C6C84' : null }; }); // (a spell sheet no one in the party can copy now: grey -- RULED 10-01c, "unusable if not")
         if (!items.length) { yield DS.say('The pack is empty.'); return; }
         var id = yield DS.choose({ items: items, x: 20, y: 20, w: 216, visible: 12, title: 'ITEMS', drawExtra: descBox });
         if (!id) return;
@@ -412,7 +412,8 @@
         if (it.use && it.use.field) {
           var tgtF = it.use.target === 'revive' ? function (h) { return h.ko; } : it.use.target === 'party' ? null : function (h) { return !h.ko; };
           if (it.use.target === 'party') { yield* DS.EV.useFieldItem(id, null); continue; }
-          var h = yield pickHero('USE ON WHOM?', tgtF);
+          if (it.use.effect === 'learn') { var lw = DS.EV.learnWhy(id, null); if (lw) { yield DS.say(lw); continue; } tgtF = function (h) { return !DS.EV.learnWhy(id, h); }; } // (a spell sheet: only one who can copy it)
+          var h = yield pickHero(it.use.effect === 'learn' ? 'WHO COPIES IT?' : 'USE ON WHOM?', tgtF);
           if (!h) continue;
           yield* DS.EV.useFieldItem(id, h);
         } else if (it.kind === 'weapon' || it.kind === 'armor' || it.kind === 'shield' || it.kind === 'ring') {

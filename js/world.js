@@ -47,6 +47,7 @@
         if (k === 'flag') v = !!G.flags[arg];
         else if (k === 'lead') v = G.lead === arg;
         else if (k === 'hired') v = G.hired.indexOf(arg) >= 0;
+        else if (k === 'in') v = G.party.some(function (h) { return h.id === arg; }); // in:barley -- with the party now (hired: ever; 10-01c, Barley at Katarina's fire)
         else if (k === 'has') v = G.has(arg);
         else if (k === 'lit') v = DS.EV.alight(arg).length > 0; // lit:always -- an always-lit thing on the party or in the pack
         else if (k === 'lvl') v = num(G.main().lvl);

@@ -13,7 +13,7 @@
   function nameOf(u) { return isHero(u) ? '{y}' + u.h.name + '{/}' : '{o}' + u.name + '{/}'; }
   function plain(u) { return isHero(u) ? u.h.name : u.name; }
   function abil(u, a) { return isHero(u) ? u.h.abil[a] : (u.m.abil[a] || 10); }
-  function incap(u) { return u.conds.paralyzed || u.conds.asleep || u.conds.stunned; }
+  function incap(u) { return u.conds.paralyzed || u.conds.asleep || u.conds.stunned || u.conds.laughing; } // (laughing: Hideous Laughter, the 8-bit's -- 10-01c)
   function tags(u) { return isHero(u) ? ['humanoid'] : (u.m.tags || []); }
   // what to call the light in a hero's hand in a line: 'torch', 'lantern', or the item's own name (the Ledger-Lamp, 09-30)
   function lightWord(k) { var it = k && k !== 'torch' && k !== 'lantern' ? DS.DATA.items[k] : null; return it ? it.name : k === 'lantern' ? 'lantern' : 'torch'; }
@@ -451,6 +451,8 @@
   Battle.prototype.checkEnd = function () {
     if (this.over) return;
     if (this.yielder && !this.yielder.dead) { this.over = 'yield'; return; }
+    // one whose fall ends it (a guest's sheet `vital`: Corwen Dace in the deep gallery -- RULED 10-01c, Griz: "game over if the kid falls")
+    if (this.heroes.some(function (u) { return u.h && u.h.vital && down(u); })) { this.over = 'lose'; return; }
     if (!this.foesLeft().length) this.over = 'win';
     else if (!this.liveHeroes().length) {
       // a lone watcher down in the yard isn't the end while the others are on their way out of the inn
@@ -489,7 +491,7 @@
     // the floating weapon (Spiritual Weapon): it swings as its caster's turn opens (the SRD's bonus action)
     if (isHero(u) && u.conds.spiritWeapon && !incap(u) && this.liveFoes().length) yield* this.spiritStrike(u);
     if (incap(u)) {
-      var why = u.conds.paralyzed ? 'is paralyzed' : u.conds.asleep ? 'is asleep' : 'is stunned';
+      var why = u.conds.paralyzed ? 'is paralyzed' : u.conds.asleep ? 'is asleep' : u.conds.laughing ? 'is helpless with laughter' : 'is stunned';
       yield* this.say(nameOf(u) + ' ' + why + '!', 34);
     } else if (word) {
       yield* this.obey(u, word);
@@ -807,7 +809,7 @@
       var wasHidden = !!u.conds.hidden; delete u.conds.hidden;
       if (u.conds.invisible && u.conds.invisible.ends) delete u.conds.invisible; // (Invisibility, Mislead: the swing had its advantage; the spell is gone)
       // the cloaker's phantasms: a hit may land on an image
-      if (!isHero(t) && t.images > 0 && nat !== 20 && DS.d(t.images + 1) > 1 && total >= ac) {
+      if (t.images > 0 && nat !== 20 && DS.d(t.images + 1) > 1 && total >= ac) { // (a hero's too, now: Mirror Image -- 10-01c)
         t.images--; DS.audio.sfx('miss');
         yield* this.say(nameOf(u) + ' strikes a phantasm! It bursts.', 36);
         continue;
@@ -1107,8 +1109,8 @@
         this.elemBurst(t, sp.el); if (dealt) { t.flash = 12; this.num(t, dealt, '#F8D878'); }
         var line = nameOf(t) + (s.success ? ' resists' : ' is caught') + (dealt ? '. ' + dealt + ' damage.' : '.');
         if (!s.success && sp.cond && !down(t) && !(t.m && (t.m.condImmune || []).indexOf(sp.cond) >= 0)) {
-          if (sp.only && tags(t).indexOf(sp.only) < 0) line += ' It is not affected.';
-          else { t.conds[sp.cond] = { rounds: sp.rounds || 10, save: sp.repeat ? { ab: sp.save, dc: dc } : null, escape: sp.cond === 'restrained' ? dc : null }; line += ' It is ' + sp.cond + '!'; }
+          if ((sp.only && tags(t).indexOf(sp.only) < 0) || (sp.minInt && t.m && t.m.abil && t.m.abil.int < sp.minInt)) line += ' It is not affected.'; // (minInt: Hideous Laughter, INT 4 or less unmoved -- SRD 5.1)
+          else { t.conds[sp.cond] = { rounds: sp.rounds || 10, save: sp.repeat ? { ab: sp.save, dc: dc } : null, escape: sp.cond === 'restrained' ? dc : null }; line += ' It is ' + sp.cond + '!'; if (sp.prone && !t.conds.prone) t.conds.prone = true; } // (prone: Hideous Laughter's fall, SRD 5.1 -- 10-01c)
         }
         yield* this.say(line, 36);
         yield* this.flushMsg();
@@ -1128,6 +1130,7 @@
         if (sp.buff === 'shield') { t.conds.shielded = true; }
         else if (sp.buff === 'mageArmor') { t.h.conds.mageArmor = true; }
         else if (sp.buff === 'invisible') { t.conds.invisible = { rounds: 10, ends: sp.id === 'invisibility' }; delete t.conds.hidden; } // (the 2nd-level one ends when they attack or cast; Greater does not)
+        else if (sp.buff === 'mirror') { t.images = 3; } // (Mirror Image, the 8-bit's: three images -- RULED 10-01c, 'work a simplified version into 8-bit battles')
         else if (sp.buff === 'mislead') { t.conds.invisible = { rounds: 10, ends: true }; delete t.conds.hidden; }
         else if (sp.buff === 'seeInvisible') { t.conds.seeInvisible = { rounds: 10 }; }
         else if (sp.buff === 'darkvision') { t.h.conds.darkvision = true; }

@@ -426,6 +426,9 @@
     yield DS.say(L(['deep.ingrithOffice1', 'deep.ingrithOffice2', 'deep.ingrithOffice3'][i % 3]), I2);
   };
   S.quartermaster = function* () { yield DS.shop('qm'); };
+  // the Second Lamp's stores (RULED 10-01c, Griz: "stores on the road - do we have any, dwarven provisioner or something? ... if not add dwarven provisioner
+  // (probably lamp 2) that sells [familiar components]. Lower price to 50 sp."): the road's one shop, Gudrun Tallowmark's (invented.json#lamp2-stores)
+  S.lamp2prov = function* () { yield DS.shop('lamp2'); };
   S.cot = function* () {
     yield DS.say(L('deep.cot'));
     yield* EV.rest('inn');
@@ -460,6 +463,7 @@
     h.attacks = d.attacks; h.resist = d.resist; h.guest = true; h.surgeAI = !!d.surgeAI; h.script = d.script || null; // (Pyro's measure: js/pyro.js)
     if (key !== id) h.name = o.name || h.name;
     if (d.healer) { h.healer = d.healer; h.feats.heals = d.healer; }
+    if (d.vital) h.vital = true; // (one whose fall ends it: Corwen Dace in the deep gallery -- RULED 10-01c, Griz: "game over if the kid falls"; js/battle.js checkEnd, deep16 battle.js over)
     if (o.wounded) { h.wounded = true; h.hp = Math.max(1, Math.round(h.maxhp / 3)); } // Halldor: a third of himself, and he won't sit out
     return h;
   };
@@ -486,6 +490,7 @@
   EV.dropGuests = function () { G().guests = []; };
   EV.dropGuest = function (key) { var g = G(); g.guests = (g.guests || []).filter(function (x) { return x.id !== key; }); };
   EV.hasGuest = function (key) { return (G().guests || []).some(function (x) { return x.id === key; }); };
+  EV.guestOf = function (key) { var x = (G().guests || []).filter(function (y) { return y.id === key; })[0]; return x ? x.h : null; }; // (the guest's sheet, by its key: 10-01c)
   // every road fight is built for the four AND the guests walking with them (re-cut §3: "Pyro alone is worth two heroes;
   // a fight with Pyro, the captain and troopers must be built for a party of seven or it is a walk")
   // (Pyro 1.5, not 2, since his measure (09-30b, js/pyro.js): he holds back to one swing a turn till it goes bad -- RULED 09-30b, Griz:

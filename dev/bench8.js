@@ -97,6 +97,24 @@
       var au8 = b8.heroes.filter(function (x) { return x.h.id === 'aurdin'; })[0], ba8 = b8.heroes.filter(function (x) { return x.h.id === 'barley'; })[0];
       var said8 = (T.blog || []).concat(out.log).join(' | ');
       check('the moan: Aurdin in the charm frightened ' + !!au8.conds.frightened + ', Barley ' + !!ba8.conds.frightened + '; the charm named nowhere: ' + !/charm/i.test(said8.replace(/charmed/gi, '')), !au8.conds.frightened && !!ba8.conds.frightened && !/charm/i.test(said8.replace(/charmed/gi, '')));
+    } else if (test === 'sheets1001c') {
+      // the story sheets' spells in the 8-bit battle (RULED 10-01c, Griz: "work a simplified version into 8-bit battles please - laughter is single target (no 8-bit
+      // easter egg)"): Mirror Image's three images, Hideous Laughter on one foe (a hyena, INT 2, unmoved), Grease's prone
+      var auS = g.hero('aurdin');
+      ['hideouslaughter', 'grease', 'mirrorimage'].forEach(function (sid) { if (auS.known.indexOf(sid) < 0) auS.known.push(sid); if (auS.prepared && auS.prepared.indexOf(sid) < 0) auS.prepared.push(sid); });
+      var blS = R.spellList(auS, 'battle').map(function (s) { return s.id; });
+      check('his battle list has the three: ' + ['hideouslaughter', 'grease', 'mirrorimage'].filter(function (sid) { return blS.indexOf(sid) >= 0; }).join(','), ['hideouslaughter', 'grease', 'mirrorimage'].every(function (sid) { return blS.indexOf(sid) >= 0; }));
+      T.startFight(['ogre', 'hyena']);
+      for (var wS = 0; wS < 400 && !DS.find('battle'); wS++) T.step(1);
+      var bS = DS.find('battle'), aS = bS.heroes.filter(function (x) { return x.h.id === 'aurdin'; })[0], seenImages = 0;
+      bS.foes.forEach(function (f) { f.m = Object.assign({}, f.m, { saves: Object.assign({}, f.m.saves, { wis: -30, dex: -30 }) }); f.hp = f.maxhp = 400; }); // (long enough for his four casts)
+      var say0S = bS.say; bS.say = function (m) { if (aS.images > seenImages) seenImages = aS.images; return say0S.apply(this, arguments); };
+      drive({ aurdin: ['MAGIC', 'Mirror', 'MAGIC', 'Hideous', 'Ogre', 'MAGIC', 'Hideous', 'Hyena', 'MAGIC', 'Grease', 'Ogre'] }, 5000);
+      var saidS = (T.blog || []).concat(out.log).join(' | ');
+      check('Mirror Image: three images on Aurdin (' + seenImages + ')', seenImages === 3);
+      check('Hideous Laughter on the ogre: laughing ' + /is laughing!/.test(saidS) + ', its turn lost ' + /helpless with laughter/.test(saidS), /is laughing!/.test(saidS) && /helpless with laughter/.test(saidS));
+      check('on the hyena (INT 2): unmoved ' + /not affected/.test(saidS), /not affected/.test(saidS));
+      check('Grease: prone ' + /is prone!/.test(saidS), /is prone!/.test(saidS));
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');
       var ing = g.guests[0].h;
@@ -112,7 +130,7 @@
       var au = g.hero('aurdin');
       check('in Aurdin\'s book: ' + (au.known.indexOf('findfamiliar') >= 0) + ', castable in the field: ' + R.spellList(au, 'field').some(function (s) { return s.id === 'findfamiliar'; }), au.known.indexOf('findfamiliar') >= 0 && R.spellList(au, 'field').some(function (s) { return s.id === 'findfamiliar'; }));
       check('the forms on grass: ' + R.famForms('.', 'world').join(',') + '; on snow: ' + R.famForms('o', 'world').join(',') + '; in a cave map: ' + R.famForms(null, 'cave').join(','), R.famForms('o', 'world')[0] === 'snowyowl');
-      check('Mama sells Calling Herbs at ' + (DS.DATA.shops.lucia.prices || {}).callingherbs + ' sp', DS.DATA.shops.lucia.items.indexOf('callingherbs') >= 0 && DS.DATA.shops.lucia.prices.callingherbs === 500);
+      check('Mama sells Calling Herbs at ' + (DS.DATA.shops.lucia.prices || {}).callingherbs + ' sp', DS.DATA.shops.lucia.items.indexOf('callingherbs') >= 0 && DS.DATA.shops.lucia.prices.callingherbs === 50); // (50 sp: RULED 10-01c)
       g.flags.familiar = { kind: 'owl', by: 'aurdin', hp: 1 };
       T.startFight(['ogre', 'ogre']);
       for (var w1 = 0; w1 < 400 && !DS.find('battle'); w1++) T.step(1);

@@ -146,6 +146,18 @@
 "on": "step",
 "script": "cloaker",
 "cond": "!flag:cloakerDone"
+},
+{
+"id": "daceDeep",
+"rect": [
+5,
+8,
+28,
+16
+],
+"on": "step",
+"script": "daceDeep",
+"cond": "flag:daceAfter & !flag:daceDone"
 }
 ]
 }
