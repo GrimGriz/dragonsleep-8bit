@@ -188,18 +188,21 @@
       DS.audio.sfx('confirm');
       var id = this.ids[this.i], d = DS.DATA.heroes[id];
       DS.run(function* () {
-        var ok = yield DS.ask(DS.round6 ? 'Round six, led by ' + d.name + '? The other three are already with you.' : DS.lvl3 ? 'Level three, led by ' + d.name + '? The other three are already with you.' : 'Begin as ' + d.name + '? The other three can be found in play, and hired.', ['BEGIN', 'BACK']);
+        var sit = DS.at && DS.SITUATIONS && DS.SITUATIONS[DS.at]; // ?at=<id>: a playtest situation (js/situations.js)
+        var ok = yield DS.ask(sit ? sit.title.toUpperCase() + ', led by ' + d.name + '? The other three are already with you.' : DS.round6 ? 'Round six, led by ' + d.name + '? The other three are already with you.' : DS.lvl3 ? 'Level three, led by ' + d.name + '? The other three are already with you.' : 'Begin as ' + d.name + '? The other three can be found in play, and hired.', ['BEGIN', 'BACK']);
         if (ok !== 0) return;
         DS.newGame(id); DS.bindState(DS.G);
-        if (DS.round6) DS.roundSix(DS.G);
+        if (sit) DS.situation(DS.G, sit);
+        else if (DS.round6) DS.roundSix(DS.G);
         else if (DS.lvl3) DS.levelThree(DS.G);
         yield DS.fade(1, 30);
         DS.clearScenes();
         var F = DS.field = new DS.Field();
         DS.push(F);
-        var st = DS.round6 || DS.lvl3 ? { map: DS.G.map, x: DS.G.x, y: DS.G.y, dir: DS.G.dir } : DS.DATA.config.start;
+        var st = sit || DS.round6 || DS.lvl3 ? { map: DS.G.map, x: DS.G.x, y: DS.G.y, dir: DS.G.dir } : DS.DATA.config.start;
         F.load(st.map, st.x, st.y, st.dir);
         yield DS.fade(0, 30);
+        if (sit) { yield* DS.situationStart(sit); return; }
         if (DS.round6) { yield DS.say('ROUND SIX. All four of you at level 4, every quest done but the Halfway Inn and the lake. Fountain Street, and the road south is waiting.'); return; }
         if (DS.lvl3) { yield DS.say('LEVEL THREE. All four of you just made level 3. Winters\' errands are run and the four of you have found each other; nothing else is done yet. Fountain Street.'); return; }
         yield* DS.EV.intro(id);
