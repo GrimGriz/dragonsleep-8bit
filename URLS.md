@@ -13,6 +13,7 @@ None of these touch your saves unless you save.
 | [`/`](https://grimgriz.github.io/dragonsleep-8bit/) | The game, from the title screen. |
 | [`?round6`](https://grimgriz.github.io/dragonsleep-8bit/?round6) | NEW GAME, pick a lead: all four at **level 4** on Fountain Street, every quest done except the Halfway Inn and the lake. Vivian's archetype prompt comes up at once. |
 | [`?lvl3`](https://grimgriz.github.io/dragonsleep-8bit/?lvl3) | NEW GAME, pick a lead: all four **just made level 3** (900 XP) on Fountain Street. Only *Company* (the party found) and *Winters' Errands* (both deliveries) are done, with 1 renown. Vivian's archetype prompt comes up at once. |
+| [`?at=<situation>`](https://grimgriz.github.io/dragonsleep-8bit/situations.html) | **new 10-01:** NEW GAME, pick a lead, and you stand one step short of a line of the playtest ear-file, at its level, with the story done up to there (`wet`, `gulch`, `cloaker`, `roost`, `cradle`, `wagon`, `chuul`, `hook`, `crew`, `pyro`, `couch`, `leg1`, `northcut`, `nest`, `raid`, `leg4`, `torvald`, `blades`, `consult`, `solskaft`). All twenty, with what to try, are on `situations.html`; the table is `js/situations.js`. Vivian comes as a Thief; `&rogue=cutthroat` for the other. |
 
 From the title menu: **LADDER** opens `deep16/?ladder` and **PLAYTESTER LADDER** opens `deep16/?ladder&party=ours`.
 
@@ -41,10 +42,10 @@ Base: **https://grimgriz.github.io/dragonsleep-8bit/deep16/**. One mode per URL:
   - a class, level and race: `druid:3:dwarf`
   - a named character: `talmok`, `higertha`
   - a named character at another level: `talmok:7`
-  - the grown build at the character's own level: `talmok:5:grown`
+  - the grown build at the character's own level: `talmok:3:grown` (his register says 3; at any other level he is already the grown build)
   - **new 09-30:** any monster from the bestiary by name, e.g. `hyena`.
 - **`lvl=`** (or `level=`) sets the level, 1 to 12. Only the druid (and Pyro) go past 9.
-- **`vs=fighter,rogue`** gives you a band of your choosing to run, instead of our four. It takes the same kinds of words.
+- **`vs=fighter,rogue`** gives you a band of your choosing to run, instead of our four. It takes the same kinds of words, except a bestiary monster (your side can't be a hyena yet).
 - **`watch`** hands your side to the class AI too, so you just watch.
 
 Examples:
@@ -80,6 +81,8 @@ Examples:
 
 ## Pages beside the game
 
+- [`test-runs.html`](https://grimgriz.github.io/dragonsleep-8bit/test-runs.html): **new 10-01**, builds any URL on this page (the class floor's foes row by row, the galleries' picks, the situations), with LIVE / LOCAL, copy, open, and a RECENT list. Its pick-lists are read live from the game's files.
+- [`situations.html`](https://grimgriz.github.io/dragonsleep-8bit/situations.html): **new 10-01**, the twenty `?at=` situations, each with what to try.
 - [`playtest-lamp.html`](https://grimgriz.github.io/dragonsleep-8bit/playtest-lamp.html): the playtest lamp.
 - **Local only** (not on Pages; open these with the preview server running):
   - [`dev/spell-walk-lamp.html`](http://localhost:8923/dev/spell-walk-lamp.html): Ear Lamp, the spell walk

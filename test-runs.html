@@ -1,0 +1,814 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DRAGONSLEEP test runs</title>
+<style>
+  :root { --bg:#f4ecdc; --ink:#2b2418; --dim:#7a6a52; --rule:#d8cbb2; --accent:#8b4a2b; --docket:#fbf5e8;
+          --works:#2f6d8f; --broken:#8f2f1c; --tune:#b8892a; --unclear:#a8552a; --skip:#6b6b6b; }
+  [data-theme="night"] { --bg:#1e1b16; --ink:#e6dcc8; --dim:#9a8e7a; --rule:#3a342b; --accent:#d69a6a; --docket:#26221b;
+          --works:#7fb3d0; --broken:#e0704f; --tune:#d9ad4f; --unclear:#e09a6a; --skip:#a09a90; }
+  * { box-sizing:border-box; }
+  html,body { margin:0; background:var(--bg); color:var(--ink); }
+  body { font-family:Georgia,"Iowan Old Style","Palatino Linotype","Book Antiqua",serif; font-size:18px; line-height:1.55; padding-bottom:6rem; overflow-x:hidden; }
+  #bar { position:sticky; top:0; z-index:5; background:var(--bg); border-bottom:1px solid var(--rule); padding:.45rem 1rem;
+         display:flex; gap:.45rem .8rem; flex-wrap:wrap; align-items:center; font:14px system-ui,sans-serif; color:var(--dim); }
+  #bar strong { color:var(--ink); font-weight:600; }
+  #bar a { color:var(--accent); text-decoration:none; border-bottom:1px solid var(--rule); }
+  #bar a:hover { border-bottom-color:var(--accent); }
+  #bar .sp { flex:1 1 auto; }
+  button { font:inherit; }
+  #bar button, .btn { background:none; border:1px solid var(--rule); color:var(--ink); padding:.25rem .6rem; border-radius:6px; cursor:pointer; font:14px system-ui,sans-serif; }
+  #bar button:hover, .btn:hover { border-color:var(--accent); }
+  #page { max-width:46em; margin:0 auto; padding:1.2rem 1rem 3rem; }
+  h1 { font-weight:normal; font-size:1.5em; margin:.6em 0 .3em; }
+  h2 { font-weight:normal; font-size:1.2em; border-bottom:1px solid var(--rule); padding-bottom:.2em; margin:1.8em 0 .6em; display:flex; justify-content:space-between; gap:1em; align-items:baseline; }
+  h2 small { font:13px system-ui,sans-serif; color:var(--dim); text-align:right; }
+  .intro { color:var(--dim); } .intro p { margin:0 0 .6em; }
+  code { font-family:ui-monospace,Menlo,Consolas,monospace; font-size:.85em; background:var(--docket); padding:0 .25em; border-radius:3px; }
+  a { color:var(--accent); }
+  .dim { color:var(--dim); }
+  .status { font:13px system-ui,sans-serif; color:var(--dim); }
+  .status b { color:var(--ink); font-weight:600; }
+
+  .card { background:var(--docket); border:1px solid var(--rule); border-left:4px solid var(--accent); border-radius:6px; padding:.7rem .85rem; margin:.7rem 0; }
+  .card.plain { border-left-color:var(--rule); }
+  .ctl { font:14px system-ui,sans-serif; color:var(--dim); display:flex; gap:.5rem .9rem; flex-wrap:wrap; align-items:center; }
+  .ctl label { display:inline-flex; gap:.35rem; align-items:center; color:var(--ink); }
+  .seg { display:inline-flex; border:1px solid var(--rule); border-radius:6px; overflow:hidden; }
+  .seg button { background:none; border:0; border-right:1px solid var(--rule); color:var(--ink); padding:.25rem .7rem; cursor:pointer; font:13px system-ui,sans-serif; letter-spacing:.04em; }
+  .seg button:last-child { border-right:0; }
+  .seg button.on { background:var(--ink); color:var(--bg); }
+
+  .out { margin:.6rem 0 .3rem; padding:.5rem .6rem; background:var(--bg); border:1px solid var(--rule); border-radius:6px; }
+  .out a { font:15px/1.4 ui-monospace,Menlo,Consolas,monospace; overflow-wrap:anywhere; word-break:break-all; color:var(--ink); text-decoration:none; }
+  .out a:hover { color:var(--accent); }
+  .reading { margin:.3rem 0 .2rem; }
+  .notes { margin:.2rem 0 .4rem; padding-left:1.1rem; font:13px/1.4 system-ui,sans-serif; color:var(--unclear); }
+  .notes:empty { display:none; }
+  .acts { display:flex; gap:.45rem; flex-wrap:wrap; align-items:center; margin-top:.5rem; }
+  .acts input[type=text] { flex:1 1 11em; min-width:0; }
+  .pri { background:var(--ink); color:var(--bg); border:1px solid var(--ink); padding:.3rem .9rem; border-radius:6px; cursor:pointer; font:600 14px system-ui,sans-serif; letter-spacing:.06em; white-space:nowrap; flex:0 0 auto; }
+  .pri:hover { background:var(--accent); border-color:var(--accent); }
+
+  .modes { display:grid; grid-template-columns:repeat(auto-fill,minmax(9.5em,1fr)); gap:.4rem; }
+  .gl { font:12px system-ui,sans-serif; color:var(--dim); text-transform:uppercase; letter-spacing:.08em; margin:.9rem 0 .3rem; }
+  .mode { text-align:left; background:var(--docket); border:1px solid var(--rule); color:var(--ink); border-radius:6px; padding:.4rem .55rem; cursor:pointer; line-height:1.25; min-width:0; }
+  .mode b { display:block; font-weight:normal; font-size:15px; }
+  .mode span { display:block; font:11.5px system-ui,sans-serif; color:var(--dim); overflow-wrap:anywhere; }
+  .mode:hover { border-color:var(--accent); }
+  .mode.on { border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent); }
+  .mode.on b { color:var(--accent); }
+
+  .panel { margin:.5rem 0; }
+  .panel h3 { font:600 13px system-ui,sans-serif; color:var(--dim); text-transform:uppercase; letter-spacing:.07em; margin:.9rem 0 .35rem; }
+  .hint { font:13px/1.4 system-ui,sans-serif; color:var(--dim); margin:.25rem 0 .5rem; }
+  input[type=text], input[type=number], input[type=search], select { font:15px system-ui,sans-serif; color:var(--ink); background:var(--bg); border:1px solid var(--rule); border-radius:6px; padding:.28rem .45rem; min-width:0; max-width:100%; }
+  input:focus, select:focus { outline:none; border-color:var(--accent); }
+  select { text-overflow:ellipsis; }
+  .frow { display:flex; flex-wrap:wrap; gap:.35rem; align-items:center; border:1px solid var(--rule); border-radius:6px; background:var(--docket); padding:.4rem; margin:.35rem 0; }
+  .frow select { flex:1 1 8.5em; }
+  .frow .cnt { width:3.4em; flex:0 0 auto; }
+  .frow .lvl { width:5.2em; flex:0 0 auto; }
+  .frow input[type=text] { flex:1 1 8em; }
+  .frow .times { color:var(--dim); font:14px system-ui,sans-serif; }
+  .frow label { font:13px system-ui,sans-serif; color:var(--dim); display:inline-flex; gap:.3rem; align-items:center; }
+  .x { background:none; border:1px solid var(--rule); color:var(--dim); border-radius:6px; cursor:pointer; padding:.1rem .5rem; font:15px system-ui,sans-serif; line-height:1.3; }
+  .x:hover { color:var(--broken); border-color:var(--broken); }
+  .adders { display:flex; gap:.4rem; flex-wrap:wrap; margin:.3rem 0; }
+  .adders button, .tiny { background:none; border:1px dashed var(--rule); color:var(--ink); border-radius:999px; padding:.15rem .7rem; cursor:pointer; font:13px system-ui,sans-serif; }
+  .adders button:hover, .tiny:hover { border-color:var(--accent); color:var(--accent); }
+  .field { display:flex; flex-wrap:wrap; gap:.4rem .8rem; align-items:center; font:14px system-ui,sans-serif; margin:.45rem 0; }
+  .field > span.lab { color:var(--dim); min-width:6.5em; }
+  .field label { display:inline-flex; gap:.35rem; align-items:center; }
+  .field select { flex:1 1 12em; }
+  .picker input { width:100%; margin:.3rem 0; }
+  .chipbox { display:flex; flex-wrap:wrap; gap:.3rem; font:13px system-ui,sans-serif; min-height:1.6em; align-items:center; }
+  .chip { background:var(--bg); border:1px solid var(--rule); color:var(--ink); border-radius:999px; padding:.15rem .6rem; cursor:pointer; font:13px system-ui,sans-serif; }
+  .chip:hover { border-color:var(--accent); }
+  .chip.add { border-style:dashed; }
+  fieldset { border:0; margin:0; padding:0; min-width:0; }
+  fieldset[disabled] { opacity:.45; }
+
+  .examples { display:flex; flex-wrap:wrap; gap:.4rem; margin:.3rem 0 0; }
+  .rrow { display:flex; gap:.4rem; align-items:center; margin:.3rem 0; flex-wrap:wrap; }
+  .rrow .rn { flex:1 1 8em; }
+  .rrow .ru { flex:3 1 14em; min-width:0; text-align:left; background:var(--docket); border:1px solid var(--rule); color:var(--ink); border-radius:6px; padding:.28rem .5rem; cursor:pointer; font:13px ui-monospace,Menlo,Consolas,monospace; overflow-wrap:anywhere; }
+  .rrow .ru:hover { border-color:var(--accent); }
+
+  #dock { position:fixed; left:0; right:0; bottom:0; z-index:6; background:var(--bg); border-top:1px solid var(--rule); padding:.4rem 1rem calc(.4rem + env(safe-area-inset-bottom,0px)); display:flex; gap:.5rem; align-items:center; }
+  #dockurl { flex:1 1 auto; min-width:0; font:12.5px ui-monospace,Menlo,Consolas,monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; color:var(--dim); }
+  #toast { position:fixed; left:50%; bottom:4.2rem; transform:translateX(-50%); background:var(--ink); color:var(--bg); font:14px system-ui,sans-serif; padding:.45rem .9rem; border-radius:6px; opacity:0; transition:opacity .2s; pointer-events:none; z-index:9; }
+  #toast.show { opacity:1; }
+  @media (max-width:560px) { body { font-size:17px; } #page { padding:1rem 1rem 3rem; } #bar { padding:.4rem 1rem; } }
+</style>
+</head>
+<body>
+<div id="bar">
+  <strong>DRAGONSLEEP test runs</strong>
+  <span class="sp"></span>
+  <a href="situations.html">situations</a>
+  <a href="https://github.com/GrimGriz/dragonsleep-8bit/blob/main/URLS.md" target="_blank" rel="noopener">URLS.md</a>
+  <a href="playtest-lamp.html">playtest lamp</a>
+  <button id="theme">Night</button>
+</div>
+
+<main id="page">
+  <h1>Test runs</h1>
+  <div class="intro">
+    <p>Pick a run, set its options, and the link builds itself. One mode to a URL; none of them touch your saves unless you save.</p>
+    <p class="status" id="status">reading the game's files&hellip;</p>
+  </div>
+
+  <section class="card" id="outcard">
+    <div class="ctl">
+      <span>link</span>
+      <span class="seg" id="base">
+        <button data-b="here" title="relative: works wherever this page is served">HERE</button>
+        <button data-b="live" title="https://grimgriz.github.io/dragonsleep-8bit/">LIVE</button>
+        <button data-b="local" title="http://localhost:8923/ (the preview server)">LOCAL</button>
+      </span>
+      <label title="adds &amp;x=&lt;timestamp&gt; so the browser fetches the page fresh instead of from its cache"><input type="checkbox" id="fresh"> fresh load <span class="dim">(&amp;x=timestamp)</span></label>
+    </div>
+    <div class="out"><a id="out" target="_blank" rel="noopener"></a></div>
+    <p class="reading" id="reading"></p>
+    <ul class="notes" id="notes"></ul>
+    <div class="acts">
+      <button class="pri" id="copy">COPY</button>
+      <button class="pri" id="open">OPEN &#8599;</button>
+      <input type="text" id="nm" placeholder="name this run (kept in RECENT)" maxlength="60">
+    </div>
+  </section>
+
+  <h2><span>The run</span><small>one mode to a URL</small></h2>
+  <div id="modes"></div>
+  <div class="examples" id="examples"></div>
+
+  <section class="panel" id="p-npc" hidden>
+    <h2><span>The class floor</span><small><code>?npc=</code> &middot; <code>vs=</code> &middot; <code>lvl=</code> &middot; <code>watch</code></small></h2>
+    <h3>The foes <span class="dim" style="text-transform:none;letter-spacing:0">(npc=)</span></h3>
+    <div id="foes"></div>
+    <div class="adders" id="foeAdd"></div>
+    <p class="hint">A class (<code>druid:3:dwarf</code>: its own level, a race), a named character (<code>talmok:7</code>; the grown build <code>talmok::grown</code>), or any monster of the bestiary by name (<code>hyena</code>). The count writes the word that many times.</p>
+
+    <h3>Level <span class="dim" style="text-transform:none;letter-spacing:0">(lvl=)</span></h3>
+    <div class="field"><span class="lab">lvl</span><select id="lvl"></select></div>
+    <p class="hint">1 to 12; the game's default is 5. Only the druid and Pyro go past 9, and our four stop at 9. It sets every row that carries no level of its own (a named character with a register level, Talmok's 3 or Torvald's 5, keeps it unless the row says another).</p>
+
+    <h3>Your side <span class="dim" style="text-transform:none;letter-spacing:0">(vs=)</span></h3>
+    <div id="vsrows"></div>
+    <div class="adders" id="vsAdd"></div>
+    <p class="hint" id="vsHint">Empty: you run our four. Add rows to run a band of your choosing instead. (The game reads classes and named characters here, not bestiary monsters.)</p>
+    <div class="field"><label><input type="checkbox" id="watch"> watch <span class="dim">(the class AI runs your side too; you only watch)</span></label></div>
+  </section>
+
+  <section class="panel" id="p-fx" hidden>
+    <h2><span>The spell gallery</span><small><code>?fxgallery</code></small></h2>
+    <div class="field"><span class="lab">spell=</span><select id="spell"></select></div>
+    <h3>only <span class="dim" style="text-transform:none;letter-spacing:0">(only=: keeps to these; they play in the order you pick them)</span></h3>
+    <div id="onlyS"></div>
+    <div class="field" style="margin-top:.7rem"><span class="lab">foe=</span><select id="foeS"></select></div>
+    <div class="field">
+      <label><input type="checkbox" id="autoS"> auto <span class="dim">(goes on down the list by itself)</span></label>
+      <label><input type="checkbox" id="keepS"> keep <span class="dim">(no sweep between casts: E casts again on what the last left)</span></label>
+    </div>
+    <p class="hint">Keys on the stage: left/right the next spell, up/down jump ten, E casts again, M the menu. <code>foe=</code> puts three of that bestiary monster where the three fighters stand.</p>
+  </section>
+
+  <section class="panel" id="p-fxf" hidden>
+    <h2><span>The feature gallery</span><small><code>?fxgallery&amp;features</code></small></h2>
+    <div class="field"><span class="lab">feature=</span><select id="feat"></select></div>
+    <h3>only <span class="dim" style="text-transform:none;letter-spacing:0">(only=: keeps to these; they play in the order you pick them)</span></h3>
+    <div id="onlyF"></div>
+    <div class="field" style="margin-top:.7rem"><label><input type="checkbox" id="autoF"> auto <span class="dim">(goes on down the list by itself)</span></label></div>
+    <p class="hint">The feature gallery has no <code>keep</code> or <code>foe=</code>: those are the spell gallery's.</p>
+  </section>
+
+  <h2><span>Add-ons</span><small id="addNote">any DEEP16 mode</small></h2>
+  <fieldset id="addons">
+    <div class="field"><label><input type="checkbox" id="stats"> stats <span class="dim">(a frame-rate overlay)</span></label></div>
+    <div class="field"><span class="lab">scale=</span><select id="scale"></select></div>
+    <div class="field"><span class="lab">menu=</span><select id="menu"></select></div>
+    <div class="field"><span class="lab">touch</span><select id="touch"></select></div>
+  </fieldset>
+
+  <h2><span>Recent</span><small>the last dozen you opened or copied</small></h2>
+  <div id="recent"></div>
+  <p class="hint"><button class="tiny" id="reset">reset the form</button> &nbsp; Click a URL to load it back into the form. Name a run in the box beside OPEN; rename here any time.</p>
+</main>
+
+<div id="dock">
+  <span id="dockurl"></span>
+  <button class="pri" id="copy2">COPY</button>
+  <button class="pri" id="open2">OPEN &#8599;</button>
+</div>
+<div id="toast"></div>
+
+<script>window.DS = window.DS || {};</script>
+<script src="js/situations.js"></script>
+<script>
+(function(){
+'use strict';
+var $=function(s){return document.querySelector(s);};
+var root=document.documentElement;
+var KEY='dsl-test-runs:v1', THEME_KEY='dsl-playtest-lamp:theme';
+var G=function(k){try{return localStorage.getItem(k);}catch(e){return null;}};
+var P=function(k,v){try{localStorage.setItem(k,v);}catch(e){}};
+var LIVE='https://grimgriz.github.io/dragonsleep-8bit/', LOCAL='http://localhost:8923/';
+
+/* ---------------------------------------------------------------- the snapshot (taken from the game's files, 2026-10-01)
+   used when fetch() can't reach them (opened from disk, offline), and per list when a file's format has moved.
+   classes [id, top level] - races [id, name] - named [id, name, class, register level (0 = none), race, top level]
+   monsters [id, name, CR, named?] - spells [id, name, level] - features [id, name, class, level, subclass] */
+var SNAP={"date":"2026-10-01","classes":[["barbarian",9],["bard",9],["cleric",9],["druid",12],["fighter",9],["monk",9],["paladin",9],["ranger",9],["rogue",9],["sorcerer",9],["warlock",9],["wizard",9]],"races":[["human","Human"],["halforc","Half-orc"],["dwarf","Dwarf"],["elf","Elf"],["halfling","Halfling"],["halfelf","Half-elf"],["gnome","Gnome"],["tiefling","Tiefling"],["dragonborn","Dragonborn"]],"named":[["higertha","Higertha","druid",0,"halforc",12],["torvald","Torvald","cleric",5,"dwarf",9],["amara","Amara","warlock",5,"human",9],["willem","Willem","wizard",5,"human",9],["talmok","Talmok","barbarian",3,"human",9],["katarina","Katarina","cleric",3,"human",9],["pyro","Pyro","fighter",12,"dwarf",12],["ingrith","Ingrith","cleric",4,"dwarf",9]],"monsters":[["drow","Drow Captain","5"],["phasespider","Phase Spider","3"],["drider","Drider","6"],["giantrat","Giant Rat","1/8"],["giantspider","Giant Spider","1"],["ettercap","Ettercap","2"],["otyugh","Otyugh","5"],["wolf","Wolf","1/4"],["skeleton","Skeleton","1/4"],["troll","Troll","5"],["broodmother","Broodmother","6"],["bugbearchief","Bugbear Chief","3"],["hobsergeant","Hobgoblin Sergeant","3"],["hobgoblin","Hobgoblin","1/2"],["worg","Worg","1/2"],["spellweaver","Drow Spell-Weaver","6"],["drowling","Drow","1/4"],["assassin","Sect Blade","8"],["stonegiant","Stone Giant","7"],["duergar","Duergar","1"],["giantbat","Giant Bat","1/4"],["pudding","Black Pudding","4"],["guard","Line Guard","1/8"],["hiredsword","Hired Sword","1/8"],["dominion","Dominion Soldier","1/2"],["veteran","Sergeant","3"],["gloryseeker","Glory-Seeker","1"],["gnoll","Gnoll","1/2"],["hyena","Hyena","0"],["hask","Hask","2",1],["wheelwright","Wheelwright","1"],["crewman","Crewman","1/2"],["crewboss","Crew Boss","1/2"],["thug","Thug","1/2"],["robber","Night Crew","1/8"],["wolfspider","Wolf Spider","1/4"],["grick","Grick","2"],["bulette","Bulette","5"],["cloaker","Cloaker","8"],["amara","Amara","3",1],["willem","Willem Glass","3",1],["torvald","Dwarf Cleric","3"],["naga","Spirit Naga","8"],["earthelemental","Earth Elemental","5"],["roper","Roper","5"],["darkmantle","Darkmantle","1/2"],["ochrejelly","Ochre Jelly","2"],["grayooze","Gray Ooze","1/2"],["keeper","The Keeper","3",1],["chuul","Chuul","4"],["brawler","Bar Brawler","1/8"],["cardbruiser","Card Bruiser","1/4"],["xorn","Xorn","5"],["bandit","Bandit","1/8"],["giantfrog","Giant Frog","1/4"],["snake","Poison Snake","1/8"],["axebeak","Axe Beak","1/4"],["giantboar","Giant Boar","2"],["goblin","Goblin","1/4"],["bugbear","Bugbear","1"],["ogre","Ogre","2"],["ettin","Ettin","4"],["mouther","Gibbering Mouther","2"],["talmok","Talmok","2",1],["berserker","Visiting Barbarian","2"],["banditcaptain","Bandit Captain","2"],["grimlock","Grimlock","1/4"],["cube","Gelatinous Cube","2"],["crawler","Crawler","2"],["ratswarm","Rat Swarm","1/4"],["batswarm","Bat Swarm","1/4"],["insectswarm","Insect Swarm","1/2"],["fam_owl","Familiar: owl","0"],["fam_snowyowl","Familiar: snowy owl","0"],["fam_bat","Familiar: bat","0"],["fam_rat","Familiar: rat","0"],["fam_spider","Familiar: spider","0"],["fam_frog","Familiar: frog","0"],["fam_snake","Familiar: poisonous snake","0"]],"spells":[["acidsplash","Acid Splash",0],["chilltouch","Chill Touch",0],["dancinglights","Dancing Lights",0],["eldritchblast","Eldritch Blast",0],["firebolt","Fire Bolt",0],["guidance","Guidance",0],["light","Light",0],["poisonspray","Poison Spray",0],["produceflame","Produce Flame",0],["rayoffrost","Ray of Frost",0],["resistance","Resistance",0],["sacredflame","Sacred Flame",0],["shillelagh","Shillelagh",0],["shockinggrasp","Shocking Grasp",0],["truestrike","True Strike",0],["viciousmockery","Vicious Mockery",0],["animalfriendship","Animal Friendship",1],["bane","Bane",1],["bless","Bless",1],["burninghands","Burning Hands",1],["charmperson","Charm Person",1],["colorspray","Color Spray",1],["command","Command",1],["curewounds","Cure Wounds",1],["divinefavor","Divine Favor",1],["entangle","Entangle",1],["expeditiousretreat","Expeditious Retreat",1],["faeriefire","Faerie Fire",1],["falselife","False Life",1],["fogcloud","Fog Cloud",1],["glasswhisper","Glass Whisper",1],["grease","Grease",1],["guidingbolt","Guiding Bolt",1],["healingword","Healing Word",1],["heroism","Heroism",1],["hideouslaughter","Hideous Laughter",1],["huntersmark","Hunter's Mark",1],["inflictwounds","Inflict Wounds",1],["longstrider","Longstrider",1],["mageArmor","Mage Armor",1],["magicmissile","Magic Missile",1],["mirrorsgaze","Mirror's Gaze",1],["protectionfromevilandgood","Protection from Evil and Good",1],["sanctuary","Sanctuary",1],["shieldoffaith","Shield of Faith",1],["sleep","Sleep",1],["thunderwave","Thunderwave",1],["acidarrow","Acid Arrow",2],["aid","Aid",2],["barkskin","Barkskin",2],["blindnessdeafness","Blindness/Deafness",2],["blur","Blur",2],["brandingsmite","Branding Smite",2],["continualflame","Continual Flame",2],["darkness","Darkness",2],["darkvision","Darkvision",2],["enhanceability","Enhance Ability",2],["enlargereduce","Enlarge/Reduce",2],["flameblade","Flame Blade",2],["flamingsphere","Flaming Sphere",2],["gustofwind","Gust of Wind",2],["heatmetal","Heat Metal",2],["holdperson","Hold Person",2],["invisibility","Invisibility",2],["lesserrestoration","Lesser Restoration",2],["magicweapon","Magic Weapon",2],["mirrorimage","Mirror Image",2],["mistystep","Misty Step",2],["moonbeam","Moonbeam",2],["passwithouttrace","Pass Without Trace",2],["protectionfrompoison","Protection from Poison",2],["rayofenfeeblement","Ray of Enfeeblement",2],["scorchingray","Scorching Ray",2],["seeinvisibility","See Invisibility",2],["shatter","Shatter",2],["spikegrowth","Spike Growth",2],["spiritualweapon","Spiritual Weapon",2],["wardingbond","Warding Bond",2],["web","Web",2],["beaconofhope","Beacon of Hope",3],["bestowcurse","Bestow Curse",3],["blink","Blink",3],["calllightning","Call Lightning",3],["conjureanimals","Conjure Animals",3],["daylight","Daylight",3],["dispelmagic","Dispel Magic",3],["fear","Fear",3],["fireball","Fireball",3],["haste","Haste",3],["hypnoticpattern","Hypnotic Pattern",3],["lightningbolt","Lightning Bolt",3],["masshealingword","Mass Healing Word",3],["plantgrowth","Plant Growth",3],["protectionfromenergy","Protection from Energy",3],["sleetstorm","Sleet Storm",3],["slow","Slow",3],["spiritguardians","Spirit Guardians",3],["stinkingcloud","Stinking Cloud",3],["vampirictouch","Vampiric Touch",3],["windwall","Wind Wall",3],["banishment","Banishment",4],["blacktentacles","Black Tentacles",4],["blight","Blight",4],["confusion","Confusion",4],["conjurewoodlandbeings","Conjure Woodland Beings",4],["deathward","Death Ward",4],["dimensiondoor","Dimension Door",4],["dominatebeast","Dominate Beast",4],["fireshield","Fire Shield",4],["freedomofmovement","Freedom of Movement",4],["giantinsect","Giant Insect",4],["greaterinvisibility","Greater Invisibility",4],["guardianoffaith","Guardian of Faith",4],["icestorm","Ice Storm",4],["phantasmalkiller","Phantasmal Killer",4],["polymorph","Polymorph",4],["resilientsphere","Resilient Sphere",4],["stoneskin","Stoneskin",4],["walloffire","Wall of Fire",4],["antilifeshell","Antilife Shell",5],["cloudkill","Cloudkill",5],["coneofcold","Cone of Cold",5],["contagion","Contagion",5],["dispelevilandgood","Dispel Evil and Good",5],["flamestrike","Flame Strike",5],["greaterrestoration","Greater Restoration",5],["holdmonster","Hold Monster",5],["insectplague","Insect Plague",5],["masscurewounds","Mass Cure Wounds",5],["mislead","Mislead",5],["wallofstone","Wall of Stone",5],["chainlightning","Chain Lightning",6],["circleofdeath","Circle of Death",6],["disintegrate","Disintegrate",6],["eyebite","Eyebite",6],["fleshtostone","Flesh to Stone",6],["freezingsphere","Freezing Sphere",6],["globeofinvulnerability","Globe of Invulnerability",6],["harm","Harm",6],["heal","Heal",6],["irresistibledance","Irresistible Dance",6],["sunbeam","Sunbeam",6],["trueseeing","True Seeing",6],["wallofthorns","Wall of Thorns",6],["arcanesword","Arcane Sword",7],["delayedblastfireball","Delayed Blast Fireball",7],["divineword","Divine Word",7],["etherealness","Etherealness",7],["fingerofdeath","Finger of Death",7],["firestorm","Fire Storm",7],["prismaticspray","Prismatic Spray",7],["regenerate","Regenerate",7],["symbol","Symbol",7],["earthquake","Earthquake",8],["feeblemind","Feeblemind",8],["holyaura","Holy Aura",8],["maze","Maze",8],["mindblank","Mind Blank",8],["powerwordstun","Power Word Stun",8],["sunburst","Sunburst",8],["foresight","Foresight",9],["massheal","Mass Heal",9],["meteorswarm","Meteor Swarm",9],["powerwordkill","Power Word Kill",9],["weird","Weird",9]],"features":[["rage","Rage","barbarian",1,""],["unarmoreddefense_barbarian","Unarmored Defense","barbarian",1,""],["dangersense","Danger Sense","barbarian",2,""],["reckless","Reckless Attack","barbarian",2,""],["frenzy","Frenzy","barbarian",3,"Path of the Berserker"],["downinthesand","Down in the Sand","barbarian",3,"Path of the Sand"],["firstblood","First Blood","barbarian",3,"Path of the Sand"],["pitfists","Pit Fists","barbarian",3,"Path of the Sand"],["extraattack_barbarian","Extra Attack","barbarian",5,""],["fastmovement","Fast Movement","barbarian",5,""],["mindlessrage","Mindless Rage","barbarian",6,"Path of the Berserker"],["answerback","Answer Back","barbarian",6,"Path of the Sand"],["feralinstinct","Feral Instinct","barbarian",7,""],["brutalcritical","Brutal Critical","barbarian",9,""],["bardicinspiration","Bardic Inspiration","bard",1,""],["cuttingwords","Cutting Words","bard",3,"College of Lore"],["fontofinspiration","Font of Inspiration","bard",5,""],["countercharm","Countercharm","bard",6,""],["magicalsecrets","Additional Magical Secrets","bard",6,"College of Lore"],["discipleoflife","Disciple of Life","cleric",1,"Life Domain"],["keeperssward","Keeper's Ward","cleric",1,"the Vigil"],["handonneck","The Hand on the Neck","cleric",1,"the Window"],["turnundead","Turn Undead","cleric",2,""],["preservelife","Preserve Life","cleric",2,"Life Domain"],["holdthedoor","Hold the Door","cleric",2,"the Vigil"],["thedoubling","The Doubling","cleric",2,"the Window"],["destroyundead","Destroy Undead","cleric",5,""],["blessedhealer","Blessed Healer","cleric",6,"Life Domain"],["wakeful","Wakeful","cleric",6,"the Vigil"],["theshowing","The Showing","cleric",6,"the Window"],["divinestrike_life","Divine Strike","cleric",8,"Life Domain"],["divinestrike_vigil","Divine Strike","cleric",8,"the Vigil"],["divinestrike_window","Divine Strike","cleric",8,"the Window"],["ownshape","Own Shape","druid",2,""],["wildshape","Wild Shape","druid",2,""],["landsstride","Land's Stride","druid",6,"Circle of the Land"],["naturesward","Nature's Ward","druid",10,"Circle of the Land"],["fightingstyle_gwf","Fighting Style: Great Weapon Fighting","fighter",1,""],["secondwind","Second Wind","fighter",1,""],["actionsurge","Action Surge","fighter",2,""],["improvedcritical","Improved Critical","fighter",3,"Champion"],["extraattack_fighter","Extra Attack","fighter",5,""],["remarkableathlete","Remarkable Athlete","fighter",7,"Champion"],["indomitable","Indomitable","fighter",9,""],["martialarts","Martial Arts","monk",1,""],["unarmoreddefense_monk","Unarmored Defense","monk",1,""],["flurryofblows","Flurry of Blows","monk",2,""],["ki","Ki","monk",2,""],["patientdefense","Patient Defense","monk",2,""],["stepofthewind","Step of the Wind","monk",2,""],["unarmoredmovement","Unarmored Movement","monk",2,""],["deflectmissiles","Deflect Missiles","monk",3,""],["openhandtechnique","Open Hand Technique","monk",3,"Way of the Open Hand"],["extraattack_monk","Extra Attack","monk",5,""],["stunningstrike","Stunning Strike","monk",5,""],["kiempoweredstrikes","Ki-Empowered Strikes","monk",6,""],["wholenessofbody","Wholeness of Body","monk",6,"Way of the Open Hand"],["evasion_monk","Evasion","monk",7,""],["layonhands","Lay on Hands","paladin",1,""],["divinesmite","Divine Smite","paladin",2,""],["fightingstyle_defense","Fighting Style: Defense","paladin",2,""],["sacredweapon","Sacred Weapon","paladin",3,"Oath of Devotion"],["turntheunholy","Turn the Unholy","paladin",3,"Oath of Devotion"],["extraattack_paladin","Extra Attack","paladin",5,""],["auraofprotection","Aura of Protection","paladin",6,""],["auraofdevotion","Aura of Devotion","paladin",7,"Oath of Devotion"],["fightingstyle_archery","Fighting Style: Archery","ranger",2,""],["colossusslayer","Colossus Slayer","ranger",3,"Hunter"],["extraattack_ranger","Extra Attack","ranger",5,""],["escapethehorde","Escape the Horde","ranger",7,"Hunter"],["multiattackdefense","Multiattack Defense","ranger",7,"Hunter"],["steelwill","Steel Will","ranger",7,"Hunter"],["expertise_rogue","Expertise","rogue",1,""],["hide","Hide","rogue",1,""],["sneakattack","Sneak Attack","rogue",1,""],["cunningaction","Cunning Action","rogue",2,""],["fasthands","Fast Hands","rogue",3,"Thief"],["uncannydodge","Uncanny Dodge","rogue",5,""],["evasion_rogue","Evasion","rogue",7,""],["supremesneak","Supreme Sneak","rogue",9,"Thief"],["draconicresilience","Draconic Resilience","sorcerer",1,"Draconic Bloodline"],["fontofmagic","Font of Magic","sorcerer",2,""],["carefulspell","Careful Spell","sorcerer",3,""],["heightenedspell","Heightened Spell","sorcerer",3,""],["quickenedspell","Quickened Spell","sorcerer",3,""],["twinnedspell","Twinned Spell","sorcerer",3,""],["elementalaffinity","Elemental Affinity","sorcerer",6,"Draconic Bloodline"],["darkonesblessing","Dark One's Blessing","warlock",1,"The Fiend"],["mirrorseye","The Mirror's Eye","warlock",1,"The Mirror"],["agonizingblast","Agonizing Blast","warlock",2,""],["devilssight","Devil's Sight","warlock",2,""],["fiendishvigor","Fiendish Vigor","warlock",2,""],["pactoftheblade","Pact of the Blade","warlock",3,""],["pactofthetome","Pact of the Tome","warlock",3,""],["repellingblast","Repelling Blast","warlock",5,""],["darkonesownluck","Dark One's Own Luck","warlock",6,"The Fiend"],["arcanerecovery","Arcane Recovery","wizard",1,""],["sculptspells","Sculpt Spells","wizard",2,"School of Evocation"],["rimedoubles","Rime Doubles","wizard",2,"the Rimeglass"],["potentcantrip","Potent Cantrip","wizard",6,"School of Evocation"],["rimestep","Rime Step","wizard",6,"the Rimeglass"]],"order":["barbarian","bard","cleric","druid","fighter","monk","paladin","ranger","rogue","sorcerer","warlock","wizard"]};
+
+/* ---------------------------------------------------------------- helpers */
+function cap(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+var NUMW=['no','one','two','three','four','five','six','seven','eight','nine','ten'];
+function nw(n){return n>0&&NUMW[n]?NUMW[n]:String(n);}
+function joinAnd(a){return a.length<2?(a[0]||''):a.slice(0,-1).join(', ')+' and '+a[a.length-1];}
+function plural(s){
+  if(/wolf$/i.test(s)) return s.replace(/wolf$/i,function(m){return m.charAt(0)+'olves';});
+  if(/[^aeiou]y$/i.test(s)) return s.slice(0,-1)+'ies';
+  if(/(s|x|z|ch|sh)$/i.test(s)) return s+'es';
+  return s+'s';
+}
+function h(tag,a){
+  var e=document.createElement(tag), i, k;
+  if(a) for(k in a){
+    var v=a[k];
+    if(k==='class') e.className=v;
+    else if(k==='on'){ for(var ev in v) e.addEventListener(ev,v[ev]); }
+    else if(k==='checked') e.checked=!!v;
+    else if(v!==false&&v!=null) e.setAttribute(k,v===true?'':v);
+  }
+  for(i=2;i<arguments.length;i++){
+    var c=arguments[i];
+    if(Array.isArray(c)) c.forEach(function(x){ if(x!=null&&x!==false) e.appendChild(x.nodeType?x:document.createTextNode(x)); });
+    else if(c!=null&&c!==false) e.appendChild(c.nodeType?c:document.createTextNode(c));
+  }
+  return e;
+}
+// options: [{v,t,g}] (g = optgroup label)
+function sel(options,value,onch,cls){
+  var s=h('select',{class:cls||''}), grp=null, gl=null;
+  options.forEach(function(o){
+    if(o.g!==gl){ gl=o.g; grp=o.g?h('optgroup',{label:o.g}):null; if(grp) s.appendChild(grp); }
+    var op=h('option',{value:o.v},o.t); (grp||s).appendChild(op);
+  });
+  if(value&&!options.some(function(o){return o.v===value;})) s.appendChild(h('option',{value:value},value+' (not in the lists)'));
+  s.value=value==null?'':value;
+  s.addEventListener('change',function(){onch(s.value);});
+  return s;
+}
+function fillSel(el,options,value,onch){
+  var n=sel(options,value,onch); el.textContent='';
+  while(n.firstChild) el.appendChild(n.firstChild);
+  el.value=value==null?'':value;
+  if(!el._wired){ el._wired=1; el.addEventListener('change',function(){el._onch(el.value);}); }
+  el._onch=onch;
+}
+var toastT;
+function toast(m){var t=$('#toast'); t.textContent=m; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(function(){t.classList.remove('show');},1800);}
+
+/* ---------------------------------------------------------------- the lists: read live from the game, else the snapshot */
+var L=null, SRC={};   // SRC[list] = 'live' | 'snapshot'
+function fromSnap(){
+  return {
+    classes:SNAP.classes.map(function(a){return {id:a[0],name:cap(a[0]),max:a[1]};}),
+    races:SNAP.races.map(function(a){return {id:a[0],name:a[1]};}),
+    named:SNAP.named.map(function(a){return {id:a[0],name:a[1],cls:a[2],lvl:a[3],race:a[4],max:a[5]};}),
+    monsters:SNAP.monsters.map(function(a){return {id:a[0],name:a[1],cr:a[2],named:!!a[3]};}),
+    spells:SNAP.spells.map(function(a){return {id:a[0],name:a[1],level:a[2]};}),
+    features:SNAP.features.map(function(a){return {id:a[0],name:a[1],cls:a[2],lvl:a[3],sub:a[4]};}),
+    order:SNAP.order.slice()
+  };
+}
+function blk(t,name){ var m=new RegExp(name+'\\s*=\\s*\\{([\\s\\S]*?)\\n  \\};').exec(t); return m?m[1]:''; }
+function all(re,t){ var out=[], m; re.lastIndex=0; while((m=re.exec(t))) out.push(m); return out; }
+// deep16/js/classes.js: NPC.CLASSES (the classes ?npc= takes), NPC.RACES, NPC.NAMED (the named characters), NPC.MAXLVL
+function pClasses(t){
+  var cls=all(/^ {4}(\w+): \{ prio:/gm,blk(t,'NPC\\.CLASSES')).map(function(m){return m[1];});
+  var mx={}, mm=/NPC\.MAXLVL\s*=\s*\{([^}]*)\}/.exec(t);
+  if(mm) all(/(\w+):\s*(\d+)/g,mm[1]).forEach(function(m){mx[m[1]]=+m[2];});
+  var races=all(/^ {4}(\w+): \{ name: '([^']+)'/gm,blk(t,'NPC\\.RACES')).map(function(m){return {id:m[1],name:m[2]};});
+  var named=all(/^ {4}(\w+): \{(.*)$/gm,blk(t,'NPC\\.NAMED')).map(function(m){
+    var rest=m[2], g=function(re){var x=re.exec(rest); return x?x[1]:null;};
+    var c=g(/\bcls: '(\w+)'/), ml=g(/\bmaxLvl: (\d+)/);
+    return {id:m[1],name:g(/\bname: '([^']*)'/)||cap(m[1]),cls:c,lvl:+(g(/\blvl: (\d+)/)||0),race:g(/\brace: '(\w+)'/)||'human',max:ml?+ml:(mx[c]||9)};
+  });
+  if(!cls.length||!races.length||!named.length) return null;
+  return {classes:cls.map(function(id){return {id:id,name:cap(id),max:mx[id]||9};}),races:races,named:named};
+}
+// deep16/data/foes.js: the bestiary (D16.FOES), keyed by the word ?npc= and foe= take
+function pFoes(t){
+  var i=t.indexOf('FOES = {'); if(i<0) return null; t=t.slice(i);
+  var out=[], seen={};
+  all(/^ {2}(\w+): \{\s*\n([^\n]*)/gm,t).forEach(function(m){      // the entry's first line carries its name, CR and `named`
+    var l=m[2], n=/\bname: (?:'([^']*)'|"([^"]*)")/.exec(l), c=/\bcr: '([^']*)'/.exec(l);
+    out.push({id:m[1],name:n?(n[1]!=null?n[1]:n[2]):m[1],cr:c?c[1]:'',named:/\bnamed: true\b/.test(l)}); seen[m[1]]=1;
+  });
+  all(/^ {2}(\w+): \{/gm,t).forEach(function(m){ if(!seen[m[1]]) out.push({id:m[1],name:m[1],cr:'',named:false}); });
+  return out.length?out:null;
+}
+// js/rules.js R.FAMILIARS: Find Familiar's forms, which js/familiar.js adds to the bestiary at run time as fam_<id> (a valid foe word too)
+function pFamiliars(t){
+  var out=all(/^ {4}(\w+): \{ name: '([^']*)'/gm,blk(t,'R\\.FAMILIARS')).map(function(m){return {id:'fam_'+m[1],name:'Familiar: '+m[2],cr:'0',named:false};});
+  return out.length?out:null;
+}
+// deep16/data/spells.js (D16.SPELLS: the grid's spells and their shape) + content/spells.json (names, levels). The spell gallery
+// walks the ones whose shape is not 'none' or 'reaction' and that spells.json knows (deep16/js/gallery.js)
+function pSpells(js,json){
+  if(!js) return null;
+  var meta=null; try{ meta=json?JSON.parse(json):null; }catch(e){ meta=null; }
+  var out=[];
+  all(/^ {2}(\w+): \{ shape: '(\w+)'/gm,js).forEach(function(m){
+    if(m[2]==='none'||m[2]==='reaction') return;
+    var s=meta&&meta[m[1]];
+    if(meta&&!(s&&typeof s==='object')) return;
+    out.push({id:m[1],name:s&&s.name||m[1],level:s&&s.level||0});
+  });
+  if(!out.length) return null;
+  out.sort(function(a,b){return (a.level-b.level)||(a.name<b.name?-1:a.name>b.name?1:0);});
+  return out;
+}
+// deep16/data/features.js (D16.FEATURES), one feature to a line; deep16/js/gallery.js CLASS_ORDER for the walk's order
+function pFeatures(t){
+  var out=all(/^ {2}(\w+): \{ name: "([^"]*)", cls: "(\w+)", lvl: (\d+), sub: (null|"([^"]*)")/gm,t).map(function(m){
+    return {id:m[1],name:m[2],cls:m[3],lvl:+m[4],sub:m[6]||''};
+  });
+  return out.length?out:null;
+}
+function pOrder(t){ var m=/CLASS_ORDER\s*=\s*\[([^\]]*)\]/.exec(t||''); return m?all(/'(\w+)'/g,m[1]).map(function(x){return x[1];}):null; }
+
+function getText(p){
+  return fetch(p,{cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error(p+' '+r.status); return r.text(); }).then(function(t){return t.replace(/\r\n?/g,'\n');});
+}
+function loadLists(){
+  var snap=fromSnap(); L=snap; SRC={classes:'snapshot',races:'snapshot',named:'snapshot',monsters:'snapshot',spells:'snapshot',features:'snapshot'};
+  var none=function(){return null;};
+  var files=['deep16/js/classes.js','deep16/data/foes.js','deep16/data/spells.js','content/spells.json','deep16/data/features.js','deep16/js/gallery.js','js/rules.js'];
+  return Promise.all(files.map(function(p){ try{ return getText(p).catch(none); }catch(e){ return Promise.resolve(null); } })).then(function(r){
+    var live={}, c, f, s, ft, o, fam;
+    try{ c=r[0]&&pClasses(r[0]); }catch(e){ c=null; }
+    try{ f=r[1]&&pFoes(r[1]); }catch(e){ f=null; }
+    try{ fam=r[6]&&pFamiliars(r[6]); }catch(e){ fam=null; }
+    if(f) f=f.concat(fam||L.monsters.filter(function(x){return /^fam_/.test(x.id);}));
+    try{ s=pSpells(r[2],r[3]); }catch(e){ s=null; }
+    try{ ft=r[4]&&pFeatures(r[4]); }catch(e){ ft=null; }
+    try{ o=pOrder(r[5]); }catch(e){ o=null; }
+    if(c){ L.classes=c.classes; L.races=c.races; L.named=c.named; SRC.classes=SRC.races=SRC.named='live'; }
+    if(f){ L.monsters=f; SRC.monsters='live'; }
+    if(s){ L.spells=s; SRC.spells='live'; }
+    if(ft){ L.features=ft; SRC.features='live'; }
+    if(o&&o.length) L.order=o;
+    var ord=L.order;
+    L.features.sort(function(a,b){
+      var A=ord.indexOf(a.cls), B=ord.indexOf(b.cls);
+      return ((A<0?99:A)-(B<0?99:B))||(a.lvl-b.lvl)||(a.sub<b.sub?-1:a.sub>b.sub?1:0)||(a.name<b.name?-1:a.name>b.name?1:0)||(a.id<b.id?-1:1);
+    });
+  }).then(showStatus);
+}
+function showStatus(){
+  var keys=['classes','races','named','monsters','spells','features'], live=keys.filter(function(k){return SRC[k]==='live';}), st=$('#status');
+  var counts=L.classes.length+' classes, '+L.races.length+' races, '+L.named.length+' named, '+L.monsters.length+' monsters, '+L.spells.length+' spells, '+L.features.length+' features';
+  if(live.length===keys.length) st.innerHTML='<b>lists read live from the game</b> ('+counts+')';
+  else if(!live.length) st.innerHTML='<b>lists from the '+SNAP.date+' snapshot</b> ('+counts+'); the game&#39;s own files could not be read from here';
+  else st.innerHTML='<b>lists: '+live.join(', ')+' read live</b>; the rest from the '+SNAP.date+' snapshot ('+counts+')';
+}
+
+/* ---------------------------------------------------------------- the form's state */
+function C(id,n,lvl,race){return {k:'class',id:id,n:n||1,lvl:lvl?String(lvl):'',race:race||'',grown:false,raw:''};}
+function N(id,n,lvl,grown){return {k:'named',id:id,n:n||1,lvl:lvl?String(lvl):'',race:'',grown:!!grown,raw:''};}
+function M(id,n){return {k:'monster',id:id,n:n||1,lvl:'',race:'',grown:false,raw:''};}
+function DEF(){
+  return {mode:'npc',foes:[C('cleric'),C('wizard')],vs:[],lvl:'5',watch:false,
+    spell:'',feature:'',onlyS:[],onlyF:[],auto:false,autoF:false,keep:false,foe:'',
+    stats:false,scale:'',menu:'',touch:'',fresh:false,base:'here',name:''};
+}
+var S=DEF(), R=[];   // S: the form; R: recent runs
+function fixRow(r){ return Object.assign({k:'class',id:'',n:1,lvl:'',race:'',grown:false,raw:''},r||{}); }
+function fixState(o){
+  var d=DEF();
+  if(o&&typeof o==='object'){ for(var k in d) if(k in o&&typeof o[k]===typeof d[k]) d[k]=o[k]; }
+  ['foes','vs'].forEach(function(k){ d[k]=(Array.isArray(d[k])?d[k]:[]).map(fixRow); });
+  ['onlyS','onlyF'].forEach(function(k){ d[k]=Array.isArray(d[k])?d[k].filter(function(x){return typeof x==='string';}):[]; });
+  if(!MODEIDS[d.mode]) d.mode='npc';
+  if(['here','live','local'].indexOf(d.base)<0) d.base='here';
+  return d;
+}
+function saveAll(){ P(KEY,JSON.stringify({recent:R,last:S})); }
+function loadAll(){
+  var raw=G(KEY), o=null; try{ o=raw?JSON.parse(raw):null; }catch(e){ o=null; }
+  if(o&&typeof o==='object'){
+    S=fixState(o.last);
+    R=Array.isArray(o.recent)?o.recent.filter(function(r){return r&&typeof r.rel==='string'&&r.state;}).slice(0,12):[];
+  } else if(location.protocol==='file:') S.base='live';
+}
+
+/* ---------------------------------------------------------------- the modes */
+var MODES=[
+  {id:'g8',grp:8,t:'Title screen',n:'the 8-bit game, from the top'},
+  {id:'round6',grp:8,t:'Round six',n:'?round6: four at level 4'},
+  {id:'lvl3',grp:8,t:'Level three',n:'?lvl3: four just made 3'},
+  {id:'cocoon',grp:16,t:'Cocoon Gallery',n:'deep16/: the default fight'},
+  {id:'ladder',grp:16,t:'Ladder',n:'?ladder: the levelling simulator'},
+  {id:'tester',grp:16,t:'Tester ladder',n:'&party=ours: you watch'},
+  {id:'play',grp:16,t:'Tester ladder, you play',n:'&party=ours&play: recorded'},
+  {id:'climb',grp:16,t:'Climb',n:'?climb: one party, 1 to 9'},
+  {id:'npc',grp:16,t:'Class floor',n:'?npc= : foes against our four'},
+  {id:'fx',grp:16,t:'Spell gallery',n:'?fxgallery'},
+  {id:'fxf',grp:16,t:'Feature gallery',n:'?fxgallery&features'},
+  {id:'gate',grp:16,t:'Gate',n:'?gate: stop and look'},
+  {id:'view',grp:16,t:'View',n:'?view: the cavern, a cursor'}
+];
+// the playtest situations (?at=<id>, 10-01): read from the game's own table, js/situations.js (situations.html reads it too)
+var SIT=(window.DS&&window.DS.SITUATIONS)||{};
+Object.keys(SIT).forEach(function(id){ MODES.push({id:'at-'+id,grp:'at',t:SIT[id].title,n:'?at='+id+(SIT[id].lvl?' · level '+SIT[id].lvl:'')}); });
+var MODEIDS={}; MODES.forEach(function(m){MODEIDS[m.id]=m;});
+var EXAMPLES=[
+  ['Talmok 7 vs a fighter 7',{mode:'npc',foes:[N('talmok',1,7)],vs:[C('fighter',1,7)],lvl:''}],
+  ['Three hyenas vs a bard (L3)',{mode:'npc',foes:[M('hyena',3)],vs:[C('bard')],lvl:'3'}],
+  ['Cleric + wizard vs our four (L5)',{mode:'npc',foes:[C('cleric'),C('wizard')],vs:[],lvl:'5'}],
+  ["Hideous Laughter's hyena",{mode:'fx',spell:'hideouslaughter',foe:'hyena'}],
+  ['Tester ladder',{mode:'tester'}]
+];
+
+/* ---------------------------------------------------------------- building the URL */
+function word(r){
+  var w='';
+  if(r.k==='class'){ w=r.id; if(r.lvl||r.race){ w+=':'+(r.lvl||''); if(r.race) w+=':'+r.race; } }
+  else if(r.k==='named'){
+    var nm=L.named.filter(function(x){return x.id===r.id;})[0], grown=r.grown&&nm&&nm.lvl;
+    w=r.id; if(r.lvl||grown){ w+=':'+(r.lvl||''); if(grown) w+=':grown'; }
+  }
+  else if(r.k==='monster') w=r.id;
+  else w=encodeURIComponent((r.raw||'').replace(/[,&#?\s]/g,'')).replace(/%3A/gi,':');
+  return w;
+}
+function words(rows){ var out=[]; rows.forEach(function(r){ var w=word(r); if(!w) return; for(var i=0;i<(r.n||1);i++) out.push(w); }); return out; }
+var stamp=0;
+function build(){
+  var m=S.mode, parts=[], path='deep16/';
+  if(m.indexOf('at-')===0){ path='./'; parts.push('at='+m.slice(3)); }
+  else if(m==='g8'||m==='round6'||m==='lvl3'){ path='./'; if(m!=='g8') parts.push(m); }
+  else{
+    if(m==='ladder') parts.push('ladder');
+    else if(m==='tester') parts.push('ladder','party=ours');
+    else if(m==='play') parts.push('ladder','party=ours','play');
+    else if(m==='climb') parts.push('climb');
+    else if(m==='gate') parts.push('gate');
+    else if(m==='view') parts.push('view');
+    else if(m==='npc'){
+      var fw=words(S.foes), vw=words(S.vs);
+      parts.push('npc='+(fw.length?fw.join(','):'fighter'));
+      if(vw.length) parts.push('vs='+vw.join(','));
+      if(S.lvl) parts.push('lvl='+S.lvl);
+      if(S.watch) parts.push('watch');
+    }
+    else if(m==='fx'||m==='fxf'){
+      parts.push('fxgallery'); if(m==='fxf') parts.push('features');
+      var one=m==='fx'?S.spell:S.feature, only=m==='fx'?S.onlyS:S.onlyF;
+      if(one) parts.push((m==='fx'?'spell=':'feature=')+one);
+      if(only.length) parts.push('only='+only.join(','));
+      if(m==='fx'&&S.foe) parts.push('foe='+S.foe);
+      if(m==='fx'?S.auto:S.autoF) parts.push('auto');
+      if(m==='fx'&&S.keep) parts.push('keep');
+    }
+    if(S.stats) parts.push('stats');
+    if(S.scale) parts.push('scale='+S.scale);
+    if(S.menu) parts.push('menu='+S.menu);
+    if(S.touch) parts.push(S.touch);
+  }
+  var q0=parts.join('&');                       // without the cache-buster
+  if(S.fresh) parts.push('x='+stamp);
+  var q=parts.join('&'), tail=(path==='./'?'':path)+(q?'?'+q:'');
+  var rel=path+(q?'?'+q:''), rel0=path+(q0?'?'+q0:'');
+  var shown=S.base==='live'?LIVE+tail:S.base==='local'?LOCAL+tail:rel;
+  return {rel:rel,rel0:rel0,shown:shown};
+}
+
+/* ---------------------------------------------------------------- the plain-English reading, and the notes */
+// an "other word" row, read as the game reads it (a class, a named character, or a bestiary monster), so it can be put in words
+function rawRow(r){
+  var raw=(r.raw||'').trim(), b=raw.split(':'), k=b[0].toLowerCase(), n=r.n||1;
+  if(L.classes.some(function(c){return c.id===k;})) return {k:'class',id:k,n:n,lvl:b[1]||'',race:b[2]||''};
+  if(L.named.some(function(c){return c.id===k;})) return {k:'named',id:k,n:n,lvl:b[1]||'',grown:b[2]==='grown'};
+  if(L.monsters.some(function(c){return c.id===raw;})) return {k:'monster',id:raw,n:n};
+  return null;
+}
+function phrase(r,Lurl){
+  var n=r.n||1;
+  if(r.k==='raw'){ var rr=rawRow(r); if(rr) return phrase(rr,Lurl); }
+  if(r.k==='class'){
+    var c=L.classes.filter(function(x){return x.id===r.id;})[0]||{name:cap(r.id),max:9};
+    var lv=Math.min(c.max,r.lvl?+r.lvl:Lurl);
+    var rc=r.race?(L.races.filter(function(x){return x.id===r.race;})[0]||{name:r.race}).name.toLowerCase():'';
+    var base='level-'+lv+' '+(rc?rc+' ':'')+c.name.toLowerCase();
+    return n===1?'a '+base:nw(n)+' '+plural(base);
+  }
+  if(r.k==='named'){
+    var nm=L.named.filter(function(x){return x.id===r.id;})[0]||{name:cap(r.id),lvl:0,max:9};
+    var at=Math.min(nm.max,r.lvl?+r.lvl:(nm.lvl||Lurl));
+    var t=nm.name+' (level '+at+(r.grown&&nm.lvl?', the grown build':'')+')';
+    return n===1?t:nw(n)+' × '+t;
+  }
+  if(r.k==='monster'){
+    var mo=L.monsters.filter(function(x){return x.id===r.id;})[0]||{name:r.id,named:false};
+    if(mo.named) return n===1?mo.name:nw(n)+' × '+mo.name;
+    var low=mo.name.toLowerCase();
+    return n===1?(/^[aeiou]/.test(low)?'an ':'a ')+low:nw(n)+' '+plural(low);
+  }
+  return (r.raw||'').trim()?('“'+r.raw.trim()+'”'+(n>1?' × '+n:'')):'';
+}
+function unknownWord(r){
+  if(r.k!=='raw'||!(r.raw||'').trim()) return false;
+  var w=r.raw.trim().split(':')[0].toLowerCase();
+  return !L.classes.some(function(x){return x.id===w;})&&!L.named.some(function(x){return x.id===w;})&&!L.monsters.some(function(x){return x.id===r.raw.trim();});
+}
+function spellName(id){ var s=L.spells.filter(function(x){return x.id===id;})[0]; return s?s.name:id; }
+function featName(id){ var s=L.features.filter(function(x){return x.id===id;})[0]; return s?s.name:id; }
+function monName(id){ var s=L.monsters.filter(function(x){return x.id===id;})[0]; return s?s.name:id; }
+function describe(){
+  var m=S.mode, t='', notes=[], Lurl=S.lvl?+S.lvl:5;
+  if(m==='g8') t='The 8-bit game, from the title screen. (Its menu’s LADDER and PLAYTESTER LADDER open the DEEP16 ladders.)';
+  else if(m==='round6') t='The 8-bit game, new game, pick a lead: all four at level 4 on Fountain Street, every quest done except the Halfway Inn and the lake. Vivian’s archetype prompt comes up at once.';
+  else if(m==='lvl3') t='The 8-bit game, new game, pick a lead: all four just made level 3 (900 XP) on Fountain Street. Only Company and Winters’ Errands are done, with 1 renown. Vivian’s archetype prompt comes up at once.';
+  else if(m==='cocoon') t='The Cocoon Gallery: two drow captains and a phase spider. Your party comes from the save you walked in with, else your newest slot, else the level-9 fixture.';
+  else if(m==='ladder') t='The ladder, a levelling simulator: the story’s fights, rung by rung up the levels.';
+  else if(m==='tester') t='The tester ladder: Talmok, Willem, Katarina and Torvald at each rung’s level, both sides run by the AI, and you watch. It has its own test camp.';
+  else if(m==='play') t='The tester ladder, except you run our four, and the fight is recorded.';
+  else if(m==='climb') t='The climb: one party from level 1 to 9.';
+  else if(m==='gate') t='The stop-and-look gate.';
+  else if(m==='view') t='The cavern with a cursor, and no fight.';
+  else if(m.indexOf('at-')===0){ var st=SIT[m.slice(3)]||{}; t='The 8-bit game, new game, pick a lead, and you stand at a line of the playtest ear-file: '+st.title+' ('+(st.pt||'')+(st.lvl?', level '+st.lvl:'')+'). '+(st.look||''); }
+  else if(m==='npc'){
+    var foes=S.foes.filter(function(r){return phrase(r,Lurl);}), vs=S.vs.filter(function(r){return phrase(r,Lurl);});
+    var foeTxt=foes.length?joinAnd(foes.map(function(r){return phrase(r,Lurl);})):'a fighter (the game’s default: no foes were listed)';
+    var our=Math.min(9,Lurl), party=vs.length?joinAnd(vs.map(function(r){return phrase(r,Lurl);})):'our four at level '+our;
+    var who='our four';
+    if(vs.length) who='the band';
+    if(vs.length===1&&(vs[0].n||1)===1){
+      if(vs[0].k==='class') who='the '+(L.classes.filter(function(x){return x.id===vs[0].id;})[0]||{name:cap(vs[0].id)}).name.toLowerCase();
+      else if(vs[0].k==='named') who=(L.named.filter(function(x){return x.id===vs[0].id;})[0]||{name:cap(vs[0].id)}).name;
+    }
+    var ctl=S.watch?'you watch: the class AI runs both sides':'you run '+who;
+    t=cap(party)+' against '+foeTxt+', '+ctl+'.';
+    if(!foes.length) notes.push('No foes listed: the game falls back to one fighter, so npc=fighter is written out.');
+    if(S.lvl&&Lurl>9) notes.push('Past 9 only the druid and Pyro stand taller: every other class stops at 9, and so do our four.');
+    S.foes.concat(S.vs).forEach(function(r){
+      if(r.k==='class'&&r.lvl){ var c=L.classes.filter(function(x){return x.id===r.id;})[0]; if(c&&+r.lvl>c.max) notes.push('A '+c.id+' stops at '+c.max+', not '+r.lvl+'.'); }
+      if(r.k==='named'&&r.lvl){ var nn=L.named.filter(function(x){return x.id===r.id;})[0]; if(nn&&+r.lvl>nn.max) notes.push(nn.name+' stops at '+nn.max+', not '+r.lvl+'.'); }
+      if(unknownWord(r)) notes.push('“'+r.raw.trim()+'” is not a class, named character or bestiary monster this page knows; the game drops a word it cannot read.');
+    });
+  }
+  else if(m==='fx'){
+    t='The spell gallery: every spell on the grid, cast in turn';
+    if(S.spell) t+=', starting at '+spellName(S.spell);
+    if(S.onlyS.length) t+=', keeping to '+joinAnd(S.onlyS.map(spellName))+' (in that order)';
+    if(S.foe){ var mo=L.monsters.filter(function(x){return x.id===S.foe;})[0]; t+=', with three '+(mo&&mo.named?mo.name:plural(monName(S.foe).toLowerCase()))+' where the three fighters stand'; }
+    if(S.auto) t+=', going on down the list by itself';
+    if(S.keep) t+=', the stage kept between casts (E casts again on whatever the last cast left)';
+    t+='.';
+    if(S.spell&&S.onlyS.length&&S.onlyS.indexOf(S.spell)<0) notes.push('spell='+S.spell+' is not in only=, so the gallery starts at its first spell instead.');
+  }
+  else if(m==='fxf'){
+    t='The feature gallery: every class feature, fired in turn';
+    if(S.feature) t+=', starting at '+featName(S.feature);
+    if(S.onlyF.length) t+=', keeping to '+joinAnd(S.onlyF.map(featName))+' (in that order)';
+    if(S.autoF) t+=', going on down the list by itself';
+    t+='.';
+    if(S.feature&&S.onlyF.length&&S.onlyF.indexOf(S.feature)<0) notes.push('feature='+S.feature+' is not in only=, so the gallery starts at its first feature instead.');
+  }
+  if(m!=='g8'&&m!=='round6'&&m!=='lvl3'&&m.indexOf('at-')!==0){
+    var ad=[];
+    if(S.stats) ad.push('a frame-rate overlay');
+    if(S.scale) ad.push('the screen forced to scale '+S.scale);
+    if(S.menu) ad.push('the command menu drawn as a '+S.menu);
+    if(S.touch==='touch') ad.push('the phone’s on-screen pad forced on');
+    if(S.touch==='notouch') ad.push('the phone’s on-screen pad forced off');
+    if(ad.length) t+=' With '+joinAnd(ad)+'.';
+  }
+  return {text:t,notes:notes};
+}
+
+/* ---------------------------------------------------------------- the output */
+var cur={shown:'',rel:'',rel0:''};
+function update(){
+  stamp=Date.now();
+  cur=build();
+  var d=describe(), a=$('#out');
+  a.textContent=cur.shown; a.setAttribute('href',cur.shown);
+  $('#reading').textContent=d.text;
+  var ul=$('#notes'); ul.textContent=''; d.notes.forEach(function(n){ ul.appendChild(h('li',null,n)); });
+  $('#dockurl').textContent=cur.shown; $('#dockurl').title=cur.shown;
+  saveAll();
+}
+function remember(){
+  var st=JSON.parse(JSON.stringify(S));
+  R=R.filter(function(r){return r.rel!==cur.rel0;});
+  R.unshift({rel:cur.rel0,name:S.name||'',t:Date.now(),state:st});
+  R=R.slice(0,12); saveAll(); renderRecent();
+}
+function clip(text){
+  var done=function(){toast('copied');}, fail=function(){
+    var ta=h('textarea',{style:'position:fixed;left:-999px;top:0'}); ta.value=text; document.body.appendChild(ta); ta.select();
+    try{ document.execCommand('copy'); toast('copied'); }catch(e){ toast('could not copy: select the link above'); }
+    document.body.removeChild(ta);
+  };
+  try{ if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done,fail); else fail(); }catch(e){ fail(); }
+}
+function act(kind){
+  update();                       // a fresh stamp, so the link used is the link shown
+  var url=cur.shown;
+  remember();
+  if(kind==='copy') clip(url); else window.open(url,'_blank','noopener');
+}
+
+/* ---------------------------------------------------------------- the form */
+function lvlInput(r,ph){
+  var i=h('input',{type:'number',min:1,max:12,class:'lvl',placeholder:ph,value:r.lvl,title:'its own level (blank: the URL’s lvl, or its register’s)'});
+  i.addEventListener('input',function(){ r.lvl=i.value===''?'':String(Math.max(1,Math.min(12,Math.round(+i.value)||1))); update(); });
+  return i;
+}
+function rowEl(arr,i,allowMon,redraw){
+  var r=arr[i], kinds=[{v:'class',t:'class'},{v:'named',t:'named'}];
+  if(allowMon) kinds.push({v:'monster',t:'monster'});
+  kinds.push({v:'raw',t:'other word'});
+  var cnt=h('input',{type:'number',min:1,max:12,class:'cnt',value:r.n,title:'how many'});
+  cnt.addEventListener('input',function(){ r.n=Math.max(1,Math.min(12,Math.round(+cnt.value)||1)); update(); });
+  var kind=sel(kinds,r.k,function(v){
+    r.k=v; r.lvl=''; r.race=''; r.grown=false; r.raw='';
+    r.id=v==='class'?L.classes[0].id:v==='named'?L.named[0].id:v==='monster'?L.monsters.filter(function(x){return !isShadowed(x.id);})[0].id:'';
+    redraw(); update();
+  },'kind');
+  var body=[], nm;
+  if(r.k==='class'){
+    body.push(sel(L.classes.map(function(c){return {v:c.id,t:c.name};}),r.id,function(v){r.id=v;update();}),
+      lvlInput(r,'lvl'),
+      sel([{v:'',t:'human (default)'}].concat(L.races.map(function(x){return {v:x.id,t:x.name};})),r.race,function(v){r.race=v;update();}));
+  } else if(r.k==='named'){
+    nm=L.named.filter(function(x){return x.id===r.id;})[0];
+    body.push(sel(L.named.map(function(x){return {v:x.id,t:x.name+' — '+x.cls+(x.lvl?' '+x.lvl:'')};}),r.id,function(v){r.id=v;redraw();update();}),
+      lvlInput(r,nm&&nm.lvl?'own '+nm.lvl:'lvl'));
+    var g=h('input',{type:'checkbox',checked:r.grown,disabled:!(nm&&nm.lvl)});
+    g.addEventListener('change',function(){r.grown=g.checked;update();});
+    body.push(h('label',{title:'the grown build even at the register’s own level (matters only when the level is his or hers by register; at any other level it is grown anyway)'},g,'grown'));
+  } else if(r.k==='monster'){
+    body.push(sel(L.monsters.filter(function(x){return !isShadowed(x.id);}).sort(function(a,b){return a.name<b.name?-1:a.name>b.name?1:0;}).map(function(x){return {v:x.id,t:x.name+(x.name.toLowerCase()===x.id?'':' ('+x.id+')')+(x.cr?' · CR '+x.cr:'')};}),r.id,function(v){r.id=v;update();}));
+  } else {
+    var tx=h('input',{type:'text',placeholder:'a word, e.g. cleric:5 or hyena',value:r.raw});
+    tx.addEventListener('input',function(){r.raw=tx.value;update();});
+    body.push(tx);
+  }
+  var rm=h('button',{class:'x',title:'remove this row',on:{click:function(){arr.splice(i,1);redraw();update();}}},'×');
+  return h('div',{class:'frow'},cnt,h('span',{class:'times'},'×'),kind,body,rm);
+}
+// a bestiary word the class parser reads first (a class or a named character) never reaches the bestiary: ?npc=talmok is the named one
+function isShadowed(id){ return L.classes.some(function(c){return c.id===id;})||L.named.some(function(n){return n.id===id;}); }
+function drawRows(host,arr,allowMon){
+  host.textContent='';
+  var redraw=function(){drawRows(host,arr,allowMon);};
+  if(!arr.length) host.appendChild(h('p',{class:'hint'},host.id==='foes'?'No foes yet: the game would use one fighter.':'None: you run our four.'));
+  arr.forEach(function(_,i){ host.appendChild(rowEl(arr,i,allowMon,redraw)); });
+}
+function adders(host,arr,rowsHost,allowMon){
+  host.textContent='';
+  var add=function(k){
+    var id=k==='class'?L.classes[0].id:k==='named'?L.named[0].id:L.monsters.filter(function(x){return !isShadowed(x.id);})[0].id;
+    arr.push({k:k,id:id,n:1,lvl:'',race:'',grown:false,raw:''}); drawRows(rowsHost,arr,allowMon); update();
+  };
+  [['class','+ class'],['named','+ named'],['monster','+ monster'],['raw','+ other word']].forEach(function(p){
+    if(p[0]==='monster'&&!allowMon) return;
+    host.appendChild(h('button',{on:{click:function(){add(p[0]);}}},p[1]));
+  });
+}
+function picker(items,chosen,what){
+  var chips=h('div',{class:'chipbox'}), pool=h('div',{class:'chipbox'}), q=h('input',{type:'search',placeholder:'type to find a '+what+' to add'}), by={};
+  items.forEach(function(x){by[x.id]=x;});
+  function draw(){
+    chips.textContent='';
+    chosen.forEach(function(id,i){ chips.appendChild(h('button',{class:'chip',title:'remove',on:{click:function(){chosen.splice(i,1);draw();update();}}},(by[id]?by[id].label:id)+' ×')); });
+    if(!chosen.length) chips.appendChild(h('span',{class:'dim'},'none: all of them'));
+    pool.textContent='';
+    var t=q.value.trim().toLowerCase(); if(!t) return;
+    var hits=items.filter(function(x){return chosen.indexOf(x.id)<0&&((x.label.toLowerCase().indexOf(t)>=0)||x.id.toLowerCase().indexOf(t)>=0);}).slice(0,12);
+    hits.forEach(function(x){ pool.appendChild(h('button',{class:'chip add',on:{click:function(){chosen.push(x.id);q.value='';draw();update();q.focus();}}},'+ '+x.label+(x.hint?' · '+x.hint:''))); });
+    if(!hits.length) pool.appendChild(h('span',{class:'dim'},'no match'));
+  }
+  q.addEventListener('input',draw);
+  q.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); var b=pool.querySelector('.add'); if(b) b.click(); } });
+  draw();
+  return h('div',{class:'picker'},chips,q,pool);
+}
+function spellItems(){ return L.spells.map(function(s){return {id:s.id,label:s.name,hint:s.level?'level '+s.level:'cantrip'};}); }
+function featItems(){ return L.features.map(function(f){return {id:f.id,label:f.name+(f.sub?' ('+f.sub+')':''),hint:f.cls+' '+f.lvl};}); }
+
+function renderForm(){
+  // the modes
+  var mh=$('#modes'); mh.textContent='';
+  [[8,'The 8-bit game'],['at','Situations: a line of the playtest ear-file (situations.html)'],[16,'DEEP16, the 16-bit grid']].forEach(function(g){
+    if(!MODES.some(function(m){return m.grp===g[0];})) return;
+    mh.appendChild(h('div',{class:'gl'},g[1]));
+    var grid=h('div',{class:'modes'});
+    MODES.filter(function(m){return m.grp===g[0];}).forEach(function(m){
+      grid.appendChild(h('button',{class:'mode'+(S.mode===m.id?' on':''),'data-m':m.id,on:{click:function(){S.mode=m.id;renderForm();update();}}},h('b',null,m.t),h('span',null,m.n)));
+    });
+    mh.appendChild(grid);
+  });
+  var ex=$('#examples'); ex.textContent=''; ex.appendChild(h('span',{class:'dim',style:'font:13px system-ui,sans-serif;align-self:center'},'or start from:'));
+  EXAMPLES.forEach(function(e){ ex.appendChild(h('button',{class:'tiny',on:{click:function(){
+    var keep={base:S.base,fresh:S.fresh,stats:S.stats,scale:S.scale,menu:S.menu,touch:S.touch};
+    S=fixState(Object.assign(DEF(),{foes:[],vs:[],lvl:''},JSON.parse(JSON.stringify(e[1])),keep)); renderForm(); update();
+  }}},e[0])); });
+  // the panels this mode uses
+  var m=S.mode;
+  $('#p-npc').hidden=m!=='npc'; $('#p-fx').hidden=m!=='fx'; $('#p-fxf').hidden=m!=='fxf';
+  var d16=MODEIDS[m].grp===16;
+  $('#addons').disabled=!d16; $('#addNote').textContent=d16?'any DEEP16 mode':'DEEP16 only: the 8-bit game reads none of these';
+  // the class floor
+  if(m==='npc'){
+    drawRows($('#foes'),S.foes,true); adders($('#foeAdd'),S.foes,$('#foes'),true);
+    drawRows($('#vsrows'),S.vs,false); adders($('#vsAdd'),S.vs,$('#vsrows'),false);
+    var lv=[{v:'',t:'(not written: the game uses 5)'}]; for(var i=1;i<=12;i++) lv.push({v:String(i),t:String(i)+(i>9?'  (druid and Pyro only)':'')});
+    fillSel($('#lvl'),lv,S.lvl,function(v){S.lvl=v;update();});
+    $('#watch').checked=S.watch;
+  }
+  // the spell gallery
+  if(m==='fx'){
+    var sp=[{v:'',t:'(the first: the gallery starts at the top)'}];
+    L.spells.forEach(function(s){ sp.push({v:s.id,t:s.name,g:s.level?'Level '+s.level:'Cantrips'}); });
+    fillSel($('#spell'),sp,S.spell,function(v){S.spell=v;update();});
+    var fo=[{v:'',t:'(the three fighters)'}];
+    L.monsters.slice().sort(function(a,b){return a.name<b.name?-1:a.name>b.name?1:0;}).forEach(function(x){ fo.push({v:x.id,t:x.name+(x.name.toLowerCase()===x.id?'':' ('+x.id+')')+(x.cr?' · CR '+x.cr:'')}); });
+    fillSel($('#foeS'),fo,S.foe,function(v){S.foe=v;update();});
+    var po=$('#onlyS'); po.textContent=''; po.appendChild(picker(spellItems(),S.onlyS,'spell'));
+    $('#autoS').checked=S.auto; $('#keepS').checked=S.keep;
+  }
+  // the feature gallery
+  if(m==='fxf'){
+    var ft=[{v:'',t:'(the first: the gallery starts at the top)'}];
+    L.features.forEach(function(f){ ft.push({v:f.id,t:'L'+f.lvl+' '+f.name+(f.sub?' ('+f.sub+')':''),g:cap(f.cls)}); });
+    fillSel($('#feat'),ft,S.feature,function(v){S.feature=v;update();});
+    var pf=$('#onlyF'); pf.textContent=''; pf.appendChild(picker(featItems(),S.onlyF,'feature'));
+    $('#autoF').checked=S.autoF||false;
+  }
+  // add-ons
+  $('#stats').checked=S.stats;
+  var sc=[{v:'',t:'(not forced)'}]; for(var j=1;j<=9;j++) sc.push({v:String(j),t:'scale '+j});
+  fillSel($('#scale'),sc,S.scale,function(v){S.scale=v;update();});
+  fillSel($('#menu'),[{v:'',t:'(the game’s own choice)'},{v:'window',t:'window'},{v:'ring',t:'ring'}],S.menu,function(v){S.menu=v;update();});
+  fillSel($('#touch'),[{v:'',t:'(automatic: on for a phone)'},{v:'touch',t:'touch: pad forced on'},{v:'notouch',t:'notouch: pad forced off'}],S.touch,function(v){S.touch=v;update();});
+  // the output controls
+  Array.prototype.forEach.call(document.querySelectorAll('#base button'),function(b){ b.classList.toggle('on',b.getAttribute('data-b')===S.base); });
+  $('#fresh').checked=S.fresh; $('#nm').value=S.name||'';
+}
+function renderRecent(){
+  var box=$('#recent'); box.textContent='';
+  if(!R.length){ box.appendChild(h('p',{class:'hint'},'Nothing yet: the links you OPEN or COPY land here, to load back later.')); return; }
+  R.forEach(function(r,i){
+    var nm=h('input',{type:'text',class:'rn',value:r.name||'',placeholder:'(unnamed)',maxlength:60});
+    nm.addEventListener('change',function(){ r.name=nm.value; saveAll(); });
+    box.appendChild(h('div',{class:'rrow'},nm,
+      h('button',{class:'ru',title:'load this run back into the form',on:{click:function(){
+        var keep={base:S.base,fresh:S.fresh};
+        S=fixState(Object.assign({},JSON.parse(JSON.stringify(r.state)),keep,{name:r.name||''})); renderForm(); update(); window.scrollTo(0,0);
+      }}},r.rel),
+      h('button',{class:'x',title:'forget this one',on:{click:function(){R.splice(i,1);saveAll();renderRecent();}}},'×')));
+  });
+}
+
+/* ---------------------------------------------------------------- wiring */
+function wire(){
+  var th=$('#theme'), g=G(THEME_KEY);
+  if(g==='night'){ root.dataset.theme='night'; th.textContent='Day'; }
+  th.onclick=function(){
+    if(root.dataset.theme==='night'){ delete root.dataset.theme; th.textContent='Night'; P(THEME_KEY,'day'); }
+    else{ root.dataset.theme='night'; th.textContent='Day'; P(THEME_KEY,'night'); }
+  };
+  Array.prototype.forEach.call(document.querySelectorAll('#base button'),function(b){
+    b.addEventListener('click',function(){ S.base=b.getAttribute('data-b'); renderForm(); update(); });
+  });
+  $('#fresh').addEventListener('change',function(){S.fresh=this.checked;update();});
+  $('#nm').addEventListener('input',function(){S.name=this.value;saveAll();});
+  $('#watch').addEventListener('change',function(){S.watch=this.checked;update();});
+  $('#autoS').addEventListener('change',function(){S.auto=this.checked;update();});
+  $('#keepS').addEventListener('change',function(){S.keep=this.checked;update();});
+  $('#autoF').addEventListener('change',function(){S.autoF=this.checked;update();});
+  $('#stats').addEventListener('change',function(){S.stats=this.checked;update();});
+  $('#copy').addEventListener('click',function(){act('copy');}); $('#copy2').addEventListener('click',function(){act('copy');});
+  $('#open').addEventListener('click',function(){act('open');}); $('#open2').addEventListener('click',function(){act('open');});
+  $('#out').addEventListener('click',function(){ update(); remember(); });  // the link itself: a fresh stamp, and noted
+  $('#reset').addEventListener('click',function(){ var keep={base:S.base,fresh:S.fresh}; S=Object.assign(DEF(),keep); renderForm(); update(); });
+}
+
+loadAll();
+wire();
+L=fromSnap();            // so the page works at once; the live read replaces it
+renderForm(); renderRecent(); update();
+loadLists().then(function(){ renderForm(); update(); });
+})();
+</script>
+</body>
+</html>
