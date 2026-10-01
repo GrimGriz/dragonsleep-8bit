@@ -34,6 +34,7 @@
   };
 
   // ------------------------------------------------------------------ the list: every spell the hero knows, and whether it can be cast now
+  var AIMED = { single: 1, attack: 1, rays: 1, splash: 1, allies: 1, touch: 1 }; // (the shapes that take a creature: the picker's, ui.js)
   M.list = function (B, u) {
     var T = u.turn;
     return (u.known || []).map(function (id) {
@@ -66,6 +67,10 @@
       else if (id === 'seeinvisibility' && u.seeInvisible) why = 'already seeing the unseen';
       // a spell's own say (js/grimoire.js): nothing to cure, a ward already on, no metal to heat
       if (!why && ex && ex.list) { var r = ex.list(B, u, e); if (r && r.why) why = r.why; if (r && r.g) e.g = g = r.g; }
+      // a spell that takes a creature, with no creature it may take (10-01b, Griz: "check for other targeting non-fails. I have a hold
+      // person trying to find a target with only the clacker on the enemy team still standing"): greyed, and why, not a picker with
+      // nothing in it -- the picker offers exactly what M.targetOK passes (ui.js). Magic Missile's darts may still go at the dark: not here
+      if (!why && AIMED[g.shape] && !B.units.some(function (w) { return M.targetOK(B, u, g, w); })) why = M.noTarget(B, u, g);
       e.ok = !why; e.why = why;
       return e;
     }).filter(Boolean).sort(function (a, b) { return a.level - b.level || (a.name < b.name ? -1 : 1); });
@@ -175,21 +180,38 @@
     if (!c) return '';
     return !!c.down === (w.side !== u.side) ? 'already ' + (c.down ? 'reduced' : 'enlarged') : '';
   };
-  // is w a target for this spell from u (single, attack, rays, darts, splash, allies, touch)?
-  M.targetOK = function (B, u, g, w) {
+  // is w the kind of creature this spell takes, wherever it stands (the side, the type, the spell's own refusals)? M.targetOK adds reach and sight
+  M.targetKind = function (B, u, g, w) {
     if (!w || w.dead || w.ethereal) return false;
     if (M.targetWhy(u, g, w)) return false;
-    if (g.shape === 'touch') return M.touchTargets(B, u, g).indexOf(w) >= 0;
     var foeWanted = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe';
     if (foeWanted && (!G.hostile(u, w) || w.hp <= 0)) return false;
     if (((g.shape === 'allies' && g.side !== 'foe') || g.side === 'ally') && w.side !== u.side) return false; // (Bane: an `allies` shape aimed at foes)
     if (w.familiar && w.side === u.side && !foeWanted) return false; // (its own side's spells pass a familiar by -- RULED 10-01, "familiars not targetable")
     if (g.only === 'humanoid' && !M.humanoid(w)) return false;
     if (g.only === 'beast' && w.type !== 'beast') return false; // (Dominate Beast, Animal Friendship)
+    return true;
+  };
+  // why a spell that takes a creature has none it may take (M.list greys it with this)
+  M.noTarget = function (B, u, g) {
+    var reach = M.touchRange(g) ? (D.familiar && D.familiar.deliverer(B, u) ? 'within reach, nor within the familiar\'s move' : 'within reach (5 ft)') : '';
+    if (g.shape === 'touch') return 'no one ' + reach;
+    if (B.units.some(function (w) { return M.targetKind(B, u, g, w); })) return reach ? 'none ' + reach : 'none in range (' + (g.range || 5) + ' ft) and in sight';
+    var foe = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'splash' || g.side === 'foe';
+    return 'no ' + (g.only || 'one') + (foe ? (g.only ? ' foe' : ' of the foes') : '') + ' standing to take it';
+  };
+  // a spell with a range of touch, which a familiar may deliver (SRD 5.1 Find Familiar: "when you cast a spell with a range of touch, your
+  // familiar can deliver the spell as if it had cast the spell"; RULED 09-30): the touch spells, the touch attacks, and a touch that asks a
+  // save (Bestow Curse) -- 10-01b, Griz: "don't forget touch casters with familiars default to touching via familiar within range"
+  M.touchRange = function (g) { return g.shape === 'touch' || ((g.shape === 'attack' || g.shape === 'single') && (g.range || 5) <= 5); };
+  // is w a target for this spell from u (single, attack, rays, darts, splash, allies, touch)?
+  M.targetOK = function (B, u, g, w) {
+    if (g.shape === 'touch') return !!w && !w.dead && !w.ethereal && !M.targetWhy(u, g, w) && M.touchTargets(B, u, g).indexOf(w) >= 0;
+    if (!M.targetKind(B, u, g, w)) return false;
+    if (M.touchRange(g) && w !== u && G.dist(u, w) > 5 && D.familiar && D.familiar.delivers(B, u, w)) return true; // (a touch carried by the familiar: it goes to them)
     // "a creature you can see": Hold, Shield of Faith, Magic Missile, Acid Splash -- not Bless or Aid (SRD: "creatures of your choice
     // within range"; you know where your own are in the dark). Magic Missile at the dark: ui.js aims it at a square (the gimmick)
     if ((g.shape === 'single' || g.shape === 'darts' || g.shape === 'splash') && w !== u && !M.sees(B, u, w)) return false;
-    if (g.shape === 'attack' && (g.range || 5) <= 5 && D.familiar && D.familiar.delivers(B, u, w)) return true; // (a touch attack carried by the familiar)
     if (G.dist(u, w) > (g.range || 5)) return false;
     return G.los(u, w).clear || w === u;
   };
@@ -250,7 +272,7 @@
     var sp = M.data(id), g = M.geo(id), T = u.turn, self = this;
     if (id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights') g = Object.assign({}, g, { time: 'B', move: true }); // (the lights are up: this is the bonus action that moves them)
     var ex0 = M.EFFECT && M.EFFECT[id]; if (ex0 && ex0.geo) g = ex0.geo(B, u, g) || g; // (the floating weapon already up: its swing)
-    var carry = (g.shape === 'touch' || (g.shape === 'attack' && (g.range || 5) <= 5)) && D.familiar && D.familiar.carries(B, u, t); // (a touch spell the familiar carries: its turn's movement, RULED 09-30)
+    var carry = M.touchRange(g) && D.familiar && D.familiar.carries(B, u, t); // (a touch spell the familiar carries: its turn's movement, RULED 09-30)
     if (T.quicken && g.time === 'A' && sp.level) g = Object.assign({}, g, { time: 'B' }); // (Quickened Spell: js/features.js)
     if (g.time === 'B') { T.bonus = 0; if (!g.move) T.bonusSpell = true; } else { T.action = 0; T.spellAction = g.free ? T.spellAction : sp.level ? 'leveled' : 'cantrip'; }
     if (sp.level && !g.free) u.slots[slot - 1]--;

@@ -90,7 +90,10 @@
       var g = D.magic.geo(id), sp = D.magic.data(id);
       if (!sp || g.shape === 'none' || g.shape === 'reaction') { rep.none.push(id); return; }
       D.seed = 77 + ix; D.lastError = null;
-      var B3 = new D.Battle({ bench: true, npc: { party: ['wizard:9', 'fighter:9'], foes: ['fighter:9', 'cleric:9', 'skeleton'].slice(0, 2) }, fightDef: D.classFight(9) });
+      // (10-01b: the list greys a spell with no creature it may take -- magic.js M.noTarget -- so a touch attack stands its caster beside
+      // the foe, and a spell for beasts alone gets one to take it; before, they were cast at a fighter 10 ft off and never asked)
+      var near = /^(attack|single)$/.test(g.shape) && (g.range || 5) <= 5, beast = g.only === 'beast';
+      var B3 = new D.Battle({ bench: true, npc: { party: ['wizard:9', 'fighter:9'], foes: beast ? ['wolf', 'cleric:9'] : ['fighter:9', 'cleric:9'] }, fightDef: D.classFight(9) });
       try {
         D.battle = B3; B3.enter();
         var r0 = B3.co.next(); // (the entry card)
@@ -99,7 +102,7 @@
         var foes3 = B3.units.filter(function (w) { return w.side === 'foe'; });
         u.known = [id]; u.slots = [4, 3, 3, 3, 2, 1, 1, 1, 1]; u.slotsMax = u.slots.slice(); u.cls = sp.level === 0 && /sacred|guidance|resistance/.test(id) ? 'cleric' : u.cls;
         // stand them close: the caster two squares from the first foe, the mate beside him
-        u.x = foes3[0].x; u.y = foes3[0].y + 2; if (!D.grid.canStand(u, u.x, u.y)) u.y++; mate.x = u.x + 1; mate.y = u.y; mate.hp = Math.floor(mate.maxhp / 3);
+        u.x = foes3[0].x; u.y = foes3[0].y + (near ? 1 : 2); if (!D.grid.canStand(u, u.x, u.y)) u.y += near ? 0 : 1; mate.x = u.x + 1; mate.y = u.y; mate.hp = Math.floor(mate.maxhp / 3);
         D.rules.startTurn(u);
         var e = D.magic.list(B3, u)[0];
         if (!e || !e.ok) { rep.errors.push(id + ': not castable (' + (e ? e.why : 'no entry') + ')'); return; }

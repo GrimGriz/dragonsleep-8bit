@@ -343,36 +343,39 @@
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
     ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = va ? 'rgba(4,4,12,0.62)' : 'rgba(6,6,16,0.4)';
     for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2]) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
-    if (va) { if (va.sense === 'tongue') tongue(ctx, B, va, t, va.blindsight || 0, false); else sonar(ctx, B, va, t); if (va.senseHidden) tongue(ctx, B, va, t, va.senseHidden, true); }
+    if (va) { if (va.sense === 'tongue') tongue(ctx, B, va, t, va.blindsight || 0); else sonar(ctx, B, va, t); if (va.senseHidden) tongue(ctx, B, va, t, va.senseHidden); }
     ctx.restore();
   };
   // the tongue (10-01b, Griz: "Talk to me about the snake vs other familiars. Are we giving it's tongue-smell nearby detection like the bats?
   // maybe similar to the sonar with orange highlight of the tiles only on the side/corners pointing at the snake"): the snake familiar's
   // blindsight (SRD 5.1's poisonous snake: 10 ft) is its tongue -- each creature within it has the side of its square that faces the snake
-  // lit orange, or the corner where it stands on the diagonal, flicking: two quick flicks and a rest. Its caster's sense of the hidden and
-  // the unseen within 15 ft (the snake's perk, RULED 09-30: js/familiar.js) flicks the same, on the hidden and the invisible alone
-  var FLICK = { beat: 56, flicks: [[0, 5], [9, 14]] }; // (the beat in frames; each flick's first and last frame in it)
-  function tongue(ctx, B, u, t, reach, hiddenOnly) {
+  // lit orange, or the corner where it stands on the diagonal, flicking: two quick flicks and a rest. Through its caster's eyes it flicks
+  // on every creature within the 15 ft the snake lends him (its perk, RULED 09-30: the hidden and the unseen too -- js/familiar.js), as
+  // the bat's sonar runs through its wizard's (10-01b, Griz, in his snake wizard's turn: "the snake highlight is only hitting one of the
+  // goblins i would expect it to" -- it had been the hidden alone)
+  // (10-01b, seeing it: "too flashy, like a wave of water hitting that edge of the square" -- so no glow under it, half the edge, dimmer,
+  // and each flick eased in and out rather than struck)
+  var FLICK = { beat: 72, flicks: [[0, 10], [14, 24]], peak: 0.55, half: 0.25 }; // (the beat in frames; each flick's frames; its brightest; the mark's half-length, in squares)
+  function tongue(ctx, B, u, t, reach) {
     if (!reach) return;
     var ph = (t + (u.id || '').length * 11) % FLICK.beat, k = 0;
-    FLICK.flicks.forEach(function (f) { if (ph >= f[0] && ph < f[1]) k = 1 - 0.5 * (ph - f[0]) / (f[1] - f[0]); });
-    if (!k) return;
+    FLICK.flicks.forEach(function (f) { if (ph >= f[0] && ph < f[1]) k = Math.sin(Math.PI * (ph - f[0]) / (f[1] - f[0])); });
+    if (k <= 0.05) return;
     var m = B.map, iso = D.iso, o = ((u.size || 1) - 1) / 2, cx = u.x + o, cy = u.y + o;
     B.units.forEach(function (w) {
       if (w === u || w.left || w.unseen || w.riding || !G.standing(w) || G.dist(u, w) > reach) return;
-      if (hiddenOnly && !(w.conds.hidden || w.conds.invisible)) return;
       var foot = G.foot(w), near = Math.min.apply(null, foot.map(function (q) { return Math.max(Math.abs(cx - q[0]), Math.abs(cy - q[1])); }));
       foot.forEach(function (q) {
         var s = m.sq[q[1] * m.w + q[0]], dx = cx - q[0], dy = cy - q[1], ax = Math.abs(dx), ay = Math.abs(dy), sx = Math.sign(dx), sy = Math.sign(dy), seg = [];
         if (!s || (!ax && !ay) || Math.max(ax, ay) > near + 0.01) return; // (the squares of it nearest the snake; none under the snake itself)
-        if (ax > ay + 0.01) seg.push([sx * 0.5, -0.5, sx * 0.5, 0.5]); // the side toward it
-        else if (ay > ax + 0.01) seg.push([-0.5, sy * 0.5, 0.5, sy * 0.5]);
-        else seg.push([sx * 0.5, sy * 0.5, sx * 0.5, sy * 0.05], [sx * 0.5, sy * 0.5, sx * 0.05, sy * 0.5]); // the corner toward it
+        var hl = FLICK.half;
+        if (ax > ay + 0.01) seg.push([sx * 0.5, -hl, sx * 0.5, hl]); // the middle of the side toward it
+        else if (ay > ax + 0.01) seg.push([-hl, sy * 0.5, hl, sy * 0.5]);
+        else seg.push([sx * 0.5, sy * 0.5, sx * 0.5, sy * (0.5 - hl)], [sx * 0.5, sy * 0.5, sx * (0.5 - hl), sy * 0.5]); // the corner toward it
+        ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,170,80,' + (FLICK.peak * k).toFixed(2) + ')';
         seg.forEach(function (g) {
           var p = iso.center(q[0] + g[0], q[1] + g[1], s.gz), p2 = iso.center(q[0] + g[2], q[1] + g[3], s.gz), a = iso.toScreen(p.x, p.y), b = iso.toScreen(p2.x, p2.y);
-          ctx.beginPath(); ctx.moveTo(a.x + 0.5, a.y + 0.5); ctx.lineTo(b.x + 0.5, b.y + 0.5);
-          ctx.lineWidth = 3; ctx.strokeStyle = 'rgba(255,120,30,' + (0.3 * k).toFixed(2) + ')'; ctx.stroke(); // (a warm glow under the line)
-          ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,184,90,' + (0.95 * k).toFixed(2) + ')'; ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(a.x + 0.5, a.y + 0.5); ctx.lineTo(b.x + 0.5, b.y + 0.5); ctx.stroke();
         });
       });
     });
