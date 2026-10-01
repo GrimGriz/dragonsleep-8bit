@@ -6,7 +6,7 @@
 
 *7th-level evocation*
 
-> **The game:** A sword of force within 60 ft (concentration, 10 rounds): a spell attack for 3d10 force when it appears, then each turn a bonus action sends it at any foe in range, free. Not built: its 20-ft move limit.
+> **The game:** A sword of force within 60 ft (concentration, 10 rounds): a spell attack for 3d10 force, then each turn a bonus action moves it up to 20 ft and it strikes a foe within 25 ft of it. Farther off, it moves 20 ft and doesn't strike. Not built: needing a spot you can see.
 
 **Casting Time:** 1 action
 
@@ -70,7 +70,7 @@ At Higher Levels. When you cast this spell using a spell slot of 8th level or hi
 
 *7th-level evocation*
 
-> **The game:** Bonus action. Every foe within 30 ft: CHA save, or by its current HP: 20 or fewer drops, 30 stunned and blinded, 40 blinded, more deafened (no effect). Celestials, elementals, fey and fiends that fail are sent home for the fight.
+> **The game:** Bonus action. Every foe you can see within 30 ft that can hear you: CHA save, or by current HP: 20 or fewer drops, 30 deafened, blinded and stunned, 40 deafened and blinded, 50 deafened for ten of its turns; over 50 untouched. Celestials, elementals, fey and fiends that fail leave the fight. Not built: the ten minutes and the hour.
 
 **Casting Time:** 1 bonus action
 

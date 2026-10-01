@@ -33,6 +33,8 @@
     // the wizard's familiar, if the save has one and he is here (Find Familiar: js/familiar.js)
     var famData = this.o.familiar ? { flags: { familiar: this.o.familiar } } : NB ? null : this.from.data; // (the camp's pick for our four: o.familiar)
     var fam = D.familiar && famData && D.familiar.unit(this, famData, party); if (fam) party.push(fam);
+    // a familiar to each of a band (the class floor's &fam=owl,bat,...: js/classes.js npcFight, 10-01): the first keeps the one id
+    (this.o.familiars || []).forEach(function (f, i) { var fu = D.familiar && D.familiar.unit(self, { flags: { familiar: f } }, party); if (fu) { fu.id = 'familiar' + (i || ''); party.push(fu); if (fu.master) fu.master.name += ' (' + window.DS.R.FAMILIARS[f.kind].name + ')'; } }); // (seven Wizard 5s told apart by their familiars)
     // (the Settling, 09-30: the 8-bit trigger that fired puts the lead on its own square -- embed.at -- and the rest beside him)
     var entry = (this.o.embed && this.o.embed.at ? [this.o.embed.at] : (F.entry || m.def.entry)).slice();
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
@@ -262,7 +264,7 @@
     this.units.forEach(function (w) {
       var r = w.conds.restrained;
       if (r && r.by === u.id && r.grapple && (!only || only === w)) delete w.conds.restrained;
-      if (w.conds.stunned && w.conds.stunned.by === u.id && !only) delete w.conds.stunned;
+      if (w.conds.stunned && w.conds.stunned.by === u.id && (w.conds.stunned.fresh !== undefined || w.conds.stunned.till) && !only) delete w.conds.stunned; // (a foe's slam or moan -- laid with `fresh` -- or a blow's, on its laying one's turns' clock; a spell's stun holds without its caster: Power Word Stun, Divine Word, Symbol)
       if (w.conds.blinded && w.conds.blinded.by === u.id && w.conds.blinded.held && (!only || only === w)) delete w.conds.blinded; // (the darkmantle off his head, the cloaker's fold)
     });
     u.holding = (u.holding || []).filter(function (w) { return only && w !== only && w.conds.restrained && w.conds.restrained.by === u.id; });
@@ -319,7 +321,8 @@
     // bright light under the roost (the Light cantrip, Daylight): the roof lets go -- the 8-bit game's RoostFail runs on it
     // (RULED 09-28: the roost law is canon; fire and thunder stay greyed, the one thing to remember is not to cast light)
     if (this.roostBroken) return 'roost';
-    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated; }).length) return 'won';
+    // (a foe turned wholly to stone -- Flesh to Stone's third failed save -- holds no fight open: it had stalled one for good, 10-01)
+    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }).length) return 'won';
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
     // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
@@ -452,7 +455,7 @@
       // a summoned creature at 0 HP is gone (SRD: "it disappears when it drops to 0 hit points")
       if (s.summon && s.hp <= 0 && !s.dead) { s.dead = true; s.left = true; s.deadT = self.t; FX.sparkle(s, 'moss', 8); }
       var gone = s.dead || s.fled || s.left || s.hp <= 0, incap = gone || s.conds.paralyzed || s.conds.stunned || s.conds.asleep;
-      if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id && !(c === 'frightened' && w.conds.turned)) delete w.conds[c]; }); }); // (a prayer's turning runs its minute out, whoever fell)
+      if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id && !(c === 'frightened' && w.conds.turned) && !(c === 'stunned' && w.conds[c].fresh === undefined && !w.conds[c].till)) delete w.conds[c]; }); }); // (a prayer's turning runs its minute out, whoever fell; nor does a spell's stun -- only the slam's and the moan's, laid with `fresh`, and a blow's, on a clock of its laying one's turns, go with the one who laid them)
       if (incap && s.conc) D.magic.endConc(self, s, gone ? 'gone' : 'incapacitated');
       if (incap && s.holding && s.holding.length) self.release(s);
       // a blinding hold (the darkmantle over the head, the cloaker's fold) ends with the grip, however the grip ended
@@ -579,6 +582,9 @@
     } else {
       out.push({ id: 'dash', label: 'DASH', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the action is spent', note: '+' + u.speed + ' ft this turn' });
       out.push({ id: 'disengage', label: 'DISENGAGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !T.disengaged, note: 'leaving reach provokes nothing this turn' });
+      // Expeditious Retreat (SRD 5.1: "as a bonus action on each of your turns until the spell ends, you can take the Dash action"): the mark
+      // js/grimoire.js sets each turn (T.bonusDash) while the spell holds -- a second DASH, for the bonus action
+      if (T.bonusDash && u.conds.retreat) out.push({ id: 'cdash', label: 'RETREAT DASH', cost: 'B', ok: T.bonus > 0 && !u.conds.restrained, why: u.conds.restrained ? 'held fast: the speed is 0, and a Dash adds your speed' : 'the bonus action is spent', note: 'Expeditious Retreat: +' + u.speed + ' ft this turn', icon: 'dash' });
     }
     // out the way the party came in (the fight's entry squares): the tabletop's walking off the table (Griz, 09-27: the climb's escape)
     // (inside the 8-bit game, only where its own battle had RUN: this.o.embed.canRun)
@@ -630,6 +636,7 @@
         var far = G.reach(u, T.move + u.speed)[c.x + ',' + c.y], opts = [];
         if (!far || u.conds.restrained) return;
         if (u.cls === 'rogue' && u.lvl >= 2 && T.bonus) opts.push({ label: 'CUNNING DASH (bonus)', value: 'b' });
+        else if (T.bonusDash && u.conds.retreat && T.bonus) opts.push({ label: 'RETREAT DASH (bonus)', value: 'b' }); // (Expeditious Retreat)
         if (T.action && !T.attacksLeft) opts.push({ label: 'DASH (your action)', value: 'a' });
         if (!opts.length) { this.card(['{g}No dash left this turn.{/}']); return; }
         opts.push({ label: 'NOT THAT FAR', value: 0 });
@@ -637,7 +644,7 @@
         if (!how) return;
         if (how === 'b') T.bonus = 0; else T.action = 0;
         T.move += u.speed;
-        this.card(['{y}' + u.name + '{/}' + (how === 'b' ? ' (Cunning Action)' : '') + ' dashes: {c}+' + u.speed + ' ft{/}.']);
+        this.card(['{y}' + u.name + '{/}' + (how === 'b' ? (u.cls === 'rogue' && u.lvl >= 2 ? ' (Cunning Action)' : ' (Expeditious Retreat)') : '') + ' dashes: {c}+' + u.speed + ' ft{/}.']);
         var rm2 = G.reach(u, T.move), path2 = G.path(rm2, c.x, c.y);
         if (path2 && path2.length) yield* this.moveAlong(u, path2, { spend: true });
         return;
@@ -646,7 +653,7 @@
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
       case 'dash': if (u.conds.restrained) return; D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
-      case 'cdash': if (u.conds.restrained) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (Cunning Action) dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'cdash': if (u.conds.restrained) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + (u.cls === 'rogue' && u.lvl >= 2 ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
       case 'sacred': {
@@ -789,7 +796,7 @@
     // the one-shot marks, spent by this roll: Guiding Bolt's glow on the target, Vicious Mockery on the attacker, True Strike
     if (tgt.conds.guided) delete tgt.conds.guided;
     if (att.conds.mocked) delete att.conds.mocked;
-    if (att.conds.trueStrike && att.conds.trueStrike.at === tgt.id) delete att.conds.trueStrike;
+    if (att.conds.trueStrike && att.conds.trueStrike.ready && att.conds.trueStrike.at === tgt.id) { delete att.conds.trueStrike; if (att.conc && att.conc.id === 'truestrike') D.magic.endConc(this, att, 'the swing'); } // (True Strike: the first attack roll at it on the next turn -- advantage, and the spell is spent: rules.js edges, magic.js startTurn)
     var sacred = att.conds.sacred && !atk.spell && !atk.ranged ? att.conds.sacred.atk : 0;
     var baneR = att.conds.baned ? D.d(4) : 0;
     var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, pen = (e.pen || 0) - baneR, total = nat + atk.atk + bless + sacred + pen;
@@ -936,7 +943,7 @@
       tgt.conds.prone = true; this.card(['  {o}' + nameOf(tgt) + ' is threshed flat: PRONE{/}'], 220);
     }
     if (sneaked && atk.sneakPoison && !tgt.dead && tgt.hp > 0 && !tgt.conds.poisoned && !RU.immuneTo(tgt, 'poisoned')) {
-      var gsv = RU.save(tgt, 'con', atk.sneakPoison);
+      var gsv = RU.save(tgt, 'con', atk.sneakPoison, false, 'poisoned'); // (against being poisoned: Protection from Poison)
       this.card(['  {p}the greyseam{/}: ' + nameOf(tgt) + ' CON ' + RU.saveText(gsv) + ' vs DC ' + atk.sneakPoison + '  ' + (gsv.ok ? '{n}SAVED{/}' : '{o}POISONED{/}')], 240);
       if (!gsv.ok) { D.sfx('poison'); tgt.conds.poisoned = { till: { who: tgt.id, at: 'end', n: 1 } }; FX.sparkle(tgt, 'moss', 10); }
     }
@@ -986,13 +993,13 @@
     }
     // the chuul's tentacles on one it holds: CON or poisoned, and paralyzed while the poison lasts (a CON save each turn)
     if (atk.paralyze && !tgt.dead && tgt.hp > 0 && !tgt.conds.paralyzed && !RU.immuneTo(tgt, 'paralyzed') && !RU.immuneTo(tgt, 'poisoned')) {
-      var ps = RU.save(tgt, 'con', atk.paralyze.dc, false, 'paralyzed');
+      var ps = RU.save(tgt, 'con', atk.paralyze.dc, false, 'poisoned'); // (the chuul's poison: paralyzed while it lasts -- the save is against being poisoned)
       this.card(['{r}' + nameOf(tgt) + '{/}: CON save  ' + RU.saveText(ps) + ' vs DC ' + ps.dc + '  ' + (ps.ok ? '{n}SAVED{/}' : '{p}POISONED and PARALYZED{/} {g}(a CON save at the end of each turn){/}')]);
       if (!ps.ok) { D.sfx('poison'); tgt.conds.poisoned = { paralysis: true }; tgt.conds.paralyzed = { save: 'con', dc: atk.paralyze.dc, by: att.id, poison: true }; FX.sparkle(tgt, 'moss', 12); }
       yield 30;
     }
     if (!tgt.dead && atk.save && tgt.hp > 0) {
-      var pr = D.roll(atk.save.dice), s2 = RU.save(tgt, atk.save.ab, atk.save.dc, false, null, pr.total), ev2 = atk.save.half && atk.save.ab === 'dex' && RU.evasion(tgt); // (Evasion: none on a success, half on a failure -- the breath weapons too)
+      var pr = D.roll(atk.save.dice), s2 = RU.save(tgt, atk.save.ab, atk.save.dc, atk.save.type === 'poison' && RU.vsPoison(tgt), null, pr.total), ev2 = atk.save.half && atk.save.ab === 'dex' && RU.evasion(tgt); // (Evasion: none on a success, half on a failure -- the breath weapons too)
       var pd = ev2 ? (s2.ok ? 0 : Math.floor(pr.total / 2)) : s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;
       this.card(['{r}' + nameOf(tgt) + '{/}: ' + atk.save.ab.toUpperCase() + ' save  ' + RU.saveText(s2) + ' vs DC ' + s2.dc + '  ' + (s2.ok ? '{n}SAVED{/} (half)' : '{o}FAILED{/}'), atk.save.dice + ' ' + RU.fmtRolls(pr.rolls) + ' = ' + pr.total + ' ' + atk.save.type + '  = {r}' + pd + '{/}']);
       if (pd) this.hurt(tgt, pd, atk.save.type);
@@ -1307,7 +1314,8 @@
     var plain = foes.filter(function (w) { var l = G.los(w, u); return l.clear && !l.cover; });
     var mirror = foes.filter(function (w) { return w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); }); // (the Mirror's eye: no hiding before it, in light)
     // Supreme Sneak (the Thief's 9; SRD 5.1): advantage on the Stealth check if it moved no more than half its speed this turn
-    var supreme = u.subclass === 'Thief' && u.lvl >= 9 && (T.moved || 0) <= u.speed / 2, ra = D.d(20), r = supreme ? Math.max(ra, D.d(20)) : ra;
+    // (and Enhance Ability on DEX, Heat Metal's burning armour against every check: rules.js checkEdges)
+    var supreme = u.subclass === 'Thief' && u.lvl >= 9 && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex'), hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20), r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
     var total = r + u.stealth + (u.conds.pwt ? 10 : 0), top = Math.max.apply(null, foes.map(function (w) { return w.perception; }).concat([0]));
     if (mirror.length) {
       this.card(['{y}' + u.name + '{/} tries to hide, but the mirror on ' + mirror.map(shortName).join(' and ') + ' has her: {p}nothing hides in front of the Mirror\'s eye{/}.', '{g}Get behind her, or into the dark.{/}']);
@@ -1315,7 +1323,7 @@
       this.card(['{y}' + u.name + '{/} tries to hide, but the ' + plain.map(shortName).join(' and the ') + ' can see her plainly (no cover).', '{g}Put a stalagmite or a body between you first.{/}']);
     } else {
       var ok = total >= top && !u.conds.faerie; // (outlined in violet light: nowhere to hide)
-      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + ' ' + RU.sign(u.stealth) + ' = ' + total + ' vs passive Perception ' + top + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
+      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + ' = ' + total + ' vs passive Perception ' + top + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
       if (ok) u.conds.hidden = true;
     }
     yield 30;

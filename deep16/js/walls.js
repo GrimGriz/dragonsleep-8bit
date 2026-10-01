@@ -4,7 +4,7 @@
    - Wall of Fire (4th, a minute): opaque; DEX or 5d8 fire (half) to those in it as it rises; after, 5d8 fire to whoever enters it
      (the first time on a turn), ends a turn in it, or ends a turn within 10 ft of its burning side -- the side away from him (the
      SRD's "selected by you": the seat's call). It lights the ground about it.
-   - Wall of Thorns (6th, ten minutes): blocks sight; a square of it costs 20 ft more to cross (SRD: 4 ft for every foot); DEX or 7d8
+   - Wall of Thorns (6th, ten minutes): blocks sight; a square of it costs 20 ft to cross (SRD: 4 ft for every foot); DEX or 7d8
      piercing (half) to those in it as it grows, and DEX or 7d8 slashing (half) on entering it (the first time on a turn) or ending a
      turn in it.
    - Wall of Stone (5th, ten minutes): nothing passes or sees through it; whoever stands where it rises is pushed out -- his own to his
@@ -24,7 +24,7 @@
   function more(expr, n) { return !n ? expr : String(expr).replace(/^(\d+)d/, function (m, k) { return (+k + n) + 'd'; }); }
   var KIND = {
     walloffire: { kind: 'fire', sight: true, name: 'Wall of Fire', base: 4, rise: ['dex', '5d8', 'fire'], burn: '5d8', band: 2, light: true },
-    wallofthorns: { kind: 'thorns', sight: true, name: 'Wall of Thorns', base: 6, rise: ['dex', '7d8', 'piercing'], rake: '7d8', cost: 20 },
+    wallofthorns: { kind: 'thorns', sight: true, name: 'Wall of Thorns', base: 6, rise: ['dex', '7d8', 'piercing'], rake: '7d8', cost: 15 },
     wallofstone: { kind: 'stone', sight: true, solid: true, name: 'Wall of Stone', base: 5 },
     windwall: { kind: 'wind', name: 'Wind Wall', base: 3, rise: ['str', '3d8', 'bludgeoning'] }
   };
@@ -69,7 +69,7 @@
         var n = Math.max(0, (e.slot || K.base) - K.base), g = e.g;
         return g.len + '-ft wall within ' + g.range + ' ft, across your line to it (concentration) · ' + ({
           fire: 'DEX or ' + more('5d8', n) + ' fire (half) as it rises; after, ' + more('5d8', n) + ' fire to whoever enters it, ends a turn in it, or within 10 ft of its far side · opaque, and it gives light',
-          thorns: 'DEX or ' + more('7d8', n) + ' piercing (half) as it grows; entering it or ending a turn in it, DEX or ' + more('7d8', n) + ' slashing (half) · a square of it costs 20 ft more · blocks sight',
+          thorns: 'DEX or ' + more('7d8', n) + ' piercing (half) as it grows; entering it or ending a turn in it, DEX or ' + more('7d8', n) + ' slashing (half) · a square of it costs 20 ft to cross · blocks sight',
           stone: 'nothing passes or sees through it; those where it rises are pushed out (yours to your side)',
           wind: 'STR or 3d8 bludgeoning (half) as it rises; arrows and bolts across it miss; small fliers cannot cross it'
         })[K.kind];
@@ -214,13 +214,13 @@
   function plantSq(B, cx, cy) { var out = []; for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) { var s = G.map.at(x, y); if (s && s.ch === 'g' && Math.hypot(x - cx, y - cy) * 5 <= 100) out.push([x, y]); } return out; }
   E.plantgrowth = {
     list: function () { return G.map.sq.some(function (s) { return s.ch === 'g'; }) ? null : { why: 'no plants here to grow' }; },
-    summary: function () { return 'a point within 150 ft: the grass within 100 ft grows thick -- 20 ft more a square (the fight)'; },
+    summary: function () { return 'a point within 150 ft: the grass within 100 ft grows thick -- 20 ft to cross a square (the fight)'; },
     cast: function* (B, u, t, slot, head) {
       var sq = plantSq(B, t.x, t.y);
       if (!sq.length) { B.card([head + ': nothing grows there.'], 200); yield 16; return; }
       B.overgrown = (B.overgrown || {}); sq.forEach(function (q) { B.overgrown[q[0] + ',' + q[1]] = true; });
       FX.bloom(t.x, t.y, sq, 'moss'); D.sfx('nature');
-      B.card([head + ': the grass heaves up thick and tangled -- ' + sq.length + ' squares of it, 20 ft more to cross each.'], 280);
+      B.card([head + ': the grass heaves up thick and tangled -- ' + sq.length + ' squares of it, 20 ft to cross each.'], 280);
       yield 24;
     }
   };
@@ -254,11 +254,12 @@
     B.card(['{r}' + w.name + ' breaks loose!{/} It turns on ' + u.name + ' and ' + (u.side === 'party' ? 'the party' : 'its own') + '.'], 360);
     w.name = 'Loose ' + D.FOES[w.kind].name;
   }
-  // the grid's extra cost of a square (grid.js stepCost): a Wall of Thorns' 20, Plant Growth's 20
+  // the grid's extra cost of a square (grid.js stepCost): a Wall of Thorns' and Plant Growth's "every foot costs 4" -- a square is 20 ft to
+  // cross, 15 over its own 5 (10-01: they had been 20 more, a square costing 25); where both lie, the one 4-for-1, not two
   G.extraAt = function (u, x, y) {
     if (u.ethereal) return 0;
     var w = G.wallAt(x, y), B = D.battle, n = w && w.cost ? w.cost : 0;
-    if (B && B.overgrown && B.overgrown[x + ',' + y] && !(u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) n += 20;
+    if (B && B.overgrown && B.overgrown[x + ',' + y] && !(u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) n = Math.max(n, 15);
     return n;
   };
 

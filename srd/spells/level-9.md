@@ -112,7 +112,7 @@ You can use a particular special component to create only one prison at a time. 
 
 *9th-level evocation*
 
-> **The game:** You and every ally you can see share 700 HP, the most hurt first (the fallen too), and blindness ends. Not built: deafness and disease cures.
+> **The game:** You and every ally you can see share 700 HP, the most hurt first (the fallen too); blindness, deafness and disease (Contagion) end. Not built: the undead and construct exception.
 
 **Casting Time:** 1 action
 

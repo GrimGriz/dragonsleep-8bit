@@ -3158,7 +3158,7 @@
    "el": "poison",
    "target": "enemy",
    "grid": true,
-   "desc": "Cantrip. A foe within 10 ft makes a CON save or takes 1d12 poison (2d12 at level 5, 3d12 at 11); nothing on a save. A creature immune to poison is untouched.",
+   "desc": "Cantrip. A foe within 10 ft makes a CON save or takes 1d12 poison (2d12 at level 5, 3d12 at 11); nothing on a save. A creature immune to poison is untouched. A creature under Protection from Poison saves with advantage.",
    "src": "SRD 5.1 Poison Spray (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "poison",
    "id": "poisonspray"
@@ -3245,7 +3245,7 @@
    "el": "lightning",
    "target": "enemy",
    "grid": true,
-   "desc": "Cantrip. Melee spell attack: 1d8 lightning (2d8 at level 5, 3d8 at 11), with advantage on an armoured target (metal is not checked). A hit foe takes no reactions until its next turn starts.",
+   "desc": "Cantrip. Melee spell attack: 1d8 lightning (2d8 at level 5, 3d8 at 11), advantage on a target in metal armour (a hero or class NPC in mail or plate). A hit foe takes no reactions until its next turn starts.",
    "src": "SRD 5.1 Shocking Grasp (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "zap",
    "id": "shockinggrasp"
@@ -3256,7 +3256,7 @@
    "kind": "buff",
    "target": "enemy",
    "grid": true,
-   "desc": "Cantrip. A foe within 30 ft: your next attack roll against it has advantage, and that attack spends it. Concentration, 1 round.",
+   "desc": "Cantrip. A foe within 30 ft: on your next turn your first attack roll against it has advantage, and that attack spends it. Concentration, 1 round, held through that turn.",
    "src": "SRD 5.1 True Strike (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "truestrike"
   },
@@ -3272,7 +3272,7 @@
    "el": "psychic",
    "target": "enemy",
    "grid": true,
-   "desc": "Cantrip. A foe within 60 ft makes a WIS save or takes 1d4 psychic (2d4 at level 5, 3d4 at 11) and rolls its next attack at disadvantage, until the end of its next turn. Not built: it must hear you.",
+   "desc": "Cantrip. A foe within 60 ft that can hear you (not a deafened one) makes a WIS save or takes 1d4 psychic (2d4 at level 5, 3d4 at 11) and rolls its next attack at disadvantage, until the end of its next turn.",
    "src": "SRD 5.1 Vicious Mockery (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "viciousmockery"
@@ -3296,7 +3296,7 @@
    "kind": "buff",
    "target": "ally",
    "grid": true,
-   "desc": "Cantrip. Touch yourself or an adjacent ally: +1d4 to their checks to break free of a grip, web or vines while you concentrate (a minute). Not built: any other ability check.",
+   "desc": "Cantrip. Touch yourself or an adjacent ally: +1d4 to one check to break free of a grip, web or vines; the spell ends once used. Concentration. Not built: any other ability check (hiding).",
    "src": "SRD 5.1 Guidance (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "guidance"
   },
@@ -3355,7 +3355,7 @@
    "kind": "buff",
    "target": "self",
    "grid": true,
-   "desc": "Bonus action, yourself. Concentration, 10 minutes. Marks you for a Dash as a bonus action each turn. Not built: the turn menu never reads the mark, so the Dash still costs the action.",
+   "desc": "Bonus action, yourself. Concentration, 10 minutes. From your next turn, RETREAT DASH: a Dash as your bonus action each turn. Not built: the Dash on the turn you cast it.",
    "src": "SRD 5.1 Expeditious Retreat (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "expeditiousretreat"
   },
@@ -3377,7 +3377,7 @@
    "cond": "prone",
    "target": "enemies",
    "grid": true,
-   "desc": "A 10-ft square within 60 ft becomes difficult ground: creatures in it save DEX or fall prone, and so does anyone who steps in or ends a turn there. Lasts the fight, no concentration.",
+   "desc": "A 10-ft square within 60 ft becomes difficult ground: creatures in it save DEX or fall prone, and so does anyone who steps in or ends a turn there. Lasts a minute (ten rounds), no concentration.",
    "src": "SRD 5.1 Grease (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "grease"
@@ -3517,7 +3517,7 @@
    "target": "enemy",
    "grid": true,
    "sfx": "magic",
-   "desc": "A foe within 60 ft makes a WIS save or takes 2d6 psychic (+1d6 per slot above 1st), half on a save; on a fail it also takes no reactions until the end of its next turn.",
+   "desc": "A foe within 60 ft that can hear you (not a deafened one) makes a WIS save or takes 2d6 psychic (+1d6 per slot above 1st), half on a save; on a fail it also takes no reactions until the end of its next turn.",
    "src": "game-original (RULED 09-28, the ear file dist-6): the pact of the Mirror's own harm",
    "id": "glasswhisper"
   },
@@ -3609,7 +3609,7 @@
    "kind": "buff",
    "target": "ally",
    "grid": true,
-   "desc": "Touch: Bear's Endurance only, 2d6 temporary hit points. Concentration, up to an hour. Not built: the advantage on CON checks (set, never read), the other five aspects, extra targets.",
+   "desc": "Touch: Bear's Endurance only, 2d6 temporary hit points and advantage on CON checks (the grid rolls none yet). Concentration, up to an hour. Not built: the other five aspects, extra targets.",
    "src": "SRD 5.1 Enhance Ability (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "enhanceability"
   },
@@ -3660,7 +3660,7 @@
    "el": "fire",
    "target": "enemy",
    "grid": true,
-   "desc": "A foe within 60 ft: 2d8 fire (+1d8 per slot above 2nd), no save; then CON or it drops a held weapon (no weapon attacks on its next turn). A bonus action repeats the burn each turn. Concentration. Not built: the disadvantage for worn metal.",
+   "desc": "A foe within 60 ft: 2d8 fire (+1d8 per slot above 2nd), no save; then CON or it drops a held weapon (no weapon attacks on its next turn), or in armour it can't shed has disadvantage on attacks and ability checks until your next turn. A bonus action repeats the burn each turn. Concentration.",
    "src": "SRD 5.1 Heat Metal (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "fire",
    "id": "heatmetal"
@@ -3693,7 +3693,7 @@
    "kind": "cure",
    "target": "ally",
    "grid": true,
-   "desc": "Touch yourself or an adjacent ally: ends one poison on them (poisoned, or a poison's paralysis) and halves poison damage to them for the fight. Not built: advantage on saves against poison.",
+   "desc": "Touch yourself or an adjacent ally: ends one poison on them (poisoned, or a poison's paralysis); for the fight, poison damage to them is halved and they save with advantage against poison (a blade's venom, the chuul's grip, a stinking cloud, Poison Spray, Cloudkill).",
    "src": "SRD 5.1 Protection from Poison (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "protectionfrompoison"
   },
@@ -3726,7 +3726,7 @@
    "kind": "ground",
    "target": "point",
    "grid": true,
-   "desc": "The grass within 100 ft of a point you pick (within 150 ft) grows thick for the fight: 20 ft more movement a square, fliers excepted. Only where grass grows, not in caves. Not built: the eight-hour version; sparing areas.",
+   "desc": "The grass within 100 ft of a point you pick (within 150 ft) grows thick for the fight: every foot costs 4, so a square costs 20 ft, fliers excepted. Only where grass grows. Not built: the eight-hour version.",
    "src": "SRD 5.1 Plant Growth (the druid to twelve, 09-30: deep16/js/walls.js; the grass of the road maps; in the caves it waits)",
    "sfx": "nature",
    "id": "plantgrowth"
@@ -3775,7 +3775,7 @@
    "el": "poison",
    "target": "point",
    "grid": true,
-   "desc": "A 20-ft sphere of poison fog within 120 ft (concentration, 100 rounds): nothing sees in, out or across it. CON save or 5d8 poison (half) on entering or starting a turn there (+1d8 a slot above 5th). It rolls 10 ft from you each turn; a Wind Wall scatters it.",
+   "desc": "A 20-ft sphere of poison fog within 120 ft (concentration, 100 rounds): nothing sees in, out or across it. CON save or 5d8 poison (half) on entering or starting a turn there (+1d8 a slot above 5th). It rolls 10 ft from you each turn; a Wind Wall scatters it. A creature under Protection from Poison saves with advantage.",
    "src": "SRD 5.1 Cloudkill (the druid to twelve, 09-30: deep16/js/grimoire.js; the Underdark druid's 9th)",
    "sfx": "poison",
    "id": "cloudkill"
@@ -3881,7 +3881,7 @@
    "el": "piercing",
    "target": "point",
    "grid": true,
-   "desc": "A 60-ft wall of thorns within 120 ft (concentration, 100 rounds): blocks sight, and each square costs 20 ft more. DEX save for half of 7d8 piercing as it grows, and 7d8 slashing on entering or ending a turn in it (+1d8 a slot). Not built: the ring.",
+   "desc": "A 60-ft wall of thorns within 120 ft (concentration, 100 rounds): blocks sight, and each square costs 20 ft to cross (4 ft a foot). DEX save for half of 7d8 piercing as it grows, and 7d8 slashing on entering or ending a turn in it (+1d8 a slot). Not built: the ring.",
    "src": "SRD 5.1 Wall of Thorns (the druid to twelve, 09-30: deep16/js/walls.js)",
    "sfx": "nature",
    "id": "wallofthorns"
@@ -4018,7 +4018,7 @@
    "kind": "cure",
    "target": "any",
    "grid": true,
-   "desc": "A creature within 120 ft loses the magic on it: its own concentration, spells others hold on it (a hold, a haste, a curse), and wards like Mage Armor, Sanctuary or Mirror Image. Not built: spell-level and ability checks; objects and areas.",
+   "desc": "A creature within 120 ft loses the magic on it: its own concentration, spells others hold on it, and wards like Mage Armor, Sanctuary or Mirror Image. A held spell up to the slot's level (3rd at least) ends; a higher one needs your spellcasting check against 10 + its level. Not built: objects and areas.",
    "src": "SRD 5.1 Dispel Magic (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "dispelmagic"
   },
@@ -4165,7 +4165,7 @@
    "save": "cha",
    "target": "enemy",
    "grid": true,
-   "desc": "A creature within 60 ft: CHA save or it vanishes from the field, its turns skipped, until you lose concentration or ten rounds pass; it comes back where it stood. Not built: permanent banishment of outsiders; extra targets from higher slots.",
+   "desc": "A creature within 60 ft: CHA save or it vanishes from the field, turns skipped, until you lose concentration or ten rounds pass; it returns where it stood. A celestial, elemental, fey or fiend held all ten rounds doesn't return. Not built: extra targets from higher slots.",
    "src": "SRD 5.1 Banishment (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "banishment"
@@ -4207,7 +4207,7 @@
    "save": "wis",
    "target": "enemies",
    "grid": true,
-   "desc": "A 10-ft sphere within 90 ft, friends too: WIS save or confused. Each turn a d10: 1 wanders, 2-6 stands, 7-8 strikes a random neighbour, 9-10 acts. A WIS save ends it at turn's end. Concentration, ten rounds. Not built: lost reactions; bigger spheres from higher slots.",
+   "desc": "A 10-ft sphere within 90 ft, friends too: WIS save or confused, and no reactions. Each turn a d10: 1 wanders, 2-6 stands, 7-8 strikes a random neighbour, 9-10 acts. WIS ends it at turn's end. Concentration, ten rounds. Not built: bigger spheres from higher slots.",
    "src": "SRD 5.1 Confusion (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "confusion"
@@ -4333,7 +4333,7 @@
    "kind": "cure",
    "target": "ally",
    "grid": true,
-   "desc": "Touch: ends a charm, a curse, Enfeeblement or Contagion on a creature. Not built: undoing petrification (Flesh to Stone) or a lowered hit point maximum (Harm).",
+   "desc": "Touch: ends one effect, the worst first: Flesh to Stone's stoning, a charm, a curse, Enfeeblement or Feeblemind, or a lowered HP maximum (Harm, the crawlers). Not built: exhaustion, curing disease.",
    "src": "SRD 5.1 Greater Restoration (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "greaterrestoration"
   },
@@ -4414,7 +4414,7 @@
    "save": "wis",
    "target": "enemy",
    "grid": true,
-   "desc": "Concentration, 10 rounds. Each action, one creature within 60 ft: WIS save or it sleeps (a tough foe; wakes if hurt), panics and runs (within 10 ft), or is sickened (disadvantage on attacks); the game picks. Not built: the end saves; the effects outlast the spell.",
+   "desc": "Concentration, 10 rounds. Each action, one creature within 60 ft that hasn't saved against this casting: WIS save or it sleeps (a tough foe; wakes if hurt), panics and runs (within 10 ft), or is sickened (disadvantage on attacks and ability checks); the game picks. Sickened: WIS at each turn's end. Panic ends 60 ft off and out of your sight. All lift when concentration ends. Not built: waking a sleeper by an action.",
    "src": "SRD 5.1 Eyebite (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "eyebite"
@@ -4452,7 +4452,7 @@
    "kind": "buff",
    "target": "self",
    "grid": true,
-   "desc": "A 10-ft globe about you, fixed where cast (concentration, 10 rounds): spells with a save, cast from outside, do nothing to those inside. Meant to stop 5th level and lower (a higher slot raises it), but most paths treat every spell as 5th level.",
+   "desc": "A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from. Only the grimoire's and walls' save spells are stopped. Not built: Fireball and other core spells, attack-roll spells.",
    "src": "SRD 5.1 Globe of Invulnerability (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "globeofinvulnerability"
   },
@@ -4477,7 +4477,7 @@
    "kind": "heal",
    "target": "ally",
    "grid": true,
-   "desc": "An ally within 60 ft regains 70 HP (+10 a slot above 6th), and blindness and Contagion end. The fallen get up. Not built: deafness, other diseases, the undead and construct exception.",
+   "desc": "An ally within 60 ft regains 70 HP (+10 a slot above 6th); blindness, deafness and disease (Contagion) end. The fallen get up. Not built: the undead and construct exception.",
    "src": "SRD 5.1 Heal (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "heal"
   },
@@ -4488,7 +4488,7 @@
    "save": "wis",
    "target": "enemy",
    "grid": true,
-   "desc": "A creature within 30 ft dances (concentration, 10 rounds), no first save: attacks at it have advantage and its next attack has disadvantage. WIS save at the end of each of its turns to stop. Not built: its movement lost, DEX save disadvantage.",
+   "desc": "A creature within 30 ft dances (concentration, 10 rounds), no first save: no movement, its attacks and DEX saves at disadvantage, attacks at it with advantage. Each turn its action is a WIS save to stop. Not built: choosing to attack instead.",
    "src": "SRD 5.1 Irresistible Dance (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "irresistibledance"
@@ -4516,7 +4516,7 @@
    "el": "force",
    "target": "enemy",
    "grid": true,
-   "desc": "A sword of force within 60 ft (concentration, 10 rounds): a spell attack for 3d10 force when it appears, then each turn a bonus action sends it at any foe in range, free. Not built: its 20-ft move limit.",
+   "desc": "A sword of force within 60 ft (concentration, 10 rounds): a spell attack for 3d10 force, then each turn a bonus action moves it up to 20 ft and it strikes a foe within 25 ft of it. Farther off, it moves 20 ft and doesn't strike. Not built: needing a spot you can see.",
    "src": "SRD 5.1 Arcane Sword (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "arcanesword"
@@ -4543,7 +4543,7 @@
    "save": "cha",
    "target": "enemies",
    "grid": true,
-   "desc": "Bonus action. Every foe within 30 ft: CHA save, or by its current HP: 20 or fewer drops, 30 stunned and blinded, 40 blinded, more deafened (no effect). Celestials, elementals, fey and fiends that fail are sent home for the fight.",
+   "desc": "Bonus action. Every foe you can see within 30 ft that can hear you: CHA save, or by current HP: 20 or fewer drops, 30 deafened, blinded and stunned, 40 deafened and blinded, 50 deafened for ten of its turns; over 50 untouched. Celestials, elementals, fey and fiends that fail leave the fight. Not built: the ten minutes and the hour.",
    "src": "SRD 5.1 Divine Word (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
    "id": "divineword"
@@ -4722,7 +4722,7 @@
    "kind": "heal",
    "target": "allies",
    "grid": true,
-   "desc": "You and every ally you can see share 700 HP, the most hurt first (the fallen too), and blindness ends. Not built: deafness and disease cures.",
+   "desc": "You and every ally you can see share 700 HP, the most hurt first (the fallen too); blindness, deafness and disease (Contagion) end. Not built: the undead and construct exception.",
    "src": "SRD 5.1 Mass Heal (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "id": "massheal"
   },

@@ -297,7 +297,7 @@ Once you detect the presence of a creature in this way, you can read its thought
 
 *2nd-level transmutation*
 
-> **The game:** Touch: Bear's Endurance only, 2d6 temporary hit points. Concentration, up to an hour. Not built: the advantage on CON checks (set, never read), the other five aspects, extra targets.
+> **The game:** Touch: Bear's Endurance only, 2d6 temporary hit points and advantage on CON checks (the grid rolls none yet). Concentration, up to an hour. Not built: the other five aspects, extra targets.
 
 **Casting Time:** 1 action
 
@@ -483,7 +483,7 @@ As a bonus action on each of your turns before the spell ends, you can change th
 
 *2nd-level transmutation*
 
-> **The game:** A foe within 60 ft: 2d8 fire (+1d8 per slot above 2nd), no save; then CON or it drops a held weapon (no weapon attacks on its next turn). A bonus action repeats the burn each turn. Concentration. Not built: the disadvantage for worn metal.
+> **The game:** A foe within 60 ft: 2d8 fire (+1d8 per slot above 2nd), no save; then CON or it drops a held weapon (no weapon attacks on its next turn), or in armour it can't shed has disadvantage on attacks and ability checks until your next turn. A bonus action repeats the burn each turn. Concentration.
 
 **Casting Time:** 1 action
 
@@ -755,7 +755,7 @@ At Higher Levels. When you cast this spell using a spell slot of 3rd level or hi
 
 *2nd-level abjuration*
 
-> **The game:** Touch yourself or an adjacent ally: ends one poison on them (poisoned, or a poison's paralysis) and halves poison damage to them for the fight. Not built: advantage on saves against poison.
+> **The game:** Touch yourself or an adjacent ally: ends one poison on them (poisoned, or a poison's paralysis); for the fight, poison damage to them is halved and they save with advantage against poison (a blade's venom, the chuul's grip, a stinking cloud, Poison Spray, Cloudkill).
 
 **Casting Time:** 1 action
 

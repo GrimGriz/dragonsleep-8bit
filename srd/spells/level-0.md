@@ -117,7 +117,7 @@ This spell's damage increases by 1d10 when you reach 5th level (2d10), 11th leve
 
 *Divination cantrip*
 
-> **The game:** Cantrip. Touch yourself or an adjacent ally: +1d4 to their checks to break free of a grip, web or vines while you concentrate (a minute). Not built: any other ability check.
+> **The game:** Cantrip. Touch yourself or an adjacent ally: +1d4 to one check to break free of a grip, web or vines; the spell ends once used. Concentration. Not built: any other ability check (hiding).
 
 **Casting Time:** 1 action
 
@@ -221,7 +221,7 @@ If a creature uses its action to examine the sound or image, the creature can de
 
 *Conjuration cantrip*
 
-> **The game:** Cantrip. A foe within 10 ft makes a CON save or takes 1d12 poison (2d12 at level 5, 3d12 at 11); nothing on a save. A creature immune to poison is untouched.
+> **The game:** Cantrip. A foe within 10 ft makes a CON save or takes 1d12 poison (2d12 at level 5, 3d12 at 11); nothing on a save. A creature immune to poison is untouched. A creature under Protection from Poison saves with advantage.
 
 **Casting Time:** 1 action
 
@@ -348,7 +348,7 @@ The wood of a club or quarterstaff you are holding is imbued with nature’s pow
 
 *Evocation cantrip*
 
-> **The game:** Cantrip. Melee spell attack: 1d8 lightning (2d8 at level 5, 3d8 at 11), with advantage on an armoured target (metal is not checked). A hit foe takes no reactions until its next turn starts.
+> **The game:** Cantrip. Melee spell attack: 1d8 lightning (2d8 at level 5, 3d8 at 11), advantage on a target in metal armour (a hero or class NPC in mail or plate). A hit foe takes no reactions until its next turn starts.
 
 **Casting Time:** 1 action
 
@@ -401,7 +401,7 @@ You manifest a minor wonder, a sign of supernatural power, within range. You cre
 
 *Divination cantrip*
 
-> **The game:** Cantrip. A foe within 30 ft: your next attack roll against it has advantage, and that attack spends it. Concentration, 1 round.
+> **The game:** Cantrip. A foe within 30 ft: on your next turn your first attack roll against it has advantage, and that attack spends it. Concentration, 1 round, held through that turn.
 
 **Casting Time:** 1 action
 
@@ -417,7 +417,7 @@ You extend your hand and point a finger at a target in range. Your magic grants 
 
 *Enchantment cantrip*
 
-> **The game:** Cantrip. A foe within 60 ft makes a WIS save or takes 1d4 psychic (2d4 at level 5, 3d4 at 11) and rolls its next attack at disadvantage, until the end of its next turn. Not built: it must hear you.
+> **The game:** Cantrip. A foe within 60 ft that can hear you (not a deafened one) makes a WIS save or takes 1d4 psychic (2d4 at level 5, 3d4 at 11) and rolls its next attack at disadvantage, until the end of its next turn.
 
 **Casting Time:** 1 action
 

@@ -146,7 +146,7 @@ At Higher Levels. When you cast this spell using a spell slot of 7th level or hi
 
 *6th-level necromancy*
 
-> **The game:** Concentration, 10 rounds. Each action, one creature within 60 ft: WIS save or it sleeps (a tough foe; wakes if hurt), panics and runs (within 10 ft), or is sickened (disadvantage on attacks); the game picks. Not built: the end saves; the effects outlast the spell.
+> **The game:** Concentration, 10 rounds. Each action, one creature within 60 ft that hasn't saved against this casting: WIS save or it sleeps (a tough foe; wakes if hurt), panics and runs (within 10 ft), or is sickened (disadvantage on attacks and ability checks); the game picks. Sickened: WIS at each turn's end. Panic ends 60 ft off and out of your sight. All lift when concentration ends. Not built: waking a sleeper by an action.
 
 **Casting Time:** 1 action
 
@@ -250,7 +250,7 @@ At Higher Levels. When you cast this spell using a spell slot of 7th level or hi
 
 *6th-level abjuration*
 
-> **The game:** A 10-ft globe about you, fixed where cast (concentration, 10 rounds): spells with a save, cast from outside, do nothing to those inside. Meant to stop 5th level and lower (a higher slot raises it), but most paths treat every spell as 5th level.
+> **The game:** A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from. Only the grimoire's and walls' save spells are stopped. Not built: Fireball and other core spells, attack-roll spells.
 
 **Casting Time:** 1 action
 
@@ -322,7 +322,7 @@ You unleash a virulent disease on a creature that you can see within range. The 
 
 *6th-level evocation*
 
-> **The game:** An ally within 60 ft regains 70 HP (+10 a slot above 6th), and blindness and Contagion end. The fallen get up. Not built: deafness, other diseases, the undead and construct exception.
+> **The game:** An ally within 60 ft regains 70 HP (+10 a slot above 6th); blindness, deafness and disease (Contagion) end. The fallen get up. Not built: the undead and construct exception.
 
 **Casting Time:** 1 action
 
@@ -376,7 +376,7 @@ Dispel magic or a similar effect successfully applied to the sapphire ends this 
 
 *6th-level enchantment*
 
-> **The game:** A creature within 30 ft dances (concentration, 10 rounds), no first save: attacks at it have advantage and its next attack has disadvantage. WIS save at the end of each of its turns to stop. Not built: its movement lost, DEX save disadvantage.
+> **The game:** A creature within 30 ft dances (concentration, 10 rounds), no first save: no movement, its attacks and DEX saves at disadvantage, attacks at it with advantage. Each turn its action is a WIS save to stop. Not built: choosing to attack instead.
 
 **Casting Time:** 1 action
 
@@ -580,7 +580,7 @@ At Higher Levels. When you cast this spell using a spell slot of 7th level or hi
 
 *6th-level conjuration*
 
-> **The game:** A 60-ft wall of thorns within 120 ft (concentration, 100 rounds): blocks sight, and each square costs 20 ft more. DEX save for half of 7d8 piercing as it grows, and 7d8 slashing on entering or ending a turn in it (+1d8 a slot). Not built: the ring.
+> **The game:** A 60-ft wall of thorns within 120 ft (concentration, 100 rounds): blocks sight, and each square costs 20 ft to cross (4 ft a foot). DEX save for half of 7d8 piercing as it grows, and 7d8 slashing on entering or ending a turn in it (+1d8 a slot). Not built: the ring.
 
 **Casting Time:** 1 action
 

@@ -324,7 +324,7 @@ When the spell ends, the conjured plants wilt away.
 
 *1st-level transmutation*
 
-> **The game:** Bonus action, yourself. Concentration, 10 minutes. Marks you for a Dash as a bonus action each turn. Not built: the turn menu never reads the mark, so the Dash still costs the action.
+> **The game:** Bonus action, yourself. Concentration, 10 minutes. From your next turn, RETREAT DASH: a Dash as your bonus action each turn. Not built: the Dash on the turn you cast it.
 
 **Casting Time:** 1 bonus action
 
@@ -470,7 +470,7 @@ The berries lose their potency if they have not been consumed within 24 hours of
 
 *1st-level conjuration*
 
-> **The game:** A 10-ft square within 60 ft becomes difficult ground: creatures in it save DEX or fall prone, and so does anyone who steps in or ends a turn there. Lasts the fight, no concentration.
+> **The game:** A 10-ft square within 60 ft becomes difficult ground: creatures in it save DEX or fall prone, and so does anyone who steps in or ends a turn there. Lasts a minute (ten rounds), no concentration.
 
 **Casting Time:** 1 action
 

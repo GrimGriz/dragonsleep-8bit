@@ -245,7 +245,11 @@
 
     // the spells built for the class NPCs (09-28, js/grimoire.js): each its own; the rest below as they were
     var FXD = M.EFFECT && M.EFFECT[id];
-    if (FXD && FXD.cast) { yield* FXD.cast(B, u, t, slot, head, { sp: sp, g: g, dc: dc, up: n }); u.anim = 'idle'; return; }
+    if (FXD && FXD.cast) {
+      yield* FXD.cast(B, u, t, slot, head, { sp: sp, g: g, dc: dc, up: n });
+      (B.grounds || []).forEach(function (gr) { if (typeof gr.till === 'number' && gr.born == null) gr.born = B.round; }); // (a ground with a clock of its own, Grease: M.groundsTime)
+      u.anim = 'idle'; return;
+    }
 
     if (g.shape === 'attack' || g.shape === 'rays') {
       var shots = g.shape === 'rays' ? t.units : [t], dice = g.shape === 'rays' ? sp.dmg : M.dice(sp, u, slot);
@@ -495,7 +499,7 @@
       var spared = M.sculpted ? M.sculpted(u, id, sp, caught) : [];
       caught.forEach(function (w) {
         if (spared.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}sculpted out of it{/}'); return; }
-        var sv = RU.save(w, ab, dc, false, null, tot), evade = ab === 'dex' && RU.evasion(w); // (Evasion: the rogue's and the monk's 7, js/rules.js)
+        var sv = RU.save(w, ab, dc, sp.el === 'poison' && RU.vsPoison(w), null, tot), evade = ab === 'dex' && RU.evasion(w); // (Evasion: the rogue's and the monk's 7, js/rules.js)
         var d = sv.ok ? (evade ? 0 : (sp.half ? Math.floor(tot / 2) : 0)) : (evade ? Math.floor(tot / 2) : tot);
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + d + '{/}');
         hits.push([w, d, sv.ok]);
@@ -517,8 +521,15 @@
   // ------------------------------------------------------------------ the conditions' turns
   // the start of a creature's turn: Heroism's temporary HP; a restrained or paralyzed creature has no move
   M.startTurn = function (B, u) {
-    // durations (09-28h): a spell held past its time lets go; a timed effect of his that has run its course ends
-    if (B && u.conc && u.conc.till != null && B.round >= u.conc.till) M.endConc(B, u, 'its time is up');
+    // True Strike (SRD 5.1: "on your next turn, you gain advantage on your first attack roll against the target, provided that this spell hasn't
+    // ended"): its one round is that next turn -- held through it, and let go at its end (M.endTurn), or when the swing spends it (battle.js attack).
+    // The advantage is for that turn and not the one it was cast in (rules.js edges reads `ready`)
+    if (u.conds.trueStrike && B && u.conc && u.conc.id === 'truestrike') u.conds.trueStrike.ready = true;
+    // durations (09-28h): a spell held past its time lets go (True Strike's time is the turn it is held through, above); a timed effect of his that has run its course ends
+    if (B && u.conc && u.conc.till != null && B.round >= u.conc.till) {
+      if (u.conc.id === 'truestrike' && !u.conc.held) u.conc.held = true; else M.endConc(B, u, 'its time is up');
+    }
+    if (B) M.groundsTime(B, u);
     if (B && B.expiries && B.expiries.length) B.expiries = B.expiries.filter(function (e) { if (e.by !== u.id || B.round < e.till) return true; try { e.undo(); } catch (x) { } return false; });
     if (u.conds.heroism) u.temp = Math.max(u.temp || 0, u.conds.heroism.each);
     if (B && u.hp > 0 && !u.dead) M.webCatch(B, u, 'starts');
@@ -527,6 +538,21 @@
     if (B && M.onStart) M.onStart(B, u); // (the class NPCs' spells: the guardians, the timers, a word of command -- js/grimoire.js)
     if (u.conds.restrained || u.conds.paralyzed || u.conds.asleep || u.conds.incapacitated) u.turn.move = 0;
   };
+  // a spell's ground with a clock of its own (Grease, SRD 5.1: "1 minute", no concentration to end it): `till` is its rounds, `born` the round it
+  // was laid (stamped as the cast ends, M.cast; a ground first seen here is stamped now). It goes at the start of its caster's turn once the
+  // minute is up, or at any turn's start if the caster is out of the fight
+  M.groundsTime = function (B, u) {
+    if (!B || !B.grounds || !B.grounds.length || B.round == null) return;
+    B.grounds = B.grounds.filter(function (g) {
+      if (typeof g.till !== 'number') return true;
+      if (g.born == null) g.born = B.round;
+      if (B.round < g.born + g.till) return true;
+      var by = B.units.filter(function (w) { return w.id === g.by; })[0];
+      if (g.by !== u.id && by && !by.dead && !by.fled && !by.left) return true;
+      B.card(['{g}The ' + (g.kind === 'grease' ? 'grease dries and is gone' : 'ground settles') + '.{/}'], 240);
+      return false;
+    });
+  };
   // the clouds, at the start of a turn inside one: Stinking Cloud (SRD: completely within it, CON save against poison or the
   // action is spent retching; nothing that needs no breath or shrugs off poison); Sleet Storm (DEX or prone; a concentrating
   // caster CON DC or loses the spell)
@@ -534,7 +560,7 @@
     var who = u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}';
     var stink = (B.darks || []).filter(function (d) { return d.kind === 'stink' && G.foot(u).every(function (p) { return d.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); })[0];
     if (stink && !(RU.immuneTo(u, 'poisoned') || (u.immune && u.immune.indexOf('poison') >= 0))) {
-      var sv = RU.save(u, 'con', stink.dc);
+      var sv = RU.save(u, 'con', stink.dc, RU.vsPoison(u)); // (the save is against poison: Protection from Poison)
       B.card([who + ' in the yellow cloud: CON ' + RU.saveText(sv) + ' vs DC ' + stink.dc + '  ' + (sv.ok ? '{n}holds it down{/}' : '{o}retching and reeling: the action is gone{/}')]);
       if (!sv.ok) { u.turn.action = 0; u.turn.attacksLeft = 0; }
     }
@@ -582,10 +608,11 @@
   // the end: a paralyzed creature tries its save again (Hold Monster)
   M.endTurn = function (B, u) {
     if (B && M.onEnd) M.onEnd(B, u); // (the class NPCs' spells: the saves at a turn's end, the timers -- js/grimoire.js)
+    if (B && u.conc && u.conc.id === 'truestrike' && u.conc.held) M.endConc(B, u, 'its round is up'); // (True Strike: the next turn was its round -- startTurn)
     if (u.conds.poisoned && u.conds.poisoned.save && !u.conds.paralyzed) M.poisonSave(B, u);
     var p = u.conds.paralyzed;
     if (p && p.save) {
-      var sv = RU.save(u, p.save, p.dc, false, 'paralyzed');
+      var sv = RU.save(u, p.save, p.dc, !!p.poison && RU.vsPoison(u), 'paralyzed'); // (the chuul's and the crawler's hold is a poison: Protection from Poison)
       B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' strains against the hold: ' + p.save.toUpperCase() + ' ' + RU.saveText(sv) + ' vs DC ' + p.dc + '  ' + (sv.ok ? '{n}FREE{/}' : '{g}still held{/}')]);
       if (sv.ok && p.poison) delete u.conds.poisoned; // (the chuul's, the crawler's: paralyzed while poisoned; one save ends both)
       if (sv.ok) { delete u.conds.paralyzed; var c = B.units.filter(function (w) { return w.conc && (w.conc.id === 'holdmonster' || w.conc.id === 'holdperson') && w.id === p.by; })[0]; if (c) delete c.conc; }
@@ -737,7 +764,7 @@
   M.poisonSave = function (B, u) {
     var q = u.conds.poisoned;
     if (!q || !q.save || u.hp <= 0) return;
-    var sv = RU.save(u, q.save, q.dc);
+    var sv = RU.save(u, q.save, q.dc, RU.vsPoison(u)); // (Protection from Poison: advantage on a save against a poison)
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' fights the poison: CON ' + RU.saveText(sv) + ' vs DC ' + q.dc + '  ' + (sv.ok ? '{n}IT PASSES{/}' : '{g}still poisoned{/}')]);
     if (sv.ok) delete u.conds.poisoned;
   };
@@ -746,12 +773,14 @@
     // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
     var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, useDex = (r.grapple || r.kind === 'tentacles') && D.mod(u.abil.dex) > D.mod(u.abil.str); // (r.weak: the roper's tendril, js/traits.js)
     // a STR check: Enlarge is advantage on it, Reduce disadvantage (SRD), against poisoned, frightened and the weak grip's disadvantage
-    var en = !useDex && u.conds.enlarged, adv = !!(en && !en.down), dis = !!(u.conds.poisoned || u.conds.frightened || r.weak || (en && en.down));
+    // ... and Enhance Ability on the ability it raised, Heat Metal's burning armour on every check (rules.js checkEdges)
+    var en = !useDex && u.conds.enlarged, ce = RU.checkEdges(u, useDex ? 'dex' : 'str'), adv = !!(en && !en.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || r.weak || (en && en.down)) || ce.dis.length > 0;
     var d = (dis && !adv ? Math.min(D.d(20), D.d(20)) : adv && !dis ? Math.max(D.d(20), D.d(20)) : D.d(20)) + gd;
+    var edge = adv && !dis && ce.adv.length ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : dis && !adv && ce.dis.length ? ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}' : '';
     var tot = d + D.mod(useDex ? u.abil.dex : u.abil.str) + (u.cls === 'fighter' || (useDex && u.cls === 'rogue') ? u.prof : 0);
     u.turn.action = 0;
     var luck = RU.darkLuck(u, r.dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
-    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + (luck ? ' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
+    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
     if (tot >= r.dc) {
       delete u.conds.restrained; u.turn.move = u.speed; u.turn.webSaved = true; // (torn free: it goes on through the web this turn)
       var by = B.units.filter(function (w) { return w.id === r.by; })[0]; if (by && by.holding) by.holding = by.holding.filter(function (w) { return w !== u; });

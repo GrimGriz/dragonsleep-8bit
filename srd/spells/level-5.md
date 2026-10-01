@@ -92,7 +92,7 @@ The awakened beast or plant is charmed by you for 30 days or until you or your c
 
 *5th-level conjuration*
 
-> **The game:** A 20-ft sphere of poison fog within 120 ft (concentration, 100 rounds): nothing sees in, out or across it. CON save or 5d8 poison (half) on entering or starting a turn there (+1d8 a slot above 5th). It rolls 10 ft from you each turn; a Wind Wall scatters it.
+> **The game:** A 20-ft sphere of poison fog within 120 ft (concentration, 100 rounds): nothing sees in, out or across it. CON save or 5d8 poison (half) on entering or starting a turn there (+1d8 a slot above 5th). It rolls 10 ft from you each turn; a Wind Wall scatters it. A creature under Protection from Poison saves with advantage.
 
 **Casting Time:** 1 action
 
@@ -370,7 +370,7 @@ At Higher Levels. When you cast this spell using a spell slot of 7th or 8th leve
 
 *5th-level abjuration*
 
-> **The game:** Touch: ends a charm, a curse, Enfeeblement or Contagion on a creature. Not built: undoing petrification (Flesh to Stone) or a lowered hit point maximum (Harm).
+> **The game:** Touch: ends one effect, the worst first: Flesh to Stone's stoning, a charm, a curse, Enfeeblement or Feeblemind, or a lowered HP maximum (Harm, the crawlers). Not built: exhaustion, curing disease.
 
 **Casting Time:** 1 action
 

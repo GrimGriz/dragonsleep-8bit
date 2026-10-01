@@ -200,7 +200,7 @@ If any of this spell’s area overlaps with an area of darkness created by a spe
 
 *3rd-level abjuration*
 
-> **The game:** A creature within 120 ft loses the magic on it: its own concentration, spells others hold on it (a hold, a haste, a curse), and wards like Mage Armor, Sanctuary or Mirror Image. Not built: spell-level and ability checks; objects and areas.
+> **The game:** A creature within 120 ft loses the magic on it: its own concentration, spells others hold on it, and wards like Mage Armor, Sanctuary or Mirror Image. A held spell up to the slot's level (3rd at least) ends; a higher one needs your spellcasting check against 10 + its level. Not built: objects and areas.
 
 **Casting Time:** 1 action
 
@@ -484,7 +484,7 @@ For the duration, you or a creature you choose can ride the steed. The creature 
 
 *3rd-level transmutation*
 
-> **The game:** The grass within 100 ft of a point you pick (within 150 ft) grows thick for the fight: 20 ft more movement a square, fliers excepted. Only where grass grows, not in caves. Not built: the eight-hour version; sparing areas.
+> **The game:** The grass within 100 ft of a point you pick (within 150 ft) grows thick for the fight: every foot costs 4, so a square costs 20 ft, fliers excepted. Only where grass grows. Not built: the eight-hour version.
 
 **Casting Time:** 1 action or 8 hours
 

@@ -24,7 +24,7 @@ As an action, you can move the eye up to 30 feet in any direction. There is no l
 
 *4th-level abjuration*
 
-> **The game:** A creature within 60 ft: CHA save or it vanishes from the field, its turns skipped, until you lose concentration or ten rounds pass; it comes back where it stood. Not built: permanent banishment of outsiders; extra targets from higher slots.
+> **The game:** A creature within 60 ft: CHA save or it vanishes from the field, turns skipped, until you lose concentration or ten rounds pass; it returns where it stood. A celestial, elemental, fey or fiend held all ten rounds doesn't return. Not built: extra targets from higher slots.
 
 **Casting Time:** 1 action
 
@@ -104,7 +104,7 @@ A target isn't compelled to move into an obviously deadly hazard, such as a fire
 
 *4th-level enchantment*
 
-> **The game:** A 10-ft sphere within 90 ft, friends too: WIS save or confused. Each turn a d10: 1 wanders, 2-6 stands, 7-8 strikes a random neighbour, 9-10 acts. A WIS save ends it at turn's end. Concentration, ten rounds. Not built: lost reactions; bigger spheres from higher slots.
+> **The game:** A 10-ft sphere within 90 ft, friends too: WIS save or confused, and no reactions. Each turn a d10: 1 wanders, 2-6 stands, 7-8 strikes a random neighbour, 9-10 acts. WIS ends it at turn's end. Concentration, ten rounds. Not built: bigger spheres from higher slots.
 
 **Casting Time:** 1 action
 
