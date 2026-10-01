@@ -1170,10 +1170,20 @@
   "bolts": {
    "name": "Crossbow Bolts",
    "kind": "ammo",
-   "price": 10,
+   "price": 1,
    "desc": "Bolts for a crossbow, one a shot.",
-   "src": "SRD 5.1 (Ammunition: crossbow bolts (20), 1 gp)",
+   "src": "SRD 5.1 (Ammunition: crossbow bolts (20), 1 gp); a silver each and bought by the count (RULED 10-01c, Griz: \"match SRD expectations when possible\" -- the SRD 1 gp for 20, rounded up; it was 10 sp a bolt and sold nowhere)",
+   "stack": true,
    "id": "bolts"
+  },
+  "arrows": {
+   "name": "Arrows",
+   "kind": "ammo",
+   "price": 1,
+   "stack": true,
+   "desc": "Arrows for a bow, one a shot.",
+   "src": "SRD 5.1 (Ammunition: arrows (20), 1 gp -- a silver each, rounded); bows use them (RULED 10-01c, Griz: 'check stores and new dwarf provisioner at lamp two for bow and arrow sales' + 'match SRD expectations when possible')",
+   "id": "arrows"
   },
   "shortbow": {
    "name": "Shortbow",
@@ -1188,6 +1198,7 @@
      "ranged",
      "two-handed"
     ],
+    "ammo": "arrows",
     "range": [
      80,
      320
@@ -1211,6 +1222,7 @@
      "two-handed",
      "heavy"
     ],
+    "ammo": "arrows",
     "range": [
      150,
      600
@@ -9499,9 +9511,11 @@
     "tent",
     "torch",
     "lantern",
-    "simples"
+    "simples",
+    "arrows",
+    "bolts"
    ],
-   "src": "the-lab/pit-maps/shops-silverton.json pin 15; the hooded lantern 09-29 (invented.json#hooded-lantern)",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 15; the hooded lantern 09-29 (invented.json#hooded-lantern); arrows and bolts (invented.json#ammo-for-sale, 10-01c)",
    "id": "marko"
   },
   "kasten": {
@@ -9680,7 +9694,11 @@
     "torch",
     "lantern",
     "simples",
-    "callingherbs"
+    "callingherbs",
+    "shortbow",
+    "lightcrossbow",
+    "arrows",
+    "bolts"
    ],
    "prices": {
     "callingherbs": 50

@@ -564,6 +564,13 @@
         var cm = D.ui.cmds(Br, me), labels = cm.map(function (x) { return x.label; }), w = WANT[cl], acts = (cm.filter(function (x) { return x.id === 'actions'; })[0] || { items: [] }).items.map(function (x) { return x.id; });
         var sw = /^ATTACK/.test(labels[1]), ok = w[1] === 'q' ? labels[1] === w[0] && acts.indexOf('attack') >= 0 : w[1] === 'b' ? sw && new RegExp('^(' + w[0] + ')$').test(labels[2]) : sw;
         repR1.checks.push((ok ? 'ok   ' : 'FAIL ') + cl + ': ' + labels.slice(0, 5).join(' / ') + (w[1] === 'q' ? '  (the swing in ACTIONS: ' + (acts.indexOf('attack') >= 0) + ')' : ''));
+        if (cl === 'rogue') { // (10-01c, Griz: 'yes' -- the shortbow in a player's pack; bows take arrows, the SRD)
+          var bow = (Br.inv || []).some(function (x) { return x.id === 'shortbow'; });
+          repR1.checks.push((bow ? 'ok   ' : 'FAIL ') + 'the rogue\'s shortbow in the pack for a player\'s hand: ' + bow);
+          var arr = function () { var a = (Br.inv || []).filter(function (x) { return x.id === 'arrows'; })[0]; return a ? a.n : 0; }, a0 = arr(), gb = Br.units.filter(function (u) { return u.side === 'foe'; })[0];
+          me.weapon = me.alt; me.x = gb.x; me.y = gb.y + 4; var gr = Br.exec(me, { do: 'attack', target: gb }), sr; do { sr = gr.next(sr && sr.value && sr.value.prompt ? sr.value.prompt.opts[0].value : undefined); } while (!sr.done);
+          repR1.checks.push((a0 === 20 && arr() === 19 ? 'ok   ' : 'FAIL ') + 'arrows in the pack (' + a0 + '), one spent on the shortbow\'s shot (' + arr() + ')');
+        }
       });
     } catch (eR1) { repR1.errors.push(String(eR1 && eR1.stack || eR1).slice(0, 900)); }
     if (errs.length) repR1.errors = repR1.errors.concat(errs);

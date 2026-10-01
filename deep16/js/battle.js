@@ -84,6 +84,9 @@
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
     var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
     this.inv = this.o.embed ? pack : D.save.armoury(pack);
+    // a class hero's second weapon in the pack too, so a player's hand has what the class turn swaps to -- the rogue's shortbow (10-01c, the rogue runner: "a human
+    // rogue needs a ranged weapon: EQUIP offers only the Lt. Crossbow"; Griz: "yes")
+    if (!this.o.embed) { var inv0 = this.inv; party.forEach(function (u) { var aid = u.alt && (typeof u.alt === 'string' ? u.alt : u.alt.id); if (u.side === 'party' && u.npc && aid && window.DS.DATA.items[aid] && !inv0.some(function (s) { return s.id === aid; })) inv0.push({ id: aid, n: 1 }); }); } // (the unit's alt is the weapon as the grid reads it: its id)
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
     if (D.walls && D.walls.seatConjured) D.walls.seatConjured(this); // (an elemental conjured at the camp walks in beside its caster: js/walls.js)
     // torchdark (09-28): dark ground -- the fight's own word, else the 8-bit map's `dark` when the fight is fought from there
