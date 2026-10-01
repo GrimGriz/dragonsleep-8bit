@@ -292,12 +292,15 @@
   // off the one it rode, however the grip ended -- broken, pulled off, let go, either of them down (10-01, Griz: "we might be best moving it off his square
   // when he breaks free. He normally couldn't occupy the same square"): it drops to the nearest open square beside, as a creature does that is pushed out
   // of a space it cannot share (the SRD names no square: invented.json)
-  Battle.prototype.dismount = function (u) {
-    var host = u.master, hx = u.x, hy = u.y, best = null, bd = Infinity;
+  // pulled off by a friend (`by`: RULED 10-01, Griz: "pull off should land 'nearest available square to puller and victim' - (closer to Ly in this instance)"):
+  // the open square nearest the two of them together, and of those the one nearer the puller
+  Battle.prototype.dismount = function (u, by) {
+    var host = u.master, hx = u.x, hy = u.y, best = null, bd = Infinity, bp = Infinity;
     u.riding = false; u.attached = false; u.master = null; u.perch = null;
     for (var r = 1; r <= 4 && !best; r++) for (var y = hy - r; y <= hy + r; y++) for (var x = hx - r; x <= hx + r; x++) {
       if (Math.max(Math.abs(x - hx), Math.abs(y - hy)) !== r || !G.canStand(u, x, y)) continue;
-      var d = Math.hypot(x - hx, y - hy); if (d < bd) { bd = d; best = [x, y]; }
+      var dp = by ? Math.hypot(x - by.x, y - by.y) : 0, d = Math.hypot(x - hx, y - hy) + dp;
+      if (d < bd - 1e-9 || (Math.abs(d - bd) < 1e-9 && dp < bp)) { bd = d; bp = dp; best = [x, y]; }
     }
     u.x = best ? best[0] : hx; u.y = best ? best[1] : hy;
     u.tween = { fx: hx, fy: hy, fz: 18, t: 0, dur: this.pace(12, true) };
@@ -770,7 +773,7 @@
         var pb = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), ptot = d20 + pb, blind0 = !!(host.conds.blinded && host.conds.blinded.held && host.conds.blinded.by === rd.id);
         T.action = 0; RU.spendHelp(u); D.sfx('run');
         this.card(['{y}' + u.name + '{/} gets hold of the ' + shortName(rd) + ' on ' + host.name + ' and pulls: STR d20 ' + d20 + (adv1 !== dis1 ? (adv1 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb) + ' = ' + ptot + ' vs DC ' + dc + '  ' + (ptot >= dc ? '{n}OFF{/}' : '{g}it holds on{/}')]);
-        if (ptot >= dc) { this.release(rd, host); if (blind0 && !host.conds.blinded) this.card(['{g}' + host.name + ' can see again.{/}'], 200); this.rideSync(); }
+        if (ptot >= dc) { this.release(rd, host); if (blind0 && !host.conds.blinded) this.card(['{g}' + host.name + ' can see again.{/}'], 200); this.dismount(rd, u); } // (to the square nearest the puller and the one it rode)
         yield 30; return;
       }
       case 'secondwind': {
@@ -1113,7 +1116,7 @@
           if (!G.canStand(tgt, rx, ry) || G.dist(att, tgt, null, null, rx, ry) > 5) continue;
           var dd = Math.hypot(rx - tgt.x, ry - tgt.y); if (dd < rd) { rd = dd; rs = [rx, ry]; }
         }
-        if (rs) { tgt.tween = { fx: tgt.x, fy: tgt.y, fz: 0, t: 0, dur: this.pace(18, true) }; tgt.x = rs[0]; tgt.y = rs[1]; this.card(['{r}' + nameOf(att) + '{/} reels ' + nameOf(tgt) + ' in.']); D.sfx('run'); yield 24; }
+        if (rs) { if (D.spr.anim(att.sheet, 'reel')) { att.anim = 'reel'; att.animT = this.t; } tgt.tween = { fx: tgt.x, fy: tgt.y, fz: 0, t: 0, dur: this.pace(18, true) }; tgt.x = rs[0]; tgt.y = rs[1]; this.card(['{r}' + nameOf(att) + '{/} reels ' + nameOf(tgt) + ' in.']); D.sfx('run'); yield 24; } // (its Reel row where the sheet has one: the tendrils hauling in -- 10-01e)
       }
       // attached (the darkmantle: SRD 5.1, "it moves with the target"): it rides the one it holds, on that one's square (mount, below)
       if (atk.rides) this.mount(att, tgt);
