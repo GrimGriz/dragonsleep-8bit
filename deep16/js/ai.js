@@ -47,7 +47,7 @@
     if (u.conds.recoiling) { delete u.conds.recoiling; B.card(['{g}' + the(B, u) + ' recoils from the light, shrinking up away from it: no turn.{/}']); yield 30; return; }
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
-    if (!u.ethereal) B.focus(u);
+    if (!u.ethereal || u.under) B.focus(u); // (a burrower under the ground: the camera on its mound)
     // the clacker strikes its hooks together as its turn begins, the clacking that is their speech (10-01, Griz's sheet's CLACK row;
     // data/foes.js clacker): the row plays once (js/ui.js), a clack on each strike, then the turn
     if (u.kind && D.FOES[u.kind] && D.FOES[u.kind].clacks && !u.conds.banished) {
@@ -77,6 +77,7 @@
     else if ((u.summon || u.dominated || u.loose) && !u.classAI) yield* brute(B, u); // a summoned creature, or a beast dominated for its caster (js/grimoire.js) (js/grimoire.js summonSpell): it fights for its caster's side, as if commanded (RULED 09-30)
     else if (u.classAI && D.tactics) yield* D.tactics.turn(B, u); // a class NPC (js/classes.js), or a hero on the bench: the class's own tactics (js/tactics.js)
     else if (u.kind === 'phasespider') yield* spider(B, u);
+    else if (u.burrow && u.side === 'foe') yield* burrower(B, u); // (the bulette: under the ground and up beside you, 10-01d)
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);
     else if (u.weave) yield* weaver(B, u);
@@ -500,6 +501,73 @@
     }
     return true;
   }
+  // ------------------------------------------------------------------ a burrower (the bulette, SRD 5.1 "burrow 40 ft."; Griz 10-01d: "go ahead and
+  // wire in the bulette"). Under the ground it is out of every reach -- u.under for the look (its mound: js/ui.js), u.ethereal for the rules, so no
+  // blow, spell or opportunity attack finds it and it passes under feet -- and it hunts by its tremorsense (blindsight on the sheet). Up, with
+  // someone in its reach, it fights where it stands (brute), unless it is bloodied with two at it; with no one in reach, or so pressed, it dives
+  // (its Burrow row), goes under to the one it wants and comes up beside them (its Emerge row) -- or 15 to 30 ft off when its Leap is ready, the
+  // jump the Deadly Leap asks for -- and fights. It comes up only where its body has room, and stays up through the party's turns (the seat's
+  // call, 10-01d: never up, bite and down again in one turn). Its ground is any open floor, never the rock (SRD 5.1: "A monster can't burrow
+  // through solid rock"), and not a map whose floor is worked stone (a map's `noBurrow`). Moving under, it has its burrow speed
+  function canDig(B, u) { return u.burrow > 0 && !(B.map && B.map.def && B.map.def.noBurrow) && !u.conds.restrained && !u.conds.prone && !(u.holding && u.holding.length); }
+  function* sink(B, u) {
+    u.anim = 'burrow'; u.animT = B.t; D.sfx('earth'); FX.ring(u, 'stone', 30);
+    B.card(['{r}' + the(B, u) + '{/} dives into the ground!  {g}(burrowing: it cannot be seen, struck or blocked till it comes up){/}'], 300);
+    yield Math.max(24, D.spr.duration(u.sheet, 'burrow') || 0);
+    u.under = true; u.ethereal = true; u.anim = 'idle';
+  }
+  function* rise(B, u, tgt) {
+    u.under = false; u.ethereal = false; B.focus(u);
+    if (tgt) u.facing = B.faceTo(u, tgt);
+    u.anim = 'reveal'; u.animT = B.t; D.sfx('earth'); FX.ring(u, 'stone', 40);
+    B.card(['{r}' + the(B, u) + '{/} bursts up out of the ground' + (tgt ? (G.dist(u, tgt) <= reachOf(u) ? ' beside ' : ' near ') + tgt.name : '') + '!'], 300);
+    yield Math.max(24, D.spr.duration(u.sheet, 'reveal') || 0);
+    u.anim = 'idle';
+  }
+  function* burrower(B, u) {
+    var T = u.turn, hs = heroes(B, u), L = u.leap, pressed = false;
+    if (!u.under) {
+      var inReach = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u); });
+      pressed = u.hp <= u.maxhp / 2 && inReach.length >= 2;
+      if (!hs.length || !canDig(B, u) || (inReach.length && !pressed)) { yield* brute(B, u); return; }
+      yield* sink(B, u);
+    }
+    var all = hs;
+    if (pressed) { var away = hs.filter(function (w) { return inReach.indexOf(w) < 0; }); if (away.length) hs = away; } // (somewhere else: not the two at it)
+    // the Leap's recharge, before it picks where to come up (brute does not roll it again this turn)
+    if (L && !L.ready && D.d(6) >= L.recharge) L.ready = true;
+    T.recharged = true;
+    if (!hs.length) { B.card(['{g}The ground heaves: something moves under it.{/}'], 160); yield 16; return; }
+    var m0 = T.move, cap = Math.min(m0, u.burrow), rm = G.reach(u, cap, { ghost: true }), leapNow = !!(L && L.ready && T.action);
+    // where to come up: beside the weakest it can reach this turn (or, Leap ready, 15-30 ft off with a clear jump), the shortest dig first
+    function pick(leapBand) {
+      var best = null, bs = Infinity;
+      hs.forEach(function (t) {
+        Object.keys(rm).forEach(function (k) {
+          var e = rm[k], d = G.dist(u, t, e.x, e.y);
+          if (leapBand ? d < 15 || d > Math.min(30, L.range) : d > reachOf(u)) return;
+          if (!G.canStand(u, e.x, e.y)) return; // (room for its body: it comes up where no one stands)
+          if (leapBand && !G.los(u, t, e.x, e.y).clear) return;
+          var s = (t.hp / t.maxhp) * 100 + e.cost / 5;
+          if (pressed) s += 60 * all.filter(function (w) { return w !== t && G.dist(u, w, e.x, e.y) <= reachOf(u); }).length; // (it dove to get clear: not up among them again)
+          if (s < bs) { bs = s; best = { e: e, t: t }; }
+        });
+      });
+      return best;
+    }
+    var up = (leapNow && pick(true)) || pick(false);
+    if (!up) {
+      // no one it can reach this turn: closer, under the ground
+      var near = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], e0 = approach(u, near, rm);
+      if (e0 && (e0.x !== u.x || e0.y !== u.y)) { T.move = cap; yield* walkTo(B, u, e0, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move)); }
+      B.card(['{g}The ground heaves: something moves under it' + (near ? ', toward ' + near.name : '') + '.{/}'], 200); yield 16;
+      return;
+    }
+    T.move = cap; yield* walkTo(B, u, up.e, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move));
+    if (u.dead || u.hp <= 0) return;
+    yield* rise(B, u, up.t);
+    yield* brute(B, u); // (the Leap if it is ready, else the bite)
+  }
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u), grudge = false;
     // the darkness attacks back (the gimmick, magic.js): the one the darts found comes for the caster this turn, nothing else
@@ -546,8 +614,8 @@
     // it bolts (the wheelwright, when Hask is down): Dash for the map's exit and gone -- the player's opportunity attacks are
     // the only stop. (Amara and Willem, who fight only to get away, give ground a step at a time instead: shooter())
     if (u.bolts && B.units.some(function (w) { return w.kind === u.bolts && w.dead; })) { if (yield* bolt(B, u)) return; }
-    // recharges (5-6 at the start of its turn): the Moan, the Leap
-    [u.moan, u.leap].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
+    // recharges (5-6 at the start of its turn): the Moan, the Leap (once a turn: a burrower rolls before it picks where to come up -- burrower)
+    if (!T.recharged) [u.moan, u.leap].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
     // Phantasms (the cloaker when bloodied; Willem at once): three false images, its action
     if (!grudge && u.phantasms && !u.phantasms.used && T.action && (u.phantasms.when === 'start' || u.hp <= u.maxhp / 2)) {
       T.action = 0; u.phantasms.used = true; u.images = 3; D.sfx('magic'); FX.sparkle(u, 'violet', 30);

@@ -737,7 +737,7 @@
           if (has('hurt')) { anim = 'hurt'; o.once = true; if (pf >= 0 && u.proneLook) t += Math.ceil(pf * 60 / (D.spr.anim(u.sheet, 'hurt').fps || 8)); }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }
-        } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack') { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
+        } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack' || anim === 'burrow' || anim === 'reveal') { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
         if (anim === 'idle' || anim === 'walk' || anim === 'roost' || anim === 'braid' || anim === 'run') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         // a hyena helpless with laughter rolls on the floor with it, for as long as it laughs (Hideous Laughter's easter egg, 09-30: js/grimoire.js M.hyena)
         if (!down && u.conds.laughing && has('rofl')) { anim = 'rofl'; o.once = false; t = B.t + (u.id ? u.id.length * 7 : 0); }
@@ -746,7 +746,11 @@
           if (u.proneLook) { anim = 'hurt'; o.frame = Math.min(pk, pf); }
           else if (pk < pf) { anim = 'hurt'; o.frame = pf - 1 - pk; } // (getting up)
         }
-        if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
+        // under the ground (a burrower, js/ai.js, 10-01d): its mound, the Burrow row's last frame, sliding where it goes -- "like a fin through
+        // water" (the 8-bit game's line for the bulette); a sheet with no Burrow row, the ethereal ghost below in earth's colour
+        if (u.under && !down && has('burrow')) { anim = 'burrow'; o.frame = D.spr.anim(u.sheet, 'burrow').frames - 1; o.once = false; }
+        else if (u.under && !down) { o.alpha = 0.3; o.tint = R('leather', 2); o.tintAlpha = 0.9; }
+        else if (u.ethereal) { o.alpha = 0.16 + 0.06 * Math.sin(B.t / 9); o.tint = R('violet', 5); o.tintAlpha = 0.9; }
         if ((u.conds.hidden || u.conds.invisible) && !down) o.alpha = 0.5;
         if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.2 : 0.5; // (inside the darkness: a shape, if that)
         // in the dark where no one of the party sees (torchdark 09-28): the player sees it still, grey and faint; by darkvision, grey
@@ -1312,7 +1316,8 @@
   }
   function conds(w) {
     var c = [];
-    if (w.ethereal && !(w.conds.stoning && w.conds.stoning.done)) c.push('{p}ethereal{/}'); // (a hero turned to stone is out of the world too, but says stone below)
+    if (w.under) c.push('{o}under the ground{/}'); // (a burrower: out of reach till it comes up, js/ai.js)
+    else if (w.ethereal && !(w.conds.stoning && w.conds.stoning.done)) c.push('{p}ethereal{/}'); // (a hero turned to stone is out of the world too, but says stone below)
     if (w.conds.poisoned) c.push('{n}poisoned{/}');
     if (w.conds.sickened) c.push('{n}sickened{/}'); // (Eyebite's: a WIS save at each turn's end)
     if (w.conds.contagion) c.push('{n}diseased{/}'); // (Contagion: poisoned too, the save at each turn's end)
@@ -1442,7 +1447,7 @@
     ctx.save(); ctx.beginPath(); ctx.rect(44, BAR_Y + 29, BX - 48, 12); ctx.clip(); // a long line of conditions stops short of the keys
     D.text(ctx, conds(u).trim() || (u.slots && u.slots.length ? 'slots ' + u.slots.map(function (n, i) { return (i + 1) + ':' + n; }).join(' ') : ''), 44, BAR_Y + 31, R('accent', 2));
     ctx.restore();
-    if (!hero) { D.text(ctx, u.ethereal ? 'moving unseen...' : 'its turn', BX, BAR_Y + 16, R('accent', 2)); return; }
+    if (!hero) { D.text(ctx, u.under ? 'under the ground...' : u.ethereal ? 'moving unseen...' : 'its turn', BX, BAR_Y + 16, R('accent', 2)); return; }
     var T = u.turn, px = clx + D.textWidth(cl) + 6;
     // BARM: bonus, action, reaction, move (the feet left) -- lit while there's one to spend (Griz, 09-27: "BARM #" after the class)
     [['B', T.bonus > 0, R('glow', 2)], ['A', T.action > 0 || T.attacksLeft > 0, R('gold', 3)], ['R', u.reaction > 0, R('violet', 4)], ['M ' + T.move, T.move > 0, R('glow', 1)]]

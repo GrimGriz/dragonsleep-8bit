@@ -367,8 +367,8 @@
     abil: { str: 19, dex: 11, con: 21, int: 2, wis: 10, cha: 5 }, init: 0, perception: 16,
     saves: { str: 4, dex: 0, con: 5, int: -4, wis: 0, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 7, dice: '4d12', mod: 4, type: 'piercing', reach: 5 } },
-    multi: 1, leap: { dc: 16, dice: '6d6', targets: 2, range: 40, recharge: 5 },
-    src: 'SRD 5.1 Bulette (CR 5, Large); content/monsters.json bulette (its Deadly Leap as the 8-bit game reads it: DEX 16, 6d6, two of them, half on a save and prone on a failure; recharge 5-6)', todo: 'the burrow is not read'
+    multi: 1, leap: { dc: 16, dice: '6d6', targets: 2, range: 40, recharge: 5 }, burrow: 40,
+    src: 'SRD 5.1 Bulette (CR 5, Large; burrow 40 ft: js/ai.js burrower, 10-01d); content/monsters.json bulette (its Deadly Leap as the 8-bit game reads it: DEX 16, 6d6, two of them, half on a save and prone on a failure; recharge 5-6)'
   },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, size: 2, reach: 5, darkvision: 60,

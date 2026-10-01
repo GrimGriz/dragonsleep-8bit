@@ -168,7 +168,7 @@
     { id: 'bulette', level: 5, map: 'breach', name: 'The Breach', sub: 'the king\'s road, leg two', music: 'boss',
       intro: 'The road bucks. Out of a breach in the south wall, rough-cut and new, something armored comes up through the stone like a fin through water.',
       from: 'the 8-bit game: deep.js S.bulette (one bulette; two with the king)', won: 'THERE IS NO RUNE FOR A HOLE A BEAST DUG.',
-      foes: [{ id: 'bul', kind: 'bulette', at: [9, 1] }], wave: null },
+      foes: [{ id: 'bul', kind: 'bulette', at: [9, 1], under: true }], wave: null }, // (under: it starts beneath the road and comes up through it, 10-01d)
     // the gimmick's home (Griz, 09-28: "the first 16-bit fight with a cloaker in which Aurdin magic-missiles a cloaker ... a quick cutscene
     // close-up of Aurdin and then that mp3, then a close up of the cloaker showing it hit, then big close up cloaker face"): the first
     // Magic Missile thrown at the darkness here is the cutscene (magic.js darts, ui.js scene), and the cloaker comes for the caster

@@ -8,8 +8,7 @@ Sources (Griz, 2026-09-29, generated; a new route, and the second sheet came the
       (the plaques say 8 frames for the idle and the walk; six are drawn). Five rows of six:
         Idle       standing, the head and jaws moving a little
         Walk       the same figure walking
-        Burrow     sinking into a mound of dirt (UNUSED for now: the engine has no burrow anim; it is cut and checked here, kept in
-                   the source for when the ambush gets one)
+        Burrow     sinking into a mound of dirt (shelved till 10-01d, when the burrow was wired: Griz, "go ahead and wire in the bulette")
         Emerge     bursting up out of a mound, rearing, and landing running: the flying dirt clods are part of the figure
         Leap Bite  crouch, leap, jaws first and down, a ground shadow under the airborne frames, a splash of dirt at the landing
   deep16/_src/bulette_grok_2.jpg  on a flat dark navy ground (row labels at the far left and a number under every frame, both dropped),
@@ -21,7 +20,9 @@ for the west side and for N, the cloaker's way):
   walk    the six side facings: sheet 1's Walk row. S: Walk Toward, N: Walk Away
   attack  sheet 1's Leap Bite row (Deadly Leap), six frames, every facing (S and N use the side frames: the leap has no front or back view);
           the ground shadow under the airborne frames is kept (see below)
-  reveal  sheet 1's Emerge row, every facing (for later: a burrowing bulette coming up out of the floor)
+  reveal  sheet 1's Emerge row, every facing: coming up out of the ground (ai.js burrower, 10-01d)
+  burrow  sheet 1's Burrow row, every facing: going under, played once; its last frame, the mound, is the bulette while it is under
+          (js/ui.js; 10-01d)
   flinch  sheet 2's Hurt row, every facing: a blow that lands and does not drop it, played once (the engine's `hurt` is the death)
   hurt    sheet 2's Death row, every facing: the engine plays `hurt` once when a creature goes down (the convention every generated sheet follows)
 The key, sheet 1: the checker is the neutral pixels (its two greys and white, and the lighter half of a ground shadow) joined to the sheet's
@@ -257,19 +258,19 @@ def build_frames():
     s1 = sc(r1['idle'])                                         # sheet 1's rows share the Idle row's
     s2 = r2['hurt'][0]['h'] / HEIGHT                            # the Hurt and Death rows: the Hurt row's first frame, standing
     idle_r, walk_r = side(r1['idle'], s1), side(r1['walk'], s1)
-    atk_r, rev_r = side(r1['leap'], s1, True), side(r1['emerge'], s1, True)
+    atk_r, rev_r, bur_r = side(r1['leap'], s1, True), side(r1['emerge'], s1, True), side(r1['burrow'], s1, True)
     flinch_r, death_r = side(r2['hurt'], s2), side(r2['death'], s2)
     fS, fN = side(r2['front'], sc(r2['front']))[0], side(r2['back'], sc(r2['back']))[0]
     walkS, walkN = side(r2['toward'], sc(r2['toward'])), side(r2['away'], sc(r2['away']))
     # the mirror is exact on the anchor: the frame is even wide, so a flip lands AX on AX - 1, and the roll puts it back
     mirror = lambda seq: [np.roll(fr[:, ::-1], 1, axis=1).copy() for fr in seq]
-    idle_l, walk_l, atk_l, rev_l, flinch_l, death_l = (mirror(s) for s in (idle_r, walk_r, atk_r, rev_r, flinch_r, death_r))
-    frames = {'idle': [], 'walk': [], 'attack': [], 'hurt': [], 'flinch': [], 'reveal': []}
+    idle_l, walk_l, atk_l, rev_l, bur_l, flinch_l, death_l = (mirror(s) for s in (idle_r, walk_r, atk_r, rev_r, bur_r, flinch_r, death_r))
+    frames = {'idle': [], 'walk': [], 'attack': [], 'hurt': [], 'flinch': [], 'reveal': [], 'burrow': []}
     for f in range(8):                                        # facings S, SW, W, NW, N, NE, E, SE: S and the east side as drawn, the rest mirrored
         r = f in (0, 5, 6, 7)
         frames['idle'].append([fS] * 3 + [breathe(fS)] * 3 if f == 0 else [fN] * 3 + [breathe(fN)] * 3 if f == 4 else idle_r if r else idle_l)
         frames['walk'].append(walkS if f == 0 else walkN if f == 4 else walk_r if r else walk_l)
-        frames['attack'].append(atk_r if r else atk_l); frames['reveal'].append(rev_r if r else rev_l)
+        frames['attack'].append(atk_r if r else atk_l); frames['reveal'].append(rev_r if r else rev_l); frames['burrow'].append(bur_r if r else bur_l)
         frames['flinch'].append(flinch_r if r else flinch_l); frames['hurt'].append(death_r if r else death_l)
     return frames, {'sheet 1': s1, 'sheet 2 side': s2, 'front': sc(r2['front']), 'back': sc(r2['back']), 'toward': sc(r2['toward']), 'away': sc(r2['away'])}, (r1, r2)
 
@@ -318,7 +319,7 @@ def build():
     pix.write_sheet(NAME, frames, FW, FH, AX, AY, top)
     mp = os.path.join(ROOT, 'deep16', 'art', NAME + '.json')
     meta = json.load(open(mp))
-    for a, fps in (('idle', 5), ('walk', 8), ('attack', 10), ('hurt', 8), ('flinch', 12), ('reveal', 8)):
+    for a, fps in (('idle', 5), ('walk', 8), ('attack', 10), ('hurt', 8), ('flinch', 12), ('reveal', 8), ('burrow', 8)):
         meta['anims'][a]['fps'] = fps
     meta['source'] = 'generated by Griz (2026-09-29, two sheets), keyed off the checkerboard and the flat ground and snapped by tools/bulette-sheet.py'
     json.dump(meta, open(mp, 'w'), indent=1)
