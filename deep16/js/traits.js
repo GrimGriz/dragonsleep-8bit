@@ -42,7 +42,7 @@
     // Fire Shield (js/grimoire.js): a blow from beside it burns back, 2d8 fire (the warm) or cold (the chill)
     if (tgt.conds.fireShield && melee && G.dist(att, tgt) <= 5 && !att.dead && att.hp > 0) { var fs0 = D.roll('2d8'); B.card(['{o}' + Nm(B, att) + ' is burned by the fire shield{/}  2d8 = ' + fs0.total + ' ' + tgt.conds.fireShield.type], 200); B.hurt(att, fs0.total, tgt.conds.fireShield.type); }
     // the giant boar's Charge: 20 ft straight at it and a tusk that lands -- 2d6 more, and STR or prone
-    if (att.charge && att.turn && !att.turn.charged && (att.speed - att.turn.move) >= 20 && !tgt.dead && tgt.hp > 0) {
+    if (att.charge && att.turn && !att.turn.charged && (att.turn.moved || 0) >= 20 && !tgt.dead && tgt.hp > 0) { // (what it walked this turn, battle.js moveAlong: not its speed less what is left -- a held, slowed or Longstrided boar read that wrong, a runner found 10-01b)
       att.turn.charged = true;
       var c = att.charge, cr = D.roll(c.dice, { crit: crit }), sv = RU.save(tgt, 'str', c.dc);
       B.card(['{r}' + Nm(B, att) + ' charges home!{/}  ' + c.dice + ' [' + cr.rolls.join(',') + '] = ' + cr.total + '  STR ' + RU.saveText(sv) + ' vs DC ' + c.dc + '  ' + (sv.ok ? '{n}keeps their feet{/}' : '{o}KNOCKED DOWN{/}')], 300);
@@ -94,7 +94,7 @@
       var hs = AI.heroes(B, u), t = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], bite = u.attacks && (u.attacks.bite || u.attacks[Object.keys(u.attacks)[0]]);
       if (t && bite) {
         B.card(['{r}' + Nm(B, u) + ' rampages!{/}  {g}(a bite for the bonus action){/}'], 240); yield 12;
-        if (G.dist(u, t) > 5) { var mv = T.move; T.move = Math.floor(u.speed / 2); yield* AI.walkTo(B, u, AI.approach(u, t, G.reach(u, T.move), 5)); T.move = Math.min(mv, T.move); }
+        if (G.dist(u, t) > 5 && !u.conds.restrained && !u.conds.dancing) { var mv = T.move; T.move = Math.floor(u.speed / 2); yield* AI.walkTo(B, u, AI.approach(u, t, G.reach(u, T.move), 5)); T.move = Math.min(mv, T.move); }
         if (!u.dead && u.hp > 0 && G.dist(u, t) <= 5) yield* B.attack(u, t, bite);
       }
     }

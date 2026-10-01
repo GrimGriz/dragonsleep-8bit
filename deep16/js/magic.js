@@ -20,7 +20,9 @@
     var v = M.seeWhy(B, u, { x: x, y: y, size: 1, conds: {} });
     return !v.ok && (v.why === 'dark' || v.why === 'darkness' || v.why === 'fog' || v.why === 'the cloud' || v.why === 'sleet');
   };
-  M.geo = function (id) { return D.SPELLS[id] || { shape: 'none', why: 'not on the grid yet' }; };
+  // (`lvl`, the spell's own level -- a cantrip is 0 -- is stamped on its geometry the first time it is asked for, so that M.targetWhy, which is given only
+  // the geometry, can put the Globe of Invulnerability the question: every copy made of it with Object.assign carries it. 10-01)
+  M.geo = function (id) { var g = D.SPELLS[id]; if (!g) return { shape: 'none', why: 'not on the grid yet' }; if (g.lvl == null) { var sp = M.data(id); if (sp && sp.level != null) g.lvl = sp.level | 0; } return g; };
   M.slotLevels = function (u, lvl) { var out = []; for (var i = Math.max(1, lvl) - 1; i < (u.slots || []).length; i++) if (u.slots[i] > 0) out.push(i + 1); return out; };
   // the caster's spellcasting modifier: its class's ability (js/rules.js R.CLASSES cast: the cleric's WIS, the warlock's CHA), or a sheet's own
   M.mod = function (u) { var c = window.DS.R.CLASSES[u.cls]; return D.mod(u.abil[u.castAb || (c && c.cast) || 'int']); };
@@ -167,12 +169,22 @@
       return true;
     });
   };
+  // would a Globe of Invulnerability stop u's spell (the geometry g carries its level: M.geo) at w? false where no globe stands, the spell's level is not
+  // known, w is u itself, or u stands inside the globe too (M.globed, js/grimoire.js, says the rest: the level against the globe's, outside against in)
+  M.globeShuts = function (B, u, g, w) {
+    return !!(M.globed && B && B.globes && B.globes.length && g && g.lvl != null && w && w !== u && w.hp != null && M.globed(B, u, w, g.lvl));
+  };
   // why w is no target for a spell that would only lay again what is already on it (g.noStack, the condition's name), or '': Enlarge on
   // one already enlarged, Reduce on one already reduced -- one record a creature, never two. The other way is a replacement and is let
   // through (js/grimoire.js takes the old casting down). The picker greys it, and the click says why (js/ui.js)
-  M.targetWhy = function (u, g, w) {
+  // (B is optional: the picker's click, ui.js, asks without it, and the battle on now stands in)
+  M.targetWhy = function (u, g, w, B) {
     // charmed: no harmful spell at its charmer (SRD 5.1; RULED 09-30)
     if (w && RU.charmedBy(u, w) && g && (g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe')) return 'charmed by it';
+    // the Globe of Invulnerability (SRD 5.1: a spell of its level or lower, cast from outside, "can't affect creatures or objects within"): no target for it,
+    // and the AI does not spend a slot on one -- the player's picker greys it and the click says why (10-01, Griz: "Yes to Longstriding Hastened Globe
+    // runners". The SRD has the spell simply fail; naming it up front is the same kindness the other no-effect targets get). Casting from inside the globe is fine
+    if (M.globeShuts(B || D.battle, u, g, w)) return 'inside the globe';
     // Mage Armor: not on one in armour, nor one already under it -- said, not silent (10-01, Griz in the wizard room: "think we broke the
     // mage-armor cast select": the class floor's wizards come in with it up, so a click on any of them did nothing at all)
     if (g && g.unarmored && w && w.conds && (w.armored || w.conds.mageArmor)) return w.conds.mageArmor ? 'already under Mage Armor' : 'in armour';
@@ -183,7 +195,7 @@
   // is w the kind of creature this spell takes, wherever it stands (the side, the type, the spell's own refusals)? M.targetOK adds reach and sight
   M.targetKind = function (B, u, g, w) {
     if (!w || w.dead || w.ethereal) return false;
-    if (M.targetWhy(u, g, w)) return false;
+    if (M.targetWhy(u, g, w, B)) return false;
     var foeWanted = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe';
     if (foeWanted && (!G.hostile(u, w) || w.hp <= 0)) return false;
     if (((g.shape === 'allies' && g.side !== 'foe') || g.side === 'ally') && w.side !== u.side) return false; // (Bane: an `allies` shape aimed at foes)
@@ -194,6 +206,10 @@
   };
   // why a spell that takes a creature has none it may take (M.list greys it with this)
   M.noTarget = function (B, u, g) {
+    // (every one it could take stands in a Globe of Invulnerability its level cannot cross: said first, not "none in range". g0, the same spell
+    // asked as if no globe stood, finds the ones the globe alone turned away)
+    var g0 = Object.assign({}, g, { lvl: null });
+    if (B.units.some(function (w) { return M.globeShuts(B, u, g, w) && M.targetOK(B, u, g0, w); })) return 'every one it could take is inside the globe';
     var reach = M.touchRange(g) ? (D.familiar && D.familiar.deliverer(B, u) ? 'within reach, nor within the familiar\'s move' : 'within reach (5 ft)') : '';
     if (g.shape === 'touch') return 'no one ' + reach;
     if (B.units.some(function (w) { return M.targetKind(B, u, g, w); })) return reach ? 'none ' + reach : 'none in range (' + (g.range || 5) + ' ft) and in sight';
@@ -206,7 +222,7 @@
   M.touchRange = function (g) { return g.shape === 'touch' || ((g.shape === 'attack' || g.shape === 'single') && (g.range || 5) <= 5); };
   // is w a target for this spell from u (single, attack, rays, darts, splash, allies, touch)?
   M.targetOK = function (B, u, g, w) {
-    if (g.shape === 'touch') return !!w && !w.dead && !w.ethereal && !M.targetWhy(u, g, w) && M.touchTargets(B, u, g).indexOf(w) >= 0;
+    if (g.shape === 'touch') return !!w && !w.dead && !w.ethereal && !M.targetWhy(u, g, w, B) && M.touchTargets(B, u, g).indexOf(w) >= 0;
     if (!M.targetKind(B, u, g, w)) return false;
     if (M.touchRange(g) && w !== u && G.dist(u, w) > 5 && D.familiar && D.familiar.delivers(B, u, w)) return true; // (a touch carried by the familiar: it goes to them)
     // "a creature you can see": Hold, Shield of Faith, Magic Missile, Acid Splash -- not Bless or Aid (SRD: "creatures of your choice
@@ -481,7 +497,7 @@
     var inGlobe = M.globed ? caught.filter(function (w) { return M.globed(B, u, w, sp.level); }) : [];
     if (inGlobe.length) caught = caught.filter(function (w) { return inGlobe.indexOf(w) < 0; });
     var globeLines = inGlobe.map(function (w) { return '  ' + w.name + ': {c}inside the globe: untouched{/}'; });
-    if (sp.el === 'fire') M.burnWebs(B, sq, u.id); // (a fire area burns the webs in it: M.burnWebs)
+    if (sp.el === 'fire') M.burnWebs(B, M.globed ? sq.filter(function (q) { return !M.globed(B, u, { x: q[0], y: q[1] }, sp.level); }) : sq, u.id); // (a fire area burns the webs in it: M.burnWebs -- but not the squares inside a globe, excluded from its area)
     var lines = [];
     if (id === 'daylight') {
       // SRD 5.1: bright 60 ft and dim 60 more from a point; on a creature's square it goes with them; a Darkness of 3rd level or
@@ -628,13 +644,17 @@
   // caster CON DC or loses the spell)
   M.cloudTurn = function (B, u) {
     var who = u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}';
-    var stink = (B.darks || []).filter(function (d) { return d.kind === 'stink' && G.foot(u).every(function (p) { return d.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); })[0];
+    var stinks = (B.darks || []).filter(function (d) { return d.kind === 'stink' && G.foot(u).every(function (p) { return d.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); });
+    var stink = stinks.filter(function (d) { return !(M.zoneGlobed && M.zoneGlobed(B, d, u)); })[0]; // (the Globe of Invulnerability: a cloud cast from outside it does nothing to one inside; the fog itself stays -- js/light.js)
+    if (stinks.length && !stink && M.zoneShut && !(RU.immuneTo(u, 'poisoned') || (u.immune && u.immune.indexOf('poison') >= 0))) M.zoneShut(B, stinks[0], u, 'starts its turn in the yellow cloud');
     if (stink && !(RU.immuneTo(u, 'poisoned') || (u.immune && u.immune.indexOf('poison') >= 0))) {
       var sv = RU.save(u, 'con', stink.dc, RU.vsPoison(u)); // (the save is against poison: Protection from Poison)
       B.card([who + ' in the yellow cloud: CON ' + RU.saveText(sv) + ' vs DC ' + stink.dc + '  ' + (sv.ok ? '{n}holds it down{/}' : '{o}retching and reeling: the action is gone{/}')]);
       if (!sv.ok) { u.turn.action = 0; u.turn.attacksLeft = 0; }
     }
-    var sleet = (B.darks || []).filter(function (d) { return d.kind === 'sleet' && G.inArea(u, d.sq); })[0];
+    var sleets = (B.darks || []).filter(function (d) { return d.kind === 'sleet' && G.inArea(u, d.sq); });
+    var sleet = sleets.filter(function (d) { return !(M.zoneGlobed && M.zoneGlobed(B, d, u)); })[0]; // (the Globe of Invulnerability: the ice, the save and the CON check do nothing to one inside it)
+    if (sleets.length && !sleet) { if (u.turn) u.turn.sleetSaved = true; if (M.zoneShut) M.zoneShut(B, sleets[0], u, 'starts its turn on the ice'); }
     if (sleet) {
       if (u.turn) u.turn.sleetSaved = true; // (one save a turn: starting in it counts)
       if (!u.conds.prone && !u.noProne && !RU.immuneTo(u, 'prone')) {
@@ -646,10 +666,11 @@
     }
   };
   // ice underfoot (Sleet Storm): difficult ground (grid.js stepCost)
-  M.icy = function (B, x, y) { return (B.darks || []).some(function (d) { return d.kind === 'sleet' && d.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };
+  M.icy = function (B, x, y) { return (B.darks || []).some(function (d) { return d.kind === 'sleet' && d.sq.some(function (q) { return q[0] === x && q[1] === y; }) && !(M.zoneGlobed && M.zoneGlobed(B, d, { x: x, y: y })); }); }; // (a square inside a globe the storm was cast from outside of is no part of the ice: SRD 5.1, "the area within the barrier is excluded")
   // a sleet storm entered during a move: the SRD's save for the first square of it that turn (battle.js moveAlong)
   M.sleetCatch = function (B, u) {
-    var d = (B.darks || []).filter(function (x) { return x.kind === 'sleet' && G.inArea(u, x.sq); })[0];
+    var d = (B.darks || []).filter(function (x) { return x.kind === 'sleet' && G.inArea(u, x.sq) && !(M.zoneGlobed && M.zoneGlobed(B, x, u)); })[0];
+    if (!d && !u.conds.prone && !u.noProne && !RU.immuneTo(u, 'prone') && !(u.turn && u.turn.sleetSaved) && M.zoneShut) { var sh = (B.darks || []).filter(function (x) { return x.kind === 'sleet' && G.inArea(u, x.sq); })[0]; if (sh) { if (u.turn) u.turn.sleetSaved = true; M.zoneShut(B, sh, u, 'steps onto the ice'); } return false; } // (inside the globe: untouched, said once a turn)
     if (!d || u.conds.prone || u.noProne || RU.immuneTo(u, 'prone') || (u.turn && u.turn.sleetSaved)) return false;
     if (u.turn) u.turn.sleetSaved = true;
     var sv = RU.save(u, 'dex', d.dc), who = u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}';
@@ -661,12 +682,14 @@
   // "Each creature that starts its turn in the webs or that enters them during its turn must make a Dexterity saving throw.
   // On a failed save, the creature is restrained." A cast web, and since 09-30 the strung webs a map starts with (their DC the
   // spinner's: battle.js, the map's webDC). One save a turn: a creature that saved goes on through that turn
-  M.webAt = function (B, u) {
+  // (raw: the globed ones too -- the Globe of Invulnerability keeps a web cast from outside it off those inside, and the card says so)
+  M.webAt = function (B, u, raw) {
     var f = G.foot(u);
-    return (B.webs || []).filter(function (w) { return w.dc && f.some(function (p) { return w.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); })[0] || null;
+    return (B.webs || []).filter(function (w) { return w.dc && f.some(function (p) { return w.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }) && (raw || !(M.zoneGlobed && M.zoneGlobed(B, w, u))); })[0] || null;
   };
   M.webCatch = function (B, u, how) {
     var wb = M.webAt(B, u);
+    if (!wb && M.zoneShut && !u.webWalker && !u.conds.restrained && !RU.immuneTo(u, 'restrained') && !(u.turn && u.turn.webSaved)) { var shut = M.webAt(B, u, true); if (shut) { if (u.turn) u.turn.webSaved = true; M.zoneShut(B, shut, u, how === 'enters' ? 'blunders into the web' : 'starts its turn in the web'); } }
     if (!wb || u.webWalker || u.conds.restrained || RU.immuneTo(u, 'restrained') || (u.turn && u.turn.webSaved)) return false;
     var sv = RU.save(u, 'dex', wb.dc), who = u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}';
     if (u.turn) u.turn.webSaved = true;
@@ -852,12 +875,12 @@
     var luck = RU.darkLuck(u, r.dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
     if (tot >= r.dc) {
-      delete u.conds.restrained; u.turn.move = u.speed; u.turn.webSaved = true; // (torn free: it goes on through the web this turn)
+      delete u.conds.restrained; u.turn.move = u.conds.dancing ? 0 : u.speed; u.turn.webSaved = true; // (torn free: it goes on through the web this turn)
       var by = B.units.filter(function (w) { return w.id === r.by; })[0]; if (by && by.holding) by.holding = by.holding.filter(function (w) { return w !== u; });
     }
     yield 30;
   };
-  M.webbed = function (B, x, y) { return (B.webs || []).some(function (w) { return w.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };
+  M.webbed = function (B, x, y) { return (B.webs || []).some(function (w) { return w.sq.some(function (q) { return q[0] === x && q[1] === y; }) && !(M.zoneGlobed && M.zoneGlobed(B, w, { x: x, y: y })); }); }; // (a square inside a globe the web was cast from outside of is no part of it)
   // fire on a web (SRD 5.1 Web: "The webs are flammable. Any 5-foot cube of webs exposed to fire burns away in 1 round, dealing 2d4
   // fire damage to any creature that starts its turn in the fire"; an ettercap's and a spider's webbing are vulnerable to fire): the
   // squares go at once -- no longer slowing or holding, whoever they held is free -- and burn on for the rest of the round (RULED

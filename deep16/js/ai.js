@@ -483,7 +483,7 @@
   }
   function* bolt(B, u) {
     var T = u.turn, exits = B.fight.exit || B.map.def.exit || [];
-    if (!exits.length || !T.action) return false;
+    if (!exits.length || !T.action || u.conds.restrained || u.conds.dancing) return false; // (held fast, or a dancer "must use all its movement to dance": no Dash to make for the door)
     T.action = 0; T.move = u.speed * 2; // Dash
     var rm = G.reach(u, T.move), best = null, bc = Infinity;
     exits.forEach(function (x) { var e = rm[x[0] + ',' + x[1]]; if (e && e.stand && e.cost < bc) { bc = e.cost; best = e; } });

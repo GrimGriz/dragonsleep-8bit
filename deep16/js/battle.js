@@ -1326,27 +1326,42 @@
 
   // ------------------------------------------------------------------ Hide (Cunning Action): Stealth against each foe's passive Perception;
   // a foe with a clear, coverless look at her sees her anyway
+  // how well w sees u for hiding (above): 2 clearly, 1 dimly (its darkvision, or dim light), 0 not at all or behind cover. u may be a stand-in
+  // for her on another square (ui.js: the places to try hiding, tinted) -- one question for the tint and the roll, so they cannot disagree
+  Battle.prototype.seenBy = function (w, u) {
+    var s = D.magic.seeWhy(this, w, u), l = G.los(w, u); if (!s.ok || !l.clear || l.cover) return 0;
+    if (!this.dark || (w.blindsight && G.dist(w, u) <= w.blindsight) || (w.truesight && G.dist(w, u) <= w.truesight)) return 2;
+    return s.dv || (D.light && D.light.levelOf(this, u) < 2) ? 1 : 2;
+  };
   Battle.prototype.hide = function* (u) {
     var T = u.turn;
     if (T.bonus > 0 && u.lvl >= 2) T.bonus = 0; else T.action = 0; // Cunning Action from level 2; the Hide action before
     D.sfx('run');
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)
-    var plain = foes.filter(function (w) { var l = G.los(w, u); return l.clear && !l.cover; });
+    // who sees her clearly (SRD 5.1 Hiding: "You can't hide from a creature that can see you clearly"; darkvision sees darkness "as if the
+    // darkness were dim light", and dim light is lightly obscured -- not clearly. 10-01b, Griz: "I think I'm getting conflicting rogue-hiding
+    // hints": she was refused by anyone with a clear line, in the pitch dark too): 2, a clear line with no cover and she in bright light or
+    // within its blindsight or truesight -- no hiding from it; 1, the same line but by its darkvision or in dim light -- she may try, and its
+    // passive Perception is 5 down (lightly obscured: disadvantage on sight); 0, behind cover or not seen at all -- she may try
+    var seen = function (w) { return self.seenBy(w, u); };
+    var plain = foes.filter(function (w) { return seen(w) === 2; });
     var mirror = foes.filter(function (w) { return w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); }); // (the Mirror's eye: no hiding before it, in light)
     // Supreme Sneak (the Thief's 9; SRD 5.1): advantage on the Stealth check if it moved no more than half its speed this turn
     // (and Enhance Ability on DEX, Heat Metal's burning armour against every check: rules.js checkEdges)
     var supreme = u.subclass === 'Thief' && u.lvl >= 9 && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex'), hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20), r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
-    var total = r + u.stealth + (u.conds.pwt ? 10 : 0), top = Math.max.apply(null, foes.map(function (w) { return w.perception; }).concat([0]));
+    var total = r + u.stealth + (u.conds.pwt ? 10 : 0), pp = function (w) { return w.perception - (seen(w) === 1 ? 5 : 0); }, top = Math.max.apply(null, foes.map(pp).concat([0]));
+    var dimTop = foes.some(function (w) { return pp(w) === top && seen(w) === 1; }); // (the sharpest of them sees her only dimly: say so)
     if (mirror.length) {
       this.card(['{y}' + u.name + '{/} tries to hide, but the mirror on ' + mirror.map(shortName).join(' and ') + ' has her: {p}nothing hides in front of the Mirror\'s eye{/}.', '{g}Get behind her, or into the dark.{/}']);
     } else if (plain.length) {
-      this.card(['{y}' + u.name + '{/} tries to hide, but the ' + plain.map(shortName).join(' and the ') + ' can see her plainly (no cover).', '{g}Put a stalagmite or a body between you first.{/}']);
+      var bsw = plain.filter(function (w) { return w.blindsight && G.dist(w, u) <= w.blindsight; })[0];
+      this.card(['{y}' + u.name + '{/} tries to hide, but the ' + plain.map(shortName).join(' and the ') + ' can see her plainly (' + (bsw ? 'blindsight ' + bsw.blindsight + ' ft: it needs no light' : this.dark ? 'in the light' : 'no cover') + ').', '{g}Put a stalagmite or a body between you first' + (bsw ? ', or get past its ' + bsw.blindsight + ' ft' : this.dark ? ', or get out of the light' : '') + '.{/}']);
     } else {
       // Guidance (SRD 5.1: a d4 to one ability check, "before or after making the ability check"): spent after the roll, on a check the d4 could turn
       var gd = u.conds.guidance && !u.conds.faerie && total < top && total + 4 >= top && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
       total += gd;
       var ok = total >= top && !u.conds.faerie; // (outlined in violet light: nowhere to hide)
-      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + ' vs passive Perception ' + top + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
+      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + ' vs passive Perception ' + top + (dimTop ? ' {g}(5 down: it sees her only dimly){/}' : '') + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
       if (ok) u.conds.hidden = true;
     }
     yield 30;

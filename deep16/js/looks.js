@@ -319,7 +319,7 @@
     // the locusts (Insect Plague): a cloud over each square, in front of what stands there
     (B.grounds || []).forEach(function (g) {
       if (g.kind !== 'insects') return;
-      g.sq.forEach(function (q) { out.push({ depth: q[0] + q[1] + 0.9, gz: D.iso.map.gz(q[0], q[1]), layer: 1, draw: function (ctx) {
+      g.sq.forEach(function (q) { if (M.zoneGlobed && M.zoneGlobed(B, g, { x: q[0], y: q[1] })) return; out.push({ depth: q[0] + q[1] + 0.9, gz: D.iso.map.gz(q[0], q[1]), layer: 1, draw: function (ctx) {
         var s = sq(q[0], q[1]), t = B.t, E = FX.EL.nature;
         for (var i = 0; i < 9; i++) { var a = t / (6 + i) + i * 2.1 + hsh(q[0], q[1]) * 6, r = 6 + (i % 3) * 4; px(ctx, s.x + Math.cos(a) * r, s.y - 10 - (i % 4) * 5 + Math.sin(a * 1.3) * r * 0.5, i % 3 ? P('outline', 0) : E.c[2], (t + i) % 4 ? 1 : 2); }
       } }); });
@@ -331,7 +331,7 @@
   LK.ground = function (ctx, B, onSq) {
     var t = B.t;
     (B.grounds || []).forEach(function (g) {
-      g.sq.forEach(function (q) { onSq(q[0], q[1], function (c) { groundSq(c, g, q[0], q[1], t); }); });
+      g.sq.forEach(function (q) { if (M.zoneGlobed && M.zoneGlobed(B, g, { x: q[0], y: q[1] })) return; onSq(q[0], q[1], function (c) { groundSq(c, g, q[0], q[1], t); }); }); // (no spikes, grease or vines drawn where a Globe of Invulnerability keeps the spell out: M.zoneGlobed)
     });
     // magical darkness and the clouds (fog, the stinking cloud, sleet): a volume, not a stain -- the gaps between the squares filled, a
     // wall of it standing up along its edge, and what it is made of roiling up out of it (black smoke with violet in it, white fog,

@@ -51,7 +51,11 @@
   G.wallAt = function (x, y) {
     var B = D.battle; if (!B || !B.walls || !B.walls.length) return null;
     if (!B.wallMap) { B.wallMap = {}; B.walls.forEach(function (w) { w.sq.forEach(function (q) { B.wallMap[q[0] + ',' + q[1]] = w; }); }); }
-    return B.wallMap[x + ',' + y] || null;
+    var w = B.wallMap[x + ',' + y] || null;
+    // the Globe of Invulnerability (SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells"): a wall cast from outside a
+    // globe has no body inside it -- nothing to pass, see through, pay for or be burnt by on a square within the globe (js/grimoire.js M.zoneGlobed)
+    if (w && M.zoneGlobed && M.zoneGlobed(B, w, { x: x, y: y })) return null;
+    return w;
   };
   function inWall(w, u) { return G.foot(u).some(function (p) { return w.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); }
   function inBand(w, u) { return w.band && G.foot(u).some(function (p) { return w.band[p[0] + ',' + p[1]]; }); }
@@ -83,7 +87,7 @@
         D.sfx(K.kind === 'fire' ? 'fire2' : K.kind === 'stone' ? 'earth' : K.kind === 'wind' ? 'thunder' : 'nature');
         // stone: whoever stands where it rises is pushed out first (his own to his side, the others to the far one)
         if (K.solid) {
-          caughtIn(B, sq).forEach(function (v) {
+          caughtIn(B, sq).filter(function (v) { return !(M.globed && M.globed(B, u, v, slot)); }).forEach(function (v) { // (inside a globe the stone was cast from outside of there is no wall to be pushed out of)
             var want = v.side === u.side ? -1 : 1, best = null, bd = Infinity;
             for (var yy = 0; yy < G.map.h; yy++) for (var xx = 0; xx < G.map.w; xx++) {
               if (sideOf(w, xx, yy) !== want || sq.some(function (q) { return q[0] === xx && q[1] === yy; }) || !G.canStand(v, xx, yy)) continue;
@@ -98,7 +102,7 @@
         if (K.light) { w.lights = []; sq.forEach(function (q, i) { if (i % 2 === 0) w.lights.push({ id: w.id + 'L' + i, kind: 'wall', x: q[0], y: q[1], bright: 15, dim: 15, color: 'fire', flame: true, by: u.id }); }); B.lights = (B.lights || []).concat(w.lights); B.lightMap = null; B.partyMap = null; }
         FX.bloom(t.x, t.y, sq, K.kind === 'fire' ? 'fire' : K.kind === 'thorns' ? 'moss' : K.kind === 'stone' ? 'stone' : 'glow');
         if (K.rise) {
-          var hit = caughtIn(B, sq).filter(function (v) { return !(M.globed && M.globed(B, u, v, slot)); });
+          var hit = caughtIn(B, sq); // (those inside a Globe of Invulnerability the wall was cast from outside of: saveAll says so on the card, "inside the globe: untouched")
           yield* M.saveAll(B, u, hit, K.rise[0], x.dc, more(K.rise[1], K.kind === 'wind' ? 0 : n), K.rise[2], true, head + ': ' + ({ fire: 'a wall of fire roars up', thorns: 'a wall of thorns tears up out of the ground', wind: 'a wall of wind howls up' })[K.kind]);
         } else B.card([head + ': a wall of stone grinds up out of the floor.'], 280);
         if (K.light && M.brighten) yield* M.brighten(B, u, K.name, null, { x: t.x, y: t.y, bright: 15 });
@@ -114,7 +118,7 @@
           var sq = M.wallSq(u, e.g, f.x, f.y), sc = 0, fake = { sq: sq, band: null, cx: f.x, cy: f.y, dir: dirTo(u, f.x, f.y) };
           if (K.band) { fake.band = {}; sq.forEach(function (q) { for (var k = 1; k <= K.band; k++) fake.band[(q[0] + fake.dir[0] * k) + ',' + (q[1] + fake.dir[1] * k)] = 1; }); }
           B.units.forEach(function (v) {
-            if (!G.standing(v)) return;
+            if (!G.standing(v) || (M.globeShuts && M.globeShuts(B, u, e.g, v))) return; // (inside a Globe of Invulnerability the wall is cast from outside of: nothing to catch)
             var cau = G.inArea(v, sq), near = !cau && inBand(fake, v);
             if (!cau && !near) return;
             var pf = TX().pFail(v, K.rise[0], u.spellDC), worth = cau ? pf * d + (1 - pf) * d / 2 + d * 0.5 : d * 0.5;
@@ -140,8 +144,8 @@
     var stop = step0 ? step0(B, u) : false;
     (B.walls || []).forEach(function (w) {
       if (u.hp <= 0 || u.dead || !u.turn || u.turn['wall' + w.id] || !inWall(w, u)) return;
-      if (w.kind === 'fire') { u.turn['wall' + w.id] = true; hurt(B, u, w, w.burn, 'fire', null, 'walks into the fire'); }
-      if (w.kind === 'thorns') { u.turn['wall' + w.id] = true; hurt(B, u, w, w.rake, 'slashing', 'dex', 'pushes into the thorns'); }
+      if (w.kind === 'fire') { u.turn['wall' + w.id] = true; if (!M.zoneShut(B, w, u, 'walks into the fire')) hurt(B, u, w, w.burn, 'fire', null, 'walks into the fire'); }
+      if (w.kind === 'thorns') { u.turn['wall' + w.id] = true; if (!M.zoneShut(B, w, u, 'pushes into the thorns')) hurt(B, u, w, w.rake, 'slashing', 'dex', 'pushes into the thorns'); }
     });
     return stop || u.hp <= 0;
   };
@@ -150,8 +154,8 @@
     if (end0) end0(B, u);
     (B.walls || []).forEach(function (w) {
       if (u.hp <= 0 || u.dead || !G.present(u)) return;
-      if (w.kind === 'fire' && (inWall(w, u) || inBand(w, u))) hurt(B, u, w, w.burn, 'fire', null, inWall(w, u) ? 'burns in the wall of fire' : 'is scorched by the wall of fire');
-      else if (w.kind === 'thorns' && inWall(w, u)) hurt(B, u, w, w.rake, 'slashing', 'dex', 'is torn by the thorns');
+      if (w.kind === 'fire' && (inWall(w, u) || inBand(w, u))) { if (!M.zoneShut(B, w, u, inWall(w, u) ? 'ends its turn in the wall of fire' : 'ends its turn by the wall of fire')) hurt(B, u, w, w.burn, 'fire', null, inWall(w, u) ? 'burns in the wall of fire' : 'is scorched by the wall of fire'); } // (the Globe of Invulnerability: cast from outside it, the fire does nothing to one inside)
+      else if (w.kind === 'thorns' && inWall(w, u)) { if (!M.zoneShut(B, w, u, 'ends its turn in the thorns')) hurt(B, u, w, w.rake, 'slashing', 'dex', 'is torn by the thorns'); }
     });
   };
   // a missile across a wind wall (battle.js attack asks): arrows, bolts, a thrown axe -- not a spell, not a giant's boulder
@@ -159,7 +163,7 @@
     if (!B || !B.walls || !B.walls.length || !atk || !atk.ranged || atk.spell || atk.boulder) return false;
     var winds = B.walls.filter(function (w) { return w.kind === 'wind'; }); if (!winds.length) return false;
     var L = G.line(att.x, att.y, tgt.x, tgt.y);
-    return winds.some(function (w) { return L.some(function (p) { return w.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }) && !G.inArea(att, [p]) && !G.inArea(tgt, [p]); }); });
+    return winds.some(function (w) { return L.some(function (p) { return w.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }) && !G.inArea(att, [p]) && !G.inArea(tgt, [p]) && !(M.zoneGlobed && M.zoneGlobed(B, w, { x: p[0], y: p[1] })); }); }); // (a square inside a globe the wind was cast from outside of has no wind)
   };
 
 
@@ -218,7 +222,9 @@
     cast: function* (B, u, t, slot, head) {
       var sq = plantSq(B, t.x, t.y);
       if (!sq.length) { B.card([head + ': nothing grows there.'], 200); yield 16; return; }
-      B.overgrown = (B.overgrown || {}); sq.forEach(function (q) { B.overgrown[q[0] + ',' + q[1]] = true; });
+      // (each square holds the casting's record -- truthy as before -- with where he cast from and the spell's level, for the Globe of Invulnerability: M.zoneGlobed)
+      var rec = { by: u.id, from: { x: u.x, y: u.y }, lv: B.castLevel != null ? B.castLevel : 3 };
+      B.overgrown = (B.overgrown || {}); sq.forEach(function (q) { B.overgrown[q[0] + ',' + q[1]] = rec; });
       FX.bloom(t.x, t.y, sq, 'moss'); D.sfx('nature');
       B.card([head + ': the grass heaves up thick and tangled -- ' + sq.length + ' squares of it, 20 ft to cross each.'], 280);
       yield 24;
@@ -259,7 +265,8 @@
   G.extraAt = function (u, x, y) {
     if (u.ethereal) return 0;
     var w = G.wallAt(x, y), B = D.battle, n = w && w.cost ? w.cost : 0;
-    if (B && B.overgrown && B.overgrown[x + ',' + y] && !(u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) n = Math.max(n, 15);
+    var og = B && B.overgrown && B.overgrown[x + ',' + y]; // (the casting's record: a square inside a globe it was cast from outside of is no part of it -- M.zoneGlobed)
+    if (og && !(M.zoneGlobed && M.zoneGlobed(B, og, { x: x, y: y })) && !(u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) n = Math.max(n, 15);
     return n;
   };
 
@@ -270,6 +277,7 @@
     var out = [], iso = D.iso;
     (B.walls || []).forEach(function (w) {
       w.sq.forEach(function (q) {
+        if (M.zoneGlobed && M.zoneGlobed(B, w, { x: q[0], y: q[1] })) return; // (no wall is drawn where the globe keeps it out)
         var gz = B.map.gz(q[0], q[1]);
         out.push({ depth: q[0] + q[1] + 0.5, gz: gz, layer: 1, draw: function (ctx) {
           var c = iso.center(q[0], q[1], gz), s = iso.toScreen(c.x, c.y), R = P(), t = B.t;

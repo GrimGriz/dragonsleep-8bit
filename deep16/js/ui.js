@@ -65,7 +65,8 @@
     B.cache = { key: key + (held ? ',held' : ''), move: G.reach(u, held ? 0 : T.move), dash: dash ? G.reach(u, T.move + dash) : null, hide: null };
     return B.cache;
   }
-  // a rogue's places to try hiding: squares she can reach where no foe she knows of sees her plainly (no cover)
+  // a rogue's places to try hiding: squares she can reach where no foe sees her clearly -- cover, the dark, its eyes (battle.js seenBy, the
+  // same question the HIDE roll asks: 10-01b, Griz: "I think I'm getting conflicting rogue-hiding hints")
   function hideSpots(B, u) {
     var rc = reachCache(B, u);
     if (rc.hide) return rc.hide;
@@ -74,7 +75,8 @@
     [rc.move, rc.dash || {}].forEach(function (m) {
       Object.keys(m).forEach(function (k) {
         var e = m[k]; if (!e.stand || rc.hide[k] != null) return;
-        rc.hide[k] = foes.every(function (f) { var l = G.los(u, f, e.x, e.y); return !l.clear || l.cover > 0; });
+        var at = Object.create(u); at.x = e.x; at.y = e.y; // (she, standing there)
+        rc.hide[k] = foes.every(function (f) { return B.seenBy(f, at) < 2; });
       });
     });
     return rc.hide;
@@ -702,7 +704,7 @@
         // the ettercap sits braiding on its stump till it has had a turn or been hurt ("It stops braiding when it sees you": Griz's
         // idle sheet, 09-30); a creature that charges has come 20 ft and more this turn, and runs (the giant boar's sprint row)
         if (!down && !u.woken && !u.acted && anim === 'idle' && has('braid')) anim = 'braid';
-        if (!down && anim === 'walk' && u.charge && u.turn && (u.speed - u.turn.move) >= 20 && has('run')) anim = 'run';
+        if (!down && anim === 'walk' && u.charge && u.turn && (u.turn.moved || 0) >= 20 && has('run')) anim = 'run';
         // prone (10-01b; the frame is sprites.js S.proneFrame): a figure with a frame for it falls to it when it goes prone, lies there while
         // prone -- crawling, striking, whatever it does -- and gets up through the same frames backwards when the prone ends. Going down
         // from prone, the fall goes on from where it lies
@@ -734,6 +736,13 @@
         if (!u.ethereal && !(u.dead && !has('hurt')) && !(u.riding && (u.perch === 'shoulder' || u.perch === 'head'))) {
           var s = u.size || 1;
           ctx.fillStyle = 'rgba(10,8,16,.38)'; ctx.beginPath(); ctx.ellipse(p.x, p.y, 10 * s * sk + 1, 4 * s * sk + 1, 0, 0, 7); ctx.fill();
+        }
+        // the party sees it, the one whose turn it is does not (10-01b, the bond -- Griz: "yes 3"): a quiet dashed ring at its feet, so the
+        // player knows this hero's spells that want "a creature you can see" and its attacks are not for it from here (magic.js seeWhy)
+        var ah = B.active;
+        if (u.side === 'foe' && !down && !u.ethereal && ah && ah.side === 'party' && !ah.guest && G.standing(ah) && B.req && B.req.turn === ah && !D.magic.sees(B, ah, u)) {
+          var rs = u.size || 1; ctx.save(); ctx.setLineDash([2, 2]); ctx.strokeStyle = 'rgba(150,160,205,0.75)'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.ellipse(p.x, p.y, 10 * rs * sk + 3, 4 * rs * sk + 2, 0, 0, 7); ctx.stroke(); ctx.restore();
         }
         // a rider's body (the drider's spider half) goes dark unless something else tints it; the rider on top
         var body = u.rider && !o.tint ? Object.assign({}, o, { tint: R('outline', 0), tintAlpha: 0.5 }) : o;
@@ -1248,7 +1257,7 @@
       (flankSpots(B, u)[k] || []).forEach(function (fe) { lines.push('{y}flanking{/} the ' + B.shortName(fe.foe) + ' with ' + fe.ally.name + ': advantage in melee, both'); });
       if (u.cls === 'rogue') {
         var hs = hideSpots(B, u);
-        if (hs[k] === true) lines.push('{p}a place to try hiding{/}: no foe she knows of sees it plainly');
+        if (hs[k] === true) lines.push('{p}a place to try hiding{/}: no foe sees her clearly there');
         else if (hs[k] === false) lines.push('{g}in plain sight of a foe here{/}');
       }
     }
@@ -1600,6 +1609,9 @@
     if (u.seeInvisible) sen.push('sees the invisible');
     lines.push(sen.length ? '{c}' + sen.join(', ') + '{/}' : '{g}no darkvision: it sees by light{/}');
     var c = conds(u).trim(); if (c) lines.push(c);
+    // the one whose turn it is cannot see it (the dashed ring at its feet): say why -- the dark, the cloud, unseen (10-01b, the bond)
+    var Bq = D.battle, ah = Bq && Bq.active;
+    if (u.side === 'foe' && ah && ah.side === 'party' && !ah.guest && Bq.req && Bq.req.turn === ah) { var sw = D.magic.seeWhy(Bq, ah, u); if (!sw.ok) lines.push('{o}' + ah.name + ' cannot see it{/} {g}(' + (sw.why === 'dark' ? 'the dark' : sw.why) + '){/}'); }
     var w = 0; lines.forEach(function (l) { w = Math.max(w, D.textWidth(l)); });
     box(ctx, 6, 40, w + 28, lines.length * 9 + 8, u.side === 'foe' ? R('red', 3) : R('glow', 1));
     lines.forEach(function (l, k) { D.text(ctx, l, 12, 44 + k * 9, R('bone', 1)); });

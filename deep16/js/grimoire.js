@@ -69,9 +69,12 @@
   // ground a spell leaves (grease, vines, spikes): difficult, and what it does to those who enter it (M.stepInto) or end a turn on it
   M.groundAt = function (B, x, y) { return (B.grounds || []).filter(function (g) { return g.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };
   M.rough = function (B, x, y, u) {
-    if ((B.grounds || []).some(function (g) { return g.difficult && g.sq.some(function (q) { return q[0] === x && q[1] === y; }); })) return true; // (a spell's ground is magical: Land's Stride does not waive it -- the SRD gives it advantage on Entangle's save instead)
+    // (the Globe of Invulnerability, SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells" -- a square of a globe a
+    // spell was cast from outside of is no part of its ground; M.zoneGlobed. The brief leaned the other way: the cost stays. The SRD's sentence is plain)
+    var sqz = { x: x, y: y };
+    if ((B.grounds || []).some(function (g) { return g.difficult && g.sq.some(function (q) { return q[0] === x && q[1] === y; }) && !M.zoneGlobed(B, g, sqz); })) return true; // (a spell's ground is magical: Land's Stride does not waive it -- the SRD gives it advantage on Entangle's save instead)
     // the guardians' ring: half speed for the caster's foes inside it (SRD 5.1 Spirit Guardians)
-    return (B.auras || []).some(function (a) { var c = B.units.filter(function (w) { return w.id === a.by; })[0]; return c && u && G.hostile(c, u) && Math.max(Math.abs(x - c.x), Math.abs(y - c.y)) * 5 <= a.r; });
+    return (B.auras || []).some(function (a) { var c = B.units.filter(function (w) { return w.id === a.by; })[0]; return c && u && G.hostile(c, u) && Math.max(Math.abs(x - c.x), Math.abs(y - c.y)) * 5 <= a.r && !M.zoneGlobed(B, a, sqz); });
   };
   function removeGround(B, rec) { B.grounds = (B.grounds || []).filter(function (g) { return g !== rec; }); }
 
@@ -170,6 +173,7 @@
       if (!c || !G.hostile(c, u) || u.hp <= 0 || u.dead || G.dist(c, u) > a.r) return;
       if (u.turn && u.turn['aura' + a.by]) return;
       if (u.turn) u.turn['aura' + a.by] = true;
+      if (M.zoneShut(B, a, u, how + ' in the spirits\' ring')) return; // (the Globe of Invulnerability: cast from outside it, the ring does nothing to one inside)
       var r = D.roll(a.dice), sv = RU.save(u, 'wis', a.dc), d = sv.ok ? Math.floor(r.total / 2) : r.total;
       FX.sparkle(u, a.ramp || 'bone', 12);
       B.card([Nm(B, u) + ' ' + how + ' in the spirits\' ring: WIS ' + RU.saveText(sv) + ' vs DC ' + a.dc + '  ' + a.dice + ' ' + RU.fmtRolls(r.rolls) + ' -> {r}' + d + '{/} ' + a.type], 300);
@@ -181,13 +185,14 @@
     var stop = false;
     M.groundAt(B, u.x, u.y).forEach(function (g) {
       if (g.kind === 'grease' && !u.conds.prone && slip(B, u, g, 'steps onto the grease')) stop = true;
-      if (g.kind === 'spikes') { var r = D.roll('2d4'); FX.float('spikes', u, D.PAL.ramps.moss[2]); B.card([Nm(B, u) + ' in the spikes: 2d4 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} piercing'], 160); B.hurt(u, r.total, 'piercing'); }
+      if (g.kind === 'spikes' && !M.zoneShut(B, g, u, 'in the spikes')) { var r = D.roll('2d4'); FX.float('spikes', u, D.PAL.ramps.moss[2]); B.card([Nm(B, u) + ' in the spikes: 2d4 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} piercing'], 160); B.hurt(u, r.total, 'piercing'); }
     });
     guardians(B, u, 'comes');
     return stop || u.hp <= 0;
   };
   function slip(B, u, g, how) {
     if (u.noProne || RU.immuneTo(u, 'prone') || u.conds.prone) return false;
+    if (M.zoneShut(B, g, u, how)) return false; // (inside a globe the grease was cast from outside of: nothing to slip on)
     var sv = RU.save(u, 'dex', g.dc);
     B.card([Nm(B, u) + ' ' + how + ': DEX ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}keeps their feet{/}' : '{o}down{/}')], 240);
     if (!sv.ok) u.conds.prone = true;
@@ -478,7 +483,10 @@
   };
   E.longstrider = {
     summary: function () { return 'touch · +10 ft speed for the fight'; },
-    cast: function* (B, u, t, slot, head) { if (!t.conds.longstrider) { t.conds.longstrider = true; t.speed += 10; if (t.turn && t === u) t.turn.move += 10; } B.card([head + ' on ' + t.name + ': {c}+10 ft{/} of stride.']); yield 16; },
+    // (10-01, Griz: "Yes to Longstriding Hastened Globe runners": the +10 ft is the speed's, and stands -- but a dancer "must use all its movement to dance
+    // without leaving its space" and a restrained creature's "speed becomes 0, and it can't benefit from any bonus to its speed" (SRD 5.1), so cast on the
+    // caster's own turn it hands such a one no feet to walk this turn, as Expeditious Retreat's Dash above hands none)
+    cast: function* (B, u, t, slot, head) { var held = t.conds.restrained || t.conds.dancing; if (!t.conds.longstrider) { t.conds.longstrider = true; t.speed += 10; if (t.turn && t === u && !held) t.turn.move += 10; } B.card([head + ' on ' + t.name + ': {c}+10 ft{/} of stride.' + (held && t === u ? '  {g}' + (t.conds.dancing ? 'Dancing in place: no move to add it to.' : 'Held fast: a bonus to speed is no use at a speed of 0.') + '{/}' : '')]); yield 16; },
     ai: function () { return null; }
   };
   E.sanctuary = {
@@ -856,7 +864,9 @@
   };
   E.haste = {
     summary: function () { return 'a willing creature within 30 ft · +2 AC, advantage on DEX saves, double speed, one more attack each turn; a lost turn when it ends (concentration)'; },
-    cast: function* (B, u, t, slot, head) { t.conds.hasted = { by: u.id }; if (t.turn && t === u) { t.turn.move += t.speed; t.turn.hasteAction = 1; } FX.sparkle(t, 'glow', 20); M.concentrate(B, u, 'haste', 'Haste', function () { if (t.conds.hasted) { delete t.conds.hasted; if (!t.dead && t.hp > 0) t.conds.lethargic = true; } }); B.card([head + ' on ' + t.name + ': the world slows round them (+2 AC, double speed, an attack more; concentration).']); yield 20; },
+    // (the doubled speed on the casting turn is movement a dancer ("must use all its movement to dance without leaving its space") or a restrained creature
+    // ("speed becomes 0, and it can't benefit from any bonus to its speed") does not get; the extra action is theirs either way -- 10-01)
+    cast: function* (B, u, t, slot, head) { t.conds.hasted = { by: u.id }; if (t.turn && t === u) { if (!(t.conds.restrained || t.conds.dancing)) t.turn.move += t.speed; t.turn.hasteAction = 1; } FX.sparkle(t, 'glow', 20); M.concentrate(B, u, 'haste', 'Haste', function () { if (t.conds.hasted) { delete t.conds.hasted; if (!t.dead && t.hp > 0) t.conds.lethargic = true; } }); B.card([head + ' on ' + t.name + ': the world slows round them (+2 AC, double speed, an attack more; concentration).']); yield 20; },
     ai: function (B, u, e, slot, fs, allies) { if (u.conc) return null; var t = allies.filter(function (w) { return G.standing(w) && G.dist(u, w) <= 30 && !w.conds.hasted && typeof w.attacks === 'number'; }).sort(function (a, b) { return TX().dpr(b) - TX().dpr(a); })[0]; if (!t) return null; var sc = TX().dpr(t) / Math.max(1, t.attacksBase || 1) * 0.9 * 3 + 2; return { score: sc, t: t, keep: sc * 0.6 }; }
   };
   E.hypnoticpattern = {
@@ -899,7 +909,7 @@
       B.card([head + ': ' + (u.guardianText || 'spirits wheel out from him, a ring of them 15 ft round') + ' (concentration).'], 360);
       yield 30;
     },
-    ai: function (B, u, e, slot, fs) { if (u.conc) return null; var near = fs.filter(function (w) { return G.dist(u, w) <= 20 + u.turn.move; }), d = avg(more('3d8', Math.max(0, slot - 3))); if (!near.length) return null; var sc = near.reduce(function (s, w) { var pf = TX().pFail(w, 'wis', u.spellDC); return s + (pf * d + (1 - pf) * d / 2) * 2.2; }, 0); return { score: sc, t: u, keep: sc * 0.6 }; }
+    ai: function (B, u, e, slot, fs) { if (u.conc) return null; var near = fs.filter(function (w) { return G.dist(u, w) <= 20 + u.turn.move && !(M.globeShuts && M.globeShuts(B, u, e.g, w)); }), d = avg(more('3d8', Math.max(0, slot - 3))); if (!near.length) return null; var sc = near.reduce(function (s, w) { var pf = TX().pFail(w, 'wis', u.spellDC); return s + (pf * d + (1 - pf) * d / 2) * 2.2; }, 0); return { score: sc, t: u, keep: sc * 0.6 }; }
   };
   E.vampirictouch = {
     geo: function (B, u, g) { return u.conc && u.conc.id === 'vampirictouch' ? Object.assign({}, g, { free: true, again: true }) : null; },
@@ -943,11 +953,14 @@
     if (!G.standing(w)) return;
     var key = B.round + ':' + (B.active ? B.active.id : '-');
     if (!every) { if (z.hit[w.id] === key) return; z.hit[w.id] = key; }
+    if (M.zoneShut(B, z, w, how)) return; // (the Globe of Invulnerability: the beam and the sphere were cast from outside it)
     var r = D.roll(z.dice), sv = RU.save(w, z.save, z.dc), d = sv.ok ? Math.floor(r.total / 2) : r.total;
     FX.sparkle(w, z.id === 'moonbeam' ? 'bone' : 'fire', 12);
     B.card([Nm(B, w) + ' ' + how + ': ' + z.save.toUpperCase() + ' ' + RU.saveText(sv) + ' vs DC ' + z.dc + '  ' + z.dice + ' ' + RU.fmtRolls(r.rolls) + ' -> {r}' + d + '{/} ' + z.type], 300);
     B.hurt(w, d, z.type);
   }
+  // (a creature inside a Globe of Invulnerability the spell is cast from outside of takes nothing from it: the AI counts it for nothing -- the other runner's M.globeShuts, js/magic.js)
+  function unshut(B, u, e, list) { return list.filter(function (w) { return !(M.globeShuts && M.globeShuts(B, u, e.g, w)); }); }
   function zoneWorth(B, u, z, caught, d) { var sc = 0; caught.forEach(function (w) { var pf = TX().pFail(w, z.save, u.spellDC), v = pf * d + (1 - pf) * d / 2; sc += G.hostile(u, w) ? TX().worth(v, w) : -1.5 * v; }); return sc; }
   function sphereLight(B, u) { return (B.lights || []).filter(function (l) { return l.id === 'sphere' + u.id; })[0]; }
   // the nearest free open square to a point (the sphere wants an unoccupied space)
@@ -987,7 +1000,7 @@
       var d = avg(z ? z.dice : dice(e.sp, u, slot)), zz = z || { save: 'con' };
       var b = TX().bestArea(B, u, Object.assign({}, e, { g: Object.assign({}, e.g, { shape: 'sphere', r: 5 }) }), fs, function (caught) { return zoneWorth(B, u, zz, caught, d); });
       if (!b || b.score <= 0) return null;
-      if (z) { if (Math.max(Math.abs(b.t.x - z.x), Math.abs(b.t.y - z.y)) > 12) return null; if (b.score <= zoneWorth(B, u, z, zoneCaught(B, z), d) + 1) return null; }
+      if (z) { if (Math.max(Math.abs(b.t.x - z.x), Math.abs(b.t.y - z.y)) > 12) return null; if (b.score <= zoneWorth(B, u, z, unshut(B, u, e, zoneCaught(B, z)), d) + 1) return null; }
       else { b.score *= 2.2; b.keep = b.score * 0.5; }
       return b;
     }
@@ -1028,13 +1041,14 @@
     },
     ai: function (B, u, e, slot, fs) {
       var z = zoneOf(B, u, 'flamingsphere'), d = avg(z ? z.dice : dice(e.sp, u, slot)), best = null, zz = z || { save: 'dex' };
+      fs = unshut(B, u, e, fs);
       if (!z) {
         if (u.conc) return null;
         fs.forEach(function (w) {
           if (G.dist(u, w) > 60 || !G.los(u, w).clear) return;
           for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
             var x = w.x + dx, y = w.y + dy, s = G.map.at(x, y); if ((!dx && !dy) || !s || !s.open || G.occupant(x, y) || G.dist(u, { x: x, y: y, size: 1 }) > 60) continue;
-            var near = B.units.filter(function (v) { return G.standing(v) && G.dist(v, { x: x, y: y, size: 1 }) <= 5; });
+            var near = unshut(B, u, e, B.units.filter(function (v) { return G.standing(v) && G.dist(v, { x: x, y: y, size: 1 }) <= 5; }));
             var sc = zoneWorth(B, u, zz, near, d) * 1.6;
             if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: { x: x, y: y }, keep: sc * 0.5 };
           }
@@ -1180,7 +1194,7 @@
   E.guardianoffaith = {
     summary: function () { return 'a guardian at a point within 30 ft · a foe coming within 10 ft of it, DEX or 20 radiant (half); gone after 60'; },
     cast: function* (B, u, t, slot, head, x) { B.wards = (B.wards || []).concat([{ by: u.id, x: t.x, y: t.y, dc: x.dc, left: 60 }]); FX.ring({ x: t.x, y: t.y, size: 1 }, 'gold', 50); B.card([head + ': a spectral guardian stands, halberd raised.']); yield 24; },
-    ai: function (B, u, e, slot, fs) { var t = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0]; if (!t || (B.wards || []).some(function (w) { return w.by === u.id; })) return null; var at = null, bd = 1e9; for (var yy = t.y - 2; yy <= t.y + 2; yy++) for (var xx = t.x - 2; xx <= t.x + 2; xx++) { var s = G.map.at(xx, yy); if (!s || !s.open || !M.inRange(u, e.g, xx, yy)) continue; var dd = Math.hypot(xx - t.x, yy - t.y); if (dd < bd) { bd = dd; at = { x: xx, y: yy }; } } return at ? { score: fs.filter(function (w) { return Math.max(Math.abs(w.x - at.x), Math.abs(w.y - at.y)) * 5 <= 10; }).length * 12 + 4, t: at } : null; }
+    ai: function (B, u, e, slot, fs) { fs = unshut(B, u, e, fs); var t = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0]; if (!t || (B.wards || []).some(function (w) { return w.by === u.id; })) return null; var at = null, bd = 1e9; for (var yy = t.y - 2; yy <= t.y + 2; yy++) for (var xx = t.x - 2; xx <= t.x + 2; xx++) { var s = G.map.at(xx, yy); if (!s || !s.open || !M.inRange(u, e.g, xx, yy)) continue; var dd = Math.hypot(xx - t.x, yy - t.y); if (dd < bd) { bd = dd; at = { x: xx, y: yy }; } } return at ? { score: fs.filter(function (w) { return Math.max(Math.abs(w.x - at.x), Math.abs(w.y - at.y)) * 5 <= 10; }).length * 12 + 4, t: at } : null; }
   };
   M.wardTurn = function (B, u) {
     (B.wards || []).forEach(function (wd) {
@@ -1188,6 +1202,7 @@
       if (!c || wd.left <= 0 || !G.hostile(c, u) || u.hp <= 0 || u.dead || Math.max(Math.abs(u.x - wd.x), Math.abs(u.y - wd.y)) * 5 > 10) return;
       if (u.turn && u.turn['ward' + wd.x + ',' + wd.y]) return;
       if (u.turn) u.turn['ward' + wd.x + ',' + wd.y] = true;
+      if (M.zoneShut(B, wd, u, 'comes within the guardian\'s reach')) return; // (the Globe of Invulnerability)
       var sv = RU.save(u, 'dex', wd.dc), n = Math.min(wd.left, sv.ok ? 10 : 20); wd.left -= n;
       B.card([Nm(B, u) + ' comes within the guardian\'s reach: DEX ' + RU.saveText(sv) + ' vs DC ' + wd.dc + '  {r}' + n + '{/} radiant' + (wd.left <= 0 ? '  {g}(the guardian is spent){/}' : '')], 300);
       B.hurt(u, n, 'radiant');
@@ -1409,7 +1424,7 @@
     }
   };
   function killAt(B, u) { return (B.darks || []).filter(function (d) { return d.kind === 'kill' && G.foot(u).some(function (p) { return d.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); }); }
-  function killHurt(B, u, d, what) { var sv = RU.save(u, 'con', d.dc, RU.vsPoison(u)), r = D.roll(d.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' ' + what + ': CON ' + RU.saveText(sv) + ' vs DC ' + d.dc + '  ' + d.dice + ' = {r}' + n + '{/} poison'], 240); B.hurt(u, n, 'poison'); }
+  function killHurt(B, u, d, what) { if (M.zoneShut(B, d, u, what)) return; var sv = RU.save(u, 'con', d.dc, RU.vsPoison(u)), r = D.roll(d.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' ' + what + ': CON ' + RU.saveText(sv) + ' vs DC ' + d.dc + '  ' + d.dice + ' = {r}' + n + '{/} poison'], 240); B.hurt(u, n, 'poison'); }
   var onStartK = M.onStart;
   M.onStart = function (B, u) {
     onStartK(B, u);
@@ -1564,6 +1579,7 @@
     M.wardTurn(B, u);
     (M.groundAt(B, u.x, u.y) || []).forEach(function (g) {
       if (g.kind !== 'tentacles' || u.hp <= 0 || u.dead) return;
+      if (M.zoneShut(B, g, u, 'starts its turn in the tentacles')) return; // (the Globe of Invulnerability)
       var r = u.conds.restrained;
       if (r && r.kind === 'tentacles') { var d0 = D.roll('3d6'); B.card([Nm(B, u) + ' is crushed by the tentacles  3d6 = {r}' + d0.total + '{/}'], 240); B.hurt(u, d0.total, 'bludgeoning'); }
       else if (!RU.immuneTo(u, 'restrained')) { var sv = RU.save(u, 'dex', g.dc); B.card([Nm(B, u) + ' in the tentacles: DEX ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}slips them{/}' : '{o}seized{/}')], 240); if (!sv.ok) { var d1 = D.roll('3d6'); B.hurt(u, d1.total, 'bludgeoning'); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; } }
@@ -1579,7 +1595,7 @@
     var ct = u.conds.contagion;
     if (ct && u.hp > 0 && !ct.held) { var s2 = RU.save(u, 'con', ct.dc); if (s2.ok) ct.good++; else ct.bad++; B.card([Nm(B, u) + ' fights the disease: CON ' + RU.saveText(s2) + '  ' + ct.bad + ' failed, ' + ct.good + ' saved'], 200); if (ct.good >= 3) { delete u.conds.contagion; if (u.conds.poisoned && u.conds.poisoned.contagion) delete u.conds.poisoned; } else if (ct.bad >= 3) { ct.held = true; u.conds.blinded = { by: 'contagion' }; B.card(['{o}The sickness takes ' + Nm(B, u) + '\'s sight.{/}'], 240); } }
     // Insect Plague: ending a turn in the locusts
-    (M.groundAt(B, u.x, u.y) || []).forEach(function (g) { if (g.kind !== 'insects' || u.hp <= 0) return; var sv3 = RU.save(u, 'con', g.dc), r3 = D.roll(g.dice), n3 = sv3.ok ? Math.floor(r3.total / 2) : r3.total; B.card([Nm(B, u) + ' in the locusts: CON ' + RU.saveText(sv3) + '  {r}' + n3 + '{/} piercing'], 200); B.hurt(u, n3, 'piercing'); });
+    (M.groundAt(B, u.x, u.y) || []).forEach(function (g) { if (g.kind !== 'insects' || u.hp <= 0 || M.zoneShut(B, g, u, 'ends its turn in the locusts')) return; var sv3 = RU.save(u, 'con', g.dc), r3 = D.roll(g.dice), n3 = sv3.ok ? Math.floor(r3.total / 2) : r3.total; B.card([Nm(B, u) + ' in the locusts: CON ' + RU.saveText(sv3) + '  {r}' + n3 + '{/} piercing'], 200); B.hurt(u, n3, 'piercing'); });
   };
   var stepD = M.stepInto;
   M.stepInto = function (B, u) {
@@ -1587,8 +1603,8 @@
     M.wardTurn(B, u);
     (M.groundAt(B, u.x, u.y) || []).forEach(function (g) {
       if (u.hp <= 0 || u.dead || !u.turn) return;
-      if (g.kind === 'insects' && !u.turn['bugs' + g.by]) { u.turn['bugs' + g.by] = true; var sv = RU.save(u, 'con', g.dc), r = D.roll(g.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' walks into the locusts: CON ' + RU.saveText(sv) + '  {r}' + n + '{/} piercing'], 200); B.hurt(u, n, 'piercing'); }
-      if (g.kind === 'tentacles' && !u.turn['tent' + g.by] && !(u.conds.restrained && u.conds.restrained.kind === 'tentacles') && !RU.immuneTo(u, 'restrained')) { u.turn['tent' + g.by] = true; var s2 = RU.save(u, 'dex', g.dc); B.card([Nm(B, u) + ' steps into the tentacles: DEX ' + RU.saveText(s2) + '  ' + (s2.ok ? '{n}slips them{/}' : '{o}seized{/}')], 240); if (!s2.ok) { var d2 = D.roll('3d6'); B.hurt(u, d2.total, 'bludgeoning'); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; stop = true; } }
+      if (g.kind === 'insects' && !u.turn['bugs' + g.by]) { u.turn['bugs' + g.by] = true; if (M.zoneShut(B, g, u, 'walks into the locusts')) return; var sv = RU.save(u, 'con', g.dc), r = D.roll(g.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' walks into the locusts: CON ' + RU.saveText(sv) + '  {r}' + n + '{/} piercing'], 200); B.hurt(u, n, 'piercing'); }
+      if (g.kind === 'tentacles' && !u.turn['tent' + g.by] && !(u.conds.restrained && u.conds.restrained.kind === 'tentacles') && !RU.immuneTo(u, 'restrained')) { u.turn['tent' + g.by] = true; if (M.zoneShut(B, g, u, 'steps into the tentacles')) return; var s2 = RU.save(u, 'dex', g.dc); B.card([Nm(B, u) + ' steps into the tentacles: DEX ' + RU.saveText(s2) + '  ' + (s2.ok ? '{n}slips them{/}' : '{o}seized{/}')], 240); if (!s2.ok) { var d2 = D.roll('3d6'); B.hurt(u, d2.total, 'bludgeoning'); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; stop = true; } }
     });
     return stop || u.hp <= 0;
   };
@@ -1671,22 +1687,50 @@
   };
   // Globe of Invulnerability (SRD 5.1): a 10-ft globe about the caster; a spell of 5th level or lower cast from outside does nothing to those in it
   E.globeofinvulnerability = {
-    summary: function (e) { return 'a 10-ft globe about you, fixed where cast · a spell of ' + (5 + Math.max(0, (e.slot || 6) - 6)) + 'th level or lower, even cast from a higher slot, does nothing to those inside, cast from outside it -- a save, an attack roll, a dart, a touch, a cantrip (the fog and walls it leaves are not kept out) (concentration)'; },
+    summary: function (e) { return 'a 10-ft globe about you, fixed where cast · a spell of ' + (5 + Math.max(0, (e.slot || 6) - 6)) + 'th level or lower, even cast from a higher slot, does nothing to those inside, cast from outside it -- a save, an attack roll, a dart, a touch, a cantrip -- and what it leaves behind: the ground, the clouds, the webs and the walls do nothing to those inside, and are no part of the globe\'s squares (the fog and the dark still hide) (concentration)'; },
     cast: function* (B, u, t, slot, head) { var rec = { by: u.id, x: u.x, y: u.y, max: 5 + up({ level: 6 }, slot) }; B.globes = (B.globes || []).concat([rec]); M.concentrate(B, u, 'globeofinvulnerability', 'Globe of Invulnerability', function () { B.globes = (B.globes || []).filter(function (g) { return g !== rec; }); }); FX.ring(u, 'glow', 50); B.card([head + ': a shimmering globe about ' + u.name + ' (concentration).']); yield 20; },
     ai: function (B, u, e, slot, fs) { if (u.conc) return null; var casters = fs.filter(function (w) { return (w.known || []).length && (w.slots || []).some(function (n) { return n > 0; }); }); return casters.length ? { score: casters.length * 10, t: u } : null; }
   };
   // what the barrier counts is the spell's own level, not the slot it was cast with (SRD 5.1: "even if the spell is cast using a higher level spell
   // slot"): the cast's level, B.castLevel, set by the M.cast wrapper just below; `level` is for a caller outside a cast (a reaction) or one that
   // knows no better (a spell that still passes its slot -- js/walls.js -- is read as the cast's); with neither it is taken as 5th
+  function globeShuts(B, from, w, lv) {
+    return (B.globes || []).some(function (g) { var inG = function (z) { return Math.max(Math.abs(z.x - g.x), Math.abs(z.y - g.y)) * 5 <= 10; }; return inG(w) && !inG(from) && lv <= g.max; });
+  }
   M.globed = function (B, caster, w, level) {
     var lv = B && B.castLevel != null ? B.castLevel : level != null ? level : 5;
-    return (B.globes || []).some(function (g) { var inG = function (z) { return Math.max(Math.abs(z.x - g.x), Math.abs(z.y - g.y)) * 5 <= 10; }; return inG(w) && !inG(caster) && lv <= g.max; });
+    return globeShuts(B, caster, w, lv);
   };
+  // the lasting zones a spell leaves (10-01, Griz: "Yes to ... Globe runners"): the grounds, the clouds, the webs, the walls, the ring of guardians, the
+  // beams and the guardian of faith -- whose effects land later, each turn or on entering. SRD 5.1: "Any spell of 5th level or lower cast from outside the
+  // barrier can't affect creatures or objects within it ... Similarly, the area within the barrier is excluded from the areas affected by such spells."
+  // So a zone carries where its caster stood when it was cast (`from`) and the spell's own level (`lv`) -- stamped by the M.cast wrapper below, not where
+  // the caster is now and not the slot -- and a creature (or a bare square { x, y }) inside a globe that point is outside of, of a cap the level fits, is
+  // not touched by it: no save, no damage, no condition; and the square is no part of the zone (no difficult ground, no wall body there). A globe raised
+  // after the zone was laid still shelters those inside it. Not read: the fog and the dark (B.darks sight -- js/light.js reads them), which stay
+  M.zoneGlobed = function (B, z, w) {
+    if (!B || !z || !w || !(B.globes || []).length) return false;
+    var from = z.from || (B.castFrom && B.castBy === z.by ? B.castFrom : null); // (a zone's own effect inside the cast that lays it -- Moonbeam's first beam -- before the stamp)
+    if (!from) return false;
+    return globeShuts(B, from, w, z.lv != null ? z.lv : B.castLevel != null ? B.castLevel : 5);
+  };
+  // the card's say, as the other Globe lines: `how` is what the creature did ('starts its turn in the poison fog'); true when it is shut out
+  M.zoneShut = function (B, z, w, how) {
+    if (!M.zoneGlobed(B, z, w)) return false;
+    B.card([Nm(B, w) + ' ' + how + ': {c}inside the globe: untouched{/}'], 200);
+    return true;
+  };
+  var ZONE_KEEPS = ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads'];
   var castG = M.cast;
   M.cast = function* (B, u, id, slot, t) {
-    var sp = M.data(id), prev = B.castLevel;
-    B.castLevel = sp && sp.level != null ? sp.level : null;
-    try { yield* castG.apply(this, arguments); } finally { B.castLevel = prev; }
+    var sp = M.data(id), prev = B.castLevel, prevFrom = B.castFrom, prevBy = B.castBy, before = {};
+    B.castLevel = sp && sp.level != null ? sp.level : null; B.castFrom = { x: u.x, y: u.y }; B.castBy = u.id;
+    ZONE_KEEPS.forEach(function (k) { before[k] = (B[k] || []).slice(); });
+    try { yield* castG.apply(this, arguments); } finally {
+      // what this cast laid, stamped where it was cast from and at what level (a record already stamped -- Moonbeam moved, the sphere rolled -- keeps its first)
+      ZONE_KEEPS.forEach(function (k) { (B[k] || []).forEach(function (z) { if (before[k].indexOf(z) < 0 && !z.from) { z.from = B.castFrom; z.lv = B.castLevel != null ? B.castLevel : 5; } }); });
+      B.castLevel = prev; B.castFrom = prevFrom; B.castBy = prevBy;
+    }
   };
   // Irresistible Dance (SRD 5.1): no first save. "A dancing creature must use all its movement to dance without leaving its space and has disadvantage
   // on Dexterity saving throws and attack rolls... other creatures have advantage on attack rolls against it. As an action, a dancing creature makes a
@@ -1779,14 +1823,14 @@
       var bd = (B.beads || []).filter(function (b) { return b.by === u.id; })[0];
       var at = bd ? { x: bd.x, y: bd.y } : null;
       if (!at) { var b0 = TX().bestArea(B, u, Object.assign({}, e, { g: Object.assign({}, e.g, { shape: 'sphere', r: 20 }) }), fs, function (caught) { return TX().areaWorth(B, u, Object.assign({}, e, { sp: Object.assign({}, e.sp, { dmg: '12d6', half: true, save: 'dex' }) }), 0, caught); }); return b0 ? { score: b0.score * 1.1, t: b0.t, keep: b0.score } : null; }
-      var caught = B.units.filter(function (w) { return G.standing(w) && Math.hypot(w.x - at.x, w.y - at.y) * 5 <= 20; });
+      var caught = unshut(B, u, e, B.units.filter(function (w) { return G.standing(w) && Math.hypot(w.x - at.x, w.y - at.y) * 5 <= 20; }));
       return { score: TX().areaWorth(B, u, Object.assign({}, e, { sp: Object.assign({}, e.sp, { dmg: (12 + bd.grown) + 'd6', half: true, save: 'dex' }) }), 0, caught) - 8, t: at };
     }
   };
   M.beadBurst = function (B, u, bd) {
     var sq = G.sphere(bd.x, bd.y, 20), list = caughtIn(B, sq), r = D.roll((12 + bd.grown) + 'd6'), lines = ['{o}The bead bursts!{/}  ' + (12 + bd.grown) + 'd6 = ' + r.total + ' fire  DEX DC ' + bd.dc];
     FX.bloom(bd.x, bd.y, sq, 'fire');
-    list.forEach(function (w) { var sv = RU.save(w, 'dex', bd.dc, false, null, r.total), n = sv.ok ? Math.floor(r.total / 2) : r.total; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' -> {r}' + n + '{/}'); B.hurt(w, n, 'fire'); });
+    list.forEach(function (w) { if (M.zoneGlobed(B, bd, w)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', bd.dc, false, null, r.total), n = sv.ok ? Math.floor(r.total / 2) : r.total; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' -> {r}' + n + '{/}'); B.hurt(w, n, 'fire'); }); // (the Globe of Invulnerability: the bead was cast from outside it)
     B.card(lines.slice(0, 8), 420);
     B.beads = (B.beads || []).filter(function (b) { return b !== bd; });
   };
@@ -1906,7 +1950,7 @@
       hits.forEach(function (h) { B.hurt(h[0], h[1], 'fire'); if (!h[0].dead) B.hurt(h[0], h[2], 'bludgeoning'); });
       yield 30;
     },
-    ai: function (B, u, e, slot, fs) { var sc = 0; B.units.forEach(function (w) { if (!G.standing(w)) return; sc += (G.hostile(u, w) ? 1 : -1.5) * TX().worth(70 * 0.7, w); }); var t = fs[0]; return t && sc > 0 ? { score: sc, t: { x: t.x, y: t.y } } : null; }
+    ai: function (B, u, e, slot, fs) { var sc = 0; B.units.forEach(function (w) { if (!G.standing(w) || M.globeShuts(B, u, e.g, w)) return; sc += (G.hostile(u, w) ? 1 : -1.5) * TX().worth(70 * 0.7, w); }); var t = fs[0]; return t && sc > 0 ? { score: sc, t: { x: t.x, y: t.y } } : null; }
   };
   E.powerwordkill = {
     summary: function () { return 'a creature within 60 ft · no save: dropped if it has 100 HP or fewer'; },
@@ -1929,6 +1973,7 @@
     (B.beads || []).forEach(function (b) { if (b.by === u.id && b.grown < 10) b.grown++; });
     (M.groundAt(B, u.x, u.y) || []).forEach(function (g) {
       if (g.kind !== 'quake' || u.hp <= 0) return;
+      if (M.zoneShut(B, g, u, 'starts its turn in the quake')) return; // (the Globe of Invulnerability)
       if (!u.conds.prone && !u.noProne) { var sv = RU.save(u, 'dex', g.dc); if (!sv.ok) { u.conds.prone = true; B.card([Nm(B, u) + ' is thrown down by the quake.'], 200); } }
       if (u.conc && u.conc.id !== 'earthquake') { var s2 = RU.save(u, 'con', g.dc); if (!s2.ok) M.endConc(B, u, 'the quake'); }
     });
@@ -1950,7 +1995,7 @@
       var c = B.units.filter(function (w) { return w.id === g.by; })[0]; if (!c || !G.hostile(c, u)) return;
       g.fired = true; B.grounds = B.grounds.filter(function (x) { return x !== g; });
       var lines = ['{y}The glyph flares!{/}  WIS DC ' + g.dc];
-      B.units.filter(function (w) { return G.hostile(c, w) && G.standing(w) && G.dist(u, w) <= 60; }).forEach(function (w) { var sv = RU.save(w, 'wis', g.dc); lines.push('  ' + Nm(B, w) + ': ' + (sv.ok ? '{n}steady{/}' : '{p}stunned{/}')); if (!sv.ok) w.conds.stunned = { by: g.by, dc: g.dc, pws: true }; });
+      B.units.filter(function (w) { return G.hostile(c, w) && G.standing(w) && G.dist(u, w) <= 60; }).forEach(function (w) { if (M.zoneGlobed(B, g, w)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'wis', g.dc); lines.push('  ' + Nm(B, w) + ': ' + (sv.ok ? '{n}steady{/}' : '{p}stunned{/}')); if (!sv.ok) w.conds.stunned = { by: g.by, dc: g.dc, pws: true }; });
       B.card(lines.slice(0, 8), 360); stop = true;
     });
     return stop;

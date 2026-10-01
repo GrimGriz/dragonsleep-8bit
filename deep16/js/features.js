@@ -189,7 +189,7 @@
   // Step of the Wind (2; SRD 5.1): 1 ki, Disengage or Dash as a bonus action (the jump's doubling is not read: the grid has no jump)
   F.stepWind = function* (B, u, how) {
     var T = u.turn; T.bonus = 0; u.feats.ki--; FX.sparkle(u, 'silver', 12); D.sfx('run');
-    if (how === 'dash') T.move += u.speed; else T.disengaged = true;
+    if (how === 'dash') { if (!(u.conds.restrained || u.conds.dancing)) T.move += u.speed; } else T.disengaged = true; // (the buttons and the AI already refuse a held or dancing monk; this is the belt to their braces)
     B.card(['{y}' + Nm(B, u) + '{/}: STEP OF THE WIND  {g}(1 ki, ' + u.feats.ki + ' left: ' + (how === 'dash' ? 'Dash, +' + u.speed + ' ft' : 'Disengage: leaving reach provokes nothing') + ', as a bonus action){/}'], 200); yield 12;
   };
   // a square within its move where fewer foes stand beside it (the way out of a crowd)
@@ -410,7 +410,7 @@
     u.saves = Object.assign({}, sv0, { str: d.saves ? d.saves.str : D.mod(d.abil.str), dex: d.saves ? d.saves.dex : D.mod(d.abil.dex), con: d.saves ? d.saves.con : D.mod(d.abil.con) });
     if (d.blindsight) u.blindsight = Math.max(u.blindsight || 0, d.blindsight);
     u.flies = !!(shp && shp.flies);
-    u.turn.move = Math.max(u.turn.move, d.speed - (u.keep0 || 0));
+    if (!(u.conds.restrained || u.conds.dancing)) u.turn.move = Math.max(u.turn.move, d.speed - (u.keep0 || 0)); // (a beast's stride is no use to a druid held fast -- speed 0 -- or dancing in place: SRD 5.1, Restrained; Irresistible Dance)
     FX.sparkle(u, 'moss', 24); D.sfx('buff');
     B.card(['{y}' + Nm(B, u) + '{/}: WILD SHAPE -- a ' + d.name.toLowerCase() + ' where the druid stood  {g}(' + d.hp + ' HP of its own){/}'], 300);
     yield 24;

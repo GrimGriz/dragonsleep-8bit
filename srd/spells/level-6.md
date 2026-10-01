@@ -250,7 +250,7 @@ At Higher Levels. When you cast this spell using a spell slot of 7th level or hi
 
 *6th-level abjuration*
 
-> **The game:** A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from: save spells, spell attacks, darts, touches and cantrips alike (the card says so). Not built: the fog, ground and walls a spell leaves are not kept out of the globe; nothing weighs the globe when choosing a target, so a foe may waste a spell on it.
+> **The game:** A 10-ft globe about you, fixed where cast (concentration, 10 rounds): a spell of 5th level or lower (one more per slot above 6th), cast from outside, does nothing to those inside, whatever slot it came from: save spells, spell attacks, darts, touches and cantrips alike, and what a spell leaves behind: its clouds, webs, ground and walls (Cloudkill, Stinking Cloud, Web, Grease, Spike Growth, Sleet Storm, Moonbeam, Wall of Fire, Spirit Guardians and the rest) do nothing to those inside, wherever the caster has moved since, and the globe's squares are no part of their area (no difficult ground, no wall there); raised after the zone was laid, it shelters those inside all the same (the card says so). The AI and the player's picker pass a globed target by (the click says why: inside the globe). Not built: the fog and the dark still hide what is inside.
 
 **Casting Time:** 1 action
 

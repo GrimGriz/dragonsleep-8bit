@@ -154,7 +154,12 @@
       var ev = (M.EFFECT && M.EFFECT[e.id] && M.EFFECT[e.id].ai) || TX.EVAL[e.id] || TX.EVAL['shape:' + e.g.shape];
       if (!ev) return;
       var slot = slotOf(e), best = null;
-      try { best = ev(B, u, e, slot, fs, allies); } catch (err) { if (D.lastError == null) D.lastError = err; best = null; }
+      // the Globe of Invulnerability (SRD 5.1; js/grimoire.js M.globed): a creature inside one it is outside of is no candidate for a spell of the globe's level or
+      // lower -- not a victim among the foes (a spell that takes a creature: the areas keep every foe as a place to aim, and TX.bestArea drops the shut ones from
+      // what an area catches), not an ally to buff or heal -- or the slot is spent on nothing (10-01, Griz: "Yes to Longstriding Hastened Globe runners")
+      var takes = /^(single|attack|rays|darts|splash|touch|allies)$/.test(e.g.shape) && e.g.side !== 'ally' && (e.g.shape !== 'allies' || e.g.side === 'foe'); // (the foes are victims here -- not where they are only the threat a buff weighs)
+      var fsE = takes ? fs.filter(function (w) { return !M.globeShuts(B, u, e.g, w); }) : fs, alE = allies.filter(function (w) { return !M.globeShuts(B, u, e.g, w); });
+      try { best = ev(B, u, e, slot, fsE, alE); } catch (err) { if (D.lastError == null) D.lastError = err; best = null; }
       if (!best) return;
       if (D.features && D.features.metaPlan) D.features.metaPlan(B, u, e, slot, best, ev, fs, allies); // (a sorcerer's metamagic on the plan, even one its friends spoil without it: js/features.js)
       if (!(best.score > 0)) return;
@@ -248,7 +253,9 @@
       var k = p[0] + ',' + p[1]; if (tried[k]) return; tried[k] = 1;
       var sq = M.area(u, g, p[0], p[1]);
       if (!sq.length) return;
-      var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq); });
+      // (a creature inside a Globe of Invulnerability that the spell's level cannot cross counts for nothing in the score -- not a foe hit, not a friend spared
+      // the blast: the spell does nothing to it, M.globed, js/grimoire.js)
+      var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq) && !M.globeShuts(B, u, g, w); });
       if (!caught.some(function (w) { return G.hostile(u, w); })) return;
       var sc = weigh(caught, sq);
       if (!best || sc > best.score) best = { score: sc, t: { x: p[0], y: p[1] }, caught: caught };

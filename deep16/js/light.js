@@ -152,14 +152,17 @@
   L.partyMap = function (B) {
     if (!B || !B.dark) return null;
     var lm = L.map(B), m = B.map;
-    var eyes = B.units.filter(function (u) { return u.side === 'party' && G.standing(u) && !u.left && (u.darkvision || u.blindsight || u.truesight); });
-    var k = lm.k + '|' + eyes.map(function (u) { return u.id + u.x + ',' + u.y + (u.darkvision || 0) + (u.blindsight || 0) + (u.truesight || 0); }).join(';');
+    // (10-01b: a lit square is seen when one of ours has a line to it -- what the party knows, not every lit square on the map: a torch
+    // round a corner no longer lights that room for the player. Griz, of it: "Good catch")
+    var all = B.units.filter(function (u) { return u.side === 'party' && G.standing(u) && !u.left && !(u.conds && u.conds.blinded); });
+    var eyes = all.filter(function (u) { return u.darkvision || u.blindsight || u.truesight; });
+    var k = lm.k + '|' + all.map(function (u) { return u.id + u.x + ',' + u.y + (u.darkvision || 0) + (u.blindsight || 0) + (u.truesight || 0); }).join(';');
     if (B.partyMap && B.partyMap.k === k) return B.partyMap;
     var out = new Array(m.w * m.h);
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) {
       var i = y * m.w + x, s = m.sq[i];
       if (!s.open) { out[i] = 0; continue; }
-      var v = lm.lv[i] ? 2 : 0;
+      var v = lm.lv[i] && all.some(function (u) { return G.losPoint(u.x, u.y, x, y); }) ? 2 : 0;
       if (!v) for (var e = 0; e < eyes.length; e++) {
         var u = eyes[e], r = Math.max(u.darkvision || 0, u.blindsight || 0, u.truesight || 0);
         if (G.dist(u, { x: x, y: y, size: 1 }) <= r && G.losPoint(u.x, u.y, x, y)) { v = 1; break; }
@@ -336,14 +339,19 @@
     // player vision filter on dark map (i.e. bat familiar sonar sight filter unless light on map)"), the hero whose turn it is -- the same
     // view either way (10-01b, Griz: "the hover should be the same. when you mouseover someone in your party you should see things how they
     // do on their turn. the too much on her turn is still an active fix though")
-    var a = B.active, own = a && a.side === 'party' && !a.guest && G.standing(a) && !lights.length ? a : null;
-    var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : own, pm = va ? L.viewMap(B, va) : L.partyMap(B);
+    // 10-01b, the bond (Griz: "make sure that in lit rooms ... the party is still getting the dark vision of characters outside the range
+    // of the light... (the characters telepathic bond resulting from being played by a single human)" -- then, of the three ways, "yes 3"):
+    // every turn draws what the party sees together, lit or not -- the 09-30 own-eyes filter in a room with no light is gone -- and the one
+    // whose turn it is keeps its own senses on top (the sonar, the tongue); the mouse on one of ours still shows the dark by that one's eyes
+    var a = B.active, own = a && a.side === 'party' && !a.guest && G.standing(a) ? a : null;
+    var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : null, pm = va ? L.viewMap(B, va) : L.partyMap(B);
     B.eyes = va; // (whose eyes these are: ui.js names them over the tooltip)
     ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#7c7c84';
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
     ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = va ? 'rgba(4,4,12,0.62)' : 'rgba(6,6,16,0.4)';
     for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2]) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
-    if (va) { if (va.sense === 'tongue') tongue(ctx, B, va, t, va.blindsight || 0); else sonar(ctx, B, va, t); if (va.senseHidden) tongue(ctx, B, va, t, va.senseHidden); }
+    var sn = va || own; // (whose senses ride on top: the hovered one's, else the one whose turn it is)
+    if (sn) { if (sn.sense === 'tongue') tongue(ctx, B, sn, t, sn.blindsight || 0); else sonar(ctx, B, sn, t); if (sn.senseHidden) tongue(ctx, B, sn, t, sn.senseHidden); }
     ctx.restore();
   };
   // the tongue (10-01b, Griz: "Talk to me about the snake vs other familiars. Are we giving it's tongue-smell nearby detection like the bats?
