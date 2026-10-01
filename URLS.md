@@ -79,6 +79,10 @@ Examples:
   - [`deep16/?fxgallery&spell=hideouslaughter&foe=hyena`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?fxgallery&spell=hideouslaughter&foe=hyena): E casts it again.
   - [`deep16/?npc=hyena,hyena,hyena&vs=bard&lvl=3`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?npc=hyena,hyena,hyena&vs=bard&lvl=3): you cast it yourself, and hear the turn-start cackle as the hyenas' turns come round.
 
+- **The clacker (10-01):**
+  - [`deep16/?npc=clacker,clacker&lvl=4`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?npc=clacker,clacker&lvl=4): two clackers against our four at level 4; each clacks its hooks as its turn begins.
+  - [`deep16/?fxgallery&foe=clacker`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?fxgallery&foe=clacker): every spell, cast at three of them.
+
 ## Pages beside the game
 
 - [`test-runs.html`](https://grimgriz.github.io/dragonsleep-8bit/test-runs.html): **new 10-01**, builds any URL on this page (the class floor's foes row by row, the galleries' picks, the situations), with LIVE / LOCAL, copy, open, and a RECENT list. Its pick-lists are read live from the game's files.

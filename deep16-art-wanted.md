@@ -24,8 +24,9 @@ how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop wha
 | the owls, brown and snowy (Find Familiar) | 2 each | `tools/owl-sheet.py` | 09-29 |
 | the giant boar | 1 of 2 ("WILD BOAR ... (1/2) - MOVEMENT & CORE"; it replaces the stand-in bull that charged backwards) | `tools/boar-sheet.py` | 09-30 |
 | **the landlord's five pictures** (the Wet's telepathy: the bucket, the fall, the crook, the clackers, the chimney) | 5 stills, his from `dev/visions/` | `tools/visions.py` | 10-01 |
+| **the clacker** (the realm's hook horror; the Q2 head below) | 1: idle, walk, hook, clack, climb (not used), hurt, death | `tools/clacker-sheet.py` | 10-01 |
 
-Still wanted below: seven creatures (the roper first). And, LATER, the clackers themselves (the last section): the landlord has shown them; nothing in the game fights as one yet.
+Still wanted below: seven creatures (the roper first).
 
 What the cutter needs from a sheet (the gnoll sheets were right): a turnaround of stills (front, right, back, left), then rows of frames all facing right in side view; every frame apart from its neighbours; one scale for the whole sheet. Colour needn't be exact: every sheet is regraded and snapped to DEEP16's 64 colours. (The boar sheet drew its lower rows smaller than its walk; the cutter evens that out, but one scale is still best.)
 
@@ -139,9 +140,9 @@ Each wants the same shape; a head drafted when its day comes. Worst fits first:
 
 ---
 
-## LATER: the clackers (the landlord's picture made flesh; asked 10-01)
+## The clackers (the landlord's picture made flesh; asked 10-01; the sheet IN HAND 10-01)
 
-Griz, 10-01: *"we're going to need an art-prompt description of the clackers it has envisioned to hope for something close when we eventually model it, try make one of those in blender so we have it later"*. The look below is read off the landlord's picture (`dev/visions/the-clackers.jpg`, the fourth it sends when fed) and the wiki's clacker cavern (`TarlynsPit/wiki/the-warrens.md`: a hook horror colony crowning the crook; the clacking is their language). The game never names them. Nothing fights as one yet, so neither prompt is due; they wait for the day the crook opens.
+Griz, 10-01: *"we're going to need an art-prompt description of the clackers it has envisioned to hope for something close when we eventually model it, try make one of those in blender so we have it later"*, and the same night, *"I had a problem with the 'later' on the clacker and there's a 16 bit animation sheet available for review"*: he ran Q2, and the sheet is on the grid (IN HAND above; `?npc=clacker` fields it, a block of our own in `deep16/data/foes.js` and `invented.json#clacker`, clacking its hooks at the start of each turn). The look below is read off the landlord's picture (`dev/visions/the-clackers.jpg`, the fourth it sends when fed) and the wiki's clacker cavern (`TarlynsPit/wiki/the-warrens.md`: a hook horror colony crowning the crook; the clacking is their language). The game never names them. Q1 (the model sheet) is still welcome for the Blender model below.
 
 **The look, in words (for any prompt, any tool):** a hook horror. Tall and hunched, about nine feet if it ever straightened, its back bowed so the head hangs forward below the line of the shoulders. A small vulture's head on a thick neck: a long down-curved beak, pale bone, hooked at the tip; two small round yellow eyes set close above the beak's root; no ears, no crest. The whole body sheathed in small overlapping plates like cobblestones or old scales, dark green-grey, lighter on the ridges and black in the seams; a heavy chest and shoulders, a narrow waist. No hands: each long forearm ends in one huge curved hook of pale ivory bone, longer than the forearm, smooth and worn bright on its inner edge. At rest the hooks are carried raised and folded back, so they rise above the shoulders and curl forward over the head like a pair of scythes. Long bent legs, clawed feet, a stalking gait. The only colours are the grey-green hide, the bone of the beak and hooks, and the yellow of the eyes. It talks by striking its hooks together: clack, clack.
 

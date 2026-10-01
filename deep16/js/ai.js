@@ -48,6 +48,11 @@
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal) B.focus(u);
+    // the clacker strikes its hooks together as its turn begins, the clacking that is their speech (10-01, Griz's sheet's CLACK row;
+    // data/foes.js clacker): the row plays once (js/ui.js), a clack on each strike, then the turn
+    if (u.kind && D.FOES[u.kind] && D.FOES[u.kind].clacks && !u.conds.banished) {
+      u.anim = 'clack'; u.animT = B.t; yield 12; D.sfx('clack'); yield 12; D.sfx('clack'); yield 12; u.anim = 'idle';
+    }
     // banished, or sealed in a sphere (js/grimoire.js): no turn here
     if (u.conds.banished) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is not here.{/}'], 160); yield 16; D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // confused (Confusion): the d10 may take the turn

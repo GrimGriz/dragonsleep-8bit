@@ -669,5 +669,17 @@
     attacks: { bites: { name: 'Bites', atk: 3, dice: '4d4', halfHP: '2d4', mod: 0, type: 'piercing', reach: 5 } },
     multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'],
     src: 'SRD 5.1 Swarm of Insects (CR 1/2); content/monsters.json insectswarm (the Glowseep)', todo: 'sharing a creature\'s space is not read'
+  },
+  // the clacker (10-01): the realm's hook horror, the colony crowning the crook (TarlynsPit/wiki/the-warrens.md, the clacker cavern;
+  // the landlord's fourth picture). Not an SRD creature, so the block is ours, drafted from SRD pieces at a Large monstrosity's CR 3:
+  // two long hooks (reach 10), sight by echo (blindsight 60, no eyes worth the name in the dark), a hide like cobbles. Griz's sheet
+  // (tools/clacker-sheet.py). At the start of each of its turns it strikes its hooks together, the clacking that is their speech (js/ai.js)
+  clacker: {
+    name: 'Clacker', type: 'monstrosity', sheet: 'clacker_p1', cr: '3', ac: 15, hp: 68, speed: 30, size: 2, reach: 10, blindsight: 60,
+    abil: { str: 18, dex: 10, con: 14, int: 6, wis: 12, cha: 6 }, init: 0, perception: 13,
+    saves: { str: 4, dex: 0, con: 2, int: -2, wis: 1, cha: -2 },
+    attacks: { hook: { name: 'Hook', atk: 6, dice: '1d10', mod: 4, type: 'piercing', reach: 10 } },
+    multi: 2, clacks: true,
+    src: 'ours (10-01, invented.json clacker): the realm\'s hook horror, a block of our own from SRD pieces (CR 3, Large); Griz\'s sheet', todo: 'its climb is not read (no walls to climb on the grid)'
   }
 };
