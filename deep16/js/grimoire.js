@@ -260,13 +260,33 @@
   E.shillelagh = {
     summary: function () { return 'bonus action · your club or staff hits with WIS, a d8, magical, for a minute'; },
     list: function (B, u) { return !u.weapon || !/club|quarterstaff|staff/i.test(u.weapon.id || u.weapon.name) ? { why: 'no club or staff in hand' } : u.conds.shillelagh ? { why: 'the wood already glows' } : null; },
+    // the wood as the spell makes it (SRD 5.1: "you use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that
+    // weapon, and the weapon's damage die becomes a d8"; the druid is proficient with club and quarterstaff, so the proficiency is in): the cast makes it, and the
+    // AI's weighing (below) tries it on before it pays for it
+    wood: function (u) { var wm = D.mod(u.abil.wis); return Object.assign({}, u.weapon, { name: u.weapon.name + ' (shillelagh)', atk: wm + u.prof, dice: '1d8', mod: wm, magic: true }); },
     cast: function* (B, u, t, slot, head) {
-      var R = window.DS.R, wm = D.mod(u.abil.wis), w = Object.assign({}, u.weapon, { name: u.weapon.name + ' (shillelagh)', atk: wm + u.prof, dice: '1d8', mod: wm, magic: true });
+      var R = window.DS.R, wm = D.mod(u.abil.wis), w = E.shillelagh.wood(u);
       u.conds.shillelagh = { base: u.weapon }; u.weapon = w; FX.sparkle(u, 'moss', 14);
-      M.expire(B, u, 'shillelagh', function () { if (u.conds.shillelagh) { u.weapon = u.conds.shillelagh.base; delete u.conds.shillelagh; B.card(['{g}' + Nm(B, u) + '\'s wood goes back to wood: Shillelagh ends.{/}'], 200); } }); // (SRD 5.1: 1 minute -- it had no end at all; 10-01b, the same sweep)
+      M.expire(B, u, 'shillelagh', function () { if (u.conds.shillelagh) { if (u.beast && u.beast.keep) u.beast.keep.weapon = u.conds.shillelagh.base; else u.weapon = u.conds.shillelagh.base; delete u.conds.shillelagh; /* (a druid in a beast's shape has the bite in hand: the plain wood goes back to the shape it comes out of) */ B.card(['{g}' + Nm(B, u) + '\'s wood goes back to wood: Shillelagh ends.{/}'], 200); } }); // (SRD 5.1: 1 minute -- it had no end at all; 10-01b, the same sweep)
       B.card([head + ': the wood swells with green life -- {c}+' + w.atk + ' to hit, 1d8' + RU.sign(wm) + '{/}, magical.']); yield 20;
     },
-    ai: function (B, u, e) { return B.round <= 2 ? { score: 4, t: u } : null; }
+    // the AI (10-01c, Griz: "no shillelagh then smacking? can we suggest that to the ai and run the numbers?"): a bonus action that goes with the swing, weighed as the
+    // swing is -- by what the action would be worth with it and without. The best plan as the turn stands, against the best with the wood tried on (a swing from where it
+    // can walk to; and no levelled spell after it: SRD 5.1, "a spell as a bonus action ... you can't cast another spell during the same turn, except a cantrip with a
+    // casting time of 1 action" -- M.list greys them while T.bonusSpell). A Moonbeam to hold or a Conjure to call is the best plan with the wood as without it, and the
+    // wood stays plain; a foe within its walk that the club does more to than its cantrip does, it is lit and swung. (TX._shill: the weighing inside the weighing)
+    ai: function (B, u, e) {
+      var tx = TX(), T = u.turn;
+      if (tx._shill || !T || !T.action || T.attacksLeft || !u.weapon || u.conds.disarmed) return null;
+      var keep = u.weapon, keepB = T.bonusSpell, base = null, wood = null;
+      tx._shill = true;
+      try { base = tx.plans(B, u)[0]; u.weapon = E.shillelagh.wood(u); T.bonusSpell = true; wood = tx.plans(B, u)[0]; }
+      catch (err) { if (D.lastError == null) D.lastError = err; wood = null; }
+      finally { u.weapon = keep; T.bonusSpell = keepB; tx._shill = false; }
+      if (!wood || wood.kind !== 'weapon') return null;
+      var gain = wood.score - Math.max(0, base ? base.score : 0);
+      return gain > 0.5 ? { score: 2 + gain, t: u } : null;
+    }
   };
   E.shockinggrasp = {
     summary: function (e, u) { return 'touch: melee spell attack · ' + dice(e.sp, u, 0) + ' lightning, advantage on metal armour · no reactions for it after'; },
@@ -880,7 +900,7 @@
       if (t.conc && asks(t.conc)) M.endConc(B, t, 'dispelled');
       // (what a spell wrote on the creature itself is taken back with it -- 10-01b, the gallery's carry-over found the same miss here:
       // Longstrider's +10 ft stayed after its dispelling, and a creature dispelled while blinked out stayed in the Ethereal for good)
-      var UNDO = { longstrider: function () { t.speed -= 10; }, blink: function () { if (t.ethereal) t.ethereal = false; }, shillelagh: function () { t.weapon = t.conds.shillelagh.base; } };
+      var UNDO = { longstrider: function () { t.speed -= 10; }, blink: function () { if (t.ethereal) t.ethereal = false; }, shillelagh: function () { if (t.beast && t.beast.keep) t.beast.keep.weapon = t.conds.shillelagh.base; else t.weapon = t.conds.shillelagh.base; } }; // (a druid in a beast's shape keeps the bite: the plain wood goes back to the shape it comes out of -- as the expiry, 10-01c)
       ['mageArmor', 'sanctuary', 'wardingBond', 'longstrider', 'guided', 'noHeal', 'frosted', 'acid', 'blindedBy', 'blinded', 'commanded', 'marked', 'branded', 'poisonWard', 'resistance', 'blink', 'shillelagh'].forEach(function (k) { if (t.conds[k]) { if (k === 'blindedBy' || k === 'blinded') { if (!(t.conds.blinded && t.conds.blinded.held)) { delete t.conds.blinded; delete t.conds.blindedBy; ended.push('blindness'); } return; } if (k === 'mageArmor') t.baseAC = t.conds.mageArmor && t.conds.mageArmor.base != null ? t.conds.mageArmor.base : t.src ? window.DS.R.ac(Object.assign({}, t.src, { conds: {} })) : t.baseAC; if (UNDO[k]) UNDO[k](); delete t.conds[k]; ended.push(k); } }); // (Mage Armor's own record keeps the AC it was cast over -- magic.js; a monster's has no 8-bit sheet to ask)
       if (t.images) { t.images = 0; delete t.conds.mirrorImage; ended.push('the images'); }
       if (t.conds.falseLife) { if (t.temp && t.temp <= t.conds.falseLife.temp) t.temp = 0; delete t.conds.falseLife; ended.push('false life'); } // (its temporary HP go with it -- unless more came since from something else)
@@ -1717,7 +1737,7 @@
       var dc = x.dc, sleeps = !RU.immuneTo(t, 'asleep') && !t.fey;
       var how = sleeps && t.hp > 30 && TX().dpr(t) > 10 ? 'asleep' : G.dist(u, t) <= 10 ? 'panicked' : 'sickened';
       var failed = yield* saveAll(B, u, [t], 'wis', dc, null, '', false, head + ' on ' + nm(B, t), { against: how === 'panicked' ? 'frightened' : null, failText: how, cond: function (w) {
-        if (how === 'asleep') w.conds.asleep = { by: u.id, eyebite: true };
+        if (how === 'asleep') M.fallAsleep(B, w, { by: u.id, eyebite: true }); // (prone, the light set down: magic.js, 10-01c)
         else if (how === 'panicked') { w.conds.frightened = { by: u.id, eyebite: true }; w.conds.feared = { by: u.id, eyebite: true }; }
         else w.conds.sickened = { by: u.id, dc: dc, eyebite: true };
       } });
@@ -1884,7 +1904,7 @@
   // a record a globe holds off this creature now
   function idleRec(B, w, k, r) { if (!SHELF[k]) return false; var s = stampOf(B, k, r); return !!s && globeShuts(B, s.from, w, s.lv); }
   function unarmored(w) { try { if (w.src && window.DS && window.DS.R) return window.DS.R.ac(Object.assign({}, w.src, { conds: {} })); } catch (x) { /* (a sheet the 8-bit's rules can't read: the plain figure) */ } return 10 + D.mod(w.abil ? w.abil.dex : 10); }
-  function weaponOff(w, r, e) { if (r && r.base) { e.v = w.weapon; w.weapon = r.base; } }
+  function weaponOff(w, r, e) { if (r && r.base && !w.beast) { e.v = w.weapon; w.weapon = r.base; } } // (a druid in a beast's shape has the bite in hand, not the wood: nothing to take off -- the druid runner's find, 10-01c)
   function weaponOn(w, r, e) { if (e.v) w.weapon = e.v; }
   function sense(f) { return [function (w, r, e) { if (r && typeof r === 'object' && r.had != null) { e.v = w[f]; w[f] = r.had; } }, function (w, r, e) { if ('v' in e) w[f] = e.v; }]; }
   function regrow(w, r, e, k0) { if (k0 != null && D.spr && D.spr.regrow) D.spr.regrow(w, k0); }

@@ -75,8 +75,10 @@
     [rc.move, rc.dash || {}].forEach(function (m) {
       Object.keys(m).forEach(function (k) {
         var e = m[k]; if (!e.stand || rc.hide[k] != null) return;
-        var at = Object.create(u); at.x = e.x; at.y = e.y; // (she, standing there)
-        rc.hide[k] = foes.every(function (f) { return B.seenBy(f, at) < 2; });
+        // (she, standing there: moved there for the look and back -- a stand-in left her real body on her own square as cover, so the squares behind her
+        // tinted as hiding places a foe saw plainly; the rogue runner's find, 10-01c)
+        var ox = u.x, oy = u.y; u.x = e.x; u.y = e.y;
+        try { rc.hide[k] = foes.every(function (f) { return B.seenBy(f, u) < 2; }); } finally { u.x = ox; u.y = oy; }
       });
     });
     return rc.hide;
@@ -118,9 +120,17 @@
   // at 1; the ranger's Hunter's Mark, a bonus action, 67-73% from 5, the longbow its action); FRONT: the feature a martial opens or follows with, out of SKILLS
   // (the barbarian's RAGE; the monk's BONUS STRIKE / FLURRY OF BLOWS, its Unarmed Strike a third to two thirds of its turns). The fighter, the paladin and the rogue
   // swing first already (Greatsword 72-91%, Longsword 62-84%, Rapier 71-92%; the rogue's HIDE beside it)
-  var QUICK = { wizard: 'firebolt', sorcerer: 'firebolt', warlock: 'eldritchblast', druid: 'produceflame' };
-  var BESIDE = { cleric: 'sacredflame', bard: 'viciousmockery', ranger: 'huntersmark' };
+  var QUICK = { wizard: 'firebolt', sorcerer: 'firebolt', warlock: 'eldritchblast' };
+  var BESIDE = { cleric: 'sacredflame', bard: 'viciousmockery', ranger: 'huntersmark', druid: 'produceflame' }; // (the druid moved here from QUICK the same day: taught Shillelagh, it smacks with the staff on three turns in four at 1 -- the druid runner, 10-01c)
   var FRONT = { barbarian: 'rage', monk: 'flurry' };
+  // AGAIN: a spell up and used again -- the Spiritual Weapon's swing, a beam moved, Heat Metal's flare, the next bolt (e.g.again: js/magic.js M.list) -- on the
+  // first ring while it holds (10-01c, Griz: "how crowded is clerics first ring? it wouldn't appear until SW was cast but could be added on these grounds once it
+  // was cast"): the survey's cleric swings its weapon on three turns in four from 3 (a bonus action), the bard's flare and the druid's beam are the same kind
+  function againSpell(B, u) {
+    if (u.guest) return null;
+    var e = D.magic.list(B, u).filter(function (x) { return x.g && x.g.again; })[0];
+    return e ? Object.assign(e, { kind: 'spell', label: e.name.toUpperCase(), quick: true }) : null;
+  }
   function quickSpell(B, u, map) {
     var id = !u.guest && (map || QUICK)[u.cls], e = id && D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
     return e ? Object.assign(e, { kind: 'spell', label: e.name.toUpperCase(), quick: true }) : null;
@@ -134,8 +144,9 @@
     c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (fr && x.id === fr) { top.front = x; return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
     if (q2) top.beside = q2;
+    var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'beside', 'front', 'hide', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
@@ -359,7 +370,7 @@
       B.list = { kind: c.sub, items: items, sel: first }; B.ringB = null;
       return;
     }
-    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: pick a foe beside you; the next ally to swing at it has advantage.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); return; }
+    if (c.tool) { B.tool = c.tool; B.clearCards(); if (c.tool === 'help') B.card(['{g}HELP: a foe beside you -- the next ally to swing at it has advantage; or a friend beside you -- shake a sleeper awake, or a hand out of a web or a grip.{/}'], 200); if (c.tool === 'torch') B.card([D.keys('{g}THROW TORCH: a square within 20 ft you can see. It lands and burns there.  X back{/}')], 100000); return; }
     UI.command(B, u, { do: c.id });
   }
   function levelRing(B, u) {
@@ -429,7 +440,7 @@
       if (rc.dash && rc.dash[k] && rc.dash[k].stand) return 'far';
       return 'no';
     }
-    if (tool === 'help') return foe && G.dist(u, foe) <= 5 ? 'ok' : 'no';
+    if (tool === 'help') return (foe && G.dist(u, foe) <= 5) || D.Battle.helpable(u, w) ? 'ok' : 'no'; // (a friend beside you who needs a hand, too: 10-01c)
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
     if (tool === 'item') return B.itemTargetOK(u, B.itemId, w) ? 'ok' : 'no';
     if (tool === 'torch') return UI.throwSq(u, x, y) ? 'ok' : 'no';
@@ -462,7 +473,7 @@
       if (v === 'far') return UI.command(B, u, { do: 'dashmove', x: x, y: y });
       return;
     }
-    if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe }); return B.card(['{o}Help: pick a foe beside you.{/}'], 120); }
+    if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}Help: a foe beside you, or a friend beside you asleep or held fast.{/}'], 120); }
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
     if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w }); return B.card(['{o}Not a target for that.{/}'], 120); }
     if (tool === 'torch') { if (v === 'ok') return UI.command(B, u, { do: 'throwtorch', x: x, y: y }); return B.card(['{o}Throw it to a square within 20 ft you can see.{/}'], 120); }
@@ -1197,7 +1208,7 @@
         }
       }
     }
-    if (tool === 'help') B.units.forEach(function (w) { if (G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('bone', 2), 0.9); }); });
+    if (tool === 'help') B.units.forEach(function (w) { if ((G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5) || D.Battle.helpable(u, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('bone', 2) : R('moss', 3), 0.9); }); }); // (a friend to help: green)
     if (tool === 'lay') B.units.forEach(function (w) { if (w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9); }); });
     if (tool === 'item') B.units.forEach(function (w) { if (B.itemTargetOK(u, B.itemId, w)) G.foot(w).forEach(function (q) { lineSq(ctx, q[0], q[1], G.hostile(u, w) ? R('red', 4) : R('moss', 2), 0.9); }); });
     if (tool === 'spell') {

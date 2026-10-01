@@ -338,6 +338,8 @@
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
     // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
+    // one whose fall ends it (a guest the party swore to bring back: Corwen Dace in the deep gallery -- RULED 10-01c, Griz: "game over if the kid falls")
+    if (this.units.some(function (u) { return u.vital && u.side === 'party' && (u.dead || u.hp <= 0); })) return 'lost';
     // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27), or the rest
     // are still on their way out of the inn (this.reserve)
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
@@ -608,11 +610,16 @@
     // (inside the 8-bit game, only where its own battle had RUN: this.o.embed.canRun)
     if (this.onExit(u) && !(this.o.embed && this.o.embed.canRun === false)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in: a foe beside you gets its swing' });
     out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'attacks at you at disadvantage till your next turn' });
-    // Help (the attack kind) only with a foe beside you (Griz, 09-27)
-    if (this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5; }))
-      out.push({ id: 'help', label: 'HELP', cost: 'A', ok: T.action > 0 && !T.attacksLeft, tool: 'help', note: 'the next ally to swing at a foe beside you has advantage' });
+    // Help (the attack kind) only with a foe beside you (Griz, 09-27) -- and on a friend beside you who needs a hand (10-01c, Griz: "repurpose the help action to
+    // conditionally target allies as well as current target enemy"): a sleeper shaken awake (SRD 5.1 Sleep: "someone uses an action to shake or slap the sleeper
+    // awake"), one held in a web or a grip given advantage on its next check to get out (SRD 5.1 Help: "advantage on the next ability check it makes")
+    var helpFoe = this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && G.dist(u, w) <= 5; }), helpMate = this.units.some(function (w) { return Battle.helpable(u, w); });
+    if (helpFoe || helpMate)
+      out.push({ id: 'help', label: 'HELP', cost: 'A', ok: T.action > 0 && !T.attacksLeft, tool: 'help', note: helpFoe && helpMate ? 'a foe beside you: the next ally to swing at it has advantage; a friend beside you: wake a sleeper, a hand out of a web or a grip' : helpFoe ? 'the next ally to swing at a foe beside you has advantage' : 'a friend beside you: wake a sleeper, a hand out of a web or a grip' });
     return out;
   };
+  // a friend u may Help: beside it, asleep (shaken awake) or held in a web or a grip (advantage on its next check to get out)
+  Battle.helpable = function (u, w) { return !!(w && w !== u && !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.ethereal && G.dist(u, w) <= 5 && (w.conds.asleep || w.conds.restrained) && !w.conds.helpedCheck); };
 
   // ------------------------------------------------------------------ commands
   Battle.prototype.exec = function* (u, c) {
@@ -637,6 +644,7 @@
         return;
       }
       case 'cast': {
+        if (D.magic.data(c.id) && D.magic.data(c.id).kind !== 'buff') this.noteHeard(u); // (a spell at someone gives the square away too: 10-01c)
         yield* D.magic.cast(this, u, c.id, c.slot, c.target);
         if (u.conds.hidden && D.magic.data(c.id).kind !== 'buff') delete u.conds.hidden;
         if (!(c.id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights' && u.turn.bonusSpell === false)) this.endInvis(u, 'the spell'); // (Invisibility, Mislead: a spell cast ends it)
@@ -689,8 +697,15 @@
       }
       case 'dodge': D.sfx('bump'); T.action = 0; u.conds.dodge = true; this.card(['{y}' + u.name + '{/} dodges: attacks against at disadvantage till the next turn.']); return;
       case 'help': {
+        if (!c.target) return;
         D.sfx('buff');
         T.action = 0;
+        if (!G.hostile(u, c.target)) { // (a friend: 10-01c)
+          if (c.target.conds.asleep) { delete c.target.conds.asleep; FX.float('awake!', c.target, D.PAL.ramps.bone[2]); this.card(['{y}' + u.name + '{/} shakes ' + c.target.name + ' awake' + (c.target.conds.prone ? ' (still down: getting up costs half the move)' : '') + '.']); }
+          else { c.target.conds.helpedCheck = { by: u.id }; this.card(['{y}' + u.name + '{/} lends ' + c.target.name + ' a hand: advantage on the next check to get free.']); }
+          FX.sparkle(c.target, 'bone', 8);
+          return;
+        }
         c.target.conds.helped = { by: u.id, side: u.side };
         this.card(['{y}' + u.name + '{/} helps: the next ally to swing at the ' + shortName(c.target) + ' does it with advantage.']);
         FX.sparkle(c.target, 'bone', 8);
@@ -753,6 +768,11 @@
       if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } // (moved: what it has walked this turn -- the Thief's Supreme Sneak asks)
       this.keepInView(u);
       yield STEP_FRAMES;
+      // hidden no more (SRD 5.1: "You can't hide from a creature that can see you clearly"): one hidden who steps where a foe sees it clearly is found, and
+      // one hidden from the mover that the mover now sees clearly (10-01c, the rogue runner: she crossed 50 ft of lit floor hidden and struck with advantage)
+      var selfH = this;
+      if (u.conds.hidden && this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && selfH.seenBy(w, u) === 2; })) { delete u.conds.hidden; this.card(['{o}' + nameOf(u) + ' is in plain sight: no longer hidden.{/}'], 200); }
+      if (RU.canAct(u)) this.units.forEach(function (w) { if (w.conds.hidden && G.hostile(u, w) && G.standing(w) && selfH.seenBy(u, w) === 2) { delete w.conds.hidden; selfH.card(['{o}' + nameOf(u) + ' sees ' + nameOf(w) + ' plainly: found.{/}'], 200); } });
       // into a spell's web (from outside it): the SRD's save for one who enters it during its turn; stuck, it stops there
       if (!u.ethereal && !wasIn && D.magic.webCatch(this, u, 'enters')) { if (o && o.spend) T.move = 0; yield 24; break; }
       // onto a Sleet Storm's ice (the first square of it this turn): DEX or down, and the move ends there
@@ -778,6 +798,7 @@
   // ------------------------------------------------------------------ an attack: the roll, the reactions, the damage
   Battle.prototype.attack = function* (att, tgt, atk, o) {
     o = o || {};
+    if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     att.facing = faceTo(att, tgt);
@@ -1338,6 +1359,20 @@
   // a foe with a clear, coverless look at her sees her anyway
   // how well w sees u for hiding (above): 2 clearly, 1 dimly (its darkvision, or dim light), 0 not at all or behind cover. u may be a stand-in
   // for her on another square (ui.js: the places to try hiding, tinted) -- one question for the tint and the roll, so they cannot disagree
+  // where a blow or a spell came from (SRD 5.1, Hiding: "you give away your location when the attack hits or misses") -- the square, by its maker,
+  // and the round; a foe that sees no one goes for the newest such square of its enemies, this round's or the last (ai.js brute, tactics.js TX.turn).
+  // 10-01c, the rogue runner: a foe that could see no one did nothing, so a rogue who shot and hid again was never answered (a troll at 9, thirty
+  // fights in thirty, at full health)
+  Battle.prototype.noteHeard = function (u) { if (u && u.id) (this.heard = this.heard || {})[u.id] = { x: u.x, y: u.y, round: this.round }; };
+  Battle.prototype.heardOf = function (u) {
+    var self = this, best = null;
+    Object.keys(this.heard || {}).forEach(function (id) {
+      var h = self.heard[id], w = self.units.filter(function (x) { return x.id === id; })[0];
+      if (!w || !G.standing(w) || !G.hostile(u, w) || self.round - h.round > 1) return;
+      if (!best || h.round > best.round) best = { x: h.x, y: h.y, size: 1, round: h.round, who: w };
+    });
+    return best;
+  };
   Battle.prototype.seenBy = function (w, u) {
     var s = D.magic.seeWhy(this, w, u), l = G.los(w, u); if (!s.ok || !l.clear || l.cover) return 0;
     if (!this.dark || (w.blindsight && G.dist(w, u) <= w.blindsight) || (w.truesight && G.dist(w, u) <= w.truesight)) return 2;
@@ -1359,6 +1394,7 @@
     // Supreme Sneak (the Thief's 9; SRD 5.1): advantage on the Stealth check if it moved no more than half its speed this turn
     // (and Enhance Ability on DEX, Heat Metal's burning armour against every check: rules.js checkEdges)
     var supreme = u.subclass === 'Thief' && u.lvl >= 9 && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex'), hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20), r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
+    RU.spendHelp(u); // (a friend's Help, spent on the Stealth check -- 10-01c)
     var total = r + u.stealth + (u.conds.pwt ? 10 : 0), pp = function (w) { return w.perception - (seen(w) === 1 ? 5 : 0); }, top = Math.max.apply(null, foes.map(pp).concat([0]));
     var dimTop = foes.some(function (w) { return pp(w) === top && seen(w) === 1; }); // (the sharpest of them sees her only dimly: say so)
     if (mirror.length) {

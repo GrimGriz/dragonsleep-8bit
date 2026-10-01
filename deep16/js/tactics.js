@@ -447,9 +447,12 @@
     if (!fs.length) {
       // no one it knows of: toward the nearest it can hear, then wait
       var any = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.conds.hidden; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+      if (!any && B.heardOf) any = B.heardOf(u); // (no one to hear but where the last blow came from: it goes there -- SRD 5.1, Hiding; battle.js noteHeard, 10-01c)
       if (any) yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), G.reachOf(u)));
       return;
     }
+    // the rogue's own plan first -- cover, then the kite (below); the class turn for whatever they leave (TX.rogueCover and TX.rogueKite false put her back on it)
+    if (u.cls === 'rogue' && (TX.rogueCover || TX.rogueKite) && (yield* TX.rogueTurn(B, u))) return;
     // the features and bonus actions that go first (js/tactics.js TX.FIRST: rage, the marks, a word of healing to the fallen)
     for (var i = 0; i < TX.FIRST.length; i++) { yield* TX.FIRST[i](B, u); if (u.dead || u.hp <= 0 || B.over()) return; }
     yield* act(B, u);
@@ -523,6 +526,7 @@
   function* keepOff(B, u) {
     var T = u.turn, retreat = function () { return TX.bonusDash(u) === 'Expeditious Retreat'; }; // (a rogue's Cunning Action has its own say, js/features.js: Disengage or Hide)
     if ((!T.move && !retreat()) || u.conds.restrained) return;
+    if (u.cls === 'druid' && u.conds.shillelagh && !retreat()) return; // (10-01c: the druid with the wood lit has come to the fight, and stays in it -- a step off the front is a free blow for each foe it leaves: the survey's druid at 1 and 2 won more when it held)
     var ranged = (u.weapon && u.weapon.ranged) || TX.caster(u);
     if (!ranged && !T.disengaged) return; // (one who disengaged -- the rogue's Cunning Action, a goblin's -- steps back out of reach too)
     var fs = foesOf(B, u), pressed = G.foesNear(u, u.x, u.y, 5).length;
@@ -650,4 +654,106 @@
       if (G.dist(u, t) <= 5 && u.turn.action) yield* B.layOnHands(u, t, false, Math.min(u.feats.lay, t.maxhp - Math.max(0, t.hp)));
     } };
   });
+
+  // ------------------------------------------------------------------ the rogue's cover play (10-01c, the lone-rogue runner; dev/bench16.js mode=rogue4)
+  // A creature that cannot see its target does nothing (js/ai.js heroes: the hidden are known only from beside it). So a rogue who shoots from a square where no foe sees
+  // her clearly (SRD 5.1 Hiding: "you can't hide from a creature that can see you clearly"; battle.js seenBy is the one question) and Hides again with Cunning Action is
+  // answered by nobody, and every shot is from hiding: advantage, and Sneak Attack. Alone against a bugbear she won 29 of 30 at level 3 and 30 of 30 at 4 and 5 (her old
+  // turn: melee, 5, 22, 30); against two wolves and a goblin 24, 30, 30 (6, 11, 17). The Hide action is hers too, so a Hide that fails her on a turn with the action
+  // unspent is tried again. One with no bow still hides first, and the class turn strikes from hiding (advantage, Sneak Attack: 14 and 15 of 30 at level 3 against 2 and 6).
+  // Where there is no cover to be had she runs, if she can: out of reach of every melee foe that could be on her next turn (a shot first, a Dash for
+  // the bonus action; with one beside her, Disengage and the Dash of the action). What neither takes is the class turn above, as before. TX.rogueCover and TX.rogueKite
+  // false are the old turn (dev/bench16.js mode=rogue4 &pol=ai,hide,kite,new runs the four; the ring survey's rogue went from 2, 2, 0 of 20 at 3, 5, 9 to 19, 20, 20)
+  TX.rogueCover = true;
+  // every shot she has: from each square of `sq`, each ranged weapon at each foe in range with a line, in hit points' worth (a hit from hiding has the advantage and the
+  // Sneak Attack dice -- RU.edges reads the hiding off her, wherever she stands); a square out of reach of every chaser is worth a little more
+  function rogueShots(B, u, all, fs, sq) {
+    var out = [], wps = weapons(u).filter(isRanged);
+    sq.forEach(function (e) {
+      wps.forEach(function (wp) {
+        fs.forEach(function (t) {
+          if (G.dist(u, t, e.x, e.y) > wp.range[1]) return;
+          var los = G.los(u, t, e.x, e.y); if (!los.clear) return;
+          var ed = RU.edges(u, t, wp, e.x, e.y), p = TX.pHit(wp.atk + (ed.pen || 0), RU.ac(t) + los.cover, ed.net);
+          var d = avg(wp.dice) + (wp.mod || 0) + (ed.net > 0 || all.some(function (w) { return w !== u && w.side === u.side && G.dist(w, t) <= 5; }) ? avg(RU.sneakDice(u)) : 0);
+          out.push({ e: e, wp: wp, t: t, score: TX.worth(p * d, t) - e.cost / 40 + (e.far ? 4 : 0), p: p });
+        });
+      });
+    });
+    return out;
+  }
+  function* rogueCoverTurn(B, u) {
+    var T = u.turn;
+    if (u.hp <= 0 || u.dead || u.conds.restrained || u.conds.dancing || u.conds.faerie || (M.mustFlee && M.mustFlee(u))) return false; // (faerie fire: "nowhere to hide", battle.js hide)
+    // (a Hide that has failed her three turns running -- whatever the reason -- is let go a turn for the class turn, so that a cover that will not come is no turn never fought)
+    if ((u._hideFails || 0) >= 3) { u._hideFails = 1; return false; }
+    var all = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), fs = foesOf(B, u), cun = u.lvl >= 2; // (before 2, Hide is the action: a shot, and then no hiding again)
+    if (!all.length || !fs.length) return false;
+    var rm = G.reach(u, T.move), sq = [{ x: u.x, y: u.y, cost: 0 }];
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.stand && !(e.x === u.x && e.y === u.y)) sq.push(e); });
+    // (she is stood on each square for the asking, not a copy of her: G.los counts a creature on the line as cover, and her own square, left behind, would be one for the
+    // squares past it -- ui.js hideSpots asks with a copy)
+    var ox = u.x, oy = u.y, chase = TX.chasers(u, fs);
+    sq.forEach(function (e) {
+      u.x = e.x; u.y = e.y;
+      e.hide = all.every(function (f) { return B.seenBy(f, u) < 2; });
+      e.beside = all.some(function (f) { return G.dist(u, f) <= Math.max(5, G.reachOf(f)); });
+      e.far = chase.every(function (f) { return G.dist(u, f) > G.reachOf(f) + (f.speed || 30); }); // (past what any one that could run at her could cover, even seen)
+    });
+    u.x = ox; u.y = oy;
+    var safe = sq.filter(function (e) { return e.hide && !e.beside; });
+    if (!safe.length) return false;
+    // seen with a foe beside her: out to cover and Hide, taking the blows it gets as she leaves (no Disengage: the bonus action is the Hide) -- if she can stand them
+    var adj = G.foesNear(u, u.x, u.y, 5);
+    if (adj.length && !u.conds.hidden) {
+      var oa = adj.filter(function (f) { return f.reaction > 0 && RU.canAct(f); }).reduce(function (s, f) { return s + TX.dpr(f); }, 0);
+      if (oa > u.hp * 0.45) return false;
+    }
+    var canHide = cun ? T.bonus > 0 : T.action > 0 && !T.attacksLeft, shots = rogueShots(B, u, all, fs, safe).sort(function (a, b) { return b.score - a.score; });
+    // (before level 2 the shot is the end of her hiding: only from a square past every chaser's reach, if there is one)
+    if (!cun && shots.some(function (s) { return s.e.far; })) shots = shots.filter(function (s) { return s.e.far; });
+    if (u.conds.hidden && (canHide || !cun) && shots.length) { // hidden: shoot from cover, and hide again (with the bonus action: not before level 2)
+      var s = shots[0]; u._hideFails = 0;
+      yield* walk(B, u, s.e); if (u.dead || u.hp <= 0) return true;
+      yield* swingAll(B, u, s.wp, s.t); if (u.dead || u.hp <= 0 || B.over()) return true;
+      if (cun && !u.conds.hidden && T.bonus > 0) yield* B.hide(u);
+      return true;
+    }
+    if (!u.conds.hidden && canHide) { // not hidden: the nearest cover with a shot from it (and, best, out of every chaser's reach), and Hide -- twice if the action is there
+      var ok = safe.filter(function (e) { return shots.some(function (s2) { return s2.e === e; }); }), pool = ok.length ? ok : safe;
+      pool.sort(function (a, b) { return (b.far ? 1 : 0) - (a.far ? 1 : 0) || a.cost - b.cost; });
+      yield* walk(B, u, pool[0]); if (u.dead || u.hp <= 0) return true;
+      yield* B.hide(u);
+      if (!u.conds.hidden && T.action > 0 && !T.attacksLeft) yield* B.hide(u);
+      u._hideFails = u.conds.hidden ? 0 : (u._hideFails || 0) + 1;
+      return true;
+    }
+    return false;
+  }
+  function* rogueKiteTurn(B, u) {
+    var T = u.turn;
+    if (u.lvl < 2 || T.bonus < 1 || u.hp <= 0 || u.dead || u.conds.restrained || u.conds.dancing || (M.mustFlee && M.mustFlee(u)) || !weapons(u).some(isRanged)) return false;
+    var all = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), fs = foesOf(B, u), chase = TX.chasers(u, fs);
+    if (!chase.length || !fs.length) return false;
+    var adj = chase.filter(function (f) { return G.dist(u, f) <= G.reachOf(f); }), rm = G.reach(u, T.move + u.speed), best = null;
+    Object.keys(rm).forEach(function (k) {
+      var e = rm[k]; if (!e.stand) return;
+      var margin = Math.min.apply(null, chase.map(function (f) { return G.dist(u, f, e.x, e.y) - (G.reachOf(f) + (f.speed || 30)); })), s = Math.min(margin, 30) - e.cost / 100;
+      if (!best || s > best.s) best = { e: e, s: s, margin: margin };
+    });
+    if (!best || best.margin <= 0) return false; // (no square past their reach to be had this turn: the class turn)
+    if (adj.length) {
+      if (!T.action || T.attacksLeft) return false;
+      yield* B.exec(u, { do: 'cdisengage' }); yield* B.exec(u, { do: 'dash' });
+    } else {
+      var sh = rogueShots(B, u, all, fs, [{ x: u.x, y: u.y, cost: 0 }]).sort(function (a, b) { return b.score - a.score; })[0];
+      if (!sh || !(T.action || T.attacksLeft)) return false; // (no shot to take from here: the class turn, not a run for its own sake)
+      yield* swingAll(B, u, sh.wp, sh.t); if (u.dead || u.hp <= 0 || B.over()) return true;
+      if (T.bonus > 0) yield* B.exec(u, { do: 'cdash' });
+    }
+    yield* walk(B, u, best.e);
+    return true;
+  }
+  TX.rogueKite = true;
+  TX.rogueTurn = function* (B, u) { return !!((TX.rogueCover && (yield* rogueCoverTurn(B, u))) || (TX.rogueKite && (yield* rogueKiteTurn(B, u)))); };
 })();

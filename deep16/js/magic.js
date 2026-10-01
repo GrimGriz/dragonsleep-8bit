@@ -64,9 +64,9 @@
       else if (sp.level && !e.levels.length) why = 'no slot of level ' + sp.level + ' or higher';
       else if (g.time === 'B' && !T.bonus) why = 'the bonus action is spent';
       else if (g.time === 'A' && (!T.action || T.attacksLeft)) why = 'the action is spent';
-      else if (g.time === 'B' && !g.move && T.spellAction === 'leveled') why = 'a levelled spell was cast this turn: no bonus-action spell too';
-      else if (g.time === 'B' && !g.move && T.bonusSpell) why = 'one bonus-action spell a turn';
-      else if (g.time === 'A' && T.bonusSpell && sp.level) why = 'after a bonus-action spell, only a cantrip';
+      else if (g.time === 'B' && !g.move && !g.again && T.spellAction === 'leveled') why = 'a levelled spell was cast this turn: no bonus-action spell too';
+      else if (g.time === 'B' && !g.move && !g.again && T.bonusSpell) why = 'one bonus-action spell a turn';
+      else if (g.time === 'A' && T.bonusSpell && sp.level && !g.again) why = 'after a bonus-action spell, only a cantrip'; // (a spell up and used again -- the beam moved, the next bolt, the weapon's swing -- is no casting: SRD 5.1 Moonbeam, 'you can use an action to move the beam'; the druid runner's find, 10-01c)
       else if (g.unarmored && !M.touchTargets(B, u, g).length) why = 'no one within reach without armour or Mage Armor'; // (greyed when all have it: Griz, 10-01)
       else if (id === 'seeinvisibility' && u.seeInvisible) why = 'already seeing the unseen';
       // a dancer (Irresistible Dance: "must use all its movement to dance without leaving its space") steps nowhere: not Misty Step, not
@@ -298,7 +298,7 @@
     var ex0 = M.EFFECT && M.EFFECT[id]; if (ex0 && ex0.geo) g = ex0.geo(B, u, g) || g; // (the floating weapon already up: its swing)
     var carry = M.touchRange(g) && D.familiar && D.familiar.carries(B, u, t); // (a touch spell the familiar carries: its turn's movement, RULED 09-30)
     if (T.quicken && g.time === 'A' && sp.level) g = Object.assign({}, g, { time: 'B' }); // (Quickened Spell: js/features.js)
-    if (g.time === 'B') { T.bonus = 0; if (!g.move) T.bonusSpell = true; } else { T.action = 0; T.spellAction = g.free ? T.spellAction : sp.level ? 'leveled' : 'cantrip'; }
+    if (g.time === 'B') { T.bonus = 0; if (!g.move && !g.again) T.bonusSpell = true; } else { T.action = 0; T.spellAction = g.free ? T.spellAction : sp.level ? 'leveled' : 'cantrip'; }
     if (sp.level && !g.free) u.slots[slot - 1]--;
     var head = '{y}' + u.name + '{/}: ' + sp.name.toUpperCase() + (sp.level ? ' (L' + slot + ')' : '');
     var dc = u.spellDC, n = up(sp, slot);
@@ -565,7 +565,7 @@
         if (w.type === 'undead') { lines.push('  ' + w.name + ': {g}' + D.typeText('the dead', true) + ' do not sleep{/}'); return; }
         if (M.wakeful && M.wakeful(B, w)) { lines.push('  ' + w.name + ': {g}the vigil keeps it awake{/}'); return; } // (the Vigil, 6: js/features.js)
         if (RU.immuneTo(w, 'asleep')) { lines.push('  ' + w.name + ': {g}nothing in it sleeps{/}'); return; }
-        if (w.hp <= left) { left -= w.hp; w.conds.asleep = true; lines.push('  ' + w.name + ' ({r}' + w.hp + '{/}): {p}asleep{/}'); }
+        if (w.hp <= left) { left -= w.hp; M.fallAsleep(B, w, { by: u.id }); lines.push('  ' + w.name + ' ({r}' + w.hp + '{/}): {p}asleep{/}'); }
         else lines.push('  ' + w.name + ' (' + w.hp + '): too much left in it');
       });
     } else if (id === 'web') {
@@ -909,6 +909,15 @@
     if (sv.ok) delete u.conds.poisoned;
   };
   // breaking out of a web: an action, a STR check against the caster's DC
+  // asleep -- the SRD's Unconscious (Sleep, Eyebite's sleep; 10-01c, "compare with sleep", Griz: "agree with lean, approved"): it falls prone (so a shot from
+  // beyond 5 ft loses the sleeper's advantage to the prone's disadvantage, and one woken gets up for half its move) and drops what it holds -- a torch falls
+  // and burns, a lantern is set down as it was, hooded or not (js/light.js dropTorch); the weapon stays in hand (the seat's lean: a dropped weapon would want
+  // picking up). A record, not `true`: the M.cast wrapper stamps where it was cast, so a Globe of Invulnerability can hold it off (js/grimoire.js)
+  M.fallAsleep = function (B, w, rec) {
+    w.conds.asleep = rec || {};
+    if (!w.conds.prone && !w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true; // (a flier comes down: SRD 5.1, it falls)
+    if (w.torch && D.light && D.light.dropTorch) D.light.dropTorch(B, w);
+  };
   M.breakFree = function* (B, u) {
     // a grip is escaped with Athletics or Acrobatics, whichever is better (the SRD's escape); a web is torn with STR
     var r = u.conds.restrained, gd = u.conds.guidance ? D.d(4) : 0, grip = r.grapple || r.kind === 'tentacles', en0 = u.conds.enlarged; // (r.weak: the roper's tendril, js/traits.js)
@@ -926,7 +935,7 @@
     var d = (dis && !adv ? Math.min(D.d(20), D.d(20)) : adv && !dis ? Math.max(D.d(20), D.d(20)) : D.d(20)) + gd;
     var edge = adv && !dis && ce.adv.length ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : dis && !adv && ce.dis.length ? ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}' : '';
     var tot = d + lk.bonus;
-    u.turn.action = 0;
+    u.turn.action = 0; RU.spendHelp(u); // (a friend's Help on it, spent on this check -- 10-01c)
     var luck = RU.darkLuck(u, r.dc - tot); if (luck) tot += luck; // (Dark One's Own Luck, the Fiend's 6: a d10 on a check that falls short)
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + (r.grapple ? ' wrenches at the grip: ' : r.kind === 'vines' ? ' tears at the vines: ' : ' tears at the web: ') + (useDex ? 'DEX' : 'STR') + ' d20 ' + d + edge + (luck ?' {y}+' + luck + ' dark one\'s own luck{/}' : '') + ' = ' + tot + ' vs DC ' + r.dc + '  ' + (tot >= r.dc ? '{n}FREE{/}' : '{g}still ' + (r.grapple ? 'held' : 'stuck') + '{/}')]);
     if (tot >= r.dc) {

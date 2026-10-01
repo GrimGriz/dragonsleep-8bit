@@ -97,7 +97,7 @@
     // cast ahead: Mage Armor (a creature in no armour; robes aren't armour to it), Aid (three of the four, a 2nd-level slot)
     var az = by.aurdin, ly = by.lymen, info = {};
     var ma = st.cast.mageArmor, mt = by[ma.who] || az, mwhy = '';
-    if (!az || !az.prepared || az.prepared.indexOf('mageArmor') < 0) mwhy = az && SV.prepPool(az).indexOf('mageArmor') >= 0 ? 'not prepared' : 'Aurdin learns it at level 3';
+    if (!az || !az.prepared || az.prepared.indexOf('mageArmor') < 0) mwhy = az && SV.prepPool(az).indexOf('mageArmor') >= 0 ? 'not prepared' : 'not in Aurdin\'s book';
     else if (R.armored(mt)) mwhy = mt.name + ' wears armour';
     else if (slotAt(az, 1) < 0) mwhy = 'no slot left';
     if (ma.on && !mwhy) { az.slots[slotAt(az, 1)]--; mt.conds.mageArmor = 1; }

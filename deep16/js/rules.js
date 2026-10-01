@@ -6,7 +6,7 @@
   var D = window.D16, G = D.grid;
   var RU = D.rules = {};
 
-  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.unconscious && !u.conds.stunned && !u.conds.surprised && !u.conds.incapacitated; };
+  RU.canAct = function (u) { return !u.dead && u.hp > 0 && !u.ethereal && !u.conds.paralyzed && !u.conds.asleep && !u.conds.stunned && !u.conds.surprised && !u.conds.incapacitated; };
   // AC: armour, Shield, Shield of Faith; and the class NPCs' spells (09-28, js/grimoire.js): Barkskin's floor of 16, Haste's +2,
   // Slow's -2, Warding Bond's +1
   RU.ac = function (u) {
@@ -29,7 +29,7 @@
   RU.evasion = function (u) {
     if (!u || !(u.cls === 'rogue' || u.cls === 'monk') || u.lvl < 7 || u.hp <= 0 || u.dead) return false;
     var c = u.conds || {};
-    return !(c.paralyzed || c.asleep || c.unconscious || c.stunned || c.incapacitated);
+    return !(c.paralyzed || c.asleep || c.stunned || c.incapacitated);
   };
   // Countercharm (the bard's 6): until the end of his next turn, he and the friends within 30 ft who can hear him have advantage on saves
   // against being frightened or charmed -- js/features.js F.countercharm lays it on the bard; he must be able to act
@@ -49,10 +49,10 @@
     // up off the floor: half its speed (09-27, prone) -- not while it laughs (SRD 5.1 Hideous Laughter: "unable to stand up for the duration"),
     // nor with no speed to pay it with (SRD 5.1: you can't stand up if your speed is 0; Griz, 09-30: "getting up from prone is supposed to
     // cost movement"): paralyzed, stunned, asleep, restrained (a grapple is one here), or incapacitated (magic.js startTurn: no move)
-    var noMove = u.conds.laughing || u.conds.dancing || u.conds.paralyzed /* (dancing: "must use all its movement to dance" -- none to stand with; a runner found it standing free, 10-01b) */ || u.conds.stunned || u.conds.asleep || u.conds.unconscious || u.conds.restrained || u.conds.incapacitated || u.speed === 0;
+    var noMove = u.conds.laughing || u.conds.dancing || u.conds.paralyzed /* (dancing: "must use all its movement to dance" -- none to stand with; a runner found it standing free, 10-01b) */ || u.conds.stunned || u.conds.asleep || u.conds.restrained || u.conds.incapacitated || u.speed === 0;
     if (u.conds.prone && u.hp > 0 && !noMove) { delete u.conds.prone; u.turn.move = Math.floor(u.speed / 2); if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200); }
     delete u.conds.shield;
-    D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; });
+    D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; if (w.conds.helpedCheck && w.conds.helpedCheck.by === u.id) delete w.conds.helpedCheck; }); // (a Help on a friend's check, unspent, lapses at the helper's turn: SRD 5.1)
     // Sacred Weapon lasts a minute: ten of his turns (and goes out if he fell)
     if (u.conds.sacred && (u.hp <= 0 || --u.conds.sacred.rounds <= 0)) { delete u.conds.sacred; if (D.battle) D.battle.card(['{g}' + u.name + '\'s blade goes back to steel: Sacred Weapon ends.{/}']); }
     if (D.magic) D.magic.startTurn(D.battle, u);
@@ -182,7 +182,7 @@
     if (att.subclass === 'Cutthroat' && D.battle && D.battle.round === 1 && !tgt.acted && tgt.side !== att.side) adv.push('opening cut');
     // a Cloak of Displacement (SRD 5.1): at disadvantage, until a blow lands on the wearer (back at their turn); nothing while
     // they can't act or can't move (held, stunned, asleep, restrained, down)
-    if (tgt.displacement && !tgt.conds.displaceOff && tgt.hp > 0 && !tgt.conds.paralyzed && !tgt.conds.stunned && !tgt.conds.asleep && !tgt.conds.restrained && !tgt.conds.unconscious) dis.push('displacement');
+    if (tgt.displacement && !tgt.conds.displaceOff && tgt.hp > 0 && !tgt.conds.paralyzed && !tgt.conds.stunned && !tgt.conds.asleep && !tgt.conds.restrained) dis.push('displacement');
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) adv.push('help');
     if (tgt.hp <= 0 && !tgt.dead && G.dist(att, tgt, ax, ay) <= 5) adv.push('down');
     if (melee && G.flank(att, tgt, ax, ay)) adv.push('flanking');
@@ -203,8 +203,11 @@
     var c = (u && u.conds) || {}, adv = [], dis = [];
     if (c.enhanced && (c.enhanced.abil || 'con') === abil) adv.push('enhance ability');
     if (c.disAt && c.disAt.id === '*') dis.push(c.disAt.why || 'burning metal');
+    if (c.helpedCheck) adv.push('help'); // (a friend's Help, SRD 5.1: "advantage on the next ability check it makes ... before the start of your next turn" -- 10-01c; spent by RU.spendHelp)
     return { adv: adv, dis: dis };
   };
+  // the check made: a friend's Help is spent on it (the callers of RU.checkEdges that roll -- breakFree, Hide -- call this after the roll)
+  RU.spendHelp = function (u) { if (u && u.conds && u.conds.helpedCheck) delete u.conds.helpedCheck; };
   // a save's numbers for a card: the d20, the bonus, and what's in it (the aura, Bless)
   RU.saveText = function (sv) {
     if (sv.auto) return '{o}auto-fail{/} (held or asleep)';

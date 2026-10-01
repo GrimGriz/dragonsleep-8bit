@@ -93,7 +93,7 @@
     (data.party || []).forEach(function (h) { out.push(unitOf(h, false, fight)); });
     // the guests fight by the class tactics (09-28, js/tactics.js: Pyro's Action Surge, Halldor's wound, Ingrith's spells laid over her
     // 8-bit sheet by js/classes.js NPC.overlay) -- guest()'s healer counter and surgeAI are retired on the grid
-    (data.guests || []).forEach(function (g) { var u = unitOf(g, true, fight); u.classAI = true; if (D.npc) D.npc.overlay(u, g); out.push(u); });
+    (data.guests || []).forEach(function (g) { var u = unitOf(g, true, fight); u.classAI = true; if (D.npc) D.npc.overlay(u, g); if (g.vital) u.vital = true; out.push(u); }); // (vital: one whose fall ends the fight -- Corwen Dace; battle.js over, 10-01c)
     return out;
   };
   function unitOf(h, guest, fight) {
@@ -140,6 +140,6 @@
   // special monsters or fights")
   // Barley is Barley again everywhere but the level-9 fight (Griz, 09-27: "put Barley back except in the lvl 9 fight"):
   // a fight may carry `looks` over these (data/fights.js, the Cocoon Gallery keeps Denny)
-  SV.LOOK = { barley: { sheet: 'barley_p0' }, aurdin: { sheet: 'aurdin_p0' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' } };
+  SV.LOOK = { barley: { sheet: 'barley_p0' }, aurdin: { sheet: 'aurdin_p0' }, vivian: { sheet: 'vivian_p0' }, lymen: { sheet: 'lymen_p0' }, dace: { sheet: 'npcwizard_p0' } }; // (Corwen Dace, a guest: the class floor's wizard till he has a sheet of his own -- art someday, 10-01c)
   SV.look = function (id, fight) { return (fight && fight.looks && fight.looks[id]) || SV.LOOK[id] || {}; };
 })();

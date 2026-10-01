@@ -504,6 +504,18 @@
     var T = u.turn, hs = heroes(B, u), grudge = false;
     // the darkness attacks back (the gimmick, magic.js): the one the darts found comes for the caster this turn, nothing else
     if (u.grudge) { var gr = B.units.filter(function (w) { return w.id === u.grudge && G.standing(w); })[0]; delete u.grudge; if (gr) { hs = [gr]; grudge = true; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + gr.name + '{/}.'], 240); yield 16; } }
+    // the cloaker and the one the party swore to bring back (RULED 10-01c, Griz: "cloaker focuses on kid if they bring him to that fight"): it hunts him while he stands
+    if (!grudge && u.kind === 'cloaker') { var vt = hs.filter(function (w) { return w.vital; })[0]; if (vt) hs = [vt]; }
+    // no one it can see: it goes for where the last blow or spell against its side came from (SRD 5.1, Hiding: "you give away your location when the attack
+    // hits or misses" -- battle.js noteHeard); there, one beside it is found by touch (heroes: within 5 ft) -- 10-01c, the rogue runner's find
+    if (!hs.length && !grudge && B.heardOf && T.move > 0) {
+      var hd = B.heardOf(u);
+      if (hd) {
+        var eh = approach(u, hd, G.reach(u, T.move), reachOf(u));
+        if (eh && (eh.x !== u.x || eh.y !== u.y)) { B.card(['{r}' + the(B, u) + '{/} goes for where the last blow came from.'], 200); yield* walkTo(B, u, eh); if (u.dead || u.hp <= 0) return; }
+        hs = heroes(B, u);
+      }
+    }
     if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp) {
       if (u.burned) { B.card(['{g}' + u.name + ' does not knit: it burned.{/}']); yield 16; }
       else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
@@ -600,6 +612,7 @@
     }
     if (!T.action) return;
     var inReachNow = heroes(B, u).filter(function (w) { return G.dist(u, w) <= reachOf(u); });
+    if (u.kind === 'cloaker' && inReachNow.some(function (w) { return w.vital; })) inReachNow = inReachNow.filter(function (w) { return w.vital; }); // (the one it hunts, if it got to him: 10-01c)
     // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow)
     if (!inReachNow.length && ranged.length) { if (yield* volley(B, u)) return; }
     // Enlarge (the duergar), once, when there is no one to hit yet: its pick hits for the bigger dice from now on (and its Invisibility ends)
@@ -625,6 +638,7 @@
       // attack only for the held (the Keeper's Drag Under, the chuul's tentacles) goes at one it holds, or not at all
       var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u);
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
+      if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
       var t = pool.filter(function (w) { return G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) {
         if (atk.grapple) { var ha = u.holding.indexOf(a) >= 0, hb = u.holding.indexOf(b) >= 0; if (ha !== hb) return ha ? 1 : -1; }
         return a.hp - b.hp;

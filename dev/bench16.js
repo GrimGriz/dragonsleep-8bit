@@ -407,6 +407,47 @@
     document.body.appendChild(pre12);
     return;
   }
+  // the lone rogue, played (mode=rogue4; 10-01c, Griz: "can we send a runner with a goal 'play a level 4 rogue and win a fight - explore tactics' type runner?"):
+  // the rogue alone against a brute (the bugbear) and a pack (two wolves and a goblin) at levels 3, 4, 5 on the Hex floor, the class turn as it was (pol=ai) against the
+  // rogue's cover play (pol=hide, js/tactics.js TX.rogueCover: shoot from a square where no foe sees her clearly, then Hide again with Cunning Action -- a foe that cannot
+  // see its target does nothing, js/ai.js heroes), her kite (pol=kite, TX.rogueKite: shoot, then run out of reach of the melee foes) and both (pol=new, as it ships).
+  // &set=brute,pack,gobs,rats,chief,hobs,troll,ogres,asfoe  &lv=3,4,5  &n=30  &pol=ai,new  &seed=1  &log=lost|won|all (&logn=2 of them, their logs)  &map=  &dark=1  &party=
+  if (get('mode', '') === 'rogue4') {
+    var repQ = { checks: [], errors: [], table: {}, logs: [] };
+    var SETQ = { brute: 'bugbear', pack: 'wolf,wolf,goblin', gobs: 'goblin,goblin', rats: 'giantrat,giantrat,giantrat', chief: 'bugbearchief', hobs: 'hobgoblin,hobgoblin,gnoll', troll: 'troll', ogres: 'ogre,bugbear,bugbear' }, LVQ = get('lv', '3,4,5').split(',').map(Number), NQ = +get('n', 30), POLQ = get('pol', 'ai,new').split(','), WHQ = get('set', 'brute,pack').split(',');
+    var TXQ = D.tactics;
+    // (the policies are js/tactics.js's own, its two switches: ai -- both off, the class turn as it was; hide -- TX.rogueCover alone; kite -- TX.rogueKite alone; new -- both,
+    // as it ships. &dbg=1 is not kept: the log of a lost fight, &log=lost, tells the turns)
+    var POLS = { ai: [false, false], hide: [true, false], kite: [false, true], 'new': [true, true] };
+    try {
+      WHQ.forEach(function (wh) {
+        LVQ.forEach(function (lv) {
+          POLQ.forEach(function (pol) {
+            var row = { won: 0, lost: 0, other: 0, rounds: 0, hpLeft: 0, fights: 0 };
+            for (var k = 0; k < NQ; k++) {
+              D.seed = seed0 * 7919 + k * 104729 + lv * 31 + (wh === 'pack' ? 1000003 : 0); D.lastError = null;
+              // (&set=asfoe: she is the foe, the four of the 8-bit game the party, run by their class tactics -- "won" is then the four's; &map=<a map of data/maps.js> &dark=1: the
+              // same fights elsewhere; &party=fighter:4,cleric:4 beside her)
+              var Bf = D.npcFight(wh === 'asfoe' ? '?npc=rogue:' + lv + '&lvl=' + lv : '?npc=' + SETQ[wh] + '&lvl=' + lv + '&vs=rogue:' + lv + (get('party', '') ? ',' + get('party', '') : '') + (get('map', '') ? '&map=' + get('map', '') : '') + (get('dark', '') ? '&dark' : ''), { bench: true }); D.battle = Bf; Bf.enter();
+              var me = Bf.units.filter(function (u) { return u.side === (wh === 'asfoe' ? 'foe' : 'party'); })[0]; if (!me) continue;
+              Bf.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
+              if (get('noalt', '')) me.alt = null; // (&noalt=1: no bow in her hand, the rapier alone -- she hides, and the class turn strikes from hiding)
+              TXQ.rogueCover = POLS[pol][0]; TXQ.rogueKite = POLS[pol][1];
+              var rs = drive(Bf); row[rs === 'won' || rs === 'lost' ? rs : 'other']++; row.rounds += Bf.round; row.hpLeft += Math.max(0, me.hp) / me.maxhp; row.fights++;
+              if (get('log', '') && repQ.logs.length < +get('logn', 2) && (get('log', '') === 'all' || rs === get('log', ''))) repQ.logs.push(wh + ' ' + lv + ' ' + pol + ' seed#' + k + ' ' + rs + '\n' + (Bf.log || []).join('\n'));
+            }
+            row.rounds = +(row.rounds / Math.max(1, row.fights)).toFixed(1); row.hpLeft = Math.round(100 * row.hpLeft / Math.max(1, row.fights));
+            repQ.table[wh + ' ' + lv + ' ' + pol] = row;
+          });
+        });
+      });
+    } catch (eQ) { repQ.errors.push(String(eQ && eQ.stack || eQ).slice(0, 900)); }
+    TXQ.rogueCover = true; TXQ.rogueKite = true;
+    if (errs.length) repQ.errors = repQ.errors.concat(errs.slice(0, 5));
+    var preQ = document.createElement('pre'); preQ.id = 'out'; preQ.textContent = 'BENCH16 ' + JSON.stringify(repQ);
+    document.body.appendChild(preQ);
+    return;
+  }
   // the bread and butter (mode=ringsurvey; 10-01c, Griz: "For classes other than rogue (hide) and wizard (fire bolt) we should do like we did for them and have
   // the bread & butter go-to on the first ring ... warlocks probably their attack cantrip, etc) - test like warlock bugbear help reveal what should be on the
   // ring"): each class alone, run by its tactics, against a brute and against a pack at levels 1, 3, 5, 9; every command it gives tallied (B.exec: the
@@ -449,11 +490,73 @@
     document.body.appendChild(preS);
     return;
   }
+  // sleep as the SRD's Unconscious and Help on a friend (mode=sleep1001c; RULED 10-01c, Griz: "2 agree with lean, approved" / "3 repurpose the help action to
+  // conditionally target allies" / "let a slept lantern be set down in current hood state"): Sleep lays a record, prone, the lantern set down hooded; HELP on the
+  // sleeper wakes it, still prone; HELP on a webbed friend gives its break-free advantage, spent; the class AI wakes a sleeping friend; a Sleep from outside a
+  // globe is held off; the cleric's Spiritual Weapon swing on the first ring once it is up
+  if (get('mode', '') === 'sleep1001c') {
+    var repZ = { checks: [], errors: [] }, MZ = D.magic;
+    function okZ(what, v) { repZ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runZ(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkZ(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); return Bx; }
+    try {
+      var B1 = mkZ('?npc=wizard:5&lvl=5&vs=fighter,cleric'), ps = B1.units.filter(function (u) { return u.side === 'party'; }), ft = ps.filter(function (u) { return u.cls === 'fighter'; })[0], cl = ps.filter(function (u) { return u.cls === 'cleric'; })[0], wz = B1.units.filter(function (u) { return u.side === 'foe'; })[0];
+      wz.x = 9; wz.y = 3; ft.x = 9; ft.y = 8; cl.x = 10; cl.y = 8; ft.hp = 5;
+      ft.torch = D.light.make('lantern', true); var hood0 = ft.torch.hood;
+      D.rules.startTurn(wz); runZ(MZ.cast(B1, wz, 'sleep', 1, { x: 9, y: 8 }));
+      var lamp = (B1.lights || []).filter(function (l) { return l.x === 9 && l.y === 8; })[0];
+      okZ('Sleep: asleep a record ' + (typeof ft.conds.asleep) + ' (from ' + !!(ft.conds.asleep && ft.conds.asleep.from) + '), prone ' + !!ft.conds.prone + ', the lantern set down ' + !!lamp + ' hooded ' + (lamp && lamp.hood) + ' (was ' + hood0 + '), in hand ' + !!ft.torch, ft.conds.asleep && typeof ft.conds.asleep === 'object' && ft.conds.asleep.from && ft.conds.prone && lamp && !!lamp.hood === !!hood0 && !ft.torch);
+      D.rules.startTurn(cl); var cmC = B1.commands(cl).filter(function (x) { return x.id === 'help'; })[0];
+      okZ('HELP offered the cleric with only a sleeping friend beside it: ' + !!cmC + ' (' + (cmC && cmC.note) + ')', !!cmC && cmC.ok);
+      var plan = D.tactics.plans(B1, cl)[0];
+      okZ('the class AI\'s best plan beside a sleeping friend: ' + (plan && plan.kind + ' ' + plan.why + ' ' + plan.score.toFixed(1)), plan && plan.kind === 'help');
+      runZ(B1.exec(cl, { do: 'help', target: ft }));
+      okZ('HELP wakes it: asleep ' + !!ft.conds.asleep + ', still prone ' + !!ft.conds.prone + ', the action spent ' + (cl.turn.action === 0), !ft.conds.asleep && ft.conds.prone && cl.turn.action === 0);
+      D.rules.startTurn(ft); okZ('its turn: up for half the move (' + ft.turn.move + ' of ' + ft.speed + '), prone ' + !!ft.conds.prone, !ft.conds.prone && ft.turn.move === Math.floor(ft.speed / 2));
+      // a webbed friend: the hand, spent on the break-free
+      ft.conds.restrained = { dc: 30, by: wz.id }; D.rules.startTurn(cl); runZ(B1.exec(cl, { do: 'help', target: ft }));
+      var ceH = D.rules.checkEdges(ft, 'str'); D.rules.startTurn(ft); var n0 = (B1.log || []).length; runZ(MZ.breakFree(B1, ft));
+      var bl = (B1.log || []).slice(n0).join(' | ').replace(/\{\/?[a-z]*\}/g, '');
+      okZ('a hand to a webbed friend: advantage (' + ceH.adv.join(',') + '), the card "' + bl.slice(0, 90) + '", spent ' + !ft.conds.helpedCheck, ceH.adv.indexOf('help') >= 0 && /advantage: help/.test(bl) && !ft.conds.helpedCheck);
+      delete ft.conds.restrained;
+      // a Sleep from outside a globe: held off inside it
+      var B2 = mkZ('?npc=wizard:9&lvl=9&vs=fighter,wizard'), p2 = B2.units.filter(function (u) { return u.side === 'party'; }), f2 = p2.filter(function (u) { return u.cls === 'fighter'; })[0], w2 = p2.filter(function (u) { return u.cls === 'wizard'; })[0], z2 = B2.units.filter(function (u) { return u.side === 'foe'; })[0];
+      z2.x = 9; z2.y = 2; w2.x = 9; w2.y = 8; f2.x = 10; f2.y = 8; f2.hp = 5;
+      D.rules.startTurn(z2); runZ(MZ.cast(B2, z2, 'sleep', 1, { x: 10, y: 8 })); var sl2 = !!f2.conds.asleep;
+      D.rules.startTurn(w2); delete w2.conc; runZ(MZ.cast(B2, w2, 'globeofinvulnerability', 6, w2));
+      okZ('a Sleep from outside, then the globe: asleep ' + sl2 + ' -> ' + !!f2.conds.asleep + ' (idle: ' + !!(MZ.shelved(f2) || {}).asleep + '), can act ' + D.rules.canAct(f2), sl2 && !f2.conds.asleep && (MZ.shelved(f2) || {}).asleep && D.rules.canAct(f2));
+      // the cleric's Spiritual Weapon: its swing on the first ring once it is up
+      var B3 = mkZ('?npc=goblin,goblin&lvl=5&vs=cleric:5'), c3 = B3.units.filter(function (u) { return u.side === 'party'; })[0], g3 = B3.units.filter(function (u) { return u.side === 'foe'; })[0];
+      D.rules.startTurn(c3); var r0 = D.ui.cmds(B3, c3).map(function (x) { return x.label; });
+      runZ(MZ.cast(B3, c3, 'spiritualweapon', 2, g3)); D.rules.startTurn(c3);
+      var r1 = D.ui.cmds(B3, c3).map(function (x) { return x.label; });
+      okZ('the cleric\'s ring before: ' + r0.join(' / ') + '; with the weapon up: ' + r1.join(' / ') + ' (' + r1.length + ')', r1.length === r0.length + 1 && /SPIRITUAL|WEAPON|SWING/.test(r1[3]));
+      // Corwen Dace in the deep gallery (RULED 10-01c, Griz: "game over if the kid falls, cloaker focuses on kid if they bring him to that fight"): the cloaker
+      // goes past the fighter beside it for the one marked vital; the vital one down, the fight is lost
+      var B4 = mkZ('?npc=cloaker&lvl=5&vs=fighter,wizard'), f4 = B4.units.filter(function (u) { return u.cls === 'fighter'; })[0], d4 = B4.units.filter(function (u) { return u.cls === 'wizard'; })[0], c4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0];
+      d4.vital = true; c4.woken = true; d4.hp = d4.maxhp = 60;
+      // (a) both in its reach: the fighter the weaker, the wizard the one it hunts
+      var fr = D.grid.foot(c4); f4.x = c4.x - 1; f4.y = c4.y; d4.x = c4.x + 2; d4.y = c4.y + 1;
+      var n4 = (B4.log || []).length; D.rules.startTurn(c4); runZ(D.ai.turn(B4, c4));
+      var l4 = (B4.log || []).slice(n4).join(' | ').replace(/\{\/?[a-z]*\}/g, '');
+      okZ('both in reach (fighter ' + f4.hp + ', wizard ' + d4.hp + ' HP): the cloaker bites ' + (/> Wizard/.test(l4) ? 'the vital wizard' : /> Fighter/.test(l4) ? 'the fighter' : 'no one') + ' -- ' + l4.slice(0, 120), /> Wizard/.test(l4) && !/> Fighter/.test(l4));
+      // (b) the wizard out of reach, the fighter beside it: it goes for the wizard
+      var B5 = mkZ('?npc=cloaker&lvl=5&vs=fighter,wizard'), f5 = B5.units.filter(function (u) { return u.cls === 'fighter'; })[0], d5 = B5.units.filter(function (u) { return u.cls === 'wizard'; })[0], c5 = B5.units.filter(function (u) { return u.side === 'foe'; })[0];
+      d5.vital = true; c5.woken = true; d5.hp = d5.maxhp = 60; f5.x = c5.x - 1; f5.y = c5.y;
+      var dist0 = D.grid.dist(c5, d5); D.rules.startTurn(c5); var n5 = (B5.log || []).length; runZ(D.ai.turn(B5, c5)); var l5 = (B5.log || []).slice(n5).join(' | ').replace(/\{\/?[a-z]*\}/g, '');
+      okZ('the wizard ' + dist0 + ' ft off: the cloaker ' + (D.grid.dist(c5, d5) < dist0 ? 'closed to ' + D.grid.dist(c5, d5) + ' ft' : 'stayed') + ', bit ' + (/> Wizard/.test(l5) ? 'the wizard' : /> Fighter/.test(l5) ? 'the fighter' : 'no one'), D.grid.dist(c5, d5) < dist0 || /> Wizard/.test(l5));
+      d4.hp = 0; okZ('the vital one down: ' + B4.over(), B4.over() === 'lost');
+    } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
+    if (errs.length) repZ.errors = repZ.errors.concat(errs);
+    var preZ = document.createElement('pre'); preZ.id = 'out'; preZ.textContent = 'BENCH16 ' + JSON.stringify(repZ);
+    document.body.appendChild(preZ);
+    return;
+  }
   // the first ring, each class's (mode=ring1001c; 10-01c, the ring survey's picks -- js/ui.js QUICK, BESIDE, FRONT): a player's hero of each class at 5, its
   // commands in order, the go-to where it should stand and its weapon not lost
   if (get('mode', '') === 'ring1001c') {
     var repR1 = { checks: [], errors: [] };
-    var WANT = { warlock: ['ELDRITCH BLAST', 'q'], sorcerer: ['FIRE BOLT', 'q'], druid: ['PRODUCE FLAME', 'q'], wizard: ['FIRE BOLT', 'q'], cleric: ['SACRED FLAME', 'b'], bard: ['VICIOUS MOCKERY', 'b'], ranger: ["HUNTER'S MARK", 'b'], barbarian: ['RAGE', 'b'], monk: ['FLURRY OF BLOWS|BONUS STRIKE', 'b'], rogue: ['HIDE', 'b'], fighter: [null, 'a'], paladin: [null, 'a'] };
+    var WANT = { warlock: ['ELDRITCH BLAST', 'q'], sorcerer: ['FIRE BOLT', 'q'], druid: ['PRODUCE FLAME', 'b'], wizard: ['FIRE BOLT', 'q'], cleric: ['SACRED FLAME', 'b'], bard: ['VICIOUS MOCKERY', 'b'], ranger: ["HUNTER'S MARK", 'b'], barbarian: ['RAGE', 'b'], monk: ['FLURRY OF BLOWS|BONUS STRIKE', 'b'], rogue: ['HIDE', 'b'], fighter: [null, 'a'], paladin: [null, 'a'] };
     try {
       Object.keys(WANT).forEach(function (cl) {
         var Br = D.npcFight('?npc=goblin&lvl=5&vs=' + cl + ':5', {}); D.battle = Br; Br.enter(); while (!Br.order.length) Br.co.next();
@@ -702,7 +805,7 @@
     function rowsOf(C, mode) { C.mode = mode; var r = C.list().rows.map(function (x) { return x.label; }); C.mode = 'menu'; return r; }
     try {
       var C1 = camp(1, null), m1 = rowsOf(C1, 'menu');
-      okK("the ladder's four at 1: CAST AHEAD " + (m1.indexOf('CAST AHEAD') >= 0 ? 'shown' : 'not shown') + ' (Aurdin has no Mage Armor yet, Lymen no Aid)', m1.indexOf('CAST AHEAD') < 0);
+      okK("the ladder's four at 1: CAST AHEAD " + (m1.indexOf('CAST AHEAD') >= 0 ? 'shown' : 'not shown') + ' (Mage Armor in Aurdin\'s book from the start: the SRD wizard\'s count, 10-01c)', m1.indexOf('CAST AHEAD') >= 0);
       var C5 = camp(5, null), m5 = rowsOf(C5, 'menu'), c5 = rowsOf(C5, 'cast');
       okK("the ladder's four at 5: " + c5.filter(function (l) { return /^\[/.test(l); }).join(' / '), m5.indexOf('CAST AHEAD') >= 0 && c5.some(function (l) { return /MAGE ARMOR/.test(l); }) && c5.some(function (l) { return /AID/.test(l); }) && !c5.some(function (l) { return /ELEMENTAL/.test(l); }));
       var F9 = D.FIGHTS.filter(function (f) { return f.level === 9; })[0], C9 = camp(9, { ours: { party: D.npc.ours(9, F9), play: false } }), c9 = rowsOf(C9, 'cast');

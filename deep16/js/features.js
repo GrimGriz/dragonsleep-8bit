@@ -180,6 +180,18 @@
     if (u.cls !== 'monk' || u.lvl < 6 || !feat(u, 'wholeness') || u.hp > u.maxhp * 0.35 || !u.turn.action) return null;
     return { kind: 'feature', why: 'Wholeness of Body', score: Math.min(u.maxhp - u.hp, 3 * u.lvl) * 1.3, go: function* () { u.turn.action = 0; u.feats.wholeness = 0; var got = B.heal(u, 3 * u.lvl); D.sfx('heal'); B.card(['{y}' + Nm(B, u) + '{/}: WHOLENESS OF BODY  {n}+' + got + '{/}'], 240); yield 20; } };
   });
+  // Help on a friend beside it (10-01c, Griz: "repurpose the help action to conditionally target allies"): a sleeper shaken awake -- worth the friend's next
+  // turns of harm, more than most swings -- or a hand to one held in a web or a grip (its escape check at advantage: less). Anyone's (battle.js Battle.helpable)
+  TX.ACTIONS.push(function (B, u) {
+    if (!u.turn.action || u.turn.attacksLeft) return null;
+    var best = null;
+    B.units.forEach(function (w) {
+      if (!D.Battle.helpable(u, w)) return;
+      var sc = w.conds.asleep ? TX.dpr(w) * 2.5 + 4 : TX.dpr(w) * 0.6 + 1;
+      if (!best || sc > best.score) best = { kind: 'help', why: (w.conds.asleep ? 'shake ' : 'a hand to ') + w.name, score: sc, go: function* () { yield* B.exec(u, { do: 'help', target: w }); } };
+    });
+    return best;
+  });
   // Patient Defense (2; SRD 5.1): 1 ki, the Dodge action as a bonus action -- attacks against it at disadvantage, advantage on its DEX
   // saves, till its next turn (rules.js edges and save read conds.dodge). The AI's and the player's PATIENT DEFENSE button (F.commands)
   F.patient = function* (B, u) {
@@ -238,7 +250,8 @@
     if (u.cls !== 'rogue' || u.lvl < 2 || !T.bonus || u.side === 'party' && !u.guest) return;
     var beside = foesBeside(B, u);
     if (beside.length && T.move >= 10) { T.bonus = 0; T.disengaged = true; B.card(['{y}' + Nm(B, u) + '{/} (Cunning Action) disengages.'], 160); yield 8; return; }
-    if (!beside.length && !u.conds.hidden) { yield* B.hide(u); }
+    // (only where the Hide could take: with a foe that sees her clearly the roll is not even made -- the bonus action was thrown away, and "tries to hide, but ... plainly" said so)
+    if (!beside.length && !u.conds.hidden && B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }).every(function (w) { return B.seenBy(w, u) < 2; })) { yield* B.hide(u); }
   });
   // ------------------------------------------------------------------ the paladin: Sacred Weapon for the AI's paladins
   TX.ACTIONS.push(function (B, u, fs) {
