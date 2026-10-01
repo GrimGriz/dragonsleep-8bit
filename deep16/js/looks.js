@@ -674,18 +674,27 @@
       dpx(ctx, p.x - 5, p.y - (dh ? 3 : 0), E.c[1], 3); dpx(ctx, p.x + 5, p.y - (dh ? 0 : 3), E.c[2], 3);
       ctx.globalAlpha = 1 - dn / 36; var nx = p.x + bw + 2 + Math.sin(dn / 5) * 2, ny = p.y - top * 0.35 - dn * 0.8; dpx(ctx, nx, ny, E.c[0], 2); dpx(ctx, nx + 1, ny - 2, E.c[0]); dpx(ctx, nx + 1, ny - 3, E.c[0]); dpx(ctx, nx + 1, ny - 4, E.c[0]); ctx.globalAlpha = 1;
     }
-    // Mage Armor (Griz, 09-30: "actually a head-to-toe sheen quite a bit fainter would better match my mind theater" -- the chest's two
-    // bright bars read as "two glowing sticks"): now and then a faint band of force slides down the whole figure, head to heels, as wide
-    // as the body is (narrow at the head, full at the shoulders, narrowing to the feet), its edges dithered, blue-white
+    // Mage Armor (Griz, 09-30/10-01: the chest's two bright bars read as "two glowing sticks" -- "a head-to-toe sheen quite a bit fainter"
+    // -- then "let's not go all the way to his feet, and shape it like the top of an egg was placed snugly over him, given the shorter
+    // vertical a slightly slower slide"): now and then a faint band of force slides down a dome set over him, from just above the head to
+    // about the waist, as wide as the egg is at each height (a rounded point at the top, its widest at the bottom, snug to the body),
+    // bowed a little toward the eye as a line round a dome is; its edges dithered, blue-white
     if (c.mageArmor) {
-      var ms = (t + ph) % 110;
-      if (ms < 44) {
-        E = FX.EL.arcane; var mf = ms / 44, my0 = p.y - top + mf * (top + 2), mfade = Math.sin(Math.PI * mf);
+      var ms = (t + ph) % 130;
+      if (ms < 56) {
+        E = FX.EL.arcane;
+        var dTop = p.y - top - 2, dH = Math.max(8, top * 0.62 + 2), dW = bw - 1;   // the dome: its crown, its height, its half-width at the base
+        var mf = ms / 56, my0 = dTop + mf * dH, mfade = Math.sin(Math.PI * mf);
         for (var row = -2; row <= 2; row++) {
-          var ry = Math.round(my0 + row), rf = Math.max(0, Math.min(1, (ry - (p.y - top)) / Math.max(1, top)));
-          var prof = rf < 0.15 ? 0.45 : rf < 0.55 ? 1 : 1 - (rf - 0.55) * 0.9, hw2 = Math.round((bw - 3) * prof);
+          var ry = Math.round(my0 + row), ef = (ry - dTop) / dH;
+          if (ef < 0 || ef > 1) continue;
+          var hw2 = Math.round(dW * Math.sqrt(1 - (1 - ef) * (1 - ef)) * (0.82 + 0.18 * ef));   // the top of an egg: a rounded point, widest at the base
           ctx.globalAlpha = (row === 0 ? 0.26 : Math.abs(row) === 1 ? 0.15 : 0.07) * mfade; ctx.fillStyle = row === 0 ? E.c[0] : E.c[1];
-          for (var mx2 = -hw2; mx2 <= hw2; mx2++) if (row === 0 || ((mx2 + ry + (t >> 2)) & 1) === 0) ctx.fillRect(Math.round(p.x) + mx2, ry, 1, 1);
+          for (var mx2 = -hw2; mx2 <= hw2; mx2++) {
+            if (row !== 0 && ((mx2 + ry + (t >> 2)) & 1)) continue;
+            var bow = hw2 ? Math.round(1.6 * ef * (1 - (mx2 / hw2) * (mx2 / hw2))) : 0;   // a line round a dome, seen from above, bows toward the eye
+            ctx.fillRect(Math.round(p.x) + mx2, ry + bow, 1, 1);
+          }
         }
         ctx.globalAlpha = 1;
       }
