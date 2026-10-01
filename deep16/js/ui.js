@@ -561,6 +561,10 @@
     strip(ctx, B);
     cards(ctx, B);
     tooltip(ctx, B, hero);
+    // the square under the cursor, by the grid's own numbering, top right (Griz, 10-01: "Me getting better at pointing to the tile by
+    // your numbering or some standardized tile referencing"): x counts from the far upper-left wall, y from the far upper-right, so
+    // (0, 0) is the map's top corner; x grows down to the right, y down to the left -- he can say "4,1" and mean the seat's 4,1
+    if (B.cursor && G.map.at(B.cursor.x, B.cursor.y)) D.text(ctx, B.cursor.x + ',' + B.cursor.y, D.W - 5, 3, R('silver', 5), 'right');
     bar(ctx, B, hero);
     if (hero && UI.opts.style === 'window') cmdWindow(ctx, B, hero);
     if (hero && UI.opts.style === 'ring') cmdRing(ctx, B, hero);
