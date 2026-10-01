@@ -98,9 +98,12 @@
       this.units.forEach(function (u) { if (u.id === torchBy && u.side === 'party' && u.hp > 0 && D.light.handsFree(u) > 0) { u.torch = D.light.isLantern(torchKind) ? D.light.make(torchKind, !!F.roost) : { lit: true }; D.light.regrip(u); torchHeld = true; } });
       if (!torchHeld && D.light.isLantern(torchKind)) { var lp = this.inv.filter(function (s) { return s.id === torchKind; })[0]; if (lp) lp.n++; else this.inv.push({ id: torchKind, n: 1 }); this.lampReturned = torchKind; }
     }
-    // strung webs a fight starts with (Web Gulch): difficult ground for all but the web-walkers, drawn like the spell's
+    // strung webs a fight starts with (Web Gulch, the nest): difficult ground for all but the web-walkers, and a hazard (RULED 09-30,
+    // Griz: "for purposes of Pocket GM Horizon goal best to use the hazard people will expect"): entering them the first time in a
+    // turn, or starting a turn in them, DEX or restrained; an action's STR check tears free -- the SRD Web spell's shape (magic.js
+    // webCatch, breakFree), at the DC of whatever spun them (the map's webDC: the ettercap's 11, a giant spider's 12). Fire burns them
     var webs = F.webs || m.def.webs;
-    this.webs = webs ? [{ by: 'the ground', sq: webs.slice() }] : [];
+    this.webs = webs ? [{ by: 'the ground', sq: webs.slice(), dc: F.webDC || m.def.webDC || 11, ground: true }] : [];
     // a Ring of Binding (the lake: fight.ring { hero, rounds, con }): its wearer saves CON better, and on the named rounds
     // the thing in the water must turn on them (ai.js brute)
     this.taunt = null; this.intro = (this.o.embed && this.o.embed.revealed && F.introSeen) || F.intro;
@@ -1015,6 +1018,7 @@
     u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
     if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
+    if (type === 'fire' && D.magic.burnWebs) D.magic.burnWebs(this, G.foot(u)); // (fire on one standing in a web burns the web: magic.js)
     // Talmok rages when he is first hit: blades and fists do half from then on, his own blows +2
     if (u.rageOnHit && !u.raging && !u.dead) { u.raging = true; u.resist = ['bludgeoning', 'piercing', 'slashing']; FX.ring(u, 'red', 30); D.sfx('crit'); this.card(['{r}' + u.name + '{/} roars and rages!  {g}(half from blades and blows; +2 to his own){/}']); }
     // Split (the black pudding): slashing or lightning on one of Medium size or more with 10 HP or more halves it into two

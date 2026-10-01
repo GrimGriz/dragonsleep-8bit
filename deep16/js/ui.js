@@ -535,6 +535,7 @@
       D.light.props(B).forEach(function (o) { objs.push(o); }); // a torch on the floor, dancing lights, a daylight set at a point
       if (D.looks) D.looks.props(B).forEach(function (o) { objs.push(o); });
       if (D.walls) D.walls.props(B).forEach(function (o) { objs.push(o); }); // the walls (js/walls.js) // the floating weapons, the guardian, the spirits' wheel (js/looks.js)
+      wallWebs(B).forEach(function (o) { objs.push(o); }); // the silk up the walls behind a map's webs, and its corner webs
       // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
       (B.riders || []).forEach(function (r) {
         var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2, r.y + (f[1] - 1) / 2, r.gz), s = D.iso.toScreen(c.x, c.y);
@@ -814,9 +815,10 @@
       ends.forEach(function (e, i) { var qx = hx + (e[0] - hx) * k, qy = hy + (e[1] - hy) * k; if (i) c.lineTo(qx, qy); else c.moveTo(qx, qy); });
       c.closePath(); c.stroke();
     });
-    // up a wall or a ledge's face behind it: rock at (x, y-1) is behind the upper-right edge, at (x-1, y) the upper-left
+    // up a ledge's face behind it, or (a cast web) a wall's: rock at (x, y-1) is behind the upper-right edge, at (x-1, y) the
+    // upper-left. The walls behind a map's own webs are dressed whole, floor to dark (wallWebs)
     [[x, y - 1, ends[0], ends[2]], [x - 1, y, ends[6], ends[0]]].forEach(function (w) {
-      var n = G.map.at(w[0], w[1]), up =!n || !n.open ? 34 : Math.max(0, G.map.gz(w[0], w[1]) - z) > 0 ? 18 : 0;
+      var n = G.map.at(w[0], w[1]), up = !n || !n.open ? (cube ? 34 : 0) : Math.max(0, G.map.gz(w[0], w[1]) - z) > 0 ? 18 : 0;
       if (!up) return;
       c.strokeStyle = R('bone', 2); c.globalAlpha = 0.45 * pul; c.beginPath();
       var tops = [];
@@ -838,6 +840,123 @@
     });
     c.restore();
   }
+  // the walls behind a map's strung webs, dressed floor to dark (Griz, 09-30: "can we take it across the ceiling on the wall tiles
+  // (looks like 3 high, web only on bottom 1) and fancy up ... where the floor and two walls make a corner? More back wall webbing
+  // on the whole"): a sheet on every far-wall face within a square of the webs the map starts with -- anchor threads to the top,
+  // a hub and its rings -- and threads draped from the top out over the room; on the map's `webCorners` (a floor square with a wall
+  // on both its far edges) a corner web strung across the two walls, a cocoon hung in it. Drawn as sorted objects just after the
+  // wall they lie on (the overlay goes under the walls). Scenery: fire burns the floor's webs, not these
+  function wallWebs(B) {
+    var m = G.map, def = m.def || {};
+    if (!def.webs || !def.webs.length) return [];
+    if (!B.wallWebFaces || B.wallWebFaces.map !== m) {
+      var near = {}, faces = [];
+      def.webs.forEach(function (q) { for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) near[(q[0] + dx) + ',' + (q[1] + dy)] = 1; });
+      m.sq.forEach(function (s) {
+        if (!s.open || !near[s.x + ',' + s.y]) return;
+        [[s.x - 1, s.y, 'L'], [s.x, s.y - 1, 'R']].forEach(function (b) {   // L: the square's upper-left edge, R: its upper-right
+          var r = m.at(b[0], b[1]); if (!r || r.rock !== 'far') return;
+          var top = 0; [[r.x + 1, r.y], [r.x, r.y + 1]].forEach(function (f) { var n = m.at(f[0], f[1]); if (n && n.open) top = Math.max(top, n.gz); });
+          faces.push({ q: s, edge: b[2], span: D.iso.WALL + top - s.gz, depth: r.x + r.y + 0.05, h: ((s.x * 37 + s.y * 91 + (b[2] === 'L' ? 13 : 0)) % 101) / 101 });
+        });
+      });
+      B.wallWebFaces = { map: m, faces: faces };
+    }
+    var out = [];
+    B.wallWebFaces.faces.forEach(function (f) { out.push({ depth: f.depth, gz: 0, layer: 1, draw: function (ctx) { wallFace(ctx, B, f); } }); });
+    (def.webCorners || []).forEach(function (q) { var s = m.at(q[0], q[1]); if (s && s.open) out.push({ depth: q[0] + q[1] - 0.5, gz: 0, layer: 2, draw: function (ctx) { cornerWeb(ctx, B, s); } }); });
+    return out;
+  }
+  // a square's four rhombus corners on screen (at its floor): left, top, right, bottom
+  function sqCorners(s) {
+    var p = D.iso.center(s.x, s.y, s.gz), c = D.iso.toScreen(p.x, p.y), HW = D.iso.TW / 2, HH = D.iso.TH / 2;
+    return { c: c, l: [c.x - HW, c.y], t: [c.x, c.y - HH], r: [c.x + HW, c.y], b: [c.x, c.y + HH] };
+  }
+  function wallFace(ctx, B, f) {
+    var k = sqCorners(f.q), a = f.edge === 'L' ? k.l : k.t, b = f.edge === 'L' ? k.t : k.r, H = f.span, h = f.h;
+    var P = function (u, v) { return [Math.round(a[0] + (b[0] - a[0]) * u) + 0.5, Math.round(a[1] + (b[1] - a[1]) * u - v * H) + 0.5]; };
+    var pul = 0.85 + 0.15 * Math.sin(B.t / 29 + f.q.x * 1.7 + f.q.y);
+    var rnd = function (i) { var v = Math.sin(h * 917 + i * 12.9898) * 43758.5453; return v - Math.floor(v); };   // this face's own dice
+    var kind = h < 0.45 ? 'sheet' : h < 0.8 ? 'ties' : 'hammock';
+    ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = R('bone', 2);
+    // anchor threads from the floor up, some to the top, leaning; fainter as they climb into the dark
+    var n = 2 + Math.floor(rnd(1) * 3);
+    for (var i = 0; i < n; i++) {
+      var u0 = 0.08 + (i + rnd(2 + i) * 0.8) / n * 0.84, u1 = u0 + (rnd(9 + i) - 0.5) * 0.25, v1 = 0.55 + rnd(14 + i) * 0.45, p0 = P(u0, 0), p1 = P(u1, v1), pm = P((u0 + u1) / 2, v1 / 2);
+      ctx.globalAlpha = 0.3 * pul; ctx.beginPath(); ctx.moveTo(p0[0], p0[1]); ctx.lineTo(pm[0], pm[1]); ctx.stroke();
+      ctx.globalAlpha = 0.18 * pul; ctx.beginPath(); ctx.moveTo(pm[0], pm[1]); ctx.lineTo(p1[0], p1[1]); ctx.stroke();
+    }
+    if (kind === 'sheet') {
+      // a sheet: a hub off-centre, five to seven spokes to the face's edges, rings that sag between them
+      var hu0 = 0.25 + rnd(3) * 0.5, hv0 = 0.3 + rnd(4) * 0.4, hub = P(hu0, hv0), rim = [], ns = 5 + Math.floor(rnd(5) * 3);
+      for (var s2 = 0; s2 < ns; s2++) {   // each spoke walks out from the hub at its own angle till it meets the face's edge
+        var a2 = (s2 + rnd(20 + s2) * 0.6) / ns * Math.PI * 2, uu = hu0, vv = hv0, tt = 12;
+        while (tt-- > 0 && uu >= 0 && uu <= 1 && vv >= 0 && vv <= 1) { uu += Math.cos(a2) * 0.12; vv += Math.sin(a2) * 0.12; }
+        rim.push(P(Math.max(0, Math.min(1, uu)), Math.max(0, Math.min(1, vv))));
+      }
+      ctx.globalAlpha = 0.42 * pul; ctx.beginPath();
+      rim.forEach(function (e) { ctx.moveTo(hub[0], hub[1]); ctx.lineTo(e[0], e[1]); });
+      ctx.stroke();
+      ctx.strokeStyle = R('bone', 1);
+      [0.22, 0.45, 0.7].forEach(function (t, j) {
+        ctx.globalAlpha = (0.38 - j * 0.07) * pul; ctx.beginPath();
+        rim.concat([rim[0]]).forEach(function (e, i, all) {
+          var x = hub[0] + (e[0] - hub[0]) * t, y = hub[1] + (e[1] - hub[1]) * t;
+          if (!i) { ctx.moveTo(x, y); return; }
+          var p = all[i - 1], px = hub[0] + (p[0] - hub[0]) * t, py = hub[1] + (p[1] - hub[1]) * t;
+          ctx.quadraticCurveTo((x + px) / 2, (y + py) / 2 + 3, x, y);   // the silk sags between spokes
+        });
+        ctx.stroke();
+      });
+    } else if (kind === 'ties') {
+      // loose threads tied across the face at odd angles
+      ctx.globalAlpha = 0.3 * pul; ctx.beginPath();
+      for (var j2 = 0; j2 < 3; j2++) { var q0 = P(0, 0.15 + rnd(30 + j2) * 0.6), q1 = P(1, 0.15 + rnd(40 + j2) * 0.6); ctx.moveTo(q0[0], q0[1]); ctx.quadraticCurveTo((q0[0] + q1[0]) / 2, (q0[1] + q1[1]) / 2 + 5, q1[0], q1[1]); }
+      ctx.stroke();
+    } else {
+      // a hammock slung across the lower face, sagging toward the floor
+      var lo = 0.2 + rnd(6) * 0.2;
+      ctx.globalAlpha = 0.36 * pul; ctx.beginPath();
+      for (var j3 = 0; j3 < 4; j3++) { var e0 = P(0, lo + j3 * 0.07), e1 = P(1, lo + j3 * 0.07 + (rnd(50) - 0.5) * 0.1); ctx.moveTo(e0[0], e0[1]); ctx.quadraticCurveTo((e0[0] + e1[0]) / 2, (e0[1] + e1[1]) / 2 + 10 - j3 * 2, e1[0], e1[1]); }
+      for (var j4 = 1; j4 < 4; j4++) { var r0 = P(j4 / 4, lo), r1 = P(j4 / 4, lo + 0.21); ctx.moveTo(r0[0], r0[1] + 8); ctx.lineTo(r1[0], r1[1] + 6); }
+      ctx.stroke();
+    }
+    // over the top and out across the room: threads from the top of the wall, sagging, ending in the air over the floor in front
+    ctx.strokeStyle = R('bone', 2); ctx.globalAlpha = 0.26 * pul; ctx.beginPath();
+    [0.25, 0.7].forEach(function (u, i) {
+      var t0 = P(u, 1), end = [k.c.x + (i ? 10 : -10) + (h - 0.5) * 16, k.c.y - 38 - h * 18];
+      ctx.moveTo(t0[0], t0[1]); ctx.quadraticCurveTo((t0[0] + end[0]) / 2, Math.max(t0[1], end[1]) + 14, end[0], end[1]);
+    });
+    ctx.stroke();
+    ctx.restore();
+  }
+  function cornerWeb(ctx, B, s) {
+    var k = sqCorners(s), H = D.iso.WALL, t = k.t, pul = 0.85 + 0.15 * Math.sin(B.t / 31 + s.x);
+    var A = function (u, v) { return [k.l[0] + (t[0] - k.l[0]) * u, k.l[1] + (t[1] - k.l[1]) * u - v * H]; }; // the upper-left wall
+    var Bw = function (u, v) { return [t[0] + (k.r[0] - t[0]) * u, t[1] + (k.r[1] - t[1]) * u - v * H]; }; // the upper-right wall
+    var hub = [t[0] + 0.5, Math.round(t[1] - H * 0.5 + 12) + 0.5];   // out from the corner, a little into the room
+    var ends = [A(0.08, 0.06), A(0.12, 0.4), A(0.3, 0.78), A(0.75, 1), [t[0], t[1] - H], Bw(0.25, 1), Bw(0.7, 0.78), Bw(0.88, 0.4), Bw(0.92, 0.06),
+      [(k.r[0] + k.c.x) / 2, (k.r[1] + k.c.y) / 2], [k.c.x, k.c.y + 2], [(k.l[0] + k.c.x) / 2, (k.l[1] + k.c.y) / 2]];
+    ctx.save(); ctx.lineWidth = 1;
+    ctx.strokeStyle = R('bone', 2); ctx.globalAlpha = 0.9 * pul; ctx.beginPath();   // (brighter than the walls' silk, so the corner reads)
+    ends.forEach(function (e) { ctx.moveTo(hub[0], hub[1]); ctx.lineTo(Math.round(e[0]) + 0.5, Math.round(e[1]) + 0.5); });
+    ctx.stroke();
+    ctx.strokeStyle = R('bone', 2);
+    [0.12, 0.22, 0.33, 0.45, 0.58, 0.72, 0.86].forEach(function (f, j) {
+      ctx.globalAlpha = (0.78 - j * 0.05) * pul; ctx.beginPath();
+      ends.forEach(function (e, i) {
+        var x = hub[0] + (e[0] - hub[0]) * f, y = hub[1] + (e[1] - hub[1]) * f;
+        if (!i) { ctx.moveTo(x, y); return; }
+        var p = ends[i - 1], px = hub[0] + (p[0] - hub[0]) * f, py = hub[1] + (p[1] - hub[1]) * f;
+        ctx.quadraticCurveTo((x + px) / 2 + (hub[0] - (x + px) / 2) * 0.08, (y + py) / 2 + (hub[1] - (y + py) / 2) * 0.08, x, y);   // each ring sags toward the hub
+      });
+      ctx.stroke();
+    });
+    ctx.restore();
+    // what it caught: a cocoon hung below the hub
+    var ck = s.x + ',' + s.y; B.cornerCocoons = B.cornerCocoons || {};
+    if (D.art && D.art.cocoon) { var cc = B.cornerCocoons[ck] || (B.cornerCocoons[ck] = D.art.cocoon(D.hash('corner' + ck))); ctx.drawImage(cc.canvas, Math.round(hub[0] - cc.ax), Math.round(hub[1] + 30 - cc.ay)); }
+  }
   function dotSq(x, y, color) { onSq(x, y, function (c) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); c.fillStyle = color; c.fillRect(s.x - 1, s.y - 1, 2, 2); }); }
   function overlay(ctx, B, u) {
     // the aura of protection round a standing paladin: a dashed gold circle, 10 ft (Griz, 09-27: "auras as circles centered
@@ -854,8 +973,10 @@
     // a web on the floor (webSq: silk, not a stain)
     (B.webs || []).forEach(function (wb) {
       var has = {}; wb.sq.forEach(function (q) { has[q[0] + ',' + q[1]] = 1; });
-      wb.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], R('bone', 1), 0.07, 3); onSq(q[0], q[1], function (c) { webSq(c, B, q[0], q[1], has, !!wb.dc); }); });
+      wb.sq.forEach(function (q) { fillSq(ctx, q[0], q[1], R('bone', 1), 0.07, 3); onSq(q[0], q[1], function (c) { webSq(c, B, q[0], q[1], has, !!wb.dc && !wb.ground); }); });
     });
+    // a web burning (magic.js burnWebs: out the round it caught in): embers on the square
+    (B.webFire || []).forEach(function (e) { if (e.round < B.round) return; e.sq.forEach(function (q) { var fl = 0.5 + 0.5 * Math.sin(B.t / 4 + q[0] * 2 + q[1]); fillSq(ctx, q[0], q[1], R('fire', 2), 0.18 + 0.14 * fl, 2); dotSq(q[0], q[1], (B.t >> 2) % 2 ? R('fire', 2) : R('gold', 4)); }); });
     // magical darkness, and the clouds that are heavily obscured like it: fog (pale), a stinking cloud (yellow-green), sleet (cold)
     (B.darks || []).forEach(function (dk) {
       var k = dk.kind || 'darkness', col = k === 'fog' ? R('silver', 5) : k === 'stink' ? R('moss', 2) : k === 'kill' ? R('moss', 3) : k === 'sleet' ? R('glow', 1) : '#040308', a = k === 'darkness' ? 0.86 : k === 'sleet' ? 0.4 : 0.5;

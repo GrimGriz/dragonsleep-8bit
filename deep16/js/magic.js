@@ -409,6 +409,7 @@
     var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave';
     FX.bloom(fromMe ? u.x : cx, fromMe ? u.y : cy, sq, ramp);
     var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq); });
+    if (sp.el === 'fire') M.burnWebs(B, sq, u.id); // (a fire area burns the webs in it: M.burnWebs)
     var lines = [];
     if (id === 'daylight') {
       // SRD 5.1: bright 60 ft and dim 60 more from a point; on a creature's square it goes with them; a Darkness of 3rd level or
@@ -521,6 +522,7 @@
     if (B && B.expiries && B.expiries.length) B.expiries = B.expiries.filter(function (e) { if (e.by !== u.id || B.round < e.till) return true; try { e.undo(); } catch (x) { } return false; });
     if (u.conds.heroism) u.temp = Math.max(u.temp || 0, u.conds.heroism.each);
     if (B && u.hp > 0 && !u.dead) M.webCatch(B, u, 'starts');
+    if (B && u.hp > 0 && !u.dead) M.webFireTurn(B, u); // (a web burning about it: 2d4 fire)
     if (B && u.hp > 0 && !u.dead) M.cloudTurn(B, u);
     if (B && M.onStart) M.onStart(B, u); // (the class NPCs' spells: the guardians, the timers, a word of command -- js/grimoire.js)
     if (u.conds.restrained || u.conds.paralyzed || u.conds.asleep || u.conds.incapacitated) u.turn.move = 0;
@@ -561,8 +563,8 @@
   };
   // SRD Web (09-27: Griz, "I wasn't sure it was applied appropriately (guy looked like he had it but was running around)"):
   // "Each creature that starts its turn in the webs or that enters them during its turn must make a Dexterity saving throw.
-  // On a failed save, the creature is restrained." Only a cast web (it has a DC); the strung webs a map starts with are only
-  // difficult ground. One save a turn: a creature that saved goes on through that turn
+  // On a failed save, the creature is restrained." A cast web, and since 09-30 the strung webs a map starts with (their DC the
+  // spinner's: battle.js, the map's webDC). One save a turn: a creature that saved goes on through that turn
   M.webAt = function (B, u) {
     var f = G.foot(u);
     return (B.webs || []).filter(function (w) { return w.dc && f.some(function (p) { return w.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); })[0] || null;
@@ -757,4 +759,41 @@
     yield 30;
   };
   M.webbed = function (B, x, y) { return (B.webs || []).some(function (w) { return w.sq.some(function (q) { return q[0] === x && q[1] === y; }); }); };
+  // fire on a web (SRD 5.1 Web: "The webs are flammable. Any 5-foot cube of webs exposed to fire burns away in 1 round, dealing 2d4
+  // fire damage to any creature that starts its turn in the fire"; an ettercap's and a spider's webbing are vulnerable to fire): the
+  // squares go at once -- no longer slowing or holding, whoever they held is free -- and burn on for the rest of the round (RULED
+  // 09-30, Griz: "Yes, fire burns them"; the strung webs as a cast one). From a fire area (area()), fire on one standing in a web
+  // (battle.js hurt), a thrown torch (light.js). A cast web burned away entire ends its caster's hold on it
+  M.burnWebs = function (B, sqs, by) {
+    if (!B || !(B.webs || []).length || !sqs || !sqs.length) return 0;
+    var key = {}, burnt = [], gone = [];
+    sqs.forEach(function (q) { key[q[0] + ',' + q[1]] = 1; });
+    B.webs.forEach(function (w) {
+      var had = w.sq.length;
+      w.sq = w.sq.filter(function (q) { if (key[q[0] + ',' + q[1]]) { burnt.push(q); return false; } return true; });
+      if (had && !w.sq.length && w.by !== 'the ground') gone.push(w.by);
+    });
+    if (!burnt.length) return 0;
+    B.webFire = (B.webFire || []).concat([{ sq: burnt, round: B.round, by: by || null }]);
+    var freed = B.units.filter(function (w) {
+      var r = w.conds.restrained;
+      if (!r || r.grapple || r.kind === 'tentacles' || r.kind === 'vines' || !G.inArea(w, burnt)) return false;
+      delete w.conds.restrained; return true;
+    });
+    burnt.forEach(function (q) { FX.sparkle({ x: q[0], y: q[1], size: 1 }, 'fire', 8); });
+    D.sfx('fire');
+    B.card(['{o}The web catches{/}: ' + burnt.length + ' square' + (burnt.length > 1 ? 's' : '') + ' of it burn away.' + (freed.length ? '  {y}' + freed.map(function (w) { return w.side === 'foe' ? B.shortName(w) : w.name; }).join(', ') + ' ' + (freed.length > 1 ? 'are' : 'is') + ' free{/} (2d4 fire to any who start a turn in it).' : '  {g}(2d4 fire to any who start a turn in it){/}')], 300);
+    gone.forEach(function (id) { var c = B.units.filter(function (w) { return w.id === id; })[0]; if (c && c.conc && c.conc.id === 'web') M.endConc(B, c, 'the web burned'); });
+    return burnt.length;
+  };
+  // the start of a turn in a burning web: 2d4 fire (the fire lasts out the round it caught in)
+  M.webFireTurn = function (B, u) {
+    if (!B || !(B.webFire || []).length) return;
+    B.webFire = B.webFire.filter(function (e) { return e.round >= B.round; });
+    var e = B.webFire.filter(function (f) { return G.inArea(u, f.sq); })[0];
+    if (!e || u.hp <= 0 || u.dead) return;
+    var r = D.roll('2d4');
+    B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' starts its turn in the burning web: 2d4 ' + RU.fmtRolls(r.rolls) + ' = ' + r.total + ' fire'], 260);
+    B.hurt(u, r.total, 'fire');
+  };
 })();

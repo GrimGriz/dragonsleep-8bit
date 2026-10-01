@@ -7,7 +7,7 @@
   var TW = 64, TH = 32, HW = TW / 2, HH = TH / 2;
   var WALL = 84;       // how far a far wall rises above the floor it faces (px) before it goes into the dark
   var STUB = 9;        // the near walls, cut: Diablo's trick, so the room is seen through them
-  var iso = D.iso = { TW: TW, TH: TH };
+  var iso = D.iso = { TW: TW, TH: TH, WALL: WALL };
 
   // square centre in world pixels (the rhombus's middle), at elevation gz
   iso.center = function (gx, gy, gz) { return { x: (gx - gy) * HW, y: (gx + gy) * HH + HH - (gz || 0) }; };

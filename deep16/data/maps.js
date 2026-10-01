@@ -3,7 +3,8 @@
                       ~  still water (difficult; a creature bound to it moves there freely)   L  the ledge (two steps up)
                       /  a fallen slab (one step: the ramp)   c  a cocoon on the wall
    Rows are gy (0 = the far, upper-right wall), columns gx (0 = the far, upper-left wall); the party walks in at the bottom.
-   A map may carry `webs` (squares strung with web at the start: difficult for all but the web-walkers). */
+   A map may carry `webs` (squares strung with web at the start: difficult for all but the web-walkers, and since 09-30 a
+   hazard -- DEX against `webDC` on entering or starting a turn in them, or restrained; fire burns them: js/battle.js, magic.js). */
 'use strict';
 (window.D16 = window.D16 || {}).MAPS = (window.D16.MAPS || {});
 // Set design (09-27): these roads now run off the map's far edge -- an open edge is a way out (LEAVE THE FIGHT) --
@@ -40,6 +41,11 @@ window.D16.MAPS.gulch = {
   webs: [[3, 2], [3, 3], [4, 3], [12, 3], [4, 5], [13, 5], [3, 6], [4, 6], [5, 6], [10, 6], [11, 6], [12, 6], [5, 7], [6, 7], [12, 7], [13, 7], [14, 6],
     [4, 1], [5, 1], [6, 1], [8, 1], [9, 1], [5, 2], [8, 2], [9, 2], [10, 2], [11, 2],
     [2, 3], [2, 4], [3, 4], [11, 3], [12, 4], [13, 4], [1, 5], [1, 6], [2, 6], [15, 6], [15, 7], [14, 7]],
+  webDC: 11, // the ettercap's silk (SRD 5.1 Ettercap, Web: DC 11 Strength to burst it; RULED 09-30, Griz: "11")
+  // the corner west of its seat where the floor meets two walls (Griz, 09-30: "fancy up like what I'd call 3 tiles west of the
+  // Ettercap where the floor and two walls make a corner"): the two nooks of the back wall's step, (3, 2) and (2, 3) -- a corner
+  // web strung across each, a cocoon hung in it (js/ui.js cornerWeb)
+  webCorners: [[3, 2], [2, 3]],
   foes: [],
   wave: null
 };
@@ -156,6 +162,7 @@ window.D16.MAPS.nest = {
   ],
   entry: [[9, 12], [10, 12], [9, 13], [10, 13], [8, 11]],
   webs: [[2, 2], [3, 2], [4, 2], [15, 2], [16, 2], [2, 4], [16, 5], [17, 5], [4, 7], [5, 7], [13, 8], [14, 8], [15, 7]],
+  webDC: 12, // the brood's silk (SRD 5.1 Giant Spider, Web: DC 12 Strength to burst it) -- the seat's call, by the gulch's ruling
   foes: [],
   wave: null
 };

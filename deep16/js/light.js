@@ -267,6 +267,7 @@
     delete u.torch; L.regrip(u);
     place(B, x, y, u.id);
     D.sfx('fire');
+    if (D.magic.burnWebs) D.magic.burnWebs(B, [[x, y]], u.id); // (a torch landing on a web burns it: magic.js)
     yield* D.magic.brighten(B, u, 'torch', '{y}' + u.name + '{/} throws the torch. It lands ' + (Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5) + ' ft off and burns there.', { x: x, y: y, bright: L.TORCH.bright });
     u.anim = 'idle';
   };

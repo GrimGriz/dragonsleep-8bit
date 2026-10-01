@@ -255,7 +255,22 @@
     });
     return best;
   };
-  function areaDamage(B, u, e, slot, fs) { return e.sp.dmg ? TX.bestArea(B, u, e, fs, function (caught) { return TX.areaWorth(B, u, e, slot, caught); }) : null; }
+  // fire on a web (09-30, magic.js burnWebs): a burned square frees whoever of its own side it holds and opens the ground for those
+  // the webs slow -- worth something beside the damage
+  function webBurnWorth(B, u, sq) {
+    if (!(B.webs || []).length) return 0;
+    var sc = 0;
+    sq.forEach(function (q) {
+      if (!M.webbed(B, q[0], q[1])) return;
+      B.units.forEach(function (w) {
+        if (!G.standing(w) || w.webWalker || G.hostile(u, w)) return;
+        if (G.inArea(w, [q])) sc += w.conds.restrained ? 8 : 1;
+        else if (G.dist(w, { x: q[0], y: q[1], size: 1 }) <= 10) sc += 0.5;
+      });
+    });
+    return sc;
+  }
+  function areaDamage(B, u, e, slot, fs) { return e.sp.dmg ? TX.bestArea(B, u, e, fs, function (caught, sq) { return TX.areaWorth(B, u, e, slot, caught) + (e.sp.el === 'fire' ? webBurnWorth(B, u, sq) : 0); }) : null; }
   EV['shape:sphere'] = areaDamage; EV['shape:cone'] = areaDamage; EV['shape:line'] = areaDamage; EV['shape:wave'] = areaDamage;
   // Sleep: the pool against the weakest in the sphere
   EV.sleep = function (B, u, e, slot, fs) {
