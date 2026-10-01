@@ -43,9 +43,11 @@ window.D16.MAPS.gulch = {
     [2, 3], [2, 4], [3, 4], [11, 3], [12, 4], [13, 4], [1, 5], [1, 6], [2, 6], [15, 6], [15, 7], [14, 7]],
   webDC: 11, // the ettercap's silk (SRD 5.1 Ettercap, Web: DC 11 Strength to burst it; RULED 09-30, Griz: "11")
   // the corner west of its seat where the floor meets two walls (Griz, 09-30: "fancy up like what I'd call 3 tiles west of the
-  // Ettercap where the floor and two walls make a corner"): the two nooks of the back wall's step, (3, 2) and (2, 3) -- a corner
-  // web strung across each, a cocoon hung in it (js/ui.js cornerWeb)
-  webCorners: [[3, 2], [2, 3]],
+  // Ettercap where the floor and two walls make a corner" -- then, pointing in the pane: "where the mouse is is the tile I meant ...
+  // (his spawn at the time)"): the ledge's end, (4, 1), three along from its seat at (7, 1), walls at (3, 1) and (4, 0). The two
+  // nooks of the back wall's step, (3, 2) and (2, 3), first read as his corner, keep theirs. A corner web strung across each, a
+  // cocoon hung in it (js/ui.js cornerWeb)
+  webCorners: [[4, 1], [3, 2], [2, 3]],
   foes: [],
   wave: null
 };

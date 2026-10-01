@@ -938,7 +938,8 @@
     }
     var out = [];
     B.wallWebFaces.faces.forEach(function (f) { out.push({ depth: f.depth, gz: 0, layer: 1, draw: function (ctx) { wallFace(ctx, B, f); } }); });
-    (def.webCorners || []).forEach(function (q) { var s = m.at(q[0], q[1]); if (s && s.open) out.push({ depth: q[0] + q[1] - 0.5, gz: 0, layer: 2, draw: function (ctx) { cornerWeb(ctx, B, s); } }); });
+    // (just after the square's own tile -- a ledge's is a prop at its depth -- and before anyone standing on it)
+    (def.webCorners || []).forEach(function (q) { var s = m.at(q[0], q[1]); if (s && s.open) out.push({ depth: q[0] + q[1] + 0.05, gz: s.gz, layer: 2, draw: function (ctx) { cornerWeb(ctx, B, s); } }); });
     return out;
   }
   // a square's four rhombus corners on screen (at its floor): left, top, right, bottom

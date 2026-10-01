@@ -674,8 +674,22 @@
       dpx(ctx, p.x - 5, p.y - (dh ? 3 : 0), E.c[1], 3); dpx(ctx, p.x + 5, p.y - (dh ? 0 : 3), E.c[2], 3);
       ctx.globalAlpha = 1 - dn / 36; var nx = p.x + bw + 2 + Math.sin(dn / 5) * 2, ny = p.y - top * 0.35 - dn * 0.8; dpx(ctx, nx, ny, E.c[0], 2); dpx(ctx, nx + 1, ny - 2, E.c[0]); dpx(ctx, nx + 1, ny - 3, E.c[0]); dpx(ctx, nx + 1, ny - 4, E.c[0]); ctx.globalAlpha = 1;
     }
-    // Mage Armor: a sheen of force slides across the chest now and then, blue-white
-    if (c.mageArmor) { var ms = (t + ph) % 84; if (ms < 26) { E = FX.EL.arcane; var mx = p.x - (bw - 3) + ms * (bw - 3) / 13, my = p.y - top * 0.4; ctx.globalAlpha = Math.min(1, 1.3 * Math.sin(Math.PI * ms / 26)); for (i = -5; i <= 5; i++) { dpx(ctx, mx + i * 1.3, my - i * 1.9, E.c[0], 2); px(ctx, mx + i * 1.3 + 3, my - i * 1.9, E.c[1], 2); } ctx.globalAlpha = 1; } }
+    // Mage Armor (Griz, 09-30: "actually a head-to-toe sheen quite a bit fainter would better match my mind theater" -- the chest's two
+    // bright bars read as "two glowing sticks"): now and then a faint band of force slides down the whole figure, head to heels, as wide
+    // as the body is (narrow at the head, full at the shoulders, narrowing to the feet), its edges dithered, blue-white
+    if (c.mageArmor) {
+      var ms = (t + ph) % 110;
+      if (ms < 44) {
+        E = FX.EL.arcane; var mf = ms / 44, my0 = p.y - top + mf * (top + 2), mfade = Math.sin(Math.PI * mf);
+        for (var row = -2; row <= 2; row++) {
+          var ry = Math.round(my0 + row), rf = Math.max(0, Math.min(1, (ry - (p.y - top)) / Math.max(1, top)));
+          var prof = rf < 0.15 ? 0.45 : rf < 0.55 ? 1 : 1 - (rf - 0.55) * 0.9, hw2 = Math.round((bw - 3) * prof);
+          ctx.globalAlpha = (row === 0 ? 0.26 : Math.abs(row) === 1 ? 0.15 : 0.07) * mfade; ctx.fillStyle = row === 0 ? E.c[0] : E.c[1];
+          for (var mx2 = -hw2; mx2 <= hw2; mx2++) if (row === 0 || ((mx2 + ry + (t >> 2)) & 1) === 0) ctx.fillRect(Math.round(p.x) + mx2, ry, 1, 1);
+        }
+        ctx.globalAlpha = 1;
+      }
+    }
     // Aid (the day through): a small gold plus rises off the left shoulder every so often; Regenerate: a green one, steadier; Enhance Ability: two gold chevrons rise off the right
     if (c.aid) { var aq = (t + ph * 3) % 120; if (aq < 44) { ctx.globalAlpha = Math.sin(Math.PI * aq / 44); plus(ctx, p.x - bw, bodyY - aq * 0.32, FX.EL.holy); ctx.globalAlpha = 1; } }
     if (c.regenerating) { var rq = (t + ph * 5) % 70; ctx.globalAlpha = Math.sin(Math.PI * rq / 70); plus(ctx, p.x - bw, bodyY + 6 - rq * 0.25, FX.EL.heal); ctx.globalAlpha = 1; }
