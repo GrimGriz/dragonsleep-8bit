@@ -33,10 +33,17 @@
   // Earth Glide (the xorn, the earth elemental; js/traits.js): through the rock ('#', the stalagmites), never a built wall, and it stands only
   // on open ground (pass: a square it may go through)
   function glides(u, x, y) { var s = G.map.at(x, y); return !!(u && u.earthGlide && s && (s.ch === '#' || s.ch === 'P') && x > 0 && y > 0 && x < G.map.w - 1 && y < G.map.h - 1); }
+  // worked stone underfoot (a map's `noBurrow`: true, the whole floor; or a string of the squares' characters, '=' the made road where it is
+  // whole -- data/maps.js's header, 10-01d): nothing burrows under it or comes up through it
+  G.solidFloor = function (x, y) {
+    var nb = G.map && G.map.def && G.map.def.noBurrow; if (!nb) return false; if (nb === true) return true;
+    var s = G.map.at(x, y); return !!(s && String(nb).indexOf(s.ch) >= 0);
+  };
   function footWalkable(u, x, y, pass) {
     var f = G.foot(u, x, y), lo = 1e9, hi = -1e9;
     for (var i = 0; i < f.length; i++) {
       if (!walkable(f[i][0], f[i][1], u) && !(pass && glides(u, f[i][0], f[i][1]))) return false;
+      if (u && u.under && G.solidFloor(f[i][0], f[i][1])) return false; // (under the ground, worked stone stops it: a map's noBurrow, 10-01d)
       var z = G.map.gz(f[i][0], f[i][1]); lo = Math.min(lo, z); hi = Math.max(hi, z);
     }
     return hi - lo <= G.map.def.step; // a Large body can straddle one step, not the ledge

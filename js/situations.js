@@ -146,7 +146,15 @@
     solskaft: { group: 'The dwarven expansion', title: 'Sólskaft, the road held', pt: '§22 the halls', base: 'lake', spine: 21, lvl: 9,
       look: 'A walk. The clan hall (south-west): the throne on its dais, the oath-stone, the noon beam on the stone. The closed street (far west, north): the barred doors and the Scalebeam house, Ásdís. The grow (north-east, over the footbridge). The cook\'s line.',
       say: 'Sólskaft, the morning after. The halls are yours.',
-      map: 'solskaft', x: 28, y: 20, dir: 'down' }
+      map: 'solskaft', x: 28, y: 20, dir: 'down' },
+    // the burrowers on the grid (10-01d): DEEP16's own rooms, the class floor with monsters on it. Each fight's question is the page's own
+    // (situations.html ASK -- Griz: "should some of this ground be solid stone?": a map's `noBurrow`, deep16/data/maps.js)
+    xorns: { group: 'The burrowers (DEEP16)', title: 'The xorns at the Seam', pt: 'Earth Glide · the first Blender monster (new 10-01)', lvl: 8,
+      url: 'deep16/?npc=xorn,xorn&lvl=8&map=seamwall',
+      look: 'Two xorns. Within 15 ft they walk to you; farther, they sink into the floor and nothing shows where they went, then rise beside someone: a claw from each arm and the bite. One that dies settles half into the floor. Add &watch to the URL to watch both sides play.' },
+    bulette: { group: 'The burrowers (DEEP16)', title: 'The bulette at the Breach', pt: 'burrow 40 ft · the mound (new 10-01)', lvl: 5,
+      url: 'deep16/?npc=bulette&lvl=5&map=breach',
+      look: 'The bulette dives when no one is in its reach: under the road it is a mound with its spines showing, sliding where it goes; it comes up beside the weakest it can reach, or 15 to 30 ft off and leaps when its Deadly Leap is ready. Bloodied with two at it, it dives clear.' }
   };
 
   // ------------------------------------------------------------------ setting one up (called by js/scenes.js LeadSelect)

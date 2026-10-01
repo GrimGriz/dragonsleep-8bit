@@ -32,6 +32,7 @@
   .item h3 a:hover { text-decoration:underline; }
   .meta { font:13px system-ui,sans-serif; color:var(--dim); margin:0 0 .35rem; }
   .look { margin:.2rem 0 .5rem; }
+  .ask { margin:.1rem 0 .5rem; font-style:italic; opacity:.8; }
   .row { display:flex; gap:.4rem; flex-wrap:wrap; align-items:center; font:13px system-ui,sans-serif; }
   .row code { font-size:12px; }
   .row button, .row a.btn { background:none; border:1px solid var(--rule); color:var(--ink); border-radius:999px; padding:.15rem .6rem; cursor:pointer; font:inherit; text-decoration:none; min-height:28px; display:inline-flex; align-items:center; }
@@ -92,6 +93,9 @@
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   // the feedback (10-01, Griz: "Feels like the situations sheet should have a spot for these feedbacks to give you all at once. The
   // playtest lamp is huge and full of everything"): a verdict and a note a situation, kept on this device, copied or saved all at once
+  // the question every situation asks (10-01d, Griz: in the lamp, "should some of this ground be solid stone?"): a burrower -- the bulette,
+  // the xorn -- goes under any floor but solid stone (a map's `noBurrow`, deep16/data/maps.js); answer it in the note
+  var ASK = 'If it comes to a fight: should some of this ground be solid stone? (A burrower can\'t come up through worked floor -- dwarven halls, dressed blocks, the made road where it is whole.)';
   var FKEY = 'dsl-situations-feedback:v1', VERDICTS = [['works', '✓ works'], ['broken', '✗ broken'], ['unclear', '? unclear'], ['hard', 'too hard'], ['easy', 'too easy']];
   var VL = {}; VERDICTS.forEach(function (v) { VL[v[0]] = v[1]; });
   var FB = {}; try { FB = JSON.parse(get(FKEY) || '{}') || {}; } catch (e) { FB = {}; }
@@ -111,6 +115,7 @@
         '<h3><span class="n">' + (i + 1) + '</span><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(s.title) + '</a></h3>' +
         '<p class="meta">' + esc(s.pt || '') + (s.lvl ? ' · level ' + s.lvl : '') + '</p>' +
         '<p class="look">' + esc(s.look || '') + '</p>' +
+        '<p class="ask">' + esc(ASK) + '</p>' +
         '<div class="row"><code>' + esc(url) + '</code>' +
         '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">OPEN</a>' +
         '<a class="btn" href="' + esc(url + '&x=' + Date.now().toString(36)) + '" target="_blank" rel="noopener">FRESH</a>' +

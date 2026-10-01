@@ -4,7 +4,13 @@
                       /  a fallen slab (one step: the ramp)   c  a cocoon on the wall
    Rows are gy (0 = the far, upper-right wall), columns gx (0 = the far, upper-left wall); the party walks in at the bottom.
    A map may carry `webs` (squares strung with web at the start: difficult for all but the web-walkers, and since 09-30 a
-   hazard -- DEX against `webDC` on entering or starting a turn in them, or restrained; fire burns them: js/battle.js, magic.js). */
+   hazard -- DEX against `webDC` on entering or starting a turn in them, or restrained; fire burns them: js/battle.js, magic.js).
+   BUILDING A MAP? ASK WHETHER ITS GROUND IS SOLID STONE (10-01d, Griz: "put something somewhere so that when an instance goes to build a
+   new map it considers whether or not it should"). A burrower -- the bulette, the xorn, the ankheg, a purple worm, a blue dragon --
+   goes under any floor but worked stone (SRD 5.1: burrowing is through "sand, earth, mud, or ice", never solid rock; Earth Glide is
+   through "unworked earth and stone"). `noBurrow: true` -- the whole floor is worked stone (a dwarven hall); `noBurrow: '='` -- these
+   squares are (the made road where it is whole, dressed blocks); none -- dig anywhere (a cave, a torn-up road: the Breach, on his word).
+   Read by js/grid.js G.solidFloor and js/ai.js burrower. The testers are asked the same on situations.html. */
 'use strict';
 (window.D16 = window.D16 || {}).MAPS = (window.D16.MAPS || {});
 // Set design (09-27): these roads now run off the map's far edge -- an open edge is a way out (LEAVE THE FIGHT) --
@@ -231,6 +237,7 @@ window.D16.MAPS.lamp = {
 window.D16.MAPS.threshold = {
   name: 'Deepholm\'s Door',
   sub: 'the made road\'s end',
+  noBurrow: true, // (Deepholm's door: dwarven work underfoot, nothing comes up through it -- Griz, 10-01d, "Dwarven Halls seems like a yes")
   dark: true, lights: [[9, 1, 20, 'glow']], // torchdark (09-28): dark ground; "a light that is not a lamp" at the door
   step: 10,
   rows: [
@@ -488,6 +495,7 @@ window.D16.MAPS.snootroad = {
 window.D16.MAPS.burial = {
   name: 'The Burial',
   sub: 'under the old hold, the night shift',
+  noBurrow: true, // (worked stone under the old dwarf-hold -- Griz, 10-01d, "Dwarven Halls seems like a yes")
   dark: true, lights: [[12, 2, 30, 'gold']], // torchdark (09-28): dark ground; the lamp by the stair
   step: 10,
   rows: [
@@ -834,6 +842,7 @@ window.D16.MAPS.point = {
 window.D16.MAPS.hexfloor = {
   name: 'The Hex',
   sub: 'Fight Night, the floor',
+  noBurrow: true, // (the hall's flagstones -- Griz, 10-01d, "Dwarven Halls seems like a yes")
   step: 10,
   rows: [
     '##################',

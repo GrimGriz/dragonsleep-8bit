@@ -509,7 +509,7 @@
   // jump the Deadly Leap asks for -- and fights. It comes up only where its body has room, and stays up through the party's turns (the seat's
   // call, 10-01d: never up, bite and down again in one turn). Its ground is any open floor, never the rock (SRD 5.1: "A monster can't burrow
   // through solid rock"), and not a map whose floor is worked stone (a map's `noBurrow`). Moving under, it has its burrow speed
-  function canDig(B, u) { return u.burrow > 0 && !(B.map && B.map.def && B.map.def.noBurrow) && !u.conds.restrained && !u.conds.prone && !(u.holding && u.holding.length); }
+  function canDig(B, u) { return u.burrow > 0 && G.foot(u).every(function (q) { return !G.solidFloor(q[0], q[1]); }) && !u.conds.restrained && !u.conds.prone && !(u.holding && u.holding.length); } // (not off worked stone: a map's noBurrow, data/maps.js)
   function* sink(B, u) {
     // (under from the first frame of the row: js/ui.js plays the row and then holds its last frame, whatever the pace -- a row played
     // "once" that ran out before the wait did fell back to idle, and he stood whole on the floor before he went: Griz's fight, 10-01d)

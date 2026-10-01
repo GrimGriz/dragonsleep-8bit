@@ -425,7 +425,7 @@ var MODES=[
 ];
 // the playtest situations (?at=<id>, 10-01): read from the game's own table, js/situations.js (situations.html reads it too)
 var SIT=(window.DS&&window.DS.SITUATIONS)||{};
-Object.keys(SIT).forEach(function(id){ MODES.push({id:'at-'+id,grp:'at',t:SIT[id].title,n:'?at='+id+(SIT[id].lvl?' · level '+SIT[id].lvl:'')}); });
+Object.keys(SIT).forEach(function(id){ if (SIT[id].url) return; /* (a situation that is a DEEP16 room has its own URL, not ?at=: the burrowers, 10-01d) */ MODES.push({id:'at-'+id,grp:'at',t:SIT[id].title,n:'?at='+id+(SIT[id].lvl?' · level '+SIT[id].lvl:'')}); });
 var MODEIDS={}; MODES.forEach(function(m){MODEIDS[m.id]=m;});
 var EXAMPLES=[
   ['Talmok 7 vs a fighter 7',{mode:'npc',foes:[N('talmok',1,7)],vs:[C('fighter',1,7)],lvl:''}],
