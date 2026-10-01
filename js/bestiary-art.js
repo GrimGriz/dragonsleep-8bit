@@ -33,18 +33,38 @@
     p.line(10, 6, 14, 4, '#7a6888');
     return p.outline(INK);
   };
-  A.crawler = function () { // the Warrens' milked beasts — a segmented, many-legged carrion eater
-    var p = new Pix(56, 48);
-    var segs = [[8, 34, 6], [14, 30, 7], [21, 27, 7.5], [28, 25, 8], [35, 24, 8], [41, 22, 7.5]];
-    segs.forEach(function (s, i) {
-      p.ellipse(s[0], s[1], s[2], s[2] - 1, '#5a7a4a');
-      p.ellipse(s[0] - 1, s[1] - 2, s[2] - 2, s[2] - 3.5, '#7a9a5a');
-      p.line(s[0] - 2, s[1] + s[2] - 2, s[0] - 4, s[1] + s[2] + 3, '#3a4a2a', 1);
-      p.line(s[0] + 2, s[1] + s[2] - 2, s[0] + 3, s[1] + s[2] + 3, '#3a4a2a', 1);
+  // the Warrens' milked beasts, the carrion crawler -- drawn after Griz's 16-bit sheet (deep16/_src/crawler_grok_1.webp, the grid's
+  // crawler_p2) so the three agree (Griz, 09-30: "too much disparity between the 16bit crawler we're using and the ones in the 8-bit
+  // fights and crawler milking minigame"): a hunched mound of pale-yellow ringed segments, the tail tucked, a plum maw ringed with
+  // teeth low at the front, thick red tentacles hanging from the face, two eye stalks off the crown
+  A.crawler = function () {
+    var p = new Pix(56, 44);
+    var body = '#c8a050', lite = '#e8c878', hi = '#f8e8b0', dark = '#8a6428', deep = '#5a3e18';
+    for (var lx = 9; lx <= 39; lx += 5) p.line(lx, 35, lx + ((lx / 5) % 2 ? 1 : -1), 39, deep);   // short legs along the belly
+    // the body: slices tail to head, each rim left showing as the next is laid over it
+    var segs = [[7, 34, 4.5, 4.5], [11, 30, 6, 8], [17, 26, 6.5, 12], [23, 24, 6.5, 13.5], [29, 24, 6.5, 13.5], [35, 25, 6, 12.5], [40, 27, 5.5, 10]];
+    segs.forEach(function (s) {
+      p.ellipse(s[0], s[1], s[2], s[3], deep);
+      p.ellipse(s[0] - 0.5, s[1] - 0.5, s[2] - 1, s[3] - 1, body);
+      p.ellipse(s[0] - 1.2, s[1] - s[3] * 0.45, s[2] * 0.5, s[3] * 0.3, lite);
+      p.set(Math.round(s[0] - 1.5), Math.round(s[1] - s[3] * 0.66), hi);
     });
-    p.ellipse(47, 20, 6, 6, '#6a8a5a'); p.ellipse(46, 18, 4, 4, '#8aaa6a');
-    for (var t = 0; t < 8; t++) { var a = -0.9 + t * 0.26; p.line(50, 22, 50 + Math.cos(a) * 7, 22 + Math.sin(a) * 12 + 2, '#c8b8d0'); }
-    eye(p, 48, 17, '#f8f8a0'); eye(p, 45, 16, '#f8f8a0');
+    // the rings: a band down the body between each two segments, bowed toward the head, a lit edge on its far side
+    for (var i = 1; i < segs.length; i++) {
+      var bx = Math.round(segs[i][0] - segs[i][2] * 0.8), top = 0, bot = 0, y;
+      for (y = 0; y < 44; y++) if (p.on(bx, y)) { top = y; break; }
+      for (y = 43; y >= 0; y--) if (p.on(bx, y)) { bot = y; break; }
+      for (y = top + 1; y < bot; y++) { var f = (y - top) / Math.max(1, bot - top), x = Math.round(bx + 1.4 * Math.sin(Math.PI * f)); if (p.on(x, y)) { p.set(x, y, dark); if (p.on(x + 1, y) && y < bot - 2) p.set(x + 1, y, lite); } }
+    }
+    p.shadeWhere(function (x, y) { return y >= 33; }, dark);   // the belly in shadow
+    p.ellipse(44.5, 29, 3.2, 3.6, '#3a1028'); p.ellipse(45, 29.5, 1.8, 2.2, '#6a2048');   // the maw
+    [[43, 26], [45, 25], [47, 27], [43, 32], [46, 33]].forEach(function (t) { p.set(t[0], t[1], '#f0e8d0'); });   // its teeth
+    // the tentacles: each a tube -- a dark underside, a red top, a lit fleck at the bend, a dark tip
+    var T = [[[45, 25], [50, 21], [54, 24]], [[46, 27], [52, 28], [55, 33]], [[46, 30], [50, 35], [50, 41]], [[45, 32], [46, 38], [43, 42]], [[43, 32], [40, 37], [37, 40]], [[47, 29], [53, 38], [54, 42]]];
+    T.forEach(function (t) { p.line(t[0][0], t[0][1] + 1, t[1][0], t[1][1] + 1, '#6a1428', 2); p.line(t[1][0], t[1][1] + 1, t[2][0], t[2][1] + 1, '#6a1428'); });
+    T.forEach(function (t) { p.line(t[0][0], t[0][1], t[1][0], t[1][1], '#c83a50'); p.line(t[1][0], t[1][1], t[2][0], t[2][1], '#c83a50'); p.set(t[1][0], t[1][1], '#f07080'); p.set(t[2][0], t[2][1], '#4a0c20'); });
+    p.line(39, 18, 36, 8, dark); p.line(42, 19, 45, 8, dark);   // the eye stalks, a pale bulb on each
+    [[36, 7], [45, 7]].forEach(function (e) { p.ellipse(e[0], e[1], 1.7, 1.7, '#f8f0d8'); p.set(e[0] + 1, e[1], INK); });
     return p.outline(INK);
   };
   A.grayooze = function () {

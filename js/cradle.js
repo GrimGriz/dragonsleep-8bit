@@ -198,12 +198,12 @@
   function drawTent(ctx, T, part, glowV) {
     var a = part === 'above' ? 0 : T.pinI, b = part === 'above' ? T.pinI : T.n - 1, pts = T.pts, k, n, p, w;
     var wf = function (k) { var f = k / (T.n - 1), w = 17 - 5 * f; if (!T.pinned && f > 0.55) w *= 1 + (f - 0.55) * 1.2; return w; };
-    var g = ctx.createLinearGradient(pts[a].x - 40, 0, pts[a].x + 40, 0);
-    g.addColorStop(0, '#d8c4dc'); g.addColorStop(0.45, '#a48bb2'); g.addColorStop(1, '#4e3a62');
+    var g = ctx.createLinearGradient(pts[a].x - 40, 0, pts[a].x + 40, 0); // (red, as the grid's crawler: crawler_p2, 09-30)
+    g.addColorStop(0, '#f2a0a8'); g.addColorStop(0.45, '#c43a50'); g.addColorStop(1, '#561024');
     ribbon(ctx, pts, a, b, wf); ctx.fillStyle = g; ctx.fill();
-    ctx.strokeStyle = 'rgba(36,20,48,0.6)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = 'rgba(48,8,20,0.6)'; ctx.lineWidth = 2; ctx.stroke();
     ctx.save(); ctx.lineCap = 'round';
-    ctx.strokeStyle = 'rgba(40,20,50,0.28)'; ctx.lineWidth = 2; // the rings
+    ctx.strokeStyle = 'rgba(60,8,20,0.3)'; ctx.lineWidth = 2; // the rings
     for (k = a + 1; k < b; k++) { p = pts[k]; n = normalAt(pts, a, b, k); w = wf(k); ctx.beginPath(); ctx.moveTo(p.x + n.nx * w, p.y + n.ny * w); ctx.quadraticCurveTo(p.x + n.tx * 4, p.y + n.ty * 4, p.x - n.nx * w, p.y - n.ny * w); ctx.stroke(); }
     ctx.beginPath(); ctx.moveTo(pts[a].x, pts[a].y); for (k = a + 1; k <= b; k++) ctx.lineTo(pts[k].x, pts[k].y); // the vein of venom down the middle
     ctx.strokeStyle = rgba(COL.venom, 0.1 + 0.4 * (glowV || 0)); ctx.lineWidth = 4; ctx.stroke();
@@ -221,37 +221,40 @@
       ctx.restore();
     }
     var g = ctx.createRadialGradient(p.x - r * 0.35, p.y - r * 0.35, r * 0.1, p.x, p.y, r);
-    g.addColorStop(0, DS.mix('#d8c8e0', COL.venom, 0.6 * ripe)); g.addColorStop(0.6, DS.mix('#9d84ac', '#a0c060', 0.5 * ripe)); g.addColorStop(1, '#4a3858');
+    g.addColorStop(0, DS.mix('#eaa0b0', COL.venom, 0.6 * ripe)); g.addColorStop(0.6, DS.mix('#9a2c46', '#a0c060', 0.5 * ripe)); g.addColorStop(1, '#480c20');   // (the tentacle's dark tip)
     ctx.beginPath(); ctx.ellipse(p.x, p.y, r, r * 1.15, 0, 0, TAU); ctx.fillStyle = g; ctx.fill();
-    ctx.strokeStyle = 'rgba(40,24,52,0.5)'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.strokeStyle = 'rgba(50,8,24,0.5)'; ctx.lineWidth = 2; ctx.stroke();
     ctx.beginPath(); ctx.ellipse(p.x - r * 0.3, p.y - r * 0.45, r * 0.28, r * 0.16, -0.5, 0, TAU); ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fill();
-    ctx.beginPath(); ctx.ellipse(p.x, p.y + r * 0.92, r * 0.22, r * 0.1, 0, 0, TAU); ctx.fillStyle = '#2a1a30'; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(p.x, p.y + r * 0.92, r * 0.22, r * 0.1, 0, 0, TAU); ctx.fillStyle = '#2a0a14'; ctx.fill();
   }
 
   // ------------------------------------------------------------------ the animal
+  // (09-30, Griz: "too much disparity between the 16bit crawler we're using and the ones in the 8-bit fights and crawler milking
+  // minigame": the animal is painted after his 16-bit sheet now -- pale yellow ringed segments, red tentacles dark at the tips, a plum
+  // maw with pale fangs, two eye stalks -- as the 8-bit fight's (js/bestiary-art.js A.crawler) and the grid's (crawler_p2) are)
   var SEGS = [[262, 480, 52], [308, 470, 58], [360, 460, 64], [418, 451, 70], [482, 445, 75], [548, 440, 79], [614, 436, 82]];
   function segment(ctx, cx, cy, r, rng, head) {
     var g = ctx.createRadialGradient(cx - r * 0.35, cy - r * 0.45, r * 0.06, cx, cy, r);
-    g.addColorStop(0, head ? '#95a66c' : '#86985e'); g.addColorStop(0.45, head ? '#55663f' : '#4a5b36'); g.addColorStop(0.85, '#1c2314'); g.addColorStop(1, '#0c0f09');
+    g.addColorStop(0, head ? '#f0d690' : '#e6ca82'); g.addColorStop(0.45, head ? '#c8a052' : '#ba9244'); g.addColorStop(0.85, '#5a3e18'); g.addColorStop(1, '#2a1c0a');
     ctx.beginPath(); ctx.ellipse(cx, cy, r, r * 0.9, 0, 0, TAU); ctx.fillStyle = g; ctx.fill();
-    var o = ctx.createRadialGradient(cx + r * 0.25, cy - r * 0.15, 0, cx + r * 0.25, cy - r * 0.15, r * 0.9); o.addColorStop(0, 'rgba(150,110,170,0.22)'); o.addColorStop(1, 'rgba(150,110,170,0)');
-    ctx.fillStyle = o; ctx.fill(); // an oily sheen on the wet chitin
-    ctx.strokeStyle = 'rgba(8,10,6,0.8)'; ctx.lineWidth = 3; ctx.stroke();
-    ctx.beginPath(); ctx.ellipse(cx, cy, r - 4, r * 0.9 - 4, 0, -1.2, 1.2); ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = 8; ctx.stroke(); // the plate's far edge
+    var o = ctx.createRadialGradient(cx + r * 0.25, cy - r * 0.15, 0, cx + r * 0.25, cy - r * 0.15, r * 0.9); o.addColorStop(0, 'rgba(255,236,190,0.16)'); o.addColorStop(1, 'rgba(255,236,190,0)');
+    ctx.fillStyle = o; ctx.fill(); // a wet sheen on the pale hide
+    ctx.strokeStyle = 'rgba(30,18,4,0.85)'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx, cy, r - 4, r * 0.9 - 4, 0, -1.2, 1.2); ctx.strokeStyle = 'rgba(40,22,4,0.35)'; ctx.lineWidth = 8; ctx.stroke(); // the ring's far edge
     var k;
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.fillStyle = 'rgba(70,40,10,0.26)';
     for (k = 0; k < 18; k++) { var a = rng() * TAU, d = rng() * r * 0.8; ctx.beginPath(); ctx.arc(cx + Math.cos(a) * d, cy + Math.sin(a) * d * 0.9, 1.5 + rng() * 3, 0, TAU); ctx.fill(); }
-    ctx.fillStyle = 'rgba(200,220,150,0.13)';
+    ctx.fillStyle = 'rgba(255,248,215,0.16)';
     for (k = 0; k < 8; k++) { var a2 = rng() * TAU, d2 = rng() * r * 0.7; ctx.beginPath(); ctx.arc(cx + Math.cos(a2) * d2, cy + Math.sin(a2) * d2 * 0.9, 1 + rng() * 2, 0, TAU); ctx.fill(); }
-    ctx.beginPath(); ctx.arc(cx + r * 0.08, cy + r * 0.3, 4, 0, TAU); ctx.fillStyle = '#0d110a'; ctx.fill(); ctx.strokeStyle = 'rgba(200,210,160,0.3)'; ctx.lineWidth = 1.5; ctx.stroke(); // a spiracle
-    ctx.beginPath(); ctx.ellipse(cx - r * 0.3, cy - r * 0.52, r * 0.34, r * 0.12, -0.3, 0, TAU); ctx.fillStyle = 'rgba(255,255,240,0.2)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx + r * 0.08, cy + r * 0.3, 4, 0, TAU); ctx.fillStyle = '#2a1808'; ctx.fill(); ctx.strokeStyle = 'rgba(255,230,180,0.3)'; ctx.lineWidth = 1.5; ctx.stroke(); // a spiracle
+    ctx.beginPath(); ctx.ellipse(cx - r * 0.3, cy - r * 0.52, r * 0.34, r * 0.12, -0.3, 0, TAU); ctx.fillStyle = 'rgba(255,255,240,0.26)'; ctx.fill();
   }
-  function mandible(ctx, x, y, dir) {
+  function mandible(ctx, x, y, dir) { // a fang beside the maw, pale and hooked
     ctx.beginPath(); ctx.moveTo(x, y);
     ctx.bezierCurveTo(x + 24 * dir, y + 4, x + 22 * dir, y + 26, x + 3 * dir, y + 36);
     ctx.bezierCurveTo(x + 12 * dir, y + 26, x + 14 * dir, y + 10, x, y + 6); ctx.closePath();
-    var g = ctx.createLinearGradient(x + 24 * dir, y, x, y + 36); g.addColorStop(0, '#2c2c22'); g.addColorStop(1, '#070706');
-    ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = 'rgba(200,200,170,0.28)'; ctx.lineWidth = 1.5; ctx.stroke();
+    var g = ctx.createLinearGradient(x + 24 * dir, y, x, y + 36); g.addColorStop(0, '#f2e8cc'); g.addColorStop(1, '#9a8660');
+    ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = 'rgba(50,30,8,0.6)'; ctx.lineWidth = 1.5; ctx.stroke();
   }
   function drawBody(ctx, t, unrest, look) {
     var breath = 1 + 0.018 * Math.sin(t * 0.04 * (1 + unrest)), rng = DS.mulberry32(7), f, s;
@@ -261,30 +264,31 @@
       var bx = 758 + f * 14, by = 436 - f * 6, ph = t * 0.05 + f * 2;
       ctx.beginPath(); ctx.moveTo(bx, by);
       ctx.bezierCurveTo(bx + 40, by - 40 + Math.sin(ph) * 15, bx + 60 + Math.cos(ph) * 20, by - 90, bx + 40 + Math.sin(ph * 1.3) * 30, by - 130 - unrest * 24);
-      ctx.strokeStyle = '#7e6690'; ctx.lineWidth = 11 - f; ctx.stroke(); ctx.strokeStyle = 'rgba(255,240,255,0.22)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.strokeStyle = '#a8303e'; ctx.lineWidth = 11 - f; ctx.stroke(); ctx.strokeStyle = 'rgba(255,200,205,0.28)'; ctx.lineWidth = 2; ctx.stroke();
     }
     SEGS.forEach(function (q) { segment(ctx, q[0], q[1], q[2], rng, false); });
     var hx = 700, hy = 430;
     segment(ctx, hx, hy, 82, rng, true);
-    var fp = ctx.createRadialGradient(hx, hy + 16, 4, hx, hy + 16, 56); fp.addColorStop(0, 'rgba(196,204,150,0.32)'); fp.addColorStop(1, 'rgba(196,204,150,0)');
-    ctx.fillStyle = fp; ctx.beginPath(); ctx.ellipse(hx, hy + 16, 56, 48, 0, 0, TAU); ctx.fill();
+    var fp = ctx.createRadialGradient(hx, hy + 22, 4, hx, hy + 22, 44); fp.addColorStop(0, 'rgba(58,12,36,0.85)'); fp.addColorStop(0.6, 'rgba(96,24,60,0.5)'); fp.addColorStop(1, 'rgba(96,24,60,0)');
+    ctx.fillStyle = fp; ctx.beginPath(); ctx.ellipse(hx, hy + 22, 44, 34, 0, 0, TAU); ctx.fill(); // the maw, plum-dark
     for (s = 0; s < 5; s++) { // the mouth's ring of feelers, going down behind the rail
       var sx = 664 + s * 18, sp = t * 0.07 + s;
       ctx.beginPath(); ctx.moveTo(sx, 462); ctx.quadraticCurveTo(sx + Math.sin(sp) * 8, 480, sx + Math.sin(sp * 0.7) * 6, 500);
-      ctx.strokeStyle = '#9a82ad'; ctx.lineWidth = 7; ctx.stroke();
+      ctx.strokeStyle = '#c44658'; ctx.lineWidth = 7; ctx.stroke();
     }
     mandible(ctx, 674, 452, -1); mandible(ctx, 726, 452, 1);
-    [[666, 398], [734, 394]].forEach(function (e) { // eyes: two dark domes, and a glint that follows the hand
-      var ex = e[0], ey = e[1], dx = look.x - ex, dy = look.y - ey, d = Math.sqrt(dx * dx + dy * dy) || 1, gx = ex - 6 + dx / d * 7, gy = ey - 5 + dy / d * 5;
-      if (unrest > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; var gg = ctx.createRadialGradient(ex, ey, 0, ex, ey, 46); gg.addColorStop(0, 'rgba(230,220,110,' + (0.4 * unrest) + ')'); gg.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gg; ctx.fillRect(ex - 46, ey - 46, 92, 92); ctx.restore(); }
-      var g = ctx.createRadialGradient(ex - 5, ey - 5, 2, ex, ey, 21); g.addColorStop(0, DS.mix('#3c3c1c', '#c8c060', unrest * 0.7)); g.addColorStop(0.7, '#14140a'); g.addColorStop(1, '#0a0a04');
-      ctx.beginPath(); ctx.ellipse(ex, ey, 21, 16, 0, 0, TAU); ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = '#0a0c06'; ctx.lineWidth = 2; ctx.stroke();
-      ctx.strokeStyle = 'rgba(255,255,220,0.07)'; ctx.lineWidth = 1;
-      for (var i = -14; i <= 14; i += 7) { ctx.beginPath(); ctx.moveTo(ex + i, ey - 13); ctx.lineTo(ex + i, ey + 13); ctx.stroke(); }
-      ctx.beginPath(); ctx.ellipse(gx, gy, 5.5, 3.5, -0.4, 0, TAU); ctx.fillStyle = 'rgba(255,255,255,0.88)'; ctx.fill();
-      ctx.beginPath(); ctx.arc(gx + 8, gy + 7, 1.8, 0, TAU); ctx.fillStyle = 'rgba(255,255,255,0.45)'; ctx.fill();
+    // the eyes: two stalks off the crown, swaying, a pale eye on each whose pupil follows the hand (it watches you work)
+    [[672, 372, 648, 290, -1], [728, 368, 752, 284, 1]].forEach(function (e, n) {
+      var sw = Math.sin(t * 0.03 + n * 2.1) * (6 + unrest * 10), ex = e[2] + sw, ey = e[3] - unrest * 10, bx = e[0], by = e[1];
+      ctx.beginPath(); ctx.moveTo(bx, by); ctx.quadraticCurveTo(bx + e[4] * 6, by - 50, ex, ey + 16);
+      ctx.strokeStyle = '#3a2610'; ctx.lineWidth = 11; ctx.stroke(); ctx.strokeStyle = '#c8a052'; ctx.lineWidth = 7; ctx.stroke(); ctx.strokeStyle = 'rgba(255,240,200,0.35)'; ctx.lineWidth = 2; ctx.stroke();
+      if (unrest > 0) { ctx.save(); ctx.globalCompositeOperation = 'lighter'; var gg = ctx.createRadialGradient(ex, ey, 0, ex, ey, 40); gg.addColorStop(0, 'rgba(230,220,110,' + (0.4 * unrest) + ')'); gg.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gg; ctx.fillRect(ex - 40, ey - 40, 80, 80); ctx.restore(); }
+      var g = ctx.createRadialGradient(ex - 5, ey - 6, 2, ex, ey, 17); g.addColorStop(0, '#fffbe8'); g.addColorStop(0.65, DS.mix('#e8dcb0', '#f0e070', unrest * 0.6)); g.addColorStop(1, '#8a7a50');
+      ctx.beginPath(); ctx.arc(ex, ey, 16, 0, TAU); ctx.fillStyle = g; ctx.fill(); ctx.strokeStyle = '#2a1a08'; ctx.lineWidth = 2.5; ctx.stroke();
+      var dx = look.x - ex, dy = look.y - ey, d = Math.sqrt(dx * dx + dy * dy) || 1, px = ex + dx / d * 7, py = ey + dy / d * 7;
+      ctx.beginPath(); ctx.arc(px, py, 6.5 - unrest * 2, 0, TAU); ctx.fillStyle = '#140a04'; ctx.fill(); // (the pupil narrows as it wakes)
+      ctx.beginPath(); ctx.ellipse(ex - 6, ey - 7, 4.5, 2.8, -0.5, 0, TAU); ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.fill();
     });
-    [[688, 380], [700, 377], [712, 379]].forEach(function (o) { ctx.beginPath(); ctx.arc(o[0], o[1], 2.6, 0, TAU); ctx.fillStyle = '#dcdc9c'; ctx.fill(); });
     ctx.restore();
   }
 
