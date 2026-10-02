@@ -14,11 +14,13 @@
   // and any beside it (heard, felt); a hidden one only beside it (torchdark, 09-28)
   function heroes(B, u) {
     var ch = u.conds && u.conds.charmed, charmer = ch && ch.by; // (charmed: never its charmer -- SRD 5.1; Charm Person, Animal Friendship)
-    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.riding && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w)) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
+    // (a familiar riding its wizard is no one's target; a darkmantle riding the one it is attached to is -- battle.js mount: the class AI's foes too, tactics.js
+    // foesOf, or a fight stalls on one nobody will strike, 10-01 bench)
+    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w)) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
     if (seen.length) return seen;
     // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
     // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)
-    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !w.riding && !w.conds.hidden && w.id !== charmer; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
+    return B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && !w.conds.hidden && w.id !== charmer; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
   }
   // the creature's own eyes from another square (the AI weighing a move)
   function eyesAt(u, x, y) { return { x: x, y: y, size: u.size || 1, darkvision: u.darkvision, blindsight: u.blindsight, blind: u.blind, truesight: u.truesight, devilSight: u.devilSight, seeInvisible: u.seeInvisible, conds: u.conds }; }
@@ -62,6 +64,9 @@
     // Fear's run (js/grimoire.js): any creature under it Dashes away from the one it fears
     if (D.magic.mustFlee && D.magic.mustFlee(u) && !u.classAI) { yield* D.tactics.fleeFear(B, u); D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     if (u.conds.restrained && !(u.classAI && D.tactics && D.tactics.freeFirst && !D.tactics.freeFirst(B, u))) yield* D.magic.breakFree(B, u); // a web: tear at it first
+    // a darkmantle over its head (attached and blinding: battle.js mount): it pulls it off first -- an action, a DC 13 STR check (SRD 5.1; PULL IT OFF)
+    var onMe = D.Battle.riderOn(u, u, B.units);
+    if (onMe && u.turn.action && !u.conds.restrained && u.conds.blinded && u.conds.blinded.by === onMe.id) yield* B.exec(u, { do: 'detach', target: onMe });
     // the wagon yard: once Willem has been hit at the traces, in the 8-bit game's yard (runWhenHurt) each of the pair runs from its
     // own next move (battle.js startRun); on the ladder, where nobody runs, he lets the traces go and turns to fight
     if (B.hitAtTraces && u.side === 'foe') {

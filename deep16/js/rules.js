@@ -157,6 +157,7 @@
     }
     if (att.conds.restrained) dis.push('restrained');
     if (tgt.conds.restrained) adv.push('restrained target');
+    if (att.attached && att.riding && att.master === tgt) adv.push('attached'); // (the darkmantle on the one it rides: SRD 5.1, "has advantage on its attack rolls")
     if (tgt.conds.paralyzed || tgt.conds.asleep) adv.push(tgt.conds.asleep ? 'asleep' : 'paralyzed');
     if (tgt.conds.stunned) adv.push('stunned');
     if (tgt.conds.surprised && att.assassinate) adv.push('assassinate');

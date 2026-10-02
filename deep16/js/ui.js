@@ -213,10 +213,11 @@
     var n = p.opts.length, take = function (w) { var i = w ? p.pick.indexOf(w) : -1; if (i < 0) { D.sfx('error'); return; } D.sfx('confirm'); B.answer(p.opts[i].value); };
     if (I.pressed('b')) { D.sfx('cancel'); return B.answer(p.opts[n - 1].value); }
     for (var k = 1; k <= Math.min(9, p.pick.length); k++) if (I.pressed('n' + k)) return take(p.pick[k - 1]);
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
+    var pickable = function (w) { return p.pick.indexOf(w) >= 0; }; // (one of the gold squares' creatures comes before a figure in front of it: UI.pickUnit's want)
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
     ['up', 'down', 'left', 'right'].forEach(function (d) { if (d !== I.stickWay && I.repeat(d)) moveCursor(B, d); });
     if (I.repeat('stick')) stickCursor(B);
-    if (I.mouse.click && !overUI(B)) { var pc = UI.pickUnit(B, I.mouse.x, I.mouse.y); return take(pc && p.pick.indexOf(pc) >= 0 ? pc : pickAt(B, p)); }
+    if (I.mouse.click && !overUI(B)) { var pc = UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable); return take(pc && p.pick.indexOf(pc) >= 0 ? pc : pickAt(B, p)); }
     if (I.pressed('a')) return take(pickAt(B, p));
   }
   function promptInput(B, p) {
@@ -251,15 +252,25 @@
     showCursor(B);
   }
   // the figure under the mouse (its whole sprite, front-most first): clicking a body selects its owner, not the floor behind
-  UI.pickUnit = function (B, mx, my) {
-    var best = null, bd = -1e9, z = D.iso.zoom;
+  // `want` (optional): of the figures under the mouse, one it wants comes before the front-most (10-01, RULED, Griz: "if they're targeting something that asks
+  // for a foe, the picker should prefer over allies head at least" -- the darkmantle behind Vivian's head was hers to click, not the darkmantle's)
+  UI.pickUnit = function (B, mx, my, want) {
+    var best = null, bd = -1e9, pick = null, pd = -1e9, z = D.iso.zoom;
     B.units.forEach(function (u) {
       if (u.dead || u.ethereal) return;
       var p = unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z;
-      if (mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z && p.depth > bd) { bd = p.depth; best = u; }
+      if (!(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z)) return;
+      if (p.depth > bd) { bd = p.depth; best = u; }
+      if (want && want(u) && p.depth > pd) { pd = p.depth; pick = u; }
     });
-    return best;
+    return pick || best;
   };
+  // what the tool in hand asks for, when it is a foe: the attack cued, a spell aimed at one (UI.pickUnit's `want`)
+  function foeWanted(B, u) {
+    var g = B.tool === 'spell' && B.spell && B.spell.g;
+    if (B.tool !== 'attack' && !(g && (g.side === 'foe' || /^(attack|rays|darts|splash)$/.test(g.shape)))) return null;
+    return function (w) { return G.hostile(u, w) && G.standing(w); };
+  }
   function overUI(B) { // is the mouse over a menu, a list or the bar (so the grid doesn't take the click)?
     if (I.mouse.y >= BAR_Y) return true;
     return (B.uiRects || []).some(hit);
@@ -276,7 +287,7 @@
     }
     // the mouse: over the menus, or on the grid
     B.hoverBtn = -1;
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, foeWanted(B, u)), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
     if (I.mouse.inside) (B.buttons || []).forEach(function (b, i) { if (hit(b)) B.hoverBtn = i; });
     // hovering picks an icon only when the mouse moves onto it: a ring turning under a resting mouse, or a twitch
     // on the same icon, leaves the arrows' choice alone (Griz, 09-27: the arrows stopped working over the wheel)

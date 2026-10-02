@@ -271,7 +271,8 @@
       var r = w.conds.restrained;
       if (r && r.by === u.id && r.grapple && (!only || only === w)) delete w.conds.restrained;
       if (w.conds.stunned && w.conds.stunned.by === u.id && (w.conds.stunned.fresh !== undefined || w.conds.stunned.till) && !only) delete w.conds.stunned; // (a foe's slam or moan -- laid with `fresh` -- or a blow's, on its laying one's turns' clock; a spell's stun holds without its caster: Power Word Stun, Divine Word, Symbol)
-      if (w.conds.blinded && w.conds.blinded.by === u.id && w.conds.blinded.held && (!only || only === w)) delete w.conds.blinded; // (the darkmantle off his head, the cloaker's fold)
+      if (w.conds.blinded && w.conds.blinded.by === u.id && w.conds.blinded.held && (!only || only === w)) delete w.conds.blinded; // (the darkmantle off the head, the cloaker's fold)
+      if (w.conds.attached && w.conds.attached.by === u.id && (!only || only === w)) delete w.conds.attached; // (a darkmantle that was attached: SRD 5.1)
     });
     u.holding = (u.holding || []).filter(function (w) { return only && w !== only && w.conds.restrained && w.conds.restrained.by === u.id; });
   };
@@ -286,7 +287,7 @@
       Object.defineProperty(u, 'y', { get: function () { return u.riding && u.master ? u.master.y : my; }, set: function (v) { my = v; }, enumerable: true, configurable: true });
     }
     u.tween = { fx: u.x, fy: u.y, fz: 0, t: 0, dur: this.pace(10, true) };
-    u.riding = true; u.attached = true; u.master = host; u.perch = host.conds.blinded && host.conds.blinded.by === u.id ? 'over' : 'shoulder';
+    var at = host.conds.attached; u.riding = true; u.attached = true; u.master = host; u.perch = at && at.by === u.id && at.head ? 'over' : 'shoulder';
     u.facing = host.facing;
   };
   // off the one it rode, however the grip ended -- broken, pulled off, let go, either of them down (10-01, Griz: "we might be best moving it off his square
@@ -296,6 +297,9 @@
   // the open square nearest the two of them together, and of those the one nearer the puller
   Battle.prototype.dismount = function (u, by) {
     var host = u.master, hx = u.x, hy = u.y, best = null, bd = Infinity, bp = Infinity;
+    var hb = host && host.conds.blinded, sawNot = !!(hb && hb.held && hb.by === u.id);
+    if (host) this.release(u, host); // (what it laid on the one it rode goes with it: the attachment, the blindness over the head)
+    if (sawNot && !host.conds.blinded && G.standing(host)) this.card(['{g}' + nameOf(host) + ' can see again.{/}'], 200);
     u.riding = false; u.attached = false; u.master = null; u.perch = null;
     for (var r = 1; r <= 4 && !best; r++) for (var y = hy - r; y <= hy + r; y++) for (var x = hx - r; x <= hx + r; x++) {
       if (Math.max(Math.abs(x - hx), Math.abs(y - hy)) !== r || !G.canStand(u, x, y)) continue;
@@ -310,8 +314,8 @@
   Battle.prototype.rideSync = function () {
     for (var i = 0; i < this.units.length; i++) {
       var u = this.units[i]; if (!u.attached || !u.riding) continue;
-      var h = u.master, r = h && h.conds.restrained;
-      if (!h || u.dead || u.hp <= 0 || h.dead || h.hp <= 0 || !r || r.by !== u.id) this.dismount(u);
+      var h = u.master, at = h && h.conds.attached;
+      if (!h || u.dead || u.hp <= 0 || h.dead || h.hp <= 0 || !at || at.by !== u.id) this.dismount(u);
     }
   };
 
@@ -522,7 +526,7 @@
       if (incap && s.holding && s.holding.length) self.release(s);
       // a blinding hold (the darkmantle over the head, the cloaker's fold) ends with the grip, however the grip ended
       var bl = s.conds.blinded;
-      if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? 'The ' + shortName(s) : s.name) + ' can see again.{/}'], 200); }
+      if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple) && !(s.conds.attached && s.conds.attached.by === bl.by)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? 'The ' + shortName(s) : s.name) + ' can see again.{/}'], 200); }
     });
   };
 
@@ -665,13 +669,13 @@
     // PULL IT OFF (SRD 5.1 Darkmantle: "A creature can detach the darkmantle by making a successful DC 13 Strength check as an action" -- any creature, not only
     // the one it rides; 10-01, Griz: "allies can strength check detach per SRD, I could only find the 'help' part"): a friend beside you with one riding on
     var pulls = Battle.pullable(u, this.units);
-    if (pulls.length) out.push({ id: 'detach', label: 'PULL IT OFF', cost: 'A', icon: 'free', tool: 'detach', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + ((pulls[0].master.conds.restrained || {}).dc || 13) + ': the ' + shortName(pulls[0]) + ' off ' + pulls[0].master.name });
+    if (pulls.length) out.push({ id: 'detach', label: 'PULL IT OFF', cost: 'A', icon: 'free', tool: 'detach', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + ((pulls[0].master.conds.attached || {}).dc || 13) + ': the ' + shortName(pulls[0]) + ' off ' + (pulls[0].master === u ? 'you' : pulls[0].master.name) });
     return out;
   };
   // a friend u may Help: beside it, asleep (shaken awake) or held in a web or a grip (advantage on its next check to get out)
-  Battle.helpable = function (u, w) { return !!(w && w !== u && !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.ethereal && G.dist(u, w) <= 5 && (w.conds.asleep || w.conds.restrained) && !w.conds.helpedCheck); };
+  Battle.helpable = function (u, w) { return !!(w && w !== u && !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.ethereal && G.dist(u, w) <= 5 && (w.conds.asleep || w.conds.restrained || w.conds.attached) && !w.conds.helpedCheck); }; // (attached: a darkmantle on -- the hand is on the STR check to pull it off)
   // the riders u could pull off a friend beside it (a darkmantle attached: PULL IT OFF)
-  Battle.pullable = function (u, units) { return units.filter(function (w) { return w.attached && w.riding && w.master && w.master !== u && !G.hostile(u, w.master) && G.hostile(u, w) && G.standing(w) && G.dist(u, w.master) <= 5; }); };
+  Battle.pullable = function (u, units) { return units.filter(function (w) { return w.attached && w.riding && w.master && !G.hostile(u, w.master) && G.hostile(u, w) && G.standing(w) && G.dist(u, w.master) <= 5; }); }; // (the one it rides, too: SRD 5.1, "a creature")
   // the rider on w that u may strike at through w's square (ui.js valid: the attack tool on a friend's square, or one's own)
   Battle.riderOn = function (u, w, units) { return w && !G.hostile(u, w) ? units.filter(function (r) { return r.attached && r.riding && r.master === w && G.hostile(u, r) && G.standing(r); })[0] || null : null; };
 
@@ -767,12 +771,12 @@
       }
       case 'detach': { // PULL IT OFF: a darkmantle off a friend (SRD 5.1: "a successful DC 13 Strength check as an action"; Athletics, as breakFree reads it)
         var rd = c.target, host = rd && rd.riding && rd.master; if (!host) return;
-        var hr = host.conds.restrained, dc = (hr && hr.dc) || 13, en1 = u.conds.enlarged, ce1 = RU.checkEdges(u, 'str');
+        var hr = host.conds.attached, dc = (hr && hr.dc) || 13, en1 = u.conds.enlarged, ce1 = RU.checkEdges(u, 'str');
         var adv1 = !!(en1 && !en1.down) || ce1.adv.length > 0, dis1 = !!(u.conds.poisoned || u.conds.frightened || (en1 && en1.down)) || ce1.dis.length > 0;
         var a1 = D.d(20), a2 = D.d(20), d20 = adv1 && !dis1 ? Math.max(a1, a2) : dis1 && !adv1 ? Math.min(a1, a2) : a1;
         var pb = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), ptot = d20 + pb, blind0 = !!(host.conds.blinded && host.conds.blinded.held && host.conds.blinded.by === rd.id);
         T.action = 0; RU.spendHelp(u); D.sfx('run');
-        this.card(['{y}' + u.name + '{/} gets hold of the ' + shortName(rd) + ' on ' + host.name + ' and pulls: STR d20 ' + d20 + (adv1 !== dis1 ? (adv1 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb) + ' = ' + ptot + ' vs DC ' + dc + '  ' + (ptot >= dc ? '{n}OFF{/}' : '{g}it holds on{/}')]);
+        this.card(['{y}' + u.name + '{/} gets hold of the ' + shortName(rd) + (host === u ? '' : ' on ' + host.name) + ' and pulls: STR d20 ' + d20 + (adv1 !== dis1 ? (adv1 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb) + ' = ' + ptot + ' vs DC ' + dc + '  ' + (ptot >= dc ? '{n}OFF{/}' : '{g}it holds on{/}')]);
         if (ptot >= dc) { this.release(rd, host); if (blind0 && !host.conds.blinded) this.card(['{g}' + host.name + ' can see again.{/}'], 200); this.dismount(rd, u); } // (to the square nearest the puller and the one it rode)
         yield 30; return;
       }
@@ -1118,8 +1122,18 @@
         }
         if (rs) { if (D.spr.anim(att.sheet, 'reel')) { att.anim = 'reel'; att.animT = this.t; } tgt.tween = { fx: tgt.x, fy: tgt.y, fz: 0, t: 0, dur: this.pace(18, true) }; tgt.x = rs[0]; tgt.y = rs[1]; this.card(['{r}' + nameOf(att) + '{/} reels ' + nameOf(tgt) + ' in.']); D.sfx('run'); yield 24; } // (its Reel row where the sheet has one: the tendrils hauling in -- 10-01e)
       }
-      // attached (the darkmantle: SRD 5.1, "it moves with the target"): it rides the one it holds, on that one's square (mount, below)
-      if (atk.rides) this.mount(att, tgt);
+    }
+    // attached (the darkmantle's Crush: SRD 5.1, "the darkmantle attaches to the target"; RULED 10-01, Griz: "go SRD"): no grapple, no restraint -- the one it is
+    // on still walks, and it goes along, riding (mount, above). Over the head when the target is Medium or smaller and it had advantage on the roll: blinded
+    // (and unable to breathe) while it is on. Off with a DC 13 STR check as an action, by the one it is on or anyone beside (exec 'detach': PULL IT OFF)
+    if (atk.attach && !tgt.dead && tgt.hp > 0 && !att.riding && !tgt.conds.attached) {
+      var onHead = (tgt.size || 1) <= 1 && e.net > 0;
+      tgt.conds.attached = { by: att.id, dc: atk.attach.dc, head: onHead };
+      if (onHead && !tgt.conds.blinded) tgt.conds.blinded = { by: att.id, held: true };
+      D.sfx('poison'); FX.ring(tgt, 'bone', 26);
+      this.card(['{r}' + nameOf(att) + '{/} attaches to ' + nameOf(tgt) + (onHead ? ': over ' + nameOf(tgt) + '\'s head -- {o}BLINDED{/}, no breath to draw' : '') + '.  {g}(DC ' + atk.attach.dc + ' STR to pull it off, an action: ' + nameOf(tgt) + ', or anyone beside){/}']);
+      this.mount(att, tgt);
+      yield 30;
     }
     // a knockdown (the wolf's bite, the worg's, Talmok's fists, the giant's rock): STR or prone
     if (atk.prone && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')) {
