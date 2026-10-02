@@ -1724,7 +1724,7 @@
 }
 },
 "giantrat_p1": {
-"image": "art/giantrat_p1.png?v=3dcdc472a1",
+"image": "art/giantrat_p1.png?v=2056503c95",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -2554,7 +2554,7 @@
 }
 },
 "hyena_p1": {
-"image": "art/hyena_p1.png?v=a2128bb51c",
+"image": "art/hyena_p1.png?v=b0febb426b",
 "fw": 96,
 "fh": 96,
 "ax": 48,
@@ -4967,7 +4967,7 @@
 }
 },
 "worg_p1": {
-"image": "art/worg_p1.png?v=8d495ead01",
+"image": "art/worg_p1.png?v=1c680e8e0f",
 "fw": 120,
 "fh": 122,
 "ax": 60,
