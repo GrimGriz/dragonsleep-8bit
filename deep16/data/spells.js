@@ -120,7 +120,8 @@
   bestowcurse: { shape: 'single', side: 'foe', range: 5, time: 'A', conc: true },
   blink: { shape: 'self', time: 'A' },
   calllightning: { shape: 'sphere', range: 120, r: 5, time: 'A', conc: true },
-  dispelmagic: { shape: 'single', range: 120, time: 'A' },
+  counterspell: { shape: 'reaction', why: 'a reaction: offered when you see a foe within 60 ft casting a spell' }, // (js/grimoire.js M.counterAsk, 10-02)
+  dispelmagic: { shape: 'single', range: 120, time: 'A', effects: true }, // (effects: an empty square of a spell's area is a target too -- js/grimoire.js M.effectsAt, 10-02)
   fear: { shape: 'cone', len: 30, time: 'A', conc: true },
   haste: { shape: 'single', side: 'ally', range: 30, time: 'A', conc: true, self: true },
   hypnoticpattern: { shape: 'cube', range: 120, size: 30, time: 'A', conc: true },

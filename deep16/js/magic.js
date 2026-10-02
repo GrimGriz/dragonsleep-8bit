@@ -308,6 +308,7 @@
     D.sfx(M.sound(sp));
     yield Math.max(10, Math.round((D.spr.duration(u.sheet, u.anim) || 18) * 0.55)); // (the release at the height of the cast pose)
     if (carry && !(yield* D.familiar.carry(B, u, t))) { u.anim = 'idle'; return; } // (it goes with the spell; one lost on the way loses it)
+    if (M.counterAsk && (yield* M.counterAsk(B, u, id, slot, g))) { u.anim = 'idle'; return; } // (Counterspell, as it is released: countered, it fails -- the slot and the action spent; js/grimoire.js, 10-02)
 
     // the Globe of Invulnerability (SRD 5.1: "Such a spell can target creatures and objects within the barrier, but the spell has no effect on them"):
     // a spell of its level or lower, cast from outside it, at a creature inside -- spent, and nothing happens. Here the spells aimed at one or more

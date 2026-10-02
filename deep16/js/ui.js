@@ -509,6 +509,7 @@
     B.tool = 'spell';
     if (g.shape === 'allies' && e.id === 'bless' && (!u.conds.blessed)) B.picks = [u]; // Bless takes the caster by default; click him again to leave him out
     var how = { attack: 'a foe in sight within ' + g.range + ' ft', rays: n + ' rays: click a foe for each (the same foe again is fine)', darts: n + ' darts: click a foe for each (the same foe again is fine)', splash: 'a foe within ' + g.range + ' ft (one beside it is caught too)', single: (g.side === 'foe' ? 'a foe' : 'an ally') + ' within ' + g.range + ' ft', touch: 'yourself, or an ally beside you', allies: 'up to ' + n + ' allies within ' + g.range + ' ft (click to add or drop; CAST, or E off a target, casts with fewer)', sphere: 'a point within ' + g.range + ' ft (the ' + g.r + '-ft sphere shows)', cube: 'a point within ' + g.range + ' ft', cone: 'aim the ' + g.len + '-ft cone', line: 'aim the ' + g.len + '-ft line', teleport: 'a square you can see within 30 ft' }[g.shape] || '';
+    if (g.effects) how = 'a creature within ' + g.range + ' ft, or an empty square in the area of a spell (that spell)'; // (Dispel Magic: M.effectsAt, 10-02)
     B.clearCards(); B.card(['{y}' + e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + '{/}: ' + how + D.keys('.  {g}X back{/}')], 100000);
   }
   UI.command = function (B, u, cmd) {
@@ -551,6 +552,7 @@
       if (g.shape === 'teleport') return B.mistyTargets(u, g.range).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
       if (g.shape === 'allies' && B.picks.length && !(w && M.targetOK(B, u, g, w))) return 'self';
       if (spellTarget(B, u, g, x, y)) return 'ok';
+      if (g.effects && !w && M.effectsAt(B, x, y).length && G.dist(u, { x: x, y: y, size: 1 }) <= g.range && G.losPoint(u.x, u.y, x, y)) return 'ok'; // (a spell's area, its square empty: Dispel Magic -- js/grimoire.js M.effectsAt, 10-02)
       return M.missileDark(B, u, g, x, y) ? 'ok' : 'no'; // (Magic Missile at the darkness: a square the caster cannot see into)
     }
     return 'no';
@@ -620,6 +622,7 @@
         if (refused) { D.sfx('error'); B.card(['{o}' + S.name + ': ' + (w.side === 'foe' ? 'the ' + B.shortName(w) : w.name) + ' is ' + refused + '.{/}'], 120); }
         return;
       }
+      if (g.effects && !w) return cast({ x: x, y: y }); // (the spell on that empty square: Dispel Magic, M.effectsAt)
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'wall' || g.shape === 'teleport') return cast({ x: x, y: y });
       return cast(spellTarget(B, u, g, x, y) || w);
     }

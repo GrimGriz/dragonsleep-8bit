@@ -146,9 +146,11 @@ The GM has the creatures’ statistics.
 
 At Higher Levels. When you cast this spell using certain higher-level spell slots, you choose one of the summoning options above, and more creatures appear: twice as many with a 5th-level slot, three times as many with a 7th-level slot, and four times as many with a 9th-level slot.
 
-## Counterspell
+## Counterspell (in the game: `counterspell`)
 
 *3rd-level abjuration*
+
+> **The game:** Reaction, offered when you see a foe within 60 ft casting a spell: one of the slot's level or lower (3rd at least) fails; a higher one needs your spellcasting check against 10 + its level. Spends the slot you pick; never cast from the list.
 
 **Casting Time:** 1 reaction, which you take when you see a creature within 60 feet of you casting a spell
 
@@ -200,7 +202,7 @@ If any of this spell’s area overlaps with an area of darkness created by a spe
 
 *3rd-level abjuration*
 
-> **The game:** A creature within 120 ft loses the magic on it: its own concentration, spells others hold on it, and wards like Mage Armor, Sanctuary or Mirror Image. A held spell up to the slot's level (3rd at least) ends; a higher one needs your spellcasting check against 10 + its level. Not built: objects and areas.
+> **The game:** A creature within 120 ft loses the magic on it: its own concentration, spells others hold on it, and wards like Mage Armor, Sanctuary or Mirror Image. A held spell up to the slot's level (3rd at least) ends; a higher one needs your spellcasting check against 10 + its level. Or an empty square in the area of a spell (a Darkness, a Web, a Stinking Cloud): that spell ends by the same rule. Not built: objects. A creature's own power (the darkmantle's aura) is no spell, and stays.
 
 **Casting Time:** 1 action
 

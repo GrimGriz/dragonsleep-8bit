@@ -966,6 +966,53 @@
     document.body.appendChild(preZ);
     return;
   }
+  // Dispel Magic at a spell's square, and Counterspell (mode=dispel1002; 10-02, Griz: "I like 'spell effect squares without people' as valid dispel targets for that
+  // spell"; "no to creature abilities"; Counterspell "an important one to have in there"): a Darkness's empty square is a target and ends it, its caster's concentration
+  // with it; a darkness no spell made is no target; a player's Counterspell is asked and a Fireball fails; the AI's counters a hero's; a readied spell's release is not asked
+  if (get('mode', '') === 'dispel1002') {
+    var repD = { checks: [], errors: [] }, d0D = D.d, G = D.grid;
+    function okD(what, v) { repD.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var asked = 0;
+    function runD(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) { asked++; v = st.value.prompt.opts[0].value; } } }
+    function mkD(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function logD(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // 1 a foe's Darkness; our wizard dispels an empty square of it
+      var B1 = mkD('?npc=wizard:5&lvl=5&vs=wizard'), fw = B1.units.filter(function (u) { return u.side === 'foe'; })[0], pw = B1.units.filter(function (u) { return u.side === 'party'; })[0];
+      fw.x = 4; fw.y = 4; pw.x = 9; pw.y = 12; D.rules.startTurn(fw); fw.slots[1] = 3;
+      runD(D.magic.cast(B1, fw, 'darkness', 2, { x: 9, y: 6 }));
+      var dk = (B1.darks || []).filter(function (d) { return d.by === fw.id; })[0], efs = D.magic.effectsAt(B1, 9, 6);
+      okD('the Darkness laid: ' + !!dk + ', stamped ' + (dk && dk.castId) + ' (' + (dk && dk.lv) + '), the square holds ' + efs.map(function (e) { return e.name; }).join(','), !!dk && dk.castId === 'darkness' && efs.length === 1);
+      var sqE = (dk.sq || []).filter(function (q) { return !G.occupant(q[0], q[1]); })[0];
+      D.rules.startTurn(pw); pw.slots[2] = 3; B1.spell = { g: D.magic.geo('dispelmagic') }; B1.tool = 'spell';
+      var v1 = D.ui.valid(B1, pw, sqE[0], sqE[1]);
+      var n1 = (B1.log || []).length; runD(D.magic.cast(B1, pw, 'dispelmagic', 3, { x: sqE[0], y: sqE[1] })); var l1 = logD(B1, n1);
+      okD('Dispel Magic at the empty square (' + sqE + ', the wheel says ' + v1 + '): the darkness gone ' + !(B1.darks || []).some(function (d) { return d === dk; }) + ', the caster\'s concentration gone ' + !fw.conc + ' -- ' + l1.slice(0, 160), v1 === 'ok' && !(B1.darks || []).some(function (d) { return d === dk; }) && !fw.conc);
+      // 2 a darkness no spell made (a creature's own, as the darkmantle's aura): no castId, no target
+      B1.darks = (B1.darks || []).concat([{ by: fw.id, sq: [[12, 12], [12, 13]], kind: 'dark' }]);
+      okD('a darkness no spell made: ' + D.magic.effectsAt(B1, 12, 12).length + ' spells on it, the wheel says ' + D.ui.valid(B1, pw, 12, 12), D.magic.effectsAt(B1, 12, 12).length === 0 && D.ui.valid(B1, pw, 12, 12) !== 'ok');
+      // 3 a player's Counterspell: asked, and the Fireball fails
+      var B3 = mkD('?npc=wizard:5&lvl=5&vs=wizard'), f3 = B3.units.filter(function (u) { return u.side === 'foe'; })[0], p3 = B3.units.filter(function (u) { return u.side === 'party'; })[0];
+      f3.x = 9; f3.y = 4; p3.x = 9; p3.y = 10; p3.known = (p3.known || []).concat(['counterspell']); p3.slots[2] = 2; f3.slots[2] = 2; p3.reaction = 1; D.rules.startTurn(f3);
+      var hp3 = p3.hp; asked = 0; var n3 = (B3.log || []).length; runD(D.magic.cast(B3, f3, 'fireball', 3, { x: p3.x, y: p3.y })); var l3 = logD(B3, n3);
+      okD('the foe\'s Fireball, our wizard asked ' + asked + ': it fails ' + /it fails/.test(l3) + ', unhurt ' + (p3.hp === hp3) + ', the slot and reaction spent ' + (p3.slots[2] === 1 && p3.reaction === 0) + ', the foe\'s slot spent ' + (f3.slots[2] === 1) + ' -- ' + l3.slice(0, 160), asked === 1 && /it fails/.test(l3) && p3.hp === hp3 && p3.reaction === 0 && f3.slots[2] === 1);
+      // 4 the AI's Counterspell, at a hero's Fireball
+      var B4 = mkD('?npc=wizard:5&lvl=5&vs=wizard'), f4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0], p4 = B4.units.filter(function (u) { return u.side === 'party'; })[0];
+      f4.x = 9; f4.y = 4; p4.x = 9; p4.y = 10; f4.known = (f4.known || []).concat(['counterspell']); f4.slots[2] = 2; f4.reaction = 1; p4.slots[2] = 2; D.rules.startTurn(p4);
+      var hp4 = f4.hp, n4 = (B4.log || []).length; runD(D.magic.cast(B4, p4, 'fireball', 3, { x: f4.x, y: f4.y })); var l4 = logD(B4, n4);
+      okD('our Fireball, the foe counters: ' + /COUNTERSPELL/.test(l4) + ', it fails ' + /it fails/.test(l4) + ', the foe unhurt ' + (f4.hp === hp4) + ' -- ' + l4.slice(0, 160), /it fails/.test(l4) && f4.hp === hp4);
+      // 5 a readied spell's release is not asked (cast when it was readied)
+      var B5 = mkD('?npc=wizard:5&lvl=5&vs=wizard'), f5 = B5.units.filter(function (u) { return u.side === 'foe'; })[0], p5 = B5.units.filter(function (u) { return u.side === 'party'; })[0];
+      f5.x = 9; f5.y = 4; p5.x = 9; p5.y = 10; f5.known = (f5.known || []).concat(['counterspell']); f5.slots[2] = 2; f5.reaction = 1; D.rules.startTurn(p5); p5.turn.readied = true;
+      var n5 = (B5.log || []).length; runD(D.magic.cast(B5, p5, 'magicmissile', 1, { units: [f5, f5, f5] })); var l5 = logD(B5, n5);
+      okD('a readied release: no Counterspell ' + !/COUNTERSPELL/.test(l5) + ', the foe\'s reaction kept ' + (f5.reaction === 1), !/COUNTERSPELL/.test(l5) && f5.reaction === 1);
+    } catch (eD) { repD.errors.push(String(eD && eD.stack || eD).slice(0, 900)); }
+    D.d = d0D;
+    if (errs.length) repD.errors = repD.errors.concat(errs);
+    var preD = document.createElement('pre'); preD.id = 'out'; preD.textContent = 'BENCH16 ' + JSON.stringify(repD);
+    document.body.appendChild(preD);
+    return;
+  }
   // the first ring, each class's (mode=ring1001c; 10-01c, the ring survey's picks -- js/ui.js QUICK, BESIDE, FRONT): a player's hero of each class at 5, its
   // commands in order, the go-to where it should stand and its weapon not lost
   if (get('mode', '') === 'ring1001c') {

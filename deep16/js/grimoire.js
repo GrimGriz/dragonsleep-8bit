@@ -1083,10 +1083,89 @@
   function spellLvl(id) { var sp = M.data(id); return sp && sp.level != null ? sp.level : 3; }
   function dispelOdds(u, slot, lvl) { return lvl <= Math.max(3, slot || 3) ? 1 : Math.max(0, Math.min(1, (21 - (10 + lvl - M.mod(u))) / 20)); }
   function ordinal(n) { return n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th'); }
+  // the spells' own areas on a square (SRD 5.1 Dispel Magic: "Choose one creature, object, or magical effect within range"; 10-02, Griz: "I like 'spell effect squares
+  // without people' as valid dispel targets for that spell"): every record a cast laid on the grid -- the Globe's stamp gives each its spell (castId) and level (lv), js/grimoire.js
+  // M.cast below -- whose squares take in (x, y). What no spell made has no castId and is not here: the darkmantle's aura, a map's own dark (RULED 10-02, Griz: "no to creature
+  // abilities"). Each: { k: the list it lives in, z: the record, id, name, by, lv, end }
+  function effectSq(B, k, z) {
+    if (k === 'darks') return M.darkSq(B, z) || z.sq || [];
+    if (z.sq) return z.sq;
+    if (k === 'zones') return z.id === 'moonbeam' ? zoneSq(z) : G.sphere(z.x, z.y, 5);
+    var c = B.units.filter(function (w) { return w.id === z.by; })[0];
+    if (k === 'auras' || k === 'shells') { if (!c) return []; var r = k === 'shells' ? 10 : (z.r || 15), out = []; for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) if (G.dist(c, { x: x, y: y, size: 1 }) <= r) out.push([x, y]); return out; }
+    if (k === 'lights') { var rr = Math.max(0, Math.floor((z.bright || 0) / 5)), o2 = []; for (var dy = -rr; dy <= rr; dy++) for (var dx = -rr; dx <= rr; dx++) o2.push([z.x + dx, z.y + dy]); return o2; }
+    return z.x != null ? [[z.x, z.y]] : [];
+  }
+  M.effectsAt = function (B, x, y) {
+    var out = [];
+    ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads', 'lights', 'spirits', 'shells'].forEach(function (k) {
+      (B[k] || []).forEach(function (z) {
+        if (!z || !z.castId || !effectSq(B, k, z).some(function (q) { return q[0] === x && q[1] === y; })) return;
+        if (out.some(function (o) { return o.id === z.castId && o.by === z.by; })) return; // (one spell, one entry: a web's squares and its fog are the one Web)
+        var sp = M.data(z.castId);
+        out.push({ k: k, z: z, id: z.castId, name: sp ? sp.name : z.castId, by: z.by, lv: z.lv != null ? z.lv : spellLvl(z.castId) });
+      });
+    });
+    return out;
+  };
+  // ending one: the caster's concentration when it is that spell's (the whole of it goes, as the spell's own undo says); else its clock's undo, or the record taken up
+  function endEffect(B, ef) {
+    var c = B.units.filter(function (w) { return w.id === ef.by; })[0];
+    if (c && c.conc && c.conc.id === ef.id) { M.endConc(B, c, 'dispelled'); return; }
+    var ex = (B.expiries || []).filter(function (e) { return e.by === ef.by && e.id === ef.id; })[0];
+    if (ex) { B.expiries = B.expiries.filter(function (e) { return e !== ex; }); try { if (M.unveil) M.unveil(B, ex.undo); else ex.undo(); } catch (e) { /* (its undo gone already) */ } }
+    B[ef.k] = (B[ef.k] || []).filter(function (q) { return q !== ef.z; });
+    if (ef.k === 'walls') B.wallMap = null;
+    if (D.light && B.lightMap) B.lightMap = null;
+  }
+  // Counterspell (SRD 5.1: "1 reaction, which you take when you see a creature within 60 feet of you casting a spell ... If the creature is casting a spell of 3rd
+  // level or lower, its spell fails and has no effect. If it is casting a spell of 4th level or higher, make an ability check using your spellcasting ability. The DC
+  // equals 10 + the spell's level"; higher slots: "the interrupted spell has no effect if its level is less than or equal to the level of the spell slot you used").
+  // 10-02, Griz: "Yeah, that's an important one to have in there". Asked in js/magic.js M.cast as the spell is released, before it takes hold, of every foe of the
+  // caster who knows it, has a slot of 3rd or higher and its reaction, and sees the caster within 60 ft: a player's hero picks the slot (or lets it go), the AI
+  // counters a levelled spell that is not a friend's blessing on a friend. Countered, the spell fails; the caster's slot and action are spent. Not asked: a readied
+  // spell's release (cast when it was readied), a spell used again (the floating weapon's swing), a cantrip by the AI. Not built: a Counterspell countered
+  M.counterAsk = function* (B, u, id, slot, g) {
+    var sp = M.data(id); if (!B || !sp || !B.units || (g && (g.free || g.again || g.move)) || (u.turn && u.turn.readied)) return false;
+    var lv = sp.level || 0;
+    var can = B.units.filter(function (w) { return w !== u && G.hostile(u, w) && G.standing(w) && w.reaction > 0 && RU.canAct(w) && (w.known || []).indexOf('counterspell') >= 0 && (w.slots || []).slice(2).some(function (n) { return n > 0; }) && G.dist(w, u) <= 60 && M.sees(B, w, u) && !w.conds.turned && !RU.charmedBy(w, u); });
+    for (var i = 0; i < can.length; i++) {
+      var w = can[i]; if (w.reaction <= 0) continue;
+      var lvls = []; for (var s = 3; s <= (w.slots || []).length; s++) if (w.slots[s - 1] > 0) lvls.push(s);
+      if (!lvls.length) continue;
+      var pick = 0, cn = u.side === 'foe' ? 'The ' + B.shortName(u) : u.name;
+      if (w.side === 'party' && !w.guest) {
+        pick = yield { prompt: { who: w, title: w.name + ': COUNTERSPELL?', lines: [cn + ' is casting ' + sp.name + (lv ? ' (' + ordinal(lv) + ')' : ' (a cantrip)') + '.'], opts: lvls.map(function (s) { return { label: 'COUNTERSPELL (L' + s + ')' + (lv <= s ? ': it fails' : ': a check, DC ' + (10 + lv)), value: s }; }).concat([{ label: 'LET IT GO', value: 0 }]) } };
+      } else {
+        var friendly = /^(buff|cure|heal)$/.test(sp.kind) && g && g.side === 'ally';
+        if (lv >= 1 && !friendly) pick = lvls.filter(function (s) { return s >= lv; })[0] || lvls[lvls.length - 1];
+      }
+      if (!pick) continue;
+      w.reaction = 0; w.slots[pick - 1]--; D.sfx('magic'); FX.ring(w, 'silver', 30); FX.ring(u, 'silver', 24);
+      var ok = lv <= pick, r = 0, tot = 0;
+      if (!ok) { r = D.d(20); tot = r + M.mod(w); ok = tot >= 10 + lv; }
+      B.card(['{o}' + w.name + '{/}: COUNTERSPELL (L' + pick + ') at ' + (u.side === 'foe' ? 'the ' + B.shortName(u) : u.name) + '\'s ' + sp.name + (r ? '  (d20 ' + r + RU.sign(M.mod(w)) + ' = ' + tot + ' vs DC ' + (10 + lv) + ')' : '') + ' -- ' + (ok ? '{c}it fails{/}.' : '{g}it goes through{/}.')], 320);
+      yield 30;
+      if (ok) return true;
+    }
+    return false;
+  };
   E.dispelmagic = {
-    summary: function (e) { return 'a creature within 120 ft · its spells end: a hold, a web, a blessing, a haste, a ward; ' + ordinal(Math.max(3, e.slot || 3)) + ' level and lower at once, a held spell above that needs your spellcasting check, DC 10 + its level'; },
+    summary: function (e) { return 'a creature within 120 ft, or a spell\'s area (an empty square in it) · its spells end: a hold, a web, a blessing, a haste, a ward, a darkness; ' + ordinal(Math.max(3, e.slot || 3)) + ' level and lower at once, a held spell above that needs your spellcasting check, DC 10 + its level'; },
     cast: function* (B, u, t, slot, head) {
       var ended = [], held = [], top = Math.max(3, slot || 3);
+      // a square of a spell's area: that spell (one of them, where two lie on the square: a player's caster is asked which)
+      if (t && t.x != null && t.hp == null) {
+        var efs = M.effectsAt(B, t.x, t.y), ef = efs[0];
+        if (efs.length > 1 && u.side === 'party' && !u.guest) ef = yield { prompt: { who: u, title: u.name + ': DISPEL WHICH?', lines: ['Two spells lie on that square.'], opts: efs.map(function (e) { return { label: e.name.toUpperCase() + ' (' + ordinal(e.lv) + ')', value: e }; }) } };
+        if (!ef) { B.card([head + ': no spell lies on that square.']); yield 16; return; }
+        var ok = ef.lv <= top, r0 = 0, tot0 = 0;
+        if (!ok) { r0 = D.d(20); tot0 = r0 + M.mod(u); ok = tot0 >= 10 + ef.lv; }
+        FX.ring({ x: t.x, y: t.y, size: 1 }, 'silver', 36);
+        B.card([head + ' on the ' + ef.name + ': ' + (ok ? '{c}it unravels{/}.' : '{g}it holds{/}') + (r0 ? '  (' + ordinal(ef.lv) + ': d20 ' + r0 + RU.sign(M.mod(u)) + ' = ' + tot0 + ' vs DC ' + (10 + ef.lv) + ')' : '')], 300);
+        if (ok) endEffect(B, ef);
+        yield 24; return;
+      }
       // (10-01c: what a Globe of Invulnerability holds off the creature is still on it -- Dispel Magic cast from inside the globe ends it too: the shelf lifted
       // while it works, M.liftVeil; cast from outside, the cast never got this far)
       var put = M.liftVeil(B);
@@ -2061,7 +2140,7 @@
     B.castBefore = condsBefore; // (what a globe's frames mid-cast read: js the stampOf below)
     try { yield* castG.apply(this, arguments); } finally {
       // what this cast laid, stamped where it was cast from and at what level (a record already stamped -- Moonbeam moved, the sphere rolled -- keeps its first)
-      ZONE_KEEPS.forEach(function (k) { (B[k] || []).forEach(function (z) { if (before[k].indexOf(z) < 0 && !z.from) { z.from = B.castFrom; z.lv = B.castLevel != null ? B.castLevel : 5; } }); });
+      ZONE_KEEPS.forEach(function (k) { (B[k] || []).forEach(function (z) { if (before[k].indexOf(z) < 0 && !z.from) { z.from = B.castFrom; z.lv = B.castLevel != null ? B.castLevel : 5; if (!z.castId && sp) z.castId = id; } }); }); // (castId: the spell that laid it -- what Dispel Magic aimed at a square ends, M.effectsAt; 10-02)
       // the same for what it laid ON a creature -- a condition record, an effect that sits on it and is felt each turn (Phantasmal Killer's bite, Acid Arrow's second, Contagion,
       // Bestow Curse, Hex, the stone, the command ...): where it was cast from and the spell's level, so the turn it is felt in a globe raised against the caster, M.zoneShut can say no
       (B.units || []).forEach(function (w) { Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object' && !c.from && condsBefore.indexOf(c) < 0) { c.from = B.castFrom; c.lv = B.castLevel != null ? B.castLevel : 5; c.castId = id; } }); }); // (castId: the spell, for the globe's card -- M.globeSync)
