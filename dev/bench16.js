@@ -2094,7 +2094,7 @@
     var B;
     try {
       var fid = get('fight', '');
-      B = fid ? new D.Battle({ ladder: true, fight: fid, bench: true, npc: vs ? { party: vs.split(','), foes: [] } : null }) : new D.Battle({ npc: { foes: foes, party: vs ? vs.split(',') : null }, bench: true, fightDef: D.classFight(L) });
+      B = fid ? new D.Battle({ ladder: true, fight: fid, bench: true, npc: vs ? { party: vs.split(','), foes: [] } : null, torch: get('torch', '') || undefined, torchKind: get('torchKind', '') || undefined }) /* (torch=<unit id> torchKind=lantern: a light in a hand -- the roost's hooded lantern, 10-02) */ : new D.Battle({ npc: { foes: foes, party: vs ? vs.split(',') : null }, bench: true, fightDef: D.classFight(L) });
       D.battle = B; B.enter();
       if (fid) B.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
     } catch (e) { errs.push('enter: ' + String(e && e.stack || e).slice(0, 600)); break; }

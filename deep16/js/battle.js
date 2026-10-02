@@ -1388,7 +1388,7 @@
     return 'when a foe comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) ? 'into sight' : 'within reach');
   };
   Battle.sawEffect = function (B, w, ef) { return !!(ef && ((ef.units || []).some(function (x) { return x === w || D.magic.sees(B, w, x); }) || (ef.sq || []).some(function (q) { return D.magic.seesSq(B, w, q[0], q[1]); }))); };
-  Battle.nm = function (w, cap) { return w.side === 'foe' ? (cap ? 'The ' : 'the ') + shortName(w) : w.name; };
+  Battle.nm = function (w, cap) { return w.side === 'foe' ? (w.named ? '' : cap ? 'The ' : 'the ') + shortName(w) : w.name; };
   // who stands now (the units up and about): "one of us goes down" is the one stood at the last look and down at this
   Battle.prototype.readySnap = function () { var s = this.upSeen = {}; this.units.forEach(function (w) { if (!w.dead && w.hp > 0) s[w.id] = 1; }); };
   Battle.prototype.readyArmed = function () { return this.units.some(function (w) { return w.ready && w.reaction > 0; }); };
@@ -1604,7 +1604,7 @@
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.familiar && D.familiar && D.familiar.vanish) D.familiar.vanish(this, u); // (a familiar at 0 HP is gone, not down: SRD 5.1)
       else if (u.side === 'party') { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside ' + u.name + '.{/}' : '')]); } // (the name, never "him")
-      else { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls.{/}']); if (u.holding && u.holding.length) this.release(u); }
+      else { u.dead = true; u.deadT = this.t; this.card(['{y}' + (u.named ? '' : 'The ') + shortName(u) + ' falls.{/}']); /* (a named foe -- The Keeper -- has its own article: "The The Keeper falls", 10-02) */ if (u.holding && u.holding.length) this.release(u); }
       // a darkmantle down off the one it rode, or off one who went down, now -- not at the coroutine's next step: the blow that ends the fight leaves no
       // next step, and the one it rode kept "attached" and "blinded" (10-01, the roper window's bench: Barley and Vivian, their darkmantles dead)
       this.rideSync();
@@ -1877,7 +1877,7 @@
       this.card(['{y}' + u.name + '{/} tries to hide, but the mirror on ' + mirror.map(shortName).join(' and ') + ' has her: {p}nothing hides in front of the Mirror\'s eye{/}.', '{g}Get behind her, or into the dark.{/}']);
     } else if (plain.length) {
       var bsw = plain.filter(function (w) { return w.blindsight && G.dist(w, u) <= w.blindsight; })[0];
-      this.card(['{y}' + u.name + '{/} tries to hide, but the ' + plain.map(shortName).join(' and the ') + ' can see her plainly (' + (bsw ? 'blindsight ' + bsw.blindsight + ' ft: it needs no light' : this.dark ? 'in the light' : 'no cover') + ').', '{g}Put a stalagmite or a body between you first' + (bsw ? ', or get past its ' + bsw.blindsight + ' ft' : this.dark ? ', or get out of the light' : '') + '.{/}']);
+      this.card(['{y}' + u.name + '{/} tries to hide, but ' + plain.map(function (p) { return (p.named ? '' : 'the ') + shortName(p); }).join(' and ') + ' can see her plainly (' + (bsw ? 'blindsight ' + bsw.blindsight + ' ft: it needs no light' : this.dark ? 'in the light' : 'no cover') + ').', '{g}Put a stalagmite or a body between you first' + (bsw ? ', or get past its ' + bsw.blindsight + ' ft' : this.dark ? ', or get out of the light' : '') + '.{/}']);
     } else {
       // Guidance (SRD 5.1: a d4 to one ability check, "before or after making the ability check"): spent after the roll, on a check the d4 could turn
       var gd = u.conds.guidance && !u.conds.faerie && total < top && total + 4 >= top && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;

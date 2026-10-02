@@ -334,7 +334,7 @@
       mallet: { name: 'Mallet', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 },
       crossbow: { name: 'Hand Crossbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true }
     },
-    multi: ['mallet', 'mallet'], bolts: 'hask', sneak: '2d6', nimble: true, // (the Spy's Sneak Attack 2d6, once a turn: battle.js; Cunning Action read as the goblin's Nimble Escape, Disengage and a step back -- Dash and Hide are not read: js/traits.js; 10-02 runner)
+    multi: ['mallet', 'mallet'], bolts: 'hask', sneak: '2d6', // (the Spy's Sneak Attack 2d6, once a turn: battle.js; its Cunning Action waits to be built whole -- Griz, 10-02: "until it's built translates into 'add a handoff please'": handoff-2026-10-02-the-srd-pass-leftovers.md)
     src: 'content/monsters.json wheelwright (the SRD 5.1 Spy): when Hask falls he runs for the stair (the map\'s exit), dashing; Sneak Attack 2d6 once a turn, the Hand Crossbow +4 1d6+2 30/120 (SRD 5.1, loosed when nothing is in reach: ai.js volley), and Cunning Action as `nimble` (Disengage only; 10-02 runner)', todo: 'Cunning Action\'s Dash and Hide are not read (only Disengage, through nimble)'
   },
   crewman: {
