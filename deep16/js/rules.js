@@ -45,7 +45,7 @@
     // (the roper's tendrils cut or broken -- battle.js tendrilGone, u.tendrilsLost -- come back one a turn as its action, when it has nothing in reach: js/ai.js brute, 10-02)
     // Ready (SRD 5.1: "lets you act using your reaction before the start of your next turn"): a readied strike not sprung by now is let go; a readied spell's held magic
     // dissipates with it -- the concentration it took, and the slot (battle.js exec 'ready', readyHook; 10-02)
-    if (u.ready) { var rd0 = u.ready; delete u.ready; if (rd0.what === 'spell') { if (u.conc && u.conc.id === 'ready') delete u.conc; if (D.battle) D.battle.card(['{g}' + u.name + '\'s readied ' + rd0.name + ' dissipates: the moment passed.{/}'], 200); } else if (D.battle) D.battle.card(['{g}' + u.name + ' lowers the readied ' + rd0.name + ': the moment passed.{/}'], 160); }
+    if (u.ready) { var rd0 = u.ready; delete u.ready; if (rd0.what === 'spell') { if (u.conc && u.conc.id === 'ready') delete u.conc; if (D.battle) D.battle.card(['{g}' + u.name + '\'s readied ' + rd0.name + ' dissipates: the moment passed.{/}'], 200); } } // (a weapon lowered says nothing: the ring offers READY again, and a hero waiting on a burrower readies every turn)
     delete u.conds.dodge;
     if (D.battle && D.battle.doorWardOn === u) D.battle.doorWardOn = null; // (the Door-Shield's +3 lasts till its bearer's turn)
     u.acted = true; // it has had a turn (the Cutthroat's Opening Cut reads it)

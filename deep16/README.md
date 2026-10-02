@@ -173,8 +173,13 @@ held under concentration, its slot spent (`exec ready`; sprung by `readyHook` fr
 spell's end, a blow from hiding; let go at the next turn, `rules.js startTurn`). The class AI and the plain guests ready
 against a foe under the ground or out of the world (`tactics.js readyWanted`, `readyUp`). The bulette bites and dives again
 with the move it has left (`ai.js diveAfter`, data/foes.js `diveAfter`), the opportunity attacks of those beside it first
-(`battle.js provoke`). Benched: `dev/bench16.js` modes `tendrils1002` (his test among them: the party at a distance cutting
-every tendril, till it walks in to bite) and `ready1002` (the Breach itself), both in `dev/check.py`'s gate.
+(`battle.js provoke`); it dives only after a turn it struck at someone (`turn.attacked`), and a burrower with no square its
+body fits in beside anyone (a target boxed in by the walls and the fallen) comes up as near as it can, within a stride, to
+fight on its feet. A creature with blindsight knows a hidden one inside its reach (`ai.js heroes`), and one that comes up
+finds the hidden it sees clearly (`rise`): the Breach stalled on both. Benched: `dev/bench16.js` modes `tendrils1002`
+(his test among them: the party at a distance cutting every tendril, till it walks in to bite) and `ready1002` (the
+Breach itself), both in `dev/check.py`'s gate; `mode=trace&fight=<id>&rounds=N` runs a fight to a round cap and prints
+the log's tail and every unit's state, for a fight that never ends on the bench.
 
 **The climb** (09-27, `js/climb.js`, `?climb`, or C / the button on the ladder; Griz: "an alternate mode that goes
 fight-by-fight 1-9 (random of created battles)"): one party from level 1 (Barley in splint, as on the ladder). Each

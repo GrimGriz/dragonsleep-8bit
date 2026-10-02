@@ -16,7 +16,9 @@
     var ch = u.conds && u.conds.charmed, charmer = ch && ch.by; // (charmed: never its charmer -- SRD 5.1; Charm Person, Animal Friendship)
     // (a familiar riding its wizard is no one's target; a darkmantle riding the one it is attached to is -- battle.js mount: the class AI's foes too, tactics.js
     // foesOf, or a fight stalls on one nobody will strike, 10-01 bench)
-    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w)) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
+    // (blindsight perceives without sight -- SRD 5.1 -- so a hidden one inside its reach is known to it: the bulette's tremorsense under the road found no hidden Vivian 10 ft
+    // off and the Breach never ended, 10-02)
+    var seen = B.units.filter(function (w) { return w.side !== u.side && G.standing(w) && !(w.riding && !w.attached) && w.id !== charmer && (((!w.conds.hidden || D.magic.inMirror(B, u, w) || (u.blindsight && G.dist(u, w) <= u.blindsight)) && D.magic.sees(B, u, w)) || G.dist(u, w) <= 5); }); // (the Mirror's eye: no hiding before it)
     if (seen.length) return seen;
     // nothing seen (inside a Darkness, blinded, the dark with no darkvision): it goes by ear -- toward the nearest it knows is there,
     // and swings or shoots at the unseen (the -4, the disadvantage). Nobody stands still all fight (the raid's stall, 09-28)
@@ -490,6 +492,7 @@
     u.tween = { fx: u.x, fy: u.y, fz: 60, t: 0, dur: B.pace(22, true) }; u.x = best.land[0]; u.y = best.land[1]; // (the leap's flight is paced with its waits below, as a step is: Battle.prototype.pace)
     u.facing = B.faceTo(u, best.t); u.anim = 'attack'; u.animT = B.t; D.sfx('crit');
     var hit = [best.t].concat(hs.filter(function (w) { return w !== best.t && G.dist(w, best.t) <= 5 && G.dist(u, w) <= 5; }).slice(0, (L.targets || 2) - 1));
+    if (u.turn) u.turn.attacked = (u.turn.attacked || 0) + 1; // (the Leap is its attack this turn: it may dive after -- diveAfter, 10-02)
     var roll = D.roll(L.dice), lines = ['{r}' + the(B, u) + '{/} leaps, and comes down on them like a falling wall!  ' + L.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + L.dc], hurt = [];
     yield 24;
     hit.forEach(function (w) {
@@ -500,6 +503,7 @@
     B.card(lines, 400);
     hurt.forEach(function (h) { FX.slash(h[0], D.PAL.ramps.red[4]); B.hurt(h[0], h[1], 'bludgeoning'); });
     yield 34; u.anim = 'idle';
+    if (B.readyHook) yield* B.readyHook(u); // (it came down within their reach: the readied strikes, once its own blow is done -- battle.js exec 'ready', 10-02)
     return true;
   }
   function* bolt(B, u) {
@@ -548,6 +552,8 @@
     B.card(['{r}' + the(B, u) + '{/} ' + (u.earthGlide ? 'rises out of the floor' : 'bursts up out of the ground') + (tgt ? (G.dist(u, tgt) <= reachOf(u) ? ' beside ' : ' near ') + tgt.name : '') + '!'], 300);
     yield Math.max(24, D.spr.duration(u.sheet, 'reveal') || 0);
     u.anim = 'idle';
+    // up, it sees: one hidden that it now sees clearly is found, as on a step (battle.js moveAlong; SRD 5.1, "You can't hide from a creature that can see you clearly" -- 10-02)
+    B.units.forEach(function (w) { if (w.conds.hidden && G.hostile(u, w) && G.standing(w) && B.seenBy && B.seenBy(u, w) === 2) { delete w.conds.hidden; B.card(['{o}' + the(B, u) + ' finds ' + w.name + ' plainly.{/}'], 200); } });
     if (B.readyHook) yield* B.readyHook(u); // (up into a readier's reach or sight: the readied strikes -- battle.js exec 'ready', 10-02)
   }
   function* burrower(B, u) {
@@ -587,6 +593,18 @@
     if (!up) {
       // no one it can reach this turn: closer, under the ground
       var near = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], e0 = approach(u, near, rm);
+      // ... unless there is no square beside anyone its body fits in at all (a target boxed in by the walls and the fallen: the Breach's road with three down round Vivian,
+      // 10-02) -- then up at the nearest it can stand in within a stride (15 ft) of its mark, to walk and bite on its feet; it stayed under for good before
+      var e1 = Object.keys(rm).map(function (k) { return rm[k]; }).filter(function (e) { return e.stand && G.canStand(u, e.x, e.y); }).sort(function (a, b) { return G.dist(u, near, a.x, a.y) - G.dist(u, near, b.x, b.y) || a.cost - b.cost; })[0];
+      if (e1 && G.dist(u, near, e1.x, e1.y) <= 15 && (!e0 || G.dist(u, near, e0.x, e0.y) >= G.dist(u, near, e1.x, e1.y) - 5)) {
+        T.move = cap; yield* walkTo(B, u, e1, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move));
+        if (u.dead || u.hp <= 0) return;
+        yield* rise(B, u, near);
+        if (u.dead || u.hp <= 0) return;
+        yield* brute(B, u);
+        yield* diveAfter(B, u);
+        return;
+      }
       if (e0 && (e0.x !== u.x || e0.y !== u.y)) { T.move = cap; yield* walkTo(B, u, e0, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move)); }
       B.card([u.earthGlide ? '{g}Nothing shows where it went.{/}' : '{g}The ground heaves: something moves under it' + (near ? ', toward ' + near.name : '') + '.{/}'], 200); yield 16;
       return;
@@ -605,7 +623,9 @@
   // xorn, which resists plain steel and claws three times, stays up and fights (the seat's call)
   function* diveAfter(B, u) {
     var T = u.turn;
-    if (u.dead || u.hp <= 0 || u.under || !(D.FOES[u.kind] && D.FOES[u.kind].diveAfter) || !canDig(B, u) || T.move < 5) return;
+    // (bite AND dive: a turn it came up and struck at no one -- the Leap recharged, it surfaced 15-30 ft off and found no landing -- it stays up, as before, where they can
+    // get at it; diving after nothing made the Breach a fight nobody could end, the bench's 600 s, 10-02)
+    if (u.dead || u.hp <= 0 || u.under || !(D.FOES[u.kind] && D.FOES[u.kind].diveAfter) || !canDig(B, u) || T.move < 5 || !(T.attacked > 0)) return;
     yield* B.provoke(u, 'diving under');
     if (u.dead || u.hp <= 0 || !canDig(B, u)) return;
     yield* sink(B, u); T.move -= 5;

@@ -958,6 +958,7 @@
     o = o || {};
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
+    if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     att.facing = faceTo(att, tgt);
     // a spell's shot leaves at the height of the cast pose (the spell animation pass, 09-28h): the pose the cast began runs on
@@ -1329,7 +1330,8 @@
   Battle.prototype.readyHook = function* (about) {
     var rs = this.units.filter(function (w) { return w.ready && w.reaction > 0 && RU.canAct(w) && G.standing(w); });
     for (var i = 0; i < rs.length; i++) {
-      var w = rs[i], rd = w.ready, now = this.readyTargets(w, rd), fresh = now.filter(function (t) { return !rd.had[t.id]; });
+      var w = rs[i], rd = w.ready; if (!rd || w.reaction <= 0 || !RU.canAct(w)) continue; // (sprung already from inside another's strike -- a readied spell's own attack asks the hook again)
+      var now = this.readyTargets(w, rd), fresh = now.filter(function (t) { return !rd.had[t.id]; });
       rd.had = {}; now.forEach(function (t) { rd.had[t.id] = 1; });
       if (!fresh.length) continue;
       var foe = about && fresh.indexOf(about) >= 0 ? about : fresh[0], take = true, fname = foe.side === 'foe' ? 'The ' + shortName(foe) : foe.name;

@@ -574,6 +574,29 @@
     document.body.appendChild(preZ);
     return;
   }
+  // a fight traced to a round cap (mode=trace&fight=<id>&rounds=N&seed=S; 10-02, for a fight that never ends on the bench -- the bulette's, the day it learned to dive): the
+  // whole fight as the coroutine to the cap, then the log's last lines and each unit's state, so the stall can be read instead of waited out
+  if (get('mode', '') === 'trace') {
+    var repTr = { checks: [], errors: [], log: [], units: [] }, capR = +get('rounds', 12);
+    try {
+      D.seed = seed0 * 7919 + 104729; D.lastError = null;
+      var Bt = new D.Battle({ ladder: true, fight: get('fight', 'gallery'), bench: true }); D.battle = Bt; Bt.enter();
+      Bt.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
+      var vT, guardT = 0, rT;
+      while (Bt.co && guardT++ < 400000 && (Bt.round || 0) <= capR) {
+        try { rT = Bt.co.next(vT); } catch (eI) { repTr.errors.push(String(eI && eI.stack || eI).slice(0, 900)); break; }
+        vT = undefined; if (rT.done) break; var yT = rT.value;
+        if (typeof yT === 'number' || !yT) continue; if (yT.fx || yT.entry || yT.scene) continue;
+        if (yT.prompt) { vT = yT.prompt.opts[0].value; continue; } if (yT.turn) { vT = { do: 'end' }; continue; }
+      }
+      repTr.checks.push('ok   round ' + Bt.round + ' after ' + guardT + ' steps, result ' + (Bt.result || 'none') + (D.lastError ? ', lastError ' + String(D.lastError).slice(0, 200) : ''));
+      repTr.log = (Bt.log || []).slice(-+get('lines', 160)).map(function (l) { return String(l).replace(/\{\/?[a-z]*\}/g, '').slice(0, 220); });
+      repTr.units = Bt.units.map(function (u) { return u.name + ' hp ' + u.hp + '/' + u.maxhp + ' at (' + u.x + ',' + u.y + ')' + (u.under ? ' under' : '') + (u.ethereal ? ' ethereal' : '') + (u.ready ? ' readied ' + u.ready.name : '') + (u.dead ? ' dead' : '') + (u.conds && u.conds.restrained ? ' held' : ''); });
+    } catch (eTr) { repTr.errors.push(String(eTr && eTr.stack || eTr).slice(0, 900)); }
+    var preTr = document.createElement('pre'); preTr.id = 'out'; preTr.textContent = 'BENCH16 ' + JSON.stringify(repTr);
+    document.body.appendChild(preTr);
+    return;
+  }
   // the roper's tendrils as things to strike and break (mode=tendrils1002; 10-02, handoff-2026-10-01-the-tendrils-and-ready §4.1 -- Griz: "put the tendril bit in the same
   // handoff it's all game mechanics"; SRD 5.1 Grasping Tendrils): the grip carries the tendril (AC 20, 10 HP, immune to poison and psychic); BREAK THE TENDRIL on the ring for
   // the one held and a friend beside, not for one 30 ft off; a break frees the held one and the roper is a tendril short; a blow at it hurts the tendril and not the roper,
