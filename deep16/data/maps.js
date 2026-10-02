@@ -827,10 +827,12 @@ window.D16.MAPS.floodstair = {
   // a stair, and a flooded one (10-02, Griz: "can we make the stair a stair and them be drawn underwater - barley looks like he's walking on top"): the flight
   // comes down a step a row from where the party stands to the water's edge, goes under, and climbs out the far side (heights, in steps of `step` px);
   // the water is waist-deep on a wader (wade, px of the figure under it: js/ui.js UI.wading), and the Keeper's held are drawn down in it
-  step: 5, wade: 13,
+  // (10-02, Griz: "stair shouldn't climb out except on the side party comes in on" -- the far end is the pool's deep end; "this is solid ground for burrow
+  // purposes (map may be used for other purposes)": worked stone)
+  step: 5, wade: 13, noBurrow: true,
   heights: [
     '000000000000000000',
-    '000000111110000000',
+    '000000000000000000',
     '000000000000000000',
     '000000000000000000',
     '000000000000000000',
@@ -846,7 +848,7 @@ window.D16.MAPS.floodstair = {
   ],
   rows: [
     '##################',
-    '######=====#######',
+    '######~~~~~#######',
     '#####~~~~~~~######',
     '####~~~~~~~~~#####',
     '###~~~~~~~~~~~####',
