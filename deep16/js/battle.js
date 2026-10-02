@@ -886,7 +886,10 @@
   // ------------------------------------------------------------------ movement, square by square, provoking as it goes
   Battle.prototype.moveAlong = function* (u, path, o) {
     var T = u.turn;
-    u.anim = 'walk';
+    // the gait: a sheet with a `slither` row plays it for a move of three squares or more, its walk for less (the grick, 10-02, Griz: "can we
+    // do the old one for 1-2 squares and the new if they're going 3 squares or more" -- coiled and swaying for a step or two, laid flat to go far)
+    var gait = path.length >= 3 && D.spr.anim(u.sheet, 'slither') ? 'slither' : 'walk';
+    u.anim = gait;
     for (var i = 0; i < path.length; i++) {
       var nx = path[i][0], ny = path[i][1], cost = G.stepCost(u, u.x, u.y, nx, ny, { ghost: u.ethereal });
       // leaving a hostile's reach without Disengage provokes, right before the step
@@ -901,7 +904,7 @@
           if (w.side === 'party' && !w.guest) {
             u.anim = 'idle';
             take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' is leaving ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } }; // (a readied strike waits on the same reaction: SRD 5.1, one a round -- 10-02)
-            u.anim = 'walk';
+            u.anim = gait;
           }
           if (take) {
             w.reaction = 0;
@@ -939,7 +942,7 @@
       // out onto, and the walk ends there (filming it, the fighter walked on a square held)
       if (this.globes && D.magic.globeSync) { D.magic.globeSync(this); if (!RU.canAct(u) || u.conds.restrained || u.conds.dancing) { if (o && o.spend) T.move = 0; u.anim = 'idle'; yield 24; break; } }
       // a readied strike (exec 'ready', 10-02): one that steps within a readier's reach, or into its sight, gets it -- and held, stunned or put down by it, walks no farther
-      if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) { yield* this.readyHook(u); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; } u.anim = 'walk'; }
+      if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) { yield* this.readyHook(u); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; } u.anim = gait; }
     }
     u.anim = 'idle';
   };

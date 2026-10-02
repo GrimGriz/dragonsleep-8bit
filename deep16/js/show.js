@@ -4,7 +4,7 @@
 
      deep16/?show=grick                two of it (&n=) against four who watch by different eyes, the class AI on both sides: a wizard with a bat
                                        (its blindsight: the sonar), a wizard with a snake (the tongue), a dwarf fighter (darkvision), a human rogue
-                                       with a torch. &lvl= the watchers' level (3); &stone=brown|grey (the test ground is slate); several
+                                       (by the room's lamp alone). &lvl= the watchers' level (3); &stone=brown|grey (the test ground is slate); several
                                        creatures: ?show=grick,xorn
 
    The director (the seat's calls, 10-02: a test, never a rule of the game) --
@@ -12,8 +12,9 @@
      * every blow at it or from it lands (js/battle.js attack: B.show), so a blow that follows a hit -- the grick's beak -- plays, and the flinch;
      * no one drops below 1 HP till the director says (the watchers stay up to watch; the creature lives till it has shown its rows), and the
        creature has three times its hit points, so it flinches a while before it is down to its last;
-     * one that has not walked by the end of a turn is walked a few squares toward the watchers (a roper holds its ground); one no one has
-       hit by the end of its second turn has a stone flung at it (its flinch);
+     * one that has not walked by the end of a turn is walked toward the watchers (a roper holds its ground): a step or two for its walk,
+       three squares and more for its slither where it has one; one no one has hit by the end of its second turn has a stone flung at it
+       (its flinch);
      * once in the fight, at the end of its second turn, each is knocked flat: its prone frame, and getting up at its next turn;
      * at the start of a turn, one that has shown every row it has (or any, from round 8) goes down: its death row.
    The tally counts what the engine plays, not what is drawn: a row set on the unit (a run of sets between two steps of the fight is the last
@@ -26,7 +27,7 @@
   var SH = D.show = {};
   SH.ROUNDS = 8;    // by this round every one on show goes down, shown or not
   SH.HP = 3;        // its hit points, times
-  var LOOPS = { idle: 1, walk: 1, roost: 1, braid: 1, run: 1, still: 1, fly: 1, sit: 1, rofl: 1 }; // (a loop counts when it starts, not each time it is set again)
+  var LOOPS = { idle: 1, walk: 1, slither: 1, roost: 1, braid: 1, run: 1, still: 1, fly: 1, sit: 1, rofl: 1 }; // (a loop counts when it starts, not each time it is set again)
 
   // the rows a sheet has, and 'prone' where it has a prone frame (js/sprites.js S.PRONE, the LPC fall row)
   SH.rowsOf = function (sheet) {
@@ -87,17 +88,20 @@
     if (u.hp <= 0 || u.dead) return;
     var seen = u.showSeen || {}, RU = D.rules;
     u.showTurns = (u.showTurns || 0) + 1;
-    // one that has not walked by the end of its turn (a roper holds its ground and reels): a few squares toward the watchers, to see its walk
-    if (!seen.walk && D.spr.anim(u.sheet, 'walk') && u.speed > 0 && RU.canAct(u) && !u.conds.restrained && !u.conds.prone) { // (holding someone too: a roper's tendrils reach 50 ft)
-      var them = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
-      var rm = D.grid.reach(u, Math.min(15, u.speed)), best = null, bd = Infinity;
+    // one that has not walked by the end of its turn (a roper holds its ground and reels): a few squares toward the watchers, to see its walk --
+    // a step or two for its `walk`, three squares or more for its `slither` where it has one (js/battle.js moveAlong picks the gait by the length)
+    var gaits = [['walk', 1, 2], ['slither', 3, 6]].filter(function (g) { return !seen[g[0]] && D.spr.anim(u.sheet, g[0]) && (g[0] === 'walk' || D.spr.anim(u.sheet, 'walk')); });
+    if (gaits.length && u.speed > 0 && RU.canAct(u) && !u.conds.restrained && !u.conds.prone) { // (holding someone too: a roper's tendrils reach 50 ft)
+      var g = gaits[0], them = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
+      var rm = D.grid.reach(u, Math.min(g[2] * 5 + 10, u.speed)), best = null, bd = Infinity;
       Object.keys(rm).forEach(function (k) {
         var c = rm[k]; if (!c.stand || !c.prev) return;
+        var len = D.grid.path(rm, c.x, c.y).length; if (len < g[1] || len > g[2]) return;
         var d = Math.min.apply(null, them.map(function (w) { return Math.max(Math.abs(w.x - c.x), Math.abs(w.y - c.y)); }).concat([99]));
         if (d >= 1 && d < bd) { bd = d; best = c; }
       });
       if (best) {
-        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not walked yet. A few steps, to see it.'], 200);
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + g[0] + ' yet. ' + (g[0] === 'walk' ? 'A step or two' : 'Three squares and more') + ', to see it.'], 200);
         yield* B.moveAlong(u, D.grid.path(rm, best.x, best.y), { noOA: true });
         u.anim = 'idle';
       }
@@ -132,6 +136,9 @@
       var low = rows.filter(function (r) { return (t[r] || 0) < 2; });
       lines.push(low.length ? '  {r}under two: ' + low.join(', ') + '{/}' : '  {n}every row twice{/}');
       if (SH.fallback(sheet, kind)) lines.push('  {g}(its `attack` row never plays: every blow has a row of its own){/}');
+      // (10-02, Griz: "make sure if it can be prone it looks prone when it is": one that can be knocked flat but has no frame for it stands while prone)
+      var d = kind && D.FOES[kind];
+      if (D.spr.proneFrame(sheet) < 0 && d && !d.noProne && (d.condImmune || []).indexOf('prone') < 0) lines.push('  {o}no prone frame: it stands while prone (deep16-art-wanted.md, PRONE someday){/}');
     });
     return lines;
   };
@@ -163,9 +170,7 @@
       B.showTally[u.sheet] = B.showTally[u.sheet] || {}; B.showKind[u.sheet] = u.kind;
       if (D.spr.anim(u.sheet, 'still')) see(B, u, 'still'); // (shown from the start till its first turn: js/ui.js)
     });
-    // the torch: the watcher with no darkvision and a hand free (the rogue)
-    var tb = B.units.filter(function (u) { return u.side === 'party' && !u.familiar && !u.darkvision && u.cls !== 'wizard' && D.light.handsFree(u) > 0; })[0];
-    if (tb) { tb.torch = { lit: true }; D.light.regrip(tb); }
+    // (no torch: the room's own lamp is the light -- 10-02, Griz: "please pull the torch ... and have the test room light source be in the room")
     var inner = B.co;
     B.co = (function* () { var v; while (true) { var r = inner.next(v); poll(B); if (r.done) return r.value; v = yield r.value; } })();
   };

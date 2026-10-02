@@ -155,7 +155,7 @@ def bends(P, t=0.0):
         for j, n in enumerate(ch):
             ang = (P.get('tent', 0) if j == 0 else P.get('curl', 0)) + P.get('twave', 0) * math.sin(2 * math.pi * t + ph_k - 0.7 * j)
             add(n, Q(TAX[k], ang))
-            if j and P.get('droop'):
+            if j and P.get('droop') and not (P.get('flat') and k >= 2):     # (laid flat, the lower pair already lie on the ground: flatten())
                 v = pdir(n); add(n, Q(v.cross(Vector((0, 0, -1))), P['droop']))
     if P.get('jaw'):
         add('Bone.048', Q(JAX, P['jaw'] * 0.45)); add('Bone.050', Q(JAX, -P['jaw'] * 0.55))
@@ -167,7 +167,24 @@ def bends(P, t=0.0):
             v = pdir(n); add(n, Q(v.cross(Vector((0, 0, -1))), P['taildroop']))
     if P.get('slither'):
         slither(d, P, t)
+    if P.get('flat'):
+        flatten(d, P['flat'])
     return d
+
+
+def flatten(d, f):
+    """knocked flat (Griz, 10-02: "make sure if it can be prone it looks prone when it is"): the neck laid along the ground from the hip,
+    bowed a little to one side, the head resting -- the coil's hump gone (the death row's first cut pitched the neck forward and the hump
+    stayed: a slumped coil, not a creature down). f: 0 the standing coil, 1 flat; each neck bone's turn onto its piece of the path, slerped."""
+    nN = len(NECK); G = Quaternion()
+    for j, n in enumerate(NECK):
+        T = Vector((0.35 * math.sin(math.pi * j / nN), -1.0, 0.0 if j < nN - 4 else -0.12)).normalized()
+        dq = pdir(n).rotation_difference(G.inverted() @ T); G = G @ dq
+        d[n] = Quaternion().slerp(dq, f)
+    # the lower pair of tentacles reach down from the head; with the head down by the floor they went 7 units into it: swung up to lie
+    # along the ground
+    for ch in TENT[2:]:
+        v = pdir(ch[0]); d[ch[0]] = Q(v.cross(Vector((0, 0, -1))), -40 * f) @ d.get(ch[0], Quaternion())
 
 
 def slither(d, P, t):
@@ -192,7 +209,7 @@ def slither(d, P, t):
             d[n] = dq; G = G @ dq; f += L
 
 
-def solve(d, lift=0.0):
+def solve(d, lift=0.0, necklift=0.0):
     """each bone's basis for bends d: its posed rotation is (the bends of every bone above it and its own, in the pose's frame) x the
     artist's; its head where its parent now carries it."""
     G, M, out = {}, {}, {}
@@ -203,14 +220,14 @@ def solve(d, lift=0.0):
         if p:
             C = M[p] @ REST[p].inverted() @ REST[n]; head = C.translation
         else:
-            C = REST[n]; head = POSE0[n].translation + Vector((0, 0, lift))
+            C = REST[n]; head = POSE0[n].translation + Vector((0, 0, lift + (necklift if n == NECK[0] else 0.0)))   # (necklift: the neck's root alone, its tail's stays)
         M[n] = Matrix.Translation(head) @ R.to_4x4()
         out[n] = C.inverted() @ M[n]
     return out
 
 
 def apply(P, t=0.0):
-    for n, m in solve(bends(P, t), P.get('lift', 0.0)).items():
+    for n, m in solve(bends(P, t), P.get('lift', 0.0), P.get('necklift', 0.0)).items():
         loc, rot, sc = m.decompose()
         pb = arm.pose.bones[n]; pb.rotation_quaternion = rot; pb.location = loc
 
@@ -227,7 +244,15 @@ def row_idle(i, n):
 
 
 def row_walk(i, n):
-    t = i / n      # (laid flat and slithering: slither() above; the tentacles swept back a little)
+    """a step or two (battle.js moveAlong: a move of one or two squares): the coil kept, a wave through it, the head swaying -- the first
+    walk, back on Griz's word: "can we do the old one for 1-2 squares and the new if they're going 3 squares or more" (10-02)."""
+    t = i / n
+    return dict(pitch=5 * math.sin(4 * math.pi * t), yaw=7 * math.sin(2 * math.pi * t), tent=-6, twave=6, tailwave=7, lift=0.35 * abs(math.sin(2 * math.pi * t))), t
+
+
+def row_slither(i, n):
+    """three squares or more: laid flat and slithering (slither() above; the tentacles swept back a little)."""
+    t = i / n
     # (sl 9, lam 22: of three tried on 10-02 -- 6/34 stretched it four squares, the whole length of the model; 11/18 folded the thick body
     # into lumps -- the one that reads as a snake and keeps to about three; lifted 3.6 so its belly does not sink)
     return dict(slither=float(OPT.get('sl', 9)), lam=float(OPT.get('lam', 22)), tent=-12, twave=5, lift=float(OPT.get('wlift', 3.6))), t
@@ -265,13 +290,16 @@ def row_flinch(i, n):
 
 
 def row_death(i, n):
-    """the neck falls forward to the ground, the tentacles go slack and splay, the raised tail comes down; frame 3, half fallen, is its
-    prone frame (deep16/js/sprites.js S.PRONE: getting up is the row played back from there)."""
-    d = [0.0, 0.15, 0.35, 0.55, 0.75, 0.9, 1.0, 1.0][i]
-    return dict(pitch=24 * d, low=52 * d, tent=-14 * d, droop=7 * d, jaw=16 * d, taildroop=10 * d), 0.0
+    """down flat by frame 3 -- the neck laid along the ground, the tail's tip down, the tentacles splayed and still held up: knocked flat
+    but alive, its prone frame (deep16/js/sprites.js S.PRONE; getting up is the row played back from there, flat to the coil) -- then
+    slack: the tentacles drop and curl, the beak falls open (10-02: the first cut pitched the neck forward and kept the coil's hump)."""
+    f = [0.0, 0.3, 0.65, 1.0, 1.0, 1.0, 1.0, 1.0][i]
+    s = [0.0, 0.0, 0.0, 0.0, 0.35, 0.65, 0.9, 1.0][i]
+    # (necklift: the neck is thicker at the hip than the hip is high -- laid flat its belly went 2.3 units under the ground the coil rests on)
+    return dict(flat=f, necklift=float(OPT.get('nl', 2.6)) * f, tent=-10 * f - 6 * s, droop=4 * f + 7 * s, curl=8 * s, jaw=6 * f + 14 * s, taildroop=6 * f + 4 * s), 0.0
 
 
-ROWS = [('IDLE', 8, True, row_idle), ('WALK', 8, True, row_walk), ('TENTACLES', 6, False, row_tentacles), ('BEAK', 6, False, row_beak),
+ROWS = [('IDLE', 8, True, row_idle), ('WALK', 8, True, row_walk), ('SLITHER', 8, True, row_slither), ('TENTACLES', 6, False, row_tentacles), ('BEAK', 6, False, row_beak),
         ('FLINCH', 5, False, row_flinch), ('DEATH', 8, False, row_death), ('STILL', 1, False, row_still), ('REVEAL', 8, False, row_reveal)]
 ad = arm.animation_data_create()
 for name, n, loop, fn in ROWS:
