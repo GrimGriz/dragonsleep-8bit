@@ -341,7 +341,9 @@
       // "Magic Missile at the darkness" (Griz, 09-28: "we have to do [the] magic missile at the darkness gimmick somewhere in the
       // game"): a dart aimed at a square the caster cannot see into (t.units holds { x, y, dark: true }) flies anyway. Whatever
       // stands there takes it -- the darts never miss -- and an empty square takes nothing but the slot. RULES.missilesAtTheDark
-      var darts = t.units.map(function (w) { if (!w.dark) return w; var at = G.occupant(w.x, w.y); return (at && at.hp > 0 && !at.dead && G.hostile(u, at)) ? at : { x: w.x, y: w.y, size: 1, dark: true, id: 'dark' + w.x + ',' + w.y, name: 'the darkness' }; });
+      // (a darkmantle riding one of ours there is what stands there to take it -- 10-01, Griz: "I was able to target and cast MM at the darkmantle on Vivian's head
+      // and it missed (nobody there)": the square's occupant was Vivian; battle.js riderOn)
+      var darts = t.units.map(function (w) { if (!w.dark) return w; var at = G.occupant(w.x, w.y); if (at && !G.hostile(u, at) && D.Battle.riderOn) at = D.Battle.riderOn(u, at, B.units) || at; return (at && at.hp > 0 && !at.dead && G.hostile(u, at)) ? at : { x: w.x, y: w.y, size: 1, dark: true, id: 'dark' + w.x + ',' + w.y, name: 'the darkness' }; });
       var atDark = t.units.some(function (w) { return w.dark; });
       // (the Globe of Invulnerability: a dart at one inside it, from outside, breaks on it -- a dart in the dark that finds one there as well)
       var shutD = M.globed ? darts.filter(function (w) { return w.hp != null && M.globed(B, u, w, sp.level); }) : [];

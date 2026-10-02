@@ -233,6 +233,7 @@
   }
   function hit(r) { var m = I.mouse; return r && m.x >= r.x && m.y >= r.y && m.x < r.x + r.w && m.y < r.y + r.h; }
   function moveCursor(B, dir) {
+    B.hoverUnit = null; // (the keys move the cursor: the mouse's figure is no longer the one meant -- hoveredRider)
     if (D.iso.nudge(B.cursor, dir, G.map.w, G.map.h)) showCursor(B);
   }
   function showCursor(B) { // near the screen's edge (or off it), the view comes to the cursor
@@ -244,6 +245,7 @@
   // the arrows keep to the axes)
   var OCT = [[1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0]]; // E NE N NW W SW S SE on the screen
   function stickCursor(B) {
+    B.hoverUnit = null; // (the stick moves the cursor: as moveCursor)
     var d = OCT[I.stickOct], m = G.map;
     if (!d) return;
     var x = D.clamp(B.cursor.x + d[0], 0, m.w - 1), y = D.clamp(B.cursor.y + d[1], 0, m.h - 1);
@@ -445,6 +447,9 @@
     // the attack cued: a darkmantle riding a friend -- or riding you -- is struck at through that square (10-01, Griz: "attack cued looking for target, ally
     // square you normally can't attack"; battle.js mount)
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units);
+    // ... and the mouse on it (its red outline: underCursor) is the click on it, as on any foe -- no ATTACK from the ring first (10-01, Griz: "Have to go into the
+    // ring to do it for the first attack on the darkmantle")
+    if (!foe && (tool === 'move' || tool === 'menu')) foe = hoveredRider(B, u, x, y);
     if (!s || !s.open) return 'no';
     if (tool === 'detach') return D.Battle.pullable(u, B.units).some(function (r) { return r.master === w; }) ? 'ok' : 'no'; // (PULL IT OFF: a friend beside you with one on)
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
@@ -481,6 +486,8 @@
     var r = D.Battle.riderOn(u, w, B.units); return ok(r) ? r : null;
   }
   UI.spellTarget = spellTarget;
+  // a hostile rider on (x, y) the mouse is on (B.hoverUnit, set as the mouse moves): a darkmantle on a head, outlined red
+  function hoveredRider(B, u, x, y) { var hu = B.hoverUnit; return hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y && G.hostile(u, hu) ? hu : null; }
   // the one under the cursor the tooltip, the inspect and a spell's peek speak of: a rider the mouse is on, or -- the attack cued -- the darkmantle on the square, else the one standing there
   function underCursor(B) {
     var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y), hu = B.hoverUnit, a = B.active;
@@ -494,6 +501,7 @@
   function actAt(B, u, x, y, byKey) {
     var T = u.turn, tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid)
+    if (!foe && (tool === 'move' || tool === 'menu')) foe = hoveredRider(B, u, x, y); // (the mouse on it: the click is on it -- UI.valid)
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (x === u.x && y === u.y && !foe) { D.sfx('popup'); B.tool = 'menu'; return; }
