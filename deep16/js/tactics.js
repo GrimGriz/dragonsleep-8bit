@@ -64,6 +64,21 @@
   function foesOf(B, u) { return AI.heroes(B, u).filter(function (w) { return G.hostile(u, w) && G.standing(w); }); }
   function alliesOf(B, u) { return B.units.filter(function (w) { return w.side === u.side && !w.dead && !w.fled && !w.left && !w.ethereal; }); }
   TX.foesOf = foesOf; TX.alliesOf = alliesOf;
+
+  // held fast (ai.js turn): tear free first, or fight from where it is? A web or vines hold it for nothing: tear free. A grip: not
+  // while the one holding it can be hurt from here -- in its reach, or by a bow or a spell (restrained, its attacks have disadvantage,
+  // but a creature with grips to spare takes it again the same round). 10-01e: with the roper's four tendrils the four wrenched free
+  // every turn, were caught again, and never struck it -- 176 rounds a fight on the bench. A grip that harms while it holds -- an
+  // attack only for the held (the Keeper's Drag Under, the chuul's tentacles), or a hold over the eyes (the cloaker) -- it still tears at
+  TX.freeFirst = function (B, u) {
+    var r = u.conds.restrained; if (!r || !r.grapple) return true;
+    var h = B.units.filter(function (w) { return w.id === r.by; })[0];
+    if (!h || h.dead || h.hp <= 0) return true;
+    if (u.conds.blinded && u.conds.blinded.by === h.id) return true;
+    if (Object.keys(h.attacks || {}).some(function (k) { return h.attacks[k] && h.attacks[k].needsHeld; })) return true;
+    if (G.dist(u, h) <= G.reachOf(u)) return false;
+    return !((u.weapon && u.weapon.ranged) || (u.alt && u.alt.ranged) || TX.caster(u));
+  };
   // the sanctuaried and the charmer are no targets (Sanctuary: a WIS save first; charmed: never its charmer)
   function fair(B, u, w) { return !(w.conds.charmedBy && false); }
 

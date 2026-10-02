@@ -439,11 +439,11 @@
     abil: { str: 18, dex: 8, con: 17, int: 7, wis: 16, cha: 6 }, init: -1, perception: 16,
     saves: { str: 4, dex: -1, con: 3, int: -2, wis: 3, cha: -2 },
     attacks: {
-      tendril: { name: 'Tendril', atk: 7, dice: '1d1', mod: -1, type: 'bludgeoning', reach: 50, grapple: { dc: 15, max: 2 }, reel: true, weakens: true },
+      tendril: { name: 'Tendril', atk: 7, dice: '1d1', mod: -1, type: 'bludgeoning', reach: 50, grapple: { dc: 15, max: 6 }, holdOnly: true, weakens: true },
       bite: { name: 'Bite', atk: 7, dice: '4d8', mod: 4, type: 'piercing', reach: 5 }
     },
-    multi: ['tendril', 'tendril', 'bite'],
-    src: 'SRD 5.1 Roper (CR 5, Large): two tendrils at 50 ft (grappled, restrained, escape DC 15; Reel drags them in) and the bite; content/monsters.json roper; the tendril\'s grip weakens (disadvantage on STR checks and saves while held: js/traits.js, 09-28)'
+    multi: ['tendril', 'tendril', 'tendril', 'tendril', 'bite'], reel: 25,
+    src: 'SRD 5.1 Roper (CR 5, Large): four tendrils at 50 ft (grappled, restrained, escape DC 15; up to six held, one a tendril), then Reel (each one held pulled up to 25 ft straight toward it: js/ai.js reel), then the bite (10-01e, Griz: "we\'ve often been too lenient, 4 please" -- it had two, and each hit dragged its one all the way in); content/monsters.json roper; the tendril\'s grip weakens (disadvantage on STR checks and saves while held: js/traits.js, 09-28)'
   },
   darkmantle: {
     name: 'Darkmantle', type: 'monstrosity', sheet: 'darkmantle_p1', cr: '1/2', ac: 11, hp: 22, speed: 30, size: 1, reach: 5, blindsight: 60, blind: true, darknessAura: true,

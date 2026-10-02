@@ -534,10 +534,10 @@
       "look": "toon:13", "lift": true, "floor": true, "fit": true,
       "size_squares": 1.4, "size_by": ["Roper_Body"],
       "yaw": 0,
-      "anims": { "idle": "IDLE", "walk": "CREEP", "tendril": "LASH", "tendril2": "LASH2", "reel": "REEL", "bite": "BITE",
+      "anims": { "idle": "IDLE", "walk": "CREEP", "tendril": "LASH", "tendril2": "LASH2", "tendril3": "LASH3", "tendril4": "LASH4", "reel": "REEL", "bite": "BITE",
                  "flinch": "FLINCH", "hurt": "DEATH", "still": "STILL", "reveal": "REVEAL" },
-      "frames": { "idle": 8, "walk": 8, "tendril": 6, "tendril2": 6, "reel": 6, "bite": 6, "flinch": 5, "hurt": 8, "still": 1, "reveal": 8 },
-      "once": ["tendril", "tendril2", "reel", "bite", "flinch", "hurt", "reveal"]
+      "frames": { "idle": 8, "walk": 8, "tendril": 6, "tendril2": 6, "tendril3": 6, "tendril4": 6, "reel": 6, "bite": 6, "flinch": 5, "hurt": 8, "still": 1, "reveal": 8 },
+      "once": ["tendril", "tendril2", "tendril3", "tendril4", "reel", "bite", "flinch", "hurt", "reveal"]
     },
     "darkmantle": {
       "_note": "the darkmantle (SRD 5.1, Small): Quaternius Flying/Glub, dark, at a square.",

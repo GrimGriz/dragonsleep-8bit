@@ -7485,7 +7485,7 @@
      "verb": "snakes a tendril around",
      "grapple": {
       "dc": 15,
-      "max": 2,
+      "max": 6,
       "restrain": true
      }
     },
@@ -7500,10 +7500,12 @@
    "multi": [
     "tendril",
     "tendril",
+    "tendril",
+    "tendril",
     "bite"
    ],
    "silver": "0",
-   "src": "SRD 5.1 (Roper: false appearance, grappling tendrils, bite); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (the roper at the fork)",
+   "src": "SRD 5.1 (Roper: false appearance, grappling tendrils -- four attacks, up to six held -- Reel, bite; RULED 10-01e, Griz: \"we've often been too lenient, 4 please\" -- it had two; Reel is the grid's, deep16/js/ai.js reel); handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §6.3 (the ladder) (the roper at the fork)",
    "id": "roper",
    "xp": 1800
   },

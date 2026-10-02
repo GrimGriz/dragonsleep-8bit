@@ -724,9 +724,13 @@
     if (u.actionSurge && !u.surged && heroes(B, u).filter(function (w) { return G.dist(u, w) <= reachOf(u); }).length >= 2) {
       u.surged = true; routine = routine.concat(routine); D.sfx('buff'); B.card(['{r}' + the(B, u) + '{/} surges!  {g}(Action Surge){/}']); yield 16;
     }
+    // Reel (the roper: SRD 5.1, "makes four attacks with its tendrils, uses Reel, and makes one attack with its bite"): after its
+    // grappling attacks and before the first that is not one, everyone it holds comes in (reel, below); data/foes.js `reel` in feet
+    var reelFt = u.kind && D.FOES[u.kind] && D.FOES[u.kind].reel, reeled = !reelFt;
     for (var k = 0; k < routine.length; k++) {
       var atk = u.attacks[routine[k]];
       if (!atk) break;
+      if (!reeled && !atk.grapple) { reeled = true; yield* reel(B, u, reelFt); if (u.dead || u.hp <= 0) return; }
       // the weakest in this attack's reach; a grappling attack reaches first for someone it does not already hold; an
       // attack only for the held (the Keeper's Drag Under, the chuul's tentacles) goes at one it holds, or not at all
       var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u);
@@ -737,9 +741,49 @@
         return a.hp - b.hp;
       })[0];
       if (!t) continue;
+      // a hit that only seizes (the roper's tendril, which does no harm) is not thrown at one it holds already, nor with every
+      // tendril taken (SRD 5.1: "the roper can't use the same tendril on another target"; grapple.max, its six)
+      if (atk.holdOnly && ((u.holding || []).indexOf(t) >= 0 || (u.holding || []).length >= (atk.grapple.max || 1))) continue;
       yield* B.attack(u, t, atk);
       if (u.dead || u.hp <= 0) return;
     }
+    if (!reeled) yield* reel(B, u, reelFt);
+  }
+
+  // Reel (the roper, SRD 5.1: "pulls each creature grappled by it up to 25 feet straight toward it"): a square at a time along the
+  // line to the nearest of its squares (the straight step, else the side step that still closes), through its friends' squares
+  // but not its foes' (G.canPass: a friend down on the floor is no wall -- the bench's fights stalled on one, 10-01e), landing on
+  // the last square on the way it can stand in; beside it, it stops. Dragged, so no opportunity attacks. (Before 10-01e each
+  // tendril's hit dragged its one all the way in -- Griz: "we've often been too lenient, 4 please")
+  function* reel(B, u, ft) {
+    var held = (u.holding || []).filter(function (w) { var r = w.conds.restrained; return r && r.by === u.id && !w.dead && G.dist(u, w) > 5; });
+    if (!held.length) return;
+    if (D.spr.anim(u.sheet, 'reel')) { u.anim = 'reel'; u.animT = B.t; }
+    var S = u.size || 1, said = [];
+    held.forEach(function (w) {
+      var x0 = w.x, y0 = w.y, x = x0, y = y0, land = null;
+      for (var n = Math.floor(ft / 5); n > 0 && G.dist(u, w, null, null, x, y) > 5; n--) {
+        var tx = Math.max(u.x, Math.min(u.x + S - 1, x)), ty = Math.max(u.y, Math.min(u.y + S - 1, y)), sx = Math.sign(tx - x), sy = Math.sign(ty - y);
+        var step = [[sx, sy], [sx, 0], [0, sy]].filter(function (s) { return (s[0] || s[1]) && G.canPass(w, x + s[0], y + s[1]) && G.dist(u, w, null, null, x + s[0], y + s[1]) < G.dist(u, w, null, null, x, y); })[0];
+        if (!step) break;
+        x += step[0]; y += step[1];
+        if (G.canStand(w, x, y)) land = [x, y];
+      }
+      // (the line in ends on a square taken -- a friend down beside it: the bench's long fights, 10-01e -- then the open square
+      // beside it nearest, if the pull reaches it)
+      if (!land || G.dist(u, w, null, null, land[0], land[1]) > 5) {
+        var bd = Infinity;
+        for (var yy = u.y - 1; yy <= u.y + S; yy++) for (var xx = u.x - 1; xx <= u.x + S; xx++) {
+          var dd = Math.max(Math.abs(xx - x0), Math.abs(yy - y0));
+          if (dd * 5 > ft || !G.canStand(w, xx, yy) || G.dist(u, w, null, null, xx, yy) > 5) continue;
+          if (dd < bd) { bd = dd; land = [xx, yy]; }
+        }
+      }
+      if (land) { w.x = land[0]; w.y = land[1]; }
+      var by = 5 * Math.max(Math.abs(w.x - x0), Math.abs(w.y - y0));
+      if (by) { w.tween = { fx: x0, fy: y0, fz: 0, t: 0, dur: B.pace(18, true) }; said.push([w.name, by + ' ft' + (G.dist(u, w) <= 5 ? '' : ' (still out of its reach)')]); }
+    });
+    if (said.length) { B.card(['{r}' + the(B, u) + '{/} reels ' + (said.length > 1 ? 'them in: ' + said.map(function (s) { return s.join(' '); }).join(', ') : said[0][0] + ' in ' + said[0][1]) + '.']); D.sfx('run'); yield 24; }
   }
 
   // the helpers the class tactics share (js/tactics.js)
