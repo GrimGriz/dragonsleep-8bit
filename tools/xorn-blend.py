@@ -383,9 +383,26 @@ def row_death(i, n):
     return P_
 
 
+def row_prone(i, n):
+    """knocked flat (10-02, Griz: "I had the instance replace the death with a new one. The old one might be a good prone if 3 is no good"):
+    the first death (491368a), going over backwards onto its back, is now its fall -- the death it has, half into the floor, read as its
+    Earth Glide, not as down. It lies on its back with its legs working at the last frame (deep16/js/sprites.js S.proneRow: getting up is
+    the row played back from there). Lifted onto its back and drawn forward as it goes over, as the first death was, so it stays on its square."""
+    th = [0, 10, 28, 52, 74, 86][i]; P_ = pose()
+    sn = math.sin(math.radians(th))
+    P_['root'][0] = Q(RIGHT, th)                    # the top goes over backwards
+    P_['root'][1] = UP * (14.0 * sn) + FRONT * (27.0 * sn)
+    kick = [0, 0.2, 0.5, 0.8, 1.0, 1.0][i]
+    for k, nm in enumerate(LEGNAMES):
+        P_['leg_%s.1' % nm][0] = Q(-TILT, 15 * kick + (8 if k % 2 else -8) * kick)    # (the legs working, out of step)
+    for nm in ARMS:
+        P_['arm_%s.1' % nm][0] = Q(UP.cross(RADIAL[nm]), 20 * min(1.0, i / 4))
+    return P_
+
+
 ROWS = [('IDLE', 8, True, row_idle), ('WALK', 8, True, row_walk), ('CLAW', 6, False, row_claw('L')), ('CLAW2', 6, False, row_claw('R')),
         ('CLAW3', 6, False, row_claw('B')), ('BITE', 6, False, row_bite), ('SINK', 6, False, row_sink), ('RISE', 6, False, row_rise),
-        ('FLINCH', 5, False, row_flinch), ('DEATH', 8, False, row_death)]
+        ('FLINCH', 5, False, row_flinch), ('DEATH', 8, False, row_death), ('PRONE', 6, False, row_prone)]
 ad = arm.animation_data_create()
 for pb in arm.pose.bones:
     pb.rotation_mode = 'QUATERNION'

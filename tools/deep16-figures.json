@@ -540,9 +540,9 @@
       "size_squares": 1.4, "size_by": ["Roper_Body"],
       "yaw": 0,
       "anims": { "idle": "IDLE", "walk": "CREEP", "tendril": "LASH", "tendril2": "LASH2", "tendril3": "LASH3", "tendril4": "LASH4", "reel": "REEL", "bite": "BITE",
-                 "flinch": "FLINCH", "hurt": "DEATH", "still": "STILL", "reveal": "REVEAL" },
-      "frames": { "idle": 8, "walk": 8, "tendril": 6, "tendril2": 6, "tendril3": 6, "tendril4": 6, "reel": 6, "bite": 6, "flinch": 5, "hurt": 8, "still": 1, "reveal": 8 },
-      "once": ["tendril", "tendril2", "tendril3", "tendril4", "reel", "bite", "flinch", "hurt", "reveal"]
+                 "flinch": "FLINCH", "hurt": "DEATH", "still": "STILL", "reveal": "REVEAL", "prone": "PRONE" },
+      "frames": { "idle": 8, "walk": 8, "tendril": 6, "tendril2": 6, "tendril3": 6, "tendril4": 6, "reel": 6, "bite": 6, "flinch": 5, "hurt": 8, "still": 1, "reveal": 8, "prone": 4 },
+      "once": ["tendril", "tendril2", "tendril3", "tendril4", "reel", "bite", "flinch", "hurt", "reveal", "prone"]
     },
     "darkmantle": {
       "_note": "the darkmantle (SRD 5.1, Small): Quaternius Flying/Glub, dark, at a square.",
@@ -614,9 +614,9 @@
       "yaw": 11.3,
       "_note_attack": "10-02: its `attack` row (CLAW again, the fallback for a blow with no row of its own) never played -- every blow has its own (the test ground's show found it) -- so it is off the sheet, on Griz's word ('frames off the sheet is nicer to slower devices? proceed (but we're not throwing them out, right?)'). Its frames are kept in deep16/_src/render/xorn/attack/; to have it back, put \"attack\": \"CLAW\" in anims (frames 6, once) and run tools/pixelate.py p1 xorn -- no render.",
       "anims": { "idle": "IDLE", "walk": "WALK", "claw": "CLAW", "claw2": "CLAW2", "claw3": "CLAW3", "bite": "BITE",
-                 "burrow": "SINK", "reveal": "RISE", "flinch": "FLINCH", "hurt": "DEATH" },
-      "frames": { "idle": 8, "walk": 8, "claw": 6, "claw2": 6, "claw3": 6, "bite": 6, "burrow": 6, "reveal": 6, "flinch": 5, "hurt": 8 },
-      "once": ["claw", "claw2", "claw3", "bite", "burrow", "reveal", "flinch", "hurt"]
+                 "burrow": "SINK", "reveal": "RISE", "flinch": "FLINCH", "hurt": "DEATH", "prone": "PRONE" },
+      "frames": { "idle": 8, "walk": 8, "claw": 6, "claw2": 6, "claw3": 6, "bite": 6, "burrow": 6, "reveal": 6, "flinch": 5, "hurt": 8, "prone": 6 },
+      "once": ["claw", "claw2", "claw3", "bite", "burrow", "reveal", "flinch", "hurt", "prone"]
     },
     "bandit": {
       "_note": "a road bandit (SRD bandit): KayKit Rogue_Hooded, a knife, in road-dust brown.",

@@ -86,8 +86,12 @@
   // back) has him crumpled forward on hands and knees at its frame before last; getting up is the row played back from there. The other
   // sheets' death rows end dead (and the owl's in feathers): none yet, -1 (deep16-art-wanted.md, PRONE someday). S.PRONE: a sheet's own
   // frame, picked by eye off its row, where one reads
-  S.PRONE = { xorn_p1: 3, roper_p1: 3, grick_p1: 3 }; // (the grick, 10-02: its death row drops its neck to the ground, frame 3 half fallen) // (the xorn, pipeline 1b: its death row settles it half into the floor, arms drooping; a third of the way in at frame 3 -- tools/xorn-blend.py, 10-01d. The roper: its tendrils slack on the floor, barely sunk -- tools/roper-blend.py, 10-01e)
-  S.proneFrame = function (name) { if (S.PRONE[name] != null) return S.PRONE[name]; var a = S.anim(name, 'hurt'); return a && /_p0$/.test(name) && a.frames === 6 ? 4 : -1; };
+  S.PRONE = { grick_p1: 3 }; // (the xorn's and the roper's have a `prone` row of their own since 10-02: S.proneRow below) // (the grick, 10-02: its death row drops its neck to the ground, frame 3 half fallen) // (the xorn, pipeline 1b: its death row settles it half into the floor, arms drooping; a third of the way in at frame 3 -- tools/xorn-blend.py, 10-01d. The roper: its tendrils slack on the floor, barely sunk -- tools/roper-blend.py, 10-01e)
+  // a sheet with a `prone` row of its own (10-02, the xorn's and the roper's: their deaths sink into the floor, which read as going under, not
+  // as knocked flat -- Griz: "The old one might be a good prone if 3 is no good"): it falls through that row, lies at its last frame, and gets
+  // up through it backwards; one that dies lying there stays as it lies. Any other: a frame of its death row, as above
+  S.proneRow = function (name) { return S.anim(name, 'prone') ? 'prone' : 'hurt'; };
+  S.proneFrame = function (name) { var pr = S.anim(name, 'prone'); if (pr) return pr.frames - 1; if (S.PRONE[name] != null) return S.PRONE[name]; var a = S.anim(name, 'hurt'); return a && /_p0$/.test(name) && a.frames === 6 ? 4 : -1; };
   // how long an anim takes to play once, in frames at 60 Hz
   S.duration = function (name, anim) { var a = S.anim(name, anim); return a ? Math.ceil(a.frames * 60 / (a.fps || 8)) : 0; };
   S.top = function (name) { var sh = D.SHEETS && D.SHEETS[name]; return sh ? sh.top || 48 : 42; };

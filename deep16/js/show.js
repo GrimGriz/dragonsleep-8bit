@@ -33,7 +33,7 @@
   SH.rowsOf = function (sheet) {
     var sh = D.SHEETS && D.SHEETS[sheet]; if (!sh) return [];
     var r = Object.keys(sh.anims);
-    if (D.spr.proneFrame(sheet) >= 0) r.push('prone');
+    if (D.spr.proneFrame(sheet) >= 0 && r.indexOf('prone') < 0) r.push('prone'); // (a `prone` row of its own counts as the fall: the tally's 'prone')
     return r;
   };
   function see(B, u, row) {

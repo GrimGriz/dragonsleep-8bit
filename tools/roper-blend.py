@@ -486,6 +486,28 @@ def row_death(i, n):
     return P_
 
 
+FOOT_BACK = float(B[B[:, 2] < 3.0][:, 1].max())   # the back of its foot, at the floor: what it tips over about
+
+
+def row_prone(i, n):
+    """knocked flat (10-02): its death's frame 3 stood with the tendrils dropped -- nothing said it was down. Tipped over backwards about
+    the back of its foot, two thirds of the way onto its back, the tendrils flailing; the last frame is where it lies (deep16/js/sprites.js
+    S.proneRow: getting up is the row played back). (All the way flat it would lie three squares long.)"""
+    # (four frames, not six: its frame is 254 px wide tipped over, and six of them made the whole sheet 1524 wide, every row padded to it --
+    # four stay inside the 1092 it had)
+    th = [0, 24, 48, 64][i]; t = i / n
+    P_ = pose(); awake(P_)
+    R = Q(TILT, -th)                                              # the top goes back, away from the front
+    rim = Vector((0, FOOT_BACK, 0)); off = rim - R @ rim             # (about the back of its foot: the foot's back stays on the floor)
+    P_['root'][0] = R; P_['root'][1] = off
+    for k in range(6):
+        ph = k * 1.3; fl = min(1.0, i / 2)
+        dr = [IDLE_DROOP[j] * (1 - 0.5 * fl) + wave(j, t, ph, 14 * fl) for j in range(NB)]
+        cu = [IDLE_CURL[j] * (1 - 0.6 * fl) + wave(j, t, ph + 2.0, 18 * fl) for j in range(NB)]
+        aim(P_, k, rope(k, dr, cu, lift=20 * fl, base=R, off=off), base=R)
+    return P_
+
+
 def row_still(i, n):
     """False Appearance: a stalagmite. The living roper (and its tendrils) shrunk to a point inside the shut cone."""
     P_ = pose(); scale_bone(P_, 'wake', 0.001)
@@ -511,7 +533,7 @@ def row_reveal(i, n):
 ROWS = [('IDLE', 8, True, row_idle), ('CREEP', 8, True, row_creep),
         ('LASH', 6, False, row_lash(0)), ('LASH2', 6, False, row_lash(1)), ('LASH3', 6, False, row_lash(2)), ('LASH4', 6, False, row_lash(3)),
         ('REEL', 6, False, row_reel), ('BITE', 6, False, row_bite), ('FLINCH', 5, False, row_flinch), ('DEATH', 8, False, row_death),
-        ('STILL', 2, False, row_still), ('REVEAL', 8, False, row_reveal)]
+        ('STILL', 2, False, row_still), ('REVEAL', 8, False, row_reveal), ('PRONE', 4, False, row_prone)]
 
 
 def apply_pose(P_):

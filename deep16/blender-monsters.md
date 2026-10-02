@@ -77,7 +77,8 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
    - `idle` and `walk`: loops.
    - `attack`: the fallback for any blow.
    - `flinch`: a hit that doesn't drop it.
-   - `hurt`: the death, played once. Pick a lying frame for prone and put it in `S.PRONE` in `deep16/js/sprites.js`.
+   - `hurt`: the death, played once. Pick a lying frame for prone and put it in `S.PRONE` in `deep16/js/sprites.js`, if one reads as knocked flat and alive beside the idle at sprite size.
+   - `prone`: where none does (a death that sinks into the floor reads as going under, not as down), a row of its own. It falls through it, lies at its last frame, gets up by playing it backwards, and one that dies lying there stays as it lies (`S.proneRow`). The xorn's is its first death, going over onto its back. The roper's tips over backwards about the back of its foot. Griz, 10-02: *"The old one might be a good prone if 3 is no good"*.
    - **Special moves:**
      - `burrow` is going under. Its **last frame is what shows while it is under**: a mound for a burrower that disturbs the ground (the bulette), nothing for one that doesn't (the xorn's Earth Glide).
      - `reveal` is coming up.

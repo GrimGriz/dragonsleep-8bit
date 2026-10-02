@@ -4085,7 +4085,7 @@
 }
 },
 "roper_p1": {
-"image": "art/roper_p1.png?v=ec56b46426",
+"image": "art/roper_p1.png?v=5ba6ef055a",
 "fw": 108,
 "fh": 124,
 "ax": 54,
@@ -4199,6 +4199,15 @@
 "ay": 94,
 "frames": 1,
 "fps": 2
+},
+"prone": {
+"y": 12880,
+"fw": 246,
+"fh": 210,
+"ax": 123,
+"ay": 150,
+"frames": 4,
+"fps": 8
 }
 }
 },
@@ -4941,7 +4950,7 @@
 }
 },
 "xorn_p1": {
-"image": "art/xorn_p1.png?v=e4a179fd04",
+"image": "art/xorn_p1.png?v=3f62ccf9fd",
 "fw": 96,
 "fh": 106,
 "ax": 48,
@@ -5037,6 +5046,15 @@
 "ay": 85,
 "frames": 6,
 "fps": 10
+},
+"prone": {
+"y": 8480,
+"fw": 96,
+"fh": 106,
+"ax": 48,
+"ay": 85,
+"frames": 6,
+"fps": 8
 }
 }
 }

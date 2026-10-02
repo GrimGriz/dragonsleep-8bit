@@ -788,10 +788,11 @@
         // prone (10-01b; the frame is sprites.js S.proneFrame): a figure with a frame for it falls to it when it goes prone, lies there while
         // prone -- crawling, striking, whatever it does -- and gets up through the same frames backwards when the prone ends. Going down
         // from prone, the fall goes on from where it lies
-        var pf = D.spr.proneFrame(u.sheet);
+        var pf = D.spr.proneFrame(u.sheet), prow = D.spr.proneRow(u.sheet); // (prow: its own `prone` row, or its death row -- sprites.js S.proneRow, 10-02)
         if (pf >= 0 && !down && !!u.conds.prone !== !!u.proneLook) { u.proneLook = !!u.conds.prone; u.proneT = B.t; }
         if (down) {
-          if (has('hurt')) { anim = 'hurt'; o.once = true; if (pf >= 0 && u.proneLook) t += Math.ceil(pf * 60 / (D.spr.anim(u.sheet, 'hurt').fps || 8)); }
+          if (prow === 'prone' && u.proneLook) { anim = 'prone'; o.frame = pf; } // (down while it lies: it stays as it lies)
+          else if (has('hurt')) { anim = 'hurt'; o.once = true; if (pf >= 0 && u.proneLook) t += Math.ceil(pf * 60 / (D.spr.anim(u.sheet, 'hurt').fps || 8)); }
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }
         } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack' || anim === 'burrow' || anim === 'reveal' || anim === 'reel' || /^(claw|bite|tendril|tentacles|beak)\d?$/.test(anim)) { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
@@ -801,9 +802,9 @@
         // one laughing with no fall frame and no rofl row (the gnolls and the glory-seeker in Aurdin's joke, 10-02: they stood there laughing): on its side
         else if (!down && u.conds.laughing && pf < 0) { anim = 'idle'; o.lie = true; t = B.t + (u.id ? u.id.length * 7 : 0); o.rock = Math.sin(t / 3.5) * 0.14 * (Math.sin(t / 23) > -0.3 ? 1 : 0.3); } // (shaking with it, in fits)
         else if (pf >= 0 && !down && u.proneT != null) {
-          var pk = Math.floor((B.t - u.proneT) * (D.spr.anim(u.sheet, 'hurt').fps || 8) / 60);
-          if (u.proneLook) { anim = 'hurt'; o.frame = Math.min(pk, pf); }
-          else if (pk < pf) { anim = 'hurt'; o.frame = pf - 1 - pk; } // (getting up)
+          var pk = Math.floor((B.t - u.proneT) * (D.spr.anim(u.sheet, prow).fps || 8) / 60);
+          if (u.proneLook) { anim = prow; o.frame = Math.min(pk, pf); }
+          else if (pk < pf) { anim = prow; o.frame = pf - 1 - pk; } // (getting up)
         }
         // under the ground (a burrower, js/ai.js, 10-01d): its mound, the Burrow row's last frame, sliding where it goes -- "like a fin through
         // water" (the 8-bit game's line for the bulette); a sheet with no Burrow row, the ethereal ghost below in earth's colour
