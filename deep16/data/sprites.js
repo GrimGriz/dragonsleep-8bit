@@ -4893,7 +4893,7 @@
 }
 },
 "wolf_p1": {
-"image": "art/wolf_p1.png?v=3a4e784cba",
+"image": "art/wolf_p1.png?v=424bd91b72",
 "fw": 96,
 "fh": 96,
 "ax": 48,
