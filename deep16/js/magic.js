@@ -383,7 +383,7 @@
           });
           B.card(ml, 420); yield 40;
         }
-        // and its egg (10-02, Griz: the darkness "still needs it's easter egg"): the red egg, once a save (js/grimoire.js M.egg, M.EGGS)
+        // and its egg (10-02, Griz: the darkness "still needs it's easter egg"; "Make the egg purple and call it 'stare into the void long enough'"): once a save (js/grimoire.js M.egg, M.EGGS)
         if (M.egg) yield* M.egg(B, 'darkness');
       }
     } else if (g.shape === 'splash') {

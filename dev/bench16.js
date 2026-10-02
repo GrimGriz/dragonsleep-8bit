@@ -582,7 +582,10 @@
       okJ('his turn over: prone ' + !!au3.conds.prone + ' -- "' + logJ(B3, nU).slice(0, 90) + '"', !au3.conds.prone && /picks himself up/.test(logJ(B3, nU)));
       // the darkness's egg the same way: once a save
       var B8 = mkJ({}), sc8 = []; runJ(MJ.egg(B8, 'darkness'), sc8); var sc8b = []; runJ(MJ.egg(B8, 'darkness'), sc8b);
-      okJ('the darkness\'s egg: up once (' + sc8.map(function (s) { return s.egg; }).join() + '), the flag ' + JSON.stringify(B8.flags8) + ', not again (' + sc8b.length + ')', sc8.length === 1 && sc8[0].egg === 'darkness' && B8.flags8.eggDarkness === 1 && !sc8b.length);
+      var cv8 = document.createElement('canvas'); cv8.width = 480; cv8.height = 270; var cx8 = cv8.getContext('2d'); cx8.fillStyle = '#46362c'; cx8.fillRect(0, 0, 480, 270);
+      if (sc8[0]) sc8[0].draw(cx8, 60, 480, 270); var px8 = cx8.getImageData(240, 113, 1, 1).data; // (RULED 10-02: "Make the egg purple and call it 'stare into the void long enough'")
+      okJ('the darkness\'s egg: up once (' + sc8.map(function (s) { return s.egg; }).join() + '), the flag ' + JSON.stringify(B8.flags8) + ', not again (' + sc8b.length + '); purple at its heart rgb(' + px8[0] + ',' + px8[1] + ',' + px8[2] + '), "' + MJ.EGGS.darkness.line + '"',
+        sc8.length === 1 && sc8[0].egg === 'darkness' && B8.flags8.eggDarkness === 1 && !sc8b.length && px8[2] > px8[1] * 1.5 && px8[2] >= px8[0] && /^Stare Into the Void Long Enough$/.test(MJ.EGGS.darkness.line));
       // the egg draws, every frame of it, red at its heart; the line under it
       var cvJ = document.createElement('canvas'); cvJ.width = 480; cvJ.height = 270; var cxJ = cvJ.getContext('2d'), drawErr = null;
       function frameJ(tf) { cxJ.setTransform(1, 0, 0, 1, 0, 0); cxJ.fillStyle = '#46362c'; cxJ.fillRect(0, 0, 480, 270); MJ.jokeEgg(cxJ, tf, 480, 270); }

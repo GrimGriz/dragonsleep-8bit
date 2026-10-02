@@ -639,9 +639,9 @@
     return EGG;
   }
   function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
-  M.eggDraw = function (line) { return function (ctx, t, W, H) { // (each egg its own line under it: Aurdin's joke, the darkness -- 10-02)
-    var P = D.PAL.ramps, eg = eggSheet(), w = eg.w, h = eg.h, img = eg.cx.createImageData(w, h), px = img.data;
-    var RED = P.red.map(hex), WHITE = hex(P.bone[2]), CREAM = hex(P.bone[0]), PINK = hex(P.accent[0]), OUT = hex(P.outline[0]);
+  M.eggDraw = function (line, hue) { return function (ctx, t, W, H) { // (each egg its own line under it, and its own colour: the joke's red, the darkness's purple -- 10-02)
+    var P = D.PAL.ramps, eg = eggSheet(), w = eg.w, h = eg.h, img = eg.cx.createImageData(w, h), px = img.data, V = hue === 'violet';
+    var RED = (V ? P.violet.slice(1) : P.red).map(hex), WHITE = hex(P.bone[2]), CREAM = hex(P.bone[0]), PINK = hex(P.accent[0]), OUT = hex(P.outline[0]);
     var g0 = ((t + 40) % 110) * 1.1 - 26; // (the glint's place along the diagonal: a sweep every ~2 s)
     for (var i = 0; i < w * h; i++) {
       var c = null, l = eg.lvl[i];
@@ -657,9 +657,9 @@
     // the fight, dim beneath; a red glow behind
     var fade = Math.min(1, t / 10);
     ctx.save();
-    ctx.fillStyle = 'rgba(14,4,8,' + (0.74 * fade).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = (V ? 'rgba(10,6,18,' : 'rgba(14,4,8,') + (0.74 * fade).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
     var cxs = W / 2, cys = H / 2 - 27, gr = ctx.createRadialGradient(cxs, cys, 8, cxs, cys, 160);
-    gr.addColorStop(0, 'rgba(184,52,40,' + (0.5 * fade).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    gr.addColorStop(0, (V ? 'rgba(138,92,180,' : 'rgba(184,52,40,') + (0.5 * fade).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
     // the egg: pops in (over and back), then bobs and rocks a little
     var K = 2.5, k = K;
@@ -686,20 +686,21 @@
       var DS = window.DS, tw = DS.textWidth(line), al = Math.min(1, (t - 12) / 12);
       ctx.save(); ctx.globalAlpha = al; ctx.imageSmoothingEnabled = false;
       ctx.translate(Math.round(W / 2 - tw), Math.round(cys + h * K / 2 + 16)); ctx.scale(2, 2);
-      DS.text(ctx, line, 1, 1, P.red[1]); DS.text(ctx, line, 0, 0, P.bone[2]);
+      DS.text(ctx, line, 1, 1, V ? P.violet[2] : P.red[1]); DS.text(ctx, line, 0, 0, P.bone[2]);
       ctx.restore();
     }
   }; };
   M.jokeEgg = M.eggDraw('Guess I\'m the Joke, Now');
   // the eggs found, kept in the save (10-02, Griz: "which I'm hoping we're tracking somewhere in their save files"): each egg's flag goes back to the
   // 8-bit game with the fight's others (B.flags8, js/embed.js), and each shows once a save -- "1 per customer". js/events.js EV.EGGS lists them
-  M.EGGS = { joke: { flag: 'eggJoke', line: 'Guess I\'m the Joke, Now' }, darkness: { flag: 'eggDarkness', line: 'Don\'t Poke the Darkness' } };
+  // (the darkness's: RULED 10-02, Griz: "Make the egg purple and call it \"stare into the void long enough\"" -- set in the joke's case)
+  M.EGGS = { joke: { flag: 'eggJoke', line: 'Guess I\'m the Joke, Now' }, darkness: { flag: 'eggDarkness', line: 'Stare Into the Void Long Enough', hue: 'violet' } };
   M.eggFound = function (B, key) { var f = M.EGGS[key].flag, fl = (B.from && B.from.data && B.from.data.flags) || {}; return !!(fl[f] || (B.flags8 && B.flags8[f])); };
   M.egg = function* (B, key) {
     if (M.eggFound(B, key)) return;
     B.flags8 = B.flags8 || {}; B.flags8[M.EGGS[key].flag] = 1;
     // the battle holds while the egg is up (a cutscene beat, js/ui.js scene: E, or a click, after a second goes on)
-    yield { scene: { draw: key === 'joke' ? M.jokeEgg : M.eggDraw(M.EGGS[key].line), frames: 230, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, egg: key } };
+    yield { scene: { draw: key === 'joke' ? M.jokeEgg : M.eggDraw(M.EGGS[key].line, M.EGGS[key].hue), frames: 230, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, egg: key } };
   };
   // Hunter's Mark and Mirror's Gaze: a mark held by concentration; when the marked one drops, a bonus action moves it (no slot)
   function markSpell(id, name, o) {
