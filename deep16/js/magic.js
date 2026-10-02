@@ -118,7 +118,15 @@
   function roostNote(B) { return B && B.fight && B.fight.roost ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : ''; }
 
   // ------------------------------------------------------------------ shapes
-  M.inRange = function (u, g, x, y) { return Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= (g.range || 0) && G.losPoint(u.x, u.y, x, y); };
+  M.inRange = function (u, g, x, y) { return Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= (g.range || 0) && G.losPoint(u.x, u.y, x, y) && !(g.see && g.shape !== 'darts' && D.battle && !M.seesSq(D.battle, u, x, y)); }; // (a point you can see -- Call Lightning, Black Tentacles, Guardian of Faith, the Conjures: data/spells.js `see`, 10-02)
+  M.seesSq = function (B, u, x, y) { return M.seeWhy(B, u, { x: x, y: y, size: 1, conds: {} }).ok; };
+  // a foe's square aimed at in the dark by a spell that names one creature and asks no sight of it (10-02, Griz: "allow unseen foes only by guessing the square"): whoever
+  // stands there takes it -- an empty square takes nothing but the slot (js/magic.js M.cast). Not a friend's spell: a friend is found where you know them (M.targetOK)
+  M.guessDark = function (B, u, g, x, y) {
+    if (g.see || g.side === 'ally' || !(g.shape === 'single' || g.shape === 'splash')) return false;
+    var s = G.map.at(x, y); if (!s || !s.open || Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 > (g.range || 0) || !G.losPoint(u.x, u.y, x, y)) return false;
+    return !M.seesSq(B, u, x, y);
+  };
   // cone and line: from the caster toward the cursor. A cone is as wide as it is far (half-angle ~26.6); a line 5 ft wide.
   function aimed(u, cx, cy, len, cone) {
     var ox = u.x + ((u.size || 1) - 1) / 2, oy = u.y + ((u.size || 1) - 1) / 2, dx = cx - ox, dy = cy - oy, L = Math.hypot(dx, dy);
@@ -233,9 +241,13 @@
     if (g.shape === 'touch') return !!w && !w.dead && !w.ethereal && !M.targetWhy(u, g, w, B) && M.touchTargets(B, u, g).indexOf(w) >= 0;
     if (!M.targetKind(B, u, g, w)) return false;
     if (M.touchRange(g) && w !== u && G.dist(u, w) > 5 && D.familiar && D.familiar.delivers(B, u, w)) return true; // (a touch carried by the familiar: it goes to them)
-    // "a creature you can see": Hold, Shield of Faith, Magic Missile, Acid Splash -- not Bless or Aid (SRD: "creatures of your choice
-    // within range"; you know where your own are in the dark). Magic Missile at the dark: ui.js aims it at a square (the gimmick)
-    if ((g.shape === 'single' || g.shape === 'darts' || g.shape === 'splash') && w !== u && !M.sees(B, u, w)) return false;
+    // sight by the spell's own words (10-02, Griz: "yes to the mismatch fix, yes to allow unseen friends, since you know where your own people are (Bless already works
+    // that way), and allow unseen foes only by guessing the square"; the runner's register, data/spells.js `see`): "a creature you can see" -- Hold, Magic Missile, Bane,
+    // Mass Healing Word -- asks it of every one aimed at; the rest ask a clear path only. A friend unseen is taken where you know them to be (as Bless and Aid always
+    // were); a foe unseen, by a spell that names one creature, only by aiming at its square in the dark (M.guessDark, js/ui.js) -- or Magic Missile at the dark, the gimmick.
+    // (before: every single, darts and splash spell asked sight -- right for 33 of 44; Shield of Faith, Sanctuary, Acid Splash, Dispel Magic among the 9 it was wrong for)
+    var unseen = w !== u && !M.sees(B, u, w);
+    if (unseen && (g.see || (G.hostile(u, w) && (g.shape === 'single' || g.shape === 'splash')))) return false;
     if (G.dist(u, w) > (g.range || 5)) return false;
     return G.los(u, w).clear || w === u;
   };
@@ -322,6 +334,9 @@
         t = Object.assign({}, t, { units: aimed.filter(function (w) { return shut.indexOf(w) < 0; }) });
       }
     }
+
+    // a guess into the dark at an empty square (M.guessDark): the slot is spent and nothing takes it -- Dispel Magic still asks the square for a spell's area
+    if (t && t.dark && t.hp == null && !g.effects && (g.shape === 'single' || g.shape === 'splash')) { B.card([head + ': into the dark -- {g}nothing there takes it{/}.']); yield 20; u.anim = 'idle'; return; }
 
     // the spells built for the class NPCs (09-28, js/grimoire.js): each its own; the rest below as they were
     var FXD = M.EFFECT && M.EFFECT[id];

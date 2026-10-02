@@ -978,7 +978,8 @@
     function logD(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
     try {
       // 1 a foe's Darkness; our wizard dispels an empty square of it
-      var B1 = mkD('?npc=wizard:5&lvl=5&vs=wizard'), fw = B1.units.filter(function (u) { return u.side === 'foe'; })[0], pw = B1.units.filter(function (u) { return u.side === 'party'; })[0];
+      var B1 = mkD('?npc=wizard:5&lvl=5&vs=wizard,fighter'), fw = B1.units.filter(function (u) { return u.side === 'foe'; })[0], pw = B1.units.filter(function (u) { return u.side === 'party' && u.cls === 'wizard'; })[0];
+      B1.units.filter(function (u) { return u.side === 'party' && u !== pw; }).forEach(function (u) { u.x = 2; u.y = 13; });
       fw.x = 4; fw.y = 4; pw.x = 9; pw.y = 12; D.rules.startTurn(fw); fw.slots[1] = 3;
       runD(D.magic.cast(B1, fw, 'darkness', 2, { x: 9, y: 6 }));
       var dk = (B1.darks || []).filter(function (d) { return d.by === fw.id; })[0], efs = D.magic.effectsAt(B1, 9, 6);
@@ -989,8 +990,16 @@
       var n1 = (B1.log || []).length; runD(D.magic.cast(B1, pw, 'dispelmagic', 3, { x: sqE[0], y: sqE[1] })); var l1 = logD(B1, n1);
       okD('Dispel Magic at the empty square (' + sqE + ', the wheel says ' + v1 + '): the darkness gone ' + !(B1.darks || []).some(function (d) { return d === dk; }) + ', the caster\'s concentration gone ' + !fw.conc + ' -- ' + l1.slice(0, 160), v1 === 'ok' && !(B1.darks || []).some(function (d) { return d === dk; }) && !fw.conc);
       // 2 a darkness no spell made (a creature's own, as the darkmantle's aura): no castId, no target
-      B1.darks = (B1.darks || []).concat([{ by: fw.id, sq: [[12, 12], [12, 13]], kind: 'dark' }]);
-      okD('a darkness no spell made: ' + D.magic.effectsAt(B1, 12, 12).length + ' spells on it, the wheel says ' + D.ui.valid(B1, pw, 12, 12), D.magic.effectsAt(B1, 12, 12).length === 0 && D.ui.valid(B1, pw, 12, 12) !== 'ok');
+      var open2 = (dk.sq || []).filter(function (q) { return G.canStand(pw, q[0], q[1]) && !G.occupant(q[0], q[1]); }).slice(0, 2), qa = open2[0], qb = open2[1];
+      var ab = { by: fw.id, sq: dk.sq, kind: 'dark' }; B1.darks = (B1.darks || []).concat([ab]);
+      pw.slots[2] = 3; var n2 = (B1.log || []).length; runD(D.magic.cast(B1, pw, 'dispelmagic', 3, { x: qa[0], y: qa[1], size: 1, dark: true }));
+      okD('a darkness no spell made: ' + D.magic.effectsAt(B1, qa[0], qa[1]).length + ' spells on it; dispelled into (a guess in the dark, the wheel ' + D.ui.valid(B1, pw, qa[0], qa[1]) + '), it stays ' + (B1.darks || []).some(function (d) { return d === ab; }) + ' -- ' + logD(B1, n2).slice(0, 100), D.magic.effectsAt(B1, qa[0], qa[1]).length === 0 && (B1.darks || []).some(function (d) { return d === ab; }));
+      // 2b sight by the spell's words: Shield of Faith on a friend unseen in the dark is fine; Hold Person on a foe unseen is not; Sacred Flame (it names "a creature you can see") is not
+      var G2 = D.grid, ally2 = B1.units.filter(function (u) { return u.side === 'party' && u !== pw; })[0]; ally2.x = qa[0]; ally2.y = qa[1]; fw.x = qb[0]; fw.y = qb[1];
+      var spot = null; for (var yy2 = 4; yy2 < G2.map.h && !spot; yy2++) for (var xx2 = 4; xx2 < G2.map.w && !spot; xx2++) { if (!G2.canStand(pw, xx2, yy2) || G2.occupant(xx2, yy2) || ab.sq.some(function (q) { return q[0] === xx2 && q[1] === yy2; })) continue; pw.x = xx2; pw.y = yy2; if (G2.dist(pw, ally2) <= 30 && G2.los(pw, ally2).clear && G2.los(pw, fw).clear) spot = [xx2, yy2]; }
+      var sofOK = ally2 ? D.magic.targetOK(B1, pw, D.magic.geo('shieldoffaith'), ally2) : null;
+      var hpOK = D.magic.targetOK(B1, pw, D.magic.geo('holdperson'), fw), sfOK = D.magic.targetOK(B1, pw, D.magic.geo('sacredflame'), fw), guess = D.magic.guessDark(B1, pw, D.magic.geo('sacredflame'), qb[0], qb[1]), guessD = D.magic.guessDark(B1, pw, D.magic.geo('dispelmagic'), qb[0], qb[1]);
+      okD('in the dark: Shield of Faith on a friend ' + sofOK + ', Hold Person on the foe ' + hpOK + ', Sacred Flame on the foe ' + sfOK + ' (a guess: ' + guess + '), Dispel Magic guessed at the foe\'s square ' + guessD, sofOK === true && hpOK === false && sfOK === false && guess === false && guessD === true);
       // 3 a player's Counterspell: asked, and the Fireball fails
       var B3 = mkD('?npc=wizard:5&lvl=5&vs=wizard'), f3 = B3.units.filter(function (u) { return u.side === 'foe'; })[0], p3 = B3.units.filter(function (u) { return u.side === 'party'; })[0];
       f3.x = 9; f3.y = 4; p3.x = 9; p3.y = 10; p3.known = (p3.known || []).concat(['counterspell']); p3.slots[2] = 2; f3.slots[2] = 2; p3.reaction = 1; D.rules.startTurn(f3);

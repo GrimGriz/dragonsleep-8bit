@@ -123,7 +123,7 @@
     // the SRD's six at the 5th (TRIMMED 09-28g, Griz: "Trim"): Command in, Gaseous Form (OUT in the game already) off her list
     amara: { cls: 'warlock', lvl: 5, race: 'human', patron: 'mirror', abil: { str: 9, dex: 14, con: 12, int: 12, wis: 11, cha: 17 },
       equip: { weapon: 'dagger', armor: 'leather' },
-      known: ['eldritchblast', 'minorillusion', 'mirrorsgaze', 'command', 'darkness', 'fear', 'charmperson', 'suggestion'],
+      known: ['eldritchblast', 'minorillusion', 'mirrorsgaze', 'command', 'darkness', 'fear', 'charmperson', 'suggestion', 'counterspell'], // (Counterspell on the ladders: 10-02, Griz, "give it to all of them on the ladders")
       invocations: ['agonizing', 'fiendishvigor'] },
     // Willem Glass, wizard 5 of illusion (npcs-by-location.md §The Road): Ray of Frost (RULED 09-28), Blur for Phantasmal Force (the ear
     // file, dist-4); the illusion school is the PHB's: his tradition is our own, the Rimeglass (09-28g, the seat's on Griz's "Sufficiently
@@ -133,7 +133,7 @@
       known: ['rayoffrost', 'minorillusion', 'mageArmor', 'shield', 'mirrorimage', 'invisibility', 'blur', 'hypnoticpattern'],
       // past his register's 5th (09-28h; the seat's picks): illusion with the cold in it -- Sleet Storm, Phantasmal Killer, Greater
       // Invisibility, Ice Storm, Cone of Cold, Mislead, Hold Monster; below it, Color Spray, Magic Missile, Sleep; Chill Touch, Shocking Grasp
-      grow: { 0: ['chilltouch', 'shockinggrasp'], 1: ['colorspray', 'magicmissile', 'sleep'], 2: ['holdperson'], 3: ['sleetstorm', 'fear', 'slow'], 4: ['phantasmalkiller', 'greaterinvisibility', 'icestorm'], 5: ['coneofcold', 'mislead', 'holdmonster'] } },
+      grow: { 0: ['chilltouch', 'shockinggrasp'], 1: ['colorspray', 'magicmissile', 'sleep'], 2: ['holdperson'], 3: ['sleetstorm', 'fear', 'slow', 'counterspell'], 4: ['phantasmalkiller', 'greaterinvisibility', 'icestorm'], 5: ['coneofcold', 'mislead', 'holdmonster'] } },
     // Talmok, barbarian 3, Bloodsnout's champion at the Hex (the-hex.md, RULED 09-01): the register's block (npcs-by-location.md §TALMOK:
     // pit fists, rages on first blood, wrestles to the sand) and its Totem Warrior (Bear), the PHB's -- his path is our own, the Path of
     // the Sand (09-28g; invented.json #path-of-the-sand), and its 3rd-level features are what his block already did. The register gives

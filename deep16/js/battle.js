@@ -1171,7 +1171,8 @@
     if (D.magic.deflect && atk.ranged && !atk.spell) { var dfl = D.magic.deflect(this, tgt, atk, dmg); if (dfl) { dmg -= dfl; parts.push('{c}deflected -' + dfl + '{/}'); } }
     // resistance to non-magical weapons (the grick): the weapon's own damage halved unless the weapon is magic
     // (the whole of it: the dice, the sneak, the martial advantage -- resistance halves the damage of that type, SRD; review 09-28 #10)
-    if (tgt.resist && tgt.resist.indexOf('mundane') >= 0 && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type)) {
+    // ('mundaneps': piercing and slashing only -- the xorn's, SRD 5.1 "piercing and slashing from nonmagical attacks that aren't adamantine"; a plain mace lands whole, 10-02)
+    if (tgt.resist && (tgt.resist.indexOf('mundane') >= 0 || (tgt.resist.indexOf('mundaneps') >= 0 && /piercing|slashing/.test(atk.type))) && !atk.spell && !atk.magic && /bludgeoning|piercing|slashing/.test(atk.type)) {
       var cut = dmg - Math.floor(dmg / 2); dmg -= cut; parts.push('{g}-' + cut + ': it shrugs off plain steel{/}');
     }
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0)) + '{/}'], 300, cid);
@@ -1767,11 +1768,12 @@
 
   // ------------------------------------------------------------------ Misty Step: a bonus action, 30 ft to a square you can see
   // the squares a teleport reaches (Misty Step's 30 ft; Dimension Door's 500, js/grimoire.js): free, and seen
-  Battle.prototype.mistyTargets = function (u, range) {
+  Battle.prototype.mistyTargets = function (u, range, see) { // (see: Misty Step's "an unoccupied space that you can see" -- data/spells.js `see`, 10-02)
     var out = [], n = Math.floor((range || 30) / 5);
     for (var y = u.y - n; y <= u.y + n; y++) for (var x = u.x - n; x <= u.x + n; x++) {
       if (x === u.x && y === u.y) continue;
       if (!G.canStand(u, x, y) || !G.losPoint(u.x, u.y, x, y)) continue;
+      if (see && D.magic.seesSq && !D.magic.seesSq(this, u, x, y)) continue;
       out.push([x, y]);
     }
     return out;

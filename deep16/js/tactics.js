@@ -467,7 +467,7 @@
     var pressed = G.foesNear(u, u.x, u.y, 5).length;
     if (!pressed && !(u.conds.restrained)) return null;
     if (!u.known.some(function (id) { var sp = M.data(id); return sp && (sp.dmg || sp.kind === 'save'); }) && !u.conds.restrained) return null; // (a caster's: the fighters stay)
-    var sq = B.mistyTargets ? B.mistyTargets(u) : [], best = null;
+    var sq = B.mistyTargets ? B.mistyTargets(u, 30, true) : [], best = null; // (a space it can see: SRD 5.1 Misty Step, 10-02)
     sq.forEach(function (q) {
       var near = fs.filter(function (t) { return G.dist(u, t, q[0], q[1]) <= 5; }).length, far = Math.min.apply(null, fs.map(function (t) { return G.dist(u, t, q[0], q[1]); }).concat([99]));
       if (near) return;

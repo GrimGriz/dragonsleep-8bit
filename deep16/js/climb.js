@@ -17,7 +17,7 @@
     // the wizard's spells built for the class NPCs (09-28, js/grimoire.js): his to learn on the climb and try by hand
     'colorspray', 'grease', 'hideouslaughter', 'falselife', 'expeditiousretreat', 'longstrider', 'protectionfromevilandgood', 'fogcloud',
     'acidarrow', 'blur', 'mirrorimage', 'rayofenfeeblement', 'gustofwind', 'enlargereduce', 'magicweapon', 'invisibility', 'darkvision', 'seeinvisibility', 'continualflame', 'darkness',
-    'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch', 'blink', 'protectionfromenergy', 'dispelmagic', 'stinkingcloud', 'sleetstorm'];
+    'haste', 'slow', 'hypnoticpattern', 'fear', 'vampirictouch', 'blink', 'protectionfromenergy', 'dispelmagic', 'stinkingcloud', 'sleetstorm', 'counterspell'];
   var CANTRIPS = ['firebolt', 'acidsplash', 'light', 'rayoffrost', 'shockinggrasp', 'chilltouch', 'poisonspray', 'truestrike', 'dancinglights'];
 
   // ------------------------------------------------------------------ the climb's state

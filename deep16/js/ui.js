@@ -549,11 +549,11 @@
       if (g.shape === 'sphere' || g.shape === 'cube') return M.inRange(u, g, x, y) ? 'ok' : 'no';
       if (g.shape === 'wall') return M.area(u, g, x, y).length ? 'ok' : 'no';
       if (g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') return M.area(u, g, x, y).length ? 'ok' : 'no';
-      if (g.shape === 'teleport') return B.mistyTargets(u, g.range).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
+      if (g.shape === 'teleport') return B.mistyTargets(u, g.range, g.see).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
       if (g.shape === 'allies' && B.picks.length && !(w && M.targetOK(B, u, g, w))) return 'self';
       if (spellTarget(B, u, g, x, y)) return 'ok';
       if (g.effects && !w && M.effectsAt(B, x, y).length && G.dist(u, { x: x, y: y, size: 1 }) <= g.range && G.losPoint(u.x, u.y, x, y)) return 'ok'; // (a spell's area, its square empty: Dispel Magic -- js/grimoire.js M.effectsAt, 10-02)
-      return M.missileDark(B, u, g, x, y) ? 'ok' : 'no'; // (Magic Missile at the darkness: a square the caster cannot see into)
+      return M.missileDark(B, u, g, x, y) || M.guessDark(B, u, g, x, y) ? 'ok' : 'no'; // (Magic Missile at the darkness: a square the caster cannot see into; a foe's square guessed in the dark, M.guessDark 10-02)
     }
     return 'no';
   };
@@ -624,7 +624,7 @@
       }
       if (g.effects && !w) return cast({ x: x, y: y }); // (the spell on that empty square: Dispel Magic, M.effectsAt)
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'wall' || g.shape === 'teleport') return cast({ x: x, y: y });
-      return cast(spellTarget(B, u, g, x, y) || w);
+      return cast(spellTarget(B, u, g, x, y) || w || (M.guessDark(B, u, g, x, y) ? { x: x, y: y, size: 1, dark: true, name: 'the dark' } : null)); // (the guess: whoever stands there, or the dark itself)
     }
   }
 
@@ -1381,7 +1381,7 @@
         // (g.free: Moonbeam moved, the sphere rolled), where it was first cast, M.castOrigin -- as magic.js M.globeShuts does. 10-01, the fog-and-dark runner's find: the preview tinted them)
         var org = g.free && M.castOrigin ? M.castOrigin(B, u, g) : u, globes = (B.globes || []).length && M.globed;
         M.area(u, g, cx, cy).forEach(function (q) { if (globes && M.globed(B, org, { x: q[0], y: q[1] }, S.sp.level)) return; fillSq(ctx, q[0], q[1], col, 0.38); });
-      } else if (g.shape === 'teleport') B.mistyTargets(u, g.range).forEach(function (q) { lineSq(ctx, q[0], q[1], R('glow', 2), 0.6, 4); });
+      } else if (g.shape === 'teleport') B.mistyTargets(u, g.range, g.see).forEach(function (q) { lineSq(ctx, q[0], q[1], R('glow', 2), 0.6, 4); });
       else B.units.forEach(function (w) {
         if (!M.targetOK(B, u, g, w)) return;
         var picked = B.picks.filter(function (p) { return p === w; }).length;
