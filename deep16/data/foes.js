@@ -106,9 +106,12 @@
     name: 'Skeleton', type: 'undead', sheet: 'skeleton_p1', cr: '1/4', ac: 13, hp: 13, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 10, dex: 14, con: 15, int: 6, wis: 8, cha: 5 }, init: 2, perception: 9,
     saves: { str: 0, dex: 2, con: 2, int: -2, wis: -1, cha: -3 },
-    attacks: { shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
-    multi: 1, vulnerable: ['bludgeoning'], immune: ['poison'],
-    src: 'SRD 5.1 Skeleton (CR 1/4): armor scraps AC 13, shortsword (the sheet carries the pack\'s blade and small shield); the shortbow left off. Vulnerable and immune are read (battle.js typed(), 09-27)'
+    attacks: {
+      shortsword: { name: 'Shortsword', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
+      shortbow: { name: 'Shortbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [80, 320], ranged: true }
+    },
+    multi: 1, vulnerable: ['bludgeoning'], immune: ['poison'], condImmune: ['poisoned', 'exhaustion'],
+    src: 'SRD 5.1 Skeleton (CR 1/4): armor scraps AC 13, shortsword (the sheet carries the pack\'s blade and small shield), shortbow +4 1d6+2 80/320 (loosed when nothing is in reach: ai.js volley; 10-02 runner). Vulnerable and immune are read (battle.js typed(), 09-27); condition immunities poisoned and exhaustion (SRD 5.1, 10-02 runner)'
   },
   troll: {
     name: 'Troll', type: 'giant', sheet: 'troll_p1', cr: '5', ac: 15, hp: 84, speed: 30, size: 2, reach: 5, darkvision: 60,
@@ -156,9 +159,12 @@
     name: 'Hobgoblin', type: 'humanoid', sheet: 'hobgoblin_p1', cr: '1/2', ac: 18, hp: 11, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 10, cha: 9 }, init: 1, perception: 10,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: -1 },
-    attacks: { longsword: { name: 'Longsword', atk: 3, dice: '1d8', mod: 1, type: 'slashing', reach: 5 } },
+    attacks: {
+      longsword: { name: 'Longsword', atk: 3, dice: '1d8', mod: 1, type: 'slashing', reach: 5 },
+      longbow: { name: 'Longbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', range: [150, 600], ranged: true }
+    },
     multi: 1, martial: '2d6',
-    src: 'SRD 5.1 Hobgoblin (CR 1/2): longsword, Martial Advantage; content/monsters.json hobgoblin (the longbow left off, as the 8-bit game has it)'
+    src: 'SRD 5.1 Hobgoblin (CR 1/2): longsword, Martial Advantage; the longbow +3 1d8+1 150/600 (the 8-bit game left it off; SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner); content/monsters.json hobgoblin'
   },
   worg: {
     name: 'Worg', type: 'monstrosity', sheet: 'worg_p1', cr: '1/2', ac: 13, hp: 26, speed: 50, size: 2, reach: 5, darkvision: 60,
@@ -198,9 +204,12 @@
     name: 'Sect Blade', type: 'humanoid', sheet: 'assassin_p1', cr: '8', ac: 15, hp: 78, speed: 30, size: 1, reach: 5,
     abil: { str: 11, dex: 16, con: 14, int: 13, wis: 11, cha: 10 }, init: 3, perception: 13, stealth: 9,
     saves: { str: 0, dex: 6, con: 2, int: 4, wis: 0, cha: 0 },
-    attacks: { shortsword: { name: 'Shortsword', atk: 6, dice: '1d6', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 15, dice: '7d6', type: 'poison', half: true } } },
-    multi: ['shortsword', 'shortsword'], sneak: '4d6', assassinate: true, resist: ['poison'],
-    src: 'content/monsters.json assassin (the SRD 5.1 Assassin as the sect\'s blade, CR 8): two shortsword cuts with CON 15 poison, Sneak Attack 4d6, Assassinate (a critical on a creature caught unaware)'
+    attacks: {
+      shortsword: { name: 'Shortsword', atk: 6, dice: '1d6', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 15, dice: '7d6', type: 'poison', half: true } },
+      crossbow: { name: 'Light Crossbow', atk: 6, dice: '1d8', mod: 3, type: 'piercing', range: [80, 320], ranged: true, save: { ab: 'con', dc: 15, dice: '7d6', type: 'poison', half: true } }
+    },
+    multi: ['shortsword', 'shortsword'], sneak: '4d6', assassinate: true, resist: ['poison'], evasion: true,
+    src: 'content/monsters.json assassin (the SRD 5.1 Assassin as the sect\'s blade, CR 8): two shortsword cuts with CON 15 poison, Sneak Attack 4d6, Assassinate (a critical on a creature caught unaware); the Light Crossbow +6 1d8+3 80/320 with the same CON 15 7d6 poison (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner); Evasion is DATA ONLY (evasion: true, SRD 5.1)', todo: 'Evasion is not read: RU.evasion (js/rules.js) answers only a rogue or monk of level 7, and battle.js makeFoe does not carry d.evasion'
   },
   // the stone giant's camp (deep.js S.giant): the giant and three duergar
   stonegiant: {
@@ -218,8 +227,8 @@
     name: 'Duergar', type: 'humanoid', sheet: 'duergar_p1', cr: '1', ac: 16, hp: 26, speed: 25, size: 1, reach: 5, darkvision: 120, invisibility: true,
     abil: { str: 14, dex: 11, con: 14, int: 11, wis: 10, cha: 9 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: -1 },
-    attacks: { warpick: { name: 'War Pick', atk: 4, dice: '1d8', mod: 2, type: 'piercing', reach: 5 } },
-    multi: 1, resist: ['poison'], enlarge: { dice: '2d8' }, lightSensitive: true,
+    attacks: { warpick: { name: 'War Pick', atk: 4, dice: '1d8', mod: 2, type: 'piercing', reach: 5 }, javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true, enlarged: '2d6' } }, // (the javelin, SRD 5.1: 2d6 enlarged; ai.js brute grows it first -- 10-02)
+    multi: 1, resist: ['poison'], enlarge: { dice: '2d8' }, lightSensitive: true, resilient: true, // (Duergar Resilience, SRD 5.1: advantage on saves against poison, spells, illusions, charm and paralysis -- js/rules.js RU.save; 10-02 runner)
     src: 'SRD 5.1 Duergar (CR 1): war pick; Enlarge once (an action: its pick hits for 2d8+2); Invisibility (an action, till it attacks, casts or grows: ai.js brute, torchdark 09-28); content/monsters.json duergar'
   },
   // the rescue in the dens (events.js, quest `cull`): the roost overhead, and its one law -- no fire, no thunder
@@ -237,7 +246,7 @@
     abil: { str: 16, dex: 5, con: 16, int: 1, wis: 6, cha: 1 }, init: -3, perception: 8,
     saves: { str: 3, dex: -3, con: 3, int: -5, wis: -2, cha: -5 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', extra: '4d8', extraType: 'acid', reach: 5 } },
-    multi: 1, immune: ['acid', 'cold', 'lightning', 'slashing'], split: true, corrosive: 'form',
+    multi: 1, immune: ['acid', 'cold', 'lightning', 'slashing'], split: true, corrosive: 'form', condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'prone', 'asleep'], // (SRD 5.1 blinded, charmed, deafened, exhaustion, frightened, prone, which this entry now carries itself -- the 8-bit sheet had blinded, frightened, prone, asleep; asleep kept, 10-02 runner)
     src: 'SRD 5.1 Black Pudding (CR 4, Large): pseudopod + 4d8 acid; immune acid, cold, lightning, slashing; Split (read: battle.js split); Corrosive Form: 1d8 acid to a melee striker, -1 to a nonmagical weapon that hits it, -1 AC to armour its pseudopod hits (js/traits.js, 09-28)', todo: 'the SRD\'s wear is permanent: the grid keeps it to the fight till the 8-bit\'s gear can wear (his word)'
   },
   // ------------------------------------------------------------------ people (09-27): KayKit Adventurers greyed or turned (tools/deep16-figures.json)
@@ -276,8 +285,12 @@
     name: 'Sergeant', type: 'humanoid', sheet: 'veteran_p1', cr: '3', ac: 17, hp: 58, speed: 30, size: 1, reach: 5,
     abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 3, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
-    attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 }, shortsword: { name: 'Shortsword', atk: 5, dice: '1d6', mod: 3, type: 'piercing', reach: 5 } },
-    multi: ['longsword', 'longsword', 'shortsword'], src: 'SRD 5.1 Veteran (CR 3); content/monsters.json veteran (the line\'s Sergeant)'
+    attacks: {
+      longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 },
+      shortsword: { name: 'Shortsword', atk: 5, dice: '1d6', mod: 3, type: 'piercing', reach: 5 },
+      crossbow: { name: 'Heavy Crossbow', atk: 3, dice: '1d10', mod: 1, type: 'piercing', range: [100, 400], ranged: true }
+    },
+    multi: ['longsword', 'longsword', 'shortsword'], src: 'SRD 5.1 Veteran (CR 3); content/monsters.json veteran (the line\'s Sergeant); the Heavy Crossbow +3 1d10+1 100/400 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   // the Snoot's glory-seekers on the road south (events.js S.snoot)
   gloryseeker: {
@@ -291,8 +304,12 @@
     name: 'Gnoll', type: 'humanoid', sheet: 'gnoll_p2', cr: '1/2', ac: 15, hp: 22, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 14, dex: 12, con: 11, int: 6, wis: 10, cha: 7 }, init: 1, perception: 10,
     saves: { str: 2, dex: 1, con: 0, int: -2, wis: 0, cha: -2 },
-    attacks: { spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 }, bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 } },
-    multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28)'
+    attacks: {
+      spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
+      bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 },
+      longbow: { name: 'Longbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', range: [150, 600], ranged: true }
+    },
+    multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28); the longbow +3 1d8+1 150/600 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   hyena: {
     name: 'Hyena', type: 'beast', sheet: 'hyena_p2', cr: '0', ac: 11, hp: 5, speed: 50, size: 1, reach: 5,
@@ -313,16 +330,19 @@
     name: 'Wheelwright', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1', ac: 12, hp: 27, speed: 30, size: 1, reach: 5,
     abil: { str: 10, dex: 15, con: 10, int: 12, wis: 14, cha: 16 }, init: 2, perception: 16,
     saves: { str: 0, dex: 2, con: 0, int: 1, wis: 2, cha: 3 },
-    attacks: { mallet: { name: 'Mallet', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: ['mallet', 'mallet'], bolts: 'hask',
-    src: 'content/monsters.json wheelwright (the SRD 5.1 Spy): when Hask falls he runs for the stair (the map\'s exit), dashing'
+    attacks: {
+      mallet: { name: 'Mallet', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 },
+      crossbow: { name: 'Hand Crossbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true }
+    },
+    multi: ['mallet', 'mallet'], bolts: 'hask', sneak: '2d6', nimble: true, // (the Spy's Sneak Attack 2d6, once a turn: battle.js; Cunning Action read as the goblin's Nimble Escape, Disengage and a step back -- Dash and Hide are not read: js/traits.js; 10-02 runner)
+    src: 'content/monsters.json wheelwright (the SRD 5.1 Spy): when Hask falls he runs for the stair (the map\'s exit), dashing; Sneak Attack 2d6 once a turn, the Hand Crossbow +4 1d6+2 30/120 (SRD 5.1, loosed when nothing is in reach: ai.js volley), and Cunning Action as `nimble` (Disengage only; 10-02 runner)', todo: 'Cunning Action\'s Dash and Hide are not read (only Disengage, through nimble)'
   },
   crewman: {
     name: 'Crewman', type: 'humanoid', sheet: 'crewman_p1', cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { bar: { name: 'Pry-bar', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: ['bar', 'bar'], src: 'content/monsters.json crewman (the SRD 5.1 Thug)'
+    multi: ['bar', 'bar'], packTactics: true, src: 'content/monsters.json crewman (the SRD 5.1 Thug); Pack Tactics (SRD 5.1 Thug, 10-02 runner); the Thug\'s heavy crossbow not given: the crew carry pry-bars'
   },
   // holding the stair at the siphon (deep.js S.holdStair): the night crews come down the daytime way
   crewboss: {
@@ -330,14 +350,17 @@
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: 1, src: 'content/monsters.json crewboss (a Thug with one blow); Hask\'s sheet'
+    multi: 1, packTactics: true, src: 'content/monsters.json crewboss (a Thug with one blow); Hask\'s sheet; Pack Tactics (SRD 5.1 Thug, 10-02 runner)'
   },
   thug: {
     name: 'Thug', type: 'humanoid', sheet: 'crewman_p1', cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
-    attacks: { mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 } },
-    multi: ['mace', 'mace'], src: 'SRD 5.1 Thug (CR 1/2); content/monsters.json thug'
+    attacks: {
+      mace: { name: 'Mace', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 },
+      crossbow: { name: 'Heavy Crossbow', atk: 2, dice: '1d10', mod: 0, type: 'piercing', range: [100, 400], ranged: true }
+    },
+    multi: ['mace', 'mace'], packTactics: true, src: 'SRD 5.1 Thug (CR 1/2); content/monsters.json thug; Pack Tactics (SRD 5.1, 10-02 runner); the Heavy Crossbow +2 1d10 100/400 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   robber: {
     name: 'Night Crew', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
@@ -367,9 +390,9 @@
     abil: { str: 19, dex: 11, con: 21, int: 2, wis: 10, cha: 5 }, init: 0, perception: 16,
     saves: { str: 4, dex: 0, con: 5, int: -4, wis: 0, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 7, dice: '4d12', mod: 4, type: 'piercing', reach: 5 } },
-    multi: 1, leap: { dc: 16, dice: '6d6', targets: 2, range: 40, recharge: 5 }, burrow: 40,
+    multi: 1, leap: { dc: 16, abs: ['str', 'dex'], dmg: [['3d6+4', 'bludgeoning'], ['3d6+4', 'slashing']], targets: 2, range: 40, recharge: 5 }, burrow: 40, // (Deadly Leap, SRD 5.1: DC 16 STR or DEX, the target's choice; 3d6+4 bludgeoning plus 3d6+4 slashing, half on a save -- js/ai.js leap, 10-02 runner)
     diveAfter: true, // (up, the bite, and under again with the move it has left -- the opportunity attacks of those beside it first: js/ai.js diveAfter, 10-02; Griz, 10-01d: "If the mechanics allow it and a smart player or AI would do it, we'll allow it" -- READY is the answer, js/battle.js exec ready)
-    src: 'SRD 5.1 Bulette (CR 5, Large; burrow 40 ft: js/ai.js burrower, 10-01d; it bites and dives when it has the move left, 10-02, handoff-2026-10-01-the-tendrils-and-ready: js/ai.js diveAfter); content/monsters.json bulette (its Deadly Leap as the 8-bit game reads it: DEX 16, 6d6, two of them, half on a save and prone on a failure; recharge 5-6)'
+    src: 'SRD 5.1 Bulette (CR 5, Large; burrow 40 ft: js/ai.js burrower, 10-01d; it bites and dives when it has the move left, 10-02, handoff-2026-10-01-the-tendrils-and-ready: js/ai.js diveAfter); content/monsters.json bulette (its Deadly Leap by the SRD since 10-02: DC 16 STR or DEX, the target chooses; 3d6+4 bludgeoning plus 3d6+4 slashing, two of them, half and no prone on a save; recharge 5-6; it lands beside its mark, so no one is in its space to push out)'
   },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, size: 2, reach: 5, darkvision: 60,
@@ -419,11 +442,12 @@
     abil: { str: 18, dex: 17, con: 14, int: 16, wis: 15, cha: 16 }, init: 3, perception: 12,
     saves: { str: 4, dex: 6, con: 5, int: 3, wis: 5, cha: 6 },
     attacks: { bite: { name: 'Bite', atk: 7, dice: '1d6', mod: 4, type: 'piercing', reach: 10, save: { ab: 'con', dc: 13, dice: '7d8', type: 'poison', half: true } } },
-    multi: 1, immune: ['poison'], bound: '~',
+    multi: 1, immune: ['poison'], bound: '~', condImmune: ['charmed', 'poisoned'], // (SRD 5.1 condition immunities charmed, poisoned; the 8-bit sheet had poisoned only, 10-02 runner)
     // the SRD Spirit Naga's list (RULED 09-28): a 10th-level caster, INT, DC 14, +6 -- Ray of Frost, Sleep, Hold Person, Lightning Bolt
-    // built; Blight and Dimension Door wait on the 4th level (IN), Dominate Person on control (LATER); the old weave retired
-    caster: { lvl: 10, ab: 'int', dc: 14, atk: 6, slots: [4, 3, 3, 3, 2], known: ['rayoffrost', 'sleep', 'holdperson', 'lightningbolt', 'blight', 'dimensiondoor'] },
-    src: 'SRD 5.1 Spirit Naga (CR 8); content/monsters.json naga (since 09-28 its SRD list: `caster`); its rejuvenation (back in 1d6 days) is the story\'s, not a fight\'s'
+    // built; Blight and Dimension Door since built (4th level); Charm Person added 10-02 (SRD 5.1, a 1st-level slot); Dominate Person waits on control (LATER, spells-srd-by-class.md);
+    // Detect Thoughts and Water Breathing (SRD) have no fight use, Mage Hand, Minor Illusion and Detect Magic are not on the grid; the old weave retired
+    caster: { lvl: 10, ab: 'int', dc: 14, atk: 6, slots: [4, 3, 3, 3, 2], known: ['rayoffrost', 'sleep', 'charmperson', 'holdperson', 'lightningbolt', 'blight', 'dimensiondoor'] },
+    src: 'SRD 5.1 Spirit Naga (CR 8); content/monsters.json naga (since 09-28 its SRD list: `caster`; Charm Person 10-02); condition immunities charmed, poisoned (SRD 5.1, 10-02 runner); its rejuvenation (back in 1d6 days) is the story\'s, not a fight\'s'
   },
   // the made road's cut (deep.js S.elemental): "the cut's walls move"
   earthelemental: {
@@ -431,8 +455,8 @@
     abil: { str: 20, dex: 8, con: 20, int: 5, wis: 10, cha: 5 }, init: -1, perception: 10,
     saves: { str: 5, dex: -1, con: 5, int: -3, wis: 0, cha: -3 },
     attacks: { slam: { name: 'Slam', atk: 8, dice: '2d8', mod: 5, type: 'bludgeoning', reach: 10 } },
-    multi: ['slam', 'slam'], resist: ['mundane'], vulnerable: ['thunder'], immune: ['poison'], earthGlide: true,
-    src: 'SRD 5.1 Earth Elemental (CR 5, Large, slam reach 10 ft); content/monsters.json earthelemental: resists plain steel, thunder hurts it double, immune to poison; Earth Glide: through the rock, standing only on open ground (js/grid.js, 09-28)'
+    multi: ['slam', 'slam'], resist: ['mundane'], vulnerable: ['thunder'], immune: ['poison'], earthGlide: true, condImmune: ['exhaustion', 'paralyzed', 'petrified', 'poisoned', 'unconscious', 'asleep'], // (SRD 5.1 exhaustion, paralyzed, petrified, poisoned, unconscious; 'asleep' is this grid's unconscious from Sleep and Eyebite -- the 8-bit sheet had paralyzed, poisoned; 10-02 runner)
+    src: 'SRD 5.1 Earth Elemental (CR 5, Large, slam reach 10 ft); content/monsters.json earthelemental: resists plain steel, thunder hurts it double, immune to poison; Earth Glide: through the rock, standing only on open ground (js/grid.js, 09-28); condition immunities exhaustion, paralyzed, petrified, poisoned, unconscious (SRD 5.1; 10-02 runner); it has blindsight 60 where the SRD gives tremorsense 60 (sense not changed yet)'
   },
   // the roper on leg two's fork (deep.js S.roper): it looks like the stalagmites until it doesn't (hidden at the start)
   roper: {
@@ -443,8 +467,8 @@
       tendril: { name: 'Tendril', atk: 7, dice: '1d1', mod: -1, type: 'bludgeoning', reach: 50, grapple: { dc: 15, max: 6 }, holdOnly: true, weakens: true, tendril: { ac: 20, hp: 10, immune: ['poison', 'psychic'], breakDC: 15 } }, // (tendril: a thing on the grid, riding the grip -- struck at through the held one's square or broken with a STR check, and the grip ends with it: js/battle.js tendrilOn, strikeTendril, exec breaktendril; 10-02)
       bite: { name: 'Bite', atk: 7, dice: '4d8', mod: 4, type: 'piercing', reach: 5 }
     },
-    multi: ['tendril', 'tendril', 'tendril', 'tendril', 'bite'], reel: 25,
-    src: 'SRD 5.1 Roper (CR 5, Large): four tendrils at 50 ft (grappled, restrained, escape DC 15; up to six held, one a tendril), then Reel (each one held pulled up to 25 ft straight toward it: js/ai.js reel), then the bite (10-01e, Griz: "we\'ve often been too lenient, 4 please" -- it had two, and each hit dragged its one all the way in); content/monsters.json roper; the tendril\'s grip weakens (disadvantage on STR checks and saves while held: js/traits.js, 09-28); each tendril a thing to strike (AC 20, 10 HP, immune to poison and psychic) or break (an action, a DC 15 STR check), and a tendril lost is one fewer to grab with till its next turn (10-02, handoff-2026-10-01-the-tendrils-and-ready: js/battle.js strikeTendril, exec breaktendril, tendrilGone; js/rules.js startTurn)'
+    multi: ['tendril', 'tendril', 'tendril', 'tendril', 'bite'], reel: 25, condImmune: [], // (SRD 5.1 gives the roper no condition immunity; the 8-bit sheet's prone is overridden by this empty list -- battle.js reads d.condImmune before content/monsters.json, 10-02 runner)
+    src: 'SRD 5.1 Roper (CR 5, Large): four tendrils at 50 ft (grappled, restrained, escape DC 15; up to six held, one a tendril), then Reel (each one held pulled up to 25 ft straight toward it: js/ai.js reel), then the bite (10-01e, Griz: "we\'ve often been too lenient, 4 please" -- it had two, and each hit dragged its one all the way in); content/monsters.json roper; the tendril\'s grip weakens (disadvantage on STR checks and saves while held: js/traits.js, 09-28); each tendril a thing to strike (AC 20, 10 HP, immune to poison and psychic) or break (an action, a DC 15 STR check), and a tendril lost is one fewer to grab with till its next turn (10-02, handoff-2026-10-01-the-tendrils-and-ready: js/battle.js strikeTendril, exec breaktendril, tendrilGone; js/rules.js startTurn); no condition immunity (SRD 5.1: the 8-bit sheet\'s prone taken off, 10-02 runner)'
   },
   darkmantle: {
     name: 'Darkmantle', type: 'monstrosity', sheet: 'darkmantle_p1', cr: '1/2', ac: 11, hp: 22, speed: 30, size: 1, reach: 5, blindsight: 60, blind: true, darknessAura: true,
@@ -459,16 +483,16 @@
     abil: { str: 15, dex: 6, con: 14, int: 2, wis: 6, cha: 1 }, init: -2, perception: 8,
     saves: { str: 2, dex: -2, con: 2, int: -4, wis: -2, cha: -5 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 4, dice: '2d6', mod: 2, type: 'bludgeoning', extra: '1d6', extraType: 'acid', reach: 5 } },
-    multi: 1, resist: ['acid'], immune: ['lightning', 'slashing'], split: true,
-    src: 'SRD 5.1 Ochre Jelly (CR 2, Large): Split on slashing or lightning, like the pudding; content/monsters.json ochrejelly'
+    multi: 1, resist: ['acid'], immune: ['lightning', 'slashing'], split: true, condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'prone', 'asleep'],
+    src: 'SRD 5.1 Ochre Jelly (CR 2, Large): Split on slashing or lightning, like the pudding; content/monsters.json ochrejelly; condition immunities blinded, charmed, deafened, exhaustion, frightened, prone (SRD 5.1; the 8-bit sheet had blinded, frightened, prone, asleep -- asleep kept; 10-02 runner)'
   },
   grayooze: {
     name: 'Gray Ooze', type: 'ooze', sheet: 'grayooze_p1', cr: '1/2', ac: 8, hp: 22, speed: 10, size: 1, reach: 5, blindsight: 60, blind: true,
     abil: { str: 12, dex: 6, con: 16, int: 1, wis: 6, cha: 2 }, init: -2, perception: 8,
     saves: { str: 1, dex: -2, con: 3, int: -5, wis: -2, cha: -4 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 3, dice: '1d6', mod: 1, type: 'bludgeoning', extra: '2d6', extraType: 'acid', reach: 5 } },
-    multi: 1, resist: ['acid', 'cold', 'fire'], corrosive: 'metal',
-    src: 'SRD 5.1 Gray Ooze (CR 1/2); content/monsters.json grayooze; Corrode Metal: -1 to a nonmagical metal weapon that hits it, -1 AC to metal armour its pseudopod hits (js/traits.js, 09-28)', todo: 'the SRD\'s wear is permanent: the grid keeps it to the fight till the 8-bit\'s gear can wear (his word)'
+    multi: 1, resist: ['acid', 'cold', 'fire'], corrosive: 'metal', condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'prone', 'asleep'],
+    src: 'SRD 5.1 Gray Ooze (CR 1/2); content/monsters.json grayooze; condition immunities blinded, charmed, deafened, exhaustion, frightened, prone (SRD 5.1; the 8-bit sheet had blinded, frightened, prone, asleep -- asleep kept; 10-02 runner); Corrode Metal: -1 to a nonmagical metal weapon that hits it, -1 AC to metal armour its pseudopod hits (js/traits.js, 09-28)', todo: 'the SRD\'s wear is permanent: the grid keeps it to the fight till the 8-bit\'s gear can wear (his word)'
   },
   // ------------------------------------------------------------------ the water, hand-waved (09-27, Griz: "we'll probably hand wave the chuul fight
   // rather than add swimming"): what lives in the water keeps to it or comes out of it; nobody swims
@@ -517,7 +541,7 @@
     abil: { str: 17, dex: 10, con: 22, int: 11, wis: 10, cha: 11 }, init: 0, perception: 16,
     saves: { str: 3, dex: 0, con: 6, int: 0, wis: 0, cha: 0 },
     attacks: { claw: { name: 'Claw', atk: 6, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, bite: { name: 'Bite', atk: 6, dice: '3d6', mod: 3, type: 'piercing', reach: 5 } },
-    multi: ['claw', 'claw', 'claw', 'bite'], resist: ['mundane'], earthGlide: true, burrow: 20, // (SRD 5.1 "burrow 20 ft.": under the floor and up beside you, unseen -- Earth Glide leaves no mound: js/ai.js burrower, 10-01d)
+    multi: ['claw', 'claw', 'claw', 'bite'], resist: ['mundaneps'], earthGlide: true, burrow: 20, // (SRD 5.1 "burrow 20 ft.": under the floor and up beside you, unseen -- Earth Glide leaves no mound: js/ai.js burrower, 10-01d)
     walkWithin: 15, // (it walks to anyone within 15 ft, and goes under for farther: Griz, 10-01d, "have them walk within 15")
     src: 'SRD 5.1 Xorn (CR 5): three claws and a bite; resists plain steel (the SRD\'s non-adamantine); content/monsters.json xorn; Earth Glide: through the rock, standing only on open ground (js/grid.js, 09-28)'
   },
@@ -526,8 +550,11 @@
     name: 'Bandit', type: 'humanoid', sheet: 'bandit_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
     saves: { str: 0, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
-    attacks: { scimitar: { name: 'Scimitar', atk: 3, dice: '1d6', mod: 1, type: 'slashing', reach: 5 } },
-    multi: 1, src: 'SRD 5.1 Bandit (CR 1/8); content/monsters.json bandit (the north and south roads)'
+    attacks: {
+      scimitar: { name: 'Scimitar', atk: 3, dice: '1d6', mod: 1, type: 'slashing', reach: 5 },
+      crossbow: { name: 'Light Crossbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', range: [80, 320], ranged: true }
+    },
+    multi: 1, src: 'SRD 5.1 Bandit (CR 1/8); content/monsters.json bandit (the north and south roads); the Light Crossbow +3 1d8+1 80/320 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   giantfrog: {
     name: 'Giant Frog', type: 'beast', sheet: 'giantfrog_p1', cr: '1/4', ac: 11, hp: 18, speed: 30, size: 1, reach: 5, darkvision: 30,
@@ -561,29 +588,38 @@
     name: 'Goblin', type: 'humanoid', sheet: 'goblin_p1', cr: '1/4', ac: 15, hp: 7, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 8, dex: 14, con: 10, int: 10, wis: 8, cha: 8 }, init: 2, perception: 9,
     saves: { str: -1, dex: 2, con: 0, int: 0, wis: -1, cha: -1 },
-    attacks: { scimitar: { name: 'Scimitar', atk: 4, dice: '1d6', mod: 2, type: 'slashing', reach: 5 } },
-    multi: 1, nimble: true, src: 'SRD 5.1 Goblin (CR 1/4); content/monsters.json goblin (the king\'s road, leg one); Nimble Escape: Disengage for the bonus action, and a step back (js/traits.js, 09-28)'
+    attacks: {
+      scimitar: { name: 'Scimitar', atk: 4, dice: '1d6', mod: 2, type: 'slashing', reach: 5 },
+      shortbow: { name: 'Shortbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [80, 320], ranged: true }
+    },
+    multi: 1, nimble: true, src: 'SRD 5.1 Goblin (CR 1/4); content/monsters.json goblin (the king\'s road, leg one); Nimble Escape: Disengage for the bonus action, and a step back (js/traits.js, 09-28); the Shortbow +4 1d6+2 80/320 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   bugbear: {
     name: 'Bugbear', type: 'humanoid', sheet: 'bugbearchief_p1', cr: '1', ac: 16, hp: 27, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 15, dex: 14, con: 13, int: 8, wis: 11, cha: 9 }, init: 2, perception: 10,
     saves: { str: 2, dex: 2, con: 1, int: -1, wis: 0, cha: -1 },
-    attacks: { morningstar: { name: 'Morningstar', atk: 4, dice: '2d8', mod: 2, type: 'piercing', reach: 5 } },
-    multi: 1, surprise: '2d6', src: 'SRD 5.1 Bugbear (CR 1); content/monsters.json bugbear; the chief\'s sheet'
+    attacks: {
+      morningstar: { name: 'Morningstar', atk: 4, dice: '2d8', mod: 2, type: 'piercing', reach: 5 },
+      javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true }
+    },
+    multi: 1, surprise: '2d6', src: 'SRD 5.1 Bugbear (CR 1); content/monsters.json bugbear; the chief\'s sheet; the Javelin thrown +4 1d6+2 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   ogre: {
     name: 'Ogre', type: 'giant', sheet: 'ogre_p1', cr: '2', ac: 11, hp: 59, speed: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 19, dex: 8, con: 16, int: 5, wis: 7, cha: 7 }, init: -1, perception: 8,
     saves: { str: 4, dex: -1, con: 3, int: -3, wis: -2, cha: -2 },
-    attacks: { club: { name: 'Greatclub', atk: 6, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5 } },
-    multi: 1, src: 'SRD 5.1 Ogre (CR 2, Large); content/monsters.json ogre (the king\'s road, leg one)'
+    attacks: {
+      club: { name: 'Greatclub', atk: 6, dice: '2d8', mod: 4, type: 'bludgeoning', reach: 5 },
+      javelin: { name: 'Javelin', atk: 6, dice: '2d6', mod: 4, type: 'piercing', range: [30, 120], ranged: true }
+    },
+    multi: 1, src: 'SRD 5.1 Ogre (CR 2, Large); content/monsters.json ogre (the king\'s road, leg one); the Javelin thrown +6 2d6+4 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   ettin: {
     name: 'Ettin', type: 'giant', sheet: 'ettin_p1', cr: '4', ac: 12, hp: 85, speed: 40, size: 2, reach: 5, darkvision: 60,
     abil: { str: 21, dex: 8, con: 17, int: 6, wis: 10, cha: 8 }, init: -1, perception: 14,
     saves: { str: 5, dex: -1, con: 3, int: -2, wis: 0, cha: -1 },
     attacks: { axe: { name: 'Battleaxe', atk: 7, dice: '2d8', mod: 5, type: 'slashing', reach: 5 }, star: { name: 'Morningstar', atk: 7, dice: '2d8', mod: 5, type: 'piercing', reach: 5 } },
-    multi: ['axe', 'star'], twoHeads: true, condImmune: ['asleep'], src: 'SRD 5.1 Ettin (CR 4, Large): battleaxe and morningstar; content/monsters.json ettin (leg two); Two Heads (its WIS and CON saves at advantage: the charm, fright and stun it is proof against, read so) and Wakeful (never all asleep) (js/traits.js, 09-28)'
+    multi: ['axe', 'star'], twoHeads: true, src: 'SRD 5.1 Ettin (CR 4, Large): battleaxe and morningstar; content/monsters.json ettin (leg two); Two Heads (advantage on saves against being blinded, charmed, deafened, frightened, stunned or knocked out (Two Heads, SRD 5.1: js/rules.js RU.save, 10-02 runner): the charm, fright and stun it is proof against, read so) (js/traits.js, 09-28); the `condImmune: asleep` that stood for Wakeful taken off (SRD 5.1 gives the ettin no condition immunity, so Sleep can take it now; Wakeful itself is not read; 10-02 runner)'
   },
   mouther: {
     name: 'Gibbering Mouther', type: 'aberration', sheet: 'mouther_p1', cr: '2', ac: 9, hp: 67, speed: 10, size: 1, reach: 5, darkvision: 60,
@@ -613,8 +649,12 @@
     name: 'Bandit Captain', type: 'humanoid', sheet: 'hask_p1', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
     saves: { str: 4, dex: 5, con: 2, int: 2, wis: 0, cha: 2 },
-    attacks: { scimitar: { name: 'Scimitar', atk: 5, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, dagger: { name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
-    multi: ['scimitar', 'scimitar', 'dagger'], src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet)', todo: 'Parry is not read'
+    attacks: {
+      scimitar: { name: 'Scimitar', atk: 5, dice: '1d6', mod: 3, type: 'slashing', reach: 5 },
+      dagger: { name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 },
+      throwndagger: { name: 'Thrown Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', range: [20, 60], ranged: true }
+    },
+    multi: ['scimitar', 'scimitar', 'dagger'], src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet); the dagger thrown +5 1d4+3 20/60 (SRD 5.1, once when nothing is in reach: ai.js volley; 10-02 runner)', todo: 'Parry is not read; the SRD gives two thrown daggers (a ranged Multiattack) and the grid throws one'
   },
   grimlock: {
     name: 'Grimlock', type: 'humanoid', sheet: 'grimlock_p1', cr: '1/4', ac: 11, hp: 11, speed: 30, size: 1, reach: 5, blindsight: 30, blind: true,
@@ -631,8 +671,8 @@
       engulf: { name: 'Engulf', atk: 4, dice: '3d6', mod: 0, type: 'acid', reach: 5, grapple: { dc: 12, max: 1 } },
       digest: { name: 'Digest', atk: 4, dice: '6d6', mod: 0, type: 'acid', reach: 5, needsHeld: true, autoHitHeld: true }
     },
-    multi: ['engulf', 'digest'],
-    src: 'SRD 5.1 Gelatinous Cube (CR 2, Large, transparent: it starts hidden); content/monsters.json cube (leg two): Engulf read as a grip (escape DC 12), Digest on the one it has, as the 8-bit game runs them', todo: 'its moving into your square is not read'
+    multi: ['engulf', 'digest'], condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'prone', 'asleep'],
+    src: 'SRD 5.1 Gelatinous Cube (CR 2, Large, transparent: it starts hidden); content/monsters.json cube (leg two): Engulf read as a grip (escape DC 12), Digest on the one it has, as the 8-bit game runs them; condition immunities blinded, charmed, deafened, exhaustion, frightened, prone (SRD 5.1; the 8-bit sheet had blinded, frightened, prone, asleep -- asleep kept; 10-02 runner)', todo: 'its moving into your square is not read'
   },
   // its art since 09-27: Griz's Grok sheet (pipeline 2, tools/crawler-sheet.py; crawler_p2), the snake stand-in retired
   crawler: {
@@ -653,24 +693,24 @@
     abil: { str: 9, dex: 11, con: 9, int: 2, wis: 10, cha: 3 }, init: 0, perception: 10,
     saves: { str: -1, dex: 0, con: -1, int: -4, wis: 0, cha: -4 },
     attacks: { bites: { name: 'Bites', atk: 2, dice: '2d6', halfHP: '1d6', mod: 0, type: 'piercing', reach: 5 } },
-    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'],
-    src: 'SRD 5.1 Swarm of Rats (CR 1/4); content/monsters.json ratswarm (the Warrens)', todo: 'sharing a creature\'s space is not read'
+    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'], condImmune: ['charmed', 'frightened', 'grappled', 'paralyzed', 'petrified', 'prone', 'restrained', 'stunned'],
+    src: 'SRD 5.1 Swarm of Rats (CR 1/4); content/monsters.json ratswarm (the Warrens); condition immunities charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned (SRD 5.1; the 8-bit sheet lacked charmed, petrified, stunned, 10-02 runner)', todo: 'sharing a creature\'s space is not read'
   },
   batswarm: {
     name: 'Bat Swarm', type: 'beast', sheet: 'batswarm_p1', cr: '1/4', ac: 12, hp: 22, speed: 30, size: 1, reach: 5, blindsight: 60,
     abil: { str: 5, dex: 15, con: 10, int: 2, wis: 12, cha: 4 }, init: 2, perception: 11,
     saves: { str: -3, dex: 2, con: 0, int: -4, wis: 1, cha: -3 },
     attacks: { bites: { name: 'Bites', atk: 4, dice: '2d4', halfHP: '1d4', mod: 0, type: 'piercing', reach: 5 } },
-    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'],
-    src: 'SRD 5.1 Swarm of Bats (CR 1/4, fly 30 read as moving 30); content/monsters.json batswarm (the galleries)', todo: 'sharing a creature\'s space is not read'
+    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'], condImmune: ['charmed', 'frightened', 'grappled', 'paralyzed', 'petrified', 'prone', 'restrained', 'stunned'],
+    src: 'SRD 5.1 Swarm of Bats (CR 1/4, fly 30 read as moving 30); content/monsters.json batswarm (the galleries); condition immunities charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned (SRD 5.1; the 8-bit sheet lacked charmed, petrified, stunned, 10-02 runner)', todo: 'sharing a creature\'s space is not read'
   },
   insectswarm: {
     name: 'Insect Swarm', type: 'beast', sheet: 'insectswarm_p1', cr: '1/2', ac: 12, hp: 22, speed: 20, size: 1, reach: 5, blindsight: 10,
     abil: { str: 3, dex: 13, con: 10, int: 1, wis: 7, cha: 1 }, init: 1, perception: 8,
     saves: { str: -4, dex: 1, con: 0, int: -5, wis: -2, cha: -5 },
     attacks: { bites: { name: 'Bites', atk: 3, dice: '4d4', halfHP: '2d4', mod: 0, type: 'piercing', reach: 5 } },
-    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'],
-    src: 'SRD 5.1 Swarm of Insects (CR 1/2); content/monsters.json insectswarm (the Glowseep)', todo: 'sharing a creature\'s space is not read'
+    multi: 1, swarm: true, noProne: true, resist: ['bludgeoning', 'piercing', 'slashing'], condImmune: ['charmed', 'frightened', 'grappled', 'paralyzed', 'petrified', 'prone', 'restrained', 'stunned'],
+    src: 'SRD 5.1 Swarm of Insects (CR 1/2); content/monsters.json insectswarm (the Glowseep); condition immunities charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned (SRD 5.1; the 8-bit sheet lacked charmed, petrified, stunned, 10-02 runner)', todo: 'sharing a creature\'s space is not read'
   },
   // the clacker (10-01): the realm's hook horror, the colony crowning the crook (TarlynsPit/wiki/the-warrens.md, the clacker cavern;
   // the landlord's fourth picture). Not an SRD creature, so the block is ours, drafted from SRD pieces at a Large monstrosity's CR 3:

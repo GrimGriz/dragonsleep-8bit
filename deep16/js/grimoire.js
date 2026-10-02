@@ -844,7 +844,7 @@
   };
   E.blindnessdeafness = {
     summary: function () { return 'a foe within 30 ft · CON or blinded for a minute (a save each turn)'; },
-    cast: function* (B, u, t, slot, head, x) { var dc = x.dc; yield* saveAll(B, u, [t], 'con', dc, null, '', false, head + ' on ' + nm(B, t), { failText: 'blinded', cond: function (w) { w.conds.blinded = { by: u.id }; w.conds.blindedBy = { dc: dc, by: u.id }; } }); },
+    cast: function* (B, u, t, slot, head, x) { var dc = x.dc; yield* saveAll(B, u, [t], 'con', dc, null, '', false, head + ' on ' + nm(B, t), { against: 'blinded', failText: 'blinded', cond: function (w) { w.conds.blinded = { by: u.id }; w.conds.blindedBy = { dc: dc, by: u.id }; } }); },
     ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (!M.targetOK(B, u, e.g, t) || t.conds.blinded || t.blindsight) return; var pf = TX().pFail(t, 'con', u.spellDC), sc = pf * (TX().dpr(t) * 0.6 * Math.min(3, 1 / Math.max(0.3, 1 - pf)) + 3); if (!best || sc > best.score) best = { score: sc, t: t }; }); return best; }
   };
   E.blur = {
@@ -2003,7 +2003,7 @@
       cast: function* (B, u, t, slot, head, x) {
         var sq = M.area(u, x.g, t.x, t.y), list = caughtIn(B, sq); // (those inside a Globe of Invulnerability stay in the list: saveAll says "inside the globe: untouched" for each, where a filter here left "no one in it" -- and uses the spell's level, not the slot)
         FX.bloom(/cone|line/.test(x.g.shape) ? u.x : t.x, /cone|line/.test(x.g.shape) ? u.y : t.y, sq, ramp);
-        yield* saveAll(B, u, list, ab, x.dc, o.up ? more(dexpr, up(x.sp, slot) * o.up) : dexpr, type, half, head, { cond: o.cond ? function (w) { o.cond(B, u, w, x); } : null, skip: o.skip });
+        yield* saveAll(B, u, list, ab, x.dc, o.up ? more(dexpr, up(x.sp, slot) * o.up) : dexpr, type, half, head, { cond: o.cond ? function (w) { o.cond(B, u, w, x); } : null, skip: o.skip, against: o.against });
         if (o.after) o.after(B, u, sq, x);
       },
       ai: function (B, u, e, slot, fs) { return TX().bestArea(B, u, e, fs, function (caught) { return TX().areaWorth(B, u, Object.assign({}, e, { sp: Object.assign({}, e.sp, { dmg: dexpr, half: half, save: ab, dmg2: null }) }), 0, caught) + (o.bonus ? o.bonus(caught) : 0); }); }
@@ -2342,7 +2342,7 @@
     cast: function* (B, u, t, slot, head, x) {
       if (!x.g.again) M.concentrate(B, u, 'sunbeam', 'Sunbeam', function () {});
       var sq = M.area(u, x.g, t.x, t.y); FX.bloom(u.x, u.y, sq, 'bone');
-      yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return w !== u; }), 'con', x.dc, '6d8', 'radiant', true, head + ': a beam of sunlight', { failText: 'blinded', cond: function (w) { w.conds.blinded = { by: u.id, till: { who: w.id, at: 'end', n: 1 } }; } });
+      yield* saveAll(B, u, caughtIn(B, sq).filter(function (w) { return w !== u; }), 'con', x.dc, '6d8', 'radiant', true, head + ': a beam of sunlight', { against: 'blinded', failText: 'blinded', cond: function (w) { w.conds.blinded = { by: u.id, till: { who: w.id, at: 'end', n: 1 } }; } });
     },
     ai: function (B, u, e, slot, fs) { var b = TX().bestArea(B, u, e, fs, function (caught) { return TX().areaWorth(B, u, Object.assign({}, e, { sp: Object.assign({}, e.sp, { dmg: '6d8', half: true, save: 'con' }) }), 0, caught.filter(function (w) { return w !== u; })) * 1.3; }); if (b && !e.g.again) { b.score *= 1.6; b.keep = b.score / 3; } return b; }
   };
@@ -2399,7 +2399,7 @@
       list.forEach(function (w) {
         if (cantHear(w)) { lines.push('  ' + Nm(B, w) + ': {g}cannot hear it{/}'); return; } // (SRD 5.1: "each creature that can hear you")
         if (M.globed(B, u, w, 7)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } // (a Globe of Invulnerability raised from an 8th- or 9th-level slot: the word is a 7th-level spell cast from outside it)
-        var sv = RU.save(w, 'cha', x.dc); if (sv.ok) { lines.push('  ' + Nm(B, w) + ': {n}withstands it{/}'); return; }
+        var sv = RU.save(w, 'cha', x.dc, false, 'stunned'); if (sv.ok) { lines.push('  ' + Nm(B, w) + ': {n}withstands it{/}'); return; } // (against: deafened, blinded, stunned by its HP -- the ettin's Two Heads, 10-02)
         // the otherworldly are forced back to their plane and cannot return for a day: out of the fight, as a summoned one is when it goes
         if (HOME.test(w.type || '')) { delete w.conds.banished; w.dead = true; w.left = true; w.deadT = B.t; FX.sparkle(w, 'violet', 20); lines.push('  ' + Nm(B, w) + ': {y}sent home{/}'); return; }
         // (deafened for a minute -- ten of its own turns -- at 50 or fewer; the longer blindness and stun are the fight's, as they were)
@@ -2486,7 +2486,7 @@
     cast: function* (B, u, t, slot, head, x) { if (t.hp > 150) { B.card([head + ': ' + nm(B, t) + ' has too much life in it.']); yield 16; return; } t.conds.stunned = { by: u.id, dc: x.dc, pws: true }; FX.ring(t, 'gold', 30); B.card([head + ': ' + nm(B, t) + ' is {p}STUNNED{/}.']); yield 20; },
     ai: function (B, u, e, slot, fs) { var t = fs.filter(function (w) { return M.targetOK(B, u, Object.assign({}, e.g, { side: 'foe' }), w) && w.hp <= 150 && !w.conds.stunned; }).sort(function (a, b) { return TX().dpr(b) - TX().dpr(a); })[0]; return t ? { score: TX().dpr(t) * 2.5, t: t } : null; }
   };
-  E.sunburst = areaSave('con', '12d6', 'radiant', true, 'bone', { cond: function (B, u, w, x) { w.conds.blindedBy = { dc: x.dc, by: u.id }; w.conds.blinded = { by: u.id }; }, after: function (B, u, sq) { B.darks = (B.darks || []).filter(function (d) { return d.kind !== 'darkness' || !d.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); }); if (B.lightMap) B.lightMap = null; } });
+  E.sunburst = areaSave('con', '12d6', 'radiant', true, 'bone', { against: 'blinded', cond: function (B, u, w, x) { w.conds.blindedBy = { dc: x.dc, by: u.id }; w.conds.blinded = { by: u.id }; }, after: function (B, u, sq) { B.darks = (B.darks || []).filter(function (d) { return d.kind !== 'darkness' || !d.sq.some(function (q) { return sq.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); }); if (B.lightMap) B.lightMap = null; } });
   // ------------------------------------------------------------------ 9th
   E.foresight = {
     summary: function () { return 'touch · advantage on its attacks and saves, and attacks at it at disadvantage, for the fight'; },

@@ -12,12 +12,12 @@
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
-  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt'];
+  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion']; // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner)
 
   // ------------------------------------------------------------------ the roper's tendrils: the grappled one has disadvantage on STR checks
   // and saves (rules.js save reads restrained.weak; magic.js breakFree too)
   var saveAdv0 = RU.saveAdv;
-  RU.saveAdv = function (u, ab) { return !!(saveAdv0 && saveAdv0(u, ab)) || (u.twoHeads && (ab === 'wis' || ab === 'con')); }; // (the ettin's Two Heads: its saves against charm, fright and stun, read as WIS and CON)
+  RU.saveAdv = function (u, ab) { return !!(saveAdv0 && saveAdv0(u, ab)); }; // (the ettin's Two Heads is no blanket on WIS and CON saves, SRD 5.1: "advantage on saving throws against being blinded, charmed, deafened, frightened, stunned, and knocked unconscious" -- rules.js RU.save reads it off `against`; Duergar Resilience likewise; 10-02 runner)
   RU.saveDis = function (u, ab) { return ab === 'str' && !!(u.conds.restrained && u.conds.restrained.weak); };
 
   // ------------------------------------------------------------------ the weapon's hit: corrosion both ways, the boar's charge

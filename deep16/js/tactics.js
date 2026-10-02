@@ -735,7 +735,10 @@
   TX.ACTIONS.push(function (B, u, fs) {
     if (!u.attacks || typeof u.attacks !== 'object' || !u.turn.action) return null;
     var reach = AI.reachOf(u), ranged = Object.keys(u.attacks).some(function (k) { return u.attacks[k].ranged; });
-    var t = fs.filter(function (w) { return G.dist(u, w) <= u.turn.move + reach || (ranged && M.sees(B, u, w)); }).sort(function (a, b) { return a.hp - b.hp; })[0];
+    // (one bound to its ground -- the naga to its pool, the Keeper to its water -- reaches only from where it can stand: the naga at level 3 weighed a bite at a hero out of its
+    // pool above its spells, and churned for ever; the mechanics runner's find, 10-02)
+    var rm = u.bound ? G.reach(u, u.turn.move) : null, canGet = function (w) { if (G.dist(u, w) <= reach) return true; if (!rm) return G.dist(u, w) <= u.turn.move + reach; return Object.keys(rm).some(function (k) { var e = rm[k]; return e.stand && G.dist(u, w, e.x, e.y) <= reach; }); };
+    var t = fs.filter(function (w) { return canGet(w) || (ranged && M.sees(B, u, w)); }).sort(function (a, b) { return a.hp - b.hp; })[0];
     if (!t) return null;
     return { kind: 'routine', why: 'its attacks on ' + t.name, score: TX.worth(TX.dpr(u), t), go: function* () { yield* AI.brute(B, u); } };
   });

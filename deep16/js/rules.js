@@ -27,7 +27,7 @@
   // and the player's hands alike (RULED 09-30, Griz: "yes": battle.js canHit and the attack, magic.js targetOK, the opportunity attack)
   RU.charmedBy = function (u, w) { var c = u && w && u.conds && u.conds.charmed; return !!(c && c.by === w.id); };
   RU.evasion = function (u) {
-    if (!u || !(u.cls === 'rogue' || u.cls === 'monk') || u.lvl < 7 || u.hp <= 0 || u.dead) return false;
+    if (!u || !(u.evasion || ((u.cls === 'rogue' || u.cls === 'monk') && u.lvl >= 7)) || u.hp <= 0 || u.dead) return false; // (u.evasion: a stat block's -- the assassin's, SRD 5.1; 10-02)
     var c = u.conds || {};
     return !(c.paralyzed || c.asleep || c.stunned || c.incapacitated);
   };
@@ -98,14 +98,19 @@
     // advantage: Dodge and Haste on DEX; Beacon of Hope on WIS; a creature's own (Danger Sense, Magic Resistance: o.adv). Disadvantage: restrained on DEX
     var ccm = !!(against && FRIGHT_CHARM.test(against) && RU.countercharmed(u)), stw = !!(against && u.hunterDef === 'steelwill' && /^(frightened|feared)$/.test(against)), counter = ccm ? 1 : stw ? 2 : 0; // (Countercharm; Steel Will, the Hunter's 7)
     var pfp = !!(c.poisonWard && /^poison(ed)?$/.test(against || '')); // (Protection from Poison: advantage on saves against being poisoned, and against poison -- js/grimoire.js lays the ward)
-    var adv = !!adv0 || counter || pfp || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = heightened || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
+    // Duergar Resilience (SRD 5.1: "advantage on saving throws against poison, spells, and illusions, as well as to resist being charmed or paralyzed" -- sheet flag `resilient`, 10-02 runner). A save
+    // against a spell is one made while a cast is under way (js/grimoire.js M.cast sets B.castLevel -- 0 for a cantrip -- for the whole of it); a poison that harms rides in as `adv0` (RU.vsPoison), a condition as `against`
+    var resil = !!(u.resilient && ((D.battle && D.battle.castLevel != null && against !== 'concentration') || (against && /^(poison(ed)?|charmed|hypnotized|paralyzed)$/.test(against))));
+    // Two Heads (SRD 5.1: the ettin has "advantage on saving throws against being blinded, charmed, deafened, frightened, stunned, and knocked unconscious" -- not on WIS and CON saves at large: 10-02 runner)
+    var heads = !!(u.twoHeads && against && /^(blinded|charmed|hypnotized|deafened|frightened|feared|stunned|asleep|unconscious)$/.test(against));
+    var adv = !!adv0 || counter || pfp || resil || heads || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = heightened || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
     if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true }; // (SRD 5.1: the paralyzed, the stunned, the unconscious -- not Hideous Laughter's incapacitated and prone, 10-02, Griz: "yes")
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
     // Bane (-1d4), Resistance (+1d4, once)
     var bn = c.baned ? D.d(4) : 0; bonus -= bn;
     var rs = c.resistance ? D.d(4) : 0; if (rs) { bonus += rs; delete c.resistance; }
-    var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs, counter: counter && adv && !dis ? counter : 0, heightened: heightened ? 1 : 0, pfp: pfp && adv && !dis ? 1 : 0 };
+    var res = { rolls: both ? [r1, r2] : [r1], d20: d, bonus: bonus, total: d + bonus, dc: dc, ok: d + bonus >= dc, aura: RU.aura(u), bless: bl, bane: bn, resist: rs, counter: counter && adv && !dis ? counter : 0, heightened: heightened ? 1 : 0, pfp: pfp && adv && !dis ? 1 : 0, resil: resil && adv && !dis ? 1 : 0, heads: heads && adv && !dis ? 1 : 0 };
     // Bardic Inspiration (js/features.js): the die on a save it would turn
     if (!res.ok && c.inspired && D.features) { var ins = D.features.inspire(u, dc - res.total); if (ins) { res.bonus += ins; res.total += ins; res.ok = res.total >= dc; res.bless = (res.bless || 0) + ins; } }
     // Indomitable (fighter 9): a failed save is rolled again, once a day -- taken at once, and said so
@@ -123,6 +128,19 @@
     }
     if (!res.ok && against && /^(frightened|feared)$/.test(against) && window.DS.R.fearWard(u.src)) res.ok = true; // (js/rules.js R.fearWard: hidden by ruling -- nothing says why)
     return res;
+  };
+  // The save a creature takes among `abs` when the effect lets it choose ("a Strength or Dexterity saving throw (target's choice)" -- the bulette's Deadly Leap, SRD 5.1; 10-02 runner):
+  // the better bonus (RU.save's own), nudged by what the roll would carry -- advantage or disadvantage (about 3 on the d20), Evasion on a DEX one; a tie goes to the first listed
+  RU.bestSave = function (u, abs) {
+    var c = u.conds || {}, best = abs[0], bs = -1e9;
+    abs.forEach(function (ab) {
+      var s = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u) + (c.wardingBond ? 1 : 0) - (ab === 'dex' && c.slowed ? 2 : 0);
+      var adv = (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down);
+      var dis = (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down);
+      s += (adv && !dis ? 3 : dis && !adv ? -3 : 0) + (ab === 'dex' && RU.evasion(u) ? 3 : 0);
+      if (s > bs) { bs = s; best = ab; }
+    });
+    return best;
   };
   // Dark One's Own Luck's die for a roll that falls short by `deficit`: 0 when it does not apply (not the Fiend's 6th, spent, or the roll is
   // too far short for a d10 to matter); else the d10, and the use is spent (a short rest brings it back). Saves above; the breaking of a web
@@ -202,7 +220,8 @@
   // Protection from Poison (SRD 5.1): "advantage on saving throws against being poisoned". Asked of a save by what it is against: 'poisoned'
   // (the condition) or 'poison' (the stinking cloud's, a poison that does harm) -- RU.save reads it; a caller with no `against` to give
   // (a damage save, where `against` would also wake Dark One's Own Luck) passes RU.vsPoison(w) as the save's `adv0` when the harm is poison
-  RU.vsPoison = function (u) { return !!(u && u.conds && u.conds.poisonWard); };
+  // (the duergar's Resilience too -- "advantage on saving throws against poison": its sheet's `resilient`, 10-02 runner; RU.save reads the rest of it)
+  RU.vsPoison = function (u) { return !!(u && ((u.conds && u.conds.poisonWard) || u.resilient)); };
   // advantage and disadvantage on an ability check of `abil` (SRD 5.1), each with its reason: Enhance Ability (conds.enhanced.abil is the aspect's
   // ability, the one the caster chose among the six -- con, str, dex, cha, int, wis; a record with none is Bear's Endurance, so CON) and Heat Metal's burning armour (disAt '*': every attack roll
   // and ability check). The grid's checks: a web's or a grip's break-free (js/magic.js breakFree) and Hide (js/battle.js)
@@ -220,7 +239,7 @@
     if (sv.auto) return '{o}auto-fail{/} (held or asleep)';
     if (sv.careful) return '{c}spared{/} (Careful Spell)';
     var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.resist) bits.push('resistance +' + sv.resist);
-    if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.pfp) bits.push('advantage: protection from poison'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
+    if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.pfp) bits.push('advantage: protection from poison'); if (sv.resil) bits.push('advantage: duergar resilience'); if (sv.heads) bits.push('advantage: two heads'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
     return 'd20 ' + (sv.indomitable ? sv.rolls[0] + ', again ' + sv.indomitable : sv.d20) + ' ' + RU.sign(sv.bonus) + (bits.length ? ' {y}(' + bits.join(', ') + '){/}' : '') + ' = ' + sv.total;
   };
   RU.d20 = function (net) {

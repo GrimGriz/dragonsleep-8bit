@@ -496,15 +496,20 @@
     u.facing = B.faceTo(u, best.t); u.anim = 'attack'; u.animT = B.t; D.sfx('crit');
     var hit = [best.t].concat(hs.filter(function (w) { return w !== best.t && G.dist(w, best.t) <= 5 && G.dist(u, w) <= 5; }).slice(0, (L.targets || 2) - 1));
     if (u.turn) u.turn.attacked = (u.turn.attacked || 0) + 1; // (the Leap is its attack this turn: it may dive after -- diveAfter, 10-02)
-    var roll = D.roll(L.dice), lines = ['{r}' + the(B, u) + '{/} leaps, and comes down on them like a falling wall!  ' + L.dice + ' ' + RU.fmtRolls(roll.rolls) + ' = ' + roll.total + '  DEX DC ' + L.dc], hurt = [];
+    // the Deadly Leap by the SRD 5.1 (10-02 runner): "DC 16 Strength or Dexterity saving throw (target's choice) or be knocked prone and take 14 (3d6 + 4) bludgeoning damage plus 14 (3d6 + 4) slashing damage. On a
+    // successful save, the creature takes only half the damage, isn't knocked prone, and is pushed 5 feet out of the bulette's space" -- one roll of each, shared by those it comes down on; each type is hurt on its own, so
+    // a resistance reads per type (B.hurt). It lands beside its mark, never in a hero's square, so no one is in its space to be pushed out of
+    var abs = L.abs || ['dex'], parts = (L.dmg || [[L.dice, 'bludgeoning']]).map(function (p) { var r = D.roll(p[0]); return { type: p[1], r: r, txt: p[0] + ' ' + RU.fmtRolls(r.rolls) + ' = ' + r.total + ' ' + p[1] }; });
+    var tot = parts.reduce(function (a, p) { return a + p.r.total; }, 0), lines = ['{r}' + the(B, u) + '{/} leaps, and comes down on them like a falling wall!', '  ' + parts.map(function (p) { return p.txt; }).join('  +  ') + '  ' + abs.map(function (a) { return a.toUpperCase(); }).join(' or ') + ' DC ' + L.dc + (abs.length > 1 ? ' (their choice)' : '')], hurt = [];
     yield 24;
     hit.forEach(function (w) {
-      var sv = RU.save(w, 'dex', L.dc, false, null, roll.total), ev = RU.evasion(w), n = sv.ok ? (ev ? 0 : Math.floor(roll.total / 2)) : (ev ? Math.floor(roll.total / 2) : roll.total);
-      lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed: prone{/}') + '  {r}' + n + '{/}'); hurt.push([w, n]);
-      if (!sv.ok) w.conds.prone = true; // the Leap flattens those who fail
+      var ab = RU.bestSave(w, abs), sv = RU.save(w, ab, L.dc, false, null, tot), ev = ab === 'dex' && RU.evasion(w); // (the better of the two: RU.bestSave)
+      var share = parts.map(function (p) { return sv.ok ? (ev ? 0 : Math.floor(p.r.total / 2)) : (ev ? Math.floor(p.r.total / 2) : p.r.total); }), n = share.reduce(function (a, x) { return a + x; }, 0);
+      lines.push('  ' + w.name + ': ' + ab.toUpperCase() + ' ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed: prone{/}') + '  {r}' + n + '{/}' + (parts.length > 1 ? ' (' + share.join(' + ') + ')' : '')); hurt.push([w, share]);
+      if (!sv.ok && !w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true; // the Leap flattens those who fail
     });
     B.card(lines, 400);
-    hurt.forEach(function (h) { FX.slash(h[0], D.PAL.ramps.red[4]); B.hurt(h[0], h[1], 'bludgeoning'); });
+    hurt.forEach(function (h) { FX.slash(h[0], D.PAL.ramps.red[4]); parts.forEach(function (p, i) { if (h[1][i] > 0 && !h[0].dead && h[0].hp > 0) B.hurt(h[0], h[1][i], p.type); }); }); // (a second type on one the first dropped is no second fall: no "goes down" twice)
     yield 34; u.anim = 'idle';
     if (B.readyHook) yield* B.readyHook(u); // (it came down within their reach: the readied strikes, once its own blow is done -- battle.js exec 'ready', 10-02)
     return true;
@@ -748,6 +753,10 @@
       var e = approach(u, tgt, G.reach(u, T.move), reachOf(u, hs));
       if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
       else if (u.bound) { // (the camera on it, churning, long enough to read: out of reach it looked frozen -- 09-30g)
+        // a bound caster whose class turn picked "its attacks" on someone its pool never reaches (tactics.js weighs the bite by move + reach, not by where the water is) still has its
+        // spells: the best of them, before it churns. The Pocket DM's level 3 naga stalled on a sleeping Lymen to the 200-round cap -- its Ray of Frost scored 3.7 and the bite 14 (10-02 runner)
+        var alt = u.classAI && T.action && D.tactics && D.tactics.plans ? D.tactics.plans(B, u).filter(function (p) { return p.kind === 'spell' && p.score > 0.5; })[0] : null;
+        if (alt) { yield* alt.go(); return; }
         if (B.focus) B.focus(u); var churn = D.spr && D.spr.anim && D.spr.anim(u.sheet, 'flinch'); if (churn) { u.anim = 'flinch'; u.animT = B.t; }
         B.card(['{g}' + the(B, u) + ' churns in its pool; no one is in its reach.{/}'], 260); yield 60; if (churn) { u.anim = 'idle'; u.animT = B.t; }
       }
@@ -759,17 +768,18 @@
     if (u.kind === 'cloaker' && inReachNow.some(function (w) { return w.vital; })) inReachNow = inReachNow.filter(function (w) { return w.vital; }); // (the one it hunts, if it got to him: 10-01c)
     // (the roper's tendrils cut or broken come back free at its turn -- rules.js startTurn; RULED 10-02, Griz: "go with SRD for combat". The seat had read the extruding as
     // its action, so a party that cut them all would see it walk in; by the SRD it never has to, and walks only when nothing it has can hold anyone: reachOf, usableOn)
-    // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow)
-    if (!inReachNow.length && ranged.length) { if (yield* volley(B, u)) return; }
-    // Enlarge (the duergar), once, when there is no one to hit yet: its pick hits for the bigger dice from now on (and its Invisibility ends)
+    // Enlarge (the duergar), once, when there is no one to hit yet: its pick hits for the bigger dice from now on (and its Invisibility ends) -- before any throw
+    // (10-02: its javelin came in, SRD 5.1; thrown first, it would never grow -- the data runner's find)
     if (!inReachNow.length && u.enlarge && !u.enlarge.used) {
       T.action = 0; u.enlarge.used = true;
       if (u.conds.invisible && u.conds.invisible.ends) { delete u.conds.invisible; B.card(['{g}' + the(B, u) + ' comes back into sight, swelling.{/}'], 200); }
-      var big = {}; Object.keys(u.attacks).forEach(function (k) { big[k] = Object.assign({}, u.attacks[k]); if (!big[k].ranged) big[k].dice = u.enlarge.dice; }); u.attacks = big;
+      var big = {}; Object.keys(u.attacks).forEach(function (k) { big[k] = Object.assign({}, u.attacks[k]); if (!big[k].ranged) big[k].dice = u.enlarge.dice; else if (big[k].enlarged) big[k].dice = big[k].enlarged; }); u.attacks = big; // (the javelin's 2d6 enlarged: SRD 5.1)
       var k0 = D.spr.scaleOf(u); u.grown = true; D.spr.regrow(u, k0); // (the look alone: drawn 1.5x, no conds.enlarged -- its dice are already the grown ones)
       D.sfx('buff'); FX.ring(u, 'stone', 30); B.card(['{r}' + the(B, u) + '{/} swells to twice its size!  {g}(Enlarge: its blows hit for ' + u.enlarge.dice + '){/}']);
       yield 30; return;
     }
+    // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow)
+    if (!inReachNow.length && ranged.length) { if (yield* volley(B, u)) return; }
     T.action = 0;
     var names = Object.keys(u.attacks || {}), routine = Array.isArray(u.multi) ? u.multi : [];
     if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);
