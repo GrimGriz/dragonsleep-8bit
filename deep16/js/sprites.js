@@ -14,16 +14,34 @@
   // draw one frame; t in frames at 60 Hz; returns the sprite's height above the foot (for labels and HP bars)
   // o.once: play through once and hold the last frame (an attack, a fall); o.alpha; o.flip: mirror; o.tint: a flash colour
   // the frame a sheet shows for anim and facing at t (S.draw and S.outline share it)
-  function frameOf(sh, anim, facing, t, o) {
+  function frameOf(sh, anim, facing, t, o, name) {
     var a = sh.anims[anim] || sh.anims.idle;
     var fw = a.fw || sh.fw, fh = a.fh || sh.fh, ax = a.ax != null ? a.ax : sh.ax, ay = a.ay != null ? a.ay : sh.ay;
     var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.frame != null ? Math.max(0, Math.min(a.frames - 1, o.frame)) : o && o.once ? Math.min(a.frames - 1, n) : n % a.frames; // (o.frame: one frame by number -- the prone, ui.js)
-    return { img: D.images[sh.image], sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay };
+    return { img: S.rock(name, D.images[sh.image]), sx: fr * fw, sy: (a.y != null ? a.y : a.row * sh.fh) + (facing % 8) * fh, fw: fw, fh: fh, ax: ax, ay: ay };
   }
+  // a creature made of the cavern's own stone (10-01e, Griz approving "browser recolor with new field"): drawn in the map's stone where
+  // the map names one (data/maps.js `stone`; js/iso.js iso.ramp) -- the sheet's brown stone ramp swapped, colour for colour, for the
+  // map's (the eye, the throat, the teeth are other ramps and stay), once per sheet and stone, so the roper's disguise matches the
+  // stalagmites round it
+  S.STONE = { roper_p1: true };
+  var rockCv = {};
+  S.rock = function (name, img) {
+    var st = D.iso && D.iso.stoneOf && D.iso.stoneOf();
+    if (!st || !name || !S.STONE[name] || !img || !img.naturalWidth) return img;
+    var key = name + ':' + st; if (rockCv[key]) return rockCv[key];
+    var cv = document.createElement('canvas'); cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+    var cx = cv.getContext('2d'); cx.drawImage(img, 0, 0);
+    var id = cx.getImageData(0, 0, cv.width, cv.height), px = id.data, to = D.iso.ramp('stone'), swap = {};
+    D.PAL.ramps.stone.forEach(function (c, i) { swap[parseInt(c.slice(1), 16)] = to[i]; });
+    for (var p = 0; p < px.length; p += 4) { if (!px[p + 3]) continue; var s = swap[(px[p] << 16) | (px[p + 1] << 8) | px[p + 2]]; if (s) { px[p] = s[0]; px[p + 1] = s[1]; px[p + 2] = s[2]; } }
+    cx.putImageData(id, 0, 0);
+    return (rockCv[key] = cv);
+  };
   S.draw = function (ctx, name, anim, facing, t, x, y, o) {
     var sh = D.SHEETS && D.SHEETS[name];
     if (!sh || !S.has(name)) return S.placeholder(ctx, name, x, y, o);
-    var f = frameOf(sh, anim, facing, t, o), img = f.img, fw = f.fw, fh = f.fh, ay = f.ay, sy = f.sy;
+    var f = frameOf(sh, anim, facing, t, o, name), img = f.img, fw = f.fw, fh = f.fh, ay = f.ay, sy = f.sy;
     var dx = Math.round(x - f.ax), dy = Math.round(y - ay), fr = f.sx / fw;
     ctx.save();
     if (o && o.alpha != null) ctx.globalAlpha = o.alpha;
@@ -48,7 +66,7 @@
   S.outline = function (ctx, name, anim, facing, t, x, y, color, o) {
     var sh = D.SHEETS && D.SHEETS[name];
     if (!sh || !S.has(name)) return;
-    var f = frameOf(sh, anim, facing, t, o), w = f.fw + 2, h = f.fh + 2, oc = S.tintCanvas(w, h), ox = oc.getContext('2d');
+    var f = frameOf(sh, anim, facing, t, o, name), w = f.fw + 2, h = f.fh + 2, oc = S.tintCanvas(w, h), ox = oc.getContext('2d');
     ox.globalCompositeOperation = 'source-over'; ox.clearRect(0, 0, w, h);
     [[0, 1], [2, 1], [1, 0], [1, 2]].forEach(function (d) { ox.drawImage(f.img, f.sx, f.sy, f.fw, f.fh, d[0], d[1], f.fw, f.fh); });
     ox.globalCompositeOperation = 'source-in'; ox.fillStyle = color; ox.fillRect(0, 0, w, h);

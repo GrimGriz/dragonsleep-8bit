@@ -23,7 +23,17 @@
 
   // ------------------------------------------------------------------ palette (from palette.js, generated from palette.json)
   function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
-  iso.ramp = function (name) { return D.PAL.ramps[name].map(hex); };
+  iso.ramp = function (name) { if (name === 'stone' && iso.stoneOf()) return STONES[iso.stoneOf()](); return D.PAL.ramps[name].map(hex); };
+  // a map's own stone (data/maps.js `stone`, 10-01e, Griz: "approve browser recolor with new field"): its rock -- the walls, the floor,
+  // the stalagmites, the cocoons' stone -- drawn in it, and a creature made of that stone (js/sprites.js S.STONE: the roper) recoloured
+  // to match. None named: brown, DEEP16's stone ramp. 'slate': the silver ramp, step for step (on the palette); 'grey': each brown
+  // step's own lightness with the colour drained (eight greys off the palette: it has no neutral grey ramp)
+  function lum(c) { return 0.299 * c[0] + 0.587 * c[1] + 0.114 * c[2]; }
+  var STONES = {
+    slate: function () { var sv = D.PAL.ramps.silver.map(hex); return D.PAL.ramps.stone.map(function (c, i, a) { return sv[Math.round(i * (sv.length - 1) / (a.length - 1))]; }); },
+    grey: function () { return D.PAL.ramps.stone.map(function (c) { var l = Math.round(lum(hex(c))); return [l, l, Math.min(255, l + 3)]; }); }
+  };
+  iso.stoneOf = function () { var s = iso.map && iso.map.def && iso.map.def.stone; return s && STONES[s] ? s : null; };
 
   // ------------------------------------------------------------------ noise (value noise, seeded per map), Bayer dither
   function h2(x, y, s) { var h = Math.imul(x, 374761393) + Math.imul(y, 668265263) + Math.imul(s, 2246822519); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }

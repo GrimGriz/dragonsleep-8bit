@@ -10,7 +10,10 @@
    goes under any floor but worked stone (SRD 5.1: burrowing is through "sand, earth, mud, or ice", never solid rock; Earth Glide is
    through "unworked earth and stone"). `noBurrow: true` -- the whole floor is worked stone (a dwarven hall); `noBurrow: '='` -- these
    squares are (the made road where it is whole, dressed blocks); none -- dig anywhere (a cave, a torn-up road: the Breach, on his word).
-   Read by js/grid.js G.solidFloor and js/ai.js burrower. The testers are asked the same on situations.html. */
+   Read by js/grid.js G.solidFloor and js/ai.js burrower. The testers are asked the same on situations.html.
+   AND WHAT STONE IT IS (10-01e, Griz: "approve browser recolor with new field"): `stone: 'grey'` or `stone: 'slate'` draws the map's
+   rock -- walls, floor, stalagmites -- in it, and a creature made of the stone with it (the roper's disguise matches the stalagmites
+   round it: js/sprites.js S.STONE); none -- brown, the cave stone every map so far is cut from. Read by js/iso.js iso.stoneOf. */
 'use strict';
 (window.D16 = window.D16 || {}).MAPS = (window.D16.MAPS || {});
 // Set design (09-27): these roads now run off the map's far edge -- an open edge is a way out (LEAVE THE FIGHT) --
