@@ -494,6 +494,28 @@
   // conditionally target allies" / "let a slept lantern be set down in current hood state"): Sleep lays a record, prone, the lantern set down hooded; HELP on the
   // sleeper wakes it, still prone; HELP on a webbed friend gives its break-free advantage, spent; the class AI wakes a sleeping friend; a Sleep from outside a
   // globe is held off; the cleric's Spiritual Weapon swing on the first ring once it is up
+  // the show (mode=show, 10-02: deep16/js/show.js, the test ground): a creature's sheet in a fight, every row twice -- FAIL for a row under two.
+  // python dev/bench16.py grick mode=show [lvl=3] [stone=grey]
+  if (get('mode', '') === 'show') {
+    var repS = { checks: [], errors: [] };
+    try {
+      D.seed = seed0 * 7919;
+      var BS = D.show.fight('?show=' + foes.join(',') + '&lvl=' + (get('lvl', '') || 3) + (get('stone', '') ? '&stone=' + get('stone', '') : ''), { bench: true });
+      D.battle = BS; BS.enter();
+      var resS = drive(BS);
+      repS.report = (BS.showReport || []).map(function (x) { return x.replace(/\{\/?[a-z]*\}/g, ''); });
+      Object.keys(BS.showTally).forEach(function (sheet) {
+        D.show.wanted(sheet, BS.showKind[sheet]).forEach(function (r) { var c = BS.showTally[sheet][r] || 0; repS.checks.push((c >= 2 ? 'ok   ' : 'FAIL ') + sheet + ' ' + r + ' ' + c); });
+        if (D.show.fallback(sheet, BS.showKind[sheet])) repS.checks.push('ok   ' + sheet + ' attack: the fallback, never played (every blow has a row of its own)');
+      });
+      repS.checks.push((resS === 'won' ? 'ok   ' : 'FAIL ') + 'the show ends ' + resS + ' in ' + BS.round + ' rounds');
+      if (wantLog) repS.log = BS.log || [];
+    } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 900)); }
+    if (errs.length) repS.errors = repS.errors.concat(errs);
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
   if (get('mode', '') === 'sleep1001c') {
     var repZ = { checks: [], errors: [] }, MZ = D.magic;
     function okZ(what, v) { repZ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

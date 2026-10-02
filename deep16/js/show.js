@@ -1,0 +1,172 @@
+/* DEEP16 — the show (10-02, Griz: "build a permanent 'test ground' with various lighting levels in it, and script a fight that should display all
+   the animations twice ... Should probably include NPCs with different views (wizard with bat & snake, someone with dark vision)"): a creature's
+   sheet in a real fight on the test ground (data/maps.js testground: bright, dim and dark; slate), every row of it played twice.
+
+     deep16/?show=grick                two of it (&n=) against four who watch by different eyes, the class AI on both sides: a wizard with a bat
+                                       (its blindsight: the sonar), a wizard with a snake (the tongue), a dwarf fighter (darkvision), a human rogue
+                                       with a torch. &lvl= the watchers' level (3); &stone=brown|grey (the test ground is slate); several
+                                       creatures: ?show=grick,xorn
+
+   The director (the seat's calls, 10-02: a test, never a rule of the game) --
+     * the creature goes first, so its Still and its Reveal play before anyone can wake it;
+     * every blow at it or from it lands (js/battle.js attack: B.show), so a blow that follows a hit -- the grick's beak -- plays, and the flinch;
+     * no one drops below 1 HP till the director says (the watchers stay up to watch; the creature lives till it has shown its rows), and the
+       creature has three times its hit points, so it flinches a while before it is down to its last;
+     * one that has not walked by the end of a turn is walked a few squares toward the watchers (a roper holds its ground); one no one has
+       hit by the end of its second turn has a stone flung at it (its flinch);
+     * once in the fight, at the end of its second turn, each is knocked flat: its prone frame, and getting up at its next turn;
+     * at the start of a turn, one that has shown every row it has (or any, from round 8) goes down: its death row.
+   The tally counts what the engine plays, not what is drawn: a row set on the unit (a run of sets between two steps of the fight is the last
+   one), a fall, a death, the Still from the start. The fight's last card reads it -- each row's count, and what played fewer than twice;
+   B.showTally and B.showReport hold it. dev/bench16.py <creature> mode=show runs it headless: FAIL for a row under two. Recipe:
+   deep16/blender-monsters.md, step 12. */
+'use strict';
+(function () {
+  var D = window.D16;
+  var SH = D.show = {};
+  SH.ROUNDS = 8;    // by this round every one on show goes down, shown or not
+  SH.HP = 3;        // its hit points, times
+  var LOOPS = { idle: 1, walk: 1, roost: 1, braid: 1, run: 1, still: 1, fly: 1, sit: 1, rofl: 1 }; // (a loop counts when it starts, not each time it is set again)
+
+  // the rows a sheet has, and 'prone' where it has a prone frame (js/sprites.js S.PRONE, the LPC fall row)
+  SH.rowsOf = function (sheet) {
+    var sh = D.SHEETS && D.SHEETS[sheet]; if (!sh) return [];
+    var r = Object.keys(sh.anims);
+    if (D.spr.proneFrame(sheet) >= 0) r.push('prone');
+    return r;
+  };
+  function see(B, u, row) {
+    var t = B.showTally[u.sheet] = B.showTally[u.sheet] || {};
+    t[row] = (t[row] || 0) + 1;
+    (u.showSeen = u.showSeen || {})[row] = (u.showSeen[row] || 0) + 1;
+  }
+  // every set of u.anim bumps a count; the step after reads what it was left at
+  function watch(u) {
+    var cur = u.anim;
+    u.showSeq = 0;
+    Object.defineProperty(u, 'anim', { configurable: true, enumerable: true, get: function () { return cur; }, set: function (v) { cur = v; u.showSeq++; } });
+  }
+  function poll(B) {
+    B.units.forEach(function (u) {
+      if (!u.show) return;
+      var s = u.showState = u.showState || { seq: 0, anim: u.anim, down: false, prone: false }, down = u.hp <= 0 || !!u.dead;
+      if (!down && u.showSeq !== s.seq) {
+        s.seq = u.showSeq;
+        if (u.anim && D.spr.anim(u.sheet, u.anim) && (!LOOPS[u.anim] || u.anim !== s.anim)) see(B, u, u.anim);
+        s.anim = u.anim;
+      }
+      if (down && !s.down && D.spr.anim(u.sheet, 'hurt')) see(B, u, 'hurt');
+      s.down = down;
+      var pr = !!u.conds.prone && !down;
+      if (pr && !s.prone && D.spr.proneFrame(u.sheet) >= 0) see(B, u, 'prone');
+      s.prone = pr;
+    });
+  }
+  // a sheet's `attack` row is only the fallback for a blow with no row of its own: where every one of the creature's attacks has its own (the
+  // xorn's claw, claw2, claw3, bite -- js/battle.js attack picks the attack's name), it never plays. Not wanted twice; the report says so
+  SH.fallback = function (sheet, kind) {
+    var d = kind && D.FOES[kind], sh = D.SHEETS && D.SHEETS[sheet];
+    if (!d || !sh || !sh.anims.attack) return false;
+    var ks = Object.keys(d.attacks || {});
+    return ks.length > 0 && ks.every(function (k) { var a = d.attacks[k]; return a.spell || sh.anims[String(a.name || k).toLowerCase().replace(/[^a-z]/g, '')]; });
+  };
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack'); }); };
+  // has it shown every row it has (but its death)?
+  function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
+
+  // ------------------------------------------------------------------ the director: the creature's turns (js/battle.js run hands them here; D.ai.turn
+  // itself is left as it is -- dev/bench16.js reads its source for a rule)
+  var turn0 = function (B, u) { return D.ai.turn(B, u); };
+  SH.turn = function* (B, u) {
+    if (u.hp > 0 && !u.dead && ((shown(u) && !u.conds.prone) || B.round >= SH.ROUNDS)) { // (one knocked flat gets up first: the prone row played back)
+      u.showFree = true; B.focus(u);
+      B.card(['{c}THE SHOW{/}: the ' + u.name + (shown(u) ? ' has shown every row it has.' : ' is out of time (round ' + SH.ROUNDS + ').') + ' Down it goes.'], 260);
+      yield 30; B.hurt(u, u.hp, 'force'); yield 60; return;
+    }
+    yield* turn0(B, u);
+    if (u.hp <= 0 || u.dead) return;
+    var seen = u.showSeen || {}, RU = D.rules;
+    u.showTurns = (u.showTurns || 0) + 1;
+    // one that has not walked by the end of its turn (a roper holds its ground and reels): a few squares toward the watchers, to see its walk
+    if (!seen.walk && D.spr.anim(u.sheet, 'walk') && u.speed > 0 && RU.canAct(u) && !u.conds.restrained && !u.conds.prone) { // (holding someone too: a roper's tendrils reach 50 ft)
+      var them = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar; });
+      var rm = D.grid.reach(u, Math.min(15, u.speed)), best = null, bd = Infinity;
+      Object.keys(rm).forEach(function (k) {
+        var c = rm[k]; if (!c.stand || !c.prev) return;
+        var d = Math.min.apply(null, them.map(function (w) { return Math.max(Math.abs(w.x - c.x), Math.abs(w.y - c.y)); }).concat([99]));
+        if (d >= 1 && d < bd) { bd = d; best = c; }
+      });
+      if (best) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not walked yet. A few steps, to see it.'], 200);
+        yield* B.moveAlong(u, D.grid.path(rm, best.x, best.y), { noOA: true });
+        u.anim = 'idle';
+      }
+    }
+    // one no one has hit by the end of its second turn (the watchers fight what is nearest; a roper stays back): a stone flung at it, through
+    // the engine's own hurt, to see it flinch
+    if (!(u.showSeen || {}).flinch && D.spr.anim(u.sheet, 'flinch') && u.showTurns >= 2 && u.hp > 1) {
+      u.anim = 'idle';
+      B.card(['{c}THE SHOW{/}: a stone flung at the ' + u.name + ', to see it flinch.'], 200);
+      B.hurt(u, 1, 'bludgeoning'); yield 30;
+    }
+    if (!u.conds.prone && !seen.prone && D.spr.proneFrame(u.sheet) >= 0 && !u.noProne && u.showTurns >= 2) {
+      u.conds.prone = true;
+      B.card(['{c}THE SHOW{/}: the ' + u.name + ' is knocked flat, to see it lie there. It gets up on its turn.'], 240);
+      yield 50;
+    }
+  };
+  // no one drops below 1 HP till the director lets it
+  var hurt0 = D.Battle.prototype.hurt;
+  D.Battle.prototype.hurt = function (u, n, type) {
+    if (this.show && u && u.hp > 0 && !u.showFree && (u.show || u.side === 'party')) n = Math.min(n, u.hp - 1);
+    return hurt0.call(this, u, n, type);
+  };
+
+  // ------------------------------------------------------------------ the report
+  SH.report = function (B) {
+    var lines = ['{c}THE SHOW{/}: what the engine played (two of each wanted)'];
+    Object.keys(B.showTally).forEach(function (sheet) {
+      var t = B.showTally[sheet], kind = B.showKind[sheet], rows = SH.wanted(sheet, kind), bits = rows.map(function (r) { var c = t[r] || 0; return (c >= 2 ? '{n}' : '{r}') + r + ' ' + c + '{/}'; });
+      lines.push(sheet + ':');
+      for (var i = 0; i < bits.length; i += 5) lines.push('  ' + bits.slice(i, i + 5).join('  '));
+      var low = rows.filter(function (r) { return (t[r] || 0) < 2; });
+      lines.push(low.length ? '  {r}under two: ' + low.join(', ') + '{/}' : '  {n}every row twice{/}');
+      if (SH.fallback(sheet, kind)) lines.push('  {g}(its `attack` row never plays: every blow has a row of its own){/}');
+    });
+    return lines;
+  };
+
+  // ------------------------------------------------------------------ the fight
+  SH.fight = function (q, o) {
+    var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
+    var L = Math.max(1, Math.min(9, +get('lvl') || 3)), kinds = (get('show') || 'grick').split(',').filter(function (k) { return D.FOES[k]; }), n = Math.max(1, +get('n') || 2);
+    if (!kinds.length) kinds = ['grick'];
+    var stone = get('stone'), mapId = 'testground';
+    if (stone && stone !== 'slate') { mapId = 'testground_' + stone; D.MAPS[mapId] = Object.assign({}, D.MAPS.testground, { stone: stone === 'brown' ? undefined : stone }); }
+    var foes = []; kinds.forEach(function (k) { for (var i = 0; i < n; i++) foes.push(k); });
+    var F = { id: 'show', level: L, map: mapId, name: 'The Test Ground', sub: 'the show: ' + kinds.join(', ') + (stone ? ' (' + stone + ')' : ''),
+      intro: 'Bright by the lamp, dim past it, dark at the far end. Four watch by their own eyes. Every row, twice.',
+      from: 'js/show.js (10-02)', won: 'THE SHOW IS OVER.', lost: 'THE SHOW WENT WRONG.', foes: [], wave: null, noFlee: true };
+    var B = new D.Battle(Object.assign({ npc: { foes: foes, party: ['wizard:' + L, 'wizard:' + L, 'fighter:' + L + ':dwarf', 'rogue:' + L + ':human'] }, watch: true,
+      familiars: [{ kind: 'bat', by: 'p0-wizard' }, { kind: 'snake', by: 'p1-wizard' }], fightDef: F }, o || {}));
+    B.show = true; B.showTally = {}; B.showKind = {};
+    var enter0 = B.enter;
+    B.enter = function () { enter0.apply(this, arguments); SH.setup(this); };
+    B.finish = function* (res) { this.showReport = SH.report(this); this.card(this.showReport, 1e9); yield* D.Battle.prototype.finish.call(this, res); };
+    return B;
+  };
+  SH.setup = function (B) {
+    B.units.forEach(function (u) {
+      if (u.side !== 'foe') return;
+      u.show = true; u.maxhp = u.hp = u.hp * SH.HP; u.init = (u.init || 0) + 100; // (first in the order: its Still and Reveal before anyone wakes it)
+      watch(u);
+      B.showTally[u.sheet] = B.showTally[u.sheet] || {}; B.showKind[u.sheet] = u.kind;
+      if (D.spr.anim(u.sheet, 'still')) see(B, u, 'still'); // (shown from the start till its first turn: js/ui.js)
+    });
+    // the torch: the watcher with no darkvision and a hand free (the rogue)
+    var tb = B.units.filter(function (u) { return u.side === 'party' && !u.familiar && !u.darkvision && u.cls !== 'wizard' && D.light.handsFree(u) > 0; })[0];
+    if (tb) { tb.torch = { lit: true }; D.light.regrip(tb); }
+    var inner = B.co;
+    B.co = (function* () { var v; while (true) { var r = inner.next(v); poll(B); if (r.done) return r.value; v = yield r.value; } })();
+  };
+})();

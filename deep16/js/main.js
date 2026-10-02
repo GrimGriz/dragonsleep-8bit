@@ -4,7 +4,8 @@
    Katarina and Torvald at each rung's level, no camp, both sides run by the class AI -- you watch (js/ladder.js).
    ?npc=cleric,wizard&lvl=5 = the class floor (&vs=fighter,rogue a band instead of the four; talmok:7 names a level; &watch: your
    side run by the class AI too) (js/classes.js); a creature of the bestiary by its name too (?npc=hyena,hyena,hyena&vs=bard&lvl=3,
-   09-30). ?fxgallery&foe=hyena: the gallery's three foes that creature instead. */
+   09-30). ?fxgallery&foe=hyena: the gallery's three foes that creature instead. ?show=grick = the test ground: two of a creature
+   against four watchers, every row of its sheet twice (js/show.js, 10-02). */
 'use strict';
 (function () {
   var D = window.D16, q = location.search;
@@ -18,6 +19,7 @@
   D.loadImages(D.spr.images(), function () {
     if (D.embed.on) D.embed.boot(); // inside the 8-bit game: the fight and the party come by postMessage (js/embed.js)
     else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
+    else if (/[?&]show=/.test(q)) D.push(D.show.fight(q)); // the test ground: ?show=grick -- every row of a creature's sheet, twice, in bright, dim and dark (js/show.js)
     else if (/[?&]npc=/.test(q)) D.push(D.npcFight(q)); // the class floor: ?npc=cleric,wizard&lvl=5 (&vs=fighter,rogue: a band instead of the four) (js/classes.js)
     else if (/[?&]fxgallery\b/.test(q)) D.push(D.fxGallery(q)); // the spell gallery: every spell cast in turn (js/gallery.js)
     else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder({ party: /[?&]party=ours\b/.test(q) ? 'ours' : null, play: /[?&]play\b/.test(q) })); // (&party=ours: the tester ladder; &play: you run our four, recorded)

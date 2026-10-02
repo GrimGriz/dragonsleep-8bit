@@ -92,7 +92,7 @@ def main(argv):
     for j in jobs:
         L = lvl or (j.split(',')[0].split(':')[1] if ':' in j.split(',')[0] else '5')
         params = {'foes': j, 'lvl': L, 'n': kw.get('n', '10'), 'seed': kw.get('seed', '1')}
-        for k in ('vs', 'fight', 'guests', 'sky', 'mode', 'ward', 'plain', 'avghp'):
+        for k in ('vs', 'fight', 'guests', 'sky', 'mode', 'ward', 'plain', 'avghp', 'stone'):
             if kw.get(k):
                 params[k] = kw[k]
         if kw.get('log'):
@@ -100,6 +100,15 @@ def main(argv):
         r = run(params)
         if 'error' in r:
             print(j, 'FAILED:', r); failed = 1
+            continue
+        if 'checks' in r and 'won' not in r and not kw.get('json'):    # (a mode: its checks, not a fight's table -- the show, 10-02)
+            print('\n'.join(r.get('report', [])))
+            print('\n'.join(r['checks']))
+            if r.get('errors'):
+                print('ERRORS: ' + ' || '.join(str(e).replace('\n', ' ')[:300] for e in r['errors']))
+            if r.get('log'):
+                print('\n'.join('      ' + x for x in r['log']))
+            failed = failed or int(bool(r.get('errors'))) or int(any(str(c).startswith('FAIL') for c in r['checks']))
             continue
         failed = failed or int(bool(r.get('errors'))) or int(any(str(c).startswith('FAIL') for c in r.get('checks', [])))
         if kw.get('json'):

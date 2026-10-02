@@ -21,7 +21,7 @@ QUICK_FIGHTS = [
 ]
 QUICK_MODES = ['rulings0930', 'features', 'charms', 'walls', 'familiar', 'globe1001c', 'ring1001c', 'sleep1001c']
 ALL_MODES = ['items', 'lantern', 'ledgerlamp', 'druid12', 'rulings0930', 'featurewalk', 'ring0930', 'campcast', 'druidlast', 'charms',
-             'walls', 'zones', 'subs', 'auras', 'familiar', 'features', 'matrix', 'globe1001c', 'ring1001c', 'sleep1001c']
+             'walls', 'zones', 'subs', 'auras', 'familiar', 'features', 'matrix', 'globe1001c', 'ring1001c', 'sleep1001c', 'show']
 ALL_SCRIPTS = [['dev/bench8.py', 'lymen'], ['dev/bench8.py', 'ingrith'], ['dev/bench8.py', 'sheets1001c'], ['dev/bench8.py', 'familiar'], ['dev/bench8.py', 'ledgerlamp8'], ['dev/bench8.py', 'ledgerlamp8seam'],
                ['dev/wet-probe.py'], ['dev/wet8-probe.py'], ['dev/pyro-probe.py'], ['dev/pyro8-probe.py']]
 
@@ -42,7 +42,7 @@ def fight(p):
     return [name + ': ' + e.replace('\n', ' ')[:300] for e in r.get('errors') or []]
 
 
-MODE_FOES = {'items': 'fighter:5'}  # (a mode that fights its foes wants real ones; the rest set up their own)
+MODE_FOES = {'items': 'fighter:5', 'show': 'grick,xorn,roper'}  # (a mode that fights its foes wants real ones; the rest set up their own. show: the Blender monsters on the test ground, every row twice -- 10-02)
 
 
 def mode(m):

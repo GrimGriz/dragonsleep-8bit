@@ -99,11 +99,15 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
     - A burrow speed from the SRD (`burrow: 20`) hands it to `deep16/js/ai.js` `burrower`. `earthGlide` makes it a quiet one, with no mound.
     - Its per-attack rows play by name.
 
-12. **The test room, then the gate.**
-    - Bench its fight: `python dev/bench16.py x fight=<id> n=4 log=1`.
-    - Open it in the pane. The xorn's room is `deep16/?npc=xorn,xorn&lvl=8&watch`; see the handoff.
+12. **The test ground, then the gate.** Griz, 10-02: *"build a permanent 'test ground' with various lighting levels in it, and script a fight that should display all the animations twice"*.
+    - **The show, headless first:** `python dev/bench16.py <creature> mode=show lvl=3` fights two of it on the test ground and prints the tally: every row of its sheet with how often the engine played it, `FAIL` for any under two, and the round it ended. Add `stone=grey` (or `brown`) for the other stones. `dev/check.py all` runs it for the grick, the xorn and the roper.
+    - **Then in the pane:** `deep16/?show=<creature>` (`&lvl=`, `&stone=brown|grey`, `&n=`; several creatures: `?show=grick,xorn`). That is `deep16/js/show.js` on `data/maps.js testground`:
+      - **The ground:** a long hall lit by one lamp at the near end. It's bright across the near half, dim in a band past it, and dark at the far end, where the creature starts. Slate stone, so a creature in `S.STONE` shows its recolour.
+      - **The watchers:** four, run by the class AI, each with their own eyes. A wizard with a bat (the sonar), a wizard with a snake (the tongue), a dwarf fighter (darkvision), and a human rogue with a torch. Hover one to see by its eyes.
+      - **The director (a test, never a rule):** the creature goes first, so its `still` and `reveal` play. Every blow at it or from it lands, so a blow that follows a hit (the grick's beak) plays, and so does the flinch. No one drops below 1 HP until the director says so, and the creature has three times its hit points. Each one is knocked flat at the end of its second turn and gets up at its next, which shows the prone frame both ways. One that hasn't walked by the end of its turn is walked a few squares (the roper holds its ground). One that has shown every row goes down at the start of its turn, after it has got up, which plays its death. Every one goes down from round 8.
+      - **The tally** counts what the engine plays (a row set on the unit, a fall, a death, the still from the start), not what is drawn. The last card reads it. A sheet's `attack` row is listed as never played where every blow has a row of its own (the xorn's), and isn't wanted twice.
     - Run `python dev/check.py` and get GREEN before you push.
-    - **Griz's eyes in the room decide; only then does it come off the wanted list.**
+    - **Griz's eyes on the test ground decide; only then does it come off the wanted list.**
 
 ## Without a base mesh (the roper, 10-01e)
 
@@ -134,6 +138,8 @@ The third monster. MZ4250's "Grick Updated" (Thingiverse 4738607, CC BY) ships t
 - **`EditBone.transform` re-rolls.** Turning the bones with it re-rolled them, and the artist's pose came out wild (the worm 4.7 squares tall). Set `eb.matrix = X @ eb.matrix` instead; it keeps head, direction and roll together.
 - **The bob seats the figure.** `render-sprites.py` puts the idle's first frame on the ground. An idle bob that dips below that frame sinks into the floor, so start it at its lowest.
 - **A camera aimed before the turn.** Aim the close-up camera after the figure is turned to its facing, or it frames empty air.
+- **A walk on top of a standing pose scrunches.** Griz: *"their idle pose is like standing and I just thought they'd flatten out more snake-like when they were moving"*. A wave added as bends to a coil sums down the chain and pulls the loop tight. The grick's walk is a path of its own (`slither` in `tools/grick-blend.py`). Fully stretched it ran four squares, the model's whole length, so it folds into a tighter S of about three.
+- **Don't wrap `D.ai.turn`.** `dev/bench16.js` reads its source for a rule (rulings0930), and a wrapper turned `dev/check.py` RED. The show's director is handed its turns by `js/battle.js` run instead.
 
 
 - **`fit` measured the holdout floor** (200 units across) and asked for an 8010 px frame; Blender died rendering it at 4x without a word (exit 9). It measures only the meshes in `show` now.

@@ -794,6 +794,9 @@
       if (by) { w.tween = { fx: x0, fy: y0, fz: 0, t: 0, dur: B.pace(18, true) }; said.push([w.name, by + ' ft' + (G.dist(u, w) <= 5 ? '' : ' (still out of its reach)')]); }
     });
     if (said.length) { B.card(['{r}' + the(B, u) + '{/} reels ' + (said.length > 1 ? 'them in: ' + said.map(function (s) { return s.join(' '); }).join(', ') : said[0][0] + ' in ' + said[0][1]) + '.']); D.sfx('run'); yield 24; }
+    // (back to idle once it has reeled: left at 'reel', a roper that ended its turn reeling -- no one in reach for the bite -- never flinched
+    // under a blow till its next turn, battle.js hurt reading only an idle one. The test ground's show found it, 10-02)
+    if (u.anim === 'reel') u.anim = 'idle';
   }
 
   // the helpers the class tactics share (js/tactics.js)

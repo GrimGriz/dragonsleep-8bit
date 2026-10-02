@@ -552,6 +552,40 @@ window.D16.MAPS.siphon = {
   wave: null
 };
 
+// The test ground (10-02, Griz: "build a permanent 'test ground' with various lighting levels in it, and script a fight that should display
+// all the animations twice"): a long hall lit from the near end. One lamp on the dressed apron by the way in, bright 20 ft and dim 20 more:
+// BRIGHT across the near half, DIM in a band past it, DARK at the far end and its corners, where only darkvision, the bat's sonar or the
+// snake's tongue find anything. No walls between: nothing stands in front of what is being looked at. Stalagmites for scale and for the
+// stone. Slate (`stone`), so a creature made of stone shows its recolour (js/show.js &stone=brown|grey for the others). Raw floor: a burrower
+// digs. Not a place in the realm -- js/show.js fights a creature here: deep16/?show=grick (deep16/blender-monsters.md, step 12).
+window.D16.MAPS.testground = {
+  name: 'The Test Ground',
+  sub: 'bright, dim, dark',
+  dark: true, lights: [[9, 12, 20, 'gold']], // the lamp: bright 20 ft (to row 8), dim 20 more (to row 4); rows 1-3 dark
+  stone: 'slate',
+  step: 10,
+  rows: [
+    '####################',
+    '#.......P..........#',
+    '#..P...........P...#',
+    '#..................#',
+    '#.....P......P.....#',
+    '#..................#',
+    '#.P..............P.#',
+    '#..................#',
+    '#..................#',
+    '#...P..........P...#',
+    '#..................#',
+    '#..................#',
+    '#.......====.......#',
+    '########....########',
+    '########====########'
+  ],
+  entry: [[9, 12], [10, 12], [8, 12], [11, 12], [9, 13], [10, 13]],
+  foes: [],
+  wave: null
+};
+
 // The open cavern south of the road (the 8-bit game's S.grickDen, leg one): stalagmites everywhere, and the dark in it
 // is where things come from. The gricks start hidden among the stone.
 window.D16.MAPS.grickden = {

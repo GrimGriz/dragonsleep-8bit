@@ -165,7 +165,31 @@ def bends(P, t=0.0):
             add(n, Q(UP, P['tailwave'] * min(1.0, (j - 2) / 4.0) * math.sin(2 * math.pi * t - 0.45 * j)))
         if P.get('taildroop') and j >= nT - 11:
             v = pdir(n); add(n, Q(v.cross(Vector((0, 0, -1))), P['taildroop']))
+    if P.get('slither'):
+        slither(d, P, t)
     return d
+
+
+def slither(d, P, t):
+    """the walk (Griz, 10-02: "their idle pose is like standing and I just thought they'd flatten out more snake-like when they were
+    moving"): not bends on the standing coil but a path of its own -- the neck laid forward along the ground, the head lifted at its end,
+    the tail trailing behind, down to the ground and its raised tip with it, and one sine wave through the whole body (lateral `slither`
+    units, `lam` long) travelling from head to tail as t goes round. Each bone is turned onto its piece of the path in its chain's frame:
+    with G the turn its chain has taken so far, d = v.rotation_difference(G^-1 T), and G = G d (the roper's turtle)."""
+    a, k, w = P['slither'], 2 * math.pi / P.get('lam', 34.0), 2 * math.pi * t
+    nN = len(NECK)
+    for ch, back in ((NECK, False), (TAIL, True)):
+        G = Quaternion(); f = 0.0
+        for j, n in enumerate(ch):
+            L = BN[n].length; fm = f + L / 2; fwd = -fm if back else fm      # (fwd: along the body toward the head, 0 at the hip)
+            dx = a * k * math.cos(k * fwd + w) * (-1 if back else 1)
+            if back:                                                         # the tail: down from the hip as the artist laid it, then flat
+                z = pdir(n).z if j < 5 else 0.0
+            else:                                                            # the neck: flat, the head lifted at its end
+                z = 0.0 if j < nN - 6 else (0.32 if j < nN - 2 else 0.1)
+            T = Vector((dx, 1.0 if back else -1.0, z)).normalized()
+            dq = pdir(n).rotation_difference(G.inverted() @ T)
+            d[n] = dq; G = G @ dq; f += L
 
 
 def solve(d, lift=0.0):
@@ -203,8 +227,10 @@ def row_idle(i, n):
 
 
 def row_walk(i, n):
-    t = i / n
-    return dict(pitch=5 * math.sin(4 * math.pi * t), yaw=7 * math.sin(2 * math.pi * t), tent=-6, twave=6, tailwave=7, lift=0.35 * abs(math.sin(2 * math.pi * t))), t
+    t = i / n      # (laid flat and slithering: slither() above; the tentacles swept back a little)
+    # (sl 9, lam 22: of three tried on 10-02 -- 6/34 stretched it four squares, the whole length of the model; 11/18 folded the thick body
+    # into lumps -- the one that reads as a snake and keeps to about three; lifted 3.6 so its belly does not sink)
+    return dict(slither=float(OPT.get('sl', 9)), lam=float(OPT.get('lam', 22)), tent=-12, twave=5, lift=float(OPT.get('wlift', 3.6))), t
 
 
 STILL = dict(pitch=40, low=30, tent=-48, curl=-4, jaw=0, taildroop=9)      # (the tentacles swept back along the neck: closed over the beak, the hooks went into the floor)

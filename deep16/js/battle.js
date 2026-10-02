@@ -475,6 +475,7 @@
         if (u.dead) continue;
         this.active = u;
         if (u.side === 'party' && !u.guest) yield* this.heroTurn(u);
+        else if (this.show && u.show) yield* D.show.turn(this, u); // (the test ground's director, js/show.js: the AI's turn with its nudges about it)
         else yield* D.ai.turn(this, u);
         this.active = null;
         if (D.familiar && !u.familiar) yield* D.familiar.after(this, u); // (his familiar's turn, right after his: js/familiar.js)
@@ -937,7 +938,8 @@
     if (baneR && !e.pen) e.penWhy = 'bane';
     var critAt = att.crit || 20;
     var hit = nat === 20 || (nat !== 1 && total >= ac)
-      || !!(atk.autoHitHeld && tgt.conds.restrained && tgt.conds.restrained.by === att.id); // the cloaker's bite on the one it has engulfed
+      || !!(atk.autoHitHeld && tgt.conds.restrained && tgt.conds.restrained.by === att.id) // the cloaker's bite on the one it has engulfed
+      || !!(this.show && (att.show || tgt.show)); // the show (js/show.js, the test ground): every blow at or from the creature on show lands, so every row plays
     // a bard's dice (js/features.js): Bardic Inspiration turns a miss, Cutting Words a hit
     if (!hit && nat !== 1 && att.conds.inspired && D.features) { var bi = D.features.inspire(att, ac - total); if (bi) { total += bi; pen += bi; hit = total >= ac; } }
     if (hit && nat !== 20 && D.features) { var cw = D.features.cutting(this, att, tgt, total - ac); if (cw) { total -= cw; pen -= cw; hit = total >= ac; } }
