@@ -159,6 +159,23 @@ generator: turns, commands, attacks and their reactions, the spells) · `js/ai.j
 A stepped harness for testing lives in `dev/deep16-harness.js` (gitignored): pause the loop, drive a turn per call,
 rig the dice, inject an attack.
 
+**The roper's tendrils, and Ready** (10-02, `handoff-2026-10-01-the-tendrils-and-ready`; SRD 5.1 Grasping Tendrils, Ready): a
+tendril that lands rides the grip as a thing of its own (`conds.restrained.tendril`: AC 20, 10 HP, immune to poison and psychic)
+-- struck at with ATTACK on the held one's square, or your own while held (`battle.js tendrilOn`, `strikeTendril`: the weapon's
+dice, no sneak or smite, a natural 1 on the friend), or BREAK THE TENDRIL on the ring (a DC 15 STR check, by the one held or
+anyone beside; `exec breaktendril`), and the grip ends with it (`tendrilGone`). BREAK FREE is the grapple's escape and leaves
+the tendril whole. A tendril lost is one fewer to throw (`u.tendrilsLost`); with none to throw the roper's reach is its bite's
+and it walks in, extruding one back as its action when it has nothing in reach (`ai.js reachOf`, `brute`). The class AI weighs
+the escape, cutting the tendril and fighting on by the odds (`tactics.js freeHow`, `pEscape`, `pCut`), and a friend's break or
+cut against its swing at the roper. **READY** (ACTIONS): one trigger, the first foe that comes within reach -- for a bow, a
+thrown weapon or an attack spell, into sight and range -- and a single weapon attack, or an attack-shaped spell cast now and
+held under concentration, its slot spent (`exec ready`; sprung by `readyHook` from a step, a burrower up, a phase spider out, a
+spell's end, a blow from hiding; let go at the next turn, `rules.js startTurn`). The class AI and the plain guests ready
+against a foe under the ground or out of the world (`tactics.js readyWanted`, `readyUp`). The bulette bites and dives again
+with the move it has left (`ai.js diveAfter`, data/foes.js `diveAfter`), the opportunity attacks of those beside it first
+(`battle.js provoke`). Benched: `dev/bench16.js` modes `tendrils1002` (his test among them: the party at a distance cutting
+every tendril, till it walks in to bite) and `ready1002` (the Breach itself), both in `dev/check.py`'s gate.
+
 **The climb** (09-27, `js/climb.js`, `?climb`, or C / the button on the ladder; Griz: "an alternate mode that goes
 fight-by-fight 1-9 (random of created battles)"): one party from level 1 (Barley in splint, as on the ladder). Each
 rung draws a fight at random from the rung's; the camp comes before it (a long rest between fights; the gear chosen

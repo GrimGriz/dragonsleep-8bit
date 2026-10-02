@@ -574,6 +574,156 @@
     document.body.appendChild(preZ);
     return;
   }
+  // the roper's tendrils as things to strike and break (mode=tendrils1002; 10-02, handoff-2026-10-01-the-tendrils-and-ready §4.1 -- Griz: "put the tendril bit in the same
+  // handoff it's all game mechanics"; SRD 5.1 Grasping Tendrils): the grip carries the tendril (AC 20, 10 HP, immune to poison and psychic); BREAK THE TENDRIL on the ring for
+  // the one held and a friend beside, not for one 30 ft off; a break frees the held one and the roper is a tendril short; a blow at it hurts the tendril and not the roper,
+  // and cuts it through; poison does nothing to it; six held-or-lost and no tendril grabs; the held one's choice by the numbers; a friend's plans name it; the mouse: ATTACK
+  // on the held friend's square, and on your own while held; and his test -- the party at a distance cutting every tendril, till it walks in to bite
+  if (get('mode', '') === 'tendrils1002') {
+    var repT = { checks: [], errors: [] }, d0T = D.d;
+    function okT(what, v) { repT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runT(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkT(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); return Bx; }
+    function dieT(n) { D.d = function (s) { return Math.min(s, n); }; } // (every die at n, or the die's top)
+    function logT(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      var B1 = mkT('?npc=roper&lvl=5&vs=fighter,wizard,cleric'), rp = B1.units.filter(function (u) { return u.side === 'foe'; })[0], ps = B1.units.filter(function (u) { return u.side === 'party'; });
+      var ft = ps.filter(function (u) { return u.cls === 'fighter'; })[0], wz = ps.filter(function (u) { return u.cls === 'wizard'; })[0], cl = ps.filter(function (u) { return u.cls === 'cleric'; })[0];
+      rp.x = 9; rp.y = 2; rp.woken = true; rp.acted = true; ft.x = 9; ft.y = 9; wz.x = 10; wz.y = 9; cl.x = 15; cl.y = 9;
+      // 1 the grip carries the tendril
+      D.rules.startTurn(rp); dieT(15); runT(B1.attack(rp, ft, rp.attacks.tendril)); D.d = d0T;
+      var tn = ft.conds.restrained && ft.conds.restrained.tendril;
+      okT('a tendril lands: held ' + !!ft.conds.restrained + ', the tendril on the grip ' + JSON.stringify(tn) + ', holding ' + (rp.holding || []).length, !!tn && tn.ac === 20 && tn.hp === 10 && (rp.holding || []).length === 1);
+      // 2 the ring and the mouse
+      D.rules.startTurn(wz); D.rules.startTurn(cl); D.rules.startTurn(ft);
+      var cw = B1.commands(wz).filter(function (x) { return x.id === 'breaktendril'; })[0], cc = B1.commands(cl).filter(function (x) { return x.id === 'breaktendril'; })[0], cf = B1.commands(ft).filter(function (x) { return x.id === 'breaktendril'; })[0];
+      okT('BREAK THE TENDRIL: the wizard beside ' + !!(cw && cw.ok) + ' (' + (cw && cw.note) + '), the fighter held ' + !!(cf && cf.ok) + ', the cleric 30 ft off ' + !!cc, !!(cw && cw.ok) && !!(cf && cf.ok) && !cc);
+      B1.tool = 'attack'; var vA = D.ui.valid(B1, wz, ft.x, ft.y), vS = D.ui.valid(B1, ft, ft.x, ft.y), vC = D.ui.valid(B1, cl, ft.x, ft.y); B1.tool = 'breaktendril'; var vB = D.ui.valid(B1, wz, ft.x, ft.y), vBc = D.ui.valid(B1, cl, ft.x, ft.y); B1.tool = 'move';
+      okT('the mouse, ATTACK cued: the wizard on the held fighter\'s square ' + vA + ', the fighter on his own ' + vS + ', the cleric from 30 ft with a mace ' + vC + '; BREAK cued: the wizard ' + vB + ', the cleric ' + vBc, vA === 'ok' && vS === 'ok' && vC === 'no' && vB === 'ok' && vBc === 'no');
+      // 3 the break: the wizard's STR check at 20 -- free, and the roper a tendril short
+      dieT(20); runT(B1.exec(wz, { do: 'breaktendril', target: ft })); D.d = d0T;
+      okT('the wizard breaks it: held ' + !!ft.conds.restrained + ', the roper\'s tendrils lost ' + rp.tendrilsLost + ', holding ' + (rp.holding || []).length + ', the action spent ' + (wz.turn.action === 0), !ft.conds.restrained && rp.tendrilsLost === 1 && !(rp.holding || []).length && wz.turn.action === 0);
+      // 4 six held-or-lost: a tendril hit holds no one
+      rp.tendrilsLost = 6; dieT(15); runT(B1.attack(rp, ft, rp.attacks.tendril)); D.d = d0T;
+      okT('six lost: a tendril hit holds no one (' + !!ft.conds.restrained + ')', !ft.conds.restrained);
+      // 5 the cut: held again; the fighter\'s own blows at the tendril hurt it and not the roper, and cut it through; his move comes back
+      rp.tendrilsLost = 0; dieT(15); runT(B1.attack(rp, ft, rp.attacks.tendril)); D.d = d0T; var hp0 = rp.hp;
+      D.rules.startTurn(ft); B1.active = ft; var st = D.Battle.tendrilOn(ft, ft, B1.units);
+      okT('held again: the stub ' + (st && st.name) + ' AC ' + (st && st.ac) + ' at (' + (st && st.x) + ',' + (st && st.y) + '), his move ' + ft.turn.move, !!st && st.ac === 20 && st.x === ft.x && st.y === ft.y && ft.turn.move === 0);
+      dieT(18); var n5 = (B1.log || []).length; runT(D.tactics.strikeHeld(B1, ft)); D.d = d0T;
+      var l5 = logT(B1, n5);
+      okT('the fighter cuts at it: the roper ' + hp0 + ' -> ' + rp.hp + ' HP, free ' + !ft.conds.restrained + ', lost ' + rp.tendrilsLost + ', his move back ' + ft.turn.move + ' -- ' + l5.slice(0, 160), rp.hp === hp0 && !ft.conds.restrained && rp.tendrilsLost === 1 && ft.turn.move === ft.speed && /tendril/.test(l5));
+      // 6 poison does nothing to it
+      rp.tendrilsLost = 0; dieT(15); runT(B1.attack(rp, ft, rp.attacks.tendril)); D.d = d0T;
+      var st6 = D.Battle.tendrilOn(wz, ft, B1.units); dieT(18); runT(B1.strikeTendril(wz, st6, { name: 'Venom', atk: 20, dice: '3d6', mod: 0, type: 'poison' })); D.d = d0T;
+      okT('a poisoned blow at it: the tendril ' + ft.conds.restrained.tendril.hp + ' of 10', ft.conds.restrained.tendril.hp === 10);
+      // 7 the held one\'s choice by the numbers (tactics.js freeHow): with a handaxe in the pack the throw is weighed against the escape (and loses, at disadvantage against
+      // AC 20); without one, the escape unless cutting is the better chance
+      D.rules.startTurn(ft); var howA = D.tactics.freeHow(B1, ft), alt0 = ft.alt; ft.alt = null;
+      var pE = D.tactics.pEscape(ft), pC = D.tactics.pCut(B1, ft, D.Battle.tendrilOn(ft, ft, B1.units), ft.weapon), how = D.tactics.freeHow(B1, ft);
+      ft.conds.restrained.tendril.hp = 1; var pC1 = D.tactics.pCut(B1, ft, D.Battle.tendrilOn(ft, ft, B1.units), ft.weapon), how1 = D.tactics.freeHow(B1, ft); ft.conds.restrained.tendril.hp = 10; ft.alt = alt0;
+      okT('held, the roper 35 ft off: with the ' + (alt0 && alt0.name) + ' in the pack -> ' + howA + '; without it, the escape ' + pE.toFixed(2) + ', the cut ' + pC.toFixed(2) + ' -> ' + how + '; the tendril at 1 HP: the cut ' + pC1.toFixed(2) + ' -> ' + how1 + ' (a greatsword cuts 10 HP in one hit: the same odds)', howA === 'escape' && how === (pC > pE ? 'strike' : 'escape') && how1 === (pC1 > pE ? 'strike' : 'escape') && pC1 >= pC && pC > 0 && pE > 0 && pE < 1);
+      // 8 a friend\'s plans: the wizard beside the held fighter names the tendril
+      D.rules.startTurn(wz); var pl = D.tactics.plans(B1, wz), tp = pl.filter(function (p) { return p.kind === 'break' || p.kind === 'cut'; });
+      okT('the wizard\'s plans beside him: ' + pl.slice(0, 4).map(function (p) { return p.kind + ' ' + p.why + ' ' + p.score.toFixed(1); }).join(' | '), tp.length >= 1 && tp.some(function (p) { return p.kind === 'break'; }));
+      okT('HELP still offered the wizard for the held fighter: ' + B1.commands(wz).some(function (x) { return x.id === 'help' && x.ok; }), B1.commands(wz).some(function (x) { return x.id === 'help' && x.ok; }));
+      // 9 the AI roper with every tendril gone and no one in its reach walks in (its reach is the bite\'s now) and extrudes one with its action
+      var B2 = mkT('?npc=roper&lvl=5&vs=fighter'), r2 = B2.units.filter(function (u) { return u.side === 'foe'; })[0], f2 = B2.units.filter(function (u) { return u.side === 'party'; })[0];
+      r2.x = 9; r2.y = 2; r2.woken = true; r2.acted = true; f2.x = 9; f2.y = 9; r2.tendrilsLost = 6;
+      var n9 = (B2.log || []).length, y9 = r2.y; runT(D.ai.turn(B2, r2)); var l9 = logT(B2, n9);
+      okT('every tendril gone, the fighter 30 ft off: it walked ' + (r2.y - y9) * 5 + ' ft and ' + (/extrudes/.test(l9) ? 'extruded one (lost now ' + r2.tendrilsLost + ')' : 'did not extrude') + ' -- ' + l9.slice(0, 120), r2.y > y9 && /extrudes/.test(l9) && r2.tendrilsLost === 5);
+      // 10 his test (10-02, Griz: "have the party keep their distance and kill all the tendrils, then see if it walks to bite"): four fighters 40 ft off, every blow landing,
+      // each round cutting every tendril thrown and walking back out; one tendril back a turn as its action; it comes on 10 ft a turn, and bites when that brings one in reach
+      var B9 = mkT('?npc=roper&lvl=5&vs=fighter,fighter,fighter,fighter'), r9 = B9.units.filter(function (u) { return u.side === 'foe'; })[0], p9 = B9.units.filter(function (u) { return u.side === 'party'; });
+      r9.x = 9; r9.y = 2; r9.woken = true; r9.acted = true; p9.forEach(function (h, i) { h.x = 8 + i; h.y = 11; h.hp = h.maxhp = 200; h.home = [8 + i, 11]; });
+      var walked = 0, bit = -1, lostMax = 0, extruded = 0, trail = [];
+      for (var rr = 1; rr <= 12 && bit < 0; rr++) {
+        B9.round = rr; var x0 = r9.x, y0 = r9.y, n10 = (B9.log || []).length;
+        dieT(15); runT(D.ai.turn(B9, r9)); D.d = d0T;
+        var l10 = logT(B9, n10);
+        if (r9.x !== x0 || r9.y !== y0) walked++;
+        if (/extrudes/.test(l10)) extruded++;
+        if (/Bite/.test(l10)) bit = rr;
+        trail.push('R' + rr + ': lost ' + r9.tendrilsLost + ', holding ' + (r9.holding || []).length + ', at (' + r9.x + ',' + r9.y + ')' + (/extrudes/.test(l10) ? ' extruded' : '') + (/reels/.test(l10) ? ' reeled' : '') + (/Bite/.test(l10) ? ' BIT' : ''));
+        if (bit > 0) break;
+        p9.forEach(function (h) {
+          D.rules.startTurn(h); B9.active = h;
+          var tgt = [h].concat(p9.filter(function (w) { return w !== h && D.grid.dist(h, w) <= 5; })).filter(function (w) { return D.Battle.tendrilOn(h, w, B9.units); })[0];
+          if (tgt) { dieT(18); var sx = D.Battle.tendrilOn(h, tgt, B9.units); while (sx && (h.turn.action || h.turn.attacksLeft)) { runT(B9.exec(h, { do: 'attack', target: sx })); sx = D.Battle.tendrilOn(h, tgt, B9.units); } D.d = d0T; }
+          if (!h.conds.restrained && (h.x !== h.home[0] || h.y !== h.home[1]) && h.turn.move > 0) { var rmH = D.grid.reach(h, h.turn.move), pH = D.grid.path(rmH, h.home[0], h.home[1]); if (pH && pH.length) runT(B9.moveAlong(h, pH, { spend: true })); }
+        });
+        lostMax = Math.max(lostMax, r9.tendrilsLost);
+      }
+      okT('his test: ' + trail.join(' / ') + ' -- lost at most ' + lostMax + ', walked on ' + walked + ' turns, extruded ' + extruded + ', bit on round ' + bit, lostMax >= 6 && walked >= 1 && extruded >= 1 && bit > 0);
+    } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
+    D.d = d0T;
+    if (errs.length) repT.errors = repT.errors.concat(errs);
+    var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
+    document.body.appendChild(preT);
+    return;
+  }
+  // Ready, and the burrowers' bite-and-dive (mode=ready1002; 10-02, handoff-2026-10-01-the-tendrils-and-ready §4.2; SRD 5.1 Ready): READY among the ACTIONS; a readied weapon
+  // springs when a foe walks into reach; the class AI readies against a burrower under the ground (a wizard its cantrip, a fighter its blade); the bulette comes up beside the
+  // weakest into the readied strikes, bites, and goes under again with the move it has left; the dive provokes the opportunity attacks of those beside it; a readied spell
+  // not sprung dissipates at the caster's next turn, its slot spent
+  if (get('mode', '') === 'ready1002') {
+    var repY = { checks: [], errors: [] }, d0Y = D.d;
+    function okY(what, v) { repY.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runY(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkY(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); return Bx; }
+    function logY(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // 1 a goblin walks into a readied fighter's reach
+      var B1 = mkY('?npc=goblin&lvl=5&vs=fighter'), gb = B1.units.filter(function (u) { return u.side === 'foe'; })[0], f1 = B1.units.filter(function (u) { return u.side === 'party'; })[0];
+      f1.x = 9; f1.y = 9; gb.x = 9; gb.y = 4;
+      D.rules.startTurn(f1); var ring = D.ui.cmds(B1, f1), acts = ring.filter(function (x) { return x.id === 'actions'; })[0], rdy = acts && acts.items.filter(function (x) { return x.id === 'ready'; })[0];
+      okY('READY among the ACTIONS: ' + !!rdy + ' (' + (rdy && rdy.note) + ')', !!rdy && rdy.ok);
+      runY(B1.exec(f1, { do: 'ready', pick: 'weapon' }));
+      okY('readied: ' + JSON.stringify(f1.ready && { what: f1.ready.what, name: f1.ready.name }) + ', the action spent ' + (f1.turn.action === 0) + ', had ' + JSON.stringify(f1.ready && f1.ready.had), !!f1.ready && f1.ready.what === 'weapon' && f1.turn.action === 0);
+      D.rules.startTurn(gb); var n1 = (B1.log || []).length; D.d = function (s) { return Math.min(s, 18); };
+      runY(B1.moveAlong(gb, [[9, 5], [9, 6], [9, 7], [9, 8]], { spend: true })); D.d = d0Y;
+      var l1 = logY(B1, n1);
+      okY('the goblin walks up: the readied strike ' + /readied/.test(l1) + ', the reaction spent ' + (f1.reaction === 0) + ', the ready gone ' + !f1.ready + ' -- ' + l1.slice(0, 160), /readied/.test(l1) && f1.reaction === 0 && !f1.ready);
+      // 2 the Breach itself (data/fights.js bulette: under the road at [9,1]), the four at their places: the class AI readies (Barley his flail, Aurdin his Fire Bolt)
+      var B2 = new D.Battle({ ladder: true, fight: 'bulette', bench: true }); D.battle = B2; B2.enter(); while (!B2.order.length) B2.co.next();
+      var bl = B2.units.filter(function (u) { return u.side === 'foe'; })[0], p2 = B2.units.filter(function (u) { return u.side === 'party'; }), f2 = p2.filter(function (u) { return u.cls === 'fighter'; })[0], w2 = p2.filter(function (u) { return u.cls === 'wizard'; })[0];
+      bl.leap.ready = false; bl.leap.recharge = 7; bl.speed = 80; // (no Leap; the move to dig in and still dive after)
+      okY('the bulette under at (' + bl.x + ',' + bl.y + '): under ' + !!bl.under + ', wanted by ' + f2.name + ' ' + D.tactics.readyWanted(B2, f2) + ', by ' + w2.name + ' ' + D.tactics.readyWanted(B2, w2), !!bl.under && D.tactics.readyWanted(B2, f2) && D.tactics.readyWanted(B2, w2));
+      p2.forEach(function (h) { D.rules.startTurn(h); runY(D.tactics.turn(B2, h)); });
+      var readied = p2.map(function (h) { return h.name + ': ' + (h.ready ? h.ready.what + ' ' + h.ready.name : 'nothing'); }).join(', ');
+      okY('the class AI readies: ' + readied + ' (' + w2.name + '\'s concentration: ' + (w2.conc && w2.conc.name) + ')', !!f2.ready && f2.ready.what === 'weapon' && !!w2.ready && w2.ready.what === 'spell' && !!(w2.conc && w2.conc.id === 'ready'));
+      // 3 it digs in under the road (more than one turn from [9,1]; the four ready again each round, a ready lapsing at its hero's next turn) and comes up beside one of them:
+      // the readied strikes spring on the way up, it bites, and it dives with the move it has left
+      var l3 = '', rx3 = 0, sprung = 0, nRead = 0, turns3 = 0;
+      for (var t3 = 0; t3 < 4; t3++) {
+        rx3 = p2.filter(function (h) { return h.ready; }).length; var n3 = (B2.log || []).length; D.d = function (s) { return Math.min(s, 16); };
+        runY(D.ai.turn(B2, bl)); D.d = d0Y; turns3++;
+        l3 = logY(B2, n3);
+        if (/bursts up/.test(l3) || bl.dead || bl.hp <= 0) break;
+        p2.forEach(function (h) { D.rules.startTurn(h); runY(D.tactics.turn(B2, h)); });
+      }
+      sprung = p2.filter(function (h) { return !h.ready && h.reaction === 0; }).length; nRead = (l3.match(/readied/g) || []).length;
+      okY('its turn ' + turns3 + ': up ' + /bursts up/.test(l3) + ', readied strikes sprung ' + sprung + ' of ' + rx3 + ' (' + nRead + ' in the log), ' + w2.name + '\'s concentration gone ' + !w2.conc + ', the bite ' + /Bite/.test(l3) + ', under again ' + (bl.under === true) + ' (dives ' + /dives into the ground/.test(l3) + ') -- ' + l3.slice(0, 300), /bursts up/.test(l3) && sprung >= 1 && nRead >= 1 && (bl.dead || bl.hp <= 0 || (bl.under === true && /dives into the ground/.test(l3))));
+      // 4 the dive provokes: beside a fighter with its reaction, the opportunity attack comes first
+      var B4 = mkY('?npc=bulette&lvl=5&vs=fighter'), b4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0], f4 = B4.units.filter(function (u) { return u.side === 'party'; })[0];
+      b4.x = 9; b4.y = 5; f4.x = 9; f4.y = 7; f4.reaction = 1; D.rules.startTurn(b4);
+      var n4 = (B4.log || []).length; runY(B4.provoke(b4, 'diving under')); var l4 = logY(B4, n4);
+      okY('the dive provokes: ' + /opportunity attack/.test(l4) + ', the reaction spent ' + (f4.reaction === 0) + ' -- ' + l4.slice(0, 120), /opportunity attack/.test(l4) && f4.reaction === 0);
+      // 5 a readied spell not sprung dissipates at the caster's turn, with its slot; the guest AI readies too
+      var B5 = mkY('?npc=goblin&lvl=5&vs=wizard'), w5 = B5.units.filter(function (u) { return u.side === 'party'; })[0], g5 = B5.units.filter(function (u) { return u.side === 'foe'; })[0];
+      g5.ethereal = true; w5.x = 9; w5.y = 9; g5.x = 9; g5.y = 2; D.rules.startTurn(w5);
+      var li5 = D.magic.list(B5, w5), e5 = li5.filter(function (x) { return x.id === 'magicmissile' && x.ok; })[0] || li5.filter(function (x) { return x.id === 'firebolt' && x.ok; })[0], s5 = e5 && e5.level ? w5.slots[e5.slot - 1] : null;
+      if (e5) runY(B5.exec(w5, { do: 'ready', pick: e5 }));
+      okY((e5 && e5.name) + ' readied: the slot spent now (' + s5 + ' -> ' + (e5 && e5.level ? w5.slots[e5.slot - 1] : '-') + '), concentration ' + (w5.conc && w5.conc.name), !!e5 && (s5 == null || w5.slots[e5.slot - 1] === s5 - 1) && !!w5.ready && !!(w5.conc && w5.conc.id === 'ready'));
+      var n5 = (B5.log || []).length; D.rules.startTurn(w5); var l5 = logY(B5, n5);
+      okY('her next turn: the ready gone ' + !w5.ready + ', the concentration gone ' + !w5.conc + ', the slot stays spent (' + (e5 && e5.level ? w5.slots[e5.slot - 1] : '-') + ') -- ' + l5.slice(0, 100), !w5.ready && !w5.conc && (s5 == null || w5.slots[e5.slot - 1] === s5 - 1) && /dissipates/.test(l5));
+    } catch (eY) { repY.errors.push(String(eY && eY.stack || eY).slice(0, 900)); }
+    D.d = d0Y;
+    if (errs.length) repY.errors = repY.errors.concat(errs);
+    var preY = document.createElement('pre'); preY.id = 'out'; preY.textContent = 'BENCH16 ' + JSON.stringify(repY);
+    document.body.appendChild(preY);
+    return;
+  }
   // the first ring, each class's (mode=ring1001c; 10-01c, the ring survey's picks -- js/ui.js QUICK, BESIDE, FRONT): a player's hero of each class at 5, its
   // commands in order, the go-to where it should stand and its weapon not lost
   if (get('mode', '') === 'ring1001c') {

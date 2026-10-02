@@ -187,6 +187,9 @@
     var best = null;
     B.units.forEach(function (w) {
       if (!D.Battle.helpable(u, w)) return;
+      // (a hand to one held: not from one held itself -- its own grip first -- and not to one whose tactics would fight on from the grip rather than wrench at it
+      // (js/tactics.js freeHow): the hand would go unspent. 10-02: on the roper's bench the four, all held, handed each other advantage for fifteen rounds)
+      if ((w.conds.restrained || w.conds.attached) && (u.conds.restrained || (w.classAI && w.conds.restrained && TX.freeHow && TX.freeHow(B, w) !== 'escape'))) return;
       var sc = w.conds.asleep ? TX.dpr(w) * 2.5 + 4 : TX.dpr(w) * 0.6 + 1;
       if (!best || sc > best.score) best = { kind: 'help', why: (w.conds.asleep ? 'shake ' : 'a hand to ') + w.name, score: sc, go: function* () { yield* B.exec(u, { do: 'help', target: w }); } };
     });

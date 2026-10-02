@@ -39,7 +39,7 @@
 
   // ------------------------------------------------------------------ the list: every spell the hero knows, and whether it can be cast now
   var AIMED = { single: 1, attack: 1, rays: 1, splash: 1, allies: 1, touch: 1 }; // (the shapes that take a creature: the picker's, ui.js)
-  M.list = function (B, u) {
+  M.list = function (B, u, o) { // (o.anyTarget: castable though nothing is there to aim at now -- a spell readied for one that comes into sight, battle.js exec 'ready', 10-02)
     var T = u.turn;
     return (u.known || []).map(function (id) {
       var sp = M.data(id), g = M.geo(id);
@@ -78,7 +78,7 @@
       // a spell that takes a creature, with no creature it may take (10-01b, Griz: "check for other targeting non-fails. I have a hold
       // person trying to find a target with only the clacker on the enemy team still standing"): greyed, and why, not a picker with
       // nothing in it -- the picker offers exactly what M.targetOK passes (ui.js). Magic Missile's darts may still go at the dark: not here
-      if (!why && AIMED[g.shape] && !B.units.some(function (w) { return M.targetOK(B, u, g, w); })) why = M.noTarget(B, u, g);
+      if (!why && !(o && o.anyTarget) && AIMED[g.shape] && !B.units.some(function (w) { return M.targetOK(B, u, g, w); })) why = M.noTarget(B, u, g);
       e.ok = !why; e.why = why;
       return e;
     }).filter(Boolean).sort(function (a, b) { return a.level - b.level || (a.name < b.name ? -1 : 1); });
@@ -930,7 +930,7 @@
     // (Acrobatics) weighs the edges as well as the modifier (Bull's Strength on a strong one, Cat's Grace on a nimble one: an advantage is worth about +5), not the raw modifier
     var look = function (ab) {
       var ce = RU.checkEdges(u, ab), s = ab === 'str';
-      var adv = !!(s && en0 && !en0.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || r.weak || (s && en0 && en0.down)) || ce.dis.length > 0;
+      var adv = !!(s && en0 && !en0.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || (s && r.weak) || (s && en0 && en0.down)) || ce.dis.length > 0; // (weak: the tendril's disadvantage is on STR checks -- SRD 5.1 -- not on the Acrobatics way out; it had both, 10-02)
       var bonus = D.mod(u.abil[ab]) + (u.cls === 'fighter' || (!s && u.cls === 'rogue') ? u.prof : 0);
       return { ce: ce, adv: adv, dis: dis, bonus: bonus, worth: bonus + (adv && !dis ? 5 : dis && !adv ? -5 : 0) };
     };

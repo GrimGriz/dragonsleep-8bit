@@ -69,7 +69,10 @@
     if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(B, u); yield 20; D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // Fear's run (js/grimoire.js): any creature under it Dashes away from the one it fears
     if (D.magic.mustFlee && D.magic.mustFlee(u) && !u.classAI) { yield* D.tactics.fleeFear(B, u); D.magic.endTurn(B, u); u.anim = 'idle'; return; }
-    if (u.conds.restrained && !(u.classAI && D.tactics && D.tactics.freeFirst && !D.tactics.freeFirst(B, u))) yield* D.magic.breakFree(B, u); // a web: tear at it first
+    if (u.conds.restrained) { // a web: tear at it first. A grip -- the class AI weighs the escape, cutting the roper's tendril, or fighting from where it is (js/tactics.js freeHow, 10-02)
+      var how = u.classAI && D.tactics && D.tactics.freeHow ? D.tactics.freeHow(B, u) : 'escape';
+      if (how === 'escape') yield* D.magic.breakFree(B, u); else if (how === 'strike') yield* D.tactics.strikeHeld(B, u);
+    }
     // a darkmantle over its head (attached and blinding: battle.js mount): it pulls it off first -- an action, a DC 13 STR check (SRD 5.1; PULL IT OFF)
     var onMe = D.Battle.riderOn(u, u, B.units);
     if (onMe && u.turn.action && !u.conds.restrained && u.conds.blinded && u.conds.blinded.by === onMe.id) yield* B.exec(u, { do: 'detach', target: onMe });
@@ -141,6 +144,7 @@
       FX.sparkle(u, 'violet', 22); FX.ring(u, 'violet', 36);
       B.card(['{r}The phase spider{/} steps out of the rock ' + (G.dist(u, tgt) <= 5 ? 'beside ' : 'near ') + tgt.name + '!', '{g}(Ethereal Jaunt, a bonus action: back on the Material Plane){/}']);
       yield 30;
+      if (B.readyHook) { yield* B.readyHook(u); if (u.dead || u.hp <= 0) return; } // (out of the Ethereal into a readier's reach or sight: the readied strikes, 10-02)
       if (G.dist(u, tgt) <= G.reachOf(u) && T.action) { T.action = 0; yield* B.attack(u, tgt, bite); }
       return;
     }
@@ -384,7 +388,12 @@
   // a list of attack names in order, or a count of the first attack -- on the weakest in reach each time
   // the bestiary's traits (09-27, the ladder): a Web shot on a recharge (the giant spider, the ettercap), a grip held
   // and a Tentacle Slam (the otyugh), a creature bound to its ground (bound: the chars of the squares it keeps to)
-  function reachOf(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r, u.attacks[k].reach || 0); }); return G.reachOf(u, r); }
+  // the reach it acts at: the longest of the attacks it can still use -- a seizing attack (the roper's tendril) with no tendril to spare (all holding, or cut and not regrown:
+  // battle.js tendrilGone) counts for nothing, and it walks in for the bite (10-02, Griz: "have the party keep their distance and kill all the tendrils, then see if it walks
+  // to bite"). gripReach: the longest of all of them, for what it holds already
+  function noSpare(u, a) { return !!(a && a.holdOnly && a.grapple && (u.holding || []).length + (u.tendrilsLost || 0) >= (a.grapple.max || 1)); }
+  function reachOf(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { var a = u.attacks[k]; if (noSpare(u, a)) return; r = Math.max(r, a.reach || 0); }); return G.reachOf(u, r); }
+  function gripReach(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r, u.attacks[k].reach || 0); }); return G.reachOf(u, r); }
   function* webShot(B, u, tgt) {
     var W = u.web, T = u.turn;
     T.action = 0; W.ready = false;
@@ -539,6 +548,7 @@
     B.card(['{r}' + the(B, u) + '{/} ' + (u.earthGlide ? 'rises out of the floor' : 'bursts up out of the ground') + (tgt ? (G.dist(u, tgt) <= reachOf(u) ? ' beside ' : ' near ') + tgt.name : '') + '!'], 300);
     yield Math.max(24, D.spr.duration(u.sheet, 'reveal') || 0);
     u.anim = 'idle';
+    if (B.readyHook) yield* B.readyHook(u); // (up into a readier's reach or sight: the readied strikes -- battle.js exec 'ready', 10-02)
   }
   function* burrower(B, u) {
     var T = u.turn, hs = heroes(B, u), L = u.leap, pressed = false;
@@ -547,7 +557,7 @@
       pressed = u.hp <= u.maxhp / 2 && inReach.length >= 2;
       // (a burrower with `walkWithin` walks to one that close, on its feet -- the xorn, 15 ft: Griz, 10-01d, "have them walk within 15")
       var walks = !inReach.length && u.walkWithin && hs.some(function (w) { return G.dist(u, w) <= u.walkWithin; });
-      if (!hs.length || !canDig(B, u) || (inReach.length && !pressed) || walks) { yield* brute(B, u); return; }
+      if (!hs.length || !canDig(B, u) || (inReach.length && !pressed) || walks) { yield* brute(B, u); yield* diveAfter(B, u); return; }
       yield* sink(B, u);
     }
     var all = hs;
@@ -584,7 +594,25 @@
     T.move = cap; yield* walkTo(B, u, up.e, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move));
     if (u.dead || u.hp <= 0) return;
     yield* rise(B, u, up.t);
+    if (u.dead || u.hp <= 0) return; // (the readied strikes may have ended it as it came up)
     yield* brute(B, u); // (the Leap if it is ready, else the bite)
+    yield* diveAfter(B, u);
+  }
+  // ... and under again, the bite given (10-02, handoff-2026-10-01-the-tendrils-and-ready §4.2; Griz's rule, 10-01d: "If the mechanics allow it and a smart player or AI would
+  // do it, we'll allow it" -- the seat's call of 10-01d that kept it up through the party's turns is lifted now that READY answers it): a foe with `diveAfter` (data/foes.js:
+  // the bulette) that has 5 ft of its move left after the bite goes under where it stands -- out of everyone's reach at once, so those beside it that see it get their
+  // opportunity attacks first (battle.js provoke) -- and digs on with what is left, as far from them as that goes; next turn it comes up again beside the weakest. The
+  // xorn, which resists plain steel and claws three times, stays up and fights (the seat's call)
+  function* diveAfter(B, u) {
+    var T = u.turn;
+    if (u.dead || u.hp <= 0 || u.under || !(D.FOES[u.kind] && D.FOES[u.kind].diveAfter) || !canDig(B, u) || T.move < 5) return;
+    yield* B.provoke(u, 'diving under');
+    if (u.dead || u.hp <= 0 || !canDig(B, u)) return;
+    yield* sink(B, u); T.move -= 5;
+    var hs = heroes(B, u), cap = Math.min(T.move, Math.max(0, u.burrow - 5)), rm = G.reach(u, cap, { ghost: true }), far = null, fd = -Infinity;
+    Object.keys(rm).forEach(function (k) { var e = rm[k], dmin = hs.length ? Math.min.apply(null, hs.map(function (w) { return G.dist(u, w, e.x, e.y); })) : 0, sc = dmin - e.cost / 50; if (sc > fd) { fd = sc; far = e; } });
+    if (far && (far.x !== u.x || far.y !== u.y)) { var m0 = T.move; T.move = cap; yield* walkTo(B, u, far, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move)); }
+    B.card([u.earthGlide ? '{g}Nothing shows where it went.{/}' : '{g}The ground heaves: it is off under the floor.{/}'], 160); yield 16;
   }
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u), grudge = false;
@@ -661,7 +689,7 @@
     // a spent Web comes back on a 5 or 6 (at the start of its turn)
     if (u.web && !u.web.ready) { var rc = D.d(6); if (rc >= u.web.recharge) { u.web.ready = true; B.card(['{g}' + the(B, u) + ' has web again (d6 ' + rc + ').{/}'], 200); yield 12; } }
     // a grip it can no longer reach goes slack
-    (u.holding || []).slice().forEach(function (w) { if (w.dead || w.hp <= 0 || !w.conds.restrained || w.conds.restrained.by !== u.id || G.dist(u, w) > reachOf(u)) B.release(u, w); });
+    (u.holding || []).slice().forEach(function (w) { if (w.dead || w.hp <= 0 || !w.conds.restrained || w.conds.restrained.by !== u.id || G.dist(u, w) > gripReach(u)) B.release(u, w); }); // (gripReach: a grip it has keeps its own reach, whatever it has left to throw -- 10-02)
     // riding the one it holds (the darkmantle attached, battle.js mount; SRD 5.1: "can attack no other creature except the target", its speed 0, it moves with
     // the target): no step of its own -- it squeezes the one it rides
     if (u.riding && u.attached) {
@@ -706,6 +734,14 @@
     if (!T.action) return;
     var inReachNow = heroes(B, u).filter(function (w) { return G.dist(u, w) <= reachOf(u); });
     if (u.kind === 'cloaker' && inReachNow.some(function (w) { return w.vital; })) inReachNow = inReachNow.filter(function (w) { return w.vital; }); // (the one it hunts, if it got to him: 10-01c)
+    // the roper's tendrils cut or broken (battle.js tendrilGone), no one held and no one in reach of what it has left: the action goes on extruding a replacement, one a turn
+    // (SRD 5.1, "can extrude a replacement tendril on its next turn" -- the seat's reading, that the extruding is what its turn does; 10-02, Griz's test: "have the party keep
+    // their distance and kill all the tendrils, then see if it walks to bite" -- it walks first, above, and bites when that brought it there)
+    if (u.tendrilsLost && !inReachNow.length && !(u.holding || []).length) {
+      var ta0 = Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a && a.tendril; })[0], mx0 = (ta0 && ta0.grapple && ta0.grapple.max) || 6;
+      T.action = 0; u.tendrilsLost--; D.sfx('poison'); FX.sparkle(u, 'bone', 10);
+      B.card(['{r}' + the(B, u) + '{/} extrudes a new tendril.  {g}(its action: ' + (mx0 - u.tendrilsLost) + ' of ' + mx0 + ' to throw){/}'], 260); yield 24; return;
+    }
     // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow)
     if (!inReachNow.length && ranged.length) { if (yield* volley(B, u)) return; }
     // Enlarge (the duergar), once, when there is no one to hit yet: its pick hits for the bigger dice from now on (and its Invisibility ends)
@@ -753,7 +789,7 @@
       if (!t) continue;
       // a hit that only seizes (the roper's tendril, which does no harm) is not thrown at one it holds already, nor with every
       // tendril taken (SRD 5.1: "the roper can't use the same tendril on another target"; grapple.max, its six)
-      if (atk.holdOnly && ((u.holding || []).indexOf(t) >= 0 || (u.holding || []).length >= (atk.grapple.max || 1))) continue;
+      if (atk.holdOnly && ((u.holding || []).indexOf(t) >= 0 || (u.holding || []).length + (u.tendrilsLost || 0) >= (atk.grapple.max || 1))) continue; // (tendrilsLost: the ones cut or broken this round, battle.js tendrilGone -- 10-02)
       yield* B.attack(u, t, atk, { onHit: (function (key) { return function (w) { landed[key] = w; }; })(routine[k]) });
       if (u.dead || u.hp <= 0) return;
     }
@@ -804,7 +840,10 @@
   AI.heroes = heroes; AI.approach = approach; AI.walkTo = walkTo; AI.visibleFrom = visibleFrom; AI.eyesAt = eyesAt; AI.reachOf = reachOf; AI.the = the;
   function* guest(B, u) {
     var T = u.turn, fs = heroes(B, u), h = u.src || {}, f = u.feats || {};
-    if (!fs.length) return;
+    if (!fs.length) { // no one it knows of: a foe under the ground or out of the world gets its weapon readied (SRD 5.1 Ready; battle.js exec 'ready', 10-02), else it waits
+      if (T.action && !u.ready && u.weapon && u.weapon.name && B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && (w.ethereal || w.under); })) yield* B.exec(u, { do: 'ready', pick: 'weapon' });
+      return;
+    }
     // a guest who heals (Ingrith: the 8-bit's `healer`, feats.heals): a hand on whoever of her side is worst off under half
     var hurt = B.units.filter(function (w) { return w.side === u.side && G.standing(w) && w.hp < w.maxhp / 2; }).sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })[0];
     if (h.healer && (f.heals || 0) > 0 && hurt && T.action) {

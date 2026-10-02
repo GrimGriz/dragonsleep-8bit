@@ -368,7 +368,8 @@
     saves: { str: 4, dex: 0, con: 5, int: -4, wis: 0, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 7, dice: '4d12', mod: 4, type: 'piercing', reach: 5 } },
     multi: 1, leap: { dc: 16, dice: '6d6', targets: 2, range: 40, recharge: 5 }, burrow: 40,
-    src: 'SRD 5.1 Bulette (CR 5, Large; burrow 40 ft: js/ai.js burrower, 10-01d); content/monsters.json bulette (its Deadly Leap as the 8-bit game reads it: DEX 16, 6d6, two of them, half on a save and prone on a failure; recharge 5-6)'
+    diveAfter: true, // (up, the bite, and under again with the move it has left -- the opportunity attacks of those beside it first: js/ai.js diveAfter, 10-02; Griz, 10-01d: "If the mechanics allow it and a smart player or AI would do it, we'll allow it" -- READY is the answer, js/battle.js exec ready)
+    src: 'SRD 5.1 Bulette (CR 5, Large; burrow 40 ft: js/ai.js burrower, 10-01d; it bites and dives when it has the move left, 10-02, handoff-2026-10-01-the-tendrils-and-ready: js/ai.js diveAfter); content/monsters.json bulette (its Deadly Leap as the 8-bit game reads it: DEX 16, 6d6, two of them, half on a save and prone on a failure; recharge 5-6)'
   },
   cloaker: {
     name: 'Cloaker', type: 'aberration', sheet: 'cloaker_p2', cr: '8', ac: 14, hp: 78, speed: 40, size: 2, reach: 5, darkvision: 60,
@@ -439,11 +440,11 @@
     abil: { str: 18, dex: 8, con: 17, int: 7, wis: 16, cha: 6 }, init: -1, perception: 16,
     saves: { str: 4, dex: -1, con: 3, int: -2, wis: 3, cha: -2 },
     attacks: {
-      tendril: { name: 'Tendril', atk: 7, dice: '1d1', mod: -1, type: 'bludgeoning', reach: 50, grapple: { dc: 15, max: 6 }, holdOnly: true, weakens: true },
+      tendril: { name: 'Tendril', atk: 7, dice: '1d1', mod: -1, type: 'bludgeoning', reach: 50, grapple: { dc: 15, max: 6 }, holdOnly: true, weakens: true, tendril: { ac: 20, hp: 10, immune: ['poison', 'psychic'], breakDC: 15 } }, // (tendril: a thing on the grid, riding the grip -- struck at through the held one's square or broken with a STR check, and the grip ends with it: js/battle.js tendrilOn, strikeTendril, exec breaktendril; 10-02)
       bite: { name: 'Bite', atk: 7, dice: '4d8', mod: 4, type: 'piercing', reach: 5 }
     },
     multi: ['tendril', 'tendril', 'tendril', 'tendril', 'bite'], reel: 25,
-    src: 'SRD 5.1 Roper (CR 5, Large): four tendrils at 50 ft (grappled, restrained, escape DC 15; up to six held, one a tendril), then Reel (each one held pulled up to 25 ft straight toward it: js/ai.js reel), then the bite (10-01e, Griz: "we\'ve often been too lenient, 4 please" -- it had two, and each hit dragged its one all the way in); content/monsters.json roper; the tendril\'s grip weakens (disadvantage on STR checks and saves while held: js/traits.js, 09-28)'
+    src: 'SRD 5.1 Roper (CR 5, Large): four tendrils at 50 ft (grappled, restrained, escape DC 15; up to six held, one a tendril), then Reel (each one held pulled up to 25 ft straight toward it: js/ai.js reel), then the bite (10-01e, Griz: "we\'ve often been too lenient, 4 please" -- it had two, and each hit dragged its one all the way in); content/monsters.json roper; the tendril\'s grip weakens (disadvantage on STR checks and saves while held: js/traits.js, 09-28); each tendril a thing to strike (AC 20, 10 HP, immune to poison and psychic) or break (an action, a DC 15 STR check), and a tendril lost is one fewer to grab with till its next turn (10-02, handoff-2026-10-01-the-tendrils-and-ready: js/battle.js strikeTendril, exec breaktendril, tendrilGone; js/rules.js startTurn)'
   },
   darkmantle: {
     name: 'Darkmantle', type: 'monstrosity', sheet: 'darkmantle_p1', cr: '1/2', ac: 11, hp: 22, speed: 30, size: 1, reach: 5, blindsight: 60, blind: true, darknessAura: true,

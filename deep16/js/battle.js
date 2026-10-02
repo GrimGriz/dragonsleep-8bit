@@ -681,7 +681,40 @@
     // the one it rides; 10-01, Griz: "allies can strength check detach per SRD, I could only find the 'help' part"): a friend beside you with one riding on
     var pulls = Battle.pullable(u, this.units);
     if (pulls.length) out.push({ id: 'detach', label: 'PULL IT OFF', cost: 'A', icon: 'free', tool: 'detach', ok: T.action > 0 && !T.attacksLeft && !u.conds.restrained, why: u.conds.restrained ? 'held fast yourself' : 'the action is spent', note: 'a STR check, DC ' + ((pulls[0].master.conds.attached || {}).dc || 13) + ': the ' + shortName(pulls[0]) + ' off ' + (pulls[0].master === u ? 'you' : pulls[0].master.name) });
+    // BREAK THE TENDRIL (SRD 5.1 Roper: "A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"): the one it holds,
+    // or a friend beside; the tendril is struck at with ATTACK on the held one's square (tendrilOn). 10-02, handoff-2026-10-01-the-tendrils-and-ready
+    var brks = Battle.breakable(u, this.units);
+    if (brks.length) { var bt0 = brks[0].conds.restrained.tendril; out.push({ id: 'breaktendril', label: 'BREAK THE TENDRIL', cost: 'A', icon: 'free', tool: 'breaktendril', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', note: 'a STR check, DC ' + (bt0.breakDC || 15) + (u.conds.restrained && u.conds.restrained.weak ? ' (at disadvantage: held)' : '') + ': the tendril off ' + (brks[0] === u ? 'you' : brks[0].name) + ' (' + bt0.hp + '/' + bt0.max + ' HP to cut it instead)' }); }
+    // READY (SRD 5.1: "you can take the Ready action on your turn, which lets you act using your reaction before the start of your next turn"): one trigger here -- the first foe
+    // that comes within reach (a bow, a spell: into sight) -- and the strike or the spell held for it (exec 'ready'). 10-02, handoff-2026-10-01-the-tendrils-and-ready §4.2
+    out.push({ id: 'ready', label: 'READY', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !u.ready, why: u.ready ? 'readied already' : 'the action is spent', note: 'hold a strike (or an attack spell) for the first foe that comes within reach, or into sight: your reaction springs it' });
     return out;
+  };
+  // the roper's tendril on w (SRD 5.1 Grasping Tendrils; 10-02): a grip that carries `tendril` -- w held by it, its holder standing and hostile to u, w not (or w is u). The thing u
+  // strikes at or breaks: a target of its own (tendrilStub) on w's square, never a unit of the fight (grid.js knows nothing of it)
+  Battle.tendrilOn = function (u, w, units) {
+    var r = w && w.conds && w.conds.restrained; if (!r || !r.grapple || !r.tendril || (w !== u && G.hostile(u, w)) || !G.standing(w)) return null;
+    var h = units.filter(function (x) { return x.id === r.by; })[0];
+    return h && G.hostile(u, h) && G.standing(h) ? Battle.tendrilStub(w, h) : null;
+  };
+  Battle.tendrilStub = function (held, holder) {
+    var t = held.conds.restrained.tendril, s = { tendril: true, held: held, by: holder, name: 'the tendril on ' + held.name, side: holder.side, size: 1, hp: t.hp, maxhp: t.max, ac: t.ac, conds: {}, abil: {}, blindsight: 999, immune: t.immune }; // (blindsight: a thing sees no one, and no one is an unseen attacker to it -- rules.js edges)
+    Object.defineProperty(s, 'x', { get: function () { return held.x; }, enumerable: true }); Object.defineProperty(s, 'y', { get: function () { return held.y; }, enumerable: true });
+    return s;
+  };
+  // the held ones u could break the tendril off (BREAK THE TENDRIL: the one held, or anyone beside it -- SRD 5.1, "a creature takes an action")
+  Battle.breakable = function (u, units) { return units.filter(function (w) { return (w === u || (!G.hostile(u, w) && G.dist(u, w) <= 5)) && Battle.tendrilOn(u, w, units); }); };
+  // a tendril cut through or broken: the grip ends with it, and its holder is one tendril short till its next turn (rules.js startTurn: tendrilsLost back to 0)
+  Battle.prototype.tendrilGone = function (holder, held, how) {
+    var blind0 = !!(held.conds.blinded && held.conds.blinded.held && held.conds.blinded.by === holder.id);
+    holder.tendrilsLost = (holder.tendrilsLost || 0) + 1;
+    this.release(holder, held);
+    if (this.active === held && held.turn) { var T0 = held.turn; T0.move = held.conds.dancing ? 0 : Math.max(0, (T0.moveFull != null ? T0.moveFull : held.speed) - (T0.moved || 0)); } // (cut on its own turn: the walk the turn would have had, as breakFree gives it back)
+    if (blind0 && !held.conds.blinded) this.card(['{g}' + held.name + ' can see again.{/}'], 200);
+    FX.sparkle(held, 'bone', 10); D.sfx('hit');
+    var ta = Object.keys(holder.attacks || {}).map(function (k) { return holder.attacks[k]; }).filter(function (a) { return a && a.tendril; })[0];
+    var left = Math.max(0, (ta && ta.grapple && ta.grapple.max || 6) - (holder.holding || []).length - holder.tendrilsLost);
+    this.card(['{n}The tendril is ' + how + ':{/} ' + nameOf(held) + ' is free.  {g}(the ' + shortName(holder) + ' has ' + left + ' tendril' + (left === 1 ? '' : 's') + ' to spare till its next turn){/}'], 280);
   };
   // a friend u may Help: beside it, asleep (shaken awake) or held in a web or a grip (advantage on its next check to get out)
   Battle.helpable = function (u, w) { return !!(w && w !== u && !G.hostile(u, w) && !w.dead && w.hp > 0 && !w.ethereal && G.dist(u, w) <= 5 && (w.conds.asleep || w.conds.restrained || w.conds.attached) && !w.conds.helpedCheck); }; // (attached: a darkmantle on -- the hand is on the STR check to pull it off)
@@ -708,7 +741,8 @@
         if (u.weapon.ammo && !this.ammoLeft(u)) { this.card(['{o}' + u.name + ' has no ' + this.itemName(u.weapon.ammo).toLowerCase() + ' left.{/}'], 120); return; }
         T.attacksLeft--;
         if (u.weapon.ammo) this.spendAmmo(u);
-        yield* this.attack(u, c.target, u.weapon);
+        if (c.target.tendril) yield* this.strikeTendril(u, c.target, u.weapon); // (the roper's tendril on a friend, or on you: tendrilOn, 10-02)
+        else yield* this.attack(u, c.target, u.weapon);
         if (u.conds.hidden) delete u.conds.hidden;
         return;
       }
@@ -716,6 +750,7 @@
         if (D.magic.data(c.id) && D.magic.data(c.id).kind !== 'buff') this.noteHeard(u); // (a spell at someone gives the square away too: 10-01c)
         yield* D.magic.cast(this, u, c.id, c.slot, c.target);
         if (u.conds.hidden && D.magic.data(c.id).kind !== 'buff') delete u.conds.hidden;
+        if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) yield* this.readyHook(u); // (a spell that brings a foe into sight -- a darkness ended, the invisible lit -- or moves one: the readied strikes, 10-02)
         if (!(c.id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights' && u.turn.bonusSpell === false)) this.endInvis(u, 'the spell'); // (Invisibility, Mislead: a spell cast ends it)
         return;
       }
@@ -791,6 +826,44 @@
         if (ptot >= dc) { this.release(rd, host); if (blind0 && !host.conds.blinded) this.card(['{g}' + host.name + ' can see again.{/}'], 200); this.dismount(rd, u); } // (to the square nearest the puller and the one it rode)
         yield 30; return;
       }
+      case 'breaktendril': { // BREAK THE TENDRIL (SRD 5.1 Roper: "A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"):
+        // the one it holds (at disadvantage on STR checks while held: `weak`) or anyone beside; Athletics, as breakFree and PULL IT OFF read it. 10-02
+        var hw = c.target, st2 = hw && Battle.tendrilOn(u, hw, this.units); if (!st2) return;
+        var tn = hw.conds.restrained.tendril, dc2 = tn.breakDC || 15, en2 = u.conds.enlarged, ce2 = RU.checkEdges(u, 'str');
+        var adv2 = !!(en2 && !en2.down) || ce2.adv.length > 0, dis2 = !!(u.conds.poisoned || u.conds.frightened || (en2 && en2.down) || (u.conds.restrained && u.conds.restrained.weak)) || ce2.dis.length > 0;
+        var b1 = D.d(20), b2 = D.d(20), bd20 = adv2 && !dis2 ? Math.max(b1, b2) : dis2 && !adv2 ? Math.min(b1, b2) : b1;
+        var pb2 = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), btot = bd20 + pb2;
+        T.action = 0; RU.spendHelp(u); D.sfx('run'); if (hw !== u) u.facing = faceTo(u, hw);
+        var luck2 = RU.darkLuck(u, dc2 - btot); if (luck2) btot += luck2;
+        this.card(['{y}' + u.name + '{/} takes hold of the tendril' + (hw === u ? '' : ' on ' + hw.name) + ' and wrenches: STR d20 ' + bd20 + (adv2 !== dis2 ? (adv2 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb2) + (luck2 ? ' {y}+' + luck2 + ' dark one\'s own luck{/}' : '') + ' = ' + btot + ' vs DC ' + dc2 + '  ' + (btot >= dc2 ? '{n}BROKEN{/}' : '{g}it holds{/}')]);
+        if (btot >= dc2) this.tendrilGone(st2.by, hw, 'broken');
+        yield 30; return;
+      }
+      case 'ready': { // READY (SRD 5.1: "you can take the Ready action on your turn, which lets you act using your reaction before the start of your next turn" -- the trigger, then the
+        // action): one trigger here, the first foe that comes within reach -- for a bow or a spell, into its sight and range -- a burrower up out of the ground, a phase spider
+        // out of the Ethereal, one walking up, the invisible seen; and the action a single weapon attack, or an attack spell cast now and held ("When you ready a spell, you cast it
+        // as normal but hold its energy ... holding onto the spell's magic requires concentration"). Sprung by readyHook; let go at the next turn (rules.js startTurn).
+        // 10-02, handoff-2026-10-01-the-tendrils-and-ready §4.2; invented.json ready-one-trigger
+        if (!T.action || T.attacksLeft || u.ready) return;
+        var picks = [];
+        if (u.weapon && u.weapon.name && !u.conds.disarmed) picks.push({ label: u.weapon.name.toUpperCase() + ': strike the first foe that comes ' + (u.weapon.ranged ? 'into sight' : 'within reach'), value: 'weapon' });
+        if (u.alt && u.alt.name && !u.conds.disarmed) picks.push({ label: u.alt.name.toUpperCase() + ': strike the first foe that comes ' + (u.alt.ranged ? 'into sight' : 'within reach'), value: 'alt' });
+        D.magic.list(this, u, { anyTarget: true }).filter(function (e) { return e.ok && e.g && /^(attack|rays|darts)$/.test(e.g.shape) && e.g.time === 'A' && e.g.side !== 'ally'; }).slice(0, 4).forEach(function (e) { picks.push({ label: e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + ': at the first foe that comes into sight' + (e.level ? ' -- the slot now, and concentration' : ' -- concentration'), value: e }); });
+        if (!picks.length) return;
+        picks.push({ label: 'NOT NOW', value: 0 });
+        var pk = c.pick || (byAI(u) ? picks[0].value : yield { prompt: { who: u, title: u.name + ': READY', lines: ['Hold the action for its trigger: the reaction springs it, once, before your next turn.'], opts: picks } });
+        if (!pk) return;
+        T.action = 0;
+        if (pk === 'weapon' || pk === 'alt') { var rw = pk === 'alt' ? u.alt : u.weapon; u.ready = { what: 'weapon', name: rw.name, wp: rw }; u.ready.had = this.readyHad(u, u.ready); }
+        else {
+          var re = pk; if (re.level) u.slots[re.slot - 1]--;
+          u.ready = { what: 'spell', name: re.name, id: re.id, slot: re.slot, level: re.level }; u.ready.had = this.readyHad(u, u.ready);
+          D.magic.concentrate(this, u, 'ready', 'a readied ' + re.name, function () { if (u.ready && u.ready.what === 'spell') delete u.ready; }); // (concentration broken: the held magic dissipates, and the slot with it)
+        }
+        D.sfx('buff'); FX.ring(u, 'silver', 20);
+        this.card(['{y}' + u.name + '{/} readies ' + (u.ready.what === 'weapon' ? 'the ' + u.ready.name : u.ready.name) + ': the first foe that comes ' + (u.ready.what === 'weapon' && !u.ready.wp.ranged ? 'within reach' : 'into sight') + ' gets it.  {g}(the reaction, before the next turn){/}']);
+        yield 24; return;
+      }
       case 'secondwind': {
         T.bonus = 0; u.feats.secondWind = 0;
         var r = D.roll('1d10+' + u.lvl), n = Math.min(u.maxhp - u.hp, r.total);
@@ -827,7 +900,7 @@
           var w = prov[k], take = true;
           if (w.side === 'party' && !w.guest) {
             u.anim = 'idle';
-            take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' is leaving ' + w.name + "'s reach."], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
+            take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' is leaving ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } }; // (a readied strike waits on the same reaction: SRD 5.1, one a round -- 10-02)
             u.anim = 'walk';
           }
           if (take) {
@@ -865,6 +938,8 @@
       // out of a Globe of Invulnerability that held a spell off it (10-01c): a hold, a sleep, a web's grip, a dance takes hold again on the square it steps
       // out onto, and the walk ends there (filming it, the fighter walked on a square held)
       if (this.globes && D.magic.globeSync) { D.magic.globeSync(this); if (!RU.canAct(u) || u.conds.restrained || u.conds.dancing) { if (o && o.spend) T.move = 0; u.anim = 'idle'; yield 24; break; } }
+      // a readied strike (exec 'ready', 10-02): one that steps within a readier's reach, or into its sight, gets it -- and held, stunned or put down by it, walks no farther
+      if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) { yield* this.readyHook(u); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; } u.anim = 'walk'; }
     }
     u.anim = 'idle';
   };
@@ -955,7 +1030,7 @@
     var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5)
       || (att.assassinate && tgt.conds.surprised) // Assassinate: any hit on one caught unaware is a critical
       || (att.subclass === 'Cutthroat' && this.round === 1 && !tgt.acted)); // Opening Cut (the game's Cutthroat): the same, in the first round
-    var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name;
+    var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
     var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass;
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
@@ -1112,11 +1187,17 @@
       yield 30;
     }
     // a grapple on the hit (the otyugh's tentacles): Medium or smaller, while it has a tentacle free; grappled and restrained
-    if (atk.grapple && !tgt.dead && tgt.hp > 0 && (tgt.size || 1) <= 1 && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length < (atk.grapple.max || 1)) {
+    // (tendrilsLost: a roper's tendrils cut or broken this round are not there to grab with till its next turn -- SRD 5.1, "can extrude a replacement tendril on its next turn"; tendrilGone, rules.js startTurn)
+    if (atk.grapple && !tgt.dead && tgt.hp > 0 && (tgt.size || 1) <= 1 && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length + (att.tendrilsLost || 0) < (atk.grapple.max || 1)) {
       tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true, weak: !!atk.weakens }; // (weak: the roper's tendril, disadvantage on STR: js/traits.js)
+      // the roper's tendril is a thing on the grid (SRD 5.1 Grasping Tendrils: "Each tendril can be attacked (AC 20; 10 hit points; immunity to poison and psychic damage).
+      // Destroying a tendril deals no damage to the roper ... A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"):
+      // it rides the grip -- struck at through the held one's square (tendrilOn, strikeTendril) or broken (exec breaktendril) -- and the grip ends with it (tendrilGone).
+      // 10-02, handoff-2026-10-01-the-tendrils-and-ready
+      if (atk.tendril) tgt.conds.restrained.tendril = { hp: atk.tendril.hp, max: atk.tendril.hp, ac: atk.tendril.ac, immune: atk.tendril.immune || [], breakDC: atk.tendril.breakDC || 15 };
       att.holding = (att.holding || []).concat([tgt]);
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
-      this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED and RESTRAINED{/}  {g}(escape DC ' + atk.grapple.dc + ', an action){/}']);
+      this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED and RESTRAINED{/}  {g}(escape DC ' + atk.grapple.dc + ', an action' + (atk.tendril ? '; the tendril AC ' + atk.tendril.ac + ', ' + atk.tendril.hp + ' HP -- strike it, or break it with a DC ' + (atk.tendril.breakDC || 15) + ' STR check' : '') + '){/}']);
       yield 30;
       // a hold over the eyes (torchdark 09-28: the sheet todos): the cloaker's fold blinds the one it engulfs; the darkmantle's
       // crush blinds when it had advantage on the roll (SRD: it engulfs the head). Blind till the grip is broken (release)
@@ -1176,6 +1257,116 @@
       yield 30;
     }
     att.anim = 'idle';
+    if (!o.ready && !o.oa && this.units.some(function (w) { return w.ready && w.reaction > 0; })) yield* this.readyHook(att); // (a blow from hiding, or from the invisible, gives its maker away: the readied strikes, 10-02)
+  };
+  // a blow at the roper's tendril (SRD 5.1 Grasping Tendrils: "Each tendril can be attacked (AC 20; 10 hit points; immunity to poison and psychic damage). Destroying a tendril
+  // deals no damage to the roper"; 10-02, handoff-2026-10-01-the-tendrils-and-ready): from wherever the held one could be struck from -- beside it with a blade, a shot at its
+  // square -- the seat's call (invented.json tendril-struck-from). The weapon's own dice and a critical's double, a flaming blade's fire, a rage's +2; no Sneak Attack, no smite,
+  // no mark (each is for "a creature": the tendril is a thing). At 0 the grip ends (tendrilGone). A natural 1 lands on the one it holds, as at a darkmantle on a friend's
+  // head (RULED 10-01, Griz: "only hurt ally on natural 1")
+  Battle.prototype.strikeTendril = function* (att, st, atk, o) {
+    o = o || {};
+    var held = st.held, holder = st.by, t = held.conds.restrained && held.conds.restrained.tendril;
+    if (!t || !G.standing(held) || !G.standing(holder) || held.conds.restrained.by !== holder.id) return;
+    if (!o.oa && !o.ready) this.noteHeard(att);
+    var melee = !atk.ranged, cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
+    if (held !== att) att.facing = faceTo(att, held);
+    att.anim = 'attack'; att.animT = this.t;
+    if (!o.oa) yield 10;
+    if (!melee) { FX.projectile(att, held, atk.fx || 'bolt'); yield { fx: 1 }; }
+    var los = G.los(att, held), cover = melee && G.dist(att, held) <= 5 ? 0 : los.cover, ac = t.ac + cover;
+    var e = RU.edges(att, st, atk); // (the attacker's own edges -- restrained, prone, blinded, the dark; a thing is never flanked, helped or prone: the stub has no conds)
+    e.adv = e.adv.filter(function (a) { return !/flanking/.test(a); }); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0;
+    var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, sacred = att.conds.sacred && !atk.ranged ? att.conds.sacred.atk : 0, pen = e.pen || 0, total = nat + atk.atk + bless + sacred + pen;
+    var hit = nat === 20 || (nat !== 1 && total >= ac), crit = hit && nat >= (att.crit || 20);
+    var head = '{y}' + nameOf(att) + '{/} > {r}' + st.name + '{/}  ' + atk.name + (o.ready ? ' {c}(readied){/}' : '');
+    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + t.ac + (cover ? ' {c}+' + cover + ' cover{/}' : '');
+    var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
+    D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
+    this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
+    if (!hit) {
+      if (nat === 1 && atk.dice && held !== att && !G.hostile(att, held)) {
+        var hd = RU.damage(atk.dice, atk.mod || 0, {});
+        D.sfx('hit'); FX.float('OOF', held, D.PAL.ramps.fire[2]);
+        this.card(['{o}A natural 1:{/} the blow meant for the tendril lands on ' + nameOf(held) + '.  ' + atk.dice + RU.sign(atk.mod || 0) + ' ' + RU.fmtRolls(hd.rolls) + ' = {r}' + hd.total + '{/} ' + (atk.type || '')], 320);
+        this.hurt(held, hd.total, atk.type);
+      } else FX.float('MISS', held, D.PAL.ramps.silver[5]);
+      yield o.oa ? 16 : 24; att.anim = 'idle'; return;
+    }
+    var dr = RU.damage(atk.dice, atk.mod, { crit: crit, gwf: atk.gwf }), dmg = dr.total, parts = [atk.dice + RU.sign(atk.mod) + ' ' + RU.fmtRolls(dr.rolls) + RU.sign(atk.mod) + ' = ' + dr.total + ' ' + atk.type];
+    if (att.conds.raging && melee && !atk.finesse) { dmg += att.conds.raging.dmg || 2; parts.push('{o}rage +' + (att.conds.raging.dmg || 2) + '{/}'); }
+    if (att.conds.enlarged && !atk.spell) { var en = D.roll('1d4', { crit: crit }); dmg += att.conds.enlarged.down ? -en.total : en.total; parts.push((att.conds.enlarged.down ? '{g}reduced -' : '{o}enlarged +') + en.total + '{/}'); dmg = Math.max(1, dmg); }
+    var fire = 0;
+    if (atk.flame && att.conds.ablaze) { var fl = D.roll(atk.flame, { crit: crit }); fire = fl.total; parts.push('{o}flame ' + atk.flame + ' ' + RU.fmtRolls(fl.rolls) + ' = ' + fl.total + ' fire{/}'); }
+    if ((t.immune || []).indexOf(atk.type) >= 0) { parts.push('{g}immune to ' + atk.type + '{/}'); dmg = 0; }
+    var all = dmg + fire;
+    this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + all + '{/}'], 300, cid);
+    if (melee) FX.slash(held, crit ? D.PAL.ramps.gold[4] : null);
+    t.hp = Math.max(0, t.hp - all);
+    FX.float('-' + all, held, D.PAL.ramps.bone[2]);
+    if (t.hp <= 0) this.tendrilGone(holder, held, 'cut through');
+    else this.card(['{g}the tendril: ' + t.hp + ' of ' + t.max + ' left{/}'], 200);
+    yield o.oa ? 18 : 26;
+    att.anim = 'idle';
+  };
+
+  // ------------------------------------------------------------------ Ready (SRD 5.1; exec 'ready', 10-02): the readied strikes, sprung by what brings a foe to one
+  // the foes u could strike now with what it readied (a weapon's reach; a bow's or a spell's range, and sight); a readied action springs for one that joins the list -- walks
+  // within reach, comes up out of the ground, steps out of the Ethereal, comes into the light, out of a darkness, is seen again. Beside you it is felt: no sight asked of a blade
+  Battle.prototype.readyTargets = function (u, rd) {
+    var self = this, wp = rd && rd.wp, g = rd && rd.id ? D.magic.geo(rd.id) : null;
+    return this.units.filter(function (w) {
+      if (!G.hostile(u, w) || !G.standing(w) || w.ethereal || w.under || (w.riding && !w.attached) || RU.charmedBy(u, w)) return false;
+      if (g) return !!D.magic.targetOK(self, u, g, w);
+      if (wp && wp.ranged) return G.dist(u, w) <= wp.range[1] && G.los(u, w).clear && (D.magic.sees(self, u, w) || G.dist(u, w) <= 5);
+      return G.dist(u, w) <= G.reachOf(u, wp && wp.reach);
+    });
+  };
+  Battle.prototype.readyHad = function (u, rd) { var h = {}; this.readyTargets(u, rd).forEach(function (w) { h[w.id] = 1; }); return h; };
+  // asked of every event that could bring a foe to a readier: a step (moveAlong), a burrower up (ai.js rise), a phase spider out, a spell's end (exec cast), a blow from hiding
+  // (attack). Each readier with its reaction looks at who it could strike now against who it could before: a new one springs it -- a player's hero asked, the AI's at once --
+  // and the list is kept either way. `about`: the one whose doing it was, struck first when it is among the new
+  Battle.prototype.readyHook = function* (about) {
+    var rs = this.units.filter(function (w) { return w.ready && w.reaction > 0 && RU.canAct(w) && G.standing(w); });
+    for (var i = 0; i < rs.length; i++) {
+      var w = rs[i], rd = w.ready, now = this.readyTargets(w, rd), fresh = now.filter(function (t) { return !rd.had[t.id]; });
+      rd.had = {}; now.forEach(function (t) { rd.had[t.id] = 1; });
+      if (!fresh.length) continue;
+      var foe = about && fresh.indexOf(about) >= 0 ? about : fresh[0], take = true, fname = foe.side === 'foe' ? 'The ' + shortName(foe) : foe.name;
+      if (w.side === 'party' && !w.guest) take = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [fname + ' comes ' + (rd.what === 'weapon' && !rd.wp.ranged ? 'within reach' : 'into sight') + '.'], opts: [{ label: 'STRIKE', value: true }, { label: 'HOLD', value: false }] } };
+      if (!take) continue;
+      w.reaction = 0; delete w.ready;
+      this.card(['{o}' + w.name + '{/}: the readied ' + rd.name + ', at ' + (foe.side === 'foe' ? 'the ' + shortName(foe) : foe.name) + '.']);
+      if (rd.what === 'weapon') {
+        if (rd.wp.ammo) { var keep = w.weapon; w.weapon = rd.wp; var left = this.ammoLeft(w); if (left) this.spendAmmo(w); w.weapon = keep; if (!left) { this.card(['{o}' + w.name + ' has no ' + this.itemName(rd.wp.ammo).toLowerCase() + ' left.{/}'], 120); continue; } }
+        yield* this.attack(w, foe, rd.wp, { ready: true });
+      } else {
+        if (w.conc && w.conc.id === 'ready') delete w.conc; // (the held magic is let go into the cast: no undo)
+        if (rd.level) w.slots[rd.slot - 1]++; // (spent at the readying; the cast spends it again)
+        var g2 = D.magic.geo(rd.id), tg = foe;
+        if (/^(rays|darts)$/.test(g2.shape)) { var n2 = (g2.n || 1) + Math.max(0, (rd.slot || 0) - (rd.level || 0)), us = []; for (var k = 0; k < n2; k++) us.push(foe); tg = { units: us }; }
+        yield* D.magic.cast(this, w, rd.id, rd.slot, tg);
+      }
+      if (about && (about.dead || about.hp <= 0)) return;
+    }
+  };
+  // leaving everyone's reach at once -- down into the ground, up into the air -- with no step to provoke on (moveAlong provokes square by square): the opportunity attacks of
+  // those beside it that see it, each asked of a player's hero (SRD 5.1: "when a hostile creature that you can see moves out of your reach"). 10-02
+  Battle.prototype.provoke = function* (u, why) {
+    var T = u.turn || {}, self = this;
+    if (T.disengaged || u.ethereal) return;
+    var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.reachOf(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u); });
+    for (var k = 0; k < prov.length; k++) {
+      var w = prov[k], take = true;
+      if (w.side === 'party' && !w.guest) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
+      if (!take) continue;
+      w.reaction = 0;
+      this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? 'the ' + shortName(u) : u.name) + ', ' + (why || 'leaving') + '.']);
+      var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]];
+      if (!atk) continue;
+      yield* this.attack(w, u, atk, { oa: true });
+      if (u.hp <= 0 || u.dead) return;
+    }
   };
   function nameOf(u) { return u.side === 'foe' ? u.name : u.name; }
   // a unit the AI runs (a foe, a guest, a hero on the bench): its reactions are decided, never asked (09-28, the class NPCs)

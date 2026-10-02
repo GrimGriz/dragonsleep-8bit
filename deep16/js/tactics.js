@@ -79,6 +79,65 @@
     if (G.dist(u, h) <= G.reachOf(u)) return false;
     return !((u.weapon && u.weapon.ranged) || (u.alt && u.alt.ranged) || TX.caster(u));
   };
+  // held by a roper's tendril (10-02, handoff-2026-10-01-the-tendrils-and-ready §4.1): the three ways out weighed -- the escape check (magic.js breakFree: Athletics or
+  // Acrobatics, the better; STR at disadvantage while held), a blow at the tendril (battle.js strikeTendril: AC 20 and what is left of its 10 HP, every swing at disadvantage
+  // for the restrained), or the fight itself when the holder can be hurt from here (freeFirst). The chance of being free by this action's end decides. The numbers say the
+  // escape nearly always -- a held one's blows are at disadvantage against AC 20 -- and the strike once a friend has cut the tendril most of the way through
+  TX.freeHow = function (B, u) {
+    var r = u.conds.restrained, pE = TX.pEscape(u);
+    if (!TX.freeFirst(B, u)) {
+      // the fight it would put up from here: the holder in its reach, or a caster (a save spell asks nothing of a held caster) -- fight; a blade's hero whose only reach
+      // is a thrown or shot weapon at disadvantage (restrained) weighs that throw against the escape and the turn it buys (10-02: a held hero with a handaxe in the pack
+      // "fought" the roper from 15 ft at 16 % a throw, and the fight ran seventeen rounds)
+      var h = B.units.filter(function (w) { return w.id === r.by; })[0];
+      if (!h || G.dist(u, h) <= G.reachOf(u) || TX.caster(u)) return 'fight';
+      var th = weapons(u).filter(function (wp) { return wp.ranged && G.dist(u, h) <= wp.range[1]; }).map(function (wp) { var s = swing(B, u, h, wp, u.x, u.y); return attacksWith(u, wp) * s.p * s.d; }).sort(function (a, b) { return b - a; })[0] || 0;
+      var es = pE * TX.dpr(u) * 0.5;
+      if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ' held, out of reach: the throw ' + th.toFixed(1) + ' | the escape ' + es.toFixed(1));
+      if (th >= es) return 'fight';
+    }
+    var t = r && r.tendril;
+    if (!t) return 'escape';
+    var st = D.Battle.tendrilOn(u, u, B.units); if (!st) return 'escape';
+    var pS = TX.pCut(B, u, st, u.weapon);
+    if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ' held: the escape ' + pE.toFixed(2) + ' | cut the tendril ' + pS.toFixed(2));
+    return pS > pE ? 'strike' : 'escape';
+  };
+  // the chance breakFree's check makes its DC: the better of STR (Athletics) and DEX (Acrobatics) against a grip, STR against a web, with the edges each has (as breakFree looks)
+  TX.pEscape = function (u) {
+    var r = u.conds.restrained; if (!r) return 1;
+    var grip = r.grapple || r.kind === 'tentacles', en0 = u.conds.enlarged, best = 0;
+    ['str', 'dex'].forEach(function (ab) {
+      if (ab === 'dex' && !grip) return;
+      var ce = RU.checkEdges(u, ab), s = ab === 'str';
+      var adv = !!(s && en0 && !en0.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || (s && r.weak) || (s && en0 && en0.down)) || ce.dis.length > 0;
+      var bonus = D.mod(u.abil[ab]) + (u.cls === 'fighter' || (!s && u.cls === 'rogue') ? u.prof : 0);
+      var p = clamp((21 - (r.dc - bonus)) / 20, 0, 1); p = adv && !dis ? 1 - (1 - p) * (1 - p) : dis && !adv ? p * p : p;
+      if (p > best) best = p;
+    });
+    return best;
+  };
+  // the chance the blows of one action cut a tendril through: the weapon's swings at its AC (each hit the weapon's dice), against what is left of its HP -- the hits needed,
+  // and the odds of landing that many (from square (x, y) when given: the AI weighing a move)
+  TX.pCut = function (B, u, st, wp, x, y) {
+    if (!wp || !wp.name || u.conds.disarmed || !st || !st.held.conds.restrained) return 0;
+    var t = st.held.conds.restrained.tendril, e = RU.edges(u, st, wp, x, y), ac = t.ac + (wp.ranged ? G.los(u, st, x, y).cover : 0);
+    e.adv = e.adv.filter(function (a) { return !/flanking/.test(a); }); var net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0;
+    var n = attacksWith(u, wp), p = TX.pHit(wp.atk + (e.pen || 0) + (u.conds.blessed ? 2.5 : 0), ac, net), d = avg(wp.dice) + (wp.mod || 0) + (u.conds.raging && !wp.ranged ? 2 : 0) + (wp.flame && u.conds.ablaze ? avg(wp.flame) : 0);
+    if ((t.immune || []).indexOf(wp.type) >= 0) return 0;
+    var need = Math.max(1, Math.ceil(t.hp / Math.max(0.1, d))), pr = 0;
+    for (var k = need; k <= n; k++) pr += choose(n, k) * Math.pow(p, k) * Math.pow(1 - p, n - k);
+    return pr;
+  };
+  function choose(n, k) { var r = 1; for (var i = 1; i <= k; i++) r = r * (n - k + i) / i; return r; }
+  // the held one's blows at its own tendril (freeHow said strike): the Attack action at it, swing after swing, till it is cut or the swings are spent
+  TX.strikeHeld = function* (B, u) {
+    var T = u.turn, st = D.Battle.tendrilOn(u, u, B.units);
+    while (st && (T.action || T.attacksLeft) && !u.dead && u.hp > 0) {
+      yield* B.exec(u, { do: 'attack', target: st });
+      st = D.Battle.tendrilOn(u, u, B.units);
+    }
+  };
   // the sanctuaried and the charmer are no targets (Sanctuary: a WIS save first; charmed: never its charmer)
   function fair(B, u, w) { return !(w.conds.charmedBy && false); }
 
@@ -460,6 +519,8 @@
     if (u.conc && !foesOf(B, u).length && B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && w.conds.banished && w.conds.banished.by === u.id; })) { M.endConc(B, u, 'to finish it'); yield 16; }
     var fs = foesOf(B, u);
     if (!fs.length) {
+      // a foe under the ground, or out of the world, and nothing else to do: READY for its coming (SRD 5.1 Ready; 10-02)
+      if (T.action && !u.ready && TX.readyWanted(B, u)) { yield* TX.readyUp(B, u); return; }
       // no one it knows of: toward the nearest it can hear, then wait
       var any = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.conds.hidden; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       if (!any && B.heardOf) any = B.heardOf(u); // (no one to hear but where the last blow came from: it goes there -- SRD 5.1, Hiding; battle.js noteHeard, 10-01c)
@@ -496,6 +557,9 @@
     var pick = plans[0];
     if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ': ' + plans.slice(0, 3).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | '));
     if (pick && pick.score > 0.5) { yield* pick.go(); return; }
+    // nothing worth doing, and a foe under the ground or out of the world (a burrower, a phase spider): READY -- the first that comes within reach, or into sight for a bow or an
+    // attack cantrip (SRD 5.1 Ready; 10-02, handoff-2026-10-01-the-tendrils-and-ready: the class AI readying against a burrower). Else close on the nearest, as before
+    if (T.action && !u.ready && TX.readyWanted(B, u)) { yield* TX.readyUp(B, u); return; }
     // nothing in reach: close on the nearest (a Dash if it has nothing at range)
     var near = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (!near) return;
@@ -669,6 +733,62 @@
       if (G.dist(u, t) <= 5 && u.turn.action) yield* B.layOnHands(u, t, false, Math.min(u.feats.lay, t.maxhp - Math.max(0, t.hp)));
     } };
   });
+
+  // a friend held by a roper's tendril (10-02, handoff-2026-10-01-the-tendrils-and-ready §4.1; SRD 5.1 Grasping Tendrils): BREAK THE TENDRIL from beside it (a DC 15 STR
+  // check, an action) or cut it through (a blow at AC 20 and what is left of its 10 HP), each weighed by its chance against what the friend is worth free this round -- its
+  // own blows, the bite it is spared while out of the roper's reach -- less the roper's chance of taking it again with a tendril to spare, plus the tendril the roper is
+  // short. Beside the swing at the roper itself, which the numbers mostly prefer: the roper re-grabs at +7 four times a turn
+  TX.ACTIONS.push(function (B, u, fs, allies) {
+    var T = u.turn; if (!T.action || T.attacksLeft || u.conds.restrained) return null;
+    var out = [], rm = null;
+    allies.forEach(function (w) {
+      if (w === u || !G.standing(w)) return;
+      var st = D.Battle.tendrilOn(u, w, B.units); if (!st) return;
+      var h = st.by, t = w.conds.restrained.tendril;
+      var ta = Object.keys(h.attacks || {}).map(function (k) { return h.attacks[k]; }).filter(function (a) { return a && a.tendril; })[0];
+      var spare = !!ta && (h.holding || []).length + (h.tendrilsLost || 0) < ((ta.grapple || {}).max || 1), regrab = spare ? Math.min(0.9, TX.pHit(ta.atk, RU.ac(w), 0)) : 0;
+      var worth = (TX.dpr(w) * 0.8 + (G.dist(h, w) <= 5 ? 2 : 6)) * (1 - regrab) + 1.5;
+      rm = rm || G.reach(u, T.move);
+      // BREAK: from beside the held one
+      var from = G.dist(u, w) <= 5 ? { x: u.x, y: u.y, cost: 0 } : AI.approach(u, w, rm, 5);
+      if (from && G.dist(u, w, from.x, from.y) <= 5) {
+        var ce = RU.checkEdges(u, 'str'), en = u.conds.enlarged, adv = !!(en && !en.down) || ce.adv.length > 0, dis = !!(u.conds.poisoned || u.conds.frightened || (en && en.down)) || ce.dis.length > 0;
+        var pb = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), p = clamp((21 - ((t.breakDC || 15) - pb)) / 20, 0, 1); p = adv && !dis ? 1 - (1 - p) * (1 - p) : dis && !adv ? p * p : p;
+        out.push({ kind: 'break', score: p * worth - from.cost / 30, why: 'breaks the tendril on ' + w.name, go: (function (fr) { return function* () { yield* walk(B, u, fr); if (G.dist(u, w) <= 5 && u.turn.action && D.Battle.tendrilOn(u, w, B.units)) yield* B.exec(u, { do: 'breaktendril', target: w }); }; })(from) });
+      }
+      // CUT: a weapon at it from any square it reaches (the held one's square is where the tendril is struck)
+      weapons(u).forEach(function (wp) {
+        var rng = wp.ranged ? wp.range[1] : G.reachOf(u, wp.reach), best = null;
+        [{ x: u.x, y: u.y, cost: 0, stand: true }].concat(Object.keys(rm).map(function (k) { return rm[k]; })).forEach(function (e) {
+          if (!e.stand || G.dist(u, w, e.x, e.y) > rng || (wp.ranged && !G.los(u, w, e.x, e.y).clear)) return;
+          var pc = TX.pCut(B, u, st, wp, e.x, e.y), sc = pc * worth - e.cost / 30 - (wp.ranged && G.foesNear(u, e.x, e.y, 5).length ? 2 : 0);
+          if (!best || sc > best.score) best = { score: sc, e: e, wp: wp };
+        });
+        if (best) out.push({ kind: 'cut', score: best.score, why: 'cuts the tendril on ' + w.name, go: (function (b) { return function* () {
+          yield* walk(B, u, b.e);
+          var s2 = D.Battle.tendrilOn(u, w, B.units), keep = u.weapon; u.weapon = b.wp;
+          while (s2 && (u.turn.action || u.turn.attacksLeft) && !u.dead && u.hp > 0) { yield* B.exec(u, { do: 'attack', target: s2 }); s2 = D.Battle.tendrilOn(u, w, B.units); }
+          u.weapon = keep;
+          if (u.turn.attacksLeft > 0) yield* swingAll(B, u, b.wp, null); // (the tendril cut with swings to spare: the rest at whoever is in reach)
+        }; })(best) });
+      });
+    });
+    return out.length ? out : null;
+  });
+  // READY against what cannot be struck now (10-02; SRD 5.1 Ready): wanted when a foe is under the ground or out of the world and nothing standing is within a walk and a
+  // swing; a caster readies its best attack cantrip (into sight), a hero with a bow readies it, the rest their blade (within reach)
+  TX.readyWanted = function (B, u) {
+    var T = u.turn;
+    if (!B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && (w.ethereal || w.under); })) return false;
+    return !foesOf(B, u).some(function (t) { return G.dist(u, t) <= T.move + G.reachOf(u); });
+  };
+  TX.readyUp = function* (B, u) {
+    var pick = 'weapon';
+    if (TX.caster(u)) { var e = M.list(B, u, { anyTarget: true }).filter(function (x) { return x.ok && x.level === 0 && x.g && /^(attack|rays)$/.test(x.g.shape) && x.g.time === 'A'; }).sort(function (a, b) { return avg(b.sp.dmg || '0') - avg(a.sp.dmg || '0'); })[0]; if (e) pick = e; }
+    else if (u.alt && u.alt.ranged && !(u.weapon && u.weapon.ranged) && !u.conds.disarmed) pick = 'alt';
+    if (pick === 'weapon' && !(u.weapon && u.weapon.name)) return;
+    yield* B.exec(u, { do: 'ready', pick: pick });
+  };
 
   // ------------------------------------------------------------------ the rogue's cover play (10-01c, the lone-rogue runner; dev/bench16.js mode=rogue4)
   // A creature that cannot see its target does nothing (js/ai.js heroes: the hidden are known only from beside it). So a rogue who shoots from a square where no foe sees
