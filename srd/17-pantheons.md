@@ -2,9 +2,9 @@
 
 *SRD 5.1, pages 360-362 (from dev/SRD-OGL_V5.1.pdf by tools/srd-md.py)*
 
-## Appendix PH-B: Fantasy-Historical
+## Appendix PH-B: Fantasy-Historical Pantheons
 
-Pantheons The Celtic, Egyptian, Greek, and Norse pantheons are fantasy interpretations of historical religions from our world’s ancient times. They include deities that are most appropriate for use in a game, divorced from their historical context in the real world and united into pantheons that serve the needs of the game.
+The Celtic, Egyptian, Greek, and Norse pantheons are fantasy interpretations of historical religions from our world’s ancient times. They include deities that are most appropriate for use in a game, divorced from their historical context in the real world and united into pantheons that serve the needs of the game.
 
 ## The Celtic Pantheon
 
