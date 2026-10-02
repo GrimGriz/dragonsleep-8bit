@@ -1724,7 +1724,7 @@
 }
 },
 "giantrat_p1": {
-"image": "art/giantrat_p1.png?v=2056503c95",
+"image": "art/giantrat_p1.png?v=3dcdc472a1",
 "fw": 96,
 "fh": 96,
 "ax": 48,
