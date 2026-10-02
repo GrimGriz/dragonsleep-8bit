@@ -510,7 +510,7 @@
     if (u.hp <= 0 || u.dead) return;
     B.focus(u);
     // Fear's run (SRD 5.1): the Dash, away from the one it fears, and nothing else
-    if (M.mustFlee && M.mustFlee(u)) { yield* TX.fleeFear(B, u); return; }
+    if (M.mustFlee && M.mustFlee(u) && (yield* TX.fleeFear(B, u))) return; // (cornered: its turn after all, TX.cornered)
     // one who fights only to get away (Amara and Willem on the road): the way out first, and what it can throw from there
     var exits = (B.fight && B.fight.exit) || (B.map && B.map.def.exit) || [];
     if (u.flees && exits.length) { yield* fleeTurn(B, u, exits); return; }
@@ -593,13 +593,36 @@
     if (plans[0] && plans[0].score > 0.5) yield* plans[0].go();
     else { B.card(['{g}' + u.name + ' makes for the way out.{/}']); yield 16; }
   }
+  // nowhere to run (SRD 5.1 Fear: "must take the Dash action and move away from you by the safest available route on each of its turns,
+  // unless there is nowhere to move"): held fast, or no square the Dash could reach that is farther from the one it fears than where it stands
+  TX.cornered = function (B, u) {
+    var src = B.units.filter(function (w) { return u.conds.feared && w.id === u.conds.feared.by; })[0];
+    if (!src || u.conds.dancing) return false;
+    if (u.conds.restrained || u.conds.grappled || !(u.speed > 0)) return true;
+    var T = u.turn, rm = G.reach(u, (T.move || 0) + (T.action ? u.speed : 0)), d0 = G.dist(src, u);
+    return !Object.keys(rm).some(function (k) { var e = rm[k]; return e.stand && G.dist(src, u, null, null, e.x, e.y) > d0; });
+  };
+  // the run; false when it is cornered and the turn is its own after all (10-02, Griz: "'fear' allows fighting back when cornered" -- the
+  // 3.5 SRD's frightened; 5.1's is the clause above: it fights, at disadvantage while it sees the one it fears, and never one step nearer).
+  // The turned (Turn Undead) are not freed so: "If there's nowhere to move, the creature can use the Dodge action" -- or, held, it tries to
+  // get loose ("try to escape from an effect that prevents it from moving")
   TX.fleeFear = function* (B, u) {
-    var T = u.turn;
+    var T = u.turn, nm = u.side === 'foe' ? AI.the(B, u) : u.name;
+    if (TX.cornered(B, u)) {
+      if (u.conds.turned) {
+        B.card(['{p}' + nm + ' has nowhere to run.{/}'], 200);
+        if (u.conds.restrained && T.action) yield* M.breakFree(B, u); else if (T.action) yield* B.exec(u, { do: 'dodge' });
+        return true;
+      }
+      B.card(['{p}' + nm + ' has nowhere to run from its fear, and turns at bay.{/}  {g}(frightened: disadvantage while it sees the one it fears){/}'], 220);
+      return false;
+    }
     if (T.action && !u.conds.restrained && !u.conds.dancing) { T.action = 0; T.move += u.speed; }
     if (TX.bonusDash(u)) yield* B.exec(u, { do: 'cdash' }); // (the bonus action's Dash on top: it only runs farther -- Expeditious Retreat, Cunning Action)
     T.fleeFrom = u.conds.feared.by;
-    B.card(['{p}' + (u.side === 'foe' ? AI.the(B, u) : u.name) + ' runs from its fear.{/}'], 200);
+    B.card(['{p}' + nm + ' runs from its fear.{/}'], 200);
     yield* M.flee(B, u);
+    return true;
   };
   // a caster, a bowman: after acting, off the front if it can be
   function* keepOff(B, u) {

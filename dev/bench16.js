@@ -848,7 +848,7 @@
   if (get('mode', '') === 'ready1002') {
     var repY = { checks: [], errors: [] }, d0Y = D.d;
     function okY(what, v) { repY.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
-    function runY(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function runY(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; if (st.value && st.value.aim) v = D.battle.readyAuto(st.value.aim.who, st.value.aim.rd, st.value.aim.ctx); } } // (aim: a player's readied thing sprung -- aimed where the trigger points, 10-02)
     function mkY(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); return Bx; }
     function logY(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
     try {
@@ -901,6 +901,69 @@
     if (errs.length) repY.errors = repY.errors.concat(errs);
     var preY = document.createElement('pre'); preY.id = 'out'; preY.textContent = 'BENCH16 ' + JSON.stringify(repY);
     document.body.appendChild(preY);
+    return;
+  }
+  // READY's four triggers and the wheel, and Fear's corner (mode=ready1002b; 10-02, Griz: the trigger "menu ... then they navigate the wheel to what they're readying",
+  // "let's make 3 'an ally goes down' for readied healers", "foe you can see casts a spell", "or were you letting them pick target when the trigger went off"; "1 yes":
+  // SRD 5.1 Fear, "unless there is nowhere to move"): a player's READY asks WHEN and spends nothing till the wheel's pick; the wheel has only what can be readied; a
+  // readied Cure Wounds springs when one of us goes down; a readied blade when a foe strikes one of us, and when a foe in sight casts; a player's sprung ready asks to aim;
+  // a frightened goblin in a corner fights (at disadvantage), one in the open runs
+  if (get('mode', '') === 'ready1002b') {
+    var repZ = { checks: [], errors: [] }, d0Z = D.d, G = D.grid;
+    function okZ(what, v) { repZ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    var aims = 0;
+    function runZ(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; if (st.value && st.value.aim) { aims++; v = D.battle.readyAuto(st.value.aim.who, st.value.aim.rd, st.value.aim.ctx); } } }
+    function mkZ(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); return Bx; }
+    function logZ(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // 1 a player's READY: WHEN first (the four), nothing spent; the wheel then has only what can be held (js/ui.js readyRing)
+      var B1 = mkZ('?npc=goblin&lvl=5&vs=cleric,fighter'), cl = B1.units.filter(function (u) { return u.side === 'party' && u.cls === 'cleric'; })[0];
+      D.rules.startTurn(cl); var g1 = B1.exec(cl, { do: 'ready' }), s1 = g1.next(), pr = s1.value && s1.value.prompt;
+      okZ('READY asks WHEN: ' + (pr && pr.opts.map(function (o) { return o.value; }).join(',')), !!pr && pr.opts.length === 5 && pr.opts[2].value === 'down');
+      g1.next('down');
+      okZ('the trigger kept for the wheel: ' + JSON.stringify(B1.readying && { who: B1.readying.who.name, trigger: B1.readying.trigger }) + ', the action still there ' + (cl.turn.action === 1), !!B1.readying && B1.readying.trigger === 'down' && cl.turn.action === 1 && !cl.ready);
+      // 2 one of us goes down: the readied Cure Wounds (a player's: it asks to aim, and is aimed at the fallen)
+      var ft = B1.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], gb = B1.units.filter(function (u) { return u.side === 'foe'; })[0];
+      runZ(B1.exec(cl, { do: 'ready', trigger: 'down', what: 'spell', id: 'curewounds', slot: 1 }));
+      okZ('readied: ' + JSON.stringify(cl.ready && { trigger: cl.ready.trigger, what: cl.ready.what, id: cl.ready.id }) + ', concentration ' + (cl.conc && cl.conc.id), !!cl.ready && cl.ready.trigger === 'down' && cl.ready.id === 'curewounds' && !!(cl.conc && cl.conc.id === 'ready'));
+      cl.x = 9; cl.y = 9; ft.x = 10; ft.y = 9; gb.x = 11; gb.y = 9; ft.hp = 1; B1.readySnap(); aims = 0;
+      var n2 = (B1.log || []).length; D.d = function (s) { return s === 20 ? 19 : s; };
+      runZ(B1.attack(gb, ft, gb.weapon || gb.attacks[Object.keys(gb.attacks)[0]])); D.d = d0Z;
+      var l2 = logZ(B1, n2);
+      okZ('the fighter goes down, the readied Cure Wounds: ' + /readied Cure Wounds/.test(l2) + ', asked to aim ' + aims + ', up again at ' + ft.hp + ', the reaction spent ' + (cl.reaction === 0) + ' -- ' + l2.slice(0, 200), /readied Cure Wounds/.test(l2) && ft.hp > 0 && cl.reaction === 0 && !cl.ready && aims === 1);
+      // 3 a foe attacks one of us: the readied blade, at the attacker
+      var B3 = mkZ('?npc=goblin&lvl=5&vs=fighter,wizard'), f3 = B3.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], w3 = B3.units.filter(function (u) { return u.side === 'party' && u.cls === 'wizard'; })[0], g3 = B3.units.filter(function (u) { return u.side === 'foe'; })[0];
+      f3.x = 9; f3.y = 9; w3.x = 10; w3.y = 10; g3.x = 10; g3.y = 9; D.rules.startTurn(f3);
+      runZ(B3.exec(f3, { do: 'ready', trigger: 'ally', what: 'weapon' }));
+      var n3 = (B3.log || []).length; runZ(B3.attack(g3, w3, g3.weapon || g3.attacks[Object.keys(g3.attacks)[0]])); var l3 = logZ(B3, n3);
+      okZ('the goblin strikes at ' + w3.name + ': the readied ' + (f3.weapon && f3.weapon.name) + ' ' + /readied/.test(l3) + ', at the goblin ' + /\(readied\)/.test(l3) + ' -- ' + l3.slice(0, 200), /\(readied\)/.test(l3) && f3.reaction === 0 && !f3.ready);
+      // 4 a foe in sight casts a spell: the readied blade
+      var B4 = mkZ('?npc=wizard:5&lvl=5&vs=fighter'), f4 = B4.units.filter(function (u) { return u.side === 'party'; })[0], w4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0];
+      f4.x = 9; f4.y = 9; w4.x = 10; w4.y = 9; B4.dark = false; D.rules.startTurn(f4);
+      runZ(B4.exec(f4, { do: 'ready', trigger: 'cast', what: 'weapon' }));
+      D.rules.startTurn(w4); var n4 = (B4.log || []).length; runZ(D.magic.cast(B4, w4, 'firebolt', 0, f4)); var l4 = logZ(B4, n4);
+      okZ('the wizard casts Fire Bolt: the readied strike ' + /\(readied\)/.test(l4) + ' -- ' + l4.slice(0, 200), /\(readied\)/.test(l4) && f4.reaction === 0);
+      // 5 Fear: cornered, it fights; in the open, it runs
+      // (boxed in: a square of the map with three open squares or fewer about it, the three fighters on them -- the first the one it fears)
+      var B5 = mkZ('?npc=goblin&lvl=5&vs=fighter,fighter,fighter'), p5 = B5.units.filter(function (u) { return u.side === 'party'; }), f5 = p5[0], g5 = B5.units.filter(function (u) { return u.side === 'foe'; })[0];
+      var DIRS = [[1,0],[-1,0],[0,1],[0,-1],[1,1],[1,-1],[-1,1],[-1,-1]], corner = null, nb = [];
+      p5.forEach(function (h) { h.x = -9; h.y = -9; }); g5.x = -9; g5.y = -9;
+      for (var yy = 0; yy < G.map.h && !corner; yy++) for (var xx = 0; xx < G.map.w && !corner; xx++) { if (!G.canStand(g5, xx, yy)) continue; var op = DIRS.map(function (d) { return [xx + d[0], yy + d[1]]; }).filter(function (q) { return G.canStand(g5, q[0], q[1]); }); if (op.length >= 1 && op.length <= p5.length) { corner = [xx, yy]; nb = op; } }
+      g5.x = corner[0]; g5.y = corner[1]; nb.forEach(function (q, i) { p5[i].x = q[0]; p5[i].y = q[1]; p5[i].hp = p5[i].maxhp; });
+      g5.conds.frightened = { by: f5.id }; g5.conds.feared = { by: f5.id, dc: 14 }; D.rules.startTurn(g5);
+      var cor = D.tactics.cornered(B5, g5), n5 = (B5.log || []).length; runZ(D.ai.turn(B5, g5)); var l5 = logZ(B5, n5);
+      okZ('the goblin boxed in at (' + corner + ') by ' + nb.length + ', cornered ' + cor + ': at bay ' + /nowhere to run/.test(l5) + ', it strikes ' + / > /.test(l5) + ', at disadvantage ' + /dis: frightened/.test(l5) + ' -- ' + l5.slice(0, 220), cor && /nowhere to run/.test(l5) && / > /.test(l5));
+      // (held fast -- a web's restraint -- is nowhere to move too)
+      var B6 = mkZ('?npc=goblin&lvl=5&vs=fighter'), f6 = B6.units.filter(function (u) { return u.side === 'party'; })[0], g6 = B6.units.filter(function (u) { return u.side === 'foe'; })[0];
+      g6.x = 9; g6.y = 9; f6.x = 9; f6.y = 12; g6.conds.frightened = { by: f6.id }; g6.conds.feared = { by: f6.id, dc: 14 }; D.rules.startTurn(g6);
+      okZ('held fast is cornered: ' + D.tactics.cornered(B6, (g6.conds.restrained = { dc: 12 }, g6)), D.tactics.cornered(B6, g6)); delete g6.conds.restrained;
+      var n6 = (B6.log || []).length; runZ(D.ai.turn(B6, g6)); var l6 = logZ(B6, n6);
+      okZ('in the open it runs: ' + /runs from its fear/.test(l6) + ' -- ' + l6.slice(0, 120), /runs from its fear/.test(l6));
+    } catch (eZ) { repZ.errors.push(String(eZ && eZ.stack || eZ).slice(0, 900)); }
+    D.d = d0Z;
+    if (errs.length) repZ.errors = repZ.errors.concat(errs);
+    var preZ = document.createElement('pre'); preZ.id = 'out'; preZ.textContent = 'BENCH16 ' + JSON.stringify(repZ);
+    document.body.appendChild(preZ);
     return;
   }
   // the first ring, each class's (mode=ring1001c; 10-01c, the ring survey's picks -- js/ui.js QUICK, BESIDE, FRONT): a player's hero of each class at 5, its

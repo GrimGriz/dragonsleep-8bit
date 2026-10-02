@@ -50,7 +50,12 @@
       // on the ring, the grid gives way to it once there's nothing left there: no step to take, no swing at a foe in reach
       // (Griz, 09-27: all the movement spent, or the last blow struck, and the ring comes up by itself)
       if (UI.opts.style === 'ring' && B.tool === 'move' && gridDone(B, req.turn)) { B.tool = 'menu'; B.ringStill = false; }
+      // READY's trigger asked (battle.js exec 'ready'): the wheel of what can be held for it
+      if (B.readying && B.readying.who === req.turn) { B.tool = 'menu'; B.list = readyRing(B, req.turn); B.ringB = null; B.ringStill = false; B.clearCards(); B.card([D.keys('{y}READY{/}: ' + readyWhenText(B.readying.trigger) + ' -- what do you hold for it?  {g}X back{/}')], 100000); }
+      else B.readying = null;
     }
+    B.readyAim = req.aim || null;
+    if (req.aim) aimStart(B, req.aim);
     if (req.prompt) { B.sel = 0; D.sfx('popup'); if (req.prompt.pick && req.prompt.pick[0]) { var p0 = req.prompt.pick[0]; B.cursor = { x: p0.x, y: p0.y }; showCursor(B); } } // (a pick on the grid: the cursor on the first of them)
     if (req.entry) B.entryT = B.t;
     if (req.scene) { // a cutscene beat: its clip starts with it, and the beat holds at least as long as the clip runs
@@ -198,8 +203,75 @@
     if (req.scene) return sceneInput(B, req.scene);
     UI.camera(B);
     if (req.prompt) return promptInput(B, req.prompt);
+    if (req.aim) return aimInput(B, req.aim);
     if (req.turn) return turnInput(B, req.turn);
   };
+  // ------------------------------------------------------------------ READY (battle.js exec 'ready', readySpring; 10-02): the wheel of what can be held, and the aim when it springs
+  function readyWhenText(trig) { return trig === 'ally' ? 'when a foe attacks one of us in sight' : trig === 'down' ? 'when one of us goes down' : trig === 'cast' ? 'when a foe in sight casts a spell' : 'when a foe comes within reach (into sight, for a bow or a spell)'; }
+  // only what can be readied is on it (Griz: "we'll just not have buttons they can't click (except the grayed out level tier buttons (i.e. willem)"): the weapon, the
+  // other one, SPELLS (the spells that take an action, by level), MOVE
+  function readiable(e) { return !!(e && e.ok && e.g && e.g.time === 'A'); }
+  function readyRing(B, u) {
+    var items = [];
+    [['weapon', u.weapon], ['alt', u.alt]].forEach(function (p) { var wp = p[1]; if (wp && wp.name && !u.conds.disarmed) items.push({ kind: 'readypick', what: p[0], id: 'attack', icon: 'attack', name: wp.name.toUpperCase(), label: wp.name.toUpperCase(), ok: true, note: 'one ' + (wp.ranged ? 'shot' : 'swing') + ' at the one you pick when it springs' }); });
+    if (D.magic.list(B, u, { anyTarget: true }).some(readiable)) items.push({ kind: 'readylevels', id: 'spells', icon: 'spells', name: 'SPELLS', label: 'SPELLS', ok: true, note: 'cast now and held: the slot spent, and concentration' });
+    if (u.speed > 0 && !u.conds.restrained) items.push({ kind: 'readypick', what: 'move', id: 'move', icon: 'move', name: 'MOVE', label: 'MOVE', ok: true, note: 'up to your speed, to the square you pick when it springs' });
+    return { kind: 'ready', items: items, sel: 0, title: 'READY' };
+  }
+  // the spell levels, as the SPELLS ring has them -- a tier with no slot (or nothing to ready) greyed, never hidden -- and in each only the spells that can be readied
+  function readyLevels(B, u) {
+    var all = D.magic.list(B, u, { anyTarget: true }), lv = {}, items = [];
+    all.forEach(function (e) { (lv[e.level] = lv[e.level] || []).push(e); });
+    Object.keys(lv).map(Number).sort(function (a, b) { return a - b; }).forEach(function (L) {
+      var slots = L ? (u.slots[L - 1] || 0) : null, can = lv[L].filter(readiable);
+      items.push({ kind: 'level', level: L, name: L ? 'LEVEL ' + L : 'CANTRIPS', label: L ? 'LEVEL ' + L + ' · ' + slots + ' slot' + (slots === 1 ? '' : 's') : 'CANTRIPS', ok: can.length > 0, why: can.length ? '' : L && !slots ? 'no level-' + L + ' slots left' : 'nothing there to ready', spells: can });
+    });
+    var first = 0; items.some(function (e, i) { if (e.ok) { first = i; return true; } return false; });
+    return { kind: 'levels', items: items, sel: first, title: 'READY: SPELLS' };
+  }
+  // the readied thing sprung (req.aim): its tool up for the one holding it -- the blade's swing, the spell's aim, the move -- and the cursor on the one that set it off
+  function aimStart(B, a) {
+    var u = a.who, rd = a.rd, f = a.ctx.foe || a.ctx.ally;
+    B.list = null; B.picks = []; B.spell = null; B.cache = null; B.inspect = null;
+    if (f) { B.cursor = { x: f.x, y: f.y }; showCursor(B); }
+    if (rd.what === 'weapon') B.tool = 'attack';
+    else if (rd.what === 'move') B.tool = 'move';
+    else {
+      var e = D.magic.list(B, u, { anyTarget: true }).filter(function (x) { return x.id === rd.id; })[0], g = D.magic.geo(rd.id);
+      B.spell = { id: rd.id, slot: rd.slot, g: g, sp: e && e.sp, n: (g.n || 1) + Math.max(0, (rd.slot || 0) - (rd.level || 0)), name: rd.name };
+      B.tool = 'spell';
+    }
+    var how = rd.what === 'weapon' ? 'click the foe to strike' : rd.what === 'move' ? 'click the square to move to' : 'aim it as you would on your turn';
+    D.sfx('popup'); B.clearCards();
+    B.card([D.keys('{o}' + u.name + '{/}, the readied ' + (rd.what === 'move' ? 'move' : rd.name) + ': ' + a.ctx.why + '  ' + how + '.  {g}X or the right button holds it{/}')], 100000);
+  }
+  function holdAim(B) { D.sfx('cancel'); B.readyAim = null; B.tool = rest(); B.spell = null; B.picks = []; B.clearCards(); B.answer(null); }
+  function aimInput(B, a) {
+    var u = a.who, rd = a.rd;
+    if (B.inspect && (I.pressed('a') || I.pressed('b') || I.mouse.click || I.mouse.rclick)) { B.inspect = null; return; }
+    B.hoverBtn = -1;
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, rd.what === 'weapon' ? foeWanted(B, u) : null), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); B.hoverUnit = pu; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
+    if (I.mouse.inside) (B.buttons || []).forEach(function (b, i) { if (hit(b)) B.hoverBtn = i; });
+    B.peek = B.tool === 'spell' && B.spell ? underCursor(B) || null : null;
+    ['up', 'down', 'left', 'right'].forEach(function (k) { if (k !== I.stickWay && I.repeat(k)) moveCursor(B, k); });
+    if (I.repeat('stick')) stickCursor(B);
+    if (I.mouse.rbtn || I.pressed('b')) { if (B.picks && B.picks.length) { D.sfx('cancel'); B.picks.pop(); return; } return holdAim(B); }
+    if (I.mouse.click && B.hoverBtn >= 0 && B.buttons[B.hoverBtn].cast) return castPicks(B, u); // (the allies' CAST button)
+    var byKey = I.pressed('a'), go = byKey || (I.mouse.click && !overUI(B));
+    if (!go) return;
+    var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y);
+    if (rd.what === 'weapon') {
+      var foe = (w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units);
+      if (foe && B.canHit(u, foe)) return UI.command(B, u, { do: 'attack', target: foe });
+      D.sfx('error'); return B.card(['{o}' + (foe ? 'The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + G.dist(u, foe) + ' ft)' : 'Not a foe there') + '.  X holds it.{/}'], 120);
+    }
+    if (rd.what === 'move') {
+      if (w && w !== u) { D.sfx('error'); return; }
+      if (UI.valid(B, u, x, y) === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
+      D.sfx('error'); return;
+    }
+    return actAt(B, u, x, y, byKey); // (the spell's own aim: js/ui.js actAt, its cast an answer like any)
+  }
   // a cutscene beat runs its frames; after its first second E or a click moves it on
   function sceneInput(B, sc) {
     sc.t = (sc.t || 0) + 1;
@@ -278,6 +350,7 @@
     return (B.uiRects || []).some(hit);
   }
   function turnInput(B, u) {
+    if (B.readying && !B.list) { B.readying = null; B.clearCards(); } // (backed out of READY's wheel: nothing readied, nothing spent)
     var st = UI.opts.style, any = I.pressed('a') || I.pressed('b') || I.pressed('end') || I.mouse.click;
     if (B.inspect && (any || I.mouse.rclick)) { B.inspect = null; return; }
     if (I.pressed('end')) return UI.command(B, u, { do: 'end' });
@@ -419,6 +492,9 @@
     if (!e) return;
     B.list.sel = i;
     if (!e.ok) { D.sfx('error'); B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
+    // READY's wheel (readyRing): the pick goes back to battle.js exec 'ready' with the trigger asked before it
+    if (B.readying && (e.kind === 'readypick' || e.kind === 'spell')) { var trg = B.readying.trigger; B.readying = null; D.sfx('confirm'); return UI.command(B, u, e.kind === 'spell' ? { do: 'ready', trigger: trg, what: 'spell', id: e.id, slot: e.slot } : { do: 'ready', trigger: trg, what: e.what }); }
+    if (e.kind === 'readylevels') { D.sfx('confirm'); var rl = readyLevels(B, u); rl.back = B.list; B.list = rl; B.ringB = null; return; }
     if (e.kind === 'cmd') { B.list = null; return pickCommand(B, u, e.cmd); } // (it says its own confirm)
     D.sfx('confirm');
     if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.label }; B.ringC = null; return; }
@@ -493,7 +569,7 @@
   function hoveredRider(B, u, x, y) { var hu = B.hoverUnit; return hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y && G.hostile(u, hu) ? hu : null; }
   // the one under the cursor the tooltip, the inspect and a spell's peek speak of: a rider the mouse is on, or -- the attack cued -- the darkmantle on the square, else the one standing there
   function underCursor(B) {
-    var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y), hu = B.hoverUnit, a = B.active;
+    var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y), hu = B.hoverUnit, a = (B.req && B.req.aim && B.req.aim.who) || B.active;
     if (hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y) return hu;
     if (B.tool === 'attack' && a) { var r = D.Battle.riderOn(a, w, B.units) || D.Battle.tendrilOn(a, w, B.units); if (r) return r; } // (or the roper's tendril on the one there: its AC and what is left of it, 10-02)
     if (B.tool === 'spell' && B.spell && a) { var st = spellTarget(B, a, B.spell.g, x, y); if (st) return st; }
@@ -632,7 +708,7 @@
 
   // ------------------------------------------------------------------ drawing
   UI.drawBattle = function (ctx, B) {
-    var req = B.req, hero = req && req.turn, objs = [];
+    var req = B.req, hero = req && (req.turn || (req.aim && req.aim.who)), objs = []; // (req.aim: the readied thing aimed on another's turn -- its holder's tool and reach, 10-02)
     B.uiRects = []; B.buttons = [];
     // whose eyes (10-01, Griz: "regardless of turn if you mouseover a party member/guest/ally it switches to their vision filter"): the
     // mouse on one of ours -- a hero, a guest, a summoned ally -- on a dark map shows the dark as that one sees it (js/light.js L.viewMap)

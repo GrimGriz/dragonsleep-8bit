@@ -480,6 +480,7 @@
         else if (this.show && u.show) yield* D.show.turn(this, u); // (the test ground's director, js/show.js: the AI's turn with its nudges about it)
         else yield* D.ai.turn(this, u);
         this.active = null;
+        if (this.readyArmed()) yield* this.readyAfter(); // (one of us down by what no blow or spell of the turn told: a turn's-end save, the ring's spirits -- the readied healers, 10-02)
         if (D.familiar && !u.familiar) yield* D.familiar.after(this, u); // (his familiar's turn, right after his: js/familiar.js)
         yield* this.wave();
         this.sweep();
@@ -589,7 +590,7 @@
     if (u.conds.banished) { this.card(['{g}' + u.name + ' is not here.{/}']); yield 40; D.magic.endTurn(this, u); return; }
     if (u.conds.confused && D.magic.confusedTurn && (yield* D.magic.confusedTurn(this, u))) { yield 30; D.magic.endTurn(this, u); return; }
     // Fear's run (a foe's Fear, js/grimoire.js): the Dash away from it, and the turn is over
-    if (D.magic.mustFlee && D.magic.mustFlee(u)) { yield* D.tactics.fleeFear(this, u); yield 30; D.magic.endTurn(this, u); return; }
+    if (D.magic.mustFlee && D.magic.mustFlee(u) && (yield* D.tactics.fleeFear(this, u))) { yield 30; D.magic.endTurn(this, u); return; } // (cornered: the turn is the player's, js/tactics.js TX.cornered)
     // a word of Command obeyed (a foe's Command, js/grimoire.js): the turn is the word's
     if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(this, u); yield 40; D.magic.endTurn(this, u); return; }
     // Irresistible Dance (10-01, Griz: "agree, player choice, ai takes irresistible seriously ;)"): the player's dancer is asked -- SHAKE IT OFF (the WIS
@@ -687,9 +688,10 @@
     // or a friend beside; the tendril is struck at with ATTACK on the held one's square (tendrilOn). 10-02, handoff-2026-10-01-the-tendrils-and-ready
     var brks = Battle.breakable(u, this.units);
     if (brks.length) { var bt0 = brks[0].conds.restrained.tendril; out.push({ id: 'breaktendril', label: 'BREAK THE TENDRIL', cost: 'A', icon: 'free', tool: 'breaktendril', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', note: 'a STR check, DC ' + (bt0.breakDC || 15) + (u.conds.restrained && u.conds.restrained.weak ? ' (at disadvantage: held)' : '') + ': the tendril off ' + (brks[0] === u ? 'you' : brks[0].name) + ' (' + bt0.hp + '/' + bt0.max + ' HP to cut it instead)' }); }
-    // READY (SRD 5.1: "you can take the Ready action on your turn, which lets you act using your reaction before the start of your next turn"): one trigger here -- the first foe
-    // that comes within reach (a bow, a spell: into sight) -- and the strike or the spell held for it (exec 'ready'). 10-02, handoff-2026-10-01-the-tendrils-and-ready §4.2
-    out.push({ id: 'ready', label: 'READY', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !u.ready, why: u.ready ? 'readied already' : 'the action is spent', note: 'hold a strike (or an attack spell) for the first foe that comes within reach, or into sight: your reaction springs it' });
+    // READY (SRD 5.1: "you can take the Ready action on your turn, which lets you act using your reaction before the start of your next turn"): one of four triggers -- a foe
+    // within reach (a bow, a spell: into sight), a foe's attack at one of us, one of us down, a foe's spell -- and the strike, the spell or the move held for it (exec 'ready',
+    // readySpring). 10-02, handoff-2026-10-01-the-tendrils-and-ready §4.2; the triggers and the wheel the same evening, Griz
+    out.push({ id: 'ready', label: 'READY', cost: 'A', ok: T.action > 0 && !T.attacksLeft && !u.ready, why: u.ready ? 'readied already' : 'the action is spent', note: 'pick a trigger, then what you hold for it -- a strike, a spell, a move: your reaction springs it, aimed then' });
     return out;
   };
   // the roper's tendril on w (SRD 5.1 Grasping Tendrils; 10-02): a grip that carries `tendril` -- w held by it, its holder standing and hostile to u, w not (or w is u). The thing u
@@ -846,24 +848,41 @@
         // out of the Ethereal, one walking up, the invisible seen; and the action a single weapon attack, or an attack spell cast now and held ("When you ready a spell, you cast it
         // as normal but hold its energy ... holding onto the spell's magic requires concentration"). Sprung by readyHook; let go at the next turn (rules.js startTurn).
         // 10-02, handoff-2026-10-01-the-tendrils-and-ready §4.2; invented.json ready-one-trigger
+        // THE TRIGGER, THEN THE WHEEL (10-02, Griz: "what if we use the menu you used to give 2 or 3 trigger conditions, then they navigate the wheel to what they're
+        // readying - yes closer to SRD"; "go with 1&2 - let's make 3 'an ally goes down' for readied healers. foe casts a spell you can see, if you mean foe you can see
+        // casts a spell"; "we'll just not have buttons they can't click"): a player's READY asks WHEN (Battle.READY_TRIGGERS, a numbered menu) and leaves B.readying for
+        // the wheel (js/ui.js readyRing: the weapon, the spells that take an action -- the level tiers greyed where there's no slot -- or a move); its pick comes back
+        // as { do: 'ready', trigger, what, id, slot }, and only then is the action spent. The AI's (c.pick: 'weapon', 'alt' or a spell's entry) is the first trigger.
+        // SRD 5.1: "First, you decide what perceivable circumstance will trigger your reaction. Then, you choose the action you will take in response to that trigger,
+        // or you choose to move up to your speed in response to it"
         if (!T.action || T.attacksLeft || u.ready) return;
-        var picks = [];
-        if (u.weapon && u.weapon.name && !u.conds.disarmed) picks.push({ label: u.weapon.name.toUpperCase() + ': strike the first foe that comes ' + (u.weapon.ranged ? 'into sight' : 'within reach'), value: 'weapon' });
-        if (u.alt && u.alt.name && !u.conds.disarmed) picks.push({ label: u.alt.name.toUpperCase() + ': strike the first foe that comes ' + (u.alt.ranged ? 'into sight' : 'within reach'), value: 'alt' });
-        D.magic.list(this, u, { anyTarget: true }).filter(function (e) { return e.ok && e.g && /^(attack|rays|darts)$/.test(e.g.shape) && e.g.time === 'A' && e.g.side !== 'ally'; }).slice(0, 4).forEach(function (e) { picks.push({ label: e.name.toUpperCase() + (e.level ? ' (L' + e.slot + ')' : '') + ': at the first foe that comes into sight' + (e.level ? ' -- the slot now, and concentration' : ' -- concentration'), value: e }); });
-        if (!picks.length) return;
-        picks.push({ label: 'NOT NOW', value: 0 });
-        var pk = c.pick || (byAI(u) ? picks[0].value : yield { prompt: { who: u, title: u.name + ': READY', lines: ['Hold the action for its trigger: the reaction springs it, once, before your next turn.'], opts: picks } });
-        if (!pk) return;
-        T.action = 0;
-        if (pk === 'weapon' || pk === 'alt') { var rw = pk === 'alt' ? u.alt : u.weapon; u.ready = { what: 'weapon', name: rw.name, wp: rw }; u.ready.had = this.readyHad(u, u.ready); }
-        else {
-          var re = pk; if (re.level) u.slots[re.slot - 1]--;
-          u.ready = { what: 'spell', name: re.name, id: re.id, slot: re.slot, level: re.level }; u.ready.had = this.readyHad(u, u.ready);
-          D.magic.concentrate(this, u, 'ready', 'a readied ' + re.name, function () { if (u.ready && u.ready.what === 'spell') delete u.ready; }); // (concentration broken: the held magic dissipates, and the slot with it)
+        if (!c.trigger && !c.pick) {
+          var tp = byAI(u) ? 0 : yield { prompt: { who: u, title: u.name + ': READY -- WHEN?', lines: ['Pick the trigger; then, on the wheel, what you hold for it.'], opts: Battle.READY_TRIGGERS.map(function (t) { return { label: t.label, value: t.id }; }).concat([{ label: 'NOT NOW', value: 0 }]) } };
+          if (tp) this.readying = { who: u, trigger: tp }; // (nothing spent yet: the wheel takes it from here)
+          return;
         }
+        this.readying = null;
+        var trig = c.trigger || 'near', pk = c.pick || c.what, rd = { trigger: trig };
+        if (pk === 'weapon' || pk === 'alt') {
+          var rw = pk === 'alt' ? u.alt : u.weapon; if (!rw || !rw.name || u.conds.disarmed) return;
+          rd.what = 'weapon'; rd.name = rw.name; rd.wp = rw;
+        } else if (pk === 'move') {
+          if (!(u.speed > 0) || u.conds.restrained) return;
+          rd.what = 'move'; rd.name = 'move';
+        } else {
+          var sid = typeof pk === 'object' && pk ? pk.id : c.id, re = D.magic.list(this, u, { anyTarget: true }).filter(function (e) { return e.id === sid && e.ok && e.g && e.g.time === 'A'; })[0];
+          if (!re) return;
+          var rsl = (typeof pk === 'object' && pk && pk.slot) || c.slot || re.slot; if (re.level && re.levels && re.levels.indexOf(rsl) < 0) rsl = re.slot;
+          rd.what = 'spell'; rd.name = re.name; rd.id = re.id; rd.slot = rsl; rd.level = re.level;
+        }
+        T.action = 0;
+        if (rd.what === 'spell' && rd.level) u.slots[rd.slot - 1]--;
+        u.ready = rd;
+        if (trig === 'near') rd.had = this.readyHad(u, rd);
+        this.readySnap(); // (who stands now: "one of us goes down" is told from it)
+        if (rd.what === 'spell') D.magic.concentrate(this, u, 'ready', 'a readied ' + rd.name, function () { if (u.ready && u.ready.what === 'spell') delete u.ready; }); // (concentration broken: the held magic dissipates, and the slot with it)
         D.sfx('buff'); FX.ring(u, 'silver', 20);
-        this.card(['{y}' + u.name + '{/} readies ' + (u.ready.what === 'weapon' ? 'the ' + u.ready.name : u.ready.name) + ': the first foe that comes ' + (u.ready.what === 'weapon' && !u.ready.wp.ranged ? 'within reach' : 'into sight') + ' gets it.  {g}(the reaction, before the next turn){/}']);
+        this.card(['{y}' + u.name + '{/} readies ' + (rd.what === 'weapon' ? 'the ' + rd.name : rd.what === 'move' ? 'a move' : rd.name + (rd.level ? ' (L' + rd.slot + ')' : '')) + ': ' + Battle.readyWhen(rd) + '.  {g}(the reaction, before the next turn){/}']);
         yield 24; return;
       }
       case 'secondwind': {
@@ -1335,29 +1354,122 @@
   // (attack). Each readier with its reaction looks at who it could strike now against who it could before: a new one springs it -- a player's hero asked, the AI's at once --
   // and the list is kept either way. `about`: the one whose doing it was, struck first when it is among the new
   Battle.prototype.readyHook = function* (about) {
-    var rs = this.units.filter(function (w) { return w.ready && w.reaction > 0 && RU.canAct(w) && G.standing(w); });
+    var rs = this.units.filter(function (w) { return w.ready && (w.ready.trigger || 'near') === 'near' && w.reaction > 0 && RU.canAct(w) && G.standing(w); });
     for (var i = 0; i < rs.length; i++) {
       var w = rs[i], rd = w.ready; if (!rd || w.reaction <= 0 || !RU.canAct(w)) continue; // (sprung already from inside another's strike -- a readied spell's own attack asks the hook again)
-      var now = this.readyTargets(w, rd), fresh = now.filter(function (t) { return !rd.had[t.id]; });
+      var now = this.readyTargets(w, rd), fresh = now.filter(function (t) { return !(rd.had || {})[t.id]; });
       rd.had = {}; now.forEach(function (t) { rd.had[t.id] = 1; });
       if (!fresh.length) continue;
-      var foe = about && fresh.indexOf(about) >= 0 ? about : fresh[0], take = true, fname = foe.side === 'foe' ? 'The ' + shortName(foe) : foe.name;
-      if (w.side === 'party' && !w.guest) take = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [fname + ' comes ' + (rd.what === 'weapon' && !rd.wp.ranged ? 'within reach' : 'into sight') + '.'], opts: [{ label: 'STRIKE', value: true }, { label: 'HOLD', value: false }] } };
-      if (!take) continue;
-      w.reaction = 0; delete w.ready;
-      this.card(['{o}' + w.name + '{/}: the readied ' + rd.name + ', at ' + (foe.side === 'foe' ? 'the ' + shortName(foe) : foe.name) + '.']);
-      if (rd.what === 'weapon') {
-        if (rd.wp.ammo) { var keep = w.weapon; w.weapon = rd.wp; var left = this.ammoLeft(w); if (left) this.spendAmmo(w); w.weapon = keep; if (!left) { this.card(['{o}' + w.name + ' has no ' + this.itemName(rd.wp.ammo).toLowerCase() + ' left.{/}'], 120); continue; } }
-        yield* this.attack(w, foe, rd.wp, { ready: true });
-      } else {
-        if (w.conc && w.conc.id === 'ready') delete w.conc; // (the held magic is let go into the cast: no undo)
-        if (rd.level) w.slots[rd.slot - 1]++; // (spent at the readying; the cast spends it again)
-        var g2 = D.magic.geo(rd.id), tg = foe;
-        if (/^(rays|darts)$/.test(g2.shape)) { var n2 = (g2.n || 1) + Math.max(0, (rd.slot || 0) - (rd.level || 0)), us = []; for (var k = 0; k < n2; k++) us.push(foe); tg = { units: us }; }
-        yield* D.magic.cast(this, w, rd.id, rd.slot, tg);
-      }
+      var foe = about && fresh.indexOf(about) >= 0 ? about : fresh[0];
+      yield* this.readySpring(w, rd, { foe: foe, why: Battle.nm(foe, true) + ' comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) ? 'into sight' : 'within reach') + '.' });
       if (about && (about.dead || about.hp <= 0)) return;
     }
+  };
+  // the four triggers (10-02, Griz: 1 and 2 of the seat's draft, "let's make 3 'an ally goes down' for readied healers", and "foe you can see casts a spell").
+  // 'near' is the old one (readyHook, above); the other three are told after the attack, the spell or the turn that made them (readyAfter) -- SRD 5.1: "When the
+  // trigger occurs, you can either take your reaction right after the trigger finishes or ignore the trigger"
+  Battle.READY_TRIGGERS = [
+    { id: 'near', label: 'A FOE COMES WITHIN REACH (INTO SIGHT, FOR A BOW OR A SPELL)' },
+    { id: 'ally', label: 'A FOE ATTACKS ONE OF US YOU CAN SEE' },
+    { id: 'down', label: 'ONE OF US GOES DOWN' },
+    { id: 'cast', label: 'A FOE YOU CAN SEE CASTS A SPELL' }
+  ];
+  Battle.readyWhen = function (rd) {
+    if (rd.trigger === 'ally') return 'when a foe attacks one of us in sight';
+    if (rd.trigger === 'down') return 'when one of us goes down';
+    if (rd.trigger === 'cast') return 'when a foe in sight casts a spell';
+    return 'when a foe comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) ? 'into sight' : 'within reach');
+  };
+  Battle.nm = function (w, cap) { return w.side === 'foe' ? (cap ? 'The ' : 'the ') + shortName(w) : w.name; };
+  // who stands now (the units up and about): "one of us goes down" is the one stood at the last look and down at this
+  Battle.prototype.readySnap = function () { var s = this.upSeen = {}; this.units.forEach(function (w) { if (!w.dead && w.hp > 0) s[w.id] = 1; }); };
+  Battle.prototype.readyArmed = function () { return this.units.some(function (w) { return w.ready && w.reaction > 0; }); };
+  // after an attack (ctx.kind 'ally': ctx.foe struck at ctx.ally), a spell (ctx.kind 'cast': ctx.foe cast it), or a turn: the readied ones it springs
+  Battle.prototype.readyAfter = function* (ctx) {
+    if (!this.readyArmed() || this.over()) return;
+    ctx = ctx || {};
+    var self = this, seen = this.upSeen || {}, downs = this.units.filter(function (w) { return seen[w.id] && (w.dead || w.hp <= 0); });
+    this.readySnap();
+    if (ctx.kind === 'ally' && ctx.foe && ctx.ally) yield* this.readyOn('ally', { foe: ctx.foe, ally: ctx.ally, why: Battle.nm(ctx.foe, true) + ' attacks ' + Battle.nm(ctx.ally) + '.' });
+    if (ctx.kind === 'cast' && ctx.foe) yield* this.readyOn('cast', { foe: ctx.foe, why: Battle.nm(ctx.foe, true) + ' casts ' + (D.magic.data(ctx.spell) ? D.magic.data(ctx.spell).name : 'a spell') + '.' });
+    for (var i = 0; i < downs.length; i++) yield* this.readyOn('down', { ally: downs[i], foe: ctx.foe && G.hostile(ctx.foe, downs[i]) ? ctx.foe : null, why: Battle.nm(downs[i], true) + ' goes down.' });
+  };
+  Battle.prototype.readyOn = function* (kind, ctx) {
+    var self = this, rs = this.units.filter(function (w) { return w.ready && w.ready.trigger === kind && w.reaction > 0 && RU.canAct(w) && G.standing(w); });
+    for (var i = 0; i < rs.length; i++) {
+      var w = rs[i]; if (!w.ready || w.ready.trigger !== kind || w.reaction <= 0 || !RU.canAct(w) || this.over()) continue;
+      if (kind === 'ally' && (!G.hostile(w, ctx.foe) || G.hostile(w, ctx.ally) || !(ctx.ally === w || D.magic.sees(self, w, ctx.ally)))) continue; // (one of us: you too)
+      if (kind === 'down' && (ctx.ally === w || G.hostile(w, ctx.ally))) continue; // (heard, if not seen: a cry, a fall)
+      if (kind === 'cast' && (!G.hostile(w, ctx.foe) || !D.magic.sees(self, w, ctx.foe))) continue;
+      yield* this.readySpring(w, w.ready, ctx);
+    }
+  };
+  // the readied thing, sprung: a player's hero aims it now (a request of its own, { aim }: js/ui.js -- the cursor on the one that set it off, X or the right button
+  // holds it; 10-02, Griz: "or were you letting them pick target when the trigger went off, that's probably better"), the AI's goes where the trigger points (readyAuto).
+  // It is done on a turn of its own (one weapon attack, the spell, or a move up to the speed), and the readier's own turn put back after. Held, it waits for the next
+  Battle.prototype.readySpring = function* (w, rd, ctx) {
+    var g = rd.what === 'spell' ? D.magic.geo(rd.id) : null, keep = w.turn, wk = w.weapon, cmd = null;
+    w.turn = { move: rd.what === 'move' ? w.speed : 0, action: rd.what === 'move' ? 0 : 1, bonus: 0, attacksLeft: rd.what === 'weapon' ? 1 : 0, attackAction: rd.what === 'weapon', sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false, readied: true };
+    if (rd.what === 'weapon') w.weapon = rd.wp; // (the other weapon readied: in hand for the strike)
+    try {
+      if (byAI(w)) cmd = this.readyAuto(w, rd, ctx);
+      else if (g && g.shape === 'self') cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'CAST', value: { do: 'cast', target: w } }, { label: 'HOLD', value: null }] } };
+      else cmd = yield { aim: { who: w, rd: rd, ctx: ctx } };
+      var fit = cmd && (rd.what === 'weapon' ? cmd.do === 'attack' && cmd.target : rd.what === 'move' ? cmd.do === 'move' : cmd.do === 'cast');
+      if (!fit) { if (!byAI(w)) this.card(['{g}' + w.name + ' holds the readied ' + rd.name + '.{/}'], 120); return false; }
+      w.reaction = 0; delete w.ready;
+      if (w.conc && w.conc.id === 'ready') delete w.conc; // (the held magic is let go into the cast: no undo)
+      var tn = cmd.target && cmd.target.id != null ? cmd.target : cmd.target && cmd.target.units && cmd.target.units[0];
+      this.card(['{o}' + w.name + '{/}: the readied ' + (rd.what === 'move' ? 'move' : rd.name) + (tn && tn !== w ? ', at ' + Battle.nm(tn) : '') + '.  {g}(' + ctx.why + '){/}']);
+      if (rd.what === 'weapon') {
+        if (rd.wp.ammo) { var left = this.ammoLeft(w); if (left) this.spendAmmo(w); else { this.card(['{o}' + w.name + ' has no ' + this.itemName(rd.wp.ammo).toLowerCase() + ' left.{/}'], 120); return true; } }
+        if (cmd.target.tendril) yield* this.strikeTendril(w, cmd.target, rd.wp); else yield* this.attack(w, cmd.target, rd.wp, { ready: true });
+      } else if (rd.what === 'spell') {
+        if (rd.level) w.slots[rd.slot - 1]++; // (spent at the readying; the cast spends it again)
+        yield* D.magic.cast(this, w, rd.id, rd.slot, cmd.target);
+      } else {
+        var rm = G.reach(w, w.turn.move), path = G.path(rm, cmd.x, cmd.y);
+        if (path && path.length && rm[cmd.x + ',' + cmd.y] && rm[cmd.x + ',' + cmd.y].stand) yield* this.moveAlong(w, path, { spend: true });
+      }
+      return true;
+    } finally { w.turn = keep; w.weapon = wk; }
+  };
+  // the AI's readied thing, where the trigger points: a blade or a foe's spell at the one that set it off (or another in reach), a friend's spell on the one struck or
+  // fallen (or itself), an area on the foe's square; a move back out of its reach, or to the side of the one who fell. null: nothing it can do with it now (held)
+  Battle.prototype.readyAuto = function (w, rd, ctx) {
+    var self = this, M = D.magic, foe = ctx.foe && G.hostile(w, ctx.foe) && G.standing(ctx.foe) ? ctx.foe : null, ally = ctx.ally && !G.hostile(w, ctx.ally) && !ctx.ally.dead ? ctx.ally : null;
+    if (rd.what === 'weapon') {
+      var t = foe && this.canHit(w, foe) ? foe : this.units.filter(function (x) { return G.hostile(w, x) && G.standing(x) && !x.ethereal && self.canHit(w, x); })[0];
+      return t ? { do: 'attack', target: t } : null;
+    }
+    if (rd.what === 'spell') {
+      var g = M.geo(rd.id), ok = function (x) { return !!(x && M.targetOK(self, w, g, x)); };
+      if (g.shape === 'self') return { do: 'cast', target: w };
+      if (/^(rays|darts)$/.test(g.shape)) { if (!ok(foe)) return null; var n = (g.n || 1) + Math.max(0, (rd.slot || 0) - (rd.level || 0)), us = []; for (var k = 0; k < n; k++) us.push(foe); return { do: 'cast', target: { units: us } }; }
+      if (/^(sphere|cube)$/.test(g.shape)) return foe && M.inRange(w, g, foe.x, foe.y) ? { do: 'cast', target: { x: foe.x, y: foe.y } } : null;
+      if (/^(cone|line|wave)$/.test(g.shape)) return foe && M.area(w, g, foe.x, foe.y).length ? { do: 'cast', target: { x: foe.x, y: foe.y } } : null;
+      if (g.shape === 'allies') { var a = ok(ally) ? ally : ok(w) ? w : null; return a ? { do: 'cast', target: { units: [a] } } : null; }
+      if (g.side === 'ally' || g.shape === 'touch') { var b = ok(ally) ? ally : ok(w) ? w : null; return b ? { do: 'cast', target: b } : null; }
+      return ok(foe) ? { do: 'cast', target: foe } : null;
+    }
+    var to = rd.trigger === 'down' ? ally : null, from = to ? null : foe;
+    if (!to && !from) return null;
+    var rm = G.reach(w, w.turn.move), best = null, bs = -1e9;
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var s = (to ? -G.dist(to, w, null, null, e.x, e.y) : G.dist(from, w, null, null, e.x, e.y)) * 10 - e.cost / 10; if (s > bs) { bs = s; best = e; } });
+    return best && (best.x !== w.x || best.y !== w.y) ? { do: 'move', x: best.x, y: best.y } : null;
+  };
+  // the seams the other three triggers are told at: after every attack (a foe's at one of us: 'ally'; one of us down by it: 'down'), and after every spell (a foe's in
+  // sight: 'cast'; and the downs again). The readied ones go "right after the trigger finishes" (SRD 5.1)
+  var attack0 = Battle.prototype.attack;
+  Battle.prototype.attack = function* (att, tgt, atk, o) {
+    yield* attack0.call(this, att, tgt, atk, o);
+    if (tgt && this.readyArmed()) yield* this.readyAfter({ kind: 'ally', foe: att, ally: tgt });
+  };
+  var cast0 = D.magic.cast;
+  D.magic.cast = function* (B, u, id, slot, t) {
+    var r = yield* cast0.apply(this, arguments);
+    if (B && B.readyAfter && B.units && B.readyArmed()) yield* B.readyAfter({ kind: 'cast', foe: u, spell: id });
+    return r;
   };
   // leaving everyone's reach at once -- down into the ground, up into the air -- with no step to provoke on (moveAlong provokes square by square): the opportunity attacks of
   // those beside it that see it, each asked of a player's hero (SRD 5.1: "when a hostile creature that you can see moves out of your reach"). 10-02
