@@ -1001,7 +1001,9 @@
         if (ihit) tgt.images--;
         if (ihit && D.features && D.features.rimeDouble) D.features.rimeDouble(this, att, tgt); // (the Rimeglass: the double breaks to rime)
         D.sfx(ihit ? 'hit' : 'miss'); FX.sparkle(tgt, 'violet', 14);
-        this.card(['{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name, 'd20 ' + id20 + ' vs ' + need + ': {p}a false image{/}  d20 ' + ir.pick + ' ' + RU.sign(atk.atk) + ' = ' + itot + ' vs AC ' + iac + '  ' + (ihit ? '{n}the image bursts{/} (' + tgt.images + ' left)' : '{g}MISS{/}')], 300, cid);
+        // (both dice and the reasons, as the attack's own card shows them: a frightened roper's bite at one of Willem's images showed one d20 and no "dis", 10-02, Griz: "please fix card")
+        var iwhy = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
+        this.card(['{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name, 'd20 ' + id20 + ' vs ' + need + ': {p}a false image{/}  d20 ' + (ir.rolls.length > 1 ? RU.fmtRolls(ir.rolls) + '>' : '') + ir.pick + ' ' + RU.sign(atk.atk) + ' = ' + itot + ' vs AC ' + iac + '  ' + (ihit ? '{n}the image bursts{/} (' + tgt.images + ' left)' : '{g}MISS{/}') + iwhy], 300, cid);
         yield o.oa ? 16 : 26; att.anim = 'idle'; return;
       }
     }
