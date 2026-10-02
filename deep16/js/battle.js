@@ -470,6 +470,7 @@
     if (D.familiar && D.familiar.alarm) yield* D.familiar.alarm(this); // (the frog familiar's croak: its caster is never caught off guard)
     while (true) {
       this.round++;
+      if (this.rec && D.rec && D.rec.checkpoint) D.rec.checkpoint(this); // (the play record kept as far as the fight has gone, each round: js/record.js, 10-02)
       if (this.reserve.length && this.round >= ((this.o.embed && this.o.embed.join) || 2)) yield* this.joinReserve();
       for (var i = 0; i < this.order.length; i++) {
         var u = this.order[i];

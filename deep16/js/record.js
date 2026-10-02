@@ -107,19 +107,34 @@
   REC.finish = function (B, result) {
     var r = B.rec;
     if (!r || r.done) return;
+    r.done = true;
+    write(B, result);
+  };
+  // a fight not over yet, kept as far as it has gone: at each round's turn (battle.js, the round's top) and as the tab goes (pagehide,
+  // below) -- 10-02, Griz, a bulette fight lost to a closed tab: "yes, if it's overwriting (or not really) that should be pretty cheap".
+  // It writes over its own line in deep16.plays (the fight and its start), and REC.finish writes over it again at the end
+  REC.checkpoint = function (B) {
+    var r = B && B.rec;
+    if (!r || r.done || !r.steps.length) return;
+    write(B, 'unfinished');
+  };
+  function write(B, result) {
+    var r = B.rec;
     flush(B);
-    r.done = true; r.result = result; r.rounds = B.round; r.ended = new Date().toISOString();
+    r.result = result; r.rounds = B.round; r.ended = new Date().toISOString();
     r.partyEnd = B.units.filter(function (w) { return w.side === 'party'; }).map(function (w) { return { id: w.id, hp: Math.max(0, w.hp), maxhp: w.maxhp, down: !!(w.ko || w.hp <= 0 || w.dead) }; });
     r.log = (B.logEntries || []).map(logText);
     try { r.transcript = transcript(r.steps); } catch (e) { (r.errors = r.errors || []).push(String(e)); }
     var out = {}; Object.keys(r).forEach(function (k) { if (k !== 'last' && k !== 'turnKey' && k !== 'logAt' && k !== 'done') out[k] = r[k]; });
-    var all = D.store.get(KEY) || [];
-    all.push(out);
+    out = JSON.parse(JSON.stringify(out)); // (a copy: the live record goes on growing, and the shrink below must not cut its log)
+    var all = D.store.get(KEY) || [], at = -1;
+    all.forEach(function (f, i) { if (f.fight === r.fight && f.started === r.started) at = i; });
+    if (at >= 0) all[at] = out; else all.push(out);
     while (all.length > KEEP) all.shift();
     // (browser storage is small: past its room, the oldest fights go first, then the full logs, which the steps repeat)
     while (!D.store.set(KEY, all) && all.length > 1) all.shift();
     if (!D.store.set(KEY, all)) { all.forEach(function (f) { delete f.log; }); D.store.set(KEY, all); }
-  };
+  }
   REC.count = function () { return (D.store.get(KEY) || []).length; };
   // R on the tester ladder: every kept fight to one file (a download: the browser asks where, or drops it in Downloads)
   REC.save = function () {
@@ -147,4 +162,6 @@
     if (this.o.record && !this.rec) REC.start(this, this.o.record);
     return enter0.apply(this, arguments);
   };
+  // the tab closed, reloaded or sent away mid-fight: the fight as far as it went (REC.checkpoint)
+  window.addEventListener('pagehide', function () { try { REC.checkpoint(D.battle); } catch (e) { /* (nothing to keep) */ } });
 })();

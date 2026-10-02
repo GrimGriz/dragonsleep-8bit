@@ -304,6 +304,8 @@
     // inspect without a click (B.peek: drawn as the inspect, never held, so the click that picks the target is not spent closing it).
     // The pad's INFO and a long press still inspect (rclick without rbtn)
     B.peek = B.tool === 'spell' && B.spell ? underCursor(B) || etherealAt(B, B.cursor.x, B.cursor.y) || null : null;
+    // (a ring deeper in -- a list on the wheel, a spell level's spells -- goes back one ring, as B does: 10-02, Griz: "should similarly up a level if you're on a deeper level of the ring")
+    if (I.mouse.rbtn && B.list && B.hoverBtn < 0) { D.sfx('cancel'); B.list = B.list.back || null; return; }
     if (I.mouse.rbtn && B.tool === 'menu' && B.hoverBtn < 0) { D.sfx('cancel'); B.tool = rest() === 'menu' ? 'move' : rest(); B.spell = null; B.picks = []; B.clearCards(); return; }
     if (I.mouse.rbtn && B.tool === 'spell') {
       D.sfx('cancel');
