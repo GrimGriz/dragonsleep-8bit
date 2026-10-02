@@ -1096,6 +1096,7 @@
     if (k === 'lights') { var rr = Math.max(0, Math.floor((z.bright || 0) / 5)), o2 = []; for (var dy = -rr; dy <= rr; dy++) for (var dx = -rr; dx <= rr; dx++) o2.push([z.x + dx, z.y + dy]); return o2; }
     return z.x != null ? [[z.x, z.y]] : [];
   }
+  M.effectSq = effectSq;
   M.effectsAt = function (B, x, y) {
     var out = [];
     ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads', 'lights', 'spirits', 'shells'].forEach(function (k) {
@@ -1178,14 +1179,42 @@
         (ok ? ended : held).push(cc.name + ' (' + ordinal(L) + ': d20 ' + r + RU.sign(md) + ' = ' + tot + ' vs DC ' + dc + ')');
         return ok;
       };
-      B.units.forEach(function (c) { if (c.conc && c !== t && Object.keys(t.conds).some(function (k) { var v = t.conds[k]; return v && typeof v === 'object' && v.by === c.id; }) && asks(c.conc)) M.endConc(B, c, 'dispelled'); });
-      if (t.conc && asks(t.conc)) M.endConc(B, t, 'dispelled');
+      // SRD AS WE CAN (10-02, Griz: "3 - SRD as we can, yes - with noted exceptions"; SRD 5.1: "Any spell of 3rd level or lower on the target ends"): what is ON the
+      // creature ends for it alone -- a spell another holds on several (a Bless, a Hold upcast, Fear) keeps holding the rest (before: the caster's whole spell ended, for
+      // everyone it held). The creature's own concentration ends where that spell is on it -- a self spell, an aura about it, a mark it wears -- not a Hold it keeps on
+      // someone else, nor a darkness at a point (dispel those where they are: the held one, the square). EXCEPTIONS (WHOLE): the spells whose ending does more than
+      // lift what is on the one -- a form, a size, a plane, a lethargy -- end whole, for all they hold
+      var WHOLE = { banishment: 1, haste: 1, polymorph: 1, enlargereduce: 1, animalshapes: 1, mislead: 1, etherealness: 1, gaseousform: 1, dominatebeast: 1, dominateperson: 1, dominatemonster: 1 };
+      var marks = function (w, c, id) { return Object.keys(w.conds || {}).filter(function (k) { var v = w.conds[k]; return v && typeof v === 'object' && v.by === c.id && (v.castId || (c.conc && c.conc.id)) === id; }); };
+      B.units.forEach(function (c) {
+        if (!c.conc || c === t) return;
+        var id = c.conc.id, mine = marks(t, c, id); if (!mine.length || !asks(c.conc)) return;
+        var others = B.units.some(function (w) { return w !== t && marks(w, c, id).length > 0; });
+        if (!others || WHOLE[id]) { M.endConc(B, c, 'dispelled'); return; }
+        mine.forEach(function (k) { delete t.conds[k]; }); if (mine.indexOf('feared') >= 0) delete t.conds.frightened; if (mine.indexOf('confused') >= 0 && t.hp > 0) t.reaction = 1;
+        ended[ended.length - 1] += ' (on ' + nm(B, t) + ' alone: ' + c.name + ' holds it on the rest)';
+      });
+      if (t.conc) {
+        var tc = t.conc.id, gt = M.geo(tc) || {};
+        var onIt = gt.shape === 'self' || (B.auras || []).some(function (a) { return a.by === t.id; }) || (B.shells || []).some(function (s) { return s.by === t.id; }) || marks(t, t, tc).length > 0;
+        if (onIt && asks(t.conc)) M.endConc(B, t, 'dispelled');
+      }
       // (what a spell wrote on the creature itself is taken back with it -- 10-01b, the gallery's carry-over found the same miss here:
       // Longstrider's +10 ft stayed after its dispelling, and a creature dispelled while blinked out stayed in the Ethereal for good)
       var UNDO = { longstrider: function () { t.speed -= 10; }, blink: function () { if (t.ethereal) t.ethereal = false; }, shillelagh: function () { if (t.beast && t.beast.keep) t.beast.keep.weapon = t.conds.shillelagh.base; else t.weapon = t.conds.shillelagh.base; } }; // (a druid in a beast's shape keeps the bite: the plain wood goes back to the shape it comes out of -- as the expiry, 10-01c)
       ['mageArmor', 'sanctuary', 'wardingBond', 'longstrider', 'guided', 'noHeal', 'frosted', 'acid', 'blindedBy', 'blinded', 'commanded', 'marked', 'branded', 'poisonWard', 'resistance', 'blink', 'shillelagh'].forEach(function (k) { if (t.conds[k]) { if (k === 'blindedBy' || k === 'blinded') { if (!(t.conds.blinded && t.conds.blinded.held)) { delete t.conds.blinded; delete t.conds.blindedBy; ended.push('blindness'); } return; } if (k === 'mageArmor') t.baseAC = t.conds.mageArmor && t.conds.mageArmor.base != null ? t.conds.mageArmor.base : t.src ? window.DS.R.ac(Object.assign({}, t.src, { conds: {} })) : t.baseAC; if (UNDO[k]) UNDO[k](); delete t.conds[k]; ended.push(k); } }); // (Mage Armor's own record keeps the AC it was cast over -- magic.js; a monster's has no 8-bit sheet to ask)
       if (t.images) { t.images = 0; delete t.conds.mirrorImage; ended.push('the images'); }
       if (t.conds.falseLife) { if (t.temp && t.temp <= t.conds.falseLife.temp) t.temp = 0; delete t.conds.falseLife; ended.push('false life'); } // (its temporary HP go with it -- unless more came since from something else)
+      // and any other mark a spell with no concentration left on it (Sleep, Command's word, a Bestow Curse past concentration): by the spell the Globe's stamp names
+      // (castId), its level asked as the rest; one with a clock of its own (M.expire) is undone by that clock's undo
+      Object.keys(t.conds).forEach(function (k) {
+        var v = t.conds[k]; if (!v || typeof v !== 'object' || !v.castId || !M.data(v.castId)) return;
+        var c = B.units.filter(function (w) { return w.id === v.by; })[0]; if (c && c.conc && c.conc.id === v.castId) return; // (held by concentration: above)
+        if (!asks({ id: v.castId, name: M.data(v.castId).name })) return;
+        var ex = (B.expiries || []).filter(function (e) { return e.by === v.by && e.id === v.castId; })[0];
+        if (ex) { B.expiries = B.expiries.filter(function (e) { return e !== ex; }); try { ex.undo(); } catch (e) { /* (its undo gone already) */ } }
+        delete t.conds[k];
+      });
       } finally { put(); }
       FX.ring(t, 'silver', 36);
       B.card([head + ' on ' + nm(B, t) + ': ' + (ended.length ? '{c}' + ended.join(', ') + '{/} unravel.' : held.length ? '' : 'nothing on it to undo.') + (held.length ? ' {g}Holds: ' + held.join(', ') + '.{/}' : '')], 300);

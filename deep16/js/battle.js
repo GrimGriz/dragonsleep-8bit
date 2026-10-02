@@ -869,6 +869,12 @@
         } else if (pk === 'move') {
           if (!(u.speed > 0) || u.conds.restrained) return;
           rd.what = 'move'; rd.name = 'move';
+        } else if (pk === 'cmd') { // a class feature or a plain action that takes the action (10-02, Griz: "1 - yes but not disengage"): Lay on Hands, a Channel Divinity, Help, Dodge, Hide ...
+          var cm = this.commands(u).filter(function (x) { return x.id === c.cmd && x.ok && x.cost === 'A'; })[0]; if (!cm) return;
+          rd.what = 'cmd'; rd.name = cm.label.toLowerCase(); rd.cmd = cm.id; rd.tool = cm.tool || null;
+        } else if (pk === 'item') { // an item used (Griz: "Add usable items beyond potions as well")
+          var itm = this.itemList(u).filter(function (x) { return x.id === c.item && x.ok; })[0]; if (!itm) return;
+          rd.what = 'item'; rd.name = itm.name; rd.item = itm.id; rd.self = /^(bucket|light)$/.test(itm.use.effect);
         } else {
           var sid = typeof pk === 'object' && pk ? pk.id : c.id, re = D.magic.list(this, u, { anyTarget: true }).filter(function (e) { return e.id === sid && e.ok && e.g && e.g.time === 'A'; })[0];
           if (!re) return;
@@ -882,7 +888,7 @@
         this.readySnap(); // (who stands now: "one of us goes down" is told from it)
         if (rd.what === 'spell') D.magic.concentrate(this, u, 'ready', 'a readied ' + rd.name, function () { if (u.ready && u.ready.what === 'spell') delete u.ready; }); // (concentration broken: the held magic dissipates, and the slot with it)
         D.sfx('buff'); FX.ring(u, 'silver', 20);
-        this.card(['{y}' + u.name + '{/} readies ' + (rd.what === 'weapon' ? 'the ' + rd.name : rd.what === 'move' ? 'a move' : rd.name + (rd.level ? ' (L' + rd.slot + ')' : '')) + ': ' + Battle.readyWhen(rd) + '.  {g}(the reaction, before the next turn){/}']);
+        this.card(['{y}' + u.name + '{/} readies ' + (rd.what === 'weapon' ? 'the ' + rd.name : rd.what === 'move' ? 'a move' : rd.what === 'cmd' ? rd.name.toUpperCase() : rd.what === 'item' ? 'the ' + rd.name.toLowerCase() : rd.name + (rd.level ? ' (L' + rd.slot + ')' : '')) + ': ' + Battle.readyWhen(rd) + '.  {g}(the reaction, before the next turn){/}']);
         yield 24; return;
       }
       case 'secondwind': {
@@ -1373,14 +1379,15 @@
     { id: 'near', label: 'A FOE COMES WITHIN REACH (INTO SIGHT, FOR A BOW OR A SPELL)' },
     { id: 'ally', label: 'A FOE ATTACKS ONE OF US YOU CAN SEE' },
     { id: 'down', label: 'ONE OF US GOES DOWN' },
-    { id: 'cast', label: 'A FOE YOU CAN SEE CASTS A SPELL' }
+    { id: 'cast', label: 'YOU SEE A FOE CAST A SPELL (THE CASTER, OR WHAT IT DOES)' }
   ];
   Battle.readyWhen = function (rd) {
     if (rd.trigger === 'ally') return 'when a foe attacks one of us in sight';
     if (rd.trigger === 'down') return 'when one of us goes down';
-    if (rd.trigger === 'cast') return 'when a foe in sight casts a spell';
+    if (rd.trigger === 'cast') return 'when you see a foe cast a spell';
     return 'when a foe comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) ? 'into sight' : 'within reach');
   };
+  Battle.sawEffect = function (B, w, ef) { return !!(ef && ((ef.units || []).some(function (x) { return x === w || D.magic.sees(B, w, x); }) || (ef.sq || []).some(function (q) { return D.magic.seesSq(B, w, q[0], q[1]); }))); };
   Battle.nm = function (w, cap) { return w.side === 'foe' ? (cap ? 'The ' : 'the ') + shortName(w) : w.name; };
   // who stands now (the units up and about): "one of us goes down" is the one stood at the last look and down at this
   Battle.prototype.readySnap = function () { var s = this.upSeen = {}; this.units.forEach(function (w) { if (!w.dead && w.hp > 0) s[w.id] = 1; }); };
@@ -1392,7 +1399,7 @@
     var self = this, seen = this.upSeen || {}, downs = this.units.filter(function (w) { return seen[w.id] && (w.dead || w.hp <= 0); });
     this.readySnap();
     if (ctx.kind === 'ally' && ctx.foe && ctx.ally) yield* this.readyOn('ally', { foe: ctx.foe, ally: ctx.ally, why: Battle.nm(ctx.foe, true) + ' attacks ' + Battle.nm(ctx.ally) + '.' });
-    if (ctx.kind === 'cast' && ctx.foe) yield* this.readyOn('cast', { foe: ctx.foe, why: Battle.nm(ctx.foe, true) + ' casts ' + (D.magic.data(ctx.spell) ? D.magic.data(ctx.spell).name : 'a spell') + '.' });
+    if (ctx.kind === 'cast' && ctx.foe) yield* this.readyOn('cast', { foe: ctx.foe, effect: ctx.effect, why: Battle.nm(ctx.foe, true) + ' casts ' + (D.magic.data(ctx.spell) ? D.magic.data(ctx.spell).name : 'a spell') + '.' });
     for (var i = 0; i < downs.length; i++) yield* this.readyOn('down', { ally: downs[i], foe: ctx.foe && G.hostile(ctx.foe, downs[i]) ? ctx.foe : null, why: Battle.nm(downs[i], true) + ' goes down.' });
   };
   Battle.prototype.readyOn = function* (kind, ctx) {
@@ -1401,7 +1408,9 @@
       var w = rs[i]; if (!w.ready || w.ready.trigger !== kind || w.reaction <= 0 || !RU.canAct(w) || this.over()) continue;
       if (kind === 'ally' && (!G.hostile(w, ctx.foe) || G.hostile(w, ctx.ally) || !(ctx.ally === w || D.magic.sees(self, w, ctx.ally)))) continue; // (one of us: you too)
       if (kind === 'down' && (ctx.ally === w || G.hostile(w, ctx.ally))) continue; // (heard, if not seen: a cry, a fall)
-      if (kind === 'cast' && (!G.hostile(w, ctx.foe) || !D.magic.sees(self, w, ctx.foe))) continue;
+      // (you see it cast: the caster in sight, or what it does -- a creature it lands on (you too), a square of what it lays. 10-02, Griz: "could we 'you see a spell cast'
+      // then target based on readied action (i.e the spell effect if eligible, the caster for a bow shot)" -- "2 - yes")
+      if (kind === 'cast' && (!G.hostile(w, ctx.foe) || !(D.magic.sees(self, w, ctx.foe) || Battle.sawEffect(self, w, ctx.effect)))) continue;
       yield* this.readySpring(w, w.ready, ctx);
     }
   };
@@ -1415,19 +1424,22 @@
     try {
       if (byAI(w)) cmd = this.readyAuto(w, rd, ctx);
       else if (g && g.shape === 'self') cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'CAST', value: { do: 'cast', target: w } }, { label: 'HOLD', value: null }] } };
+      else if ((rd.what === 'cmd' && !rd.tool) || (rd.what === 'item' && rd.self)) cmd = yield { prompt: { who: w, title: w.name + ': THE READIED ' + rd.name.toUpperCase() + '?', lines: [ctx.why], opts: [{ label: 'NOW', value: rd.what === 'item' ? { do: 'item', id: rd.item, target: w } : { do: rd.cmd } }, { label: 'HOLD', value: null }] } };
       else cmd = yield { aim: { who: w, rd: rd, ctx: ctx } };
-      var fit = cmd && (rd.what === 'weapon' ? cmd.do === 'attack' && cmd.target : rd.what === 'move' ? cmd.do === 'move' : cmd.do === 'cast');
+      var fit = cmd && (rd.what === 'weapon' ? cmd.do === 'attack' && cmd.target : rd.what === 'move' ? cmd.do === 'move' : rd.what === 'cmd' ? cmd.do === rd.cmd : rd.what === 'item' ? cmd.do === 'item' && cmd.id === rd.item : cmd.do === 'cast');
       if (!fit) { if (!byAI(w)) this.card(['{g}' + w.name + ' holds the readied ' + rd.name + '.{/}'], 120); return false; }
       w.reaction = 0; delete w.ready;
       if (w.conc && w.conc.id === 'ready') delete w.conc; // (the held magic is let go into the cast: no undo)
       var tn = cmd.target && cmd.target.id != null ? cmd.target : cmd.target && cmd.target.units && cmd.target.units[0];
-      this.card(['{o}' + w.name + '{/}: the readied ' + (rd.what === 'move' ? 'move' : rd.name) + (tn && tn !== w ? ', at ' + Battle.nm(tn) : '') + '.  {g}(' + ctx.why + '){/}']);
+      this.card(['{o}' + w.name + '{/}: the readied ' + (rd.what === 'move' ? 'move' : rd.what === 'cmd' ? rd.name.toUpperCase() : rd.name) + (tn && tn !== w ? ', at ' + Battle.nm(tn) : '') + '.  {g}(' + ctx.why + '){/}']);
       if (rd.what === 'weapon') {
         if (rd.wp.ammo) { var left = this.ammoLeft(w); if (left) this.spendAmmo(w); else { this.card(['{o}' + w.name + ' has no ' + this.itemName(rd.wp.ammo).toLowerCase() + ' left.{/}'], 120); return true; } }
         if (cmd.target.tendril) yield* this.strikeTendril(w, cmd.target, rd.wp); else yield* this.attack(w, cmd.target, rd.wp, { ready: true });
       } else if (rd.what === 'spell') {
         if (rd.level) w.slots[rd.slot - 1]++; // (spent at the readying; the cast spends it again)
         yield* D.magic.cast(this, w, rd.id, rd.slot, cmd.target);
+      } else if (rd.what === 'cmd' || rd.what === 'item') {
+        yield* this.exec(w, cmd); // (the feature, the action or the item, as on a turn: the readier's own turn for it, battle.js above)
       } else {
         var rm = G.reach(w, w.turn.move), path = G.path(rm, cmd.x, cmd.y);
         if (path && path.length && rm[cmd.x + ',' + cmd.y] && rm[cmd.x + ',' + cmd.y].stand) yield* this.moveAlong(w, path, { spend: true });
@@ -1446,12 +1458,29 @@
     if (rd.what === 'spell') {
       var g = M.geo(rd.id), ok = function (x) { return !!(x && M.targetOK(self, w, g, x)); };
       if (g.shape === 'self') return { do: 'cast', target: w };
+      if (g.effects && ctx.effect) { // (Dispel Magic readied against a spell: an empty square of what it laid, else the one of ours it marked -- the trigger's own target, 10-02)
+        var sqs = (ctx.effect.sq || []).filter(function (q) { return !G.occupant(q[0], q[1]) && M.effectsAt(self, q[0], q[1]).length && Math.max(Math.abs(q[0] - w.x), Math.abs(q[1] - w.y)) * 5 <= (g.range || 0) && G.losPoint(w.x, w.y, q[0], q[1]); });
+        if (sqs.length) return { do: 'cast', target: { x: sqs[0][0], y: sqs[0][1] } };
+        var mk = (ctx.effect.units || []).filter(function (x) { return !G.hostile(w, x) && ok(x); })[0];
+        if (mk) return { do: 'cast', target: mk };
+      }
       if (/^(rays|darts)$/.test(g.shape)) { if (!ok(foe)) return null; var n = (g.n || 1) + Math.max(0, (rd.slot || 0) - (rd.level || 0)), us = []; for (var k = 0; k < n; k++) us.push(foe); return { do: 'cast', target: { units: us } }; }
       if (/^(sphere|cube)$/.test(g.shape)) return foe && M.inRange(w, g, foe.x, foe.y) ? { do: 'cast', target: { x: foe.x, y: foe.y } } : null;
       if (/^(cone|line|wave)$/.test(g.shape)) return foe && M.area(w, g, foe.x, foe.y).length ? { do: 'cast', target: { x: foe.x, y: foe.y } } : null;
       if (g.shape === 'allies') { var a = ok(ally) ? ally : ok(w) ? w : null; return a ? { do: 'cast', target: { units: [a] } } : null; }
       if (g.side === 'ally' || g.shape === 'touch') { var b = ok(ally) ? ally : ok(w) ? w : null; return b ? { do: 'cast', target: b } : null; }
       return ok(foe) ? { do: 'cast', target: foe } : null;
+    }
+    if (rd.what === 'cmd') { // (a feature or an action: at once, or -- one that takes a target -- Help at the foe beside it, Lay on Hands on the friend beside it)
+      if (!rd.tool) return { do: rd.cmd };
+      if (rd.cmd === 'help') return foe && G.dist(w, foe) <= 5 ? { do: 'help', target: foe } : null;
+      if (rd.cmd === 'lay') return ally && G.dist(w, ally) <= 5 ? { do: 'lay', target: ally } : null;
+      return null;
+    }
+    if (rd.what === 'item') { // (a potion on the friend who fell, a flask at the foe, or its own)
+      if (rd.self) return { do: 'item', id: rd.item, target: w };
+      var it = [ally, foe, w].filter(function (x) { return x && self.itemTargetOK(w, rd.item, x); })[0];
+      return it ? { do: 'item', id: rd.item, target: it } : null;
     }
     var to = rd.trigger === 'down' ? ally : null, from = to ? null : foe;
     if (!to && !from) return null;
@@ -1466,10 +1495,20 @@
     yield* attack0.call(this, att, tgt, atk, o);
     if (tgt && this.readyArmed()) yield* this.readyAfter({ kind: 'ally', foe: att, ally: tgt });
   };
-  var cast0 = D.magic.cast;
+  var cast0 = D.magic.cast, ZK = ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads', 'lights', 'spirits', 'shells'];
   D.magic.cast = function* (B, u, id, slot, t) {
+    // (what the spell does, for "you see a foe cast a spell": the creatures it hurt or marked, the squares of what it laid -- told only with a ready armed)
+    var pre = B && B.readyArmed && B.units && B.readyArmed() ? { z: {}, hp: {}, c: [] } : null;
+    if (pre) { ZK.forEach(function (k) { pre.z[k] = (B[k] || []).slice(); }); B.units.forEach(function (w) { pre.hp[w.id] = w.hp; Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object') pre.c.push(c); }); }); }
     var r = yield* cast0.apply(this, arguments);
-    if (B && B.readyAfter && B.units && B.readyArmed()) yield* B.readyAfter({ kind: 'cast', foe: u, spell: id });
+    if (B && B.readyAfter && B.units && B.readyArmed()) {
+      var ef = { units: [], sq: [] };
+      if (pre) {
+        ZK.forEach(function (k) { (B[k] || []).forEach(function (z) { if (pre.z[k].indexOf(z) < 0 && D.magic.effectSq) ef.sq = ef.sq.concat(D.magic.effectSq(B, k, z)); }); });
+        B.units.forEach(function (w) { var hurt = pre.hp[w.id] != null && w.hp < pre.hp[w.id], marked = Object.keys(w.conds || {}).some(function (k) { var c = w.conds[k]; return c && typeof c === 'object' && pre.c.indexOf(c) < 0; }); if (hurt || marked) ef.units.push(w); });
+      }
+      yield* B.readyAfter({ kind: 'cast', foe: u, spell: id, effect: ef });
+    }
     return r;
   };
   // leaving everyone's reach at once -- down into the ground, up into the air -- with no step to provoke on (moveAlong provokes square by square): the opportunity attacks of

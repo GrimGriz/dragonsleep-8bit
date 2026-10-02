@@ -359,7 +359,7 @@
     return TX.bestArea(B, u, e, fs, function (caught) {
       var left = pool, sc = 0;
       caught.slice().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (w) {
-        if (w.fey || w.kind === 'drow' || RU.immuneTo(w, 'asleep') || w.hp > left) return;
+        if (w.fey || w.kind === 'drow' || RU.immuneTo(w, 'asleep') || RU.immuneTo(w, 'charmed') || w.hp > left) return;
         left -= w.hp; sc += (G.hostile(u, w) ? 1 : -1.2) * (TX.dpr(w) * 2.2 + 2);
       });
       return sc;

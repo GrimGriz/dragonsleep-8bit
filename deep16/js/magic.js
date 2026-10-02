@@ -584,7 +584,7 @@
         if (w.kind === 'drow' || w.fey) { lines.push('  ' + w.name + ': {g}fey blood: sleep cannot take it{/}'); return; }
         if (w.type === 'undead') { lines.push('  ' + w.name + ': {g}' + D.typeText('the dead', true) + ' do not sleep{/}'); return; }
         if (M.wakeful && M.wakeful(B, w)) { lines.push('  ' + w.name + ': {g}the vigil keeps it awake{/}'); return; } // (the Vigil, 6: js/features.js)
-        if (RU.immuneTo(w, 'asleep')) { lines.push('  ' + w.name + ': {g}nothing in it sleeps{/}'); return; }
+        if (RU.immuneTo(w, 'asleep') || RU.immuneTo(w, 'charmed')) { lines.push('  ' + w.name + ': {g}nothing in it sleeps{/}'); return; } // (SRD 5.1 Sleep: "creatures immune to being charmed aren't affected" -- the swarms, the naga: the monster runner's find, 10-02)
         if (w.hp <= left) { left -= w.hp; M.fallAsleep(B, w, { by: u.id }); lines.push('  ' + w.name + ' ({r}' + w.hp + '{/}): {p}asleep{/}'); }
         else lines.push('  ' + w.name + ' (' + w.hp + '): too much left in it');
       });

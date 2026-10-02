@@ -215,7 +215,13 @@
     var items = [];
     [['weapon', u.weapon], ['alt', u.alt]].forEach(function (p) { var wp = p[1]; if (wp && wp.name && !u.conds.disarmed) items.push({ kind: 'readypick', what: p[0], id: 'attack', icon: 'attack', name: wp.name.toUpperCase(), label: wp.name.toUpperCase(), ok: true, note: 'one ' + (wp.ranged ? 'shot' : 'swing') + ' at the one you pick when it springs' }); });
     if (D.magic.list(B, u, { anyTarget: true }).some(readiable)) items.push({ kind: 'readylevels', id: 'spells', icon: 'spells', name: 'SPELLS', label: 'SPELLS', ok: true, note: 'cast now and held: the slot spent, and concentration' });
-    if (u.speed > 0 && !u.conds.restrained) items.push({ kind: 'readypick', what: 'move', id: 'move', icon: 'move', name: 'MOVE', label: 'MOVE', ok: true, note: 'up to your speed, to the square you pick when it springs' });
+    if (u.speed > 0 && !u.conds.restrained) items.push({ kind: 'readypick', what: 'move', id: 'move', icon: 'move', name: 'MOVE', label: 'MOVE', ok: true, note: 'up to your speed, to the square you pick when it springs (the Dash, on a reaction)' });
+    // the features and plain actions that take the action (10-02, Griz: "1 - yes but not disengage ... you get to ready an action not store movement"): Lay on Hands, a
+    // Channel Divinity, Help, Dodge, Hide ... -- not the swing (the weapon above), the spells, Dash (the MOVE is it), Disengage, nor what costs the bonus action
+    var NOT = { attack: 1, spells: 1, ready: 1, end: 1, move: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, leave: 1, items: 1 };
+    B.commands(u).forEach(function (c) { if (c.cost === 'A' && c.ok && !NOT[c.id] && !c.sub) items.push({ kind: 'readypick', what: 'cmd', cmd: c.id, id: c.id, icon: c.icon || c.id, name: c.label, label: c.label, ok: true, note: c.note }); });
+    // and an item (Griz: "Add usable items beyond potions as well"): a potion for the one who falls, a flask for the foe who comes
+    if (B.itemList(u).some(function (e) { return e.ok; })) items.push({ kind: 'readyitems', id: 'items', icon: 'item', name: 'ITEM', label: 'ITEM', ok: true, note: 'a potion, a flask, a light: used when it springs' });
     return { kind: 'ready', items: items, sel: 0, title: 'READY' };
   }
   // the spell levels, as the SPELLS ring has them -- a tier with no slot (or nothing to ready) greyed, never hidden -- and in each only the spells that can be readied
@@ -231,17 +237,21 @@
   }
   // the readied thing sprung (req.aim): its tool up for the one holding it -- the blade's swing, the spell's aim, the move -- and the cursor on the one that set it off
   function aimStart(B, a) {
-    var u = a.who, rd = a.rd, f = a.ctx.foe || a.ctx.ally;
+    var u = a.who, rd = a.rd, f = a.ctx.foe || a.ctx.ally, ef = a.ctx.effect;
+    // (a spell seen by what it does: the cursor on that -- a Dispel readied goes at the effect, and an unseen caster gives nothing away)
+    if (ef && ((rd.what === 'spell' && D.magic.geo(rd.id).effects) || (f && !D.magic.sees(B, u, f)))) { var e0 = (ef.sq || [])[0], u0 = (ef.units || []).filter(function (x) { return x === u || D.magic.sees(B, u, x); })[0]; f = e0 ? { x: e0[0], y: e0[1] } : u0 || f; }
     B.list = null; B.picks = []; B.spell = null; B.cache = null; B.inspect = null;
     if (f) { B.cursor = { x: f.x, y: f.y }; showCursor(B); }
     if (rd.what === 'weapon') B.tool = 'attack';
     else if (rd.what === 'move') B.tool = 'move';
+    else if (rd.what === 'cmd') B.tool = rd.tool; // (Help, Lay on Hands: their own tool, as on a turn)
+    else if (rd.what === 'item') { B.tool = 'item'; B.itemId = rd.item; }
     else {
       var e = D.magic.list(B, u, { anyTarget: true }).filter(function (x) { return x.id === rd.id; })[0], g = D.magic.geo(rd.id);
       B.spell = { id: rd.id, slot: rd.slot, g: g, sp: e && e.sp, n: (g.n || 1) + Math.max(0, (rd.slot || 0) - (rd.level || 0)), name: rd.name };
       B.tool = 'spell';
     }
-    var how = rd.what === 'weapon' ? 'click the foe to strike' : rd.what === 'move' ? 'click the square to move to' : 'aim it as you would on your turn';
+    var how = rd.what === 'weapon' ? 'click the foe to strike' : rd.what === 'move' ? 'click the square to move to' : rd.what === 'item' ? 'click who it is for' : 'aim it as you would on your turn';
     D.sfx('popup'); B.clearCards();
     B.card([D.keys('{o}' + u.name + '{/}, the readied ' + (rd.what === 'move' ? 'move' : rd.name) + ': ' + a.ctx.why + '  ' + how + '.  {g}X or the right button holds it{/}')], 100000);
   }
@@ -270,7 +280,7 @@
       if (UI.valid(B, u, x, y) === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
       D.sfx('error'); return;
     }
-    return actAt(B, u, x, y, byKey); // (the spell's own aim: js/ui.js actAt, its cast an answer like any)
+    return actAt(B, u, x, y, byKey); // (the spell's own aim -- or the item's, Help's, Lay on Hands': js/ui.js actAt, its command an answer like any)
   }
   // a cutscene beat runs its frames; after its first second E or a click moves it on
   function sceneInput(B, sc) {
@@ -493,7 +503,8 @@
     B.list.sel = i;
     if (!e.ok) { D.sfx('error'); B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
     // READY's wheel (readyRing): the pick goes back to battle.js exec 'ready' with the trigger asked before it
-    if (B.readying && (e.kind === 'readypick' || e.kind === 'spell')) { var trg = B.readying.trigger; B.readying = null; D.sfx('confirm'); return UI.command(B, u, e.kind === 'spell' ? { do: 'ready', trigger: trg, what: 'spell', id: e.id, slot: e.slot } : { do: 'ready', trigger: trg, what: e.what }); }
+    if (B.readying && (e.kind === 'readypick' || e.kind === 'spell' || e.kind === 'readyitem')) { var trg = B.readying.trigger; B.readying = null; D.sfx('confirm'); return UI.command(B, u, e.kind === 'spell' ? { do: 'ready', trigger: trg, what: 'spell', id: e.id, slot: e.slot } : e.kind === 'readyitem' ? { do: 'ready', trigger: trg, what: 'item', item: e.id } : { do: 'ready', trigger: trg, what: e.what, cmd: e.cmd }); }
+    if (e.kind === 'readyitems') { D.sfx('confirm'); var ri = B.itemList(u).filter(function (x) { return x.ok; }).map(function (x) { return Object.assign({}, x, { kind: 'readyitem', label: x.name.toUpperCase() + (x.n > 1 ? ' x' + x.n : '') }); }); B.list = { kind: 'items', items: ri, sel: 0, back: B.list, title: 'READY: ITEM' }; B.ringB = null; return; }
     if (e.kind === 'readylevels') { D.sfx('confirm'); var rl = readyLevels(B, u); rl.back = B.list; B.list = rl; B.ringB = null; return; }
     if (e.kind === 'cmd') { B.list = null; return pickCommand(B, u, e.cmd); } // (it says its own confirm)
     D.sfx('confirm');

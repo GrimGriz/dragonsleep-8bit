@@ -943,6 +943,27 @@
       runZ(B4.exec(f4, { do: 'ready', trigger: 'cast', what: 'weapon' }));
       D.rules.startTurn(w4); var n4 = (B4.log || []).length; runZ(D.magic.cast(B4, w4, 'firebolt', 0, f4)); var l4 = logZ(B4, n4);
       okZ('the wizard casts Fire Bolt: the readied strike ' + /\(readied\)/.test(l4) + ' -- ' + l4.slice(0, 200), /\(readied\)/.test(l4) && f4.reaction === 0);
+      // 4b the wheel has the features and the items (Griz: "1 - yes but not disengage"; "Add usable items beyond potions as well"); a readied Lay on Hands for the one
+      // who falls, a readied potion for the same, a readied Dodge when a foe comes near (no aim: NOW or HOLD)
+      var B7 = mkZ('?npc=goblin&lvl=5&vs=paladin,fighter'), pal = B7.units.filter(function (u) { return u.side === 'party' && u.cls === 'paladin'; })[0], fi7 = B7.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], g7 = B7.units.filter(function (u) { return u.side === 'foe'; })[0];
+      D.rules.startTurn(pal); B7.readying = { who: pal, trigger: 'down' };
+      var cmds7 = B7.commands(pal).filter(function (c) { return c.cost === 'A' && c.ok; }).map(function (c) { return c.id; });
+      okZ('the paladin\'s action commands: ' + cmds7.join(','), cmds7.indexOf('lay') >= 0);
+      pal.x = 9; pal.y = 9; fi7.x = 10; fi7.y = 9; g7.x = 11; g7.y = 9; fi7.hp = 1;
+      runZ(B7.exec(pal, { do: 'ready', trigger: 'down', what: 'cmd', cmd: 'lay' })); B7.readySnap();
+      okZ('readied: ' + JSON.stringify(pal.ready && { what: pal.ready.what, cmd: pal.ready.cmd, tool: pal.ready.tool }), !!pal.ready && pal.ready.cmd === 'lay');
+      var n7 = (B7.log || []).length; D.d = function (s) { return s === 20 ? 19 : s; }; runZ(B7.attack(g7, fi7, g7.weapon || g7.attacks[Object.keys(g7.attacks)[0]])); D.d = d0Z; var l7 = logZ(B7, n7);
+      okZ('the fighter falls: the readied LAY HANDS ' + /readied LAY HANDS/.test(l7) + ', up at ' + fi7.hp + ' -- ' + l7.slice(0, 200), /readied LAY HANDS/.test(l7) && fi7.hp > 0);
+      B7.inv = D.save.armoury([{ id: 'potion', n: 2 }]); D.rules.startTurn(fi7); fi7.hp = fi7.maxhp; pal.hp = 1; fi7.reaction = 1;
+      var pot = B7.itemList(fi7).filter(function (x) { return x.ok; }).map(function (x) { return x.id; });
+      runZ(B7.exec(fi7, { do: 'ready', trigger: 'down', what: 'item', item: 'potion' })); B7.readySnap();
+      var n8 = (B7.log || []).length; D.d = function (s) { return s === 20 ? 19 : s; }; runZ(B7.attack(g7, pal, g7.weapon || g7.attacks[Object.keys(g7.attacks)[0]])); D.d = d0Z; var l8 = logZ(B7, n8);
+      okZ('items on the wheel ' + pot.join(',') + '; the paladin falls: the readied potion ' + /readied potion/i.test(l8) + ', up at ' + pal.hp + ' -- ' + l8.slice(0, 200), pot.indexOf('potion') >= 0 && /readied potion/i.test(l8) && pal.hp > 0);
+      var B9 = mkZ('?npc=goblin&lvl=5&vs=fighter'), f9 = B9.units.filter(function (u) { return u.side === 'party'; })[0], g9 = B9.units.filter(function (u) { return u.side === 'foe'; })[0];
+      f9.x = 9; f9.y = 9; g9.x = 9; g9.y = 4; D.rules.startTurn(f9);
+      runZ(B9.exec(f9, { do: 'ready', trigger: 'near', what: 'cmd', cmd: 'dodge' })); D.rules.startTurn(g9);
+      runZ(B9.moveAlong(g9, [[9, 5], [9, 6], [9, 7], [9, 8]], { spend: true }));
+      okZ('a readied Dodge when the goblin comes near: dodging ' + !!f9.conds.dodge + ', the reaction spent ' + (f9.reaction === 0), !!f9.conds.dodge && f9.reaction === 0);
       // 5 Fear: cornered, it fights; in the open, it runs
       // (boxed in: a square of the map with three open squares or fewer about it, the three fighters on them -- the first the one it fears)
       var B5 = mkZ('?npc=goblin&lvl=5&vs=fighter,fighter,fighter'), p5 = B5.units.filter(function (u) { return u.side === 'party'; }), f5 = p5[0], g5 = B5.units.filter(function (u) { return u.side === 'foe'; })[0];
