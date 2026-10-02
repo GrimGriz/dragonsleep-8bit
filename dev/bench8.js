@@ -104,13 +104,15 @@
       ['hideouslaughter', 'grease', 'mirrorimage'].forEach(function (sid) { if (auS.known.indexOf(sid) < 0) auS.known.push(sid); if (auS.prepared && auS.prepared.indexOf(sid) < 0) auS.prepared.push(sid); });
       var blS = R.spellList(auS, 'battle').map(function (s) { return s.id; });
       check('his battle list has the three: ' + ['hideouslaughter', 'grease', 'mirrorimage'].filter(function (sid) { return blS.indexOf(sid) >= 0; }).join(','), ['hideouslaughter', 'grease', 'mirrorimage'].every(function (sid) { return blS.indexOf(sid) >= 0; }));
+      auS.maxhp = Math.max(auS.maxhp, 400); auS.hp = auS.maxhp; auS.ko = false; // (two clubs before his second turn dropped a 30-HP Aurdin and the last three checks went RED: the check was dice, 10-02 -- as the familiar test's, 09-30)
       T.startFight(['ogre', 'hyena']);
       for (var wS = 0; wS < 400 && !DS.find('battle'); wS++) T.step(1);
       var bS = DS.find('battle'), aS = bS.heroes.filter(function (x) { return x.h.id === 'aurdin'; })[0], seenImages = 0;
       bS.foes.forEach(function (f) { f.m = Object.assign({}, f.m, { saves: Object.assign({}, f.m.saves, { wis: -30, dex: -30 }) }); f.hp = f.maxhp = 400; }); // (long enough for his four casts)
       var say0S = bS.say; bS.say = function (m) { if (aS.images > seenImages) seenImages = aS.images; return say0S.apply(this, arguments); };
       drive({ aurdin: ['MAGIC', 'Mirror', 'MAGIC', 'Hideous', 'Ogre', 'MAGIC', 'Hideous', 'Hyena', 'MAGIC', 'Grease', 'Ogre'] }, 5000);
-      var saidS = (T.blog || []).concat(out.log).join(' | ');
+      var saidS = (T.blog || []).concat(out.log).join(' | '), castS = (saidS.match(/Aurdin casts /g) || []).length;
+      check('Aurdin stood for his four casts: ' + castS + ' cast, ' + (/Aurdin falls!/.test(saidS) ? 'he fell' : 'never fell'), castS === 4 && !/Aurdin falls!/.test(saidS)); // (when this goes RED, the three below are not the spells' fault)
       check('Mirror Image: three images on Aurdin (' + seenImages + ')', seenImages === 3);
       check('Hideous Laughter on the ogre: laughing ' + /is laughing!/.test(saidS) + ', its turn lost ' + /helpless with laughter/.test(saidS), /is laughing!/.test(saidS) && /helpless with laughter/.test(saidS));
       check('on the hyena (INT 2): unmoved ' + /not affected/.test(saidS), /not affected/.test(saidS));
