@@ -102,7 +102,7 @@
     // still laughing has another fit of it as its turn comes round, a gnoll howls
     M.jokeClock(B, u);
     if (c.laughing && u.hp > 0 && M.hyena(u)) { D.sfx('cackle2'); B.card(['{p}' + Nm(B, u) + ' rolls in the dirt, cackling.{/}'], 200); }
-    else if (c.laughing && u.hp > 0 && M.gnoll(u)) { D.sfx('gnollaugh'); B.card(['{p}' + Nm(B, u) + ' howls with laughter on the ground, helpless.{/}'], 200); }
+    else if (c.laughing && u.hp > 0 && M.gnoll(u)) { if (!laughsOnItsRow(u)) D.sfx('gnollaugh'); B.card(['{p}' + Nm(B, u) + ' howls with laughter on the ground, helpless.{/}'], 200); }
     // Spirit Guardians: a foe that starts its turn in the ring saves (once a turn, the first time: starting or entering)
     guardians(B, u, 'starts');
     // Command: the word it heard, obeyed now
@@ -494,13 +494,48 @@
   // Aurdin's own joke now (below). Laughing, a hyena still rolls on the floor (its sheet's rofl row, js/ui.js unitObj) and cackles (js/audio.js)
   M.hyena = function (w) { return /^hyena_/.test(w.sheet || ''); };
   M.gnoll = function (w) { return /^(gnoll|gloryseeker)/.test(w.kind || ''); }; // (a glory-seeker is the Snoot's young blood: a gnoll -- deep16/data/foes.js, wiki/the-snoot.md)
+  // a gnoll's fit, on its sheet's `laugh` row (RULED 10-02, Griz: "I'd play 'yawn' (idle variation 6) when the laugh sound fires, then like sit/rest 2, 1,
+  // 3, 8 .. 3 to fall/getup 1, 2, 4, 2, - 5, sit/rest 8, fall/getup 5, sit/rest 8"; and the laugh "at the 4 in 1, 2, 4, 2 is great, and on the first 8 in
+  // the 5sit/8rest/5sit/8rest chain"). The row's poses (tools/gnoll-sheet.py): 0 the yawn, 1 sit 2, 2 sit 1, 3 sit 3, 4 sit 8, 5 fall 1, 6 fall 2, 7 fall
+  // 4, 8 fall 5. [pose, ticks at 60 a second, the laugh fires as it begins]: the run once (one already on the ground skips it), then the chain over and
+  // over while it laughs. The sound is one gnoll's at a time (B.laughQuiet: its length and a breath), so a pack laughing is a laugh track, not a din
+  // (quiet 54: the sound's own length, 0.83 s, and a hair -- so the fall's 4 and the chain's first 8, 56 ticks apart, both sound; a pack's staggered starts
+  // fall inside it, so the pack laughs as one: at 0, 2.0 s and 3.0 s, then every 1.6 s while it lies there)
+  M.LAUGH = { run: [[0, 40, 1], [1, 10], [2, 10], [3, 10], [4, 18], [3, 12], [5, 10], [6, 12], [7, 26, 1], [6, 12]], chain: [[8, 18], [4, 30, 1], [8, 18], [4, 30]], quiet: 54 };
+  function laughLen(seq) { return seq.reduce(function (s, b) { return s + b[1]; }, 0); }
+  // where u's fit is at B.t: { i: the beat's own number (the run's, then the chain's counted on), pose, laugh }; before its start (a pack's staggered
+  // a few ticks apart) the yawn, no beat yet
+  M.laughBeat = function (B, u) {
+    var L = M.LAUGH, k = u.laughT == null ? 0 : B.t - u.laughT, run = L.run, ch = L.chain, rl = laughLen(run), cl = laughLen(ch);
+    if (k < 0) return { i: -1, pose: 0, laugh: false };
+    if (u.laughFloor) k += rl;
+    if (k < rl) { for (var i = 0; i < run.length; i++) { if (k < run[i][1]) return { i: i, pose: run[i][0], laugh: !!run[i][2] }; k -= run[i][1]; } }
+    k -= rl; var cyc = Math.floor(k / cl); k -= cyc * cl;
+    for (var j = 0; j < ch.length; j++) { if (k < ch[j][1]) return { i: run.length + cyc * ch.length + j, pose: ch[j][0], laugh: !!ch[j][2] }; k -= ch[j][1]; }
+    return { i: -1, pose: ch[0][0], laugh: false };
+  };
+  M.laughFrame = function (B, u) { return M.laughBeat(B, u).pose; };
+  // each tick (battle.js update): a laugher on a sheet with the row starts its fit when the laugh takes it, and the sound fires on the beats that have it
+  M.laughTick = function (B) {
+    B.units.forEach(function (u) {
+      if (!u.conds || !u.conds.laughing || u.dead || u.hp <= 0 || !(D.spr && D.spr.anim(u.sheet, 'laugh'))) { u.laughT = null; return; }
+      if (u.laughT == null) { u.laughT = B.t + (B.units.indexOf(u) * 7) % 19; u.laughFloor = !!(u.proneLook && u.proneT != null && B.t - u.proneT > 1); u.laughBeat = -1; }
+      var b = M.laughBeat(B, u);
+      if (b.i === u.laughBeat) return;
+      u.laughBeat = b.i;
+      if (b.laugh && !(B.laughQuiet > B.t)) { D.sfx('gnollaugh'); B.laughQuiet = B.t + M.LAUGH.quiet; }
+    });
+  };
+  // under a cutscene beat (the egg: "battle pauses ... then resume") the fits hold where they are, and go on from there after
+  M.laughHold = function (B) { B.units.forEach(function (u) { if (u.laughT != null) u.laughT++; }); };
+  function laughsOnItsRow(w) { return !!(D.spr && D.spr.anim(w.sheet, 'laugh')); } // (its row's beats carry its sound: M.laughTick)
   E.hideouslaughter = {
     summary: function () { return 'a foe within 30 ft · WIS · prone and helpless with laughter; a save each turn, and when hurt (concentration)'; },
     geo: function (B, u, g) { return M.jokeReady(B, u) ? Object.assign({}, g, { selfToo: true }) : null; }, // (the egg: his own square is a target too -- magic.js M.targetKind)
     cast: function* (B, u, t, slot, head, x) {
       if (t === u) { yield* joke(B, u, head); return; }
       var dc = x.dc, hit = [];
-      yield* saveAll(B, u, [t], 'wis', dc, null, '', false, head + ' at ' + nm(B, t), { skip: function (w) { return w.abil && w.abil.int <= 4 ? 'too simple to find it funny' : ''; }, failText: 'helpless with laughter', cond: function (w) { w.conds.laughing = { dc: dc, by: u.id, spell: 'hideouslaughter', single: true }; w.conds.incapacitated = { by: u.id }; w.conds.prone = true; hit.push(w); if (M.gnoll(w)) D.sfx('gnollaugh'); } });
+      yield* saveAll(B, u, [t], 'wis', dc, null, '', false, head + ' at ' + nm(B, t), { skip: function (w) { return w.abil && w.abil.int <= 4 ? 'too simple to find it funny' : ''; }, failText: 'helpless with laughter', cond: function (w) { w.conds.laughing = { dc: dc, by: u.id, spell: 'hideouslaughter', single: true }; w.conds.incapacitated = { by: u.id }; w.conds.prone = true; hit.push(w); if (M.gnoll(w) && !laughsOnItsRow(w)) D.sfx('gnollaugh'); } });
       if (hit.length) M.concentrate(B, u, 'hideouslaughter', 'Hideous Laughter', function () { hit.forEach(function (w) { if (w.conds.laughing && w.conds.laughing.by === u.id) { delete w.conds.laughing; delete w.conds.incapacitated; } }); });
     },
     ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (!M.targetOK(B, u, e.g, t) || t.conds.laughing || (t.abil && t.abil.int <= 4)) return; var pf = TX().pFail(t, 'wis', u.spellDC), sc = pf * (TX().dpr(t) * 1.8 + 4); if (!best || sc > best.score) best = { score: sc, t: t, keep: sc * 0.7 }; }); return best; }
@@ -550,7 +585,7 @@
       w.conds.laughing = { by: u.id, joke: true, ends: { round: B.round + 2, by: u.id, i: B.order.indexOf(u) } };
       w.conds.incapacitated = { by: u.id }; w.conds.prone = true; w.reaction = 0; FX.sparkle(w, 'violet', 12);
     });
-    if (gn.length) { D.sfx('gnollaugh'); B.card(['{p}' + (gn.length > 1 ? 'The gnolls know that laugh. They go down howling with it' : 'The gnoll knows that laugh. It goes down howling with it') + '{/} -- two full rounds, no save.'], 320); yield 70; }
+    if (gn.length) { if (!gn.every(laughsOnItsRow)) D.sfx('gnollaugh'); B.card(['{p}' + (gn.length > 1 ? 'The gnolls know that laugh. They go down howling with it' : 'The gnoll knows that laugh. It goes down howling with it') + '{/} -- two full rounds, no save.'], 320); yield 70; }
     // and his own fit is over: on the floor still (prone; up again for half his move)
     delete u.conds.laughing; delete u.conds.incapacitated;
     B.card(['{g}Aurdin\'s fit passes. He is still on the floor.{/}'], 260);

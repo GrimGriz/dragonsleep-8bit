@@ -359,6 +359,7 @@
     FX.update();
     this.units.forEach(function (u) { if (u.flash > 0) u.flash--; if (u.tween) { u.tween.t++; if (u.tween.t >= u.tween.dur) delete u.tween; } });
     this.cards = this.cards.filter(function (c) { return this.t - c.t0 < c.life; }, this);
+    if (D.magic.laughTick) { if (this.req && this.req.scene) D.magic.laughHold(this); else D.magic.laughTick(this); } // (a gnoll's fit and its laughs on their beats, js/grimoire.js M.LAUGH -- held still under a cutscene beat, the egg's: the fight pauses)
     if (this.menu) { D.ui.menuInput(this); return; }
     if (I.pressed('menu')) { D.ui.openMenu(this); return; }
     if (this.req) { D.ui.input(this, this.req); return; }

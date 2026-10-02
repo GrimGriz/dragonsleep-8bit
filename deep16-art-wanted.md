@@ -15,7 +15,7 @@ how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop wha
 |---|---|---|---|---|
 | the chuul | 2 | `tools/chuul-sheet.py` | 09-27 | someday |
 | the crawler (the Warrens' herd) | 1 | `tools/crawler-sheet.py` | 09-27 | someday |
-| the gnolls (and the Snoot's glory-seekers) | 2 | `tools/gnoll-sheet.py` | 09-28 | someday |
+| the gnolls (and the Snoot's glory-seekers) | 2: the second gives the PRONE and LAUGH rows (10-02) | `tools/gnoll-sheet.py` | 09-28, 10-02 | a `prone` row of its own: Fall / Get Up 8, 7, 6, 5 (down onto its hands and flat; up by the sheet's own get-up); while it laughs, the LAUGH row (grimoire.js M.LAUGH) |
 | the cloaker (and its close-up) | 3 | `tools/cloaker-sheet.py` | 09-29 | -- (it flies) |
 | the ettercap | 3: the third is the sitting-and-braiding idle, 09-30 (on the grid it braids till it acts or is hurt; on the 8-bit map it sits braiding at the strung end of Web Gulch) | `tools/ettercap-sheet.py` | 09-29, 09-30 | someday |
 | **the otyugh -- the landlord** | 1 | `tools/otyugh-sheet.py` | 09-29 | someday |

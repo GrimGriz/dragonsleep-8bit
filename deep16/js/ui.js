@@ -799,7 +799,9 @@
         if (anim === 'idle' || anim === 'walk' || anim === 'slither' || anim === 'roost' || anim === 'braid' || anim === 'run' || anim === 'still') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         // a hyena helpless with laughter rolls on the floor with it, for as long as it laughs (09-30; since 10-02 the hyenas caught by Aurdin's joke: js/grimoire.js M.hyena)
         if (!down && u.conds.laughing && has('rofl')) { anim = 'rofl'; o.once = false; t = B.t + (u.id ? u.id.length * 7 : 0); }
-        // one laughing with no fall frame and no rofl row (the gnolls and the glory-seeker in Aurdin's joke, 10-02: they stood there laughing): on its side
+        // a gnoll's fit on its own row (10-02, Griz's order of its sheet's poses, beat by beat: js/grimoire.js M.LAUGH; the laughs fire there on the same beats)
+        else if (!down && u.conds.laughing && has('laugh')) { anim = 'laugh'; o.frame = D.magic.laughFrame(B, u); }
+        // one laughing with no fall frame and no rofl or laugh row: on its side (the gnolls stood there laughing, 10-02, before their sheet's own rows were cut)
         else if (!down && u.conds.laughing && pf < 0) { anim = 'idle'; o.lie = true; t = B.t + (u.id ? u.id.length * 7 : 0); o.rock = Math.sin(t / 3.5) * 0.14 * (Math.sin(t / 23) > -0.3 ? 1 : 0.3); } // (shaking with it, in fits)
         else if (pf >= 0 && !down && u.proneT != null) {
           var pk = Math.floor((B.t - u.proneT) * (D.spr.anim(u.sheet, prow).fps || 8) / 60);
