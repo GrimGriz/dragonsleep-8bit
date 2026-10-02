@@ -310,12 +310,21 @@
     u.tween = { fx: hx, fy: hy, fz: 18, t: 0, dur: this.pace(12, true) };
     if (host && !u.dead && u.hp > 0) this.card(['{g}The ' + shortName(u) + ' drops off ' + nameOf(host) + ' to the floor beside.{/}'], 220);
   };
-  // each step of the coroutine (step, below): a rider whose grip is gone comes off
+  // bigger than Medium: two squares and more, or a Medium (not a halfling's or a gnome's Small) Enlarged a size up (SRD 5.1 Enlarge: "from Medium to Large")
+  Battle.overMedium = function (u) {
+    if ((u.size || 1) > 1) return true;
+    var en = u.conds && u.conds.enlarged, small = u.sizeClass === 'S' || /halfling|gnome/i.test(u.race || '');
+    return !!(en && !en.down && !small);
+  };
+  // each step of the coroutine (step, below): a rider whose hold is gone comes off -- its host or itself down, gone off the plane, banished, turned, asleep on the
+  // floor (prone) -- and one whose host has grown past Medium since it got on (Enlarge) is thrown off, as if pulled off, to the nearest open square (RULED 10-01,
+  // Griz: "only when he's Medium or smaller"; then "treat if 'victim enlarge' = pull it off to nearby square")
   Battle.prototype.rideSync = function () {
     for (var i = 0; i < this.units.length; i++) {
       var u = this.units[i]; if (!u.attached || !u.riding) continue;
       var h = u.master, at = h && h.conds.attached;
-      if (!h || u.dead || u.hp <= 0 || h.dead || h.hp <= 0 || !at || at.by !== u.id) this.dismount(u);
+      if (!h || u.dead || u.hp <= 0 || h.dead || h.hp <= 0 || !at || at.by !== u.id || h.ethereal || u.ethereal || h.conds.banished || u.conds.banished || u.conds.prone || !G.hostile(u, h)) { this.dismount(u); continue; }
+      if (!at.big && Battle.overMedium(h)) { this.card(['{g}' + nameOf(h) + ' swells past it: the ' + shortName(u) + ' is thrown off.{/}'], 240); this.dismount(u); }
     }
   };
 
@@ -1126,9 +1135,16 @@
     // attached (the darkmantle's Crush: SRD 5.1, "the darkmantle attaches to the target"; RULED 10-01, Griz: "go SRD"): no grapple, no restraint -- the one it is
     // on still walks, and it goes along, riding (mount, above). Over the head when the target is Medium or smaller and it had advantage on the roll: blinded
     // (and unable to breathe) while it is on. Off with a DC 13 STR check as an action, by the one it is on or anyone beside (exec 'detach': PULL IT OFF)
+    // (on already, at the shoulder, and the one it rides Medium or smaller again -- an Enlarge ended -- a hit with advantage takes the head: the SRD's "attaches by
+    // engulfing the target's head", read on every hit)
+    var atNow = tgt.conds.attached;
+    if (atk.attach && atNow && atNow.by === att.id && !atNow.head && !tgt.dead && tgt.hp > 0 && e.net > 0 && !Battle.overMedium(tgt)) {
+      atNow.head = true; att.perch = 'over'; if (!tgt.conds.blinded) tgt.conds.blinded = { by: att.id, held: true };
+      this.card(['{r}' + nameOf(att) + '{/} gets ' + nameOf(tgt) + '\'s head: {o}BLINDED{/}, no breath to draw.']); yield 24;
+    }
     if (atk.attach && !tgt.dead && tgt.hp > 0 && !att.riding && !tgt.conds.attached) {
-      var onHead = (tgt.size || 1) <= 1 && e.net > 0;
-      tgt.conds.attached = { by: att.id, dc: atk.attach.dc, head: onHead };
+      var onHead = !Battle.overMedium(tgt) && e.net > 0; // (Medium or smaller: SRD 5.1 -- an Enlarged one is a size up, Large -- RULED 10-01, Griz: "only when he's Medium or smaller")
+      tgt.conds.attached = { by: att.id, dc: atk.attach.dc, head: onHead, big: Battle.overMedium(tgt) }; // (big: Large already when it got on -- an Enlarge after throws it off, rideSync)
       if (onHead && !tgt.conds.blinded) tgt.conds.blinded = { by: att.id, held: true };
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
       this.card(['{r}' + nameOf(att) + '{/} attaches to ' + nameOf(tgt) + (onHead ? ': over ' + nameOf(tgt) + '\'s head -- {o}BLINDED{/}, no breath to draw' : '') + '.  {g}(DC ' + atk.attach.dc + ' STR to pull it off, an action: ' + nameOf(tgt) + ', or anyone beside){/}']);

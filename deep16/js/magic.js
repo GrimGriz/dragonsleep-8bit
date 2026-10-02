@@ -893,6 +893,7 @@
   // a shove away from `from`, n squares (Thunderwave's 10 ft): each square only if the body can stand there
   M.push = function (B, from, w, n) {
     if (!w || w.dead || w.hp <= 0 || w.bound) return;
+    if (w.riding) return; // (a rider -- a darkmantle on a head, a familiar on its wizard -- goes where the one it rides goes: battle.js mount)
     var dx = Math.sign(w.x - from.x), dy = Math.sign(w.y - from.y), x0 = w.x, y0 = w.y, moved = 0;
     if (!dx && !dy) return;
     for (var i = 0; i < n; i++) { if (!G.canStand(w, w.x + dx, w.y + dy)) break; w.x += dx; w.y += dy; moved++; }

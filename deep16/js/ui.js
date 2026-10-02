@@ -146,7 +146,7 @@
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); });
+    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'detach', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
@@ -258,7 +258,7 @@
     var best = null, bd = -1e9, pick = null, pd = -1e9, z = D.iso.zoom;
     B.units.forEach(function (u) {
       if (u.dead || u.ethereal) return;
-      var p = unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z;
+      var p = u.riding && u.master ? perchPos(B, u, z) : unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z; // (a rider where it is drawn: on the head, at the shoulder)
       if (!(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z)) return;
       if (p.depth > bd) { bd = p.depth; best = u; }
       if (want && want(u) && p.depth > pd) { pd = p.depth; pick = u; }
@@ -287,7 +287,7 @@
     }
     // the mouse: over the menus, or on the grid
     B.hoverBtn = -1;
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, foeWanted(B, u)), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, foeWanted(B, u)), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); B.hoverUnit = pu; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } } // (hoverUnit: a rider on a head the mouse is on -- underCursor)
     if (I.mouse.inside) (B.buttons || []).forEach(function (b, i) { if (hit(b)) B.hoverBtn = i; });
     // hovering picks an icon only when the mouse moves onto it: a ring turning under a resting mouse, or a twitch
     // on the same icon, leaves the arrows' choice alone (Griz, 09-27: the arrows stopped working over the wheel)
@@ -301,14 +301,14 @@
     // spell is aimed it is X -- the last pick back, then the spell put away; and while aiming, the creature under the cursor shows its
     // inspect without a click (B.peek: drawn as the inspect, never held, so the click that picks the target is not spent closing it).
     // The pad's INFO and a long press still inspect (rclick without rbtn)
-    B.peek = B.tool === 'spell' && B.spell ? G.occupant(B.cursor.x, B.cursor.y) || etherealAt(B, B.cursor.x, B.cursor.y) || null : null;
+    B.peek = B.tool === 'spell' && B.spell ? underCursor(B) || etherealAt(B, B.cursor.x, B.cursor.y) || null : null;
     if (I.mouse.rbtn && B.tool === 'menu' && B.hoverBtn < 0) { D.sfx('cancel'); B.tool = rest() === 'menu' ? 'move' : rest(); B.spell = null; B.picks = []; B.clearCards(); return; }
     if (I.mouse.rbtn && B.tool === 'spell') {
       D.sfx('cancel');
       if (B.picks && B.picks.length) { B.picks.pop(); return; }
       B.tool = rest(); B.spell = null; B.peek = null; B.clearCards(); return;
     }
-    if (I.mouse.rclick && !overUI(B)) { var w0 = G.occupant(B.cursor.x, B.cursor.y) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0) B.inspect = w0; return; }
+    if (I.mouse.rclick && !overUI(B)) { var w0 = underCursor(B) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0) B.inspect = w0; return; }
     // the pad (Griz 09-28): the left stick pressed in, before anything on the wheel is chosen, drops the wheel (and a list on
     // it) and the cursor is free on the grid; with no wheel up it recentres, as C does. The right stick's left/right (or a
     // bumper) calls the wheel up, and once it's up turns it (turnWheel)
@@ -466,11 +466,29 @@
       if (g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') return M.area(u, g, x, y).length ? 'ok' : 'no';
       if (g.shape === 'teleport') return B.mistyTargets(u, g.range).some(function (q) { return q[0] === x && q[1] === y; }) ? 'ok' : 'no';
       if (g.shape === 'allies' && B.picks.length && !(w && M.targetOK(B, u, g, w))) return 'self';
-      if (w && M.targetOK(B, u, g, w)) return 'ok';
+      if (spellTarget(B, u, g, x, y)) return 'ok';
       return M.missileDark(B, u, g, x, y) ? 'ok' : 'no'; // (Magic Missile at the darkness: a square the caster cannot see into)
     }
     return 'no';
   };
+  // the creature a spell aimed at (x, y) takes: a rider there the mouse is on, or the one standing there, or -- when the spell will not take that one -- a rider on
+  // it (a darkmantle on a friend, or on the caster: 10-01, Griz, "check for other spell problems we might have created" -- a spell at it went to the friend's square
+  // and found only the friend); null if none of them
+  function spellTarget(B, u, g, x, y) {
+    var M = D.magic, w = G.occupant(x, y), hu = B.hoverUnit, ok = function (t) { return !!(t && M.targetOK(B, u, g, t)); };
+    if (hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y && ok(hu)) return hu;
+    if (ok(w)) return w;
+    var r = D.Battle.riderOn(u, w, B.units); return ok(r) ? r : null;
+  }
+  UI.spellTarget = spellTarget;
+  // the one under the cursor the tooltip, the inspect and a spell's peek speak of: a rider the mouse is on, or -- the attack cued -- the darkmantle on the square, else the one standing there
+  function underCursor(B) {
+    var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y), hu = B.hoverUnit, a = B.active;
+    if (hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y) return hu;
+    if (B.tool === 'attack' && a) { var r = D.Battle.riderOn(a, w, B.units); if (r) return r; }
+    if (B.tool === 'spell' && B.spell && a) { var st = spellTarget(B, a, B.spell.g, x, y); if (st) return st; }
+    return w;
+  }
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
@@ -498,7 +516,7 @@
       var S = B.spell, g = S.g, M = D.magic, cast = function (t) { UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: t }); };
       if (g.shape === 'rays' || g.shape === 'darts') {
         if (v !== 'ok') return;
-        B.picks.push(w && M.targetOK(B, u, g, w) ? w : { x: x, y: y, size: 1, dark: true, name: 'the dark' }); // (a dart at the darkness)
+        B.picks.push(spellTarget(B, u, g, x, y) || { x: x, y: y, size: 1, dark: true, name: 'the dark' }); // (a dart at the darkness; at a darkmantle on a friend, spellTarget)
         if (B.picks.length >= S.n) return cast({ units: B.picks.slice() });
         return B.card(['{y}' + S.name + '{/}: ' + B.picks.length + ' of ' + S.n + ' aimed.  {g}X takes the last back{/}'], 100000);
       }
@@ -515,7 +533,7 @@
         return;
       }
       if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave' || g.shape === 'wall' || g.shape === 'teleport') return cast({ x: x, y: y });
-      return cast(w);
+      return cast(spellTarget(B, u, g, x, y) || w);
     }
   }
 
@@ -634,6 +652,9 @@
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
       if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
       xray(wx, B, objs, hero || B.active); // a figure hidden behind another shows through as its outline
+      // a rider the cursor means (a darkmantle on a head: underCursor) outlined, so the mouse shows it is on it (10-01, Griz: "I can't get any indication I'm mousing over the one on his head")
+      var hr = hero && underCursor(B), ho = hr && hr.riding && objs.filter(function (o) { return o.unit === hr && o.shown; })[0];
+      if (ho) D.spr.outline(wx, hr.sheet, ho.shown.anim === 'hurt' && !D.spr.anim(hr.sheet, 'hurt') ? 'idle' : ho.shown.anim, hr.facing || 0, ho.shown.t, ho.shown.x, ho.shown.y, G.hostile(hero, hr) ? R('red', 4) : R('glow', 2), { alpha: 0.95, once: ho.shown.once, frame: ho.shown.frame, scale: ho.shown.k });
     } finally { D.iso.inWorld = false; DEFER = null; WCTX = null; }
     var dev = z * D.R;
     ctx.imageSmoothingEnabled = Math.abs(dev - Math.round(dev)) > 1e-6;
@@ -721,19 +742,24 @@
     return { x: p.x, y: p.y, depth: gx + gy + (s - 1) + 0.6, gz: gz };
   }
   UI.unitPos = unitPos;
+  // where a rider sits on the one it rides -- drawn there (unitObj) and picked there by the mouse (UI.pickUnit; 10-01, Griz: "I can't get any indication I'm
+  // mousing over the one on his head"). k: the pixels' scale (1 on the world canvas, the zoom on the screen). The one it rides drawn bigger (Enlarge) carries it higher
+  function perchPos(B, u, k) {
+    var m = u.master, mf = m.facing || 0, fore = mf === 0 || mf === 1 || mf === 2 || mf === 7, mp = unitPos(B, m), mt = D.spr.unitTop(m) * D.spr.scaleOf(m) * k;
+    // (the bat flutters about his head -- Griz, 09-30: "have it flutter around his head" -- a slow loop, in front of him and behind)
+    var ba = B.t / 13 + (u.id || '').length;
+    // (a darkmantle over the head it engulfs -- battle.js mount: sat on the head, in front of it, its foot a little below the crown)
+    return u.perch === 'over' ? { x: mp.x, y: mp.y - mt + 13 * k, depth: mp.depth + 0.03, gz: mp.gz }
+      : u.perch === 'shoulder' ? { x: mp.x + (fore ? -9 : 9) * k, y: mp.y - Math.round(mt * 0.48), depth: mp.depth + 0.02, gz: mp.gz }
+      : u.perch === 'head' ? { x: mp.x + Math.round(11 * k * Math.cos(ba)), y: mp.y - Math.round(mt * 0.92) + Math.round(3 * k * Math.sin(ba * 2)), depth: mp.depth + (Math.sin(ba) > 0 ? 0.02 : -0.02), gz: mp.gz }
+      : { x: mp.x + (fore ? 9 : -9) * k, y: mp.y + 3 * k, depth: mp.depth + 0.03, gz: mp.gz };
+  }
   function unitObj(B, u) {
     var p = unitPos(B, u), has = function (a) { return !!D.spr.anim(u.sheet, a); };
     // a familiar riding its wizard (js/familiar.js): the owls perched on his shoulder, the rest at his feet, drawn just after him
     // (it faces as he does -- Griz, 09-29: "facing left when he's facing north" -- and sits on the shoulder, not above the ear; the shoulder
     // is the one on the viewer's left while he faces toward the viewer, on the right while he faces away)
-    if (u.riding && u.master) { var mf = u.master.facing || 0, fore = mf === 0 || mf === 1 || mf === 2 || mf === 7, mp = unitPos(B, u.master), mt = D.spr.unitTop(u.master); u.facing = mf;
-      // (the bat flutters about his head -- Griz, 09-30: "have it flutter around his head" -- a slow loop, in front of him and behind)
-      var ba = B.t / 13 + (u.id || '').length;
-      // (a darkmantle over the head it engulfs -- battle.js mount: sat on the head, in front of it, its foot a little below the crown)
-      p = u.perch === 'over' ? { x: mp.x, y: mp.y - mt + 13, depth: mp.depth + 0.03, gz: mp.gz }
-        : u.perch === 'shoulder' ? { x: mp.x + (fore ? -9 : 9), y: mp.y - Math.round(mt * 0.48), depth: mp.depth + 0.02, gz: mp.gz }
-        : u.perch === 'head' ? { x: mp.x + Math.round(11 * Math.cos(ba)), y: mp.y - Math.round(mt * 0.92) + Math.round(3 * Math.sin(ba * 2)), depth: mp.depth + (Math.sin(ba) > 0 ? 0.02 : -0.02), gz: mp.gz }
-        : { x: mp.x + (fore ? 9 : -9), y: mp.y + 3, depth: mp.depth + 0.03, gz: mp.gz }; }
+    if (u.riding && u.master) { u.facing = u.master.facing || 0; p = perchPos(B, u, 1); }
     if (u.left) return null; // out of the fight, the way they came in
     if (u.unseen) return null; // (asleep under the water or in its puddle: the Settling's, js/wet.js)
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
@@ -1298,7 +1324,7 @@
   }
   function tooltip(ctx, B, u) {
     if (B.inspect || B.list || (B.req && ((B.req.prompt && !B.req.prompt.pick) || B.req.entry))) return; // (a pick on the grid keeps the tooltip)
-    var w = G.occupant(B.cursor.x, B.cursor.y), lines = [];
+    var w = underCursor(B), lines = []; // (a darkmantle on a head the mouse is on, or the one the attack cued would strike)
     if (w && w !== B.active) {
       lines.push((w.side === 'foe' ? '{r}' : '{c}') + w.name + '{/}  HP ' + w.hp + '/' + w.maxhp + '  AC ' + RU.ac(w) + conds(w));
       if (u && G.hostile(u, w) && !w.dead) {
