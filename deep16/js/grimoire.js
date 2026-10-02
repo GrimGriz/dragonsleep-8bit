@@ -98,8 +98,11 @@
     if (c.hasted) { T.move *= 2; T.hasteAction = 1; } // Haste: double speed, one more action (one attack, Dash, Disengage, Hide, an object)
     if (c.lethargic) { T.move = 0; T.action = 0; T.bonus = 0; delete c.lethargic; B.card(['{g}' + Nm(B, u) + ' is dragged down by the haste\'s end: no move, no action.{/}'], 240); }
     if (c.retreat) T.bonusDash = true;
-    // a hyena still laughing (the easter egg, 09-30): another fit of it as its turn comes round
-    if (c.laughing && M.hyena && M.hyena(u) && u.hp > 0) { D.sfx('cackle2'); B.card(['{p}' + Nm(B, u) + ' rolls in the dirt, cackling.{/}'], 200); }
+    // Aurdin's joke (the easter egg, 10-02): the gnolls' two full rounds run out as the turn they end at comes round (M.jokeClock); a hyena
+    // still laughing has another fit of it as its turn comes round, a gnoll howls
+    M.jokeClock(B, u);
+    if (c.laughing && u.hp > 0 && M.hyena(u)) { D.sfx('cackle2'); B.card(['{p}' + Nm(B, u) + ' rolls in the dirt, cackling.{/}'], 200); }
+    else if (c.laughing && u.hp > 0 && M.gnoll(u)) { D.sfx('gnollaugh'); B.card(['{p}' + Nm(B, u) + ' howls with laughter on the ground, helpless.{/}'], 200); }
     // Spirit Guardians: a foe that starts its turn in the ring saves (once a turn, the first time: starting or entering)
     guardians(B, u, 'starts');
     // Command: the word it heard, obeyed now
@@ -486,18 +489,156 @@
       return best;
     }
   };
-  // the hyena's easter egg (RULED 09-30, Griz: "despite the SRD, for this easer egg have the spell function on them - and them playing
-  // the animation"): a hyena is no longer too simple to find it funny (INT 2); laughing, it rolls on the floor (its sheet's rofl row,
-  // js/ui.js unitObj), cackles when the spell lands, and cackles again at the start of each turn it spends laughing (js/audio.js)
+  // the hyena (RULED 09-30, Griz: "despite the SRD, for this easer egg have the spell function on them - and them playing the animation") is
+  // too simple to find the spell funny again (SRD 5.1, INT 4 or less): RULED 10-02, Griz: "I want you to change the easter egg" -- the egg is
+  // Aurdin's own joke now (below). Laughing, a hyena still rolls on the floor (its sheet's rofl row, js/ui.js unitObj) and cackles (js/audio.js)
   M.hyena = function (w) { return /^hyena_/.test(w.sheet || ''); };
+  M.gnoll = function (w) { return /^(gnoll|gloryseeker)/.test(w.kind || ''); }; // (a glory-seeker is the Snoot's young blood: a gnoll -- deep16/data/foes.js, wiki/the-snoot.md)
   E.hideouslaughter = {
     summary: function () { return 'a foe within 30 ft · WIS · prone and helpless with laughter; a save each turn, and when hurt (concentration)'; },
+    geo: function (B, u, g) { return M.jokeReady(B, u) ? Object.assign({}, g, { selfToo: true }) : null; }, // (the egg: his own square is a target too -- magic.js M.targetKind)
     cast: function* (B, u, t, slot, head, x) {
+      if (t === u) { yield* joke(B, u, head); return; }
       var dc = x.dc, hit = [];
-      yield* saveAll(B, u, [t], 'wis', dc, null, '', false, head + ' at ' + nm(B, t), { skip: function (w) { return w.abil && w.abil.int <= 4 && !M.hyena(w) ? 'too simple to find it funny' : ''; }, failText: 'helpless with laughter', cond: function (w) { w.conds.laughing = { dc: dc, by: u.id, spell: 'hideouslaughter', single: true }; w.conds.incapacitated = { by: u.id }; w.conds.prone = true; hit.push(w); if (M.hyena(w)) D.sfx('cackle'); } });
+      yield* saveAll(B, u, [t], 'wis', dc, null, '', false, head + ' at ' + nm(B, t), { skip: function (w) { return w.abil && w.abil.int <= 4 ? 'too simple to find it funny' : ''; }, failText: 'helpless with laughter', cond: function (w) { w.conds.laughing = { dc: dc, by: u.id, spell: 'hideouslaughter', single: true }; w.conds.incapacitated = { by: u.id }; w.conds.prone = true; hit.push(w); if (M.gnoll(w)) D.sfx('gnollaugh'); } });
       if (hit.length) M.concentrate(B, u, 'hideouslaughter', 'Hideous Laughter', function () { hit.forEach(function (w) { if (w.conds.laughing && w.conds.laughing.by === u.id) { delete w.conds.laughing; delete w.conds.incapacitated; } }); });
     },
-    ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (!M.targetOK(B, u, e.g, t) || t.conds.laughing || (t.abil && t.abil.int <= 4 && !M.hyena(t))) return; var pf = TX().pFail(t, 'wis', u.spellDC), sc = pf * (TX().dpr(t) * 1.8 + 4); if (!best || sc > best.score) best = { score: sc, t: t, keep: sc * 0.7 }; }); return best; }
+    ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (!M.targetOK(B, u, e.g, t) || t.conds.laughing || (t.abil && t.abil.int <= 4)) return; var pf = TX().pFail(t, 'wis', u.spellDC), sc = pf * (TX().dpr(t) * 1.8 + 4); if (!best || sc > best.score) best = { score: sc, t: t, keep: sc * 0.7 }; }); return best; }
+  };
+
+  // ---------------------------------------------------------------- Aurdin's joke (RULED 10-02, the easter egg, Griz: "If and only if Gnolls are present in 16bit
+  // fight (main game only), and aurdin has done the silent quest and received and learned and selected it for the fight - he can cast hideous laughter on
+  // himself, in which case he goes into hideous laughter. As a reaction, any hyenas go into hideous laughter until the end of their next turn (not end of
+  // reaction) and any gnolls go into hideous laughter for 2 full rounds without save. after their reactions have played, hideous laughter on aurdin expires
+  // - battle pauses and big red shiny easter egg on screen: "Guess I'm the Joke, Now" for a few seconds then resume"). The silent quest is the unjournaled
+  // one, Ink for Katarina (js/events.js EV.UNJOURNALED: her vision was of Aurdin laughing, flag katVision, and the sheet); learned: in his book; selected:
+  // among the day's spells he brought (the fight's list, js/save.js knownOf). The main game: a fight the 8-bit game opened (B.o.embed)
+  M.jokeReady = function (B, u) {
+    if (!B || !B.o || !B.o.embed || !u || u.id !== 'aurdin' || u.side !== 'party' || u.guest || u.classAI) return false;
+    var fl = (B.from && B.from.data && B.from.data.flags) || {}, h = u.src || {};
+    if (!fl.katVision || (h.known || []).indexOf('hideouslaughter') < 0 || (u.known || []).indexOf('hideouslaughter') < 0) return false;
+    return B.units.some(function (w) { return M.gnoll(w) && !w.dead && w.hp > 0; });
+  };
+  // the gnolls' two full rounds, from his turn to his turn two rounds on: measured by the round and the place in the order, so they end on time
+  // whatever becomes of him (down, gone) -- asked at every turn's start (M.onStart)
+  M.jokeClock = function (B, cur) {
+    if (!B || !B.order) return;
+    var ci = B.order.indexOf(cur);
+    B.units.forEach(function (w) {
+      var c = w.conds.laughing, e = c && c.joke && c.ends; if (!e) return;
+      var by = B.units.filter(function (x) { return x.id === e.by; })[0], bi = by ? B.order.indexOf(by) : -1; if (bi < 0) bi = e.i;
+      if (B.round < e.round || (B.round === e.round && (ci < 0 || ci < bi))) return;
+      delete w.conds.laughing; delete w.conds.incapacitated;
+      if (!w.dead && w.hp > 0) B.card(['{g}' + Nm(B, w) + ' wheezes, and stops laughing.{/}'], 200);
+    });
+  };
+  function* joke(B, u, head) {
+    if (u.conc) M.endConc(B, u, 'a new spell'); // (it is a concentration spell, and he cast it: what he held lets go -- and his own fit, below, is over at once)
+    u.conds.laughing = { by: u.id, spell: 'hideouslaughter', joke: true }; u.conds.incapacitated = { by: u.id }; u.conds.prone = true;
+    FX.sparkle(u, 'violet', 22); D.sfx('guffaw');
+    B.card([head + ' at himself', '{p}Aurdin cracks up at his own joke, and goes down laughing.{/}'], 320);
+    yield 70;
+    // the reactions: everyone who hears it and laughs that laugh (any side; one asleep, held or stunned hears nothing)
+    var hears = function (w) { return !w.dead && w.hp > 0 && !w.ethereal && !w.conds.asleep && !w.conds.paralyzed && !w.conds.stunned; };
+    var hy = B.units.filter(function (w) { return M.hyena(w) && hears(w); }), gn = B.units.filter(function (w) { return M.gnoll(w) && hears(w); });
+    hy.forEach(function (w) { // till the end of its next turn (M.tick), no save
+      w.conds.laughing = { by: u.id, joke: true, till: { who: w.id, at: 'end', n: 1 }, endText: '{who} gets its breath back.', onEnd: function (x) { delete x.conds.incapacitated; } };
+      w.conds.incapacitated = { by: u.id }; w.conds.prone = true; w.reaction = 0; FX.sparkle(w, 'violet', 12);
+    });
+    if (hy.length) { D.sfx('cackle'); B.card(['{p}' + (hy.length > 1 ? 'The hyenas catch it, and go over cackling' : 'The hyena catches it, and goes over cackling') + '{/} -- till the end of ' + (hy.length > 1 ? 'their' : 'its') + ' next turn.'], 320); yield 70; }
+    gn.forEach(function (w) { // two full rounds (M.jokeClock), no save, not even when hurt (no dc: M.onHurt and the turn's-end save pass it by)
+      w.conds.laughing = { by: u.id, joke: true, ends: { round: B.round + 2, by: u.id, i: B.order.indexOf(u) } };
+      w.conds.incapacitated = { by: u.id }; w.conds.prone = true; w.reaction = 0; FX.sparkle(w, 'violet', 12);
+    });
+    if (gn.length) { D.sfx('gnollaugh'); B.card(['{p}' + (gn.length > 1 ? 'The gnolls know that laugh. They go down howling with it' : 'The gnoll knows that laugh. It goes down howling with it') + '{/} -- two full rounds, no save.'], 320); yield 70; }
+    // and his own fit is over: on the floor still (prone; up again for half his move)
+    delete u.conds.laughing; delete u.conds.incapacitated;
+    B.card(['{g}Aurdin\'s fit passes. He is still on the floor.{/}'], 260);
+    yield 30;
+    // the battle holds while the egg is up (a cutscene beat, js/ui.js scene: E, or a click, after a second goes on)
+    yield { scene: { draw: M.jokeEgg, frames: 230, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, joke: true } };
+  }
+  M.joke = joke;
+
+  // the egg (Griz: "big red shiny easter egg on screen"): a red egg in the palette's own reds, lit from the upper left and dithered between the
+  // steps, a white shine, a glint that sweeps it, sparks about it; it pops in and bobs, and the line comes up under it, big. The fight shows dim through
+  var EGG = null;
+  function eggSheet() {
+    if (EGG) return EGG;
+    var w = 40, h = 52, cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5], ln = Math.hypot(-0.55, -0.62, 0.56), L = [-0.55 / ln, -0.62 / ln, 0.56 / ln];
+    var Hx = L[0], Hy = L[1], Hz = L[2] + 1, hn = Math.hypot(Hx, Hy, Hz); Hx /= hn; Hy /= hn; Hz /= hn;
+    var lvl = new Int8Array(w * h), spec = new Float32Array(w * h), diag = new Float32Array(w * h);
+    for (var y = 0; y < h; y++) for (var x = 0; x < w; x++) {
+      var i = y * w + x, ny = (y + 0.5 - h / 2) / (h / 2 - 1), half = (w / 2 - 1) * Math.sqrt(Math.max(0, 1 - ny * ny)) * (1 + 0.13 * ny), nx = (x + 0.5 - w / 2) / Math.max(0.001, half);
+      lvl[i] = -1;
+      if (Math.abs(ny) > 1 || Math.abs(nx) > 1 || half <= 0.5) continue;
+      var px = nx * Math.sqrt(Math.max(0, 1 - ny * ny)), pz = Math.sqrt(Math.max(0, 1 - px * px - ny * ny));
+      var dif = Math.max(0, px * L[0] + ny * L[1] + pz * L[2]), rim = Math.max(0, px * 0.55 + ny * 0.7 + pz * 0.2) * 0.22;
+      var v = 0.1 + 0.9 * dif + rim, d = (BAYER[(y & 3) * 4 + (x & 3)] / 16 - 0.5) * 0.85;
+      lvl[i] = Math.max(0, Math.min(4, Math.floor(v * 4.6 + d)));
+      spec[i] = Math.pow(Math.max(0, px * Hx + ny * Hy + pz * Hz), 36) + d * 0.08;
+      diag[i] = x + y * 0.55;
+    }
+    var out = new Int8Array(w * h);
+    for (var y2 = 0; y2 < h; y2++) for (var x2 = 0; x2 < w; x2++) {
+      var j = y2 * w + x2; if (lvl[j] >= 0) continue;
+      out[j] = [[1, 0], [-1, 0], [0, 1], [0, -1]].some(function (q) { var xx = x2 + q[0], yy = y2 + q[1]; return xx >= 0 && yy >= 0 && xx < w && yy < h && lvl[yy * w + xx] >= 0; }) ? 1 : 0;
+    }
+    EGG = { w: w, h: h, cv: cv, cx: cv.getContext('2d'), lvl: lvl, spec: spec, diag: diag, out: out };
+    return EGG;
+  }
+  function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
+  M.jokeEgg = function (ctx, t, W, H) {
+    var P = D.PAL.ramps, eg = eggSheet(), w = eg.w, h = eg.h, img = eg.cx.createImageData(w, h), px = img.data;
+    var RED = P.red.map(hex), WHITE = hex(P.bone[2]), CREAM = hex(P.bone[0]), PINK = hex(P.accent[0]), OUT = hex(P.outline[0]);
+    var g0 = ((t + 40) % 110) * 1.1 - 26; // (the glint's place along the diagonal: a sweep every ~2 s)
+    for (var i = 0; i < w * h; i++) {
+      var c = null, l = eg.lvl[i];
+      if (l >= 0) {
+        var gd = Math.abs(eg.diag[i] - g0), up = gd < 1.2 ? 2 : gd < 2.6 ? 1 : 0;
+        c = RED[Math.min(4, l + up)];
+        if (eg.spec[i] > 0.62 || (up === 2 && l >= 2)) c = WHITE; else if (eg.spec[i] > 0.36) c = CREAM; else if (eg.spec[i] > 0.2) c = PINK;
+      } else if (eg.out[i]) c = OUT;
+      if (!c) continue;
+      px[i * 4] = c[0]; px[i * 4 + 1] = c[1]; px[i * 4 + 2] = c[2]; px[i * 4 + 3] = 255;
+    }
+    eg.cx.putImageData(img, 0, 0);
+    // the fight, dim beneath; a red glow behind
+    var fade = Math.min(1, t / 10);
+    ctx.save();
+    ctx.fillStyle = 'rgba(14,4,8,' + (0.74 * fade).toFixed(3) + ')'; ctx.fillRect(0, 0, W, H);
+    var cxs = W / 2, cys = H / 2 - 27, gr = ctx.createRadialGradient(cxs, cys, 8, cxs, cys, 160);
+    gr.addColorStop(0, 'rgba(184,52,40,' + (0.5 * fade).toFixed(3) + ')'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = gr; ctx.fillRect(0, 0, W, H);
+    // the egg: pops in (over and back), then bobs and rocks a little
+    var K = 2.5, k = K;
+    if (t < 16) { var p = t / 16; k = K * (1 + 2.2 * Math.pow(p - 1, 3) + 1.2 * Math.pow(p - 1, 2)); } // (an ease out with an overshoot)
+    var bob = t >= 16 ? Math.round(Math.sin((t - 16) / 13) * 2) : 0, rock = t >= 16 ? Math.sin((t - 16) / 21) * 0.05 : 0;
+    ctx.imageSmoothingEnabled = false;
+    ctx.translate(Math.round(cxs), Math.round(cys + bob)); ctx.rotate(rock);
+    if (k > 0.05) {
+      ctx.globalAlpha = 0.35; ctx.fillStyle = '#05040a'; ctx.beginPath(); ctx.ellipse(0, h * k / 2 + 4, w * k * 0.42, 5, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; // (its shadow)
+      ctx.drawImage(eg.cv, Math.round(-w * k / 2), Math.round(-h * k / 2), Math.round(w * k), Math.round(h * k));
+    }
+    ctx.restore();
+    // sparks about it: four-point stars, each on its own beat
+    var SP = [[-70, -46, 0], [66, -60, 23], [80, 20, 47], [-78, 34, 11], [-36, -80, 61], [44, 70, 37], [8, -88, 79]];
+    SP.forEach(function (s) {
+      var ph = ((t + s[2]) % 48) / 48; if (t < 14 || ph > 0.6) return;
+      var r = Math.round(Math.sin(ph / 0.6 * Math.PI) * 3), sx = Math.round(cxs + s[0]), sy = Math.round(cys + bob + s[1]);
+      ctx.fillStyle = P.bone[2]; ctx.fillRect(sx, sy, 1, 1);
+      ctx.fillStyle = r > 1 ? P.gold[4] : P.accent[0];
+      for (var a = 1; a <= r; a++) { ctx.fillRect(sx + a, sy, 1, 1); ctx.fillRect(sx - a, sy, 1, 1); ctx.fillRect(sx, sy + a, 1, 1); ctx.fillRect(sx, sy - a, 1, 1); }
+    });
+    // the line, big, under it
+    if (t >= 12) {
+      var line = 'Guess I\'m the Joke, Now', DS = window.DS, tw = DS.textWidth(line), al = Math.min(1, (t - 12) / 12);
+      ctx.save(); ctx.globalAlpha = al; ctx.imageSmoothingEnabled = false;
+      ctx.translate(Math.round(W / 2 - tw), Math.round(cys + h * K / 2 + 16)); ctx.scale(2, 2);
+      DS.text(ctx, line, 1, 1, P.red[1]); DS.text(ctx, line, 0, 0, P.bone[2]);
+      ctx.restore();
+    }
   };
   // Hunter's Mark and Mirror's Gaze: a mark held by concentration; when the marked one drops, a bonus action moves it (no slot)
   function markSpell(id, name, o) {

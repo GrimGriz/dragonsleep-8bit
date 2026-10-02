@@ -13236,10 +13236,10 @@
   },
   "kat.vision": {
    "t": [
-    "\"I saw Aurdin laughing. Flat in the dust on the hills, laughing -- and all round the wizard the spotted dogs of the tribe that laughs, laughing with him, rolling helpless in the grass.\"",
+    "\"I saw Aurdin laughing. Flat in the dust on the hills, laughing -- and all round the wizard the tribe that laughs and its spotted dogs, laughing with him, rolling helpless in the grass.\"",
     "She writes it out fast, tears the page free, and folds it into your hand. \"This is how the wizard learns it. It was given to me to give.\""
    ],
-   "src": "RULED 10-01c (Griz: 'she say her vision was of Aurdin laughing' -- 'Kat and the Gnoll laughter that leads to the easter egg': the hyenas of the Gnoll Hills, wiki/gnoll-hills.md 'the tribe that laughs'; Hideous Laughter on a hyena, invented.json#hyena-laughter-egg); the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand)",
+   "src": "RULED 10-01c (Griz: 'she say her vision was of Aurdin laughing' -- 'Kat and the Gnoll laughter that leads to the easter egg': the hyenas of the Gnoll Hills, wiki/gnoll-hills.md 'the tribe that laughs'; Hideous Laughter on a hyena, invented.json#hyena-laughter-egg); the words seat draft (RULED 09-24: no [GRIZ] stubs; the drafts stand); 10-02, the egg changed to Aurdin's joke (invented.json#aurdin-joke-egg): 'the tribe that laughs and its spotted dogs', the gnolls it asks for",
    "id": "kat.vision"
   },
   "renown.katbook": {

@@ -117,6 +117,48 @@
       check('Hideous Laughter on the ogre: laughing ' + /is laughing!/.test(saidS) + ', its turn lost ' + /helpless with laughter/.test(saidS), /is laughing!/.test(saidS) && /helpless with laughter/.test(saidS));
       check('on the hyena (INT 2): unmoved ' + /not affected/.test(saidS), /not affected/.test(saidS));
       check('Grease: prone ' + /is prone!/.test(saidS), /is prone!/.test(saidS));
+    } else if (test === 'srd1002') {
+      // 10-02 (Griz: "yes please fix mirror image in 8 bit"; the conditions by the SRD, "yes"): the dice queued -- DS.d answers from a list, then as it
+      // would -- so each blow is the one meant. Mirror Image on a hero: a foe's blow goes at a double on the d20 (6+ with three, 8+ with two, 11+ with one),
+      // meets 10 + his DEX there, and a hit bursts it; a miss leaves it. The conditions: a laughing foe saves DEX on its own roll and the paralyzed fail it;
+      // the laughing have the prone's advantage and disadvantage and no more; a close hit on the laughing is no critical, on the paralyzed it is
+      var d0 = DS.d, roll0 = DS.roll, Qd = [], crits = [];
+      DS.d = function (n) { return Qd.length ? Qd.shift() : d0(n); };
+      DS.roll = function (e, o) { crits.push(!!(o && o.crit)); return roll0(e, o); };
+      function runM(gen) { var s; do { s = gen.next(); } while (!s.done); return s.value; }
+      try {
+        T.startFight(['ogre', 'ogre']);
+        for (var wM = 0; wM < 400 && !DS.find('battle'); wM++) T.step(1);
+        var bM = DS.find('battle'), AM = bM.heroes.filter(function (x) { return x.h.id === 'aurdin'; })[0], BM = bM.heroes.filter(function (x) { return x.h.id === 'barley'; })[0], OM = bM.foes[0], club = OM.m.attacks.club;
+        bM.intro = 0; AM.h.maxhp = AM.h.hp = 400; AM.conds = {}; OM.conds = {};
+        var iac = 10 + DS.mod(AM.h.abil.dex);
+        function blow(q, what, want) { // the ogre's club at Aurdin with the dice q: want { images, hurt, said }
+          var im0 = AM.images, hp0 = AM.h.hp; T.blog = []; Qd = q.slice(); runM(bM.foeAttack(OM, AM, club)); Qd = [];
+          var said = (T.blog || []).join(' | '), hurt = AM.h.hp < hp0;
+          check(what + ': images ' + im0 + ' -> ' + AM.images + ', hurt ' + hurt + ' -- "' + said + '"', AM.images === want.images && hurt === want.hurt && want.said.test(said));
+        }
+        AM.images = 3;
+        blow([15, 15, 6], 'three up, the double\'s d20 a 6, the club 15+6 against its AC ' + iac, { images: 2, hurt: false, said: /an image of Aurdin\. It bursts! \(2 left\)/ });
+        blow([15, 15, 7], 'two up, a 7 (it wants 8): the club is his', { images: 2, hurt: true, said: /clubs Aurdin for/ });
+        blow([1, 1, 8], 'two up, an 8: at a double, and a 1 misses it', { images: 2, hurt: false, said: /an image of Aurdin\.\.\. miss/ });
+        blow([15, 15, 8], 'two up, an 8 and a hit', { images: 1, hurt: false, said: /It bursts! \(1 left\)/ });
+        blow([15, 15, 10], 'one up, a 10 (it wants 11): his', { images: 1, hurt: true, said: /clubs Aurdin for/ });
+        blow([15, 15, 11], 'one up, an 11', { images: 0, hurt: false, said: /It bursts! \(the last of them\)/ });
+        blow([15, 15], 'none left: no d20 for a double, the club is his', { images: 0, hurt: true, said: /clubs Aurdin for/ });
+        // the conditions
+        OM.m = Object.assign({}, OM.m, { saves: Object.assign({}, OM.m.saves, { dex: 30 }) });
+        OM.conds = { laughing: { rounds: 5 }, prone: true }; var svL = bM.save(OM, 'dex', 20);
+        OM.conds = { paralyzed: { rounds: 3 } }; var svP = bM.save(OM, 'dex', 20);
+        OM.conds = { stunned: { rounds: 3 } }; var svS = bM.save(OM, 'dex', 20);
+        check('DEX saves: laughing on its own roll (' + svL.success + '), paralyzed (' + svP.success + ') and stunned (' + svS.success + ') fail outright', svL.success && !svP.success && !svS.success);
+        OM.conds = { laughing: { rounds: 5 }, prone: true }; var aLm = bM.advantage(BM, OM, true), aLr = bM.advantage(BM, OM, false);
+        OM.conds = { stunned: { rounds: 3 } }; var aSm = bM.advantage(BM, OM, true), aSr = bM.advantage(BM, OM, false);
+        check('advantage on the laughing: close ' + aLm + ', from afar ' + aLr + ' (the prone\'s); on the stunned ' + aSm + ', ' + aSr, aLm === 1 && aLr === -1 && aSm === 1 && aSr === 1);
+        function swing(conds, what, wantCrit) { OM.conds = conds; OM.hp = OM.maxhp = 400; BM.h.ko = false; T.blog = []; crits = []; Qd = [12, 12]; runM(bM.heroAttack(BM, OM, { n: 1 })); Qd = []; var said = (T.blog || []).join(' | '); check(what + ': "' + said + '" (crit dice ' + crits[0] + ')', crits[0] === wantCrit && /hits/.test(said) && /Critical!/.test(said) === wantCrit); }
+        swing({ laughing: { rounds: 5 }, prone: true }, 'Barley rolls 12 on the laughing ogre: a hit, no critical', false);
+        swing({ stunned: { rounds: 3 } }, 'on the stunned: a hit, no critical', false);
+        swing({ paralyzed: { rounds: 3 } }, 'on the paralyzed: a critical (SRD 5.1)', true);
+      } finally { DS.d = d0; DS.roll = roll0; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');
       var ing = g.guests[0].h;

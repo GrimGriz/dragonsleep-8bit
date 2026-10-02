@@ -4,7 +4,7 @@
    spell left on the floor is swept away. Keys: left/right the spell before or after, up/down ten at a time, E (or A) cast it again, M
    the menu. &spell=<id> starts at that spell; &auto casts on down the list by itself; &only=a,b,c keeps to those; &keep skips the
    sweep between casts (E casts the same spell again at the same creature, on whatever the last cast left -- Enlarge twice); &foe=<kind>
-   puts three of a bestiary creature (data/foes.js) where the fighters stand (&foe=hyena, for Hideous Laughter's easter egg).
+   puts three of a bestiary creature (data/foes.js) where the fighters stand (&foe=hyena, first for Hideous Laughter's hyena egg, 09-30; since 10-02 the egg is Aurdin's joke on the gnolls -- js/grimoire.js).
    A showcase, not a testground (Griz, 09-29: "please have the animation gallery show the animation and spell description only; the
    testing rooms will have to be set-up special per spell that needs testing on demand"): the card is the spell's name, its
    description (the 8-bit game's player-facing text, where it has one) and the rules line the ring shows. It rides the class floor's

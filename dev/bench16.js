@@ -516,6 +516,111 @@
     document.body.appendChild(preS);
     return;
   }
+  // Aurdin's joke (mode=joke1002; RULED 10-02, the easter egg -- deep16/js/grimoire.js M.jokeReady): only in a fight the 8-bit game opened, a gnoll standing (a
+  // glory-seeker counts), Ink for Katarina done, the spell in his book and among the day's -- then his own square takes Hideous Laughter, and each condition
+  // missing takes it away. Cast so: his fit is over at once (prone still), the hyenas laugh to the end of their next turn, the gnolls two full rounds, no save; the
+  // egg holds the fight. The turns run by hand count the turns each loses; a whole fight with the joke on his first turn; and the hyena is too simple again.
+  // Add shots=1 for three stills of the egg in out.shots
+  if (get('mode', '') === 'joke1002') {
+    var repJ = { checks: [], errors: [] }, MJ = D.magic, RUJ = D.rules;
+    function okJ(what, v) { repJ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runJ(g, seen) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.scene && seen) seen.push(st.value.scene); if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function dataJ(o) { // the 8-bit save as the seam hands it over (js/embed.js), Aurdin with the sheet copied into his book
+      var d = D.save.fixture(5), au = d.party.filter(function (h) { return h.id === 'aurdin'; })[0];
+      au.known = au.known.filter(function (id) { return id !== 'hideouslaughter'; });
+      if (!o.unlearned) au.known.push('hideouslaughter');
+      // the day's spells (the fixture's Aurdin has a day prepared): with it in place of the last, unless the case names its own
+      var day = o.prepared || (au.prepared ? au.prepared.filter(function (id) { return id !== 'hideouslaughter'; }).slice(0, -1).concat(['hideouslaughter']) : null);
+      if (day) au.prepared = day;
+      if (!o.noQuest) d.flags.katVision = 1;
+      return d;
+    }
+    var mkJN = 0;
+    function mkJ(o) {
+      D.seed = seed0 * 7919 + (++mkJN) * 104729; D.lastError = null;
+      var Bx = new D.Battle({ embed: o.notEmbed ? null : { canRun: true }, fight: 'snoot', data: dataJ(o) }); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.round = 1;
+      return Bx;
+    }
+    function auJ(B) { return B.units.filter(function (u) { return u.id === 'aurdin'; })[0]; }
+    function kindJ(B, re) { return B.units.filter(function (u) { return re.test(u.kind || ''); }); }
+    function selfJ(B) { var au = auJ(B); D.battle = B; RUJ.startTurn(au); var e = MJ.list(B, au).filter(function (x) { return x.id === 'hideouslaughter'; })[0]; return { listed: !!e, ok: !!(e && e.ok), self: !!(e && MJ.targetOK(B, au, e.g, au)) }; }
+    function logJ(B, n) { return (B.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    try {
+      // 1. who may
+      var s1 = selfJ(mkJ({}));
+      okJ('the main game, gnolls standing, the vision told, in his book and the day\'s: listed ' + s1.listed + ', castable ' + s1.ok + ', his own square a target ' + s1.self, s1.listed && s1.ok && s1.self);
+      var sNE = selfJ(mkJ({ notEmbed: true })), sNQ = selfJ(mkJ({ noQuest: true })), sNP = selfJ(mkJ({ prepared: ['magicmissile', 'shield'] })), sP = selfJ(mkJ({ prepared: ['hideouslaughter', 'shield'] })), sUL = selfJ(mkJ({ unlearned: true }));
+      okJ('not the main game: himself ' + sNE.self + '; the vision untold: ' + sNQ.self + '; the day without it: listed ' + sNP.listed + ', with it: himself ' + sP.self + '; the day naming it but not in his book: himself ' + sUL.self,
+        sNE.listed && !sNE.self && sNQ.listed && !sNQ.self && !sNP.listed && sP.self && !sUL.self);
+      var B2 = mkJ({}); kindJ(B2, /^gnoll/).forEach(function (w) { w.hp = 0; w.dead = true; }); var sGS = selfJ(B2);
+      kindJ(B2, /^gloryseeker/).forEach(function (w) { w.hp = 0; w.dead = true; }); var sNo = selfJ(B2);
+      okJ('the gnolls dead, the glory-seeker standing: himself ' + sGS.self + '; it down too: ' + sNo.self + ' (still on his list ' + sNo.listed + ')', sGS.self && !sNo.self && sNo.listed);
+      // 2. the cast on himself
+      var B3 = mkJ({}), au3 = auJ(B3), hy3 = kindJ(B3, /^hyena/), gn3 = B3.units.filter(function (w) { return MJ.gnoll(w); }), scenes = [], undone = false;
+      D.battle = B3; RUJ.startTurn(au3); B3.active = au3; var sl0 = au3.slots[0];
+      au3.conc = { id: 'blur', name: 'Blur', undo: function () { undone = true; } };
+      var n3 = (B3.log || []).length; runJ(B3.exec(au3, { do: 'cast', id: 'hideouslaughter', slot: 1, target: au3 }), scenes);
+      var l3 = logJ(B3, n3);
+      okJ('his fit: laughing after ' + !!au3.conds.laughing + ', incapacitated ' + !!au3.conds.incapacitated + ', prone ' + !!au3.conds.prone + '; a slot spent ' + sl0 + ' -> ' + au3.slots[0] + '; the Blur he held let go ' + undone + ', held now ' + !!au3.conc,
+        !au3.conds.laughing && !au3.conds.incapacitated && !!au3.conds.prone && au3.slots[0] === sl0 - 1 && undone && !au3.conc);
+      okJ('the hyenas (' + hy3.length + '): to the end of their own next turn, no save, the reaction spent -- ' + hy3.map(function (w) { var c = w.conds.laughing; return w.id + ' ' + (c ? JSON.stringify(c.till) + (c.dc ? ' dc' : '') : 'not laughing') + ' r' + w.reaction; }).join('; '),
+        hy3.length === 2 && hy3.every(function (w) { var c = w.conds.laughing; return c && c.till && c.till.who === w.id && c.till.at === 'end' && c.till.n === 1 && !c.dc && w.conds.incapacitated && w.conds.prone && w.reaction === 0; }));
+      okJ('the gnolls and the glory-seeker (' + gn3.length + '): two full rounds, no save -- ' + gn3.map(function (w) { var c = w.conds.laughing; return w.id + ' ' + (c ? JSON.stringify(c.ends) + (c.dc ? ' dc' : '') : 'not laughing'); }).join('; '),
+        gn3.length === 3 && gn3.every(function (w) { var c = w.conds.laughing; return c && c.joke && c.ends && c.ends.round === B3.round + 2 && !c.dc && w.conds.incapacitated && w.conds.prone; }));
+      okJ('the cards: ' + l3.slice(0, 300), /cracks up at his own joke/.test(l3) && /hyenas catch it/.test(l3) && /gnolls know that laugh/.test(l3) && /fit passes/.test(l3));
+      var eggS = scenes.filter(function (s) { return s.draw === MJ.jokeEgg; })[0];
+      okJ('the egg holds the fight: a cutscene beat drawn by M.jokeEgg, ' + (eggS && eggS.frames) + ' frames, ' + scenes.length + ' beat(s)', !!eggS && scenes.length === 1 && eggS.frames >= 180 && eggS.frames <= 300);
+      // the egg draws, every frame of it, red at its heart; the line under it
+      var cvJ = document.createElement('canvas'); cvJ.width = 480; cvJ.height = 270; var cxJ = cvJ.getContext('2d'), drawErr = null;
+      function frameJ(tf) { cxJ.setTransform(1, 0, 0, 1, 0, 0); cxJ.fillStyle = '#46362c'; cxJ.fillRect(0, 0, 480, 270); MJ.jokeEgg(cxJ, tf, 480, 270); }
+      try { for (var tf = 0; tf <= (eggS ? eggS.frames : 230); tf += 3) frameJ(tf); } catch (eD) { drawErr = String(eD && eD.stack || eD).slice(0, 300); }
+      frameJ(60); var pxJ = cxJ.getImageData(240, 113, 1, 1).data, row = cxJ.getImageData(0, 196, 480, 1).data, lit = 0;
+      for (var qx = 0; qx < 480; qx++) if (row[qx * 4] > 200 && row[qx * 4 + 1] > 200) lit++; // (not `q`: the page's query, which get() reads)
+      okJ('drawn at every frame' + (drawErr ? ' ERR ' + drawErr : '') + '; its heart rgb(' + pxJ[0] + ',' + pxJ[1] + ',' + pxJ[2] + '); the line under it, ' + lit + ' bright pixels across', !drawErr && pxJ[0] > 100 && pxJ[0] > pxJ[1] * 1.8 && lit > 40);
+      if (get('shots', '')) { repJ.shots = {}; [6, 14, 40, 75].forEach(function (t2) { frameJ(t2); repJ.shots['t' + t2] = cvJ.toDataURL('image/png'); }); }
+      // 3. the turns, by hand from his on: each turn's start counted laughing is a turn lost (a foe's turn its own AI's; ours begun and ended)
+      var lostJ = {}, onS0 = MJ.onStart;
+      MJ.onStart = function (B, u) { onS0.apply(this, arguments); if (u.conds.laughing && u.hp > 0) lostJ[u.id] = (lostJ[u.id] || 0) + 1; };
+      try {
+        var start = B3.order.indexOf(au3) + 1, rounds = [], r0 = B3.round;
+        for (var rr = r0; rr <= r0 + 3; rr++) {
+          B3.round = rr;
+          for (var oi = rr === r0 ? start : 0; oi < B3.order.length; oi++) {
+            var w = B3.order[oi]; if (w.dead) continue;
+            if (w.side === 'party' && !w.guest) { RUJ.startTurn(w); MJ.endTurn(B3, w); } else { B3.active = w; runJ(D.ai.turn(B3, w)); }
+          }
+          var still = B3.units.filter(function (x) { return x.conds.laughing && !x.dead; }).map(function (x) { return x.id; });
+          rounds.push('R' + rr + ': ' + (still.join(',') || 'none'));
+        }
+      } finally { MJ.onStart = onS0; }
+      okJ('turns lost: ' + JSON.stringify(lostJ) + ' -- laughing after each round ' + rounds.join(' / '),
+        hy3.every(function (w) { return lostJ[w.id] === 1 || (w.dead && (lostJ[w.id] || 0) <= 1); }) && gn3.every(function (w) { return lostJ[w.id] === 2 || (w.dead && (lostJ[w.id] || 0) <= 2); }) && !lostJ.aurdin && !B3.units.some(function (x) { return x.conds.laughing && !x.dead; }));
+      // 4. a whole fight, the joke on his first turn (the rest of ours end theirs): to its end, the egg once, nothing thrown
+      var B5 = mkJ({}), au5 = auJ(B5), eggs5 = 0, cast5 = false, v5, g5 = 0, r5;
+      while (B5.co && g5++ < 400000) {
+        try { r5 = B5.co.next(v5); } catch (e5) { repJ.errors.push(String(e5 && e5.stack || e5).slice(0, 600)); break; }
+        v5 = undefined; if (r5.done) break;
+        var y5 = r5.value; if (typeof y5 === 'number' || !y5) continue;
+        if (y5.scene) { if (y5.scene.draw === MJ.jokeEgg) eggs5++; continue; }
+        if (y5.fx || y5.entry) continue;
+        if (y5.prompt) { v5 = y5.prompt.opts[0].value; continue; }
+        if (y5.turn) { v5 = y5.turn === au5 && !cast5 ? (cast5 = true, { do: 'cast', id: 'hideouslaughter', slot: 1, target: au5 }) : { do: 'end' }; continue; }
+      }
+      okJ('a whole fight with the joke on his first turn: ' + (B5.result || 'none') + ' in ' + B5.round + ' rounds, the egg ' + eggs5 + 'x' + (D.lastError ? ', lastError ' + String(D.lastError).slice(0, 200) : ''), !!B5.result && eggs5 === 1 && !D.lastError);
+      // 5. at a hyena: too simple again (SRD 5.1); a laughing foe saves DEX on its own roll; a stunned one fails it outright
+      var B6 = mkJ({}), au6 = auJ(B6), hy6 = kindJ(B6, /^hyena/)[0], gn6 = kindJ(B6, /^gnoll/)[0]; D.battle = B6; RUJ.startTurn(au6);
+      var n6 = (B6.log || []).length; runJ(MJ.cast(B6, au6, 'hideouslaughter', 1, hy6)); var l6 = logJ(B6, n6);
+      okJ('at a hyena: laughing ' + !!hy6.conds.laughing + ' -- "' + l6.slice(0, 160) + '"', !hy6.conds.laughing && /too simple to find it funny/.test(l6));
+      gn6.conds.laughing = { dc: 99, by: 'x' }; gn6.conds.incapacitated = { by: 'x' }; gn6.conds.prone = true;
+      var sv6 = RUJ.save(gn6, 'dex', 1); delete gn6.conds.laughing; delete gn6.conds.incapacitated; gn6.conds.stunned = true; var sv7 = RUJ.save(gn6, 'dex', 1);
+      okJ('a laughing gnoll\'s DEX save against DC 1: auto ' + !!sv6.auto + ', ok ' + sv6.ok + '; stunned: auto ' + !!sv7.auto + ', ok ' + sv7.ok, !sv6.auto && sv6.ok && sv7.auto && !sv7.ok);
+    } catch (eJ) { repJ.errors.push(String(eJ && eJ.stack || eJ).slice(0, 900)); }
+    if (D.lastError) repJ.errors.push('lastError: ' + String(D.lastError.stack || D.lastError).slice(0, 400));
+    if (errs.length) repJ.errors = repJ.errors.concat(errs);
+    var preJ = document.createElement('pre'); preJ.id = 'out'; preJ.textContent = 'BENCH16 ' + JSON.stringify(repJ);
+    document.body.appendChild(preJ);
+    return;
+  }
   if (get('mode', '') === 'sleep1001c') {
     var repZ = { checks: [], errors: [] }, MZ = D.magic;
     function okZ(what, v) { repZ.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

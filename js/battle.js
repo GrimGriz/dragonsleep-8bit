@@ -14,6 +14,12 @@
   function plain(u) { return isHero(u) ? u.h.name : u.name; }
   function abil(u, a) { return isHero(u) ? u.h.abil[a] : (u.m.abil[a] || 10); }
   function incap(u) { return u.conds.paralyzed || u.conds.asleep || u.conds.stunned || u.conds.laughing; } // (laughing: Hideous Laughter, the 8-bit's -- 10-01c)
+  // what each of those does to the rest, by the SRD 5.1's conditions (10-02, Griz: "yes" -- laughing and stunned had taken the paralyzed's whole
+  // row): STR and DEX saves fail outright for the paralyzed, the stunned and the asleep (unconscious); attacks on them have advantage; a hit
+  // from within 5 ft is a critical hit on the paralyzed and the asleep only. Hideous Laughter is incapacitated and prone: the prone does its own
+  function failsStrDex(u) { return u.conds.paralyzed || u.conds.asleep || u.conds.stunned; }
+  function openToBlows(u) { return u.conds.paralyzed || u.conds.asleep || u.conds.stunned; }
+  function critClose(u) { return u.conds.paralyzed || u.conds.asleep; }
   function tags(u) { return isHero(u) ? ['humanoid'] : (u.m.tags || []); }
   // what to call the light in a hero's hand in a line: 'torch', 'lantern', or the item's own name (the Ledger-Lamp, 09-30)
   function lightWord(k) { var it = k && k !== 'torch' && k !== 'lantern' ? DS.DATA.items[k] : null; return it ? it.name : k === 'lantern' ? 'lantern' : 'torch'; }
@@ -205,7 +211,7 @@
     var adv = 0;
     if (opt.poison && u.conds.antitoxin) adv++;
     if (ab === 'dex' && (u.conds.restrained)) adv--;
-    if ((ab === 'str' || ab === 'dex') && incap(u)) return { total: 0, nat: 1, success: false };
+    if ((ab === 'str' || ab === 'dex') && failsStrDex(u)) return { total: 0, nat: 1, success: false };
     var r1 = DS.d(20), r2 = DS.d(20), nat = adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1;
     var tot = nat + this.saveMod(u, ab);
     if (u.buff && u.buff.id === 'bless') tot += DS.d(4);
@@ -236,7 +242,7 @@
     if (a.conds.reckless) adv++;
     if (t.conds.reckless) adv++;
     if (a.conds.poisoned || a.conds.frightened || a.conds.restrained || a.conds.blinded || a.conds.prone) dis++;
-    if (t.conds.restrained || incap(t) || t.conds.blinded) adv++;
+    if (t.conds.restrained || openToBlows(t) || t.conds.blinded) adv++;
     if (t.conds.prone) { if (melee) adv++; else dis++; }
     if (!isHero(a) && a.m.traits && a.m.traits.packTactics && this.allies(a).length > 1) adv++;
     if (!isHero(a) && a.m.traits && a.m.traits.lightSensitive && this.bright) dis++;
@@ -245,6 +251,11 @@
     if (this.famHelps && this.famHelps(a, t)) adv++; // (the familiar on the wizard's shoulder: js/familiar.js)
     return adv && !dis ? 1 : dis && !adv ? -1 : 0;
   };
+  // false images: whether a blow goes at one, and the AC it meets there. A foe's are the cloaker's phantasms (SRD 5.1 Cloaker: the attacker rolls
+  // at random which it strikes; a double has the cloaker's AC). A hero's are Mirror Image (SRD 5.1: a d20, 6+ with three doubles, 8+ with two,
+  // 11+ with one; a double's AC is 10 + his DEX) -- the grid's own rule, deep16/js/battle.js (10-02, Griz: "yes please fix mirror image in 8 bit")
+  Battle.prototype.toImage = function (t) { return isHero(t) ? DS.d(20) >= [0, 11, 8, 6][Math.min(3, t.images)] : DS.d(t.images + 1) > 1; };
+  Battle.prototype.imageAC = function (t) { return isHero(t) ? 10 + DS.mod(t.h.abil.dex) : this.acOf(t); };
   Battle.prototype.d20 = function (adv) {
     var r1 = DS.d(20), r2 = DS.d(20);
     return adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1;
@@ -809,7 +820,7 @@
       var wasHidden = !!u.conds.hidden; delete u.conds.hidden;
       if (u.conds.invisible && u.conds.invisible.ends) delete u.conds.invisible; // (Invisibility, Mislead: the swing had its advantage; the spell is gone)
       // the cloaker's phantasms: a hit may land on an image
-      if (t.images > 0 && nat !== 20 && DS.d(t.images + 1) > 1 && total >= ac) { // (a hero's too, now: Mirror Image -- 10-01c)
+      if (t.images > 0 && nat !== 20 && this.toImage(t) && total >= this.imageAC(t)) { // (a hero's by Mirror Image's own rule: Battle.toImage, 10-02)
         t.images--; DS.audio.sfx('miss');
         yield* this.say(nameOf(u) + ' strikes a phantasm! It bursts.', 36);
         continue;
@@ -819,7 +830,7 @@
         yield* this.say(nameOf(u) + ' attacks ' + nameOf(t) + '... and misses.' + blindTxt, 34);
         continue;
       }
-      var crit = nat >= R.critRange(h) || (melee && incap(t)) || opening;
+      var crit = nat >= R.critRange(h) || (melee && critClose(t)) || opening;
       var dx = R.damageExpr(h, w);
       var gwf = h.cls === 'fighter' && R.twoHanded(h, w) && h.id === 'barley';
       var dmg = (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod + mw;
@@ -1318,6 +1329,15 @@
     if (atk.autoHitHeld && f.holding.indexOf(t) >= 0) adv = 1;
     var bp = this.blindPen(f), dazzle = (this.bright && f.m.traits && f.m.traits.lightSensitive ? ' (dazzled: disadvantage)' : '') + this.blindTxt(f);
     var nat = this.d20(adv), tot = nat + atk.hit + bp, ac = this.acOf(t);
+    // a hero's Mirror Image (10-02: the images were counted, and no foe's blow ever went at one -- a 30-HP Aurdin with three up fell to two clubs):
+    // the d20 says whether this blow goes at a double; there it meets the double's AC, and a hit bursts it. A save-only attack (a breath) asks no roll
+    if (isHero(t) && t.images > 0 && !(atk.save && !atk.hit) && this.toImage(t)) {
+      var ihit = nat === 20 || (nat !== 1 && tot >= this.imageAC(t));
+      if (ihit) t.images--;
+      DS.audio.sfx(ihit ? 'hit' : 'miss'); this.num(t, ihit ? 'POP' : 'MISS', ihit ? '#BB96E0' : '#9C9C9C');
+      yield* this.say(nameOf(f) + ' ' + (atk.verb || 'attacks') + ' an image of ' + nameOf(t) + (ihit ? '. It bursts! (' + (t.images ? t.images + ' left' : 'the last of them') + ')' : '... miss.'), 32);
+      return;
+    }
     if (atk.dmg === '0' && (nat === 20 || (nat !== 1 && tot >= ac))) { // a grab that does no harm by itself (the roper's tendrils)
       yield* this.say(nameOf(f) + ' ' + (atk.verb || 'reaches for') + ' ' + nameOf(t) + '.', 30);
       yield* this.applyRider(f, t, atk, true);
@@ -1333,7 +1353,7 @@
       if (isHero(t) && nat >= 15) yield* this.doorWard(t);
       return;
     }
-    var crit = nat === 20 || (melee && incap(t)) || (this.round === 1 && this.o.surprised === 'party' && f.m.traits && f.m.traits.assassinate && !(this.famAlarm && this.famAlarm(t)));
+    var crit = nat === 20 || (melee && critClose(t)) || (this.round === 1 && this.o.surprised === 'party' && f.m.traits && f.m.traits.assassinate && !(this.famAlarm && this.famAlarm(t)));
     var dmg = DS.roll(f.enlarged && atk.big ? atk.big : atk.dmg, { crit: crit });
     if (atk.martial && !f.martialUsed && this.allies(f).length > 1) { dmg += DS.roll(atk.martial, { crit: crit }); f.martialUsed = this.round; } // martial advantage, once a turn
     if (atk.firstRound && this.round === 1) dmg += DS.roll(atk.firstRound, { crit: crit });
@@ -1648,6 +1668,7 @@
       var pose = down(u) ? 'ko' : u.pose ? u.pose : (h.hp < h.maxhp / 4 || incap(u)) ? 'hurt' : 'stand';
       var x = u.x - (act === u ? (u.off || 0) : 0) + sx, y = u.y;
       if (pose === 'ko') { ctx.drawImage(spr.ko, x - 4, y + 8); return; }
+      if (u.images > 0) { ctx.globalAlpha = 0.35; for (var k = 0; k < u.images; k++) ctx.drawImage(spr[pose], x + [-8, 8, -4][k], y + [2, -2, 4][k]); ctx.globalAlpha = 1; } // (Mirror Image: his doubles about him, as a foe's phantasms are drawn -- 10-02)
       if (u.conds.paralyzed) { ctx.drawImage(spr[pose], x, y); ctx.globalAlpha = 0.4; ctx.fillStyle = '#6888FC'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
       else ctx.drawImage(spr[pose], x, y);
       if (self.doorWardOn) { ctx.globalAlpha = 0.28 + 0.16 * Math.sin(DS.frame / 5 + u.idx); ctx.drawImage(sheenOf(spr[pose]), x, y); ctx.globalAlpha = 1; if (((DS.frame >> 2) + u.idx * 3) % 11 === 0) { ctx.fillStyle = '#F8F8F8'; ctx.fillRect(x + 3 + (DS.frame % 9), y + 4 + (DS.frame % 13), 1, 1); } }

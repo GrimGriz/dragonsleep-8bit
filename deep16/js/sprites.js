@@ -45,7 +45,7 @@
     var dx = Math.round(x - f.ax), dy = Math.round(y - ay), fr = f.sx / fw;
     ctx.save();
     if (o && o.alpha != null) ctx.globalAlpha = o.alpha;
-    if (o && o.lie) { ctx.translate(x, y); ctx.rotate(-Math.PI / 2); ctx.translate(-x, -y + 6); }
+    if (o && o.lie) { ctx.translate(x, y); ctx.rotate(-Math.PI / 2 + (o.rock || 0)); ctx.translate(-x, -y + 6); } // (o.rock: one down laughing shakes with it -- js/ui.js, 10-02)
     ctx.drawImage(img, fr * fw, sy, fw, fh, dx, dy, fw, fh);
     if (o && o.tint) { // a hit flash: the frame's own silhouette filled with one colour
       var tc = S.tintCanvas(fw, fh);
