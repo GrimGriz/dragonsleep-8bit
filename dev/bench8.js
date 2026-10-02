@@ -179,6 +179,7 @@
       T.startFight(['ogre', 'ogre']);
       for (var w1 = 0; w1 < 400 && !DS.find('battle'); w1++) T.step(1);
       var bt = DS.find('battle'), A = bt.heroes.filter(function (x) { return x.h.id === 'aurdin'; })[0], Bb = bt.heroes.filter(function (x) { return x.h.id === 'barley'; })[0], fo = bt.foes[0];
+      var live = { famTurn: bt.famTurn, famAttacked: bt.famAttacked, famPending: bt.famPending }; // (the intro is instant, so the first turn is already open here: when Aurdin won initiative, js/familiar.js had set famTurn on him and the probes below wiped it, so his real turn could never dart -- 1 run in 8 went RED on his initiative, 10-02; they put it back as they found it)
       bt.famTurn = A; bt.famAttacked = false;
       check('his own first attack helped, the second not: ' + bt.famHelps(A, fo) + ', ' + bt.famHelps(A, fo), bt.famAttacked && !bt.famHelps(A, fo));
       bt.famTurn = null; bt.famPending = true;
@@ -187,11 +188,13 @@
       var gsp = bt.famSplash(A, 7), gs; do { gs = gsp.next(); } while (!gs.done);
       check('a blast on him takes it: familiar ' + JSON.stringify(g.flags.familiar) + ', gone ' + g.flags.familiarGone, !g.flags.familiar && g.flags.familiarGone === 'owl');
       // a real round: Aurdin casts Burning Hands (a save, no attack roll), so the owl darts out for the next ally
-      g.flags.familiar = { kind: 'owl', by: 'aurdin', hp: 1 }; delete g.flags.familiarGone;
+      g.flags.familiar = { kind: 'owl', by: 'aurdin', hp: 1 }; delete g.flags.familiarGone; Object.assign(bt, live);
+      bt.foes.forEach(function (f) { f.hp = f.maxhp = 200; }); // (no round can drop both before his turn, so the fight is never over before he casts)
       au.prepared = (au.prepared || []).concat(['sleep']).filter(function (id, i, a) { return a.indexOf(id) === i; });
       au.maxhp = Math.max(au.maxhp, 400); au.hp = au.maxhp; au.ko = false; // (the ogres going first must not drop him before his turn: the check was dice, 09-30)
       drive({ aurdin: ['MAGIC', 'Burning'] }, 2500);
       var said = (T.blog || []).concat(out.log).join(' | ');
+      check('Aurdin cast Burning Hands and stood: cast ' + /Aurdin casts Burning Hands!/.test(said) + ', ' + (/Aurdin falls!/.test(said) ? 'he fell' : 'never fell'), /Aurdin casts Burning Hands!/.test(said) && !/Aurdin falls!/.test(said)); // (when this goes RED, the dart below is not the owl's fault)
       check('the owl darted out after his turn (the log says so): ' + /darts out/.test(said), /darts out/.test(said));
     } else if (test === 'perks') {
       // The familiar's look and perks in the 8-bit (RULED 09-30, Griz): the help flight, the bat about his head, and the caster's
