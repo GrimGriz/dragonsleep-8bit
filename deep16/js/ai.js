@@ -727,9 +727,19 @@
     // Reel (the roper: SRD 5.1, "makes four attacks with its tendrils, uses Reel, and makes one attack with its bite"): after its
     // grappling attacks and before the first that is not one, everyone it holds comes in (reel, below); data/foes.js `reel` in feet
     var reelFt = u.kind && D.FOES[u.kind] && D.FOES[u.kind].reel, reeled = !reelFt;
+    // a blow that only follows another's hit (the grick, SRD 5.1: "makes one attack with its tentacles. If that attack hits, the grick
+    // can make one beak attack against the same target" -- data/foes.js `afterHit`, 10-02): who each of its blows landed on this turn
+    var landed = {};
     for (var k = 0; k < routine.length; k++) {
       var atk = u.attacks[routine[k]];
       if (!atk) break;
+      if (atk.afterHit) {
+        var on = landed[atk.afterHit];
+        if (!on || !G.standing(on) || G.dist(u, on) > G.reachOf(u, atk.reach)) continue;
+        yield* B.attack(u, on, atk);
+        if (u.dead || u.hp <= 0) return;
+        continue;
+      }
       if (!reeled && !atk.grapple) { reeled = true; yield* reel(B, u, reelFt); if (u.dead || u.hp <= 0) return; }
       // the weakest in this attack's reach; a grappling attack reaches first for someone it does not already hold; an
       // attack only for the held (the Keeper's Drag Under, the chuul's tentacles) goes at one it holds, or not at all
@@ -744,7 +754,7 @@
       // a hit that only seizes (the roper's tendril, which does no harm) is not thrown at one it holds already, nor with every
       // tendril taken (SRD 5.1: "the roper can't use the same tendril on another target"; grapple.max, its six)
       if (atk.holdOnly && ((u.holding || []).indexOf(t) >= 0 || (u.holding || []).length >= (atk.grapple.max || 1))) continue;
-      yield* B.attack(u, t, atk);
+      yield* B.attack(u, t, atk, { onHit: (function (key) { return function (w) { landed[key] = w; }; })(routine[k]) });
       if (u.dead || u.hp <= 0) return;
     }
     if (!reeled) yield* reel(B, u, reelFt);

@@ -358,9 +358,9 @@
     name: 'Grick', type: 'monstrosity', sheet: 'grick_p1', cr: '2', ac: 14, hp: 27, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 14, dex: 14, con: 11, int: 3, wis: 14, cha: 5 }, init: 2, perception: 12,
     saves: { str: 2, dex: 2, con: 0, int: -4, wis: 2, cha: -3 },
-    attacks: { tentacles: { name: 'Tentacles', atk: 4, dice: '2d6', mod: 2, type: 'slashing', reach: 5 }, beak: { name: 'Beak', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
+    attacks: { tentacles: { name: 'Tentacles', atk: 4, dice: '2d6', mod: 2, type: 'slashing', reach: 5 }, beak: { name: 'Beak', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5, afterHit: 'tentacles' } },
     multi: ['tentacles', 'beak'], resist: ['mundane'],
-    src: 'SRD 5.1 Grick (CR 2): tentacles then beak; resists bludgeoning, piercing and slashing from non-magical weapons (read: battle.js); Stone Camouflage as starting hidden (the fight\'s foe: hidden)'
+    src: 'SRD 5.1 Grick (CR 2): its tentacles, then its beak only if they hit and at the one they hit (ai.js afterHit, 10-02; before, the beak went at anyone, hit or miss); resists bludgeoning, piercing and slashing from non-magical weapons (read: battle.js); Stone Camouflage as starting hidden (the fight\'s foe: hidden)'
   },
   bulette: {
     name: 'Bulette', type: 'monstrosity', sheet: 'bulette_p2', cr: '5', ac: 17, hp: 94, speed: 40, size: 2, reach: 5, darkvision: 60, blindsight: 60,

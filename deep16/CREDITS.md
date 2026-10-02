@@ -24,7 +24,7 @@ stalagmites, cocoons and rubble are drawn in code (`deep16/js/iso.js`, `deep16/j
   Alien (`ettercap_p1`), BlueDemon (`stonegiant_p1`, `earthelemental_p1`), Cactoro (`roper_p1` till 10-01e), Dino (`bulette_p1`),
   Frog (`chuul_p1`), Monkroose (`bugbearchief_p1`), Orc (`hobgoblin_p1`), Orc_Skull (`hobsergeant_p1`), Tribal
   (`gnoll_p1`, `gloryseeker_p1`); Blob GreenSpikyBlob (`otyugh_p1`; `xorn_p1` till 10-01d); Flying Ghost (`cloaker_p1`), Glub
-  (`darkmantle_p1`), Squidle (`grick_p1`). KayKit Adventurers again for the people: Knight (`guard_p1`, `veteran_p1`),
+  (`darkmantle_p1`), Squidle (`grick_p1` till 10-02). KayKit Adventurers again for the people: Knight (`guard_p1`, `veteran_p1`),
   Barbarian (`hask_p1`, `crewman_p1`, `brawler_p1`, `duergar_p1`), Rogue (`wheelwright_p1`), Rogue_Hooded (`assassin_p1`,
   `amara_p1`), Mage (`spellweaver_p1`, `willem_p1`); the OpenGameArt spider at three squares (`broodmother_p1`).
 
@@ -45,6 +45,12 @@ The recipe: `deep16/blender-monsters.md`. Each model's files live in `deep16/_sr
   times). **Changed** by `tools/roper-blend.py` (10-01e): decimated, the tendril shortened along its length, coloured (the stone, the eye,
   the teeth, the throat), the tendrils set in the body's six sockets, rigged (a chain of ten bones down each), posed into rows in code,
   rendered in the toon look and snapped to the DEEP16 palette (`roper_p1`). His Patreon: https://mz4250.com/.
+- **Grick** — **mz4250**, "Grick Updated", Thingiverse thing:4738607, https://www.thingiverse.com/thing:4738607 — licensed under
+  **Creative Commons Attribution** (the listing's "Creative Commons - Attribution"; the zip's LICENSE.txt names no version). Used:
+  `Grick_Updated_posed.blend` (the sculpt on his own rig, 92 bones and their weights, in the miniature's pose). **Changed** by
+  `tools/grick-blend.py` (10-02): the print base dropped, the rig re-origined on its foot, the sculpt decimated to 224k triangles,
+  coloured (the hide and its belly, the beak, the mouth, the tentacles' hooks), posed into rows in code as bends on his own pose,
+  rendered in the toon look and snapped to the DEEP16 palette (`grick_p1`). His Patreon: https://www.patreon.com/mz4250.
 
 ## Pipeline 2 — generated (`denny_p2`, `chuul_p2`, `crawler_p2`, `gnoll_p2`, `gloryseeker_p2`, `cloaker_p2`, `ettercap_p2`, `otyugh_p2`, `hyena_p2`, `bulette_p2`, `owl_p2`, `snowyowl_p2`)
 

@@ -469,13 +469,18 @@
       "anims": { "idle": "Spider_Idle", "attack": "Spider_Attack", "walk": "Spider_Walk" }
     },
     "grick": {
-      "_note": "the grick (SRD 5.1): Quaternius Flying/Squidle, its tentacles forward, turned to a grey-green; it hovers a little (a loose fit).",
-      "file": "quaternius/ultimate-monsters/Flying/Blends/Squidle.blend",
-      "show": ["Squidle.002"],
-      "grade": { "hue": 170, "sat": 0.45, "val": 0.7 },
-      "size_squares": 1.3,
+      "_note": "the grick (SRD 5.1, Medium): MZ4250's printable Grick Updated (Thingiverse 4738607, CC BY: deep16/CREDITS.md), on his own rig, posed by tools/grick-blend.py as bends on his own pose -- pipeline 1b's third, deep16/blender-monsters.md (10-02). The toon look, light 13, the lift off ('i like green no-lift'); the hide the den's own stone, brown (DEEP16's stone ramp: 'The SRD says stone camoflague, which means we probably go with brown given the existing maps' -- and so, as the roper, js/sprites.js S.STONE: on a map that names its stone it is drawn in that); the beak pale. size_by: the print base's disc, one square (the head and the tentacles reach out over it, as the miniature's do); fit: each row its own frame. STILL is its Stone Camouflage, coiled low (the grid shows it till its first turn or a wound), REVEAL rising out of it. (Till then the Quaternius Squidle stood in: 'it hovers a little (a loose fit)'.)",
+      "file": "grick/grick.blend",
+      "show": ["Grick_Body"],
+      "look": "toon:13",
+      "lift": false,
+      "fit": true,
+      "size_squares": 1,
+      "size_by": ["Grick_Foot"],
       "yaw": 0,
-      "anims": { "idle": "Flying_Idle", "attack": "Headbutt", "walk": "Fast_Flying" }
+      "anims": { "idle": "IDLE", "walk": "WALK", "tentacles": "TENTACLES", "beak": "BEAK", "flinch": "FLINCH", "hurt": "DEATH", "still": "STILL", "reveal": "REVEAL" },
+      "frames": { "idle": 8, "walk": 8, "tentacles": 6, "beak": 6, "flinch": 5, "hurt": 8, "still": 1, "reveal": 8 },
+      "once": ["tentacles", "beak", "flinch", "hurt", "reveal"]
     },
     "bulette": {
       "_note": "the bulette (SRD 5.1, Large): Quaternius Big/Dino, turned to armoured blue-grey.",

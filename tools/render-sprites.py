@@ -180,8 +180,8 @@ bpy.context.view_layer.update()
 def world_bbox(names=None):
     pts = []
     dg = bpy.context.evaluated_depsgraph_get()
-    for o in bpy.data.objects:
-        if o.type == 'MESH' and not o.hide_render and (not names or o.name in names):
+    for o in bpy.data.objects:     # (a mesh named in size_by counts though it is not drawn: the grick's footprint, the print base's disc -- 10-02)
+        if o.type == 'MESH' and ((o.name in names) if names else not o.hide_render):
             oe = o.evaluated_get(dg)
             me = oe.to_mesh()
             pts += [oe.matrix_world @ v.co for v in me.vertices]

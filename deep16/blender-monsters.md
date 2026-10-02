@@ -44,7 +44,7 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
    - **A zip may have no base mesh** (the roper's: four STLs, and a `.blend` holding one sculpt and nothing else). Render quick matcap views of each file from five sides before planning (the roper's showed which part was which and where the face was).
 
 5. **Write the creature's script.**
-   - Two templates now: `tools/xorn-blend.py` (a base mesh and its sculpt, a found skeleton) and `tools/roper-blend.py` (no base mesh: a kit of printed parts, tendrils on bone chains, a second pose as a state).
+   - Three templates now: `tools/xorn-blend.py` (a base mesh and its sculpt, a found skeleton), `tools/roper-blend.py` (no base mesh: a kit of printed parts, tendrils on bone chains, a second pose as a state) and `tools/grick-blend.py` (the artist's own rig and pose: the rows as bends on it).
    - Copy the nearer one to `tools/<creature>-blend.py`. The xorn's parts, top to bottom:
      - load both meshes;
      - decimate the sculpt to 300k triangles;
@@ -117,7 +117,24 @@ The second monster, and the first fresh window to follow this recipe (Griz: *"I'
 - **A second pose as a state.** `shut` holds the stalagmite and `wake` the living roper. Whichever isn't showing is a bone scaled to a point inside the other. That needs no object keys, so render-sprites' one action per row carries it. The rows are STILL (the stalagmite) and REVEAL (it opens its eye and the tendrils push out of their sockets). The grid shows STILL until the roper's first turn or a wound (`js/ui.js`, as the ettercap's braid), and `js/ai.js` plays REVEAL before it first acts.
 - **Frames in the sheet's budget.** Toppled flat, the cone would lie three squares long and every frame would have to hold it, so the death sinks it a third into the holdout floor, leaning. The lash reaches two squares, and `fit` gives that row alone a frame that size.
 
+## With the artist's own rig (the grick, 10-02)
+
+The third monster. MZ4250's "Grick Updated" (Thingiverse 4738607, CC BY) ships three `.blend`s: the base mesh; `_rigged` (the sculpt on a 107-bone rig, lying straight); and `_posed` (the same sculpt on a re-made rig of 92 bones with its weights, bent into the miniature's pose). Griz filed it in `dev/visions/` this time; the seat copies the zip to `deep16/_src/<creature>/mz4250/`. `tools/grick-blend.py` is the third template. What it does that the others didn't:
+
+- **No skeleton to find.** It loads `_posed`: the armature, the sculpt under it, and the print base. Read the rig first with a probe that prints each bone's rest and posed head (the scratch probes are in the 10-02 daily). Two files' rigs can differ: here the posed rig had other names and a shorter neck.
+- **The rows are bends on the artist's pose.** `bends(P, t)` turns a few parameters into a turn per bone: pitch over the neck, tentacles closing or splaying, the gape, a wave along the coil. Each turn is in the pose's frame. `solve` composes them down the tree, `G(b) = G(parent) @ d(b)`, and gives each bone the basis `C^-1 @ M`. The miniature's pose is frame zero of everything.
+- **Colour by the rig's own groups.** The base mesh hugs this sculpt within ±0.4, so "what stands proud" finds nothing. The beak is the jaw bones' groups, a hook is a tentacle's last bone, and the belly is what faced down from the worm's axis at rest. A diagnostic render coloured by dominant bone family showed which group was which in one pass.
+- **Re-origin the rig on its foot.** `render-sprites.py` turns each facing about the armature object's origin. The artist's sat 14 units off the print base's middle, so the grick would have wandered round its square. The build moves the origin to the base's centre without moving a thing in the world (each edit bone's matrix, then the mesh's parent inverse).
+- **The print base is the footprint.** The head and tentacles reach out over the base, as a miniature's do. So `size_by` names `Grick_Foot`, a hidden disc the size of the base at the creature's lowest point. `render-sprites.py`'s `world_bbox` counts a mesh named in `size_by` even when it isn't drawn.
+- **Stone Camouflage is the roper's machinery.** A `still` row (coiled low, head down) and a `reveal` (rising out of it) are generic in `ui.js` and `ai.js`. A brown hide in DEEP16's stone ramp joins `S.STONE`, so a map that names its stone recolours it (Griz: *"not worth getting fancy and having a green one turn brown when it goes stealth"*).
+- **A new attack row** needs its name in `ui.js`'s play-once rule (`/^(claw|bite|tendril|tentacles|beak)\d?$/`) as well as in `pixelate.py`'s `ANIM_ORDER` and `FPS`. Without the first, it loops.
+
 ## What cost us a step (so it doesn't again)
+
+- **`EditBone.transform` re-rolls.** Turning the bones with it re-rolled them, and the artist's pose came out wild (the worm 4.7 squares tall). Set `eb.matrix = X @ eb.matrix` instead; it keeps head, direction and roll together.
+- **The bob seats the figure.** `render-sprites.py` puts the idle's first frame on the ground. An idle bob that dips below that frame sinks into the floor, so start it at its lowest.
+- **A camera aimed before the turn.** Aim the close-up camera after the figure is turned to its facing, or it frames empty air.
+
 
 - **`fit` measured the holdout floor** (200 units across) and asked for an 8010 px frame; Blender died rendering it at 4x without a word (exit 9). It measures only the meshes in `show` now.
 - **A tendril drooping from its first bone** came out through the wall of its tube; the first bone stays straight.
