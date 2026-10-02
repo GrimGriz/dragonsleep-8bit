@@ -177,11 +177,11 @@ scene.frame_set(int(bpy.data.actions[F['anims']['idle']].frame_range[0]))
 bpy.context.view_layer.update()
 
 
-def world_bbox():
+def world_bbox(names=None):
     pts = []
     dg = bpy.context.evaluated_depsgraph_get()
     for o in bpy.data.objects:
-        if o.type == 'MESH' and not o.hide_render:
+        if o.type == 'MESH' and not o.hide_render and (not names or o.name in names):
             oe = o.evaluated_get(dg)
             me = oe.to_mesh()
             pts += [oe.matrix_world @ v.co for v in me.vertices]
@@ -191,12 +191,14 @@ def world_bbox():
     return lo, hi
 
 
+# `size_by`: the meshes whose span is the creature's size and whose middle is its foot (the roper's cone, 10-01e: not the tendrils
+# coiled about it, which would shrink it to fit them and set it off its square)
 if F.get('size_squares'):
-    lo, hi = world_bbox()
+    lo, hi = world_bbox(F.get('size_by'))
     s = F['size_squares'] * UNITS_PER_SQUARE / max(hi.x - lo.x, hi.y - lo.y)
     arm.scale = arm.scale * s
     bpy.context.view_layer.update()
-lo, hi = world_bbox()
+lo, hi = world_bbox(F.get('size_by'))
 cx, cy = (lo.x + hi.x) / 2, (lo.y + hi.y) / 2
 if F.get('size_squares'):   # centre a big creature on its footprint; a humanoid keeps its own origin at its feet
     arm.location.x -= cx; arm.location.y -= cy
@@ -313,23 +315,76 @@ meta = {'figure': FIG, 'ss': SS, 'fw': FW, 'fh': FH, 'ax': AX, 'ay': AY, 'height
 base_yaw = math.radians(F.get('yaw', 0))
 rot0 = arm.rotation_euler.copy() if arm.rotation_mode != 'QUATERNION' else None
 arm.rotation_mode = 'XYZ'
+
+
+def sample_t(f0, f1, n, once, i):
+    return f0 + (f1 - f0) * i / ((n - 1) if once and n > 1 else n)
+
+
+# `fit` (10-01e, the roper): each row gets its own frame, as tight as what it does over its frames and its eight facings, the foot kept in
+# the middle across -- a lash that reaches two squares does not make the idle's frame (and the sheet's every row) that wide.
+# tools/pixelate.py p1 carries the sizes into the sheet, and deep16/js/sprites.js reads a row's own fw/fh/ax/ay.
+FIT, PAD = bool(F.get('fit')), 5
+
+
+def fit_box(action, n, once):
+    import numpy as np
+    act = use_action(action); f0, f1 = act.frame_range
+    R3 = cam.matrix_world.to_3x3()
+    rv, uv = np.array((R3 @ Vector((1, 0, 0)))[:]), np.array((R3 @ Vector((0, 1, 0)))[:])
+    x0 = y0 = 1e9; x1 = y1 = -1e9
+    for facing in range(8):
+        arm.rotation_euler.z = base_yaw + math.radians(45 - 45 * facing)
+        for i in range(n):
+            t = sample_t(f0, f1, n, once, i); scene.frame_set(int(t), subframe=t - int(t))
+            dg = bpy.context.evaluated_depsgraph_get()
+            for o in bpy.data.objects:
+                if o.type != 'MESH' or o.hide_render or o.name not in F['show']:     # (not the holdout floor: it is 200 units across)
+                    continue
+                oe = o.evaluated_get(dg); me = oe.to_mesh()
+                a = np.zeros(len(me.vertices) * 3); me.vertices.foreach_get('co', a); oe.to_mesh_clear()
+                M = np.array(oe.matrix_world); w = a.reshape(-1, 3)[::3] @ M[:3, :3].T + M[:3, 3]
+                w = w[w[:, 2] > -0.02] if F.get('floor') else w          # (what is under a holdout floor is not drawn)
+                if not len(w):
+                    continue
+                sx, sy = w @ rv * K, w @ uv * K
+                x0, x1, y0, y1 = min(x0, sx.min()), max(x1, sx.max()), min(y0, sy.min()), max(y1, sy.max())
+    half = math.ceil(max(-x0, x1) + PAD)
+    fw, fh = 2 * half, int(math.ceil(y1 - y0 + 2 * PAD)) // 2 * 2 + 2
+    return fw, fh, half, int(math.ceil(y1 + PAD))
+
+
+def frame_for(fw, fh, ax, ay):
+    cam_d.ortho_scale = max(fw, fh) / K
+    cam.location = back * 40 + up * ((ay - fh / 2) / K)
+    r.resolution_x, r.resolution_y = fw * SS, fh * SS
+    bpy.context.view_layer.update()
+
+
+if FIT:
+    idle_n = (F.get('frames') or {}).get('idle', NFRAMES)
+    meta['fw'], meta['fh'], meta['ax'], meta['ay'] = fit_box(F['anims']['idle'], idle_n, False)
 for anim, action in F['anims'].items():
     if ONLY and anim != ONLY.split(':')[0]:
         continue
+    n = (F.get('frames') or {}).get(anim, NFRAMES)    # (a row's own count, and a row played once is sampled to its last frame: 10-01d)
+    once = anim in (F.get('once') or [])
+    meta['anims'][anim] = {'action': action, 'frames': n}
+    if FIT:
+        box = fit_box(action, n, once); frame_for(*box)
+        meta['anims'][anim].update(dict(zip(('fw', 'fh', 'ax', 'ay'), box)))
+        print('[render] %s %s: its frame %dx%d, foot %d,%d' % ((FIG, anim) + box))
     act = use_action(action)
     if R:
         rider_action(anim)
     f0, f1 = act.frame_range
-    n = (F.get('frames') or {}).get(anim, NFRAMES)    # (a row's own count, and a row played once is sampled to its last frame: 10-01d)
-    once = anim in (F.get('once') or [])
-    meta['anims'][anim] = {'action': action, 'frames': n}
     os.makedirs(os.path.join(out, anim), exist_ok=True)
     for facing in range(8):
         if ONLY and str(facing) not in ONLY.split(':')[1].split(','):
             continue
         arm.rotation_euler.z = base_yaw + math.radians(45 - 45 * facing)
         for i in range(n):
-            t = f0 + (f1 - f0) * i / ((n - 1) if once and n > 1 else n)
+            t = sample_t(f0, f1, n, once, i)
             scene.frame_set(int(t), subframe=t - int(t))
             r.filepath = os.path.join(out, anim, 'f%d_%02d.png' % (facing, i))
             bpy.ops.render.render(write_still=True)
@@ -342,4 +397,4 @@ if ONLY and os.path.exists(mp):
     if (old.get('fw'), old.get('fh')) == (meta['fw'], meta['fh']):
         old['anims'].update(meta['anims']); meta['anims'] = old['anims']
 json.dump(meta, open(mp, 'w'), indent=1)
-print('[render] %s ok %dx%d anchor %d,%d' % (FIG, FW, FH, AX, AY))
+print('[render] %s ok %dx%d anchor %d,%d' % (FIG, meta['fw'], meta['fh'], meta['ax'], meta['ay']))

@@ -26,8 +26,9 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
 
 2. **Find a model.**
    - Search `<creature> STL` across Thingiverse, Printables, MyMiniFactory, Cults3D and Sketchfab.
-   - **Licence:** CC0 or CC BY. NC is tolerable while the game is free. SA would make the sheets SA too, as the LPC ones already are.
+   - **Licence:** CC0 or CC BY. NC is tolerable while the game is free. SA would make the sheets SA too, as the LPC ones already are. Read each listing's own: MZ4250's older bestiary is CC BY, his "Roper 2025" is CC BY-SA.
    - **Best:** a listing that ships the artist's own `.blend`. MZ4250's free D&D bestiary on Thingiverse (CC BY) ships a base mesh and a sculpt for each model, so try it first.
+   - **Also good:** a kit cut up for a home printer (the roper's: a body with sockets, one loose straight tendril, and the creature in a second pose). Separate parts rig more easily than parts sculpted together, and a second pose can be a state (see *Without a base mesh* below).
    - Skip anything ripped from an official miniature.
 
 3. **Griz fetches it.**
@@ -40,9 +41,11 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
 4. **Look inside.**
    - Run `& $bl -b --disable-autoexec <file.blend> --python tools/blender-inspect.py`. For an STL or OBJ: `& $bl -b --python tools/blender-inspect.py -- <file>`.
    - MZ4250's pair: the base mesh, `Sphere`, has ~3k faces plus a subdivision. The sculpt has the same object name, place and scale, about a million triangles, and a 25 mm print base (`Medium Creature`) to drop.
+   - **A zip may have no base mesh** (the roper's: four STLs, and a `.blend` holding one sculpt and nothing else). Render quick matcap views of each file from five sides before planning (the roper's showed which part was which and where the face was).
 
 5. **Write the creature's script.**
-   - Copy `tools/xorn-blend.py` to `tools/<creature>-blend.py`. Its parts, top to bottom:
+   - Two templates now: `tools/xorn-blend.py` (a base mesh and its sculpt, a found skeleton) and `tools/roper-blend.py` (no base mesh: a kit of printed parts, tendrils on bone chains, a second pose as a state).
+   - Copy the nearer one to `tools/<creature>-blend.py`. The xorn's parts, top to bottom:
      - load both meshes;
      - decimate the sculpt to 300k triangles;
      - the colour rules (in the base mesh's frame);
@@ -54,7 +57,8 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
 6. **The look comes first.** His gate is *"gotta prove we can get the image coloring/lighting right first"*.
    - Run `& $bl -b --disable-autoexec --python tools/<creature>-blend.py -- look <tag> [preset=13] [teeth=white] [eyes=1]`. It renders the model unrigged, facings S and E.
    - Add `-- close <tag>` for an 800 px look at the mouth.
-   - Then `python tools/look-sheet.py <creature> <tag> <tag>:nolift ref=clacker,bulette` writes `dev/visions/<creature>-looks.png` beside sprites already in the game.
+   - Then `python tools/look-sheet.py <creature> <tag> <tag>:nolift ref=clacker,bulette` writes `dev/visions/<creature>-looks.png` beside sprites already in the game. For a Large creature add `cw=150 ch=150` (the default cell is the xorn's size and crops a bigger one). If the look also writes `still_f0.png`, its disguise gets a third row.
+   - A small feature at sprite size: the roper's eye is ~10 px across, and a slit pupil cut it into two gold dots that read as two eyes. A 2 px round pupil reads as one eye.
    - **The house look is his xorn pick, "17":**
      - light preset `13` (a warm key high on the upper left, a dim cool fill, a cool rim);
      - four cel bands;
@@ -82,10 +86,12 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
    - Then build: `& $bl -b --disable-autoexec --python tools/<creature>-blend.py -- build` writes `deep16/_src/<creature>/<creature>.blend`.
 
 9. **Register it** in `tools/deep16-figures.json`. The xorn's entry is the model: `file`, `show`, `"look": "toon:13"`, `"lift"`, `"floor"`, `size_squares`, `yaw`, `anims` (engine row → action), `frames` (per row), `once` (rows sampled to their last frame).
+   - Two options from the roper (10-01e): `size_by` (the meshes whose span is its size and whose middle is its foot, so loose tendrils don't shrink it or move it off its square) and `"fit": true` (each row gets its own frame, as tight as that row reaches over its frames and eight facings; without it a two-square lash would make every row's frame that wide).
+   - **A new row name goes in `ANIM_ORDER` in `tools/pixelate.py`** (and an fps in `FPS`). The sheet keeps only rows named there, and drops any other row without a word.
 
 10. **Render.**
     - Smoke-test first: set `$env:D16_OUT = "render-test"; $env:D16_ONLY = "idle:0,6"`, run `& $bl -b --disable-autoexec --python tools/render-sprites.py -- <creature> 8`, then set both back to `$null`.
-    - Then run all of it without the env vars: about 570 frames and 15–20 minutes for the xorn's 11 rows. Run it in the background.
+    - Then run all of it without the env vars: about 570 frames and 15–20 minutes for the xorn's 11 rows. Run it in the background. Blender holds back its prints when its output goes to a file, so count the frames in the render folder to see how far it has got.
     - Then `python tools/pixelate.py p1 <creature>`, `python tools/deep16-build.py`, and `git checkout -- deep16/js/palette.js`.
 
 11. **Wire it.**
@@ -99,7 +105,22 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
     - Run `python dev/check.py` and get GREEN before you push.
     - **Griz's eyes in the room decide; only then does it come off the wanted list.**
 
+## Without a base mesh (the roper, 10-01e)
+
+The second monster, and the first fresh window to follow this recipe (Griz: *"I've pulled the zip for the next window to test how they'll do following your pipeline"*). His first zip (CriticalPrints' roper, CC BY-NC) was one fused STL. He then fetched MZ4250's "Roper 2025" (*"grabbed a different one that has a .blend - roper 2025 if that's more convenient"*). Its `.blend` held the hiding sculpt alone, but the zip was a printer's kit, and that made it the better model. What `tools/roper-blend.py` does that the xorn's didn't:
+
+- **Colour onto the points.** `blender_look.paint_points` and `write_points` colour the sculpt's own points: two stones blotched, and a darker one drawn down in vertical streaks, like flowstone. There is nothing to carry from.
+- **What stands proud, measured another way.** The eye isn't proud of the shut sculpt (its lid bulges in the same place), so it's found as a sphere: every normal on a ball runs through its centre. The teeth are what stands proud of a 3,000-face decimated copy of the open body, inside the maw. The throat is what lies inside the shut cone's surface in the face.
+- **Sockets.** The open body's six tendril holes are what lies 1.4 or more inside the shut cone, off the face, gathered into clusters. Each socket's axis runs from the hole to the middle of its tube's walls, so a tendril comes out of the tube's mouth and not through its side.
+- **One loose tendril, six times.** Its axis comes from a PCA, its root at the peg's shoulder (the thick end). It's shortened along its length only (`tlen`: the printed one is longer than the body is tall). Ten bones run down each copy, with weights blended along the length.
+- **A rope that never goes through the floor.** Each tendril's ten directions are walked from its socket like a turtle: it bends down, then curls round the foot toward the back, and lies flat when it reaches the floor. Bone `j` is turned onto direction `d_j` by `q_j = n.rotation_difference(Q_{j-1}^-1 d_j)`, since a chain's turns compose.
+- **A second pose as a state.** `shut` holds the stalagmite and `wake` the living roper. Whichever isn't showing is a bone scaled to a point inside the other. That needs no object keys, so render-sprites' one action per row carries it. The rows are STILL (the stalagmite) and REVEAL (it opens its eye and the tendrils push out of their sockets). The grid shows STILL until the roper's first turn or a wound (`js/ui.js`, as the ettercap's braid), and `js/ai.js` plays REVEAL before it first acts.
+- **Frames in the sheet's budget.** Toppled flat, the cone would lie three squares long and every frame would have to hold it, so the death sinks it a third into the holdout floor, leaning. The lash reaches two squares, and `fit` gives that row alone a frame that size.
+
 ## What cost us a step (so it doesn't again)
+
+- **`fit` measured the holdout floor** (200 units across) and asked for an 8010 px frame; Blender died rendering it at 4x without a word (exit 9). It measures only the meshes in `show` now.
+- **A tendril drooping from its first bone** came out through the wall of its tube; the first bone stays straight.
 
 - **The suns' aim.** The suns are aimed in the camera's frame, and a new camera's matrix is stale till the scene updates. Unaimed, the key light lands behind the figure and the stone renders near black. `blender_look.light` updates the scene first.
 - **Stale frames.** A render folder keeps old frames from an earlier render of the same figure (the xorn's blob). That's harmless, because `meta.json` says how many frames each row has.

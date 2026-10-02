@@ -51,7 +51,7 @@ The order is the story fights first, worst stand-in first: a creature drawn toda
 
 ### 1. The roper (the Fork, two fights)
 
-Stands in as a cactus today.
+Stands in as a cactus today. **10-01e: built in Blender, waiting on his eyes in the test room.** One generated sheet (`dev/visions/roper.jpg`) was off-model: its Creep row is a crawling crab. Pipeline 1b took MZ4250's "Roper 2025" (Thingiverse 7410664, CC BY-SA), which Griz fetched: *"grabbed a different one that has a .blend - roper 2025 if that's more convenient"*. It's a printer's kit: the body with six sockets, one loose tendril, and the roper hiding as a plain stalagmite. `tools/roper-blend.py` builds `roper_p1` from it: idle (the tendrils coiled about its foot), creep, a lash from each of two tendrils, reel, bite (the bend through the maw brings the upper jaw down), flinch, death (slack, sinking; prone at frame 3), **still** (the stalagmite: the grid shows it till its first turn or a wound) and **reveal** (the eye opens, the tendrils come out; `js/ai.js` plays it before its first act). The look: `dev/visions/roper-looks.png` (the stone "fork", as the Fork's own stalagmites are drawn). The test room: `deep16/?npc=roper&lvl=6&map=roperfork&watch`.
 
 HEAD: ROPER (the stalagmite that eats) -- the Fork. A tall stalagmite of grey stone that is alive: one great yellow eye near the top, a jagged maw near the base, six grey rope-like tendrils coiled against its sides. It creeps on a mass of tiny feet under its base. The first frame of the Idle row looks exactly like a plain stalagmite (the eye shut, the tendrils hidden). Rows: Idle (the eye opening, 8), Creep (8), Lash (tendrils reaching far to the right, 8), Reel In (6), Bite (6), Hurt (6), Death (8).
 

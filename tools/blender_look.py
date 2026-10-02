@@ -196,6 +196,49 @@ def write_corner(me, col, flat):
     return ca
 
 
+def paint_points(P, C):
+    """colour a fine mesh's points directly, for a printable model that ships no base mesh (the roper, 10-01e). P: the points (numpy, n x 3).
+    C: base, base2 (blotched in; split = how crisp), streak (a darker stone drawn down in streaks; streak_scale = the noise's (x, y, z)
+    scale -- small z makes them run vertically, flowstone -- and streak_amt), fine, blotch, blotch_scale, seed.
+    Returns (colours n x 3 linear, unshaded n bools) for the creature's own marks before write_points."""
+    import numpy as np
+    rnd = np.random.default_rng(C.get('seed', 7)); noise.seed_set(C.get('seed', 7))
+    n = len(P); bs = C.get('blotch_scale', 0.12)
+    base = np.array(srgb2lin(C['base'])); b2 = np.array(srgb2lin(C['base2'])) if C.get('base2') else None
+    st = np.array(srgb2lin(C['streak'])) if C.get('streak') else None
+    sx, sy, sz = C.get('streak_scale', (0.3, 0.3, 0.04))
+    k = np.empty(n); t = np.zeros(n); s = np.zeros(n)
+    for i in range(n):
+        x, y, z = P[i]
+        k[i] = noise.noise(Vector((x * bs + 11.0, y * bs + 3.0, z * bs + 7.0)))
+        if b2 is not None:
+            t[i] = noise.noise(Vector((x * bs * 1.7 - 5.0, y * bs * 1.7 + 9.0, z * bs * 1.7 + 2.0)))
+        if st is not None:
+            s[i] = noise.noise(Vector((x * sx + 31.0, y * sy - 17.0, z * sz + 5.0)))
+    k = 1 + C.get('blotch', 0.16) * k + C.get('fine', 0.10) * (rnd.random(n) * 2 - 1)
+    col = np.repeat(base[None, :], n, axis=0)
+    if b2 is not None:
+        tt = np.clip(0.5 + C.get('split', 1.1) * t, 0, 1)[:, None]
+        col = col * (1 - tt) + b2[None, :] * tt
+    if st is not None:
+        ss = np.clip((s - 0.1) / 0.45, 0, 1); ss = (ss * ss * (3 - 2 * ss) * C.get('streak_amt', 0.5))[:, None]
+        col = col * (1 - ss) + st[None, :] * ss
+    return np.maximum(0.0, col * k[:, None]), np.zeros(n, dtype=bool)
+
+
+def write_points(ob, col, unshaded):
+    """paint_points' colours into the mesh's POINT `speckle` attribute (alpha 0 = unshaded, as toon_material reads it)."""
+    import numpy as np
+    me = ob.data
+    for a in [a for a in me.color_attributes if a.name == 'speckle']:
+        me.color_attributes.remove(a)
+    att = me.color_attributes.new('speckle', 'FLOAT_COLOR', 'POINT')
+    out = np.concatenate([col, np.where(unshaded, 0.0, 1.0)[:, None]], axis=1).astype(np.float32)
+    att.data.foreach_set('color', out.ravel())
+    me.color_attributes.active_color = att
+    return att
+
+
 def carry(sc, base_me, col, flat):
     """the colours of a coarse mesh's faces onto every vertex of the fine one (the sculpt) that lies on it: nearest face (a BVH).
     Both meshes in the same local frame (MZ4250 ships his base mesh and the sculpt at the same place and scale)."""

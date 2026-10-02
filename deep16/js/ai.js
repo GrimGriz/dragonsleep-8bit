@@ -42,6 +42,7 @@
   }
 
   AI.turn = function* (B, u) {
+    var wasStill = !u.acted && !u.woken; // (the roper's False Appearance: a stalagmite till its first turn or a wound -- js/ui.js)
     RU.startTurn(u);
     if (u.dead) return;
     if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(B, u))) delete u.conds.surprised; // (Feral Instinct, js/features.js: he rages, and acts)
@@ -54,6 +55,11 @@
     // data/foes.js clacker): the row plays once (js/ui.js), a clack on each strike, then the turn
     if (u.kind && D.FOES[u.kind] && D.FOES[u.kind].clacks && !u.conds.banished) {
       u.anim = 'clack'; u.animT = B.t; yield 12; D.sfx('clack'); yield 12; D.sfx('clack'); yield 12; u.anim = 'idle';
+    }
+    // the roper stood as a stalagmite (its Still row) till now: its Reveal plays first -- the eye opens, the tendrils come out of it --
+    // then it acts (10-01e, the Blender roper; SRD 5.1 False Appearance: indistinguishable from a cave formation while motionless)
+    if (wasStill && D.spr.anim(u.sheet, 'still') && D.spr.anim(u.sheet, 'reveal') && !u.conds.banished) {
+      u.anim = 'reveal'; u.animT = B.t; yield D.spr.duration(u.sheet, 'reveal') + 4; u.anim = 'idle';
     }
     // banished, or sealed in a sphere (js/grimoire.js): no turn here
     if (u.conds.banished) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is not here.{/}'], 160); yield 16; D.magic.endTurn(B, u); u.anim = 'idle'; return; }

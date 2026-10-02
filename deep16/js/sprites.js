@@ -68,7 +68,7 @@
   // back) has him crumpled forward on hands and knees at its frame before last; getting up is the row played back from there. The other
   // sheets' death rows end dead (and the owl's in feathers): none yet, -1 (deep16-art-wanted.md, PRONE someday). S.PRONE: a sheet's own
   // frame, picked by eye off its row, where one reads
-  S.PRONE = { xorn_p1: 3 }; // (the xorn, pipeline 1b: its death row settles it half into the floor, arms drooping; a third of the way in at frame 3 -- tools/xorn-blend.py, 10-01d)
+  S.PRONE = { xorn_p1: 3, roper_p1: 3 }; // (the xorn, pipeline 1b: its death row settles it half into the floor, arms drooping; a third of the way in at frame 3 -- tools/xorn-blend.py, 10-01d. The roper: its tendrils slack on the floor, barely sunk -- tools/roper-blend.py, 10-01e)
   S.proneFrame = function (name) { if (S.PRONE[name] != null) return S.PRONE[name]; var a = S.anim(name, 'hurt'); return a && /_p0$/.test(name) && a.frames === 6 ? 4 : -1; };
   // how long an anim takes to play once, in frames at 60 Hz
   S.duration = function (name, anim) { var a = S.anim(name, anim); return a ? Math.ceil(a.frames * 60 / (a.fps || 8)) : 0; };

@@ -528,13 +528,16 @@
       "anims": { "idle": "Idle", "attack": "Punch", "walk": "Walk" }
     },
     "roper": {
-      "_note": "the roper (SRD 5.1, Large): Quaternius Big/Cactoro turned to wet grey stone -- a trial: the cactus-man wears a hat.",
-      "file": "quaternius/ultimate-monsters/Big/Blends/Cactoro.blend",
-      "show": ["Cactoro"],
-      "grade": { "hue": 0, "sat": 0.12, "val": 0.6 },
-      "size_squares": 2.0,
+      "_note": "the roper (SRD 5.1, Large): MZ4250's printable Roper 2025 (Thingiverse 7410664, CC BY-SA: deep16/CREDITS.md), rigged and posed by tools/roper-blend.py -- pipeline 1b's second, deep16/blender-monsters.md (10-01e). Its open body, its shut one (the stalagmite: STILL, and REVEAL opening out of it) and six tendrils on ten bones each. The toon look, light 13, the lift on; the stone 'fork' (DEEP16's stone ramp, as the Fork's own stalagmites are drawn). size_by: the cone is 1.4 squares across, not the tendrils about it; fit: each row its own frame (a lash reaches two squares, the idle one). (Till then the Quaternius cactus stood in: 'the cactus-man wears a hat'.)",
+      "file": "roper/roper.blend",
+      "show": ["Roper_Body", "Roper_Shut", "Roper_Tendril.1", "Roper_Tendril.2", "Roper_Tendril.3", "Roper_Tendril.4", "Roper_Tendril.5", "Roper_Tendril.6"],
+      "look": "toon:13", "lift": true, "floor": true, "fit": true,
+      "size_squares": 1.4, "size_by": ["Roper_Body"],
       "yaw": 0,
-      "anims": { "idle": "Idle", "attack": "Punch", "walk": "Walk" }
+      "anims": { "idle": "IDLE", "walk": "CREEP", "tendril": "LASH", "tendril2": "LASH2", "reel": "REEL", "bite": "BITE",
+                 "flinch": "FLINCH", "hurt": "DEATH", "still": "STILL", "reveal": "REVEAL" },
+      "frames": { "idle": 8, "walk": 8, "tendril": 6, "tendril2": 6, "reel": 6, "bite": 6, "flinch": 5, "hurt": 8, "still": 1, "reveal": 8 },
+      "once": ["tendril", "tendril2", "reel", "bite", "flinch", "hurt", "reveal"]
     },
     "darkmantle": {
       "_note": "the darkmantle (SRD 5.1, Small): Quaternius Flying/Glub, dark, at a square.",
