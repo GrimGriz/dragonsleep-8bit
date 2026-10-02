@@ -164,8 +164,12 @@ tendril that lands rides the grip as a thing of its own (`conds.restrained.tendr
 -- struck at with ATTACK on the held one's square, or your own while held (`battle.js tendrilOn`, `strikeTendril`: the weapon's
 dice, no sneak or smite, a natural 1 on the friend), or BREAK THE TENDRIL on the ring (a DC 15 STR check, by the one held or
 anyone beside; `exec breaktendril`), and the grip ends with it (`tendrilGone`). BREAK FREE is the grapple's escape and leaves
-the tendril whole. A tendril lost is one fewer to throw (`u.tendrilsLost`); with none to throw the roper's reach is its bite's
-and it walks in, extruding one back as its action when it has nothing in reach (`ai.js reachOf`, `brute`). The class AI weighs
+the tendril whole. A tendril lost is one fewer to throw till its next turn (`u.tendrilsLost`), when every one is back, free
+(SRD 5.1; RULED 10-02, Griz: "go with SRD for combat" -- a party that cuts them all is never walked at, and never has to be);
+with none to throw, every tendril holding, or no one in its reach it can hold (Freedom of Movement), the roper's reach is its
+bite's and it walks in (`ai.js reachOf`, `usableOn`, `brute`). A tendril holding no one is not a thing to strike, nor a target
+(RULED 10-02: "perfect, i assume also not targeted"). The dive after any blow it swung, hit or miss, is RULED kept ("it's what
+people used to one will want anyway"). The class AI weighs
 the escape, cutting the tendril and fighting on by the odds (`tactics.js freeHow`, `pEscape`, `pCut`), and a friend's break or
 cut against its swing at the roper. **READY** (ACTIONS): one trigger, the first foe that comes within reach -- for a bow, a
 thrown weapon or an attack spell, into sight and range -- and a single weapon attack, or an attack-shaped spell cast now and

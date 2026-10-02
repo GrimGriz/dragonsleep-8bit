@@ -42,7 +42,9 @@
   RU.startTurn = function (u) {
     u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false }; // (freeObj: the turn's one free hand on an object -- a torch dropped, put out or taken up)
     u.reaction = 1;
-    // (the roper's tendrils cut or broken -- battle.js tendrilGone, u.tendrilsLost -- come back one a turn as its action, when it has nothing in reach: js/ai.js brute, 10-02)
+    // the roper's tendrils cut or broken (battle.js tendrilGone, u.tendrilsLost): back at its turn, free, every one -- SRD 5.1, "can extrude a replacement tendril on its next turn"
+    // (RULED 10-02, Griz: "go with SRD for combat"; the seat had read the extruding as its action, so a party that cut them all saw it walk in -- by the SRD it never has to)
+    if (u.tendrilsLost) { u.tendrilsLost = 0; if (D.battle) D.battle.card(['{g}The ' + u.name + ' extrudes new tendrils.{/}'], 200); }
     // Ready (SRD 5.1: "lets you act using your reaction before the start of your next turn"): a readied strike not sprung by now is let go; a readied spell's held magic
     // dissipates with it -- the concentration it took, and the slot (battle.js exec 'ready', readyHook; 10-02)
     if (u.ready) { var rd0 = u.ready; delete u.ready; if (rd0.what === 'spell') { if (u.conc && u.conc.id === 'ready') delete u.conc; if (D.battle) D.battle.card(['{g}' + u.name + '\'s readied ' + rd0.name + ' dissipates: the moment passed.{/}'], 200); } } // (a weapon lowered says nothing: the ring offers READY again, and a hero waiting on a burrower readies every turn)

@@ -394,7 +394,10 @@
   // battle.js tendrilGone) counts for nothing, and it walks in for the bite (10-02, Griz: "have the party keep their distance and kill all the tendrils, then see if it walks
   // to bite"). gripReach: the longest of all of them, for what it holds already
   function noSpare(u, a) { return !!(a && a.holdOnly && a.grapple && (u.holding || []).length + (u.tendrilsLost || 0) >= (a.grapple.max || 1)); }
-  function reachOf(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { var a = u.attacks[k]; if (noSpare(u, a)) return; r = Math.max(r, a.reach || 0); }); return G.reachOf(u, r); }
+  // a seizing attack is of no use on one it holds already, or one it cannot hold (Freedom of Movement: RU.immuneTo 'grappled'; 10-02, Griz: "when feared? (or immune or
+  // something)" -- a party nothing can hold is bitten, not lashed at forever): with `hs`, the heroes it knows of, the tendril's reach counts only while someone in it can be held
+  function usableOn(u, a, w) { return !(a && a.holdOnly && a.grapple && (noSpare(u, a) || (u.holding || []).indexOf(w) >= 0 || RU.immuneTo(w, 'grappled') || RU.immuneTo(w, 'restrained'))); }
+  function reachOf(u, hs) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { var a = u.attacks[k]; if (noSpare(u, a)) return; if (hs && a.holdOnly && a.grapple && !hs.some(function (w) { return usableOn(u, a, w) && G.dist(u, w) <= G.reachOf(u, a.reach); })) return; r = Math.max(r, a.reach || 0); }); return G.reachOf(u, r); }
   function gripReach(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r, u.attacks[k].reach || 0); }); return G.reachOf(u, r); }
   function* webShot(B, u, tgt) {
     var W = u.web, T = u.turn;
@@ -724,7 +727,7 @@
     }
     // Tentacle Slam, instead of the bites and lashes, on what it already holds (the 8-bit game: half the time)
     if (u.slam && u.holding.length && T.action && D.d(100) <= (u.slam.chance || 0.5) * 100) { yield* slam(B, u); return; }
-    var near = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u); }).sort(function (a, b) { return a.hp - b.hp; });
+    var near = hs.filter(function (w) { return G.dist(u, w) <= reachOf(u, hs); }).sort(function (a, b) { return a.hp - b.hp; }); // (reachOf with hs: a tendril no one in its reach can be held by counts for nothing, and it walks in to bite -- 10-02)
     // Web: at the start, or whenever no one is in reach -- the nearest free hero it can see, in range
     if (u.web && u.web.ready && T.action && (!near.length || B.round === 1)) {
       var free = hs.filter(function (w) { return !w.conds.restrained && G.dist(u, w) <= u.web.range[1] && G.los(u, w).clear; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); });
@@ -742,7 +745,7 @@
     if (ranged.length && ranged.length === Object.keys(u.attacks).length) { yield* shooter(B, u); return; }
     if (!tgt) {
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
-      var e = approach(u, tgt, G.reach(u, T.move), reachOf(u));
+      var e = approach(u, tgt, G.reach(u, T.move), reachOf(u, hs));
       if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
       else if (u.bound) { // (the camera on it, churning, long enough to read: out of reach it looked frozen -- 09-30g)
         if (B.focus) B.focus(u); var churn = D.spr && D.spr.anim && D.spr.anim(u.sheet, 'flinch'); if (churn) { u.anim = 'flinch'; u.animT = B.t; }
@@ -752,16 +755,10 @@
       if (u.dead || u.hp <= 0) return;
     }
     if (!T.action) return;
-    var inReachNow = heroes(B, u).filter(function (w) { return G.dist(u, w) <= reachOf(u); });
+    var hsNow = heroes(B, u), inReachNow = hsNow.filter(function (w) { return G.dist(u, w) <= reachOf(u, hsNow); });
     if (u.kind === 'cloaker' && inReachNow.some(function (w) { return w.vital; })) inReachNow = inReachNow.filter(function (w) { return w.vital; }); // (the one it hunts, if it got to him: 10-01c)
-    // the roper's tendrils cut or broken (battle.js tendrilGone), no one held and no one in reach of what it has left: the action goes on extruding a replacement, one a turn
-    // (SRD 5.1, "can extrude a replacement tendril on its next turn" -- the seat's reading, that the extruding is what its turn does; 10-02, Griz's test: "have the party keep
-    // their distance and kill all the tendrils, then see if it walks to bite" -- it walks first, above, and bites when that brought it there)
-    if (u.tendrilsLost && !inReachNow.length && !(u.holding || []).length) {
-      var ta0 = Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a && a.tendril; })[0], mx0 = (ta0 && ta0.grapple && ta0.grapple.max) || 6;
-      T.action = 0; u.tendrilsLost--; D.sfx('poison'); FX.sparkle(u, 'bone', 10);
-      B.card(['{r}' + the(B, u) + '{/} extrudes a new tendril.  {g}(its action: ' + (mx0 - u.tendrilsLost) + ' of ' + mx0 + ' to throw){/}'], 260); yield 24; return;
-    }
+    // (the roper's tendrils cut or broken come back free at its turn -- rules.js startTurn; RULED 10-02, Griz: "go with SRD for combat". The seat had read the extruding as
+    // its action, so a party that cut them all would see it walk in; by the SRD it never has to, and walks only when nothing it has can hold anyone: reachOf, usableOn)
     // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow)
     if (!inReachNow.length && ranged.length) { if (yield* volley(B, u)) return; }
     // Enlarge (the duergar), once, when there is no one to hit yet: its pick hits for the bigger dice from now on (and its Invisibility ends)
@@ -799,7 +796,7 @@
       if (!reeled && !atk.grapple) { reeled = true; yield* reel(B, u, reelFt); if (u.dead || u.hp <= 0) return; }
       // the weakest in this attack's reach; a grappling attack reaches first for someone it does not already hold; an
       // attack only for the held (the Keeper's Drag Under, the chuul's tentacles) goes at one it holds, or not at all
-      var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u);
+      var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u).filter(function (w) { return usableOn(u, atk, w); }); // (a tendril is not thrown at one it cannot hold -- 10-02)
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
       if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
       var t = pool.filter(function (w) { return G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) {

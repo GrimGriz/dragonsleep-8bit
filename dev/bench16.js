@@ -783,34 +783,39 @@
       D.rules.startTurn(wz); var pl = D.tactics.plans(B1, wz), tp = pl.filter(function (p) { return p.kind === 'break' || p.kind === 'cut'; });
       okT('the wizard\'s plans beside him: ' + pl.slice(0, 4).map(function (p) { return p.kind + ' ' + p.why + ' ' + p.score.toFixed(1); }).join(' | '), tp.length >= 1 && tp.some(function (p) { return p.kind === 'break'; }));
       okT('HELP still offered the wizard for the held fighter: ' + B1.commands(wz).some(function (x) { return x.id === 'help' && x.ok; }), B1.commands(wz).some(function (x) { return x.id === 'help' && x.ok; }));
-      // 9 the AI roper with every tendril gone and no one in its reach walks in (its reach is the bite\'s now) and extrudes one with its action
+      // 9 every tendril gone at the start of its turn: all back, free (SRD 5.1; RULED 10-02, Griz: "go with SRD for combat"), and it throws at the fighter 30 ft off
       var B2 = mkT('?npc=roper&lvl=5&vs=fighter'), r2 = B2.units.filter(function (u) { return u.side === 'foe'; })[0], f2 = B2.units.filter(function (u) { return u.side === 'party'; })[0];
       r2.x = 9; r2.y = 2; r2.woken = true; r2.acted = true; f2.x = 9; f2.y = 9; r2.tendrilsLost = 6;
-      var n9 = (B2.log || []).length, y9 = r2.y; runT(D.ai.turn(B2, r2)); var l9 = logT(B2, n9);
-      okT('every tendril gone, the fighter 30 ft off: it walked ' + (r2.y - y9) * 5 + ' ft and ' + (/extrudes/.test(l9) ? 'extruded one (lost now ' + r2.tendrilsLost + ')' : 'did not extrude') + ' -- ' + l9.slice(0, 120), r2.y > y9 && /extrudes/.test(l9) && r2.tendrilsLost === 5);
-      // 10 his test (10-02, Griz: "have the party keep their distance and kill all the tendrils, then see if it walks to bite"): four fighters 40 ft off, every blow landing,
-      // each round cutting every tendril thrown and walking back out; one tendril back a turn as its action; it comes on 10 ft a turn, and bites when that brings one in reach
+      var n9 = (B2.log || []).length, y9 = r2.y; dieT(15); runT(D.ai.turn(B2, r2)); D.d = d0T; var l9 = logT(B2, n9);
+      okT('six lost at its turn: back ' + /extrudes new tendrils/.test(l9) + ' (lost now ' + r2.tendrilsLost + '), it stood (' + ((r2.y - y9) * 5) + ' ft) and threw (held ' + !!f2.conds.restrained + ') -- ' + l9.slice(0, 120), /extrudes new tendrils/.test(l9) && r2.tendrilsLost === 0 && r2.y === y9 && !!f2.conds.restrained);
+      // 9b one it cannot hold (Freedom of Movement: immune to grappled; Griz, 10-02: "when feared? (or immune or something)"): no tendril thrown, and it walks in for the bite
+      var B3 = mkT('?npc=roper&lvl=5&vs=fighter'), r3 = B3.units.filter(function (u) { return u.side === 'foe'; })[0], f3 = B3.units.filter(function (u) { return u.side === 'party'; })[0];
+      r3.x = 9; r3.y = 2; r3.woken = true; r3.acted = true; f3.x = 9; f3.y = 9; f3.condImmune = ['grappled'];
+      var n9b = (B3.log || []).length, y9b = r3.y; dieT(15); runT(D.ai.turn(B3, r3)); D.d = d0T; var l9b = logT(B3, n9b);
+      okT('the fighter immune to the grapple, 30 ft off: no tendril thrown ' + !/Tendril/.test(l9b) + ', it walked ' + ((r3.y - y9b) * 5) + ' ft -- ' + l9b.slice(0, 120), !/Tendril/.test(l9b) && r3.y > y9b);
+      // 10 his test (10-02, Griz: "have the party keep their distance and kill all the tendrils, then see if it walks to bite" -- then, on the seat's reading that walked:
+      // "SRD is free but then never walks, correct?" / "go with SRD for combat"): four fighters 40 ft off, every blow landing, each round cutting every tendril thrown and
+      // walking back out. By the SRD every cut tendril is back at its next turn, free: it throws four every turn, reels, never walks, and never has to
       var B9 = mkT('?npc=roper&lvl=5&vs=fighter,fighter,fighter,fighter'), r9 = B9.units.filter(function (u) { return u.side === 'foe'; })[0], p9 = B9.units.filter(function (u) { return u.side === 'party'; });
       r9.x = 9; r9.y = 2; r9.woken = true; r9.acted = true; p9.forEach(function (h, i) { h.x = 8 + i; h.y = 11; h.hp = h.maxhp = 200; h.home = [8 + i, 11]; });
-      var walked = 0, bit = -1, lostMax = 0, extruded = 0, trail = [];
-      for (var rr = 1; rr <= 12 && bit < 0; rr++) {
+      var walked = 0, lostMax = 0, regrown = 0, threwFour = 0, trail = [];
+      for (var rr = 1; rr <= 6; rr++) {
         B9.round = rr; var x0 = r9.x, y0 = r9.y, n10 = (B9.log || []).length;
         dieT(15); runT(D.ai.turn(B9, r9)); D.d = d0T;
         var l10 = logT(B9, n10);
         if (r9.x !== x0 || r9.y !== y0) walked++;
-        if (/extrudes/.test(l10)) extruded++;
-        if (/Bite/.test(l10)) bit = rr;
-        trail.push('R' + rr + ': lost ' + r9.tendrilsLost + ', holding ' + (r9.holding || []).length + ', at (' + r9.x + ',' + r9.y + ')' + (/extrudes/.test(l10) ? ' extruded' : '') + (/reels/.test(l10) ? ' reeled' : '') + (/Bite/.test(l10) ? ' BIT' : ''));
-        if (bit > 0) break;
+        if (/extrudes new tendrils/.test(l10)) regrown++;
+        if ((r9.holding || []).length === 4) threwFour++;
+        trail.push('R' + rr + ': lost ' + (r9.tendrilsLost || 0) + ', holding ' + (r9.holding || []).length + ', at (' + r9.x + ',' + r9.y + ')' + (/extrudes/.test(l10) ? ' regrown' : '') + (/reels/.test(l10) ? ' reeled' : '') + (/Bite/.test(l10) ? ' BIT' : ''));
         p9.forEach(function (h) {
           D.rules.startTurn(h); B9.active = h;
           var tgt = [h].concat(p9.filter(function (w) { return w !== h && D.grid.dist(h, w) <= 5; })).filter(function (w) { return D.Battle.tendrilOn(h, w, B9.units); })[0];
           if (tgt) { dieT(18); var sx = D.Battle.tendrilOn(h, tgt, B9.units); while (sx && (h.turn.action || h.turn.attacksLeft)) { runT(B9.exec(h, { do: 'attack', target: sx })); sx = D.Battle.tendrilOn(h, tgt, B9.units); } D.d = d0T; }
           if (!h.conds.restrained && (h.x !== h.home[0] || h.y !== h.home[1]) && h.turn.move > 0) { var rmH = D.grid.reach(h, h.turn.move), pH = D.grid.path(rmH, h.home[0], h.home[1]); if (pH && pH.length) runT(B9.moveAlong(h, pH, { spend: true })); }
         });
-        lostMax = Math.max(lostMax, r9.tendrilsLost);
+        lostMax = Math.max(lostMax, r9.tendrilsLost || 0);
       }
-      okT('his test: ' + trail.join(' / ') + ' -- lost at most ' + lostMax + ', walked on ' + walked + ' turns, extruded ' + extruded + ', bit on round ' + bit, lostMax >= 6 && walked >= 1 && extruded >= 1 && bit > 0);
+      okT('his test, by the SRD: ' + trail.join(' / ') + ' -- cut at most ' + lostMax + ' a round, regrown on ' + regrown + ' turns, four thrown on ' + threwFour + ' of 6, walked on ' + walked, lostMax >= 4 && regrown >= 5 && threwFour >= 5 && walked === 0);
     } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
     D.d = d0T;
     if (errs.length) repT.errors = repT.errors.concat(errs);
