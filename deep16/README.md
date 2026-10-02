@@ -266,6 +266,58 @@ to end it (`js/features.js`); the **Circle of the Land's circle spells** by land
 Higertha's mountain, a generic druid's Underdark. `dev/bench16.py mode=zones` checks them. Still to build for the list:
 summons (Conjure Animals and kin), walls (Wall of Fire, Stone, Thorns, Wind Wall), Polymorph, charm the AI honours.
 
+## The Pocket DM (alpha) -- `?pocket` (10-02)
+
+Griz, 10-02: *"the something page calls the class floor the pocket DM, but really it's this test runs page. In the style of 'the ladder' create a
+user friendly interface that apparently does everything through the power of a URL (or build something new actually called the pocket DM
+(alpha)"*. `js/pocket.js`, a scene of the grid's own in the ladder's look, over **Solskaft's clan hall drawn at 16-bit for the first time** (his
+pick for the backdrop: *"the oathstone under the skylight"*): the dais and the empty high seat at the north end, the oath-stone before it with
+its band of gold worn bright at hand height, the Sunshaft's noon coming down onto it with its motes (wiki/solskaft.md; the 8-bit's colours,
+`../js/art.js`, and its beam, `../js/world.js drawBeam`). **Every fight it makes is a class-floor URL** (`?npc=...&vs=...&lvl=...&map=...`) it
+shows and copies, so a fight can be sent and re-run. The title has START, FIGHTS (the record), USEFULS (the ladders, the climb, the galleries,
+the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has POCKET DM (ALPHA).
+
+- **The party** (his: *"choose party size (I think our limit is 6?) by having 4 characters - defaults are fine. Arrows on the top and bottom
+  cycle through existing characters - but make them unlock pyro - and a question mark slot"*): four seats to start (Barley, Aurdin, Vivian and
+  Lymen at 3), one to six. The arrows cycle the roster: the four, the guests (Brann, Hedda, Halldor, Ingrith, Dace, the trooper -- each at its
+  register's level or higher), the named (Talmok, Willem, Katarina, Torvald, Higertha, Amara; the grown builds), **Pyro, LOCKED till the trial
+  is won** (then at his 12, run by his own script, his gear his own: *"they can play him but not see or change his gear"*), your own, and the
+  **?**. Level 1 to **8** (his cap) under each stock card. The words: `js/classes.js` NPC.spec -- `barley:3`, `talmok:5:grown`, `+item`, `~codes`.
+- **The maker** (the ?, his order: *"pick a race & class & set stats, etc. make them put the stats in (etc) before they choose the characters
+  level. Let them pick gear ... and let them save those new characters"*): the SRD races and the twelve classes; the six scores **from ten, arrows
+  3 to 18** (*"sort of hoping people rebuild their table characters"*), the race's numbers on top; the level 1-8, the ASIs with it; the gear from
+  the mundane racks by proficiency (*"generic kits per class"*; THE KIT puts the class's back); a caster's spells from the class's list, the built
+  ones, to the counts its level knows (*"classed based, SRD - what we don't have"*); a name. Saved to the roster (`deep16.pocket`), EDIT on its card.
+  A made character is a `~` word: `~fighter.5.dwarf.16-14-16-10-12-8.greatsword_chainmail___handaxe__.Brokk` (NPC.decode / NPC.code); a max hit
+  die a level, as the heroes.
+- **The map:** every grid map but the Settling's and the test ground, the **DARK** ones said so and shown so (the preview greyed to the darkvision
+  look but for their lamps), or the **?**, a random one.
+- **The dial and the roll** (his: *"give them a CR slider and a re-roll button, and have a subroutine randomly put in monsters we have in
+  existence that add up to that CR"*): the CR is **the sum of theirs**, 1/8 to 40; beside it the DMG's reading for this party (the adjusted XP, the
+  crowd multiplier, EASY / MEDIUM / HARD / DEADLY xN); REROLL draws again. The pot is the bestiary less the story's named (Talmok, Torvald, Hask,
+  the Keeper), CR 0 and the familiars; **Willem and Amara in it when not in the party** (his word); a thing bound to water only where the map
+  has water; no more heads than the map has room for. The dial starts where the party reads HARD. WATCH hands your side to the class AI.
+- **The ladder** (his: *"a button that auto-fill the next map with a reasonable increase in CR (randomly generated 4-rung ladder) where they get
+  'short rest for the wicked' shown and applied to their party before the next map loads"*): THE LADDER: 4 RUNGS FROM HERE takes the dial's table
+  first, then three more at **a third again each** on maps drawn fresh. Between rungs **SHORT REST FOR THE WICKED**: the fallen up at 1 HP first
+  (the DM's hand; his: *"SRD + free rez for the fallen before the short rest applies"*), then **hit dice till whole or out** (one a level a run,
+  d(hit die) + CON each), Second Wind and Action Surge, Channel Divinity, Wild Shape, ki, a bard's inspiration from 5, a warlock's pact slots
+  back, a wizard's Arcane Recovery once a run (SRD 5.1). What a fight leaves (HP, slots, features) walks into the next (NPC.carry). After the
+  fourth win **LONG REST FOR THE TRIAL** (whole), then **the trial: double deadly** -- the smallest table whose adjusted XP is twice the party's
+  deadly threshold (his: *"give them a 'long rest for the trial' after the fourth win and then do your double deadly"*). Win it and **Pyro joins
+  the roster**. A loss: **QUIT, RETRY or REROLL THE RUNG**, the party as it went in (his: *"restored to what they went in with before they died"*).
+- **The winnings** (his: *"pick a random character on victory and give magic item appropriate to class"*; *"not pyro"*): on every win one of the
+  party, drawn at random, finds a thing the class may wear and is better than what it has -- the plus-ones (a weapon of the kind in hand, the
+  armour of a weight worn, the Ring of Protection, the Cloak of Displacement), the +2s, Flame Tongue, the Door-Shield and the dwarven plate from
+  the third rung and the trial. Worn at once: `+item` on a stock word, in the gear slot of a `~` code.
+- **The record** (his: *"Save the fights and give them a way to send their fights with a notes section"*): every fight is recorded (`js/record.js`,
+  `deep16.plays`) and summarised in `deep16.pocket` (the last 60): FIGHTS lists them; NOTES is a field over the canvas (the game hears no key
+  while it is typed in: `core.js D.typing`); SAVE A FILE downloads the summary, the notes and the play record as one `.json`; COPY the summary;
+  EMAIL GRIZ opens a mail with it; THE DISCORD copies the summary and opens https://discord.gg/VDxa5hkA3x; URL copies the fight's.
+- **Bench:** `python dev/bench16.py x mode=pocket1002` (in `dev/check.py`'s gate): the words, a `~` code round-tripped, the ASIs with the level,
+  the pot and the roll summing to its CR, the DMG reading, the rests, the winnings by class, a fight by the Pocket's words with a carry, and a
+  table of Large and Huge foes seated whole (`battle.js seatBand` honours a footprint now).
+
 ## Not in the POC
 
 Story beyond the entry card; shops; rests; writing back to the 8-bit save; flight (bats and cloakers

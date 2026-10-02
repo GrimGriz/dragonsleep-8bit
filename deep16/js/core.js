@@ -120,14 +120,16 @@
     return t > 14 && t % 5 === 0;
   };
   I.clear = function () { I.edge = {}; I.mouse.click = false; I.mouse.rclick = false; I.mouse.rbtn = false; I.mouse.moved = false; I.mouse.wheel = 0; };
+  // (D.typing: a name or a note being typed into a field over the canvas -- the Pocket DM's, deep16/js/pocket.js -- takes every key; the game hears none)
   window.addEventListener('keydown', function (e) {
+    if (D.typing) return;
     var b = KEYMAP[e.code];
     if (!b) return;
     e.preventDefault();
     if (!e.repeat) I.press(b);
     D.unlockAudio();
   });
-  window.addEventListener('keyup', function (e) { var b = KEYMAP[e.code]; if (b) { e.preventDefault(); I.release(b); } });
+  window.addEventListener('keyup', function (e) { if (D.typing) return; var b = KEYMAP[e.code]; if (b) { e.preventDefault(); I.release(b); } });
   window.addEventListener('blur', function () { I.held = {}; I.mouse.inWin = false; I.mouse.inside = false; });
 
   // the game pad (../js/pad.js, the 8-bit game's, loaded after this). RULED 09-28 (Griz): the right stick up/down zooms (up in,

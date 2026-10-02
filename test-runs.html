@@ -417,6 +417,7 @@ var MODES=[
   {id:'tester',grp:16,t:'Tester ladder',n:'&party=ours: you watch'},
   {id:'play',grp:16,t:'Tester ladder, you play',n:'&party=ours&play: recorded'},
   {id:'climb',grp:16,t:'Climb',n:'?climb: one party, 1 to 9'},
+  {id:'pocket',grp:16,t:'Pocket DM (alpha)',n:'?pocket: a party, a map, a CR dial'},
   {id:'npc',grp:16,t:'Class floor',n:'?npc= : foes against our four'},
   {id:'fx',grp:16,t:'Spell gallery',n:'?fxgallery'},
   {id:'fxf',grp:16,t:'Feature gallery',n:'?fxgallery&features'},
@@ -458,6 +459,7 @@ function build(){
     else if(m==='tester') parts.push('ladder','party=ours');
     else if(m==='play') parts.push('ladder','party=ours','play');
     else if(m==='climb') parts.push('climb');
+    else if(m==='pocket') parts.push('pocket');
     else if(m==='gate') parts.push('gate');
     else if(m==='view') parts.push('view');
     else if(m==='npc'){
@@ -540,6 +542,7 @@ function describe(){
   else if(m==='tester') t='The tester ladder: Talmok, Willem, Katarina and Torvald at each rung’s level, both sides run by the AI, and you watch. It has its own test camp.';
   else if(m==='play') t='The tester ladder, except you run our four, and the fight is recorded.';
   else if(m==='climb') t='The climb: one party from level 1 to 9.';
+  else if(m==='pocket') t='The Pocket DM (alpha): a party of up to six from the roster or your own making, a map, a CR dial that rolls the bestiary to it; a fight, or the four-rung ladder with a short rest between and the trial for Pyro at the top. Every fight it makes is a class-floor URL it shows and copies.';
   else if(m==='gate') t='The stop-and-look gate.';
   else if(m==='view') t='The cavern with a cursor, and no fight.';
   else if(m.indexOf('at-')===0){ var st=SIT[m.slice(3)]||{}; t='The 8-bit game, new game, pick a lead, and you stand at a line of the playtest ear-file: '+st.title+' ('+(st.pt||'')+(st.lvl?', level '+st.lvl:'')+'). '+(st.look||''); }

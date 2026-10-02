@@ -677,7 +677,7 @@
     B.swapGear(u, o);
     B.menu = null; // back to the turn
   }
-  UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? (B.o.climb ? 'BACK TO THE CLIMB' : 'BACK TO THE LADDER') : 'RETURN TO SILVERTON'; };
+  UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? (B.o.climb ? 'BACK TO THE CLIMB' : B.o.pocket ? 'BACK TO THE POCKET DM' : 'BACK TO THE LADDER') : 'RETURN TO SILVERTON'; };
   UI.menuInput = function (B) {
     var M = B.menu, items = menuItems(B), n = items.length, s0 = M.sel;
     if (M.panel === 'equip') return gearInput(B);

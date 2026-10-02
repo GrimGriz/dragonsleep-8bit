@@ -233,7 +233,8 @@
     // Ability Score Improvements (4, 8; the fighter's 6 too): +2 to the first ability not yet at 20, split over the next if need be.
     // A named one's register numbers stand at its register's level; built past it (spec.away: that level), the ones after it come
     // on top (09-28h: Talmok's STR 16 is 18 at 4 and 20 at 8)
-    (spec.abil ? (spec.away ? (c.asiAt || [4, 8]).filter(function (at) { return at > spec.away; }) : []) : c.asiAt || [4, 8]).forEach(function (at) {
+    // (spec.asis: the Pocket DM's own character -- the scores typed in are its level-1 numbers, and the ASIs come with the level, 10-02)
+    (spec.abil ? (spec.away ? (c.asiAt || [4, 8]).filter(function (at) { return at > spec.away; }) : spec.asis ? (c.asiAt || [4, 8]) : []) : c.asiAt || [4, 8]).forEach(function (at) {
       if (lvl < at) return;
       var left = 2;
       c.prio.forEach(function (k) { var room = 20 - abil[k], g = Math.min(room, left); if (g > 0) { abil[k] += g; left -= g; } });
@@ -255,6 +256,7 @@
       land: spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
       script: spec.script || null // (a named one's own turn: js/pyro.js)
     };
+    if (spec.loot) NPC.wear(h, spec.loot); // (the Pocket DM's winnings: `+item` on the word, worn where the class may -- 10-02)
     // skills the grid reads (Stealth, Perception): written at the level-1 proficiency, as the 8-bit sheets are (R.skill grows them)
     if (/rogue|ranger|monk|bard/.test(cls)) h.skills.Stealth = DS.mod(abil.dex) + 2;
     if (/rogue|ranger|druid|barbarian|cleric/.test(cls)) h.skills.Perception = DS.mod(abil.wis) + 2;
@@ -312,6 +314,28 @@
     if (spec.aid) { h.maxhp += spec.aid; h.conds.aid = spec.aid; }
     if (spec.conjured) h.conjured = spec.conjured; // (Conjure Elemental cast at the camp: the kind that walks in beside him -- js/walls.js)
     h.hp = h.maxhp;
+    NPC.carry(h, spec); // (the Pocket DM's ladder: what the last fight and the short rest left -- 10-02)
+    return h;
+  };
+  // what a character walks in with between the Pocket DM's rungs (deep16/js/pocket.js, 10-02): the hit points left, the slots left, the
+  // per-rest features as the rest left them. Nothing said: whole
+  NPC.carry = function (h, spec) {
+    if (spec.hpLeft != null) { h.hp = Math.max(0, Math.min(h.maxhp, spec.hpLeft)); h.ko = h.hp <= 0; }
+    if (spec.slotsLeft) h.slots = spec.slotsLeft.slice();
+    if (spec.featsLeft) Object.keys(spec.featsLeft).forEach(function (k) { h.feats[k] = spec.featsLeft[k]; });
+    if (spec.condsLeft) Object.keys(spec.condsLeft).forEach(function (k) { h.conds[k] = spec.condsLeft[k]; });
+    return h;
+  };
+  // the Pocket DM's winnings worn (10-02, Griz: "pick a random character on victory and give magic item appropriate to class"): each id goes
+  // in the slot its kind names, if the class may carry it (R.canEquip: the weapon's group, the armour's weight, a shield with a free hand)
+  NPC.wear = function (h, ids) {
+    var SLOT = { weapon: 'weapon', armor: 'armor', shield: 'shield', ring: 'ring', cloak: 'cloak' };
+    (ids || []).forEach(function (id) {
+      var it = DS.DATA.items[id], slot = it && SLOT[it.kind];
+      if (!slot) return;
+      if (it.kind !== 'cloak' && !R.canEquip(h, it)) return;
+      h.equip[slot] = id;
+    });
     return h;
   };
   // the always-prepared at a level: our own domain's list (in the Life Domain's place), else the class's
@@ -416,15 +440,85 @@
   // a spec from a word: 'cleric', 'higertha', 'cleric:5', 'druid:3:dwarf'. A named one stands at its register's level (the story's
   // Talmok 3, Willem 5, Torvald 5) unless the word names another -- 'talmok:7' (09-28h: the Pocket DM, the tester ladder); built
   // away from it, `away` carries the register's level (NPC.sheet: the ASIs after it, the average HP, awayList)
+  // The Pocket DM's words (10-02, deep16/js/pocket.js): `+item` after any word is a thing won and worn ('barley:5+dagger1', 'talmok:5:grown+ringofprotection');
+  // one of the 8-bit game's own by name -- 'barley:5', 'brann', 'pyro' -- is built by the 8-bit's rules (NPC.heroUnit); a word beginning
+  // '~' is a character of the player's own making, the whole sheet in the word (NPC.decode)
   NPC.spec = function (word, lvl) {
+    var plus = String(word).split('+'), raw = plus[0], loot = plus.slice(1).filter(Boolean);
+    var sp = raw.charAt(0) === '~' ? NPC.decode(raw) : spec0(raw, lvl);
+    if (sp && loot.length) sp.loot = (sp.loot || []).concat(loot);
+    return sp;
+  };
+  function spec0(word, lvl) {
     var bits = String(word).toLowerCase().split(':'), key = bits[0], L = +bits[1] || lvl || 1;
     var named = NPC.NAMED[key];
     // ('talmok:5:grown': the grown build even at the register's own level -- the tester ladder, 09-28h: "grown builds please")
     if (named) { var at = Math.max(1, Math.min(NPC.maxLvl(named.cls, named), +bits[1] || named.lvl || L)); return Object.assign({ id: key }, named, { lvl: at, away: named.lvl && (at !== named.lvl || bits[2] === 'grown') ? named.lvl : 0 }); }
-    if (!C[key]) return null;
+    if (!C[key]) {
+      var hd = DS.DATA.heroes && DS.DATA.heroes[key];
+      if (hd && typeof hd === 'object' && hd.cls) return { hero: key, cls: hd.cls, lvl: Math.max(1, Math.min(12, +bits[1] || lvl || hd.level)), name: hd.name, named: true, guest: !!hd.guest, look: (D.save.LOOK[key] || {}).sheet || key + '_p0' };
+      return null;
+    }
     var gen = { cls: key, lvl: L, race: bits[2] || 'human' };
     if (C[key].pact) gen.pact = C[key].pact; // (the generic warlock takes the Tome; a named one -- Amara -- names her own or none)
     return gen;
+  }
+  // the 8-bit game's heroes and guests by name (content/heroes.json): the four as the ladder dresses them at a level (js/save.js SV.fixture: the
+  // reward weapons, Barley's splint, Aurdin's morning Mage Armor; drawn back to 1 below their starts), a guest as the 8-bit game makes it
+  // (R.makeHero at its register's level or higher: Brann, Hedda, Halldor, the trooper, Dace; Pyro at his 12, who fights his own way --
+  // js/pyro.js -- so the class AI runs him on the party's side too). Ingrith is NPC.NAMED's (a cleric by her register)
+  NPC.HEROES = ['barley', 'aurdin', 'vivian', 'lymen'];
+  NPC.heroSheet = function (sp) {
+    var id = sp.hero, d = DS.DATA.heroes[id], L = Math.max(1, Math.min(12, sp.lvl || d.level)), h;
+    if (NPC.HEROES.indexOf(id) >= 0) h = D.save.fixture(Math.min(9, L)).party.filter(function (x) { return x.id === id; })[0];
+    else {
+      h = R.makeHero(id, Math.max(d.level, L));
+      h.attacks = d.attacks; if (d.resist) h.resist = d.resist.slice(); h.guest = true; h.key = id;
+      if (d.script) h.script = d.script; if (d.surgeAI) h.surgeAI = true;
+    }
+    if (sp.loot) NPC.wear(h, sp.loot);
+    NPC.carry(h, sp);
+    return h;
+  };
+  NPC.heroUnit = function (sp, side, o) {
+    o = o || {};
+    var h = NPC.heroSheet(sp), guest = NPC.HEROES.indexOf(sp.hero) < 0;
+    var u = D.save.unitOf(h, guest, null);
+    u.id = o.id || sp.hero; u.side = side || 'party'; u.named = true; u.hero = sp.hero;
+    if (guest) NPC.overlay(u, h);
+    // the player's to run, every one -- but the king: his turn is his own (js/pyro.js), at full on the Pocket DM
+    if (h.script) { u.guest = true; u.classAI = true; } else { u.guest = false; u.classAI = false; }
+    if (sp.guestAI) { u.guest = true; u.classAI = true; } // (a watch, or the bench)
+    if (u.side === 'foe') { u.guest = false; u.classAI = true; u.facing = 1; }
+    return u;
+  };
+  // a character of the player's own, the whole sheet in one URL-safe word (the Pocket DM's maker, 10-02):
+  //   ~<class>.<level>.<race>.<STR-DEX-CON-INT-WIS-CHA>.<weapon_armour_shield_second_ring_cloak>.<Name_With_Underscores>.<spell-spell-...>
+  // The scores are the level-1 numbers as typed, race included; the ASIs come with the level (spec.asis). A max hit die a level, as the
+  // heroes (RULED 09-25). An empty gear slot is nothing there; a blank spells field is the class's own list
+  NPC.ABIL = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
+  NPC.GEAR = ['weapon', 'armor', 'shield', 'alt', 'ring', 'cloak'];
+  NPC.decode = function (code) {
+    var f = String(code).slice(1).split('.'), cls = (f[0] || '').toLowerCase();
+    if (!C[cls]) return null;
+    var lvl = Math.max(1, Math.min(NPC.maxLvl(cls), +f[1] || 1)), race = NPC.RACES[(f[2] || '').toLowerCase()] ? (f[2] || '').toLowerCase() : 'human';
+    var nums = (f[3] || '').split('-').map(Number), abil = null;
+    if (nums.length === 6 && nums.every(function (n) { return n >= 1 && n <= 30; })) { abil = {}; NPC.ABIL.forEach(function (k, i) { abil[k] = nums[i]; }); }
+    var gear = (f[4] || '').split('_'), equip = {}, alt = null;
+    NPC.GEAR.forEach(function (k, i) { var id = gear[i] || ''; if (!id || !DS.DATA.items[id]) { if (k !== 'alt') equip[k] = null; return; } if (k === 'alt') alt = id; else equip[k] = id; });
+    var name = (f[5] || '').replace(/_/g, ' ').trim() || (R.CLASSES[cls].name + ' ' + lvl);
+    var known = f[6] ? f[6].split('-').filter(function (id) { return !!(DS.DATA.spells[id] || (D.EXTRA_SPELLS || {})[id]); }) : null;
+    var sp = { cls: cls, lvl: lvl, race: race, name: name, named: true, custom: true, maxhp: true, asis: !!abil, equip: equip, alt: alt, code: code };
+    if (abil) sp.abil = abil;
+    if (known) sp.known = known;
+    if (C[cls].pact) sp.pact = C[cls].pact;
+    return sp;
+  };
+  NPC.code = function (sp) {
+    var ab = sp.abil ? NPC.ABIL.map(function (k) { return sp.abil[k]; }).join('-') : '';
+    var eq = sp.equip || {}, gear = NPC.GEAR.map(function (k) { return k === 'alt' ? (sp.alt || '') : (eq[k] || ''); }).join('_');
+    var name = String(sp.name || '').replace(/[^A-Za-z0-9 \-']/g, '').replace(/'/g, '').trim().replace(/ +/g, '_');
+    return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-')].join('.').replace(/\.+$/, '');
   };
   // the class floor from a URL: ?npc=cleric,wizard&lvl=5 -- those against the four at that level; &vs=fighter,rogue -- a band instead
   // of the four (yours to run); an entry like higertha or druid:3:dwarf names one (NPC.spec); &watch -- your side run by the class
@@ -442,9 +536,13 @@
     return new D.Battle(Object.assign({ npc: { foes: foes, party: vsl.length ? vsl : null }, watch: /[?&]watch\b/.test(q), familiars: familiars, fightDef: D.classFight(L, { what: what, map: map && D.MAPS[map] ? map : null, dark: dark }) }, o || {}));
   };
   NPC.build = function (word, lvl, side, o) {
-    var sp = typeof word === 'string' ? NPC.spec(word, lvl) : word;
-    if (!sp) return null;
+    // (a word, a spec, or { word, hpLeft, slotsLeft, featsLeft, ... }: the Pocket DM's carry between rungs rides on the word's spec)
+    var sp = typeof word === 'string' ? NPC.spec(word, lvl) : word && word.word ? Object.assign({}, NPC.spec(word.word, lvl) || {}, word) : word;
+    if (!sp || (!sp.cls && !sp.hero)) return null;
+    if (sp.hero) return NPC.heroUnit(sp, side, o);
     var h = NPC.sheet(sp);
-    return NPC.unit(h, side || 'foe', Object.assign({ named: sp.named, sheet: sp.look || null }, o || {})); // (a named one's own figure: Talmok's)
+    var u = NPC.unit(h, side || 'foe', Object.assign({ named: sp.named, sheet: sp.look || null }, o || {})); // (a named one's own figure: Talmok's)
+    if (h.script && u.side === 'party') { u.guest = true; u.classAI = true; } // (the king on the party's side fights his own way -- js/pyro.js; the Pocket DM, 10-02)
+    return u;
   };
 })();

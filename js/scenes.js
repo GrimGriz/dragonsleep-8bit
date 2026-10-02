@@ -105,13 +105,15 @@
     var self = this, any = [1, 2, 3].some(function (i) { return !!DS.loadSlot(i); });
     // 09-29, Griz: "add at least 'combat ladder' (deep16) if not both that and 'playtester ladder' to the 8bit homescreen menu please." The first is the DEEP16 ladder, the combat engine's fifty fights; the second is the tester ladder where the player runs our four. Both leave for deep16/. Six rows are 86 tall, so the frame rides at y 124 and ends at 210, clear of the credit lines at 218.
     this.menu = new DS.Menu({
-      items: [{ label: 'NEW GAME', value: 'new' }, { label: 'CONTINUE', value: 'load', color: any ? null : '#C8D0E8' }, /* (open with no saves too: IMPORT SAVES is behind it -- 10-01b) */ { label: 'COMBAT LADDER', value: 'ladder' }, { label: 'PLAYTESTER LADDER', value: 'tester' }, { label: 'CREDITS', value: 'credits' }, { label: '♥ SUPPORT THE EXPANSION', value: 'kofi', color: '#F8A4C0' }],
-      x: 44, y: 124, w: 168, rowH: 12, cancelable: false,
+      // (the Pocket DM, 10-02: a seventh row, so the frame rides at y 112 and still ends at 210)
+      items: [{ label: 'NEW GAME', value: 'new' }, { label: 'CONTINUE', value: 'load', color: any ? null : '#C8D0E8' }, /* (open with no saves too: IMPORT SAVES is behind it -- 10-01b) */ { label: 'COMBAT LADDER', value: 'ladder' }, { label: 'PLAYTESTER LADDER', value: 'tester' }, { label: 'POCKET DM (ALPHA)', value: 'pocket' }, { label: 'CREDITS', value: 'credits' }, { label: '♥ SUPPORT THE EXPANSION', value: 'kofi', color: '#F8A4C0' }],
+      x: 44, y: 112, w: 168, rowH: 12, cancelable: false,
       onSelect: function (it) {
         if (it.value === 'new') DS.push(new LeadSelect());
         if (it.value === 'load') DS.push(new SlotScene(false));
         if (it.value === 'ladder') location.href = 'deep16/?ladder';
         if (it.value === 'tester') location.href = 'deep16/?ladder&party=ours';
+        if (it.value === 'pocket') location.href = 'deep16/?pocket';
         if (it.value === 'credits') DS.push(new Credits());
         if (it.value === 'kofi') DS.openKofi();
       }

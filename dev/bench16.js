@@ -2087,6 +2087,84 @@
     document.body.appendChild(preF);
     return;
   }
+  // the Pocket DM (mode=pocket1002; 10-02, deep16/js/pocket.js): the words it makes (a hero by name with a thing won, a character of the player's own
+  // as a `~` code round-tripped), the dial's roll summing to its CR, the DMG reading, the short rest by the SRD with the fallen up first, the winnings
+  // by the class, and two of its fights run through -- the second with Large and Huge foes seated whole on open ground
+  if (get('mode', '') === 'pocket1002') {
+    var repP = { checks: [], errors: [] }, okP = function (c, s) { repP.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    try {
+      D.seed = seed0 * 7919;
+      var PK = D.pocket, NP = D.npc;
+      // a. a hero by name, with a thing won
+      var spB = NP.spec('barley:5+dagger1');
+      okP(spB && spB.hero === 'barley' && spB.lvl === 5 && spB.loot && spB.loot[0] === 'dagger1', 'barley:5+dagger1 reads as the hero at 5 with a dagger +1 won');
+      var uB = NP.build('barley:5+dagger1', 5, 'party', { id: 'p0-barley' });
+      okP(uB && uB.weapon && uB.weapon.id === 'dagger1' && uB.lvl === 5 && uB.side === 'party' && !uB.guest, 'the unit wears it (fighter: a dagger is proficient), level 5, the player\'s to run');
+      var uP = NP.build('pyro', 3, 'party', { id: 'p1-pyro' });
+      okP(uP && uP.lvl === 12 && uP.guest && uP.classAI && uP.script === 'measure', 'pyro on the party side is 12, run by his own script');
+      var uG = NP.build('brann:3', 3, 'party', { id: 'p2-brann' });
+      okP(uG && uG.lvl === 5 && !uG.guest, 'a guest below its register stands at its register (Brann 5), the player\'s');
+      // b. a `~` code round-tripped
+      var sp0 = { cls: 'wizard', lvl: 3, race: 'elf', abil: { str: 8, dex: 16, con: 12, int: 17, wis: 12, cha: 10 }, equip: { weapon: 'quarterstaff', armor: 'robes', shield: null, ring: null, cloak: null }, alt: 'dagger', name: 'Test Mage', known: ['firebolt', 'rayoffrost', 'magicmissile', 'shield', 'sleep'] };
+      var code = NP.code(sp0), sp1 = NP.decode(code);
+      okP(sp1 && sp1.cls === 'wizard' && sp1.lvl === 3 && sp1.race === 'elf' && sp1.name === 'Test Mage' && sp1.alt === 'dagger' && sp1.equip.weapon === 'quarterstaff' && sp1.equip.armor === 'robes' && JSON.stringify(sp1.abil) === JSON.stringify(sp0.abil) && sp1.known.join() === sp0.known.join(), 'the code round-trips: ' + code);
+      var hC = NP.sheet(sp1);
+      okP(hC.abil.int === 17 && hC.name === 'Test Mage' && hC.maxhp === 3 * (6 + 1) && hC.known.indexOf('sleep') >= 0 && hC.known.indexOf('firebolt') >= 0, 'the sheet keeps the scores, the name, a max die a level (21), the spells picked');
+      var sp2 = NP.decode(NP.code({ cls: 'fighter', lvl: 8, race: 'dwarf', abil: { str: 16, dex: 14, con: 16, int: 10, wis: 12, cha: 8 }, equip: { weapon: 'greatsword', armor: 'chainmail' }, name: 'Big' }));
+      var hF = NP.sheet(sp2);
+      okP(hF.abil.str === 20 && hF.abil.con === 18, 'the ASIs come with the level (fighter 8: STR 16 -> 20, then CON 16 -> 18)');
+      var uC = NP.build(code + '+staff1', 3, 'party', { id: 'p3' });
+      okP(uC && uC.weapon.id === 'staff1' && uC.name === 'Test Mage', 'a code with +staff1 wears the staff');
+      // c. the dial's roll
+      var pot = PK.pot(['barley:3'], 'hexfloor');
+      okP(pot.indexOf('talmok') < 0 && pot.indexOf('keeper') < 0 && pot.indexOf('otyugh') < 0 && pot.indexOf('willem') >= 0 && pot.indexOf('hyena') < 0 && pot.indexOf('goblin') >= 0, 'the pot: no Talmok, no Keeper, no otyugh off the water, no CR 0; Willem in when not in the party');
+      okP(PK.pot(['willem:5'], 'hexfloor').indexOf('willem') < 0, 'Willem out of the pot when he is in the party');
+      [4, 8, 24, 64, 160].forEach(function (t) { var ks = PK.roll(t, pot, 12); okP(PK.sum8(ks) === t && ks.length <= 12, 'a roll for CR ' + PK.fmt8(t) + ' sums to it: ' + PK.foesText(ks)); });
+      // d. the DMG reading
+      var dd = PK.diff([3, 3, 3, 3], ['goblin', 'goblin', 'goblin', 'bugbear']);
+      okP(dd.xp === 350 && dd.adj === 700 && dd.label === 'MEDIUM' && dd.thresh[3] === 1600, 'three goblins and a bugbear against four at 3: 350 XP x2 = 700, MEDIUM (deadly at 1600)');
+      okP(PK.diff([5], ['ogre']).mult === 1.5 && PK.diff([5, 5, 5, 5, 5, 5], ['ogre']).mult === 0.5, 'a lone hero reads a single foe at x1.5; six of them at x0.5');
+      // e. the short rest
+      var c1 = { hp: 0, maxhp: 30, slots: [], slotsMax: [], feats: { secondWind: 0, actionSurge: 0 }, cls: 'fighter', lvl: 3, con: 2 };
+      var r1 = PK.shortRest(c1, 3, false, function () { return 0.5; });
+      okP(r1.rez && c1.hp > 1 && r1.spent >= 1 && c1.feats.secondWind === 1 && c1.feats.actionSurge === 1 && r1.hd < 3, 'a fallen fighter is up at 1, then hit dice (' + r1.spent + ' spent, +' + r1.healed + '), Second Wind and Action Surge back');
+      var c2 = { hp: 10, maxhp: 10, slots: [0, 0], slotsMax: [4, 2], feats: {}, cls: 'wizard', lvl: 3, con: 1 };
+      var r2 = PK.shortRest(c2, 3, false, function () { return 0.5; });
+      okP(r2.arcane && (c2.slots[1] === 1 || c2.slots[0] === 2) && r2.spent === 0, 'Arcane Recovery once: two slot levels back (' + c2.slots.join('/') + '); no dice on a whole wizard');
+      var r3 = PK.shortRest(c2, r2.hd, r2.arcane, function () { return 0.5; });
+      okP(!(c2.slots[1] === 2 || c2.slots[0] === 4), 'and not twice in a run');
+      var c3 = { hp: 5, maxhp: 20, slots: [0, 0], slotsMax: [0, 2], feats: {}, cls: 'warlock', lvl: 3, con: 1 };
+      PK.shortRest(c3, 3, false, function () { return 0.5; });
+      okP(c3.slots[1] === 2, 'a warlock\'s pact slots back on the short rest');
+      // f. the winnings
+      var hL = NP.sheet(NP.spec('fighter:3')), lf = PK.lootFor(hL, false);
+      okP(lf.indexOf('chainmail1') >= 0 && lf.indexOf('ringofprotection') >= 0 && lf.indexOf('cloakdisplacement') >= 0 && lf.indexOf('leather1') < 0 && lf.indexOf('dagger1') < 0 && lf.indexOf('longsword1') < 0, 'a greatsword fighter in chain may find chain +1, the ring, the cloak; not leather +1, not another kind of blade');
+      var hW = NP.sheet(NP.spec('wizard:3')), lw = PK.lootFor(hW, false);
+      okP(lw.indexOf('staff1') >= 0 && lw.indexOf('robes1') >= 0 && lw.indexOf('chainmail1') < 0, 'a wizard may find a staff +1 and robes +1, never chain');
+      // g. a fight by the Pocket's words
+      var B1 = new D.Battle({ npc: { foes: ['goblin', 'goblin', 'wolf'], party: ['barley:3+dagger1', code, { word: 'lymen:3', hpLeft: 7, id: 'p2-lymen' }] }, bench: true, fightDef: D.classFight(3, { id: 'pocket', map: 'gulch', name: 'A POCKET FIGHT' }) });
+      D.battle = B1; B1.enter();
+      var ly = B1.units.filter(function (u) { return u.id === 'p2-lymen'; })[0];
+      okP(ly && ly.hp === 7, 'the carry: Lymen walks in with 7 HP left (' + (ly && ly.hp) + ')');
+      okP(B1.fight.name === 'A POCKET FIGHT' && B1.fight.id === 'pocket', 'the fight takes the Pocket\'s name and id');
+      var res1 = drive(B1);
+      okP(res1 === 'won' || res1 === 'lost', 'the fight ends (' + res1 + ', round ' + B1.round + ')');
+      // h. big ones seated whole
+      var B2 = new D.Battle({ npc: { foes: ['stonegiant', 'ogre', 'ogre', 'troll', 'bulette'], party: ['barley:8', 'aurdin:8', 'vivian:8', 'lymen:8'] }, bench: true, fightDef: D.classFight(8, { id: 'pocket', map: 'camp' }) });
+      D.battle = B2; B2.enter();
+      var seatBad = [], seen = {};
+      B2.units.filter(function (u) { return u.side === 'foe'; }).forEach(function (u) {
+        D.grid.foot(u).forEach(function (p) { var q = B2.map.at(p[0], p[1]); if (!q || !q.walk) seatBad.push(u.name + ' at ' + p.join(',') + ' off the floor'); if (seen[p.join(',')]) seatBad.push(u.name + ' on ' + seen[p.join(',')] + ' at ' + p.join(',')); seen[p.join(',')] = u.name; });
+      });
+      okP(!seatBad.length, 'a stone giant (3x3), two ogres, a troll and a bulette seated whole on open ground, none on another' + (seatBad.length ? ': ' + seatBad.join('; ') : ''));
+      var res2 = drive(B2);
+      okP(res2 === 'won' || res2 === 'lost', 'the big fight ends (' + res2 + ', round ' + B2.round + ')');
+    } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
+    if (errs.length) repP.errors = repP.errors.concat(errs);
+    var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
+    document.body.appendChild(preP);
+    return;
+  }
   var log = null;
   for (var i = 0; i < n; i++) {
     D.seed = seed0 * 7919 + i * 104729;

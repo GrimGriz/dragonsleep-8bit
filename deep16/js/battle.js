@@ -19,7 +19,7 @@
     // from the camp (js/camp.js): the four as the morning left them; copied, so RESTART starts from the camp again
     // inside the 8-bit game (js/embed.js, this.o.embed): the party it handed over, as it stood when the fight began
     if (this.o.data) this.from = { from: this.o.embed ? 'the 8-bit game' : 'the camp', when: null, data: JSON.parse(JSON.stringify(this.o.data)) };
-    else if (this.o.ladder || this.o.npc) this.from = { from: this.o.npc ? 'the class floor' : 'the ladder', when: null, data: D.save.fixture(Math.min(9, F.level)) }; // (the four stop at 9: a druid 12 on the class floor meets them at 9)
+    else if (this.o.ladder || this.o.npc) this.from = { from: this.o.pocket ? 'the Pocket DM' : this.o.npc ? 'the class floor' : 'the ladder', when: null, data: D.save.fixture(Math.min(9, F.level)) }; // (the four stop at 9: a druid 12 on the class floor meets them at 9)
     else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
     this.canSwap = !this.o.ladder && !this.o.npc && !this.o.embed && (this.o.fixture || this.from.from !== 'the fixture');
     var party = D.save.units(this.from.data, this.o.climb ? Object.assign({}, F, { looks: null }) : F); // the climb: Barley is Barley
@@ -28,7 +28,7 @@
     // tester ladder, ?ladder&party=ours: "AI now, buttons later")
     var NB = this.o.npc;
     // (a word -- 'talmok:5:grown' -- or a spec the camp made up for the morning, js/camp.js o.ours; its id is the camp's)
-    if (NB && NB.party) party = NB.party.map(function (w, i) { return D.npc.build(w, F.level, 'party', { id: typeof w === 'string' ? 'p' + i + '-' + String(w).split(':')[0] : w.id }); }).filter(Boolean);
+    if (NB && NB.party) party = NB.party.map(function (w, i) { return D.npc.build(w, F.level, 'party', { id: typeof w === 'string' ? 'p' + i + '-' + String(w).split(':')[0].split('.')[0].split('+')[0] : w.id || ('p' + i + '-' + String(w.word || 'x').split(':')[0].split('.')[0].split('+')[0]) }); }).filter(Boolean); // (a `~` code or a `+item` word keeps a short id: js/classes.js NPC.spec, 10-02)
     if (NB && (this.o.bench || this.o.watch)) party.forEach(function (u) { u.guest = true; u.classAI = true; });
     // the wizard's familiar, if the save has one and he is here (Find Familiar: js/familiar.js)
     var famData = this.o.familiar ? { flags: { familiar: this.o.familiar } } : NB ? null : this.from.data; // (the camp's pick for our four: o.familiar)
@@ -180,10 +180,19 @@
     for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var q = m.at(x, y); if (q && q.walk) pts.push([x, y]); }
     var cx = (m.w - 1) / 2;
     pts.sort(function (a, b) { return a[1] - b[1] || Math.abs(a[0] - cx) - Math.abs(b[0] - cx); });
+    // (a Large or Huge one needs its whole footprint on open ground, and none of it taken: the Pocket DM seats the bestiary here too -- 10-02)
+    var fits = function (u, p, loose) {
+      var s = u.size || 1;
+      for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) { var q = m.at(p[0] + i, p[1] + j); if (!q || !q.walk || taken[(p[0] + i) + ',' + (p[1] + j)]) return false; }
+      if (loose) return true;
+      for (var jj = -1; jj <= s; jj++) for (var ii = -1; ii <= s; ii++) if (taken[(p[0] + ii) + ',' + (p[1] + jj)]) return false;
+      return true;
+    };
     band.forEach(function (u) {
-      var at = pts.filter(function (p) { for (var j = -1; j <= 1; j++) for (var i = -1; i <= 1; i++) if (taken[(p[0] + i) + ',' + (p[1] + j)]) return false; return true; })[0] || pts.filter(function (p) { return !taken[p[0] + ',' + p[1]]; })[0];
+      var at = pts.filter(function (p) { return fits(u, p, false); })[0] || pts.filter(function (p) { return fits(u, p, true); })[0] || pts.filter(function (p) { return !taken[p[0] + ',' + p[1]]; })[0];
       if (!at) return;
-      u.x = at[0]; u.y = at[1]; u.facing = 1; taken[at[0] + ',' + at[1]] = 1;
+      u.x = at[0]; u.y = at[1]; u.facing = 1;
+      var s = u.size || 1; for (var j = 0; j < s; j++) for (var i = 0; i < s; i++) taken[(at[0] + i) + ',' + (at[1] + j)] = 1;
     });
     return band;
   };
@@ -573,7 +582,7 @@
     yield 30;
     var F = this.fight, gone = this.units.some(function (u) { return u.fled; }) && this.alive('party').length;
     var head = o === 'roost' ? '{r}THE ROOST COMES DOWN.{/}' : o === 'yielded' ? '{y}' + ((this.o.embed && this.o.embed.yieldText) || F.yielded || 'HE LOWERS HIS HANDS.') + '{/}' : o === 'won' ? '{y}' + (F.won || 'THE GALLERY IS STILL.') + '{/}' : o === 'escaped' ? '{y}OUT THE WAY THEY CAME IN.{/}' : '{r}' + (gone ? (F.escaped || 'THEY GOT AWAY.') : (F.lost || 'THE DARK KEEPS THEM.')) + '{/}';
-    this.card([head, D.keys('{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.climb ? 'E back to the climb' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}')], 1e9);
+    this.card([head, D.keys('{g}' + (this.o.embed ? 'E to go on' : this.o.onDone ? (this.o.climb ? 'E back to the climb' : this.o.pocket ? 'E back to the Pocket DM' : 'E back to the ladder') : 'E fight again') + ' · M the menu{/}')], 1e9);
   };
 
   // ------------------------------------------------------------------ a hero's turn: the player acts until END TURN

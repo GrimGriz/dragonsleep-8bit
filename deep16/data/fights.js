@@ -300,9 +300,11 @@
   // NPCs to the north and the four (or another band) at the south door. Made when asked for, never on the ladder's list
   D.classFight = function (level, o) {
     o = o || {};
-    return { id: 'classes', level: level, map: o.map || 'hexfloor', dark: o.dark != null ? o.dark : undefined, name: 'The Class Floor', // (&map=, &dark: js/classes.js npcFight) sub: 'the Pocket DM: ' + (o.what || 'a class NPC') + ' at ' + level,
+    // (o.name, o.sub, o.won, o.lost, o.music, o.id: the Pocket DM's own words for a fight it made -- deep16/js/pocket.js, 10-02)
+    return { id: o.id || 'classes', level: level, map: o.map || 'hexfloor', dark: o.dark != null ? o.dark : undefined, name: o.name || 'The Class Floor', // (&map=, &dark: js/classes.js npcFight)
+      sub: o.sub || ('the Pocket DM: ' + (o.what || 'a class NPC') + ' at ' + level), music: o.music || undefined,
       intro: o.intro || 'The floor is swept. Across it, someone in their own colours has come to see what you are made of.',
-      from: 'the class NPCs (deep16/js/classes.js): the SRD 5.1 classes at levels 1-6', won: 'THE FLOOR IS YOURS.', lost: 'THE FLOOR IS THEIRS.', foes: [], wave: null, noFlee: true };
+      from: o.from || 'the class NPCs (deep16/js/classes.js): the SRD 5.1 classes at levels 1-6', won: o.won || 'THE FLOOR IS YOURS.', lost: o.lost || 'THE FLOOR IS THEIRS.', foes: [], wave: null, noFlee: true };
   };
   // a rung's fights: the Cocoon Gallery first on the top rung (the POC, Denny's), then the 8-bit game's set pieces, then
   // the bestiary's (the Cowork seat's first four, `bestiary`)
