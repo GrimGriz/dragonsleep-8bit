@@ -113,6 +113,8 @@
   };
   M.onEnd = function (B, u) {
     var c = u.conds;
+    // Aurdin's joke: the turn he cast it at himself over, he picks himself up (RULED 10-02, Griz: "Aurdin gets to get up after he ends the turn he cast the spell")
+    if (u.jokeUp) { delete u.jokeUp; if (c.prone && !c.laughing && u.hp > 0 && !u.dead) { delete c.prone; B.card(['{g}' + u.name + ' picks himself up off the floor, still wheezing.{/}'], 220); } }
     // the saves at a turn's end
     [['laughing', 'wis', 'stops laughing'], ['blindedBy', 'con', 'can see again'], ['slowed', 'wis', 'shakes off the slow'], ['enfeebled', 'con', 'feels the strength come back'], ['confused', 'wis', 'comes to its senses'], ['sickened', 'wis', 'shakes off the sickness']].forEach(function (q) { // (Eyebite's sickened: a WIS save at the end of each of its turns, SRD 5.1)
       var s = c[q[0]]; if (!s || !s.dc || u.hp <= 0) return;
@@ -501,7 +503,8 @@
   // over while it laughs. The sound is one gnoll's at a time (B.laughQuiet: its length and a breath), so a pack laughing is a laugh track, not a din
   // (quiet 54: the sound's own length, 0.83 s, and a hair -- so the fall's 4 and the chain's first 8, 56 ticks apart, both sound; a pack's staggered starts
   // fall inside it, so the pack laughs as one: at 0, 2.0 s and 3.0 s, then every 1.6 s while it lies there)
-  M.LAUGH = { run: [[0, 40, 1], [1, 10], [2, 10], [3, 10], [4, 18], [3, 12], [5, 10], [6, 12], [7, 26, 1], [6, 12]], chain: [[8, 18], [4, 30, 1], [8, 18], [4, 30]], quiet: 54 };
+  // (every: the chain's laugh on every other chain -- RULED 10-02, Griz: "every other chain"; so after 3.0 s, every 3.2 s)
+  M.LAUGH = { run: [[0, 40, 1], [1, 10], [2, 10], [3, 10], [4, 18], [3, 12], [5, 10], [6, 12], [7, 26, 1], [6, 12]], chain: [[8, 18], [4, 30, 1], [8, 18], [4, 30]], every: 2, quiet: 54 };
   function laughLen(seq) { return seq.reduce(function (s, b) { return s + b[1]; }, 0); }
   // where u's fit is at B.t: { i: the beat's own number (the run's, then the chain's counted on), pose, laugh }; before its start (a pack's staggered
   // a few ticks apart) the yawn, no beat yet
@@ -511,7 +514,7 @@
     if (u.laughFloor) k += rl;
     if (k < rl) { for (var i = 0; i < run.length; i++) { if (k < run[i][1]) return { i: i, pose: run[i][0], laugh: !!run[i][2] }; k -= run[i][1]; } }
     k -= rl; var cyc = Math.floor(k / cl); k -= cyc * cl;
-    for (var j = 0; j < ch.length; j++) { if (k < ch[j][1]) return { i: run.length + cyc * ch.length + j, pose: ch[j][0], laugh: !!ch[j][2] }; k -= ch[j][1]; }
+    for (var j = 0; j < ch.length; j++) { if (k < ch[j][1]) return { i: run.length + cyc * ch.length + j, pose: ch[j][0], laugh: !!ch[j][2] && cyc % (L.every || 1) === 0, cyc: cyc }; k -= ch[j][1]; }
     return { i: -1, pose: ch[0][0], laugh: false };
   };
   M.laughFrame = function (B, u) { return M.laughBeat(B, u).pose; };
@@ -552,6 +555,7 @@
     if (!B || !B.o || !B.o.embed || !u || u.id !== 'aurdin' || u.side !== 'party' || u.guest || u.classAI) return false;
     var fl = (B.from && B.from.data && B.from.data.flags) || {}, h = u.src || {};
     if (!fl.katVision || (h.known || []).indexOf('hideouslaughter') < 0 || (u.known || []).indexOf('hideouslaughter') < 0) return false;
+    if (M.eggFound(B, 'joke')) return false; // (once the egg has come up, never again: RULED 10-02, Griz: "disabled when the egg appears (1 per customer)")
     return B.units.some(function (w) { return M.gnoll(w) && !w.dead && w.hp > 0; });
   };
   // the gnolls' two full rounds, from his turn to his turn two rounds on: measured by the round and the place in the order, so they end on time
@@ -570,12 +574,24 @@
   function* joke(B, u, head) {
     if (u.conc) M.endConc(B, u, 'a new spell'); // (it is a concentration spell, and he cast it: what he held lets go -- and his own fit, below, is over at once)
     u.conds.laughing = { by: u.id, spell: 'hideouslaughter', joke: true }; u.conds.incapacitated = { by: u.id }; u.conds.prone = true;
-    FX.sparkle(u, 'violet', 22); D.sfx('guffaw');
+    u.jokeUp = true; // (up again as this turn ends: M.onEnd -- RULED 10-02, Griz: "Aurdin gets to get up after he ends the turn he cast the spell")
+    FX.sparkle(u, 'violet', 22);
     B.card([head + ' at himself', '{p}Aurdin cracks up at his own joke, and goes down laughing.{/}'], 320);
-    yield 70;
-    // the reactions: everyone who hears it and laughs that laugh (any side; one asleep, held or stunned hears nothing)
+    // who hears it and laughs that laugh (any side; one asleep, held or stunned hears nothing)
     var hears = function (w) { return !w.dead && w.hp > 0 && !w.ethereal && !w.conds.asleep && !w.conds.paralyzed && !w.conds.stunned; };
     var hy = B.units.filter(function (w) { return M.hyena(w) && hears(w); }), gn = B.units.filter(function (w) { return M.gnoll(w) && hears(w); });
+    // the cutscene, as the darkness's is (RULED 10-02, Griz: "Like those cut scenes, with Aurdin waist up and laugh, the cam down to him down with the laugh
+    // and a give him a little hehehe that plays once showing him - then zoom on idol face living gnoll, then idle 6 with the sound (with the text overlaying
+    // as appropriate) then zoomed back out and the effects we currently have start" -- "oh, hehehe from aurdin again on the still face of the hyena")
+    var pfA = D.spr ? D.spr.proneFrame(u.sheet) : -1, gnF = gn.filter(function (w) { return w.kind === 'gnoll'; })[0] || gn[0];
+    // (the framings by the figures' heights -- S.top: Aurdin's 53 px, the hyena's 36, the gnoll's 60 -- at 480 x 270: waist up, then faces)
+    yield { scene: { who: u, face: true, faceAt: 0.65, scale: 5.5, bob: true, frames: 120, caption: 'AURDIN CRACKS UP AT HIS OWN JOKE.', tick: function (t) { if (t === 1) D.sfx('guffaw'); }, joke: 'waist' } };
+    yield { scene: { who: u, anim: pfA >= 0 ? D.spr.proneRow(u.sheet) : 'idle', frame: pfA >= 0 ? pfA : null, scale: 4, bob: true, pan: 90, panDur: 46, frames: 130, caption: 'AND GOES DOWN LAUGHING.', tick: function (t) { if (t === 62) D.sfx('hehehe'); }, joke: 'down' } };
+    if (hy[0]) yield { scene: { who: hy[0], face: true, faceAt: 0.68, scale: 9, frame: 0, frames: 100, tick: function (t) { if (t === 36) D.sfx('hehehe'); }, joke: 'hyena' } };
+    if (gnF) {
+      yield { scene: { who: gnF, face: true, faceAt: 0.73, scale: 7, zoomFrom: 2.4, frames: 70, joke: 'gnoll' } };
+      yield { scene: { who: gnF, anim: 'laugh', frame: 0, face: true, faceAt: 0.73, scale: 7, frames: 150, outro: 40, caption: gn.length > 1 ? 'THE GNOLLS KNOW THAT LAUGH.' : 'THE GNOLL KNOWS THAT LAUGH.', tick: function (t) { if (t === 1) D.sfx('gnollaugh'); }, joke: 'yawn' } };
+    }
     hy.forEach(function (w) { // till the end of its next turn (M.tick), no save
       w.conds.laughing = { by: u.id, joke: true, till: { who: w.id, at: 'end', n: 1 }, endText: '{who} gets its breath back.', onEnd: function (x) { delete x.conds.incapacitated; } };
       w.conds.incapacitated = { by: u.id }; w.conds.prone = true; w.reaction = 0; FX.sparkle(w, 'violet', 12);
@@ -586,12 +602,11 @@
       w.conds.incapacitated = { by: u.id }; w.conds.prone = true; w.reaction = 0; FX.sparkle(w, 'violet', 12);
     });
     if (gn.length) { if (!gn.every(laughsOnItsRow)) D.sfx('gnollaugh'); B.card(['{p}' + (gn.length > 1 ? 'The gnolls know that laugh. They go down howling with it' : 'The gnoll knows that laugh. It goes down howling with it') + '{/} -- two full rounds, no save.'], 320); yield 70; }
-    // and his own fit is over: on the floor still (prone; up again for half his move)
+    // and his own fit is over: on the floor still, and up again as his turn ends (M.onEnd)
     delete u.conds.laughing; delete u.conds.incapacitated;
-    B.card(['{g}Aurdin\'s fit passes. He is still on the floor.{/}'], 260);
+    B.card(['{g}Aurdin\'s fit passes. He is still on the floor -- up again as his turn ends.{/}'], 260);
     yield 30;
-    // the battle holds while the egg is up (a cutscene beat, js/ui.js scene: E, or a click, after a second goes on)
-    yield { scene: { draw: M.jokeEgg, frames: 230, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, joke: true } };
+    yield* M.egg(B, 'joke'); // (and from here on, his own square is no target of it: M.jokeReady)
   }
   M.joke = joke;
 
@@ -624,7 +639,7 @@
     return EGG;
   }
   function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
-  M.jokeEgg = function (ctx, t, W, H) {
+  M.eggDraw = function (line) { return function (ctx, t, W, H) { // (each egg its own line under it: Aurdin's joke, the darkness -- 10-02)
     var P = D.PAL.ramps, eg = eggSheet(), w = eg.w, h = eg.h, img = eg.cx.createImageData(w, h), px = img.data;
     var RED = P.red.map(hex), WHITE = hex(P.bone[2]), CREAM = hex(P.bone[0]), PINK = hex(P.accent[0]), OUT = hex(P.outline[0]);
     var g0 = ((t + 40) % 110) * 1.1 - 26; // (the glint's place along the diagonal: a sweep every ~2 s)
@@ -668,12 +683,23 @@
     });
     // the line, big, under it
     if (t >= 12) {
-      var line = 'Guess I\'m the Joke, Now', DS = window.DS, tw = DS.textWidth(line), al = Math.min(1, (t - 12) / 12);
+      var DS = window.DS, tw = DS.textWidth(line), al = Math.min(1, (t - 12) / 12);
       ctx.save(); ctx.globalAlpha = al; ctx.imageSmoothingEnabled = false;
       ctx.translate(Math.round(W / 2 - tw), Math.round(cys + h * K / 2 + 16)); ctx.scale(2, 2);
       DS.text(ctx, line, 1, 1, P.red[1]); DS.text(ctx, line, 0, 0, P.bone[2]);
       ctx.restore();
     }
+  }; };
+  M.jokeEgg = M.eggDraw('Guess I\'m the Joke, Now');
+  // the eggs found, kept in the save (10-02, Griz: "which I'm hoping we're tracking somewhere in their save files"): each egg's flag goes back to the
+  // 8-bit game with the fight's others (B.flags8, js/embed.js), and each shows once a save -- "1 per customer". js/events.js EV.EGGS lists them
+  M.EGGS = { joke: { flag: 'eggJoke', line: 'Guess I\'m the Joke, Now' }, darkness: { flag: 'eggDarkness', line: 'Don\'t Poke the Darkness' } };
+  M.eggFound = function (B, key) { var f = M.EGGS[key].flag, fl = (B.from && B.from.data && B.from.data.flags) || {}; return !!(fl[f] || (B.flags8 && B.flags8[f])); };
+  M.egg = function* (B, key) {
+    if (M.eggFound(B, key)) return;
+    B.flags8 = B.flags8 || {}; B.flags8[M.EGGS[key].flag] = 1;
+    // the battle holds while the egg is up (a cutscene beat, js/ui.js scene: E, or a click, after a second goes on)
+    yield { scene: { draw: key === 'joke' ? M.jokeEgg : M.eggDraw(M.EGGS[key].line), frames: 230, tick: function (t) { if (t === 1) D.sfx('rimshot'); if (t === 30 || t === 130) D.sfx('shine'); }, egg: key } };
   };
   // Hunter's Mark and Mirror's Gaze: a mark held by concentration; when the marked one drops, a bonus action moves it (no slot)
   function markSpell(id, name, o) {

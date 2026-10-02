@@ -698,6 +698,10 @@
   function scene(ctx, B, sc) {
     if (sc.draw) { sc.draw(ctx, sc.t || 0, D.W, D.H); if ((sc.t || 0) > 60 && ((sc.t >> 5) & 1)) D.hint(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5)); return; } // (a picture drawn by its own hand: the landlord's, js/wet.js)
     var t = sc.t || 0, u = sc.who, k = sc.scale || 3, red = sc.tone === 'red', top = D.spr.top(u.sheet);
+    // `outro` (10-02, Aurdin's joke: "then zoomed back out"): over the beat's last ticks the backdrop thins, the figure shrinks and fades, and the
+    // fight comes up behind it
+    var oq = sc.outro ? Math.max(0, Math.min(1, (t - ((sc.frames || 120) - sc.outro)) / sc.outro)) : 0;
+    ctx.save(); ctx.globalAlpha = 1 - oq;
     ctx.fillStyle = red ? 'rgba(34,4,8,0.94)' : 'rgba(5,5,12,0.94)'; ctx.fillRect(0, 0, D.W, D.H);
     var g = ctx.createRadialGradient(D.W / 2, D.H / 2 - 10, 10, D.W / 2, D.H / 2 - 10, 210);
     g.addColorStop(0, red ? 'rgba(150,26,36,0.55)' : 'rgba(70,84,140,0.4)'); g.addColorStop(1, 'rgba(0,0,0,0)');
@@ -714,7 +718,11 @@
     var tA = Math.max(0, t - (sc.animAt || 0)); // (`animAt`: the tick its animation starts from -- the reveal plays from its own first frame)
     // `swoop` (Griz, 09-29: the sheet "looks like a sequence to play at the end of the easter egg"): the figure flies in from the right,
     // growing as it comes, through its flight's eight poses, the last held -- toward whoever it is coming for, at the left
-    var px0 = D.W / 2, py0 = foot, kk = k;
+    var px0 = D.W / 2, py0 = foot, kk = k * (1 - 0.55 * oq);
+    // (10-02, Aurdin's joke) `pan`: the camera tilts down onto the figure over its first `panDur` ticks (it rises into the frame from `pan` px below);
+    // `bob`: shaking with laughter, a sprite's pixel up and down
+    if (sc.pan) { var pq = Math.min(1, t / (sc.panDur || 50)); py0 += Math.round(sc.pan * (1 - pq * pq * (3 - 2 * pq))); }
+    if (sc.bob) py0 -= Math.round(Math.abs(Math.sin(t / 3.4)) * kk);
     if (sc.swoop) { var pr = Math.min(1, t / Math.max(1, (sc.frames || 84) - 24)), ee = pr * pr * (3 - 2 * pr); px0 = D.W + 90 - (D.W + 90 - D.W * 0.24) * ee; py0 = foot - 46 + 72 * ee; kk = k * (0.75 + 0.95 * ee); }
     // `morph` { from, at, dur }: the figure starts as another of its animations (the cloaker hung as a cloak) and dissolves into its own
     // over `dur` ticks from `at`, trembling as it changes -- the unfurling
@@ -722,7 +730,7 @@
     ctx.save(); ctx.translate(px0 + shake, py0); ctx.scale(kk, kk);
     // `morph.animAt`: the target plays from that tick; `morph.hold`: the figure it leaves is held on its last frame; `over` { anim, alpha }:
     // a faint second drawing laid over the figure, pulsing and swelling (the cloaker's Moan, the phantasm heads)
-    var facing = sc.facing == null ? 0 : sc.facing, one = function (an, al, tt, once) { var oo = Object.assign({}, o); if (al < 1) oo.alpha = al; if (once) oo.once = true; D.spr.draw(ctx, u.sheet, an, facing, an === 'attack' ? Math.min(tt, 60) : tt, 0, 0, oo); };
+    var facing = sc.facing == null ? 0 : sc.facing, one = function (an, al, tt, once) { var oo = Object.assign({}, o); if (al < 1) oo.alpha = al; if (once) oo.once = true; if (sc.frame != null && an === anim) oo.frame = sc.frame; /* (`frame`: one pose held -- Aurdin down, the hyena's still face, the gnoll's yawn: 10-02) */ D.spr.draw(ctx, u.sheet, an, facing, an === 'attack' ? Math.min(tt, 60) : tt, 0, 0, oo); };
     if (sc.morph && ma < 1) { one(sc.morph.from, 1 - ma * ma, sc.morph.hold ? 99999 : t, sc.morph.hold); if (ma > 0) one(anim, ma, tA); } else one(anim, 1, tA);
     if (sc.over && D.spr.anim(u.sheet, sc.over.anim)) {
       var pu = 0.5 + 0.5 * Math.sin(t / 5), fade = Math.min(1, t / 20);
@@ -742,6 +750,7 @@
       ctx.strokeStyle = red ? R('red', 4) : R('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 16);
       D.text(ctx, sc.caption, D.W / 2, y + 5, red ? R('red', 4) : R('gold', 4), 'center');
     }
+    ctx.restore(); // (the outro's fade)
     if (t > 60 && ((t >> 5) & 1)) D.hint(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5));
   }
 
@@ -806,6 +815,7 @@
         else if (pf >= 0 && !down && u.proneT != null) {
           var pk = Math.floor((B.t - u.proneT) * (D.spr.anim(u.sheet, prow).fps || 8) / 60);
           if (u.proneLook) { anim = prow; o.frame = Math.min(pk, pf); }
+          else if (has('getup')) { var ga = D.spr.anim(u.sheet, 'getup'), gk = Math.floor((B.t - u.proneT) * (ga.fps || 8) / 60); if (gk < ga.frames) { anim = 'getup'; o.frame = gk; } } // (a sheet's own get-up, played forward: the gnolls', 10-02 -- off the back, over, onto its knees, up)
           else if (pk < pf) { anim = prow; o.frame = pf - 1 - pk; } // (getting up)
         }
         // under the ground (a burrower, js/ai.js, 10-01d): its mound, the Burrow row's last frame, sliding where it goes -- "like a fin through

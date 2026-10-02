@@ -383,6 +383,8 @@
           });
           B.card(ml, 420); yield 40;
         }
+        // and its egg (10-02, Griz: the darkness "still needs it's easter egg"): the red egg, once a save (js/grimoire.js M.egg, M.EGGS)
+        if (M.egg) yield* M.egg(B, 'darkness');
       }
     } else if (g.shape === 'splash') {
       var first = t, second = B.units.filter(function (w) { return w !== first && G.hostile(u, w) && G.standing(w) && G.dist(first, w) <= 5; })[0];

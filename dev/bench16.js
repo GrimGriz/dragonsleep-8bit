@@ -533,6 +533,7 @@
       var day = o.prepared || (au.prepared ? au.prepared.filter(function (id) { return id !== 'hideouslaughter'; }).slice(0, -1).concat(['hideouslaughter']) : null);
       if (day) au.prepared = day;
       if (!o.noQuest) d.flags.katVision = 1;
+      if (o.eggFound) d.flags.eggJoke = 1; // (the egg already found in this save: 1 per customer)
       return d;
     }
     var mkJN = 0;
@@ -569,7 +570,19 @@
         gn3.length === 3 && gn3.every(function (w) { var c = w.conds.laughing; return c && c.joke && c.ends && c.ends.round === B3.round + 2 && !c.dc && w.conds.incapacitated && w.conds.prone; }));
       okJ('the cards: ' + l3.slice(0, 300), /cracks up at his own joke/.test(l3) && /hyenas catch it/.test(l3) && /gnolls know that laugh/.test(l3) && /fit passes/.test(l3));
       var eggS = scenes.filter(function (s) { return s.draw === MJ.jokeEgg; })[0];
-      okJ('the egg holds the fight: a cutscene beat drawn by M.jokeEgg, ' + (eggS && eggS.frames) + ' frames, ' + scenes.length + ' beat(s)', !!eggS && scenes.length === 1 && eggS.frames >= 180 && eggS.frames <= 300);
+      // the cutscene first (RULED 10-02): Aurdin waist up laughing, the camera down to him down (his hehehe), the hyena's still face (his hehehe again), a
+      // living gnoll's face, its yawn with its laugh and the line, back out -- then the field's effects, and the egg
+      var beatsJ = scenes.map(function (s) { return (s.joke || s.egg || '?') + (s.who ? ':' + (s.who.kind || s.who.id) : ''); }).join(' ');
+      okJ('the cutscene, then the egg: ' + beatsJ, beatsJ === 'waist:aurdin down:aurdin hyena:hyena gnoll:gnoll yawn:gnoll joke' && !!eggS && eggS.frames >= 180 && eggS.frames <= 300 && scenes[1].frame === D.spr.proneFrame(au3.sheet) && scenes[2].frame === 0 && scenes[4].anim === 'laugh' && scenes[4].frame === 0 && scenes[4].outro > 0);
+      // one per customer: the egg came up, so his own square is no target of it now, here or in a save that has it
+      var sAfter = selfJ(B3), sSaved = selfJ(mkJ({ eggFound: true }));
+      okJ('one per customer: the flag for the save ' + JSON.stringify(B3.flags8) + '; himself after the egg ' + sAfter.self + ' (still castable at a foe ' + sAfter.listed + '); in a save that found it ' + sSaved.self, B3.flags8 && B3.flags8.eggJoke === 1 && !sAfter.self && sAfter.listed && !sSaved.self);
+      // up again as the turn he cast it ends
+      var nU = (B3.log || []).length; au3.jokeUp = true; au3.conds.prone = true; MJ.endTurn(B3, au3);
+      okJ('his turn over: prone ' + !!au3.conds.prone + ' -- "' + logJ(B3, nU).slice(0, 90) + '"', !au3.conds.prone && /picks himself up/.test(logJ(B3, nU)));
+      // the darkness's egg the same way: once a save
+      var B8 = mkJ({}), sc8 = []; runJ(MJ.egg(B8, 'darkness'), sc8); var sc8b = []; runJ(MJ.egg(B8, 'darkness'), sc8b);
+      okJ('the darkness\'s egg: up once (' + sc8.map(function (s) { return s.egg; }).join() + '), the flag ' + JSON.stringify(B8.flags8) + ', not again (' + sc8b.length + ')', sc8.length === 1 && sc8[0].egg === 'darkness' && B8.flags8.eggDarkness === 1 && !sc8b.length);
       // the egg draws, every frame of it, red at its heart; the line under it
       var cvJ = document.createElement('canvas'); cvJ.width = 480; cvJ.height = 270; var cxJ = cvJ.getContext('2d'), drawErr = null;
       function frameJ(tf) { cxJ.setTransform(1, 0, 0, 1, 0, 0); cxJ.fillStyle = '#46362c'; cxJ.fillRect(0, 0, 480, 270); MJ.jokeEgg(cxJ, tf, 480, 270); }
@@ -579,6 +592,7 @@
       okJ('drawn at every frame' + (drawErr ? ' ERR ' + drawErr : '') + '; its heart rgb(' + pxJ[0] + ',' + pxJ[1] + ',' + pxJ[2] + '); the line under it, ' + lit + ' bright pixels across', !drawErr && pxJ[0] > 100 && pxJ[0] > pxJ[1] * 1.8 && lit > 40);
       if (get('shots', '')) { repJ.shots = {}; [6, 14, 40, 75].forEach(function (t2) { frameJ(t2); repJ.shots['t' + t2] = cvJ.toDataURL('image/png'); }); }
       // 3. the turns, by hand from his on: each turn's start counted laughing is a turn lost (a foe's turn its own AI's; ours begun and ended)
+      D.battle = B3; // (RU.startTurn asks the grimoire's hooks of D.battle: the checks above made battles of their own)
       var lostJ = {}, onS0 = MJ.onStart;
       MJ.onStart = function (B, u) { onS0.apply(this, arguments); if (u.conds.laughing && u.hp > 0) lostJ[u.id] = (lostJ[u.id] || 0) + 1; };
       try {
@@ -617,23 +631,24 @@
       // 6. the gnolls' own rows (10-02, Griz's gnoll sheet 2): a laugh row of nine poses, a prone row of four lying at its last; the fit beat by beat in his
       // order -- 0 yawn, sit 2, 1, 3, 8, 3, fall 1, 2, 4, 2, then fall 5 / sit 8 over and over -- and the laugh on the yawn, the fall's 4 and the chain's first 8
       var SPJ = D.spr, SH = ['gnoll_p2', 'gloryseeker_p2'];
-      okJ('the sheets: ' + SH.map(function (s) { var la = SPJ.anim(s, 'laugh'), pr = SPJ.anim(s, 'prone'); return s + ' laugh ' + (la && la.frames) + ', prone ' + (pr && pr.frames) + ' (lies at ' + SPJ.proneFrame(s) + ', row ' + SPJ.proneRow(s) + ')'; }).join('; '),
-        SH.every(function (s) { var la = SPJ.anim(s, 'laugh'), pr = SPJ.anim(s, 'prone'); return la && la.frames === 9 && pr && pr.frames === 4 && SPJ.proneFrame(s) === 3 && SPJ.proneRow(s) === 'prone'; }));
+      // (prone: fall 1, 2, knocked over onto its back -- RULED 10-02, "yes"; up by its own get-up, fall 3 to 8, played forward)
+      okJ('the sheets: ' + SH.map(function (s) { var la = SPJ.anim(s, 'laugh'), pr = SPJ.anim(s, 'prone'), gu = SPJ.anim(s, 'getup'); return s + ' laugh ' + (la && la.frames) + ', prone ' + (pr && pr.frames) + ' (lies at ' + SPJ.proneFrame(s) + ', row ' + SPJ.proneRow(s) + '), getup ' + (gu && gu.frames); }).join('; '),
+        SH.every(function (s) { var la = SPJ.anim(s, 'laugh'), pr = SPJ.anim(s, 'prone'), gu = SPJ.anim(s, 'getup'); return la && la.frames === 9 && pr && pr.frames === 2 && SPJ.proneFrame(s) === 1 && SPJ.proneRow(s) === 'prone' && gu && gu.frames === 6; }));
       var B7 = mkJ({}), gn7 = B7.units.filter(function (w) { return MJ.gnoll(w); }), hy7 = kindJ(B7, /^hyena/), heard = [], sfx0 = D.sfx, T0 = 1000, one = gn7[0];
       function laughJ(w) { w.conds.laughing = { by: 'x', joke: true }; w.conds.incapacitated = { by: 'x' }; w.conds.prone = true; }
       D.sfx = function (id) { heard.push({ id: id, t: B7.t }); };
       try {
         laughJ(one); var poses = [], lastP = null, at = [];
-        for (var tk = 0; tk < 420; tk++) { B7.t = T0 + tk; var n0 = heard.length; MJ.laughTick(B7); var bj = MJ.laughBeat(B7, one); if (heard.length > n0) at.push(bj.pose + '@' + (bj.i < MJ.LAUGH.run.length ? 'run' : 'chain' + ((bj.i - MJ.LAUGH.run.length) % 4))); if (bj.pose !== lastP) { poses.push(bj.pose); lastP = bj.pose; } }
+        for (var tk = 0; tk < 420; tk++) { B7.t = T0 + tk; var n0 = heard.length; MJ.laughTick(B7); var bj = MJ.laughBeat(B7, one); if (heard.length > n0) at.push(bj.pose + '@' + (bj.i < MJ.LAUGH.run.length ? 'run' : 'chain' + ((bj.i - MJ.LAUGH.run.length) % 4) + '#' + bj.cyc)); if (bj.pose !== lastP) { poses.push(bj.pose); lastP = bj.pose; } }
         var want = [0, 1, 2, 3, 4, 3, 5, 6, 7, 6, 8, 4, 8, 4, 8, 4, 8, 4];
         okJ('one gnoll\'s fit, pose by pose: ' + poses.slice(0, 18).join(',') + ' (his: ' + want.join(',') + ')', poses.slice(0, 18).join() === want.join());
-        okJ('its laughs (pose@beat): ' + at.join(' ') + ' -- the yawn, the fall\'s 4, then the first 8 of each chain', at.length >= 4 && at[0] === '0@run' && at[1] === '7@run' && at.slice(2).every(function (x) { return x === '4@chain1'; }));
+        okJ('its laughs (pose@beat#chain): ' + at.join(' ') + ' -- the yawn, the fall\'s 4, then the first 8 of every other chain (RULED 10-02)', at.length >= 4 && at[0] === '0@run' && at[1] === '7@run' && at.slice(2).every(function (x, i) { return x === '4@chain1#' + (i * 2); }));
         // the pack: three at once, the sound one at a time; one already on the ground starts in the chain; a hyena has no laugh row
         heard = []; gn7.forEach(function (w) { w.laughT = null; laughJ(w); }); hy7.forEach(laughJ);
         var lying = gn7[2]; lying.proneLook = true; lying.proneT = T0 + 500; delete lying.conds.laughing; // (down a while before it laughs)
         for (var tk2 = 0; tk2 < 700; tk2++) { B7.t = T0 + 600 + tk2; if (tk2 === 40) laughJ(lying); MJ.laughTick(B7); }
         var gaps = heard.slice(1).map(function (h, i) { return h.t - heard[i].t; });
-        okJ('a pack of ' + gn7.length + ' laughing ' + (700 / 60).toFixed(1) + ' s: ' + heard.length + ' laughs, never closer than ' + Math.min.apply(null, gaps.concat([999])) + ' ticks (the quiet: ' + MJ.LAUGH.quiet + ')', heard.length >= 6 && gaps.every(function (g) { return g >= MJ.LAUGH.quiet; }));
+        okJ('a pack of ' + gn7.length + ' laughing ' + (700 / 60).toFixed(1) + ' s: ' + heard.length + ' laughs, never closer than ' + Math.min.apply(null, gaps.concat([999])) + ' ticks (the quiet: ' + MJ.LAUGH.quiet + ')', heard.length >= 4 && gaps.every(function (g) { return g >= MJ.LAUGH.quiet; }));
         // under the egg (a cutscene beat: battle.js update calls M.laughHold) the fit holds still and says nothing, and goes on from there after
         var gh = gn7[1], tH = B7.t, pH = MJ.laughBeat(B7, gh), nH = heard.length;
         for (var th = 1; th <= 230; th++) { B7.t = tH + th; MJ.laughHold(B7); }

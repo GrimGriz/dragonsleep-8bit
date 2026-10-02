@@ -1475,6 +1475,12 @@
   EV.UNJOURNALED = [
     { id: 'katInk', name: 'Ink for Katarina', open: 'flag:katInk', done: 'flag:katVision', lost: 'flag:katGone & !flag:katVision' }
   ];
+  // the easter eggs found (10-02, Griz: "which I'm hoping we're tracking somewhere in their save files"): each by the flag DEEP16 sends back when its red
+  // egg comes up (deep16/js/grimoire.js M.EGGS, M.egg -- once a save), for a tally, a play record, an ending to read
+  EV.EGGS = [
+    { id: 'joke', name: 'Guess I\'m the Joke, Now', found: 'flag:eggJoke', where: 'Aurdin\'s Hideous Laughter on himself, gnolls by (DEEP16)' },
+    { id: 'darkness', name: 'Magic Missile at the Darkness', found: 'flag:eggDarkness', where: 'the cloaker\'s deep gallery (DEEP16)' }
+  ];
   // Katarina's vision (RULED 10-01c, Griz: "First time Barley in party when talk to Kat, only if before wagon event has been triggered, Barley says 'You're
   // with the Dominion' - Kat breaks into: My deity gave me a vision, and when it ended I had used up all my ink. If you bring me another bottle, I'll tell you
   // the vision ... If they have ink then, or manage to get her some before she vanishes from play in one of the various ways, she say her vision was of Aurdin

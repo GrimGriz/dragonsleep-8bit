@@ -391,7 +391,9 @@
     guffaw: function (t) { [64, 62, 63, 61, 60, 58, 59, 56].forEach(function (m, i) { var at = t + i * 0.13 + (i > 4 ? (i - 4) * 0.035 : 0); tone(sfxBus, 'pulse', m, at, 0.085, 0.14, 0.5, -3); tone(sfxBus, 'triangle', m - 12, at, 0.1, 0.1, null, -2); noise(sfxBus, at + 0.02, 0.08, 0.05, 1400, 1); }); noise(sfxBus, t + 1.2, 0.35, 0.05, 900, 0.8); },
     gnollaugh: function (t) { [71, 74, 70, 73, 69, 72, 67, 66].forEach(function (m, i) { var at = t + i * 0.105 + (i % 3 === 1 ? 0.02 : 0); hee(at, m, 0.075, 0.12, 0.08); tone(sfxBus, 'pulse', m - 24, at, 0.08, 0.07, 0.125, -2); }); },
     rimshot: function (t) { tone(sfxBus, 'triangle', 52, t, 0.12, 0.3, null, -8); noise(sfxBus, t, 0.05, 0.2, 900, 1); tone(sfxBus, 'triangle', 47, t + 0.17, 0.14, 0.32, null, -8); noise(sfxBus, t + 0.17, 0.05, 0.2, 800, 1); noise(sfxBus, t + 0.44, 0.95, 0.24, 7600, 0.7); noise(sfxBus, t + 0.44, 0.5, 0.1, 4200, 1.5); },
-    shine: function (t) { [88, 92, 95, 100, 104].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.055, 0.2, 0.07); }); }
+    shine: function (t) { [88, 92, 95, 100, 104].forEach(function (m, i) { tone(sfxBus, 'triangle', m, t + i * 0.055, 0.2, 0.07); }); },
+    // his little one (10-02, Griz: "a give him a little hehehe that plays once"): four light he's under the breath, up and down, a touch ragged
+    hehehe: function (t) { [67, 70, 68, 71].forEach(function (m, i) { var at = t + i * 0.11 + (i === 2 ? 0.015 : 0); tone(sfxBus, 'pulse', m, at, 0.05, 0.1, 0.25, 2); tone(sfxBus, 'triangle', m - 12, at, 0.06, 0.06, null, 1); noise(sfxBus, at + 0.02, 0.05, 0.035, 2000, 1); }); }
   };
   // one hee of a hyena's giggle: up and over (a nasal pulse), an octave's body under it, and a breath
   function hee(t, m, d, vol, breath) {
