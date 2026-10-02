@@ -71,7 +71,7 @@
         x: x, y: y, ch: ch, open: !!OPEN[ch],
         walk: !!OPEN[ch] && ch !== 'c' && !STANDS[ch] && (def.deepWater || '').indexOf(ch) < 0, // (deep water: grid.js walkable lets its own in)
         difficult: ch === 'r' || ch === '~', deep: (def.deepWater || '').indexOf(ch) >= 0,
-        gz: ch === 'L' ? def.step * 2 : ch === '/' ? def.step : 0,
+        gz: def.heights ? (+def.heights[y][x] || 0) * def.step : ch === 'L' ? def.step * 2 : ch === '/' ? def.step : 0, // (a map's `heights`: a digit a square, in steps -- the Flooded Stair's flight, 10-02)
         pillar: !!STANDS[ch], stands: STANDS[ch] || null, cocoon: ch === 'c', tree: ch === 'T', block: 'WVkfwy'.indexOf(ch) >= 0 ? ch : null
       });
     }

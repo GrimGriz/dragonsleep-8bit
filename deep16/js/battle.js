@@ -32,6 +32,9 @@
     if (NB && (this.o.bench || this.o.watch)) party.forEach(function (u) { u.guest = true; u.classAI = true; });
     // the wizard's familiar, if the save has one and he is here (Find Familiar: js/familiar.js)
     var famData = this.o.familiar ? { flags: { familiar: this.o.familiar } } : NB ? null : this.from.data; // (the camp's pick for our four: o.familiar)
+    // a rung's own familiar (data/fights.js `familiar`) when the save brings none: the Bat Swarms' bat on the four's wizard (10-02, Griz: "slap a familiar bat on
+    // Aurdin (this is just ladder, 8bit folks should be leveled by then)") -- its blindsight in the roost's dark
+    if (F.familiar && !NB && !(famData && famData.flags && famData.flags.familiar)) { var fwz = party.filter(function (w) { return w.cls === 'wizard'; })[0], FRM = window.DS.R.FAMILIARS && window.DS.R.FAMILIARS[F.familiar]; if (fwz && FRM) famData = { flags: { familiar: { kind: F.familiar, by: fwz.id, hp: FRM.hp } } }; }
     var fam = D.familiar && famData && D.familiar.unit(this, famData, party); if (fam) party.push(fam);
     // a familiar to each of a band (the class floor's &fam=owl,bat,...: js/classes.js npcFight, 10-01): the first keeps the one id
     (this.o.familiars || []).forEach(function (f, i) { var fu = D.familiar && D.familiar.unit(self, { flags: { familiar: f } }, party); if (fu) { fu.id = 'familiar' + (i || ''); party.push(fu); if (fu.master) fu.master.name += ' (' + window.DS.R.FAMILIARS[f.kind].name + ')'; } }); // (seven Wizard 5s told apart by their familiars)
@@ -1222,7 +1225,9 @@
     }
     // a grapple on the hit (the otyugh's tentacles): Medium or smaller, while it has a tentacle free; grappled and restrained
     // (tendrilsLost: a roper's tendrils cut or broken this round are not there to grab with till its next turn -- SRD 5.1, "can extrude a replacement tendril on its next turn"; tendrilGone, rules.js startTurn)
+    var grabbed = false;
     if (atk.grapple && !tgt.dead && tgt.hp > 0 && (tgt.size || 1) <= 1 && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length + (att.tendrilsLost || 0) < (atk.grapple.max || 1)) {
+      grabbed = true;
       tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true, weak: !!atk.weakens }; // (weak: the roper's tendril, disadvantage on STR: js/traits.js)
       // the roper's tendril is a thing on the grid (SRD 5.1 Grasping Tendrils: "Each tendril can be attacked (AC 20; 10 hit points; immunity to poison and psychic damage).
       // Destroying a tendril deals no damage to the roper ... A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"):
@@ -1233,6 +1238,16 @@
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
       this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED and RESTRAINED{/}  {g}(escape DC ' + atk.grapple.dc + ', an action' + (atk.tendril ? '; the tendril AC ' + atk.tendril.ac + ', ' + atk.tendril.hp + ' HP -- strike it, or break it with a DC ' + (atk.tendril.breakDC || 15) + ' STR check' : '') + '){/}']);
       yield 30;
+      // (pulled in: below)
+    }
+    // pulled into the water (10-02, Griz: "can we make the stair a stair and them be drawn underwater"; the Water Weird's own Constrict "pulls the target 5 feet
+    // toward it"): a hit with `pull` on one it holds draws it a square toward the puller -- off the stair, into the water -- where it is drawn down under it (js/ui.js UI.wading)
+    if (atk.pull && !tgt.dead && tgt.hp > 0 && tgt.conds.restrained && tgt.conds.restrained.by === att.id && G.dist(att, tgt) > 5) {
+      var pbest = null, pd = G.dist(att, tgt);
+      for (var pdy = -1; pdy <= 1; pdy++) for (var pdx = -1; pdx <= 1; pdx++) { var pnx = tgt.x + pdx, pny = tgt.y + pdy; if ((!pdx && !pdy) || !G.canStand(tgt, pnx, pny) || G.occupant(pnx, pny)) continue; var pnd = G.dist(att, tgt, null, null, pnx, pny); if (pnd < pd) { pd = pnd; pbest = [pnx, pny]; } }
+      if (pbest) { tgt.tween = { fx: tgt.x, fy: tgt.y, fz: G.gzAt(tgt, tgt.x, tgt.y), t: 0, dur: this.pace(12, true) }; tgt.x = pbest[0]; tgt.y = pbest[1]; D.sfx('splash'); this.card(['{r}' + nameOf(att) + '{/} drags ' + nameOf(tgt) + ' toward it' + ((G.map.at(pbest[0], pbest[1]) || {}).ch === '~' ? ', down into the water.' : '.')], 220); yield 18; }
+    }
+    if (grabbed) { // (the rest of a fresh grip, as it was)
       // a hold over the eyes (torchdark 09-28: the sheet todos): the cloaker's fold blinds the one it engulfs; the darkmantle's
       // crush blinds when it had advantage on the roll (SRD: it engulfs the head). Blind till the grip is broken (release)
       if (atk.blindHeld && !tgt.conds.blinded && (atk.blindHeld === 'always' || e.net > 0)) {

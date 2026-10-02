@@ -824,7 +824,26 @@ window.D16.MAPS.floodstair = {
   name: 'The Flooded Stair',
   sub: 'the Warrens, Pete\'s Five',
   dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
-  step: 10,
+  // a stair, and a flooded one (10-02, Griz: "can we make the stair a stair and them be drawn underwater - barley looks like he's walking on top"): the flight
+  // comes down a step a row from where the party stands to the water's edge, goes under, and climbs out the far side (heights, in steps of `step` px);
+  // the water is waist-deep on a wader (wade, px of the figure under it: js/ui.js UI.wading), and the Keeper's held are drawn down in it
+  step: 5, wade: 13,
+  heights: [
+    '000000000000000000',
+    '000000111110000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000001111111100000',
+    '000000222222000000',
+    '000000333333000000',
+    '000000044440000000',
+    '000000055550000000',
+    '000000066660000000'
+  ],
   rows: [
     '##################',
     '######=====#######',
