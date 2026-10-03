@@ -41,6 +41,18 @@
   };
   var FRIGHT_CHARM = /^(frightened|feared|charmed|hypnotized)$/;
 
+  // can it get up off the floor (SRD 5.1: not with a speed of 0 -- paralyzed, stunned, asleep, restrained (a grapple is one here), incapacitated; not while
+  // it laughs or dances): the turn's start asks (below), and so does a walk begun prone (grid.js G.reach)
+  RU.canRise = function (u) { var c = u.conds || {}; return !(c.laughing || c.dancing || c.paralyzed || c.stunned || c.asleep || c.restrained || c.incapacitated || u.speed === 0); };
+  // up off the floor in the middle of a turn -- knocked flat on the way by an opportunity attack, or flat when it sets off (10-03, the stream: Vivian ran
+  // on 20 ft lying down): standing "costs an amount of movement equal to half your speed" (SRD 5.1), paid from the walk if the walk has it; else it crawls (grid.js)
+  RU.rise = function (B, u) {
+    var half = Math.floor(u.speed / 2);
+    if (!u.conds.prone || u.hp <= 0 || !RU.canRise(u) || !u.turn || u.turn.move < half) return false;
+    delete u.conds.prone; u.turn.move -= half;
+    if (B) B.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200);
+    return true;
+  };
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {
     u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false }; // (freeObj: the turn's one free hand on an object -- a torch dropped, put out or taken up)
@@ -58,7 +70,7 @@
     // up off the floor: half its speed (09-27, prone) -- not while it laughs (SRD 5.1 Hideous Laughter: "unable to stand up for the duration"),
     // nor with no speed to pay it with (SRD 5.1: you can't stand up if your speed is 0; Griz, 09-30: "getting up from prone is supposed to
     // cost movement"): paralyzed, stunned, asleep, restrained (a grapple is one here), or incapacitated (magic.js startTurn: no move)
-    var noMove = u.conds.laughing || u.conds.dancing || u.conds.paralyzed /* (dancing: "must use all its movement to dance" -- none to stand with; a runner found it standing free, 10-01b) */ || u.conds.stunned || u.conds.asleep || u.conds.restrained || u.conds.incapacitated || u.speed === 0;
+    var noMove = !RU.canRise(u); /* (dancing: "must use all its movement to dance" -- none to stand with; a runner found it standing free, 10-01b) */
     if (u.conds.prone && u.hp > 0 && !noMove) { delete u.conds.prone; u.turn.move = Math.floor(u.speed / 2); if (D.battle) D.battle.card(['{g}' + u.name + ' gets up (half the move).{/}'], 200); }
     delete u.conds.shield;
     D.grid.units.forEach(function (w) { if (w.conds.helped && w.conds.helped.by === u.id) delete w.conds.helped; if (w.conds.helpedCheck && w.conds.helpedCheck.by === u.id) delete w.conds.helpedCheck; }); // (a Help on a friend's check, unspent, lapses at the helper's turn: SRD 5.1)
@@ -168,9 +180,12 @@
     if (att.lightSensitive && D.battle && D.light && (D.battle.dark ? D.light.litByParty(D.battle, att) : D.battle.brightLit)) dis.push('dazzled');
     if (att.guest && att.src && att.src.wounded) dis.push('wounded');
     // prone (09-27: the wolves' and worgs' knockdown, Talmok's, the bulette's Leap, the giant's rock): a prone attacker is at
-    // disadvantage; a prone target is easy to hit from beside it and hard from afar
+    // disadvantage; a prone target is easy to hit from beside it and hard from afar -- SRD 5.1: "advantage if the attacker is within 5 feet of the
+    // creature. Otherwise, the attack roll has disadvantage", a reach weapon's blow from 10 ft as much as a bow's (10-03, Griz: "If SRD disadvantages
+    // for prone at reach, all the normal fights definitely should. It's a tough fight, giving him some disadvantage would do well, SRD please." --
+    // the Keeper's Slam from 10 ft on the ones its Wave put down had rolled straight)
     if (att.conds.prone) dis.push('prone');
-    if (tgt.conds.prone) { if (melee && G.dist(att, tgt, ax, ay) <= 5) adv.push('prone target'); else if (!melee) dis.push('prone target'); }
+    if (tgt.conds.prone) { if (G.dist(att, tgt, ax, ay) <= 5) adv.push('prone target'); else dis.push('prone target'); }
     // Reckless (Talmok, the berserker): it swings with advantage, and everyone swings at it with advantage
     if ((att.reckless || att.conds.reckless) && melee) adv.push('reckless');
     if ((tgt.reckless || tgt.conds.reckless) && melee) adv.push('reckless target'); // (a class barbarian's Reckless Attack: js/tactics.js)
