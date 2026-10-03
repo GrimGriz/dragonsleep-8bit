@@ -25,7 +25,7 @@
   var save0 = RU.save; function force(okv) { RU.save = function () { var r = save0.apply(this, arguments); r.ok = okv; return r; }; } function unforce() { RU.save = save0; }
   try {
     var B = battle({ lvl: 3 }), k = keeper(B), P = ours(B), cards = cardsOf(B), S;
-    ok('the Keeper: AC ' + RU.ac(k) + ', HP ' + k.hp + ', a Slam (prone DC ' + (k.attacks.slam && k.attacks.slam.prone) + '), no Constrict or Drag Under', k.attacks.slam && k.attacks.slam.prone === 15 && !k.attacks.constrict && !k.attacks.drown && RU.ac(k) === 13 && k.hp === 175 && k.attacks.slam.dice === '3d6' && K.CFG.slams === 2 && K.CFG.waveDC === 15);
+    ok('the Keeper: AC ' + RU.ac(k) + ', HP ' + k.hp + ', a Slam (prone DC ' + (k.attacks.slam && k.attacks.slam.prone) + '), no Constrict or Drag Under', k.attacks.slam && k.attacks.slam.prone === 15 && !k.attacks.constrict && !k.attacks.drown && RU.ac(k) === 13 && k.hp === 175 && k.attacks.slam.dice === '3d4' && K.CFG.slams === 2 && K.CFG.waveDC === 15 && K.CFG.swirlHit === true);
     ok('the map: runs ' + (G.map.def.geo.axis === 'x' ? 'west-east' : 'north-south') + ', deep ' + JSON.stringify(G.map.def.deeps) + ', wall at ' + G.map.def.geo.wall + ' along', G.map.def.deeps.length === 8 && G.map.def.geo.wall === 11 && deepL(8, 1) && deepL(8, 2) && !deepL(8, 3));
     P.forEach(function (u) { delete u.conds.hidden; });
     // ---- the sheet: keeper_p2 (keeper_p1 left alone), the engine's anim names, the one-line pose swap
@@ -62,7 +62,7 @@
     RU.startTurn(k); cards.length = 0; drain(K.turn(B, k));
     ok('with its hold gone it comes up out of the water: AC ' + RU.ac(k) + ', flooding ' + !!k.flooding, RU.ac(k) === 13 && !k.flooding);
     // ---- the hold that keeps
-    put(P[1], 8, 1); force(false); drain(K.flood(B, k, P[1])); cards.length = 0; var hk = k.hp; force(true); B.hurt(k, 4, 'bludgeoning'); unforce();
+    put(P[1], 8, 1); force(false); P[1].hp = P[1].maxhp = 60; drain(K.flood(B, k, P[1])); cards.length = 0; var hk = k.hp; force(true); B.hurt(k, 4, 'bludgeoning'); unforce();
     ok('a held concentration keeps the hold (' + !!P[1].conds.restrained + ')', P[1].conds.restrained && /the hold keeps/.test(cards.join(' ')));
     // ---- climbing out: a head over the water ends the drowning
     put(P[1], 8, 3); delete P[1].conds.restrained; cards.length = 0; K.drownTick(B, P[1]); // (a hero that climbed out)
@@ -123,7 +123,7 @@
     k6.anim = 'wave'; delete k6.conds.hidden; RU.startTurn(k6); drain(K.turn(B6, k6));
     ok('the visible Keeper (the default): after its turn it is idle (' + k6.anim + ') and not hidden (' + !!k6.conds.hidden + ')', k6.anim === 'idle' && !k6.conds.hidden);
     // swirling: a friend beside the held one is beside the Keeper
-    delete k6.conds.hidden; put(H6[1], 8, 1); put(H6[2], 9, 1); force(false); drain(K.flood(B6, k6, H6[1])); unforce();
+    delete k6.conds.hidden; put(H6[1], 8, 1); put(H6[2], 9, 1); force(false); H6[1].hp = H6[1].maxhp = 60; drain(K.flood(B6, k6, H6[1])); unforce();
     var far = G.dist(H6[2], k6), near5 = G.dist(H6[2], H6[1]);
     ok('the water about the held one is the Keeper: a friend beside the held (' + near5 + ' ft) is ' + far + ' ft from it', far <= 5 && k6.flooding);
     // cold on the swirl: no save to resist it -- the swirl ends, the held one is freed and thrown up onto the ice, prone (the Keeper stayed where it stood the whole while)
@@ -176,7 +176,7 @@
     var GB = D.fxKeeper('?fxgallery&keeper&auto'); D.battle = GB; GB.enter(); var seen = {}, gerr = '', gsteps = 0, cv = document.createElement('canvas'); cv.width = 640; cv.height = 400; var cx2 = cv.getContext('2d');
     while (GB.co && gsteps++ < 60000 && (Object.keys(seen).length < K.SCENES.length || gsteps < 10)) { var gr; try { gr = GB.co.next(); } catch (e) { gerr = String(e && e.stack || e).slice(0, 400); break; } seen[GB.gallery.i] = 1; if (gr.done) break; var nf = typeof gr.value === 'number' ? Math.min(gr.value, 120) : 1; for (var fi = 0; fi < nf; fi++) { D.fx.list.forEach(function (f) { try { f.draw(cx2); } catch (e) { gerr = gerr || ('draw ' + f.kind + ': ' + String(e && e.stack || e).slice(0, 300)); } }); D.fx.update(); GB.t = (GB.t || 0) + 1; } }
     ok('the gallery: ' + Object.keys(seen).length + ' of ' + K.SCENES.length + ' scenes seen, ' + gsteps + ' steps' + (gerr ? ', ERROR ' + gerr : ''), Object.keys(seen).length >= K.SCENES.length && !gerr);
-    // ---- ?keeperfight&seed=174221&watch drained (no frame loop): the fight the notes name -- level 3, won in round 7, a flood, a hold broken, a wall
+    // ---- ?keeperfight&seed=102950&watch drained (no frame loop): the fight the notes name -- level 3, won in round 7, a flood, a hold broken, a wall
     var KF = D.keeper.fight('?keeperfight&seed=31679&watch&lvl=3&old=1'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
     ok('?keeperfight&seed=31679&old=1 (the Keeper of before 10-03: hidden, no glow, the party reacting at once) drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g), KF.result === 'won' && KF.round === 6 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1);
@@ -186,10 +186,10 @@
       var bad = []; for (var li = 1; li < LG.length; li++) { var a = LG[li - 1].hpAfter, b = LG[li].hpAfter, expl = LG[li].targets.concat([LG[li].actor]); Object.keys(b).forEach(function (n) { if (a[n] != null && a[n] !== b[n] && expl.indexOf(n) < 0) bad.push('L' + li + ' ' + n + ' ' + a[n] + '->' + b[n] + ' (' + LG[li].action + ')'); }); }
       ok('the log, ' + what + ': every HP change has a line that names who changed (' + (bad.length ? bad.slice(0, 3).join('; ') : 'none missing') + ')', !bad.length); };
     lgcheck('watched fight (class AI both sides)', ['The Keeper', 'Barley']); ok('the log, watched: mode ' + LG.meta.mode, LG.meta.mode === 'ai');
-    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 175, drown: '2d6', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d6', slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
-    var KF2 = D.keeper.fight('?keeperfight&seed=174221&watch&lvl=3'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
+    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 175, drown: '2d6', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', swirlHit: true, slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
+    var KF2 = D.keeper.fight('?keeperfight&seed=102950&watch&lvl=3'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
-    ok('?keeperfight&seed=174221 drained (the default: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g) + ', holds broken ' + kn(/HOLD BREAKS/g), KF2.result === 'won' && KF2.round === 7 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1 && kn(/HOLD BREAKS/g) === 1);
+    ok('?keeperfight&seed=102950 drained (the default: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g) + ', holds broken ' + kn(/HOLD BREAKS/g), KF2.result === 'won' && KF2.round === 9 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1 && kn(/HOLD BREAKS/g) === 1);
     var LG = D.keeperLog, lgf = function (e) { return e && typeof e.round === 'number' && typeof e.turn === 'number' && 'actor' in e && 'action' in e && Array.isArray(e.targets) && Array.isArray(e.rolls) && 'result' in e && e.hpAfter && typeof e.hpAfter === 'object' && e.flags && ['flood', 'wall', 'swirl', 'frozen'].every(function (k) { return k in e.flags; }); };
     var lgcheck = function (what, wantActors) { var acts = {}; LG.forEach(function (e) { acts[e.actor] = 1; }); var tx = LG.text(), rolled = LG.filter(function (e) { return e.rolls.length; }).length, ends = LG.some(function (e) { return e.action === 'the fight ends'; });
       ok('the log, ' + what + ': ' + LG.length + ' lines (' + rolled + ' with rolls), actors ' + Object.keys(acts).join('/') + ', meta ' + JSON.stringify(LG.meta) + ', text ' + tx.length + ' chars, file ' + LG.filename(), LG.length > 10 && LG.every(lgf) && rolled > 3 && wantActors.every(function (a) { return acts[a]; }) && /^THE KEEPER/.test(tx) && tx.indexOf('roll:') > 0 && LG.meta.seed != null && LG.meta.level === 3 && /^keeper-seed\d+-L3\.txt$/.test(LG.filename()) && ends); };
@@ -263,7 +263,7 @@
     var BE = battle({ lvl: 3 }), kE = keeper(BE), HE = ours(BE); BE.o.play = 'keeper'; delete kE.conds.hidden; HE.forEach(function (u) { delete u.conds.hidden; }); put(HE[0], 8, 9); RU.startTurn(kE);
     var idsE = function () { return BE.commands(kE).map(function (e) { return e.id; }).join(','); }, e0 = idsE();
     ok('ring, no one held: ' + e0, !/ksuffocate|krise|kice/.test(e0) && /kslam/.test(e0) && /kcast/.test(e0) && /kready/.test(e0));
-    force(false); put(HE[1], 8, 1); HE[1].conds.prone = false; drain(K.flood(BE, kE, HE[1])); unforce(); RU.startTurn(kE); var e1 = idsE();
+    force(false); put(HE[1], 8, 1); HE[1].conds.prone = false; HE[1].hp = HE[1].maxhp = 60; drain(K.flood(BE, kE, HE[1])); unforce(); RU.startTurn(kE); var e1 = idsE();
     ok('ring, a hero held: ' + e1, /ksuffocate/.test(e1) && /krise/.test(e1) && !/kslam/.test(e1) && !/kwave/.test(e1));
     HE[1].conds.restrained = null; delete HE[1].conds.restrained; drain(BE.exec(HE[1], { do: 'none' })); // a hero got free (any command runs the check)
     ok('the hero got free: the Keeper is back to the humanoid (flooding ' + !!kE.flooding + '), ring ' + idsE(), !kE.flooding && !/ksuffocate|krise/.test(idsE()));
@@ -400,7 +400,7 @@
       put(kS, 4, 8, 2); put(HS[3], 8, 9); var inR = G.dist(kS, HS[3]) <= 10; var w3 = D.keeperPlay.swirlWhy(BS, kS, HS[3]); C.swirlAny = false; var w4 = D.keeperPlay.swirlWhy(BS, kS, HS[3]);
       ok('swirl=any: a hero on the dry landing within his reach (' + G.dist(kS, HS[3]) + ' ft): wider "' + w3 + '"; default "' + w4.slice(0, 40) + '"', !inR || (!w3 && !!w4));
       // held in the water off the deep: the drowning goes on (default: the held are on the deep)
-      C.swirlAny = true; var BT = battle({ lvl: 3 }), kT = keeper(BT), HT = ours(BT); delete kT.conds.hidden; put(HT[0], 8, 5); put(kT, 8, 5, 2); RU.startTurn(kT); drain(K.flood(BT, kT, HT[0])); var cT = cardsOf(BT); HT[0].hp = HT[0].maxhp = 40; K.drownTick(BT, HT[0]);
+      C.swirlAny = true; var BT = battle({ lvl: 3 }), kT = keeper(BT), HT = ours(BT); delete kT.conds.hidden; put(HT[0], 8, 5); put(kT, 8, 5, 2); RU.startTurn(kT); HT[0].hp = HT[0].maxhp = 60; drain(K.flood(BT, kT, HT[0])); var cT = cardsOf(BT); HT[0].hp = HT[0].maxhp = 40; K.drownTick(BT, HT[0]);
       ok('swirl=any: held on a flooded step it drowns still (hp ' + HT[0].hp + ', drowning ' + !!HT[0].conds.drowning + ')', HT[0].hp < 40 && !!HT[0].conds.drowning); C.swirlAny = save.sa;
       D.battle = B3;
     })();
@@ -543,7 +543,7 @@
       ok('the ladder\'s Keeper fight runs to its end on the old rules (' + BL.result + ', R' + BL.round + ', Slams at +5: ' + (cL.join(' ').match(/Slam \| d20 [^=]*\+5 =/g) || []).length + ' seen, +6: ' + (cL.join(' ').match(/Slam \| d20 [^=]*\+6 =/g) || []).length + ')', !!BL.result && !/\+6 =/.test(cL.join(' ')));
       // the 8-bit's stair (events.js deep16: 'keeper', embed): the new one
       var BE = new D.Battle({ embed: {}, fight: 'keeper', data: D.save.fixture(3), bench: true }); D.battle = BE; BE.enter(); var kE = keeper(BE);
-      ok('the 8-bit\'s stair loads the NEW Keeper: ' + kE.hp + ' HP, Slam ' + kE.attacks.slam.dice + ' atk ' + kE.attacks.slam.atk + ', ' + K.CFG.slams + ' Slams, Wave DC ' + K.CFG.waveDC + ', hidden ' + !!kE.conds.hidden + ', glow ' + K.CFG.glow, kE.hp === 175 && kE.attacks.slam.dice === '3d6' && kE.attacks.slam.atk === 6 && K.CFG.slams === 2 && K.CFG.waveDC === 15 && !kE.conds.hidden && K.CFG.glow);
+      ok('the 8-bit\'s stair loads the NEW Keeper: ' + kE.hp + ' HP, Slam ' + kE.attacks.slam.dice + ' atk ' + kE.attacks.slam.atk + ', ' + K.CFG.slams + ' Slams, Wave DC ' + K.CFG.waveDC + ', hidden ' + !!kE.conds.hidden + ', glow ' + K.CFG.glow, kE.hp === 175 && kE.attacks.slam.dice === '3d4' && kE.attacks.slam.atk === 6 && K.CFG.slams === 2 && K.CFG.waveDC === 15 && !kE.conds.hidden && K.CFG.glow);
       var BG = D.keeper.fight('?keeperfight&play=party&lvl=3'); D.battle = BG; BG.enter();
       ok('the play modes and the gallery are the new one (' + keeper(BG).hp + ' HP, fight ' + BG.fight.id + ')', keeper(BG).hp === 175 && BG.fight.id === 'keeper');
       Object.assign(K.CFG, saveCfg); D.battle = B3;
@@ -572,7 +572,7 @@
     // ---- 10-03 (Griz): the drowning is 2d6 less CON; Active Suffocation does 1d6+3 at once and doubles the next; a held hero only struggles
     (function () {
       var BH2 = battle({ lvl: 3 }), kH2 = keeper(BH2), HH = ours(BH2), cH = cardsOf(BH2); BH2.o.play = 'keeper'; delete kH2.conds.hidden; HH.forEach(function (u) { delete u.conds.hidden; });
-      var bar = HH[0], aur = HH[1]; put(bar, 8, 1); RU.startTurn(kH2); force(false); drain(K.flood(BH2, kH2, bar)); unforce(); bar.hp = bar.maxhp = 60; kH2.turn.bonus = 1;
+      var bar = HH[0], aur = HH[1]; put(bar, 8, 1); RU.startTurn(kH2); force(false); bar.hp = bar.maxhp = 60; drain(K.flood(BH2, kH2, bar)); unforce(); bar.hp = bar.maxhp = 60; kH2.turn.bonus = 1;
       var hp0 = bar.hp; cH.length = 0; drain(K.suffocate(BH2, kH2, bar)); var dmg = hp0 - bar.hp;
       ok('Active Suffocation: ' + dmg + ' at once (1d6+3, 4 to 9), the next drowning doubled (' + !!bar.conds.drowning.twice + '), a bonus action (' + kH2.turn.bonus + ')', dmg >= 4 && dmg <= 9 && bar.conds.drowning.twice === true && kH2.turn.bonus === 0);
       var rolls = []; for (var i = 0; i < 300; i++) { bar.hp = 60; bar.conds.drowning = { by: kH2.id, twice: false }; K.drownTick(BH2, bar); rolls.push(60 - bar.hp); } var mx = Math.max.apply(null, rolls), mean = rolls.reduce(function (a, b) { return a + b; }, 0) / rolls.length;
@@ -584,6 +584,18 @@
       ok('the AI hero held in the swirl struggles: the action went (' + acts + ' -> ' + bar.turn.action + '), a break-free try (' + (cH.join(' ').match(/BREAK|break free|escape|ESCAPE[^.]*/i) || ['no card'])[0].slice(0, 60) + '), no blow at the Keeper (' + kH2.hp + ')', bar.turn.action === 0 && kH2.hp === kh0);
       K.CFG.heldStruggle = false; RU.startTurn(bar); bar.conds.restrained = { by: kH2.id, dc: 13, water: true, grapple: true }; bar.weapon = Object.assign({}, bar.weapon, { atk: 60 }); cH.length = 0; drain(BH2.exec(bar, { do: 'attack', target: kH2 }));
       ok('heldStruggle false (the old): the held hero attacks (the Keeper ' + kH2.hp + ' of ' + kh0 + ')', kH2.hp < kh0 || /Threshing|Flail|MISS|HIT/.test(cH.join(' '))); K.CFG.heldStruggle = true;
+      D.battle = B3;
+    })();
+    // ---- 10-03 (Griz): the swirl itself is 1d6+3 and one drowning roll; the log header carries the settings so playtests compare by them
+    (function () {
+      var BW = battle({ lvl: 3 }), kW = keeper(BW), HW = ours(BW), cW = cardsOf(BW); delete kW.conds.hidden; var v = HW[0]; put(v, 8, 1); v.hp = v.maxhp = 60; RU.startTurn(kW); force(false); var n0 = D.keeperLog.length; drain(K.flood(BW, kW, v)); unforce();
+      var lost = 60 - v.hp, txt = cW.join(' ');
+      ok('the swirl itself: ' + lost + ' lost at once (1d6+3 is 4 to 9, then a 2d6 less CON roll, 1 to 12: 5 to 21) -- ' + (txt.match(/closes on [^,]*\{?[^,]*/) || ['no card'])[0].slice(0, 70) + ', and a drowning card ' + /drowns/.test(txt), lost >= 5 && lost <= 21 && /closes on/.test(txt) && /drowns/.test(txt));
+      K.CFG.swirlHit = false; var BX = battle({ lvl: 3 }), kX = keeper(BX), HX = ours(BX); delete kX.conds.hidden; put(HX[0], 8, 1); HX[0].hp = HX[0].maxhp = 60; RU.startTurn(kX); drain(K.flood(BX, kX, HX[0])); var lost2 = 60 - HX[0].hp; K.CFG.swirlHit = true;
+      ok('swirlHit false (the old): the swirl itself costs nothing at once (' + lost2 + ')', lost2 === 0);
+      var BL2 = battle({ lvl: 3 }), t = D.keeperLog.text().split('\n');
+      var sl = t.filter(function (x) { return /^settings: /.test(x); })[0] || '';
+      ok('the log header carries the Keeper\'s settings: ' + sl.slice(0, 150) + '...', /^settings: hp=175, slams=2, slamDice=3d4, slamAtk=6, waveDC=15,/.test(sl) && /heldStruggle=true/.test(sl) && /deepDepth=2/.test(sl) && /swirlHit=true/.test(sl) && D.keeperLog.meta.cfg && D.keeperLog.meta.cfg.hp === 175 && D.keeperLog.meta.fight === 'keeper');
       D.battle = B3;
     })();
     D.battle = B3;
