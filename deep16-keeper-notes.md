@@ -186,3 +186,40 @@ L3 wr3 current 24/30, wr0 current 28/30, wr3 swirl 29/30, wr0 swirl 29/30; L4 an
 
 ## 10-03 -- the lure (bench only, `&ai=lure`, default unchanged)
 On the swirler: with no one in his reach he does not come up the stair, he draws back to the deepest water he can stand in (`lureDeeper`), and the heroes who wade after him end up on the deep, where the swirl needs no reach. 30 fights a level, wallRounds 3, party wins: L3 lure 3, swirl 29, current 24; L4 lure 17, swirl 30, current 30; L5 lure 30, swirl 30, current 30. Floods per 30 fights (L3): lure 108, swirl 0, current 1. Drawn from Griz's records: the human Keeper's wins come from swirls on heroes washed or walked into the deep.
+
+## 10-03 -- the lure is the default; 160 HP; the drowning 1d8+1; the party gets out of the water (Griz)
+Defaults now: `aiScript 'lure'`, `hp 160`, `drown '1d8+1'` (the drowning at the start of a held hero's turn: 25 to 30% less than 2d6 less CON for CON +1 to +3; the swirl's own 1d6+3 and Active Suffocation untouched), `partyRetreat true`: while the Keeper holds someone every other class-AI hero in the water goes for the dry landing (a 9 up; its move, then a Dash), and there a melee hero (no bow, no spells) Dodges on the ledge, an archer or caster acts without wading. `&ai=current` and `&retreat=0` give the old ones; `PROFILE_OLD` has both off.
+Party wins out of 30 (wallRounds 3): L3 / L4 / L5 -- new defaults 7 / 16 / 30; the same without the retreat 7 / 23 / 30; lure at 175 HP and 2d6 6 / 15 / 30; the old current AI at 175 HP and 2d6 24 / 30 / 30. The retreat does not help the party at L4: the held one is left to drown.
+Ready on the ledge (probed): Barley's readied strike springs when the Keeper walks into his reach; the Wave's backwash that sweeps Barley into the Keeper's reach does NOT spring it (nothing asks the Ready hook for a forced move; it would spring at the next step or blow of anyone).
+Correction: the `&deep=`, `&ai=` and `&retreat=` URL settings sat behind a `//` on the same line until this commit.
+
+## 10-03 -- the retreat after the first hold breaks, a ready on the ledge, a ready sprung by a forced move (Griz)
+`partyRetreat` now begins when the first swirl hold ends (`B.kp.holdBroken`) and lasts `retreatRounds` (3, my number) rounds; a melee hero on the ledge READIES a strike ("a foe comes within reach"), the Dodge if it cannot. The Wave's backwash (and its opportunity-attack push) now asks the Ready hook: a readied strike springs when its maker is swept into the Keeper's reach. Probed (Barley on the ledge: sprang on the Keeper's own step, and on the sweep). Party wins out of 30, L3 / L4 / L5: new 5 / 18 / 30; retreat off 7 / 23 / 30 (unchanged by the hook: nobody readies without the retreat).
+
+## For the next seat (10-03, the cloud seat's close)
+The Keeper of the Flooded Stair is finished by Griz's word ("we've finished up the keeper"). Branch `claude/intelligent-maxwell-6ich3v`; `main` was never touched by this seat. What stands, as defaults: lure AI, 160 HP, Slam 3d4 twice (+6), Wave DC 15, the swirl's own 1d6+3 and drowning roll, Active Suffocation 1d6+3 at once, the drowning 1d8+1 less CON, a held hero only struggles, deep = the first two steps, Ice Wall thaws after 3 rounds, stalemate breaker, party retreat after the first hold breaks (3 rounds, melee ready on the ledge), `keeper-ladder` keeps the OLD Keeper (`&old=1`) for the ladders.
+
+**Gotchas that cost time**
+- A `//` mid-line comments out the rest of the line. It had silently killed the `&deep=` URL setting, and then `&ai=` and `&retreat=` too, until the last day; I "fixed" it once and it was not fixed. After editing `K.fight`'s settings line, check each URL key actually changes `K.CFG` (the probe's seed-102950 check now pins old settings by URL, so it would notice).
+- The probe's CFG leaks between fights (a URL setting stays on `K.CFG`). Every new CFG key needs adding to the reset line near the `old=1` check in `dev/keeper-probe.js`, and a URL-driven fight needs a restore after it.
+- `B.exec` of a Keeper command skips the `K.checkSwirl` wrapper (keeperplay handles `kdo` itself); `KP.humanTurn` calls `K.checkSwirl` after each command, and a probe driving `B.exec` must do the same.
+- A probe hero is a human unless `guest`/`classAI` is set: a readied strike then waits on an aim prompt and looks like "did not spring".
+- `drown=2d6+3` in some of Griz's headers was a URL the desk gave him before the swirl-hit build; the default is `1d8+1`.
+- Benches: from PowerShell on Griz's machine; here `. /tmp/e.sh` first (browser env) and then `python3 dev/keeper-probe.py runs=30 [ai=current|swirl|lure] [retreat=0] [wallrounds=0] [hp=175] [drown=2d6]`. `dev/check.py` GREEN before every push (once pushed RED, early on: a keeperlog wrapper called `K.A` on non-Keeper maps).
+
+**What was not seen**
+- Nothing here was seen in Griz's pane or in a human-played fight on the final defaults; every number is the class-AI party in a headless frame loop, 30 fights a level at L3 to L5 (the whole table is in the sections above). The newest play records (six, all `wallRounds=3`) predate the lure and the retreat.
+- The retreat has not been played against a human Keeper. Its bench numbers say it does not help the party (L3 5, L4 18 of 30 with it, 7 and 23 without); it stays on by Griz's word, as the counter a human Keeper would meet.
+- Forced movement beyond the Keeper's own (a spell that pushes, a shove) does not ask the Ready hook; only the Wave's backwash and the opportunity-attack push do.
+- A cancelled SWIRL pick leaves a `kswirl` line in the log with no roll (31695112 R7 T31); Griz: "no point fixing the old fight log", left as is.
+
+**Who said what**
+- Griz: Slam to 3d4, the swirl's own 1d6+3 and a drowning roll, only the hero struggles, 160 HP, the drowning cut 25 to 30%, the lure the default, the retreat after the first hold breaks with a ready on the ledge, a readied strike works when forced into range, retreat left on.
+- The desktop seat relayed the Ice Wall duration (3 rounds), the stalemate breaker, the Sanctuary SRD pass, the click-Slam audit, and the ruled script (the Wave's auto-swirl ends his turn); it merges and runs Edge checks. Zeroing the turn's rest only when the hold ends the round it began: Griz and the desk both OK'd it.
+- Mine, unruled: `retreatRounds` 3, the lure's retreat to the deepest water, the `1d8+1` dice, and the choice to leave the Ready hook off other forced moves.
+
+**What to rerun, and when**
+- After any `keeper.js`, `keeperplay.js`, `keeperlog.js` edit: `python3 dev/keeper-probe.py` (178 checks) and `python3 dev/check.py`.
+- If anyone retunes HP, Slam, drowning or the AI: the 30-fight tables for L3, L4, L5 across `ai=current`, `swirl`, `lure`, and `retreat=0`, same seeds (`(f+1)*7919+L`), then update the tables here.
+- The day a human plays the Keeper on the final defaults: read the new records' `settings:` header first (it must show `aiScript=lure`, `hp=160`, `drown=1d8+1`, `wallRounds=3`); a header without those means the pane is on an older build.
+- Before anything ships to `main`: the 8-bit's stair gets the new Keeper, the ladder rung stays on `keeper-ladder` (Griz: the ladders are not for this fight); this seat did not merge to `main`.

@@ -25,8 +25,8 @@
     return K.POSE;
   };
   K.isFight = function (F) { return !!(F && (F.id === 'keeper' || F.id === 'keeper-ladder')); };
-  K.PROFILE_OLD = { wallRounds: 0, stalemateBreak: false, swirlHit: false, drown: '1d6', suffocateDice: null, heldStruggle: false, deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: the fight 'keeper-ladder', and &old=1)
-  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 175, wallRounds: 3, aiScript: '', stalemateBreak: true, swirlHit: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '2d6', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.PROFILE_OLD = { aiScript: '', partyRetreat: false, wallRounds: 0, stalemateBreak: false, swirlHit: false, drown: '1d6', suffocateDice: null, heldStruggle: false, deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: the fight 'keeper-ladder', and &old=1)
+  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, swirlHit: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -110,6 +110,7 @@
       if (n) { if (K.CFG.sweepUpFree) delete w.conds.prone; out.push('  ' + w.name + ' is swept ' + (n * 5) + ' ft toward the deep' + (K.CFG.sweepUpFree ? ', and stands.  {g}(pushed by the wave: up free){/}' : ', and lies there prone.  {g}(half the move to stand){/}')); if (K.isDeep(w.x, w.y)) deep.push(w); }
     });
     if (out.length) { B.card(['{c}The wave bounces off the ' + (S.wall ? 'ice' : 'wall') + ' and drags back.{/}'].concat(out), 260); yield 30; }
+    if (out.length && B.readyArmed && B.readyArmed()) yield* B.readyHook(u); // (a readied strike for a foe coming within reach springs when the Wave's backwash sweeps its maker into the Keeper's reach: Griz 10-03, "should work when forced into range")
     else if (!S.wall) { B.card(['{g}The wave runs out along the hall and falls away: no wall to throw it back.{/}'], 200); yield 20; }
     for (var i = 0; i < deep.length; i++) { if (!u.flooding && G.standing(deep[i])) yield* K.flood(B, u, deep[i], true); }
     u.anim = 'idle'; u.animT = B.t; // (the cast is over: back to the standing idle)
@@ -161,6 +162,7 @@
   D.Battle.prototype.exec = function* (u, c) { var r = yield* exec0.apply(this, arguments); if (this.kp) K.checkSwirl(this); return r; }; // (whatever a hero did to get free -- break free, a friend's help -- the swirl ends at once)
   K.surface = function (B, u, why) {
     if (!u.flooding) return;
+    if (K.st && st(B) && !st(B).holdBroken && !u.dead && u.hp > 0) st(B).holdBroken = { round: B.round }; // (the first swirl hold that ends: the party's retreat begins, CFG.partyRetreat)
     if (u.flooding.at === B.round && u.turn && B.kp && !u.dead && u.hp > 0) { u.turn.action = 0; u.turn.bonus = 0; u.turn.slamsLeft = 0; } // (swirled this round: the turn's rest is spent in it; no Slam, Wave or wall for coming out of it)
     u.baseAC = u.aboveAC; u.aboveAC = null; u.flooding = null; delete u.drawAt;
     // it comes back where it stood; if someone has taken the square, the nearest free place to where the swirl was
@@ -313,6 +315,7 @@
       FX.bloom(dest[0], dest[1], [dest], 'cold', { core: false }); yield 22;
       v.conds.prone = true; moved = sweep(B, v, K.CFG.oaSweep); yield 14; if (K.CFG.sweepUpFree) delete v.conds.prone;
       B.card(['  ' + v.name + ' is pushed ' + (moved * 5) + ' ft toward the deep' + (K.CFG.sweepUpFree ? ', and stands.' : ', and lies there prone.')], 200);
+      if (moved && B.readyArmed && B.readyArmed()) yield* B.readyHook(k); // (the same for the opportunity attack's push)
     }
     yield 20; k.anim = 'idle'; k.animT = B.t; K.face(B, k);
     if (moved && K.isDeep(v.x, v.y) && !k.flooding) yield* K.flood(B, k, v);
@@ -791,9 +794,27 @@
     if (hit) S.opened = true;
     return !!S.opened;
   };
+  // THE RETREAT (CFG.partyRetreat, 10-03, Griz: "have the ai party try to get back on dry land after the first one gets swirled"): every class-AI hero who is in the water
+  // goes for the dry landing (a 9 and up) -- its move, and its action on a Dash if the first move does not get it there -- and, on dry land, acts as it would (a bow, a spell) but does not wade: its move is not spent
+  // toward the water; a melee one (no bow, no spells) stands on the ledge and READIES a strike (a foe within reach). It begins when the first swirl hold ends (Griz: "trigger the retreat after the first swirl hold is broken") and lasts CFG.retreatRounds rounds; the party is itself again after
+  function* retreatTurn(B, u, tx, self) {
+    B.focus(u); var dry = geo().a[1] - 3;
+    for (var tries = 0; tries < 2 && K.A(u) < dry && !u.dead && u.hp > 0; tries++) {
+      var rm = G.reach(u, u.turn.move), best = null;
+      Object.keys(rm).forEach(function (kx) { var e = rm[kx]; if (!e.stand || (e.x === u.x && e.y === u.y)) return; var a = K.A(e); var sc = (a >= dry ? 0 : 1000 - a * 10) + e.cost; if (!best || sc < best.sc) best = { sc: sc, x: e.x, y: e.y }; });
+      if (best) yield* B.moveAlong(u, G.path(rm, best.x, best.y), { spend: true });
+      if (K.A(u) >= dry || tries || u.turn.action <= 0) break;
+      yield* B.exec(u, { do: 'dash' });
+    }
+    if (u.dead || u.hp <= 0) return;
+    if (K.A(u) >= dry && !u.spellDC && !(u.weapon && u.weapon.ranged)) { if (u.turn.action > 0 && !u.ready) { yield* B.exec(u, { do: 'ready', trigger: 'near', pick: 'weapon' }); if (!u.ready && u.turn.action > 0) yield* B.exec(u, { do: 'dodge' }); } yield 10; return; } // (a melee hero stands on the ledge and readies a strike for a foe coming within reach -- Griz 10-03; the Dodge if it cannot)
+    if (K.A(u) >= dry) { var m = u.turn.move; u.turn.move = 0; try { yield* tx.apply(self, [B, u]); } finally { u.turn.move = m; } return; }
+    yield 10;
+  }
   var tx0 = D.tactics.turn;
   D.tactics.turn = function* (B, u) {
     if (B && B.fight && K.isFight(B.fight) && u.side === 'party' && !u.familiar && heldBy(u) && st(B)) { B.focus(u); if (u.turn.action > 0) yield* B.exec(u, { do: 'breakfree' }); yield 10; return; } // (held in the swirl: it struggles; K.CFG.heldStruggle)
+    if (K.CFG.partyRetreat && B && B.fight && K.isFight(B.fight) && u.side === 'party' && !u.familiar && st(B) && (B.o || {}).play !== 'party') { var hb = st(B).holdBroken; if (hb && B.round - hb.round < K.CFG.retreatRounds) return yield* retreatTurn(B, u, tx0, this); } // (the first swirl hold has been broken: for retreatRounds rounds the party gets out of the water and holds the ledge)
     if (!(K.CFG.partyOpening && B && K.isFight(B.fight) && u.side === 'party' && !u.familiar && st(B) && !K.opened(B))) return yield* tx0.apply(this, arguments);
     B.focus(u); var kk = keeperOf(B); if (kk) u.facing = B.faceTo(u, kk);
     var S0 = st(B); // (the drift: at the rune the party is huddled; one hero a round steps a square toward it -- toward the exit, the Keeper's READY trigger -- and no farther than the row below the wall)
@@ -886,7 +907,7 @@
     if (get('seed')) D.seed = +get('seed') | 0;
     if (get('old') === '1') { Object.assign(K.CFG, K.PROFILE_OLD); } // (old=1: the Keeper of before 10-03 Griz's notes -- hidden, no glow, the party reacting at once: reproduces the earlier tables)
     if (get('hidden') != null) K.CFG.visible = get('hidden') !== '1'; if (get('opening') != null) K.CFG.partyOpening = get('opening') !== '0'; if (get('glow') != null) K.CFG.glow = get('glow') !== '0'; // (hidden=1 the old hidden Keeper, opening=0 the old passive-then-react party, glow=0 no light of his own)
-    if (get('hp')) K.CFG.hp = +get('hp'); if (get('wallrounds') != null) K.CFG.wallRounds = +get('wallrounds'); if (get('stale') != null) K.CFG.stalemateBreak = get('stale') !== '0'; // if (get('deep')) K.CFG.deepDepth = +get('deep'); if (get('ai') != null) K.CFG.aiScript = get('ai'); // (wallrounds=N the Ice Wall's rounds, 0 never; stale=0 no stalemate breaker; deep=1 the old: only the last step is the deep; ai=swirl the scripted AI Keeper, K.CFG.aiScript)
+    if (get('hp')) K.CFG.hp = +get('hp'); if (get('wallrounds') != null) K.CFG.wallRounds = +get('wallrounds'); if (get('stale') != null) K.CFG.stalemateBreak = get('stale') !== '0'; if (get('deep')) K.CFG.deepDepth = +get('deep'); if (get('ai') != null) K.CFG.aiScript = get('ai') === 'current' ? '' : get('ai'); if (get('retreat') != null) K.CFG.partyRetreat = get('retreat') !== '0'; // (wallrounds=N the Ice Wall's rounds, 0 never; stale=0 no stalemate breaker; deep=1 the old: only the last step is the deep; ai=swirl the scripted AI Keeper, K.CFG.aiScript)
     if (get('atk')) K.CFG.slamAtk = +get('atk'); if (get('upfree') != null) K.CFG.sweepUpFree = get('upfree') === '1'; // (atk=6 the Slam's attack bonus; upfree=1 the old backwash that stands the swept up free)
     if (get('drown')) K.CFG.drown = get('drown'); if (get('suff') != null) K.CFG.suffocateDice = get('suff') === '0' ? null : '1d6'; if (get('struggle') != null) K.CFG.heldStruggle = get('struggle') !== '0'; // (drown=1d6 the old dice, suff=0 no immediate Active Suffocation damage, struggle=0 the held hero attacks as before)
     if (get('swirlhit') != null) K.CFG.swirlHit = get('swirlhit') !== '0'; // (swirlhit=0: no 1d6+3 and drowning roll on the swirl itself)
