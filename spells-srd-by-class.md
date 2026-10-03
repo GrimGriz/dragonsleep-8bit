@@ -308,7 +308,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Resilient Sphere | W | Au | **BUILT** | DEX save: sealed in a sphere (conc) -- one foe out of the fight, or a friend kept safe -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Secret Chest | W | Au | **OUT** | storage |
 | Stone Shape | W C D | Au | **OUT** | reshapes stone: the maps' walls are the story's |
-| Stoneskin | W S D R | Au | **BUILT** | touch (conc): resistance to nonmagical blades, bolts, bites |
+| Stoneskin | W S D R | Au | **BUILT** | touch (conc): resistance to nonmagical blades, bolts, bites -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): on the grid too, nonmagical only -- B.hurt reads the blow's magic (a magic weapon, a spell attack; every spell's damage), so a +1 blade and Ice Storm's hail land whole |
 | Wall of Fire | W S D | Au | **BUILT** (09-30, the grid's; not on Aurdin's 8-bit list yet) | 60 ft long, opaque, lit: DEX 5d8 (half) as it rises; 5d8 to whoever enters it, ends a turn in it or within 10 ft of its far side (the side away from the caster: the seat's call); greyed under the roost (`deep16/js/walls.js`) |
 
 ### 5th (37)

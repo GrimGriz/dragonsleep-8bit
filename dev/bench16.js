@@ -987,6 +987,36 @@
     document.body.appendChild(preZ);
     return;
   }
+  // the cheap SRD fixes, the grid's six (mode=fixes1003; 10-03, Griz: "4 yes" to "The cheap SRD fixes as one Sonnet or cloud batch?"; spells-two-books.md §2c): each
+  // check failed before its fix (spell-fixes-notes.md). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
+  if (get('mode', '') === 'fixes1003') {
+    var repX = { checks: [], errors: [] }, d0X = D.d, MX = D.magic, askedX = 0;
+    function okX(what, v) { repX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runX(g, pick) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) { askedX++; var o = st.value.prompt.opts; v = (pick && pick(st.value.prompt)) || o[0].value; } } }
+    function mkX(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideX(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logX(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function pinX(d20) { D.d = function (n) { return n === 20 ? d20 : n; }; }
+    try {
+      // 10. Stoneskin (SRD 5.1: "the target has resistance to nonmagical bludgeoning, piercing, and slashing damage"): a goblin's scimitar at our stoneskinned
+      // fighter, plain and then magical (the item table's +1s and Flame Tongue carry `magic`), every die at its top; then a foe wizard's Ice Storm on him, his DEX
+      // save a natural 1 -- the hail is a spell's, and lands whole
+      var B10 = mkX('?npc=goblin&lvl=7&vs=fighter:7'), g10 = sideX(B10, 'foe')[0], p10 = sideX(B10, 'party')[0], sc10 = g10.attacks.scimitar || g10.weapon;
+      p10.hp = p10.maxhp = 400; p10.conds.stoneskin = { by: p10.id }; g10.x = p10.x; g10.y = p10.y - 1; D.rules.startTurn(g10);
+      pinX(19); var h0 = p10.hp; runX(B10.attack(g10, p10, Object.assign({}, sc10, { magic: false }))); var plain10 = h0 - p10.hp;
+      h0 = p10.hp; runX(B10.attack(g10, p10, Object.assign({}, sc10, { magic: true }))); var magic10 = h0 - p10.hp; D.d = d0X;
+      okX('10. Stoneskin: the plain scimitar takes ' + plain10 + ', a magical one ' + magic10, plain10 > 0 && (magic10 === plain10 * 2 || magic10 === plain10 * 2 + 1));
+      var B10b = mkX('?npc=wizard:7&lvl=7&vs=fighter:7'), w10 = sideX(B10b, 'foe')[0], q10 = sideX(B10b, 'party')[0];
+      q10.hp = q10.maxhp = 400; q10.conds.stoneskin = { by: q10.id }; w10.x = q10.x; w10.y = Math.max(0, q10.y - 8); D.rules.startTurn(w10); w10.slots[3] = 2;
+      pinX(1); h0 = q10.hp; var n10 = (B10b.log || []).length; runX(MX.cast(B10b, w10, 'icestorm', 4, { x: q10.x, y: q10.y })); var ice10 = h0 - q10.hp; D.d = d0X;
+      okX('10. Ice Storm on the stoneskinned fighter, his save failed, every die at its top (2d8 + 4d6 = 40): he loses ' + ice10 + ' -- ' + logX(B10b, n10).slice(0, 160), ice10 === 40);
+    } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
+    D.d = d0X;
+    if (errs.length) repX.errors = repX.errors.concat(errs);
+    var preX = document.createElement('pre'); preX.id = 'out'; preX.textContent = 'BENCH16 ' + JSON.stringify(repX);
+    document.body.appendChild(preX);
+    return;
+  }
   // Dispel Magic at a spell's square, and Counterspell (mode=dispel1002; 10-02, Griz: "I like 'spell effect squares without people' as valid dispel targets for that
   // spell"; "no to creature abilities"; Counterspell "an important one to have in there"): a Darkness's empty square is a target and ends it, its caster's concentration
   // with it; a darkness no spell made is no target; a player's Counterspell is asked and a Fireball fails; the AI's counters a hero's; a readied spell's release is not asked

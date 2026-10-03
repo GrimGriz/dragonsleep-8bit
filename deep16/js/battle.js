@@ -1107,7 +1107,7 @@
         var hd = RU.damage(atk.dice, atk.mod || 0, {});
         D.sfx('hit'); FX.float('OOF', host, D.PAL.ramps.fire[2]);
         this.card(['{o}A natural 1:{/} the blow meant for the ' + shortName(tgt) + ' lands on ' + nameOf(host) + '.  ' + atk.dice + RU.sign(atk.mod || 0) + ' ' + RU.fmtRolls(hd.rolls) + ' = {r}' + hd.total + '{/} ' + (atk.type || '')], 320);
-        this.hurt(host, hd.total, atk.type);
+        this.hurt(host, hd.total, atk.type, { magic: !!(atk.magic || atk.spell) });
         yield o.oa ? 16 : 30; att.anim = 'idle'; return;
       }
       if (o.onMiss) o.onMiss(tgt); FX.float('MISS', tgt, D.PAL.ramps.silver[5]);
@@ -1204,9 +1204,10 @@
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
     if (fire) { FX.sparkle(tgt, 'fire', 12); this.hurt(tgt, fire, 'fire'); }
     if (rad && !tgt.dead) this.hurt(tgt, rad, 'radiant');
-    if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type);
-    for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1]);
-    if (!tgt.dead) this.hurt(tgt, dmg, atk.type);
+    var blowSrc = { magic: !!(atk.magic || atk.spell) }; // (the weapon's magic, or a spell attack's: Stoneskin reads it in hurt())
+    if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type, blowSrc);
+    for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1], { magic: true }); // (a mark's, a curse's: a spell's)
+    if (!tgt.dead) this.hurt(tgt, dmg, atk.type, blowSrc);
     // disruption: one left at 25 HP or fewer saves WIS DC 15 or is destroyed; on a success it is frightened of the wielder till the
     // end of his next turn (`fresh`: the Slam's idiom -- ai.js's end-of-turn sweep spares it once)
     if (dis && !tgt.dead && tgt.hp > 0 && tgt.hp <= dis.hp) {
@@ -1354,7 +1355,7 @@
         var hd = RU.damage(atk.dice, atk.mod || 0, {});
         D.sfx('hit'); FX.float('OOF', held, D.PAL.ramps.fire[2]);
         this.card(['{o}A natural 1:{/} the blow meant for the tendril lands on ' + nameOf(held) + '.  ' + atk.dice + RU.sign(atk.mod || 0) + ' ' + RU.fmtRolls(hd.rolls) + ' = {r}' + hd.total + '{/} ' + (atk.type || '')], 320);
-        this.hurt(held, hd.total, atk.type);
+        this.hurt(held, hd.total, atk.type, { magic: !!(atk.magic || atk.spell) });
       } else FX.float('MISS', held, D.PAL.ramps.silver[5]);
       yield o.oa ? 16 : 24; att.anim = 'idle'; return;
     }
@@ -1573,7 +1574,7 @@
   Battle.prototype.faceTo = faceTo;
 
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
-  Battle.prototype.hurt = function (u, n, type) {
+  Battle.prototype.hurt = function (u, n, type, src) { // (src: { magic: true } when the blow is magical -- a spell, a magic weapon, a monster's magical attacks)
     if (n <= 0) return;
     u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
     if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
@@ -1594,7 +1595,8 @@
       var vic = u.holding[0], half = Math.floor(n / 2);
       if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
     }
-    if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '')) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
+    // Stoneskin (SRD 5.1: "resistance to nonmagical bludgeoning, piercing, and slashing damage" -- 10-03: a magic blade or a spell's hail lands whole)
+    if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '') && !(src && src.magic)) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
     // the class NPCs' wards (09-28, js/grimoire.js): Protection from Energy (one element halved), Protection from Poison, Rage (blades and
     // blows halved), Warding Bond (all of it halved -- and the one who bound it takes as much)
     var ward = u.conds;

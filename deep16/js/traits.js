@@ -67,7 +67,7 @@
       att.turn.charged = true;
       var c = att.charge, cr = D.roll(c.dice, { crit: crit }), sv = RU.save(tgt, 'str', c.dc);
       B.card(['{r}' + Nm(B, att) + ' charges home!{/}  ' + c.dice + ' [' + cr.rolls.join(',') + '] = ' + cr.total + '  STR ' + RU.saveText(sv) + ' vs DC ' + c.dc + '  ' + (sv.ok ? '{n}keeps their feet{/}' : '{o}KNOCKED DOWN{/}')], 300);
-      B.hurt(tgt, cr.total, atk.type);
+      B.hurt(tgt, cr.total, atk.type, { magic: !!atk.magic });
       if (!sv.ok && tgt.hp > 0 && !tgt.noProne) tgt.conds.prone = true;
       yield 16;
     }

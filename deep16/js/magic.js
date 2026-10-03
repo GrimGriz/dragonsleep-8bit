@@ -7,6 +7,7 @@
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx;
   var M = D.magic = {};
+  var MAGIC = { magic: true }; // (B.hurt's fourth: a spell's damage is magical -- Stoneskin halves none of it; 10-03)
 
   M.data = function (id) { return (window.DS.DATA.spells[id]) || (D.EXTRA_SPELLS || {})[id]; };
   // house rules the seat proposes, each a switch (torchdark, 09-28): Magic Missile may be aimed at a square the caster cannot see
@@ -374,7 +375,7 @@
       for (var k = 0; k < darts.length; k++) { FX.projectile(u, darts[k], 'fire'); }
       yield { fx: 1 };
       darts.forEach(function (w) { var r = D.roll('1d4+1'); tot[w.id] = (tot[w.id] || 0) + r.total; who[w.id] = w; });
-      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force'); if (w.side === 'foe') struck.push(w); });
+      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force', MAGIC); if (w.side === 'foe') struck.push(w); });
       B.card(lines, 360); yield 30;
       if (gim && struck.length) {
         B.gimmickDone = true;
@@ -411,7 +412,7 @@
         if (M.globed && M.globed(B, u, w, sp.level)) { lines2.push('  ' + w.name + ': {c}inside the globe: untouched{/}'); return; } // (the Globe of Invulnerability, SRD 5.1)
         var sv = RU.save(w, 'dex', dc);
         lines2.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' + (potent ? ' -> ' + Math.floor(r1.total / 2) : '') : '{o}failed -> ' + r1.total + '{/}'));
-        if (!sv.ok) B.hurt(w, r1.total, 'acid'); else if (potent) B.hurt(w, Math.floor(r1.total / 2), 'acid');
+        if (!sv.ok) B.hurt(w, r1.total, 'acid', MAGIC); else if (potent) B.hurt(w, Math.floor(r1.total / 2), 'acid', MAGIC);
       });
       B.card(lines2, 360); yield 30;
     } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') {
@@ -626,7 +627,7 @@
       if (!caught.length && !globeLines.length) lines.push('  {g}no one in it.{/}');
       B.card(lines.slice(0, 7), 420);
       yield { fx: 1 };
-      hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el); });
+      hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el, MAGIC); });
       // Thunderwave: a failed save is pushed 10 ft straight away from the caster (stopped by a wall, a creature, the edge)
       if (g.shape === 'wave') hits.forEach(function (h) { if (!h[2]) M.push(B, u, h[0], 2); });
       yield 30;
@@ -1016,6 +1017,6 @@
     if (!e || u.hp <= 0 || u.dead) return;
     var r = D.roll('2d4');
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' starts its turn in the burning web: 2d4 ' + RU.fmtRolls(r.rolls) + ' = ' + r.total + ' fire'], 260);
-    B.hurt(u, r.total, 'fire');
+    B.hurt(u, r.total, 'fire', MAGIC);
   };
 })();
