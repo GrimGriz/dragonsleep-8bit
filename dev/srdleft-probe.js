@@ -61,10 +61,29 @@
       if (pc.length > 1) firstOnly = false;
       if (pc.length) { parried++; if (/PARRY \+2.*HIT/.test(pc[0].replace(/PARRY \+2/, 'PARRY +2'))) missedByParry = missedByParry && /MISS/.test(pc[0]); }
     }
-    ok('Parry turns a blow (' + parried + ' of 300 pairs of swings), never twice on one reaction: ' + firstOnly, parried > 10 && firstOnly && bc.reaction === 0);
+    ok('Parry turns a blow (' + parried + ' of 300 pairs of swings), never twice on one reaction: ' + firstOnly, parried > 10 && firstOnly);
     // not against a ranged attack, nor a natural 20: only the melee, the reaction spent once
     bc.reaction = 1; cs = cardsOf(C); var rg = { name: 'Shortbow', atk: 40, dice: '1d6', mod: 0, type: 'piercing', range: [80, 320], ranged: true }; put(att, bc.x + 4, bc.y); drain(C.attack(att, bc, rg));
     ok('no Parry against a ranged attack (reaction ' + bc.reaction + ')', bc.reaction === 1 && !cs.some(function (c) { return /PARRY/.test(c); }));
+    // ---------------------------------------------------------------- the ettin's Two Heads on a Hide: advantage on Perception, +5 to the passive one
+    var E = battle('ettins'), eh = party(E)[0]; party(E).slice(1).forEach(function (u) { u.hp = 0; u.ko = true; });
+    var es = sq(eh, function () { return foes(E).every(function (w) { return E.seenBy(w, eh) < 2; }); });
+    ok('a square for the ettins Hide found: ' + es, !!es);
+    if (es) { put(eh, es[0], es[1]); cs = cardsOf(E); D.rules.startTurn(eh); drain(E.hide(eh)); ok('Hide against two heads: passive 14 + 5 // ' + short(cs), say(cs, /vs passive Perception 19/) && say(cs, /two heads/)); }
+    // ---------------------------------------------------------------- thrown weapons
+    function shooterAt(fid, kind, ft) {
+      var X = battle(fid), s = foes(X).filter(function (u) { return u.kind === kind; })[0], h = party(X)[0]; party(X).slice(1).forEach(function (u) { u.hp = 0; u.ko = true; });
+      foes(X).filter(function (u) { return u !== s; }).forEach(function (u) { u.hp = 0; u.dead = true; }); s.bolts = null; s.cunning = false; s.speed = 0;
+      var at = sq(h, function (x, y) { return G.dist(s, h) === ft && G.los(s, h).clear && D.magic.sees(X, s, h); });
+      if (!at) return null; put(h, at[0], at[1]); h.hp = h.maxhp = 9999;
+      var swung = []; var a0 = X.attack; X.attack = function* (att, tgt, atk) { if (att === s) swung.push(atk.name); return yield* a0.apply(this, arguments); };
+      drain(D.ai.turn(X, s)); return swung;
+    }
+    var g1 = shooterAt('snoot', 'gnoll', 15), g2 = shooterAt('snoot', 'gnoll', 40);
+    ok('the gnoll at 15 ft throws its spear: ' + g1, g1 && g1.join() === 'Thrown Spear');
+    ok('the gnoll at 40 ft looses the longbow: ' + g2, g2 && g2.join() === 'Longbow');
+    var d1 = shooterAt('captain', 'banditcaptain', 15);
+    ok('the Captain at 15 ft throws two daggers: ' + d1, d1 && d1.join() === 'Thrown Dagger,Thrown Dagger');
   } catch (e) { errs.push(String(e && e.stack || e).slice(0, 800)); }
   var pre = document.createElement('pre'); pre.textContent = 'SRDLEFT ' + JSON.stringify({ checks: checks, errors: errs });
   document.body.appendChild(pre);

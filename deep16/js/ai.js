@@ -434,7 +434,19 @@
   // its ranged routine (the multiattack's ranged names, else its first ranged attack once), each at the lowest AC in sight
   function* volley(B, u) {
     var keys = Array.isArray(u.multi) ? u.multi.filter(function (k) { return u.attacks[k] && u.attacks[k].ranged; }) : [];
-    if (!keys.length) keys = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].ranged; }).slice(0, 1);
+    // a ranged Multiattack of its own (`rangedMulti`: the Bandit Captain's "two ranged attacks with its daggers", SRD 5.1 -- the melee `multi` stays the melee routine)
+    if (!keys.length && Array.isArray(u.rangedMulti)) keys = u.rangedMulti.filter(function (k) { return u.attacks[k] && u.attacks[k].ranged; });
+    // else its best one weapon: with two to choose from (the gnoll's longbow and its thrown spear) the likelier, bigger blow at the lowest AC it can see -- a thrown weapon past its
+    // normal range at disadvantage (RU.edges), so the spear is for 20 ft and the bow for the rest (10-02)
+    if (!keys.length) {
+      var rks = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].ranged; }), see0 = visibleFrom(u, u.x, u.y, heroes(B, u)), bestS = -1;
+      rks.forEach(function (k) {
+        var a = u.attacks[k], tg = see0.filter(function (w) { return G.dist(u, w) <= a.range[1]; }).sort(function (p, q) { return RU.ac(p) - RU.ac(q); })[0]; if (!tg) return;
+        var p1 = Math.max(0.05, Math.min(0.95, (21 - (RU.ac(tg) - a.atk)) / 20)), pp = G.dist(u, tg) > a.range[0] ? p1 * p1 : p1, sc = pp * D.tactics.avg(a.dice) + pp * (a.mod || 0);
+        if (sc > bestS + 1e-9) { bestS = sc; keys = [k]; }
+      });
+      if (!keys.length) keys = rks.slice(0, 1);
+    }
     if (!keys.length || !u.turn.action) return false;
     var first = u.attacks[keys[0]];
     if (!visibleFrom(u, u.x, u.y, heroes(B, u)).some(function (w) { return G.dist(u, w) <= first.range[1]; })) return false;

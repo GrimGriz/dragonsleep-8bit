@@ -12,7 +12,7 @@
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
-  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry']; // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner)
+  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti']; // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner)
 
   // ------------------------------------------------------------------ the roper's tendrils: the grappled one has disadvantage on STR checks
   // and saves (rules.js save reads restrained.weak; magic.js breakFree too)

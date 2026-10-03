@@ -307,9 +307,10 @@
     attacks: {
       spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
       bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 },
+      throwspear: { name: 'Thrown Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [20, 60], ranged: true },
       longbow: { name: 'Longbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', range: [150, 600], ranged: true }
     },
-    multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28); the longbow +3 1d8+1 150/600 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
+    multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28); the longbow +3 1d8+1 150/600 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner); the spear thrown +4 1d6+2 20/60 (SRD 5.1 "Spear. Melee or Ranged Weapon Attack ... range 5 ft. or range 20/60 ft."; volley picks the likelier of it and the bow, so the spear inside 20 ft; 10-02)'
   },
   hyena: {
     name: 'Hyena', type: 'beast', sheet: 'hyena_p2', cr: '0', ac: 11, hp: 5, speed: 50, size: 1, reach: 5,
@@ -654,7 +655,7 @@
       dagger: { name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 },
       throwndagger: { name: 'Thrown Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', range: [20, 60], ranged: true }
     },
-    multi: ['scimitar', 'scimitar', 'dagger'], parry: 2, src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet); the dagger thrown +5 1d4+3 20/60 (SRD 5.1, once when nothing is in reach: ai.js volley; 10-02 runner)', todo: 'the SRD gives two thrown daggers (a ranged Multiattack) and the grid throws one'
+    multi: ['scimitar', 'scimitar', 'dagger'], rangedMulti: ['throwndagger', 'throwndagger'], parry: 2, src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet); two daggers thrown +5 1d4+3 20/60 (SRD 5.1 "or ... two ranged attacks with its daggers": `rangedMulti`, ai.js volley, when nothing is in reach; 10-02)'
   },
   grimlock: {
     name: 'Grimlock', type: 'humanoid', sheet: 'grimlock_p1', cr: '1/4', ac: 11, hp: 11, speed: 30, size: 1, reach: 5, blindsight: 30, blind: true,
