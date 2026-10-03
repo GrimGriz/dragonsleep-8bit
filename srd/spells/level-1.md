@@ -698,7 +698,7 @@ You touch a willing creature who isn’t wearing armor, and a protective magical
 
 *1st-level evocation*
 
-> **The game:** Three darts that never miss, 1d4+1 force each.
+> **The game:** Three darts that never miss, 1d4+1 force each, at one foe or several.
 
 **Casting Time:** 1 action
 

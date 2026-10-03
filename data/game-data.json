@@ -2755,7 +2755,7 @@
    "target": "enemy",
    "battle": true,
    "sfx": "zap",
-   "desc": "Three darts that never miss, 1d4+1 force each.",
+   "desc": "Three darts that never miss, 1d4+1 force each, at one foe or several.",
    "src": "SRD 5.1",
    "id": "magicmissile"
   },
@@ -2831,7 +2831,7 @@
    "target": "enemy",
    "battle": true,
    "sfx": "fire",
-   "desc": "Three rays, each a spell attack for 2d6 fire.",
+   "desc": "Three rays, each a spell attack for 2d6 fire, at one foe or several.",
    "src": "SRD 5.1",
    "id": "scorchingray"
   },

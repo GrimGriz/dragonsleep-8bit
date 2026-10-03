@@ -253,6 +253,25 @@
         bF.cloud = { kind: 'sleet', rounds: 10, dc: 15, save: 'dex' }; T.blog = [];
         runF(bF.foeTurn(o6)); bF.cloud = null;
         check('6. an ogre\'s turn in the sleet: down (' + !!o6.conds.prone + ') and it still swings -- "' + saidF() + '"', !!o6.conds.prone && /goes down on the ice/.test(saidF()) && /Ogre A clubs/.test(saidF()));
+
+        // 7. the darts and the rays, each its own target (SRD 5.1 Magic Missile: "Each dart hits a creature of your choice ... you can direct them to hit
+        // one creature or several"; Scorching Ray: "You can hurl them at one target or several"): Aurdin's darts at A, B and C; then A, B and X (the
+        // rest at B); his rays at A, C, C (every attack d20 a 15); a caster the battle runs weighs its own (the weakest till it should be down)
+        var o7 = foesF(['goblin', 'goblin', 'goblin'], 400), lost7 = function () { return o7.map(function (f) { return 400 - f.hp; }); };
+        castF(AF, 'magicmissile', ['Goblin A', 'Goblin B', 'Goblin C'], [4, 3, 3]);
+        var l7a = lost7(), ask7 = offeredF.length;
+        check('7. Magic Missile, a dart each at A, B, C: they lose ' + l7a.join(', ') + ' (' + ask7 + ' pickers) -- "' + saidF() + '"', l7a.every(function (x) { return x >= 2 && x <= 5; }) && ask7 === 3);
+        o7 = foesF(['goblin', 'goblin', 'goblin'], 400);
+        castF(AF, 'magicmissile', ['Goblin A', 'Goblin B', null], [4, 3, 3]);
+        var l7b = lost7();
+        check('7. darts at A, B, then X (the rest at B): they lose ' + l7b.join(', '), l7b[0] >= 2 && l7b[0] <= 5 && l7b[1] >= 4 && l7b[1] <= 10 && l7b[2] === 0);
+        o7 = foesF(['goblin', 'goblin', 'goblin'], 400); var d20F = bF.d20; bF.d20 = function () { return 15; };
+        try { castF(AF, 'scorchingray', ['Goblin A', 'Goblin C', 'Goblin C'], [4, 3, 3]); } finally { bF.d20 = d20F; }
+        var hitA7 = (saidF().match(/Goblin A takes/g) || []).length, hitC7 = (saidF().match(/Goblin C takes/g) || []).length;
+        check('7. Scorching Ray at A, C, C: A hit ' + hitA7 + ', C ' + hitC7 + ', B untouched (' + (o7[1].hp === 400) + ')', hitA7 === 1 && hitC7 === 2 && o7[1].hp === 400);
+        o7 = foesF(['goblin', 'goblin', 'goblin'], 400); o7[1].hp = 3;
+        var aim7 = bF.aimShots(AF, DS.DATA.spells.magicmissile, 3).map(nmF);
+        check('7. the darts a caster the battle runs would send (B at 3 HP, A and C at 400): ' + aim7.join(', '), aim7[0] === 'Goblin B' && aim7[1] !== 'Goblin B');
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');

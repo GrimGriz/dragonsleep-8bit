@@ -1026,11 +1026,27 @@
       u.pose = null; return true;
     }
     // choose targets
-    var targets = [];
-    if (sp.target === 'enemy' || sp.target === 'cone' || sp.target === 'line') {
+    var targets = [], shots = null;
+    // Magic Missile's darts, Scorching Ray's rays: each its own target (SRD 5.1: "you can direct them to hit one creature or several"; "at one target
+    // or several" -- 10-03). Against more than one foe the player aims each; X sends the rest at the last one aimed
+    var shotN = sp.kind === 'auto' ? (sp.darts || 3) + (slot ? slot - sp.level : 0) : sp.kind === 'attack' && sp.target === 'enemy' ? (sp.rays || 1) + (sp.rayUp && slot ? slot - sp.level : 0) : 0;
+    var shotWord = sp.kind === 'auto' ? 'dart' : 'ray';
+    if (shotN > 1 && u.guest) { shots = this.aimShots(u, sp, shotN); if (!shots.length) return false; targets = shots.filter(function (x, j) { return shots.indexOf(x) === j; }); }
+    else if (sp.target === 'enemy' || sp.target === 'cone' || sp.target === 'line') {
+      if (shotN > 1 && this.liveFoes().length > 1) this.msg = sp.name + ': ' + shotWord + ' 1 of ' + shotN + ' at whom?';
       var t0 = yield* this.pickFoe(sp.only ? function (f) { return (f.m.tags || []).indexOf(sp.only) >= 0; } : null);
       if (!t0) return false;
       targets = [t0];
+      if (shotN > 1 && this.liveFoes().length > 1) {
+        shots = [t0];
+        while (shots.length < shotN) {
+          this.msg = sp.name + ': ' + shotWord + ' ' + (shots.length + 1) + ' of ' + shotN + ' at whom? (X: the rest at ' + plain(shots[shots.length - 1]) + ')';
+          var nx = yield* this.pickFoe(); if (!nx) break;
+          shots.push(nx);
+        }
+        while (shots.length < shotN) shots.push(shots[shots.length - 1]);
+        targets = shots.filter(function (x, j) { return shots.indexOf(x) === j; });
+      }
       if (sp.target !== 'enemy') {
         var rest = this.liveFoes().filter(function (f) { return f !== t0; }), cnt = sp.max ? sp.max - 1 : sp.target === 'cone' ? 2 : 3;
         rest.sort(function (a, b) { return Math.abs(a.y - t0.y) + Math.abs(a.x - t0.x) - (Math.abs(b.y - t0.y) + Math.abs(b.x - t0.x)); });
@@ -1112,7 +1128,7 @@
       }
       if (down(t) && k !== 'buff' && k !== 'heal') { if (sp.target === 'enemy') { var alts = this.liveFoes(); if (!alts.length) break; t = DS.pick(alts); } else continue; }
       if (k === 'attack') {
-        var rays = (sp.rays || 1) + (sp.rayUp ? up : 0);
+        var rays = shots ? shots.filter(function (x) { return x === targets[i]; }).length : (sp.rays || 1) + (sp.rayUp ? up : 0);
         for (var r = 0; r < rays && !down(t); r++) {
           if (this.famWill && this.famWill(u)) yield* this.famFly(u, t); // (the familiar's help lands on this ray: it flies to the target first, js/familiar.js)
           var adv = this.advantage(u, t, false), nat = this.d20(adv), bp = this.blindPen(u);
@@ -1127,12 +1143,12 @@
           yield* this.flushMsg();
         }
       } else if (k === 'auto') {
-        var darts = (sp.darts || 3) + up, tot = 0;
+        var darts = shots ? shots.filter(function (x) { return x === targets[i]; }).length : (sp.darts || 3) + up, tot = 0;
         for (var q = 0; q < darts; q++) { this.bolt(u, t, '#D8B8F8'); tot += DS.roll(sp.dmg); }
         yield this.wait(14);
         var dd = this.hurt(t, tot, sp.el, { magicWeapon: true });
         this.elemBurst(t, sp.el); t.flash = 12; DS.audio.sfx('hit'); this.num(t, dd, '#F8D878');
-        yield* this.say(darts + ' darts strike ' + nameOf(t) + ' for ' + dd + '.', 38);
+        yield* this.say((darts === 1 ? 'A dart strikes ' : darts + ' darts strike ') + nameOf(t) + ' for ' + dd + '.', 38);
         yield* this.flushMsg();
       } else if (k === 'save') {
         var s = this.save(t, sp.save, dc, { poison: sp.el === 'poison' });
@@ -1210,6 +1226,18 @@
     return true;
   };
 
+  // the darts or the rays of a caster the battle runs (a guest; none casts them yet): at the weakest till it should be down, then the next -- the grid's
+  // weighing (deep16/js/tactics.js EV['shape:darts'], EV['shape:rays']): a dart its average, a ray its average by the chance to hit
+  Battle.prototype.aimShots = function (u, sp, n) {
+    var list = this.liveFoes().slice().sort(function (a, b) { return a.hp - b.hp; }), out = [], i = 0, avg = DS.avgDice(sp.dmg || '1d4+1');
+    if (!list.length) return out;
+    for (var k = 0, left = list[0].hp; k < n; k++) {
+      var t = list[i], p = sp.kind === 'auto' ? 1 : Math.max(0.05, Math.min(0.95, (21 - this.acOf(t) + R.spellAtk(u.h)) / 20));
+      out.push(t); left -= p * avg;
+      if (left <= 0 && i < list.length - 1) { i++; left = list[i].hp; }
+    }
+    return out;
+  };
   // bright light: things that hate it lose their next turn the first time, then fight at disadvantage
   Battle.prototype.dazzle = function* (lead) {
     var first = !this.bright;

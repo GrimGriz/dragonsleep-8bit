@@ -813,7 +813,7 @@ Anything inside the extradimensional space drops out when the spell ends.
 
 *2nd-level evocation*
 
-> **The game:** Three rays, each a spell attack for 2d6 fire.
+> **The game:** Three rays, each a spell attack for 2d6 fire, at one foe or several.
 
 **Casting Time:** 1 action
 
