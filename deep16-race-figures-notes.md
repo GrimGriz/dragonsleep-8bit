@@ -85,3 +85,99 @@ Not seen:
 3. The dragonborn's tail: keep it (as asked), or drop it (the PHB's dragonborn has none)?
 4. 4.7 MB more at every start (+14.5%) for figures that only a made dragonborn or tiefling uses: load the race sheets only when a fight
    needs them (a later job in `sprites.js`)?
+
+## For the next seat (the close, 2026-10-03)
+
+started 2026-10-03T07:31Z, ended 2026-10-03T14:17Z. The cairn's close (the daily, the bolt entry, the card) lives on Griz's PC; the
+desktop seat writes it. This seat's opener was the prompt `dev/cloud-prompt-race-figures.md`, on his PC.
+
+### Where it stands
+
+- **Merged.** The overseer merged this branch as `7beba7c`, then restamped `classes.js` in `979ed86` (see gotcha 6).
+- **Question 4 is answered by another job.** The lazy sheets (`56d42b5`) landed after: no sheet is fetched at start, and a scene asks for
+  its own sheets. `lazy-sheets-notes.md` measures a Pocket DM fight with a dragonborn at 3.96 MB to its first turn.
+- **Questions 1 to 3 are open.** Nothing on `main` rules them: not `cloud-jobs.md`, not invented.json's `deep16-race-looks` line.
+- **Rechecked at the close**, on `main` at `eac193b`, in this container's Chromium:
+  - the probe: all 24 sheets resolve; the other races keep the class figure; Higertha, Talmok and Torvald keep their own; Brokk gets
+    `npcfighter_dragonborn_p0` with kind `npcfighter`;
+  - `python dev/check.py`: GREEN, 20 checks in 18 s, `lazy1003` among them.
+- **This branch** was restarted from `main` at `eac193b` for this note, since all its old commits are in `main`. It is `main` plus this
+  one commit, so merging it is a fast-forward.
+
+### Who said what
+
+- **Griz, 10-03**, quoted in the job's prompt: *"prolly should check if there's dragonborn available through the method we've used for
+  the ones we got (free LPC or something?)"*, then *"1 per class, 2 cloud"* and *"generic kits per class"*. That is all of his word this
+  job rests on.
+- **The prompt** (the overseer's words, not his) set:
+  - gold for the dragonborn ("the colour of the sheet Griz had made");
+  - garnet or wine for the tiefling, two keys tried each;
+  - curled or backwards horns, the seat to pick and say;
+  - a tail on both and no wings;
+  - the hook as two lines, and the colour as a parameter.
+- **The seat's own calls, none ruled:** `all.lpcr.amber`; `all.lpcr.garnet`; the curled horns in `all.lpcr.yellow` at z131, over hoods and
+  hats; the tiefling druid's human head; the dragon ears left under hoods; the `classLook` helper. They are recorded as picks on
+  invented.json's `deep16-race-looks`. When he rules, add his words to that line with `tools/invented_add.py` (an `append`, not an `add`).
+- **At the close** Griz ruled nothing; he asked for this note.
+
+### Gotchas (each cost time here)
+
+1. **A fresh clone has no Pillow, numpy or scipy:** run `pip install pillow numpy scipy`. `deep16/_src/lpc/` starts empty; the first
+   compose of the twelve class figures fetches 242 files (about 657 KB, about a minute).
+2. **`FIGURES` carries tuples** (`'attack': ('slash', 'slash_oversize')`). A JSON round-trip turns them into lists, and `build_figure`
+   then fails with `body has no ['slash', 'slash_oversize'] sheet`. Copy a figure with `copy.deepcopy`.
+3. **`meta.json` notes are joined with `'; '`,** so a semicolon inside a note splits it in two.
+4. **The composer writes `CREDITS.md` and `_contact.png` only on a full run:** every figure plus the spider. The spider needs
+   `deep16/_src/lpc/LPC_Spiders.zip`, which a clone does not have. On a partial run, call `write_credits(built, path)` yourself, as the
+   credits here were made, and make your own show sheet.
+5. **The show sheet's script was in the scratchpad and is gone.** To remake `deep16-race-figures.png`:
+   - one row per class: the class sheet's idle facing S, then for each race idle S (facing 0), idle E (facing 6), and the attack's
+     middle frame facing E;
+   - each cell a 96×88 window, with the anim's foot (`ax`, `ay` in the `.json`) placed at (48, 74);
+   - scaled ×2, nearest-neighbour.
+6. **The stamps: the finding above was half wrong.**
+   - `sprites.js` is written LF by the build on Windows too, so its LF hash was right.
+   - `classes.js` is not written by the build. The desktop's stamp for it is the hash of its CRLF checkout, which is why the overseer
+     had to restamp it.
+   - From the cloud, never let the build stamp blind (it moves 29 of the 60). Restamp only what changed: the LF hash for build-written
+     files (`sprites.js`, `palette.js`); for hand-edited ones, the CRLF hash (sha1 of the bytes with `\n` made `\r\n`, first 10 hex
+     digits). Or leave the stamps to the desktop, and say so in the notes.
+7. **`tools/deep16-build.py` rewrites `deep16/js/palette.js`:** run `git checkout -- deep16/js/palette.js` after it.
+8. **Benches in the cloud:** set `DEEP16_BROWSER=/opt/pw-browsers/chromium DEEP16_BROWSER_ARGS=--no-sandbox`. `bench16.py` and
+   `bench8.py` both take them on `main` now.
+9. **Seeing the game here:** Node's Playwright is installed globally (`NODE_PATH=/opt/node22/lib/node_modules`).
+   - Serve the repo root with `python3 -m http.server`, then open `deep16/index.html?npc=<words>&vs=<words>&lvl=5&watch`.
+   - Press `e` to begin; the mouse wheel zooms. The game loop runs, unlike under Edge's `--screenshot`.
+   - `pkill -f` and `pgrep -f` match their own shell: kill the server by PID.
+10. **The palette snap draws dark-brown hair red** (the class sheets on `main` too), so the tiefling's red hair and garnet face sit close.
+11. **The hook names a sheet by race alone** (`npc<class>_<race>_p0`). Composing another dragon colour is one `race_figure(..., skin=)`
+    call, but the game choosing it needs an ancestry on the spec and in the `~` word (`NPC.decode`, `NPC.code`) first.
+
+### Not seen (beyond the list above)
+
+- No record shows Griz has looked at `deep16-race-figures.png`.
+- The `?pocket` maker clicked through. The nearest anything came is the lazy seat's `lazy1003`, which fetches a dragonborn's sheet for a
+  Pocket DM fight.
+- The camp drawing a made dragonborn or tiefling.
+- Any walk, hurt or cast row, and the cleric's sit.
+- The desktop's Edge.
+
+### What to rerun, and when
+
+- **He rules a colour (question 1):**
+  1. Set `RACE_LOOKS[race]['skin']` in `tools/lpc-compose.py`.
+  2. Run `python tools/lpc-compose.py` and then `python tools/pixelate.py p0`, each with that race's twelve ids.
+  3. Run `python tools/deep16-build.py`, then `git checkout -- deep16/js/palette.js`.
+  4. Remake the show sheet (gotcha 5), update the keys table above, and append his words to `deep16-race-looks`.
+  5. `python dev/check.py` must be GREEN before the push. The other race's twelve do not change.
+- **He rules the horns (question 2):** the twelve tieflings, the same steps; change the horns entry in `RACE_LOOKS['tiefling']['add']`.
+  The backwards horns have a second layer at z7, behind the head: lift only layer 1.
+- **He drops the tail (question 3):** take it out of `RACE_LOOKS['dragonborn']['add']` and redo the twelve dragonborn, the same steps.
+  The tail's credits entry stays, because the tieflings use it; its "Used by" becomes the twelve tieflings.
+- **Any edit to `deep16/js/classes.js`:**
+  - restamp it (gotcha 6);
+  - rerun the probe's three checks, because `dev/check.py` does not check which sheet a race gets: all 24 resolve, the other races
+    keep the class figure, and the named ones keep theirs. As a bench mode it would ride the gate; it is not built.
+- **A new ancestry or race:** gotcha 11 first.
+- **Queued on `main`, not this job** (`cloud-jobs.md`): the breath weapon and the resistance, the tiefling's spells, a portrait for the
+  maker's card.
