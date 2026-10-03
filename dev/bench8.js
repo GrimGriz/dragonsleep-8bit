@@ -78,9 +78,11 @@
     // on one of the four's turns, through the battle's own menus -- a potion (the plain first) to whichever of the four stands lowest, when he is under half
     // (down counts: a potion wakes the downed in a fight, RULED 09-28); else, with GROUP or more foes up, the highest-levelled damaging area spell he has a slot
     // for (a cone, a line or all foes; the roost's fire and thunder left out), a cone or a line at the front foe; else the guest turn as before. The guests keep
-    // their own turns. After a fight: the tent once, when the four stand under half (his answer on leg four: "the tent first, pitched once below half"), then
-    // one potion each for any of them still standing under half
-    var HAND = !!+(Q.get('hand') || 0), GROUP = +(Q.get('group') || 3), TENT = Q.get('tent') == null ? HAND : !!+Q.get('tent'), PLAN = {}, heroTurn0 = BP.heroTurn;
+    // their own turns. After a fight: a healer's kit on each of the four who is down, then the tent once when the four stand under half (his answer on leg four:
+    // "the tent first, pitched once below half"), then one potion each for any of them still standing under half. GROUP is two since round three (the lean
+    // sent back with the walker's second four, 10-03: "two; a pair of trolls is 168 regenerating HP, and a player fireballs that without thinking"; the kit: "yes,
+    // as a player would")
+    var HAND = !!+(Q.get('hand') || 0), GROUP = +(Q.get('group') || 2), TENT = Q.get('tent') == null ? HAND : !!+Q.get('tent'), PLAN = {}, heroTurn0 = BP.heroTurn;
     function areaSpell(b, h) {
       return R.spellList(h, 'battle').filter(function (sp) { return sp.level > 0 && sp.dmg && /^(cone|line|enemies)$/.test(sp.target) && !sp.reaction && !sp.bonus && R.lowestSlot(h, sp.level) && !(b.o.roost && (sp.el === 'fire' || sp.el === 'thunder')); })
         .sort(function (a, c) { return c.level - a.level || (c.target === 'enemies') - (a.target === 'enemies'); })[0];
@@ -197,13 +199,18 @@
           Object.assign(g.flags, W.sit.flags || {}); prevUnset.forEach(function (k) { if (nowUnset.indexOf(k) < 0) g.flags[k] = 1; }); nowUnset.forEach(function (k) { delete g.flags[k]; }); }
         var run = walkLeg(paths[li], g, F, li === 0, !!Q.get('log') && s % 1000 === 0); legs.push(run);
         if (run.wiped || run.err) break;
+        if (W.restEnd) { EV.longRest(); run.rests.push(W.restEnd); } // (a sally's way home ends in the lamp's bed: the road menu's REST HERE, EV.longRest -- the door was tallied first)
       }
       return paths.length === 1 ? legs[0] : { legs: legs };
     }
     function walkLeg(path, g, F, first, logIt) {
       var run = { fights: [], steps: 0, rests: [], torches: 0, unlitMaps: {}, zones: {}, fieldPotions: 0 };
-      function afterFight() { // the hand's field half: the tent once under half, then a potion each for the standing under half
+      function afterFight() { // the hand's field half: a kit on each of the downed, the tent once under half, then a potion each for the standing under half
         if (!HAND) return;
+        g.party.forEach(function (h) { // (the game's own: up at 1 HP; the tent after it heals him too)
+          if (!(h.ko || h.hp <= 0) || !g.count('kit')) return;
+          DS.run(function* () { yield* EV.useFieldItem('kit', h); }); settle(400); run.kits = (run.kits || 0) + 1;
+        });
         var up = g.party.filter(function (h) { return !h.ko && h.hp > 0; }), max = g.party.reduce(function (a, h) { return a + h.maxhp; }, 0), hp = up.reduce(function (a, h) { return a + h.hp; }, 0);
         if (TENT && run.tent == null && up.length && hp < max / 2 && g.count('tent')) {
           var t0 = g.count('tent'); DS.run(function* () { yield* EV.useFieldItem('tent', up[0]); }); settle(800);
@@ -238,7 +245,7 @@
           EV.longRest(); run.rests.push(r.name); light(); // (the lamp's night: EV.rest's own long rest; the morning's prep and the fade are the player's)
         });
       }
-      if (first) light();
+      light(); // (a chain's next leg too: a night at a lamp put the light away)
       for (var i = 1; i < path.length; i++) {
         var p = path[i];
         if (p.via === 'exit' || p.via === 'door') { EV.torchOut(); F.load(p.map, p.x, p.y, p.dir); light(); continue; }

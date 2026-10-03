@@ -1,7 +1,8 @@
 """Here-to-there (10-03; Griz: "random encounters stay the 8-bit" and "we need to run some here-to-there 8bit benches to see what sort of
 resources the parties are getting to the boss battles with"). Walks a leg of the 8-bit game from one boss (or Silverton's gate) to the next
 boss's door through the game's own random encounters, n times, and tallies what it arrives with: the party on the player's hand (10-03, Griz:
-"a player's hand on the bench now, potions under half and area spells at groups"; the tent "pitched once below half"), or with hand=0 on
+"a player's hand on the bench now, potions under half and area spells at groups"; the tent "pitched once below half"; round three's lean:
+a group is two, and a kit on the downed after a fight), or with hand=0 on
 the game's own AI alone (the guest turn: the floor). The page
 side is dev/bench8.js's `walk` mode (read its comment); a leg's story state is the game's own DS.situation (js/situations.js). Findings,
 not fixes: this file changes no rate, table, sheet or rule. From PowerShell (headless Edge answers nothing from the Bash sandbox); in a
@@ -11,7 +12,8 @@ Linux container set DEEP16_BROWSER=/opt/pw-browsers/chromium DEEP16_BROWSER_ARGS
   python dev/walk8.py leg=roper n=20 lvl=7      the same leg a level up (the leg's own level otherwise)
   python dev/walk8.py leg=roper seed=5          another run of dice (seed=1 by default; each walk is seed*1000 + its index)
   python dev/walk8.py leg=roper n=1 log         the first walk's fights, line by line (what the battle said)
-  python dev/walk8.py leg=legfour n=100 tent=0  the player's hand without the tent; group=2: an area spell at two foes (3 by default); hand=0: the floor
+  python dev/walk8.py leg=legfour n=100 tent=0  the player's hand without the tent; group=3: an area spell only at three foes (2 by default); hand=0: the floor
+  python dev/walk8.py leg=legfoursally n=100    leg four in sallies (round three): each door from Third Lamp, home to its bed after, on to the next
   python dev/walk8.py legs                      the legs, their starts, doors and levels
   python dev/walk8.py leg=all n=20 table        every leg; writes here-to-there.md at the repo root (jobs=4 at a time)
   python dev/walk8.py leg=gulch n=1 check       the gate's line (dev/check.py all): one walk, FAIL on an error or a walk that found no path
@@ -75,7 +77,7 @@ LEGS = [
                    frm=['highway_2', 60, 11], to={'map': 'highway_2', 'trig': 'drain'}, start='the breach (the bulette)')),
     ('pinned', dict(group='deep', mid=1, title='The drain cut to the north cut (the phase spiders, Halldor pinned)', lvl=6, ladder=6, sitname='northcut',
                     sit={'base': 'lake', 'spine': 7, 'flags': {'puddingDead': 1}}, frm=['highway_2', 69, 16], to={'map': 'pinned', 'trig': 'pinned'}, start='the drain cut')),
-    ('stair', dict(group='deep', title='Solskaft to the dry stair (the crew boss holding it)', lvl=2, ladder=2, guess='lvl: the ladder\'s (Griz, 10-03: \"yes, and rerun those legs\"; the situation had 6, the spine\'s: the stair comes after beat 10, where Ragna asks for the water; the ladder\'s 2 is its rung)',
+    ('stair', dict(group='deep', title='Solskaft to the dry stair (the crew boss holding it)', lvl=6, ladder=2, guess='lvl: the story\'s, not the ladder\'s 2 (the lean of 10-03: \"the story\'s; the walker measures arrival, and 2 is the bestiary\'s rung\"): the stair comes after beat 10, where Ragna asks for the water',
                    sit={'base': 'lake', 'spine': 10, 'flags': {'waterAsked': 1}}, frm=['solskaft', 28, 20], to={'map': 'warrens_d', 'trig': 'holdStair'}, start='Solskaft, after a night (the cots)')),
     ('brood', dict(group='deep', title='Second Lamp to the nest (the Broodmother, Halldor and four troopers)', lvl=7, ladder=7, sitname='nest',
                    sit={'base': 'lake', 'spine': 12}, frm=['highway_2', 68, 11], to={'map': 'nest', 'trig': 'brood'}, start='Second Lamp (the road menu\'s fast travel), after a night there')),
@@ -95,15 +97,27 @@ LEGS = [
     ('elemental', dict(group='deep', mid=1, title='The troll hole to the cut\'s walls (the earth elemental)', lvl=8, ladder=8,
                        sit={'base': 'lake', 'spine': 16, 'flags': {'fallbackDone': 1, 'nagaDone': 1, 'trollsDone': 1}}, frm=['highway_4', 52, 17], to={'map': 'highway_4', 'trig': 'elemental'}, start='the troll hole')),
     ('torvald', dict(group='deep', mid=1, title='The cut\'s walls to Deepholm\'s door (Torvald; the sect\'s blades come at the next rest there)', lvl=9, sitname='torvald', guess='lvl: the situation\'s 9 (off the ladder: a story fight)',
-                     sit={'base': 'lake', 'spine': 17}, frm=['highway_4', 64, 11], to={'map': 'threshold', 'arrive': 1}, start='the made road\'s cut (the elemental)',
+                     sit={'base': 'lake', 'spine': 17, 'flags': {'fallbackDone': 1, 'nagaDone': 1, 'trollsDone': 1, 'elementalDone': 1}}, frm=['highway_4', 64, 11], to={'map': 'threshold', 'arrive': 1}, start='the made road\'s cut (the elemental)',
                      note='the assassins come when the party first rests at the door after Torvald (deep.js EV.rest): the same state as Torvald\'s door, less whatever Torvald cost')),
 ]
 LEGD = dict(LEGS)
+# the way home in a sally (round three; the lean of 10-03 on leg four: "sallies; the lamps are the beds you built. Have the walker model the sally, door to
+# lamp to next door, before anything is added or lightened"): from a boss's door, the boss counted done, back to Third Lamp's tower and the road menu's
+# REST HERE (restEnd: EV.longRest on arrival, the state tallied first). Chains only: not in the table of single legs
+L4 = {'base': 'lake', 'spine': 16}
+HOME = [('fallback-home', 'The fallback line home to Third Lamp', {'fallbackDone': 1}, ['highway_4', 13, 11]),
+        ('naga-home', 'The black water home to Third Lamp', {'fallbackDone': 1, 'nagaDone': 1}, ['highway_4', 33, 11]),
+        ('trolls-home', 'The troll hole home to Third Lamp', {'fallbackDone': 1, 'nagaDone': 1, 'trollsDone': 1}, ['highway_4', 50, 16]),
+        ('elemental-home', 'The cut\'s walls home to Third Lamp', {'fallbackDone': 1, 'nagaDone': 1, 'trollsDone': 1, 'elementalDone': 1}, ['highway_4', 63, 10])]
+for _n, _t, _f, _at in HOME:
+    LEGD[_n] = dict(group='deep', title=_t, lvl=7, sit=dict(L4, flags=_f), frm=_at, to={'map': 'highway_3', 'trig': 'tower3'}, start='the boss\'s door', restEnd='Third Lamp')
 # the chains: legs walked one after another with nothing reset between them (no boss fought: the grid fights those), so each door shows what
 # the road alone has taken since the last bed -- the floor under what the party really brings, the boss before it not counted
 CHAINS = [('legone', ['cutseal', 'gricks', 'roper', 'bulette', 'drain'], 'Solskaft to the drain cut: leg one and two, the seal to the drain'),
           ('legthree', ['xorns', 'giant', 'raid'], 'Second Lamp to the raid: leg three'),
-          ('legfour', ['fallback', 'naga', 'trolls', 'elemental', 'torvald'], 'Third Lamp to Deepholm\'s door: leg four')]
+          ('legfour', ['fallback', 'naga', 'trolls', 'elemental', 'torvald'], 'Third Lamp to Deepholm\'s door: leg four'),
+          ('legfoursally', ['fallback', 'fallback-home', 'naga', 'naga-home', 'trolls', 'trolls-home', 'elemental', 'elemental-home', 'torvald'],
+           'leg four in sallies: Third Lamp to each door and home to its bed, then on to the next')]
 CHAIND = dict((c, (legs, t)) for c, legs, t in CHAINS)
 NO_WALK = [('the road catches', 'after the wagon yard: a chase that rolls no encounters (world.js Field.arrive: `!this.chase`), so the party meets the riders with the yard\'s leftovers'),
            ('the assassins', 'at Deepholm\'s door, the first rest after Torvald: no walk between (see the torvald leg)')]
@@ -113,7 +127,7 @@ ITEM_COLS = [('potion', 'potion'), ('greaterpotion', 'greater'), ('kit', 'kit'),
 def leg_spec(name, lvl=None):
     L = LEGD[name]
     sit = dict(L['sit']); sit['lvl'] = int(lvl) if lvl else L['lvl']
-    return {'name': name, 'sit': sit, 'from': L['frm'], 'to': L['to'], 'mid': bool(L.get('mid'))}
+    return {'name': name, 'sit': sit, 'from': L['frm'], 'to': L['to'], 'mid': bool(L.get('mid')), 'restEnd': L.get('restEnd')}
 
 
 def leg_json(name, lvl=None):
