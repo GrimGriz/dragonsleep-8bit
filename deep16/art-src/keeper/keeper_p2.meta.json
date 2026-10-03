@@ -1,0 +1,58 @@
+{
+ "a_idle": {
+  "y": 0,
+  "frames": 4
+ },
+ "a_wall": {
+  "y": 992,
+  "frames": 6
+ },
+ "a_dive": {
+  "y": 1984,
+  "frames": 7
+ },
+ "a_wave": {
+  "y": 2976,
+  "frames": 6
+ },
+ "b_idle": {
+  "y": 3968,
+  "frames": 4
+ },
+ "b_wall": {
+  "y": 4960,
+  "frames": 6
+ },
+ "b_dive": {
+  "y": 5952,
+  "frames": 7
+ },
+ "b_wave": {
+  "y": 6944,
+  "frames": 6
+ },
+ "slam_ab": {
+  "y": 7936,
+  "frames": 8
+ },
+ "slam_ba": {
+  "y": 8928,
+  "frames": 7
+ },
+ "slam_b3a": {
+  "y": 9920,
+  "frames": 7
+ },
+ "hurt_b": {
+  "y": 10912,
+  "frames": 2
+ },
+ "die_b": {
+  "y": 11904,
+  "frames": 2
+ },
+ "stand": {
+  "y": 12896,
+  "frames": 2
+ }
+}

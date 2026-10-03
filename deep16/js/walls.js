@@ -322,6 +322,8 @@
             ctx.fillStyle = R.stone[0]; ctx.beginPath(); ctx.moveTo(s.x + hw, s.y); ctx.lineTo(s.x, s.y + hh); ctx.lineTo(s.x, s.y + hh - H); ctx.lineTo(s.x + hw, s.y - H); ctx.closePath(); ctx.fill();
             ctx.fillStyle = R.stone[2]; ctx.beginPath(); ctx.moveTo(s.x, s.y - hh - H); ctx.lineTo(s.x + hw, s.y - H); ctx.lineTo(s.x, s.y + hh - H); ctx.lineTo(s.x - hw, s.y - H); ctx.closePath(); ctx.fill();
             ctx.strokeStyle = R.outline[0]; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(s.x, s.y + hh); ctx.lineTo(s.x, s.y + hh - H); ctx.stroke(); ctx.globalAlpha = 1;
+          } else if (w.kind === 'ice') {
+            // (the Keeper's Ice Wall is drawn a section at a time from the third sheet: js/keeper.js, the props it adds)
           } else if (w.kind === 'wind') {
             // streaks of air torn upward
             ctx.strokeStyle = R.bone[2]; ctx.lineWidth = 1;

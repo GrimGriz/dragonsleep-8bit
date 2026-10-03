@@ -897,8 +897,23 @@
     if (arc || g.flags.hobMet) { g.flags.markRead = 1; yield DS.say(L('w.markRead')); }
     if (settled) return;
     var a = yield DS.ask(L('w.markAsk'), ['LEAVE IT', 'PUT A HAND ON IT']);
-    if (a === 1) { g.flags.keeperAwake = 1; DS.audio.sfx('splash'); yield DS.say(L('w.markWake')); }
+    if (a !== 1) return;
+    g.flags.keeperAwake = 1; DS.audio.sfx('splash'); yield DS.say(L('w.markWake'));
+    // (10-03, Griz: the hand on the mark starts the fight there, the party by the rune -- DEEP16's floodstair geo.entryRune. Won, it goes as WADE IN's win: the five come up)
+    var r = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper', start: 'rune' });
+    if (r !== 'win') return;
+    g.flags.keeperDone = 1;
+    yield DS.say(L('w.keeperGone'));
+    yield* fiveUp(g);
   };
+  // the five brought up (WADE IN won, the rope, or the fight a hand on the mark began): the tokens, and the quota clock's fork
+  function* fiveUp(g) {
+    g.flags.fiveRecovered = 1; g.give('fivetokens', 1); DS.audio.sfx('chest');
+    yield DS.say(L('w.fiveRecovered'));
+    yield DS.say(L('w.threshold'));
+    // the quota clock's fork: the stock (Griz 09-17e)
+    if ((g.kills.crawler || 0) >= 6) g.flags.stockDead = 1;
+  }
   S.stair = function* () {
     var g = G();
     if (g.flags.fiveRecovered) { yield DS.say(L('w.stairDone')); return; }
@@ -909,23 +924,19 @@
       if (!g.has('rope')) { yield DS.say(L('w.noRope')); return; }
       if (g.flags.keeperAwake) {
         yield DS.say(L('w.ropeAwake'));
-        var r1 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper' }); // (DEEP16: deep16/data/fights.js keeper)
+        var r1 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper', start: 'rune' }); // (DEEP16: deep16/data/fights.js keeper; the mark woke it, so it is on them by the rune -- 10-03)
         if (r1 !== 'win') return;
         g.flags.keeperDone = 1;
       }
       yield DS.say(L('w.ropeOut'));
     } else if (a === 1) {
       yield DS.say(L('w.wade'));
-      var r2 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper' });
+      var r2 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper', start: 'ledge' }); // (at the water's edge, on the ledge -- 10-03)
       if (r2 !== 'win') return;
       g.flags.keeperDone = 1;
       yield DS.say(L('w.keeperGone'));
     } else return;
-    g.flags.fiveRecovered = 1; g.give('fivetokens', 1); DS.audio.sfx('chest');
-    yield DS.say(L('w.fiveRecovered'));
-    yield DS.say(L('w.threshold'));
-    // the quota clock's fork: the stock (Griz 09-17e)
-    if ((g.kills.crawler || 0) >= 6) g.flags.stockDead = 1;
+    yield* fiveUp(g);
   };
   S['enter:warrens_a'] = function* () {
     var g = G();

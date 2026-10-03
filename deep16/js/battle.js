@@ -39,7 +39,11 @@
     // a familiar to each of a band (the class floor's &fam=owl,bat,...: js/classes.js npcFight, 10-01): the first keeps the one id
     (this.o.familiars || []).forEach(function (f, i) { var fu = D.familiar && D.familiar.unit(self, { flags: { familiar: f } }, party); if (fu) { fu.id = 'familiar' + (i || ''); party.push(fu); if (fu.master) fu.master.name += ' (' + window.DS.R.FAMILIARS[f.kind].name + ')'; } }); // (seven Wizard 5s told apart by their familiars)
     // (the Settling, 09-30: the 8-bit trigger that fired puts the lead on its own square -- embed.at -- and the rest beside him)
-    var entry = (this.o.embed && this.o.embed.at ? [this.o.embed.at] : (F.entry || m.def.entry)).slice();
+    // (a way in by name, 10-03: the Flooded Stair's 'rune' -- a hand on the mark, the party by it, the map's entryRune -- or 'ledge', waded in, its entry. The 8-bit scene says which
+    // (this.o.embed.start, js/events.js S.mark and S.stair); ?keeperfight&start= and the bench pass this.o.start. A map without that list keeps its entry)
+    var start = (this.o.embed && this.o.embed.start) || this.o.start || null, byStart = start && start !== 'ledge' ? m.def['entry' + start.charAt(0).toUpperCase() + start.slice(1)] : null;
+    this.startAt = byStart ? start : null; // (the named start the party came in by, or none: the map's entry -- the Keeper's log and the probe read it)
+    var entry = (this.o.embed && this.o.embed.at ? [this.o.embed.at] : (byStart || F.entry || m.def.entry)).slice(); this.entrySq = entry;
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
     // the party came in by), and a map's named doors (`doors`: the inn's); a map closed all round keeps the way in
     // riders (a fight's scenery figures: the wagon's glamoured children, the team in its traces): drawn where they stand,
@@ -455,7 +459,7 @@
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
   // entry, each on its own initiative
   Battle.prototype.joinReserve = function* () {
-    var self = this, come = this.reserve, e0 = (this.fight.entry || this.map.def.entry)[0], names = [];
+    var self = this, come = this.reserve, e0 = (this.entrySq || this.fight.entry || this.map.def.entry)[0], names = []; // (this.entrySq: the squares the party came in on -- a named start's, Battle.enter)
     this.reserve = [];
     come.forEach(function (u) {
       if (u.familiar) { self.units.push(u); return; } // (a familiar comes riding its wizard, and has no initiative of its own)
@@ -482,7 +486,7 @@
     D.music(this.fight.music || 'battle'); // (it starts on the first key or click: browsers hold sound till then; a set piece's boss tune)
     if (!this.fight.noCards) yield { entry: true }; // (the wet has none: RULED 09-30c, "no press e, just go")
     // initiative: d20 + DEX (and the fighter's Remarkable Athlete), rolled once
-    var rolls = this.units.map(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init; return { u: u, d: d }; }); // (initAdv: the barbarian's Feral Instinct, 7)
+    var rolls = this.units.map(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init + (u.kind === 'keeper' && D.keeper ? D.keeper.CFG.initBonus : 0); return { u: u, d: d }; }); // (initAdv: the barbarian's Feral Instinct, 7; the Keeper's initiative bonus: js/keeper.js K.CFG.initBonus, 0 -- so a fight can be scripted for it to go first)
     // (a familiar has no initiative: its turn comes right after its caster's -- RULED 09-30, js/familiar.js FM.after)
     this.order = this.units.filter(function (u) { return !u.familiar; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
@@ -979,6 +983,12 @@
           }
           if (take) {
             w.reaction = 0;
+            if (w.kind === 'keeper' && D.keeper && D.keeper.CFG.oaWave) { // (the Keeper's opportunity attack as a wave toward the deep -- not ruled, behind D16.keeper.CFG.oaWave, off: js/keeper.js)
+              var pushed = yield* D.keeper.oaWave(this, w, u);
+              if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
+              if (pushed) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
+              continue;
+            }
             this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? 'the ' + shortName(u) : u.name) + '.']);
             var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite
               || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]]; // any melee attack (the morningstar)
@@ -992,7 +1002,7 @@
         }
       }
       u.facing = D.spr.facingFor(nx - u.x, ny - u.y);
-      var wasIn = D.magic.webAt(this, u);
+      var wasIn = D.magic.webAt(this, u), stepFrom = { x: u.x, y: u.y }; // (stepFrom: the square it left -- the Keeper's readied wall asks which way it stepped along the stair; the tween is gone by then in the page's frame loop)
       u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: this.pace(STEP_FRAMES, true) }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
       if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } // (moved: what it has walked this turn -- the Thief's Supreme Sneak asks)
@@ -1012,6 +1022,8 @@
       // out of a Globe of Invulnerability that held a spell off it (10-01c): a hold, a sleep, a web's grip, a dance takes hold again on the square it steps
       // out onto, and the walk ends there (filming it, the fighter walked on a square held)
       if (this.globes && D.magic.globeSync) { D.magic.globeSync(this); if (!RU.canAct(u) || u.conds.restrained || u.conds.dancing) { if (o && o.spend) T.move = 0; u.anim = 'idle'; yield 24; break; } }
+      // the Keeper's readied Ice Wall (js/keeper.js, 10-03): one of ours stepping toward the exit springs it
+      if (this.kp && this.kp.ready && D.keeper) yield* D.keeper.watch(this, u, stepFrom);
       // a readied strike (exec 'ready', 10-02): one that steps within a readier's reach, or into its sight, gets it -- and held, stunned or put down by it, walks no farther
       if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) { yield* this.readyHook(u); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; } u.anim = gait; }
     }
@@ -1028,10 +1040,39 @@
   };
 
   // ------------------------------------------------------------------ an attack: the roll, the reactions, the damage
+  // Sanctuary's new target (SRD 5.1: "must choose a new target or lose the attack or spell"): another foe of the one warded that the attack or spell can take (in reach, or in range and sight; not hidden,
+  // not itself warded). `was` the warded one; `atk` the attack (or { spell, ranged, range } for a spell); `o.g` a spell's geometry. Returns it, or null (nothing else to take: the attack is lost, said on a card)
+  Battle.prototype.sanctuaryNew = function* (att, was, atk, o) {
+    o = o || {};
+    if (o.oa) return null;
+    var melee = !atk.ranged && (!atk.spell || atk.touch), self = this;
+    var cand = this.units.filter(function (w) {
+      if (w === was || w === att || !G.hostile(att, w) || !G.standing(w) || w.ethereal || w.dead || w.isWall || (w.conds && (w.conds.sanctuary || w.conds.hidden))) return false;
+      if (o.g && D.magic.targetOK) return D.magic.targetOK(self, att, o.g, w) && (melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.dist(att, w) <= ((atk.range && atk.range[1]) || 60));
+      return melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.dist(att, w) <= ((atk.range && atk.range[1]) || 60) && G.los(att, w).clear;
+    });
+    var human = att.side === 'foe' ? !!(D.keeperPlay && D.keeperPlay.human && D.keeperPlay.human(this, att)) : !(att.classAI || att.guest || att.summon || att.familiar || att.ai);
+    if (!cand.length) { this.card(['{g}' + nameOf(att) + ' has no other target: the ' + (atk.spell ? 'spell' : 'attack') + ' is lost.{/}'], 160); return null; }
+    var pick = null;
+    if (human && cand.length) {
+      var opts = cand.map(function (w, i) { return { label: w.name.toUpperCase() + ' (' + G.dist(att, w) + ' FT)', value: i + 1 }; }); opts.push({ label: 'LOSE IT', value: 0 });
+      var v = yield { prompt: { who: att, title: 'SANCTUARY: A NEW TARGET', lines: ['The ward turns the blow: a new target, or it is lost.'], opts: opts, pick: cand } };
+      pick = v ? cand[v - 1] : null;
+    } else pick = cand.slice().sort(function (a, b) { return a.hp - b.hp; })[0];
+    this.card([pick ? '{y}' + nameOf(att) + '{/} turns on ' + nameOf(pick) + ' instead.' : '{g}' + nameOf(att) + ' lets it go: the ' + (atk.spell ? 'spell' : 'attack') + ' is lost.{/}'], 160);
+    return pick;
+  };
   Battle.prototype.attack = function* (att, tgt, atk, o) {
     o = o || {};
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
+    // Sanctuary (SRD 5.1): "any creature who targets the warded creature with an attack ... must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the
+    // attack" -- the save, then a new target (an AI picks the weakest other foe it can reach; a player's pick is asked) or the attack is lost (10-03; before, a failed save only lost it)
+    if (tgt.conds && tgt.conds.sanctuary && G.hostile(att, tgt) && D.magic.sanctuary && !D.magic.sanctuary(this, att, tgt)) {
+      var alt = yield* this.sanctuaryNew(att, tgt, atk, o);
+      if (!alt) { yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
+      tgt = alt;
+    }
     if (att.conds && att.conds.sanctuary && D.magic.unward) D.magic.unward(this, att, 'an attack'); // (SRD 5.1 Sanctuary: "If the warded creature makes an attack ... this spell ends" -- 10-03)
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
@@ -1079,8 +1120,6 @@
       }
     }
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) delete tgt.conds.helped; // help is spent on the first swing
-    // Sanctuary (SRD 5.1; 09-28, js/grimoire.js): whoever would strike the warded makes a WIS save first, or the blow is lost
-    if (tgt.conds.sanctuary && G.hostile(att, tgt) && D.magic.sanctuary && !D.magic.sanctuary(this, att, tgt)) { yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
     // the one-shot marks, spent by this roll: Guiding Bolt's glow on the target, Vicious Mockery on the attacker, True Strike
     if (tgt.conds.guided) delete tgt.conds.guided;
     if (att.conds.mocked) delete att.conds.mocked;

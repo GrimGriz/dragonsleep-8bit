@@ -198,10 +198,17 @@
       from: 'the 8-bit game: the Hex (the floor\'s brawlers and the card bruiser; the 8-bit game fights them one on one, the ladder all at once)', won: 'THE FLOOR IS YOURS.',
       foes: [{ id: 'br1', kind: 'brawler', at: [5, 4] }, { id: 'br2', kind: 'brawler', at: [12, 4] }, { id: 'br3', kind: 'brawler', at: [5, 8] }, { id: 'br4', kind: 'brawler', at: [12, 8] },
              { id: 'cb', kind: 'cardbruiser', at: [8, 2] }], wave: null },
-    { id: 'keeper', level: 3, map: 'floodstair', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss',
+    { id: 'keeper', level: 3, ladder: false, map: 'floodstair', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss',
       intro: 'A dwarven stair runs down into black water. At the bottom five men lie drowned. The water is a thing, and it closes. (It keeps to its water, and you cannot see it there until it moves.)',
       from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
-      foes: [{ id: 'keeper', kind: 'keeper', at: [8, 4], hidden: true }], wave: null },
+      foes: [{ id: 'keeper', kind: 'keeper', at: window.D16.laneAt(window.D16.MAPS.floodstair, window.D16.MAPS.floodstair.geo.keeper[0], window.D16.MAPS.floodstair.geo.keeper[1], 2), hidden: true }], wave: null }, // (in the lane frame, data/maps.js floodstair geo.keeper)
+    // THE LADDER'S KEEPER (10-03, Griz: "the cool keeper fight isn't for the ladders, they have to play the real game"; then: the ladder's fight is the old fight unchanged): `keeper` as it
+    // is on origin/main before the Keeper work landed (ed7be2a), on the old stair (data/maps.js floodstair-old) with the old foe (data/foes.js keeperold), none of js/keeper.js in it. Its
+    // place on the level-3 rung is the old one's (a rung is built from D.fightsAt, in this list's order); dev/keeper-probe.py diffs it against main's.
+    { id: 'keeper-ladder', level: 3, map: 'floodstair-old', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss',
+      intro: 'A dwarven stair runs down into black water. At the bottom five men lie drowned. The water is a thing, and it closes. (It keeps to its water, and you cannot see it there until it moves.)',
+      from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
+      foes: [{ id: 'keeper', kind: 'keeperold', at: [8, 4], hidden: true }], wave: null },
     { id: 'chuul', level: 4, map: 'point', name: 'The Thing in the Lake', sub: 'the point, at night', music: 'boss',
       ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 3 },
       intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Binding.)',
@@ -310,7 +317,7 @@
   // the bestiary's (the Cowork seat's first four, `bestiary`)
   function rank(f) { return f.id === 'gallery' ? -1 : f.bestiary ? 1 : 0; }
   D.fightsAt = function (level) {
-    return D.FIGHTS.map(function (f, i) { return [f, i]; }).filter(function (p) { return p[0].level === level; })
+    return D.FIGHTS.map(function (f, i) { return [f, i]; }).filter(function (p) { return p[0].level === level && p[0].ladder !== false; })
       .sort(function (a, b) { return rank(a[0]) - rank(b[0]) || a[1] - b[1]; }).map(function (p) { return p[0]; });
   };
   D.fightAt = function (level) { return D.fightsAt(level)[0] || null; };

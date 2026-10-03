@@ -22,6 +22,7 @@
   else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
   else if (/[?&]show=/.test(q)) D.push(D.show.fight(q)); // the test ground: ?show=grick -- every row of a creature's sheet, twice, in bright, dim and dark (js/show.js)
   else if (/[?&]npc=/.test(q)) D.push(D.npcFight(q)); // the class floor: ?npc=cleric,wizard&lvl=5 (&vs=fighter,rogue: a band instead of the four) (js/classes.js)
+  else if (/[?&]keeperfight\b/.test(q) && D.keeper) D.push(D.keeper.fight(q)); // the Keeper of the Flooded Stair (js/keeper.js)
   else if (/[?&]fxgallery\b/.test(q)) D.push(D.fxGallery(q)); // the spell gallery: every spell cast in turn (js/gallery.js)
   else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder({ party: /[?&]party=ours\b/.test(q) ? 'ours' : null, play: /[?&]play\b/.test(q) })); // (&party=ours: the tester ladder; &play: you run our four, recorded)
   else if (/[?&]gate\b/.test(q)) D.push(new D.Gate());

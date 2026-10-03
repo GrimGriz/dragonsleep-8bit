@@ -144,6 +144,7 @@
   // spells?" -- "yes"): they draw on one use (u.feats.channel), and the list says how many are left
   var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1 };
   UI.cmds = function (B, u) {
+    if (D.keeperPlay && D.keeperPlay.human(B, u)) return D.keeperPlay.ring(B, u); // (?keeperfight&play=keeper: the Keeper's own ring -- js/keeperplay.js)
     var c = B.commands(u), top = {}, sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own)
     c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (fr && x.id === fr) { top.front = x; return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
@@ -269,7 +270,7 @@
     if (I.mouse.click && B.hoverBtn >= 0 && B.buttons[B.hoverBtn].cast) return castPicks(B, u); // (the allies' CAST button)
     var byKey = I.pressed('a'), go = byKey || (I.mouse.click && !overUI(B));
     if (!go) return;
-    var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y);
+    var x = B.cursor.x, y = B.cursor.y, w = occ(x, y);
     if (rd.what === 'weapon') {
       var foe = (w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units);
       if (foe && B.canHit(u, foe)) return UI.command(B, u, { do: 'attack', target: foe });
@@ -338,6 +339,8 @@
   // the figure under the mouse (its whole sprite, front-most first): clicking a body selects its owner, not the floor behind
   // `want` (optional): of the figures under the mouse, one it wants comes before the front-most (10-01, RULED, Griz: "if they're targeting something that asks
   // for a foe, the picker should prefer over allies head at least" -- the darkmantle behind Vivian's head was hers to click, not the darkmantle's)
+  // a square's creature, or the Keeper's Ice Wall there as something to strike (js/keeper.js K.wallAt): the four places a click or a key aims a blow
+  function occ(x, y) { return G.occupant(x, y) || (D.keeper && D.keeper.wallAt ? D.keeper.wallAt(D.battle, x, y) || D.keeper.swirlAt(D.battle, x, y) : null); }
   UI.pickUnit = function (B, mx, my, want) {
     var best = null, bd = -1e9, pick = null, pd = -1e9, z = D.iso.zoom;
     B.units.forEach(function (u) {
@@ -533,7 +536,7 @@
 
   // is (x, y) somewhere the current tool can act? 'ok' | 'no' | 'self' | 'far' (a dash away)
   UI.valid = function (B, u, x, y) {
-    var tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, T = u.turn, s = G.map.at(x, y);
+    var tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, T = u.turn, s = G.map.at(x, y);
     // the attack cued: a darkmantle riding a friend -- or riding you -- is struck at through that square (10-01, Griz: "attack cued looking for target, ally
     // square you normally can't attack"; battle.js mount)
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (... or the roper's tendril on a friend, or on you -- 10-02)
@@ -545,7 +548,7 @@
     if (tool === 'breaktendril') return w && D.Battle.breakable(u, B.units).indexOf(w) >= 0 ? 'ok' : 'no'; // (BREAK THE TENDRIL: the one it holds -- you, or a friend beside you -- 10-02)
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (x === u.x && y === u.y && !foe) return 'self';
-      if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action) ? 'ok' : 'no'; // a crossbow reaches out to its long range
+      if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action || T.slamsLeft > 0) ? 'ok' : 'no'; // a crossbow reaches out to its long range (T.slamsLeft: the Keeper's second Slam out of the one action -- js/keeperplay.js)
       var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
       if (rc.move[k] && rc.move[k].stand) return 'ok';
       if (rc.dash && rc.dash[k] && rc.dash[k].stand) return 'far';
@@ -572,7 +575,7 @@
   // it (a darkmantle on a friend, or on the caster: 10-01, Griz, "check for other spell problems we might have created" -- a spell at it went to the friend's square
   // and found only the friend); null if none of them
   function spellTarget(B, u, g, x, y) {
-    var M = D.magic, w = G.occupant(x, y), hu = B.hoverUnit, ok = function (t) { return !!(t && M.targetOK(B, u, g, t)); };
+    var M = D.magic, w = occ(x, y), hu = B.hoverUnit, ok = function (t) { return !!(t && M.targetOK(B, u, g, t)); };
     if (hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y && ok(hu)) return hu;
     if (ok(w)) return w;
     var r = D.Battle.riderOn(u, w, B.units); return ok(r) ? r : null;
@@ -591,7 +594,7 @@
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
-    var T = u.turn, tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
+    var T = u.turn, tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid; the roper's tendril the same, 10-02)
     if (!foe && (tool === 'move' || tool === 'menu')) foe = hoveredRider(B, u, x, y); // (the mouse on it: the click is on it -- UI.valid)
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }
@@ -605,6 +608,7 @@
         if (B.canHit(u, foe)) return B.card(['{o}No attack left this turn: the action is spent.{/}'], 120);
         return B.card(['{o}The ' + B.shortName(foe) + ' is out of ' + (u.weapon && u.weapon.ranged ? 'range' : 'reach') + ' (' + G.dist(u, foe) + ' ft).{/}'], 120);
       }
+      if (v === 'no' && (u.size || 1) > 1 && D.keeperPlay && D.keeperPlay.human(B, u)) { D.sfx('error'); return B.card(['{o}MOVE: ' + (D.keeperPlay.moveWhy(B, u, x, y) || 'not there') + '.{/}'], 160); } // (a big creature's refused pick says why)
       if (v === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
       if (v === 'far') return UI.command(B, u, { do: 'dashmove', x: x, y: y });
       return;
@@ -869,10 +873,12 @@
   // line on its water, the Flooded Stair's 13; none, a hand's depth, 3) on a still-water square; one held by a creature of the water (bound to it: the Keeper's Constrict,
   // its Drag Under) is drawn down under it to the crown of the head. What lives in the water (bound to it, a swimmer) and what flies is drawn as it was
   UI.wading = function (B, u) {
+    var s = G.map && G.map.at(u.x, u.y); if (D.keeper && D.keeper.iced && D.keeper.iced(B, u.x, u.y)) return null; // (on ice: on top of it, not in the water -- js/keeper.js)
+    if (u.kind === 'keeper' && D.keeper && s && s.ch === '~' && !u.dead) return D.keeper.wade(B, u); // (the Keeper stands in its pool as the heroes do: js/keeper.js K.wade)
     var s = G.map && G.map.at(u.x, u.y); if (!s || !(s.ch === '~' || s.deep) || u.bound || u.swims || u.riding || u.ethereal || u.under) return null;
-    var def = G.map.def || {}, cut = def.wade != null ? def.wade : 3, sink = 0, k = (u.size || 1);
+    var def = G.map.def || {}, cut = def.waterLevel != null ? Math.min(Math.max(2, def.waterLevel - G.map.gz(u.x, u.y)), Math.round(D.spr.unitTop(u) * 0.8)) : def.wade != null ? def.wade : 3, sink = 0, k = (u.size || 1); // (a map's `waterLevel`: one flat sheet, so the depth is the sheet less the floor under it -- the Flooded Stair's steps; a drawing only)
     var hold = u.conds && u.conds.restrained && B.units.filter(function (w) { return w.id === u.conds.restrained.by; })[0];
-    if (hold && hold.bound && !hold.dead && hold.hp > 0) sink = Math.max(0, D.spr.unitTop(u) - cut - 6);
+    if (hold && hold.bound && hold.kind !== 'keeper' && !hold.dead && hold.hp > 0) sink = Math.max(0, D.spr.unitTop(u) - cut - 6); // (the Keeper's held sit in its swirl, not sunk: js/keeper.js)
     return { cut: Math.round(cut * k), sink: Math.round(sink) };
   };
   function unitObj(B, u) {
@@ -881,7 +887,9 @@
     // (it faces as he does -- Griz, 09-29: "facing left when he's facing north" -- and sits on the shoulder, not above the ear; the shoulder
     // is the one on the viewer's left while he faces toward the viewer, on the right while he faces away)
     if (u.riding && u.master) { u.facing = u.master.facing || 0; p = perchPos(B, u, 1); }
+    if (u.kind === 'keeper' && u.dead && B.t - (u.deadT || B.t) > 50) return null; // (a destroyed Keeper is gone from the water: only calm waves stay, js/keeper.js)
     if (u.left) return null; // out of the fight, the way they came in
+    if (u.kind === 'keeper' && D.keeper && !u.dead && (!u.anim || u.anim === 'idle')) D.keeper.face(B, u); // (it faces the party, idle: js/keeper.js)
     if (u.unseen) return null; // (asleep under the water or in its puddle: the Settling's, js/wet.js)
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
     var obj = {
@@ -955,13 +963,20 @@
         // (a flier whose sheet walks on the ground -- the bat stand-in -- is drawn up in the air when out on the field, bobbing; its shadow stays below)
         var lift = u.lift && !u.riding && !down ? u.lift + Math.round(2 * Math.sin(B.t / 6)) : 0;
         var wet = !down && !lift ? UI.wading(B, u) : null, an0 = anim === 'hurt' && !has('hurt') ? 'idle' : anim;
-        if (wet) { // (in the water: the figure above its line, the rest a ghost under it, a ripple on the line; held by the Keeper, drawn down under it -- 10-02)
+        if (u.kind === 'keeper' && u.flooding) { /* it is the swirl about someone: drawn with the walls' props (js/keeper.js), no humanoid */ }
+        else if (wet) { // (in the water: the figure above its line, the rest a ghost under it, a ripple on the line; held by the Keeper, drawn down under it -- 10-02)
           var wl = p.y - wet.cut, sy = p.y + wet.sink, tallW = D.spr.unitTop(u) * sk + 8;
-          ctx.save(); ctx.beginPath(); ctx.rect(p.x - 60, sy - tallW - 20, 120, wl - (sy - tallW - 20)); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, body); ctx.restore();
-          ctx.save(); ctx.beginPath(); ctx.rect(p.x - 60, wl, 120, 80); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, Object.assign({}, body, { alpha: 0.28, tint: R('glow', 1), tintAlpha: 0.6 })); ctx.restore();
-          var rw = 9 * (u.size || 1) * sk + Math.sin(B.t / 9) * 1.5; ctx.save(); ctx.strokeStyle = 'rgba(170,200,230,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.x, wl, rw, rw * 0.38, 0, 0, 7); ctx.stroke(); ctx.restore();
+          var cw = u.kind === 'keeper' ? 100 : 60; ctx.save(); ctx.beginPath(); ctx.rect(p.x - cw, sy - tallW - 20, cw * 2, wl - (sy - tallW - 20)); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, body); ctx.restore();
+          ctx.save(); ctx.beginPath(); ctx.rect(p.x - cw, wl, cw * 2, 80); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, Object.assign({}, body, { alpha: 0.28, tint: R('glow', 1), tintAlpha: 0.6 })); ctx.restore();
+          var rw = 9 * (u.size || 1) * sk + Math.sin(B.t / 9) * 1.5, rh = rw * 0.38; if (u.kind === 'keeper') { rw = 58 + Math.sin(B.t / 9) * 2; rh = 29 + Math.sin(B.t / 9); } /* (the Keeper's water line is the ellipse in its own 2x2: Griz 10-03, "the 2x2 centred on the circle around his thighs") */ ctx.save(); ctx.strokeStyle = 'rgba(170,200,230,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.x, wl, rw, rh, 0, 0, 7); ctx.stroke(); ctx.restore();
           if (wet.sink) for (var bi = 0; bi < 3; bi++) { var bp = ((B.t + bi * 17) % 40) / 40; ctx.fillStyle = 'rgba(200,225,245,' + (0.7 * (1 - bp)).toFixed(2) + ')'; ctx.fillRect(Math.round(p.x - 4 + bi * 4 + Math.sin((B.t + bi * 9) / 5) * 1.5), Math.round(wl - bp * 14), 1 + (bi % 2), 1 + (bi % 2)); } // (the breath going up)
         } else D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, p.y - lift, body);
+        // ?footprint: the Keeper's mechanical squares (what the grid, the ice and the area spells ask), their centre, and its water line, over the drawing (Griz 10-03: check the 2x2 against the ring)
+        if (D.footprintDebug && u.kind === 'keeper' && !u.dead) {
+          ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,60,60,0.9)';
+          G.foot(u).forEach(function (q) { var c = D.iso.center(q[0], q[1], G.map.gz(q[0], q[1])), sc = D.iso.toScreen(c.x, c.y), hw = D.iso.TW / 2, hh = D.iso.TH / 2; ctx.beginPath(); ctx.moveTo(sc.x, sc.y - hh); ctx.lineTo(sc.x + hw, sc.y); ctx.lineTo(sc.x, sc.y + hh); ctx.lineTo(sc.x - hw, sc.y); ctx.closePath(); ctx.stroke(); });
+          ctx.strokeStyle = 'rgba(60,255,60,0.9)'; ctx.beginPath(); ctx.moveTo(p.x - 6, p.y); ctx.lineTo(p.x + 6, p.y); ctx.moveTo(p.x, p.y - 6); ctx.lineTo(p.x, p.y + 6); ctx.stroke(); ctx.restore();
+        }
         // what was drawn, for the x-ray after the world (a standing figure only: the fallen lie low)
         var hw = 10 * (u.size || 1) * sk, tall = D.spr.unitTop(u);
         obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, frame: o.frame, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - tall, p.x + hw, p.y] };
@@ -1356,6 +1371,10 @@
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       var rc = reachCache(B, u);
       if (rc.dash) Object.keys(rc.dash).forEach(function (k) { var e = rc.dash[k]; if (e.stand && !rc.move[k]) fillSq(ctx, e.x, e.y, R('glow', 1), 0.07); });
+      if ((u.size || 1) > 1 && tool !== 'attack' && !(cx === u.x && cy === u.y) && !occ(cx, cy)) { // (a big creature's pick: all of the squares of its body at the cursor, green where it may stand, red where not -- 10-03, the Keeper's 2x2)
+        var vv = UI.valid(B, u, cx, cy), okk = vv === 'ok' || vv === 'far';
+        G.foot(u, cx, cy).forEach(function (q) { if (G.map.at(q[0], q[1])) { fillSq(ctx, q[0], q[1], okk ? R('moss', 2) : R('red', 3), 0.3, 2); lineSq(ctx, q[0], q[1], okk ? R('moss', 3) : R('red', 4), 0.95, 2); } });
+      }
       Object.keys(rc.move).forEach(function (k) { var e = rc.move[k]; if (e.stand && e.cost > 0) fillSq(ctx, e.x, e.y, R('glow', 1), 0.17); });
       // a rogue's places to try hiding (no foe she knows of sees her there plainly): always, as she moves (Griz, 09-27)
       // the ways out: a pale marker on each (set design, 09-27)

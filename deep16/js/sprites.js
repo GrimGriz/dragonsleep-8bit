@@ -104,7 +104,7 @@
   S.draw = function (ctx, name, anim, facing, t, x, y, o) {
     var sh = D.SHEETS && D.SHEETS[name];
     if (!sh || (!S.has(name) && (S.offline || S.failed(name)))) return S.placeholder(ctx, name, x, y, o);
-    if (!S.has(name)) { S.load(sh.image); return sh.top || sh.ay; } // (asked for by nobody, or still on its way: fetched now, drawn when it lands)
+    if (!S.has(name)) { S.load(sh.image); if (/^keeper_p/.test(name)) return S.capsule(ctx, x, y, o); return sh.top || sh.ay; } // (asked for by nobody, or still on its way: fetched now, drawn when it lands; the Keeper's sheets show a capsule meanwhile -- js/keeper.js)
     var f = frameOf(sh, anim, facing, t, o, name), img = f.img, fw = f.fw, fh = f.fh, ay = f.ay, sy = f.sy;
     var dx = Math.round(x - f.ax), dy = Math.round(y - ay), fr = f.sx / fw;
     ctx.save();
@@ -188,6 +188,12 @@
   S.unitTop = function (u) { return (u.rider ? S.RIDE.lift - S.RIDE.cut + S.top(u.rider) : S.top(u.sheet)) * S.scaleOf(u) * (u.proneLook && u.hp > 0 && S.proneFrame(u.sheet) >= 0 ? 0.6 : 1); }; // (lying prone, on hands and knees: about 0.6 of its height -- its bar, its marks, where the mouse finds it)
 
   // until a sheet exists: a capsule in the unit's colour, so the grid can be built before the art lands
+  // a cool capsule for the Keeper's figure and its water while a sheet of its is late (10-03: the lazy sheets; the scene's own gate holds the first frames, this is for a sheet that lands after)
+  S.capsule = function (ctx, x, y, o) {
+    var a = (o && o.alpha != null) ? o.alpha : 1; ctx.save(); ctx.globalAlpha = a * 0.7; ctx.fillStyle = 'rgba(10,20,40,.45)'; ctx.beginPath(); ctx.ellipse(x, y, 18, 8, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = '#4aa8d8'; ctx.beginPath(); ctx.moveTo(x - 10, y - 4); ctx.lineTo(x - 10, y - 46); ctx.arc(x, y - 46, 10, Math.PI, 0); ctx.lineTo(x + 10, y - 4); ctx.arc(x, y - 4, 10, 0, Math.PI); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = 'rgba(210,245,255,.45)'; ctx.fillRect(x - 6, y - 46, 4, 38); ctx.restore(); return 56;
+  };
   S.placeholder = function (ctx, name, x, y, o) {
     var col = (o && o.color) || '#8a96aa';
     ctx.fillStyle = 'rgba(10,8,16,.5)'; ctx.beginPath(); ctx.ellipse(x, y, 11, 5, 0, 0, 7); ctx.fill();
