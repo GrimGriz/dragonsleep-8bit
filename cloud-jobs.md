@@ -41,6 +41,10 @@ Every seat's notes file ends with a **For the next seat** section (10-03): the g
 - **The dragonborn's breath weapon and resistance, the tiefling's spells** (`NPC.RACES` has only scores, darkvision, fire resistance); a portrait for the maker's card.
 - **The 121 grid-only spells**: HELD (Griz, 10-03). Random encounters are the 8-bit's (ruled 10-03), so the pull for an 8-bit spell is what the heroes cast in random fights; the here-to-there table says which spells get spent on the road. Build nothing past his word.
 
+## Rulings that bound every job
+
+- **The Wet is not benched as a fight** (Griz, 10-03: *"we should cut the Wet from benching it's got all that 'spawn in crawlers that attack corpses story stuff'"*). No win rates, no CR arithmetic, no boss cost in the walker's chains for `wet`; the early-cr job leaves it; `bench16.py x fight=wet` is not a measure of anything. The machinery probes (`dev/wet-probe.py`, `dev/wet8-probe.py`: the Settling, the landlord's pictures) stay in the gate as proofs that the story runs, not as weights of the fight (the overseer's reading of his word; his to narrow).
+
 ## Open questions for Griz (not rulings)
 
 - From the Keeper window's close (desktop, 10-03): the 8-bit's own story text (w.stairSee, w.markWake) is not matched to the two spawns; nobody has seen the live 8-bit wade-in or rune paths, or the ladder rung screen, in a real browser.
