@@ -22,7 +22,7 @@ Two seconds after each screen ("settled"), nothing more had come for these five.
 
 - **Start-up (`main.js`):** no sheet. The scene is pushed at once; it used to wait for `D.loadImages(D.spr.images())`.
 - **DEEP16 has no title screen of its own.** Each door's first screen:
-  - `?ladder`: the ladder list, text and rungs. No sheets.
+  - `?ladder`: the ladder list, text and rungs. No sheets until a rung has been the chosen one for a third of a second (below).
   - `?pocket`: the Solskaft hall, drawn by code. No sheets until the party screen.
   - the bare page: a fight. Its six figures.
   - `?embed`: nothing until the 8-bit game sends the fight; it now says `d16:ready` at once.
@@ -34,6 +34,9 @@ Two seconds after each screen ("settled"), nothing more had come for these five.
   - A level-9 druid, wizard and cleric band asks for 13 such sheets, 2.72 MB.
   - The spell gallery asks for every sheet in the background (`S.ensureAll`).
   - The 8-bit game's fight and the show are fights, so they ask the same way.
+- **The ladder list** (follow-up, RULED 10-03): once a rung has been the chosen one for a third of a second (20 frames), its figures
+  are fetched in the background: the four as its camp draws them, the fight's foes and scenery, and a rung's own familiar
+  (`Ladder.prototype.rungSheets`). The camp then opens without the beat. A rung the mouse only runs over fetches nothing.
 - **The camp:** its four before it draws. It also fetches the coming fight's foes, scenery and the four's fight looks in the background,
   so the fight usually has nothing left to wait on.
 - **The climb:** its four. The level-up and the DM's hands draw the same four.
@@ -65,7 +68,8 @@ Two seconds after each screen ("settled"), nothing more had come for these five.
 ## Benches
 
 - `python dev/check.py` (with `DEEP16_BROWSER=/opt/pw-browsers/chromium DEEP16_BROWSER_ARGS=--no-sandbox`): **GREEN** before
-  (18 checks, 17 s) and after (19 checks, 15 s).
+  (18 checks, 17 s) and after (19 checks, 15 s). After the ladder follow-up, on `main` with the spell fixes: 20 checks, 15 s;
+  `check.py all` GREEN, 46 checks, the 8-bit benches included (main gave `bench8.py` the browser knob).
 - **New mode `lazy1003`**, in both `QUICK_MODES` and `ALL_MODES`, has 16 checks. It turns `S.offline` off, points the sheets at
   `../deep16/art/` (the bench page is in `dev/`), and steps forward as each fetch lands. The page's load event waits on the images, so
   `--dump-dom` reads the result. In order:
@@ -79,8 +83,12 @@ Two seconds after each screen ("settled"), nothing more had come for these five.
   7. A xorn drawn unasked starts its own fetch and is drawn (1917 pixels) once it lands.
   8. A sheet with a missing image holds its gate only until the error, then draws as the capsule.
   9. The camp asks for its four, and the cutseal fight's foes arrive in the background.
+  10. The ladder list (the follow-up, 3 checks):
+      - a rung the mouse rests on for 8 frames fetches nothing;
+      - the rung rested on for 25 frames gets its figures and nothing else;
+      - that rung's camp is not held.
 
-  It passed 16 of 16 on each of four runs.
+  It passed 16 of 16 on each of four runs, and 19 of 19 on each of four runs after the ladder follow-up.
 - `python dev/check.py all`: every DEEP16 mode is ok, including `matrix`, `show` and `lazy1003`, and the wet, Pyro and srdleft probes.
   The 8-bit benches (`bench8.py` ×7) and the `wet8`/`pyro8` probes are RED here only because they hardcode the desktop's Edge path
   (no `DEEP16_BROWSER` knob). Run through a patched path in this container, all nine are ok. They are the 8-bit game's own pages and
@@ -109,8 +117,7 @@ Not seen:
 
 - **The Pocket DM's maker draws no figure.** The job's brief said it shows the class's and race's figure. `drawMaker` draws text and
   buttons only, so there was nothing to ask for there. The party cards are the Pocket DM's only figures.
-- **`bench8.py` and the `*8-probe.py` scripts hardcode Edge.** `check.py all` is RED in any container for that alone. Passing
-  `DEEP16_BROWSER` through as `bench16.py` does would be a one-line fix each, but it is not this job.
+- **`bench8.py` and the `*8-probe.py` scripts hardcoded Edge.** Fixed on `main` since (2061df7, the same two knobs as bench16).
 - **The stamps:** the build on Linux moved 34 of the 60 script stamps, 27 of them for files this branch never touched (LF against
   the desktop's CRLF). Only the seven files changed here were restamped, by hand, with their LF hashes: `sprites.js`, `battle.js`,
   `camp.js`, `climb.js`, `pocket.js`, `view.js`, `main.js`.
@@ -118,10 +125,14 @@ Not seen:
 - **Playwright** was pip-installed here for the measuring script. `dev/lazy-measure.py` needs it (`pip install playwright`) and runs
   with `DEEP16_BROWSER` set, or with Playwright's own browser.
 
-## Questions
+## Questions, and Griz's answers (RULED 10-03)
 
 1. The beat's words "THE FIGURES ARE COMING", the gold pips, shown after a fifth of a second: keep them, or other words?
+   Griz: *"your words"*. Kept as built.
 2. A fight with a caster who knows Polymorph or a summoning spell fetches that spell's whole pool in the background (2.72 MB for a
    level-9 druid, wizard and cleric). Keep that, or fetch a creature only when the spell is cast, at the cost of a blink where it appears?
+   Griz: *"prefetch; nothing waits on it"*. Kept as built.
 3. While the ladder list is up, should it fetch the chosen rung's figures, so the camp opens without a beat? Today the list fetches nothing.
+   Griz: *"yes"*. Built: the ladder list, above. The third of a second before a rung counts as chosen is the seat's call.
 4. The scripts are now most of the start, 2.7 MB. Is shrinking them a later job?
+   Griz: *"later"*. It is on the queue in `cloud-jobs.md`.
