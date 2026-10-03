@@ -37,8 +37,8 @@
       out.push({ id: 'ksuffocate', label: 'SUFFOCATE', cost: 'B', ok: Bo, why: 'the bonus action is spent', note: 'Active Suffocation: the drowning twice at ' + vic.name + '\'s next turn', icon: 'spell' });
       out.push({ id: 'krise', label: 'LET GO', cost: 'F', ok: true, note: 'rise out of the swirl; ' + vic.name + ' is free of the hold', icon: 'free' });
     } else {
-      out.push({ id: 'kslam', label: 'SLAM', cost: 'A', ok: A && near.length > 0, why: A ? 'no one in reach (10 ft)' : 'the action is spent', note: 'DC 15 STR or prone', icon: 'attack' });
-      out.push({ id: 'kwave', label: 'WAVE', cost: 'B', ok: Bo && K.canWave(B, u), why: Bo ? 'no one for it to take' : 'the bonus action is spent', note: 'DC 13 STR or prone; the backwash off the wall', icon: 'spell' });
+      out.push({ id: 'kslam', label: 'SLAM', cost: 'A', ok: (A || T.slamsLeft > 0) && near.length > 0, why: A ? 'no one in reach (10 ft)' : 'the action is spent', note: 'DC 15 STR or prone', icon: 'attack' });
+      out.push({ id: 'kwave', label: 'WAVE', cost: 'B', ok: Bo && K.canWave(B, u), why: Bo ? 'no one for it to take' : 'the bonus action is spent', note: 'DC ' + K.CFG.waveDC + ' STR or prone; the backwash off the wall', icon: 'spell' });
       out.push({ id: 'kcast', label: 'CAST WALL', cost: 'A', ok: A && K.canCastWall(B, u), why: !A ? 'the action is spent' : S.wall ? 'the wall is up' : 'no use left', note: 'the Ice Wall rises at once (' + S.uses + ' left)', icon: 'spell' });
       out.push({ id: 'kready', label: 'READY WALL', cost: 'A', ok: A && K.canReadyWall(B, u), why: !A ? 'the action is spent' : S.ready ? 'readied already' : S.wall ? 'the wall is up' : 'nothing for it to seal in', note: 'sprung when one of you steps toward the exit', icon: 'spell' });
       out.push({ id: 'kswirl', label: 'SWIRL', cost: 'A', ok: A && deepHeroes.length > 0, why: A ? 'no one is on the deep (the last step, by the sealed door)' : 'the action is spent', note: 'a hero on the deep (the last step): the swirl about it', icon: 'spell' });
@@ -76,7 +76,7 @@
   // what the Slam needs of a target that was clicked (the default attack): '' if it can, else why not -- spent nothing, said on a card
   KP.slamWhy = function (B, u, t) {
     if (!t || t.dead || t.hp <= 0 || t.isWall || t.side === u.side) return 'Not a foe there';
-    if (u.turn.action <= 0) return 'the action is spent';
+    if (u.turn.action <= 0 && !(u.turn.slamsLeft > 0)) return 'the action is spent';
     if (u.flooding) return 'it is in the swirl: LET GO first';
     if (t.conds && t.conds.hidden && G.dist(u, t) > (u.blindsight || 0)) return 'it cannot find ' + t.name;
     if (G.dist(u, t) > G.reachOf(u, u.reach)) return t.name + ' is out of reach (' + G.dist(u, t) + ' ft; the Slam is 10)';
@@ -84,17 +84,7 @@
   };
   // what the swirl needs of its victim: standing, on the deep (the last step, by the sealed door: its squares are the map's `deeps`; a frozen one is a footing), not already held, not immune to being
   // held; and the Keeper itself: not already in a swirl, not frozen in ice, the action unspent. No reach and no prone: the water that pours in is any water square beside the victim (Griz 10-03)
-  KP.swirlWhy = function (B, u, t) {
-    if (!t || t.dead || t.side === u.side || t.isWall) return 'Not a hero there';
-    if (!G.standing(t)) return t.name + ' is down';
-    if (u.turn.action <= 0) return 'the action is spent';
-    if (u.flooding) return 'it is the swirl about someone already: LET GO first';
-    if (u.conds.restrained && u.conds.restrained.ice) return 'it is frozen in ice: BREAK FREE first';
-    if (t.conds.restrained) return t.name + ' is held already';
-    if (RU.immuneTo(t, 'grappled')) return t.name + ' cannot be held';
-    if (!K.isDeep(t.x, t.y)) { var raw = (G.map.def.deeps || []).some(function (p) { return p[0] === t.x && p[1] === t.y; }); return raw ? 'the water under ' + t.name + ' is frozen: a footing, not the deep' : t.name + ' is not on the deep (the swirl takes one standing on the last step, by the sealed door; ' + t.name + ' is ' + K.A(t) + ' along it, the deep is 1)'; }
-    return '';
-  };
+  KP.swirlWhy = function (B, u, t) { return K.swirlWhy(B, u, t); };
   D.Battle.prototype.exec = function* (u, c) {
     if (c && c.do === 'attack' && u.kind === 'keeper' && human(this, u)) { // (a click on a hostile with no ring item: the default attack is the Slam on it)
       var why = KP.slamWhy(this, u, c.target);
@@ -128,8 +118,9 @@
     switch (c.do) {
       case 'kslam': case 'slam': {
         if (!t) t = yield* pickHero(B, u, 'SLAM WHOM?', K.foesOf(B, u).filter(function (w) { return G.standing(w) && !w.isWall; }), KP.slamWhy);
-        if (!t || T.action <= 0) return;
-        T.action = 0; K.face(B, u, t); D.fx.keeperSlam(u, t); yield* B.attack(u, t, u.attacks.slam); u.anim = 'idle'; u.animT = B.t; if (u.conds.hidden) delete u.conds.hidden; return;
+        if (!t || (T.action <= 0 && !(T.slamsLeft > 0))) return;
+        if (T.action > 0) { T.action = 0; T.slamsLeft = K.CFG.slams - 1; } else T.slamsLeft--; // (K.CFG.slams: the multiattack, the second Slam out of the same action)
+        K.face(B, u, t); D.fx.keeperSlam(u, t); yield* B.attack(u, t, u.attacks.slam); u.anim = 'idle'; u.animT = B.t; if (u.conds.hidden) delete u.conds.hidden; return;
       }
       case 'kwave': case 'wave': if (T.bonus > 0 && (yield* K.wave(B, u))) T.bonus = 0; return;
       case 'kcast': if (T.action > 0 && K.canCastWall(B, u)) yield* K.castWall(B, u); return;
