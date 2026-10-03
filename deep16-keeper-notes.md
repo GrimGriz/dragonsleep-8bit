@@ -216,7 +216,7 @@ The Keeper of the Flooded Stair is finished by Griz's word ("we've finished up t
 **Who said what**
 - Griz: Slam to 3d4, the swirl's own 1d6+3 and a drowning roll, only the hero struggles, 160 HP, the drowning cut 25 to 30%, the lure the default, the retreat after the first hold breaks with a ready on the ledge, a readied strike works when forced into range, retreat left on.
 - The desktop seat relayed the Ice Wall duration (3 rounds), the stalemate breaker, the Sanctuary SRD pass, the click-Slam audit, and the ruled script (the Wave's auto-swirl ends his turn); it merges and runs Edge checks. Zeroing the turn's rest only when the hold ends the round it began: Griz and the desk both OK'd it.
-- Mine, unruled: `retreatRounds` 3, the lure's retreat to the deepest water, the `1d8+1` dice, and the choice to leave the Ready hook off other forced moves.
+- Ruled after this seat closed (Griz, 10-03, relayed by the desktop seat: he had approved them and this seat missed it): the AI changes (the lure, its retreat to the deepest water) and the `1d8+1` swirl drowning. Mine, still unruled: `retreatRounds` 3 and the choice to leave the Ready hook off other forced moves.
 
 **What to rerun, and when**
 - After any `keeper.js`, `keeperplay.js`, `keeperlog.js` edit: `python3 dev/keeper-probe.py` (178 checks) and `python3 dev/check.py`.
