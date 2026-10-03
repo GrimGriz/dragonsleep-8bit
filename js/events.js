@@ -33,9 +33,14 @@
     var prev = F().map ? F().map.src.name : null;
     if (F().map && to !== F().map.id) EV.torchOut(); // (another map: the field torch is done; a lantern or the lamp stays lit in the hand -- 09-30d)
     yield DS.fade(1, 12);
-    F().load(to, tx, ty, dir);
-    var nm = F().map.src.name;
-    F().banner = (nm !== prev && to !== 'world') ? 100 : 0;
+    var nm;
+    // (10-03, the review's floor under the player: a throw while the screen is black -- the map not there, a hook in Field.load -- came back to a screen that stayed
+    // black for good. The fade comes up first, and the throw goes on up so the bug is still seen)
+    try {
+      F().load(to, tx, ty, dir);
+      nm = F().map.src.name;
+      F().banner = (nm !== prev && to !== 'world') ? 100 : 0;
+    } catch (e) { DS.fadeLevel = 0; throw e; }
     yield DS.fade(0, 12);
     if (w && w.slide) { DS.audio.sfx('miss'); yield DS.say(L('g.slide')); }
     var hook = S['enter:' + to];

@@ -7,10 +7,27 @@
 'use strict';
 (function () {
   var D = window.D16, E = D.embed = { on: /[?&]embed\b/.test(location.search) };
-  function send(m) { if (window.parent && window.parent !== window) window.parent.postMessage(m, '*'); }
+  // (10-03, the review's floor under the player: a d16:crash goes up once, and never after the fight's own end -- d16:done or d16:refuse. Those two are not held to once:
+  // the benches call E.done again and again on one page, and in play each fight is a page of its own)
+  var ended = false;
+  function send(m) {
+    if (m.type === 'd16:crash' && ended) return;
+    if (m.type === 'd16:done' || m.type === 'd16:refuse' || m.type === 'd16:crash') ended = true;
+    if (window.parent && window.parent !== window) window.parent.postMessage(m, '*');
+  }
   function counts(inv) { var c = {}; (inv || []).forEach(function (s) { c[s.id] = (c[s.id] || 0) + s.n; }); return c; }
+  // where a throw came from, "file.js:line", when the browser says: an error event carries it, a rejection's stack has it (the ?v= stamp and the path cut)
+  function whereFrom(file, line, stack) {
+    var m = file ? [0, file, line] : /([\w.-]+\.js)(?:\?[^:\s)]*)?:(\d+)/.exec(String(stack || ''));
+    return m ? String(m[1]).split('?')[0].split('/').pop() + ':' + m[2] : null;
+  }
+  // (an uncaught error or rejection on the grid kills the fight's generator and leaves the player in a fight that cannot end, the 8-bit game held under it: say so
+  // to the 8-bit page, which takes the fight itself -- js/embed.js; the first one only. Resource errors do not bubble to the window, so a sheet that fails to load is no crash)
+  function crashed(msg, at) { send({ type: 'd16:crash', msg: String(msg || 'unknown error').slice(0, 300), at: at }); }
 
   E.boot = function () {
+    window.addEventListener('error', function (e) { crashed(e.message || (e.error && e.error.message), whereFrom(e.filename, e.lineno, e.error && e.error.stack)); });
+    window.addEventListener('unhandledrejection', function (e) { var r = e.reason; crashed(r && r.message ? r.message : r, whereFrom(null, null, r && r.stack)); });
     window.addEventListener('message', function (e) {
       var m = e.data;
       if (e.source !== window.parent || !m || m.type !== 'ds8:fight' || E.B) return;

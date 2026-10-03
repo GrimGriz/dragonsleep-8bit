@@ -37,6 +37,26 @@
     Object.keys(fresh).forEach(function (k) { if (d[k] === undefined) d[k] = JSON.parse(JSON.stringify(fresh[k])); });
     for (; v < DS.SAVE_V; v++) if (MIGRATE[v]) MIGRATE[v](d);
     d.v = DS.SAVE_V;
+    // (10-03, the review's floor under the player: a save that names an item or a map this page does not have -- an item since renamed or cut, a save from a newer
+    // build on a cached page -- is brought to ones it has, and the console says what was dropped; it must not break the ITEM menu or black the screen after the scenes are cleared)
+    var items = DS.DATA.items;
+    if (Array.isArray(d.inv)) d.inv = d.inv.filter(function (s) { var ok = !!(s && items[s.id]); if (!ok) console.warn('save: dropped unknown item ' + (s && s.id) + ' from the pack'); return ok; });
+    [d.party, (d.guests || []).map(function (x) { return x && x.h; })].forEach(function (list) {
+      (list || []).forEach(function (h) {
+        if (!h || !h.equip) return;
+        Object.keys(h.equip).forEach(function (k) { // (an item slot holds an id; the torch's slot holds a 1, a light in the hand, and is left alone)
+          var id = h.equip[k];
+          if (typeof id === 'string' && id && !items[id]) { console.warn('save: ' + (h.name || h.id) + "'s " + k + ' named unknown item ' + id + ': emptied'); h.equip[k] = null; }
+        });
+      });
+    });
+    // the map: one this page has not got goes in at the way a new game opens (config.start, Silverton's square) rather than throw in Field.load after the scenes are
+    // cleared. The save keeps no place of its own to fall back on, and the start is the one the data names -- no place invented here
+    if (!DS.DATA.maps[d.map]) {
+      var st = DS.DATA.config.start;
+      console.warn('save: unknown map ' + d.map + ' at ' + d.x + ',' + d.y + ': back to ' + st.map + ' ' + st.x + ',' + st.y);
+      d.map = st.map; d.x = st.x; d.y = st.y; d.dir = st.dir;
+    }
     return '';
   };
   // the file: the three slots and the grid's own keeping (the ladder's rungs, the climb, the camps) -- the whole game this browser holds,

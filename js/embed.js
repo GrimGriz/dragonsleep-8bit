@@ -13,6 +13,11 @@
 
   DS.battle = function (o) { return o && o.deep16 ? deep(o) : base(o); };
 
+  // (10-03, the review's floor under the player: how long the 8-bit page waits for DEEP16 to say d16:ready before it takes the fight itself; a probe sets it small)
+  if (DS.d16ReadyMs == null) DS.d16ReadyMs = 30000;
+  // what the player is told when the grid fails and the 8-bit battle takes over (said over the field, before the battle comes up)
+  var FALTERED = 'The grid faltered. The fight goes on here.';
+
   function deep(o) {
     return {
       start: function (script) {
@@ -20,11 +25,15 @@
         DS.audio.sfx('encounter');
         DS.push(new DS.EncounterFlash(function () {
           open(o, function (d) {
-            if (d.type === 'd16:refuse') { // (no sheet on the grid for one of these: the 8-bit battle, as ever)
-              console.warn('DEEP16 refused ' + o.deep16 + ' (' + (d.missing || []).join(', ') + '): fought in the 8-bit game');
+            if (d.type === 'd16:refuse' || d.type === 'd16:crash') { // (no sheet on the grid for one of these, or the grid threw or never came up: the 8-bit battle, as ever)
+              var crashed = d.type === 'd16:crash';
+              // (the report was never applied, so the party is as it walked in. DS.lastD16Crash is for probes: never in DS.G, never in the save)
+              if (crashed) { console.warn('DEEP16 crashed in ' + o.deep16 + ' (' + d.msg + (d.at ? ' at ' + d.at : '') + '): fought in the 8-bit game'); DS.lastD16Crash = { fight: o.deep16, msg: d.msg, at: d.at }; }
+              else console.warn('DEEP16 refused ' + o.deep16 + ' (' + (d.missing || []).join(', ') + '): fought in the 8-bit game');
               var b8 = new DS.Battle(o);
               b8.onClose = function (r) { self.finished = true; self.result = r; if (o.after !== false && r !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true); setTimeout(function () { script.resume(self, r); }, 0); };
-              DS.push(b8); return;
+              if (crashed) DS.run(function* () { yield DS.say(FALTERED); DS.push(b8); }); else DS.push(b8);
+              return;
             }
             var res = apply(d);
             // (the Settling: up on the 8-bit square the one who walked off the grid left it by, before the ending runs -- js/events.js EV.wetLand, 09-30e)
@@ -67,7 +76,17 @@
 
   // DEEP16 up over the screen; the 8-bit game holds still under it (DS.paused) until the fight comes back
   function open(o, done) {
-    var g = DS.G, fr = document.createElement('iframe');
+    var g = DS.G, fr = document.createElement('iframe'), closed = false, readyTimer = null, readyMs = DS.d16ReadyMs != null ? DS.d16ReadyMs : 30000;
+    // the grid is gone, whichever way: its own word (done, refuse, crash) or the timer below. Once only; the 8-bit game wakes, the listener and the timer go
+    function close(m) {
+      if (closed) return; closed = true;
+      clearTimeout(readyTimer);
+      window.removeEventListener('message', onMsg);
+      if (fr.parentNode) fr.parentNode.removeChild(fr);
+      DS.paused = false; DS.input.flush();
+      if (DS.canvas) DS.canvas.focus();
+      done(m);
+    }
     // the guests the 8-bit battle would field (standing, and none for a lone fighter or a noGuests fight), each by its key
     // (two troopers are pinA and pinB, both 'trooper' underneath)
     var guests = o.solo == null && !o.noGuests ? (g.guests || []).filter(function (x) { return !x.h.ko && x.h.hp > 0; }) : [];
@@ -86,6 +105,7 @@
       // torchdark (09-28): whether it is dark where the fight is (the 8-bit map's `dark`, the night's tint: EV.darkHere), and who
       // walked in holding a lit torch (the field's g.flags.torchBy)
       var dark = o.dark != null ? !!o.dark : (DS.EV.darkHere ? DS.EV.darkHere() : false);
+      if (m.type === 'd16:ready') clearTimeout(readyTimer); // (it came up: from here the grid answers for itself, by done, refuse or crash)
       if (m.type === 'd16:ready') fr.contentWindow.postMessage({ type: 'ds8:fight', fight: o.deep16, save: snap, opts: {
         canRun: o.canRun !== false, solo: solo, join: o.join || 0, only: o.deep16Only || null, enemies: o.enemies || null,
         at: o.at || null, wake: o.wake || null, // (the Settling: the lead's square, the trigger that fired -- deep16/js/wet.js)
@@ -93,13 +113,7 @@
         harness: o.harness || null, milker: o.milker || null, touched: !!o.touched, // (the deep rate roused: the cradle's square, who milked, whether the touch took -- 09-30g)
         surprised: o.surprised || null, revealed: !!o.revealed || seer, yieldText: o.yieldText || null,
         dark: dark, torch: o.torch || g.flags.torchBy || null, torchKind: g.flags.torchKind || 'torch' } }, '*');
-      if (m.type === 'd16:done' || m.type === 'd16:refuse') {
-        window.removeEventListener('message', onMsg);
-        fr.parentNode.removeChild(fr);
-        DS.paused = false; DS.input.flush();
-        if (DS.canvas) DS.canvas.focus();
-        done(m);
-      }
+      if (m.type === 'd16:done' || m.type === 'd16:refuse' || m.type === 'd16:crash') close(m);
     }
     window.addEventListener('message', onMsg);
     DS.audio.stop();
@@ -107,6 +121,8 @@
     fr.onload = function () { try { fr.contentWindow.focus(); } catch (e) { } };
     document.body.appendChild(fr);
     DS.paused = true;
+    // (no d16:ready in time -- the page did not load, a script threw before it could say so: the same end as a crash, and the 8-bit game takes the fight)
+    readyTimer = setTimeout(function () { close({ type: 'd16:crash', msg: 'no ready in ' + readyMs + 'ms' }); }, readyMs);
   }
 
   // what the fight did, onto the party: what was spent stays spent (no slot, use or potion comes back that the fight took)

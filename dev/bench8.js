@@ -942,6 +942,117 @@
       seam('lit on the grid from the pack, the place light enough (09-30d: still in the hand)', { dark: false, pack: true, report: 'ledgerlamp', inv0: { ledgerlamp: 1 }, inv1: {}, expect: function (gg) { return gg.count('ledgerlamp') === 0 && gg.flags.torchBy === 'aurdin' && gg.flags.torchKind === 'ledgerlamp'; } });
       seam('lit on the grid from the pack, put out again', { dark: true, pack: true, report: false, inv0: { ledgerlamp: 1 }, inv1: { ledgerlamp: 1 }, expect: function (gg) { return gg.count('ledgerlamp') === 1 && !gg.flags.torchBy; } });
       DS.EV.darkHere = dark1;
+    } else if (test === 'floor1003') {
+      // the floor under the player (10-03, the cloud review's recommendation 3, "A floor under the player"): a grid fight that crashes or never comes up must not freeze the
+      // 8-bit game (js/embed.js: d16:crash, the ready timeout), a loaded save naming an item or a map the game does not have must not break the menus or black the screen
+      // (js/scenes.js DS.migrateSave), and a warp that throws must not leave the screen black (js/events.js EV.warp). DEEP16 is not run: its messages are dispatched on the
+      // page as the iframe would send them (ledgerlamp8seam's way), and the page's timers are held in a list so the ready timeout is fired by hand, not waited for
+      var cases = [], realSet = window.setTimeout, realClear = window.clearTimeout, realWarn = console.warn, realErr = console.error, knob0 = DS.d16ReadyMs, timers = [], warns = [];
+      function floorCase(name, fn) { // a case passes when every check it made did; one that throws is a failed case, not the end of the bench
+        var before = out.checks.length;
+        try { fn(); } catch (e) { check(name + ': threw ' + String(e && e.stack || e).slice(0, 240), false); }
+        window.setTimeout = realSet; window.clearTimeout = realClear; console.warn = realWarn; console.error = realErr; DS.choose = chooseReal; DS.d16ReadyMs = knob0;
+        cases.push({ name: name, ok: out.checks.slice(before).every(function (c) { return c.indexOf('ok') === 0; }) });
+      }
+      var chooseReal = DS.choose;
+      function holdTimers() { timers = []; window.setTimeout = function (fn, ms) { var t = { fn: fn, ms: ms, cleared: false, ran: false }; timers.push(t); return t; }; window.clearTimeout = function (t) { if (t && typeof t === 'object') t.cleared = true; }; }
+      function flushZero() { timers.forEach(function (t) { if (!t.cleared && !t.ran && !t.ms) { t.ran = true; t.fn(); } }); } // (the 8-bit battle hands its script back through setTimeout(.., 0))
+      function holdWarns() { warns = []; console.warn = function () { warns.push(Array.prototype.join.call(arguments, ' ')); }; }
+      function gridMsg(fr, data) { window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: data })); }
+      // a fight the grid would take, opened: the iframe over the screen, the 8-bit game held still under it
+      function openGrid() {
+        var stale; while ((stale = document.getElementById('d16'))) stale.parentNode.removeChild(stale);
+        SETUP(+(Q.get('lvl') || 5)); DS.lastError = null; DS.lastD16Crash = null; DS.paused = false; T.res = undefined; holdTimers(); holdWarns();
+        T.startFight(['ogre'], { deep16: 'trolls', dark: false, torch: null });
+        for (var i = 0; i < 400 && !document.getElementById('d16'); i++) T.step(1);
+        return document.getElementById('d16');
+      }
+      // after the grid has gone: the line first (a dialog over the field), then the 8-bit battle, fought to its end with the foes already down
+      function eightBitTakes() {
+        var said = [], hp0 = null, b;
+        for (var i = 0; i < 600 && !DS.find('battle'); i++) {
+          var tp = DS.top(), k = tp && tp.kind;
+          if (k === 'dialog') { var pg = tp.pages[tp.p]; if (pg) { var tx = DS.stripCodes(pg.lines.join(' ')); if (said[said.length - 1] !== tx) said.push(tx); } if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); }
+          else T.step(1);
+        }
+        b = DS.find('battle'); if (b) hp0 = b.heroes.map(function (u) { return u.h.hp; });
+        if (b) { b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500); }
+        flushZero(); T.step(2);
+        return { said: said, b: b, hp0: hp0 };
+      }
+      function afterGrid(tag, pre, why) { // the checks the crash and the timeout share
+        var r = eightBitTakes(), c = DS.lastD16Crash, g1 = DS.G;
+        check(tag + ': the iframe gone (' + !document.getElementById('d16') + '), the 8-bit game unpaused (' + !DS.paused + ')', !document.getElementById('d16') && DS.paused === false);
+        check(tag + ': DS.lastD16Crash ' + JSON.stringify(c), !!c && c.fight === 'trolls' && c.msg === why.msg && (c.at || null) === (why.at || null) && !('lastD16Crash' in g1) && JSON.stringify(g1).indexOf('lastD16Crash') < 0);
+        check(tag + ': the console was told (' + warns.length + ' warn, "' + (warns[0] || '').slice(0, 90) + '")', warns.some(function (w) { return /trolls/.test(w) && w.indexOf(why.msg) >= 0; }));
+        check(tag + ': the player was told, "' + r.said.join(' | ') + '"', r.said.length === 1 && /The grid faltered\. The fight goes on here\./.test(r.said[0]));
+        check(tag + ': the 8-bit battle took the fight (' + !!r.b + ', fromDeep ' + !!(r.b && r.b.fromDeep) + ', foes ' + (r.b && r.b.foes.length) + '), the party as it walked in (' + (r.hp0 || []).join('/') + ' of ' + pre.join('/') + '), result ' + T.res,
+          !!r.b && !r.b.fromDeep && r.b.foes.length === 1 && JSON.stringify(r.hp0) === JSON.stringify(pre) && T.res === 'win');
+      }
+      function party(g2) { return g2.party.map(function (h) { return h.hp; }).concat((g2.guests || []).map(function (x) { return x.h.hp; })); }
+      // 1. DEEP16 says it crashed (deep16/js/embed.js: the first uncaught error or rejection)
+      floorCase('a d16:crash message', function () {
+        var fr = openGrid(), pre = party(DS.G);
+        if (!fr) { check('a d16:crash message: the iframe never opened', false); return; }
+        var wait0 = timers.filter(function (t) { return t.ms === 30000 && !t.cleared; }).length;
+        check('the grid is up: the 8-bit game held (' + DS.paused + '), a ready timer of ' + (timers[0] && timers[0].ms) + ' ms waiting (' + wait0 + ')', DS.paused === true && wait0 === 1);
+        gridMsg(fr, { type: 'd16:ready' });
+        check('ready came: the timer cleared (' + (timers[0] && timers[0].cleared) + ')', !!timers[0] && timers[0].cleared === true);
+        gridMsg(fr, { type: 'd16:crash', msg: 'boom', at: 'battle.js:9' });
+        afterGrid('crash', pre, { msg: 'boom', at: 'battle.js:9' });
+      });
+      // 2. DEEP16 never says ready (the iframe 404, a script that did not load): the timer, read from the knob, fires
+      floorCase('the ready timeout', function () {
+        check('the ready knob: DS.d16ReadyMs is ' + knob0 + ' unless set', knob0 === 30000);
+        DS.d16ReadyMs = 50;
+        var fr = openGrid(), pre = party(DS.G);
+        if (!fr) { check('the ready timeout: the iframe never opened', false); return; }
+        var tm = timers.filter(function (t) { return t.ms === 50 && !t.cleared; })[0];
+        check('the knob read: a timer of ' + (tm && tm.ms) + ' ms is waiting for ready', !!tm);
+        if (tm) { tm.ran = true; tm.fn(); }
+        afterGrid('timeout', pre, { msg: 'no ready in 50ms', at: null });
+      });
+      // 3. a save with an item id the game has not got, in the pack and in two equipment slots (a hero's and a guest's)
+      floorCase('a save naming an unknown item', function () {
+        SETUP(+(Q.get('lvl') || 5)); DS.lastError = null; DS.EV.addGuest('ingrith');
+        var potions = DS.G.count('potion'), s1 = JSON.parse(JSON.stringify(DS.G));
+        s1.inv.push({ id: 'zzbogusitem', n: 3 }); s1.party[0].equip.weapon = 'zzbogusblade'; s1.party[1].equip.torch = 1; s1.guests[0].h.equip.armor = 'zzbogusmail';
+        holdWarns(); var why = DS.migrateSave(s1), w1 = warns.slice(); holdWarns(); DS.migrateSave(s1); var w2 = warns.slice();
+        check('migrateSave took it (' + JSON.stringify(why) + '): the pack ' + s1.inv.map(function (s) { return s.id + 'x' + s.n; }).join(','), why === '' && !s1.inv.some(function (s) { return s.id === 'zzbogusitem'; }) && potions > 0 && s1.inv.some(function (s) { return s.id === 'potion' && s.n === potions; }));
+        check('the hero\'s unknown weapon and the guest\'s unknown armor emptied (' + s1.party[0].equip.weapon + ', ' + s1.guests[0].h.equip.armor + '), a torch flag left alone (' + s1.party[1].equip.torch + '), a known weapon kept (' + s1.party[2].equip.weapon + ')', s1.party[0].equip.weapon === null && s1.guests[0].h.equip.armor === null && s1.party[1].equip.torch === 1 && !!s1.party[2].equip.weapon && s1.party[2].equip.weapon === DS.G.party[2].equip.weapon);
+        check('each said so on the console (' + w1.length + '), the second pass quiet (' + w2.length + ')', w1.length === 3 && ['zzbogusitem', 'zzbogusblade', 'zzbogusmail'].every(function (id) { return w1.some(function (w) { return w.indexOf(id) >= 0; }); }) && w2.length === 0);
+        DS.startFrom(s1); // (the way a load goes in: the heroes brought up to date on the sheet as it now is)
+        check('startFrom took it: the weapon in his hand is ' + R.weaponOf(DS.G.party[0]).id + ', his AC ' + R.ac(DS.G.party[0]), R.weaponOf(DS.G.party[0]).id === 'unarmed' && R.ac(DS.G.party[0]) > 0);
+        var listed = null, asked = [], c0 = console.error;
+        DS.choose = function (o) { listed = o.items; return { start: function () { this.finished = true; this.result = null; } }; };
+        console.error = function () { asked.push(Array.prototype.join.call(arguments, ' ')); };
+        DS.run(function* () { yield* DS.FieldMenu.prototype.pick.call({}, 'item'); });
+        console.error = c0; DS.choose = chooseReal;
+        check('the ITEM menu\'s list builds: ' + (listed ? listed.length + ' rows, ' + listed.map(function (i) { return i.label; }).slice(0, 4).join(', ') + '...' : 'it did not (' + asked.length + ' script errors)'), !!listed && listed.length === DS.G.inv.length && listed.every(function (i) { return typeof i.label === 'string' && i.label; }));
+      });
+      // 4. a save in a map the game has not got: the way the game opens a new one (config.start), before the scenes are cleared
+      floorCase('a save in an unknown map', function () {
+        SETUP(+(Q.get('lvl') || 5)); DS.lastError = null;
+        var st = DS.DATA.config.start, s2 = JSON.parse(JSON.stringify(DS.G)), s3 = JSON.parse(JSON.stringify(DS.G));
+        s2.map = 'zz_nomap'; s2.x = 7; s2.y = 9; s2.dir = 'left'; s3.map = 'gulch'; s3.x = 33; s3.y = 8; s3.dir = 'right';
+        holdWarns(); var why = DS.migrateSave(s2), w3 = warns.slice(); DS.migrateSave(s3);
+        check('migrateSave took it (' + JSON.stringify(why) + '): now at ' + [s2.map, s2.x, s2.y, s2.dir].join(','), why === '' && s2.map === st.map && s2.x === st.x && s2.y === st.y && s2.dir === st.dir && !!DS.DATA.maps[st.map]);
+        check('it said so on the console (' + w3.length + '), a real map left where it was (' + [s3.map, s3.x, s3.y, s3.dir].join(',') + ')', w3.length === 1 && w3[0].indexOf('zz_nomap') >= 0 && s3.map === 'gulch' && s3.x === 33 && s3.y === 8 && s3.dir === 'right');
+        var raised = null; try { DS.startFrom(s2); } catch (e) { raised = e; }
+        check('startFrom took it: the field is ' + (DS.field && DS.field.map && DS.field.map.id) + ' at ' + DS.G.x + ',' + DS.G.y + ' (' + (raised ? 'it threw' : 'no throw') + ', top scene ' + (DS.top() && DS.top().kind) + ')', !raised && DS.top() && DS.top().kind === 'field' && DS.field.map.id === st.map && DS.G.x === st.x && DS.G.y === st.y);
+      });
+      // 5. a warp whose body throws (the map it names is not there): the screen must come back up, and the throw must still be seen
+      floorCase('a warp that throws', function () {
+        SETUP(+(Q.get('lvl') || 5)); DS.lastError = null; DS.fadeLevel = 0;
+        var map0 = DS.field.map.id, errs = [];
+        console.error = function () { errs.push(Array.prototype.join.call(arguments, ' ')); };
+        DS.run(function* () { yield* DS.EV.warp('zz_nomap', 1, 1, 'down'); });
+        for (var i = 0; i < 200 && DS.scriptActive(); i++) T.step(1);
+        console.error = realErr;
+        check('the fade is back up (' + DS.fadeLevel + '), the throw still seen (' + errs.length + ' script error, ' + /no map zz_nomap/.test(errs.join(' ')) + '), the party where it was (' + DS.field.map.id + '), control back (' + !DS.scriptActive() + ')', DS.fadeLevel === 0 && errs.length === 1 && /no map zz_nomap/.test(errs.join(' ')) && DS.field.map.id === map0 && !DS.scriptActive());
+      });
+      var okN = cases.filter(function (c) { return c.ok; }).length;
+      T.blog = []; out.log.push('floor1003: ' + okN + '/' + cases.length + ' cases' + (okN === cases.length ? ' clean' : ': ' + cases.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');
