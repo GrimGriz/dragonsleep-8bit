@@ -269,7 +269,7 @@
     if (I.mouse.click && B.hoverBtn >= 0 && B.buttons[B.hoverBtn].cast) return castPicks(B, u); // (the allies' CAST button)
     var byKey = I.pressed('a'), go = byKey || (I.mouse.click && !overUI(B));
     if (!go) return;
-    var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y);
+    var x = B.cursor.x, y = B.cursor.y, w = occ(x, y);
     if (rd.what === 'weapon') {
       var foe = (w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null) || D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units);
       if (foe && B.canHit(u, foe)) return UI.command(B, u, { do: 'attack', target: foe });
@@ -338,6 +338,8 @@
   // the figure under the mouse (its whole sprite, front-most first): clicking a body selects its owner, not the floor behind
   // `want` (optional): of the figures under the mouse, one it wants comes before the front-most (10-01, RULED, Griz: "if they're targeting something that asks
   // for a foe, the picker should prefer over allies head at least" -- the darkmantle behind Vivian's head was hers to click, not the darkmantle's)
+  // a square's creature, or the Keeper's Ice Wall there as something to strike (js/keeper.js K.wallAt): the four places a click or a key aims a blow
+  function occ(x, y) { return G.occupant(x, y) || (D.keeper && D.keeper.wallAt ? D.keeper.wallAt(D.battle, x, y) : null); }
   UI.pickUnit = function (B, mx, my, want) {
     var best = null, bd = -1e9, pick = null, pd = -1e9, z = D.iso.zoom;
     B.units.forEach(function (u) {
@@ -533,7 +535,7 @@
 
   // is (x, y) somewhere the current tool can act? 'ok' | 'no' | 'self' | 'far' (a dash away)
   UI.valid = function (B, u, x, y) {
-    var tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, T = u.turn, s = G.map.at(x, y);
+    var tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, T = u.turn, s = G.map.at(x, y);
     // the attack cued: a darkmantle riding a friend -- or riding you -- is struck at through that square (10-01, Griz: "attack cued looking for target, ally
     // square you normally can't attack"; battle.js mount)
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (... or the roper's tendril on a friend, or on you -- 10-02)
@@ -572,7 +574,7 @@
   // it (a darkmantle on a friend, or on the caster: 10-01, Griz, "check for other spell problems we might have created" -- a spell at it went to the friend's square
   // and found only the friend); null if none of them
   function spellTarget(B, u, g, x, y) {
-    var M = D.magic, w = G.occupant(x, y), hu = B.hoverUnit, ok = function (t) { return !!(t && M.targetOK(B, u, g, t)); };
+    var M = D.magic, w = occ(x, y), hu = B.hoverUnit, ok = function (t) { return !!(t && M.targetOK(B, u, g, t)); };
     if (hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y && ok(hu)) return hu;
     if (ok(w)) return w;
     var r = D.Battle.riderOn(u, w, B.units); return ok(r) ? r : null;
@@ -591,7 +593,7 @@
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
-    var T = u.turn, tool = B.tool, w = G.occupant(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
+    var T = u.turn, tool = B.tool, w = occ(x, y), foe = w && G.hostile(u, w) && !w.dead && w.hp > 0 ? w : null, v = UI.valid(B, u, x, y);
     if (!foe && tool === 'attack') foe = D.Battle.riderOn(u, w, B.units) || D.Battle.tendrilOn(u, w, B.units); // (a darkmantle riding a friend, or you: struck at through the square -- UI.valid; the roper's tendril the same, 10-02)
     if (!foe && (tool === 'move' || tool === 'menu')) foe = hoveredRider(B, u, x, y); // (the mouse on it: the click is on it -- UI.valid)
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }

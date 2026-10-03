@@ -947,6 +947,12 @@
           }
           if (take) {
             w.reaction = 0;
+            if (w.kind === 'keeper' && D.keeper && D.keeper.CFG.oaWave) { // (the Keeper's opportunity attack as a wave toward the deep -- not ruled, behind D16.keeper.CFG.oaWave, off: js/keeper.js)
+              var pushed = yield* D.keeper.oaWave(this, w, u);
+              if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
+              if (pushed) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
+              continue;
+            }
             this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? 'the ' + shortName(u) : u.name) + '.']);
             var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite
               || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]]; // any melee attack (the morningstar)

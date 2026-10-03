@@ -24,7 +24,7 @@
     Object.keys(link).forEach(function (a) { var row = sh.anims[K.POSE[link[a]]]; if (row) sh.anims[a] = Object.assign({}, row); });
     return K.POSE;
   };
-  K.CFG = { waveDC: 13, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.CFG = { waveDC: 13, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -123,6 +123,7 @@
   // a blow to the Keeper in the water: a concentration check on the hold (the SRD's DC: 10 or half the damage)
   var hurt0 = D.Battle.prototype.hurt;
   D.Battle.prototype.hurt = function (u, n, type) {
+    if (u && u.isWall) return K.wallHit(this, u, n, type);
     var f = u && u.kind === 'keeper' && u.flooding && u.hp > 0, hp0 = u.hp;
     var r = hurt0.apply(this, arguments);
     if (f && u.hp > 0 && u.hp < hp0 && u.flooding) {
@@ -235,6 +236,22 @@
     } });
   };
 
+  // ------------------------------------------------------------------ its opportunity attack as a wave (Griz 10-03: "can it become a wave that pushes the provoker toward the back wall (the deep end)" --
+  // a new rule, not ruled: K.CFG.oaWave, off). Its reaction raises a wave as one leaves its reach: STR DC waveDC or prone, swept 10 ft toward the deep and up free, as the Wave's backwash;
+  // returns true if the provoker was moved (its walk ends there)
+  K.oaWave = function* (B, k, v) {
+    B.focus(k); D.sfx('splash'); k.anim = 'wave'; k.animT = B.t;
+    var sv = RU.save(v, 'str', K.CFG.waveDC), ok = sv.ok || v.noProne || RU.immuneTo(v, 'prone');
+    FX.keeperSlam(k, v);
+    B.card(['{o}' + Nm(B, k) + '{/} raises a wave as ' + v.name + ' leaves its reach.  {g}(its opportunity attack, as a wave: STR DC ' + K.CFG.waveDC + ' or swept toward the deep){/}',
+      '  ' + v.name + ': STR ' + RU.saveText(sv) + ' vs DC ' + K.CFG.waveDC + '  ' + (ok ? '{n}keeps its feet{/}' : '{o}KNOCKED DOWN{/}')], 240);
+    var moved = 0;
+    if (!ok && !anchored(B, v) && !v.conds.restrained) { v.conds.prone = true; moved = sweep(B, v); if (moved) { delete v.conds.prone; B.card(['  ' + v.name + ' is swept ' + (moved * 5) + ' ft toward the deep, and stands.'], 200); } }
+    yield 30; k.anim = 'idle'; k.animT = B.t;
+    if (moved && K.isDeep(v.x, v.y) && !k.flooding) yield* K.flood(B, k, v);
+    return moved > 0;
+  };
+
   // ------------------------------------------------------------------ the Keeper's turn
   function* inWater(B, u) { // true: it has come up out of the water, and goes on as above
     var f = u.flooding, v = B.units.filter(function (w) { return w.id === f.vic; })[0];
@@ -309,6 +326,18 @@
   // alt-bench some at 6 or 7": the bench's wallRow param, B.kp.rowOverride), readied -- "'ready' the wall with a trigger of 'party member moves toward exit'" -- not up from
   // the first; the SRD's Wall of Ice for its body ("AC 12 and 30 hit points per 10-foot section"), and, beyond the SRD, a fire spell destroys a section at once.
   function wallRow(B) { var S = st(B); return S.rowOverride != null ? S.rowOverride : def().wallRow; }
+  // the square's section of the wall as something to aim at (weapons, single-target spells), when no creature stands there
+  K.wallAt = function (B, x, y) {
+    var w = B && B.kp && B.kp.wall; if (!w) return null;
+    for (var i = 0; i < w.sections.length; i++) { var t = (w.sections[i].targets || []).filter(function (p) { return p.x === x && p.y === y; })[0]; if (t) return t; }
+    return null;
+  };
+  // a blow on the wall: only fire (and thunder, an instant blow like it) does it harm -- the section is gone; anything else is shrugged off
+  K.wallHit = function (B, t, n, type) {
+    var w = t.wall;
+    if (/fire|thunder/.test(type || '')) { if (B.kp && B.kp.wall === w && w.sections.indexOf(t.sec) >= 0) dropSection(B, w, t.sec, /fire/.test(type) ? 'goes to steam' : 'bursts'); }
+    else B.card(['{g}The Ice Wall shrugs off the blow: ' + (type || 'it') + ' does it no harm.  {g}(only fire, or thunder, hurts it){/}'], 180);
+  };
   K.canReadyWall = function (B, u) {
     var S = st(B), l = def().lane, row = wallRow(B);
     if (!l || row == null || S.uses <= 0 || S.wall || S.ready || u.flooding) return false;
@@ -340,6 +369,8 @@
       for (var yy = row - 1; yy >= l.y0; yy--) for (var xx = l.x0; xx <= l.x1; xx++) { if (!G.canStand(v, xx, yy)) continue; var d = Math.abs(yy - row) + Math.abs(xx - v.x) * 0.1; if (d < bd) { bd = d; best = [xx, yy]; } }
       if (best) { tween(B, v); v.x = best[0]; v.y = best[1]; }
     });
+    // (a target for each square of each section -- Griz 10-03, weapons and single-target spells may strike the wall: AC 10, no harm but from fire or thunder; js/ui.js asks K.wallAt for a square with no creature on it)
+    secs.forEach(function (sec) { sec.targets = sec.sq.map(function (p, j) { return { id: 'icewall-' + S.uses + '-' + secs.indexOf(sec) + j, name: 'Ice Wall', side: 'foe', kind: 'icewall', type: 'object', isWall: true, sec: sec, wall: w, x: p[0], y: p[1], size: 1, hp: 999, maxhp: 999, baseAC: K.CFG.wallStrikeAC, ac: K.CFG.wallStrikeAC, conds: {}, abil: { str: 10, dex: 10, con: 10, int: 1, wis: 1, cha: 1 }, saves: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 }, immune: ['poison', 'psychic'], resist: [], vulnerable: [], attacks: {}, reaction: 0, flash: 0, anim: 'idle', animT: 0, dead: false, speed: 0, noProne: true, condImmune: ['blinded', 'charmed', 'deafened', 'frightened', 'paralyzed', 'poisoned', 'prone', 'restrained', 'stunned', 'asleep'] }; }); });
     B.walls = (B.walls || []).concat([w]); B.wallMap = null; S.wall = w;
     B.focus(k); k.anim = 'wall'; k.animT = B.t; D.sfx('earth'); FX.bloom(w.cx, row, sq, 'glow');
     B.card(['{r}' + Nm(B, k) + '{/} springs the Ice Wall: {c}the water on the stair freezes across, behind ' + trig.name + '.{/}',
@@ -442,6 +473,10 @@
     { id: 'pour', name: 'THE POUR', words: 'Swept onto the deep, a hero is restrained and the Keeper pours into the water around it (AC 10); Active Suffocation doubles the drowning.' },
     { id: 'wall', name: 'THE ICE WALL', words: 'Readied, and sprung when one of you moves toward the exit: the water on the stair freezes across, behind you.' },
     { id: 'fire', name: 'FIRE ON THE WALL', words: 'A fire spell whose area takes in a section destroys it at once (not the SRD: the Keeper\'s own).' },
+    { id: 'strike', name: 'STRIKING THE WALL', words: 'A weapon or a single-target spell can aim at a section (AC 10). A blow does it no harm; fire, or thunder, destroys the section.' },
+    { id: 'ice', name: 'FROZEN WHERE IT STANDS', words: 'The water under all four of its squares freezes: it is restrained. DC 7 STR as a bonus action, then its action for a second try; breaking out destroys the ice and 1-2 squares about it.' },
+    { id: 'swirlfreeze', name: 'COLD ON THE SWIRL', words: 'Icing the water while it swirls someone: it saves against the spell to resist; failed, it changes back, lets go, and the freeze takes.' },
+    { id: 'oa', name: 'ITS OPPORTUNITY ATTACK, AS A WAVE', words: 'Not ruled (D16.keeper.CFG.oaWave): as one leaves its reach it raises a wave that sweeps them toward the deep.' },
     { id: 'freeze', name: 'FREEZING THE WATER', words: 'A cold area spell freezes the water it covers: 1d4 cold to its caster\'s friends in it, ice underfoot against the backwash, no deep where the ice is.' }
   ];
   D.fxKeeper = function (q) {
@@ -495,6 +530,23 @@
       fire: function* () {
         var k = S.k, c = S.P[1]; S.P.forEach(function (h, i) { put(h, 7 + i, 9); }); look(8, 10); k.reaction = 1; yield* K.raiseWall(B, k, S.P[0]); yield 40;
         put(c, 8, 10); c.spellDC = 13; yield* K.spellOn(B, c, 'burninghands', 1, { x: 8, y: 11 }); yield 40;
+      },
+      strike: function* () {
+        var k = S.k, h = S.P[0], c = S.P[1]; S.P.forEach(function (x, i) { put(x, 7 + i, 9); }); put(h, 8, 10); put(c, 10, 10); look(8, 10); k.reaction = 1; yield* K.raiseWall(B, k, h); yield 30;
+        h.weapon = Object.assign({}, h.weapon, { atk: 60 }); RU.startTurn(h); yield* B.exec(h, { do: 'attack', target: K.wallAt(B, 8, 11) }); yield 40;
+        c.known = (c.known || []).concat(['firebolt']); c.spellAtk = 60; c.spellDC = 13; RU.startTurn(c); yield* D.magic.cast(B, c, 'firebolt', 0, K.wallAt(B, 10, 11)); yield 40;
+      },
+      ice: function* () {
+        var k = S.k, c = S.P[1]; S.P.forEach(function (x, i) { put(x, 7 + i, 9); }); put(c, 8, 9); c.spellDC = 13; look(8, 6); yield 20;
+        yield* K.spellOn(B, c, 'coneofcold', 5, { x: 8, y: 5 }); yield 50; RU.startTurn(k); failSaves(false); yield* K.turn(B, k); yield 40;
+      },
+      swirlfreeze: function* () {
+        var k = S.k, h = S.P[0], c = S.P[1]; put(h, 8, 1); put(c, 8, 9); c.spellDC = 13; look(8, 4); RU.startTurn(k); yield 20; failSaves(true); yield* K.flood(B, k, h); yield 40;
+        yield* K.spellOn(B, c, 'coneofcold', 5, { x: 8, y: 2 }); failSaves(false); yield 50;
+      },
+      oa: function* () {
+        var k = S.k, h = S.P[0]; put(h, 8, 6); look(8, 6); RU.startTurn(k); k.reaction = 1; yield 20; RU.startTurn(h); h.turn.move = 30; K.CFG.oaWave = true; failSaves(true);
+        yield* B.moveAlong(h, [[8, 7], [8, 8]], { spend: true }); failSaves(false); K.CFG.oaWave = false; yield 40;
       },
       freeze: function* () {
         var k = S.k, c = S.P[1]; S.P.forEach(function (h, i) { put(h, 7 + i, 9); }); put(S.P[2], 8, 7); look(8, 7); put(c, 8, 9); c.spellDC = 13; yield 20;

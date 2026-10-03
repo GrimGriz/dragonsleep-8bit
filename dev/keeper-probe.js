@@ -119,14 +119,33 @@
     var B7 = battle({ lvl: 3 }), k7 = keeper(B7), H7 = ours(B7), c7 = cardsOf(B7); delete k7.conds.hidden; put(H7[0], 8, 9); H7[0].spellDC = 13; drain(K.spellOn(B7, H7[0], 'coneofcold', 5, { x: 8, y: 5 }));
     ok('the water it stands in freezes (no swirl, no save): restrained ' + !!k7.conds.restrained, !!k7.conds.restrained && k7.conds.restrained.ice);
     D.battle = B3;
+    // ---- its opportunity attack as a wave (K.CFG.oaWave, off by default)
+    var B8 = battle({ lvl: 3 }), k8 = keeper(B8), H8 = ours(B8), c8 = cardsOf(B8); delete k8.conds.hidden; H8.forEach(function (u) { delete u.conds.hidden; });
+    function leave() { put(H8[0], 8, 6); RU.startTurn(H8[0]); H8[0].turn.move = 30; H8[0].turn.disengaged = false; k8.reaction = 1; c8.length = 0; drain(B8.moveAlong(H8[0], [[8, 7], [8, 8]], { spend: true })); }
+    K.CFG.oaWave = false; leave(); var plain = /Slam/.test(c8.join(' ')) && !/raises a wave/.test(c8.join(' ')), y0 = H8[0].y;
+    K.CFG.oaWave = true; force(false); leave(); unforce(); K.CFG.oaWave = false;
+    ok('opportunity attack: off, the Slam (' + plain + ', walked to ' + y0 + '); on, a wave that sweeps the leaver toward the deep and ends its walk (now at ' + H8[0].x + ',' + H8[0].y + ')', plain && y0 === 8 && /raises a wave/.test(c8.join(' ')) && H8[0].y < 8 && !H8[0].conds.prone && k8.reaction === 0);
+    D.battle = B3;
+    // ---- the Ice Wall struck at: weapons and single-target spells aim at a section (AC 10); only fire, or thunder, harms it
+    var B9 = battle({ lvl: 3 }), k9 = keeper(B9), H9 = ours(B9), c9 = cardsOf(B9); delete k9.conds.hidden; H9.forEach(function (u) { delete u.conds.hidden; });
+    put(H9[0], 7, 10); put(H9[1], 10, 10); put(H9[2], 3, 3); put(H9[3], 3, 4); k9.reaction = 1; drain(K.raiseWall(B9, k9, H9[0]));
+    var t1 = K.wallAt(B9, 8, 11), t2 = K.wallAt(B9, 10, 11), W9 = B9.kp.wall;
+    ok('the wall is something to aim at: a target on each of its squares (' + (t1 && t1.name) + ' AC ' + (t1 && RU.ac(t1)) + ', ' + (t2 && t2.x) + ',' + (t2 && t2.y) + '), none where there is no wall', t1 && t2 && RU.ac(t1) === 10 && !K.wallAt(B9, 8, 10) && t1.sec !== t2.sec);
+    H9[0].weapon = Object.assign({}, H9[0].weapon, { atk: 60 }); RU.startTurn(H9[0]); c9.length = 0; drain(B9.exec(H9[0], { do: 'attack', target: t1 }));
+    ok('a weapon blow on the wall: it lands, and does no harm (' + W9.sections.length + ' sections; ' + (c9.filter(function (c) { return /shrugs off/.test(c); }).length) + ' shrugged off)', W9.sections.length === 2 && /shrugs off/.test(c9.join(' ')) && /Ice Wall/.test(c9.join(' ')));
+    c9.length = 0; B9.hurt(t1, 7, 'fire');
+    ok('fire carried by a blow (fire damage on the wall): that section goes (' + (B9.kp.wall ? B9.kp.wall.sections.length : 0) + ' left)', B9.kp.wall && B9.kp.wall.sections.length === 1 && /steam/.test(c9.join(' ')) && !K.wallAt(B9, 8, 11) && !!K.wallAt(B9, 10, 11));
+    var cz = H9[1]; cz.known = (cz.known || []).concat(['firebolt']); cz.spellAtk = 60; cz.spellDC = 13; RU.startTurn(cz); c9.length = 0; drain(D.magic.cast(B9, cz, 'firebolt', 0, K.wallAt(B9, 10, 11)));
+    ok('Fire Bolt at the other section: it is destroyed and the wall is down (' + (B9.kp.wall ? 'still up' : 'down') + ')', !B9.kp.wall && !K.wallAt(B9, 10, 11) && G.canStand(H9[0], 8, 11));
+    D.battle = B3;
     // ---- the Slam: a hit that fails the DC 15 STR save puts them prone
     var B2 = battle({ lvl: 3 }), k2 = keeper(B2), Q = ours(B2); delete k2.conds.hidden; put(Q[0], 8, 6);
     var prone = 0, hits = 0; for (var i = 0; i < 60; i++) { delete Q[0].conds.prone; Q[0].hp = Q[0].maxhp; drain(B2.attack(k2, Q[0], k2.attacks.slam)); if (Q[0].conds.prone) prone++; }
     ok('the Slam knocks prone on a failed save (' + prone + ' of 60 swings)', prone > 5);
     // ---- the gallery (?fxgallery&keeper): all six scenes run through the real code, with the looks added (and drawn onto a canvas)
     var GB = D.fxKeeper('?fxgallery&keeper&auto'); D.battle = GB; GB.enter(); var seen = {}, gerr = '', gsteps = 0, cv = document.createElement('canvas'); cv.width = 640; cv.height = 400; var cx2 = cv.getContext('2d');
-    while (GB.co && gsteps++ < 60000 && (Object.keys(seen).length < 6 || gsteps < 10)) { var gr; try { gr = GB.co.next(); } catch (e) { gerr = String(e && e.stack || e).slice(0, 400); break; } seen[GB.gallery.i] = 1; if (gr.done) break; var nf = typeof gr.value === 'number' ? Math.min(gr.value, 120) : 1; for (var fi = 0; fi < nf; fi++) { D.fx.list.forEach(function (f) { try { f.draw(cx2); } catch (e) { gerr = gerr || ('draw ' + f.kind + ': ' + String(e && e.stack || e).slice(0, 300)); } }); D.fx.update(); GB.t = (GB.t || 0) + 1; } }
-    ok('the gallery: ' + Object.keys(seen).length + ' scenes seen, ' + gsteps + ' steps' + (gerr ? ', ERROR ' + gerr : ''), Object.keys(seen).length >= 6 && !gerr);
+    while (GB.co && gsteps++ < 60000 && (Object.keys(seen).length < K.SCENES.length || gsteps < 10)) { var gr; try { gr = GB.co.next(); } catch (e) { gerr = String(e && e.stack || e).slice(0, 400); break; } seen[GB.gallery.i] = 1; if (gr.done) break; var nf = typeof gr.value === 'number' ? Math.min(gr.value, 120) : 1; for (var fi = 0; fi < nf; fi++) { D.fx.list.forEach(function (f) { try { f.draw(cx2); } catch (e) { gerr = gerr || ('draw ' + f.kind + ': ' + String(e && e.stack || e).slice(0, 300)); } }); D.fx.update(); GB.t = (GB.t || 0) + 1; } }
+    ok('the gallery: ' + Object.keys(seen).length + ' of ' + K.SCENES.length + ' scenes seen, ' + gsteps + ' steps' + (gerr ? ', ERROR ' + gerr : ''), Object.keys(seen).length >= K.SCENES.length && !gerr);
     // ---- ?keeperfight&seed=174221&watch drained (no frame loop): the fight the notes name -- level 3, won in round 6, a flood with an Active Suffocation, a wall
     var KF = D.keeper.fight('?keeperfight&seed=47517&watch&lvl=3'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
