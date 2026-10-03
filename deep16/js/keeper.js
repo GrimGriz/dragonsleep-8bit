@@ -68,7 +68,7 @@
     B.focus(u); D.sfx('splash'); u.anim = 'wave'; u.animT = B.t;
     var rows = [], lane = [];
     for (var yy = top; yy <= y1; yy++) for (var xx = l.x0; xx <= l.x1; xx++) { var q = G.map.at(xx, yy); if (q && q.open) lane.push([xx, yy]); }
-    if (lane.length) FX.bloom((l.x0 + l.x1) >> 1, (top + y1) >> 1, lane, 'glow');
+    if (lane.length) FX.keeperWave(lane, top, y1);
     rows.push('{r}' + Nm(B, u) + '{/} sends a wave up the stair.  {g}(the Wave, a bonus action: STR DC ' + K.CFG.waveDC + ' or prone){/}');
     hit.forEach(function (w) {
       if (w.conds.prone) return;
@@ -108,7 +108,7 @@
     u.flooding = { vic: v.id }; u.aboveAC = u.baseAC || u.ac; u.baseAC = K.CFG.deepAC;
     var spot = nearestSpot(B, u, v);
     if (spot && (spot[0] !== u.x || spot[1] !== u.y)) { tween(B, u); u.x = spot[0]; u.y = spot[1]; }
-    B.focus(v); D.sfx('splash'); FX.ring(v, 'glow', 30);
+    B.focus(v); D.sfx('splash'); FX.keeperPour(u, v); yield { fx: 1 };
     B.card(['{r}' + Nm(B, v) + '{/} is washed into the deep: {o}RESTRAINED{/}, and the Keeper pours into the water around ' + v.name + '.',
       '{g}(AC ' + K.CFG.deepAC + ' in the water: anything that strikes the water beside ' + v.name + ' strikes it. Escape DC 13, an action; or climb out where the head is over water){/}'], 320);
     yield 40;
@@ -153,6 +153,99 @@
     B.hurt(u, tot, 'drowning');
   };
 
+
+  // ------------------------------------------------------------------ the looks (10-03, in the style of js/fx.js and js/looks.js): the Slam's wave, the Wave up the stair, the pour
+  // All drawn from the cold element's own ramp (FX.EL.cold), pixel by pixel, over the world; a blocking one makes the battle wait for it (yield { fx: 1 }).
+  function scr(gx, gy, gz) { var c = D.iso.center(gx, gy, gz || 0); return D.iso.toScreen(c.x, c.y); }
+  function rc(ctx, x, y, w, h, col) { ctx.fillStyle = col; ctx.fillRect(Math.round(x), Math.round(y), w, h); }
+  function ramp() { return FX.el('cold').c; } // light to dark: foam, light water, water, deep water
+  // THE SLAM'S WAVE: it launches itself as an arcing wave, smashes down on the target's square, and returns into the pool (Griz: "launches itself as an arcing wave and smashes down
+  // then returns into the pool ... a wave effect like a spell effect to accompany the last part")
+  FX.keeperSlam = function (from, to) {
+    var a = FX.at(from), b = FX.at(to), T1 = 28, T2 = 52;
+    return FX.add({ kind: 'keeperslam', blocking: false, dur: 84, draw: function (ctx) {
+      var t = this.t, C = ramp(), A = scr(a.gx, a.gy, a.gz), Bp = scr(b.gx, b.gy, b.gz), ay = A.y - 14, by = Bp.y - 6, i, k;
+      if (t < T1 + 4) { // the crest: a ribbon of water arcing over, thin at the tail, heavy at the head, a foaming top and a curl tipping over at the front
+        k = Math.min(1, t / T1);
+        var N = 22, up = [], dn = [], hx = 0, hy = 0, fade = t > T1 ? 1 - (t - T1) / 4 : 1;
+        for (i = 0; i <= N; i++) {
+          var kk = k - (N - i) * 0.026; if (kk < 0) continue;
+          var x = A.x + (Bp.x - A.x) * kk, y = ay + (by - ay) * kk - Math.sin(Math.PI * kk) * (46 + Math.abs(Bp.x - A.x) * 0.15), th = 3 + 15 * Math.pow(i / N, 0.8);
+          up.push([x, y - th * 0.62]); dn.push([x - th * 0.1, y + th * 0.38]); hx = x; hy = y;
+        }
+        if (up.length > 2) {
+          ctx.globalAlpha = fade;
+          var poly = function (top, bot, col) { ctx.fillStyle = col; ctx.beginPath(); top.forEach(function (p, j) { j ? ctx.lineTo(Math.round(p[0]), Math.round(p[1])) : ctx.moveTo(Math.round(p[0]), Math.round(p[1])); }); for (var j = bot.length - 1; j >= 0; j--) ctx.lineTo(Math.round(bot[j][0]), Math.round(bot[j][1])); ctx.closePath(); ctx.fill(); };
+          poly(up, dn, C[2]);
+          poly(up, up.map(function (p, j) { return [p[0], p[1] + (dn[j][1] - p[1]) * 0.55]; }), C[1]);
+          ctx.strokeStyle = C[0]; ctx.lineWidth = 2; ctx.beginPath(); up.forEach(function (p, j) { j ? ctx.lineTo(Math.round(p[0]), Math.round(p[1])) : ctx.moveTo(Math.round(p[0]), Math.round(p[1])); }); ctx.stroke();
+          ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(hx + 1, hy - 9, 8, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke(); // the curl
+          for (i = 0; i < 9; i++) rc(ctx, hx - 16 + i * 4 + (t % 3), hy - 18 - ((i * 5 + t) % 7), 2, 2, C[0]); // foam and spray off the crest
+          ctx.globalAlpha = 1;
+        }
+      }
+      if (t >= T1 && t < T2 + 10) { // it comes down: a ring of foam on the square, droplets thrown up and out
+        var d = t - T1, e = Math.min(1, d / 18), al = d < 20 ? 1 : Math.max(0, 1 - (d - 20) / 12);
+        ctx.globalAlpha = al * 0.55; D.iso.rhombus(ctx, Math.round(b.gx), Math.round(b.gy), b.gz, 1); ctx.fillStyle = C[1]; ctx.fill();
+        ctx.globalAlpha = al; ctx.strokeStyle = C[0]; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.ellipse(Bp.x, Bp.y, 6 + e * 22, 3 + e * 11, 0, 0, 7); ctx.stroke();
+        ctx.strokeStyle = C[2]; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(Bp.x, Bp.y, 3 + e * 13, 2 + e * 6, 0, 0, 7); ctx.stroke();
+        for (i = 0; i < 14; i++) {
+          var ang = i * 2.399, v = 10 + (i % 5) * 3, px = Bp.x + Math.cos(ang) * v * e * 1.2, py = Bp.y - 6 - Math.sin(Math.PI * e) * (14 + (i % 4) * 7) + Math.sin(ang) * v * e * 0.4;
+          rc(ctx, px, py, 2, 2, i % 2 ? C[0] : C[1]);
+        }
+        for (i = 0; i < 7; i++) { var cph = Math.min(1, d / 14), colh = Math.sin(Math.PI * cph) * (20 + (i % 3) * 8); rc(ctx, Bp.x - 14 + i * 5, Bp.y - 6 - colh, 3, colh + 2, i % 2 ? C[1] : C[0]); } // the spray thrown up
+        ctx.globalAlpha = 1;
+      }
+      if (t >= T1 + 14 && t < this.dur) { // and goes back: a low wake from the square to the pool, ripples at the Keeper's foot
+        var r = Math.min(1, (t - T1 - 14) / 36), fade = t > this.dur - 16 ? (this.dur - t) / 16 : 1;
+        ctx.globalAlpha = 0.8 * fade;
+        for (i = 0; i < 8; i++) {
+          var kr = r - i * 0.05; if (kr < 0 || kr > 1) continue;
+          var wx = Bp.x + (A.x - Bp.x) * kr, wy = by + (ay - by) * kr + 2;
+          rc(ctx, wx - 5 + i % 2, wy, 10 - i, 2, i < 2 ? C[0] : C[1]); rc(ctx, wx - 3, wy + 2, 6, 1, C[2]);
+        }
+        if (r > 0.7) { var q = (r - 0.7) / 0.3; ctx.strokeStyle = C[1]; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(A.x, A.y - 4, 8 + q * 20, 4 + q * 10, 0, 0, 7); ctx.stroke(); }
+        ctx.globalAlpha = 1;
+      }
+    } });
+  };
+  // THE WAVE: the front runs up the stair's lane, a row at a time, breaks on the front wall and drags back
+  FX.keeperWave = function (squares, top, y1) {
+    var n = y1 - top + 1, STEP = 3;
+    return FX.add({ kind: 'keeperwave', blocking: false, dur: n * STEP * 2 + 26, draw: function (ctx) {
+      var t = this.t, C = ramp();
+      squares.forEach(function (q) {
+        var row = q[1] - top, out = row * STEP, back = n * STEP + 8 + (n - 1 - row) * STEP, k = t - out, kb = t - back, s = scr(q[0], q[1], D.iso.map.gz(q[0], q[1]));
+        if (k >= 0 && k < 14) { ctx.globalAlpha = 0.8 * (1 - k / 14); D.iso.rhombus(ctx, q[0], q[1], D.iso.map.gz(q[0], q[1]), 1); ctx.fillStyle = k < 5 ? C[0] : C[1]; ctx.fill(); ctx.globalAlpha = 1; for (var i = 0; i < 5; i++) rc(ctx, s.x - 12 + i * 5 + (k % 3), s.y - 4 - Math.sin((k + i) / 3) * 4 - k * 0.6, 3, 2, C[0]); }
+        if (kb >= 0 && kb < 14) { ctx.globalAlpha = 0.65 * (1 - kb / 14); D.iso.rhombus(ctx, q[0], q[1], D.iso.map.gz(q[0], q[1]), 1); ctx.fillStyle = C[2]; ctx.fill(); ctx.globalAlpha = 1; for (var j = 0; j < 4; j++) rc(ctx, s.x - 9 + j * 5, s.y - 2 - (kb % 4), 3, 1, C[1]); }
+      });
+    } });
+  };
+  // THE POUR: it pours itself into the water around the one it has -- a stream from the Keeper, rings on the square, a column of water down onto it, bubbles rising, the drowned one circled by drops
+  FX.keeperPour = function (from, to) {
+    var a = FX.at(from), b = FX.at(to);
+    return FX.add({ kind: 'keeperpour', blocking: true, dur: 78, draw: function (ctx) {
+      var t = this.t, C = ramp(), A = scr(a.gx, a.gy, a.gz), Bp = scr(b.gx, b.gy, b.gz), i, fade = t > 60 ? (78 - t) / 18 : 1;
+      if (t < 34) { // the stream across, rippling
+        var k = t / 34;
+        for (i = 0; i < 22; i++) { var kk = i / 22; if (kk > k) break; var x = A.x + (Bp.x - A.x) * kk, y = A.y - 10 + (Bp.y - A.y) * kk + Math.sin(kk * 9 + t / 3) * 3 - Math.sin(Math.PI * kk) * 10; ctx.globalAlpha = 0.9; rc(ctx, x - 2, y - 2, 5, 4, i % 3 ? C[1] : C[0]); rc(ctx, x - 1, y + 1, 3, 2, C[2]); }
+        ctx.globalAlpha = 1;
+      }
+      ctx.globalAlpha = 0.45 * fade; ctx.fillStyle = C[3]; ctx.beginPath(); ctx.ellipse(Bp.x, Bp.y, 18, 9, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; // the water darkened where it closes
+      for (i = 0; i < 4; i++) { var ph = ((t - 14 - i * 11) / 34); if (ph < 0 || ph > 1) continue; ctx.globalAlpha = (1 - ph) * fade; ctx.strokeStyle = i % 2 ? C[1] : C[0]; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(Bp.x, Bp.y, 6 + ph * 26, 3 + ph * 13, 0, 0, 7); ctx.stroke(); }
+      ctx.globalAlpha = 1;
+      if (t >= 24) { // a column of water down onto the square
+        var c = Math.min(1, (t - 24) / 12), h = 52 * c;
+        ctx.globalAlpha = 0.8 * fade; rc(ctx, Bp.x - 6, Bp.y - 6 - h, 12, h, C[1]); rc(ctx, Bp.x - 6, Bp.y - 6 - h, 3, h, C[0]); rc(ctx, Bp.x + 3, Bp.y - 6 - h, 3, h, C[2]); ctx.globalAlpha = 1;
+        for (i = 0; i < 10; i++) { var yy = ((t * 3 + i * 13) % 52); rc(ctx, Bp.x - 5 + (i * 7) % 11, Bp.y - 6 - yy, 2, 3, C[0]); }
+      }
+      for (i = 0; i < 8; i++) { var ang = t / 9 + i * Math.PI / 4, rr = 17 - Math.min(10, t / 6); ctx.globalAlpha = 0.9 * fade; rc(ctx, Bp.x + Math.cos(ang) * rr * 1.2, Bp.y - 12 + Math.sin(ang) * rr * 0.5 - (t % 30) * 0.2, 2, 2, i % 2 ? C[0] : C[1]); }
+      for (i = 0; i < 6; i++) { var bph = ((t * 0.6 + i * 9) % 40), bx = Bp.x - 8 + i * 3 + Math.sin(bph / 4 + i) * 2; ctx.globalAlpha = (1 - bph / 40) * fade; rc(ctx, bx, Bp.y - 4 - bph, 2, 2, C[0]); }
+      ctx.globalAlpha = 1;
+    } });
+  };
+
   // ------------------------------------------------------------------ the Keeper's turn
   function* inWater(B, u) { // true: it has come up out of the water, and goes on as above
     var f = u.flooding, v = B.units.filter(function (w) { return w.id === f.vic; })[0];
@@ -181,6 +274,7 @@
     if (T.action > 0 && near.length) { // the Slam: the weakest in its reach, one the Wave has not just taken the footing from first
       T.action = 0;
       var t = near.sort(function (a, b) { return a.hp - b.hp; })[0];
+      FX.keeperSlam(u, t);
       yield* B.attack(u, t, u.attacks.slam);
       if (u.dead || u.hp <= 0) return;
     } else if (T.action > 0 && K.canReadyWall(B, u)) { yield* K.readyWall(B, u); }
@@ -268,7 +362,7 @@
     if (cold) {
       var froze = sq.filter(function (p) { var c = G.map.at(p[0], p[1]); return c && c.ch === '~' && !S.ice[p[0] + ',' + p[1]]; });
       if (froze.length) {
-        froze.forEach(function (p) { S.ice[p[0] + ',' + p[1]] = true; });
+        froze.forEach(function (p) { S.ice[p[0] + ',' + p[1]] = true; }); FX.bloom(at.x, at.y, froze, 'cold', { core: false });
         var lines = ['{c}' + froze.length + ' square' + (froze.length > 1 ? 's' : '') + ' of water freeze over.{/}  {g}(ice underfoot: the backwash goes round; a head over the ice is over water){/}'], hurt = [];
         B.units.forEach(function (v) { if (G.standing(v) && v.side === u.side && froze.some(function (p) { return G.foot(v).some(function (f) { return f[0] === p[0] && f[1] === p[1]; }); })) { var d = D.roll('1d4').total; lines.push('  ' + v.name + ' is caught in it: {r}' + d + '{/} cold'); hurt.push([v, d]); } });
         B.card(lines, 280); hurt.forEach(function (h) { B.hurt(h[0], h[1], 'cold'); }); yield 20;
@@ -290,5 +384,104 @@
     });
     return out;
   };
+
+  // ------------------------------------------------------------------ the gallery: ?fxgallery&keeper (10-03). The Keeper's looks and rules, one scene at a time on its own stair, through the
+  // real code (the dice are put to the scene: a save the scene wants failed fails). Keys as the spell gallery's: left/right the scene before or after, E again, &scene=<id>, &auto.
+  K.SCENES = [
+    { id: 'slam', name: 'THE SLAM', words: 'It launches itself as an arcing wave and smashes down on one in its reach (DC 15 STR or prone), then returns into the pool.' },
+    { id: 'wave', name: 'THE WAVE', words: 'A bonus action each round: a wave up the stair (STR DC 13 or prone), off the front wall, and the backwash sweeps the prone 10 ft toward the deep -- up free.' },
+    { id: 'pour', name: 'THE POUR', words: 'Swept onto the deep, a hero is restrained and the Keeper pours into the water around it (AC 10); Active Suffocation doubles the drowning.' },
+    { id: 'wall', name: 'THE ICE WALL', words: 'Readied, and sprung when one of you moves toward the exit: the water on the stair freezes across, behind you.' },
+    { id: 'fire', name: 'FIRE ON THE WALL', words: 'A fire spell whose area takes in a section destroys it at once (not the SRD: the Keeper\'s own).' },
+    { id: 'freeze', name: 'FREEZING THE WATER', words: 'A cold area spell freezes the water it covers: 1d4 cold to its caster\'s friends in it, ice underfoot against the backwash, no deep where the ice is.' }
+  ];
+  D.fxKeeper = function (q) {
+    var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
+    var auto = /[?&]auto\b/.test(q), ids = K.SCENES.map(function (x) { return x.id; });
+    var B = new D.Battle({ gallery: true, fight: 'keeper', data: D.save.fixture(3), bench: true });
+    var S = B.gallery = { keeper: true, i: Math.max(0, ids.indexOf(get('scene') || '')), ids: ids, auto: auto, card: null, home: null };
+    var enter0 = B.enter;
+    B.enter = function () {
+      enter0.apply(this, arguments);
+      var P = B.units.filter(function (w) { return w.side === 'party' && !w.familiar; }), k = keeperOf(B);
+      S.units = B.units.slice(); S.P = P; S.k = k;
+      S.home = S.units.map(function (w) { return { w: w, hp: w.maxhp, x: w.x, y: w.y, facing: w.facing, baseAC: w.baseAC, slots: (w.slots || []).slice() }; });
+      B.dark = /[?&]dark\b/.test(q); // (lit, so the looks can be judged; &dark keeps the stair's torchdark)
+      B.req = null; B.co = loop();
+    };
+    function reset() {
+      B.units = S.units.slice(); D.battle = B; B.kp = null; B.walls = []; B.wallMap = null; B.cards && B.clearCards && B.clearCards();
+      S.home.forEach(function (h) { var w = h.w; w.hp = w.maxhp = h.hp; w.x = h.x; w.y = h.y; w.facing = h.facing; w.conds = {}; w.dead = false; w.ko = false; w.baseAC = h.baseAC; w.anim = 'idle'; w.animT = B.t; w.reaction = 1; w.slots = h.slots.slice(); if (w.kind === 'keeper') { w.flooding = null; w.holding = []; w.aboveAC = null; } });
+      S.k.hp = S.k.maxhp; S.k.x = 8; S.k.y = 4; S.k.facing = 0; delete S.k.conds.hidden; S.k.hidden0 = false;
+      S.P.forEach(function (w) { delete w.conds.hidden; });
+      D.grid.setup(D.grid.map, B.units);
+    }
+    var card0 = B.card;
+    B.card = function () { var r = card0.apply(this, arguments), g = S.card; if (g && this.cards.indexOf(g) < 0) { this.cards.unshift(g); while (this.cards.length > 3) this.cards.splice(1, 1); } return r; };
+    function header(sc) {
+      var lines = ['{y}' + (S.i + 1) + ' / ' + ids.length + '   ' + sc.name + '{/}'].concat(D.wrap(sc.words, 440).map(function (l) { return '{g}' + l + '{/}'; }), ['{g}left/right the next · E again{/}']);
+      B.clearCards(); S.card = null; card0.call(B, lines, 1e9, 'gallery'); S.card = B.cards[B.cards.length - 1];
+    }
+    var save0 = RU.save;
+    function failSaves(on) { RU.save = on ? function () { var r = save0.apply(this, arguments); r.ok = false; return r; } : save0; }
+    function look(x, y) { D.iso.lookAt(x, y, D.grid.map.gz(x, y)); }
+    function put(u, x, y) { u.x = x; u.y = y; u.hp = u.maxhp; }
+    var RUNS = {
+      slam: function* () {
+        var k = S.k, h = S.P[0]; put(h, 8, 7); h.baseAC = 1; k.reaction = 1; RU.startTurn(k); look(8, 6); yield 20; failSaves(true);
+        FX.keeperSlam(k, h); yield* B.attack(k, h, k.attacks.slam); failSaves(false); yield 60;
+      },
+      wave: function* () {
+        var k = S.k; S.P.forEach(function (h, i) { put(h, 7 + i, 9); }); look(8, 7); RU.startTurn(k); yield 20; failSaves(true);
+        yield* K.wave(B, k); yield 30; failSaves(false);
+      },
+      pour: function* () {
+        var k = S.k, h = S.P[0]; put(h, 8, 3); h.conds.prone = true; look(8, 3); RU.startTurn(k); yield 20; failSaves(true);
+        yield* K.flood(B, k, h); failSaves(false); h.hp = h.maxhp = 60; RU.startTurn(k); yield* K.turn(B, k); yield 30; K.drownTick(B, h); yield 40;
+      },
+      wall: function* () {
+        var k = S.k; S.P.forEach(function (h, i) { put(h, 7 + i, 9); }); look(8, 9); RU.startTurn(k); yield 20; yield* K.readyWall(B, k); yield 30;
+        var h = S.P[1]; RU.startTurn(h); h.turn.move = 30; yield* B.moveAlong(h, [[h.x, h.y + 1]], { spend: true }); yield 40;
+      },
+      fire: function* () {
+        var k = S.k, c = S.P[1]; S.P.forEach(function (h, i) { put(h, 7 + i, 9); }); look(8, 10); k.reaction = 1; yield* K.raiseWall(B, k, S.P[0]); yield 40;
+        put(c, 8, 10); c.spellDC = 13; yield* K.spellOn(B, c, 'burninghands', 1, { x: 8, y: 11 }); yield 40;
+      },
+      freeze: function* () {
+        var k = S.k, c = S.P[1]; S.P.forEach(function (h, i) { put(h, 7 + i, 9); }); put(S.P[2], 8, 7); look(8, 7); put(c, 8, 9); c.spellDC = 13; yield 20;
+        yield* K.spellOn(B, c, 'coneofcold', 5, { x: 8, y: 6 }); yield 40;
+      }
+    };
+    function* loop() {
+      for (var round = 0; ; round++) {
+        reset(); var sc = K.SCENES[S.i]; header(sc); yield 10;
+        yield* RUNS[sc.id](); yield 50;
+        var v = S.auto ? 1 : yield { gallery: true };
+        S.i = ((S.i + (v == null ? 1 : v)) % ids.length + ids.length) % ids.length;
+      }
+    }
+    return B;
+  };
+
+
+  // ------------------------------------------------------------------ ?keeperfight (10-03): the Keeper's fight from a URL. &lvl=3 the party's level, &wall=<row> the Ice Wall's row, &hp=<n>.
+  // Played by you (the fixture party) unless &watch: then the class AI runs the four, and &seed=<n> replays a bench fight roll for roll (dev/keeper-probe.py's seeds: the
+  // probe's fight number f at level L is seed (f+1)*7919+L -- 174221 is the level 3 fight with two floods, a broken hold and a wall).
+  K.fight = function (q) {
+    var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
+    if (get('seed')) D.seed = +get('seed') | 0;
+    var B = new D.Battle({ fight: 'keeper', data: D.save.fixture(+(get('lvl') || 3)), bench: !!get('seed') || /[?&]watch\b/.test(q) });
+    var enter0 = B.enter;
+    B.enter = function () {
+      enter0.apply(this, arguments);
+      if (get('wall')) B.kp = { uses: K.CFG.wallUses, ready: null, wall: null, ice: {}, waves: 0, rowOverride: +get('wall') };
+      if (get('hp')) { var k = keeperOf(B); if (k) k.hp = k.maxhp = +get('hp'); }
+      if (/[?&]watch\b/.test(q) || get('seed')) { B.units.forEach(function (u) { if (u.side === 'party' && !u.familiar) { u.guest = true; u.classAI = true; } }); B.heroTurn = function* (u) { yield* D.ai.turn(this, u); }; }
+      if (/[?&]watch\b/.test(q) || get('seed')) B.fight = Object.assign({}, B.fight, { noCards: true }); // (no entry card to press E on: the fight just goes)
+      if (/[?&]lit\b/.test(q)) B.dark = false;
+    };
+    return B;
+  };
+
   K.pose(); // (the engine's anim names point at the rows from the start)
 })();

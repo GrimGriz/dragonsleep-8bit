@@ -34,6 +34,7 @@
   }
 
   D.fxGallery = function (q) {
+    if (/[?&]keeper\b/.test(q) && D.fxKeeper) return D.fxKeeper(q); // (the Keeper's looks and rules, one scene at a time: js/keeper.js, 10-03)
     if (/[?&]features\b/.test(q)) return D.fxFeatures(q); // (the feature walk, below: &features; the spell mode is as it was)
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var only = get('only'), auto = /[?&]auto\b/.test(q), keep = /[?&]keep\b/.test(q); // (&keep: the stage is not swept between casts: E casts again at the same one)
