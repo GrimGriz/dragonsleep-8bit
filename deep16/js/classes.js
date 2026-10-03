@@ -360,8 +360,10 @@
       .map(function (id, i) { return { id: id, i: i, lv: lv(id) }; }).sort(function (a, b) { return a.lv - b.lv || a.i - b.i; }).map(function (x) { return x.id; });
     return { n: n, top: top, pool: pool, always: alw.filter(function (id) { return lv(id) >= 0 && lv(id) <= top; }), def: h.known.filter(function (id) { return lv(id) >= 1 && alw.indexOf(id) < 0; }) };
   };
-  // the figure the camp draws for a spec: a named one's own, else the class's
-  NPC.lookOf = function (spec) { return spec.look || (C[spec.cls] && C[spec.cls].look) || null; };
+  // the class's figure, or its race's where one is drawn (npc<class>_<race>_p0: the dragonborn's and the tiefling's, 10-03, Griz: "1 per class")
+  function classLook(cls, race) { var k = C[cls] && C[cls].look, r = k && race && race !== 'human' ? k.replace('_p0', '_' + race + '_p0') : null; return r && D.SHEETS && D.SHEETS[r] ? r : k || null; }
+  // the figure the camp draws for a spec: a named one's own, else the class's (its race's)
+  NPC.lookOf = function (spec) { return spec.look || classLook(spec.cls, spec.race); };
 
   // ------------------------------------------------------------------ the unit (on either side): the heroes' shape (save.js unitOf), and the rest
   NPC.unit = function (h, side, o) {
@@ -371,7 +373,7 @@
     u.kind = 'npc' + h.cls; // (no bestiary kind: nothing keyed to a kind -- the wheelwright's bolt, a fight's roster -- takes it for one)
     u.side = side || 'foe'; u.guest = false; u.npc = true; u.classAI = true; // (on the party's side it is the player's to run, unless the bench runs it)
     u.id = o.id || h.id; u.name = h.name; u.named = !!o.named || !!h.named;
-    u.sheet = o.sheet || c.look; u.race = h.race; u.type = 'humanoid';
+    u.sheet = o.sheet || classLook(h.cls, h.race); u.race = h.race; u.type = 'humanoid';
     u.speed = (race.speed || 30) + (h.cls === 'monk' && h.lvl >= 2 ? (h.lvl >= 6 ? 15 : 10) : 0) + (h.cls === 'barbarian' && h.lvl >= 5 ? 10 : 0);
     u.darkvision = Math.max(race.dv || 0, u.darkvision || 0);
     if (h.invocations && h.invocations.indexOf('devilsight') >= 0) u.devilSight = true; // Devil's Sight: sees in any dark, the magical too, to 120 ft

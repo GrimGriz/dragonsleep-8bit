@@ -627,6 +627,60 @@ Used by: npcranger
   - https://opengameart.org/content/lpc-walk-animations-for-bows
   - notes: original by wulax, walk animations by pvigier, split into layers and tweaked for v3 character bases by bluecarrot16. pvigier has agreed to license this sheet as OGA-BY 3.0+.
 
+### The races on the class figures (10-03): `npc<class>_dragonborn_p0` and `npc<class>_tiefling_p0` for each of the twelve classes (24 sheets)
+
+Composed by `tools/lpc-compose.py` (`RACE_LOOKS`, `race_figure`: the class figure `npc<class>` with the race laid over it), pixelated by `tools/pixelate.py p0` (deep16/js/classes.js `classLook`). Each uses its class figure's layers credited above (the class NPCs'), but for the head and, on the dragonborn, the hair; the tiefling druid's head is `head/heads/human/heads_human_female.json` (credited above) in place of Higertha's orc head. And these, new with them:
+
+## head/heads/reptile/heads_lizard_male.json -- "Lizard male"
+
+Used by: npcbarbarian_dragonborn, npccleric_dragonborn, npcfighter_dragonborn, npcmonk_dragonborn, npcrogue_dragonborn, npcwarlock_dragonborn
+
+- **file** `head/heads/lizard/male`
+  - authors: bluecarrot16, Benjamin K. Smith (BenCreating), Nila122
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/drakes-and-lizardfolk
+  - https://opengameart.org/content/lpc-character-bases
+  - notes: original lizard/drake by Nila122, reworked by BenCreating, modular head and further revisions by bluecarrot16. Nila122 gave blanket permission to MedicineStorm to use Nila122's LPC assets under OGA-BY 3.0 (where original or derived only from other works under OGA-BY).
+
+## head/heads/reptile/heads_lizard_female.json -- "Lizard female"
+
+Used by: npcbard_dragonborn, npcdruid_dragonborn, npcpaladin_dragonborn, npcranger_dragonborn, npcsorcerer_dragonborn, npcwizard_dragonborn
+
+- **file** `head/heads/lizard/female`
+  - authors: bluecarrot16, Benjamin K. Smith (BenCreating), Nila122
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/drakes-and-lizardfolk
+  - https://opengameart.org/content/lpc-character-bases
+  - notes: original lizard/drake by Nila122, reworked by BenCreating, modular head and further revisions by bluecarrot16. Nila122 gave blanket permission to MedicineStorm to use Nila122's LPC assets under OGA-BY 3.0 (where original or derived only from other works under OGA-BY).
+
+## head/ears/head_ears_dragon.json -- "Dragon Ears"
+
+Used by: every npc<class>_dragonborn (all twelve)
+
+- **file** `head/ears/dragon`
+  - authors: JaidynReiman
+  - licences: OGA-BY 3.0+, CC-BY 3.0+, GPL 3.0
+  - https://opengameart.org/content/lpc-new-elven-ear-variants
+
+## body/lizard/tail_lizard.json -- "Lizard tail"
+
+Used by: every npc<class>_dragonborn and npc<class>_tiefling (all 24)
+
+- **file** `body/tail/lizard`
+  - authors: Nila122, bluecarrot16, JaidynReiman
+  - licences: OGA-BY 3.0, CC-BY-SA 3.0, GPL 3.0
+  - https://opengameart.org/content/drakes-and-lizardfolk
+  - notes: edited for v3 bases and recolored by bluecarrot16, additional animations added by JaidynReiman
+
+## head/appendages/head_horns_curled.json -- "Curled Horns"
+
+Used by: every npc<class>_tiefling (all twelve)
+
+- **file** `head/horns/curled`
+  - authors: Nila122
+  - licences: OGA-BY 3.0, GPL 3.0, CC-BY-SA 3.0
+  - https://opengameart.org/content/lpc-lizard-headgear
+
 ## The campfire (09-28)
 
 The four heroes' sheets (barley_p0, aurdin_p0, vivian_p0, lymen_p0) also carry the generator's `sit` animation (`tools/lpc-compose.py` `extra`), from the same layers and sheet definitions credited above (the body's credits include LPC Be Seated, https://opengameart.org/content/lpc-be-seated). The campfire scene they sit in (`js/campfire.js`) is drawn in code.
