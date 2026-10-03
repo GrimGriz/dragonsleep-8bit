@@ -25,8 +25,8 @@
     return K.POSE;
   };
   K.isFight = function (F) { return !!(F && (F.id === 'keeper' || F.id === 'keeper-ladder')); };
-  K.PROFILE_OLD = { deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: the fight 'keeper-ladder', and &old=1)
-  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 175, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d6', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.PROFILE_OLD = { drown: '1d6', suffocateDice: null, heldStruggle: false, deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: the fight 'keeper-ladder', and &old=1)
+  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 175, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d6', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '2d6', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -324,8 +324,28 @@
   K.suffocate = function* (B, u, v) { // ACTIVE SUFFOCATION: its bonus action, and the drowning is doubled at the victim's next turn
     u.turn.bonus = 0; v.conds.drowning = v.conds.drowning || { by: u.id }; v.conds.drowning.twice = true;
     B.focus(v); v.conds.drowning.pulse = B.t; // (it stays as it stands: the swirl about the held one quickens)
-    B.card(['{r}' + Nm(B, u) + '{/} floods ' + v.name + ': {o}ACTIVE SUFFOCATION{/}  {g}(a bonus action: the drowning is rolled twice at ' + v.name + '\'s next turn){/}'], 260); yield 40;
+    var sd = K.CFG.suffocateDice ? D.roll(K.CFG.suffocateDice).total + (K.CFG.suffocateBonus || 0) : 0; // (10-03, Griz: the water closes at once: 1d6+3, no save and no CON to take off it, and the drowning is doubled at the next turn)
+    B.card(['{r}' + Nm(B, u) + '{/} floods ' + v.name + ': {o}ACTIVE SUFFOCATION{/}  {g}(a bonus action: ' + (sd ? K.CFG.suffocateDice + '+' + (K.CFG.suffocateBonus || 0) + ' = {r}' + sd + '{/}{g} now, and ' : '') + 'the drowning is rolled twice at ' + v.name + '\'s next turn){/}'], 260); if (sd) B.hurt(v, sd, 'drowning'); yield 40;
   };
+  // THE HELD STRUGGLE (10-03, Griz: "struggle only the hero"): a hero held in the swirl spends its action on BREAK FREE (DC 13) or DODGE, not on blows: no attack, no spell that takes an action, no Dash, Disengage, Hide,
+  // Help or item. Its friends' blows at the swirl are what break the hold. CFG.heldStruggle false is the old (the held attacks at disadvantage)
+  function heldBy(u) { var r = u && u.conds && u.conds.restrained; return !!(K.CFG.heldStruggle && u.side === 'party' && r && r.water && r.by); }
+  K.heldBy = heldBy;
+  var cmdK0 = D.Battle.prototype.commands;
+  D.Battle.prototype.commands = function (u) {
+    var out = cmdK0.apply(this, arguments);
+    if (this.fight && K.isFight(this.fight) && heldBy(u)) out.forEach(function (c) { if (c.cost === 'A' && !/^(breakfree|dodge)$/.test(c.id)) { c.ok = false; c.why = 'held in the swirl: only BREAK FREE or DODGE'; } });
+    return out;
+  };
+  var execH0 = D.Battle.prototype.exec;
+  D.Battle.prototype.exec = function* (u, c) {
+    if (this.fight && K.isFight(this.fight) && c && heldBy(u)) {
+      var sp = c.do === 'cast' && D.magic.geo ? D.magic.geo(c.id) : null;
+      if (/^(attack|dash|dashmove|disengage|hide|help|item|detach|lay)$/.test(c.do) || (sp && sp.time === 'A')) { this.card(['{o}' + u.name + ' is held in the swirl: the action is for BREAK FREE (DC 13) or DODGE.{/}'], 160); return; }
+    }
+    return yield* execH0.apply(this, arguments);
+  };
+
   function* approachFoe(B, u, hs) { // keeps to its water: the square it can stand in that gets a foe into its reach, for the least move
     var T = u.turn, reach = G.reachOf(u, u.reach), rm = G.reach(u, T.move), best = null, bs = Infinity;
     var tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
@@ -741,6 +761,7 @@
   };
   var tx0 = D.tactics.turn;
   D.tactics.turn = function* (B, u) {
+    if (B && B.fight && K.isFight(B.fight) && u.side === 'party' && !u.familiar && heldBy(u) && st(B)) { B.focus(u); if (u.turn.action > 0) yield* B.exec(u, { do: 'breakfree' }); yield 10; return; } // (held in the swirl: it struggles; K.CFG.heldStruggle)
     if (!(K.CFG.partyOpening && B && K.isFight(B.fight) && u.side === 'party' && !u.familiar && st(B) && !K.opened(B))) return yield* tx0.apply(this, arguments);
     B.focus(u); var kk = keeperOf(B); if (kk) u.facing = B.faceTo(u, kk);
     var S0 = st(B); // (the drift: at the rune the party is huddled; one hero a round steps a square toward it -- toward the exit, the Keeper's READY trigger -- and no farther than the row below the wall)
@@ -777,6 +798,7 @@
     if (get('hidden') != null) K.CFG.visible = get('hidden') !== '1'; if (get('opening') != null) K.CFG.partyOpening = get('opening') !== '0'; if (get('glow') != null) K.CFG.glow = get('glow') !== '0'; // (hidden=1 the old hidden Keeper, opening=0 the old passive-then-react party, glow=0 no light of his own)
     if (get('hp')) K.CFG.hp = +get('hp'); if (get('deep')) K.CFG.deepDepth = +get('deep'); // (deep=1 the old: only the last step is the deep)
     if (get('atk')) K.CFG.slamAtk = +get('atk'); if (get('upfree') != null) K.CFG.sweepUpFree = get('upfree') === '1'; // (atk=6 the Slam's attack bonus; upfree=1 the old backwash that stands the swept up free)
+    if (get('drown')) K.CFG.drown = get('drown'); if (get('suff') != null) K.CFG.suffocateDice = get('suff') === '0' ? null : '1d6'; if (get('struggle') != null) K.CFG.heldStruggle = get('struggle') !== '0'; // (drown=1d6 the old dice, suff=0 no immediate Active Suffocation damage, struggle=0 the held hero attacks as before)
     if (get('slam')) K.CFG.slamDice = get('slam'); if (get('slams')) K.CFG.slams = +get('slams'); if (get('wavedc')) K.CFG.waveDC = +get('wavedc'); if (get('resist') != null) K.CFG.weaponResist = get('resist') === '1'; if (get('swirl')) K.CFG.swirlAny = get('swirl') === 'any'; if (get('drift') != null) K.CFG.openingDrift = get('drift') !== '0'; // (the tuning levers, 10-03: slam=3d6 the Slam's dice, slams=2 the Slam twice, wavedc=15, resist=1 nonmagical weapons resisted, swirl=any the swirl takes any hero in the water or in reach, drift=0 no drift at the rune)
     if (get('init') != null) K.CFG.initBonus = +get('init') | 0; if (get('cast') != null) K.CFG.aiCast = get('cast') !== '0'; if (get('washnowall') != null) K.CFG.washNoWall = get('washnowall') === '1'; // (the bench's settings: init=5 the Keeper's initiative bonus, cast=0 the AI never casts the wall, washnowall=1 the old backwash)
     var B = new D.Battle({ fight: 'keeper', data: D.save.fixture(+(get('lvl') || 3)), bench: !!get('seed') || /[?&]watch\b/.test(q) });
