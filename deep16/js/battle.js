@@ -980,6 +980,8 @@
       // out of a Globe of Invulnerability that held a spell off it (10-01c): a hold, a sleep, a web's grip, a dance takes hold again on the square it steps
       // out onto, and the walk ends there (filming it, the fighter walked on a square held)
       if (this.globes && D.magic.globeSync) { D.magic.globeSync(this); if (!RU.canAct(u) || u.conds.restrained || u.conds.dancing) { if (o && o.spend) T.move = 0; u.anim = 'idle'; yield 24; break; } }
+      // the Keeper's readied Ice Wall (js/keeper.js, 10-03): one of ours stepping toward the exit springs it
+      if (this.kp && this.kp.ready && D.keeper) yield* D.keeper.watch(this, u);
       // a readied strike (exec 'ready', 10-02): one that steps within a readier's reach, or into its sight, gets it -- and held, stunned or put down by it, walks no farther
       if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) { yield* this.readyHook(u); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; } u.anim = gait; }
     }

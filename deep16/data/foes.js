@@ -498,7 +498,7 @@
   // rather than add swimming"): what lives in the water keeps to it or comes out of it; nobody swims
   // the Keeper of the flooded stair (events.js S.stair, Pete's Five): "It never left its water; it only let go."
   keeper: {
-    name: 'The Keeper', type: 'elemental', named: true, sheet: 'keeper_p1', cr: '3', ac: 13, hp: 58, speed: 60, size: 2, reach: 10, blindsight: 30, blind: true,
+    name: 'The Keeper', type: 'elemental', named: true, sheet: 'keeper_p1', cr: '3', ac: 13, hp: 100, speed: 60, size: 2, reach: 10, blindsight: 30, blind: true,
     abil: { str: 17, dex: 16, con: 13, int: 11, wis: 10, cha: 10 }, init: 3, perception: 10,
     saves: { str: 3, dex: 3, con: 1, int: 0, wis: 0, cha: 0 },
     // 10-03, Griz's design (handoff-2026-10-02-the-keeper.md; js/keeper.js): above the water a Slam (his "knock prone%": a DC 15 STR save, "using himself is more
@@ -507,7 +507,7 @@
       slam: { name: 'Slam', atk: 5, dice: '2d6', mod: 3, type: 'bludgeoning', reach: 10, prone: 15 }
     },
     multi: ['slam'], resist: ['fire'], immune: ['poison'], bound: '~',
-    src: 'ours (invented.json #the-keeper): the 8-bit game\'s Keeper, once the SRD 5.1 Water Weird\'s numbers (AC 13, 58 HP, blindsight 30, reach 10), now its own: Slam (DC 15 STR or prone), the Wave (bonus action, DC 13 STR; the backwash sweeps the prone toward the deep), washes one into the deep and floods it (AC 10 in the water), the Ice Wall (3 uses) -- js/keeper.js; the signature rules are not the SRD\'s'
+    src: 'ours (invented.json #the-keeper): the 8-bit game\'s Keeper, once the SRD 5.1 Water Weird\'s numbers (AC 13, 58 HP, blindsight 30, reach 10), now its own: 100 HP (benched 10-03: at 58 the four at levels 3-5 kill it in 2.5-3.6 rounds, before the deep comes into play), Slam (DC 15 STR or prone), the Wave (bonus action, DC 13 STR; the backwash sweeps the prone toward the deep), washes one into the deep and floods it (AC 10 in the water), the Ice Wall (3 uses) -- js/keeper.js; the signature rules are not the SRD\'s'
   },
   // the chuul off the point (events.js S.lakeFight, the base game's capstone): it comes up out of the deep and can come ashore
   chuul: {

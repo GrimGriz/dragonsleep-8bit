@@ -322,6 +322,15 @@
             ctx.fillStyle = R.stone[0]; ctx.beginPath(); ctx.moveTo(s.x + hw, s.y); ctx.lineTo(s.x, s.y + hh); ctx.lineTo(s.x, s.y + hh - H); ctx.lineTo(s.x + hw, s.y - H); ctx.closePath(); ctx.fill();
             ctx.fillStyle = R.stone[2]; ctx.beginPath(); ctx.moveTo(s.x, s.y - hh - H); ctx.lineTo(s.x + hw, s.y - H); ctx.lineTo(s.x, s.y + hh - H); ctx.lineTo(s.x - hw, s.y - H); ctx.closePath(); ctx.fill();
             ctx.strokeStyle = R.outline[0]; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.moveTo(s.x, s.y + hh); ctx.lineTo(s.x, s.y + hh - H); ctx.stroke(); ctx.globalAlpha = 1;
+          } else if (w.kind === 'ice') {
+            // the Keeper's Ice Wall (js/keeper.js): a stand of pale crystal spikes across the square, a man's height and a little more
+            var hw2 = iso.TW / 2;
+            ctx.fillStyle = R.glow[2]; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.ellipse(s.x, s.y, hw2 * 0.9, 7, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
+            for (var ik = 0; ik < 6; ik++) {
+              var ix = s.x - 13 + hash(q[0], q[1], ik) * 26, ih = 26 + hash(q[0], q[1], ik + 7) * 22, iw = 4 + hash(q[0], q[1], ik + 3) * 3;
+              ctx.fillStyle = ik % 2 ? R.glow[1] : R.bone[2]; ctx.beginPath(); ctx.moveTo(ix - iw, s.y + 3); ctx.lineTo(ix, s.y - ih); ctx.lineTo(ix + iw, s.y + 3); ctx.closePath(); ctx.fill();
+              ctx.fillStyle = R.glow[0]; ctx.globalAlpha = 0.55; ctx.beginPath(); ctx.moveTo(ix, s.y - ih); ctx.lineTo(ix + iw, s.y + 3); ctx.lineTo(ix + iw * 0.2, s.y + 3); ctx.closePath(); ctx.fill(); ctx.globalAlpha = 1;
+            }
           } else if (w.kind === 'wind') {
             // streaks of air torn upward
             ctx.strokeStyle = R.bone[2]; ctx.lineWidth = 1;
