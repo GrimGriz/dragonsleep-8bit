@@ -2,7 +2,7 @@
 of the game and that's a bad way to do things?" -- the seat's call: no deploy gate while he is the only player, but no push on red).
 The after-every-edit benches in one run; exit 0 green, 1 red. From PowerShell (headless Edge answers nothing from the Bash sandbox).
 
-  python dev/check.py          quick: the every-spell check, three fights, five modes (about a minute)
+  python dev/check.py          quick: the every-spell check, three fights, sixteen modes (about 20 s)
   python dev/check.py all      every mode in bench16.js, the 8-bit battle benches, the wet and Pyro probes
 """
 import os, re, subprocess, sys, time
@@ -19,11 +19,13 @@ QUICK_FIGHTS = [
     {'foes': 'cleric:9,wizard:9', 'lvl': '9', 'n': '4', 'seed': '1'},
     {'foes': 'goblin,goblin,goblin', 'vs': 'wizard,wizard,wizard', 'lvl': '5', 'n': '4', 'seed': '1'},
 ]
-QUICK_MODES = ['rulings0930', 'features', 'charms', 'walls', 'familiar', 'globe1001c', 'ring1001c', 'sleep1001c', 'tendrils1002', 'ready1002', 'ready1002b', 'dispel1002', 'joke1002', 'pocket1002', 'fixes1003', 'lazy1003']
+QUICK_MODES = ['rulings0930', 'features', 'charms', 'walls', 'familiar', 'globe1001c', 'ring1001c', 'sleep1001c', 'tendrils1002', 'ready1002', 'ready1002b', 'dispel1002', 'joke1002', 'pocket1002', 'fixes1003', 'lazy1003', 'rules1003']
 ALL_MODES = ['items', 'lantern', 'ledgerlamp', 'druid12', 'rulings0930', 'featurewalk', 'ring0930', 'campcast', 'druidlast', 'charms',
-             'walls', 'zones', 'subs', 'auras', 'familiar', 'features', 'matrix', 'globe1001c', 'ring1001c', 'sleep1001c', 'show', 'tendrils1002', 'ready1002', 'ready1002b', 'dispel1002', 'joke1002', 'pocket1002', 'fixes1003', 'lazy1003']
+             'walls', 'zones', 'subs', 'auras', 'familiar', 'features', 'matrix', 'globe1001c', 'ring1001c', 'sleep1001c', 'show', 'tendrils1002', 'ready1002', 'ready1002b', 'dispel1002', 'joke1002', 'pocket1002', 'fixes1003', 'lazy1003', 'rules1003']
 ALL_SCRIPTS = [['dev/bench8.py', 'lymen'], ['dev/bench8.py', 'ingrith'], ['dev/bench8.py', 'sheets1001c'], ['dev/bench8.py', 'srd1002'], ['dev/bench8.py', 'familiar'], ['dev/bench8.py', 'ledgerlamp8'], ['dev/bench8.py', 'ledgerlamp8seam'], ['dev/bench8.py', 'fixes1003'], ['dev/bench8.py', 'reactions1003'], ['dev/bench8.py', 'wet3'],
                ['dev/wet-probe.py'], ['dev/wet8-probe.py'], ['dev/pyro-probe.py'], ['dev/pyro8-probe.py'], ['dev/srdleft-probe.py'],
+               ['dev/bench8.py', 'floor1003'], # (the floor under the player: a grid crash or no ready falls back to the 8-bit battle, a bad save loads, a warp's throw fades back -- the review, 10-03)
+               ['dev/bench8.py', 'migrate'], # (the only old-save test: an older save walked on through DS.startFrom -- the review, 10-03)
                ['dev/keeper-probe.py'], # (10-03, the stream's fixes: the Keeper's own probe, its fixes' checks in it -- the retreat, the break-free, the swirl's end, the prone rules, the opener, the log, the card)
                ['dev/walk8.py', 'leg=gulch', 'n=1', 'check']] # (here-to-there, 10-03: one walk of the shortest leg sure to meet a fight -- 35 steps in the gulch's zone against a countdown of at most 26 -- so the walker can't rot)
 
@@ -59,7 +61,7 @@ def mode(m):
 def script(cmd):
     p = subprocess.run([sys.executable] + cmd, cwd=ROOT, capture_output=True, timeout=900)
     txt = p.stdout.decode('utf-8', 'replace') + p.stderr.decode('utf-8', 'replace')
-    bad = [l for l in txt.splitlines() if re.search(r'\bFAIL|Traceback|LOADERR|Error:', l)]
+    bad = [l for l in txt.splitlines() if re.search(r'\bFAIL|Traceback|LOADERR|Error:|no result', l)] # (no result: a probe whose browser never answered printed it and exited 0, and read ok -- five probes in every cloud seat's gate till 10-03, the review seat's find)
     if p.returncode and not bad:
         bad = ['exit ' + str(p.returncode) + ': ' + txt.strip().splitlines()[-1][:200] if txt.strip() else 'exit ' + str(p.returncode)]
     return [' '.join(cmd) + ': ' + l[:300] for l in bad]

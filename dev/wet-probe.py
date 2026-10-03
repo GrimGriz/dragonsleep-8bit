@@ -14,7 +14,7 @@ def main():
     open(out, 'w', encoding='utf-8').write(page)
     prof = os.path.join(tempfile.gettempdir(), 'wet-probe-edge-%d' % os.getpid())
     url = 'file:///' + out.replace('\\', '/') + '?' + urllib.parse.urlencode(dict(a.split('=', 1) for a in sys.argv[1:] if '=' in a))
-    p = subprocess.run([bench16.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files', '--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=300)
+    p = subprocess.run([bench16.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench16.EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=300)
     dom = p.stdout.decode('utf-8', 'replace')
     import html as H
     m = re.search(r'WETPROBE (\{.*?\})\s*</pre>', dom, re.S)

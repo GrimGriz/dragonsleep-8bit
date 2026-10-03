@@ -13,7 +13,7 @@ def main():
     open(out, 'w', encoding='utf-8').write(page)
     prof = os.path.join(tempfile.gettempdir(), 'pyro8-probe-edge-%d' % os.getpid())
     url = 'file:///' + out.replace('\\', '/')
-    p = subprocess.run([bench8.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files', '--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=300)
+    p = subprocess.run([bench8.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench8.EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=300)
     dom = p.stdout.decode('utf-8', 'replace')
     import html as H
     m = re.search(r'PYRO8 (\{.*?\})\s*</pre>', dom, re.S)
