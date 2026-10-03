@@ -50,6 +50,11 @@
     this.base = cl ? cl.rested() : ours ? null : SV.fixture(this.L, { bare: true });
     this.mode = 'menu'; this.sel = 0; this.top = 0; this.stack = []; this.msg = null;
     this.rebuild();
+    // the four's figures before the camp draws, and the coming fight's foes and scenery fetched behind (10-03, the lazy sheets: js/sprites.js)
+    var self = this, F = this.F, mapDef = D.MAPS[F.map] || {};
+    D.spr.gate(this, this.data.party.map(function (h) { return self.look(h.id).sheet || h.id + '_p0'; }));
+    D.spr.prefetch((F.foes || mapDef.foes || []).map(function (f) { return D.FOES[f.kind] && D.FOES[f.kind].sheet; })
+      .concat((F.riders || []).map(function (r) { return r.sheet; }), this.o.ours ? [] : this.data.party.map(function (h) { return SV.look(h.id, self.o.climb ? null : F).sheet; })));
   };
   Camp.prototype.fresh = function () {
     if (this.o.ours) return { equip: {}, prep: {}, cast: { mageArmor: { on: true, who: null }, aid: { on: false, out: null }, light: { on: null, who: null }, elemental: { on: false, kind: null } }, torch: null, torchKind: 'torch' };
@@ -402,6 +407,7 @@
   // ------------------------------------------------------------------ input
   var PX = 244, PY = 30, PW = D.W - 244 - 6, ROW = 11, VIS = 15;
   Camp.prototype.update = function () {
+    if (D.spr.held(this)) return; // (the four's figures still coming: js/sprites.js S.gate)
     this.t++;
     var L = this.list(), n = L.rows.length, s0 = this.sel;
     if (this.sel >= n) this.sel = Math.max(0, n - 1);
@@ -436,6 +442,7 @@
   }
   var FIRE_AT = [PX + 115, 206]; // the campfire's fire on screen: in the window the list leaves open (js/campfire.js)
   Camp.prototype.draw = function (ctx) {
+    if (D.spr.held(this, true)) return D.spr.beat(ctx, this);
     var R = DS.R, self = this, hs = this.data.party, L = this.list(), row = L.rows[this.sel], focus = row && row.hero;
     // the backdrop: the four round the fire in a night clearing (Griz, 09-28), the panels over it let it through
     // (our four take the fire's four seats in order -- the seats are keyed by the 8-bit four's ids: Griz, 09-29, "bring the test campfire up to snuff")

@@ -130,6 +130,37 @@
     D.iso.lookAt(5, 10);
     this.co = this.run();
     D.battle = this;
+    // the fight's own sheets before its first frame, and what it may call on later fetched behind (10-03, the lazy sheets: Battle.sheets);
+    // the spell gallery wants every creature a spell may call, so it has them all coming
+    var want = this.sheets();
+    D.spr.gate(this, want.now);
+    D.spr.prefetch(want.soon);
+    if (this.o.gallery) D.spr.ensureAll();
+  };
+  // the sheets a fight draws (10-03): `now`, what stands on the field as it opens -- every unit's figure (those still in the inn too),
+  // a rider's, the scenery's -- which its first frame waits for; `soon`, what it may bring on later: the figure a split or a win swaps
+  // in, a druid's wild shapes, the creatures its casters' spells call (the summons' pools, Polymorph's beasts, a conjured elemental, the
+  // familiars, Guardian of Faith's guard), fetched behind it at low priority. One missed here is fetched as it is first drawn (js/sprites.js S.draw)
+  Battle.prototype.sheets = function () {
+    var now = [], soon = [], kinds = [], add = function (to, n) { if (n && to.indexOf(n) < 0) to.push(n); };
+    var all = this.units.concat(this.reserve || [], this.stayed || []);
+    all.forEach(function (u) { add(now, u.sheet); add(now, u.rider); add(soon, u.small); });
+    (this.riders || []).forEach(function (r) { add(now, r.sheet); add(soon, r.after); });
+    var kind = function (k) { if (k && kinds.indexOf(k) < 0) kinds.push(k); };
+    all.forEach(function (u) {
+      if (u.cls === 'druid' && D.features && D.features.beastsFor) D.features.beastsFor(u).forEach(kind);
+      (u.known || []).concat(u.prepared || []).forEach(function (id) {
+        var SM = D.SUMMON && D.SUMMON[id];
+        if (SM && SM.fixed) Object.keys(SM.fixed).forEach(kind);
+        else if (SM && D.pool) D.pool(SM.type, Math.max.apply(null, SM.options.map(function (o) { return o[1]; }))).forEach(function (p) { kind(p.kind); });
+        if (id === 'polymorph' && D.pool) D.pool('beast').forEach(function (p) { kind(p.kind); });
+        if (id === 'conjureelemental' && D.walls && D.walls.elementals) D.walls.elementals().forEach(kind);
+        if (id === 'guardianoffaith') kind('guard');
+        if (id === 'findfamiliar') Object.keys(D.FOES).forEach(function (k) { if (/^fam_/.test(k)) kind(k); });
+      });
+    });
+    kinds.forEach(function (k) { add(soon, D.FOES[k] && D.FOES[k].sheet); });
+    return { now: now, soon: soon.filter(function (n) { return now.indexOf(n) < 0; }) };
   };
 
   // the 8-bit game's monster ids where DEEP16's kinds differ (its drow are DEEP16's drowlings; its blade-captain, DEEP16's drow)
@@ -366,6 +397,7 @@
   };
   Battle.prototype.answer = function (v) { this.req = null; this.step(v); };
   Battle.prototype.update = function () {
+    if (D.spr.held(this)) return; // (its figures still coming: the beat is drawn, and nothing moves -- js/sprites.js S.gate)
     this.t++;
     if (this.shakeT > 0) this.shakeT--;
     FX.update();
@@ -1962,6 +1994,6 @@
   };
 
   Battle.prototype.opaque = true; // (the ladder under it needn't draw)
-  Battle.prototype.draw = function (ctx) { D.ui.drawBattle(ctx, this); };
+  Battle.prototype.draw = function (ctx) { if (D.spr.held(this, true)) D.spr.beat(ctx, this); else D.ui.drawBattle(ctx, this); };
   Battle.prototype.onRequest = function (req) { D.ui.onRequest(this, req); };
 })();

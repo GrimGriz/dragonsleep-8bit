@@ -16,17 +16,16 @@
   D.initTouch(); // a phone: the pad, and the canvas read for a finger (?touch forces it)
   window.addEventListener('error', function (e) { D.lastError = e.error || e.message; });
   D.canvas.focus();
-  D.loadImages(D.spr.images(), function () {
-    if (D.embed.on) D.embed.boot(); // inside the 8-bit game: the fight and the party come by postMessage (js/embed.js)
-    else if (/[?&]pocket\b/.test(q)) D.push(new D.Pocket()); // the Pocket DM (alpha): a party, a map, a CR, a fight -- and the four-rung ladder (js/pocket.js, 10-02)
-    else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
-    else if (/[?&]show=/.test(q)) D.push(D.show.fight(q)); // the test ground: ?show=grick -- every row of a creature's sheet, twice, in bright, dim and dark (js/show.js)
-    else if (/[?&]npc=/.test(q)) D.push(D.npcFight(q)); // the class floor: ?npc=cleric,wizard&lvl=5 (&vs=fighter,rogue: a band instead of the four) (js/classes.js)
-    else if (/[?&]fxgallery\b/.test(q)) D.push(D.fxGallery(q)); // the spell gallery: every spell cast in turn (js/gallery.js)
-    else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder({ party: /[?&]party=ours\b/.test(q) ? 'ours' : null, play: /[?&]play\b/.test(q) })); // (&party=ours: the tester ladder; &play: you run our four, recorded)
-    else if (/[?&]gate\b/.test(q)) D.push(new D.Gate());
-    else if (/[?&]view\b/.test(q)) D.push(new D.MapView('cavern'));
-    else D.push(new D.Battle());
-    D.start();
-  });
+  // (no sheet is fetched here: each scene asks for its own before it draws -- js/sprites.js S.gate, 10-03; the 135 used to come first, 36.8 MB)
+  if (D.embed.on) D.embed.boot(); // inside the 8-bit game: the fight and the party come by postMessage (js/embed.js)
+  else if (/[?&]pocket\b/.test(q)) D.push(new D.Pocket()); // the Pocket DM (alpha): a party, a map, a CR, a fight -- and the four-rung ladder (js/pocket.js, 10-02)
+  else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
+  else if (/[?&]show=/.test(q)) D.push(D.show.fight(q)); // the test ground: ?show=grick -- every row of a creature's sheet, twice, in bright, dim and dark (js/show.js)
+  else if (/[?&]npc=/.test(q)) D.push(D.npcFight(q)); // the class floor: ?npc=cleric,wizard&lvl=5 (&vs=fighter,rogue: a band instead of the four) (js/classes.js)
+  else if (/[?&]fxgallery\b/.test(q)) D.push(D.fxGallery(q)); // the spell gallery: every spell cast in turn (js/gallery.js)
+  else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder({ party: /[?&]party=ours\b/.test(q) ? 'ours' : null, play: /[?&]play\b/.test(q) })); // (&party=ours: the tester ladder; &play: you run our four, recorded)
+  else if (/[?&]gate\b/.test(q)) D.push(new D.Gate());
+  else if (/[?&]view\b/.test(q)) D.push(new D.MapView('cavern'));
+  else D.push(new D.Battle());
+  D.start();
 })();
