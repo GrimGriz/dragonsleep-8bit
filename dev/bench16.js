@@ -1010,6 +1010,16 @@
       q10.hp = q10.maxhp = 400; q10.conds.stoneskin = { by: q10.id }; w10.x = q10.x; w10.y = Math.max(0, q10.y - 8); D.rules.startTurn(w10); w10.slots[3] = 2;
       pinX(1); h0 = q10.hp; var n10 = (B10b.log || []).length; runX(MX.cast(B10b, w10, 'icestorm', 4, { x: q10.x, y: q10.y })); var ice10 = h0 - q10.hp; D.d = d0X;
       okX('10. Ice Storm on the stoneskinned fighter, his save failed, every die at its top (2d8 + 4d6 = 40): he loses ' + ice10 + ' -- ' + logX(B10b, n10).slice(0, 160), ice10 === 40);
+      // 11. Sanctuary (SRD 5.1: "If the warded creature makes an attack or casts a spell that affects an enemy creature, this spell ends"): our warded cleric
+      // swings at a goblin, then casts Sacred Flame at one, then Bless on his friends and Healing Word on one -- the first two end it, the last two do not
+      var B11 = mkX('?npc=goblin,goblin&lvl=5&vs=cleric:5,fighter:5'), c11 = sideX(B11, 'party').filter(function (u) { return u.cls === 'cleric'; })[0], f11 = sideX(B11, 'party').filter(function (u) { return u !== c11; })[0], g11 = sideX(B11, 'foe')[0];
+      c11.hp = c11.maxhp = 400; g11.hp = g11.maxhp = 400; g11.x = c11.x; g11.y = c11.y - 1; f11.x = c11.x + 1; f11.y = c11.y;
+      var ward11 = function () { c11.conds.sanctuary = { dc: 13, by: c11.id }; D.rules.startTurn(c11); c11.slots = [4, 3, 2]; };
+      ward11(); runX(B11.attack(c11, g11, c11.weapon)); var sw11 = !c11.conds.sanctuary;
+      ward11(); runX(MX.cast(B11, c11, 'sacredflame', 0, g11)); var sf11 = !c11.conds.sanctuary;
+      ward11(); runX(MX.cast(B11, c11, 'bless', 1, { units: [c11, f11] })); var bl11 = !!c11.conds.sanctuary;
+      ward11(); f11.hp = 5; runX(MX.cast(B11, c11, 'healingword', 1, f11)); var hw11 = !!c11.conds.sanctuary;
+      okX('11. Sanctuary on our cleric: ends on his swing ' + sw11 + ', on Sacred Flame at a goblin ' + sf11 + '; kept through Bless on friends ' + bl11 + ' and Healing Word ' + hw11, sw11 && sf11 && bl11 && hw11);
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
     D.d = d0X;
     if (errs.length) repX.errors = repX.errors.concat(errs);

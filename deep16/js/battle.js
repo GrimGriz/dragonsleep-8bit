@@ -1000,6 +1000,7 @@
     o = o || {};
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
+    if (att.conds && att.conds.sanctuary && D.magic.unward) D.magic.unward(this, att, 'an attack'); // (SRD 5.1 Sanctuary: "If the warded creature makes an attack ... this spell ends" -- 10-03)
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     att.facing = faceTo(att, tgt);
@@ -1532,7 +1533,16 @@
     // (what the spell does, for "you see a foe cast a spell": the creatures it hurt or marked, the squares of what it laid -- told only with a ready armed)
     var pre = B && B.readyArmed && B.units && B.readyArmed() ? { z: {}, hp: {}, c: [] } : null;
     if (pre) { ZK.forEach(function (k) { pre.z[k] = (B[k] || []).slice(); }); B.units.forEach(function (w) { pre.hp[w.id] = w.hp; Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object') pre.c.push(c); }); }); }
+    // Sanctuary (SRD 5.1: "If the warded creature ... casts a spell that affects an enemy creature, this spell ends" -- 10-03, M.unward had no caller): a foe it was
+    // aimed at, or one it hurt or laid something on (an area's catch), ends the caster's ward; a spell on friends keeps it
+    var ward = u && u.conds && u.conds.sanctuary && B && B.units ? { hp: {}, c: {} } : null;
+    if (ward) B.units.forEach(function (w) { if (!G.hostile(u, w)) return; ward.hp[w.id] = w.hp; ward.c[w.id] = Object.assign({}, w.conds); });
     var r = yield* cast0.apply(this, arguments);
+    if (ward && u.conds.sanctuary && D.magic.unward) {
+      var aimed = t && t.units ? t.units : t && t.hp != null ? [t] : [];
+      var touched = aimed.some(function (w) { return w && w.hp != null && G.hostile(u, w); }) || B.units.some(function (w) { return ward.hp[w.id] != null && (w.hp < ward.hp[w.id] || w.dead || Object.keys(w.conds || {}).some(function (k) { return ward.c[w.id][k] !== w.conds[k]; })); });
+      if (touched) D.magic.unward(B, u, 'a spell at a foe');
+    }
     if (B && B.readyAfter && B.units && B.readyArmed()) {
       var ef = { units: [], sq: [] };
       if (pre) {
