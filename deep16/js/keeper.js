@@ -40,6 +40,7 @@
   // ---- the geometry: ONE description (data/maps.js floodstair `geo`, in the LANE FRAME: a along the lane, pool end to exit; c across it, left to right as the party faces the pool) and
   // the one function from it to the map's own squares (D16.laneAt). Nothing below knows which way the stair runs on the map: it asks these
   function geo() { return def().geo; }
+  K.st = st; K.foesOf = foesOf; K.Nm = Nm; K.keeperOf = keeperOf;
   K.at = function (a, c, size) { return D.laneAt(G.map.def, a, c, size); };                                  // a lane-frame square -> the map's [x, y]
   K.A = function (p) { return geo().axis === 'x' ? p.x : p.y; };                                             // the along coordinate of a map square or creature (its low corner)
   K.C = function (p) { var g = geo(); return g.axis === 'x' ? g.width - 1 - p.y : p.x; };                    // the across coordinate of a map square (a creature: its low corner's)
@@ -70,10 +71,16 @@
     }
     return plan ? (moved ? [x, y] : null) : moved;
   }
+  // who the Wave would take: those in the lane between its front edge and the front wall (a hero in the pool below the Keeper is in it too), and the prone anywhere short of it
+  function waveSets(B, u) {
+    var S = st(B), g = geo(), y1 = frontA(B) - (S.wall ? 1 : 0), top = farA(u) + 1;
+    return { top: top, y1: y1,
+      hit: foesOf(B, u).filter(function (w) { var p = laneSq(w.x, w.y); return !w.conds.hidden && p.c >= g.c[0] && p.c <= g.c[1] && p.a >= top && p.a <= y1; }),
+      lying: foesOf(B, u).filter(function (w) { return w.conds.prone && K.A(w) <= y1; }) };
+  }
+  K.canWave = function (B, u) { var w = waveSets(B, u); return !u.flooding && (w.hit.length > 0 || w.lying.length > 0); };
   K.wave = function* (B, u) {
-    var S = st(B), g = geo(), y1 = frontA(B) - (S.wall ? 1 : 0);
-    var top = farA(u) + 1, hit = foesOf(B, u).filter(function (w) { var p = laneSq(w.x, w.y); return !w.conds.hidden && p.c >= g.c[0] && p.c <= g.c[1] && p.a >= top && p.a <= y1; }); // (the lane: the stair's width, from the water it rises in to the front wall -- a hero in the pool below the Keeper is in it too)
-    var lying = foesOf(B, u).filter(function (w) { return w.conds.prone && K.A(w) <= y1; });
+    var S = st(B), g = geo(), ws = waveSets(B, u), hit = ws.hit, lying = ws.lying, top = ws.top, y1 = ws.y1;
     if (!hit.length && !lying.length) return false;
     S.waves++;
     B.focus(u); K.face(B, u); D.sfx('splash'); u.anim = 'wave'; u.animT = B.t;
@@ -281,13 +288,14 @@
   function* inWater(B, u) { // true: it has come up out of the water, and goes on as above
     var f = u.flooding, v = B.units.filter(function (w) { return w.id === f.vic; })[0];
     if (!v || !G.standing(v) || !v.conds.restrained || v.conds.restrained.by !== u.id) { K.surface(B, u, v && G.standing(v) ? 'its hold is gone' : 'no one is left in it'); return true; }
-    if (u.turn.bonus > 0) { // ACTIVE SUFFOCATION: its bonus action, and the drowning is doubled at the victim's next turn
-      u.turn.bonus = 0; v.conds.drowning = v.conds.drowning || { by: u.id }; v.conds.drowning.twice = true;
-      B.focus(v); v.conds.drowning.pulse = B.t; // (it stays as it stands: the swirl about the held one quickens)
-      B.card(['{r}' + Nm(B, u) + '{/} floods ' + v.name + ': {o}ACTIVE SUFFOCATION{/}  {g}(a bonus action: the drowning is rolled twice at ' + v.name + '\'s next turn){/}'], 260); yield 40;
-    }
+    if (u.turn.bonus > 0) yield* K.suffocate(B, u, v);
     return false;
   }
+  K.suffocate = function* (B, u, v) { // ACTIVE SUFFOCATION: its bonus action, and the drowning is doubled at the victim's next turn
+    u.turn.bonus = 0; v.conds.drowning = v.conds.drowning || { by: u.id }; v.conds.drowning.twice = true;
+    B.focus(v); v.conds.drowning.pulse = B.t; // (it stays as it stands: the swirl about the held one quickens)
+    B.card(['{r}' + Nm(B, u) + '{/} floods ' + v.name + ': {o}ACTIVE SUFFOCATION{/}  {g}(a bonus action: the drowning is rolled twice at ' + v.name + '\'s next turn){/}'], 260); yield 40;
+  };
   function* approachFoe(B, u, hs) { // keeps to its water: the square it can stand in that gets a foe into its reach, for the least move
     var T = u.turn, reach = G.reachOf(u, u.reach), rm = G.reach(u, T.move), best = null, bs = Infinity;
     var tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
@@ -314,11 +322,15 @@
   }
   // out of the ice (Griz 10-03: "a DC 7 save as a bonus action to break free; if he fails he spends his action on a second try the same turn"; the SRD has no such rule: ours, STR as
   // the strength of the thing). Breaking free destroys the ice he was in and 1 to 2 of the iced squares about it.
-  function* breakIce(B, u) {
+  function* breakIce(B, u) { // (the AI's: the bonus action first, then its action for a second try; K.iceTry is one try, as a player's menu takes them)
+    var T = u.turn;
+    if (T.bonus > 0 && (yield* K.iceTry(B, u, 'bonus'))) return;
+    if (u.conds.restrained && T.action > 0) yield* K.iceTry(B, u, 'action');
+  }
+  K.iceTry = function* (B, u, slot) {
     var T = u.turn, ok = false, lines = [];
     var go = function (what) { var sv = RU.save(u, 'str', K.CFG.iceDC); ok = sv.ok; lines.push('  ' + what + ': STR ' + RU.saveText(sv) + ' vs DC ' + K.CFG.iceDC + '  ' + (sv.ok ? '{n}BREAKS FREE{/}' : '{o}held{/}')); };
-    if (T.bonus > 0) { T.bonus = 0; go('bonus action'); }
-    if (!ok && T.action > 0) { T.action = 0; go('and its action, a second try'); }
+    if (slot === 'bonus') { T.bonus = 0; go('bonus action'); } else { T.action = 0; go('its action, a second try'); }
     T.move = 0;
     if (ok) {
       var S = st(B), body = G.foot(u).map(function (p) { return p[0] + ',' + p[1]; }), gone = 0, ring = [];
@@ -329,7 +341,8 @@
       lines.push('{r}' + Nm(B, u) + '{/} bursts out of the ice: {c}' + gone + ' square' + (gone === 1 ? '' : 's') + ' of it destroyed.{/}');
     }
     B.card(['{c}' + Nm(B, u) + ' strains against the ice.{/}'].concat(lines), 280); yield 40;
-  }
+    return ok;
+  };
   // frozen where it stands: all four of its squares iced (K.CFG.freezeNeeds 'any': one) -- restrained, DC iceDC to break
   K.checkIce = function (B) {
     var k = keeperOf(B), S = st(B); if (!k || k.conds.restrained) return;
@@ -342,8 +355,10 @@
     if (t && !u.dead) u.facing = B.faceTo(u, t);
     return u.facing;
   };
+  K.finish = function (B, u) { return finish(B, u); };
   function finish(B, u) { K.face(B, u); u.anim = 'idle'; u.animT = B.t; if (K.CFG.hideAfter && !u.flooding && u.hp > 0 && !u.dead) u.conds.hidden = true; } // (back into the water, unseen: it is invisible in it)
   K.turn = function* (B, u) {
+    if (B.o && B.o.play === 'keeper' && D.keeperPlay && D.keeperPlay.humanTurn) { yield* D.keeperPlay.humanTurn(B, u); return; } // (?keeperfight&play=keeper: the Keeper's turn is the player's, js/keeperplay.js)
     var S = st(B); K.pose(); K.face(B, u);
     if (S.ready) { S.ready = null; B.card(['{g}' + Nm(B, u) + '\'s readied wall: the moment passed.{/}'], 160); }
     if (u.conds.restrained && u.conds.restrained.ice) yield* breakIce(B, u);
@@ -627,8 +642,10 @@
       enter0.apply(this, arguments);
       if (get('wall')) B.kp = { uses: K.CFG.wallUses, ready: null, wall: null, ice: {}, waves: 0, rowOverride: +get('wall') };
       if (get('hp')) { var k = keeperOf(B); if (k) k.hp = k.maxhp = +get('hp'); }
+      var play = get('play'); B.o.play = play; // ('keeper': you are the Keeper, the class AI the party; 'party': you (or a script: D16.keeperPlay) are the party, the Keeper the AI -- js/keeperplay.js)
+      if (play === 'keeper') { B.units.forEach(function (u) { if (u.side === 'party' && !u.familiar) { u.guest = true; u.classAI = true; } }); B.heroTurn = function* (u) { yield* D.ai.turn(this, u); }; }
       if (/[?&]watch\b/.test(q) || get('seed')) { B.units.forEach(function (u) { if (u.side === 'party' && !u.familiar) { u.guest = true; u.classAI = true; } }); B.heroTurn = function* (u) { yield* D.ai.turn(this, u); }; }
-      if (/[?&]watch\b/.test(q) || get('seed')) B.fight = Object.assign({}, B.fight, { noCards: true }); // (no entry card to press E on: the fight just goes)
+      if (/[?&]watch\b/.test(q) || get('seed') || play === 'party') B.fight = Object.assign({}, B.fight, { noCards: true }); // (no entry card to press E on: the fight just goes)
       if (/[?&]lit\b/.test(q)) B.dark = false;
     };
     return B;

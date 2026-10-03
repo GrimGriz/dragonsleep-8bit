@@ -175,6 +175,52 @@
     var KF = D.keeper.fight('?keeperfight&seed=435548&watch&lvl=3'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
     ok('?keeperfight&seed=435548 drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/springs the Ice Wall/g), KF.result === 'won' && KF.round === 7 && kn(/washed into the deep/g) === 1 && kn(/springs the Ice Wall/g) === 1);
+    // ---- the two play modes (js/keeperplay.js): each drives a whole fight without error
+    // B: the party played by a script, one plan a turn, through D16.keeperPlay.actSync
+    var KB = D.keeper.fight('?keeperfight&play=party&lvl=3'); D.battle = KB; KB.enter(); var KPl = D.keeperPlay, acts = { n: 0, attack: 0, cast: 0, move: 0, dodge: 0 }, st0 = KPl.actSync({ do: 'none', keep: true }), perr = '', pj = '';
+    try {
+      for (var ti = 0; ti < 120 && !st0.over; ti++) {
+        var me = st0.pending.type === 'turn' ? st0.units.filter(function (w) { return w.id === st0.pending.who; })[0] : null;
+        if (st0.pending.type === 'prompt') { st0 = KPl.actSync({ answer: st0.pending.opts[st0.pending.opts.length - 1].value }); continue; }
+        if (!me) { st0 = KPl.actSync({ do: 'none', keep: true }); if (!st0.pending || st0.pending.type === 'running') break; continue; }
+        var lg = st0.legal, kst = st0.keeper, plan = { do: 'dodge' }, kid = kst && kst.id;
+        var near = lg.strike.filter(function (t) { return t.id === kid; })[0], wallT = lg.strikeWall[0];
+        var fire = lg.spells.filter(function (sp) { return /firebolt|scorchingray|rayoffrost|sacredflame/.test(sp.id); })[0];
+        if (near && fire && acts.cast < 6) plan = { do: 'cast', spell: fire.id, target: kid };
+        else if (near) plan = { do: 'attack', target: kid };
+        else if (wallT && acts.attack % 3 === 0) plan = { do: 'attack', target: { wall: wallT.wall } };
+        else { // close on the Keeper: the reachable square nearest to it
+          var kk0 = st0.units.filter(function (w) { return w.id === kid; })[0], best = null; lg.moves.forEach(function (m) { var d = Math.max(Math.abs(m.x - kk0.x), Math.abs(m.y - kk0.y)); if (!best || d < best.d) best = { d: d, m: m }; });
+          plan = best && best.m.cost > 0 ? { move: { x: best.m.x, y: best.m.y }, do: 'none' } : { do: 'dodge' };
+        }
+        acts.n++; if (plan.do === 'attack') acts.attack++; else if (plan.do === 'cast') acts.cast++; else if (plan.move) acts.move++; else acts.dodge++;
+        st0 = KPl.actSync(plan);
+      }
+      pj = JSON.stringify(st0).length;
+    } catch (e) { perr = String(e && e.stack || e).slice(0, 300); }
+    ok('play=party: a script plays the party (' + acts.n + ' turns: ' + acts.move + ' moves, ' + acts.attack + ' attacks, ' + acts.cast + ' casts, ' + acts.dodge + ' dodges) to ' + (st0.over ? 'the end: ' + st0.result : 'round ' + st0.round) + '; state is ' + pj + ' bytes of JSON' + (perr ? ', ERROR ' + perr : ''), !perr && acts.n > 3 && acts.attack + acts.cast > 0 && typeof pj === 'number' && pj > 500);
+    var legalOK = false; try { var KB2 = D.keeper.fight('?keeperfight&play=party&lvl=3'); D.battle = KB2; KB2.enter(); var s2 = KPl.actSync({ do: 'none', keep: true }); legalOK = s2.pending.type === 'turn' && s2.legal && s2.legal.moves.length > 0 && Array.isArray(s2.legal.spells) && s2.units.length >= 5 && s2.map.geo.axis === 'x' && s2.keeper && s2.keeper.lane; } catch (e) { perr = String(e); }
+    ok('play=party: the state names who is deciding, what is legal (moves, strikes, spells), the Keeper and the map\'s lane geometry', !!legalOK);
+    // A: a human is the Keeper (the menu answered by a policy), the class AI the party
+    var KA = D.keeper.fight('?keeperfight&play=keeper&lvl=3'); D.battle = KA; KA.enter(); var used = {}, menus = 0, picks = 0, aerr = '', g2 = 0;
+    try {
+      while (KA.co && g2++ < 400000) {
+        var rr = KA.co.next(); if (rr.done) break; var yv = rr.value;
+        while (yv && yv.prompt) {
+          var op = yv.prompt.opts, ans;
+          if (yv.prompt.pick) { picks++; var kp0 = op.length - 1, bestI = 0, bestD = 1e9, hs = KA.units.filter(function (w) { return w.side === 'party' && w.hp > 0; }); yv.prompt.pick.forEach(function (sqr, i) { hs.forEach(function (h) { var d = Math.max(Math.abs(sqr.x - h.x), Math.abs(sqr.y - h.y)); if (d < bestD) { bestD = d; bestI = i; } }); }); ans = op[bestI].value; }
+          else if (/KEEPER/.test(yv.prompt.title)) {
+            menus++; var order = ['ice', 'slam', 'wave', 'ready', 'suffocate', 'swirl', 'move', 'end'], pickO = null;
+            order.some(function (dn) { return op.some(function (o) { if (o.value && o.value.do === dn) { pickO = o; return true; } return false; }); });
+            ans = (pickO || op[op.length - 1]).value; used[ans.do] = (used[ans.do] || 0) + 1;
+            if (ans.do === 'move' && (used.move || 0) > 3) ans = op[op.length - 1].value;
+          } else ans = op[0].value;
+          var r2 = KA.co.next(ans); if (r2.done) { yv = null; break; } yv = r2.value;
+        }
+      }
+    } catch (e) { aerr = String(e && e.stack || e).slice(0, 300); }
+    ok('play=keeper: a human is the Keeper (' + menus + ' menus, ' + picks + ' move picks; used ' + JSON.stringify(used) + '), the fight ends: ' + KA.result + ' R' + KA.round + (aerr ? ', ERROR ' + aerr : ''), !aerr && menus > 3 && !!KA.result && (used.slam || 0) + (used.wave || 0) > 0);
+    D.battle = B3;
     // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row; the counts are what the mechanics did
     var q = {}; location.search.replace(/^\?/, '').split('&').forEach(function (kv) { var a = kv.split('='); if (a[0]) q[a[0]] = decodeURIComponent(a[1] || ''); });
     if (q.hide != null) K.CFG.hideAfter = q.hide !== '0'; if (q.oa != null) K.CFG.oaWave = q.oa === '1'; if (q.need) K.CFG.freezeNeeds = q.need; // (the settings the bench can flip: hide=0, oa=1, need=any)
