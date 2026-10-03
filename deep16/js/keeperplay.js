@@ -41,7 +41,7 @@
       out.push({ id: 'kwave', label: 'WAVE', cost: 'B', ok: Bo && K.canWave(B, u), why: Bo ? 'no one for it to take' : 'the bonus action is spent', note: 'DC 13 STR or prone; the backwash off the wall', icon: 'spell' });
       out.push({ id: 'kcast', label: 'CAST WALL', cost: 'A', ok: A && K.canCastWall(B, u), why: !A ? 'the action is spent' : S.wall ? 'the wall is up' : 'no use left', note: 'the Ice Wall rises at once (' + S.uses + ' left)', icon: 'spell' });
       out.push({ id: 'kready', label: 'READY WALL', cost: 'A', ok: A && K.canReadyWall(B, u), why: !A ? 'the action is spent' : S.ready ? 'readied already' : S.wall ? 'the wall is up' : 'nothing for it to seal in', note: 'sprung when one of you steps toward the exit', icon: 'spell' });
-      out.push({ id: 'kswirl', label: 'SWIRL', cost: 'A', ok: A && deepHeroes.length > 0, why: A ? 'no one on the deep' : 'the action is spent', note: 'take one on the deep: the swirl about it', icon: 'spell' });
+      out.push({ id: 'kswirl', label: 'SWIRL', cost: 'A', ok: A && deepHeroes.length > 0, why: A ? 'no one is on the deep (the last step, by the sealed door)' : 'the action is spent', note: 'a hero on the deep (the last step): the swirl about it', icon: 'spell' });
     }
     return out;
   }
@@ -82,6 +82,19 @@
     if (G.dist(u, t) > G.reachOf(u, u.reach)) return t.name + ' is out of reach (' + G.dist(u, t) + ' ft; the Slam is 10)';
     return '';
   };
+  // what the swirl needs of its victim: standing, on the deep (the last step, by the sealed door: its squares are the map's `deeps`; a frozen one is a footing), not already held, not immune to being
+  // held; and the Keeper itself: not already in a swirl, not frozen in ice, the action unspent. No reach and no prone: the water that pours in is any water square beside the victim (Griz 10-03)
+  KP.swirlWhy = function (B, u, t) {
+    if (!t || t.dead || t.side === u.side || t.isWall) return 'Not a hero there';
+    if (!G.standing(t)) return t.name + ' is down';
+    if (u.turn.action <= 0) return 'the action is spent';
+    if (u.flooding) return 'it is the swirl about someone already: LET GO first';
+    if (u.conds.restrained && u.conds.restrained.ice) return 'it is frozen in ice: BREAK FREE first';
+    if (t.conds.restrained) return t.name + ' is held already';
+    if (RU.immuneTo(t, 'grappled')) return t.name + ' cannot be held';
+    if (!K.isDeep(t.x, t.y)) { var raw = (G.map.def.deeps || []).some(function (p) { return p[0] === t.x && p[1] === t.y; }); return raw ? 'the water under ' + t.name + ' is frozen: a footing, not the deep' : t.name + ' is not on the deep (the swirl takes one standing on the last step, by the sealed door; ' + t.name + ' is ' + K.A(t) + ' along it, the deep is 1)'; }
+    return '';
+  };
   D.Battle.prototype.exec = function* (u, c) {
     if (c && c.do === 'attack' && u.kind === 'keeper' && human(this, u)) { // (a click on a hostile with no ring item: the default attack is the Slam on it)
       var why = KP.slamWhy(this, u, c.target);
@@ -90,22 +103,31 @@
     }
     if (c && c.do === 'attack' && !u.weapon) { this.card(['{o}' + u.name + ' has nothing to strike with.{/}'], 120); return; } // (never a throw: a unit with no weapon)
     if (!(c && /^k(slam|wave|cast|ready|swirl|suffocate|rise|icebonus|iceaction)$/.test(c.do)) || u.kind !== 'keeper') return yield* exec1.apply(this, arguments);
+    if (c.do === 'kswirl' && (c.target || c.id)) { var tw = c.target || this.units.filter(function (w) { return w.id === c.id; })[0], why2 = KP.swirlWhy(this, u, tw); if (why2) { this.card(['{o}SWIRL: ' + why2 + '.{/}'], 160); return; } }
     var legalNow = KP.entries(this, u).filter(function (e) { return e.id === c.do; })[0];
     if (!legalNow || !legalNow.ok) { this.card(['{g}' + (legalNow ? legalNow.label + ': ' + (legalNow.why || 'not now') : 'Not now') + '.{/}'], 120); return; }
     yield* KP.keeperDo(this, u, c);
   };
   // one thing the Keeper does (the ring's, and the scripted Keeper's); a target not named is picked on the grid, in gold
-  function* pickHero(B, u, title, list) {
-    if (!list.length) return null;
-    var opts = list.map(function (w, i) { return { label: w.name.toUpperCase() + ' (' + G.dist(u, w) + ' FT)', value: i + 1 }; }); opts.push({ label: 'NOT NOW', value: 0 });
-    var v = yield { prompt: { who: u, title: 'THE KEEPER: ' + title, lines: ['A gold square, E or a click; X is not now.'], opts: opts, pick: list } };
-    return v ? list[v - 1] : null;
+  // pick a hero on the grid, in gold: every hero that is up is offered, and one the move cannot take says why on a card (the prompt stays; nothing is spent) -- never a silent refusal
+  function* pickHero(B, u, title, list, whyFn) {
+    var all = list && list.length ? list : [];
+    for (var tries = 0; tries < 12; tries++) {
+      if (!all.length) return null;
+      var opts = all.map(function (w, i) { return { label: w.name.toUpperCase() + ' (' + G.dist(u, w) + ' FT)', value: i + 1 }; }); opts.push({ label: 'NOT NOW', value: 0 });
+      var v = yield { prompt: { who: u, title: 'THE KEEPER: ' + title, lines: ['A gold square, E or a click; X is not now.'], opts: opts, pick: all } };
+      if (!v) return null;
+      var h = all[v - 1], why = whyFn ? whyFn(B, u, h) : '';
+      if (!why) return h;
+      B.card(['{o}' + title.replace(/ WHOM\?/, '') + ': ' + why + '.{/}'], 160); D.sfx('error');
+    }
+    return null;
   }
   KP.keeperDo = function* (B, u, c) {
     var T = u.turn, t = c.id ? B.units.filter(function (w) { return w.id === c.id; })[0] : (c.target && c.target.id ? c.target : null), reach = G.reachOf(u, u.reach);
     switch (c.do) {
       case 'kslam': case 'slam': {
-        if (!t) t = yield* pickHero(B, u, 'SLAM WHOM?', K.foesOf(B, u).filter(function (w) { return (!w.conds.hidden || G.dist(u, w) <= (u.blindsight || 0)) && G.dist(u, w) <= reach; }));
+        if (!t) t = yield* pickHero(B, u, 'SLAM WHOM?', K.foesOf(B, u).filter(function (w) { return G.standing(w) && !w.isWall; }), KP.slamWhy);
         if (!t || T.action <= 0) return;
         T.action = 0; K.face(B, u, t); D.fx.keeperSlam(u, t); yield* B.attack(u, t, u.attacks.slam); u.anim = 'idle'; u.animT = B.t; if (u.conds.hidden) delete u.conds.hidden; return;
       }
@@ -113,7 +135,7 @@
       case 'kcast': if (T.action > 0 && K.canCastWall(B, u)) yield* K.castWall(B, u); return;
       case 'kready': case 'ready': if (T.action > 0 && K.canReadyWall(B, u)) yield* K.readyWall(B, u); return;
       case 'kswirl': case 'swirl': {
-        if (!t) t = yield* pickHero(B, u, 'SWIRL WHOM?', K.foesOf(B, u).filter(function (w) { return K.isDeep(w.x, w.y) && !w.conds.restrained; }));
+        if (!t) t = yield* pickHero(B, u, 'SWIRL WHOM?', K.foesOf(B, u).filter(function (w) { return G.standing(w) && !w.isWall; }), KP.swirlWhy);
         if (!t || T.action <= 0) return;
         T.action = 0; yield* K.flood(B, u, t); return;
       }

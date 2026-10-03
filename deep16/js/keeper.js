@@ -24,7 +24,7 @@
     Object.keys(link).forEach(function (a) { var row = sh.anims[K.POSE[link[a]]]; if (row) sh.anims[a] = Object.assign({}, row); });
     return K.POSE;
   };
-  K.CFG = { waveDC: 13, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingRounds: 3, waveDC: 13, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -371,7 +371,7 @@
     return u.facing;
   };
   K.finish = function (B, u) { return finish(B, u); };
-  function finish(B, u) { K.face(B, u); u.anim = 'idle'; u.animT = B.t; if (K.CFG.hideAfter && !u.flooding && u.hp > 0 && !u.dead) u.conds.hidden = true; } // (back into the water, unseen: it is invisible in it)
+  function finish(B, u) { K.face(B, u); u.anim = 'idle'; u.animT = B.t; if (K.CFG.hideAfter && !K.CFG.visible && !u.flooding && u.hp > 0 && !u.dead) u.conds.hidden = true; } // (back into the water, unseen: it is invisible in it)
   K.turn = function* (B, u) {
     if (B.o && B.o.play === 'keeper' && D.keeperPlay && D.keeperPlay.humanTurn) { yield* D.keeperPlay.humanTurn(B, u); return; } // (?keeperfight&play=keeper: the Keeper's turn is the player's, js/keeperplay.js)
     var S = st(B); K.pose(); K.face(B, u);
@@ -543,6 +543,15 @@
         sprite(ctx, 'keeper_p3', 'wallsolid', age + sec.sq[0][0] * 7, (a.x + b.x) / 2, (a.y + b.y) / 2 + 10, K.CFG.wallScale, rising ? 0.5 + age / 60 : 1, rising ? Math.min(1, age / 24) : 1); // (it grows up out of the floor; the third sheet's frames 4-6, the solid wall)
       } });
     });
+    B.units.forEach(function (kg) { // (its glow shows through the water: a faint cool pool of light under the surface about its 2x2, breathing; the light itself is the engine's, above)
+      if (kg.kind !== 'keeper' || kg.dead || kg.hp <= 0 || !K.CFG.glow) return;
+      var ggz = B.map.gz(kg.x, kg.y);
+      out.push({ depth: kg.x + kg.y + 0.4, gz: ggz, layer: 1, draw: function (ctx) {
+        var c = D.iso.center(kg.x + 1, kg.y + 1, ggz), s3 = D.iso.toScreen(c.x, c.y), t = B.t, br = 0.5 + 0.5 * Math.sin(t / 40), rx = 44 + br * 4, ry = 22 + br * 2, gr = ctx.createRadialGradient(s3.x, s3.y, 2, s3.x, s3.y, rx);
+        gr.addColorStop(0, 'rgba(150,230,255,' + (0.22 + 0.06 * br) + ')'); gr.addColorStop(1, 'rgba(90,170,230,0)');
+        ctx.save(); ctx.translate(0, 0); ctx.fillStyle = gr; ctx.beginPath(); ctx.ellipse(s3.x, s3.y, rx, ry, 0, 0, 7); ctx.fill(); ctx.restore();
+      } });
+    });
     B.units.forEach(function (kd) { // (Griz 10-03, its defeat: no figure -- very calm waves in the pool where it was)
       if (kd.kind !== 'keeper' || !kd.dead) return;
       var kgz = B.map.gz(kd.x, kd.y);
@@ -679,10 +688,41 @@
   // for it, a copy: melee, reach 10 (10-03: a click on a hero in play=keeper threw on u.weapon.ammo and froze the page)
   K.standIn = function (k) { if (k && k.attacks && k.attacks.slam && !k.weapon) k.weapon = Object.assign({}, k.attacks.slam, { name: 'Slam', ranged: false, reach: 10, standIn: true }); };
   var enterK0 = D.Battle.prototype.enter;
-  D.Battle.prototype.enter = function () { var r = enterK0.apply(this, arguments); if (this.fight && this.fight.id === 'keeper') this.units.forEach(function (u) { if (u.kind === 'keeper') K.standIn(u); }); return r; };
+  D.Battle.prototype.enter = function () { var r = enterK0.apply(this, arguments); if (this.fight && this.fight.id === 'keeper') this.units.forEach(function (u) { if (u.kind === 'keeper') { K.standIn(u); if (K.CFG.visible) delete u.conds.hidden; } }); return r; }; // (10-03, Griz: he is visible from the first frame and glows; CFG.visible false is the old hidden Keeper)
+
+  // ---- his own light (10-03, Griz: "a dim light source, the elemental plane energy that animates him"): a faint cool glow about his 2x2, the engine's own creature light (js/light.js L.carried),
+  // dim only, glowFt feet; it moves with him, the water does not hide it, and he is lit where he stands so the party sees him
+  var carried0 = D.light.carried;
+  D.light.carried = function (u) {
+    var out = carried0.apply(this, arguments);
+    if (u && u.kind === 'keeper' && K.CFG.glow && !u.dead && u.hp > 0) out.push({ x: u.x + ((u.size || 1) - 1) / 2, y: u.y + ((u.size || 1) - 1) / 2, bright: 0, dim: K.CFG.glowFt, color: 'glow', flame: false, kind: 'keeperglow', unit: u });
+    return out;
+  };
+  // ---- the party's opening (10-03, Griz: they are huddled round the rune and know they are in a fight; they stay together at the water's edge, watch the water, and engage when it strikes).
+  // Until it strikes -- a hero hurt or knocked down or held, the Keeper hurt, its wall up or readied, or openingRounds gone -- the class AI party holds the landing: it does not wade, it does not
+  // wander; CFG.partyOpening false is the old behaviour (the party closes on whom it sees at once)
+  K.opened = function (B) {
+    var S = st(B), k = keeperOf(B);
+    if (S.opened) return true;
+    var hit = B.round > K.CFG.openingRounds || S.wall || S.ready || (k && k.hp < k.maxhp) || B.units.some(function (w) { return w.side === 'party' && !w.familiar && (w.hp < w.maxhp || (w.conds && (w.conds.prone || w.conds.restrained))); });
+    if (hit) S.opened = true;
+    return !!S.opened;
+  };
+  var tx0 = D.tactics.turn;
+  D.tactics.turn = function* (B, u) {
+    if (!(K.CFG.partyOpening && B && B.fight && B.fight.id === 'keeper' && u.side === 'party' && !u.familiar && st(B) && !K.opened(B))) return yield* tx0.apply(this, arguments);
+    B.focus(u); var kk = keeperOf(B); if (kk) u.facing = B.faceTo(u, kk);
+    if (K.A(u) < geo().a[1] - 3) { // (a hero found on the flooded steps comes back to the water's edge, the foot of the landing)
+      var rm = G.reach(u, u.turn.move), best = null; Object.keys(rm).forEach(function (kx) { var xy = kx.split(',').map(Number); if (!rm[kx].stand) return; var a = K.A({ x: xy[0], y: xy[1] }); if (a >= geo().a[1] - 3 && (!best || a < best.a)) best = { a: a, x: xy[0], y: xy[1] }; });
+      if (best) yield* B.moveAlong(u, G.path(rm, best.x, best.y), { spend: true });
+    }
+    yield 10;
+  };
   K.fight = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     if (get('seed')) D.seed = +get('seed') | 0;
+    if (get('old') === '1') { K.CFG.visible = false; K.CFG.partyOpening = false; K.CFG.glow = false; } // (old=1: the Keeper of before 10-03 Griz's notes -- hidden, no glow, the party reacting at once: reproduces the earlier tables)
+    if (get('hidden') != null) K.CFG.visible = get('hidden') !== '1'; if (get('opening') != null) K.CFG.partyOpening = get('opening') !== '0'; if (get('glow') != null) K.CFG.glow = get('glow') !== '0'; // (hidden=1 the old hidden Keeper, opening=0 the old passive-then-react party, glow=0 no light of his own)
     if (get('init') != null) K.CFG.initBonus = +get('init') | 0; if (get('cast') != null) K.CFG.aiCast = get('cast') !== '0'; if (get('washnowall') != null) K.CFG.washNoWall = get('washnowall') === '1'; // (the bench's settings: init=5 the Keeper's initiative bonus, cast=0 the AI never casts the wall, washnowall=1 the old backwash)
     var B = new D.Battle({ fight: 'keeper', data: D.save.fixture(+(get('lvl') || 3)), bench: !!get('seed') || /[?&]watch\b/.test(q) });
     var enter0 = B.enter;

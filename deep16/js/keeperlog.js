@@ -60,7 +60,7 @@
   // ---- the fight begins: a new log
   wrapProto(D.Battle.prototype, 'enter', function (enter0) {
     return function () {
-      var seed = D.seed, r = enter0.apply(this, arguments), B = this;
+      var seed = D.seed >>> 0, r = enter0.apply(this, arguments), B = this;
       if (!(B.fight && B.fight.id === 'keeper')) return r;
       L.length = 0; B._klog = { depth: 0, cap: null, turn: 0 };
       var lv = 0; B.units.forEach(function (u) { if (u.side === 'party' && u.lvl > lv) lv = u.lvl; });
@@ -78,7 +78,7 @@
     return function* (u, path, o) {
       var B = this; if (!mine(B)) return yield* m0.apply(this, arguments); // (inert outside the Keeper's fight)
       var f = [K.A(u), K.C(u)], g = m0.apply(this, arguments);
-      return yield* wrap(B, u, 'move', [], (function* () { var v = yield* g; if (B._klog && B._klog.cap) B._klog.cap.push('from ' + f[0] + ',' + f[1] + ' to ' + K.A(u) + ',' + K.C(u) + ' (along, across)'); return v; })());
+      return yield* wrap(B, u, 'move', [], (function* () { var v = yield* g; if (B._klog && B._klog.cap) if (B._klog && B._klog.cap && (f[0] !== K.A(u) || f[1] !== K.C(u))) B._klog.cap.push('from ' + f[0] + ',' + f[1] + ' to ' + K.A(u) + ',' + K.C(u) + ' (along, across)'); return v; })());
     };
   });
   wrapProto(D.Battle.prototype, 'attack', function (a0) { return function* (att, tgt, atk, o) { return yield* wrap(this, att, (o && o.oa ? 'opportunity attack: ' : 'attack: ') + ((atk && atk.name) || 'blow'), [tgt], a0.apply(this, arguments)); }; });

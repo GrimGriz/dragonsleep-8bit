@@ -20,6 +20,7 @@
   function passL(u, x, y) { var o = sq(x, y); return G.canPass(u, o[0], o[1]); }
   function deepL(x, y) { var o = sq(x, y); return K.isDeep(o[0], o[1]); }
   function iceKey(x, y) { return sq(x, y).join(','); }
+  HTMLAnchorElement.prototype.click = function () {}; // (the probe's fights end with a download of the log: not made here)
   var save0 = RU.save; function force(okv) { RU.save = function () { var r = save0.apply(this, arguments); r.ok = okv; return r; }; } function unforce() { RU.save = save0; }
   try {
     var B = battle({ lvl: 3 }), k = keeper(B), P = ours(B), cards = cardsOf(B), S;
@@ -116,8 +117,10 @@
     ok('the Slam row is the second sheet\'s dive with the first sheet\'s frame 3: ' + K.POSE.slam + ' (' + an6.attack.frames + ' frames)', K.POSE.slam === 'slam_b3a' && an6.attack.y === an6.slam_b3a.y && an6.slam_b3a.frames === 7);
     var w1 = K.wade(B6, pt(8, 6)), w2 = K.wade(B6, pt(8, 2));
     ok('standing depth: ankle-deep in the shallows (' + w1.cut + ' px), waist-deep by the deep end (' + w2.cut + ' px)', w1.cut < w2.cut && w1.cut >= 8 && w2.cut <= 56);
-    put(H6[0], 8, 7); k6.anim = 'wave'; RU.startTurn(k6); drain(K.turn(B6, k6));
-    ok('after its turn: standing idle (' + k6.anim + '), back in the water unseen (hidden ' + !!k6.conds.hidden + ')', k6.anim === 'idle' && !!k6.conds.hidden);
+    put(H6[0], 8, 7); k6.anim = 'wave'; RU.startTurn(k6); K.CFG.visible = false; drain(K.turn(B6, k6)); K.CFG.visible = true;
+    ok('the old hidden Keeper (CFG.visible false): after its turn: standing idle (' + k6.anim + '), back in the water unseen (hidden ' + !!k6.conds.hidden + ')', k6.anim === 'idle' && !!k6.conds.hidden);
+    k6.anim = 'wave'; delete k6.conds.hidden; RU.startTurn(k6); drain(K.turn(B6, k6));
+    ok('the visible Keeper (the default): after its turn it is idle (' + k6.anim + ') and not hidden (' + !!k6.conds.hidden + ')', k6.anim === 'idle' && !k6.conds.hidden);
     // swirling: a friend beside the held one is beside the Keeper
     delete k6.conds.hidden; put(H6[1], 8, 1); put(H6[2], 9, 1); force(false); drain(K.flood(B6, k6, H6[1])); unforce();
     var far = G.dist(H6[2], k6), near5 = G.dist(H6[2], H6[1]);
@@ -173,9 +176,17 @@
     while (GB.co && gsteps++ < 60000 && (Object.keys(seen).length < K.SCENES.length || gsteps < 10)) { var gr; try { gr = GB.co.next(); } catch (e) { gerr = String(e && e.stack || e).slice(0, 400); break; } seen[GB.gallery.i] = 1; if (gr.done) break; var nf = typeof gr.value === 'number' ? Math.min(gr.value, 120) : 1; for (var fi = 0; fi < nf; fi++) { D.fx.list.forEach(function (f) { try { f.draw(cx2); } catch (e) { gerr = gerr || ('draw ' + f.kind + ': ' + String(e && e.stack || e).slice(0, 300)); } }); D.fx.update(); GB.t = (GB.t || 0) + 1; } }
     ok('the gallery: ' + Object.keys(seen).length + ' of ' + K.SCENES.length + ' scenes seen, ' + gsteps + ' steps' + (gerr ? ', ERROR ' + gerr : ''), Object.keys(seen).length >= K.SCENES.length && !gerr);
     // ---- ?keeperfight&seed=174221&watch drained (no frame loop): the fight the notes name -- level 3, won in round 7, a flood, a hold broken, a wall
-    var KF = D.keeper.fight('?keeperfight&seed=31679&watch&lvl=3'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
+    var KF = D.keeper.fight('?keeperfight&seed=31679&watch&lvl=3&old=1'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
-    ok('?keeperfight&seed=31679 drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g), KF.result === 'won' && KF.round === 6 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1);
+    ok('?keeperfight&seed=31679&old=1 (the Keeper of before 10-03: hidden, no glow, the party reacting at once) drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g), KF.result === 'won' && KF.round === 6 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1);
+    var LG = D.keeperLog, lgf = function (e) { return e && typeof e.round === 'number' && typeof e.turn === 'number' && 'actor' in e && 'action' in e && Array.isArray(e.targets) && Array.isArray(e.rolls) && 'result' in e && e.hpAfter && typeof e.hpAfter === 'object' && e.flags && ['flood', 'wall', 'swirl', 'frozen'].every(function (k) { return k in e.flags; }); };
+    var lgcheck = function (what, wantActors) { var acts = {}; LG.forEach(function (e) { acts[e.actor] = 1; }); var tx = LG.text(), rolled = LG.filter(function (e) { return e.rolls.length; }).length, ends = LG.some(function (e) { return e.action === 'the fight ends'; });
+      ok('the log, ' + what + ': ' + LG.length + ' lines (' + rolled + ' with rolls), actors ' + Object.keys(acts).join('/') + ', meta ' + JSON.stringify(LG.meta) + ', text ' + tx.length + ' chars, file ' + LG.filename(), LG.length > 10 && LG.every(lgf) && rolled > 3 && wantActors.every(function (a) { return acts[a]; }) && /^THE KEEPER/.test(tx) && tx.indexOf('roll:') > 0 && LG.meta.seed != null && LG.meta.level === 3 && /^keeper-seed\d+-L3\.txt$/.test(LG.filename()) && ends); };
+    lgcheck('watched fight (class AI both sides)', ['The Keeper', 'Barley']); ok('the log, watched: mode ' + LG.meta.mode, LG.meta.mode === 'ai');
+    D.keeper.CFG.visible = true; D.keeper.CFG.partyOpening = true; D.keeper.CFG.glow = true;
+    var KF2 = D.keeper.fight('?keeperfight&seed=71274&watch&lvl=3'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
+    var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
+    ok('?keeperfight&seed=71274 drained: ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g), KF2.result === 'won' && KF2.round === 6 && kn(/washed into the deep/g) === 0 && kn(/(springs|raises) the Ice Wall/g) === 1);
     var LG = D.keeperLog, lgf = function (e) { return e && typeof e.round === 'number' && typeof e.turn === 'number' && 'actor' in e && 'action' in e && Array.isArray(e.targets) && Array.isArray(e.rolls) && 'result' in e && e.hpAfter && typeof e.hpAfter === 'object' && e.flags && ['flood', 'wall', 'swirl', 'frozen'].every(function (k) { return k in e.flags; }); };
     var lgcheck = function (what, wantActors) { var acts = {}; LG.forEach(function (e) { acts[e.actor] = 1; }); var tx = LG.text(), rolled = LG.filter(function (e) { return e.rolls.length; }).length, ends = LG.some(function (e) { return e.action === 'the fight ends'; });
       ok('the log, ' + what + ': ' + LG.length + ' lines (' + rolled + ' with rolls), actors ' + Object.keys(acts).join('/') + ', meta ' + JSON.stringify(LG.meta) + ', text ' + tx.length + ' chars, file ' + LG.filename(), LG.length > 10 && LG.every(lgf) && rolled > 3 && wantActors.every(function (a) { return acts[a]; }) && /^THE KEEPER/.test(tx) && tx.indexOf('roll:') > 0 && LG.meta.seed != null && LG.meta.level === 3 && /^keeper-seed\d+-L3\.txt$/.test(LG.filename()) && ends); };
@@ -303,6 +314,64 @@
       }
       D.scenes.pop(); HTMLAnchorElement.prototype.click = dl; D.battle = B3;
       if (thrown.length) errs.push('click path: ' + thrown[0]);
+    })();
+    // ---- the Keeper's moves on a hero it cannot take: a card that says why, nothing spent, never a silent refusal (the desk's note 3, 10-03: Lymen was not on the deep)
+    (function () {
+      var B7 = battle({ lvl: 3 }), k7 = keeper(B7), H7 = ours(B7), c7 = cardsOf(B7); B7.o.play = 'keeper'; H7.forEach(function (u) { delete u.conds.hidden; }); delete k7.conds.hidden;
+      function run(cmd, answers) { var g = B7.exec(k7, cmd), v, n = 0, prompts = 0; answers = (answers || []).slice(); while (n++ < 5000) { var r = g.next(v); v = undefined; if (r.done) break; var y = r.value; if (y && y.prompt) { prompts++; v = answers.length ? answers.shift() : 0; } } return prompts; }
+      function fresh() { RU.startTurn(k7); k7.flooding = null; k7.baseAC = k7.baseAC; delete k7.conds.restrained; H7.forEach(function (u) { delete u.conds.restrained; delete u.conds.prone; delete u.conds.drowning; u.hp = u.maxhp; delete u.ko; delete u.conds.hidden; }); K.st(B7).ice = {}; c7.length = 0; }
+      function saidWhy(re) { return re.test(c7.join(' ')); }
+      var lym = H7[3], bar = H7[0];
+      fresh(); put(lym, 8, 5); put(bar, 8, 1); run({ do: 'kswirl', target: lym });
+      ok('swirl a hero not on the deep (' + lym.name + ' at ' + K.A(lym) + ' along): a card says why, nothing spent, no hold (action ' + k7.turn.action + ', flooding ' + !!k7.flooding + ') -- ' + (c7.join(' ').match(/SWIRL: [^.]*/) || ['no card'])[0].slice(0, 120), saidWhy(/not on the deep/) && k7.turn.action === 1 && !k7.flooding && !lym.conds.restrained);
+      fresh(); put(bar, 8, 1); K.st(B7).ice[iceKey(8, 1)] = true; run({ do: 'kswirl', target: bar });
+      ok('swirl a hero on frozen water: ' + (c7.join(' ').match(/SWIRL: [^.]*/) || ['no card'])[0].slice(0, 90), saidWhy(/frozen: a footing/) && k7.turn.action === 1);
+      fresh(); put(bar, 8, 1); bar.conds.restrained = { by: 'x', dc: 10 }; run({ do: 'kswirl', target: bar });
+      ok('swirl a hero already held: ' + (c7.join(' ').match(/SWIRL: [^.]*/) || ['no card'])[0], saidWhy(/held already/) && k7.turn.action === 1);
+      fresh(); put(bar, 8, 1); bar.hp = 0; bar.ko = true; put(lym, 8, 2); lym.conds.prone = false; var legalDown = KP_swirl(k7, bar); run({ do: 'kswirl', target: bar });
+      ok('swirl a hero who is down: ' + (c7.join(' ').match(/SWIRL: [^.]*/) || ['no card'])[0], saidWhy(/is down|Not a hero/) && k7.turn.action === 1);
+      function KP_swirl(k, t) { return D.keeperPlay.swirlWhy(B7, k, t); }
+      fresh(); put(bar, 8, 1); k7.turn.action = 0; run({ do: 'kswirl', target: bar });
+      ok('swirl with the action spent: ' + (c7.join(' ').match(/(SWIRL|[A-Z][a-z]+)[^.]*spent/) || ['no card'])[0], saidWhy(/action is spent|spent/) && !k7.flooding);
+      fresh(); put(bar, 8, 1); put(lym, 8, 2); var pr = run({ do: 'kswirl' }, [4, 0]); // the ring's: the gold-square pick offers every hero; the second hero up the stair is no good (a card), then NOT NOW
+      ok('the swirl pick offers every hero, an illegal pick says why and asks again (' + pr + ' prompts), nothing spent (action ' + k7.turn.action + ')', pr >= 2 && saidWhy(/SWIRL: [^.]*not on the deep/) && k7.turn.action === 1 && !k7.flooding);
+      fresh(); put(bar, 8, 1); put(lym, 8, 2); pr = run({ do: 'kswirl', target: bar });
+      ok('a hero on the deep is taken: flooding ' + !!k7.flooding + ', held ' + !!bar.conds.restrained + ', the action spent ' + (k7.turn.action === 0), !!k7.flooding && !!bar.conds.restrained && k7.turn.action === 0);
+      // the Slam
+      fresh(); put(bar, 8, 9); run({ do: 'attack', target: bar });
+      ok('Slam a hero out of reach: ' + (c7.join(' ').match(/[A-Za-z ]*out of reach[^.]*/) || ['no card'])[0] + ', nothing spent', saidWhy(/out of reach/) && k7.turn.action === 1);
+      fresh(); put(bar, 8, 6); bar.conds.hidden = true; var d7 = G.dist(k7, bar); run({ do: 'attack', target: bar }); var hidWhy = c7.join(' ');
+      ok('Slam a hidden hero at ' + d7 + ' ft: ' + (/cannot find|Slam/.test(hidWhy) ? hidWhy.slice(0, 70) : 'no card'), /cannot find|Slam/.test(hidWhy));
+      fresh(); put(bar, 8, 6); bar.hp = 0; bar.ko = true; run({ do: 'attack', target: bar });
+      ok('Slam a hero who is down: ' + (c7.join(' ').match(/Not a foe there/) || ['no card'])[0], saidWhy(/Not a foe there/) && k7.turn.action === 1);
+      fresh(); put(bar, 8, 6); k7.turn.action = 0; run({ do: 'attack', target: bar });
+      ok('Slam with the action spent: ' + (c7.join(' ').match(/action is spent/) || ['no card'])[0], saidWhy(/action is spent/));
+      fresh(); put(bar, 8, 6); k7.flooding = { vic: lym.id }; run({ do: 'attack', target: bar });
+      ok('Slam from inside the swirl: ' + (c7.join(' ').match(/LET GO[^.]*/) || ['no card'])[0], saidWhy(/LET GO/) && k7.turn.action === 1); k7.flooding = null;
+      var wallT = { name: 'Ice Wall', isWall: true, side: 'foe', hp: 999, conds: {}, x: 8, y: 8, size: 1 }; fresh(); run({ do: 'attack', target: wallT });
+      ok('Slam at the ice wall (not a hero): ' + (c7.join(' ').match(/Not a foe there/) || ['no card'])[0], saidWhy(/Not a foe there/) && k7.turn.action === 1);
+      fresh(); put(bar, 8, 6); run({ do: 'attack', target: bar });
+      ok('Slam a hero in reach: the Slam (action ' + k7.turn.action + ')', k7.turn.action === 0 && /Slam/.test(c7.join(' ')));
+      // hp=150: the URL's Keeper HP, in the ring's panel (u.hp/maxhp), the tooltip and the log
+      var BH = D.keeper.fight('?keeperfight&play=keeper&lvl=3&hp=150'); D.battle = BH; BH.enter(); var kH = keeper(BH);
+      ok('hp=150 in the URL: the Keeper is ' + kH.hp + '/' + kH.maxhp, kH.hp === 150 && kH.maxhp === 150);
+      D.battle = B3;
+    })();
+    // ---- 10-03, Griz: the Keeper is visible and glows; the party opens by holding the landing, and engages when it strikes
+    (function () {
+      var BG = battle({ lvl: 3 }), kG = keeper(BG), HG = ours(BG), LI = D.light, lit = LI.carried(kG).filter(function (l) { return l.kind === 'keeperglow'; })[0];
+      ok('visible by default: not hidden (' + !!kG.conds.hidden + '), a light of his own (' + JSON.stringify(lit && { b: lit.bright, d: lit.dim, c: lit.color }) + '), lit where he stands (level ' + LI.levelOf(BG, kG) + ' of 2)', !kG.conds.hidden && lit && lit.dim > 0 && LI.levelOf(BG, kG) >= 1);
+      var x0 = kG.x; kG.x += 0; var k0 = K.at(6, 8, 2); kG.x = k0[0]; kG.y = k0[1]; var lit2 = LI.carried(kG).filter(function (l) { return l.kind === 'keeperglow'; })[0];
+      ok('the glow moves with him (' + lit2.x + ',' + lit2.y + ' for him at ' + kG.x + ',' + kG.y + ')', Math.abs(lit2.x - (kG.x + 0.5)) < 0.01);
+      kG.hp = 0; ok('and goes out when he falls', !LI.carried(kG).some(function (l) { return l.kind === 'keeperglow'; })); kG.hp = kG.maxhp;
+      var u0 = HG[0], px = u0.x, py = u0.y, ch = cardsOf(BG); HG.forEach(function (u) { u.guest = true; u.classAI = true; }); RU.startTurn(u0); K.putK && 0; putK(kG);
+      drain(D.tactics.turn(BG, u0)); var held = u0.x === px && u0.y === py && u0.turn.action === 1 && !ch.length;
+      ok('the opening: the party holds the landing before it is struck (moved ' + (u0.x !== px || u0.y !== py) + ', action ' + u0.turn.action + ', cards ' + ch.length + ')', held && !K.opened(BG));
+      kG.hp -= 5; RU.startTurn(u0); drain(D.tactics.turn(BG, u0));
+      ok('and engages once the Keeper is hurt / strikes (opened ' + K.opened(BG) + ', acted ' + (u0.turn.action === 0 || u0.x !== px || u0.y !== py) + ')', K.opened(BG) && (u0.turn.action === 0 || u0.x !== px || u0.y !== py));
+      K.CFG.partyOpening = false; var BG2 = battle({ lvl: 3 }), u2 = ours(BG2)[0], q = u2.x; ours(BG2).forEach(function (u) { u.guest = true; u.classAI = true; }); RU.startTurn(u2); drain(D.tactics.turn(BG2, u2));
+      ok('CFG.partyOpening false is the old behaviour: the party closes at once (acted ' + (u2.turn.action === 0 || u2.x !== q) + ')', u2.turn.action === 0 || u2.x !== q); K.CFG.partyOpening = true;
+      D.battle = B3;
     })();
     D.battle = B3;
     // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row; the counts are what the mechanics did
