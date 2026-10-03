@@ -12,7 +12,7 @@
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
-  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion']; // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner)
+  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning']; // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner)
 
   // ------------------------------------------------------------------ the roper's tendrils: the grappled one has disadvantage on STR checks
   // and saves (rules.js save reads restrained.weak; magic.js breakFree too)
@@ -88,6 +88,13 @@
   TR.after = function* (B, u) {
     var T = u.turn;
     if (u.dead || u.hp <= 0 || !T) return;
+    // Cunning Action (the Spy, SRD 5.1: "On each of its turns, the spy can use a bonus action to take the Dash, Disengage, or Hide action"): the Dash to close and the Disengage
+    // to get clear are ai.js cunning / bolt; the Hide is here, once its turn is done -- nowhere to hide with a foe beside it, or one that sees it clearly (battle.js seenBy, the
+    // same question the Hide action asks: it is not even tried where it could not take)
+    if (u.cunning && T.bonus > 0 && !u.conds.hidden && !u.conds.restrained && !u.conds.dancing && !G.foesNear(u, u.x, u.y, 5).length) {
+      var all = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); });
+      if (all.length && all.every(function (w) { return B.seenBy(w, u) < 2; })) yield* B.hide(u);
+    }
     // Rampage: a bonus action -- half its speed toward the nearest, and a bite
     if (u.rampage && T.rampage && T.bonus) {
       T.bonus = 0; T.rampaged = true;

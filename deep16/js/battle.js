@@ -799,7 +799,7 @@
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
       case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
-      case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + (u.cls === 'rogue' && u.lvl >= 2 ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
       case 'sacred': {
@@ -1880,7 +1880,7 @@
   };
   Battle.prototype.hide = function* (u) {
     var T = u.turn;
-    if (T.bonus > 0 && u.lvl >= 2) T.bonus = 0; else T.action = 0; // Cunning Action from level 2; the Hide action before
+    if (T.bonus > 0 && (u.lvl >= 2 || u.cunning)) T.bonus = 0; else T.action = 0; // Cunning Action from level 2 (or a stat block's: the Spy); the Hide action before
     D.sfx('run');
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)
     // who sees her clearly (SRD 5.1 Hiding: "You can't hide from a creature that can see you clearly"; darkvision sees darkness "as if the
