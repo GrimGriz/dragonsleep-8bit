@@ -1,0 +1,46 @@
+{
+ "image": "art/keeper_p3.png",
+ "fw": 176,
+ "fh": 184,
+ "ax": 88,
+ "ay": 180,
+ "top": 168,
+ "anims": {
+  "swirl": {
+   "y": 0,
+   "fw": 176,
+   "fh": 184,
+   "ax": 88,
+   "ay": 180,
+   "frames": 6,
+   "fps": 8
+  },
+  "wallform": {
+   "y": 184,
+   "fw": 176,
+   "fh": 184,
+   "ax": 88,
+   "ay": 180,
+   "frames": 6,
+   "fps": 8
+  },
+  "wallsolid": {
+   "y": 368,
+   "fw": 176,
+   "fh": 184,
+   "ax": 88,
+   "ay": 180,
+   "frames": 3,
+   "fps": 8
+  },
+  "wallrise": {
+   "y": 552,
+   "fw": 176,
+   "fh": 184,
+   "ax": 88,
+   "ay": 180,
+   "frames": 3,
+   "fps": 8
+  }
+ }
+}

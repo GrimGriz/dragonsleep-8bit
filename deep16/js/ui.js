@@ -869,6 +869,7 @@
   // line on its water, the Flooded Stair's 13; none, a hand's depth, 3) on a still-water square; one held by a creature of the water (bound to it: the Keeper's Constrict,
   // its Drag Under) is drawn down under it to the crown of the head. What lives in the water (bound to it, a swimmer) and what flies is drawn as it was
   UI.wading = function (B, u) {
+    var s = G.map && G.map.at(u.x, u.y); if (u.kind === 'keeper' && D.keeper && s && s.ch === '~' && !u.dead) return D.keeper.wade(B, u); // (the Keeper stands in its pool as the heroes do: js/keeper.js K.wade)
     var s = G.map && G.map.at(u.x, u.y); if (!s || !(s.ch === '~' || s.deep) || u.bound || u.swims || u.riding || u.ethereal || u.under) return null;
     var def = G.map.def || {}, cut = def.wade != null ? def.wade : 3, sink = 0, k = (u.size || 1);
     var hold = u.conds && u.conds.restrained && B.units.filter(function (w) { return w.id === u.conds.restrained.by; })[0];
@@ -957,8 +958,8 @@
         var wet = !down && !lift ? UI.wading(B, u) : null, an0 = anim === 'hurt' && !has('hurt') ? 'idle' : anim;
         if (wet) { // (in the water: the figure above its line, the rest a ghost under it, a ripple on the line; held by the Keeper, drawn down under it -- 10-02)
           var wl = p.y - wet.cut, sy = p.y + wet.sink, tallW = D.spr.unitTop(u) * sk + 8;
-          ctx.save(); ctx.beginPath(); ctx.rect(p.x - 60, sy - tallW - 20, 120, wl - (sy - tallW - 20)); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, body); ctx.restore();
-          ctx.save(); ctx.beginPath(); ctx.rect(p.x - 60, wl, 120, 80); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, Object.assign({}, body, { alpha: 0.28, tint: R('glow', 1), tintAlpha: 0.6 })); ctx.restore();
+          var cw = u.kind === 'keeper' ? 100 : 60; ctx.save(); ctx.beginPath(); ctx.rect(p.x - cw, sy - tallW - 20, cw * 2, wl - (sy - tallW - 20)); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, body); ctx.restore();
+          ctx.save(); ctx.beginPath(); ctx.rect(p.x - cw, wl, cw * 2, 80); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, Object.assign({}, body, { alpha: 0.28, tint: R('glow', 1), tintAlpha: 0.6 })); ctx.restore();
           var rw = 9 * (u.size || 1) * sk + Math.sin(B.t / 9) * 1.5; ctx.save(); ctx.strokeStyle = 'rgba(170,200,230,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.x, wl, rw, rw * 0.38, 0, 0, 7); ctx.stroke(); ctx.restore();
           if (wet.sink) for (var bi = 0; bi < 3; bi++) { var bp = ((B.t + bi * 17) % 40) / 40; ctx.fillStyle = 'rgba(200,225,245,' + (0.7 * (1 - bp)).toFixed(2) + ')'; ctx.fillRect(Math.round(p.x - 4 + bi * 4 + Math.sin((B.t + bi * 9) / 5) * 1.5), Math.round(wl - bp * 14), 1 + (bi % 2), 1 + (bi % 2)); } // (the breath going up)
         } else D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, p.y - lift, body);

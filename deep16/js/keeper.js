@@ -13,9 +13,10 @@
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx;
   var K = D.keeper = {};
   // THE POSES (Griz: neither Grok sheet is canon, any pose from either): each is a row of the sheet keeper_p2 (art/keeper_p2.json): a_* is the first Grok sheet's, b_* the
-  // second's -- idle, wall, dive, wave -- and slam_ab (the first sheet's dive to the launch, the second's the smash and the return; the default), slam_ba (the other way about).
+  // second's -- idle, wall, dive, wave -- `stand` (the standing idle: the third sheet's poses, one a facing), slam_b3a (the second sheet's dive with the first sheet's frame 3, the arcing
+  // wave, for its third: the default, Griz 10-03), slam_ab (the first sheet's dive to the launch, the second's the smash and the return), slam_ba (the other way about).
   // Swap one in the pane with D16.keeper.pose({ slam: 'slam_ba' }) -- or any row: pose({ idle: 'b_idle', wave: 'a_wave', wall: 'b_wall', slam: 'b_dive' }); it holds for the page
-  K.POSE = { idle: 'a_idle', slam: 'slam_ab', wave: 'b_wave', wall: 'a_wall', hurt: 'hurt_b', die: 'die_b' };
+  K.POSE = { idle: 'stand', slam: 'slam_b3a', wave: 'b_wave', wall: 'a_wall', hurt: 'hurt_b', die: 'die_b' };
   K.pose = function (o) {
     if (o) Object.keys(o).forEach(function (k) { K.POSE[k] = o[k]; });
     var sh = D.SHEETS && D.SHEETS.keeper_p2; if (!sh) return K.POSE;
@@ -23,7 +24,7 @@
     Object.keys(link).forEach(function (a) { var row = sh.anims[K.POSE[link[a]]]; if (row) sh.anims[a] = Object.assign({}, row); });
     return K.POSE;
   };
-  K.CFG = { waveDC: 13, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12 }; // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.CFG = { waveDC: 13, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -87,6 +88,7 @@
     });
     if (out.length) { B.card(['{c}The wave bounces off the ' + (S.wall ? 'ice' : 'wall') + ' and drags back.{/}'].concat(out), 260); yield 30; }
     for (var i = 0; i < deep.length; i++) { if (!u.flooding && G.standing(deep[i])) yield* K.flood(B, u, deep[i]); }
+    u.anim = 'idle'; u.animT = B.t; // (the cast is over: back to the standing idle)
     return true;
   };
 
@@ -108,7 +110,7 @@
     u.flooding = { vic: v.id }; u.aboveAC = u.baseAC || u.ac; u.baseAC = K.CFG.deepAC;
     var spot = nearestSpot(B, u, v);
     if (spot && (spot[0] !== u.x || spot[1] !== u.y)) { tween(B, u); u.x = spot[0]; u.y = spot[1]; }
-    B.focus(v); D.sfx('splash'); FX.keeperPour(u, v); yield { fx: 1 };
+    B.focus(v); D.sfx('splash'); FX.keeperPour(u, v); yield { fx: 1 }; // (rings and bubbles: the swirl closing about it; the swirl itself stays, drawn with the walls' props below)
     B.card(['{r}' + Nm(B, v) + '{/} is washed into the deep: {o}RESTRAINED{/}, and the Keeper pours into the water around ' + v.name + '.',
       '{g}(AC ' + K.CFG.deepAC + ' in the water: anything that strikes the water beside ' + v.name + ' strikes it. Escape DC 13, an action; or climb out where the head is over water){/}'], 320);
     yield 40;
@@ -222,26 +224,13 @@
       });
     } });
   };
-  // THE POUR: it pours itself into the water around the one it has -- a stream from the Keeper, rings on the square, a column of water down onto it, bubbles rising, the drowned one circled by drops
+  // THE POUR: rings spreading on the square and bubbles rising as the swirl closes about the held one (the swirl itself is a persistent idle, drawn below)
   FX.keeperPour = function (from, to) {
-    var a = FX.at(from), b = FX.at(to);
-    return FX.add({ kind: 'keeperpour', blocking: true, dur: 78, draw: function (ctx) {
-      var t = this.t, C = ramp(), A = scr(a.gx, a.gy, a.gz), Bp = scr(b.gx, b.gy, b.gz), i, fade = t > 60 ? (78 - t) / 18 : 1;
-      if (t < 34) { // the stream across, rippling
-        var k = t / 34;
-        for (i = 0; i < 22; i++) { var kk = i / 22; if (kk > k) break; var x = A.x + (Bp.x - A.x) * kk, y = A.y - 10 + (Bp.y - A.y) * kk + Math.sin(kk * 9 + t / 3) * 3 - Math.sin(Math.PI * kk) * 10; ctx.globalAlpha = 0.9; rc(ctx, x - 2, y - 2, 5, 4, i % 3 ? C[1] : C[0]); rc(ctx, x - 1, y + 1, 3, 2, C[2]); }
-        ctx.globalAlpha = 1;
-      }
-      ctx.globalAlpha = 0.45 * fade; ctx.fillStyle = C[3]; ctx.beginPath(); ctx.ellipse(Bp.x, Bp.y, 18, 9, 0, 0, 7); ctx.fill(); ctx.globalAlpha = 1; // the water darkened where it closes
-      for (i = 0; i < 4; i++) { var ph = ((t - 14 - i * 11) / 34); if (ph < 0 || ph > 1) continue; ctx.globalAlpha = (1 - ph) * fade; ctx.strokeStyle = i % 2 ? C[1] : C[0]; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(Bp.x, Bp.y, 6 + ph * 26, 3 + ph * 13, 0, 0, 7); ctx.stroke(); }
-      ctx.globalAlpha = 1;
-      if (t >= 24) { // a column of water down onto the square
-        var c = Math.min(1, (t - 24) / 12), h = 52 * c;
-        ctx.globalAlpha = 0.8 * fade; rc(ctx, Bp.x - 6, Bp.y - 6 - h, 12, h, C[1]); rc(ctx, Bp.x - 6, Bp.y - 6 - h, 3, h, C[0]); rc(ctx, Bp.x + 3, Bp.y - 6 - h, 3, h, C[2]); ctx.globalAlpha = 1;
-        for (i = 0; i < 10; i++) { var yy = ((t * 3 + i * 13) % 52); rc(ctx, Bp.x - 5 + (i * 7) % 11, Bp.y - 6 - yy, 2, 3, C[0]); }
-      }
-      for (i = 0; i < 8; i++) { var ang = t / 9 + i * Math.PI / 4, rr = 17 - Math.min(10, t / 6); ctx.globalAlpha = 0.9 * fade; rc(ctx, Bp.x + Math.cos(ang) * rr * 1.2, Bp.y - 12 + Math.sin(ang) * rr * 0.5 - (t % 30) * 0.2, 2, 2, i % 2 ? C[0] : C[1]); }
-      for (i = 0; i < 6; i++) { var bph = ((t * 0.6 + i * 9) % 40), bx = Bp.x - 8 + i * 3 + Math.sin(bph / 4 + i) * 2; ctx.globalAlpha = (1 - bph / 40) * fade; rc(ctx, bx, Bp.y - 4 - bph, 2, 2, C[0]); }
+    var b = FX.at(to);
+    return FX.add({ kind: 'keeperpour', blocking: true, dur: 44, draw: function (ctx) {
+      var t = this.t, C = ramp(), Bp = scr(b.gx, b.gy, b.gz), i, fade = t > 30 ? (44 - t) / 14 : 1;
+      for (i = 0; i < 4; i++) { var ph = ((t - i * 8) / 30); if (ph < 0 || ph > 1) continue; ctx.globalAlpha = (1 - ph) * fade; ctx.strokeStyle = i % 2 ? C[1] : C[0]; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(Bp.x, Bp.y, 6 + ph * 28, 3 + ph * 14, 0, 0, 7); ctx.stroke(); }
+      for (i = 0; i < 8; i++) { var bph = ((t * 0.8 + i * 7) % 36), bx = Bp.x - 10 + i * 3 + Math.sin(bph / 4 + i) * 2; ctx.globalAlpha = (1 - bph / 36) * fade; rc(ctx, bx, Bp.y - 4 - bph, 2, 2, C[0]); }
       ctx.globalAlpha = 1;
     } });
   };
@@ -252,7 +241,7 @@
     if (!v || !G.standing(v) || !v.conds.restrained || v.conds.restrained.by !== u.id) { K.surface(B, u, v && G.standing(v) ? 'its hold is gone' : 'no one is left in it'); return true; }
     if (u.turn.bonus > 0) { // ACTIVE SUFFOCATION: its bonus action, and the drowning is doubled at the victim's next turn
       u.turn.bonus = 0; v.conds.drowning = v.conds.drowning || { by: u.id }; v.conds.drowning.twice = true;
-      B.focus(u); FX.ring(v, 'glow', 24); u.anim = 'attack'; u.animT = B.t;
+      B.focus(v); v.conds.drowning.pulse = B.t; // (it stays as it stands: the swirl about the held one quickens)
       B.card(['{r}' + Nm(B, u) + '{/} floods ' + v.name + ': {o}ACTIVE SUFFOCATION{/}  {g}(a bonus action: the drowning is rolled twice at ' + v.name + '\'s next turn){/}'], 260); yield 40;
     }
     return false;
@@ -276,15 +265,44 @@
       var t = near.sort(function (a, b) { return a.hp - b.hp; })[0];
       FX.keeperSlam(u, t);
       yield* B.attack(u, t, u.attacks.slam);
+      u.anim = 'idle'; u.animT = B.t; // (the Slam is over: back to the standing idle, and into the water)
       if (u.dead || u.hp <= 0) return;
     } else if (T.action > 0 && K.canReadyWall(B, u)) { yield* K.readyWall(B, u); }
     if (T.bonus > 0 && !u.dead && u.hp > 0 && (yield* K.wave(B, u))) T.bonus = 0;
   }
+  // out of the ice (Griz 10-03: "a DC 7 save as a bonus action to break free; if he fails he spends his action on a second try the same turn"; the SRD has no such rule: ours, STR as
+  // the strength of the thing). Breaking free destroys the ice he was in and 1 to 2 of the iced squares about it.
+  function* breakIce(B, u) {
+    var T = u.turn, ok = false, lines = [];
+    var go = function (what) { var sv = RU.save(u, 'str', K.CFG.iceDC); ok = sv.ok; lines.push('  ' + what + ': STR ' + RU.saveText(sv) + ' vs DC ' + K.CFG.iceDC + '  ' + (sv.ok ? '{n}BREAKS FREE{/}' : '{o}held{/}')); };
+    if (T.bonus > 0) { T.bonus = 0; go('bonus action'); }
+    if (!ok && T.action > 0) { T.action = 0; go('and its action, a second try'); }
+    T.move = 0;
+    if (ok) {
+      var S = st(B), body = G.foot(u).map(function (p) { return p[0] + ',' + p[1]; }), gone = 0, ring = [];
+      body.forEach(function (k) { if (S.ice[k]) { delete S.ice[k]; gone++; } });
+      Object.keys(S.ice).forEach(function (k) { var p = k.split(',').map(Number); if (G.foot(u).some(function (f) { return Math.max(Math.abs(f[0] - p[0]), Math.abs(f[1] - p[1])) <= 1; })) ring.push(k); });
+      for (var n = D.d(2); n > 0 && ring.length; n--) { var j = D.d(ring.length) - 1; delete S.ice[ring[j]]; ring.splice(j, 1); gone++; }
+      delete u.conds.restrained; FX.bloom(u.x, u.y, G.foot(u), 'cold', { core: false }); D.sfx('crit');
+      lines.push('{r}' + Nm(B, u) + '{/} bursts out of the ice: {c}' + gone + ' square' + (gone === 1 ? '' : 's') + ' of it destroyed.{/}');
+    }
+    B.card(['{c}' + Nm(B, u) + ' strains against the ice.{/}'].concat(lines), 280); yield 40;
+  }
+  // frozen where it stands: all four of its squares iced (K.CFG.freezeNeeds 'any': one) -- restrained, DC iceDC to break
+  K.checkIce = function (B) {
+    var k = keeperOf(B), S = st(B); if (!k || k.conds.restrained) return;
+    var f = G.foot(k), n = f.filter(function (p) { return S.ice[p[0] + ',' + p[1]]; }).length;
+    if (K.CFG.freezeNeeds === 'any' ? n > 0 : n === f.length) { k.conds.restrained = { dc: K.CFG.iceDC, by: 'ice', ice: true }; B.card(['{c}The water the Keeper stands in freezes: {o}RESTRAINED{/}  {g}(it breaks out with a DC ' + K.CFG.iceDC + ' STR save, its bonus action, then its action){/}'], 300); }
+  };
+  function finish(B, u) { u.anim = 'idle'; u.animT = B.t; if (K.CFG.hideAfter && !u.flooding && u.hp > 0 && !u.dead) u.conds.hidden = true; } // (back into the water, unseen: it is invisible in it)
   K.turn = function* (B, u) {
     var S = st(B); K.pose();
     if (S.ready) { S.ready = null; B.card(['{g}' + Nm(B, u) + '\'s readied wall: the moment passed.{/}'], 160); }
-    if (u.flooding && !(yield* inWater(B, u))) return;
+    if (u.conds.restrained && u.conds.restrained.ice) yield* breakIce(B, u);
+    if (u.conds.restrained) u.turn.move = 0;
+    if (u.flooding && !(yield* inWater(B, u))) { finish(B, u); return; }
     yield* above(B, u);
+    finish(B, u);
   };
 
   // ------------------------------------------------------------------ the Ice Wall (3 uses). Griz 10-03: row 11 ("if there's enough room between that and his pool we might
@@ -299,7 +317,7 @@
   K.readyWall = function* (B, u) {
     var S = st(B); u.turn.action = 0; S.ready = { round: B.round };
     B.focus(u); u.anim = 'wall'; u.animT = B.t;
-    B.card(['{r}' + Nm(B, u) + '{/} gathers the water at the stair\'s edge, and holds it.  {g}(READY: the Ice Wall -- when one of you moves toward the exit; ' + S.uses + ' left){/}'], 300); yield 30;
+    B.card(['{r}' + Nm(B, u) + '{/} gathers the water at the stair\'s edge, and holds it.  {g}(READY: the Ice Wall -- when one of you moves toward the exit; ' + S.uses + ' left){/}'], 300); yield 30; u.anim = 'idle'; u.animT = B.t;
   };
   // after a creature's step (battle.js moveAlong): a hero moving toward the exit, on the stair, springs it
   K.watch = function* (B, u, fromY) {
@@ -313,7 +331,7 @@
     for (x = l.x0; x <= l.x1; x++) { var q = G.map.at(x, row); if (q && q.open) sq.push([x, row]); }
     if (!sq.length) return;
     S.uses--; S.ready = null; k.reaction = 0;
-    var secs = [], i; for (i = 0; i < sq.length; i += 2) secs.push({ sq: sq.slice(i, i + 2), hp: K.CFG.wallHP, max: K.CFG.wallHP });
+    var secs = [], i; for (i = 0; i < sq.length; i += 2) secs.push({ sq: sq.slice(i, i + 2), hp: K.CFG.wallHP, max: K.CFG.wallHP, born: B.t });
     var w = { id: 'keeperice-' + S.uses, spell: 'keeperice', by: k.id, kind: 'ice', sight: false, solid: true, cost: 0, sq: sq.slice(), cx: Math.round((l.x0 + l.x1) / 2), cy: row, dir: [0, 1], dc: 13, sections: secs };
     // whoever stands where it rises is set back onto the pool side
     B.units.forEach(function (v) {
@@ -346,7 +364,7 @@
   };
   K.spellOn = function* (B, u, id, slot, t) {
     var S = st(B), sp = D.magic.data(id); if (!sp) return;
-    var els = [sp.el, sp.el2].filter(Boolean), fire = els.indexOf('fire') >= 0, cold = els.indexOf('cold') >= 0, g = D.magic.geo(id);
+    var els = [sp.el, sp.el2].filter(Boolean), fire = els.indexOf('fire') >= 0 || els.indexOf('thunder') >= 0 /* (thunder, shatter: an instant blow, like fire -- Griz 10-03) */, melt = els.indexOf('fire') >= 0, cold = els.indexOf('cold') >= 0, g = D.magic.geo(id);
     if (!g || !/^(sphere|cone|cube|line|wall)$/.test(g.shape)) return;
     var at = t && t.x != null ? t : t && t.units ? t.units[0] : t; if (!at || at.x == null) return;
     // (a solid wall bars the grid's own sight and spread: the area is read with the Ice Wall taken down for a moment, so the wall's squares are in it)
@@ -358,18 +376,34 @@
       if (fire) { dropSection(B, w, sec, 'goes to steam'); return; }
       if (sp.dmg) { var d = D.roll(sp.dmg).total; sec.hp -= d; if (sec.hp <= 0) dropSection(B, w, sec, 'shatters ({r}' + d + '{/} to it)'); else B.card(['{g}The Ice Wall takes ' + d + ': ' + sec.hp + '/' + sec.max + '.{/}'], 160); }
     });
-    if (fire) { var melted = Object.keys(S.ice).filter(function (k) { var p = k.split(',').map(Number); return inSq(p); }); if (melted.length) { melted.forEach(function (k) { delete S.ice[k]; }); B.card(['{g}The fire melts ' + melted.length + ' square' + (melted.length > 1 ? 's' : '') + ' of ice.{/}'], 200); } }
+    if (melt) { var melted = Object.keys(S.ice).filter(function (k) { var p = k.split(',').map(Number); return inSq(p); }); if (melted.length) { melted.forEach(function (k) { delete S.ice[k]; }); B.card(['{g}The fire melts ' + melted.length + ' square' + (melted.length > 1 ? 's' : '') + ' of ice.{/}'], 200); } }
     if (cold) {
       var froze = sq.filter(function (p) { var c = G.map.at(p[0], p[1]); return c && c.ch === '~' && !S.ice[p[0] + ',' + p[1]]; });
+      // swirling someone (Griz 10-03): the cold gives it a save to resist the freeze when it changes back. Which: the spell's own, its save ability (CON where it names none) against
+      // the caster's spell save DC (the SRD: a spell that asks a save asks it of whoever it catches); a spell that rolls an attack has none, and the water freezes
+      var kp = keeperOf(B);
+      if (kp && kp.flooding && froze.length) {
+        var vic = B.units.filter(function (w) { return w.id === kp.flooding.vic; })[0], body = G.foot(kp).concat(vic ? [[vic.x, vic.y]] : []);
+        var inBody = function (p) { return body.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); };
+        if (froze.some(inBody) && sp.save) {
+          var ab = String(sp.save).toLowerCase().slice(0, 3), svk = RU.save(kp, ab, u.spellDC || 13);
+          B.card(['  {c}' + Nm(B, kp) + ' holds its swirl against the cold:{/} ' + ab.toUpperCase() + ' ' + RU.saveText(svk) + ' vs DC ' + (u.spellDC || 13) + '  ' + (svk.ok ? '{n}the water about ' + (vic ? vic.name : 'it') + ' does not freeze{/}' : '{o}it changes back, and lets go{/}')], 280);
+          if (svk.ok) froze = froze.filter(function (p) { return !inBody(p); });
+          else { K.surface(B, kp, 'the cold takes its swirl'); if (vic) B.release(kp, vic); }
+        } else if (froze.some(inBody)) { K.surface(B, kp, 'the cold takes its swirl'); if (vic) B.release(kp, vic); }
+      }
       if (froze.length) {
         froze.forEach(function (p) { S.ice[p[0] + ',' + p[1]] = true; }); FX.bloom(at.x, at.y, froze, 'cold', { core: false });
         var lines = ['{c}' + froze.length + ' square' + (froze.length > 1 ? 's' : '') + ' of water freeze over.{/}  {g}(ice underfoot: the backwash goes round; a head over the ice is over water){/}'], hurt = [];
         B.units.forEach(function (v) { if (G.standing(v) && v.side === u.side && froze.some(function (p) { return G.foot(v).some(function (f) { return f[0] === p[0] && f[1] === p[1]; }); })) { var d = D.roll('1d4').total; lines.push('  ' + v.name + ' is caught in it: {r}' + d + '{/} cold'); hurt.push([v, d]); } });
-        B.card(lines, 280); hurt.forEach(function (h) { B.hurt(h[0], h[1], 'cold'); }); yield 20;
+        B.card(lines, 280); hurt.forEach(function (h) { B.hurt(h[0], h[1], 'cold'); }); K.checkIce(B); yield 20;
       }
     }
   };
-  // the ice on the pool and the wall are drawn with the walls (js/walls.js W.props)
+  // what the Keeper puts on the floor is drawn with the walls (js/walls.js W.props, the world's sort): the ice on the pool; the Ice Wall's sections (the third sheet's ice-wall form, keeper_p3:
+  // the Keeper turning to ice, then the solid wall); and the swirl a held hero sits in, an idle that goes on while it is held
+  K.CFG.wallScale = 0.55; K.CFG.swirlScale = 0.5;
+  function sprite(ctx, sheet, anim, t, x, y, k, alpha, ky) { ctx.save(); ctx.translate(Math.round(x), Math.round(y)); ctx.scale(k, k * (ky == null ? 1 : ky)); D.spr.draw(ctx, sheet, anim, 0, t, 0, 0, { alpha: alpha == null ? 1 : alpha }); ctx.restore(); }
   var props0 = D.walls && D.walls.props;
   if (props0) D.walls.props = function (B) {
     var out = props0.apply(this, arguments);
@@ -380,6 +414,21 @@
         var iso = D.iso, c = iso.center(p[0], p[1], gz), s = iso.toScreen(c.x, c.y), hw = iso.TW / 2, hh = iso.TH / 2;
         ctx.globalAlpha = 0.55; ctx.fillStyle = '#bfe6f2'; ctx.beginPath(); ctx.moveTo(s.x, s.y - hh); ctx.lineTo(s.x + hw, s.y); ctx.lineTo(s.x, s.y + hh); ctx.lineTo(s.x - hw, s.y); ctx.closePath(); ctx.fill();
         ctx.globalAlpha = 0.9; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(s.x - hw * 0.4, s.y - 1); ctx.lineTo(s.x + hw * 0.1, s.y + hh * 0.3); ctx.stroke(); ctx.globalAlpha = 1;
+      } });
+    });
+    var w = B.kp.wall;
+    if (w) w.sections.forEach(function (sec) {
+      var q0 = sec.sq[0], q1 = sec.sq[sec.sq.length - 1], g0 = B.map.gz(q0[0], q0[1]);
+      out.push({ depth: (q0[0] + q0[1] + q1[0] + q1[1]) / 2 + 0.5, gz: g0, layer: 1, draw: function (ctx) {
+        var a = scr(q0[0], q0[1], g0), b = scr(q1[0], q1[1], g0), age = B.t - (sec.born || 0), rising = age < 30;
+        sprite(ctx, 'keeper_p3', 'wallsolid', age + sec.sq[0][0] * 7, (a.x + b.x) / 2, (a.y + b.y) / 2 + 10, K.CFG.wallScale, rising ? 0.5 + age / 60 : 1, rising ? Math.min(1, age / 24) : 1); // (it grows up out of the floor; the third sheet's frames 4-6, the solid wall)
+      } });
+    });
+    B.units.forEach(function (v) {
+      var r = v.conds && v.conds.restrained; if (!r || !r.water || v.dead || v.hp <= 0) return;
+      var gz = B.map.gz(v.x, v.y), pulse = v.conds.drowning && (v.conds.drowning.twice || (v.conds.drowning.pulse != null && B.t - v.conds.drowning.pulse < 40));
+      out.push({ depth: v.x + v.y + 0.6, gz: gz, layer: 1, draw: function (ctx) {
+        var s = scr(v.x, v.y, gz); sprite(ctx, 'keeper_p3', 'swirl', B.t * (pulse ? 2 : 1), s.x, s.y + 8, K.CFG.swirlScale * (pulse ? 1.1 : 1), pulse ? 0.95 : 0.8);
       } });
     });
     return out;
@@ -483,5 +532,20 @@
     return B;
   };
 
+  // (Griz 10-03: "attacking the swirl is attacking the Keeper, so the held hero's friends may strike the water around them": while it swirls someone, whoever is within reach of
+  // the held one is within reach of it -- the grid's distance to the Keeper is the least of the two)
+  var dist0 = G.dist;
+  G.dist = function (a, b, ax, ay, bx, by) {
+    var d = dist0.apply(this, arguments);
+    if (b && b.flooding && bx == null && D.battle && d > 0) { var v = D.battle.units.filter(function (w) { return w.id === b.flooding.vic; })[0]; if (v && v !== a) d = Math.min(d, dist0(a, v, ax, ay)); }
+    return d;
+  };
+  // the standing depth (Griz 10-03: it "looks perched on top of the water while heroes look submerged"): UI.wading draws the Keeper into the pool -- from the ankle in the shallows
+  // to the waist at the deep end, by how far its square is from the deep; waist-deep and a little more while it swirls someone. A drawing only: the map's heights and the rules are as they were
+  K.wade = function (B, u) {
+    var d = (def().deeps || []).length ? Math.min.apply(null, def().deeps.map(function (p) { return Math.max(Math.abs(p[0] - u.x), Math.abs(p[1] - u.y)); })) : 6;
+    var f = Math.max(0, Math.min(1, 1 - (d - 1) / 6)), cut = Math.round(8 + f * 40 + (u.flooding ? 6 : 0));
+    return { cut: cut, sink: 0 };
+  };
   K.pose(); // (the engine's anim names point at the rows from the start)
 })();

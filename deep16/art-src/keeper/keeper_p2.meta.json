@@ -39,12 +39,20 @@
   "y": 8928,
   "frames": 7
  },
- "hurt_b": {
+ "slam_b3a": {
   "y": 9920,
+  "frames": 7
+ },
+ "hurt_b": {
+  "y": 10912,
   "frames": 2
  },
  "die_b": {
-  "y": 10912,
+  "y": 11904,
   "frames": 3
+ },
+ "stand": {
+  "y": 12896,
+  "frames": 2
  }
 }
