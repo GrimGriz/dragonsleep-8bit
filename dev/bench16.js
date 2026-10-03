@@ -1020,6 +1020,20 @@
       ward11(); runX(MX.cast(B11, c11, 'bless', 1, { units: [c11, f11] })); var bl11 = !!c11.conds.sanctuary;
       ward11(); f11.hp = 5; runX(MX.cast(B11, c11, 'healingword', 1, f11)); var hw11 = !!c11.conds.sanctuary;
       okX('11. Sanctuary on our cleric: ends on his swing ' + sw11 + ', on Sacred Flame at a goblin ' + sf11 + '; kept through Bless on friends ' + bl11 + ' and Healing Word ' + hw11, sw11 && sf11 && bl11 && hw11);
+      // 12. Protection from Evil and Good (SRD 5.1: "Creatures of those types have disadvantage on attack rolls against the target. The target also can't be charmed,
+      // frightened, or possessed by them. If the target is already charmed, frightened, or possessed by such a creature, the target has advantage on any new saving
+      // throw against the relevant effect"): a foe wizard made a fiend casts Fear down a line of our fighter (warded) and our cleric (not), every save a 1
+      var B12 = mkX('?npc=wizard:5&lvl=5&vs=fighter:5,cleric:5'), w12 = sideX(B12, 'foe')[0], pf12 = sideX(B12, 'party').filter(function (u) { return u.cls === 'fighter'; })[0], pc12 = sideX(B12, 'party').filter(function (u) { return u.cls === 'cleric'; })[0];
+      w12.type = 'fiend'; pf12.conds = { pfeg: { by: pc12.id } }; pc12.conds = {};
+      pf12.x = w12.x; pf12.y = w12.y + 1; pc12.x = w12.x; pc12.y = w12.y + 2; D.rules.startTurn(w12); w12.slots[2] = 2;
+      pinX(1); var n12 = (B12.log || []).length; runX(MX.cast(B12, w12, 'fear', 3, { x: pc12.x, y: pc12.y })); D.d = d0X;
+      var l12 = logX(B12, n12);
+      okX('12. a fiend\'s Fear on our warded fighter and our cleric, every save a 1: the fighter frightened ' + !!pf12.conds.frightened + ', the cleric ' + !!pc12.conds.frightened + ' -- ' + l12.slice(0, 200), !pf12.conds.frightened && !!pc12.conds.frightened);
+      var imm12 = [D.rules.immuneTo(pf12, 'charmed', { type: 'fey' }), D.rules.immuneTo(pf12, 'frightened', { type: 'undead' }), D.rules.immuneTo(pf12, 'charmed', { type: 'humanoid' }), D.rules.immuneTo(pc12, 'charmed', { type: 'fey' })];
+      okX('12. proof against a fey\'s charm ' + imm12[0] + ', the dead\'s fright ' + imm12[1] + '; not against a humanoid\'s charm ' + !imm12[2] + '; the unwarded cleric not ' + !imm12[3], imm12[0] && imm12[1] && !imm12[2] && !imm12[3]);
+      pf12.conds = { pfeg: { by: pc12.id }, frightened: { by: w12.id } }; var sv12 = D.rules.save(pf12, 'wis', 30, false, 'frightened');
+      pf12.conds = { frightened: { by: w12.id } }; var sv12b = D.rules.save(pf12, 'wis', 30, false, 'frightened');
+      okX('12. already frightened by the fiend: the warded fighter\'s new save rolls ' + sv12.rolls.length + ' dice (advantage), without the ward ' + sv12b.rolls.length, sv12.rolls.length === 2 && sv12b.rolls.length === 1);
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
     D.d = d0X;
     if (errs.length) repX.errors = repX.errors.concat(errs);
