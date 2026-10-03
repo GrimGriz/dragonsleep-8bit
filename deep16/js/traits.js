@@ -14,6 +14,27 @@
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
   TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti']; // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner)
 
+  // ------------------------------------------------------------------ Duergar Resilience on a spell already running (SRD 5.1: "advantage on saving throws against poison, spells, and illusions")
+  // rules.js RU.save reads B.castLevel only while a cast is under way. The saves a spell asks later -- Spirit Guardians at the start of the turn, a zone's, Web's, Moonbeam's, a wall's, the
+  // charm's on a hurt -- are resolved in magic.js startTurn/endTurn and the stepInto/onHurt/confusedTurn/danceAsk chains (the spell's own stamp, castId/lv, rides on the zone record the
+  // Globe reads): while one runs on a creature that has the trait, B.spellRun names it and RU.save gives it the advantage. (A concentration save is none against a spell: RU.save)
+  ['startTurn', 'endTurn', 'stepInto', 'onHurt', 'danceSave'].forEach(function (k) {
+    var f0 = M[k]; if (!f0) return;
+    M[k] = function (B, u) {
+      if (!B || !u || !u.resilient) return f0.apply(this, arguments);
+      var was = B.spellRun; B.spellRun = u;
+      try { return f0.apply(this, arguments); } finally { B.spellRun = was; }
+    };
+  });
+  ['confusedTurn', 'danceAsk'].forEach(function (k) {
+    var f0 = M[k]; if (!f0) return;
+    M[k] = function* (B, u) {
+      if (!B || !u || !u.resilient) return yield* f0.apply(this, arguments);
+      var was = B.spellRun; B.spellRun = u;
+      try { return yield* f0.apply(this, arguments); } finally { B.spellRun = was; }
+    };
+  });
+
   // ------------------------------------------------------------------ the roper's tendrils: the grappled one has disadvantage on STR checks
   // and saves (rules.js save reads restrained.weak; magic.js breakFree too)
   var saveAdv0 = RU.saveAdv;

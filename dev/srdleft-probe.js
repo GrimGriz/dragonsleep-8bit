@@ -84,6 +84,19 @@
     ok('the gnoll at 40 ft looses the longbow: ' + g2, g2 && g2.join() === 'Longbow');
     var d1 = shooterAt('captain', 'banditcaptain', 15);
     ok('the Captain at 15 ft throws two daggers: ' + d1, d1 && d1.join() === 'Thrown Dagger,Thrown Dagger');
+    // ---------------------------------------------------------------- Duergar Resilience on a spell already running (Spirit Guardians' turn-start save)
+    var Q = battle('grimlocks'), dgr = foes(Q).filter(function (u) { return u.kind === 'duergar'; })[0], gk = foes(Q).filter(function (u) { return u.kind === 'grimlock'; })[0], cl = party(Q)[0];
+    ok('the duergar is resilient, the grimlock is not', dgr && dgr.resilient && gk && !gk.resilient);
+    function guardSave(tgt) {
+      var rec = { by: cl.id, r: 15, dice: '3d8', dc: 99, type: 'radiant', ramp: 'gold' }; Q.auras = [rec]; put(tgt, cl.x + 1, cl.y);
+      var saves = [], s0 = D.rules.save; D.rules.save = function (u) { var r = s0.apply(this, arguments); if (u === tgt) saves.push(r); return r; };
+      try { tgt.hp = tgt.maxhp = 999; D.rules.startTurn(tgt); } finally { D.rules.save = s0; }
+      return saves.filter(function (r) { return r.dc === 99; })[0];
+    }
+    var sd = guardSave(dgr), sg = guardSave(gk);
+    ok('Spirit Guardians at the duergar\'s turn start: two d20, the advantage ' + (sd && JSON.stringify(sd.rolls)) + ' resil ' + (sd && sd.resil), sd && sd.rolls.length === 2);
+    ok('and at the grimlock\'s: one d20 ' + (sg && JSON.stringify(sg.rolls)), sg && sg.rolls.length === 1);
+    ok('the flag does not outlast the turn start', Q.spellRun === undefined || Q.spellRun === null);
   } catch (e) { errs.push(String(e && e.stack || e).slice(0, 800)); }
   var pre = document.createElement('pre'); pre.textContent = 'SRDLEFT ' + JSON.stringify({ checks: checks, errors: errs });
   document.body.appendChild(pre);
