@@ -134,6 +134,8 @@
     });
     return out.join('\n') + '\n';
   };
+  // a line of the log that no action made (the wall thawing, the stalemate breaker): who, what, why
+  L.say = function (B, who, action, result) { if (!mine(B)) return; var hp = {}; B.units.forEach(function (w) { if (!w.familiar && !w.isWall) hp[w.name] = w.hp; }); L.push({ round: B.round, turn: B._klog.turn, actor: who || '', action: action, targets: [], rolls: [], result: result || '', hpAfter: hp, flags: flagsOf(B, '') }); };
   L.filename = function () { var m = L.meta || {}; return 'keeper-seed' + m.seed + '-L' + m.level + '.txt'; };
   L.download = function () {
     if (typeof document === 'undefined' || typeof Blob === 'undefined' || !document.body) return false;

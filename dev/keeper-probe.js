@@ -186,7 +186,7 @@
       var bad = []; for (var li = 1; li < LG.length; li++) { var a = LG[li - 1].hpAfter, b = LG[li].hpAfter, expl = LG[li].targets.concat([LG[li].actor]); Object.keys(b).forEach(function (n) { if (a[n] != null && a[n] !== b[n] && expl.indexOf(n) < 0) bad.push('L' + li + ' ' + n + ' ' + a[n] + '->' + b[n] + ' (' + LG[li].action + ')'); }); }
       ok('the log, ' + what + ': every HP change has a line that names who changed (' + (bad.length ? bad.slice(0, 3).join('; ') : 'none missing') + ')', !bad.length); };
     lgcheck('watched fight (class AI both sides)', ['The Keeper', 'Barley']); ok('the log, watched: mode ' + LG.meta.mode, LG.meta.mode === 'ai');
-    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 175, drown: '2d6', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', swirlHit: true, slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
+    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 175, wallRounds: 3, stalemateBreak: true, drown: '2d6', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', swirlHit: true, slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
     var KF2 = D.keeper.fight('?keeperfight&seed=102950&watch&lvl=3'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
     ok('?keeperfight&seed=102950 drained (the default: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g) + ', holds broken ' + kn(/HOLD BREAKS/g), KF2.result === 'won' && KF2.round === 9 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1 && kn(/HOLD BREAKS/g) === 1);
@@ -596,6 +596,51 @@
       var BL2 = battle({ lvl: 3 }), t = D.keeperLog.text().split('\n');
       var sl = t.filter(function (x) { return /^settings: /.test(x); })[0] || '';
       ok('the log header carries the Keeper\'s settings: ' + sl.slice(0, 150) + '...', /^settings: hp=175, slams=2, slamDice=3d4, slamAtk=6, waveDC=15,/.test(sl) && /heldStruggle=true/.test(sl) && /deepDepth=2/.test(sl) && /swirlHit=true/.test(sl) && D.keeperLog.meta.cfg && D.keeperLog.meta.cfg.hp === 175 && D.keeperLog.meta.fight === 'keeper');
+      D.battle = B3;
+    })();
+    // ---- 10-03 (the desk): the Ice Wall's time, the ice about him, the stalemate breaker, the result
+    (function () {
+      function mk() { var B = battle({ lvl: 3 }), k = keeper(B), H = ours(B), c = cardsOf(B); delete k.conds.hidden; H.forEach(function (u) { delete u.conds.hidden; }); return { B: B, k: k, H: H, c: c }; }
+      var S1 = mk(); S1.B.round = 1; K.st(S1.B); S1.k.reaction = 1; drain(K.raiseWall(S1.B, S1.k, null)); var w1 = S1.B.kp.wall;
+      S1.B.round = 3; drain(K.upkeep(S1.B, S1.k)); var up3 = !!S1.B.kp.wall; S1.B.round = 4; S1.c.length = 0; var n1 = D.keeperLog.length; drain(K.upkeep(S1.B, S1.k));
+      ok('the Ice Wall rose in round 1: still up in round 3 (' + up3 + '), thawed at the start of the Keeper\'s turn in round 4 (' + !S1.B.kp.wall + '), no wall in the grid (' + (S1.B.walls || []).length + ' walls), a card (' + (S1.c.join(' ').match(/Ice Wall thaws[^.]*/) || ['none'])[0] + '), a log line (' + D.keeperLog.slice(n1).map(function (e) { return e.action; }) + ')', up3 && !S1.B.kp.wall && !(S1.B.walls || []).length && /Ice Wall thaws/.test(S1.c.join(' ')) && D.keeperLog.slice(n1).some(function (e) { return /thaws/.test(e.action); }) && S1.B.kp.melting && S1.B.kp.melting.length === 1);
+      var cc0 = K.canCastWall(S1.B, S1.k), rr0 = S1.B.round; S1.B.round++; var cc1 = K.canCastWall(S1.B, S1.k); S1.B.round = rr0;
+      ok('the way is open once it thaws (the wall squares are standable: ' + standL(S1.H[0], 8, 11) + ') and the AI Keeper does not re-cast it the very round it thaws (canCast ' + cc0 + '; next round ' + cc1 + ', ' + S1.B.kp.uses + ' uses left)', standL(S1.H[0], 8, 11) === true && cc0 === false && cc1 === true);
+      var S2 = mk(); K.CFG.wallRounds = 0; S2.B.round = 1; K.st(S2.B); S2.k.reaction = 1; drain(K.raiseWall(S2.B, S2.k, null)); S2.B.round = 40; drain(K.upkeep(S2.B, S2.k)); var never = !!S2.B.kp.wall; K.CFG.wallRounds = 3;
+      ok('wallRounds 0: the wall never thaws (the old), even in round 40 (' + never + ')', never);
+      // the ice about him
+      var S3 = mk(); S3.B.round = 2; S3.k.conds.restrained = { dc: 7, by: 'ice', ice: true, round: 2 }; K.st(S3.B).ice[S3.k.x + ',' + S3.k.y] = true; S3.B.round = 4; drain(K.upkeep(S3.B, S3.k)); var still = !!S3.k.conds.restrained; S3.B.round = 5; S3.c.length = 0; drain(K.upkeep(S3.B, S3.k));
+      ok('the ice that holds him lasts 3 rounds (round 2 to 4 still held ' + still + ', round 5 free ' + !S3.k.conds.restrained + ') or till he breaks out', still && !S3.k.conds.restrained && /ice about .* thaws/.test(S3.c.join(' ')));
+      // legalize: a creature left on a square it cannot stand on is set right
+      var S4 = mk(); put(S4.H[0], 8, 9); S4.H[0].x = 3; S4.H[0].y = 2; var bad = !G.canStand(S4.H[0], 3, 2, { ghost: true }); K.legalize(S4.B);
+      ok('a creature on a square it cannot stand on is set right when a wall melts (was illegal ' + bad + ', now at ' + S4.H[0].x + ',' + S4.H[0].y + ' legal ' + G.canStand(S4.H[0], S4.H[0].x, S4.H[0].y, { ghost: true }) + ')', bad && G.canStand(S4.H[0], S4.H[0].x, S4.H[0].y, { ghost: true }));
+      // the stalemate: the wall up, one melee hero on the dry side, the rest down; two rounds; the breaker melts it; again, the party is lost
+      var S5 = mk(); S5.B.round = 5; K.st(S5.B); S5.k.reaction = 1; drain(K.raiseWall(S5.B, S5.k, null)); S5.B.kp.wall.round = 5; S5.H.forEach(function (u, i) { if (i !== 0) { u.hp = 0; u.ko = true; } }); put(S5.H[0], 8, 12); S5.H[0].weapon = Object.assign({}, S5.H[0].weapon, { ranged: false }); putK(S5.k);
+      var eng0 = K.canEngage(S5.B); S5.B.round = 6; drain(K.upkeep(S5.B, S5.k)); var after1 = !!S5.B.kp.wall; S5.B.round = 7; S5.c.length = 0; var n5 = D.keeperLog.length; drain(K.upkeep(S5.B, S5.k)); var after2 = !!S5.B.kp.wall;
+      ok('the stalemate breaker: no one can reach the other (canEngage ' + eng0 + '); round 6 the wall stands (' + after1 + '), round 7 it melts at once (' + !after2 + ') with a card (' + (S5.c.join(' ').match(/STALEMATE[^.]*/) || ['none'])[0].slice(0, 70) + ') and a log line (' + D.keeperLog.slice(n5).map(function (e) { return e.action; }).join(', ') + ')', !eng0 && after1 && !after2 && /STALEMATE/.test(S5.c.join(' ')) && D.keeperLog.slice(n5).some(function (e) { return /stalemate breaker/.test(e.action); }) && K.canEngage(S5.B));
+      var S6 = mk(); S6.B.round = 5; K.st(S6.B); S6.k.reaction = 1; S6.B.kp.staleBroke = true; drain(K.raiseWall(S6.B, S6.k, null)); S6.H.forEach(function (u, i) { if (i !== 0) { u.hp = 0; u.ko = true; } }); put(S6.H[0], 8, 12); putK(S6.k); S6.B.round = 6; drain(K.upkeep(S6.B, S6.k)); S6.B.round = 7; drain(K.upkeep(S6.B, S6.k));
+      ok('after the breaker has run and failed (the wall up again), two more such rounds end it in the Keeper\'s favour (over ' + S6.B.over() + ')', S6.B.over() === 'lost');
+      // the result: every hero at 0 HP, held ones included, is a lost fight; held heroes keep their hold at 0 HP and the drowning stops
+      var S7 = mk(); put(S7.H[0], 8, 1); S7.H[0].hp = S7.H[0].maxhp = 30; RU.startTurn(S7.k); force(false); drain(K.flood(S7.B, S7.k, S7.H[0])); unforce(); S7.H[0].hp = 0; S7.H[0].ko = true; var held0 = !!S7.H[0].conds.restrained; var hp7 = S7.H[0].hp; K.drownTick(S7.B, S7.H[0]);
+      S7.H.forEach(function (u) { u.hp = 0; u.ko = true; });
+      ok('a held hero at 0 HP stays held (' + held0 + ') and the drowning stops (hp ' + hp7 + ' -> ' + S7.H[0].hp + '); with every hero at 0 HP the fight is lost (' + S7.B.over() + ')', held0 && S7.H[0].hp === 0 && S7.B.over() === 'lost');
+      // the swirl spends the rest of the turn: a hold that ends the same turn (the hero dead of it) gives nothing back (Griz 10-03: "two slams back changing forms after they died")
+      (function () {
+        function mk2() { var B = battle({ lvl: 3 }), k = keeper(B), H = ours(B), c = cardsOf(B); K.st(B); B.o.play = 'keeper'; delete k.conds.hidden; H.forEach(function (u) { delete u.conds.hidden; }); put(H[0], 8, 1); put(H[1], 8, 9); RU.startTurn(k); return { B: B, k: k, H: H, c: c }; }
+        function run2(S, cmd) { var g = S.B.exec(S.k, cmd), n = 0, v; while (n++ < 5000) { var r = g.next(v); v = undefined; if (r.done) break; if (r.value && r.value.prompt) v = 0; } K.checkSwirl(S.B); } // (as KP.humanTurn does after each command)
+        function st(k) { var T = k.turn; return T.action + '/' + T.bonus + '/' + (T.slamsLeft || 0); }
+        function okRing(S) { var e = KP.entries(S.B, S.k).filter(function (x) { return /^(kslam|kwave|kcast|kready|kswirl)$/.test(x.id); }); return e.every(function (x) { return !x.ok; }); }
+        var KP = D.keeperPlay;
+        var A = mk2(); A.H[0].hp = 1; force(false); run2(A, { do: 'kswirl', target: A.H[0] }); unforce();
+        ok('SWIRL kills the hero it takes: he rises out of it and has lost the rest of the turn (action/bonus/slams ' + st(A.k) + ', swirling ' + !!A.k.flooding + ', hero hp ' + A.H[0].hp + ')', !A.k.flooding && st(A.k) === '0/0/0' && A.H[0].hp <= 0);
+        var A2 = mk2(); A2.H[0].hp = 40; A2.H[0].maxhp = 40; force(false); run2(A2, { do: 'kswirl', target: A2.H[0] }); unforce(); var keeps = A2.k.flooding && A2.k.turn.bonus > 0;
+        A2.H[0].hp = 2; run2(A2, { do: 'ksuffocate' });
+        ok('SUFFOCATE kills the held hero (the swirl itself left his bonus: ' + keeps + '): no Slam, Wave or wall afterwards (' + st(A2.k) + ', swirling ' + !!A2.k.flooding + ')', keeps && !A2.k.flooding && st(A2.k) === '0/0/0');
+        var A3 = mk2(); A3.H[0].hp = 40; A3.H[0].maxhp = 40; force(false); drain(K.flood(A3.B, A3.k, A3.H[0], true)); unforce();
+        ok('the Wave\'s auto-swirl ends the turn (action/bonus/move ' + st(A3.k) + '/' + A3.k.turn.move + ')', st(A3.k) === '0/0/0' && A3.k.turn.move === 0);
+        var A4 = mk2(); A4.H[0].hp = 40; A4.H[0].maxhp = 40; force(false); drain(K.flood(A4.B, A4.k, A4.H[0], true)); unforce(); A4.H[0].hp = 0; A4.H[0].ko = true; K.checkSwirl(A4.B);
+        ok('the auto-swirl\'s hold ends with the hero down: the ring offers nothing that takes an action or bonus (' + (KP ? okRing(A4) : 'no KP') + '), the click Slam is refused', KP && okRing(A4) && (run2(A4, { do: 'attack', target: A4.H[1] }), st(A4.k) === '0/0/0'));
+      })();
       D.battle = B3;
     })();
     D.battle = B3;
