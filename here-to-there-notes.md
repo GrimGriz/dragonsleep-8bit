@@ -79,3 +79,34 @@ Leg four's fallback line, the naga, the trolls and the earth elemental are boss 
 - The story on the way: talking triggers and maps' enter hooks are not run (Papa's hook, the lamps' first-arrival lines, Pyro's road talk); the lamps' STAY THE NIGHT is the rest above. The morning's spell prep after a lamp's night is skipped (the prepared lists stand as they were).
 - Wandering NPCs on the path, and anything a script would walk the party back from (none was on these paths: the BFS walls them).
 - Edge on Windows: the runs here were headless Chromium 1194 in the container; the page and the seeds are the same, so the numbers should be too (not checked on his machine).
+
+## For the next seat (the walker's close, 10-03)
+
+What three rounds taught, so nobody pays for it twice:
+
+**Gotchas in the bench (each cost a run here)**
+- `DS.battle` hands control back to its script on `setTimeout(0)`. A page that runs in one synchronous go never gets that macrotask, so the encounter script hangs after a won fight. The walk mode routes `setTimeout` into the queue `T.step` drains. bench8's `drive()` never noticed because it stops when the battle scene closes, not when the script does.
+- `Field.load` restarts the encounter countdown, so a walk that starts mid-map must start the countdown part-run (`mid` in walk8.py), or short legs meet about half their fights. The arithmetic to check against is zone steps over the mean of the zone's rate (hw1: 20 steps / 20 = 1.0 fight).
+- Seed each leg apart (walk8 mixes in the leg's name). Otherwise legs on the same zone replay each other's dice, and the table shows twins.
+- `EV.pickGroup` (deep.js) grows every hw* and nest group by the guests' weight (Pyro 1.5, the troopers 0.5 each). Every Deep number with guests carries it.
+- The highway zones stop short of the lamp stations (hw1 at x 60, hw2 at 64, hw3 at 56), so the stations, and the raid's door at x 57, are safe ground.
+- Potions wake the downed in a fight but not in the field (there it takes a kit). The tent heals only the standing. Order the field half kit, then tent, then potion, or the tent is wasted on the down.
+- The guest turn never sneak-attacks (`sneakUsed: true`) and takes Action Surge only with the sheet's `surgeAI`. The hand drives the real menus, so when Vivian's potion goes through Fast Hands, her action's FIGHT gets Sneak Attack. That's the game's own FIGHT; it's left as it falls.
+
+**Reading the numbers**
+- A single leg from a full start understates. The chains are the real arrival less the bosses, and that's the column to quote when someone asks "what does the party bring". Neither includes the boss before the door. Joining each boss's cost from bench16 (`bench16.py x fight=<id>`; the ids are the `deep16:` fields on each `EV.fight` in events.js and deep.js) is the obvious round four, and the walker's third open question.
+- Extreme results were true each time, but read the fights before believing one: `python dev/walk8.py leg=<name> n=1 log`. Round one's 82% wipes on leg four held up line by line; the guest AI was the cause, not the bench.
+- Walks cost about 25 ms, so n=100 on every leg and chain, both hands, is about 30 s. Don't skimp on n to save time.
+- `here-to-there.md` regenerates only between its markers. The words outside are the seat's and survive `table`; check with a diff that a rerun on the same seed changes nothing.
+
+**When the queued game jobs land, rerun the table**
+- *The countdown carried across map loads:* the walker calls the game's own `Field.load` and `Field.arrive`, so it follows the change by itself. Expect fights where there were none (the cloaker by the slide, the otyugh, the Doors, the nest from Second Lamp) and more on every chain that crosses a map.
+- *The guest turn learning to cast:* the floor column moves (it is `guestTurn`). The hand's two calls still come first for the four, so the hand's columns move only where it falls back to the guest turn.
+
+**Who said what**
+- Round two's answers are Griz's (the notes quote them verbatim). Round three's four came as the overseer's lean and are built as working answers, recorded as leans. Keep that line sharp in the files. If he overrules a lean, it's one switch each: `group=3`; the kit is the `afterFight` block in bench8.js's walk mode; the stair is `lvl` on the `stair` leg; the sally is just a chain.
+
+**The design shape the numbers show** (findings, for Griz to rule on, not rules)
+- The base game's roads barely touch the party. Its teeth are the bosses.
+- The Deep's road is where resources go, and potions go first. The road sells none.
+- A lamp is a bed only for the doors near it. Leg four's far doors are 67–89 steps from Third Lamp through the densest zone, which is why sallies lose and the straight walk is the better plan there.
