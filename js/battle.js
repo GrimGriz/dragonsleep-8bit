@@ -34,6 +34,17 @@
   var END_TEXT = { spiritWeapon: "'s spiritual weapon fades.", magicWeapon: "'s weapon is plain steel again.", branding: "'s waiting light goes out.",
     pfeg: "'s ward against the otherworldly fades.", sanctuary: "'s sanctuary fades." };
   // Command's word falls on no ears among the dead and the witless (the grid's reading: deep16/js/grimoire.js deaf)
+  // what Lesser Restoration may end, the worst first (SRD 5.1: "either one disease or one condition ... blinded, deafened, paralyzed, or poisoned"; the
+  // 8-bit lays no disease and no deafness -- 10-03, the grid's order, deep16/js/magic.js): a paralysing poison (the crawler's feelers, the chuul's
+  // tentacles: paralyzed riding on poisoned) is one ailment, the poison that holds him
+  function ailments(t) {
+    var c = t.conds, L = [], pp = !!(c.paralyzed && c.paralyzed.linked === 'poisoned' && c.poisoned);
+    if (pp) L.push({ label: 'the paralysing poison', end: function () { delete c.poisoned; delete c.paralyzed; } });
+    else if (c.paralyzed) L.push({ label: 'paralysis', end: function () { delete c.paralyzed; } });
+    if (c.blinded) L.push({ label: 'blindness', end: function () { delete c.blinded; } });
+    if (c.poisoned && !pp) L.push({ label: 'poison', end: function () { delete c.poisoned; } });
+    return L;
+  }
   function deafTo(u) { return tags(u)[0] === 'undead' || abil(u, 'int') <= 3; }
 
   function Battle(o) {
@@ -1049,6 +1060,11 @@
       if (!this.heroes.some(function (x) { return down(x) && !x.guest; })) { yield* this.say('No one is down.', 30); return false; }
       var tr = yield* this.pickAlly(function (x) { return down(x) && !x.guest; }); if (!tr) return false; targets = [tr];
     }
+    var cureAil = null; // Lesser Restoration: ONE thing ends; where more than one afflicts the friend, he asks which (cancel: no slot spent)
+    if (sp.kind === 'cure' && targets[0]) {
+      var ails = ailments(targets[0]); cureAil = ails[0] || null;
+      if (ails.length > 1) { cureAil = yield DS.choose({ items: ails.map(function (a) { return { label: a.label.toUpperCase(), value: a }; }), x: 40, y: 96, w: 176, rowH: 11, pad: 7, title: 'END WHICH? (ONE)' }); if (!cureAil) return false; cureAil.others = ails.filter(function (a) { return a !== cureAil; }); }
+    }
     if (slot) h.slots[slot - 1]--;
     u.pose = 'cast'; u.poseT = 60;
     DS.audio.sfx(sp.sfx || 'magic');
@@ -1164,9 +1180,9 @@
         this.elemBurst(t, 'buff', 'rise');
         yield this.wait(8);
       } else if (k === 'cure') {
-        ['poisoned', 'paralyzed', 'blinded'].forEach(function (c) { delete t.conds[c]; });
+        if (cureAil) cureAil.end();
         this.elemBurst(t, 'radiant', 'rise'); DS.audio.sfx('heal');
-        yield* this.say(nameOf(t) + ' is cleansed.', 36);
+        yield* this.say(cureAil ? nameOf(t) + ': ' + cureAil.label + ' ends.' + (cureAil.others && cureAil.others.length ? ' (One only: ' + cureAil.others.map(function (a) { return a.label; }).join(' and ') + (cureAil.others.length > 1 ? ' stay.)' : ' stays.)') : '') : nameOf(t) + ' has nothing the spell can end.', 40);
       }
       if (this.liveFoes().length === 0) break;
     }

@@ -2991,7 +2991,7 @@
    "target": "ally",
    "battle": true,
    "field": true,
-   "desc": "Ends poison, paralysis or blindness. On the grid it ends one thing, as the SRD has it: paralysis, the disease (Contagion, with its poison and blinding), blindness, poison or deafness -- a player picks where there is more than one, an NPC takes the worst. Not built: any other disease.",
+   "desc": "Ends one thing, as the SRD has it: paralysis, blindness or poison (a paralysing poison is one); on the grid also the disease (Contagion, with its poison and blinding) and deafness. A player picks where there is more than one, an NPC takes the worst. Not built: any other disease.",
    "src": "SRD 5.1 (Oath of Devotion oath spell, 5th level)",
    "id": "lesserrestoration"
   },

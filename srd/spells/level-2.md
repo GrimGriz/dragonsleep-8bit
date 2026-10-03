@@ -557,7 +557,7 @@ When you cast the spell, a loud knock, audible from as far away as 300 feet, ema
 
 *2nd-level abjuration*
 
-> **The game:** Ends poison, paralysis or blindness. On the grid it ends one thing, as the SRD has it: paralysis, the disease (Contagion, with its poison and blinding), blindness, poison or deafness -- a player picks where there is more than one, an NPC takes the worst. Not built: any other disease.
+> **The game:** Ends one thing, as the SRD has it: paralysis, blindness or poison (a paralysing poison is one); on the grid also the disease (Contagion, with its poison and blinding) and deafness. A player picks where there is more than one, an NPC takes the worst. Not built: any other disease.
 
 **Casting Time:** 1 action
 

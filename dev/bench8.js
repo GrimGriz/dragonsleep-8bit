@@ -214,6 +214,18 @@
         var inv2 = !!AF.conds.invisible, im2 = AF.images, hp2 = AF.h.hp;
         T.blog = []; QdF = [15, 15, 11]; runF(bF.foeAttack(o2[0], AF, o2[0].m.attacks.club)); QdF = [];
         check('2. Mislead: invisible ' + inv2 + ', a double up (' + im2 + '); the club goes at it -- "' + saidF() + '" -- and he is unhurt (' + (AF.h.hp === hp2) + ')', inv2 && im2 === 1 && AF.images === 0 && AF.h.hp === hp2 && /an image of Aurdin\. It bursts!/.test(saidF()));
+
+        // 3. Lesser Restoration ends one thing (SRD 5.1: "end either one disease or one condition afflicting it"): Barley paralyzed, blinded and
+        // poisoned, Lymen asked which and answering BLINDNESS -- the blindness ends, the other two stay; a paralysing poison alone is one ailment,
+        // ended whole with no question asked
+        var LF = heroF('lymen'), BF = heroF('barley');
+        BF.conds = { paralyzed: { rounds: 3 }, blinded: { rounds: 3 }, poisoned: { rounds: 3 } };
+        castF(LF, 'lesserrestoration', ['Barley', 'BLIND'], [4, 2]);
+        var asked3 = (offeredF[1] || []).join(', ');
+        check('3. Lesser Restoration on Barley, three ailments: asked "' + asked3 + '"; after BLINDNESS: ' + Object.keys(BF.conds).join(',') + ' -- "' + saidF() + '"', asked3 === 'PARALYSIS, BLINDNESS, POISON' && !BF.conds.blinded && !!BF.conds.paralyzed && !!BF.conds.poisoned);
+        BF.conds = { poisoned: { rounds: 3 }, paralyzed: { linked: 'poisoned' } };
+        castF(LF, 'lesserrestoration', ['Barley'], [4, 2]);
+        check('3. the crawler\'s poison (paralyzed riding on poisoned): ' + offeredF.length + ' picker(s) (the friend only: no END WHICH), both gone (' + !Object.keys(BF.conds).length + ') -- "' + saidF() + '"', offeredF.length === 1 && !Object.keys(BF.conds).length);
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');
