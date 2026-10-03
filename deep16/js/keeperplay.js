@@ -1,7 +1,7 @@
 /* DEEP16 — THE KEEPER, PLAYED (10-03, Griz asked for two play modes; js/keeper.js is the rules and the AI's turn, this is the hands).
-   ?keeperfight&play=keeper&lvl=3  A HUMAN IS THE KEEPER, the class AI the party. Its turn is a menu in the page's own style (the prompt window, numbered buttons, gold squares to
-     pick where to move): MOVE within its water, SLAM one in its reach, the WAVE (bonus), READY THE ICE WALL, SWIRL a hero on the deep, ACTIVE SUFFOCATION (bonus, swirling),
-     LET GO, BREAK FREE of the ice (a bonus action, then the action), END TURN. Its reaction (the opportunity attack) is automatic.
+   ?keeperfight&play=keeper&lvl=3  A HUMAN IS THE KEEPER, the class AI the party. Its turn is the game's own ring (Q, as the heroes' turns use): MOVE (click a square it can walk to in its
+     water), SLAM (then a gold square), the WAVE (bonus), CAST WALL or READY WALL, SWIRL (a gold square: a hero on the deep), SUFFOCATE (bonus, only while a hero is held), LET GO
+     (likewise), BREAK FREE (bonus, then action; only while frozen), END TURN. Its reaction (the opportunity attack) is automatic.
    ?keeperfight&play=party&lvl=3   THE PARTY IS PLAYED: by the page as ever (the keys, the mouse) or by a script, D16.keeperPlay, one call a turn, returning the state; the Keeper is the AI.
      D16.keeperPlay.state()            the whole state as JSON: round, who is deciding, every unit (square, lane frame, HP, conditions, who holds whom), the Keeper's (swirling who, frozen, hidden),
                                        the wall's sections, the ice, the map's lane geometry, and for the hero deciding what is legal: reachable squares, who it can strike, the spells it can cast, the rest
@@ -17,60 +17,95 @@
   var KP = D.keeperPlay = {};
   function Nm(B, u) { return K.Nm(B, u); }
 
-  // ================================================================== A: the Keeper's turn as a menu
+  // ================================================================== A: the Keeper's turn on the game's own RING (the Q wheel the heroes' turns use)
+  // (Griz 10-03: "use the game's own ring menu, not the prompt window"): the turn is the ordinary one -- yield { turn: u }, the ring built from B.commands / UI.cmds, a click on a ring entry
+  // answered as { do: <id> } -- with the Keeper's own entries in it. MOVE is the ring's own (click a square: the reach it can walk in its water); the picks of a target are the gold squares of
+  // a prompt's `pick`, as the Channel Divinities' are.
+  function human(B, u) { return !!(B && B.o && B.o.play === 'keeper' && u && u.kind === 'keeper' && u.side === 'foe'); }
+  // what the Keeper may do now: only what applies (Griz 10-03: no Active Suffocation with no one held, no let-go or break-free but where they fit)
+  KP.entries = function (B, u) {
+    var T = u.turn, heroes = K.foesOf(B, u), reach = G.reachOf(u, u.reach), out = [], A = T.action > 0, Bo = T.bonus > 0;
+    var vic = u.flooding ? B.units.filter(function (w) { return w.id === u.flooding.vic; })[0] : null;
+    var held = !!(u.conds.restrained && u.conds.restrained.ice), holding = !!(vic && G.standing(vic) && vic.conds.restrained && vic.conds.restrained.by === u.id);
+    var near = heroes.filter(function (w) { return (!w.conds.hidden || G.dist(u, w) <= (u.blindsight || 0)) && G.dist(u, w) <= reach; });
+    var deepHeroes = heroes.filter(function (w) { return K.isDeep(w.x, w.y) && !w.conds.restrained; });
+    var S = K.st(B);
+    if (held) {
+      out.push({ id: 'kicebonus', label: 'BREAK FREE (B)', cost: 'B', ok: Bo, why: 'the bonus action is spent', note: 'DC ' + K.CFG.iceDC + ' STR, a bonus action', icon: 'free' });
+      out.push({ id: 'kiceaction', label: 'BREAK FREE (A)', cost: 'A', ok: A, why: 'the action is spent', note: 'a second try, as an action', icon: 'free' });
+    } else if (holding) {
+      out.push({ id: 'ksuffocate', label: 'SUFFOCATE', cost: 'B', ok: Bo, why: 'the bonus action is spent', note: 'Active Suffocation: the drowning twice at ' + vic.name + '\'s next turn', icon: 'spell' });
+      out.push({ id: 'krise', label: 'LET GO', cost: 'F', ok: true, note: 'rise out of the swirl; ' + vic.name + ' is free of the hold', icon: 'free' });
+    } else {
+      out.push({ id: 'kslam', label: 'SLAM', cost: 'A', ok: A && near.length > 0, why: A ? 'no one in reach (10 ft)' : 'the action is spent', note: 'DC 15 STR or prone', icon: 'attack' });
+      out.push({ id: 'kwave', label: 'WAVE', cost: 'B', ok: Bo && K.canWave(B, u), why: Bo ? 'no one for it to take' : 'the bonus action is spent', note: 'DC 13 STR or prone; the backwash off the wall', icon: 'spell' });
+      out.push({ id: 'kcast', label: 'CAST WALL', cost: 'A', ok: A && K.canCastWall(B, u), why: !A ? 'the action is spent' : S.wall ? 'the wall is up' : 'no use left', note: 'the Ice Wall rises at once (' + S.uses + ' left)', icon: 'spell' });
+      out.push({ id: 'kready', label: 'READY WALL', cost: 'A', ok: A && K.canReadyWall(B, u), why: !A ? 'the action is spent' : S.ready ? 'readied already' : S.wall ? 'the wall is up' : 'nothing for it to seal in', note: 'sprung when one of you steps toward the exit', icon: 'spell' });
+      out.push({ id: 'kswirl', label: 'SWIRL', cost: 'A', ok: A && deepHeroes.length > 0, why: A ? 'no one on the deep' : 'the action is spent', note: 'take one on the deep: the swirl about it', icon: 'spell' });
+    }
+    return out;
+  }
+  var cmds0 = D.Battle.prototype.commands;
+  D.Battle.prototype.commands = function (u) { return human(this, u) ? KP.entries(this, u) : cmds0.apply(this, arguments); };
+  // the ring's list for the Keeper (js/ui.js UI.cmds asks): MOVE, what applies, END TURN
+  KP.human = human;
+  KP.ring = function (B, u) {
+    var c = KP.entries(B, u), out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }].concat(c);
+    return out.concat([{ id: 'end', label: 'END TURN', cost: 'F', ok: true, icon: 'end' }]);
+  };
   KP.humanTurn = function* (B, u) {
-    var S = K.st(B); K.pose(); K.face(B, u);
+    var S = K.st(B); K.pose(); K.face(B, u); B.focus(u);
     if (S.ready) { S.ready = null; B.card(['{g}Your readied wall: the moment passed.{/}'], 160); }
+    K.checkSwirl(B);   // (a hold that ended since: the swirl is over before the turn begins)
+    D.sfx('popup');
+    B.tool = 'move'; B.cursor = { x: u.x, y: u.y };
     var guard = 0;
-    while (guard++ < 40 && !u.dead && u.hp > 0 && !B.over()) {
-      var T = u.turn, heroes = K.foesOf(B, u), reach = G.reachOf(u, u.reach), opts = [], held = u.conds.restrained && u.conds.restrained.ice;
-      var vic = u.flooding ? B.units.filter(function (w) { return w.id === u.flooding.vic; })[0] : null;
-      if (held) {
-        if (T.bonus > 0) opts.push({ label: 'BREAK FREE (BONUS, DC ' + K.CFG.iceDC + ')', value: { do: 'ice', slot: 'bonus' } });
-        if (T.action > 0) opts.push({ label: 'BREAK FREE (ACTION)', value: { do: 'ice', slot: 'action' } });
-      } else if (u.flooding) {
-        if (T.bonus > 0 && vic) opts.push({ label: 'ACTIVE SUFFOCATION (BONUS)', value: { do: 'suffocate' } });
-        opts.push({ label: 'LET GO, RISE', value: { do: 'rise' } });
-      } else {
-        if (T.action > 0) heroes.filter(function (w) { return !w.conds.hidden || G.dist(u, w) <= (u.blindsight || 0); }).filter(function (w) { return G.dist(u, w) <= reach; }).slice(0, 4)
-          .forEach(function (w) { opts.push({ label: 'SLAM ' + w.name.toUpperCase() + ' (DC 15 STR OR PRONE)', value: { do: 'slam', id: w.id } }); });
-        if (T.bonus > 0 && K.canWave(B, u)) opts.push({ label: 'THE WAVE (BONUS)', value: { do: 'wave' } });
-        if (T.action > 0 && K.canReadyWall(B, u)) opts.push({ label: 'READY THE ICE WALL', value: { do: 'ready' } });
-        if (T.action > 0) heroes.filter(function (w) { return K.isDeep(w.x, w.y) && !w.conds.restrained; }).slice(0, 2).forEach(function (w) { opts.push({ label: 'SWIRL ' + w.name.toUpperCase(), value: { do: 'swirl', id: w.id } }); });
-        if (T.move > 0 && !u.conds.restrained) opts.push({ label: 'MOVE (' + T.move + ' FT)', value: { do: 'move' } });
-      }
-      opts.push({ label: 'END TURN', value: { do: 'end' } });
-      var lines = ['MOVE ' + T.move + ' FT   ACTION ' + (T.action > 0 ? 'READY' : 'spent') + '   BONUS ' + (T.bonus > 0 ? 'READY' : 'spent') + '   AC ' + RU.ac(u) + '  HP ' + u.hp + '/' + u.maxhp,
-        held ? 'You are held in ice.' : u.flooding ? 'You are the swirl about ' + (vic ? vic.name : 'no one') + '.' : 'You are in your water: ' + heroes.map(function (w) { return w.name + ' ' + G.dist(u, w) + ' ft' + (w.conds.prone ? ' (prone)' : ''); }).join(', ') + '.'];
-      var pick = yield { prompt: { who: u, title: 'THE KEEPER: YOUR TURN', lines: lines, opts: opts } };
-      if (!pick || pick.do === 'end') break;
-      yield* KP.keeperDo(B, u, pick);
-      if (B.over()) break;
+    while (guard++ < 60 && !u.dead && u.hp > 0 && !B.over()) {
+      var cmd = yield { turn: u };
+      if (!cmd || cmd.do === 'end') break;
+      yield* B.exec(u, cmd);
+      K.checkSwirl(B);
+      if (B.over() || u.dead) break;
+      B.keepInView(u);
     }
     K.finish(B, u);
+    B.tool = 'move';
   };
-  // one thing the Keeper does (the menu's, and the scripted Keeper's)
+  // the Keeper's commands, through the one exec the keys use
+  var exec1 = D.Battle.prototype.exec;
+  D.Battle.prototype.exec = function* (u, c) {
+    if (!(c && /^k(slam|wave|cast|ready|swirl|suffocate|rise|icebonus|iceaction)$/.test(c.do)) || u.kind !== 'keeper') return yield* exec1.apply(this, arguments);
+    var legalNow = KP.entries(this, u).filter(function (e) { return e.id === c.do; })[0];
+    if (!legalNow || !legalNow.ok) { this.card(['{g}' + (legalNow ? legalNow.label + ': ' + (legalNow.why || 'not now') : 'Not now') + '.{/}'], 120); return; }
+    yield* KP.keeperDo(this, u, c);
+  };
+  // one thing the Keeper does (the ring's, and the scripted Keeper's); a target not named is picked on the grid, in gold
+  function* pickHero(B, u, title, list) {
+    if (!list.length) return null;
+    var opts = list.map(function (w, i) { return { label: w.name.toUpperCase() + ' (' + G.dist(u, w) + ' FT)', value: i + 1 }; }); opts.push({ label: 'NOT NOW', value: 0 });
+    var v = yield { prompt: { who: u, title: 'THE KEEPER: ' + title, lines: ['A gold square, E or a click; X is not now.'], opts: opts, pick: list } };
+    return v ? list[v - 1] : null;
+  }
   KP.keeperDo = function* (B, u, c) {
-    var T = u.turn, t = c.id ? B.units.filter(function (w) { return w.id === c.id; })[0] : null;
+    var T = u.turn, t = c.id ? B.units.filter(function (w) { return w.id === c.id; })[0] : (c.target && c.target.id ? c.target : null), reach = G.reachOf(u, u.reach);
     switch (c.do) {
-      case 'slam': if (t && T.action > 0) { T.action = 0; K.face(B, u, t); D.fx.keeperSlam(u, t); yield* B.attack(u, t, u.attacks.slam); u.anim = 'idle'; u.animT = B.t; if (u.conds.hidden) delete u.conds.hidden; } return;
-      case 'wave': if (T.bonus > 0 && (yield* K.wave(B, u))) T.bonus = 0; return;
-      case 'ready': if (T.action > 0 && K.canReadyWall(B, u)) yield* K.readyWall(B, u); return;
-      case 'swirl': if (t && T.action > 0) { T.action = 0; yield* K.flood(B, u, t); } return;
-      case 'suffocate': if (u.flooding && T.bonus > 0) { var v = B.units.filter(function (w) { return w.id === u.flooding.vic; })[0]; if (v) yield* K.suffocate(B, u, v); } return;
-      case 'rise': if (u.flooding) { var h = B.units.filter(function (w) { return w.id === u.flooding.vic; })[0]; K.surface(B, u, 'it lets go'); if (h) B.release(u, h); } return;
-      case 'ice': if (u.conds.restrained && u.conds.restrained.ice) yield* K.iceTry(B, u, c.slot); return;
-      case 'move': {
-        var rm = G.reach(u, T.move), list = [];
-        Object.keys(rm).forEach(function (k) { var e = rm[k]; if (e.stand && e.cost > 0) list.push({ x: e.x, y: e.y, size: u.size, conds: {}, name: 'HERE', cost: e.cost }); });
-        if (!list.length) return;
-        var opts = list.map(function (e, i) { return { label: 'LANE ' + K.A(e) + '/' + K.C(e) + ' (' + e.cost + ' FT)', value: i + 1 }; }); opts.push({ label: 'NOT NOW', value: 0 });
-        var a = yield { prompt: { who: u, title: 'THE KEEPER: MOVE WHERE?', lines: ['A gold square, E or a click; X is not now.'], opts: opts, pick: list } };
-        if (!a) return;
-        var sq = list[a - 1], path = G.path(rm, sq.x, sq.y);
-        if (path && path.length) { K.face(B, u); yield* B.moveAlong(u, path, { spend: true }); K.face(B, u); }
-        return;
+      case 'kslam': case 'slam': {
+        if (!t) t = yield* pickHero(B, u, 'SLAM WHOM?', K.foesOf(B, u).filter(function (w) { return (!w.conds.hidden || G.dist(u, w) <= (u.blindsight || 0)) && G.dist(u, w) <= reach; }));
+        if (!t || T.action <= 0) return;
+        T.action = 0; K.face(B, u, t); D.fx.keeperSlam(u, t); yield* B.attack(u, t, u.attacks.slam); u.anim = 'idle'; u.animT = B.t; if (u.conds.hidden) delete u.conds.hidden; return;
       }
+      case 'kwave': case 'wave': if (T.bonus > 0 && (yield* K.wave(B, u))) T.bonus = 0; return;
+      case 'kcast': if (T.action > 0 && K.canCastWall(B, u)) yield* K.castWall(B, u); return;
+      case 'kready': case 'ready': if (T.action > 0 && K.canReadyWall(B, u)) yield* K.readyWall(B, u); return;
+      case 'kswirl': case 'swirl': {
+        if (!t) t = yield* pickHero(B, u, 'SWIRL WHOM?', K.foesOf(B, u).filter(function (w) { return K.isDeep(w.x, w.y) && !w.conds.restrained; }));
+        if (!t || T.action <= 0) return;
+        T.action = 0; yield* K.flood(B, u, t); return;
+      }
+      case 'ksuffocate': case 'suffocate': { if (!u.flooding || T.bonus <= 0) return; var v = B.units.filter(function (w) { return w.id === u.flooding.vic; })[0]; if (v) yield* K.suffocate(B, u, v); return; }
+      case 'krise': case 'rise': { if (!u.flooding) return; var h = B.units.filter(function (w) { return w.id === u.flooding.vic; })[0]; K.surface(B, u, 'it lets go'); if (h) B.release(u, h); return; }
+      case 'kicebonus': if (u.conds.restrained && u.conds.restrained.ice && T.bonus > 0) yield* K.iceTry(B, u, 'bonus'); return;
+      case 'kiceaction': if (u.conds.restrained && u.conds.restrained.ice && T.action > 0) yield* K.iceTry(B, u, 'action'); return;
     }
   };
 

@@ -144,6 +144,7 @@
   // spells?" -- "yes"): they draw on one use (u.feats.channel), and the list says how many are left
   var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1 };
   UI.cmds = function (B, u) {
+    if (D.keeperPlay && D.keeperPlay.human(B, u)) return D.keeperPlay.ring(B, u); // (?keeperfight&play=keeper: the Keeper's own ring -- js/keeperplay.js)
     var c = B.commands(u), top = {}, sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own)
     c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (fr && x.id === fr) { top.front = x; return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
@@ -874,7 +875,7 @@
     var s = G.map && G.map.at(u.x, u.y); if (D.keeper && D.keeper.iced && D.keeper.iced(B, u.x, u.y)) return null; // (on ice: on top of it, not in the water -- js/keeper.js)
     if (u.kind === 'keeper' && D.keeper && s && s.ch === '~' && !u.dead) return D.keeper.wade(B, u); // (the Keeper stands in its pool as the heroes do: js/keeper.js K.wade)
     var s = G.map && G.map.at(u.x, u.y); if (!s || !(s.ch === '~' || s.deep) || u.bound || u.swims || u.riding || u.ethereal || u.under) return null;
-    var def = G.map.def || {}, cut = def.wade != null ? def.wade : 3, sink = 0, k = (u.size || 1);
+    var def = G.map.def || {}, cut = def.waterLevel != null ? Math.min(Math.max(2, def.waterLevel - G.map.gz(u.x, u.y)), Math.round(D.spr.unitTop(u) * 0.8)) : def.wade != null ? def.wade : 3, sink = 0, k = (u.size || 1); // (a map's `waterLevel`: one flat sheet, so the depth is the sheet less the floor under it -- the Flooded Stair's steps; a drawing only)
     var hold = u.conds && u.conds.restrained && B.units.filter(function (w) { return w.id === u.conds.restrained.by; })[0];
     if (hold && hold.bound && hold.kind !== 'keeper' && !hold.dead && hold.hp > 0) sink = Math.max(0, D.spr.unitTop(u) - cut - 6); // (the Keeper's held sit in its swirl, not sunk: js/keeper.js)
     return { cut: Math.round(cut * k), sink: Math.round(sink) };
@@ -885,6 +886,7 @@
     // (it faces as he does -- Griz, 09-29: "facing left when he's facing north" -- and sits on the shoulder, not above the ear; the shoulder
     // is the one on the viewer's left while he faces toward the viewer, on the right while he faces away)
     if (u.riding && u.master) { u.facing = u.master.facing || 0; p = perchPos(B, u, 1); }
+    if (u.kind === 'keeper' && u.dead && B.t - (u.deadT || B.t) > 50) return null; // (a destroyed Keeper is gone from the water: only calm waves stay, js/keeper.js)
     if (u.left) return null; // out of the fight, the way they came in
     if (u.kind === 'keeper' && D.keeper && !u.dead && (!u.anim || u.anim === 'idle')) D.keeper.face(B, u); // (it faces the party, idle: js/keeper.js)
     if (u.unseen) return null; // (asleep under the water or in its puddle: the Settling's, js/wet.js)

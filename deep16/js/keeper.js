@@ -24,7 +24,7 @@
     Object.keys(link).forEach(function (a) { var row = sh.anims[K.POSE[link[a]]]; if (row) sh.anims[a] = Object.assign({}, row); });
     return K.POSE;
   };
-  K.CFG = { waveDC: 13, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.CFG = { waveDC: 13, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -78,6 +78,8 @@
       hit: foesOf(B, u).filter(function (w) { var p = laneSq(w.x, w.y); return !w.conds.hidden && p.c >= g.c[0] && p.c <= g.c[1] && p.a >= top && p.a <= y1; }),
       lying: foesOf(B, u).filter(function (w) { return w.conds.prone && K.A(w) <= y1; }) };
   }
+  // is there a section of the Ice Wall in this one's column (its place across the hall)?
+  function wallCovers(B, w) { var S = st(B); return !!(S.wall && S.wall.sections.some(function (sec) { return sec.sq.some(function (q) { return K.C({ x: q[0], y: q[1] }) === K.C(w); }); })); }
   K.canWave = function (B, u) { var w = waveSets(B, u); return !u.flooding && (w.hit.length > 0 || w.lying.length > 0); };
   K.wave = function* (B, u) {
     var S = st(B), g = geo(), ws = waveSets(B, u), hit = ws.hit, lying = ws.lying, top = ws.top, y1 = ws.y1;
@@ -96,7 +98,9 @@
     });
     B.card(rows, 260); yield 30;
     // the bounce off the front wall: every prone creature (not on frozen water) is swept toward the deep, and stands up free
-    var swept = foesOf(B, u).filter(function (w) { return w.conds.prone && w.y <= y1; }), out = [], deep = [];
+    // (Griz 10-03, after the playtest: with the wall DOWN the Wave only knocks prone -- nothing is washed back toward the Keeper; with it up the backwash comes off the wall, and, where parts
+    // of it are down, only in the columns where a section still stands. K.CFG.washNoWall: the old washback with no wall, for the bench)
+    var swept = foesOf(B, u).filter(function (w) { return w.conds.prone && K.A(w) <= y1 && (K.CFG.washNoWall || wallCovers(B, w)); }), out = [], deep = [];
     swept.forEach(function (w) {
       if (anchored(B, w)) { out.push('  ' + w.name + ' is held by the ice underfoot: the backwash goes round.'); return; }
       if (w.conds.restrained) return;
@@ -104,6 +108,7 @@
       if (n) { delete w.conds.prone; out.push('  ' + w.name + ' is swept ' + (n * 5) + ' ft toward the deep, and stands.  {g}(pushed by the wave: up free){/}'); if (K.isDeep(w.x, w.y)) deep.push(w); }
     });
     if (out.length) { B.card(['{c}The wave bounces off the ' + (S.wall ? 'ice' : 'wall') + ' and drags back.{/}'].concat(out), 260); yield 30; }
+    else if (!S.wall) { B.card(['{g}The wave runs out along the hall and falls away: no wall to throw it back.{/}'], 200); yield 20; }
     for (var i = 0; i < deep.length; i++) { if (!u.flooding && G.standing(deep[i])) yield* K.flood(B, u, deep[i]); }
     u.anim = 'idle'; u.animT = B.t; // (the cast is over: back to the standing idle)
     return true;
@@ -126,6 +131,13 @@
       '{g}(AC ' + K.CFG.deepAC + ' in the water: anything that strikes the water around ' + v.name + ' strikes it. Escape DC 13, an action; or climb out where the head is over water){/}'], 320);
     yield 40;
   };
+  K.checkSwirl = function (B) {
+    var k = keeperOf(B); if (!k || !k.flooding) return;
+    var v = B.units.filter(function (w) { return w.id === k.flooding.vic; })[0];
+    if (!v || !G.standing(v) || !v.conds.restrained || v.conds.restrained.by !== k.id) K.surface(B, k, v && G.standing(v) ? 'its hold is broken: it falls back to itself' : 'no one is left in it');
+  };
+  var exec0 = D.Battle.prototype.exec;
+  D.Battle.prototype.exec = function* (u, c) { var r = yield* exec0.apply(this, arguments); if (this.kp) K.checkSwirl(this); return r; }; // (whatever a hero did to get free -- break free, a friend's help -- the swirl ends at once)
   K.surface = function (B, u, why) {
     if (!u.flooding) return;
     u.baseAC = u.aboveAC; u.aboveAC = null; u.flooding = null; delete u.drawAt;
@@ -140,6 +152,7 @@
     if (u && u.isWall) return K.wallHit(this, u, n, type);
     var f = u && u.kind === 'keeper' && u.flooding && u.hp > 0, hp0 = u.hp;
     var r = hurt0.apply(this, arguments);
+    if (u && u.kind === 'keeper' && (u.dead || u.hp <= 0) && u.flooding) { u.flooding = null; u.baseAC = u.aboveAC || u.baseAC; delete u.drawAt; this.release(u); } // (a destroyed Keeper lets go)
     if (f && u.hp > 0 && u.hp < hp0 && u.flooding) {
       var v = this.units.filter(function (w) { return w.id === u.flooding.vic; })[0], dmg = hp0 - u.hp;
       if (v && v.conds.restrained && v.conds.restrained.by === u.id) {
@@ -308,7 +321,9 @@
   function* above(B, u) {
     var T = u.turn, S = st(B), hs = foesOf(B, u).filter(function (w) { return !w.conds.hidden || G.dist(u, w) <= (u.blindsight || 0); }), reach = G.reachOf(u, u.reach);
     var near = hs.filter(function (w) { return G.dist(u, w) <= reach; });
-    if (!near.length && T.action > 0 && K.canReadyWall(B, u)) yield* K.readyWall(B, u); // (no one in reach yet: the action goes on the wall -- Griz: "an action it uses to prep" -- and the move closes)
+    // (no one in reach yet: the action goes on the wall -- Griz: "an action it uses to prep" -- and the move closes. It READIES it if it won the initiative (no one of ours has moved), and CASTS it
+    // at once if they have (K.CFG.aiCast; off, it only readies)
+    if (!near.length && T.action > 0 && K.canReadyWall(B, u)) { if (K.CFG.aiCast && B.units.some(function (w) { return w.side === 'party' && w.acted; }) && K.canCastWall(B, u)) yield* K.castWall(B, u); else yield* K.readyWall(B, u); }
     if (!near.length && hs.length) { yield* approachFoe(B, u, hs); if (u.dead || u.hp <= 0) return; near = foesOf(B, u).filter(function (w) { return G.dist(u, w) <= reach; }); }
     if (T.action > 0 && near.length) { // the Slam: the weakest in its reach, one the Wave has not just taken the footing from first
       T.action = 0;
@@ -389,6 +404,14 @@
     if (!g || wa == null || S.uses <= 0 || S.wall || S.ready || u.flooding) return false;
     return foesOf(B, u).some(function (w) { var p = laneSq(w.x, w.y); return p.c >= g.c[0] && p.c <= g.c[1] && p.a >= g.a[0] && p.a < wa; }); // (someone on the pool side of the wall: to be sealed in)
   };
+  // CAST the wall (Griz 10-03): an action on its turn, and it rises at once at the wall's place. READY stays: its point is for the Keeper that wins the initiative -- no one has moved yet
+  K.canCastWall = function (B, u) { var S = st(B); return S.uses > 0 && !S.wall && !u.flooding && !(u.conds.restrained && u.conds.restrained.ice) && wallA(B) != null; };
+  K.castWall = function* (B, u) {
+    u.turn.action = 0; B.focus(u); K.face(B, u); u.anim = 'wall'; u.animT = B.t;
+    B.card(['{r}' + Nm(B, u) + '{/} calls the water across the stair to ice.  {g}(CAST: the Ice Wall, an action){/}'], 240); yield 24;
+    yield* K.raiseWall(B, u, null);
+    u.anim = 'idle'; u.animT = B.t;
+  };
   K.readyWall = function* (B, u) {
     var S = st(B); u.turn.action = 0; S.ready = { round: B.round };
     B.focus(u); K.face(B, u); u.anim = 'wall'; u.animT = B.t;
@@ -405,7 +428,7 @@
     var S = st(B), g = geo(), wa = wallA(B), sq = [], cc;
     for (cc = g.c[0]; cc <= g.c[1]; cc++) { var s0 = K.at(wa, cc), q = G.map.at(s0[0], s0[1]); if (q && q.open) sq.push(s0); }
     if (!sq.length) return;
-    S.uses--; S.ready = null; k.reaction = 0;
+    S.uses--; S.ready = null; if (trig) k.reaction = 0; // (a reaction when it springs; the cast's is an action)
     var secs = [], i; for (i = 0; i < sq.length; i += 2) secs.push({ sq: sq.slice(i, i + 2), hp: K.CFG.wallHP, max: K.CFG.wallHP, born: B.t });
     var w = { id: 'keeperice-' + S.uses, spell: 'keeperice', by: k.id, kind: 'ice', sight: false, solid: true, cost: 0, sq: sq.slice(), a: wa, cx: sq[0][0], cy: sq[0][1], dir: g.axis === 'x' ? [1, 0] : [0, 1], dc: 13, sections: secs };
     // whoever stands where it rises is set back onto the pool side
@@ -420,7 +443,7 @@
     secs.forEach(function (sec) { sec.targets = sec.sq.map(function (p, j) { return { id: 'icewall-' + S.uses + '-' + secs.indexOf(sec) + j, name: 'Ice Wall', side: 'foe', kind: 'icewall', type: 'object', isWall: true, sec: sec, wall: w, x: p[0], y: p[1], size: 1, hp: 999, maxhp: 999, baseAC: K.CFG.wallStrikeAC, ac: K.CFG.wallStrikeAC, conds: {}, abil: { str: 10, dex: 10, con: 10, int: 1, wis: 1, cha: 1 }, saves: { str: 0, dex: 0, con: 0, int: 0, wis: 0, cha: 0 }, immune: ['poison', 'psychic'], resist: [], vulnerable: [], attacks: {}, reaction: 0, flash: 0, anim: 'idle', animT: 0, dead: false, speed: 0, noProne: true, condImmune: ['blinded', 'charmed', 'deafened', 'frightened', 'paralyzed', 'poisoned', 'prone', 'restrained', 'stunned', 'asleep'] }; }); });
     B.walls = (B.walls || []).concat([w]); B.wallMap = null; S.wall = w;
     B.focus(k); k.anim = 'wall'; k.animT = B.t; D.sfx('earth'); FX.bloom(w.cx, w.cy, sq, 'glow');
-    B.card(['{r}' + Nm(B, k) + '{/} springs the Ice Wall: {c}the water on the stair freezes across, behind ' + trig.name + '.{/}',
+    B.card(['{r}' + Nm(B, k) + '{/} ' + (trig ? 'springs' : 'raises') + ' the Ice Wall: {c}the water on the stair freezes across' + (trig ? ', behind ' + trig.name : '') + '.{/}',
       '{g}(at ' + wa + ' along the stair, AC ' + K.CFG.wallAC + ', ' + K.CFG.wallHP + ' HP a 10-ft section; fire destroys a section at once; ' + S.uses + ' use' + (S.uses === 1 ? '' : 's') + ' left){/}'], 340);
     yield 40;
   };
@@ -483,6 +506,16 @@
   var props0 = D.walls && D.walls.props;
   if (props0) D.walls.props = function (B) {
     var out = props0.apply(this, arguments), gm = geo();
+    if (def().waterLevel != null) { // the water: one flat sheet over the flooded steps, the steps showing through it (a drawing only)
+      for (var wy = 0; wy < B.map.h; wy++) for (var wx = 0; wx < B.map.w; wx++) {
+        var ws = B.map.at(wx, wy); if (!ws || ws.ch !== '~') continue;
+        out.push({ depth: wx + wy + 0.12, gz: def().waterLevel, layer: 0, draw: (function (x, y) { return function (ctx) {
+          var iso = D.iso, c = iso.center(x, y, def().waterLevel), s2 = iso.toScreen(c.x, c.y), hw = iso.TW / 2, hh = iso.TH / 2, t = B.t / 40, deep = 1 - Math.min(1, (def().waterLevel - B.map.gz(x, y)) / 40);
+          ctx.globalAlpha = 0.34 + 0.2 * (1 - deep); ctx.fillStyle = deep > 0.5 ? '#1c3f78' : '#2c5f9a'; ctx.beginPath(); ctx.moveTo(s2.x, s2.y - hh); ctx.lineTo(s2.x + hw, s2.y); ctx.lineTo(s2.x, s2.y + hh); ctx.lineTo(s2.x - hw, s2.y); ctx.closePath(); ctx.fill();
+          ctx.globalAlpha = 0.3; ctx.strokeStyle = '#bfe0ff'; ctx.lineWidth = 1; ctx.beginPath(); var sx = Math.sin(t + x * 1.7 + y) * 6; ctx.moveTo(s2.x - 10 + sx, s2.y - 1); ctx.lineTo(s2.x + 2 + sx, s2.y - 1); ctx.stroke(); ctx.globalAlpha = 1;
+        }; })(wx, wy) });
+      }
+    }
     if (gm && gm.rune) { // the dwarves' mark in the north wall above the landing (the 8-bit's rune the party puts a hand on: warrens_d.json (22,19), events.js S.mark), on the wall's face
       var rs = K.at(gm.rune[0], gm.rune[1]), rgz = B.map.gz(rs[0], rs[1]);
       out.push({ depth: rs[0] + rs[1] + 0.9, gz: rgz, layer: 1, draw: function (ctx) {
@@ -508,6 +541,15 @@
       out.push({ depth: (q0[0] + q0[1] + q1[0] + q1[1]) / 2 + 0.5, gz: g0, layer: 1, draw: function (ctx) {
         var a = scr(q0[0], q0[1], g0), b = scr(q1[0], q1[1], g0), age = B.t - (sec.born || 0), rising = age < 30;
         sprite(ctx, 'keeper_p3', 'wallsolid', age + sec.sq[0][0] * 7, (a.x + b.x) / 2, (a.y + b.y) / 2 + 10, K.CFG.wallScale, rising ? 0.5 + age / 60 : 1, rising ? Math.min(1, age / 24) : 1); // (it grows up out of the floor; the third sheet's frames 4-6, the solid wall)
+      } });
+    });
+    B.units.forEach(function (kd) { // (Griz 10-03, its defeat: no figure -- very calm waves in the pool where it was)
+      if (kd.kind !== 'keeper' || !kd.dead) return;
+      var kgz = B.map.gz(kd.x, kd.y);
+      out.push({ depth: kd.x + kd.y + 1.1, gz: kgz, layer: 1, draw: function (ctx) {
+        var c = D.iso.center(kd.x + 0.5, kd.y + 0.5, kgz), s2 = D.iso.toScreen(c.x, c.y), C = ramp(), t = B.t, age = Math.max(0, t - (kd.deadT || t)), fade = Math.min(1, age / 60);
+        for (var i = 0; i < 3; i++) { var ph = ((t / 90) + i / 3) % 1; ctx.globalAlpha = 0.5 * fade * (1 - ph); ctx.strokeStyle = C[i % 2]; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(s2.x, s2.y - 2, 10 + ph * 38, 5 + ph * 19, 0, 0, 7); ctx.stroke(); }
+        ctx.globalAlpha = 1;
       } });
     });
     B.units.forEach(function (v) {
@@ -636,6 +678,7 @@
   K.fight = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     if (get('seed')) D.seed = +get('seed') | 0;
+    if (get('init') != null) K.CFG.initBonus = +get('init') | 0; if (get('cast') != null) K.CFG.aiCast = get('cast') !== '0'; if (get('washnowall') != null) K.CFG.washNoWall = get('washnowall') === '1'; // (the bench's settings: init=5 the Keeper's initiative bonus, cast=0 the AI never casts the wall, washnowall=1 the old backwash)
     var B = new D.Battle({ fight: 'keeper', data: D.save.fixture(+(get('lvl') || 3)), bench: !!get('seed') || /[?&]watch\b/.test(q) });
     var enter0 = B.enter;
     B.enter = function () {
@@ -676,9 +719,9 @@
   // the standing depth (Griz 10-03: it "looks perched on top of the water while heroes look submerged"): UI.wading draws the Keeper into the pool -- from the ankle in the shallows
   // to the waist at the deep end, by how far its square is from the deep; waist-deep and a little more while it swirls someone. A drawing only: the map's heights and the rules are as they were
   K.wade = function (B, u) {
-    var d = (def().deeps || []).length ? Math.min.apply(null, def().deeps.map(function (p) { return Math.max(Math.abs(p[0] - u.x), Math.abs(p[1] - u.y)); })) : 6;
-    var f = Math.max(0, Math.min(1, 1 - (d - 1) / 6)), cut = Math.round(8 + f * 40 + (u.flooding ? 6 : 0));
-    return { cut: cut, sink: 0 };
+    var def0 = def(), depth = def0.waterLevel != null ? def0.waterLevel - G.map.gz(u.x, u.y) : 20;   // (how deep the water over its square is: the sheet less the floor)
+    var f = Math.max(0, Math.min(1, (depth - 4) / 35));
+    return { cut: Math.round(8 + f * 40), sink: 0 };
   };
   D.footprintDebug = /[?&]footprint\b/.test(location.search); // (?footprint draws the Keeper's squares and centre: js/ui.js)
   K.iced = function (B, x, y) { return !!(B && B.kp && B.kp.ice[x + ',' + y]); };

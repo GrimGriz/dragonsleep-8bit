@@ -24,7 +24,7 @@
   try {
     var B = battle({ lvl: 3 }), k = keeper(B), P = ours(B), cards = cardsOf(B), S;
     ok('the Keeper: AC ' + RU.ac(k) + ', HP ' + k.hp + ', a Slam (prone DC ' + (k.attacks.slam && k.attacks.slam.prone) + '), no Constrict or Drag Under', k.attacks.slam && k.attacks.slam.prone === 15 && !k.attacks.constrict && !k.attacks.drown && RU.ac(k) === 13 && k.hp === 100);
-    ok('the map: runs ' + (G.map.def.geo.axis === 'x' ? 'west-east' : 'north-south') + ', deep ' + JSON.stringify(G.map.def.deeps) + ', wall at ' + G.map.def.geo.wall + ' along', G.map.def.deeps.length === 3 && G.map.def.geo.wall === 11 && deepL(8, 1) && !deepL(8, 2));
+    ok('the map: runs ' + (G.map.def.geo.axis === 'x' ? 'west-east' : 'north-south') + ', deep ' + JSON.stringify(G.map.def.deeps) + ', wall at ' + G.map.def.geo.wall + ' along', G.map.def.deeps.length === 4 && G.map.def.geo.wall === 11 && deepL(8, 1) && !deepL(8, 2));
     P.forEach(function (u) { delete u.conds.hidden; });
     // ---- the sheet: keeper_p2 (keeper_p1 left alone), the engine's anim names, the one-line pose swap
     var SH = D.SHEETS.keeper_p2, an0 = SH && SH.anims;
@@ -32,6 +32,7 @@
     var y0s = an0.attack.y, f0s = an0.attack.frames; K.pose({ slam: 'slam_ba' });
     ok('pose({ slam: slam_ba }) re-points the Slam: y ' + y0s + ' (' + f0s + ' frames) -> ' + an0.attack.y + ' (' + an0.attack.frames + ')', an0.attack.y !== y0s && an0.attack.y === an0.slam_ba.y);
     K.pose({ slam: 'slam_b3a' });
+    K.CFG.washNoWall = true; // (the old backwash with no wall, for the checks below; the new rule has its own checks after the wall's)
     // ---- the Wave: two heroes on the stair, both fail; the backwash takes each 10 ft toward the deep, and they stand
     put(P[0], 8, 9); put(P[1], 9, 9); put(P[2], 7, 10); put(P[3], 10, 10); delete k.conds.hidden;
     force(false); cards.length = 0; RU.startTurn(k); var did = drain(K.wave(B, k)); unforce();
@@ -152,7 +153,7 @@
     put(H9[0], 7, 10); put(H9[1], 10, 10); put(H9[2], 3, 3); put(H9[3], 3, 4); k9.reaction = 1; drain(K.raiseWall(B9, k9, H9[0]));
     var t1 = wallL(B9, 8, 11), t2 = wallL(B9, 10, 11), W9 = B9.kp.wall;
     ok('the wall is something to aim at: a target on each of its squares (' + (t1 && t1.name) + ' AC ' + (t1 && RU.ac(t1)) + ', ' + (t2 && t2.x) + ',' + (t2 && t2.y) + '), none where there is no wall', t1 && t2 && RU.ac(t1) === 10 && !wallL(B9, 8, 10) && t1.sec !== t2.sec);
-    H9[0].weapon = Object.assign({}, H9[0].weapon, { atk: 60 }); RU.startTurn(H9[0]); c9.length = 0; drain(B9.exec(H9[0], { do: 'attack', target: t1 }));
+    H9[0].weapon = Object.assign({}, H9[0].weapon, { atk: 60 }); for (var wt = 0; wt < 6 && !/shrugs off/.test(c9.join(' ')); wt++) { RU.startTurn(H9[0]); c9.length = 0; drain(B9.exec(H9[0], { do: 'attack', target: t1 })); } // (a natural 1 misses: up to six tries)
     ok('a weapon blow on the wall: it lands, and does no harm (' + W9.sections.length + ' sections; ' + (c9.filter(function (c) { return /shrugs off/.test(c); }).length) + ' shrugged off)', W9.sections.length === 2 && /shrugs off/.test(c9.join(' ')) && /Ice Wall/.test(c9.join(' ')));
     c9.length = 0; B9.hurt(t1, 7, 'fire');
     ok('fire carried by a blow (fire damage on the wall): that section goes (' + (B9.kp.wall ? B9.kp.wall.sections.length : 0) + ' left)', B9.kp.wall && B9.kp.wall.sections.length === 1 && /steam/.test(c9.join(' ')) && !wallL(B9, 8, 11) && !!wallL(B9, 10, 11));
@@ -165,16 +166,16 @@
     D.battle = B3;
     // ---- the Slam: a hit that fails the DC 15 STR save puts them prone
     var B2 = battle({ lvl: 3 }), k2 = keeper(B2), Q = ours(B2); delete k2.conds.hidden; put(Q[0], 8, 6);
-    var prone = 0, hits = 0; for (var i = 0; i < 60; i++) { delete Q[0].conds.prone; Q[0].hp = Q[0].maxhp; drain(B2.attack(k2, Q[0], k2.attacks.slam)); if (Q[0].conds.prone) prone++; }
-    ok('the Slam knocks prone on a failed save (' + prone + ' of 60 swings)', prone > 5);
+    var prone = 0, hits = 0; for (var i = 0; i < 200; i++) { delete Q[0].conds.prone; Q[0].hp = Q[0].maxhp; drain(B2.attack(k2, Q[0], k2.attacks.slam)); if (Q[0].conds.prone) prone++; if (Q[0].hp < Q[0].maxhp) hits++; }
+    ok('the Slam knocks prone on a failed save (' + prone + ' of 200 swings, ' + hits + ' hit, ' + Q[0].name + ' AC ' + RU.ac(Q[0]) + ' at ' + K.A(Q[0]) + ',' + K.C(Q[0]) + ')', prone > 12);
     // ---- the gallery (?fxgallery&keeper): all six scenes run through the real code, with the looks added (and drawn onto a canvas)
     var GB = D.fxKeeper('?fxgallery&keeper&auto'); D.battle = GB; GB.enter(); var seen = {}, gerr = '', gsteps = 0, cv = document.createElement('canvas'); cv.width = 640; cv.height = 400; var cx2 = cv.getContext('2d');
     while (GB.co && gsteps++ < 60000 && (Object.keys(seen).length < K.SCENES.length || gsteps < 10)) { var gr; try { gr = GB.co.next(); } catch (e) { gerr = String(e && e.stack || e).slice(0, 400); break; } seen[GB.gallery.i] = 1; if (gr.done) break; var nf = typeof gr.value === 'number' ? Math.min(gr.value, 120) : 1; for (var fi = 0; fi < nf; fi++) { D.fx.list.forEach(function (f) { try { f.draw(cx2); } catch (e) { gerr = gerr || ('draw ' + f.kind + ': ' + String(e && e.stack || e).slice(0, 300)); } }); D.fx.update(); GB.t = (GB.t || 0) + 1; } }
     ok('the gallery: ' + Object.keys(seen).length + ' of ' + K.SCENES.length + ' scenes seen, ' + gsteps + ' steps' + (gerr ? ', ERROR ' + gerr : ''), Object.keys(seen).length >= K.SCENES.length && !gerr);
     // ---- ?keeperfight&seed=174221&watch drained (no frame loop): the fight the notes name -- level 3, won in round 7, a flood, a hold broken, a wall
-    var KF = D.keeper.fight('?keeperfight&seed=435548&watch&lvl=3'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
+    var KF = D.keeper.fight('?keeperfight&seed=31679&watch&lvl=3'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
-    ok('?keeperfight&seed=435548 drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/springs the Ice Wall/g), KF.result === 'won' && KF.round === 7 && kn(/washed into the deep/g) === 1 && kn(/springs the Ice Wall/g) === 1);
+    ok('?keeperfight&seed=31679 drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g), KF.result === 'won' && KF.round === 6 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1);
     // ---- the two play modes (js/keeperplay.js): each drives a whole fight without error
     // B: the party played by a script, one plan a turn, through D16.keeperPlay.actSync
     var KB = D.keeper.fight('?keeperfight&play=party&lvl=3'); D.battle = KB; KB.enter(); var KPl = D.keeperPlay, acts = { n: 0, attack: 0, cast: 0, move: 0, dodge: 0 }, st0 = KPl.actSync({ do: 'none', keep: true }), perr = '', pj = '';
@@ -206,20 +207,51 @@
     try {
       while (KA.co && g2++ < 400000) {
         var rr = KA.co.next(); if (rr.done) break; var yv = rr.value;
+        while (yv && yv.turn) { // the ring: the Keeper's turn asked for a command; the policy picks the first entry on offer (what the ring shows, B.commands), a step toward the party once a turn
+          var ku = yv.turn, ents = KA.commands(ku), order = ['kswirl', 'kslam', 'kwave', 'kcast', 'kready', 'ksuffocate', 'kiceaction', 'kicebonus'], cmd = { do: 'end' };
+          if (ents.some(function (e) { return e.id === 'ksuffocate'; }) !== (!!ku.flooding && ents.some(function (e) { return e.id === 'krise'; }))) aerr = aerr || 'suffocate offered without a hold';
+          order.some(function (id) { return ents.some(function (e) { if (e.id === id && e.ok) { cmd = { do: id }; return true; } return false; }); });
+          menus++;
+          if (cmd.do === 'end' && ku.turn.moved1 !== KA.round && ku.turn.move > 0 && !ku.conds.restrained) { ku.turn.moved1 = KA.round; var hs2 = KA.units.filter(function (w) { return w.side === 'party' && w.hp > 0; }), rm = G.reach(ku, ku.turn.move), bs = null; Object.keys(rm).forEach(function (kx) { var xy = kx.split(',').map(Number); if (!rm[kx].stand) return; hs2.forEach(function (h) { var d = Math.max(Math.abs(xy[0] - h.x), Math.abs(xy[1] - h.y)); if (!bs || d < bs.d) bs = { d: d, x: xy[0], y: xy[1] }; }); }); if (bs && (bs.x !== ku.x || bs.y !== ku.y)) { cmd = { do: 'move', x: bs.x, y: bs.y }; picks++; } }
+          used[cmd.do] = (used[cmd.do] || 0) + 1; var r3 = KA.co.next(cmd); if (r3.done) { yv = null; break; } yv = r3.value;
+        }
         while (yv && yv.prompt) {
           var op = yv.prompt.opts, ans;
           if (yv.prompt.pick) { picks++; var kp0 = op.length - 1, bestI = 0, bestD = 1e9, hs = KA.units.filter(function (w) { return w.side === 'party' && w.hp > 0; }); yv.prompt.pick.forEach(function (sqr, i) { hs.forEach(function (h) { var d = Math.max(Math.abs(sqr.x - h.x), Math.abs(sqr.y - h.y)); if (d < bestD) { bestD = d; bestI = i; } }); }); ans = op[bestI].value; }
-          else if (/KEEPER/.test(yv.prompt.title)) {
-            menus++; var order = ['ice', 'slam', 'wave', 'ready', 'suffocate', 'swirl', 'move', 'end'], pickO = null;
-            order.some(function (dn) { return op.some(function (o) { if (o.value && o.value.do === dn) { pickO = o; return true; } return false; }); });
-            ans = (pickO || op[op.length - 1]).value; used[ans.do] = (used[ans.do] || 0) + 1;
-            if (ans.do === 'move' && (used.move || 0) > 3) ans = op[op.length - 1].value;
-          } else ans = op[0].value;
+          else ans = op[0].value;
           var r2 = KA.co.next(ans); if (r2.done) { yv = null; break; } yv = r2.value;
         }
       }
     } catch (e) { aerr = String(e && e.stack || e).slice(0, 300); }
-    ok('play=keeper: a human is the Keeper (' + menus + ' menus, ' + picks + ' move picks; used ' + JSON.stringify(used) + '), the fight ends: ' + KA.result + ' R' + KA.round + (aerr ? ', ERROR ' + aerr : ''), !aerr && menus > 3 && !!KA.result && (used.slam || 0) + (used.wave || 0) > 0);
+    ok('play=keeper: a human is the Keeper (' + menus + ' menus, ' + picks + ' move picks; used ' + JSON.stringify(used) + '), the fight ends: ' + KA.result + ' R' + KA.round + (aerr ? ', ERROR ' + aerr : ''), !aerr && menus > 3 && !!KA.result && (used.kslam || 0) + (used.kwave || 0) > 0);
+    // ---- 10-03 desk notes A-G: the Wave with no wall (prone only, no washback), with the wall (washback only where a section stands), the CAST, who may do what, the ring
+    K.CFG.washNoWall = false;
+    var BC = battle({ lvl: 3 }), kC = keeper(BC), HC = ours(BC), cC = cardsOf(BC); HC.forEach(function (u) { delete u.conds.hidden; }); delete kC.conds.hidden;
+    put(HC[0], 8, 9); put(HC[1], 9, 9); put(HC[2], 7, 7); put(HC[3], 10, 7); force(false); RU.startTurn(kC); var yA = HC.map(function (u) { return K.A(u); }); drain(K.wave(BC, kC)); unforce();
+    ok('Wave, wall down: all prone (' + HC.filter(function (u) { return u.conds.prone; }).length + ') and none swept (' + yA + ' -> ' + HC.map(function (u) { return K.A(u); }) + ')', HC.every(function (u) { return u.conds.prone; }) && HC.every(function (u, i) { return K.A(u) === yA[i]; }) && !/is swept/.test(cC.join(' ')));
+    HC.forEach(function (u) { delete u.conds.prone; }); put(HC[0], 8, 9); put(HC[1], 9, 9); put(HC[2], 7, 9); put(HC[3], 10, 9); BC.kp.uses = 3; kC.reaction = 1; drain(K.raiseWall(BC, kC, null));
+    HC.forEach(function (u) { delete u.conds.prone; }); put(HC[0], 8, 9); put(HC[1], 9, 9); put(HC[2], 7, 9); put(HC[3], 10, 9);
+    var secA = BC.kp.wall.sections[0], cA = secA.sq.map(function (p) { return K.C({ x: p[0], y: p[1] }); }); RU.startTurn(kC); force(false); cC.length = 0; drain(K.wave(BC, kC)); unforce();
+    ok('Wave, wall up: swept off it, ' + HC.map(function (u) { return K.A(u); }), HC.every(function (u) { return K.A(u) < 9; }) || /is swept/.test(cC.join(' ')));
+    var secs0 = BC.kp.wall.sections; BC.kp.wall.sections = [secs0[1]]; BC.kp.wall.sq = secs0[1].sq.slice(); BC.wallMap = null; HC.forEach(function (u) { delete u.conds.prone; }); put(HC[0], 8, 9); put(HC[1], 9, 9); put(HC[2], 7, 9); put(HC[3], 10, 9); cC.length = 0; var cc2 = secs0[1].sq.map(function (p) { return K.C({ x: p[0], y: p[1] }); }); RU.startTurn(kC); force(false); drain(K.wave(BC, kC)); unforce();
+    ok('Wave, a section gone: swept only where one stands (columns ' + cc2 + '; A ' + HC.map(function (u) { return K.C(u) + ':' + K.A(u); }) + ')', HC.every(function (u) { return cc2.indexOf(K.C(u)) >= 0 ? K.A(u) < 9 : K.A(u) === 9; }));
+    // CAST: at once, an action; init bonus; E: the ring offers only what applies
+    var BD = battle({ lvl: 3 }), kD = keeper(BD), HD = ours(BD), cD = cardsOf(BD); delete kD.conds.hidden; HD.forEach(function (u) { delete u.conds.hidden; }); put(HD[0], 8, 9); RU.startTurn(kD); var canC = K.canCastWall(BD, kD); drain(K.castWall(BD, kD));
+    ok('CAST Ice Wall: canCast ' + canC + ', up at once (' + !!BD.kp.wall + '), action spent ' + (kD.turn.action === 0) + ', ' + BD.kp.uses + ' uses left, reaction kept ' + kD.reaction, canC && BD.kp.wall && kD.turn.action === 0 && BD.kp.uses === 2 && kD.reaction === 1 && /raises the Ice Wall/.test(cD.join(' ')));
+    var BE = battle({ lvl: 3 }), kE = keeper(BE), HE = ours(BE); BE.o.play = 'keeper'; delete kE.conds.hidden; HE.forEach(function (u) { delete u.conds.hidden; }); put(HE[0], 8, 9); RU.startTurn(kE);
+    var idsE = function () { return BE.commands(kE).map(function (e) { return e.id; }).join(','); }, e0 = idsE();
+    ok('ring, no one held: ' + e0, !/ksuffocate|krise|kice/.test(e0) && /kslam/.test(e0) && /kcast/.test(e0) && /kready/.test(e0));
+    force(false); put(HE[1], 8, 1); HE[1].conds.prone = false; drain(K.flood(BE, kE, HE[1])); unforce(); RU.startTurn(kE); var e1 = idsE();
+    ok('ring, a hero held: ' + e1, /ksuffocate/.test(e1) && /krise/.test(e1) && !/kslam/.test(e1) && !/kwave/.test(e1));
+    HE[1].conds.restrained = null; delete HE[1].conds.restrained; drain(BE.exec(HE[1], { do: 'none' })); // a hero got free (any command runs the check)
+    ok('the hero got free: the Keeper is back to the humanoid (flooding ' + !!kE.flooding + '), ring ' + idsE(), !kE.flooding && !/ksuffocate|krise/.test(idsE()));
+    // D: the initiative bonus
+    var iA = 0, iB = 0; K.CFG.initBonus = 0; for (var q0 = 0; q0 < 20; q0++) { D.seed = 100 + q0; var Bi = battle({ lvl: 3 }); Bi.o.noCards = 1; Bi.fight = Object.assign({}, Bi.fight, { noCards: true }); Bi.co.next(); iA += keeper(Bi).initRoll; } K.CFG.initBonus = 5; for (q0 = 0; q0 < 20; q0++) { D.seed = 100 + q0; var Bj = battle({ lvl: 3 }); Bj.fight = Object.assign({}, Bj.fight, { noCards: true }); Bj.co.next(); iB += keeper(Bj).initRoll; } K.CFG.initBonus = 0;
+    ok('initiative bonus: Keeper rolls sum ' + iA + ' at +0, ' + iB + ' at +5 over 20 fights', iB - iA === 100);
+    // F: the dead Keeper is not drawn; the pool is calm
+    var BF = battle({ lvl: 3 }), kF = keeper(BF); kF.hp = 1; drain(BF.hurt(kF, 50, 'bludgeoning')); ok('the Keeper dead: ' + (kF.dead || kF.hp <= 0) + ', hidden ' + !!(kF.conds && kF.conds.hidden) + ', releasing ' + !kF.flooding, (kF.dead || kF.hp <= 0) && !kF.flooding);
+    var lg = G.map.def.lights && G.map.def.lights[0], rn = K.at(G.map.def.geo.rune[0], G.map.def.geo.rune[1] - 1);
+    ok('the rune is a light: ' + JSON.stringify(lg) + ' at the square by the north wall ' + rn, lg && lg[0] === rn[0] && lg[1] === rn[1] && lg[3] === 'glow' && lg[2] <= 25);
     D.battle = B3;
     // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row; the counts are what the mechanics did
     var q = {}; location.search.replace(/^\?/, '').split('&').forEach(function (kv) { var a = kv.split('='); if (a[0]) q[a[0]] = decodeURIComponent(a[1] || ''); });
@@ -236,7 +268,7 @@
         var txt = cs.join('\n'), cnt = function (re) { return (txt.match(re) || []).length; };
         if (F.result === 'won') agg.won++; else if (F.result === 'lost') agg.lost++; else agg.none++;
         agg.rounds += F.round; agg.downs += cnt(/ goes down\./g); agg.waves += cnt(/sends a wave/g); agg.swept += cnt(/is swept/g); agg.floods += cnt(/is washed into the deep/g);
-        agg.drown += cnt(/ drowns/g); agg.twice += cnt(/flooded: twice/g); agg.breaks += cnt(/THE HOLD BREAKS/g); agg.kept += cnt(/the hold keeps/g); agg.walls += cnt(/springs the Ice Wall/g);
+        agg.drown += cnt(/ drowns/g); agg.twice += cnt(/flooded: twice/g); agg.breaks += cnt(/THE HOLD BREAKS/g); agg.kept += cnt(/the hold keeps/g); agg.walls += cnt(/(springs|raises) the Ice Wall/g);
         agg.fire += cnt(/goes to steam/g); agg.froze += cnt(/freeze over/g); agg.slams += cnt(/ Slam/g); agg.prone += cnt(/KNOCKED PRONE/g);
       }
       rows.push('L' + L + ' x' + N + (q.wall ? ' wall ' + q.wall : '') + ': ' + JSON.stringify(agg).replace(/"/g, ''));

@@ -2785,7 +2785,7 @@
 }
 },
 "keeper_p2": {
-"image": "art/keeper_p2.png?v=714faf5b36",
+"image": "art/keeper_p2.png?v=d96521987d",
 "fw": 168,
 "fh": 124,
 "ax": 84,
@@ -2906,7 +2906,7 @@
 "ax": 84,
 "ay": 120,
 "y": 11904,
-"frames": 3,
+"frames": 2,
 "fps": 10
 },
 "stand": {
@@ -2978,7 +2978,7 @@
 "ax": 84,
 "ay": 120,
 "y": 11904,
-"frames": 3,
+"frames": 2,
 "fps": 6
 },
 "cast": {

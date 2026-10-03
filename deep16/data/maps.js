@@ -823,57 +823,57 @@ window.D16.MAPS.settling = {
 window.D16.MAPS.floodstair = {
   name: 'The Flooded Stair',
   sub: 'the Warrens, Pete\'s Five',
-  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
-  // a stair, and a flooded one (10-02, Griz: "can we make the stair a stair and them be drawn underwater - barley looks like he's walking on top"): the flight
-  // comes down a step a square from where the party stands to the water's edge, goes under, and the far end is the pool's deep end, with no climb out
-  // (10-02: "stair shouldn't climb out except on the side party comes in on"; "this is solid ground for burrow purposes (map may be used for other purposes)": worked stone)
-  step: 5, wade: 13, noBurrow: true,
-  // RUNS WEST, as the 8-bit's does (10-03, Griz: "orient the DEEP16 floodstair to match it"; content/maps/warrens_d.json, events.js S.stair): the party comes in from the EAST
-  // (the dry landing x20-23 there, the flooded stair 'n' x12-19, four rows wide), the deep end and the sealed door are at the WEST end, the rune is in the NORTH wall above the
-  // landing, on the party's right as they face the water. ONE description of the geometry, read by the engine (js/keeper.js), the probe and the benches alike: `geo` in the LANE FRAME --
-  // a = along the lane, from the pool end (small) to the exit (large); c = across it, left to right as the party faces the pool; `width` the across extent; `axis` which of the
-  // map's own axes a runs along ('x' here). D16.laneAt(map, a, c) is the one function from a lane-frame square to the map's own [x, y]; every number below is in it, and the
-  // map's own `deeps`, `entry` and the Keeper's start are derived from it at the foot of this block
-  geo: { axis: 'x', width: 18, a: [8, 13], c: [7, 10], wall: 11, deeps: [[1, 7], [1, 8], [1, 9]], entry: [[8, 7], [8, 10], [9, 8], [9, 9], [10, 8]], keeper: [4, 8], rune: [12, 11] },
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`); the rune is the one light (below)
+  // THE 8-BIT'S STAIR (content/maps/warrens_d.json, events.js S.stair; 10-03, Griz: "a flooded staircase ... a square-cornered hall"): a straight dwarven hall four squares wide. The party stands
+  // on the DRY LANDING (the 8-bit's x20-23) before the first stair; the stair, eight flooded steps (its 'n', x12-19), goes down from there under water toward the sealed door at the WEST
+  // end; the rune is in the north wall above the landing (x22), and the way in is the corridor on the east. The whole flight is under water: the floor steps down a step a square
+  // (heights, `step` px a step), the water is one flat sheet at `waterLevel` px, so it is ankle-deep at the first step and chest-deep at the last (a DRAWING only: js/ui.js UI.wading
+  // and js/keeper.js K.wade; the rules read none of it). Still water is difficult terrain, which is also the SRD's swimming cost. Worked stone, solid ground for burrowing.
+  step: 5, waterLevel: 39, noBurrow: true,
+  // ONE description of the geometry, read by the engine (js/keeper.js), the probe and the benches alike, in the LANE FRAME -- a along the hall, from the deep (west) end, small, to the east;
+  // c across it, left to right as the party faces the water (west); `width` the across extent; `axis` which of the map's own axes a runs along ('x' here). D16.laneAt(map, a, c) is the
+  // one function from a lane-frame square to the map's own [x, y]; the map's own `deeps`, `entry`, `lights` and the Keeper's start (data/fights.js) are derived from it at the foot of this block.
+  // a 1..8 the flooded steps (the deep end, the last step, a = 1), a 9..12 the dry landing, a 13 the corridor; the wall (Griz: the 3rd from the exit, 11) and the rune (c 11: the north wall)
+  geo: { axis: 'x', width: 18, a: [1, 12], c: [7, 10], wall: 11, deeps: [[1, 7], [1, 8], [1, 9], [1, 10]], entry: [[9, 7], [9, 8], [9, 9], [9, 10], [10, 8]], keeper: [4, 8], rune: [12, 11] },
   heights: [
-    '00000000000000',
-    '00000000000000',
-    '00000000000000',
-    '00000000000000',
-    '00000000000000',
-    '00000000100000',
-    '00000000123000',
-    '00000000123456',
-    '00000000123456',
-    '00000000123456',
-    '00000000123456',
-    '00000000123000',
-    '00000000100000',
-    '00000000000000',
-    '00000000000000',
-    '00000000000000',
-    '00000000000000',
-    '00000000000000'
+    '000000000000000',
+    '000000000000000',
+    '000000000000000',
+    '000000000000000',
+    '000000000000000',
+    '000000000000000',
+    '000000000000000',
+    '001234567888888',
+    '001234567888888',
+    '001234567888888',
+    '001234567888888',
+    '000000000000000',
+    '000000000000000',
+    '000000000000000',
+    '000000000000000',
+    '000000000000000',
+    '000000000000000',
+    '000000000000000'
   ],
   rows: [
-    '##############',
-    '##############',
-    '##############',
-    '##############',
-    '####~~~#######',
-    '###~~~~~.#####',
-    '##~~~~~~...###',
-    '#~~~~~~~======',
-    '#~~~~~~~======',
-    '#~~~~~~~======',
-    '#~~~~~~~======',
-    '#~~~~~~~...###',
-    '##~~~~~~.#####',
-    '###~~~~~######',
-    '####~~~#######',
-    '##############',
-    '##############',
-    '##############'
+    '###############',
+    '###############',
+    '###############',
+    '###############',
+    '###############',
+    '###############',
+    '###############',
+    '#~~~~~~~~....##',
+    '#~~~~~~~~......',
+    '#~~~~~~~~....##',
+    '#~~~~~~~~....##',
+    '###############',
+    '###############',
+    '###############',
+    '###############',
+    '###############',
+    '###############',
+    '###############'
   ],
   foes: [],
   wave: null
@@ -883,7 +883,9 @@ window.D16.laneAt = function (m, a, c, size) {
   var g = m.geo, k = (size || 1) - 1;
   return g.axis === 'x' ? [a, g.width - 1 - c - k] : [c, a];
 };
-(function () { var m = window.D16.MAPS.floodstair, g = m.geo; m.deeps = g.deeps.map(function (p) { return window.D16.laneAt(m, p[0], p[1]); }); m.entry = g.entry.map(function (p) { return window.D16.laneAt(m, p[0], p[1]); }); })();
+(function () { var m = window.D16.MAPS.floodstair, g = m.geo, at = function (p) { return window.D16.laneAt(m, p[0], p[1]); }; m.deeps = g.deeps.map(at); m.entry = g.entry.map(at);
+  var rl = at([g.rune[0], g.rune[1] - 1]); m.lights = [[rl[0], rl[1], 20, 'glow']]; // (the rune lights the landing: a cold glow, modest -- the engine's own map light, [x, y, ft, colour])
+})();
 
 // The point (the 8-bit game's `lake`, at night): a flat oval stone, a stack of stones on its landward edge, the lantern
 // post (the stalagmite stands in), the rowboat pulled up; forty paces out the water goes dark. The chuul comes up out of it.

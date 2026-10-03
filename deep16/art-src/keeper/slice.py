@@ -72,7 +72,7 @@ if __name__ == '__main__':
     rows['slam_ba'] = src['b_dive'][:2] + src['a_dive'][2:7]     # the other way about
     rows['slam_b3a'] = src['b_dive'][:2] + [src['a_dive'][2]] + src['b_dive'][3:7]   # the second sheet's dive with the first sheet's frame 3 (the arcing wave) for its third (Griz 10-03; the default)
     rows['hurt_b'] = src['b_dive'][:2]                           # a crouch from the hit
-    rows['die_b'] = src['b_dive'][2:5]                           # it sinks: the splash, the burst, the pool closing over
+    rows['die_b'] = src['b_dive'][2:4]                           # it sinks: the splash, the burst, the pool closing over
     # the standing idle (Griz 10-03: "return to the standing idle"): sheet 3's four standing poses, scaled to the other rows' height, one per facing
     # (S front, E/SE the right-facing profile, W/SW the left-facing, N/NW/NE the back), two frames a pixel apart so it breathes
     def scaled(im, h=116):

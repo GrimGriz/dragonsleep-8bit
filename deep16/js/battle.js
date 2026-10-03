@@ -450,7 +450,7 @@
     D.music(this.fight.music || 'battle'); // (it starts on the first key or click: browsers hold sound till then; a set piece's boss tune)
     if (!this.fight.noCards) yield { entry: true }; // (the wet has none: RULED 09-30c, "no press e, just go")
     // initiative: d20 + DEX (and the fighter's Remarkable Athlete), rolled once
-    var rolls = this.units.map(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init; return { u: u, d: d }; }); // (initAdv: the barbarian's Feral Instinct, 7)
+    var rolls = this.units.map(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init + (u.kind === 'keeper' && D.keeper ? D.keeper.CFG.initBonus : 0); return { u: u, d: d }; }); // (initAdv: the barbarian's Feral Instinct, 7; the Keeper's initiative bonus: js/keeper.js K.CFG.initBonus, 0 -- so a fight can be scripted for it to go first)
     // (a familiar has no initiative: its turn comes right after its caster's -- RULED 09-30, js/familiar.js FM.after)
     this.order = this.units.filter(function (u) { return !u.familiar; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
