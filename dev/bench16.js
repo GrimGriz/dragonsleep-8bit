@@ -1216,7 +1216,7 @@
       if (!D.FEATURES) { var xhrW = new XMLHttpRequest(); xhrW.open('GET', '../deep16/data/features.js', false); xhrW.send(); (0, eval)(xhrW.responseText); repW.loaded = 'by xhr'; }
       else repW.loaded = 'by index.html';
       D.seed = seed0; D.lastError = null;
-      var Bw = D.fxGallery('?fxgallery&features' + (get('only', '') ? '&only=' + get('only', '') : '')); D.battle = Bw; Bw.enter();
+      var Bw = D.fxGallery('?fxgallery&features' + (get('only', '') ? '&only=' + get('only', '') : '') + (get('raw', '') ? '&raw' : '')); D.battle = Bw; Bw.enter();
       var Sw = Bw.gallery, guardW = 0, vW, doneW = 0;
       repW.total = Sw.ids.length;
       if (get('log', '')) repW.order = Sw.ids.slice();

@@ -23,6 +23,16 @@
     return wild && !arcane && !divine ? 'druid' : divine && !arcane ? 'cleric' : 'wizard';
   }
 
+  // the gallery's foes are normies (10-02, Griz: "targets of the effects are normies with all 8s on their stats but like 100 hp"): every score 8
+  // (-1), no proficient saves, no Indomitable, no Second Wind -- a save or a blow shows what the spell does, not what a ninth-level fighter
+  // shrugs off -- and 100 hp so nothing dies mid-demonstration
+  function normie(w) {
+    ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(function (k) { w.abil[k] = 8; if (w.base) w.base[k] = 8; });
+    w.saves = { str: -1, dex: -1, con: -1, int: -1, wis: -1, cha: -1 }; w.saveProf = []; w.feats = {};
+    w.maxhp = w.hp = 100; w.temp = 0;
+    return w;
+  }
+
   D.fxGallery = function (q) {
     if (/[?&]features\b/.test(q)) return D.fxFeatures(q); // (the feature walk, below: &features; the spell mode is as it was)
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
@@ -45,6 +55,7 @@
       var fk = get('foe');
       if (fk && D.FOES[fk]) { F = F.map(function (w, i) { return B.makeFoe({ id: 'gf' + i + '-' + fk, kind: fk }); }); B.units = P.concat(F); }
       // the stage: the casters at the south (the friend behind them), the foes four squares north of them, bunched so an area catches two
+      if (!(fk && D.FOES[fk]) && !/[?&]raw/.test(q)) F.forEach(normie); // (the plain foes only: a bestiary creature asked for by &foe= keeps its own sheet)
       var cx = Math.floor(D.grid.map.w / 2), cy = Math.floor(D.grid.map.h / 2) + 3;
       var spots = { party: [[cx, cy], [cx + 1, cy], [cx - 1, cy], [cx, cy + 1]], foe: [[cx, cy - 4], [cx + 1, cy - 5], [cx - 1, cy - 5]] };
       P.forEach(function (w, i) { w.x = spots.party[i][0]; w.y = spots.party[i][1]; w.facing = 4; });
@@ -76,7 +87,7 @@
     }
     // the card: the spell's name, what the 8-bit game says of it (where it says anything), the rules line the ring shows, the keys.
     // B.card does not wrap a line, so the description and the rules line are wrapped here, at a width that leaves the card inside the screen
-    function header(id, sp, e, u) {
+    function header(id, sp, e, u, st) {
       var wrapAt = 440, rules = '';
       try { rules = e ? D.magic.summary(e, u) : ''; } catch (x) { rules = ''; }
       var lines = ['{y}' + (S.i + 1) + ' / ' + S.ids.length + '   ' + sp.name.toUpperCase() + '{/}' + (sp.level ? '  (level ' + sp.level + ')' : '  (cantrip)')];
@@ -85,6 +96,7 @@
       if (/\{:/.test(desc + rules)) { if (rules) rules += ' (inspect)'; else desc += ' {g}(inspect){/}'; }
       if (desc) lines = lines.concat(D.wrap(desc, wrapAt));
       if (rules) lines = lines.concat(D.wrap(rules, wrapAt).map(function (l) { return '{g}' + l + '{/}'; }));
+      if (st && st.tip) lines = lines.concat(D.wrap('TIP: ' + st.tip, wrapAt).map(function (l) { return '{c}' + l + '{/}'; })); // (what a new player takes from it: how to aim it)
       lines.push('{g}left/right the next · up/down ten · E again{/}');
       B.clearCards(); S.card = null;
       B.card(lines, 1e9, 'gallery'); S.card = B.cards[B.cards.length - 1];
@@ -98,6 +110,38 @@
       if (g && this.cards.indexOf(g) < 0) { this.cards.unshift(g); while (this.cards.length > 3) this.cards.splice(1, 1); }
       return r;
     };
+    function cx0() { return Math.floor(D.grid.map.w / 2); }
+    function cy0() { return Math.floor(D.grid.map.h / 2) + 3; }
+    // a stage (D16.SPELLSTAGE[id], deep16/data/stages/<class>.js): a spell shown the way it is meant to be used.
+    //   foes:  [{ word: 'fighter:3' | kind: 'wolf', at: [dx, dy], hp, abil: { wis: 8 }, conds: { prone: true }, normie: false }] -- dx east, dy NORTH of the
+    //          party's centre square; replaces the three fighters for this spell. A `fighter:N` word is made a normie (every score 8, 100 hp) unless it
+    //          says `normie: false`; a bestiary `kind` keeps its own sheet unless `hp` / `abil` say otherwise. Left off, the three normie fighters stand
+    //   mate:  { hp: 'full' | n, at: [dx, dy], conds: {} } -- the friend (hurt to a third by default, for a heal; `hp: 'full'` for a ward)
+    //   target(c, e) -> a unit, { x, y } or { units: [...] }: the aim; pre(c, t, e) / after(c, t, e): generators run before and after the cast
+    //   slot: the slot to cast at; tip: a line or two on the card -- how to use the spell
+    // c = { B, S, D, id, u (the caster), mate, pals, foes, cx, cy }; reset() sweeps everything between spells
+    function* applyStage(c, st) {
+      if (st.foes) {
+        var P = S.units.filter(function (w) { return w.side === 'party'; }), fs = st.foes.map(function (f, i) {
+          var w = f.kind ? B.makeFoe({ id: 'gs' + i + '-' + f.kind, kind: f.kind }) : D.npc.build(f.word, null, 'foe', { id: 'gs' + i + '-' + String(f.word).split(':')[0] });
+          if (!w) throw new Error('stage ' + c.id + ': no foe for ' + (f.kind || f.word));
+          if (!f.kind && f.normie !== false && !/[?&]raw/.test(q)) normie(w);
+          if (f.abil) Object.keys(f.abil).forEach(function (k) { w.abil[k] = f.abil[k]; if (w.saves && !f.keepSaves) w.saves[k] = D.mod(f.abil[k]); });
+          if (f.hp) { w.maxhp = w.hp = f.hp; }
+          var at = f.at || [i, 4];
+          w.x = c.cx + at[0]; w.y = c.cy - at[1]; w.facing = 0; w.anim = 'idle'; w.animT = B.t; w.flash = 0; w.reaction = 1; w.conds = Object.assign({}, f.conds || {}); w.dead = false; w.ko = false;
+          return w;
+        });
+        B.units = P.concat(fs); c.foes = fs; D.grid.setup(D.grid.map, B.units);
+      }
+      if (st.mate) {
+        var m = c.mate, ms = st.mate;
+        if (ms.at) { m.x = c.cx + ms.at[0]; m.y = c.cy - ms.at[1]; }
+        if (ms.hp === 'full') m.hp = m.maxhp; else if (typeof ms.hp === 'number') m.hp = ms.hp;
+        if (ms.conds) Object.assign(m.conds, ms.conds);
+        D.grid.setup(D.grid.map, B.units);
+      }
+    }
     function* loop() {
       for (var round = 0; ; round++) {
         if (!keep || !round) reset(); // (&keep: only the first time, to set the stage; after it what the last cast did stays)
@@ -108,8 +152,10 @@
         if (!keep || !round) mate.hp = Math.floor(mate.maxhp / 3); // (a heal wants someone hurt)
         B.round = 1; D.rules.startTurn(u);
         var foes = S.units.filter(function (w) { return w.side === 'foe'; });
+        var st = (D.SPELLSTAGE || {})[id] || null, c = { B: B, S: S, D: D, id: id, u: u, mate: mate, pals: pals, foes: foes, cx: cx0(), cy: cy0() };
+        if (st) { yield* applyStage(c, st); foes = c.foes; }
         var e = D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
-        header(id, sp, e, u);
+        header(id, sp, e, u, st);
         if (!e || !e.ok) { B.card(['{r}' + sp.name + ': not castable here (' + (e ? e.why : 'no entry') + '){/}'], 1e9, 'gallery-why'); }
         else {
           var ev = (D.magic.EFFECT[id] && D.magic.EFFECT[id].ai) || D.tactics.EVAL[id] || D.tactics.EVAL['shape:' + e.g.shape], t = null;
@@ -119,11 +165,14 @@
           if (keep && S.last && S.last.id === id && S.last.t && S.last.t.conds && S.last.t.hp > 0) t = S.last.t;
           if (!t) t = e.g.shape === 'self' ? u : /touch|allies/.test(e.g.shape) || e.g.side === 'ally' ? (e.g.shape === 'allies' ? { units: [u].concat(pals, [mate]) } : (D.grid.dist(u, mate) <= 5 ? mate : u))
             : /sphere|cube|cone|line|wave|teleport/.test(e.g.shape) ? { x: foes[0].x, y: foes[0].y } : /rays|darts/.test(e.g.shape) ? { units: [foes[0], foes[1], foes[0]].slice(0, e.g.n || 3) } : foes[0];
+          if (st && st.target) t = st.target(c, e) || t; // (the stage's own aim: the creature, the square, the spell's whole point)
           S.last = { id: id, t: t };
           var f0 = t.units ? t.units[0] : t;
           if (f0 && f0.x != null) { var mx = Math.round((u.x + f0.x) / 2), my = Math.round((u.y + f0.y) / 2); D.iso.lookAt(mx, my, D.grid.map.gz(mx, my)); }
           yield 20;
-          yield* B.exec(u, { do: 'cast', id: id, slot: e.slot, target: t });
+          if (st && st.pre) yield* st.pre(c, t, e); // (what the scene needs first: a foe struck, a wall raised, a friend's blessing)
+          yield* B.exec(u, { do: 'cast', id: id, slot: st && st.slot ? st.slot : e.slot, target: t });
+          if (st && st.after) { yield 30; yield* st.after(c, t, e); } // (and what follows: the blow that lands on the sleeper)
         }
         yield 50;
         var v = S.auto ? 1 : yield { gallery: true };
@@ -217,7 +266,7 @@
       if (st.skel) { for (var s = 0; s < st.skel; s++) { var sk = make('skeleton', 'foe', 'g-sk' + s, cx + s, cy - 3, 0); skel.push(sk); units.push(sk); } }
       else if (rows > 0) {
         // (the foes are soft, AC 10: a demonstration should land its blow, not miss it four times running)
-        for (var k = 0; k < (st.nfoe || 2); k++) { var fo = make('fighter:9', 'foe', 'g-foe' + k, cx + k, cy - rows, 0); fo.baseAC = 10; if (st.foeHurt) fo.hp = fo.maxhp - 6; foes.push(fo); units.push(fo); }
+        for (var k = 0; k < (st.nfoe || 2); k++) { var fo = make('fighter:9', 'foe', 'g-foe' + k, cx + k, cy - rows, 0); fo.baseAC = 10; if (!/[?&]raw/.test(q)) normie(fo); if (st.foeHurt) fo.hp = fo.maxhp - 6; foes.push(fo); units.push(fo); }
       }
       if (st.wiz) { wiz = make('wizard:9', 'foe', 'g-wiz', cx, cy - 5, 0); units.push(wiz); }
       if (st.hurt) hero.hp = Math.max(1, Math.floor(hero.maxhp / 2));
