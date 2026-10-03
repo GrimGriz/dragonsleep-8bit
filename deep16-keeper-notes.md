@@ -255,3 +255,11 @@ The ledge rows are the last build's numbers on the same seeds (5 / 18 / 30), so 
 - deep16/index.html `?v=`: on Griz's machine a hand-edited file hashes as CRLF (`tools/deep16-build.py` reads the bytes) and the generated sprites.js as LF. Here only the seven changed files were restamped, with CRLF hashes, and the rest left as committed: a Linux `deep16-build.py` restamps every tag. The 8-bit's index.html is one hash over all its scripts, so `tools/compile.py` restamped it whole (on LF bytes, as cloud seats before).
 
 **Not seen**: the 8-bit pane (the mark's fight by eye; the embed in a real iframe, where the seam was probed by dispatching DEEP16's messages); a human-played fight from the rune; Edge on Griz's machine (every bench here is headless Chromium on Linux).
+
+## 10-03 -- the opener ends in the deep (the desk, on Griz's word after playing it from the ledge)
+
+His fight (`play-records/keeper-seed50086211-L3.txt`, mode party, from the ledge): the four walked into its reach before its first turn, it cast the wall and waved and stood; flanked on every blow after, it Slammed Aurdin (AC 15, Shield) six times without a hit and fell in round 5, the party untouched. His word: *"Can you add 'moves as deep as he can' to the end of his opener (even if he'll take an AOO)"*.
+- `deep16/js/keeper.js` `above`: when the opener casts the wall (a hero in its reach on its first turn), the turn ends -- after the Wave -- with `lureDeeper`: the deepest water its move reaches, opportunity attacks taken. With no one in reach on its first turn nothing changes (the lure already draws it deep). `K.CFG.openerDeep` (true; `&opendeep=0` without it; `K.PROFILE_OLD` false, the old Keeper had no opener).
+- `dev/keeper-probe.js`: one check (along 4 -> 1, the deepest its move reached); the playtest-notes block (`B6`) runs with `openerDeep` off -- its swirl is set on the squares the walk ends on; `openerDeep: true` is in the restore after the `old=1` replay. 222/222.
+- Seen in the pane: a scripted party in reach before its first turn -- the wall, the Wave, then Vivian's opportunity attack as it went, and it stood at 1 along.
+- Not benched: the win table (`runs=30`) before and after.

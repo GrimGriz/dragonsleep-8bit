@@ -118,10 +118,12 @@
     ok('the Slam row is the second sheet\'s dive with the first sheet\'s frame 3: ' + K.POSE.slam + ' (' + an6.attack.frames + ' frames)', K.POSE.slam === 'slam_b3a' && an6.attack.y === an6.slam_b3a.y && an6.slam_b3a.frames === 7);
     var w1 = K.wade(B6, pt(8, 6)), w2 = K.wade(B6, pt(8, 2));
     ok('standing depth: ankle-deep in the shallows (' + w1.cut + ' px), waist-deep by the deep end (' + w2.cut + ' px)', w1.cut < w2.cut && w1.cut >= 8 && w2.cut <= 56);
+    K.CFG.openerDeep = false; // (its opener's walk to the deep, 10-03, kept out of these: the swirl below is set on the squares it would walk to)
     put(H6[0], 8, 7); k6.anim = 'wave'; RU.startTurn(k6); K.CFG.visible = false; drain(K.turn(B6, k6)); K.CFG.visible = true;
     ok('the old hidden Keeper (CFG.visible false): after its turn: standing idle (' + k6.anim + '), back in the water unseen (hidden ' + !!k6.conds.hidden + ')', k6.anim === 'idle' && !!k6.conds.hidden);
     k6.anim = 'wave'; delete k6.conds.hidden; RU.startTurn(k6); drain(K.turn(B6, k6));
     ok('the visible Keeper (the default): after its turn it is idle (' + k6.anim + ') and not hidden (' + !!k6.conds.hidden + ')', k6.anim === 'idle' && !k6.conds.hidden);
+    K.CFG.openerDeep = true;
     // swirling: a friend beside the held one is beside the Keeper
     delete k6.conds.hidden; put(H6[1], 8, 1); put(H6[2], 9, 1); force(false); H6[1].hp = H6[1].maxhp = 60; drain(K.flood(B6, k6, H6[1])); unforce();
     var far = G.dist(H6[2], k6), near5 = G.dist(H6[2], H6[1]);
@@ -186,7 +188,7 @@
       var bad = []; for (var li = 1; li < LG.length; li++) { var a = LG[li - 1].hpAfter, b = LG[li].hpAfter, expl = LG[li].targets.concat([LG[li].actor]); Object.keys(b).forEach(function (n) { if (a[n] != null && a[n] !== b[n] && expl.indexOf(n) < 0) bad.push('L' + li + ' ' + n + ' ' + a[n] + '->' + b[n] + ' (' + LG[li].action + ')'); }); }
       ok('the log, ' + what + ': every HP change has a line that names who changed (' + (bad.length ? bad.slice(0, 3).join('; ') : 'none missing') + ')', !bad.length); };
     lgcheck('watched fight (class AI both sides)', ['The Keeper', 'Barley']); ok('the log, watched: mode ' + LG.meta.mode, LG.meta.mode === 'ai');
-    Object.assign(D.keeper.CFG, { opener: true, visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', swirlHit: true, slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
+    Object.assign(D.keeper.CFG, { opener: true, openerDeep: true, visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', swirlHit: true, slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
     var KF2 = D.keeper.fight('?keeperfight&seed=102950&watch&lvl=3&hp=175&drown=2d6&ai=current&retreat=0'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
     ok('?keeperfight&seed=102950 drained (the settings before the lure, 175 HP, 2d6, the current AI: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g) + ', holds broken ' + kn(/HOLD BREAKS/g), KF2.result === 'won' && KF2.round === 9 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1 && kn(/HOLD BREAKS/g) === 1);
@@ -765,8 +767,11 @@
       ok('a blow breaks the hold: the swirl ends then, not at the next command (flooding ' + !!kz.flooding + ', AC ' + ac0 + ' -> ' + RU.ac(kz) + ', retreat from round ' + (K.st(Z).holdBroken && K.st(Z).holdBroken.round) + ')', !kz.flooding && ac0 === 10 && RU.ac(kz) === 13 && K.st(Z).holdBroken);
       // 3: the AI Keeper opens with the wall, whoever is in reach; its next turn Slams
       var O = battle({ lvl: 3 }), ko = keeper(O), HO = ours(O), co = cardsOf(O); delete ko.conds.hidden; HO.forEach(function (u) { delete u.conds.hidden; }); put(HO[0], 8, 6); put(HO[1], 8, 7);
-      RU.startTurn(ko); drain(K.turn(O, ko)); var w1 = !!(O.kp && O.kp.wall), s1 = co.filter(function (c) { return /> .*Slam/.test(c) && /d20/.test(c); }).length;
+      RU.startTurn(ko); var ka0 = K.A(ko), krm = G.reach(ko, ko.turn.move), kmin = Object.keys(krm).reduce(function (m, k) { return krm[k].stand ? Math.min(m, K.A(krm[k])) : m; }, ka0);
+      drain(K.turn(O, ko)); var w1 = !!(O.kp && O.kp.wall), s1 = co.filter(function (c) { return /> .*Slam/.test(c) && /d20/.test(c); }).length;
       ok('it opens with the wall, a hero in its reach: wall ' + w1 + ' (' + (O.kp && O.kp.uses) + ' left), Slams that turn ' + s1, w1 && O.kp.uses === K.CFG.wallUses - 1 && s1 === 0);
+      // 3b (10-03, Griz: "add 'moves as deep as he can' to the end of his opener (even if he'll take an AOO)"): the opener ends in the deepest water its move reaches
+      ok('and it ends its opener as deep as it can: along ' + ka0 + ' -> ' + K.A(ko) + ' (the deepest its move reached at the turn\'s start: ' + kmin + ')', kmin < ka0 && K.A(ko) <= kmin + 1 && K.A(ko) < ka0);
       // 5: its card: three lines of its own, the Slam twice, the Wave, the swirl and Active Suffocation; the elemental glyph
       var il = K.inspectLines(O, ko) || [], it = il.join(' | ');
       ok('its inspect card: ' + il.length + ' lines (' + strip(it).slice(0, 150) + '), type ' + D.ui.typeOf(ko), il.length === 3 && /Slam x2/.test(it) && /Wave/.test(it) && /Suffocate/.test(it) && it.indexOf('{p}Ice Wall{/} ' + O.kp.uses + '/' + K.CFG.wallUses) >= 0 && D.ui.typeOf(ko) === 'elemental');
