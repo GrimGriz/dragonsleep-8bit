@@ -1046,6 +1046,15 @@
       okX('13. again, the barrier still up: asked ' + askedX + ', he loses ' + (hp13 - pw13.hp), askedX === 0 && pw13.hp === hp13);
       D.rules.startTurn(pw13); var fhp13 = fw13.hp; askedX = 0; runX(MX.cast(B13, pw13, 'magicmissile', 1, { units: [fw13, fw13, fw13] }));
       okX('13. our darts at theirs: the AI raised its Shield ' + !!fw13.conds.shield + ', it loses ' + (fhp13 - fw13.hp) + ', nobody asked (' + askedX + ')', !!fw13.conds.shield && fw13.hp === fhp13 && askedX === 0);
+      // 14. Magic Weapon (SRD 5.1: "You touch a nonmagical weapon"): our paladin with a +1 longsword is refused, and the picker says why; with a plain one he is not;
+      // the cast itself, handed a magic blade anyway, leaves it as it was and holds no concentration
+      var B14 = mkX('?npc=goblin&lvl=5&vs=paladin:5'), p14 = sideX(B14, 'party')[0], g14 = MX.geo('magicweapon');
+      D.rules.startTurn(p14); p14.slots[1] = 2; var plainW14 = Object.assign({}, p14.weapon, { magic: false }), magicW14 = Object.assign({}, p14.weapon, { magic: true, name: 'Longsword +1' });
+      p14.weapon = magicW14; var why14 = MX.targetWhy(p14, g14, p14, B14), ok14 = MX.targetOK(B14, p14, g14, p14);
+      p14.weapon = plainW14; var why14b = MX.targetWhy(p14, g14, p14, B14), ok14b = MX.targetOK(B14, p14, g14, p14);
+      okX('14. Magic Weapon on a +1 longsword: refused "' + why14 + '" (a target ' + ok14 + '); on a plain one: "' + why14b + '" (a target ' + ok14b + ')', !!why14 && !ok14 && !why14b && ok14b);
+      p14.weapon = magicW14; p14.conc = null; var atk14 = p14.weapon.atk, n14 = (B14.log || []).length; runX(MX.cast(B14, p14, 'magicweapon', 2, p14));
+      okX('14. cast at the +1 blade anyway: its bonus unchanged (' + atk14 + ' -> ' + p14.weapon.atk + '), no concentration (' + !p14.conc + ') -- ' + logX(B14, n14).slice(0, 160), p14.weapon.atk === atk14 && !p14.conc);
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
     D.d = d0X;
     if (errs.length) repX.errors = repX.errors.concat(errs);

@@ -205,6 +205,8 @@
     // Mage Armor: not on one in armour, nor one already under it -- said, not silent (10-01, Griz in the wizard room: "think we broke the
     // mage-armor cast select": the class floor's wizards come in with it up, so a click on any of them did nothing at all)
     if (g && g.unarmored && w && w.conds && (w.armored || w.conds.mageArmor)) return w.conds.mageArmor ? 'already under Mage Armor' : 'in armour';
+    // Magic Weapon (SRD 5.1: "You touch a nonmagical weapon" -- 10-03, it took a +1 to +2): not a blade that is magic already, nor an empty hand
+    if (g && g.nonmagical && w) { if (!w.weapon || w.weapon.name === 'Unarmed Strike') return 'holding no weapon'; if (w.weapon.magic) return 'holding a weapon that is magic already (the spell takes a nonmagical one)'; }
     var c = g && g.noStack && w && w.conds && w.conds[g.noStack];
     if (!c) return '';
     return !!c.down === (w.side !== u.side) ? 'already ' + (c.down ? 'reduced' : 'enlarged') : '';
