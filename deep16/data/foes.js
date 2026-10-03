@@ -1,4 +1,4 @@
-/* DEEP16 — the POC's three foes (RULED 09-26d, Griz: "agreed" -- two drow and a phase spider).
+/* DEEP16 â€” the POC's three foes (RULED 09-26d, Griz: "agreed" -- two drow and a phase spider).
    The phase spider is the SRD 5.1 block as written. The drow are the dwarven expansion's own Drow Blade-Captain
    (content/monsters.json `drowcaptain`: game-original from SRD pieces, CR 5) given the SRD drow's hand crossbow and
    Faerie Fire -- a plain SRD drow (13 HP) falls in one round to four heroes at level 9 and would test nothing.
@@ -654,7 +654,7 @@
       dagger: { name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 },
       throwndagger: { name: 'Thrown Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', range: [20, 60], ranged: true }
     },
-    multi: ['scimitar', 'scimitar', 'dagger'], src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet); the dagger thrown +5 1d4+3 20/60 (SRD 5.1, once when nothing is in reach: ai.js volley; 10-02 runner)', todo: 'Parry is not read; the SRD gives two thrown daggers (a ranged Multiattack) and the grid throws one'
+    multi: ['scimitar', 'scimitar', 'dagger'], parry: 2, src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet); the dagger thrown +5 1d4+3 20/60 (SRD 5.1, once when nothing is in reach: ai.js volley; 10-02 runner)', todo: 'the SRD gives two thrown daggers (a ranged Multiattack) and the grid throws one'
   },
   grimlock: {
     name: 'Grimlock', type: 'humanoid', sheet: 'grimlock_p1', cr: '1/4', ac: 11, hp: 11, speed: 30, size: 1, reach: 5, blindsight: 30, blind: true,

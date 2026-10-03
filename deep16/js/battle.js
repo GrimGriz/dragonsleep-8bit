@@ -1090,6 +1090,13 @@
         line += '  {c}SHIELD +5{/}';
       }
     }
+    // Parry (the Bandit Captain, SRD 5.1: "The captain adds 2 to its AC against one melee attack that would hit it. To do so, the captain must see the attacker and be
+    // wielding a melee weapon." -- a reaction, taken when the +2 turns the blow: a natural 20 is not turned, AC does not make it a miss; 10-02)
+    if (hit && nat !== 20 && melee && tgt.parry && tgt.reaction > 0 && RU.canAct(tgt) && !tgt.conds.disarmed && total < ac + tgt.parry && D.magic.seeWhy(this, tgt, att).ok && G.los(tgt, att).clear) {
+      tgt.reaction = 0; FX.ring(tgt, 'silver', 26); D.sfx('bump');
+      ac += tgt.parry; hit = false; crit = false;
+      line += '  {c}PARRY +' + tgt.parry + '{/}';
+    }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
     if (!hit) {

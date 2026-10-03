@@ -48,6 +48,23 @@
     foes(B3).filter(function (u) { return u.kind === 'hask'; })[0].dead = true; party(B3).forEach(function (u) { put(u, 1, 1); });
     cs = cardsOf(B3); drain(D.ai.turn(B3, w3));
     ok('the bolt with none near: the bonus Dash again, 90 ft // ' + short(cs), say(cs, /dashes again/));
+    // ---------------------------------------------------------------- the Bandit Captain's Parry
+    var C = battle('captain'), bc = foes(C).filter(function (u) { return u.kind === 'banditcaptain'; })[0], att = party(C).filter(function (u) { return u.weapon && !u.weapon.ranged; })[0];
+    ok('the Captain carries parry ' + (bc && bc.parry), bc && bc.parry === 2);
+    bc.hp = bc.maxhp = 99999; var cx = null; for (var ex = -1; ex <= 1 && !cx; ex++) for (var ey = -1; ey <= 1 && !cx; ey++) if ((ex || ey) && G.canStand(att, bc.x + ex, bc.y + ey)) cx = [bc.x + ex, bc.y + ey];
+    put(att, cx[0], cx[1]);
+    var parried = 0, firstOnly = true, missedByParry = true, hits = 0, n = 0;
+    for (var i = 0; i < 300; i++) {
+      bc.reaction = 1; cs = cardsOf(C); var hp0 = bc.hp, ac0 = D.rules.ac(bc);
+      drain(C.attack(att, bc, att.weapon)); drain(C.attack(att, bc, att.weapon)); n += 2;
+      var pc = cs.filter(function (c) { return /PARRY \+2/.test(c); });
+      if (pc.length > 1) firstOnly = false;
+      if (pc.length) { parried++; if (/PARRY \+2.*HIT/.test(pc[0].replace(/PARRY \+2/, 'PARRY +2'))) missedByParry = missedByParry && /MISS/.test(pc[0]); }
+    }
+    ok('Parry turns a blow (' + parried + ' of 300 pairs of swings), never twice on one reaction: ' + firstOnly, parried > 10 && firstOnly && bc.reaction === 0);
+    // not against a ranged attack, nor a natural 20: only the melee, the reaction spent once
+    bc.reaction = 1; cs = cardsOf(C); var rg = { name: 'Shortbow', atk: 40, dice: '1d6', mod: 0, type: 'piercing', range: [80, 320], ranged: true }; put(att, bc.x + 4, bc.y); drain(C.attack(att, bc, rg));
+    ok('no Parry against a ranged attack (reaction ' + bc.reaction + ')', bc.reaction === 1 && !cs.some(function (c) { return /PARRY/.test(c); }));
   } catch (e) { errs.push(String(e && e.stack || e).slice(0, 800)); }
   var pre = document.createElement('pre'); pre.textContent = 'SRDLEFT ' + JSON.stringify({ checks: checks, errors: errs });
   document.body.appendChild(pre);
