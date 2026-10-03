@@ -24,6 +24,8 @@
     Object.keys(link).forEach(function (a) { var row = sh.anims[K.POSE[link[a]]]; if (row) sh.anims[a] = Object.assign({}, row); });
     return K.POSE;
   };
+  K.isFight = function (F) { return !!(F && (F.id === 'keeper' || F.id === 'keeper-ladder')); };
+  K.PROFILE_OLD = { visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: the fight 'keeper-ladder', and &old=1)
   K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 175, slamAtk: 6, sweepUpFree: false, slamDice: '3d6', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
@@ -482,7 +484,7 @@
   var cast0 = D.magic.cast;
   D.magic.cast = function* (B, u, id, slot, t) {
     var r = yield* cast0.apply(this, arguments);
-    if (B.kp && B.fight && B.fight.id === 'keeper') yield* K.spellOn(B, u, id, slot, t);
+    if (B.kp && K.isFight(B.fight)) yield* K.spellOn(B, u, id, slot, t);
     return r;
   };
   K.spellOn = function* (B, u, id, slot, t) {
@@ -710,7 +712,11 @@
   // for it, a copy: melee, reach 10 (10-03: a click on a hero in play=keeper threw on u.weapon.ammo and froze the page)
   K.standIn = function (k) { if (k && k.attacks && k.attacks.slam && !k.weapon) k.weapon = Object.assign({}, k.attacks.slam, { name: 'Slam', ranged: false, reach: 10, standIn: true }); };
   var enterK0 = D.Battle.prototype.enter;
-  D.Battle.prototype.enter = function () { var r = enterK0.apply(this, arguments); if (this.fight && this.fight.id === 'keeper') this.units.forEach(function (u) { if (u.kind === 'keeper') { if (K.CFG.hp) u.hp = u.maxhp = K.CFG.hp; if (K.CFG.slamDice && u.attacks && u.attacks.slam) u.attacks.slam.dice = K.CFG.slamDice; if (K.CFG.slamAtk && u.attacks && u.attacks.slam) u.attacks.slam.atk = K.CFG.slamAtk; if (K.CFG.weaponResist && u.resist && u.resist.indexOf('mundane') < 0) u.resist = u.resist.concat(['mundane']); K.standIn(u); if (K.CFG.visible) delete u.conds.hidden; } }); return r; }; // (10-03, Griz: he is visible from the first frame and glows; CFG.visible false is the old hidden Keeper)
+  D.Battle.prototype.enter = function () {
+    // the ladder's Keeper is the old one (data/fights.js 'keeper-ladder', keeperProfile 'old'): its settings are K.PROFILE_OLD for the fight, and what was set before comes back at the next Keeper fight
+    var fid = (this.o && this.o.fightDef && this.o.fightDef.id) || (this.o && this.o.fight);
+    if (fid === 'keeper-ladder') { K._saved = K._saved || Object.assign({}, K.CFG); Object.assign(K.CFG, K.PROFILE_OLD); } else if (fid === 'keeper' && K._saved) { Object.assign(K.CFG, K._saved); K._saved = null; }
+    var r = enterK0.apply(this, arguments); if (K.isFight(this.fight)) this.units.forEach(function (u) { if (u.kind === 'keeper') { if (K.CFG.hp) u.hp = u.maxhp = K.CFG.hp; if (K.CFG.slamDice && u.attacks && u.attacks.slam) u.attacks.slam.dice = K.CFG.slamDice; if (K.CFG.slamAtk && u.attacks && u.attacks.slam) u.attacks.slam.atk = K.CFG.slamAtk; if (K.CFG.weaponResist && u.resist && u.resist.indexOf('mundane') < 0) u.resist = u.resist.concat(['mundane']); K.standIn(u); if (K.CFG.visible) delete u.conds.hidden; } }); return r; }; // (10-03, Griz: he is visible from the first frame and glows; CFG.visible false is the old hidden Keeper)
 
   // ---- his own light (10-03, Griz: "a dim light source, the elemental plane energy that animates him"): a faint cool glow about his 2x2, the engine's own creature light (js/light.js L.carried),
   // dim only, glowFt feet; it moves with him, the water does not hide it, and he is lit where he stands so the party sees him
@@ -732,7 +738,7 @@
   };
   var tx0 = D.tactics.turn;
   D.tactics.turn = function* (B, u) {
-    if (!(K.CFG.partyOpening && B && B.fight && B.fight.id === 'keeper' && u.side === 'party' && !u.familiar && st(B) && !K.opened(B))) return yield* tx0.apply(this, arguments);
+    if (!(K.CFG.partyOpening && B && K.isFight(B.fight) && u.side === 'party' && !u.familiar && st(B) && !K.opened(B))) return yield* tx0.apply(this, arguments);
     B.focus(u); var kk = keeperOf(B); if (kk) u.facing = B.faceTo(u, kk);
     var S0 = st(B); // (the drift: at the rune the party is huddled; one hero a round steps a square toward it -- toward the exit, the Keeper's READY trigger -- and no farther than the row below the wall)
     if (K.CFG.openingDrift && S0.driftRound !== B.round && K.A(u) < geo().wall - 1) {
@@ -761,7 +767,7 @@
   K.fight = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     if (get('seed')) D.seed = +get('seed') | 0;
-    if (get('old') === '1') { K.CFG.visible = false; K.CFG.partyOpening = false; K.CFG.openingDrift = false; K.CFG.glow = false; K.CFG.hp = 100; K.CFG.slamAtk = 5; K.CFG.sweepUpFree = true; K.CFG.slamDice = '2d6'; K.CFG.slams = 1; K.CFG.waveDC = 13; } // (old=1: the Keeper of before 10-03 Griz's notes -- hidden, no glow, the party reacting at once: reproduces the earlier tables)
+    if (get('old') === '1') { Object.assign(K.CFG, K.PROFILE_OLD); } // (old=1: the Keeper of before 10-03 Griz's notes -- hidden, no glow, the party reacting at once: reproduces the earlier tables)
     if (get('hidden') != null) K.CFG.visible = get('hidden') !== '1'; if (get('opening') != null) K.CFG.partyOpening = get('opening') !== '0'; if (get('glow') != null) K.CFG.glow = get('glow') !== '0'; // (hidden=1 the old hidden Keeper, opening=0 the old passive-then-react party, glow=0 no light of his own)
     if (get('hp')) K.CFG.hp = +get('hp');
     if (get('atk')) K.CFG.slamAtk = +get('atk'); if (get('upfree') != null) K.CFG.sweepUpFree = get('upfree') === '1'; // (atk=6 the Slam's attack bonus; upfree=1 the old backwash that stands the swept up free)

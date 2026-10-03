@@ -198,7 +198,7 @@
       from: 'the 8-bit game: the Hex (the floor\'s brawlers and the card bruiser; the 8-bit game fights them one on one, the ladder all at once)', won: 'THE FLOOR IS YOURS.',
       foes: [{ id: 'br1', kind: 'brawler', at: [5, 4] }, { id: 'br2', kind: 'brawler', at: [12, 4] }, { id: 'br3', kind: 'brawler', at: [5, 8] }, { id: 'br4', kind: 'brawler', at: [12, 8] },
              { id: 'cb', kind: 'cardbruiser', at: [8, 2] }], wave: null },
-    { id: 'keeper', level: 3, map: 'floodstair', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss',
+    { id: 'keeper', level: 3, ladder: false, map: 'floodstair', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss',
       intro: 'A dwarven stair runs down into black water. At the bottom five men lie drowned. The water is a thing, and it closes. (It keeps to its water, and you cannot see it there until it moves.)',
       from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
       foes: [{ id: 'keeper', kind: 'keeper', at: window.D16.laneAt(window.D16.MAPS.floodstair, window.D16.MAPS.floodstair.geo.keeper[0], window.D16.MAPS.floodstair.geo.keeper[1], 2), hidden: true }], wave: null }, // (in the lane frame, data/maps.js floodstair geo.keeper)
@@ -295,6 +295,13 @@
       intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)',
       looks: { barley: { name: 'Denny', sheet: 'denny_p2' } } } // Denny plays Barley here only (Griz, 09-27)
   ];
+  // THE LADDER'S KEEPER (10-03, Griz: "the cool keeper fight isn't for the ladders, they have to play the real game"): the Keeper of before the desk's playtest notes -- 100 HP, one 2d6+3 Slam (+5), the Wave DC 13,
+  // hidden at the start, no glow, the party reacting at once -- is its own fight, listed on the ladder's rung (a rung is built from D.fightsAt). `keeper` (the 8-bit's stair, the gallery, the play modes) is the new one
+  // and is off the ladder (ladder: false). js/keeper.js K.PROFILE_OLD is what `keeperProfile: 'old'` sets when this fight enters.
+  (function () {
+    var i = D.FIGHTS.map(function (f) { return f.id; }).indexOf('keeper'), kf = D.FIGHTS[i];
+    D.FIGHTS.splice(i + 1, 0, Object.assign({}, kf, { id: 'keeper-ladder', ladder: true, keeperProfile: 'old', from: 'the 8-bit game: events.js S.stair (the Keeper), as it was before 10-03: the ladder keeps this one', foes: kf.foes.map(function (f) { return Object.assign({}, f); }) }));
+  })();
   D.fight = function (id) { return D.FIGHTS.filter(function (f) { return f.id === id; })[0] || D.FIGHTS.filter(function (f) { return f.id === 'gallery'; })[0]; };
   // the class floor (09-28, the class NPCs: ?npc=cleric,wizard&lvl=5, and the bench): the Hex floor, lit, open, the band of class
   // NPCs to the north and the four (or another band) at the south door. Made when asked for, never on the ladder's list
@@ -310,7 +317,7 @@
   // the bestiary's (the Cowork seat's first four, `bestiary`)
   function rank(f) { return f.id === 'gallery' ? -1 : f.bestiary ? 1 : 0; }
   D.fightsAt = function (level) {
-    return D.FIGHTS.map(function (f, i) { return [f, i]; }).filter(function (p) { return p[0].level === level; })
+    return D.FIGHTS.map(function (f, i) { return [f, i]; }).filter(function (p) { return p[0].level === level && p[0].ladder !== false; })
       .sort(function (a, b) { return rank(a[0]) - rank(b[0]) || a[1] - b[1]; }).map(function (p) { return p[0]; });
   };
   D.fightAt = function (level) { return D.fightsAt(level)[0] || null; };

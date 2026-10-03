@@ -302,9 +302,11 @@
         // click the near one: the Slam on it
         cards2.length = 0; e0 = thrown.length; var d0 = G.dist(kc, near); mouse(toScreen(near), true); frame(4); settle();
         ok('click a hero in reach (' + d0 + ' ft): the Slam (action ' + T.action + ', ' + (cards2.join(' ').match(/Slam/) || ['no Slam card'])[0] + '), no error, the turn goes on ' + alive(), thrown.length === e0 && T.action === 0 && /Slam/.test(cards2.join(' ')) && alive());
-        // a second click: the action is spent, said on a card, nothing thrown
+        // a second click: the Slam budget is two (the multiattack), so the click Slams again; the third is the card
+        cards2.length = 0; e0 = thrown.length; var tSl = T.slamsLeft; mouse(toScreen(near), true); frame(4); settle(); var slam2 = /Slam/.test(cards2.join(' '));
+        ok('click again: the second Slam of the multiattack (slamsLeft ' + tSl + ' -> ' + T.slamsLeft + ', ' + (slam2 ? 'a Slam card' : 'no Slam card') + '), no error', thrown.length === e0 && slam2 && T.slamsLeft === 0 && alive());
         cards2.length = 0; e0 = thrown.length; mouse(toScreen(near), true); frame(3);
-        ok('click again, action spent: a card (' + cards2.join(' ').slice(0, 60) + '), no error', thrown.length === e0 && /spent/.test(cards2.join(' ')) && alive());
+        ok('click a third time, action spent: a card (' + cards2.join(' ').slice(0, 60) + '), no error', thrown.length === e0 && /spent/.test(cards2.join(' ')) && alive());
         // the Keeper's own square: the ring opens; an empty square: a move or a card; none of it throws
         e0 = thrown.length; KC.tool = 'move'; mouse(toScreen(kc), true); frame(3); var ringed = KC.tool === 'menu';
         ok('click the Keeper\'s own square: the ring (' + KC.tool + '), no error', thrown.length === e0 && ringed && alive());
@@ -357,7 +359,7 @@
       ok('Slam a hero in reach: the Slam (action ' + k7.turn.action + ')', k7.turn.action === 0 && /Slam/.test(c7.join(' ')));
       // hp=150: the URL's Keeper HP, in the ring's panel (u.hp/maxhp), the tooltip and the log
       var BH = D.keeper.fight('?keeperfight&play=keeper&lvl=3&hp=150'); D.battle = BH; BH.enter(); var kH = keeper(BH);
-      ok('hp=150 in the URL: the Keeper is ' + kH.hp + '/' + kH.maxhp, kH.hp === 150 && kH.maxhp === 150);
+      ok('hp=150 in the URL: the Keeper is ' + kH.hp + '/' + kH.maxhp, kH.hp === 150 && kH.maxhp === 150); K.CFG.hp = 175; // (the URL's setting is the page's: back to the default for the checks after)
       D.battle = B3;
     })();
     // ---- 10-03, Griz: the Keeper is visible and glows; the party opens by holding the landing, and engages when it strikes
@@ -489,6 +491,61 @@
       var wk = D.keeper; kS.conds.sanctuary = { dc: 13, by: 'x' }; lym.known = (lym.known || []).concat(['sacredflame']); lym.spellDC = 13; put(lym, 8, 8); RU.startTurn(lym); cS.length = 0; var hk = kS.hp; RU.save = function (u, ab) { var r = save0.apply(this, arguments); if (ab === 'wis' && u === lym) r.ok = false; return r; }; drain(M.cast(BS, lym, 'sacredflame', 0, kS)); RU.save = sv0;
       ok('a harmful single-target spell at a warded foe: the caster saves WIS, fails, and the spell is lost (' + (cS.join(' ').match(/is lost|cannot bring itself/) || ['no card'])[0] + '; hp ' + hk + ' -> ' + kS.hp + ')', kS.hp === hk && /cannot bring itself/.test(cS.join(' ')));
       delete kS.conds.sanctuary; D.battle = B3;
+    })();
+    // ---- the turn's budget in play=keeper (desk, 10-03: click-Slams that did not seem to count): the click and the ring spend exactly the same
+    (function () {
+      var C = K.CFG, sv = { sl: C.slams }; C.slams = 2;
+      function mk() { var B = battle({ lvl: 3 }), k = keeper(B), H = ours(B), c = cardsOf(B); B.o.play = 'keeper'; delete k.conds.hidden; H.forEach(function (u) { delete u.conds.hidden; }); put(H[0], 8, 6); put(H[1], 8, 7); RU.startTurn(k); return { B: B, k: k, H: H, c: c }; }
+      function run(S, cmd, answers) { var g = S.B.exec(S.k, cmd), n = 0, v, an = (answers || []).slice(); while (n++ < 5000) { var r = g.next(v); v = undefined; if (r.done) break; if (r.value && r.value.prompt) v = an.length ? an.shift() : 0; } }
+      function state(k) { var T = k.turn; return JSON.stringify({ a: T.action, b: T.bonus, m: T.move, sl: T.slamsLeft == null ? null : T.slamsLeft, r: k.reaction }); }
+      function slams(S) { return S.c.filter(function (x) { return /> .*Slam/.test(x) && /d20/.test(x); }).length; }
+      // the click, five times: exactly two attacks, then the card
+      var S1 = mk(), s0 = state(S1.k), states = []; for (var i = 0; i < 5; i++) { S1.c.length = 0; var before = slams(S1); run(S1, { do: 'attack', target: S1.H[i % 2] }); states.push(state(S1.k) + (/spent/.test(S1.c.join(' ')) ? ' [spent card]' : '')); }
+      var n1 = D.keeperLog.filter(function (e) { return /^(attack|kslam)/.test(e.action) && e.actor === 'The Keeper' && e.rolls.length; }).length;
+      ok('click Slam x5 with a budget of two: states ' + states.join(' | ') + ' (start ' + s0 + ')', states[0].indexOf('"a":0') > 0 && states[0].indexOf('"sl":1') > 0 && states[1].indexOf('"sl":0') > 0 && states[2].indexOf('[spent card]') > 0 && states[4].indexOf('[spent card]') > 0 && states[1] === states[2].replace(' [spent card]', '') && states[3].replace(' [spent card]', '') === states[1]);
+      // count the attacks that resolved (from the log): the two, no more
+      var S2 = mk(), nl0 = D.keeperLog.length; for (var j = 0; j < 5; j++) run(S2, { do: 'attack', target: S2.H[j % 2] });
+      var done2 = D.keeperLog.slice(nl0).filter(function (e) { return /^(attack|kslam)$/.test(e.action) && e.actor === S2.k.name && e.rolls.length; }).length;
+      ok('click Slam x5: exactly ' + done2 + ' Slam attacks resolved (the budget is ' + C.slams + ')', done2 === 2);
+      // the ring's: the same two, the same state
+      var S3 = mk(), nl3 = D.keeperLog.length, st3 = []; for (var q = 0; q < 5; q++) { run(S3, { do: 'kslam', target: S3.H[q % 2] }); st3.push(state(S3.k)); }
+      var done3 = D.keeperLog.slice(nl3).filter(function (e) { return /^(attack|kslam)$/.test(e.action) && e.actor === S3.k.name && e.rolls.length; }).length;
+      ok('the ring Slam x5: ' + done3 + ' resolved, the same turn state as the click (' + st3[1] + ' vs ' + states[1].replace(' [spent card]', '') + ')', done3 === 2 && st3[1] === states[1].replace(' [spent card]', '') && st3[4] === st3[1]);
+      // mixed: one click and one ring, then nothing
+      var S4 = mk(), nl4 = D.keeperLog.length; run(S4, { do: 'attack', target: S4.H[0] }); run(S4, { do: 'kslam', target: S4.H[1] }); run(S4, { do: 'attack', target: S4.H[0] }); run(S4, { do: 'kslam', target: S4.H[1] });
+      ok('a click and a ring Slam share the one budget (' + D.keeperLog.slice(nl4).filter(function (e) { return /^(attack|kslam)$/.test(e.action) && e.rolls.length; }).length + ' resolved)', D.keeperLog.slice(nl4).filter(function (e) { return /^(attack|kslam)$/.test(e.action) && e.rolls.length; }).length === 2);
+      // the action spent on something else: the click refuses
+      var S5 = mk(); run(S5, { do: 'kcast' }); var nl5 = D.keeperLog.length; S5.c.length = 0; run(S5, { do: 'attack', target: S5.H[0] });
+      ok('after the action went on the wall (CAST), the click Slam is refused with "action is spent" (' + state(S5.k) + ')', /action is spent/.test(S5.c.join(' ')) && D.keeperLog.slice(nl5).filter(function (e) { return /^(attack|kslam)$/.test(e.action) && e.rolls.length; }).length === 0);
+      // the wave is the bonus action: once; the click Slam then still has the action
+      var S6 = mk(); force(false); run(S6, { do: 'kwave' }); unforce(); var b1 = S6.k.turn.bonus; run(S6, { do: 'kwave' }); S6.c.length = 0;
+      ok('the Wave spends the bonus action (' + b1 + ') and not the action (' + S6.k.turn.action + '); a second Wave is refused', b1 === 0 && S6.k.turn.action === 1);
+      // in the swirl: the click Slam refuses and says why; the ring offers no Slam; Active Suffocation is a bonus action
+      var S7 = mk(); put(S7.H[0], 8, 1); run(S7, { do: 'kswirl', target: S7.H[0] }); var nl7 = D.keeperLog.length; RU.startTurn(S7.k); S7.c.length = 0; put(S7.H[1], 8, 2);
+      var ids7 = D.keeperPlay.entries(S7.B, S7.k).map(function (e) { return e.id; }).join(','), st7 = state(S7.k); run(S7, { do: 'attack', target: S7.H[1] });
+      ok('in the swirl: the click Slam is refused (' + (S7.c.join(' ').match(/LET GO[^.]*/) || ['no card'])[0] + '), nothing resolves, the turn state is as it was (' + (state(S7.k) === st7) + '), the ring offers ' + ids7, /LET GO/.test(S7.c.join(' ')) && D.keeperLog.slice(nl7).filter(function (e) { return /^(attack|kslam)$/.test(e.action) && e.rolls.length; }).length === 0 && state(S7.k) === st7 && !/kslam/.test(ids7) && /ksuffocate/.test(ids7));
+      var bonus0 = S7.k.turn.bonus; run(S7, { do: 'ksuffocate' });
+      ok('Active Suffocation costs the bonus action (' + bonus0 + ' -> ' + S7.k.turn.bonus + '), not the action (' + S7.k.turn.action + '), once a turn', bonus0 === 1 && S7.k.turn.bonus === 0 && S7.k.turn.action === 1 && !D.keeperPlay.entries(S7.B, S7.k).filter(function (e) { return e.id === 'ksuffocate'; })[0].ok);
+      // the opportunity attack: the reaction, once, and one Slam (not the multiattack)
+      var S8 = mk(), mover = S8.H[0]; put(mover, 8, 6); RU.startTurn(mover); mover.turn.move = 30; S8.k.reaction = 1; var nl8 = D.keeperLog.length; K.CFG.oaWave = false; drain(S8.B.moveAlong(mover, [sq(8, 7), sq(8, 8)], { spend: true }));
+      var oa = D.keeperLog.slice(nl8).filter(function (e) { return /Slam/.test(e.action + e.result) && e.rolls.length; }).length;
+      ok('the opportunity attack is the reaction: one Slam (' + oa + '), the reaction spent (' + S8.k.reaction + ')', oa <= 1 && (oa === 0 || S8.k.reaction === 0));
+      C.slams = sv.sl; D.battle = B3;
+    })();
+    // ---- the ladder keeps the OLD Keeper; the 8-bit's stair, the gallery and the play modes the new (Griz: "the cool keeper fight isn't for the ladders, they have to play the real game")
+    (function () {
+      var rung = D.fightsAt(3).map(function (f) { return f.id; }), saveCfg = Object.assign({}, K.CFG);
+      ok('the ladder\'s level-3 rung lists keeper-ladder and not keeper (' + rung.join(',') + ')', rung.indexOf('keeper-ladder') >= 0 && rung.indexOf('keeper') < 0);
+      var BL = new D.Battle({ ladder: true, fight: 'keeper-ladder', bench: true }); D.battle = BL; BL.enter(); var kL = keeper(BL);
+      ok('the ladder rung loads the OLD Keeper: ' + kL.hp + ' HP, Slam ' + kL.attacks.slam.dice + '+' + kL.attacks.slam.mod + ' atk ' + kL.attacks.slam.atk + ', ' + K.CFG.slams + ' Slam, Wave DC ' + K.CFG.waveDC + ', hidden ' + !!kL.conds.hidden + ', glow ' + K.CFG.glow + ', the opening ' + K.CFG.partyOpening, kL.hp === 100 && kL.attacks.slam.dice === '2d6' && kL.attacks.slam.atk === 5 && K.CFG.slams === 1 && K.CFG.waveDC === 13 && !!kL.conds.hidden && !K.CFG.glow && !K.CFG.partyOpening && K.isFight(BL.fight));
+      var cL = cardsOf(BL); BL.units.forEach(function (u) { if (u.side === 'party' && !u.familiar) { u.guest = true; u.classAI = true; } }); BL.heroTurn = function* (u) { yield* D.ai.turn(this, u); }; var gn = 0, vv; while (BL.co && gn++ < 400000) { var rr = BL.co.next(vv); vv = undefined; if (rr.done) break; if (rr.value && rr.value.prompt) vv = rr.value.prompt.opts[0].value; }
+      ok('the ladder\'s Keeper fight runs to its end on the old rules (' + BL.result + ', R' + BL.round + ', Slams at +5: ' + (cL.join(' ').match(/Slam \| d20 [^=]*\+5 =/g) || []).length + ' seen, +6: ' + (cL.join(' ').match(/Slam \| d20 [^=]*\+6 =/g) || []).length + ')', !!BL.result && !/\+6 =/.test(cL.join(' ')));
+      // the 8-bit's stair (events.js deep16: 'keeper', embed): the new one
+      var BE = new D.Battle({ embed: {}, fight: 'keeper', data: D.save.fixture(3), bench: true }); D.battle = BE; BE.enter(); var kE = keeper(BE);
+      ok('the 8-bit\'s stair loads the NEW Keeper: ' + kE.hp + ' HP, Slam ' + kE.attacks.slam.dice + ' atk ' + kE.attacks.slam.atk + ', ' + K.CFG.slams + ' Slams, Wave DC ' + K.CFG.waveDC + ', hidden ' + !!kE.conds.hidden + ', glow ' + K.CFG.glow, kE.hp === 175 && kE.attacks.slam.dice === '3d6' && kE.attacks.slam.atk === 6 && K.CFG.slams === 2 && K.CFG.waveDC === 15 && !kE.conds.hidden && K.CFG.glow);
+      var BG = D.keeper.fight('?keeperfight&play=party&lvl=3'); D.battle = BG; BG.enter();
+      ok('the play modes and the gallery are the new one (' + keeper(BG).hp + ' HP, fight ' + BG.fight.id + ')', keeper(BG).hp === 175 && BG.fight.id === 'keeper');
+      Object.assign(K.CFG, saveCfg); D.battle = B3;
     })();
     D.battle = B3;
     // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row; the counts are what the mechanics did

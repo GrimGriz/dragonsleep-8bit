@@ -14,7 +14,7 @@
   var L = D.keeperLog = [];
   L.meta = {};
   function plain(s) { return String(s).replace(/\{[a-z\/]+\}/g, '').replace(/\s+/g, ' ').trim(); }
-  function mine(B) { return !!(B && B.fight && B.fight.id === 'keeper' && B._klog); }
+  function mine(B) { return !!(B && B.fight && K.isFight(B.fight) && B._klog); }
   function snap(B) { var o = {}; B.units.forEach(function (u) { o[u.id] = { u: u, hp: u.hp, c: Object.keys(u.conds || {}).filter(function (k) { return u.conds[k]; }).sort().join(',') }; }); return o; }
   function flagsOf(B, text) {
     var S = B.kp, k = B.units.filter(function (u) { return u.kind === 'keeper'; })[0], f = {};
@@ -81,7 +81,7 @@
   wrapProto(D.Battle.prototype, 'enter', function (enter0) {
     return function () {
       var seed = D.seed >>> 0, r = enter0.apply(this, arguments), B = this;
-      if (!(B.fight && B.fight.id === 'keeper')) return r;
+      if (!(B.fight && K.isFight(B.fight))) return r;
       L.length = 0; B._klog = { depth: 0, cap: null, turn: 0, amb: [], hp: hpMap(B) };
       var lv = 0; B.units.forEach(function (u) { if (u.side === 'party' && u.lvl > lv) lv = u.lvl; });
       L.meta = { seed: seed, level: lv, mode: (B.o && B.o.play) || 'ai', result: null };

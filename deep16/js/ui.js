@@ -548,7 +548,7 @@
     if (tool === 'breaktendril') return w && D.Battle.breakable(u, B.units).indexOf(w) >= 0 ? 'ok' : 'no'; // (BREAK THE TENDRIL: the one it holds -- you, or a friend beside you -- 10-02)
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (x === u.x && y === u.y && !foe) return 'self';
-      if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action) ? 'ok' : 'no'; // a crossbow reaches out to its long range
+      if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action || T.slamsLeft > 0) ? 'ok' : 'no'; // a crossbow reaches out to its long range (T.slamsLeft: the Keeper's second Slam out of the one action -- js/keeperplay.js)
       var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
       if (rc.move[k] && rc.move[k].stand) return 'ok';
       if (rc.dash && rc.dash[k] && rc.dash[k].stand) return 'far';
