@@ -498,7 +498,7 @@
   // rather than add swimming"): what lives in the water keeps to it or comes out of it; nobody swims
   // the Keeper of the flooded stair (events.js S.stair, Pete's Five): "It never left its water; it only let go."
   keeper: {
-    name: 'The Keeper', type: 'elemental', named: true, sheet: 'keeper_p1', cr: '3', ac: 13, hp: 100, speed: 60, size: 2, reach: 10, blindsight: 30, blind: true,
+    name: 'The Keeper', type: 'elemental', named: true, sheet: 'keeper_p2', cr: '3', ac: 13, hp: 100, speed: 60, size: 2, reach: 10, blindsight: 30, blind: true,
     abil: { str: 17, dex: 16, con: 13, int: 11, wis: 10, cha: 10 }, init: 3, perception: 10,
     saves: { str: 3, dex: 3, con: 1, int: 0, wis: 0, cha: 0 },
     // 10-03, Griz's design (handoff-2026-10-02-the-keeper.md; js/keeper.js): above the water a Slam (his "knock prone%": a DC 15 STR save, "using himself is more

@@ -12,6 +12,17 @@
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx;
   var K = D.keeper = {};
+  // THE POSES (Griz: neither Grok sheet is canon, any pose from either): each is a row of the sheet keeper_p2 (art/keeper_p2.json): a_* is the first Grok sheet's, b_* the
+  // second's -- idle, wall, dive, wave -- and slam_ab (the first sheet's dive to the launch, the second's the smash and the return; the default), slam_ba (the other way about).
+  // Swap one in the pane with D16.keeper.pose({ slam: 'slam_ba' }) -- or any row: pose({ idle: 'b_idle', wave: 'a_wave', wall: 'b_wall', slam: 'b_dive' }); it holds for the page
+  K.POSE = { idle: 'a_idle', slam: 'slam_ab', wave: 'b_wave', wall: 'a_wall', hurt: 'hurt_b', die: 'die_b' };
+  K.pose = function (o) {
+    if (o) Object.keys(o).forEach(function (k) { K.POSE[k] = o[k]; });
+    var sh = D.SHEETS && D.SHEETS.keeper_p2; if (!sh) return K.POSE;
+    var link = { idle: 'idle', walk: 'idle', attack: 'slam', wave: 'wave', cast: 'wave', wall: 'wall', hurt: 'hurt', die: 'die' };
+    Object.keys(link).forEach(function (a) { var row = sh.anims[K.POSE[link[a]]]; if (row) sh.anims[a] = Object.assign({}, row); });
+    return K.POSE;
+  };
   K.CFG = { waveDC: 13, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12 }; // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
@@ -54,7 +65,7 @@
     var lying = foesOf(B, u).filter(function (w) { return w.conds.prone && w.x <= l.x1 + 6 && w.y <= y1; });
     if (!hit.length && !lying.length) return false;
     S.waves++;
-    B.focus(u); D.sfx('splash'); u.anim = 'attack'; u.animT = B.t;
+    B.focus(u); D.sfx('splash'); u.anim = 'wave'; u.animT = B.t;
     var rows = [], lane = [];
     for (var yy = top; yy <= y1; yy++) for (var xx = l.x0; xx <= l.x1; xx++) { var q = G.map.at(xx, yy); if (q && q.open) lane.push([xx, yy]); }
     if (lane.length) FX.bloom((l.x0 + l.x1) >> 1, (top + y1) >> 1, lane, 'glow');
@@ -176,7 +187,7 @@
     if (T.bonus > 0 && !u.dead && u.hp > 0 && (yield* K.wave(B, u))) T.bonus = 0;
   }
   K.turn = function* (B, u) {
-    var S = st(B);
+    var S = st(B); K.pose();
     if (S.ready) { S.ready = null; B.card(['{g}' + Nm(B, u) + '\'s readied wall: the moment passed.{/}'], 160); }
     if (u.flooding && !(yield* inWater(B, u))) return;
     yield* above(B, u);
@@ -193,7 +204,7 @@
   };
   K.readyWall = function* (B, u) {
     var S = st(B); u.turn.action = 0; S.ready = { round: B.round };
-    B.focus(u); u.anim = 'attack'; u.animT = B.t;
+    B.focus(u); u.anim = 'wall'; u.animT = B.t;
     B.card(['{r}' + Nm(B, u) + '{/} gathers the water at the stair\'s edge, and holds it.  {g}(READY: the Ice Wall -- when one of you moves toward the exit; ' + S.uses + ' left){/}'], 300); yield 30;
   };
   // after a creature's step (battle.js moveAlong): a hero moving toward the exit, on the stair, springs it
@@ -218,7 +229,7 @@
       if (best) { tween(B, v); v.x = best[0]; v.y = best[1]; }
     });
     B.walls = (B.walls || []).concat([w]); B.wallMap = null; S.wall = w;
-    B.focus(k); D.sfx('earth'); FX.bloom(w.cx, row, sq, 'glow');
+    B.focus(k); k.anim = 'wall'; k.animT = B.t; D.sfx('earth'); FX.bloom(w.cx, row, sq, 'glow');
     B.card(['{r}' + Nm(B, k) + '{/} springs the Ice Wall: {c}the water on the stair freezes across, behind ' + trig.name + '.{/}',
       '{g}(row ' + row + ', AC ' + K.CFG.wallAC + ', ' + K.CFG.wallHP + ' HP a 10-ft section; fire destroys a section at once; ' + S.uses + ' use' + (S.uses === 1 ? '' : 's') + ' left){/}'], 340);
     yield 40;
@@ -279,4 +290,5 @@
     });
     return out;
   };
+  K.pose(); // (the engine's anim names point at the rows from the start)
 })();

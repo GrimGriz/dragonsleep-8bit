@@ -1,42 +1,50 @@
 {
- "a_turn": {
+ "a_idle": {
   "y": 0,
   "frames": 4
  },
- "a_idle": {
-  "y": 224,
-  "frames": 4
- },
  "a_wall": {
-  "y": 448,
+  "y": 992,
   "frames": 6
  },
  "a_dive": {
-  "y": 672,
+  "y": 1984,
   "frames": 7
  },
  "a_wave": {
-  "y": 896,
+  "y": 2976,
   "frames": 6
  },
- "b_turn": {
-  "y": 1120,
-  "frames": 4
- },
  "b_idle": {
-  "y": 1344,
+  "y": 3968,
   "frames": 4
  },
  "b_wall": {
-  "y": 1568,
+  "y": 4960,
   "frames": 6
  },
  "b_dive": {
-  "y": 1792,
+  "y": 5952,
   "frames": 7
  },
  "b_wave": {
-  "y": 2016,
+  "y": 6944,
   "frames": 6
+ },
+ "slam_ab": {
+  "y": 7936,
+  "frames": 8
+ },
+ "slam_ba": {
+  "y": 8928,
+  "frames": 7
+ },
+ "hurt_b": {
+  "y": 9920,
+  "frames": 2
+ },
+ "die_b": {
+  "y": 10912,
+  "frames": 3
  }
 }

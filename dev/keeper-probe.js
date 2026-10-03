@@ -17,6 +17,12 @@
     ok('the Keeper: AC ' + RU.ac(k) + ', HP ' + k.hp + ', a Slam (prone DC ' + (k.attacks.slam && k.attacks.slam.prone) + '), no Constrict or Drag Under', k.attacks.slam && k.attacks.slam.prone === 15 && !k.attacks.constrict && !k.attacks.drown && RU.ac(k) === 13 && k.hp === 100);
     ok('the map: deep ' + JSON.stringify(G.map.def.deeps) + ', wall row ' + G.map.def.wallRow, G.map.def.deeps.length === 3 && G.map.def.wallRow === 11 && K.isDeep(8, 1) && !K.isDeep(8, 2));
     P.forEach(function (u) { delete u.conds.hidden; });
+    // ---- the sheet: keeper_p2 (keeper_p1 left alone), the engine's anim names, the one-line pose swap
+    var SH = D.SHEETS.keeper_p2, an0 = SH && SH.anims;
+    ok('the foe draws keeper_p2 (' + k.sheet + '), p1 untouched (' + !!D.SHEETS.keeper_p1 + '), anims ' + (an0 && ['idle', 'walk', 'attack', 'hurt', 'die', 'wave', 'wall'].filter(function (a) { return an0[a]; }).join(',')), k.sheet === 'keeper_p2' && D.SHEETS.keeper_p1 && ['idle', 'walk', 'attack', 'hurt', 'die', 'wave', 'wall'].every(function (a) { return an0[a]; }));
+    var y0s = an0.attack.y, f0s = an0.attack.frames; K.pose({ slam: 'slam_ba' });
+    ok('pose({ slam: slam_ba }) re-points the Slam: y ' + y0s + ' (' + f0s + ' frames) -> ' + an0.attack.y + ' (' + an0.attack.frames + ')', an0.attack.y !== y0s && an0.attack.y === an0.slam_ba.y);
+    K.pose({ slam: 'slam_ab' });
     // ---- the Wave: two heroes on the stair, both fail; the backwash takes each 10 ft toward the deep, and they stand
     put(P[0], 8, 9); put(P[1], 9, 9); put(P[2], 7, 10); put(P[3], 10, 10); delete k.conds.hidden;
     force(false); cards.length = 0; RU.startTurn(k); var did = drain(K.wave(B, k)); unforce();
