@@ -2334,7 +2334,26 @@
                   return settleZ().then(function () {
                     var foes5 = (F5.foes || D.MAPS[F5.map].foes || []).map(function (f) { return D.FOES[f.kind] && D.FOES[f.kind].sheet; }).filter(Boolean);
                     okZ(foes5.every(function (k) { return SZ.has(k); }), 'and the ' + F5.id + ' fight\'s foes came behind it: ' + foes5.filter(function (k, i, a) { return a.indexOf(k) === i; }).join(', '));
-                    D.pop(); endZ();
+                    D.pop();
+                    // 6. the ladder list (RULED 10-03, Griz: "yes"): a rung the mouse runs over fetches nothing; the one it rests on has its
+                    // figures fetched behind after a third of a second, so its camp opens without the beat
+                    var ld = new D.Ladder(); D.push(ld);
+                    var have6 = fetchedZ(), news = function (L) { return ld.rungSheets(L).filter(function (k, i, a) { return k && a.indexOf(k) === i && have6.indexOf(k) < 0; }); };
+                    var Ls = [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(function (L) { return news(L).length; }), Lt = Ls[Ls.length - 1];
+                    var Lp = Ls.filter(function (L) { return L !== Lt && news(L).some(function (k) { return news(Lt).indexOf(k) < 0; }); })[0];
+                    if (!Lt || !Lp) { okZ(false, 'the ladder: no two rungs with figures not yet fetched (' + Ls.join() + ')'); D.pop(); endZ(); return; }
+                    var only = news(Lp).filter(function (k) { return news(Lt).indexOf(k) < 0; });
+                    ld.sel = Lp; for (var u6 = 0; u6 < 8; u6++) ld.update();
+                    var passed = fetchedZ().filter(function (k) { return have6.indexOf(k) < 0; });
+                    ld.sel = Lt; for (var u7 = 0; u7 < 25; u7++) ld.update();
+                    return settleZ().then(function () {
+                      var got6 = fetchedZ().filter(function (k) { return have6.indexOf(k) < 0; });
+                      okZ(!passed.length && only.every(function (k) { return got6.indexOf(k) < 0; }), 'the ladder: rung ' + Lp + ' passed over (8 frames) fetches nothing (' + (passed.join(', ') || 'none') + '); its own ' + only.join(', ') + ' not fetched');
+                      okZ(ld.rungSheets(Lt).every(function (k) { return !k || SZ.has(k); }) && !subset(got6, ld.rungSheets(Lt)).length, 'rung ' + Lt + ' rested on: its figures fetched behind (' + got6.join(', ') + '), and nothing else');
+                      var c6 = new D.Camp(Lt, ld.cur(Lt), function () {}); D.push(c6);
+                      okZ(c6.sheetGate && !SZ.held(c6, true), 'its camp opens without the beat (' + c6.sheetGate.names.join(', ') + ' here)');
+                      D.pop(); D.pop(); endZ();
+                    });
                   });
                 });
               });
