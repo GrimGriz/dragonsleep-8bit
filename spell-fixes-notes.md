@@ -52,8 +52,8 @@ Each commit also updates the register row (`spells-srd-by-class.md`: "BUILT 10-0
 
 ## 4. Found past the fifteen (reported, not fixed)
 
-1. **The grid's Ice Storm deals all of 2d8 + 4d6 as bludgeoning** (magic.js area(): one total, `sp.el`). The 4d6 is cold. A creature resisting or immune to cold, or to bludgeoning, reads it wrong. The 8-bit splits the two.
-2. **Sanctuary and the floating weapon now part the two games.** The grid's spiritual-weapon blow is the caster's attack (Battle.attack), so it ends the ward. The 8-bit still spares that swing (two-books 2b: "bar the spiritual weapon").
+1. **The grid's Ice Storm deals all of 2d8 + 4d6 as bludgeoning** (magic.js area(): one total, `sp.el`). The 4d6 is cold. A creature resisting or immune to cold, or to bludgeoning, reads it wrong. The 8-bit splits the two. **Built after the ruling (48891c8, §5).**
+2. **Sanctuary and the floating weapon now part the two games.** The grid's spiritual-weapon blow is the caster's attack (Battle.attack), so it ends the ward. The 8-bit still spares that swing (two-books 2b: "bar the spiritual weapon"). **Built after the ruling (09356c7, §5): both games end it now.**
 3. **No grid foe carries magical weapon attacks** (the SRD's angels, fiends and golems: "weapon attacks are magical"). Stoneskin reads `atk.magic`, so a sheet that comes with such a creature should set it.
 4. **The 8-bit's oozes lack `charmed` in condImmune** (the SRD lists it). Their `asleep` already keeps Sleep off, so nothing shows today.
 5. **The drow's Fey Ancestry advantage against being charmed** is not read in the 8-bit. No 8-bit spell charms a foe, so it is moot today; the sheets now carry the trait for when one does.
@@ -66,3 +66,46 @@ Each commit also updates the register row (`spells-srd-by-class.md`: "BUILT 10-0
 4. The sleet reading (the fall costs no action; it fights on from the ice)? -- *"yes"*, and: *"but we're not making new animations for attacking from prone, players might see them pop up and fall back prone and that's fine"*. Nothing built for it.
 
 All four are in the register's Ruled section (spells-srd-by-class.md, "Ruled, 10-03"). After both builds, `check.py all` is GREEN (45 checks).
+
+## 6. For the next seat
+
+Written 2026-10-03T14:15Z, as this instance closes. The branch is `claude/spell-fixes`: 22 commits off main at c7f8451, counting this one. The first is 48ad3bf (ae9af63 cherry-picked) and the last before this note is d975a1c. The same commits are on `claude/new-session-8u6kxi`, the branch the harness named for this session. Main was not touched. The desktop window merges.
+
+**Who said what (verbatim; everything else here is the seat's).**
+- Griz, 10-03: *"4 yes"* to "The cheap SRD fixes as one Sonnet or cloud batch?". That is the authority for all fifteen. The overseer's prompt (the desktop window) set the list, the branch name, one commit per fix, and the `fixes1003` modes.
+- Griz's four answers, 10-03 (§5; the register's "Ruled, 10-03"): *"per dart; the SRD text, the other is Sage Advice"* / *"yes; dealing damage ends it"* / *"yes; it is a bug"* / *"yes"*, plus *"but we're not making new animations for attacking from prone, players might see them pop up and fall back prone and that's fine"*.
+- **The seat's readings, not ruled:** Lesser Restoration's order and its question before the slot (§2, item 3); the pickers' X sending the rest at the last foe (item 7); "affects an enemy creature" read as aimed at a foe, or hurt or marked one (item 11); the AI's Shield threshold of two darts, or darts that could drop it (item 13); Sanctuary ending on a miss of the spiritual weapon, not only a hit (§5.2; I read his "dealing damage" as the reason, and the SRD says "makes an attack"). If he says otherwise on any of these, each is a line or two.
+
+**What to rerun, and when.**
+- **At merge, from PowerShell on the desktop:** `python dev/check.py all`. It must be GREEN, and RED means no push. It now carries both `fixes1003` modes. None of this branch has run in Windows Edge: every bench here ran in the container's Chromium.
+- **After the merge:** `python tools/deep16-build.py`, then `git checkout -- deep16/js/palette.js`, then `python tools/compile.py`. The `?v=` hashes in both `index.html` files will differ from main's. Regenerate them; never hand-merge them (main has done this before: "deep16 build: the ?v= hashes after the leftovers merge").
+- **After any grimoire or magic edit,** the every-spell check: `python -c "import sys; sys.path.insert(0,'dev'); import bench16; print(bench16.run({'mode':'spells'}))"`. Only the three by-design notes should show.
+- **When `claude/8bit-reactions` merges:** it touches the same `castSpell` in `js/battle.js`. Expect conflicts in the targets block (the darts and rays now carry `shots`, one entry per dart, and `cureAil` is asked before the slot is spent), in the `cure` and `sleep` branches, and around the buff slot. Its 8-bit Shield should read `shots` when it stops Magic Missile. Rerun `python dev/bench8.py fixes1003` and its own modes after.
+- **To see Blindness/Deafness fight in the 8-bit:** `python dev/bench8.py fixes1003 fight9=1`. It drives one menu fight against two ogres.
+- **In the container:** set `DEEP16_BROWSER=/opt/pw-browsers/chromium DEEP16_BROWSER_ARGS=--no-sandbox` before any bench. Unset, both benches look for the Windows Edge path, which isn't here, and fail.
+
+**Gotchas that cost time here.**
+- `DS.roll` draws through `DS.d` in the 8-bit. If you queue d20s for a check, the damage dice eat them too. Pin `battle.d20` for attack rolls instead (fixes1003 check 7). The grid bench pins `D.d` with `n === 20 ? d20 : n`, which gives every other die its top face.
+- `Battle.hurt` on the grid has a fourth argument, `{ magic }`, which is what Stoneskin reads. Any new spell damage path should pass `MAGIC` (defined in magic.js and grimoire.js), or Stoneskin halves it. Any new wrapper of `hurt` must hand on `arguments` (show.js took three by name and was fixed).
+- A check that proves something by a reaction kept breaks when a new reaction fires. Fix 13 hit this in `dispel1002`; its foe's book loses Shield there, with a comment saying why.
+- `battle.pendingMsg` survives between bench checks run on one battle. Clear it, or one check's line shows up in the next.
+- Palette ramps are uneven (silver has 7 shades, 0 to 6; bone has 3). `P(ramp, i)` past the end gives `undefined` with no error, so the drawing just goes wrong.
+- `compile.py` rewrites `index.html`, `data/data.js` and `data/game-data.json` after a content edit; commit them with it. `srd/spells/level-*.md` quotes each record's `desc`, and `tools/srd-md.py` needs Griz's local PDF, so a changed desc means patching the quote by hand (done here for Lesser Restoration, Magic Missile, Scorching Ray and Bless).
+- In the 8-bit's `castSpell`, the slot is spent before the effect loop. Ask any question before `h.slots[slot - 1]--`, so a cancel costs nothing.
+- The grid's battle.js `D.magic.cast` wrapper (the READY seam) is the one place where a spell's effect on foes is visible after the cast. Sanctuary's end sits there.
+
+**What was not seen.** Nothing was looked at on a screen:
+- the 8-bit's dart picker ("dart 2 of 3 at whom? (X: the rest at ...)");
+- END WHICH? for Lesser Restoration;
+- the grid's SHIELD? prompt as the darts fly;
+- the hailstones' look (drawn only to an offscreen canvas, to prove it doesn't throw);
+- the new battle lines ("The spell finds no hold on ...", "is jolted out of the laughter", "sanctuary ends").
+
+There was no playtest. The AI's Shield was benched once, never weighed in a ladder fight. `Battle.aimShots` has no caller until an 8-bit caster run by the battle casts darts or rays.
+
+**Still open, not built** (from §4 and the rulings):
+- No grid foe has magical weapon attacks yet. When one comes, set `magic: true` on its attacks.
+- The 8-bit's oozes lack `charmed`.
+- The drow's charm-save advantage is not read in the 8-bit.
+- A two-kind spell makes a concentrating creature check twice (Ice Storm now, as Flame Strike already did). The SRD gives one save per source.
+- The 8-bit's Mislead double has no clock (two-books law 5, as Mirror Image).

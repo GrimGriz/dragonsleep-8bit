@@ -4,6 +4,10 @@ The desktop oversight window keeps this list; a cloud seat reads it to know what
 
 ## Merged (main)
 
+**The signature fight, as a recipe:** `deep16/signature-fights.md` (10-03, from the Keeper's run): his design in his words, the hesitations numbered, bench-first, the looks in a gallery, a cloud seat on a branch and the desk on the gate, the three playtest doors, his records changing the rules, the levers named, the ladder kept on the old fight, the ship on his word. The next signature fight's brief cites it first.
+
+Every seat's notes file ends with a **For the next seat** section (10-03): the gotchas, who said what, what to rerun and when. Read the one for the area you touch before you touch it.
+
 | job | branch | notes | merged |
 |---|---|---|---|
 | the SRD pass's leftovers (Spy's Cunning Action, Parry, thrown weapons, Ettin, Duergar Resilience) | `claude/srd-pass-leftovers` | -- | 4454318, 10-03 |
@@ -16,13 +20,14 @@ The desktop oversight window keeps this list; a cloud seat reads it to know what
 | the here-to-there walker (28 legs, 3 chains, 100 walks each: what the party reaches each boss with) | `claude/here-to-there` | `here-to-there.md`, `here-to-there-notes.md`, `dev/walk8.py` | 12db1fb, 10-03 (fast-forward) |
 | the walker, round two (the player's hand on the bench beside the floor, the tent once below half, the ladder's levels; his five answers) | `claude/here-to-there` | the same files | 7c7379b, 10-03 (fast-forward) |
 | the walker, round three (a group at two, kits on the downed after a fight, the dry stair at the story's 6, the sally chain) -- built on the overseer's four LEANS, recorded as leans until Griz rules | `claude/here-to-there` | the same files | e1dbf77, 10-03 (fast-forward) |
+| the Keeper of the Flooded Stair, redone to his design (the lure AI, 160 HP, Slam 3d4, the drowning 1d8+1, the party's retreat; the ladder keeps the old Keeper) | `claude/intelligent-maxwell-6ich3v` via Griz's own window (`scratch/merge-both`) | `deep16-keeper-notes.md` | c8868ab, 10-03 |
 | the 8-bit's reactions and concentration (the buff slot retired; his seven answers built) | `claude/8bit-reactions` | `8bit-reactions-notes.md` | 1b18ac5, 10-03 (the desktop took main for it: eleven files, the records field by field) |
 
 ## In flight
 
 | job | branch | state |
 |---|---|---|
-| the Keeper of the Flooded Stair (his design) | `claude/intelligent-maxwell-6ich3v` | built and benched; the foe still draws `keeper_p1`, rows 6/7 asked; Griz finishing it in another window |
+| the early fights half again | `claude/early-cr` | running 10-03 (the overseer's call on his word: x1.5 adjusted XP; the Keeper, the wagon night, the cloaker out) |
 
 ## Queued (ruled, not started)
 
@@ -36,8 +41,14 @@ The desktop oversight window keeps this list; a cloud seat reads it to know what
 - **The dragonborn's breath weapon and resistance, the tiefling's spells** (`NPC.RACES` has only scores, darkvision, fire resistance); a portrait for the maker's card.
 - **The 121 grid-only spells**: HELD (Griz, 10-03). Random encounters are the 8-bit's (ruled 10-03), so the pull for an 8-bit spell is what the heroes cast in random fights; the here-to-there table says which spells get spent on the road. Build nothing past his word.
 
+## Rulings that bound every job
+
+- **The Wet is not benched as a fight** (Griz, 10-03: *"we should cut the Wet from benching it's got all that 'spawn in crawlers that attack corpses story stuff'"*). No win rates, no CR arithmetic, no boss cost in the walker's chains for `wet`; the early-cr job leaves it; `bench16.py x fight=wet` is not a measure of anything. The machinery probes (`dev/wet-probe.py`, `dev/wet8-probe.py`: the Settling, the landlord's pictures) stay in the gate as proofs that the story runs, not as weights of the fight (the overseer's reading of his word; his to narrow).
+
 ## Open questions for Griz (not rulings)
 
+- From the Keeper window's close (desktop, 10-03): the 8-bit's own story text (w.stairSee, w.markWake) is not matched to the two spawns; nobody has seen the live 8-bit wade-in or rune paths, or the ladder rung screen, in a real browser.
+- From the fixes seat's close, five small findings not built: the 8-bit's oozes lack the charmed condition; the drow's charm-save advantage is not read in the 8-bit; a two-kind spell makes a concentrating caster check twice (Ice Storm now, as Flame Strike did); Mislead's double has no clock; no grid foe has magical weapon attacks yet (set `magic: true` when one comes).
 - The walker's round-two four were built as the overseer's LEANS (a group at two foes, kits on the downed after a fight, the dry stair at the story's level, leg four in sallies): his word makes them rulings or undoes them (bench-only, easy to undo).
 - The walker's round-three three (here-to-there.md, Questions): leg four walked straight arrives at 46% with 19 walks in 100 wiped, in sallies nobody arrives (Third Lamp sits at the near end: 500 steps against 95, the night restores HP and slots but no potion, kit or tent) -- the straight walk as meant, a bed at the far end past the troll hole, or a lighter hw4 table? Should Second Lamp's stores carry potions, or is Solskaft's Garrison the only place by design? Should the chains add each boss's own cost from the grid's bench, so a door shows the boss before it too?
 - ~~Random encounters: the 8-bit's, or grid maps someday?~~ RULED 10-03 (Griz: *"random encounters stay the 8-bit"*).

@@ -242,7 +242,11 @@
   };
 
   // ------------------------------------------------------------------ Lead select
-  function LeadSelect() { this.kind = 'lead'; this.opaque = true; this.i = 0; this.ids = ['barley', 'aurdin', 'vivian', 'lymen']; }
+  function LeadSelect() {
+    this.kind = 'lead'; this.opaque = true; this.ids = ['barley', 'aurdin', 'vivian', 'lymen'];
+    var pre = /[?&]lead=(barley|aurdin|vivian|lymen)\b/i.exec(location.search || ''); // (&lead=lymen: the cursor starts on him -- a testing URL's convenience, 10-03)
+    this.i = pre ? this.ids.indexOf(pre[1].toLowerCase()) : 0;
+  }
   LeadSelect.prototype.update = function () {
     var self = this;
     if (I.repeat('right') || I.repeat('down')) { this.i = (this.i + 1) % 4; DS.audio.sfx('cursor'); }
