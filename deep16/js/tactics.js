@@ -286,7 +286,7 @@
     return { score: sc, t: { units: units } };
   };
   EV['shape:darts'] = function (B, u, e, slot, fs) {
-    var n = (e.g.n || 3) + Math.max(0, slot - e.level), list = fs.filter(function (t) { return M.targetOK(B, u, e.g, t); }).sort(function (a, b) { return a.hp - b.hp; });
+    var n = (e.g.n || 3) + Math.max(0, slot - e.level), list = fs.filter(function (t) { return M.targetOK(B, u, e.g, t) && !t.conds.shield; }).sort(function (a, b) { return a.hp - b.hp; }); // (a Shield up takes no damage from them, SRD 5.1 -- 10-03)
     if (!list.length) return null;
     var units = [], sc = 0, i = 0, left = list[0].hp;
     for (var k = 0; k < n; k++) { var tg = list[Math.min(i, list.length - 1)]; units.push(tg); sc += TX.worth(3.5, tg); left -= 3.5; if (left <= 0 && i < list.length - 1) { i++; left = list[i].hp; } }

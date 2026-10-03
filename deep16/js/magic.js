@@ -370,12 +370,25 @@
       // cloaker hit, then its face and the line -- and the thing struck comes for the caster (ai.js brute: grudge)
       var gim = B.fight && B.fight.gimmick === 'darkness' && atDark && u.side === 'party' && !B.gimmickDone;
       if (gim) yield { scene: { who: u, anim: 'attack', facing: 0, scale: 3, frames: 250, clip: 'audio/attacking_the_darkness.mp3', caption: 'MAGIC MISSILE. AT THE DARKNESS.' } };
-      var lines = [head + ' -- ' + (darts.length + shutD.length) + ' darts, each 1d4+1 force, never missing' + (atDark ? '  {p}AT THE DARKNESS{/}' : '')], tot = {}, who = {}, struck = [];
+      // Shield (SRD 5.1: "1 reaction, which you take when you are hit by an attack or targeted by the magic missile spell ... you take no damage from magic missile"
+      // -- 10-03): one with the barrier already up takes none of the darts; one who knows it, with a slot and the reaction, may raise it as they fly (a player is
+      // asked; the AI raises it when two darts or more come at it, or the darts could drop it). The 8-bit's Shield is the claude/8bit-reactions branch's
+      var barred = [], shLines = [];
+      for (var si = 0; si < darts.length; si++) {
+        var sw = darts[si]; if (sw.hp == null || sw.dark || sw === u || darts.indexOf(sw) !== si) continue;
+        var nAt = darts.filter(function (x) { return x === sw; }).length, ssl = M.slotLevels(sw, 1)[0];
+        if (!sw.conds.shield && sw.reaction > 0 && RU.canAct(sw) && (sw.known || []).indexOf('shield') >= 0 && ssl && (!sw.guest || sw.classAI)) {
+          var shYes = sw.side !== 'party' || sw.guest ? (nAt >= 2 || sw.hp <= 5 * nAt) : yield { prompt: { who: sw, title: sw.name + ': SHIELD?', lines: [nAt + (nAt > 1 ? ' darts' : ' dart') + ' of Magic Missile at you.', 'Shield: no damage from them, and +5 AC till your turn. (a level-' + ssl + ' slot, the reaction)'], opts: [{ label: 'CAST SHIELD', value: true }, { label: 'TAKE THEM', value: false }] } };
+          if (shYes) { sw.slots[ssl - 1]--; sw.reaction = 0; sw.conds.shield = true; FX.ring(sw, 'glow', 50); D.sfx('buff'); shLines.push('  ' + sw.name + ': {c}SHIELD{/} -- the barrier goes up as they fly'); }
+        }
+        if (sw.conds.shield) barred.push(sw);
+      }
+      var lines = [head + ' -- ' + (darts.length + shutD.length) + ' darts, each 1d4+1 force, never missing' + (atDark ? '  {p}AT THE DARKNESS{/}' : '')].concat(shLines), tot = {}, who = {}, struck = [];
       shutD.forEach(function (w, i) { if (shutD.indexOf(w) === i) lines.push('  ' + (w.side === 'foe' ? B.shortName(w) : w.name) + ': {c}inside the globe: ' + shutD.filter(function (x) { return x === w; }).length + ' broke on it, untouched{/}'); });
       for (var k = 0; k < darts.length; k++) { FX.projectile(u, darts[k], 'fire'); }
       yield { fx: 1 };
       darts.forEach(function (w) { var r = D.roll('1d4+1'); tot[w.id] = (tot[w.id] || 0) + r.total; who[w.id] = w; });
-      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force', MAGIC); if (w.side === 'foe') struck.push(w); });
+      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } if (barred.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}the darts break on the shield -- no damage{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force', MAGIC); if (w.side === 'foe') struck.push(w); });
       B.card(lines, 360); yield 30;
       if (gim && struck.length) {
         B.gimmickDone = true;

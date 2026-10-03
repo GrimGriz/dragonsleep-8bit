@@ -1034,6 +1034,18 @@
       pf12.conds = { pfeg: { by: pc12.id }, frightened: { by: w12.id } }; var sv12 = D.rules.save(pf12, 'wis', 30, false, 'frightened');
       pf12.conds = { frightened: { by: w12.id } }; var sv12b = D.rules.save(pf12, 'wis', 30, false, 'frightened');
       okX('12. already frightened by the fiend: the warded fighter\'s new save rolls ' + sv12.rolls.length + ' dice (advantage), without the ward ' + sv12b.rolls.length, sv12.rolls.length === 2 && sv12b.rolls.length === 1);
+      // 13. Shield against Magic Missile (SRD 5.1: "1 reaction, which you take when you are hit by an attack or targeted by the magic missile spell ... you take no
+      // damage from magic missile"): the foe wizard's three darts at ours -- he is asked, raises it, and takes nothing; again with it already up, no question and
+      // nothing; our darts at theirs, and the AI raises its own
+      var B13 = mkX('?npc=wizard:5&lvl=5&vs=wizard:5'), fw13 = sideX(B13, 'foe')[0], pw13 = sideX(B13, 'party')[0];
+      [fw13, pw13].forEach(function (w) { if ((w.known || []).indexOf('shield') < 0) w.known = (w.known || []).concat(['shield']); w.hp = w.maxhp = 400; w.reaction = 1; w.slots[0] = 3; w.slots[2] = 0; w.conds = {}; });
+      fw13.x = pw13.x; fw13.y = pw13.y - 4; D.rules.startTurn(fw13); askedX = 0;
+      var hp13 = pw13.hp, n13 = (B13.log || []).length; runX(MX.cast(B13, fw13, 'magicmissile', 1, { units: [pw13, pw13, pw13] }));
+      okX('13. three darts at our wizard: asked ' + askedX + ', he loses ' + (hp13 - pw13.hp) + ', the barrier up ' + !!pw13.conds.shield + ', his reaction and a slot spent ' + (pw13.reaction === 0 && pw13.slots[0] === 2) + ' -- ' + logX(B13, n13).slice(0, 200), askedX === 1 && pw13.hp === hp13 && !!pw13.conds.shield && pw13.reaction === 0 && pw13.slots[0] === 2);
+      askedX = 0; fw13.slots[0] = 3; runX(MX.cast(B13, fw13, 'magicmissile', 1, { units: [pw13, pw13, pw13] }));
+      okX('13. again, the barrier still up: asked ' + askedX + ', he loses ' + (hp13 - pw13.hp), askedX === 0 && pw13.hp === hp13);
+      D.rules.startTurn(pw13); var fhp13 = fw13.hp; askedX = 0; runX(MX.cast(B13, pw13, 'magicmissile', 1, { units: [fw13, fw13, fw13] }));
+      okX('13. our darts at theirs: the AI raised its Shield ' + !!fw13.conds.shield + ', it loses ' + (fhp13 - fw13.hp) + ', nobody asked (' + askedX + ')', !!fw13.conds.shield && fw13.hp === fhp13 && askedX === 0);
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
     D.d = d0X;
     if (errs.length) repX.errors = repX.errors.concat(errs);
@@ -1087,7 +1099,7 @@
       okD('our Fireball, the foe counters: ' + /COUNTERSPELL/.test(l4) + ', it fails ' + /it fails/.test(l4) + ', the foe unhurt ' + (f4.hp === hp4) + ' -- ' + l4.slice(0, 160), /it fails/.test(l4) && f4.hp === hp4);
       // 5 a readied spell's release is not asked (cast when it was readied)
       var B5 = mkD('?npc=wizard:5&lvl=5&vs=wizard'), f5 = B5.units.filter(function (u) { return u.side === 'foe'; })[0], p5 = B5.units.filter(function (u) { return u.side === 'party'; })[0];
-      f5.x = 9; f5.y = 4; p5.x = 9; p5.y = 10; f5.known = (f5.known || []).concat(['counterspell']); f5.slots[2] = 2; f5.reaction = 1; D.rules.startTurn(p5); p5.turn.readied = true;
+      f5.x = 9; f5.y = 4; p5.x = 9; p5.y = 10; f5.known = (f5.known || []).concat(['counterspell']).filter(function (id) { return id !== 'shield'; }); f5.slots[2] = 2; f5.reaction = 1; D.rules.startTurn(p5); p5.turn.readied = true; // (no Shield in its book: the darts now ask it, SRD 5.1 -- 10-03 -- and the reaction kept is this check's proof)
       var n5 = (B5.log || []).length; runD(D.magic.cast(B5, p5, 'magicmissile', 1, { units: [f5, f5, f5] })); var l5 = logD(B5, n5);
       okD('a readied release: no Counterspell ' + !/COUNTERSPELL/.test(l5) + ', the foe\'s reaction kept ' + (f5.reaction === 1), !/COUNTERSPELL/.test(l5) && f5.reaction === 1);
     } catch (eD) { repD.errors.push(String(eD && eD.stack || eD).slice(0, 900)); }
