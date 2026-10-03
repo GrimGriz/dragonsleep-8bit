@@ -24,7 +24,7 @@
     Object.keys(link).forEach(function (a) { var row = sh.anims[K.POSE[link[a]]]; if (row) sh.anims[a] = Object.assign({}, row); });
     return K.POSE;
   };
-  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 175, slamDice: '3d6', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 175, slamAtk: 6, sweepUpFree: false, slamDice: '3d6', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -105,7 +105,7 @@
       if (anchored(B, w)) { out.push('  ' + w.name + ' is held by the ice underfoot: the backwash goes round.'); return; }
       if (w.conds.restrained) return;
       var n = sweep(B, w);
-      if (n) { delete w.conds.prone; out.push('  ' + w.name + ' is swept ' + (n * 5) + ' ft toward the deep, and stands.  {g}(pushed by the wave: up free){/}'); if (K.isDeep(w.x, w.y)) deep.push(w); }
+      if (n) { if (K.CFG.sweepUpFree) delete w.conds.prone; out.push('  ' + w.name + ' is swept ' + (n * 5) + ' ft toward the deep' + (K.CFG.sweepUpFree ? ', and stands.  {g}(pushed by the wave: up free){/}' : ', and lies there prone.  {g}(half the move to stand){/}')); if (K.isDeep(w.x, w.y)) deep.push(w); }
     });
     if (out.length) { B.card(['{c}The wave bounces off the ' + (S.wall ? 'ice' : 'wall') + ' and drags back.{/}'].concat(out), 260); yield 30; }
     else if (!S.wall) { B.card(['{g}The wave runs out along the hall and falls away: no wall to throw it back.{/}'], 200); yield 20; }
@@ -304,8 +304,8 @@
     FX.keeperSlam(k, v); yield 18; // (the wave goes out; the mover is in its square still)
     if (dest) { // the effect lights the square it lands in -- and only then does it go there
       FX.bloom(dest[0], dest[1], [dest], 'cold', { core: false }); yield 22;
-      v.conds.prone = true; moved = sweep(B, v, K.CFG.oaSweep); yield 14; delete v.conds.prone;
-      B.card(['  ' + v.name + ' is pushed ' + (moved * 5) + ' ft toward the deep, and stands.'], 200);
+      v.conds.prone = true; moved = sweep(B, v, K.CFG.oaSweep); yield 14; if (K.CFG.sweepUpFree) delete v.conds.prone;
+      B.card(['  ' + v.name + ' is pushed ' + (moved * 5) + ' ft toward the deep' + (K.CFG.sweepUpFree ? ', and stands.' : ', and lies there prone.')], 200);
     }
     yield 20; k.anim = 'idle'; k.animT = B.t; K.face(B, k);
     if (moved && K.isDeep(v.x, v.y) && !k.flooding) yield* K.flood(B, k, v);
@@ -603,7 +603,7 @@
   // real code (the dice are put to the scene: a save the scene wants failed fails). Keys as the spell gallery's: left/right the scene before or after, E again, &scene=<id>, &auto.
   K.SCENES = [
     { id: 'slam', name: 'THE SLAM', words: 'It launches itself as an arcing wave and smashes down on one in its reach (DC 15 STR or prone), then returns into the pool.' },
-    { id: 'wave', name: 'THE WAVE', words: 'A bonus action each round: a wave up the stair (STR DC 13 or prone), off the front wall, and the backwash sweeps the prone 10 ft toward the deep -- up free.' },
+    { id: 'wave', name: 'THE WAVE', words: 'A bonus action each round: a wave up the stair (STR DC 15 or prone), off the front wall, and the backwash sweeps the prone 10 ft toward the deep: they stay prone, half the move to stand.' },
     { id: 'pour', name: 'THE POUR', words: 'Swept onto the deep, a hero is restrained and the Keeper pours into the water around it (AC 10); Active Suffocation doubles the drowning.' },
     { id: 'wall', name: 'THE ICE WALL', words: 'Readied, and sprung when one of you moves toward the exit: the water on the stair freezes across, behind you.' },
     { id: 'fire', name: 'FIRE ON THE WALL', words: 'A fire spell whose area takes in a section destroys it at once (not the SRD: the Keeper\'s own).' },
@@ -710,7 +710,7 @@
   // for it, a copy: melee, reach 10 (10-03: a click on a hero in play=keeper threw on u.weapon.ammo and froze the page)
   K.standIn = function (k) { if (k && k.attacks && k.attacks.slam && !k.weapon) k.weapon = Object.assign({}, k.attacks.slam, { name: 'Slam', ranged: false, reach: 10, standIn: true }); };
   var enterK0 = D.Battle.prototype.enter;
-  D.Battle.prototype.enter = function () { var r = enterK0.apply(this, arguments); if (this.fight && this.fight.id === 'keeper') this.units.forEach(function (u) { if (u.kind === 'keeper') { if (K.CFG.hp) u.hp = u.maxhp = K.CFG.hp; if (K.CFG.slamDice && u.attacks && u.attacks.slam) u.attacks.slam.dice = K.CFG.slamDice; if (K.CFG.weaponResist && u.resist && u.resist.indexOf('mundane') < 0) u.resist = u.resist.concat(['mundane']); K.standIn(u); if (K.CFG.visible) delete u.conds.hidden; } }); return r; }; // (10-03, Griz: he is visible from the first frame and glows; CFG.visible false is the old hidden Keeper)
+  D.Battle.prototype.enter = function () { var r = enterK0.apply(this, arguments); if (this.fight && this.fight.id === 'keeper') this.units.forEach(function (u) { if (u.kind === 'keeper') { if (K.CFG.hp) u.hp = u.maxhp = K.CFG.hp; if (K.CFG.slamDice && u.attacks && u.attacks.slam) u.attacks.slam.dice = K.CFG.slamDice; if (K.CFG.slamAtk && u.attacks && u.attacks.slam) u.attacks.slam.atk = K.CFG.slamAtk; if (K.CFG.weaponResist && u.resist && u.resist.indexOf('mundane') < 0) u.resist = u.resist.concat(['mundane']); K.standIn(u); if (K.CFG.visible) delete u.conds.hidden; } }); return r; }; // (10-03, Griz: he is visible from the first frame and glows; CFG.visible false is the old hidden Keeper)
 
   // ---- his own light (10-03, Griz: "a dim light source, the elemental plane energy that animates him"): a faint cool glow about his 2x2, the engine's own creature light (js/light.js L.carried),
   // dim only, glowFt feet; it moves with him, the water does not hide it, and he is lit where he stands so the party sees him
@@ -761,9 +761,10 @@
   K.fight = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     if (get('seed')) D.seed = +get('seed') | 0;
-    if (get('old') === '1') { K.CFG.visible = false; K.CFG.partyOpening = false; K.CFG.openingDrift = false; K.CFG.glow = false; K.CFG.hp = 100; K.CFG.slamDice = '2d6'; K.CFG.slams = 1; K.CFG.waveDC = 13; } // (old=1: the Keeper of before 10-03 Griz's notes -- hidden, no glow, the party reacting at once: reproduces the earlier tables)
+    if (get('old') === '1') { K.CFG.visible = false; K.CFG.partyOpening = false; K.CFG.openingDrift = false; K.CFG.glow = false; K.CFG.hp = 100; K.CFG.slamAtk = 5; K.CFG.sweepUpFree = true; K.CFG.slamDice = '2d6'; K.CFG.slams = 1; K.CFG.waveDC = 13; } // (old=1: the Keeper of before 10-03 Griz's notes -- hidden, no glow, the party reacting at once: reproduces the earlier tables)
     if (get('hidden') != null) K.CFG.visible = get('hidden') !== '1'; if (get('opening') != null) K.CFG.partyOpening = get('opening') !== '0'; if (get('glow') != null) K.CFG.glow = get('glow') !== '0'; // (hidden=1 the old hidden Keeper, opening=0 the old passive-then-react party, glow=0 no light of his own)
     if (get('hp')) K.CFG.hp = +get('hp');
+    if (get('atk')) K.CFG.slamAtk = +get('atk'); if (get('upfree') != null) K.CFG.sweepUpFree = get('upfree') === '1'; // (atk=6 the Slam's attack bonus; upfree=1 the old backwash that stands the swept up free)
     if (get('slam')) K.CFG.slamDice = get('slam'); if (get('slams')) K.CFG.slams = +get('slams'); if (get('wavedc')) K.CFG.waveDC = +get('wavedc'); if (get('resist') != null) K.CFG.weaponResist = get('resist') === '1'; if (get('swirl')) K.CFG.swirlAny = get('swirl') === 'any'; if (get('drift') != null) K.CFG.openingDrift = get('drift') !== '0'; // (the tuning levers, 10-03: slam=3d6 the Slam's dice, slams=2 the Slam twice, wavedc=15, resist=1 nonmagical weapons resisted, swirl=any the swirl takes any hero in the water or in reach, drift=0 no drift at the rune)
     if (get('init') != null) K.CFG.initBonus = +get('init') | 0; if (get('cast') != null) K.CFG.aiCast = get('cast') !== '0'; if (get('washnowall') != null) K.CFG.washNoWall = get('washnowall') === '1'; // (the bench's settings: init=5 the Keeper's initiative bonus, cast=0 the AI never casts the wall, washnowall=1 the old backwash)
     var B = new D.Battle({ fight: 'keeper', data: D.save.fixture(+(get('lvl') || 3)), bench: !!get('seed') || /[?&]watch\b/.test(q) });

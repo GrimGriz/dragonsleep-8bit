@@ -1036,10 +1036,39 @@
   };
 
   // ------------------------------------------------------------------ an attack: the roll, the reactions, the damage
+  // Sanctuary's new target (SRD 5.1: "must choose a new target or lose the attack or spell"): another foe of the one warded that the attack or spell can take (in reach, or in range and sight; not hidden,
+  // not itself warded). `was` the warded one; `atk` the attack (or { spell, ranged, range } for a spell); `o.g` a spell's geometry. Returns it, or null (nothing else to take: the attack is lost, said on a card)
+  Battle.prototype.sanctuaryNew = function* (att, was, atk, o) {
+    o = o || {};
+    if (o.oa) return null;
+    var melee = !atk.ranged && (!atk.spell || atk.touch), self = this;
+    var cand = this.units.filter(function (w) {
+      if (w === was || w === att || !G.hostile(att, w) || !G.standing(w) || w.ethereal || w.dead || w.isWall || (w.conds && (w.conds.sanctuary || w.conds.hidden))) return false;
+      if (o.g && D.magic.targetOK) return D.magic.targetOK(self, att, o.g, w) && (melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.dist(att, w) <= ((atk.range && atk.range[1]) || 60));
+      return melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.dist(att, w) <= ((atk.range && atk.range[1]) || 60) && G.los(att, w).clear;
+    });
+    var human = att.side === 'foe' ? !!(D.keeperPlay && D.keeperPlay.human && D.keeperPlay.human(this, att)) : !(att.classAI || att.guest || att.summon || att.familiar || att.ai);
+    if (!cand.length) { this.card(['{g}' + nameOf(att) + ' has no other target: the ' + (atk.spell ? 'spell' : 'attack') + ' is lost.{/}'], 160); return null; }
+    var pick = null;
+    if (human && cand.length) {
+      var opts = cand.map(function (w, i) { return { label: w.name.toUpperCase() + ' (' + G.dist(att, w) + ' FT)', value: i + 1 }; }); opts.push({ label: 'LOSE IT', value: 0 });
+      var v = yield { prompt: { who: att, title: 'SANCTUARY: A NEW TARGET', lines: ['The ward turns the blow: a new target, or it is lost.'], opts: opts, pick: cand } };
+      pick = v ? cand[v - 1] : null;
+    } else pick = cand.slice().sort(function (a, b) { return a.hp - b.hp; })[0];
+    this.card([pick ? '{y}' + nameOf(att) + '{/} turns on ' + nameOf(pick) + ' instead.' : '{g}' + nameOf(att) + ' lets it go: the ' + (atk.spell ? 'spell' : 'attack') + ' is lost.{/}'], 160);
+    return pick;
+  };
   Battle.prototype.attack = function* (att, tgt, atk, o) {
     o = o || {};
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
+    // Sanctuary (SRD 5.1): "any creature who targets the warded creature with an attack ... must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the
+    // attack" -- the save, then a new target (an AI picks the weakest other foe it can reach; a player's pick is asked) or the attack is lost (10-03; before, a failed save only lost it)
+    if (tgt.conds && tgt.conds.sanctuary && G.hostile(att, tgt) && D.magic.sanctuary && !D.magic.sanctuary(this, att, tgt)) {
+      var alt = yield* this.sanctuaryNew(att, tgt, atk, o);
+      if (!alt) { yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
+      tgt = alt;
+    }
     if (att.conds && att.conds.sanctuary && D.magic.unward) D.magic.unward(this, att, 'an attack'); // (SRD 5.1 Sanctuary: "If the warded creature makes an attack ... this spell ends" -- 10-03)
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
@@ -1087,8 +1116,6 @@
       }
     }
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) delete tgt.conds.helped; // help is spent on the first swing
-    // Sanctuary (SRD 5.1; 09-28, js/grimoire.js): whoever would strike the warded makes a WIS save first, or the blow is lost
-    if (tgt.conds.sanctuary && G.hostile(att, tgt) && D.magic.sanctuary && !D.magic.sanctuary(this, att, tgt)) { yield o.oa ? 16 : 24; att.anim = 'idle'; return; }
     // the one-shot marks, spent by this roll: Guiding Bolt's glow on the target, Vicious Mockery on the attacker, True Strike
     if (tgt.conds.guided) delete tgt.conds.guided;
     if (att.conds.mocked) delete att.conds.mocked;

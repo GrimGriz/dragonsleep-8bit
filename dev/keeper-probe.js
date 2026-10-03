@@ -34,7 +34,7 @@
     var y0s = an0.attack.y, f0s = an0.attack.frames; K.pose({ slam: 'slam_ba' });
     ok('pose({ slam: slam_ba }) re-points the Slam: y ' + y0s + ' (' + f0s + ' frames) -> ' + an0.attack.y + ' (' + an0.attack.frames + ')', an0.attack.y !== y0s && an0.attack.y === an0.slam_ba.y);
     K.pose({ slam: 'slam_b3a' });
-    K.CFG.washNoWall = true; // (the old backwash with no wall, for the checks below; the new rule has its own checks after the wall's)
+    K.CFG.sweepUpFree = true; K.CFG.washNoWall = true; // (the old backwash with no wall, for the checks below; the new rule has its own checks after the wall's)
     // ---- the Wave: two heroes on the stair, both fail; the backwash takes each 10 ft toward the deep, and they stand
     put(P[0], 8, 9); put(P[1], 9, 9); put(P[2], 7, 10); put(P[3], 10, 10); delete k.conds.hidden;
     force(false); cards.length = 0; RU.startTurn(k); var did = drain(K.wave(B, k)); unforce();
@@ -186,10 +186,10 @@
       var bad = []; for (var li = 1; li < LG.length; li++) { var a = LG[li - 1].hpAfter, b = LG[li].hpAfter, expl = LG[li].targets.concat([LG[li].actor]); Object.keys(b).forEach(function (n) { if (a[n] != null && a[n] !== b[n] && expl.indexOf(n) < 0) bad.push('L' + li + ' ' + n + ' ' + a[n] + '->' + b[n] + ' (' + LG[li].action + ')'); }); }
       ok('the log, ' + what + ': every HP change has a line that names who changed (' + (bad.length ? bad.slice(0, 3).join('; ') : 'none missing') + ')', !bad.length); };
     lgcheck('watched fight (class AI both sides)', ['The Keeper', 'Barley']); ok('the log, watched: mode ' + LG.meta.mode, LG.meta.mode === 'ai');
-    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 175, slamDice: '3d6', slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
-    var KF2 = D.keeper.fight('?keeperfight&seed=23760&watch&lvl=3'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
+    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 175, slamAtk: 6, sweepUpFree: false, slamDice: '3d6', slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
+    var KF2 = D.keeper.fight('?keeperfight&seed=633523&watch&lvl=3'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
-    ok('?keeperfight&seed=23760 drained (the default: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g) + ', holds broken ' + kn(/HOLD BREAKS/g), KF2.result === 'won' && KF2.round === 11 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1 && kn(/HOLD BREAKS/g) === 1);
+    ok('?keeperfight&seed=633523 drained (the default: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g) + ', holds broken ' + kn(/HOLD BREAKS/g), KF2.result === 'won' && KF2.round === 10 && kn(/washed into the deep/g) === 2 && kn(/(springs|raises) the Ice Wall/g) === 1 && kn(/HOLD BREAKS/g) === 2);
     var LG = D.keeperLog, lgf = function (e) { return e && typeof e.round === 'number' && typeof e.turn === 'number' && 'actor' in e && 'action' in e && Array.isArray(e.targets) && Array.isArray(e.rolls) && 'result' in e && e.hpAfter && typeof e.hpAfter === 'object' && e.flags && ['flood', 'wall', 'swirl', 'frozen'].every(function (k) { return k in e.flags; }); };
     var lgcheck = function (what, wantActors) { var acts = {}; LG.forEach(function (e) { acts[e.actor] = 1; }); var tx = LG.text(), rolled = LG.filter(function (e) { return e.rolls.length; }).length, ends = LG.some(function (e) { return e.action === 'the fight ends'; });
       ok('the log, ' + what + ': ' + LG.length + ' lines (' + rolled + ' with rolls), actors ' + Object.keys(acts).join('/') + ', meta ' + JSON.stringify(LG.meta) + ', text ' + tx.length + ' chars, file ' + LG.filename(), LG.length > 10 && LG.every(lgf) && rolled > 3 && wantActors.every(function (a) { return acts[a]; }) && /^THE KEEPER/.test(tx) && tx.indexOf('roll:') > 0 && LG.meta.seed != null && LG.meta.level === 3 && /^keeper-seed\d+-L3\.txt$/.test(LG.filename()) && ends); };
@@ -447,6 +447,48 @@
       var cv = document.createElement('canvas'); cv.width = 80; cv.height = 80; var cx0 = cv.getContext('2d'), had = D.images, off = D.spr.offline; D.spr.offline = false; var sh0 = D.SHEETS.keeper_p2.image, saved = D.images[sh0]; delete D.images[sh0]; var e1 = ''; try { var h = D.spr.draw(cx0, 'keeper_p2', 'idle', 0, 0, 40, 60, {}); } catch (e) { e1 = String(e); } var painted = cx0.getImageData(0, 0, 80, 80).data.some(function (v, i) { return i % 4 === 3 && v > 0; }); if (saved) D.images[sh0] = saved; else delete D.images[sh0]; D.spr.offline = off;
       ok('a Keeper sheet that is late draws a capsule, not nothing (painted ' + painted + (e1 ? ', ERROR ' + e1 : '') + ')', painted && !e1);
       D.battle = B3;
+    })();
+    // ---- 10-03 adjustments: the backwash leaves them prone; the Slam attack bonus 6; Sanctuary as the SRD has it
+    (function () {
+      K.CFG.sweepUpFree = false; K.CFG.washNoWall = false;
+      var BW = battle({ lvl: 3 }), kW = keeper(BW), HW = ours(BW), cW = cardsOf(BW); delete kW.conds.hidden; HW.forEach(function (u) { delete u.conds.hidden; });
+      put(HW[0], 8, 9); put(HW[1], 9, 9); put(HW[2], 7, 9); put(HW[3], 10, 9); BW.kp = null; K.st(BW).rowOverride = null; kW.reaction = 1; drain(K.raiseWall(BW, kW, null)); RU.startTurn(kW); force(false); var yw = HW.map(function (u) { return K.A(u); }); drain(K.wave(BW, kW)); unforce();
+      var sw = HW.filter(function (u, i) { return K.A(u) < yw[i]; });
+      ok('the backwash leaves the swept prone (' + sw.map(function (u) { return u.name + (u.conds.prone ? ' prone' : ' up'); }) + '), the card says so', sw.length > 0 && sw.every(function (u) { return u.conds.prone; }) && /half the move to stand/.test(cW.join(' ')) && !/up free/.test(cW.join(' ')));
+      K.CFG.sweepUpFree = true; var BW2 = battle({ lvl: 3 }), kW2 = keeper(BW2), HW2 = ours(BW2); delete kW2.conds.hidden; HW2.forEach(function (u) { delete u.conds.hidden; }); put(HW2[0], 8, 9); kW2.reaction = 1; drain(K.raiseWall(BW2, kW2, null)); RU.startTurn(kW2); force(false); drain(K.wave(BW2, kW2)); unforce();
+      ok('upfree=1 (the old backwash): the swept stand up free (' + (HW2[0].conds.prone ? 'prone' : 'up') + ')', !HW2[0].conds.prone); K.CFG.sweepUpFree = false;
+      var Bs = battle({ lvl: 3 }), ks = keeper(Bs); ok('the Slam attack bonus is ' + ks.attacks.slam.atk + ' (+' + ks.weapon.atk + ' on its stand-in), the old 5 behind CFG.slamAtk / &atk= / &old=1', ks.attacks.slam.atk === 6 && ks.weapon.atk === 6 && K.CFG.slamAtk === 6);
+      // ---- Sanctuary: not concentration, not ended by a blow; the save before an attack; a new target or the attack lost; an area effect is not stopped; it ends when the warded attacks or casts at a foe
+      var BS = battle({ lvl: 3 }), kS = keeper(BS), HS = ours(BS), cS = cardsOf(BS), M = D.magic; delete kS.conds.hidden; HS.forEach(function (u) { delete u.conds.hidden; }); var lym = HS[3], bar = HS[0], viv = HS[2], aur = HS[1];
+      put(bar, 8, 6); put(viv, 8, 6); viv.x = bar.x; viv.y = bar.y; put(viv, 9, 6); put(aur, 7, 6); put(lym, 10, 10); lym.spellDC = 13; lym.known = (lym.known || []).concat(['sanctuary']); lym.slots = lym.slots || [3, 2, 0]; lym.slots[0] = Math.max(lym.slots[0], 2);
+      RU.startTurn(lym); drain(M.cast(BS, lym, 'sanctuary', 1, bar));
+      ok('Sanctuary on ' + bar.name + ': a ward (' + JSON.stringify(bar.conds.sanctuary) + '), and it is not concentration (Lymen conc ' + (lym.conc ? lym.conc.id : 'none') + ')', !!bar.conds.sanctuary && !lym.conc);
+      var hpB = bar.hp; B_hit(kS, bar, 4); function B_hit(att, t, n) { drain(BS.hurt(t, n, 'bludgeoning')); }
+      ok('a blow that lands on the warded does not end it, and no concentration check is made on it (ward ' + !!bar.conds.sanctuary + ', hp ' + hpB + ' -> ' + bar.hp + ')', !!bar.conds.sanctuary && !/holds .*\?/.test(cS.join(' ').split('Sanctuary')[1] || ''));
+      var viv0 = viv.hp; lym.conc = { id: 'bless', name: 'Bless', undo: function () {} }; var sc = BS.cards ? 0 : 0; M.concCheck && 0; drain(BS.hurt(lym, 6, 'bludgeoning')); ok('(the concentration that Lymen does hold is another spell; Sanctuary is not on it: ward still ' + !!bar.conds.sanctuary + ')', !!bar.conds.sanctuary); delete lym.conc;
+      // the save before the blow: it passes, the blow lands on the warded
+      put(kS, 8, 5, 2); RU.startTurn(kS); kS.turn.action = 1; var hp1 = bar.hp; force(true); cS.length = 0; drain(BS.attack(kS, bar, kS.attacks.slam)); unforce();
+      ok('the Keeper saves WIS and strikes the warded anyway (' + (cS.join(' ').match(/STRIKES ANYWAY|cannot bring itself/) || ['?'])[0] + '; ' + hp1 + ' -> ' + bar.hp + ')', /STRIKES ANYWAY/.test(cS.join(' ')));
+      // failed: a new target, if another is in reach
+      var near = HS.filter(function (u) { return u !== bar && G.dist(kS, u) <= 10; }), hpAll = HS.map(function (u) { return u.hp; }); cS.length = 0; force(false); var sv0 = RU.save; var fails = 0; RU.save = function (u, ab) { var r = save0.apply(this, arguments); if (ab === 'wis' && u === kS) r.ok = false; return r; };
+      var Bb = bar.hp; drain(BS.attack(kS, bar, kS.attacks.slam)); RU.save = sv0; unforce();
+      var hit = HS.filter(function (u, i) { return u.hp < hpAll[i]; }).map(function (u) { return u.name; }), txt = cS.join(' ');
+      ok('the save fails: the Keeper turns on another foe in reach (' + near.map(function (u) { return u.name; }) + ' in reach; struck ' + hit + '; ' + (txt.match(/turns on [A-Za-z]+/) || ['no card'])[0] + ')', bar.hp === Bb && (near.length ? (/turns on/.test(txt) && hit.length >= 0 && hit.indexOf(bar.name) < 0) : /lost/.test(txt)));
+      // none in reach: the attack is lost
+      put(aur, 3, 12); put(viv, 4, 12); put(lym, 10, 12); put(kS, 8, 5, 2); cS.length = 0; var Bc = bar.hp; RU.save = function (u, ab) { var r = save0.apply(this, arguments); if (ab === 'wis' && u === kS) r.ok = false; return r; }; drain(BS.attack(kS, bar, kS.attacks.slam)); RU.save = sv0;
+      ok('the save fails and no one else is in reach: the Slam is lost (' + (cS.join(' ').match(/no other target[^.]*/) || ['no card'])[0] + ', hp ' + Bc + ' -> ' + bar.hp + ')', bar.hp === Bc && /no other target|is lost/.test(cS.join(' ')));
+      // an area effect does not ask the ward: the Wave
+      put(bar, 8, 9); cS.length = 0; RU.startTurn(kS); force(false); drain(K.wave(BS, kS)); unforce();
+      ok('the Wave (an area) does not ask the ward: Barley saves STR against it, no Sanctuary save (' + (/warded \(Sanctuary\)/.test(cS.join(' ')) ? 'ASKED' : 'not asked') + ', STR line ' + /Barley: STR/.test(cS.join(' ')) + ')', !/warded \(Sanctuary\)/.test(cS.join(' ')) && /Barley: STR/.test(cS.join(' ')));
+      // it ends when the warded attacks, and when it casts at a foe
+      bar.conds.sanctuary = { dc: 13, by: lym.id }; put(bar, 8, 6); put(kS, 8, 5, 2); RU.startTurn(bar); bar.turn.action = 1; bar.weapon = Object.assign({}, bar.weapon, { atk: 60 }); cS.length = 0; drain(BS.attack(bar, kS, bar.weapon));
+      ok('the warded one attacks: the ward ends (' + !!bar.conds.sanctuary + ')', !bar.conds.sanctuary && /sanctuary ends/.test(cS.join(' ')));
+      aur.conds.sanctuary = { dc: 13, by: lym.id }; aur.known = (aur.known || []).concat(['firebolt']); aur.spellAtk = 60; RU.startTurn(aur); put(aur, 8, 7); cS.length = 0; drain(M.cast(BS, aur, 'firebolt', 0, kS));
+      ok('the warded one casts at a foe: the ward ends (' + !!aur.conds.sanctuary + ')', !aur.conds.sanctuary);
+      // a harmful single-target spell at the warded: the save, then lost (the foe warded)
+      var wk = D.keeper; kS.conds.sanctuary = { dc: 13, by: 'x' }; lym.known = (lym.known || []).concat(['sacredflame']); lym.spellDC = 13; put(lym, 8, 8); RU.startTurn(lym); cS.length = 0; var hk = kS.hp; RU.save = function (u, ab) { var r = save0.apply(this, arguments); if (ab === 'wis' && u === lym) r.ok = false; return r; }; drain(M.cast(BS, lym, 'sacredflame', 0, kS)); RU.save = sv0;
+      ok('a harmful single-target spell at a warded foe: the caster saves WIS, fails, and the spell is lost (' + (cS.join(' ').match(/is lost|cannot bring itself/) || ['no card'])[0] + '; hp ' + hk + ' -> ' + kS.hp + ')', kS.hp === hk && /cannot bring itself/.test(cS.join(' ')));
+      delete kS.conds.sanctuary; D.battle = B3;
     })();
     D.battle = B3;
     // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row; the counts are what the mechanics did

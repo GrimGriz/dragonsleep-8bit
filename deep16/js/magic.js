@@ -325,6 +325,13 @@
     if (carry && !(yield* D.familiar.carry(B, u, t))) { u.anim = 'idle'; return; } // (it goes with the spell; one lost on the way loses it)
     if (M.counterAsk && (yield* M.counterAsk(B, u, id, slot, g))) { u.anim = 'idle'; return; } // (Counterspell, as it is released: countered, it fails -- the slot and the action spent; js/grimoire.js, 10-02)
 
+    // Sanctuary (SRD 5.1): a harmful spell at the warded one (a single target or a touch, not the attack rolls -- Battle.attack asks those -- nor an area: "This spell doesn't protect the warded
+    // creature from area effects") asks the WIS save first; failed, a new target or the spell is lost (the slot and the action spent)
+    if (/^(single|touch)$/.test(g.shape) && t && t.hp != null && t !== u && t.conds && t.conds.sanctuary && G.hostile(u, t) && M.sanctuary && B.sanctuaryNew && !M.sanctuary(B, u, t)) {
+      var alt = yield* B.sanctuaryNew(u, t, { spell: true, ranged: g.shape === 'single', range: [0, g.range || 60], touch: g.shape === 'touch' }, { g: g });
+      if (!alt) { yield 30; u.anim = 'idle'; return; }
+      t = alt; u.facing = B.faceTo(u, t);
+    }
     // the Globe of Invulnerability (SRD 5.1: "Such a spell can target creatures and objects within the barrier, but the spell has no effect on them"):
     // a spell of its level or lower, cast from outside it, at a creature inside -- spent, and nothing happens. Here the spells aimed at one or more
     // creatures (a touch, a single target, a list of allies, the grimoire's own): the attack rolls and rays are turned in Battle.attack, the darts and
