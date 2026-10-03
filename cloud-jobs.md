@@ -25,9 +25,10 @@ The desktop oversight window keeps this list; a cloud seat reads it to know what
 - **Shrink the scripts** (the lazy seat's question 4; Griz: *"how the heck are we going to remember to do lazy #4"* -- this line is how): the 2.7 MB of scripts that is now most of the start-up; `data.js` alone 0.56 MB. A later job.
 - **The seven monsters with no grid foe** (the centipede, the fire beetle, the stirge, the will-o'-wisp; the Hired Blade, the Stable Fighter, the Drow Blade-Captain): sheets and foes, so the grid refuses nothing. Note: random encounters and the Hex arena fight in the 8-bit by design, with no grid id.
 - **The dragonborn's breath weapon and resistance, the tiefling's spells** (`NPC.RACES` has only scores, darkvision, fire resistance); a portrait for the maker's card.
-- **The 121 grid-only spells**: HELD (Griz, 10-03) until the random-encounters question is ruled: do they stay the 8-bit's, or get grid maps?
+- **Here-to-there benches** (Griz, 10-03: *"we need to run some here-to-there 8bit benches to see what sort of resources the parties are getting to the boss battles with"*): a bench that walks a leg from one boss to the next through the 8-bit's random encounters with the party on its own AI, carries the resources, tallies the state at the next boss's door; a table per leg, findings only. Lives in `dev/` (no game file). Prompt written 10-03.
+- **The 121 grid-only spells**: HELD (Griz, 10-03). Random encounters are the 8-bit's (ruled 10-03), so the pull for an 8-bit spell is what the heroes cast in random fights; the here-to-there table says which spells get spent on the road. Build nothing past his word.
 
 ## Open questions for Griz (not rulings)
 
-- Random encounters: the 8-bit's, as the NES shape wants, or grid maps someday? (decides the 121)
+- ~~Random encounters: the 8-bit's, or grid maps someday?~~ RULED 10-03 (Griz: *"random encounters stay the 8-bit"*).
 - Whether cloud routines fired from the desktop draw on the same credit as hand-opened sessions.
