@@ -162,14 +162,21 @@
       for (var li = 0; li < paths.length; li++) {
         if (li) { W = WL[li]; var prevUnset = WL[li - 1].sit.unset || [], nowUnset = W.sit.unset || []; // (the next leg's story: its flags laid, the boss just passed counted done)
           Object.assign(g.flags, W.sit.flags || {}); prevUnset.forEach(function (k) { if (nowUnset.indexOf(k) < 0) g.flags[k] = 1; }); nowUnset.forEach(function (k) { delete g.flags[k]; }); }
-        var run = walkLeg(paths[li], g, F, li === 0); legs.push(run);
+        var run = walkLeg(paths[li], g, F, li === 0, !!Q.get('log') && s % 1000 === 0); legs.push(run);
         if (run.wiped || run.err) break;
       }
       return paths.length === 1 ? legs[0] : { legs: legs };
     }
-    function walkLeg(path, g, F, first) {
+    function walkLeg(path, g, F, first, logIt) {
       var run = { fights: [], steps: 0, rests: [], torches: 0, unlitMaps: {}, zones: {} };
       var p0 = path[0]; if (first) F.load(p0.map, p0.x, p0.y, 'down');
+      if (first && W.mid) { // a start mid-map (a boss's door, a lamp's bed): no map was loaded, so the countdown is somewhere in its run, not fresh (Field.load's
+        // resetEncounter): the remainder a walker finds at a random step -- a run of length L in the zone's rate, drawn as often as it is long, then 1..L of it
+        var zs = F.map.src.zones || [], zm = F.zoneAt(p0.x, p0.y) || (zs[0] && zs[0].zone), E = zm && DS.DATA.encounters[zm], rt = (E && E.rate) || [18, 40], tot = 0, Lr = rt[0];
+        for (var L = rt[0]; L <= rt[1]; L++) tot += L;
+        for (var u = Math.random() * tot, L2 = rt[0]; L2 <= rt[1]; L2++) { u -= L2; if (u < 0) { Lr = L2; break; } }
+        F.encounterIn = 1 + DS.rint(Lr);
+      }
       run.start = snapParty();
       function light() {
         if (!EV.darkHere() || g.flags.torchBy || g.party.some(function (h) { return !h.ko && R.carriesLight(h); })) return;
@@ -201,7 +208,8 @@
           var lost = 0, spent = [];
           before.heroes.forEach(function (h0, j) { var h1 = after.heroes.filter(function (x) { return x.id === h0.id && x.guest === h0.guest; })[0]; if (!h1) return;
             lost += Math.max(0, h0.hp - h1.hp); h0.slots.forEach(function (sv, k) { for (var q = 0; q < sv - (h1.slots[k] || 0); q++) spent.push(h0.name + ' L' + (k + 1)); }); });
-          run.fights.push({ at: F.map.id + ' ' + p.x + ',' + p.y, zone: z, step: run.steps, foes: b ? b.o.enemies : null, fled: !b, result: b ? (b.result || b.over) : 'no fight', rounds: b ? b.round : 0, lost: lost, spent: spent, said: said.slice(0, 12), ko: after.heroes.filter(function (h) { return h.ko; }).map(function (h) { return h.name; }), steps: res.steps });
+          run.fights.push({ at: F.map.id + ' ' + p.x + ',' + p.y, zone: z, step: run.steps, foes: b ? b.o.enemies : null, fled: !b, result: b ? (b.result || b.over) : 'no fight', rounds: b ? b.round : 0, lost: lost, spent: spent, said: said.slice(0, 12), ko: after.heroes.filter(function (h) { return h.ko; }).map(function (h) { return h.name; }), steps: res.steps,
+            log: logIt ? (T.blog || []).slice() : undefined }); // (log=1: the first walk's fights, line by line)
           g.party.forEach(function (h) { if (h.pendingChoice === 'archetype') { var o = (DS.DATA.heroes[h.id].archetypes || [])[0]; h.subclass = o && o.name; } delete h.pendingChoice; });
           if (DS.lastError) { run.err = String(DS.lastError.stack || DS.lastError).slice(0, 400); break; }
           if (b && (b.result === 'lose' || b.over === 'lose') || (DS.top() && DS.top().kind === 'gameover')) { run.wiped = true; break; }

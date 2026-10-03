@@ -8,6 +8,7 @@ Linux container set DEEP16_BROWSER=/opt/pw-browsers/chromium DEEP16_BROWSER_ARGS
   python dev/walk8.py leg=roper n=20            one leg, twenty walks: the summary and the fights
   python dev/walk8.py leg=roper n=20 lvl=7      the same leg a level up (the leg's own level otherwise)
   python dev/walk8.py leg=roper seed=5          another run of dice (seed=1 by default; each walk is seed*1000 + its index)
+  python dev/walk8.py leg=roper n=1 log         the first walk's fights, line by line (what the battle said)
   python dev/walk8.py legs                      the legs, their starts, doors and levels
   python dev/walk8.py leg=all n=20 table        every leg; writes here-to-there.md at the repo root (jobs=4 at a time)
   python dev/walk8.py leg=gulch n=1 check       the gate's line (dev/check.py all): one walk, FAIL on an error or a walk that found no path
@@ -26,6 +27,7 @@ S6 = 'Silverton (Fountain Street), rested'
 # 2 draughts, 2 bat-wing pies, 3 oil, 2 torches, a tent, 1,500 silver, the +2 weapons, the Ring of Binding on the lead) with the leg's own
 # boss undone. from: [map, x, y]; to: the door (a trigger's tiles, or a step beside a `use` trigger; `arrive`: on the map). lvl: the
 # situation's level where one stands at that point of the story, else the DEEP16 ladder's (deep16/data/fights.js), else a guess (`guess`).
+# mid: the walk starts where no map was just loaded (a boss's door, a lamp's bed), so the encounter countdown starts part-run (bench8.js).
 LEGS = [
     # ---------------------------------------------------------------- the base game: every leg from Silverton, rested at the inn
     ('doors', dict(group='base', title='Silverton to the Doors (the wall at the top of the north road)', lvl=4, guess='lvl: no fight there; round six\'s 4',
@@ -58,17 +60,17 @@ LEGS = [
                   sit={'base': 'lake', 'spine': 2}, frm=['silverton', 29, 8], to={'map': 'burial', 'trig': 'crew'}, start=S6)),
     ('cutseal', dict(group='deep', title='Solskaft to the cut seal (leg one, with Pyro)', lvl=5, ladder=5, sitname='leg1',
                      sit={'base': 'lake', 'spine': 6}, frm=['solskaft', 28, 20], to={'map': 'highway_1', 'trig': 'cutSeal'}, start='Solskaft, after a night (the cots)')),
-    ('gricks', dict(group='deep', title='The cut seal to the grick den', lvl=5, ladder=5,
+    ('gricks', dict(group='deep', mid=1, title='The cut seal to the grick den', lvl=5, ladder=5,
                     sit={'base': 'lake', 'spine': 6, 'flags': {'sealCleared': 1, 'lumpTaken': 1}}, frm=['highway_1', 28, 7], to={'map': 'highway_1', 'trig': 'grickDen'}, start='the cut seal')),
-    ('roper', dict(group='deep', title='The grick den to the roper (past First Lamp)', lvl=5, ladder=6, guess='lvl: leg one\'s 5 (the ladder puts the roper at 6)',
+    ('roper', dict(group='deep', mid=1, title='The grick den to the roper (past First Lamp)', lvl=5, ladder=6, guess='lvl: leg one\'s 5 (the ladder puts the roper at 6)',
                    sit={'base': 'lake', 'spine': 6, 'flags': {'sealCleared': 1, 'lumpTaken': 1, 'grickDone': 1}}, frm=['highway_1', 42, 16], to={'map': 'highway_2', 'trig': 'roper'}, start='the grick den')),
-    ('bulette', dict(group='deep', title='The roper to the bulette', lvl=5, ladder=5,
+    ('bulette', dict(group='deep', mid=1, title='The roper to the bulette', lvl=5, ladder=5,
                      sit={'base': 'lake', 'spine': 6, 'flags': {'sealCleared': 1, 'lumpTaken': 1, 'grickDone': 1, 'lamp1': 1, 'roperSeen': 1, 'roperDead': 1}},
                      frm=['highway_2', 38, 8], to={'map': 'highway_2', 'trig': 'bulette'}, start='the roper\'s fork')),
-    ('drain', dict(group='deep', title='The bulette to the drain cut (past Second Lamp)', lvl=6, ladder=6, guess='lvl: the ladder\'s',
+    ('drain', dict(group='deep', mid=1, title='The bulette to the drain cut (past Second Lamp)', lvl=6, ladder=6, guess='lvl: the ladder\'s',
                    sit={'base': 'lake', 'spine': 6, 'flags': {'sealCleared': 1, 'lumpTaken': 1, 'grickDone': 1, 'lamp1': 1, 'roperSeen': 1, 'roperDead': 1, 'buletteDead': 1}},
                    frm=['highway_2', 60, 11], to={'map': 'highway_2', 'trig': 'drain'}, start='the breach (the bulette)')),
-    ('pinned', dict(group='deep', title='The drain cut to the north cut (the phase spiders, Halldor pinned)', lvl=6, ladder=6, sitname='northcut',
+    ('pinned', dict(group='deep', mid=1, title='The drain cut to the north cut (the phase spiders, Halldor pinned)', lvl=6, ladder=6, sitname='northcut',
                     sit={'base': 'lake', 'spine': 7, 'flags': {'puddingDead': 1}}, frm=['highway_2', 69, 16], to={'map': 'pinned', 'trig': 'pinned'}, start='the drain cut')),
     ('stair', dict(group='deep', title='Solskaft to the dry stair (the crew boss holding it)', lvl=6, ladder=2, guess='lvl: the spine\'s (after beat 10, where Ragna asks for the water); the ladder\'s 2 is the bestiary rung',
                    sit={'base': 'lake', 'spine': 10, 'flags': {'waterAsked': 1}}, frm=['solskaft', 28, 20], to={'map': 'warrens_d', 'trig': 'holdStair'}, start='Solskaft, after a night (the cots)')),
@@ -77,19 +79,19 @@ LEGS = [
     ('xorns', dict(group='deep', title='Second Lamp to the seam (the xorns, leg three, Brann and Hedda)', lvl=8, ladder=8, guess='lvl: the raid\'s situation',
                    sit={'base': 'lake', 'spine': 15, 'unset': ['xornDone', 'giantDone']}, frm=['highway_2', 68, 11], to={'map': 'highway_3', 'trig': 'xorn'},
                    start='Second Lamp (fast travel; Third Lamp is the drow\'s), after a night there')),
-    ('giant', dict(group='deep', title='The seam to the giant\'s camp', lvl=8, ladder=8,
+    ('giant', dict(group='deep', mid=1, title='The seam to the giant\'s camp', lvl=8, ladder=8,
                    sit={'base': 'lake', 'spine': 15, 'unset': ['giantDone']}, frm=['highway_3', 30, 11], to={'map': 'highway_3', 'trig': 'giant'}, start='the seam (the xorns)')),
-    ('raid', dict(group='deep', title='The giant\'s camp to Third Lamp (the raid)', lvl=8, ladder=8, sitname='raid',
+    ('raid', dict(group='deep', mid=1, title='The giant\'s camp to Third Lamp (the raid)', lvl=8, ladder=8, sitname='raid',
                   sit={'base': 'lake', 'spine': 15}, frm=['highway_3', 44, 17], to={'map': 'highway_3', 'trig': 'raid'}, start='the giant\'s camp')),
-    ('fallback', dict(group='deep', title='Third Lamp to the drow\'s fallback line (leg four)', lvl=8, ladder=7, sitname='leg4',
+    ('fallback', dict(group='deep', mid=1, title='Third Lamp to the drow\'s fallback line (leg four)', lvl=8, ladder=7, sitname='leg4',
                       sit={'base': 'lake', 'spine': 16}, frm=['highway_3', 66, 11], to={'map': 'highway_4', 'trig': 'fallback'}, start='Third Lamp, lit, after a night there')),
-    ('naga', dict(group='deep', title='The fallback line to the black water (the naga)', lvl=8, ladder=7,
+    ('naga', dict(group='deep', mid=1, title='The fallback line to the black water (the naga)', lvl=8, ladder=7,
                   sit={'base': 'lake', 'spine': 16, 'flags': {'fallbackDone': 1}}, frm=['highway_4', 14, 11], to={'map': 'highway_4', 'trig': 'naga'}, start='the fallback line')),
-    ('trolls', dict(group='deep', title='The black water to the troll hole', lvl=8, ladder=8,
+    ('trolls', dict(group='deep', mid=1, title='The black water to the troll hole', lvl=8, ladder=8,
                     sit={'base': 'lake', 'spine': 16, 'flags': {'fallbackDone': 1, 'nagaDone': 1}}, frm=['highway_4', 34, 11], to={'map': 'highway_4', 'trig': 'trolls'}, start='the causeway (the naga)')),
-    ('elemental', dict(group='deep', title='The troll hole to the cut\'s walls (the earth elemental)', lvl=8, ladder=8,
+    ('elemental', dict(group='deep', mid=1, title='The troll hole to the cut\'s walls (the earth elemental)', lvl=8, ladder=8,
                        sit={'base': 'lake', 'spine': 16, 'flags': {'fallbackDone': 1, 'nagaDone': 1, 'trollsDone': 1}}, frm=['highway_4', 52, 17], to={'map': 'highway_4', 'trig': 'elemental'}, start='the troll hole')),
-    ('torvald', dict(group='deep', title='The cut\'s walls to Deepholm\'s door (Torvald; the sect\'s blades come at the next rest there)', lvl=9, sitname='torvald', guess='lvl: the situation\'s 9 (leg four\'s fights are at 8)',
+    ('torvald', dict(group='deep', mid=1, title='The cut\'s walls to Deepholm\'s door (Torvald; the sect\'s blades come at the next rest there)', lvl=9, sitname='torvald', guess='lvl: the situation\'s 9 (leg four\'s fights are at 8)',
                      sit={'base': 'lake', 'spine': 17}, frm=['highway_4', 64, 11], to={'map': 'threshold', 'arrive': 1}, start='the made road\'s cut (the elemental)',
                      note='the assassins come when the party first rests at the door after Torvald (deep.js EV.rest): the same state as Torvald\'s door, less whatever Torvald cost')),
 ]
@@ -108,7 +110,7 @@ ITEM_COLS = [('potion', 'potion'), ('greaterpotion', 'greater'), ('kit', 'kit'),
 def leg_spec(name, lvl=None):
     L = LEGD[name]
     sit = dict(L['sit']); sit['lvl'] = int(lvl) if lvl else L['lvl']
-    return {'name': name, 'sit': sit, 'from': L['frm'], 'to': L['to']}
+    return {'name': name, 'sit': sit, 'from': L['frm'], 'to': L['to'], 'mid': bool(L.get('mid'))}
 
 
 def leg_json(name, lvl=None):
@@ -122,10 +124,13 @@ def page():
     return bench8.build_page()
 
 
-def run_leg(pg, name, n, seed=1, lvl=None, timeout=1800):
+def run_leg(pg, name, n, seed=1, lvl=None, timeout=1800, log=False):
     prof = os.path.join(tempfile.gettempdir(), 'ds8-walk-%d-%s-%s' % (os.getpid(), name, seed))
     dice = seed * 100000 + zlib.crc32(name.encode()) % 100000 # (each leg its own dice: walk i of a leg rolls from dice * 1000 + i -- the same seed, the same walks)
-    url = 'file:///' + pg.replace('\\', '/') + '?' + urllib.parse.urlencode({'test': 'walk', 'leg': leg_json(name, lvl), 'n': n, 'seed': dice})
+    q = {'test': 'walk', 'leg': leg_json(name, lvl), 'n': n, 'seed': dice}
+    if log:
+        q['log'] = 1
+    url = 'file:///' + pg.replace('\\', '/') + '?' + urllib.parse.urlencode(q)
     cmd = [bench8.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench8.EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url]
     t0 = time.time()
     p = subprocess.run(cmd, capture_output=True, timeout=timeout)
@@ -357,18 +362,6 @@ def write_table(sums, chained, n, seed):
             rest = ', '.join('%s %s' % (k, pct(v)) for k, v in S['rested'].items()) or '--'
             A('| %s | **%s** | %d | %.1f | %s | %s | %s | %s | %s | %s |' % (S['chain'], S['leg'], S['path']['steps'], S['fights'], pct(S['hp']), pct(S['hp_worst']), pct(S['ko']), pct(S['wiped']), rest, reading(S)))
         A('')
-    ok = [S for S in sums if S.get('ok')]
-    thin = sorted(ok, key=lambda S: (S['hp'] - S['wiped'], -S['ko']))[:5]
-    A('## The five that arrive thinnest (from a full start), and what drained them')
-    A('')
-    for k, S in enumerate(thin):
-        g, spent = drained(S)
-        hs = ', '.join('%s %s%s' % (nm, pct(v['hp']), (' (down ' + pct(v['ko']) + ')') if v['ko'] else '') for nm, v in S['heroes'].items())
-        used = {kk: v for kk, v in S['feats'].items() if v[0] < v[1]}
-        A('%d. **%s** (%s): HP %s, worst %s, a hero down in %s, wiped %s. At the door: %s. Drained by: %s. Spent in the fights: %s%s.' % (
-            k + 1, S['leg'], LEGD[S['leg']]['title'], pct(S['hp']), pct(S['hp_worst']), pct(S['ko']), pct(S['wiped']), hs, g or 'nothing', spent or 'no spell',
-            ('; features: ' + ', '.join('%s %g of %g left' % (kk, a, b) for kk, (a, b) in used.items())) if used else ''))
-    A('')
     A('## Each leg')
     A('')
     for S in sums:
@@ -385,6 +378,18 @@ def write_table(sums, chained, n, seed):
         if g:
             A('The road\'s fights: ' + g + '.')
         A('')
+    ok = [S for S in sums if S.get('ok')]
+    thin = sorted(ok, key=lambda S: (S['hp'] - S['wiped'], -S['ko']))[:5]
+    A('## The five that arrive thinnest (from a full start), and what drained them')
+    A('')
+    for k, S in enumerate(thin):
+        g, spent = drained(S)
+        hs = ', '.join('%s %s%s' % (nm, pct(v['hp']), (' (down ' + pct(v['ko']) + ')') if v['ko'] else '') for nm, v in S['heroes'].items())
+        used = {kk: v for kk, v in S['feats'].items() if v[0] < v[1]}
+        A('%d. **%s** (%s): HP %s, worst %s, a hero down in %s, wiped %s. At the door: %s. Drained by: %s. Spent in the fights: %s%s.' % (
+            k + 1, S['leg'], LEGD[S['leg']]['title'], pct(S['hp']), pct(S['hp_worst']), pct(S['ko']), pct(S['wiped']), hs, g or 'nothing', spent or 'no spell',
+            ('; features: ' + ', '.join('%s %g of %g left' % (kk, a, b) for kk, (a, b) in used.items())) if used else ''))
+    A('')
     A(END)
     return lines
 
@@ -416,7 +421,7 @@ def main(argv):
     pg = page()
     jobs = int(kw.get('jobs', 4))
     with ThreadPoolExecutor(jobs) as ex:
-        res = list(ex.map(lambda x: run_leg(pg, x, n, seed, lvl), names))
+        res = list(ex.map(lambda x: run_leg(pg, x, n, seed, lvl, log='log' in flags), names))
     sums, chained, red = [], [], False
     for r in res:
         if 'error' in r:
@@ -433,6 +438,12 @@ def main(argv):
             else:
                 sums.append(S)
             print_summary(S)
+            if 'log' in flags:
+                for x in part['runs'][:1]:
+                    for f in x.get('fights', []):
+                        print('  -- the first walk, step %d (%s): %s' % (f['step'], f['zone'], ', '.join(f['foes'] or ['fled'])))
+                        for ln in f.get('log') or []:
+                            print('       ' + ln)
             if S.get('err') or S['errs'] or not S['ok']:
                 red = True
             if 'check' in flags and S.get('ok') and not S['fights'] and not S['fled']:
