@@ -1,4 +1,4 @@
-/* DEEP16 — the POC's three foes (RULED 09-26d, Griz: "agreed" -- two drow and a phase spider).
+/* DEEP16 â€” the POC's three foes (RULED 09-26d, Griz: "agreed" -- two drow and a phase spider).
    The phase spider is the SRD 5.1 block as written. The drow are the dwarven expansion's own Drow Blade-Captain
    (content/monsters.json `drowcaptain`: game-original from SRD pieces, CR 5) given the SRD drow's hand crossbow and
    Faerie Fire -- a plain SRD drow (13 HP) falls in one round to four heroes at level 9 and would test nothing.
@@ -307,9 +307,10 @@
     attacks: {
       spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 },
       bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 },
+      throwspear: { name: 'Thrown Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [20, 60], ranged: true },
       longbow: { name: 'Longbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', range: [150, 600], ranged: true }
     },
-    multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28); the longbow +3 1d8+1 150/600 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
+    multi: 1, rampage: true, src: 'SRD 5.1 Gnoll (CR 1/2): spear or bite; content/monsters.json gnoll; Rampage: dropping one on its turn, a bonus-action bite after half its speed (js/traits.js, 09-28); the longbow +3 1d8+1 150/600 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner); the spear thrown +4 1d6+2 20/60 (SRD 5.1 "Spear. Melee or Ranged Weapon Attack ... range 5 ft. or range 20/60 ft."; volley picks the likelier of it and the bow, so the spear inside 20 ft; 10-02)'
   },
   hyena: {
     name: 'Hyena', type: 'beast', sheet: 'hyena_p2', cr: '0', ac: 11, hp: 5, speed: 50, size: 1, reach: 5,
@@ -324,7 +325,7 @@
     abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
     saves: { str: 4, dex: 5, con: 2, int: 2, wis: 0, cha: 2 },
     attacks: { bar: { name: 'Pry-bar', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5 }, knife: { name: 'Knife', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
-    multi: ['bar', 'bar', 'knife'], src: 'content/monsters.json hask (the SRD 5.1 Bandit Captain as the night crew\'s boss)'
+    multi: ['bar', 'bar', 'knife'], parry: 2, src: 'content/monsters.json hask (the SRD 5.1 Bandit Captain as the night crew\'s boss)'
   },
   wheelwright: {
     name: 'Wheelwright', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1', ac: 12, hp: 27, speed: 30, size: 1, reach: 5,
@@ -334,7 +335,7 @@
       mallet: { name: 'Mallet', atk: 4, dice: '1d6', mod: 2, type: 'bludgeoning', reach: 5 },
       crossbow: { name: 'Hand Crossbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true }
     },
-    multi: ['mallet', 'mallet'], bolts: 'hask', sneak: '2d6', // (the Spy's Sneak Attack 2d6, once a turn: battle.js; its Cunning Action waits to be built whole -- Griz, 10-02: "until it's built translates into 'add a handoff please'": handoff-2026-10-02-the-srd-pass-leftovers.md)
+    multi: ['mallet', 'mallet'], bolts: 'hask', sneak: '2d6', cunning: true, stealth: 6, // (the Spy's Sneak Attack 2d6, once a turn: battle.js; its Cunning Action waits to be built whole -- Griz, 10-02: "until it's built translates into 'add a handoff please'": handoff-2026-10-02-the-srd-pass-leftovers.md)
     src: 'content/monsters.json wheelwright (the SRD 5.1 Spy): when Hask falls he runs for the stair (the map\'s exit), dashing; Sneak Attack 2d6 once a turn, the Hand Crossbow +4 1d6+2 30/120 (SRD 5.1, loosed when nothing is in reach: ai.js volley), and Cunning Action as `nimble` (Disengage only; 10-02 runner)', todo: 'Cunning Action\'s Dash and Hide are not read (only Disengage, through nimble)'
   },
   crewman: {
@@ -619,7 +620,7 @@
     abil: { str: 21, dex: 8, con: 17, int: 6, wis: 10, cha: 8 }, init: -1, perception: 14,
     saves: { str: 5, dex: -1, con: 3, int: -2, wis: 0, cha: -1 },
     attacks: { axe: { name: 'Battleaxe', atk: 7, dice: '2d8', mod: 5, type: 'slashing', reach: 5 }, star: { name: 'Morningstar', atk: 7, dice: '2d8', mod: 5, type: 'piercing', reach: 5 } },
-    multi: ['axe', 'star'], twoHeads: true, src: 'SRD 5.1 Ettin (CR 4, Large): battleaxe and morningstar; content/monsters.json ettin (leg two); Two Heads (advantage on saves against being blinded, charmed, deafened, frightened, stunned or knocked out (Two Heads, SRD 5.1: js/rules.js RU.save, 10-02 runner): the charm, fright and stun it is proof against, read so) (js/traits.js, 09-28); the `condImmune: asleep` that stood for Wakeful taken off (SRD 5.1 gives the ettin no condition immunity, so Sleep can take it now; Wakeful itself is not read; 10-02 runner)'
+    multi: ['axe', 'star'], twoHeads: true, src: 'SRD 5.1 Ettin (CR 4, Large): battleaxe and morningstar; content/monsters.json ettin (leg two); Two Heads (advantage on saves against being blinded, charmed, deafened, frightened, stunned or knocked out (Two Heads, SRD 5.1: js/rules.js RU.save, 10-02 runner): the charm, fright and stun it is proof against, read so) (js/traits.js, 09-28); the advantage of Two Heads on Wisdom (Perception) checks read where the Perception of a foe is rolled against: the passive score is 5 up (battle.js hide, `twoHeads`; 10-02); the `condImmune: asleep` that stood for Wakeful taken off (SRD 5.1 gives the ettin no condition immunity, so Sleep can take it now; Wakeful itself is not read; 10-02 runner)'
   },
   mouther: {
     name: 'Gibbering Mouther', type: 'aberration', sheet: 'mouther_p1', cr: '2', ac: 9, hp: 67, speed: 10, size: 1, reach: 5, darkvision: 60,
@@ -654,7 +655,7 @@
       dagger: { name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 },
       throwndagger: { name: 'Thrown Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', range: [20, 60], ranged: true }
     },
-    multi: ['scimitar', 'scimitar', 'dagger'], src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet); the dagger thrown +5 1d4+3 20/60 (SRD 5.1, once when nothing is in reach: ai.js volley; 10-02 runner)', todo: 'Parry is not read; the SRD gives two thrown daggers (a ranged Multiattack) and the grid throws one'
+    multi: ['scimitar', 'scimitar', 'dagger'], rangedMulti: ['throwndagger', 'throwndagger'], parry: 2, src: 'SRD 5.1 Bandit Captain (CR 2); content/monsters.json banditcaptain (in the 8-bit game only as Hask\'s pattern; Hask\'s sheet); two daggers thrown +5 1d4+3 20/60 (SRD 5.1 "or ... two ranged attacks with its daggers": `rangedMulti`, ai.js volley, when nothing is in reach; 10-02)'
   },
   grimlock: {
     name: 'Grimlock', type: 'humanoid', sheet: 'grimlock_p1', cr: '1/4', ac: 11, hp: 11, speed: 30, size: 1, reach: 5, blindsight: 30, blind: true,

@@ -799,7 +799,7 @@
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
       case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
-      case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + (u.cls === 'rogue' && u.lvl >= 2 ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
       case 'sacred': {
@@ -1089,6 +1089,13 @@
         ac += 5; hit = false; crit = false;
         line += '  {c}SHIELD +5{/}';
       }
+    }
+    // Parry (the Bandit Captain, SRD 5.1: "The captain adds 2 to its AC against one melee attack that would hit it. To do so, the captain must see the attacker and be
+    // wielding a melee weapon." -- a reaction, taken when the +2 turns the blow: a natural 20 is not turned, AC does not make it a miss; 10-02)
+    if (hit && nat !== 20 && melee && tgt.parry && tgt.reaction > 0 && RU.canAct(tgt) && !tgt.conds.disarmed && total < ac + tgt.parry && D.magic.seeWhy(this, tgt, att).ok && G.los(tgt, att).clear) {
+      tgt.reaction = 0; FX.ring(tgt, 'silver', 26); D.sfx('bump');
+      ac += tgt.parry; hit = false; crit = false;
+      line += '  {c}PARRY +' + tgt.parry + '{/}';
     }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
@@ -1880,7 +1887,7 @@
   };
   Battle.prototype.hide = function* (u) {
     var T = u.turn;
-    if (T.bonus > 0 && u.lvl >= 2) T.bonus = 0; else T.action = 0; // Cunning Action from level 2; the Hide action before
+    if (T.bonus > 0 && (u.lvl >= 2 || u.cunning)) T.bonus = 0; else T.action = 0; // Cunning Action from level 2 (or a stat block's: the Spy); the Hide action before
     D.sfx('run');
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)
     // who sees her clearly (SRD 5.1 Hiding: "You can't hide from a creature that can see you clearly"; darkvision sees darkness "as if the
@@ -1895,7 +1902,8 @@
     // (and Enhance Ability on DEX, Heat Metal's burning armour against every check: rules.js checkEdges)
     var supreme = u.subclass === 'Thief' && u.lvl >= 9 && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex'), hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20), r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
     RU.spendHelp(u); // (a friend's Help, spent on the Stealth check -- 10-01c)
-    var total = r + u.stealth + (u.conds.pwt ? 10 : 0), pp = function (w) { return w.perception - (seen(w) === 1 ? 5 : 0); }, top = Math.max.apply(null, foes.map(pp).concat([0]));
+    var total = r + u.stealth + (u.conds.pwt ? 10 : 0), pp = function (w) { return w.perception + (w.twoHeads ? 5 : 0) - (seen(w) === 1 ? 5 : 0); }, top = Math.max.apply(null, foes.map(pp).concat([0]));
+    var headTop = foes.some(function (w) { return pp(w) === top && w.twoHeads; }); // (Two Heads: advantage on Wisdom (Perception) checks, SRD 5.1; a passive check with advantage is 5 up)
     var dimTop = foes.some(function (w) { return pp(w) === top && seen(w) === 1; }); // (the sharpest of them sees her only dimly: say so)
     if (mirror.length) {
       this.card(['{y}' + u.name + '{/} tries to hide, but the mirror on ' + mirror.map(shortName).join(' and ') + ' has her: {p}nothing hides in front of the Mirror\'s eye{/}.', '{g}Get behind her, or into the dark.{/}']);
@@ -1907,7 +1915,7 @@
       var gd = u.conds.guidance && !u.conds.faerie && total < top && total + 4 >= top && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
       total += gd;
       var ok = total >= top && !u.conds.faerie; // (outlined in violet light: nowhere to hide)
-      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + ' vs passive Perception ' + top + (dimTop ? ' {g}(5 down: it sees her only dimly){/}' : '') + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
+      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + ' vs passive Perception ' + top + (dimTop ? ' {g}(5 down: it sees her only dimly){/}' : '') + (headTop ? ' {o}(5 up: two heads, advantage on Perception){/}' : '') + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
       if (ok) u.conds.hidden = true;
     }
     yield 30;
