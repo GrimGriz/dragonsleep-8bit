@@ -110,6 +110,17 @@
     }
     return out;
   };
+  // PRONE (SRD 5.1: "its only movement option is to crawl, unless it stands up"; standing "costs an amount of movement equal to half your speed",
+  // a foot crawled costs 1 extra): a prone one that can pay the half stands first -- its reach is what is left (battle.js moveAlong stands it,
+  // rules.js RU.rise) -- and one that cannot crawls, 5 ft more a square. (10-03, Griz after the stream: "prone too long?" -- knocked flat by an
+  // opportunity Slam, Vivian ran on 20 ft lying down and lay there through the Keeper's turn.) o.upright: reckoned as stood; o.ghost: not walking
+  var stepCost0 = G.stepCost, reach0 = G.reach;
+  G.prone = function (u, o) { return !!(u && u.conds && u.conds.prone && u.hp > 0 && !(o && (o.ghost || o.upright))); };
+  G.stepCost = function (u, x0, y0, x1, y1, o) { var c = stepCost0.apply(this, arguments); return c !== Infinity && G.prone(u, o) ? c + 5 : c; };
+  G.reach = function (u, budget, o) {
+    if (G.prone(u, o) && D.rules && D.rules.canRise(u)) { var half = Math.floor(u.speed / 2); if (budget >= half) return reach0.call(this, u, budget - half, Object.assign({}, o, { upright: true })); }
+    return reach0.apply(this, arguments);
+  };
   G.path = function (rm, x, y) {
     var k = x + ',' + y, out = [];
     if (!rm[k]) return null;

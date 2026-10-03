@@ -2253,6 +2253,28 @@
       okP(!seatBad.length, 'a stone giant (3x3), two ogres, a troll and a bulette seated whole on open ground, none on another' + (seatBad.length ? ': ' + seatBad.join('; ') : ''));
       var res2 = drive(B2);
       okP(res2 === 'won' || res2 === 'lost', 'the big fight ends (' + res2 + ', round ' + B2.round + ')');
+      // i. the roster's own file and the failed save (10-03, Griz: "pocket dm roster should save in pocket dm and not overlap with the 8bit ideally"; "failed save should report"):
+      // SAVE ROSTER writes a pocket-roster file of the player's own; LOAD ROSTER adds what is new, skips what is here and what will not build; the 8-bit's file never carries deep16.pocket;
+      // a write the browser refuses says NOT SAVED, and the message outlasts the screen change after a character is made
+      var mem = {}, st0 = D.store.get, ss0 = D.store.set, full = false, clicked = null, aClick0 = HTMLAnchorElement.prototype.click;
+      D.store.get = function (k) { return mem[k] ? JSON.parse(mem[k]) : null; }; D.store.set = function (k, v) { if (full) return false; mem[k] = JSON.stringify(v); return true; };
+      HTMLAnchorElement.prototype.click = function () { clicked = { name: this.download, href: this.href }; };
+      try {
+        var PQ = new D.Pocket(), mine = { code: code, name: 'Testa', cls: sp0.cls, lvl: sp0.lvl, made: 1 };
+        PQ.enter(); PQ.st.roster.push(mine); PQ.keep();
+        PQ.saveRoster(); var fileR = PK.rosterFile(PQ.st);
+        okP(clicked && /^pocket-dm-roster-.*\.json$/.test(clicked.name) && fileR.kind === 'pocket-roster' && fileR.roster.length === 1 && fileR.roster[0].code === code, 'SAVE ROSTER: a file of its own (' + (clicked && clicked.name) + '), the one character in it');
+        var other = { code: 'barley:3', name: 'Barley', cls: 'fighter', lvl: 3 }, fileIn = JSON.stringify({ game: 'DRAGONSLEEP', kind: 'pocket-roster', v: 1, roster: [mine, other, { code: '~nonsense', name: 'Broken' }], pyro: true });
+        var tr = PQ.takeRoster(fileIn);
+        okP(tr && tr.added === 1 && tr.had === 1 && tr.bad === 1 && tr.pyro && PQ.st.roster.length === 2 && PQ.st.pyro && tr.saved && JSON.parse(mem['deep16.pocket']).roster.length === 2, 'LOAD ROSTER: one new brought in, one already here, one that will not build left out, Pyro with it; written (' + JSON.stringify(tr) + ')');
+        okP(PQ.takeRoster('{"game":"DRAGONSLEEP","kind":"saves","keys":{}}') === null && PQ.msg && /not a Pocket DM roster/.test(PQ.msg.text) && PQ.st.roster.length === 2, 'an 8-bit save file is not taken for a roster (' + (PQ.msg && PQ.msg.text) + ')');
+        var fk = /^(ds8-save-[123]|deep16\.(ladder|climb|camp)[\w.-]*)$/; // (js/scenes.js FILE_KEYS, as it stands)
+        okP(!fk.test('deep16.pocket'), 'the 8-bit\'s SAVE TO FILE does not carry deep16.pocket');
+        full = true; PQ.msg = null; var kept = PQ.keep();
+        okP(kept === false && PQ.msg && PQ.msg.bad && /NOT SAVED/.test(PQ.msg.text), 'a refused write says so: "' + (PQ.msg && PQ.msg.text) + '"');
+        PQ.go('party');
+        okP(PQ.msg && /NOT SAVED/.test(PQ.msg.text), 'and the message stays through the screen change (a character made goes back to THE PARTY)');
+      } finally { D.store.get = st0; D.store.set = ss0; HTMLAnchorElement.prototype.click = aClick0; }
     } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
     if (errs.length) repP.errors = repP.errors.concat(errs);
     var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);

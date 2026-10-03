@@ -113,7 +113,7 @@ attack when no one's in reach, and foes that only shoot keep off · Enlarge · L
 · foes bound to water, or swimming · foes starting hidden or in the Ethereal · a foe that bolts for the map's exit
 (the wheelwright) or gives ground toward it (the wagon pair; `noEscape` loses the fight if one gets out) · an ambush
 (`ambush`: their Stealth against each passive Perception; the unaware lose round 1; Assassinate) · the roost's law
-(`roost`) · the Ring of Binding (`ring`) · strung webs a map starts with · open-air ground (`ground: 'earth'`) · prone (knockdowns; up at half the move) · swarms (resist blades and blows, bite for less at half).
+(`roost`) · the Ring of Binding (`ring`) · strung webs a map starts with · open-air ground (`ground: 'earth'`) · prone (knockdowns; up at half the move -- and, the SRD's 10-03, mid-walk too: knocked flat on the way it stands for half its speed if the walk has it, else crawls, 5 ft more a square; a prone target is advantage within 5 ft, disadvantage beyond, a reach blow's as much as a bow's) · swarms (resist blades and blows, bite for less at half).
 Each foe block names what it has that isn't read yet in `todo`.
 
 **Testing** (`dev/deep16-harness.js`, gitignored): `T16.ladder(id, seed)` opens a fight at its level; `T16.auto()`

@@ -146,7 +146,7 @@
     // ---- its opportunity attack as a wave (K.CFG.oaWave, off by default)
     var B8 = battle({ lvl: 3 }), k8 = keeper(B8), H8 = ours(B8), c8 = cardsOf(B8); delete k8.conds.hidden; H8.forEach(function (u) { delete u.conds.hidden; });
     function leave() { put(H8[0], 8, 6); RU.startTurn(H8[0]); H8[0].turn.move = 30; H8[0].turn.disengaged = false; k8.reaction = 1; c8.length = 0; drain(B8.moveAlong(H8[0], [sq(8, 7), sq(8, 8)], { spend: true })); }
-    K.CFG.oaWave = false; leave(); var plain = /Slam/.test(c8.join(' ')) && !/raises a wave/.test(c8.join(' ')), y0 = K.A(H8[0]);
+    K.CFG.oaWave = false; force(true); leave(); unforce(); var plain = /Slam/.test(c8.join(' ')) && !/raises a wave/.test(c8.join(' ')), y0 = K.A(H8[0]);
     var bloom0 = D.fx.bloom, atBloom = null; D.fx.bloom = function (x, y, sq2, ramp, o) { if (ramp === 'cold' && atBloom === null) atBloom = { A: K.A(H8[0]), landing: K.A({ x: x, y: y }) }; return bloom0.apply(this, arguments); };
     K.CFG.oaWave = true; force(false); leave(); unforce(); K.CFG.oaWave = false; D.fx.bloom = bloom0;
     ok('the opportunity-attack wave: the mover stands in its square (along ' + (atBloom && atBloom.A) + ') while the effect lights the square it lands in (' + (atBloom && atBloom.landing) + '), and is pushed one square, 5 ft (now ' + K.A(H8[0]) + ')', atBloom && atBloom.A === 7 && atBloom.landing === 6 && K.A(H8[0]) === 6);
@@ -179,14 +179,14 @@
     // ---- ?keeperfight&seed=102950&watch drained (no frame loop): the fight the notes name -- level 3, won in round 7, a flood, a hold broken, a wall
     var KF = D.keeper.fight('?keeperfight&seed=31679&watch&lvl=3&old=1'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
-    ok('?keeperfight&seed=31679&old=1 (the Keeper of before 10-03: hidden, no glow, the party reacting at once) drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g), KF.result === 'won' && KF.round === 6 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1);
+    ok('?keeperfight&seed=31679&old=1 (the Keeper of before 10-03: hidden, no glow, the party reacting at once) drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g), KF.result === 'won' && KF.round === 7 && kn(/washed into the deep/g) === 0 && kn(/(springs|raises) the Ice Wall/g) === 1); // (10-03, the SRD's prone: R6, one flood, one wall until a hero knocked flat by an opportunity Slam stood up for half its speed -- the old Keeper's floods were heroes left lying through its turn, its backwash sweeping them in with no save; 0 of 300 old-profile seeds flood now, 2 of 61 did. The Keeper of now floods: the whole fights below)
     var LG = D.keeperLog, lgf = function (e) { return e && typeof e.round === 'number' && typeof e.turn === 'number' && 'actor' in e && 'action' in e && Array.isArray(e.targets) && Array.isArray(e.rolls) && 'result' in e && e.hpAfter && typeof e.hpAfter === 'object' && e.flags && ['flood', 'wall', 'swirl', 'frozen'].every(function (k) { return k in e.flags; }); };
     var lgcheck = function (what, wantActors) { var acts = {}; LG.forEach(function (e) { acts[e.actor] = 1; }); var tx = LG.text(), rolled = LG.filter(function (e) { return e.rolls.length; }).length, ends = LG.some(function (e) { return e.action === 'the fight ends'; });
       ok('the log, ' + what + ': ' + LG.length + ' lines (' + rolled + ' with rolls), actors ' + Object.keys(acts).join('/') + ', meta ' + JSON.stringify(LG.meta) + ', text ' + tx.length + ' chars, file ' + LG.filename(), LG.length > 10 && LG.every(lgf) && rolled > 3 && wantActors.every(function (a) { return acts[a]; }) && /^THE KEEPER/.test(tx) && tx.indexOf('roll:') > 0 && LG.meta.seed != null && LG.meta.level === 3 && /^keeper-seed\d+-L3\.txt$/.test(LG.filename()) && ends);
       var bad = []; for (var li = 1; li < LG.length; li++) { var a = LG[li - 1].hpAfter, b = LG[li].hpAfter, expl = LG[li].targets.concat([LG[li].actor]); Object.keys(b).forEach(function (n) { if (a[n] != null && a[n] !== b[n] && expl.indexOf(n) < 0) bad.push('L' + li + ' ' + n + ' ' + a[n] + '->' + b[n] + ' (' + LG[li].action + ')'); }); }
       ok('the log, ' + what + ': every HP change has a line that names who changed (' + (bad.length ? bad.slice(0, 3).join('; ') : 'none missing') + ')', !bad.length); };
     lgcheck('watched fight (class AI both sides)', ['The Keeper', 'Barley']); ok('the log, watched: mode ' + LG.meta.mode, LG.meta.mode === 'ai');
-    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', swirlHit: true, slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
+    Object.assign(D.keeper.CFG, { opener: true, visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', swirlHit: true, slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
     var KF2 = D.keeper.fight('?keeperfight&seed=102950&watch&lvl=3&hp=175&drown=2d6&ai=current&retreat=0'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
     ok('?keeperfight&seed=102950 drained (the settings before the lure, 175 HP, 2d6, the current AI: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g) + ', holds broken ' + kn(/HOLD BREAKS/g), KF2.result === 'won' && KF2.round === 9 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1 && kn(/HOLD BREAKS/g) === 1);
@@ -387,7 +387,7 @@
       var C = K.CFG, save = { sd: C.slamDice, sl: C.slams, wd: C.waveDC, wr: C.weaponResist, sa: C.swirlAny };
       C.slamDice = '3d6'; C.slams = 2; C.weaponResist = true; var BL = battle({ lvl: 3 }), kL = keeper(BL); var cL = cardsOf(BL), HL = ours(BL); delete kL.conds.hidden; HL.forEach(function (u) { delete u.conds.hidden; }); put(HL[0], 8, 6); put(HL[1], 8, 7);
       ok('levers: the Slam is ' + kL.attacks.slam.dice + '+' + kL.attacks.slam.mod + ', the stand-in too (' + kL.weapon.dice + '), nonmagical weapons resisted (' + kL.resist + ')', kL.attacks.slam.dice === '3d6' && kL.weapon.dice === '3d6' && kL.resist.indexOf('mundane') >= 0);
-      RU.startTurn(kL); drain(K.turn(BL, kL)); var slamsDone = cL.filter(function (c) { return /> .*Slam/.test(c) && /d20/.test(c); }).length;
+      K.st(BL).opener = true; RU.startTurn(kL); drain(K.turn(BL, kL)); var slamsDone = cL.filter(function (c) { return /> .*Slam/.test(c) && /d20/.test(c); }).length;
       ok('slams=2: the AI Keeper Slams twice from one action (' + slamsDone + ' attack cards)', slamsDone >= 2);
       var BM = battle({ lvl: 3 }), kM = keeper(BM), HM = ours(BM); BM.o.play = 'keeper'; delete kM.conds.hidden; put(HM[0], 8, 6); put(HM[1], 8, 7); RU.startTurn(kM); var cM = cardsOf(BM);
       var rn = function (cmd) { var g = BM.exec(kM, cmd), n = 0, v; while (n++ < 3000) { var r = g.next(v); v = undefined; if (r.done) break; if (r.value && r.value.prompt) v = 0; } };
@@ -732,6 +732,61 @@
       D.battle = B3;
     })();
     D.battle = B3;
+    // ---- THE STREAM'S FIXES (10-03, Griz after the two streamed Keeper fights: "1 yes", "2 SRD", "3 have it open with the wall", "4 please", "5 yes")
+    (function () {
+      var Z = battle({ lvl: 3 }), kz = keeper(Z), HZ = ours(Z), cz = cardsOf(Z), LG = D.keeperLog, strip = window.DS.stripCodes; delete kz.conds.hidden; HZ.forEach(function (u) { delete u.conds.hidden; }); RU.startTurn(kz);
+      // 2: prone at range (SRD 5.1): within 5 ft advantage, else disadvantage -- a reach blow from 10 ft as much as a bow's
+      put(HZ[0], 8, 7); HZ[0].conds.prone = true; var dz = G.dist(kz, HZ[0]), e10 = RU.edges(kz, HZ[0], kz.attacks.slam);
+      put(HZ[0], 8, 6); var dz5 = G.dist(kz, HZ[0]), e5 = RU.edges(kz, HZ[0], kz.attacks.slam);
+      ok('prone at reach (SRD): the Slam on a prone hero ' + dz + ' ft off has disadvantage (' + e10.dis.join(',') + '), ' + dz5 + ' ft off advantage (' + e5.adv.join(',') + ')', dz === 10 && e10.dis.indexOf('prone target') >= 0 && e10.adv.indexOf('prone target') < 0 && dz5 <= 5 && e5.adv.indexOf('prone target') >= 0);
+      delete HZ[0].conds.prone;
+      // 1d: a prone walker stands for half its speed if it has it (the reach is what is left), else it crawls (5 ft more a square)
+      var h = HZ[1]; put(h, 8, 10); RU.startTurn(h); h.turn.move = 30; h.conds.prone = true; var far = function (rm) { return Object.keys(rm).reduce(function (m, k) { return Math.max(m, rm[k].cost); }, 0); };
+      var rUp = far(G.reach(h, 30)), rStand = far(G.reach(h, 15, { upright: true })), rCrawl = far(G.reach(h, 10));
+      cz.length = 0; var rmh = G.reach(h, 30), fb = null; Object.keys(rmh).forEach(function (k) { if (rmh[k].stand && (!fb || rmh[k].cost > fb.cost)) fb = rmh[k]; }); drain(Z.moveAlong(h, G.path(rmh, fb.x, fb.y), { spend: true }));
+      ok('prone with 30 ft: its reach is 15 ft upright (' + rUp + ' = ' + rStand + '); it gets up as it sets off (prone ' + !!h.conds.prone + ', ' + h.turn.move + ' ft left, "' + ((cz.join(' ').match(/gets up[^.]*/) || [''])[0]) + '"); with 10 ft it crawls, a square for 10 (' + rCrawl + ')',
+        rUp === rStand && rUp <= 15 && !h.conds.prone && /gets up/.test(cz.join(' ')) && h.turn.move >= 0 && h.turn.move <= 15 && rCrawl === 10);
+      // 1d: knocked flat on the way by an opportunity blow: up for half its speed, and the walk ends where the walk runs out
+      var hb = HZ[2]; put(hb, 8, 6); RU.startTurn(hb); hb.turn.move = 30; hb.turn.disengaged = false; kz.reaction = 1; var at0 = Z.attack;
+      Z.attack = function* (att, tgt, atk, o) { if (o && o.oa) { tgt.conds.prone = true; Z.card(['(the probe: the blow puts it down)']); } };
+      cz.length = 0; drain(Z.moveAlong(hb, [sq(8, 7), sq(8, 8), sq(8, 9), sq(8, 10), sq(8, 11)], { spend: true })); Z.attack = at0;
+      ok('knocked flat mid-walk: it gets up (prone ' + !!hb.conds.prone + ', "gets up" ' + /gets up/.test(cz.join(' ')) + ') and walks on only as far as 15 ft takes it (at ' + K.A(hb) + ' along, ' + hb.turn.move + ' ft left; it set off at 6 for 11)',
+        !hb.conds.prone && /gets up/.test(cz.join(' ')) && K.A(hb) > 6 && K.A(hb) < 11 && hb.turn.move >= 0);
+      // 1a: the retreat in the water goes more than a square a move (the score's progress outweighs the water's cost)
+      var hr = HZ[3]; put(HZ[0], 7, 12); put(HZ[1], 9, 12); put(HZ[2], 10, 12); put(hr, 8, 3); kz.reaction = 0; hr.guest = true; hr.classAI = true; K.st(Z).holdBroken = { round: Z.round }; RU.startTurn(hr); var a0r = K.A(hr); drain(D.tactics.turn(Z, hr));
+      ok('the retreat: from ' + a0r + ' along in the water it reaches ' + K.A(hr) + ' (it went one square a move: ' + (a0r + 2) + ')', K.A(hr) > a0r + 2);
+      K.st(Z).holdBroken = null; HZ.forEach(function (u) { delete u.guest; delete u.classAI; });
+      // 1b: a held hero that breaks free walks off the deep
+      var hf = HZ[0]; put(hf, 8, 1); hf.hp = hf.maxhp = 60; force(false); drain(K.flood(Z, kz, hf)); unforce(); hf.conds.restrained.dc = -99; hf.guest = true; hf.classAI = true; RU.startTurn(hf); drain(D.tactics.turn(Z, hf));
+      ok('broken free of the swirl, out of the deep: restrained ' + !!hf.conds.restrained + ', at ' + K.A(hf) + ' along, the deep ' + K.isDeep(hf.x, hf.y), !hf.conds.restrained && !K.isDeep(hf.x, hf.y));
+      delete hf.guest; delete hf.classAI; K.checkSwirl(Z);
+      // 1c: a blow that breaks the hold ends the swirl at once, whoever struck it
+      put(hf, 8, 1); force(false); drain(K.flood(Z, kz, hf)); var ac0 = RU.ac(kz); Z.hurt(kz, 6, 'slashing'); unforce();
+      ok('a blow breaks the hold: the swirl ends then, not at the next command (flooding ' + !!kz.flooding + ', AC ' + ac0 + ' -> ' + RU.ac(kz) + ', retreat from round ' + (K.st(Z).holdBroken && K.st(Z).holdBroken.round) + ')', !kz.flooding && ac0 === 10 && RU.ac(kz) === 13 && K.st(Z).holdBroken);
+      // 3: the AI Keeper opens with the wall, whoever is in reach; its next turn Slams
+      var O = battle({ lvl: 3 }), ko = keeper(O), HO = ours(O), co = cardsOf(O); delete ko.conds.hidden; HO.forEach(function (u) { delete u.conds.hidden; }); put(HO[0], 8, 6); put(HO[1], 8, 7);
+      RU.startTurn(ko); drain(K.turn(O, ko)); var w1 = !!(O.kp && O.kp.wall), s1 = co.filter(function (c) { return /> .*Slam/.test(c) && /d20/.test(c); }).length;
+      ok('it opens with the wall, a hero in its reach: wall ' + w1 + ' (' + (O.kp && O.kp.uses) + ' left), Slams that turn ' + s1, w1 && O.kp.uses === K.CFG.wallUses - 1 && s1 === 0);
+      // 5: its card: three lines of its own, the Slam twice, the Wave, the swirl and Active Suffocation; the elemental glyph
+      var il = K.inspectLines(O, ko) || [], it = il.join(' | ');
+      ok('its inspect card: ' + il.length + ' lines (' + strip(it).slice(0, 150) + '), type ' + D.ui.typeOf(ko), il.length === 3 && /Slam x2/.test(it) && /Wave/.test(it) && /Suffocate/.test(it) && it.indexOf('{p}Ice Wall{/} ' + O.kp.uses + '/' + K.CFG.wallUses) >= 0 && D.ui.typeOf(ko) === 'elemental');
+      // 4: the log -- who plays, the AI's hide, a resisted blow, nothing for a click that did nothing, the round of a change caught at the next turn's door, the die in the drowning
+      ok('the log names who plays: a benched fight ' + LG.meta.mode, LG.meta.mode === 'ai');
+      RU.startTurn(HO[2]); drain(O.hide(HO[2])); var lh = LG[LG.length - 1];
+      ok('the class AI\'s hide is a line (' + (lh && lh.actor + ': ' + lh.action) + ')', lh && lh.action === 'hide' && lh.actor === HO[2].name);
+      var fire = { name: 'Firetest', atk: 99, dice: '2d6', mod: 4, type: 'fire', reach: 300 }, lf = null; // (a melee blow from wherever it stands: no ammunition asked)
+      for (var t = 0; t < 6 && !lf; t++) { drain(O.attack(HO[3], ko, fire)); var le = LG[LG.length - 1]; if (le && /resists fire: \d+ becomes \d+/.test(le.result)) lf = le; }
+      ok('a resisted blow says so: "' + (lf && (lf.result.match(/The Keeper resists fire: [^/]*/) || [''])[0]) + '"', !!lf);
+      var hd = HO[1]; hd.hp = 0; O._klog.hp[hd.id] = 0; hd.conds.drowning = { by: ko.id }; var n0 = LG.length; K.drownTick(O, hd);
+      ok('no line for the drowning of one already down (' + (LG.length - n0) + ')', LG.length === n0);
+      hd.hp = 20; O._klog.round = 4; O.round = 5; O._klog.hp[hd.id] = 30; RU.startTurn(HO[3]); var lg2 = LG.filter(function (e) { return /hp change between/.test(e.action); }).pop();
+      ok('a change caught at the next turn\'s door keeps its own round (R' + (lg2 && lg2.round) + ')', lg2 && lg2.round === 4);
+      put(hd, 8, 1); hd.conds.drowning = { by: ko.id }; co.length = 0; K.drownTick(O, hd);
+      ok('the drowning shows its die: "' + strip((co.join(' ').match(/drowns[^(]*/) || [''])[0]) + '"', /drowns: \S+ (less \d+ )?\[\d\]\+1 = \d+/.test(strip(co.join(' '))));
+      var NB = battle({ lvl: 3, bench: false }); ok('played by hand (no play=, not benched): the log says mode ' + LG.meta.mode, LG.meta.mode === 'party');
+      var NK = battle({ lvl: 3, bench: false, play: 'keeper' }); ok('play=keeper: mode ' + LG.meta.mode, LG.meta.mode === 'keeper');
+      D.battle = B3;
+    })();
     // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row, start=ledge|rune where the party comes in (10-03); the counts are what the mechanics did
     // (outside: heroes up on the exit side of the wall's row as it rose -- sealed out, not in)
     var q = {}; location.search.replace(/^\?/, '').split('&').forEach(function (kv) { var a = kv.split('='); if (a[0]) q[a[0]] = decodeURIComponent(a[1] || ''); });

@@ -25,8 +25,8 @@
     return K.POSE;
   };
   K.isFight = function (F) { return !!(F && F.id === 'keeper'); }; // (the ladder's `keeper-ladder` is the old fight, unchanged -- its own foe `keeperold` and map `floodstair-old`, data/fights.js: none of this file's rules)
-  K.PROFILE_OLD = { aiScript: '', partyRetreat: false, wallRounds: 0, stalemateBreak: false, swirlHit: false, drown: '1d6', suffocateDice: null, heldStruggle: false, deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: &old=1. Not the ladder's: `keeper-ladder` is main's own old fight, Constrict and Drag Under -- data/fights.js)
-  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, swirlHit: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.PROFILE_OLD = { aiScript: '', opener: false, partyRetreat: false, wallRounds: 0, stalemateBreak: false, swirlHit: false, drown: '1d6', suffocateDice: null, heldStruggle: false, deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: &old=1. Not the ladder's: `keeper-ladder` is main's own old fight, Constrict and Drag Under -- data/fights.js)
+  K.CFG = { opener: true, visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, swirlHit: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -182,7 +182,7 @@
       if (v && v.conds.restrained && v.conds.restrained.by === u.id) {
         var dc = Math.max(K.CFG.concMin, Math.floor(dmg / 2)), sv = RU.save(u, 'con', dc);
         this.card(['  {c}' + Nm(this, u) + ' holds ' + v.name + ' under:{/} CON ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}the hold keeps{/}' : '{o}THE HOLD BREAKS{/}  {g}(' + v.name + ' is free of it, but drowns till its head is over water){/}')], 260);
-        if (!sv.ok) this.release(u, v);
+        if (!sv.ok) { this.release(u, v); K.checkSwirl(this); } // (the hold broken by any blow, the class AI's too: it rises out of the swirl now, AC 13 again -- it had waited for a hero's command or its own turn; 10-03, the stream)
       }
     }
     return r;
@@ -200,10 +200,10 @@
     if (!dr || u.hp <= 0) return;
     if (!K.isDeep(u.x, u.y) && !(u.conds.restrained && u.conds.restrained.water)) { delete u.conds.drowning; B.card(['{n}' + u.name + ' gets a breath: head over the water.{/}'], 200); return; }
     var k = B.units.filter(function (w) { return w.id === dr.by; })[0], n = dr.twice ? 2 : 1, tot = 0, rolls = [], con = D.mod(u.abil ? u.abil.con : 10);
-    for (var i = 0; i < n; i++) { var r = D.roll(K.CFG.drown), d = Math.max(1, r.total - con); tot += d; rolls.push(r.total); }
+    for (var i = 0; i < n; i++) { var r = D.roll(K.CFG.drown), d = Math.max(1, r.total - con); tot += d; rolls.push('[' + r.rolls.join(',') + ']' + (r.mod > 0 ? '+' + r.mod : r.mod < 0 ? String(r.mod) : '')); } // (the die as the blows show theirs, [6]+1: it showed the 1d8+1's total in the brackets -- 10-03)
     dr.twice = false;
     D.sfx('splash');
-    B.card(['{r}' + u.name + '{/} drowns' + (n > 1 ? ' {o}(flooded: twice){/}' : '') + ': ' + K.CFG.drown + (con ? ' less ' + con : '') + ' [' + rolls.join(', ') + '] = {r}' + tot + '{/}  {g}(Keeper\'s drowning, not the SRD\'s){/}'], 260);
+    B.card(['{r}' + u.name + '{/} drowns' + (n > 1 ? ' {o}(flooded: twice){/}' : '') + ': ' + K.CFG.drown + (con ? ' less ' + con : '') + ' ' + rolls.join(', ') + ' = {r}' + tot + '{/}  {g}(Keeper\'s drowning, not the SRD\'s){/}'], 260);
     B.hurt(u, tot, 'drowning');
   };
 
@@ -375,6 +375,10 @@
   function* above(B, u) {
     var T = u.turn, S = st(B), hs = foesOf(B, u).filter(function (w) { return !w.conds.hidden || G.dist(u, w) <= (u.blindsight || 0); }), reach = G.reachOf(u, u.reach);
     var near = hs.filter(function (w) { return G.dist(u, w) <= reach; });
+    // IT OPENS WITH THE WALL (10-03, Griz after the stream, "have it open with the wall": in the 8-bit's own fight someone was in its reach from its first turn, and it cast
+    // only with no one there -- so no wall, no backwash, no deep, no swirl, nine rounds of Slams). Its first turn's action is the wall, cast, whoever is in reach; with no one
+    // in reach the opening below stands as it was (READY if it won the initiative, CAST once the party has moved). K.CFG.opener false: the Keeper before it (&old=1)
+    if (!S.opener) { S.opener = true; if (K.CFG.opener && near.length && K.CFG.aiCast && T.action > 0 && !u.flooding && S.uses === K.CFG.wallUses && !S.ready && K.canCastWall(B, u)) yield* K.castWall(B, u); }
     // THE SWIRLER (CFG.aiScript 'swirl', bench only -- Griz's play: the human Keeper wins when he swirls and Slams, the party when he spends turns on the Wave): a hero on the deep is swirled with the action (no adjacency wanted) and
     // suffocated with the bonus; else the wall on the first turn it can (the thaw-aware part: K.canCastWall refuses in the round it thaws, and it recasts only when no one is in the deep or its reach); else the Slams; the Wave last
     if ((K.CFG.aiScript === 'swirl' || K.CFG.aiScript === 'lure') && T.action > 0 && !u.flooding) {
@@ -659,6 +663,18 @@
     return out;
   };
 
+  // ------------------------------------------------------------------ ITS CARD (the inspect: a right-click on it, or a spell's peek -- 10-03, Griz after the stream: "we need the
+  // elemental 'inspect' card for the fella"; then "Looks like too much for the card really, and is still missing the active drown or whatever button if they don't break the
+  // swirl. Don't forget the elemental hieroglyph though, mousing over with Ly's protect spell is what caused the notice"): three short lines in place of the Slam's and the water's
+  // (js/ui.js inspect), from K.CFG as it stands; the type's glyph is every creature's, drawn by the panel -- an elemental, what Protection from Evil and Good keeps off
+  K.inspectLines = function (B, u) {
+    var a = u.attacks && u.attacks.slam; if (!a) return null;
+    var S = B && B.kp, left = S ? S.uses : K.CFG.wallUses;
+    return ['Slam' + (K.CFG.slams > 1 ? ' x' + K.CFG.slams : '') + ' ' + RU.sign(a.atk) + ', ' + a.dice + RU.sign(a.mod) + ', reach ' + (a.reach || u.reach || 10) + '  {o}DC ' + (a.prone || 15) + ' STR or prone{/}',
+      '{p}Wave{/} (bonus) {o}DC ' + K.CFG.waveDC + ' STR or prone{/}  ·  {p}Ice Wall{/} ' + left + '/' + K.CFG.wallUses,
+      '{p}Swirl{/} one on the deep  ·  {p}Suffocate{/} (bonus): it drowns twice'];
+  };
+
   // ------------------------------------------------------------------ the gallery: ?fxgallery&keeper (10-03). The Keeper's looks and rules, one scene at a time on its own stair, through the
   // real code (the dice are put to the scene: a save the scene wants failed fails). Keys as the spell gallery's: left/right the scene before or after, E again, &scene=<id>, &auto.
   K.SCENES = [
@@ -798,7 +814,7 @@
     B.focus(u); var dry = geo().a[1] - 3;
     for (var tries = 0; tries < 2 && K.A(u) < dry && !u.dead && u.hp > 0; tries++) {
       var rm = G.reach(u, u.turn.move), best = null;
-      Object.keys(rm).forEach(function (kx) { var e = rm[kx]; if (!e.stand || (e.x === u.x && e.y === u.y)) return; var a = K.A(e); var sc = (a >= dry ? 0 : 1000 - a * 10) + e.cost; if (!best || sc < best.sc) best = { sc: sc, x: e.x, y: e.y }; });
+      Object.keys(rm).forEach(function (kx) { var e = rm[kx]; if (!e.stand || (e.x === u.x && e.y === u.y)) return; var a = K.A(e); var sc = (a >= dry ? 0 : (dry - a) * 100) + e.cost; if (!best || sc < best.sc) best = { sc: sc, x: e.x, y: e.y }; }); // (a square nearer the landing is worth more than any walk to it: at 10 a square against water's 10 ft a square they tied, and it went one square a move -- 10-03, the stream)
       if (best) yield* B.moveAlong(u, G.path(rm, best.x, best.y), { spend: true });
       if (K.A(u) >= dry || tries || u.turn.action <= 0) break;
       yield* B.exec(u, { do: 'dash' });
@@ -808,9 +824,21 @@
     if (K.A(u) >= dry) { var m = u.turn.move; u.turn.move = 0; try { yield* tx.apply(self, [B, u]); } finally { u.turn.move = m; } return; }
     yield 10;
   }
+  // OUT OF THE DEEP (10-03, the stream: Lymen broke free of the swirl twice and stood in the deep both times, to be taken again; Griz, "1 yes"): a hero who has
+  // just broken free walks off the deep with what the escape gave back -- the nearest square that is not the deep, the one toward the landing on a tie; in the
+  // party's retreat, the farthest toward the landing it can reach
+  function* outOfDeep(B, u) {
+    var hb = st(B).holdBroken, back = K.CFG.partyRetreat && hb && B.round - hb.round < K.CFG.retreatRounds, rm = G.reach(u, u.turn.move), best = null;
+    Object.keys(rm).forEach(function (kx) { var e = rm[kx]; if (!e.stand || K.isDeep(e.x, e.y)) return; var sc = back ? -K.A(e) * 100 + e.cost : e.cost * 100 - K.A(e); if (!best || sc < best.sc) best = { sc: sc, x: e.x, y: e.y }; });
+    if (best) yield* B.moveAlong(u, G.path(rm, best.x, best.y), { spend: true });
+  }
   var tx0 = D.tactics.turn;
   D.tactics.turn = function* (B, u) {
-    if (B && B.fight && K.isFight(B.fight) && u.side === 'party' && !u.familiar && heldBy(u) && st(B)) { B.focus(u); if (u.turn.action > 0) yield* B.exec(u, { do: 'breakfree' }); yield 10; return; } // (held in the swirl: it struggles; K.CFG.heldStruggle)
+    if (B && B.fight && K.isFight(B.fight) && u.side === 'party' && !u.familiar && heldBy(u) && st(B)) { // (held in the swirl: it struggles; K.CFG.heldStruggle)
+      B.focus(u); if (u.turn.action > 0) yield* B.exec(u, { do: 'breakfree' });
+      if (!heldBy(u) && !u.conds.restrained && u.hp > 0 && !u.dead && K.isDeep(u.x, u.y) && u.turn.move > 0) yield* outOfDeep(B, u); // (free: out of the deep with the walk the escape gave back)
+      yield 10; return;
+    }
     if (K.CFG.partyRetreat && B && B.fight && K.isFight(B.fight) && u.side === 'party' && !u.familiar && st(B) && (B.o || {}).play !== 'party') { var hb = st(B).holdBroken; if (hb && B.round - hb.round < K.CFG.retreatRounds) return yield* retreatTurn(B, u, tx0, this); } // (the first swirl hold has been broken: for retreatRounds rounds the party gets out of the water and holds the ledge)
     if (!(K.CFG.partyOpening && B && K.isFight(B.fight) && u.side === 'party' && !u.familiar && st(B) && !K.opened(B))) return yield* tx0.apply(this, arguments);
     B.focus(u); var kk = keeperOf(B); if (kk) u.facing = B.faceTo(u, kk);

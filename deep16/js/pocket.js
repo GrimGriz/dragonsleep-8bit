@@ -34,7 +34,7 @@
     st.run = st.run || null;              // the ladder under way
     return st;
   };
-  PK.save = function (st) { D.store.set(KEY, st); };
+  PK.save = function (st) { return D.store.set(KEY, st); }; // (true when it was written: false with the browser's storage full or shut -- the scene says so, Pocket.prototype.keep)
 
   // ------------------------------------------------------------------ the roster: the 8-bit game's own, the named, the king, the player's
   // (lo: the lowest level the word builds -- a guest stands at its register's or higher, js/classes.js NPC.heroSheet)
@@ -239,8 +239,11 @@
     D.music('title');
   };
   Pocket.prototype.exit = function () { this.dropField(); };
-  Pocket.prototype.keep = function () { this.st.mapId = this.mapSel; this.st.crI = this.crI; this.st.foes = this.foes; this.st.watch = this.watch; PK.save(this.st); };
-  Pocket.prototype.go = function (screen) { this.dropField(); this.screen = screen; this.ksel = 0; this.scroll = 0; this.msg = null; this.cache = {}; };
+  // a write that fails says so (10-03, Griz: "failed save should report"): a character made or a roster brought in stays on the screen for this visit and can go to a
+  // file (SAVE ROSTER), but a reload would lose it -- the message outlasts the screen it was set on
+  Pocket.prototype.keep = function () { this.st.mapId = this.mapSel; this.st.crI = this.crI; this.st.foes = this.foes; this.st.watch = this.watch; var ok = PK.save(this.st); if (!ok) this.failSay(); return ok; };
+  Pocket.prototype.failSay = function () { this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. SAVE ROSTER to a file.', t: 480, sticky: true, bad: true }; };
+  Pocket.prototype.go = function (screen) { this.dropField(); this.screen = screen; this.ksel = 0; this.scroll = 0; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; };
 
   // a field over the canvas (a name, the notes): the game hears no key while it has the focus (core.js D.typing)
   Pocket.prototype.useField = function (kind, rect, value, oninput) {
@@ -481,6 +484,44 @@
       this.say('saved ' + name);
     } catch (e) { this.say('could not save: ' + e); }
   };
+  // ------------------------------------------------------------------ the roster in a file of its own (10-03, Griz: "pocket dm roster should save in pocket dm and not overlap with
+  // the 8bit ideally"): the player's own characters, and Pyro if the trial is won, to a .json and back, from THE PARTY. The 8-bit's SAVE TO FILE (js/scenes.js FILE_KEYS) keeps the
+  // 8-bit's slots and the grid's ladders and never carries deep16.pocket; this file carries nothing else
+  PK.FILE_KIND = 'pocket-roster';
+  PK.rosterFile = function (st) { return { game: 'DRAGONSLEEP', kind: PK.FILE_KIND, v: 1, at: new Date().toISOString(), roster: st.roster.slice(), pyro: !!st.pyro }; };
+  Pocket.prototype.saveRoster = function () {
+    var st = this.st; if (!st.roster.length) { this.say('no characters of your own yet: MAKE one on a ? seat'); return; }
+    var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; }, name = 'pocket-dm-roster-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
+    try {
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(PK.rosterFile(st), null, 1)], { type: 'application/json' }));
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      this.say('saved ' + st.roster.length + ' to ' + name, 300);
+    } catch (e) { this.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; }
+  };
+  // the browser's own picker; what the file holds is added (takeRoster), nothing on the roster is lost
+  Pocket.prototype.loadRoster = function () {
+    var self = this, inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = function () { var f = inp.files && inp.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { self.takeRoster(rd.result); }; rd.readAsText(f); };
+    inp.click();
+  };
+  // a file's roster onto this one: each character whose word builds (js/classes.js NPC.spec) and is not here already (the same word and name); Pyro, if the file has him
+  Pocket.prototype.takeRoster = function (text) {
+    var file = null; try { file = JSON.parse(text); } catch (e) { /* (not JSON) */ }
+    if (!file || file.game !== 'DRAGONSLEEP' || file.kind !== PK.FILE_KIND || !Array.isArray(file.roster)) { this.msg = { text: 'that file is not a Pocket DM roster', t: 300, bad: true }; return null; }
+    var st = this.st, added = 0, had = 0, bad = 0;
+    file.roster.forEach(function (c) {
+      var ok = false; try { ok = !!(c && typeof c.code === 'string' && NPC.spec(c.code)); } catch (e) { ok = false; }
+      if (!ok) { bad++; return; }
+      if (st.roster.some(function (r) { return r.code === c.code && r.name === c.name; })) { had++; return; }
+      st.roster.push({ code: c.code, name: String(c.name || 'unnamed').slice(0, 24), cls: c.cls, lvl: c.lvl, made: c.made || Date.now() }); added++;
+    });
+    var pyro = !!file.pyro && !st.pyro; if (pyro) st.pyro = true;
+    this.cache = {};
+    var res = { added: added, had: had, bad: bad, pyro: pyro, saved: this.keep() };
+    if (res.saved) this.say((added ? added + ' brought in' : 'nothing new') + (had ? ', ' + had + ' already here' : '') + (bad ? ', ' + bad + ' would not build' : '') + (pyro ? ', and Pyro' : ''), 300);
+    return res;
+  };
   Pocket.prototype.copy = function (text, what) {
     var self = this;
     try { navigator.clipboard.writeText(text).then(function () { self.say((what || 'copied') + ' to the clipboard'); }, function () { self.say('could not copy'); }); }
@@ -540,8 +581,8 @@
     if (this.mk.editing != null && this.st.roster[this.mk.editing]) this.st.roster[this.mk.editing] = rec;
     else { this.st.roster.push(rec); this.mk.editing = this.st.roster.length - 1; }
     this.st.party[this.mk.slot] = { custom: this.mk.editing };
-    this.cache = {}; this.keep();
-    D.sfx('levelup');
+    this.cache = {}; var kept = this.keep();
+    D.sfx(kept ? 'levelup' : 'error'); // (not written: the message says so, and stays through the screen change)
     this.go('party');
   };
 
@@ -577,7 +618,7 @@
     else if (s === 'rest') this.drawRest(ctx);
     else if (s === 'fights') this.drawFights(ctx);
     else if (s === 'notes') this.drawNotes(ctx);
-    if (this.msg && this.msg.t > 0) { var mw = D.textWidth(this.msg.text) + 16; D.win8(ctx, (D.W - mw) / 2, D.H - 30, mw, 16); D.text(ctx, this.msg.text, D.W / 2, D.H - 26, P('gold', 4), 'center'); }
+    if (this.msg && this.msg.t > 0) { var mw = D.textWidth(this.msg.text) + 16; D.win8(ctx, (D.W - mw) / 2, D.H - 30, mw, 16); D.text(ctx, this.msg.text, D.W / 2, D.H - 26, this.msg.bad ? P('red', 4) : P('gold', 4), 'center'); }
     this.placeField();
   };
   function head(ctx, title, sub) {
@@ -652,6 +693,8 @@
     this.btn(ctx, '+ a seat', 96, 200, 70, 14, function () { if (st.party.length < 6) { st.party.push({ w: 'new' }); self.cache = {}; self.keep(); } }, { dis: n >= 6 });
     if (st.roster.length) D.text(ctx, st.roster.length + ' of your own on the roster (cycle to them)', 180, 203, P('stone', 5));
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
+    this.btn(ctx, 'SAVE ROSTER', 88, 236, 114, 15, function () { self.saveRoster(); }, { dis: !st.roster.length }); // (the roster's own file: saveRoster above, 10-03)
+    this.btn(ctx, 'LOAD ROSTER', 208, 236, 114, 15, function () { self.loadRoster(); });
     this.btn(ctx, 'NEXT: THE MAP', D.W - 150, 236, 130, 15, function () { if (self.st.run) { self.st.run = null; } self.go('map'); }, { pri: true, dis: !ready });
     if (!ready) D.text(ctx, 'every seat wants a character (a locked one cannot come)', D.W / 2, 222, P('fire', 1), 'center');
     else D.hint(ctx, 'E on a card\'s arrows cycles · X back', D.W / 2, 222, P('stone', 4), 'center');

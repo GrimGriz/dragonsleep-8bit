@@ -15,6 +15,21 @@
   L.meta = {};
   function plain(s) { return String(s).replace(/\{[a-z\/]+\}/g, '').replace(/\s+/g, ' ').trim(); }
   function mine(B) { return !!(B && B.fight && K.isFight(B.fight) && B._klog); }
+  // who plays (10-03: the 8-bit's own fight, played by hand, wrote "mode ai"): play= when the page names it, else 'ai' for a watched or benched fight, 'party' for the keys
+  function modeOf(B) { return (B.o && B.o.play) || (B.bench || (B.o && B.o.bench) ? 'ai' : 'party'); }
+  // a blow's damage halved, nothing or doubled by what it is (battle.js typed: the Keeper resists fire) -- 10-03: the log said "= 9 fire" and the Keeper lost 4; one line an action, each blow's before and after
+  function resLines(st) {
+    var by = {}, out = []; (st.res || []).forEach(function (r) { var k = r.who + ' ' + r.why + ' ' + r.type; (by[k] = by[k] || []).push(r.n + ' becomes ' + r.to); });
+    Object.keys(by).forEach(function (k) { out.push(k + ': ' + by[k].join(', ')); }); st.res = [];
+    return out;
+  }
+  // the file by itself at the fight's end (10-03, Griz: "they've been useful as is, better not broken (though live should no longer be saving them)"): on the live site only when
+  // asked -- &log on the address (the 8-bit's ?log goes on to the grid's frame: js/embed.js), or D16.keeperLog.download() -- and by itself as before when served from this machine
+  // (the preview server, a file); &nolog never
+  function wantFile() {
+    var q = location.search; if (/[?&]nolog\b/.test(q)) return false; if (/[?&]log\b/.test(q)) return true;
+    return location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\]|)$/.test(location.hostname);
+  }
   function snap(B) { var o = {}; B.units.forEach(function (u) { o[u.id] = { u: u, hp: u.hp, c: Object.keys(u.conds || {}).filter(function (k) { return u.conds[k]; }).sort().join(',') }; }); return o; }
   function flagsOf(B, text) {
     var S = B.kp, k = B.units.filter(function (u) { return u.kind === 'keeper'; })[0], f = {};
@@ -34,14 +49,16 @@
     var now = hpMap(B), ch = B.units.filter(function (w) { return !w.isWall && st.hp && st.hp[w.id] != null && st.hp[w.id] !== w.hp; }), amb = st.amb || []; st.amb = [];
     if (ch.length) {
       var lines = [], seen = {}; amb.forEach(function (c) { c.split(' | ').forEach(function (ln) { var s = plain(ln); if (s && !seen[s]) { seen[s] = 1; lines.push(s); } }); });
+      resLines(st).forEach(function (s) { lines.push(s); });
       var rolls = lines.filter(function (x) { return ROLL.test(x); }), rest = lines.filter(function (x) { return !ROLL.test(x); }), actor = '';
       B.units.some(function (w) { return rest.some(function (x) { if (x.indexOf(w.name) === 0 && !w.isWall) { actor = w.name; return true; } return false; }); });
       var hp = {}; B.units.forEach(function (w) { if (!w.familiar && !w.isWall) hp[w.name] = w.hp; });
       var delta = ch.map(function (w) { return w.name + ' ' + st.hp[w.id] + ' -> ' + w.hp; }).join(', ');
-      L.meta.mode = (B.o && B.o.play) || 'ai';
-      L.push({ round: B.round, turn: st.turn, actor: actor, action: 'hp change between actions (' + why + ')', targets: ch.map(function (w) { return w.name; }), rolls: rolls, result: delta + (rest.length ? ' / ' + rest.join(' / ') : ''), hpAfter: hp, flags: flagsOf(B, lines.join(' ')) });
+      L.meta.mode = modeOf(B);
+      // (round: the round of the turn it happened in -- caught at the next turn's door, it had the next round's number; 10-03)
+      L.push({ round: st.round != null ? st.round : B.round, turn: st.turn, actor: actor, action: 'hp change between actions (' + why + ')', targets: ch.map(function (w) { return w.name; }), rolls: rolls, result: delta + (rest.length ? ' / ' + rest.join(' / ') : ''), hpAfter: hp, flags: flagsOf(B, lines.join(' ')) });
     }
-    st.hp = now;
+    st.res = []; st.hp = now;
   }
   function wrap(B, u, action, targets, gen) { // gen: the generator the action is; returns its value
     return (function* () {
@@ -64,14 +81,16 @@
   function push(B, u, action, targets, cards, before) {
     var lines = [], seen = {};
     cards.forEach(function (c) { c.split(' | ').forEach(function (ln) { var s = plain(ln); if (s && !seen[s]) { seen[s] = 1; lines.push(s); } }); });
+    resLines(B._klog).forEach(function (s) { lines.push(s); });
     var rolls = lines.filter(function (s) { return ROLL.test(s); }), rest = lines.filter(function (s) { return !ROLL.test(s); }), text = lines.join(' ');
     var result = rest.join(' / '); if (!result) result = (rolls.join(' ').match(OUT) || []).join(' ');
-    var tg = (targets || []).filter(Boolean).map(function (t) { return t.name || String(t); });
-    B.units.forEach(function (w) { var b = before[w.id]; if (b && w !== u && (b.hp !== w.hp || b.c !== Object.keys(w.conds || {}).filter(function (k) { return w.conds[k]; }).sort().join(',')) && tg.indexOf(w.name) < 0 && !w.isWall) tg.push(w.name); });
+    var tg = (targets || []).filter(Boolean).map(function (t) { return t.name || String(t); }), changed = false;
+    B.units.forEach(function (w) { var b = before[w.id]; if (b && (b.hp !== w.hp || b.c !== Object.keys(w.conds || {}).filter(function (k) { return w.conds[k]; }).sort().join(',')) && !w.isWall) { changed = true; if (w !== u && tg.indexOf(w.name) < 0) tg.push(w.name); } });
     var hp = {}; B.units.forEach(function (w) { if (!w.familiar && !w.isWall) hp[w.name] = w.hp; });
     B._klog.hp = hpMap(B); B._klog.amb = [];
     if (action === 'end' || action === 'none' || action == null) return;
-    L.meta.mode = (B.o && B.o.play) || 'ai'; // (play= is set after enter: read on every line)
+    if (!rolls.length && !result && !changed) return; // (a click that did nothing -- a DASHMOVE with no square picked, a READY that opened its menu -- and the drowning of one already down: no line; 10-03)
+    L.meta.mode = modeOf(B); // (play= is set after enter: read on every line)
     L.push({ round: B.round, turn: B._klog.turn, actor: u ? u.name : '', action: action, targets: tg, rolls: rolls, result: result, hpAfter: hp, flags: flagsOf(B, text) });
   }
   function nm(t) { return t && t.name ? t : null; }
@@ -82,15 +101,15 @@
     return function () {
       var seed = D.seed >>> 0, r = enter0.apply(this, arguments), B = this;
       if (!(B.fight && K.isFight(B.fight))) return r;
-      L.length = 0; B._klog = { depth: 0, cap: null, turn: 0, amb: [], hp: hpMap(B) };
+      L.length = 0; B._klog = { depth: 0, cap: null, turn: 0, amb: [], res: [], hp: hpMap(B) };
       var lv = 0; B.units.forEach(function (u) { if (u.side === 'party' && u.lvl > lv) lv = u.lvl; });
-      L.meta = { seed: seed, level: lv, mode: (B.o && B.o.play) || 'ai', result: null, fight: B.fight.id, start: B.startAt || 'ledge', cfg: Object.assign({}, K.CFG) }; // (the Keeper's settings as the fight began: a playtest is compared by them; start: where the party came in, the ledge or the rune -- 10-03)
+      L.meta = { seed: seed, level: lv, mode: modeOf(B), result: null, fight: B.fight.id, start: B.startAt || 'ledge', cfg: Object.assign({}, K.CFG) }; // (the Keeper's settings as the fight began: a playtest is compared by them; start: where the party came in, the ledge or the rune -- 10-03)
       var c0 = B.card; B.card = function (lines) { if (B._klog) { if (B._klog.cap) B._klog.cap.push((lines || []).join(' | ')); else if (B._klog.depth === 0) B._klog.amb.push((lines || []).join(' | ')); } return c0.apply(this, arguments); };
       return r;
     };
   });
   // a turn begins: the turn counter (the rules' startTurn is one function for everyone)
-  var st0 = RU.startTurn; RU.startTurn = function (u) { var B = D.battle, on = mine(B); if (on) gap(B, 'before ' + (u && u.name) + '\'s turn'); if (on) B._klog.turn++; var r = st0.apply(this, arguments); if (on) gap(B, 'the start of ' + (u && u.name) + '\'s turn'); return r; };
+  var st0 = RU.startTurn; RU.startTurn = function (u) { var B = D.battle, on = mine(B); if (on) gap(B, 'before ' + (u && u.name) + '\'s turn'); if (on) { B._klog.turn++; B._klog.round = B.round; } var r = st0.apply(this, arguments); if (on) gap(B, 'the start of ' + (u && u.name) + '\'s turn'); return r; };
 
   // ---- the heroes' and the human Keeper's commands, moves, blows, spells
   wrapProto(D.Battle.prototype, 'exec', function (e0) { return function* (u, c) { var B = this; if (!mine(B)) return yield* e0.apply(this, arguments); return yield* wrap(B, u, c && c.do, [nm(c && c.target), c && c.id ? B.units.filter(function (w) { return w.id === c.id; })[0] : null], e0.apply(this, arguments)); }; });
@@ -103,6 +122,10 @@
   });
   wrapProto(D.Battle.prototype, 'attack', function (a0) { return function* (att, tgt, atk, o) { return yield* wrap(this, att, (o && o.oa ? 'opportunity attack: ' : 'attack: ') + ((atk && atk.name) || 'blow'), [tgt], a0.apply(this, arguments)); }; });
   wrapProto(D.magic, 'cast', function (c0) { return function* (B, u, id, slot, t) { var sp = D.magic.data && D.magic.data(id); return yield* wrap(B, u, 'cast: ' + ((sp && sp.name) || id) + (slot ? ' (L' + slot + ')' : ''), [t && t.name ? t : null], c0.apply(this, arguments)); }; });
+  // the class AI's Hide (js/tactics.js calls B.hide itself, not a command: 10-03, Vivian "no longer hidden" with no hide in the log); a hero's HIDE command is logged once, as before
+  wrapProto(D.Battle.prototype, 'hide', function (h0) { return function* (u) { return yield* wrap(this, u, 'hide', [], h0.apply(this, arguments)); }; });
+  // resisted, immune, vulnerable: kept for the action's line (resLines above)
+  wrapProto(D.Battle.prototype, 'typed', function (t0) { return function (u, n, type) { var r = t0.apply(this, arguments); if (mine(this) && r && r.why && r.n !== n) this._klog.res.push({ who: u.name, why: r.why, type: type || 'it', n: n, to: r.n }); return r; }; });
 
   // ---- the Keeper's own
   [['wave', function (B, u) { return [u, 'the Wave', []]; }],
@@ -145,7 +168,7 @@
     return function* (o) {
       var B = this;
       if (mine(B)) { gap(B, 'the end'); L.meta.result = o; L.push({ round: B.round, turn: B._klog.turn, actor: '', action: 'the fight ends', targets: [], rolls: [], result: String(o), hpAfter: (function () { var h = {}; B.units.forEach(function (w) { if (!w.familiar && !w.isWall) h[w.name] = w.hp; }); return h; })(), flags: flagsOf(B, '') });
-        if (!B.bench && !(B.o && B.o.bench) && !/[?&]nolog\b/.test(location.search) && !B._klog.saved) { B._klog.saved = true; L.download(); } }
+        if (!B.bench && !(B.o && B.o.bench) && wantFile() && !B._klog.saved) { B._klog.saved = true; L.download(); } }
       return yield* f0.apply(this, arguments);
     };
   });

@@ -103,7 +103,7 @@
     }
     window.addEventListener('message', onMsg);
     DS.audio.stop();
-    fr.id = 'd16'; fr.title = 'DEEP16'; fr.allow = 'gamepad'; fr.src = 'deep16/index.html?embed'; // (the game pad reaches the fight: js/pad.js)
+    fr.id = 'd16'; fr.title = 'DEEP16'; fr.allow = 'gamepad'; fr.src = 'deep16/index.html?embed' + (/[?&]nolog\b/.test(location.search) ? '&nolog' : /[?&]log\b/.test(location.search) ? '&log' : ''); // (the game pad reaches the fight: js/pad.js)
     fr.onload = function () { try { fr.contentWindow.focus(); } catch (e) { } };
     document.body.appendChild(fr);
     DS.paused = true;

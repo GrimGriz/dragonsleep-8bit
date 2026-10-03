@@ -965,8 +965,12 @@
     // do the old one for 1-2 squares and the new if they're going 3 squares or more" -- coiled and swaying for a step or two, laid flat to go far)
     var gait = path.length >= 3 && D.spr.anim(u.sheet, 'slither') ? 'slither' : 'walk';
     u.anim = gait;
+    // flat when it sets off: it gets up for half its speed if the walk has it, else it crawls (grid.js G.prone, rules.js RU.rise; SRD 5.1)
+    if (u.conds.prone && o && o.spend && !u.ethereal) RU.rise(this, u);
+    var fell = false;
     for (var i = 0; i < path.length; i++) {
       var nx = path[i][0], ny = path[i][1], cost = G.stepCost(u, u.x, u.y, nx, ny, { ghost: u.ethereal });
+      if (fell && o && o.spend && T.move < cost) { u.anim = 'idle'; return; } // (knocked down on the way and up again, or crawling: the walk runs out short of the square)
       // leaving a hostile's reach without Disengage provokes, right before the step
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
         var prov = this.units.filter(function (w) {
@@ -989,7 +993,7 @@
               if (pushed) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
               continue;
             }
-            this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? 'the ' + shortName(u) : u.name) + '.']);
+            this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? (u.named ? '' : 'the ') + shortName(u) : u.name) + '.']);
             var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite
               || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]]; // any melee attack (the morningstar)
             if (!atk) continue;
@@ -998,6 +1002,9 @@
             // held by the blow (a grip on the hit: the darkmantle's crush, a tendril), or stunned or put down by it: no more walking -- its speed is 0
             // (10-01, Griz in the Fork: the darkmantle's opportunity attack took Barley and he walked on a square, held from 10 ft)
             if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; }
+            // knocked flat by it (the Keeper's Slam; 10-03, Griz after the stream: "prone too long?"): it stands for half its speed if the walk has that
+            // much left (SRD 5.1), else it crawls on; the walk runs out where it runs out
+            if (u.conds.prone && o && o.spend && !u.ethereal) { RU.rise(this, u); fell = true; cost = G.stepCost(u, u.x, u.y, nx, ny, { ghost: u.ethereal }); if (T.move < cost) { u.anim = 'idle'; return; } }
           }
         }
       }
@@ -1635,7 +1642,7 @@
       if (w.side === 'party' && !w.guest) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
       if (!take) continue;
       w.reaction = 0;
-      this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? 'the ' + shortName(u) : u.name) + ', ' + (why || 'leaving') + '.']);
+      this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? (u.named ? '' : 'the ') + shortName(u) : u.name) + ', ' + (why || 'leaving') + '.']);
       var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]];
       if (!atk) continue;
       yield* this.attack(w, u, atk, { oa: true });
