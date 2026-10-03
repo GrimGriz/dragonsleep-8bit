@@ -885,6 +885,7 @@
     // is the one on the viewer's left while he faces toward the viewer, on the right while he faces away)
     if (u.riding && u.master) { u.facing = u.master.facing || 0; p = perchPos(B, u, 1); }
     if (u.left) return null; // out of the fight, the way they came in
+    if (u.kind === 'keeper' && D.keeper && !u.dead && (!u.anim || u.anim === 'idle')) D.keeper.face(B, u); // (it faces the party, idle: js/keeper.js)
     if (u.unseen) return null; // (asleep under the water or in its puddle: the Settling's, js/wet.js)
     if (u.dead && !has('hurt') && B.t - u.deadT > 50) return null;
     var obj = {

@@ -201,7 +201,7 @@
     { id: 'keeper', level: 3, map: 'floodstair', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss',
       intro: 'A dwarven stair runs down into black water. At the bottom five men lie drowned. The water is a thing, and it closes. (It keeps to its water, and you cannot see it there until it moves.)',
       from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
-      foes: [{ id: 'keeper', kind: 'keeper', at: [8, 4], hidden: true }], wave: null },
+      foes: [{ id: 'keeper', kind: 'keeper', at: window.D16.laneAt(window.D16.MAPS.floodstair, window.D16.MAPS.floodstair.geo.keeper[0], window.D16.MAPS.floodstair.geo.keeper[1], 2), hidden: true }], wave: null }, // (in the lane frame, data/maps.js floodstair geo.keeper)
     { id: 'chuul', level: 4, map: 'point', name: 'The Thing in the Lake', sub: 'the point, at night', music: 'boss',
       ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 3 },
       intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Binding.)',
