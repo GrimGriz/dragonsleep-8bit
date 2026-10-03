@@ -54,20 +54,22 @@ Named so the merge is looked at, not guessed:
 
 - **No pane.** The reaction menus were never looked at on the screen: `askReact` draws a `DS.choose` at x 24, w 208, with a title (the longest, "COUNTERSPELL? Protection from Evil and Good", would be wider than the box); the bench only called `draw()` once with the conditions up. The desktop's eye is wanted on one Shield ask and one Counterspell ask.
 - **No fight driven through the menus with a reaction in it.** The new mode steps `foeAttack`, `special`, `castSpell` and `turn` by hand; the seven driven modes have no caster who would be asked (Aurdin's default day at 5th does not prepare Shield -- see question 3 -- and no one knows the other two). A real battle where the player answers SHIELD? and the turn goes on was not run.
-- **Not benched:** a guest's automatic Shield (no guest knows it); the decline path (LET IT LAND and the rest return false: read, not run); Dancing Lights going out and the dark coming back; a cloud ending with its caster's concentration; Hold Person or Web ending when the caster is hit (the mark-and-drop is the same code as Bless's, which was benched); the Bandit Captain's Parry (Hask's was, from the same field); the Counterspell "begins to cast" card in a real spell-weaver fight; the roost.
+- **Not benched:** a guest's automatic Shield (no guest knows it); the decline path (LET IT LAND and the rest return false: read, not run); Dancing Lights going out and the dark coming back; a cloud ending with its caster's concentration; Hold Person or Web ending when the caster is hit (the mark-and-drop is the same code as Bless's, which was benched); the Bandit Captain's Parry (Hask's was, from the same field); the Counterspell "begins to cast" card in a real spell-weaver fight; a guest declining the rebuke under the roost (no guest knows it); the spell-weaver's darts in a driven fight (the mode casts them by hand, at everyone).
 - **Older saves:** nothing to migrate -- `buff` lived on the battle unit, never on the saved hero.
 - `R.prepDefault` was not changed: a wizard who wants Shield as a reaction must have it prepared (the day's menu), as the SRD has it.
 
 ## 5. The seat's calls (recorded in `invented.json`)
 
-The AI policies (the grid's); Shield offered only when it turns the blow; the dodge's number shown before the choice; the "begins to cast" card only when someone could answer; Hellish Rebuke not offered under the roost; the same spell cast again ends the first with the card; a Hold or a Laughter taken back by its caster also stands the target up; the specials' `spell` tags and which stay untagged; the Counterspell check uses the caster's own casting ability.
+The AI policies (the grid's); Shield offered only when it turns the blow; the dodge's number shown before the choice; the "begins to cast" card only when someone could answer; a guest never takes the rebuke under the roost; the same spell cast again ends the first with the card; a Hold or a Laughter taken back by its caster also stands the target up; the specials' `spell` tags and which stay untagged; the Counterspell check uses the caster's own casting ability.
 
-## 6. Questions for Griz (answerable from memory)
+## 6. The seven questions, answered by Griz 10-03 (his words in brackets), and what changed
 
-1. **Hellish Rebuke under the roost:** not offered (built), or offered and the roof wakes, as any fire spell cast there?
-2. **Uncanny Dodge shows the blow's number** ("UNCANNY DODGE? 20 damage") before the choice. Keep it, or ask blind (the SRD's moment is the hit, before the damage is known)?
-3. **Aurdin's prepared day at 5th has no Shield** (`R.prepDefault` ranks it out, so the reaction never comes unless the player prepares it). Should the default day of a wizard always hold Shield?
-4. **The "begins to cast" card** before a Counterspell ask: only when a caster could answer (built), or every time a tagged special is cast, so the player learns which are spells?
-5. **A Magic Missile for a foe:** no 8-bit sheet casts it, so Shield's immunity waits for one. Give the spell-weaver darts (the SRD mage has them)?
-6. **Recasting the same concentration spell** ("Bless again") ends the first with a card and lays the new. Keep the card, or let the same spell renew quietly?
-7. **The Bandit Captain's Parry wants a melee weapon in hand** (SRD); the 8-bit assumes the scimitar is there. Fine as is?
+1. **Hellish Rebuke under the roost:** not offered, or offered and the roof wakes? [*offered; it is fire, and the roost's law is the player's choice with the consequence*] -- **BUILT**: the ask comes under the roost with ROOST on the REBUKE item; taken, the slot and the reaction are spent, no fire lands, "Aurdin's hellfire catches, under the roost." and the battle ends in the swarm (`usedFire`, `roostCause`, `over = 'roost'`), as a fire spell or the oil thrown there. A guest never takes it there. Benched (the last check of `reactions1003`).
+2. **Uncanny Dodge shows the blow's number** before the choice? [*keep; the hit is known before the halving in the SRD*] -- stays.
+3. **A wizard's default day always holds Shield?** [*yes*] -- **BUILT**: `R.prepDefault` (js/rules.js prepRanked) ranks Shield next after Mage Armor, so a wizard who knows it walks in with it prepared; the bench's first check reads Aurdin's day (mageArmor, shield, fireball, lightningbolt, scorchingray, ropetrick, web, shatter, burninghands at 5th). The one law for both books, so the grid's Aurdin has it too. An existing save keeps the day its player chose (`R.prepFill`): Shield comes in when a place opens or the player prepares it.
+4. **The "begins to cast" card only when a caster could answer?** [*as built*] -- stays.
+5. **Give the spell-weaver Magic Missile so Shield's immunity has a foe?** [*yes; the SRD's mage casts it*] -- **BUILT**: `darts` on the Drow Spell-Weaver's sheet (`content/monsters.json`, one line): a blast special tagged `magicmissile`, three darts at one hero, 3d4+3 force, no save, cast as often as the dice let it (the sheet counts no slots). The bench's Magic Missile check casts the weaver's own darts now (at everyone, so the shielded one is among them).
+6. **Recasting the same concentration spell: keep the card?** [*keep*] -- stays.
+7. **The Bandit Captain's Parry assumes a blade in hand?** [*fine; the SRD requires it*] -- stays.
+
+Nothing is open from this job.
