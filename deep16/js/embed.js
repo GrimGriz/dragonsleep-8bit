@@ -23,9 +23,25 @@
   }
   // (an uncaught error or rejection on the grid kills the fight's generator and leaves the player in a fight that cannot end, the 8-bit game held under it: say so
   // to the 8-bit page, which takes the fight itself -- js/embed.js; the first one only. Resource errors do not bubble to the window, so a sheet that fails to load is no crash)
-  function crashed(msg, at) { send({ type: 'd16:crash', msg: String(msg || 'unknown error').slice(0, 300), at: at }); }
+  function crashed(msg, at) { var m = { type: 'd16:crash', msg: String(msg || 'unknown error').slice(0, 300), at: at }; if (!ended) E.crashed = m; send(m); } // (E.crashed: what a probe reads)
+  // a throw while the screen is painted is not a fight that cannot go on: the fight's own turn (D.update) is whole, a sprite or a tooltip broke. One bad frame is
+  // logged and the fight plays on; only a draw that keeps throwing -- half a second of frames, the piece after it never painted (the command ring, as often as
+  // not) -- goes to the 8-bit game as a crash. A throw in the fight's turn still goes at once (the window's error, above). (10-03, Griz: "yes, build it")
+  E.DRAW_BAD = 30; // (frames in a row: half a second at 60)
+  function guardDraw() {
+    var draw0 = D.draw, bad = 0;
+    D.draw = function () {
+      try { draw0.apply(this, arguments); bad = 0; }
+      catch (e) {
+        var c = D.ctx; if (c) { c.globalAlpha = 1; c.globalCompositeOperation = 'source-over'; } // (whatever the broken piece left set, so the next frame paints true)
+        if (++bad === 1) console.error('DEEP16: a frame failed to paint (the fight plays on)', e);
+        if (bad === E.DRAW_BAD) crashed('the screen would not paint: ' + (e && e.message || e), whereFrom(null, null, e && e.stack));
+      }
+    };
+  }
 
   E.boot = function () {
+    guardDraw(); // (at boot: every script has loaded, so this is the outermost D.draw)
     window.addEventListener('error', function (e) { crashed(e.message || (e.error && e.error.message), whereFrom(e.filename, e.lineno, e.error && e.error.stack)); });
     window.addEventListener('unhandledrejection', function (e) { var r = e.reason; crashed(r && r.message ? r.message : r, whereFrom(null, null, r && r.stack)); });
     window.addEventListener('message', function (e) {

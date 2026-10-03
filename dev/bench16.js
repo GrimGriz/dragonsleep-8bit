@@ -1126,6 +1126,31 @@
     document.body.appendChild(preR);
     return;
   }
+  // a frame that fails to paint inside the 8-bit game (mode=drawfloor1003; 10-03, Griz: "yes, build it" -- deep16/js/embed.js guardDraw): one bad frame is logged
+  // and the fight plays on; E.DRAW_BAD in a row go up as a crash; a good frame between resets the count. The page is not embedded, so E.crashed is read, not a message
+  if (get('mode', '') === 'drawfloor1003') {
+    var repG = { checks: [], errors: [] }, EG = D.embed, loggedG = [], err0G = console.error;
+    function okG(what, v) { repG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      if (!D.ctx) { var cvG = document.createElement('canvas'); cvG.width = D.W || 400; cvG.height = D.H || 240; D.canvas = cvG; D.ctx = cvG.getContext('2d'); D.R = D.R || 1; } // (the bench page never boots the screen)
+      EG.boot(); console.error = function () { loggedG.push([].join.call(arguments, ' ')); };
+      var breakG = 0, scG = { opaque: true, draw: function (ctx) { ctx.globalAlpha = 0.3; if (breakG) throw new Error('the paint broke'); ctx.globalAlpha = 1; } };
+      D.scenes.push(scG);
+      var paintG = function (n, bad) { breakG = bad; for (var i = 0; i < n; i++) D.draw(); };
+      paintG(1, 0); paintG(1, 1); paintG(5, 0);
+      okG('one bad frame, then good ones: no crash (' + JSON.stringify(EG.crashed || null) + '), logged ' + loggedG.length + ', the alpha put back ' + D.ctx.globalAlpha, !EG.crashed && loggedG.length === 1 && D.ctx.globalAlpha === 1);
+      paintG(EG.DRAW_BAD - 1, 1); paintG(1, 0); paintG(EG.DRAW_BAD - 1, 1);
+      okG((EG.DRAW_BAD - 1) + ' bad, a good one, ' + (EG.DRAW_BAD - 1) + ' bad: no crash (' + JSON.stringify(EG.crashed || null) + ')', !EG.crashed);
+      paintG(1, 1);
+      okG(EG.DRAW_BAD + ' bad in a row: a crash -- ' + JSON.stringify(EG.crashed || null), !!EG.crashed && /the screen would not paint: the paint broke/.test(EG.crashed.msg));
+      D.scenes.splice(D.scenes.indexOf(scG), 1);
+    } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
+    console.error = err0G;
+    if (errs.length) repG.errors = repG.errors.concat(errs);
+    var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
+    document.body.appendChild(preG);
+    return;
+  }
   // Dispel Magic at a spell's square, and Counterspell (mode=dispel1002; 10-02, Griz: "I like 'spell effect squares without people' as valid dispel targets for that
   // spell"; "no to creature abilities"; Counterspell "an important one to have in there"): a Darkness's empty square is a target and ends it, its caster's concentration
   // with it; a darkness no spell made is no target; a player's Counterspell is asked and a Fireball fails; the AI's counters a hero's; a readied spell's release is not asked
