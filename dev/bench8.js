@@ -74,7 +74,36 @@
     var PASS = { lampArrive: 1, pyroRoad: 1, relief: 1, treasury: 1, dryStair: 1, pyroMeet: 1, ketilStop: 1 }; // step triggers that only talk: walked through (the bench runs none of them)
     var DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
     window.setTimeout = function (fn) { pending.push(fn); return 0; }; // (DS.battle resumes its script on a macrotask: the page runs in one go, so it waits in the queue T.step drains, as W8.scene's does above)
-    BP.heroTurn = function* (u) { yield* this.guestTurn(u); }; // every hero on the game's own AI
+    // the player's hand (hand=1; Griz, 10-03, to the walker's first question: "a player's hand on the bench now, potions under half and area spells at groups"):
+    // on one of the four's turns, through the battle's own menus -- a potion (the plain first) to whichever of the four stands lowest, when he is under half
+    // (down counts: a potion wakes the downed in a fight, RULED 09-28); else, with GROUP or more foes up, the highest-levelled damaging area spell he has a slot
+    // for (a cone, a line or all foes; the roost's fire and thunder left out), a cone or a line at the front foe; else the guest turn as before. The guests keep
+    // their own turns. After a fight: the tent once, when the four stand under half (his answer on leg four: "the tent first, pitched once below half"), then
+    // one potion each for any of them still standing under half
+    var HAND = !!+(Q.get('hand') || 0), GROUP = +(Q.get('group') || 3), TENT = Q.get('tent') == null ? HAND : !!+Q.get('tent'), PLAN = {}, heroTurn0 = BP.heroTurn;
+    function areaSpell(b, h) {
+      return R.spellList(h, 'battle').filter(function (sp) { return sp.level > 0 && sp.dmg && /^(cone|line|enemies)$/.test(sp.target) && !sp.reaction && !sp.bonus && R.lowestSlot(h, sp.level) && !(b.o.roost && (sp.el === 'fire' || sp.el === 'thunder')); })
+        .sort(function (a, c) { return c.level - a.level || (c.target === 'enemies') - (a.target === 'enemies'); })[0];
+    }
+    function handPlan(b, u) {
+      var four = b.heroes.filter(function (x) { return !x.guest; }), pot = ['potion', 'greaterpotion'].filter(function (i) { return DS.G.count(i) > 0; })[0];
+      var low = four.filter(function (x) { return x.h.hp < x.h.maxhp / 2; }).sort(function (a, c) { return a.h.hp / a.h.maxhp - c.h.hp / c.h.maxhp; })[0];
+      if (low && pot && b.battleItems(u).some(function (x) { return x.value === pot && !x.disabled; })) return ['ITEM', DS.DATA.items[pot].name, low.h.name];
+      var foes = b.liveFoes(), sp = foes.length >= GROUP && areaSpell(b, u.h);
+      if (sp) { var front = foes.slice().sort(function (a, c) { return (c.x + c.art.w) - (a.x + a.art.w); })[0]; return sp.target === 'enemies' ? ['MAGIC', sp.name] : ['MAGIC', sp.name, front.name]; }
+      return null;
+    }
+    BP.heroTurn = function* (u) { // every hero on the game's own AI, the hand's two calls first when it is on
+      var plan = HAND && !u.guest && handPlan(this, u);
+      if (plan) { PLAN[u.h.id] = plan; yield* heroTurn0.call(this, u); delete PLAN[u.h.id]; return; }
+      yield* this.guestTurn(u);
+    };
+    function want(q, labels) { // the plan's next label on this menu (by its start, as dev/bench8.js drive() answers), or -1
+      if (!q || !q.length) return -1;
+      var a = String(q[0]).toUpperCase(), i = labels.findIndex(function (l) { return l != null && String(l).toUpperCase().indexOf(a) === 0; });
+      if (i >= 0) q.shift();
+      return i;
+    }
     BP.askReact = function* (u, title) { // the reaction asks, answered as battle.js answers them for a guest
       var t = String(title), m;
       if (/^SHIELD\?/.test(t)) return true;
@@ -102,8 +131,12 @@
         if (k === 'gameover') break;
         if (!DS.scriptActive() && !bb && k !== 'dialog' && k !== 'menu' && k !== 'popup') break;
         if (k === 'dialog') { if (top.chars < top.pageLen()) { top.chars = top.pageLen(); T.step(1); } else if (top.auto) T.step(1); else { if (top.menu) top.menu.i = 0; T.tapf('a'); } }
-        else if (k === 'menu' || k === 'popup') { var it = top.menu.items, i = it.findIndex(function (x) { return !x.disabled && x.label !== 'RUN'; }); top.menu.i = Math.max(0, i); T.tapf('a'); }
-        else if (k === 'target') { top.i = 0; T.tapf('a'); }
+        else if (k === 'menu' || k === 'popup') {
+          var it = top.menu.items, q = bb && bb.active && bb.active.h && PLAN[bb.active.h.id], i = want(q, it.map(function (x) { return x.disabled ? null : x.label; }));
+          if (i < 0 && q && !it.some(function (x) { return x.label === 'FIGHT'; })) { q.length = 0; T.tapf('b'); } // (the plan lost on a sub-menu: back to the commands, and FIGHT there)
+          else { if (i < 0) i = it.findIndex(function (x) { return !x.disabled && x.label !== 'RUN'; }); top.menu.i = Math.max(0, i); T.tapf('a'); }
+        }
+        else if (k === 'target') { var qt = bb && bb.active && bb.active.h && PLAN[bb.active.h.id], j = want(qt, top.list.map(function (x) { return x.h ? x.h.name : x.name; })); top.i = Math.max(0, j); T.tapf('a'); }
         else if (k === 'check') { if (top.t > 60) T.tapf('a'); else T.step(4); }
         else T.step(1);
         steps++;
@@ -156,7 +189,7 @@
       return { heroes: g.party.map(function (h) { return one(h); }).concat(gs.map(function (x) { return one(x.h, true, twice(x) ? x.h.name + ' ' + x.id : null); })), items: items, silver: g.silver, light: g.flags.torchBy ? g.flags.torchKind : null };
     }
     function full() { return DS.G.party.concat((DS.G.guests || []).map(function (x) { return x.h; })).every(function (h) { return !h.ko && h.hp >= h.maxhp && (h.slots || []).every(function (s, i) { return s >= (h.slotsMax || [])[i]; }); }); }
-    var CAST = /( casts [^.!:(]+| speaks a word to | Cure Wounds| calls up a spiritual weapon| raises a shield of force| COUNTERSPELL| in hellfire| PRESERVE LIFE| TURN UNDEAD| second wind| surges!| Lay on Hands)/;
+    var CAST = /( casts [^.!:(]+| speaks a word to | Cure Wounds| calls up a spiritual weapon| raises a shield of force| COUNTERSPELL| in hellfire| PRESERVE LIFE| TURN UNDEAD| second wind| surges!| Lay on Hands| uses Potion of Healing| uses Greater Potion)/;
     function walkOnce(paths, s) {
       seed(s); W = WL[0]; var g = fresh(), F = DS.field, legs = [];
       for (var li = 0; li < paths.length; li++) {
@@ -168,7 +201,20 @@
       return paths.length === 1 ? legs[0] : { legs: legs };
     }
     function walkLeg(path, g, F, first, logIt) {
-      var run = { fights: [], steps: 0, rests: [], torches: 0, unlitMaps: {}, zones: {} };
+      var run = { fights: [], steps: 0, rests: [], torches: 0, unlitMaps: {}, zones: {}, fieldPotions: 0 };
+      function afterFight() { // the hand's field half: the tent once under half, then a potion each for the standing under half
+        if (!HAND) return;
+        var up = g.party.filter(function (h) { return !h.ko && h.hp > 0; }), max = g.party.reduce(function (a, h) { return a + h.maxhp; }, 0), hp = up.reduce(function (a, h) { return a + h.hp; }, 0);
+        if (TENT && run.tent == null && up.length && hp < max / 2 && g.count('tent')) {
+          var t0 = g.count('tent'); DS.run(function* () { yield* EV.useFieldItem('tent', up[0]); }); settle(800);
+          if (g.count('tent') < t0) run.tent = run.steps; // (the game's own: the standing heal half their most and take a short rest; refused where no tent goes)
+        }
+        g.party.forEach(function (h) {
+          var pot = ['potion', 'greaterpotion'].filter(function (i) { return g.count(i) > 0; })[0];
+          if (!pot || h.ko || h.hp <= 0 || h.hp >= h.maxhp / 2) return;
+          DS.run(function* () { yield* EV.useFieldItem(pot, h); }); settle(400); run.fieldPotions++;
+        });
+      }
       var p0 = path[0]; if (first) F.load(p0.map, p0.x, p0.y, 'down');
       if (first && W.mid) { // a start mid-map (a boss's door, a lamp's bed): no map was loaded, so the countdown is somewhere in its run, not fresh (Field.load's
         // resetEncounter): the remainder a walker finds at a random step -- a run of length L in the zone's rate, drawn as often as it is long, then 1..L of it
@@ -214,6 +260,7 @@
           if (DS.lastError) { run.err = String(DS.lastError.stack || DS.lastError).slice(0, 400); break; }
           if (b && (b.result === 'lose' || b.over === 'lose') || (DS.top() && DS.top().kind === 'gameover')) { run.wiped = true; break; }
           if (DS.scriptActive() || DS.find('battle')) { run.err = 'a fight that would not end (' + res.steps + ' steps): ' + (b ? b.o.enemies.join(',') + ' round ' + b.round + ' over ' + b.over + ' "' + b.msg + '"' : '') + ' scenes ' + DS.scenes.map(function (s) { return s.kind; }).join('>') + ' scripts ' + DS.scripts.map(function (s) { return s.done + ' ' + (s.wait ? Object.keys(s.wait).join('/') + ' ' + String(s.wait.until || '').slice(0, 120) : ''); }).join(' ; '); break; }
+          afterFight();
           if (!g.flags.torchBy) light();
         }
         rest(p.x, p.y);

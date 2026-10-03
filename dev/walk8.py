@@ -1,6 +1,8 @@
 """Here-to-there (10-03; Griz: "random encounters stay the 8-bit" and "we need to run some here-to-there 8bit benches to see what sort of
 resources the parties are getting to the boss battles with"). Walks a leg of the 8-bit game from one boss (or Silverton's gate) to the next
-boss's door through the game's own random encounters, the party on the game's own AI, n times, and tallies what it arrives with. The page
+boss's door through the game's own random encounters, n times, and tallies what it arrives with: the party on the player's hand (10-03, Griz:
+"a player's hand on the bench now, potions under half and area spells at groups"; the tent "pitched once below half"), or with hand=0 on
+the game's own AI alone (the guest turn: the floor). The page
 side is dev/bench8.js's `walk` mode (read its comment); a leg's story state is the game's own DS.situation (js/situations.js). Findings,
 not fixes: this file changes no rate, table, sheet or rule. From PowerShell (headless Edge answers nothing from the Bash sandbox); in a
 Linux container set DEEP16_BROWSER=/opt/pw-browsers/chromium DEEP16_BROWSER_ARGS=--no-sandbox, as for bench8.py.
@@ -9,6 +11,7 @@ Linux container set DEEP16_BROWSER=/opt/pw-browsers/chromium DEEP16_BROWSER_ARGS
   python dev/walk8.py leg=roper n=20 lvl=7      the same leg a level up (the leg's own level otherwise)
   python dev/walk8.py leg=roper seed=5          another run of dice (seed=1 by default; each walk is seed*1000 + its index)
   python dev/walk8.py leg=roper n=1 log         the first walk's fights, line by line (what the battle said)
+  python dev/walk8.py leg=legfour n=100 tent=0  the player's hand without the tent; group=2: an area spell at two foes (3 by default); hand=0: the floor
   python dev/walk8.py legs                      the legs, their starts, doors and levels
   python dev/walk8.py leg=all n=20 table        every leg; writes here-to-there.md at the repo root (jobs=4 at a time)
   python dev/walk8.py leg=gulch n=1 check       the gate's line (dev/check.py all): one walk, FAIL on an error or a walk that found no path
@@ -26,7 +29,7 @@ S6 = 'Silverton (Fountain Street), rested'
 # unset); every leg stands on DS.roundSix (level 4, every base-game quest done, its kit: 3 potions, a greater potion, 3 kits, 4 simples,
 # 2 draughts, 2 bat-wing pies, 3 oil, 2 torches, a tent, 1,500 silver, the +2 weapons, the Ring of Binding on the lead) with the leg's own
 # boss undone. from: [map, x, y]; to: the door (a trigger's tiles, or a step beside a `use` trigger; `arrive`: on the map). lvl: the
-# situation's level where one stands at that point of the story, else the DEEP16 ladder's (deep16/data/fights.js), else a guess (`guess`).
+# DEEP16 ladder's (deep16/data/fights.js) where the boss has a rung (Griz, 10-03: "yes, and rerun those legs"), else the situation's, else a guess.
 # mid: the walk starts where no map was just loaded (a boss's door, a lamp's bed), so the encounter countdown starts part-run (bench8.js).
 LEGS = [
     # ---------------------------------------------------------------- the base game: every leg from Silverton, rested at the inn
@@ -46,7 +49,7 @@ LEGS = [
                      sit={}, frm=['silverton', 29, 8], to={'map': 'warrens_d', 'trig': 'deepCradle0'}, start=S6)),
     ('keeper', dict(group='base', title='Silverton to the flooded stair (the Keeper)', lvl=3, ladder=3,
                     sit={}, frm=['silverton', 29, 8], to={'map': 'warrens_d', 'trig': 'stair'}, start=S6)),
-    ('cloaker', dict(group='base', title='Silverton to the cloaker (the guano mine, down the slide)', lvl=4, ladder=6, sitname='cloaker',
+    ('cloaker', dict(group='base', title='Silverton to the cloaker (the guano mine, down the slide)', lvl=6, ladder=6, sitname='cloaker', guess='lvl: the ladder\'s (Griz, 10-03: \"yes, and rerun those legs\"; the situation had 4)',
                      sit={'unset': ['cloakerDone']}, frm=['silverton', 29, 8], to={'map': 'galleries_g4', 'trig': 'cloaker'}, start=S6)),
     ('wagon', dict(group='base', title='Silverton to the Halfway Inn (the wagon night; the road catches after it)', lvl=4, ladder=4, sitname='wagon',
                    sit={}, frm=['silverton', 29, 8], to={'map': 'halfway_in', 'arrive': 1}, start=S6,
@@ -56,13 +59,13 @@ LEGS = [
                    frm=['silverton', 29, 8], to={'map': 'halfway', 'trig': 'pointStep'}, start=S6,
                    note='by the story the chuul comes after a night at the inn holding the ring (a long rest): this is the walk to the water, or the rowboat\'s poke by day')),
     # ---------------------------------------------------------------- the Deep: one leg a boss, in the spine's order (DS.situation's beats)
-    ('hask', dict(group='deep', title='Silverton to the night crew at the niches (Hask, the Burial)', lvl=5, ladder=4, sitname='crew',
+    ('hask', dict(group='deep', title='Silverton to the night crew at the niches (Hask, the Burial)', lvl=4, ladder=4, sitname='crew', guess='lvl: the ladder\'s (Griz, 10-03: \"yes, and rerun those legs\"; the situation had 5)',
                   sit={'base': 'lake', 'spine': 2}, frm=['silverton', 29, 8], to={'map': 'burial', 'trig': 'crew'}, start=S6)),
     ('cutseal', dict(group='deep', title='Solskaft to the cut seal (leg one, with Pyro)', lvl=5, ladder=5, sitname='leg1',
                      sit={'base': 'lake', 'spine': 6}, frm=['solskaft', 28, 20], to={'map': 'highway_1', 'trig': 'cutSeal'}, start='Solskaft, after a night (the cots)')),
     ('gricks', dict(group='deep', mid=1, title='The cut seal to the grick den', lvl=5, ladder=5,
                     sit={'base': 'lake', 'spine': 6, 'flags': {'sealCleared': 1, 'lumpTaken': 1}}, frm=['highway_1', 28, 7], to={'map': 'highway_1', 'trig': 'grickDen'}, start='the cut seal')),
-    ('roper', dict(group='deep', mid=1, title='The grick den to the roper (past First Lamp)', lvl=5, ladder=6, guess='lvl: leg one\'s 5 (the ladder puts the roper at 6)',
+    ('roper', dict(group='deep', mid=1, title='The grick den to the roper (past First Lamp)', lvl=6, ladder=6, guess='lvl: the ladder\'s (Griz, 10-03: \"yes, and rerun those legs\"; the situation had 5, leg one\'s)',
                    sit={'base': 'lake', 'spine': 6, 'flags': {'sealCleared': 1, 'lumpTaken': 1, 'grickDone': 1}}, frm=['highway_1', 42, 16], to={'map': 'highway_2', 'trig': 'roper'}, start='the grick den')),
     ('bulette', dict(group='deep', mid=1, title='The roper to the bulette', lvl=5, ladder=5,
                      sit={'base': 'lake', 'spine': 6, 'flags': {'sealCleared': 1, 'lumpTaken': 1, 'grickDone': 1, 'lamp1': 1, 'roperSeen': 1, 'roperDead': 1}},
@@ -72,7 +75,7 @@ LEGS = [
                    frm=['highway_2', 60, 11], to={'map': 'highway_2', 'trig': 'drain'}, start='the breach (the bulette)')),
     ('pinned', dict(group='deep', mid=1, title='The drain cut to the north cut (the phase spiders, Halldor pinned)', lvl=6, ladder=6, sitname='northcut',
                     sit={'base': 'lake', 'spine': 7, 'flags': {'puddingDead': 1}}, frm=['highway_2', 69, 16], to={'map': 'pinned', 'trig': 'pinned'}, start='the drain cut')),
-    ('stair', dict(group='deep', title='Solskaft to the dry stair (the crew boss holding it)', lvl=6, ladder=2, guess='lvl: the spine\'s (after beat 10, where Ragna asks for the water); the ladder\'s 2 is the bestiary rung',
+    ('stair', dict(group='deep', title='Solskaft to the dry stair (the crew boss holding it)', lvl=2, ladder=2, guess='lvl: the ladder\'s (Griz, 10-03: \"yes, and rerun those legs\"; the situation had 6, the spine\'s: the stair comes after beat 10, where Ragna asks for the water; the ladder\'s 2 is its rung)',
                    sit={'base': 'lake', 'spine': 10, 'flags': {'waterAsked': 1}}, frm=['solskaft', 28, 20], to={'map': 'warrens_d', 'trig': 'holdStair'}, start='Solskaft, after a night (the cots)')),
     ('brood', dict(group='deep', title='Second Lamp to the nest (the Broodmother, Halldor and four troopers)', lvl=7, ladder=7, sitname='nest',
                    sit={'base': 'lake', 'spine': 12}, frm=['highway_2', 68, 11], to={'map': 'nest', 'trig': 'brood'}, start='Second Lamp (the road menu\'s fast travel), after a night there')),
@@ -83,15 +86,15 @@ LEGS = [
                    sit={'base': 'lake', 'spine': 15, 'unset': ['giantDone']}, frm=['highway_3', 30, 11], to={'map': 'highway_3', 'trig': 'giant'}, start='the seam (the xorns)')),
     ('raid', dict(group='deep', mid=1, title='The giant\'s camp to Third Lamp (the raid)', lvl=8, ladder=8, sitname='raid',
                   sit={'base': 'lake', 'spine': 15}, frm=['highway_3', 44, 17], to={'map': 'highway_3', 'trig': 'raid'}, start='the giant\'s camp')),
-    ('fallback', dict(group='deep', mid=1, title='Third Lamp to the drow\'s fallback line (leg four)', lvl=8, ladder=7, sitname='leg4',
+    ('fallback', dict(group='deep', mid=1, title='Third Lamp to the drow\'s fallback line (leg four)', lvl=7, ladder=7, sitname='leg4', guess='lvl: the ladder\'s (Griz, 10-03: \"yes, and rerun those legs\"; the situation had 8)',
                       sit={'base': 'lake', 'spine': 16}, frm=['highway_3', 66, 11], to={'map': 'highway_4', 'trig': 'fallback'}, start='Third Lamp, lit, after a night there')),
-    ('naga', dict(group='deep', mid=1, title='The fallback line to the black water (the naga)', lvl=8, ladder=7,
+    ('naga', dict(group='deep', mid=1, title='The fallback line to the black water (the naga)', lvl=7, ladder=7, guess='lvl: the ladder\'s (Griz, 10-03: \"yes, and rerun those legs\"; the situation had 8)',
                   sit={'base': 'lake', 'spine': 16, 'flags': {'fallbackDone': 1}}, frm=['highway_4', 14, 11], to={'map': 'highway_4', 'trig': 'naga'}, start='the fallback line')),
     ('trolls', dict(group='deep', mid=1, title='The black water to the troll hole', lvl=8, ladder=8,
                     sit={'base': 'lake', 'spine': 16, 'flags': {'fallbackDone': 1, 'nagaDone': 1}}, frm=['highway_4', 34, 11], to={'map': 'highway_4', 'trig': 'trolls'}, start='the causeway (the naga)')),
     ('elemental', dict(group='deep', mid=1, title='The troll hole to the cut\'s walls (the earth elemental)', lvl=8, ladder=8,
                        sit={'base': 'lake', 'spine': 16, 'flags': {'fallbackDone': 1, 'nagaDone': 1, 'trollsDone': 1}}, frm=['highway_4', 52, 17], to={'map': 'highway_4', 'trig': 'elemental'}, start='the troll hole')),
-    ('torvald', dict(group='deep', mid=1, title='The cut\'s walls to Deepholm\'s door (Torvald; the sect\'s blades come at the next rest there)', lvl=9, sitname='torvald', guess='lvl: the situation\'s 9 (leg four\'s fights are at 8)',
+    ('torvald', dict(group='deep', mid=1, title='The cut\'s walls to Deepholm\'s door (Torvald; the sect\'s blades come at the next rest there)', lvl=9, sitname='torvald', guess='lvl: the situation\'s 9 (off the ladder: a story fight)',
                      sit={'base': 'lake', 'spine': 17}, frm=['highway_4', 64, 11], to={'map': 'threshold', 'arrive': 1}, start='the made road\'s cut (the elemental)',
                      note='the assassins come when the party first rests at the door after Torvald (deep.js EV.rest): the same state as Torvald\'s door, less whatever Torvald cost')),
 ]
@@ -124,12 +127,13 @@ def page():
     return bench8.build_page()
 
 
-def run_leg(pg, name, n, seed=1, lvl=None, timeout=1800, log=False):
-    prof = os.path.join(tempfile.gettempdir(), 'ds8-walk-%d-%s-%s' % (os.getpid(), name, seed))
+def run_leg(pg, name, n, seed=1, lvl=None, timeout=1800, log=False, hand=True, extra=None):
+    prof = os.path.join(tempfile.gettempdir(), 'ds8-walk-%d-%s-%s-%d' % (os.getpid(), name, seed, hand))
     dice = seed * 100000 + zlib.crc32(name.encode()) % 100000 # (each leg its own dice: walk i of a leg rolls from dice * 1000 + i -- the same seed, the same walks)
-    q = {'test': 'walk', 'leg': leg_json(name, lvl), 'n': n, 'seed': dice}
+    q = {'test': 'walk', 'leg': leg_json(name, lvl), 'n': n, 'seed': dice, 'hand': 1 if hand else 0} # (the same dice with the hand and without: the roads are the same walks)
     if log:
         q['log'] = 1
+    q.update(extra or {}) # (group=N: the hand's group, 3 by default; tent=0: the hand without the tent)
     url = 'file:///' + pg.replace('\\', '/') + '?' + urllib.parse.urlencode(q)
     cmd = [bench8.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench8.EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url]
     t0 = time.time()
@@ -140,7 +144,7 @@ def run_leg(pg, name, n, seed=1, lvl=None, timeout=1800, log=False):
         errs = re.findall(r'LOADERR ([^<]*)', dom)
         return {'leg': name, 'error': 'no result', 'load': errs[:5] or dom[-400:]}
     r = json.loads(H.unescape(m.group(1)))
-    r['leg'] = name; r['secs'] = round(time.time() - t0, 1); r['lvl'] = int(lvl) if lvl else LEGD[CHAIND[name][0][0] if name in CHAIND else name]['lvl']
+    r['leg'] = name; r['hand'] = bool(hand); r['secs'] = round(time.time() - t0, 1); r['lvl'] = int(lvl) if lvl else LEGD[CHAIND[name][0][0] if name in CHAIND else name]['lvl']
     return r
 
 
@@ -153,7 +157,7 @@ def split_chain(r):
             if 'legs' not in x:
                 runs.append(x); continue
             runs.append(x['legs'][i] if i < len(x['legs']) else dict(x['legs'][-1], wiped=True))
-        out.append({'leg': nm, 'chain': r['leg'], 'lvl': r['lvl'], 'secs': r.get('secs'), 'err': r.get('err'), 'path': (r.get('paths') or [None] * len(legs))[i], 'runs': runs})
+        out.append({'leg': nm, 'chain': r['leg'], 'hand': r.get('hand'), 'lvl': r['lvl'], 'secs': r.get('secs'), 'err': r.get('err'), 'path': (r.get('paths') or [None] * len(legs))[i], 'runs': runs})
     return out
 
 
@@ -185,7 +189,7 @@ def slots_left(snap):
 def summarize(r):
     runs = [x for x in r.get('runs', []) if 'door' in x and not x.get('err')]
     errs = [x.get('err') for x in r.get('runs', []) if x.get('err')]
-    S = {'leg': r['leg'], 'lvl': r.get('lvl'), 'n': len(r.get('runs', [])), 'ok': len(runs), 'errs': errs, 'path': r.get('path'), 'err': r.get('err')}
+    S = {'leg': r['leg'], 'hand': r.get('hand'), 'lvl': r.get('lvl'), 'n': len(r.get('runs', [])), 'ok': len(runs), 'errs': errs, 'path': r.get('path'), 'err': r.get('err')}
     if not runs:
         return S
     S['zones'] = runs[0]['zones']
@@ -233,6 +237,9 @@ def summarize(r):
     for col, _ in ITEM_COLS:
         S[col] = mean(x['door']['items'].get(col, 0) for x in runs)
         S[col + '0'] = runs[0]['start']['items'].get(col, 0)
+    S['tent'] = mean(1 if x.get('tent') is not None else 0 for x in runs)
+    S['tent0'] = mean(1 if x['door']['items'].get('tent', 0) > 0 else 0 for x in runs) # (still in the pack at the door: a chain's tent pitched by then is 1 less this)
+    S['potions_drunk'] = mean(x.get('fieldPotions', 0) + sum(1 for f in x['fights'] for ln in f['said'] if re.search(r'uses (Potion of Healing|Greater Potion)', ln)) for x in runs)
     S['torches_lit'] = mean(x['torches'] for x in runs)
     S['unlit'] = mean(x['unlit'] for x in runs)
     S['silver'] = mean(x['door']['silver'] - x['start']['silver'] for x in runs)
@@ -251,7 +258,7 @@ def summarize(r):
             g['n'] += 1; g['lost'] += f['lost']; g['rounds'] += f['rounds']; g['kos'] += len(f['ko'])
             for line in f['said']:
                 m = re.search(r'casts ([A-Z][A-Za-z\' ]+?)(?:[.!:(]| on |$)', line)
-                lab = ('casts ' + m.group(1).strip()) if m else re.sub(r'^.*?(speaks a word|Cure Wounds|spiritual weapon|shield of force|COUNTERSPELL|hellfire|PRESERVE LIFE|TURN UNDEAD|second wind|surges|Lay on Hands).*$', r'\1', line)
+                lab = ('casts ' + m.group(1).strip()) if m else re.sub(r'^.*?(speaks a word|Cure Wounds|spiritual weapon|shield of force|COUNTERSPELL|hellfire|PRESERVE LIFE|TURN UNDEAD|second wind|surges|Lay on Hands|uses Potion of Healing|uses Greater Potion).*$', r'\1', line)
                 who = line.split(' ')[0]
                 casts[who + ': ' + lab] = casts.get(who + ': ' + lab, 0) + 1
     S['groups'] = sorted(((k, v['n'] / len(runs), v['lost'] / max(1, v['n']), v['rounds'] / max(1, v['n']), v['kos'] / max(1, v['n'])) for k, v in groups.items()), key=lambda t: -t[1] * t[2])
@@ -279,7 +286,7 @@ def fmt_slots(S):
 
 def print_summary(S):
     L = LEGD[S['leg']]
-    print('== %s: %s (level %s, n=%d%s)' % (S['leg'], L['title'], S['lvl'], S['n'], ', %s s' % S['secs'] if S.get('secs') else ''))
+    print('== %s: %s (level %s, n=%d, %s%s)' % (S['leg'], L['title'], S['lvl'], S['n'], 'the player\'s hand' if S.get('hand') else 'the guest turn alone (the floor)', ', %s s' % S['secs'] if S.get('secs') else ''))
     if S.get('err'):
         print('FAIL ' + S['err']); return
     for e in S['errs']:
@@ -298,6 +305,8 @@ def print_summary(S):
     used = {k: v for k, v in S['feats'].items() if v[0] < v[1]}
     print('  features spent: ' + (', '.join('%s %g/%g' % (k, a, b) for k, (a, b) in used.items()) or 'none'))
     print('  items: ' + ', '.join('%s %g/%d' % (lab, S[c], S[c + '0']) for c, lab in ITEM_COLS) + '; torches lit %.1f, dark maps with no light %.1f; silver +%d' % (S['torches_lit'], S['unlit'], round(S['silver'])))
+    if S.get('hand'):
+        print('  the hand: potions drunk %.2f a walk, the tent pitched in %d%% of walks' % (S['potions_drunk'], round(100 * S['tent'])))
     if S['rested']:
         print('  rested: ' + ', '.join('%s %d%%' % (k, round(100 * v)) for k, v in S['rested'].items()))
     print('  reading: ' + reading(S))
@@ -322,7 +331,7 @@ def drained(S, k=3):
     return g, ', '.join(spent)
 
 
-def write_table(sums, chained, n, seed):
+def write_table(sums, chained, n, seed, floor=None, floorch=None):
     """The generated half of here-to-there.md: the table a leg, the chains, the five thinnest, each leg's line."""
     lines = []
     A = lines.append
@@ -331,19 +340,25 @@ def write_table(sums, chained, n, seed):
     A('`python dev/walk8.py leg=all n=%d table` wrote this block (seed %d: the same seed walks the same walks). `python dev/walk8.py leg=<name> n=20` runs one leg again; '
       '`python dev/walk8.py legs` lists them.' % (n, seed))
     A('')
-    A('## The table: each leg from a full start')
+    floor, floorch = floor or {}, floorch or {}
+    def fl(S, ch=None): # the same leg on the guest turn alone, the same dice: its HP (and wipes)
+        F = (floorch if ch else floor).get((ch or S['leg'], S['leg']))
+        return F if F and F.get('ok') else None
+    A('## The table: each leg from a full start, the player\'s hand')
     A('')
-    A('| leg | lvl | steps | zones (steps) | fights | rounds | HP | worst | KO | wiped | slots left | potions | torches lit | rested | reading |')
-    A('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
+    A('| leg | lvl | steps | zones (steps) | fights | rounds | HP | worst | KO | wiped | floor HP | slots left | potions left | drunk | tent | torches lit | rested | reading |')
+    A('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
     for S in sums:
         if not S.get('ok'):
-            A('| %s | %s | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | FAILED: %s |' % (S['leg'], S['lvl'], (S.get('err') or '; '.join(map(str, S['errs'])))[:120]))
+            A('| %s | %s | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | FAILED: %s |' % (S['leg'], S['lvl'], (S.get('err') or '; '.join(map(str, S['errs'])))[:120]))
             continue
         z = ', '.join('%s %d' % kv for kv in S['zones'].items()) or 'none'
         rest = ', '.join('%s %s' % (k, pct(v)) for k, v in S['rested'].items()) or '--'
-        A('| **%s** | %s | %d | %s | %.1f | %.1f | %s | %s | %s | %s | %s | %.1f+%.1f | %.1f | %s | %s |' % (
+        F = fl(S)
+        A('| **%s** | %s | %d | %s | %.1f | %.1f | %s | %s | %s | %s | %s | %s | %.1f+%.1f | %.2f | %s | %.1f | %s | %s |' % (
             S['leg'], S['lvl'], S['path']['steps'], z, S['fights'], S['rounds'], pct(S['hp']), pct(S['hp_worst']), pct(S['ko']), pct(S['wiped']),
-            fmt_slots(S), S['potion'], S['greaterpotion'], S['torches_lit'], rest, reading(S)))
+            (pct(F['hp']) + (' (wiped %s)' % pct(F['wiped']) if F['wiped'] else '')) if F else '--',
+            fmt_slots(S), S['potion'], S['greaterpotion'], S['potions_drunk'], pct(S['tent']) if S['tent'] else '--', S['torches_lit'], rest, reading(S)))
     A('')
     for nm, why in NO_WALK:
         A('- **%s**: %s.' % (nm, why))
@@ -354,13 +369,15 @@ def write_table(sums, chained, n, seed):
         A('The same legs walked one after another, nothing reset between the doors and no boss fought (the grid fights those): each row is what the road alone has '
           'taken since the party last slept, the floor under what it really brings (the boss before it costs more on top). A walk that wiped earlier counts as wiped at every door after.')
         A('')
-        A('| chain | door | steps | fights | HP | worst | KO | wiped by then | rested on the way | reading |')
-        A('|---|---|---|---|---|---|---|---|---|---|')
+        A('| chain | door | steps | fights | HP | worst | KO | wiped by then | floor HP | floor wiped | slots left | potions left | tent by then | rested on the way | reading |')
+        A('|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|')
         for S in chained:
             if not S.get('ok'):
-                A('| %s | %s | FAILED | | | | | | | |' % (S.get('chain'), S['leg'])); continue
+                A('| %s | %s | FAILED | | | | | | | | | | | | |' % (S.get('chain'), S['leg'])); continue
             rest = ', '.join('%s %s' % (k, pct(v)) for k, v in S['rested'].items()) or '--'
-            A('| %s | **%s** | %d | %.1f | %s | %s | %s | %s | %s | %s |' % (S['chain'], S['leg'], S['path']['steps'], S['fights'], pct(S['hp']), pct(S['hp_worst']), pct(S['ko']), pct(S['wiped']), rest, reading(S)))
+            F = fl(S, S['chain'])
+            A('| %s | **%s** | %d | %.1f | %s | %s | %s | %s | %s | %s | %s | %.1f+%.1f | %s | %s | %s |' % (S['chain'], S['leg'], S['path']['steps'], S['fights'], pct(S['hp']), pct(S['hp_worst']), pct(S['ko']), pct(S['wiped']),
+              pct(F['hp']) if F else '--', pct(F['wiped']) if F else '--', fmt_slots(S), S['potion'], S['greaterpotion'], pct(1 - S['tent0']) if S.get('tent0') is not None and S['tent0'] < 1 else '--', rest, reading(S)))
         A('')
     A('## Each leg')
     A('')
@@ -420,10 +437,14 @@ def main(argv):
         print('FAIL no leg named %s (python dev/walk8.py legs)' % ', '.join(bad)); return 1
     pg = page()
     jobs = int(kw.get('jobs', 4))
+    # hand=1 (the default since 10-03): the player's hand; hand=0: the guest turn alone, the floor. The table walks both, the same dice
+    hands = [True, False] if 'table' in flags else [kw.get('hand', '1') != '0']
     with ThreadPoolExecutor(jobs) as ex:
-        res = list(ex.map(lambda x: run_leg(pg, x, n, seed, lvl, log='log' in flags), names))
-    sums, chained, red = [], [], False
+        extra = dict((k, kw[k]) for k in ('group', 'tent') if k in kw)
+        res = list(ex.map(lambda xh: run_leg(pg, xh[0], n, seed, lvl, log='log' in flags, hand=xh[1], extra=extra), [(x, hd) for hd in hands for x in names]))
+    sums, chained, floor, floorch, red = [], [], {}, {}, False
     for r in res:
+        quiet = 'table' in flags and not r.get('hand', True) # (the floor's walks feed the table's floor columns; the hand's are printed)
         if 'error' in r:
             print('FAIL %s: %s %s' % (r['leg'], r['error'], r.get('load'))); red = True
             if r['leg'] in LEGD:
@@ -431,6 +452,11 @@ def main(argv):
             continue
         for part in (split_chain(r) if r['leg'] in CHAIND else [r]):
             S = summarize(part)
+            if quiet:
+                (floorch if r['leg'] in CHAIND else floor)[(r['leg'], S['leg'])] = S
+                if S.get('err') or S['errs'] or not S['ok']:
+                    print('FAIL the floor\'s %s: %s' % (S['leg'], S.get('err') or S['errs'][:1])); red = True
+                continue
             if r['leg'] in CHAIND:
                 S['chain'] = r['leg']; chained.append(S)
                 if S['leg'] == CHAIND[r['leg']][0][0]:
@@ -452,7 +478,7 @@ def main(argv):
         json.dump(res, open(kw['json'], 'w'), indent=0)
     if 'table' in flags:
         out = os.path.join(ROOT, 'here-to-there.md')
-        lines = write_md(out, write_table(sums, chained, n, seed))
+        lines = write_md(out, write_table(sums, chained, n, seed, floor, floorch))
         open(out, 'w', encoding='utf-8', newline='\n').write('\n'.join(lines).rstrip('\n') + '\n')
         print('wrote ' + out)
     return 1 if red else 0
