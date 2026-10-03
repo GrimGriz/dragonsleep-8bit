@@ -58,6 +58,180 @@
   }
   function check(what, ok) { out.checks.push((ok ? 'ok   ' : 'FAIL ') + what); }
 
+  // ------------------------------------------------------------------ here-to-there (10-03; dev/walk8.py builds the leg and reads the result)
+  // Griz, 10-03: "we need to run some here-to-there 8bit benches to see what sort of resources the parties are getting to the boss battles with".
+  // One leg (?leg=<json>) walked n times: the story's state set by the game's own DS.situation (js/situations.js), the shortest walk to the door
+  // found on the maps as the flags lay them, then stepped tile by tile through the game's own Field.arrive (the zone, the road's half rate, the
+  // countdown, EV.encounter's roll), each fight fought to its end with every hero on the guest turn (Battle.guestTurn: the game's own AI) and the
+  // reaction asks answered as a guest answers them. The state is carried; the party rests only at a rest spot the walk passes (a lamp, once, when
+  // anything is spent: EV.longRest); a dark map gets the party's best light (EV.useFieldItem). Nothing in the game is changed: findings, not fixes
+  function walkMode() {
+    var WL = JSON.parse(Q.get('leg') || '{}'); if (!Array.isArray(WL)) WL = [WL]; // (a list is a chain: the legs walked one after another, the state carried door to door)
+    var W = WL[0], n = +(Q.get('n') || 1), seed0 = +(Q.get('seed') || 1), BP = DS.Battle.prototype, EV = DS.EV;
+    var ITEMS = ['potion', 'greaterpotion', 'kit', 'simples', 'draught', 'batpie', 'antitoxin', 'oil', 'torch', 'lantern', 'ledgerlamp', 'tent', 'diamond'];
+    var REST_AT = [{ map: 'highway_1', rect: [61, 9, 1, 4], name: 'First Lamp' }, { map: 'highway_2', rect: [64, 10, 1, 3], name: 'Second Lamp' },
+      { map: 'highway_3', rect: [60, 10, 1, 4], name: 'Third Lamp', cond: '!flag:wordBelow | flag:raidWon' }]; // (Third Lamp is no bed while the drow hold it: deep.js lampWarpable)
+    var PASS = { lampArrive: 1, pyroRoad: 1, relief: 1, treasury: 1, dryStair: 1, pyroMeet: 1, ketilStop: 1 }; // step triggers that only talk: walked through (the bench runs none of them)
+    var DIRS = { up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] };
+    window.setTimeout = function (fn) { pending.push(fn); return 0; }; // (DS.battle resumes its script on a macrotask: the page runs in one go, so it waits in the queue T.step drains, as W8.scene's does above)
+    BP.heroTurn = function* (u) { yield* this.guestTurn(u); }; // every hero on the game's own AI
+    BP.askReact = function* (u, title) { // the reaction asks, answered as battle.js answers them for a guest
+      var t = String(title), m;
+      if (/^SHIELD\?/.test(t)) return true;
+      if ((m = /^UNCANNY DODGE\? (\d+)/.exec(t))) return +m[1] >= 6;
+      if (/^HELLISH REBUKE\?/.test(t)) return !this.o.roost;
+      if ((m = /^COUNTERSPELL\? (.*)$/.exec(t))) { var lv = 0; for (var id in DS.DATA.spells) if (DS.DATA.spells[id].name === m[1]) lv = DS.DATA.spells[id].level; return lv >= 1; }
+      return false;
+    };
+    function seed(s) { var a = s >>> 0; Math.random = function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+    function inRect(r, x, y) { return x >= r[0] && y >= r[1] && x < r[0] + r[2] && y < r[1] + r[3]; }
+    function rectOf(t) { return t.rect || [t.x, t.y, 1, 1]; }
+    function live(list) { return (list || []).filter(function (t) { return DS.cond(t.cond) && !(t.once && DS.G.flags['trig:' + t.id]); }); }
+    function fresh() { // a new game at the leg's point of the story
+      T.newGame(W.lead || 'barley'); DS.paused = true; DS.lastError = null;
+      DS.situation(DS.G, Object.assign({}, W.sit || {}));
+      DS.G.party.forEach(function (h) { if (h.pendingChoice === 'archetype') { var o = (DS.DATA.heroes[h.id].archetypes || [])[0]; h.subclass = o && o.name; } delete h.pendingChoice; });
+      (W.give || []).forEach(function (it) { DS.G.give(it[0], it[1]); });
+      return DS.G;
+    }
+    // step until the scripts and the scenes they opened are done: dialogs read, a battle fought by the AI (the turns need no thumb), the ending's lines
+    function settle(cap) {
+      var steps = 0, b = null;
+      while (steps < (cap || 20000) && !DS.lastError) {
+        var top = DS.top(), k = top && top.kind, bb = DS.find('battle'); if (bb) b = bb;
+        if (k === 'gameover') break;
+        if (!DS.scriptActive() && !bb && k !== 'dialog' && k !== 'menu' && k !== 'popup') break;
+        if (k === 'dialog') { if (top.chars < top.pageLen()) { top.chars = top.pageLen(); T.step(1); } else if (top.auto) T.step(1); else { if (top.menu) top.menu.i = 0; T.tapf('a'); } }
+        else if (k === 'menu' || k === 'popup') { var it = top.menu.items, i = it.findIndex(function (x) { return !x.disabled && x.label !== 'RUN'; }); top.menu.i = Math.max(0, i); T.tapf('a'); }
+        else if (k === 'target') { top.i = 0; T.tapf('a'); }
+        else if (k === 'check') { if (top.t > 60) T.tapf('a'); else T.step(4); }
+        else T.step(1);
+        steps++;
+      }
+      return { b: b, steps: steps };
+    }
+    // the shortest walk (0-1 BFS: a step costs 1; an edge exit or a door bumped costs nothing) over the maps as the flags lay them -- the game's own
+    // tiles (DS.TILES pass), its warps and exits by their conditions, its chests and standing NPCs in the way; a live step trigger is a wall unless it
+    // only talks (PASS) or is the door itself
+    function findPath() {
+      var F = DS.field, ids = Object.keys(DS.DATA.maps), M = {};
+      ids.forEach(function (id) { F.load(id, 0, 0, 'down'); var m = F.map, blk = {};
+        (m.src.npcs || []).forEach(function (d) { if (DS.cond(d.cond) && !(d.hire && DS.G.hired.indexOf(d.hire) >= 0) && d.solid !== false && !d.wander) blk[d.x + ',' + d.y] = 1; });
+        (m.src.chests || []).forEach(function (c) { if (DS.cond(c.cond)) blk[c.x + ',' + c.y] = 1; });
+        M[id] = { m: m, blk: blk, trig: live(m.src.triggers), warps: live(m.src.warps) };
+      });
+      var to = W.to, T0 = M[to.map], goal;
+      if (to.trig) { var gt = T0.m.src.triggers.filter(function (t) { return t.id === to.trig; })[0], gr = rectOf(gt);
+        goal = (gt.on || 'step') === 'step' ? function (mp, x, y) { return mp === to.map && inRect(gr, x, y); }
+          : function (mp, x, y) { return mp === to.map && !inRect(gr, x, y) && [[0, 1], [0, -1], [1, 0], [-1, 0]].some(function (d) { return inRect(gr, x + d[0], y + d[1]); }); }; }
+      else if (to.rect) goal = function (mp, x, y) { return mp === to.map && inRect(to.rect, x, y); };
+      else goal = function (mp) { return mp === to.map; }; // (arriving on the map is the door: Torvald's, the inn's)
+      var start = W.at || { map: W.from[0], x: W.from[1], y: W.from[2] }, key = function (p) { return p.map + ',' + p.x + ',' + p.y; };
+      var dist = {}, prev = {}, dq = [start]; dist[key(start)] = 0;
+      while (dq.length) {
+        var p = dq.shift(), pk = key(p), Q0 = M[p.map], m = Q0.m;
+        if (goal(p.map, p.x, p.y)) { var path = [], c = p; while (c) { path.unshift(c); c = prev[key(c)]; } return path; }
+        Object.keys(DIRS).forEach(function (d) {
+          var nx = p.x + DIRS[d][0], ny = p.y + DIRS[d][1], nxt = null, cost = 1;
+          function push(q, c2) { var k2 = key(q); if (dist[k2] != null && dist[k2] <= dist[pk] + c2) return; dist[k2] = dist[pk] + c2; prev[k2] = p; if (c2) dq.push(q); else dq.unshift(q); }
+          if (nx < 0 || ny < 0 || nx >= m.w || ny >= m.h) { var edge = nx < 0 ? 'west' : nx >= m.w ? 'east' : ny < 0 ? 'north' : 'south', ex = (m.src.exits && m.src.exits[edge]) || m.src.exit;
+            if (ex && M[ex.to]) push({ map: ex.to, x: ex.tx, y: ex.ty, dir: ex.dir || d, via: 'exit' }, 0); return; }
+          var tl = m.at(nx, ny), door = Q0.trig.filter(function (t) { return t.on === 'use' && t.script === 'warp' && t.to && inRect(rectOf(t), nx, ny); })[0];
+          if (door && M[door.to]) { push({ map: door.to, x: door.tx, y: door.ty, dir: d, via: 'door' }, 0); return; }
+          if (!tl || !DS.TILES[tl] || !DS.TILES[tl].pass || Q0.blk[nx + ',' + ny]) return;
+          var w = Q0.warps.filter(function (q) { return q.x === nx && q.y === ny; })[0];
+          if (w && M[w.to]) { var at = (w.alt && w.alt[d]) || w; push({ map: w.to, x: at.tx, y: at.ty, dir: at.dir || w.dir || d, via: 'warp', sx: nx, sy: ny, from: p.map }, 1); return; }
+          var st = Q0.trig.filter(function (t) { return (t.on || 'step') === 'step' && inRect(rectOf(t), nx, ny); })[0];
+          if (st && !PASS[st.script] && !goal(p.map, nx, ny)) return;
+          push({ map: p.map, x: nx, y: ny, dir: d, via: 'step' }, cost);
+        });
+      }
+      return null;
+    }
+    function snapParty() {
+      var g = DS.G, items = {};
+      ITEMS.forEach(function (i) { var c = g.count(i); if (c) items[i] = c; });
+      function one(h, guest, nm) { return { id: h.id, name: nm || h.name, cls: h.cls, guest: !!guest, lvl: h.lvl, hp: Math.max(0, h.hp), max: h.maxhp, ko: !!h.ko || h.hp <= 0, slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), feats: JSON.parse(JSON.stringify(h.feats || {})) }; }
+      var gs = g.guests || [], twice = function (x) { return gs.filter(function (y) { return y.h.name === x.h.name; }).length > 1; }; // (the four troopers: by their keys)
+      return { heroes: g.party.map(function (h) { return one(h); }).concat(gs.map(function (x) { return one(x.h, true, twice(x) ? x.h.name + ' ' + x.id : null); })), items: items, silver: g.silver, light: g.flags.torchBy ? g.flags.torchKind : null };
+    }
+    function full() { return DS.G.party.concat((DS.G.guests || []).map(function (x) { return x.h; })).every(function (h) { return !h.ko && h.hp >= h.maxhp && (h.slots || []).every(function (s, i) { return s >= (h.slotsMax || [])[i]; }); }); }
+    var CAST = /( casts [^.!:(]+| speaks a word to | Cure Wounds| calls up a spiritual weapon| raises a shield of force| COUNTERSPELL| in hellfire| PRESERVE LIFE| TURN UNDEAD| second wind| surges!| Lay on Hands)/;
+    function walkOnce(paths, s) {
+      seed(s); W = WL[0]; var g = fresh(), F = DS.field, legs = [];
+      for (var li = 0; li < paths.length; li++) {
+        if (li) { W = WL[li]; var prevUnset = WL[li - 1].sit.unset || [], nowUnset = W.sit.unset || []; // (the next leg's story: its flags laid, the boss just passed counted done)
+          Object.assign(g.flags, W.sit.flags || {}); prevUnset.forEach(function (k) { if (nowUnset.indexOf(k) < 0) g.flags[k] = 1; }); nowUnset.forEach(function (k) { delete g.flags[k]; }); }
+        var run = walkLeg(paths[li], g, F, li === 0); legs.push(run);
+        if (run.wiped || run.err) break;
+      }
+      return paths.length === 1 ? legs[0] : { legs: legs };
+    }
+    function walkLeg(path, g, F, first) {
+      var run = { fights: [], steps: 0, rests: [], torches: 0, unlitMaps: {}, zones: {} };
+      var p0 = path[0]; if (first) F.load(p0.map, p0.x, p0.y, 'down');
+      run.start = snapParty();
+      function light() {
+        if (!EV.darkHere() || g.flags.torchBy || g.party.some(function (h) { return !h.ko && R.carriesLight(h); })) return;
+        if (g.party.every(function (h) { return R.darkvision(h) > 0; })) return;
+        var id = ['ledgerlamp', 'lantern', 'torch'].filter(function (i) { return g.count(i) > 0 && (R.hooded(i) || !F.map.src.roost); })[0], h = g.party.filter(function (x) { return !x.ko && R.freeHands(x); })[0]; // (under a roost only a hooded light: a bare flame there is the one law broken)
+        if (!id || !h) { run.unlitMaps[F.map.id] = 1; return; }
+        DS.run(function* () { yield* EV.useFieldItem(id, h); }); settle(400);
+        if (id === 'torch' && g.flags.torchBy) run.torches++;
+      }
+      function rest(x, y) {
+        REST_AT.forEach(function (r) {
+          if (r.map !== F.map.id || !inRect(r.rect, x, y) || run.rests.indexOf(r.name) >= 0 || (r.cond && !DS.cond(r.cond)) || full()) return;
+          EV.longRest(); run.rests.push(r.name); light(); // (the lamp's night: EV.rest's own long rest; the morning's prep and the fade are the player's)
+        });
+      }
+      if (first) light();
+      for (var i = 1; i < path.length; i++) {
+        var p = path[i];
+        if (p.via === 'exit' || p.via === 'door') { EV.torchOut(); F.load(p.map, p.x, p.y, p.dir); light(); continue; }
+        if (p.via === 'warp') { g.dir = p.dir; g.steps++; run.steps++; EV.torchOut(); F.load(p.map, p.x, p.y, p.dir); light(); continue; } // (the step onto a warp is a step and rolls nothing: Field.arrive)
+        g.dir = p.dir; g.x = p.x; g.y = p.y; F.px = p.x * 16; F.py = p.y * 16; run.steps++;
+        var z = F.zoneAt(p.x, p.y), tl = F.map.at(p.x, p.y);
+        if (z && DS.DATA.encounters[z]) { var zk = z + ((tl === 'road' || tl === 'bridge' || tl === 'dirtpath') && F.map.src.roadSafe !== false ? ' (road)' : ''); run.zones[zk] = (run.zones[zk] || 0) + 1; }
+        if (F.triggerAt(p.x, p.y, 'step')) { g.steps++; rest(p.x, p.y); continue; } // (a talking trigger runs instead of the roll; the bench runs nothing)
+        var before = snapParty(); T.blog = [];
+        F.arrive(); // the game's own: the zone, the road's half rate, the countdown, the roll
+        if (DS.scriptActive()) {
+          var res = settle(40000), b = res.b, after = snapParty(), said = (T.blog || []).filter(function (l) { return CAST.test(l); });
+          var lost = 0, spent = [];
+          before.heroes.forEach(function (h0, j) { var h1 = after.heroes.filter(function (x) { return x.id === h0.id && x.guest === h0.guest; })[0]; if (!h1) return;
+            lost += Math.max(0, h0.hp - h1.hp); h0.slots.forEach(function (sv, k) { for (var q = 0; q < sv - (h1.slots[k] || 0); q++) spent.push(h0.name + ' L' + (k + 1)); }); });
+          run.fights.push({ at: F.map.id + ' ' + p.x + ',' + p.y, zone: z, step: run.steps, foes: b ? b.o.enemies : null, fled: !b, result: b ? (b.result || b.over) : 'no fight', rounds: b ? b.round : 0, lost: lost, spent: spent, said: said.slice(0, 12), ko: after.heroes.filter(function (h) { return h.ko; }).map(function (h) { return h.name; }), steps: res.steps });
+          g.party.forEach(function (h) { if (h.pendingChoice === 'archetype') { var o = (DS.DATA.heroes[h.id].archetypes || [])[0]; h.subclass = o && o.name; } delete h.pendingChoice; });
+          if (DS.lastError) { run.err = String(DS.lastError.stack || DS.lastError).slice(0, 400); break; }
+          if (b && (b.result === 'lose' || b.over === 'lose') || (DS.top() && DS.top().kind === 'gameover')) { run.wiped = true; break; }
+          if (DS.scriptActive() || DS.find('battle')) { run.err = 'a fight that would not end (' + res.steps + ' steps): ' + (b ? b.o.enemies.join(',') + ' round ' + b.round + ' over ' + b.over + ' "' + b.msg + '"' : '') + ' scenes ' + DS.scenes.map(function (s) { return s.kind; }).join('>') + ' scripts ' + DS.scripts.map(function (s) { return s.done + ' ' + (s.wait ? Object.keys(s.wait).join('/') + ' ' + String(s.wait.until || '').slice(0, 120) : ''); }).join(' ; '); break; }
+          if (!g.flags.torchBy) light();
+        }
+        rest(p.x, p.y);
+      }
+      run.door = snapParty(); run.unlit = Object.keys(run.unlitMaps).length;
+      return run;
+    }
+    var paths = [], prevEnd = null;
+    for (var li = 0; li < WL.length; li++) { // each leg's walk on the maps as its own flags lay them; a chain's next leg from where the last one stood
+      W = WL[li]; W.at = prevEnd; seed(seed0); fresh();
+      var path = findPath();
+      if (!path) { out.err = 'no walk from ' + (prevEnd ? JSON.stringify(prevEnd) : W.from.join(',')) + ' to ' + JSON.stringify(W.to); return; }
+      var maps = []; path.forEach(function (p) { if (maps[maps.length - 1] !== p.map) maps.push(p.map); });
+      (out.paths = out.paths || []).push({ leg: W.name, steps: path.filter(function (p) { return p.via === 'step' || p.via === 'warp'; }).length, maps: maps, end: path[path.length - 1] });
+      paths.push(path); prevEnd = { map: path[path.length - 1].map, x: path[path.length - 1].x, y: path[path.length - 1].y };
+    }
+    out.path = out.paths[0];
+    out.runs = [];
+    for (var r = 0; r < n; r++) {
+      DS.lastError = null;
+      try { out.runs.push(walkOnce(paths, seed0 * 1000 + r)); } catch (e) { out.runs.push({ err: String(e.stack || e).slice(0, 600) }); }
+    }
+    T.blog = [];
+  }
+
+  if (test === 'walk') { try { walkMode(); } catch (e) { out.err = String(e.stack || e); } finish(); return; }
   try {
     SETUP(+(Q.get('lvl') || 5));
     DS.EV = DS.EV || {};
