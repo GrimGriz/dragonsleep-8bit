@@ -573,6 +573,19 @@
         return true;
       }
     }
+    // cover first (the rogue's cover play, tactics.js rogueCoverTurn, for a stat block): with no one in reach and a crossbow, a square within the walk where no foe sees it clearly,
+    // none beside it and a hero in range with a line -- walk there, shoot from it, and traits.js after Hides (the bonus action)
+    if (ra && !u.conds.disarmed && !u.conds.hidden && !beside.length && !hs.some(function (w) { return G.dist(u, w) <= reachOf(u, hs); })) {
+      var foesAll = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), rm2 = G.reach(u, T.move), cov = null, cc = Infinity, ox = u.x, oy = u.y;
+      Object.keys(rm2).forEach(function (k) {
+        var e = rm2[k]; if (!e.stand || e.cost >= cc || (e.x === ox && e.y === oy)) return;
+        u.x = e.x; u.y = e.y;
+        try {
+          if (foesAll.every(function (f) { return B.seenBy(f, u) < 2; }) && !G.foesNear(u, e.x, e.y, 5).length && visibleFrom(u, e.x, e.y, hs).some(function (w) { return G.dist(u, w, e.x, e.y) <= ra.range[1]; })) { cov = e; cc = e.cost; }
+        } finally { u.x = ox; u.y = oy; }
+      });
+      if (cov) { yield* walkTo(B, u, cov); if (u.dead || u.hp <= 0) return true; if (!(yield* volley(B, u))) { B.card(['{g}' + the(B, u) + ' has no clear shot.{/}']); yield 12; } return true; }
+    }
     // the Dash to close: out of reach by the walk, in reach by the walk and the Dash
     var rc = reachOf(u, hs), can = function (mv) { var m = G.reach(u, mv); return hs.some(function (t) { return Object.keys(m).some(function (k) { var e = m[k]; return e.stand && G.dist(u, t, e.x, e.y) <= rc; }); }); };
     if (hs.some(function (w) { return G.dist(u, w) <= rc; }) || can(T.move) || !can(T.move + u.speed)) return false;

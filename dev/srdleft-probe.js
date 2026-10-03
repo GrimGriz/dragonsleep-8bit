@@ -25,10 +25,12 @@
     var sp = sq(ww, function () { var c = function (rm) { return Object.keys(rm).some(function (k) { var e = rm[k]; return e.stand && G.dist(ww, hero, e.x, e.y) <= 5; }); }; return G.dist(ww, hero) > 35 && !c(G.reach(ww, 30)) && c(G.reach(ww, 60)); });
     ok('a square for the Dash found: ' + sp, !!sp);
     if (sp) {
+      var atk0 = ww.attacks; ww.attacks = { mallet: atk0.mallet }; // (no crossbow: with one he takes cover and shoots -- the cover check below)
       put(ww, sp[0], sp[1]); cs = cardsOf(B); var d0 = G.dist(ww, hero);
       drain(D.ai.turn(B, ww));
       ok('Dash to close: ' + d0 + ' -> ' + G.dist(ww, hero) + ' ft, bonus ' + ww.turn.bonus + ' // ' + short(cs), say(cs, /\(Cunning Action\) dashes/) && G.dist(ww, hero) <= 5 && ww.turn.bonus === 0);
     }
+    ww.attacks = Object.assign({}, ww.attacks, { crossbow: D.FOES.wheelwright.attacks.crossbow });
     // pressed: beside one, hurt -> Disengage, step off, the crossbow
     var nx = null; for (var dx = -1; dx <= 1 && !nx; dx++) for (var dy = -1; dy <= 1 && !nx; dy++) if ((dx || dy) && G.canStand(ww, hx + dx, hy + dy)) nx = [hx + dx, hy + dy];
     put(hero, hx, hy); put(ww, nx[0], nx[1]); ww.hp = 8; cs = cardsOf(B);
@@ -39,6 +41,19 @@
     var hid = sq(ww, function (x, y) { return party(B).every(function (w) { return B.seenBy(w, ww) < 2; }) && !G.foesNear(ww, x, y, 5).length; });
     ok('a hiding square found: ' + hid, !!hid);
     if (hid) { put(ww, hid[0], hid[1]); cs = cardsOf(B); D.rules.startTurn(ww); drain(D.traits.after(B, ww)); ok('Hide: ' + short(cs), say(cs, /hides:/) && ww.turn.bonus === 0); }
+    // cover first: out of reach, a square where nobody sees him clearly with a shot from it -- walk, shoot, Hide
+    var coverRun = null;
+    for (var ci = 0; ci < 80 && !coverRun; ci++) {
+      var Bc = battle('crew'), wc = foes(Bc).filter(function (u) { return u.kind === 'wheelwright'; })[0], pc2 = party(Bc);
+      foes(Bc).filter(function (u) { return u !== wc; }).forEach(function (u) { u.hp = 0; u.dead = true; }); wc.bolts = null; pc2.slice(1).forEach(function (u) { u.hp = 0; u.ko = true; });
+      var cands = []; for (var cy = 0; cy < 40; cy += 1) for (var cx2 = 0; cx2 < 40; cx2 += 1) if (G.canStand(wc, cx2, cy)) cands.push([cx2, cy]);
+      var pick = cands[(ci * 37) % cands.length]; put(wc, pick[0], pick[1]); if (G.dist(wc, pc2[0]) <= 35) continue;
+      var sw = []; var a1 = Bc.attack; Bc.attack = function* (att, tgt, atk) { if (att === wc) sw.push(atk.name); return yield* a1.apply(this, arguments); };
+      var cs3 = cardsOf(Bc); drain(D.ai.turn(Bc, wc));
+      if (say(cs3, /hides:/) && sw.join() === 'Hand Crossbow') coverRun = [pick, sw, short(cs3)];
+    }
+    ok('cover first: walks to a square unseen, shoots the crossbow, Hides // ' + (coverRun && JSON.stringify(coverRun[0]) + ' ' + coverRun[2]), !!coverRun);
+    var HB = battle('crew'); ok('Hask carries parry 2', foes(HB).filter(function (u) { return u.kind === 'hask'; })[0].parry === 2);
     // the bolt: Hask down, the stair to run for
     var B2 = battle('crew'), w2 = foes(B2).filter(function (u) { return u.kind === 'wheelwright'; })[0], hk = foes(B2).filter(function (u) { return u.kind === 'hask'; })[0];
     hk.hp = 0; hk.dead = true; var h2 = party(B2)[0]; put(h2, w2.x + 1, w2.y); if (!G.canStand(h2, w2.x + 1, w2.y)) put(h2, w2.x, w2.y + 1);

@@ -325,7 +325,7 @@
     abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
     saves: { str: 4, dex: 5, con: 2, int: 2, wis: 0, cha: 2 },
     attacks: { bar: { name: 'Pry-bar', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5 }, knife: { name: 'Knife', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
-    multi: ['bar', 'bar', 'knife'], src: 'content/monsters.json hask (the SRD 5.1 Bandit Captain as the night crew\'s boss)'
+    multi: ['bar', 'bar', 'knife'], parry: 2, src: 'content/monsters.json hask (the SRD 5.1 Bandit Captain as the night crew\'s boss)'
   },
   wheelwright: {
     name: 'Wheelwright', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1', ac: 12, hp: 27, speed: 30, size: 1, reach: 5,
