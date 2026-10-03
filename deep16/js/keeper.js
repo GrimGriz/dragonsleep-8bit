@@ -360,19 +360,29 @@
     var path = G.path(rm, best.x, best.y);
     if (path && path.length) yield* B.moveAlong(u, path, { spend: true });
   }
+  // THE LURE (CFG.aiScript 'lure', bench only -- on the swirler): no one in his reach, it does not come up the stair to them: it draws back toward the sealed door, to the deepest water it can stand in, so the ones who come for it
+  // (the melee in their AI, wading after what they can see) come in over the deep, where the swirl needs no reach. Reach: it stays within its water; it never leaves it for the dry steps.
+  function* lureDeeper(B, u, hs) {
+    var T = u.turn, rm = G.reach(u, T.move), best = null, bs = Infinity, here = K.A(u);
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var s = K.A(e) * 10 + e.cost; if (s < bs) { bs = s; best = e; } });
+    if (!best || K.A(best) >= here) return;
+    var path = G.path(rm, best.x, best.y);
+    if (path && path.length) yield* B.moveAlong(u, path, { spend: true });
+  }
   function* above(B, u) {
     var T = u.turn, S = st(B), hs = foesOf(B, u).filter(function (w) { return !w.conds.hidden || G.dist(u, w) <= (u.blindsight || 0); }), reach = G.reachOf(u, u.reach);
     var near = hs.filter(function (w) { return G.dist(u, w) <= reach; });
     // THE SWIRLER (CFG.aiScript 'swirl', bench only -- Griz's play: the human Keeper wins when he swirls and Slams, the party when he spends turns on the Wave): a hero on the deep is swirled with the action (no adjacency wanted) and
     // suffocated with the bonus; else the wall on the first turn it can (the thaw-aware part: K.canCastWall refuses in the round it thaws, and it recasts only when no one is in the deep or its reach); else the Slams; the Wave last
-    if (K.CFG.aiScript === 'swirl' && T.action > 0 && !u.flooding) {
+    if ((K.CFG.aiScript === 'swirl' || K.CFG.aiScript === 'lure') && T.action > 0 && !u.flooding) {
       var sw0 = hs.filter(function (w) { return K.isDeep(w.x, w.y) && !K.swirlWhy(B, u, w); }).sort(function (a, b) { return a.hp - b.hp; })[0];
       if (sw0) { T.action = 0; yield* K.flood(B, u, sw0); if (u.dead || u.hp <= 0) return; if (u.flooding && T.bonus > 0 && G.standing(sw0) && sw0.conds.restrained && sw0.conds.restrained.by === u.id) yield* K.suffocate(B, u, sw0); return; }
     }
     // (no one in reach yet: the action goes on the wall -- Griz: "an action it uses to prep" -- and the move closes. It READIES it if it won the initiative (no one of ours has moved), and CASTS it
     // at once if they have (K.CFG.aiCast; off, it only readies)
-    if (!near.length && T.action > 0 && K.canReadyWall(B, u)) { if (K.CFG.aiCast && (K.CFG.aiScript === 'swirl' || (K.CFG.partyOpening ? K.opened(B) : B.units.some(function (w) { return w.side === 'party' && w.acted; }))) && K.canCastWall(B, u)) yield* K.castWall(B, u); else { yield* K.readyWall(B, u); if (K.CFG.partyOpening && !K.opened(B)) return; } } // (it READIES while the party still holds the landing, and CASTS once the fight is on; having readied, it waits: no step, no Wave, the moment is the party's to spring)
-    if (!near.length && hs.length) { yield* approachFoe(B, u, hs); if (u.dead || u.hp <= 0) return; near = foesOf(B, u).filter(function (w) { return G.dist(u, w) <= reach; }); }
+    if (!near.length && T.action > 0 && K.canReadyWall(B, u)) { if (K.CFG.aiCast && (K.CFG.aiScript === 'swirl' || K.CFG.aiScript === 'lure' || (K.CFG.partyOpening ? K.opened(B) : B.units.some(function (w) { return w.side === 'party' && w.acted; }))) && K.canCastWall(B, u)) yield* K.castWall(B, u); else { yield* K.readyWall(B, u); if (K.CFG.partyOpening && !K.opened(B)) return; } } // (it READIES while the party still holds the landing, and CASTS once the fight is on; having readied, it waits: no step, no Wave, the moment is the party's to spring)
+    if (!near.length && hs.length && K.CFG.aiScript === 'lure') { yield* lureDeeper(B, u, hs); if (u.dead || u.hp <= 0) return; near = foesOf(B, u).filter(function (w) { return G.dist(u, w) <= reach; }); }
+    else if (!near.length && hs.length) { yield* approachFoe(B, u, hs); if (u.dead || u.hp <= 0) return; near = foesOf(B, u).filter(function (w) { return G.dist(u, w) <= reach; }); }
     if (K.CFG.swirlAny && T.action > 0 && !u.flooding) { // (the wider swirl: it takes the weakest it can: any hero in the water of the steps or in its reach)
       var sw = hs.filter(function (w) { return !K.swirlWhy(B, u, w); }).sort(function (a, b) { return a.hp - b.hp; })[0];
       if (sw) { T.action = 0; yield* K.flood(B, u, sw); if (u.dead || u.hp <= 0) return; }
