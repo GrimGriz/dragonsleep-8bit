@@ -675,6 +675,11 @@
   // ------------------------------------------------------------------ ?keeperfight (10-03): the Keeper's fight from a URL. &lvl=3 the party's level, &wall=<row> the Ice Wall's row, &hp=<n>.
   // Played by you (the fixture party) unless &watch: then the class AI runs the four, and &seed=<n> replays a bench fight roll for roll (dev/keeper-probe.py's seeds: the
   // probe's fight number f at level L is seed (f+1)*7919+L -- 174221 is the level 3 fight with two floods, a broken hold and a wall).
+  // the Keeper has no weapon, its blow is the Slam in `attacks`: the engine reads u.weapon in the click path and the tooltip (RU.edges, canHit, the ring's inspect), so the Slam stands in
+  // for it, a copy: melee, reach 10 (10-03: a click on a hero in play=keeper threw on u.weapon.ammo and froze the page)
+  K.standIn = function (k) { if (k && k.attacks && k.attacks.slam && !k.weapon) k.weapon = Object.assign({}, k.attacks.slam, { name: 'Slam', ranged: false, reach: 10, standIn: true }); };
+  var enterK0 = D.Battle.prototype.enter;
+  D.Battle.prototype.enter = function () { var r = enterK0.apply(this, arguments); if (this.fight && this.fight.id === 'keeper') this.units.forEach(function (u) { if (u.kind === 'keeper') K.standIn(u); }); return r; };
   K.fight = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     if (get('seed')) D.seed = +get('seed') | 0;

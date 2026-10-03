@@ -260,6 +260,50 @@
     var BF = battle({ lvl: 3 }), kF = keeper(BF); kF.hp = 1; drain(BF.hurt(kF, 50, 'bludgeoning')); ok('the Keeper dead: ' + (kF.dead || kF.hp <= 0) + ', hidden ' + !!(kF.conds && kF.conds.hidden) + ', releasing ' + !kF.flooding, (kF.dead || kF.hp <= 0) && !kF.flooding);
     var lg = G.map.def.lights && G.map.def.lights[0], rn = K.at(G.map.def.geo.rune[0], G.map.def.geo.rune[1] - 1);
     ok('the rune is a light: ' + JSON.stringify(lg) + ' at the square by the north wall ' + rn, lg && lg[0] === rn[0] && lg[1] === rn[1] && lg[3] === 'glow' && lg[2] <= 25);
+    // ---- play=keeper through the CLICK path (Griz's playtest, 10-03: a click on a hero with no ring item threw on u.weapon.ammo and froze the page; the tooltip read u.weapon every frame):
+    // the real scene on the stack, the mouse set over a unit and clicked, the frame loop stepped by hand (D.update, D.draw)
+    (function () {
+      var I = D.input, thrown = [], KC = D.keeper.fight('?keeperfight&play=keeper&lvl=3'), kc, HC2, steps = 0, dl = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () {};
+      if (!D.ctx) { var cvk = document.createElement('canvas'); cvk.width = D.W * (D.R || 1); cvk.height = D.H * (D.R || 1); D.ctx = cvk.getContext('2d'); } // (the probe page has no canvas of its own)
+      D.scenes.push(KC); D.battle = KC; KC.enter();
+      function frame(n) { for (var i = 0; i < (n || 1); i++) { try { D.update(); D.draw(); } catch (e) { thrown.push(String(e && e.stack || e).slice(0, 240)); } steps++; } }
+      // (the mouse is set to rest over the map and the cursor put on the unit's square, as the pick would: pickUnit's pixel maths is not simulated)
+      function toScreen(u) { return { sq: { x: u.x, y: u.y } }; }
+      function mouse(pt, click) { I.mouse.inside = true; I.mouse.inWin = true; I.mouse.moved = false; I.mouse.x = D.W / 2; I.mouse.y = D.H / 3; if (pt && pt.sq) { KC.cursor = { x: pt.sq.x, y: pt.sq.y }; KC.hoverUnit = null; } if (click) I.mouse.click = true; }
+      function sqPt(a, c) { var o = K.at(a, c); return { sq: { x: o[0], y: o[1] } }; }
+      frame(3); if (KC.req && KC.req.entry) { KC.answer(); frame(3); }
+      var g0 = 0; while (g0++ < 4000 && !(KC.req && KC.req.turn && KC.req.turn.kind === 'keeper')) frame(1); // (the party's turns by the class AI, till the Keeper's)
+      kc = KC.req && KC.req.turn; HC2 = ours(KC); HC2.forEach(function (u) { delete u.conds.hidden; }); delete (kc || {}).conds.hidden;
+      function settle() { var g = 0; while (g++ < 900 && !KC.result && !(KC.req && KC.req.turn)) frame(1); }
+      var alive = function () { return !!(KC.req && KC.req.turn === kc); }, T = kc && kc.turn;
+      ok('mode A by clicks: it is the Keeper\'s turn on the ring (' + (kc && kc.name) + ', weapon stand-in ' + !!(kc && kc.weapon && kc.weapon.standIn) + ', reach ' + (kc && kc.weapon && kc.weapon.reach) + ')', !!kc && kc.weapon && kc.weapon.standIn);
+      if (kc) {
+        var near = HC2[0], far = HC2[1]; put(near, 8, 6); put(far, 8, 10); KC.cursor = { x: kc.x, y: kc.y }; KC.tool = 'move'; KC.list = null;
+        // hover a hero (the tooltip: RU.edges on the Keeper's weapon), reading every frame
+        var e0 = thrown.length; mouse(toScreen(near)); frame(4); mouse(toScreen(far)); frame(4);
+        ok('hover a hero: the tooltip draws (' + (thrown.length - e0) + ' errors) and the turn loop is alive ' + alive(), thrown.length === e0 && alive());
+        // click the far one, no ring item: out of reach, nothing spent, a card, no throw
+        var hp0 = near.hp, cards2 = cardsOf(KC); T.action = 1; e0 = thrown.length; mouse(toScreen(far), true); frame(3);
+        ok('click a hero out of reach: nothing spent (action ' + T.action + '), the card says why (' + (cards2.join(' ').match(/out of reach[^.]*/) || ['none'])[0] + '), no error, loop alive ' + alive(), thrown.length === e0 && T.action === 1 && /out of reach/.test(cards2.join(' ')) && alive());
+        // click the near one: the Slam on it
+        cards2.length = 0; e0 = thrown.length; var d0 = G.dist(kc, near); mouse(toScreen(near), true); frame(4); settle();
+        ok('click a hero in reach (' + d0 + ' ft): the Slam (action ' + T.action + ', ' + (cards2.join(' ').match(/Slam/) || ['no Slam card'])[0] + '), no error, the turn goes on ' + alive(), thrown.length === e0 && T.action === 0 && /Slam/.test(cards2.join(' ')) && alive());
+        // a second click: the action is spent, said on a card, nothing thrown
+        cards2.length = 0; e0 = thrown.length; mouse(toScreen(near), true); frame(3);
+        ok('click again, action spent: a card (' + cards2.join(' ').slice(0, 60) + '), no error', thrown.length === e0 && /spent/.test(cards2.join(' ')) && alive());
+        // the Keeper's own square: the ring opens; an empty square: a move or a card; none of it throws
+        e0 = thrown.length; KC.tool = 'move'; mouse(toScreen(kc), true); frame(3); var ringed = KC.tool === 'menu';
+        ok('click the Keeper\'s own square: the ring (' + KC.tool + '), no error', thrown.length === e0 && ringed && alive());
+        KC.tool = 'move'; KC.list = null; e0 = thrown.length; var kx = kc.x, ky = kc.y; mouse(sqPt(4, 9), true); frame(3); settle();
+        ok('click an empty square: a move (' + kx + ',' + ky + ' -> ' + kc.x + ',' + kc.y + ') or a card, no error, loop alive ' + alive(), thrown.length === e0 && alive());
+        // END TURN by the ring's own button path, and the loop reaches the next turn
+        e0 = thrown.length; var cmdSeen = 0; try { drain1(KC); } catch (e) { thrown.push(String(e)); }
+        function drain1() { KC.answer({ do: 'end' }); frame(5); cmdSeen = 1; }
+        ok('end the turn: the fight goes on to the next turn, no error (' + thrown.length + ' in all)', thrown.length === 0);
+      }
+      D.scenes.pop(); HTMLAnchorElement.prototype.click = dl; D.battle = B3;
+      if (thrown.length) errs.push('click path: ' + thrown[0]);
+    })();
     D.battle = B3;
     // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row; the counts are what the mechanics did
     var q = {}; location.search.replace(/^\?/, '').split('&').forEach(function (kv) { var a = kv.split('='); if (a[0]) q[a[0]] = decodeURIComponent(a[1] || ''); });

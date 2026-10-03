@@ -73,7 +73,22 @@
   };
   // the Keeper's commands, through the one exec the keys use
   var exec1 = D.Battle.prototype.exec;
+  // what the Slam needs of a target that was clicked (the default attack): '' if it can, else why not -- spent nothing, said on a card
+  KP.slamWhy = function (B, u, t) {
+    if (!t || t.dead || t.hp <= 0 || t.isWall || t.side === u.side) return 'Not a foe there';
+    if (u.turn.action <= 0) return 'the action is spent';
+    if (u.flooding) return 'it is in the swirl: LET GO first';
+    if (t.conds && t.conds.hidden && G.dist(u, t) > (u.blindsight || 0)) return 'it cannot find ' + t.name;
+    if (G.dist(u, t) > G.reachOf(u, u.reach)) return t.name + ' is out of reach (' + G.dist(u, t) + ' ft; the Slam is 10)';
+    return '';
+  };
   D.Battle.prototype.exec = function* (u, c) {
+    if (c && c.do === 'attack' && u.kind === 'keeper' && human(this, u)) { // (a click on a hostile with no ring item: the default attack is the Slam on it)
+      var why = KP.slamWhy(this, u, c.target);
+      if (why) { this.card(['{o}' + why + '.{/}'], 140); return; }
+      yield* KP.keeperDo(this, u, { do: 'kslam', target: c.target }); return;
+    }
+    if (c && c.do === 'attack' && !u.weapon) { this.card(['{o}' + u.name + ' has nothing to strike with.{/}'], 120); return; } // (never a throw: a unit with no weapon)
     if (!(c && /^k(slam|wave|cast|ready|swirl|suffocate|rise|icebonus|iceaction)$/.test(c.do)) || u.kind !== 'keeper') return yield* exec1.apply(this, arguments);
     var legalNow = KP.entries(this, u).filter(function (e) { return e.id === c.do; })[0];
     if (!legalNow || !legalNow.ok) { this.card(['{g}' + (legalNow ? legalNow.label + ': ' + (legalNow.why || 'not now') : 'Not now') + '.{/}'], 120); return; }
