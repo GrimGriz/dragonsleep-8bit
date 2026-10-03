@@ -103,9 +103,12 @@
              { id: 'nc1', kind: 'robber', at: [4, 5] }, { id: 'nc2', kind: 'robber', at: [15, 5] }], wave: null },
     { id: 'snoot', level: 3, map: 'snootroad', name: 'The Glory-Seekers', sub: 'the road south, by day', music: 'boss',
       intro: 'Gnolls on the road: glory-seekers of the Snoot, young blood come north to prove themselves where somebody can see it. The challenge, by day.',
-      from: 'the 8-bit game: events.js S.snoot (a glory-seeker, two gnolls, two hyenas)', won: 'THE LAST OF THEM RUNS SOUTH.',
-      foes: [{ id: 'gs', kind: 'gloryseeker', at: [9, 2] }, { id: 'gn1', kind: 'gnoll', at: [6, 3] }, { id: 'gn2', kind: 'gnoll', at: [13, 4] },
-             { id: 'hy1', kind: 'hyena', at: [4, 5] }, { id: 'hy2', kind: 'hyena', at: [15, 5] }], wave: null },
+      from: 'the 8-bit game: events.js S.snoot (a glory-seeker, three gnolls, three hyenas)', won: 'THE LAST OF THEM RUNS SOUTH.',
+      // half again (10-03, Griz: "I think we should up the CR by a 1/2 for the early fights"; the overseer's call, x1.5 the adjusted XP): a third
+      // gnoll (gn3) and a third hyena (hy3), more of the pack's own kind (content/encounters.json snoot: gnolls 2-3, hyenas 3-4). For four at 3:
+      // 840 MEDIUM before, 1325 HARD after (x1.58). invented.json#early-fights-half-again
+      foes: [{ id: 'gs', kind: 'gloryseeker', at: [9, 2] }, { id: 'gn1', kind: 'gnoll', at: [6, 3] }, { id: 'gn2', kind: 'gnoll', at: [13, 4] }, { id: 'gn3', kind: 'gnoll', at: [11, 3] },
+             { id: 'hy1', kind: 'hyena', at: [4, 5] }, { id: 'hy2', kind: 'hyena', at: [15, 5] }, { id: 'hy3', kind: 'hyena', at: [7, 6] }], wave: null },
     { id: 'line', level: 4, map: 'bridge', name: 'The Line', sub: 'the bridge into the camp',
       intro: 'Six men in a line across the bridge: the Captain\'s stable, hired by the House to hold the camp. One gold a man a day. They are here for you.',
       from: 'the 8-bit game: events.js enter:warrens_a (five guards and their sergeant; hard for four at 4)', won: 'THE LINE BREAKS.',

@@ -1133,7 +1133,7 @@
     var g = G();
     if (g.flags.snootDone) return;
     yield DS.say(L('road.snoot'));
-    var res = yield* EV.fight(['gloryseeker', 'gnoll', 'gnoll', 'hyena', 'hyena'], { bg: 'gnoll', music: 'boss', canRun: true, deep16: 'snoot' }); // (DEEP16: deep16/data/fights.js snoot)
+    var res = yield* EV.fight(['gloryseeker', 'gnoll', 'gnoll', 'gnoll', 'hyena', 'hyena', 'hyena'], { bg: 'gnoll', music: 'boss', canRun: true, deep16: 'snoot' }); // (DEEP16: deep16/data/fights.js snoot; a third gnoll and a third hyena, half again -- invented.json#early-fights-half-again, 10-03)
     if (res === 'win') {
       g.flags.snootDone = 1; yield DS.say(L('road.snootDone'));
       g.give('anchorpin', 1); DS.audio.sfx('chest'); yield DS.say(L('road.snootPin'));
