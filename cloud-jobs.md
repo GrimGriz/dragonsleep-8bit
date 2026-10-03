@@ -4,6 +4,8 @@ The desktop oversight window keeps this list; a cloud seat reads it to know what
 
 ## Merged (main)
 
+**The signature fight, as a recipe:** `deep16/signature-fights.md` (10-03, from the Keeper's run): his design in his words, the hesitations numbered, bench-first, the looks in a gallery, a cloud seat on a branch and the desk on the gate, the three playtest doors, his records changing the rules, the levers named, the ladder kept on the old fight, the ship on his word. The next signature fight's brief cites it first.
+
 Every seat's notes file ends with a **For the next seat** section (10-03): the gotchas, who said what, what to rerun and when. Read the one for the area you touch before you touch it.
 
 | job | branch | notes | merged |
