@@ -73,3 +73,28 @@ The AI policies (the grid's); Shield offered only when it turns the blow; the do
 7. **The Bandit Captain's Parry assumes a blade in hand?** [*fine; the SRD requires it*] -- stays.
 
 Nothing is open from this job.
+
+## 7. For the next seat (closed 2026-10-03T14:14Z)
+
+**Where things stand.** `claude/8bit-reactions` and the cloud seat's session branch `claude/new-session-j8nd9v` are the same seven commits over `main` c7f8451 (d689f6e the window and concentration; ab56538 the bench and the `DEEP16_BROWSER` knob for bench8; 83d8305 the register; 076d460 these notes; 9402549 the three rulings; 909f1ff the docs for the seven answers; plus the cherry-pick db59d8f of ae9af63). The gate ran GREEN here on the final tree (`python dev/check.py all`, 44 checks). `main` was never pushed. The merge is the desktop's.
+
+**Who said what.** The job was written by the desktop overseer seat (the prompt file, 10-03). Griz ruled, 10-03: *"Simple because of movement, but they should still get their reactions is my first impression"*; *"1 yes, 2 yes"*; the slot retired because *"it was limiting the 8bit characters to only carrying one buff"*; *"3 yes"* (the slots stay lowest-first). His seven answers are in §6 in brackets, verbatim. Everything else in this file is the seat's: the AI policies (copied from the grid), the Shield-only-when-it-turns-the-blow rule, the marks (`by`) that let two casters' conditions share a target, the `spell` tags on the specials, `litSpell`, the standing-up of a held or laughing target when its caster lets go, the "begins to cast" card. All of it is in `invented.json` under `8bit-reaction-window-calls` and `8bit-specials-that-are-spells`.
+
+**Gotchas that cost time here.**
+- `dev/check.py` judges a script by grepping every output line for `\bFAIL` (case-sensitive): a menu label or a check's text containing "FAILS" reads as RED with every check ok. The Counterspell label was renamed to COUNTER (NO CHECK) for it. Keep uppercase FAIL out of any text a bench prints.
+- `dev/bench8.py` prints the checks as a Python list: a check text with an apostrophe is printed in double quotes, so counting `'ok   ` undercounts. Parse the list (`ast.literal_eval`) or trust `check.py`'s judge.
+- Manual stepping (`runM`) hands `undefined` back to every `yield` (a `DS.choose`, a target scene), which the battle reads as cancel: stub `bR.askReact` and `bR.pickAlly` on the instance, as `reactions1003` does.
+- The dice queue (`DS.d` overridden): a foe's d20 is two draws (the advantage pair, `Battle.d20`), a hero's blow draws the pair and then the blessing's d4, `DS.roll` draws each die through `DS.d` (so a queue must cover the damage dice or let them fall through), a bare number like `'30'` parses as a flat, `'26+4'` does not.
+- `tools/compile.py` rewrites `data/game-data.json` as well as `data/data.js` and `index.html`: commit all three with a content edit.
+- `git commit -F msg -- <file>` refuses an untracked file: `git add -- <file>` first (this notes file was the case).
+- The reaction block is referenced from `hurt()`, `turn()`, `endTurn()`, `foeAttack`, `special()`, `castSpell`, `heroAttack`, `spiritStrike` and `clericTurn`; node is at `/opt/node22/bin/node` in this container for `--check`, and `grep -c "Battle.prototype.<name>"` is the fast way to see that a method still exists before a bench.
+- The chat with Griz is the record of a ruling only once it is in a file: his words went into the code comments, the register rows, `invented.json` and this file the same day.
+
+**What was not seen** (§4 has the full list): the reaction menus on an actual screen (no pane here; `askReact` draws at x 24, w 208, and a Counterspell title with a long spell name would overrun it); a menu-driven fight in which the player answers a reaction; a guest's automatic Shield or a guest under the roost; Dancing Lights going out; a cloud ending with its caster's concentration; the Bandit Captain's Parry (Hask's was benched); the spell-weaver's darts in a driven fight.
+
+**What to rerun, and when.**
+- At the merge, on the desktop, from PowerShell: `python dev/check.py all` (GREEN wanted; it runs the eight 8-bit modes and the probes) and `python dev/bench8.py reactions1003` on its own to read the 39 checks.
+- If `claude/spell-fixes` merges before or after this branch: §3 names the crossing lines (`hurt()` hero branch, `special()` blast branch, `castSpell` around `var up`, `foeAttack`). Resolve by keeping both sides (the area roll's dice line was not touched here), then rerun `reactions1003`, `srd1002` and `sheets1001c`.
+- After any later edit to `js/rules.js` prepRanked or the reaction block: `python dev/check.py` (the every-spell check and the grid's modes, since the book law is shared) and `reactions1003`.
+- The desktop's eye, once merged and live: a fight with Aurdin (his default day holds Shield now) where an ogre's club lands by less than 5, to see the SHIELD? menu; a spell-weaver fight for the "begins to cast" card, the COUNTERSPELL? menu (Aurdin learns Counterspell at 5th on the grid, `deep16/js/save.js`) and the darts turned by a raised shield; a roost fight with a caster who knows Hellish Rebuke (Amara's, not the party's) for the ROOST item and the swarm.
+- Griz's live save: Aurdin keeps the prepared day he chose (`R.prepFill`); Shield comes in when a place opens or he prepares it. Worth a word to him at the merge.
