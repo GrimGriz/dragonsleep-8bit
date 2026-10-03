@@ -23,6 +23,8 @@ The handoff's numbers were probed 10-02 and said to re-count. They moved by one 
 | `E.*` handlers in deep16/js/grimoire.js | 108 | **124** |
 | built-in ids in deep16/js/magic.js M.cast | -- | **32** |
 
+**Moved since, 10-03 (the cheap SRD fixes, spell-fixes-notes.md):** Blindness/Deafness is flagged `battle` -- `battle: true` 51, both flags 4, BOTH 50, GRID ONLY 120. The table and the counts below are as read at dc55881.
+
 So the four kinds of record, which the table below marks on every row:
 
 - **BOTH** -- 49 spells run in the 8-bit battle and on the grid, each by its own code. (The handoff said 51: it counted the four field-only records in.)
@@ -97,7 +99,7 @@ How each game decides what it can cast:
 | 53 | Acid Arrow | 2nd | grid | no branch (the record is there; R.spellList filters it out: no `battle` flag) | attack 90 ft action; grimoire.js E.acidarrow | **GRID ONLY** | BUILT, "grid-only: no 8-bit record" **STALE wording: the record exists** |
 | 54 | Aid | 2nd | battle, field | castSpell: buff (aid) / target allies; the field too | allies 30 ft n 3 action; magic.js M.cast (built-in) | **BOTH** | BUILT, no word on which game |
 | 55 | Barkskin | 2nd | grid | no branch (the record is there; R.spellList filters it out: no `battle` flag) | touch action conc; grimoire.js E.barkskin | **GRID ONLY** | BUILT, "grid-only: no 8-bit record" **STALE wording: the record exists** |
-| 56 | Blindness/Deafness | 2nd | grid | no branch (the record is there; R.spellList filters it out: no `battle` flag) | single 30 ft action; grimoire.js E.blindnessdeafness | **GRID ONLY** | BUILT, "grid-only: no 8-bit record" **STALE wording: the record exists** |
+| 56 | Blindness/Deafness | 2nd | grid | no branch (the record is there; R.spellList filters it out: no `battle` flag) | single 30 ft action; grimoire.js E.blindnessdeafness | **GRID ONLY** -- **BOTH since 10-03** (the cheap SRD fixes: `battle: true`, and `repeat: true` for the save each turn) | BUILT, "grid-only: no 8-bit record" **STALE wording: the record exists** |
 | 57 | Blur | 2nd | grid | no branch (the record is there; R.spellList filters it out: no `battle` flag) | self action conc; grimoire.js E.blur | **GRID ONLY** | BUILT, "grid-only: no 8-bit record" **STALE wording: the record exists** |
 | 58 | Branding Smite | 2nd | battle | castSpell: buff (branding), bonus action / target self | self bonus conc; grimoire.js E.brandingsmite | **BOTH** | BUILT, both |
 | 59 | Continual Flame | 2nd | battle, field | castSpell: buff (continualFlame) / target ally; the field too | touch action; magic.js M.cast (built-in) | **BOTH** | BUILT, no word on which game |
@@ -316,7 +318,7 @@ The order inside each tier: the spells the most SRD casters of CR 8 or under hav
 
 | Spell | Level | Pull: SRD monsters and NPC blocks (CR) | Pull: the class lists (NPC level that reaches it) | The game's own casters | What the 8-bit battle needs |
 |---|---|---|---|---|---|
-| Blindness/Deafness | 2nd | Gnome, Deep (Svirfneblin) 1/2 | bard 3, cleric 3 | -- | castSpell save CON, cond blinded, a save each turn: the record's own fields run it today if flagged `battle` (blinded and repeat exist); deafness is moot |
+| Blindness/Deafness | 2nd | Gnome, Deep (Svirfneblin) 1/2 | bard 3, cleric 3 | -- | castSpell save CON, cond blinded, a save each turn: the record's own fields run it today if flagged `battle` (blinded and repeat exist); deafness is moot -- **BUILT 10-03 (the cheap SRD fixes):** flagged, and given `repeat: true` (the record had none: without it, no save each turn) |
 | Heat Metal | 2nd | Magma Mephit 1/2 | bard 3, druid 3 | -- | 2d8 fire with no save, then CON or (a weapon) no weapon attack next turn / (armour) disadvantage; cast again as a bonus action: a repeat like the spiritual weapon's |
 | Guiding Bolt | 1st | Priest 2, Mummy Lord 15 | cleric 1 | torvald | castSpell attack, 4d6 +1d6 a slot; a rider: the next attack at it has advantage (a cond advantage() reads) |
 | Produce Flame | cantrip | Druid 2 | druid 1 | -- | castSpell attack, 1d8 (2d8 at 5) |
@@ -482,5 +484,5 @@ Answerable from memory; a number each is enough.
 8. **The 8-bit's small ones, as one batch on a yes:** Mislead's missing double; Lesser Restoration ending one thing; Sleep skipping the drow and the charm-immune; Hideous Laughter's save with advantage when hurt; the sleet's failed save costing the whole turn instead of the footing; Magic Missile and Scorching Ray at more than one foe; Bless's extra target a slot.
 9. **The 8-bit's foes.** Keep their specials, or let them cast the records (one path for both games, the grid's `caster` lists)? Counterspell, Dispel Magic and the Globe have nothing to work on in the 8-bit until they do.
 10. **The order of the 121.** By the pull rule's head (Darkness, Entangle, Charm Person, Faerie Fire, Blur, Barkskin, Shillelagh, then the Priest's and the Fanatic's ...), or tier A first (the 44 that are a number castSpell rolls already: the cheapest, the most at once), or nothing until 1 to 5 are ruled?
-11. **Blindness/Deafness** could run in the 8-bit today by flagging its record `battle: true` (CON, blinded, a save each turn: the record's own fields): flag it?
+11. **Blindness/Deafness** could run in the 8-bit today by flagging its record `battle: true` (CON, blinded, a save each turn: the record's own fields): flag it? -- **answered 10-03** (Griz: *"4 yes"*, the cheap SRD fixes): flagged, with `repeat: true`.
 12. **Summons, Dominate Beast and Polymorph in the 8-bit** need an ally or a foe built from a monster sheet (the familiar is the nearest thing there): wanted in the 8-bit at all, or do the summoners fight on the grid only?

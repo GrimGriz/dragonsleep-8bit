@@ -289,7 +289,24 @@
         LF.h.slots = [0, 2]; var round8 = bF.round; bF.round = 1; T.blog = [];
         try { runF(bF.clericTurn(LF)); } finally { bF.round = round8; }
         check('8. the cleric\'s turn, a 2nd-level slot: ' + blessed8().length + ' blessed -- "' + saidF() + '"', blessed8().length === 4);
+
+        // 9. Blindness/Deafness in the 8-bit (Griz, 10-03: "4 yes", the flag among the cheap fixes; SRD 5.1: "the target is either blinded or deafened
+        // ... At the end of each of its turns, the target can make a Constitution saving throw. On a success, the spell ends"): in Aurdin's battle list
+        // once he knows it; on an ogre with no CON to speak of, blinded with the save each turn; its club at disadvantage, his friends' blows at advantage
+        if (AF.h.known.indexOf('blindnessdeafness') < 0) AF.h.known.push('blindnessdeafness'); if (AF.h.prepared && AF.h.prepared.indexOf('blindnessdeafness') < 0) AF.h.prepared.push('blindnessdeafness');
+        var in9 = R.spellList(AF.h, 'battle').some(function (x) { return x.id === 'blindnessdeafness'; });
+        var o9 = foesF(['ogre'], 400)[0]; savesF(o9, { con: -30 }); AF.conds = {};
+        if (in9) castF(AF, 'blindnessdeafness', ['Ogre'], [4, 3, 3]);
+        var c9 = o9.conds.blinded, adv9 = bF.advantage(o9, BF, true), adv9b = bF.advantage(BF, o9, true);
+        check('9. Blindness/Deafness in his battle list (' + in9 + '); on the ogre: blinded ' + !!c9 + ', the CON save at its turn\'s end ' + !!(c9 && c9.save && c9.save.ab === 'con') + '; its club ' + adv9 + ', Barley\'s blow ' + adv9b + ' -- "' + saidF() + '"', in9 && !!c9 && !!c9.save && c9.save.ab === 'con' && adv9 === -1 && adv9b === 1);
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
+      // the fight itself (what it shows goes in spell-fixes-notes.md): Aurdin casts it on the first ogre from the menus, and the battle runs on
+      if (Q.get('fight9')) {
+        var b9x = DS.find('battle'); if (b9x) { b9x.over = 'win'; drive({}, 2000); }
+        var au9 = g.hero('aurdin'); au9.hp = au9.maxhp = 400; au9.slots = [4, 3, 3];
+        T.startFight(['ogre', 'ogre']);
+        drive({ aurdin: ['MAGIC', 'Blindness', 'Ogre A', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT'] }, 6000);
+      }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');
       var ing = g.guests[0].h;
