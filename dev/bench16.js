@@ -2344,6 +2344,14 @@
         okP(kept === false && PQ.msg && PQ.msg.bad && /NOT SAVED/.test(PQ.msg.text), 'a refused write says so: "' + (PQ.msg && PQ.msg.text) + '"');
         PQ.go('party');
         okP(PQ.msg && /NOT SAVED/.test(PQ.msg.text), 'and the message stays through the screen change (a character made goes back to THE PARTY)');
+        // j. every floor the table deals sets a fight, and a ladder saved on one it no longer deals draws a fresh one (10-03, Griz's trial with Thaldor: the ladder drew
+        // the Gate Floor, js/view.js's display with no entry, and the fight froze setting the field)
+        var mids = PQ.mapIds(), unset = [];
+        mids.forEach(function (id) { try { var Bm = new D.Battle({ npc: { foes: ['goblin'], party: ['barley:3'] }, bench: true, fightDef: D.classFight(3, { id: 'pocket', map: id }) }); D.battle = Bm; Bm.enter(); if (!Bm.units || !Bm.units.length) unset.push(id + ': no units'); } catch (eM) { unset.push(id + ': ' + String(eM && eM.message || eM).slice(0, 80)); } });
+        okP(mids.length > 20 && mids.indexOf('gate') < 0 && !unset.length, 'every floor the table deals (' + mids.length + ') sets a fight, the Gate Floor not among them' + (unset.length ? ': ' + unset.join('; ') : ''));
+        full = false; mem['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: { rung: 4, trial: true, won: 4, map: 'gate', foes: ['xorn', 'worg', 'worg'] } });
+        var PR = new D.Pocket(); PR.enter();
+        okP(PR.st.run.map !== 'gate' && mids.indexOf(PR.st.run.map) >= 0 && PR.fightMap === PR.st.run.map && PR.st.run.foes.join() === 'xorn,worg,worg' && JSON.parse(mem['deep16.pocket']).run.map === PR.st.run.map, 'a ladder saved on the Gate Floor draws ' + PR.st.run.map + ', keeps its foes, and is written');
       } finally { D.store.get = st0; D.store.set = ss0; HTMLAnchorElement.prototype.click = aClick0; }
     } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
     if (errs.length) repP.errors = repP.errors.concat(errs);

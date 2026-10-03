@@ -236,6 +236,9 @@
     this.mapSel = this.st.mapId || null; this.crI = this.st.crI == null ? -1 : this.st.crI; this.foes = this.st.foes || null; this.watch = !!this.st.watch;
     this.cache = {};
     if (this.st.run && !this.foes) this.foes = this.st.run.foes;
+    // a ladder saved on a floor the table no longer deals (the Gate Floor, 10-03) draws a fresh one; the rung's foes stand
+    if (this.st.run && this.mapIds().indexOf(this.st.run.map) < 0) { this.st.run.map = this.randomMap(); this.keep(); }
+    if (this.st.run) this.fightMap = this.st.run.map; // (as START does from the title: the rung's own map, not the picker's)
     D.music('title');
   };
   Pocket.prototype.exit = function () { this.dropField(); };
@@ -347,7 +350,7 @@
     if (this.mapSel && D.MAPS[this.mapSel]) return this.mapSel;
     return null;
   };
-  Pocket.prototype.mapIds = function () { return Object.keys(D.MAPS).filter(function (id) { var d = D.MAPS[id]; return d && d.rows && id !== 'wet' && id !== 'testground' && id !== 'floodstair-old' && !d.from8; }); }; // (floodstair-old: the ladder's copy of the old stair, data/maps.js -- the table's Flooded Stair is the new one, 10-03)
+  Pocket.prototype.mapIds = function () { return Object.keys(D.MAPS).filter(function (id) { var d = D.MAPS[id]; return d && d.rows && d.entry && id !== 'wet' && id !== 'testground' && id !== 'floodstair-old' && !d.from8; }); }; // (floodstair-old: the ladder's copy of the old stair, data/maps.js -- the table's Flooded Stair is the new one, 10-03; a floor with no entry takes no party: the Gate Floor, js/view.js, is the figures' display, and a ladder's trial drew it 10-03 and froze setting the field)
   Pocket.prototype.randomMap = function () { var ids = this.mapIds(); return ids[Math.floor(D.rand() * ids.length)]; };
   Pocket.prototype.reroll = function () {
     var mapId = this.fightMap || this.mapFor() || 'hexfloor';
