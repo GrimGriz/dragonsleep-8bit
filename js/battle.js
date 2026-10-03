@@ -221,6 +221,7 @@
     opt = opt || {};
     var adv = 0;
     if (opt.poison && u.conds.antitoxin) adv++;
+    if (opt.adv) adv++; // (a save the rule itself gives advantage: Hideous Laughter's when hurt)
     if (ab === 'dex' && (u.conds.restrained)) adv--;
     if ((ab === 'str' || ab === 'dex') && failsStrDex(u)) return { total: 0, nat: 1, success: false };
     var r1 = DS.d(20), r2 = DS.d(20), nat = adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1;
@@ -293,6 +294,7 @@
       }
       u.hp -= n;
       if (u.conds.asleep && n > 0) delete u.conds.asleep;
+      if (n > 0 && u.hp > 0) this.laughHurt(u);
       if (m.traits && m.traits.yields && !u.yielded && u.hp > 0 && u.hp <= u.maxhp / 2) { u.yielded = true; this.yielder = u; } // stops when he's beaten, if you do
       if (u.hp <= 0) { u.hp = 0; this.kill(u); }
       else if (m.traits && m.traits.split && type === 'slashing' && u.hp >= 10 && this.foes.length < 8) this.splitFoe(u);
@@ -305,11 +307,18 @@
     if (u.buff && u.buff.temp) { var soak = Math.min(u.buff.temp, n); u.buff.temp -= soak; n -= soak; u.soaked = (u.soaked || 0) + soak; }
     h.hp -= n;
     if (u.conds.asleep && n > 0) delete u.conds.asleep;
+    if (n > 0 && h.hp > 0) this.laughHurt(u);
     if (h.hp <= 0) {
       if (h.feats.relentless && h.hp > -h.maxhp) { h.feats.relentless = 0; h.hp = 1; this.pendingMsg = h.name + ' refuses to fall!'; }
       else { h.hp = 0; h.ko = true; this.release(u); u.conds = {}; u.buff = null; DS.audio.sfx('ko'); }
     }
     return n;
+  };
+  // Hideous Laughter, hurt (SRD 5.1: "each time it takes damage, the target can make another Wisdom saving throw. The target has advantage on the
+  // saving throw if it's triggered by damage. On a success, the spell ends" -- 10-03, the grid's rule): still prone, it gets up at its turn
+  Battle.prototype.laughHurt = function (u) {
+    var c = u.conds.laughing; if (!c || !c.save) return;
+    if (this.save(u, c.save.ab || 'wis', c.save.dc, { adv: 1 }).success) { delete u.conds.laughing; this.pendingMsg = plain(u) + ' is jolted out of the laughter.'; }
   };
   // SRD 5.1 (RULED 09-28, Griz: "17 SRD"): one at 0 who is not dead wakes with any healing, at the healed amount -- a spell, a
   // potion, a paladin's hands (a kit only stabilises; Revivify is for the dead). Before this, a downed hero was "beyond a spell"

@@ -3576,7 +3576,7 @@
    "target": "enemy",
    "battle": true,
    "grid": true,
-   "note8": "the 8-bit battle (RULED 10-01c, Griz: 'laughter is single target (no 8-bit easter egg)'): one foe, WIS or prone and helpless with laughter, the save again each turn; INT 4 or less unmoved",
+   "note8": "the 8-bit battle (RULED 10-01c, Griz: 'laughter is single target (no 8-bit easter egg)'): one foe, WIS or prone and helpless with laughter, the save again each turn and, with advantage, each time it is hurt (10-03); INT 4 or less unmoved",
    "desc": "A foe within 30 ft makes a WIS save or falls prone and incapacitated with laughter, saving again at the end of each of its turns and, with advantage, when hurt. INT 4 or less is unmoved. Concentration, a minute.",
    "src": "SRD 5.1 Hideous Laughter (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",

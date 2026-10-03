@@ -233,6 +233,17 @@
         castF(AF, 'sleep', [], [4, 3, 3]);
         var slept4 = o4.filter(function (f) { return f.conds.asleep; }).map(nmF).join(', ');
         check('4. Sleep on a drow, a spell-weaver, a naga and a goblin at 1 HP: asleep "' + slept4 + '" -- "' + saidF() + '"', slept4 === 'Goblin A');
+
+        // 5. Hideous Laughter, hurt (SRD 5.1: "each time it takes damage, the target can make another Wisdom saving throw. The target has advantage on
+        // the saving throw if it's triggered by damage. On a success, the spell ends"): an ogre laughing (WIS DC 15), cut for 5 -- the save's d20s 2 and
+        // 19, so only advantage carries it; then dice of 2 and 3, and the laughter holds
+        var o5 = foesF(['ogre'], 400)[0], dc5 = 15;
+        o5.conds = { laughing: { rounds: 10, save: { ab: 'wis', dc: dc5 } }, prone: true }; bF.pendingMsg = null;
+        QdF = [2, 19]; bF.hurt(o5, 5, 'slashing', {}); QdF = [];
+        var msg5 = bF.pendingMsg || '', ended5 = !o5.conds.laughing;
+        o5.conds = { laughing: { rounds: 10, save: { ab: 'wis', dc: dc5 } }, prone: true };
+        QdF = [2, 3]; bF.hurt(o5, 5, 'slashing', {}); QdF = [];
+        check('5. Hideous Laughter on an ogre, hurt: the save with advantage (2 and 19) ends it (' + ended5 + ', "' + msg5 + '"), still prone (' + !!o5.conds.prone + '); a 2 and a 3 leave it laughing (' + !!o5.conds.laughing + ')', ended5 && /jolted out/.test(msg5) && !!o5.conds.laughing && !!o5.conds.prone);
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');
