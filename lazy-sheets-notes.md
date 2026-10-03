@@ -136,3 +136,96 @@ Not seen:
    Griz: *"yes"*. Built: the ladder list, above. The third of a second before a rung counts as chosen is the seat's call.
 4. The scripts are now most of the start, 2.7 MB. Is shrinking them a later job?
    Griz: *"later"*. It is on the queue in `cloud-jobs.md`.
+
+## For the next seat (the lazy seat's close, 10-03)
+
+What this job taught, so nobody pays for it twice.
+
+**Gotchas (each cost a run here, or nearly did)**
+- **The bench page sits in `dev/`.** The sheets' relative `art/...` paths don't resolve there, so `dev/bench16.js` sets `D.spr.offline = true`:
+  nothing is fetched and nothing waits. `lazy1003` is the only mode that fetches. It turns offline off and repoints every
+  `D.SHEETS[k].image` at `../deep16/`. A new mode that wants real figures has to do both.
+- **`--dump-dom` dumps at the load event.** A detached `new Image()` holds that event open, so an async mode works only if each step runs
+  inside the image promises' callbacks. A `setTimeout` poll leaves a gap where the load event fires and the DOM is dumped without the
+  result.
+- **Wait on what `S.prefetch` returns.** A fresh `S.prefetch([])` takes its snapshot of the fetches under way before the background ones
+  have started, and that gave a false FAIL here. `lazy1003`'s `settleZ` wraps `S.prefetch` and waits on every promise it handed out.
+- **`S.held(scene)` counts frames; `S.held(scene, true)` only looks.** Count in update (and return), look in draw (and draw `S.beat`).
+- **A new scene that draws figures:**
+  - either `D.spr.gate(this, names)` in enter, the hold in update and the beat in draw;
+  - or rely on `S.draw`'s fallback, where the figure is blank for a moment and then appears.
+
+  A draw guarded by `D.spr.has(...)` (the Pocket DM's cards, `pocket.js` ~633) never triggers a fetch, so ask with `S.ensure`.
+- **A new way for a fight to bring on a figure** (a new summon spell or pool, a new shape change, a new `u.sheet =`) goes into
+  `Battle.prototype.sheets`, under `soon`. Without that, the figure appears a beat late (fetched at its first draw), with nothing broken.
+- **Stamps:** `tools/deep16-build.py` run on Linux moves about 27 stamps for files nobody touched (LF against the desktop's CRLF). Stamp
+  only the changed files by hand, with the LF `sha1[:10]`; the desktop re-stamps at merge. After the build,
+  `git checkout -- deep16/js/palette.js`. `data/sprites.js` doesn't change unless the art does.
+- **The branch after a merge:** `git checkout -B claude/lazy-sheets origin/main` was refused here as destructive. When
+  `git merge-base --is-ancestor HEAD origin/main` says yes, `git merge --ff-only origin/main` gets to the same base and can't lose anything.
+- **Playwright:** `pip install playwright`, then launch with `executable_path='/opt/pw-browsers/chromium'` and `--no-sandbox`. Its page
+  screenshots do advance the game loop, unlike headless Edge's `--screenshot`. To see the beat, slow the network with CDP
+  `Network.emulateNetworkConditions`: at full local speed the wait is often over before the beat's 12-frame delay, so it may never show.
+- **Noise, not faults:**
+  - the console's one 404 is `favicon.ico` from a plain `http.server`;
+  - the proxy's refusals of `www.google.com` and `redirector.gvt1.com` are Chromium's own background calls.
+
+**Reading the numbers**
+- `dev/lazy-measure.py` counts bytes the server sent, not seconds, in a fresh context per case. "Settled" is two seconds later, which
+  is what the background fetches add.
+- **Before:** 39.46 MB to any first screen.
+- **After:**
+  - 2.71 MB to the title;
+  - 4.42 MB to the first turn of the level-3 ladder fight;
+  - 3.96 MB to the first turn of the Pocket DM fight with Brokk.
+- All of the 2.71 MB is scripts (`data.js` 0.56 MB). The last number to move is that one, when the scripts shrink.
+- A high-level caster's background pool grows with the bestiary: Polymorph takes every beast with a sheet. It was 2.72 MB for a
+  druid, wizard and cleric 9 band on 10-03. Griz ruled it stays a prefetch, so a bigger number there is expected, not a regression.
+
+**Rerun, and when**
+- **`python dev/check.py` (with `lazy1003` in it)** after any edit to `sprites.js`, `main.js`, Battle's enter or `sheets`, `camp.js`,
+  `climb.js`, `pocket.js`, `ladder.js` or `view.js`. In the cloud, set `DEEP16_BROWSER=/opt/pw-browsers/chromium` and
+  `DEEP16_BROWSER_ARGS=--no-sandbox`.
+- **`python dev/lazy-measure.py`** when what loads at start changes:
+  - the shrink-the-scripts job (queued in `cloud-jobs.md`, Griz: *"later"*): the title's 2.71 MB is its before;
+  - a new door in `main.js`;
+  - a change to which fight is the level-3 rung's first (`D.fightsAt(3)[0]`, the ettercap today).
+- **`lazy1003` names things that can change under it:**
+  - Brokk's `~` code and `npcfighter_dragonborn_p0` (the race figures' naming);
+  - the xorn as the sheet drawn unasked;
+  - the cutseal fight as rung 5's first.
+
+  Its ladder step picks two rungs whose figures aren't fetched yet. If a later step loads every rung's figures first, it fails honestly
+  with "no two rungs", and the step wants moving, not deleting.
+- **When the seven monsters with no grid foe get sheets, or a new summon pool lands:** nothing to do. They join `Battle.sheets` through
+  `D.pool` and `D.SUMMON` by themselves.
+
+**Who said what**
+- **Griz, 10-03:**
+  - *"4 yes"* (the job);
+  - *"your words"* (the beat's words and gold pips stand);
+  - *"prefetch; nothing waits on it"* (the summon pools);
+  - *"yes"* (the ladder list prefetches the chosen rung);
+  - *"later"* (shrinking the scripts).
+
+  All are verbatim here and on `invented.json`'s `deep16-lazy-sheets` line.
+- **The seat's calls, recorded on that line and open to his ruling:**
+  - the split between figures a scene waits for and figures fetched in the background;
+  - the 20-second cap;
+  - the 12-frame delay before the beat shows;
+  - the third of a second before a rung counts as chosen;
+  - the `...` on a Pocket DM card;
+  - the camp fetching its fight in the background.
+- **The overseer** merged round one (56d42b5) and round two (after the reactions; `cloud-jobs.md` has the row). Neither round's answers
+  were the overseer's leans; all four are Griz's.
+
+**Seen at the close, and still not seen**
+- **Seen at the close:** in the real page, the ladder resting on rung 5 fetched its 8 distinct figures, for the four and for the tester
+  ladder's four (Talmok, Willem, Katarina as `npccleric_p0`, Torvald). Each camp then opened unheld. That moves the tester ladder's
+  `rungSheets` path to seen; `lazy1003` covers only the four's ladder.
+- **Still not seen:**
+  - the desktop's Edge, a phone, or Pages over a real connection (the numbers are bytes, not seconds);
+  - the real 8-bit page opening its iframe;
+  - a summoned or polymorphed creature appearing in a played fight;
+  - the gallery clicked through;
+  - the climb's level-up and the DM's hands after a real fight.
