@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dragonsleep",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "8923"],
+      "port": 8923
+    },
+    {
+      "name": "dragonsleep-2",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "8924"],
+      "port": 8924
+    },
+    {
+      "name": "dragonsleep-3",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "8925"],
+      "port": 8925
+    }
+  ]
+}
