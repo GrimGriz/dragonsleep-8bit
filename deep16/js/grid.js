@@ -20,7 +20,7 @@
   G.occupant = function (x, y, except) {
     for (var i = 0; i < G.units.length; i++) {
       var u = G.units[i];
-      if (u === except || !G.present(u) || u.riding) continue; // (a familiar riding its wizard holds no square of its own)
+      if (u === except || !G.present(u) || u.riding || (u.flooding && u.kind === 'keeper')) continue; // (a familiar riding its wizard holds no square of its own; nor does the Keeper while it is the swirl about someone: js/keeper.js)
       var s = u.size || 1;
       if (x >= u.x && y >= u.y && x < u.x + s && y < u.y + s) return u;
     }

@@ -339,7 +339,7 @@
   // `want` (optional): of the figures under the mouse, one it wants comes before the front-most (10-01, RULED, Griz: "if they're targeting something that asks
   // for a foe, the picker should prefer over allies head at least" -- the darkmantle behind Vivian's head was hers to click, not the darkmantle's)
   // a square's creature, or the Keeper's Ice Wall there as something to strike (js/keeper.js K.wallAt): the four places a click or a key aims a blow
-  function occ(x, y) { return G.occupant(x, y) || (D.keeper && D.keeper.wallAt ? D.keeper.wallAt(D.battle, x, y) : null); }
+  function occ(x, y) { return G.occupant(x, y) || (D.keeper && D.keeper.wallAt ? D.keeper.wallAt(D.battle, x, y) || D.keeper.swirlAt(D.battle, x, y) : null); }
   UI.pickUnit = function (B, mx, my, want) {
     var best = null, bd = -1e9, pick = null, pd = -1e9, z = D.iso.zoom;
     B.units.forEach(function (u) {
@@ -871,11 +871,12 @@
   // line on its water, the Flooded Stair's 13; none, a hand's depth, 3) on a still-water square; one held by a creature of the water (bound to it: the Keeper's Constrict,
   // its Drag Under) is drawn down under it to the crown of the head. What lives in the water (bound to it, a swimmer) and what flies is drawn as it was
   UI.wading = function (B, u) {
-    var s = G.map && G.map.at(u.x, u.y); if (u.kind === 'keeper' && D.keeper && s && s.ch === '~' && !u.dead) return D.keeper.wade(B, u); // (the Keeper stands in its pool as the heroes do: js/keeper.js K.wade)
+    var s = G.map && G.map.at(u.x, u.y); if (D.keeper && D.keeper.iced && D.keeper.iced(B, u.x, u.y)) return null; // (on ice: on top of it, not in the water -- js/keeper.js)
+    if (u.kind === 'keeper' && D.keeper && s && s.ch === '~' && !u.dead) return D.keeper.wade(B, u); // (the Keeper stands in its pool as the heroes do: js/keeper.js K.wade)
     var s = G.map && G.map.at(u.x, u.y); if (!s || !(s.ch === '~' || s.deep) || u.bound || u.swims || u.riding || u.ethereal || u.under) return null;
     var def = G.map.def || {}, cut = def.wade != null ? def.wade : 3, sink = 0, k = (u.size || 1);
     var hold = u.conds && u.conds.restrained && B.units.filter(function (w) { return w.id === u.conds.restrained.by; })[0];
-    if (hold && hold.bound && !hold.dead && hold.hp > 0) sink = Math.max(0, D.spr.unitTop(u) - cut - 6);
+    if (hold && hold.bound && hold.kind !== 'keeper' && !hold.dead && hold.hp > 0) sink = Math.max(0, D.spr.unitTop(u) - cut - 6); // (the Keeper's held sit in its swirl, not sunk: js/keeper.js)
     return { cut: Math.round(cut * k), sink: Math.round(sink) };
   };
   function unitObj(B, u) {
@@ -959,13 +960,20 @@
         // (a flier whose sheet walks on the ground -- the bat stand-in -- is drawn up in the air when out on the field, bobbing; its shadow stays below)
         var lift = u.lift && !u.riding && !down ? u.lift + Math.round(2 * Math.sin(B.t / 6)) : 0;
         var wet = !down && !lift ? UI.wading(B, u) : null, an0 = anim === 'hurt' && !has('hurt') ? 'idle' : anim;
-        if (wet) { // (in the water: the figure above its line, the rest a ghost under it, a ripple on the line; held by the Keeper, drawn down under it -- 10-02)
+        if (u.kind === 'keeper' && u.flooding) { /* it is the swirl about someone: drawn with the walls' props (js/keeper.js), no humanoid */ }
+        else if (wet) { // (in the water: the figure above its line, the rest a ghost under it, a ripple on the line; held by the Keeper, drawn down under it -- 10-02)
           var wl = p.y - wet.cut, sy = p.y + wet.sink, tallW = D.spr.unitTop(u) * sk + 8;
           var cw = u.kind === 'keeper' ? 100 : 60; ctx.save(); ctx.beginPath(); ctx.rect(p.x - cw, sy - tallW - 20, cw * 2, wl - (sy - tallW - 20)); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, body); ctx.restore();
           ctx.save(); ctx.beginPath(); ctx.rect(p.x - cw, wl, cw * 2, 80); ctx.clip(); D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, sy, Object.assign({}, body, { alpha: 0.28, tint: R('glow', 1), tintAlpha: 0.6 })); ctx.restore();
-          var rw = 9 * (u.size || 1) * sk + Math.sin(B.t / 9) * 1.5; ctx.save(); ctx.strokeStyle = 'rgba(170,200,230,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.x, wl, rw, rw * 0.38, 0, 0, 7); ctx.stroke(); ctx.restore();
+          var rw = 9 * (u.size || 1) * sk + Math.sin(B.t / 9) * 1.5, rh = rw * 0.38; if (u.kind === 'keeper') { rw = 58 + Math.sin(B.t / 9) * 2; rh = 29 + Math.sin(B.t / 9); } /* (the Keeper's water line is the ellipse in its own 2x2: Griz 10-03, "the 2x2 centred on the circle around his thighs") */ ctx.save(); ctx.strokeStyle = 'rgba(170,200,230,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(p.x, wl, rw, rh, 0, 0, 7); ctx.stroke(); ctx.restore();
           if (wet.sink) for (var bi = 0; bi < 3; bi++) { var bp = ((B.t + bi * 17) % 40) / 40; ctx.fillStyle = 'rgba(200,225,245,' + (0.7 * (1 - bp)).toFixed(2) + ')'; ctx.fillRect(Math.round(p.x - 4 + bi * 4 + Math.sin((B.t + bi * 9) / 5) * 1.5), Math.round(wl - bp * 14), 1 + (bi % 2), 1 + (bi % 2)); } // (the breath going up)
         } else D.spr.draw(ctx, u.sheet, an0, u.facing || 0, t, p.x, p.y - lift, body);
+        // ?footprint: the Keeper's mechanical squares (what the grid, the ice and the area spells ask), their centre, and its water line, over the drawing (Griz 10-03: check the 2x2 against the ring)
+        if (D.footprintDebug && u.kind === 'keeper' && !u.dead) {
+          ctx.save(); ctx.lineWidth = 1; ctx.strokeStyle = 'rgba(255,60,60,0.9)';
+          G.foot(u).forEach(function (q) { var c = D.iso.center(q[0], q[1], G.map.gz(q[0], q[1])), sc = D.iso.toScreen(c.x, c.y), hw = D.iso.TW / 2, hh = D.iso.TH / 2; ctx.beginPath(); ctx.moveTo(sc.x, sc.y - hh); ctx.lineTo(sc.x + hw, sc.y); ctx.lineTo(sc.x, sc.y + hh); ctx.lineTo(sc.x - hw, sc.y); ctx.closePath(); ctx.stroke(); });
+          ctx.strokeStyle = 'rgba(60,255,60,0.9)'; ctx.beginPath(); ctx.moveTo(p.x - 6, p.y); ctx.lineTo(p.x + 6, p.y); ctx.moveTo(p.x, p.y - 6); ctx.lineTo(p.x, p.y + 6); ctx.stroke(); ctx.restore();
+        }
         // what was drawn, for the x-ray after the world (a standing figure only: the fallen lie low)
         var hw = 10 * (u.size || 1) * sk, tall = D.spr.unitTop(u);
         obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, frame: o.frame, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - tall, p.x + hw, p.y] };

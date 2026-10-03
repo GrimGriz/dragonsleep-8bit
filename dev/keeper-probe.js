@@ -44,7 +44,7 @@
     // ---- a fourth wave drives one into the deep: restrained, the Keeper pours in, AC 10
     put(P[0], 8, 3); P[0].conds.prone = true; force(false); cards.length = 0; drain(K.wave(B, k)); unforce();
     ok('swept into the deep (' + P[0].x + ',' + P[0].y + '): restrained by the Keeper, drowning, it in the water at AC ' + RU.ac(k),
-      K.isDeep(P[0].x, P[0].y) && P[0].conds.restrained && P[0].conds.restrained.by === k.id && P[0].conds.drowning && k.flooding && RU.ac(k) === 10 && G.dist(k, P[0]) <= 5);
+      K.isDeep(P[0].x, P[0].y) && P[0].conds.restrained && P[0].conds.restrained.by === k.id && P[0].conds.drowning && k.flooding && RU.ac(k) === 10 && G.dist(P[0], k) <= 5 && K.A(k) < 8);
     var s0 = P[0].hp; P[0].hp = P[0].maxhp = 40;
     // ---- drowning: 1d6 less CON, at least 1; twice after an Active Suffocation
     cards.length = 0; var h1 = P[0].hp; K.drownTick(B, P[0]); var d1 = h1 - P[0].hp;
@@ -121,13 +121,12 @@
     delete k6.conds.hidden; put(H6[1], 8, 1); put(H6[2], 9, 1); force(false); drain(K.flood(B6, k6, H6[1])); unforce();
     var far = G.dist(H6[2], k6), near5 = G.dist(H6[2], H6[1]);
     ok('the water about the held one is the Keeper: a friend beside the held (' + near5 + ' ft) is ' + far + ' ft from it', far <= 5 && k6.flooding);
-    // cold on the swirl: the Keeper's save against the freeze
-    put(H6[3], 8, 9); H6[3].spellDC = 13; c6.length = 0; force(true); drain(K.spellOn(B6, H6[3], 'coneofcold', 5, pt(8, 2))); unforce();
-    ok('cold on the swirl, the Keeper saves: it keeps its swirl and the held one stays held (flooding ' + !!k6.flooding + ', restrained ' + !!H6[1].conds.restrained + ', ice on its squares ' + G.foot(k6).some(function (p) { return B6.kp.ice[p[0] + ',' + p[1]]; }) + ')',
-      !!k6.flooding && !!H6[1].conds.restrained && !G.foot(k6).some(function (p) { return B6.kp.ice[p[0] + ',' + p[1]]; }) && !B6.kp.ice[iceKey(8, 1)] && /holds its swirl/.test(c6.join(' ')));
-    c6.length = 0; force(false); drain(K.spellOn(B6, H6[3], 'coneofcold', 5, pt(8, 2))); unforce();
-    ok('cold on the swirl, the Keeper fails: it changes back, the held one is freed (flooding ' + !!k6.flooding + ', restrained ' + !!H6[1].conds.restrained + ')', !k6.flooding && !H6[1].conds.restrained && /changes back/.test(c6.join(' ')));
-    ok('and the water it stood in is ice, so it is restrained (' + JSON.stringify(k6.conds.restrained) + ')', k6.conds.restrained && k6.conds.restrained.ice === true && k6.conds.restrained.dc === 7);
+    // cold on the swirl: no save to resist it -- the swirl ends, the held one is freed and thrown up onto the ice, prone (the Keeper stayed where it stood the whole while)
+    var kx0 = k6.x, ky0 = k6.y; put(H6[3], 8, 9); H6[3].spellDC = 13; c6.length = 0; drain(K.spellOn(B6, H6[3], 'coneofcold', 5, pt(8, 2)));
+    ok('cold on the swirl: it changes back and lets go (flooding ' + !!k6.flooding + ', held ' + !!H6[1].conds.restrained + '), the held one up on the ice prone (' + !!H6[1].conds.prone + '), the Keeper still where it stood (' + (k6.x === kx0 && k6.y === ky0) + ')',
+      !k6.flooding && !H6[1].conds.restrained && !!H6[1].conds.prone && k6.x === kx0 && k6.y === ky0 && /takes its swirl/.test(c6.join(' ')) && K.iced(B6, H6[1].x, H6[1].y));
+    c6.length = 0; drain(K.spellOn(B6, H6[3], 'coneofcold', 5, pt(8, 5)));
+    ok('and cold over its own squares freezes the water it stands in, so it is restrained (' + JSON.stringify(k6.conds.restrained) + ')', k6.conds.restrained && k6.conds.restrained.ice === true && k6.conds.restrained.dc === 7);
     // its turn: breaks out on the bonus action (DC 7 STR), the ice it was in goes and 1-2 about it
     var iced0 = Object.keys(B6.kp.ice).length; RU.startTurn(k6); c6.length = 0; force(true); drain(K.turn(B6, k6)); unforce();
     var iced1 = Object.keys(B6.kp.ice).length, lost = iced0 - iced1;
@@ -143,7 +142,9 @@
     var B8 = battle({ lvl: 3 }), k8 = keeper(B8), H8 = ours(B8), c8 = cardsOf(B8); delete k8.conds.hidden; H8.forEach(function (u) { delete u.conds.hidden; });
     function leave() { put(H8[0], 8, 6); RU.startTurn(H8[0]); H8[0].turn.move = 30; H8[0].turn.disengaged = false; k8.reaction = 1; c8.length = 0; drain(B8.moveAlong(H8[0], [sq(8, 7), sq(8, 8)], { spend: true })); }
     K.CFG.oaWave = false; leave(); var plain = /Slam/.test(c8.join(' ')) && !/raises a wave/.test(c8.join(' ')), y0 = K.A(H8[0]);
-    K.CFG.oaWave = true; force(false); leave(); unforce(); K.CFG.oaWave = false;
+    var bloom0 = D.fx.bloom, atBloom = null; D.fx.bloom = function (x, y, sq2, ramp, o) { if (ramp === 'cold' && atBloom === null) atBloom = { A: K.A(H8[0]), landing: K.A({ x: x, y: y }) }; return bloom0.apply(this, arguments); };
+    K.CFG.oaWave = true; force(false); leave(); unforce(); K.CFG.oaWave = false; D.fx.bloom = bloom0;
+    ok('the opportunity-attack wave: the mover stands in its square (along ' + (atBloom && atBloom.A) + ') while the effect lights the square it lands in (' + (atBloom && atBloom.landing) + '), and is pushed one square, 5 ft (now ' + K.A(H8[0]) + ')', atBloom && atBloom.A === 7 && atBloom.landing === 6 && K.A(H8[0]) === 6);
     ok('opportunity attack: off, the Slam (' + plain + ', walked to ' + y0 + '); on, a wave that sweeps the leaver toward the deep and ends its walk (now at ' + H8[0].x + ',' + K.A(H8[0]) + ')', plain && y0 === 8 && /raises a wave/.test(c8.join(' ')) && K.A(H8[0]) < 8 && !H8[0].conds.prone && k8.reaction === 0);
     D.battle = B3;
     // ---- the Ice Wall struck at: weapons and single-target spells aim at a section (AC 10); only fire, or thunder, harms it
@@ -158,6 +159,10 @@
     var cz = H9[1]; cz.known = (cz.known || []).concat(['firebolt']); cz.spellAtk = 60; cz.spellDC = 13; c9.length = 0; for (var fb = 0; fb < 6 && B9.kp.wall; fb++) { RU.startTurn(cz); drain(D.magic.cast(B9, cz, 'firebolt', 0, wallL(B9, 10, 11))); } // (a natural 1 misses: up to six tries)
     ok('Fire Bolt at the other section: it is destroyed and the wall is down (' + (B9.kp.wall ? 'still up' : 'down') + ') ' + c9.join(' // ').slice(0, 600), !B9.kp.wall && !wallL(B9, 10, 11) && standL(H9[0], 8, 11));
     D.battle = B3;
+    // ---- the wall's ice: whoever stands where it rises is thrown up onto it, prone, and set back (the same rule as the freeze's)
+    var B10 = battle({ lvl: 3 }), k10 = keeper(B10), H10 = ours(B10); H10.forEach(function (u) { delete u.conds.hidden; }); put(H10[0], 8, 11); k10.reaction = 1; drain(K.raiseWall(B10, k10, H10[1]));
+    ok('a hero in the wall\'s squares when it rises: prone (' + !!H10[0].conds.prone + ') and set back to along ' + K.A(H10[0]), !!H10[0].conds.prone && K.A(H10[0]) < 11 && !standL(H10[0], 8, 11));
+    D.battle = B3;
     // ---- the Slam: a hit that fails the DC 15 STR save puts them prone
     var B2 = battle({ lvl: 3 }), k2 = keeper(B2), Q = ours(B2); delete k2.conds.hidden; put(Q[0], 8, 6);
     var prone = 0, hits = 0; for (var i = 0; i < 60; i++) { delete Q[0].conds.prone; Q[0].hp = Q[0].maxhp; drain(B2.attack(k2, Q[0], k2.attacks.slam)); if (Q[0].conds.prone) prone++; }
@@ -166,10 +171,10 @@
     var GB = D.fxKeeper('?fxgallery&keeper&auto'); D.battle = GB; GB.enter(); var seen = {}, gerr = '', gsteps = 0, cv = document.createElement('canvas'); cv.width = 640; cv.height = 400; var cx2 = cv.getContext('2d');
     while (GB.co && gsteps++ < 60000 && (Object.keys(seen).length < K.SCENES.length || gsteps < 10)) { var gr; try { gr = GB.co.next(); } catch (e) { gerr = String(e && e.stack || e).slice(0, 400); break; } seen[GB.gallery.i] = 1; if (gr.done) break; var nf = typeof gr.value === 'number' ? Math.min(gr.value, 120) : 1; for (var fi = 0; fi < nf; fi++) { D.fx.list.forEach(function (f) { try { f.draw(cx2); } catch (e) { gerr = gerr || ('draw ' + f.kind + ': ' + String(e && e.stack || e).slice(0, 300)); } }); D.fx.update(); GB.t = (GB.t || 0) + 1; } }
     ok('the gallery: ' + Object.keys(seen).length + ' of ' + K.SCENES.length + ' scenes seen, ' + gsteps + ' steps' + (gerr ? ', ERROR ' + gerr : ''), Object.keys(seen).length >= K.SCENES.length && !gerr);
-    // ---- ?keeperfight&seed=174221&watch drained (no frame loop): the fight the notes name -- level 3, won in round 9, a flood, a held hold broken, a wall
-    var KF = D.keeper.fight('?keeperfight&seed=324682&watch&lvl=3'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
+    // ---- ?keeperfight&seed=174221&watch drained (no frame loop): the fight the notes name -- level 3, won in round 7, a flood, a hold broken, a wall
+    var KF = D.keeper.fight('?keeperfight&seed=435548&watch&lvl=3'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
-    ok('?keeperfight&seed=324682 drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/springs the Ice Wall/g), KF.result === 'won' && KF.round === 9 && kn(/washed into the deep/g) === 1 && kn(/springs the Ice Wall/g) === 1);
+    ok('?keeperfight&seed=435548 drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/springs the Ice Wall/g), KF.result === 'won' && KF.round === 7 && kn(/washed into the deep/g) === 1 && kn(/springs the Ice Wall/g) === 1);
     // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row; the counts are what the mechanics did
     var q = {}; location.search.replace(/^\?/, '').split('&').forEach(function (kv) { var a = kv.split('='); if (a[0]) q[a[0]] = decodeURIComponent(a[1] || ''); });
     if (q.hide != null) K.CFG.hideAfter = q.hide !== '0'; if (q.oa != null) K.CFG.oaWave = q.oa === '1'; if (q.need) K.CFG.freezeNeeds = q.need; // (the settings the bench can flip: hide=0, oa=1, need=any)
