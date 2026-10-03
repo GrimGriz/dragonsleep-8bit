@@ -1144,7 +1144,7 @@
         else if (sp.buff === 'mageArmor') { t.h.conds.mageArmor = true; }
         else if (sp.buff === 'invisible') { t.conds.invisible = { rounds: 10, ends: sp.id === 'invisibility' }; delete t.conds.hidden; } // (the 2nd-level one ends when they attack or cast; Greater does not)
         else if (sp.buff === 'mirror') { t.images = 3; } // (Mirror Image, the 8-bit's: three images -- RULED 10-01c, 'work a simplified version into 8-bit battles')
-        else if (sp.buff === 'mislead') { t.conds.invisible = { rounds: 10, ends: true }; delete t.conds.hidden; }
+        else if (sp.buff === 'mislead') { t.conds.invisible = { rounds: 10, ends: true }; delete t.conds.hidden; t.images = Math.max(t.images || 0, 1); } // (and the double where he stood, SRD 5.1: one image a blow may go at, Mirror Image's rule -- the grid's, deep16/js/magic.js; 10-03)
         else if (sp.buff === 'seeInvisible') { t.conds.seeInvisible = { rounds: 10 }; }
         else if (sp.buff === 'darkvision') { t.h.conds.darkvision = true; }
         else if (sp.buff === 'continualFlame') { t.h.conds.continualFlame = t.h.equip.weapon || t.h.equip.armor || true; this.lit = true; this.flashT = 8; yield* this.dazzle(nameOf(u) + ' sets a flame on ' + plain(t) + "'s " + (R.item(t.h.equip.weapon) ? R.item(t.h.equip.weapon).name.toLowerCase() : 'gear') + ' that gives no heat.'); }

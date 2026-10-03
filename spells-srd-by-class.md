@@ -338,7 +338,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Insect Plague | C S D |  | **BUILT** | a lasting 20-ft sphere (conc): CON save 4d10 piercing on appear, entry, end turn; difficult -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Legend Lore | W C B | Au | **OUT** | divination |
 | Mass Cure Wounds | C B D |  | **BUILT** | allies, up to six in a 30-ft sphere: 3d8 + mod each; a foe priest healing its band -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
-| Mislead | W B | Au | **BUILT** | invisible, and an illusory double: waits on the dark -- BUILT 09-28 (torchdark): invisible till he attacks or casts, and one false image |
+| Mislead | W B | Au | **BUILT** | invisible, and an illusory double: waits on the dark -- BUILT 09-28 (torchdark): invisible till he attacks or casts, and one false image -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle sets the double too, one image a blow may go at (Mirror Image's d20), as the grid has it |
 | Modify Memory | W B | Au | **OUT** | social |
 | Passwall | W | Au | **OUT** | a passage through a wall: the maps' walls are the story's |
 | Planar Binding | W C B D | Au | **OUT** | planar business |

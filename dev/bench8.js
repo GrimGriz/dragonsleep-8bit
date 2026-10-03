@@ -206,6 +206,14 @@
         castF(AF, 'icestorm', [], [4, 3, 3, 1]);
         var lost1b = o1b.map(function (f) { return 400 - f.hp; }), n1b = rollsF.filter(function (e) { return e === '2d8' || e === '4d6'; }).length;
         check('1. Ice Storm on three ogres: its 2d8 and 4d6 rolled ' + n1b + ' times in all; each loses ' + lost1b.join(', '), n1b === 2 && lost1b[0] === lost1b[1] && lost1b[1] === lost1b[2]);
+
+        // 2. Mislead's double (SRD 5.1: "You become invisible at the same time that an illusory double of you appears where you are standing"): one image
+        // stands, and an ogre's club goes at it on the d20 (11+ with one, Mirror Image's rule); the club 15 (at disadvantage: he is unseen) bursts it
+        var o2 = foesF(['ogre'], 400); AF.conds = {}; AF.images = 0; AF.h.maxhp = AF.h.hp = 400;
+        castF(AF, 'mislead', [], [4, 3, 3, 3, 1]);
+        var inv2 = !!AF.conds.invisible, im2 = AF.images, hp2 = AF.h.hp;
+        T.blog = []; QdF = [15, 15, 11]; runF(bF.foeAttack(o2[0], AF, o2[0].m.attacks.club)); QdF = [];
+        check('2. Mislead: invisible ' + inv2 + ', a double up (' + im2 + '); the club goes at it -- "' + saidF() + '" -- and he is unhurt (' + (AF.h.hp === hp2) + ')', inv2 && im2 === 1 && AF.images === 0 && AF.h.hp === hp2 && /an image of Aurdin\. It bursts!/.test(saidF()));
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');
