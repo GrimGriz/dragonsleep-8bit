@@ -38,7 +38,14 @@
   // ---------------------------------------------------------------- storage (guarded, same origin as the 8-bit game)
   D.store = {
     get: function (k) { try { var v = window.localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
-    set: function (k, v) { try { window.localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
+    set: function (k, v) {
+      try { window.localStorage.setItem(k, JSON.stringify(v)); return true; }
+      catch (e) {
+        // (full: the play record gives up its oldest fights and the save is tried again -- js/record.js REC.room, 10-03)
+        while (k !== 'deep16.plays' && D.rec && D.rec.room && D.rec.room()) { try { window.localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e2) { /* (not yet room enough) */ } }
+        return false;
+      }
+    }
   };
 
   // ---------------------------------------------------------------- sound: the 8-bit game's own chip synth (../js/audio.js, loaded after this):

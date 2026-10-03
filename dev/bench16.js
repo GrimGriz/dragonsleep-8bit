@@ -2364,7 +2364,34 @@
           okP(D.top() === PF && D.scenes.length === 1 && PF.screen === 'cr' && PF.msg && PF.msg.bad && /WOULD NOT SET: a test throw.*\.\. -- nothing spent, a fresh map$/.test(PF.msg.text) && D.textWidth(PF.msg.text) <= D.W - 24, 'a fight that throws as it sets goes back to the table, which says so in a line the screen holds: "' + (PF.msg && PF.msg.text) + '"');
           okP(stF.run && stF.run.rung === 2 && stF.run.won === 1 && stF.run.foes.join() === 'goblin,goblin,wolf' && mids.indexOf(stF.run.map) >= 0 && PF.fightMap === stF.run.map && !stF.fights.length, 'the ladder as it was (rung 2, one won, its foes, nothing recorded), the rung now on ' + stF.run.map);
         } finally { D.Battle.prototype.enter = enter0; D.scenes.length = 0; sc0.forEach(function (s) { D.scenes.push(s); }); }
+        // l. a lost trial rerolled is the trial again, double deadly (10-03: REROLL THE RUNG rolled a fourth rung's table, and a win of it unlocked Pyro)
+        mem['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: { rung: 4, trial: true, won: 4, base8: 8, carry: null, hd: [3, 3, 3, 3], arcane: [false, false, false, false], map: 'gulch', foes: ['goblin'] } });
+        var PT = new D.Pocket(); PT.enter(); PT.before = JSON.parse(JSON.stringify({ run: PT.st.run, party: PT.st.party, roster: PT.st.roster }));
+        PT.rerollRung();
+        var dT = PK.diff(PT.levels(), PT.st.run.foes);
+        okP(PT.st.run.trial && PT.st.run.rung === 4 && dT.ratio >= 2 && PT.foes === PT.st.run.foes && PT.screen === 'cr', 'a lost trial rerolled is the trial again: rung ' + PT.st.run.rung + ', ' + PK.foesText(PT.st.run.foes) + ', ' + dT.label + ' at ' + (Math.round(dT.ratio * 10) / 10) + 'x the deadly line');
       } finally { D.store.get = st0; D.store.set = ss0; HTMLAnchorElement.prototype.click = aClick0; }
+      // m. the play record keeps to its room (10-03: forty whole fights filled the browser's storage, and the Pocket DM's roster write was the one refused):
+      // what a recorded table weighs, the record trimmed to REC.ROOM when a fight is written, and a save the browser refused made room for by the record's
+      // oldest fights -- on a stand-in storage that refuses past its cap, as a browser's does
+      var lsD = Object.getOwnPropertyDescriptor(window, 'localStorage');
+      var fakeLS = function (cap) { var m = {}, used = function (skip) { var n = 0; Object.keys(m).forEach(function (k) { if (k !== skip) n += k.length + m[k].length; }); return n; }; return { m: m, getItem: function (k) { return k in m ? m[k] : null; }, setItem: function (k, v) { v = String(v); if (used(k) + k.length + v.length > cap) { var e = new Error('past the quota'); e.name = 'QuotaExceededError'; throw e; } m[k] = v; }, removeItem: function (k) { delete m[k]; } }; };
+      try {
+        var LS = fakeLS(4800000); Object.defineProperty(window, 'localStorage', { configurable: true, get: function () { return LS; } });
+        var recFight = function () { var Br = new D.Battle({ npc: { foes: ['goblin', 'goblin', 'wolf'], party: ['barley:3', 'aurdin:3', 'vivian:3', 'lymen:3'] }, bench: true, pocket: true, record: { fight: 'pocket', name: 'A RECORDED TABLE', level: 3 }, fightDef: D.classFight(3, { id: 'pocket', map: 'gulch' }) }); D.battle = Br; Br.enter(); var rr = drive(Br); D.rec.finish(Br, rr); return Br; };
+        var BR = recFight(), raw1 = LS.getItem('deep16.plays') || '[]', one = JSON.parse(raw1);
+        okP(one.length === 1 && one[0].started === BR.rec.started, 'a recorded table (' + BR.round + ' rounds, ' + ((one[0] && one[0].steps || []).length) + ' steps) is kept: ' + Math.round(raw1.length / 1000) + ' K characters; the room is ' + Math.round(D.rec.ROOM / 1000) + ' K');
+        var old = [], pad = new Array(100001).join('x'); for (var oi = 0; oi < 40; oi++) old.push({ fight: 'old', started: 'old' + oi, steps: [], log: [pad] });
+        LS.m['deep16.plays'] = JSON.stringify(old);
+        var BR2 = recFight(), kept = JSON.parse(LS.getItem('deep16.plays') || '[]'), keptLen = LS.getItem('deep16.plays').length;
+        okP(keptLen <= D.rec.ROOM + 2 && kept.length > 1 && kept[kept.length - 1].started === BR2.rec.started && kept[0].started !== 'old0', 'forty old fights of 100 K (4 M) and a new one written: ' + kept.length + ' kept, ' + Math.round(keptLen / 1000) + ' K, the newest last, the oldest gone');
+        LS.m['deep16.plays'] = JSON.stringify(old);
+        var bigRoster = { roster: [{ code: 'barley:3', name: new Array(1000001).join('r') }] }, wrote = D.store.set('deep16.pocket', bigRoster), left = JSON.parse(LS.getItem('deep16.plays') || '[]');
+        okP(wrote && LS.getItem('deep16.pocket') && left.length === 20 && left[0].started === 'old20', 'a 1 M save refused at a full store (4 M of record, a 4.8 M cap) is written after the record gives up its oldest half (' + left.length + ' left, from ' + (left[0] && left[0].started) + ')');
+        LS.m['deep16.plays'] = JSON.stringify(old); delete LS.m['deep16.pocket'];
+        okP(D.store.set('deep16.plays', old.concat([{ fight: 'x', started: 'y', log: [new Array(900001).join('y')] }])) === false && JSON.parse(LS.getItem('deep16.plays')).length === 40, 'the record\'s own write never asks itself for room (refused, left as it was)');
+      } catch (eL) { repP.errors.push('m: ' + String(eL && eL.stack || eL).slice(0, 600)); }
+      finally { if (lsD) Object.defineProperty(window, 'localStorage', lsD); else delete window.localStorage; }
     } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
     if (errs.length) repP.errors = repP.errors.concat(errs);
     var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);

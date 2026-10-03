@@ -7,7 +7,9 @@
 'use strict';
 (function () {
   var D = window.D16, G = D.grid;
-  var KEY = 'deep16.plays', KEEP = 40;
+  // (and no more than ROOM characters of the browser's storage, 10-03: forty whole fights filled it to its edge and the Pocket DM's roster
+  // write was the one refused -- and grimgriz.github.io is one origin for every game on his Pages, so the room is shared)
+  var KEY = 'deep16.plays', KEEP = 40, ROOM = 1500000;
   var REC = D.rec = {};
 
   function logText(e) { return typeof e === 'string' ? e : (e && e.text) || ''; }
@@ -131,11 +133,24 @@
     all.forEach(function (f, i) { if (f.fight === r.fight && f.started === r.started) at = i; });
     if (at >= 0) all[at] = out; else all.push(out);
     while (all.length > KEEP) all.shift();
-    // (browser storage is small: past its room, the oldest fights go first, then the full logs, which the steps repeat)
+    // (browser storage is small: past ROOM, or past what the browser will take, the oldest fights go first, then the full logs, which the steps repeat)
+    var sizes = all.map(function (f) { return JSON.stringify(f).length; }), total = sizes.reduce(function (a, b) { return a + b; }, 0);
+    while (total > ROOM && all.length > 1) { total -= sizes.shift(); all.shift(); }
+    if (total > ROOM) all.forEach(function (f) { delete f.log; });
     while (!D.store.set(KEY, all) && all.length > 1) all.shift();
     if (!D.store.set(KEY, all)) { all.forEach(function (f) { delete f.log; }); D.store.set(KEY, all); }
   }
   REC.count = function () { return (D.store.get(KEY) || []).length; };
+  REC.ROOM = ROOM;
+  // room for a save the browser refused (D.store.set, js/core.js): the oldest half of the kept fights go, and the save is tried again --
+  // a roster, a camp or a ladder is worth more than an old fight's record (false: nothing left to give)
+  REC.room = function () {
+    var all = D.store.get(KEY) || [];
+    if (!all.length) return false;
+    all.splice(0, Math.ceil(all.length / 2));
+    if (!D.store.set(KEY, all)) { try { window.localStorage.removeItem(KEY); } catch (e) { return false; } } // (a shorter list refused too: the record goes whole, so the asking stops)
+    return true;
+  };
   // R on the tester ladder: every kept fight to one file (a download: the browser asks where, or drops it in Downloads)
   REC.save = function () {
     var all = D.store.get(KEY) || [];

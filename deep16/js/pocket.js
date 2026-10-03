@@ -460,6 +460,15 @@
     this.foes = run.foes = kinds || PK.roll(PK.VALUES[PK.VALUES.length - 1], pot, room);
     this.keep();
   };
+  // after a loss: the party as it went in, and a fresh table for the same step -- a lost trial rerolls as the trial, double deadly (10-03: it rolled a
+  // fourth rung's table, and a win of that unlocked Pyro)
+  Pocket.prototype.rerollRung = function () {
+    this.restore();
+    var run = this.st.run;
+    if (run && run.trial) this.setTrial();
+    else if (run) { run.rung--; this.nextRung(); }
+    this.go('cr');
+  };
   Pocket.prototype.restCard = function () {
     var run = this.st.run, self = this, lines = [];
     run.carry.forEach(function (c, i) {
@@ -899,7 +908,7 @@
       this.btn(ctx, 'QUIT THE LADDER', x + w - 140, by, 120, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
     } else if (run) {
       this.btn(ctx, 'RETRY', x + 20, by, 90, 15, function () { self.restore(); self.go('cr'); }, { pri: true });
-      this.btn(ctx, 'REROLL THE RUNG', x + 120, by, 130, 15, function () { self.restore(); var rg = self.st.run; if (rg) { rg.rung--; self.nextRung(); } self.go('cr'); });
+      this.btn(ctx, 'REROLL THE RUNG', x + 120, by, 130, 15, function () { self.rerollRung(); });
       this.btn(ctx, 'QUIT', x + w - 90, by, 70, 15, function () { self.st.run = null; self.keep(); self.go('title'); });
       D.text(ctx, 'retry or reroll: the party as it went in', D.W / 2, by - 12, P('stone', 5), 'center');
     } else {
