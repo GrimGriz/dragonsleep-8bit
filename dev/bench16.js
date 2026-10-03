@@ -1081,6 +1081,51 @@
     document.body.appendChild(preX);
     return;
   }
+  // the review's rules misses on the grid (mode=rules1003; 10-03, Griz: "Slide way back up to the top with the stuff the cloud review came back with - I think those
+  // were probably the important of the todos"; dev-review-notes.md A3-A5): each check failed before its fix. Battle.hurt straight, D.d pinned for the CON saves
+  if (get('mode', '') === 'rules1003') {
+    var repR = { checks: [], errors: [] }, d0R = D.d, MR = D.magic;
+    function okR(what, v) { repR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkR(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideR(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function holdsR(Bx, n) { return (Bx.log || []).slice(n).join(' | ').split(' holds ').length - 1; } // (concCheck's card: "<name> holds <spell>? CON ...")
+    try {
+      // A3. resistance once (SRD 5.1: "Multiple instances of resistance ... count as only one instance"): 40 slashing at our raging fighter, then raging and
+      // Warding Bond (its binder takes as much), raging and Stoneskin, his own resist list and raging; nothing at all for the control
+      var B3 = mkR('?npc=goblin&lvl=7&vs=fighter:7,cleric:7'), f3 = sideR(B3, 'party').filter(function (u) { return u.cls === 'fighter'; })[0], c3 = sideR(B3, 'party').filter(function (u) { return u.cls === 'cleric'; })[0];
+      var hit3 = function (conds, resist) { f3.hp = f3.maxhp = 400; c3.hp = c3.maxhp = 400; f3.temp = 0; f3.conds = conds; f3.resist = resist || null; B3.hurt(f3, 40, 'slashing'); return [400 - f3.hp, 400 - c3.hp]; };
+      var none3 = hit3({}), rage3 = hit3({ raging: true }), bond3 = hit3({ raging: true, wardingBond: { by: c3.id } }), skin3 = hit3({ raging: true, stoneskin: { by: c3.id } }), list3 = hit3({ raging: true }, ['slashing']);
+      okR('A3. 40 slashing: plain ' + none3[0] + ', raging ' + rage3[0] + ', raging + Warding Bond ' + bond3[0] + ' (the binder ' + bond3[1] + '), raging + Stoneskin ' + skin3[0] + ', a resist list + raging ' + list3[0],
+        none3[0] === 40 && rage3[0] === 20 && bond3[0] === 20 && bond3[1] === 20 && skin3[0] === 20 && list3[0] === 20);
+      // A4. concentration on a blow the temporary hit points soak whole: our cleric holding Bless, 50 temp HP, 20 damage, the CON save a natural 1
+      var B4 = mkR('?npc=goblin&lvl=5&vs=cleric:5'), c4 = sideR(B4, 'party')[0];
+      c4.hp = c4.maxhp = 400; c4.temp = 50; MR.concentrate(B4, c4, 'bless', 'Bless', function () { });
+      D.d = function (n) { return n === 20 ? 1 : n; }; B4.hurt(c4, 20, 'slashing'); D.d = d0R;
+      okR('A4. a 20-point blow into 50 temp HP: temp left ' + c4.temp + ', HP ' + c4.hp + ', Bless held ' + !!c4.conc + ' (a natural 1: lost)', c4.temp === 30 && c4.hp === 400 && !c4.conc);
+      // A4. Wild Shape: our druid holding Bless in a beast's shape, a blow the beast takes, the save a 1; then a blow that throws it out of the shape, the save
+      // a 20 -- one save for the blow, none for the rest carried into the druid's own shape
+      var B4b = mkR('?npc=goblin&lvl=5&vs=druid:5'), d4 = sideR(B4b, 'party')[0];
+      d4.hp = d4.maxhp = 400; d4.temp = 0; d4.conds = {}; d4.beast = { hp: 50, keep: {} }; MR.concentrate(B4b, d4, 'bless', 'Bless', function () { });
+      D.d = function (n) { return n === 20 ? 1 : n; }; B4b.hurt(d4, 10, 'slashing'); D.d = d0R;
+      var beast4 = d4.beast && d4.beast.hp, kept4 = !!d4.conc;
+      d4.beast = { hp: 5, keep: {} }; MR.concentrate(B4b, d4, 'bless', 'Bless', function () { });
+      var n4 = (B4b.log || []).length; D.d = function (n) { return n === 20 ? 20 : n; }; B4b.hurt(d4, 25, 'slashing'); D.d = d0R;
+      okR('A4. Wild Shape: the beast at ' + beast4 + ' after 10, Bless held ' + kept4 + ' (a 1: lost); a 25-point blow on a 5-HP beast: the druid at ' + d4.hp + ', in shape ' + !!d4.beast + ', saves rolled ' + holdsR(B4b, n4) + ', Bless held ' + !!d4.conc,
+        beast4 === 40 && !kept4 && d4.hp === 380 && !d4.beast && holdsR(B4b, n4) === 1 && !!d4.conc);
+      // A4. incapacitated ends concentration (SRD 5.1: "You lose concentration on a spell if you are incapacitated"): a foe wizard holding a spell, laughing
+      var B4c = mkR('?npc=wizard:5&lvl=5&vs=fighter:5'), w4 = sideR(B4c, 'foe')[0];
+      MR.concentrate(B4c, w4, 'bless', 'Bless', function () { }); w4.conds.laughing = { by: 'x', spell: 'hideouslaughter' }; w4.conds.incapacitated = { by: 'x' }; B4c.sweep();
+      okR('A4. a concentrating foe wizard made incapacitated (Hideous Laughter): the spell held after the sweep ' + !!w4.conc, !w4.conc);
+      // A5. the door ward's 3% and the climb's draw on the seeded D.rand, never Math.random (a bench's seed reaches them)
+      var src5 = [String(D.Battle.prototype.doorWard), String(D.climb.draw)];
+      okR('A5. the door ward and the climb\'s draw read D.rand: ' + src5.map(function (s) { return s.indexOf('Math.random') < 0 && s.indexOf('D.rand') >= 0; }).join(', '), src5.every(function (s) { return s.indexOf('Math.random') < 0 && s.indexOf('D.rand') >= 0; }));
+    } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); }
+    D.d = d0R;
+    if (errs.length) repR.errors = repR.errors.concat(errs);
+    var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
+    document.body.appendChild(preR);
+    return;
+  }
   // Dispel Magic at a spell's square, and Counterspell (mode=dispel1002; 10-02, Griz: "I like 'spell effect squares without people' as valid dispel targets for that
   // spell"; "no to creature abilities"; Counterspell "an important one to have in there"): a Darkness's empty square is a target and ends it, its caster's concentration
   // with it; a darkness no spell made is no target; a player's Counterspell is asked and a Fireball fails; the AI's counters a hero's; a readied spell's release is not asked

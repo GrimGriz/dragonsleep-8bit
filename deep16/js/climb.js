@@ -38,7 +38,7 @@
   CL.draw = function (s, not) {
     var fs = D.fightsAt(s.level), other = fs.filter(function (f) { return f.id !== not; });
     if (other.length) fs = other;
-    s.fight = fs.length ? fs[Math.floor(Math.random() * fs.length)].id : null;
+    s.fight = fs.length ? fs[Math.floor(D.rand() * fs.length)].id : null; // (D.rand, the seeded one: 10-03, the review)
   };
   // the party after a long rest, for the camp: whole, slots and features back, the last fight's leftovers gone
   CL.rested = function (s) {

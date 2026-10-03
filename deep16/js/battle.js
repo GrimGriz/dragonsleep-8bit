@@ -581,7 +581,7 @@
       // a summoned creature at 0 HP is gone (SRD: "it disappears when it drops to 0 hit points")
       if (s.summon && s.hp <= 0 && !s.dead) { s.dead = true; s.left = true; s.deadT = self.t; FX.sparkle(s, 'moss', 8); }
       if (s.familiar && s.hp <= 0 && !s.dead && D.familiar && D.familiar.vanish) D.familiar.vanish(self, s); // (and a familiar: SRD 5.1, "it disappears")
-      var gone = s.dead || s.fled || s.left || s.hp <= 0, incap = gone || s.conds.paralyzed || s.conds.stunned || s.conds.asleep;
+      var gone = s.dead || s.fled || s.left || s.hp <= 0, incap = gone || s.conds.paralyzed || s.conds.stunned || s.conds.asleep || s.conds.incapacitated; // (incapacitated itself: Hideous Laughter's, Hypnotic Pattern's -- a concentrating foe kept its spell under them till 10-03, the review)
       if (gone) self.units.forEach(function (w) { ['stunned', 'frightened'].forEach(function (c) { if (w.conds[c] && w.conds[c].by === s.id && !(c === 'frightened' && w.conds.turned) && !(c === 'stunned' && w.conds[c].fresh === undefined && !w.conds[c].till)) delete w.conds[c]; }); }); // (a prayer's turning runs its minute out, whoever fell; nor does a spell's stun -- only the slam's and the moan's, laid with `fresh`, and a blow's, on a clock of its laying one's turns, go with the one who laid them)
       if (incap && s.conc) D.magic.endConc(self, s, gone ? 'gone' : 'incapacitated');
       if (incap && s.holding && s.holding.length) self.release(s);
@@ -1672,9 +1672,13 @@
     if (u.rageOnHit && !u.raging && !u.dead) { u.raging = true; u.resist = ['bludgeoning', 'piercing', 'slashing']; FX.ring(u, 'red', 30); D.sfx('crit'); this.card(['{r}' + u.name + '{/} roars and rages!  {g}(half from blades and blows; +2 to his own){/}']); }
     // Split (the black pudding): slashing or lightning on one of Medium size or more with 10 HP or more halves it into two
     if (u.split && !u.dead && /slashing|lightning/.test(type || '') && u.hp >= 10 && (u.sizeClass || (u.size > 1 ? 'L' : 'M')) !== 'S' && this.alive('foe').length < 8) this.splitOff(u);
+    // resistance halves a blow once, however many say so (SRD 5.1: "Multiple instances of resistance or vulnerability that affect the same
+    // damage type count as only one instance" -- 10-03, the review seat's find: a raging barbarian under Warding Bond took a quarter)
+    var resisted = false;
     if (u.immune || u.resist || u.vulnerable) {
       var ty = this.typed(u, n, type);
       if (ty.why) FX.float(ty.why === 'immune' ? 'immune: ' + type : ty.why, u, ty.why === 'vulnerable' ? D.PAL.ramps.gold[4] : D.PAL.ramps.silver[5]); // (says to what: the jelly and a blade)
+      if (ty.why === 'resists') resisted = true;
       n = ty.n;
       if (n <= 0) return;
     }
@@ -1684,21 +1688,25 @@
       if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
     }
     // Stoneskin (SRD 5.1: "resistance to nonmagical bludgeoning, piercing, and slashing damage" -- 10-03: a magic blade or a spell's hail lands whole)
-    if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '') && !(src && src.magic)) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
+    if (!resisted && u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '') && !(src && src.magic)) { n = Math.floor(n / 2); resisted = true; FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
     // the class NPCs' wards (09-28, js/grimoire.js): Protection from Energy (one element halved), Protection from Poison, Rage (blades and
     // blows halved), Warding Bond (all of it halved -- and the one who bound it takes as much)
     var ward = u.conds;
-    if ((ward.energyWard && ward.energyWard.type === type) || (ward.poisonWard && type === 'poison') || (ward.raging && /bludgeoning|piercing|slashing/.test(type || ''))) { n = Math.floor(n / 2); FX.float('resists', u, D.PAL.ramps.silver[5]); }
+    if (!resisted && ((ward.energyWard && ward.energyWard.type === type) || (ward.poisonWard && type === 'poison') || (ward.raging && /bludgeoning|piercing|slashing/.test(type || '')))) { n = Math.floor(n / 2); resisted = true; FX.float('resists', u, D.PAL.ramps.silver[5]); }
     if (ward.wardingBond && n > 0) {
-      n = Math.floor(n / 2);
+      if (!resisted) { n = Math.floor(n / 2); resisted = true; } // (the bond's resistance counts once too; the one who bound it still takes what the ward-bearer takes)
       var bondBy = this.units.filter(function (w) { return w.id === ward.wardingBond.by && !w.dead && w.hp > 0; })[0];
       if (bondBy && bondBy !== u && n > 0) { FX.float('bond', bondBy, D.PAL.ramps.gold[4]); this.hurt(bondBy, n, 'bond'); if (bondBy.hp <= 0) delete ward.wardingBond; }
     }
+    // concentration reads the damage taken, temporary hit points and a beast's shape included (SRD 5.1: "Whenever you take damage while you
+    // are concentrating"; the DC "half the damage you take") -- one save a blow: the rest a reverted druid carries into their own shape
+    // comes back `carried` and rolls none (10-03, the review: a temp-HP soak and Wild Shape both returned before the save)
+    var took = n, conc = function (B) { if (took > 0 && !(src && src.carried)) D.magic.concCheck(B, u, took); };
     if (u.temp > 0) { var soak = Math.min(u.temp, n); u.temp -= soak; n -= soak; }
     // Wild Shape (js/features.js): the beast's hit points take it first; at 0 the druid comes back with the rest
-    if (u.beast && n > 0) { if (n < u.beast.hp) { u.beast.hp -= n; u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); return; } var over = n - u.beast.hp; D.features.unshape(this, u, over); return; }
+    if (u.beast && n > 0) { if (n < u.beast.hp) { u.beast.hp -= n; u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); conc(this); return; } var over = n - u.beast.hp; conc(this); D.features.unshape(this, u, over); return; }
     if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
-    if (n <= 0) return;
+    if (n <= 0) { conc(this); return; }
     u.hp = Math.max(0, u.hp - n);
     if (u.traces) this.hitAtTraces = true; // (nothing shows now: from their next moves they run, or he turns to fight: ai.js turn)
     if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
@@ -1712,13 +1720,13 @@
       // (a half-orc class NPC's Relentless Endurance too: js/classes.js)
       u.feats.relentless = 0; u.hp = 1; FX.ring(u, 'gold', 30); D.sfx('buff');
       this.card(['{y}' + u.name + ' refuses to fall!{/}  {g}(Relentless: once a day, at 1 HP){/}']);
-      D.magic.concCheck(this, u, n);
+      conc(this);
       return;
     }
     // Death Ward (js/grimoire.js): the first fall stops at 1
-    if (u.hp <= 0 && u.conds.deathWard) { delete u.conds.deathWard; u.hp = 1; FX.ring(u, 'gold', 30); this.card(['{y}' + (u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' does not fall: the death ward holds.{/}']); D.magic.concCheck(this, u, n); return; }
+    if (u.hp <= 0 && u.conds.deathWard) { delete u.conds.deathWard; u.hp = 1; FX.ring(u, 'gold', 30); this.card(['{y}' + (u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' does not fall: the death ward holds.{/}']); conc(this); return; }
     // Relentless (the giant boar: js/traits.js): a small blow that would drop it leaves it at 1
-    if (u.hp <= 0 && D.traits && D.traits.refuse && D.traits.refuse(this, u, n)) { D.magic.concCheck(this, u, n); return; }
+    if (u.hp <= 0 && D.traits && D.traits.refuse && D.traits.refuse(this, u, n)) { conc(this); return; }
     if (u.hp <= 0) {
       u.anim = 'hurt'; u.animT = this.t;
       if (D.traits && D.traits.onDown) D.traits.onDown(this, this.active, u); // (the gnoll's Rampage)
@@ -1734,7 +1742,7 @@
       // one who runs the moment the one in charge is down (the wheelwright, when Hask falls): gone up the stair at once, before
       // anyone can cut him down -- the 8-bit's foeBolt, certain (review 09-28 #11: the wheelwright quest hangs on his getting away)
       if (u.side === 'foe') { var self = this; this.units.forEach(function (w) { if (w.side === 'foe' && w.bolts && w.bolts === u.kind && !w.dead && w.hp > 0) { w.dead = true; w.fled = true; w.deadT = self.t; if (w.holding && w.holding.length) self.release(w); D.sfx('run'); self.card(['{r}' + w.name + '{/} drops what he was holding and runs for the stair. He is gone.']); } }); }
-    } else D.magic.concCheck(this, u, n);
+    } else conc(this);
     if (D.magic.onHurt && u.hp > 0) D.magic.onHurt(this, u, n, type); // (a laughing one's save with advantage, a pattern broken: js/grimoire.js)
   };
   Battle.prototype.heal = function (u, n) {
@@ -1866,7 +1874,7 @@
   Battle.prototype.doorWard = function (t) {
     var R = window.DS.R, sh = t.src && t.src.equip && R.item(t.src.equip.shield), self = this;
     if (!sh || !sh.shield || !sh.shield.doorward || this.doorWardOn || t.side !== 'party' || t.hp <= 0) return;
-    if (Math.random() >= (window.DS.doorWardChance != null ? window.DS.doorWardChance : 0.03)) return;
+    if (D.rand() >= (window.DS.doorWardChance != null ? window.DS.doorWardChance : 0.03)) return;
     this.doorWardOn = t; D.sfx('buff'); FX.ring(t, 'glow', 60);
     this.units.forEach(function (w) { if (w.side === 'party' && w.hp > 0 && !w.dead) FX.sparkle(w, 'silver', 14); });
     this.card(['{c}The ' + sh.name + ' protects the party.{/}  {g}(+3 AC to all, till ' + t.name + '\'s next turn){/}'], 320);

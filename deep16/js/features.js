@@ -457,7 +457,7 @@
     B.card(['{g}' + Nm(B, u) + (willing ? ' takes their own shape again.' : ' is thrown back into their own shape.') + '{/}'], 240);
     // (a Polymorph undone by the blow ends the spell: SRD "until the target drops to 0 hit points")
     if (mb) { var cst = B.units.filter(function (w) { return w.id === mb.by; })[0]; if (cst && cst.conc && cst.conc.id === 'polymorph' && cst.conc.t === u) delete cst.conc; }
-    if (over > 0) B.hurt(u, over, 'bludgeoning');
+    if (over > 0) B.hurt(u, over, 'bludgeoning', { carried: true }); // (carried: the blow's concentration save was rolled once already, Battle.hurt -- 10-03)
   };
   TX.ACTIONS.push(function (B, u, fs) {
     if (u.cls !== 'druid' || u.lvl < 2 || u.beast || !feat(u, 'wildShape') || !u.turn.action) return null;
