@@ -176,6 +176,10 @@
     var KF = D.keeper.fight('?keeperfight&seed=31679&watch&lvl=3'); D.battle = KF; KF.enter(); var kc = cardsOf(KF), kg = 0, kv; while (KF.co && kg++ < 400000) { var kr = KF.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
     ok('?keeperfight&seed=31679 drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g), KF.result === 'won' && KF.round === 6 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1);
+    var LG = D.keeperLog, lgf = function (e) { return e && typeof e.round === 'number' && typeof e.turn === 'number' && 'actor' in e && 'action' in e && Array.isArray(e.targets) && Array.isArray(e.rolls) && 'result' in e && e.hpAfter && typeof e.hpAfter === 'object' && e.flags && ['flood', 'wall', 'swirl', 'frozen'].every(function (k) { return k in e.flags; }); };
+    var lgcheck = function (what, wantActors) { var acts = {}; LG.forEach(function (e) { acts[e.actor] = 1; }); var tx = LG.text(), rolled = LG.filter(function (e) { return e.rolls.length; }).length, ends = LG.some(function (e) { return e.action === 'the fight ends'; });
+      ok('the log, ' + what + ': ' + LG.length + ' lines (' + rolled + ' with rolls), actors ' + Object.keys(acts).join('/') + ', meta ' + JSON.stringify(LG.meta) + ', text ' + tx.length + ' chars, file ' + LG.filename(), LG.length > 10 && LG.every(lgf) && rolled > 3 && wantActors.every(function (a) { return acts[a]; }) && /^THE KEEPER/.test(tx) && tx.indexOf('roll:') > 0 && LG.meta.seed != null && LG.meta.level === 3 && /^keeper-seed\d+-L3\.txt$/.test(LG.filename()) && ends); };
+    lgcheck('watched fight (class AI both sides)', ['The Keeper', 'Barley']); ok('the log, watched: mode ' + LG.meta.mode, LG.meta.mode === 'ai');
     // ---- the two play modes (js/keeperplay.js): each drives a whole fight without error
     // B: the party played by a script, one plan a turn, through D16.keeperPlay.actSync
     var KB = D.keeper.fight('?keeperfight&play=party&lvl=3'); D.battle = KB; KB.enter(); var KPl = D.keeperPlay, acts = { n: 0, attack: 0, cast: 0, move: 0, dodge: 0 }, st0 = KPl.actSync({ do: 'none', keep: true }), perr = '', pj = '';
@@ -200,9 +204,11 @@
       pj = JSON.stringify(st0).length;
     } catch (e) { perr = String(e && e.stack || e).slice(0, 300); }
     ok('play=party: a script plays the party (' + acts.n + ' turns: ' + acts.move + ' moves, ' + acts.attack + ' attacks, ' + acts.cast + ' casts, ' + acts.dodge + ' dodges) to ' + (st0.over ? 'the end: ' + st0.result : 'round ' + st0.round) + '; state is ' + pj + ' bytes of JSON' + (perr ? ', ERROR ' + perr : ''), !perr && acts.n > 3 && acts.attack + acts.cast > 0 && typeof pj === 'number' && pj > 500);
+    lgcheck('play=party (a script plays the four)', ['The Keeper', 'Barley']); ok('the log, play=party: mode ' + LG.meta.mode, LG.meta.mode === 'party' && LG.some(function (e) { return /^(attack|cast|move)/.test(e.action) && e.actor !== 'The Keeper'; }));
     var legalOK = false; try { var KB2 = D.keeper.fight('?keeperfight&play=party&lvl=3'); D.battle = KB2; KB2.enter(); var s2 = KPl.actSync({ do: 'none', keep: true }); legalOK = s2.pending.type === 'turn' && s2.legal && s2.legal.moves.length > 0 && Array.isArray(s2.legal.spells) && s2.units.length >= 5 && s2.map.geo.axis === 'x' && s2.keeper && s2.keeper.lane; } catch (e) { perr = String(e); }
     ok('play=party: the state names who is deciding, what is legal (moves, strikes, spells), the Keeper and the map\'s lane geometry', !!legalOK);
     // A: a human is the Keeper (the menu answered by a policy), the class AI the party
+    var dls = [], click0 = HTMLAnchorElement.prototype.click; HTMLAnchorElement.prototype.click = function () { if (this.download) dls.push(this.download + ' ' + (this.href || '').slice(0, 5)); }; // (the end-of-fight download: caught, not made)
     var KA = D.keeper.fight('?keeperfight&play=keeper&lvl=3'); D.battle = KA; KA.enter(); var used = {}, menus = 0, picks = 0, aerr = '', g2 = 0;
     try {
       while (KA.co && g2++ < 400000) {
@@ -224,6 +230,8 @@
       }
     } catch (e) { aerr = String(e && e.stack || e).slice(0, 300); }
     ok('play=keeper: a human is the Keeper (' + menus + ' menus, ' + picks + ' move picks; used ' + JSON.stringify(used) + '), the fight ends: ' + KA.result + ' R' + KA.round + (aerr ? ', ERROR ' + aerr : ''), !aerr && menus > 3 && !!KA.result && (used.kslam || 0) + (used.kwave || 0) > 0);
+    HTMLAnchorElement.prototype.click = click0; ok('the log: the fight\'s end downloads it, named by seed and level (' + dls + ') -- and a bench fight did not', dls.length === 1 && /^keeper-seed\d+-L3\.txt blob:$/.test(dls[0]));
+    lgcheck('play=keeper (a human Keeper on the ring)', ['The Keeper', 'Barley']); ok('the log, play=keeper: mode ' + LG.meta.mode + ', the Keeper\'s ring commands (' + LG.filter(function (e) { return /^k/.test(e.action); }).map(function (e) { return e.action; }).slice(0, 4) + ')', LG.meta.mode === 'keeper' && LG.some(function (e) { return /^k(slam|wave|cast|ready)/.test(e.action); }));
     // ---- 10-03 desk notes A-G: the Wave with no wall (prone only, no washback), with the wall (washback only where a section stands), the CAST, who may do what, the ring
     K.CFG.washNoWall = false;
     var BC = battle({ lvl: 3 }), kC = keeper(BC), HC = ours(BC), cC = cardsOf(BC); HC.forEach(function (u) { delete u.conds.hidden; }); delete kC.conds.hidden;
