@@ -626,7 +626,9 @@
       var dd = M.dice(sp, u, slot), r = D.roll(dd), r2 = sp.dmg2 ? D.roll(sp.dmg2) : null, tot = r.total + (r2 ? r2.total : 0), ab = sp.save || 'dex';
       // Elemental Affinity (the Draconic sorcerer at 6): + CHA to a spell of the ancestry's element
       var aff = M.affinity ? M.affinity(u, sp.el) : 0; tot += aff;
-      lines.push(head + '  ' + dd + ' ' + RU.fmtRolls(r.rolls) + (r2 ? ' + ' + sp.dmg2 + ' ' + RU.fmtRolls(r2.rolls) : '') + (aff ? ' {y}+' + aff + ' affinity{/}' : '') + ' = {o}' + tot + '{/} ' + sp.el + '  ' + ab.toUpperCase() + ' DC ' + dc);
+      // a second die of its own kind (Ice Storm's 4d6 cold beside its 2d8 bludgeoning, SRD 5.1 -- 10-03, Griz: "yes; it is a bug": it all landed as the first kind)
+      var d1 = r.total + aff, d2 = r2 ? r2.total : 0;
+      lines.push(head + '  ' + dd + ' ' + RU.fmtRolls(r.rolls) + (r2 ? ' + ' + sp.dmg2 + ' ' + RU.fmtRolls(r2.rolls) : '') + (aff ? ' {y}+' + aff + ' affinity{/}' : '') + (r2 ? ' = {o}' + d1 + '{/} ' + sp.el + ' + {o}' + d2 + '{/} ' + sp.el2 : ' = {o}' + tot + '{/} ' + sp.el) + '  ' + ab.toUpperCase() + ' DC ' + dc);
       var hits = [];
       // Sculpt Spells (the evoker, SRD 5.1 wizard 2): up to 1 + the spell's level of his own in an evocation are spared -- they save, and
       // take nothing where a save would halve it (js/features.js M.sculpted)
@@ -634,15 +636,15 @@
       caught.forEach(function (w) {
         if (spared.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}sculpted out of it{/}'); return; }
         var sv = RU.save(w, ab, dc, sp.el === 'poison' && RU.vsPoison(w), null, tot), evade = ab === 'dex' && RU.evasion(w); // (Evasion: the rogue's and the monk's 7, js/rules.js)
-        var d = sv.ok ? (evade ? 0 : (sp.half ? Math.floor(tot / 2) : 0)) : (evade ? Math.floor(tot / 2) : tot);
-        lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + d + '{/}');
-        hits.push([w, d, sv.ok]);
+        var share = function (x) { return sv.ok ? (evade ? 0 : (sp.half ? Math.floor(x / 2) : 0)) : (evade ? Math.floor(x / 2) : x); }, d = share(d1), dB = share(d2);
+        lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + (d + dB) + '{/}');
+        hits.push([w, d, sv.ok, dB]);
       });
       globeLines.forEach(function (l) { lines.push(l); });
       if (!caught.length && !globeLines.length) lines.push('  {g}no one in it.{/}');
       B.card(lines.slice(0, 7), 420);
       yield { fx: 1 };
-      hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el, MAGIC); });
+      hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el, MAGIC); if (h[3] && !h[0].dead) B.hurt(h[0], h[3], sp.el2, MAGIC); }); // (each kind its own hurt, as Flame Strike's: grimoire.js)
       // Thunderwave: a failed save is pushed 10 ft straight away from the caster (stopped by a wall, a creature, the edge)
       if (g.shape === 'wave') hits.forEach(function (h) { if (!h[2]) M.push(B, u, h[0], 2); });
       // Ice Storm: "Hailstones turn the storm's area of effect into difficult terrain until the end of your next turn" (SRD 5.1 -- 10-03, the register said
