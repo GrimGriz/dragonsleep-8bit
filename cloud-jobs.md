@@ -41,6 +41,8 @@ Every seat's notes file ends with a **For the next seat** section (10-03): the g
 
 ## Open questions for Griz (not rulings)
 
+- From the Keeper window's close (desktop, 10-03): the 8-bit's own story text (w.stairSee, w.markWake) is not matched to the two spawns; nobody has seen the live 8-bit wade-in or rune paths, or the ladder rung screen, in a real browser.
+- From the fixes seat's close, five small findings not built: the 8-bit's oozes lack the charmed condition; the drow's charm-save advantage is not read in the 8-bit; a two-kind spell makes a concentrating caster check twice (Ice Storm now, as Flame Strike did); Mislead's double has no clock; no grid foe has magical weapon attacks yet (set `magic: true` when one comes).
 - The walker's round-two four were built as the overseer's LEANS (a group at two foes, kits on the downed after a fight, the dry stair at the story's level, leg four in sallies): his word makes them rulings or undoes them (bench-only, easy to undo).
 - The walker's round-three three (here-to-there.md, Questions): leg four walked straight arrives at 46% with 19 walks in 100 wiped, in sallies nobody arrives (Third Lamp sits at the near end: 500 steps against 95, the night restores HP and slots but no potion, kit or tent) -- the straight walk as meant, a bed at the far end past the troll hole, or a lighter hw4 table? Should Second Lamp's stores carry potions, or is Solskaft's Garrison the only place by design? Should the chains add each boss's own cost from the grid's bench, so a door shows the boss before it too?
 - ~~Random encounters: the 8-bit's, or grid maps someday?~~ RULED 10-03 (Griz: *"random encounters stay the 8-bit"*).
