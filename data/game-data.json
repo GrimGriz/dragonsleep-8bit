@@ -2937,10 +2937,10 @@
    "buff": "bless",
    "target": "allies",
    "max": 3,
-   "maxUp": 1,
    "battle": true,
    "desc": "Up to three allies add 1d4 to attacks and saves; one more for each slot level above 1st.",
    "src": "SRD 5.1",
+   "maxUp": 1,
    "id": "bless"
   },
   "curewounds": {
@@ -3753,14 +3753,14 @@
    "kind": "save",
    "save": "con",
    "cond": "blinded",
-   "repeat": true,
-   "rounds": 10,
    "target": "enemy",
-   "battle": true,
    "grid": true,
    "desc": "A foe within 30 ft makes a CON save or is blinded, saving again at the end of each of its turns. Not built: the deafness choice, and extra targets at higher slots.",
    "src": "SRD 5.1 Blindness/Deafness (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
+   "rounds": 10,
+   "repeat": true,
+   "battle": true,
    "id": "blindnessdeafness"
   },
   "blur": {
