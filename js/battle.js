@@ -32,7 +32,13 @@
   function devotionStops(t, cond) { return !!(cur && t && isHero(t) && cond === 'charmed' && cur.heroes.some(function (x) { return !x.guest && x.h.cls === 'paladin' && x.h.lvl >= 7 && !down(x); })); }
   // the minute's spells running out (09-28g): what the card says as each goes
   var END_TEXT = { spiritWeapon: "'s spiritual weapon fades.", magicWeapon: "'s weapon is plain steel again.", branding: "'s waiting light goes out.",
-    pfeg: "'s ward against the otherworldly fades.", sanctuary: "'s sanctuary fades." };
+    pfeg: "'s ward against the otherworldly fades.", sanctuary: "'s sanctuary fades.",
+    blessed: "'s blessing fades.", shieldOfFaith: "'s shield of faith fades.", heroism: "'s heroism fades.", divineFavor: "'s divine favor fades.", sacred: "'s blade loses its light." };
+  // concentration (SRD 5.1; RULED 10-03, Griz: "1 yes, 2 yes" -- the reaction window and concentration, the one-buff slot retired): what each
+  // concentration spell lays on its targets, so the caster's letting go takes it back (a mark carries `by`, the caster's id -- Battle.concMark)
+  var CONC_KEYS = { bless: ['blessed'], shieldoffaith: ['shieldOfFaith'], heroism: ['heroism'], divinefavor: ['divineFavor'], hideouslaughter: ['laughing'],
+    holdperson: ['paralyzed'], holdmonster: ['paralyzed'], web: ['restrained'], invisibility: ['invisible'], greaterinvisibility: ['invisible'], mislead: ['invisible'],
+    stoneskin: ['stoneskin'], brandingsmite: ['branding'], magicweapon: ['magicWeapon'], protectionfromevilandgood: ['pfeg'] };
   // Command's word falls on no ears among the dead and the witless (the grid's reading: deep16/js/grimoire.js deaf)
   function deafTo(u) { return tags(u)[0] === 'undead' || abil(u, 'int') <= 3; }
 
@@ -48,9 +54,9 @@
     this.bg = DS.battleBg(o.bg || 'plains');
     var party = DS.G.party;
     var list = o.solo != null ? [party[o.solo]] : party;
-    this.heroes = list.map(function (h, i) { return { side: 'hero', h: h, idx: i, conds: {}, buff: null, off: 0, pose: null, poseT: 0 }; });
+    this.heroes = list.map(function (h, i) { return { side: 'hero', h: h, idx: i, conds: {}, reaction: 1, off: 0, pose: null, poseT: 0 }; });
     if (o.solo == null && !o.noGuests) (DS.G.guests || []).forEach(function (g, k) { // guests: AI-run allies behind the four (spec §6.2)
-      if (!g.h.ko && g.h.hp > 0) self.heroes.push({ side: 'hero', h: g.h, idx: 4 + k, guest: true, conds: {}, buff: null, off: 0, pose: null, poseT: 0 });
+      if (!g.h.ko && g.h.hp > 0) self.heroes.push({ side: 'hero', h: g.h, idx: 4 + k, guest: true, conds: {}, reaction: 1, off: 0, pose: null, poseT: 0 });
     });
     this.foes = [];
     var counts = {}, seen = {};
@@ -79,7 +85,7 @@
   Battle.prototype.blindTxt = function (a) { return this.blindTo(a) ? (typeof R.BLIND === 'number' ? ' (blind: ' + R.BLIND + ')' : ' (blind: disadvantage)') : ''; };
   Battle.prototype.makeFoe = function (m, nm) {
     return {
-      side: 'foe', m: m, id: m.id, name: nm, hp: m.hp, maxhp: m.hp, conds: {}, buff: null, dead: false, art: DS.monsterArt(m.art || m.id, m.tint),
+      side: 'foe', m: m, id: m.id, name: nm, hp: m.hp, maxhp: m.hp, conds: {}, reaction: 1, dead: false, art: DS.monsterArt(m.art || m.id, m.tint),
       x: 0, y: 0, flash: 0, fade: 0, off: 0, recharge: {}, used: {}, holding: []
     };
   };
@@ -190,7 +196,7 @@
   // ------------------------------------------------------------------ core math
   Battle.prototype.acOf = function (u) {
     var ac = isHero(u) ? R.ac(u.h) : u.m.ac;
-    if (u.buff && u.buff.ac) ac += u.buff.ac;
+    if (u.conds.shieldOfFaith) ac += 2; // Shield of Faith (a condition since 10-03: the buff slot retired, several buffs stand at once)
     if (u.conds.shielded) ac += 5;
     if (this.doorWardOn && isHero(u) && !down(u)) ac += 3; // the Door-Shield protects the party (RULED 09-26)
     return ac;
@@ -214,10 +220,10 @@
     if ((ab === 'str' || ab === 'dex') && failsStrDex(u)) return { total: 0, nat: 1, success: false };
     var r1 = DS.d(20), r2 = DS.d(20), nat = adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1;
     var tot = nat + this.saveMod(u, ab);
-    if (u.buff && u.buff.id === 'bless') tot += DS.d(4);
+    if (u.conds.blessed) tot += DS.d(4); // (Bless: a condition since 10-03)
     if (tot < dc && isHero(u) && u.h.cls === 'fighter' && u.h.lvl >= 9 && u.h.feats.indomitable) { // Indomitable: once a day, roll it again
       u.h.feats.indomitable = 0;
-      var n2 = DS.d(20); tot = n2 + this.saveMod(u, ab) + (u.buff && u.buff.id === 'bless' ? DS.d(4) : 0); nat = n2;
+      var n2 = DS.d(20); tot = n2 + this.saveMod(u, ab) + (u.conds.blessed ? DS.d(4) : 0); nat = n2;
       this.pendingMsg = plain(u) + (tot >= dc ? ' shakes it off.' : ' digs in, and it takes him anyway.');
     }
     return { total: tot, nat: nat, success: tot >= dc };
@@ -291,13 +297,15 @@
     var h = u.h;
     if (h.resist && h.resist.indexOf(type) >= 0) n = Math.floor(n / 2);
     if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type) && !(from && from.magicWeapon)) n = Math.floor(n / 2);
-    if (u.buff && u.buff.temp) { var soak = Math.min(u.buff.temp, n); u.buff.temp -= soak; n -= soak; u.soaked = (u.soaked || 0) + soak; }
+    var hr = u.conds.heroism; // (Heroism's temporary HP: a condition since 10-03)
+    if (hr && hr.temp) { var soak = Math.min(hr.temp, n); hr.temp -= soak; n -= soak; u.soaked = (u.soaked || 0) + soak; }
     h.hp -= n;
     if (u.conds.asleep && n > 0) delete u.conds.asleep;
     if (h.hp <= 0) {
       if (h.feats.relentless && h.hp > -h.maxhp) { h.feats.relentless = 0; h.hp = 1; this.pendingMsg = h.name + ' refuses to fall!'; }
-      else { h.hp = 0; h.ko = true; this.release(u); u.conds = {}; u.buff = null; DS.audio.sfx('ko'); }
+      else { h.hp = 0; h.ko = true; this.release(u); var g0 = this.dropConc(u); if (g0.length) this.pendingMsg = (this.pendingMsg ? this.pendingMsg + ' ' : '') + g0.join(' '); u.conds = {}; DS.audio.sfx('ko'); } // (down: the caster lets go -- concentration, 10-03)
     }
+    if (n > 0 && h.hp > 0 && u.conc) this.concCheck(u, n); // (concentration, SRD 5.1: a blow asks the CON save, DC 10 or half the damage -- as the grid's M.concCheck; 10-03)
     return n;
   };
   // SRD 5.1 (RULED 09-28, Griz: "17 SRD"): one at 0 who is not dead wakes with any healing, at the healed amount -- a spell, a
@@ -388,7 +396,7 @@
     this.o.solo = null;
     if (!more.length) return;
     more.forEach(function (h) {
-      var u = { side: 'hero', h: h, idx: 0, conds: {}, buff: null, off: 0, pose: null, poseT: 0 };
+      var u = { side: 'hero', h: h, idx: 0, conds: {}, reaction: 1, off: 0, pose: null, poseT: 0 };
       u.init = DS.d(20) + R.initBonus(h) + Math.random() * 0.1;
       self.heroes.push(u); self.order.push(u);
     });
@@ -477,14 +485,15 @@
   Battle.prototype.turn = function* (u) {
     this.active = u;
     // start-of-turn
-    if (u.buff && u.buff.id === 'heroism' && isHero(u)) { // temporary HP at the start of each of its turns (playtest 09-26: it was there, but nothing showed it)
-      var gain = u.buff.tempEach - (u.buff.temp || 0);
-      u.buff.temp = Math.max(u.buff.temp || 0, u.buff.tempEach);
+    u.reaction = 1; // (the reaction window, 10-03: one reaction a round, back at the start of its turn -- SRD 5.1)
+    yield* this.concSweep(); // (a caster helpless or down lets go -- concentration, 10-03)
+    if (u.conds.heroism && isHero(u)) { // temporary HP at the start of each of its turns (playtest 09-26: it was there, but nothing showed it; a condition since 10-03)
+      var hr0 = u.conds.heroism, gain = hr0.tempEach - (hr0.temp || 0);
+      hr0.temp = Math.max(hr0.temp || 0, hr0.tempEach);
       if (gain > 0) { this.num(u, '+' + gain, '#6CF0F8'); this.elemBurst(u, 'buff', 'rise'); }
     }
     if (this.doorWardOn === u) this.doorWardOn = null;
     delete u.conds.shielded;
-    delete u.conds.dodged;
     if (u.conds.prone && !incap(u) && !u.conds.grappled) { delete u.conds.prone; yield* this.say(nameOf(u) + ' gets back up.', 30); }
     if (u.conds.attached && isHero(u)) {
       var src = u.conds.attached.src;
@@ -529,7 +538,9 @@
     });
     // conditions that ride on another
     Object.keys(u.conds).forEach(function (k) { var c = u.conds[k]; if (c && c.linked && !u.conds[c.linked]) { delete u.conds[k]; msgs.push(plain(u) + ' can move again.'); } });
-    if (u.buff && u.buff.rounds != null && --u.buff.rounds <= 0) { msgs.push(plain(u) + "'s " + u.buff.name + ' fades.'); u.buff = null; }
+    // concentration (10-03): what the spell laid keeps its own clock; once none of it is left the caster is free, and the minute's end takes the rest (the lights)
+    if (u.conc && !this.concLive(u)) delete u.conc;
+    else if (u.conc && --u.conc.rounds <= 0) { var cn = u.conc.name, cg = this.dropConc(u); msgs.push(plain(u) + "'s " + cn + ' has run its minute.'); msgs = msgs.concat(cg); }
     if (this.cloud && isHero(u) && !u.guest && --this.cloud.rounds <= 0) { msgs.push(this.cloud.kind === 'fog' ? 'The fog thins and is gone.' : this.cloud.kind === 'stink' ? 'The yellow cloud drifts apart.' : 'The sleet stops.'); this.cloud = null; }
     for (var i = 0; i < msgs.length; i++) yield* this.say(msgs[i], 34);
   };
@@ -556,6 +567,7 @@
     if (this.famWill && this.famWill(u)) yield* this.famFly(u, t); // (the familiar's help lands on this swing: it flies to the target first, js/familiar.js)
     var nat = this.d20(this.advantage(u, t, true)), atk = R.spellAtk(u.h);
     this.bolt(u, t, '#E8F0FF'); yield this.wait(8);
+    if (yield* this.foeParry(t, u, nat, nat + atk, this.acOf(t), true)) return; // (a melee spell attack: Parry turns it too, 10-03)
     if (nat === 1 || (nat !== 20 && nat + atk < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('The spiritual weapon swings at ' + nameOf(t) + ' and misses.', 30); return; }
     var d = this.hurt(t, DS.roll(sw.dice, { crit: nat === 20 }) + DS.mod(u.h.abil[R.CLASSES[u.h.cls].cast]), 'force', { magicWeapon: true });
     this.elemBurst(t, 'force'); t.flash = 12; DS.audio.sfx('hit'); this.num(t, d, '#F8D878');
@@ -572,6 +584,166 @@
     if (alt.length) { var a = DS.pick(alt); yield* this.say(nameOf(f) + ' cannot bring itself to strike ' + nameOf(t) + ', and turns on ' + nameOf(a) + '.', 40); return a; }
     yield* this.say(nameOf(f) + ' cannot bring itself to strike ' + nameOf(t) + '.', 40);
     return null;
+  };
+
+  // ------------------------------------------------------------------ concentration and the reaction window (10-03)
+  // Concentration (SRD 5.1; RULED 10-03, Griz: "1 yes, 2 yes" -- the reaction window and concentration; the one-buff slot retired, his read: "we're
+  // retiring the buff slot because it was limiting the 8bit characters to only carrying one buff?"). As the grid's (deep16/js/magic.js M.concentrate,
+  // M.concCheck, M.endConc): a caster holds one spell; a new one ends the old, with a card; a blow asks the CON save, DC 10 or half the damage,
+  // the higher; helpless or down lets go; what the spell laid on its targets goes with it. The 8-bit's foes cast their sheets' specials, not records,
+  // so only a hero concentrates. `u.conc = { id, name, rounds, marks: [{ u, k }], cloud?, litWas? }`; a mark is a condition this cast laid, its
+  // `by` the caster's id (a later cast of the same condition by another hand takes the mark over, and this caster's letting go leaves it standing)
+  Battle.prototype.beginConc = function* (u, sp) {
+    if (u.conc) yield* this.endConc(u, u.conc.id === sp.id ? sp.name + ' again' : 'a new spell');
+    u.conc = { id: sp.id, name: sp.name, rounds: 10, marks: [] };
+  };
+  Battle.prototype.concMark = function (u, sp, targets, extra, pre) {
+    var c = u.conc; if (!c || c.id !== sp.id) return;
+    var keys = CONC_KEYS[sp.id] || [], id = u.h.id;
+    (targets || []).forEach(function (t, i) {
+      keys.forEach(function (k, j) {
+        var v = t.conds[k];
+        if (v && typeof v === 'object' && !(pre && pre[i] && pre[i][j] === v)) { v.by = id; c.marks.push({ u: t, k: k }); }
+      });
+    });
+    if (extra && extra.cloud) c.cloud = true;
+    if (extra && extra.lit != null) c.litWas = extra.lit;
+  };
+  // is anything of the spell still standing? (a Hold everyone saved against, a Bless that ran its minute: nothing to hold, the caster is free)
+  Battle.prototype.concLive = function (u) {
+    var c = u.conc; if (!c) return false;
+    var id = u.h.id;
+    if (c.cloud) return !!(this.cloud && this.cloud.by === id);
+    if (c.litWas != null) return true;
+    return c.marks.some(function (m) { var v = m.u.conds[m.k]; return !!(v && typeof v === 'object' && v.by === id); });
+  };
+  // the letting go, no card: takes back what this caster laid and returns the lines for it (the caller says them, or hangs them on pendingMsg)
+  Battle.prototype.dropConc = function (u) {
+    var c = u.conc, gone = [], self = this; if (!c) return gone;
+    delete u.conc;
+    var id = u.h.id;
+    c.marks.forEach(function (m) {
+      var v = m.u.conds[m.k]; if (!v || typeof v !== 'object' || v.by !== id) return;
+      delete m.u.conds[m.k];
+      if (m.k === 'paralyzed' || m.k === 'laughing') delete m.u.conds.prone; // (the fall came with the spell; the SRD leaves them prone, the 8-bit stands them up with it)
+      gone.push(plain(m.u) + (END_TEXT[m.k] || (' is no longer ' + m.k + '.')));
+    });
+    if (c.cloud && this.cloud && this.cloud.by === id) { gone.push(this.cloud.kind === 'fog' ? 'The fog thins and is gone.' : this.cloud.kind === 'stink' ? 'The yellow cloud drifts apart.' : 'The sleet stops.'); this.cloud = null; }
+    if (c.litWas != null) { // Dancing Lights: the four lights go out, and the dark comes back unless another light stands (a torch, the Light cantrip, a burning blade)
+      var other = this.bright || this.litSpell || this.heroes.some(function (x) { return !down(x) && (R.carriesLight(x.h) || !!(x.h.conds && x.h.conds.continualFlame)); }) || (this.torchBy && this.heroes.some(function (x) { return x.h.id === self.torchBy && !down(x); }));
+      if (this.dark && !c.litWas && !other) this.lit = false;
+      gone.push('The dancing lights wink out.' + (this.dark && !this.lit ? ' Dark again.' : ''));
+    }
+    return gone;
+  };
+  // the letting go with its card (a new spell, a failed save is concCheck's own line, helpless, down)
+  Battle.prototype.endConc = function* (u, why) {
+    var c = u.conc; if (!c) return;
+    var live = this.concLive(u), gone = this.dropConc(u);
+    if (!live && !gone.length) return;
+    yield* this.say(nameOf(u) + ' lets go of ' + c.name + (why ? ' (' + why + ')' : '') + '.', 40);
+    for (var i = 0; i < gone.length; i++) yield* this.say(gone[i], 30);
+  };
+  // a blow on the caster (hurt): CON save, DC 10 or half the damage, whichever is higher (SRD 5.1); the line rides pendingMsg after the hit's own
+  Battle.prototype.concCheck = function (u, n) {
+    var c = u.conc; if (!c) return;
+    if (!this.concLive(u)) { delete u.conc; return; }
+    var dc = Math.max(10, Math.floor(n / 2)), s = this.save(u, 'con', dc), self = this;
+    var add = function (t) { self.pendingMsg = (self.pendingMsg ? self.pendingMsg + ' ' : '') + t; };
+    if (s.success) { add(plain(u) + ' holds ' + c.name + '. (CON ' + s.total + ' vs DC ' + dc + ')'); return; }
+    var gone = this.dropConc(u);
+    add(plain(u) + ' loses ' + c.name + '! (CON ' + s.total + ' vs DC ' + dc + ')' + (gone.length ? ' ' + gone.join(' ') : ''));
+  };
+  // at the top of every turn: a caster helpless (held, asleep, stunned, laughing) or down holds nothing
+  Battle.prototype.concSweep = function* () {
+    for (var i = 0; i < this.heroes.length; i++) { var x = this.heroes[i]; if (x.conc && (down(x) || incap(x))) yield* this.endConc(x, down(x) ? 'down' : 'helpless'); }
+  };
+
+  // The reaction window (SRD 5.1; RULED 10-03, Griz: "Simple because of movement, but they should still get their reactions is my first impression"):
+  // one reaction a unit a round, back at the start of its turn (Battle.turn). Two triggers, no squares: a hit about to land (the roll known, the
+  // damage not yet) and a creature you can see casting a spell. No opportunity attacks: the 8-bit has no movement. The player's hero is asked
+  // (askReact: a DS.choose with a way to decline; B lets it go); a guest decides as the grid's AI does (Shield when it turns the hit, Counterspell
+  // at a levelled spell, Hellish Rebuke always, Uncanny Dodge at 6 or more); a foe with a reaction on its sheet (`reactions: { parry: 2 }`) uses it by the same rules
+  Battle.prototype.canReact = function (u) { return !!(u.reaction && !down(u) && !incap(u)); };
+  // can u see w? (no light and no darkvision; the unseen; blinded)
+  Battle.prototype.sees = function (u, w) {
+    if (u.conds.blinded || this.blindTo(u)) return false;
+    if (w.conds.invisible && !u.conds.seeInvisible && !(isHero(u) && DS.famPerk && DS.famPerk(u.h.id, 'senseHidden')) && !(this.lit && !isHero(u) && u.m.traits && u.m.traits.mirrorEye)) return false;
+    return true;
+  };
+  Battle.prototype.askReact = function* (u, title, items) {
+    return yield DS.choose({ items: items, x: 24, y: 96, w: 208, rowH: 11, pad: 7, title: title });
+  };
+  // the slot a reaction spell would go from (0: not known, not prepared, or no slot): the lowest that holds it, as every cast (RULED 10-03: "3 yes")
+  Battle.prototype.reactSpell = function (u, id) {
+    if (!isHero(u)) return 0;
+    var sp = DS.DATA.spells[id]; if (!sp || !sp.reaction) return 0;
+    if (R.castable(u.h, 'battle').indexOf(id) < 0) return 0;
+    return R.lowestSlot(u.h, sp.level) || 0;
+  };
+  // Shield (SRD 5.1): +5 AC until the start of the caster's next turn, against a hit that would land -- offered when it turns the blow (the grid's rule:
+  // a natural 20 lands anyway, a miss needs nothing); Magic Missile does nothing to one shielded (Battle.special, the blast branch)
+  Battle.prototype.shieldReact = function* (t, f, nat, tot, ac) {
+    if (!isHero(t) || t.conds.shielded || !this.canReact(t) || nat === 1 || nat === 20 || tot < ac || tot >= ac + 5) return false;
+    var sl = this.reactSpell(t, 'shield'); if (!sl) return false;
+    var yes = t.guest ? true : yield* this.askReact(t, 'SHIELD? ' + tot + ' hits AC ' + ac, [{ label: 'CAST SHIELD', value: true, right: 'L' + sl }, { label: 'LET IT LAND', value: false }]);
+    if (!yes) return false;
+    t.h.slots[sl - 1]--; t.reaction = 0; t.conds.shielded = true;
+    DS.audio.sfx('magic'); this.elemBurst(t, 'buff', 'rise');
+    yield* this.say(nameOf(t) + ' raises a shield of force! +5 AC till ' + plain(t) + "'s next turn.", 36);
+    return true;
+  };
+  // Uncanny Dodge (rogue 5; SRD 5.1): the reaction halves one attack's damage from an attacker she can see
+  Battle.prototype.dodgeReact = function* (t, f, dmg) {
+    if (!isHero(t) || t.h.cls !== 'rogue' || t.h.lvl < 5 || !this.canReact(t) || !this.sees(t, f)) return false;
+    var yes = t.guest ? dmg >= 6 : yield* this.askReact(t, 'UNCANNY DODGE? ' + dmg + ' damage', [{ label: 'DODGE IT', value: true, right: 'take ' + Math.floor(dmg / 2) }, { label: 'TAKE IT', value: false }]);
+    if (!yes) return false;
+    t.reaction = 0; DS.audio.sfx('run');
+    return true;
+  };
+  // Parry (the Bandit Captain's and Hask's, SRD 5.1): +2 AC against one melee attack that would hit, from an attacker it can see; its reaction
+  Battle.prototype.foeParry = function* (t, u, nat, total, ac, melee) {
+    var p = !isHero(t) && t.m.reactions && t.m.reactions.parry;
+    if (!p || !melee || !this.canReact(t) || nat === 1 || nat === 20 || total < ac || total >= ac + p || !this.sees(t, u)) return false;
+    t.reaction = 0; DS.audio.sfx('miss'); this.num(t, 'PARRY', '#A4E4FC');
+    yield* this.say(nameOf(t) + ' parries ' + nameOf(u) + "'s blow. (" + total + ' vs AC ' + (ac + p) + ')', 34);
+    return true;
+  };
+  // Hellish Rebuke (SRD 5.1): one just hurt by a creature it can see wreathes it in flame, 2d10 fire, DEX save for half, +1d10 a slot above 1st.
+  // Not under the roost (fire wakes the roof; the seat's call -- see 8bit-reactions-notes.md)
+  Battle.prototype.rebuke = function* (t, f) {
+    if (!isHero(t) || down(t) || down(f) || !this.canReact(t) || !this.sees(t, f) || this.o.roost) return;
+    var sl = this.reactSpell(t, 'hellishrebuke'); if (!sl) return;
+    var dice = (1 + sl) + 'd10', dc = R.spellDC(t.h);
+    var yes = t.guest ? true : yield* this.askReact(t, 'HELLISH REBUKE? ' + dice + ' fire', [{ label: 'REBUKE ' + plain(f).toUpperCase().slice(0, 14), value: true, right: 'L' + sl }, { label: 'LET IT GO', value: false }]);
+    if (!yes) return;
+    t.h.slots[sl - 1]--; t.reaction = 0; t.pose = 'cast'; t.poseT = 30;
+    DS.audio.sfx('fire');
+    var s = this.save(f, 'dex', dc), d0 = DS.roll(dice), d = this.hurt(f, s.success ? Math.floor(d0 / 2) : d0, 'fire', { magicWeapon: true });
+    this.elemBurst(f, 'fire'); f.flash = 12; this.num(f, d, '#F8D878');
+    yield* this.say(nameOf(t) + ' wreathes ' + nameOf(f) + ' in hellfire: ' + d + ' damage.' + (s.success ? ' (half: it saved)' : ''), 40);
+    yield* this.flushMsg();
+    if (down(f)) yield* this.say(nameOf(f) + ' is defeated!', 30);
+  };
+  // Counterspell (SRD 5.1): a foe's special that is a spell on its sheet (`spell: '<id>'`, content/monsters.json) is seen being cast; a caster who
+  // knows it may answer: a 3rd-level slot stops a 3rd-level spell or lower outright, a higher spell asks a casting-ability check against 10 + its level
+  Battle.prototype.counterAsk = function* (f, spec) {
+    var sp = DS.DATA.spells[spec.spell], lv = sp ? sp.level : 0, nm = sp ? sp.name : spec.spell, who = this.liveHeroes(), self = this, said = false;
+    for (var i = 0; i < who.length; i++) {
+      var t = who[i];
+      if (!this.canReact(t) || !this.sees(t, f)) continue;
+      var sl = this.reactSpell(t, 'counterspell'); if (!sl) continue;
+      if (!said) { said = true; yield* this.say(nameOf(f) + ' begins to cast ' + nm + '...', 30); }
+      var yes = t.guest ? lv >= 1 : yield* this.askReact(t, 'COUNTERSPELL? ' + nm, [{ label: lv <= sl ? 'COUNTER (NO CHECK)' : 'COUNTER (CHECK DC ' + (10 + lv) + ')', value: true, right: 'L' + sl }, { label: 'LET IT GO', value: false }]);
+      if (!yes) continue;
+      t.h.slots[sl - 1]--; t.reaction = 0; t.pose = 'cast'; t.poseT = 30;
+      var ok = lv <= sl, tot = 0;
+      if (!ok) { tot = DS.d(20) + DS.mod(t.h.abil[R.CLASSES[t.h.cls].cast || 'int']); ok = tot >= 10 + lv; }
+      DS.audio.sfx('magic'); this.elemBurst(f, 'force'); f.flash = 12;
+      yield* this.say(nameOf(t) + ': COUNTERSPELL! ' + (ok ? 'The ' + nm + ' fails.' : 'It goes through. (' + tot + ' vs DC ' + (10 + lv) + ')'), 44);
+      if (ok) return true;
+    }
+    return false;
   };
 
   // ------------------------------------------------------------------ hero turn
@@ -654,10 +826,11 @@
       yield* this.say(turned.length ? turned.join(', ') + (turned.length > 1 ? ' turn' : ' turns') + ' from her and cower.' : 'The dead stand their ground.', 40);
       return true;
     }
-    if (this.round === 1 && foes.length > 1 && can('bless')) {
-      var blessed = this.liveHeroes().filter(function (x) { return !x.buff; }).slice(0, 3);
+    if (this.round === 1 && foes.length > 1 && can('bless') && !u.conc) {
+      var blessed = this.liveHeroes().filter(function (x) { return !x.conds.blessed; }).slice(0, 3);
       if (blessed.length >= 2) {
-        spend('bless'); blessed.forEach(function (x) { x.buff = { id: 'bless', name: 'Bless', rounds: 10 }; self.elemBurst(x, 'buff', 'rise'); });
+        spend('bless'); yield* this.beginConc(u, DS.DATA.spells.bless); // (her concentration, 10-03)
+        blessed.forEach(function (x) { x.conds.blessed = { rounds: 10 }; self.elemBurst(x, 'buff', 'rise'); }); this.concMark(u, DS.DATA.spells.bless, blessed);
         DS.audio.sfx('buff');
         yield* this.say(nameOf(u) + ' casts Bless: ' + blessed.map(plain).join(', ') + '.', 40);
         return true;
@@ -680,7 +853,7 @@
     while (st.actions > 0 && !this.over && !down(u) && !incap(u) && this.liveFoes().length) { // nothing left in sight (all in the rock): the turn ends
       var held = u.conds.grappled || u.conds.engulfed || (u.conds.restrained && u.conds.restrained.escape);
       var skills = this.skillList(u, st);
-      var castable = R.spellList(h, 'battle').concat(h.cls === 'paladin' && R.maxSlotLevel(h) > 0 ? [DS.DATA.spells.smite] : []);
+      var castable = R.spellList(h, 'battle').filter(function (sp) { return !sp.reaction; }).concat(h.cls === 'paladin' && R.maxSlotLevel(h) > 0 ? [DS.DATA.spells.smite] : []); // (a reaction spell -- Shield, Hellish Rebuke, Counterspell -- is never cast from the list: the window asks for it, 10-03)
       var items = this.battleItems(u);
       var fastHands = h.subclass === 'Thief' && st.bonus > 0; // Thief: ITEM as a bonus action
       var cmds = [
@@ -814,7 +987,7 @@
       if (opening) adv = adv < 0 ? 0 : 1;
       var nat = this.d20(adv), pen = this.blindPen(u), blindTxt = this.blindTxt(u);
       var mw = u.conds.magicWeapon ? u.conds.magicWeapon.b : 0; // Magic Weapon (09-28g): +1 (or more) to hit and damage, and magical
-      var bonus = R.attackBonus(h, w) + mw + (u.buff && u.buff.atk ? u.buff.atk : 0) + (u.buff && u.buff.id === 'bless' ? DS.d(4) : 0);
+      var bonus = R.attackBonus(h, w) + mw + (u.conds.sacred ? u.conds.sacred.atk : 0) + (u.conds.blessed ? DS.d(4) : 0); // (Sacred Weapon and Bless: conditions since 10-03, the buff slot retired)
       var total = nat + bonus + pen, ac = this.acOf(t);
       if (u.conds.sanctuary) { delete u.conds.sanctuary; this.pendingMsg = plain(u) + "'s sanctuary ends."; } // (the warded who strike lose the ward)
       var wasHidden = !!u.conds.hidden; delete u.conds.hidden;
@@ -825,6 +998,7 @@
         yield* this.say(nameOf(u) + ' strikes a phantasm! It bursts.', 36);
         continue;
       }
+      if (yield* this.foeParry(t, u, nat, total, ac, melee)) continue; // (Parry: the Bandit Captain's and Hask's reaction, 10-03)
       if (nat === 1 || (nat !== 20 && total < ac)) {
         DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C');
         yield* this.say(nameOf(u) + ' attacks ' + nameOf(t) + '... and misses.' + blindTxt, 34);
@@ -846,7 +1020,7 @@
         h.slots[smite - 1]--; smite = 0; extra += ' Divine Smite!';
         this.elemBurst(t, 'radiant');
       }
-      if (u.buff && u.buff.id === 'divineFavor') rad += DS.d(4);
+      if (u.conds.divineFavor) rad += DS.d(4); // (Divine Favor: a condition since 10-03)
       // the Mace of Disruption (SRD 5.1; Pyro's, 09-30): a fiend or undead takes 2d6 radiant more, and after the blow the save below
       var dis = w.weapon.disrupt && w.weapon.disrupt.vs.some(function (k) { return tags(t).indexOf(k) >= 0; }) ? w.weapon.disrupt : null;
       if (dis) { rad += DS.roll(dis.dice, { crit: crit }); extra += ' Disruption!'; this.elemBurst(t, 'radiant'); }
@@ -942,9 +1116,9 @@
     }
     if (sk === 'sacred') {
       f.channel = 0;
-      u.buff = { id: 'sacred', name: 'Sacred Weapon', atk: Math.max(1, DS.mod(h.abil.cha)), rounds: 10 };
+      u.conds.sacred = { atk: Math.max(1, DS.mod(h.abil.cha)), rounds: 10 }; // (Channel Divinity, not concentration: a condition for the minute, beside any blessing -- 10-03, the buff slot retired)
       DS.audio.sfx('buff'); this.elemBurst(u, 'radiant', 'rise');
-      yield* this.say(nameOf(u) + "'s blade takes Kalindel's light. +" + u.buff.atk + ' to hit.', 48);
+      yield* this.say(nameOf(u) + "'s blade takes Kalindel's light. +" + u.conds.sacred.atk + ' to hit.', 48);
       // the glow is bright light (SRD: 20 ft): under the roost it breaks the one law as the Light cantrip does (RULED 09-28:
       // "paladin weapon glows and such should probably roost too"; DEEP16 the same, deep16/js/battle.js 'sacred')
       if (this.o.roost) { this.usedFire = true; this.roostCause = 'light'; }
@@ -1059,11 +1233,13 @@
       this.usedFire = true; this.roostCause = sp.el === 'fire' ? 'fire' : 'light'; u.pose = null; return true;
     }
     var up = slot ? slot - sp.level : 0, dc = R.spellDC(h) + (this.famDC ? this.famDC(u, sp) : 0), atk = R.spellAtk(h); // (+ the spider's Web, the snake's charms: js/familiar.js)
-    var k = sp.kind;
+    var k = sp.kind, litWas = this.lit;
+    if (sp.conc) yield* this.beginConc(u, sp); // (concentration, SRD 5.1 -- RULED 10-03: a caster holds one spell; a new one ends the old)
+    var pre = sp.conc ? targets.map(function (x) { return (CONC_KEYS[sp.id] || []).map(function (kk) { return x.conds[kk]; }); }) : null; // (what each target carried before: only what this cast lays is marked)
     if (k === 'light') {
       this.lit = true;
-      if (sp.dim) { this.flashT = 4; yield* this.say('Four small lights hover and turn. Dim, but light enough to see by.', 44); return true; } // Dancing Lights
-      this.flashT = 10;
+      if (sp.dim) { this.flashT = 4; this.concMark(u, sp, [], { lit: litWas }); yield* this.say('Four small lights hover and turn. Dim, but light enough to see by.', 44); return true; } // Dancing Lights
+      this.flashT = 10; this.litSpell = true; // (the cantrip's light stands the fight: the dancing lights going out leaves it -- dropConc, 10-03)
       this.foes.forEach(function (f) { f.conds.revealed = true; });
       yield* this.dazzle(nameOf(u) + "'s light floods the dark.");
       return true;
@@ -1071,7 +1247,7 @@
     // the clouds (torchdark 09-28), FF-simple: a Fog Cloud over the party (RUN gets away untried); a Stinking Cloud or a Sleet Storm
     // over the foes (each turn inside: CON or the turn is lost; DEX or prone). Ten rounds
     if (k === 'cloud') {
-      this.cloud = { kind: sp.cloud, rounds: 10, dc: dc, save: sp.save };
+      this.cloud = { kind: sp.cloud, rounds: 10, dc: dc, save: sp.save, by: h.id }; this.concMark(u, sp, [], { cloud: true }); // (by: the caster whose concentration holds it, 10-03)
       this.elemBurst(sp.cloud === 'fog' ? u : this.liveFoes()[0] || u, sp.cloud === 'sleet' ? 'cold' : sp.cloud === 'stink' ? 'poison' : 'buff', 'rise');
       yield* this.say(sp.cloud === 'fog' ? 'Fog rolls out thick round the party. Nothing sees in, out or across it.' : sp.cloud === 'stink' ? 'A yellow, nauseating cloud settles over them.' : 'Freezing sleet comes down over them. The ground ices.', 48);
       return true;
@@ -1153,12 +1329,10 @@
         else if (sp.buff === 'magicWeapon') { t.conds.magicWeapon = { b: slot >= 6 ? 3 : slot >= 4 ? 2 : 1, rounds: 10 }; }
         else if (sp.buff === 'pfeg') { t.conds.pfeg = { rounds: 10 }; }
         else if (sp.buff === 'sanctuary') { t.conds.sanctuary = { dc: dc, rounds: 10 }; }
-        else {
-          var b = { id: sp.buff, name: sp.name, rounds: 10 };
-          if (sp.buff === 'shieldOfFaith') b.ac = 2;
-          if (sp.buff === 'heroism') { b.tempEach = Math.max(1, DS.mod(h.abil.cha)); b.temp = b.tempEach; delete t.conds.frightened; }
-          t.buff = b;
-        }
+        // Bless, Shield of Faith, Heroism and Divine Favor (10-03, the buff slot retired: each its own condition, so several stand on one hero at once;
+        // the caster's concentration takes them back -- concMark, below)
+        else if (sp.buff === 'heroism') { t.conds.heroism = { rounds: 10, tempEach: Math.max(1, DS.mod(h.abil.cha)), temp: Math.max(1, DS.mod(h.abil.cha)) }; delete t.conds.frightened; }
+        else { t.conds[sp.buff === 'bless' ? 'blessed' : sp.buff] = { rounds: 10 }; }
         this.elemBurst(t, 'buff', 'rise');
         yield this.wait(8);
       } else if (k === 'cure') {
@@ -1168,6 +1342,7 @@
       }
       if (this.liveFoes().length === 0) break;
     }
+    if (sp.conc) this.concMark(u, sp, targets, null, pre); // (what this cast laid on them is the caster's to hold -- concentration, 10-03)
     if (k === 'buff') {
       var bt = targets.map(plain).join(', ');
       yield* this.say(bt + (sp.buff === 'shield' ? ' raises a shield of force. +5 AC.' : sp.buff === 'shieldOfFaith' ? ': +2 AC.' : sp.buff === 'bless' ? ': blessed.' : sp.buff === 'mageArmor' ? ': mage armor.' : sp.buff === 'aid' ? ': +' + 5 * (1 + up) + ' max HP.' : sp.buff === 'heroism' ? ': heroism. No fear, and +' + Math.max(1, DS.mod(h.abil.cha)) + ' temporary HP at the start of each turn.'
@@ -1347,10 +1522,13 @@
       yield* this.applyRider(f, t, atk, false);
       return;
     }
+    // the reaction window (RULED 10-03, Griz: "they should still get their reactions"): a hit about to land, and Shield turns it (+5 AC till the hero's next turn)
+    var shielded = yield* this.shieldReact(t, f, nat, tot, ac);
+    if (shielded) ac += 5;
     if (nat === 1 || (nat !== 20 && tot < ac)) {
       DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C');
-      yield* this.say(nameOf(f) + ' ' + (atk.verb || 'attacks') + ' ' + nameOf(t) + '... miss.' + dazzle, 32);
-      if (isHero(t) && nat >= 15) yield* this.doorWard(t);
+      yield* this.say(nameOf(f) + ' ' + (atk.verb || 'attacks') + ' ' + nameOf(t) + (shielded ? ': the shield of force takes it. (' + tot + ' vs AC ' + ac + ')' : '... miss.' + dazzle), 32);
+      if (isHero(t) && nat >= 15 && !shielded) yield* this.doorWard(t);
       return;
     }
     var crit = nat === 20 || (melee && critClose(t)) || (this.round === 1 && this.o.surprised === 'party' && f.m.traits && f.m.traits.assassinate && !(this.famAlarm && this.famAlarm(t)));
@@ -1359,9 +1537,9 @@
     if (atk.firstRound && this.round === 1) dmg += DS.roll(atk.firstRound, { crit: crit });
     if (f.conds.raging && atk.rage) dmg += atk.rage;
     if (atk.halfHP && f.hp <= f.maxhp / 2) dmg = DS.roll(atk.halfHP, { crit: crit });
-    // Uncanny Dodge (rogue 5): the first hit each round is halved
+    // Uncanny Dodge (rogue 5): the reaction halves a blow from an attacker she can see (10-03: a reaction she spends and is asked for, as the grid's; it was automatic)
     var dodge = '';
-    if (isHero(t) && t.h.cls === 'rogue' && t.h.lvl >= 5 && !t.conds.dodged && !incap(t)) { dmg = Math.floor(dmg / 2); t.conds.dodged = true; dodge = ' (dodged: half)'; }
+    if (yield* this.dodgeReact(t, f, dmg)) { dmg = Math.floor(dmg / 2); dodge = ' (uncanny dodge: half)'; }
     t.soaked = 0;
     var dealt = this.hurt(t, dmg, atk.type, f);
     if (atk.extra) dealt += this.hurt(t, DS.roll(atk.extra, { crit: crit }), atk.extraType || atk.type, f);
@@ -1373,6 +1551,8 @@
     yield* this.flushMsg();
     if (down(t)) { yield* this.note(t, nameOf(t) + ' falls!', 38); return; }
     yield* this.applyRider(f, t, atk, true);
+    if (t.conc && incap(t)) yield* this.endConc(t, 'helpless'); // (a rider that paralyses the caster ends its concentration, 10-03)
+    yield* this.rebuke(t, f); // (Hellish Rebuke: the reaction of one hurt, at the one who hurt it -- after the hit's own rider, 10-03)
   };
   Battle.prototype.applyRider = function* (f, t, atk, hit) {
     var self = this;
@@ -1426,6 +1606,7 @@
     if (sp.recharge) f.recharge[sp.id] = false;
     if (sp.once) f.used[sp.id] = true;
     f.flash = 10;
+    if (sp.spell && (yield* this.counterAsk(f, sp))) return; // (Counterspell, 10-03: a special that is a spell on the sheet (`spell`), countered as it is cast: spent, and nothing happens)
     if (sp.id === 'web') {
       var t = this.pickHeroFor(f); if (!t || t === 'none') return;
       t = yield* this.wardCheck(f, t); if (!t) return;
@@ -1441,7 +1622,7 @@
       var list = this.liveHeroes();
       for (var i = 0; i < list.length; i++) {
         var s2 = this.save(list[i], 'wis', sp.dc);
-        if (!s2.success && !(list[i].buff && list[i].buff.id === 'heroism') && !pfegStops(list[i], f, 'frightened') && !R.fearWard(list[i].h)) { list[i].conds.frightened = { rounds: 2, save: { ab: 'wis', dc: sp.dc } }; yield* this.hold(nameOf(list[i]) + ' is frightened! Disadvantage to attack.'); }
+        if (!s2.success && !list[i].conds.heroism && !pfegStops(list[i], f, 'frightened') && !R.fearWard(list[i].h)) { list[i].conds.frightened = { rounds: 2, save: { ab: 'wis', dc: sp.dc } }; yield* this.hold(nameOf(list[i]) + ' is frightened! Disadvantage to attack.'); }
       }
       return;
     }
@@ -1485,7 +1666,8 @@
       var hit = sp.targets === 'all' ? pool : pool.slice(0, sp.targets || 3);
       for (var bi = 0; bi < hit.length && !this.over; bi++) {
         var tb = hit[bi]; if (down(tb)) continue;
-        var sb = this.save(tb, sp.save, sp.dc, { poison: sp.type === 'poison' });
+        if (sp.spell === 'magicmissile' && tb.conds.shielded) { yield* this.note(tb, nameOf(tb) + "'s shield of force turns the darts aside.", 36); continue; } // (Shield: no damage from Magic Missile, SRD 5.1 -- 10-03)
+        var sb = sp.save ? this.save(tb, sp.save, sp.dc, { poison: sp.type === 'poison' }) : { total: 0, nat: 0, success: false };
         yield* this.flushMsg();
         var line = nameOf(tb) + (sb.success ? ' resists' : ' is caught');
         if (sp.dmg) {
@@ -1497,8 +1679,10 @@
         if (!sb.success && sp.cond && !down(tb) && !pfegStops(tb, f, sp.cond)) { tb.conds[sp.cond] = sp.cond === 'prone' ? true : { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null }; line += ' ' + (sp.condText || (sp.cond.charAt(0).toUpperCase() + sp.cond.slice(1) + '!')); }
         this.shake = 4; DS.audio.sfx(db ? 'hit' : 'miss');
         yield* this.note(tb, line, 36);
+        yield* this.flushMsg(); // (a concentration save's line comes out with its blow, not on a later turn -- 10-03)
         if (sp.dmg && this.famSplash) yield* this.famSplash(tb, db0); // (a blast that catches the wizard catches his familiar: js/familiar.js)
         if (down(tb)) yield* this.note(tb, nameOf(tb) + ' falls!', 34);
+        else { if (db) yield* this.rebuke(tb, f); if (tb.conc && incap(tb)) yield* this.endConc(tb, 'helpless'); } // (Hellish Rebuke at the one who hurt them; a stun ends concentration -- 10-03)
       }
       return;
     }
@@ -1513,6 +1697,7 @@
       tc.conds[sp.cond] = { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null };
       DS.audio.sfx('poison');
       yield* this.note(tc, nameOf(tc) + ' is ' + sp.cond + '!', 40);
+      if (tc.conc && incap(tc)) yield* this.endConc(tc, 'helpless'); // (a hold on the caster ends its concentration, 10-03)
       return;
     }
     if (sp.kind === 'self') { // the creature changes: grown huge (the duergar), or gone from sight
@@ -1529,7 +1714,7 @@
     var self = this, o = this.o;
     // clear battle-only state
     this.heroes.forEach(function (u) {
-      u.conds = {}; u.buff = null;
+      u.conds = {}; delete u.conc;
       if (u.fortified) { u.h.maxhp -= 5; u.h.hp = Math.min(u.h.hp, u.h.maxhp); u.fortified = false; }
     });
     // a torch lit in the fight burns on into the dark map (the field's glow; events.js puts it out at a rest or a door)
@@ -1680,7 +1865,7 @@
       if (u.conds.stoneskin && ((DS.frame >> 3) & 1)) { ctx.fillStyle = '#9a9aa8'; ctx.fillRect(x + 2, y + 12, 1, 1); ctx.fillRect(x + 12, y + 8, 1, 1); }
       if (aura && !down(u) && ((DS.frame + u.idx * 9) % 40) < 20) { ctx.fillStyle = '#F8E8A0'; ctx.fillRect(x + 1, y - 2, 1, 1); ctx.fillRect(x + 14, y - 2, 1, 1); }
       if (u.guest) { DS.bar(ctx, x, y + 25, 16, h.hp / h.maxhp, h.hp < h.maxhp / 4 ? '#F85838' : '#58D854'); }
-      if (u.buff) { if ((DS.frame >> 3) & 1) ctx.fillStyle = '#F8D878', ctx.fillRect(x + 7, y - 3, 2, 2); }
+      if (u.conds.blessed || u.conds.shieldOfFaith || u.conds.heroism || u.conds.divineFavor || u.conds.sacred) { if ((DS.frame >> 3) & 1) ctx.fillStyle = '#F8D878', ctx.fillRect(x + 7, y - 3, 2, 2); } // (the buffs: conditions since 10-03)
       if (act === u) DS.text(ctx, '▼', x + 5, y - 10, '#F8D878');
     });
     // particles & numbers
@@ -1704,11 +1889,11 @@
     this.heroes.filter(function (u) { return !u.guest; }).forEach(function (u, i) {
       var h = u.h, y = 162 + i * 19, col = down(u) ? '#9C9C9C' : h.hp < h.maxhp / 4 ? '#F85838' : h.hp < h.maxhp / 2 ? '#F8D878' : '#F8F8F8';
       DS.text(ctx, h.name, 98, y, act === u ? '#F8D878' : '#F8F8F8');
-      if (u.buff && u.buff.temp > 0 && !down(u)) DS.text(ctx, '+' + u.buff.temp, 102 + DS.textWidth(h.name), y, '#6CF0F8');
+      if (u.conds.heroism && u.conds.heroism.temp > 0 && !down(u)) DS.text(ctx, '+' + u.conds.heroism.temp, 102 + DS.textWidth(h.name), y, '#6CF0F8');
       DS.textRight(ctx, (down(u) ? 'KO ' : '') + h.hp + '/' + h.maxhp, 206, y, col);
       DS.bar(ctx, 98, y + 9, 108, h.hp / h.maxhp, col === '#F8F8F8' ? '#58D854' : col);
       var tags = Object.keys(u.conds).filter(function (k) { return R.CONDS[k]; }).map(function (k) { return R.CONDS[k]; });
-      if (u.buff) tags.unshift('+' + (u.buff.id === 'shieldOfFaith' ? 'SOF' : u.buff.id.slice(0, 3).toUpperCase()));
+      if (u.conc) tags.unshift('*' + u.conc.name.slice(0, 3).toUpperCase()); // (the spell he holds: concentration, 10-03)
       DS.text(ctx, tags.slice(0, 2).join(' '), 212, y, '#B8B8F8');
     });
     if (this.intro > 0) { // opening wipe

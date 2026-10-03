@@ -2762,6 +2762,7 @@
   "shield": {
    "name": "Shield",
    "level": 1,
+   "reaction": "hit",
    "kind": "buff",
    "buff": "shield",
    "target": "self",
@@ -2784,6 +2785,7 @@
   "detectmagic": {
    "name": "Detect Magic",
    "level": 1,
+   "conc": true,
    "ritual": true,
    "kind": "detect",
    "target": "self",
@@ -2854,6 +2856,7 @@
   "web": {
    "name": "Web",
    "level": 2,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "cond": "restrained",
@@ -2869,6 +2872,7 @@
   "holdperson": {
    "name": "Hold Person",
    "level": 2,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "cond": "paralyzed",
@@ -2928,6 +2932,7 @@
   "bless": {
    "name": "Bless",
    "level": 1,
+   "conc": true,
    "kind": "buff",
    "buff": "bless",
    "target": "allies",
@@ -2952,6 +2957,7 @@
   "shieldoffaith": {
    "name": "Shield of Faith",
    "level": 1,
+   "conc": true,
    "kind": "buff",
    "buff": "shieldOfFaith",
    "target": "ally",
@@ -2964,6 +2970,7 @@
   "divinefavor": {
    "name": "Divine Favor",
    "level": 1,
+   "conc": true,
    "kind": "buff",
    "buff": "divineFavor",
    "target": "self",
@@ -2976,6 +2983,7 @@
   "heroism": {
    "name": "Heroism",
    "level": 1,
+   "conc": true,
    "kind": "buff",
    "buff": "heroism",
    "target": "ally",
@@ -3057,6 +3065,7 @@
   "greaterinvisibility": {
    "name": "Greater Invisibility",
    "level": 4,
+   "conc": true,
    "kind": "buff",
    "buff": "invisible",
    "target": "ally",
@@ -3068,6 +3077,7 @@
   "stoneskin": {
    "name": "Stoneskin",
    "level": 4,
+   "conc": true,
    "kind": "buff",
    "buff": "stoneskin",
    "target": "ally",
@@ -3095,6 +3105,7 @@
   "holdmonster": {
    "name": "Hold Monster",
    "level": 5,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "cond": "paralyzed",
@@ -3133,6 +3144,7 @@
   "dancinglights": {
    "name": "Dancing Lights",
    "level": 0,
+   "conc": true,
    "kind": "light",
    "dim": true,
    "target": "self",
@@ -3145,6 +3157,7 @@
   "fogcloud": {
    "name": "Fog Cloud",
    "level": 1,
+   "conc": true,
    "kind": "cloud",
    "cloud": "fog",
    "target": "self",
@@ -3181,6 +3194,7 @@
   "invisibility": {
    "name": "Invisibility",
    "level": 2,
+   "conc": true,
    "kind": "buff",
    "buff": "invisible",
    "target": "ally",
@@ -3204,6 +3218,7 @@
   "stinkingcloud": {
    "name": "Stinking Cloud",
    "level": 3,
+   "conc": true,
    "kind": "cloud",
    "cloud": "stink",
    "save": "con",
@@ -3218,6 +3233,7 @@
   "sleetstorm": {
    "name": "Sleet Storm",
    "level": 3,
+   "conc": true,
    "kind": "cloud",
    "cloud": "sleet",
    "save": "dex",
@@ -3232,6 +3248,7 @@
   "mislead": {
    "name": "Mislead",
    "level": 5,
+   "conc": true,
    "kind": "buff",
    "buff": "mislead",
    "target": "self",
@@ -3244,6 +3261,7 @@
   "passwithouttrace": {
    "name": "Pass Without Trace",
    "level": 2,
+   "conc": true,
    "kind": "buff",
    "buff": "pwt",
    "target": "self",
@@ -3335,6 +3353,7 @@
   "resistance": {
    "name": "Resistance",
    "level": 0,
+   "conc": true,
    "kind": "buff",
    "buff": "resistance",
    "target": "ally",
@@ -3390,6 +3409,7 @@
   "truestrike": {
    "name": "True Strike",
    "level": 0,
+   "conc": true,
    "kind": "buff",
    "target": "enemy",
    "grid": true,
@@ -3430,6 +3450,7 @@
   "guidance": {
    "name": "Guidance",
    "level": 0,
+   "conc": true,
    "kind": "buff",
    "target": "ally",
    "grid": true,
@@ -3440,6 +3461,7 @@
   "bane": {
    "name": "Bane",
    "level": 1,
+   "conc": true,
    "kind": "save",
    "save": "cha",
    "target": "enemies",
@@ -3476,6 +3498,7 @@
   "entangle": {
    "name": "Entangle",
    "level": 1,
+   "conc": true,
    "kind": "save",
    "save": "str",
    "cond": "restrained",
@@ -3489,6 +3512,7 @@
   "expeditiousretreat": {
    "name": "Expeditious Retreat",
    "level": 1,
+   "conc": true,
    "kind": "buff",
    "target": "self",
    "grid": true,
@@ -3558,6 +3582,8 @@
    "el": "fire",
    "target": "enemy",
    "grid": true,
+   "battle": true,
+   "reaction": "hurt",
    "desc": "Reaction, offered when a foe's attack hits you and you can see it within 60 ft: 2d10 fire (+1d10 per slot above 1st), DEX save for half. Spends your lowest slot; never cast from the list.",
    "src": "SRD 5.1 Hellish Rebuke (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "fire",
@@ -3566,6 +3592,7 @@
   "hideouslaughter": {
    "name": "Hideous Laughter",
    "level": 1,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "cond": "laughing",
@@ -3585,6 +3612,7 @@
   "huntersmark": {
    "name": "Hunter's Mark",
    "level": 1,
+   "conc": true,
    "kind": "buff",
    "target": "enemy",
    "grid": true,
@@ -3595,6 +3623,7 @@
   "mirrorsgaze": {
    "name": "Mirror's Gaze",
    "level": 1,
+   "conc": true,
    "kind": "buff",
    "target": "enemy",
    "grid": true,
@@ -3641,6 +3670,7 @@
   "faeriefire": {
    "name": "Faerie Fire",
    "level": 1,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "target": "enemies",
@@ -3669,6 +3699,7 @@
   "protectionfromevilandgood": {
    "name": "Protection from Evil and Good",
    "level": 1,
+   "conc": true,
    "kind": "buff",
    "target": "ally",
    "src": "SRD 5.1 Protection from Evil and Good (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): \"they have to be able to transfer back and forth from 16bit fights\": the 8-bit battle casts it too (js/battle.js)",
@@ -3680,6 +3711,7 @@
   "darkness": {
    "name": "Darkness",
    "level": 2,
+   "conc": true,
    "kind": "cloud",
    "cloud": "darkness",
    "target": "self",
@@ -3706,6 +3738,7 @@
   "barkskin": {
    "name": "Barkskin",
    "level": 2,
+   "conc": true,
    "kind": "buff",
    "target": "ally",
    "grid": true,
@@ -3729,6 +3762,7 @@
   "blur": {
    "name": "Blur",
    "level": 2,
+   "conc": true,
    "kind": "buff",
    "target": "self",
    "grid": true,
@@ -3739,6 +3773,7 @@
   "brandingsmite": {
    "name": "Branding Smite",
    "level": 2,
+   "conc": true,
    "kind": "buff",
    "target": "self",
    "src": "SRD 5.1 Branding Smite (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): \"they have to be able to transfer back and forth from 16bit fights\": the 8-bit battle casts it too (js/battle.js)",
@@ -3751,6 +3786,7 @@
   "enhanceability": {
    "name": "Enhance Ability",
    "level": 2,
+   "conc": true,
    "kind": "buff",
    "target": "ally",
    "grid": true,
@@ -3761,6 +3797,7 @@
   "enlargereduce": {
    "name": "Enlarge/Reduce",
    "level": 2,
+   "conc": true,
    "kind": "save",
    "save": "con",
    "target": "any",
@@ -3773,6 +3810,7 @@
   "flameblade": {
    "name": "Flame Blade",
    "level": 2,
+   "conc": true,
    "kind": "attack",
    "dmg": "3d6",
    "el": "fire",
@@ -3786,6 +3824,7 @@
   "gustofwind": {
    "name": "Gust of Wind",
    "level": 2,
+   "conc": true,
    "kind": "save",
    "save": "str",
    "target": "line",
@@ -3798,6 +3837,7 @@
   "heatmetal": {
    "name": "Heat Metal",
    "level": 2,
+   "conc": true,
    "kind": "save",
    "save": "con",
    "dmg": "2d8",
@@ -3813,6 +3853,7 @@
   "magicweapon": {
    "name": "Magic Weapon",
    "level": 2,
+   "conc": true,
    "kind": "buff",
    "target": "ally",
    "src": "SRD 5.1 Magic Weapon (the class NPCs, 09-28: deep16/js/grimoire.js); RULED 09-28g (Griz): \"they have to be able to transfer back and forth from 16bit fights\": the 8-bit battle casts it too (js/battle.js)",
@@ -3848,6 +3889,7 @@
   "rayofenfeeblement": {
    "name": "Ray of Enfeeblement",
    "level": 2,
+   "conc": true,
    "kind": "attack",
    "el": "necrotic",
    "target": "enemy",
@@ -3860,6 +3902,7 @@
   "spikegrowth": {
    "name": "Spike Growth",
    "level": 2,
+   "conc": true,
    "kind": "cloud",
    "target": "enemies",
    "grid": true,
@@ -3882,6 +3925,7 @@
   "giantinsect": {
    "name": "Giant Insect",
    "level": 4,
+   "conc": true,
    "kind": "summon",
    "target": "point",
    "grid": true,
@@ -3893,6 +3937,7 @@
   "antilifeshell": {
    "name": "Antilife Shell",
    "level": 5,
+   "conc": true,
    "kind": "ward",
    "target": "self",
    "grid": true,
@@ -3904,6 +3949,7 @@
   "conjureelemental": {
    "name": "Conjure Elemental",
    "level": 5,
+   "conc": true,
    "kind": "summon",
    "target": "point",
    "grid": true,
@@ -3915,6 +3961,7 @@
   "cloudkill": {
    "name": "Cloudkill",
    "level": 5,
+   "conc": true,
    "kind": "save",
    "save": "con",
    "half": true,
@@ -3955,6 +4002,7 @@
   "polymorph": {
    "name": "Polymorph",
    "level": 4,
+   "conc": true,
    "kind": "shape",
    "save": "wis",
    "target": "any",
@@ -3967,6 +4015,7 @@
   "dominatebeast": {
    "name": "Dominate Beast",
    "level": 4,
+   "conc": true,
    "kind": "charm",
    "save": "wis",
    "target": "enemy",
@@ -3979,6 +4028,7 @@
   "windwall": {
    "name": "Wind Wall",
    "level": 3,
+   "conc": true,
    "kind": "save",
    "save": "str",
    "half": true,
@@ -3994,6 +4044,7 @@
   "walloffire": {
    "name": "Wall of Fire",
    "level": 4,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "half": true,
@@ -4010,6 +4061,7 @@
   "wallofstone": {
    "name": "Wall of Stone",
    "level": 5,
+   "conc": true,
    "kind": "wall",
    "target": "point",
    "grid": true,
@@ -4021,6 +4073,7 @@
   "wallofthorns": {
    "name": "Wall of Thorns",
    "level": 6,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "half": true,
@@ -4037,6 +4090,7 @@
   "conjureanimals": {
    "name": "Conjure Animals",
    "level": 3,
+   "conc": true,
    "kind": "summon",
    "target": "point",
    "grid": true,
@@ -4048,6 +4102,7 @@
   "conjurewoodlandbeings": {
    "name": "Conjure Woodland Beings",
    "level": 4,
+   "conc": true,
    "kind": "summon",
    "target": "point",
    "grid": true,
@@ -4059,6 +4114,7 @@
   "moonbeam": {
    "name": "Moonbeam",
    "level": 2,
+   "conc": true,
    "kind": "save",
    "save": "con",
    "half": true,
@@ -4075,6 +4131,7 @@
   "flamingsphere": {
    "name": "Flaming Sphere",
    "level": 2,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "half": true,
@@ -4115,6 +4172,7 @@
   "beaconofhope": {
    "name": "Beacon of Hope",
    "level": 3,
+   "conc": true,
    "kind": "buff",
    "target": "allies",
    "grid": true,
@@ -4125,6 +4183,7 @@
   "bestowcurse": {
    "name": "Bestow Curse",
    "level": 3,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "target": "enemy",
@@ -4147,6 +4206,7 @@
   "calllightning": {
    "name": "Call Lightning",
    "level": 3,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "half": true,
@@ -4176,6 +4236,8 @@
    "kind": "cure",
    "target": "enemy",
    "grid": true,
+   "battle": true,
+   "reaction": "cast",
    "desc": "Reaction, offered when you see a foe within 60 ft casting a spell: one of the slot's level or lower (3rd at least) fails; a higher one needs your spellcasting check against 10 + its level. Spends the slot you pick; never cast from the list.",
    "src": "SRD 5.1 Counterspell (10-02: deep16/js/grimoire.js M.counterAsk)",
    "sfx": "magic",
@@ -4184,6 +4246,7 @@
   "fear": {
    "name": "Fear",
    "level": 3,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "cond": "frightened",
@@ -4197,6 +4260,7 @@
   "haste": {
    "name": "Haste",
    "level": 3,
+   "conc": true,
    "kind": "buff",
    "target": "ally",
    "grid": true,
@@ -4207,6 +4271,7 @@
   "hypnoticpattern": {
    "name": "Hypnotic Pattern",
    "level": 3,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "cond": "charmed",
@@ -4231,6 +4296,7 @@
   "protectionfromenergy": {
    "name": "Protection from Energy",
    "level": 3,
+   "conc": true,
    "kind": "buff",
    "target": "ally",
    "grid": true,
@@ -4241,6 +4307,7 @@
   "slow": {
    "name": "Slow",
    "level": 3,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "target": "enemies",
@@ -4253,6 +4320,7 @@
   "spiritguardians": {
    "name": "Spirit Guardians",
    "level": 3,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "half": true,
@@ -4269,6 +4337,7 @@
   "vampirictouch": {
    "name": "Vampiric Touch",
    "level": 3,
+   "conc": true,
    "kind": "attack",
    "dmg": "3d6",
    "upDice": 1,
@@ -4320,6 +4389,7 @@
   "banishment": {
    "name": "Banishment",
    "level": 4,
+   "conc": true,
    "kind": "save",
    "save": "cha",
    "target": "enemy",
@@ -4332,6 +4402,7 @@
   "blacktentacles": {
    "name": "Black Tentacles",
    "level": 4,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "dmg": "3d6",
@@ -4362,6 +4433,7 @@
   "confusion": {
    "name": "Confusion",
    "level": 4,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "target": "enemies",
@@ -4427,6 +4499,7 @@
   "phantasmalkiller": {
    "name": "Phantasmal Killer",
    "level": 4,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "target": "enemy",
@@ -4439,6 +4512,7 @@
   "resilientsphere": {
    "name": "Resilient Sphere",
    "level": 4,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "target": "any",
@@ -4463,6 +4537,7 @@
   "dispelevilandgood": {
    "name": "Dispel Evil and Good",
    "level": 5,
+   "conc": true,
    "kind": "buff",
    "target": "self",
    "grid": true,
@@ -4499,6 +4574,7 @@
   "insectplague": {
    "name": "Insect Plague",
    "level": 5,
+   "conc": true,
    "kind": "save",
    "save": "con",
    "half": true,
@@ -4569,6 +4645,7 @@
   "eyebite": {
    "name": "Eyebite",
    "level": 6,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "target": "enemy",
@@ -4581,6 +4658,7 @@
   "fleshtostone": {
    "name": "Flesh to Stone",
    "level": 6,
+   "conc": true,
    "kind": "save",
    "save": "con",
    "target": "enemy",
@@ -4608,6 +4686,7 @@
   "globeofinvulnerability": {
    "name": "Globe of Invulnerability",
    "level": 6,
+   "conc": true,
    "kind": "buff",
    "target": "self",
    "grid": true,
@@ -4643,6 +4722,7 @@
   "irresistibledance": {
    "name": "Irresistible Dance",
    "level": 6,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "target": "enemy",
@@ -4655,6 +4735,7 @@
   "sunbeam": {
    "name": "Sunbeam",
    "level": 6,
+   "conc": true,
    "kind": "save",
    "save": "con",
    "half": true,
@@ -4670,6 +4751,7 @@
   "arcanesword": {
    "name": "Arcane Sword",
    "level": 7,
+   "conc": true,
    "kind": "attack",
    "dmg": "3d10",
    "el": "force",
@@ -4683,6 +4765,7 @@
   "delayedblastfireball": {
    "name": "Delayed Blast Fireball",
    "level": 7,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "half": true,
@@ -4784,6 +4867,7 @@
   "earthquake": {
    "name": "Earthquake",
    "level": 8,
+   "conc": true,
    "kind": "save",
    "save": "dex",
    "target": "enemies",
@@ -4810,6 +4894,7 @@
   "holyaura": {
    "name": "Holy Aura",
    "level": 8,
+   "conc": true,
    "kind": "buff",
    "target": "allies",
    "grid": true,
@@ -4820,6 +4905,7 @@
   "maze": {
    "name": "Maze",
    "level": 8,
+   "conc": true,
    "kind": "save",
    "target": "enemy",
    "grid": true,
@@ -4915,6 +5001,7 @@
   "weird": {
    "name": "Weird",
    "level": 9,
+   "conc": true,
    "kind": "save",
    "save": "wis",
    "target": "enemies",
@@ -6263,6 +6350,9 @@
    "tags": [
     "humanoid"
    ],
+   "reactions": {
+    "parry": 2
+   },
    "attacks": {
     "scimitar": {
      "name": "Scimitar",
@@ -6951,6 +7041,9 @@
    "tags": [
     "humanoid"
    ],
+   "reactions": {
+    "parry": 2
+   },
    "attacks": {
     "bar": {
      "name": "Pry-bar",
@@ -7782,6 +7875,7 @@
    "specials": [
     {
      "id": "darkness",
+     "spell": "darkness",
      "once": true,
      "chance": 0.2
     }
@@ -7833,6 +7927,7 @@
    "specials": [
     {
      "id": "darkness",
+     "spell": "darkness",
      "once": true,
      "chance": 0.3
     }
@@ -7880,6 +7975,7 @@
    "specials": [
     {
      "id": "boltstorm",
+     "spell": "lightningbolt",
      "kind": "blast",
      "recharge": 5,
      "chance": 0.5,
@@ -7893,6 +7989,7 @@
     },
     {
      "id": "hold",
+     "spell": "holdperson",
      "kind": "curse",
      "once": true,
      "text": "closes a hand, and {t} locks where they stand.",
@@ -7904,6 +8001,7 @@
     },
     {
      "id": "darkness",
+     "spell": "darkness",
      "once": true
     }
    ],
@@ -8003,6 +8101,7 @@
    "specials": [
     {
      "id": "guardians",
+     "spell": "spiritguardians",
      "kind": "blast",
      "recharge": 5,
      "chance": 0.5,
@@ -8016,6 +8115,7 @@
     },
     {
      "id": "hold",
+     "spell": "holdperson",
      "kind": "curse",
      "once": true,
      "text": "points at {t}. \"Be still.\"",
@@ -8027,6 +8127,7 @@
     },
     {
      "id": "sanctuary",
+     "spell": "sanctuary",
      "kind": "self",
      "once": true,
      "when": "bloodied",
@@ -8398,6 +8499,7 @@
    "specials": [
     {
      "id": "bolt",
+     "spell": "lightningbolt",
      "kind": "blast",
      "recharge": 5,
      "chance": 0.5,
@@ -8411,6 +8513,7 @@
     },
     {
      "id": "hold",
+     "spell": "holdperson",
      "kind": "curse",
      "once": true,
      "text": "turns its eyes on the party, and {t} cannot move.",
