@@ -7744,7 +7744,8 @@
     "humanoid"
    ],
    "traits": {
-    "lightSensitive": true
+    "lightSensitive": true,
+    "feyAncestry": true
    },
    "attacks": {
     "shortsword": {
@@ -7813,7 +7814,8 @@
     "humanoid"
    ],
    "traits": {
-    "lightSensitive": true
+    "lightSensitive": true,
+    "feyAncestry": true
    },
    "attacks": {
     "shortsword": {
@@ -7864,7 +7866,8 @@
     "humanoid"
    ],
    "traits": {
-    "lightSensitive": true
+    "lightSensitive": true,
+    "feyAncestry": true
    },
    "pickSpecial": true,
    "attacks": {
@@ -8375,7 +8378,8 @@
     "poison"
    ],
    "condImmune": [
-    "poisoned"
+    "poisoned",
+    "charmed"
    ],
    "attacks": {
     "bite": {

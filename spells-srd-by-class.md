@@ -164,7 +164,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Shield | W S | Au Wi SW | **BUILT** | reaction: +5 AC till your next turn, the blow included |
 | Shield of Faith | C P | Ly To In | **BUILT** | bonus action (conc): +2 AC |
 | Silent Image | W S B | Au Wi | **LATER** | an image to fool: needs foes the AI lets be fooled |
-| Sleep | W S B | Au Wi Na | **BUILT** | 20-ft sphere, 5d8 HP asleep, lowest first (+2d8 a slot) |
+| Sleep | W S B | Au Wi Na | **BUILT** | 20-ft sphere, 5d8 HP asleep, lowest first (+2d8 a slot) -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle skips the drow (Fey Ancestry on their three sheets) and the charm-immune (the spirit naga's sheet given the SRD's charmed), as the grid does, and says who it found no hold on |
 | Speak with Animals | B D R |  | **OUT** | talking with beasts for 10 minutes: conversation, no fight or field effect |
 | Thunderwave | W S B D | Au Wi | **BUILT** | 15-ft cube from you, CON save 2d8 thunder and pushed 10 ft; greyed under the roost -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle rolls its damage once for every creature caught, as the grid does (SRD 5.1, Damage Rolls: "roll the damage once for all of them") |
 | Unseen Servant | W K B | Au Am Wi | **OUT** | an invisible errand-runner: nothing for it to do |

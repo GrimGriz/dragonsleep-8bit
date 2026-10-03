@@ -226,6 +226,13 @@
         BF.conds = { poisoned: { rounds: 3 }, paralyzed: { linked: 'poisoned' } };
         castF(LF, 'lesserrestoration', ['Barley'], [4, 2]);
         check('3. the crawler\'s poison (paralyzed riding on poisoned): ' + offeredF.length + ' picker(s) (the friend only: no END WHICH), both gone (' + !Object.keys(BF.conds).length + ') -- "' + saidF() + '"', offeredF.length === 1 && !Object.keys(BF.conds).length);
+
+        // 4. Sleep (SRD 5.1: "Undead and creatures immune to being charmed aren't affected"; the drow's Fey Ancestry: "magic can't put the drow to
+        // sleep"): a drow, a drow spell-weaver, a spirit naga (charmed: immune, the SRD's block) and a goblin, each at 1 HP -- the goblin alone sleeps
+        var o4 = foesF(['drow', 'spellweaver', 'naga', 'goblin']); o4.forEach(function (f) { f.hp = 1; f.conds = {}; });
+        castF(AF, 'sleep', [], [4, 3, 3]);
+        var slept4 = o4.filter(function (f) { return f.conds.asleep; }).map(nmF).join(', ');
+        check('4. Sleep on a drow, a spell-weaver, a naga and a goblin at 1 HP: asleep "' + slept4 + '" -- "' + saidF() + '"', slept4 === 'Goblin A');
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');

@@ -1144,11 +1144,15 @@
         yield* this.say(line, 36);
         yield* this.flushMsg();
       } else if (k === 'sleep') {
-        var pool = DS.roll((5 + 2 * up) + 'd8'), slept = [];
+        // who it cannot take (SRD 5.1 Sleep: "Undead and creatures immune to being charmed aren't affected"; Fey Ancestry, the drow's: "magic can't put
+        // the drow to sleep" -- 10-03, the grid's rule, deep16/js/magic.js): they spend none of the pool
+        var pool = DS.roll((5 + 2 * up) + 'd8'), slept = [], spared = [];
         this.liveFoes().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (f) {
-          if (f.hp <= pool && (f.m.condImmune || []).indexOf('asleep') < 0 && (f.m.tags || []).indexOf('undead') < 0) { pool -= f.hp; f.conds.asleep = { rounds: 10 }; slept.push(f); self.elemBurst(f, 'sleep', 'rise'); }
+          var ci = f.m.condImmune || [];
+          if ((f.m.traits && f.m.traits.feyAncestry) || /^(fey|undead)$/.test(tags(f)[0] || '') || ci.indexOf('asleep') >= 0 || ci.indexOf('charmed') >= 0) { spared.push(f); return; }
+          if (f.hp <= pool) { pool -= f.hp; f.conds.asleep = { rounds: 10 }; slept.push(f); self.elemBurst(f, 'sleep', 'rise'); }
         });
-        yield* this.say(slept.length ? slept.map(plain).join(', ') + (slept.length > 1 ? ' fall' : ' falls') + ' asleep!' : 'Nothing sleeps.', 46);
+        yield* this.say((slept.length ? slept.map(plain).join(', ') + (slept.length > 1 ? ' fall' : ' falls') + ' asleep!' : 'Nothing sleeps.') + (spared.length ? ' The spell finds no hold on ' + spared.map(plain).join(', ') + '.' : ''), 46);
         break;
       } else if (k === 'heal') {
         var hv = this.heal(t, DS.roll(sp.dmg.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up) + 'd'; })) + DS.mod(h.abil[R.CLASSES[h.cls].cast]));
