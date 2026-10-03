@@ -93,6 +93,7 @@
     else if ((u.summon || u.dominated || u.loose) && !u.classAI) yield* brute(B, u); // a summoned creature, or a beast dominated for its caster (js/grimoire.js) (js/grimoire.js summonSpell): it fights for its caster's side, as if commanded (RULED 09-30)
     else if (u.classAI && D.tactics) yield* D.tactics.turn(B, u); // a class NPC (js/classes.js), or a hero on the bench: the class's own tactics (js/tactics.js)
     else if (u.kind === 'phasespider') yield* spider(B, u);
+    else if (u.kind === 'keeper' && u.side === 'foe' && D.keeper) yield* D.keeper.turn(B, u); // (the Keeper of the Flooded Stair: the Slam, the Wave, the deep, the Ice Wall -- js/keeper.js, 10-03)
     else if (u.burrow && u.side === 'foe') yield* burrower(B, u); // (the bulette: under the ground and up beside you, 10-01d)
     else if (u.kind === 'drow') yield* drow(B, u);
     else if (u.kind === 'drider') yield* drider(B, u);

@@ -830,6 +830,9 @@ window.D16.MAPS.floodstair = {
   // (10-02, Griz: "stair shouldn't climb out except on the side party comes in on" -- the far end is the pool's deep end; "this is solid ground for burrow
   // purposes (map may be used for other purposes)": worked stone)
   step: 5, wade: 13, noBurrow: true,
+  // the Keeper's (10-03, js/keeper.js): the deep end -- the 3 water squares farthest from the party (Griz: "reduce to 2 if necessary"); the stair's lane the Wave runs up (x0..x1 across,
+  // y0 at the water's foot to y1 the exit); the row the Ice Wall rises on (Griz: 11, "if there's enough room we might alt-bench some at 6 or 7" -- the bench's wallRow param)
+  deeps: [[7, 1], [8, 1], [9, 1]], lane: { x0: 7, x1: 10, y0: 8, y1: 13 }, wallRow: 11,
   heights: [
     '000000000000000000',
     '000000000000000000',
