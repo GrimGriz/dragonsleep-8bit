@@ -8003,6 +8003,16 @@
      "id": "darkness",
      "spell": "darkness",
      "once": true
+    },
+    {
+     "id": "darts",
+     "spell": "magicmissile",
+     "kind": "blast",
+     "chance": 0.5,
+     "text": "sends three darts of force streaking from the dark!",
+     "dmg": "3d4+3",
+     "type": "force",
+     "targets": 1
     }
    ],
    "silver": "4d6+20",

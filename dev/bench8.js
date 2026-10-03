@@ -175,14 +175,15 @@
       function learn(h, id) { if (h.known.indexOf(id) < 0) h.known.push(id); if (h.prepared && h.prepared.indexOf(id) < 0) h.prepared.push(id); }
       try {
         DS.EV.addGuest('ingrith');
-        var AR = g.hero('aurdin'); learn(AR, 'shield');
+        var AR = g.hero('aurdin');
+        check("Aurdin's default day holds Shield (R.prepDefault; RULED 10-03, Griz: \"yes\"): " + AR.prepared.join(','), AR.prepared.indexOf('shield') >= 0);
         T.startFight(['ogre', 'ogre']);
         for (var wM = 0; wM < 400 && !DS.find('battle'); wM++) T.step(1);
         var bR = DS.find('battle'), U = {};
         bR.heroes.forEach(function (x) { U[x.h.id] = x; });
         var A = U.aurdin, B = U.barley, V = U.vivian, L = U.lymen, ING = U.ingrith, OG = bR.foes[0], club = OG.m.attacks.club;
         bR.intro = 0; bR.heroes.forEach(function (x) { x.h.maxhp = x.h.hp = 400; x.conds = {}; }); OG.conds = {}; OG.hp = OG.maxhp = 400;
-        bR.askReact = function* (u, title, items) { var a = title + ' [' + items.map(function (it) { return it.label; }).join(' / ') + ']'; asked.push(a); askedAll.push(a); return true; };
+        bR.askReact = function* (u, title, items) { var a = title + ' [' + items.map(function (it) { return it.label + (it.right ? ' <' + it.right + '>' : ''); }).join(' / ') + ']'; asked.push(a); askedAll.push(a); return true; };
         var pickQ = []; bR.pickAlly = function* () { return pickQ.shift() || null; };
         check('Aurdin has Shield prepared (from L' + bR.reactSpell(A, 'shield') + '), not Counterspell or Hellish Rebuke yet, and no reaction spell is on his MAGIC list: ' + R.spellList(A.h, 'battle').filter(function (s) { return !s.reaction; }).map(function (s) { return s.id; }).join(','),
           bR.reactSpell(A, 'shield') === 1 && bR.reactSpell(A, 'counterspell') === 0 && bR.reactSpell(A, 'hellishrebuke') === 0 && R.spellList(A.h, 'battle').some(function (s) { return s.id === 'shield'; }) && !R.spellList(A.h, 'battle').filter(function (s) { return !s.reaction; }).some(function (s) { return s.reaction; }));
@@ -196,7 +197,9 @@
         var acA = bR.acOf(A), natIn = acA + 2 - club.hit, natHi = Math.min(19, acA + 6 - club.hit);
         check('the ogre\'s club is +' + club.hit + ', Aurdin AC ' + acA + ': a ' + natIn + ' lands by 2 (Shield turns it), a ' + natHi + ' by 5 or more (nothing asks)', natIn >= 2 && natIn < natHi && natHi <= 19);
         blow(A, [natIn, natIn], 'Shield: a hit by 2, asked and cast from L1', { hurt: false, said: /raises a shield of force! \+5 AC till Aurdin's next turn.*the shield of force takes it\. \((\d+) vs AC (\d+)\)/, slots1: 1, reaction: 0, shielded: true });
-        var fake = { id: 'mm', kind: 'blast', spell: 'magicmissile', dmg: '3d4+3', type: 'force', targets: 'all', text: 'hurls three darts of force!' };
+        var darts = DS.DATA.monsters.spellweaver.specials.filter(function (sx) { return sx.spell === 'magicmissile'; })[0];
+        check('the spell-weaver casts Magic Missile (RULED 10-03, Griz: "yes; the SRD\'s mage casts it"): ' + JSON.stringify(darts), !!darts && darts.kind === 'blast' && darts.targets === 1 && darts.dmg === '3d4+3' && !darts.save);
+        var fake = Object.assign({}, darts, { targets: 'all' }); // (its darts at everyone, so the shielded one is among them)
         var hpA = A.h.hp, hpB = B.h.hp; T.blog = []; runM(bR.special(OG, fake));
         check('Magic Missile at everyone while the shield is up: Aurdin takes none (' + (hpA - A.h.hp) + '), Barley does (' + (hpB - B.h.hp) + ') -- "' + said() + '"', A.h.hp === hpA && B.h.hp < hpB && /Aurdin's shield of force turns the darts aside/.test(said()));
         delete A.conds.shielded;
@@ -268,11 +271,17 @@
         var acV = bR.acOf(V), natV = Math.min(19, acV + 6 - club.hit); V.reaction = 1;
         blow(V, [natV, natV, 8, 8], 'the club on Vivian for 20: Uncanny Dodge asked, half', { dmg: 10, said: /clubs Vivian for 10\. \(uncanny dodge: half\)/, reaction: 0 });
         blow(V, [natV, natV, 8, 8], 'the reaction spent: the next 20 is whole', { dmg: 20, said: /clubs Vivian for 20\./, reaction: 0 });
-        check('every ask was a menu with a way to decline: ' + askedAll.join('; '), askedAll.length >= 6 && askedAll.every(function (a) { return /LET IT LAND|LET IT GO|TAKE IT/.test(a); }) && /UNCANNY DODGE\? 20 damage \[DODGE IT \/ TAKE IT\]/.test(askedAll.join(';')));
+        check('every ask was a menu with a way to decline: ' + askedAll.join('; '), askedAll.length >= 6 && askedAll.every(function (a) { return /LET IT LAND|LET IT GO|TAKE IT/.test(a); }) && /UNCANNY DODGE\? 20 damage \[DODGE IT <take 10> \/ TAKE IT\]/.test(askedAll.join(';')));
         // --- no reaction for the helpless, nor down
         A.reaction = 1; A.conds.paralyzed = { rounds: 2 }; delete A.conds.shielded;
         T.blog = []; asked = []; Qd = [natIn, natIn]; runM(bR.foeAttack(OG, A, club)); Qd = [];
         check('a paralyzed Aurdin is asked nothing (' + asked.length + ') -- "' + said().slice(0, 90) + '"', asked.length === 0); delete A.conds.paralyzed;
+        // --- Hellish Rebuke under the roost (RULED 10-03, Griz: "offered; it is fire, and the roost's law is the player's choice with the consequence")
+        A.conds = {}; A.reaction = 1; A.h.slots[0] = 2; bR.o.roost = true; var hpO2 = OG.hp, s1 = A.h.slots[0];
+        T.blog = []; asked = []; Qd = [natHi, natHi, 4, 4]; runM(bR.foeAttack(OG, A, club)); Qd = [];
+        check('under the roost the rebuke is offered with ROOST on it; taken, the slot goes (' + s1 + ' -> ' + A.h.slots[0] + '), no fire lands (ogre ' + hpO2 + ' -> ' + OG.hp + ') and the roof wakes: usedFire ' + bR.usedFire + ', cause ' + bR.roostCause + ', over ' + bR.over + ' -- "' + said() + '" [asked: ' + asked.join('; ') + ']',
+          A.h.slots[0] === s1 - 1 && A.reaction === 0 && OG.hp === hpO2 && bR.usedFire === true && bR.roostCause === 'fire' && bR.over === 'roost' && /Aurdin's hellfire catches, under the roost\./.test(said()) && /\[REBUKE OGRE A <ROOST> \/ LET IT GO\]/.test(asked.join(';')));
+        bR.o.roost = false; bR.over = null; bR.usedFire = false;
       } finally { DS.d = d0; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');

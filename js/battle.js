@@ -710,15 +710,18 @@
     return true;
   };
   // Hellish Rebuke (SRD 5.1): one just hurt by a creature it can see wreathes it in flame, 2d10 fire, DEX save for half, +1d10 a slot above 1st.
-  // Not under the roost (fire wakes the roof; the seat's call -- see 8bit-reactions-notes.md)
+  // Under the roost it is offered with ROOST on it, and taken it is spent, no fire lands and the roof wakes, as a fire spell or the oil thrown there
+  // (RULED 10-03, Griz: "offered; it is fire, and the roost's law is the player's choice with the consequence"); a guest never breaks the one law
   Battle.prototype.rebuke = function* (t, f) {
-    if (!isHero(t) || down(t) || down(f) || !this.canReact(t) || !this.sees(t, f) || this.o.roost) return;
+    if (!isHero(t) || down(t) || down(f) || !this.canReact(t) || !this.sees(t, f)) return;
     var sl = this.reactSpell(t, 'hellishrebuke'); if (!sl) return;
+    var roost = !!this.o.roost; if (roost && t.guest) return;
     var dice = (1 + sl) + 'd10', dc = R.spellDC(t.h);
-    var yes = t.guest ? true : yield* this.askReact(t, 'HELLISH REBUKE? ' + dice + ' fire', [{ label: 'REBUKE ' + plain(f).toUpperCase().slice(0, 14), value: true, right: 'L' + sl }, { label: 'LET IT GO', value: false }]);
+    var yes = t.guest ? true : yield* this.askReact(t, 'HELLISH REBUKE? ' + dice + ' fire', [{ label: 'REBUKE ' + plain(f).toUpperCase().slice(0, 14), value: true, right: roost ? 'ROOST' : 'L' + sl }, { label: 'LET IT GO', value: false }]);
     if (!yes) return;
     t.h.slots[sl - 1]--; t.reaction = 0; t.pose = 'cast'; t.poseT = 30;
     DS.audio.sfx('fire');
+    if (roost) { this.usedFire = true; this.roostCause = 'fire'; if (!this.over) this.over = 'roost'; yield* this.say(nameOf(t) + "'s hellfire catches, under the roost.", 40); return; } // (the one law, broken by the player's choice)
     var s = this.save(f, 'dex', dc), d0 = DS.roll(dice), d = this.hurt(f, s.success ? Math.floor(d0 / 2) : d0, 'fire', { magicWeapon: true });
     this.elemBurst(f, 'fire'); f.flash = 12; this.num(f, d, '#F8D878');
     yield* this.say(nameOf(t) + ' wreathes ' + nameOf(f) + ' in hellfire: ' + d + ' damage.' + (s.success ? ' (half: it saved)' : ''), 40);
