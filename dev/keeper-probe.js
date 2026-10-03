@@ -24,7 +24,7 @@
   var save0 = RU.save; function force(okv) { RU.save = function () { var r = save0.apply(this, arguments); r.ok = okv; return r; }; } function unforce() { RU.save = save0; }
   try {
     var B = battle({ lvl: 3 }), k = keeper(B), P = ours(B), cards = cardsOf(B), S;
-    ok('the Keeper: AC ' + RU.ac(k) + ', HP ' + k.hp + ', a Slam (prone DC ' + (k.attacks.slam && k.attacks.slam.prone) + '), no Constrict or Drag Under', k.attacks.slam && k.attacks.slam.prone === 15 && !k.attacks.constrict && !k.attacks.drown && RU.ac(k) === 13 && k.hp === 100);
+    ok('the Keeper: AC ' + RU.ac(k) + ', HP ' + k.hp + ', a Slam (prone DC ' + (k.attacks.slam && k.attacks.slam.prone) + '), no Constrict or Drag Under', k.attacks.slam && k.attacks.slam.prone === 15 && !k.attacks.constrict && !k.attacks.drown && RU.ac(k) === 13 && k.hp === 175 && k.attacks.slam.dice === '3d6' && K.CFG.slams === 2 && K.CFG.waveDC === 15);
     ok('the map: runs ' + (G.map.def.geo.axis === 'x' ? 'west-east' : 'north-south') + ', deep ' + JSON.stringify(G.map.def.deeps) + ', wall at ' + G.map.def.geo.wall + ' along', G.map.def.deeps.length === 4 && G.map.def.geo.wall === 11 && deepL(8, 1) && !deepL(8, 2));
     P.forEach(function (u) { delete u.conds.hidden; });
     // ---- the sheet: keeper_p2 (keeper_p1 left alone), the engine's anim names, the one-line pose swap
@@ -181,12 +181,14 @@
     ok('?keeperfight&seed=31679&old=1 (the Keeper of before 10-03: hidden, no glow, the party reacting at once) drained: ' + KF.result + ' R' + KF.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g), KF.result === 'won' && KF.round === 6 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1);
     var LG = D.keeperLog, lgf = function (e) { return e && typeof e.round === 'number' && typeof e.turn === 'number' && 'actor' in e && 'action' in e && Array.isArray(e.targets) && Array.isArray(e.rolls) && 'result' in e && e.hpAfter && typeof e.hpAfter === 'object' && e.flags && ['flood', 'wall', 'swirl', 'frozen'].every(function (k) { return k in e.flags; }); };
     var lgcheck = function (what, wantActors) { var acts = {}; LG.forEach(function (e) { acts[e.actor] = 1; }); var tx = LG.text(), rolled = LG.filter(function (e) { return e.rolls.length; }).length, ends = LG.some(function (e) { return e.action === 'the fight ends'; });
-      ok('the log, ' + what + ': ' + LG.length + ' lines (' + rolled + ' with rolls), actors ' + Object.keys(acts).join('/') + ', meta ' + JSON.stringify(LG.meta) + ', text ' + tx.length + ' chars, file ' + LG.filename(), LG.length > 10 && LG.every(lgf) && rolled > 3 && wantActors.every(function (a) { return acts[a]; }) && /^THE KEEPER/.test(tx) && tx.indexOf('roll:') > 0 && LG.meta.seed != null && LG.meta.level === 3 && /^keeper-seed\d+-L3\.txt$/.test(LG.filename()) && ends); };
+      ok('the log, ' + what + ': ' + LG.length + ' lines (' + rolled + ' with rolls), actors ' + Object.keys(acts).join('/') + ', meta ' + JSON.stringify(LG.meta) + ', text ' + tx.length + ' chars, file ' + LG.filename(), LG.length > 10 && LG.every(lgf) && rolled > 3 && wantActors.every(function (a) { return acts[a]; }) && /^THE KEEPER/.test(tx) && tx.indexOf('roll:') > 0 && LG.meta.seed != null && LG.meta.level === 3 && /^keeper-seed\d+-L3\.txt$/.test(LG.filename()) && ends);
+      var bad = []; for (var li = 1; li < LG.length; li++) { var a = LG[li - 1].hpAfter, b = LG[li].hpAfter, expl = LG[li].targets.concat([LG[li].actor]); Object.keys(b).forEach(function (n) { if (a[n] != null && a[n] !== b[n] && expl.indexOf(n) < 0) bad.push('L' + li + ' ' + n + ' ' + a[n] + '->' + b[n] + ' (' + LG[li].action + ')'); }); }
+      ok('the log, ' + what + ': every HP change has a line that names who changed (' + (bad.length ? bad.slice(0, 3).join('; ') : 'none missing') + ')', !bad.length); };
     lgcheck('watched fight (class AI both sides)', ['The Keeper', 'Barley']); ok('the log, watched: mode ' + LG.meta.mode, LG.meta.mode === 'ai');
-    D.keeper.CFG.visible = true; D.keeper.CFG.partyOpening = true; D.keeper.CFG.glow = true;
-    var KF2 = D.keeper.fight('?keeperfight&seed=15841&watch&lvl=3'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
+    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 175, slamDice: '3d6', slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
+    var KF2 = D.keeper.fight('?keeperfight&seed=23760&watch&lvl=3'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
-    ok('?keeperfight&seed=15841 drained (the default: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', READY springs ' + kn(/springs the Ice Wall/g), KF2.result === 'won' && KF2.round === 6 && kn(/washed into the deep/g) === 0 && kn(/springs the Ice Wall/g) === 1);
+    ok('?keeperfight&seed=23760 drained (the default: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g) + ', holds broken ' + kn(/HOLD BREAKS/g), KF2.result === 'won' && KF2.round === 11 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1 && kn(/HOLD BREAKS/g) === 1);
     var LG = D.keeperLog, lgf = function (e) { return e && typeof e.round === 'number' && typeof e.turn === 'number' && 'actor' in e && 'action' in e && Array.isArray(e.targets) && Array.isArray(e.rolls) && 'result' in e && e.hpAfter && typeof e.hpAfter === 'object' && e.flags && ['flood', 'wall', 'swirl', 'frozen'].every(function (k) { return k in e.flags; }); };
     var lgcheck = function (what, wantActors) { var acts = {}; LG.forEach(function (e) { acts[e.actor] = 1; }); var tx = LG.text(), rolled = LG.filter(function (e) { return e.rolls.length; }).length, ends = LG.some(function (e) { return e.action === 'the fight ends'; });
       ok('the log, ' + what + ': ' + LG.length + ' lines (' + rolled + ' with rolls), actors ' + Object.keys(acts).join('/') + ', meta ' + JSON.stringify(LG.meta) + ', text ' + tx.length + ' chars, file ' + LG.filename(), LG.length > 10 && LG.every(lgf) && rolled > 3 && wantActors.every(function (a) { return acts[a]; }) && /^THE KEEPER/.test(tx) && tx.indexOf('roll:') > 0 && LG.meta.seed != null && LG.meta.level === 3 && /^keeper-seed\d+-L3\.txt$/.test(LG.filename()) && ends); };
@@ -396,6 +398,43 @@
       // held in the water off the deep: the drowning goes on (default: the held are on the deep)
       C.swirlAny = true; var BT = battle({ lvl: 3 }), kT = keeper(BT), HT = ours(BT); delete kT.conds.hidden; put(HT[0], 8, 5); put(kT, 8, 5, 2); RU.startTurn(kT); drain(K.flood(BT, kT, HT[0])); var cT = cardsOf(BT); HT[0].hp = HT[0].maxhp = 40; K.drownTick(BT, HT[0]);
       ok('swirl=any: held on a flooded step it drowns still (hp ' + HT[0].hp + ', drowning ' + !!HT[0].conds.drowning + ')', HT[0].hp < 40 && !!HT[0].conds.drowning); C.swirlAny = save.sa;
+      D.battle = B3;
+    })();
+    // ---- the Keeper's move pick (desk note 2, 10-03): his body is the 2x2 from the anchor; every one of the four squares has to be water he can be in
+    (function () {
+      var BP = battle({ lvl: 3 }), kP = keeper(BP), HP = ours(BP), cP = cardsOf(BP); BP.o.play = 'keeper'; delete kP.conds.hidden; HP.forEach(function (u) { delete u.conds.hidden; }); put(HP[0], 8, 12); put(HP[1], 9, 12); put(HP[2], 10, 12); put(HP[3], 7, 12);
+      function run(cmd) { var g = BP.exec(kP, cmd), n = 0, v; while (n++ < 5000) { var r = g.next(v); v = undefined; if (r.done) break; if (r.value && r.value.prompt) v = 0; } }
+      RU.startTurn(kP); kP.turn.move = 120; var W = D.keeperPlay, cats = {}, okAnchor = null, anchors = 0;
+      var mapx = G.map; for (var ax = 0; ax < mapx.w; ax++) for (var ay = 0; ay < mapx.h; ay++) { var why = W.moveWhy(BP, kP, ax, ay), f = G.foot(kP, ax, ay); if (!f.every(function (q) { return mapx.at(q[0], q[1]); })) { cats.edge = (cats.edge || 0) + 1; continue; } var key = why ? (why.match(/dry landing|rock|Ice Wall|frozen|in the way|too far/) || ['other'])[0] : 'ok'; cats[key] = (cats[key] || 0) + 1; if (!why && !okAnchor && (ax !== kP.x || ay !== kP.y)) okAnchor = [ax, ay]; anchors++; }
+      ok('the pick: every anchor is judged on its four squares (' + JSON.stringify(cats) + ')', cats.ok > 0 && cats['dry landing'] > 0);
+      var allWater = okAnchor && G.foot(kP, okAnchor[0], okAnchor[1]).every(function (q) { var s = mapx.at(q[0], q[1]); return s && s.open && s.ch === '~'; });
+      ok('a legal anchor (' + okAnchor + ') has all four squares in water', !!allWater);
+      // a body that would overlap the dry landing: refused with a card, nothing spent, he does not move
+      var land = null; for (var ay2 = 0; ay2 < mapx.h && !land; ay2++) for (var ax2 = 0; ax2 < mapx.w && !land; ax2++) { var w2 = W.moveWhy(BP, kP, ax2, ay2); if (/dry landing/.test(w2)) land = [ax2, ay2, w2]; }
+      var kx = kP.x, ky = kP.y, mv0 = kP.turn.move; cP.length = 0; if (land) run({ do: 'move', x: land[0], y: land[1] });
+      ok('a move whose body would overlap the dry landing (' + (land && land[0] + ',' + land[1]) + '): a card says why, he stays, the move is not spent (' + (cP.join(' ').match(/MOVE: [^.]*/) || ['no card'])[0].slice(0, 100) + ')', !!land && /MOVE: .*dry landing/.test(cP.join(' ')) && kP.x === kx && kP.y === ky && kP.turn.move === mv0);
+      // the wall: a section over water
+      var Sx = K.st(BP); Sx.rowOverride = 6; kP.reaction = 1; RU.startTurn(kP); kP.turn.move = 120; drain(K.castWall(BP, kP)); Sx.rowOverride = null; var wallAnchor = null;
+      for (var ay3 = 0; ay3 < mapx.h && !wallAnchor; ay3++) for (var ax3 = 0; ax3 < mapx.w && !wallAnchor; ax3++) { var w3 = W.moveWhy(BP, kP, ax3, ay3); if (/Ice Wall/.test(w3)) wallAnchor = [ax3, ay3]; }
+      ok('a body that would overlap the Ice Wall (at ' + (wallAnchor || 'none') + ') is refused: ' + (wallAnchor ? W.moveWhy(BP, kP, wallAnchor[0], wallAnchor[1]).slice(0, 70) : ''), !!wallAnchor);
+      // frozen water
+      var iceA = null; Sx.ice[iceKey(8, 4)] = true; for (var ay4 = 0; ay4 < mapx.h && !iceA; ay4++) for (var ax4 = 0; ax4 < mapx.w && !iceA; ax4++) { var w4 = W.moveWhy(BP, kP, ax4, ay4); if (/frozen/.test(w4)) iceA = [ax4, ay4]; } delete Sx.ice[iceKey(8, 4)];
+      ok('a body that would overlap frozen water is refused (' + (iceA || 'none') + '), and the grid agrees (G.canStand: ' + (iceA ? (Sx.ice[iceKey(8, 4)] = true, G.canStand(kP, iceA[0], iceA[1])) : '-') + ')', !!iceA && !G.canStand(kP, iceA[0], iceA[1])); delete Sx.ice[iceKey(8, 4)];
+      // a legal move works, and the log writes the anchor with the body implied
+      Sx.wall = null; BP.walls = []; BP.wallMap = null; RU.startTurn(kP); kP.turn.move = 120; var okA2 = null; for (var ay5 = 0; ay5 < mapx.h && !okA2; ay5++) for (var ax5 = 0; ax5 < mapx.w && !okA2; ax5++) if (!W.moveWhy(BP, kP, ax5, ay5) && (ax5 !== kP.x || ay5 !== kP.y)) okA2 = [ax5, ay5];
+      var nLog = D.keeperLog.length; run({ do: 'move', x: okA2[0], y: okA2[1] }); var mvLine = D.keeperLog.slice(nLog).filter(function (e) { return e.action === 'move'; })[0];
+      ok('a legal move happens (' + kP.x + ',' + kP.y + ' = ' + okA2 + ') and the log line says the anchor and the implied 2x2 (' + (mvLine && mvLine.result.slice(0, 90)) + ')', kP.x === okA2[0] && kP.y === okA2[1] && mvLine && /anchor of its 2x2 body/.test(mvLine.result));
+      // reach and distance read the whole body
+      var f0 = G.foot(kP), ex = kP.x + 2, ey = kP.y + 1; put(HP[0], 8, 12); HP[0].x = ex; HP[0].y = ey; var d1 = G.dist(kP, HP[0]); HP[0].x = kP.x + 3; HP[0].y = kP.y + 1; var d2 = G.dist(kP, HP[0]); HP[0].x = kP.x + 1; HP[0].y = kP.y + 2; var d3 = G.dist(kP, HP[0]);
+      ok('distance and reach use the 2x2: a hero beside the far side of the body is ' + d1 + ' ft, one a square further ' + d2 + ' ft, one beside the far corner ' + d3 + ' ft (reach ' + G.reachOf(kP, kP.reach) + ')', f0.length === 4 && d1 === 5 && d2 === 10 && d3 === 5);
+      D.battle = B3;
+    })();
+    // ---- the gap in the log: an HP change between actions (a feature called straight from the AI, a rule) is a line of its own (desk note 3)
+    (function () {
+      var BQ = battle({ lvl: 3 }), HQ = ours(BQ), cQ = cardsOf(BQ), n0 = D.keeperLog.length; var lym = HQ[3], viv = HQ[2];
+      viv.hp = 0; BQ.card(['{y}' + lym.name + '{/} lays on hands: {n}+15{/} to ' + viv.name + '. {g}(pool 0){/}']); viv.hp = 15; RU.startTurn(HQ[0]);
+      var ln = D.keeperLog.slice(n0).filter(function (e) { return /between actions/.test(e.action); });
+      ok('an HP change between actions gets its own line (' + ln.map(function (e) { return e.action + ' | ' + e.result.slice(0, 80); }).join(' // ') + ')', ln.length >= 1 && ln.some(function (e) { return e.targets.indexOf(viv.name) >= 0 && /lays on hands/.test(e.result) && e.actor === lym.name; }));
       D.battle = B3;
     })();
     D.battle = B3;

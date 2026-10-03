@@ -73,6 +73,22 @@
   };
   // the Keeper's commands, through the one exec the keys use
   var exec1 = D.Battle.prototype.exec;
+  // a move of the Keeper to an anchor square: his body is the 2x2 from it (G.foot), and every one of the four has to be water he can be in. '' if it can, else why not (the card)
+  KP.moveWhy = function (B, u, x, y) {
+    var f = G.foot(u, x, y), S = B.kp, rm = G.reach(u, u.turn.move), bad = '';
+    for (var i = 0; i < f.length && !bad; i++) {
+      var q = f[i], s = G.map.at(q[0], q[1]), at = '(' + K.A({ x: q[0], y: q[1] }) + ',' + K.C({ x: q[0], y: q[1] }) + ')';
+      if (!s || !s.open) bad = 'a square of his body would be off the map or in the rock ' + at;
+      else if (G.wallAt && G.wallAt(q[0], q[1]) && G.wallAt(q[0], q[1]).solid) bad = 'the Ice Wall is in the way ' + at;
+      else if (S && S.ice && S.ice[q[0] + ',' + q[1]]) bad = 'that water is frozen: he cannot stand in ice ' + at;
+      else if (s.ch !== '~') bad = 'part of him would be on the dry landing, not in water ' + at;
+      else { var w = G.occupant(q[0], q[1], u); if (w) bad = (w.name || 'something') + ' is in the way ' + at; }
+    }
+    if (bad) return 'he is 2x2 here: ' + bad;
+    if (u.conds.restrained) return 'he is frozen in ice: BREAK FREE first';
+    if (!rm[x + ',' + y] || !rm[x + ',' + y].stand) { var d = G.dist(u, { x: x, y: y, size: u.size }); return 'too far for the move he has left (' + (u.turn.move) + ' ft)'; }
+    return '';
+  };
   // what the Slam needs of a target that was clicked (the default attack): '' if it can, else why not -- spent nothing, said on a card
   KP.slamWhy = function (B, u, t) {
     if (!t || t.dead || t.hp <= 0 || t.isWall || t.side === u.side) return 'Not a foe there';
@@ -90,6 +106,9 @@
       var why = KP.slamWhy(this, u, c.target);
       if (why) { this.card(['{o}' + why + '.{/}'], 140); return; }
       yield* KP.keeperDo(this, u, { do: 'kslam', target: c.target }); return;
+    }
+    if (c && c.do === 'move' && u.kind === 'keeper' && human(this, u)) { // (the move pick: the 2x2 at the anchor; refused with a card that says why, nothing spent)
+      var mw = KP.moveWhy(this, u, c.x, c.y); if (mw) { this.card(['{o}MOVE: ' + mw + '.{/}'], 160); D.sfx('error'); return; }
     }
     if (c && c.do === 'attack' && !u.weapon) { this.card(['{o}' + u.name + ' has nothing to strike with.{/}'], 120); return; } // (never a throw: a unit with no weapon)
     if (!(c && /^k(slam|wave|cast|ready|swirl|suffocate|rise|icebonus|iceaction)$/.test(c.do)) || u.kind !== 'keeper') return yield* exec1.apply(this, arguments);
