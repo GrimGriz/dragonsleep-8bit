@@ -645,6 +645,10 @@
       hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el, MAGIC); });
       // Thunderwave: a failed save is pushed 10 ft straight away from the caster (stopped by a wall, a creature, the edge)
       if (g.shape === 'wave') hits.forEach(function (h) { if (!h[2]) M.push(B, u, h[0], 2); });
+      // Ice Storm: "Hailstones turn the storm's area of effect into difficult terrain until the end of your next turn" (SRD 5.1 -- 10-03, the register said
+      // difficult and it was not): a spell's ground (M.rough), gone when its caster's next turn ends (M.endTurn counts them: this one's end, then the next;
+      // cast off his own turn, a readied storm, the next end is the one)
+      if (id === 'icestorm') { B.grounds = (B.grounds || []).concat([{ kind: 'hail', sq: sq, by: u.id, difficult: true, ends: B.active === u ? 2 : 1 }]); B.card(['  {c}hailstones cover the ground: difficult till the end of ' + u.name + '\'s next turn{/}'], 240); }
       yield 30;
       return;
     }
@@ -681,6 +685,7 @@
   M.groundsTime = function (B, u) {
     if (!B || !B.grounds || !B.grounds.length || B.round == null) return;
     B.grounds = B.grounds.filter(function (g) {
+      if (g.ends != null) { var by0 = B.units.filter(function (w) { return w.id === g.by; })[0]; if (by0 && !by0.dead && !by0.fled && !by0.left && by0.hp > 0) return true; B.card(['{g}The hail melts into the ground.{/}'], 240); return false; } // (its caster gone or down: no turn of his to end it -- Ice Storm's hail, M.endTurn)
       if (typeof g.till !== 'number') return true;
       if (g.born == null) g.born = B.round;
       if (B.round < g.born + g.till) return true;
@@ -752,6 +757,8 @@
   // the end: a paralyzed creature tries its save again (Hold Monster)
   M.endTurn = function (B, u) {
     if (B && M.onEnd) M.onEnd(B, u); // (the class NPCs' spells: the saves at a turn's end, the timers -- js/grimoire.js)
+    // a ground that lasts till the end of its caster's next turn (Ice Storm's hail: `ends`, his turn ends still to come -- 10-03)
+    if (B && B.grounds && B.grounds.length) B.grounds = B.grounds.filter(function (g) { if (g.ends == null || g.by !== u.id || --g.ends > 0) return true; B.card(['{g}The hail melts into the ground.{/}'], 240); return false; });
     if (B && u.conc && u.conc.id === 'truestrike' && u.conc.held) M.endConc(B, u, 'its round is up'); // (True Strike: the next turn was its round -- startTurn)
     if (u.conds.poisoned && u.conds.poisoned.save && !u.conds.paralyzed) M.poisonSave(B, u);
     var p = u.conds.paralyzed;

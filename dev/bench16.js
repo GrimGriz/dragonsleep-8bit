@@ -1055,6 +1055,18 @@
       okX('14. Magic Weapon on a +1 longsword: refused "' + why14 + '" (a target ' + ok14 + '); on a plain one: "' + why14b + '" (a target ' + ok14b + ')', !!why14 && !ok14 && !why14b && ok14b);
       p14.weapon = magicW14; p14.conc = null; var atk14 = p14.weapon.atk, n14 = (B14.log || []).length; runX(MX.cast(B14, p14, 'magicweapon', 2, p14));
       okX('14. cast at the +1 blade anyway: its bonus unchanged (' + atk14 + ' -> ' + p14.weapon.atk + '), no concentration (' + !p14.conc + ') -- ' + logX(B14, n14).slice(0, 160), p14.weapon.atk === atk14 && !p14.conc);
+      // 15. Ice Storm's ground (SRD 5.1: "Hailstones turn the storm's area of effect into difficult terrain until the end of your next turn"): the foe wizard's storm
+      // at our fighter -- the squares it fell on are difficult (M.rough) through its turn's end and our turn, and still at its next turn's start; gone at that turn's end
+      var B15 = mkX('?npc=wizard:7&lvl=7&vs=fighter:7'), w15 = sideX(B15, 'foe')[0], p15 = sideX(B15, 'party')[0];
+      p15.hp = p15.maxhp = 400; w15.x = p15.x; w15.y = Math.max(0, p15.y - 8); D.rules.startTurn(w15); w15.slots[3] = 2; B15.active = w15;
+      var rough15 = function () { return MX.rough(B15, p15.x, p15.y, p15); };
+      runX(MX.cast(B15, w15, 'icestorm', 4, { x: p15.x, y: p15.y })); var r15a = rough15();
+      MX.endTurn(B15, w15); var r15b = rough15(); B15.active = p15; D.rules.startTurn(p15); MX.endTurn(B15, p15); var r15c = rough15();
+      B15.active = w15; D.rules.startTurn(w15); var r15d = rough15(); var n15 = (B15.log || []).length; MX.endTurn(B15, w15); var r15e = rough15();
+      var drawn15 = 'no iso map here';
+      if (D.iso && D.iso.map && D.looks && D.looks.ground) { var cv15 = document.createElement('canvas'); cv15.width = 640; cv15.height = 480; var cx15 = cv15.getContext('2d'), n15d = 0; B15.grounds = [{ kind: 'hail', sq: [[p15.x, p15.y]], by: w15.id, difficult: true, ends: 1 }]; D.looks.ground(cx15, B15, function (x, y, f) { f(cx15); n15d++; }); B15.grounds = []; drawn15 = n15d + ' square drawn'; }
+      okX('15. the hail drawn on a page canvas without a throw: ' + drawn15, /square drawn|no iso map/.test(drawn15));
+      okX('15. Ice Storm\'s hail difficult: as it falls ' + r15a + ', after its caster\'s turn ' + r15b + ', after ours ' + r15c + ', at his next turn ' + r15d + '; gone at that turn\'s end ' + !r15e + ' -- ' + logX(B15, n15).slice(0, 120), r15a && r15b && r15c && r15d && !r15e);
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
     D.d = d0X;
     if (errs.length) repX.errors = repX.errors.concat(errs);
