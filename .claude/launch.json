@@ -18,6 +18,12 @@
       "runtimeExecutable": "py",
       "runtimeArgs": ["-m", "http.server", "8925"],
       "port": 8925
+    },
+    {
+      "name": "dragonsleep-branch",
+      "runtimeExecutable": "py",
+      "runtimeArgs": ["-m", "http.server", "8926", "--directory", ".claude/worktrees/branch"],
+      "port": 8926
     }
   ]
 }

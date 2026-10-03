@@ -9,3 +9,6 @@ __pycache__/
 
 # DEEP16 source art (downloaded packs; only rendered sheets are committed)
 deep16/_src/
+
+# the desk's worktrees (a cloud branch to look at, a scratch merge): never committed (10-03, the review seat's handoff)
+.claude/worktrees/
