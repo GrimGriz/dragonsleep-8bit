@@ -1,6 +1,6 @@
 # Here to there: notes for the overseer
 
-The cloud seat's job of 10-03 (`cloud-jobs.md`, queued: *"Here-to-there benches"*). Branch `claude/here-to-there`. Round one merged at 12db1fb (the walker, the table on the guest turn alone, five questions); round two on `main` at d547b83: Griz's five answers (below), the player's hand, the tent, the ladder's levels, the table rerun. No game file touched in either: `dev/bench8.js` (the `walk` mode), `dev/walk8.py`, `dev/check.py` (one line), `here-to-there.md`, this file.
+The cloud seat's job of 10-03 (`cloud-jobs.md`, queued: *"Here-to-there benches"*). Branch `claude/here-to-there`. Round one merged at 12db1fb (the walker, the table on the guest turn alone, five questions); round two at 7c7379b (Griz's five answers below: the player's hand, the tent, the ladder's levels, the table rerun); round three on `main` at ba793fe: the four leans below (the group at two, the kit, the sally, the dry stair at the story's level), the table rerun. No game file touched in either: `dev/bench8.js` (the `walk` mode), `dev/walk8.py`, `dev/check.py` (one line), `here-to-there.md`, this file.
 
 ## Ruled 10-03, and what goes on the queue
 
@@ -12,21 +12,31 @@ His answers to round one's five, verbatim:
 4. *"yes; a map load is not a rest, but it is a game change"* -- **for the queue: the encounter countdown carried across map loads** (js/world.js `Field.load` calls `resetEncounter` on every load). Not built here; when it lands, `python dev/walk8.py leg=all n=100 table` again (the cloaker, the otyugh, the Doors and the nest will meet fights; the walker's `Field.load` calls are the game's, so it follows the change by itself).
 5. *"yes, and rerun those legs"* -- every leg takes the ladder's level where it has a rung (the cloaker 4 to 6, the night crew 5 to 4, the roper 5 to 6, the dry stair 6 to 2, the fallback line and the naga 8 to 7); rerun.
 
+## Round three: the four leans, built as the working answers
+
+The walker's second four came back with the overseer's lean in brackets (*"The four, with my lean in brackets"*), not as Griz's rulings. They are bench-only, so they are built as written and stand as leans until his word:
+
+1. *"sallies; the lamps are the beds you built. Have the walker model the sally, door to lamp to next door, before anything is added or lightened"* -- the chain `legfoursally`: Third Lamp to the fallback line, home to Third Lamp's tower and its bed (the road menu's REST HERE: `EV.longRest`, the state tallied first), out to the naga, home, ... out to Deepholm's door. The way-home legs (`fallback-home` and the rest) are chain legs only. What it showed: none of 100 sallies reaches Deepholm's door (here-to-there.md, What it says, item 3).
+2. *"two; a pair of trolls is 168 regenerating HP, and a player fireballs that without thinking"* -- the hand's group is two (`group=3` puts it back).
+3. *"yes, as a player would"* -- after each fight, a healer's kit on each of the four who is down (`EV.useFieldItem('kit')`: up at 1 HP), before the tent and the potions.
+4. *"the story's; the walker measures arrival, and 2 is the bestiary's rung"* -- the dry stair at 6.
+
 ## The player's hand (hand=1, the default since round two)
 
 On one of the four's turns (the guests keep their own turns), through the battle's own menus, answered by label as `drive()` answers them:
 1. **A potion under half:** if any of the four is under half his HP (down counts), the potion (the plain one first, then the greater) goes to the lowest by share. In a fight a potion wakes the downed (battle.js `useItem`, RULED 09-28); in the field it doesn't (the game wants a kit).
-2. **An area spell at a group:** with three or more foes up (`group=` to change it), the highest-levelled damaging area spell the hero has a slot for (a cone, a line or all foes, with `dmg` on its record; the roost's fire and thunder left out), a cone or a line aimed at the front foe. In practice Aurdin: Burning Hands, Shatter, Fireball, Ice Storm, Cone of Cold by level. Sleep, Web, Stinking Cloud and the other area spells with no damage are not in it.
+2. **An area spell at a group:** with two or more foes up (three until round three; `group=` to change it), the highest-levelled damaging area spell the hero has a slot for (a cone, a line or all foes, with `dmg` on its record; the roost's fire and thunder left out), a cone or a line aimed at the front foe. In practice Aurdin: Burning Hands, Shatter, Fireball, Ice Storm, Cone of Cold by level. Sleep, Web, Stinking Cloud and the other area spells with no damage are not in it.
 3. Else the guest turn, as round one.
 
-After each fight: **the tent once,** when the four stand under half their total HP (`EV.useFieldItem('tent')`: the game's own, half their maximum to the standing and a short rest; refused where the game refuses a tent; `tent=0` leaves it out); then **one potion each** for any of the four still standing under half. Not in the hand: kits, Lay on Hands, Arcane Recovery, a run from a fight, walking back to a lamp. One wrinkle: when the hand's potion is Vivian's (a Thief's Fast Hands: the item is her bonus action), her action is still hers and the menu's own FIGHT follows, with its Sneak Attack, which the guest turn never takes. That is the game's FIGHT; it is left as it falls.
+After each fight: **a kit on each of the downed** (round three; up at 1 HP, so the tent after it heals him too), then **the tent once,** when the four stand under half their total HP (`EV.useFieldItem('tent')`: the game's own, half their maximum to the standing and a short rest; refused where the game refuses a tent; `tent=0` leaves it out); then **one potion each** for any of the four still standing under half. Not in the hand: Lay on Hands, Arcane Recovery, a run from a fight, walking back to a lamp when hurt (the sally chain walks back after every door, by the lean, not by need). One wrinkle: when the hand's potion is Vivian's (a Thief's Fast Hands: the item is her bonus action), her action is still hers and the menu's own FIGHT follows, with its Sneak Attack, which the guest turn never takes. That is the game's FIGHT; it is left as it falls.
 
 ## Run it
 
 ```
 python dev/walk8.py legs                       the 28 legs and 3 chains: start, door, level
 python dev/walk8.py leg=roper n=20             one leg, the player's hand; lvl=7 for another level, seed=5 for other dice, hand=0 for the guest turn alone
-python dev/walk8.py leg=legfour n=100 tent=0   the hand without the tent; group=2 for an area spell at two foes
+python dev/walk8.py leg=legfour n=100 tent=0   the hand without the tent; group=3 for an area spell only at three foes or more
+python dev/walk8.py leg=legfoursally n=100     leg four in sallies: each door from Third Lamp, home to its bed after
 python dev/walk8.py leg=roper n=1 log          the first walk's fights, line by line
 python dev/walk8.py leg=legfour n=100          a chain: the legs walked one after another, the state carried door to door
 python dev/walk8.py leg=all n=100 table        everything, twice (the hand and the floor, the same dice); rewrites the block between the markers in here-to-there.md (about 30 s here)
@@ -46,15 +56,15 @@ From PowerShell, as bench8.py (headless Edge). In this container: `DEEP16_BROWSE
 7. **A start mid-map** (a boss's door, a lamp's bed: `mid` in walk8.py) gets the countdown part-run, not fresh: a run length drawn from the zone's rate as often as it is long, then 1 to that many steps left (the remainder a walker finds at a random step). Without it the short legs between bosses on one map met about half the fights the chains meet.
 8. **The door:** the four heroes and the guests as they stand (HP, max, KO, level, slots against their maximum, features), the pack (potions, greater potions, kits, simples, draughts, pies, antitoxin, oil, torches, the lantern and the lamp, the tent, diamonds), silver, fights, rounds, steps, the lamps rested at, and per fight the foes, the rounds, the HP lost, the slots spent and the lines that cast something.
 
-**The chains** (`legone` cutseal > gricks > roper > bulette > drain; `legthree` xorns > giant > raid; `legfour` fallback > naga > trolls > elemental > torvald) walk their legs in one game: the next leg's flags laid at each door, the boss just passed counted done, its path from where the last one stood, the countdown and the state carried, and no boss fought. Each door then shows the road alone since the last bed. The chain walks at its first leg's level.
+**The chains** (`legone` cutseal > gricks > roper > bulette > drain; `legthree` xorns > giant > raid; `legfour` fallback > naga > trolls > elemental > torvald; `legfoursally`, round three: each of leg four's doors from Third Lamp and home to its bed after) walk their legs in one game: the next leg's flags laid at each door, the boss just passed counted done, its path from where the last one stood, the countdown and the state carried, and no boss fought. Each door then shows the road alone since the last bed. The chain walks at its first leg's level.
 
 ## The legs: where they start and why
 
-Levels (round two, his ruling 5): the DEEP16 ladder's (`deep16/data/fights.js`) wherever the leg's boss has a rung; else the situation's (js/situations.js: the Wet's three off-ladder doors at 4, Torvald at 9); the Doors (no boss there) at round six's 4.
+Levels (round two, his ruling 5): the DEEP16 ladder's (`deep16/data/fights.js`) wherever the leg's boss has a rung, the dry stair excepted (round three's lean: the story's 6); else the situation's (js/situations.js: the Wet's three off-ladder doors at 4, Torvald at 9); the Doors (no boss there) at round six's 4.
 
 Base game: every leg from Silverton (Fountain Street, 29,8; `DS.roundSix`'s spot), rested: the Snoot, the gulch and the Keeper at 3, the Wet, the wagon and the chuul at 4, the cloaker at 6. They all stand on round six's state, so a level-3 party at the gulch carries +2 weapons and the ring: fatter than a first visit.
 
-The Deep: in the spine's order. Hask from Silverton (spine 2, level 4); the cut seal from Solskaft (spine 6, Pyro and the Ledger-Lamp, 5); then each boss's door to the next on leg one and two (the gricks 5, the roper 6, the bulette 5, the drain 6); the north cut from the drain (spine 7, 6); the crew boss at the dry stair from Solskaft (spine 10, where Ragna asks for the water; the ladder's 2, its bestiary rung -- the story's party there is 6 or so); the nest from Second Lamp by the road menu's fast travel (spine 12, Halldor and four troopers, 7); the xorns from Second Lamp (spine 15 with leg three undone, Brann and Hedda, 8; Third Lamp is the drow's); the giant and the raid door to door (8); leg four from Third Lamp, lit (spine 16: the fallback line and the naga 7, the trolls and the cut's walls 8); Torvald from the earth elemental's cut (spine 17, 9, the situation's: off the ladder). A chain walks at its first leg's level (leg four's at 7) and levels by its own XP. The assassins come at the first rest at the door after Torvald, so their door is Torvald's; the road catches follow the wagon yard in a chase that rolls no encounters. Neither is walked.
+The Deep: in the spine's order. Hask from Silverton (spine 2, level 4); the cut seal from Solskaft (spine 6, Pyro and the Ledger-Lamp, 5); then each boss's door to the next on leg one and two (the gricks 5, the roper 6, the bulette 5, the drain 6); the north cut from the drain (spine 7, 6); the crew boss at the dry stair from Solskaft (spine 10, where Ragna asks for the water; at the story's 6 since round three, not the ladder's 2, its bestiary rung); the nest from Second Lamp by the road menu's fast travel (spine 12, Halldor and four troopers, 7); the xorns from Second Lamp (spine 15 with leg three undone, Brann and Hedda, 8; Third Lamp is the drow's); the giant and the raid door to door (8); leg four from Third Lamp, lit (spine 16: the fallback line and the naga 7, the trolls and the cut's walls 8); Torvald from the earth elemental's cut (spine 17, 9, the situation's: off the ladder). A chain walks at its first leg's level (leg four's at 7) and levels by its own XP. The assassins come at the first rest at the door after Torvald, so their door is Torvald's; the road catches follow the wagon yard in a chase that rolls no encounters. Neither is walked.
 
 Leg four's fallback line, the naga, the trolls and the earth elemental are boss fights (`music: 'boss'`, deep.js `legFour`) the job's list did not name; they are legs here because Torvald's door is past them.
 
@@ -65,7 +75,7 @@ Leg four's fallback line, the naga, the trolls and the earth elemental are boss 
 ## What was not seen
 
 - The bosses (the grid fights them): the table is the state at the door. A boss's cost, from bench16's own fights (`python dev/bench16.py x fight=roper`), would sit on top of each chain row; not joined here.
-- The rest of a player's hand: kits, Lay on Hands, Arcane Recovery, the control spells, a run from a bad fight, a walk back to a lamp, a detour round a zone, buying potions and torches. The walk takes the shortest way, whatever it crosses.
+- The rest of a player's hand: Lay on Hands, Arcane Recovery, the control spells, a run from a bad fight, a walk back to a lamp, a detour round a zone, buying potions and torches. The walk takes the shortest way, whatever it crosses.
 - The story on the way: talking triggers and maps' enter hooks are not run (Papa's hook, the lamps' first-arrival lines, Pyro's road talk); the lamps' STAY THE NIGHT is the rest above. The morning's spell prep after a lamp's night is skipped (the prepared lists stand as they were).
 - Wandering NPCs on the path, and anything a script would walk the party back from (none was on these paths: the BFS walls them).
 - Edge on Windows: the runs here were headless Chromium 1194 in the container; the page and the seeds are the same, so the numbers should be too (not checked on his machine).
