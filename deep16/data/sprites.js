@@ -3042,6 +3042,52 @@
 }
 }
 },
+"npcbarbarian_dragonborn_p0": {
+"image": "art/npcbarbarian_dragonborn_p0.png?v=0f6c363695",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "npcbarbarian_p0": {
 "image": "art/npcbarbarian_p0.png?v=7c36f59579",
 "fw": 64,
@@ -3084,6 +3130,107 @@
 "ax": 32,
 "ay": 61,
 "frames": 6,
+"fps": 10
+}
+}
+},
+"npcbarbarian_tiefling_p0": {
+"image": "art/npcbarbarian_tiefling_p0.png?v=67dec6a681",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcbard_dragonborn_p0": {
+"image": "art/npcbard_dragonborn_p0.png?v=395315bfd3",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
 "fps": 10
 }
 }
@@ -3134,6 +3281,125 @@
 },
 "cast": {
 "y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
+"npcbard_tiefling_p0": {
+"image": "art/npcbard_tiefling_p0.png?v=6e86b7a986",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
+"npccleric_dragonborn_p0": {
+"image": "art/npccleric_dragonborn_p0.png?v=a99c8d2b3b",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"sit": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 3,
+"fps": 2
+},
+"cast": {
+"y": 3584,
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -3207,6 +3473,125 @@
 }
 }
 },
+"npccleric_tiefling_p0": {
+"image": "art/npccleric_tiefling_p0.png?v=ef94432e73",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 50,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"sit": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 3,
+"fps": 2
+},
+"cast": {
+"y": 3584,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
+"npcdruid_dragonborn_p0": {
+"image": "art/npcdruid_dragonborn_p0.png?v=48c00470b8",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 8,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
 "npcdruid_p0": {
 "image": "art/npcdruid_p0.png?v=3dc0c1179b",
 "fw": 64,
@@ -3262,6 +3647,107 @@
 }
 }
 },
+"npcdruid_tiefling_p0": {
+"image": "art/npcdruid_tiefling_p0.png?v=b894501d39",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 8,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
+"npcfighter_dragonborn_p0": {
+"image": "art/npcfighter_dragonborn_p0.png?v=c5c6b8fb8f",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "npcfighter_p0": {
 "image": "art/npcfighter_p0.png?v=3fbd1bc80c",
 "fw": 64,
@@ -3299,6 +3785,98 @@
 },
 "hurt": {
 "y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcfighter_tiefling_p0": {
+"image": "art/npcfighter_tiefling_p0.png?v=e9f3daecfc",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 53,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcmonk_dragonborn_p0": {
+"image": "art/npcmonk_dragonborn_p0.png?v=883fefa1d8",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -3354,6 +3932,107 @@
 }
 }
 },
+"npcmonk_tiefling_p0": {
+"image": "art/npcmonk_tiefling_p0.png?v=bcd4736c02",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 48,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcpaladin_dragonborn_p0": {
+"image": "art/npcpaladin_dragonborn_p0.png?v=f504e36382",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
 "npcpaladin_p0": {
 "image": "art/npcpaladin_p0.png?v=b9b46c729a",
 "fw": 64,
@@ -3400,6 +4079,116 @@
 },
 "cast": {
 "y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
+"npcpaladin_tiefling_p0": {
+"image": "art/npcpaladin_tiefling_p0.png?v=6ffe572115",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
+"npcranger_dragonborn_p0": {
+"image": "art/npcranger_dragonborn_p0.png?v=97e076d611",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 13,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 2048,
 "fw": 64,
 "fh": 64,
 "ax": 32,
@@ -3464,6 +4253,107 @@
 }
 }
 },
+"npcranger_tiefling_p0": {
+"image": "art/npcranger_tiefling_p0.png?v=ddc7bf09ef",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 13,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
+"npcrogue_dragonborn_p0": {
+"image": "art/npcrogue_dragonborn_p0.png?v=dc437d78e7",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "npcrogue_p0": {
 "image": "art/npcrogue_p0.png?v=b4a59a696b",
 "fw": 64,
@@ -3497,6 +4387,98 @@
 "ax": 32,
 "ay": 61,
 "frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcrogue_tiefling_p0": {
+"image": "art/npcrogue_tiefling_p0.png?v=0dcc6fdfc0",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcsorcerer_dragonborn_p0": {
+"image": "art/npcsorcerer_dragonborn_p0.png?v=1600e5310e",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
 "fps": 12
 },
 "hurt": {
@@ -3556,6 +4538,107 @@
 }
 }
 },
+"npcsorcerer_tiefling_p0": {
+"image": "art/npcsorcerer_tiefling_p0.png?v=e818d01827",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 49,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcwarlock_dragonborn_p0": {
+"image": "art/npcwarlock_dragonborn_p0.png?v=ac952074a9",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 44,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
 "npcwarlock_p0": {
 "image": "art/npcwarlock_p0.png?v=3424023b8b",
 "fw": 64,
@@ -3611,8 +4694,155 @@
 }
 }
 },
+"npcwarlock_tiefling_p0": {
+"image": "art/npcwarlock_tiefling_p0.png?v=c46412d9fa",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 53,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 2048,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
+"npcwizard_dragonborn_p0": {
+"image": "art/npcwizard_dragonborn_p0.png?v=284b44d410",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 57,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "npcwizard_p0": {
 "image": "art/npcwizard_p0.png?v=ab64fa9ea3",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 57,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 12
+},
+"hurt": {
+"y": 1536,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
+"npcwizard_tiefling_p0": {
+"image": "art/npcwizard_tiefling_p0.png?v=5740a3221d",
 "fw": 64,
 "fh": 64,
 "ax": 32,
