@@ -8,6 +8,7 @@
   var D = window.D16, q = location.search;
   function get(k, d) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : d; }
   D.sfx = function () {}; D.music = function () {}; D.clip = function (u, done) { if (done) done(); };
+  D.spr.offline = true; // (10-03, the lazy sheets: the fights here are never drawn, so no sheet is fetched and no fight waits on one -- mode=lazy1003 turns it back on)
   D.PACE = +get('pace', 1); // (10-01: the pace is for people watching -- the AI's waits and message times, battle.js Battle.prototype.pace; this drives the coroutine and never waits, so it is unaffected either way: pace=1.5 in the query proves it; 1 by default)
   var L = +get('lvl', 5), n = +get('n', 10), seed0 = +get('seed', 1), foes = get('foes', 'fighter').split(','), vs = get('vs', ''), wantLog = get('log', '');
   var errs = [], stats = { won: 0, lost: 0, other: 0, rounds: 0, dealt: {}, taken: {}, casts: {}, down: {}, fights: [] };
@@ -2250,6 +2251,98 @@
     if (errs.length) repP.errors = repP.errors.concat(errs);
     var preP = document.createElement('pre'); preP.id = 'out'; preP.textContent = 'BENCH16 ' + JSON.stringify(repP);
     document.body.appendChild(preP);
+    return;
+  }
+  // the lazy sheets (mode=lazy1003; 10-03, Griz: "4 yes"): no sheet fetched before a scene asks; a fight asks for its own and neither
+  // moves nor draws a figure till they are here; nothing it does not use is fetched; the dragonborn's sheet only for a fight that has
+  // one; a sheet drawn that nobody asked for is fetched then and drawn when it lands; a failed one holds no frame; the camp asks for its
+  // four. Here, and only here, the sheets are fetched for real (D.spr.offline off), from deep16/art/ (this page is in dev/); each step
+  // runs as its fetches land, and the page's load waits on them, so the result is in the DOM before it is read
+  if (get('mode', '') === 'lazy1003') {
+    var repZ = { checks: [], errors: [] }, SZ = D.spr, BRAVE = '~fighter.3.dragonborn.16-14-16-10-12-8.greatsword_chainmail___handaxe__.Brokk';
+    var okZ = function (c, s) { repZ.checks.push((c ? 'ok   ' : 'FAIL ') + s); };
+    var endZ = function () { if (errs.length) repZ.errors = repZ.errors.concat(errs); var pz = document.createElement('pre'); pz.id = 'out'; pz.textContent = 'BENCH16 ' + JSON.stringify(repZ); document.body.appendChild(pz); };
+    var failZ = function (e) { repZ.errors.push(String(e && e.stack || e).slice(0, 900)); endZ(); };
+    var byImg = {}; Object.keys(D.SHEETS).forEach(function (k) { byImg['../deep16/' + D.SHEETS[k].image] = k; });
+    var fetchedZ = function () { return Object.keys(D.images).map(function (s) { return byImg[s] || s; }); };
+    var cvZ = document.createElement('canvas'); cvZ.width = D.W; cvZ.height = D.H; var cxZ = cvZ.getContext('2d');
+    // what a draw does: a capsule drawn for a figure that isn't there, a fetch begun by the drawing
+    // (and what was asked for behind, kept so a step can wait till it has all landed)
+    var prefZ = [], pf0Z = SZ.prefetch; SZ.prefetch = function () { var pz = pf0Z.apply(this, arguments); prefZ.push(pz); return pz; };
+    var settleZ = function () { return Promise.all(prefZ.slice()); };
+    var capsZ = 0, drawFetchZ = [], inDrawZ = false, ph0Z = SZ.placeholder, ld0Z = SZ.load;
+    SZ.placeholder = function () { if (inDrawZ) capsZ++; return ph0Z.apply(this, arguments); };
+    SZ.load = function (src) { if (inDrawZ) drawFetchZ.push(byImg[src] || src); return ld0Z.apply(this, arguments); };
+    var drawZ = function (fn) { capsZ = 0; drawFetchZ = []; inDrawZ = true; var er = null, r; try { r = fn(); } catch (eZ) { er = String(eZ && eZ.stack || eZ).slice(0, 400); } inDrawZ = false; return { err: er, r: r, caps: capsZ, fetched: drawFetchZ.slice() }; };
+    var subset = function (a, b) { return a.filter(function (x) { return b.indexOf(x) < 0; }); };
+    try {
+      okZ(!fetchedZ().length, 'every script loaded, no sheet fetched (' + fetchedZ().length + ' of ' + Object.keys(D.SHEETS).length + ')');
+      SZ.offline = false;
+      Object.keys(D.SHEETS).forEach(function (k) { D.SHEETS[k].image = '../deep16/' + D.SHEETS[k].image; });
+      D.seed = seed0 * 7919;
+      // 1. a level-3 ladder fight, pushed as the camp pushes it
+      var fidZ = D.fightsAt(3)[0].id, B1 = new D.Battle({ ladder: true, fight: fidZ });
+      D.push(B1);
+      var w1 = B1.sheets(), t1 = B1.t;
+      okZ(SZ.held(B1, true) && B1.sheetGate.names.join() === w1.now.join(), 'the ' + fidZ + ' fight is held for its figures: ' + w1.now.join(', ') + ' (later, behind: ' + (w1.soon.join(', ') || 'none') + ')');
+      B1.update(); B1.update();
+      okZ(B1.t === t1 && !B1.req && B1.round === 0, 'held, it does not move: t ' + B1.t + ', no entry card yet ' + !B1.req);
+      var d1 = drawZ(function () { return B1.draw(cxZ); });
+      okZ(!d1.err && !d1.caps && !d1.fetched.length, 'held, its draw is the beat: no capsule, nothing fetched by it' + (d1.err ? ' ERR ' + d1.err : ''));
+      okZ(!subset(fetchedZ(), w1.now).length, 'fetched so far: its figures alone (' + fetchedZ().join(', ') + ')');
+      SZ.ensure(w1.now).then(function () {
+        try {
+          okZ(!SZ.held(B1, true) && B1.units.every(function (u) { return SZ.has(u.sheet); }), 'its figures landed: the hold is off, every unit\'s sheet is loaded');
+          B1.update();
+          okZ(B1.t === t1 + 1 && B1.req && B1.req.entry, 'it moves on: t ' + B1.t + ', the entry card up');
+          var d2 = drawZ(function () { return B1.draw(cxZ); });
+          okZ(!d2.err && !d2.caps && !d2.fetched.length, 'its first draw with the figures: no capsule (' + d2.caps + '), no sheet fetched by drawing (' + (d2.fetched.join(', ') || 'none') + ')' + (d2.err ? ' ERR ' + d2.err : ''));
+          return settleZ().then(function () { // (what it fetched behind has landed too)
+            var out1 = subset(fetchedZ(), w1.now.concat(w1.soon));
+            okZ(!out1.length && fetchedZ().indexOf('roper_p1') < 0 && fetchedZ().indexOf('npcfighter_dragonborn_p0') < 0, 'nothing it does not use fetched: ' + fetchedZ().length + ' sheets in all' + (out1.length ? ', and these besides: ' + out1.join(', ') : '') + '; the roper\'s and the dragonborn\'s not among them');
+            // 2. a Pocket DM fight with a dragonborn: his sheet comes with the fight that has him
+            D.pop();
+            var B2 = new D.Battle({ npc: { foes: ['goblin', 'goblin', 'wolf'], party: ['barley:3', 'aurdin:3', 'vivian:3', 'lymen:3', BRAVE] }, fightDef: D.classFight(3, { id: 'pocket', map: 'breach', what: 'two goblins and a wolf', name: 'THE POCKET DM' }), pocket: true });
+            D.push(B2);
+            var w2 = B2.sheets();
+            okZ(w2.now.indexOf('npcfighter_dragonborn_p0') >= 0 && SZ.held(B2, true), 'a Pocket DM fight with Brokk the dragonborn asks for ' + w2.now.join(', ') + ', and is held');
+            return SZ.ensure(w2.now).then(function () {
+              var d3 = drawZ(function () { return B2.draw(cxZ); });
+              okZ(SZ.has('npcfighter_dragonborn_p0') && !SZ.held(B2, true) && !d3.err && !d3.caps && !d3.fetched.length, 'his sheet landed with the rest; the first draw has no capsule and fetches nothing' + (d3.err ? ' ERR ' + d3.err : ''));
+              D.pop();
+              // 3. a sheet nobody asked for, drawn: fetched then, nothing drawn till it lands, drawn after
+              var was = fetchedZ().indexOf('xorn_p1') >= 0, d4 = drawZ(function () { return SZ.draw(cxZ, 'xorn_p1', 'idle', 0, 0, 120, 200, {}); });
+              okZ(!was && !d4.err && !d4.caps && d4.fetched.join() === 'xorn_p1' && d4.r > 0, 'the xorn drawn unasked: no capsule, its fetch begun by the draw, its height said (' + d4.r + ')' + (d4.err ? ' ERR ' + d4.err : ''));
+              return SZ.ensure(['xorn_p1']).then(function () {
+                cxZ.clearRect(0, 0, D.W, D.H);
+                var d5 = drawZ(function () { return SZ.draw(cxZ, 'xorn_p1', 'idle', 0, 0, 120, 200, {}); }), px = cxZ.getImageData(60, 100, 120, 110).data, lit = 0;
+                for (var i = 3; i < px.length; i += 4) if (px[i]) lit++;
+                okZ(SZ.has('xorn_p1') && !d5.err && !d5.caps && !d5.fetched.length && lit > 200, 'it landed and is drawn: ' + lit + ' pixels of it');
+                // 4. a sheet whose image fails: the gate lets go, the draw is the capsule, nothing thrown
+                D.SHEETS.zz_lost = Object.assign({}, D.SHEETS.xorn_p1, { image: '../deep16/art/zz-no-such-sheet.png' });
+                var o4 = {}; SZ.gate(o4, ['zz_lost']);
+                var heldAt = SZ.held(o4, true);
+                return SZ.ensure(['zz_lost']).then(function () {
+                  var d6 = drawZ(function () { return SZ.draw(cxZ, 'zz_lost', 'idle', 0, 0, 120, 200, {}); });
+                  okZ(heldAt && !SZ.held(o4, true) && SZ.failed('zz_lost') && !d6.err && d6.caps === 1, 'a sheet that fails: held while it was out (' + heldAt + '), let go when it failed, drawn as the capsule');
+                  delete D.SHEETS.zz_lost;
+                  // 5. the camp: its four before it draws (here already, from the fights: no hold), the coming fight's foes fetched behind
+                  var F5 = D.fightsAt(5)[0], c5 = new D.Camp(5, F5, function () {});
+                  D.push(c5);
+                  var d7 = drawZ(function () { return c5.draw(cxZ); });
+                  okZ(c5.sheetGate && c5.sheetGate.names.length === 4 && !SZ.held(c5, true) && !d7.err && !d7.caps && !d7.fetched.length, 'the camp asks for its four (' + (c5.sheetGate ? c5.sheetGate.names.join(', ') : 'none') + '), here already, and draws them' + (d7.err ? ' ERR ' + d7.err : ''));
+                  return settleZ().then(function () {
+                    var foes5 = (F5.foes || D.MAPS[F5.map].foes || []).map(function (f) { return D.FOES[f.kind] && D.FOES[f.kind].sheet; }).filter(Boolean);
+                    okZ(foes5.every(function (k) { return SZ.has(k); }), 'and the ' + F5.id + ' fight\'s foes came behind it: ' + foes5.filter(function (k, i, a) { return a.indexOf(k) === i; }).join(', '));
+                    D.pop(); endZ();
+                  });
+                });
+              });
+            });
+          });
+        } catch (eZ2) { failZ(eZ2); }
+      }).catch(failZ);
+    } catch (eZ) { failZ(eZ); }
     return;
   }
   var log = null;

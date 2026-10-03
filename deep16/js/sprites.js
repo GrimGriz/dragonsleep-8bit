@@ -11,6 +11,69 @@
   S.images = function () { return Object.keys(D.SHEETS || {}).map(function (k) { return D.SHEETS[k].image; }); };
   S.has = function (name) { return !!(D.SHEETS && D.SHEETS[name] && D.images[D.SHEETS[name].image] && D.images[D.SHEETS[name].image].naturalWidth); };
 
+  // ---------------------------------------------------------------- the images, fetched when a scene asks for them (10-03, the lazy sheets;
+  // Griz, to "The lazy load as a later cloud job?": "4 yes"): every sheet's image used to be fetched before the first screen (135 sheets,
+  // 36.8 MB). Now a scene asks for its own (a fight for its units, the camp for its four: S.gate, below), and a sheet nobody asked for that
+  // is drawn anyway is fetched then and drawn when it lands (S.draw). The sizes, the anchors and the rows are all in data/sprites.js, so the
+  // rules never wait on an image; only the drawing does
+  S.offline = false; // (the benches: nothing fetched, nothing waits -- dev/bench16.js sets it)
+  var pend = {}; // image path -> its promise, so each is fetched once and a fetch under way is shared
+  function srcOf(name) { var sh = D.SHEETS && D.SHEETS[name]; return sh ? sh.image : null; }
+  function srcsOf(names) { var out = []; [].concat(names || []).forEach(function (n) { var s = srcOf(n); if (s && out.indexOf(s) < 0) out.push(s); }); return out; }
+  // fetched and settled (loaded, or failed: a broken image never holds a frame)
+  function settled(src) { var im = D.images[src]; return !!(im && im.getAttribute('src') && im.complete); }
+  S.load = function (src, low) {
+    if (pend[src]) return pend[src];
+    var im = D.images[src];
+    if (S.offline && !im) return Promise.resolve(null);
+    if (settled(src)) return (pend[src] = Promise.resolve(im));
+    if (!im) { im = new Image(); D.images[src] = im; }
+    pend[src] = new Promise(function (res) { var fin = function () { res(im); }; im.addEventListener('load', fin); im.addEventListener('error', fin); });
+    if (!im.getAttribute('src')) { if (low) im.fetchPriority = 'low'; im.src = src; } // (one D.loadImages already started keeps its own: dev/camp-shot.py)
+    return pend[src];
+  };
+  // a promise that settles when every named sheet's image has loaded (or failed); names a sheet set doesn't have are passed over
+  S.ensure = function (names, low) { return Promise.all(srcsOf(names).map(function (s) { return S.load(s, low); })); };
+  S.ensureAll = function () { return S.prefetch(Object.keys(D.SHEETS || {})); }; // (every sheet, behind what a scene waits on: the spell gallery's, any creature a spell may call)
+  // true when every named sheet is settled (or there is nothing to fetch)
+  S.ready = function (names) { return S.offline || srcsOf(names).every(settled); };
+  S.failed = function (name) { var s = srcOf(name), im = s && D.images[s]; return !!(im && settled(s) && !im.naturalWidth); };
+  // what may be wanted later (a fight's summons, the camp's coming fight): fetched behind, at low priority, once what a scene is
+  // waiting on has come
+  S.prefetch = function (names) {
+    if (S.offline) return Promise.resolve();
+    var now = Object.keys(pend).map(function (k) { return pend[k]; });
+    return Promise.all(now).then(function () { return S.ensure(names, true); });
+  };
+  // a scene's own sheets before it draws: S.gate(scene, names) starts the fetch; while it is out, S.held(scene) is true -- the scene's
+  // update holds (S.held counts the frames) and its draw is the beat's (S.beat; S.held(scene, true) only looks). A wait past 20 s lets
+  // the scene go on, its figures drawn as they land
+  S.gate = function (o, names) {
+    var g = o.sheetGate = { names: [].concat(names || []).filter(function (n, i, a) { return srcOf(n) && a.indexOf(n) === i; }), t: 0, done: false };
+    g.done = S.ready(g.names);
+    if (!g.done) S.ensure(g.names).then(function () { g.done = true; });
+    return g;
+  };
+  S.held = function (o, peek) {
+    var g = o && o.sheetGate;
+    if (!g || g.done) return false;
+    if (S.ready(g.names) || g.t > 1200) { g.done = true; return false; }
+    if (!peek) g.t++;
+    return true;
+  };
+  // the beat while a scene's sheets come: the ladder's dark, and after a moment (a wait too short to see is not shown) the 8-bit game's
+  // window with a pip for each figure, lit as it lands
+  S.beat = function (ctx, o) {
+    var g = (o && o.sheetGate) || { names: [], t: 99 }, P = function (r, i) { return D.PAL.ramps[r][i]; };
+    ctx.fillStyle = '#07060c'; ctx.fillRect(0, 0, D.W, D.H);
+    if (g.t < 12) return;
+    var n = g.names.length, w = Math.max(160, Math.min(D.W - 40, n * 8 + 40)), x = Math.round((D.W - w) / 2), y = Math.round(D.H / 2 - 20);
+    D.win8(ctx, x, y, w, 40);
+    D.text(ctx, '{y}THE FIGURES ARE COMING{/}' + ['', '.', '..', '...'][(g.t >> 4) & 3], x + w / 2 - D.textWidth('{y}THE FIGURES ARE COMING{/}') / 2, y + 8, P('gold', 4));
+    var px = Math.round(D.W / 2 - (n * 8 - 2) / 2);
+    g.names.forEach(function (k, i) { ctx.fillStyle = S.ready([k]) ? P('gold', 4) : P('stone', 3); ctx.fillRect(px + i * 8, y + 24, 6, 6); });
+  };
+
   // draw one frame; t in frames at 60 Hz; returns the sprite's height above the foot (for labels and HP bars)
   // o.once: play through once and hold the last frame (an attack, a fall); o.alpha; o.flip: mirror; o.tint: a flash colour
   // the frame a sheet shows for anim and facing at t (S.draw and S.outline share it)
@@ -40,7 +103,8 @@
   };
   S.draw = function (ctx, name, anim, facing, t, x, y, o) {
     var sh = D.SHEETS && D.SHEETS[name];
-    if (!sh || !S.has(name)) return S.placeholder(ctx, name, x, y, o);
+    if (!sh || (!S.has(name) && (S.offline || S.failed(name)))) return S.placeholder(ctx, name, x, y, o);
+    if (!S.has(name)) { S.load(sh.image); return sh.top || sh.ay; } // (asked for by nobody, or still on its way: fetched now, drawn when it lands)
     var f = frameOf(sh, anim, facing, t, o, name), img = f.img, fw = f.fw, fh = f.fh, ay = f.ay, sy = f.sy;
     var dx = Math.round(x - f.ax), dy = Math.round(y - ay), fr = f.sx / fw;
     ctx.save();
@@ -65,7 +129,7 @@
   // (the x-ray: a figure hidden behind another shows through as this -- ui.js xray)
   S.outline = function (ctx, name, anim, facing, t, x, y, color, o) {
     var sh = D.SHEETS && D.SHEETS[name];
-    if (!sh || !S.has(name)) return;
+    if (!sh || !S.has(name)) { if (sh && !S.offline) S.load(sh.image); return; }
     var f = frameOf(sh, anim, facing, t, o, name), w = f.fw + 2, h = f.fh + 2, oc = S.tintCanvas(w, h), ox = oc.getContext('2d');
     ox.globalCompositeOperation = 'source-over'; ox.clearRect(0, 0, w, h);
     [[0, 1], [2, 1], [1, 0], [1, 2]].forEach(function (d) { ox.drawImage(f.img, f.sx, f.sy, f.fw, f.fh, d[0], d[1], f.fw, f.fh); });

@@ -331,6 +331,7 @@
     if (this.cache.sheetsKey === k) return this.cache.sheets;
     var out = this.st.party.map(function (slot) { var sp = PK.specOf(self.st, slot); var h = PK.sheetOf(sp); return { slot: slot, sp: sp, h: h, look: PK.lookOf(sp) }; });
     this.cache.sheetsKey = k; this.cache.sheets = out;
+    D.spr.ensure(out.map(function (s) { return s.look; })); // (the party's figures, for the cards and the fight: fetched as the party is made -- js/sprites.js, 10-03)
     return out;
   };
   Pocket.prototype.levels = function () { return this.sheets().filter(function (s) { return s.h; }).map(function (s) { return s.h.lvl; }); };
@@ -631,6 +632,7 @@
       } else if (s.h) {
         var look = s.look;
         if (look && D.spr.has(look)) { ctx.save(); if (locked) ctx.globalAlpha = 0.35; D.spr.draw(ctx, look, 'idle', 0, self.t, x + cw / 2, top + 16 + Math.min(D.spr.top(look), 50) + 2, {}); ctx.restore(); }
+        else if (look && !D.spr.failed(look)) D.text(ctx, ['.', '..', '...'][(self.t >> 4) % 3], x + cw / 2, top + 44, P('stone', 5), 'center'); // (its figure on its way)
         var nm = s.h.name.length > 11 ? s.h.name.slice(0, 11) : s.h.name;
         D.text(ctx, (locked ? '{g}' : '{y}') + nm + '{/}', x + cw / 2, top + 72, P('bone', 1), 'center');
         D.text(ctx, R.CLASSES[s.h.cls].name + ' ' + s.h.lvl, x + cw / 2, top + 82, locked ? P('stone', 4) : P('bone', 1), 'center');
@@ -775,6 +777,7 @@
     var self = this, run = this.st.run, levels = this.levels(), kinds = this.foes || [], d = PK.diff(levels, kinds), mapId = this.fightMap || this.mapFor() || '?';
     if (this.crI < 0) this.crI = this.defaultCR();
     if (!this.foes) this.reroll();
+    var fk = (this.foes || []).join(); if (this.foesAsked !== fk) { this.foesAsked = fk; D.spr.prefetch((this.foes || []).map(function (k) { return D.FOES[k] && D.FOES[k].sheet; })); } // (the table's foes fetched behind while it is set: js/sprites.js, 10-03)
     var title = run ? (run.trial ? 'THE TRIAL' : 'RUNG ' + run.rung + ' OF 4') : 'THE FOES';
     head(ctx, title, run ? (run.trial ? 'double deadly: win it and Pyro joins the roster' : 'the table set for you; a short rest between rungs') : 'the CR is the sum of theirs; the reading is the DMG\'s for this party');
     // the dial

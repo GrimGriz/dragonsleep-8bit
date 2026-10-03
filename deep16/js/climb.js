@@ -108,6 +108,7 @@
     if (!this.s.fight) CL.draw(this.s);
     CL.save(this.s);
     this.sel = 0; this.card = null;
+    D.spr.gate(this, this.s.party.map(function (h) { return SV.look(h.id, null).sheet || h.id + '_p0'; })); // (the four's figures before it draws: js/sprites.js, 10-03; the level-up draws the same four)
     D.music('title');
   };
   // the camp's view of the climb
@@ -156,6 +157,7 @@
     }
   };
   Climb.prototype.update = function () {
+    if (D.spr.held(this)) return;
     this.t++;
     if (this.card) {
       if (this.card.ask === 'over') {
@@ -199,6 +201,7 @@
     }
   };
   Climb.prototype.draw = function (ctx) {
+    if (D.spr.held(this, true)) return D.spr.beat(ctx, this);
     if (this.card && this.card.hands) return this.drawHands(ctx);
     var R = DS.R, s = this.s, self = this, F = D.fight(s.fight);
     ctx.fillStyle = '#07060c'; ctx.fillRect(0, 0, D.W, D.H);
