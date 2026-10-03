@@ -1068,6 +1068,12 @@
       if (D.iso && D.iso.map && D.looks && D.looks.ground) { var cv15 = document.createElement('canvas'); cv15.width = 640; cv15.height = 480; var cx15 = cv15.getContext('2d'), n15d = 0; B15.grounds = [{ kind: 'hail', sq: [[p15.x, p15.y]], by: w15.id, difficult: true, ends: 1 }]; D.looks.ground(cx15, B15, function (x, y, f) { f(cx15); n15d++; }); B15.grounds = []; drawn15 = n15d + ' square drawn'; }
       okX('15. the hail drawn on a page canvas without a throw: ' + drawn15, /square drawn|no iso map/.test(drawn15));
       okX('15. Ice Storm\'s hail difficult: as it falls ' + r15a + ', after its caster\'s turn ' + r15b + ', after ours ' + r15c + ', at his next turn ' + r15d + '; gone at that turn\'s end ' + !r15e + ' -- ' + logX(B15, n15).slice(0, 120), r15a && r15b && r15c && r15d && !r15e);
+      // 10-03 ruling (Griz, to "Ice Storm split into 2d8 bludgeoning and 4d6 cold on the grid?": "yes; it is a bug"; SRD 5.1: "A creature takes 2d8 bludgeoning damage
+      // and 4d6 cold damage on a failed save"): the storm on a fighter who resists cold, his save failed, every die at its top -- 16 bludgeoning and 24 cold halved, 28
+      var B16 = mkX('?npc=wizard:7&lvl=7&vs=fighter:7'), w16 = sideX(B16, 'foe')[0], p16 = sideX(B16, 'party')[0];
+      p16.hp = p16.maxhp = 400; p16.resist = ['cold']; p16.conds = {}; w16.x = p16.x; w16.y = Math.max(0, p16.y - 8); D.rules.startTurn(w16); w16.slots[3] = 2; B16.active = w16;
+      pinX(1); var h16 = p16.hp, n16 = (B16.log || []).length; runX(MX.cast(B16, w16, 'icestorm', 4, { x: p16.x, y: p16.y })); D.d = d0X;
+      okX('Ice Storm, split: a fighter resisting cold loses ' + (h16 - p16.hp) + ' (16 bludgeoning + 24 cold halved) -- ' + logX(B16, n16).slice(0, 200), h16 - p16.hp === 28);
     } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
     D.d = d0X;
     if (errs.length) repX.errors = repX.errors.concat(errs);

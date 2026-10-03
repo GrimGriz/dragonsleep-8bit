@@ -58,9 +58,11 @@ Each commit also updates the register row (`spells-srd-by-class.md`: "BUILT 10-0
 4. **The 8-bit's oozes lack `charmed` in condImmune** (the SRD lists it). Their `asleep` already keeps Sleep off, so nothing shows today.
 5. **The drow's Fey Ancestry advantage against being charmed** is not read in the 8-bit. No 8-bit spell charms a foe, so it is moot today; the sheets now carry the trait for when one does.
 
-## 5. Questions
+## 5. Questions, answered 10-03
 
-1. Magic Missile: one 1d4+1 rolled for all the darts (the SRD's "roll the damage once for all of them", the darts striking together) or one roll per dart (both games today)?
-2. Sanctuary: the grid now ends it when the floating weapon strikes, and the 8-bit doesn't. Bring the 8-bit in line?
-3. The grid's Ice Storm: split its 4d6 into cold, as the 8-bit does? (Small; not built here.)
-4. The sleet reading (the fall costs no action; it fights on from the ice): yes?
+1. Magic Missile: one 1d4+1 rolled for all the darts, or one roll per dart (both games today)? -- Griz: *"per dart; the SRD text, the other is Sage Advice"*. As built; nothing changed.
+2. Sanctuary: the grid ends it when the floating weapon strikes; bring the 8-bit in line? -- *"yes; dealing damage ends it"*. Built (09356c7): Battle.spiritStrike drops the ward on the swing, a hit or a miss, as heroAttack does for his own swing and the grid's Battle.attack does (the SRD's "makes an attack").
+3. The grid's Ice Storm: split its 4d6 into cold? -- *"yes; it is a bug"*. Built (48891c8): area() halves and hurts each kind on its own, as Flame Strike does. A fighter resisting cold, his save failed, every die at its top: 40 before, 28 after. (Each kind is its own hurt, so one concentrating creature it catches makes two CON checks, as Flame Strike's and a weapon's riders already do.)
+4. The sleet reading (the fall costs no action; it fights on from the ice)? -- *"yes"*, and: *"but we're not making new animations for attacking from prone, players might see them pop up and fall back prone and that's fine"*. Nothing built for it.
+
+All four are in the register's Ruled section (spells-srd-by-class.md, "Ruled, 10-03"). After both builds, `check.py all` is GREEN (45 checks).

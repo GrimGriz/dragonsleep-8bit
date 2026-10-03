@@ -586,9 +586,12 @@
     var t = foes.slice().sort(function (a, b) { return a.hp - b.hp; })[0];
     if (this.famWill && this.famWill(u)) yield* this.famFly(u, t); // (the familiar's help lands on this swing: it flies to the target first, js/familiar.js)
     var nat = this.d20(this.advantage(u, t, true)), atk = R.spellAtk(u.h);
+    // the swing is its caster's attack: a ward on the caster ends with it, as with his own swing (SRD 5.1 Sanctuary: "If the warded creature makes an attack ...
+    // this spell ends"; Griz, 10-03: "yes; dealing damage ends it" -- the grid's Battle.attack the same)
+    if (u.conds.sanctuary) { delete u.conds.sanctuary; this.pendingMsg = plain(u) + "'s sanctuary ends."; }
     this.bolt(u, t, '#E8F0FF'); yield this.wait(8);
     if (yield* this.foeParry(t, u, nat, nat + atk, this.acOf(t), true)) return; // (a melee spell attack: Parry turns it too, 10-03)
-    if (nat === 1 || (nat !== 20 && nat + atk < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('The spiritual weapon swings at ' + nameOf(t) + ' and misses.', 30); return; }
+    if (nat === 1 || (nat !== 20 && nat + atk < this.acOf(t))) { DS.audio.sfx('miss'); this.num(t, 'MISS', '#9C9C9C'); yield* this.say('The spiritual weapon swings at ' + nameOf(t) + ' and misses.', 30); yield* this.flushMsg(); return; }
     var d = this.hurt(t, DS.roll(sw.dice, { crit: nat === 20 }) + DS.mod(u.h.abil[R.CLASSES[u.h.cls].cast]), 'force', { magicWeapon: true });
     this.elemBurst(t, 'force'); t.flash = 12; DS.audio.sfx('hit'); this.num(t, d, '#F8D878');
     yield* this.say('The spiritual weapon strikes ' + nameOf(t) + ' for ' + d + '.', 34);

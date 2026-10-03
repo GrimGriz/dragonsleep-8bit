@@ -300,6 +300,14 @@
         if (in9) castF(AF, 'blindnessdeafness', ['Ogre'], [4, 3, 3]);
         var c9 = o9.conds.blinded, adv9 = bF.advantage(o9, BF, true), adv9b = bF.advantage(BF, o9, true);
         check('9. Blindness/Deafness in his battle list (' + in9 + '); on the ogre: blinded ' + !!c9 + ', the CON save at its turn\'s end ' + !!(c9 && c9.save && c9.save.ab === 'con') + '; its club ' + adv9 + ', Barley\'s blow ' + adv9b + ' -- "' + saidF() + '"', in9 && !!c9 && !!c9.save && c9.save.ab === 'con' && adv9 === -1 && adv9b === 1);
+
+        // 10-03 ruling (Griz, to "Sanctuary ends when the spiritual weapon strikes, in the 8-bit too?": "yes; dealing damage ends it"; SRD 5.1: "If the warded
+        // creature makes an attack ... this spell ends"): Lymen warded, his floating weapon's swing at an ogre ends the ward -- a hit, and a miss as any swing does
+        var o11 = foesF(['ogre'], 400)[0], d20F11 = bF.d20, ends11 = [];
+        try {
+          [15, 1].forEach(function (nat) { LF.conds = { sanctuary: { dc: 13, rounds: 10 }, spiritWeapon: { dice: '1d8', rounds: 10 } }; bF.pendingMsg = null; T.blog = []; bF.d20 = function () { return nat; }; runF(bF.spiritStrike(LF)); ends11.push(!LF.conds.sanctuary && /sanctuary ends/.test(saidF())); ends11.push(saidF()); });
+        } finally { bF.d20 = d20F11; LF.conds = {}; }
+        check('the spiritual weapon\'s swing ends its caster\'s Sanctuary: on a hit ' + ends11[0] + ' -- "' + ends11[1] + '"; on a miss ' + ends11[2] + ' -- "' + ends11[3] + '"', ends11[0] && ends11[2]);
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
       // the fight itself (what it shows goes in spell-fixes-notes.md): Aurdin casts it on the first ogre from the menus, and the battle runs on
       if (Q.get('fight9')) {
