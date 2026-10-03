@@ -25,8 +25,12 @@
     // A rung may hold more than one fight: the set piece first, the bestiary's fights beside it (left/right on the ladder).
     { id: 'ettercap', level: 3, map: 'gulch', name: 'The Braiding Ettercap', sub: 'Web Gulch, the strung end', music: 'boss',
       intro: 'On a thick strand at the far end something sits braiding a cord. It stops when it sees you.',
-      from: 'the 8-bit game: the Weigh-House bounty (events.js S.ettercap; ettercap + giant spider)', won: 'THE GULCH GOES QUIET.',
-      foes: [{ id: 'ettercap', kind: 'ettercap', at: [7, 1] }, { id: 'gs1', kind: 'giantspider', at: [10, 3] }], wave: null },
+      from: 'the 8-bit game: the Weigh-House bounty (events.js S.ettercap; ettercap + giant spider + two wolf spiders)', won: 'THE GULCH GOES QUIET.',
+      // half again (10-03, Griz: "I think we should up the CR by a 1/2 for the early fights"; the overseer's call, x1.5 the adjusted XP): two
+      // wolf spiders (ws1, ws2), the gulch's own (content/encounters.json gulch: wolf spiders 2-3, a giant spider with 1-2 of them), on the snared
+      // lad's squares. For four at 3: 975 HARD before, 1500 HARD after (x1.54). invented.json#early-fights-half-again
+      foes: [{ id: 'ettercap', kind: 'ettercap', at: [7, 1] }, { id: 'gs1', kind: 'giantspider', at: [10, 3] },
+             { id: 'ws1', kind: 'wolfspider', at: [4, 5] }, { id: 'ws2', kind: 'wolfspider', at: [13, 6] }], wave: null },
     { id: 'landlord', level: 4, map: 'pool', name: 'The Landlord', sub: 'the Warrens, the deepest pool', music: 'boss',
       intro: 'It rises from its pool, all eye-stalk and tentacle. It will not leave the water.',
       from: 'the 8-bit game: the Warrens, FIGHT IT instead of the bucket (events.js; the otyugh)', won: 'THE POOL GOES STILL.',
