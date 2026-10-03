@@ -1,0 +1,390 @@
+THE KEEPER OF THE FLOODED STAIR -- combat log
+seed 32105658, level 3, mode keeper, fight keeper, result won
+settings: hp=175, slams=2, slamDice=3d4, slamAtk=6, waveDC=15, sweepUpFree=false, washNoWall=false, drown=2d6+3, suffocateDice=1d6, suffocateBonus=3, swirlHit=true, heldStruggle=true, deepDepth=2, swirlAny=false, deepAC=10, wallUses=3, wallHP=30, wallAC=12, initBonus=0, aiCast=true, visible=true, glow=true, partyOpening=true, openingDrift=true, weaponResist=false, oaWave=false, concMin=10, freezeNeeds=all, glowFt=10, hideAfter=true, iceDC=7, oaSweep=1, openingRounds=3, stalemateBreak=true, sweep=2, swirlFlat=0.55, swirlScale=0.6, wallRounds=3, wallScale=0.55, wallStrikeAC=10
+
+R1 T1  Vivian: move
+    result: from 9,9 to 10,10 (along, across)
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 175
+R1 T3  The Keeper: kcast
+    result: The Keeper calls the water across the stair to ice. (CAST: the Ice Wall, an action) / The Keeper raises the Ice Wall: the water on the stair freezes across. / (at 11 along the stair, AC 12, 30 HP a 10-ft section; fire destroys a section at once; 2 uses left)
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 175    [wall]
+R1 T3  The Keeper: kwave -> Vivian
+    roll: Barley: STR d20 10 +5 = 15 vs DC 15 keeps its feet
+    roll: Aurdin: STR d20 19 +0 = 19 vs DC 15 keeps its feet
+    roll: Vivian: STR d20 3 +0 = 3 vs DC 15 KNOCKED DOWN
+    roll: Lymen: STR d20 18 +3 = 21 vs DC 15 keeps its feet
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone) / The wave bounces off the ice and drags back. / Vivian is swept 10 ft toward the deep, and lies there prone. (half the move to stand)
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 175    [wall]
+R1 T3  The Keeper: move
+    result: from 4,9 to 5,10 (along, across; the anchor of its 2x2 body, the rest of it implied)
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 175    [wall]
+R1 T4  Aurdin: cast -> The Keeper
+    roll: d20 19 +5 = 24 vs AC 13 HIT
+    roll: 2d6+0 [2,4]+0 = 6 fire = 6
+    roll: d20 20 +5 = 25 vs AC 13 CRITICAL
+    roll: 2d6+0 [1,5,4,3]+0 = 13 fire = 13
+    roll: d20 10 +5 = 15 vs AC 13 HIT
+    roll: 2d6+0 [1,1]+0 = 2 fire = 2
+    result: Aurdin: SCORCHING RAY (L2) -- 3 rays / Aurdin > The Keeper Scorching Ray
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 165    [wall]
+R1 T5  Lymen: cast -> Vivian
+    result: Lymen: SHIELD OF FAITH (L1): a shimmering field about Vivian, +2 AC (concentration).
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 165    [wall]
+R1 T5  Lymen: move
+    result: from 9,10 to 7,10 (along, across)
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 165    [wall]
+R1 T5  Lymen: attack: Longsword -> The Keeper
+    roll: d20 13 +5 = 18 vs AC 13 HIT
+    roll: 1d8+3 [5]+3 = 8 slashing smite 2d8 [5,2] = 7 radiant = 15
+    result: Lymen > The Keeper Longsword
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 150    [wall]
+R2 T6  Vivian: move
+    roll: d20 7 +6 = 13 vs AC 16 +2 cover MISS
+    result: The Keeper: an opportunity attack on Vivian. / The Keeper > Vivian Slam / from 8,10 to 10,8 (along, across)
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 150    [wall]
+R2 T7  Barley: move
+    result: from 9,7 to 7,8 (along, across)
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 150    [wall]
+R2 T7  Barley: attack: Threshing Flail -> The Keeper
+    roll: d20 1 +5 = 6 vs AC 13 MISS
+    result: Barley > The Keeper Threshing Flail
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 150    [wall]
+R2 T7  Barley: attack: Threshing Flail -> The Keeper
+    roll: d20 15 +5 = 20 vs AC 13 HIT
+    roll: 1d10+3 [6]+3 = 9 bludgeoning = 9
+    result: Barley > The Keeper Threshing Flail
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 141    [wall]
+R2 T8  The Keeper: kwave
+    roll: Barley: STR d20 10 +5 = 15 vs DC 15 keeps its feet
+    roll: Aurdin: STR d20 16 +0 = 16 vs DC 15 keeps its feet
+    roll: Lymen: STR d20 17 +3 = 20 vs DC 15 keeps its feet
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone)
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 141    [wall]
+R2 T8  The Keeper: attack -> Barley
+    roll: d20 7 +6 = 13 vs AC 17 MISS
+    result: The Keeper > Barley Slam
+    hp: Barley 39, Aurdin 18, Vivian 27, Lymen 36, The Keeper 141    [wall]
+R2 T8  The Keeper: attack -> Barley
+    roll: d20 19 +6 = 25 vs AC 17 HIT
+    roll: 3d4+3 [2,2,2]+3 = 9 bludgeoning = 9
+    roll: Barley: STR save d20 7 +5 = 12 vs DC 15 KNOCKED PRONE (half the move to rise)
+    result: The Keeper > Barley Slam
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 141    [wall]
+R2 T9  Aurdin: cast -> The Keeper
+    roll: d20 5 +5 = 10 vs AC 13 MISS
+    roll: d20 8 +5 = 13 vs AC 13 HIT
+    roll: 2d6+0 [5,3]+0 = 8 fire = 8
+    roll: d20 20 +5 = 25 vs AC 13 CRITICAL
+    roll: 2d6+0 [1,3,2,4]+0 = 10 fire = 10
+    result: Aurdin: SCORCHING RAY (L2) -- 3 rays / Aurdin > The Keeper Scorching Ray
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 132    [wall]
+R2 T10  Lymen: cast -> Aurdin, Vivian
+    roll: Lymen: BLESS (L1): Aurdin, Lymen, Vivian -- +1d4 to attack rolls and saves (concentration).
+    result: Lymen lets go of Shield of Faith (a new spell).
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 132    [wall]
+R3 T11  Vivian: move
+    result: Vivian is in plain sight: no longer hidden. / from 10,8 to 7,9 (along, across)
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 132    [wall]
+R3 T11  Vivian: attack: Candle-Knife -> The Keeper
+    roll: d20 1 +5 +2 bless = 8 vs AC 13 MISS
+    result: Vivian > The Keeper Candle-Knife
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 132    [wall]
+R3 T12  Barley: attack: Threshing Flail -> The Keeper
+    roll: d20 7 +5 = 12 vs AC 13 MISS
+    result: Barley > The Keeper Threshing Flail
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 132    [wall]
+R3 T13  The Keeper: kwave -> Barley, Lymen
+    roll: Barley: STR d20 7 +5 = 12 vs DC 15 KNOCKED DOWN
+    roll: Aurdin: STR d20 15 +3 (bless +3) = 18 vs DC 15 keeps its feet
+    roll: Vivian: STR d20 12 +3 (bless +3) = 15 vs DC 15 keeps its feet
+    roll: Lymen: STR d20 5 +6 (bless +3) = 11 vs DC 15 KNOCKED DOWN
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone) / The wave bounces off the ice and drags back. / Barley is swept 10 ft toward the deep, and lies there prone. (half the move to stand)
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 132    [wall]
+R3 T13  The Keeper: move
+    roll: d20 5 +5 +1 bless = 11 vs AC 13 MISS
+    roll: d20 [9,17]>9 +5 +4 bless = 18 vs AC 13 HIT dis: prone
+    roll: 1d8+3 [8]+3 = 11 slashing = 11
+    roll: d20 [17,12]>12 +5 = 17 vs AC 13 HIT dis: prone
+    roll: 1d10+3 [5]+3 = 8 bludgeoning = 8
+    result: Vivian: an opportunity attack on the The Keeper. / Vivian > The Keeper Candle-Knife / Lymen: an opportunity attack on the The Keeper. / Lymen > The Keeper Longsword / Barley: an opportunity attack on the The Keeper. / Barley > The Keeper Threshing Flail / from 5,10 to 2,10 (along, across; the anchor of its 2x2 body, the rest of it implied)
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 113    [wall]
+R3 T13  The Keeper: attack -> Barley
+    roll: d20 10 +6 = 16 vs AC 17 MISS
+    result: The Keeper > Barley Slam
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 113    [wall]
+R3 T13  The Keeper: attack -> Barley
+    roll: d20 6 +6 = 12 vs AC 17 MISS
+    result: The Keeper > Barley Slam
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 113    [wall]
+R3 T14  Aurdin: cast -> The Keeper
+    roll: Aurdin: MAGIC MISSILE (L1) -- 3 darts, each 1d4+1 force, never missing
+    result: The Keeper: 12
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 101    [wall]
+R3 T15  Lymen: sacred
+    result: Lymen: SACRED WEAPON. The blade takes Kalindel's light: +2 to hit with it for a minute (Channel Divinity).
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 101    [wall]
+R4 T16  Vivian: move
+    result: from 7,9 to 8,10 (along, across)
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 101    [wall]
+R4 T17  Barley: move
+    result: from 5,8 to 4,8 (along, across)
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 101    [wall]
+R4 T17  Barley: attack: Threshing Flail -> The Keeper
+    roll: d20 2 +5 = 7 vs AC 13 MISS
+    result: Barley > The Keeper Threshing Flail
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 101    [wall]
+R4 T18  The Ice Wall: the Ice Wall thaws
+    result: its 3 rounds are up
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 101
+R4 T18  The Keeper: kwave -> Aurdin, Lymen
+    roll: Barley: STR d20 12 +5 = 17 vs DC 15 keeps its feet
+    roll: Aurdin: STR d20 7 +2 (bless +2) = 9 vs DC 15 KNOCKED DOWN
+    roll: Lymen: STR d20 1 +7 (bless +4) = 8 vs DC 15 KNOCKED DOWN
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone) / The wave runs out along the hall and falls away: no wall to throw it back.
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 101
+R4 T18  The Keeper: attack -> Barley
+    roll: d20 6 +6 = 12 vs AC 17 MISS
+    result: The Keeper > Barley Slam
+    hp: Barley 30, Aurdin 18, Vivian 27, Lymen 36, The Keeper 101
+R4 T18  The Keeper: attack -> Barley
+    roll: d20 13 +6 = 19 vs AC 17 HIT
+    roll: 3d4+3 [4,3,4]+3 = 14 bludgeoning = 14
+    roll: Barley: STR save d20 10 +5 = 15 vs DC 15 STAYS UP
+    result: The Keeper > Barley Slam
+    hp: Barley 16, Aurdin 18, Vivian 27, Lymen 36, The Keeper 101
+R4 T19  Aurdin: cast -> The Keeper
+    roll: Aurdin: MAGIC MISSILE (L1) -- 3 darts, each 1d4+1 force, never missing
+    result: The Keeper: 9
+    hp: Barley 16, Aurdin 18, Vivian 27, Lymen 36, The Keeper 92
+R4 T20  Lymen: move
+    result: from 7,10 to 6,10 (along, across)
+    hp: Barley 16, Aurdin 18, Vivian 27, Lymen 36, The Keeper 92
+R5 T21  Vivian: cdash
+    result: Vivian (Cunning Action) dashes: +30 ft.
+    hp: Barley 16, Aurdin 18, Vivian 27, Lymen 36, The Keeper 92
+R5 T21  Vivian: move
+    result: Vivian is in plain sight: no longer hidden. / from 8,10 to 4,10 (along, across)
+    hp: Barley 16, Aurdin 18, Vivian 27, Lymen 36, The Keeper 92
+R5 T21  Vivian: attack: Candle-Knife -> The Keeper
+    roll: d20 13 +5 +2 bless = 20 vs AC 13 HIT
+    roll: 1d4+3 [1]+3 = 4 piercing sneak 2d6 [6,3] = 9 = 13
+    result: Vivian > The Keeper Candle-Knife
+    hp: Barley 16, Aurdin 18, Vivian 27, Lymen 36, The Keeper 79
+R5 T22  Barley: move
+    result: from 4,8 to 1,9 (along, across)
+    hp: Barley 16, Aurdin 18, Vivian 27, Lymen 36, The Keeper 79
+R5 T22  Barley: attack: Threshing Flail -> The Keeper
+    roll: d20 [8,5]>8 +5 = 13 vs AC 13 HIT adv: flanking
+    roll: 1d10+3 [5]+3 = 8 bludgeoning = 8
+    result: Barley > The Keeper Threshing Flail
+    hp: Barley 16, Aurdin 18, Vivian 27, Lymen 36, The Keeper 71
+R5 T22  Barley: hp change between actions (before The Keeper's turn) -> Barley
+    result: Barley 16 -> 21 / Barley: SECOND WIND +5
+    hp: Barley 21, Aurdin 18, Vivian 27, Lymen 36, The Keeper 71
+R5 T23  The Keeper: kwave -> Lymen
+    roll: Aurdin: STR d20 20 +1 (bless +1) = 21 vs DC 15 keeps its feet
+    roll: Vivian: STR d20 18 +3 (bless +3) = 21 vs DC 15 keeps its feet
+    roll: Lymen: STR d20 7 +6 (bless +3) = 13 vs DC 15 KNOCKED DOWN
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone) / The wave runs out along the hall and falls away: no wall to throw it back.
+    hp: Barley 21, Aurdin 18, Vivian 27, Lymen 36, The Keeper 71
+R5 T23  The Keeper: kswirl -> Barley
+    roll: The Keeper closes on Barley: 1d6+3 = 5, and the water is in Barley's lungs.
+    roll: Barley drowns: 2d6+3 less 3 [9] = 6 (Keeper's drowning, not the SRD's)
+    result: Barley is washed into the deep: RESTRAINED, and the Keeper is the swirl about Barley. / (AC 10 in the water: anything that strikes the water around Barley strikes it. Escape DC 13, an action; or climb out where the head is over water)
+    hp: Barley 10, Aurdin 18, Vivian 27, Lymen 36, The Keeper 71    [flood,swirl]
+R5 T24  Aurdin: cast -> The Keeper
+    roll: The Keeper holds Barley under: CON d20 19 +1 = 20 vs DC 10 the hold keeps
+    roll: Aurdin: MAGIC MISSILE (L1) -- 3 darts, each 1d4+1 force, never missing
+    result: The Keeper: 8
+    hp: Barley 10, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63    [flood,swirl]
+R5 T25  Lymen: move
+    result: from 6,10 to 4,9 (along, across)
+    hp: Barley 10, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63    [flood,swirl]
+R6 T26  Vivian: move
+    roll: d20 4 +6 = 10 vs AC 14 MISS
+    result: The Keeper: an opportunity attack on Vivian. / The Keeper > Vivian Slam / from 4,10 to 6,9 (along, across)
+    hp: Barley 10, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63    [flood,swirl]
+R6 T27  Barley: drowning
+    roll: Barley drowns: 2d6+3 less 3 [12] = 9 (Keeper's drowning, not the SRD's)
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63    [flood,swirl]
+R6 T27  Barley: breakfree
+    roll: Barley wrenches at the grip: STR d20 14 = 19 vs DC 13 FREE
+    result: The Keeper rises out of the water (its hold is broken: it falls back to itself).
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63
+R6 T28  The Keeper: kwave -> Lymen
+    roll: Aurdin: STR d20 20 +4 (bless +4) = 24 vs DC 15 keeps its feet
+    roll: Lymen: STR d20 1 +4 (bless +1) = 5 vs DC 15 KNOCKED DOWN
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone) / The wave runs out along the hall and falls away: no wall to throw it back.
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63
+R6 T28  The Keeper: attack -> Barley
+    roll: d20 5 +6 = 11 vs AC 17 MISS
+    result: The Keeper > Barley Slam
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63
+R6 T28  The Keeper: attack -> Barley
+    roll: d20 1 +6 = 7 vs AC 17 MISS
+    result: The Keeper > Barley Slam
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63
+R6 T29  Aurdin: cast -> The Keeper
+    roll: d20 5 +5 +4 bless = 14 vs AC 13 +2 cover MISS
+    result: Aurdin > The Keeper Fire Bolt
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63
+R6 T30  Lymen: move
+    result: from 4,9 to 3,8 (along, across)
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63
+R7 T31  Vivian: move
+    result: Vivian is in plain sight: no longer hidden. / from 6,9 to 4,9 (along, across)
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 63
+R7 T31  Vivian: attack: Candle-Knife -> The Keeper
+    roll: d20 [14,17]>17 +5 +4 bless = 26 vs AC 13 HIT adv: flanking
+    roll: 1d4+3 [2]+3 = 5 piercing sneak 2d6 [3,2] = 5 = 10
+    result: Vivian > The Keeper Candle-Knife
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 53
+R7 T31  Vivian: move
+    result: from 4,9 to 5,9 (along, across)
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 36, The Keeper 53
+R7 T32  Barley: drowning
+    roll: Barley drowns: 2d6+3 less 3 [12] = 9 (Keeper's drowning, not the SRD's)
+    result: Barley goes down.
+    hp: Barley 0, Aurdin 18, Vivian 27, Lymen 36, The Keeper 53
+R7 T33  The Keeper: kcast
+    result: The Keeper calls the water across the stair to ice. (CAST: the Ice Wall, an action) / The Keeper raises the Ice Wall: the water on the stair freezes across. / (at 11 along the stair, AC 12, 30 HP a 10-ft section; fire destroys a section at once; 1 use left)
+    hp: Barley 0, Aurdin 18, Vivian 27, Lymen 36, The Keeper 53    [wall]
+R7 T33  The Keeper: kwave -> Vivian
+    roll: Aurdin: STR d20 20 +3 (bless +3) = 23 vs DC 15 keeps its feet
+    roll: Vivian: STR d20 5 +3 (bless +3) = 8 vs DC 15 KNOCKED DOWN
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone) / The wave bounces off the ice and drags back. / Vivian is swept 5 ft toward the deep, and lies there prone. (half the move to stand)
+    hp: Barley 0, Aurdin 18, Vivian 27, Lymen 36, The Keeper 53    [wall]
+R7 T34  Aurdin: cast -> The Keeper
+    roll: d20 13 +5 +2 bless = 20 vs AC 13 HIT
+    roll: 1d10+0 [3]+0 = 3 fire = 3
+    result: Aurdin > The Keeper Fire Bolt
+    hp: Barley 0, Aurdin 18, Vivian 27, Lymen 36, The Keeper 52    [wall]
+R7 T35  Lymen: move
+    result: from 3,8 to 2,8 (along, across)
+    hp: Barley 0, Aurdin 18, Vivian 27, Lymen 36, The Keeper 52    [wall]
+R8 T35  Lymen: hp change between actions (before Vivian's turn) -> Barley
+    result: Barley 0 -> 15 / Lymen lays on hands: +15 to Barley. (pool 0)
+    hp: Barley 15, Aurdin 18, Vivian 27, Lymen 36, The Keeper 52    [wall]
+R8 T36  Vivian: attack: Candle-Knife -> The Keeper
+    roll: d20 [8,10]>10 +5 +3 bless = 18 vs AC 13 HIT adv: flanking
+    roll: 1d4+3 [4]+3 = 7 piercing sneak 2d6 [2,3] = 5 = 12
+    result: Vivian > The Keeper Candle-Knife
+    hp: Barley 15, Aurdin 18, Vivian 27, Lymen 36, The Keeper 40    [wall]
+R8 T36  Vivian: move
+    result: from 4,10 to 5,10 (along, across)
+    hp: Barley 15, Aurdin 18, Vivian 27, Lymen 36, The Keeper 40    [wall]
+R8 T37  Barley: drowning
+    roll: Barley drowns: 2d6+3 less 3 [12] = 9 (Keeper's drowning, not the SRD's)
+    hp: Barley 6, Aurdin 18, Vivian 27, Lymen 36, The Keeper 40    [wall]
+R8 T37  Barley: attack: Threshing Flail -> The Keeper
+    roll: d20 20 +5 = 25 vs AC 13 CRITICAL
+    roll: 1d10+3 [10,2]+3 = 15 bludgeoning = 15
+    result: Barley > The Keeper Threshing Flail
+    hp: Barley 6, Aurdin 18, Vivian 27, Lymen 36, The Keeper 25    [wall]
+R8 T38  The Keeper: kwave
+    roll: Aurdin: STR d20 15 +3 (bless +3) = 18 vs DC 15 keeps its feet
+    roll: Vivian: STR d20 17 +1 (bless +1) = 18 vs DC 15 keeps its feet
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone)
+    hp: Barley 6, Aurdin 18, Vivian 27, Lymen 36, The Keeper 25    [wall]
+R8 T38  The Keeper: kswirl -> Aurdin, Vivian, Lymen
+    roll: The Keeper closes on Lymen: 1d6+3 = 6, and the water is in Lymen's lungs.
+    roll: Lymen holds Bless? CON d20 15 +6 (bless +4) = 21 vs DC 10 HELD
+    roll: Lymen drowns: 2d6+3 less 2 [7] = 5 (Keeper's drowning, not the SRD's)
+    roll: Lymen holds Bless? CON d20 2 +5 (bless +3) = 7 vs DC 10 LOST
+    result: Lymen is washed into the deep: RESTRAINED, and the Keeper is the swirl about Lymen. / (AC 10 in the water: anything that strikes the water around Lymen strikes it. Escape DC 13, an action; or climb out where the head is over water) / Lymen lets go of Bless (the blow).
+    hp: Barley 6, Aurdin 18, Vivian 27, Lymen 25, The Keeper 25    [flood,wall,swirl]
+R8 T39  Aurdin: cast -> The Keeper, Lymen
+    roll: d20 18 +5 = 23 vs AC 10 HIT
+    roll: 1d10+0 [7]+0 = 7 fire = 7
+    roll: The Keeper holds Lymen under: CON d20 6 +1 = 7 vs DC 10 THE HOLD BREAKS (Lymen is free of it, but drowns till its head is over water)
+    result: Aurdin > The Keeper Fire Bolt / The Keeper rises out of the water (its hold is broken: it falls back to itself).
+    hp: Barley 6, Aurdin 18, Vivian 27, Lymen 25, The Keeper 22    [wall]
+R8 T40  Lymen: drowning
+    roll: Lymen drowns: 2d6+3 less 2 [8] = 6 (Keeper's drowning, not the SRD's)
+    hp: Barley 6, Aurdin 18, Vivian 27, Lymen 19, The Keeper 22    [wall]
+R8 T40  Lymen: move
+    result: from 2,8 to 4,9 (along, across)
+    hp: Barley 6, Aurdin 18, Vivian 27, Lymen 19, The Keeper 22    [wall]
+R8 T40  Lymen: attack: Longsword -> The Keeper
+    roll: d20 [1,2]>2 +5 +2 sacred = 9 vs AC 13 MISS adv: flanking
+    result: Lymen > The Keeper Longsword
+    hp: Barley 6, Aurdin 18, Vivian 27, Lymen 19, The Keeper 22    [wall]
+R9 T41  Vivian: move
+    roll: d20 7 +6 = 13 vs AC 14 +2 cover MISS
+    result: The Keeper: an opportunity attack on Vivian. / The Keeper > Vivian Slam / from 5,10 to 6,8 (along, across)
+    hp: Barley 6, Aurdin 18, Vivian 27, Lymen 19, The Keeper 22    [wall]
+R9 T42  Barley: drowning
+    roll: Barley drowns: 2d6+3 less 3 [8] = 5 (Keeper's drowning, not the SRD's)
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 19, The Keeper 22    [wall]
+R9 T42  Barley: attack: Threshing Flail -> The Keeper
+    roll: d20 [19,14]>19 +5 = 24 vs AC 13 CRITICAL adv: flanking
+    roll: 1d10+3 [4,8]+3 = 15 bludgeoning = 15
+    result: Barley > The Keeper Threshing Flail
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 19, The Keeper 7    [wall]
+R9 T43  The Keeper: kwave -> Aurdin, Lymen
+    roll: Aurdin: STR d20 6 +0 = 6 vs DC 15 KNOCKED DOWN
+    roll: Lymen: STR d20 1 +3 = 4 vs DC 15 KNOCKED DOWN
+    roll: The Keeper closes on Lymen: 1d6+3 = 4, and the water is in Lymen's lungs.
+    roll: Lymen drowns: 2d6+3 less 2 [8] = 6 (Keeper's drowning, not the SRD's)
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone) / The wave bounces off the ice and drags back. / Aurdin is swept 10 ft toward the deep, and lies there prone. (half the move to stand) / Lymen is swept 10 ft toward the deep, and lies there prone. (half the move to stand) / Lymen is washed into the deep: RESTRAINED, and the Keeper is the swirl about Lymen. / (AC 10 in the water: anything that strikes the water around Lymen strikes it. Escape DC 13, an action; or climb out where the head is over water)
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 9, The Keeper 7    [flood,wall,swirl]
+R9 T44  Aurdin: cast -> The Keeper, Lymen
+    roll: d20 14 +5 = 19 vs AC 10 HIT
+    roll: 1d10+0 [5]+0 = 5 fire = 5
+    roll: The Keeper holds Lymen under: CON d20 4 +1 = 5 vs DC 10 THE HOLD BREAKS (Lymen is free of it, but drowns till its head is over water)
+    result: Aurdin > The Keeper Fire Bolt / The Keeper rises out of the water (its hold is broken: it falls back to itself).
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 9, The Keeper 5    [wall]
+R9 T45  Lymen: drowning
+    roll: Lymen drowns: 2d6+3 less 2 [13] = 11 (Keeper's drowning, not the SRD's)
+    result: Lymen goes down.
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 0, The Keeper 5    [wall]
+R10 T46  Vivian: move
+    result: Vivian is in plain sight: no longer hidden. / from 6,8 to 4,8 (along, across)
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 0, The Keeper 5    [wall]
+R10 T46  Vivian: attack: Candle-Knife -> The Keeper
+    roll: d20 1 +5 = 6 vs AC 13 MISS
+    result: Vivian > The Keeper Candle-Knife
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 0, The Keeper 5    [wall]
+R10 T46  Vivian: move
+    result: from 4,8 to 5,8 (along, across)
+    hp: Barley 1, Aurdin 18, Vivian 27, Lymen 0, The Keeper 5    [wall]
+R10 T47  Barley: drowning
+    roll: Barley drowns: 2d6+3 less 3 [11] = 8 (Keeper's drowning, not the SRD's)
+    result: Barley goes down.
+    hp: Barley 0, Aurdin 18, Vivian 27, Lymen 0, The Keeper 5    [wall]
+R10 T48  The Ice Wall: the Ice Wall thaws
+    result: its 3 rounds are up
+    hp: Barley 0, Aurdin 18, Vivian 27, Lymen 0, The Keeper 5
+R10 T48  The Keeper: kwave -> Aurdin
+    roll: Aurdin: STR d20 13 +0 = 13 vs DC 15 KNOCKED DOWN
+    roll: Vivian: STR d20 20 +0 = 20 vs DC 15 keeps its feet
+    result: The Keeper sends a wave up the stair. (the Wave, a bonus action: STR DC 15 or prone) / The wave runs out along the hall and falls away: no wall to throw it back.
+    hp: Barley 0, Aurdin 18, Vivian 27, Lymen 0, The Keeper 5
+R10 T48  The Keeper: attack -> Vivian
+    roll: d20 13 +6 = 19 vs AC 14 HIT
+    roll: 3d4+3 [3,3,1]+3 = 10 bludgeoning = 10
+    roll: Vivian: STR save d20 5 +0 = 5 vs DC 15 KNOCKED PRONE (half the move to rise)
+    result: The Keeper > Vivian Slam
+    hp: Barley 0, Aurdin 18, Vivian 17, Lymen 0, The Keeper 5
+R10 T48  The Keeper: attack -> Vivian
+    roll: d20 7 +6 = 13 vs AC 14 MISS
+    result: The Keeper > Vivian Slam
+    hp: Barley 0, Aurdin 18, Vivian 17, Lymen 0, The Keeper 5
+R10 T49  Aurdin: cast -> The Keeper
+    roll: d20 17 +5 = 22 vs AC 13 HIT
+    roll: 1d10+0 [3]+0 = 3 fire = 3
+    result: Aurdin > The Keeper Fire Bolt
+    hp: Barley 0, Aurdin 18, Vivian 17, Lymen 0, The Keeper 4
+R10 T50  Lymen: drowning
+    hp: Barley 0, Aurdin 18, Vivian 17, Lymen 0, The Keeper 4
+R11 T51  Vivian: move
+    result: from 5,8 to 4,8 (along, across)
+    hp: Barley 0, Aurdin 18, Vivian 17, Lymen 0, The Keeper 4
+R11 T51  Vivian: attack: Candle-Knife -> The Keeper
+    roll: d20 18 +5 = 23 vs AC 13 HIT
+    roll: 1d4+3 [2]+3 = 5 piercing = 5
+    result: Vivian > The Keeper Candle-Knife / The Keeper falls.
+    hp: Barley 0, Aurdin 18, Vivian 17, Lymen 0, The Keeper 0
+R11 T51  : the fight ends
+    result: won
+    hp: Barley 0, Aurdin 18, Vivian 17, Lymen 0, The Keeper 0
