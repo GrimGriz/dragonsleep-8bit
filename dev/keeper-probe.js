@@ -186,7 +186,7 @@
       var bad = []; for (var li = 1; li < LG.length; li++) { var a = LG[li - 1].hpAfter, b = LG[li].hpAfter, expl = LG[li].targets.concat([LG[li].actor]); Object.keys(b).forEach(function (n) { if (a[n] != null && a[n] !== b[n] && expl.indexOf(n) < 0) bad.push('L' + li + ' ' + n + ' ' + a[n] + '->' + b[n] + ' (' + LG[li].action + ')'); }); }
       ok('the log, ' + what + ': every HP change has a line that names who changed (' + (bad.length ? bad.slice(0, 3).join('; ') : 'none missing') + ')', !bad.length); };
     lgcheck('watched fight (class AI both sides)', ['The Keeper', 'Barley']); ok('the log, watched: mode ' + LG.meta.mode, LG.meta.mode === 'ai');
-    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, stalemateBreak: true, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', swirlHit: true, slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
+    Object.assign(D.keeper.CFG, { visible: true, partyOpening: true, openingDrift: true, glow: true, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', swirlHit: true, slams: 2, waveDC: 15 }); // (the old=1 fight above set the old ones: back to the defaults)
     var KF2 = D.keeper.fight('?keeperfight&seed=102950&watch&lvl=3&hp=175&drown=2d6&ai=current&retreat=0'); D.battle = KF2; KF2.enter(); var kc = cardsOf(KF2), kg = 0, kv; while (KF2.co && kg++ < 400000) { var kr = KF2.co.next(kv); kv = undefined; if (kr.done) break; }
     var kt = kc.join('\n'), kn = function (re) { return (kt.match(re) || []).length; };
     ok('?keeperfight&seed=102950 drained (the settings before the lure, 175 HP, 2d6, the current AI: visible, glowing, the opening, the drift): ' + KF2.result + ' R' + KF2.round + ', floods ' + kn(/washed into the deep/g) + ', walls ' + kn(/(springs|raises) the Ice Wall/g) + ', holds broken ' + kn(/HOLD BREAKS/g), KF2.result === 'won' && KF2.round === 9 && kn(/washed into the deep/g) === 1 && kn(/(springs|raises) the Ice Wall/g) === 1 && kn(/HOLD BREAKS/g) === 1);
@@ -645,7 +645,7 @@
       // READY on the ledge (Griz 10-03: "test barley standing on the ledge and readying a strike when keeper in range ... wave pushing him in range"): the strike is sprung by the Keeper's own step into reach;
       // what the Wave's backwash does to the readier (swept into the Keeper's reach) is told as it is
       (function () {
-        function mk3() { var B = battle({ lvl: 3 }), k = keeper(B), H = ours(B), c = cardsOf(B); B.o.play = 'keeper'; delete k.conds.hidden; H.forEach(function (u) { delete u.conds.hidden; }); H.forEach(function (u, i) { if (i) put(u, 8, 12); }); RU.startTurn(k); return { B: B, k: k, H: H, c: c, bar: H.filter(function (u) { return /Barley/.test(u.name); })[0] || H[0] }; }
+        function mk3() { var B = battle({ lvl: 3 }), k = keeper(B), H = ours(B), c = cardsOf(B); B.o.play = 'keeper'; delete k.conds.hidden; H.forEach(function (u) { delete u.conds.hidden; }); H.forEach(function (u, i) { if (i) put(u, 8, 12); }); H.forEach(function (u) { u.guest = true; u.classAI = true; }); RU.startTurn(k); return { B: B, k: k, H: H, c: c, bar: H.filter(function (u) { return /Barley/.test(u.name); })[0] || H[0] }; } // (the class AI plays the four, as in the fight: its readied strike is aimed by the AI)
         function runB(B, u, cmd) { var g = B.exec(u, cmd), n = 0, v; while (n++ < 5000) { var r = g.next(v); v = undefined; if (r.done) break; if (r.value && r.value.prompt) v = r.value.prompt.opts[0].value; } }
         var R = mk3(); put(R.bar, 8, 9); var o = K.at(4, 8, 2); R.k.x = o[0]; R.k.y = o[1]; RU.startTurn(R.bar); runB(R.B, R.bar, { do: 'ready', trigger: 'near', pick: 'weapon' });
         var armed = !!R.bar.ready, rr0 = R.bar.reaction, hp0 = R.k.hp; R.c.length = 0;
@@ -657,8 +657,8 @@
         var W = mk3(); put(W.bar, 8, 9); var o2 = K.at(5, 8, 2); W.k.x = o2[0]; W.k.y = o2[1]; RU.startTurn(W.bar); runB(W.B, W.bar, { do: 'ready', trigger: 'near', pick: 'weapon' });
         var armed2 = !!W.bar.ready; RU.startTurn(W.k); W.k.reaction = 1; drain(K.raiseWall(W.B, W.k, null)); RU.startTurn(W.k); W.c.length = 0; var hpW = W.k.hp, a0 = K.A(W.bar);
         force(false); drain(K.wave(W.B, W.k)); unforce();
-        var swept = a0 - K.A(W.bar), spr2 = W.bar.reaction === 0 || /readied/.test(W.c.join(' ')) || W.k.hp < hpW;
-        ok('OBSERVED: the Wave bounces Barley (readied, on the ledge at ' + a0 + ' along) ' + swept + ' squares toward the Keeper, now ' + K.A(W.bar) + ' along beside it (reach ' + (G.dist(W.bar, W.k) <= G.reachOf(W.bar, W.bar.weapon && W.bar.weapon.reach)) + '): the readied strike ' + (spr2 ? 'SPRANG' : 'did NOT spring (nothing asked the Ready hook for a forced move)') + ', armed ' + armed2, armed2);
+        var swept = a0 - K.A(W.bar), spr2 = /\(readied\)/.test(W.c.join(' '));
+        ok('the Wave bounces Barley (readied, on the ledge at ' + a0 + ' along) ' + swept + ' squares toward the Keeper, now ' + K.A(W.bar) + ' along beside it (reach ' + (G.dist(W.bar, W.k) <= G.reachOf(W.bar, W.bar.weapon && W.bar.weapon.reach)) + '): the readied strike SPRANG when he was forced into reach (' + spr2 + ', reaction ' + W.bar.reaction + ', ' + (W.c.join(' ').match(/Barley[^.]{0,40}\(readied\)[^.]{0,30}/) || ['no readied card'])[0].replace(/\{.\}|\{\/\}/g, '') + ')', armed2 && swept > 0 && spr2);
       })();
       D.battle = B3;
     })();
