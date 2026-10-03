@@ -212,7 +212,13 @@
   Script.prototype.step = function (val) {
     for (var guard = 0; guard < 10000; guard++) {
       var r;
-      try { r = this.gen.next(val); } catch (e) { console.error('script error', e); this.done = true; return; }
+      try { r = this.gen.next(val); } catch (e) {
+        console.error('script error', e); this.done = true;
+        // (a script that throws with the screen faded out leaves it black for good: the fade comes back up, whichever fade-out/fade-in pair it threw between --
+        // 10-03, Griz "3 yes" to the floor's runner's find: a dozen pairs in events.js, deep.js, familiar.js, scenes.js had EV.warp's hole)
+        if (DS.fadeLevel > 0) DS.fadeLevel = 0;
+        return;
+      }
       if (r.done) { this.done = true; if (this.onDone) this.onDone(r.value); return; }
       var w = r.value;
       if (!w) { val = undefined; continue; }

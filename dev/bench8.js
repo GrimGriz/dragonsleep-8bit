@@ -1051,6 +1051,16 @@
         console.error = realErr;
         check('the fade is back up (' + DS.fadeLevel + '), the throw still seen (' + errs.length + ' script error, ' + /no map zz_nomap/.test(errs.join(' ')) + '), the party where it was (' + DS.field.map.id + '), control back (' + !DS.scriptActive() + ')', DS.fadeLevel === 0 && errs.length === 1 && /no map zz_nomap/.test(errs.join(' ')) && DS.field.map.id === map0 && !DS.scriptActive());
       });
+      // 6. any script that throws between its own fade-out and fade-in (10-03, Griz "3 yes": the floor in Script.step, js/core.js, for the dozen pairs besides the warp)
+      floorCase('a script that throws while faded out', function () {
+        SETUP(+(Q.get('lvl') || 5)); DS.fadeLevel = 0;
+        var errs = [];
+        console.error = function () { errs.push(Array.prototype.join.call(arguments, ' ')); };
+        DS.run(function* () { yield DS.fade(1, 12); throw new Error('thrown in the dark'); });
+        for (var i = 0; i < 200 && DS.scriptActive(); i++) T.step(1);
+        console.error = realErr;
+        check('the fade is back up (' + DS.fadeLevel + '), the throw still seen (' + errs.length + ' script error), control back (' + !DS.scriptActive() + ')', DS.fadeLevel === 0 && errs.length === 1 && /thrown in the dark/.test(errs.join(' ')) && !DS.scriptActive());
+      });
       var okN = cases.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('floor1003: ' + okN + '/' + cases.length + ' cases' + (okN === cases.length ? ' clean' : ': ' + cases.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
     } else if (test === 'migrate') {
