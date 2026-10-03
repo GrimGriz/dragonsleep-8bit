@@ -30,6 +30,14 @@
     var q = location.search; if (/[?&]nolog\b/.test(q)) return false; if (/[?&]log\b/.test(q)) return true;
     return location.protocol === 'file:' || /^(localhost|127\.0\.0\.1|\[::1\]|)$/.test(location.hostname);
   }
+  // what the actor has to spend, and where it stands: a command that changed none of it, no one's HP or conditions, and rolled nothing was refused -- a card said why (10-03, Griz's
+  // play=keeper log: "it is in the swirl: LET GO first" had a line of its own)
+  function spendOf(u) {
+    if (!u) return '';
+    var t = u.turn || {}, o = Object.keys(t).sort().map(function (k) { var v = t[k]; return k + '=' + (v != null && typeof v === 'object' ? (v.id || Object.keys(v).length) : v); });
+    var f = ''; try { f = JSON.stringify(u.feats || {}); } catch (e) { f = ''; }
+    return o.join(';') + '|' + u.x + ',' + u.y + '|' + u.reaction + '|' + (u.slots || []).join('/') + '|' + f;
+  }
   function snap(B) { var o = {}; B.units.forEach(function (u) { o[u.id] = { u: u, hp: u.hp, c: Object.keys(u.conds || {}).filter(function (k) { return u.conds[k]; }).sort().join(',') }; }); return o; }
   function flagsOf(B, text) {
     var S = B.kp, k = B.units.filter(function (u) { return u.kind === 'keeper'; })[0], f = {};
@@ -60,13 +68,13 @@
     }
     st.res = []; st.hp = now;
   }
-  function wrap(B, u, action, targets, gen) { // gen: the generator the action is; returns its value
+  function wrap(B, u, action, targets, gen, cmd) { // gen: the generator the action is; returns its value. cmd: a command (Battle.exec), which a card may refuse
     return (function* () {
       if (!mine(B) || B._klog.depth > 0) return yield* gen;
       gap(B, 'before ' + action);
-      var st = B._klog, before = snap(B), cards = []; st.depth++; st.cap = cards;
+      var st = B._klog, before = snap(B), had = cmd ? spendOf(u) : null, cards = []; st.depth++; st.cap = cards;
       var v; try { v = yield* gen; } finally { st.depth--; st.cap = null; }
-      push(B, u, action, targets, cards, before);
+      push(B, u, action, targets, cards, before, had);
       return v;
     })();
   }
@@ -78,7 +86,7 @@
     push(B, u, action, targets, cards, before);
     return v;
   }
-  function push(B, u, action, targets, cards, before) {
+  function push(B, u, action, targets, cards, before, had) {
     var lines = [], seen = {};
     cards.forEach(function (c) { c.split(' | ').forEach(function (ln) { var s = plain(ln); if (s && !seen[s]) { seen[s] = 1; lines.push(s); } }); });
     resLines(B._klog).forEach(function (s) { lines.push(s); });
@@ -90,6 +98,7 @@
     B._klog.hp = hpMap(B); B._klog.amb = [];
     if (action === 'end' || action === 'none' || action == null) return;
     if (!rolls.length && !result && !changed) return; // (a click that did nothing -- a DASHMOVE with no square picked, a READY that opened its menu -- and the drowning of one already down: no line; 10-03)
+    if (!rolls.length && !changed && had != null && u && spendOf(u) === had) return; // (a click refused with a card -- nothing spent, nothing moved: no line; spendOf above)
     L.meta.mode = modeOf(B); // (play= is set after enter: read on every line)
     L.push({ round: B.round, turn: B._klog.turn, actor: u ? u.name : '', action: action, targets: tg, rolls: rolls, result: result, hpAfter: hp, flags: flagsOf(B, text) });
   }
@@ -112,7 +121,7 @@
   var st0 = RU.startTurn; RU.startTurn = function (u) { var B = D.battle, on = mine(B); if (on) gap(B, 'before ' + (u && u.name) + '\'s turn'); if (on) { B._klog.turn++; B._klog.round = B.round; } var r = st0.apply(this, arguments); if (on) gap(B, 'the start of ' + (u && u.name) + '\'s turn'); return r; };
 
   // ---- the heroes' and the human Keeper's commands, moves, blows, spells
-  wrapProto(D.Battle.prototype, 'exec', function (e0) { return function* (u, c) { var B = this; if (!mine(B)) return yield* e0.apply(this, arguments); return yield* wrap(B, u, c && c.do, [nm(c && c.target), c && c.id ? B.units.filter(function (w) { return w.id === c.id; })[0] : null], e0.apply(this, arguments)); }; });
+  wrapProto(D.Battle.prototype, 'exec', function (e0) { return function* (u, c) { var B = this; if (!mine(B)) return yield* e0.apply(this, arguments); return yield* wrap(B, u, c && c.do === 'attack' && u && u.kind === 'keeper' ? 'kslam' : c && c.do, [nm(c && c.target), c && c.id ? B.units.filter(function (w) { return w.id === c.id; })[0] : null], e0.apply(this, arguments), true); }; });
   wrapProto(D.Battle.prototype, 'moveAlong', function (m0) {
     return function* (u, path, o) {
       var B = this; if (!mine(B)) return yield* m0.apply(this, arguments); // (inert outside the Keeper's fight)

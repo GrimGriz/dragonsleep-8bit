@@ -708,6 +708,8 @@
         var A2 = mk2(); A2.H[0].hp = 40; A2.H[0].maxhp = 40; force(false); run2(A2, { do: 'kswirl', target: A2.H[0] }); unforce(); var keeps = A2.k.flooding && A2.k.turn.bonus > 0;
         A2.H[0].hp = 2; run2(A2, { do: 'ksuffocate' });
         ok('SUFFOCATE kills the held hero (the swirl itself left his bonus: ' + keeps + '): no Slam, Wave or wall afterwards (' + st(A2.k) + ', swirling ' + !!A2.k.flooding + ')', keeps && !A2.k.flooding && st(A2.k) === '0/0/0');
+        // (10-03, his play=keeper log: Aurdin, suffocated to 0, lay held by a Keeper that had risen, till its fall let him go): the swirl over is the hold over
+        ok('and it lets go of him: held ' + !!A2.H[0].conds.restrained + ', the Keeper holding ' + (A2.k.holding || []).length + '; the one the SWIRL killed too: held ' + !!A.H[0].conds.restrained, !A2.H[0].conds.restrained && !(A2.k.holding || []).length && !A.H[0].conds.restrained);
         var A3 = mk2(); A3.H[0].hp = 40; A3.H[0].maxhp = 40; force(false); drain(K.flood(A3.B, A3.k, A3.H[0], true)); unforce();
         ok('the Wave\'s auto-swirl ends the turn (action/bonus/move ' + st(A3.k) + '/' + A3.k.turn.move + ')', st(A3.k) === '0/0/0' && A3.k.turn.move === 0);
         var A4 = mk2(); A4.H[0].hp = 40; A4.H[0].maxhp = 40; force(false); drain(K.flood(A4.B, A4.k, A4.H[0], true)); unforce(); A4.H[0].hp = 0; A4.H[0].ko = true; K.checkSwirl(A4.B);
@@ -790,6 +792,15 @@
       ok('the drowning shows its die: "' + strip((co.join(' ').match(/drowns[^(]*/) || [''])[0]) + '"', /drowns: \S+ (less \d+ )?\[\d\]\+1 = \d+/.test(strip(co.join(' '))));
       var NB = battle({ lvl: 3, bench: false }); ok('played by hand (no play=, not benched): the log says mode ' + LG.meta.mode, LG.meta.mode === 'party');
       var NK = battle({ lvl: 3, bench: false, play: 'keeper' }); ok('play=keeper: mode ' + LG.meta.mode, LG.meta.mode === 'keeper');
+      // (10-03, his play=keeper log) a click refused with a card has no line; the clicked Slam is "kslam", as the ring's; the breath comes on the move off the deep
+      var KB = battle({ lvl: 3 }), kb = keeper(KB), HB = ours(KB), runK = function (cmd) { drain(KB.exec(kb, cmd)); K.checkSwirl(KB); }; KB.o.play = 'keeper'; delete kb.conds.hidden; HB.forEach(function (u) { delete u.conds.hidden; });
+      put(HB[0], 8, 1); put(HB[1], 8, 6); HB[0].hp = HB[0].maxhp = 60; RU.startTurn(kb); force(false); runK({ do: 'kswirl', target: HB[0] }); unforce(); kb.turn.action = 1;
+      var nr = LG.length, cr = cardsOf(KB); runK({ do: 'attack', target: HB[1] });
+      ok('a refused click, no line: SLAM while swirling ("' + strip((cr.join(' ').match(/LET GO[^.]*/) || ['no card'])[0]) + '"), ' + (LG.length - nr) + ' new lines, the action kept ' + kb.turn.action, LG.length === nr && /LET GO first/.test(cr.join(' ')) && kb.turn.action === 1 && !!kb.flooding);
+      HB[1].hp = HB[1].maxhp = 60; runK({ do: 'krise' }); kb.turn.action = 1; var ns = LG.length; runK({ do: 'attack', target: HB[1] }); var lsl = LG[LG.length - 1];
+      ok('the clicked Slam is logged as the ring\'s: "' + (lsl && lsl.action) + '" (' + (lsl && lsl.rolls.length) + ' rolls)', LG.length === ns + 1 && lsl.action === 'kslam' && lsl.rolls.length > 0);
+      var hbr = HB[2]; put(hbr, 7, 1); RU.startTurn(hbr); hbr.conds.drowning = { by: kb.id }; hbr.turn.move = 30; kb.reaction = 0; drain(KB.moveAlong(hbr, [sq(7, 2), sq(7, 3)], { spend: true })); var lbr = LG[LG.length - 1];
+      ok('out of the deep, the breath on the move: drowning ' + !!hbr.conds.drowning + ' at ' + K.A(hbr) + ' along, the move\'s line "' + (lbr && lbr.action + ': ' + lbr.result).slice(0, 90) + '"', !hbr.conds.drowning && !K.isDeep(hbr.x, hbr.y) && lbr && lbr.action === 'move' && /gets a breath/.test(lbr.result));
       D.battle = B3;
     })();
     // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row, start=ledge|rune where the party comes in (10-03); the counts are what the mechanics did

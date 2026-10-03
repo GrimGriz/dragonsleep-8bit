@@ -263,3 +263,12 @@ His fight (`play-records/keeper-seed50086211-L3.txt`, mode party, from the ledge
 - `dev/keeper-probe.js`: one check (along 4 -> 1, the deepest its move reached); the playtest-notes block (`B6`) runs with `openerDeep` off -- its swirl is set on the squares the walk ends on; `openerDeep: true` is in the restore after the `old=1` replay. 222/222.
 - Seen in the pane: a scripted party in reach before its first turn -- the wall, the Wave, then Vivian's opportunity attack as it went, and it stood at 1 along.
 - Not benched: the win table (`runs=30`) before and after.
+
+## 10-03 -- four things in his play=keeper log (the desk, on Griz's "please")
+
+From `play-records/keeper-seed50613316-L3.txt` (he played the Keeper, the class AI the party):
+- **The swirl over is the hold over** (`keeper.js` K.surface): Aurdin, suffocated to 0 in R7, lay restrained by a Keeper that had risen -- the swirl ended (`no one is left in it`) but nothing let go, till the Keeper's fall in R11 released him (so the last blow's line named Aurdin as a target). Healed in between, he would have stood up held (BREAK FREE or DODGE only) and drowned at his turns with no swirl about him -- one way the stream's *"viv drowned and was never swirled"* could have looked (not seen in a log). Every way the swirl ends now lets go of the one in it; the drowning stays (free of the hold, a hero in the deep drowns till its head is over water, as before).
+- **The breath on the walk out** (`keeper.js`, a moveAlong wrapper): Lymen broke free in R5 and walked off the deep; "gets a breath" came at his next turn, a round on. Now on the move that takes the head over water; the turn's door still says it for one carried out.
+- **A refused click has no line** (`keeperlog.js` spendOf): "it is in the swirl: LET GO first" was a line. A command (Battle.exec) that rolled nothing, changed no one's HP or conditions, and left its actor's turn, place, reaction, slots and features as they were is not logged. Only commands: what the game does (a sprung wall, a drowning) is logged as before. A Hide refused because it is seen ("can see her plainly", nothing spent) drops out by the same rule.
+- **The clicked Slam is `kslam`** (`keeperlog.js`): a click on a hero (the default attack) logged `attack`, the ring's SLAM `kslam`; both `kslam` now, as the probe expects of the ring.
+- `dev/keeper-probe.js`: four checks (let go, the refused click, the clicked Slam, the breath). 226/226.

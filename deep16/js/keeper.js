@@ -160,11 +160,23 @@
   };
   var exec0 = D.Battle.prototype.exec;
   D.Battle.prototype.exec = function* (u, c) { var r = yield* exec0.apply(this, arguments); if (this.kp) K.checkSwirl(this); return r; }; // (whatever a hero did to get free -- break free, a friend's help -- the swirl ends at once)
+  // a breath on the walk out (10-03, Griz's play=keeper log: Lymen broke free and walked off the deep, and "gets a breath" came at the start of his next turn, a round on): the drowning ends
+  // with the move that takes the head over water; the turn's door (K.drownTick) still says it for one who was carried out
+  var moveK0 = D.Battle.prototype.moveAlong;
+  D.Battle.prototype.moveAlong = function* (u, path, o) {
+    var r = yield* moveK0.apply(this, arguments);
+    if (this.kp && u && u.conds && u.conds.drowning && u.hp > 0 && !K.isDeep(u.x, u.y) && !(u.conds.restrained && u.conds.restrained.water)) { delete u.conds.drowning; this.card(['{n}' + u.name + ' gets a breath: head over the water.{/}'], 200); }
+    return r;
+  };
   K.surface = function (B, u, why) {
     if (!u.flooding) return;
     if (K.st && st(B) && !st(B).holdBroken && !u.dead && u.hp > 0) st(B).holdBroken = { round: B.round }; // (the first swirl hold that ends: the party's retreat begins, CFG.partyRetreat)
     if (u.flooding.at === B.round && u.turn && B.kp && !u.dead && u.hp > 0) { u.turn.action = 0; u.turn.bonus = 0; u.turn.slamsLeft = 0; } // (swirled this round: the turn's rest is spent in it; no Slam, Wave or wall for coming out of it)
+    var vic = B.units.filter(function (w) { return w.id === u.flooding.vic; })[0];
     u.baseAC = u.aboveAC; u.aboveAC = null; u.flooding = null; delete u.drawAt;
+    // and lets go: the swirl over is the hold over, whyever it ended (10-03, Griz's play=keeper log: Aurdin, suffocated to 0, lay held by a Keeper that had risen -- healed, he would
+    // have stood up held, only BREAK FREE or DODGE, and drowned with no swirl about him; the Keeper's fall let him go five rounds on). The drowning stays: free of it, it drowns till its head is over water
+    if (vic && vic.conds.restrained && vic.conds.restrained.by === u.id && vic.conds.restrained.water) B.release(u, vic);
     // it comes back where it stood; if someone has taken the square, the nearest free place to where the swirl was
     var blocked = G.foot(u).some(function (p) { return G.occupant(p[0], p[1], u); });
     if (blocked) { var best = null, bd = 1e9; for (var yy = 0; yy < G.map.h; yy++) for (var xx = 0; xx < G.map.w; xx++) { if (!G.canStand(u, xx, yy)) continue; var d = Math.max(Math.abs(xx - u.x), Math.abs(yy - u.y)); if (d < bd) { bd = d; best = [xx, yy]; } } if (best) { tween(B, u); u.x = best[0]; u.y = best[1]; } }
