@@ -25,8 +25,8 @@
     return K.POSE;
   };
   K.isFight = function (F) { return !!(F && (F.id === 'keeper' || F.id === 'keeper-ladder')); };
-  K.PROFILE_OLD = { visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: the fight 'keeper-ladder', and &old=1)
-  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 175, slamAtk: 6, sweepUpFree: false, slamDice: '3d6', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
+  K.PROFILE_OLD = { deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: the fight 'keeper-ladder', and &old=1)
+  K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 175, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d6', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d6', concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
@@ -37,7 +37,7 @@
 
   K.isDeep = function (x, y) { // (a frozen square is a footing, not the deep: the head is over the ice)
     var B = D.battle; if (B && B.kp && B.kp.ice[x + ',' + y]) return false;
-    return (def().deeps || []).some(function (p) { return p[0] === x && p[1] === y; });
+    return (def().deeps || []).some(function (p) { return p[0] === x && p[1] === y && K.A({ x: x, y: y }) <= K.CFG.deepDepth; }); // (CFG.deepDepth: the first N flooded steps from the sealed-door end are the deep; 2, the old 1)
   };
   // ---- the geometry: ONE description (data/maps.js floodstair `geo`, in the LANE FRAME: a along the lane, pool end to exit; c across it, left to right as the party faces the pool) and
   // the one function from it to the map's own squares (D16.laneAt). Nothing below knows which way the stair runs on the map: it asks these
@@ -49,7 +49,7 @@
   function laneSq(x, y) { var g = geo(); return { a: K.A({ x: x, y: y }), c: K.C({ x: x, y: y }) }; }
   function inLane(x, y) { var g = geo(), p = laneSq(x, y); return !!g && p.a >= g.a[0] && p.a <= g.a[1] && p.c >= g.c[0] && p.c <= g.c[1]; }
   function farA(u) { var m = -1e9; G.foot(u).forEach(function (p) { m = Math.max(m, K.A({ x: p[0], y: p[1] })); }); return m; } // (its edge nearest the exit)
-  function deepD(x, y) { var best = 1e9; (def().deeps || []).forEach(function (p) { best = Math.min(best, Math.max(Math.abs(p[0] - x), Math.abs(p[1] - y)) + 0.01 * Math.hypot(p[0] - x, p[1] - y)); }); return best; }
+  function deepD(x, y) { var best = 1e9; (def().deeps || []).filter(function (p) { return K.A({ x: p[0], y: p[1] }) <= K.CFG.deepDepth; }).forEach(function (p) { best = Math.min(best, Math.max(Math.abs(p[0] - x), Math.abs(p[1] - y)) + 0.01 * Math.hypot(p[0] - x, p[1] - y)); }); return best; }
   // the stair's front wall: the Ice Wall's row if it stands, else the exit
   function frontA(B) { var S = st(B); return S.wall ? S.wall.a : geo().a[1]; }
 
@@ -144,9 +144,9 @@
     if (t.conds.restrained) return t.name + ' is held already';
     if (RU.immuneTo(t, 'grappled')) return t.name + ' cannot be held';
     if (K.isDeep(t.x, t.y)) return '';
-    var raw = (def().deeps || []).some(function (p) { return p[0] === t.x && p[1] === t.y; });
+    var raw = (def().deeps || []).some(function (p) { return p[0] === t.x && p[1] === t.y && K.A({ x: p[0], y: p[1] }) <= K.CFG.deepDepth; });
     if (K.CFG.swirlAny) { var sq = G.map.at(t.x, t.y); if ((sq && sq.ch === '~' && !(B.kp && B.kp.ice[t.x + ',' + t.y])) || G.dist(u, t) <= G.reachOf(u, u.reach)) return ''; return t.name + ' is out of the water and out of reach'; }
-    return raw ? 'the water under ' + t.name + ' is frozen: a footing, not the deep' : t.name + ' is not on the deep (the swirl takes one standing on the last step, by the sealed door; ' + t.name + ' is ' + K.A(t) + ' along it, the deep is 1)';
+    return raw ? 'the water under ' + t.name + ' is frozen: a footing, not the deep' : t.name + ' is not on the deep (the swirl takes one standing on the first ' + K.CFG.deepDepth + ' step' + (K.CFG.deepDepth > 1 ? 's' : '') + ' from the sealed door; ' + t.name + ' is ' + K.A(t) + ' along, the deep is 1' + (K.CFG.deepDepth > 1 ? ' to ' + K.CFG.deepDepth : '') + ')';
   };
   K.checkSwirl = function (B) {
     var k = keeperOf(B); if (!k || !k.flooding) return;
@@ -470,6 +470,7 @@
     B.card(['{r}' + Nm(B, k) + '{/} ' + (trig ? 'springs' : 'raises') + ' the Ice Wall: {c}the water on the stair freezes across' + (trig ? ', behind ' + trig.name : '') + '.{/}',
       '{g}(at ' + wa + ' along the stair, AC ' + K.CFG.wallAC + ', ' + K.CFG.wallHP + ' HP a 10-ft section; fire destroys a section at once; ' + S.uses + ' use' + (S.uses === 1 ? '' : 's') + ' left){/}'], 340);
     yield 40;
+    if (k.anim === 'wall' || k.anim === 'wave') { k.anim = 'idle'; k.animT = B.t; } K.face(B, k); // (the wall is up -- sprung by a step as much as cast: back to the standing idle, not the casting pose)
   };
   function dropSection(B, w, sec, why) {
     var S = st(B);
@@ -540,14 +541,16 @@
         }; })(wx, wy) });
       }
     }
-    if (gm && gm.rune) { // the dwarves' mark in the north wall above the landing (the 8-bit's rune the party puts a hand on: warrens_d.json (22,19), events.js S.mark), on the wall's face
-      var rs = K.at(gm.rune[0], gm.rune[1]), rgz = B.map.gz(rs[0], rs[1]);
+    if (gm && gm.rune) { // the dwarves' mark (the 8-bit's rune the party puts a hand on: warrens_d.json (22,19), events.js S.mark), on the SIDE face of the north wall, seen from the landing at the iso angle: the glyph is sheared onto the
+      // wall's plane (geo.rune the landing square beside it [DEEP16 12,7 -- Griz 10-03], geo.runeFace 'c+' the wall it is on), not drawn flat to the viewer
+      var rs = K.at(gm.rune[0], gm.rune[1]), rgz = B.map.gz(rs[0], rs[1]), fx = geo().axis === 'x' ? rs[0] : rs[0] + 0.5, fy = geo().axis === 'x' ? rs[1] - 0.5 : rs[1];
       out.push({ depth: rs[0] + rs[1] + 0.9, gz: rgz, layer: 1, draw: function (ctx) {
-        var s = scr(rs[0], rs[1], rgz), t = B.t, glow = 0.55 + 0.25 * Math.sin(t / 22), C = ramp(), x = Math.round(s.x), y = Math.round(s.y) - 22;
-        ctx.globalAlpha = 0.25 * glow + 0.1; ctx.fillStyle = C[1]; ctx.beginPath(); ctx.ellipse(x, y, 13, 11, 0, 0, 7); ctx.fill();
+        var iso = D.iso, c = iso.center(fx, fy, rgz + 22), sc = iso.toScreen(c.x, c.y), t = B.t, glow = 0.55 + 0.25 * Math.sin(t / 22), C = ramp(), x = Math.round(sc.x), y = Math.round(sc.y);
+        ctx.save(); ctx.translate(x, y); ctx.transform(1, iso.TH / iso.TW, 0, 1, 0, 0); // (along the wall: x runs down-right at the tile's slope)
+        ctx.globalAlpha = 0.25 * glow + 0.1; ctx.fillStyle = C[1]; ctx.beginPath(); ctx.ellipse(0, 0, 13, 11, 0, 0, 7); ctx.fill();
         ctx.globalAlpha = glow + 0.2; ctx.strokeStyle = C[0]; ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.ellipse(x, y, 8, 8, 0, 0, 7); ctx.moveTo(x, y - 8); ctx.lineTo(x, y + 8); ctx.moveTo(x - 5, y - 3); ctx.lineTo(x + 5, y - 3); ctx.moveTo(x - 4, y + 3); ctx.lineTo(x + 4, y + 3); ctx.stroke();
-        ctx.globalAlpha = 1;
+        ctx.beginPath(); ctx.ellipse(0, 0, 8, 8, 0, 0, 7); ctx.moveTo(0, -8); ctx.lineTo(0, 8); ctx.moveTo(-5, -3); ctx.lineTo(5, -3); ctx.moveTo(-4, 3); ctx.lineTo(4, 3); ctx.stroke();
+        ctx.restore(); ctx.globalAlpha = 1;
       } });
     }
     if (!B.kp) return out;
@@ -764,12 +767,15 @@
     if ((this.fight && this.fight.id === 'keeper') || (this.units || []).some(function (u) { return u.kind === 'keeper'; })) ['keeper_p1', 'keeper_p2', 'keeper_p3'].forEach(function (n) { if (r.now.indexOf(n) < 0) r.now.push(n); r.soon = r.soon.filter(function (m) { return m !== n; }); });
     return r;
   };
+  // an opportunity attack leaves the Keeper in its standing idle, as the Slam of its own turn does (js/keeper.js above(); 10-03: every pose that is set is cleared)
+  var atkK0 = D.Battle.prototype.attack;
+  D.Battle.prototype.attack = function* (att, tgt, atk, o) { var r = yield* atkK0.apply(this, arguments); if (att && att.kind === 'keeper' && o && o.oa && !att.flooding && att.anim !== 'idle') { att.anim = 'idle'; att.animT = this.t; } return r; };
   K.fight = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     if (get('seed')) D.seed = +get('seed') | 0;
     if (get('old') === '1') { Object.assign(K.CFG, K.PROFILE_OLD); } // (old=1: the Keeper of before 10-03 Griz's notes -- hidden, no glow, the party reacting at once: reproduces the earlier tables)
     if (get('hidden') != null) K.CFG.visible = get('hidden') !== '1'; if (get('opening') != null) K.CFG.partyOpening = get('opening') !== '0'; if (get('glow') != null) K.CFG.glow = get('glow') !== '0'; // (hidden=1 the old hidden Keeper, opening=0 the old passive-then-react party, glow=0 no light of his own)
-    if (get('hp')) K.CFG.hp = +get('hp');
+    if (get('hp')) K.CFG.hp = +get('hp'); if (get('deep')) K.CFG.deepDepth = +get('deep'); // (deep=1 the old: only the last step is the deep)
     if (get('atk')) K.CFG.slamAtk = +get('atk'); if (get('upfree') != null) K.CFG.sweepUpFree = get('upfree') === '1'; // (atk=6 the Slam's attack bonus; upfree=1 the old backwash that stands the swept up free)
     if (get('slam')) K.CFG.slamDice = get('slam'); if (get('slams')) K.CFG.slams = +get('slams'); if (get('wavedc')) K.CFG.waveDC = +get('wavedc'); if (get('resist') != null) K.CFG.weaponResist = get('resist') === '1'; if (get('swirl')) K.CFG.swirlAny = get('swirl') === 'any'; if (get('drift') != null) K.CFG.openingDrift = get('drift') !== '0'; // (the tuning levers, 10-03: slam=3d6 the Slam's dice, slams=2 the Slam twice, wavedc=15, resist=1 nonmagical weapons resisted, swirl=any the swirl takes any hero in the water or in reach, drift=0 no drift at the rune)
     if (get('init') != null) K.CFG.initBonus = +get('init') | 0; if (get('cast') != null) K.CFG.aiCast = get('cast') !== '0'; if (get('washnowall') != null) K.CFG.washNoWall = get('washnowall') === '1'; // (the bench's settings: init=5 the Keeper's initiative bonus, cast=0 the AI never casts the wall, washnowall=1 the old backwash)

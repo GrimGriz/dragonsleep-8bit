@@ -116,6 +116,7 @@
     var legalNow = KP.entries(this, u).filter(function (e) { return e.id === c.do; })[0];
     if (!legalNow || !legalNow.ok) { this.card(['{g}' + (legalNow ? legalNow.label + ': ' + (legalNow.why || 'not now') : 'Not now') + '.{/}'], 120); return; }
     yield* KP.keeperDo(this, u, c);
+    if (!u.flooding && !u.dead && u.hp > 0 && u.anim !== 'idle') { u.anim = 'idle'; u.animT = this.t; } // (every command of the ring ends in the standing idle: the cast pose, the wave's, the Slam's)
   };
   // one thing the Keeper does (the ring's, and the scripted Keeper's); a target not named is picked on the grid, in gold
   // pick a hero on the grid, in gold: every hero that is up is offered, and one the move cannot take says why on a card (the prompt stays; nothing is spent) -- never a silent refusal

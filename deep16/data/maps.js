@@ -833,8 +833,8 @@ window.D16.MAPS.floodstair = {
   // ONE description of the geometry, read by the engine (js/keeper.js), the probe and the benches alike, in the LANE FRAME -- a along the hall, from the deep (west) end, small, to the east;
   // c across it, left to right as the party faces the water (west); `width` the across extent; `axis` which of the map's own axes a runs along ('x' here). D16.laneAt(map, a, c) is the
   // one function from a lane-frame square to the map's own [x, y]; the map's own `deeps`, `entry`, `lights` and the Keeper's start (data/fights.js) are derived from it at the foot of this block.
-  // a 1..8 the flooded steps (the deep end, the last step, a = 1), a 9..12 the dry landing, a 13 the corridor; the wall (Griz: the 3rd from the exit, 11) and the rune (c 11: the north wall)
-  geo: { axis: 'x', width: 18, a: [1, 12], c: [7, 10], wall: 11, deeps: [[1, 7], [1, 8], [1, 9], [1, 10]], entry: [[9, 7], [9, 8], [9, 9], [9, 10], [10, 8]], keeper: [4, 8], rune: [12, 11] },
+  // a 1..8 the flooded steps (the deep end, the last step, a = 1), a 9..12 the dry landing, a 13 the corridor; the wall (Griz: the 3rd from the exit, 11) and the rune (10-03, Griz: on the SIDE face of the north wall seen from the landing, beside DEEP16 grid square 12,7: `rune` is that landing square in the lane frame [a 12, c 10] and `runeFace` 'c+' the wall it is on, the face toward +c, the north wall; its light is on that square)
+  geo: { axis: 'x', width: 18, a: [1, 12], c: [7, 10], wall: 11, deeps: [[1, 7], [1, 8], [1, 9], [1, 10], [2, 7], [2, 8], [2, 9], [2, 10]], entry: [[9, 7], [9, 8], [9, 9], [9, 10], [10, 8]], keeper: [4, 8], rune: [12, 10], runeFace: 'c+' },
   heights: [
     '000000000000000',
     '000000000000000',
@@ -884,7 +884,7 @@ window.D16.laneAt = function (m, a, c, size) {
   return g.axis === 'x' ? [a, g.width - 1 - c - k] : [c, a];
 };
 (function () { var m = window.D16.MAPS.floodstair, g = m.geo, at = function (p) { return window.D16.laneAt(m, p[0], p[1]); }; m.deeps = g.deeps.map(at); m.entry = g.entry.map(at);
-  var rl = at([g.rune[0], g.rune[1] - 1]); m.lights = [[rl[0], rl[1], 20, 'glow']]; // (the rune lights the landing: a cold glow, modest -- the engine's own map light, [x, y, ft, colour])
+  var rl = at(g.rune); m.lights = [[rl[0], rl[1], 20, 'glow']]; // (the rune lights the landing: a cold glow, modest -- the engine's own map light, [x, y, ft, colour])
 })();
 
 // The point (the 8-bit game's `lake`, at night): a flat oval stone, a stack of stones on its landward edge, the lantern
