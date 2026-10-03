@@ -11,7 +11,8 @@ import json, os, re, subprocess, sys, tempfile, urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-EDGE = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+EDGE = os.environ.get('DEEP16_BROWSER') or r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' # (DEEP16_BROWSER: another headless Chromium, the cloud seat's; DEEP16_BROWSER_ARGS: its extra flags, e.g. --no-sandbox as root -- unset, the desktop is as it was)
+EXTRA = os.environ.get('DEEP16_BROWSER_ARGS', '').split()
 CLASSES = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard']
 
 
@@ -41,7 +42,7 @@ def run(params, timeout=600):
     import threading
     prof = os.path.join(tempfile.gettempdir(), 'deep16-bench-edge-%d-%d' % (os.getpid(), threading.get_ident())) # (a profile of its own: two runs at once share none -- threads too, dev/check.py)
     url = 'file:///' + page.replace('\\', '/') + '?' + urllib.parse.urlencode(params)
-    cmd = [EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files', '--user-data-dir=' + prof, '--dump-dom', url]
+    cmd = [EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url]
     try:
         p = subprocess.run(cmd, capture_output=True, timeout=timeout)
     finally:
