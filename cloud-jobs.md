@@ -23,6 +23,7 @@ Every seat's notes file ends with a **For the next seat** section (10-03): the g
 | the walker, round three (a group at two, kits on the downed after a fight, the dry stair at the story's 6, the sally chain) -- built on the overseer's four LEANS, recorded as leans until Griz rules | `claude/here-to-there` | the same files | e1dbf77, 10-03 (fast-forward) |
 | the Keeper of the Flooded Stair, redone to his design (the lure AI, 160 HP, Slam 3d4, the drowning 1d8+1, the party's retreat; the ladder keeps the old Keeper) | `claude/intelligent-maxwell-6ich3v` via Griz's own window (`scratch/merge-both`) | `deep16-keeper-notes.md` | c8868ab, 10-03 |
 | the 8-bit's reactions and concentration (the buff slot retired; his seven answers built) | `claude/8bit-reactions` | `8bit-reactions-notes.md` | 1b18ac5, 10-03 (the desktop took main for it: eleven files, the records field by field) |
+| a review of the development (Griz, 10-03: *"Review the development of this game and make recommendations please"*) -- an opinion, nothing ruled, nothing in the game changed; the desk checked its five "broken now" claims against the code (all hold) | `claude/optimistic-mayer-782rhy` | `dev-review-notes.md` | 2b1ddef, 10-03 (fast-forward) |
 
 ## In flight
 
@@ -49,6 +50,8 @@ Every seat's notes file ends with a **For the next seat** section (10-03): the g
 - **The Wet is not benched as a fight** (Griz, 10-03: *"we should cut the Wet from benching it's got all that 'spawn in crawlers that attack corpses story stuff'"*). No win rates, no CR arithmetic, no boss cost in the walker's chains for `wet`; the early-cr job leaves it; `bench16.py x fight=wet` is not a measure of anything. The machinery probes (`dev/wet-probe.py`, `dev/wet8-probe.py`: the Settling, the landlord's pictures) stay in the gate as proofs that the story runs, not as weights of the fight (the overseer's reading of his word; his to narrow).
 
 ## Open questions for Griz (not rulings)
+
+- From the review seat (10-03, `dev-review-notes.md`, its "Decisions for Griz"): (1) the honest gate (the five probes take `bench16.EXTRA`, `no result` reads RED, the Keeper probe and `bench8.py migrate` join the gate), then the gate on GitHub Actions; (2) the player's floor (a timeout and error path in `js/embed.js` that fall back to the 8-bit battle, save ids checked on load); (3) the grid's four rules misses (resistances halve once, concentration on a temp-HP soak and in Wild Shape, `incapacitated` ends concentration, the door ward's and the climb's rolls onto the seed); (4) stamps on `\r`-stripped bytes; (5) an "8-bit done" page; (6) a difficulty sentence, and the countdown carry before more CR tuning. The desk confirmed (1)-(3) are real in the code, 10-03; none is queued until he says so.
 
 - From the early-cr seat (10-03): the crew's fourth (above); does "the ladders are not for this" cover the Snoot, the gulch and the crew rungs?
 - From the Keeper window's close (desktop, 10-03): the 8-bit's own story text (w.stairSee, w.markWake) is not matched to the two spawns; nobody has seen the live 8-bit wade-in or rune paths, or the ladder rung screen, in a real browser.
