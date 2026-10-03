@@ -1076,6 +1076,7 @@
       yield* this.say(sp.cloud === 'fog' ? 'Fog rolls out thick round the party. Nothing sees in, out or across it.' : sp.cloud === 'stink' ? 'A yellow, nauseating cloud settles over them.' : 'Freezing sleet comes down over them. The ground ices.', 48);
       return true;
     }
+    var rolled = null; // an area's damage, rolled once for all it catches (SRD 5.1, Damage Rolls: "roll the damage once for all of them" -- 10-03)
     for (var i = 0; i < targets.length && !this.over; i++) {
       var t = targets[i];
       if (k === 'revive') {
@@ -1113,7 +1114,8 @@
         var potent = sp.level === 0 && h.cls === 'wizard' && h.lvl >= 6; // Potent Cantrip: a save still takes half
         var dexp = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
         var upd = function (e) { return e.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up * (sp.upDice || 0)) + 'd'; }); };
-        var dmgT = dexp ? DS.roll(upd(dexp)) : 0, dmg2 = sp.dmg2 ? DS.roll(sp.dmg2) : 0;
+        if (!rolled) rolled = { d1: dexp ? DS.roll(upd(dexp)) : 0, d2: sp.dmg2 ? DS.roll(sp.dmg2) : 0 };
+        var dmgT = rolled.d1, dmg2 = rolled.d2;
         if (s.success) { dmgT = sp.half || potent ? Math.floor(dmgT / 2) : 0; dmg2 = sp.half || potent ? Math.floor(dmg2 / 2) : 0; }
         var dealt = dmgT ? this.hurt(t, dmgT, sp.el, { magicWeapon: true }) : 0;
         if (dmg2 && !down(t)) dealt += this.hurt(t, dmg2, sp.el2, { magicWeapon: true });

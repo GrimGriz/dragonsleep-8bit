@@ -90,7 +90,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 
 | Spell | Classes | Who | Verdict | In the game |
 |---|---|---|---|---|
-| Acid Splash | W S | Au Wi | **BUILT** | one creature or two side by side, DEX save or 1d6 acid (2d6 at 5th) |
+| Acid Splash | W S | Au Wi | **BUILT** | one creature or two side by side, DEX save or 1d6 acid (2d6 at 5th) -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle rolls its damage once for every creature caught, as the grid does (SRD 5.1, Damage Rolls: "roll the damage once for all of them") |
 | Chill Touch | W K S | Au Am Wi | **BUILT** | spell attack 120 ft, 1d8 necrotic; no healing till your next turn; undead at disadv vs you -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: the record is in content/spells.json, the 8-bit battle has no branch for it -- spells-two-books.md, 10-03) |
 | Dancing Lights | W S B | Au Wi Dr | **BUILT** | the drow's innate at will: four lights, dim 10 ft each (lawful under the roost, 09-28) -- light with a position -- BUILT 09-28 (torchdark): four dim lights at a point within 120 ft, a bonus action moves them; the drow's innate awaits the NPC pass |
 | Druidcraft | D |  | **OUT** | harmless tricks: a weather omen, a bloom, a puff or sound, lighting or snuffing a candle |
@@ -123,7 +123,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Animal Friendship | B D R |  | **BUILT** (09-30, the grid's) | a beast of INT 3 or less, WIS or charmed: it will not strike or target the caster (ai.js heroes); harm from his side breaks it |
 | Bane | C B | To In | **BUILT** | up to three, CHA save: -1d4 to attacks and saves (conc) -- Bless's mirror; a cleric foe's -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: the record is in content/spells.json, the 8-bit battle has no branch for it -- spells-two-books.md, 10-03) |
 | Bless | C P | Ly To In | **BUILT** | up to three: +1d4 to attacks and saves (conc) |
-| Burning Hands | W S | Au Wi | **BUILT** | 15-ft cone, DEX save 3d6 fire (half); greyed under the roost |
+| Burning Hands | W S | Au Wi | **BUILT** | 15-ft cone, DEX save 3d6 fire (half); greyed under the roost -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle rolls its damage once for every creature caught, as the grid does (SRD 5.1, Damage Rolls: "roll the damage once for all of them") |
 | Charm Person | W K S B D | Au Am Wi Na | **BUILT** (09-30, the grid's; Amara's known list reaches it now) | a humanoid, WIS with advantage (it is being fought) or charmed: it will not strike or target the caster; harm from his side breaks it; the AI charms the foe standing over it |
 | Color Spray | W S | Au Wi | **BUILT** | 15-ft cone, 6d10 HP of creatures (lowest first) blinded till your next turn -- Sleep's way -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: the record is in content/spells.json, the 8-bit battle has no branch for it -- spells-two-books.md, 10-03) |
 | Command | C P | Ly To In | **BUILT** | one word, WIS save: FLEE (moves away), GROVEL (prone), HALT (loses its turn), DROP -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it; and in the 8-bit battle since 09-28g (#lymen-both-games) |
@@ -166,7 +166,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Silent Image | W S B | Au Wi | **LATER** | an image to fool: needs foes the AI lets be fooled |
 | Sleep | W S B | Au Wi Na | **BUILT** | 20-ft sphere, 5d8 HP asleep, lowest first (+2d8 a slot) |
 | Speak with Animals | B D R |  | **OUT** | talking with beasts for 10 minutes: conversation, no fight or field effect |
-| Thunderwave | W S B D | Au Wi | **BUILT** | 15-ft cube from you, CON save 2d8 thunder and pushed 10 ft; greyed under the roost |
+| Thunderwave | W S B D | Au Wi | **BUILT** | 15-ft cube from you, CON save 2d8 thunder and pushed 10 ft; greyed under the roost -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle rolls its damage once for every creature caught, as the grid does (SRD 5.1, Damage Rolls: "roll the damage once for all of them") |
 | Unseen Servant | W K B | Au Am Wi | **OUT** | an invisible errand-runner: nothing for it to do |
 
 ### 2nd (54)
@@ -218,7 +218,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Rope Trick | W | Au Wi | **BUILT** | RULED in 09-28: field only, a short rest like the tent; spends a skein of Gulch Silk -- BUILT 09-28: the 8-bit field (js/events.js EV.fieldCast), Aurdin's from his picks |
 | Scorching Ray | W S | Au Wi | **BUILT** | three rays, 2d6 fire each (+1 ray a slot); greyed under the roost |
 | See Invisibility | W S B | Au Wi | **BUILT** | sees the invisible and the ethereal: waits on the dark -- BUILT 09-28 (torchdark): the caster sees the invisible |
-| Shatter | W K S B | Au Am Wi | **BUILT** | 10-ft sphere, CON save 3d8 thunder (half); greyed under the roost |
+| Shatter | W K S B | Au Am Wi | **BUILT** | 10-ft sphere, CON save 3d8 thunder (half); greyed under the roost -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle rolls its damage once for every creature caught, as the grid does (SRD 5.1, Damage Rolls: "roll the damage once for all of them") |
 | Silence | C B R | To In | **LATER** | 20-ft sphere: no sound, no verbal spells, thunder immune -- matters once foes cast |
 | Spider Climb | W K S | Au Am Wi | **OUT** | walls and ceilings: no climbing on the grid |
 | Spike Growth | D R |  | **BUILT** | terrain (conc): 20-ft radius, difficult, 2d4 piercing per 5 ft moved in it; a druid foe -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: the record is in content/spells.json, the 8-bit battle has no branch for it -- spells-two-books.md, 10-03) |
@@ -244,13 +244,13 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Daylight | C P S D R | Ly To | **BUILT** | bright light fight-wide, burns magical Darkness; under the roost the roof comes down |
 | Dispel Magic | W C P K S B D | Au Ly To Am Wi | **BUILT** | ends spells on a creature or in a place (a Web, a Hold, the drow's Darkness); Lymen's oath at 9 -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: the record is in content/spells.json, the 8-bit battle has no branch for it -- spells-two-books.md, 10-03) |
 | Fear | W K S B | Au Am Wi | **BUILT** | 30-ft cone, WIS save: drops what it holds, frightened, Dashes away (conc) -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: the record is in content/spells.json, the 8-bit battle has no branch for it -- spells-two-books.md, 10-03) |
-| Fireball | W S | Au Wi SW | **BUILT** | 20-ft sphere, DEX save 8d6 fire (half); greyed under the roost |
+| Fireball | W S | Au Wi SW | **BUILT** | 20-ft sphere, DEX save 8d6 fire (half); greyed under the roost -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle rolls its damage once for every creature caught, as the grid does (SRD 5.1, Damage Rolls: "roll the damage once for all of them") |
 | Fly | W K S | Au Am Wi SW | **LATER** | flight: none on the grid; the Mage's |
 | Gaseous Form | W K S | Au Am Wi | **OUT** | a mist that can't attack or cast: travel through cracks |
 | Glyph of Warding | W C B | Au To Wi | **OUT** | an hour to scribe a trap: the maps' traps are their own |
 | Haste | W S | Au Wi | **BUILT** | touch (conc): +2 AC, adv DEX saves, double speed, one more attack or Dash; a lost turn when it ends -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: the record is in content/spells.json, the 8-bit battle has no branch for it -- spells-two-books.md, 10-03) |
 | Hypnotic Pattern | W K S B | Au Am Wi | **BUILT** | 30-ft cube, WIS save: charmed, incapacitated, speed 0 till hurt or shaken (conc) -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: the record is in content/spells.json, the 8-bit battle has no branch for it -- spells-two-books.md, 10-03) |
-| Lightning Bolt | W S | Au Wi Na | **BUILT** | 100-ft line, DEX save 8d6 lightning (half) |
+| Lightning Bolt | W S | Au Wi Na | **BUILT** | 100-ft line, DEX save 8d6 lightning (half) -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle rolls its damage once for every creature caught, as the grid does (SRD 5.1, Damage Rolls: "roll the damage once for all of them") |
 | Magic Circle | W C P K | Au Ly To Am Wi | **OUT** | a warded cylinder against one kind, a minute to cast: set-up, not a fight |
 | Major Image | W K S B | Au Am Wi | **LATER** | an illusion to fool: needs foes the AI lets be fooled |
 | Mass Healing Word | C | To | **BUILT** | bonus action: up to six in 60 ft, 1d4 + mod each -- BUILT 09-28 (the class NPCs, deep16/js/grimoire.js): on the grid, cast by any unit that knows it (grid-only: the record is in content/spells.json, the 8-bit battle has no branch for it -- spells-two-books.md, 10-03) |
@@ -300,7 +300,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Greater Invisibility | W S B | Au SW | **BUILT** | both battles: invisible even while attacking (concentration on the grid; ten rounds in the 8-bit) -- spells-two-books.md, 10-03 |
 | Guardian of Faith | C |  | **BUILT** | a fixed Large guardian, 8 hr: foes coming within 10 ft DEX save 20 radiant; gone at 60 dealt -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Hallucinatory Terrain | W K B D | Au | **OUT** | scenery illusion |
-| Ice Storm | W S D | Au SW | **BUILT** | 20-ft cylinder, DEX save 2d8 bludgeoning + 4d6 cold (half), difficult |
+| Ice Storm | W S D | Au SW | **BUILT** | 20-ft cylinder, DEX save 2d8 bludgeoning + 4d6 cold (half), difficult -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle rolls its damage once for every creature caught, as the grid does (SRD 5.1, Damage Rolls: "roll the damage once for all of them") |
 | Locate Creature | W C P B D R | Au | **OUT** | divination |
 | Phantasmal Killer | W | Au | **BUILT** | WIS save: frightened, 4d10 psychic at each turn's end till a save (conc) -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |
 | Polymorph | W S B D | Au | **BUILT** (09-30, the grid's) | a foe (WIS) or a friend made a beast of its CR or level or less -- the world's beasts (`deep16/data/summons.js D.pool`); its HP behind the beast's; no spells; the player picks, the AI makes a foe the weakest beast (`deep16/js/features.js F.morph`) |
@@ -322,7 +322,7 @@ No sorcerer, bard, druid or ranger casts in the game yet. Their spells are judge
 | Cloudkill | W S | Au | **BUILT** (09-30, the grid's; the Underdark druid's 9th) | a 20-ft poison fog, heavily obscured; CON 5d8 (half) on entering it or starting a turn in it; it rolls 10 ft away from the caster each of his turns; a Gust of Wind or a Wind Wall scatters it |
 | Commune | C |  | **OUT** | divination: three yes-or-no questions to a deity |
 | Commune With Nature | D R |  | **OUT** | divination: three facts about the land within 3 miles |
-| Cone of Cold | W S | Au SW | **BUILT** | 60-ft cone, CON save 8d8 cold (half) |
+| Cone of Cold | W S | Au SW | **BUILT** | 60-ft cone, CON save 8d8 cold (half) -- BUILT 10-03 (the cheap SRD fixes, spell-fixes-notes.md): the 8-bit battle rolls its damage once for every creature caught, as the grid does (SRD 5.1, Damage Rolls: "roll the damage once for all of them") |
 | Conjure Elemental | W D | Au | **BUILT** (09-30, the camp's: CAST AHEAD) | a minute to cast, so cast at the camp (RULED 09-30, Griz: "Let's add the earth elemental to camp and hold off on the rest"); the earth elemental (or the world's other elementals of CR 5 or less) walks in beside its caster; if his concentration breaks it breaks loose, hostile (`deep16/js/camp.js`, `deep16/js/walls.js`) |
 | Contact Other Plane | W K | Au | **OUT** | divination |
 | Contagion | C D |  | **BUILT** | touch attack: a disease (blinded, vulnerable to all, stunned when hurt...); 3 CON fails, 7 days -- BUILT 09-28 (batch D, deep16/js/grimoire.js): on the grid, for the foes' casters and the NPCs past 6 |

@@ -159,6 +159,54 @@
         swing({ stunned: { rounds: 3 } }, 'on the stunned: a hit, no critical', false);
         swing({ paralyzed: { rounds: 3 } }, 'on the paralyzed: a critical (SRD 5.1)', true);
       } finally { DS.d = d0; DS.roll = roll0; }
+    } else if (test === 'fixes1003') {
+      // the cheap SRD fixes (10-03, Griz: "4 yes" to "The cheap SRD fixes as one Sonnet or cloud batch?"; spells-two-books.md §2): castSpell run
+      // straight, its pickers answered from a queue (a foe's or hero's name, a menu's label, null to cancel; nothing queued takes the first),
+      // the dice counted. Each check failed before its fix (spell-fixes-notes.md)
+      var roll0F = DS.roll, d0F = DS.d, scene0F = DS.W8.scene, rollsF = [], ansF = [], offeredF = [], QdF = [];
+      DS.roll = function (e, o) { rollsF.push(e); return roll0F(e, o); };
+      DS.d = function (n) { return QdF.length ? QdF.shift() : d0F(n); };
+      function nmF(u) { return u.h ? u.h.name : u.name; }
+      function answerF(sc) {
+        var a = ansF.length ? ansF.shift() : undefined, up = function (x) { return String(x).toUpperCase(); };
+        if (sc.kind === 'target') {
+          offeredF.push(sc.list.map(nmF));
+          if (a === null) return null; if (a && typeof a === 'object') return a;
+          return a === undefined ? sc.list[0] : sc.list.filter(function (u) { return up(nmF(u)).indexOf(up(a)) === 0; })[0] || null;
+        }
+        if (sc.kind === 'menu') {
+          var items = sc.menu.items; offeredF.push(items.map(function (it) { return it.label + (it.disabled ? ' (grey)' : ''); }));
+          if (a === null) return null;
+          var it = a === undefined ? items.filter(function (x) { return !x.disabled; })[0] : items.filter(function (x) { return !x.disabled && up(x.label).indexOf(up(a)) === 0; })[0];
+          return it ? (it.value !== undefined ? it.value : it) : null;
+        }
+      }
+      function runF(gen) { var s, v; DS.W8.scene = function (sc) { return { __sc: sc }; }; try { do { s = gen.next(v); v = s.value && s.value.__sc ? answerF(s.value.__sc) : undefined; } while (!s.done); } finally { DS.W8.scene = scene0F; } return s.value; }
+      try {
+        T.startFight(['ogre', 'ogre', 'ogre']);
+        for (var wF = 0; wF < 400 && !DS.find('battle'); wF++) T.step(1);
+        var bF = DS.find('battle'), heroF = function (id) { return bF.heroes.filter(function (x) { return x.h.id === id; })[0]; };
+        var AF = heroF('aurdin'), stF = function () { return { actions: 1, bonus: 1, surged: false, sneakUsed: false }; };
+        bF.intro = 0;
+        function foesF(ids, hp) { // a fresh line of foes on the same field, each with hp to spare
+          var n = {}; bF.foes = ids.map(function (id) { var m = DS.DATA.monsters[id]; n[id] = (n[id] || 0) + 1; var f = bF.makeFoe(m, m.name + ' ' + String.fromCharCode(64 + n[id])); if (hp) f.hp = f.maxhp = hp; return f; });
+          bF.layoutFoes(); return bF.foes;
+        }
+        function savesF(f, o) { f.m = Object.assign({}, f.m, { saves: Object.assign({}, f.m.saves, o) }); }
+        function castF(u, id, answers, slots) { ansF = (answers || []).slice(); offeredF = []; rollsF = []; T.blog = []; if (slots) { u.h.slots = slots.slice(); u.h.slotsMax = slots.slice(); } return runF(bF.castSpell(u, DS.DATA.spells[id], stF())); }
+        function saidF() { return (T.blog || []).join(' | '); }
+
+        // 1. one damage roll for an area (SRD 5.1, Damage Rolls: "If a spell or other effect deals damage to more than one target at the same time,
+        // roll the damage once for all of them"): Fireball on three ogres, two failing and one saving; Ice Storm's two dice the same
+        var o1 = foesF(['ogre', 'ogre', 'ogre'], 400); savesF(o1[0], { dex: -30 }); savesF(o1[1], { dex: -30 }); savesF(o1[2], { dex: 30 });
+        castF(AF, 'fireball', [], [4, 3, 3]);
+        var lost1 = o1.map(function (f) { return 400 - f.hp; }), n1 = rollsF.filter(function (e) { return e === '8d6'; }).length;
+        check('1. Fireball on three ogres: 8d6 rolled ' + n1 + ' time(s); the two caught lose ' + lost1[0] + ' and ' + lost1[1] + ', the one who saved ' + lost1[2], n1 === 1 && lost1[0] === lost1[1] && lost1[2] === Math.floor(lost1[0] / 2));
+        var o1b = foesF(['ogre', 'ogre', 'ogre'], 400); o1b.forEach(function (f) { savesF(f, { dex: -30 }); });
+        castF(AF, 'icestorm', [], [4, 3, 3, 1]);
+        var lost1b = o1b.map(function (f) { return 400 - f.hp; }), n1b = rollsF.filter(function (e) { return e === '2d8' || e === '4d6'; }).length;
+        check('1. Ice Storm on three ogres: its 2d8 and 4d6 rolled ' + n1b + ' times in all; each loses ' + lost1b.join(', '), n1b === 2 && lost1b[0] === lost1b[1] && lost1b[1] === lost1b[2]);
+      } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');
       var ing = g.guests[0].h;
