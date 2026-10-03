@@ -751,6 +751,13 @@
     if (u && u.kind === 'keeper' && u.side === 'foe') { var B = D.battle, ice = B && B.kp && B.kp.ice; if (ice && Object.keys(ice).length) { var f = G.foot(u, x, y); for (var i = 0; i < f.length; i++) if (ice[f[i][0] + ',' + f[i][1]]) return false; } }
     return canStand0.apply(this, arguments);
   };
+  // the lazy sheets (js/sprites.js S.gate, 10-03): a Keeper fight, its gallery and the Pocket DM with the Keeper at the table ask for all three of its sheets (the figure keeper_p2, its water and ice keeper_p3, the old stand-in keeper_p1)
+  var sheets0 = D.Battle.prototype.sheets;
+  D.Battle.prototype.sheets = function () {
+    var r = sheets0.apply(this, arguments);
+    if ((this.fight && this.fight.id === 'keeper') || (this.units || []).some(function (u) { return u.kind === 'keeper'; })) ['keeper_p1', 'keeper_p2', 'keeper_p3'].forEach(function (n) { if (r.now.indexOf(n) < 0) r.now.push(n); r.soon = r.soon.filter(function (m) { return m !== n; }); });
+    return r;
+  };
   K.fight = function (q) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     if (get('seed')) D.seed = +get('seed') | 0;

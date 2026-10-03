@@ -137,7 +137,7 @@
     var r = D.roll(dexpr), n = r.total, line = Nm(B, v) + ' ' + what;
     if (save) { var sv = RU.save(v, save, w.dc); n = sv.ok ? Math.floor(r.total / 2) : r.total; line += ': ' + save.toUpperCase() + ' ' + RU.saveText(sv) + ' vs DC ' + w.dc; }
     B.card([line + '  ' + dexpr + ' = {r}' + n + '{/} ' + type], 240);
-    B.hurt(v, n, type);
+    B.hurt(v, n, type, { magic: true });
   }
   var step0 = M.stepInto;
   M.stepInto = function (B, u) {

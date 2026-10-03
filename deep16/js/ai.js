@@ -435,7 +435,19 @@
   // its ranged routine (the multiattack's ranged names, else its first ranged attack once), each at the lowest AC in sight
   function* volley(B, u) {
     var keys = Array.isArray(u.multi) ? u.multi.filter(function (k) { return u.attacks[k] && u.attacks[k].ranged; }) : [];
-    if (!keys.length) keys = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].ranged; }).slice(0, 1);
+    // a ranged Multiattack of its own (`rangedMulti`: the Bandit Captain's "two ranged attacks with its daggers", SRD 5.1 -- the melee `multi` stays the melee routine)
+    if (!keys.length && Array.isArray(u.rangedMulti)) keys = u.rangedMulti.filter(function (k) { return u.attacks[k] && u.attacks[k].ranged; });
+    // else its best one weapon: with two to choose from (the gnoll's longbow and its thrown spear) the likelier, bigger blow at the lowest AC it can see -- a thrown weapon past its
+    // normal range at disadvantage (RU.edges), so the spear is for 20 ft and the bow for the rest (10-02)
+    if (!keys.length) {
+      var rks = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].ranged; }), see0 = visibleFrom(u, u.x, u.y, heroes(B, u)), bestS = -1;
+      rks.forEach(function (k) {
+        var a = u.attacks[k], tg = see0.filter(function (w) { return G.dist(u, w) <= a.range[1]; }).sort(function (p, q) { return RU.ac(p) - RU.ac(q); })[0]; if (!tg) return;
+        var p1 = Math.max(0.05, Math.min(0.95, (21 - (RU.ac(tg) - a.atk)) / 20)), pp = G.dist(u, tg) > a.range[0] ? p1 * p1 : p1, sc = pp * D.tactics.avg(a.dice) + pp * (a.mod || 0);
+        if (sc > bestS + 1e-9) { bestS = sc; keys = [k]; }
+      });
+      if (!keys.length) keys = rks.slice(0, 1);
+    }
     if (!keys.length || !u.turn.action) return false;
     var first = u.attacks[keys[0]];
     if (!visibleFrom(u, u.x, u.y, heroes(B, u)).some(function (w) { return G.dist(u, w) <= first.range[1]; })) return false;
@@ -519,6 +531,11 @@
     var T = u.turn, exits = B.fight.exit || B.map.def.exit || [];
     if (!exits.length || !T.action || u.conds.restrained || u.conds.dancing) return false; // (held fast, or a dancer "must use all its movement to dance": no Dash to make for the door)
     T.action = 0; T.move = u.speed * 2; // Dash
+    // Cunning Action (the Spy): the bonus action Dashes again, or -- with a hero beside it, whose blow the run would draw -- Disengages first
+    if (u.cunning && T.bonus > 0) {
+      if (G.foesNear(u, u.x, u.y, 5).some(function (w) { return w.reaction > 0 && RU.canAct(w); })) yield* B.exec(u, { do: 'cdisengage' });
+      else { T.bonus = 0; T.move = u.speed * 3; B.card(['{y}' + the(B, u) + '{/} (Cunning Action) dashes again.'], 160); }
+    }
     var rm = G.reach(u, T.move), best = null, bc = Infinity;
     exits.forEach(function (x) { var e = rm[x[0] + ',' + x[1]]; if (e && e.stand && e.cost < bc) { bc = e.cost; best = e; } });
     if (!best) { // not this turn: as close as the dash goes
@@ -533,6 +550,48 @@
       B.card(['{o}' + the(B, u) + ' is gone' + (B.map.def.exitName ? ' ' + B.map.def.exitName : '') + '.{/}']); yield 30;
     }
     return true;
+  }
+  // the Spy's Cunning Action (SRD 5.1 Spy: "a bonus action to take the Dash, Disengage, or Hide action"; the class NPC rogue's choices, js/features.js and js/tactics.js, for a stat
+  // block): pressed -- hurt with a foe beside it, or two -- it Disengages (bonus), steps to a square with no foe beside it and a clear shot, and looses its crossbow (the action);
+  // with no one in reach by the walk and one in reach by the walk and the Dash it Dashes (bonus) to close; the Hide is traits.js after. Returns true when the turn is spent
+  function* cunning(B, u, hs) {
+    var T = u.turn;
+    if (!T.bonus || !T.action || u.conds.restrained || u.conds.dancing || !hs.length) return false;
+    var beside = G.foesNear(u, u.x, u.y, 5), rk = Object.keys(u.attacks || {}).filter(function (k) { return u.attacks[k].ranged; })[0], ra = rk && u.attacks[rk];
+    var pressed = beside.length && (u.hp < u.maxhp * 0.5 || (beside.length >= 2 && u.hp < u.maxhp * 0.75));
+    if (pressed && ra && !u.conds.disarmed) {
+      var rm = G.reach(u, T.move), pick = null, ps = -1e9;
+      Object.keys(rm).forEach(function (k) {
+        var e = rm[k]; if (!e.stand || G.foesNear(u, e.x, e.y, 5).length) return;
+        var vis = visibleFrom(u, e.x, e.y, hs).filter(function (w) { return G.dist(u, w, e.x, e.y) <= ra.range[1]; }); if (!vis.length) return;
+        var near = Math.min.apply(null, hs.map(function (w) { return G.dist(u, w, e.x, e.y); }));
+        var s = Math.min(near, 40) - e.cost / 20; if (s > ps) { ps = s; pick = e; }
+      });
+      if (pick) {
+        yield* B.exec(u, { do: 'cdisengage' });
+        yield* walkTo(B, u, pick); if (u.dead || u.hp <= 0) return true;
+        if (!(yield* volley(B, u))) { B.card(['{g}' + the(B, u) + ' has no clear shot.{/}']); yield 12; }
+        return true;
+      }
+    }
+    // cover first (the rogue's cover play, tactics.js rogueCoverTurn, for a stat block): with no one in reach and a crossbow, a square within the walk where no foe sees it clearly,
+    // none beside it and a hero in range with a line -- walk there, shoot from it, and traits.js after Hides (the bonus action)
+    if (ra && !u.conds.disarmed && !u.conds.hidden && !beside.length && !hs.some(function (w) { return G.dist(u, w) <= reachOf(u, hs); })) {
+      var foesAll = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), rm2 = G.reach(u, T.move), cov = null, cc = Infinity, ox = u.x, oy = u.y;
+      Object.keys(rm2).forEach(function (k) {
+        var e = rm2[k]; if (!e.stand || e.cost >= cc || (e.x === ox && e.y === oy)) return;
+        u.x = e.x; u.y = e.y;
+        try {
+          if (foesAll.every(function (f) { return B.seenBy(f, u) < 2; }) && !G.foesNear(u, e.x, e.y, 5).length && visibleFrom(u, e.x, e.y, hs).some(function (w) { return G.dist(u, w, e.x, e.y) <= ra.range[1]; })) { cov = e; cc = e.cost; }
+        } finally { u.x = ox; u.y = oy; }
+      });
+      if (cov) { yield* walkTo(B, u, cov); if (u.dead || u.hp <= 0) return true; if (!(yield* volley(B, u))) { B.card(['{g}' + the(B, u) + ' has no clear shot.{/}']); yield 12; } return true; }
+    }
+    // the Dash to close: out of reach by the walk, in reach by the walk and the Dash
+    var rc = reachOf(u, hs), can = function (mv) { var m = G.reach(u, mv); return hs.some(function (t) { return Object.keys(m).some(function (k) { var e = m[k]; return e.stand && G.dist(u, t, e.x, e.y) <= rc; }); }); };
+    if (hs.some(function (w) { return G.dist(u, w) <= rc; }) || can(T.move) || !can(T.move + u.speed)) return false;
+    yield* B.exec(u, { do: 'cdash' });
+    return false;
   }
   // ------------------------------------------------------------------ a burrower (the bulette, SRD 5.1 "burrow 40 ft."; Griz 10-01d: "go ahead and
   // wire in the bulette"). Under the ground it is out of every reach -- u.under for the look (its mound: js/ui.js), u.ethereal for the rules, so no
@@ -746,6 +805,7 @@
         return;
       }
     }
+    if (u.cunning && !grudge && (yield* cunning(B, u, hs))) return; // (the Spy's Cunning Action: the kite, the Dash to close)
     var tgt = near[0], ranged = Object.keys(u.attacks || {}).filter(function (k) { return u.attacks[k].ranged; }).map(function (k) { return u.attacks[k]; });
     // all its attacks at range (Amara, Willem): keep off, step away when pressed, and shoot
     if (ranged.length && ranged.length === Object.keys(u.attacks).length) { yield* shooter(B, u); return; }

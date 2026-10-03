@@ -87,8 +87,20 @@
     this.save();
   };
 
+  // the chosen rung's figures, fetched behind once it has been the chosen one a third of a second (10-03, the lazy seat's question 3, Griz:
+  // "yes"): the four as its camp draws them, the fight's foes and scenery, a rung's own familiar -- so the camp opens without the beat. A
+  // rung the mouse only runs over fetches nothing (js/sprites.js S.prefetch)
+  Ladder.prototype.rungSheets = function (L) {
+    var F = this.cur(L); if (!F) return [];
+    var mapDef = D.MAPS[F.map] || {}, fam = F.familiar && D.FOES['fam_' + F.familiar];
+    var four = this.ours ? D.npc.ours(L, F).map(function (k) { return D.npc.lookOf(D.npc.spec(k)); })
+      : ['barley', 'aurdin', 'vivian', 'lymen'].map(function (id) { return D.save.look(id, F).sheet || id + '_p0'; });
+    return four.concat((F.foes || mapDef.foes || []).map(function (f) { return D.FOES[f.kind] && D.FOES[f.kind].sheet; }), (F.riders || []).map(function (r) { return r.sheet; }), fam ? [fam.sheet] : []);
+  };
   Ladder.prototype.update = function () {
     this.t++;
+    var F0 = this.cur(this.sel), want = this.sel + ':' + (F0 ? F0.id : '');
+    if (want !== this.wantKey) { this.wantKey = want; this.wantT = 0; } else if (++this.wantT === 20) D.spr.prefetch(this.rungSheets(this.sel));
     if (this.leaving) return this.leaveInput();
     // C, or the button top right: the climb (js/climb.js), one party from 1 to 9
     var cb = this.climbBtn, mm = I.mouse;

@@ -9,7 +9,8 @@ import json, os, re, subprocess, sys, tempfile, urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-EDGE = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+EDGE = os.environ.get('DEEP16_BROWSER') or r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' # (the same two knobs as bench16.py: DEEP16_BROWSER another headless Chromium, DEEP16_BROWSER_ARGS its extra flags -- unset, the desktop is as it was)
+EXTRA = os.environ.get('DEEP16_BROWSER_ARGS', '').split()
 
 
 def build_page():
@@ -36,7 +37,7 @@ def run(params, timeout=300):
     page = build_page()
     prof = os.path.join(tempfile.gettempdir(), 'ds8-bench-edge-%d' % os.getpid())
     url = 'file:///' + page.replace('\\', '/') + '?' + urllib.parse.urlencode(params)
-    cmd = [EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files', '--user-data-dir=' + prof, '--dump-dom', url]
+    cmd = [EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url]
     p = subprocess.run(cmd, capture_output=True, timeout=timeout)
     dom = p.stdout.decode('utf-8', 'replace')
     m = re.search(r'BENCH8 (\{.*\})', dom, re.S)

@@ -3,6 +3,7 @@
 'use strict';
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, K = D.keeper, checks = [], errs = [];
+  D.spr.offline = true; // (10-03, the lazy sheets: the probe draws into a canvas of its own and never waits on an image; the check below reads what a scene asks the gate for)
   D.sfx = function () {}; D.music = function () {}; D.clip = function (u, done) { if (done) done(); };
   function ok(name, v) { checks.push([name, !!v]); }
   function drain(g) { var v, n = 0; while (g && n++ < 200000) { var r = g.next(v); v = undefined; if (r.done) return r.value; var y = r.value; if (y && y.prompt) v = y.prompt.opts[0].value; if (y && y.entry) v = undefined; } }
@@ -435,6 +436,16 @@
       viv.hp = 0; BQ.card(['{y}' + lym.name + '{/} lays on hands: {n}+15{/} to ' + viv.name + '. {g}(pool 0){/}']); viv.hp = 15; RU.startTurn(HQ[0]);
       var ln = D.keeperLog.slice(n0).filter(function (e) { return /between actions/.test(e.action); });
       ok('an HP change between actions gets its own line (' + ln.map(function (e) { return e.action + ' | ' + e.result.slice(0, 80); }).join(' // ') + ')', ln.length >= 1 && ln.some(function (e) { return e.targets.indexOf(viv.name) >= 0 && /lays on hands/.test(e.result) && e.actor === lym.name; }));
+      D.battle = B3;
+    })();
+    // ---- the lazy sheets (js/sprites.js S.gate): a Keeper fight, its gallery, and a Pocket DM fight with the Keeper at the table ask for all three of its sheets; a late sheet is a capsule
+    (function () {
+      var want = ['keeper_p1', 'keeper_p2', 'keeper_p3'], BF = battle({ lvl: 3 }), got = (BF.sheetGate && BF.sheetGate.names) || [];
+      var GBL = D.fxKeeper('?fxgallery&keeper'); D.battle = GBL; GBL.enter(); var gg = (GBL.sheetGate && GBL.sheetGate.names) || [];
+      var PK = D.Battle ? new D.Battle({ fight: 'keeper', data: D.save.fixture(3), bench: true, pocket: true }) : null; PK.enter(); var pg = (PK.sheetGate && PK.sheetGate.names) || [];
+      ok('the lazy sheets: a Keeper fight asks the gate for ' + got.filter(function (n) { return /keeper/.test(n); }) + ', the gallery ' + gg.filter(function (n) { return /keeper/.test(n); }) + ', the table ' + pg.filter(function (n) { return /keeper/.test(n); }), want.every(function (n) { return got.indexOf(n) >= 0 && gg.indexOf(n) >= 0 && pg.indexOf(n) >= 0; }));
+      var cv = document.createElement('canvas'); cv.width = 80; cv.height = 80; var cx0 = cv.getContext('2d'), had = D.images, off = D.spr.offline; D.spr.offline = false; var sh0 = D.SHEETS.keeper_p2.image, saved = D.images[sh0]; delete D.images[sh0]; var e1 = ''; try { var h = D.spr.draw(cx0, 'keeper_p2', 'idle', 0, 0, 40, 60, {}); } catch (e) { e1 = String(e); } var painted = cx0.getImageData(0, 0, 80, 80).data.some(function (v, i) { return i % 4 === 3 && v > 0; }); if (saved) D.images[sh0] = saved; else delete D.images[sh0]; D.spr.offline = off;
+      ok('a Keeper sheet that is late draws a capsule, not nothing (painted ' + painted + (e1 ? ', ERROR ' + e1 : '') + ')', painted && !e1);
       D.battle = B3;
     })();
     D.battle = B3;

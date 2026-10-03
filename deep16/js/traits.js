@@ -12,7 +12,28 @@
   function Nm(B, u) { return u.side === 'foe' ? (u.named ? B.shortName(u) : 'The ' + B.shortName(u)) : u.name; }
 
   // the traits a unit carries from its sheet (battle.js makeFoe copies these)
-  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion']; // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner)
+  TR.FIELDS = ['earthGlide', 'rampage', 'charge', 'relentlessBeast', 'nimble', 'twoHeads', 'corrosive', 'jaunt', 'resilient', 'evasion', 'cunning', 'parry', 'rangedMulti']; // (resilient: the duergar's Resilience, SRD 5.1 -- rules.js RU.save; 10-02 runner)
+
+  // ------------------------------------------------------------------ Duergar Resilience on a spell already running (SRD 5.1: "advantage on saving throws against poison, spells, and illusions")
+  // rules.js RU.save reads B.castLevel only while a cast is under way. The saves a spell asks later -- Spirit Guardians at the start of the turn, a zone's, Web's, Moonbeam's, a wall's, the
+  // charm's on a hurt -- are resolved in magic.js startTurn/endTurn and the stepInto/onHurt/confusedTurn/danceAsk chains (the spell's own stamp, castId/lv, rides on the zone record the
+  // Globe reads): while one runs on a creature that has the trait, B.spellRun names it and RU.save gives it the advantage. (A concentration save is none against a spell: RU.save)
+  ['startTurn', 'endTurn', 'stepInto', 'onHurt', 'danceSave'].forEach(function (k) {
+    var f0 = M[k]; if (!f0) return;
+    M[k] = function (B, u) {
+      if (!B || !u || !u.resilient) return f0.apply(this, arguments);
+      var was = B.spellRun; B.spellRun = u;
+      try { return f0.apply(this, arguments); } finally { B.spellRun = was; }
+    };
+  });
+  ['confusedTurn', 'danceAsk'].forEach(function (k) {
+    var f0 = M[k]; if (!f0) return;
+    M[k] = function* (B, u) {
+      if (!B || !u || !u.resilient) return yield* f0.apply(this, arguments);
+      var was = B.spellRun; B.spellRun = u;
+      try { return yield* f0.apply(this, arguments); } finally { B.spellRun = was; }
+    };
+  });
 
   // ------------------------------------------------------------------ the roper's tendrils: the grappled one has disadvantage on STR checks
   // and saves (rules.js save reads restrained.weak; magic.js breakFree too)
@@ -46,7 +67,7 @@
       att.turn.charged = true;
       var c = att.charge, cr = D.roll(c.dice, { crit: crit }), sv = RU.save(tgt, 'str', c.dc);
       B.card(['{r}' + Nm(B, att) + ' charges home!{/}  ' + c.dice + ' [' + cr.rolls.join(',') + '] = ' + cr.total + '  STR ' + RU.saveText(sv) + ' vs DC ' + c.dc + '  ' + (sv.ok ? '{n}keeps their feet{/}' : '{o}KNOCKED DOWN{/}')], 300);
-      B.hurt(tgt, cr.total, atk.type);
+      B.hurt(tgt, cr.total, atk.type, { magic: !!atk.magic });
       if (!sv.ok && tgt.hp > 0 && !tgt.noProne) tgt.conds.prone = true;
       yield 16;
     }
@@ -88,6 +109,13 @@
   TR.after = function* (B, u) {
     var T = u.turn;
     if (u.dead || u.hp <= 0 || !T) return;
+    // Cunning Action (the Spy, SRD 5.1: "On each of its turns, the spy can use a bonus action to take the Dash, Disengage, or Hide action"): the Dash to close and the Disengage
+    // to get clear are ai.js cunning / bolt; the Hide is here, once its turn is done -- nowhere to hide with a foe beside it, or one that sees it clearly (battle.js seenBy, the
+    // same question the Hide action asks: it is not even tried where it could not take)
+    if (u.cunning && T.bonus > 0 && !u.conds.hidden && !u.conds.restrained && !u.conds.dancing && !G.foesNear(u, u.x, u.y, 5).length) {
+      var all = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); });
+      if (all.length && all.every(function (w) { return B.seenBy(w, u) < 2; })) yield* B.hide(u);
+    }
     // Rampage: a bonus action -- half its speed toward the nearest, and a bite
     if (u.rampage && T.rampage && T.bonus) {
       T.bonus = 0; T.rampaged = true;

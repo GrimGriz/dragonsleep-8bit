@@ -123,7 +123,7 @@
   var hurt0 = D.Battle.prototype.hurt;
   D.Battle.prototype.hurt = function (u, n, type) {
     if (this.show && u && u.hp > 0 && !u.showFree && (u.show || u.side === 'party')) n = Math.min(n, u.hp - 1);
-    return hurt0.call(this, u, n, type);
+    return hurt0.call(this, u, n, type, arguments[3]); // (the blow's magic, Stoneskin's: 10-03)
   };
 
   // ------------------------------------------------------------------ the report

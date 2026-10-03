@@ -8,6 +8,7 @@
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx, M = D.magic;
   var E = M.EFFECT = M.EFFECT || {};
+  var MAGIC = { magic: true }; // (B.hurt's fourth: a spell's damage is magical -- Stoneskin halves none of it, SRD 5.1 "nonmagical bludgeoning, piercing, and slashing"; 10-03)
   function TX() { return D.tactics; }
   function nm(B, w) { return w.side === 'foe' ? (w.named ? B.shortName(w) : 'the ' + B.shortName(w)) : w.name; }
   function Nm(B, w) { var s = nm(B, w); return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -46,7 +47,7 @@
     if (!list.length) lines.push('  {g}no one in it.{/}');
     B.card(lines.slice(0, 8), 420);
     yield { fx: 1 };
-    hits.forEach(function (h) { B.hurt(h[0], h[1], type); });
+    hits.forEach(function (h) { B.hurt(h[0], h[1], type, MAGIC); });
     if (o.cond) failed.forEach(function (w) { if (!w.dead && (w.hp > 0 || o.onDown)) o.cond(w); });
     yield 24;
     return failed;
@@ -136,7 +137,7 @@
     (M.groundAt(B, u.x, u.y) || []).forEach(function (g) { if (g.kind === 'grease') slip(B, u, g, 'ends its turn on the grease'); });
     // Acid Arrow's second bite, at the end of its next turn
     // (the Globe of Invulnerability: the second bite is the arrow's, cast from outside the globe -- the creature inside it takes nothing; the bite was due this turn and is spent)
-    if (c.acid && c.acid.fresh) c.acid.fresh = false; else if (c.acid) { var a = c.acid; delete c.acid; if (!M.zoneShut(B, a, u, 'feels the acid at its turn\'s end')) { var r = D.roll(a.dice); B.card([Nm(B, u) + ': the acid eats on  ' + a.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} acid'], 240); B.hurt(u, r.total, 'acid'); } }
+    if (c.acid && c.acid.fresh) c.acid.fresh = false; else if (c.acid) { var a = c.acid; delete c.acid; if (!M.zoneShut(B, a, u, 'feels the acid at its turn\'s end')) { var r = D.roll(a.dice); B.card([Nm(B, u) + ': the acid eats on  ' + a.dice + ' ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} acid'], 240); B.hurt(u, r.total, 'acid', MAGIC); } }
     M.tick(B, u, 'end');
   };
   // a condition a spell laid, ended (its own undo: Hideous Laughter's prone and incapacitated go with it)
@@ -188,7 +189,7 @@
       var r = D.roll(a.dice), sv = RU.save(u, 'wis', a.dc), d = sv.ok ? Math.floor(r.total / 2) : r.total;
       FX.sparkle(u, a.ramp || 'bone', 12);
       B.card([Nm(B, u) + ' ' + how + ' in the spirits\' ring: WIS ' + RU.saveText(sv) + ' vs DC ' + a.dc + '  ' + a.dice + ' ' + RU.fmtRolls(r.rolls) + ' -> {r}' + d + '{/} ' + a.type], 300);
-      B.hurt(u, d, a.type);
+      B.hurt(u, d, a.type, MAGIC);
     });
   }
   // stepping onto a spell's ground: grease (DEX or down, the move ends), spikes (2d4 each 5 ft), the guardians' ring
@@ -196,7 +197,7 @@
     var stop = false;
     M.groundAt(B, u.x, u.y).forEach(function (g) {
       if (g.kind === 'grease' && !u.conds.prone && slip(B, u, g, 'steps onto the grease')) stop = true;
-      if (g.kind === 'spikes' && !M.zoneShut(B, g, u, 'in the spikes')) { var r = D.roll('2d4'); FX.float('spikes', u, D.PAL.ramps.moss[2]); B.card([Nm(B, u) + ' in the spikes: 2d4 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} piercing'], 160); B.hurt(u, r.total, 'piercing'); }
+      if (g.kind === 'spikes' && !M.zoneShut(B, g, u, 'in the spikes')) { var r = D.roll('2d4'); FX.float('spikes', u, D.PAL.ramps.moss[2]); B.card([Nm(B, u) + ' in the spikes: 2d4 ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} piercing'], 160); B.hurt(u, r.total, 'piercing', MAGIC); }
     });
     guardians(B, u, 'comes');
     return stop || u.hp <= 0;
@@ -833,7 +834,7 @@
       var n = up(x.sp, slot);
       yield* spellAttack(B, u, t, x.sp, x.g, more('4d4', n), { fx: 'bolt',
         onHit: function (w) { w.conds.acid = { dice: more('2d4', n), fresh: B.active === w }; FX.sparkle(w, 'moss', 12); },
-        onMiss: function (w) { var r = D.roll(more('4d4', n)), h = Math.floor(r.total / 2); B.card(['  the arrow splashes: ' + RU.fmtRolls(r.rolls) + ' half = {r}' + h + '{/} acid'], 240); B.hurt(w, h, 'acid'); } });
+        onMiss: function (w) { var r = D.roll(more('4d4', n)), h = Math.floor(r.total / 2); B.card(['  the arrow splashes: ' + RU.fmtRolls(r.rolls) + ' half = {r}' + h + '{/} acid'], 240); B.hurt(w, h, 'acid', MAGIC); } });
     },
     rider: function (B, u, t, p) { return p * 5 + (1 - p) * 2.5; }
   };
@@ -963,7 +964,7 @@
       if (!x.g.again) { t.conds.heated = { by: u.id, dice: dz }; M.concentrate(B, u, 'heatmetal', 'Heat Metal', function () { delete t.conds.heated; }); }
       FX.sparkle(t, 'fire', 16);
       B.card([head + (x.g.again ? ': the metal on ' + nm(B, t) + ' flares again' : ': the metal on ' + nm(B, t) + ' glows red-hot') + '  ' + dz + ' ' + RU.fmtRolls(r.rolls) + ' = {r}' + r.total + '{/} fire'], 300);
-      B.hurt(t, r.total, 'fire');
+      B.hurt(t, r.total, 'fire', MAGIC);
       if (t.hp > 0 && !t.dead) {
         var sv = RU.save(t, 'con', x.dc), held = M.metalWeapon(t) && !M.metalArmor(t);
         B.card(['  ' + Nm(B, t) + ': CON ' + RU.saveText(sv) + ' vs DC ' + x.dc + '  ' + (sv.ok ? '{n}holds on{/}' : held ? '{o}drops the burning weapon{/}' : '{o}cannot shed it: disadvantage on its attacks{/}')], 300);
@@ -979,7 +980,7 @@
   };
   E.magicweapon = {
     summary: function (e) { return 'bonus action · touch · a weapon becomes +' + (e.slot >= 6 ? 3 : e.slot >= 4 ? 2 : 1) + ', magical (concentration)'; },
-    cast: function* (B, u, t, slot, head) { var b = slot >= 6 ? 3 : slot >= 4 ? 2 : 1, w0 = t.weapon; if (w0) { t.conds.magicWeapon = { by: u.id, base: w0 }; t.weapon = Object.assign({}, w0, { atk: w0.atk + b, mod: (w0.mod || 0) + b, magic: true, name: w0.name + ' +' + b }); } M.concentrate(B, u, 'magicweapon', 'Magic Weapon', function () { if (t.conds.magicWeapon) { t.weapon = t.conds.magicWeapon.base; delete t.conds.magicWeapon; } }); FX.sparkle(t, 'glow', 14); B.card([head + ' on ' + (t === u ? 'his own blade' : t.name + '\'s weapon') + ': {c}+' + b + '{/}, and magical.']); yield 16; },
+    cast: function* (B, u, t, slot, head) { var b = slot >= 6 ? 3 : slot >= 4 ? 2 : 1, w0 = t.weapon; if (w0 && w0.magic) { B.card([head + ' on ' + nm(B, t) + ': the ' + w0.name + ' is magic already -- {g}the spell takes only a nonmagical weapon{/}.']); yield 16; return; } if (w0) { t.conds.magicWeapon = { by: u.id, base: w0 }; t.weapon = Object.assign({}, w0, { atk: w0.atk + b, mod: (w0.mod || 0) + b, magic: true, name: w0.name + ' +' + b }); } M.concentrate(B, u, 'magicweapon', 'Magic Weapon', function () { if (t.conds.magicWeapon) { t.weapon = t.conds.magicWeapon.base; delete t.conds.magicWeapon; } }); FX.sparkle(t, 'glow', 14); B.card([head + ' on ' + (t === u ? 'his own blade' : t.name + '\'s weapon') + ': {c}+' + b + '{/}, and magical.']); yield 16; },
     ai: function (B, u, e, slot, fs) { if (u.conc || !u.weapon || u.weapon.magic || !fs.some(function (t) { return G.dist(u, t) <= u.turn.move + 5; })) return null; var mundane = fs.some(function (t) { return t.resist && t.resist.indexOf('mundane') >= 0; }); return { score: (u.attacksBase || 1) * 1.6 * 3 + (mundane ? 12 : 0), t: u, keep: 3 }; }
   };
   E.mirrorimage = {
@@ -1331,7 +1332,7 @@
     var r = D.roll(z.dice), sv = RU.save(w, z.save, z.dc), d = sv.ok ? Math.floor(r.total / 2) : r.total;
     FX.sparkle(w, z.id === 'moonbeam' ? 'bone' : 'fire', 12);
     B.card([Nm(B, w) + ' ' + how + ': ' + z.save.toUpperCase() + ' ' + RU.saveText(sv) + ' vs DC ' + z.dc + '  ' + z.dice + ' ' + RU.fmtRolls(r.rolls) + ' -> {r}' + d + '{/} ' + z.type], 300);
-    B.hurt(w, d, z.type);
+    B.hurt(w, d, z.type, MAGIC);
   }
   // (a creature inside a Globe of Invulnerability the spell is cast from outside of takes nothing from it: the AI counts it for nothing -- the other runner's M.globeShuts, js/magic.js)
   function unshut(B, u, e, list) { return list.filter(function (w) { return !(M.globeShuts && M.globeShuts(B, u, e.g, w)); }); }
@@ -1580,7 +1581,7 @@
       if (M.zoneShut(B, wd, u, 'comes within the guardian\'s reach')) return; // (the Globe of Invulnerability)
       var sv = RU.save(u, 'dex', wd.dc), n = Math.min(wd.left, sv.ok ? 10 : 20); wd.left -= n;
       B.card([Nm(B, u) + ' comes within the guardian\'s reach: DEX ' + RU.saveText(sv) + ' vs DC ' + wd.dc + '  {r}' + n + '{/} radiant' + (wd.left <= 0 ? '  {g}(the guardian is spent){/}' : '')], 300);
-      B.hurt(u, n, 'radiant');
+      B.hurt(u, n, 'radiant', MAGIC);
     });
     B.wards = (B.wards || []).filter(function (wd) { return wd.left > 0; });
   };
@@ -1623,7 +1624,7 @@
       var f = D.roll(more('4d6', up(x.sp, slot))), r = D.roll('4d6'), lines = [head + '  a column of divine fire: ' + f.total + ' fire + ' + r.total + ' radiant  DEX DC ' + x.dc], hits = [];
       list.forEach(function (w) { if (M.globed(B, u, w, 5)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', x.dc), k = sv.ok ? 0.5 : 1; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}')); hits.push([w, Math.floor(f.total * k), Math.floor(r.total * k)]); }); // (the Globe of Invulnerability: this one had no filter at all)
       B.card(lines.slice(0, 8), 420); yield { fx: 1 };
-      hits.forEach(function (h) { B.hurt(h[0], h[1], 'fire'); if (!h[0].dead) B.hurt(h[0], h[2], 'radiant'); });
+      hits.forEach(function (h) { B.hurt(h[0], h[1], 'fire', MAGIC); if (!h[0].dead) B.hurt(h[0], h[2], 'radiant', MAGIC); });
       yield 24;
     },
     ai: function (B, u, e, slot, fs) { return TX().bestArea(B, u, e, fs, function (caught) { return TX().areaWorth(B, u, Object.assign({}, e, { sp: Object.assign({}, e.sp, { dmg: '8d6', half: true, save: 'dex' }) }), 0, caught); }); }
@@ -1799,7 +1800,7 @@
     }
   };
   function killAt(B, u) { return (B.darks || []).filter(function (d) { return d.kind === 'kill' && G.foot(u).some(function (p) { return d.sq.some(function (q) { return q[0] === p[0] && q[1] === p[1]; }); }); }); }
-  function killHurt(B, u, d, what) { if (M.zoneShut(B, d, u, what)) return; var sv = RU.save(u, 'con', d.dc, RU.vsPoison(u)), r = D.roll(d.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' ' + what + ': CON ' + RU.saveText(sv) + ' vs DC ' + d.dc + '  ' + d.dice + ' = {r}' + n + '{/} poison'], 240); B.hurt(u, n, 'poison'); }
+  function killHurt(B, u, d, what) { if (M.zoneShut(B, d, u, what)) return; var sv = RU.save(u, 'con', d.dc, RU.vsPoison(u)), r = D.roll(d.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' ' + what + ': CON ' + RU.saveText(sv) + ' vs DC ' + d.dc + '  ' + d.dice + ' = {r}' + n + '{/} poison'], 240); B.hurt(u, n, 'poison', MAGIC); }
   var onStartK = M.onStart;
   M.onStart = function (B, u) {
     onStartK(B, u);
@@ -1956,8 +1957,8 @@
       if (g.kind !== 'tentacles' || u.hp <= 0 || u.dead) return;
       if (M.zoneShut(B, g, u, 'starts its turn in the tentacles')) return; // (the Globe of Invulnerability)
       var r = u.conds.restrained;
-      if (r && r.kind === 'tentacles') { var d0 = D.roll('3d6'); B.card([Nm(B, u) + ' is crushed by the tentacles  3d6 = {r}' + d0.total + '{/}'], 240); B.hurt(u, d0.total, 'bludgeoning'); }
-      else if (!RU.immuneTo(u, 'restrained')) { var sv = RU.save(u, 'dex', g.dc); B.card([Nm(B, u) + ' in the tentacles: DEX ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}slips them{/}' : '{o}seized{/}')], 240); if (!sv.ok) { var d1 = D.roll('3d6'); B.hurt(u, d1.total, 'bludgeoning'); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; } }
+      if (r && r.kind === 'tentacles') { var d0 = D.roll('3d6'); B.card([Nm(B, u) + ' is crushed by the tentacles  3d6 = {r}' + d0.total + '{/}'], 240); B.hurt(u, d0.total, 'bludgeoning', MAGIC); }
+      else if (!RU.immuneTo(u, 'restrained')) { var sv = RU.save(u, 'dex', g.dc); B.card([Nm(B, u) + ' in the tentacles: DEX ' + RU.saveText(sv) + ' vs DC ' + g.dc + '  ' + (sv.ok ? '{n}slips them{/}' : '{o}seized{/}')], 240); if (!sv.ok) { var d1 = D.roll('3d6'); B.hurt(u, d1.total, 'bludgeoning', MAGIC); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; } }
     });
   };
   var onEndD = M.onEnd;
@@ -1966,13 +1967,13 @@
     // Phantasmal Killer: the fear's bite at a turn's end
     var k = u.conds.killer;
     // (the Globe of Invulnerability: the phantom was cast from outside it -- neither the bite nor the save that ends it happens in there)
-    if (k && u.hp > 0 && !M.zoneShut(B, k, u, 'faces the phantom')) { var sv = RU.save(u, 'wis', k.dc, false, 'frightened'); if (sv.ok) { delete u.conds.killer; if (u.conds.frightened && u.conds.frightened.by === k.by) delete u.conds.frightened; B.card([Nm(B, u) + ' faces the phantom down: WIS ' + RU.saveText(sv) + '  {n}IT BREAKS{/}'], 240); var by = B.units.filter(function (w) { return w.id === k.by; })[0]; if (by && by.conc && by.conc.id === 'phantasmalkiller') delete by.conc; } else { var r = D.roll(k.dice); B.card([Nm(B, u) + ' and the phantom: WIS ' + RU.saveText(sv) + '  {r}' + r.total + '{/} psychic'], 240); B.hurt(u, r.total, 'psychic'); } }
+    if (k && u.hp > 0 && !M.zoneShut(B, k, u, 'faces the phantom')) { var sv = RU.save(u, 'wis', k.dc, false, 'frightened'); if (sv.ok) { delete u.conds.killer; if (u.conds.frightened && u.conds.frightened.by === k.by) delete u.conds.frightened; B.card([Nm(B, u) + ' faces the phantom down: WIS ' + RU.saveText(sv) + '  {n}IT BREAKS{/}'], 240); var by = B.units.filter(function (w) { return w.id === k.by; })[0]; if (by && by.conc && by.conc.id === 'phantasmalkiller') delete by.conc; } else { var r = D.roll(k.dice); B.card([Nm(B, u) + ' and the phantom: WIS ' + RU.saveText(sv) + '  {r}' + r.total + '{/} psychic'], 240); B.hurt(u, r.total, 'psychic', MAGIC); } }
     // Contagion: three failed CON saves and it takes hold (the blinding sickness, for the fight); three saved and it is gone
     var ct = u.conds.contagion;
     // (the Globe of Invulnerability: no save is rolled in there, and the disease neither gains nor loses ground)
     if (ct && u.hp > 0 && !ct.held && !M.zoneShut(B, ct, u, 'fights the disease')) { var s2 = RU.save(u, 'con', ct.dc); if (s2.ok) ct.good++; else ct.bad++; B.card([Nm(B, u) + ' fights the disease: CON ' + RU.saveText(s2) + '  ' + ct.bad + ' failed, ' + ct.good + ' saved'], 200); if (ct.good >= 3) { delete u.conds.contagion; if (u.conds.poisoned && u.conds.poisoned.contagion) delete u.conds.poisoned; } else if (ct.bad >= 3) { ct.held = true; u.conds.blinded = { by: 'contagion' }; B.card(['{o}The sickness takes ' + Nm(B, u) + '\'s sight.{/}'], 240); } }
     // Insect Plague: ending a turn in the locusts
-    (M.groundAt(B, u.x, u.y) || []).forEach(function (g) { if (g.kind !== 'insects' || u.hp <= 0 || M.zoneShut(B, g, u, 'ends its turn in the locusts')) return; var sv3 = RU.save(u, 'con', g.dc), r3 = D.roll(g.dice), n3 = sv3.ok ? Math.floor(r3.total / 2) : r3.total; B.card([Nm(B, u) + ' in the locusts: CON ' + RU.saveText(sv3) + '  {r}' + n3 + '{/} piercing'], 200); B.hurt(u, n3, 'piercing'); });
+    (M.groundAt(B, u.x, u.y) || []).forEach(function (g) { if (g.kind !== 'insects' || u.hp <= 0 || M.zoneShut(B, g, u, 'ends its turn in the locusts')) return; var sv3 = RU.save(u, 'con', g.dc), r3 = D.roll(g.dice), n3 = sv3.ok ? Math.floor(r3.total / 2) : r3.total; B.card([Nm(B, u) + ' in the locusts: CON ' + RU.saveText(sv3) + '  {r}' + n3 + '{/} piercing'], 200); B.hurt(u, n3, 'piercing', MAGIC); });
   };
   var stepD = M.stepInto;
   M.stepInto = function (B, u) {
@@ -1980,8 +1981,8 @@
     M.wardTurn(B, u);
     (M.groundAt(B, u.x, u.y) || []).forEach(function (g) {
       if (u.hp <= 0 || u.dead || !u.turn) return;
-      if (g.kind === 'insects' && !u.turn['bugs' + g.by]) { u.turn['bugs' + g.by] = true; if (M.zoneShut(B, g, u, 'walks into the locusts')) return; var sv = RU.save(u, 'con', g.dc), r = D.roll(g.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' walks into the locusts: CON ' + RU.saveText(sv) + '  {r}' + n + '{/} piercing'], 200); B.hurt(u, n, 'piercing'); }
-      if (g.kind === 'tentacles' && !u.turn['tent' + g.by] && !(u.conds.restrained && u.conds.restrained.kind === 'tentacles') && !RU.immuneTo(u, 'restrained')) { u.turn['tent' + g.by] = true; if (M.zoneShut(B, g, u, 'steps into the tentacles')) return; var s2 = RU.save(u, 'dex', g.dc); B.card([Nm(B, u) + ' steps into the tentacles: DEX ' + RU.saveText(s2) + '  ' + (s2.ok ? '{n}slips them{/}' : '{o}seized{/}')], 240); if (!s2.ok) { var d2 = D.roll('3d6'); B.hurt(u, d2.total, 'bludgeoning'); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; stop = true; } }
+      if (g.kind === 'insects' && !u.turn['bugs' + g.by]) { u.turn['bugs' + g.by] = true; if (M.zoneShut(B, g, u, 'walks into the locusts')) return; var sv = RU.save(u, 'con', g.dc), r = D.roll(g.dice), n = sv.ok ? Math.floor(r.total / 2) : r.total; B.card([Nm(B, u) + ' walks into the locusts: CON ' + RU.saveText(sv) + '  {r}' + n + '{/} piercing'], 200); B.hurt(u, n, 'piercing', MAGIC); }
+      if (g.kind === 'tentacles' && !u.turn['tent' + g.by] && !(u.conds.restrained && u.conds.restrained.kind === 'tentacles') && !RU.immuneTo(u, 'restrained')) { u.turn['tent' + g.by] = true; if (M.zoneShut(B, g, u, 'steps into the tentacles')) return; var s2 = RU.save(u, 'dex', g.dc); B.card([Nm(B, u) + ' steps into the tentacles: DEX ' + RU.saveText(s2) + '  ' + (s2.ok ? '{n}slips them{/}' : '{o}seized{/}')], 240); if (!s2.ok) { var d2 = D.roll('3d6'); B.hurt(u, d2.total, 'bludgeoning', MAGIC); if (u.hp > 0) u.conds.restrained = { dc: g.dc, by: g.by, kind: 'tentacles' }; stop = true; } }
     });
     return stop || u.hp <= 0;
   };
@@ -2022,7 +2023,7 @@
     cast: function* (B, u, t, slot, head, x) {
       var r = D.roll('14d6'), sv = RU.save(t, 'con', x.dc, false, null, r.total), n = sv.ok ? Math.floor(r.total / 2) : r.total; n = Math.min(n, Math.max(0, t.hp - 1));
       FX.sparkle(t, 'violet', 20); B.card([head + ' on ' + nm(B, t) + '  14d6 = ' + r.total + '  CON ' + RU.saveText(sv) + ' vs DC ' + x.dc + '  -> {r}' + n + '{/} necrotic' + (sv.ok ? '' : '  {o}its strength hollowed{/}')], 360);
-      B.hurt(t, n, 'necrotic'); if (!sv.ok && t.hp > 0) { var mx0 = t.maxhp; t.maxhp = Math.max(1, mx0 - n); t.hpCut = (t.hpCut || 0) + (mx0 - t.maxhp); } // (hpCut: what Greater Restoration gives back)
+      B.hurt(t, n, 'necrotic', MAGIC); if (!sv.ok && t.hp > 0) { var mx0 = t.maxhp; t.maxhp = Math.max(1, mx0 - n); t.hpCut = (t.hpCut || 0) + (mx0 - t.maxhp); } // (hpCut: what Greater Restoration gives back)
       yield 24;
     },
     ai: function (B, u, e, slot, fs) { var best = null; fs.forEach(function (t) { if (!M.targetOK(B, u, Object.assign({}, e.g, { side: 'foe' }), t)) return; var sc = Math.min(t.hp - 1, 40) * 1.2; if (!best || sc > best.score) best = { score: sc, t: t }; }); return best; }
@@ -2387,7 +2388,7 @@
   M.beadBurst = function (B, u, bd) {
     var sq = G.sphere(bd.x, bd.y, 20), list = caughtIn(B, sq), r = D.roll((12 + bd.grown) + 'd6'), lines = ['{o}The bead bursts!{/}  ' + (12 + bd.grown) + 'd6 = ' + r.total + ' fire  DEX DC ' + bd.dc];
     FX.bloom(bd.x, bd.y, sq, 'fire');
-    list.forEach(function (w) { if (M.zoneGlobed(B, bd, w)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', bd.dc, false, null, r.total), n = sv.ok ? Math.floor(r.total / 2) : r.total; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' -> {r}' + n + '{/}'); B.hurt(w, n, 'fire'); }); // (the Globe of Invulnerability: the bead was cast from outside it)
+    list.forEach(function (w) { if (M.zoneGlobed(B, bd, w)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', bd.dc, false, null, r.total), n = sv.ok ? Math.floor(r.total / 2) : r.total; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' -> {r}' + n + '{/}'); B.hurt(w, n, 'fire', MAGIC); }); // (the Globe of Invulnerability: the bead was cast from outside it)
     B.card(lines.slice(0, 8), 420);
     B.beads = (B.beads || []).filter(function (b) { return b !== bd; });
   };
@@ -2403,7 +2404,7 @@
         // the otherworldly are forced back to their plane and cannot return for a day: out of the fight, as a summoned one is when it goes
         if (HOME.test(w.type || '')) { delete w.conds.banished; w.dead = true; w.left = true; w.deadT = B.t; FX.sparkle(w, 'violet', 20); lines.push('  ' + Nm(B, w) + ': {y}sent home{/}'); return; }
         // (deafened for a minute -- ten of its own turns -- at 50 or fewer; the longer blindness and stun are the fight's, as they were)
-        if (w.hp <= 20) { lines.push('  ' + Nm(B, w) + ': {y}DROPS{/}'); B.hurt(w, w.hp + (w.temp || 0), 'radiant'); }
+        if (w.hp <= 20) { lines.push('  ' + Nm(B, w) + ': {y}DROPS{/}'); B.hurt(w, w.hp + (w.temp || 0), 'radiant', MAGIC); }
         else if (w.hp <= 30) { w.conds.deafened = { by: u.id }; w.conds.stunned = { by: u.id }; w.conds.blinded = { by: u.id }; lines.push('  ' + Nm(B, w) + ': {p}deafened, stunned, blinded{/}'); }
         else if (w.hp <= 40) { w.conds.deafened = { by: u.id }; w.conds.blinded = { by: u.id }; lines.push('  ' + Nm(B, w) + ': {o}deafened, blinded{/}'); }
         else if (w.hp <= 50) { w.conds.deafened = { by: u.id, till: { who: w.id, at: 'end', n: 10 } }; lines.push('  ' + Nm(B, w) + ': {o}deafened{/}'); }
@@ -2437,7 +2438,7 @@
         });
       });
       B.card(lines.slice(0, 8), 480); yield { fx: 1 };
-      hits.forEach(function (h) { if (!h[0].dead) B.hurt(h[0], h[1], h[2]); });
+      hits.forEach(function (h) { if (!h[0].dead) B.hurt(h[0], h[1], h[2], MAGIC); });
       yield 24;
     },
     ai: function (B, u, e, slot, fs) { return TX().bestArea(B, u, e, fs, function (caught) { var sc = 0; caught.forEach(function (w) { if (w === u) return; sc += (G.hostile(u, w) ? 1 : -1.5) * TX().worth(26, w); }); return sc; }); }
@@ -2462,7 +2463,7 @@
   };
   E.feeblemind = {
     summary: function () { return 'a creature within 150 ft · 4d6 psychic, and INT or its mind is gone: no spells, no plans'; },
-    cast: function* (B, u, t, slot, head, x) { var r = D.roll('4d6'); B.card([head + ' on ' + nm(B, t) + '  4d6 = {r}' + r.total + '{/} psychic'], 300); B.hurt(t, r.total, 'psychic'); if (t.hp > 0) yield* saveAll(B, u, [t], 'int', x.dc, null, '', false, '  its mind', { failText: 'shattered', cond: function (w) { w.conds.feeble = { by: u.id }; if (w.conc) M.endConc(B, w, 'the mind gone'); } }); },
+    cast: function* (B, u, t, slot, head, x) { var r = D.roll('4d6'); B.card([head + ' on ' + nm(B, t) + '  4d6 = {r}' + r.total + '{/} psychic'], 300); B.hurt(t, r.total, 'psychic', MAGIC); if (t.hp > 0) yield* saveAll(B, u, [t], 'int', x.dc, null, '', false, '  its mind', { failText: 'shattered', cond: function (w) { w.conds.feeble = { by: u.id }; if (w.conc) M.endConc(B, w, 'the mind gone'); } }); },
     ai: function (B, u, e, slot, fs) { var t = fs.filter(function (w) { return M.targetOK(B, u, Object.assign({}, e.g, { side: 'foe' }), w) && (w.known || []).length; }).sort(function (a, b) { return TX().dpr(b) - TX().dpr(a); })[0]; return t ? { score: 14 + TX().pFail(t, 'int', u.spellDC) * TX().dpr(t) * 3, t: t } : null; }
   };
   E.holyaura = {
@@ -2508,14 +2509,14 @@
       // (the Globe of Invulnerability: a 9th-level spell is past the highest globe there is -- one raised from a 9th-level slot holds out the 8th and under -- so nothing is ever shut out here; asked all the same, so a rule that moved would not leave this one behind)
       list.forEach(function (w) { if (M.globed(B, u, w, 9)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', x.dc), k = sv.ok ? 0.5 : 1; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv)); hits.push([w, Math.floor(f.total * k), Math.floor(b.total * k)]); });
       B.card(lines.slice(0, 8), 480); yield { fx: 1 };
-      hits.forEach(function (h) { B.hurt(h[0], h[1], 'fire'); if (!h[0].dead) B.hurt(h[0], h[2], 'bludgeoning'); });
+      hits.forEach(function (h) { B.hurt(h[0], h[1], 'fire', MAGIC); if (!h[0].dead) B.hurt(h[0], h[2], 'bludgeoning', MAGIC); });
       yield 30;
     },
     ai: function (B, u, e, slot, fs) { var sc = 0; B.units.forEach(function (w) { if (!G.standing(w) || M.globeShuts(B, u, e.g, w)) return; sc += (G.hostile(u, w) ? 1 : -1.5) * TX().worth(70 * 0.7, w); }); var t = fs[0]; return t && sc > 0 ? { score: sc, t: { x: t.x, y: t.y } } : null; }
   };
   E.powerwordkill = {
     summary: function () { return 'a creature within 60 ft · no save: dropped if it has 100 HP or fewer'; },
-    cast: function* (B, u, t, slot, head) { if (t.hp > 100) { B.card([head + ': ' + nm(B, t) + ' has too much life in it.']); yield 16; return; } FX.ring(t, 'violet', 34); B.card([head + ': one word, and ' + nm(B, t) + ' {y}falls{/}.']); B.hurt(t, t.hp + (t.temp || 0), 'necrotic'); yield 24; },
+    cast: function* (B, u, t, slot, head) { if (t.hp > 100) { B.card([head + ': ' + nm(B, t) + ' has too much life in it.']); yield 16; return; } FX.ring(t, 'violet', 34); B.card([head + ': one word, and ' + nm(B, t) + ' {y}falls{/}.']); B.hurt(t, t.hp + (t.temp || 0), 'necrotic', MAGIC); yield 24; },
     ai: function (B, u, e, slot, fs) { var t = fs.filter(function (w) { return M.targetOK(B, u, Object.assign({}, e.g, { side: 'foe' }), w) && w.hp <= 100; }).sort(function (a, b) { return b.hp - a.hp; })[0]; return t ? { score: t.hp + TX().dpr(t) * 3, t: t } : null; }
   };
   // the clocks and grounds of batch E: the stone's saves, the dance's, the stun's; the bead growing; the quake's shaking; the glyph; regrowth

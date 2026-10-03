@@ -32,10 +32,12 @@
   D.Gate = Gate;
   Gate.prototype.enter = function () {
     D.iso.load(D.MAPS.gate);
+    D.spr.gate(this, this.rows().map(function (r) { return r.f.id + '_p' + r.pipe; })); // (its figures before it draws: js/sprites.js, 10-03)
     // pipeline 1's feet on depth 14, pipeline 0's on depth 20 (96 px lower); the line shifted left so the spider's legs fit
     D.iso.cam.x = 16; D.iso.cam.y = 14 * 16 + 16 - 104 + D.H / 2;
   };
   Gate.prototype.update = function () {
+    if (D.spr.held(this)) return;
     this.t++;
     if (I.repeat('left')) this.facing = (this.facing + 7) % 8;
     if (I.repeat('right')) this.facing = (this.facing + 1) % 8;
@@ -56,6 +58,7 @@
   };
   var PIPE_COL = ['#a8e8ff', '#dca238', '#f8a4c0'];
   Gate.prototype.draw = function (ctx) {
+    if (D.spr.held(this, true)) return D.spr.beat(ctx, this);
     var self = this, objs = [];
     this.rows().forEach(function (r, i) {
       objs.push({

@@ -108,7 +108,7 @@
   flameblade: { shape: 'self', time: 'B', conc: true },
   gustofwind: { shape: 'line', len: 60, time: 'A' },
   heatmetal: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A', conc: true },
-  magicweapon: { shape: 'touch', side: 'ally', time: 'B', conc: true },
+  magicweapon: { shape: 'touch', side: 'ally', time: 'B', conc: true, nonmagical: true }, // (nonmagical: "You touch a nonmagical weapon", SRD 5.1 -- M.targetWhy, 10-03)
   mirrorimage: { shape: 'self', time: 'A' },
   protectionfrompoison: { shape: 'touch', side: 'ally', time: 'A' },
   rayofenfeeblement: { shape: 'attack', range: 60, time: 'A', conc: true },

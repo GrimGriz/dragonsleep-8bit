@@ -15,8 +15,10 @@ Everything lives under deep16/_src/lpc/ (gitignored):
 
 Run: python tools/lpc-compose.py            (compose all six)
      python tools/lpc-compose.py barley drow (just those)
+     python tools/lpc-compose.py npcfighter_dragonborn npcwizard_tiefling   (a race on a class figure: RACE_LOOKS, race_figure)
 """
 import colorsys
+import copy
 import json
 import os
 import sys
@@ -158,7 +160,7 @@ def recolor(img, mappings):
 class Item:
     """One selection in the generator: a sheet definition + its colour choice (or fixed variant)."""
 
-    def __init__(self, fig, def_path, color=None, variant=None, sub=None, idle_from=None, despeckle=0):
+    def __init__(self, fig, def_path, color=None, variant=None, sub=None, idle_from=None, despeckle=0, z=None):
         self.fig = fig
         self.def_path = def_path
         self.d = FX.json('sheet_definitions/' + def_path)
@@ -167,6 +169,7 @@ class Item:
         self.anims = self.d.get('animations') or ANIM_DEFAULTS
         self.idle_from = idle_from          # e.g. ('walk', 0): synthesize idle from that frame if no idle sheet
         self.despeckle = despeckle          # drop detached specks of <= N px from that borrowed idle frame
+        self.z = z or {}                    # {layer number: zPos} in place of the definition's (the tiefling's horns over a hood)
         self.notes = []
         self.used_paths = set()
         # colour targets keyed by type_name
@@ -220,7 +223,7 @@ class Item:
                 if note not in self.notes:
                     self.notes.append(note)
                 continue
-            yield n, L.get('zPos', 100), base, L.get('custom_animation')
+            yield n, self.z.get(n, L.get('zPos', 100)), base, L.get('custom_animation')
 
     def _load(self, repo_path):
         p = FX.get(repo_path)
@@ -931,6 +934,63 @@ FIGURES = {
         'notes': ['the wizard (Evocation): an old woman in purple, the hat, the simple staff (Aurdin\'s own spellcast sheets)'],
     },
 }
+
+
+# ------------------------------------------------------------------ the races on the class figures (10-03, Griz: "1 per class, 2 cloud"):
+# the Pocket DM's maker lets a character be any SRD race (deep16/js/classes.js NPC.RACES); a race with a look of its own is the class
+# figure with the race laid over it, npc<class>_<race> -- the class's kit, weapon and attack kept (Griz: "generic kits per class").
+# A race's colour is its `skin` key: another dragon's colour is one more call of race_figure (skin='all.lpcr.red') under its own id.
+CLASSES = ('barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard')
+LIZARD_HEADS = {'male': 'head/heads/reptile/heads_lizard_male.json', 'female': 'head/heads/reptile/heads_lizard_female.json'}
+RACE_LOOKS = {
+    'dragonborn': {  # the gold dragon's (fire, a 15-ft cone): the colour of the sheet Griz had made
+        'skin': 'all.lpcr.amber', 'head': 'lizard', 'hair': False,
+        'add': [{'def': 'body/lizard/tail_lizard.json'}, {'def': 'head/ears/head_ears_dragon.json'}],
+        'note': 'dragonborn (gold): the lizard head for the class\'s, no hair, the skin all.lpcr.amber (body, head, tail and the dragon ears '
+                'all match it), the lizard tail, no wings',
+    },
+    'tiefling': {
+        'skin': 'all.lpcr.garnet', 'head': 'human', 'hair': True,
+        'add': [{'def': 'head/appendages/head_horns_curled.json', 'color': 'all.lpcr.yellow', 'z': {1: 131}},
+                {'def': 'body/lizard/tail_lizard.json'}],
+        'note': 'tiefling: the class\'s own head (a human one) and hair, the skin all.lpcr.garnet (the tail matches it), the curled horns in the '
+                'generator\'s own horn colour (all.lpcr.yellow) drawn at z131, over a hood or a hat (z130: under it they vanish), '
+                'the lizard tail',
+    },
+}
+
+
+def race_figure(cls_id, race, skin=None):
+    """The class figure `cls_id` with the race laid over it: the skin, the head (a lizard head of the same sex for the dragonborn; for
+    the tiefling the class's own if it is a human one, else the human head of that sex), the hair kept or dropped, the race's parts
+    added after the kit (in a tie of zPos they draw over it: the tail over a cape)."""
+    look, base = RACE_LOOKS[race], FIGURES[cls_id]
+    fig = copy.deepcopy(base)
+    fig['skin'] = skin or look['skin']
+    items, notes = [], [look['note'] + ('' if fig['skin'] == look['skin'] else ' (skin %s)' % fig['skin'])]
+    for it in fig['items']:
+        d = it['def']
+        if d.startswith('hair/') and not look['hair']:
+            continue
+        if d.startswith('head/heads/'):
+            sex = 'female' if 'female' in d else 'male'
+            if look['head'] == 'lizard':
+                if d != 'head/heads/human/heads_human_%s.json' % sex:
+                    notes.append('the class figure\'s head is %s: the lizard %s head stands for it' % (d.rsplit('/', 1)[1][:-5], sex))
+                it = dict(it, **{'def': LIZARD_HEADS[sex]})
+            elif look['head'] == 'human' and not d.startswith('head/heads/human/'):
+                notes.append('the class figure\'s head is %s: the human %s head stands for it' % (d.rsplit('/', 1)[1][:-5], sex))
+                it = dict(it, **{'def': 'head/heads/human/heads_human_%s.json' % sex})
+        items.append(it)
+    fig['items'] = items + [dict(a) for a in look['add']]
+    fig['notes'] = notes + ['the class figure %s: %s' % (cls_id, n) for n in base.get('notes', [])]
+    return fig
+
+
+for _c in CLASSES:
+    for _r in RACE_LOOKS:
+        FIGURES['npc%s_%s' % (_c, _r)] = race_figure('npc' + _c, _r)
+
 SPIDER = {
     'phasespider': {
         'sheet': 'spider07', 'hue': 272, 'grey_tint': (290, 0.30),

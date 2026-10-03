@@ -182,8 +182,8 @@
     B.heroes.forEach(function (u) {
       if (!u.h || u.h.ko || u.h.hp <= 0) return;
       var x = u.x, y = u.y;
-      if (u.buff && u.buff.id === 'bless') { ctx.strokeStyle = '#F8D878'; ctx.globalAlpha = 0.7 + 0.3 * Math.sin(f8 / 8); ring(ctx, x + 8, y - 3, 5, 1.5, ctx.strokeStyle); ctx.globalAlpha = 1; }
-      if (u.buff && u.buff.id === 'shieldOfFaith' || u.conds.shielded) { ctx.strokeStyle = u.conds.shielded ? '#A4E4FC' : '#F8D878'; ctx.globalAlpha = 0.35 + 0.2 * Math.sin(f8 / 5); ring(ctx, x + 8, y + 12, 11, 14, ctx.strokeStyle); ctx.globalAlpha = 1; }
+      if (u.conds.blessed) { ctx.strokeStyle = '#F8D878'; ctx.globalAlpha = 0.7 + 0.3 * Math.sin(f8 / 8); ring(ctx, x + 8, y - 3, 5, 1.5, ctx.strokeStyle); ctx.globalAlpha = 1; }
+      if (u.conds.shieldOfFaith || u.conds.shielded) { ctx.strokeStyle = u.conds.shielded ? '#A4E4FC' : '#F8D878'; ctx.globalAlpha = 0.35 + 0.2 * Math.sin(f8 / 5); ring(ctx, x + 8, y + 12, 11, 14, ctx.strokeStyle); ctx.globalAlpha = 1; }
       if (u.conds.sanctuary) { ctx.strokeStyle = '#F8F8F8'; ctx.globalAlpha = 0.4; ring(ctx, x + 8, y + 24, 10, 3, ctx.strokeStyle); ctx.globalAlpha = 1; }
       if (u.conds.invisible && u.conds.invisible.ends === true && B.spellNow == null && u._mislead) { }
       var sw = u.conds.spiritWeapon;

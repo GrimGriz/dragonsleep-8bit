@@ -130,6 +130,37 @@
     D.iso.lookAt(5, 10);
     this.co = this.run();
     D.battle = this;
+    // the fight's own sheets before its first frame, and what it may call on later fetched behind (10-03, the lazy sheets: Battle.sheets);
+    // the spell gallery wants every creature a spell may call, so it has them all coming
+    var want = this.sheets();
+    D.spr.gate(this, want.now);
+    D.spr.prefetch(want.soon);
+    if (this.o.gallery) D.spr.ensureAll();
+  };
+  // the sheets a fight draws (10-03): `now`, what stands on the field as it opens -- every unit's figure (those still in the inn too),
+  // a rider's, the scenery's -- which its first frame waits for; `soon`, what it may bring on later: the figure a split or a win swaps
+  // in, a druid's wild shapes, the creatures its casters' spells call (the summons' pools, Polymorph's beasts, a conjured elemental, the
+  // familiars, Guardian of Faith's guard), fetched behind it at low priority. One missed here is fetched as it is first drawn (js/sprites.js S.draw)
+  Battle.prototype.sheets = function () {
+    var now = [], soon = [], kinds = [], add = function (to, n) { if (n && to.indexOf(n) < 0) to.push(n); };
+    var all = this.units.concat(this.reserve || [], this.stayed || []);
+    all.forEach(function (u) { add(now, u.sheet); add(now, u.rider); add(soon, u.small); });
+    (this.riders || []).forEach(function (r) { add(now, r.sheet); add(soon, r.after); });
+    var kind = function (k) { if (k && kinds.indexOf(k) < 0) kinds.push(k); };
+    all.forEach(function (u) {
+      if (u.cls === 'druid' && D.features && D.features.beastsFor) D.features.beastsFor(u).forEach(kind);
+      (u.known || []).concat(u.prepared || []).forEach(function (id) {
+        var SM = D.SUMMON && D.SUMMON[id];
+        if (SM && SM.fixed) Object.keys(SM.fixed).forEach(kind);
+        else if (SM && D.pool) D.pool(SM.type, Math.max.apply(null, SM.options.map(function (o) { return o[1]; }))).forEach(function (p) { kind(p.kind); });
+        if (id === 'polymorph' && D.pool) D.pool('beast').forEach(function (p) { kind(p.kind); });
+        if (id === 'conjureelemental' && D.walls && D.walls.elementals) D.walls.elementals().forEach(kind);
+        if (id === 'guardianoffaith') kind('guard');
+        if (id === 'findfamiliar') Object.keys(D.FOES).forEach(function (k) { if (/^fam_/.test(k)) kind(k); });
+      });
+    });
+    kinds.forEach(function (k) { add(soon, D.FOES[k] && D.FOES[k].sheet); });
+    return { now: now, soon: soon.filter(function (n) { return now.indexOf(n) < 0; }) };
   };
 
   // the 8-bit game's monster ids where DEEP16's kinds differ (its drow are DEEP16's drowlings; its blade-captain, DEEP16's drow)
@@ -366,6 +397,7 @@
   };
   Battle.prototype.answer = function (v) { this.req = null; this.step(v); };
   Battle.prototype.update = function () {
+    if (D.spr.held(this)) return; // (its figures still coming: the beat is drawn, and nothing moves -- js/sprites.js S.gate)
     this.t++;
     if (this.shakeT > 0) this.shakeT--;
     FX.update();
@@ -799,7 +831,7 @@
       case 'ignite': T.bonus = 0; u.conds.ablaze = true; D.sfx('fire'); FX.sparkle(u, 'fire', 18); this.card(['{y}' + u.name + '{/} speaks the word: the ' + u.weapon.name + ' {o}bursts into flame{/} (+' + u.weapon.flame + ' fire on a hit).']); return;
       case 'douse': T.bonus = 0; delete u.conds.ablaze; this.card(['{y}' + u.name + '{/} speaks the word again: the blade goes dark.']); return;
       case 'dash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.action = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} dashes: {c}+' + u.speed + ' ft{/}.']); return;
-      case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + (u.cls === 'rogue' && u.lvl >= 2 ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
+      case 'cdash': if (u.conds.restrained || u.conds.dancing) return; D.sfx('run'); T.bonus = 0; T.move += u.speed; this.card(['{y}' + u.name + '{/} (' + ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'Cunning Action' : 'Expeditious Retreat') + ') dashes: {c}+' + u.speed + ' ft{/}.']); return;
       case 'disengage': D.sfx('run'); T.action = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} disengages: leaving reach provokes nothing this turn.']); return;
       case 'cdisengage': D.sfx('run'); T.bonus = 0; T.disengaged = true; this.card(['{y}' + u.name + '{/} (Cunning Action) disengages.']); return;
       case 'sacred': {
@@ -1008,6 +1040,7 @@
     o = o || {};
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
+    if (att.conds && att.conds.sanctuary && D.magic.unward) D.magic.unward(this, att, 'an attack'); // (SRD 5.1 Sanctuary: "If the warded creature makes an attack ... this spell ends" -- 10-03)
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     att.facing = faceTo(att, tgt);
@@ -1098,6 +1131,13 @@
         line += '  {c}SHIELD +5{/}';
       }
     }
+    // Parry (the Bandit Captain, SRD 5.1: "The captain adds 2 to its AC against one melee attack that would hit it. To do so, the captain must see the attacker and be
+    // wielding a melee weapon." -- a reaction, taken when the +2 turns the blow: a natural 20 is not turned, AC does not make it a miss; 10-02)
+    if (hit && nat !== 20 && melee && tgt.parry && tgt.reaction > 0 && RU.canAct(tgt) && !tgt.conds.disarmed && total < ac + tgt.parry && D.magic.seeWhy(this, tgt, att).ok && G.los(tgt, att).clear) {
+      tgt.reaction = 0; FX.ring(tgt, 'silver', 26); D.sfx('bump');
+      ac += tgt.parry; hit = false; crit = false;
+      line += '  {c}PARRY +' + tgt.parry + '{/}';
+    }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
     if (!hit) {
@@ -1108,7 +1148,7 @@
         var hd = RU.damage(atk.dice, atk.mod || 0, {});
         D.sfx('hit'); FX.float('OOF', host, D.PAL.ramps.fire[2]);
         this.card(['{o}A natural 1:{/} the blow meant for the ' + shortName(tgt) + ' lands on ' + nameOf(host) + '.  ' + atk.dice + RU.sign(atk.mod || 0) + ' ' + RU.fmtRolls(hd.rolls) + ' = {r}' + hd.total + '{/} ' + (atk.type || '')], 320);
-        this.hurt(host, hd.total, atk.type);
+        this.hurt(host, hd.total, atk.type, { magic: !!(atk.magic || atk.spell) });
         yield o.oa ? 16 : 30; att.anim = 'idle'; return;
       }
       if (o.onMiss) o.onMiss(tgt); FX.float('MISS', tgt, D.PAL.ramps.silver[5]);
@@ -1205,9 +1245,10 @@
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
     if (fire) { FX.sparkle(tgt, 'fire', 12); this.hurt(tgt, fire, 'fire'); }
     if (rad && !tgt.dead) this.hurt(tgt, rad, 'radiant');
-    if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type);
-    for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1]);
-    if (!tgt.dead) this.hurt(tgt, dmg, atk.type);
+    var blowSrc = { magic: !!(atk.magic || atk.spell) }; // (the weapon's magic, or a spell attack's: Stoneskin reads it in hurt())
+    if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type, blowSrc);
+    for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1], { magic: true }); // (a mark's, a curse's: a spell's)
+    if (!tgt.dead) this.hurt(tgt, dmg, atk.type, blowSrc);
     // disruption: one left at 25 HP or fewer saves WIS DC 15 or is destroyed; on a success it is frightened of the wielder till the
     // end of his next turn (`fresh`: the Slam's idiom -- ai.js's end-of-turn sweep spares it once)
     if (dis && !tgt.dead && tgt.hp > 0 && tgt.hp <= dis.hp) {
@@ -1355,7 +1396,7 @@
         var hd = RU.damage(atk.dice, atk.mod || 0, {});
         D.sfx('hit'); FX.float('OOF', held, D.PAL.ramps.fire[2]);
         this.card(['{o}A natural 1:{/} the blow meant for the tendril lands on ' + nameOf(held) + '.  ' + atk.dice + RU.sign(atk.mod || 0) + ' ' + RU.fmtRolls(hd.rolls) + ' = {r}' + hd.total + '{/} ' + (atk.type || '')], 320);
-        this.hurt(held, hd.total, atk.type);
+        this.hurt(held, hd.total, atk.type, { magic: !!(atk.magic || atk.spell) });
       } else FX.float('MISS', held, D.PAL.ramps.silver[5]);
       yield o.oa ? 16 : 24; att.anim = 'idle'; return;
     }
@@ -1532,7 +1573,16 @@
     // (what the spell does, for "you see a foe cast a spell": the creatures it hurt or marked, the squares of what it laid -- told only with a ready armed)
     var pre = B && B.readyArmed && B.units && B.readyArmed() ? { z: {}, hp: {}, c: [] } : null;
     if (pre) { ZK.forEach(function (k) { pre.z[k] = (B[k] || []).slice(); }); B.units.forEach(function (w) { pre.hp[w.id] = w.hp; Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object') pre.c.push(c); }); }); }
+    // Sanctuary (SRD 5.1: "If the warded creature ... casts a spell that affects an enemy creature, this spell ends" -- 10-03, M.unward had no caller): a foe it was
+    // aimed at, or one it hurt or laid something on (an area's catch), ends the caster's ward; a spell on friends keeps it
+    var ward = u && u.conds && u.conds.sanctuary && B && B.units ? { hp: {}, c: {} } : null;
+    if (ward) B.units.forEach(function (w) { if (!G.hostile(u, w)) return; ward.hp[w.id] = w.hp; ward.c[w.id] = Object.assign({}, w.conds); });
     var r = yield* cast0.apply(this, arguments);
+    if (ward && u.conds.sanctuary && D.magic.unward) {
+      var aimed = t && t.units ? t.units : t && t.hp != null ? [t] : [];
+      var touched = aimed.some(function (w) { return w && w.hp != null && G.hostile(u, w); }) || B.units.some(function (w) { return ward.hp[w.id] != null && (w.hp < ward.hp[w.id] || w.dead || Object.keys(w.conds || {}).some(function (k) { return ward.c[w.id][k] !== w.conds[k]; })); });
+      if (touched) D.magic.unward(B, u, 'a spell at a foe');
+    }
     if (B && B.readyAfter && B.units && B.readyArmed()) {
       var ef = { units: [], sq: [] };
       if (pre) {
@@ -1574,7 +1624,7 @@
   Battle.prototype.faceTo = faceTo;
 
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
-  Battle.prototype.hurt = function (u, n, type) {
+  Battle.prototype.hurt = function (u, n, type, src) { // (src: { magic: true } when the blow is magical -- a spell, a magic weapon, a monster's magical attacks)
     if (n <= 0) return;
     u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
     if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
@@ -1595,7 +1645,8 @@
       var vic = u.holding[0], half = Math.floor(n / 2);
       if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
     }
-    if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '')) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
+    // Stoneskin (SRD 5.1: "resistance to nonmagical bludgeoning, piercing, and slashing damage" -- 10-03: a magic blade or a spell's hail lands whole)
+    if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '') && !(src && src.magic)) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
     // the class NPCs' wards (09-28, js/grimoire.js): Protection from Energy (one element halved), Protection from Poison, Rage (blades and
     // blows halved), Warding Bond (all of it halved -- and the one who bound it takes as much)
     var ward = u.conds;
@@ -1888,7 +1939,7 @@
   };
   Battle.prototype.hide = function* (u) {
     var T = u.turn;
-    if (T.bonus > 0 && u.lvl >= 2) T.bonus = 0; else T.action = 0; // Cunning Action from level 2; the Hide action before
+    if (T.bonus > 0 && (u.lvl >= 2 || u.cunning)) T.bonus = 0; else T.action = 0; // Cunning Action from level 2 (or a stat block's: the Spy); the Hide action before
     D.sfx('run');
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)
     // who sees her clearly (SRD 5.1 Hiding: "You can't hide from a creature that can see you clearly"; darkvision sees darkness "as if the
@@ -1903,7 +1954,8 @@
     // (and Enhance Ability on DEX, Heat Metal's burning armour against every check: rules.js checkEdges)
     var supreme = u.subclass === 'Thief' && u.lvl >= 9 && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex'), hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20), r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
     RU.spendHelp(u); // (a friend's Help, spent on the Stealth check -- 10-01c)
-    var total = r + u.stealth + (u.conds.pwt ? 10 : 0), pp = function (w) { return w.perception - (seen(w) === 1 ? 5 : 0); }, top = Math.max.apply(null, foes.map(pp).concat([0]));
+    var total = r + u.stealth + (u.conds.pwt ? 10 : 0), pp = function (w) { return w.perception + (w.twoHeads ? 5 : 0) - (seen(w) === 1 ? 5 : 0); }, top = Math.max.apply(null, foes.map(pp).concat([0]));
+    var headTop = foes.some(function (w) { return pp(w) === top && w.twoHeads; }); // (Two Heads: advantage on Wisdom (Perception) checks, SRD 5.1; a passive check with advantage is 5 up)
     var dimTop = foes.some(function (w) { return pp(w) === top && seen(w) === 1; }); // (the sharpest of them sees her only dimly: say so)
     if (mirror.length) {
       this.card(['{y}' + u.name + '{/} tries to hide, but the mirror on ' + mirror.map(shortName).join(' and ') + ' has her: {p}nothing hides in front of the Mirror\'s eye{/}.', '{g}Get behind her, or into the dark.{/}']);
@@ -1915,7 +1967,7 @@
       var gd = u.conds.guidance && !u.conds.faerie && total < top && total + 4 >= top && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
       total += gd;
       var ok = total >= top && !u.conds.faerie; // (outlined in violet light: nowhere to hide)
-      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + ' vs passive Perception ' + top + (dimTop ? ' {g}(5 down: it sees her only dimly){/}' : '') + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
+      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + ' vs passive Perception ' + top + (dimTop ? ' {g}(5 down: it sees her only dimly){/}' : '') + (headTop ? ' {o}(5 up: two heads, advantage on Perception){/}' : '') + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
       if (ok) u.conds.hidden = true;
     }
     yield 30;
@@ -1962,6 +2014,6 @@
   };
 
   Battle.prototype.opaque = true; // (the ladder under it needn't draw)
-  Battle.prototype.draw = function (ctx) { D.ui.drawBattle(ctx, this); };
+  Battle.prototype.draw = function (ctx) { if (D.spr.held(this, true)) D.spr.beat(ctx, this); else D.ui.drawBattle(ctx, this); };
   Battle.prototype.onRequest = function (req) { D.ui.onRequest(this, req); };
 })();
