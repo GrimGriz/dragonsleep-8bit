@@ -120,8 +120,13 @@
              { id: 'g5', kind: 'guard', at: [9, 4] }, { id: 'sgt', kind: 'veteran', at: [10, 3] }], wave: null },
     { id: 'crew', level: 4, map: 'burial', name: 'The Night Crew', sub: 'the Burial, The One Law', music: 'boss',
       intro: 'Hask hefts the pry-bar. The wheelwright hangs back by the lamp. (He runs for the stair when Hask falls.)',
-      from: 'the 8-bit game: deep.js, The One Law\'s FIGHT (Hask, the wheelwright, two crewmen; the 8-bit game fights it at 5-6, hard for four at 4)', won: 'THE CREW IS DOWN.',
-      foes: [{ id: 'hask', kind: 'hask', at: [9, 5] }, { id: 'ww', kind: 'wheelwright', at: [10, 2] }, { id: 'cm1', kind: 'crewman', at: [6, 6] }, { id: 'cm2', kind: 'crewman', at: [13, 6] }], wave: null },
+      from: 'the 8-bit game: deep.js, The One Law\'s FIGHT (Hask, the wheelwright, three crewmen, two of the night crew; the 8-bit game fights it at 5-6, deadly for four at 4)', won: 'THE CREW IS DOWN.',
+      // half again (10-03, Griz: "I think we should up the CR by a 1/2 for the early fights"; the overseer's call, x1.5 the adjusted XP): a third
+      // crewman (cm3) and two of the night crew (nc1, nc2: robber, the warrens' silver-robbing crews -- content/encounters.json warrens_c). For four
+      // at 4: 1700 HARD before, 2500 DEADLY x1.3 after (x1.47). Two crewmen and one of the night crew (x1.58) the class AI won only 63-65% (the
+      // thugs' Pack Tactics in the dark). invented.json#early-fights-half-again
+      foes: [{ id: 'hask', kind: 'hask', at: [9, 5] }, { id: 'ww', kind: 'wheelwright', at: [10, 2] }, { id: 'cm1', kind: 'crewman', at: [6, 6] }, { id: 'cm2', kind: 'crewman', at: [13, 6] },
+             { id: 'cm3', kind: 'crewman', at: [4, 8] }, { id: 'nc1', kind: 'robber', at: [15, 8] }, { id: 'nc2', kind: 'robber', at: [7, 3] }], wave: null },
     { id: 'snared', level: 2, map: 'gulch', name: 'The Snared Lad', sub: 'Web Gulch', music: 'boss',
       intro: 'A shape wrapped tight in silk hangs in the strands. It moves. Something else moves toward it.',
       from: 'the 8-bit game: events.js, the snared lad (two wolf spiders and a giant spider)', won: 'YOU CUT THE TRAVELER DOWN.',
