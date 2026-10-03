@@ -58,11 +58,21 @@ The seat's read of the logs, checked against the code, and his answers to the fi
 - The class bench and the ease bench (`deep16-class-bench.md`, `deep16-ease-bench.md`) were not rerun: the SRD's prone is engine-wide, so every fight with a knockdown or a reach weapon moves a little.
 - His Windows box: everything here ran in the cloud container's Chromium (`DEEP16_BROWSER=/opt/pw-browsers/chromium DEEP16_BROWSER_ARGS=--no-sandbox`).
 
-## Open, unruled
+## The Pocket DM's roster (ruled and built)
 
-From the first question this session (*"are characters players creating surviving a browser close/computer restart?"* -- yes, in that browser's localStorage, `deep16.pocket`):
-1. The 8-bit's SAVE TO FILE (`js/scenes.js` FILE_KEYS) leaves out `deep16.pocket`: the Pocket DM's roster has no backup file.
-2. `PK.save` ignores a failed write: with the browser's storage full (the play record, `deep16.plays`, fills it to the edge and trims only itself) a new character would seem saved and be gone on reload.
+From the first question this session (*"are characters players creating surviving a browser close/computer restart?"* -- yes, in that browser's localStorage, `deep16.pocket`), two gaps: no backup file for the roster, and a failed write not reported. His answer: *"pocket dm roster should save in pocket dm and not overlap with the 8bit ideally / failed save should report"*.
+- **SAVE ROSTER / LOAD ROSTER** on THE PARTY (`deep16/js/pocket.js` saveRoster, loadRoster, takeRoster): the player's own characters, and Pyro if the trial is won, to `pocket-dm-roster-<date>.json` (`kind: 'pocket-roster'`) and back; a load adds what is new, skips what is here and what will not build (`NPC.spec`), and refuses any other file. The 8-bit's SAVE TO FILE (`js/scenes.js` FILE_KEYS) is untouched and never carries `deep16.pocket`.
+- **A failed write says so**: `PK.save` returns whether it was written; `Pocket.prototype.keep` puts up, in red, *NOT SAVED: this browser's storage is full or shut. SAVE ROSTER to a file.*, and the message outlasts the screen change after a character is made (the error sound, not the level-up).
+- `python dev/bench16.py` mode `pocket1002`: 34 checks, six of them these (the file, the load's added/had/bad/Pyro, an 8-bit save file refused, FILE_KEYS without the pocket, the refused write, the message kept).
+- Not seen: the buttons clicked in a browser, the picker, a real full storage (the bench stands in a store that refuses). Still open: the play record (`deep16.plays`) fills the storage to its edge and trims only itself.
+
+## Spinning it up (begun, stopped on his word)
+
+Griz: *"Nobody has played any of this in a browser yet. - spin it up please"*, then *"The whole keeper thing where we started recording the fights, 'spin it up in the browser' should be a thing pointed to in the 8bit claude.md I think"*, then *"stop, sorry"*. Reached: `python3 -m http.server 8923` from the repo root and Playwright (`/opt/node-tools/node_modules/playwright`, its Chromium under `/opt/pw-browsers`, `--no-sandbox`) loading `deep16/?keeperfight&lvl=3&watch`: the fight ran in the page's own frame loop, no page error, the Ice Wall up and the Wave in round 1. Not reached: the card's peek, the `&log` download on a host that is not this machine (127.0.0.2 serves as one), the Pocket's buttons. **His word after: the desktop spins it up, not a cloud seat** (*"I had the desktop learn to do it. I should be having a desktop instance spin it up not you, forgot where I was."*): no driver script here and no CLAUDE.md pointer from this seat; the desktop has the way.
+
+## The desk's review (relayed by Griz, 10-03)
+
+Of 3524606: merges clean with main; the gate GREEN with **the five probes that run empty in the cloud working** (135/135 on the desk) -- this seat's cloud GREEN ran them empty; the whole ladder, 51 fights x 10 on the same seeds, 49 identical, the south road 90 -> 89% HP, the story Keeper at level 3 still 5 of 10 but 15.2 rounds against 23.4, the ladder's old Keeper 10/10 unchanged; 41 of 47 grid script stamps changed on files the branch never touched (this container's line endings: the desk's re-stamp after the merge flips them back); keep the easier Keeper for now -- merge, play three fights at level 3 from the ledge on live, then move one setting at a time, HP 160 first; on live, `&log` every streamed fight. **One lean of the desk's is not what was built**: it leaned to put `deep16.pocket` in the 8-bit's SAVE TO FILE; Griz's ruling, the one built, is the roster's own file in the Pocket DM, *"not overlap with the 8bit"*. The merge is the desk's, on his word.
 
 ## For the next seat
 
