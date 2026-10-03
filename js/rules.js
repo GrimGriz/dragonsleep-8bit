@@ -84,7 +84,7 @@
     var h = {
       id: id, name: d.name, cls: d.cls, lvl: d.level, xp: R.XP_LEVEL[d.level], base: JSON.parse(JSON.stringify(d.abil)),
       abil: JSON.parse(JSON.stringify(d.abil)), maxhp: d.hp, hp: d.hp, equip: JSON.parse(JSON.stringify(d.equip)),
-      known: (d.spells || []).slice(), feats: {}, conds: {}, buff: null, ko: false, subclass: null, look: d.look, weapon: d.weaponArt,
+      known: (d.spells || []).slice(), feats: {}, conds: {}, ko: false, subclass: null, look: d.look, weapon: d.weaponArt,
       skills: d.skills || {}, saveProf: d.saveProf || R.CLASSES[d.cls].saves
     };
     h.subclass = d.subclassStart || null;
@@ -112,7 +112,7 @@
       h.slotsMax = R.slotsFor(h);
       h.slots = h.slotsMax.slice();
       var flame = h.conds && h.conds.continualFlame; // (a Continual Flame never goes out: it outlasts the night)
-      h.hp = h.maxhp; h.ko = false; h.conds = {}; h.buff = null;
+      h.hp = h.maxhp; h.ko = false; h.conds = {};
       if (flame) h.conds.continualFlame = flame;
       if (h.id === 'lymen') f.relentless = 1;
     }
@@ -365,7 +365,7 @@
   // levels first, Mage Armor always (it's cast in the morning)
   function prepRanked(h, spellOf) {
     var build = h.known || [];
-    var rank = function (id) { return (id === 'mageArmor' ? 100 : 0) + (build.indexOf(id) >= 0 ? 50 : 0) + spellOf(id).level * 5; };
+    var rank = function (id) { return (id === 'mageArmor' ? 100 : id === 'shield' ? 90 : 0) + (build.indexOf(id) >= 0 ? 50 : 0) + spellOf(id).level * 5; }; // (Shield next after Mage Armor: a wizard's default day always holds it, since it is the reaction and never on the MAGIC list -- RULED 10-03, Griz: "yes")
     return R.prepPool(h, spellOf).sort(function (a, b) { return rank(b) - rank(a); });
   }
   R.prepDefault = function (h, spellOf) { return prepRanked(h, spellOf || spellData).slice(0, R.prepCount(h)); };
@@ -401,7 +401,8 @@
   R.canAct = function (u) { return !u.ko && u.hp > 0 && !u.conds.paralyzed && !u.conds.asleep && !u.conds.stunned; };
   R.CONDS = {
     poisoned: 'PSN', frightened: 'FRT', restrained: 'RST', prone: 'PRN', asleep: 'SLP', paralyzed: 'PAR', grappled: 'GRP',
-    blinded: 'BLD', hidden: 'HID', stunned: 'STN', engulfed: 'ENG', invisible: 'INV', stoneskin: 'STN', seeInvisible: 'SEE'
+    blinded: 'BLD', hidden: 'HID', stunned: 'STN', engulfed: 'ENG', invisible: 'INV', stoneskin: 'STN', seeInvisible: 'SEE',
+    blessed: 'BLS', shieldOfFaith: 'SOF', heroism: 'HRO', divineFavor: 'DVF', sacred: 'SWD', shielded: 'SHD' // (the 8-bit's buffs as conditions, 10-03: the one-buff slot retired)
   };
 
   // ---------------------------------------------------------------- Find Familiar (SRD 5.1; REINSTATED 09-29, Griz: "familiars are pretty sweet -
