@@ -272,6 +272,23 @@
         o7 = foesF(['goblin', 'goblin', 'goblin'], 400); o7[1].hp = 3;
         var aim7 = bF.aimShots(AF, DS.DATA.spells.magicmissile, 3).map(nmF);
         check('7. the darts a caster the battle runs would send (B at 3 HP, A and C at 400): ' + aim7.join(', '), aim7[0] === 'Goblin B' && aim7[1] !== 'Goblin B');
+
+        // 8. Bless from a higher slot (SRD 5.1: "When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature
+        // for each slot level above 1st"): Lymen with no 1st-level slot left blesses all four of the party in one cast; from a 1st, three (Barley goes
+        // without); Ingrith's turn (the cleric's, run here on Lymen) the same by her slot
+        foesF(['goblin', 'goblin'], 400);
+        var blessed8 = function () { return bF.heroes.filter(function (x) { return x.buff && x.buff.id === 'bless'; }).map(nmF); };
+        bF.heroes.forEach(function (x) { x.buff = null; });
+        castF(LF, 'bless', [], [0, 2]);
+        var b8a = blessed8();
+        bF.heroes.forEach(function (x) { x.buff = null; });
+        castF(LF, 'bless', [], [4, 2]);
+        var b8b = blessed8();
+        check('8. Bless from a 2nd-level slot: ' + b8a.length + ' blessed (' + b8a.join(', ') + '); from a 1st: ' + b8b.length + ' (' + b8b.join(', ') + ')', b8a.length === 4 && b8b.length === 3 && b8b.indexOf('Barley') < 0);
+        bF.heroes.forEach(function (x) { x.buff = null; }); if (LF.h.known.indexOf('bless') < 0) LF.h.known.push('bless');
+        LF.h.slots = [0, 2]; var round8 = bF.round; bF.round = 1; T.blog = [];
+        try { runF(bF.clericTurn(LF)); } finally { bF.round = round8; }
+        check('8. the cleric\'s turn, a 2nd-level slot: ' + blessed8().length + ' blessed -- "' + saidF() + '"', blessed8().length === 4);
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');

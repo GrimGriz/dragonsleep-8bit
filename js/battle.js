@@ -675,7 +675,7 @@
       return true;
     }
     if (this.round === 1 && foes.length > 1 && can('bless')) {
-      var blessed = this.liveHeroes().filter(function (x) { return !x.buff; }).slice(0, 3);
+      var bsp = DS.DATA.spells.bless, blessed = this.liveHeroes().filter(function (x) { return !x.buff; }).slice(0, (bsp.max || 3) + (R.lowestSlot(h, 1) - 1) * (bsp.maxUp || 0)); // (one more a slot above 1st, SRD 5.1 -- 10-03)
       if (blessed.length >= 2) {
         spend('bless'); blessed.forEach(function (x) { x.buff = { id: 'bless', name: 'Bless', rounds: 10 }; self.elemBurst(x, 'buff', 'rise'); });
         DS.audio.sfx('buff');
@@ -1063,8 +1063,9 @@
     }
     else if (sp.target === 'allies') {
       // "up to three creatures of your choice" (SRD: Aid, Bless), the caster one of them if he likes (Griz, 09-28: Lymen's own
-      // Aid). One too many standing: pick who goes without; more: pick them one by one, X when that's enough
-      var live = this.liveHeroes(), max = sp.max || 4;
+      // Aid). One too many standing: pick who goes without; more: pick them one by one, X when that's enough. Bless takes one more for each slot level
+      // above 1st, in the same cast (SRD 5.1: "you can target one additional creature for each slot level above 1st" -- the record's maxUp, 10-03)
+      var live = this.liveHeroes(), max = (sp.max || 4) + (sp.maxUp && slot ? (slot - sp.level) * sp.maxUp : 0);
       if (live.length <= max) targets = live;
       else if (live.length === max + 1) {
         this.msg = sp.name + ': who goes without?';

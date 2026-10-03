@@ -2932,8 +2932,9 @@
    "buff": "bless",
    "target": "allies",
    "max": 3,
+   "maxUp": 1,
    "battle": true,
-   "desc": "Up to three allies add 1d4 to attacks and saves.",
+   "desc": "Up to three allies add 1d4 to attacks and saves; one more for each slot level above 1st.",
    "src": "SRD 5.1",
    "id": "bless"
   },
