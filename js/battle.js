@@ -1307,14 +1307,16 @@
       yield* this.say(nameOf(f) + ' comes back out of the wall!', 36);
     }
     if (this.runner() === f) { yield* this.foeFlee(f); return; }
-    // the clouds over them (torchdark): the stinking cloud's CON or the turn goes on retching; the sleet's DEX or down on the ice
+    // the clouds over them (torchdark): the stinking cloud's CON or the turn goes on retching; the sleet's DEX or down on the ice -- and the turn goes
+    // on from there (SRD 5.1 Sleet Storm: "On a failed save, it falls prone"; no action lost. 10-03: the fall costs no action where there are no squares
+    // to cross -- it fights from the ice with the prone's disadvantage, open to close blows, and gets up at its next turn; the difficult ground is moot)
     if (this.cloud && this.cloud.kind === 'stink' && (m.condImmune || []).indexOf('poisoned') < 0 && (m.immune || []).indexOf('poison') < 0) {
       var sc = this.save(f, 'con', this.cloud.dc, { poison: true });
       if (!sc.success) { yield* this.say(nameOf(f) + ' retches and reels in the yellow cloud. (' + sc.total + ' vs DC ' + this.cloud.dc + ')', 40); return; }
     }
     if (this.cloud && this.cloud.kind === 'sleet' && !f.conds.prone && (m.condImmune || []).indexOf('prone') < 0) {
       var ss = this.save(f, 'dex', this.cloud.dc);
-      if (!ss.success) { f.conds.prone = true; yield* this.say(nameOf(f) + ' goes down on the ice. (' + ss.total + ' vs DC ' + this.cloud.dc + ')', 36); return; }
+      if (!ss.success) { f.conds.prone = true; yield* this.say(nameOf(f) + ' goes down on the ice, and fights on from the ground. (' + ss.total + ' vs DC ' + this.cloud.dc + ')', 36); }
     }
     if (f.conds.frightened && DS.d(2) === 1) { yield* this.say(nameOf(f) + ' cowers.', 30); return; }
     if (f.conds.restrained && f.conds.restrained.escape) {

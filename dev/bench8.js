@@ -242,8 +242,17 @@
         QdF = [2, 19]; bF.hurt(o5, 5, 'slashing', {}); QdF = [];
         var msg5 = bF.pendingMsg || '', ended5 = !o5.conds.laughing;
         o5.conds = { laughing: { rounds: 10, save: { ab: 'wis', dc: dc5 } }, prone: true };
-        QdF = [2, 3]; bF.hurt(o5, 5, 'slashing', {}); QdF = [];
+        QdF = [2, 3]; bF.hurt(o5, 5, 'slashing', {}); QdF = []; bF.pendingMsg = null;
         check('5. Hideous Laughter on an ogre, hurt: the save with advantage (2 and 19) ends it (' + ended5 + ', "' + msg5 + '"), still prone (' + !!o5.conds.prone + '); a 2 and a 3 leave it laughing (' + !!o5.conds.laughing + ')', ended5 && /jolted out/.test(msg5) && !!o5.conds.laughing && !!o5.conds.prone);
+
+        // 6. Sleet Storm (SRD 5.1: "When a creature enters the spell's area for the first time on a turn or starts its turn there, it must make a
+        // Dexterity saving throw. On a failed save, it falls prone"): an ogre's turn in the sleet, its DEX hopeless -- it goes down, and its turn goes
+        // on from the ice (the reading, spell-fixes-notes.md: the fall costs no action; the prone's own disadvantage, and it gets up at its next turn)
+        var o6 = foesF(['ogre'], 400)[0]; savesF(o6, { dex: -30 });
+        bF.heroes.forEach(function (x) { x.h.maxhp = x.h.hp = Math.max(x.h.hp, 400); x.h.ko = false; x.conds = {}; x.images = 0; });
+        bF.cloud = { kind: 'sleet', rounds: 10, dc: 15, save: 'dex' }; T.blog = [];
+        runF(bF.foeTurn(o6)); bF.cloud = null;
+        check('6. an ogre\'s turn in the sleet: down (' + !!o6.conds.prone + ') and it still swings -- "' + saidF() + '"', !!o6.conds.prone && /goes down on the ice/.test(saidF()) && /Ogre A clubs/.test(saidF()));
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');
