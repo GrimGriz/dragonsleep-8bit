@@ -2352,6 +2352,18 @@
         full = false; mem['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: { rung: 4, trial: true, won: 4, map: 'gate', foes: ['xorn', 'worg', 'worg'] } });
         var PR = new D.Pocket(); PR.enter();
         okP(PR.st.run.map !== 'gate' && mids.indexOf(PR.st.run.map) >= 0 && PR.fightMap === PR.st.run.map && PR.st.run.foes.join() === 'xorn,worg,worg' && JSON.parse(mem['deep16.pocket']).run.map === PR.st.run.map, 'a ladder saved on the Gate Floor draws ' + PR.st.run.map + ', keeps its foes, and is written');
+        // k. the floor (10-03, Griz: "1 - sounds good"): a fight that throws while it sets the field goes back to the table as it was and says so, in a line the
+        // screen holds; a ladder's rung gets a fresh map and keeps its foes
+        var enter0 = D.Battle.prototype.enter, sc0 = D.scenes.slice();
+        try {
+          mem['deep16.pocket'] = JSON.stringify({ roster: [], fights: [], party: null, run: { rung: 2, trial: false, won: 1, base8: 8, carry: null, hd: [3, 3, 3, 3], arcane: [false, false, false, false], map: 'gulch', foes: ['goblin', 'goblin', 'wolf'] } });
+          var PF = new D.Pocket(); D.scenes.length = 0; D.push(PF);
+          D.Battle.prototype.enter = function () { throw new Error('a test throw at the entry squares, long enough that the line on the screen must be cut to fit'); };
+          PF.launch();
+          var stF = JSON.parse(mem['deep16.pocket']);
+          okP(D.top() === PF && D.scenes.length === 1 && PF.screen === 'cr' && PF.msg && PF.msg.bad && /WOULD NOT SET: a test throw.*\.\. -- nothing spent, a fresh map$/.test(PF.msg.text) && D.textWidth(PF.msg.text) <= D.W - 24, 'a fight that throws as it sets goes back to the table, which says so in a line the screen holds: "' + (PF.msg && PF.msg.text) + '"');
+          okP(stF.run && stF.run.rung === 2 && stF.run.won === 1 && stF.run.foes.join() === 'goblin,goblin,wolf' && mids.indexOf(stF.run.map) >= 0 && PF.fightMap === stF.run.map && !stF.fights.length, 'the ladder as it was (rung 2, one won, its foes, nothing recorded), the rung now on ' + stF.run.map);
+        } finally { D.Battle.prototype.enter = enter0; D.scenes.length = 0; sc0.forEach(function (s) { D.scenes.push(s); }); }
       } finally { D.store.get = st0; D.store.set = ss0; HTMLAnchorElement.prototype.click = aClick0; }
     } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }
     if (errs.length) repP.errors = repP.errors.concat(errs);
