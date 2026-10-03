@@ -55,6 +55,7 @@
   };
   KP.humanTurn = function* (B, u) {
     var S = K.st(B); K.pose(); K.face(B, u); B.focus(u);
+    yield* K.upkeep(B, u); if (B.over()) return; // (the wall's time, the ice's, the stalemate breaker: js/keeper.js)
     if (S.ready) { S.ready = null; B.card(['{g}Your readied wall: the moment passed.{/}'], 160); }
     K.checkSwirl(B);   // (a hold that ended since: the swirl is over before the turn begins)
     D.sfx('popup');
