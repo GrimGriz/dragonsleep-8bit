@@ -111,7 +111,7 @@
     });
     if (out.length) { B.card(['{c}The wave bounces off the ' + (S.wall ? 'ice' : 'wall') + ' and drags back.{/}'].concat(out), 260); yield 30; }
     else if (!S.wall) { B.card(['{g}The wave runs out along the hall and falls away: no wall to throw it back.{/}'], 200); yield 20; }
-    for (var i = 0; i < deep.length; i++) { if (!u.flooding && G.standing(deep[i])) yield* K.flood(B, u, deep[i]); }
+    for (var i = 0; i < deep.length; i++) { if (!u.flooding && G.standing(deep[i])) yield* K.flood(B, u, deep[i], true); }
     u.anim = 'idle'; u.animT = B.t; // (the cast is over: back to the standing idle)
     return true;
   };
@@ -120,13 +120,15 @@
   // Swirling (Griz 10-03): the Keeper does not move, and the VICTIM is what the wave moves. It becomes the swirl about the held one (its humanoid form is not drawn: it is the swirl), its body
   // for every purpose that asks the grid -- the squares round the victim and the victim's own (G.foot below), its HP bar over the victim -- and it holds no square of its own meanwhile
   // (G.occupant skips it). It stays where it stood, and comes back there.
-  K.flood = function* (B, u, v) {
+  K.flood = function* (B, u, v, ends) { // (ends: the Wave's backwash took the hero into the deep: the swirl is the rest of the turn. Griz 10-03: it loses what it had left, and a hold that ends the same turn -- the hero dead of it -- gives none of it back)
     if (u.flooding || !G.standing(v) || RU.immuneTo(v, 'grappled')) return;
+    if (u.turn && B.kp && ends) { u.turn.action = 0; u.turn.bonus = 0; u.turn.move = 0; }
+    if (u.turn) u.turn.slamsLeft = 0;
     v.conds.restrained = { dc: 13, by: u.id, grapple: true, water: true };
     v.conds.drowning = { by: u.id, twice: false };
     delete v.conds.prone;
     u.holding = (u.holding || []).concat([v]);
-    u.flooding = { vic: v.id }; u.aboveAC = u.baseAC || u.ac; u.baseAC = K.CFG.deepAC;
+    u.flooding = { vic: v.id, at: B.round }; u.aboveAC = u.baseAC || u.ac; u.baseAC = K.CFG.deepAC;
     u.drawAt = { x: v.x - 0.5, y: v.y - 0.5 };
     K.face(B, u, v); B.focus(v); D.sfx('splash'); FX.keeperPull(u, v); yield { fx: 1 }; FX.keeperPour(u, v); yield { fx: 1 };
     B.card(['{r}' + Nm(B, v) + '{/} is washed into the deep: {o}RESTRAINED{/}, and the Keeper is the swirl about ' + v.name + '.',
@@ -159,6 +161,7 @@
   D.Battle.prototype.exec = function* (u, c) { var r = yield* exec0.apply(this, arguments); if (this.kp) K.checkSwirl(this); return r; }; // (whatever a hero did to get free -- break free, a friend's help -- the swirl ends at once)
   K.surface = function (B, u, why) {
     if (!u.flooding) return;
+    if (u.flooding.at === B.round && u.turn && B.kp && !u.dead && u.hp > 0) { u.turn.action = 0; u.turn.bonus = 0; u.turn.slamsLeft = 0; } // (swirled this round: the turn's rest is spent in it; no Slam, Wave or wall for coming out of it)
     u.baseAC = u.aboveAC; u.aboveAC = null; u.flooding = null; delete u.drawAt;
     // it comes back where it stood; if someone has taken the square, the nearest free place to where the swirl was
     var blocked = G.foot(u).some(function (p) { return G.occupant(p[0], p[1], u); });

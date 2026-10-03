@@ -624,6 +624,23 @@
       var S7 = mk(); put(S7.H[0], 8, 1); S7.H[0].hp = S7.H[0].maxhp = 30; RU.startTurn(S7.k); force(false); drain(K.flood(S7.B, S7.k, S7.H[0])); unforce(); S7.H[0].hp = 0; S7.H[0].ko = true; var held0 = !!S7.H[0].conds.restrained; var hp7 = S7.H[0].hp; K.drownTick(S7.B, S7.H[0]);
       S7.H.forEach(function (u) { u.hp = 0; u.ko = true; });
       ok('a held hero at 0 HP stays held (' + held0 + ') and the drowning stops (hp ' + hp7 + ' -> ' + S7.H[0].hp + '); with every hero at 0 HP the fight is lost (' + S7.B.over() + ')', held0 && S7.H[0].hp === 0 && S7.B.over() === 'lost');
+      // the swirl spends the rest of the turn: a hold that ends the same turn (the hero dead of it) gives nothing back (Griz 10-03: "two slams back changing forms after they died")
+      (function () {
+        function mk2() { var B = battle({ lvl: 3 }), k = keeper(B), H = ours(B), c = cardsOf(B); K.st(B); B.o.play = 'keeper'; delete k.conds.hidden; H.forEach(function (u) { delete u.conds.hidden; }); put(H[0], 8, 1); put(H[1], 8, 9); RU.startTurn(k); return { B: B, k: k, H: H, c: c }; }
+        function run2(S, cmd) { var g = S.B.exec(S.k, cmd), n = 0, v; while (n++ < 5000) { var r = g.next(v); v = undefined; if (r.done) break; if (r.value && r.value.prompt) v = 0; } K.checkSwirl(S.B); } // (as KP.humanTurn does after each command)
+        function st(k) { var T = k.turn; return T.action + '/' + T.bonus + '/' + (T.slamsLeft || 0); }
+        function okRing(S) { var e = KP.entries(S.B, S.k).filter(function (x) { return /^(kslam|kwave|kcast|kready|kswirl)$/.test(x.id); }); return e.every(function (x) { return !x.ok; }); }
+        var KP = D.keeperPlay;
+        var A = mk2(); A.H[0].hp = 1; force(false); run2(A, { do: 'kswirl', target: A.H[0] }); unforce();
+        ok('SWIRL kills the hero it takes: he rises out of it and has lost the rest of the turn (action/bonus/slams ' + st(A.k) + ', swirling ' + !!A.k.flooding + ', hero hp ' + A.H[0].hp + ')', !A.k.flooding && st(A.k) === '0/0/0' && A.H[0].hp <= 0);
+        var A2 = mk2(); A2.H[0].hp = 40; A2.H[0].maxhp = 40; force(false); run2(A2, { do: 'kswirl', target: A2.H[0] }); unforce(); var keeps = A2.k.flooding && A2.k.turn.bonus > 0;
+        A2.H[0].hp = 2; run2(A2, { do: 'ksuffocate' });
+        ok('SUFFOCATE kills the held hero (the swirl itself left his bonus: ' + keeps + '): no Slam, Wave or wall afterwards (' + st(A2.k) + ', swirling ' + !!A2.k.flooding + ')', keeps && !A2.k.flooding && st(A2.k) === '0/0/0');
+        var A3 = mk2(); A3.H[0].hp = 40; A3.H[0].maxhp = 40; force(false); drain(K.flood(A3.B, A3.k, A3.H[0], true)); unforce();
+        ok('the Wave\'s auto-swirl ends the turn (action/bonus/move ' + st(A3.k) + '/' + A3.k.turn.move + ')', st(A3.k) === '0/0/0' && A3.k.turn.move === 0);
+        var A4 = mk2(); A4.H[0].hp = 40; A4.H[0].maxhp = 40; force(false); drain(K.flood(A4.B, A4.k, A4.H[0], true)); unforce(); A4.H[0].hp = 0; A4.H[0].ko = true; K.checkSwirl(A4.B);
+        ok('the auto-swirl\'s hold ends with the hero down: the ring offers nothing that takes an action or bonus (' + (KP ? okRing(A4) : 'no KP') + '), the click Slam is refused', KP && okRing(A4) && (run2(A4, { do: 'attack', target: A4.H[1] }), st(A4.k) === '0/0/0'));
+      })();
       D.battle = B3;
     })();
     D.battle = B3;
