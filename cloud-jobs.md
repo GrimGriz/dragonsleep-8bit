@@ -11,16 +11,17 @@ The desktop oversight window keeps this list; a cloud seat reads it to know what
 | the race figures (dragonborn and tiefling, one per class) | `claude/race-figures` | `deep16-race-figures-notes.md`, `deep16-race-figures.png` | 7beba7c, 10-03 |
 | the spell fixes (fifteen SRD misses) | `claude/spell-fixes` | `spell-fixes-notes.md` | b01df88, 10-03 |
 | the lazy sheets (start-up 39.46 MB to 2.71 MB) | `claude/lazy-sheets` | `lazy-sheets-notes.md` | 56d42b5, 10-03 |
+| the 8-bit's reactions and concentration (the buff slot retired; his seven answers built) | `claude/8bit-reactions` | `8bit-reactions-notes.md` | 1b18ac5, 10-03 (the desktop took main for it: eleven files, the records field by field) |
 
 ## In flight
 
 | job | branch | state |
 |---|---|---|
 | the Keeper of the Flooded Stair (his design) | `claude/intelligent-maxwell-6ich3v` | built and benched; the foe still draws `keeper_p1`, rows 6/7 asked; Griz finishing it in another window |
-| the 8-bit's reactions and concentration (the buff slot retired) | `claude/8bit-reactions` | built, GREEN in the cloud; must take `main` (fixes and lazy landed after it): eleven files, one real hunk at `js/battle.js` ~849; then his seven answers and two 8-bit follow-ups (Sanctuary ends on the spiritual weapon's strike; the prone cue without a prone row) |
 
 ## Queued (ruled, not started)
 
+- **Two 8-bit follow-ups** (ruled 10-03, not built: the reactions seat never received them): Sanctuary in the 8-bit ends when the spiritual weapon strikes (the warded one dealing damage ends it, as the grid does now); the prone cue without a prone row (Griz: *"we're not doing prone combat animations - they'll have to pop-up and fall back prone or something"*): a hop and a drop, a tilt or a pose, the same cue wherever the 8-bit knocks something prone, benched with the sleet. Lives in js/battle.js; after the here-to-there job if both run at once.
 - **Grid follow-ups:** Ice Storm's damage split (2d8 bludgeoning + 4d6 cold, each resisted on its own); the ladder list prefetches the chosen rung's figures so the camp opens without a beat. Small; DEEP16 only.
 - **Shrink the scripts** (the lazy seat's question 4; Griz: *"how the heck are we going to remember to do lazy #4"* -- this line is how): the 2.7 MB of scripts that is now most of the start-up; `data.js` alone 0.56 MB. A later job.
 - **The seven monsters with no grid foe** (the centipede, the fire beetle, the stirge, the will-o'-wisp; the Hired Blade, the Stable Fighter, the Drow Blade-Captain): sheets and foes, so the grid refuses nothing. Note: random encounters and the Hex arena fight in the 8-bit by design, with no grid id.
