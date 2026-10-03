@@ -552,6 +552,21 @@
         T.startFight(['ogre', 'ogre']);
         drive({ aurdin: ['MAGIC', 'Blindness', 'Ogre A', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT'] }, 6000);
       }
+    } else if (test === 'wet3') {
+      // 10-03, Griz: "set me up with a level 3 party led by lymen, in silverton, with the gates down to the wet already opened type URL":
+      // the situation ?at=wet3 (js/situations.js, base 'lvl3') set up as the lead select does (js/scenes.js LeadSelect), then read back
+      DS.newGame('lymen'); DS.bindState(DS.G);
+      var sW = DS.SITUATIONS && DS.SITUATIONS.wet3;
+      check('wet3 is a situation on the lvl3 base', !!sW && sW.base === 'lvl3');
+      if (sW) {
+        DS.situation(DS.G, sW);
+        var gW = DS.G, fW = gW.flags, openW = ['heardPete', 'heardWarrens', 'tallyMet', 'fiveKnown', 'skarnOk', 'skarnGateOpen'], doneW = ['otyughFed', 'landlordSpoke', 'fiveDone', 'skarnPaid', 'majors', 'markRead'];
+        check('led by Lymen, the four at level 3: ' + gW.party.map(function (h) { return h.id + ' ' + h.lvl; }).join(', '), gW.lead === 'lymen' && gW.party.length === 4 && gW.party[0].id === 'lymen' && gW.party.every(function (h) { return h.lvl === 3; }));
+        check('Fountain Street: ' + gW.map + ' ' + gW.x + ',' + gW.y, gW.map === 'silverton' && gW.x === 29 && gW.y === 8);
+        check('the way down open: ' + openW.map(function (k) { return k + '=' + (fW[k] || 0); }).join(' '), openW.every(function (k) { return fW[k] === 1; }));
+        check('nothing below done: ' + doneW.map(function (k) { return k + '=' + (fW[k] || 0); }).join(' '), doneW.every(function (k) { return !fW[k]; }));
+        check('Winters\' errands run, renown ' + gW.renown + ', silver ' + gW.silver + ', a potion ' + gW.count('potion'), fW.wErrBDone === 1 && gW.renown === 1 && gW.silver > 0 && gW.count('potion') >= 1);
+      }
     } else if (test === 'reactions1003') {
       // 10-03 (RULED, Griz: "they should still get their reactions"; "1 yes, 2 yes" -- the reaction window and concentration, the one-buff slot
       // retired): manual stepping with the dice queued (DS.d answers from a list, then as it would; a foe's d20 is two draws, the pair for

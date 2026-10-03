@@ -68,6 +68,13 @@
       look: 'E on the crate below you for the bucket. Then E at the water (or walk round to the stone rim south of the pool): onto the wet\'s grid with every sleeper in it, and the landlord\'s first picture before anyone moves. USE the bucket there (ITEM, by the one who carries it) and four more pictures come, the clackers clacking.',
       say: 'The Warrens\' wet. The crate below you holds the deep station\'s bucket; the landlord is in the water to the west, unfed.',
       unset: ['otyughFed', 'landlordSpoke'], map: 'warrens_d', x: 13, y: 4, dir: 'down' },
+    // 10-03, Griz: "set me up with a level 3 party led by lymen, in silverton, with the gates down to the wet already opened type URL":
+    // the ?lvl3 start (Winters' errands run, the four found, nothing else) plus the Warrens' way down -- Pete heard, the tally book met,
+    // the five known, Skarn's gate open -- and nothing below done. base: 'lvl3' (DS.levelThree, not round six). &lead=lymen preselects him.
+    wet3: { group: 'The base game', title: 'The gates down to the wet, at level 3', pt: '§5 the wet · §3 battle feel (new 10-03)', base: 'lvl3', lvl: 3,
+      look: 'From Fountain Street walk to the Warrens: Pete is heard, the tally book met, the five known, Skarn\'s gate stands open, and nothing below is done (the landlord unfed, the bucket where it sits). The road there is the 8-bit\'s own random fights at level 3, so this is also where the here-to-there table is felt by hand.',
+      say: 'LEVEL THREE, THE GATES OPEN. All four of you just made level 3; Winters\' errands are run, and Skarn has opened his gate down to the wet. Nothing below it is done. Fountain Street.',
+      flags: { heardPete: 1, heardWarrens: 1, tallyMet: 1, fiveKnown: 1, skarnOk: 1, skarnGateOpen: 1 }, map: 'silverton', x: 29, y: 8, dir: 'down' },
     gulch: { group: 'The base game', title: 'Web Gulch: the strung end', pt: '§7 the braiding ettercap · §11 the snared traveler', lvl: 3,
       look: 'The ettercap braids on its stump and stops when it sees you. One step right starts it. On the grid: the webs in the round, the web hazard (DEX or restrained), fire burning them. The cocoon down at (18, 17) is the snared traveler.',
       say: 'The ettercap is braiding just ahead; one step east and it sees you.',
@@ -160,8 +167,10 @@
   // ------------------------------------------------------------------ setting one up (called by js/scenes.js LeadSelect)
   DS.situation = function (G, s) {
     var R = DS.R, f = G.flags;
-    DS.roundSix(G);                                                   // level 4, every quest but the inn and the lake (js/scenes.js)
-    if (s.lvl && s.lvl !== 4) G.party = G.party.map(function (h) { var n = R.makeHero(h.id, s.lvl); n.equip = h.equip; return n; });
+    if (s.base === 'lvl3') DS.levelThree(G);                          // level 3, Winters' errands and the four, nothing else (js/scenes.js; wet3, 10-03)
+    else DS.roundSix(G);                                              // level 4, every quest but the inn and the lake (js/scenes.js)
+    var baseLvl = s.base === 'lvl3' ? 3 : 4;
+    if (s.lvl && s.lvl !== baseLvl) G.party = G.party.map(function (h) { var n = R.makeHero(h.id, s.lvl); n.equip = h.equip; return n; });
     if (s.base === 'lake') { set(f, LAKE); delete f.pin; G.renown += 2; }
     for (var i = 0; i < (s.spine || 0); i++) STEPS[i](G, f);
     set(f, s.flags || {});
