@@ -202,6 +202,13 @@
       intro: 'A dwarven stair runs down into black water. At the bottom five men lie drowned. The water is a thing, and it closes. (It keeps to its water, and you cannot see it there until it moves.)',
       from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
       foes: [{ id: 'keeper', kind: 'keeper', at: window.D16.laneAt(window.D16.MAPS.floodstair, window.D16.MAPS.floodstair.geo.keeper[0], window.D16.MAPS.floodstair.geo.keeper[1], 2), hidden: true }], wave: null }, // (in the lane frame, data/maps.js floodstair geo.keeper)
+    // THE LADDER'S KEEPER (10-03, Griz: "the cool keeper fight isn't for the ladders, they have to play the real game"; then: the ladder's fight is the old fight unchanged): `keeper` as it
+    // is on origin/main before the Keeper work landed (ed7be2a), on the old stair (data/maps.js floodstair-old) with the old foe (data/foes.js keeperold), none of js/keeper.js in it. Its
+    // place on the level-3 rung is the old one's (a rung is built from D.fightsAt, in this list's order); dev/keeper-probe.py diffs it against main's.
+    { id: 'keeper-ladder', level: 3, map: 'floodstair-old', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss',
+      intro: 'A dwarven stair runs down into black water. At the bottom five men lie drowned. The water is a thing, and it closes. (It keeps to its water, and you cannot see it there until it moves.)',
+      from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
+      foes: [{ id: 'keeper', kind: 'keeperold', at: [8, 4], hidden: true }], wave: null },
     { id: 'chuul', level: 4, map: 'point', name: 'The Thing in the Lake', sub: 'the point, at night', music: 'boss',
       ring: { hero: 'barley', rounds: [1, 4, 7, 10], con: 3 },
       intro: 'The water off the point heaves. It comes up out of the deep: the size of a wagon, the colour of wet stone. It turns toward the ring before it turns toward anything else. (Barley wears the Ring of Binding.)',
@@ -295,13 +302,6 @@
       intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)',
       looks: { barley: { name: 'Denny', sheet: 'denny_p2' } } } // Denny plays Barley here only (Griz, 09-27)
   ];
-  // THE LADDER'S KEEPER (10-03, Griz: "the cool keeper fight isn't for the ladders, they have to play the real game"): the Keeper of before the desk's playtest notes -- 100 HP, one 2d6+3 Slam (+5), the Wave DC 13,
-  // hidden at the start, no glow, the party reacting at once -- is its own fight, listed on the ladder's rung (a rung is built from D.fightsAt). `keeper` (the 8-bit's stair, the gallery, the play modes) is the new one
-  // and is off the ladder (ladder: false). js/keeper.js K.PROFILE_OLD is what `keeperProfile: 'old'` sets when this fight enters.
-  (function () {
-    var i = D.FIGHTS.map(function (f) { return f.id; }).indexOf('keeper'), kf = D.FIGHTS[i];
-    D.FIGHTS.splice(i + 1, 0, Object.assign({}, kf, { id: 'keeper-ladder', ladder: true, keeperProfile: 'old', from: 'the 8-bit game: events.js S.stair (the Keeper), as it was before 10-03: the ladder keeps this one', foes: kf.foes.map(function (f) { return Object.assign({}, f); }) }));
-  })();
   D.fight = function (id) { return D.FIGHTS.filter(function (f) { return f.id === id; })[0] || D.FIGHTS.filter(function (f) { return f.id === 'gallery'; })[0]; };
   // the class floor (09-28, the class NPCs: ?npc=cleric,wizard&lvl=5, and the bench): the Hex floor, lit, open, the band of class
   // NPCs to the north and the four (or another band) at the south door. Made when asked for, never on the ladder's list

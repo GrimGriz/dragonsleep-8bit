@@ -93,7 +93,7 @@
   // ------------------------------------------------------------------ the pot, and the roll (his: "randomly put in monsters we have in existence that add up to that CR")
   // out: the story's named (Talmok, Torvald, Hask, the Keeper), the familiars, CR 0; Willem and Amara only when not in the party ("throw in
   // willem and amara if they aren't in the player's party"); a thing bound to water only where the map has water
-  PK.NAMED_OUT = ['talmok', 'torvald', 'hask', 'keeper'];
+  PK.NAMED_OUT = ['talmok', 'torvald', 'hask', 'keeper', 'keeperold']; // (keeperold: the ladder's old Keeper, data/foes.js -- 10-03)
   PK.pot = function (partyWords, mapId) {
     var keys = (partyWords || []).map(PK.baseKey), def = D.MAPS[mapId], water = def ? def.rows.join('').indexOf('~') >= 0 : false;
     return Object.keys(D.FOES).filter(function (k) {
@@ -344,7 +344,7 @@
     if (this.mapSel && D.MAPS[this.mapSel]) return this.mapSel;
     return null;
   };
-  Pocket.prototype.mapIds = function () { return Object.keys(D.MAPS).filter(function (id) { var d = D.MAPS[id]; return d && d.rows && id !== 'wet' && id !== 'testground' && !d.from8; }); };
+  Pocket.prototype.mapIds = function () { return Object.keys(D.MAPS).filter(function (id) { var d = D.MAPS[id]; return d && d.rows && id !== 'wet' && id !== 'testground' && id !== 'floodstair-old' && !d.from8; }); }; // (floodstair-old: the ladder's copy of the old stair, data/maps.js -- the table's Flooded Stair is the new one, 10-03)
   Pocket.prototype.randomMap = function () { var ids = this.mapIds(); return ids[Math.floor(D.rand() * ids.length)]; };
   Pocket.prototype.reroll = function () {
     var mapId = this.fightMap || this.mapFor() || 'hexfloor';

@@ -534,20 +534,89 @@
       ok('the opportunity attack is the reaction: one Slam (' + oa + '), the reaction spent (' + S8.k.reaction + ')', oa <= 1 && (oa === 0 || S8.k.reaction === 0));
       C.slams = sv.sl; D.battle = B3;
     })();
-    // ---- the ladder keeps the OLD Keeper; the 8-bit's stair, the gallery and the play modes the new (Griz: "the cool keeper fight isn't for the ladders, they have to play the real game")
+    // ---- THE LADDER'S FIGHT IS MAIN'S OLD ONE, UNCHANGED (10-03, Griz): its foe, map, sheet and fight record diffed against origin/main's as it stood before the Keeper work landed
+    // (window.KEEPER_MAIN: dev/keeper-probe.py reads them with git at a pinned commit, main=<ref> another), the rung, and ladder fights run through with none of the new Keeper in them.
+    // The 8-bit's stair, the gallery and the play modes are the new one (Griz: "the cool keeper fight isn't for the ladders, they have to play the real game")
     (function () {
-      var rung = D.fightsAt(3).map(function (f) { return f.id; }), saveCfg = Object.assign({}, K.CFG);
-      ok('the ladder\'s level-3 rung lists keeper-ladder and not keeper (' + rung.join(',') + ')', rung.indexOf('keeper-ladder') >= 0 && rung.indexOf('keeper') < 0);
-      var BL = new D.Battle({ ladder: true, fight: 'keeper-ladder', bench: true }); D.battle = BL; BL.enter(); var kL = keeper(BL);
-      ok('the ladder rung loads the OLD Keeper: ' + kL.hp + ' HP, Slam ' + kL.attacks.slam.dice + '+' + kL.attacks.slam.mod + ' atk ' + kL.attacks.slam.atk + ', ' + K.CFG.slams + ' Slam, Wave DC ' + K.CFG.waveDC + ', hidden ' + !!kL.conds.hidden + ', glow ' + K.CFG.glow + ', the opening ' + K.CFG.partyOpening, kL.hp === 100 && kL.attacks.slam.dice === '2d6' && kL.attacks.slam.atk === 5 && K.CFG.slams === 1 && K.CFG.waveDC === 13 && !!kL.conds.hidden && !K.CFG.glow && !K.CFG.partyOpening && K.isFight(BL.fight));
-      var cL = cardsOf(BL); BL.units.forEach(function (u) { if (u.side === 'party' && !u.familiar) { u.guest = true; u.classAI = true; } }); BL.heroTurn = function* (u) { yield* D.ai.turn(this, u); }; var gn = 0, vv; while (BL.co && gn++ < 400000) { var rr = BL.co.next(vv); vv = undefined; if (rr.done) break; if (rr.value && rr.value.prompt) vv = rr.value.prompt.opts[0].value; }
-      ok('the ladder\'s Keeper fight runs to its end on the old rules (' + BL.result + ', R' + BL.round + ', Slams at +5: ' + (cL.join(' ').match(/Slam \| d20 [^=]*\+5 =/g) || []).length + ' seen, +6: ' + (cL.join(' ').match(/Slam \| d20 [^=]*\+6 =/g) || []).length + ')', !!BL.result && !/\+6 =/.test(cL.join(' ')));
-      // the 8-bit's stair (events.js deep16: 'keeper', embed): the new one
-      var BE = new D.Battle({ embed: {}, fight: 'keeper', data: D.save.fixture(3), bench: true }); D.battle = BE; BE.enter(); var kE = keeper(BE);
-      ok('the 8-bit\'s stair loads the NEW Keeper: ' + kE.hp + ' HP, Slam ' + kE.attacks.slam.dice + ' atk ' + kE.attacks.slam.atk + ', ' + K.CFG.slams + ' Slams, Wave DC ' + K.CFG.waveDC + ', hidden ' + !!kE.conds.hidden + ', glow ' + K.CFG.glow, kE.hp === 160 && kE.attacks.slam.dice === '3d4' && kE.attacks.slam.atk === 6 && K.CFG.slams === 2 && K.CFG.waveDC === 15 && !kE.conds.hidden && K.CFG.glow);
+      var M = window.KEEPER_MAIN || {}, cfg0 = JSON.stringify(K.CFG);
+      function diffs(a, b, p, out) { // (every path where the two differ: 'attacks.constrict.dice: "1d6" vs "1d8"')
+        out = out || [];
+        if (a === b) return out;
+        if (a && b && typeof a === 'object' && typeof b === 'object' && Array.isArray(a) === Array.isArray(b)) {
+          Object.keys(a).concat(Object.keys(b)).filter(function (k, i, all) { return all.indexOf(k) === i; }).forEach(function (k) { diffs(a[k], b[k], p ? p + '.' + k : k, out); });
+          return out;
+        }
+        out.push((p || '(the whole)') + ': ' + JSON.stringify(a) + ' vs ' + JSON.stringify(b)); return out;
+      }
+      function said(d) { return d.length ? d.length + ' differ: ' + d.slice(0, 3).join('; ') : 'none differ'; }
+      ok('origin/main\'s records read at ' + M.ref + ' (foe ' + !!M.foe + ', map ' + !!M.map + ', fight ' + !!M.fight + ', sheet ' + !!M.sheet + ', rung ' + !!M.rung3 + (M.err ? ', ' + M.err : '') + ')', !M.err && M.foe && M.map && M.fight && M.sheet && M.rung3);
+      var FO = D.FOES.keeperold, df = diffs(FO, M.foe);
+      ok('the ladder\'s foe (foes.js keeperold) against main\'s keeper, field for field: ' + said(df) + ' (' + FO.hp + ' HP, ' + Object.keys(FO.attacks).join(' and ') + ', ' + FO.sheet + ')', !df.length && FO.hp === 58 && FO.attacks.constrict && FO.attacks.drown && FO.sheet === 'keeper_p1');
+      var MO = D.MAPS['floodstair-old'], dm = diffs(MO, M.map);
+      ok('the ladder\'s map (floodstair-old) against main\'s floodstair: ' + said(dm) + '; its rows ' + (M.map && MO.rows.join('/') === M.map.rows.join('/') ? 'the same, ' + MO.rows.length + ' of them' : 'NOT the same') + ', no geo, no rune light (' + !MO.geo + ', ' + !MO.lights + ')', !dm.length && M.map && MO.rows.join('/') === M.map.rows.join('/') && !MO.geo && !MO.lights);
+      var FL = D.fight('keeper-ladder'), asMain = Object.assign({}, FL, { id: 'keeper', map: 'floodstair', foes: FL.foes.map(function (f) { return Object.assign({}, f, { kind: f.kind === 'keeperold' ? 'keeper' : f.kind }); }) }), dfl = diffs(asMain, M.fight);
+      ok('the ladder\'s fight (keeper-ladder) against main\'s keeper fight, its id, map and foe kind read as main\'s: ' + said(dfl), FL.id === 'keeper-ladder' && FL.map === 'floodstair-old' && FL.foes[0].kind === 'keeperold' && !dfl.length);
+      var ds = diffs(D.SHEETS.keeper_p1, M.sheet);
+      ok('its art (sprites.js keeper_p1, the snake stand-in) against main\'s: ' + said(ds) + ' (' + (D.SHEETS.keeper_p1 || {}).image + ')', !ds.length);
+      var rung = D.fightsAt(3).map(function (f) { return f.id; }), read = rung.map(function (id) { return id === 'keeper-ladder' ? 'keeper' : id; });
+      ok('the level-3 rung, keeper-ladder in the old keeper\'s place, is main\'s (' + rung.join(',') + ' / main ' + (M.rung3 || []).join(',') + ')', rung.indexOf('keeper') < 0 && rung.indexOf('keeper-ladder') >= 0 && read.join() === (M.rung3 || []).join());
+      // the ladder's battle: the old foe on the old stair, the party at main's entry, and nothing of js/keeper.js set
+      var BL = new D.Battle({ ladder: true, fight: 'keeper-ladder', bench: true }); D.battle = BL; BL.enter();
+      var kL = BL.units.filter(function (u) { return u.kind === 'keeperold'; })[0], HL = ours(BL), sh = BL.sheets(), lit = D.light.carried(kL).filter(function (l) { return l.kind === 'keeperglow'; });
+      ok('the ladder\'s battle: ' + kL.name + ' (' + kL.kind + ') ' + kL.hp + '/' + kL.maxhp + ' HP, AC ' + RU.ac(kL) + ', ' + Object.keys(kL.attacks).join(' and ') + ', sheet ' + kL.sheet + ', hidden ' + !!kL.conds.hidden + ', no Slam stand-in (' + !kL.weapon + '), no new Keeper on the field (' + !keeper(BL) + ')',
+        kL.hp === 58 && kL.maxhp === 58 && RU.ac(kL) === 13 && kL.sheet === 'keeper_p1' && !!kL.conds.hidden && !kL.weapon && !keeper(BL) && !diffs(kL.attacks, M.foe.attacks).length && kL.multi.join() === 'constrict,drown');
+      ok('on the old stair: ' + (G.map.def === MO) + ', the rows main\'s (' + (G.map.def.rows.join('/') === M.map.rows.join('/')) + '), the four at main\'s entry ' + HL.map(function (u) { return u.x + ',' + u.y; }).join(' ') + ', the gate asks ' + sh.now.filter(function (n) { return /^keeper/.test(n); }).join(',') + ', no glow (' + lit.length + '), the Keeper\'s settings untouched (' + (JSON.stringify(K.CFG) === cfg0) + '), not a Keeper fight to js/keeper.js (' + !K.isFight(BL.fight) + ')',
+        G.map.def === MO && G.map.def.rows.join('/') === M.map.rows.join('/') && HL.every(function (u, i) { return u.x === MO.entry[i][0] && u.y === MO.entry[i][1]; }) && sh.now.indexOf('keeper_p1') >= 0 && sh.now.indexOf('keeper_p2') < 0 && sh.now.indexOf('keeper_p3') < 0 && !lit.length && JSON.stringify(K.CFG) === cfg0 && !K.isFight(BL.fight));
+      // four ladder fights to their end by the class AI: the old Keeper's grip and drag, and none of the new one's wave, wall, Slam, swirl or log
+      var res = [], txt = '', kpSet = 0, drn = 0, log0 = D.keeperLog.meta && D.keeperLog.meta.fight;
+      for (var f = 0; f < 4; f++) {
+        D.seed = (f + 1) * 7919 + 3; var BF = new D.Battle({ ladder: true, fight: 'keeper-ladder', bench: true }); D.battle = BF; BF.enter(); var cF = cardsOf(BF);
+        BF.units.forEach(function (u) { if (u.side === 'party' && !u.familiar) { u.guest = true; u.classAI = true; } }); BF.heroTurn = function* (u) { yield* D.ai.turn(this, u); };
+        var gn = 0, vv; while (BF.co && gn++ < 400000) { var rr; try { rr = BF.co.next(vv); } catch (e) { errs.push('ladder: ' + String(e && e.stack || e).slice(0, 400)); break; } vv = undefined; if (rr.done) break; if (rr.value && rr.value.prompt) vv = rr.value.prompt.opts[0].value; if (BF.units.some(function (u) { return u.conds && u.conds.drowning; })) drn++; }
+        res.push(BF.result + ' R' + BF.round); txt += cF.join('\n') + '\n'; if (BF.kp) kpSet++;
+      }
+      var newWords = txt.match(/sends a wave|Ice Wall|\bSlam\b|swirl|SUFFOCATION|washed into the deep|STALEMATE|KNOCKED PRONE/g) || [];
+      ok('four ladder fights to the end (' + res.join(', ') + '): Constrict ' + (txt.match(/Constrict/g) || []).length + ', Drag Under ' + (txt.match(/Drag Under/g) || []).length + '; of the new Keeper: ' + (newWords.length ? newWords.slice(0, 4).join(', ') : 'nothing') + ', its state ' + kpSet + ', its drowning ' + drn + ', its log ' + (D.keeperLog.meta && D.keeperLog.meta.fight === 'keeper-ladder' ? 'kept' : 'not kept'),
+        res.every(function (r) { return /^(won|lost) /.test(r); }) && /Constrict/.test(txt) && !newWords.length && !kpSet && !drn && !(D.keeperLog.meta && D.keeperLog.meta.fight === 'keeper-ladder') && (D.keeperLog.meta && D.keeperLog.meta.fight) === log0);
+      // the Pocket DM keeps both Keepers out of its pot (PK.NAMED_OUT), on a map with water; the ladder's copy of the stair is not on its list of maps
+      var PK = D.pocket, pot = PK.pot(['barley', 'aurdin', 'vivian', 'lymen'], 'floodstair'), mids = D.Pocket.prototype.mapIds.call({});
+      ok('the Pocket DM: NAMED_OUT ' + JSON.stringify(PK.NAMED_OUT) + '; its pot on the Flooded Stair (' + pot.length + ' kinds, the water\'s own in it: ' + pot.filter(function (k) { return D.FOES[k].bound; }).join(',') + ') holds neither Keeper; its maps have floodstair (' + (mids.indexOf('floodstair') >= 0) + ') and not floodstair-old (' + (mids.indexOf('floodstair-old') < 0) + ')',
+        PK.NAMED_OUT.indexOf('keeper') >= 0 && PK.NAMED_OUT.indexOf('keeperold') >= 0 && pot.indexOf('keeper') < 0 && pot.indexOf('keeperold') < 0 && pot.length > 0 && mids.indexOf('floodstair') >= 0 && mids.indexOf('floodstair-old') < 0);
+      // the 8-bit's stair (events.js deep16: 'keeper', through the embed): the new one
+      var BE = new D.Battle({ embed: { start: 'ledge' }, fight: 'keeper', data: D.save.fixture(3), bench: true }); D.battle = BE; BE.enter(); var kE = keeper(BE);
+      ok('the 8-bit\'s stair loads the NEW Keeper: ' + kE.hp + ' HP, Slam ' + kE.attacks.slam.dice + ' atk ' + kE.attacks.slam.atk + ', ' + K.CFG.slams + ' Slams, Wave DC ' + K.CFG.waveDC + ', hidden ' + !!kE.conds.hidden + ', glow ' + K.CFG.glow + ', sheet ' + kE.sheet + ', the new hall (' + !!G.map.def.geo + ')', kE.hp === 160 && kE.attacks.slam.dice === '3d4' && kE.attacks.slam.atk === 6 && K.CFG.slams === 2 && K.CFG.waveDC === 15 && !kE.conds.hidden && K.CFG.glow && kE.sheet === 'keeper_p2' && G.map.def === D.MAPS.floodstair);
       var BG = D.keeper.fight('?keeperfight&play=party&lvl=3'); D.battle = BG; BG.enter();
       ok('the play modes and the gallery are the new one (' + keeper(BG).hp + ' HP, fight ' + BG.fight.id + ')', keeper(BG).hp === 160 && BG.fight.id === 'keeper');
-      Object.assign(K.CFG, saveCfg); D.battle = B3;
+      Object.assign(K.CFG, JSON.parse(cfg0)); D.battle = B3;
+    })();
+    // ---- THE TWO WAYS IN (10-03, Griz): WADE IN starts the fight with the party ON THE LEDGE (geo.entry, the water's edge); a hand on the mark starts it BY THE RUNE (geo.entryRune,
+    // the landing squares beside it) -- the 8-bit scene names it (embed start), ?keeperfight&start=, the bench's o.start; the party's opening holds either
+    (function () {
+      var cfg0 = JSON.stringify(K.CFG), FS = D.MAPS.floodstair, gm = FS.geo, sx = function (u) { return u.x + ',' + u.y; };
+      function spawn(o) { var Bx = new D.Battle(Object.assign({ fight: 'keeper', data: D.save.fixture(3), bench: true }, o)); D.battle = Bx; Bx.enter(); return Bx; }
+      function at(H, sqs) { return H.every(function (u, i) { return u.x === sqs[i][0] && u.y === sqs[i][1]; }); }
+      var rr = FS.entryRune, BR = spawn({ embed: { start: 'rune' } }), HR = ours(BR);
+      var laned = rr.length === gm.entryRune.length && rr.every(function (e, i) { var o = D.laneAt(FS, gm.entryRune[i][0], gm.entryRune[i][1]); return e[0] === o[0] && e[1] === o[1]; });
+      var dry = rr.every(function (e) { var q = G.map.at(e[0], e[1]), a = K.A({ x: e[0], y: e[1] }); return q && q.walk && q.ch !== '~' && a >= gm.a[1] - 3 && a <= gm.a[1]; });
+      var near = gm.entryRune.every(function (e) { return Math.max(Math.abs(e[0] - gm.rune[0]), Math.abs(e[1] - gm.rune[1])) <= 2; });
+      ok('the rune\'s squares: geo.entryRune ' + JSON.stringify(gm.entryRune) + ' -> the map ' + JSON.stringify(rr) + ' by D16.laneAt (' + laned + '), all dry landing (' + dry + '), within 10 ft of the rune ' + JSON.stringify(gm.rune) + ' (' + near + ')', laned && dry && near && rr.length === 5);
+      ok('a hand on the mark (the embed\'s start: rune): the four begin by the rune, ' + HR.map(sx).join(' ') + ' (along ' + HR.map(function (u) { return K.A(u); }).join(',') + '; startAt ' + BR.startAt + ')', BR.startAt === 'rune' && at(HR, rr) && G.map.def === FS);
+      var BW = spawn({ embed: { start: 'ledge' } }), HW = ours(BW), en = FS.entry;
+      ok('WADE IN (the embed\'s start: ledge): the four begin on the ledge at the water\'s edge, ' + HW.map(sx).join(' ') + ' (along ' + HW.map(function (u) { return K.A(u); }).join(',') + ')', BW.startAt === null && at(HW, en) && HW.every(function (u) { return K.A(u) === gm.a[1] - 3 && G.map.at(u.x, u.y).ch !== '~'; }));
+      var BN = spawn({ embed: {} });
+      ok('no start named (an 8-bit page from before): the ledge, as before (' + ours(BN).map(sx).join(' ') + ')', at(ours(BN), en));
+      var BU = D.keeper.fight('?keeperfight&watch&start=rune&lvl=3'); D.battle = BU; BU.enter(); var hd = D.keeperLog.text().split('\n')[1] || '';
+      ok('?keeperfight&start=rune: by the rune (' + ours(BU).map(sx).join(' ') + '); the log\'s header says where they came in ("' + hd + '")', at(ours(BU), rr) && /, start rune\b/.test(hd));
+      BW = spawn({ start: 'ledge' }); hd = D.keeperLog.text().split('\n')[1] || '';
+      ok('... and a ledge fight\'s header says ledge ("' + hd + '")', /, start ledge\b/.test(hd));
+      // the party's opening from the rune (K.opened, the drift): before the Keeper strikes, each hero's turn holds -- no step, no action, no drift (they are past the drift's
+      // last row, the one below the wall); struck, they engage. (From the ledge the same is checked above, the drift a square a round toward the rune.)
+      var BO = spawn({ start: 'rune' }), kO = keeper(BO), HO = ours(BO), chO = cardsOf(BO); HO.forEach(function (u) { u.guest = true; u.classAI = true; }); putK(kO);
+      var held = HO.map(function (u) { var x = u.x, y = u.y; RU.startTurn(u); drain(D.tactics.turn(BO, u)); return u.x === x && u.y === y && u.turn.action === 1; });
+      ok('the opening by the rune: every hero holds its square on its turn before it is struck (' + held.join(',') + '), no drift (' + K.st(BO).driftRound + '), nothing done (' + chO.length + ' cards), still unopened (' + !K.opened(BO) + ')', held.every(Boolean) && K.st(BO).driftRound == null && !chO.length && !K.opened(BO));
+      var u0 = HO[0], x0 = u0.x, y0 = u0.y; kO.hp -= 5; RU.startTurn(u0); drain(D.tactics.turn(BO, u0));
+      ok('... and engages once the Keeper is hurt (opened ' + K.opened(BO) + ', ' + u0.name + ' moved or acted: ' + (u0.turn.action === 0 || u0.x !== x0 || u0.y !== y0) + ')', K.opened(BO) && (u0.turn.action === 0 || u0.x !== x0 || u0.y !== y0));
+      Object.assign(K.CFG, JSON.parse(cfg0)); D.battle = B3;
     })();
     // ---- 10-03 (the desk): every pose that is set is cleared; the deep is the first two steps; the rune's face
     (function () {
@@ -663,14 +732,16 @@
       D.battle = B3;
     })();
     D.battle = B3;
-    // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row; the counts are what the mechanics did
+    // ---- whole fights, the class AI on the party's side; runs=N per level (lvls=3,4,5), wall=<row> for the alt wall row, start=ledge|rune where the party comes in (10-03); the counts are what the mechanics did
+    // (outside: heroes up on the exit side of the wall's row as it rose -- sealed out, not in)
     var q = {}; location.search.replace(/^\?/, '').split('&').forEach(function (kv) { var a = kv.split('='); if (a[0]) q[a[0]] = decodeURIComponent(a[1] || ''); });
     if (q.hide != null) K.CFG.hideAfter = q.hide !== '0'; if (q.oa != null) K.CFG.oaWave = q.oa === '1'; if (q.need) K.CFG.freezeNeeds = q.need; if (q.wallrounds != null) K.CFG.wallRounds = +q.wallrounds; if (q.ai != null) K.CFG.aiScript = q.ai === 'current' ? '' : q.ai; if (q.retreat != null) K.CFG.partyRetreat = q.retreat !== '0'; if (q.deep) K.CFG.deepDepth = +q.deep; if (q.drown) K.CFG.drown = q.drown; // (the settings the bench can flip: hide=0, oa=1, need=any)
     var N = +(q.runs || 2), lv = (q.lvls || '3,4,5').split(',').map(Number), rows = [];
     lv.forEach(function (L) {
-      var agg = { won: 0, lost: 0, rounds: 0, downs: 0, waves: 0, swept: 0, floods: 0, drown: 0, twice: 0, breaks: 0, kept: 0, walls: 0, fire: 0, froze: 0, slams: 0, prone: 0, none: 0, thaws: 0, stale: 0, suff: 0, swirlA: 0 };
+      var agg = { won: 0, lost: 0, rounds: 0, downs: 0, waves: 0, swept: 0, floods: 0, drown: 0, twice: 0, breaks: 0, kept: 0, walls: 0, fire: 0, froze: 0, slams: 0, prone: 0, none: 0, thaws: 0, stale: 0, suff: 0, swirlA: 0, outside: 0 };
+      var rw0 = K.raiseWall; K.raiseWall = function* (B, k, trig) { var wa = B.kp && B.kp.rowOverride != null ? B.kp.rowOverride : G.map.def.geo.wall; agg.outside += ours(B).filter(function (u) { return G.standing(u) && K.A(u) > wa; }).length; return yield* rw0.apply(this, arguments); };
       for (var f = 0; f < N; f++) {
-        D.seed = (f + 1) * 7919 + L; var F = battle({ lvl: L }), cs = cardsOf(F); if (q.hp) { var kk = keeper(F); kk.hp = kk.maxhp = +q.hp; }
+        D.seed = (f + 1) * 7919 + L; var F = battle({ lvl: L, start: q.start || null }), cs = cardsOf(F); if (q.hp) { var kk = keeper(F); kk.hp = kk.maxhp = +q.hp; }
         if (q.wall) F.kp = { uses: 3, ready: null, wall: null, ice: {}, waves: 0, rowOverride: +q.wall };
         F.units.forEach(function (u) { if (u.side === 'party' && !u.familiar) { u.guest = true; u.classAI = true; } });
         F.heroTurn = function* (u) { yield* D.ai.turn(this, u); };
@@ -681,7 +752,8 @@
         agg.drown += cnt(/ drowns/g); agg.twice += cnt(/flooded: twice/g); agg.breaks += cnt(/THE HOLD BREAKS/g); agg.kept += cnt(/the hold keeps/g); agg.walls += cnt(/(springs|raises) the Ice Wall/g);
         agg.fire += cnt(/goes to steam/g); agg.froze += cnt(/freeze over/g); agg.slams += cnt(/ Slam/g); agg.prone += cnt(/KNOCKED PRONE/g); agg.thaws += cnt(/Ice Wall thaws/g); agg.stale += cnt(/STALEMATE/g); agg.suff += cnt(/ACTIVE SUFFOCATION/g);
       }
-      rows.push('L' + L + ' x' + N + ' wr=' + K.CFG.wallRounds + ' ai=' + (K.CFG.aiScript || 'current') + (q.wall ? ' wall ' + q.wall : '') + ': ' + JSON.stringify(agg).replace(/"/g, ''));
+      K.raiseWall = rw0;
+      rows.push('L' + L + ' x' + N + ' start=' + (q.start || 'ledge') + ' wr=' + K.CFG.wallRounds + ' ai=' + (K.CFG.aiScript || 'current') + (q.wall ? ' wall ' + q.wall : '') + ': ' + JSON.stringify(agg).replace(/"/g, ''));
     });
     ok('whole fights, no error (' + errs.length + ')', !errs.length && rows.every(function (r) { return !/none:[1-9]/.test(r); }));
     rows.forEach(function (r) { ok(r, true); });
