@@ -4,6 +4,8 @@ The desktop oversight window keeps this list; a cloud seat reads it to know what
 
 ## Merged (main)
 
+Every seat's notes file ends with a **For the next seat** section (10-03): the gotchas, who said what, what to rerun and when. Read the one for the area you touch before you touch it.
+
 | job | branch | notes | merged |
 |---|---|---|---|
 | the SRD pass's leftovers (Spy's Cunning Action, Parry, thrown weapons, Ettin, Duergar Resilience) | `claude/srd-pass-leftovers` | -- | 4454318, 10-03 |
@@ -16,13 +18,14 @@ The desktop oversight window keeps this list; a cloud seat reads it to know what
 | the here-to-there walker (28 legs, 3 chains, 100 walks each: what the party reaches each boss with) | `claude/here-to-there` | `here-to-there.md`, `here-to-there-notes.md`, `dev/walk8.py` | 12db1fb, 10-03 (fast-forward) |
 | the walker, round two (the player's hand on the bench beside the floor, the tent once below half, the ladder's levels; his five answers) | `claude/here-to-there` | the same files | 7c7379b, 10-03 (fast-forward) |
 | the walker, round three (a group at two, kits on the downed after a fight, the dry stair at the story's 6, the sally chain) -- built on the overseer's four LEANS, recorded as leans until Griz rules | `claude/here-to-there` | the same files | e1dbf77, 10-03 (fast-forward) |
+| the Keeper of the Flooded Stair, redone to his design (the lure AI, 160 HP, Slam 3d4, the drowning 1d8+1, the party's retreat; the ladder keeps the old Keeper) | `claude/intelligent-maxwell-6ich3v` via Griz's own window (`scratch/merge-both`) | `deep16-keeper-notes.md` | c8868ab, 10-03 |
 | the 8-bit's reactions and concentration (the buff slot retired; his seven answers built) | `claude/8bit-reactions` | `8bit-reactions-notes.md` | 1b18ac5, 10-03 (the desktop took main for it: eleven files, the records field by field) |
 
 ## In flight
 
 | job | branch | state |
 |---|---|---|
-| the Keeper of the Flooded Stair (his design) | `claude/intelligent-maxwell-6ich3v` | built and benched; the foe still draws `keeper_p1`, rows 6/7 asked; Griz finishing it in another window |
+| the early fights half again | `claude/early-cr` | running 10-03 (the overseer's call on his word: x1.5 adjusted XP; the Keeper, the wagon night, the cloaker out) |
 
 ## Queued (ruled, not started)
 
