@@ -4,12 +4,15 @@ and prints what the battle said. Run it from PowerShell (the Bash tool's sandbox
 
   python dev/bench8.py lymen          Lymen's list (09-28g): Magic Weapon, Command, Protection, Sanctuary, Branding Smite
   python dev/bench8.py ingrith        Ingrith the cleric guest (09-28g): her heals, Preserve Life, Turn Undead, Bless, the weapon
+  python dev/bench8.py reactions1003  the reaction window and concentration (10-03): Shield, Magic Missile, the reaction once a round, Bless and
+                                      Shield of Faith together, a second concentration spell, the CON save, Hellish Rebuke, Counterspell, Parry, Uncanny Dodge
 """
 import json, os, re, subprocess, sys, tempfile, urllib.parse
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-EDGE = r'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe'
+EDGE = os.environ.get("DEEP16_BROWSER") or r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" # (DEEP16_BROWSER: another headless Chromium, the cloud seat's; DEEP16_BROWSER_ARGS: its extra flags, e.g. --no-sandbox as root -- unset, the desktop is as it was: dev/bench16.py has the same two lines)
+EXTRA = os.environ.get("DEEP16_BROWSER_ARGS", "").split()
 
 
 def build_page():
@@ -36,7 +39,7 @@ def run(params, timeout=300):
     page = build_page()
     prof = os.path.join(tempfile.gettempdir(), 'ds8-bench-edge-%d' % os.getpid())
     url = 'file:///' + page.replace('\\', '/') + '?' + urllib.parse.urlencode(params)
-    cmd = [EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files', '--user-data-dir=' + prof, '--dump-dom', url]
+    cmd = [EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url]
     p = subprocess.run(cmd, capture_output=True, timeout=timeout)
     dom = p.stdout.decode('utf-8', 'replace')
     m = re.search(r'BENCH8 (\{.*\})', dom, re.S)
