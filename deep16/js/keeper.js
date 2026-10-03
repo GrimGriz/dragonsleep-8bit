@@ -302,10 +302,10 @@
     B.card(['{r}' + Nm(B, u) + '{/} gathers the water at the stair\'s edge, and holds it.  {g}(READY: the Ice Wall -- when one of you moves toward the exit; ' + S.uses + ' left){/}'], 300); yield 30;
   };
   // after a creature's step (battle.js moveAlong): a hero moving toward the exit, on the stair, springs it
-  K.watch = function* (B, u) {
+  K.watch = function* (B, u, fromY) {
     var S = B.kp; if (!S || !S.ready || u.side === 'foe' || u.dead || u.hp <= 0) return;
     var k = keeperOf(B); if (!k || k.reaction <= 0 || !k.hp) return;
-    var fy = u.tween ? u.tween.fy : u.y; if (!(u.y > fy) || !inLane(u.x, u.y)) return;
+    if (!(u.y > fromY) || !inLane(u.x, u.y)) return;
     yield* K.raiseWall(B, k, u);
   };
   K.raiseWall = function* (B, k, trig) {

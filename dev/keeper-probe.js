@@ -67,6 +67,9 @@
     // the Wave bounces off it: those between it and the water are hit, the sweep is not changed
     force(false); W[1].conds.prone = false; did = drain(K.wave(B3, k3)); unforce();
     ok('the Wave runs to the wall: ' + W.map(function (u) { return u.x + ',' + u.y; }).join(' '), did === true);
+    // (the page's frame loop clears a mover's tween before the hook runs: the row it stepped from comes in as an argument, not read off u.tween -- 10-03, the pane-vs-bench find)
+    var B5 = battle({ lvl: 3 }), k5 = keeper(B5), U5 = ours(B5); delete k5.conds.hidden; put(U5[0], 8, 10); U5[0].tween = null; RU.startTurn(k5); B5.kp = null; drain(K.readyWall(B5, k5)); drain(K.watch(B5, U5[0], 9));
+    ok('a step toward the exit springs the wall with no tween on the mover: wall ' + !!(B5.kp && B5.kp.wall), !!(B5.kp && B5.kp.wall)); D.battle = B3;
     // fire on a section: gone at once; the other stands
     put(W[0], 8, 10); put(W[1], 9, 10); put(W[2], 7, 10); put(W[3], 10, 10); var cast = D.magic.data('burninghands'); W[0].spellDC = 13;
     c3.length = 0; drain(K.spellOn(B3, W[0], 'burninghands', 1, { x: 8, y: 11 }));
