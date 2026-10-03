@@ -60,7 +60,7 @@ At Higher Levels. When you cast this spell using a spell slot of 2nd level or hi
 
 *1st-level enchantment*
 
-> **The game:** Up to three allies add 1d4 to attacks and saves.
+> **The game:** Up to three allies add 1d4 to attacks and saves; one more for each slot level above 1st.
 
 **Casting Time:** 1 action
 
@@ -698,7 +698,7 @@ You touch a willing creature who isn’t wearing armor, and a protective magical
 
 *1st-level evocation*
 
-> **The game:** Three darts that never miss, 1d4+1 force each.
+> **The game:** Three darts that never miss, 1d4+1 force each, at one foe or several.
 
 **Casting Time:** 1 action
 

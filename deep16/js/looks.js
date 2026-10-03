@@ -536,6 +536,10 @@
       var cx0 = s.x - 16 + h * 8, cy0 = s.y - 2; for (i = 0; i < 8; i++) { px(c, cx0 + i * 4, cy0 + Math.sin(i * 1.7 + h * 9) * 3, P('outline', 0), 2); }
       if ((t + Math.floor(h * 20)) % 24 < 6) { c.globalAlpha = 0.5; px(c, s.x + (h - 0.5) * 20, s.y - 4, E.c[1], 3); }
       c.globalAlpha = 1;
+    } else if (g.kind === 'hail') { // Ice Storm: the hailstones lying where they fell, pale, a glint on one now and then (10-03)
+      D.iso.rhombus(c, x, y, D.iso.map.gz(x, y), 2); c.globalAlpha = 0.25; c.fillStyle = P('silver', 6); c.fill(); c.globalAlpha = 1;
+      for (i = 0; i < 9; i++) { var hx = Math.round(s.x + (hsh(x + i * 5, y) - 0.5) * 34), hy = Math.round(s.y + (hsh(x, y + i * 5) - 0.5) * 14); px(c, hx, hy + 1, P('outline', 0), 2); px(c, hx, hy, P('silver', i % 3 ? 5 : 6), 2); }
+      if ((t + Math.floor(h * 40)) % 50 < 3) px(c, s.x + (h - 0.5) * 24, s.y - 1, P('bone', 1), 1);
     } else if (g.kind !== 'insects') { // anything else a spell leaves on the floor: a faint wash of its colour
       D.iso.rhombus(c, x, y, D.iso.map.gz(x, y), 2); c.globalAlpha = 0.2; c.fillStyle = P('violet', 3); c.fill(); c.globalAlpha = 1;
     }

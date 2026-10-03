@@ -2755,7 +2755,7 @@
    "target": "enemy",
    "battle": true,
    "sfx": "zap",
-   "desc": "Three darts that never miss, 1d4+1 force each.",
+   "desc": "Three darts that never miss, 1d4+1 force each, at one foe or several.",
    "src": "SRD 5.1",
    "id": "magicmissile"
   },
@@ -2831,7 +2831,7 @@
    "target": "enemy",
    "battle": true,
    "sfx": "fire",
-   "desc": "Three rays, each a spell attack for 2d6 fire.",
+   "desc": "Three rays, each a spell attack for 2d6 fire, at one foe or several.",
    "src": "SRD 5.1",
    "id": "scorchingray"
   },
@@ -2932,8 +2932,9 @@
    "buff": "bless",
    "target": "allies",
    "max": 3,
+   "maxUp": 1,
    "battle": true,
-   "desc": "Up to three allies add 1d4 to attacks and saves.",
+   "desc": "Up to three allies add 1d4 to attacks and saves; one more for each slot level above 1st.",
    "src": "SRD 5.1",
    "id": "bless"
   },
@@ -2991,7 +2992,7 @@
    "target": "ally",
    "battle": true,
    "field": true,
-   "desc": "Ends poison, paralysis or blindness. On the grid it ends one thing, as the SRD has it: paralysis, the disease (Contagion, with its poison and blinding), blindness, poison or deafness -- a player picks where there is more than one, an NPC takes the worst. Not built: any other disease.",
+   "desc": "Ends one thing, as the SRD has it: paralysis, blindness or poison (a paralysing poison is one); on the grid also the disease (Contagion, with its poison and blinding) and deafness. A player picks where there is more than one, an NPC takes the worst. Not built: any other disease.",
    "src": "SRD 5.1 (Oath of Devotion oath spell, 5th level)",
    "id": "lesserrestoration"
   },
@@ -3576,7 +3577,7 @@
    "target": "enemy",
    "battle": true,
    "grid": true,
-   "note8": "the 8-bit battle (RULED 10-01c, Griz: 'laughter is single target (no 8-bit easter egg)'): one foe, WIS or prone and helpless with laughter, the save again each turn; INT 4 or less unmoved",
+   "note8": "the 8-bit battle (RULED 10-01c, Griz: 'laughter is single target (no 8-bit easter egg)'): one foe, WIS or prone and helpless with laughter, the save again each turn and, with advantage, each time it is hurt (10-03); INT 4 or less unmoved",
    "desc": "A foe within 30 ft makes a WIS save or falls prone and incapacitated with laughter, saving again at the end of each of its turns and, with advantage, when hurt. INT 4 or less is unmoved. Concentration, a minute.",
    "src": "SRD 5.1 Hideous Laughter (the class NPCs, 09-28: deep16/js/grimoire.js)",
    "sfx": "magic",
@@ -3719,7 +3720,10 @@
    "kind": "save",
    "save": "con",
    "cond": "blinded",
+   "repeat": true,
+   "rounds": 10,
    "target": "enemy",
+   "battle": true,
    "grid": true,
    "desc": "A foe within 30 ft makes a CON save or is blinded, saving again at the end of each of its turns. Not built: the deafness choice, and extra targets at higher slots.",
    "src": "SRD 5.1 Blindness/Deafness (the class NPCs, 09-28: deep16/js/grimoire.js)",
@@ -7744,7 +7748,8 @@
     "humanoid"
    ],
    "traits": {
-    "lightSensitive": true
+    "lightSensitive": true,
+    "feyAncestry": true
    },
    "attacks": {
     "shortsword": {
@@ -7813,7 +7818,8 @@
     "humanoid"
    ],
    "traits": {
-    "lightSensitive": true
+    "lightSensitive": true,
+    "feyAncestry": true
    },
    "attacks": {
     "shortsword": {
@@ -7864,7 +7870,8 @@
     "humanoid"
    ],
    "traits": {
-    "lightSensitive": true
+    "lightSensitive": true,
+    "feyAncestry": true
    },
    "pickSpecial": true,
    "attacks": {
@@ -8375,7 +8382,8 @@
     "poison"
    ],
    "condImmune": [
-    "poisoned"
+    "poisoned",
+    "charmed"
    ],
    "attacks": {
     "bite": {

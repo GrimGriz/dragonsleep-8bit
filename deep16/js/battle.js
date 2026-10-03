@@ -1000,6 +1000,7 @@
     o = o || {};
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
+    if (att.conds && att.conds.sanctuary && D.magic.unward) D.magic.unward(this, att, 'an attack'); // (SRD 5.1 Sanctuary: "If the warded creature makes an attack ... this spell ends" -- 10-03)
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
     att.facing = faceTo(att, tgt);
@@ -1107,7 +1108,7 @@
         var hd = RU.damage(atk.dice, atk.mod || 0, {});
         D.sfx('hit'); FX.float('OOF', host, D.PAL.ramps.fire[2]);
         this.card(['{o}A natural 1:{/} the blow meant for the ' + shortName(tgt) + ' lands on ' + nameOf(host) + '.  ' + atk.dice + RU.sign(atk.mod || 0) + ' ' + RU.fmtRolls(hd.rolls) + ' = {r}' + hd.total + '{/} ' + (atk.type || '')], 320);
-        this.hurt(host, hd.total, atk.type);
+        this.hurt(host, hd.total, atk.type, { magic: !!(atk.magic || atk.spell) });
         yield o.oa ? 16 : 30; att.anim = 'idle'; return;
       }
       if (o.onMiss) o.onMiss(tgt); FX.float('MISS', tgt, D.PAL.ramps.silver[5]);
@@ -1204,9 +1205,10 @@
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
     if (fire) { FX.sparkle(tgt, 'fire', 12); this.hurt(tgt, fire, 'fire'); }
     if (rad && !tgt.dead) this.hurt(tgt, rad, 'radiant');
-    if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type);
-    for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1]);
-    if (!tgt.dead) this.hurt(tgt, dmg, atk.type);
+    var blowSrc = { magic: !!(atk.magic || atk.spell) }; // (the weapon's magic, or a spell attack's: Stoneskin reads it in hurt())
+    if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type, blowSrc);
+    for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1], { magic: true }); // (a mark's, a curse's: a spell's)
+    if (!tgt.dead) this.hurt(tgt, dmg, atk.type, blowSrc);
     // disruption: one left at 25 HP or fewer saves WIS DC 15 or is destroyed; on a success it is frightened of the wielder till the
     // end of his next turn (`fresh`: the Slam's idiom -- ai.js's end-of-turn sweep spares it once)
     if (dis && !tgt.dead && tgt.hp > 0 && tgt.hp <= dis.hp) {
@@ -1354,7 +1356,7 @@
         var hd = RU.damage(atk.dice, atk.mod || 0, {});
         D.sfx('hit'); FX.float('OOF', held, D.PAL.ramps.fire[2]);
         this.card(['{o}A natural 1:{/} the blow meant for the tendril lands on ' + nameOf(held) + '.  ' + atk.dice + RU.sign(atk.mod || 0) + ' ' + RU.fmtRolls(hd.rolls) + ' = {r}' + hd.total + '{/} ' + (atk.type || '')], 320);
-        this.hurt(held, hd.total, atk.type);
+        this.hurt(held, hd.total, atk.type, { magic: !!(atk.magic || atk.spell) });
       } else FX.float('MISS', held, D.PAL.ramps.silver[5]);
       yield o.oa ? 16 : 24; att.anim = 'idle'; return;
     }
@@ -1531,7 +1533,16 @@
     // (what the spell does, for "you see a foe cast a spell": the creatures it hurt or marked, the squares of what it laid -- told only with a ready armed)
     var pre = B && B.readyArmed && B.units && B.readyArmed() ? { z: {}, hp: {}, c: [] } : null;
     if (pre) { ZK.forEach(function (k) { pre.z[k] = (B[k] || []).slice(); }); B.units.forEach(function (w) { pre.hp[w.id] = w.hp; Object.keys(w.conds || {}).forEach(function (k) { var c = w.conds[k]; if (c && typeof c === 'object') pre.c.push(c); }); }); }
+    // Sanctuary (SRD 5.1: "If the warded creature ... casts a spell that affects an enemy creature, this spell ends" -- 10-03, M.unward had no caller): a foe it was
+    // aimed at, or one it hurt or laid something on (an area's catch), ends the caster's ward; a spell on friends keeps it
+    var ward = u && u.conds && u.conds.sanctuary && B && B.units ? { hp: {}, c: {} } : null;
+    if (ward) B.units.forEach(function (w) { if (!G.hostile(u, w)) return; ward.hp[w.id] = w.hp; ward.c[w.id] = Object.assign({}, w.conds); });
     var r = yield* cast0.apply(this, arguments);
+    if (ward && u.conds.sanctuary && D.magic.unward) {
+      var aimed = t && t.units ? t.units : t && t.hp != null ? [t] : [];
+      var touched = aimed.some(function (w) { return w && w.hp != null && G.hostile(u, w); }) || B.units.some(function (w) { return ward.hp[w.id] != null && (w.hp < ward.hp[w.id] || w.dead || Object.keys(w.conds || {}).some(function (k) { return ward.c[w.id][k] !== w.conds[k]; })); });
+      if (touched) D.magic.unward(B, u, 'a spell at a foe');
+    }
     if (B && B.readyAfter && B.units && B.readyArmed()) {
       var ef = { units: [], sq: [] };
       if (pre) {
@@ -1573,7 +1584,7 @@
   Battle.prototype.faceTo = faceTo;
 
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
-  Battle.prototype.hurt = function (u, n, type) {
+  Battle.prototype.hurt = function (u, n, type, src) { // (src: { magic: true } when the blow is magical -- a spell, a magic weapon, a monster's magical attacks)
     if (n <= 0) return;
     u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
     if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
@@ -1594,7 +1605,8 @@
       var vic = u.holding[0], half = Math.floor(n / 2);
       if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
     }
-    if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '')) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
+    // Stoneskin (SRD 5.1: "resistance to nonmagical bludgeoning, piercing, and slashing damage" -- 10-03: a magic blade or a spell's hail lands whole)
+    if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type || '') && !(src && src.magic)) { n = Math.floor(n / 2); FX.float('stoneskin', u, D.PAL.ramps.silver[5]); }
     // the class NPCs' wards (09-28, js/grimoire.js): Protection from Energy (one element halved), Protection from Poison, Rage (blades and
     // blows halved), Warding Bond (all of it halved -- and the one who bound it takes as much)
     var ward = u.conds;

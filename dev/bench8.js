@@ -159,6 +159,154 @@
         swing({ stunned: { rounds: 3 } }, 'on the stunned: a hit, no critical', false);
         swing({ paralyzed: { rounds: 3 } }, 'on the paralyzed: a critical (SRD 5.1)', true);
       } finally { DS.d = d0; DS.roll = roll0; }
+    } else if (test === 'fixes1003') {
+      // the cheap SRD fixes (10-03, Griz: "4 yes" to "The cheap SRD fixes as one Sonnet or cloud batch?"; spells-two-books.md §2): castSpell run
+      // straight, its pickers answered from a queue (a foe's or hero's name, a menu's label, null to cancel; nothing queued takes the first),
+      // the dice counted. Each check failed before its fix (spell-fixes-notes.md)
+      var roll0F = DS.roll, d0F = DS.d, scene0F = DS.W8.scene, rollsF = [], ansF = [], offeredF = [], QdF = [];
+      DS.roll = function (e, o) { rollsF.push(e); return roll0F(e, o); };
+      DS.d = function (n) { return QdF.length ? QdF.shift() : d0F(n); };
+      function nmF(u) { return u.h ? u.h.name : u.name; }
+      function answerF(sc) {
+        var a = ansF.length ? ansF.shift() : undefined, up = function (x) { return String(x).toUpperCase(); };
+        if (sc.kind === 'target') {
+          offeredF.push(sc.list.map(nmF));
+          if (a === null) return null; if (a && typeof a === 'object') return a;
+          return a === undefined ? sc.list[0] : sc.list.filter(function (u) { return up(nmF(u)).indexOf(up(a)) === 0; })[0] || null;
+        }
+        if (sc.kind === 'menu') {
+          var items = sc.menu.items; offeredF.push(items.map(function (it) { return it.label + (it.disabled ? ' (grey)' : ''); }));
+          if (a === null) return null;
+          var it = a === undefined ? items.filter(function (x) { return !x.disabled; })[0] : items.filter(function (x) { return !x.disabled && up(x.label).indexOf(up(a)) === 0; })[0];
+          return it ? (it.value !== undefined ? it.value : it) : null;
+        }
+      }
+      function runF(gen) { var s, v; DS.W8.scene = function (sc) { return { __sc: sc }; }; try { do { s = gen.next(v); v = s.value && s.value.__sc ? answerF(s.value.__sc) : undefined; } while (!s.done); } finally { DS.W8.scene = scene0F; } return s.value; }
+      try {
+        T.startFight(['ogre', 'ogre', 'ogre']);
+        for (var wF = 0; wF < 400 && !DS.find('battle'); wF++) T.step(1);
+        var bF = DS.find('battle'), heroF = function (id) { return bF.heroes.filter(function (x) { return x.h.id === id; })[0]; };
+        var AF = heroF('aurdin'), stF = function () { return { actions: 1, bonus: 1, surged: false, sneakUsed: false }; };
+        bF.intro = 0;
+        function foesF(ids, hp) { // a fresh line of foes on the same field, each with hp to spare
+          var n = {}; bF.foes = ids.map(function (id) { var m = DS.DATA.monsters[id]; n[id] = (n[id] || 0) + 1; var f = bF.makeFoe(m, m.name + ' ' + String.fromCharCode(64 + n[id])); if (hp) f.hp = f.maxhp = hp; return f; });
+          bF.layoutFoes(); return bF.foes;
+        }
+        function savesF(f, o) { f.m = Object.assign({}, f.m, { saves: Object.assign({}, f.m.saves, o) }); }
+        function castF(u, id, answers, slots) { ansF = (answers || []).slice(); offeredF = []; rollsF = []; T.blog = []; if (slots) { u.h.slots = slots.slice(); u.h.slotsMax = slots.slice(); } return runF(bF.castSpell(u, DS.DATA.spells[id], stF())); }
+        function saidF() { return (T.blog || []).join(' | '); }
+
+        // 1. one damage roll for an area (SRD 5.1, Damage Rolls: "If a spell or other effect deals damage to more than one target at the same time,
+        // roll the damage once for all of them"): Fireball on three ogres, two failing and one saving; Ice Storm's two dice the same
+        var o1 = foesF(['ogre', 'ogre', 'ogre'], 400); savesF(o1[0], { dex: -30 }); savesF(o1[1], { dex: -30 }); savesF(o1[2], { dex: 30 });
+        castF(AF, 'fireball', [], [4, 3, 3]);
+        var lost1 = o1.map(function (f) { return 400 - f.hp; }), n1 = rollsF.filter(function (e) { return e === '8d6'; }).length;
+        check('1. Fireball on three ogres: 8d6 rolled ' + n1 + ' time(s); the two caught lose ' + lost1[0] + ' and ' + lost1[1] + ', the one who saved ' + lost1[2], n1 === 1 && lost1[0] === lost1[1] && lost1[2] === Math.floor(lost1[0] / 2));
+        var o1b = foesF(['ogre', 'ogre', 'ogre'], 400); o1b.forEach(function (f) { savesF(f, { dex: -30 }); });
+        castF(AF, 'icestorm', [], [4, 3, 3, 1]);
+        var lost1b = o1b.map(function (f) { return 400 - f.hp; }), n1b = rollsF.filter(function (e) { return e === '2d8' || e === '4d6'; }).length;
+        check('1. Ice Storm on three ogres: its 2d8 and 4d6 rolled ' + n1b + ' times in all; each loses ' + lost1b.join(', '), n1b === 2 && lost1b[0] === lost1b[1] && lost1b[1] === lost1b[2]);
+
+        // 2. Mislead's double (SRD 5.1: "You become invisible at the same time that an illusory double of you appears where you are standing"): one image
+        // stands, and an ogre's club goes at it on the d20 (11+ with one, Mirror Image's rule); the club 15 (at disadvantage: he is unseen) bursts it
+        var o2 = foesF(['ogre'], 400); AF.conds = {}; AF.images = 0; AF.h.maxhp = AF.h.hp = 400;
+        castF(AF, 'mislead', [], [4, 3, 3, 3, 1]);
+        var inv2 = !!AF.conds.invisible, im2 = AF.images, hp2 = AF.h.hp;
+        T.blog = []; QdF = [15, 15, 11]; runF(bF.foeAttack(o2[0], AF, o2[0].m.attacks.club)); QdF = [];
+        check('2. Mislead: invisible ' + inv2 + ', a double up (' + im2 + '); the club goes at it -- "' + saidF() + '" -- and he is unhurt (' + (AF.h.hp === hp2) + ')', inv2 && im2 === 1 && AF.images === 0 && AF.h.hp === hp2 && /an image of Aurdin\. It bursts!/.test(saidF()));
+
+        // 3. Lesser Restoration ends one thing (SRD 5.1: "end either one disease or one condition afflicting it"): Barley paralyzed, blinded and
+        // poisoned, Lymen asked which and answering BLINDNESS -- the blindness ends, the other two stay; a paralysing poison alone is one ailment,
+        // ended whole with no question asked
+        var LF = heroF('lymen'), BF = heroF('barley');
+        BF.conds = { paralyzed: { rounds: 3 }, blinded: { rounds: 3 }, poisoned: { rounds: 3 } };
+        castF(LF, 'lesserrestoration', ['Barley', 'BLIND'], [4, 2]);
+        var asked3 = (offeredF[1] || []).join(', ');
+        check('3. Lesser Restoration on Barley, three ailments: asked "' + asked3 + '"; after BLINDNESS: ' + Object.keys(BF.conds).join(',') + ' -- "' + saidF() + '"', asked3 === 'PARALYSIS, BLINDNESS, POISON' && !BF.conds.blinded && !!BF.conds.paralyzed && !!BF.conds.poisoned);
+        BF.conds = { poisoned: { rounds: 3 }, paralyzed: { linked: 'poisoned' } };
+        castF(LF, 'lesserrestoration', ['Barley'], [4, 2]);
+        check('3. the crawler\'s poison (paralyzed riding on poisoned): ' + offeredF.length + ' picker(s) (the friend only: no END WHICH), both gone (' + !Object.keys(BF.conds).length + ') -- "' + saidF() + '"', offeredF.length === 1 && !Object.keys(BF.conds).length);
+
+        // 4. Sleep (SRD 5.1: "Undead and creatures immune to being charmed aren't affected"; the drow's Fey Ancestry: "magic can't put the drow to
+        // sleep"): a drow, a drow spell-weaver, a spirit naga (charmed: immune, the SRD's block) and a goblin, each at 1 HP -- the goblin alone sleeps
+        var o4 = foesF(['drow', 'spellweaver', 'naga', 'goblin']); o4.forEach(function (f) { f.hp = 1; f.conds = {}; });
+        castF(AF, 'sleep', [], [4, 3, 3]);
+        var slept4 = o4.filter(function (f) { return f.conds.asleep; }).map(nmF).join(', ');
+        check('4. Sleep on a drow, a spell-weaver, a naga and a goblin at 1 HP: asleep "' + slept4 + '" -- "' + saidF() + '"', slept4 === 'Goblin A');
+
+        // 5. Hideous Laughter, hurt (SRD 5.1: "each time it takes damage, the target can make another Wisdom saving throw. The target has advantage on
+        // the saving throw if it's triggered by damage. On a success, the spell ends"): an ogre laughing (WIS DC 15), cut for 5 -- the save's d20s 2 and
+        // 19, so only advantage carries it; then dice of 2 and 3, and the laughter holds
+        var o5 = foesF(['ogre'], 400)[0], dc5 = 15;
+        o5.conds = { laughing: { rounds: 10, save: { ab: 'wis', dc: dc5 } }, prone: true }; bF.pendingMsg = null;
+        QdF = [2, 19]; bF.hurt(o5, 5, 'slashing', {}); QdF = [];
+        var msg5 = bF.pendingMsg || '', ended5 = !o5.conds.laughing;
+        o5.conds = { laughing: { rounds: 10, save: { ab: 'wis', dc: dc5 } }, prone: true };
+        QdF = [2, 3]; bF.hurt(o5, 5, 'slashing', {}); QdF = []; bF.pendingMsg = null;
+        check('5. Hideous Laughter on an ogre, hurt: the save with advantage (2 and 19) ends it (' + ended5 + ', "' + msg5 + '"), still prone (' + !!o5.conds.prone + '); a 2 and a 3 leave it laughing (' + !!o5.conds.laughing + ')', ended5 && /jolted out/.test(msg5) && !!o5.conds.laughing && !!o5.conds.prone);
+
+        // 6. Sleet Storm (SRD 5.1: "When a creature enters the spell's area for the first time on a turn or starts its turn there, it must make a
+        // Dexterity saving throw. On a failed save, it falls prone"): an ogre's turn in the sleet, its DEX hopeless -- it goes down, and its turn goes
+        // on from the ice (the reading, spell-fixes-notes.md: the fall costs no action; the prone's own disadvantage, and it gets up at its next turn)
+        var o6 = foesF(['ogre'], 400)[0]; savesF(o6, { dex: -30 });
+        bF.heroes.forEach(function (x) { x.h.maxhp = x.h.hp = Math.max(x.h.hp, 400); x.h.ko = false; x.conds = {}; x.images = 0; });
+        bF.cloud = { kind: 'sleet', rounds: 10, dc: 15, save: 'dex' }; T.blog = [];
+        runF(bF.foeTurn(o6)); bF.cloud = null;
+        check('6. an ogre\'s turn in the sleet: down (' + !!o6.conds.prone + ') and it still swings -- "' + saidF() + '"', !!o6.conds.prone && /goes down on the ice/.test(saidF()) && /Ogre A clubs/.test(saidF()));
+
+        // 7. the darts and the rays, each its own target (SRD 5.1 Magic Missile: "Each dart hits a creature of your choice ... you can direct them to hit
+        // one creature or several"; Scorching Ray: "You can hurl them at one target or several"): Aurdin's darts at A, B and C; then A, B and X (the
+        // rest at B); his rays at A, C, C (every attack d20 a 15); a caster the battle runs weighs its own (the weakest till it should be down)
+        var o7 = foesF(['goblin', 'goblin', 'goblin'], 400), lost7 = function () { return o7.map(function (f) { return 400 - f.hp; }); };
+        castF(AF, 'magicmissile', ['Goblin A', 'Goblin B', 'Goblin C'], [4, 3, 3]);
+        var l7a = lost7(), ask7 = offeredF.length;
+        check('7. Magic Missile, a dart each at A, B, C: they lose ' + l7a.join(', ') + ' (' + ask7 + ' pickers) -- "' + saidF() + '"', l7a.every(function (x) { return x >= 2 && x <= 5; }) && ask7 === 3);
+        o7 = foesF(['goblin', 'goblin', 'goblin'], 400);
+        castF(AF, 'magicmissile', ['Goblin A', 'Goblin B', null], [4, 3, 3]);
+        var l7b = lost7();
+        check('7. darts at A, B, then X (the rest at B): they lose ' + l7b.join(', '), l7b[0] >= 2 && l7b[0] <= 5 && l7b[1] >= 4 && l7b[1] <= 10 && l7b[2] === 0);
+        o7 = foesF(['goblin', 'goblin', 'goblin'], 400); var d20F = bF.d20; bF.d20 = function () { return 15; };
+        try { castF(AF, 'scorchingray', ['Goblin A', 'Goblin C', 'Goblin C'], [4, 3, 3]); } finally { bF.d20 = d20F; }
+        var hitA7 = (saidF().match(/Goblin A takes/g) || []).length, hitC7 = (saidF().match(/Goblin C takes/g) || []).length;
+        check('7. Scorching Ray at A, C, C: A hit ' + hitA7 + ', C ' + hitC7 + ', B untouched (' + (o7[1].hp === 400) + ')', hitA7 === 1 && hitC7 === 2 && o7[1].hp === 400);
+        o7 = foesF(['goblin', 'goblin', 'goblin'], 400); o7[1].hp = 3;
+        var aim7 = bF.aimShots(AF, DS.DATA.spells.magicmissile, 3).map(nmF);
+        check('7. the darts a caster the battle runs would send (B at 3 HP, A and C at 400): ' + aim7.join(', '), aim7[0] === 'Goblin B' && aim7[1] !== 'Goblin B');
+
+        // 8. Bless from a higher slot (SRD 5.1: "When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature
+        // for each slot level above 1st"): Lymen with no 1st-level slot left blesses all four of the party in one cast; from a 1st, three (Barley goes
+        // without); Ingrith's turn (the cleric's, run here on Lymen) the same by her slot
+        foesF(['goblin', 'goblin'], 400);
+        var blessed8 = function () { return bF.heroes.filter(function (x) { return x.buff && x.buff.id === 'bless'; }).map(nmF); };
+        bF.heroes.forEach(function (x) { x.buff = null; });
+        castF(LF, 'bless', [], [0, 2]);
+        var b8a = blessed8();
+        bF.heroes.forEach(function (x) { x.buff = null; });
+        castF(LF, 'bless', [], [4, 2]);
+        var b8b = blessed8();
+        check('8. Bless from a 2nd-level slot: ' + b8a.length + ' blessed (' + b8a.join(', ') + '); from a 1st: ' + b8b.length + ' (' + b8b.join(', ') + ')', b8a.length === 4 && b8b.length === 3 && b8b.indexOf('Barley') < 0);
+        bF.heroes.forEach(function (x) { x.buff = null; }); if (LF.h.known.indexOf('bless') < 0) LF.h.known.push('bless');
+        LF.h.slots = [0, 2]; var round8 = bF.round; bF.round = 1; T.blog = [];
+        try { runF(bF.clericTurn(LF)); } finally { bF.round = round8; }
+        check('8. the cleric\'s turn, a 2nd-level slot: ' + blessed8().length + ' blessed -- "' + saidF() + '"', blessed8().length === 4);
+
+        // 9. Blindness/Deafness in the 8-bit (Griz, 10-03: "4 yes", the flag among the cheap fixes; SRD 5.1: "the target is either blinded or deafened
+        // ... At the end of each of its turns, the target can make a Constitution saving throw. On a success, the spell ends"): in Aurdin's battle list
+        // once he knows it; on an ogre with no CON to speak of, blinded with the save each turn; its club at disadvantage, his friends' blows at advantage
+        if (AF.h.known.indexOf('blindnessdeafness') < 0) AF.h.known.push('blindnessdeafness'); if (AF.h.prepared && AF.h.prepared.indexOf('blindnessdeafness') < 0) AF.h.prepared.push('blindnessdeafness');
+        var in9 = R.spellList(AF.h, 'battle').some(function (x) { return x.id === 'blindnessdeafness'; });
+        var o9 = foesF(['ogre'], 400)[0]; savesF(o9, { con: -30 }); AF.conds = {};
+        if (in9) castF(AF, 'blindnessdeafness', ['Ogre'], [4, 3, 3]);
+        var c9 = o9.conds.blinded, adv9 = bF.advantage(o9, BF, true), adv9b = bF.advantage(BF, o9, true);
+        check('9. Blindness/Deafness in his battle list (' + in9 + '); on the ogre: blinded ' + !!c9 + ', the CON save at its turn\'s end ' + !!(c9 && c9.save && c9.save.ab === 'con') + '; its club ' + adv9 + ', Barley\'s blow ' + adv9b + ' -- "' + saidF() + '"', in9 && !!c9 && !!c9.save && c9.save.ab === 'con' && adv9 === -1 && adv9b === 1);
+      } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
+      // the fight itself (what it shows goes in spell-fixes-notes.md): Aurdin casts it on the first ogre from the menus, and the battle runs on
+      if (Q.get('fight9')) {
+        var b9x = DS.find('battle'); if (b9x) { b9x.over = 'win'; drive({}, 2000); }
+        var au9 = g.hero('aurdin'); au9.hp = au9.maxhp = 400; au9.slots = [4, 3, 3];
+        T.startFight(['ogre', 'ogre']);
+        drive({ aurdin: ['MAGIC', 'Blindness', 'Ogre A', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT', 'FIGHT'] }, 6000);
+      }
     } else if (test === 'ingrith') {
       DS.EV.addGuest('ingrith');
       var ing = g.guests[0].h;

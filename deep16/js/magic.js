@@ -7,6 +7,7 @@
 (function () {
   var D = window.D16, G = D.grid, RU = D.rules, FX = D.fx;
   var M = D.magic = {};
+  var MAGIC = { magic: true }; // (B.hurt's fourth: a spell's damage is magical -- Stoneskin halves none of it; 10-03)
 
   M.data = function (id) { return (window.DS.DATA.spells[id]) || (D.EXTRA_SPELLS || {})[id]; };
   // house rules the seat proposes, each a switch (torchdark, 09-28): Magic Missile may be aimed at a square the caster cannot see
@@ -204,6 +205,8 @@
     // Mage Armor: not on one in armour, nor one already under it -- said, not silent (10-01, Griz in the wizard room: "think we broke the
     // mage-armor cast select": the class floor's wizards come in with it up, so a click on any of them did nothing at all)
     if (g && g.unarmored && w && w.conds && (w.armored || w.conds.mageArmor)) return w.conds.mageArmor ? 'already under Mage Armor' : 'in armour';
+    // Magic Weapon (SRD 5.1: "You touch a nonmagical weapon" -- 10-03, it took a +1 to +2): not a blade that is magic already, nor an empty hand
+    if (g && g.nonmagical && w) { if (!w.weapon || w.weapon.name === 'Unarmed Strike') return 'holding no weapon'; if (w.weapon.magic) return 'holding a weapon that is magic already (the spell takes a nonmagical one)'; }
     var c = g && g.noStack && w && w.conds && w.conds[g.noStack];
     if (!c) return '';
     return !!c.down === (w.side !== u.side) ? 'already ' + (c.down ? 'reduced' : 'enlarged') : '';
@@ -369,12 +372,25 @@
       // cloaker hit, then its face and the line -- and the thing struck comes for the caster (ai.js brute: grudge)
       var gim = B.fight && B.fight.gimmick === 'darkness' && atDark && u.side === 'party' && !B.gimmickDone;
       if (gim) yield { scene: { who: u, anim: 'attack', facing: 0, scale: 3, frames: 250, clip: 'audio/attacking_the_darkness.mp3', caption: 'MAGIC MISSILE. AT THE DARKNESS.' } };
-      var lines = [head + ' -- ' + (darts.length + shutD.length) + ' darts, each 1d4+1 force, never missing' + (atDark ? '  {p}AT THE DARKNESS{/}' : '')], tot = {}, who = {}, struck = [];
+      // Shield (SRD 5.1: "1 reaction, which you take when you are hit by an attack or targeted by the magic missile spell ... you take no damage from magic missile"
+      // -- 10-03): one with the barrier already up takes none of the darts; one who knows it, with a slot and the reaction, may raise it as they fly (a player is
+      // asked; the AI raises it when two darts or more come at it, or the darts could drop it). The 8-bit's Shield is the claude/8bit-reactions branch's
+      var barred = [], shLines = [];
+      for (var si = 0; si < darts.length; si++) {
+        var sw = darts[si]; if (sw.hp == null || sw.dark || sw === u || darts.indexOf(sw) !== si) continue;
+        var nAt = darts.filter(function (x) { return x === sw; }).length, ssl = M.slotLevels(sw, 1)[0];
+        if (!sw.conds.shield && sw.reaction > 0 && RU.canAct(sw) && (sw.known || []).indexOf('shield') >= 0 && ssl && (!sw.guest || sw.classAI)) {
+          var shYes = sw.side !== 'party' || sw.guest ? (nAt >= 2 || sw.hp <= 5 * nAt) : yield { prompt: { who: sw, title: sw.name + ': SHIELD?', lines: [nAt + (nAt > 1 ? ' darts' : ' dart') + ' of Magic Missile at you.', 'Shield: no damage from them, and +5 AC till your turn. (a level-' + ssl + ' slot, the reaction)'], opts: [{ label: 'CAST SHIELD', value: true }, { label: 'TAKE THEM', value: false }] } };
+          if (shYes) { sw.slots[ssl - 1]--; sw.reaction = 0; sw.conds.shield = true; FX.ring(sw, 'glow', 50); D.sfx('buff'); shLines.push('  ' + sw.name + ': {c}SHIELD{/} -- the barrier goes up as they fly'); }
+        }
+        if (sw.conds.shield) barred.push(sw);
+      }
+      var lines = [head + ' -- ' + (darts.length + shutD.length) + ' darts, each 1d4+1 force, never missing' + (atDark ? '  {p}AT THE DARKNESS{/}' : '')].concat(shLines), tot = {}, who = {}, struck = [];
       shutD.forEach(function (w, i) { if (shutD.indexOf(w) === i) lines.push('  ' + (w.side === 'foe' ? B.shortName(w) : w.name) + ': {c}inside the globe: ' + shutD.filter(function (x) { return x === w; }).length + ' broke on it, untouched{/}'); });
       for (var k = 0; k < darts.length; k++) { FX.projectile(u, darts[k], 'fire'); }
       yield { fx: 1 };
       darts.forEach(function (w) { var r = D.roll('1d4+1'); tot[w.id] = (tot[w.id] || 0) + r.total; who[w.id] = w; });
-      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force'); if (w.side === 'foe') struck.push(w); });
+      Object.keys(tot).forEach(function (wid) { var w = who[wid]; if (w.dark) { lines.push('  {g}' + tot[wid] + ' force into the dark: nothing there.{/}'); return; } if (barred.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}the darts break on the shield -- no damage{/}'); return; } lines.push('  ' + w.name + ': {r}' + tot[wid] + '{/}' + (M.sees(B, u, w) ? '' : ' {p}(something was there){/}')); B.hurt(w, tot[wid], 'force', MAGIC); if (w.side === 'foe') struck.push(w); });
       B.card(lines, 360); yield 30;
       if (gim && struck.length) {
         B.gimmickDone = true;
@@ -411,7 +427,7 @@
         if (M.globed && M.globed(B, u, w, sp.level)) { lines2.push('  ' + w.name + ': {c}inside the globe: untouched{/}'); return; } // (the Globe of Invulnerability, SRD 5.1)
         var sv = RU.save(w, 'dex', dc);
         lines2.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' + (potent ? ' -> ' + Math.floor(r1.total / 2) : '') : '{o}failed -> ' + r1.total + '{/}'));
-        if (!sv.ok) B.hurt(w, r1.total, 'acid'); else if (potent) B.hurt(w, Math.floor(r1.total / 2), 'acid');
+        if (!sv.ok) B.hurt(w, r1.total, 'acid', MAGIC); else if (potent) B.hurt(w, Math.floor(r1.total / 2), 'acid', MAGIC);
       });
       B.card(lines2, 360); yield 30;
     } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') {
@@ -626,9 +642,13 @@
       if (!caught.length && !globeLines.length) lines.push('  {g}no one in it.{/}');
       B.card(lines.slice(0, 7), 420);
       yield { fx: 1 };
-      hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el); });
+      hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el, MAGIC); });
       // Thunderwave: a failed save is pushed 10 ft straight away from the caster (stopped by a wall, a creature, the edge)
       if (g.shape === 'wave') hits.forEach(function (h) { if (!h[2]) M.push(B, u, h[0], 2); });
+      // Ice Storm: "Hailstones turn the storm's area of effect into difficult terrain until the end of your next turn" (SRD 5.1 -- 10-03, the register said
+      // difficult and it was not): a spell's ground (M.rough), gone when its caster's next turn ends (M.endTurn counts them: this one's end, then the next;
+      // cast off his own turn, a readied storm, the next end is the one)
+      if (id === 'icestorm') { B.grounds = (B.grounds || []).concat([{ kind: 'hail', sq: sq, by: u.id, difficult: true, ends: B.active === u ? 2 : 1 }]); B.card(['  {c}hailstones cover the ground: difficult till the end of ' + u.name + '\'s next turn{/}'], 240); }
       yield 30;
       return;
     }
@@ -665,6 +685,7 @@
   M.groundsTime = function (B, u) {
     if (!B || !B.grounds || !B.grounds.length || B.round == null) return;
     B.grounds = B.grounds.filter(function (g) {
+      if (g.ends != null) { var by0 = B.units.filter(function (w) { return w.id === g.by; })[0]; if (by0 && !by0.dead && !by0.fled && !by0.left && by0.hp > 0) return true; B.card(['{g}The hail melts into the ground.{/}'], 240); return false; } // (its caster gone or down: no turn of his to end it -- Ice Storm's hail, M.endTurn)
       if (typeof g.till !== 'number') return true;
       if (g.born == null) g.born = B.round;
       if (B.round < g.born + g.till) return true;
@@ -736,6 +757,8 @@
   // the end: a paralyzed creature tries its save again (Hold Monster)
   M.endTurn = function (B, u) {
     if (B && M.onEnd) M.onEnd(B, u); // (the class NPCs' spells: the saves at a turn's end, the timers -- js/grimoire.js)
+    // a ground that lasts till the end of its caster's next turn (Ice Storm's hail: `ends`, his turn ends still to come -- 10-03)
+    if (B && B.grounds && B.grounds.length) B.grounds = B.grounds.filter(function (g) { if (g.ends == null || g.by !== u.id || --g.ends > 0) return true; B.card(['{g}The hail melts into the ground.{/}'], 240); return false; });
     if (B && u.conc && u.conc.id === 'truestrike' && u.conc.held) M.endConc(B, u, 'its round is up'); // (True Strike: the next turn was its round -- startTurn)
     if (u.conds.poisoned && u.conds.poisoned.save && !u.conds.paralyzed) M.poisonSave(B, u);
     var p = u.conds.paralyzed;
@@ -1016,6 +1039,6 @@
     if (!e || u.hp <= 0 || u.dead) return;
     var r = D.roll('2d4');
     B.card([(u.side === 'foe' ? '{r}The ' + B.shortName(u) + '{/}' : '{y}' + u.name + '{/}') + ' starts its turn in the burning web: 2d4 ' + RU.fmtRolls(r.rolls) + ' = ' + r.total + ' fire'], 260);
-    B.hurt(u, r.total, 'fire');
+    B.hurt(u, r.total, 'fire', MAGIC);
   };
 })();

@@ -17,7 +17,10 @@
   };
   // a condition it cannot be given (the 8-bit sheet's condImmune, carried by battle.js makeFoe; review 09-28 #9)
   // (by: the one laying it, where the caller knows -- Nature's Ward, the druid's 10: no elemental or fey charms or frightens it)
+  // (Protection from Evil and Good, SRD 5.1: "The target also can't be charmed, frightened, or possessed by them" -- the six types; 10-03, it gave the disadvantage only)
+  var OTHERWORLD = /^(aberration|celestial|elemental|fey|fiend|undead)$/, FEAR_CHARM = /^(charmed|hypnotized|frightened|feared|possessed)$/;
   RU.immuneTo = function (u, cond, by) { return !!(u && ((u.condImmune && u.condImmune.indexOf(cond) >= 0) || (u.natureWard && by && /^(elemental|fey)$/.test(by.type) && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) || (u.conds && u.conds.freeMove && /restrained|paralyzed|grappled/.test(cond))
+    || (u.conds && u.conds.pfeg && by && OTHERWORLD.test(by.type || '') && FEAR_CHARM.test(cond))
     || (u.conds && u.conds.raging && u.subclass === 'Path of the Berserker' && u.lvl >= 6 && /^(charmed|hypnotized|frightened|feared)$/.test(cond)) // (Mindless Rage, the Berserker's 6: js/features.js F.mindless suspends what it had)
     || (/^(charmed|hypnotized)$/.test(cond) && G.units && RU.inAura(u, 'devotion')))); }; // (Freedom of Movement: js/grimoire.js; Aura of Devotion: RU.auraOf below)
 
@@ -98,13 +101,16 @@
     // advantage: Dodge and Haste on DEX; Beacon of Hope on WIS; a creature's own (Danger Sense, Magic Resistance: o.adv). Disadvantage: restrained on DEX
     var ccm = !!(against && FRIGHT_CHARM.test(against) && RU.countercharmed(u)), stw = !!(against && u.hunterDef === 'steelwill' && /^(frightened|feared)$/.test(against)), counter = ccm ? 1 : stw ? 2 : 0; // (Countercharm; Steel Will, the Hunter's 7)
     var pfp = !!(c.poisonWard && /^poison(ed)?$/.test(against || '')); // (Protection from Poison: advantage on saves against being poisoned, and against poison -- js/grimoire.js lays the ward)
+    // Protection from Evil and Good, a charm or fright already on it from one of the six types (SRD 5.1: "advantage on any new saving throw against the relevant effect" -- 10-03)
+    var held = c.pfeg && against && FEAR_CHARM.test(against) ? c[/^(frightened|feared)$/.test(against) ? 'frightened' : against] || (/^(frightened|feared)$/.test(against) && c.feared) : null;
+    var pfg = !!(held && held.by && D.battle && (D.battle.units || []).some(function (w) { return w.id === held.by && OTHERWORLD.test(w.type || ''); }));
     // Duergar Resilience (SRD 5.1: "advantage on saving throws against poison, spells, and illusions, as well as to resist being charmed or paralyzed" -- sheet flag `resilient`, 10-02 runner). A save
     // against a spell is one made while a cast is under way (js/grimoire.js M.cast sets B.castLevel -- 0 for a cantrip -- for the whole of it), or while the effects of a spell already running are
     // resolved on this creature (js/traits.js: B.spellRun = u, round its turn's start and end, its steps, its hurts -- Spirit Guardians' turn-start save, a zone's, a web's; 10-02); a poison that harms rides in as `adv0` (RU.vsPoison), a condition as `against`
     var resil = !!(u.resilient && ((D.battle && (D.battle.castLevel != null || D.battle.spellRun === u) && against !== 'concentration') || (against && /^(poison(ed)?|charmed|hypnotized|paralyzed)$/.test(against))));
     // Two Heads (SRD 5.1: the ettin has "advantage on saving throws against being blinded, charmed, deafened, frightened, stunned, and knocked unconscious" -- not on WIS and CON saves at large: 10-02 runner)
     var heads = !!(u.twoHeads && against && /^(blinded|charmed|hypnotized|deafened|frightened|feared|stunned|asleep|unconscious)$/.test(against));
-    var adv = !!adv0 || counter || pfp || resil || heads || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = heightened || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
+    var adv = !!adv0 || counter || pfp || pfg || resil || heads || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = heightened || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
     if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true }; // (SRD 5.1: the paralyzed, the stunned, the unconscious -- not Hideous Laughter's incapacitated and prone, 10-02, Griz: "yes")
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;

@@ -34,6 +34,17 @@
   var END_TEXT = { spiritWeapon: "'s spiritual weapon fades.", magicWeapon: "'s weapon is plain steel again.", branding: "'s waiting light goes out.",
     pfeg: "'s ward against the otherworldly fades.", sanctuary: "'s sanctuary fades." };
   // Command's word falls on no ears among the dead and the witless (the grid's reading: deep16/js/grimoire.js deaf)
+  // what Lesser Restoration may end, the worst first (SRD 5.1: "either one disease or one condition ... blinded, deafened, paralyzed, or poisoned"; the
+  // 8-bit lays no disease and no deafness -- 10-03, the grid's order, deep16/js/magic.js): a paralysing poison (the crawler's feelers, the chuul's
+  // tentacles: paralyzed riding on poisoned) is one ailment, the poison that holds him
+  function ailments(t) {
+    var c = t.conds, L = [], pp = !!(c.paralyzed && c.paralyzed.linked === 'poisoned' && c.poisoned);
+    if (pp) L.push({ label: 'the paralysing poison', end: function () { delete c.poisoned; delete c.paralyzed; } });
+    else if (c.paralyzed) L.push({ label: 'paralysis', end: function () { delete c.paralyzed; } });
+    if (c.blinded) L.push({ label: 'blindness', end: function () { delete c.blinded; } });
+    if (c.poisoned && !pp) L.push({ label: 'poison', end: function () { delete c.poisoned; } });
+    return L;
+  }
   function deafTo(u) { return tags(u)[0] === 'undead' || abil(u, 'int') <= 3; }
 
   function Battle(o) {
@@ -210,6 +221,7 @@
     opt = opt || {};
     var adv = 0;
     if (opt.poison && u.conds.antitoxin) adv++;
+    if (opt.adv) adv++; // (a save the rule itself gives advantage: Hideous Laughter's when hurt)
     if (ab === 'dex' && (u.conds.restrained)) adv--;
     if ((ab === 'str' || ab === 'dex') && failsStrDex(u)) return { total: 0, nat: 1, success: false };
     var r1 = DS.d(20), r2 = DS.d(20), nat = adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1;
@@ -282,6 +294,7 @@
       }
       u.hp -= n;
       if (u.conds.asleep && n > 0) delete u.conds.asleep;
+      if (n > 0 && u.hp > 0) this.laughHurt(u);
       if (m.traits && m.traits.yields && !u.yielded && u.hp > 0 && u.hp <= u.maxhp / 2) { u.yielded = true; this.yielder = u; } // stops when he's beaten, if you do
       if (u.hp <= 0) { u.hp = 0; this.kill(u); }
       else if (m.traits && m.traits.split && type === 'slashing' && u.hp >= 10 && this.foes.length < 8) this.splitFoe(u);
@@ -294,11 +307,18 @@
     if (u.buff && u.buff.temp) { var soak = Math.min(u.buff.temp, n); u.buff.temp -= soak; n -= soak; u.soaked = (u.soaked || 0) + soak; }
     h.hp -= n;
     if (u.conds.asleep && n > 0) delete u.conds.asleep;
+    if (n > 0 && h.hp > 0) this.laughHurt(u);
     if (h.hp <= 0) {
       if (h.feats.relentless && h.hp > -h.maxhp) { h.feats.relentless = 0; h.hp = 1; this.pendingMsg = h.name + ' refuses to fall!'; }
       else { h.hp = 0; h.ko = true; this.release(u); u.conds = {}; u.buff = null; DS.audio.sfx('ko'); }
     }
     return n;
+  };
+  // Hideous Laughter, hurt (SRD 5.1: "each time it takes damage, the target can make another Wisdom saving throw. The target has advantage on the
+  // saving throw if it's triggered by damage. On a success, the spell ends" -- 10-03, the grid's rule): still prone, it gets up at its turn
+  Battle.prototype.laughHurt = function (u) {
+    var c = u.conds.laughing; if (!c || !c.save) return;
+    if (this.save(u, c.save.ab || 'wis', c.save.dc, { adv: 1 }).success) { delete u.conds.laughing; this.pendingMsg = plain(u) + ' is jolted out of the laughter.'; }
   };
   // SRD 5.1 (RULED 09-28, Griz: "17 SRD"): one at 0 who is not dead wakes with any healing, at the healed amount -- a spell, a
   // potion, a paladin's hands (a kit only stabilises; Revivify is for the dead). Before this, a downed hero was "beyond a spell"
@@ -655,7 +675,7 @@
       return true;
     }
     if (this.round === 1 && foes.length > 1 && can('bless')) {
-      var blessed = this.liveHeroes().filter(function (x) { return !x.buff; }).slice(0, 3);
+      var bsp = DS.DATA.spells.bless, blessed = this.liveHeroes().filter(function (x) { return !x.buff; }).slice(0, (bsp.max || 3) + (R.lowestSlot(h, 1) - 1) * (bsp.maxUp || 0)); // (one more a slot above 1st, SRD 5.1 -- 10-03)
       if (blessed.length >= 2) {
         spend('bless'); blessed.forEach(function (x) { x.buff = { id: 'bless', name: 'Bless', rounds: 10 }; self.elemBurst(x, 'buff', 'rise'); });
         DS.audio.sfx('buff');
@@ -1006,11 +1026,27 @@
       u.pose = null; return true;
     }
     // choose targets
-    var targets = [];
-    if (sp.target === 'enemy' || sp.target === 'cone' || sp.target === 'line') {
+    var targets = [], shots = null;
+    // Magic Missile's darts, Scorching Ray's rays: each its own target (SRD 5.1: "you can direct them to hit one creature or several"; "at one target
+    // or several" -- 10-03). Against more than one foe the player aims each; X sends the rest at the last one aimed
+    var shotN = sp.kind === 'auto' ? (sp.darts || 3) + (slot ? slot - sp.level : 0) : sp.kind === 'attack' && sp.target === 'enemy' ? (sp.rays || 1) + (sp.rayUp && slot ? slot - sp.level : 0) : 0;
+    var shotWord = sp.kind === 'auto' ? 'dart' : 'ray';
+    if (shotN > 1 && u.guest) { shots = this.aimShots(u, sp, shotN); if (!shots.length) return false; targets = shots.filter(function (x, j) { return shots.indexOf(x) === j; }); }
+    else if (sp.target === 'enemy' || sp.target === 'cone' || sp.target === 'line') {
+      if (shotN > 1 && this.liveFoes().length > 1) this.msg = sp.name + ': ' + shotWord + ' 1 of ' + shotN + ' at whom?';
       var t0 = yield* this.pickFoe(sp.only ? function (f) { return (f.m.tags || []).indexOf(sp.only) >= 0; } : null);
       if (!t0) return false;
       targets = [t0];
+      if (shotN > 1 && this.liveFoes().length > 1) {
+        shots = [t0];
+        while (shots.length < shotN) {
+          this.msg = sp.name + ': ' + shotWord + ' ' + (shots.length + 1) + ' of ' + shotN + ' at whom? (X: the rest at ' + plain(shots[shots.length - 1]) + ')';
+          var nx = yield* this.pickFoe(); if (!nx) break;
+          shots.push(nx);
+        }
+        while (shots.length < shotN) shots.push(shots[shots.length - 1]);
+        targets = shots.filter(function (x, j) { return shots.indexOf(x) === j; });
+      }
       if (sp.target !== 'enemy') {
         var rest = this.liveFoes().filter(function (f) { return f !== t0; }), cnt = sp.max ? sp.max - 1 : sp.target === 'cone' ? 2 : 3;
         rest.sort(function (a, b) { return Math.abs(a.y - t0.y) + Math.abs(a.x - t0.x) - (Math.abs(b.y - t0.y) + Math.abs(b.x - t0.x)); });
@@ -1027,8 +1063,9 @@
     }
     else if (sp.target === 'allies') {
       // "up to three creatures of your choice" (SRD: Aid, Bless), the caster one of them if he likes (Griz, 09-28: Lymen's own
-      // Aid). One too many standing: pick who goes without; more: pick them one by one, X when that's enough
-      var live = this.liveHeroes(), max = sp.max || 4;
+      // Aid). One too many standing: pick who goes without; more: pick them one by one, X when that's enough. Bless takes one more for each slot level
+      // above 1st, in the same cast (SRD 5.1: "you can target one additional creature for each slot level above 1st" -- the record's maxUp, 10-03)
+      var live = this.liveHeroes(), max = (sp.max || 4) + (sp.maxUp && slot ? (slot - sp.level) * sp.maxUp : 0);
       if (live.length <= max) targets = live;
       else if (live.length === max + 1) {
         this.msg = sp.name + ': who goes without?';
@@ -1048,6 +1085,11 @@
       if (!DS.G.count('diamond')) { yield* this.say('Revivify needs a diamond worth 300 gp. There is none in the pack.', 44); return false; }
       if (!this.heroes.some(function (x) { return down(x) && !x.guest; })) { yield* this.say('No one is down.', 30); return false; }
       var tr = yield* this.pickAlly(function (x) { return down(x) && !x.guest; }); if (!tr) return false; targets = [tr];
+    }
+    var cureAil = null; // Lesser Restoration: ONE thing ends; where more than one afflicts the friend, he asks which (cancel: no slot spent)
+    if (sp.kind === 'cure' && targets[0]) {
+      var ails = ailments(targets[0]); cureAil = ails[0] || null;
+      if (ails.length > 1) { cureAil = yield DS.choose({ items: ails.map(function (a) { return { label: a.label.toUpperCase(), value: a }; }), x: 40, y: 96, w: 176, rowH: 11, pad: 7, title: 'END WHICH? (ONE)' }); if (!cureAil) return false; cureAil.others = ails.filter(function (a) { return a !== cureAil; }); }
     }
     if (slot) h.slots[slot - 1]--;
     u.pose = 'cast'; u.poseT = 60;
@@ -1076,6 +1118,7 @@
       yield* this.say(sp.cloud === 'fog' ? 'Fog rolls out thick round the party. Nothing sees in, out or across it.' : sp.cloud === 'stink' ? 'A yellow, nauseating cloud settles over them.' : 'Freezing sleet comes down over them. The ground ices.', 48);
       return true;
     }
+    var rolled = null; // an area's damage, rolled once for all it catches (SRD 5.1, Damage Rolls: "roll the damage once for all of them" -- 10-03)
     for (var i = 0; i < targets.length && !this.over; i++) {
       var t = targets[i];
       if (k === 'revive') {
@@ -1086,7 +1129,7 @@
       }
       if (down(t) && k !== 'buff' && k !== 'heal') { if (sp.target === 'enemy') { var alts = this.liveFoes(); if (!alts.length) break; t = DS.pick(alts); } else continue; }
       if (k === 'attack') {
-        var rays = (sp.rays || 1) + (sp.rayUp ? up : 0);
+        var rays = shots ? shots.filter(function (x) { return x === targets[i]; }).length : (sp.rays || 1) + (sp.rayUp ? up : 0);
         for (var r = 0; r < rays && !down(t); r++) {
           if (this.famWill && this.famWill(u)) yield* this.famFly(u, t); // (the familiar's help lands on this ray: it flies to the target first, js/familiar.js)
           var adv = this.advantage(u, t, false), nat = this.d20(adv), bp = this.blindPen(u);
@@ -1101,19 +1144,20 @@
           yield* this.flushMsg();
         }
       } else if (k === 'auto') {
-        var darts = (sp.darts || 3) + up, tot = 0;
+        var darts = shots ? shots.filter(function (x) { return x === targets[i]; }).length : (sp.darts || 3) + up, tot = 0;
         for (var q = 0; q < darts; q++) { this.bolt(u, t, '#D8B8F8'); tot += DS.roll(sp.dmg); }
         yield this.wait(14);
         var dd = this.hurt(t, tot, sp.el, { magicWeapon: true });
         this.elemBurst(t, sp.el); t.flash = 12; DS.audio.sfx('hit'); this.num(t, dd, '#F8D878');
-        yield* this.say(darts + ' darts strike ' + nameOf(t) + ' for ' + dd + '.', 38);
+        yield* this.say((darts === 1 ? 'A dart strikes ' : darts + ' darts strike ') + nameOf(t) + ' for ' + dd + '.', 38);
         yield* this.flushMsg();
       } else if (k === 'save') {
         var s = this.save(t, sp.save, dc, { poison: sp.el === 'poison' });
         var potent = sp.level === 0 && h.cls === 'wizard' && h.lvl >= 6; // Potent Cantrip: a save still takes half
         var dexp = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
         var upd = function (e) { return e.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up * (sp.upDice || 0)) + 'd'; }); };
-        var dmgT = dexp ? DS.roll(upd(dexp)) : 0, dmg2 = sp.dmg2 ? DS.roll(sp.dmg2) : 0;
+        if (!rolled) rolled = { d1: dexp ? DS.roll(upd(dexp)) : 0, d2: sp.dmg2 ? DS.roll(sp.dmg2) : 0 };
+        var dmgT = rolled.d1, dmg2 = rolled.d2;
         if (s.success) { dmgT = sp.half || potent ? Math.floor(dmgT / 2) : 0; dmg2 = sp.half || potent ? Math.floor(dmg2 / 2) : 0; }
         var dealt = dmgT ? this.hurt(t, dmgT, sp.el, { magicWeapon: true }) : 0;
         if (dmg2 && !down(t)) dealt += this.hurt(t, dmg2, sp.el2, { magicWeapon: true });
@@ -1126,11 +1170,15 @@
         yield* this.say(line, 36);
         yield* this.flushMsg();
       } else if (k === 'sleep') {
-        var pool = DS.roll((5 + 2 * up) + 'd8'), slept = [];
+        // who it cannot take (SRD 5.1 Sleep: "Undead and creatures immune to being charmed aren't affected"; Fey Ancestry, the drow's: "magic can't put
+        // the drow to sleep" -- 10-03, the grid's rule, deep16/js/magic.js): they spend none of the pool
+        var pool = DS.roll((5 + 2 * up) + 'd8'), slept = [], spared = [];
         this.liveFoes().sort(function (a, b) { return a.hp - b.hp; }).forEach(function (f) {
-          if (f.hp <= pool && (f.m.condImmune || []).indexOf('asleep') < 0 && (f.m.tags || []).indexOf('undead') < 0) { pool -= f.hp; f.conds.asleep = { rounds: 10 }; slept.push(f); self.elemBurst(f, 'sleep', 'rise'); }
+          var ci = f.m.condImmune || [];
+          if ((f.m.traits && f.m.traits.feyAncestry) || /^(fey|undead)$/.test(tags(f)[0] || '') || ci.indexOf('asleep') >= 0 || ci.indexOf('charmed') >= 0) { spared.push(f); return; }
+          if (f.hp <= pool) { pool -= f.hp; f.conds.asleep = { rounds: 10 }; slept.push(f); self.elemBurst(f, 'sleep', 'rise'); }
         });
-        yield* this.say(slept.length ? slept.map(plain).join(', ') + (slept.length > 1 ? ' fall' : ' falls') + ' asleep!' : 'Nothing sleeps.', 46);
+        yield* this.say((slept.length ? slept.map(plain).join(', ') + (slept.length > 1 ? ' fall' : ' falls') + ' asleep!' : 'Nothing sleeps.') + (spared.length ? ' The spell finds no hold on ' + spared.map(plain).join(', ') + '.' : ''), 46);
         break;
       } else if (k === 'heal') {
         var hv = this.heal(t, DS.roll(sp.dmg.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up) + 'd'; })) + DS.mod(h.abil[R.CLASSES[h.cls].cast]));
@@ -1142,7 +1190,7 @@
         else if (sp.buff === 'mageArmor') { t.h.conds.mageArmor = true; }
         else if (sp.buff === 'invisible') { t.conds.invisible = { rounds: 10, ends: sp.id === 'invisibility' }; delete t.conds.hidden; } // (the 2nd-level one ends when they attack or cast; Greater does not)
         else if (sp.buff === 'mirror') { t.images = 3; } // (Mirror Image, the 8-bit's: three images -- RULED 10-01c, 'work a simplified version into 8-bit battles')
-        else if (sp.buff === 'mislead') { t.conds.invisible = { rounds: 10, ends: true }; delete t.conds.hidden; }
+        else if (sp.buff === 'mislead') { t.conds.invisible = { rounds: 10, ends: true }; delete t.conds.hidden; t.images = Math.max(t.images || 0, 1); } // (and the double where he stood, SRD 5.1: one image a blow may go at, Mirror Image's rule -- the grid's, deep16/js/magic.js; 10-03)
         else if (sp.buff === 'seeInvisible') { t.conds.seeInvisible = { rounds: 10 }; }
         else if (sp.buff === 'darkvision') { t.h.conds.darkvision = true; }
         else if (sp.buff === 'continualFlame') { t.h.conds.continualFlame = t.h.equip.weapon || t.h.equip.armor || true; this.lit = true; this.flashT = 8; yield* this.dazzle(nameOf(u) + ' sets a flame on ' + plain(t) + "'s " + (R.item(t.h.equip.weapon) ? R.item(t.h.equip.weapon).name.toLowerCase() : 'gear') + ' that gives no heat.'); }
@@ -1162,9 +1210,9 @@
         this.elemBurst(t, 'buff', 'rise');
         yield this.wait(8);
       } else if (k === 'cure') {
-        ['poisoned', 'paralyzed', 'blinded'].forEach(function (c) { delete t.conds[c]; });
+        if (cureAil) cureAil.end();
         this.elemBurst(t, 'radiant', 'rise'); DS.audio.sfx('heal');
-        yield* this.say(nameOf(t) + ' is cleansed.', 36);
+        yield* this.say(cureAil ? nameOf(t) + ': ' + cureAil.label + ' ends.' + (cureAil.others && cureAil.others.length ? ' (One only: ' + cureAil.others.map(function (a) { return a.label; }).join(' and ') + (cureAil.others.length > 1 ? ' stay.)' : ' stays.)') : '') : nameOf(t) + ' has nothing the spell can end.', 40);
       }
       if (this.liveFoes().length === 0) break;
     }
@@ -1179,6 +1227,18 @@
     return true;
   };
 
+  // the darts or the rays of a caster the battle runs (a guest; none casts them yet): at the weakest till it should be down, then the next -- the grid's
+  // weighing (deep16/js/tactics.js EV['shape:darts'], EV['shape:rays']): a dart its average, a ray its average by the chance to hit
+  Battle.prototype.aimShots = function (u, sp, n) {
+    var list = this.liveFoes().slice().sort(function (a, b) { return a.hp - b.hp; }), out = [], i = 0, avg = DS.avgDice(sp.dmg || '1d4+1');
+    if (!list.length) return out;
+    for (var k = 0, left = list[0].hp; k < n; k++) {
+      var t = list[i], p = sp.kind === 'auto' ? 1 : Math.max(0.05, Math.min(0.95, (21 - this.acOf(t) + R.spellAtk(u.h)) / 20));
+      out.push(t); left -= p * avg;
+      if (left <= 0 && i < list.length - 1) { i++; left = list[i].hp; }
+    }
+    return out;
+  };
   // bright light: things that hate it lose their next turn the first time, then fight at disadvantage
   Battle.prototype.dazzle = function* (lead) {
     var first = !this.bright;
@@ -1276,14 +1336,16 @@
       yield* this.say(nameOf(f) + ' comes back out of the wall!', 36);
     }
     if (this.runner() === f) { yield* this.foeFlee(f); return; }
-    // the clouds over them (torchdark): the stinking cloud's CON or the turn goes on retching; the sleet's DEX or down on the ice
+    // the clouds over them (torchdark): the stinking cloud's CON or the turn goes on retching; the sleet's DEX or down on the ice -- and the turn goes
+    // on from there (SRD 5.1 Sleet Storm: "On a failed save, it falls prone"; no action lost. 10-03: the fall costs no action where there are no squares
+    // to cross -- it fights from the ice with the prone's disadvantage, open to close blows, and gets up at its next turn; the difficult ground is moot)
     if (this.cloud && this.cloud.kind === 'stink' && (m.condImmune || []).indexOf('poisoned') < 0 && (m.immune || []).indexOf('poison') < 0) {
       var sc = this.save(f, 'con', this.cloud.dc, { poison: true });
       if (!sc.success) { yield* this.say(nameOf(f) + ' retches and reels in the yellow cloud. (' + sc.total + ' vs DC ' + this.cloud.dc + ')', 40); return; }
     }
     if (this.cloud && this.cloud.kind === 'sleet' && !f.conds.prone && (m.condImmune || []).indexOf('prone') < 0) {
       var ss = this.save(f, 'dex', this.cloud.dc);
-      if (!ss.success) { f.conds.prone = true; yield* this.say(nameOf(f) + ' goes down on the ice. (' + ss.total + ' vs DC ' + this.cloud.dc + ')', 36); return; }
+      if (!ss.success) { f.conds.prone = true; yield* this.say(nameOf(f) + ' goes down on the ice, and fights on from the ground. (' + ss.total + ' vs DC ' + this.cloud.dc + ')', 36); }
     }
     if (f.conds.frightened && DS.d(2) === 1) { yield* this.say(nameOf(f) + ' cowers.', 30); return; }
     if (f.conds.restrained && f.conds.restrained.escape) {

@@ -987,6 +987,93 @@
     document.body.appendChild(preZ);
     return;
   }
+  // the cheap SRD fixes, the grid's six (mode=fixes1003; 10-03, Griz: "4 yes" to "The cheap SRD fixes as one Sonnet or cloud batch?"; spells-two-books.md §2c): each
+  // check failed before its fix (spell-fixes-notes.md). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
+  if (get('mode', '') === 'fixes1003') {
+    var repX = { checks: [], errors: [] }, d0X = D.d, MX = D.magic, askedX = 0;
+    function okX(what, v) { repX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runX(g, pick) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) { askedX++; var o = st.value.prompt.opts; v = (pick && pick(st.value.prompt)) || o[0].value; } } }
+    function mkX(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideX(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logX(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function pinX(d20) { D.d = function (n) { return n === 20 ? d20 : n; }; }
+    try {
+      // 10. Stoneskin (SRD 5.1: "the target has resistance to nonmagical bludgeoning, piercing, and slashing damage"): a goblin's scimitar at our stoneskinned
+      // fighter, plain and then magical (the item table's +1s and Flame Tongue carry `magic`), every die at its top; then a foe wizard's Ice Storm on him, his DEX
+      // save a natural 1 -- the hail is a spell's, and lands whole
+      var B10 = mkX('?npc=goblin&lvl=7&vs=fighter:7'), g10 = sideX(B10, 'foe')[0], p10 = sideX(B10, 'party')[0], sc10 = g10.attacks.scimitar || g10.weapon;
+      p10.hp = p10.maxhp = 400; p10.conds.stoneskin = { by: p10.id }; g10.x = p10.x; g10.y = p10.y - 1; D.rules.startTurn(g10);
+      pinX(19); var h0 = p10.hp; runX(B10.attack(g10, p10, Object.assign({}, sc10, { magic: false }))); var plain10 = h0 - p10.hp;
+      h0 = p10.hp; runX(B10.attack(g10, p10, Object.assign({}, sc10, { magic: true }))); var magic10 = h0 - p10.hp; D.d = d0X;
+      okX('10. Stoneskin: the plain scimitar takes ' + plain10 + ', a magical one ' + magic10, plain10 > 0 && (magic10 === plain10 * 2 || magic10 === plain10 * 2 + 1));
+      var B10b = mkX('?npc=wizard:7&lvl=7&vs=fighter:7'), w10 = sideX(B10b, 'foe')[0], q10 = sideX(B10b, 'party')[0];
+      q10.hp = q10.maxhp = 400; q10.conds.stoneskin = { by: q10.id }; w10.x = q10.x; w10.y = Math.max(0, q10.y - 8); D.rules.startTurn(w10); w10.slots[3] = 2;
+      pinX(1); h0 = q10.hp; var n10 = (B10b.log || []).length; runX(MX.cast(B10b, w10, 'icestorm', 4, { x: q10.x, y: q10.y })); var ice10 = h0 - q10.hp; D.d = d0X;
+      okX('10. Ice Storm on the stoneskinned fighter, his save failed, every die at its top (2d8 + 4d6 = 40): he loses ' + ice10 + ' -- ' + logX(B10b, n10).slice(0, 160), ice10 === 40);
+      // 11. Sanctuary (SRD 5.1: "If the warded creature makes an attack or casts a spell that affects an enemy creature, this spell ends"): our warded cleric
+      // swings at a goblin, then casts Sacred Flame at one, then Bless on his friends and Healing Word on one -- the first two end it, the last two do not
+      var B11 = mkX('?npc=goblin,goblin&lvl=5&vs=cleric:5,fighter:5'), c11 = sideX(B11, 'party').filter(function (u) { return u.cls === 'cleric'; })[0], f11 = sideX(B11, 'party').filter(function (u) { return u !== c11; })[0], g11 = sideX(B11, 'foe')[0];
+      c11.hp = c11.maxhp = 400; g11.hp = g11.maxhp = 400; g11.x = c11.x; g11.y = c11.y - 1; f11.x = c11.x + 1; f11.y = c11.y;
+      var ward11 = function () { c11.conds.sanctuary = { dc: 13, by: c11.id }; D.rules.startTurn(c11); c11.slots = [4, 3, 2]; };
+      ward11(); runX(B11.attack(c11, g11, c11.weapon)); var sw11 = !c11.conds.sanctuary;
+      ward11(); runX(MX.cast(B11, c11, 'sacredflame', 0, g11)); var sf11 = !c11.conds.sanctuary;
+      ward11(); runX(MX.cast(B11, c11, 'bless', 1, { units: [c11, f11] })); var bl11 = !!c11.conds.sanctuary;
+      ward11(); f11.hp = 5; runX(MX.cast(B11, c11, 'healingword', 1, f11)); var hw11 = !!c11.conds.sanctuary;
+      okX('11. Sanctuary on our cleric: ends on his swing ' + sw11 + ', on Sacred Flame at a goblin ' + sf11 + '; kept through Bless on friends ' + bl11 + ' and Healing Word ' + hw11, sw11 && sf11 && bl11 && hw11);
+      // 12. Protection from Evil and Good (SRD 5.1: "Creatures of those types have disadvantage on attack rolls against the target. The target also can't be charmed,
+      // frightened, or possessed by them. If the target is already charmed, frightened, or possessed by such a creature, the target has advantage on any new saving
+      // throw against the relevant effect"): a foe wizard made a fiend casts Fear down a line of our fighter (warded) and our cleric (not), every save a 1
+      var B12 = mkX('?npc=wizard:5&lvl=5&vs=fighter:5,cleric:5'), w12 = sideX(B12, 'foe')[0], pf12 = sideX(B12, 'party').filter(function (u) { return u.cls === 'fighter'; })[0], pc12 = sideX(B12, 'party').filter(function (u) { return u.cls === 'cleric'; })[0];
+      w12.type = 'fiend'; pf12.conds = { pfeg: { by: pc12.id } }; pc12.conds = {};
+      pf12.x = w12.x; pf12.y = w12.y + 1; pc12.x = w12.x; pc12.y = w12.y + 2; D.rules.startTurn(w12); w12.slots[2] = 2;
+      pinX(1); var n12 = (B12.log || []).length; runX(MX.cast(B12, w12, 'fear', 3, { x: pc12.x, y: pc12.y })); D.d = d0X;
+      var l12 = logX(B12, n12);
+      okX('12. a fiend\'s Fear on our warded fighter and our cleric, every save a 1: the fighter frightened ' + !!pf12.conds.frightened + ', the cleric ' + !!pc12.conds.frightened + ' -- ' + l12.slice(0, 200), !pf12.conds.frightened && !!pc12.conds.frightened);
+      var imm12 = [D.rules.immuneTo(pf12, 'charmed', { type: 'fey' }), D.rules.immuneTo(pf12, 'frightened', { type: 'undead' }), D.rules.immuneTo(pf12, 'charmed', { type: 'humanoid' }), D.rules.immuneTo(pc12, 'charmed', { type: 'fey' })];
+      okX('12. proof against a fey\'s charm ' + imm12[0] + ', the dead\'s fright ' + imm12[1] + '; not against a humanoid\'s charm ' + !imm12[2] + '; the unwarded cleric not ' + !imm12[3], imm12[0] && imm12[1] && !imm12[2] && !imm12[3]);
+      pf12.conds = { pfeg: { by: pc12.id }, frightened: { by: w12.id } }; var sv12 = D.rules.save(pf12, 'wis', 30, false, 'frightened');
+      pf12.conds = { frightened: { by: w12.id } }; var sv12b = D.rules.save(pf12, 'wis', 30, false, 'frightened');
+      okX('12. already frightened by the fiend: the warded fighter\'s new save rolls ' + sv12.rolls.length + ' dice (advantage), without the ward ' + sv12b.rolls.length, sv12.rolls.length === 2 && sv12b.rolls.length === 1);
+      // 13. Shield against Magic Missile (SRD 5.1: "1 reaction, which you take when you are hit by an attack or targeted by the magic missile spell ... you take no
+      // damage from magic missile"): the foe wizard's three darts at ours -- he is asked, raises it, and takes nothing; again with it already up, no question and
+      // nothing; our darts at theirs, and the AI raises its own
+      var B13 = mkX('?npc=wizard:5&lvl=5&vs=wizard:5'), fw13 = sideX(B13, 'foe')[0], pw13 = sideX(B13, 'party')[0];
+      [fw13, pw13].forEach(function (w) { if ((w.known || []).indexOf('shield') < 0) w.known = (w.known || []).concat(['shield']); w.hp = w.maxhp = 400; w.reaction = 1; w.slots[0] = 3; w.slots[2] = 0; w.conds = {}; });
+      fw13.x = pw13.x; fw13.y = pw13.y - 4; D.rules.startTurn(fw13); askedX = 0;
+      var hp13 = pw13.hp, n13 = (B13.log || []).length; runX(MX.cast(B13, fw13, 'magicmissile', 1, { units: [pw13, pw13, pw13] }));
+      okX('13. three darts at our wizard: asked ' + askedX + ', he loses ' + (hp13 - pw13.hp) + ', the barrier up ' + !!pw13.conds.shield + ', his reaction and a slot spent ' + (pw13.reaction === 0 && pw13.slots[0] === 2) + ' -- ' + logX(B13, n13).slice(0, 200), askedX === 1 && pw13.hp === hp13 && !!pw13.conds.shield && pw13.reaction === 0 && pw13.slots[0] === 2);
+      askedX = 0; fw13.slots[0] = 3; runX(MX.cast(B13, fw13, 'magicmissile', 1, { units: [pw13, pw13, pw13] }));
+      okX('13. again, the barrier still up: asked ' + askedX + ', he loses ' + (hp13 - pw13.hp), askedX === 0 && pw13.hp === hp13);
+      D.rules.startTurn(pw13); var fhp13 = fw13.hp; askedX = 0; runX(MX.cast(B13, pw13, 'magicmissile', 1, { units: [fw13, fw13, fw13] }));
+      okX('13. our darts at theirs: the AI raised its Shield ' + !!fw13.conds.shield + ', it loses ' + (fhp13 - fw13.hp) + ', nobody asked (' + askedX + ')', !!fw13.conds.shield && fw13.hp === fhp13 && askedX === 0);
+      // 14. Magic Weapon (SRD 5.1: "You touch a nonmagical weapon"): our paladin with a +1 longsword is refused, and the picker says why; with a plain one he is not;
+      // the cast itself, handed a magic blade anyway, leaves it as it was and holds no concentration
+      var B14 = mkX('?npc=goblin&lvl=5&vs=paladin:5'), p14 = sideX(B14, 'party')[0], g14 = MX.geo('magicweapon');
+      D.rules.startTurn(p14); p14.slots[1] = 2; var plainW14 = Object.assign({}, p14.weapon, { magic: false }), magicW14 = Object.assign({}, p14.weapon, { magic: true, name: 'Longsword +1' });
+      p14.weapon = magicW14; var why14 = MX.targetWhy(p14, g14, p14, B14), ok14 = MX.targetOK(B14, p14, g14, p14);
+      p14.weapon = plainW14; var why14b = MX.targetWhy(p14, g14, p14, B14), ok14b = MX.targetOK(B14, p14, g14, p14);
+      okX('14. Magic Weapon on a +1 longsword: refused "' + why14 + '" (a target ' + ok14 + '); on a plain one: "' + why14b + '" (a target ' + ok14b + ')', !!why14 && !ok14 && !why14b && ok14b);
+      p14.weapon = magicW14; p14.conc = null; var atk14 = p14.weapon.atk, n14 = (B14.log || []).length; runX(MX.cast(B14, p14, 'magicweapon', 2, p14));
+      okX('14. cast at the +1 blade anyway: its bonus unchanged (' + atk14 + ' -> ' + p14.weapon.atk + '), no concentration (' + !p14.conc + ') -- ' + logX(B14, n14).slice(0, 160), p14.weapon.atk === atk14 && !p14.conc);
+      // 15. Ice Storm's ground (SRD 5.1: "Hailstones turn the storm's area of effect into difficult terrain until the end of your next turn"): the foe wizard's storm
+      // at our fighter -- the squares it fell on are difficult (M.rough) through its turn's end and our turn, and still at its next turn's start; gone at that turn's end
+      var B15 = mkX('?npc=wizard:7&lvl=7&vs=fighter:7'), w15 = sideX(B15, 'foe')[0], p15 = sideX(B15, 'party')[0];
+      p15.hp = p15.maxhp = 400; w15.x = p15.x; w15.y = Math.max(0, p15.y - 8); D.rules.startTurn(w15); w15.slots[3] = 2; B15.active = w15;
+      var rough15 = function () { return MX.rough(B15, p15.x, p15.y, p15); };
+      runX(MX.cast(B15, w15, 'icestorm', 4, { x: p15.x, y: p15.y })); var r15a = rough15();
+      MX.endTurn(B15, w15); var r15b = rough15(); B15.active = p15; D.rules.startTurn(p15); MX.endTurn(B15, p15); var r15c = rough15();
+      B15.active = w15; D.rules.startTurn(w15); var r15d = rough15(); var n15 = (B15.log || []).length; MX.endTurn(B15, w15); var r15e = rough15();
+      var drawn15 = 'no iso map here';
+      if (D.iso && D.iso.map && D.looks && D.looks.ground) { var cv15 = document.createElement('canvas'); cv15.width = 640; cv15.height = 480; var cx15 = cv15.getContext('2d'), n15d = 0; B15.grounds = [{ kind: 'hail', sq: [[p15.x, p15.y]], by: w15.id, difficult: true, ends: 1 }]; D.looks.ground(cx15, B15, function (x, y, f) { f(cx15); n15d++; }); B15.grounds = []; drawn15 = n15d + ' square drawn'; }
+      okX('15. the hail drawn on a page canvas without a throw: ' + drawn15, /square drawn|no iso map/.test(drawn15));
+      okX('15. Ice Storm\'s hail difficult: as it falls ' + r15a + ', after its caster\'s turn ' + r15b + ', after ours ' + r15c + ', at his next turn ' + r15d + '; gone at that turn\'s end ' + !r15e + ' -- ' + logX(B15, n15).slice(0, 120), r15a && r15b && r15c && r15d && !r15e);
+    } catch (eX) { repX.errors.push(String(eX && eX.stack || eX).slice(0, 900)); }
+    D.d = d0X;
+    if (errs.length) repX.errors = repX.errors.concat(errs);
+    var preX = document.createElement('pre'); preX.id = 'out'; preX.textContent = 'BENCH16 ' + JSON.stringify(repX);
+    document.body.appendChild(preX);
+    return;
+  }
   // Dispel Magic at a spell's square, and Counterspell (mode=dispel1002; 10-02, Griz: "I like 'spell effect squares without people' as valid dispel targets for that
   // spell"; "no to creature abilities"; Counterspell "an important one to have in there"): a Darkness's empty square is a target and ends it, its caster's concentration
   // with it; a darkness no spell made is no target; a player's Counterspell is asked and a Fireball fails; the AI's counters a hero's; a readied spell's release is not asked
@@ -1033,7 +1120,7 @@
       okD('our Fireball, the foe counters: ' + /COUNTERSPELL/.test(l4) + ', it fails ' + /it fails/.test(l4) + ', the foe unhurt ' + (f4.hp === hp4) + ' -- ' + l4.slice(0, 160), /it fails/.test(l4) && f4.hp === hp4);
       // 5 a readied spell's release is not asked (cast when it was readied)
       var B5 = mkD('?npc=wizard:5&lvl=5&vs=wizard'), f5 = B5.units.filter(function (u) { return u.side === 'foe'; })[0], p5 = B5.units.filter(function (u) { return u.side === 'party'; })[0];
-      f5.x = 9; f5.y = 4; p5.x = 9; p5.y = 10; f5.known = (f5.known || []).concat(['counterspell']); f5.slots[2] = 2; f5.reaction = 1; D.rules.startTurn(p5); p5.turn.readied = true;
+      f5.x = 9; f5.y = 4; p5.x = 9; p5.y = 10; f5.known = (f5.known || []).concat(['counterspell']).filter(function (id) { return id !== 'shield'; }); f5.slots[2] = 2; f5.reaction = 1; D.rules.startTurn(p5); p5.turn.readied = true; // (no Shield in its book: the darts now ask it, SRD 5.1 -- 10-03 -- and the reaction kept is this check's proof)
       var n5 = (B5.log || []).length; runD(D.magic.cast(B5, p5, 'magicmissile', 1, { units: [f5, f5, f5] })); var l5 = logD(B5, n5);
       okD('a readied release: no Counterspell ' + !/COUNTERSPELL/.test(l5) + ', the foe\'s reaction kept ' + (f5.reaction === 1), !/COUNTERSPELL/.test(l5) && f5.reaction === 1);
     } catch (eD) { repD.errors.push(String(eD && eD.stack || eD).slice(0, 900)); }
