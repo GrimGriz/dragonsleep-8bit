@@ -73,10 +73,11 @@
   var st0 = RU.startTurn; RU.startTurn = function (u) { var B = D.battle; if (mine(B)) B._klog.turn++; return st0.apply(this, arguments); };
 
   // ---- the heroes' and the human Keeper's commands, moves, blows, spells
-  wrapProto(D.Battle.prototype, 'exec', function (e0) { return function* (u, c) { var B = this; return yield* wrap(B, u, c && c.do, [nm(c && c.target), c && c.id ? B.units.filter(function (w) { return w.id === c.id; })[0] : null], e0.apply(this, arguments)); }; });
+  wrapProto(D.Battle.prototype, 'exec', function (e0) { return function* (u, c) { var B = this; if (!mine(B)) return yield* e0.apply(this, arguments); return yield* wrap(B, u, c && c.do, [nm(c && c.target), c && c.id ? B.units.filter(function (w) { return w.id === c.id; })[0] : null], e0.apply(this, arguments)); }; });
   wrapProto(D.Battle.prototype, 'moveAlong', function (m0) {
     return function* (u, path, o) {
-      var B = this, f = [K.A(u), K.C(u)], g = m0.apply(this, arguments);
+      var B = this; if (!mine(B)) return yield* m0.apply(this, arguments); // (inert outside the Keeper's fight)
+      var f = [K.A(u), K.C(u)], g = m0.apply(this, arguments);
       return yield* wrap(B, u, 'move', [], (function* () { var v = yield* g; if (B._klog && B._klog.cap) B._klog.cap.push('from ' + f[0] + ',' + f[1] + ' to ' + K.A(u) + ',' + K.C(u) + ' (along, across)'); return v; })());
     };
   });
