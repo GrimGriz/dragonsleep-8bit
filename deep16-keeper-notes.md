@@ -179,3 +179,7 @@ At the Water Weird's 58 HP the four killed it in 2.4-3.6 rounds and the deep nev
 
 ## 10-03 -- the swirl spends the turn (Griz, five records)
 A swirl -- the SWIRL action, the Wave's backwash into the deep, Active Suffocation -- is the rest of the turn, and a hold that ends the same round (the hero dead of the swirl's own hit or of the suffocation) gives nothing back: `K.surface` zeroes action, bonus and slams left when the swirl began this round; the Wave's auto-swirl (`K.flood(..., true)`) also ends the move. Probed (four checks in `dev/keeper-probe.js`). Not seen: the pane. Those five records' headers carry no `wallRounds`/`stalemateBreak`: they came from a build before the thaw, which is why the wall stood all fight.
+
+## 10-03 -- the scripted AI Keeper (bench only) and the tables
+`K.CFG.aiScript = 'swirl'` (`&ai=swirl`; default '' = the current AI, unchanged): a hero on the deep is swirled with the action (no reach wanted) and suffocated with the bonus; else the wall on his first turn that he can cast (no waiting for the party to move), the Slams, the Wave last. 30 fights a level, class-AI party, seeds the same for every setting (party wins; seed (f+1)*7919+L):
+L3 wr3 current 24/30, wr0 current 28/30, wr3 swirl 29/30, wr0 swirl 29/30; L4 and L5 30/30 in all four. Stalemates: 0 in 360. The class-AI party almost never stands on the deep (floods 0 to 6 per 30), so the swirler has little to act on. Also fixed: the `&deep=` URL setting had been commented out by a `//` on the same line.
