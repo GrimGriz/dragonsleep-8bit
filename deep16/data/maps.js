@@ -833,8 +833,10 @@ window.D16.MAPS.floodstair = {
   // ONE description of the geometry, read by the engine (js/keeper.js), the probe and the benches alike, in the LANE FRAME -- a along the hall, from the deep (west) end, small, to the east;
   // c across it, left to right as the party faces the water (west); `width` the across extent; `axis` which of the map's own axes a runs along ('x' here). D16.laneAt(map, a, c) is the
   // one function from a lane-frame square to the map's own [x, y]; the map's own `deeps`, `entry`, `lights` and the Keeper's start (data/fights.js) are derived from it at the foot of this block.
+  // THE TWO WAYS IN (10-03, Griz): `entry`, the LEDGE -- WADE IN, the water's edge, the first squares of the dry landing (a 9, and 10 for a fifth); `entryRune`, BY THE RUNE -- a hand on the mark
+  // (or the rope with the Keeper awake), the landing squares beside it at its east end (a 11-12, c 9-10, and 12,8 for a fifth); Battle.enter picks by the fight's `start` ('ledge' | 'rune').
   // a 1..8 the flooded steps (the deep end, the last step, a = 1), a 9..12 the dry landing, a 13 the corridor; the wall (Griz: the 3rd from the exit, 11) and the rune (10-03, Griz: on the SIDE face of the north wall seen from the landing, beside DEEP16 grid square 12,7: `rune` is that landing square in the lane frame [a 12, c 10] and `runeFace` 'c+' the wall it is on, the face toward +c, the north wall; its light is on that square)
-  geo: { axis: 'x', width: 18, a: [1, 12], c: [7, 10], wall: 11, deeps: [[1, 7], [1, 8], [1, 9], [1, 10], [2, 7], [2, 8], [2, 9], [2, 10]], entry: [[9, 7], [9, 8], [9, 9], [9, 10], [10, 8]], keeper: [4, 8], rune: [12, 10], runeFace: 'c+' },
+  geo: { axis: 'x', width: 18, a: [1, 12], c: [7, 10], wall: 11, deeps: [[1, 7], [1, 8], [1, 9], [1, 10], [2, 7], [2, 8], [2, 9], [2, 10]], entry: [[9, 7], [9, 8], [9, 9], [9, 10], [10, 8]], entryRune: [[12, 10], [11, 10], [12, 9], [11, 9], [12, 8]], keeper: [4, 8], rune: [12, 10], runeFace: 'c+' },
   heights: [
     '000000000000000',
     '000000000000000',
@@ -883,9 +885,61 @@ window.D16.laneAt = function (m, a, c, size) {
   var g = m.geo, k = (size || 1) - 1;
   return g.axis === 'x' ? [a, g.width - 1 - c - k] : [c, a];
 };
-(function () { var m = window.D16.MAPS.floodstair, g = m.geo, at = function (p) { return window.D16.laneAt(m, p[0], p[1]); }; m.deeps = g.deeps.map(at); m.entry = g.entry.map(at);
+(function () { var m = window.D16.MAPS.floodstair, g = m.geo, at = function (p) { return window.D16.laneAt(m, p[0], p[1]); }; m.deeps = g.deeps.map(at); m.entry = g.entry.map(at); m.entryRune = g.entryRune.map(at);
   var rl = at(g.rune); m.lights = [[rl[0], rl[1], 20, 'glow']]; // (the rune lights the landing: a cold glow, modest -- the engine's own map light, [x, y, ft, colour])
 })();
+
+// THE LADDER'S FLOODED STAIR (10-03, Griz: the ladder's fight is the old fight unchanged): `floodstair` as it is on origin/main before the Keeper work landed (ed7be2a), word for
+// word but for its id -- the stair that runs north to a pool, `wade` 13, no rune, no light. Only data/fights.js keeper-ladder fights on it; the Pocket DM leaves it out (the new
+// floodstair is its Flooded Stair: js/pocket.js mapIds); dev/keeper-probe.py diffs its rows against main's. Its old words, as they were:
+// The flooded stair (the 8-bit game's `dwarf`, warrens_d, Pete's Five): a dwarven stair runs down into black water; in
+// the flooded chamber five men lie drowned; past the water, a door under warded runes. What keeps it keeps to the water.
+window.D16.MAPS['floodstair-old'] = {
+  name: 'The Flooded Stair',
+  sub: 'the Warrens, Pete\'s Five',
+  dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
+  // a stair, and a flooded one (10-02, Griz: "can we make the stair a stair and them be drawn underwater - barley looks like he's walking on top"): the flight
+  // comes down a step a row from where the party stands to the water's edge, goes under, and climbs out the far side (heights, in steps of `step` px);
+  // the water is waist-deep on a wader (wade, px of the figure under it: js/ui.js UI.wading), and the Keeper's held are drawn down in it
+  // (10-02, Griz: "stair shouldn't climb out except on the side party comes in on" -- the far end is the pool's deep end; "this is solid ground for burrow
+  // purposes (map may be used for other purposes)": worked stone)
+  step: 5, wade: 13, noBurrow: true,
+  heights: [
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000000000000000000',
+    '000001111111100000',
+    '000000222222000000',
+    '000000333333000000',
+    '000000044440000000',
+    '000000055550000000',
+    '000000066660000000'
+  ],
+  rows: [
+    '##################',
+    '######~~~~~#######',
+    '#####~~~~~~~######',
+    '####~~~~~~~~~#####',
+    '###~~~~~~~~~~~####',
+    '###~~~~~~~~~~~####',
+    '###~~~~~~~~~~~####',
+    '####~~~~~~~~~#####',
+    '#####..====..#####',
+    '######.====.######',
+    '######.====.######',
+    '#######====#######',
+    '#######====#######',
+    '#######====#######'
+  ],
+  entry: [[7, 8], [10, 8], [8, 9], [9, 9], [8, 10]], // at the water's foot: in the 8-bit game you wade in (or rope them out)
+  foes: [],
+  wave: null
+};
 
 // The point (the 8-bit game's `lake`, at night): a flat oval stone, a stack of stones on its landward edge, the lantern
 // post (the stalagmite stands in), the rowboat pulled up; forty paces out the water goes dark. The chuul comes up out of it.

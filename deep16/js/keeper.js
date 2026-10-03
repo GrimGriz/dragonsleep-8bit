@@ -24,8 +24,8 @@
     Object.keys(link).forEach(function (a) { var row = sh.anims[K.POSE[link[a]]]; if (row) sh.anims[a] = Object.assign({}, row); });
     return K.POSE;
   };
-  K.isFight = function (F) { return !!(F && (F.id === 'keeper' || F.id === 'keeper-ladder')); };
-  K.PROFILE_OLD = { aiScript: '', partyRetreat: false, wallRounds: 0, stalemateBreak: false, swirlHit: false, drown: '1d6', suffocateDice: null, heldStruggle: false, deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: the fight 'keeper-ladder', and &old=1)
+  K.isFight = function (F) { return !!(F && F.id === 'keeper'); }; // (the ladder's `keeper-ladder` is the old fight, unchanged -- its own foe `keeperold` and map `floodstair-old`, data/fights.js: none of this file's rules)
+  K.PROFILE_OLD = { aiScript: '', partyRetreat: false, wallRounds: 0, stalemateBreak: false, swirlHit: false, drown: '1d6', suffocateDice: null, heldStruggle: false, deepDepth: 1, visible: false, partyOpening: false, openingDrift: false, glow: false, hp: 100, slamAtk: 5, sweepUpFree: true, slamDice: '2d6', slams: 1, waveDC: 13 }; // (the Keeper of before the desk's notes: &old=1. Not the ladder's: `keeper-ladder` is main's own old fight, Constrict and Drag Under -- data/fights.js)
   K.CFG = { visible: true, glow: true, glowFt: 10, partyOpening: true, openingDrift: true, openingRounds: 3, hp: 160, wallRounds: 3, aiScript: 'lure', partyRetreat: true, retreatRounds: 3, stalemateBreak: true, swirlHit: true, deepDepth: 2, slamAtk: 6, sweepUpFree: false, slamDice: '3d4', slams: 2, weaponResist: false, swirlAny: false, waveDC: 15, sweep: 2, deepAC: 10, drown: '1d8+1', suffocateDice: '1d6', suffocateBonus: 3, heldStruggle: true, concMin: 10, wallUses: 3, wallHP: 30, wallAC: 12, oaSweep: 1, initBonus: 0, aiCast: true, washNoWall: false, wallStrikeAC: 10, hideAfter: true, iceDC: 7, oaWave: false, freezeNeeds: 'all' }; // (hideAfter: back into the water, unseen, when its turn ends -- Griz 10-03 "he is invisible in water"; iceDC: the save to break out of ice, a bonus action then an action; oaWave: its opportunity attack a wave that pushes the provoker toward the deep -- not ruled, off; freezeNeeds: all four of its squares frozen to hold it (or 'any')) // (sweep: squares of backwash per wave, 2 = 10 ft; Griz 10-03)
 
   function def() { return (G.map && G.map.def) || {}; }
@@ -771,9 +771,6 @@
   K.standIn = function (k) { if (k && k.attacks && k.attacks.slam && !k.weapon) k.weapon = Object.assign({}, k.attacks.slam, { name: 'Slam', ranged: false, reach: 10, standIn: true }); };
   var enterK0 = D.Battle.prototype.enter;
   D.Battle.prototype.enter = function () {
-    // the ladder's Keeper is the old one (data/fights.js 'keeper-ladder', keeperProfile 'old'): its settings are K.PROFILE_OLD for the fight, and what was set before comes back at the next Keeper fight
-    var fid = (this.o && this.o.fightDef && this.o.fightDef.id) || (this.o && this.o.fight);
-    if (fid === 'keeper-ladder') { K._saved = K._saved || Object.assign({}, K.CFG); Object.assign(K.CFG, K.PROFILE_OLD); } else if (fid === 'keeper' && K._saved) { Object.assign(K.CFG, K._saved); K._saved = null; }
     var r = enterK0.apply(this, arguments); if (K.isFight(this.fight)) this.units.forEach(function (u) { if (u.kind === 'keeper') { if (K.CFG.hp) u.hp = u.maxhp = K.CFG.hp; if (K.CFG.slamDice && u.attacks && u.attacks.slam) u.attacks.slam.dice = K.CFG.slamDice; if (K.CFG.slamAtk && u.attacks && u.attacks.slam) u.attacks.slam.atk = K.CFG.slamAtk; if (K.CFG.weaponResist && u.resist && u.resist.indexOf('mundane') < 0) u.resist = u.resist.concat(['mundane']); K.standIn(u); if (K.CFG.visible) delete u.conds.hidden; } }); return r; }; // (10-03, Griz: he is visible from the first frame and glows; CFG.visible false is the old hidden Keeper)
 
   // ---- his own light (10-03, Griz: "a dim light source, the elemental plane energy that animates him"): a faint cool glow about his 2x2, the engine's own creature light (js/light.js L.carried),
@@ -913,7 +910,7 @@
     if (get('swirlhit') != null) K.CFG.swirlHit = get('swirlhit') !== '0'; // (swirlhit=0: no 1d6+3 and drowning roll on the swirl itself)
     if (get('slam')) K.CFG.slamDice = get('slam'); if (get('slams')) K.CFG.slams = +get('slams'); if (get('wavedc')) K.CFG.waveDC = +get('wavedc'); if (get('resist') != null) K.CFG.weaponResist = get('resist') === '1'; if (get('swirl')) K.CFG.swirlAny = get('swirl') === 'any'; if (get('drift') != null) K.CFG.openingDrift = get('drift') !== '0'; // (the tuning levers, 10-03: slam=3d6 the Slam's dice, slams=2 the Slam twice, wavedc=15, resist=1 nonmagical weapons resisted, swirl=any the swirl takes any hero in the water or in reach, drift=0 no drift at the rune)
     if (get('init') != null) K.CFG.initBonus = +get('init') | 0; if (get('cast') != null) K.CFG.aiCast = get('cast') !== '0'; if (get('washnowall') != null) K.CFG.washNoWall = get('washnowall') === '1'; // (the bench's settings: init=5 the Keeper's initiative bonus, cast=0 the AI never casts the wall, washnowall=1 the old backwash)
-    var B = new D.Battle({ fight: 'keeper', data: D.save.fixture(+(get('lvl') || 3)), bench: !!get('seed') || /[?&]watch\b/.test(q) });
+    var B = new D.Battle({ fight: 'keeper', data: D.save.fixture(+(get('lvl') || 3)), bench: !!get('seed') || /[?&]watch\b/.test(q), start: get('start') }); // (start=rune: the party by the rune, as a hand on the mark begins it in the 8-bit; ledge, or none, at the water's edge -- 10-03)
     var enter0 = B.enter;
     B.enter = function () {
       enter0.apply(this, arguments);

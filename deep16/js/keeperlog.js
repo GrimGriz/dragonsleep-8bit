@@ -84,7 +84,7 @@
       if (!(B.fight && K.isFight(B.fight))) return r;
       L.length = 0; B._klog = { depth: 0, cap: null, turn: 0, amb: [], hp: hpMap(B) };
       var lv = 0; B.units.forEach(function (u) { if (u.side === 'party' && u.lvl > lv) lv = u.lvl; });
-      L.meta = { seed: seed, level: lv, mode: (B.o && B.o.play) || 'ai', result: null, fight: B.fight.id, cfg: Object.assign({}, K.CFG) }; // (the Keeper's settings as the fight began: a playtest is compared by them)
+      L.meta = { seed: seed, level: lv, mode: (B.o && B.o.play) || 'ai', result: null, fight: B.fight.id, start: B.startAt || 'ledge', cfg: Object.assign({}, K.CFG) }; // (the Keeper's settings as the fight began: a playtest is compared by them; start: where the party came in, the ledge or the rune -- 10-03)
       var c0 = B.card; B.card = function (lines) { if (B._klog) { if (B._klog.cap) B._klog.cap.push((lines || []).join(' | ')); else if (B._klog.depth === 0) B._klog.amb.push((lines || []).join(' | ')); } return c0.apply(this, arguments); };
       return r;
     };
@@ -121,7 +121,7 @@
 
   // ---- the end: the result line, and the file
   L.text = function () {
-    var m = L.meta || {}, out = ['THE KEEPER OF THE FLOODED STAIR -- combat log', 'seed ' + m.seed + ', level ' + m.level + ', mode ' + m.mode + (m.fight ? ', fight ' + m.fight : '') + (m.result ? ', result ' + m.result : '')];
+    var m = L.meta || {}, out = ['THE KEEPER OF THE FLOODED STAIR -- combat log', 'seed ' + m.seed + ', level ' + m.level + ', mode ' + m.mode + (m.fight ? ', fight ' + m.fight : '') + (m.start ? ', start ' + m.start : '') + (m.result ? ', result ' + m.result : '')];
     if (m.cfg) { var c = m.cfg, ORDER = ['hp', 'slams', 'slamDice', 'slamAtk', 'waveDC', 'sweepUpFree', 'washNoWall', 'drown', 'suffocateDice', 'suffocateBonus', 'swirlHit', 'heldStruggle', 'deepDepth', 'swirlAny', 'deepAC', 'wallUses', 'wallHP', 'wallAC', 'initBonus', 'aiCast', 'visible', 'glow', 'partyOpening', 'openingDrift', 'weaponResist', 'oaWave'];
       out.push('settings: ' + ORDER.filter(function (k) { return k in c; }).concat(Object.keys(c).filter(function (k) { return ORDER.indexOf(k) < 0; }).sort()).map(function (k) { return k + '=' + (c[k] === null ? 'null' : c[k]); }).join(', ')); }
     out.push('');

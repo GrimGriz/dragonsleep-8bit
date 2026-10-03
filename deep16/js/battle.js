@@ -39,7 +39,11 @@
     // a familiar to each of a band (the class floor's &fam=owl,bat,...: js/classes.js npcFight, 10-01): the first keeps the one id
     (this.o.familiars || []).forEach(function (f, i) { var fu = D.familiar && D.familiar.unit(self, { flags: { familiar: f } }, party); if (fu) { fu.id = 'familiar' + (i || ''); party.push(fu); if (fu.master) fu.master.name += ' (' + window.DS.R.FAMILIARS[f.kind].name + ')'; } }); // (seven Wizard 5s told apart by their familiars)
     // (the Settling, 09-30: the 8-bit trigger that fired puts the lead on its own square -- embed.at -- and the rest beside him)
-    var entry = (this.o.embed && this.o.embed.at ? [this.o.embed.at] : (F.entry || m.def.entry)).slice();
+    // (a way in by name, 10-03: the Flooded Stair's 'rune' -- a hand on the mark, the party by it, the map's entryRune -- or 'ledge', waded in, its entry. The 8-bit scene says which
+    // (this.o.embed.start, js/events.js S.mark and S.stair); ?keeperfight&start= and the bench pass this.o.start. A map without that list keeps its entry)
+    var start = (this.o.embed && this.o.embed.start) || this.o.start || null, byStart = start && start !== 'ledge' ? m.def['entry' + start.charAt(0).toUpperCase() + start.slice(1)] : null;
+    this.startAt = byStart ? start : null; // (the named start the party came in by, or none: the map's entry -- the Keeper's log and the probe read it)
+    var entry = (this.o.embed && this.o.embed.at ? [this.o.embed.at] : (byStart || F.entry || m.def.entry)).slice(); this.entrySq = entry;
     // the ways out (LEAVE THE FIGHT): every square on an open edge of the map you can stand on (a road running on, the mouth
     // the party came in by), and a map's named doors (`doors`: the inn's); a map closed all round keeps the way in
     // riders (a fight's scenery figures: the wagon's glamoured children, the team in its traces): drawn where they stand,
@@ -455,7 +459,7 @@
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
   // entry, each on its own initiative
   Battle.prototype.joinReserve = function* () {
-    var self = this, come = this.reserve, e0 = (this.fight.entry || this.map.def.entry)[0], names = [];
+    var self = this, come = this.reserve, e0 = (this.entrySq || this.fight.entry || this.map.def.entry)[0], names = []; // (this.entrySq: the squares the party came in on -- a named start's, Battle.enter)
     this.reserve = [];
     come.forEach(function (u) {
       if (u.familiar) { self.units.push(u); return; } // (a familiar comes riding its wizard, and has no initiative of its own)
