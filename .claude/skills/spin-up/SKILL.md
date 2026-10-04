@@ -5,7 +5,7 @@ description: Put DRAGONSLEEP or DEEP16 in front of Griz (or a seat's own eyes) i
 
 # Spin it up
 
-Griz, 10-03: *"'spin it up in the browser' should be a thing pointed to in the 8bit claude.md I think"*. Built by the desk 10-03 from the review seat's spec (`dev-review-notes.md`, "the spin-up handoff").
+Griz, 10-03: *"'spin it up in the browser' should be a thing pointed to in the 8bit claude.md I think"*. Built by the desk 10-03 from the review seat's spec (`cloud-notes/dev-review-notes.md`, "the spin-up handoff").
 
 ## On the desk (a seat with the Browser pane)
 

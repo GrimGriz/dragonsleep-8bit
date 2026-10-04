@@ -1,4 +1,4 @@
-"""The bytes DEEP16 fetches to reach a screen (10-03, the lazy sheets job; lazy-sheets-notes.md has the numbers it gave).
+"""The bytes DEEP16 fetches to reach a screen (10-03, the lazy sheets job; cloud-notes/lazy-sheets-notes.md has the numbers it gave).
 Serves the repo over HTTP on a free port, counting every byte it sends, and drives the game in a headless Chromium through
 Playwright (pip install playwright; the browser is DEEP16_BROWSER, or Playwright's own; DEEP16_BROWSER_ARGS its extra flags).
 

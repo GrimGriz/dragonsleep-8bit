@@ -399,7 +399,7 @@
     } else if (test === 'fixes1003') {
       // the cheap SRD fixes (10-03, Griz: "4 yes" to "The cheap SRD fixes as one Sonnet or cloud batch?"; spells-two-books.md §2): castSpell run
       // straight, its pickers answered from a queue (a foe's or hero's name, a menu's label, null to cancel; nothing queued takes the first),
-      // the dice counted. Each check failed before its fix (spell-fixes-notes.md)
+      // the dice counted. Each check failed before its fix (cloud-notes/spell-fixes-notes.md)
       var roll0F = DS.roll, d0F = DS.d, scene0F = DS.W8.scene, rollsF = [], ansF = [], offeredF = [], QdF = [];
       DS.roll = function (e, o) { rollsF.push(e); return roll0F(e, o); };
       DS.d = function (n) { return QdF.length ? QdF.shift() : d0F(n); };
@@ -484,7 +484,7 @@
 
         // 6. Sleet Storm (SRD 5.1: "When a creature enters the spell's area for the first time on a turn or starts its turn there, it must make a
         // Dexterity saving throw. On a failed save, it falls prone"): an ogre's turn in the sleet, its DEX hopeless -- it goes down, and its turn goes
-        // on from the ice (the reading, spell-fixes-notes.md: the fall costs no action; the prone's own disadvantage, and it gets up at its next turn)
+        // on from the ice (the reading, cloud-notes/spell-fixes-notes.md: the fall costs no action; the prone's own disadvantage, and it gets up at its next turn)
         var o6 = foesF(['ogre'], 400)[0]; savesF(o6, { dex: -30 });
         bF.heroes.forEach(function (x) { x.h.maxhp = x.h.hp = Math.max(x.h.hp, 400); x.h.ko = false; x.conds = {}; x.images = 0; });
         bF.cloud = { kind: 'sleet', rounds: 10, dc: 15, save: 'dex' }; T.blog = [];
@@ -546,7 +546,7 @@
         } finally { bF.d20 = d20F11; LF.conds = {}; }
         check('the spiritual weapon\'s swing ends its caster\'s Sanctuary: on a hit ' + ends11[0] + ' -- "' + ends11[1] + '"; on a miss ' + ends11[2] + ' -- "' + ends11[3] + '"', ends11[0] && ends11[2]);
       } finally { DS.roll = roll0F; DS.d = d0F; DS.W8.scene = scene0F; }
-      // the fight itself (what it shows goes in spell-fixes-notes.md): Aurdin casts it on the first ogre from the menus, and the battle runs on
+      // the fight itself (what it shows goes in cloud-notes/spell-fixes-notes.md): Aurdin casts it on the first ogre from the menus, and the battle runs on
       if (Q.get('fight9')) {
         var b9x = DS.find('battle'); if (b9x) { b9x.over = 'win'; drive({}, 2000); }
         var au9 = g.hero('aurdin'); au9.hp = au9.maxhp = 400; au9.slots = [4, 3, 3];

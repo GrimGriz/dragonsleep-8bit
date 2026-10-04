@@ -95,7 +95,7 @@ desktop seat writes it. This seat's opener was the prompt `dev/cloud-prompt-race
 
 - **Merged.** The overseer merged this branch as `7beba7c`, then restamped `classes.js` in `979ed86` (see gotcha 6).
 - **Question 4 is answered by another job.** The lazy sheets (`56d42b5`) landed after: no sheet is fetched at start, and a scene asks for
-  its own sheets. `lazy-sheets-notes.md` measures a Pocket DM fight with a dragonborn at 3.96 MB to its first turn.
+  its own sheets. `cloud-notes/lazy-sheets-notes.md` measures a Pocket DM fight with a dragonborn at 3.96 MB to its first turn.
 - **Questions 1 to 3 are open.** Nothing on `main` rules them: not `cloud-jobs.md`, not invented.json's `deep16-race-looks` line.
 - **Rechecked at the close**, on `main` at `eac193b`, in this container's Chromium:
   - the probe: all 24 sheets resolve; the other races keep the class figure; Higertha, Talmok and Torvald keep their own; Brokk gets

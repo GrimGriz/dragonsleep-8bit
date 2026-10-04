@@ -23,7 +23,7 @@ The handoff's numbers were probed 10-02 and said to re-count. They moved by one 
 | `E.*` handlers in deep16/js/grimoire.js | 108 | **124** |
 | built-in ids in deep16/js/magic.js M.cast | -- | **32** |
 
-**Moved since, 10-03 (the cheap SRD fixes, spell-fixes-notes.md):** Blindness/Deafness is flagged `battle` -- `battle: true` 51, both flags 4, BOTH 50, GRID ONLY 120. The table and the counts below are as read at dc55881.
+**Moved since, 10-03 (the cheap SRD fixes, cloud-notes/spell-fixes-notes.md):** Blindness/Deafness is flagged `battle` -- `battle: true` 51, both flags 4, BOTH 50, GRID ONLY 120. The table and the counts below are as read at dc55881.
 
 So the four kinds of record, which the table below marks on every row:
 

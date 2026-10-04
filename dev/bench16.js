@@ -989,7 +989,7 @@
     return;
   }
   // the cheap SRD fixes, the grid's six (mode=fixes1003; 10-03, Griz: "4 yes" to "The cheap SRD fixes as one Sonnet or cloud batch?"; spells-two-books.md §2c): each
-  // check failed before its fix (spell-fixes-notes.md). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
+  // check failed before its fix (cloud-notes/spell-fixes-notes.md). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
   if (get('mode', '') === 'fixes1003') {
     var repX = { checks: [], errors: [] }, d0X = D.d, MX = D.magic, askedX = 0;
     function okX(what, v) { repX.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -1082,7 +1082,7 @@
     return;
   }
   // the review's rules misses on the grid (mode=rules1003; 10-03, Griz: "Slide way back up to the top with the stuff the cloud review came back with - I think those
-  // were probably the important of the todos"; dev-review-notes.md A3-A5): each check failed before its fix. Battle.hurt straight, D.d pinned for the CON saves
+  // were probably the important of the todos"; cloud-notes/dev-review-notes.md A3-A5): each check failed before its fix. Battle.hurt straight, D.d pinned for the CON saves
   if (get('mode', '') === 'rules1003') {
     var repR = { checks: [], errors: [] }, d0R = D.d, MR = D.magic;
     function okR(what, v) { repR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

@@ -1,6 +1,6 @@
 ---
 title: The signature fight -- the recipe
-made: 2026-10-03 (the oversight window), from the Keeper of the Flooded Stair: his design 10-02, built across two cloud seats and the desk 10-03, played by Griz in about forty records, shipped to main on his word (c8868ab). Sources: `handoffs-spent/handoff-2026-10-02-the-keeper.md`, `deep16-keeper-notes.md`, `narrative-memory-2026.10.03-the-keeper-cloud-and-desk.md`, the bolt's 10-03 entry. Griz: *"what we went through (or a better version of it you come up with) as a 'signature fight' protocol/approach we may repeat on purpose."*
+made: 2026-10-03 (the oversight window), from the Keeper of the Flooded Stair: his design 10-02, built across two cloud seats and the desk 10-03, played by Griz in about forty records, shipped to main on his word (c8868ab). Sources: `handoffs-spent/handoff-2026-10-02-the-keeper.md`, `cloud-notes/deep16-keeper-notes.md`, `narrative-memory-2026.10.03-the-keeper-cloud-and-desk.md`, the bolt's 10-03 entry. Griz: *"what we went through (or a better version of it you come up with) as a 'signature fight' protocol/approach we may repeat on purpose."*
 law: the pull rule is monster-driven and the SRD 5.1 is the finish line for everything ordinary; a signature fight is where the realm breaks the SRD **on purpose and says so**. One fight at a time; the next one cites this file in its brief.
 ---
 
