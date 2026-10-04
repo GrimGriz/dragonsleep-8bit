@@ -229,3 +229,7 @@ What this job taught, so nobody pays for it twice.
   - a summoned or polymorphed creature appearing in a played fight;
   - the gallery clicked through;
   - the climb's level-up and the DM's hands after a real fight.
+
+## Carried (2026-10-04)
+
+On Griz's word (*"organize and combine them into groups that can be done by one session"*) every live dragonsleep handoff and every cloud seat's notes file were swept into nine grouped handoffs at the they-live root, one session each. This job's open items: shrink the scripts (his "later") is `handoff-2026-10-04-the-gate-and-the-house.md` §2.6; the maker draws no figure is `handoff-2026-10-04-the-pocket-dm-and-the-races.md` §2.1; Pages over a real connection, a phone, a summoned creature in a played fight and the gallery clicked through are `handoff-2026-10-04-eyes-on-the-screen.md` §2.5. This file stays as the record and the gotchas; nothing open lives here.

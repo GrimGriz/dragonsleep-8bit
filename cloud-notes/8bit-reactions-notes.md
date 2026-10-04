@@ -98,3 +98,7 @@ Nothing is open from this job.
 - After any later edit to `js/rules.js` prepRanked or the reaction block: `python dev/check.py` (the every-spell check and the grid's modes, since the book law is shared) and `reactions1003`.
 - The desktop's eye, once merged and live: a fight with Aurdin (his default day holds Shield now) where an ogre's club lands by less than 5, to see the SHIELD? menu; a spell-weaver fight for the "begins to cast" card, the COUNTERSPELL? menu (Aurdin learns Counterspell at 5th on the grid, `deep16/js/save.js`) and the darts turned by a raised shield; a roost fight with a caster who knows Hellish Rebuke (Amara's, not the party's) for the ROOST item and the swarm.
 - Griz's live save: Aurdin keeps the prepared day he chose (`R.prepFill`); Shield comes in when a place opens or he prepares it. Worth a word to him at the merge.
+
+## Carried (2026-10-04)
+
+On Griz's word (*"organize and combine them into groups that can be done by one session"*) every live dragonsleep handoff and every cloud seat's notes file were swept into nine grouped handoffs at the they-live root, one session each. This job's open items: nothing was open (§6); what no person has seen -- the Counterspell ask, the "begins to cast" card, the ROOST rebuke, the decline path, the darts turned by a shield, and the word to Griz that his live save keeps its prepared day -- is `handoff-2026-10-04-eyes-on-the-screen.md` §2.1. This file stays as the record and the gotchas; nothing open lives here.

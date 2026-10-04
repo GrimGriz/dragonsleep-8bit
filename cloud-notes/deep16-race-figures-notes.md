@@ -181,3 +181,7 @@ desktop seat writes it. This seat's opener was the prompt `dev/cloud-prompt-race
 - **A new ancestry or race:** gotcha 11 first.
 - **Queued on `main`, not this job** (`cloud-jobs.md`): the breath weapon and the resistance, the tiefling's spells, a portrait for the
   maker's card.
+
+## Carried (2026-10-04)
+
+On Griz's word (*"organize and combine them into groups that can be done by one session"*) every live dragonsleep handoff and every cloud seat's notes file were swept into nine grouped handoffs at the they-live root, one session each. This job's open items: questions 1-3 and the races' traits are `handoff-2026-10-04-the-pocket-dm-and-the-races.md` §2.12-13; the show sheet by his eye is `handoff-2026-10-04-eyes-on-the-screen.md` §2.4. Moved to cloud-notes/ 10-04. This file stays as the record and the gotchas; nothing open lives here.

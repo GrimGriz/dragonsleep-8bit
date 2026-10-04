@@ -109,3 +109,7 @@ There was no playtest. The AI's Shield was benched once, never weighed in a ladd
 - The drow's charm-save advantage is not read in the 8-bit.
 - A two-kind spell makes a concentrating creature check twice (Ice Storm now, as Flame Strike already did). The SRD gives one save per source.
 - The 8-bit's Mislead double has no clock (two-books law 5, as Mirror Image).
+
+## Carried (2026-10-04)
+
+On Griz's word (*"organize and combine them into groups that can be done by one session"*) every live dragonsleep handoff and every cloud seat's notes file were swept into nine grouped handoffs at the they-live root, one session each. This job's open items: the two-kind concentration check, the magical-weapon note and the seat's readings for his word are `handoff-2026-10-04-the-grids-rules.md` §2.1, §2.11, §2.12; the oozes' charmed, the drow's Fey Ancestry and Mislead's clock are `handoff-2026-10-04-the-8-bit-battle-and-its-hands.md` §2.6; the dart picker, END WHICH?, SHIELD? and the hail are `handoff-2026-10-04-eyes-on-the-screen.md` §2.2. This file stays as the record and the gotchas; nothing open lives here.

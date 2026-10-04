@@ -84,3 +84,7 @@ At four heads, x1.4 needs a CR 2 in the fourth slot, and the crew's own family h
 - **Stamps:** `deep16/index.html` has `data/fights.js` stamped by hand (LF `sha1[:10]`), as the lazy seat's notes advise (the build on Linux moves every stamp). The root `index.html` was re-stamped by `tools/compile.py` after the merge (one hash for every 8-bit script; events.js and deep.js changed). The desktop re-stamps at merge either way.
 
 **Rerun, and when.** `python dev/bench16.py x fight=<id> n=20` for snoot, ettercap, crew and chuul after any change to their records, to the four's fixture, or to Pack Tactics, Rampage or Web; the table above is the before. `python dev/bench16.py x mode=joke1002` after any change to the Snoot's record. Not the Wet: it is not benched as a fight (Griz, 10-03).
+
+## Carried (2026-10-04)
+
+On Griz's word (*"organize and combine them into groups that can be done by one session"*) every live dragonsleep handoff and every cloud seat's notes file were swept into nine grouped handoffs at the they-live root, one session each. This job's open items: the crew's fourth, the chuul's frog and the ladder's rungs 3-4 are `handoff-2026-10-04-the-difficulty.md` §2.2-4. Moved to cloud-notes/ 10-04 with them carried. This file stays as the record and the gotchas; nothing open lives here.

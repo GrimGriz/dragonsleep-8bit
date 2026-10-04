@@ -110,3 +110,7 @@ What three rounds taught, so nobody pays for it twice:
 - The base game's roads barely touch the party. Its teeth are the bosses.
 - The Deep's road is where resources go, and potions go first. The road sells none.
 - A lamp is a bed only for the doors near it. Leg four's far doors are 67–89 steps from Third Lamp through the densest zone, which is why sallies lose and the straight walk is the better plan there.
+
+## Carried (2026-10-04)
+
+On Griz's word (*"organize and combine them into groups that can be done by one session"*) every live dragonsleep handoff and every cloud seat's notes file were swept into nine grouped handoffs at the they-live root, one session each. This job's open items: leg four's far end is `handoff-2026-10-03-the-road-and-its-rewards.md` §2; the four leans and the boss cost are `handoff-2026-10-04-the-difficulty.md` §2.5-6; the guest turn learning to cast is `handoff-2026-10-04-the-8-bit-battle-and-its-hands.md` §2.1. Moved to cloud-notes/ 10-04; still the walker's manual. This file stays as the record and the gotchas; nothing open lives here.

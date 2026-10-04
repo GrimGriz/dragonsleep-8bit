@@ -272,3 +272,7 @@ From `play-records/keeper-seed50613316-L3.txt` (he played the Keeper, the class 
 - **A refused click has no line** (`keeperlog.js` spendOf): "it is in the swirl: LET GO first" was a line. A command (Battle.exec) that rolled nothing, changed no one's HP or conditions, and left its actor's turn, place, reaction, slots and features as they were is not logged. Only commands: what the game does (a sprung wall, a drowning) is logged as before. A Hide refused because it is seen ("can see her plainly", nothing spent) drops out by the same rule.
 - **The clicked Slam is `kslam`** (`keeperlog.js`): a click on a hero (the default attack) logged `attack`, the ring's SLAM `kslam`; both `kslam` now, as the probe expects of the ring.
 - `dev/keeper-probe.js`: four checks (let go, the refused click, the clicked Slam, the breath). 226/226.
+
+## Carried (2026-10-04)
+
+On Griz's word (*"organize and combine them into groups that can be done by one session"*) every live dragonsleep handoff and every cloud seat's notes file were swept into nine grouped handoffs at the they-live root, one session each. This job's open items: the Keeper is finished by his word; retreatRounds and the Ready hook on other forced moves are `handoff-2026-10-04-the-difficulty.md` §2.8 and `handoff-2026-10-04-the-grids-rules.md` §2.5; the 8-bit's stair text against the two spawns is `handoff-2026-10-03-the-road-and-its-rewards.md` §7b; everything not seen by eye is `handoff-2026-10-04-eyes-on-the-screen.md` §2.3. This file stays as the record and the gotchas; nothing open lives here.

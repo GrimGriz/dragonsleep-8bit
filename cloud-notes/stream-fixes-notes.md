@@ -92,3 +92,7 @@ Started 2026-10-03T15:59Z, ended 2026-10-03T18:27Z, a cloud seat (no daily, bolt
 3. **"viv drowned and was never swirled"**: not in either streamed log; a third fight's log would settle it.
 4. **Not seen by a person**: the card, the opener, the stand-up, the Pocket's SAVE/LOAD ROSTER -- the desktop spins it up for his eye.
 5. **The desk's review's decisions** (`dev-review-notes.md`, six, carried in `cloud-jobs.md`): untouched here.
+
+## Carried (2026-10-04)
+
+On Griz's word (*"organize and combine them into groups that can be done by one session"*) every live dragonsleep handoff and every cloud seat's notes file were swept into nine grouped handoffs at the they-live root, one session each. This job's open items: the Keeper's ease (the three fights at L3 on live, retreatRounds, the Ready hook) is `handoff-2026-10-04-the-difficulty.md` §2.8; the card, the opener, the stand-up, SAVE/LOAD ROSTER and "viv drowned" are `handoff-2026-10-04-eyes-on-the-screen.md` §2.3-4; the play record's room was built 65b957a; the review's decisions are `handoff-2026-10-04-the-gate-and-the-house.md`. This file stays as the record and the gotchas; nothing open lives here.
