@@ -753,7 +753,7 @@
       "anims": { "idle": "Wasp_Flying", "attack": "Wasp_Attack", "walk": "Wasp_Flying" }
     },
     "troll": {
-      "_note": "the troll (SRD 5.1, Large): MZ4250's printable Troll Updated (Thingiverse thing:4134313, CC BY: deep16/CREDITS.md), on his own rig, posed by tools/troll-blend.py as bends on his own lunge -- pipeline 1b's fourth, deep16/blender-monsters.md (10-04). The toon look, light 13, the lift off as the grick; the hide green. size_by: the print base's disc, two squares. Death on its face; PRONE over on its back (the grid lies at its last frame and gets up by the row played backwards). (Till then the Quaternius Yeti stood in.)",
+      "_note": "the troll (SRD 5.1, Large): MZ4250's printable Troll Updated (Thingiverse thing:4134313, CC BY: deep16/CREDITS.md), on his own rig, posed by tools/troll-blend.py -- pipeline 1b's fourth, deep16/blender-monsters.md (10-04): the second posing stands it up from his lunge, its feet planted and its hands placed by a two-bone solve (the first, bends on the lunge, is poses=v1). The toon look, light 13, the lift on; the hide green, the hair sky blue. size_by: the print base's disc, two squares. Death to its knees and down on its chest; PRONE over on its back (the grid lies at its last frame and gets up by the row played backwards). (Till then the Quaternius Yeti stood in.)",
       "file": "troll/troll.blend",
       "show": ["Troll_Body"],
       "look": "toon:13",

@@ -54,8 +54,8 @@ The recipe: `deep16/blender-monsters.md`. Each model's files live in `deep16/_sr
 - **Troll** — **mz4250**, "Troll Updated", Thingiverse thing:4134313, https://www.thingiverse.com/thing:4134313 — licensed under
   **Creative Commons Attribution** (the download page's "Creative Commons - Attribution"). Used: `Troll_Updated_posed.blend` (the sculpt on his
   own rig, 65 bones and their weights, in the miniature's lunge). **Changed** by `tools/troll-blend.py` (10-04): the print base dropped, the rig
-  re-origined on its foot, an Armature modifier ahead of the Subsurf, coloured (the green hide, the claws, the jaw), posed into rows in code as
-  bends on his own pose, rendered in the toon look and snapped to the DEEP16 palette (`troll_p1`). His Patreon: https://www.patreon.com/mz4250.
+  re-origined on its foot, an Armature modifier ahead of the Subsurf, coloured (the green hide, the claws, the jaw), posed into rows in code
+  (stood up from his lunge, the limbs placed by a two-bone solve on his rig), rendered in the toon look and snapped to the DEEP16 palette (`troll_p1`). His Patreon: https://www.patreon.com/mz4250.
 
 ## Pipeline 2 — generated (`denny_p2`, `chuul_p2`, `crawler_p2`, `gnoll_p2`, `gloryseeker_p2`, `cloaker_p2`, `ettercap_p2`, `otyugh_p2`, `hyena_p2`, `bulette_p2`, `owl_p2`, `snowyowl_p2`)
 

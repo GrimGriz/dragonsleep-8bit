@@ -12,11 +12,16 @@ on the artist's rig (65 bones and their weights: a spine, two arms with five-fin
 miniature's pose -- a wide lunge, the reaching arm out in front, the mouth open. `build` writes deep16/_src/troll/troll.blend for
 tools/render-sprites.py.
 
-The rows are bends on top of the artist's own pose, keyed in code, every bone on every frame (each bend in the pose's frame, carried by
-the bones above it: a turn at the shoulder takes the hand with it). The pose faces -Y; +X turns the front DOWN (a lean forward, a blow coming
-down), - raises it:
-    IDLE 8 (loop)  WALK 8 (loop)  CLAW 6 (the reaching arm)  CLAW2 6 (the other)  BITE 6  FLINCH 5  DEATH 8 (it buckles and falls on its face)
+The rows are keyed in code, every bone on every frame. The pose faces -Y; +X turns the front DOWN (a lean forward, a blow coming down), - raises it:
+    IDLE 8 (loop)  WALK 8 (loop)  CLAW 6 (its left arm)  CLAW2 6 (its right)  BITE 6  FLINCH 5  DEATH 8 (to its knees, then down on its chest)
     PRONE 6 (knocked over on its back; lies at its last frame, gets up by the row played backwards)
+
+Two posings (10-04). The first (ROWS_V1, `poses=v1`; the Sonnet seat's, its sheet kept in deep16/_src/troll/keep/v1-433b149/ and at git tag
+troll-v1-sonnet): bends on top of the miniature's lunge, so every row kept its crouch. The second (ROWS_V2, the default; Opus): a standing troll
+(`stance()`: the hips up out of the crouch and squared, the back hunched, the long arms hanging) with each limb put where a frame wants it by a
+two-bone solve (`ik2`): the feet planted on the ground by position (a walk's foot slides back under it and swings through), the wrists placed from
+the shoulders, the knee or elbow bending toward a pole the way the sculpt's own joint bends. `-- poses <tag> view=side|front` renders the rows
+flat to pose by; `-- exec file=<probe.py>` runs a probe in this namespace.
 """
 import bpy, sys, os, math, importlib.util, json
 import numpy as np
@@ -131,7 +136,7 @@ def bends(P):
         add(r, Q(PX, P.get('body', 0)))
         add(r, Q(PZ, P.get('bodyyaw', 0)))
     for n in SPINE:
-        add(n, Q(PX, P.get('lean', 0) / len(SPINE))); add(n, Q(PZ, P.get('twist', 0) / len(SPINE)))
+        add(n, Q(PX, P.get('lean', 0) / len(SPINE))); add(n, Q(PZ, P.get('twist', 0) / len(SPINE))); add(n, Q(PY, P.get('tilt', 0) / len(SPINE)))
     for n in NECK:
         add(n, Q(PX, P.get('head', 0) / 3)); add(n, Q(PZ, P.get('hyaw', 0) / 3)); add(n, Q(PY, P.get('hroll', 0) / 3))
     add(HEAD, Q(PX, P.get('head', 0) / 3)); add(HEAD, Q(PZ, P.get('hyaw', 0) / 3)); add(HEAD, Q(PY, P.get('hroll', 0) / 3))
@@ -175,9 +180,9 @@ def aim(d, names, targets, f=1.0):
         d[n] = dq; G = G @ dq
 
 
-def solve(d, lift=0.0, shift=0.0):
+def solve(d, lift=0.0, shift=0.0, sway=0.0, mats=False):
     """each bone's basis for bends d: its posed rotation is (the bends of every bone above it and its own, in the pose's frame) x the
-    artist's; its head where its parent now carries it; the roots (all three at the hip) lifted together."""
+    artist's; its head where its parent now carries it; the roots (all three at the hip) lifted together. mats: also each bone's posed matrix."""
     G, M, out = {}, {}, {}
     for n in ORDER:
         b = BN[n]; p = b.parent.name if b.parent else None
@@ -186,10 +191,66 @@ def solve(d, lift=0.0, shift=0.0):
         if p:
             C = M[p] @ REST[p].inverted() @ REST[n]; head = C.translation
         else:
-            C = REST[n]; head = POSE0[n].translation + Vector((0, shift, lift))
+            C = REST[n]; head = POSE0[n].translation + Vector((sway, shift, lift))
         M[n] = Matrix.Translation(head) @ R.to_4x4()
         out[n] = C.inverted() @ M[n]
-    return out
+    return (out, M) if mats else out
+
+
+# ------------------------------------------------------------------ the second posing (10-04, Opus): a standing troll, its feet planted and its hands
+# put where a pose wants them (a two-bone solve per limb), not bends on the miniature's lunge
+def dir0(n):
+    """a bone's direction (head to tail) in the artist's pose."""
+    return POSE0[n] @ Vector((0, BN[n].length, 0)) - POSE0[n].translation
+
+
+def frame3(a, n):
+    a = a.normalized(); n = (n - a * n.dot(a)).normalized()
+    return Matrix((a, n, a.cross(n))).transposed()
+
+
+def orient(d, name, Rw):
+    """turn a bone so its whole turn from the artist's pose, in the pose's frame, is Rw (its own bend is what its parents leave)."""
+    p = BN[name].parent
+    d[name] = (accG(d, p.name) if p else Quaternion()).inverted() @ Rw
+
+
+def ik2(d, M, upper, lower, target, pole):
+    """the two-bone solve: the upper bone's head stays where its parents carry it (M), the lower's tail goes to `target`, the joint between bends
+    toward `pole`; each bone turned whole (its direction and its hinge both: the artist's knee or elbow keeps bending the way it was sculpted to)."""
+    root = M[upper].translation
+    L1, L2 = BN[upper].length, BN[lower].length
+    D = Vector(target) - root; Dn = D.normalized()
+    dist = min(max(D.length, abs(L1 - L2) + 0.05), L1 + L2 - 0.05)
+    x = (L1 * L1 - L2 * L2 + dist * dist) / (2 * dist); h = math.sqrt(max(L1 * L1 - x * x, 0.0))
+    p = Vector(pole); p = (p - Dn * p.dot(Dn)).normalized()
+    knee = root + Dn * x + p * h; tip = root + Dn * dist
+    u0, l0 = dir0(upper), dir0(lower); n0 = u0.cross(l0)
+    n1 = p.cross(Dn)                # (the cross of the two bones, for any bend toward p)
+    orient(d, upper, (frame3(knee - root, n1) @ frame3(u0, n0).transposed()).to_quaternion())
+    orient(d, lower, (frame3(tip - knee, n1) @ frame3(l0, n0).transposed()).to_quaternion())
+    return knee
+
+
+FOOT = {'a': ('Bone.010', 'Bone.012', 'Bone.014'), 'b': ('Bone.011', 'Bone.013', 'Bone.015')}     # the ankle bone, the foot, the toe
+
+
+def foot_turn(s, yaw, pitch):
+    """a planted foot's turn: `yaw` its toes out (+) or in from the artist's (about 22 deg out already), `pitch` its toes down (+: the heel up) or up."""
+    sg = 1 if s == 'a' else -1
+    fw = dir0(FOOT[s][1]); fw.z = 0; fw.normalize()
+    qy = Q(PZ, yaw * sg); fw = qy @ fw
+    return Q(PZ.cross(fw), pitch) @ qy
+
+
+def foot_raise(s, R):
+    """how far an ankle must rise so a pitched foot rolls on its heel or its toes instead of going through the floor."""
+    a = POSE0[FOOT[s][0]].translation
+    pts = [POSE0[FOOT[s][1]].translation - a, POSE0[FOOT[s][2]].translation + dir0(FOOT[s][2]) - a]
+    return max(0.0, min(v.z for v in pts) - min((R @ v).z for v in pts))
+
+
+ANK0 = {s: POSE0[FOOT[s][0]].translation.copy() for s in 'ab'}     # each ankle where the artist planted it: its height there is its foot on the ground
 
 
 LIE = {   # where each limb chain points when it lies on the floor, by what the body is doing: ('back': over on its back, head toward +Y; 'face': on its face, head toward -Y)
@@ -218,7 +279,20 @@ def apply(P):
             aim(d, L[1:4], [(s * 0.75, -0.55, -0.35), (s * -0.3, 0.9, -0.2), (s * -0.1, 0.4, -0.9)], P['tuck'])
     if P.get('lie'):
         lie(d, P['lie'], P['lieside'], P.get('liefall', 1.0))
-    for n, m in solve(d, P.get('lift', 0.0), P.get('shift', 0.0)).items():
+    lift, shift, sway = P.get('lift', 0.0), P.get('shift', 0.0), P.get('sway', 0.0)
+    if P.get('legs') or P.get('arms') or P.get('hands'):     # the second posing: limbs put where the pose wants them
+        _, M = solve(d, lift, shift, sway, mats=True)
+        for s, (x, y, z, yaw, pitch) in (P.get('legs') or {}).items():
+            L = LEG_A if s == 'a' else LEG_B
+            R = foot_turn(s, yaw, pitch); up = foot_raise(s, R)
+            ik2(d, M, L[1], L[2], (x, y, z + up), P.get('kpole' + s, (0.3 if s == 'a' else -0.3, -1, 0.15)))
+            orient(d, FOOT[s][0], R)
+        for s, (x, y, z) in (P.get('arms') or {}).items():     # (the wrist from the shoulder joint, in the world's axes: an arm goes with the body)
+            A = ARM_A if s == 'a' else ARM_B
+            ik2(d, M, A[1], A[2], M[A[1]].translation + Vector((x, y, z)), P.get('epole' + s, (0.6 if s == 'a' else -0.6, 1, 0)))
+        for s, v in (P.get('hands') or {}).items():          # a hand pointed along a world direction
+            aim(d, [(ARM_A if s == 'a' else ARM_B)[3]], [v])
+    for n, m in solve(d, lift, shift, sway).items():
         loc, rot, sc = m.decompose()
         pb = arm.pose.bones[n]; pb.rotation_quaternion = rot; pb.location = loc
 
@@ -251,6 +325,19 @@ def grounded(P, how):
     """seat a frame on the ground: 'plant' -- the lowest point lands on it (a step, a swing: the body rides on its feet); 'clamp' -- never
     below it (a bob, a fall: the frame keeps the lift it asked for)."""
     apply(P); lo = lowest()
+    if how == 'ik':        # (the feet are put on the ground by the pose itself: only say if something else went through it, and where)
+        if lo < FLOOR - 0.3 and P.get('legs'):     # a rolled foot's long toe claws reach past its bones: lift that ankle by what went under
+            bpy.context.view_layer.update(); pp = posed_points(2); legs = dict(P['legs'])
+            for s, (x, y, z, yaw, pitch) in P['legs'].items():
+                near = pp[(np.hypot(pp[:, 0] - x, pp[:, 1] - y) < 16) & (pp[:, 2] < z + 2)]
+                if len(near) and near[:, 2].min() < FLOOR - 0.3 and pitch:
+                    legs[s] = (x, y, z + FLOOR - float(near[:, 2].min()), yaw, pitch)
+            if legs != P['legs']:
+                P = dict(P, legs=legs); apply(P); lo = lowest()
+        if lo < FLOOR - 0.6:
+            bpy.context.view_layer.update(); pp = posed_points(2); k_ = int(pp[:, 2].argmin())
+            print('[troll] WARN %s goes %.1f under the ground at x %.0f y %.0f' % (P.get('_tag', '?'), FLOOR - lo, pp[k_, 0], pp[k_, 1]))
+        return P
     if how == 'plant' or lo < FLOOR:
         P = dict(P, lift=P.get('lift', 0.0) + FLOOR - lo - P.get('sink', 0.0)); apply(P)
     return P
@@ -326,15 +413,153 @@ def row_death(i, n):
                 swa=-30 * f * (1 - g), swb=-30 * f * (1 - g)), 0
 
 
-ROWS = [('IDLE', 8, True, row_idle, 'clamp'), ('WALK', 8, True, row_walk, 'plant'), ('CLAW', 6, False, row_claw('a'), 'plant'), ('CLAW2', 6, False, row_claw('b'), 'plant'),
-        ('BITE', 6, False, row_bite, 'plant'), ('FLINCH', 5, False, row_flinch, 'clamp'), ('DEATH', 8, False, row_death, 'plant'), ('PRONE', 6, False, row_prone, 'clamp')]
+ROWS_V1 = [('IDLE', 8, True, row_idle, 'clamp'), ('WALK', 8, True, row_walk, 'plant'), ('CLAW', 6, False, row_claw('a'), 'plant'), ('CLAW2', 6, False, row_claw('b'), 'plant'),
+           ('BITE', 6, False, row_bite, 'plant'), ('FLINCH', 5, False, row_flinch, 'clamp'), ('DEATH', 8, False, row_death, 'plant'), ('PRONE', 6, False, row_prone, 'clamp')]
+
+
+# ------------------------------------------------------------------ the second posing's rows (10-04, Opus; the first, the Sonnet seat's, are ROWS_V1: `poses=v1`)
+ST = dict(lift=6.0, bodyyaw=10.0, twist=-6.0, hyaw=-4.0, lean=6.0, head=8.0, jaw=-18.0, finga=10.0, fingb=10.0)
+FA, FB = (9.0, -4.0), (-9.0, 4.0)             # the feet standing (x, y)
+WA, WB = (6.0, -10.0, -20.0), (-6.0, -8.0, -21.0)     # the wrists hanging, from the shoulders
+
+
+def stance(**k):
+    """the troll standing, the frame every row starts and ends on: the hips up out of the miniature's crouch and squared, the back hunched, the
+    feet under it a little staggered (its left, +X, forward), the long arms hanging forward and out with the claws by its knees. k: what a frame
+    changes (fa/fb: a foot (x, y, up, yaw, pitch); wa/wb: a wrist from its shoulder)."""
+    P = dict(ST)
+    fa, fb = k.pop('fa', FA + (0.0, 0.0, 0.0)), k.pop('fb', FB + (0.0, 0.0, 0.0))
+    wa, wb = k.pop('wa', WA), k.pop('wb', WB)
+    P.update(k)
+    P['legs'] = {'a': (fa[0], fa[1], ANK0['a'].z + fa[2], fa[3], fa[4]), 'b': (fb[0], fb[1], ANK0['b'].z + fb[2], fb[3], fb[4])}
+    P['arms'] = {'a': wa, 'b': wb}
+    return P
+
+
+def lerp(a, b, f):
+    return tuple(x + (y - x) * f for x, y in zip(a, b))
+
+
+def row2_idle(i, n):
+    """breath: the chest rises and the shoulders with it, the hunch eases and settles, the head turns a little to look about, the claws flex."""
+    t = i / n; w = TAU * t; b = 0.5 * (1 - math.cos(w))       # (b: 0 at the first frame, its lowest: the render seats it there)
+    return stance(lift=6.0 + 0.6 * b, lean=6.0 - 2.5 * b, head=8.0 - 3 * b, hyaw=-4.0 + 6 * S(w), jaw=-18 + 3 * b,
+                  wa=lerp(WA, (7.0, -9.0, -19.0), b), wb=lerp(WB, (-7.0, -7.5, -20.0), b), finga=10 + 8 * b, fingb=10 + 8 * S(w + 1)), 0
+
+
+def row2_walk(i, n):
+    """a long hunched lope, the feet planted (each slides back under it on the ground and swings through lifted), the hips bob and sway over the
+    foot that holds them, the pelvis turns with the forward leg and the shoulders against it, the long arms swing opposite the legs."""
+    t = i / n; c = math.cos(TAU * t); s_ = S(TAU * t)
+    SL = float(OPT.get('stride', 22))
+
+    def foot(ph, base):
+        ph %= 1.0
+        if ph <= 0.5:                                # on the ground: from the front to the back
+            y = -SL / 2 + SL * ph / 0.5; up = 0.0
+            pitch = [-14, 0, 0, 6, 28][int(round(ph * 8))]
+        else:                                        # swung through, lifted
+            k = (ph - 0.5) / 0.5; y = SL / 2 - SL * k; up = 5.0 * S(math.pi * k)
+            pitch = [28, 22, 0, -10][int(round(ph * 8)) - 4]
+        return (base[0] * 0.85, base[1] * 0.3 + y, up, 4.0, pitch)
+    bob = [-0.4, -1.6, 0.4, 1.2][i % 4]
+    return stance(lift=float(OPT.get('wlift', 7.5)) + bob, sway=1.3 * S(TAU * t + 1.0), lean=10.0, head=4.0 - 2 * bob, bodyyaw=10.0 - 7 * c, twist=-6.0 + 12 * c, hyaw=-6 * c,
+                  fa=foot(t, FA), fb=foot(t + 0.5, FB), wa=(6.0, -2.0 + 9 * c, -21.0 + 2.5 * max(0, -c)), wb=(-6.0, -2.0 - 9 * c, -21.0 + 2.5 * max(0, c)),
+                  jaw=-16.0), 0
+
+
+def row2_claw(side):
+    """a rake across the body (Griz, 10-04): the LEFT arm (+X, a) rears up and out on its left and rakes down and across to its right; the RIGHT
+    (b) starts low and back on its right and claws up and across to its left. The body winds up against the blow and turns through it, the foot
+    on the striking side steps in."""
+    def f(i, n):
+        if side == 'a':
+            W = [WA, (11, 7, 4), (13, 9, 8), (-12, -20, -8), (-18, -8, -16), (2, -9, -19)][i]
+            E = [None, (1, 0.6, -0.8), (1, 0.6, -0.6), (1, -0.2, 0.6), (0.6, 0.4, 0.8), None][i]
+            tw = [0, 20, 26, -18, -26, -6][i]; ln = [0, -6, -8, 14, 16, 4][i]; lf = [0, 0.6, 1.0, -1.5, -2.0, -0.5][i]
+            st = [0, 0, 0, 1, 1, 0.4][i]
+            P = stance(wa=W, fa=(FA[0], FA[1] - 9 * st, 0, 0, 0), twist=ST['twist'] + tw, lean=ST['lean'] + ln, lift=ST['lift'] + lf,
+                       shift=-3 * st, finga=[10, -10, -14, 22, 26, 14][i], jaw=[-18, -6, 2, -14, -16, -18][i], hyaw=ST['hyaw'] - 0.4 * tw)
+            if E: P['epolea'] = E
+        else:
+            W = [WB, (-10, 12, -15), (-12, 15, -12), (13, -20, 2), (14, -14, 8), (-3, -8, -18)][i]
+            E = [None, (-1, 0.5, 0), (-1, 0.5, 0), (-0.6, 0.2, -1), (-0.6, 0.4, -1), None][i]
+            tw = [0, -20, -26, 18, 26, 6][i]; ln = [0, 10, 14, -6, -10, 0][i]; lf = [0, -2.0, -3.0, 1.0, 1.5, 0.3][i]
+            st = [0, 0, 0, 1, 1, 0.4][i]
+            P = stance(wb=W, fb=(FB[0], FB[1] - 12 * st, 0, 0, 0), twist=ST['twist'] + tw, lean=ST['lean'] + ln, lift=ST['lift'] + lf,
+                       shift=-3 * st, fingb=[10, -10, -14, 22, 26, 14][i], jaw=[-18, -6, 2, -14, -16, -18][i], hyaw=ST['hyaw'] - 0.4 * tw)
+            if E: P['epoleb'] = E
+        return P, 0
+    return f
+
+
+def row2_bite(i, n):
+    """the lunge (Griz, 10-04: forward and a little down, the jaw wide and it snaps shut, the arms pulled back to hang by its legs): it rears
+    back with the jaw opening, then throws its head and chest forward and down with a step of its left foot, and snaps."""
+    p = [0.0, -0.6, -1.0, 1.0, 0.85, 0.3][i]; up = max(0.0, -p); dn = max(0.0, p)
+    st = [0, 0, 0, 1, 1, 0.5][i]
+    ab = [0.0, 0.5, 0.9, 1.0, 1.0, 0.4][i]       # the arms back by the legs
+    return stance(lean=ST['lean'] - 10 * up + 14 * dn, head=ST['head'] - 16 * up - 4 * dn, body=6 * dn, jaw=[-18, 10, 30, 24, -16, -16][i],
+                  lift=ST['lift'] + 1.0 * up - 2.5 * dn, shift=3 * up - 12 * dn, fa=(FA[0], FA[1] - 12 * st, 0, 0, 0), fb=(FB[0], FB[1], 0, 0, 6 * dn),
+                  wa=lerp(WA, (7.0, 7.0, -22.0), ab), wb=lerp(WB, (-7.0, 7.0, -22.0), ab), finga=10 - 10 * ab, fingb=10 - 10 * ab), 0
+
+
+def row2_flinch(i, n):
+    """struck: thrown back on its heels, the head snapped back and away, the arms flung up and out, then it settles."""
+    p = [0.0, 1.0, 0.75, 0.4, 0.1][i]
+    return stance(lean=ST['lean'] - 22 * p, head=ST['head'] - 18 * p, hyaw=ST['hyaw'] + 14 * p, twist=ST['twist'] + 10 * p, jaw=-18 + 30 * p, shift=4 * p,
+                  lift=ST['lift'] - 1.0 * p, wa=lerp(WA, (12.0, 2.0, -6.0), p), wb=lerp(WB, (-12.0, 0.0, -9.0), p), finga=10 - 20 * p, fingb=10 - 20 * p), 0
+
+
+def row2_prone(i, n):
+    """knocked over on its back (gravity: 10-04): thrown back, it sits down hard behind its feet, goes over, and lies with its knees up and its
+    arms flung out on the floor; it lies at its last frame and gets up by the row played backwards (so the middle frames are a sit, not a blur)."""
+    f = [0.0, 0.2, 0.45, 0.75, 1.0, 1.0][i]
+    body = [0, -14, -30, -66, -92, -94][i]; lift = [ST['lift'], 3, -12, -19, -21, -21.5][i]; shift = [0, 4, 12, 15, 15, 15][i]
+    pt = [0, -10, -20, -10, 0, 0][i]
+    P = stance(body=body, lift=lift, shift=shift, lean=[ST['lean'], -6, 4, -14, -28, -30][i], head=[8, -10, 8, -8, -14, -18][i], hyaw=[-4, 4, 6, 10, 18, 22][i],
+               jaw=[-18, 6, -4, 0, -8, -6][i], twist=ST['twist'] * (1 - f),
+               fa=(FA[0] + 3 * f, FA[1] - 2 * f, 0, 12 * f, pt), fb=(FB[0] - 3 * f, FB[1] - 9 * f, 0, 12 * f, pt),
+               wa=[WA, (10, -12, 0), (10, 12, -14), (14, 12, -4), (18, 8, 0), (19, 6, -1)][i], wb=[WB, (-10, -14, -2), (-10, 12, -14), (-15, 10, -4), (-19, 6, 0), (-20, 4, -1)][i],
+               finga=[10, -16, -6, -4, -8, -8][i], fingb=[10, -16, -6, -4, -8, -8][i])
+    if i >= 3:                 # (the hands laid flat out along the floor)
+        P['hands'] = {'a': (1.0, 0.35, -0.05), 'b': (-1.0, 0.35, -0.05)}
+    return P, 0
+
+
+def row2_death(i, n):
+    """crumples where it stands, inside its four squares, like a cat lying down (Griz, 10-04): the knees fold and it drops to them, the chest
+    comes down onto its arms folded under it, and then it goes loose: the jaw slack, the head rolled over and tilted at an off angle."""
+    g = [0.0, 0.0, 0.0, 0.0, 0.45, 0.8, 1.0, 1.0][i]          # (0..3 down onto its knees; 4.. onto its chest, and gone loose)
+    # (the leg bones run near the back of the leg: a shin lying on the floor wants its bone ~11 above it, and the hips sit on the heels at ~21)
+    lift = [ST['lift'], 2, 0, 4, -1, -2, -2, -2][i]; shift = [0, -3, -6, -8, -4, -2, -2, -2][i]; hy = 4 + shift
+    fy = [(FA[1], FB[1]), (FA[1], FB[1]), (0, 6), (hy + 14, hy + 16), (hy + 4, hy + 5), (hy + 4, hy + 5), (hy + 4, hy + 5), (hy + 4, hy + 5)][i]
+    pt = [0, 0, 10, 60, 60, 60, 60, 60][i]; fu = [0, 0, 1, 8, 8, 8, 8, 8][i]
+    P = stance(lift=lift, shift=shift, body=[0, 4, 8, 6, 40, 62, 68, 68][i], lean=[ST['lean'], 12, 16, 8, 6, 2, 0, 0][i],
+               head=[ST['head'], 14, 20, 20, -10, -30, -40, -40][i], hroll=-75 * g, hyaw=ST['hyaw'] + 24 * g, jaw=[-18, -2, 6, 2, -4, -6, -8, -8][i],
+               twist=ST['twist'] - 6 * g, tilt=-8 * g,
+               fa=(FA[0] - (1 if i >= 3 else 0), fy[0], fu, 6, pt), fb=(FB[0] + (1 if i >= 3 else 0), fy[1], fu, 6, pt),
+               wa=[WA, (8, -10, -18), (8, -12, -16), (6, -14, -14), (4, -14, -12), (-4, -6, -10), (-5, -5, -10), (-5, -5, -10)][i],
+               wb=[WB, (-8, -8, -19), (-8, -12, -16), (-6, -14, -14), (-4, -14, -12), (4, -6, -10), (6, -5, -10), (6, -5, -10)][i],
+               finga=[10, 0, -6, -4, 8, 16, 22, 22][i], fingb=[10, 0, -6, -4, 8, 16, 22, 22][i])
+    if i >= 2:
+        P['kpolea'] = P['kpoleb'] = (0.0, -0.7, -1.0)          # (the knees go down to the floor, not out)
+    if i >= 5:                 # (the hands lie flat under its chin, the claws forward)
+        P['hands'] = {'a': (-0.25, -1.0, -0.1), 'b': (0.25, -1.0, -0.1)}
+    return P, 0
+
+
+ROWS_V2 = [('IDLE', 8, True, row2_idle, 'ik'), ('WALK', 8, True, row2_walk, 'ik'), ('CLAW', 6, False, row2_claw('a'), 'ik'), ('CLAW2', 6, False, row2_claw('b'), 'ik'),
+           ('BITE', 6, False, row2_bite, 'ik'), ('FLINCH', 5, False, row2_flinch, 'ik'), ('DEATH', 8, False, row2_death, 'ik'), ('PRONE', 6, False, row2_prone, 'ik')]
+ROWS = ROWS_V1 if OPT.get('poses') == 'v1' else ROWS_V2
+print('[troll] poses %s' % ('v1 (the first posing)' if ROWS is ROWS_V1 else 'v2'))
 ad = arm.animation_data_create()
 for name, n, loop, fn, how in ROWS:
     act = bpy.data.actions.new(name); act.use_fake_user = True; ad.action = act
     if hasattr(ad, 'action_slot') and len(act.slots):
         ad.action_slot = act.slots[0]
     for i in range(n + (1 if loop else 0)):
-        P, t = fn(i % n, n); grounded(P, how)
+        P, t = fn(i % n, n); P['_tag'] = '%s %d' % (name, i % n); grounded(P, how)
         for pb in arm.pose.bones:
             pb.keyframe_insert('rotation_quaternion', frame=i + 1, group=pb.name)
             pb.keyframe_insert('location', frame=i + 1, group=pb.name)
@@ -357,6 +582,8 @@ use('IDLE'); scene.frame_set(1)
 print('[troll] rows: %s' % ', '.join(r[0] for r in ROWS))
 
 
+if MODE == 'exec':      # a scratch script run in this namespace (-- exec file=<path> [row= frame=]): probes while posing
+    exec(open(OPT['file']).read()); sys.exit(0)
 if MODE == 'dirs':      # where each limb bone points, on a row's last frame (to check aim() against its targets)
     use(OPT.get('row', 'DEATH')); scene.frame_set(int(OPT.get('frame', 8)))
     bpy.context.view_layer.update()
@@ -571,6 +798,14 @@ if MODE in ('look', 'close', 'poses', 'diag'):
         r.engine = 'BLENDER_WORKBENCH'; scene.display.shading.light = 'MATCAP'
         r.resolution_x, r.resolution_y, r.resolution_percentage = FW * 2, FH * 2, 100
         facings = [int(x) for x in OPT.get('facings', '0,6').split(',')]
+        if OPT.get('view') in ('side', 'front'):     # a flat view (a true profile from its right, or from the front): to pose by, not the sprite's
+            vc = bpy.data.cameras.new('flat'); vc.type = 'ORTHO'; vc.ortho_scale = float(OPT.get('zoom', 6.4))
+            vo = bpy.data.objects.new('flat', vc); scene.collection.objects.link(vo); scene.camera = vo
+            if OPT['view'] == 'side':
+                vo.location = (-30, 0, vc.ortho_scale * 0.36); vo.rotation_euler = (math.radians(90), 0, math.radians(-90))
+            else:
+                vo.location = (0, -30, vc.ortho_scale * 0.36); vo.rotation_euler = (math.radians(90), 0, 0)
+            r.resolution_x = r.resolution_y = int(OPT.get('px', 480)); facings = [1]
         rows = OPT.get('rows', ','.join(r_[0] for r_ in ROWS)).split(',')
         for name, n, loop, fn, how in ROWS:
             if name not in rows:
