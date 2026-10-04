@@ -202,7 +202,6 @@
       if (!v2.ok) adv.push(v2.why === 'blinded' ? 'blinded target' : 'unseen attacker: ' + v2.why);
     }
     if (att.conds.restrained) dis.push('restrained');
-    if (att.hang && G.hanging && G.hanging(att)) dis.push('on a rope'); // (hanging part way up one: Griz's, 10-04 -- "I'm thinking attacks from rope at disadvantage"; the SRD 5.1 says nothing of attacking while climbing)
     if (tgt.conds.restrained) adv.push('restrained target');
     if (att.attached && att.riding && att.master === tgt) adv.push('attached'); // (the darkmantle on the one it rides: SRD 5.1, "has advantage on its attack rolls")
     if (tgt.conds.paralyzed || tgt.conds.asleep) adv.push(tgt.conds.asleep ? 'asleep' : 'paralyzed');

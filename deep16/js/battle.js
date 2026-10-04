@@ -913,7 +913,7 @@
         }
         rs0.n--; this.ropes.push({ at: rq.at.slice(), foot: rq.foot.slice(), hp: 2, by: u.id }); D.sfx('confirm');
         var rFt = Math.round((G.map.gz(rq.at[0], rq.at[1]) - G.map.gz(rq.foot[0], rq.foot[1])) / G.map.def.step) * 2.5;
-        this.card(['{y}' + nameOf(u) + '{/} ' + (rq.top ? 'ties the rope off and lets it down' : 'has the rope up') + ': ' + rFt + ' ft of it down the face.  {g}(climbed with no check; a climber may stop on it; attacks from it have disadvantage){/}'], 280);
+        this.card(['{y}' + nameOf(u) + '{/} ' + (rq.top ? 'ties the rope off and lets it down' : 'has the rope up') + ': ' + rFt + ' ft of it down the face.  {g}(climbed with no check; a climber may stop on it){/}'], 280);
         u.anim = 'idle'; yield 16; return;
       }
       case 'ropeclimb': { // part way along a rope, and hang there (10-04, Griz: "a roped face is gonna be a movement stopping point"; ui.js: a rope's far end, past the move)
@@ -923,7 +923,7 @@
         if (!pre || (!here && !(rmR[near[0] + ',' + near[1]] || {}).stand)) return;
         var left = T.move - (here ? 0 : rmR[near[0] + ',' + near[1]].cost), zFrom = here && u.hang && G.hanging(u) ? u.hang.z : G.map.gz(near[0], near[1]), allFt = Math.round(Math.abs(G.map.gz(c.x, c.y) - zFrom) / G.map.def.step) * 2.5, gotFt = Math.min(allFt, Math.floor(left / 5) * 2.5);
         if (gotFt <= 0) return;
-        var ansR = yield { prompt: { who: u, title: u.name + ': CLIMB THE ROPE?', lines: ['The rope is ' + allFt + ' ft from here; the move left takes ' + nameOf(u) + ' ' + gotFt + ' ft along it, to hang there.', 'Attacks from the rope have disadvantage.'], opts: [{ label: 'CLIMB', value: true }, { label: 'NOT NOW', value: false }] } };
+        var ansR = yield { prompt: { who: u, title: u.name + ': CLIMB THE ROPE?', lines: ['The rope is ' + allFt + ' ft from here; the move left takes ' + nameOf(u) + ' ' + gotFt + ' ft along it, to hang there.'], opts: [{ label: 'CLIMB', value: true }, { label: 'NOT NOW', value: false }] } };
         if (!ansR) return;
         yield* this.moveAlong(u, pre.concat([[c.x, c.y]]), { spend: true, partial: true });
         return;
@@ -1173,7 +1173,7 @@
         u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * stpR, true), mode: upR ? 'climb' : 'ropedown' };
         u.x = rpS.foot[0]; u.y = rpS.foot[1]; u.hang = { rope: rpS, z: zH };
         if (o.spend) { T.move -= stpR * 5; T.moved = (T.moved || 0) + stpR * 5; }
-        this.card(['{y}' + nameOf(u) + '{/} ' + (upR ? 'climbs' : 'lets down') + ' ' + stpR * 2.5 + ' ft of the rope and hangs there, ' + Math.round(Math.abs(endZ - zH) / stZ) * 2.5 + ' ft to go.  {g}(attacks from the rope have disadvantage){/}'], 260);
+        this.card(['{y}' + nameOf(u) + '{/} ' + (upR ? 'climbs' : 'lets down') + ' ' + stpR * 2.5 + ' ft of the rope and hangs there, ' + Math.round(Math.abs(endZ - zH) / stZ) * 2.5 + ' ft to go.'], 260);
         this.keepInView(u); yield STEP_FRAMES + 2 * stpR; u.anim = 'idle'; return;
       }
       if (cDC) { // (a cliff over 5 ft: SRD 5.1, "climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check" -- G.climbDC; a 5 ft ledge is pulled up onto)

@@ -15,8 +15,10 @@ coming down), - raises it.
 
 A frame P, two ways (they mix):
   - bends on the artist's pose (the first posing's way): body/bodyyaw (all of it about the hip), lean/twist/tilt (the spine), head/hyaw/hroll,
-    jaw (+ opens), and per side sw/out (the upper arm), el/elz, wr, shr (the shoulder), fing (+ curls), th/thz, kn, ft; armsdown/tuck/lie aim
-    whole limbs (gravity: `aim` turns a chain to point along world directions).
+    jaw (+ opens), and per side sw/out (the upper arm), el/elz, wr, shup/shfw (the collarbone: the shoulder up, forward), shr (the collarbone's
+    roll), fing (+ curls), th/thz, kn, ft; armsdown/tuck/lie aim whole limbs (gravity: `aim` turns a chain to point along world directions).
+  - the rig's names: arm = [collarbone, upper, fore, hand]; leg = [hip or None, thigh, calf, ankle, foot, toe] -- a skeleton with one foot bone
+    and toes names [None, thigh, calf, foot, toes, toes] (the ankle bone is the one a planted foot turns, the next its forward, the last its tip).
   - limbs placed (the second posing's way): legs={'a': (x, y, z, yaw, pitch)} an ankle where it stands (a planted foot keeps the artist's flat
     sole, `yaw` its toes out, `pitch` its toes down), arms={'a': (dx, dy, dz)} a wrist from its shoulder joint in world axes (an arm rides the
     body), kpolea/epolea the way a knee or elbow points, hands={'a': (x, y, z)} a hand aimed along a world direction. `stance()` builds one
@@ -130,8 +132,9 @@ class Rig:
         if self.JAW:
             add(self.JAW, Q(PX, P.get('jaw', 0)))
         for s in 'ab':
-            A, L = self.ARM[s], self.LEG[s]
+            A, L = self.ARM[s], self.LEG[s]; sg = 1 if s == 'a' else -1
             add(A[0], Q(PX, P.get('shr' + s, 0)))
+            add(A[0], Q(PY, -sg * P.get('shup' + s, 0))); add(A[0], Q(PZ, -sg * P.get('shfw' + s, 0)))    # (the collarbone: + raises the shoulder, + brings it forward; 10-04, the poser's shoulder handle)
             add(A[1], Q(PX, P.get('sw' + s, 0))); add(A[1], Q(PZ, P.get('out' + s, 0)))
             add(A[2], Q(PX, P.get('el' + s, 0))); add(A[2], Q(PZ, P.get('elz' + s, 0)))
             add(A[3], Q(PX, P.get('wr' + s, 0)))
@@ -341,10 +344,11 @@ class Rig:
             out.append((name, n, loop, fn, how))
         return out
 
-    def export_poser(self, path, rows, col=None, engine=None, fps=None, fig='figure'):
+    def export_poser(self, path, rows, col=None, engine=None, fps=None, fig='figure', extras=()):
         """everything the poser page needs, as one JSON file: the bones (the artist's rest and pose), what each bone is for, the mesh with its
         weights and colour (linear blend skinning: the page deforms it with the same numbers Blender does), and every row's frames as their
-        numbers (P, after grounding). `check` carries two frames' bone matrices so the page can prove its own solve against this one."""
+        numbers (P, after grounding). `check` carries two frames' bone matrices so the page can prove its own solve against this one.
+        extras: [(object parented to a bone, '#rrggbb')] -- a held thing (the stone giant's club) rides its bone whole on the page."""
         import json, base64
         B64 = lambda a, dt: base64.b64encode(np.ascontiguousarray(a, dtype=dt).tobytes()).decode('ascii')
         rowm = lambda m: [float(m[i][j]) for i in range(4) for j in range(4)]
