@@ -14,7 +14,7 @@ for: the next window. Griz's opener for one: "we're adding another monster today
 - *"only seeing it in a game-combat test room pulls it off the wanted list"*.
 - Prove the colour and lighting first.
 - *"It's important for us to do the special move ones - like burrow and Earth Glide more than detailed attacks"*.
-- The poser (a clay-and-wire page for posing by hand) waits for *"a monster i'm super fond of"* whose pose he can't describe. Till then the seat scripts the poses.
+- The poser (a page for posing by hand) waited for *"a monster i'm super fond of"*; it is built since 10-04 (Griz: *"a browser that loads the skeleton to let me adjust posings per frame ... I can grab foot/elbow and drag, click to next frame"*): *The poser page* below. The seat still scripts the first pass of every row; he drags what it got wrong.
 
 ## The steps (the xorn's commands, as run)
 
@@ -181,6 +181,15 @@ Griz, 10-04, on the troll's second posing: *"that's so much better"*. The tools 
 5. **Judge in the sprite camera, not the flat one:** `-- poses <tag> facings=0,2` (matcap), then the real render and `pixelate.py`, a contact strip of the sheet at 1x. A raised arm needs its hand aimed or the hand and claws carry on up from the forearm as one thin stick.
 6. **Keep what was there** before re-posing a figure he has seen: the old rows behind an option (`poses=v1`), the old sheet and frames copied out, a git tag on the old commit.
 7. Then the recipe's own steps 10-12: render, the show (`dev/bench16.py <creature> mode=show`), `dev/check.py` GREEN, his eyes on the test ground.
+
+## The poser page (10-04)
+
+`tools/poser.html` (with `tools/poser.js`): the figure in its own colours on its skeleton, a row at a time, a frame at a time; Griz drags.
+- **Write its data:** `& $bl -b --disable-autoexec --python tools/<creature>-blend.py -- poser` writes `deep16/_src/<creature>/poser.json` (gitignored): the bones, what each is for, the base mesh with its weights and colour, every row's frames as their numbers. Any figure whose script builds a `BP.Rig` and keys its rows through it gets this by copying the troll's `poser` mode (six lines, after the colour) and its `with_edits` line.
+- **Open it:** the dragonsleep preview serves it, `http://localhost:8923/tools/poser.html?fig=<creature>` (the pane or his own browser). Its status line shows **parity with Blender**: the page poses the frames Blender wrote down and compares every bone matrix (the troll's: 2.4e-5, float noise). Anything above 1e-3 means the page's math and `blender_pose.py` have drifted: fix that first.
+- **What he drags:** each ankle and wrist (big balls; Shift-drag keeps the height), each knee and elbow's pole (small balls: which way it bends), each hand's aim (the diamond; "free hand" lets it follow the forearm again), the hip (white). Sliders for the body's bends (lean, twist, head, jaw, the fingers, each foot's yaw and pitch). Views: flat ones to pose by and the sprite camera's eight facings. Onion shows the frame before; play runs the row at the sheet's fps; the status line says when anything goes under the floor.
+- **Taking it back:** what he sets stays in that browser (localStorage) as `{row: {frame: P}}`. In the pane the seat reads it (`POSER.take()`); from his own browser, "download poses". Either way it becomes `tools/<creature>-poses.json` (tracked: his posing is source), the script's rows take those frames in place of their own (`R.with_edits`; `noedits=1` to build without them), then the usual render. A frame taken back poses the same in Blender as on the page (the troll's wrist, checked: the same to three decimals).
+- The page shows the base mesh, not the render's subdivided toon: the sprite sheet stays the judge.
 
 ## What cost us a step (so it doesn't again)
 

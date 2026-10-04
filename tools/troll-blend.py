@@ -6,6 +6,7 @@ on the artist's own rig again (the grick's way: deep16/blender-monsters.md). 10-
     ... -- close <tag> [...]                         the same, an 800 px close look at the head
     ... -- poses <tag> [rows=IDLE,WALK] [facings=0,6]   matcap frames of the rows, to check the motion
     ... -- measure                                   how far each row reaches and how low it goes
+    ... -- poser                                     the poser page's data (tools/poser.html?fig=troll); his frames come back in tools/troll-poses.json
 
 Reads deep16/_src/troll/mz4250/files/ (gitignored: Griz downloads them, Thingiverse wants a login): Troll_Updated_posed.blend, the sculpt
 on the artist's rig (65 bones and their weights: a spine, two arms with five-fingered hands, a neck and jaw, two legs with toes) in the
@@ -300,6 +301,9 @@ def row2_death(i, n):
 ROWS_V2 = [('IDLE', 8, True, row2_idle, 'ik'), ('WALK', 8, True, row2_walk, 'ik'), ('CLAW', 6, False, row2_claw('a'), 'ik'), ('CLAW2', 6, False, row2_claw('b'), 'ik'),
            ('BITE', 6, False, row2_bite, 'ik'), ('FLINCH', 5, False, row2_flinch, 'ik'), ('DEATH', 8, False, row2_death, 'ik'), ('PRONE', 6, False, row2_prone, 'ik')]
 ROWS = ROWS_V1 if OPT.get('poses') == 'v1' else ROWS_V2
+EDITS = os.path.join(ROOT, 'tools', 'troll-poses.json')       # the frames Griz set on the poser page (tools/poser.html), taken in: they win over the script's
+if ROWS is ROWS_V2 and not OPT.get('noedits'):
+    ROWS = R.with_edits(ROWS, OPT.get('edits', EDITS))
 print('[troll] poses %s' % ('v1 (the first posing)' if ROWS is ROWS_V1 else 'v2'))
 ad = R.key_rows(ROWS); use = R.use
 
@@ -461,6 +465,12 @@ if MODE == 'diag':      # every point coloured by the group it weights most: whi
         c_ = cmap[n_]; print('[troll] diag %-12s #%02x%02x%02x  %d' % (n_, int(c_[0] * 255), int(c_[1] * 255), int(c_[2] * 255), sum(1 for v in me.vertices if v.groups and gname[max(v.groups, key=lambda g_: g_.weight).group] == n_)))
 BL.write_points(body, np.maximum(col, 0), unsh)
 BL.toon_material(body)
+if MODE == 'poser':     # the poser page's data (tools/poser.html?fig=troll): the bones, the mesh with its weights and colour, every row's frames
+    import ast, re
+    FIG = json.load(open(os.path.join(ROOT, 'tools', 'deep16-figures.json'), encoding='utf-8'))['figures']['troll']
+    FPS_ = ast.literal_eval(re.search(r'^FPS = (\{.*?\})', open(os.path.join(ROOT, 'tools', 'pixelate.py'), encoding='utf-8').read(), re.M).group(1))
+    R.export_poser(os.path.join(SRC, 'poser.json'), ROWS, col=col, engine={v: k for k, v in FIG['anims'].items()}, fps=FPS_, fig='troll')
+    sys.exit(0)
 
 # the footprint: a disc the size of the print base (two squares), round the foot's middle, at the ground -- render-sprites.py sizes and
 # seats it by this (size_by), not by an arm reaching out over it

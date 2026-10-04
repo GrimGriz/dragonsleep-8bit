@@ -228,6 +228,13 @@ class Rig:
 
     def apply(self, P):
         """pose the rig as frame P says."""
+        d, lift, shift, sway = self.pose_d(P)
+        for n, m in self.solve(d, lift, shift, sway).items():
+            loc, rot, sc = m.decompose()
+            pb = self.arm.pose.bones[n]; pb.rotation_quaternion = rot; pb.location = loc
+
+    def pose_d(self, P):
+        """frame P as a turn per bone (and where the hip goes): what `apply` poses."""
         d = self.bends(P); ARM, LEG = self.ARM, self.LEG
         if P.get('armsdown'):      # the arms hang by the legs: pulled back along the sides
             for sg, s in ((1, 'a'), (-1, 'b')):
@@ -249,9 +256,7 @@ class Rig:
                 self.ik2(d, M, ARM[s][1], ARM[s][2], M[ARM[s][1]].translation + Vector((x, y, z)), P.get('epole' + s, self.EPOLE[s]))
             for s, v in (P.get('hands') or {}).items():          # a hand pointed along a world direction
                 self.aim(d, [ARM[s][3]], [v])
-        for n, m in self.solve(d, lift, shift, sway).items():
-            loc, rot, sc = m.decompose()
-            pb = self.arm.pose.bones[n]; pb.rotation_quaternion = rot; pb.location = loc
+        return d, lift, shift, sway
 
     # ------------------------------------------------------------------ the floor
     def posed_points(self, step=5):
@@ -319,6 +324,67 @@ class Rig:
         if hasattr(ad, 'action_slot') and len(act.slots):
             ad.action_slot = act.slots[0]
         return act
+
+    # ------------------------------------------------------------------ the poser page (tools/poser.html: Griz drags the feet and hands, 10-04)
+    def with_edits(self, rows, path):
+        """the rows, with any frame the poser page has set (a JSON file {row: {frame: P}}) in place of the script's own: the page's frames win."""
+        import json, os
+        if not path or not os.path.exists(path):
+            return rows
+        E = json.load(open(path, encoding='utf-8'))
+        out = []
+        for name, n, loop, fn, how in rows:
+            ed = {int(k): v for k, v in (E.get(name) or {}).items()}
+            if ed:
+                print('%s the poser\'s frames for %s: %s' % (self.log, name, sorted(ed)))
+                fn = (lambda fn_, ed_: lambda i, n_: (dict(ed_[i]), 0) if i in ed_ else fn_(i, n_))(fn, ed)
+            out.append((name, n, loop, fn, how))
+        return out
+
+    def export_poser(self, path, rows, col=None, engine=None, fps=None, fig='figure'):
+        """everything the poser page needs, as one JSON file: the bones (the artist's rest and pose), what each bone is for, the mesh with its
+        weights and colour (linear blend skinning: the page deforms it with the same numbers Blender does), and every row's frames as their
+        numbers (P, after grounding). `check` carries two frames' bone matrices so the page can prove its own solve against this one."""
+        import json, base64
+        B64 = lambda a, dt: base64.b64encode(np.ascontiguousarray(a, dtype=dt).tobytes()).decode('ascii')
+        rowm = lambda m: [float(m[i][j]) for i in range(4) for j in range(4)]
+        idx = {n: i for i, n in enumerate(self.ORDER)}
+        bones = [dict(n=n, p=idx[self.BN[n].parent.name] if self.BN[n].parent else -1, len=float(self.BN[n].length), rest=rowm(self.REST[n]),
+                      pose0=rowm(self.POSE0[n]), deform=bool(self.BN[n].use_deform)) for n in self.ORDER]
+        me = self.body.data; nv = len(me.vertices)
+        co = np.zeros(nv * 3); me.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
+        TA = np.array(self.arm.matrix_world.inverted() @ self.body.matrix_world)
+        pos = co @ TA[:3, :3].T + TA[:3, 3]
+        tris = [t for p in me.polygons for t in ([(p.vertices[0], p.vertices[k], p.vertices[k + 1]) for k in range(1, len(p.vertices) - 1)])]
+        gidx = {g.index: idx[g.name] for g in self.body.vertex_groups if g.name in idx and self.BN[g.name].use_deform}
+        wofs, widx, wval = [0], [], []
+        for v in me.vertices:
+            for ge in v.groups:
+                if ge.group in gidx and ge.weight > 0:
+                    widx.append(gidx[ge.group]); wval.append(ge.weight)
+            wofs.append(len(widx))
+        if col is None:
+            col = np.full((nv, 3), 0.5)
+        c = np.clip(col[:, :3], 0, 1); srgb = np.where(c <= 0.0031308, c * 12.92, 1.055 * np.power(c, 1 / 2.4) - 0.055)
+        clean = lambda v: [clean(x) for x in v] if isinstance(v, (list, tuple, Vector)) else {k: clean(x) for k, x in v.items()} if isinstance(v, dict) else float(v) if isinstance(v, (int, float, np.floating)) and not isinstance(v, bool) else v
+        R, checks = [], {}
+        for name, n, loop, fn, how in rows:
+            frames = []
+            for i in range(n):
+                P, _ = fn(i, n); P = self.grounded(dict(P, _tag='%s %d' % (name, i)), how)
+                frames.append(clean({k: v for k, v in P.items() if k != '_tag'}))
+                if (name, i) in ((rows[0][0], n // 2), (rows[-1][0], n - 1), (rows[min(2, len(rows) - 1)][0], 2)):
+                    d, lift, shift, sway = self.pose_d(P)
+                    checks['%s %d' % (name, i)] = {k: rowm(m) for k, m in self.solve(d, lift, shift, sway, mats=True)[1].items()}
+            R.append(dict(name=name, engine=(engine or {}).get(name, name.lower()), n=n, loop=loop, how=how, fps=(fps or {}).get((engine or {}).get(name, name.lower()), 10), frames=frames))
+        roles = dict(spine=self.SPINE, neck=self.NECK, head=self.HEAD, jaw=self.JAW, arm=self.ARM, leg=self.LEG, roots=self.ROOTS, foot=self.FOOT,
+                     fing={s: [self.chain(f) for f in self.FING[s]] for s in 'ab'}, ank0={s: list(self.ANK0[s]) for s in 'ab'},
+                     kpole=self.KPOLE, epole=self.EPOLE)
+        out = dict(fig=fig, floor=self.FLOOR, bones=bones, roles=roles, rows=R, check=checks,
+                   mesh=dict(n=nv, pos=B64(pos, '<f4'), tri=B64(np.array(tris).ravel(), '<u4'), col=B64(np.round(srgb * 255), 'u1'),
+                             wofs=B64(wofs, '<u4'), widx=B64(widx, '<u2'), wval=B64(wval, '<f4')))
+        json.dump(out, open(path, 'w', encoding='utf-8'))
+        print('%s poser: %s (%d bones, %d points, %d triangles, %d rows)' % (self.log, path, len(bones), nv, len(tris), len(R)))
 
     # ------------------------------------------------------------------ tools to pose by
     def joints(self, scene, row, n, extra=()):
