@@ -2430,6 +2430,31 @@
         okP(wrote && LS.getItem('deep16.pocket') && left.length === 20 && left[0].started === 'old20', 'a 1 M save refused at a full store (4 M of record, a 4.8 M cap) is written after the record gives up its oldest half (' + left.length + ' left, from ' + (left[0] && left[0].started) + ')');
         LS.m['deep16.plays'] = JSON.stringify(old); delete LS.m['deep16.pocket'];
         okP(D.store.set('deep16.plays', old.concat([{ fight: 'x', started: 'y', log: [new Array(900001).join('y')] }])) === false && JSON.parse(LS.getItem('deep16.plays')).length === 40, 'the record\'s own write never asks itself for room (refused, left as it was)');
+        // n. CLEAR RECORD after a save (10-04, Griz: "add a 'clear record' after you save on the ladder"): a save notes the fights its file holds; the clear takes
+        // those and none played since, and nothing clears before a save -- the module, then the ladder's own keys (R, C, X, E) on a stand-in storage
+        var aClk = HTMLAnchorElement.prototype.click, dlC = []; HTMLAnchorElement.prototype.click = function () { dlC.push(this.download); };
+        try {
+          var mkR = function (n) { var a = []; for (var i = 0; i < n; i++) a.push({ fight: 'f' + (i % 3), started: 's' + i, steps: [], log: ['x'] }); return a; };
+          var storedC = function () { return JSON.parse(LS.getItem('deep16.plays') || '[]'); };
+          LS.m['deep16.plays'] = JSON.stringify(mkR(5));
+          okP(D.rec.clearable() === 0 && D.rec.clear() === false && storedC().length === 5, 'CLEAR RECORD: before a save nothing is clearable and a clear takes nothing');
+          var nmC = D.rec.save();
+          okP(/^deep16-play-record-.*\.json$/.test(nmC) && dlC.length === 1 && D.rec.lastFile() === nmC && D.rec.clearable() === 5, 'CLEAR RECORD: a save names its file (' + nmC + ') and the five it holds are clearable');
+          var plC = storedC(); plC.push({ fight: 'f9', started: 'later', steps: [] }); LS.m['deep16.plays'] = JSON.stringify(plC);
+          okP(D.rec.count() === 6 && D.rec.clearable() === 5, 'CLEAR RECORD: a fight played after the save is kept, and not counted as clearable');
+          var rC = D.rec.clear();
+          okP(rC && rC.gone === 5 && rC.kept === 1 && rC.file === nmC && storedC().length === 1 && storedC()[0].started === 'later' && D.rec.clearable() === 0 && D.rec.clear() === false && D.rec.lastFile() === null, 'CLEAR RECORD: it takes the five the file holds and leaves the one played since: ' + JSON.stringify(rC));
+          // the ladder's keys: R saves, C asks, X keeps, C then E clears, and C with nothing saved does nothing
+          LS.m['deep16.plays'] = JSON.stringify(mkR(4)); dlC.length = 0;
+          var ladC = new D.Ladder({ party: 'ours', play: true }); ladC.enter();
+          var keyC = function (k) { D.input.edge = {}; D.input.edge[k] = true; ladC.update(); D.input.edge = {}; };
+          keyC('center'); var noAsk = ladC.clearing;
+          keyC('rec'); var savedC = ladC.saved;
+          keyC('center'); var asked = ladC.clearing;
+          keyC('b'); var keptX = !ladC.clearing && storedC().length === 4;
+          keyC('center'); keyC('a');
+          okP(!noAsk && /^deep16-play-record-/.test(savedC || '') && asked && keptX && !ladC.clearing && ladC.cleared && ladC.cleared.gone === 4 && storedC().length === 0 && ladC.saved === null, 'CLEAR RECORD on the ladder: C before a save asks nothing; R saves; C asks; X keeps; C then E clears (' + JSON.stringify(ladC.cleared) + ', ' + storedC().length + ' left)');
+        } finally { HTMLAnchorElement.prototype.click = aClk; }
       } catch (eL) { repP.errors.push('m: ' + String(eL && eL.stack || eL).slice(0, 600)); }
       finally { if (lsD) Object.defineProperty(window, 'localStorage', lsD); else delete window.localStorage; }
     } catch (eP) { repP.errors.push(String(eP && eP.stack || eP).slice(0, 900)); }

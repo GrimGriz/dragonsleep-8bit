@@ -3,7 +3,8 @@
    player gives: the command (or the prompt answered), where the one answering stood and what was left of the turn, and at the start
    of each of our four's turns the state round them and what the class AI would have done there (js/tactics.js TX.plans, its best
    three for the action and two for the bonus action). What happened after each answer (the fight's log lines) rides with it.
-   Kept per browser (deep16.plays, the last 40 fights); R on the tester ladder saves them all to one file. */
+   Kept per browser (deep16.plays, the last 40 fights); R on the tester ladder saves them all to one file, and C after it clears the ones
+   that file holds (10-04: each save writes the whole record, so an uncleared one is written again into the next). */
 'use strict';
 (function () {
   var D = window.D16, G = D.grid;
@@ -151,6 +152,26 @@
     if (!D.store.set(KEY, all)) { try { window.localStorage.removeItem(KEY); } catch (e) { return false; } } // (a shorter list refused too: the record goes whole, so the asking stops)
     return true;
   };
+  // what the last save wrote (10-04, Griz: "add a 'clear record' after you save on the ladder"): every R writes every kept fight, so a record that is
+  // never cleared is written again whole into the next file (seven saves held 72 fights, 34 of them once each). CLEAR RECORD, after a save, takes the
+  // fights that file holds and none played since -- and only after a save, so nothing goes that no file has
+  var fileHas = null;
+  function tag(f) { return f.fight + '|' + f.started; }
+  REC.lastFile = function () { return fileHas ? fileHas.name : null; };
+  // how many of the kept fights the last save holds (0: nothing saved yet, or all cleared)
+  REC.clearable = function () {
+    if (!fileHas) return 0;
+    return (D.store.get(KEY) || []).filter(function (f) { return fileHas.tags.indexOf(tag(f)) >= 0; }).length;
+  };
+  // the fights the last save holds leave the browser; { gone, kept (played since), file }, or false (nothing saved, or the browser refused)
+  REC.clear = function () {
+    if (!fileHas) return false;
+    var all = D.store.get(KEY) || [], keep = all.filter(function (f) { return fileHas.tags.indexOf(tag(f)) < 0; });
+    if (!D.store.set(KEY, keep)) return false;
+    var r = { gone: all.length - keep.length, kept: keep.length, file: fileHas.name };
+    fileHas = null;
+    return r;
+  };
   // R on the tester ladder: every kept fight to one file (a download: the browser asks where, or drops it in Downloads)
   REC.save = function () {
     var all = D.store.get(KEY) || [];
@@ -161,6 +182,7 @@
     var a = document.createElement('a'), url = URL.createObjectURL(new Blob([body], { type: 'application/json' }));
     a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+    fileHas = { name: name, tags: all.map(tag) };
     return name;
   };
 

@@ -17,7 +17,8 @@
   // and do a tester version of the ladder with them as the party?" -- "the off SRD ones we made to 9"; "AI now, buttons later"):
   // Talmok, Willem, Katarina and Torvald built at the rung's level (js/classes.js NPC.ours), a camp of their own first (camp.js o.ours), and every
   // unit on both sides run by the class AI (a watch: battle.js o.watch). Its progress is kept apart (deep16.ladder.ours); no climb
-  // P on it (or &play): YOU PLAY -- our four are yours to run, and every move is recorded (js/record.js); R saves the record to a file
+  // P on it (or &play): YOU PLAY -- our four are yours to run, and every move is recorded (js/record.js); R saves the record to a file,
+  // and after a save C (or CLEAR RECORD, top right) clears the fights that file holds from the browser (10-04, Griz: "add a 'clear record' after you save")
   function Ladder(o) { this.t = 0; this.o = o || {}; this.ours = this.o.party === 'ours'; }
   D.Ladder = Ladder;
   Ladder.prototype.key = function () { return this.ours ? KEY + '.ours' : KEY; };
@@ -31,6 +32,8 @@
     this.card = null;                     // the level-up card, after a win
     this.play = this.ours && (!!this.o.play || !!st.play); // the tester ladder: you play our four (recorded), or watch the AI run them
     this.saved = null;                    // the file R last saved
+    this.clearing = false;                // CLEAR RECORD's question is up (after a save: C)
+    this.cleared = null;                  // what the last clear took, { gone, kept }
     D.music('title');
   };
   Ladder.prototype.save = function () { D.store.set(this.key(), { won: this.won, wonF: this.wonF, pick: this.pick, at: this.sel, play: this.play || undefined }); };
@@ -103,6 +106,7 @@
     var F0 = this.cur(this.sel), want = this.sel + ':' + (F0 ? F0.id : '');
     if (want !== this.wantKey) { this.wantKey = want; this.wantT = 0; } else if (++this.wantT === 20) D.spr.prefetch(this.rungSheets(this.sel));
     if (this.leaving) return this.leaveInput();
+    if (this.clearing) return this.clearInput();
     // C, or the button top right: the climb (js/climb.js), one party from 1 to 9
     var cb = this.climbBtn, mm = I.mouse;
     if (!this.card && !this.ours && (I.pressed('center') || (mm.click && cb && mm.x >= cb.x && mm.x < cb.x + cb.w && mm.y >= cb.y && mm.y < cb.y + cb.h))) { D.sfx('confirm'); D.pop(); D.push(new D.Climb()); return; }
@@ -112,7 +116,9 @@
     }
     var inBtn = function (b) { return mm.click && b && mm.x >= b.x && mm.x < b.x + b.w && mm.y >= b.y && mm.y < b.y + b.h; };
     if (this.ours && (I.pressed('play') || inBtn(this.playBtn))) { this.play = !this.play; D.sfx('confirm'); this.save(); return; }
-    if (this.ours && (I.pressed('rec') || inBtn(this.recBtn))) { this.saved = D.rec.save(); D.sfx(this.saved ? 'confirm' : 'error'); return; }
+    if (this.ours && (I.pressed('rec') || inBtn(this.recBtn))) { this.saved = D.rec.save(); this.cleared = null; D.sfx(this.saved ? 'confirm' : 'error'); return; }
+    // C, or the button top right, once a save has been made (its slot is the climb's on the plain ladder): the saved fights leave the browser, after a question
+    if (this.ours && D.rec.clearable() && (I.pressed('center') || inBtn(this.clrBtn))) { D.sfx('popup'); this.clearing = true; return; }
     var s0 = this.sel;
     if (I.repeat('up')) this.sel = Math.min(9, this.sel + 1);
     if (I.repeat('down')) this.sel = Math.max(this.lo, this.sel - 1);
@@ -130,6 +136,17 @@
     // to the 8-bit game's title, whose menu has both ladders (Griz, 09-29: the proof of concept's page came up blank)
     if (I.pressed('a')) { D.sfx('confirm'); location.href = '../'; return; }
     if (I.pressed('b') || I.pressed('menu') || I.mouse.click) { D.sfx('cancel'); this.leaving = false; }
+  };
+
+  // CLEAR RECORD's question (10-04): E clears the fights the last save holds, X (or M, or a click away) keeps them; each a click too, for a tap
+  Ladder.prototype.clearInput = function () {
+    var mm = I.mouse, hit = function (b) { return mm.click && b && mm.x >= b.x && mm.x < b.x + b.w && mm.y >= b.y && mm.y < b.y + b.h; };
+    if (I.pressed('a') || hit(this.clrYes)) {
+      var r = D.rec.clear();
+      this.clearing = false; this.cleared = r || null; if (r) this.saved = null;
+      D.sfx(r ? 'confirm' : 'error'); return;
+    }
+    if (I.pressed('b') || I.pressed('menu') || mm.click) { D.sfx('cancel'); this.clearing = false; }
   };
 
   function box(ctx, x, y, w, h) { D.win8(ctx, x, y, w, h); } // (the 8-bit game's window, as every DEEP16 menu: js/core.js D.win8, 10-01)
@@ -184,8 +201,18 @@
       var w2 = D.text(ctx, '{y}R{/} save ' + n + ' recorded fight' + (n === 1 ? '' : 's'), x1, 240, P('silver', 5));
       this.playBtn = { x: x0 - 3, y: 237, w: w1 + 6, h: 12 }; this.recBtn = { x: x1 - 3, y: 237, w: w2 + 6, h: 12 };
       ctx.strokeStyle = P('stone', 3); ctx.strokeRect(this.playBtn.x + 0.5, this.playBtn.y + 0.5, this.playBtn.w - 1, this.playBtn.h - 1); ctx.strokeRect(this.recBtn.x + 0.5, this.recBtn.y + 0.5, this.recBtn.w - 1, this.recBtn.h - 1);
-      if (this.saved) D.text(ctx, '{g}saved: ' + this.saved + '{/}', bx + 6, 249, P('accent', 2));
-      this.climbBtn = null; if (this.card) this.drawCard(ctx); if (this.leaving) this.drawLeave(ctx); return; // (no climb: the climb is the four heroes')
+      if (this.saved) D.text(ctx, '{g}saved: ' + String(this.saved).replace(/^deep16-play-record-/, '') + '{/}', bx + 6, 249, P('accent', 2)); // (the name's front dropped: the whole of it ran off the screen's edge)
+      else if (this.cleared) D.text(ctx, '{g}' + (this.cleared.kept ? 'cleared ' + this.cleared.gone + ', kept ' + this.cleared.kept + ' newer' : 'record cleared: ' + this.cleared.gone + ' fight' + (this.cleared.gone === 1 ? '' : 's')) + '{/}', bx + 6, 249, P('accent', 2)); // (short: the line ends at the screen's edge)
+      // (no climb: the climb is the four heroes'; its slot top right holds CLEAR RECORD once a save is made)
+      this.climbBtn = null; this.clrBtn = null;
+      var nc = D.rec.clearable();
+      if (nc && !this.card) {
+        var kb = this.clrBtn = { x: D.W - 104, y: 4, w: 98, h: 20 };
+        ctx.fillStyle = P('red', 1); ctx.fillRect(kb.x, kb.y, kb.w, kb.h); ctx.strokeStyle = P('red', 4); ctx.strokeRect(kb.x + 0.5, kb.y + 0.5, kb.w - 1, kb.h - 1);
+        D.hint(ctx, '{r}CLEAR RECORD{/}  (C)', kb.x + kb.w / 2, kb.y + 2, P('bone', 1), 'center');
+        D.text(ctx, nc + ' saved fight' + (nc === 1 ? '' : 's'), kb.x + kb.w / 2, kb.y + 11, P('stone', 5), 'center');
+      }
+      if (this.card) this.drawCard(ctx); if (this.leaving) this.drawLeave(ctx); if (this.clearing) this.drawClear(ctx); return;
     }
     var cb = this.climbBtn = { x: D.W - 104, y: 4, w: 98, h: 17 }, cl = D.climb && D.climb.load();
     ctx.fillStyle = P('violet', 1); ctx.fillRect(cb.x, cb.y, cb.w, cb.h); ctx.strokeStyle = P('violet', 4); ctx.strokeRect(cb.x + 0.5, cb.y + 0.5, cb.w - 1, cb.h - 1);
@@ -200,6 +227,19 @@
     D.text(ctx, '{y}LEAVE THE LADDER?{/}', D.W / 2, 112, P('gold', 4), 'center');
     D.text(ctx, 'back to the 8-bit game (its title has both ladders)', D.W / 2, 124, P('bone', 1), 'center');
     D.hint(ctx, '{g}E leave  ·  X stay{/}', D.W / 2, 137, P('accent', 2), 'center');
+  };
+  Ladder.prototype.drawClear = function (ctx) {
+    var lw = 320, lx = (D.W - lw) / 2, nc = D.rec.clearable(), since = D.rec.count() - nc;
+    var ls = D.wrap('The ' + nc + ' fight' + (nc === 1 ? '' : 's') + ' in ' + (D.rec.lastFile() || 'the file') + ' leave this browser; the file keeps ' + (nc === 1 ? 'it' : 'them') + '.' + (since > 0 ? ' ' + since + ' played since ' + (since === 1 ? 'stays' : 'stay') + '.' : ''), lw - 20);
+    var h = 48 + ls.length * 9, y = 96;
+    box(ctx, lx, y, lw, h);
+    D.text(ctx, '{y}CLEAR THE RECORD?{/}', D.W / 2, y + 8, P('gold', 4), 'center');
+    ls.forEach(function (l, i) { D.text(ctx, l, D.W / 2, y + 22 + i * 9, P('bone', 1), 'center'); });
+    var by = y + h - 16, w1 = 74, w2 = 74, bx1 = D.W / 2 - w1 - 8, bx2 = D.W / 2 + 8;
+    this.clrYes = { x: bx1, y: by, w: w1, h: 12 }; this.clrNo = { x: bx2, y: by, w: w2, h: 12 };
+    ctx.strokeStyle = P('stone', 3); ctx.strokeRect(bx1 + 0.5, by + 0.5, w1 - 1, 11); ctx.strokeRect(bx2 + 0.5, by + 0.5, w2 - 1, 11);
+    D.text(ctx, '{y}E{/} clear', bx1 + w1 / 2, by + 3, P('accent', 2), 'center');
+    D.text(ctx, '{y}X{/} keep', bx2 + w2 / 2, by + 3, P('silver', 5), 'center');
   };
   // a light read of the four at a level (cached per level and fight: a fight may give them its own looks)
   Ladder.prototype.partyAt = function (L) {

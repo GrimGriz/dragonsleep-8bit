@@ -314,6 +314,11 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   `deep16.plays`) and summarised in `deep16.pocket` (the last 60): FIGHTS lists them; NOTES is a field over the canvas (the game hears no key
   while it is typed in: `core.js D.typing`); SAVE A FILE downloads the summary, the notes and the play record as one `.json`; COPY the summary;
   EMAIL GRIZ opens a mail with it; THE DISCORD copies the summary and opens https://discord.gg/VDxa5hkA3x; URL copies the fight's.
+  **On the tester ladder** (`?ladder&party=ours&play`): R saves every kept fight (the last 40) to `deep16-play-record-<date>-<time>.json`, and
+  after a save **C / CLEAR RECORD** (top right, with a question first; E clears, X keeps; 10-04, his: *"add a 'clear record' after you save on the
+  ladder"*) takes the fights that file holds out of the browser -- those and no fight played since, and nothing before a save. Each R writes
+  the whole record, so an uncleared one repeats in the next file; `python dev/merge-play-records.py` folds the saves in `play-records/` into one
+  `deep16-play-records-combined.json`, each fight (its `fight` and `started`) once, the folded files moved to `play-records/merged/`.
 - **Bench:** `python dev/bench16.py x mode=pocket1002` (in `dev/check.py`'s gate): the words, a `~` code round-tripped, the ASIs with the level,
   the pot and the roll summing to its CR, the DMG reading, the rests, the winnings by class, a fight by the Pocket's words with a carry, and a
   table of Large and Huge foes seated whole (`battle.js seatBand` honours a footprint now).
