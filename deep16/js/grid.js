@@ -48,7 +48,8 @@
       if (u && u.under && G.solidFloor(f[i][0], f[i][1])) return false; // (under the ground, worked stone stops it: a map's noBurrow, 10-01d)
       var z = G.map.gz(f[i][0], f[i][1]); lo = Math.min(lo, z); hi = Math.max(hi, z);
     }
-    return hi - lo <= G.map.def.step; // a Large body can straddle one step, not the ledge
+    var dd = G.map.def; // a Large body can straddle one step, not the ledge -- on a map that lets cliffs be climbed, as many steps as `climbLarge` (two by default: 10-04, Griz: the Large creatures)
+    return hi - lo <= dd.step * (dd.climb && f.length > 1 ? Math.min(dd.climb, dd.climbLarge || 2) : 1);
   }
   // may u end its move here (o.ghost: an ethereal mover ignores creatures)
   // (a wall's squares, js/walls.js: nothing stands or passes in stone; a small flier does not cross the wind)
@@ -76,7 +77,8 @@
     if (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone))) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)
     var dzS = G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0), stS = G.map.def.step;
     // (a cliff: a map's `climb` -- the steps a body of one square may scale or drop, SRD 5.1 Climbing and Falling; up costs 1 extra foot a foot, and a Strength (Athletics) check, battle.js moveAlong; a drop of under 10 ft is free)
-    if (Math.abs(dzS) > stS && !(G.map.def.climb && Math.abs(dzS) <= G.map.def.climb * stS && (u.size || 1) === 1)) return Infinity;
+    var clS = G.map.def.climb, limS = (u.size || 1) > 1 ? Math.min(clS || 0, G.map.def.climbLarge || 2) : clS; // (a Large body climbs `climbLarge` steps, two by default; a one-square body, `climb`)
+    if (Math.abs(dzS) > stS && !(clS && Math.abs(dzS) <= limS * stS)) return Infinity;
     var dx = x1 - x0, dy = y1 - y0;
     if (dx && dy && !footWalkable(u, x0 + dx, y0, true) && !footWalkable(u, x0, y0 + dy, true)) return Infinity; // no squeezing between two rocks at a corner
     if (o && o.ghost) return 5;
