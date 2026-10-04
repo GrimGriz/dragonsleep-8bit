@@ -744,6 +744,26 @@
   };
 
   // ------------------------------------------------------------------ drawing
+  // the tall faces go nigh-translucent over whatever stands behind them (10-04, Griz: "nigh-translucent walls (that are invisible unless player trying to move cursor on them?)"): a square standing 10 ft or more above
+  // a figure behind it, or the cursor square behind it, is drawn faint where it would hide them, and whole again while the cursor is on it (js/iso.js draws a tile prop at its `alpha`). Only on a map that rises 10 ft (G.tall)
+  function fadeFaces(B) {
+    var m = D.iso.map; if (!m || !G.tall()) return;
+    var tall = 4 * G.map.def.step, HW = 32, HH = 16, pts = [];
+    B.units.forEach(function (u) { if (G.standing(u)) pts.push({ x: u.x, y: u.y, z: G.gzAt(u, u.x, u.y), head: 44 }); });
+    if (B.cursor) pts.push({ x: B.cursor.x, y: B.cursor.y, z: m.gz(B.cursor.x, B.cursor.y), head: 0 });
+    m.props.forEach(function (p) {
+      if (p.kind !== 'tile') return;
+      p.alpha = 1;
+      if (p.gz < tall || (B.cursor && B.cursor.x === p.sq.x && B.cursor.y === p.sq.y)) return;
+      var ct = D.iso.center(p.sq.x, p.sq.y, p.gz), cb = D.iso.center(p.sq.x, p.sq.y, 0);
+      for (var i = 0; i < pts.length; i++) {
+        var q = pts[i]; if (q.x + q.y >= p.sq.x + p.sq.y || p.gz - q.z < tall) continue;
+        var cu = D.iso.center(q.x, q.y, q.z);
+        if (Math.abs(cu.x - ct.x) > HW + 8 || cu.y < ct.y - HH - q.head || cu.y > cb.y + HH) continue;
+        p.alpha = 0.3; break;
+      }
+    });
+  }
   UI.drawBattle = function (ctx, B) {
     var req = B.req, hero = req && (req.turn || (req.aim && req.aim.who)), objs = []; // (req.aim: the readied thing aimed on another's turn -- its holder's tool and reach, 10-02)
     B.uiRects = []; B.buttons = [];
@@ -775,6 +795,7 @@
       });
       FX.list.forEach(function (f) { if (!f.screen) objs.push({ depth: 1e6, gz: 0, draw: function (c) { f.draw(c); } }); });
       DEFER = objs; WCTX = wx;
+      fadeFaces(B);
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
       if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
       drawPathDots(wx);
