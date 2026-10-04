@@ -474,7 +474,7 @@ for se_, be_, ae_ in EYEC_AT:
 print('[troll] hair %d (cap %d, locks %d, back %d, shoulders %d), mouth %d, cloth %d, eyes %d points' % (int(HAIRM.sum()), int(HAT.sum()), int(LOCKS.sum()), int(BACKH.sum()), int(SHOULDH.sum()), int(MOUTH.sum()), int(CLOTH.sum()), int(EYEM.sum())))
 if not OPT.get('cdiag') and not OPT.get('hdiag') and MODE != 'diag':
     HAIRC, CLOTHC, EYEC = lin('#34261f'), lin('#8a6a42'), lin('#f2c230')
-    if OPT.get('hair', 'blue') == 'blue':
+    if OPT.get('hair', 'blue') == 'blue':      # RULED 10-04 (Griz: "I like it blue, we'll give them something to talk about"): the troll's hair is sky blue; hair=brown for the dark one
         HAIRC = lin('#4db8ff')
     col[HAIRM] = col[HAIRM] * 0.1 + HAIRC[None, :] * 0.9
     col[MOUTH & ~HAIRM] = lin(OPT.get('mouthc', '#4a0f16'))[None, :]
