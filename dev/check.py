@@ -26,6 +26,7 @@ ALL_SCRIPTS = [['dev/bench8.py', 'lymen'], ['dev/bench8.py', 'ingrith'], ['dev/b
                ['dev/wet-probe.py'], ['dev/wet8-probe.py'], ['dev/pyro-probe.py'], ['dev/pyro8-probe.py'], ['dev/srdleft-probe.py'],
                ['dev/bench8.py', 'floor1003'], # (the floor under the player: a grid crash or no ready falls back to the 8-bit battle, a bad save loads, a warp's throw fades back -- the review, 10-03)
                ['dev/bench8.py', 'migrate'], # (the only old-save test: an older save walked on through DS.startFrom -- the review, 10-03)
+               ['dev/bench8.py', 'menus1003'], # (a menu's title wraps inside its box: the reaction ask for every spell the 8-bit knows, 10-03)
                ['dev/bench8.py', 'countdown1003'], # (the encounter countdown carried across map loads, RULED 10-03: a load, a warp and the chalk keep it; a new field rolls; a carried count fires)
                ['dev/keeper-probe.py'], # (10-03, the stream's fixes: the Keeper's own probe, its fixes' checks in it -- the retreat, the break-free, the swirl's end, the prone rules, the opener, the log, the card)
                ['dev/walk8.py', 'leg=gulch', 'n=1', 'check']] # (here-to-there, 10-03: one walk of the shortest leg sure to meet a fight -- 35 steps in the gulch's zone against a countdown of at most 26 -- so the walker can't rot)

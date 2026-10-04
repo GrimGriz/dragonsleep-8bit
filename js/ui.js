@@ -27,9 +27,13 @@
     this.visible = o.visible || Math.ceil(this.items.length / this.cols);
     this.i = DS.clamp(o.index || 0, 0, Math.max(0, this.items.length - 1));
     this.scroll = 0; this.title = o.title; this.frame = o.frame !== false;
+    // a title wider than the box wraps, and the box grows a line for each (10-03, the reactions seat's find: "COUNTERSPELL? Protection from Evil and Good"
+    // ran past the reaction box's edge; Griz: "it's the little things"). A title that fits is one line, as it always was
+    this.titleLines = this.title ? DS.wrap(this.title, this.w - this.pad * 2) : [];
+    this.titleH = this.titleLines.length ? 12 + (this.titleLines.length - 1) * 10 : 0;
     this.onSelect = o.onSelect; this.onCancel = o.onCancel; this.onMove = o.onMove;
     this.active = true; this.cancelable = o.cancelable !== false;
-    this.h = o.h || (this.visible * this.rowH + this.pad * 2 - 2 + (this.title ? 12 : 0));
+    this.h = o.h || (this.visible * this.rowH + this.pad * 2 - 2 + this.titleH);
     this.colW = o.colW || Math.floor((this.w - this.pad * 2 - 6) / this.cols);
     this.fixScroll();
   }
@@ -60,8 +64,8 @@
   };
   Menu.prototype.draw = function (ctx) {
     if (this.frame) DS.win(ctx, this.x, this.y, this.w, this.h);
-    var ty = this.y + this.pad + (this.title ? 12 : 0);
-    if (this.title) DS.text(ctx, this.title, this.x + this.pad, this.y + this.pad - 1, '#F8D878');
+    var ty = this.y + this.pad + this.titleH, self = this;
+    this.titleLines.forEach(function (l, i) { DS.text(ctx, l, self.x + self.pad, self.y + self.pad - 1 + i * 10, '#F8D878'); });
     var start = this.scroll * this.cols, end = Math.min(this.items.length, start + this.visible * this.cols);
     for (var k = start; k < end; k++) {
       var it = this.items[k], r = Math.floor(k / this.cols) - this.scroll, c = k % this.cols;

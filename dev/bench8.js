@@ -943,6 +943,27 @@
       seam('lit on the grid from the pack, the place light enough (09-30d: still in the hand)', { dark: false, pack: true, report: 'ledgerlamp', inv0: { ledgerlamp: 1 }, inv1: {}, expect: function (gg) { return gg.count('ledgerlamp') === 0 && gg.flags.torchBy === 'aurdin' && gg.flags.torchKind === 'ledgerlamp'; } });
       seam('lit on the grid from the pack, put out again', { dark: true, pack: true, report: false, inv0: { ledgerlamp: 1 }, inv1: { ledgerlamp: 1 }, expect: function (gg) { return gg.count('ledgerlamp') === 1 && !gg.flags.torchBy; } });
       DS.EV.darkHere = dark1;
+    } else if (test === 'menus1003') {
+      // a menu's title wraps inside its box (10-03, the reactions seat's find; Griz: "it's the little things"): the box askReact really asks for (DS.choose caught),
+      // titled COUNTERSPELL? and each spell the 8-bit knows; every line inside the box, the box on the screen; a title that fits is one line at the old height
+      var choose0 = DS.choose, caught = null, items2 = [{ label: 'COUNTER (CHECK DC 13)', value: true, right: 'L3' }, { label: 'LET IT GO', value: false }];
+      DS.choose = function (o) { caught = o; return { start: function () { this.finished = true; } }; };
+      function boxFor(title) { caught = null; DS.Battle.prototype.askReact.call({}, null, title, items2).next(); return caught && new DS.Menu(caught); }
+      try {
+        var worst = null, worstT = '', over = [];
+        Object.keys(DS.DATA.spells).forEach(function (id) {
+          var t = 'COUNTERSPELL? ' + DS.DATA.spells[id].name, m = boxFor(t), inner = m.w - m.pad * 2, wide = Math.max.apply(null, (m.titleLines || [m.title]).map(function (l) { return DS.textWidth(l); }));
+          if (wide > inner || m.x + m.w > 256 || m.y + m.h > 240) over.push(id + ' ' + wide + '/' + inner);
+          if (!worst || DS.textWidth(t) > DS.textWidth(worstT)) { worst = m; worstT = t; }
+        });
+        check('COUNTERSPELL? and every spell the 8-bit knows (' + Object.keys(DS.DATA.spells).length + ') sit inside the reaction box; the longest, "' + worstT + '" (' + DS.textWidth(worstT) + ' px for ' + (worst.w - worst.pad * 2) + '), as ' + JSON.stringify(worst.titleLines) + ', the box ' + worst.w + 'x' + worst.h + ' at ' + worst.x + ',' + worst.y + (over.length ? '; past it: ' + over.join(', ') : ''), !over.length && JSON.stringify(worst.titleLines) === '["COUNTERSPELL?","Protection from Evil and Good"]');
+        var sh = boxFor('SHIELD? 18 hits AC 15');
+        check('a title that fits is one line at the old height: ' + JSON.stringify(sh.titleLines) + ', h ' + sh.h + ' (2 rows of 11, pad 7: ' + (2 * 11 + 7 * 2 - 2 + 12) + ')', sh.titleLines && sh.titleLines.length === 1 && sh.h === 2 * 11 + 7 * 2 - 2 + 12);
+        var cv8 = document.createElement('canvas'); cv8.width = 256; cv8.height = 240; var drew8 = true, c8 = cv8.getContext('2d');
+        try { c8.fillStyle = '#101018'; c8.fillRect(0, 0, 256, 240); sh.y = 30; sh.draw(c8); worst.draw(c8); } catch (eW) { drew8 = String(eW); }
+        check('the two-line box draws: ' + drew8, drew8 === true);
+        if (Q.get('shot')) out.shot = cv8.toDataURL('image/png'); // (shot=1: the two boxes as a picture, for an eye)
+      } finally { DS.choose = choose0; }
     } else if (test === 'countdown1003') {
       // the countdown carried across map loads (RULED 10-03, Griz: "yes; a map load is not a rest, but it is a game change"; js/world.js Field.load): a load keeps
       // what is left, a warp too, and the chalk's sixty with them; a fresh field rolls in its zone's rate; and a count carried in fires on the new map's steps

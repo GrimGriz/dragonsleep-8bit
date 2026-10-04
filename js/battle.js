@@ -695,7 +695,9 @@
     return true;
   };
   Battle.prototype.askReact = function* (u, title, items) {
-    return yield DS.choose({ items: items, x: 24, y: 96, w: 208, rowH: 11, pad: 7, title: title });
+    var o = { items: items, x: 24, y: 96, w: 208, rowH: 11, pad: 7, title: title };
+    if (DS.textWidth(title) > o.w - o.pad * 2) o.title = title.replace('? ', '?\n'); // (too long for one line: the question, then what it is about on its own -- "COUNTERSPELL?" over "Protection from Evil and Good"; js/ui.js Menu wraps the title, 10-03)
+    return yield DS.choose(o);
   };
   // the slot a reaction spell would go from (0: not known, not prepared, or no slot): the lowest that holds it, as every cast (RULED 10-03: "3 yes")
   Battle.prototype.reactSpell = function (u, id) {
