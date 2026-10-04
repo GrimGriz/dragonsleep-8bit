@@ -455,8 +455,19 @@ LOCKS = hg & (np.abs(HSI) > 4.0) & (HB < -0.5) & (HA < 12)
 BACKH = hg & (HA < float(OPT.get('bha', 4.0))) & (HB > -14)
 SHOULDH = (HA < float(OPT.get('sha', 4.5))) & (HB < float(OPT.get('sb1', -1.0))) & (HB > float(OPT.get('sb0', -6.0))) & (np.abs(HSI) < float(OPT.get('ss', 11.0))) & (ARMW < 0.5) & (NA[:, 2] > float(OPT.get('sn', 0.35)))
 HAIRM = HAT | LOCKS | BACKH | SHOULDH
+# his marks on the sprite sheet (Griz, 10-04, trollhairclothes3.png: orange = hair that was missed, yellow = blue on what is not hair, purple = where an eye is), turned
+# into mesh points by `-- marks` (tools/troll-marks-verts.json): every point within a reach of an orange one is hair, within a reach of a yellow one is not
+MV = os.path.join(ROOT, 'tools', 'troll-marks-verts.json')
+if os.path.exists(MV) and not OPT.get('nomarks'):
+    mv = json.load(open(MV))
+    def near(ids, r):
+        if not ids:
+            return np.zeros(nv, bool)
+        Q = PA[np.array(ids, int)]
+        return (((PA[:, None, :] - Q[None, :, :]) ** 2).sum(2) < r * r).any(1)
+    HAIRM = (HAIRM | near(mv['orange'], float(OPT.get('mor', 1.1)))) & ~near(mv['yellow'], float(OPT.get('myr', 0.9)))
 MOUTH = (HA > 6.0) & (HA < 13.5) & (HB > -7.5) & (HB < -1.2) & (np.abs(HSI) < 4.6) & ((NA @ HF) < float(OPT.get('mn', 0.15)))      # the inside of the open mouth: points in its box facing back into the head
-EYEC_AT = [(float(OPT.get('ese', 1.5)), float(OPT.get('eb', 1.15)), float(OPT.get('ea', 11.2))), (-float(OPT.get('esw', 1.4)), float(OPT.get('eb', 1.15)), float(OPT.get('ea', 11.2)))]     # the eyes' (s, b, a), read off the close-up with `-- close ... pick=x,y;x,y`
+EYEC_AT = [(float(OPT.get('ese', 1.5)), float(OPT.get('eb', 1.15)), float(OPT.get('ea', 11.2))), (-float(OPT.get('esw', 1.9)), float(OPT.get('ebw', 0.6)), float(OPT.get('eaw', 12.9)))]     # the eyes' (s, b, a), read off the close-up with `-- close ... pick=x,y;x,y`
 EYEM = np.zeros(nv, bool)
 for se_, be_, ae_ in EYEC_AT:
     EYEM |= hg & (((HSI - se_) ** 2 + (HB - be_) ** 2 + (HA - ae_) ** 2) < float(OPT.get('er', 1.0)) ** 2)
@@ -510,6 +521,44 @@ def stand_camera():
     lo, hi = Vector((-R, -R, 0)), Vector((R, R, 66 * k))
     return BL.sprite_camera(scene, lo, hi)
 
+
+if MODE == 'marks':     # his marks on the sprite sheet (tools/troll-marks.json: orange = hair, yellow = not hair, purple = an eye; per facing, 1x sprite pixels of the idle's
+    # first frame) turned into points on the mesh through the same camera: writes tools/troll-marks-verts.json (base-mesh vertex ids and their head-frame coordinates)
+    from bpy_extras.object_utils import world_to_camera_view
+    cam, FW, FH, AX, AY = stand_camera()
+    scene.render.resolution_x, scene.render.resolution_y, scene.render.resolution_percentage = FW, FH, 100
+    for m_ in body.modifiers:
+        if m_.type == 'SUBSURF':
+            m_.show_viewport = False
+    use('IDLE'); scene.frame_set(1)
+    marks = json.load(open(os.path.join(ROOT, 'tools', 'troll-marks.json')))
+    SPX, SPY = 96, 115        # the idle's anchor in its sprite frame
+    got = {'orange': set(), 'yellow': set(), 'purple': set()}; perpx = {}
+    for fk, cls in marks.items():
+        f = int(fk)
+        arm.rotation_euler.z = math.radians(45 - 45 * f); bpy.context.view_layer.update()
+        dg_ = bpy.context.evaluated_depsgraph_get(); oe_ = body.evaluated_get(dg_); me_ = oe_.to_mesh()
+        Wm = oe_.matrix_world; camp = cam.matrix_world.translation; cdir = cam.matrix_world.to_3x3() @ Vector((0, 0, -1))
+        P2 = np.zeros((len(me_.vertices), 4))
+        for v_ in me_.vertices:
+            w_ = Wm @ v_.co; nv_ = (Wm.to_3x3() @ v_.normal).normalized(); c_ = world_to_camera_view(scene, cam, w_)
+            P2[v_.index] = (c_.x * FW, (1 - c_.y) * FH, float((w_ - camp).dot(cdir)), float(nv_.dot(-cdir)))
+        oe_.to_mesh_clear()
+        for k_, pts in cls.items():
+            for (px_, py_) in pts:
+                rx_, ry_ = px_ - SPX + AX + 0.5, py_ - SPY + AY + 0.5
+                m_ = (P2[:, 3] > 0.0) & (((P2[:, 0] - rx_) ** 2 + (P2[:, 1] - ry_) ** 2) < 1.6 ** 2)
+                idx = np.where(m_)[0]
+                if len(idx):
+                    idx = idx[np.argsort(P2[idx, 2])][:4]; got[k_].update(int(i_) for i_ in idx)
+    out = {k_: sorted(v_) for k_, v_ in got.items()}
+    json.dump(out, open(os.path.join(ROOT, 'tools', 'troll-marks-verts.json'), 'w'))
+    for i_ in out['purple']:
+        print('[troll] purple vertex %d  a %.1f b %.1f s %.1f' % (i_, HA[i_], HB[i_], HSI[i_]))
+    for k_, v_ in out.items():
+        ii = np.array(v_, int)
+        print('[troll] marks %-6s %4d points%s' % (k_, len(ii), ('  head-frame a %.1f b %.1f s %.1f (means)' % (HA[ii].mean(), HB[ii].mean(), HSI[ii].mean())) if len(ii) else ''))
+    sys.exit(0)
 
 if MODE in ('look', 'close', 'poses', 'diag'):
     cam, FW, FH, AX, AY = stand_camera()
