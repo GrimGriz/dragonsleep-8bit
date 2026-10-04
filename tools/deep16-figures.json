@@ -753,16 +753,27 @@
       "anims": { "idle": "Wasp_Flying", "attack": "Wasp_Attack", "walk": "Wasp_Flying" }
     },
     "troll": {
-      "_note": "Quaternius Ultimate Monsters, Big/Yeti (CC0, Atlas_Monsters.png) standing in for the SRD troll. Large: 2 squares.",
-      "file": "quaternius/ultimate-monsters/Big/Blends/Yeti.blend",
-      "show": ["Yeti"],
-      "size_squares": 2.0,
+      "_note": "the troll (SRD 5.1, Large): MZ4250's printable Troll Updated (Thingiverse thing:4134313, CC BY: deep16/CREDITS.md), on his own rig, posed by tools/troll-blend.py as bends on his own lunge -- pipeline 1b's fourth, deep16/blender-monsters.md (10-04). The toon look, light 13, the lift off as the grick; the hide green. size_by: the print base's disc, two squares. Death on its face; PRONE over on its back (the grid lies at its last frame and gets up by the row played backwards). (Till then the Quaternius Yeti stood in.)",
+      "file": "troll/troll.blend",
+      "show": ["Troll_Body"],
+      "look": "toon:13",
+      "lift": true,
+      "fit": true,
+      "size_squares": 2,
+      "size_by": ["Troll_Foot"],
       "yaw": 0,
       "anims": {
-        "idle": "Idle",
-        "attack": "Punch",
-        "walk": "Walk"
-      }
+        "idle": "IDLE",
+        "walk": "WALK",
+        "claw": "CLAW",
+        "claw2": "CLAW2",
+        "bite": "BITE",
+        "flinch": "FLINCH",
+        "hurt": "DEATH",
+        "prone": "PRONE"
+      },
+      "frames": {"idle": 8, "walk": 8, "claw": 6, "claw2": 6, "bite": 6, "flinch": 5, "hurt": 8, "prone": 6},
+      "once": ["claw", "claw2", "bite", "flinch", "hurt", "prone"]
     },
     "clacker": {
       "_note": "the clacker, the realm's hook horror (the landlord's picture, dev/visions/the-clackers.jpg): our own model, built from nothing by tools/clacker-blend.py (re-run it to rebuild _src/clacker/clacker.blend). Large, but tall and narrow: drawn at 1.35 squares so it stands about 85 px (the ettin's height; at 2.0 it stood 127, over the stone giant); the frame is widened and heightened so the raised hooks and the forward strike stay in it. ATTACK frame 17 of 1-33 is the clack (with 8 frames, frame 4 of the sheet).",

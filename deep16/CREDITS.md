@@ -17,7 +17,7 @@ stalagmites, cocoons and rubble are drawn in code (`deep16/js/iso.js`, `deep16/j
   **Easy Enemy Pack** (Jan 2019: Frog, Rat, Snake, Snake_Angry, Spider, Wasp — `giantrat_p1`, `giantspider_p1`);
   **Animated Monster Pack** (Aug 2018: Bat, Dragon, Skeleton, Slime); **Ultimate Animated Animal Pack** (Jul 2021: Alpaca,
   Bull, Cow, Deer, Donkey, Fox, Horse, Horse_White, Husky, ShibaInu, Stag, Wolf — `wolf_p1`); **Ultimate Monsters**
-  (Oct 2022, 50 in Big / Blob / Flying — Yeti as `troll_p1`). Credit is not required by the licence; given gladly.
+  (Oct 2022, 50 in Big / Blob / Flying — Yeti as `troll_p1` till 10-04). Credit is not required by the licence; given gladly.
   The ladder's sheets (09-27, graded or recoloured per `tools/deep16-figures.json`): Easy Enemy Snake_Angry (`naga_p1`),
   Snake (`keeper_p1`), Spider (`wolfspider_p1`); Animated Monster Bat (`giantbat_p1`), Slime (`pudding_p1`, `puddingm_p1`,
   `ochrejelly_p1`, `ochrejellym_p1`, `grayooze_p1`); Animals Wolf (`worg_p1`), Husky (`hyena_p1`), Horse and Horse_White (`horse_p1`, `horsegrey_p1`: the wagon's team); Ultimate Monsters Big
@@ -51,6 +51,11 @@ The recipe: `deep16/blender-monsters.md`. Each model's files live in `deep16/_sr
   `tools/grick-blend.py` (10-02): the print base dropped, the rig re-origined on its foot, the sculpt decimated to 224k triangles,
   coloured (the hide and its belly, the beak, the mouth, the tentacles' hooks), posed into rows in code as bends on his own pose,
   rendered in the toon look and snapped to the DEEP16 palette (`grick_p1`). His Patreon: https://www.patreon.com/mz4250.
+- **Troll** — **mz4250**, "Troll Updated", Thingiverse thing:4134313, https://www.thingiverse.com/thing:4134313 — licensed under
+  **Creative Commons Attribution** (the download page's "Creative Commons - Attribution"). Used: `Troll_Updated_posed.blend` (the sculpt on his
+  own rig, 65 bones and their weights, in the miniature's lunge). **Changed** by `tools/troll-blend.py` (10-04): the print base dropped, the rig
+  re-origined on its foot, an Armature modifier ahead of the Subsurf, coloured (the green hide, the claws, the jaw), posed into rows in code as
+  bends on his own pose, rendered in the toon look and snapped to the DEEP16 palette (`troll_p1`). His Patreon: https://www.patreon.com/mz4250.
 
 ## Pipeline 2 — generated (`denny_p2`, `chuul_p2`, `crawler_p2`, `gnoll_p2`, `gloryseeker_p2`, `cloaker_p2`, `ettercap_p2`, `otyugh_p2`, `hyena_p2`, `bulette_p2`, `owl_p2`, `snowyowl_p2`)
 

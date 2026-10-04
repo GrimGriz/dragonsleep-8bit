@@ -28,6 +28,7 @@ how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop wha
 | **the xorn** -- the first Blender monster (pipeline 1b) | MZ4250's printable Xorn (CC BY), rigged and posed in Blender: 11 rows -- idle, walk, a claw from each arm, bite, sink, rise, flinch, death (its `attack` row, never played, off the sheet 10-02; its frames kept) | `tools/xorn-blend.py`, then `render-sprites.py` | 10-01 | its own row (10-02): its first death, over onto its back -- the sink read as going under |
 | **the roper** -- pipeline 1b's second | MZ4250's Roper 2025 (CC BY-SA): idle, creep, a lash from each of four tendrils, reel, bite, flinch, death, still, reveal | `tools/roper-blend.py` | 10-01 | its own row (10-02): tipped back about its foot, the tendrils flailing |
 | **the grick** -- pipeline 1b's third, on the artist's own rig | MZ4250's Grick Updated (CC BY): idle, walk (a step or two, coiled) and slither (three squares and more, laid flat), tentacles, beak, flinch, death, still (Stone Camouflage), reveal; the den's brown stone, in `S.STONE` | `tools/grick-blend.py` | 10-02 | frame 3 of its death: laid flat, alive |
+| **the troll** -- pipeline 1b's fourth, on the artist's own rig (a biped) | MZ4250's Troll Updated (CC BY): idle, walk, claw from each arm, bite, flinch, death (buckles, falls on its face), prone (over on its back); the Quaternius Yeti stood in till 10-04 | `tools/troll-blend.py` | 10-04 | its own row: knocked over on its back |
 
 | **the duergar** -- an LPC grey dwarf, not generated (10-04, Griz: "do the duergar") | `duergar_full` composed, squashed to a dwarf's build, pixelated: idle, walk, war-pick swing, hurt, cast (Enlarge, Invisibility) | `tools/lpc-compose.py`, `lpc-squash.py`, `pixelate.py p0` | 10-04 | the LPC fall row, frame 4, like every `_p0` figure |
 
@@ -79,7 +80,7 @@ HEAD: DUERGAR (grey dwarves) -- the deep. Bald grey-skinned dwarves with pale ey
 
 ### 6. The troll (leg four: the troll pack)
 
-A yeti today.
+IN HAND 10-04 (pipeline 1b: above). The head is kept for a re-roll; a Regrow row (a wound closing) was not made.
 
 HEAD: TROLL -- the dwarven road. Tall and lanky, rubbery green hide, long arms dragging clawed hands, a long nose, lank dark hair. Large. Rows: Idle (8), Walk (8), Claws (8), Bite (6), Regrow (a wound closing, 6), Hurt (6), Death (burning, 8).
 
