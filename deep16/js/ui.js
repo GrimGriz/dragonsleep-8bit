@@ -758,6 +758,7 @@
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
       if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
       drawPathDots(wx);
+      drawPathMarks(wx);
       xray(wx, B, objs, hero || B.active); // a figure hidden behind another shows through as its outline
       // a rider the cursor means (a darkmantle on a head: underCursor) outlined, so the mouse shows it is on it (10-01, Griz: "I can't get any indication I'm mousing over the one on his head")
       var hr = hero && underCursor(B), ho = hr && hr.riding && objs.filter(function (o) { return o.unit === hr && o.shown; })[0];
@@ -1337,6 +1338,21 @@
   var PATHDOTS = [];
   function dotSq(x, y, color) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); PATHDOTS.push({ x: s.x, y: s.y, color: color }); }
   function drawPathDots(c) { PATHDOTS.forEach(function (d) { c.fillStyle = R('outline', 0); c.fillRect(d.x - 2, d.y - 2, 5, 5); c.fillStyle = d.color; c.fillRect(d.x - 1, d.y - 1, 3, 3); }); PATHDOTS = []; }
+  // difficult ground, marked while a move is being chosen (Griz, 10-04: "when a player's move is active, can there be markers on difficult terrain?"): a small gold X on each square the mover
+  // could reach where a step in costs more than a plain one (rubble, water, web, ice, thorns); drawn with the dots, after the light pass
+  var PATHMARKS = [];
+  function slowSquares(B, u, rc) {
+    if (rc.slow) return rc.slow;
+    var out = [], base = 5 + (G.prone(u) ? 5 : 0), seen = {};
+    [rc.move, rc.dash || {}].forEach(function (m) { Object.keys(m).forEach(function (k) {
+      var e = m[k]; if (!e.stand || seen[k]) return; seen[k] = 1;
+      var c = G.stepCost(u, e.x, e.y, e.x, e.y); if (c !== Infinity && c > base) out.push([e.x, e.y]);
+    }); });
+    return (rc.slow = out);
+  }
+  function markSq(x, y) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); PATHMARKS.push({ x: s.x, y: s.y - 3 }); }
+  var XPIX = [[-2, -2], [-1, -1], [0, 0], [1, 1], [2, 2], [2, -2], [1, -1], [-1, 1], [-2, 2]];
+  function drawPathMarks(c) { PATHMARKS.forEach(function (d) { c.fillStyle = R('outline', 0); XPIX.forEach(function (q) { c.fillRect(d.x + q[0] - 1, d.y + q[1] - 1, 3, 3); }); c.fillStyle = R('gold', 4); XPIX.forEach(function (q) { c.fillRect(d.x + q[0], d.y + q[1], 1, 1); }); }); PATHMARKS = []; }
   function overlay(ctx, B, u) {
     // the aura of protection round a standing paladin: a dashed gold circle, 10 ft (Griz, 09-27: "auras as circles centered
     // on him"). Its radius, 2.9 squares, takes in the centre of every square within 10 ft -- the 5x5 block the rules
@@ -1376,6 +1392,7 @@
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       var rc = reachCache(B, u);
       if (rc.dash) Object.keys(rc.dash).forEach(function (k) { var e = rc.dash[k]; if (e.stand && !rc.move[k]) fillSq(ctx, e.x, e.y, R('glow', 1), 0.07); });
+      if (tool === 'move' && T.move > 0 && !u.conds.restrained) slowSquares(B, u, rc).forEach(function (q) { markSq(q[0], q[1]); }); // (difficult ground, marked: 10-04)
       if ((u.size || 1) > 1 && tool !== 'attack' && !(cx === u.x && cy === u.y) && !occ(cx, cy)) { // (a big creature's pick: all of the squares of its body at the cursor, green where it may stand, red where not -- 10-03, the Keeper's 2x2)
         var vv = UI.valid(B, u, cx, cy), okk = vv === 'ok' || vv === 'far';
         G.foot(u, cx, cy).forEach(function (q) { if (G.map.at(q[0], q[1])) { fillSq(ctx, q[0], q[1], okk ? R('moss', 2) : R('red', 3), 0.3, 2); lineSq(ctx, q[0], q[1], okk ? R('moss', 3) : R('red', 4), 0.95, 2); } });

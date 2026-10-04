@@ -84,7 +84,9 @@
       .map(function (f) { return self.makeFoe(f); });
     // (a word that names no class and no named one may name a creature of the bestiary, data/foes.js: ?npc=hyena,hyena,hyena&vs=bard&lvl=3 --
     // the Pocket DM's monsters dropped in, 09-30, first for Hideous Laughter's hyena)
-    if (NB && NB.foes && NB.foes.length) foes = this.seatBand(NB.foes.map(function (w, i) { var fid = 'f' + i + '-' + String(w).split(':')[0]; return D.npc.build(w, F.level, 'foe', { id: fid }) || (typeof w === 'string' && D.FOES[w] ? self.makeFoe({ id: fid, kind: w }) : null); }).filter(Boolean), m, party);
+    var missed = [], LURK = { grick: 1, roper: 1, darkmantle: 1, xorn: 1, grimlock: 1, cube: 1, gelatinouscube: 1 }; // (the natural lurkers: the ones the story fights start hidden -- Griz 10-04, the Pocket DM's did not)
+    if (NB && NB.foes && NB.foes.length) foes = this.seatBand(NB.foes.map(function (w, i) { var fid = 'f' + i + '-' + String(w).split(':')[0]; var b = D.npc.build(w, F.level, 'foe', { id: fid }) || (typeof w === 'string' && D.FOES[w] ? self.makeFoe({ id: fid, kind: w, hidden: !!LURK[w] }) : null); if (!b) missed.push(String(w)); return b; }).filter(Boolean), m, party);
+    if (missed.length) console.warn('DEEP16: not a class or a bestiary monster: ' + missed.join(', '));
     if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
     this.units = party.concat(foes);
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
@@ -701,7 +703,7 @@
     // HIDE sits on the rogue's first ring (Griz, 09-27: "Rogues gonna hide allatime"): Cunning Action's bonus action from
     // level 2, and the action when the bonus is gone (or before level 2, as the tabletop's Hide action)
     var cun = u.cls === 'rogue' && u.lvl >= 2 && T.bonus > 0;
-    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: cun || (T.action > 0 && !T.attacksLeft), note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
+    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !(u.conds.restrained || u.conds.attached) && (cun || (T.action > 0 && !T.attacksLeft)), why: u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
     // Flame Tongue: a bonus action lights it or puts it out (not under the roost: its one law is no fire)
     if (u.weapon && u.weapon.flame) {
       var roostF = this.fight && this.fight.roost && !u.conds.ablaze;
@@ -2053,8 +2055,11 @@
   // that actively searches"): d20 + Perception against each hidden enemy it has a clear, lit look at, from where it stands and all round it (no facing: it looks about);
   // the bonus of its own watch (the 3x3, the cone) counts where the hider is in it. The hider rolls Stealth again against it (Griz, 10-04: an active search calls a re-roll; a pass through a watch is the held total against passive + bonus).
   Battle.prototype.search = function* (u) {
-    var T = u.turn, self = this, any = false;
+    var T = u.turn, self = this, any = false, f0 = u.facing || 0;
     T.action = 0; D.sfx('run');
+    // the look about: the figure turns a step and two to one side, back past where it faced to the other, and home (the facing is set directly: a turn is not a look of its own here)
+    var sweep = [1, 2, 1, 0, -1, -2, -1, 0];
+    for (var si = 0; si < sweep.length; si++) { u.facing = ((f0 + sweep[si]) % 8 + 8) % 8; yield 9; }
     this.units.forEach(function (w) {
       if (!w.conds.hidden || !G.hostile(u, w) || !G.standing(w) || !self.seenBy(u, w, true)) return;
       var n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = D.d(20), tot = r + (u.perception - 10) + bonus, got = tot > held;
