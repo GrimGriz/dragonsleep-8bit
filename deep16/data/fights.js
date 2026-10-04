@@ -205,7 +205,7 @@
       from: 'the 8-bit game: the Hex (the floor\'s brawlers and the card bruiser; the 8-bit game fights them one on one, the ladder all at once)', won: 'THE FLOOR IS YOURS.',
       foes: [{ id: 'br1', kind: 'brawler', at: [5, 4] }, { id: 'br2', kind: 'brawler', at: [12, 4] }, { id: 'br3', kind: 'brawler', at: [5, 8] }, { id: 'br4', kind: 'brawler', at: [12, 8] },
              { id: 'cb', kind: 'cardbruiser', at: [8, 2] }], wave: null },
-    { id: 'keeper', level: 3, ladder: false, map: 'floodstair', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss',
+    { id: 'keeper', level: 3, ladder: false, map: 'floodstair', name: 'The Keeper', sub: 'the flooded stair, Pete\'s Five', music: 'boss', oneLeavesAll: true, // (10-04, Griz, after the escape by the corridor: "pull the rest of the party" as the Wet does)
       intro: 'A dwarven stair runs down into black water. At the bottom five men lie drowned. The water is a thing, and it closes. (It keeps to its water, and you cannot see it there until it moves.)',
       from: 'the 8-bit game: events.js S.stair (the Keeper; the water hand-waved: it keeps to it)', won: 'IT SINKS BACK INTO ITS STAIR.',
       foes: [{ id: 'keeper', kind: 'keeper', at: window.D16.laneAt(window.D16.MAPS.floodstair, window.D16.MAPS.floodstair.geo.keeper[0], window.D16.MAPS.floodstair.geo.keeper[1], 2), hidden: true }], wave: null }, // (in the lane frame, data/maps.js floodstair geo.keeper)

@@ -470,6 +470,8 @@
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
     // one whose fall ends it (a guest the party swore to bring back: Corwen Dace in the deep gallery -- RULED 10-01c, Griz: "game over if the kid falls")
     if (this.units.some(function (u) { return u.vital && u.side === 'party' && (u.dead || u.hp <= 0); })) return 'lost';
+    // one out, all out (a fight's `oneLeavesAll`: the Wet since 09-30e, the Keeper 10-04 -- Griz: "can we do the 'pull the rest of the party' we do with the Wet escape?")
+    if (this.fight && this.fight.oneLeavesAll && this.units.some(function (u) { return u.side === 'party' && u.left && !u.familiar && !u.summon; })) return 'escaped';
     // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27), or the rest
     // are still on their way out of the inn (this.reserve)
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
@@ -743,7 +745,7 @@
     // out the way the party came in (the fight's entry squares): the tabletop's walking off the table (Griz, 09-27: the climb's escape)
     // (inside the 8-bit game, only where its own battle had RUN: this.o.embed.canRun)
     if (!(this.o.embed && this.o.embed.canRun === false) && (this.exits || []).length) {
-      if (this.onExit(u)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in: a foe beside you gets its swing' });
+      if (this.onExit(u)) out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: T.move >= 5 && !u.conds.restrained, why: u.conds.restrained ? 'held fast' : 'no move left', note: 'out the way you came in' + (this.fight.oneLeavesAll ? ', and the party goes too' : '') + ': a foe beside you gets its swing' });
       // (10-04, Griz: "Keeper Fight lacks fight escape", and the Wet at level 3, "not on wheel": off a way out the command still shows, greyed, and says where to go)
       else out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: false, why: 'not from here: walk to one of the pale squares at the edge first (' + this.exits.length + ' way' + (this.exits.length === 1 ? '' : 's') + ' out)', note: 'out the way you came in' });
     }
@@ -1861,7 +1863,7 @@
     T.move = 0; u.left = true; u.dead = true; u.deadT = this.t; delete u.conds.ablaze;
     if (u.conc) D.magic.endConc(this, u, 'out of the fight');
     D.sfx('run');
-    if (!this.fight.noCards) this.card(['{y}' + u.name + '{/} gets out the way the party came in.  {g}(out of the fight){/}']); // (the wet asked already: no card -- 09-30e)
+    if (!this.fight.noCards) this.card(['{y}' + u.name + '{/} gets out the way the party came in' + (this.fight.oneLeavesAll ? ', and the party goes too' : '') + '.  {g}(out of the fight){/}']); // (the wet asked already: no card -- 09-30e)
     yield 30;
   };
 

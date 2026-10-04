@@ -83,7 +83,8 @@
     // whoever took it up (the 8-bit's lead at the station, or whoever walked onto it here), else the lead (RULED 09-30g, Griz: "Only the
     // character that picked up the bucket should be able to use it as an item")
     var has = (B.inv || []).some(function (s) { return s.id === 'bucket' && s.n > 0; });
-    if (F.bucket) W.layCrate(B, F.bucket); // (the deep station's crate under the bucket, its lamp above (data/maps.js wet lights) -- 10-04, Griz: "a visible draw on the grid")
+    if (F.bucket) W.layCrate(B, F.bucket); // (the deep station's crate under the bucket -- 10-04, Griz: "a visible draw on the grid")
+    if (B.map && B.map.def && B.map.def.lampAt) W.layLamp(B, B.map.def.lampAt); // (its lamp on a post beside the crate, the map's light on that square -- 10-04)
     if (!has && !f8.otyughFed && F.bucket) W.layBucket(B, F.bucket);
     if (has) { var cw = ours(B).filter(function (w) { return w.id === f8.bucketBy && w.hp > 0; })[0] || ours(B).filter(function (w) { return w.hp > 0; })[0]; if (cw) { B.wet.bucketBy = cw.id; B.flags8.bucketBy = cw.id; } }
     // in by the rim (the 8-bit's picture squares, 09-30g: "the 8-bit landlord trigger should pull them into the grid area at the trigger spot"):
@@ -245,6 +246,18 @@
     } };
     G.map.props.push(p);
     B.wet.bucket = { at: at, prop: p };
+  };
+  // the station's lamp: an iron lantern on a post, lit (the map's `lights` sits on this square, so the glow has a body -- 10-04, Griz: "the bucket glows like its a light")
+  W.layLamp = function (B, at) {
+    var sq = G.map.at(at[0], at[1]); if (!sq) return;
+    G.map.props.push({ kind: 'lamp', sq: sq, depth: at[0] + at[1] + 0.4, gz: 0, draw: function (ctx) {
+      var iso = D.iso, c = iso.center(at[0], at[1], 0), s = iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y), P = D.PAL.ramps, fl = 0.6 + 0.4 * Math.sin(B.t / 5 + at[0]);
+      ctx.fillStyle = P.outline[0]; ctx.fillRect(x - 4, y - 2, 8, 2); ctx.fillRect(x - 1, y - 26, 2, 24);      // the foot and the post
+      ctx.fillRect(x - 1, y - 28, 6, 1); ctx.fillRect(x + 4, y - 28, 1, 3);                                        // the arm and the hook
+      ctx.fillRect(x + 1, y - 25, 7, 1); ctx.fillRect(x + 1, y - 24, 1, 8); ctx.fillRect(x + 7, y - 24, 1, 8); ctx.fillRect(x + 1, y - 16, 7, 1); // the cage
+      ctx.globalAlpha = 0.85; ctx.fillStyle = P.gold[3]; ctx.fillRect(x + 2, y - 24, 5, 8); ctx.globalAlpha = 1;   // the glass, lit
+      ctx.fillStyle = P.fire[1]; ctx.fillRect(x + 4, y - 21 + (fl > 0.8 ? -1 : 0), 2, 3);                           // the flame
+    } });
   };
   // the deep station's crate, where the 8-bit's 'k' stands (the grid's rows have floor there): always drawn, the bucket on it while it lies (10-04)
   W.layCrate = function (B, at) {

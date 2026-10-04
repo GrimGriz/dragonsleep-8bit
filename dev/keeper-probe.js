@@ -828,6 +828,14 @@
     });
     ok('whole fights, no error (' + errs.length + ')', !errs.length && rows.every(function (r) { return !/none:[1-9]/.test(r); }));
     rows.forEach(function (r) { ok(r, true); });
+    // ---- the way out (10-04, Griz: "Keeper Fight lacks fight escape", then "pull the rest of the party" as the Wet does): LEAVE THE FIGHT live on the corridor's east end, greyed off it; one out, all out
+    var BX = battle({ embed: { start: 'ledge', canRun: true } }), bx = BX.units.filter(function (u) { return u.id === 'barley'; })[0];
+    bx.x = 14; bx.y = 8; D.rules.startTurn(bx);
+    var lx = (BX.commands(bx) || []).filter(function (c) { return c.id === 'leave'; })[0];
+    bx.x = 12; D.rules.startTurn(bx); var gx = (BX.commands(bx) || []).filter(function (c) { return c.id === 'leave'; })[0]; bx.x = 14; D.rules.startTurn(bx);
+    ok('the corridor\'s east end (14, 8) is a way out: LEAVE THE FIGHT live there (' + JSON.stringify(lx && [lx.ok, lx.why]) + '), greyed two squares in (' + JSON.stringify(gx && [gx.ok, gx.why]) + ')', !!lx && lx.ok === true && !!gx && !gx.ok && /way/.test(gx.why || ''));
+    drain(BX.leave(bx));
+    ok('Barley out by the corridor, and the party goes too (oneLeavesAll): left ' + bx.left + ', over() ' + BX.over(), bx.left === true && BX.over() === 'escaped');
   } catch (e) { errs.push(String(e && e.stack || e).slice(0, 800)); }
   var pre = document.createElement('pre'); pre.textContent = 'KEEPERPROBE ' + JSON.stringify({ checks: checks, errors: errs });
   document.body.appendChild(pre);
