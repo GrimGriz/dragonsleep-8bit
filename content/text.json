@@ -204,7 +204,7 @@
   "w.markWake": { "t": "Your hand on the mark. Below, the black water stirs. Something that was sleeping in it is not sleeping now.", "src": "wiki/the-warrens.md (it answered Pete's lampman's hand on the mark)" },
   "w.stairSee": { "t": "A dwarven stair runs down into black water. At the bottom, in the flooded chamber, five men lie drowned, gear and leavings intact. Past the water, a door under warranted runes. The seal is unbroken.", "src": "wiki/the-warrens.md (the flooded stair; the five; W4 the sealed doors)" },
   "w.stairAsk": { "t": "How do you get them out?", "src": "invented: connective" },
-  "w.noRope": { "t": "You'd need rope to haul from the landing. Marko Thorne sells hemp rope in town. There may be some in the old workings.", "src": "invented: connective" },
+  "w.noRope": { "t": "You'd need rope to haul from the landing. Marko Thorne sells rope and grapples in town. There may be some in the old workings.", "src": "invented: connective" },
   "w.ropeAwake": { "t": "The rope goes down. The water comes up after it: the mark woke the keeper.", "src": "wiki/the-warrens.md (the water weird bound by the dwarves as the warranty's guard)" },
   "w.ropeOut": { "t": "From the landing, never entering its water, you hook and haul. One. Two. Five.", "src": "WarrensModule/crawler-warrens-DM.md (roping the bodies out from the landing never enters its reach)" },
   "w.wade": { "t": "You wade in. The water is a thing, and it closes.", "src": "wiki/the-warrens.md (it cannot leave its water)" },

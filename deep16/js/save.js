@@ -65,7 +65,8 @@
   // every pack DEEP16 fights with carries a light crossbow and twenty bolts (Griz, 09-27: "at least one crossbow/bolts in
   // the player inventory for all of deep16 modes"); the 8-bit save walking in is read, never written, so it's added here
   SV.armoury = function (inv) {
-    [['lightcrossbow', 1], ['bolts', 20], ['arrows', 20]].forEach(function (p) { // (arrows: a bow's, since bows take ammunition -- the SRD, 10-01c; a class hero's shortbow or longbow has its twenty)
+    // (the rope: the Rope & Grapple, set on a face -- 10-04, Griz: "convert 'hemp rope' into 'rope & grapple' ... and include in party gear"; battle.js exec 'rope')
+    [['lightcrossbow', 1], ['bolts', 20], ['arrows', 20], ['rope', 1]].forEach(function (p) { // (arrows: a bow's, since bows take ammunition -- the SRD, 10-01c; a class hero's shortbow or longbow has its twenty)
       var s = inv.filter(function (x) { return x.id === p[0]; })[0];
       if (!s) inv.push({ id: p[0], n: p[1] }); else if (s.n < p[1]) s.n = p[1];
     });

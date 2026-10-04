@@ -27,7 +27,22 @@
     return null;
   };
   G.hostile = function (a, b) { return a.side !== b.side; };
-  G.gzAt = function (u, x, y) { var z = 0; G.foot(u, x, y).forEach(function (p) { z = Math.max(z, G.map.gz(p[0], p[1])); }); return z; };
+  G.gzAt = function (u, x, y) { if (u && u.hang && x === u.x && y === u.y && G.hanging(u)) return u.hang.z; var z = 0; G.foot(u, x, y).forEach(function (p) { z = Math.max(z, G.map.gz(p[0], p[1])); }); return z; };
+  // ROPES (10-04, Griz: "can we add rope and tiny grapple next?" -- "1 yes, and a roped face is gonna be a movement stopping point"): a rope hangs from the top of a face
+  // (`at`, the square it is fixed on) down to the square at its foot (`foot`): the battle's B.ropes, [{ at, foot, hp, by }] -- a map's own `ropes: [[ax, ay, fx, fy]]`, and
+  // what a Rope & Grapple sets (battle.js exec 'rope'). On a roped face a climb takes no check and cannot fall (SRD 5.1: the GM's check is for a surface "with few handholds"),
+  // up or down it, at the SRD's double cost still; one square's body only. A climber may stop on it part way, hanging: u.hang = { rope, z } (its height in drawing px), in the
+  // foot's square -- G.gzAt reads it, so its height counts in G.dist and the drawing, and the rest of the climb is what a step to the top costs
+  G.ropes = function () { var B = D.battle; return (B && B.ropes) || []; };
+  G.hanging = function (u) { var h = u && u.hang, r = h && h.rope; return !!(r && !r.cut && u.x === r.foot[0] && u.y === r.foot[1]); };
+  // the rope a step from (x0, y0) to (x1, y1) goes along, if any: one end to the other, or from part way up it (a hanger) to either end
+  G.ropeOn = function (u, x0, y0, x1, y1) {
+    if ((u.size || 1) > 1 || u.climbs || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return null; // (a climber or a flier goes up the face as it would without it)
+    if (u.hang && x0 === u.x && y0 === u.y && G.hanging(u)) { var hr = u.hang.rope; return (x1 === hr.at[0] && y1 === hr.at[1]) ? hr : null; }
+    var rs = G.ropes();
+    for (var i = 0; i < rs.length; i++) { var r = rs[i]; if (r.cut) continue; if ((r.at[0] === x0 && r.at[1] === y0 && r.foot[0] === x1 && r.foot[1] === y1) || (r.foot[0] === x0 && r.foot[1] === y0 && r.at[0] === x1 && r.at[1] === y1)) return r; }
+    return null;
+  };
   // (deep water -- a map's `deepWater`, the Settling's pools, 09-30: only what lives there, bound to it or a swimmer, and a flier over it)
   function walkable(x, y, u) { var s = G.map.at(x, y); return !!(s && (s.walk || (s.deep && u && (u.flies || u.swims || (u.bound && u.bound.indexOf(s.ch) >= 0))))); }
   // Earth Glide (the xorn, the earth elemental; js/traits.js): through the rock ('#', the stalagmites), never a built wall, and it stands only
@@ -82,7 +97,7 @@
     // (a cliff: a map's `climb` -- the steps a body of one square may scale or drop, SRD 5.1 Climbing and Falling; up costs 1 extra foot a foot (G.stepCost below), and a Strength (Athletics) check, battle.js moveAlong; a drop of under 10 ft is free)
     var clS = G.map.def.climb, limS = u.climbs ? Infinity : (u.size || 1) > 1 ? Math.min(clS || 0, G.map.def.climbLarge || 2) : clS; // (a Large body climbs `climbLarge` steps, two by default; a one-square body, `climb`; one with a climb speed, any face)
     // (down, any height there: it is a fall, battle.js moveAlong -- 10-04; up, the limit)
-    if (Math.abs(dzS) > stS && !(clS && (dzS < 0 || dzS <= limS * stS))) return Infinity;
+    if (Math.abs(dzS) > stS && !(clS && (dzS < 0 || dzS <= limS * stS)) && !(o && o.roped)) return Infinity; // (o.roped: along a rope, any height -- G.ropeOn)
     var dx = x1 - x0, dy = y1 - y0;
     if (dx && dy && !footWalkable(u, x0 + dx, y0, true) && !footWalkable(u, x0, y0 + dy, true)) return Infinity; // no squeezing between two rocks at a corner
     if (o && o.ghost) return 5;
@@ -127,12 +142,19 @@
   // opportunity Slam, Vivian ran on 20 ft lying down and lay there through the Keeper's turn.) o.upright: reckoned as stood; o.ghost: not walking
   var stepCost0 = G.stepCost, reach0 = G.reach;
   G.prone = function (u, o) { return !!(u && u.conds && u.conds.prone && u.hp > 0 && !(o && (o.ghost || o.upright))); };
-  G.stepCost = function (u, x0, y0, x1, y1, o) { var c = stepCost0.apply(this, arguments); if (c !== Infinity && G.prone(u, o)) c += 5; var cs = c !== Infinity ? G.climbsUp(u, x0, y0, x1, y1) : 0; if (cs) c += cs * 5 - 5; return c; };
+  G.stepCost = function (u, x0, y0, x1, y1, o) {
+    var rp = G.ropeOn(u, x0, y0, x1, y1), c = stepCost0.call(this, u, x0, y0, x1, y1, rp ? Object.assign({}, o, { roped: true }) : o);
+    if (c !== Infinity && G.prone(u, o)) c += 5;
+    if (c === Infinity) return c;
+    if (rp) return c + Math.max(0, Math.round(Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step) * 5 - 5); // (along a rope, up or down: 5 ft of movement a step, the square's own 5 in it)
+    if (u.hang && x0 === u.x && y0 === u.y && G.hanging(u)) return c + Math.round((u.hang.z - G.map.gz(u.x, u.y)) / G.map.def.step) * 5; // (off a rope part way up, anywhere but its top: down it first, 5 ft a step)
+    var cs = G.climbsUp(u, x0, y0, x1, y1); if (cs) c += cs * 5 - 5; return c;
+  };
   // a step up a cliff (more than one step of height, on a map that lets it be climbed): the number of steps it climbs, else 0. Each foot climbed costs an extra foot (SRD 5.1): a step is 2.5 ft,
   // so 5 ft of movement a step climbed, the square's own 5 folded in -- a 5 ft ledge 10, 10 ft 20, 15 ft 30, 30 ft 60, and a tall face takes the Dash (10-04, Griz: "it coming out a dash is correct,
   // adjust our cost to SRD"; it was the extra foot alone, 35 for 30 ft). Over 5 ft the climb is a Strength (Athletics) check (G.climbDC; battle.js moveAlong): a miss drops it back
   // prone, and over 10 ft is a fall. A creature with a climb speed (SRD 5.1: "doesn't need to spend extra movement"; `climbs` off its stat block, data/foes.js) pays nothing more and makes no check
-  G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step); return n > 1 ? n : 0; };
+  G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step); return n > 1 ? n : 0; };
   // the check (10-04, Griz: "like an SRD DM would do" -- SRD 5.1: "at the GM's option, climbing a slippery vertical surface or one with few handholds requires a successful
   // Strength (Athletics) check"): a 5 ft ledge is pulled up onto, no check; over 5 ft, DC 10 for two steps and 2 more for each step above (7.5 ft 12, 10 ft 14, 15 ft 18, 30 ft 30). 0: none
   G.climbDC = function (steps) { return steps > 2 ? 10 + 2 * (steps - 2) : 0; };
@@ -141,7 +163,7 @@
   // what a fall would cost an AI weighing the way (G.reach): a drop of 10 ft or more -- its d6s and the getting up; a climb that takes a check -- its odds of a miss, the move lost and,
   // over 10 ft, the fall. Movement in feet, for the reckoning only: the step itself still costs what G.stepCost says (10-04, the ogre: it should drop, but not for nothing)
   G.fallFear = function (u, x0, y0, x1, y1) {
-    var d = G.map.def; if (!d.climb || u.flies || u.climbs) return 0;
+    var d = G.map.def; if (!d.climb || u.flies || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.hang && x0 === u.x && y0 === u.y && G.hanging(u))) return 0; // (a rope: no fall to fear)
     var dz = (G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step, ft = Math.abs(dz) * 2.5, fall = ft >= 10 ? 10 * Math.floor(ft / 10) + 10 : 0;
     if (dz < 0) return fall;
     var cs = G.climbsUp(u, x0, y0, x1, y1), dc = G.climbDC(cs); if (!dc) return 0;

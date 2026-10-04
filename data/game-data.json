@@ -1973,11 +1973,11 @@
    "id": "chalk"
   },
   "rope": {
-   "name": "Hemp Rope",
+   "name": "Rope & Grapple",
    "kind": "tool",
-   "price": 10,
-   "desc": "Fifty feet. For hauling things out of water you don't want to enter.",
-   "src": "the-lab/pit-maps/shops-silverton.json pin 15 (hemp rope, 50 ft 1 gp)",
+   "price": 30,
+   "desc": "Fifty feet of hemp and a small grappling hook. For hauling things out of water you don't want to enter, or for getting up a wall.",
+   "src": "the-lab/pit-maps/shops-silverton.json pin 15 (hemp rope, 50 ft 1 gp); made the Rope & Grapple 10-04 (Griz: \"convert 'hemp rope' into 'rope & grapple' ... and include in party gear\"): SRD 5.1 hempen rope 1 gp + grappling hook 2 gp; set on a face in DEEP16 (deep16/js/battle.js exec 'rope')",
    "id": "rope"
   },
   "candle": {
@@ -12685,7 +12685,7 @@
    "id": "w.stairAsk"
   },
   "w.noRope": {
-   "t": "You'd need rope to haul from the landing. Marko Thorne sells hemp rope in town. There may be some in the old workings.",
+   "t": "You'd need rope to haul from the landing. Marko Thorne sells rope and grapples in town. There may be some in the old workings.",
    "src": "invented: connective",
    "id": "w.noRope"
   },

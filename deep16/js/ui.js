@@ -222,7 +222,7 @@
     var NOT = { attack: 1, spells: 1, ready: 1, end: 1, move: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, leave: 1, items: 1 };
     B.commands(u).forEach(function (c) { if (c.cost === 'A' && c.ok && !NOT[c.id] && !c.sub) items.push({ kind: 'readypick', what: 'cmd', cmd: c.id, id: c.id, icon: c.icon || c.id, name: c.label, label: c.label, ok: true, note: c.note }); });
     // and an item (Griz: "Add usable items beyond potions as well"): a potion for the one who falls, a flask for the foe who comes
-    if (B.itemList(u).some(function (e) { return e.ok; })) items.push({ kind: 'readyitems', id: 'items', icon: 'item', name: 'ITEM', label: 'ITEM', ok: true, note: 'a potion, a flask, a light: used when it springs' });
+    if (B.itemList(u).some(function (e) { return e.ok && e.id !== 'rope'; })) items.push({ kind: 'readyitems', id: 'items', icon: 'item', name: 'ITEM', label: 'ITEM', ok: true, note: 'a potion, a flask, a light: used when it springs' });
     return { kind: 'ready', items: items, sel: 0, title: 'READY' };
   }
   // the spell levels, as the SPELLS ring has them -- a tier with no slot (or nothing to ready) greyed, never hidden -- and in each only the spells that can be readied
@@ -507,7 +507,7 @@
     if (!e.ok) { D.sfx('error'); B.card(['{g}' + e.name + ': ' + (e.why || 'not now') + '.{/}'], 150); return; }
     // READY's wheel (readyRing): the pick goes back to battle.js exec 'ready' with the trigger asked before it
     if (B.readying && (e.kind === 'readypick' || e.kind === 'spell' || e.kind === 'readyitem')) { var trg = B.readying.trigger; B.readying = null; D.sfx('confirm'); return UI.command(B, u, e.kind === 'spell' ? { do: 'ready', trigger: trg, what: 'spell', id: e.id, slot: e.slot } : e.kind === 'readyitem' ? { do: 'ready', trigger: trg, what: 'item', item: e.id } : { do: 'ready', trigger: trg, what: e.what, cmd: e.cmd }); }
-    if (e.kind === 'readyitems') { D.sfx('confirm'); var ri = B.itemList(u).filter(function (x) { return x.ok; }).map(function (x) { return Object.assign({}, x, { kind: 'readyitem', label: x.name.toUpperCase() + (x.n > 1 ? ' x' + x.n : '') }); }); B.list = { kind: 'items', items: ri, sel: 0, back: B.list, title: 'READY: ITEM' }; B.ringB = null; return; }
+    if (e.kind === 'readyitems') { D.sfx('confirm'); var ri = B.itemList(u).filter(function (x) { return x.ok && x.id !== 'rope'; }).map(function (x) { return Object.assign({}, x, { kind: 'readyitem', label: x.name.toUpperCase() + (x.n > 1 ? ' x' + x.n : '') }); }); B.list = { kind: 'items', items: ri, sel: 0, back: B.list, title: 'READY: ITEM' }; B.ringB = null; return; }
     if (e.kind === 'readylevels') { D.sfx('confirm'); var rl = readyLevels(B, u); rl.back = B.list; B.list = rl; B.ringB = null; return; }
     if (e.kind === 'cmd') { B.list = null; return pickCommand(B, u, e.cmd); } // (it says its own confirm)
     D.sfx('confirm');
@@ -515,6 +515,8 @@
     B.list = null;
     // (the bucket and a light are his own: used at once, no target to pick -- 09-30d, Griz: "bucket asks for self-or nearby target like a potion")
     if (e.kind === 'item' && (e.use.effect === 'bucket' || e.use.effect === 'light')) return UI.command(B, u, { do: 'item', id: e.id, target: u });
+    // (the Rope & Grapple: the top of a face to pick -- battle.js Battle.ropeSq, exec 'rope'; 10-04)
+    if (e.kind === 'item' && e.use.effect === 'rope') { B.tool = 'rope'; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, 30 ft at most (DC 10 DEX).{/}'], 320); return; }
     if (e.kind === 'item') { B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' : e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240); return; }
     var g = e.g, n = (g.n || 1) + Math.max(0, e.slot - e.level);
     B.spell = { id: e.id, slot: e.slot, g: g, sp: e.sp, n: n, name: e.name };
@@ -552,8 +554,10 @@
       var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
       if (rc.move[k] && rc.move[k].stand) return 'ok';
       if (rc.dash && rc.dash[k] && rc.dash[k].stand) return 'far';
+      if (ropeEnd(B, u, x, y, rc)) return 'rope'; // (a rope's far end, past the move: climb part way and hang -- exec 'ropeclimb', 10-04)
       return 'no';
     }
+    if (tool === 'rope') return D.Battle.ropeSq(B, u, x, y) ? 'ok' : 'no';
     if (tool === 'help') return (foe && G.dist(u, foe) <= 5) || D.Battle.helpable(u, w) ? 'ok' : 'no'; // (a friend beside you who needs a hand, too: 10-01c)
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
     if (tool === 'item') return B.itemTargetOK(u, B.itemId, w) ? 'ok' : 'no';
@@ -591,6 +595,19 @@
     if (B.tool === 'spell' && B.spell && a) { var st = spellTarget(B, a, B.spell.g, x, y); if (st) return st; }
     return w;
   }
+  // a rope (B.ropes; grid.js G.ropeOn) whose one end is (x, y) and whose other the mover stands at, hangs on, or reaches with 5 ft or more to spare: the click climbs part way
+  // (Griz, 10-04: "a roped face is gonna be a movement stopping point"); a rope it can climb whole is an ordinary 'ok'
+  function ropeEnd(B, u, x, y, rc) {
+    if ((u.size || 1) > 1 || u.conds.restrained) return null;
+    var rs = B.ropes || [];
+    for (var i = 0; i < rs.length; i++) {
+      var r = rs[i]; if (r.cut) continue;
+      var other = x === r.at[0] && y === r.at[1] ? r.foot : x === r.foot[0] && y === r.foot[1] ? r.at : null; if (!other) continue;
+      var k = other[0] + ',' + other[1], spent = u.x === other[0] && u.y === other[1] ? 0 : rc.move[k] && rc.move[k].stand ? rc.move[k].cost : null;
+      if (spent != null && u.turn.move - spent >= 5) return r;
+    }
+    return null;
+  }
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
@@ -611,8 +628,10 @@
       if (v === 'no' && (u.size || 1) > 1 && D.keeperPlay && D.keeperPlay.human(B, u)) { D.sfx('error'); return B.card(['{o}MOVE: ' + (D.keeperPlay.moveWhy(B, u, x, y) || 'not there') + '.{/}'], 160); } // (a big creature's refused pick says why)
       if (v === 'ok') return UI.command(B, u, { do: 'move', x: x, y: y });
       if (v === 'far') return UI.command(B, u, { do: 'dashmove', x: x, y: y });
+      if (v === 'rope') return UI.command(B, u, { do: 'ropeclimb', x: x, y: y });
       return;
     }
+    if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or within 30 ft below and in sight.{/}'], 140); }
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}Help: a foe beside you, or a friend beside you asleep or held fast.{/}'], 120); }
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
     if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w }); return B.card(['{o}Not a target for that.{/}'], 120); }
@@ -744,6 +763,7 @@
       if (D.walls) D.walls.props(B).forEach(function (o) { objs.push(o); }); // the walls (js/walls.js) // the floating weapons, the guardian, the spirits' wheel (js/looks.js)
       wallWebs(B).forEach(function (o) { objs.push(o); }); // the silk up the walls behind a map's webs, and its corner webs
       webObjs(B).forEach(function (o) { objs.push(o); }); // the webs themselves, each piece in the round at its hub
+      ropeObjs(B).forEach(function (o) { objs.push(o); }); // the ropes down the faces, a tiny grapple at each top (10-04)
       // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
       (B.riders || []).forEach(function (r) {
         var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2, r.y + (f[1] - 1) / 2, r.gz), s = D.iso.toScreen(c.x, c.y);
@@ -860,6 +880,7 @@
       var tw = u.tween, k = tw.t / tw.dur, kxy = k, kz = k;
       if (tw.mode === 'climb') { kz = Math.min(1, k / 0.75); kxy = Math.max(0, (k - 0.75) / 0.25); }
       else if (tw.mode === 'drop') { kxy = Math.min(1, k / 0.3); kz = Math.max(0, (k - 0.3) / 0.7); kz *= kz; }
+      else if (tw.mode === 'ropedown') { kxy = Math.min(1, k / 0.25); kz = Math.max(0, (k - 0.25) / 0.75); } // (over the edge onto a rope, then down it hand over hand)
       gx = tw.fx + (u.x - tw.fx) * kxy; gy = tw.fy + (u.y - tw.fy) * kxy;
       gz = tw.mode === 'slip' ? tw.fz + tw.peak * (k < 0.6 ? k / 0.6 : Math.pow(1 - (k - 0.6) / 0.4, 2)) : tw.fz + (gz - tw.fz) * kz;
     }
@@ -1200,6 +1221,22 @@
     });
     ctx.restore();
   }
+  // a rope (B.ropes, 10-04): hung straight down the face from the edge between its top and its foot, in the sort just in front of the face, so a figure hanging on it is
+  // drawn over it; and at the top the grapple -- tiny, for the look (Griz: "yeah, tiny was for appearance in game")
+  var HOOK = [[0, -3], [0, -2], [0, -1], [-2, -2], [-1, -1], [2, -2], [1, -1]];
+  function ropeObjs(B) {
+    return (B.ropes || []).filter(function (r) { return !r.cut; }).map(function (r) {
+      var ex = (r.at[0] + r.foot[0]) / 2, ey = (r.at[1] + r.foot[1]) / 2, zt = G.map.gz(r.at[0], r.at[1]), zf = G.map.gz(r.foot[0], r.foot[1]);
+      return { depth: r.foot[0] + r.foot[1] + 0.3, gz: zf, layer: 1, draw: function (ctx) {
+        var a = D.iso.center(ex, ey, zt), b = D.iso.center(ex, ey, zf), p = D.iso.toScreen(a.x, a.y), q = D.iso.toScreen(b.x, b.y);
+        ctx.fillStyle = R('outline', 0); ctx.fillRect(Math.round(p.x) - 1, Math.round(p.y), 3, Math.max(1, Math.round(q.y - p.y)));
+        ctx.fillStyle = R('leather', 3); ctx.fillRect(Math.round(p.x), Math.round(p.y), 1, Math.max(1, Math.round(q.y - p.y)));
+        for (var k = 4; k < q.y - p.y; k += 5) { ctx.fillStyle = R('leather', 1); ctx.fillRect(Math.round(p.x), Math.round(p.y) + k, 1, 1); } // (the lay of the hemp)
+        ctx.fillStyle = R('outline', 0); HOOK.forEach(function (h) { ctx.fillRect(Math.round(p.x) + h[0] - 1, Math.round(p.y) + h[1] - 1, 3, 3); });
+        ctx.fillStyle = R('silver', 5); HOOK.forEach(function (h) { ctx.fillRect(Math.round(p.x) + h[0], Math.round(p.y) + h[1], 1, 1); });
+      } };
+    });
+  }
   function webObjs(B) {
     if (!(B.webs || []).some(function (w) { return webSq(B, w).length; })) return [];
     return webGeo(B).pieces.map(function (p) { return { depth: p.depth, gz: p.gz, layer: 1, draw: function (ctx) { webPieceDraw(ctx, B, p); } }; });
@@ -1397,6 +1434,8 @@
     });
     if (D.looks) D.looks.ground(ctx, B, onSq); // the spell ground, holy rings, the darkness's edge (js/looks.js)
     // a torch's throw: the squares within 20 ft it may land on
+    // the Rope & Grapple's picks: the tops of faces it can be tied to or thrown up to (30 ft: six squares out)
+    if (u && B.tool === 'rope') for (var ry = u.y - 6; ry <= u.y + 6; ry++) for (var rx = u.x - 6; rx <= u.x + 6; rx++) if (D.Battle.ropeSq(B, u, rx, ry)) lineSq(ctx, rx, ry, R('gold', 3), 0.6, 4);
     if (u && B.tool === 'torch') for (var ty = u.y - 4; ty <= u.y + 4; ty++) for (var tx = u.x - 4; tx <= u.x + 4; tx++) if (UI.throwSq(u, tx, ty)) lineSq(ctx, tx, ty, R('gold', 3), 0.5, 4);
     if (B.active && !B.active.ethereal) G.foot(B.active).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9, 3); });
     // a pick on the grid (pickInput): the ones it may go to in gold, brighter under the cursor
@@ -1479,7 +1518,7 @@
     }
     // the cursor: red where the current thing can't go
     var s0 = G.map.at(cx, cy);
-    if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'far' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
+    if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'far' || v === 'rope' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
   }
 
   // ------------------------------------------------------------------ the initiative strip, the cards, the tooltip

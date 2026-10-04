@@ -728,6 +728,17 @@
     // and sees no one still, with a hidden enemy about: it searches (SRD 5.1: an action; a Perception check against a hider's Stealth -- battle.js search, 10-04); at once with a
     // place to look (a blow heard), and from round 2 without -- Griz: "they should know they're in a fight and searching is a better option than idle"
     if (!hs.length && !grudge && T.action > 0 && !u.conds.disarmed && (B.round >= 2 || (B.heardOf && B.heardOf(u))) && B.units.some(function (w) { return w.conds.hidden && G.hostile(u, w) && G.standing(w); })) { yield* B.search(u); hs = heroes(B, u); }
+    // a rope one of its enemies hangs on (10-04, Griz: "so long as they only bother to consider it as a target when someone is climbing it"): it goes for the rope from
+    // beside its top -- a melee blow at an object, battle.js cutRope -- walking there first if it can; a rope nobody hangs on is no target
+    if (!grudge && T.action > 0 && !u.conds.disarmed && B.ropes && B.ropes.length) {
+      var ropeT = B.ropes.filter(function (r) { return !r.cut && B.units.some(function (h) { return h.hang && h.hang.rope === r && G.hanging(h) && G.hostile(u, h) && G.standing(h); }); })[0];
+      var meleeA = ropeT && Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a && !a.ranged && a.dice; })[0];
+      if (ropeT && meleeA) {
+        var rSpot = { x: ropeT.at[0], y: ropeT.at[1], size: 1 }, rRch = reachOf(u);
+        if (G.dist(u, rSpot) > rRch && T.move > 0) { var rEp = approach(u, rSpot, G.reach(u, T.move), rRch); if (rEp && (rEp.x !== u.x || rEp.y !== u.y)) { yield* walkTo(B, u, rEp); if (u.dead || u.hp <= 0) return; } }
+        if (G.dist(u, rSpot) <= rRch && T.action > 0) { yield* B.cutRope(u, ropeT, meleeA); return; }
+      }
+    }
     if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp) {
       if (u.burned) { B.card(['{g}' + u.name + ' does not knit: it burned.{/}']); yield 16; }
       else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }

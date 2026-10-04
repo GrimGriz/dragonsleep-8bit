@@ -97,6 +97,7 @@
     // rogue needs a ranged weapon: EQUIP offers only the Lt. Crossbow"; Griz: "yes")
     if (!this.o.embed) { var inv0 = this.inv; party.forEach(function (u) { var aid = u.alt && (typeof u.alt === 'string' ? u.alt : u.alt.id); if (u.side === 'party' && u.npc && aid && window.DS.DATA.items[aid] && !inv0.some(function (s) { return s.id === aid; })) inv0.push({ id: aid, n: 1 }); }); } // (the unit's alt is the weapon as the grid reads it: its id)
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
+    this.ropes = ((m.def && m.def.ropes) || []).map(function (r) { return { at: [r[0], r[1]], foot: [r[2], r[3]], hp: 2, fixed: true }; }); // (a map's ropes; a Rope & Grapple adds its own: grid.js G.ropeOn, exec 'rope')
     if (D.walls && D.walls.seatConjured) D.walls.seatConjured(this); // (an elemental conjured at the camp walks in beside its caster: js/walls.js)
     // torchdark (09-28): dark ground -- the fight's own word, else the 8-bit map's `dark` when the fight is fought from there
     // (js/embed.js), else the grid map's -- and the lights the place keeps (a lamp, a fire, a glow: [x, y, r, color, dimOnly]);
@@ -809,6 +810,56 @@
   // the dashes u has left this turn, 'a' and 'b' (10-04, Griz: "If she has dash and cunning dash should she be able to try the steepest climb?"): its action's, while the
   // Attack action is not begun, and a bonus action's -- Cunning Action, Expeditious Retreat; each is its speed more (ui.js reachCache: the squares a click dashes to; exec 'dashmove')
   Battle.dashes = function (u) { var T = u.turn || {}, n = []; if (u.conds.restrained || u.conds.dancing) return n; if (T.action && !T.attacksLeft) n.push('a'); if (T.bonus && ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning || (T.bonusDash && u.conds.retreat))) n.push('b'); return n; };
+  // where a Rope & Grapple can be set (10-04, Griz: "as an item on the item wheel"): the top of a face -- an open square with one beside it two steps lower or more (open, or the
+  // setter's own) and no rope there yet -- on a map whose cliffs can be climbed. From up there (on it, or beside it at its height) it is tied off with no roll; from below the
+  // grapple is thrown up to it, 30 ft at most and in sight, a DC 10 Dexterity check (his lean and the seat's: the SRD 5.1 lists a grappling hook, 2 gp, 4 lb, and gives it no
+  // rule). `foot`: the square it is to hang to (a climb's own); else the nearest, square-on before corner-wise. { at, foot, top } or null
+  Battle.ropeSq = function (B, u, x, y, foot) {
+    var d = G.map.def, top = G.map.at(x, y); if (!d.climb || !top || !top.walk || (u.size || 1) > 1) return null;
+    if ((B.ropes || []).some(function (r) { return !r.cut && r.at[0] === x && r.at[1] === y; })) return null;
+    var zt = G.map.gz(x, y), feet = [];
+    [[0, 1], [1, 0], [0, -1], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(function (q, i) { var fx = x + q[0], fy = y + q[1], s = G.map.at(fx, fy), w = G.occupant(fx, fy); if (s && s.walk && zt - G.map.gz(fx, fy) >= 2 * d.step && !(w && w.id !== u.id)) feet.push({ at: [fx, fy], diag: i > 3 ? 1 : 0 }); });
+    if (foot) feet = feet.filter(function (f) { return f.at[0] === foot[0] && f.at[1] === foot[1]; });
+    if (!feet.length) return null;
+    feet.sort(function (a, b) { return (G.dist(u, { x: a.at[0], y: a.at[1], size: 1 }) - G.dist(u, { x: b.at[0], y: b.at[1], size: 1 })) || (a.diag - b.diag); });
+    var uz = G.gzAt(u, u.x, u.y);
+    if (Math.max(Math.abs(u.x - x), Math.abs(u.y - y)) <= 1 && Math.abs(uz - zt) <= d.step) return { at: [x, y], foot: feet[0].at, top: true };
+    if (uz < zt && G.dist(u, { x: x, y: y, size: 1 }) <= 30 && G.losPoint(u.x, u.y, x, y)) return { at: [x, y], foot: feet[0].at, top: false };
+    return null;
+  };
+  // the first climb on a hand's path that takes a check, while the pack has a Rope & Grapple and the action is free: where the grapple could go instead (exec 'move' asks USE GRAPPLE)
+  Battle.prototype.grappleAt = function (u, path) {
+    var T = u.turn, s = (this.inv || []).filter(function (x) { return x.id === 'rope' && x.n > 0; })[0];
+    if (!s || !T || !T.action || T.attacksLeft || !G.map.def.climb || (u.size || 1) > 1) return null;
+    var x = u.x, y = u.y;
+    for (var i = 0; i < path.length; i++) {
+      var nx = path[i][0], ny = path[i][1], cs = G.climbsUp(u, x, y, nx, ny), dc = G.climbDC(cs);
+      if (dc) return Battle.ropeSq(this, Object.assign({}, u, { x: x, y: y }), nx, ny, [x, y]) ? { i: i, at: [nx, ny], foot: [x, y], ft: cs * 2.5, dc: dc } : null;
+      x = nx; y = ny;
+    }
+    return null;
+  };
+  // a rope struck at (10-04, Griz: "so long as they only bother to consider it as a target when someone is climbing it" -- ai.js brute): an object by the SRD 5.1, AC 11
+  // (Statistics for Objects: rope), 2 hit points (Adventuring Gear: Rope), immune to poison and psychic damage. At 0 it parts, and whoever hangs on it falls to its foot
+  // (Falling: 1d6 a 10 ft) and lands prone
+  Battle.prototype.cutRope = function* (w, r, atk) {
+    var T = w.turn; if (T) { T.action = 0; T.attacksLeft = 0; }
+    w.facing = D.spr.facingFor(r.at[0] - w.x, r.at[1] - w.y); w.anim = 'attack'; w.animT = this.t; D.sfx('hit'); yield 12;
+    var d20 = D.d(20), tot = d20 + (atk.atk || 0), hit = d20 === 20 || (d20 !== 1 && tot >= 11), dmg = hit && atk.type !== 'poison' && atk.type !== 'psychic' ? Math.max(1, D.roll(atk.dice).total + (atk.mod || 0)) : 0;
+    r.hp -= dmg;
+    this.card(['{r}' + nameOf(w) + '{/} goes for the rope: ' + (atk.name || 'a blow') + ' d20 ' + d20 + ' ' + RU.sign(atk.atk || 0) + ' = ' + tot + ' vs AC 11  ' + (!hit ? 'MISS' : r.hp <= 0 ? '{o}it parts!{/}' : '{o}' + dmg + '{/}, and it holds')], 220);
+    w.anim = 'idle'; yield 20;
+    if (r.hp > 0) return;
+    r.cut = true;
+    for (var i = 0; i < this.units.length; i++) {
+      var h = this.units[i]; if (!(h.hang && h.hang.rope === r)) continue;
+      var fz = h.hang.z, ft = Math.round((fz - G.map.gz(h.x, h.y)) / G.map.def.step) * 2.5; delete h.hang;
+      h.tween = { fx: h.x, fy: h.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' }; yield STEP_FRAMES + 6;
+      var fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
+      this.card(['{o}' + nameOf(h) + ' falls ' + ft + ' ft' + (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.{/}'], 220);
+      if (fd) this.hurt(h, fd.total, 'bludgeoning', {}); h.conds.prone = true;
+    }
+  };
   // what a walk along `path` risks on a map whose cliffs can be climbed (10-04, Griz: "can we add 'Drop?' when a movement click results in fall damage (avoid
   // misclick fall damage)"): a line for every drop of 10 ft or more (SRD 5.1 Falling: 1d6 a 10 ft, and prone; moveAlong) and every climb over 10 ft (its miss
   // falls, moveAlong) -- none for a safe walk. exec asks a hand's move with them first, and the dash's question says them
@@ -831,11 +882,50 @@
       case 'move': {
         var rm = G.reach(u, T.move), path = G.path(rm, c.x, c.y);
         if (!path || !path.length || !rm[c.x + ',' + c.y].stand) return;
-        if (!byAI(u)) { // (a hand's click that would fall, or risk it: asked first -- fallLines)
-          var fLs = this.fallLines(u, path), fDrop = fLs.some(function (s) { return /^A drop/.test(s); });
-          if (fLs.length && !(yield { prompt: { who: u, title: u.name + (fDrop ? ': DROP?' : ': CLIMB?'), lines: fLs, opts: [{ label: fDrop ? 'DROP' : 'CLIMB', value: true }, { label: 'NOT THAT WAY', value: false }] } })) return;
+        if (!byAI(u)) { // (a hand's click that would fall, or risk it: asked first -- fallLines; and a climb that takes a check, a Rope & Grapple in the pack: USE GRAPPLE -- 10-04, Griz)
+          var fLs = this.fallLines(u, path), fDrop = fLs.some(function (s) { return /^A drop/.test(s); }), gA = this.grappleAt(u, path);
+          if (gA && !fLs.some(function (s) { return /^A climb/.test(s); })) fLs.push('A climb of ' + gA.ft + ' ft: Athletics DC ' + gA.dc + ', and a miss slides back prone.');
+          if (fLs.length) {
+            var mOpts = [{ label: fDrop ? 'DROP' : 'CLIMB', value: 'go' }]; if (gA) mOpts.push({ label: 'USE GRAPPLE (your action)', value: 'grapple' }); mOpts.push({ label: 'NOT THAT WAY', value: 0 });
+            var mAns = yield { prompt: { who: u, title: u.name + (fDrop ? ': DROP?' : ': CLIMB?'), lines: fLs.concat(gA ? ['USE GRAPPLE: throw it up first (DC 10 DEX), then climb the rope with no check.'] : []), opts: mOpts } };
+            if (!mAns) return;
+            if (mAns === 'grapple') { // to the foot of the face, the grapple up, and on up the rope -- part way, if the move runs out
+              if (gA.i) yield* this.moveAlong(u, path.slice(0, gA.i), { spend: true });
+              if (u.x !== gA.foot[0] || u.y !== gA.foot[1] || u.hp <= 0 || u.dead) return;
+              yield* this.exec(u, { do: 'rope', x: gA.at[0], y: gA.at[1], foot: gA.foot });
+              if (!G.ropeOn(u, u.x, u.y, gA.at[0], gA.at[1])) return;
+              yield* this.moveAlong(u, path.slice(gA.i), { spend: true, partial: true });
+              return;
+            }
+          }
         }
         yield* this.moveAlong(u, path, { spend: true });
+        return;
+      }
+      case 'rope': { // a Rope & Grapple set on a face (10-04, Griz: "as an item on the item wheel"; Battle.ropeSq): tied off from up there with no roll, or the grapple thrown up from below
+        var rq = Battle.ropeSq(this, u, c.x, c.y, c.foot), rs0 = (this.inv || []).filter(function (x) { return x.id === 'rope' && x.n > 0; })[0];
+        if (!rq || !rs0 || !T.action || T.attacksLeft) return;
+        T.action = 0; u.facing = D.spr.facingFor(c.x - u.x, c.y - u.y); u.anim = 'attack'; u.animT = this.t; yield 10;
+        if (!rq.top) {
+          var re = RU.checkEdges(u, 'dex'), rr = re.dis.length && !re.adv.length ? Math.min(D.d(20), D.d(20)) : re.adv.length && !re.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), rb = D.mod(u.abil ? u.abil.dex : 10), rt = rr + rb;
+          this.card(['{y}' + nameOf(u) + '{/} throws the grapple up: DEX d20 ' + rr + ' ' + RU.sign(rb) + ' = ' + rt + ' against DC 10  ' + (rt >= 10 ? '{n}IT CATCHES{/}' : '{o}IT CLATTERS BACK{/}')], 200);
+          yield 20; if (rt < 10) { u.anim = 'idle'; return; }
+        }
+        rs0.n--; this.ropes.push({ at: rq.at.slice(), foot: rq.foot.slice(), hp: 2, by: u.id }); D.sfx('confirm');
+        var rFt = Math.round((G.map.gz(rq.at[0], rq.at[1]) - G.map.gz(rq.foot[0], rq.foot[1])) / G.map.def.step) * 2.5;
+        this.card(['{y}' + nameOf(u) + '{/} ' + (rq.top ? 'ties the rope off and lets it down' : 'has the rope up') + ': ' + rFt + ' ft of it down the face.  {g}(climbed with no check; a climber may stop on it; attacks from it have disadvantage){/}'], 280);
+        u.anim = 'idle'; yield 16; return;
+      }
+      case 'ropeclimb': { // part way along a rope, and hang there (10-04, Griz: "a roped face is gonna be a movement stopping point"; ui.js: a rope's far end, past the move)
+        var rr0 = (this.ropes || []).filter(function (r) { return !r.cut && ((r.at[0] === c.x && r.at[1] === c.y) || (r.foot[0] === c.x && r.foot[1] === c.y)); })[0];
+        if (!rr0 || (u.size || 1) > 1) return;
+        var near = rr0.at[0] === c.x && rr0.at[1] === c.y ? rr0.foot : rr0.at, rmR = G.reach(u, T.move), here = u.x === near[0] && u.y === near[1], pre = here ? [] : G.path(rmR, near[0], near[1]);
+        if (!pre || (!here && !(rmR[near[0] + ',' + near[1]] || {}).stand)) return;
+        var left = T.move - (here ? 0 : rmR[near[0] + ',' + near[1]].cost), zFrom = here && u.hang && G.hanging(u) ? u.hang.z : G.map.gz(near[0], near[1]), allFt = Math.round(Math.abs(G.map.gz(c.x, c.y) - zFrom) / G.map.def.step) * 2.5, gotFt = Math.min(allFt, Math.floor(left / 5) * 2.5);
+        if (gotFt <= 0) return;
+        var ansR = yield { prompt: { who: u, title: u.name + ': CLIMB THE ROPE?', lines: ['The rope is ' + allFt + ' ft from here; the move left takes ' + nameOf(u) + ' ' + gotFt + ' ft along it, to hang there.', 'Attacks from the rope have disadvantage.'], opts: [{ label: 'CLIMB', value: true }, { label: 'NOT NOW', value: false }] } };
+        if (!ansR) return;
+        yield* this.moveAlong(u, pre.concat([[c.x, c.y]]), { spend: true, partial: true });
         return;
       }
       case 'attack': {
@@ -1073,6 +1163,19 @@
       var csN = G.climbsUp(u, u.x, u.y, nx, ny), cDC = G.climbDC(csN), z0 = G.gzAt(u, u.x, u.y), z1 = G.gzAt(u, nx, ny), stZ = G.map.def.step;
       // up a face: up it first and then over the lip; off one: out over the edge and then down (10-04, Griz: "can we move them vertical"); a longer step for a taller face (ui.js unitPos)
       var cliffM = z1 - z0 > stZ ? 'climb' : z0 - z1 > stZ ? 'drop' : null, stF = STEP_FRAMES + (cliffM ? 2 * Math.round(Math.abs(z1 - z0) / stZ) : 0);
+      // a rope (grid.js G.ropeOn): along it, no check and no fall, up the face or out over the edge and down it; off one part way up, down it first and then the step
+      var rpS = G.ropeOn(u, u.x, u.y, nx, ny), hung0 = !!(u.hang && G.hanging(u));
+      if (rpS) cliffM = z1 > z0 ? 'climb' : 'ropedown'; else if (hung0) cliffM = 'climb';
+      // part way along it, as far as the move goes, and it hangs there (10-04, Griz: "a roped face is gonna be a movement stopping point"; exec 'ropeclimb' asks it)
+      if (rpS && o && o.partial && o.spend && T.move < cost) {
+        var stpR = Math.floor(T.move / 5); if (stpR < 1) { u.anim = 'idle'; return; }
+        var upR = z1 > z0, zH = z0 + (upR ? 1 : -1) * stpR * stZ, endZ = upR ? G.map.gz(rpS.at[0], rpS.at[1]) : G.map.gz(rpS.foot[0], rpS.foot[1]);
+        u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * stpR, true), mode: upR ? 'climb' : 'ropedown' };
+        u.x = rpS.foot[0]; u.y = rpS.foot[1]; u.hang = { rope: rpS, z: zH };
+        if (o.spend) { T.move -= stpR * 5; T.moved = (T.moved || 0) + stpR * 5; }
+        this.card(['{y}' + nameOf(u) + '{/} ' + (upR ? 'climbs' : 'lets down') + ' ' + stpR * 2.5 + ' ft of the rope and hangs there, ' + Math.round(Math.abs(endZ - zH) / stZ) * 2.5 + ' ft to go.  {g}(attacks from the rope have disadvantage){/}'], 260);
+        this.keepInView(u); yield STEP_FRAMES + 2 * stpR; u.anim = 'idle'; return;
+      }
       if (cDC) { // (a cliff over 5 ft: SRD 5.1, "climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check" -- G.climbDC; a 5 ft ledge is pulled up onto)
         var ce0 = RU.checkEdges(u, 'str'), cr = ce0.dis.length && !ce0.adv.length ? Math.min(D.d(20), D.d(20)) : ce0.adv.length && !ce0.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb = G.athletics(u), ct = cr + cb;
         this.card(['{y}' + nameOf(u) + '{/} climbs: Athletics d20 ' + cr + ' ' + RU.sign(cb) + ' = ' + ct + ' against DC ' + cDC + ' (' + csN * 2.5 + ' ft)  ' + (ct >= cDC ? '{n}UP{/}' : '{o}SLIPS{/}')], 160);
@@ -1090,7 +1193,8 @@
       }
       u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(stF, true), mode: cliffM }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
-      var dropFt = G.map.def.climb && !u.flies && !u.climbs ? (z0 - z1) / stZ * 2.5 : 0; // (a drop down a cliff: SRD 5.1 Falling -- 1d6 bludgeoning for every 10 feet, and it lands prone; one with a climb speed climbs down)
+      var dropFt = G.map.def.climb && !u.flies && !u.climbs && !rpS && !hung0 ? (z0 - z1) / stZ * 2.5 : 0; // (a drop down a cliff: SRD 5.1 Falling -- 1d6 bludgeoning for every 10 feet, and it lands prone; one with a climb speed climbs down, as one on a rope does)
+      if (u.hang && !G.hanging(u)) delete u.hang; // (off the rope: at its top, or stepped away from its foot)
       if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } // (moved: what it has walked this turn -- the Thief's Supreme Sneak asks)
       this.keepInView(u);
       yield stF;
@@ -1933,6 +2037,8 @@
     var T = u.turn, roost = this.fight && this.fight.roost, self = this;
     return (this.inv || []).map(function (s) {
       var it = window.DS.DATA.items[s.id];
+      // the Rope & Grapple (the 8-bit game's rope; 10-04, Griz: "as an item on the item wheel"): set on a face, an action -- exec 'rope', the tool picks the face's top (ui.js)
+      if (s.id === 'rope' && s.n > 0) { var cl0 = !!(G.map.def.climb && (u.size || 1) === 1); return { id: 'rope', name: (it && it.name) || 'Rope & Grapple', n: s.n, use: { effect: 'rope' }, ok: cl0 && T.action > 0 && !T.attacksLeft && !u.guest, why: !cl0 ? 'no face here to climb' : T.action > 0 ? '' : 'the action is spent' }; }
       if (!it || !it.use || !it.use.battle || !ITEM_OK[it.use.effect] || s.n <= 0) return null;
       if (roost && (it.use.effect === 'damage' || (it.use.effect === 'light' && !D.light.isLantern(s.id)))) return { id: s.id, name: it.name, n: s.n, use: it.use, ok: false, why: 'the roost overhead: no fire' };
       if (it.use.effect === 'light') { // a torch (torchdark 09-28), or a lantern (09-29; under a roost it is lit hood down): a free hand, and the action (or the Thief's bonus)
@@ -1965,6 +2071,7 @@
     this.card(['{c}The ' + sh.name + ' protects the party.{/}  {g}(+3 AC to all, till ' + t.name + '\'s next turn){/}'], 320);
   };
   Battle.prototype.useItem = function* (u, id, w) {
+    if (id === 'rope') return; // (the Rope & Grapple is set with exec 'rope', on a face's top -- never as a target's item; a READY on it springs nothing)
     var it = window.DS.DATA.items[id], use = it.use, s = this.inv.filter(function (x) { return x.id === id; })[0];
     if (((use.effect === 'light' && torchFast(u)) || u.subclass === 'Thief') && u.turn.bonus > 0) u.turn.bonus = 0; else u.turn.action = 0; // Fast Hands
     if (use.effect === 'light') { yield* D.light.lightTorch(this, u, id); yield 20; return; } // (lightTorch takes it from the pack)
