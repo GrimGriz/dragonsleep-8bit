@@ -9,6 +9,7 @@ window.D16.MAPS.cavern = {
   name: 'The Cocoon Gallery',
   sub: 'off the road, below Third Lamp',
   step: 10, // px per step of elevation (a step is ~2.5 ft; the ledge is two). 20 until 09-28: taller than a row's 16 px on screen, a raised square drew over the lower one behind it (Vivian and a thug on the siphon stair read as one square)
+  climb: 2, // the ledge's 5 ft face can be climbed (10 ft of movement, no check: a body pulls itself up a 5 ft ledge) or dropped, the ramp still the free way up -- 10-04, Griz: "2 - Agreed" (handoff-2026-10-04-climbing-the-other-maps.md; the bench: no fight on it changed)
   rows: [
     '####################',
     '###c.c###LLLLLLLL###',

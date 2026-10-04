@@ -17,7 +17,7 @@
     src: 'content/monsters.json drowcaptain (game-original, CR 5) + SRD 5.1 Drow (hand crossbow, poison, Faerie Fire)'
   },
   phasespider: {
-    name: 'Phase Spider', type: 'monstrosity', sheet: 'phasespider_p1', cr: '3', ac: 13, hp: 32, speed: 30, size: 2, reach: 5, darkvision: 60,
+    name: 'Phase Spider', type: 'monstrosity', sheet: 'phasespider_p1', cr: '3', ac: 13, hp: 32, speed: 30, climbs: 30, size: 2, reach: 5, darkvision: 60,
     abil: { str: 15, dex: 15, con: 12, int: 6, wis: 10, cha: 6 }, init: 2, perception: 10,
     saves: { str: 2, dex: 2, con: 1, int: -2, wis: 0, cha: -2 },
     attacks: {
@@ -32,7 +32,7 @@
   // Blender -- tools/deep16-figures.json 'drider' (a rider block), rendered by tools/render-sprites.py. The old composite
   // (sheet + rider drawn in JS) still works: set rider: 'drow_p0' and sheet: 'phasespider_p1' to get it back.
   drider: {
-    name: 'Drider', type: 'monstrosity', sheet: 'drider_p1', cr: '6', ac: 19, hp: 123, speed: 30, size: 2, reach: 5, darkvision: 120,
+    name: 'Drider', type: 'monstrosity', sheet: 'drider_p1', cr: '6', ac: 19, hp: 123, speed: 30, climbs: 30, size: 2, reach: 5, darkvision: 120,
     abil: { str: 16, dex: 16, con: 18, int: 13, wis: 14, cha: 12 }, init: 3, perception: 15,
     saves: { str: 3, dex: 3, con: 4, int: 1, wis: 2, cha: 1 },
     attacks: {
@@ -57,7 +57,7 @@
     src: 'SRD 5.1 Giant Rat (CR 1/8); content/monsters.json giantrat. Pack Tactics is read (rules.js edges, 09-27)'
   },
   giantspider: {
-    name: 'Giant Spider', type: 'beast', sheet: 'giantspider_p1', cr: '1', ac: 14, hp: 26, speed: 30, size: 2, reach: 5, darkvision: 60, blindsight: 10,
+    name: 'Giant Spider', type: 'beast', sheet: 'giantspider_p1', cr: '1', ac: 14, hp: 26, speed: 30, climbs: 30, size: 2, reach: 5, darkvision: 60, blindsight: 10,
     abil: { str: 14, dex: 16, con: 12, int: 2, wis: 11, cha: 4 }, init: 3, perception: 10,
     saves: { str: 2, dex: 3, con: 1, int: -4, wis: 0, cha: -3 },
     attacks: {
@@ -70,7 +70,7 @@
   // The braiding ettercap of Web Gulch (events.js S.ettercap: it fights beside a giant spider). SRD 5.1 as written; its
   // Web in the SRD's form (a ranged attack, where the 8-bit game rolls a DEX save).
   ettercap: {
-    name: 'Ettercap', type: 'monstrosity', sheet: 'ettercap_p2', cr: '2', ac: 13, hp: 44, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Ettercap', type: 'monstrosity', sheet: 'ettercap_p2', cr: '2', ac: 13, hp: 44, speed: 30, climbs: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 14, dex: 15, con: 13, int: 7, wis: 12, cha: 8 }, init: 2, perception: 13,
     saves: { str: 2, dex: 2, con: 1, int: -2, wis: 1, cha: -1 },
     attacks: {
@@ -78,7 +78,7 @@
       claws: { name: 'Claws', atk: 4, dice: '2d4', mod: 2, type: 'slashing', reach: 5 }
     },
     multi: ['bite', 'claws'], web: { atk: 4, range: [30, 60], dc: 11, recharge: 5 }, webWalker: true,
-    src: 'SRD 5.1 Ettercap (CR 2); content/monsters.json ettercap (wiki/web-gulch.md, the braiding ettercap). Spider Climb not read (no walls to climb on the grid)'
+    src: 'SRD 5.1 Ettercap (CR 2); content/monsters.json ettercap (wiki/web-gulch.md, the braiding ettercap). Spider Climb read as its climb speed (`climbs`): up and down any cliff on a map that lets them be climbed, at no extra cost and with no check -- 10-04'
   },
   // The landlord of the Warrens' deepest pool (events.js: "It rises from its pool... It will not leave the water").
   // SRD 5.1 Otyugh as the 8-bit game has it (no disease, no stench): bite and two tentacles, a tentacle grips (up to two),
@@ -242,7 +242,7 @@
   },
   // the drain cut (deep.js S.drainCut): two black puddings. Slashing or lightning splits one (at 10 HP or more)
   pudding: {
-    name: 'Black Pudding', type: 'ooze', sheet: 'pudding_p1', small: 'puddingm_p1', cr: '4', ac: 7, hp: 85, speed: 20, size: 2, reach: 5, blindsight: 60, blind: true,
+    name: 'Black Pudding', type: 'ooze', sheet: 'pudding_p1', small: 'puddingm_p1', cr: '4', ac: 7, hp: 85, speed: 20, climbs: 20, size: 2, reach: 5, blindsight: 60, blind: true,
     abil: { str: 16, dex: 5, con: 16, int: 1, wis: 6, cha: 1 }, init: -3, perception: 8,
     saves: { str: 3, dex: -3, con: 3, int: -5, wis: -2, cha: -5 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', extra: '4d8', extraType: 'acid', reach: 5 } },
@@ -372,14 +372,14 @@
   },
   // ------------------------------------------------------------------ batch five (09-27): the snared lad, the grick den, the bulette, the cloaker, the wagon yard
   wolfspider: {
-    name: 'Wolf Spider', type: 'beast', sheet: 'wolfspider_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, size: 1, reach: 5, darkvision: 60, blindsight: 10,
+    name: 'Wolf Spider', type: 'beast', sheet: 'wolfspider_p1', cr: '1/4', ac: 13, hp: 11, speed: 40, climbs: 40, size: 1, reach: 5, darkvision: 60, blindsight: 10,
     abil: { str: 12, dex: 16, con: 13, int: 3, wis: 12, cha: 4 }, init: 3, perception: 13,
     saves: { str: 1, dex: 3, con: 1, int: -4, wis: 1, cha: -3 },
     attacks: { bite: { name: 'Bite', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d6', type: 'poison', half: true } } },
     multi: 1, webWalker: true, src: 'SRD 5.1 Giant Wolf Spider (CR 1/4); content/monsters.json wolfspider'
   },
   grick: {
-    name: 'Grick', type: 'monstrosity', sheet: 'grick_p1', cr: '2', ac: 14, hp: 27, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Grick', type: 'monstrosity', sheet: 'grick_p1', cr: '2', ac: 14, hp: 27, speed: 30, climbs: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 14, dex: 14, con: 11, int: 3, wis: 14, cha: 5 }, init: 2, perception: 12,
     saves: { str: 2, dex: 2, con: 0, int: -4, wis: 2, cha: -3 },
     attacks: { tentacles: { name: 'Tentacles', atk: 4, dice: '2d6', mod: 2, type: 'slashing', reach: 5 }, beak: { name: 'Beak', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5, afterHit: 'tentacles' } },
@@ -461,7 +461,7 @@
   },
   // the roper on leg two's fork (deep.js S.roper): it looks like the stalagmites until it doesn't (hidden at the start)
   roper: {
-    name: 'Roper', type: 'monstrosity', sheet: 'roper_p1', cr: '5', ac: 20, hp: 93, speed: 10, size: 2, reach: 5, darkvision: 60,
+    name: 'Roper', type: 'monstrosity', sheet: 'roper_p1', cr: '5', ac: 20, hp: 93, speed: 10, climbs: 10, size: 2, reach: 5, darkvision: 60,
     abil: { str: 18, dex: 8, con: 17, int: 7, wis: 16, cha: 6 }, init: -1, perception: 16,
     saves: { str: 4, dex: -1, con: 3, int: -2, wis: 3, cha: -2 },
     attacks: {
@@ -480,7 +480,7 @@
   },
   // the Warrens' settling pools (events.js, warrens_d): the ochre jelly and the gray ooze
   ochrejelly: {
-    name: 'Ochre Jelly', type: 'ooze', sheet: 'ochrejelly_p1', small: 'ochrejellym_p1', cr: '2', ac: 8, hp: 45, speed: 10, size: 2, reach: 5, blindsight: 60, blind: true,
+    name: 'Ochre Jelly', type: 'ooze', sheet: 'ochrejelly_p1', small: 'ochrejellym_p1', cr: '2', ac: 8, hp: 45, speed: 10, climbs: 10, size: 2, reach: 5, blindsight: 60, blind: true,
     abil: { str: 15, dex: 6, con: 14, int: 2, wis: 6, cha: 1 }, init: -2, perception: 8,
     saves: { str: 2, dex: -2, con: 2, int: -4, wis: -2, cha: -5 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 4, dice: '2d6', mod: 2, type: 'bludgeoning', extra: '1d6', extraType: 'acid', reach: 5 } },
@@ -488,7 +488,7 @@
     src: 'SRD 5.1 Ochre Jelly (CR 2, Large): Split on slashing or lightning, like the pudding; content/monsters.json ochrejelly; condition immunities blinded, charmed, deafened, exhaustion, frightened, prone (SRD 5.1; the 8-bit sheet had blinded, frightened, prone, asleep -- asleep kept; 10-02 runner)'
   },
   grayooze: {
-    name: 'Gray Ooze', type: 'ooze', sheet: 'grayooze_p1', cr: '1/2', ac: 8, hp: 22, speed: 10, size: 1, reach: 5, blindsight: 60, blind: true,
+    name: 'Gray Ooze', type: 'ooze', sheet: 'grayooze_p1', cr: '1/2', ac: 8, hp: 22, speed: 10, climbs: 10, size: 1, reach: 5, blindsight: 60, blind: true,
     abil: { str: 12, dex: 6, con: 16, int: 1, wis: 6, cha: 2 }, init: -2, perception: 8,
     saves: { str: 1, dex: -2, con: 3, int: -5, wis: -2, cha: -4 },
     attacks: { pseudopod: { name: 'Pseudopod', atk: 3, dice: '1d6', mod: 1, type: 'bludgeoning', extra: '2d6', extraType: 'acid', reach: 5 } },
@@ -721,7 +721,7 @@
     src: 'SRD 5.1 Swarm of Bats (CR 1/4, fly 30 read as moving 30); content/monsters.json batswarm (the galleries); condition immunities charmed, frightened, grappled, paralyzed, petrified, prone, restrained, stunned (SRD 5.1; the 8-bit sheet lacked charmed, petrified, stunned, 10-02 runner)', todo: 'sharing a creature\'s space is not read'
   },
   insectswarm: {
-    name: 'Insect Swarm', type: 'beast', sheet: 'insectswarm_p1', cr: '1/2', ac: 12, hp: 22, speed: 20, size: 1, reach: 5, blindsight: 10,
+    name: 'Insect Swarm', type: 'beast', sheet: 'insectswarm_p1', cr: '1/2', ac: 12, hp: 22, speed: 20, climbs: 20, size: 1, reach: 5, blindsight: 10,
     abil: { str: 3, dex: 13, con: 10, int: 1, wis: 7, cha: 1 }, init: 1, perception: 8,
     saves: { str: -4, dex: 1, con: 0, int: -5, wis: -2, cha: -5 },
     attacks: { bites: { name: 'Bites', atk: 3, dice: '4d4', halfHP: '2d4', mod: 0, type: 'piercing', reach: 5 } },
@@ -733,11 +733,11 @@
   // two long hooks (reach 10), sight by echo (blindsight 60, no eyes worth the name in the dark), a hide like cobbles. Griz's sheet
   // (tools/clacker-sheet.py). At the start of each of its turns it strikes its hooks together, the clacking that is their speech (js/ai.js)
   clacker: {
-    name: 'Clacker', type: 'monstrosity', sheet: 'clacker_p2', cr: '3', ac: 15, hp: 68, speed: 30, size: 2, reach: 10, blindsight: 60,
+    name: 'Clacker', type: 'monstrosity', sheet: 'clacker_p2', cr: '3', ac: 15, hp: 68, speed: 30, climbs: 30, size: 2, reach: 10, blindsight: 60,
     abil: { str: 18, dex: 10, con: 14, int: 6, wis: 12, cha: 6 }, init: 0, perception: 13,
     saves: { str: 4, dex: 0, con: 2, int: -2, wis: 1, cha: -2 },
     attacks: { hook: { name: 'Hook', atk: 6, dice: '1d10', mod: 4, type: 'piercing', reach: 10 } },
     multi: 2, clacks: true,
-    src: 'ours (10-01, invented.json clacker): the realm\'s hook horror, a block of our own from SRD pieces (CR 3, Large); Griz\'s two Grok sheets (clacker_p2, 10-01; the GPT one retired)', todo: 'its climb is not read (no walls to climb on the grid)'
+    src: 'ours (10-01, invented.json clacker): the realm\'s hook horror, a block of our own from SRD pieces (CR 3, Large); Griz\'s two Grok sheets (clacker_p2, 10-01; the GPT one retired); its climb (as the hook horror: climb 30) read as `climbs` since 10-04: any cliff on a map that lets them be climbed'
   }
 };

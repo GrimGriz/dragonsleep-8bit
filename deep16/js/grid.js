@@ -49,6 +49,9 @@
       var z = G.map.gz(f[i][0], f[i][1]); lo = Math.min(lo, z); hi = Math.max(hi, z);
     }
     var dd = G.map.def; // a Large body can straddle one step, not the ledge -- on a map that lets cliffs be climbed, as many steps as `climbLarge` (two by default: 10-04, Griz: the Large creatures)
+    // passing over a cliff's edge there, it may straddle any height on its way down (half on the top, half off it, then the drop); it never stops so, and the climb up is held to
+    // `climbLarge` by G.stepCost, the body's height being its highest square (G.gzAt) -- 10-04, the ogre on the Climbing Floor's 10 ft tower could not get down
+    if (pass && dd.climb && f.length > 1) return true;
     return hi - lo <= dd.step * (dd.climb && f.length > 1 ? Math.min(dd.climb, dd.climbLarge || 2) : 1);
   }
   // may u end its move here (o.ghost: an ethereal mover ignores creatures)
@@ -77,8 +80,9 @@
     if (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone))) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)
     var dzS = G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0), stS = G.map.def.step;
     // (a cliff: a map's `climb` -- the steps a body of one square may scale or drop, SRD 5.1 Climbing and Falling; up costs 1 extra foot a foot (G.stepCost below), and a Strength (Athletics) check, battle.js moveAlong; a drop of under 10 ft is free)
-    var clS = G.map.def.climb, limS = (u.size || 1) > 1 ? Math.min(clS || 0, G.map.def.climbLarge || 2) : clS; // (a Large body climbs `climbLarge` steps, two by default; a one-square body, `climb`)
-    if (Math.abs(dzS) > stS && !(clS && Math.abs(dzS) <= limS * stS)) return Infinity;
+    var clS = G.map.def.climb, limS = u.climbs ? Infinity : (u.size || 1) > 1 ? Math.min(clS || 0, G.map.def.climbLarge || 2) : clS; // (a Large body climbs `climbLarge` steps, two by default; a one-square body, `climb`; one with a climb speed, any face)
+    // (down, any height there: it is a fall, battle.js moveAlong -- 10-04; up, the limit)
+    if (Math.abs(dzS) > stS && !(clS && (dzS < 0 || dzS <= limS * stS))) return Infinity;
     var dx = x1 - x0, dy = y1 - y0;
     if (dx && dy && !footWalkable(u, x0 + dx, y0, true) && !footWalkable(u, x0, y0 + dy, true)) return Infinity; // no squeezing between two rocks at a corner
     if (o && o.ghost) return 5;
@@ -96,7 +100,7 @@
   var N8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
   // Dijkstra from where u stands out to `budget` feet: { 'x,y': { x, y, cost, prev, stand } }
   G.reach = function (u, budget, o) {
-    var out = {}, k0 = u.x + ',' + u.y, open = [{ x: u.x, y: u.y, cost: 0 }];
+    var out = {}, k0 = u.x + ',' + u.y, open = [{ x: u.x, y: u.y, cost: 0 }], fear = !!(G.map.def.climb && !(o && o.ghost) && (u.side !== 'party' || u.guest)); // (AI-run as battle.js byAI reads it: a hand's hero -- a ?npc= party's class NPCs too -- reckons its own falls)
     out[k0] = { x: u.x, y: u.y, cost: 0, prev: null, stand: true };
     while (open.length) {
       open.sort(function (a, b) { return a.cost - b.cost; });
@@ -106,6 +110,7 @@
         var nx = c.x + N8[i][0], ny = c.y + N8[i][1];
         var sc = G.stepCost(u, c.x, c.y, nx, ny, o);
         if (sc === Infinity) continue;
+        if (fear) sc += G.fallFear(u, c.x, c.y, nx, ny); // (an AI-run walker weighs a fall: G.fallFear)
         var nc = c.cost + sc;
         if (nc > budget) continue;
         var k = nx + ',' + ny;
@@ -125,8 +130,24 @@
   G.stepCost = function (u, x0, y0, x1, y1, o) { var c = stepCost0.apply(this, arguments); if (c !== Infinity && G.prone(u, o)) c += 5; var cs = c !== Infinity ? G.climbsUp(u, x0, y0, x1, y1) : 0; if (cs) c += cs * 5 - 5; return c; };
   // a step up a cliff (more than one step of height, on a map that lets it be climbed): the number of steps it climbs, else 0. Each foot climbed costs an extra foot (SRD 5.1): a step is 2.5 ft,
   // so 5 ft of movement a step climbed, the square's own 5 folded in -- a 5 ft ledge 10, 10 ft 20, 15 ft 30, 30 ft 60, and a tall face takes the Dash (10-04, Griz: "it coming out a dash is correct,
-  // adjust our cost to SRD"; it was the extra foot alone, 35 for 30 ft). The climb is a Strength (Athletics) check, DC 10 for two steps and 2 more for each step above, and over 10 ft a miss falls (battle.js moveAlong)
-  G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step); return n > 1 ? n : 0; };
+  // adjust our cost to SRD"; it was the extra foot alone, 35 for 30 ft). Over 5 ft the climb is a Strength (Athletics) check (G.climbDC; battle.js moveAlong): a miss drops it back
+  // prone, and over 10 ft is a fall. A creature with a climb speed (SRD 5.1: "doesn't need to spend extra movement"; `climbs` off its stat block, data/foes.js) pays nothing more and makes no check
+  G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step); return n > 1 ? n : 0; };
+  // the check (10-04, Griz: "like an SRD DM would do" -- SRD 5.1: "at the GM's option, climbing a slippery vertical surface or one with few handholds requires a successful
+  // Strength (Athletics) check"): a 5 ft ledge is pulled up onto, no check; over 5 ft, DC 10 for two steps and 2 more for each step above (7.5 ft 12, 10 ft 14, 15 ft 18, 30 ft 30). 0: none
+  G.climbDC = function (steps) { return steps > 2 ? 10 + 2 * (steps - 2) : 0; };
+  // the climber's Strength (Athletics): its STR, and its proficiency for the classes that have the skill to pick (as breakFree reads it); a monster's own Athletics where its block gives one
+  G.athletics = function (u) { return u.athletics != null ? u.athletics : D.mod(u.abil ? u.abil.str : 10) + ({ fighter: 1, barbarian: 1, paladin: 1, monk: 1, ranger: 1 }[u.cls] ? u.prof || 0 : 0); };
+  // what a fall would cost an AI weighing the way (G.reach): a drop of 10 ft or more -- its d6s and the getting up; a climb that takes a check -- its odds of a miss, the move lost and,
+  // over 10 ft, the fall. Movement in feet, for the reckoning only: the step itself still costs what G.stepCost says (10-04, the ogre: it should drop, but not for nothing)
+  G.fallFear = function (u, x0, y0, x1, y1) {
+    var d = G.map.def; if (!d.climb || u.flies || u.climbs) return 0;
+    var dz = (G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step, ft = Math.abs(dz) * 2.5, fall = ft >= 10 ? 10 * Math.floor(ft / 10) + 10 : 0;
+    if (dz < 0) return fall;
+    var cs = G.climbsUp(u, x0, y0, x1, y1), dc = G.climbDC(cs); if (!dc) return 0;
+    var miss = Math.min(0.95, Math.max(0.05, (dc - G.athletics(u) - 1) / 20));
+    return Math.round(miss * (30 + (ft > 10 ? fall : 0)));
+  };
   G.reach = function (u, budget, o) {
     if (G.prone(u, o) && D.rules && D.rules.canRise(u)) { var half = Math.floor(u.speed / 2); if (budget >= half) return reach0.call(this, u, budget - half, Object.assign({}, o, { upright: true })); }
     return reach0.apply(this, arguments);
@@ -143,8 +164,13 @@
     ax = ax == null ? a.x : ax; ay = ay == null ? a.y : ay; bx = bx == null ? b.x : bx; by = by == null ? b.y : by;
     var as = a.size || 1, bs = b.size || 1;
     var dx = Math.max(0, bx - (ax + as - 1), ax - (bx + bs - 1)), dy = Math.max(0, by - (ay + as - 1), ay - (by + bs - 1));
-    return Math.max(dx, dy) * 5;
+    // height counts as a diagonal does (10-04, Griz: "height as distance for vis and opportunity attack?"): the larger of the across and the up, the up in whole 5 ft (a step is
+    // 2.5 ft, rounded down -- a 5 ft ledge is still beside the floor under it, a 10 ft tower's top is 10 ft from its foot). Read only where a map rises 10 ft or more (G.tall)
+    var dz = G.tall() ? Math.floor(Math.abs(G.gzAt(a, ax, ay) - G.gzAt(b, bx, by)) / G.map.def.step / 2) : 0;
+    return Math.max(dx, dy, dz) * 5;
   };
+  // does the map rise 10 ft (four steps) or more anywhere? (G.dist and the light read height only then: the flat maps pay nothing for it)
+  G.tall = function () { var m = G.map; if (!m || !m.def || !m.def.step) return false; if (m.tallK == null) { var lo = 1e9, hi = -1e9; for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s = m.at(x, y); if (s && s.walk) { var z = m.gz(x, y); lo = Math.min(lo, z); hi = Math.max(hi, z); } } m.tallK = hi - lo >= 4 * m.def.step; } return m.tallK; };
   // a creature's melee reach in feet, the one place it is read (Enlarge, 09-29: an enlarged creature reaches 5 ft further; reduced does
   // not go below its own). `base` is a weapon's own reach where it has one (a glaive, a giant's fist); ranged is nothing to do with it
   // (Enlarge and reach: the SRD 5.1 gives none -- +1d4, STR advantage, a size larger -- so the +5 ft is a house rule, off unless

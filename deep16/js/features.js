@@ -435,7 +435,7 @@
   // kept behind the beast's (Battle.hurt's pool, as Wild Shape's); no spells. A foe the bestiary runs fights with the beast's own attacks; a
   // hero or a class NPC with its best one as a weapon (its turn is still its own). Its footprint stays its own (a giant made a rat keeps
   // his square; the rat is drawn in it)
-  var MORPH_KEEP = ['weapon', 'alt', 'baseAC', 'speed', 'sheet', 'abil', 'saves', 'attacks', 'attacksBase', 'multi', 'packTactics', 'known', 'flies', 'blindsight', 'darkvision', 'type', 'resist', 'immune', 'condImmune', 'web', 'slam', 'weave', 'reach', 'drawScale', 'regen', 'split'];
+  var MORPH_KEEP = ['weapon', 'alt', 'baseAC', 'speed', 'sheet', 'abil', 'saves', 'attacks', 'attacksBase', 'multi', 'packTactics', 'known', 'flies', 'blindsight', 'darkvision', 'type', 'resist', 'immune', 'condImmune', 'web', 'slam', 'weave', 'reach', 'drawScale', 'regen', 'split', 'climbs'];
   F.morph = function (B, u, kind, by) {
     var d = D.FOES[kind]; if (!d) return false;
     var keep = {}; MORPH_KEEP.forEach(function (k) { keep[k] = u[k]; });
@@ -444,7 +444,7 @@
     u.baseAC = d.ac; u.speed = d.speed; u.sheet = d.sheet; u.abil = Object.assign({}, d.abil); u.saves = Object.assign({}, d.saves || {});
     ['str', 'dex', 'con', 'int', 'wis', 'cha'].forEach(function (k) { if (u.saves[k] == null) u.saves[k] = D.mod(u.abil[k]); });
     u.known = []; u.type = d.type || 'beast'; u.resist = d.resist || null; u.immune = d.immune || null; u.condImmune = d.condImmune || null;
-    u.flies = false; u.blindsight = d.blindsight || 0; u.darkvision = d.darkvision || 0; u.packTactics = !!d.packTactics;
+    u.flies = false; u.blindsight = d.blindsight || 0; u.darkvision = d.darkvision || 0; u.packTactics = !!d.packTactics; u.climbs = d.climbs || 0; // (the beast's climb speed: a giant spider walks up a cliff, 10-04)
     u.web = null; u.slam = null; u.weave = null; u.reach = d.reach || 5; u.drawScale = 1; u.regen = 0; u.split = false;
     if (u.cls || u.side === 'party') { u.weapon = Object.assign({}, bite, { magic: false }); u.alt = null; u.attacks = d.multi || 1; u.attacksBase = u.attacks; }
     else { u.attacks = JSON.parse(JSON.stringify(d.attacks)); u.multi = d.multi || 1; }

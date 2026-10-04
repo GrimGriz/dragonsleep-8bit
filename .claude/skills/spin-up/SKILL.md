@@ -17,8 +17,12 @@ The pane reads `.claude/launch.json` **from the folder the session was opened in
 | `dragonsleep-2` | 8924 | the same, when another chat holds 8923 |
 | `dragonsleep-3` / `dragonsleep-keeper` | 8925 | repo file: the checkout; home file: the Keeper's `scratch-merge` worktree |
 | `dragonsleep-branch` | 8926 | `.claude/worktrees/branch` -- whatever branch you put there |
+| `dragonsleep-3` (home file only) | 8927 | the checkout, when other chats hold 8923 and 8924 (added 10-04, the climbing seat: the troll window held both) |
 
-**Main:** `preview_start {name: "dragonsleep"}` (or `-2`), then `navigate` to the door. The checkout is shared: it shows every seat's uncommitted edits too.
+**Main:** `preview_start {name: "dragonsleep"}` (or `-2`, or the home file's `-3`), then `navigate` to the door. The checkout is shared: it shows every seat's uncommitted edits too.
+
+**Music off, every time** (Griz, 10-04: *"I'd like to add y'all turn the music off for me in those"*): once the page has loaded, in `javascript_tool` --
+`DS.audio.musicVol = 0; DS.audio.setVolumes(); DS.audio.savePrefs();` -- the 8-bit synth's own volume (`ds8-audio` in that origin's storage, the effects left as they were). It is kept per port, so a new port needs it again; DEEP16 and the 8-bit game share it.
 
 **A cloud seat's branch** (never build or commit in this worktree; it is for looking):
 

@@ -98,10 +98,11 @@
     var m = B.map, lv = new Array(m.w * m.h), M = D.magic, carve = !!(M && M.zoneGlobed && (B.globes || []).length);
     for (var i = 0; i < lv.length; i++) lv[i] = 0;
     kk.ls.forEach(function (l) {
-      var lx = Math.round(l.x), ly = Math.round(l.y), R = Math.ceil((l.bright + l.dim) / 5);
+      var lx = Math.round(l.x), ly = Math.round(l.y), R = Math.ceil((l.bright + l.dim) / 5), tall = D.grid.tall && D.grid.tall(), lz = tall && m.at(lx, ly) ? m.gz(lx, ly) : 0;
       for (var y = ly - R; y <= ly + R; y++) for (var x = lx - R; x <= lx + R; x++) {
         var s = m.at(x, y); if (!s || !s.open) continue;
-        var d = Math.hypot(x - l.x, y - l.y) * 5, v = l.bright > 0 && d <= l.bright + 0.01 ? 2 : d <= l.bright + l.dim + 0.01 ? 1 : 0; // (a dim-only light -- a hooded lantern, a dim lamp, Dancing Lights -- is dim on its own square too: 09-29)
+        // (a light's reach is a sphere: on a map that rises 10 ft or more, the height between counts -- the 30 ft tower's top is 30 ft from a torch at its foot; 10-04, Griz: "height as distance for vis")
+        var d = Math.hypot(x - l.x, y - l.y, tall ? (m.gz(x, y) - lz) / m.def.step / 2 : 0) * 5, v = l.bright > 0 && d <= l.bright + 0.01 ? 2 : d <= l.bright + l.dim + 0.01 ? 1 : 0; // (a dim-only light -- a hooded lantern, a dim lamp, Dancing Lights -- is dim on its own square too: 09-29)
         if (!v) continue;
         var i2 = y * m.w + x;
         if (lv[i2] >= v) continue;

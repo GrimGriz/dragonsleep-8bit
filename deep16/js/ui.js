@@ -64,9 +64,9 @@
     }
   };
   function reachCache(B, u) {
-    var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
+    var T = u.turn, key = u.x + ',' + u.y + ',' + T.move + ',' + T.action + ',' + T.bonus + ',' + T.attacksLeft + ',' + B.units.map(function (w) { return w.x + ':' + w.y + ':' + (w.dead || w.hp <= 0 ? 0 : RU.canAct(w) ? 1 : 2) + (w.ethereal ? 'e' : ''); }).join(';') + (B.webs || []).length;
     if (B.cache && B.cache.key === key) return B.cache;
-    var held = !!u.conds.restrained, dash = !held && T.action > 0 && !T.attacksLeft ? u.speed : 0;
+    var held = !!u.conds.restrained, dash = held ? 0 : u.speed * D.Battle.dashes(u).length; // (both dashes, where it has both: 10-04 -- the action's and a Cunning Action's)
     B.cache = { key: key + (held ? ',held' : ''), move: G.reach(u, held ? 0 : T.move), dash: dash ? G.reach(u, T.move + dash) : null, hide: null };
     return B.cache;
   }
@@ -854,7 +854,15 @@
 
   function unitPos(B, u) {
     var s = u.size || 1, gx = u.drawAt ? u.drawAt.x : u.x, gy = u.drawAt ? u.drawAt.y : u.y, gz = G.gzAt(u, gx, gy); // (drawAt: where a caster stands while his floating weapon swings)
-    if (u.tween) { var k = u.tween.t / u.tween.dur; gx = u.tween.fx + (u.x - u.tween.fx) * k; gy = u.tween.fy + (u.y - u.tween.fy) * k; gz = u.tween.fz + (gz - u.tween.fz) * k; }
+    if (u.tween) {
+      // (a cliff, battle.js moveAlong, 10-04 -- Griz: "can we move them vertical": 'climb' goes up the face, then over the lip; 'drop' steps out over the edge, then falls, faster as it goes;
+      // 'slip' gets part way up the face and comes back down where it started)
+      var tw = u.tween, k = tw.t / tw.dur, kxy = k, kz = k;
+      if (tw.mode === 'climb') { kz = Math.min(1, k / 0.75); kxy = Math.max(0, (k - 0.75) / 0.25); }
+      else if (tw.mode === 'drop') { kxy = Math.min(1, k / 0.3); kz = Math.max(0, (k - 0.3) / 0.7); kz *= kz; }
+      gx = tw.fx + (u.x - tw.fx) * kxy; gy = tw.fy + (u.y - tw.fy) * kxy;
+      gz = tw.mode === 'slip' ? tw.fz + tw.peak * (k < 0.6 ? k / 0.6 : Math.pow(1 - (k - 0.6) / 0.4, 2)) : tw.fz + (gz - tw.fz) * kz;
+    }
     var c = D.iso.center(gx + (s - 1) / 2, gy + (s - 1) / 2, gz), p = D.iso.toScreen(c.x, c.y);
     return { x: p.x, y: p.y, depth: gx + gy + (s - 1) + 0.6, gz: gz };
   }
@@ -1340,19 +1348,30 @@
   function drawPathDots(c) { PATHDOTS.forEach(function (d) { c.fillStyle = R('outline', 0); c.fillRect(d.x - 2, d.y - 2, 5, 5); c.fillStyle = d.color; c.fillRect(d.x - 1, d.y - 1, 3, 3); }); PATHDOTS = []; }
   // difficult ground, marked while a move is being chosen (Griz, 10-04: "when a player's move is active, can there be markers on difficult terrain?"): a small gold X on each square the mover
   // could reach where a step in costs more than a plain one (rubble, water, web, ice, thorns); drawn with the dots, after the light pass
+  // (10-04 again, Griz: "move the marker to the outside, use ^ instead of x... we could stack ^ for climbs"): a gold ^ toward the square's near edge, off the middle where the path's dots
+  // run; and on a square a step into which climbs a cliff (grid.js G.climbsUp), cyan ^s stacked, one for every 5 ft of the climb (six at most)
   var PATHMARKS = [];
   function slowSquares(B, u, rc) {
     if (rc.slow) return rc.slow;
     var out = [], base = 5 + (G.prone(u) ? 5 : 0), seen = {};
     [rc.move, rc.dash || {}].forEach(function (m) { Object.keys(m).forEach(function (k) {
       var e = m[k]; if (!e.stand || seen[k]) return; seen[k] = 1;
-      var c = G.stepCost(u, e.x, e.y, e.x, e.y); if (c !== Infinity && c > base) out.push([e.x, e.y]);
+      var c = G.stepCost(u, e.x, e.y, e.x, e.y), pv = e.prev && m[e.prev], cs = pv ? G.climbsUp(u, pv.x, pv.y, e.x, e.y) : 0;
+      if (cs) out.push([e.x, e.y, 'climb', Math.min(6, Math.ceil(cs / 2))]);
+      else if (c !== Infinity && c > base) out.push([e.x, e.y, 'slow', 1]);
     }); });
     return (rc.slow = out);
   }
-  function markSq(x, y) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); PATHMARKS.push({ x: s.x, y: s.y - 3 }); }
-  var XPIX = [[-2, -2], [-1, -1], [0, 0], [1, 1], [2, 2], [2, -2], [1, -1], [-1, 1], [-2, 2]];
-  function drawPathMarks(c) { PATHMARKS.forEach(function (d) { c.fillStyle = R('outline', 0); XPIX.forEach(function (q) { c.fillRect(d.x + q[0] - 1, d.y + q[1] - 1, 3, 3); }); c.fillStyle = R('gold', 4); XPIX.forEach(function (q) { c.fillRect(d.x + q[0], d.y + q[1], 1, 1); }); }); PATHMARKS = []; }
+  function markSq(x, y, kind, n) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); PATHMARKS.push({ x: s.x, y: s.y + 9, kind: kind, n: n || 1 }); }
+  var CARET = [[-2, 1], [-1, 0], [0, -1], [1, 0], [2, 1]];
+  function drawPathMarks(c) {
+    PATHMARKS.forEach(function (d) {
+      for (var i = 0; i < d.n; i++) { var oy = d.y - 3 * i; c.fillStyle = R('outline', 0); CARET.forEach(function (q) { c.fillRect(d.x + q[0] - 1, oy + q[1] - 1, 3, 3); }); }
+      c.fillStyle = d.kind === 'climb' ? R('glow', 2) : R('gold', 4);
+      for (var j = 0; j < d.n; j++) { var oy2 = d.y - 3 * j; CARET.forEach(function (q) { c.fillRect(d.x + q[0], oy2 + q[1], 1, 1); }); }
+    });
+    PATHMARKS = [];
+  }
   function overlay(ctx, B, u) {
     // the aura of protection round a standing paladin: a dashed gold circle, 10 ft (Griz, 09-27: "auras as circles centered
     // on him"). Its radius, 2.9 squares, takes in the centre of every square within 10 ft -- the 5x5 block the rules
@@ -1392,7 +1411,7 @@
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       var rc = reachCache(B, u);
       if (rc.dash) Object.keys(rc.dash).forEach(function (k) { var e = rc.dash[k]; if (e.stand && !rc.move[k]) fillSq(ctx, e.x, e.y, R('glow', 1), 0.07); });
-      if (tool === 'move' && T.move > 0 && !u.conds.restrained) slowSquares(B, u, rc).forEach(function (q) { markSq(q[0], q[1]); }); // (difficult ground, marked: 10-04)
+      if (tool === 'move' && T.move > 0 && !u.conds.restrained) slowSquares(B, u, rc).forEach(function (q) { markSq(q[0], q[1], q[2], q[3]); }); // (difficult ground and the climbs, marked: 10-04)
       if ((u.size || 1) > 1 && tool !== 'attack' && !(cx === u.x && cy === u.y) && !occ(cx, cy)) { // (a big creature's pick: all of the squares of its body at the cursor, green where it may stand, red where not -- 10-03, the Keeper's 2x2)
         var vv = UI.valid(B, u, cx, cy), okk = vv === 'ok' || vv === 'far';
         G.foot(u, cx, cy).forEach(function (q) { if (G.map.at(q[0], q[1])) { fillSq(ctx, q[0], q[1], okk ? R('moss', 2) : R('red', 3), 0.3, 2); lineSq(ctx, q[0], q[1], okk ? R('moss', 3) : R('red', 4), 0.95, 2); } });

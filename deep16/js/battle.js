@@ -250,6 +250,7 @@
       hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       init: d.init, perception: d.perception, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
       fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5,
+      climbs: d.climbs || 0, // (a climb speed, SRD 5.1: up and down a map's cliffs at no extra cost, no check -- grid.js G.climbsUp, 10-04)
       // the bestiary's traits (09-27, the ladder): read by rules.js (packTactics), hurt() (resist/immune/vulnerable),
       // ai.js brute() (web, slam, bound, martial, surprise) and attack() (a grapple on a hit)
       packTactics: !!d.packTactics, resist: d.resist || null, immune: d.immune || null, vulnerable: d.vulnerable || null,
@@ -805,16 +806,19 @@
   Battle.pullable = function (u, units) { return units.filter(function (w) { return w.attached && w.riding && w.master && !G.hostile(u, w.master) && G.hostile(u, w) && G.standing(w) && G.dist(u, w.master) <= 5; }); }; // (the one it rides, too: SRD 5.1, "a creature")
   // the rider on w that u may strike at through w's square (ui.js valid: the attack tool on a friend's square, or one's own)
   Battle.riderOn = function (u, w, units) { return w && !G.hostile(u, w) ? units.filter(function (r) { return r.attached && r.riding && r.master === w && G.hostile(u, r) && G.standing(r); })[0] || null : null; };
+  // the dashes u has left this turn, 'a' and 'b' (10-04, Griz: "If she has dash and cunning dash should she be able to try the steepest climb?"): its action's, while the
+  // Attack action is not begun, and a bonus action's -- Cunning Action, Expeditious Retreat; each is its speed more (ui.js reachCache: the squares a click dashes to; exec 'dashmove')
+  Battle.dashes = function (u) { var T = u.turn || {}, n = []; if (u.conds.restrained || u.conds.dancing) return n; if (T.action && !T.attacksLeft) n.push('a'); if (T.bonus && ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning || (T.bonusDash && u.conds.retreat))) n.push('b'); return n; };
   // what a walk along `path` risks on a map whose cliffs can be climbed (10-04, Griz: "can we add 'Drop?' when a movement click results in fall damage (avoid
   // misclick fall damage)"): a line for every drop of 10 ft or more (SRD 5.1 Falling: 1d6 a 10 ft, and prone; moveAlong) and every climb over 10 ft (its miss
   // falls, moveAlong) -- none for a safe walk. exec asks a hand's move with them first, and the dash's question says them
   Battle.prototype.fallLines = function (u, path) {
     var d = G.map.def, out = [], x = u.x, y = u.y;
-    if (!d.climb || u.flies) return out;
+    if (!d.climb || u.flies || u.climbs) return out;
     for (var i = 0; i < path.length; i++) {
       var nx = path[i][0], ny = path[i][1], dz = (G.gzAt(u, nx, ny) - G.gzAt(u, x, y)) / d.step, ft = Math.abs(dz) * 2.5, cs = G.climbsUp(u, x, y, nx, ny);
       if (dz < 0 && ft >= 10) out.push('A drop of ' + ft + ' ft on the way: ' + Math.floor(ft / 10) + 'd6 bludgeoning, and prone.');
-      else if (cs && ft > 10) out.push('A climb of ' + ft + ' ft: Athletics DC ' + (10 + 2 * (cs - 2)) + ', and a miss falls (' + Math.floor(ft / 10) + 'd6, prone).');
+      else if (cs && ft > 10) out.push('A climb of ' + ft + ' ft: Athletics DC ' + G.climbDC(cs) + ', and a miss falls (' + Math.floor(ft / 10) + 'd6, prone).');
       x = nx; y = ny;
     }
     return out;
@@ -864,19 +868,22 @@
       case 'hooddown': T.freeObj = true; yield* D.light.hood(this, u, true); return;
       case 'hoodup': T.freeObj = true; yield* D.light.hood(this, u, false); return;
       case 'dashmove': {
-        var rmF = G.reach(u, T.move + u.speed), far = rmF[c.x + ',' + c.y], opts = [];
+        var dsh = Battle.dashes(u), rmF = G.reach(u, T.move + u.speed * dsh.length), far = rmF[c.x + ',' + c.y], opts = [];
         if (!far || u.conds.restrained || u.conds.dancing) return;
         var fLsD = this.fallLines(u, G.path(rmF, c.x, c.y) || []); // (a drop or a tall climb on the way: said in the dash's own question -- NOT THAT FAR declines both)
-        if (u.cls === 'rogue' && u.lvl >= 2 && T.bonus) opts.push({ label: 'CUNNING DASH (bonus)', value: 'b' });
-        else if (T.bonusDash && u.conds.retreat && T.bonus) opts.push({ label: 'RETREAT DASH (bonus)', value: 'b' }); // (Expeditious Retreat)
-        if (T.action && !T.attacksLeft) opts.push({ label: 'DASH (your action)', value: 'a' });
+        var bName = (u.cls === 'rogue' && u.lvl >= 2) || u.cunning ? 'CUNNING DASH' : 'RETREAT DASH', bWhy = bName === 'CUNNING DASH' ? 'Cunning Action' : 'Expeditious Retreat';
+        if (far.cost > T.move + u.speed) { if (dsh.length > 1) opts.push({ label: 'DASH + ' + bName + ' (action and bonus)', value: 'ab' }); } // (it takes both: 10-04, Griz -- the rogue and the 30 ft face)
+        else {
+          if (dsh.indexOf('b') >= 0) opts.push({ label: bName + ' (bonus)', value: 'b' }); // (Cunning Action; Expeditious Retreat)
+          if (dsh.indexOf('a') >= 0) opts.push({ label: 'DASH (your action)', value: 'a' });
+        }
         if (!opts.length) { this.card(['{g}No dash left this turn.{/}']); return; }
         opts.push({ label: 'NOT THAT FAR', value: 0 });
         var how = yield { prompt: { who: u, title: u.name + ': DASH THERE?', lines: ['That square is ' + far.cost + ' ft away; ' + T.move + ' ft of move is left.'].concat(fLsD), opts: opts } };
         if (!how) return;
-        if (how === 'b') T.bonus = 0; else T.action = 0;
-        T.move += u.speed;
-        this.card(['{y}' + u.name + '{/}' + (how === 'b' ? (u.cls === 'rogue' && u.lvl >= 2 ? ' (Cunning Action)' : ' (Expeditious Retreat)') : '') + ' dashes: {c}+' + u.speed + ' ft{/}.']);
+        if (how.indexOf('b') >= 0) T.bonus = 0; if (how.indexOf('a') >= 0) T.action = 0;
+        T.move += u.speed * how.length;
+        this.card(['{y}' + u.name + '{/}' + (how === 'ab' ? ' dashes twice (Dash and ' + bWhy + ')' : (how === 'b' ? ' (' + bWhy + ')' : '') + ' dashes') + ': {c}+' + u.speed * how.length + ' ft{/}.']);
         var rm2 = G.reach(u, T.move), path2 = G.path(rm2, c.x, c.y);
         if (path2 && path2.length) yield* this.moveAlong(u, path2, { spend: true });
         return;
@@ -1063,24 +1070,32 @@
       }
       u.facing = D.spr.facingFor(nx - u.x, ny - u.y);
       var wasIn = D.magic.webAt(this, u), stepFrom = { x: u.x, y: u.y }; // (stepFrom: the square it left -- the Keeper's readied wall asks which way it stepped along the stair; the tween is gone by then in the page's frame loop)
-      var csN = G.climbsUp(u, u.x, u.y, nx, ny), cDC = 10 + 2 * Math.max(0, csN - 2), z0 = G.gzAt(u, u.x, u.y);
-      if (csN) { // (a cliff: SRD 5.1, "climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check" -- DC 10; fail, and the climb is lost with its cost)
-        var ce0 = RU.checkEdges(u, 'str'), cr = ce0.dis.length && !ce0.adv.length ? Math.min(D.d(20), D.d(20)) : ce0.adv.length && !ce0.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb = D.mod(u.abil ? u.abil.str : 10) + ({ fighter: 1, barbarian: 1, paladin: 1, monk: 1, ranger: 1 }[u.cls] ? u.prof || 0 : 0), ct = cr + cb;
+      var csN = G.climbsUp(u, u.x, u.y, nx, ny), cDC = G.climbDC(csN), z0 = G.gzAt(u, u.x, u.y), z1 = G.gzAt(u, nx, ny), stZ = G.map.def.step;
+      // up a face: up it first and then over the lip; off one: out over the edge and then down (10-04, Griz: "can we move them vertical"); a longer step for a taller face (ui.js unitPos)
+      var cliffM = z1 - z0 > stZ ? 'climb' : z0 - z1 > stZ ? 'drop' : null, stF = STEP_FRAMES + (cliffM ? 2 * Math.round(Math.abs(z1 - z0) / stZ) : 0);
+      if (cDC) { // (a cliff over 5 ft: SRD 5.1, "climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check" -- G.climbDC; a 5 ft ledge is pulled up onto)
+        var ce0 = RU.checkEdges(u, 'str'), cr = ce0.dis.length && !ce0.adv.length ? Math.min(D.d(20), D.d(20)) : ce0.adv.length && !ce0.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb = G.athletics(u), ct = cr + cb;
         this.card(['{y}' + nameOf(u) + '{/} climbs: Athletics d20 ' + cr + ' ' + RU.sign(cb) + ' = ' + ct + ' against DC ' + cDC + ' (' + csN * 2.5 + ' ft)  ' + (ct >= cDC ? '{n}UP{/}' : '{o}SLIPS{/}')], 160);
         if (ct < cDC) {
           if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; }
-          // over 10 ft, a miss is a fall from the face, to the foot of it (10-04, Griz: "climbs > 10 = str check or fall"; SRD 5.1 Falling: 1d6 bludgeoning for every 10 feet, and prone)
-          if (csN * 2.5 > 10) { var cFt = csN * 2.5, cFd = D.roll(Math.floor(cFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' falls ' + cFt + ' ft from the face: ' + cFd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, cFd.total, 'bludgeoning', {}); u.conds.prone = true; }
-          u.anim = 'idle'; return;
+          // the slip, seen: up the face a way and back down to the foot of it, prone (10-04, Griz: "can we move them vertical and drop to prone on failed climb?"); over 10 ft it
+          // is a fall (Griz: "climbs > 10 = str check or fall"; SRD 5.1 Falling: 1d6 bludgeoning for every 10 feet)
+          u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(stF, true), mode: 'slip', peak: (z1 - z0) * 0.6 }; u.anim = 'idle';
+          yield stF;
+          var cFt = csN * 2.5;
+          if (cFt > 10) { var cFd = D.roll(Math.floor(cFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' falls ' + cFt + ' ft from the face: ' + cFd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, cFd.total, 'bludgeoning', {}); }
+          else this.card(['{o}' + nameOf(u) + ' slides back down the face and lands prone.{/}'], 200);
+          u.conds.prone = true; u.anim = 'idle'; return;
         }
       }
-      u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: this.pace(STEP_FRAMES, true) }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
+      u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(stF, true), mode: cliffM }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
-      var dropFt = G.map.def.climb && !u.flies ? (z0 - G.gzAt(u, nx, ny)) / G.map.def.step * 2.5 : 0; // (a drop down a cliff: SRD 5.1 Falling -- 1d6 bludgeoning for every 10 feet, and it lands prone)
-      if (dropFt >= 10) { var fd = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft: ' + fd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, fd.total, 'bludgeoning', {}); u.conds.prone = true; }
+      var dropFt = G.map.def.climb && !u.flies && !u.climbs ? (z0 - z1) / stZ * 2.5 : 0; // (a drop down a cliff: SRD 5.1 Falling -- 1d6 bludgeoning for every 10 feet, and it lands prone; one with a climb speed climbs down)
       if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } // (moved: what it has walked this turn -- the Thief's Supreme Sneak asks)
       this.keepInView(u);
-      yield STEP_FRAMES;
+      yield stF;
+      // the landing, once it is down: the walk ends there, flat (it gets up on its next move, for half its speed)
+      if (dropFt >= 10) { var fd = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft: ' + fd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, fd.total, 'bludgeoning', {}); u.conds.prone = true; u.anim = 'idle'; if (u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); } return; }
       // hidden no more (SRD 5.1: "You can't hide from a creature that can see you clearly"): one hidden who steps where a foe sees it clearly is found, and
       // one hidden from the mover that the mover now sees clearly (10-01c, the rogue runner: she crossed 50 ft of lit floor hidden and struck with advantage)
       // (10-04, Griz's notion: a Stealth total holds outside every foe's 15 ft -- the square it stands in and the eight round it -- and inside, each square she moves

@@ -25,7 +25,7 @@
 window.D16.MAPS.gulch = {
   name: 'Web Gulch',
   sub: 'the strung end',
-  step: 10,
+  step: 10, climb: 2, // the ledge's 5 ft face can be climbed (10 ft of movement, no check: a body pulls itself up a 5 ft ledge) or dropped, the ramp still the free way up -- 10-04, Griz: "2 - Agreed" (handoff-2026-10-04-climbing-the-other-maps.md; the bench: no fight on it changed)
   ground: 'earth', // the gulch is open to the sky (the 8-bit game's `gulch` is an outdoor ground)
   rows: [
     '##################',
@@ -97,7 +97,7 @@ window.D16.MAPS.camp = {
   name: 'The Cut Seal',
   sub: 'the king\'s road, leg one: the camp',
   dark: true, lights: [[9, 6, 20, 'fire']], // torchdark (09-28): dark ground; the goblins' fire
-  step: 10,
+  step: 10, climb: 2, // the ledge's 5 ft face can be climbed (10 ft of movement, no check: a body pulls itself up a 5 ft ledge) or dropped, the ramp still the free way up -- 10-04, Griz: "2 - Agreed" (handoff-2026-10-04-climbing-the-other-maps.md; the bench: no fight on it changed)
   rows: [
     '####################',
     '##.......LLLL.....##',
@@ -212,7 +212,7 @@ window.D16.MAPS.lamp = {
   name: 'Third Lamp',
   sub: 'the king\'s road: the station, taken',
   dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
-  step: 10,
+  step: 10, climb: 2, // the ledge's 5 ft face can be climbed (10 ft of movement, no check: a body pulls itself up a 5 ft ledge) or dropped, the ramp still the free way up -- 10-04, Griz: "2 - Agreed" (handoff-2026-10-04-climbing-the-other-maps.md; the bench: no fight on it changed)
   rows: [
     '####################',
     '###...LLLLLLLL...###',
@@ -242,7 +242,7 @@ window.D16.MAPS.threshold = {
   sub: 'the made road\'s end',
   noBurrow: true, // (Deepholm's door: dwarven work underfoot, nothing comes up through it -- Griz, 10-01d, "Dwarven Halls seems like a yes")
   dark: true, lights: [[9, 1, 20, 'glow']], // torchdark (09-28): dark ground; "a light that is not a lamp" at the door
-  step: 10,
+  step: 10, climb: 2, // the ledge's 5 ft face can be climbed (10 ft of movement, no check: a body pulls itself up a 5 ft ledge) or dropped, the ramp still the free way up -- 10-04, Griz: "2 - Agreed" (handoff-2026-10-04-climbing-the-other-maps.md; the bench: no fight on it changed)
   rows: [
     '####################',
     '#######LLLLLL#######',
@@ -530,7 +530,7 @@ window.D16.MAPS.siphon = {
   name: 'The Siphon Stair',
   sub: 'the Warrens, holding the stair',
   dark: true, // torchdark (09-28): dark ground (the 8-bit map's `dark`), no light of its own
-  step: 10,
+  step: 10, climb: 2, // the ledge's 5 ft face can be climbed (10 ft of movement, no check: a body pulls itself up a 5 ft ledge) or dropped, the ramp still the free way up -- 10-04, Griz: "2 - Agreed" (handoff-2026-10-04-climbing-the-other-maps.md; the bench: no fight on it changed)
   rows: [
     '####################',
     '######........######',
@@ -1120,7 +1120,7 @@ window.D16.MAPS.cistern = {
   dark: true,
   lights: [[11, 10, 15, 'gold'], [4, 1, 20, 'fire'], [17, 5, 40, 'violet', 1]],
   stone: 'slate', step: 10, noBurrow: true,
-  climb: 2, // the cliffs of two steps (5 ft) can be scaled -- SRD 5.1: each foot costs an extra foot, and a Strength (Athletics) check (DC 10) -- or dropped (a fall under 10 ft)
+  climb: 2, // the cliffs of two steps (5 ft) can be scaled -- SRD 5.1: each foot costs an extra foot; a 5 ft ledge takes no check since 10-04 (grid.js G.climbDC) -- or dropped (a fall under 10 ft)
   heights: [
     '0000000000000000000000',
     '0005555555555555555000',
@@ -1168,7 +1168,8 @@ window.D16.MAPS.cistern = {
 
 // The Climbing Floor (10-04, Griz: "what's the vertical range possible with the map builder -- experiment with climbing variations"): one floor (0) and six towers whose south faces
 // are cliffs of 2, 3, 4, 6, 9 and 12 steps (5, 7.5, 10, 15, 22.5 and 30 ft; a step is 2.5 ft). `climb: 12` lets a body of one square scale up to that many steps: each foot climbed costs an
-// extra foot (SRD 5.1), and a Strength (Athletics) check, DC 10 for two steps and 2 more for every step above; a drop of 10 ft or more is 1d6 bludgeoning a 10 ft and lands prone
+// extra foot (SRD 5.1: 5 ft of movement a step, so the 30 ft face is 60 and takes a Dash), and over 5 ft a Strength (Athletics) check, DC 12 at three steps and 2 more for every step above -- a miss
+// slides back prone, and over 10 ft falls (10-04, grid.js G.climbDC, battle.js moveAlong); a drop of 10 ft or more is 1d6 bludgeoning a 10 ft and lands prone
 // (SRD 5.1 Falling). The last tower's height is the base-36 digit `c`: a `heights` digit reads 0-9 then a-z, up to 35 steps. A stair of one-step squares in the south-east corner is the
 // control (it needs no climb). Daylight: no `dark`.
 window.D16.MAPS.climbfloor = {
