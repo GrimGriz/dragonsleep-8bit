@@ -1216,65 +1216,83 @@ window.D16.MAPS.climbfloor = {
   foes: [],
   wave: null
 };
-// The top of the Edifice (10-04, Griz: "can we map fountain street to the top of the ediface (outer walls of solskraft) with room to fight on top?"; "Dwarven place with high ceilings (15?) 3 floors"):
-// Fountain Street runs along the foot of Solskaft's facade (wiki fountain-street.md, solskaft.md), three dwarven floors of 15 ft -- about 45 ft, 18 steps, `i` -- with the falls' pool at the foot and a
-// deck on top, five squares deep behind a parapet of merlons (P), where a band can fight. THE WAYS UP (the seat's lean, handoff-2026-10-04-the-edifice-top.md): the middle ten columns of the face are SHELVED, a
-// sill at each floor (rows 7 and 6, 6 and 12 steps: three 15 ft climbs, DC 18 each); either side the face is one sheer 45 ft with nothing to hold (a Rope & Grapple, or the rope the dwarves left hung at the west end
-// -- ropes below); and the free way is a stair of one-step squares cut up the east end (col 25, then col 24). The deck, the falls' head (~) and the stair's top are in the invented register. Daylight: no `dark`.
+// The top of the Edifice (10-04, Griz: "can we map fountain street to the top of the ediface (outer walls of solskraft) with room to fight on top?"; "Dwarven place with high ceilings (15?) 3 floors"; then,
+// "on the top a waterfall from the back of the mountain pours into the dwarven structure. The third floor is where they grow surface foods (lil orchard, etc)", "the orchard deck is on the third floor with
+// magically harder than glass skylights - with an area on the 3rd floor with a circle cut out - the shaft of light descends to first floor interior", "the monster has to climb up the ediface"). Fountain
+// Street runs along the foot of Solskaft's facade, laid out after the 8-bit's Silverton (content/maps/silverton.json: the falls at the middle, fountains along the foot, the water out east): THREE dwarven floors
+// of 15 ft, so the THIRD FLOOR -- the orchard -- stands at 30 ft (12 steps, `c`); the skylights are its ceiling (the engine has none: they are only the light). The facade's lip has piers (P) and arches
+// (the openings a climber comes in by); the falls pour in at the back wall, run down the middle of the orchard in a channel, and spill over the lip into the pool at the street. West of them is the Sunshaft: a circle
+// cut in the floor, down to the first floor (a 30 ft drop; a stair winds down its rim, the seam of it a cliff). East of them the orchard: grass beds, trees (cover), fences. THE WAYS UP: a middle band of the face
+// is SHELVED (a 15 ft sill under the lip, two climbs of DC 18), a stair of one-step squares up the east end (col 38), a rope the dwarves left hung at the west end, and a Rope & Grapple thrown up the 30 ft
+// face from the street (DC 10 DEX, within its 30 ft). `doors` mark the front doors -- walking in one and coming out up top for a movement cost is Griz's notion, NOT built (10-04: "don't build that in").
+// Daylight: no `dark`. The deck, falls, orchard, piers, shaft, sills, stair and rope are the invented register (`edifice-top`).
 window.D16.MAPS.edifice = {
   name: 'The Edifice',
-  sub: 'Fountain Street, and the top of Sólskaft',
-  stone: 'grey', step: 10, noBurrow: true, climb: 6, // (a hand scales 15 ft at most -- the sills; the sheer 45 ft takes a rope or the stair)
-  ropes: [[4, 5, 4, 6]], // a rope the dwarves left hung from the parapet at the west end (the top square, the foot square)
+  sub: 'Fountain Street, and the orchard on the third floor of Sólskaft',
+  stone: 'grey', step: 10, noBurrow: true, climb: 6, // (a hand scales 15 ft at most -- the sills; the sheer 30 ft takes a rope, a grapple or the stair)
+  ropes: [[3, 11, 3, 12]], // a rope the dwarves left hung from the lip at the west end (the top square, the foot square)
+  doors: [[8, 12, 'a front door'], [30, 12, 'the vault door'], [23, 12, 'a front door']], // (marked only)
   heights: [
-    '00000000000000000000000000',
-    '0iiiiiiiiiiiiiiiiiiiiiiii0',
-    '0iiiiiiiiiiiiiiiiiiiiiiii0',
-    '0iiiiiiiiiiiiiiiiiiiiiiii0',
-    '0iiiiiiiiiiiiiiiiiiiiiiii0',
-    '0iiiiiiiiiiiiiiiiiiiiiiii0',
-    '00000000cccccccccc000000h0',
-    '000000006666666666000000g0',
-    '000000000000000000000000f0',
-    '000000000000000000000000e0',
-    '000000000000000000000000d0',
-    '000000000000000000000000c0',
-    '000000000000000000000000b0',
-    '000000000000000000000000a9',
-    '00000000000000000000000008',
-    '00000000000000000000000007',
-    '00000000000000000000000006',
-    '00000000000000000000000005',
-    '00000000000000000000000004',
-    '00000000000000000000000003',
-    '00000000000000000000000002',
-    '00000000000000000000000001'
+    '0000000000000000000000000000000000000000',
+    '0cccccccccccccccccccccccccccccccccccccc0',
+    '0cccccccccccccccccccccccccccccccccccccc0',
+    '0ccccccc233cccccccccccccccccccccccccccc0',
+    '0cccccc12344ccccccccccccccccccccccccccc0',
+    '0ccccc0100055cccccccccccccccccccccccccc0',
+    '0ccccccc00066cccccccccccccccccccccccccc0',
+    '0cccccbb00076cccccccccccccccccccccccccc0',
+    '0ccccccaa987ccccccccccccccccccccccccccc0',
+    '0ccccccc998cccccccccccccccccccccccccccc0',
+    '0cccccccccccccccccccccccccccccccccccccc0',
+    '0cccccccccccccccccccccccccccccccccccccc0',
+    '00000000000666666666666666666000000000c0',
+    '00000000000000000000000000000000000000b0',
+    '00000000000000000000000000000000000000a0',
+    '0000000000000000000000000000000000000090',
+    '0000000000000000000000000000000000000080',
+    '0000000000000000000000000000000000000070',
+    '0000000000000000000000000000000000000060',
+    '0000000000000000000000000000000000000050',
+    '0000000000000000000000000000000000000040',
+    '0000000000000000000000000000000000000030',
+    '0000000000000000000000000000000000000020',
+    '0000000000000000000000000000000000000010',
+    '0000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000',
+    '0000000000000000000000000000000000000000'
   ],
   rows: [
-    '##########################',
-    '#==========~~~~==========#',
-    '#==========~~~~==========#',
-    '#========================#',
-    '#========================#',
-    '#=P===P===P===P===P==P===#',
-    '#==~~===============~~===#',
-    '#========================#',
-    '#===========~~===========#',
-    '#========================#',
-    '#========================#',
-    '#========================#',
-    '#========================#',
-    '#=========================',
-    '#=========================',
-    '#=========================',
-    '#=========================',
-    '#########=======#######===',
-    '#########=======#######===',
-    '#########=======#######===',
-    '#########=======#######===',
-    '#########=======#######==='
+    '########################################',
+    '#gggggggggggggggggg~~gggggggggggggggggg#',
+    '#gggggggggggggTgTgg~~ggggTggTgg=ggTgTgg#',
+    '#ggTgggg===gggggggg~~ggggggggTg=ggggggg#',
+    '#gggggg=====ggggggg~~ggggTggTgg=ggTgTgg#',
+    '#ggggg=======gggggg~~gggggfffff=ggggggg#',
+    '#ggggg=======gggggg~~gg===============g#',
+    '#ggggg=======gggggg~~gggggggggg=ggggggg#',
+    '#gggggg=====ggggggg~~ggggTggTgg=ggTgTgg#',
+    '#ggTgggg===gggTgTgg~~gggggggggg=gTggggg#',
+    '#==================~~==================#',
+    '#P===PP===PP===PP==~~P===PP===PP===PP==#',
+    '#==================~~==================#',
+    '#==~====~====~===~~~~~~===~====~====~==#',
+    '#================~~~~~~================#',
+    '#======================================#',
+    '#======================================#',
+    '#======================================#',
+    '#======================================#',
+    '#======================================#',
+    '#======================================#',
+    '#======================================#',
+    '###############==========############==#',
+    '###############==========############==#',
+    '###############==========############==#',
+    '###############==========############==#',
+    '###############==========############==#',
+    '###############==========############==#'
   ],
-  entry: [[10, 20], [11, 20], [12, 20], [13, 20], [11, 19]],
+  entry: [[19, 26], [20, 26], [21, 26], [18, 26], [19, 25]],
   foes: [],
   wave: null
 };

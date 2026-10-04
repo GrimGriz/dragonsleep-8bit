@@ -38,7 +38,7 @@
     // nothing this turn's move reaches is in reach of the target, on a map with a high face (10-04, the Edifice: the AI stood at the foot of a 45 ft face, nearest the one it hunts, and
     // the stair round the east end was never "closer"): the way is the cheapest whole route to any square in reach of it, walked as far as the move allows
     if (bs >= 1000 && G.tall && G.tall() && !u.flies) {
-      var far = G.reach(u, 600, { noRope: true }), goal = null, gc = Infinity, rch = reach || G.reachOf(u);
+      var far = G.reach(u, 600, { noRope: true, maxStep: u.speed || 30 }), goal = null, gc = Infinity, rch = reach || G.reachOf(u);
       Object.keys(far).forEach(function (k) { var f = far[k]; if (f.stand && f.cost < gc && G.dist(u, tgt, f.x, f.y) <= rch) { gc = f.cost; goal = f; } });
       var route = goal && G.path(far, goal.x, goal.y);
       if (route) for (var ri = route.length - 1; ri >= 0; ri--) { var re = rm[route[ri][0] + ',' + route[ri][1]]; if (re && re.stand) return re; }

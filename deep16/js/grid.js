@@ -126,6 +126,7 @@
         var sc = G.stepCost(u, c.x, c.y, nx, ny, o);
         if (sc === Infinity) continue;
         if (fear) sc += G.fallFear(u, c.x, c.y, nx, ny); // (an AI-run walker weighs a fall: G.fallFear)
+        if (o && o.maxStep && sc > o.maxStep) continue; // (a step dearer than a whole move can never be taken: the AI's far route, ai.js approach)
         var nc = c.cost + sc;
         if (nc > budget) continue;
         var k = nx + ',' + ny;
