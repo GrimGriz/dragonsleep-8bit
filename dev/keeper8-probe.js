@@ -48,12 +48,16 @@
     g = fresh(STAIR); stub('win'); fin = play(DS.SCRIPTS.stair, ['WADE']);
     var o = sent[0] || {};
     check('WADE IN: one fight on the grid, ' + JSON.stringify({ deep16: o.deep16, start: o.start, enemies: o.enemies, canRun: o.canRun }) + '; won, the five up (' + fl(g) + ')',
-      fin && sent.length === 1 && o.deep16 === 'keeper' && o.start === 'ledge' && o.canRun === false && (o.enemies || []).join() === 'keeper' && g.flags.keeperDone === 1 && g.flags.fiveRecovered === 1 && g.count('fivetokens') === 1 && heard('w.keeperGone'));
+      fin && sent.length === 1 && o.deep16 === 'keeper' && o.start === 'ledge' && o.canRun === true && (o.enemies || []).join() === 'keeper' && g.flags.keeperDone === 1 && g.flags.fiveRecovered === 1 && g.count('fivetokens') === 1 && heard('w.keeperGone'));
+    // ---- WADE IN and out again (10-04, Griz: "Keeper Fight lacks fight escape"): a run leaves it awake and unbeaten, nothing recovered
+    g = fresh(STAIR); stub('run'); fin = play(DS.SCRIPTS.stair, ['WADE']);
+    check('WADE IN, then LEAVE THE FIGHT (the grid says run): the Keeper awake and unbeaten, the five still down (' + fl(g) + ')',
+      fin && sent.length === 1 && g.flags.keeperAwake === 1 && !g.flags.keeperDone && !g.flags.fiveRecovered && g.count('fivetokens') === 0 && !heard('w.keeperGone'));
     // ---- the mark: a hand on it starts the fight there, by the rune
     g = fresh(MARK); stub('win'); fin = play(DS.SCRIPTS.mark, ['PUT']);
     o = sent[0] || {};
     check('PUT A HAND ON IT: "' + L('w.markWake').slice(0, 34) + '..." (' + heard('w.markWake') + '), then the fight at once, ' + JSON.stringify({ deep16: o.deep16, start: o.start, enemies: o.enemies, canRun: o.canRun }) + '; won, the five up as WADE IN\'s win (' + fl(g) + ')',
-      fin && sent.length === 1 && o.deep16 === 'keeper' && o.start === 'rune' && o.canRun === false && g.flags.keeperAwake === 1 && g.flags.keeperDone === 1 && g.flags.fiveRecovered === 1 && g.count('fivetokens') === 1 && heard('w.markWake') && heard('w.keeperGone'));
+      fin && sent.length === 1 && o.deep16 === 'keeper' && o.start === 'rune' && o.canRun === true && g.flags.keeperAwake === 1 && g.flags.keeperDone === 1 && g.flags.fiveRecovered === 1 && g.count('fivetokens') === 1 && heard('w.markWake') && heard('w.keeperGone'));
     var g2 = g; stub('win'); fin = play(DS.SCRIPTS.mark, []);
     var fin2 = play(DS.SCRIPTS.stair, []);
     check('after it: the mark is only a mark (no ask, no fight: ' + sent.length + '), the stair still ("' + L('w.stairDone') + '" ' + heard('w.stairDone') + ')', fin && fin2 && sent.length === 0 && heard('w.stairDone') && g2.count('fivetokens') === 1);
@@ -91,7 +95,7 @@
     }
     var sw = seam(DS.SCRIPTS.stair, ['WADE'], STAIR);
     check('through the seam, WADE IN: the grid is handed ' + JSON.stringify({ fight: sw.fight, start: sw.opts && sw.opts.start, canRun: sw.opts && sw.opts.canRun }) + '; the grid\'s win comes back and the five come up (' + fl(sw.g) + ')',
-      sw.iframe && sw.fight === 'keeper' && sw.opts && sw.opts.start === 'ledge' && sw.opts.canRun === false && sw.g.flags.fiveRecovered === 1 && sw.g.flags.keeperDone === 1);
+      sw.iframe && sw.fight === 'keeper' && sw.opts && sw.opts.start === 'ledge' && sw.opts.canRun === true && sw.g.flags.fiveRecovered === 1 && sw.g.flags.keeperDone === 1);
     var sm = seam(DS.SCRIPTS.mark, ['PUT'], MARK);
     check('through the seam, a hand on the mark: the grid is handed ' + JSON.stringify({ fight: sm.fight, start: sm.opts && sm.opts.start }) + '; won, the five up (' + fl(sm.g) + ')',
       sm.iframe && sm.fight === 'keeper' && sm.opts && sm.opts.start === 'rune' && sm.g.flags.fiveRecovered === 1 && sm.g.flags.keeperDone === 1);

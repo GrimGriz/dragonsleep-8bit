@@ -83,6 +83,7 @@
     // whoever took it up (the 8-bit's lead at the station, or whoever walked onto it here), else the lead (RULED 09-30g, Griz: "Only the
     // character that picked up the bucket should be able to use it as an item")
     var has = (B.inv || []).some(function (s) { return s.id === 'bucket' && s.n > 0; });
+    if (F.bucket) W.layCrate(B, F.bucket); // (the deep station's crate under the bucket, its lamp above (data/maps.js wet lights) -- 10-04, Griz: "a visible draw on the grid")
     if (!has && !f8.otyughFed && F.bucket) W.layBucket(B, F.bucket);
     if (has) { var cw = ours(B).filter(function (w) { return w.id === f8.bucketBy && w.hp > 0; })[0] || ours(B).filter(function (w) { return w.hp > 0; })[0]; if (cw) { B.wet.bucketBy = cw.id; B.flags8.bucketBy = cw.id; } }
     // in by the rim (the 8-bit's picture squares, 09-30g: "the 8-bit landlord trigger should pull them into the grid area at the trigger spot"):
@@ -232,17 +233,29 @@
   // ------------------------------------------------------------------ the bucket: on its square, picked up by walking onto it
   W.layBucket = function (B, at) {
     var sq = G.map.at(at[0], at[1]); if (!sq) return;
+    // (10-04, Griz: "double check the sprite we're using to make it more a visible draw on the grid": half again as big, lifted onto the crate, lit by its lamp)
     var p = { kind: 'bucket', sq: sq, depth: at[0] + at[1] + 0.45, gz: 0, draw: function (ctx) {
-      var iso = D.iso, c = iso.center(at[0], at[1], 0), s = iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y);
-      ctx.fillStyle = '#2a1a10'; ctx.fillRect(x - 5, y - 9, 10, 9);                         // the staves
-      ctx.fillStyle = '#6b4a2c'; ctx.fillRect(x - 4, y - 9, 8, 8);
-      ctx.fillStyle = '#8a6a44'; ctx.fillRect(x - 4, y - 9, 2, 8); ctx.fillRect(x + 1, y - 9, 1, 8);
-      ctx.fillStyle = '#9c9c9c'; ctx.fillRect(x - 5, y - 7, 10, 1); ctx.fillRect(x - 5, y - 3, 10, 1); // the hoops
-      ctx.fillStyle = '#1a120c'; ctx.fillRect(x - 3, y - 10, 6, 1);                          // the mouth, dark
-      ctx.strokeStyle = '#7a6a54'; ctx.beginPath(); ctx.arc(x, y - 10, 5, Math.PI, 0); ctx.stroke(); // the rope handle
+      var iso = D.iso, c = iso.center(at[0], at[1], 0), s = iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y) - 7;
+      ctx.fillStyle = '#2a1a10'; ctx.fillRect(x - 7, y - 13, 14, 13);                        // the staves
+      ctx.fillStyle = '#7a5634'; ctx.fillRect(x - 6, y - 13, 12, 12);
+      ctx.fillStyle = '#a07a4e'; ctx.fillRect(x - 6, y - 13, 3, 12); ctx.fillRect(x + 1, y - 13, 2, 12);
+      ctx.fillStyle = '#b4b4b4'; ctx.fillRect(x - 7, y - 10, 14, 1); ctx.fillRect(x - 7, y - 4, 14, 1); // the hoops
+      ctx.fillStyle = '#1a120c'; ctx.fillRect(x - 5, y - 14, 10, 2);                         // the mouth, dark
+      ctx.strokeStyle = '#9a8a70'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(x, y - 14, 7, Math.PI, 0); ctx.stroke(); // the rope handle
     } };
     G.map.props.push(p);
     B.wet.bucket = { at: at, prop: p };
+  };
+  // the deep station's crate, where the 8-bit's 'k' stands (the grid's rows have floor there): always drawn, the bucket on it while it lies (10-04)
+  W.layCrate = function (B, at) {
+    var sq = G.map.at(at[0], at[1]); if (!sq) return;
+    G.map.props.push({ kind: 'crate', sq: sq, depth: at[0] + at[1] + 0.4, gz: 0, draw: function (ctx) {
+      var iso = D.iso, c = iso.center(at[0], at[1], 0), s = iso.toScreen(c.x, c.y), x = Math.round(s.x), y = Math.round(s.y);
+      ctx.fillStyle = '#2a1a10'; ctx.fillRect(x - 11, y - 9, 22, 11);                        // the crate
+      ctx.fillStyle = '#6e4e2e'; ctx.fillRect(x - 10, y - 8, 20, 9);
+      ctx.fillStyle = '#8a6840'; ctx.fillRect(x - 10, y - 8, 20, 2); ctx.fillRect(x - 10, y - 3, 20, 1); // the planks' edges
+      ctx.fillStyle = '#3a2816'; ctx.fillRect(x - 1, y - 8, 2, 9); ctx.fillRect(x - 10, y - 5, 20, 1); // the nailed cross
+    } });
   };
   W.takeBucket = function (B, u) {
     var bk = B.wet.bucket; if (!bk) return;

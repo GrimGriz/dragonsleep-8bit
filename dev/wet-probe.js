@@ -36,6 +36,13 @@
     ok('no start card: the fight\'s first beat is not the entry card (' + JSON.stringify(B.fight.noCards) + ')', B.fight.noCards === true);
     ok('a hero may not walk into the deep water, nor the pools: ' + G.canStand(lead, g8(6, 5)[0], g8(6, 5)[1]) + ', ' + G.canStand(lead, g8(20, 11)[0], g8(20, 11)[1]), !G.canStand(lead, g8(6, 5)[0], g8(6, 5)[1]) && !G.canStand(lead, g8(20, 11)[0], g8(20, 11)[1]));
     ok('the bucket on its square (the 8-bit 13, 5): ' + JSON.stringify(B.wet.bucket && B.wet.bucket.at), B.wet.bucket && JSON.stringify(B.wet.bucket.at) === JSON.stringify(g8(13, 5)));
+    // 10-04 (Griz, the situations ear-file): the crate under the bucket and the lamp on it; the pool and its rim dressed stone
+    var cq = g8(13, 5);
+    ok('the deep station\'s crate under it, and its lamp: a crate prop on (13, 5), a map light there bright 10 ft gold (' + (B.lights || []).filter(function (l) { return l.kind === 'map'; }).map(function (l) { return [l.x, l.y, l.bright, l.color].join('/'); }).join(' ') + ')',
+      G.map.props.some(function (p) { return p.kind === 'crate' && p.sq === G.map.at(cq[0], cq[1]); }) && (B.lights || []).some(function (l) { return l.kind === 'map' && l.x === cq[0] && l.y === cq[1] && l.bright === 10 && l.color === 'gold'; }));
+    var sf = function (x, y) { var p = g8(x, y); return G.solidFloor(p[0], p[1]); };
+    ok('the pool and its rim are solid stone (noBurrowAt), the cave floor past them is not: (10,3) ' + sf(10, 3) + ', (6,5) ' + sf(6, 5) + ', (3,7) ' + sf(3, 7) + '; (13,5) ' + sf(13, 5) + ', (2,7) ' + sf(2, 7) + ', (20,11) ' + sf(20, 11),
+      sf(10, 3) && sf(6, 5) && sf(3, 7) && !sf(13, 5) && !sf(2, 7) && !sf(20, 11));
     ok('the ways out: the stair up and the south edge (' + B.exits.length + ' squares; the stair ' + B.exits.some(function (q) { return JSON.stringify(q) === JSON.stringify(g8(1, 12)); }) + ')', B.exits.some(function (q) { return JSON.stringify(q) === JSON.stringify(g8(1, 12)); }) && B.exits.some(function (q) { return q[0] === 18; }));
     // the pool ooze's ring, one of the nine round its puddle (29, 13)
     var h2 = ours(B)[1]; put(h2, 30, 14);
@@ -193,6 +200,12 @@
     var runs = [];
     [['jelly', [23, 14]], ['poolooze', [29, 13]], ['landlord', [9, 8]]].forEach(function (w) { for (var k = 0; k < 2; k++) { var F = battle({ embed: { at: w[1], wake: w[0] }, lvl: 4 }); runs.push(w[0] + ': ' + run(F)); } });
     ok('six whole fights run through, nothing thrown:\n      ' + runs.join('\n      '), !errs.length && runs.length === 6);
+    // ---- LEAVE THE FIGHT on the wheel wherever a fight allows running, greyed off a way out (10-04, Griz: "not on wheel")
+    var Lb = battle({ embed: { at: [23, 14], wake: 'jelly' } }), lu = ours(Lb)[0]; D.rules.startTurn(lu);
+    var lc = (Lb.commands(lu) || []).filter(function (c) { return c.id === 'leave'; })[0];
+    ok('LEAVE THE FIGHT on the wheel off a way out, greyed with the why: ' + JSON.stringify(lc && [lc.ok, lc.why]), !!lc && !lc.ok && /pale squares/.test(lc.why || ''));
+    var sx = southSquare(Lb, lu); put(lu, sx, 18); D.rules.startTurn(lu); lc = (Lb.commands(lu) || []).filter(function (c) { return c.id === 'leave'; })[0];
+    ok('on the south edge (' + sx + ', 18) it is live: ' + JSON.stringify(lc && [lc.ok, lc.why]), !!lc && lc.ok === true);
   } catch (e) { errs.push(String(e && e.stack || e).slice(0, 900)); }
   var pre = document.createElement('pre'); pre.textContent = 'WETPROBE ' + JSON.stringify({ checks: checks, errors: errs });
   document.body.appendChild(pre);

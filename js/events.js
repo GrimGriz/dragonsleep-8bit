@@ -905,7 +905,7 @@
     if (a !== 1) return;
     g.flags.keeperAwake = 1; DS.audio.sfx('splash'); yield DS.say(L('w.markWake'));
     // (10-03, Griz: the hand on the mark starts the fight there, the party by the rune -- DEEP16's floodstair geo.entryRune. Won, it goes as WADE IN's win: the five come up)
-    var r = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper', start: 'rune' });
+    var r = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: true, deep16: 'keeper', start: 'rune' }); // (canRun, 10-04, Griz: "Keeper Fight lacks fight escape" -- LEAVE THE FIGHT from the corridor's east end on the grid, once the wall is down; a run leaves it awake and unbeaten)
     if (r !== 'win') return;
     g.flags.keeperDone = 1;
     yield DS.say(L('w.keeperGone'));
@@ -929,15 +929,15 @@
       if (!g.has('rope')) { yield DS.say(L('w.noRope')); return; }
       if (g.flags.keeperAwake) {
         yield DS.say(L('w.ropeAwake'));
-        var r1 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper', start: 'rune' }); // (DEEP16: deep16/data/fights.js keeper; the mark woke it, so it is on them by the rune -- 10-03)
+        var r1 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: true, deep16: 'keeper', start: 'rune' }); // (DEEP16: deep16/data/fights.js keeper; the mark woke it, so it is on them by the rune -- 10-03)
         if (r1 !== 'win') return;
         g.flags.keeperDone = 1;
       }
       yield DS.say(L('w.ropeOut'));
     } else if (a === 1) {
       yield DS.say(L('w.wade'));
-      var r2 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: false, deep16: 'keeper', start: 'ledge' }); // (at the water's edge, on the ledge -- 10-03)
-      if (r2 !== 'win') return;
+      var r2 = yield* EV.fight(['keeper'], { bg: 'dwarf', music: 'boss', canRun: true, deep16: 'keeper', start: 'ledge' }); // (at the water's edge, on the ledge -- 10-03)
+      if (r2 !== 'win') { if (r2 !== 'lose') g.flags.keeperAwake = 1; return; } // (a run leaves it awake and unbeaten: the rope then fights it by the rune, as after the mark -- 10-04)
       g.flags.keeperDone = 1;
       yield DS.say(L('w.keeperGone'));
     } else return;

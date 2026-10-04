@@ -8,7 +8,7 @@
    BUILDING A MAP? ASK WHETHER ITS GROUND IS SOLID STONE (10-01d, Griz: "put something somewhere so that when an instance goes to build a
    new map it considers whether or not it should"). A burrower -- the bulette, the xorn, the ankheg, a purple worm, a blue dragon --
    goes under any floor but worked stone (SRD 5.1: burrowing is through "sand, earth, mud, or ice", never solid rock; Earth Glide is
-   through "unworked earth and stone"). `noBurrow: true` -- the whole floor is worked stone (a dwarven hall); `noBurrow: '='` -- these
+   through "unworked earth and stone"). `noBurrow: true` -- the whole floor is worked stone (a dwarven hall); `noBurrowAt: [[x, y, w, h]]` -- these squares (the Wet's dressed rim round the landlord's pool, 10-04); `noBurrow: '='` -- these
    squares are (the made road where it is whole, dressed blocks); none -- dig anywhere (a cave, a torn-up road: the Breach, on his word).
    Read by js/grid.js G.solidFloor and js/ai.js burrower. The testers are asked the same on situations.html.
    AND WHAT STONE IT IS (10-01e, Griz: "approve browser recolor with new field"): `stone: 'grey'` or `stone: 'slate'` draws the map's
@@ -1091,10 +1091,13 @@ window.D16.MAPS.bog = {
   var from8 = function (x, y, s) { return [y, W8 - (x + (s || 1))]; };
   var to8 = function (gx, gy) { return [W8 - 1 - gy, gx]; }; // (and back: a grid square to the 8-bit's -- the square the party walked off at, 09-30d)
   var at8 = function (list) { return list.map(function (p) { return from8(p[0], p[1]); }); };
+  var rect8 = function (x, y, w, h) { return [y, W8 - (x + w), h, w]; }; // (an 8-bit rect, turned with the map: the grid's [x, y, w, h])
   window.D16.MAPS.wet = {
     name: 'The Wet',
     sub: 'the Warrens, the settling pools',
-    dark: true, // (the 8-bit map's `dark`: no lamp of its own)
+    dark: true, // (the 8-bit map's `dark`; its one light is the deep station's lamp on the crate, below)
+    lights: [[from8(13, 5)[0], from8(13, 5)[1], 10, 'gold']], // (10-04, Griz: "put a light nearby the bucket ... a visible draw on the grid": a lamp left on the crate at the 8-bit's (13, 5), bright 10 ft, dim 10 more)
+    noBurrowAt: [rect8(3, 3, 10, 6)], // (10-04, Griz: "The tiles around the Landlords pool should be switched to solid stone": the pool and its rim, the 8-bit's x 3-12, y 3-8 -- dressed stone; nothing burrows under it or comes up through it)
     step: 10,
     deepWater: 'D~',
     rows8: R8, rows: rows, from8: from8, to8: to8,

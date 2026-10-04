@@ -33,10 +33,12 @@
   // Earth Glide (the xorn, the earth elemental; js/traits.js): through the rock ('#', the stalagmites), never a built wall, and it stands only
   // on open ground (pass: a square it may go through)
   function glides(u, x, y) { var s = G.map.at(x, y); return !!(u && u.earthGlide && s && (s.ch === '#' || s.ch === 'P') && x > 0 && y > 0 && x < G.map.w - 1 && y < G.map.h - 1); }
-  // worked stone underfoot (a map's `noBurrow`: true, the whole floor; or a string of the squares' characters, '=' the made road where it is
+  // worked stone underfoot (a map's `noBurrow`: true, the whole floor; `noBurrowAt`, rects [x, y, w, h] of its squares (the Wet's rim, 10-04); or a string of the squares' characters, '=' the made road where it is
   // whole -- data/maps.js's header, 10-01d): nothing burrows under it or comes up through it
   G.solidFloor = function (x, y) {
-    var nb = G.map && G.map.def && G.map.def.noBurrow; if (!nb) return false; if (nb === true) return true;
+    var def = G.map && G.map.def, nbA = def && def.noBurrowAt; // (10-04, Griz, the Wet: "The tiles around the Landlords pool should be switched to solid stone": rects in the grid's squares)
+    if (nbA && nbA.some(function (r) { return x >= r[0] && y >= r[1] && x < r[0] + r[2] && y < r[1] + r[3]; })) return true;
+    var nb = def && def.noBurrow; if (!nb) return false; if (nb === true) return true;
     var s = G.map.at(x, y); return !!(s && String(nb).indexOf(s.ch) >= 0);
   };
   function footWalkable(u, x, y, pass) {

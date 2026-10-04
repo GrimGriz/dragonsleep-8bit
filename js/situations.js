@@ -92,6 +92,12 @@
       look: 'From Fountain Street walk to the Warrens: Pete is heard, the tally book met, the five known, Skarn\'s gate stands open, and nothing below is done (the landlord unfed, the bucket where it sits). The road there is the 8-bit\'s own random fights at level 3, so this is also where the here-to-there table is felt by hand.',
       say: 'LEVEL THREE, THE GATES OPEN. All four of you just made level 3; Winters\' errands are run, and Skarn has opened his gate down to the wet. Nothing below it is done. Fountain Street.',
       flags: { heardPete: 1, heardWarrens: 1, tallyMet: 1, fiveKnown: 1, skarnOk: 1, skarnGateOpen: 1 }, map: 'silverton', x: 29, y: 8, dir: 'down' },
+    // 10-04, Griz: "Keeper Fight lacks fight escape" -- the stair with the Keeper unmet, for the way out by the corridor (made by the recipe at this file's head)
+    stair: { group: 'The base game', title: 'The flooded stair: the Keeper, and the way out', pt: '§5 the wet · the Keeper (new 10-04)', lvl: 4,
+      look: 'E on the water: WADE IN (the fight from the ledge), or step up to the mark on the north wall (22, 19), E, PUT A HAND ON IT (by the rune). On the grid his Ice Wall seals the hall three squares from the corridor; when it thaws (3 rounds) walk a hero to the corridor\'s east end -- the pale square -- and LEAVE THE FIGHT. Off that square the wheel shows it greyed and says why. A run leaves him awake: ROPE THEM OUT then fights him by the rune.',
+      say: 'The Warrens, the flooded stair. The water is just west of you; the dwarves\' mark is in the north wall above the landing.',
+      unset: ['keeperDone', 'keeperAwake', 'fiveRecovered', 'fiveDone', 'keeperWater', 'stairHook', 'markRead'], prep: function (G) { delete G.kills.keeper; var n = G.count('fivetokens'); if (n) G.take('fivetokens', n); },
+      map: 'warrens_d', x: 20, y: 21, dir: 'left' },
     gulch: { group: 'The base game', title: 'Web Gulch: the strung end', pt: '§7 the braiding ettercap · §11 the snared traveler', lvl: 3,
       look: 'The ettercap braids on its stump and stops when it sees you. One step right starts it. On the grid: the webs in the round, the web hazard (DEX or restrained), fire burning them. The cocoon down at (18, 17) is the snared traveler.',
       say: 'The ettercap is braiding just ahead; one step east and it sees you.',
