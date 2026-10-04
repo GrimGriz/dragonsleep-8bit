@@ -369,6 +369,18 @@ class Rig:
             wofs.append(len(widx))
         if col is None:
             col = np.full((nv, 3), 0.5)
+        col = np.asarray(col)[:, :3]
+        for obj, hexc in extras:      # (a held thing: its points taken back to where they'd sit at rest, wholly on its bone)
+            bpy.context.view_layer.update()
+            b = obj.parent_bone; dg = bpy.context.evaluated_depsgraph_get(); oe = obj.evaluated_get(dg); m2 = oe.to_mesh()
+            K = self.REST[b] @ self.arm.pose.bones[b].matrix.inverted() @ self.arm.matrix_world.inverted() @ oe.matrix_world
+            p2 = np.array([list(K @ v.co) for v in m2.vertices]); base = len(pos)
+            tris += [(base + p.vertices[0], base + p.vertices[k], base + p.vertices[k + 1]) for p in m2.polygons for k in range(1, len(p.vertices) - 1)]
+            for _ in range(len(p2)):
+                widx.append(idx[b]); wval.append(1.0); wofs.append(len(widx))
+            lin = [((int(hexc[i:i + 2], 16) / 255) / 12.92 if int(hexc[i:i + 2], 16) / 255 <= 0.04045 else (((int(hexc[i:i + 2], 16) / 255) + 0.055) / 1.055) ** 2.4) for i in (1, 3, 5)]
+            pos = np.vstack([pos, p2]); col = np.vstack([col, np.tile(lin, (len(p2), 1))])
+            oe.to_mesh_clear(); nv = len(pos)
         c = np.clip(col[:, :3], 0, 1); srgb = np.where(c <= 0.0031308, c * 12.92, 1.055 * np.power(c, 1 / 2.4) - 0.055)
         clean = lambda v: [clean(x) for x in v] if isinstance(v, (list, tuple, Vector)) else {k: clean(x) for k, x in v.items()} if isinstance(v, dict) else float(v) if isinstance(v, (int, float, np.floating)) and not isinstance(v, bool) else v
         R, checks = [], {}

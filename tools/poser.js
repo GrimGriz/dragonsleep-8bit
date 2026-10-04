@@ -56,8 +56,9 @@ class Rig {
     for (const n of [...this.NECK, this.HEAD]) { add(n, Q(PX, g('head') / k)); add(n, Q(PZ, g('hyaw') / k)); add(n, Q(PY, g('hroll') / k)); }
     if (this.JAW) add(this.JAW, Q(PX, g('jaw')));
     for (const s of 'ab') {
-      const A = this.ARM[s], L = this.LEG[s];
+      const A = this.ARM[s], L = this.LEG[s], sg = s === 'a' ? 1 : -1;
       add(A[0], Q(PX, g('shr' + s)));
+      add(A[0], Q(PY, -sg * g('shup' + s))); add(A[0], Q(PZ, -sg * g('shfw' + s)));
       add(A[1], Q(PX, g('sw' + s))); add(A[1], Q(PZ, g('out' + s)));
       add(A[2], Q(PX, g('el' + s))); add(A[2], Q(PZ, g('elz' + s)));
       add(A[3], Q(PX, g('wr' + s)));
@@ -134,8 +135,32 @@ class Rig {
       }
       for (const [s, v] of Object.entries(P.hands || {})) this.aim(d, [this.ARM[s][3]], [v]);
     }
-    return { M: this.solve(d, lift, shift, sway), J };
+    const M = this.solve(d, lift, shift, sway);
+    for (const s of 'ab') J['sh' + s] = posOf(M[this.ARM[s][1]]);
+    J.head = posOf(M[this.HEAD]); J.face = this.face(M);
+    return { M, J };
   }
+  face(M) {
+    // which way the face looks: the artist's front (-Y) carried by the head's whole turn
+    const g = new THREE.Quaternion().setFromRotationMatrix(M[this.HEAD].clone().setPosition(0, 0, 0).multiply(this.P0rot[this.HEAD].clone().transpose()));
+    return new THREE.Vector3(0, -1, 0).applyQuaternion(g);
+  }
+}
+
+function fit(P, keys, point, T, lim) {
+  // a drag that has no limb of its own to solve (the head's aim, a shoulder): turn `keys` (degrees) till point(P) sits on T, a few damped steps
+  for (let it = 0; it < 10; it++) {
+    const p0 = point(P), e = T.clone().sub(p0);
+    if (e.length() < 0.05) break;
+    const J = keys.map((k) => point({ ...P, [k]: (P[k] || 0) + 1 }).sub(p0));
+    const A = keys.map((_, i) => keys.map((_, j) => J[i].dot(J[j]) + (i === j ? 0.02 : 0))), b = keys.map((_, i) => J[i].dot(e));
+    const det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+    if (Math.abs(det) < 1e-9) break;
+    const dl = [(b[0] * A[1][1] - b[1] * A[0][1]) / det, (A[0][0] * b[1] - A[1][0] * b[0]) / det];
+    keys.forEach((k, i) => { P[k] = Math.max(-lim, Math.min(lim, (P[k] || 0) + Math.max(-12, Math.min(12, dl[i])))); });
+  }
+  keys.forEach((k) => { P[k] = Math.round(P[k] * 10) / 10; });
+  return P;
 }
 
 // ------------------------------------------------------------------ the data
@@ -226,7 +251,7 @@ function skin(target, M) {
 // ------------------------------------------------------------------ the handles
 const HANDLES = [];
 function handle(key, color, r, shape) {
-  const geo = shape === 'diamond' ? new THREE.OctahedronGeometry(r) : new THREE.SphereGeometry(r, 16, 12);
+  const geo = shape === 'diamond' ? new THREE.OctahedronGeometry(r) : shape === 'box' ? new THREE.BoxGeometry(r * 1.6, r * 1.6, r * 1.6) : new THREE.SphereGeometry(r, 16, 12);
   const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color, depthTest: false, transparent: true, opacity: 0.9 }));
   m.renderOrder = 10; m.userData.key = key; scene.add(m); HANDLES.push(m); return m;
 }
@@ -235,10 +260,11 @@ const H = {
   anka: handle('anka', CA, 2.2), ankb: handle('ankb', CB, 2.2), wra: handle('wra', CA, 2.2), wrb: handle('wrb', CB, 2.2),
   kpa: handle('kpa', CA, 1.3), kpb: handle('kpb', CB, 1.3), epa: handle('epa', CA, 1.3), epb: handle('epb', CB, 1.3),
   hda: handle('hda', CA, 1.6, 'diamond'), hdb: handle('hdb', CB, 1.6, 'diamond'), hip: handle('hip', 0xffffff, 2.0),
+  sha: handle('sha', CA, 1.7, 'box'), shb: handle('shb', CB, 1.7, 'box'), look: handle('look', 0xffe066, 1.9, 'diamond'),
 };
 const lineMat = new THREE.LineBasicMaterial({ color: 0x8890a0, depthTest: false, transparent: true, opacity: 0.6 });
 const poleLines = new THREE.LineSegments(new THREE.BufferGeometry(), lineMat); poleLines.renderOrder = 9; scene.add(poleLines);
-const POLE_R = 10, HAND_R = 9;
+const POLE_R = 10, HAND_R = 9, LOOK_R = 14;
 
 let last = null;     // (the last solve: the joints, for the handles and the drag)
 function refresh() {
@@ -270,6 +296,8 @@ function refresh() {
     }
   }
   H.hip.position.copy(rig.P0t[rig.ROOTS[0]].clone().add(new THREE.Vector3(P.sway || 0, P.shift || 0, P.lift || 0)));
+  H.sha.position.copy(J.sha); H.shb.position.copy(J.shb);
+  const lk = J.head.clone().addScaledVector(J.face, LOOK_R); H.look.position.copy(lk); lines.push(J.head, lk);
   poleLines.geometry.setFromPoints(lines);
   syncSliders(P); syncFrames(); status(low);
 }
@@ -315,6 +343,10 @@ function moveHandle(key, at) {
     const d = at.clone().sub(J['elb' + s]).normalize(); P['epole' + s] = [r2(d.x), r2(d.y), r2(d.z)];
   } else if (key.startsWith('hd')) {
     const d = at.clone().sub(J['wr' + s]).normalize(); P.hands = P.hands || {}; P.hands[s] = [r2(d.x), r2(d.y), r2(d.z)];
+  } else if (key === 'look') {     // the head's aim: its pitch and turn (spread down the neck, as the sliders do)
+    fit(P, ['head', 'hyaw'], (Q_) => { const r = rig.pose(Q_).J; return r.head.clone().addScaledVector(r.face, LOOK_R); }, at, 85);
+  } else if (key.startsWith('sh')) {   // a shoulder: the collarbone up or down, forward or back (the arm rides it: its wrist is set from the shoulder)
+    fit(P, ['shup' + s, 'shfw' + s], (Q_) => rig.pose(Q_).J['sh' + s], at, 45);
   } else if (key === 'hip') {
     const d = at.clone().sub(rig.P0t[rig.ROOTS[0]]); P.sway = r2(d.x); P.shift = r2(d.y); P.lift = r2(d.z);
   }
@@ -324,8 +356,8 @@ function moveHandle(key, at) {
 // ------------------------------------------------------------------ the panel
 const SL = [['lift', -30, 30, 0.5], ['shift', -30, 30, 0.5], ['sway', -15, 15, 0.5], ['body', -100, 100, 1], ['bodyyaw', -60, 60, 1], ['lean', -50, 60, 1],
   ['twist', -60, 60, 1], ['tilt', -40, 40, 1], ['head', -60, 60, 1], ['hyaw', -80, 80, 1], ['hroll', -90, 90, 1], ['jaw', -40, 40, 1],
-  ['finga', -30, 40, 1], ['fingb', -30, 40, 1], ['yawa', -40, 60, 1], ['pitcha', -40, 80, 1], ['yawb', -40, 60, 1], ['pitchb', -40, 80, 1]];
-const SLN = { yawa: 'foot L yaw', pitcha: 'foot L pitch', yawb: 'foot R yaw', pitchb: 'foot R pitch', finga: 'fingers L', fingb: 'fingers R' };
+  ['finga', -30, 40, 1], ['fingb', -30, 40, 1], ['shupa', -45, 45, 1], ['shfwa', -45, 45, 1], ['shupb', -45, 45, 1], ['shfwb', -45, 45, 1], ['yawa', -40, 60, 1], ['pitcha', -40, 80, 1], ['yawb', -40, 60, 1], ['pitchb', -40, 80, 1]];
+const SLN = { shupa: 'shoulder L up', shfwa: 'shoulder L fwd', shupb: 'shoulder R up', shfwb: 'shoulder R fwd', yawa: 'foot L yaw', pitcha: 'foot L pitch', yawb: 'foot R yaw', pitchb: 'foot R pitch', finga: 'fingers L', fingb: 'fingers R' };
 const sliders = {};
 for (const [k, lo, hi, st] of SL) {
   const div = document.createElement('div'); div.className = 'sl';
