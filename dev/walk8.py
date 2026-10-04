@@ -32,7 +32,8 @@ S6 = 'Silverton (Fountain Street), rested'
 # 2 draughts, 2 bat-wing pies, 3 oil, 2 torches, a tent, 1,500 silver, the +2 weapons, the Ring of Binding on the lead) with the leg's own
 # boss undone. from: [map, x, y]; to: the door (a trigger's tiles, or a step beside a `use` trigger; `arrive`: on the map). lvl: the
 # DEEP16 ladder's (deep16/data/fights.js) where the boss has a rung (Griz, 10-03: "yes, and rerun those legs"), else the situation's, else a guess.
-# mid: the walk starts where no map was just loaded (a boss's door, a lamp's bed), so the encounter countdown starts part-run (bench8.js).
+# mid: the walk starts where no map was just loaded (a boss's door, a lamp's bed). Since 10-03 the countdown carries across map loads (js/world.js,
+# RULED: "a map load is not a rest"), so every leg's countdown starts part-run (bench8.js) and `mid` only names the start.
 LEGS = [
     # ---------------------------------------------------------------- the base game: every leg from Silverton, rested at the inn
     ('doors', dict(group='base', title='Silverton to the Doors (the wall at the top of the north road)', lvl=4, guess='lvl: no fight there; round six\'s 4',

@@ -223,8 +223,9 @@
         });
       }
       var p0 = path[0]; if (first) F.load(p0.map, p0.x, p0.y, 'down');
-      if (first && W.mid) { // a start mid-map (a boss's door, a lamp's bed): no map was loaded, so the countdown is somewhere in its run, not fresh (Field.load's
-        // resetEncounter): the remainder a walker finds at a random step -- a run of length L in the zone's rate, drawn as often as it is long, then 1..L of it
+      if (first) { // the countdown is somewhere in its run at any leg's start, not fresh: since 10-03 it carries across map loads (js/world.js Field.load, RULED: "a map
+        // load is not a rest"), so a door is like a boss's door or a lamp's bed (the old `mid` legs) -- the remainder a walker finds at a random step: a run of
+        // length L in the zone's rate, drawn as often as it is long, then 1..L of it
         var zs = F.map.src.zones || [], zm = F.zoneAt(p0.x, p0.y) || (zs[0] && zs[0].zone), E = zm && DS.DATA.encounters[zm], rt = (E && E.rate) || [18, 40], tot = 0, Lr = rt[0];
         for (var L = rt[0]; L <= rt[1]; L++) tot += L;
         for (var u = Math.random() * tot, L2 = rt[0]; L2 <= rt[1]; L2++) { u -= L2; if (u < 0) { Lr = L2; break; } }
@@ -942,6 +943,30 @@
       seam('lit on the grid from the pack, the place light enough (09-30d: still in the hand)', { dark: false, pack: true, report: 'ledgerlamp', inv0: { ledgerlamp: 1 }, inv1: {}, expect: function (gg) { return gg.count('ledgerlamp') === 0 && gg.flags.torchBy === 'aurdin' && gg.flags.torchKind === 'ledgerlamp'; } });
       seam('lit on the grid from the pack, put out again', { dark: true, pack: true, report: false, inv0: { ledgerlamp: 1 }, inv1: { ledgerlamp: 1 }, expect: function (gg) { return gg.count('ledgerlamp') === 1 && !gg.flags.torchBy; } });
       DS.EV.darkHere = dark1;
+    } else if (test === 'countdown1003') {
+      // the countdown carried across map loads (RULED 10-03, Griz: "yes; a map load is not a rest, but it is a game change"; js/world.js Field.load): a load keeps
+      // what is left, a warp too, and the chalk's sixty with them; a fresh field rolls in its zone's rate; and a count carried in fires on the new map's steps
+      var F = DS.field, ids = Object.keys(DS.DATA.maps).filter(function (id) { return !DS.SCRIPTS['enter:' + id]; });
+      function zoneSq(id) { F.load(id, 0, 0, 'down'); for (var y = 0; y < F.map.h; y++) for (var x = 0; x < F.map.w; x++) { var z = F.zoneAt(x, y), t = F.map.at(x, y); if (z && DS.DATA.encounters[z] && t && DS.TILES[t] && DS.TILES[t].pass && !F.warpAt(x, y) && !F.triggerAt(x, y, 'step') && !F.triggerAt(x, y, 'use') && !F.npcAt(x, y) && !F.chestAt(x, y)) return { id: id, x: x, y: y, z: z }; } return null; }
+      function settleS() { for (var i = 0; i < 400 && DS.scriptActive(); i++) { var tp = DS.top(); if (tp && tp.kind === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1); } }
+      var start0 = F.encounterIn, z0 = F.zoneAt(g.x, g.y), r0 = (z0 && DS.DATA.encounters[z0] && DS.DATA.encounters[z0].rate) || [18, 40];
+      check('a fresh field\'s first load rolls the countdown in its zone\'s rate: ' + start0 + ' in ' + r0.join('-') + ' (' + (z0 || 'no zone') + ')', typeof start0 === 'number' && start0 >= r0[0] && start0 <= r0[1]);
+      var sqs = []; for (var mi = 0; mi < ids.length && sqs.length < 2; mi++) { var sq = zoneSq(ids[mi]); if (sq) sqs.push(sq); }
+      var A = sqs[0], B = sqs[1];
+      check('two maps with an encounter zone and no enter hook: ' + (A && A.id + ' ' + A.z) + ', ' + (B && B.id + ' ' + B.z), !!A && !!B);
+      F.load(A.id, A.x, A.y, 'down'); F.encounterIn = 3; F.load(B.id, B.x, B.y, 'down');
+      check('a load keeps what is left: 3 on ' + A.id + ', ' + F.encounterIn + ' on ' + B.id, F.encounterIn === 3);
+      F.encounterIn = 4; DS.run(function* () { yield* DS.EV.warp(A.id, A.x, A.y, 'down'); }); settleS();
+      check('a warp keeps it: 4 on ' + B.id + ', ' + F.encounterIn + ' on ' + F.map.id + ' (control back ' + !DS.scriptActive() + ')', F.map.id === A.id && F.encounterIn === 4 && !DS.scriptActive());
+      var chalk = Object.keys(DS.DATA.items).filter(function (k) { var it = DS.DATA.items[k]; return it.use && it.use.effect === 'ward'; })[0];
+      F.encounterIn = 2; g.give(chalk, 1); DS.run(function* () { yield* DS.EV.useFieldItem(chalk, g.party[0]); }); settleS(); var warded = F.encounterIn;
+      F.load(B.id, B.x, B.y, 'down');
+      check('the ' + chalk + '\'s ward goes with them: 2, ' + warded + ' warded, ' + F.encounterIn + ' after the load', warded === 62 && F.encounterIn === 62);
+      var f2 = new DS.Field(), rB = DS.DATA.encounters[B.z].rate || [18, 40]; f2.load(B.id, B.x, B.y, 'down');
+      check('a new field (a new game, a load from a save) rolls its own: ' + f2.encounterIn + ' in ' + rB.join('-'), typeof f2.encounterIn === 'number' && f2.encounterIn >= rB[0] && f2.encounterIn <= rB[1]);
+      delete g.flags.noEncounters; // (the bench's setup holds the road's fights off; this one wants them)
+      F.load(A.id, A.x, A.y, 'down'); F.encounterIn = 0.5; F.load(B.id, B.x, B.y, 'down'); F.arrive();
+      check('half a step left on ' + A.id + ' fires on the first step of ' + B.id + ': a fight begun (' + DS.scriptActive() + '), the next countdown rolled (' + F.encounterIn + ')', DS.scriptActive() && F.encounterIn >= rB[0] && F.encounterIn <= rB[1]);
     } else if (test === 'floor1003') {
       // the floor under the player (10-03, the cloud review's recommendation 3, "A floor under the player"): a grid fight that crashes or never comes up must not freeze the
       // 8-bit game (js/embed.js: d16:crash, the ready timeout), a loaded save naming an item or a map the game does not have must not break the menus or black the screen

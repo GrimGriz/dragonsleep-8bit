@@ -176,7 +176,7 @@
   function Field() {
     this.kind = 'field'; this.opaque = true;
     this.map = null; this.npcs = []; this.px = 0; this.py = 0; this.moving = false; this.frame = 0;
-    this.encounterIn = 20; this.lock = 0;
+    this.encounterIn = null; this.lock = 0; // (none yet: the first load rolls it)
   }
   DS.Field = Field;
   Field.prototype.busy = function () { return DS.scriptActive() || this.lock > 0; };
@@ -189,7 +189,9 @@
     this.npcs = (m.src.npcs || []).filter(function (n) { return DS.cond(n.cond) && !(n.hire && G.hired.indexOf(n.hire) >= 0); }).map(function (d) { return new Npc(d, m); });
     this.chests = (m.src.chests || []);
     applyFlagTiles(m);
-    this.resetEncounter();
+    // the countdown carries across map loads (RULED 10-03, Griz: "yes; a map load is not a rest, but it is a game change"): a map's edge is a zone's
+    // edge, so a short walk between loads meets what its steps earn; only a fresh field -- a new game, a load -- rolls one, and an encounter the next
+    if (this.encounterIn == null) this.resetEncounter();
     if (m.music) DS.audio.play(m.music);
     DS.EV && DS.EV.onEnter && DS.EV.onEnter(mapId, this);
   };
