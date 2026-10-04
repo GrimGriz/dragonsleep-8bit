@@ -17,6 +17,10 @@
   if (DS.d16ReadyMs == null) DS.d16ReadyMs = 30000;
   // what the player is told when the grid fails and the 8-bit battle takes over (said over the field, before the battle comes up)
   var FALTERED = 'The grid faltered. The fight goes on here.';
+  // the wet's three that stay dead once killed (deep16/js/wet.js FLAG8): killed in the 8-bit battle a wet fight fell back to, they are as dead as the grid
+  // makes them, and their spots on the 8-bit map stop calling them up (10-03, Griz: "if for some reason the game starts crashing, they should be able to
+  // finish off those 3 monsters in 8bit"). The southern ooze is the 8-bit's own fight, never a wet one, and is not counted
+  var WET_DEAD = { otyugh: 'otyughDead', ochrejelly: 'jellyDead', grayooze: 'poolOozeDead' };
 
   function deep(o) {
     return {
@@ -31,7 +35,9 @@
               if (crashed) { console.warn('DEEP16 crashed in ' + o.deep16 + ' (' + d.msg + (d.at ? ' at ' + d.at : '') + '): fought in the 8-bit game'); DS.lastD16Crash = { fight: o.deep16, msg: d.msg, at: d.at }; }
               else console.warn('DEEP16 refused ' + o.deep16 + ' (' + (d.missing || []).join(', ') + '): fought in the 8-bit game');
               var b8 = new DS.Battle(o);
-              b8.onClose = function (r) { self.finished = true; self.result = r; if (o.after !== false && r !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true); setTimeout(function () { script.resume(self, r); }, 0); };
+              b8.onClose = function (r) {
+                if (o.deep16 === 'wet') b8.foes.forEach(function (f) { if (f.dead && !f.fled && WET_DEAD[f.id]) DS.G.flags[WET_DEAD[f.id]] = 1; });
+                self.finished = true; self.result = r; if (o.after !== false && r !== 'lose' || o.lossOk) DS.audio.play(o.returnSong || prevSong, true); setTimeout(function () { script.resume(self, r); }, 0); };
               if (crashed) DS.run(function* () { yield DS.say(FALTERED); DS.push(b8); }); else DS.push(b8);
               return;
             }

@@ -1107,6 +1107,30 @@
         console.error = realErr;
         check('the fade is back up (' + DS.fadeLevel + '), the throw still seen (' + errs.length + ' script error), control back (' + !DS.scriptActive() + ')', DS.fadeLevel === 0 && errs.length === 1 && /thrown in the dark/.test(errs.join(' ')) && !DS.scriptActive());
       });
+      // 7. a wet fight the grid dropped (10-03, Griz: "if for some reason the game starts crashing, they should be able to finish off those 3 monsters in 8bit"):
+      // the landlord, the jelly and the pool ooze, finished in the 8-bit battle, stay dead as the grid would leave them, and their spots stop calling them up;
+      // a crawler sets nothing, and a gray ooze killed in a fight that is not the wet's does not still the pool
+      floorCase('a wet fight the grid dropped', function () {
+        function wetCrash(list, o) {
+          var stale; while ((stale = document.getElementById('d16'))) stale.parentNode.removeChild(stale);
+          SETUP(+(Q.get('lvl') || 5)); DS.lastError = null; DS.lastD16Crash = null; DS.paused = false; T.res = undefined; holdTimers(); holdWarns();
+          DS.field.load('warrens_d', 20, 10, 'down');
+          T.startFight(list, Object.assign({ dark: false, torch: null }, o));
+          for (var i = 0; i < 400 && !document.getElementById('d16'); i++) T.step(1);
+          var fr = document.getElementById('d16'); if (!fr) return null;
+          gridMsg(fr, { type: 'd16:ready' }); gridMsg(fr, { type: 'd16:crash', msg: 'boom', at: 'wet.js:1' });
+          var r = eightBitTakes(); return { r: r, flags: DS.G.flags };
+        }
+        var trig = { jellyDead: 'jelly', poolOozeDead: 'poolOoze', otyughDead: 'landlordNear' };
+        [['otyugh', 'rim', 'otyughDead'], ['ochrejelly', 'jelly', 'jellyDead'], ['grayooze', 'poolooze', 'poolOozeDead']].forEach(function (w) {
+          var x = wetCrash([w[0]], { deep16: 'wet', wake: w[1] }), fl = x && x.flags, spots = (DS.field.map.src.triggers || []).filter(function (t) { return t.script === trig[w[2]]; }), live = spots.filter(function (t) { return DS.cond(t.cond); }).length;
+          check('the ' + w[0] + ' (wake ' + w[1] + '), the grid crashed, killed in the 8-bit (' + (x && T.res) + '): ' + w[2] + ' ' + (fl && fl[w[2]]) + ', its spots on the map calling ' + live + ' of ' + spots.length, !!x && T.res === 'win' && fl[w[2]] === 1 && spots.length > 0 && live === 0);
+        });
+        var xc = wetCrash(['crawler'], { deep16: 'wet', wake: 'harness' });
+        check('a crawler killed the same way sets none of the three (' + (xc && ['otyughDead', 'jellyDead', 'poolOozeDead'].map(function (k) { return k + ' ' + !!xc.flags[k]; }).join(', ')) + ')', !!xc && T.res === 'win' && !xc.flags.otyughDead && !xc.flags.jellyDead && !xc.flags.poolOozeDead);
+        var xo = wetCrash(['grayooze'], { deep16: 'trolls' });
+        check('a gray ooze killed in a fight that is not the wet\'s leaves the pool as it was (poolOozeDead ' + !!(xo && xo.flags.poolOozeDead) + ')', !!xo && T.res === 'win' && !xo.flags.poolOozeDead);
+      });
       var okN = cases.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('floor1003: ' + okN + '/' + cases.length + ' cases' + (okN === cases.length ? ' clean' : ': ' + cases.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
     } else if (test === 'migrate') {
