@@ -446,16 +446,20 @@ CLOTH = (HIPG > 0.3) & (ZZ < float(OPT.get('ct', 2.4))) & (ZZ > -18) & (np.abs(P
 BELT = (HIPG > 0.3) & (ZZ >= float(OPT.get('ct', 2.4))) & (ZZ < float(OPT.get('bt', 5.0))) & (np.abs(PA[:, 0] - rh('Bone')[0]) < 12)    # the sash round the waist
 print('[troll] hip z %.1f; %d cloth points' % (HZ, int(CLOTH.sum())))
 # hat (the cap and its fringe, above the brow), the locks hanging at the sides, the loincloth, the eyes (the hollows of the brow band, gold and unshaded)
-HAT = hg & (HB > float(OPT.get('hatb', 1.4))) & (np.abs(HSI) < 6.5)
+HAT = hg & (HB > float(OPT.get('hatb', 2.4))) & (np.abs(HSI) < 6.5)
 LOCKS = hg & (np.abs(HSI) > 4.0) & (HB < -0.5) & (HA < 12)
-EYEM = hg & (HA > float(OPT.get('ea', 8.0))) & (HB > float(OPT.get('eb0', -0.3))) & (HB < float(OPT.get('eb1', 1.2))) & (np.abs(HSI) > float(OPT.get('es0', 1.2))) & (np.abs(HSI) < float(OPT.get('es1', 3.6))) & ~HAT
+EYEC_AT = [(float(OPT.get('ese', 1.5)), float(OPT.get('eb', 1.15)), float(OPT.get('ea', 11.2))), (-float(OPT.get('esw', 1.4)), float(OPT.get('eb', 1.15)), float(OPT.get('ea', 11.2)))]     # the eyes' (s, b, a), read off the close-up with `-- close ... pick=x,y;x,y`
+EYEM = np.zeros(nv, bool)
+for se_, be_, ae_ in EYEC_AT:
+    EYEM |= hg & (((HSI - se_) ** 2 + (HB - be_) ** 2 + (HA - ae_) ** 2) < float(OPT.get('er', 1.0)) ** 2)
 print('[troll] hat %d, locks %d, cloth %d, eyes %d points' % (int(HAT.sum()), int(LOCKS.sum()), int(CLOTH.sum()), int(EYEM.sum())))
 if not OPT.get('cdiag') and not OPT.get('hdiag') and MODE != 'diag':
     HAIRC, CLOTHC, EYEC = lin('#34261f'), lin('#8a6a42'), lin('#f2c230')
     col[HAT | LOCKS] = col[HAT | LOCKS] * 0.15 + HAIRC[None, :] * 0.85
     hem = CLOTH & (ZZ < -11)
     col[CLOTH] = CLOTHC[None, :]; col[hem] = (CLOTHC * 0.55)[None, :]; col[BELT] = lin('#4a3626')[None, :]
-    col[EYEM] = EYEC; unsh[EYEM] = True
+    if not OPT.get('noeyes'):
+        col[EYEM] = EYEC; unsh[EYEM] = True
 if OPT.get('cdiag') == 'bands':     # the hip's points by height from the hip bone: red +3..+1, yellow ..-1, green ..-3, cyan ..-6, blue ..-10, magenta below
     zz = PA[:, 2] - HZ
     for lo_, hi_, c_ in ((1, 3, (1, 0, 0)), (-1, 1, (1, 1, 0)), (-3, -1, (0, 1, 0)), (-6, -3, (0, 1, 1)), (-10, -6, (0.2, 0.2, 1)), (-18, -10, (1, 0, 1))):
@@ -521,9 +525,31 @@ if MODE in ('look', 'close', 'poses', 'diag'):
     r.resolution_x, r.resolution_y, r.resolution_percentage = FW * BL.SS, FH * BL.SS, 100
     if MODE == 'close':
         arm.rotation_euler.z = math.radians(45 - 45 * int(OPT.get('face', 0))); bpy.context.view_layer.update()
-        kk = arm.scale[0]; hc = arm.matrix_world @ ((POSE0['Bone'].translation + Vector((0, -4, -2)) if OPT.get('at') == 'hips' else POSE0[HEAD].translation + Vector((0, -6, 2))))
+        kk = arm.scale[0]; hc = arm.matrix_world @ ((POSE0['Bone'].translation + Vector((0, -4, -2)) if OPT.get('at') == 'hips' else POSE0[HEAD].translation + Vector((0, -6, 2 + float(OPT.get('hz', 0))))))
         back = cam.matrix_world.to_3x3() @ Vector((0, 0, 1))
         cam.location = hc + back * 40; cam.data.ortho_scale = float(OPT.get('zoom', 22)) * kk; r.resolution_x = r.resolution_y = 800
+    if OPT.get('pick'):     # head-frame coordinates (a, b, s) of the points under pixels x,y;x,y of the 800 px close view (face=, zoom=, hz= as the render)
+        from bpy_extras.object_utils import world_to_camera_view
+        for m_ in body.modifiers:
+            if m_.type == 'SUBSURF':
+                m_.show_viewport = False
+        use('IDLE'); scene.frame_set(1); bpy.context.view_layer.update()
+        dg_ = bpy.context.evaluated_depsgraph_get(); oe_ = body.evaluated_get(dg_); me_ = oe_.to_mesh()
+        Wm = oe_.matrix_world; camp = cam.matrix_world.translation; cdir = cam.matrix_world.to_3x3() @ Vector((0, 0, -1))
+        P2 = []
+        for v_ in me_.vertices:
+            w_ = Wm @ v_.co; nv_ = (Wm.to_3x3() @ v_.normal).normalized()
+            c_ = world_to_camera_view(scene, cam, w_)
+            P2.append((c_.x * 800, (1 - c_.y) * 800, float((w_ - camp).dot(cdir)), float(nv_.dot(-cdir)), v_.index))
+        for s_ in OPT['pick'].split(';'):
+            px_, py_ = [float(q) for q in s_.split(',')]
+            near = sorted([q for q in P2 if q[3] > 0.1 and ((q[0] - px_) ** 2 + (q[1] - py_) ** 2) < 14 ** 2], key=lambda q: q[2])[:6]
+            if near:
+                ids = [q[4] for q in near]
+                print('[troll] pick %s -> a %.1f b %.1f s %.1f  (%d points)' % (s_, HA[ids].mean(), HB[ids].mean(), HSI[ids].mean(), len(ids)))
+            else:
+                print('[troll] pick %s -> nothing' % s_)
+        oe_.to_mesh_clear(); sys.exit(0)
     BL.light(scene, cam, PRESET)
     shots = [('IDLE', 0, 'f0_00'), ('IDLE', 6, 'f6_00')] if MODE in ('look', 'diag') else [('IDLE', int(OPT.get('face', 0)), 'f0_00')]
     for row, f, fn in shots:
