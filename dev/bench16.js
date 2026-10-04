@@ -23,6 +23,11 @@
     return r;
   };
   M.cast = function (B, u, id, slot, t) { var k = u.name + ' ' + id; stats.casts[k] = (stats.casts[k] || 0) + 1; return cast0.apply(this, arguments); };
+  // climb=n (10-04, climbing the other maps): every map lets its cliffs be climbed n steps, as a map's own `climb` does -- a fight benched with its
+  // ledge opened before the map says so (climb=0 shuts the maps that carry one). The climbs are counted off the cards: who went up, who slipped, who fell
+  var CLB = get('climb', ''); if (CLB !== '') Object.keys(D.MAPS).forEach(function (k) { D.MAPS[k].climb = +CLB || 0; });
+  var card0 = B0.card; stats.climbs = {};
+  B0.card = function (lines) { (lines || []).forEach(function (s) { var m = /^\{y\}(.+?)\{\/\} climbs: .*\{(n|o)\}(UP|SLIPS)/.exec(String(s)), f = /^\{o\}(.+?) (?:drops|falls) ([\d.]+) ft/.exec(String(s)); if (m) stats.climbs[m[1] + ' ' + m[3]] = (stats.climbs[m[1] + ' ' + m[3]] || 0) + 1; if (f) stats.climbs[f[1] + ' FALLS'] = (stats.climbs[f[1] + ' FALLS'] || 0) + 1; }); return card0.apply(this, arguments); };
   function drive(B) {
     var v, guard = 0;
     while (B.co && guard++ < 400000) {
@@ -2625,7 +2630,7 @@
     if (wantLog && !log) log = (B.log || []).concat(['--- decisions ---'], B.benchLog || []);
   }
   var out = { lvl: L, foes: get('fight', '') ? ['fight:' + get('fight', '')] : foes, vs: vs || 'the four', n: n, won: stats.won, lost: stats.lost, other: stats.other, avgRounds: +(stats.rounds / Math.max(1, n)).toFixed(1),
-    dealt: stats.dealt, taken: stats.taken, down: stats.down, casts: stats.casts, fights: stats.fights, errors: errs.slice(0, 5), log: log,
+    dealt: stats.dealt, taken: stats.taken, down: stats.down, casts: stats.casts, climbs: stats.climbs, fights: stats.fights, errors: errs.slice(0, 5), log: log,
     partyLeft: Math.round(100 * (stats.left || 0) / Math.max(1, n)), partyDowns: +((stats.downs || 0) / Math.max(1, n)).toFixed(2) };
   var pre = document.createElement('pre'); pre.id = 'out'; pre.textContent = 'BENCH16 ' + JSON.stringify(out);
   document.body.appendChild(pre);

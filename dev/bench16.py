@@ -61,6 +61,8 @@ def line(r):
     top = lambda d: ', '.join('%s %d' % kv for kv in sorted(d.items(), key=lambda kv: -kv[1])[:6])
     s = '%-28s vs %-22s L%d  won %2d lost %2d other %d  rounds %.1f  party HP left %s%%  downs %s' % (','.join(r['foes'])[:28], r['vs'][:22], r['lvl'], r['won'], r['lost'], r['other'], r['avgRounds'], r.get('partyLeft', '?'), r.get('partyDowns', '?'))
     s += '\n    dealt: ' + top(r['dealt']) + '\n    taken: ' + top(r['taken']) + '\n    casts: ' + top(r['casts'])
+    if r.get('climbs'):
+        s += '\n    climbs: ' + top(r['climbs']) # (climb=n, 10-04: who went up a cliff, slipped, or fell)
     if r.get('errors'):
         s += '\n    ERRORS: ' + ' || '.join(e.replace('\n', ' ')[:300] for e in r['errors'])
     return s
@@ -93,7 +95,7 @@ def main(argv):
     for j in jobs:
         L = lvl or (j.split(',')[0].split(':')[1] if ':' in j.split(',')[0] else '5')
         params = {'foes': j, 'lvl': L, 'n': kw.get('n', '10'), 'seed': kw.get('seed', '1')}
-        for k in ('vs', 'fight', 'guests', 'sky', 'mode', 'ward', 'plain', 'avghp', 'stone', 'raw'):
+        for k in ('vs', 'fight', 'guests', 'sky', 'mode', 'ward', 'plain', 'avghp', 'stone', 'raw', 'climb'):
             if kw.get(k):
                 params[k] = kw[k]
         if kw.get('log'):
