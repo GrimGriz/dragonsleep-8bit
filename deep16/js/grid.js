@@ -143,7 +143,7 @@
   var stepCost0 = G.stepCost, reach0 = G.reach;
   G.prone = function (u, o) { return !!(u && u.conds && u.conds.prone && u.hp > 0 && !(o && (o.ghost || o.upright))); };
   G.stepCost = function (u, x0, y0, x1, y1, o) {
-    var rp = G.ropeOn(u, x0, y0, x1, y1), c = stepCost0.call(this, u, x0, y0, x1, y1, rp ? Object.assign({}, o, { roped: true }) : o);
+    var rp = !(o && o.noRope) && G.ropeOn(u, x0, y0, x1, y1), c = stepCost0.call(this, u, x0, y0, x1, y1, rp ? Object.assign({}, o, { roped: true }) : o);
     if (c !== Infinity && G.prone(u, o)) c += 5;
     if (c === Infinity) return c;
     if (rp) return c + Math.max(0, Math.round(Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step) * 5 - 5); // (along a rope, up or down: 5 ft of movement a step, the square's own 5 in it)

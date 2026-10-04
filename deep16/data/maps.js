@@ -1216,4 +1216,66 @@ window.D16.MAPS.climbfloor = {
   foes: [],
   wave: null
 };
+// The top of the Edifice (10-04, Griz: "can we map fountain street to the top of the ediface (outer walls of solskraft) with room to fight on top?"; "Dwarven place with high ceilings (15?) 3 floors"):
+// Fountain Street runs along the foot of Solskaft's facade (wiki fountain-street.md, solskaft.md), three dwarven floors of 15 ft -- about 45 ft, 18 steps, `i` -- with the falls' pool at the foot and a
+// deck on top, five squares deep behind a parapet of merlons (P), where a band can fight. THE WAYS UP (the seat's lean, handoff-2026-10-04-the-edifice-top.md): the middle ten columns of the face are SHELVED, a
+// sill at each floor (rows 7 and 6, 6 and 12 steps: three 15 ft climbs, DC 18 each); either side the face is one sheer 45 ft with nothing to hold (a Rope & Grapple, or the rope the dwarves left hung at the west end
+// -- ropes below); and the free way is a stair of one-step squares cut up the east end (col 25, then col 24). The deck, the falls' head (~) and the stair's top are in the invented register. Daylight: no `dark`.
+window.D16.MAPS.edifice = {
+  name: 'The Edifice',
+  sub: 'Fountain Street, and the top of Sólskaft',
+  stone: 'grey', step: 10, noBurrow: true, climb: 6, // (a hand scales 15 ft at most -- the sills; the sheer 45 ft takes a rope or the stair)
+  ropes: [[4, 5, 4, 6]], // a rope the dwarves left hung from the parapet at the west end (the top square, the foot square)
+  heights: [
+    '00000000000000000000000000',
+    '0iiiiiiiiiiiiiiiiiiiiiiii0',
+    '0iiiiiiiiiiiiiiiiiiiiiiii0',
+    '0iiiiiiiiiiiiiiiiiiiiiiii0',
+    '0iiiiiiiiiiiiiiiiiiiiiiii0',
+    '0iiiiiiiiiiiiiiiiiiiiiiii0',
+    '00000000cccccccccc000000h0',
+    '000000006666666666000000g0',
+    '000000000000000000000000f0',
+    '000000000000000000000000e0',
+    '000000000000000000000000d0',
+    '000000000000000000000000c0',
+    '000000000000000000000000b0',
+    '000000000000000000000000a9',
+    '00000000000000000000000008',
+    '00000000000000000000000007',
+    '00000000000000000000000006',
+    '00000000000000000000000005',
+    '00000000000000000000000004',
+    '00000000000000000000000003',
+    '00000000000000000000000002',
+    '00000000000000000000000001'
+  ],
+  rows: [
+    '##########################',
+    '#==========~~~~==========#',
+    '#==========~~~~==========#',
+    '#========================#',
+    '#========================#',
+    '#=P===P===P===P===P==P===#',
+    '#==~~===============~~===#',
+    '#========================#',
+    '#===========~~===========#',
+    '#========================#',
+    '#========================#',
+    '#========================#',
+    '#========================#',
+    '#=========================',
+    '#=========================',
+    '#=========================',
+    '#=========================',
+    '#########=======#######===',
+    '#########=======#######===',
+    '#########=======#######===',
+    '#########=======#######===',
+    '#########=======#######==='
+  ],
+  entry: [[10, 20], [11, 20], [12, 20], [13, 20], [11, 19]],
+  foes: [],
+  wave: null
+};
 })();
