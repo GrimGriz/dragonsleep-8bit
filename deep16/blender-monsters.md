@@ -53,6 +53,7 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
      - weights;
      - the rows.
    - The shared parts live in `tools/blender_look.py`: the suns, the cel material, `paint` / `carry` / `mark_proud` (teeth and claws: what stands proud of the base mesh), the holdout floor, and the sprite camera.
+   - **Posing a figure on a rig** lives in `tools/blender_pose.py` (10-04): a `Rig` built from the bone names, a frame's numbers turned into every bone (bends, limbs placed by a two-bone solve, gravity), the grounding, the rows keyed as actions, the flat camera and the joint probe. A biped starts from *Posing a biped* below.
 
 6. **The look comes first.** His gate is *"gotta prove we can get the image coloring/lighting right first"*.
    - Run `& $bl -b --disable-autoexec --python tools/<creature>-blend.py -- look <tag> [preset=13] [teeth=white] [eyes=1]`. It renders the model unrigged, facings S and E.
@@ -162,11 +163,24 @@ What it did not need: no `still`/`reveal` (a troll doesn't hide), no `S.PRONE` (
 - **Swipes** are the shoulder (`sw`: - raises, + lowers), `out` (about Z: across the body), the forearm and a body twist, per frame in a table; mirror the signs for the other arm.
 
 **The second posing (10-04, Griz: "take a shot at posing the trolls (but keep what's there somewhere safe)"):** the first rows were bends on top of the miniature's lunge, so every row kept its crouch and read squat, frog-like at sprite size. The second stands the troll up and puts its limbs where a frame wants them. The first is kept: `poses=v1` rebuilds it, its sheet and script are in `deep16/_src/troll/keep/v1-433b149/`, its frames in `deep16/_src/render/troll-v1/`, git tag `troll-v1-sonnet`. What to copy for the next biped:
+- (The tools below are in `tools/blender_pose.py` now; *Posing a biped* is the checklist.)
 - **A stance, then every row from it** (`stance()`): the hips lifted out of the artist's crouch and squared (`bodyyaw` against the miniature's turned pelvis, `twist` back), the hunch kept, the feet under the hips. Every row starts and ends on it, so a blow played once returns to the idle cleanly.
 - **A two-bone solve per limb** (`ik2`): give the ankle (or wrist) a position and the knee (elbow) a pole, and both bones turn whole: direction and hinge together (a frame from the bone and the cross of the two bones, the artist's pose to the new), so the sculpt's knee still bends the way it was sculpted to. A planted foot keeps the artist's flat sole (`foot_turn`: a yaw, a pitch about the foot's own side); a rolled foot lifts its ankle by what its claws would put under the floor.
 - **Feet by position** make a real walk: on the ground a foot slides back under the body at an even rate, then swings through lifted (contact, down, passing, up, twice), the hips bob and sway over the foot that holds them, the pelvis turns with the forward leg and the shoulders against it. No more `plant` grounding (the feet are the ground).
 - **Wrists from the shoulder** (in world axes), so an arm rides the body's lean and twist. A raised arm needs its hand aimed (`hands`), or the hand and claws carry on straight up from the forearm.
-- **Pose flat, judge in the sprite:** `-- poses <tag> view=side` (a true profile, a floor line) to pose by; `-- exec file=<probe.py>` prints each frame's joints above the ground. **This rig's leg bones run near the back of the leg:** a kneeling shin wants its bone about 11 above the floor, not on it.
+- **Pose flat, judge in the sprite:** `-- poses <tag> view=side` (a true profile, a floor line) to pose by; `-- joints row=<ROW>` prints each frame's joints above the ground; `-- exec file=<probe.py>` runs any other probe in the script's namespace. **This rig's leg bones run near the back of the leg:** a kneeling shin wants its bone about 11 above the floor, not on it.
+
+## Posing a biped (the checklist, 10-04)
+
+Griz, 10-04, on the troll's second posing: *"that's so much better"*. The tools that got it there are shared now (`tools/blender_pose.py`, read its head first); `tools/troll-blend.py` is the worked example. In order:
+
+1. **Name the bones.** Probe the rig (step 1 of *A biped on the artist's rig*), then hand `BP.Rig(arm, body, dict(spine=, neck=, head=, jaw=, arm_a=[shoulder, upper, fore, hand], arm_b=, leg_a=[hip, thigh, calf, ankle, foot, toe], leg_b=, fing_a=, fing_b=, roots=))`. Side `a` is the figure's +X (its left, facing -Y). `R.ground()` takes the artist's pose's lowest point as the floor.
+2. **Write the stance first:** the standing numbers (`ST` the hip lift, lean, twist, head; `FA`/`FB` the feet; `WA`/`WB` the wrists from the shoulders) and a `stance(**k)` that is `R.stance(ST, FA, FB, WA, WB, k)`. Look at it flat: `-- poses <tag> rows=IDLE view=side` and `view=front`. It is the frame every row starts and ends on, so get it right before any row.
+3. **Each row is a list of key frames**, every one `stance(...)` with what changes: a foot `fa=(x, y, up, yaw, pitch)`, a wrist `wa=(dx, dy, dz)`, the poles `kpolea`/`epolea`, a hand aimed `hands=`, the body's bends. Grounding `'ik'`. A blow: wind-up, the strike, the follow-through, back toward the stance. Its first frame is the stance.
+4. **Pose flat, by the numbers:** `-- poses <tag> view=side` (a floor line 86% down) for the shapes, `-- joints row=<ROW>` for each frame's joints above the floor and where the mesh went under it. The build prints `WARN <row> <frame> goes N under the ground at x y`: find what is there (a hand, the head, a shin) and fix that frame. Bones can sit off the middle of a limb (the troll's legs: a kneeling shin wants its bone ~11 above the floor).
+5. **Judge in the sprite camera, not the flat one:** `-- poses <tag> facings=0,2` (matcap), then the real render and `pixelate.py`, a contact strip of the sheet at 1x. A raised arm needs its hand aimed or the hand and claws carry on up from the forearm as one thin stick.
+6. **Keep what was there** before re-posing a figure he has seen: the old rows behind an option (`poses=v1`), the old sheet and frames copied out, a git tag on the old commit.
+7. Then the recipe's own steps 10-12: render, the show (`dev/bench16.py <creature> mode=show`), `dev/check.py` GREEN, his eyes on the test ground.
 
 ## What cost us a step (so it doesn't again)
 

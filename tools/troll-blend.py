@@ -21,7 +21,8 @@ troll-v1-sonnet): bends on top of the miniature's lunge, so every row kept its c
 (`stance()`: the hips up out of the crouch and squared, the back hunched, the long arms hanging) with each limb put where a frame wants it by a
 two-bone solve (`ik2`): the feet planted on the ground by position (a walk's foot slides back under it and swings through), the wrists placed from
 the shoulders, the knee or elbow bending toward a pole the way the sculpt's own joint bends. `-- poses <tag> view=side|front` renders the rows
-flat to pose by; `-- exec file=<probe.py>` runs a probe in this namespace.
+flat to pose by; `-- joints row=<ROW>` prints each frame's joints above the ground; `-- exec file=<probe.py>` runs a probe in this namespace.
+The poser itself (what a frame's numbers mean) is tools/blender_pose.py, shared since 10-04; this file names the troll's bones and poses its rows.
 """
 import bpy, sys, os, math, importlib.util, json
 import numpy as np
@@ -32,6 +33,8 @@ SRC = os.path.join(ROOT, 'deep16', '_src', 'troll')
 FILES = os.path.join(SRC, 'mz4250', 'files')
 spec = importlib.util.spec_from_file_location('blender_look', os.path.join(ROOT, 'tools', 'blender_look.py'))
 BL = importlib.util.module_from_spec(spec); spec.loader.exec_module(BL)
+spec = importlib.util.spec_from_file_location('blender_pose', os.path.join(ROOT, 'tools', 'blender_pose.py'))
+BP = importlib.util.module_from_spec(spec); spec.loader.exec_module(BP)     # the poser: a Rig, a frame P -> every bone (shared, 10-04)
 
 ARGS = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else ['build']
 MODE = ARGS[0]
@@ -76,271 +79,24 @@ for m in body.modifiers:
         m.levels = 1; m.render_levels = 1
 bpy.context.view_layer.update()
 
-# ------------------------------------------------------------------ the bones
+# ------------------------------------------------------------------ the bones, and the poser (tools/blender_pose.py: what a frame's numbers mean)
 BN = arm.data.bones
 SPINE = ['Bone', 'Bone.002', 'Bone.001', 'Bone.003']          # hip up to the chest
 NECK = ['Bone.018', 'Bone.043']; HEAD = 'Bone.020'; JAW = 'Bone.019'
-ARM_A = ['Bone.016', 'Bone.044', 'Bone.045', 'Bone.046']       # shoulder, upper arm, forearm, hand (+X side: the reaching arm)
+ARM_A = ['Bone.016', 'Bone.044', 'Bone.045', 'Bone.046']       # shoulder, upper arm, forearm, hand (+X side: its left, the reaching arm)
 ARM_B = ['Bone.017', 'Bone.022', 'Bone.023', 'Bone.024']       # the -X side
-LEG_A = ['Bone.004', 'Bone.006', 'Bone.008', 'Bone.010', 'Bone.012', 'Bone.014']     # hip, thigh, calf, foot, toes
+LEG_A = ['Bone.004', 'Bone.006', 'Bone.008', 'Bone.010', 'Bone.012', 'Bone.014']     # hip, thigh, calf, ankle, foot, toes
 LEG_B = ['Bone.005', 'Bone.007', 'Bone.009', 'Bone.011', 'Bone.013', 'Bone.015']
 FING_A = ['Bone.062', 'Bone.059', 'Bone.056', 'Bone.053', 'Bone.050']      # the first bone of each finger
 FING_B = ['Bone.025', 'Bone.029', 'Bone.033', 'Bone.037', 'Bone.040']
 ROOTS = ['Bone', 'Bone.004', 'Bone.005']                        # all three start at the hip
-
-
-def chain(name):
-    out = [name]
-    while BN[out[-1]].children:
-        out.append(BN[out[-1]].children[0].name)
-    return out
-
-
+R = BP.Rig(arm, body, dict(spine=SPINE, neck=NECK, head=HEAD, jaw=JAW, arm_a=ARM_A, arm_b=ARM_B, leg_a=LEG_A, leg_b=LEG_B,
+                           fing_a=FING_A, fing_b=FING_B, roots=ROOTS), log='[troll]')
+chain, POSE0, REST, ANK0 = R.chain, R.POSE0, R.REST, R.ANK0
+apply, grounded, posed_points, lowest = R.apply, R.grounded, R.posed_points, R.lowest
+Q, PX, PY, PZ, S, TAU, lerp, mix = BP.Q, BP.PX, BP.PY, BP.PZ, BP.S, BP.TAU, BP.lerp, BP.mix
 TIPS = [chain(f)[-1] for f in FING_A + FING_B] + ['Bone.014', 'Bone.015']
-
-REST = {b.name: b.matrix_local.copy() for b in BN}
-for pb in arm.pose.bones:
-    pb.rotation_mode = 'QUATERNION'
-POSE0 = {pb.name: pb.matrix.copy() for pb in arm.pose.bones}
-ORDER = []
-
-
-def topo(b):
-    ORDER.append(b.name)
-    for c in b.children:
-        topo(c)
-
-
-for b in BN:
-    if b.parent is None:
-        topo(b)
-
-PX = Vector((1, 0, 0)); PZ = Vector((0, 0, 1)); PY = Vector((0, 1, 0))
-
-
-def Q(axis, deg):
-    ax = Vector(axis)
-    return Quaternion(ax.normalized(), math.radians(deg)) if ax.length > 1e-6 and deg else Quaternion()
-
-
-# ------------------------------------------------------------------ a pose: its parameters -> a bend per bone -> each bone's basis
-def bends(P):
-    """P (degrees; the pose's frame, +X leans the front down). body: the whole skeleton about the hip (pitch; -90 over on its back);
-    lean/twist: the spine (pitch about X, yaw about Z), spread over its bones; head/hyaw: neck and head; jaw: + opens; per side s in a, b:
-    sw (the upper arm's swing about X; + down), out (about Z), el (the forearm), wr (the hand), th (the thigh: + takes the leg back), kn (the
-    calf: + bends the knee, the foot back), ft (the foot), fing (the fingers: + curls them)."""
-    d = {}
-    def add(n, q):
-        d[n] = q @ d.get(n, Quaternion())
-    for r in ROOTS:
-        add(r, Q(PX, P.get('body', 0)))
-        add(r, Q(PZ, P.get('bodyyaw', 0)))
-    for n in SPINE:
-        add(n, Q(PX, P.get('lean', 0) / len(SPINE))); add(n, Q(PZ, P.get('twist', 0) / len(SPINE))); add(n, Q(PY, P.get('tilt', 0) / len(SPINE)))
-    for n in NECK:
-        add(n, Q(PX, P.get('head', 0) / 3)); add(n, Q(PZ, P.get('hyaw', 0) / 3)); add(n, Q(PY, P.get('hroll', 0) / 3))
-    add(HEAD, Q(PX, P.get('head', 0) / 3)); add(HEAD, Q(PZ, P.get('hyaw', 0) / 3)); add(HEAD, Q(PY, P.get('hroll', 0) / 3))
-    add(JAW, Q(PX, P.get('jaw', 0)))
-    for s, A, L, F in (('a', ARM_A, LEG_A, FING_A), ('b', ARM_B, LEG_B, FING_B)):
-        add(A[0], Q(PX, P.get('shr' + s, 0)))
-        add(A[1], Q(PX, P.get('sw' + s, 0))); add(A[1], Q(PZ, P.get('out' + s, 0)))
-        add(A[2], Q(PX, P.get('el' + s, 0))); add(A[2], Q(PZ, P.get('elz' + s, 0)))
-        add(A[3], Q(PX, P.get('wr' + s, 0)))
-        for f in F:
-            for j, n in enumerate(chain(f)):
-                add(n, Q(PX, P.get('fing' + s, 0)))
-        add(L[1], Q(PX, P.get('th' + s, 0))); add(L[1], Q(PZ, P.get('thz' + s, 0)))
-        add(L[2], Q(PX, P.get('kn' + s, 0)))
-        add(L[3], Q(PX, P.get('ft' + s, 0)))
-    return d
-
-
-def accG(d, name):
-    """the turn the bones above `name` (and it) have taken, in the pose's frame."""
-    chainup = []
-    b = BN[name]
-    while b:
-        chainup.append(b.name); b = b.parent
-    G = Quaternion()
-    for n in reversed(chainup):
-        G = G @ d.get(n, Quaternion())
-    return G
-
-
-def aim(d, names, targets, f=1.0):
-    """gravity and the floor (10-04, Griz: "use gravity for the prone and death positions ... make the arms droop down"): turn each bone of a
-    chain to point at its target direction in the world (the minimal turn from where the artist's pose points it, through what its parents
-    already took), `f` of the way (0 leaves it, 1 lays it there). The bends of the chain's own bones are replaced; its children follow."""
-    first = BN[names[0]].parent
-    G = accG(d, first.name) if first else Quaternion()
-    for n, T in zip(names, targets):
-        pd = (POSE0[n] @ Vector((0, BN[n].length, 0)) - POSE0[n].translation).normalized()
-        dq = pd.rotation_difference(G.inverted() @ Vector(T).normalized())
-        dq = Quaternion().slerp(dq, f)
-        d[n] = dq; G = G @ dq
-
-
-def solve(d, lift=0.0, shift=0.0, sway=0.0, mats=False):
-    """each bone's basis for bends d: its posed rotation is (the bends of every bone above it and its own, in the pose's frame) x the
-    artist's; its head where its parent now carries it; the roots (all three at the hip) lifted together. mats: also each bone's posed matrix."""
-    G, M, out = {}, {}, {}
-    for n in ORDER:
-        b = BN[n]; p = b.parent.name if b.parent else None
-        g = (G[p] if p else Quaternion()) @ d.get(n, Quaternion()); G[n] = g
-        R = g.to_matrix() @ POSE0[n].to_3x3()
-        if p:
-            C = M[p] @ REST[p].inverted() @ REST[n]; head = C.translation
-        else:
-            C = REST[n]; head = POSE0[n].translation + Vector((sway, shift, lift))
-        M[n] = Matrix.Translation(head) @ R.to_4x4()
-        out[n] = C.inverted() @ M[n]
-    return (out, M) if mats else out
-
-
-# ------------------------------------------------------------------ the second posing (10-04, Opus): a standing troll, its feet planted and its hands
-# put where a pose wants them (a two-bone solve per limb), not bends on the miniature's lunge
-def dir0(n):
-    """a bone's direction (head to tail) in the artist's pose."""
-    return POSE0[n] @ Vector((0, BN[n].length, 0)) - POSE0[n].translation
-
-
-def frame3(a, n):
-    a = a.normalized(); n = (n - a * n.dot(a)).normalized()
-    return Matrix((a, n, a.cross(n))).transposed()
-
-
-def orient(d, name, Rw):
-    """turn a bone so its whole turn from the artist's pose, in the pose's frame, is Rw (its own bend is what its parents leave)."""
-    p = BN[name].parent
-    d[name] = (accG(d, p.name) if p else Quaternion()).inverted() @ Rw
-
-
-def ik2(d, M, upper, lower, target, pole):
-    """the two-bone solve: the upper bone's head stays where its parents carry it (M), the lower's tail goes to `target`, the joint between bends
-    toward `pole`; each bone turned whole (its direction and its hinge both: the artist's knee or elbow keeps bending the way it was sculpted to)."""
-    root = M[upper].translation
-    L1, L2 = BN[upper].length, BN[lower].length
-    D = Vector(target) - root; Dn = D.normalized()
-    dist = min(max(D.length, abs(L1 - L2) + 0.05), L1 + L2 - 0.05)
-    x = (L1 * L1 - L2 * L2 + dist * dist) / (2 * dist); h = math.sqrt(max(L1 * L1 - x * x, 0.0))
-    p = Vector(pole); p = (p - Dn * p.dot(Dn)).normalized()
-    knee = root + Dn * x + p * h; tip = root + Dn * dist
-    u0, l0 = dir0(upper), dir0(lower); n0 = u0.cross(l0)
-    n1 = p.cross(Dn)                # (the cross of the two bones, for any bend toward p)
-    orient(d, upper, (frame3(knee - root, n1) @ frame3(u0, n0).transposed()).to_quaternion())
-    orient(d, lower, (frame3(tip - knee, n1) @ frame3(l0, n0).transposed()).to_quaternion())
-    return knee
-
-
-FOOT = {'a': ('Bone.010', 'Bone.012', 'Bone.014'), 'b': ('Bone.011', 'Bone.013', 'Bone.015')}     # the ankle bone, the foot, the toe
-
-
-def foot_turn(s, yaw, pitch):
-    """a planted foot's turn: `yaw` its toes out (+) or in from the artist's (about 22 deg out already), `pitch` its toes down (+: the heel up) or up."""
-    sg = 1 if s == 'a' else -1
-    fw = dir0(FOOT[s][1]); fw.z = 0; fw.normalize()
-    qy = Q(PZ, yaw * sg); fw = qy @ fw
-    return Q(PZ.cross(fw), pitch) @ qy
-
-
-def foot_raise(s, R):
-    """how far an ankle must rise so a pitched foot rolls on its heel or its toes instead of going through the floor."""
-    a = POSE0[FOOT[s][0]].translation
-    pts = [POSE0[FOOT[s][1]].translation - a, POSE0[FOOT[s][2]].translation + dir0(FOOT[s][2]) - a]
-    return max(0.0, min(v.z for v in pts) - min((R @ v).z for v in pts))
-
-
-ANK0 = {s: POSE0[FOOT[s][0]].translation.copy() for s in 'ab'}     # each ankle where the artist planted it: its height there is its foot on the ground
-
-
-LIE = {   # where each limb chain points when it lies on the floor, by what the body is doing: ('back': over on its back, head toward +Y; 'face': on its face, head toward -Y)
-    'back': dict(arm=[(0.55, 0.55, -0.12), (0.8, 0.3, -0.12), (0.85, 0.1, -0.1)], leg=[(0.22, -0.95, -0.12), (0.2, -0.97, -0.1), (0.1, -0.7, -0.5), (0.0, -0.4, -0.9), (0.0, -0.4, -0.9)]),
-    'face': dict(arm=[(0.6, -0.65, -0.15), (0.85, -0.45, -0.12), (0.85, -0.45, -0.1)], leg=[(0.2, 0.95, -0.1), (0.15, 0.98, -0.1), (0.1, 0.5, -0.6), (0.0, 0.4, -0.9), (0.0, 0.4, -0.9)]),
-}
-
-
-def lie(d, kind, side, f):
-    """lay both arms and both legs on the floor as `kind` says (aim(): each bone toward its target), `f` of the way; the hands' fingers follow their wrist."""
-    spec = LIE[kind]
-    for s, A, L in ((1, ARM_A, LEG_A), (-1, ARM_B, LEG_B)):
-        mir = lambda v: (v[0] * s * side, v[1], v[2])
-        aim(d, A[1:3], [mir(v) for v in spec['arm'][:2]], f)
-        aim(d, L[1:4], [mir(v) for v in spec['leg'][:3]], f)
-
-
-def apply(P):
-    d = bends(P)
-    if P.get('armsdown'):      # the arms hang by the legs: pulled back along the sides
-        for s, A in ((1, ARM_A), (-1, ARM_B)):
-            aim(d, A[1:3], [(s * 0.22, 0.30, -0.93), (s * 0.15, 0.10, -1.0)], P['armsdown'])
-    if P.get('tuck'):          # the cat's loaf: the arms folded under the chest, the legs under the hips
-        for s, A, L in ((1, ARM_A, LEG_A), (-1, ARM_B, LEG_B)):
-            aim(d, A[1:3], [(s * 0.35, 0.1, -0.93), (s * -0.35, 0.75, -0.3)], P['tuck'])
-            aim(d, L[1:4], [(s * 0.75, -0.55, -0.35), (s * -0.3, 0.9, -0.2), (s * -0.1, 0.4, -0.9)], P['tuck'])
-    if P.get('lie'):
-        lie(d, P['lie'], P['lieside'], P.get('liefall', 1.0))
-    lift, shift, sway = P.get('lift', 0.0), P.get('shift', 0.0), P.get('sway', 0.0)
-    if P.get('legs') or P.get('arms') or P.get('hands'):     # the second posing: limbs put where the pose wants them
-        _, M = solve(d, lift, shift, sway, mats=True)
-        for s, (x, y, z, yaw, pitch) in (P.get('legs') or {}).items():
-            L = LEG_A if s == 'a' else LEG_B
-            R = foot_turn(s, yaw, pitch); up = foot_raise(s, R)
-            ik2(d, M, L[1], L[2], (x, y, z + up), P.get('kpole' + s, (0.3 if s == 'a' else -0.3, -1, 0.15)))
-            orient(d, FOOT[s][0], R)
-        for s, (x, y, z) in (P.get('arms') or {}).items():     # (the wrist from the shoulder joint, in the world's axes: an arm goes with the body)
-            A = ARM_A if s == 'a' else ARM_B
-            ik2(d, M, A[1], A[2], M[A[1]].translation + Vector((x, y, z)), P.get('epole' + s, (0.6 if s == 'a' else -0.6, 1, 0)))
-        for s, v in (P.get('hands') or {}).items():          # a hand pointed along a world direction
-            aim(d, [(ARM_A if s == 'a' else ARM_B)[3]], [v])
-    for n, m in solve(d, lift, shift, sway).items():
-        loc, rot, sc = m.decompose()
-        pb = arm.pose.bones[n]; pb.rotation_quaternion = rot; pb.location = loc
-
-
-def mix(a, b, f):
-    return {k: a.get(k, 0) * (1 - f) + b.get(k, 0) * f for k in set(a) | set(b)}
-
-
-S = math.sin; TAU = 2 * math.pi
-
-
-def posed_points(step=5):
-    dg = bpy.context.evaluated_depsgraph_get(); oe = body.evaluated_get(dg); me = oe.to_mesh()
-    a = np.zeros(len(me.vertices) * 3); me.vertices.foreach_get('co', a); oe.to_mesh_clear()
-    M = np.array(oe.matrix_world); a = a.reshape(-1, 3)[::step]
-    return a @ M[:3, :3].T + M[:3, 3]
-
-
-
-def lowest(step=4):
-    bpy.context.view_layer.update()
-    return float(posed_points(step)[:, 2].min())
-
-
-apply({}); FLOOR = lowest(1)     # its lowest point standing (the pose as the artist left it, the idle's first frame bar the bob): the ground
-print('[troll] the ground (its lowest point in the pose) at z %.2f' % FLOOR)
-
-
-def grounded(P, how):
-    """seat a frame on the ground: 'plant' -- the lowest point lands on it (a step, a swing: the body rides on its feet); 'clamp' -- never
-    below it (a bob, a fall: the frame keeps the lift it asked for)."""
-    apply(P); lo = lowest()
-    if how == 'ik':        # (the feet are put on the ground by the pose itself: only say if something else went through it, and where)
-        if lo < FLOOR - 0.3 and P.get('legs'):     # a rolled foot's long toe claws reach past its bones: lift that ankle by what went under
-            bpy.context.view_layer.update(); pp = posed_points(2); legs = dict(P['legs'])
-            for s, (x, y, z, yaw, pitch) in P['legs'].items():
-                near = pp[(np.hypot(pp[:, 0] - x, pp[:, 1] - y) < 16) & (pp[:, 2] < z + 2)]
-                if len(near) and near[:, 2].min() < FLOOR - 0.3 and pitch:
-                    legs[s] = (x, y, z + FLOOR - float(near[:, 2].min()), yaw, pitch)
-            if legs != P['legs']:
-                P = dict(P, legs=legs); apply(P); lo = lowest()
-        if lo < FLOOR - 0.6:
-            bpy.context.view_layer.update(); pp = posed_points(2); k_ = int(pp[:, 2].argmin())
-            print('[troll] WARN %s goes %.1f under the ground at x %.0f y %.0f' % (P.get('_tag', '?'), FLOOR - lo, pp[k_, 0], pp[k_, 1]))
-        return P
-    if how == 'plant' or lo < FLOOR:
-        P = dict(P, lift=P.get('lift', 0.0) + FLOOR - lo - P.get('sink', 0.0)); apply(P)
-    return P
+FLOOR = R.ground()     # its lowest point standing (the pose as the artist left it): the ground
 
 # ------------------------------------------------------------------ the rows
 def row_idle(i, n):
@@ -427,17 +183,7 @@ def stance(**k):
     """the troll standing, the frame every row starts and ends on: the hips up out of the miniature's crouch and squared, the back hunched, the
     feet under it a little staggered (its left, +X, forward), the long arms hanging forward and out with the claws by its knees. k: what a frame
     changes (fa/fb: a foot (x, y, up, yaw, pitch); wa/wb: a wrist from its shoulder)."""
-    P = dict(ST)
-    fa, fb = k.pop('fa', FA + (0.0, 0.0, 0.0)), k.pop('fb', FB + (0.0, 0.0, 0.0))
-    wa, wb = k.pop('wa', WA), k.pop('wb', WB)
-    P.update(k)
-    P['legs'] = {'a': (fa[0], fa[1], ANK0['a'].z + fa[2], fa[3], fa[4]), 'b': (fb[0], fb[1], ANK0['b'].z + fb[2], fb[3], fb[4])}
-    P['arms'] = {'a': wa, 'b': wb}
-    return P
-
-
-def lerp(a, b, f):
-    return tuple(x + (y - x) * f for x, y in zip(a, b))
+    return R.stance(ST, FA, FB, WA, WB, k)
 
 
 def row2_idle(i, n):
@@ -529,7 +275,9 @@ def row2_prone(i, n):
 
 def row2_death(i, n):
     """crumples where it stands, inside its four squares, like a cat lying down (Griz, 10-04): the knees fold and it drops to them, the chest
-    comes down onto its arms folded under it, and then it goes loose: the jaw slack, the head rolled over and tilted at an off angle."""
+    comes down onto its arms folded under it, and then it goes loose: the jaw slack, the head rolled over and tilted at an off angle. Its bum stays
+    high in the air ON PURPOSE (Griz, 10-04: "the only change i'd make to your work is to splay the death legs out so his bum wasn't so high in
+    the air - the comedic value of leaving it is probably worth more to the players"): don't splay the legs."""
     g = [0.0, 0.0, 0.0, 0.0, 0.45, 0.8, 1.0, 1.0][i]          # (0..3 down onto its knees; 4.. onto its chest, and gone loose)
     # (the leg bones run near the back of the leg: a shin lying on the floor wants its bone ~11 above it, and the hips sit on the heels at ~21)
     lift = [ST['lift'], 2, 0, 4, -1, -2, -2, -2][i]; shift = [0, -3, -6, -8, -4, -2, -2, -2][i]; hy = 4 + shift
@@ -553,35 +301,15 @@ ROWS_V2 = [('IDLE', 8, True, row2_idle, 'ik'), ('WALK', 8, True, row2_walk, 'ik'
            ('BITE', 6, False, row2_bite, 'ik'), ('FLINCH', 5, False, row2_flinch, 'ik'), ('DEATH', 8, False, row2_death, 'ik'), ('PRONE', 6, False, row2_prone, 'ik')]
 ROWS = ROWS_V1 if OPT.get('poses') == 'v1' else ROWS_V2
 print('[troll] poses %s' % ('v1 (the first posing)' if ROWS is ROWS_V1 else 'v2'))
-ad = arm.animation_data_create()
-for name, n, loop, fn, how in ROWS:
-    act = bpy.data.actions.new(name); act.use_fake_user = True; ad.action = act
-    if hasattr(ad, 'action_slot') and len(act.slots):
-        ad.action_slot = act.slots[0]
-    for i in range(n + (1 if loop else 0)):
-        P, t = fn(i % n, n); P['_tag'] = '%s %d' % (name, i % n); grounded(P, how)
-        for pb in arm.pose.bones:
-            pb.keyframe_insert('rotation_quaternion', frame=i + 1, group=pb.name)
-            pb.keyframe_insert('location', frame=i + 1, group=pb.name)
-    act.use_frame_range = True
-    act.frame_start, act.frame_end = 1, n + (1 if loop else 0)
-    act.use_cyclic = loop
-    for fc in getattr(act, 'fcurves', []):
-        for kp in fc.keyframe_points:
-            kp.interpolation = 'LINEAR'
-
-
-def use(name):
-    act = bpy.data.actions[name]; ad.action = act
-    if hasattr(ad, 'action_slot') and len(act.slots):
-        ad.action_slot = act.slots[0]
-    return act
+ad = R.key_rows(ROWS); use = R.use
 
 
 use('IDLE'); scene.frame_set(1)
 print('[troll] rows: %s' % ', '.join(r[0] for r in ROWS))
 
 
+if MODE == 'joints':    # each frame's joints above the floor, and what went under it (-- joints row=DEATH): to pose by the numbers
+    r_ = [r for r in ROWS if r[0] == OPT.get('row', 'IDLE')][0]; R.joints(scene, r_[0], r_[1], extra=[('snout', 'Bone.021^')]); sys.exit(0)
 if MODE == 'exec':      # a scratch script run in this namespace (-- exec file=<path> [row= frame=]): probes while posing
     exec(open(OPT['file']).read()); sys.exit(0)
 if MODE == 'dirs':      # where each limb bone points, on a row's last frame (to check aim() against its targets)
@@ -799,12 +527,7 @@ if MODE in ('look', 'close', 'poses', 'diag'):
         r.resolution_x, r.resolution_y, r.resolution_percentage = FW * 2, FH * 2, 100
         facings = [int(x) for x in OPT.get('facings', '0,6').split(',')]
         if OPT.get('view') in ('side', 'front'):     # a flat view (a true profile from its right, or from the front): to pose by, not the sprite's
-            vc = bpy.data.cameras.new('flat'); vc.type = 'ORTHO'; vc.ortho_scale = float(OPT.get('zoom', 6.4))
-            vo = bpy.data.objects.new('flat', vc); scene.collection.objects.link(vo); scene.camera = vo
-            if OPT['view'] == 'side':
-                vo.location = (-30, 0, vc.ortho_scale * 0.36); vo.rotation_euler = (math.radians(90), 0, math.radians(-90))
-            else:
-                vo.location = (0, -30, vc.ortho_scale * 0.36); vo.rotation_euler = (math.radians(90), 0, 0)
+            BP.flat_camera(scene, OPT['view'], float(OPT.get('zoom', 6.4)))
             r.resolution_x = r.resolution_y = int(OPT.get('px', 480)); facings = [1]
         rows = OPT.get('rows', ','.join(r_[0] for r_ in ROWS)).split(',')
         for name, n, loop, fn, how in ROWS:
