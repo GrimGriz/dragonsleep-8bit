@@ -731,10 +731,11 @@
   // a matrix band fight, one at a time (mode=bandtrace&lvl=2&cls=rogue&rounds=30[&seed=S]; 10-04): without a seed, every seed the matrix gives that class's band at that level (the
   // rounds each runs to, capped); with one, that fight's log to the cap and where each unit stands -- for reading a stalled cell instead of waiting it out
   if (get('mode', '') === 'bandtrace') {
-    var repBt = { rows: [], log: [], units: [], errors: [] }, clsB = get('cls', 'rogue'), capB = +get('rounds', 30), iB = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard'].indexOf(clsB);
+    var repBt = { rows: [], log: [], units: [], errors: [] }, clsB = get('cls', 'rogue'), capB = +get('rounds', 30), CLB = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard'], iB = CLB.indexOf(clsB);
     function runBand(sd, keep) {
       D.seed = sd; D.lastError = null;
-      var Bb = new D.Battle({ bench: true, fightDef: D.classFight(L), npc: { foes: [clsB + ':' + L, clsB + ':' + L, clsB + ':' + L, clsB + ':' + L] } }); D.battle = Bb; Bb.enter();
+      var vsB = get('vs', ''), npcB = vsB ? { party: [clsB + ':' + L], foes: [vsB + ':' + L] } : { foes: [clsB + ':' + L, clsB + ':' + L, clsB + ':' + L, clsB + ':' + L] }; // (vs=<class>: the duel cell cls > vs instead of the band)
+      var Bb = new D.Battle({ bench: true, fightDef: D.classFight(L), npc: npcB }); D.battle = Bb; Bb.enter();
       var vB, gB = 0, rB;
       while (Bb.co && gB++ < 400000 && (Bb.round || 0) <= capB) {
         try { rB = Bb.co.next(vB); } catch (eB) { repBt.errors.push(String(eB && eB.stack || eB).slice(0, 500)); break; }
@@ -749,7 +750,7 @@
       return { round: Bb.round, result: Bb.result || 'none' };
     }
     if (get('seed', '')) runBand(+get('seed'), true);
-    else for (var kB = 0; kB < n; kB++) { var sdB = 5000 + iB * 131 + kB * 7919, rsB = runBand(sdB, false); repBt.rows.push(sdB + ' round ' + rsB.round + ' ' + rsB.result); }
+    else for (var kB = 0; kB < n; kB++) { var jB = CLB.indexOf(get('vs', '')), sdB = (jB >= 0 ? 1000 + iB * 97 + jB * 13 : 5000 + iB * 131) + kB * 7919, rsB = runBand(sdB, false); repBt.rows.push(sdB + ' round ' + rsB.round + ' ' + rsB.result); }
     var preBt = document.createElement('pre'); preBt.id = 'out'; preBt.textContent = 'BENCH16 ' + JSON.stringify(repBt);
     document.body.appendChild(preBt);
     return;

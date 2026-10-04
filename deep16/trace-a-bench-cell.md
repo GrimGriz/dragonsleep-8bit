@@ -44,6 +44,6 @@ Edit, then `python dev/check.py` (GREEN before a push), then step 1 again -- the
 
 ## Limits
 
-- `bandtrace` is bands only. A duel cell needs the same shape over `npc: { party: [a:L], foes: [b:L] }` with seeds `1000 + i*97 + j*13 + k*7919` (`dev/bench16.js` mode=matrix has the formula); copy `runBand` and change the setup.
+- **A duel cell** works the same way: add `vs=<class>` (`'cls':'rogue','vs':'sorcerer'` is the rogue as the party against the sorcerer as the foe; the matrix runs each pair once, with the earlier class in the list as `cls`). The seeds are `1000 + i*97 + j*13 + k*7919` (i, j the two classes' places in the list), 10-04. A rogue-vs-sorcerer specimen: seed 1893, a loss in three rounds.
 - `cls=` on `mode=matrix` runs one class's duels and band only (`dev/bench16.js`): the rerun of a broken row without the whole table.
 - Do not let `bench_matrix.py` overwrite `deep16-class-bench.md` while chasing a number: copy the file out first (10-04 it was overwritten with a mid-change run).
