@@ -344,18 +344,32 @@ class Rig:
             out.append((name, n, loop, fn, how))
         return out
 
-    def export_poser(self, path, rows, col=None, engine=None, fps=None, fig='figure', extras=()):
+    def export_poser(self, path, rows, col=None, engine=None, fps=None, fig='figure', extras=(), max_points=40000):
         """everything the poser page needs, as one JSON file: the bones (the artist's rest and pose), what each bone is for, the mesh with its
         weights and colour (linear blend skinning: the page deforms it with the same numbers Blender does), and every row's frames as their
         numbers (P, after grounding). `check` carries two frames' bone matrices so the page can prove its own solve against this one.
-        extras: [(object parented to a bone, '#rrggbb')] -- a held thing (the stone giant's club) rides its bone whole on the page."""
+        extras: [(object parented to a bone, '#rrggbb')] -- a held thing (the stone giant's club) rides its bone whole on the page.
+        max_points: a body heavier than this goes to the page as a decimated copy (its weights carried, its colours from the nearest point)."""
         import json, base64
         B64 = lambda a, dt: base64.b64encode(np.ascontiguousarray(a, dtype=dt).tobytes()).decode('ascii')
         rowm = lambda m: [float(m[i][j]) for i in range(4) for j in range(4)]
         idx = {n: i for i, n in enumerate(self.ORDER)}
         bones = [dict(n=n, p=idx[self.BN[n].parent.name] if self.BN[n].parent else -1, len=float(self.BN[n].length), rest=rowm(self.REST[n]),
                       pose0=rowm(self.POSE0[n]), deform=bool(self.BN[n].use_deform)) for n in self.ORDER]
-        me = self.body.data; nv = len(me.vertices)
+        me = self.body.data; nv = len(me.vertices); tmp = None; near = None
+        if nv > max_points:       # (a sculpt too heavy for the page -- the stone giant's 327k points: a decimated copy, its weights carried by the collapse, its colours from the nearest point)
+            from mathutils import kdtree
+            tmp = self.body.copy(); tmp.data = self.body.data.copy(); bpy.context.scene.collection.objects.link(tmp)
+            for m in list(tmp.modifiers):
+                tmp.modifiers.remove(m)
+            dm = tmp.modifiers.new('poser', 'DECIMATE'); dm.ratio = max_points / nv
+            bpy.context.view_layer.update(); dg = bpy.context.evaluated_depsgraph_get()
+            me = bpy.data.meshes.new_from_object(tmp.evaluated_get(dg), preserve_all_data_layers=True, depsgraph=dg)
+            kd = kdtree.KDTree(nv)
+            for v in self.body.data.vertices:
+                kd.insert(v.co, v.index)
+            kd.balance(); near = [kd.find(v.co)[1] for v in me.vertices]
+            print('%s poser: %d points thinned to %d for the page' % (self.log, nv, len(me.vertices))); nv = len(me.vertices)
         co = np.zeros(nv * 3); me.vertices.foreach_get('co', co); co = co.reshape(-1, 3)
         TA = np.array(self.arm.matrix_world.inverted() @ self.body.matrix_world)
         pos = co @ TA[:3, :3].T + TA[:3, 3]
@@ -370,6 +384,9 @@ class Rig:
         if col is None:
             col = np.full((nv, 3), 0.5)
         col = np.asarray(col)[:, :3]
+        if near is not None:
+            col = col[np.array(near)] if len(col) != nv else col
+            bpy.data.objects.remove(tmp, do_unlink=True); bpy.data.meshes.remove(me)
         for obj, hexc in extras:      # (a held thing: its points taken back to where they'd sit at rest, wholly on its bone)
             bpy.context.view_layer.update()
             b = obj.parent_bone; dg = bpy.context.evaluated_depsgraph_get(); oe = obj.evaluated_get(dg); m2 = oe.to_mesh()
