@@ -29,6 +29,8 @@ how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop wha
 | **the roper** -- pipeline 1b's second | MZ4250's Roper 2025 (CC BY-SA): idle, creep, a lash from each of four tendrils, reel, bite, flinch, death, still, reveal | `tools/roper-blend.py` | 10-01 | its own row (10-02): tipped back about its foot, the tendrils flailing |
 | **the grick** -- pipeline 1b's third, on the artist's own rig | MZ4250's Grick Updated (CC BY): idle, walk (a step or two, coiled) and slither (three squares and more, laid flat), tentacles, beak, flinch, death, still (Stone Camouflage), reveal; the den's brown stone, in `S.STONE` | `tools/grick-blend.py` | 10-02 | frame 3 of its death: laid flat, alive |
 
+| **the duergar** -- an LPC grey dwarf, not generated (10-04, Griz: "do the duergar") | `duergar_full` composed, squashed to a dwarf's build, pixelated: idle, walk, war-pick swing, hurt, cast (Enlarge, Invisibility) | `tools/lpc-compose.py`, `lpc-squash.py`, `pixelate.py p0` | 10-04 | the LPC fall row, frame 4, like every `_p0` figure |
+
 **Prone (10-01b).** Griz: *"Seems like we don't have prone for all the pretty characters we've made (and I guess we'd need at least 1 other frame for getting up from prone)"* -- *"The column for 'art someday' is appropriate if not and in other/monster cases."* The LPC figures (the heroes, Ingrith, the guests, every class NPC: the `_p0` sheets) have it already: their fall row's frame before last, on hands and knees, held while prone, and the row played back to get up (`deep16/js/sprites.js` S.proneFrame). The generated sheets' death rows end dead, so they stand while prone until a sheet brings a row for it; the Blender stand-ins (`_p1`) wait for their generated sheets. When a sheet for one of these is made again, or a new head is written, add this row to it: *"PRONE: knocked flat but alive and struggling, 2 frames: lying on the ground, then pushing itself up."* A sheet that brings it is cut into `S.PRONE` (one line) and the column says so.
 
 **Special moves before detailed attacks (10-01d).** Griz: *"It's important for us to do the special move ones - like burrow and Earth Glide more than detailed attacks, but since this is prototype, go fancy"*. Today the grid plays one `attack` row for every swing (`deep16/js/battle.js` picks `cast` or `attack`), and no creature goes under or comes up on screen (the bulette's Burrow row is cut and shelved, its Emerge kept as `reveal`; foes.js marks its burrow "not read"). So a row for a special move (going under, coming up) outranks a second attack row, and the hook that plays it serves the xorn's Earth Glide and the bulette's burrow both. The xorn, the Blender prototype, gets both: a row per attack (claw, bite) and the special moves.
@@ -71,7 +73,7 @@ HEAD: THE KEEPER (a serpent of living water) -- the flooded dwarven stair. A ser
 
 ### 5. The duergar (the giant's camp; three to a fight)
 
-A barbarian model today.
+IN HAND 10-04 as an LPC figure (`duergar_p0`: prone and a cast row come with it). A generated sheet is welcome, never needed; the head is kept.
 
 HEAD: DUERGAR (grey dwarves) -- the deep. Bald grey-skinned dwarves with pale eyes, dark iron scale armour, a war pick and javelins. Rows: Idle (8), Walk (8), Attack (war pick, 8), Throw (javelin, 6), Enlarge (grows to twice his height, 6), Fade (turns invisible, 6), Hurt (6), Death (8).
 

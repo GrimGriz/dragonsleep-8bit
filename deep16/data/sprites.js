@@ -1325,6 +1325,61 @@
 }
 }
 },
+"duergar_p0": {
+"image": "art/duergar_p0.png?v=13fdc3a53f",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 38,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+},
+"cast": {
+"y": 3072,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 7,
+"fps": 10
+}
+}
+},
 "duergar_p1": {
 "image": "art/duergar_p1.png?v=f24abd041f",
 "fw": 96,

@@ -727,6 +727,21 @@ FIGURES = {
         ],
         'notes': ['the battleaxe as the generator\'s war axe'],
     },
+    'duergar_full': {  # the duergar (10-04, Griz: "do the duergar"): a grey dwarf, bald, dark iron plate, the war pick as the generator's war axe
+        'extra': [('cast', 'spellcast')],
+        'body': 'male', 'skin': 'all.lpcr.gray', 'eyes': 'gray', 'attack': ('slash', 'slash_oversize'),
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_male.json'},
+            {'def': 'legs/pants/legs_pants.json', 'color': 'charcoal'},
+            {'def': 'feet/boots/feet_boots_basic.json', 'color': 'black'},
+            {'def': 'torso/armour/torso_armour_plate.json', 'color': 'iron'},
+            {'def': 'arms/arms_armour.json', 'color': 'iron'},
+            {'def': 'weapons/blunt/weapon_blunt_waraxe.json', 'variant': 'waraxe', 'idle_from': IDLE_FROM_WALK},
+        ],
+        'notes': ['duergar = male body, skin all.lpcr.gray, bald, dark iron plate, charcoal pants, black boots, pale grey eyes; the war pick as the '
+                  'generator\'s war axe; the spellcast row is its Enlarge and Invisibility'],
+    },
     'hedda_full': {  # Hedda Greyseam: long grey hair, chainmail, the warhammer
         'body': 'female', 'skin': 'lpcr.tan', 'eyes': 'gray', 'attack': ('slash', 'slash_oversize'),
         'items': [

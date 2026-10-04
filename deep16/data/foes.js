@@ -224,7 +224,7 @@
     src: 'SRD 5.1 Stone Giant (CR 7, Huge, greatclub reach 15 ft; Rock as a ranged attack, thrown when no one is in reach); content/monsters.json stonegiant; the rock knocks prone (STR 17)'
   },
   duergar: {
-    name: 'Duergar', type: 'humanoid', sheet: 'duergar_p1', cr: '1', ac: 16, hp: 26, speed: 25, size: 1, reach: 5, darkvision: 120, invisibility: true,
+    name: 'Duergar', type: 'humanoid', sheet: 'duergar_p0', cr: '1', ac: 16, hp: 26, speed: 25, size: 1, reach: 5, darkvision: 120, invisibility: true,
     abil: { str: 14, dex: 11, con: 14, int: 11, wis: 10, cha: 9 }, init: 0, perception: 10,
     saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: -1 },
     attacks: { warpick: { name: 'War Pick', atk: 4, dice: '1d8', mod: 2, type: 'piercing', reach: 5 }, javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true, enlarged: '2d6' } }, // (the javelin, SRD 5.1: 2d6 enlarged; ai.js brute grows it first -- 10-02)
