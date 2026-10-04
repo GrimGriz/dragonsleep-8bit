@@ -467,7 +467,9 @@ if os.path.exists(MV) and not OPT.get('nomarks'):
         return (((PA[:, None, :] - Q[None, :, :]) ** 2).sum(2) < r * r).any(1)
     HAIRM = (HAIRM | near(mv['orange'], float(OPT.get('mor', 1.1)))) & ~near(mv['yellow'], float(OPT.get('myr', 0.9)))
 MOUTH = (HA > 6.0) & (HA < 13.5) & (HB > -7.5) & (HB < -1.2) & (np.abs(HSI) < 4.6) & ((NA @ HF) < float(OPT.get('mn', 0.15)))      # the inside of the open mouth: points in its box facing back into the head
-EYEC_AT = [(float(OPT.get('ese', 1.5)), float(OPT.get('eb', 1.15)), float(OPT.get('ea', 11.2))), (-float(OPT.get('esw', 1.9)), float(OPT.get('ebw', 0.6)), float(OPT.get('eaw', 12.9)))]     # the eyes' (s, b, a), read off the close-up with `-- close ... pick=x,y;x,y`
+EYEC_AT = [(float(OPT.get('ese', 1.5)), float(OPT.get('eb', 1.15)), float(OPT.get('ea', 11.2)))]     # the one eye in its socket, read off the close-up with `-- close ... pick=x,y;x,y`; the second (purple marks: s -1.9, b 0.6, a 12.9) was too much and is left off (Griz, 10-04: "better missing"): eye2=1 puts it back
+if OPT.get('eye2'):
+    EYEC_AT.append((-1.9, 0.6, 12.9))
 EYEM = np.zeros(nv, bool)
 for se_, be_, ae_ in EYEC_AT:
     EYEM |= hg & (((HSI - se_) ** 2 + (HB - be_) ** 2 + (HA - ae_) ** 2) < float(OPT.get('er', 1.0)) ** 2)
