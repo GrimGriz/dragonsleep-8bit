@@ -621,7 +621,7 @@
     yield Math.max(24, D.spr.duration(u.sheet, 'reveal') || 0);
     u.anim = 'idle';
     // up, it sees: one hidden that it now sees clearly is found, as on a step (battle.js moveAlong; SRD 5.1, "You can't hide from a creature that can see you clearly" -- 10-02)
-    B.units.forEach(function (w) { if (w.conds.hidden && G.hostile(u, w) && G.standing(w) && B.seenBy && B.seenBy(u, w) === 2) { delete w.conds.hidden; B.card(['{o}' + the(B, u) + ' finds ' + w.name + ' plainly.{/}'], 200); } });
+    B.findsHidden(u);
     if (B.readyHook) yield* B.readyHook(u); // (up into a readier's reach or sight: the readied strikes -- battle.js exec 'ready', 10-02)
   }
   function* burrower(B, u) {
@@ -718,6 +718,9 @@
         hs = heroes(B, u);
       }
     }
+    // and sees no one still, with a hidden enemy about: it searches (SRD 5.1: an action; a Perception check against a hider's Stealth -- battle.js search, 10-04); at once with a
+    // place to look (a blow heard), and from round 2 without -- Griz: "they should know they're in a fight and searching is a better option than idle"
+    if (!hs.length && !grudge && T.action > 0 && !u.conds.disarmed && (B.round >= 2 || (B.heardOf && B.heardOf(u))) && B.units.some(function (w) { return w.conds.hidden && G.hostile(u, w) && G.standing(w); })) { yield* B.search(u); hs = heroes(B, u); }
     if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp) {
       if (u.burned) { B.card(['{g}' + u.name + ' does not knit: it burned.{/}']); yield 16; }
       else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }

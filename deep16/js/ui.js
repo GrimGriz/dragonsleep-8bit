@@ -83,7 +83,7 @@
         // (she, standing there: moved there for the look and back -- a stand-in left her real body on her own square as cover, so the squares behind her
         // tinted as hiding places a foe saw plainly; the rogue runner's find, 10-01c)
         var ox = u.x, oy = u.y; u.x = e.x; u.y = e.y;
-        try { rc.hide[k] = foes.every(function (f) { return B.seenBy(f, u) < 2; }); } finally { u.x = ox; u.y = oy; }
+        try { rc.hide[k] = foes.every(function (f) { var n = B.nearOf(f, u); return !n || !n.bonus; }); } finally { u.x = ox; u.y = oy; }
       });
     });
     return rc.hide;
@@ -757,6 +757,7 @@
       DEFER = objs; WCTX = wx;
       D.iso.draw(wx, objs, function (c) { overlay(c, B, hero); });
       if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
+      drawPathDots(wx);
       xray(wx, B, objs, hero || B.active); // a figure hidden behind another shows through as its outline
       // a rider the cursor means (a darkmantle on a head: underCursor) outlined, so the mouse shows it is on it (10-01, Griz: "I can't get any indication I'm mousing over the one on his head")
       var hr = hero && underCursor(B), ho = hr && hr.riding && objs.filter(function (o) { return o.unit === hr && o.shown; })[0];
@@ -1331,7 +1332,11 @@
     var ck = s.x + ',' + s.y; B.cornerCocoons = B.cornerCocoons || {};
     if (D.art && D.art.cocoon) { var cc = B.cornerCocoons[ck] || (B.cornerCocoons[ck] = D.art.cocoon(D.hash('corner' + ck))); ctx.drawImage(cc.canvas, Math.round(hub[0] - cc.ax), Math.round(hub[1] + 30 - cc.ay)); }
   }
-  function dotSq(x, y, color) { onSq(x, y, function (c) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); c.fillStyle = color; c.fillRect(s.x - 1, s.y - 1, 2, 2); }); }
+  // the path's dots are queued and drawn after the light pass (10-04, Griz: brighter, or not dimmed by the room's light): the overlay runs before D.light.pass,
+  // so a dark room dimmed them; each is a 3x3 dot on a dark 5x5 backing, so the white reads on pale floor too
+  var PATHDOTS = [];
+  function dotSq(x, y, color) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); PATHDOTS.push({ x: s.x, y: s.y, color: color }); }
+  function drawPathDots(c) { PATHDOTS.forEach(function (d) { c.fillStyle = R('outline', 0); c.fillRect(d.x - 2, d.y - 2, 5, 5); c.fillStyle = d.color; c.fillRect(d.x - 1, d.y - 1, 3, 3); }); PATHDOTS = []; }
   function overlay(ctx, B, u) {
     // the aura of protection round a standing paladin: a dashed gold circle, 10 ft (Griz, 09-27: "auras as circles centered
     // on him"). Its radius, 2.9 squares, takes in the centre of every square within 10 ft -- the 5x5 block the rules

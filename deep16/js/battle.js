@@ -750,6 +750,7 @@
       else out.push({ id: 'leave', label: 'LEAVE THE FIGHT', cost: 'M', icon: 'back', ok: false, why: 'not from here: walk to one of the pale squares at the edge first (' + this.exits.length + ' way' + (this.exits.length === 1 ? '' : 's') + ' out)', note: 'out the way you came in' });
     }
     out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'attacks at you at disadvantage till your next turn' });
+    out.push({ id: 'search', label: 'SEARCH', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'a Perception check against anyone hiding in sight, all round you' }); // (SRD 5.1 Search; 10-04)
     // Help (the attack kind) only with a foe beside you (Griz, 09-27) -- and on a friend beside you who needs a hand (10-01c, Griz: "repurpose the help action to
     // conditionally target allies as well as current target enemy"): a sleeper shaken awake (SRD 5.1 Sleep: "someone uses an action to shake or slap the sleeper
     // awake"), one held in a web or a grip given advantage on its next check to get out (SRD 5.1 Help: "advantage on the next ability check it makes")
@@ -913,7 +914,7 @@
         var adv2 = !!(en2 && !en2.down) || ce2.adv.length > 0, dis2 = !!(u.conds.poisoned || u.conds.frightened || (en2 && en2.down) || (u.conds.restrained && u.conds.restrained.weak)) || ce2.dis.length > 0;
         var b1 = D.d(20), b2 = D.d(20), bd20 = adv2 && !dis2 ? Math.max(b1, b2) : dis2 && !adv2 ? Math.min(b1, b2) : b1;
         var pb2 = D.mod(u.abil.str) + (u.cls === 'fighter' ? u.prof : 0), btot = bd20 + pb2;
-        T.action = 0; RU.spendHelp(u); D.sfx('run'); if (hw !== u) u.facing = faceTo(u, hw);
+        T.action = 0; RU.spendHelp(u); D.sfx('run'); if (hw !== u) this.turnTo(u, faceTo(u, hw));
         var luck2 = RU.darkLuck(u, dc2 - btot); if (luck2) btot += luck2;
         this.card(['{y}' + u.name + '{/} takes hold of the tendril' + (hw === u ? '' : ' on ' + hw.name) + ' and wrenches: STR d20 ' + bd20 + (adv2 !== dis2 ? (adv2 ? ' {n}(advantage){/}' : ' {o}(disadvantage){/}') : '') + ' ' + RU.sign(pb2) + (luck2 ? ' {y}+' + luck2 + ' dark one\'s own luck{/}' : '') + ' = ' + btot + ' vs DC ' + dc2 + '  ' + (btot >= dc2 ? '{n}BROKEN{/}' : '{g}it holds{/}')]);
         if (btot >= dc2) this.tendrilGone(st2.by, hw, 'broken');
@@ -981,6 +982,7 @@
         yield 20; return;
       }
       case 'hide': { yield* this.hide(u); return; }
+      case 'search': { yield* this.search(u); return; }
       case 'lay': { yield* this.layOnHands(u, c.target, c.cure); return; }
       default: if (D.features && D.features.exec) yield* D.features.exec(this, u, c); // (a class feature's button: js/features.js)
     }
@@ -1001,9 +1003,10 @@
       if (fell && o && o.spend && T.move < cost) { u.anim = 'idle'; return; } // (knocked down on the way and up again, or crawling: the walk runs out short of the square)
       // leaving a hostile's reach without Disengage provokes, right before the step
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
-        var prov = this.units.filter(function (w) {
+        var selfO = this, prov = this.units.filter(function (w) {
           return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) // (a rider -- a darkmantle attached, "can attack no other creature except the target"; a familiar on its wizard -- takes none)
             && G.dist(w, u) <= G.reachOf(w) && G.dist(w, u, null, null, nx, ny) > G.reachOf(w) && !(w.conds.hidden && false)
+            && (!u.conds.hidden || (u.hidTotal != null ? !!selfO.spots(w, u) : selfO.seenBy(w, u) === 2)) // (SRD 5.1: "a hostile creature that you can see" -- one it cannot see she leaves unseen; 10-04, Griz: fix)
             && D.magic.sees(D.battle, w, u) && !RU.charmedBy(w, u); // (a creature you can see: not into or out of darkness; and never at its charmer)
         });
         for (var k = 0; k < prov.length; k++) {
@@ -1025,6 +1028,7 @@
             var atk = w.weapon || w.attacks.shortsword || w.attacks.longsword || w.attacks.bite
               || w.attacks[Object.keys(w.attacks).filter(function (k) { return !w.attacks[k].ranged; })[0]]; // any melee attack (the morningstar)
             if (!atk) continue;
+            if (u.conds.hidden) { delete u.conds.hidden; delete u.hidTotal; this.card(['{o}' + nameOf(u) + ' gives the position away: no longer hidden.{/}  {g}(an opportunity attack breaks stealth){/}'], 200); } // (10-04, Griz)
             yield* this.attack(w, u, atk, { oa: true });
             if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; }
             // held by the blow (a grip on the hit: the darkmantle's crush, a tendril), or stunned or put down by it: no more walking -- its speed is 0
@@ -1045,9 +1049,10 @@
       yield STEP_FRAMES;
       // hidden no more (SRD 5.1: "You can't hide from a creature that can see you clearly"): one hidden who steps where a foe sees it clearly is found, and
       // one hidden from the mover that the mover now sees clearly (10-01c, the rogue runner: she crossed 50 ft of lit floor hidden and struck with advantage)
-      var selfH = this;
-      if (u.conds.hidden && this.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && selfH.seenBy(w, u) === 2; })) { delete u.conds.hidden; this.card(['{o}' + nameOf(u) + ' is in plain sight: no longer hidden.{/}'], 200); }
-      if (RU.canAct(u)) this.units.forEach(function (w) { if (w.conds.hidden && G.hostile(u, w) && G.standing(w) && selfH.seenBy(u, w) === 2) { delete w.conds.hidden; selfH.card(['{o}' + nameOf(u) + ' sees ' + nameOf(w) + ' plainly: found.{/}'], 200); } });
+      // (10-04, Griz's notion: a Stealth total holds outside every foe's 15 ft -- the square it stands in and the eight round it -- and inside, each square she moves
+      // through or stops in is a contest of that total against the foe's passive Perception plus a bonus by which side of it she is on and the light: Battle.spots)
+      this.lostCover(u);
+      if (RU.canAct(u)) this.findsHidden(u);
       // into a spell's web (from outside it): the SRD's save for one who enters it during its turn; stuck, it stops there
       if (!u.ethereal && !wasIn && D.magic.webCatch(this, u, 'enters')) { if (o && o.spend) T.move = 0; yield 24; break; }
       // onto a Sleet Storm's ice (the first square of it this turn): DEX or down, and the move ends there
@@ -1111,7 +1116,7 @@
     if (att.conds && att.conds.sanctuary && D.magic.unward) D.magic.unward(this, att, 'an attack'); // (SRD 5.1 Sanctuary: "If the warded creature makes an attack ... this spell ends" -- 10-03)
     if (att.turn) att.turn.attacked = (att.turn.attacked || 0) + 1; // (it struck at something this turn: a burrower dives after a bite, not after a turn of nothing -- ai.js diveAfter, 10-02)
     var self = this, melee = !atk.ranged && (!atk.spell || atk.touch), cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
-    att.facing = faceTo(att, tgt);
+    this.turnTo(att, faceTo(att, tgt));
     // a spell's shot leaves at the height of the cast pose (the spell animation pass, 09-28h): the pose the cast began runs on
     var posing = atk.spell && (att.anim === 'attack' || att.anim === 'cast') && this.t - (att.animT || 0) < (D.spr.duration(att.sheet, att.anim) || 18);
     // (a spell's shot, or a floating weapon sent at its mark, from the cast pose where the sheet has one)
@@ -1443,7 +1448,7 @@
     if (!t || !G.standing(held) || !G.standing(holder) || held.conds.restrained.by !== holder.id) return;
     if (!o.oa && !o.ready) this.noteHeard(att);
     var melee = !atk.ranged, cid = 'atk' + (++this.cardSeq || (this.cardSeq = 1));
-    if (held !== att) att.facing = faceTo(att, held);
+    if (held !== att) this.turnTo(att, faceTo(att, held));
     att.anim = 'attack'; att.animT = this.t;
     if (!o.oa) yield 10;
     if (!melee) { FX.projectile(att, held, atk.fx || 'bolt'); yield { fx: 1 }; }
@@ -1688,6 +1693,9 @@
     return D.spr.facingFor(Math.round(dx / m), Math.round(dy / m));
   }
   Battle.prototype.faceTo = faceTo;
+  // a unit turns (to a blow's target, a spell's, a friend it helps): its watch is on a new side, so it looks again at the hidden among its enemies (battle.js findsHidden;
+  // 10-04, Griz: every turn of the model -- two foes flanking it, two blows, two looks -- and a step turns it too, moveAlong)
+  Battle.prototype.turnTo = function (u, f) { if (u.facing === f) return; u.facing = f; if (RU.canAct(u) && u.hp > 0) this.findsHidden(u); };
 
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
   Battle.prototype.hurt = function (u, n, type, src) { // (src: { magic: true } when the blow is magical -- a spell, a magic weapon, a monster's magical attacks)
@@ -1940,7 +1948,7 @@
     var T = u.turn, sl = slotFor(u, 3), self = this;
     T.action = 0; T.spell = 'leveled'; u.slots[sl - 1]--;
     var sq = G.sphere(cx, cy, 20), dice = (8 + sl - 3) + 'd6';
-    u.facing = faceTo(u, { x: cx, y: cy, size: 1 });
+    this.turnTo(u, faceTo(u, { x: cx, y: cy, size: 1 }));
     u.anim = 'attack'; u.animT = this.t;
     yield 12;
     FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 };
@@ -2006,43 +2014,102 @@
     });
     return best;
   };
-  Battle.prototype.seenBy = function (w, u) {
-    var s = D.magic.seeWhy(this, w, u), l = G.los(w, u); if (!s.ok || !l.clear || l.cover) return 0;
+  Battle.prototype.seenBy = function (w, u, hide) {
+    var s = D.magic.seeWhy(this, w, u), l = G.los(w, u, undefined, undefined, hide); if (!s.ok || !l.clear || l.cover) return 0;
     if (!this.dark || (w.blindsight && G.dist(w, u) <= w.blindsight) || (w.truesight && G.dist(w, u) <= w.truesight)) return 2;
     return s.dv || (D.light && D.light.levelOf(this, u) < 2) ? 1 : 2;
+  };
+  // ---- the neighbourhood (10-04, Griz: "the stealth roll hides outside of 15 feet of each opponent, that 15' divided into front and back (squares 1-3 front,
+  // 4 & 6 the sides, 7-9 the back) ... a hidden entering squares 1-3 would get a perception check +5 that had to beat the stealth roll, and 4 & 6 would be +3 (bright
+  // light); dim +3 front, +1 sides; dark none except night vision, familiar vision; eyes in the back treat all squares as front; the facing is the one the sprite shows)
+  var FACE_STEP = [[1, 1], [0, 1], [-1, 1], [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0]]; // (sprites.js STEP, inverted)
+  var NEAR_BONUS = { front: [0, 7, 9], side: [0, 5, 7], back: [0, 1, 3] }; // (by Battle.seenBy: 0 unseen/dark, 1 dim or darkvision, 2 clear; Griz 10-04: cone +9, sides +7, rear three +3 in the bright; dim 2 down is the seat's)
+  // w's watch over u: the 3x3 round it (front 1-3, the sides 4 and 6, the back 7-9) and, ahead of it, the cone widening a square a side each row (3, 5, 7 ... -- Griz 10-04:
+  // "keep coning it out to their vision distance"), every front square at the front's bonus by the light; null if u is in neither, else { side, bonus, lvl }.
+  // The reach is Battle.seenBy's -- a clear line, no cover, in light or by the seer's sense -- so the dark and the cover end the cone, not a number of squares
+  Battle.prototype.nearOf = function (w, u) {
+    var ring = G.foot(w).some(function (q) { return Math.max(Math.abs(q[0] - u.x), Math.abs(q[1] - u.y)) <= 1; });
+    var c = ((w.size || 1) - 1) / 2, vx = u.x - (w.x + c), vy = u.y - (w.y + c), f = FACE_STEP[((w.facing || 0) % 8 + 8) % 8], fl = Math.hypot(f[0], f[1]), vl = Math.hypot(vx, vy) || 1;
+    var fwd = (vx * f[0] + vy * f[1]) / fl, lat = Math.abs(vx * f[1] - vy * f[0]) / fl, cone = fwd > 0 && lat <= fwd + 1e-6, all = !!(w.twoHeads || w.allAround);
+    if (!ring && !cone && !all) return null;
+    var side = all || cone ? 'front' : fwd / vl < -0.5 ? 'back' : 'side', lvl = this.seenBy(w, u, true);
+    var base = NEAR_BONUS[side][lvl], wis = w.abil && w.abil.wis != null ? Math.floor((w.abil.wis - 10) / 2) : 0; // (Griz, 10-04: "try add wisdom bonuses to the cone", then "wisdom on the 9-square they're in (back and sides included)" -- the watcher's Wisdom modifier on top, in its cone and its 3x3)
+    return { side: side, bonus: base && (ring || cone) ? base + Math.max(0, wis) : base, lvl: lvl };
+  };
+  // a Stealth roll for u now: the d20 and the total (Supreme Sneak's advantage only on her own turn, if she has walked no more than half her speed)
+  Battle.prototype.stealthRoll = function (u) {
+    var T = u.turn || {}, supreme = u.subclass === 'Thief' && u.lvl >= 9 && (this.active === u || !this.active) && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex'), hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20);
+    var r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
+    return { r: r, total: r + u.stealth + (u.conds.pwt ? 10 : 0), supreme: supreme, ce: ce, hadv: hadv, hdis: hdis };
+  };
+  // w finds u (hidden by B.hide): its passive Perception plus the bonus of where u stands beats the Stealth total u rolled when it hid (held -- Griz 10-04, "the existing
+  // roll, not a fresh one at each step"; an active Search is the foe's own roll, Battle.search); the line for the card, or null
+  Battle.prototype.spots = function (w, u) {
+    var n = this.nearOf(w, u); if (!n || !n.bonus) return null;
+    var pp = w.perception + (w.twoHeads ? 5 : 0) + n.bonus; if (pp <= u.hidTotal) return null;
+    return 'Stealth ' + u.hidTotal + ' against ' + shortName(w) + "'s passive Perception " + w.perception + (w.twoHeads ? ' +5 (two heads)' : '') + ' +' + n.bonus + ' (' + n.side + (n.lvl === 1 ? ', dim' : '') + ') = ' + pp;
+  };
+  // the Search action (SRD 5.1: an action; "you devote your attention to finding something" -- a Wisdom (Perception) check, which is what contests a hider's Stealth, "any creature
+  // that actively searches"): d20 + Perception against each hidden enemy it has a clear, lit look at, from where it stands and all round it (no facing: it looks about);
+  // the bonus of its own watch (the 3x3, the cone) counts where the hider is in it. The hider rolls Stealth again against it (Griz, 10-04: an active search calls a re-roll; a pass through a watch is the held total against passive + bonus).
+  Battle.prototype.search = function* (u) {
+    var T = u.turn, self = this, any = false;
+    T.action = 0; D.sfx('run');
+    this.units.forEach(function (w) {
+      if (!w.conds.hidden || !G.hostile(u, w) || !G.standing(w) || !self.seenBy(u, w, true)) return;
+      var n = self.nearOf(u, w), bonus = n && n.bonus ? n.bonus : 0, held = self.stealthRoll(w).total, r = D.d(20), tot = r + (u.perception - 10) + bonus, got = tot > held;
+      any = true;
+      self.card(['{y}' + nameOf(u) + '{/} searches: Perception d20 ' + r + ' ' + RU.sign(u.perception - 10) + (bonus ? ' +' + bonus + ' (' + n.side + ')' : '') + ' = ' + tot + ' against ' + nameOf(w) + "'s Stealth " + held + '  ' + (got ? '{o}FOUND{/}' : '{n}nothing{/}')], 200);
+      if (got) { delete w.conds.hidden; delete w.hidTotal; }
+    });
+    if (!any && u.side === 'party') this.card(['{g}' + nameOf(u) + ' searches: no one hidden in sight.{/}']);
+    yield 30;
+  };
+  // u, hidden, is looked at where it stands (a hide with no held total -- a foe lying in wait -- keeps the plain rule: any foe that sees it clearly)
+  Battle.prototype.lostCover = function (u) {
+    if (!u.conds.hidden) return false;
+    var self = this, why = null, rr = {};
+    this.units.forEach(function (w) {
+      if (why || !G.hostile(u, w) || !G.standing(w) || !RU.canAct(w)) return;
+      if (u.hidTotal != null) { var t = self.spots(w, u, rr); if (t) why = t; } else if (self.seenBy(w, u) === 2) why = 'in plain sight';
+    });
+    if (!why) return false;
+    delete u.conds.hidden; delete u.hidTotal; this.card(['{o}' + nameOf(u) + ' is found: no longer hidden.{/}  {g}(' + why + '){/}'], 200); return true;
+  };
+  // o looks at the hidden among its enemies: each in o's watch that o spots, and (no held total) each o sees clearly, is found
+  Battle.prototype.findsHidden = function (o) {
+    var self = this;
+    this.units.forEach(function (w) {
+      if (!w.conds.hidden || !G.hostile(o, w) || !G.standing(w)) return;
+      var why = w.hidTotal != null ? self.spots(o, w, {}) : self.seenBy(o, w) === 2 ? 'plainly' : null; if (!why) return;
+      delete w.conds.hidden; delete w.hidTotal; self.card(['{o}' + nameOf(o) + ' finds ' + nameOf(w) + '.{/}  {g}(' + why + '){/}'], 200);
+    });
   };
   Battle.prototype.hide = function* (u) {
     var T = u.turn;
     if (T.bonus > 0 && (u.lvl >= 2 || u.cunning)) T.bonus = 0; else T.action = 0; // Cunning Action from level 2 (or a stat block's: the Spy); the Hide action before
     D.sfx('run');
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)
-    // who sees her clearly (SRD 5.1 Hiding: "You can't hide from a creature that can see you clearly"; darkvision sees darkness "as if the
-    // darkness were dim light", and dim light is lightly obscured -- not clearly. 10-01b, Griz: "I think I'm getting conflicting rogue-hiding
-    // hints": she was refused by anyone with a clear line, in the pitch dark too): 2, a clear line with no cover and she in bright light or
-    // within its blindsight or truesight -- no hiding from it; 1, the same line but by its darkvision or in dim light -- she may try, and its
-    // passive Perception is 5 down (lightly obscured: disadvantage on sight); 0, behind cover or not seen at all -- she may try
-    var seen = function (w) { return self.seenBy(w, u); };
-    var plain = foes.filter(function (w) { return seen(w) === 2; });
     var mirror = foes.filter(function (w) { return w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); }); // (the Mirror's eye: no hiding before it, in light)
-    // Supreme Sneak (the Thief's 9; SRD 5.1): advantage on the Stealth check if it moved no more than half its speed this turn
-    // (and Enhance Ability on DEX, Heat Metal's burning armour against every check: rules.js checkEdges)
-    var supreme = u.subclass === 'Thief' && u.lvl >= 9 && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex'), hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20), r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
+    // Supreme Sneak (the Thief's 9; SRD 5.1): advantage on the Stealth check if it moved no more than half its speed this turn -- what she has walked BEFORE the
+    // roll (hide first and the whole move is hers after) -- and Enhance Ability on DEX, Heat Metal's burning armour against every check: rules.js checkEdges
+    var q = this.stealthRoll(u), r = q.r, supreme = q.supreme, ce = q.ce, hadv = q.hadv, hdis = q.hdis;
     RU.spendHelp(u); // (a friend's Help, spent on the Stealth check -- 10-01c)
-    var total = r + u.stealth + (u.conds.pwt ? 10 : 0), pp = function (w) { return w.perception + (w.twoHeads ? 5 : 0) - (seen(w) === 1 ? 5 : 0); }, top = Math.max.apply(null, foes.map(pp).concat([0]));
-    var headTop = foes.some(function (w) { return pp(w) === top && w.twoHeads; }); // (Two Heads: advantage on Wisdom (Perception) checks, SRD 5.1; a passive check with advantage is 5 up)
-    var dimTop = foes.some(function (w) { return pp(w) === top && seen(w) === 1; }); // (the sharpest of them sees her only dimly: say so)
+    var total = q.total;
     if (mirror.length) {
-      this.card(['{y}' + u.name + '{/} tries to hide, but the mirror on ' + mirror.map(shortName).join(' and ') + ' has her: {p}nothing hides in front of the Mirror\'s eye{/}.', '{g}Get behind her, or into the dark.{/}']);
-    } else if (plain.length) {
-      var bsw = plain.filter(function (w) { return w.blindsight && G.dist(w, u) <= w.blindsight; })[0];
-      this.card(['{y}' + u.name + '{/} tries to hide, but ' + plain.map(function (p) { return (p.named ? '' : 'the ') + shortName(p); }).join(' and ') + ' can see her plainly (' + (bsw ? 'blindsight ' + bsw.blindsight + ' ft: it needs no light' : this.dark ? 'in the light' : 'no cover') + ').', '{g}Put a stalagmite or a body between you first' + (bsw ? ', or get past its ' + bsw.blindsight + ' ft' : this.dark ? ', or get out of the light' : '') + '.{/}']);
+      this.card(['{y}' + u.name + '{/} tries to hide, but the mirror on ' + mirror.map(shortName).join(' and ') + ' has her: {p}nothing hides in front of the Mirror\'s eye{/}.', '{g}Get behind her, or out of its light.{/}']);
     } else {
+      // the roll hides her outside every foe's watch (its 3x3 and the cone before it); inside, the foe's passive Perception plus its bonus must not beat it -- and each
+      // square she moves into after, a fresh roll (Battle.spots)
+      var worst = function () { return foes.map(function (w) { var n = self.nearOf(w, u); return n && n.bonus ? w.perception + (w.twoHeads ? 5 : 0) + n.bonus : 0; }).concat([0]).reduce(function (a, b) { return Math.max(a, b); }); };
       // Guidance (SRD 5.1: a d4 to one ability check, "before or after making the ability check"): spent after the roll, on a check the d4 could turn
-      var gd = u.conds.guidance && !u.conds.faerie && total < top && total + 4 >= top && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
-      total += gd;
-      var ok = total >= top && !u.conds.faerie; // (outlined in violet light: nowhere to hide)
-      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage)' + '{/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + ' vs passive Perception ' + top + (dimTop ? ' {g}(5 down: it sees her only dimly){/}' : '') + (headTop ? ' {o}(5 up: two heads, advantage on Perception){/}' : '') + '  ' + (ok ? '{n}HIDDEN{/}' : '{o}SEEN{/}'), ok ? '{g}Her next attack has advantage (and Sneak Attack).{/}' : '']);
-      if (ok) u.conds.hidden = true;
+      var gd = u.conds.guidance && !u.conds.faerie && total < worst() && total + 4 >= worst() && D.magic.spendGuidance ? D.magic.spendGuidance(this, u) : 0;
+      total += gd; u.hidTotal = total;
+      var rr = { t: total, r: r }, why = '';
+      foes.forEach(function (w) { if (!why) why = self.spots(w, u, rr) || ''; });
+      var ok = !why && !u.conds.faerie; // (faerie: outlined in violet light, nowhere to hide)
+      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage){/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + (ok ? '  {n}HIDDEN{/}' : '  {o}SEEN{/}'), ok ? '{g}Out of every foe\'s watch, or not seen in it; her next attack has advantage (and Sneak Attack).{/}' : why ? '{g}' + why + '.{/}' : '']);
+      if (ok) u.conds.hidden = true; else delete u.hidTotal;
     }
     yield 30;
   };

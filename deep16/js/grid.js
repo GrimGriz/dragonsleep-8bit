@@ -165,7 +165,7 @@
     return true;
   };
   // creature to creature: { clear, cover (0 or 2), why } -- the best line over both footprints
-  G.los = function (a, b, ax, ay) {
+  G.los = function (a, b, ax, ay, hide) { // (hide: b is hiding -- a creature in the line is cover only if it is a size larger than b, SRD 5.1; 10-04)
     var fa = G.foot(a, ax, ay), fb = G.foot(b), best = { clear: false, cover: 9, why: 'a wall' };
     fa.forEach(function (pa) {
       fb.forEach(function (pb) {
@@ -181,7 +181,7 @@
           var wl = G.wallAt && G.wallAt(x, y); if (wl && wl.sight) { clear = false; break; } // (a wall of fire, thorns or stone: js/walls.js)
           if (s.pillar) { cover = 2; why = s.stands || 'a stalagmite'; }
           var w = G.occupant(x, y);
-          if (w && w !== a && w !== b && cover < 2) { cover = 2; why = w.name; }
+          if (w && w !== a && w !== b && cover < 2 && (!hide || (w.size || 1) > (b.size || 1))) { cover = 2; why = w.name; }
         }
         if (clear && (!best.clear || cover < best.cover)) best = { clear: true, cover: cover, why: why };
       });

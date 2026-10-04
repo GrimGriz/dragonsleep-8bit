@@ -524,7 +524,11 @@
       // no one it knows of: toward the nearest it can hear, then wait
       var any = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.conds.hidden; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       if (!any && B.heardOf) any = B.heardOf(u); // (no one to hear but where the last blow came from: it goes there -- SRD 5.1, Hiding; battle.js noteHeard, 10-01c)
+      var clue = !!(B.heardOf && B.heardOf(u)); // (a blow or a spell heard, this round or the last: a place to look)
       if (any) yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), G.reachOf(u)));
+      // it still sees no one, with a place to look and a hidden enemy about: the Search action, a Perception check against the hider's Stealth (SRD 5.1; battle.js search, 10-04 --
+      // either side's class NPC: Griz, "oversight on my part limiting to 'foes'")
+      if ((clue || B.round >= 2) && !u.dead && u.hp > 0 && T.action > 0 && !u.conds.disarmed && B.units.some(function (w) { return w.conds.hidden && G.hostile(u, w) && G.standing(w); })) yield* B.search(u);
       return;
     }
     // the rogue's own plan first -- cover, then the kite (below); the class turn for whatever they leave (TX.rogueCover and TX.rogueKite false put her back on it)
@@ -857,7 +861,9 @@
     var ox = u.x, oy = u.y, chase = TX.chasers(u, fs);
     sq.forEach(function (e) {
       u.x = e.x; u.y = e.y;
-      e.hide = all.every(function (f) { return B.seenBy(f, u) < 2; });
+      // (10-04, Griz: "it can't tell it's in the cone"): a square she may hide from is one where, for each foe watching it, that foe's passive Perception and the bonus of the
+      // square (battle.js nearOf: the 3x3 and the cone, by light, by Wisdom) are no more than a middling roll of hers -- outside every watch, or one she can beat
+      e.hide = all.every(function (f) { var n = B.nearOf(f, u); return !n || !n.bonus || f.perception + (f.twoHeads ? 5 : 0) + n.bonus <= u.stealth + 10 + (u.conds.pwt ? 10 : 0); });
       e.beside = all.some(function (f) { return G.dist(u, f) <= Math.max(5, G.reachOf(f)); });
       e.far = chase.every(function (f) { return G.dist(u, f) > G.reachOf(f) + (f.speed || 30); }); // (past what any one that could run at her could cover, even seen)
     });
@@ -896,6 +902,12 @@
     if (u.lvl < 2 || T.bonus < 1 || u.hp <= 0 || u.dead || u.conds.restrained || u.conds.dancing || (M.mustFlee && M.mustFlee(u)) || !weapons(u).some(isRanged)) return false;
     var all = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), fs = foesOf(B, u), chase = TX.chasers(u, fs);
     if (!chase.length || !fs.length) return false;
+    // (10-04, Griz, the stall traced in deep16/trace-a-bench-cell.md -- a rogue kiting two heroes by Disengage and Dash for thirty rounds): she kites twice, and one more for each of her
+    // own side standing; one of them up again (a friend roused, a summon) begins her count afresh
+    var kin = B.units.filter(function (w) { return w !== u && w.side === u.side && G.standing(w); }).length;
+    if (u._kiteKin == null || kin > u._kiteKin) u._kites = 0;
+    u._kiteKin = kin;
+    if ((u._kites || 0) >= 2 + kin) return false;
     var adj = chase.filter(function (f) { return G.dist(u, f) <= G.reachOf(f); }), rm = G.reach(u, T.move + u.speed), best = null;
     Object.keys(rm).forEach(function (k) {
       var e = rm[k]; if (!e.stand) return;
@@ -912,6 +924,7 @@
       yield* swingAll(B, u, sh.wp, sh.t); if (u.dead || u.hp <= 0 || B.over()) return true;
       if (T.bonus > 0) yield* B.exec(u, { do: 'cdash' });
     }
+    u._kites = (u._kites || 0) + 1;
     yield* walk(B, u, best.e);
     return true;
   }

@@ -68,13 +68,15 @@
       if (D.lastError && res.errors.length < 5) res.errors.push(String(D.lastError.stack || D.lastError).slice(0, 300));
       return { r: r2, rounds: B2.round };
     }
+    var only = get('cls', ''); // (cls=rogue: only that class's duels and band -- a rerun of the broken cells, 10-04)
     CL.forEach(function (a, i) {
       CL.forEach(function (b, j) {
-        if (j <= i) return;
+        if (j <= i || (only && a !== only && b !== only)) return;
         var aw = 0, bw = 0, rr = 0;
         for (var k = 0; k < n; k++) { var x = one({ npc: { party: [a + ':' + L], foes: [b + ':' + L] } }, 1000 + i * 97 + j * 13 + k * 7919); if (x.r === 'won') aw++; else if (x.r === 'lost') bw++; rr += x.rounds; }
         res.duel[a + '>' + b] = [aw, bw]; res.rounds[a + '>' + b] = +(rr / n).toFixed(1);
       });
+      if (only && a !== only) return;
       var bw2 = 0, br = 0;
       for (var k2 = 0; k2 < n; k2++) { var y = one({ npc: { foes: [a + ':' + L, a + ':' + L, a + ':' + L, a + ':' + L] } }, 5000 + i * 131 + k2 * 7919); if (y.r === 'lost') bw2++; br += y.rounds; }
       res.band[a] = [bw2, n - bw2, +(br / n).toFixed(1)];
@@ -724,6 +726,32 @@
     if (errs.length) repZ.errors = repZ.errors.concat(errs);
     var preZ = document.createElement('pre'); preZ.id = 'out'; preZ.textContent = 'BENCH16 ' + JSON.stringify(repZ);
     document.body.appendChild(preZ);
+    return;
+  }
+  // a matrix band fight, one at a time (mode=bandtrace&lvl=2&cls=rogue&rounds=30[&seed=S]; 10-04): without a seed, every seed the matrix gives that class's band at that level (the
+  // rounds each runs to, capped); with one, that fight's log to the cap and where each unit stands -- for reading a stalled cell instead of waiting it out
+  if (get('mode', '') === 'bandtrace') {
+    var repBt = { rows: [], log: [], units: [], errors: [] }, clsB = get('cls', 'rogue'), capB = +get('rounds', 30), iB = ['barbarian', 'bard', 'cleric', 'druid', 'fighter', 'monk', 'paladin', 'ranger', 'rogue', 'sorcerer', 'warlock', 'wizard'].indexOf(clsB);
+    function runBand(sd, keep) {
+      D.seed = sd; D.lastError = null;
+      var Bb = new D.Battle({ bench: true, fightDef: D.classFight(L), npc: { foes: [clsB + ':' + L, clsB + ':' + L, clsB + ':' + L, clsB + ':' + L] } }); D.battle = Bb; Bb.enter();
+      var vB, gB = 0, rB;
+      while (Bb.co && gB++ < 400000 && (Bb.round || 0) <= capB) {
+        try { rB = Bb.co.next(vB); } catch (eB) { repBt.errors.push(String(eB && eB.stack || eB).slice(0, 500)); break; }
+        vB = undefined; if (rB.done) break; var yB = rB.value;
+        if (typeof yB === 'number' || !yB) continue; if (yB.fx || yB.entry || yB.scene) continue;
+        if (yB.prompt) { vB = yB.prompt.opts[0].value; continue; } if (yB.turn) { vB = { do: 'end' }; continue; }
+      }
+      if (keep) {
+        repBt.log = (Bb.log || []).map(function (l) { return String(l).replace(/\{\/?[a-z]*\}/g, '').slice(0, 200); });
+        repBt.units = Bb.units.map(function (u) { return u.name + ' (' + u.side + ') hp ' + u.hp + '/' + u.maxhp + ' at (' + u.x + ',' + u.y + ') facing ' + u.facing + (u.conds && u.conds.hidden ? ' HIDDEN' : '') + (u.hidTotal != null ? ' held ' + u.hidTotal : '') + ' perception ' + u.perception + ' stealth ' + u.stealth; });
+      }
+      return { round: Bb.round, result: Bb.result || 'none' };
+    }
+    if (get('seed', '')) runBand(+get('seed'), true);
+    else for (var kB = 0; kB < n; kB++) { var sdB = 5000 + iB * 131 + kB * 7919, rsB = runBand(sdB, false); repBt.rows.push(sdB + ' round ' + rsB.round + ' ' + rsB.result); }
+    var preBt = document.createElement('pre'); preBt.id = 'out'; preBt.textContent = 'BENCH16 ' + JSON.stringify(repBt);
+    document.body.appendChild(preBt);
     return;
   }
   // a fight traced to a round cap (mode=trace&fight=<id>&rounds=N&seed=S; 10-02, for a fight that never ends on the bench -- the bulette's, the day it learned to dive): the
