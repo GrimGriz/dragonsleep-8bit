@@ -120,9 +120,10 @@
   // opportunity Slam, Vivian ran on 20 ft lying down and lay there through the Keeper's turn.) o.upright: reckoned as stood; o.ghost: not walking
   var stepCost0 = G.stepCost, reach0 = G.reach;
   G.prone = function (u, o) { return !!(u && u.conds && u.conds.prone && u.hp > 0 && !(o && (o.ghost || o.upright))); };
-  G.stepCost = function (u, x0, y0, x1, y1, o) { var c = stepCost0.apply(this, arguments); if (c !== Infinity && G.prone(u, o)) c += 5; if (c !== Infinity && G.climbsUp(u, x0, y0, x1, y1)) c += 5; return c; };
-  // a step up a cliff (more than one step of height, on a map that lets it be climbed): the climb is a check and costs an extra foot a foot (SRD 5.1)
-  G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; return !!(d && d.climb && !(u.flies && !(u.conds && (u.conds.restrained || u.conds.prone))) && G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0) > d.step); };
+  G.stepCost = function (u, x0, y0, x1, y1, o) { var c = stepCost0.apply(this, arguments); if (c !== Infinity && G.prone(u, o)) c += 5; var cs = c !== Infinity ? G.climbsUp(u, x0, y0, x1, y1) : 0; if (cs) c += Math.ceil(cs * 2.5 / 5) * 5; return c; };
+  // a step up a cliff (more than one step of height, on a map that lets it be climbed): the number of steps it climbs, else 0. Each foot climbed costs an extra foot (SRD 5.1; a step is 2.5 ft,
+  // the cost in fives), and the climb is a Strength (Athletics) check, DC 10 for two steps and 2 more for each step above (battle.js moveAlong)
+  G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step); return n > 1 ? n : 0; };
   G.reach = function (u, budget, o) {
     if (G.prone(u, o) && D.rules && D.rules.canRise(u)) { var half = Math.floor(u.speed / 2); if (budget >= half) return reach0.call(this, u, budget - half, Object.assign({}, o, { upright: true })); }
     return reach0.apply(this, arguments);

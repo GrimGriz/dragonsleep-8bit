@@ -1165,4 +1165,54 @@ window.D16.MAPS.cistern = {
   foes: [],
   wave: null
 };
+
+// The Climbing Floor (10-04, Griz: "what's the vertical range possible with the map builder -- experiment with climbing variations"): one floor (0) and six towers whose south faces
+// are cliffs of 2, 3, 4, 6, 9 and 12 steps (5, 7.5, 10, 15, 22.5 and 30 ft; a step is 2.5 ft). `climb: 12` lets a body of one square scale up to that many steps: each foot climbed costs an
+// extra foot (SRD 5.1), and a Strength (Athletics) check, DC 10 for two steps and 2 more for every step above; a drop of 10 ft or more is 1d6 bludgeoning a 10 ft and lands prone
+// (SRD 5.1 Falling). The last tower's height is the base-36 digit `c`: a `heights` digit reads 0-9 then a-z, up to 35 steps. A stair of one-step squares in the south-east corner is the
+// control (it needs no climb). Daylight: no `dark`.
+window.D16.MAPS.climbfloor = {
+  name: 'The Climbing Floor',
+  sub: 'cliffs of 2 to 12 steps',
+  stone: 'slate', step: 10, noBurrow: true, climb: 12,
+  heights: [
+    '000000000000000000000000',
+    '022203330444066609990cc0',
+    '022203330444066609990cc0',
+    '022203330444066609990cc0',
+    '022203330444066609990cc0',
+    '022203330444066609990cc0',
+    '000000000000000000000000',
+    '000000000000000000000000',
+    '000000000000000000000000',
+    '000000000000000000000050',
+    '000000000000000000000040',
+    '000000000000000000000030',
+    '000000000000000000000020',
+    '000000000000000000000010',
+    '000000000000000000000000',
+    '000000000000000000000000'
+  ],
+  rows: [
+    '########################',
+    '#...#...#...#...#...#..#',
+    '#...#...#...#...#...#..#',
+    '#...#...#...#...#...#..#',
+    '#...#...#...#...#...#..#',
+    '#...#...#...#...#...#..#',
+    '#......................#',
+    '#......................#',
+    '#..P.............P.....#',
+    '#......................#',
+    '#......................#',
+    '#......................#',
+    '#...........P..........#',
+    '#......................#',
+    '##########==############',
+    '##########==############'
+  ],
+  entry: [[10, 14], [11, 14], [10, 15], [11, 15], [9, 13]],
+  foes: [],
+  wave: null
+};
 })();

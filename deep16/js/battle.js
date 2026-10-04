@@ -1044,13 +1044,16 @@
       }
       u.facing = D.spr.facingFor(nx - u.x, ny - u.y);
       var wasIn = D.magic.webAt(this, u), stepFrom = { x: u.x, y: u.y }; // (stepFrom: the square it left -- the Keeper's readied wall asks which way it stepped along the stair; the tween is gone by then in the page's frame loop)
-      if (G.climbsUp(u, u.x, u.y, nx, ny)) { // (a cliff: SRD 5.1, "climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check" -- DC 10; fail, and the climb is lost with its cost)
+      var csN = G.climbsUp(u, u.x, u.y, nx, ny), cDC = 10 + 2 * Math.max(0, csN - 2), z0 = G.gzAt(u, u.x, u.y);
+      if (csN) { // (a cliff: SRD 5.1, "climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check" -- DC 10; fail, and the climb is lost with its cost)
         var ce0 = RU.checkEdges(u, 'str'), cr = ce0.dis.length && !ce0.adv.length ? Math.min(D.d(20), D.d(20)) : ce0.adv.length && !ce0.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb = D.mod(u.abil ? u.abil.str : 10) + ({ fighter: 1, barbarian: 1, paladin: 1, monk: 1, ranger: 1 }[u.cls] ? u.prof || 0 : 0), ct = cr + cb;
-        this.card(['{y}' + nameOf(u) + '{/} climbs: Athletics d20 ' + cr + ' ' + RU.sign(cb) + ' = ' + ct + ' against DC 10  ' + (ct >= 10 ? '{n}UP{/}' : '{o}SLIPS{/}')], 160);
-        if (ct < 10) { if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } u.anim = 'idle'; return; }
+        this.card(['{y}' + nameOf(u) + '{/} climbs: Athletics d20 ' + cr + ' ' + RU.sign(cb) + ' = ' + ct + ' against DC ' + cDC + ' (' + csN * 2.5 + ' ft)  ' + (ct >= cDC ? '{n}UP{/}' : '{o}SLIPS{/}')], 160);
+        if (ct < cDC) { if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } u.anim = 'idle'; return; }
       }
       u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: this.pace(STEP_FRAMES, true) }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
+      var dropFt = G.map.def.climb && !u.flies ? (z0 - G.gzAt(u, nx, ny)) / G.map.def.step * 2.5 : 0; // (a drop down a cliff: SRD 5.1 Falling -- 1d6 bludgeoning for every 10 feet, and it lands prone)
+      if (dropFt >= 10) { var fd = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft: ' + fd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, fd.total, 'bludgeoning', {}); u.conds.prone = true; }
       if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } // (moved: what it has walked this turn -- the Thief's Supreme Sneak asks)
       this.keepInView(u);
       yield STEP_FRAMES;
