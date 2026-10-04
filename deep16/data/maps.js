@@ -1107,4 +1107,61 @@ window.D16.MAPS.bog = {
     foes: [],
     wave: null
   };
+
+// The Terraced Cistern (10-04, Griz: "make a complex battlemap with various heights and lighting conditions" -- the stealth session's test floor): a cistern hall in three heights
+// (`heights`, a digit a square in steps of 10 px: the floor 1, the pool 0 with the dais in it at 2, the terrace 3, the gallery 5) and every kind of light. Two steps is a cliff; the
+// ways up are one step a square: a flight at each end of the floor, a stair at each end of the terrace. BRIGHT: the lamp on the dais (gold, 15 ft bright, 15 dim) and the brazier
+// on the gallery's west end (fire, 20 + 20); DIM ONLY: a violet glow over the east terrace (40 ft, nothing bright -- a rogue can hide in it); DARK: the whole south-west (the crates, the
+// pillars past the pool) and the south-east, the way in, the gallery's east end. Pillars and crates are cover, the rail is half cover along the gallery's edge, the pool is difficult
+// ground, and a thief behind a pillar in the dark at the foot of the terrace is out of every watch. Worked stone all through: nothing burrows up into it.
+window.D16.MAPS.cistern = {
+  name: 'The Terraced Cistern',
+  sub: 'heights and every light',
+  dark: true,
+  lights: [[11, 10, 15, 'gold'], [4, 1, 20, 'fire'], [17, 5, 40, 'violet', 1]],
+  stone: 'slate', step: 10, noBurrow: true,
+  heights: [
+    '0000000000000000000000',
+    '0005555555555555555000',
+    '0005555555555555555000',
+    '0033443333333333443300',
+    '0033333333333333333300',
+    '0033333333333333333300',
+    '0033333333333333333300',
+    '0022111111111111112200',
+    '0011111110000111111100',
+    '0011110000222000111100',
+    '0011110000222000111100',
+    '0011110000110000111100',
+    '0011110000000000111100',
+    '0011111110000111111100',
+    '0011111111111111111100',
+    '0011111111111111111100',
+    '0000000000110000000000',
+    '0000000000110000000000'
+  ],
+  rows: [
+    '######################',
+    '###................###',
+    '###...ffff...fff...###',
+    '##..................##',
+    '##.................r##',
+    '##.r...P......P.....##',
+    '##..r...............##',
+    '##..................##',
+    '##.......~~~~.......##',
+    '##....P~~~===~~P....##',
+    '##....~~~~===~~~....##',
+    '##....~~~~==~~~~....##',
+    '##kk..~~~~~~~~~~..w.##',
+    '##.kP....~~~~....P..##',
+    '##..k....P...Prr....##',
+    '##.............rr...##',
+    '##########==##########',
+    '##########==##########'
+  ],
+  entry: [[10, 16], [11, 16], [10, 17], [11, 17], [9, 15]],
+  foes: [],
+  wave: null
+};
 })();

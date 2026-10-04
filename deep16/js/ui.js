@@ -1512,7 +1512,7 @@
       (flankSpots(B, u)[k] || []).forEach(function (fe) { lines.push('{y}flanking{/} the ' + B.shortName(fe.foe) + ' with ' + fe.ally.name + ': advantage in melee, both'); });
       if (u.cls === 'rogue') {
         var hs = hideSpots(B, u);
-        if (hs[k] === true) lines.push('{p}a place to try hiding{/}: no foe sees her clearly there');
+        if (hs[k] === true) lines.push('{p}a place to try hiding{/}: outside every foe\'s watch, or where it cannot see her');
         else if (hs[k] === false) lines.push('{g}in plain sight of a foe here{/}');
       }
     }
