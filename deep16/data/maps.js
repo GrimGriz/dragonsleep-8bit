@@ -1120,6 +1120,7 @@ window.D16.MAPS.cistern = {
   dark: true,
   lights: [[11, 10, 15, 'gold'], [4, 1, 20, 'fire'], [17, 5, 40, 'violet', 1]],
   stone: 'slate', step: 10, noBurrow: true,
+  climb: 2, // the cliffs of two steps (5 ft) can be scaled -- SRD 5.1: each foot costs an extra foot, and a Strength (Athletics) check (DC 10) -- or dropped (a fall under 10 ft)
   heights: [
     '0000000000000000000000',
     '0005555555555555555000',

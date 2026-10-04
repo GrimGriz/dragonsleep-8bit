@@ -74,7 +74,9 @@
     if (!G.canPass(u, x1, y1, o)) return Infinity;
     if (G.shellBars && !(o && o.ghost) && G.shellBars(u, x0, y0, x1, y1)) return Infinity; // (an Antilife Shell: js/walls.js)
     if (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone))) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)
-    if (Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) > G.map.def.step) return Infinity;
+    var dzS = G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0), stS = G.map.def.step;
+    // (a cliff: a map's `climb` -- the steps a body of one square may scale or drop, SRD 5.1 Climbing and Falling; up costs 1 extra foot a foot, and a Strength (Athletics) check, battle.js moveAlong; a drop of under 10 ft is free)
+    if (Math.abs(dzS) > stS && !(G.map.def.climb && Math.abs(dzS) <= G.map.def.climb * stS && (u.size || 1) === 1)) return Infinity;
     var dx = x1 - x0, dy = y1 - y0;
     if (dx && dy && !footWalkable(u, x0 + dx, y0, true) && !footWalkable(u, x0, y0 + dy, true)) return Infinity; // no squeezing between two rocks at a corner
     if (o && o.ghost) return 5;
@@ -118,7 +120,9 @@
   // opportunity Slam, Vivian ran on 20 ft lying down and lay there through the Keeper's turn.) o.upright: reckoned as stood; o.ghost: not walking
   var stepCost0 = G.stepCost, reach0 = G.reach;
   G.prone = function (u, o) { return !!(u && u.conds && u.conds.prone && u.hp > 0 && !(o && (o.ghost || o.upright))); };
-  G.stepCost = function (u, x0, y0, x1, y1, o) { var c = stepCost0.apply(this, arguments); return c !== Infinity && G.prone(u, o) ? c + 5 : c; };
+  G.stepCost = function (u, x0, y0, x1, y1, o) { var c = stepCost0.apply(this, arguments); if (c !== Infinity && G.prone(u, o)) c += 5; if (c !== Infinity && G.climbsUp(u, x0, y0, x1, y1)) c += 5; return c; };
+  // a step up a cliff (more than one step of height, on a map that lets it be climbed): the climb is a check and costs an extra foot a foot (SRD 5.1)
+  G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; return !!(d && d.climb && !(u.flies && !(u.conds && (u.conds.restrained || u.conds.prone))) && G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0) > d.step); };
   G.reach = function (u, budget, o) {
     if (G.prone(u, o) && D.rules && D.rules.canRise(u)) { var half = Math.floor(u.speed / 2); if (budget >= half) return reach0.call(this, u, budget - half, Object.assign({}, o, { upright: true })); }
     return reach0.apply(this, arguments);

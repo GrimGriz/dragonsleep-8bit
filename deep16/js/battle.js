@@ -703,7 +703,7 @@
     // HIDE sits on the rogue's first ring (Griz, 09-27: "Rogues gonna hide allatime"): Cunning Action's bonus action from
     // level 2, and the action when the bonus is gone (or before level 2, as the tabletop's Hide action)
     var cun = u.cls === 'rogue' && u.lvl >= 2 && T.bonus > 0;
-    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !(u.conds.restrained || u.conds.attached) && (cun || (T.action > 0 && !T.attacksLeft)), why: u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
+    if (u.cls === 'rogue') out.push({ id: 'hide', label: 'HIDE', cost: cun ? 'B' : 'A', ok: !u.conds.hidden && !(u.conds.restrained || u.conds.attached) && (cun || (T.action > 0 && !T.attacksLeft)), why: u.conds.hidden ? 'already hidden' : u.conds.restrained || u.conds.attached ? 'held fast: nowhere to hide' : 'the action is spent', note: (cun ? 'Cunning Action: ' : '') + 'Stealth against their eyes' });
     // Flame Tongue: a bonus action lights it or puts it out (not under the roost: its one law is no fire)
     if (u.weapon && u.weapon.flame) {
       var roostF = this.fight && this.fight.roost && !u.conds.ablaze;
@@ -1044,6 +1044,11 @@
       }
       u.facing = D.spr.facingFor(nx - u.x, ny - u.y);
       var wasIn = D.magic.webAt(this, u), stepFrom = { x: u.x, y: u.y }; // (stepFrom: the square it left -- the Keeper's readied wall asks which way it stepped along the stair; the tween is gone by then in the page's frame loop)
+      if (G.climbsUp(u, u.x, u.y, nx, ny)) { // (a cliff: SRD 5.1, "climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check" -- DC 10; fail, and the climb is lost with its cost)
+        var ce0 = RU.checkEdges(u, 'str'), cr = ce0.dis.length && !ce0.adv.length ? Math.min(D.d(20), D.d(20)) : ce0.adv.length && !ce0.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb = D.mod(u.abil ? u.abil.str : 10) + ({ fighter: 1, barbarian: 1, paladin: 1, monk: 1, ranger: 1 }[u.cls] ? u.prof || 0 : 0), ct = cr + cb;
+        this.card(['{y}' + nameOf(u) + '{/} climbs: Athletics d20 ' + cr + ' ' + RU.sign(cb) + ' = ' + ct + ' against DC 10  ' + (ct >= 10 ? '{n}UP{/}' : '{o}SLIPS{/}')], 160);
+        if (ct < 10) { if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } u.anim = 'idle'; return; }
+      }
       u.tween = { fx: u.x, fy: u.y, fz: G.gzAt(u, u.x, u.y), t: 0, dur: this.pace(STEP_FRAMES, true) }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
       if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } // (moved: what it has walked this turn -- the Thief's Supreme Sneak asks)
