@@ -1,0 +1,57 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a situation (?at=<id>, js/situations.js).",
+  "fold_back": "Broken and unclear become the fix list; too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-04T05:35:22.725Z",
+ "items": [
+  {
+   "id": "wet",
+   "title": "The Wet: the bucket and the landlord",
+   "pt": "§5 the wet · the landlord's pictures (new 10-01)",
+   "verdict": "works",
+   "note": "This works. I think we made it such that no one can to this spot in the 8-bit without already being pulled on to the grid (check to make sure). We should put a light nearby the bucket and double check the sprite we're using to make it more a visible draw on the grid. The tiles around the Landlords pool should be switched to solid stone. ",
+   "at": "2026-10-04T05:23:43.178Z"
+  },
+  {
+   "id": "wet3",
+   "title": "The gates down to the wet, at level 3",
+   "pt": "§5 the wet · §3 battle feel (new 10-03)",
+   "verdict": "unclear",
+   "note": "No encounters between town and warrens. Running back and forth on the road and got 2 giant rats. \nNo encounters in the mine until down in the wet itself. There either are not exit squares in the fight with the landlord, or party members are not allowed to use the flee under action (not on wheel). ",
+   "at": "2026-10-04T05:24:47.498Z"
+  },
+  {
+   "id": "gulch",
+   "title": "Web Gulch: the strung end",
+   "pt": "§7 the braiding ettercap · §11 the snared traveler",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:38.432Z"
+  },
+  {
+   "id": "cloaker",
+   "title": "The guano slide and the cloaker",
+   "pt": "§6 the cloaker · §11 guano slide",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:46.273Z"
+  },
+  {
+   "id": "roost",
+   "title": "Under the roost",
+   "pt": "§6 the one law · §11/§12 NOT THIS KIND OF NAME",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:34:59.719Z"
+  },
+  {
+   "id": "cradle",
+   "title": "A shift at the cradle",
+   "pt": "§13 the cradle, rebuilt",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:35:12.626Z"
+  }
+ ]
+}

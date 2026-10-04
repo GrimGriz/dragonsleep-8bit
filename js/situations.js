@@ -6,7 +6,24 @@
    spine (how many of STEPS are done), lvl, flags, unset, give ([item, n]), prep (fn(G) after the rest), map, x, y, dir, start (a
    generator run once they stand there: Field.load fires no map's enter hook, so a situation that wants one runs it here).
    The flags are the code's own (read 10-01 from js/events.js, js/deep.js, tools/mapgen.py); STEPS follows the expansion's spine
-   in the order deep.js sets it (handoff-2026-09-27-dragonsleep-recut-built.md §1, hookDone corrected: the crew's end sets it). */
+   in the order deep.js sets it (handoff-2026-09-27-dragonsleep-recut-built.md §1, hookDone corrected: the crew's end sets it).
+   TO ADD ONE (10-04, Griz: "instances shouldn't have to relearn how to make new 'situations'" -- this head is the pointer, not a skill):
+   1. Pick the PLAYTEST.md line (its section is `pt`) and the square one step short of it: open content/maps/<map>.json (rows, legend;
+      a trigger's rect is where the beat fires) and stand the four a step before the trigger, facing it (`map, x, y, dir`).
+   2. Pick the base: none (round six, level 4: js/scenes.js DS.roundSix), `base: 'lvl3'` (DS.levelThree: Winters' errands, the four,
+      nothing else), or `base: 'lake'` (the chuul beaten) with `spine: n` for the expansion's beats 1..n (STEPS below). A new base is one
+      more function in js/scenes.js beside those two.
+   3. Set `lvl` (the party is remade at it, gear kept), the beat's own `flags` (the code's: read the gating script in js/events.js or
+      js/deep.js and the trigger's `cond` in the map JSON; grep `flag:<name>`), `unset` what must be undone (a kill: `prep: function (G)
+      { delete G.kills.<id>; }`), `give` an item ([id, n]), and `start` where the beat needs the map's enter hook (Field.load fires none:
+      see pyro, torvald, roost).
+   4. Write `look` (what to try and what should happen, so a tester knows a miss when they see one) and `say` (the opening line). A
+      DEEP16 room is a record with `url` instead (xorns, bulette): the class floor with monsters on it.
+   5. `python tools/compile.py` (this file is one of the 8-bit's scripts: index.html's stamp moves; commit index.html with it); open
+      situations.html (it reads this file; nothing to edit there) and try `?at=<id>` on LOCAL, then push -- live is the same URL.
+   6. His verdicts come back through the page's Save as `situations-ear-file-<date>.json` at the repo root (commit it; the first is
+      10-04's): broken and unclear are the fix list, hard and easy are tuning, the notes are his words verbatim; every situation also asks
+      the page's ASK (solid stone). Fold what he says into the open list (..\dragonsleep-todo-2026-10-03.md) and the group it belongs to. */
 'use strict';
 (function () {
   var DS = window.DS = window.DS || {};
