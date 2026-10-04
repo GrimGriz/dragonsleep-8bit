@@ -110,7 +110,7 @@ for b in BN:
     if b.parent is None:
         topo(b)
 
-PX = Vector((1, 0, 0)); PZ = Vector((0, 0, 1))
+PX = Vector((1, 0, 0)); PZ = Vector((0, 0, 1)); PY = Vector((0, 1, 0))
 
 
 def Q(axis, deg):
@@ -133,8 +133,8 @@ def bends(P):
     for n in SPINE:
         add(n, Q(PX, P.get('lean', 0) / len(SPINE))); add(n, Q(PZ, P.get('twist', 0) / len(SPINE)))
     for n in NECK:
-        add(n, Q(PX, P.get('head', 0) / 3)); add(n, Q(PZ, P.get('hyaw', 0) / 3))
-    add(HEAD, Q(PX, P.get('head', 0) / 3)); add(HEAD, Q(PZ, P.get('hyaw', 0) / 3))
+        add(n, Q(PX, P.get('head', 0) / 3)); add(n, Q(PZ, P.get('hyaw', 0) / 3)); add(n, Q(PY, P.get('hroll', 0) / 3))
+    add(HEAD, Q(PX, P.get('head', 0) / 3)); add(HEAD, Q(PZ, P.get('hyaw', 0) / 3)); add(HEAD, Q(PY, P.get('hroll', 0) / 3))
     add(JAW, Q(PX, P.get('jaw', 0)))
     for s, A, L, F in (('a', ARM_A, LEG_A, FING_A), ('b', ARM_B, LEG_B, FING_B)):
         add(A[0], Q(PX, P.get('shr' + s, 0)))
@@ -209,6 +209,13 @@ def lie(d, kind, side, f):
 
 def apply(P):
     d = bends(P)
+    if P.get('armsdown'):      # the arms hang by the legs: pulled back along the sides
+        for s, A in ((1, ARM_A), (-1, ARM_B)):
+            aim(d, A[1:3], [(s * 0.22, 0.30, -0.93), (s * 0.15, 0.10, -1.0)], P['armsdown'])
+    if P.get('tuck'):          # the cat's loaf: the arms folded under the chest, the legs under the hips
+        for s, A, L in ((1, ARM_A, LEG_A), (-1, ARM_B, LEG_B)):
+            aim(d, A[1:3], [(s * 0.35, 0.1, -0.93), (s * -0.35, 0.75, -0.3)], P['tuck'])
+            aim(d, L[1:4], [(s * 0.75, -0.55, -0.35), (s * -0.3, 0.9, -0.2), (s * -0.1, 0.4, -0.9)], P['tuck'])
     if P.get('lie'):
         lie(d, P['lie'], P['lieside'], P.get('liefall', 1.0))
     for n, m in solve(d, P.get('lift', 0.0), P.get('shift', 0.0)).items():
@@ -245,7 +252,7 @@ def grounded(P, how):
     below it (a bob, a fall: the frame keeps the lift it asked for)."""
     apply(P); lo = lowest()
     if how == 'plant' or lo < FLOOR:
-        P = dict(P, lift=P.get('lift', 0.0) + FLOOR - lo); apply(P)
+        P = dict(P, lift=P.get('lift', 0.0) + FLOOR - lo - P.get('sink', 0.0)); apply(P)
     return P
 
 # ------------------------------------------------------------------ the rows
@@ -274,7 +281,7 @@ def row_claw(side):
         k = side; sg = 1 if side == 'a' else -1
         # (a frame's arm pose: sw the upper arm (- raises, + lowers it back), out across (Z: + toward the +X side), el the forearm, twist the body)
         if side == 'a':
-            F = [dict(sw=0, out=0, el=0, tw=0, ln=0), dict(sw=-52, out=44, el=-20, tw=10, ln=-4), dict(sw=-66, out=58, el=-34, tw=14, ln=-8),
+            F = [dict(sw=0, out=0, el=0, tw=0, ln=0), dict(sw=-40, out=46, el=float(OPT.get('wel', 40)), tw=10, ln=-4), dict(sw=-52, out=62, el=float(OPT.get('wel', 40)) + 14, tw=14, ln=-8),
                  dict(sw=-10, out=-55, el=10, tw=-20, ln=14), dict(sw=18, out=-66, el=16, tw=-26, ln=18), dict(sw=6, out=-24, el=4, tw=-8, ln=6)][i]
         else:
             F = [dict(sw=0, out=0, el=0, tw=0, ln=0), dict(sw=38, out=-34, el=18, tw=-12, ln=6), dict(sw=54, out=-46, el=24, tw=-16, ln=10),
@@ -287,11 +294,12 @@ def row_claw(side):
 
 def row_bite(i, n):
     """the lunge: the head and chest thrown forward and down to about where a man's head is (the knees bend, the hips go forward over the feet),
-    the jaw wide, and it snaps shut."""
+    the jaw wide, and it snaps shut; the arms pulled back and let hang down by their legs as it goes (Griz, 10-04)."""
     p = [0.0, -0.5, -0.9, 1.0, 0.8, 0.25][i]; up = max(0.0, -p); dn = max(0.0, p)
     jaw = [-10, 12, 34, -4, -14, -12][i]
+    ad = [0.0, 0.35, 0.8, 1.0, 0.9, 0.3][i]
     return dict(lean=-6 * up + 34 * dn, head=-10 * up + 14 * dn, jaw=jaw, shift=-9.0 * dn + 2 * up, tha=14 * dn, thb=14 * dn, kna=26 * dn, knb=26 * dn,
-                swa=-14 * dn + 8 * up, swb=-14 * dn + 8 * up, outa=14 * dn, outb=-14 * dn), 0
+                armsdown=ad), 0
 
 
 def row_flinch(i, n):
@@ -310,16 +318,16 @@ def row_prone(i, n):
 
 
 def row_death(i, n):
-    """buckles at the knees and pitches forward onto its face; the arms fly up and then drop by their weight and lie on the floor ahead, the legs
-    trail out behind, the head down, the jaw slack (its death: prone is the other way, on its back)."""
-    f = [0.0, 0.18, 0.4, 0.7, 0.92, 1.0, 1.0, 1.0][i]; k = [0.0, 0.5, 1.0, 1.0, 0.8, 0.6, 0.6, 0.6][i]; fl = [0.0, 0.0, 0.15, 0.5, 0.85, 1.0, 1.0, 1.0][i]
-    return dict(body=float(OPT.get('dfall', 82)) * f, lift=-float(OPT.get('ddrop', 20)) * f, lean=10 * f, head=-24 * f, jaw=-8 + 14 * f,
-                tha=-28 * k * (1 - fl), thb=-20 * k * (1 - fl), kna=44 * k * (1 - fl), knb=36 * k * (1 - fl), swa=-60 * f * (1 - fl), swb=-60 * f * (1 - fl),
-                lie='face', lieside=1.0, liefall=fl), 0
+    """crumples where it stands, inside its four squares, like a cat lying down (Griz, 10-04): the knees fold, the hips sink, the chest comes
+    down onto the arms and legs tucked under it, and then it goes loose: the jaw slack, the head rolled and tilted at an off angle."""
+    f = [0.0, 0.15, 0.38, 0.62, 0.82, 0.95, 1.0, 1.0][i]; g = [0.0, 0.0, 0.1, 0.45, 0.8, 1.0, 1.0, 1.0][i]    # f: the crumple, g: gone loose
+    return dict(body=float(OPT.get('dbody', 55)) * f, lean=float(OPT.get('dlean', 20)) * f, head=-6 * f + 40 * g, hroll=-34 * g, hyaw=22 * g, jaw=-8 + 10 * g,
+                tha=-60 * f, thb=-52 * f, kna=95 * f, knb=88 * f, tuck=0.0 + 1.0 * g, sink=float(OPT.get('dsink', 4)) * f, twist=-6 * g,
+                swa=-30 * f * (1 - g), swb=-30 * f * (1 - g)), 0
 
 
 ROWS = [('IDLE', 8, True, row_idle, 'clamp'), ('WALK', 8, True, row_walk, 'plant'), ('CLAW', 6, False, row_claw('a'), 'plant'), ('CLAW2', 6, False, row_claw('b'), 'plant'),
-        ('BITE', 6, False, row_bite, 'plant'), ('FLINCH', 5, False, row_flinch, 'clamp'), ('DEATH', 8, False, row_death, 'clamp'), ('PRONE', 6, False, row_prone, 'clamp')]
+        ('BITE', 6, False, row_bite, 'plant'), ('FLINCH', 5, False, row_flinch, 'clamp'), ('DEATH', 8, False, row_death, 'plant'), ('PRONE', 6, False, row_prone, 'clamp')]
 ad = arm.animation_data_create()
 for name, n, loop, fn, how in ROWS:
     act = bpy.data.actions.new(name); act.use_fake_user = True; ad.action = act
@@ -349,6 +357,13 @@ use('IDLE'); scene.frame_set(1)
 print('[troll] rows: %s' % ', '.join(r[0] for r in ROWS))
 
 
+if MODE == 'dirs':      # where each limb bone points, on a row's last frame (to check aim() against its targets)
+    use(OPT.get('row', 'DEATH')); scene.frame_set(int(OPT.get('frame', 8)))
+    bpy.context.view_layer.update()
+    for n_ in ARM_A[1:3] + LEG_A[1:4] + ARM_B[1:3]:
+        pb_ = arm.pose.bones[n_]; h_ = pb_.matrix.translation; t_ = pb_.matrix @ Vector((0, BN[n_].length, 0))
+        print('[troll] dir %-9s %s  head z %.1f' % (n_, (t_ - h_).normalized().to_tuple(2), h_.z))
+    sys.exit(0)
 if MODE == 'measure':
     for name, n, loop, fn, how in ROWS:
         use(name); r = 0.0; zt = 0.0; zl = 1e9
