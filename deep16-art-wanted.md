@@ -135,6 +135,7 @@ Each wants the same shape; a head drafted when its day comes. Worst fits first:
 - the darkmantle (the roof-killers of the guano galleries)
 - the spirit naga (a snake today: it wants a human face)
 - the earth elemental (a blue demon today)
+- the water elemental (none on the grid yet; the Keeper's snake stood in for the idea): RULED 10-04 (Griz: "we're staying as close to the SRD as we can, immunity and a sheet") -- a foe of its own with the SRD's condition immunities (prone among them) and a sheet of its own: Large, swim 90 ft., Whelm. The Keeper is immune to prone by the same ruling (built 10-04)
 - the bugbear chief, the ogre (a monkey and an orc today)
 - the hobgoblin, the grimlock, the axe beak
 - the boar's second sheet, if it comes (its title says 1/2): welcome, not needed -- the first has every row the grid plays

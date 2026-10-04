@@ -507,7 +507,7 @@
     attacks: {
       slam: { name: 'Slam', atk: 5, dice: '2d6', mod: 3, type: 'bludgeoning', reach: 10, prone: 15 }
     },
-    multi: ['slam'], resist: ['fire'], immune: ['poison'], bound: '~',
+    multi: ['slam'], resist: ['fire'], immune: ['poison'], condImmune: ['prone'], bound: '~', // (RULED 10-04, Griz: "if water elementals are immune, he would be as well" -- the SRD water elemental and water weird are immune to prone; his Slam and Wave still knock the party down)
     src: 'ours (invented.json #the-keeper): the 8-bit game\'s Keeper, once the SRD 5.1 Water Weird\'s numbers (AC 13, 58 HP, blindsight 30, reach 10), now its own: 100 HP (benched 10-03: at 58 the four at levels 3-5 kill it in 2.5-3.6 rounds, before the deep comes into play), Slam (DC 15 STR or prone), the Wave (bonus action, DC 13 STR; the backwash sweeps the prone toward the deep), washes one into the deep and floods it (AC 10 in the water), the Ice Wall (3 uses) -- js/keeper.js; the signature rules are not the SRD\'s'
   },
   // THE LADDER'S KEEPER (10-03, Griz: the ladder's fight is the old fight unchanged): the record of `keeper` as it is on origin/main before the Keeper work landed (ed7be2a),
