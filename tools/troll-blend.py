@@ -446,16 +446,27 @@ CLOTH = (HIPG > 0.3) & (ZZ < float(OPT.get('ct', 2.4))) & (ZZ > -18) & (np.abs(P
 BELT = (HIPG > 0.3) & (ZZ >= float(OPT.get('ct', 2.4))) & (ZZ < float(OPT.get('bt', 5.0))) & (np.abs(PA[:, 0] - rh('Bone')[0]) < 12)    # the sash round the waist
 print('[troll] hip z %.1f; %d cloth points' % (HZ, int(CLOTH.sum())))
 # hat (the cap and its fringe, above the brow), the locks hanging at the sides, the loincloth, the eyes (the hollows of the brow band, gold and unshaded)
+# the hair (Griz, 10-04: "he doesn't have a cap ... the shoulder hair and what I called the cap are all hair"): the crown and the side locks, the back
+# of the head and the nape, and the swath lying over the top of the shoulders
+NA = nr @ TA[:3, :3].T; NA /= np.maximum(np.linalg.norm(NA, axis=1, keepdims=True), 1e-9)
+ARMW = wsum(ARM_A[1:] + ARM_B[1:] + ['Bone.016', 'Bone.017'])
 HAT = hg & (HB > float(OPT.get('hatb', 2.4))) & (np.abs(HSI) < 6.5)
 LOCKS = hg & (np.abs(HSI) > 4.0) & (HB < -0.5) & (HA < 12)
+BACKH = hg & (HA < float(OPT.get('bha', 4.0))) & (HB > -14)
+SHOULDH = (HA < float(OPT.get('sha', 4.5))) & (HB < float(OPT.get('sb1', -1.0))) & (HB > float(OPT.get('sb0', -6.0))) & (np.abs(HSI) < float(OPT.get('ss', 11.0))) & (ARMW < 0.5) & (NA[:, 2] > float(OPT.get('sn', 0.35)))
+HAIRM = HAT | LOCKS | BACKH | SHOULDH
+MOUTH = (HA > 6.0) & (HA < 13.5) & (HB > -7.5) & (HB < -1.2) & (np.abs(HSI) < 4.6) & ((NA @ HF) < float(OPT.get('mn', 0.15)))      # the inside of the open mouth: points in its box facing back into the head
 EYEC_AT = [(float(OPT.get('ese', 1.5)), float(OPT.get('eb', 1.15)), float(OPT.get('ea', 11.2))), (-float(OPT.get('esw', 1.4)), float(OPT.get('eb', 1.15)), float(OPT.get('ea', 11.2)))]     # the eyes' (s, b, a), read off the close-up with `-- close ... pick=x,y;x,y`
 EYEM = np.zeros(nv, bool)
 for se_, be_, ae_ in EYEC_AT:
     EYEM |= hg & (((HSI - se_) ** 2 + (HB - be_) ** 2 + (HA - ae_) ** 2) < float(OPT.get('er', 1.0)) ** 2)
-print('[troll] hat %d, locks %d, cloth %d, eyes %d points' % (int(HAT.sum()), int(LOCKS.sum()), int(CLOTH.sum()), int(EYEM.sum())))
+print('[troll] hair %d (cap %d, locks %d, back %d, shoulders %d), mouth %d, cloth %d, eyes %d points' % (int(HAIRM.sum()), int(HAT.sum()), int(LOCKS.sum()), int(BACKH.sum()), int(SHOULDH.sum()), int(MOUTH.sum()), int(CLOTH.sum()), int(EYEM.sum())))
 if not OPT.get('cdiag') and not OPT.get('hdiag') and MODE != 'diag':
     HAIRC, CLOTHC, EYEC = lin('#34261f'), lin('#8a6a42'), lin('#f2c230')
-    col[HAT | LOCKS] = col[HAT | LOCKS] * 0.15 + HAIRC[None, :] * 0.85
+    if OPT.get('hair', 'blue') == 'blue':
+        HAIRC = lin('#4db8ff')
+    col[HAIRM] = col[HAIRM] * 0.1 + HAIRC[None, :] * 0.9
+    col[MOUTH & ~HAIRM] = lin(OPT.get('mouthc', '#4a0f16'))[None, :]
     hem = CLOTH & (ZZ < -11)
     col[CLOTH] = CLOTHC[None, :]; col[hem] = (CLOTHC * 0.55)[None, :]; col[BELT] = lin('#4a3626')[None, :]
     if not OPT.get('noeyes'):
@@ -525,7 +536,7 @@ if MODE in ('look', 'close', 'poses', 'diag'):
     r.resolution_x, r.resolution_y, r.resolution_percentage = FW * BL.SS, FH * BL.SS, 100
     if MODE == 'close':
         arm.rotation_euler.z = math.radians(45 - 45 * int(OPT.get('face', 0))); bpy.context.view_layer.update()
-        kk = arm.scale[0]; hc = arm.matrix_world @ ((POSE0['Bone'].translation + Vector((0, -4, -2)) if OPT.get('at') == 'hips' else POSE0[HEAD].translation + Vector((0, -6, 2 + float(OPT.get('hz', 0))))))
+        kk = arm.scale[0]; hc = arm.matrix_world @ ((POSE0['Bone.003'].translation + Vector((0, -2, 2)) if OPT.get('at') == 'chest' else POSE0['Bone'].translation + Vector((0, -4, -2)) if OPT.get('at') == 'hips' else POSE0[HEAD].translation + Vector((0, -6, 2 + float(OPT.get('hz', 0))))))
         back = cam.matrix_world.to_3x3() @ Vector((0, 0, 1))
         cam.location = hc + back * 40; cam.data.ortho_scale = float(OPT.get('zoom', 22)) * kk; r.resolution_x = r.resolution_y = 800
     if OPT.get('pick'):     # head-frame coordinates (a, b, s) of the points under pixels x,y;x,y of the 800 px close view (face=, zoom=, hz= as the render)
