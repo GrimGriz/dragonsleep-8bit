@@ -441,7 +441,9 @@ for sgn in (1, -1):
 print('[troll] eyes (s, b, a): %s' % [tuple(round(x, 1) for x in e) for e in EYES])
 HIPG = wsum(['Hips', 'Hips.001', 'Bone', 'Bone.004', 'Bone.005', 'Bone.002'])
 HZ = float(rh('Bone')[2])
-CLOTH = (HIPG > 0.45) & (PA[:, 2] < HZ - float(OPT.get('cz', 2.0))) & (PA[:, 2] > HZ - 17) & (np.abs(PA[:, 0] - rh('Bone')[0]) < 7.5)
+ZZ = PA[:, 2] - HZ
+CLOTH = (HIPG > 0.3) & (ZZ < float(OPT.get('ct', 2.4))) & (ZZ > -18) & (np.abs(PA[:, 0] - rh('Bone')[0]) < 10.5)      # the apron, the back flap and its ragged hem (the bands: -- close at=hips cdiag=bands)
+BELT = (HIPG > 0.3) & (ZZ >= float(OPT.get('ct', 2.4))) & (ZZ < float(OPT.get('bt', 5.0))) & (np.abs(PA[:, 0] - rh('Bone')[0]) < 12)    # the sash round the waist
 print('[troll] hip z %.1f; %d cloth points' % (HZ, int(CLOTH.sum())))
 # hat (the cap and its fringe, above the brow), the locks hanging at the sides, the loincloth, the eyes (the hollows of the brow band, gold and unshaded)
 HAT = hg & (HB > float(OPT.get('hatb', 1.4))) & (np.abs(HSI) < 6.5)
@@ -449,12 +451,17 @@ LOCKS = hg & (np.abs(HSI) > 4.0) & (HB < -0.5) & (HA < 12)
 EYEM = hg & (HA > float(OPT.get('ea', 8.0))) & (HB > float(OPT.get('eb0', -0.3))) & (HB < float(OPT.get('eb1', 1.2))) & (np.abs(HSI) > float(OPT.get('es0', 1.2))) & (np.abs(HSI) < float(OPT.get('es1', 3.6))) & ~HAT
 print('[troll] hat %d, locks %d, cloth %d, eyes %d points' % (int(HAT.sum()), int(LOCKS.sum()), int(CLOTH.sum()), int(EYEM.sum())))
 if not OPT.get('cdiag') and not OPT.get('hdiag') and MODE != 'diag':
-    HAIRC, CLOTHC, EYEC = lin('#34261f'), lin('#7a5a38'), lin('#f2c230')
+    HAIRC, CLOTHC, EYEC = lin('#34261f'), lin('#8a6a42'), lin('#f2c230')
     col[HAT | LOCKS] = col[HAT | LOCKS] * 0.15 + HAIRC[None, :] * 0.85
-    hem = CLOTH & (PA[:, 2] < HZ - 11)
-    col[CLOTH] = CLOTHC[None, :]; col[hem] = (CLOTHC * 0.55)[None, :]
+    hem = CLOTH & (ZZ < -11)
+    col[CLOTH] = CLOTHC[None, :]; col[hem] = (CLOTHC * 0.55)[None, :]; col[BELT] = lin('#4a3626')[None, :]
     col[EYEM] = EYEC; unsh[EYEM] = True
-if OPT.get('cdiag'):
+if OPT.get('cdiag') == 'bands':     # the hip's points by height from the hip bone: red +3..+1, yellow ..-1, green ..-3, cyan ..-6, blue ..-10, magenta below
+    zz = PA[:, 2] - HZ
+    for lo_, hi_, c_ in ((1, 3, (1, 0, 0)), (-1, 1, (1, 1, 0)), (-3, -1, (0, 1, 0)), (-6, -3, (0, 1, 1)), (-10, -6, (0.2, 0.2, 1)), (-18, -10, (1, 0, 1))):
+        m_ = (HIPG > 0.3) & (zz > lo_) & (zz <= hi_) & (np.abs(PA[:, 0] - rh('Bone')[0]) < 10)
+        col[m_] = np.array(c_) ** 2.2
+elif OPT.get('cdiag'):
     col[CLOTH] = np.array((1, 0.1, 0.1)) ** 2.2
 if OPT.get('hdiag'):     # the head's points by height (b) and by front (a): red b>0, yellow >-3, green >-6, blue below; a lighter shade where a>8 (the face)
     for i_ in np.where(hg)[0]:
@@ -513,12 +520,12 @@ if MODE in ('look', 'close', 'poses', 'diag'):
         sys.exit(0)
     r.resolution_x, r.resolution_y, r.resolution_percentage = FW * BL.SS, FH * BL.SS, 100
     if MODE == 'close':
-        arm.rotation_euler.z = math.radians(45); bpy.context.view_layer.update()
+        arm.rotation_euler.z = math.radians(45 - 45 * int(OPT.get('face', 0))); bpy.context.view_layer.update()
         kk = arm.scale[0]; hc = arm.matrix_world @ ((POSE0['Bone'].translation + Vector((0, -4, -2)) if OPT.get('at') == 'hips' else POSE0[HEAD].translation + Vector((0, -6, 2))))
         back = cam.matrix_world.to_3x3() @ Vector((0, 0, 1))
         cam.location = hc + back * 40; cam.data.ortho_scale = float(OPT.get('zoom', 22)) * kk; r.resolution_x = r.resolution_y = 800
     BL.light(scene, cam, PRESET)
-    shots = [('IDLE', 0, 'f0_00'), ('IDLE', 6, 'f6_00')] if MODE in ('look', 'diag') else [('IDLE', 0, 'f0_00')]
+    shots = [('IDLE', 0, 'f0_00'), ('IDLE', 6, 'f6_00')] if MODE in ('look', 'diag') else [('IDLE', int(OPT.get('face', 0)), 'f0_00')]
     for row, f, fn in shots:
         use(row); scene.frame_set(1)
         arm.rotation_euler.z = math.radians(45 - 45 * f)

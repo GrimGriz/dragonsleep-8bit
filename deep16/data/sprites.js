@@ -6137,7 +6137,7 @@
 }
 },
 "troll_p1": {
-"image": "art/troll_p1.png?v=ea69293864",
+"image": "art/troll_p1.png?v=11429ccf97",
 "fw": 192,
 "fh": 148,
 "ax": 96,
