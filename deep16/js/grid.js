@@ -215,16 +215,32 @@
     return out;
   };
   // a point's line of sight to another point: only rock blocks (for spells and templates)
+  // a face stands in the way of the eye (10-04, Griz: "nigh-translucent walls ... that also impact vision"): where a map rises 10 ft or more (G.tall), a line from one eye to another is a
+  // slope, and a square whose floor stands above it on the way is a wall to it -- the 15 ft tower blocked nothing before, the 45 ft facade hid no one on its top. An eye is 5 ft over
+  // its floor (a Large one's 10 ft); `ez` is the floor's height at a square, the hanger's rope height where one hangs. Read nowhere on a flat map (G.tall false)
+  G.eyeZ = function (u) { return ((u && (u.size || 1) >= 2) ? 4 : 2) * G.map.def.step; };
+  G.overFloor = function (x0, y0, z0, x1, y1, z1) {
+    var ddx = x1 - x0, ddy = y1 - y0, d2 = ddx * ddx + ddy * ddy; if (!d2) return false;
+    var L = G.line(x0, y0, x1, y1);
+    for (var i = 0; i < L.length; i++) {
+      var x = L[i][0], y = L[i][1]; if ((x === x0 && y === y0) || (x === x1 && y === y1)) continue;
+      var t = Math.max(0, Math.min(1, ((x - x0) * ddx + (y - y0) * ddy) / d2));
+      if (G.map.gz(x, y) > z0 + (z1 - z0) * t + 0.01) return true;
+    }
+    return false;
+  };
   G.losPoint = function (x0, y0, x1, y1) {
+    if (G.tall() && G.overFloor(x0, y0, G.map.gz(x0, y0) + 2 * G.map.def.step, x1, y1, G.map.gz(x1, y1) + 2 * G.map.def.step)) return false;
     var L = G.line(x0, y0, x1, y1);
     for (var i = 0; i < L.length; i++) { var s = G.map.at(L[i][0], L[i][1]); if (!s || !s.open) return false; if (G.wallAt) { var w = G.wallAt(L[i][0], L[i][1]); if (w && w.solid && !(L[i][0] === x0 && L[i][1] === y0)) return false; } } // (a Wall of Stone as the rock)
     return true;
   };
   // creature to creature: { clear, cover (0 or 2), why } -- the best line over both footprints
   G.los = function (a, b, ax, ay, hide) { // (hide: b is hiding -- a creature in the line is cover only if it is a size larger than b, SRD 5.1; 10-04)
-    var fa = G.foot(a, ax, ay), fb = G.foot(b), best = { clear: false, cover: 9, why: 'a wall' };
+    var fa = G.foot(a, ax, ay), fb = G.foot(b), best = { clear: false, cover: 9, why: 'a wall' }, tl = G.tall(), zOf = function (u, p) { return u.hang && G.hanging && G.hanging(u) && p[0] === u.x && p[1] === u.y ? u.hang.z : G.map.gz(p[0], p[1]); };
     fa.forEach(function (pa) {
       fb.forEach(function (pb) {
+        if (tl && G.overFloor(pa[0], pa[1], zOf(a, pa) + G.eyeZ(a), pb[0], pb[1], zOf(b, pb) + G.eyeZ(b))) return; // (a floor above the line: height is a wall)
         var L = G.line(pa[0], pa[1], pb[0], pb[1]), cover = 0, why = '', clear = true;
         for (var i = 0; i < L.length; i++) {
           var x = L[i][0], y = L[i][1];
