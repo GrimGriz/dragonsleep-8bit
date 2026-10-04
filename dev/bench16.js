@@ -2370,6 +2370,46 @@
         PT.rerollRung();
         var dT = PK.diff(PT.levels(), PT.st.run.foes);
         okP(PT.st.run.trial && PT.st.run.rung === 4 && dT.ratio >= 2 && PT.foes === PT.st.run.foes && PT.screen === 'cr', 'a lost trial rerolled is the trial again: rung ' + PT.st.run.rung + ', ' + PK.foesText(PT.st.run.foes) + ', ' + dT.label + ' at ' + (Math.round(dT.ratio * 10) / 10) + 'x the deadly line');
+        // n. the floor mid-fight (10-03, Griz: "1 - yes"; js/battle.js Battle.broke): a fight with a way back that throws in a turn, or whose picture keeps failing,
+        // goes back where it came from as it was -- the Pocket DM's table, the ladder's and the climb's cards; inside the 8-bit game, on a bench, with no way back: no floor
+        var sc1 = D.scenes.slice(), err0 = console.error, errsN = [];
+        console.error = function () { errsN.push(Array.prototype.join.call(arguments, ' ')); };
+        try {
+          var runN = function () { return { roster: [], fights: [], party: null, run: { rung: 2, trial: false, won: 1, base8: 8, carry: null, hd: [3, 3, 3, 3], arcane: [false, false, false, false], map: 'gulch', foes: ['goblin', 'goblin', 'wolf'] } }; };
+          mem['deep16.pocket'] = JSON.stringify(runN()); mem['deep16.plays'] = '[]';
+          var PN = new D.Pocket(); D.scenes.length = 0; D.push(PN); PN.launch();
+          var BN = D.top(), wasB = BN instanceof D.Battle && BN.floorable();
+          BN.frame = function () { throw new Error('a test throw mid-turn'); };
+          BN.update();
+          var stN = JSON.parse(mem['deep16.pocket']), plN = JSON.parse(mem['deep16.plays'] || '[]'), lastN = plN[plN.length - 1] || {};
+          okP(wasB && D.top() === PN && D.scenes.length === 1 && PN.screen === 'cr' && PN.msg && PN.msg.bad && /^THE FIGHT BROKE: a test throw mid-turn -- nothing spent, a fresh map$/.test(PN.msg.text), 'a Pocket DM fight that throws in a turn comes back to the table, which says so: "' + (PN.msg && PN.msg.text) + '"');
+          okP(stN.run.rung === 2 && stN.run.won === 1 && stN.run.foes.join() === 'goblin,goblin,wolf' && !stN.fights.length && lastN.result === 'broke' && /in a turn: a test throw mid-turn/.test((lastN.errors || []).join()), 'the ladder as it went in (rung 2, one won, nothing recorded as fought), the play record kept as "' + lastN.result + '" with its error');
+          // the picture: one bad frame is logged and the fight plays on; 29, a good one, 29 more is no break; the 30th in a row breaks it, on the next turn
+          mem['deep16.pocket'] = JSON.stringify(runN());
+          var PD = new D.Pocket(); D.scenes.length = 0; D.push(PD); PD.launch();
+          var BD = D.top(), paint0 = BD.paint, bad = true, cx0 = { globalAlpha: 0.4, globalCompositeOperation: 'lighter' }, logged0 = errsN.length;
+          BD.paint = function (c) { if (bad) throw new Error('a test throw while painting'); };
+          for (var f1 = 0; f1 < 29; f1++) BD.draw(cx0);
+          bad = false; BD.draw(cx0); bad = true;
+          for (var f2 = 0; f2 < 29; f2++) BD.draw(cx0);
+          var held = !BD.paintBroke && D.top() === BD && cx0.globalAlpha === 1 && cx0.globalCompositeOperation === 'source-over', loggedN = errsN.length - logged0;
+          BD.draw(cx0); BD.frame = function () { }; BD.update();
+          okP(held && loggedN === 2 && D.top() === PD && PD.msg && /^THE FIGHT BROKE: a test throw while painting/.test(PD.msg.text), 'a picture that fails: 29 bad, a good one, 29 bad plays on (alpha and composite put back, ' + loggedN + ' lines logged); the 30th in a row comes back to the table: "' + (PD.msg && PD.msg.text) + '"');
+          // the ladder and the climb: the fight hands back { broke, how } with no result; each says THE FIGHT BROKE and writes nothing
+          var gotL = null, BL = new D.Battle({ ladder: true, fight: 'gallery', data: D.save.fixture(3), onDone: function (res, why) { gotL = [res, why]; } });
+          D.scenes.length = 0; D.push(BL); BL.frame = function () { throw new Error('a ladder throw'); }; BL.update();
+          okP(gotL && gotL[0] === null && gotL[1].broke === 'a ladder throw' && gotL[1].how === 'in a turn' && D.scenes.indexOf(BL) < 0, 'a ladder fight that throws hands back ' + JSON.stringify(gotL) + ' and is off the stack');
+          var LD = new D.Ladder(); LD.done(3, null, null, gotL[1]); var drew = true; try { var cvN = document.createElement('canvas'); cvN.width = D.W; cvN.height = D.H; LD.drawCard(cvN.getContext('2d')); } catch (eD) { drew = String(eD); }
+          var CB = new D.Climb(); CB.after(null, gotL[1]);
+          okP(LD.card && LD.card.broke === 'a ladder throw' && drew === true && CB.card && /THE FIGHT BROKE/.test(CB.card.lines[0]) && /a ladder throw/.test(CB.card.lines[1]), 'the ladder\'s card (' + JSON.stringify(LD.card) + ', drawn ' + drew + ') and the climb\'s ("' + (CB.card && CB.card.lines.slice(0, 2).join(' / ')) + '")');
+          var gotS = null, BS = new D.Battle({ ladder: true, fight: 'gallery', data: D.save.fixture(3), onDone: function (res, why) { gotS = [res, why]; } });
+          BS.enter = function () { throw new Error('a test throw at the camp\'s fight'); };
+          D.scenes.length = 0; D.Camp.prototype.launch.call({}, BS);
+          okP(gotS && gotS[0] === null && gotS[1].how === 'setting the field' && /camp's fight/.test(gotS[1].broke) && !D.scenes.length, 'the camp\'s fight that throws as it sets goes back the same way: ' + JSON.stringify(gotS));
+          // no way back, a bench, inside the 8-bit game: the throw stays where it can be seen
+          var kept = ['none', 'bench', 'embed'].map(function (k) { var o = { fight: 'gallery', data: D.save.fixture(3) }; if (k !== 'none') o.onDone = function () { }; if (k === 'bench') o.bench = true; if (k === 'embed') o.embed = {}; var Bk = new D.Battle(o); Bk.frame = function () { throw new Error('seen'); }; try { Bk.update(); return k + ' swallowed'; } catch (eK) { return /seen/.test(eK.message) ? null : k + ' ' + eK; } }).filter(Boolean);
+          okP(!kept.length, 'a fight with no way back, a bench fight and one inside the 8-bit game still throw' + (kept.length ? ': ' + kept.join('; ') : ''));
+        } finally { console.error = err0; D.scenes.length = 0; sc1.forEach(function (s) { D.scenes.push(s); }); }
       } finally { D.store.get = st0; D.store.set = ss0; HTMLAnchorElement.prototype.click = aClick0; }
       // m. the play record keeps to its room (10-03: forty whole fights filled the browser's storage, and the Pocket DM's roster write was the one refused):
       // what a recorded table weighs, the record trimmed to REC.ROOM when a fight is written, and a save the browser refused made room for by the record's

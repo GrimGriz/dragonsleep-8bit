@@ -76,10 +76,11 @@
     // (the record is finished off D.battle: a RESTART's new fight is the one that ends)
     // the camp first (js/camp.js): the gear, the day's spells, what's cast before the fight; then the fight. The tester ladder's camp is
     // our four's (o.ours, 09-29: the fight builds them from the morning's specs; you watch it, or play it and it is recorded)
-    D.push(new D.Camp(L, F, function (res) { self.done(L, res, F); }, this.ours ? { ours: { party: D.npc.ours(L, F), play: this.play } } : null));
+    D.push(new D.Camp(L, F, function (res, info) { self.done(L, res, F, info); }, this.ours ? { ours: { party: D.npc.ours(L, F), play: this.play } } : null));
   };
-  Ladder.prototype.done = function (L, res, F) {
+  Ladder.prototype.done = function (L, res, F, info) {
     D.music('title');
+    if (info && info.broke) { this.card = { broke: info.broke, how: info.how }; D.sfx('error'); return; } // (the floor, js/battle.js Battle.broke: nothing written)
     if (res !== 'won') return;
     this.won[L] = true; if (F) this.wonF[F.id] = true;
     if (L < 9) { this.card = { from: L, rows: this.ours ? oursGains(L) : gains(L, this.cur(L + 1)) }; this.sel = L + 1; D.sfx('levelup'); }
@@ -219,6 +220,15 @@
   };
   Ladder.prototype.drawCard = function (ctx) {
     var c = this.card, w = 420, x = (D.W - w) / 2;
+    if (c.broke) {
+      var bl = D.wrap('It broke ' + (c.how || 'mid-way') + ': ' + c.broke, w - 30);
+      box(ctx, x, 84, w, 52 + bl.length * 9);
+      D.text(ctx, '{r}THE FIGHT BROKE.{/}', D.W / 2, 94, P('gold', 4), 'center');
+      bl.forEach(function (l, i) { D.text(ctx, l, D.W / 2, 110 + i * 9, P('bone', 1), 'center'); });
+      D.text(ctx, 'No result was written: the rung stands as it was.', D.W / 2, 114 + bl.length * 9, P('silver', 5), 'center');
+      D.hint(ctx, '{g}E{/}', D.W / 2, 126 + bl.length * 9, P('accent', 2), 'center');
+      return;
+    }
     if (c.top) {
       box(ctx, x, 90, w, 60);
       D.text(ctx, '{y}THE TOP OF THE LADDER{/}', D.W / 2, 100, P('gold', 4), 'center');

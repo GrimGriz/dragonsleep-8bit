@@ -400,7 +400,29 @@
     return Math.max(1, Math.round(n * P));
   };
   Battle.prototype.answer = function (v) { this.req = null; this.step(v); };
+  // the floor (10-03, Griz: "1 - yes", to: a fight that breaks mid-way goes back where it came from as it was): a fight with a way back -- the Pocket DM, the
+  // ladder, the climb (o.onDone) -- that throws in its turn, or whose picture keeps failing (DRAW_BAD frames in a row; one bad frame is logged and it plays on),
+  // ends there: the play record kept as 'broke', and the host told { broke, how } through onDone with no result. Inside the 8-bit game the 8-bit takes the fight
+  // instead (js/embed.js d16:crash); a bench, a gallery or a bare URL keeps the throw where it can be seen
+  Battle.DRAW_BAD = 30;
+  Battle.prototype.floorable = function () { return !this.o.embed && !this.o.bench && typeof this.o.onDone === 'function'; };
+  Battle.prototype.broke = function (e, how) {
+    if (this.brokeHow) return;
+    this.brokeHow = how;
+    var msg = String(e && e.message || e || 'unknown error');
+    if (window.console) console.error('DEEP16: the fight broke (' + how + '); back to where it came from', e);
+    if (this.rec && D.rec && D.rec.finish) { try { (this.rec.errors = this.rec.errors || []).push(how + ': ' + msg); D.rec.finish(this, 'broke'); } catch (e2) { /* (the record as far as it went) */ } }
+    this.co = null; this.req = null; this.menu = null;
+    if (D.top() === this) D.pop();
+    D.music('title');
+    this.o.onDone(null, { broke: msg, how: how });
+  };
   Battle.prototype.update = function () {
+    if (!this.floorable()) return this.frame();
+    if (this.paintBroke) return this.broke(this.paintBroke, 'drawing the field'); // (out of the draw loop first: the scenes are not changed under it)
+    try { this.frame(); } catch (e) { this.broke(e, 'in a turn'); }
+  };
+  Battle.prototype.frame = function () {
     if (D.spr.held(this)) return; // (its figures still coming: the beat is drawn, and nothing moves -- js/sprites.js S.gate)
     this.t++;
     if (this.shakeT > 0) this.shakeT--;
@@ -2060,6 +2082,16 @@
   };
 
   Battle.prototype.opaque = true; // (the ladder under it needn't draw)
-  Battle.prototype.draw = function (ctx) { if (D.spr.held(this, true)) D.spr.beat(ctx, this); else D.ui.drawBattle(ctx, this); };
+  Battle.prototype.draw = function (ctx) {
+    if (!this.floorable()) return this.paint(ctx);
+    try { this.paint(ctx); this.badFrames = 0; }
+    catch (e) { // (the floor, above: whatever the broken piece left set is put back, so the next frame paints true)
+      ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+      this.badFrames = (this.badFrames || 0) + 1;
+      if (this.badFrames === 1 && window.console) console.error('DEEP16: a frame failed to paint (the fight plays on)', e);
+      if (this.badFrames >= Battle.DRAW_BAD) this.paintBroke = e;
+    }
+  };
+  Battle.prototype.paint = function (ctx) { if (D.spr.held(this, true)) D.spr.beat(ctx, this); else D.ui.drawBattle(ctx, this); };
   Battle.prototype.onRequest = function (req) { D.ui.onRequest(this, req); };
 })();

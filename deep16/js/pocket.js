@@ -387,23 +387,26 @@
     this.before = JSON.parse(JSON.stringify({ run: run, party: this.st.party, roster: this.st.roster }));
     var B = new D.Battle({ npc: { foes: kinds, party: this.fightWords() }, watch: this.watch, fightDef: def, pocket: true,
       record: { fight: 'pocket', name: name + ': ' + PK.foesText(kinds), level: L },
-      onDone: function (res) { if (B.rec) D.rec.finish(B, res); self.done(res, B, { q: q, kinds: kinds, mapId: mapId, d: d, started: started }); } });
+      onDone: function (res, why) { if (B.rec) D.rec.finish(B, res); if (why && why.broke) self.floor(why.broke, false); else self.done(res, B, { q: q, kinds: kinds, mapId: mapId, d: d, started: started }); } });
     this.lastQ = q;
     this.keep();
-    // the floor (10-03, Griz: "1 - sounds good"): a fight that throws while it sets the field goes back to the table as it was, says so, and a ladder's rung
-    // gets a fresh map (the foes stand) -- the trial on the Gate Floor sat frozen behind a half-set fight
     try { D.push(B); }
     catch (e) {
       if (window.console) console.error('the Pocket DM: the fight would not set', e);
       if (D.top() === B) D.pop();
-      this.restore();
-      if (this.st.run) { this.fightMap = this.st.run.map = this.randomMap(); this.keep(); }
-      D.music('title');
-      this.go('cr');
-      var why = String(e && e.message || e), tail = ' -- nothing spent' + (this.st.run ? ', a fresh map' : ''), line = function (w) { return 'THE TABLE WOULD NOT SET: ' + w + tail; };
-      while (why.length > 12 && D.textWidth(line(why)) > D.W - 24) why = why.slice(0, -4) + '..'; // (the error's own words, as many as the screen holds: the console has the rest)
-      this.msg = { text: line(why), t: 600, sticky: true, bad: true };
+      this.floor(String(e && e.message || e), true);
     }
+  };
+  // the floor: a fight that breaks -- while it sets the field (10-03, Griz: "1 - sounds good"; the trial on the Gate Floor sat frozen behind a half-set fight) or
+  // mid-way (Griz: "1 - yes"; js/battle.js Battle.broke) -- comes back to the table as it went in, says so, and a ladder's rung gets a fresh map (the foes stand)
+  Pocket.prototype.floor = function (why, setting) {
+    this.restore();
+    if (this.st.run) { this.fightMap = this.st.run.map = this.randomMap(); this.keep(); }
+    D.music('title');
+    this.go('cr');
+    var head = setting ? 'THE TABLE WOULD NOT SET: ' : 'THE FIGHT BROKE: ', tail = ' -- nothing spent' + (this.st.run ? ', a fresh map' : ''), line = function (w) { return head + w + tail; };
+    while (why.length > 12 && D.textWidth(line(why)) > D.W - 24) why = why.slice(0, -4) + '..'; // (the error's own words, as many as the screen holds: the console has the rest)
+    this.msg = { text: line(why), t: 600, sticky: true, bad: true };
   };
   // the fight is over (the result card's E, or the menu's way out with nothing: res null)
   Pocket.prototype.done = function (res, B, info) {

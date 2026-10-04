@@ -387,19 +387,30 @@
       var O = this.o.ours, tw = this.info.torch.on ? this.info.torch.who.id : null, tk = this.info.torch.kind;
       this.rebuild();
       var ob = new D.Battle({ ladder: true, watch: !O.play, record: O.play ? { fight: this.F.id, name: this.F.name, level: this.L } : null, fight: this.F.id,
-        npc: { party: this.specs, foes: [] }, torch: tw, torchKind: tk, familiar: this.famFlag(), onDone: function (res) { if (ob.rec) D.rec.finish(ob, res); self.leave(res); } });
-      D.push(ob); return;
+        npc: { party: this.specs, foes: [] }, torch: tw, torchKind: tk, familiar: this.famFlag(), onDone: function (res, why) { if (ob.rec) D.rec.finish(ob, res); self.leave(res, why); } });
+      this.launch(ob); return;
     }
     var data = this.build();
     var ff = this.famFlag(); data.flags = Object.assign({}, data.flags || {}); if (ff) data.flags.familiar = ff; else delete data.flags.familiar;
     // the climb: the gear chosen here goes with the party from now on
     if (this.o.climb) { this.o.climb.keep(data.party); this.st.equip = {}; this.save(); }
     // (who went down in it, for the climb's campfire: the DM's hands bring them back -- climb.js)
-    var fb = new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, torch: data.torchBy, torchKind: data.torchKind, onDone: function (res) {
+    var fb = new D.Battle({ ladder: true, climb: !!this.o.climb, fight: this.F.id, data: data, torch: data.torchBy, torchKind: data.torchKind, onDone: function (res, why) {
       var down = (fb.units || []).filter(function (u) { return u.side === 'party' && !u.guest && (u.ko || u.hp <= 0); }).map(function (u) { return u.id; });
-      self.leave(res, { down: down });
+      self.leave(res, Object.assign({ down: down }, why || {}));
     } });
-    D.push(fb);
+    this.launch(fb);
+  };
+  // the floor (10-03, Griz: "1 - yes"): a fight that throws while it sets the field goes back as one that broke mid-way does (js/battle.js Battle.broke) -- the ladder
+  // or the climb says THE FIGHT BROKE, and no result is written
+  Camp.prototype.launch = function (B) {
+    try { D.push(B); }
+    catch (e) {
+      if (window.console) console.error('DEEP16: the fight would not set', e);
+      if (D.top() === B) D.pop();
+      if (B.rec) B.rec.done = true; // (a half-set fight has nothing to keep: the record's write would read its units)
+      B.o.onDone(null, { broke: String(e && e.message || e), how: 'setting the field' });
+    }
   };
   // back to the ladder (the fight has popped itself already)
   Camp.prototype.leave = function (res, info) { if (D.top() === this) D.pop(); this.done(res, info || {}); };

@@ -133,6 +133,7 @@
   Climb.prototype.after = function (res, info) {
     var s = this.s, self = this;
     D.music('title');
+    if (info && info.broke) { this.card = { lines: ['{r}THE FIGHT BROKE.{/}', 'It broke ' + (info.how || 'mid-way') + ': ' + info.broke, 'No result was written: the rung stands as it was.', D.keys('{g}E{/}')] }; D.sfx('error'); return; } // (the floor, js/battle.js Battle.broke)
     if (res === 'won') {
       if (s.level >= 9) { s.best = 9; CL.save(s); this.card = { top: true, lines: ['{y}THE TOP OF THE CLIMB{/}', 'Level 9 won, from level 1, run ' + s.run + '.', 'The ladder goes no higher -- yet.', D.keys('{g}E{/}')] }; return; }
       D.push(new LevelUp(s, function () {
