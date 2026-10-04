@@ -758,6 +758,7 @@
       "show": ["Troll_Body"],
       "look": "toon:13",
       "lift": true,
+      "lines": {"width": 1.0, "crease": 110},
       "fit": true,
       "size_squares": 2,
       "size_by": ["Troll_Foot"],

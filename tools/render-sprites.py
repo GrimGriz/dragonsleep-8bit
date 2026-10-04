@@ -291,6 +291,18 @@ if TOON or F.get('floor'):
         BLK.holdout_floor(scene)
 r.resolution_x, r.resolution_y, r.resolution_percentage = FW * SS, FH * SS, 100
 r.film_transparent = True
+# inner lines (10-04, Griz: "you see how there's a thick black line separating the clothing on the LPC models ... do thin outlines on the edges like
+# that?"): Freestyle draws the silhouette and crease edges of the figure, inside it as well as round it, in a dark line `lines` px thick at 1x
+# (`"lines": {"width": 1.0, "crease": 110, "color": "#0c1410"}` in tools/deep16-figures.json, or D16_LINES=<width> for a test)
+LN = F.get('lines') or ({'width': float(os.environ['D16_LINES'])} if os.environ.get('D16_LINES') else None)
+if LN:
+    r.use_freestyle = True
+    vl = bpy.context.view_layer; vl.use_freestyle = True
+    fs = vl.freestyle_settings; fs.crease_angle = math.radians(LN.get('crease', 110))
+    ls = fs.linesets.new('lines'); ls.select_silhouette = True; ls.select_border = True; ls.select_crease = LN.get('crease', 110) < 180
+    ls.select_contour = LN.get('contour', True); ls.select_external_contour = False
+    st = ls.linestyle; st.thickness = LN.get('width', 1.0) * SS; st.thickness_position = 'CENTER'
+    cc = LN.get('color', '#0c1410'); st.color = tuple((int(cc[i:i + 2], 16) / 255) ** 2.2 for i in (1, 3, 5)); st.alpha = LN.get('alpha', 1.0)
 r.image_settings.file_format = 'PNG'; r.image_settings.color_mode = 'RGBA'
 scene.view_settings.view_transform = 'Standard'
 sh = scene.display.shading

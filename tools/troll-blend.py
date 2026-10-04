@@ -30,7 +30,7 @@ BL = importlib.util.module_from_spec(spec); spec.loader.exec_module(BL)
 
 ARGS = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else ['build']
 MODE = ARGS[0]
-TAG = ARGS[1] if MODE in ('look', 'close', 'poses') and len(ARGS) > 1 else 'troll'
+TAG = ARGS[1] if MODE in ('look', 'close', 'poses', 'diag') and len(ARGS) > 1 else 'troll'
 OPT = dict(a.split('=', 1) for a in ARGS if '=' in a)
 PRESET, HIDE = OPT.get('preset', '13'), OPT.get('hide', 'green')
 FOOT_D = 50.49                 # the print base, 'Large Creature': 50 mm, two 5-ft squares -- the troll's footprint (Large)
@@ -150,7 +150,32 @@ def bends(P):
     return d
 
 
-def solve(d, lift=0.0):
+def accG(d, name):
+    """the turn the bones above `name` (and it) have taken, in the pose's frame."""
+    chainup = []
+    b = BN[name]
+    while b:
+        chainup.append(b.name); b = b.parent
+    G = Quaternion()
+    for n in reversed(chainup):
+        G = G @ d.get(n, Quaternion())
+    return G
+
+
+def aim(d, names, targets, f=1.0):
+    """gravity and the floor (10-04, Griz: "use gravity for the prone and death positions ... make the arms droop down"): turn each bone of a
+    chain to point at its target direction in the world (the minimal turn from where the artist's pose points it, through what its parents
+    already took), `f` of the way (0 leaves it, 1 lays it there). The bends of the chain's own bones are replaced; its children follow."""
+    first = BN[names[0]].parent
+    G = accG(d, first.name) if first else Quaternion()
+    for n, T in zip(names, targets):
+        pd = (POSE0[n] @ Vector((0, BN[n].length, 0)) - POSE0[n].translation).normalized()
+        dq = pd.rotation_difference(G.inverted() @ Vector(T).normalized())
+        dq = Quaternion().slerp(dq, f)
+        d[n] = dq; G = G @ dq
+
+
+def solve(d, lift=0.0, shift=0.0):
     """each bone's basis for bends d: its posed rotation is (the bends of every bone above it and its own, in the pose's frame) x the
     artist's; its head where its parent now carries it; the roots (all three at the hip) lifted together."""
     G, M, out = {}, {}, {}
@@ -161,14 +186,32 @@ def solve(d, lift=0.0):
         if p:
             C = M[p] @ REST[p].inverted() @ REST[n]; head = C.translation
         else:
-            C = REST[n]; head = POSE0[n].translation + Vector((0, 0, lift))
+            C = REST[n]; head = POSE0[n].translation + Vector((0, shift, lift))
         M[n] = Matrix.Translation(head) @ R.to_4x4()
         out[n] = C.inverted() @ M[n]
     return out
 
 
+LIE = {   # where each limb chain points when it lies on the floor, by what the body is doing: ('back': over on its back, head toward +Y; 'face': on its face, head toward -Y)
+    'back': dict(arm=[(0.55, 0.55, -0.12), (0.8, 0.3, -0.12), (0.85, 0.1, -0.1)], leg=[(0.22, -0.95, -0.12), (0.2, -0.97, -0.1), (0.1, -0.7, -0.5), (0.0, -0.4, -0.9), (0.0, -0.4, -0.9)]),
+    'face': dict(arm=[(0.6, -0.65, -0.15), (0.85, -0.45, -0.12), (0.85, -0.45, -0.1)], leg=[(0.2, 0.95, -0.1), (0.15, 0.98, -0.1), (0.1, 0.5, -0.6), (0.0, 0.4, -0.9), (0.0, 0.4, -0.9)]),
+}
+
+
+def lie(d, kind, side, f):
+    """lay both arms and both legs on the floor as `kind` says (aim(): each bone toward its target), `f` of the way; the hands' fingers follow their wrist."""
+    spec = LIE[kind]
+    for s, A, L in ((1, ARM_A, LEG_A), (-1, ARM_B, LEG_B)):
+        mir = lambda v: (v[0] * s * side, v[1], v[2])
+        aim(d, A[1:3], [mir(v) for v in spec['arm'][:2]], f)
+        aim(d, L[1:4], [mir(v) for v in spec['leg'][:3]], f)
+
+
 def apply(P):
-    for n, m in solve(bends(P), P.get('lift', 0.0)).items():
+    d = bends(P)
+    if P.get('lie'):
+        lie(d, P['lie'], P['lieside'], P.get('liefall', 1.0))
+    for n, m in solve(d, P.get('lift', 0.0), P.get('shift', 0.0)).items():
         loc, rot, sc = m.decompose()
         pb = arm.pose.bones[n]; pb.rotation_quaternion = rot; pb.location = loc
 
@@ -225,22 +268,30 @@ def row_walk(i, n):
 
 
 def row_claw(side):
+    """a swipe across the body (Griz, 10-04): the troll's LEFT arm (+X: A) rears up and out on its left, then rakes down and across to its right;
+    the RIGHT arm (B) starts low and out on its right and claws up and across to its left. The body turns into it."""
     def f(i, n):
-        """arm up and back, then down and across: A is the reaching arm. The body leans into it."""
-        p = [0.0, -0.8, -1.0, 0.9, 0.45, 0.1][i]; k = 'a' if side == 'a' else 'b'
-        sign = 1 if side == 'a' else -1
-        up = max(0.0, -p); dn = max(0.0, p)
-        P = {'lean': 14 * dn - 8 * up, 'twist': sign * (8 * up - 16 * dn) * -1, 'jaw': -6 + 22 * dn,
-             'sw' + k: -62 * up + 40 * dn, 'el' + k: -30 * up + 18 * dn, 'out' + k: sign * (-16 * up + 22 * dn), 'fing' + k: -10 * up + 12 * dn,
-             'tha': 8 * dn, 'thb': -6 * dn, 'lift': 0.4 * dn}
+        k = side; sg = 1 if side == 'a' else -1
+        # (a frame's arm pose: sw the upper arm (- raises, + lowers it back), out across (Z: + toward the +X side), el the forearm, twist the body)
+        if side == 'a':
+            F = [dict(sw=0, out=0, el=0, tw=0, ln=0), dict(sw=-52, out=44, el=-20, tw=10, ln=-4), dict(sw=-66, out=58, el=-34, tw=14, ln=-8),
+                 dict(sw=-10, out=-55, el=10, tw=-20, ln=14), dict(sw=18, out=-66, el=16, tw=-26, ln=18), dict(sw=6, out=-24, el=4, tw=-8, ln=6)][i]
+        else:
+            F = [dict(sw=0, out=0, el=0, tw=0, ln=0), dict(sw=38, out=-34, el=18, tw=-12, ln=6), dict(sw=54, out=-46, el=24, tw=-16, ln=10),
+                 dict(sw=-48, out=40, el=-24, tw=18, ln=-6), dict(sw=-74, out=58, el=-30, tw=24, ln=-8), dict(sw=-20, out=18, el=-8, tw=8, ln=-2)][i]
+        P = {'lean': F['ln'], 'twist': F['tw'], 'jaw': -10 + 14 * (1 if i in (3, 4) else 0),
+             'sw' + k: F['sw'], 'out' + k: F['out'], 'el' + k: F['el'], 'fing' + k: -8 if i in (1, 2) else 12 if i in (3, 4) else 0}
         return P, 0
     return f
 
 
 def row_bite(i, n):
-    p = [0.0, -0.5, -1.0, 1.0, 0.6, 0.15][i]; up = max(0.0, -p); dn = max(0.0, p)
-    return dict(lean=-8 * up + 20 * dn, head=-12 * up + 12 * dn, jaw=-4 + 45 * up - 42 * dn + (-8) * (1 - dn) * 0, swa=-10 * dn, swb=-10 * dn,
-                lift=-0.3 * dn), 0
+    """the lunge: the head and chest thrown forward and down to about where a man's head is (the knees bend, the hips go forward over the feet),
+    the jaw wide, and it snaps shut."""
+    p = [0.0, -0.5, -0.9, 1.0, 0.8, 0.25][i]; up = max(0.0, -p); dn = max(0.0, p)
+    jaw = [-10, 12, 34, -4, -14, -12][i]
+    return dict(lean=-6 * up + 34 * dn, head=-10 * up + 14 * dn, jaw=jaw, shift=-9.0 * dn + 2 * up, tha=14 * dn, thb=14 * dn, kna=26 * dn, knb=26 * dn,
+                swa=-14 * dn + 8 * up, swb=-14 * dn + 8 * up, outa=14 * dn, outb=-14 * dn), 0
 
 
 def row_flinch(i, n):
@@ -249,18 +300,22 @@ def row_flinch(i, n):
 
 
 def row_prone(i, n):
-    """knocked over on its back: the whole skeleton over about the hip, backward, the knees up, the arms flung wide; lies at its last frame
-    (the grid falls through the row, lies at its last frame, and gets up by playing it backwards)."""
-    f = [0.0, 0.25, 0.55, 0.85, 1.0, 1.0][i]; e = min(1.0, f * 1.15)
-    return dict(body=-float(OPT.get('fall', 78)) * f, lift=-float(OPT.get('drop', 22)) * f, lean=-10 * f, head=-14 * f, jaw=-10 + 10 * f,
-                swa=-40 * f, swb=-40 * f, outa=-40 * f, outb=40 * f, tha=-30 * f, thb=-22 * f, kna=40 * f, knb=32 * f), 0
+    """knocked over on its back, by gravity (10-04, Griz: "use gravity for the prone and death positions"): the whole skeleton over about the hip,
+    the head thrown back, the arms and legs let go and laid on the floor (aim: each bone toward the ground), the knees a little up; lies at its
+    last frame, and gets up by the row played backwards."""
+    f = [0.0, 0.25, 0.55, 0.85, 1.0, 1.0][i]; fl = [0.0, 0.0, 0.3, 0.75, 1.0, 1.0][i]
+    return dict(body=-float(OPT.get('fall', 82)) * f, lift=-float(OPT.get('drop', 21)) * f, lean=-8 * f, head=-18 * f, jaw=-6 + 8 * f,
+                swa=-50 * (1 - fl), swb=-50 * (1 - fl), outa=-40 * (1 - fl), outb=40 * (1 - fl), tha=-24 * (1 - fl), thb=-18 * (1 - fl), kna=36 * (1 - fl), knb=30 * (1 - fl),
+                lie='back', lieside=1.0, liefall=fl), 0
 
 
 def row_death(i, n):
-    """buckles at the knees, then pitches forward onto its face, the arms out and the jaw slack (its death: prone is the other way, on its back)."""
-    f = [0.0, 0.18, 0.4, 0.7, 0.92, 1.0, 1.0, 1.0][i]; k = [0.0, 0.5, 1.0, 1.0, 0.8, 0.6, 0.6, 0.6][i]
-    return dict(body=float(OPT.get('dfall', 80)) * f, lift=-float(OPT.get('ddrop', 20)) * f, lean=8 * f, head=-30 * f, jaw=-8 + 12 * f,
-                tha=-28 * k, thb=-20 * k, kna=44 * k, knb=36 * k, swa=-50 * f, swb=-50 * f, outa=30 * f, outb=-30 * f, ela=-20 * f, elb=-20 * f), 0
+    """buckles at the knees and pitches forward onto its face; the arms fly up and then drop by their weight and lie on the floor ahead, the legs
+    trail out behind, the head down, the jaw slack (its death: prone is the other way, on its back)."""
+    f = [0.0, 0.18, 0.4, 0.7, 0.92, 1.0, 1.0, 1.0][i]; k = [0.0, 0.5, 1.0, 1.0, 0.8, 0.6, 0.6, 0.6][i]; fl = [0.0, 0.0, 0.15, 0.5, 0.85, 1.0, 1.0, 1.0][i]
+    return dict(body=float(OPT.get('dfall', 82)) * f, lift=-float(OPT.get('ddrop', 20)) * f, lean=10 * f, head=-24 * f, jaw=-8 + 14 * f,
+                tha=-28 * k * (1 - fl), thb=-20 * k * (1 - fl), kna=44 * k * (1 - fl), knb=36 * k * (1 - fl), swa=-60 * f * (1 - fl), swb=-60 * f * (1 - fl),
+                lie='face', lieside=1.0, liefall=fl), 0
 
 
 ROWS = [('IDLE', 8, True, row_idle, 'clamp'), ('WALK', 8, True, row_walk, 'plant'), ('CLAW', 6, False, row_claw('a'), 'plant'), ('CLAW2', 6, False, row_claw('b'), 'plant'),
@@ -337,14 +392,68 @@ BONEC = lin('#e6dcc0')
 for tname in TIPS:
     h = np.array(BN[tname].head_local[:]); t_ = np.array(BN[tname].tail_local[:]); s_ = t_ - h
     u = ((PA - h) @ s_) / (s_ @ s_)
-    toe = tname in ('Bone.014', 'Bone.015')       # (a toe bone is the whole foot's end: only its tips are claws)
-    hk = (wsum([tname]) > 0.5) & (u > (0.7 if toe else 0.0))
-    k = np.clip((u - 0.7) / 0.3 if toe else (u + 0.2) / 0.8, 0, 1)[:, None]
+    toe = tname in ('Bone.014', 'Bone.015')       # (a toe bone's group is the whole forefoot, its points lying well past the short bone's tail: only the farthest are the claws)
+    g_ = wsum([tname]) > 0.5
+    lo_ = float(np.percentile(u[g_], 84)) if toe else 0.0
+    hk = g_ & (u > lo_)
+    k = np.clip((u - lo_) / max(float(u[g_].max()) - lo_, 1e-6) * 2.5, 0, 1)[:, None] if toe else np.clip((u + 0.2) / 0.8, 0, 1)[:, None]
     col[hk] = col[hk] * (1 - k[hk]) + BONEC[None, :] * k[hk]
 # the jaw: the lower jaw's points pale at the tooth line, the mouth's inside dark red
 jw = wsum([JAW])
 col[jw > 0.6] = col[jw > 0.6] * 0.8 + lin('#5c1a22')[None, :] * 0.2
 print('[troll] hide %s: %d jaw points, %d claw-tip bones' % (HIDE, int((jw > 0.6).sum()), len(TIPS)))
+# the head's own frame (rest space): origin at the skull bone's root, a along its face (the forward), b up, s to the side
+def rh(n): return np.array(BN[n].head_local[:])
+def rt(n): return np.array(BN[n].tail_local[:])
+HC = rh('Bone.020'); HF = rt('Bone.021') - rh('Bone.021'); HF /= np.linalg.norm(HF)
+HU = np.array([0, 0, 1.0]) - HF * HF[2]; HU /= np.linalg.norm(HU); HS = np.cross(HF, HU)
+HA, HB, HSI = (PA - HC) @ HF, (PA - HC) @ HU, (PA - HC) @ HS
+hg = wsum(['Bone.020', 'Bone.021', 'Bone.019', 'Bone.018']) > 0.4
+hg |= np.array([gname[max(v.groups, key=lambda g_: g_.weight).group] == 'Head' if v.groups else False for v in me.vertices])
+print('[troll] head frame F=%s U=%s; %d head points; a %s b %s s %s' % (HF.round(2), HU.round(2), int(hg.sum()), np.percentile(HA[hg], [2, 50, 98]).round(1), np.percentile(HB[hg], [2, 50, 98]).round(1), np.percentile(HSI[hg], [2, 50, 98]).round(1)))
+# the eyes: the two deepest hollows of the face above the cheeks (a point well behind its neighbours' mean along the face, in the brow band)
+fi = np.where(hg & (HA > 6.0) & (HB > -2.5) & (HB < 3.5) & (np.abs(HSI) < 6.5))[0]
+fa = np.stack([HSI[fi], HB[fi]], axis=1)
+dep = np.zeros(len(fi))
+for j_ in range(len(fi)):
+    nb = np.linalg.norm(fa - fa[j_], axis=1) < 1.6
+    dep[j_] = HA[fi][nb].mean() - HA[fi][j_]
+EYES = []
+for sgn in (1, -1):
+    sel = np.where((np.sign(HSI[fi]) == sgn) & (dep > 0.25))[0]
+    if len(sel):
+        w_ = dep[sel] ** 2; EYES.append((float((fa[sel, 0] * w_).sum() / w_.sum()), float((fa[sel, 1] * w_).sum() / w_.sum()), float(HA[fi][sel].mean())))
+print('[troll] eyes (s, b, a): %s' % [tuple(round(x, 1) for x in e) for e in EYES])
+HIPG = wsum(['Hips', 'Hips.001', 'Bone', 'Bone.004', 'Bone.005', 'Bone.002'])
+HZ = float(rh('Bone')[2])
+CLOTH = (HIPG > 0.45) & (PA[:, 2] < HZ - float(OPT.get('cz', 2.0))) & (PA[:, 2] > HZ - 17) & (np.abs(PA[:, 0] - rh('Bone')[0]) < 7.5)
+print('[troll] hip z %.1f; %d cloth points' % (HZ, int(CLOTH.sum())))
+# hat (the cap and its fringe, above the brow), the locks hanging at the sides, the loincloth, the eyes (the hollows of the brow band, gold and unshaded)
+HAT = hg & (HB > float(OPT.get('hatb', 1.4))) & (np.abs(HSI) < 6.5)
+LOCKS = hg & (np.abs(HSI) > 4.0) & (HB < -0.5) & (HA < 12)
+EYEM = hg & (HA > float(OPT.get('ea', 8.0))) & (HB > float(OPT.get('eb0', -0.3))) & (HB < float(OPT.get('eb1', 1.2))) & (np.abs(HSI) > float(OPT.get('es0', 1.2))) & (np.abs(HSI) < float(OPT.get('es1', 3.6))) & ~HAT
+print('[troll] hat %d, locks %d, cloth %d, eyes %d points' % (int(HAT.sum()), int(LOCKS.sum()), int(CLOTH.sum()), int(EYEM.sum())))
+if not OPT.get('cdiag') and not OPT.get('hdiag') and MODE != 'diag':
+    HAIRC, CLOTHC, EYEC = lin('#34261f'), lin('#7a5a38'), lin('#f2c230')
+    col[HAT | LOCKS] = col[HAT | LOCKS] * 0.15 + HAIRC[None, :] * 0.85
+    hem = CLOTH & (PA[:, 2] < HZ - 11)
+    col[CLOTH] = CLOTHC[None, :]; col[hem] = (CLOTHC * 0.55)[None, :]
+    col[EYEM] = EYEC; unsh[EYEM] = True
+if OPT.get('cdiag'):
+    col[CLOTH] = np.array((1, 0.1, 0.1)) ** 2.2
+if OPT.get('hdiag'):     # the head's points by height (b) and by front (a): red b>0, yellow >-3, green >-6, blue below; a lighter shade where a>8 (the face)
+    for i_ in np.where(hg)[0]:
+        b_ = HB[i_]; c_ = (1, 0, 0) if b_ > 0 else (1, 1, 0) if b_ > -3 else (0, 1, 0) if b_ > -6 else (0, 0.3, 1)
+        col[i_] = np.array(c_) ** 2.2 * (1.0 if HA[i_] > 8 else 0.45)
+if MODE == 'diag':      # every point coloured by the group it weights most: which group is the hair, the cloth, the eyes (printed: group -> colour)
+    import colorsys
+    names = sorted({gname[max(v.groups, key=lambda g_: g_.weight).group] for v in me.vertices if v.groups})
+    cmap = {n_: colorsys.hsv_to_rgb((i_ * 0.381966) % 1.0, 0.85, 0.9) for i_, n_ in enumerate(names)}
+    for v in me.vertices:
+        if v.groups:
+            n_ = gname[max(v.groups, key=lambda g_: g_.weight).group]; col[v.index] = np.array(cmap[n_]) ** 2.2
+    for n_ in names:
+        c_ = cmap[n_]; print('[troll] diag %-12s #%02x%02x%02x  %d' % (n_, int(c_[0] * 255), int(c_[1] * 255), int(c_[2] * 255), sum(1 for v in me.vertices if v.groups and gname[max(v.groups, key=lambda g_: g_.weight).group] == n_)))
 BL.write_points(body, np.maximum(col, 0), unsh)
 BL.toon_material(body)
 
@@ -365,7 +474,7 @@ def stand_camera():
     return BL.sprite_camera(scene, lo, hi)
 
 
-if MODE in ('look', 'close', 'poses'):
+if MODE in ('look', 'close', 'poses', 'diag'):
     cam, FW, FH, AX, AY = stand_camera()
     r = scene.render
     od = os.path.join(SRC, 'look_out', TAG); os.makedirs(od, exist_ok=True)
@@ -390,11 +499,11 @@ if MODE in ('look', 'close', 'poses'):
     r.resolution_x, r.resolution_y, r.resolution_percentage = FW * BL.SS, FH * BL.SS, 100
     if MODE == 'close':
         arm.rotation_euler.z = math.radians(45); bpy.context.view_layer.update()
-        kk = arm.scale[0]; hc = arm.matrix_world @ POSE0[HEAD].translation
+        kk = arm.scale[0]; hc = arm.matrix_world @ ((POSE0['Bone'].translation + Vector((0, -4, -2)) if OPT.get('at') == 'hips' else POSE0[HEAD].translation + Vector((0, -6, 2))))
         back = cam.matrix_world.to_3x3() @ Vector((0, 0, 1))
-        cam.location = hc + back * 40; cam.data.ortho_scale = 22 * kk; r.resolution_x = r.resolution_y = 800
+        cam.location = hc + back * 40; cam.data.ortho_scale = float(OPT.get('zoom', 22)) * kk; r.resolution_x = r.resolution_y = 800
     BL.light(scene, cam, PRESET)
-    shots = [('IDLE', 0, 'f0_00'), ('IDLE', 6, 'f6_00')] if MODE == 'look' else [('IDLE', 0, 'f0_00')]
+    shots = [('IDLE', 0, 'f0_00'), ('IDLE', 6, 'f6_00')] if MODE in ('look', 'diag') else [('IDLE', 0, 'f0_00')]
     for row, f, fn in shots:
         use(row); scene.frame_set(1)
         arm.rotation_euler.z = math.radians(45 - 45 * f)
