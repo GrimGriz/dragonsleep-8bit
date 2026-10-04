@@ -708,6 +708,13 @@
     if (u.grudge) { var gr = B.units.filter(function (w) { return w.id === u.grudge && G.standing(w); })[0]; delete u.grudge; if (gr) { hs = [gr]; grudge = true; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + gr.name + '{/}.'], 240); yield 16; } }
     // the cloaker and the one the party swore to bring back (RULED 10-01c, Griz: "cloaker focuses on kid if they bring him to that fight"): it hunts him while he stands
     if (!grudge && u.kind === 'cloaker') { var vt = hs.filter(function (w) { return w.vital; })[0]; if (vt) hs = [vt]; }
+    // lost to every eye (magical darkness, fog, a pillar between): the natural lurker -- one the fight began with hidden: the darkmantle, the grick, the roper -- slips back into hiding
+    // for nothing, a Stealth roll held as a hero's is; any other foe with a Stealth score pays the Hide action, and only with nothing within its reach to strike (Griz, 10-04: "if
+    // a monster is natural stealth and gets found there should be conditions in which it would be lost and found again ... magical darkness"; "only the natural get a free re-hide")
+    if (!grudge && !u.conds.hidden && !u.ethereal && !u.riding && T.action > 0 && ((u.stealth || 0) > 0 || u.hidden0) && B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }).every(function (w) { return B.seenBy(w, u, true) === 0; })) {
+      if (u.hidden0) { u.conds.hidden = true; u.hidTotal = B.stealthRoll(u).total; B.card(['{r}' + the(B, u) + '{/} is lost to every eye: hidden again.  {g}(a natural lurker: Stealth ' + u.hidTotal + '){/}'], 200); yield 16; }
+      else if (!hs.some(function (w) { return G.dist(u, w) <= reachOf(u, hs); })) { yield* B.hide(u); hs = heroes(B, u); }
+    }
     // no one it can see: it goes for where the last blow or spell against its side came from (SRD 5.1, Hiding: "you give away your location when the attack
     // hits or misses" -- battle.js noteHeard); there, one beside it is found by touch (heroes: within 5 ft) -- 10-01c, the rogue runner's find
     if (!hs.length && !grudge && B.heardOf && T.move > 0) {

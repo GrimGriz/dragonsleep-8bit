@@ -11,6 +11,7 @@
     disengage: ['............', '....oooo....', '...occcco...', '..occoocco..', '.oo.o..occo.', 'o.cco...oco.', '.occo...oco.', '..oco..occo.', '...o..occo..', '.....occo...', '.....ooo....', '............'],
     dodge: ['............', '..ooooooo...', '.occccccco..', '..ooooooco..', '.....ooco...', '..ooococo...', '.occccoco...', '..ooooooo...', '....ooooooo.', '...occcccco.', '....ooooooo.', '............'],
     help: ['....o.o.....', '...owowo.o..', '...owowoowo.', '.o.owowowo..', 'owoowwwwwo..', '.owowwwwwo..', '..owwwwwwo..', '..owwwwwo...', '...owwwwo...', '...owwwo....', '....ooo.....', '............'],
+    search: ['............', '............', '...oooooo...', '..oVVVVVVo..', '.oVwwwwwwVo.', 'oVwwwooowwVo', '.oVwwwwwwVo.', '..oVVVVVVo..', '...oooooo...', '............', '............', '............'],
     hide: ['............', '............', '...oooooo...', '..oVVVVVVo..', '.oVVwwwwVVo.', 'oVVwwoowwVVo', '.oVVwwwwVVo.', '..oVVVVVVo..', '...oooooo...', '.oooooooooo.', '............', '............'],
     secondwind: ['............', '..oo...oo...', '.orro.orro..', 'orRRrorRRro.', 'orRRRRRwRro.', 'orRRRRwwwRo.', '.orRRRRwRo..', '..orRRRRo...', '...orRRo....', '....oro.....', '.....o......', '............'],
     surge: ['......oooo..', '.....oGGo...', '....oGGo....', '...oGGo.....', '..oGGGGGo...', '..ooooGGo...', '.....oGo....', '....oGo.....', '...oGo......', '..oGo.......', '..oo........', '............'],
