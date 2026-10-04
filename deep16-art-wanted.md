@@ -92,6 +92,8 @@ A blue demon today.
 
 HEAD: STONE GIANT -- the deep. Lean and hairless, grey skin like carved stone, heavy brow. Huge: much taller than a man. Rows: Idle (8), Walk (8), Club (8), Throw Rock (8), Catch Rock (6), Hurt (6), Death (8).
 
+10-04: being built in Blender (pipeline 1b, `tools/stonegiant-blend.py`, MZ4250's female sculpt), the rows the engine plays: idle, walk, greatclub, greatclub2, rock, flinch, hurt, prone. **Catch Rock waits** with her Rock Catching (Griz, 10-04: *"register now"*): nothing in the game can hurl a rock at her yet (`..\handoff-2026-10-04-the-grids-rules.md` §2.7).
+
 ---
 
 ## The landlord's pictures (the telepathy in the Wet -- stills, not sheets; asked 09-30g; IN HAND 10-01)
