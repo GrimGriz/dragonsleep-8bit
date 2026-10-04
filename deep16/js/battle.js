@@ -886,9 +886,12 @@
           var fLs = this.fallLines(u, path), fDrop = fLs.some(function (s) { return /^A drop/.test(s); }), gA = this.grappleAt(u, path);
           if (gA && !fLs.some(function (s) { return /^A climb/.test(s); })) fLs.push('A climb of ' + gA.ft + ' ft: Athletics DC ' + gA.dc + ', and a miss slides back prone.');
           if (fLs.length) {
-            var mOpts = [{ label: fDrop ? 'DROP' : 'CLIMB', value: 'go' }]; if (gA) mOpts.push({ label: 'USE GRAPPLE (your action)', value: 'grapple' }); mOpts.push({ label: 'NOT THAT WAY', value: 0 });
-            var mAns = yield { prompt: { who: u, title: u.name + (fDrop ? ': DROP?' : ': CLIMB?'), lines: fLs.concat(gA ? ['USE GRAPPLE: throw it up first (DC 10 DEX), then climb the rope with no check.'] : []), opts: mOpts } };
+            var cdPath = null; // (a drop of 10 ft or more: CLIMB DOWN too, where the move can pay it -- the SRD's cost of a climb, a check over 5 ft, a miss a fall)
+            if (fDrop) { u.cdown = true; try { var rmD = G.reach(u, T.move), pD = G.path(rmD, c.x, c.y); if (pD && pD.length && rmD[c.x + ',' + c.y].stand) cdPath = pD; } finally { delete u.cdown; } }
+            var mOpts = [{ label: fDrop ? 'DROP' : 'CLIMB', value: 'go' }]; if (cdPath) mOpts.push({ label: 'CLIMB DOWN', value: 'down' }); if (gA) mOpts.push({ label: 'USE GRAPPLE (your action)', value: 'grapple' }); mOpts.push({ label: 'NOT THAT WAY', value: 0 });
+            var mAns = yield { prompt: { who: u, title: u.name + (fDrop ? ': DROP?' : ': CLIMB?'), lines: fLs.concat(cdPath ? ['CLIMB DOWN: 5 ft of movement a step, a Strength (Athletics) check over 5 ft; a miss falls.'] : []).concat(gA ? ['USE GRAPPLE: throw it up first (DC 10 DEX), then climb the rope with no check.'] : []), opts: mOpts } };
             if (!mAns) return;
+            if (mAns === 'down') { u.cdown = true; try { yield* this.moveAlong(u, cdPath, { spend: true }); } finally { delete u.cdown; } return; }
             if (mAns === 'grapple') { // to the foot of the face, the grapple up, and on up the rope -- part way, if the move runs out
               if (gA.i) yield* this.moveAlong(u, path.slice(0, gA.i), { spend: true });
               if (u.x !== gA.foot[0] || u.y !== gA.foot[1] || u.hp <= 0 || u.dead) return;
@@ -1191,9 +1194,18 @@
           u.conds.prone = true; u.anim = 'idle'; return;
         }
       }
+      // down a face by climbing (u.cdown: the hand chose CLIMB DOWN, exec 'move'): the climb's own check over 5 ft; made, it is down with no fall, missed, it falls the height as a drop
+      var csD = u.cdown ? G.climbsDown(u, u.x, u.y, nx, ny) : 0, cDCd = G.climbDC(csD), csDmiss = false;
+      if (csD) cliffM = 'ropedown';
+      if (cDCd) {
+        var ce1 = RU.checkEdges(u, 'str'), cr1 = ce1.dis.length && !ce1.adv.length ? Math.min(D.d(20), D.d(20)) : ce1.adv.length && !ce1.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb1 = G.athletics(u), ct1 = cr1 + cb1;
+        this.card(['{y}' + nameOf(u) + '{/} climbs down: Athletics d20 ' + cr1 + ' ' + RU.sign(cb1) + ' = ' + ct1 + ' against DC ' + cDCd + ' (' + csD * 2.5 + ' ft)  ' + (ct1 >= cDCd ? '{n}DOWN{/}' : '{o}LOSES ITS HOLD{/}')], 160);
+        csDmiss = ct1 < cDCd;
+      }
       u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(stF, true), mode: cliffM }; // (an AI-run unit's step is paced with its wait, below, so the walk keeps to its beat)
       u.x = nx; u.y = ny;
       var dropFt = G.map.def.climb && !u.flies && !u.climbs && !rpS && !hung0 ? (z0 - z1) / stZ * 2.5 : 0; // (a drop down a cliff: SRD 5.1 Falling -- 1d6 bludgeoning for every 10 feet, and it lands prone; one with a climb speed climbs down, as one on a rope does)
+      if (csD && !csDmiss) dropFt = 0; // (climbed down: no fall)
       if (u.hang && !G.hanging(u)) delete u.hang; // (off the rope: at its top, or stepped away from its foot)
       if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; } // (moved: what it has walked this turn -- the Thief's Supreme Sneak asks)
       this.keepInView(u);

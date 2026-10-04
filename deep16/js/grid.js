@@ -148,8 +148,13 @@
     if (c === Infinity) return c;
     if (rp) return c + Math.max(0, Math.round(Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step) * 5 - 5); // (along a rope, up or down: 5 ft of movement a step, the square's own 5 in it)
     if (u.hang && x0 === u.x && y0 === u.y && G.hanging(u)) return c + Math.round((u.hang.z - G.map.gz(u.x, u.y)) / G.map.def.step) * 5; // (off a rope part way up, anywhere but its top: down it first, 5 ft a step)
-    var cs = G.climbsUp(u, x0, y0, x1, y1); if (cs) c += cs * 5 - 5; return c;
+    var cs = G.climbsUp(u, x0, y0, x1, y1); if (cs) c += cs * 5 - 5;
+    var cd = u.cdown && G.climbsDown(u, x0, y0, x1, y1); if (cd) c += cd * 5 - 5; // (a hand that chose CLIMB DOWN: the same 5 ft a step down as up)
+    return c;
   };
+  // a step DOWN a cliff taken by climbing (10-04, the Edifice handoff: "a drop of 10 ft or more offers CLIMB DOWN beside DROP"; SRD 5.1 Climbing: a climb down costs what a climb up does): the number of
+  // steps, else 0. Read only for a unit with `cdown` set (battle.js exec 'move', for the hand that chose it); anyone else steps off a face as a drop, as before
+  G.climbsDown = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x0, y0) - G.gzAt(u, x1, y1)) / d.step); return n > 1 ? n : 0; };
   // a step up a cliff (more than one step of height, on a map that lets it be climbed): the number of steps it climbs, else 0. Each foot climbed costs an extra foot (SRD 5.1): a step is 2.5 ft,
   // so 5 ft of movement a step climbed, the square's own 5 folded in -- a 5 ft ledge 10, 10 ft 20, 15 ft 30, 30 ft 60, and a tall face takes the Dash (10-04, Griz: "it coming out a dash is correct,
   // adjust our cost to SRD"; it was the extra foot alone, 35 for 30 ft). Over 5 ft the climb is a Strength (Athletics) check (G.climbDC; battle.js moveAlong): a miss drops it back
