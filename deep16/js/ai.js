@@ -62,6 +62,8 @@
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal || u.under) B.focus(u); // (a burrower under the ground: the camera on its mound)
+    // clinging to a face part way up (a slow climb speed: battle.js moveAlong, 10-04 night): the climb goes on before anything else; still on the face after, the turn is spent
+    if (u.hang && u.hang.face && G.hanging(u)) { yield* B.moveAlong(u, [u.hang.face], { spend: true }); if (u.hang && G.hanging(u)) { yield 20; return; } }
     // the clacker strikes its hooks together as its turn begins, the clacking that is their speech (10-01, Griz's sheet's CLACK row;
     // data/foes.js clacker): the row plays once (js/ui.js), a clack on each strike, then the turn
     if (u.kind && D.FOES[u.kind] && D.FOES[u.kind].clacks && !u.conds.banished) {

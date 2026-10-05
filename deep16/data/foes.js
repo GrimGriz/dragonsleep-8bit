@@ -114,7 +114,7 @@
     src: 'SRD 5.1 Skeleton (CR 1/4): armor scraps AC 13, shortsword (the sheet carries the pack\'s blade and small shield), shortbow +4 1d6+2 80/320 (loosed when nothing is in reach: ai.js volley; 10-02 runner). Vulnerable and immune are read (battle.js typed(), 09-27); condition immunities poisoned and exhaustion (SRD 5.1, 10-02 runner)'
   },
   troll: {
-    name: 'Troll', type: 'giant', sheet: 'troll_p1', cr: '5', ac: 15, hp: 84, speed: 30, size: 2, reach: 5, darkvision: 60,
+    name: 'Troll', type: 'giant', sheet: 'troll_p1', cr: '5', ac: 15, hp: 84, speed: 30, climbs: 10, size: 2, reach: 5, darkvision: 60, // (climbs 10: ours, not the SRD's -- it digs its claws into the stone, 10 ft a turn, and clings; Griz, 10-04 night: "a slow climb speed, like they're forcefully digging their way into the walls")
     abil: { str: 18, dex: 13, con: 20, int: 7, wis: 9, cha: 7 }, init: 1, perception: 12,
     saves: { str: 4, dex: 1, con: 5, int: -2, wis: -1, cha: -2 },
     attacks: {
@@ -213,7 +213,7 @@
   },
   // the stone giant's camp (deep.js S.giant): the giant and three duergar
   stonegiant: {
-    name: 'Stone Giant', type: 'giant', sheet: 'stonegiant_p1', cr: '7', ac: 17, hp: 126, speed: 40, size: 3, reach: 15, darkvision: 60,
+    name: 'Stone Giant', type: 'giant', sheet: 'stonegiant_p1', cr: '7', ac: 17, hp: 126, speed: 40, climbs: 10, size: 3, reach: 15, darkvision: 60, // (climbs 10: ours, not the SRD's -- stone into stone, 10 ft a turn, clinging; Griz, 10-04 night)
     abil: { str: 23, dex: 15, con: 20, int: 10, wis: 12, cha: 9 }, init: 2, perception: 14,
     saves: { str: 6, dex: 5, con: 8, int: 0, wis: 4, cha: -1 },
     attacks: {
@@ -741,3 +741,8 @@
     src: 'ours (10-01, invented.json clacker): the realm\'s hook horror, a block of our own from SRD pieces (CR 3, Large); Griz\'s two Grok sheets (clacker_p2, 10-01; the GPT one retired); its climb (as the hook horror: climb 30) read as `climbs` since 10-04: any cliff on a map that lets them be climbed'
   }
 };
+
+// the stone giant's second look (10-04, Griz: "2 yes" -- the male sculpt beside the female, "the camp's giant one of the two looks at random"): the same SRD
+// block, his sheet (tools/stonegiantm-blend.py; the spiked club in both hands). data/fights.js giant picks one of the two kinds; the Pocket DM draws either.
+window.D16.FOES.stonegiantm = Object.assign({}, window.D16.FOES.stonegiant, { sheet: 'stonegiantm_p1',
+  src: window.D16.FOES.stonegiant.src + '; the male look (stonegiantm_p1, 10-04): the same block' });

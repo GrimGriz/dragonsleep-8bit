@@ -207,6 +207,13 @@ fight opens them (`passages: true` on the fight, or `&doors` on the URL; Griz: *
 Griz: *"It's supposed to be external and the third floor is internal tho possibly visible to the skylight glass that should make up the majority
 of the 4th floor/3rd floor ceiling."* `deep16/?npc=<foes>&vs=<party>&map=edifice`.
 
+**Footholds, big bodies, slow climbers** (10-04 night; `js/grid.js` G.faceKind, G.climbDC, G.bigLimit, G.hanging; `js/battle.js moveAlong`; `js/ai.js`): a map's
+`faces: [[x, y, w, h, kind]]` names squares whose face is *rough* (no check to three steps, the DC 4 easier) or *slick* (the DC 5 harder); the Edifice's arches are rough.
+A body bigger than Medium climbs its own height and 5 ft by hand (a Large 15 ft, a Huge 25 ft; the map's `climbLarge` overrides), and that much is a pull-up with no
+check (Griz: *"for creatures > medium their climbing 5 feet is their top 5 feet?"*). A climb speed is the feet of face a turn (`climbs` on the block; the turn's
+`climbLeft`): a face taller than that, the climber takes as far as it goes and clings there, and the AI climbs on next turn (Griz: *"a slow climb speed, like they're
+forcefully digging their way into the walls"*). The troll and the stone giant carry `climbs: 10`, ours, not the SRD's: 45 ft in five turns, hanging on the stone between.
+
 **Hidden, beside a foe** (RULED 10-04 night, Griz: *"one line, but lose stealth on successful hit (it can tell where you are from the force of the blow and
 it's not invisibility, just hide)"*): an attack at a hidden target has disadvantage at any distance (`rules.js RU.edges`; it was beyond 5 ft only, 09-28's
 'heard and felt'), a foe beside her still knows where she is and swings (`ai.js heroes`), and a hit finds her: no longer hidden (`battle.js attack`).

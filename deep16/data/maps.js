@@ -1235,6 +1235,7 @@ window.D16.MAPS.edifice = {
   ropeBucket: [3, 16], // the bucket of rope and grapples by the first house (battle.js exec 'bucketrope')
   shaft: [29.5, 4.8, 2.8], // the Sunshaft's circle on the third floor, seen through the glass, under the falls at the roof's middle (centre, radius in squares; iso.js bake -- Griz, 10-04 night: "move the light circle to where the pool is now ... increase the radius of the light-hole for symmetry")
   falls: [[28, 0], [29, 0], [30, 0], [31, 0]], // the waterfall down the back wall's face, into the water at its foot (iso.js rockCanvas -- Griz: "waterfall wall 31, 0 to 28, 0 - water tile 31, 1 to 28, 1")
+  faces: [[13, 10, 2, 1, 'rough'], [17, 10, 2, 1, 'rough'], [21, 10, 2, 1, 'rough'], [25, 10, 2, 1, 'rough'], [34, 10, 2, 1, 'rough'], [38, 10, 2, 1, 'rough'], [42, 10, 2, 1, 'rough'], [46, 10, 2, 1, 'rough']], // the dwarven carving round the arches: rough footholds up to the sills (grid.js G.faceKind, G.climbDC; the varied footholds, 10-04 night); the sheer face above them stays sheer
   passages: [[29, 10, 29, 8, 'the vault door'], [30, 10, 30, 8, 'the vault door']], // the vault door on the street and the roof's hatch above it: GO IN / COME OUT for the rest of the move (battle.js Battle.passageAt, exec 'passage' -- Griz, 10-04 night: "Front doors possible?"); the arches are sills, not doors
   heights: [
     '000000000000000000000000000000000000000000000000000000000000',

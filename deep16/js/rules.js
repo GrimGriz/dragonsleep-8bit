@@ -55,7 +55,7 @@
   };
   // the turn's economy: MOVE (ft left), ACTION, BONUS, REACTION (the reaction comes back at the start of your own turn)
   RU.startTurn = function (u) {
-    u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false }; // (freeObj: the turn's one free hand on an object -- a torch dropped, put out or taken up)
+    u.turn = { move: u.speed, action: 1, bonus: 1, attacksLeft: 0, attackAction: false, sneakUsed: false, disengaged: false, spellAction: null, bonusSpell: false, moved: 0, freeObj: false, climbLeft: u.climbs || 0 }; // (climbLeft: the feet of face a climb speed may take this turn -- grid.js G.stepCost, battle.js moveAlong, 10-04 night) // (freeObj: the turn's one free hand on an object -- a torch dropped, put out or taken up)
     u.reaction = 1;
     // the roper's tendrils cut or broken (battle.js tendrilGone, u.tendrilsLost): back at its turn, free, every one -- SRD 5.1, "can extrude a replacement tendril on its next turn"
     // (RULED 10-02, Griz: "go with SRD for combat"; the seat had read the extruding as its action, so a party that cut them all saw it walk in -- by the SRD it never has to)

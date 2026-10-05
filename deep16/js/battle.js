@@ -895,7 +895,7 @@
     if (!s || !T || !T.action || T.attacksLeft || !G.map.def.climb || (u.size || 1) > 1) return null;
     var x = u.x, y = u.y;
     for (var i = 0; i < path.length; i++) {
-      var nx = path[i][0], ny = path[i][1], cs = G.climbsUp(u, x, y, nx, ny), dc = G.climbDC(cs);
+      var nx = path[i][0], ny = path[i][1], cs = G.climbsUp(u, x, y, nx, ny), dc = G.climbDC(cs, u, G.faceKind(nx, ny));
       if (dc) return Battle.ropeSq(this, Object.assign({}, u, { x: x, y: y }), nx, ny, [x, y]) ? { i: i, at: [nx, ny], foot: [x, y], ft: cs * 2.5, dc: dc } : null;
       x = nx; y = ny;
     }
@@ -931,7 +931,7 @@
     for (var i = 0; i < path.length; i++) {
       var nx = path[i][0], ny = path[i][1], dz = (G.gzAt(u, nx, ny) - G.gzAt(u, x, y)) / d.step, ft = Math.abs(dz) * 2.5, cs = G.climbsUp(u, x, y, nx, ny);
       if (dz < 0 && ft >= 10) out.push('A drop of ' + ft + ' ft on the way: ' + Math.floor(ft / 10) + 'd6 bludgeoning, and prone.');
-      else if (cs && ft > 10) out.push('A climb of ' + ft + ' ft: Athletics DC ' + G.climbDC(cs) + ', and a miss falls (' + Math.floor(ft / 10) + 'd6, prone).');
+      else if (cs && ft > 10) out.push('A climb of ' + ft + ' ft' + (G.faceKind(nx, ny) ? ' up a ' + G.faceKind(nx, ny) + ' face' : '') + ': Athletics DC ' + G.climbDC(cs, u, G.faceKind(nx, ny)) + ', and a miss falls (' + Math.floor(ft / 10) + 'd6, prone).');
       x = nx; y = ny;
     }
     return out;
@@ -1293,7 +1293,7 @@
       }
       u.facing = D.spr.facingFor(nx - u.x, ny - u.y);
       var wasIn = D.magic.webAt(this, u), stepFrom = { x: u.x, y: u.y }; // (stepFrom: the square it left -- the Keeper's readied wall asks which way it stepped along the stair; the tween is gone by then in the page's frame loop)
-      var csN = G.climbsUp(u, u.x, u.y, nx, ny), cDC = G.climbDC(csN), z0 = G.gzAt(u, u.x, u.y), z1 = G.gzAt(u, nx, ny), stZ = G.map.def.step;
+      var csN = G.climbsUp(u, u.x, u.y, nx, ny), kindN = G.faceKind(nx, ny), cDC = G.climbDC(csN, u, kindN), z0 = G.gzAt(u, u.x, u.y), z1 = G.gzAt(u, nx, ny), stZ = G.map.def.step;
       // up a face: up it first and then over the lip; off one: out over the edge and then down (10-04, Griz: "can we move them vertical"); a longer step for a taller face (ui.js unitPos)
       var cliffM = z1 - z0 > stZ ? 'climb' : z0 - z1 > stZ ? 'drop' : null, stF = STEP_FRAMES + (cliffM ? 2 * Math.round(Math.abs(z1 - z0) / stZ) : 0);
       // a rope (grid.js G.ropeOn): along it, no check and no fall, up the face or out over the edge and down it; off one part way up, down it first and then the step
@@ -1311,9 +1311,25 @@
         this.card(['{y}' + nameOf(u) + '{/} ' + (upR ? 'climbs' : 'lets down') + ' ' + stpR * 2.5 + ' ft of the rope and hangs there, ' + Math.round(Math.abs(endZ - zH) / stZ) * 2.5 + ' ft to go.'], 260);
         this.keepInView(u); yield STEP_FRAMES + 2 * stpR; u.anim = 'idle'; return;
       }
+      // a climb speed up a face it cannot top this turn (10-04 night, Griz: "a slow climb speed, like they're forcefully digging their way into the walls"): as far as the turn's climb
+      // allows (T.climbLeft, its climb speed in feet, and the move's feet), and it clings to the face there -- u.hang with `face` and `foot`, read as a rope's hang is (G.hanging, G.gzAt,
+      // the drawing) -- and the AI takes the climb up again first thing next turn (ai.js AI.turn)
+      if (u.climbs && !rpS && z1 > z0 && G.map.def.climb && !u.flies) {
+        var needC = Math.round((z1 - z0) / stZ), budC = Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5, canC = Math.floor(budC / 2.5);
+        if (canC < needC) {
+          if (canC < 1) { u.anim = 'idle'; return; }
+          var zC = z0 + canC * stZ, spentC = Math.ceil(canC * 2.5 / 5) * 5;
+          u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * canC, true), mode: 'climb' };
+          u.hang = { face: [nx, ny], foot: [u.x, u.y], z: zC };
+          if (o && o.spend) { T.move -= spentC; T.moved = (T.moved || 0) + spentC; if (T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - spentC); }
+          this.card(['{y}' + nameOf(u) + '{/} digs ' + canC * 2.5 + ' ft up the face and clings there, ' + (needC - canC) * 2.5 + ' ft to go.'], 260);
+          this.keepInView(u); yield STEP_FRAMES + 2 * canC; u.anim = 'idle'; return;
+        }
+        if (o && o.spend && T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - Math.ceil(needC * 2.5 / 5) * 5); // (the whole face this turn: off the turn's climb)
+      }
       if (cDC) { // (a cliff over 5 ft: SRD 5.1, "climbing a slippery vertical surface or one with few handholds requires a successful Strength (Athletics) check" -- G.climbDC; a 5 ft ledge is pulled up onto)
         var ce0 = RU.checkEdges(u, 'str'), cr = ce0.dis.length && !ce0.adv.length ? Math.min(D.d(20), D.d(20)) : ce0.adv.length && !ce0.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb = G.athletics(u), ct = cr + cb;
-        this.card(['{y}' + nameOf(u) + '{/} climbs: Athletics d20 ' + cr + ' ' + RU.sign(cb) + ' = ' + ct + ' against DC ' + cDC + ' (' + csN * 2.5 + ' ft)  ' + (ct >= cDC ? '{n}UP{/}' : '{o}SLIPS{/}')], 160);
+        this.card(['{y}' + nameOf(u) + '{/} climbs: Athletics d20 ' + cr + ' ' + RU.sign(cb) + ' = ' + ct + ' against DC ' + cDC + ' (' + csN * 2.5 + ' ft' + (kindN ? ', a ' + kindN + ' face' : '') + ')  ' + (ct >= cDC ? '{n}UP{/}' : '{o}SLIPS{/}')], 160);
         if (ct < cDC) {
           if (o && o.spend) { T.move -= cost; T.moved = (T.moved || 0) + cost; }
           // the slip, seen: up the face a way and back down to the foot of it, prone (10-04, Griz: "can we move them vertical and drop to prone on failed climb?"); over 10 ft it
@@ -1327,7 +1343,7 @@
         }
       }
       // down a face by climbing (u.cdown: the hand chose CLIMB DOWN, exec 'move'): the climb's own check over 5 ft; made, it is down with no fall, missed, it falls the height as a drop
-      var csD = u.cdown ? G.climbsDown(u, u.x, u.y, nx, ny) : 0, cDCd = G.climbDC(csD), csDmiss = false;
+      var csD = u.cdown ? G.climbsDown(u, u.x, u.y, nx, ny) : 0, cDCd = G.climbDC(csD, u, G.faceKind(u.x, u.y)), csDmiss = false;
       if (csD) cliffM = 'ropedown';
       if (cDCd) {
         var ce1 = RU.checkEdges(u, 'str'), cr1 = ce1.dis.length && !ce1.adv.length ? Math.min(D.d(20), D.d(20)) : ce1.adv.length && !ce1.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), cb1 = G.athletics(u), ct1 = cr1 + cb1;

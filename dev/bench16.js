@@ -1255,6 +1255,19 @@
       var guardE = 0, stE, vE, sawTurn = false;
       while (guardE++ < 3000) { stE = Be.co.next(vE); vE = undefined; if (stE.done) break; var yE = stE.value; if (!yE || typeof yE === 'number') continue; if (yE.prompt) { vE = yE.prompt.opts[0].value; continue; } if (yE.turn) { vE = { do: 'end' }; if (yE.turn === fg) { fg.conds.prone = true; fg.turn.move = fg.speed; sawTurn = true; stE = Be.co.next(vE); vE = undefined; break; } } }
       okE('knocked flat mid-turn, END TURN with ' + fg.speed + ' ft: stood ' + !fg.conds.prone + ' (the turn seen ' + sawTurn + '), move left ' + fg.turn.move + ' (half spent)', sawTurn && !fg.conds.prone && fg.turn.move === fg.speed - Math.floor(fg.speed / 2));
+      // varied footholds, the big body's pull-up, the slow climb's cling (10-04 night)
+      var med = { size: 1 }, lg = { size: 2 }, hg = { size: 3 };
+      okE('the DCs: sheer 6 steps ' + G.climbDC(6, med) + ', rough ' + G.climbDC(6, med, 'rough') + ', slick ' + G.climbDC(6, med, 'slick') + ', rough 3 steps ' + G.climbDC(3, med, 'rough') + '; a Large body 6 steps ' + G.climbDC(6, lg) + ', 8 steps ' + G.climbDC(8, lg) + '; a Huge 10 steps ' + G.climbDC(10, hg) + '; the arch sill is ' + G.faceKind(13, 10) + ', the rim ' + G.faceKind(20, 9),
+        G.climbDC(6, med) === 18 && G.climbDC(6, med, 'rough') === 14 && G.climbDC(6, med, 'slick') === 23 && G.climbDC(3, med, 'rough') === 0 && G.climbDC(6, lg) === 0 && G.climbDC(8, lg) === 14 && G.climbDC(10, hg) === 0 && G.faceKind(13, 10) === 'rough' && G.faceKind(20, 9) === null);
+      var og2 = { size: 2, speed: 40, conds: {}, side: 'foe', id: 'og2', x: 13, y: 11, hp: 10, turn: { move: 40 } }; og2.turn.climbLeft = 0;
+      var cL6 = G.stepCost(og2, 13, 11, 13, 10), cL18 = G.stepCost(og2, 20, 10, 20, 9); og2.size = 3; var cH6 = G.stepCost(og2, 13, 11, 13, 10);
+      okE('a Large body by hand up the 15 ft arch sill: ' + cL6 + ' ft (its height and 5: allowed, 6 steps at 5, and 5 more for the fountain its back feet stand in); up the 45 ft face: ' + cL18 + '; a Huge body up the sill: ' + cH6, cL6 === 35 && cL18 === Infinity && cH6 === 35);
+      // the troll's slow climb: a stand-in with climbs 10 at the foot of the 45 ft face at (28,10), five turns up it, clinging between
+      var trl = og; trl.size = 2; trl.climbs = 10; delete trl.hang; trl.x = 28; trl.y = 10; trl.conds = {}; var zs = [], ys = [];
+      for (var tt = 0; tt < 6 && !(trl.y === 9 && !trl.hang); tt++) { D.rules.startTurn(trl); runE(Be.moveAlong(trl, [[28, 9]], { spend: true })); zs.push(trl.hang ? trl.hang.z / st : 'up'); ys.push(trl.y + ':' + trl.turn.move + ':' + trl.turn.climbLeft); }
+      okE('a climb speed of 10 up the 45 ft face: the heights clung to by turn ' + zs.join(',') + ' (y:move:climbLeft ' + ys.join(' ') + ')', zs.length === 5 && zs[0] === 4 && zs[1] === 8 && zs[2] === 12 && zs[3] === 16 && zs[4] === 'up' && trl.y === 9 && !trl.hang && G.gzAt(trl, trl.x, trl.y) === 18 * st && trl.turn.move === 35);
+      trl.size = size0; trl.climbs = climbs0; delete trl.hang; trl.x = 6; trl.y = 0;
+      okE('the troll and the stone giant carry a climb speed of 10 (ours): ' + D.FOES.troll.climbs + ', ' + D.FOES.stonegiant.climbs, D.FOES.troll.climbs === 10 && D.FOES.stonegiant.climbs === 10);
       // the stealth line (RULED 10-04 night, Griz: "one line, but lose stealth on successful hit"): the ogre beside the hidden rogue swings at disadvantage; a hit finds her
       og.x = 20; og.y = 12; og.size = size0; og.hp = og.maxhp; rg.x = 21; rg.y = 12; rg.hp = rg.maxhp; rg.conds = { hidden: true }; rg.hidTotal = 30; D.rules.startTurn(og);
       var edg = D.rules.edges(og, rg, og.attacks.greatclub || og.attacks[Object.keys(og.attacks)[0]]);

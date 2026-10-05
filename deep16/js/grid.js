@@ -34,7 +34,7 @@
   // up or down it, at the SRD's double cost still; one square's body only. A climber may stop on it part way, hanging: u.hang = { rope, z } (its height in drawing px), in the
   // foot's square -- G.gzAt reads it, so its height counts in G.dist and the drawing, and the rest of the climb is what a step to the top costs
   G.ropes = function () { var B = D.battle; return (B && B.ropes) || []; };
-  G.hanging = function (u) { var h = u && u.hang, r = h && h.rope; return !!(r && !r.cut && u.x === r.foot[0] && u.y === r.foot[1]); };
+  G.hanging = function (u) { var h = u && u.hang, r = h && h.rope, foot = r ? r.foot : h && h.foot; return !!(h && (r ? !r.cut : !!h.face) && foot && u.x === foot[0] && u.y === foot[1]); }; // (on a rope, or clinging to a face part way up: u.hang.face -- a climb speed's cling, 10-04 night)
   // the rope a step from (x0, y0) to (x1, y1) goes along, if any: one end to the other, or from part way up it (a hanger) to either end
   G.ropeOn = function (u, x0, y0, x1, y1) {
     if ((u.size || 1) > 1 || u.climbs || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return null; // (a climber or a flier goes up the face as it would without it)
@@ -67,7 +67,7 @@
     // passing over a cliff's edge there, it may straddle any height on its way down (half on the top, half off it, then the drop); it never stops so, and the climb up is held to
     // `climbLarge` by G.stepCost, the body's height being its highest square (G.gzAt) -- 10-04, the ogre on the Climbing Floor's 10 ft tower could not get down
     if (pass && dd.climb && f.length > 1) return true;
-    return hi - lo <= dd.step * (dd.climb && f.length > 1 ? Math.min(dd.climb, dd.climbLarge || 2) : 1);
+    return hi - lo <= dd.step * (dd.climb && f.length > 1 ? (u && u.climbs ? 1e9 : G.bigLimit(u)) : 1); // (a big body straddles what it can climb by hand -- its height and 5 ft, G.bigLimit; a climber any height, hanging on the lip: 10-04 night)
   }
   // may u end its move here (o.ghost: an ethereal mover ignores creatures)
   // (a wall's squares, js/walls.js: nothing stands or passes in stone; a small flier does not cross the wind)
@@ -95,7 +95,7 @@
     if (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone))) return 5; // (a flier -- a familiar owl or bat: no ledge too high, no ground slows it; a held one is restrained -- a grapple is one here, battle.js -- no `grappled` key to read)
     var dzS = G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0), stS = G.map.def.step;
     // (a cliff: a map's `climb` -- the steps a body of one square may scale or drop, SRD 5.1 Climbing and Falling; up costs 1 extra foot a foot (G.stepCost below), and a Strength (Athletics) check, battle.js moveAlong; a drop of under 10 ft is free)
-    var clS = G.map.def.climb, limS = u.climbs ? Infinity : (u.size || 1) > 1 ? Math.min(clS || 0, G.map.def.climbLarge || 2) : clS; // (a Large body climbs `climbLarge` steps, two by default; a one-square body, `climb`; one with a climb speed, any face)
+    var clS = G.map.def.climb, limS = u.climbs ? Infinity : (u.size || 1) > 1 ? G.bigLimit(u) : clS; // (a big body climbs its height and 5 ft by hand, or the map's `climbLarge` where set -- G.bigLimit; a one-square body, `climb`; one with a climb speed, any face)
     // (down, any height there: it is a fall, battle.js moveAlong -- 10-04; up, the limit)
     if (Math.abs(dzS) > stS && !(clS && (dzS < 0 || dzS <= limS * stS)) && !(o && o.roped)) return Infinity; // (o.roped: along a rope, any height -- G.ropeOn)
     var dx = x1 - x0, dy = y1 - y0;
@@ -148,11 +148,13 @@
     if (c !== Infinity && G.prone(u, o)) c += 5;
     if (c === Infinity) return c;
     if (rp) return c + Math.max(0, Math.round(Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step) * 5 - 5); // (along a rope, up or down: 5 ft of movement a step, the square's own 5 in it)
-    if (u.hang && x0 === u.x && y0 === u.y && G.hanging(u)) return c + Math.round((u.hang.z - G.map.gz(u.x, u.y)) / G.map.def.step) * 5; // (off a rope part way up, anywhere but its top: down it first, 5 ft a step)
+    if (u.hang && x0 === u.x && y0 === u.y && G.hanging(u) && !(u.hang.face && x1 === u.hang.face[0] && y1 === u.hang.face[1])) return c + Math.round((u.hang.z - G.map.gz(u.x, u.y)) / G.map.def.step) * 5; // (off a rope part way up, anywhere but its top: down it first, 5 ft a step; a clinger's own face is the climb on, below)
     var cs = G.climbsUp(u, x0, y0, x1, y1); if (cs) c += cs * 5 - 5;
     // a creature with a climb speed (SRD 5.1: "doesn't need to spend extra movement to climb" -- the climb itself is still distance): 2.5 ft of movement a step, rounded up to the
     // 5, the square's own 5 folded in -- a 45 ft face is 45, not 5 (it was the square's 5 alone; 10-04 night, the Edifice: "the monster has to climb up the ediface")
-    if (!cs && u.climbs && G.map.def.climb) { var csC = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step); if (csC > 1) c += Math.max(0, Math.ceil(csC * 2.5 / 5) * 5 - 5); }
+    // ... and no more of it a turn than its climb speed (u.turn.climbLeft, rules.js startTurn): a face taller than that costs what this turn's climb can pay, and the climber hangs on it
+    // part way (battle.js moveAlong: the cling) -- a troll at 10 ft a turn digs up the Edifice's 45 ft in five (10-04 night, Griz: "a slow climb speed, like they're forcefully digging their way into the walls")
+    if (!cs && u.climbs && G.map.def.climb) { var csC = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step); if (csC > 1) { var hC = Math.ceil(csC * 2.5 / 5) * 5, budC = u.turn ? Math.floor(Math.min(u.turn.move, u.turn.climbLeft != null ? u.turn.climbLeft : u.climbs) / 5) * 5 : hC; if (budC < 5) return Infinity; c += Math.min(hC, budC) - 5; } }
     var cd = u.cdown && G.climbsDown(u, x0, y0, x1, y1); if (cd) c += cd * 5 - 5; // (a hand that chose CLIMB DOWN: the same 5 ft a step down as up)
     return c;
   };
@@ -166,7 +168,19 @@
   G.climbsUp = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step); return n > 1 ? n : 0; };
   // the check (10-04, Griz: "like an SRD DM would do" -- SRD 5.1: "at the GM's option, climbing a slippery vertical surface or one with few handholds requires a successful
   // Strength (Athletics) check"): a 5 ft ledge is pulled up onto, no check; over 5 ft, DC 10 for two steps and 2 more for each step above (7.5 ft 12, 10 ft 14, 15 ft 18, 30 ft 30). 0: none
-  G.climbDC = function (steps) { return steps > 2 ? 10 + 2 * (steps - 2) : 0; };
+  // a body bigger than Medium (10-04 night, Griz: "for creatures > medium their climbing 5 feet is their top 5 feet?" -- RULED on the build): its own height is a pull-up, so a Large
+  // body (10 ft) takes a 15 ft face as a Medium takes a 5 ft ledge, no check, and a Huge (20 ft) 25 ft; the map's `climbLarge` overrides where it is set. In steps of 2.5 ft
+  G.bigLimit = function (u) { var dd = G.map && G.map.def; return dd && dd.climbLarge != null ? dd.climbLarge : 2 + 4 * (((u && u.size) || 1) - 1); };
+  // varied footholds (10-04 night, from the climbing handoff's lean -- Griz: "might be worth working in now"): a map's `faces: [[x, y, w, h, kind]]` names the squares whose face is
+  // 'rough' (many handholds: no check to three steps, and the DC 4 easier) or 'slick' (wet stone, ice: the DC 5 harder); unnamed is sheer, as built. The face climbed is the
+  // square climbed onto. Shelved faces are map drawing (a sill is two climbs)
+  G.faceKind = function (x, y) { var fs = G.map && G.map.def && G.map.def.faces; if (!fs) return null; for (var i = 0; i < fs.length; i++) { var f = fs[i]; if (x >= f[0] && y >= f[1] && x < f[0] + (f[2] || 1) && y < f[1] + (f[3] || 1)) return f[4] || null; } return null; };
+  G.climbDC = function (steps, u, kind) {
+    var eff = steps - 4 * (((u && u.size) || 1) - 1); // (the pull-up a big body's height is)
+    if (kind === 'rough') return eff > 3 ? 10 + 2 * (eff - 2) - 4 : 0;
+    if (kind === 'slick') return eff > 2 ? 10 + 2 * (eff - 2) + 5 : 0;
+    return eff > 2 ? 10 + 2 * (eff - 2) : 0;
+  };
   // the climber's Strength (Athletics): its STR, and its proficiency for the classes that have the skill to pick (as breakFree reads it); a monster's own Athletics where its block gives one
   G.athletics = function (u) { return u.athletics != null ? u.athletics : D.mod(u.abil ? u.abil.str : 10) + ({ fighter: 1, barbarian: 1, paladin: 1, monk: 1, ranger: 1 }[u.cls] ? u.prof || 0 : 0); };
   // what a fall would cost an AI weighing the way (G.reach): a drop of 10 ft or more -- its d6s and the getting up; a climb that takes a check -- its odds of a miss, the move lost and,
@@ -175,7 +189,7 @@
     var d = G.map.def; if (!d.climb || u.flies || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.hang && x0 === u.x && y0 === u.y && G.hanging(u))) return 0; // (a rope: no fall to fear)
     var dz = (G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / d.step, ft = Math.abs(dz) * 2.5, fall = ft >= 10 ? 10 * Math.floor(ft / 10) + 10 : 0;
     if (dz < 0) return fall;
-    var cs = G.climbsUp(u, x0, y0, x1, y1), dc = G.climbDC(cs); if (!dc) return 0;
+    var cs = G.climbsUp(u, x0, y0, x1, y1), dc = G.climbDC(cs, u, G.faceKind(x1, y1)); if (!dc) return 0;
     var miss = Math.min(0.95, Math.max(0.05, (dc - G.athletics(u) - 1) / 20));
     return Math.round(miss * (30 + (ft > 10 ? fall : 0)));
   };
