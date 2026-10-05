@@ -54,7 +54,7 @@
       if (!bare && id === 'aurdin' && h.known.indexOf('mageArmor') >= 0 && h.slots && h.slots[0] > 0) { h.conds.mageArmor = 1; h.slots[0]--; }
       // Counterspell in his book on the ladders, from 5th (10-02, Griz: "give it to all of them on the ladders, that's a quest reward spell sheet for the game"):
       // the fixture only -- in the 8-bit game it is a sheet found and copied (SRD 5.1 wizard: 2 hours and 50 gp a spell level), not a level's gift
-      if (id === 'aurdin' && L >= 5 && h.known && h.known.indexOf('counterspell') < 0) h.known.push('counterspell');
+      if (id === 'aurdin' && L >= 5 && h.known && h.known.indexOf('counterspell') < 0) { h.known.push('counterspell'); if (h.prepared) h.prepared = SV.prepDefault(h); } // (and in his day: it went into the book after the day was made, so he never had it -- 10-05, Griz: "1 yes")
       return h;
     });
     // (and torches, since the dark: the 8-bit game's party buys its own at the Provisioner's, a silver each)

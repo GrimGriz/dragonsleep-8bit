@@ -26,7 +26,8 @@
   // the party he is measuring: the player's own, not the guests, the summoned or the familiars
   function party(B) { return B.units.filter(function (w) { return w.side === 'party' && !w.guest && !w.summon && !w.familiar && !w.dominated && !w.loose; }); }
   function kings(B) { return B.units.filter(function (w) { return w.script === 'measure'; }); }
-  function inReach(B, u, wp) { var r = G.reachOf(u, wp && wp.reach); return AI.heroes(B, u).filter(function (w) { return G.dist(u, w) <= r; }); }
+  function foesUp(B, u) { return AI.heroes(B, u).filter(function (w) { return !w.regenDown; }); } // (a troll down and knitting is no blow's -- his maces do not burn: 10-05, the fight log -- he swung five times at one down in a round)
+  function inReach(B, u, wp) { var r = G.reachOf(u, wp && wp.reach); return foesUp(B, u).filter(function (w) { return G.dist(u, w) <= r; }); }
 
   // the measure, kept on the battle (deep16/js/embed.js sends it back as `pyro`)
   function measure(B, u) {
@@ -77,7 +78,7 @@
     var P = measure(B, u), T = u.turn;
     yield* watch(B);
     if (u.hp <= 0 || !RU.canAct(u) || B.over()) return;
-    var foes = AI.heroes(B, u); if (!foes.length) { yield 16; return; }
+    var foes = foesUp(B, u); if (!foes.length) { yield 16; return; }
     var full = P.phase >= 3, main = u.weapon, off = u.offhand, bonusUsed = false;
     // Second Wind (at full): hurt below two fifths, the bonus action
     if (full && u.feats && u.feats.secondWind && u.hp < u.maxhp * 0.4 && T.bonus) {

@@ -365,7 +365,7 @@
   // levels first, Mage Armor always (it's cast in the morning)
   function prepRanked(h, spellOf) {
     var build = h.known || [];
-    var rank = function (id) { return (id === 'mageArmor' ? 100 : id === 'shield' ? 90 : 0) + (build.indexOf(id) >= 0 ? 50 : 0) + spellOf(id).level * 5; }; // (Shield next after Mage Armor: a wizard's default day always holds it, since it is the reaction and never on the MAGIC list -- RULED 10-03, Griz: "yes")
+    var rank = function (id) { var sp = spellOf(id); return (id === 'mageArmor' ? 100 : id === 'shield' ? 90 : id === 'counterspell' ? 85 : id === 'magicmissile' ? 80 : 0) + (build.indexOf(id) >= 0 ? 50 : 0) + sp.level * 5 + (sp.battle || id === 'mageArmor' ? 0 : -60); }; // (Shield next after Mage Armor: a wizard's default day always holds it, since it is the reaction and never on the MAGIC list -- RULED 10-03, Griz: "yes"; Counterspell, the other reaction, and Magic Missile after it, and a spell with no use in a fight -- Rope Trick, field only -- below every one that has: 10-05, Griz: "What lvl 1 spells is aurdin coming in with, no MM" -- "2 yes")
     return R.prepPool(h, spellOf).sort(function (a, b) { return rank(b) - rank(a); });
   }
   R.prepDefault = function (h, spellOf) { return prepRanked(h, spellOf || spellData).slice(0, R.prepCount(h)); };

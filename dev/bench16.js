@@ -1380,6 +1380,17 @@
       // (and a troll up and unburned: fire first -- "troll regen is common world knowledge - a.i. parties would know")
       var Bw2 = mkF('?npc=troll&lvl=5&vs=wizard:5&watch'), wz2 = sideF(Bw2, 'party')[0]; D.rules.startTurn(wz2); var plW2 = D.tactics.plans(Bw2, wz2);
       okF('a wizard with a troll up: the best plan ' + (plW2[0] && plW2[0].why) + ' ' + (plW2[0] && plW2[0].score.toFixed(1)) + ' (then ' + (plW2[1] && plW2[1].why) + ')', !!plW2[0] && /Fire|Scorching|Burning/.test(plW2[0].why));
+      // (Scorching Ray at a troll down: the rays land and burn it -- 10-05, Griz: "is scorching ray supposed to stop regen? Aurdin was shooting him when they were down and there was no real card")
+      var Bsr = mkF('?npc=troll&lvl=5&vs=wizard:5&watch'), wsr = sideF(Bsr, 'party')[0], tsr = sideF(Bsr, 'foe')[0]; Bsr.hurt(tsr, 300, 'slashing'); D.rules.startTurn(wsr);
+      D.d = function (n) { return n === 20 ? 18 : d0F(n); }; var n0S = (Bsr.log || []).length; runF(D.magic.cast(Bsr, wsr, 'scorchingray', 2, { units: [tsr, tsr, tsr] })); D.d = d0F; var lgS = (Bsr.log || []).slice(n0S).join(' | ');
+      okF('Scorching Ray at a troll down: rays at it ' + (lgS.split('> Troll  Scorching Ray').length - 1) + ', burned ' + !!tsr.burned + ', the card ' + /burns where it lies/.test(lgS), tsr.burned && /burns where it lies/.test(lgS) && lgS.split('> Troll  Scorching Ray').length - 1 === 3);
+      // (Pyro beside a troll down: his maces do not burn, so he swings at no troll down -- 10-05, the fight log)
+      var Bpy = mkF('?npc=troll&lvl=8&vs=pyro&watch'), py = sideF(Bpy, 'party')[0], tp = sideF(Bpy, 'foe')[0]; py.x = tp.x; py.y = tp.y + (tp.size || 1); Bpy.hurt(tp, 300, 'slashing');
+      var n0Y = (Bpy.log || []).length; runF(D.ai.turn(Bpy, py)); var lgY = (Bpy.log || []).slice(n0Y).join(' | ');
+      okF('Pyro beside the troll down: swings at it ' + /Pyro > Troll/.test(lgY) + ' -- ' + lgY.slice(0, 100), py.script === 'measure' && !/Pyro > Troll/.test(lgY));
+      // (Aurdin's day at 7: Counterspell, the ladder's, prepared; Magic Missile in; Rope Trick, field only, out -- Griz: "1 yes 2 yes")
+      var a7 = D.save.fixture(7).party.filter(function (h) { return h.id === 'aurdin'; })[0], p7 = a7.prepared || [];
+      okF('Aurdin at 7 prepares ' + p7.length + ': ' + p7.join(', '), p7.indexOf('counterspell') >= 0 && p7.indexOf('magicmissile') >= 0 && p7.indexOf('ropetrick') < 0 && p7.indexOf('shield') >= 0 && p7.indexOf('mageArmor') >= 0);
       // c. Divine Smite on the undead
       var Bp = mkF('?npc=skeleton&lvl=5&vs=paladin:5'), pal = sideF(Bp, 'party')[0], sk = sideF(Bp, 'foe')[0]; pal.guest = false; pal.classAI = false; D.rules.startTurn(pal); pal.x = sk.x; pal.y = sk.y + 1;
       D.d = function (n) { return n === 20 ? 19 : d0F(n); }; var n0P = (Bp.log || []).length; runF(Bp.attack(pal, sk, pal.weapon)); D.d = d0F; var lgP = (Bp.log || []).slice(n0P).join(' | ');
@@ -1945,7 +1956,7 @@
     var repW = { checks: [], errors: [] }, GW = D.grid, X = 14;
     function okW(what, v) { repW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
     function runW(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
-    function mkW() { var Bx = D.npcFight('?npc=druid:12&lvl=12', { bench: true }); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); return Bx; }
+    function mkW() { var Bx = D.npcFight('?npc=druid:12&lvl=12', { bench: true }); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.units.forEach(function (u) { if (u.side === 'party' && u.known) u.known = u.known.filter(function (id) { return id !== 'counterspell'; }); }); return Bx; } // (no Counterspell in the four's hands: the walls are what is tested -- Aurdin's day holds it since 10-05, and he countered the druid's walls)
     function putW(B, w, x, y) { w.x = x; w.y = y; }
     function sideW(B) { return [B.units.filter(function (u) { return u.side === 'foe'; })[0], B.units.filter(function (u) { return u.side === 'party'; })]; }
     try {

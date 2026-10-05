@@ -762,7 +762,7 @@
     if (!hs.length && !grudge && T.action > 0 && !u.conds.disarmed && (B.round >= 2 || (B.heardOf && B.heardOf(u))) && B.units.some(function (w) { return w.conds.hidden && G.hostile(u, w) && G.standing(w); })) { yield* B.search(u); hs = heroes(B, u); }
     // a rope one of its enemies hangs on (10-04, Griz: "so long as they only bother to consider it as a target when someone is climbing it"): it goes for the rope from
     // beside its top -- a melee blow at an object, battle.js cutRope -- walking there first if it can; a rope nobody hangs on is no target
-    if (!grudge && T.action > 0 && !u.conds.disarmed && B.ropes && B.ropes.length) {
+    if (!grudge && T.action > 0 && !u.conds.disarmed && B.ropes && B.ropes.length && !u.missionOnly) { // (nothing but the window cuts no rope: 10-05, the fight log -- the male parted Barley's)
       var ropeT = B.ropes.filter(function (r) { return !r.cut && B.units.some(function (h) { return h.hang && h.hang.rope === r && G.hanging(h) && G.hostile(u, h) && G.standing(h); }); })[0];
       var meleeA = ropeT && Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a && !a.ranged && a.dice; })[0];
       if (ropeT && meleeA) {

@@ -360,7 +360,7 @@
       var shots = g.shape === 'rays' ? t.units : [t], dice = g.shape === 'rays' ? sp.dmg : M.dice(sp, u, slot);
       if (g.shape === 'rays') B.card([head + ' -- ' + shots.length + ' rays']);
       for (var i = 0; i < shots.length; i++) {
-        if (shots[i].dead || shots[i].hp <= 0) continue;
+        if (shots[i].dead || (shots[i].hp <= 0 && !shots[i].regenDown)) continue; // (a troll down and knitting takes the ray: fire on it where it lies -- 10-05, Griz: "is scorching ray supposed to stop regen? Aurdin was shooting him when they were down and there was no real card")
         yield* B.attack(u, shots[i], { name: sp.name, atk: u.spellAtk, dice: dice, mod: 0, type: sp.el, spell: true, ranged: true, range: [g.range, g.range], fx: 'fire' });
       }
     } else if (g.shape === 'darts') {
@@ -543,7 +543,7 @@
     if (g.shape === 'sphere' || g.shape === 'cube') { FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 }; }
     var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave';
     FX.bloom(fromMe ? u.x : cx, fromMe ? u.y : cy, sq, ramp);
-    var caught = B.units.filter(function (w) { return G.present(w) && w.hp > 0 && G.inArea(w, sq); });
+    var caught = B.units.filter(function (w) { return G.present(w) && (w.hp > 0 || w.regenDown) && G.inArea(w, sq); }); // (a troll down and knitting is caught too: a fireball burns it where it lies -- 10-05)
     // the Globe of Invulnerability (SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells"): those inside it, the
     // caster outside, are not caught; the card says so
     var inGlobe = M.globed ? caught.filter(function (w) { return M.globed(B, u, w, sp.level); }) : [];
