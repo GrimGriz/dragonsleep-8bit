@@ -1991,14 +1991,19 @@
       var inGuard = D.grid.dist(stG, frG) <= 30, inReach = D.grid.dist(hvG, frG) <= 15;
       D.rules.startTurn(hvG); Bg.active = hvG; var n0H = (Bg.log || []).length; runF(D.ai.turn(Bg, hvG)); var lgH = (Bg.log || []).slice(n0H).join(' | ');
       gone.forEach(function (u) { u.dead = false; });
-      // g. a body on the lip square over a clinger's climb blocks the climb on there (10-05 night, his play: Steinarr stepped onto Barley's square): Steinarr 12.5 ft below the lip, his face
-      // square (20,15) taken -- he climbs on beside it if his 3x3 fits, else he clings where he is; never onto the one who stands there
+      // g. a body on the lip square over a clinger's climb (10-05 night, his play: Steinarr stepped onto Barley's square; then Griz: "yeah, give him shove then. little men not block giants
+      // way!"): Steinarr 12.5 ft below the lip, Barley on his face square (20,15) -- the SRD's Shove; won, Barley is pushed back onto the roof and Steinarr climbs on; lost twice (his two
+      // greatclub attacks), he clings; never onto Barley
       gone.forEach(function (u) { if (u !== hvG) u.dead = true; }); hvG.dead = true;
-      stG.x = 19; stG.y = 16; stG.hang = { face: [20, 15], foot: [19, 16], z: 13 * stepG }; stG.conds = {}; frG.x = 20; frG.y = 15; delete frG.hang; frG.conds = {};
-      D.rules.startTurn(stG); Bg.active = stG; var n0B = (Bg.log || []).length; runF(D.ai.turn(Bg, stG)); var lgB = (Bg.log || []).slice(n0B).join(' | ');
-      var ovB = D.grid.foot(stG).some(function (p) { return p[0] === frG.x && p[1] === frG.y; }) && D.grid.sharesZ(stG, { z: D.grid.gzAt(frG, frG.x, frG.y), h: D.grid.bodyH(frG) });
+      function setG() { stG.x = 19; stG.y = 16; stG.hang = { face: [20, 15], foot: [19, 16], z: 13 * stepG }; stG.conds = {}; stG.hp = stG.maxhp; frG.x = 20; frG.y = 15; delete frG.hang; frG.conds = {}; frG.hp = frG.maxhp; }
+      function ovG() { return D.grid.foot(stG).some(function (p) { return p[0] === frG.x && p[1] === frG.y; }) && D.grid.sharesZ(stG, { z: D.grid.gzAt(frG, frG.x, frG.y), h: D.grid.bodyH(frG) }); }
+      var seqG = [20, 1, 20, 1]; D.d = function (n) { return n === 20 && seqG.length ? seqG.shift() : d0F(n); };
+      setG(); D.rules.startTurn(stG); Bg.active = stG; var n0B = (Bg.log || []).length; runF(D.ai.turn(Bg, stG)); D.d = d0F; var lgB = (Bg.log || []).slice(n0B).join(' | ');
+      okF('Steinarr below the lip, ' + frG.name + ' on his face square, the shove won: ' + frG.name + ' at (' + frG.x + ',' + frG.y + '), Steinarr climbed on ' + !D.grid.hanging(stG) + ' at (' + stG.x + ',' + stG.y + ') ' + (D.grid.gzAt(stG, stG.x, stG.y) / stepG * 2.5) + ' ft, over ' + frG.name + ' ' + ovG() + ' -- ' + lgB.slice(0, 220), /SHOVE/.test(lgB) && /SHOVED/.test(lgB) && !(frG.x === 20 && frG.y === 15) && !D.grid.hanging(stG) && D.grid.gzAt(stG, stG.x, stG.y) >= 17 * stepG && !ovG());
+      seqG = [1, 20, 1, 20]; D.d = function (n) { return n === 20 && seqG.length ? seqG.shift() : d0F(n); };
+      setG(); D.rules.startTurn(stG); Bg.active = stG; var n1B = (Bg.log || []).length; runF(D.ai.turn(Bg, stG)); D.d = d0F; var lgB1 = (Bg.log || []).slice(n1B).join(' | ');
+      okF('the shove lost, twice: he clings below the lip ' + D.grid.hanging(stG) + ', ' + frG.name + ' still on the square ' + (frG.x === 20 && frG.y === 15) + ', over ' + frG.name + ' ' + ovG() + ' -- ' + lgB1.slice(0, 220), (lgB1.match(/HOLDS/g) || []).length === 2 && D.grid.hanging(stG) && frG.x === 20 && frG.y === 15 && !ovG());
       gone.forEach(function (u) { u.dead = false; }); hvG.dead = false;
-      okF('Steinarr below the lip, ' + frG.name + ' on his face square: never onto ' + frG.name + ' -- his body over that square ' + ovB + ', at (' + stG.x + ',' + stG.y + ') hanging ' + D.grid.hanging(stG) + ' -- ' + lgB.slice(0, 200), !ovB);
       okF('Hallvor at the foot of the face, ' + frG.name + ' within 30 ft of Steinarr ' + inGuard + ' and in her reach ' + inReach + ': she climbs -- on the face ' + !!(hvG.hang && D.grid.hanging(hvG)) + ' at ' + (D.grid.gzAt(hvG, hvG.x, hvG.y) / stepG * 2.5) + ' ft, no rock ' + !/Rock/.test(lgH) + ' -- ' + lgH.slice(0, 200), inGuard && inReach && D.grid.gzAt(hvG, hvG.x, hvG.y) >= 6 * stepG && !/Rock/.test(lgH) && /digs|climbs/.test(lgH));
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
     D.d = d0F;

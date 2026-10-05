@@ -84,7 +84,20 @@
     // (the climb on only where its body may stand: its face square, else one beside it at the lip it can stand on -- else it hangs where it is, the turn spent. 10-05 night, his play: Barley on
     // the lip square over Steinarr's climb, and Steinarr stepped onto it anyway, his body over Barley's -- moveAlong takes the square it is handed. Griz: "i think the people on the ledge
     // successfully block Steinerrs climb"; SRD 5.1: you may move through a hostile creature's space two sizes from yours, but not end your move in it)
-    else if (u.hang && u.hang.face && G.hanging(u)) { if (u.hang.down) yield* climbRest(B, u); else { var onSq = climbOnSq(u); if (onSq) yield* B.moveAlong(u, [onSq], { spend: true }); else { B.card(['{r}' + the(B, u) + '{/} clings below the lip: someone stands where it would climb on.'], 200); yield 12; } } if (u.hang && G.hanging(u)) { yield 20; return; } } // (down: the rest of the way down, ai.js climbRest -- 10-05 night)
+    // (blocked, the SRD's Shove at the one in its way, an attack of its Attack action each -- 10-05 night, Griz: "yeah, give him shove then. little men not block giants way!": shoveOff;
+    // the square cleared, the climb on, and what is left of the Attack action after it -- afterShove, from the brute)
+    // (and a clinger keeps its action -- 10-05 night, Griz: "we let people attack from climbing but not the boss?": the climb is its move, and the turn goes on from the face, as a hero's on
+    // a rope does -- its blows at whoever is in its reach; no throw from the face. Before, the turn ended on the face)
+    else if (u.hang && u.hang.face && G.hanging(u)) {
+      if (u.hang.down) yield* climbRest(B, u);
+      else {
+        var onSq = climbOnSq(u), nAtk = routineOf(u).length;
+        while (!onSq && u.turn.action && (u.turn.shoves || 0) < nAtk) { var blk = blockerOf(B, u); if (!blk) break; yield* shoveOff(B, u, blk); if (u.dead || u.hp <= 0) return; onSq = climbOnSq(u); }
+        if (onSq) yield* B.moveAlong(u, [onSq], { spend: true });
+        else if (!u.turn.shoves) { B.card(['{r}' + the(B, u) + '{/} clings below the lip: someone stands where it would climb on.'], 200); yield 12; }
+      }
+      if (u.dead || u.hp <= 0) return;
+    } // (down: the rest of the way down, ai.js climbRest -- 10-05 night)
     // the clacker strikes its hooks together as its turn begins, the clacking that is their speech (10-01, Griz's sheet's CLACK row;
     // data/foes.js clacker): the row plays once (js/ui.js), a clack on each strike, then the turn
     if (u.kind && D.FOES[u.kind] && D.FOES[u.kind].clacks && !u.conds.banished) {
@@ -838,6 +851,45 @@
   function prey(B, u, near) { var c = climbersOf(B, u); if (near) c = c.filter(function (w) { return acrossFt(u, w) <= 5; }); return c[0] || null; }
   function climbBudget(u) { var T = u.turn; return Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5; }
   function spendClimb(u, ft) { var T = u.turn; T.move -= ft; T.moved = (T.moved || 0) + ft; if (T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - ft); }
+  // the blows of its Attack action, in order (the brute's routine)
+  function routineOf(u) { var names = Object.keys(u.attacks || {}), r = Array.isArray(u.multi) ? u.multi.slice() : []; if (!r.length) for (var i = 0; i < (u.multi || 1); i++) r.push(names[0]); return r; }
+  // the one standing where a clinger would climb on: one of the other side on the lip whose body is inside the clinger's body at its face square (not one under it on the street)
+  function blockerOf(B, u) {
+    var f = u.hang.face, zF = G.map.gz(f[0], f[1]), body = G.foot(u, f[0], f[1]);
+    return B.units.filter(function (w) { return w !== u && G.standing(w) && !w.object && G.hostile(u, w) && !(w.hang && G.hanging(w)) && Math.abs(G.gzAt(w, w.x, w.y) - zF) <= 2 * G.map.def.step && G.foot(w).some(function (q) { return body.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); }); })
+      .sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0] || null;
+  }
+  // the SRD's Shove (SRD 5.1, Shoving a Creature: one attack of the Attack action; the target no more than one size larger; the shover's Strength (Athletics) against the target's Strength
+  // (Athletics) or Dexterity (Acrobatics), the target's choice -- the better here; won, it is pushed 5 ft away -- or knocked prone where it cannot be pushed; a tie leaves it as it was)
+  function acrobatics(w) { return w.acrobatics != null ? w.acrobatics : D.mod(w.abil ? w.abil.dex : 10) + ({ rogue: 1, monk: 1 }[w.cls] ? w.prof || 0 : 0); } // (the classes that have the skill to pick, as G.athletics reads its own)
+  function d20e(e) { return e.dis.length && !e.adv.length ? Math.min(D.d(20), D.d(20)) : e.adv.length && !e.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20); }
+  function* shoveOff(B, u, w) {
+    var T = u.turn; if (!T.action || (w.size || 1) > (u.size || 1) + 1) return false;
+    T.shoves = (T.shoves || 0) + 1; u.facing = B.faceTo(u, w); u.anim = 'attack'; u.animT = B.t;
+    var rA = d20e(RU.checkEdges(u, 'str')), bA = G.athletics(u), tA = rA + bA, bS = G.athletics(w), bD = acrobatics(w), dex = bD > bS, rW = d20e(RU.checkEdges(w, dex ? 'dex' : 'str')), tW = rW + (dex ? bD : bS), won = tA > tW, x0 = w.x, y0 = w.y;
+    B.card(['{r}' + the(B, u) + '{/} > {y}' + w.name + '{/}  SHOVE', 'Athletics d20 ' + rA + ' ' + RU.sign(bA) + ' = ' + tA + '  vs ' + (dex ? 'Acrobatics' : 'Athletics') + ' d20 ' + rW + ' ' + RU.sign(dex ? bD : bS) + ' = ' + tW + '  ' + (won ? '{n}SHOVED{/}' : '{g}HOLDS{/}')], 300);
+    D.sfx(won ? 'hit' : 'miss'); yield 20;
+    if (won) {
+      var s = u.size || 1; D.magic.push(B, { x: u.x + (s - 1) / 2, y: u.y + (s - 1) / 2 }, w, 1);
+      if (w.x === x0 && w.y === y0 && !(w.hang && G.hanging(w)) && !w.noProne && !RU.immuneTo(w, 'prone')) { w.conds.prone = true; B.card(['{o}' + w.name + ' has nowhere to go: knocked flat instead.{/}'], 200); }
+      yield 16;
+    }
+    u.anim = 'idle';
+    return won && (w.x !== x0 || w.y !== y0);
+  }
+  // what is left of the Attack action after a shove: the rest of its blows -- nothing but the window takes the glass alone -- after a walk with what move is left
+  function* afterShove(B, u) {
+    var T = u.turn, rest = routineOf(u).slice(T.shoves || 0); T.action = 0;
+    var pool = function (atk) { return u.missionOnly ? B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); }) : heroes(B, u).filter(function (w) { return usableOn(u, atk, w) && !(u.noGlass && w.object); }); };
+    var a0 = rest.length && u.attacks[rest[0]], tg = a0 ? pool(a0) : [];
+    if (tg.length && T.move > 0 && !(u.hang && G.hanging(u)) && !tg.some(function (w) { return G.dist(u, w) <= G.reachOf(u, a0.reach); })) { var eA = approach(u, tg.sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], G.reach(u, T.move), G.reachOf(u, a0.reach)); if (eA) { yield* walkTo(B, u, eA); if (u.dead || u.hp <= 0) return; } }
+    for (var k = 0; k < rest.length; k++) {
+      var atk = u.attacks[rest[k]]; if (!atk || atk.ranged || atk.needsHeld || atk.afterHit) continue;
+      var t = pool(atk).filter(function (w) { return G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) { return a.hp - b.hp; })[0];
+      if (!t) continue;
+      yield* B.attack(u, t, atk); if (u.dead || u.hp <= 0) return;
+    }
+  }
   // where a clinger may climb on (AI.turn): its face square if its body may stand there, else the nearest square beside it at the lip (G.climbOn) that it may stand on, else null
   function climbOnSq(u) {
     var f = u.hang.face; if (G.canStand(u, f[0], f[1])) return f;
@@ -972,6 +1024,7 @@
   }
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u), grudge = false;
+    if (T.shoves) { yield* afterShove(B, u); return; } // (a shove from the face took part of its Attack action: the rest of it, and nothing else -- 10-05 night)
     // a scripted run (a fight's foe `chase`: the Skylights' first trolls after the street's people in round 1 -- 10-05, Griz: "have the first trolls chase the civilians more"): no one of ours
     // in its reach, it runs -- the Dash -- for its square, and that is its turn
     if (u.chase && B.round <= u.chase.till && !hs.some(function (w) { return !w.object && G.dist(u, w) <= reachOf(u, hs); })) {

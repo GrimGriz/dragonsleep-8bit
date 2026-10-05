@@ -214,7 +214,7 @@
   // the stone giant's camp (deep.js S.giant): the giant and three duergar
   stonegiant: {
     name: 'Stone Giant', type: 'giant', sheet: 'stonegiant_p1', cr: '7', ac: 17, hp: 126, speed: 40, climbs: 15, size: 3, reach: 15, darkvision: 60, // (climbs 15 since 10-05 night, Griz: "see above note to scale giant climb to 15"; 20 from 10-05 evening, Griz: "Here's the lever that'll probably make the difference - Giant climb speed to 20"; before that 10. Ours, not the SRD's -- stone into stone, clinging; Griz, 10-04 night)
-    abil: { str: 23, dex: 15, con: 20, int: 10, wis: 12, cha: 9 }, init: 2, perception: 14,
+    abil: { str: 23, dex: 15, con: 20, int: 10, wis: 12, cha: 9 }, init: 2, perception: 14, athletics: 12, // (SRD 5.1 Skills: Athletics +12 -- the Shove from the face reads it: ai.js shoveOff, 10-05 night)
     saves: { str: 6, dex: 5, con: 8, int: 0, wis: 4, cha: -1 },
     attacks: {
       greatclub: { name: 'Greatclub', atk: 9, dice: '3d8', mod: 6, type: 'bludgeoning', reach: 15 },
