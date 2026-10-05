@@ -259,7 +259,25 @@ class Rig:
                 self.ik2(d, M, ARM[s][1], ARM[s][2], M[ARM[s][1]].translation + Vector((x, y, z)), P.get('epole' + s, self.EPOLE[s]))
             for s, v in (P.get('hands') or {}).items():          # a hand pointed along a world direction
                 self.aim(d, [ARM[s][3]], [v])
+            if P.get('grip2'):      # two hands on one held thing (the male stone giant's club, 10-04): this hand's wrist goes onto the other's club, f of the way from its grip to its head
+                _, M2 = self.solve(d, lift, shift, sway, mats=True)
+                for s, f in P['grip2'].items():
+                    h = self.HELD['b' if s == 'a' else 'a']; K = M2[h['bone']] @ self.REST[h['bone']].inverted()
+                    p = K @ (h['g'] + (h['h'] - h['g']) * f); sh = M2[ARM[s][1]].translation
+                    p = p + (sh - p).normalized() * h['back']     # (the wrist a little short of the shaft, toward the shoulder: the fist closes round it)
+                    self.ik2(d, M2, ARM[s][1], ARM[s][2], p, P.get('epole' + s, self.EPOLE[s]))
         return d, lift, shift, sway
+
+    def hold(self, obj, back=2.0):
+        """a thing held in a hand (an object parented to a hand bone): its grip (the point nearest the wrist) and head (the farthest from that), where they sit at
+        rest in the hand's frame -- what `grip2` puts the other hand on. The same picks as export_poser's `held`, so the page finds the same points."""
+        b = obj.parent_bone; side = 'a' if b == self.ARM['a'][3] else 'b'
+        bpy.context.view_layer.update(); dg = bpy.context.evaluated_depsgraph_get(); oe = obj.evaluated_get(dg); m2 = oe.to_mesh()
+        K = self.REST[b] @ self.arm.pose.bones[b].matrix.inverted() @ self.arm.matrix_world.inverted() @ oe.matrix_world
+        p2 = np.array([list(K @ v.co) for v in m2.vertices]); oe.to_mesh_clear()
+        gi = int(np.argmin(np.linalg.norm(p2 - np.array(self.REST[b].translation), axis=1))); hi = int(np.argmax(np.linalg.norm(p2 - p2[gi], axis=1)))
+        self.HELD = getattr(self, 'HELD', {}); self.HELD[side] = dict(bone=b, g=Vector(p2[gi]), h=Vector(p2[hi]), back=back)
+        return self.HELD[side]
 
     # ------------------------------------------------------------------ the floor
     def posed_points(self, step=5):
@@ -395,7 +413,7 @@ class Rig:
             side = 'a' if b == self.ARM['a'][3] else 'b' if b == self.ARM['b'][3] else None
             if side:      # (held in a hand: its grip, the point nearest the wrist, and its head, the farthest from that -- the page's diamond aims the thing itself)
                 gi = int(np.argmin(np.linalg.norm(p2 - np.array(self.REST[b].translation), axis=1))); hi = int(np.argmax(np.linalg.norm(p2 - p2[gi], axis=1)))
-                held.append(dict(side=side, bone=b, grip=base + gi, head=base + hi))
+                held.append(dict(side=side, bone=b, grip=base + gi, head=base + hi, back=(getattr(self, 'HELD', {}).get(side) or {}).get('back', 2.0)))
             tris += [(base + p.vertices[0], base + p.vertices[k], base + p.vertices[k + 1]) for p in m2.polygons for k in range(1, len(p.vertices) - 1)]
             for _ in range(len(p2)):
                 widx.append(idx[b]); wval.append(1.0); wofs.append(len(widx))

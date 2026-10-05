@@ -201,6 +201,17 @@ The fifth monster: MZ4250's female Stone Giant (Thingiverse thing:4157322, CC BY
 - **A fall by gravity (`lie`) is not on the poser page.** `bake()` says the frame again as placed limbs (ankles, wrists, poles, the foot's yaw and pitch) so the page and its parity (1.6e-5) hold and every limb has handles. Seat the frame on the floor FIRST (`grounded(..., 'plant')`), then bake: placed ankles are world positions and do not follow a lift made afterwards.
 - Rows named for the attack: `greatclub`, `greatclub2`, `rock` (also in `pixelate.py` and `ui.js`'s play-once rule).
 
+## Two looks of one monster, and two hands on one club (the male stone giant, 10-04)
+
+Griz, 10-04: *"can you find the male in there?"*, then *"2 yes"* to building him as the stone giant's second look. `tools/stonegiantm-blend.py` is a copy of the female's script with what is his:
+- **Read the weights yourself.** The setup seat reported the male sculpt had "no rig, no weights at all"; 102k of his 120k points carry the artist's 24 groups. Count `v.groups` before believing a probe.
+- **A fitted hip can ride up into a skirt.** The Hips|Leg blend ran into his cloth and put his right hip at his belt (a 30-unit thigh against 24). Set each hip up its thigh's own axis (the leg group's main line) from the knee, a shin and a tenth -- plot the joints over a front and side render before posing anything.
+- **A bone's child hangs from the bone's TAIL.** Parenting a held thing to a hand with `matrix_parent_inverse = (arm.matrix_world @ bone.matrix_local).inverted()` slides it the hand's length off the fist; add `@ Matrix.Translation((0, bone.length, 0))`. (The female's club still rides ~4 units off her fist this way: unfixed, her sheet reads.)
+- **Two hands on one club:** `R.hold(club)` (its grip and head at rest in the hand's frame), then a frame's `grip2={'a': f}` puts the left wrist on the club f of the way up it, wherever the right hand took it. The page does the same (the parity check covers it). Rows that need the free hand (a throw, a fall, a climb) leave `grip2` off.
+- **Two looks, no engine change:** a second foe kind with the same block (`D.FOES.stonegiantm = Object.assign({}, D.FOES.stonegiant, { sheet: ... })` at the end of `data/foes.js`), and the fight that fields it flips a coin at page load (`data/fights.js` giant). The Pocket DM draws either; `?show=stonegiantm` shows him.
+
+**The poser page's floor (10-04):** solid and a little see-through, the figure's shadow cast from the front-left (floating shows as a gap), what sinks drawn red, a "to the floor" button. Griz had lowered a prone frame because she "looked like she was floating off the floor of the poser": the page and Blender agreed to the decimal, it was her kilt under her that went through -- cloth under a body is crushed, not a support; the render's holdout floor (`"floor": true`) hides it. **The climb row** (`climb`, 8 looping): played by `js/ui.js` while a unit climbs a face, goes along a rope, or hangs on one; the show does not want it (the test ground is flat).
+
 ## What cost us a step (so it doesn't again)
 
 - **`EditBone.transform` re-rolls.** Turning the bones with it re-rolled them, and the artist's pose came out wild (the worm 4.7 squares tall). Set `eb.matrix = X @ eb.matrix` instead; it keeps head, direction and roll together.

@@ -134,6 +134,16 @@ class Rig {
         J['elb' + s] = this.ik2(d, M, this.ARM[s][1], this.ARM[s][2], J['wr' + s], P['epole' + s] || this.EPOLE[s]);
       }
       for (const [s, v] of Object.entries(P.hands || {})) this.aim(d, [this.ARM[s][3]], [v]);
+      if (P.grip2) {     // two hands on one held thing (blender_pose.py's grip2): this hand's wrist onto the other hand's club, f of the way from its grip to its head
+        const M2 = this.solve(d, lift, shift, sway);
+        for (const [s, f] of Object.entries(P.grip2)) {
+          const h = (this.HELD || {})[s === 'a' ? 'b' : 'a']; if (!h) continue;
+          const K = M2[h.bone].clone().multiply(this.RESTinv[h.bone]);
+          const p = h.g.clone().add(h.h.clone().sub(h.g).multiplyScalar(f)).applyMatrix4(K), sh = posOf(M2[this.ARM[s][1]]);
+          p.add(sh.clone().sub(p).normalize().multiplyScalar(h.back || 2));
+          J['wr' + s] = p; J['elb' + s] = this.ik2(d, M2, this.ARM[s][1], this.ARM[s][2], p, P['epole' + s] || this.EPOLE[s]);
+        }
+      }
     }
     const M = this.solve(d, lift, shift, sway);
     for (const s of 'ab') J['sh' + s] = posOf(M[this.ARM[s][1]]);
@@ -179,6 +189,8 @@ const mesh = { n: D.mesh.n, pos: b64(D.mesh.pos, Float32Array), tri: b64(D.mesh.
   wofs: b64(D.mesh.wofs, Uint32Array), widx: b64(D.mesh.widx, Uint16Array), wval: b64(D.mesh.wval, Float32Array) };
 const BI = {}; rig.order.forEach((n, i) => { BI[n] = i; });
 
+rig.HELD = {};       // (the held thing's grip and head where they sit at rest, for grip2: the same points blender_pose.py's hold() picks)
+for (const h of D.held || []) rig.HELD[h.side] = { bone: h.bone, back: h.back || 2, g: new THREE.Vector3(mesh.pos[h.grip * 3], mesh.pos[h.grip * 3 + 1], mesh.pos[h.grip * 3 + 2]), h: new THREE.Vector3(mesh.pos[h.head * 3], mesh.pos[h.head * 3 + 1], mesh.pos[h.head * 3 + 2]) };
 // the proof: this page's bone matrices against Blender's, for the frames Blender wrote down
 let parity = 0;
 for (const [k, mats] of Object.entries(D.check)) {
