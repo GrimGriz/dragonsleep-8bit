@@ -162,15 +162,17 @@
             var sheen = vnoise(gx * 2 + 0.3, gy * 5, seed + 9), glint = h2(Math.floor(gx * 11), Math.floor(gy * 22), seed + 8) > 0.992;
             col = edge < 0.1 ? stone[2] : edge < 0.2 ? stone[1] : glint ? silver[5] : sheen > 0.8 ? violet[2] : rampPick(blue, n * 0.22 + (1 - Math.min(1, edge * 2)) * 0.12, ix, iy);
           } else if (s.ch === 'G') {                              // a roof of glass (the Edifice, 10-04 night, Griz: "the skylight glass that should make up the majority of the 4th floor/3rd floor
-            // ceiling"): leaded panes two squares square, and the orchard on the floor below seen through the tint -- its grass, the dark of its trees, the Sunshaft's circle (`shaft`) -- and a gloss across them
+            // ceiling" -- then: "can we do semi transparent and put the orchard under it? thin silver on the glass tile edges over the hole"): the orchard on the floor below is painted
+            // first -- grass as the grass tile has it, the round dark crown of a tree, the Sunshaft's hole (`shaft`) with its stone rim -- and the glass over it as a thin tint, a
+            // gloss across the panes, and each tile's edge in thin silver, over the hole as well, so the glass reads as one sheet across it
             var gx0 = gx + 0.5, gy0 = gy + 0.5, fx2 = gx0 - Math.floor(gx0), fy2 = gy0 - Math.floor(gy0);
-            var lead = (Math.floor(gx0) % 2 === 0 && fx2 < 0.06) || (Math.floor(gy0) % 2 === 0 && fy2 < 0.06);
-            var under = fbm(gx0 * 0.8, gy0 * 0.8, seed + 77), tree = vnoise(gx0 * 1.7, gy0 * 1.7, seed + 91) > 0.72;
-            var sh = m.def.shaft, shD = sh ? Math.hypot(gx0 - sh[0], gy0 - sh[1]) : 9, inShaft = sh && shD < sh[2], rimS = sh && !inShaft && shD < sh[2] + 0.2;
-            var gloss = ((gx0 - gy0 * 0.5) % 6 + 6) % 6 < 0.35;
-            var base = inShaft ? stone[0] : tree ? moss[1] : rampPick(moss, 0.1 + under * 0.3, ix, iy);
-            col = lead ? silver[1] : rimS ? silver[3] : mix(base, blue[2], inShaft ? 0.25 : 0.45);
-            if (gloss && !lead && !rimS && dith(ix, iy) < 0.5) col = mix(col, silver[5], 0.35);
+            var sh = m.def.shaft, shD = sh ? Math.hypot(gx0 - sh[0], gy0 - sh[1]) : 9, inShaft = sh && shD < sh[2], rimS = sh && !inShaft && shD < sh[2] + 0.22;
+            var under = fbm(gx0 * 0.8, gy0 * 0.8, seed + 77), tn = vnoise(gx0 * 1.4, gy0 * 1.4, seed + 91), crown = tn > 0.68, crownRim = tn > 0.62 && !crown;
+            var pebG = h2(Math.floor(gx0 * 14), Math.floor(gy0 * 14), seed + 5) > 0.985;
+            var floor = inShaft ? (shD < sh[2] - 0.5 ? stone[0] : stone[1]) : rimS ? stone[3] : crown ? moss[1] : crownRim ? moss[0] : pebG ? stone[4] : rampPick(moss, 0.15 + under * 0.6 + (fine - 0.5) * 0.15, ix, iy);
+            col = mix(floor, blue[3], inShaft ? 0.1 : 0.2);
+            var gloss = ((gx0 - gy0 * 0.5) % 6 + 6) % 6 < 0.35; if (gloss && dith(ix, iy) < 0.45) col = mix(col, silver[5], 0.4);
+            if ((fx2 < 0.035 || fy2 < 0.035) && dith(ix, iy) < 0.65) col = silver[3];
           } else {
             var crack = Math.abs(vnoise(gx * 2.2, gy * 2.2, seed + 21) - 0.5) < 0.012;
             var pebble = h2(Math.floor(gx * 14), Math.floor(gy * 14), seed + 5) > 0.985;

@@ -198,12 +198,18 @@ the log's tail and every unit's state, for a fight that never ends on the bench.
 
 **The Edifice** (10-04 night, `data/maps.js` edifice, 60×27): the exterior -- Fountain Street along the foot of Sólskaft's facade as the 8-bit map has it, the
 facade 45 ft, and on top the roof of skylight glass (`G`, walkable; `iso.js` bakes it as leaded panes with the orchard on the floor below showing through, and
-the Sunshaft's circle from the map's `shaft`). The arches' tops are 15 ft sills; a grapple from a sill reaches the rim; the dwarves' rope hangs 45 ft at the
+the Sunshaft's circle from the map's `shaft` -- the orchard painted first, the glass a thin tint and a gloss over it, each tile's edge in thin silver). The
+arches' tops are 15 ft sills; a grapple from a sill reaches the rim; the dwarves' rope hangs 45 ft at the
 west end; the mountain's waterfall comes down the back wall's face (a map's `falls`, painted by `rockCanvas`) into water at its foot, and the
 Sunshaft's circle lies under it at the roof's middle. The vault door on the street and the roof's hatch above it are a `passage` (GO IN / COME OUT
-on the ring, or asked when a walk ends on either: the rest of the turn's move, half the speed at least; Griz: *"Front doors possible?"*).
+on the ring, or asked when a walk ends on either: the rest of the turn's move, half the speed at least; Griz: *"Front doors possible?"*), shut unless the
+fight opens them (`passages: true` on the fight, or `&doors` on the URL; Griz: *"turned off by default"*).
 Griz: *"It's supposed to be external and the third floor is internal tho possibly visible to the skylight glass that should make up the majority
 of the 4th floor/3rd floor ceiling."* `deep16/?npc=<foes>&vs=<party>&map=edifice`.
+
+**Hidden, beside a foe** (RULED 10-04 night, Griz: *"one line, but lose stealth on successful hit (it can tell where you are from the force of the blow and
+it's not invisibility, just hide)"*): an attack at a hidden target has disadvantage at any distance (`rules.js RU.edges`; it was beyond 5 ft only, 09-28's
+'heard and felt'), a foe beside her still knows where she is and swings (`ai.js heroes`), and a hit finds her: no longer hidden (`battle.js attack`).
 
 **Ropes and rungs** (10-04; `js/grid.js` ROPES, `js/battle.js` exec 'rope', 'ropeclimb', 'takerope', 'cutrope', `js/ui.js ropeRung`): a map's
 `ropes: [[ax, ay, fx, fy]]` hang from the top of a face to its foot, and the party's Rope & Grapple sets one (the item wheel: tied off from up

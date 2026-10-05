@@ -209,7 +209,9 @@
     if (tgt.conds.surprised && att.assassinate) adv.push('assassinate');
     // Pack Tactics (the rats, the wolves): advantage while an ally of the attacker who can act stands within 5 ft of the target
     if (att.packTactics && G.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) adv.push('pack tactics');
-    if (tgt.conds.hidden && G.dist(att, tgt, ax, ay) > 5 && !mirror(att, tgt) && !(att.senseHidden && G.dist(att, tgt, ax, ay) <= att.senseHidden)) dis.push('unseen target');
+    // (a hidden target is unseen at any distance -- 10-04 night, Griz: "one line", RULED; it was outside 5 ft only, 09-28's torchdark 'heard and felt' beside you. The foe still knows
+    // where she is beside it (ai.js heroes) and swings at disadvantage; a hit finds her -- battle.js attack: "it can tell where you are from the force of the blow")
+    if (tgt.conds.hidden && !mirror(att, tgt) && !(att.senseHidden && G.dist(att, tgt, ax, ay) <= att.senseHidden)) dis.push('unseen target');
     if (tgt.conds.faerie) adv.push('faerie fire');
     // the class NPCs' spells (09-28, js/grimoire.js): Guiding Bolt's glow (the next attack at it), Vicious Mockery (its own next attack),
     // True Strike (the caster's first at it), Blur (at the blurred: not for blindsight or truesight), Reckless Attack's price

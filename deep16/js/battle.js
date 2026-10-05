@@ -114,6 +114,8 @@
     this.ropes = ((m.def && m.def.ropes) || []).map(function (r) { return { at: [r[0], r[1]], foot: [r[2], r[3]], hp: 2, fixed: true }; }); // (a map's ropes; a Rope & Grapple adds its own: grid.js G.ropeOn, exec 'rope')
     this.ropeBucket = m.def && m.def.ropeBucket ? m.def.ropeBucket.slice() : null; // (Fountain Street's bucket: a Rope & Grapple for anyone beside it, free, one a turn, endless -- 10-04 night, Griz; exec 'bucketrope')
     this.passages = ((m.def && m.def.passages) || []).map(function (p) { return { at: [p[0], p[1]], to: [p[2], p[3]], name: p[4] || 'the door' }; }); // (a door and its far side: the Edifice's vault to the roof -- 10-04 night, Griz: "Front doors possible?"; exec 'passage')
+    // shut unless the fight opens them (Griz, 10-04 night: "that works, but turned off by default"): the fight's `passages: true`, the battle's option, the 8-bit's embed, or `&doors` on the URL
+    this.passagesOpen = !!(F.passages || this.o.passages || (this.o.embed && this.o.embed.passages) || /[?&]doors\b/.test(location.search));
     if (D.walls && D.walls.seatConjured) D.walls.seatConjured(this); // (an elemental conjured at the camp walks in beside its caster: js/walls.js)
     // torchdark (09-28): dark ground -- the fight's own word, else the 8-bit map's `dark` when the fight is fought from there
     // (js/embed.js), else the grid map's -- and the lights the place keeps (a lamp, a fire, a glow: [x, y, r, color, dimOnly]);
@@ -856,7 +858,7 @@
   // a door square and its far side (the Edifice's vault door on the street and the roof's hatch above it). Standing on either end, GO IN / COME OUT (the ring; a hand's walk that ends on
   // one asks): the rest of the turn's movement, half the speed at least, and the figure is at the other end. { p, from, dest, inward, name } or null
   Battle.passageAt = function (B, x, y) {
-    var ps = (B && B.passages) || [];
+    var ps = (B && B.passagesOpen && B.passages) || []; // (shut by default: B.passagesOpen)
     for (var i = 0; i < ps.length; i++) { var p = ps[i]; if (p.at[0] === x && p.at[1] === y) return { p: p, from: p.at, dest: p.to, inward: true, name: p.name }; if (p.to[0] === x && p.to[1] === y) return { p: p, from: p.to, dest: p.at, inward: false, name: p.name }; }
     return null;
   };
@@ -1506,6 +1508,7 @@
     }
     D.sfx(crit ? 'crit' : hit ? 'hit' : 'miss');
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : hit ? '{n}HIT{/}' : '{g}MISS{/}') + why], 300, cid);
+    if (hit && tgt.conds.hidden && tgt.hp > 0) { delete tgt.conds.hidden; delete tgt.hidTotal; this.card(['{o}' + nameOf(tgt) + ' is found by the blow: no longer hidden.{/}  {g}(a hit tells where you are; hiding is not invisibility -- RULED 10-04){/}'], 200); } // (10-04 night, Griz: "lose stealth on successful hit")
     if (!hit) {
       // a natural 1 at a darkmantle riding one of ours (10-01, RULED, Griz: "if SRD says nothing about hurting ally, only hurt ally on natural 1 (ignoring
       // bonuses)" -- the SRD says nothing): the blow lands on the one it rides instead -- the weapon's damage, no critical, no riders (invented.json)

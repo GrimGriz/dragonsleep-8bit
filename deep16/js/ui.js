@@ -1654,7 +1654,7 @@
       });
     }
     // the passages (Battle.passageAt, 10-04 night): both ends outlined, so the vault door and the roof's hatch read as a pair
-    (B.passages || []).forEach(function (p) { lineSq(ctx, p.at[0], p.at[1], R('gold', 3), 0.55, 4); lineSq(ctx, p.to[0], p.to[1], R('gold', 3), 0.55, 4); });
+    if (B.passagesOpen) (B.passages || []).forEach(function (p) { lineSq(ctx, p.at[0], p.at[1], R('gold', 3), 0.55, 4); lineSq(ctx, p.to[0], p.to[1], R('gold', 3), 0.55, 4); });
     // a rung of a rope the mouse is on (ropeRung, 10-04 night): the face, the rung at the height picked, and where the figure will hang
     if (B.ropePick && (tool === 'move' || tool === 'menu' || tool === 'attack')) drawRung(B, u, B.ropePick);
     // the cursor: red where the current thing can't go
@@ -1720,6 +1720,7 @@
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
       if (u.conds.prone && B.cursor.x === u.x && B.cursor.y === u.y) { var halfS = Math.floor(u.speed / 2); lines.push('{y}prone{/}: ' + (RU.canRise(u) && u.turn.move >= halfS ? '{n}click here to stand (half the speed: ' + halfS + ' ft of the move){/}' : '{o}' + (!RU.canRise(u) ? 'cannot stand' : 'no move left to stand: ' + halfS + ' ft needed') + '{/}')); } // (10-04 night)
+      if (!B.passagesOpen && (B.passages || []).some(function (p) { return p.at[0] === B.cursor.x && p.at[1] === B.cursor.y; })) lines.push('{y}' + (B.passages.filter(function (p) { return p.at[0] === B.cursor.x && p.at[1] === B.cursor.y; })[0].name) + '{/}: shut'); // (the passages shut by default, 10-04 night)
       var pgT = D.Battle.passageAt(B, B.cursor.x, B.cursor.y); if (pgT) lines.push('{y}' + pgT.name + '{/}: ' + (pgT.inward ? 'GO IN -- through it and up the stair inside, out onto the roof' : 'COME OUT -- down the stair inside, out onto the street') + '  {g}(stand on it: the rest of the move, half the speed at least){/}'); // (a passage, 10-04 night)
       if (B.ropeBucket && B.cursor.x === B.ropeBucket[0] && B.cursor.y === B.ropeBucket[1]) lines.push('{y}the rope bucket{/}: a Rope & Grapple for anyone beside it -- {n}free, one a turn, and there is always another{/} (TAKE A ROPE on the ring)'); // (10-04 night)
       var rpT = !B.ropePick && D.Battle.ropeAt(B, B.cursor.x, B.cursor.y); // (a rope's grapple under the cursor: what the click does -- 10-04 night)

@@ -1224,14 +1224,15 @@ window.D16.MAPS.climbfloor = {
 // (`shaft`). The mountain's waterfall comes down the back wall as a channel into an intake pool (deep water, `D`) and pours into the structure; it comes out through the
 // fountains along the front wall and runs off east. The arches' tops are sills at 15 ft (`6`, DC 18 by hand: `climb: 6`); the 30 ft above a sill takes a grapple (30 ft) or
 // the rope the dwarves left at the west end (45 ft: the rungs); a climber (a `climbs` speed) goes straight up. The front doors are marked, not built ("don't build that
-// in"). The rope bucket by the first house (`ropeBucket`): a Rope & Grapple for anyone beside it, free, endless -- Griz, 10-04 night. Daylight: no `dark`. `edifice-top` in
+// in"). The rope bucket by the first house (`ropeBucket`): a Rope & Grapple for anyone beside it, free, endless -- Griz, 10-04 night. The street four rows and the house
+// band five (Griz, 10-04 night: "expand the street 2 squares wider and the buildings 2 squares wider"). Daylight: no `dark`. `edifice-top` in
 // invented.json. The party comes up the lane from the south; the ways out are the lane, the street's east end and the road north.
 window.D16.MAPS.edifice = {
   name: 'The Edifice',
   sub: 'Fountain Street under the waterfall facade of Sólskaft, and the roof of glass',
   stone: 'grey', step: 10, noBurrow: true, climb: 6, deepWater: 'D', // (D: the channel off the east end) // (a hand scales 15 ft at most -- the arches' sills; the 45 ft face takes the rope, a grapple from a sill, or a climb speed)
   ropes: [[11, 9, 11, 10]], // a rope the dwarves left hung from the rim at the west end, 45 ft to the street (the top square, the foot square)
-  ropeBucket: [3, 14], // the bucket of rope and grapples by the first house (battle.js exec 'bucketrope')
+  ropeBucket: [3, 16], // the bucket of rope and grapples by the first house (battle.js exec 'bucketrope')
   shaft: [29.5, 4.8, 2.8], // the Sunshaft's circle on the third floor, seen through the glass, under the falls at the roof's middle (centre, radius in squares; iso.js bake -- Griz, 10-04 night: "move the light circle to where the pool is now ... increase the radius of the light-hole for symmetry")
   falls: [[28, 0], [29, 0], [30, 0], [31, 0]], // the waterfall down the back wall's face, into the water at its foot (iso.js rockCanvas -- Griz: "waterfall wall 31, 0 to 28, 0 - water tile 31, 1 to 28, 1")
   passages: [[29, 10, 29, 8, 'the vault door'], [30, 10, 30, 8, 'the vault door']], // the vault door on the street and the roof's hatch above it: GO IN / COME OUT for the rest of the move (battle.js Battle.passageAt, exec 'passage' -- Griz, 10-04 night: "Front doors possible?"); the arches are sills, not doors
@@ -1247,6 +1248,10 @@ window.D16.MAPS.edifice = {
     '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
     '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
     '000000000000066006600660066000000066006600660066000000000000',
+    '000000000000000000000000000000000000000000000000000000000000',
+    '000000000000000000000000000000000000000000000000000000000000',
+    '000000000000000000000000000000000000000000000000000000000000',
+    '000000000000000000000000000000000000000000000000000000000000',
     '000000000000000000000000000000000000000000000000000000000000',
     '000000000000000000000000000000000000000000000000000000000000',
     '000000000000000000000000000000000000000000000000000000000000',
@@ -1279,7 +1284,11 @@ window.D16.MAPS.edifice = {
     '###==========~~==~~==~~==~~~~~~~~=~~==~~==~~==~~=~~~~DDDDDDD',
     '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
     '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
+    '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
+    '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
     '###kbbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
+    '###.bbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
+    '###.bbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
     '###.bbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
     '###.bbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
     '###ggggggggggggggggggggggggg,,,,ggggggggggggggggggggggggggg#',
@@ -1293,7 +1302,7 @@ window.D16.MAPS.edifice = {
     '###ggggggggggggggggggggggggg,,,,ggggggggggggTgggggggggggggg#',
     '############################,,,,############################'
   ],
-  entry: [[29, 25], [30, 25], [29, 24], [30, 24], [28, 25]],
+  entry: [[29, 29], [30, 29], [29, 28], [30, 28], [28, 29]],
   foes: [],
   wave: null
 };
