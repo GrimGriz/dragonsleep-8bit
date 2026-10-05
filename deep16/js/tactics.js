@@ -581,6 +581,9 @@
     // nothing in reach: close on the nearest (a Dash if it has nothing at range)
     var near = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (!near) return;
+    // the fight above it, up a face (10-05, Griz, the Skylights benched: "bench party doesn't climb, even with a rope already up"): the brute's way up (ai.js ropeUp) -- a rope
+    // hanging from up there, or its own thrown from the foot under the lip nearest the foe, or one out of the bucket first; the walk, below, is for a foe on its own level
+    if (AI.ropeUp && (yield* AI.ropeUp(B, u, near))) return;
     var bd = TX.bonusDash(u); // (the bonus action's Dash, Expeditious Retreat's or the rogue's Cunning Action: taken before the action's, which may keep)
     var rm = G.reach(u, T.move + (T.action ? u.speed : 0) + (bd ? u.speed : 0));
     var e = AI.approach(u, near, rm, G.reachOf(u));
