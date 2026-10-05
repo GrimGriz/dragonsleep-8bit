@@ -6630,6 +6630,62 @@
 }
 }
 },
+"wisp_p1": {
+"image": "art/wisp_p1.png?v=da9cdff960",
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"top": 70,
+"source": "drawn in code by tools/wisp-sheet.py (a light field quantised to the bone and glow ramps; 10-05)",
+"anims": {
+"idle": {
+"y": 0,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 6
+},
+"walk": {
+"y": 1024,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 8
+},
+"attack": {
+"y": 2048,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 10
+},
+"hurt": {
+"y": 3072,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 8,
+"fps": 7
+},
+"flinch": {
+"y": 4096,
+"fw": 96,
+"fh": 128,
+"ax": 48,
+"ay": 112,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "wolf_p1": {
 "image": "art/wolf_p1.png?v=424bd91b72",
 "fw": 96,

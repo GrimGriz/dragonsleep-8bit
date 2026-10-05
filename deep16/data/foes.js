@@ -376,6 +376,19 @@
     },
     multi: ['sword', 'dagger'], src: 'content/monsters.json merc (SRD 5.1 Bandit Captain cut down to a merc between contracts: two attacks, 40 HP; Griz 09-27: the blade was harder than Talmok); on the Hired Sword sheet'
   },
+  // the will-o'-wisp (10-05, Griz: "lets see how cool wisps can look"; "Let's try code drawn"): the sheet is drawn in code (tools/wisp-sheet.py). SRD 5.1 Will-o'-Wisp, CR 2, Tiny, fly 50.
+  // Its light is `glow` (js/light.js L.carried: bright 10, dim 10 of the SRD's 5-20 Variable Illumination; it goes out with it when it turns invisible).
+  // Invisibility is the duergar's once-a-fight (ai.js brute; the SRD's is at will, an action, and ends on an attack). NOT BUILT: Consume Life (bonus action, a creature at 0 HP within 5 ft dies,
+  // the wisp heals 3d6), Incorporeal Movement (through creatures and objects, 1d10 force if it ends inside), flight (it goes round, not over, like the bat).
+  wisp: {
+    name: "Will-o'-Wisp", type: 'undead', sheet: 'wisp_p1', cr: '2', ac: 19, hp: 22, speed: 50, size: 1, reach: 5, darkvision: 120, invisibility: true, glow: { bright: 10, dim: 10, color: 'glow' },
+    abil: { str: 1, dex: 28, con: 10, int: 13, wis: 14, cha: 11 }, init: 9, perception: 12,
+    saves: { str: -5, dex: 9, con: 0, int: 1, wis: 2, cha: 0 },
+    attacks: { shock: { name: 'Shock', atk: 4, dice: '2d8', mod: 0, type: 'lightning', reach: 5 } },
+    multi: 1, immune: ['lightning', 'poison'], resist: ['acid', 'cold', 'fire', 'necrotic', 'thunder', 'mundane'],
+    condImmune: ['exhaustion', 'grappled', 'paralyzed', 'poisoned', 'prone', 'restrained', 'asleep'],
+    src: "SRD 5.1 Will-o'-Wisp (CR 2); content/monsters.json wisp; a figure drawn in code (tools/wisp-sheet.py)"
+  },
   stablefighter: {
     name: 'Stable Fighter', type: 'humanoid', sheet: 'crewman_p1', humanoid: true, cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,

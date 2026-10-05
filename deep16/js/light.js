@@ -64,6 +64,7 @@
     // (`rec`: the spell's own record on him, { by, from, lv } -- where it was cast from and its level, for a Globe of Invulnerability: L.map carves the globe's squares out of it)
     var add = function (b, d, color, flame, kind, rec) { var l = { x: cx, y: cy, bright: b, dim: d, color: color, flame: !!flame, kind: kind, unit: u }; if (rec && typeof rec === 'object' && rec.from) { l.from = rec.from; l.lv = rec.lv; l.by = rec.by; } out.push(l); };
     if (u.torch && u.torch.lit) { var tr = L.radii(u.torch); add(tr.bright, tr.dim, 'gold', true, L.kindOf(u.torch)); }
+    if (u.glow && u.hp > 0 && !u.conds.invisible) add(u.glow.bright, u.glow.dim, u.glow.color || 'glow', false, 'glow'); // (a creature's own light: the wisp's, and "its light magically becomes invisible" with it)
     if (u.conds.light) add(20, 20, 'glow', false, 'light', u.conds.light);       // the Light cantrip, on him or his gear
     if (u.conds.daylight) add(60, 60, 'bone', false, 'daylight', u.conds.daylight); // Daylight cast on a point he stood on: it goes with him
     if (u.conds.sacred && u.hp > 0) add(20, 20, 'gold', false, 'sacred');         // Sacred Weapon's glow (SRD: bright 20 ft)
