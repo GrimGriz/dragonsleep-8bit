@@ -70,6 +70,10 @@
       B.card(['{r}' + the(B, u, true) + '{/} knits back together and stirs.  +' + u.regen + '  {g}(fire or acid keeps a troll down){/}'], 300); yield 30;
     }
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
+    // flat and able: up first, half the speed (SRD 5.1), whether or not it walks after -- the walk stood it for the same cost, but a foe with its target already in reach never walked,
+    // so it never stood, and fought prone all fight at disadvantage (10-05, Griz: "why trolls like fighting prone so much instead of standing when they aren't moving anywhere?" -- on the
+    // fix, "seems like correct strategy in most cases"). A knitted troll stands here too; one hanging, held or restrained cannot (rules.js RU.canRise)
+    if (u.conds.prone && RU.canRise(u) && u.turn && u.turn.move >= Math.floor(u.speed / 2) && !(u.hang && G.hanging(u))) RU.rise(B, u);
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal || u.under) B.focus(u); // (a burrower under the ground: the camera on its mound)
     // clinging to a face part way up (a slow climb speed: battle.js moveAlong, 10-04 night): the climb goes on before anything else; still on the face after, the turn is spent

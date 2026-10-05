@@ -66,10 +66,12 @@
   BP.wave = function* () { yield* wave0.apply(this, arguments); yield* watch(this); };
   // his fall ends the fight where it stands
   var over0 = BP.over;
-  BP.over = function () { if (this.pyro && this.pyro.held && this.pyro.down) return 'pyro'; return over0.apply(this, arguments); };
+  // ... and in a fight that says so (data/fights.js `kingFalls`: the Skylights), at full as well -- the king cannot die on Fountain Street, so the fight is fought again
+  // (10-05, Griz: "code the 'Obviously that didn't happen' reload if Pyro goes down")
+  BP.over = function () { if (this.pyro && this.pyro.down && (this.pyro.held || (this.fight && this.fight.kingFalls))) return 'pyro'; return over0.apply(this, arguments); };
   var finish0 = BP.finish;
   BP.finish = function* (o) {
-    if (o === 'pyro') { this.fight = Object.assign({}, this.fight, { lost: 'THE KING FALLS.' }); o = 'lost'; }
+    if (o === 'pyro') { this.fight = Object.assign({}, this.fight, { lost: this.fight && this.fight.kingFalls ? "THE KING FALLS.  Obviously that didn't happen." : 'THE KING FALLS.' }); o = 'lost'; }
     yield* finish0.call(this, o);
   };
 
@@ -81,7 +83,8 @@
     var KW = B.fight && B.fight.kingsWay; if (!KW || u.wentIn) return false;
     var st = G.map.def.step, zOut = G.map.gz(KW.out[0][0], KW.out[0][1]);
     if (G.gzAt(u, u.x, u.y) >= zOut - st) return false;
-    if (!B.units.some(function (w) { return w.side === 'foe' && G.standing(w) && !w.regenDown && !(w.hang && G.hanging(w)) && G.gzAt(w, w.x, w.y) >= zOut - st; })) return false;
+    var sky = B.units.filter(function (w) { return w.id === 'skylight' && !w.dead; })[0]; // (the glass is the trigger, not the roof: a foe standing up there within 25 ft of it -- 10-05, Griz: "Glass as the pyro door trigger please", after his "lean toward glass 3-5"; the roof's whole width had him in the vault while the fight went back down the face)
+    if (!B.units.some(function (w) { return w.side === 'foe' && G.standing(w) && !w.regenDown && !(w.hang && G.hanging(w)) && G.gzAt(w, w.x, w.y) >= zOut - st && (!sky || G.dist(w, sky) <= 25); })) return false;
     var T = u.turn, onDoor = function () { return KW.doors.some(function (q) { return q[0] === u.x && q[1] === u.y; }); };
     if (!onDoor()) {
       var pick = function () { var rm = G.reach(u, T.move); return KW.doors.map(function (q) { return rm[q[0] + ',' + q[1]]; }).filter(function (e) { return e && e.stand; }).sort(function (a, b) { return a.cost - b.cost; })[0]; };
@@ -96,11 +99,27 @@
     B.late = (B.late || []).concat([{ round: B.round + 1, walk: [{ u: u, from: KW.out[0], to: KW.to || KW.out[0] }], card: KW.card }]);
     yield 20; return true;
   };
+  // his flask at a troll lying at 0 and knitting that nobody has burned (10-05, Griz: "without fire, add script to oil flask first down troll and say 'torch him!' - mechanically he can
+  // one action attack second action flask?"): the SRD's plain throw -- an improvised ranged attack, 20 ft, a hit coats it and the next fire on it burns 5 more (js/oil.js) -- his one flask
+  // (save.js ownFlask), the nearest such troll first, and the call to the party; then, with Action Surge still his, he surges and the blows follow as the second action. His maces do not
+  // burn, so without the party's fire a troll he knocks down knits and bites the glass again (the 10-05 case study: nine rounds of it). True when the flask went
+  S.oilDown = function* (B, u) {
+    var T = u.turn; if (!T || !T.action || T.attacksLeft || !(u.ownFlask > 0) || !D.oil) return false;
+    var fl = B.itemList(u).filter(function (x) { return x.id === 'oil' && x.n > 0 && x.ok; })[0]; if (!fl) return false;
+    var t = B.units.filter(function (w) { return w.side === 'foe' && !w.dead && w.regenDown && !w.burned && !(w.conds && w.conds.oiled) && G.dist(u, w) <= D.oil.RANGE && G.los(u, w).clear && M.sees(B, u, w); }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    if (!t) return false;
+    B.card(['{y}' + u.name + '{/}: "Torch him!"'], 240); yield 20;
+    yield* B.exec(u, { do: 'item', id: 'oil', target: t });
+    if (u.hp <= 0 || u.dead) return true;
+    if (!T.action && u.feats && u.feats.actionSurge > 0) { u.feats.actionSurge = 0; T.action = 1; D.sfx('buff'); B.card(['{y}' + u.name + '{/} surges!  {g}(Action Surge: the action again){/}']); yield 16; }
+    return true;
+  };
   S.measure = function* (B, u) {
     var P = measure(B, u), T = u.turn;
     yield* watch(B);
     if (u.hp <= 0 || !RU.canAct(u) || B.over()) return;
     if (yield* S.toRoof(B, u)) return;
+    if ((yield* S.oilDown(B, u)) && !T.action) return; // (his flask at a troll down and knitting, and the call for fire; with Action Surge still his, the blows follow)
     var foes = foesUp(B, u); if (!foes.length) { yield 16; return; }
     var full = P.phase >= 3, main = u.weapon, off = u.offhand, bonusUsed = false;
     // Second Wind (at full): hurt below two fifths, the bonus action

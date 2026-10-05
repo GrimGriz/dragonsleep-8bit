@@ -349,6 +349,7 @@
       // leaves stand open while they come, Battle.hatchOut)
       // (since the second play of 10-05 the garrison comes by rounds, out of the falls -- the waves above -- and the hatch is gone: `hatch` and Battle.hatchOut stay for a fight that wants a bang)
       // the king's own way up (10-05, Griz: "come out the door with the party and in the door when one actually makes the roof, out the waterfall next turn?"): js/pyro.js S.toRoof
+      kingFalls: true, // (his fall ends the fight -- "THE KING FALLS.  Obviously that didn't happen." -- and it is fought again: 10-05, Griz, "code the 'Obviously that didn't happen' reload if Pyro goes down"; js/pyro.js over)
       kingsWay: { doors: [[29, 16], [30, 16]], out: [[29, 1], [30, 1]], to: [29, 3], card: 'Out of the falls\' curtain at the back of the roof: Pyro.' },
       // (in the order they come down the road, each to a square none of the later ones has to pass: the farthest first -- 10-05, the second troll boxed in at the road's mouth. Along
       // the facade: the male at its foot between the first two fountains, the female before the second, a troll each side of them. The first wave's two hold the street's west end,

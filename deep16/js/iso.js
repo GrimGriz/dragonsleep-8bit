@@ -189,6 +189,20 @@
             var under = fbm(gx0 * 0.8, gy0 * 0.8, seed + 77), tn = vnoise(gx0 * 1.4, gy0 * 1.4, seed + 91), crown = tn > 0.68, crownRim = tn > 0.62 && !crown;
             var pebG = h2(Math.floor(gx0 * 14), Math.floor(gy0 * 14), seed + 5) > 0.985;
             var floor = inShaft ? (shD < sh[2] - 0.5 ? stone[0] : stone[1]) : rimS ? stone[3] : crown ? moss[1] : crownRim ? moss[0] : pebG ? stone[4] : rampPick(moss, 0.15 + under * 0.6 + (fine - 0.5) * 0.15, ix, iy);
+            // the hall's walls under the glass (10-05, Griz: "the walls supporting the west and north roof glass - seems to me making 12 & 2 appear like walls behind/under glass would make the
+            // glass look a floor above (supposed to be 15 ft walls, but we can look first if that feels weird)"): a glass tile with no glass to its north (x, y - 1) or to its west (x - 1, y)
+            // gives its far 58% on that side -- fy2 under 0.58 for the north, fx2 under 0.58 for the west, the two back edges on the screen -- to the inner face of the wall, in the stone
+            // ramp, lighter at the glass and darker toward the floor, a darker course every 0.19 of a square running along the wall; the north face lit a step over the west, as a raised
+            // square's two faces are; a corner tile shows both, the nearer wall at each pixel. The tint, the gloss and the silver edge below go over it as over the orchard; a tile touching
+            // the Sunshaft's circle and its rim keeps what it had
+            var nbN = m.at(s.x, s.y - 1), nbW = m.at(s.x - 1, s.y), wB = 0.58;
+            var wNd = (!nbN || nbN.ch !== 'G') && fy2 < wB ? fy2 / wB : 9, wWd = (!nbW || nbW.ch !== 'G') && fx2 < wB ? fx2 / wB : 9, wD = Math.min(wNd, wWd);
+            var shNx = sh ? Math.max(s.x - sh[0], 0, sh[0] - s.x - 1) : 9, shNy = sh ? Math.max(s.y - sh[1], 0, sh[1] - s.y - 1) : 9;
+            if (wD < 1 && !inShaft && !rimS && (!sh || Math.hypot(shNx, shNy) >= sh[2] + 0.22)) {
+              var wIsN = wNd <= wWd, wE = wIsN ? fy2 : fx2, wV = (wIsN ? 0.62 : 0.5) - wD * 0.32 + (fine - 0.5) * 0.08;
+              if (wE > 0.08 && (wE / 0.19) % 1 < 0.34) wV -= 0.2;
+              floor = rampPick(stone, wV, ix, iy);
+            }
             col = mix(floor, blue[3], inShaft ? 0.1 : 0.2);
             var gloss = ((gx0 - gy0 * 0.5) % 6 + 6) % 6 < 0.35; if (gloss && dith(ix, iy) < 0.45) col = mix(col, silver[5], 0.4);
             if ((fx2 < 0.035 || fy2 < 0.035) && dith(ix, iy) < 0.65) col = silver[3];

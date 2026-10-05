@@ -683,6 +683,9 @@
     return null;
   }
   UI.ropeRung = ropeRung;
+  // a figure clinging to a cliff face (no rope: battle.js u.hang = { face, foot, z }) that the mouse is on, or the cursor aims at (underCursor): drawn with the rope's own overlay -- the face,
+  // the rung at its height, the rhombus where it hangs (10-05, Griz: "can targeting wall climbers highlight similar to rope climbing?" -- heights in 5 ft marks: "5 - ensure 5 foot")
+  function clingOf(B) { var w = underCursor(B); return w && w !== B.active && w.hang && w.hang.face && G.hanging(w) ? w : null; }
   // the rung drawn (overlay): the face the rope hangs down, outlined, the rung across it at the height picked, and where the figure will hang -- a small rhombus at the foot's
   // square raised to the rung, the height and the cost beside it. Gold; red where the move will not take it. The face goes in the sort just after its own square's tile (as onSq
   // does), so the raised square's picture does not cover it; the rung's mark just after the rope, so it reads on top of it
@@ -706,11 +709,11 @@
       cx.restore();
     });
     DEFER.push({ depth: r.foot[0] + r.foot[1] + 0.35, gz: zf, layer: 1, draw: function (cx) {
-      var Lr = ropeLine(r); cx.save(); iso.rhombus(cx, Lr[0], Lr[1], rg.z, 9); cx.globalAlpha = 0.9; cx.strokeStyle = col; cx.lineWidth = 1; cx.stroke(); cx.globalAlpha = 1; // (where the figure will hang: on the rope's line, as unitPos draws it -- 10-05)
+      var Lr = rg.cling ? r.foot : ropeLine(r); cx.save(); iso.rhombus(cx, Lr[0], Lr[1], rg.z, 9); cx.globalAlpha = 0.9; cx.strokeStyle = col; cx.lineWidth = 1; cx.stroke(); cx.globalAlpha = 1; // (where the figure will hang: on the rope's line, as unitPos draws it -- 10-05)
       cx.restore();
     } });
     var hp = iso.center(r.foot[0], r.foot[1], rg.z), hs = iso.toScreen(hp.x, hp.y); // (the words after everything in the sort: a tile in front painted over them when they rode in it)
-    LABELS.push({ x: hs.x + 18, y: hs.y - 4, text: (rg.ground ? 'the ground' : (Math.round((rg.z - zf) / st / 2) * 5) + ' ft up') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent + rg.cost) + ' ft of move{/}', color: R('bone', 1) }); // (the rung's height in whole 5s: 10-05)
+    LABELS.push({ x: hs.x + 18, y: hs.y - 4, text: rg.cling ? (Math.round((rg.z - zf) / st / 2) * 5) + ' ft up' : (rg.ground ? 'the ground' : (Math.round((rg.z - zf) / st / 2) * 5) + ' ft up') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent + rg.cost) + ' ft of move{/}', color: R('bone', 1) }); // (the rung's height in whole 5s: 10-05)
   }
 
   // what else is in the hands, after the weapon's name (10-05, Griz: "with torch showing in the weapon slot?"): the torch (or lantern) held, a two-handed weapon carried in one
@@ -1715,6 +1718,7 @@
     if (B.passagesOpen) (B.passages || []).forEach(function (p) { lineSq(ctx, p.at[0], p.at[1], R('gold', 3), 0.55, 4); lineSq(ctx, p.to[0], p.to[1], R('gold', 3), 0.55, 4); });
     // a rung of a rope the mouse is on (ropeRung, 10-04 night): the face, the rung at the height picked, and where the figure will hang
     if (B.ropePick && (tool === 'move' || tool === 'menu' || tool === 'attack')) drawRung(B, u, B.ropePick);
+    var clW = clingOf(B); if (clW) drawRung(B, u, { rope: { at: clW.hang.face, foot: clW.hang.foot }, z: clW.hang.z, ok: true, cling: true }); // (a figure clinging to a face, the mouse on it: the face, its height, the same gold -- clingOf, 10-05)
     // the cursor: red where the current thing can't go
     var s0 = G.map.at(cx, cy);
     if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'cut' ? R('fire', 2) : v === 'far' || v === 'rope' || v === 'rung' || v === 'take' || v === 'takelight' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
@@ -1759,6 +1763,7 @@
     var w = underCursor(B), lines = []; // (a darkmantle on a head the mouse is on, or the one the attack cued would strike)
     if (w && w !== B.active) {
       lines.push((w.side === 'foe' ? '{r}' : '{c}') + w.name + '{/}  HP ' + w.hp + '/' + w.maxhp + '  AC ' + RU.ac(w) + conds(w));
+      if (w.hang && w.hang.face && G.hanging(w)) { var clZ = G.map.gz(w.hang.foot[0], w.hang.foot[1]), clS = G.map.def.step, clUp = Math.round((w.hang.z - clZ) / clS * 5) / 2, clTop = Math.round((G.map.gz(w.hang.face[0], w.hang.face[1]) - w.hang.z) / clS * 5) / 2; lines.push('{y}on the face{/}: ' + clUp + ' ft up, ' + clTop + ' ft to the top'); } // (a clinger: the rope's line for a face -- 10-05, Griz: "ensure 5 foot")
       if (u && G.hostile(u, w) && !w.dead) {
         var d = G.dist(u, w), l = G.los(u, w), sp = B.tool === 'spell' && (B.spell.g.shape === 'attack' || B.spell.g.shape === 'rays');
         var e = RU.edges(u, w, sp ? { spell: true, ranged: true, range: [B.spell.g.range, B.spell.g.range] } : u.weapon);

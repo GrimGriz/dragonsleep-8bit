@@ -164,7 +164,7 @@
     if (c !== Infinity && G.prone(u, o)) c += 5;
     if (c === Infinity) return c;
     if (rp) return c + Math.max(0, Math.round(Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step) * 5 - 5); // (along a rope, up or down: 5 ft of movement a step, the square's own 5 in it)
-    if (u.hang && x0 === u.x && y0 === u.y && G.hanging(u) && !(u.hang.face && x1 === u.hang.face[0] && y1 === u.hang.face[1])) return c + Math.round((u.hang.z - G.map.gz(u.x, u.y)) / G.map.def.step) * 5; // (off a rope part way up, anywhere but its top: down it first, 5 ft a step; a clinger's own face is the climb on, below)
+    if (u.hang && x0 === u.x && y0 === u.y && G.hanging(u) && !G.climbOn(u, x1, y1)) return c + Math.round((u.hang.z - G.map.gz(u.x, u.y)) / G.map.def.step) * 5; // (off a rope part way up, anywhere but its top: down it first, 5 ft a step; a clinger's own face, or the lip beside it, is the climb on, below)
     var cs = G.climbsUp(u, x0, y0, x1, y1); if (cs) c += cs * 5 - 5;
     // a creature with a climb speed (SRD 5.1: "doesn't need to spend extra movement to climb" -- the climb itself is still distance): 2.5 ft of movement a step, rounded up to the
     // 5, the square's own 5 folded in -- a 45 ft face is 45, not 5 (it was the square's 5 alone; 10-04 night, the Edifice: "the monster has to climb up the ediface")
@@ -174,6 +174,10 @@
     var cd = u.cdown && G.climbsDown(u, x0, y0, x1, y1); if (cd) c += cd * 5 - 5; // (a hand that chose CLIMB DOWN: the same 5 ft a step down as up)
     return c;
   };
+  // a clinger's climb on: its own face square, or a square beside that at the face's height (10-05, Griz: "a troll is climbing and I move Aurdin to the edge (apparently the row it's
+  // climbing) and when it finishes its climb it walks into the fountain street without apparent fall damage" -- with its top square taken, the only path its reach map had was down the
+  // face and round by the street; now it clambers over the lip beside the one who blocks it, as anyone would). The ground rule is unchanged: down the face costs the whole height
+  G.climbOn = function (u, x1, y1) { var f = u.hang && u.hang.face; if (!f) return false; if (x1 === f[0] && y1 === f[1]) return true; var st = G.map.def.step; return Math.max(Math.abs(x1 - f[0]), Math.abs(y1 - f[1])) <= 1 && Math.abs(G.map.gz(x1, y1) - G.map.gz(f[0], f[1])) <= st && Math.max(Math.abs(x1 - u.x), Math.abs(y1 - u.y)) <= 1; };
   // a step DOWN a cliff taken by climbing (10-04, the Edifice handoff: "a drop of 10 ft or more offers CLIMB DOWN beside DROP"; SRD 5.1 Climbing: a climb down costs what a climb up does): the number of
   // steps, else 0. Read only for a unit with `cdown` set (battle.js exec 'move', for the hand that chose it); anyone else steps off a face as a drop, as before
   G.climbsDown = function (u, x0, y0, x1, y1) { var d = G.map && G.map.def; if (!(d && d.climb) || u.climbs || G.ropeOn(u, x0, y0, x1, y1) || (u.flies && !(u.conds && (u.conds.restrained || u.conds.prone)))) return 0; var n = Math.round((G.gzAt(u, x0, y0) - G.gzAt(u, x1, y1)) / d.step); return n > 1 ? n : 0; };
@@ -274,13 +278,26 @@
     for (var i = 0; i < L.length; i++) { var s = G.map.at(L[i][0], L[i][1]); if (!s || !s.open) return false; if (G.wallAt) { var w = G.wallAt(L[i][0], L[i][1]); if (w && w.solid && !(L[i][0] === x0 && L[i][1] === y0)) return false; } } // (a Wall of Stone as the rock)
     return true;
   };
+  // the parapet (10-05, Griz, the Skylights: "I tried to shoot a troll climbing up the wall from standing on the ledge and couldn't"; on the fix, "yes, if that breaks SRD note we're
+  // doing it just for this fight"): one standing up top within 20 ft of a climber's face square, and the climber clinging to the face below it, see each other past the lip's own
+  // height -- the lip is a low wall between them, half cover (SRD 5.1 Cover: "a low wall"), where the floor-over-the-line test had made a wall of it (a climber 20 ft down was out of
+  // sight from one row back; only the top 10 ft of the face could be seen). Read only for a climber on a face (u.hang.face); nothing else in the line's reading changes
+  function parapet(a, pa, b, pb) {
+    var st = G.map.def.step, one = function (top, pt, cl, pc) {
+      var h = cl.hang; if (!h || !h.face || !G.hanging(cl) || pc[0] !== cl.x || pc[1] !== cl.y) return false;
+      if (Math.max(Math.abs(pt[0] - h.face[0]), Math.abs(pt[1] - h.face[1])) > 4) return false;
+      return G.map.gz(pt[0], pt[1]) >= G.map.gz(h.face[0], h.face[1]) - st;
+    };
+    return one(a, pa, b, pb) || one(b, pb, a, pa);
+  }
   // creature to creature: { clear, cover (0 or 2), why } -- the best line over both footprints
   G.los = function (a, b, ax, ay, hide) { // (hide: b is hiding -- a creature in the line is cover only if it is a size larger than b, SRD 5.1; 10-04)
     var fa = G.foot(a, ax, ay), fb = G.foot(b), best = { clear: false, cover: 9, why: 'a wall' }, tl = G.tall(), zOf = function (u, p) { return u.hang && G.hanging && G.hanging(u) && p[0] === u.x && p[1] === u.y ? u.hang.z : G.map.gz(p[0], p[1]); };
     fa.forEach(function (pa) {
       fb.forEach(function (pb) {
-        if (tl && G.overFloor(pa[0], pa[1], zOf(a, pa) + G.eyeZ(a), pb[0], pb[1], zOf(b, pb) + G.eyeZ(b))) return; // (a floor above the line: height is a wall)
-        var L = G.line(pa[0], pa[1], pb[0], pb[1]), cover = 0, why = '', clear = true;
+        var par = parapet(a, pa, b, pb); // (one at the lip, one clinging to the face under it: the lip is a low wall between them, half cover -- not the wall the floor test makes of it)
+        if (tl && !par && G.overFloor(pa[0], pa[1], zOf(a, pa) + G.eyeZ(a), pb[0], pb[1], zOf(b, pb) + G.eyeZ(b))) return; // (a floor above the line: height is a wall)
+        var L = G.line(pa[0], pa[1], pb[0], pb[1]), cover = par ? 2 : 0, why = par ? 'the parapet' : '', clear = true;
         for (var i = 0; i < L.length; i++) {
           var x = L[i][0], y = L[i][1];
           if (x === pa[0] && y === pa[1]) continue;
