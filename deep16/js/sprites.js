@@ -155,6 +155,28 @@
   // as knocked flat -- Griz: "The old one might be a good prone if 3 is no good"): it falls through that row, lies at its last frame, and gets
   // up through it backwards; one that dies lying there stays as it lies. Any other: a frame of its death row, as above
   S.proneRow = function (name) { return S.anim(name, 'prone') ? 'prone' : 'hurt'; };
+  // one frame's drawn pixels, from its anchor (the foot), cached; null till the sheet has loaded. Where a figure lying flat is under the mouse (ui.js
+  // UI.pickUnit -- 10-05, his play: Lymen's flask at the troll lying at 32,22 went to the floor five clicks of six, the troll's body drawn three squares
+  // long and the mouse finding it only in a box over its feet). S.frameHit: is a drawn pixel within `pad` of (lx, ly), the mouse from the foot in the
+  // sheet's pixels -- the body, not the box round it, so a hero standing in the box's empty corner is still the hero's to click
+  var masks = {};
+  S.frameMask = function (name, anim, facing, frame) {
+    var sh = D.SHEETS && D.SHEETS[name]; if (!sh || !sh.anims[anim] || !S.has(name)) return null;
+    var key = name + ':' + anim + ':' + (facing % 8) + ':' + frame; if (masks[key] !== undefined) return masks[key];
+    var f = frameOf(sh, anim, facing, 0, { frame: frame }, name), w = f.fw, h = f.fh, cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    var m = new Uint8Array(w * h), any = false;
+    try {
+      var cx = cv.getContext('2d'); cx.drawImage(f.img, f.sx, f.sy, w, h, 0, 0, w, h);
+      var px = cx.getImageData(0, 0, w, h).data;
+      for (var i = 0; i < w * h; i++) if (px[i * 4 + 3] > 40) { m[i] = 1; any = true; }
+    } catch (e) { return (masks[key] = null); }
+    return (masks[key] = any ? { w: w, h: h, ax: f.ax, ay: f.ay, m: m } : null);
+  };
+  S.frameHit = function (mk, lx, ly, pad) {
+    var cx = Math.round(lx + mk.ax), cy = Math.round(ly + mk.ay);
+    for (var j = cy - pad; j <= cy + pad; j++) for (var i = cx - pad; i <= cx + pad; i++) if (i >= 0 && j >= 0 && i < mk.w && j < mk.h && mk.m[j * mk.w + i]) return true;
+    return false;
+  };
   S.proneFrame = function (name) { var pr = S.anim(name, 'prone'); if (pr) return pr.frames - 1; if (S.PRONE[name] != null) return S.PRONE[name]; var a = S.anim(name, 'hurt'); return a && /_p0$/.test(name) && a.frames === 6 ? 4 : -1; };
   // how long an anim takes to play once, in frames at 60 Hz
   S.duration = function (name, anim) { var a = S.anim(name, anim); return a ? Math.ceil(a.frames * 60 / (a.fps || 8)) : 0; };

@@ -355,18 +355,29 @@
     B.units.forEach(function (u) {
       if (u.dead || u.ethereal || u.object) return;
       var p = u.riding && u.master ? perchPos(B, u, z) : unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z; // (a rider where it is drawn: on the head, at the shoulder)
-      if (!(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z)) return;
+      var lf = !u.riding && lyingFrame(u), lm = lf && D.spr.frameMask(u.sheet, lf[0], u.facing || 0, lf[1]), lk = D.spr.scaleOf(u) * z; // (lying flat: the frame it lies at, its pixels as drawn -- sprites.js S.frameMask, 10-05)
+      var onLie = !!lm && D.spr.frameHit(lm, (mx - p.x) / lk, (my - p.y) / lk, 2);
+      if (!onLie && !(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z)) return;
       if (p.depth > bd) { bd = p.depth; best = u; }
       if (want && want(u) && p.depth > pd) { pd = p.depth; pick = u; }
     });
     return pick || best;
   };
-  // what the tool in hand asks for, when it is a foe: the attack cued, a spell aimed at one (UI.pickUnit's `want`)
+  // the frame a figure lies at, as unitObj draws it -- prone on a sheet with a fall frame, or down at 0 (its own prone row if it lay there already,
+  // else its death row's last frame): [anim, frame], or null for one on its feet
+  function lyingFrame(u) {
+    if (u.dead) return null;
+    var S = D.spr, pf = S.proneFrame(u.sheet), prow = S.proneRow(u.sheet);
+    if (u.hp <= 0) { if (prow === 'prone' && u.proneLook) return ['prone', pf]; var h = S.anim(u.sheet, 'hurt'); return h ? ['hurt', h.frames - 1] : null; }
+    return pf >= 0 && u.proneLook ? [prow, pf] : null;
+  }
+  // what the tool in hand asks for, when it is a foe: the attack cued, a spell aimed at one, a flask to throw (UI.pickUnit's `want`)
   function foeWanted(B, u) {
-    var g = B.tool === 'spell' && B.spell && B.spell.g;
-    if (B.tool !== 'attack' && !(g && (g.side === 'foe' || /^(attack|rays|darts|splash)$/.test(g.shape)))) return null;
+    var g = B.tool === 'spell' && B.spell && B.spell.g, it = B.tool === 'item' && window.DS.DATA.items[B.itemId];
+    if (B.tool !== 'attack' && !(it && it.use && it.use.effect === 'damage') && !(g && (g.side === 'foe' || /^(attack|rays|darts|splash)$/.test(g.shape)))) return null;
     return function (w) { return G.hostile(u, w) && G.standing(w); };
   }
+  UI.foeWanted = foeWanted; // (dev/bench16.js oil1005)
   function overUI(B) { // is the mouse over a menu, a list or the bar (so the grid doesn't take the click)?
     if (I.mouse.y >= BAR_Y) return true;
     return (B.uiRects || []).some(hit);

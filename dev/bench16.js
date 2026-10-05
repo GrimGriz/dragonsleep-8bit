@@ -1657,6 +1657,21 @@
       wzO.guest = false; wzO.classAI = true; packO(Bz); Bz.hurt(trZ, 300, 'slashing'); nearO(wzO, trZ, 4);
       D.d = function (n) { return n === 20 ? 18 : d0O(n); }; var fZ = flasksO(Bz), nZ = (Bz.log || []).length; runO(D.ai.turn(Bz, wzO)); D.d = d0O; var lgZ = (Bz.log || []).slice(nZ).join(' | ');
       okO('a wizard 5 alone with a troll lying: burned ' + !!trZ.burned + ', the flask kept ' + (flasksO(Bz) === fZ) + ' -- ' + lgZ.slice(0, 150), trZ.burned === true && flasksO(Bz) === fZ && /burns where it lies/.test(lgZ));
+      // f. the mouse finds a troll lying flat by its body as drawn (10-05, his play: Lymen's flask at the troll prone at 32,22, 10 ft off -- five clicks of six on its body went to
+      // the floor, the mouse finding it only in a box over its feet; js/ui.js UI.pickUnit, sprites.js S.frameMask). The bench draws no sheets: a stand-in frame, a body lying
+      // 90-140 px left of the foot, past the standing box. Standing, the point is not the troll's; prone, it is; down at 0, it is; the flask in hand wants the troll, the move tool nothing
+      var Bp = mkO('?npc=troll&lvl=5&vs=fighter:5'), ftP = sideO(Bp, 'party')[0], trP = sideO(Bp, 'foe')[0], UIp = D.ui, fm0 = D.spr.frameMask, askedP = [];
+      var barP = new Uint8Array(200 * 40); for (var jP = 20; jP < 30; jP++) for (var iP = 10; iP < 60; iP++) barP[jP * 200 + iP] = 1;
+      D.spr.frameMask = function (nm, an, fc, fr) { askedP.push(an + ' ' + fr); return { w: 200, h: 40, ax: 150, ay: 30, m: barP }; };
+      try {
+        var pP = UIp.unitPos(Bp, trP), kP = D.spr.scaleOf(trP) * D.iso.zoom, mxP = pP.x - 115 * kP, myP = pP.y - 5 * kP, atP = function () { var q = UIp.pickUnit(Bp, mxP, myP, null); return q ? q.id || q.name : 'nothing'; };
+        trP.hp = 10; delete trP.conds.prone; trP.proneLook = false; var stP = atP();
+        trP.conds.prone = true; trP.proneLook = true; var prP = atP(), prA = askedP.slice(-1)[0];
+        Bp.hurt(trP, 300, 'slashing'); trP.proneLook = false; var dnP = atP(), dnA = askedP.slice(-1)[0];
+        okO('the mouse 115 px left of a troll\'s foot: standing ' + stP + '; prone ' + prP + ' (' + prA + '); down at 0 ' + dnP + ' (' + dnA + ', down ' + !!trP.regenDown + ')', stP !== trP.id && prP === trP.id && dnP === trP.id && !!trP.regenDown);
+        Bp.tool = 'item'; Bp.itemId = 'oil'; var wP = UIp.foeWanted(Bp, ftP); Bp.tool = 'move'; var wM = UIp.foeWanted(Bp, ftP);
+        okO('the flask in hand asks for a foe (the troll lying ' + !!(wP && wP(trP)) + ', the fighter ' + !!(wP && wP(ftP)) + '); the move tool asks for none ' + !wM, !!wP && wP(trP) && !wP(ftP) && !wM);
+      } finally { D.spr.frameMask = fm0; }
     } catch (eO) { repO.errors.push(String(eO && eO.stack || eO).slice(0, 900)); }
     D.d = d0O;
     if (errs.length) repO.errors = repO.errors.concat(errs);
