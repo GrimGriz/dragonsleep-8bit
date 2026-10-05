@@ -19,6 +19,7 @@ The pane reads `.claude/launch.json` **from the folder the session was opened in
 | `dragonsleep-branch` | 8926 | `.claude/worktrees/branch` -- whatever branch you put there |
 | `dragonsleep-3` (home file only) | 8927 | the checkout, when other chats hold 8923 and 8924 (added 10-04, the climbing seat: the troll window held both) |
 | `dragonsleep-4` (home file only) | 8928 | the checkout, when other chats hold all three (added 10-04 night, the huge-maps seat: three windows held 8923, 8924 and 8927) |
+| `dragonsleep-5` (home file only) | 8929 | the checkout, when other chats hold all four (added 10-05, the spout seat) |
 
 **Main:** `preview_start {name: "dragonsleep"}` (or `-2`, or the home file's `-3`), then `navigate` to the door. The checkout is shared: it shows every seat's uncommitted edits too.
 
