@@ -1133,6 +1133,40 @@
       });
       var okN = cases.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('floor1003: ' + okN + '/' + cases.length + ' cases' + (okN === cases.length ? ' clean' : ': ' + cases.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
+    } else if (test === 'skylights8') {
+      // the call from the surface and the Skylights handed back (10-05 night, Griz: "a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to
+      // save - them lamping from 3 starts this fight - with xp reward hand back to 8 bit after the battle"): js/deep.js EV.surfaceCall (the runner, the save asked -- answered NO),
+      // EV.roadMenu (TO THE SURFACE! first, no way back up while the call is out), S.skylights (DEEP16 'edifice', the ownCast). DEEP16 is not run: its 'd16:done' is dispatched on
+      // the page as ledgerlamp8seam does, and the 8-bit's own ending pays: the XP of two stone giants and four trolls, 13000, by the four. The page's short timers queue with the
+      // scene resumes (T.step drains them); the grid's ready timeout is put out of reach
+      var said8 = [], asked8 = [], say8 = DS.say, ask8 = DS.ask, st8 = window.setTimeout, rdy8 = DS.d16ReadyMs;
+      DS.say = function (t) { said8.push(DS.stripCodes(Array.isArray(t) ? t.join(' ') : String(t))); return say8.apply(this, arguments); };
+      DS.ask = function (t, opts) { var i = opts[0] === 'SAVE' && opts[1] === 'NO' ? 1 : 0; asked8.push(opts.join('/')); return { start: function () { this.result = i; this.finished = true; } }; };
+      window.setTimeout = function (fn, ms) { if ((ms || 0) < 1000) pending.push(fn); return 0; }; DS.d16ReadyMs = 1e9;
+      var tap8 = function (until, cap) { for (var i = 0; i < (cap || 3000) && !DS.lastError && !until(); i++) { var tp = DS.top(), k = tp && tp.kind; if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1); } };
+      try {
+        var g8 = SETUP(8, { raidWon: 1, lamp3: 1, captainHome: 1, mustered: 1, wordBelow: 1, roadOpen: 1, escortsOut: 1 }); DS.lastError = null;
+        DS.field.load('highway_3', 68, 6, 'up'); g8.x = 68; g8.y = 6;
+        var xp8 = g8.party.map(function (h) { return h.xp; }), done8 = false;
+        DS.run(function* () { yield* DS.EV.roadMenu(3); }, function () { done8 = true; });
+        tap8(function () { return done8 || !!document.getElementById('d16'); });
+        var fr8 = document.getElementById('d16'), menu8 = asked8.filter(function (a) { return /SURFACE/.test(a); })[0] || '';
+        check('the runner and the save: the call heard ' + !!g8.flags.surfaceCall + ', his words said ' + said8.some(function (x) { return /on the Edifice/.test(x); }) + ', the save asked ' + asked8.some(function (a) { return a === 'SAVE/NO'; }) + ' (NO)' + (DS.lastError ? ' ERR ' + String(DS.lastError).slice(0, 160) : ''),
+          !!g8.flags.surfaceCall && said8.some(function (x) { return /on the Edifice/.test(x); }) && asked8.some(function (a) { return a === 'SAVE/NO'; }));
+        check('the lamp leads with TO THE SURFACE!, no way back up while the call is out: ' + menu8, /^TO THE SURFACE!\//.test(menu8) && !/BACK UP/.test(menu8));
+        check('to the grid: the iframe opened ' + !!fr8 + ', the field on ' + (DS.field && DS.field.map && DS.field.map.id) + ', the fight asked for ' + (fr8 ? 'edifice' : '-'), !!fr8 && DS.field.map.id === 'solskaft_deep');
+        if (fr8) {
+          window.dispatchEvent(new MessageEvent('message', { source: fr8.contentWindow, data: { type: 'd16:done', result: 'won', party: g8.party.map(function (h) { return { id: h.id, hp: h.hp, maxhp: h.maxhp, slots: h.slots, feats: h.feats }; }), foes: [], inv0: {}, inv1: {} } }));
+          drive({}, 3000);
+          tap8(function () { return done8; }, 4000);
+          var gain8 = g8.party.map(function (h, i) { return h.xp - xp8[i]; });
+          check('won and handed back: the flag ' + !!g8.flags.skylightsWon + ', the four gained ' + gain8.join('/') + ' XP (13000 by four), the line said ' + said8.some(function (x) { return /The last of them goes down/.test(x); }) + ', the script done ' + done8 + ', on ' + DS.field.map.id + (DS.lastError ? ' ERR ' + String(DS.lastError).slice(0, 160) : ''),
+            !!g8.flags.skylightsWon && gain8.every(function (n) { return n === 3250; }) && said8.some(function (x) { return /The last of them goes down/.test(x); }) && done8);
+          asked8.length = 0; var done9 = false; DS.run(function* () { yield* DS.EV.roadMenu(3); }, function () { done9 = true; }); tap8(function () { return done9; }, 600);
+          check('after it: the lamp offers the way back up again, no surface: ' + asked8.join(' | '), asked8.some(function (a) { return /BACK UP TO SOLSKAFT/.test(a) && !/SURFACE/.test(a); }));
+        }
+      } catch (e8) { check('threw: ' + String(e8 && e8.stack || e8).slice(0, 400), false); }
+      DS.say = say8; DS.ask = ask8; window.setTimeout = st8; DS.d16ReadyMs = rdy8;
     } else if (test === 'xp1005') {
       // 10-05 (RULED, Griz: "count guests as 'standing' for xp."): the guests stand in the XP split and bank nothing (js/battle.js finish: the divisor is the
       // four standing plus each guest fielded and not down at the end; js/events.js EV.fedXp: the landlord's pool the same). A won fight with the foes put down

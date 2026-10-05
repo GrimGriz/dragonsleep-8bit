@@ -14760,6 +14760,42 @@
    "src": "handoff-2026-09-26-dragonsleep-dwarven-expansion-spec.md §4.4; spine-recut §2 beat 6 (hold the road to the door)",
    "id": "deep.escortsStay"
   },
+  "deep.surfaceCome": {
+   "t": "Boots on the road above, coming down fast.",
+   "src": "Griz 10-05 night: \"a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to save - them lamping from 3 starts this fight - with xp reward hand back to 8 bit after the battle\"; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts); invented.json skylights-call",
+   "id": "deep.surfaceCome"
+  },
+  "deep.surfaceRunner": {
+   "t": [
+    "Up top -- they're on the Edifice! Two giants off the north road, and trolls at their heels. They're climbing for the skylights.",
+    "The king's gone up to the roof himself. Anyone who can swing a blade, up the lamps. Now!"
+   ],
+   "src": "Griz 10-05 night: \"a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to save - them lamping from 3 starts this fight - with xp reward hand back to 8 bit after the battle\"; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts); invented.json skylights-call",
+   "id": "deep.surfaceRunner"
+  },
+  "deep.surfaceLamp": {
+   "t": "Third Lamp burns steady. Its way up is a touch away.",
+   "src": "Griz 10-05 night: \"a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to save - them lamping from 3 starts this fight - with xp reward hand back to 8 bit after the battle\"; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts); invented.json skylights-call",
+   "id": "deep.surfaceLamp"
+  },
+  "deep.surfaceUp": {
+   "t": "Up the lamps at a run, and out through the vault into the noise.",
+   "src": "Griz 10-05 night: \"a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to save - them lamping from 3 starts this fight - with xp reward hand back to 8 bit after the battle\"; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts); invented.json skylights-call",
+   "id": "deep.surfaceUp"
+  },
+  "deep.skylightsIntro": {
+   "t": "Fountain Street. Giants on the Edifice's face, trolls in the street, and the glass over the Sunshaft above it all.",
+   "src": "Griz 10-05 night: \"a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to save - them lamping from 3 starts this fight - with xp reward hand back to 8 bit after the battle\"; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts); invented.json skylights-call",
+   "id": "deep.skylightsIntro"
+  },
+  "deep.skylightsWon": {
+   "t": [
+    "The last of them goes down. Over Fountain Street the glass still holds the light.",
+    "Water runs in the fountains. Somewhere up on the roof, the king is laughing."
+   ],
+   "src": "Griz 10-05 night: \"a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to save - them lamping from 3 starts this fight - with xp reward hand back to 8 bit after the battle\"; drafted by the code tab, PROPOSED (RULED 09-24: no [GRIZ] stubs; the seat drafts); invented.json skylights-call",
+   "id": "deep.skylightsWon"
+  },
   "deep.captainSee": {
    "t": [
     "Third Lamp's captain, where the raid left him in the barrack-cut. On his belt, beside the garrison knife, a second one: not issue. A ward-knot etched on the blade."

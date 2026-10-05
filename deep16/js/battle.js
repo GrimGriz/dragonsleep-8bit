@@ -96,7 +96,9 @@
     });
     // inside the 8-bit game, the 8-bit scene's own foes (this.o.embed.enemies, Battle.roster), or only those still out there
     // (this.o.embed.only: the chase's road fights)
-    var only = this.o.embed && this.o.embed.only, list = this.o.embed && this.o.embed.enemies;
+    // (a fight with its own cast -- `ownCast`: the Skylights, named and scripted, its waves by id -- keeps it inside the 8-bit game too; the 8-bit's list pays the XP on a win
+    // (js/embed.js marks the whole list dead). 10-05 night: the 8-bit's two stone giants found one spot of their kind, and Steinarr -- his own kind -- never came)
+    var only = this.o.embed && this.o.embed.only, list = this.o.embed && !F.ownCast && this.o.embed.enemies;
     var foes = (list ? this.roster(F.foes || m.def.foes, list, m, party) : (F.foes || m.def.foes).filter(function (f) { return !only || only.indexOf(f.kind) >= 0; }))
       .map(function (f) { return self.makeFoe(f); });
     // (a word that names no class and no named one may name a creature of the bestiary, data/foes.js: ?npc=hyena,hyena,hyena&vs=bard&lvl=3 --

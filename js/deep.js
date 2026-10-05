@@ -535,13 +535,46 @@
     var f = G().flags;
     return f.captainHome && f['lamp' + n] && !(n === 3 && f.wordBelow && !f.raidWon);
   }
+  // the call up (10-05 night, Griz: "a fella running in after lamp 3 is clear, saying there's an attack on the surface - chance to save - them lamping from 3 starts this fight -
+  // with xp reward hand back to 8 bit after the battle"): a runner down the lamps from Solskaft -- giants and trolls at the Edifice, for the skylights -- then the save offered, and the
+  // lamps' way up is the way into the fight (EV.roadMenu: TO THE SURFACE!, S.skylights). Once, at the end of the raid; a save already past the raid hears it at the next lamp it
+  // touches. The lines are the seat's drafts (invented.json skylights-call)
+  EV.surfaceCall = function* () {
+    var g = G(); if (!g.flags.raidWon || g.flags.surfaceCall || g.flags.skylightsWon || !DS.field || g.party.every(function (h) { return h.ko; })) return;
+    g.flags.surfaceCall = 1;
+    var f = F(), spots = [[g.x + 1, g.y], [g.x - 1, g.y], [g.x, g.y + 1], [g.x, g.y - 1]].filter(function (q) { return f.free(q[0], q[1]); });
+    var r = spots.length ? spawn({ id: 'surfacerunner', x: spots[0][0], y: spots[0][1], look: 'dtrooper2', dir: 'down' }) : null;
+    if (r) { faceTo(r, g.x, g.y); playerFace(r.x, r.y); }
+    yield DS.say(L('deep.surfaceCome'));
+    yield DS.say(L('deep.surfaceRunner'), who('A runner from Solskaft'));
+    if (r) r.path = ['wait20', 'hide'];
+    var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
+    if (s === 0) yield W8.scene(new DS.SlotScene(true));
+    yield DS.say(L('deep.surfaceLamp'));
+  };
+  // the Skylights (DEEP16: deep16/data/fights.js edifice): up the lamps at a run and out through the vault onto Fountain Street, where the lamps' way up comes out; the grid
+  // fights it and hands back what it did, and the 8-bit's own ending pays it -- Victory!, the XP of two stone giants and four trolls, their silver; a loss is GAME OVER, as
+  // any is (the king's fall too: "Obviously that didn't happen") -- the save just made is the way back
+  S.skylights = function* () {
+    var g = G();
+    yield DS.fade(1, 20);
+    yield DS.say(L('deep.surfaceUp'), { top: true, auto: 70 });
+    DS.field.load('solskaft_deep', 36, 11, 'left'); DS.field.banner = 90;
+    yield DS.fade(0, 20);
+    var res = yield* EV.fight(['stonegiant', 'stonegiant', 'troll', 'troll', 'troll', 'troll'], { bg: 'dwarf', music: 'boss', canRun: false, introText: L('deep.skylightsIntro'), deep16: 'edifice' });
+    if (res !== 'win') return;
+    g.flags.skylightsWon = 1;
+    yield DS.say(L('deep.skylightsWon'));
+  };
   EV.roadMenu = function* (here) { // fast travel (spec §6.2) and, at a lamp, a night if you want one (re-cut F5)
-    var g = G(), opts = [], vals = [];
-    if (here !== 'gate') { opts.push('REST HERE'); vals.push('rest'); if (g.flags.captainHome) { opts.push('BACK UP TO SOLSKAFT'); vals.push('up'); } }
+    if (here !== 'gate') yield* EV.surfaceCall(); // (a save past the raid that never heard the runner hears him here -- 10-05 night)
+    var g = G(), opts = [], vals = [], call = g.flags.surfaceCall && !g.flags.skylightsWon; // (the call out: the way up is the fight -- S.skylights)
+    if (here !== 'gate') { if (call) { opts.push('TO THE SURFACE!'); vals.push('surface'); } opts.push('REST HERE'); vals.push('rest'); if (g.flags.captainHome && !call) { opts.push('BACK UP TO SOLSKAFT'); vals.push('up'); } }
     [1, 2, 3].forEach(function (n) { if (lampWarpable(n) && n !== here) { opts.push('TO ' + LAMP_NAME[n]); vals.push(n); } });
     if (here === 'gate') { opts.unshift('WALK THE ROAD'); vals.unshift('walk'); }
     opts.push('NOT NOW'); vals.push('no');
     var a = vals[yield DS.ask(L(here === 'gate' ? 'deep.roadMenuGate' : 'deep.roadMenuLamp'), opts)];
+    if (a === 'surface') { yield* S.skylights(); return; }
     if (a === 'rest') yield* lampRest();
     else if (a === 'up') yield* EV.lampWalk('solskaft_deep', 36, 11, 'left', 'deep.walkUp');
     else if (typeof a === 'number') { var at = LAMPS_AT[a]; yield* EV.lampWalk(at[0], at[1], at[2], 'right', a > (here === 'gate' ? 0 : here) ? 'deep.walkDown' : 'deep.walkUp'); }
@@ -555,6 +588,7 @@
   S.highwayGate = function* () {
     var g = G(), f = F(), GW = who('Gate watch');
     if (g.flags.wordBelow && !g.flags.mustered) { yield* S.muster(); return; }
+    if (g.flags.surfaceCall && !g.flags.skylightsWon) { yield* S.skylights(); return; } // (the call out and the road walked up to the gate: the fight is on -- 10-05 night)
     if (g.flags.roadOpen) { yield* EV.roadMenu('gate'); return; }
     if (g.flags.pyroLeads && !g.flags.captainHome) {
       yield DS.say(L('deep.gatePyro'), who('Pyronimus'));
@@ -849,6 +883,7 @@
     yield DS.say(L(guests ? 'deep.lamp3Lit' : 'deep.lamp3LitAlone'));
     if (guests) { yield DS.say(L('deep.escortsStay'), who('Hedda Greyseam')); EV.dropGuest('brann'); EV.dropGuest('hedda'); F().refreshNpcs(); }
     g.flags.pin = 'solskaft';
+    yield* EV.surfaceCall(); // (Third Lamp clear: the call from the surface -- 10-05 night)
   };
   S.captain = function* () { // the Greyseam knife: a sect blade on a garrison captain's body (spec §8: shown, not told)
     var g = G();

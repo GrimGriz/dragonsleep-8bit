@@ -355,6 +355,7 @@
       // leaves stand open while they come, Battle.hatchOut)
       // (since the second play of 10-05 the garrison comes by rounds, out of the falls -- the waves above -- and the hatch is gone: `hatch` and Battle.hatchOut stay for a fight that wants a bang)
       // the king's own way up (10-05, Griz: "come out the door with the party and in the door when one actually makes the roof, out the waterfall next turn?"): js/pyro.js S.toRoof
+      ownCast: true, // (inside the 8-bit game too, this cast and no other: battle.js -- the 8-bit's call from the surface, deep.js S.skylights, 10-05 night)
       whistler: 'giant1', // (the one whose first turn on the roof brings the `whistle` wave down: Hallvör -- ai.js whistle, 10-05 evening)
       kingFalls: true, // (his fall ends the fight -- "THE KING FALLS.  Obviously that didn't happen." -- and it is fought again: 10-05, Griz, "code the 'Obviously that didn't happen' reload if Pyro goes down"; js/pyro.js over)
       kingsWay: { doors: [[29, 16], [30, 16]], out: [[29, 1], [30, 1]], to: [29, 3], card: 'Out of the falls\' curtain at the back of the roof: Pyro.' },
