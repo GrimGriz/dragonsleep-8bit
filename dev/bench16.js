@@ -1630,6 +1630,27 @@
       var askK = null, gK = Bk.exec(ftK, { do: 'pickuptorch', x: s1K[0], y: s1K[1] }), stK, kK = 0, vK; while (gK && kK++ < 400) { stK = gK.next(vK); vK = undefined; if (stK.done) break; if (stK.value && stK.value.prompt) { askK = stK.value.prompt; vK = askK.opts[0].value; } }
       okT('a torch on the floor two squares off: the click ' + v2K + ' (' + why2K + '); one beside: the click ' + v1K + ', asked ' + (askK ? askK.opts.map(function (o) { return o.label; }).join('/') : 'nothing') + ', in the hand ' + !!ftK.torch + ', off the floor ' + !D.light.torchAt(Bk, s1K[0], s1K[1]) + ', the free object spent ' + !!ftK.turn.freeObj,
         v2K !== 'takelight' && /not from here/.test(why2K) && v1K === 'takelight' && !!askK && askK.opts[0].value === 'take' && !!ftK.torch && !D.light.torchAt(Bk, s1K[0], s1K[1]) && ftK.turn.freeObj === true);
+      // j. the hands (10-05, Griz: "Add 'put away'? ... Go ahead and build what you were planning on"; "two handers holding a torch that drops when they attack"; "with torch showing in the
+      // weapon slot?"): a barbarian's greataxe carries a torch in one hand -- lit from the pack -- and lets it fall when it swings; PUT AWAY empties the hand (an unarmed strike till DRAW,
+      // the turn's one object each); with a rapier put away and a torch, the flask goes lit; with a shield, a torch and the sword put away, there is no hand for it
+      var Bh = mkT('?npc=ogre&lvl=5&vs=barbarian:5'), bar = sideT(Bh, 'party')[0], ogH = sideT(Bh, 'foe')[0];
+      bar.guest = false; delete bar.torch; D.light.regrip(bar); D.rules.startTurn(bar);
+      var axe = bar.weapon && bar.weapon.name, twoH = (bar.weapon.props || []).indexOf('two-handed') >= 0, canL = D.light.canLight(Bh, bar, 'torch');
+      runT(Bh.exec(bar, { do: 'item', id: 'torch', target: bar })); var hu = D.light.handsUsed(bar), noteH = D.ui.handsNote(bar);
+      okT('a barbarian with the ' + axe + ' (two-handed ' + twoH + '): may light a torch ' + canL.ok + ' (' + canL.why + '); lit: in hand ' + !!bar.torch + ', the axe carried ' + hu.carried + ', still the ' + bar.weapon.name + ' -- the note "' + noteH + '"', twoH && canL.ok && !!bar.torch && hu.carried && bar.weapon.name === axe && /carried/.test(noteH) && /torch in hand/.test(noteH));
+      D.rules.startTurn(bar); nearT(bar, ogH, 1); var n0H = (Bh.log || []).length; runT(Bh.exec(bar, { do: 'attack', target: ogH })); var lgH = (Bh.log || []).slice(n0H).join(' | ');
+      okT('it swings at the ogre: the torch fell first ' + /lets the torch fall/.test(lgH) + ', the hand empty ' + !bar.torch + ', burning at its feet ' + !!D.light.torchAt(Bh, bar.x, bar.y) + ', the blow ' + /> Ogre/.test(lgH) + ' -- ' + lgH.slice(0, 120), /lets the torch fall/.test(lgH) && !bar.torch && !!D.light.torchAt(Bh, bar.x, bar.y) && /> Ogre/.test(lgH));
+      D.rules.startTurn(bar); var cmdsH = Bh.commands ? Bh.commands(bar).map(function (c) { return c.id; }) : [];
+      runT(Bh.exec(bar, { do: 'putaway' })); var sh0 = bar.sheathed && bar.sheathed.name, unH = bar.weapon && bar.weapon.name, freeH = D.light.handsFree(bar), cmds2 = Bh.commands ? Bh.commands(bar).filter(function (c) { return c.id === 'drawweapon'; })[0] : null;
+      runT(Bh.exec(bar, { do: 'drawweapon' })); var stillPut = !!bar.sheathed;
+      D.rules.startTurn(bar); runT(Bh.exec(bar, { do: 'drawweapon' }));
+      okT('PUT AWAY on the ring ' + (cmdsH.indexOf('putaway') >= 0) + '; put away: kept ' + sh0 + ', in hand ' + unH + ', hands free ' + freeH + ', DRAW offered ' + !!cmds2 + ' and refused the same turn (the one object) ' + stillPut + '; next turn drawn: ' + (bar.weapon && bar.weapon.name) + ', put away now ' + !!bar.sheathed,
+        cmdsH.indexOf('putaway') >= 0 && sh0 === axe && unH !== axe && freeH === 2 && !!cmds2 && stillPut && bar.weapon.name === axe && !bar.sheathed);
+      var Br = mkT('?npc=troll&lvl=5&vs=rogue:5,fighter:5'), rgH = sideT(Br, 'party').filter(function (u) { return u.cls === 'rogue'; })[0], fgH = sideT(Br, 'party').filter(function (u) { return u.cls === 'fighter'; })[0];
+      rgH.guest = false; fgH.guest = false; lightT(rgH); lightT(fgH); D.rules.startTurn(rgH); D.rules.startTurn(fgH);
+      var litR0 = D.oil.lit(rgH); runT(Br.exec(rgH, { do: 'putaway' })); var litR1 = D.oil.lit(rgH);
+      runT(Br.exec(fgH, { do: 'putaway' })); var litF = D.oil.lit(fgH), shF = !!(fgH.src && fgH.src.equip && fgH.src.equip.shield);
+      okT('the rogue with a torch: the flask lit before ' + litR0 + ', the ' + (rgH.sheathed && rgH.sheathed.name) + ' put away ' + litR1 + '; the fighter (shield ' + shF + ') with a torch, the sword put away: lit ' + litF + ' (' + D.light.handsWhy(fgH) + ')', !litR0 && litR1 && (!shF || !litF));
     } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
     D.d = d0T;
     if (errs.length) repT.errors = repT.errors.concat(errs);

@@ -110,7 +110,7 @@
   // class features that spend something (the 8-bit game's SKILL: Lay on Hands, Sacred Weapon, Second Wind, Action
   // Surge); ACTIONS the plain ones anyone has (Dash, Disengage, Dodge, Help), the same four for everyone, the rogue's
   // Dash and Disengage being her Cunning Action's -- Griz, 09-27. The rogue's HIDE is on the first ring (09-27 again)
-  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1 }; // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
+  var SKILLS = { lay: 1, sacred: 1, secondwind: 1, surge: 1, ignite: 1, douse: 1 }, ACTIONS = { search: 1, dash: 1, disengage: 1, cdash: 1, cdisengage: 1, dodge: 1, help: 1, ready: 1, leave: 1, droptorch: 1, throwtorch: 1, dousetorch: 1, pickuptorch: 1, hooddown: 1, hoodup: 1, putaway: 1, drawweapon: 1 }; // (putaway, drawweapon: the weapon put away and drawn, 10-05) // (ready: the Ready action, 10-02 -- battle.js exec 'ready')
   function group(id, label, list) {
     return { id: id, label: label, cost: '', ok: list.some(function (x) { return x.ok; }), why: 'nothing there to do now', sub: id, icon: id, items: list };
   }
@@ -474,7 +474,7 @@
     // is (10-05, Griz: "have viv move and end up on a rope with her bonus action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash movement")
     var mvH = T.move + D.Battle.dashes(u).length * (u.speed || 30); // (a Dash still open -- the action's, or Cunning Action's bonus -- is more rope to climb: not spent; 10-05, Griz: "not if they have dash action or dash bonus action of course")
     if (mvH >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u) && (D.Battle.ropeSteps(u.hang.rope, u.hang.z, true, mvH) > 0 || D.Battle.ropeSteps(u.hang.rope, u.hang.z, false, mvH) > 0)) return false;
-    return !B.commands(u).some(function (c) { return c.ok; });
+    return !B.commands(u).some(function (c) { return c.ok && c.id !== 'putaway' && c.id !== 'drawweapon'; }); // (PUT AWAY and DRAW hold no turn open: free and nearly always there -- 10-05)
   }
   UI.spent = spent; // (the bench's: dev/bench16.js mode=edifice1004)
   function turnWheel() { return I.repeat('wheell') ? -1 : I.repeat('wheelr') ? 1 : 0; } // the pad's right stick or bumpers, on the wheel
@@ -713,6 +713,15 @@
     LABELS.push({ x: hs.x + 18, y: hs.y - 4, text: (rg.ground ? 'the ground' : (Math.round((rg.z - zf) / st / 2) * 5) + ' ft up') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent + rg.cost) + ' ft of move{/}', color: R('bone', 1) }); // (the rung's height in whole 5s: 10-05)
   }
 
+  // what else is in the hands, after the weapon's name (10-05, Griz: "with torch showing in the weapon slot?"): the torch (or lantern) held, a two-handed weapon carried in one
+  // hand beside it (it falls when it swings: battle.js attack), a weapon put away (u.sheathed)
+  UI.handsNote = function (u, short) {
+    var L = D.light, bits = [];
+    if (short) return (u.sheathed ? ' (put away)' : '') + (u.torch && L ? ' + ' + L.word(u.torch) : ''); // (the bar's line: room for little)
+    if (u.sheathed) bits.push(u.sheathed.name + ' put away');
+    if (u.torch && L) { var h = L.handsUsed(u); if (h.carried) bits.push('carried -- the ' + L.word(u.torch) + ' falls when it swings'); bits.push('a ' + L.word(u.torch) + ' in hand'); }
+    return bits.length ? ' (' + bits.join('; ') + ')' : '';
+  };
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
@@ -2135,7 +2144,7 @@
     var lines = ['{' + (u.side === 'foe' ? 'r' : 'c') + '}' + u.name + '{/}' + (u.cls ? '  ' + u.cls + ' ' + u.lvl : '') + '  {g}' + ty + '{/}', 'HP ' + u.hp + '/' + u.maxhp + '  AC ' + RU.ac(u) + '  speed ' + u.speed + ' ft' + (u.size > 1 ? '  Large' : '')];
     var own = u.kind === 'keeper' && D.keeper && D.keeper.inspectLines ? D.keeper.inspectLines(D.battle, u) : null; // (the Keeper's own lines in place of its Slam's and its water's: js/keeper.js, 10-03)
     if (own) own.forEach(function (l) { lines.push(l); });
-    else if (u.weapon) lines.push(u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' ' + u.weapon.type + (u.attacks > 1 ? ', x' + u.attacks : ''));
+    else if (u.weapon) lines.push(u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' ' + u.weapon.type + (u.attacks > 1 ? ', x' + u.attacks : '') + UI.handsNote(u));
     if (u.attacks && !u.weapon) Object.keys(u.attacks).forEach(function (k) { var a = u.attacks[k]; lines.push(a.name + ' ' + RU.sign(a.atk) + ', ' + a.dice + RU.sign(a.mod) + ' ' + a.type + (a.range ? ', ' + a.range.join('/') + ' ft' : '') + (a.extra ? ' +' + a.extra + ' ' + a.extraType : '') + (a.save ? ', DC ' + a.save.dc + ' ' + a.save.ab.toUpperCase() + ' or ' + a.save.dice + ' ' + a.save.type : '') + (a.poison ? ', DC ' + a.poison.dc + ' CON or poisoned' : '') + (a.reach > 5 ? ', reach ' + a.reach + ' ft' : '') + (a.grapple ? ', grips (escape DC ' + a.grapple.dc + ')' : '')); });
     if (u.jaunt) lines.push('{p}Ethereal Jaunt{/} (bonus action): steps out of the world, and back.');
     if (u.multi > 2 && u.attacks && u.attacks.bite) lines.push('{p}Multiattack{/}: three, sword or bow; one of them may be the bite.');
@@ -2191,7 +2200,7 @@
     if (!u) return;
     D.text(ctx, 'EQUIP: ' + u.name.toUpperCase(), x + 8, y + 5, R('gold', 4));
     D.hint(ctx, 'a swap costs the action  ·  X back', x + w - 8, y + 5, R('stone', 5), 'right');
-    D.text(ctx, 'in hand: ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? ', ' + u.weapon.range.join('/') + ' ft' : '') + '   AC ' + RU.ac(u), x + 8, y + 17, R('bone', 2));
+    D.text(ctx, 'in hand: ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? ', ' + u.weapon.range.join('/') + ' ft' : '') + UI.handsNote(u) + '   AC ' + RU.ac(u), x + 8, y + 17, R('bone', 2)); // (the torch, a two-hander carried, a weapon put away: 10-05)
     B.gearRects = [];
     if (!opts.length) { D.text(ctx, '{g}Nothing in the pack ' + u.name + ' can take up.{/}', x + 8, y + 31, R('bone', 1)); return; }
     opts.forEach(function (o, i) {
@@ -2214,7 +2223,7 @@
       ctx.save(); ctx.beginPath(); ctx.rect(x + 6, ry, 30, 34); ctx.clip();
       D.spr.draw(ctx, u.sheet, 'idle', 0, B.t, x + 21, ry + Math.min(D.spr.top(u.sheet), 44) + 2, {});
       ctx.restore();
-      D.text(ctx, '{y}' + u.name + '{/}  ' + u.cls + ' ' + u.lvl + '   HP ' + u.hp + '/' + u.maxhp + (u.temp ? ' +' + u.temp : '') + '   AC ' + RU.ac(u) + '   ' + (u.weapon ? u.weapon.name + ' ' + RU.sign(u.weapon.atk) : ''), x + 42, ry + 1, R('bone', 1));
+      D.text(ctx, '{y}' + u.name + '{/}  ' + u.cls + ' ' + u.lvl + '   HP ' + u.hp + '/' + u.maxhp + (u.temp ? ' +' + u.temp : '') + '   AC ' + RU.ac(u) + '   ' + (u.weapon ? u.weapon.name + ' ' + RU.sign(u.weapon.atk) + UI.handsNote(u, true) : ''), x + 42, ry + 1, R('bone', 1));
       var res = [];
       if (u.slots && u.slots.length) res.push('slots ' + u.slots.map(function (n, k) { return (k + 1) + ':' + n + '/' + u.slotsMax[k]; }).join(' '));
       if (u.cls === 'fighter') res.push('2nd wind ' + (f.secondWind ? 'yes' : 'spent') + ', surge ' + (f.actionSurge ? 'yes' : 'spent') + ', indomitable ' + (f.indomitable ? 'yes' : 'spent'));

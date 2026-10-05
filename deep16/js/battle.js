@@ -972,7 +972,13 @@
       out.push({ id: 'droptorch', label: 'DROP TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj, why: freeWhy, note: 'it burns where it falls' });
       out.push({ id: 'throwtorch', label: 'THROW TORCH', cost: 'A', icon: 'torch', ok: T.action > 0 && !T.attacksLeft, why: 'the action is spent', tool: 'torch', note: 'to a square within 20 ft: it burns there -- at a foe, an improvised throw: 1 fire on a hit' });
       out.push({ id: 'dousetorch', label: 'DOUSE TORCH', cost: 'F', icon: 'torch', ok: !T.freeObj, why: freeWhy, note: 'out, and back in the pack' });
-    } else if (floorLight) out.push({ id: 'pickuptorch', label: 'TAKE UP ' + Lt.tag(floorLight), cost: 'F', icon: floorLight.kind === 'lantern' ? 'lantern' : 'torch', ok: !T.freeObj && Lt.handsFree(u) > 0, why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'the one burning at your feet' });
+    } else if (floorLight) out.push({ id: 'pickuptorch', label: 'TAKE UP ' + Lt.tag(floorLight), cost: 'F', icon: floorLight.kind === 'lantern' ? 'lantern' : 'torch', ok: !T.freeObj && Lt.handForLight(u), why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'the one burning at your feet' });
+    // the weapon put away and drawn again (10-05, Griz: "Add 'put away'? ... Go ahead and build what you were planning on"; SRD 5.1, the free interaction with an object: "draw or sheathe a
+    // sword"): put away, the hand is empty -- a torch taken up or lit, the lit flask (js/oil.js) -- and its blows are an unarmed strike till it is drawn; drawn, a hand to hold it
+    if (!u.guest && u.src && u.src.equip) {
+      if (u.sheathed) { var dHands = Lt.handsFree(u) > 0; out.push({ id: 'drawweapon', label: 'DRAW ' + u.sheathed.name.toUpperCase(), cost: 'F', icon: 'attack', ok: !T.freeObj && dHands, why: T.freeObj ? freeWhy : Lt.handsWhy(u), note: 'back in hand: ' + u.sheathed.name + ' ' + RU.sign(u.sheathed.atk) + ', ' + u.sheathed.dice + RU.sign(u.sheathed.mod) });
+      } else if (u.weapon && u.weapon.id && u.weapon.id !== 'unarmed') out.push({ id: 'putaway', label: 'PUT AWAY ' + u.weapon.name.toUpperCase(), cost: 'F', icon: 'attack', ok: !T.freeObj, why: freeWhy, note: 'the hand free (a torch, the lit flask); an unarmed strike till it is drawn' });
+    }
     if (u.cls === 'paladin') out.push({ id: 'lay', label: 'LAY HANDS', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.lay > 0, tool: 'lay', note: 'a pool of ' + (u.feats.lay || 0) + ' HP (long rest), touch' });
     // Sacred Weapon (Channel Divinity, Oath of Devotion): the 8-bit game's SKILL beside Lay on Hands, an action there as here
     if (u.cls === 'paladin' && u.lvl >= 3) out.push({ id: 'sacred', label: 'SACRED WEAPON', cost: 'A', ok: T.action > 0 && !T.attacksLeft && u.feats.channel > 0 && !u.conds.sacred, why: u.conds.sacred ? 'it is shining already' : u.feats.channel > 0 ? '' : 'Channel Divinity is spent (a short rest brings it back)', note: '+' + Math.max(1, D.mod(u.abil.cha)) + ' to hit for a minute; Channel Divinity ' + (u.feats.channel > 0 ? '1/1' : '0/1') + ' (short rest)' + (this.fight && this.fight.roost ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : '') });
@@ -1353,6 +1359,16 @@
       case 'item': { yield* this.useItem(u, c.id, c.target, c); return; } // (c: the oil flask's square, c.x/c.y, when it is thrown at the ground -- js/oil.js)
       case 'breakfree': { yield* D.magic.breakFree(this, u); return; }
       case 'droptorch': T.freeObj = true; D.light.dropTorch(this, u); return;
+      case 'putaway': { // (the ring's PUT AWAY, 10-05: the weapon kept on u.sheathed, an unarmed strike in its place -- the save's equip untouched)
+        if (u.sheathed || !u.weapon || !u.weapon.id || T.freeObj) return;
+        T.freeObj = true; u.sheathed = u.weapon; u.weapon = D.save.weaponOf(Object.assign({}, u.src, { equip: Object.assign({}, u.src.equip, { weapon: null }) }));
+        D.sfx('confirm'); this.card(['{y}' + u.name + '{/} puts the ' + u.sheathed.name + ' away: a hand free.  {g}(' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' till it is drawn){/}'], 220); return;
+      }
+      case 'drawweapon': { // (DRAW: back in hand -- a hand for it)
+        if (!u.sheathed || T.freeObj || D.light.handsFree(u) <= 0) return;
+        T.freeObj = true; u.weapon = u.sheathed; delete u.sheathed; D.light.regrip(u);
+        D.sfx('confirm'); this.card(['{y}' + u.name + '{/} draws the ' + u.weapon.name + '.'], 180); return;
+      }
       case 'dousetorch': T.freeObj = true; D.light.douseTorch(this, u); return;
       case 'pickuptorch': { // from the ring at its feet; or, as the rope's grapple, a click on its square from beside it -- take it up, or only step there, asked -- and the self-click on it asked (10-05, Griz: "torch pick up works like grapple hook")
         var lxP = c.x != null ? c.x : u.x, lyP = c.y != null ? c.y : u.y, tP = D.light.torchAt(this, lxP, lyP); if (!tP) return;
@@ -1704,6 +1720,12 @@
     o = o || {};
     if (!o.oa) this.noteHeard(att); // (the blow gives the square away: SRD 5.1, Hiding -- every swing and shot, the player's or the AI's; 10-01c)
     if (!tgt || tgt.dead || tgt.ethereal) return;
+    // a two-handed weapon swung (or a bow drawn) with a torch in the other hand: the torch is let fall first, burning at the attacker's feet -- free, as letting go is (10-05, Griz:
+    // "two handers holding a torch that drops when they attack"; light.js handsUsed: carried in one hand till then)
+    if (att.torch && att.weapon && atk && !atk.spell && (atk === att.weapon || atk.name === att.weapon.name) && (att.weapon.props || []).indexOf('two-handed') >= 0) {
+      var ltW = D.light.word(att.torch); D.light.dropTorch(this, att, true);
+      this.card(['{y}' + nameOf(att) + '{/} lets the ' + ltW + ' fall to take the ' + att.weapon.name + ' in both hands.  {g}(it burns where it fell){/}'], 220);
+    }
     // Sanctuary (SRD 5.1): "any creature who targets the warded creature with an attack ... must first make a Wisdom saving throw. On a failed save, the creature must choose a new target or lose the
     // attack" -- the save, then a new target (an AI picks the weakest other foe it can reach; a player's pick is asked) or the attack is lost (10-03; before, a failed save only lost it)
     if (tgt.conds && tgt.conds.sanctuary && G.hostile(att, tgt) && D.magic.sanctuary && !D.magic.sanctuary(this, att, tgt)) {
@@ -2483,7 +2505,7 @@
     this.inv.forEach(function (s) {
       var it = window.DS.DATA.items[s.id];
       if (!it || it.kind !== 'weapon' || s.n <= 0 || !R.canEquip(h, it)) return;
-      var wd = it.weapon, two = (wd.props || []).indexOf('two-handed') >= 0, why = busy || (two && h.equip.shield ? 'two hands: the shield comes off first' : two && u.torch ? 'two hands: the torch goes down first' : '');
+      var wd = it.weapon, two = (wd.props || []).indexOf('two-handed') >= 0, why = busy || (two && h.equip.shield ? 'two hands: the shield comes off first' : ''); // (with a torch it is carried in one hand, and the torch falls when it swings: battle.js attack, 10-05)
       var ammo = wd.ammo ? ', ' + (packOf(B, wd.ammo) ? packOf(B, wd.ammo).n : 0) + ' ' + B.itemName(wd.ammo).toLowerCase() : '';
       out.push({ kind: 'weapon', id: s.id, label: it.name, note: wd.dmg + ' ' + wd.type + (wd.range ? ', ' + wd.range.join('/') + ' ft' : ', melee') + ammo, ok: !why, why: why });
     });
@@ -2515,7 +2537,7 @@
     if (o.kind === 'shieldon') { take(o.id); h.equip.shield = o.id; }
     if (o.kind === 'armoroff') { give(h.equip.armor); h.equip.armor = null; }
     if (o.kind === 'armor') { give(h.equip.armor); take(o.id); h.equip.armor = o.id; }
-    u.weapon = D.save.weaponOf(h); u.attacks = u.weapon.loading ? 1 : u.attacksBase;
+    delete u.sheathed; u.weapon = D.save.weaponOf(h); u.attacks = u.weapon.loading ? 1 : u.attacksBase; // (a swap takes the new one up in hand: no weapon put away after it -- 10-05)
     // Mage Armor ends when its wearer puts on armour (robes aren't armour to it)
     if (R.armored(h) && (u.conds.mageArmor || (h.conds && h.conds.mageArmor))) { delete u.conds.mageArmor; if (h.conds) delete h.conds.mageArmor; }
     var ac = R.ac(h); if (u.conds.mageArmor && !R.armored(h)) ac = Math.max(ac, 13 + D.mod(u.abil.dex)); // Mage Armor cast in this fight
