@@ -499,7 +499,7 @@
     // the skylight broken (a defend fight, 10-04 night): the Edifice is breached, and it is lost
     if (this.units.some(function (u) { return u.object && u.breachLoses && (u.dead || u.hp <= 0); })) return 'lost';
     // (a foe turned wholly to stone -- Flesh to Stone's third failed save -- holds no fight open: it had stalled one for good, 10-01)
-    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }).length && !this.units.some(function (u) { return u.side === 'foe' && u.regenDown && !u.dead; })) return 'won'; // (a troll down and knitting holds it open: 10-05)
+    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }).length && !this.units.some(function (u) { return u.side === 'foe' && u.regenDown && !u.dead; }) && !(this.late || []).some(function (l) { return l.foes && l.foes.length; })) return 'won'; // (a troll down and knitting holds it open: 10-05) (so does a late wave of foes still to come: Battle.lateOut)
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
     // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
@@ -512,7 +512,7 @@
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
     // (nor do summoned creatures: they go when their caster's concentration does)
     // (nor a hero turned to stone -- Flesh to Stone's third failed save, the foe side's test above: it never acts again; a party all stone is a lost fight, 10-01)
-    if (!this.alive('party').filter(function (u) { return !u.object && !u.familiar && !u.summon && !u.ally && !u.dominated && !u.loose && !(u.conds && u.conds.stoning && u.conds.stoning.done); }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
+    if (!this.alive('party').filter(function (u) { return !u.object && !u.familiar && !u.summon && !u.ally && !u.dominated && !u.loose && !(u.conds && u.conds.stoning && u.conds.stoning.done); }).length) return this.reserve.length || (this.late || []).some(function (l) { return l.party; }) ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost'; // (the party still behind the doors is no lost fight: Battle.lateOut, 10-05)
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
@@ -582,7 +582,17 @@
       if (look) look(going[0] || file[file.length - 1]);
       yield STEP_FRAMES;
     }
-    pending.forEach(function (p) { if (G.canStand(p.u, p.to[0], p.to[1])) { p.u.x = p.to[0]; p.u.y = p.to[1]; U.push(p.u); (p.riders || []).forEach(function (r) { U.push(r); }); p.u.anim = 'idle'; p.u.facing = p.face; } }); // (one that never got its way in: set down where it was to stand)
+    pending.forEach(function (p) { var to = G.canStand(p.u, p.to[0], p.to[1]) ? p.to : Battle.nearSq(p.u, p.to); if (to) { p.u.x = to[0]; p.u.y = to[1]; U.push(p.u); (p.riders || []).forEach(function (r) { U.push(r); }); p.u.anim = 'idle'; p.u.facing = p.face; } }); // (one that never got its way in: set down where it was to stand -- or, that taken, the nearest open square on its level: a late wave comes in on a street already fought over, 10-05)
+  };
+  // the nearest square to `to` that u may stand on, on to's own level, a ring at a time (Battle.walkIn's last resort)
+  Battle.nearSq = function (u, to) {
+    var z0 = G.map.gz(to[0], to[1]), st = G.map.def.step;
+    for (var r = 1; r <= 8; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      var x = to[0] + dx, y = to[1] + dy, s = G.map.at(x, y);
+      if (s && G.canStand(u, x, y) && Math.abs(G.map.gz(x, y) - z0) <= st) return [x, y];
+    }
+    return null;
   };
   // a fight's opening before the first round (a fight's `arrive`; the Edifice's, 10-05, Griz: "Have pyro come out followed by the party then the doors lock behind them. Have the
   // monsters come from the north road, the team pop out and then initiative" -- and the same day, the waves: "villagers that flee from the buildings to the south road as 2 trolls
@@ -598,8 +608,10 @@
     var byId = function (ids, pool) { return (ids || []).map(function (id) { return pool.filter(function (u) { return u.id === id; })[0]; }).filter(Boolean); };
     var look = function (g) { if (g) self.keepInView(g.u); };
     var waves = A.waves || [{ foes: foes.map(function (u) { return u.id; }), card: A.road }];
+    var late = this.late = this.late || []; // (a wave with a `round`, and the party when arrive.party has one: held off the field till the start of that round -- Battle.lateOut, 10-05)
     this.beats = 0;
     for (var w = 0; w < waves.length; w++) {
+      if (waves[w].round) { late.push({ round: waves[w].round, wave: waves[w], foes: byId(waves[w].foes, foes), allies: byId(waves[w].allies, allies) }); continue; }
       var wv = waves[w], fs = byId(wv.foes, foes), als = byId(wv.allies, allies), mvs = byId(wv.move, U).filter(function (u) { return u.then0; }), file = [];
       if (fs.length) { this.focus({ x: fs[0].from0[0], y: fs[0].from0[1] + 4, size: fs[0].size }); D.sfx('encounter'); }
       else if (als.length) { this.focus({ x: als[0].from0[0], y: als[0].from0[1] - 4, size: 1 }); D.sfx('popup'); }
@@ -614,19 +626,57 @@
       folk.forEach(function (f) { var k = U.indexOf(f.u); if (k >= 0) U.splice(k, 1); }); // (off down the south road and gone)
       this.beats++;
     }
-    var left = foes.concat(allies).filter(function (u) { return U.indexOf(u) < 0; }); // (any the waves never named -- the bench's `plus` trolls -- come in last, down the road behind the rest)
+    var lateU = []; late.forEach(function (l) { lateU = lateU.concat(l.foes || [], l.allies || []); });
+    var left = foes.concat(allies).filter(function (u) { return U.indexOf(u) < 0 && lateU.indexOf(u) < 0; }); // (any the waves never named -- the bench's `plus` trolls -- come in last, down the road behind the rest)
     if (left.length) { yield* this.walkIn(left.map(function (u) { return { u: u, from: u.from0, to: [u.x, u.y], face: D.spr.facingFor(1, 0) }; }), look); yield 20; }
-    if (ours.length) {
-      // the guests first (Pyro leads them out), then the four
-      var lead = function (u) { return (self.fight.guests || []).indexOf(u.id) >= 0 ? 1 : 0; }; // (the fight's own guests: the bench makes everyone a guest)
-      ours.sort(function (a, b) { return lead(b) - lead(a); });
-      m.doorsOpen = true; this.focus({ x: A.doors[0][0], y: A.doors[0][1] + 1, size: 1 }); if (A.open) this.card([A.open], 300); D.sfx('earth');
+    if (ours.length && A.party && A.party.round) { late.push({ round: A.party.round, party: true, ours: ours, riders: riders }); return; } // (the party behind the doors till its round: Battle.lateOut)
+    if (ours.length) yield* this.doorsOut(ours, riders);
+  };
+  // the party out of the doors (arrive.doors): its guests first (Pyro leads them out), then the four in their order, each to the square it was seated on; the doors shut behind them
+  Battle.prototype.doorsOut = function* (ours, riders) {
+    var self = this, A = this.fight.arrive, m = this.map, look = function (g) { if (g) self.keepInView(g.u); };
+    var lead = function (u) { return (self.fight.guests || []).indexOf(u.id) >= 0 ? 1 : 0; }; // (the fight's own guests: the bench makes everyone a guest)
+    ours.sort(function (a, b) { return lead(b) - lead(a); });
+    m.doorsOpen = true; this.focus({ x: A.doors[0][0], y: A.doors[0][1] + 1, size: 1 }); if (A.open) this.card([A.open], 300); D.sfx('earth');
+    yield 30;
+    yield* this.walkIn(ours.map(function (u, i) { return { u: u, from: A.doors[i % A.doors.length], to: [u.x, u.y], face: D.spr.facingFor(-1, 0), spark: true, riders: (riders || []).filter(function (r) { return r.master === u; }) }; }), look);
+    m.doorsOpen = this.passagesOpen;
+    if (A.lock) { this.card(['{y}' + A.lock + '{/}'], 360); D.sfx('clack'); }
+    yield 40;
+  };
+  // the late ones (10-05, Griz: "I'd also like to stall them another round (citizens go get them) and stall another round before the heroes show up (word went down the road quick and a
+  // teleport is fast, but the action should be in play before they get there - potential lever)"): at the start of a wave's `round`, or arrive.party.round, they come in as they would
+  // have before the first round -- a wave down its road under its card, the party out of the doors -- and are dealt into the order on their own rolls
+  Battle.prototype.lateOut = function* () {
+    var self = this, now = (this.late || []).filter(function (l) { return l.round <= self.round; }), look = function (g) { if (g) self.keepInView(g.u); };
+    if (!now.length) return;
+    this.late = this.late.filter(function (l) { return now.indexOf(l) < 0; });
+    for (var i = 0; i < now.length; i++) {
+      var l = now[i], before = this.units.slice();
+      if (l.party) yield* this.doorsOut(l.ours, l.riders);
+      else {
+        var wv = l.wave, file = [];
+        if (l.foes.length) { this.focus({ x: l.foes[0].from0[0], y: l.foes[0].from0[1] + 4, size: l.foes[0].size }); D.sfx('encounter'); }
+        else if (l.allies.length) { this.focus({ x: l.allies[0].from0[0], y: l.allies[0].from0[1] - 4, size: 1 }); D.sfx('popup'); }
+        if (wv.card) this.card([wv.card], 360);
+        l.foes.forEach(function (u) { file.push({ u: u, from: u.from0, to: [u.x, u.y], face: D.spr.facingFor(1, 0), dash: !!wv.dash }); });
+        l.allies.forEach(function (u) { file.push({ u: u, from: u.from0, to: [u.x, u.y], face: D.spr.facingFor(-1, 0) }); });
+        if (file.length) { yield* this.walkIn(file, look); yield 20; }
+        if (this.skylight) l.foes.forEach(function (u) { if (!u.free) u.mission = 'skylight'; });
+      }
+      this.dealIn(this.units.filter(function (u) { return before.indexOf(u) < 0 && !u.familiar && !u.object && !u.look; }));
       yield 30;
-      yield* this.walkIn(ours.map(function (u, i) { return { u: u, from: A.doors[i % A.doors.length], to: [u.x, u.y], face: D.spr.facingFor(-1, 0), spark: true, riders: riders.filter(function (r) { return r.master === u; }) }; }), look);
-      m.doorsOpen = this.passagesOpen;
-      if (A.lock) { this.card(['{y}' + A.lock + '{/}'], 360); D.sfx('clack'); }
-      yield 40;
     }
+  };
+  // into the order on their own rolls, mid-fight (the garrison out of the hatch, the late waves)
+  Battle.prototype.dealIn = function (came) {
+    var self = this;
+    came.forEach(function (u) {
+      var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init;
+      var at = 0; while (at < self.order.length && (self.order[at].initRoll > u.initRoll || (self.order[at].initRoll === u.initRoll && self.order[at].abil.dex >= u.abil.dex))) at++;
+      self.order.splice(at, 0, u);
+    });
+    if (came.length) this.card(['{y}INITIATIVE{/}  ' + came.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 300);
   };
   // the street's people (a wave's `flee`, 10-05): townsfolk made for the look of it -- ours, no one's target, never in the order -- each at a door or an alley's mouth, running for a
   // square down the south road; walked with the wave by walkIn and taken off the field after. They wear the plain men's sheets for now (deep16-art-wanted.md)
@@ -677,9 +727,9 @@
     if (!CL || this.climbSaid) return;
     var up =this.units.filter(function (w) { return w.side === 'foe' && G.standing(w) && ((w.hang && w.hang.face && G.hanging(w)) || G.gzAt(w, w.x, w.y) >= 4 * st); })[0];
     if (!up) return;
-    this.climbSaid = true;
     var who = this.units.filter(function (w) { return (w.id === CL.who || w.kind === CL.who) && G.standing(w) && !w.left; })[0];
-    if (!who) return;
+    if (!who) return; // (not out yet -- the party late behind the doors, 10-05: he says it when he is, if one is still up there)
+    this.climbSaid = true;
     this.focus(up); D.sfx('popup');
     this.card(['{y}' + who.name + '{/}: "' + CL.line + '"'], 420);
     yield 50;
@@ -734,6 +784,7 @@
       this.round++;
       if (this.rec && D.rec && D.rec.checkpoint) D.rec.checkpoint(this); // (the play record kept as far as the fight has gone, each round: js/record.js, 10-02)
       if (this.reserve.length && this.round >= ((this.o.embed && this.o.embed.join) || 2)) yield* this.joinReserve();
+      if (this.late && this.late.length) yield* this.lateOut(); // (a wave or the party held for its round: the Skylights' stables and heroes, 10-05)
       if (this.held && this.held.length && this.skyHit != null && this.round >= this.skyHit + ((this.fight.hatch && this.fight.hatch.after) || 1)) yield* this.hatchOut(); // (the garrison out of the hatch, the round after the first bang on the glass -- 10-05)
       for (var i = 0; i < this.order.length; i++) {
         var u = this.order[i];

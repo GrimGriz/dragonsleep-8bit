@@ -328,8 +328,14 @@
         // trying to have the first two meet the townsfolks beyond the houses or by the south road")
         waves: [{ foes: ['troll3', 'troll4'], dash: true, card: 'Two trolls down the north road at a run. Doors bang along Fountain Street, and the street runs for the south road.',
                   flee: { from: [[4, 23], [11, 23], [18, 23], [26, 23], [37, 23], [44, 23], [51, 23], [58, 23]], to: [[28, 38], [29, 38], [30, 38], [31, 38], [28, 37], [29, 37], [30, 37], [31, 37]] } },
-                { allies: ['bs1', 'bs2', 'bs3', 'bs4', 'tk1', 'tk2', 'tk3', 'tk4'], card: 'Up the south road at a run, spears and pry-bars: Bloodsnout\'s four and Talmok\'s four, out of the Hex to meet them.' },
-                { foes: ['troll2', 'giant1', 'giant2', 'troll1'], card: 'Then the rest, down the north road: two stone giants, and two more trolls at their heels.' }] },
+                // (the stables a round late, at the start of the second -- the street's people ran down to the Hex for them; and only Bloodsnout's: Captain Dunmore's human stable hires
+                // out at a gold a man a day, and nobody had paid it -- 10-05, Griz: "thinning the towns defenders (losing the human group that wasn't paid). I'd also like to stall them
+                // another round (citizens go get them)". Battle.lateOut; invented.json skylights-dunmore-unpaid)
+                { allies: ['bs1', 'bs2', 'bs3', 'bs4'], round: 2, card: 'Up the south road at a run, the street\'s people behind them: Bloodsnout\'s four, out of the Hex. Captain Dunmore\'s yard stays shut -- nobody has paid his hire.' },
+                { foes: ['troll2', 'giant1', 'giant2', 'troll1'], card: 'Then the rest, down the north road: two stone giants, and two more trolls at their heels.' }],
+        // (the party a round after the stables, at the start of the third: the word went down the road quickly and the lamps are fast, but the fight is under way when they come out --
+        // Griz, 10-05: "stall another round before the heroes show up ... - potential lever"; the lever is this number)
+        party: { round: 3 } },
       climbLine: { who: 'pyro', line: 'They\'re going for the skylights!' },
       // (the garrison held behind the falls at the back of the roof, out two rounds after the first blow that hurts the glass -- Battle.hatchOut; Griz, 10-05: "two after"; after his
       // play, "troops from behind waterfall instead": they step out of the falls' curtain at (29,1) and (30,1), the water at the back wall's foot, not the hatch by the front rim)
@@ -340,9 +346,9 @@
       foes: [{ id: 'troll3', kind: 'troll', from: [5, 0], at: [25, 22], free: true }, { id: 'troll4', kind: 'troll', from: [5, 0], at: [32, 22], free: true }, // (either side of the south road's mouth, where the street's people run in)
              { id: 'troll2', kind: 'troll', from: [5, 0], at: [24, 19], guard: 'giant2' }, { id: 'giant1', kind: 'stonegiant', name: 'Hallvör', from: [5, 0], at: [21, 20], guard: 'giant2', rocks: 2 },
              { id: 'giant2', kind: 'stonegiantm', name: 'Steinarr', from: [5, 0], at: [18, 16], only: true, rocks: 2 }, { id: 'troll1', kind: 'troll', from: [5, 0], at: [10, 18], guard: 'giant2' }], // (troll1 west of the first trolls' melee since their second leg took (13,20) -- 10-05)
-      // (ours for the fight, the brute's to run: Bloodsnout's four and Talmok's four up the south road to the first two trolls; the garrison held behind the hatch -- `hatch`)
+      // (ours for the fight, the brute's to run: Bloodsnout's four up the south road to the first two trolls, a round late; the garrison held behind the hatch -- `hatch`. Dunmore's four,
+      // once "Talmok's" -- Talmok is Bloodsnout's champion, not a stable's master (wiki the-hex.md) -- stay in their yard, unpaid: 10-05)
       allies: [{ id: 'bs1', kind: 'stablefighter', name: 'Bloodsnout\'s man', from: [28, 38], at: [24, 22] }, { id: 'bs2', kind: 'stablefighter', name: 'Bloodsnout\'s man', from: [29, 38], at: [24, 23] }, { id: 'bs3', kind: 'stablefighter', name: 'Bloodsnout\'s man', from: [30, 38], at: [25, 21] }, { id: 'bs4', kind: 'stablefighter', name: 'Bloodsnout\'s man', from: [31, 38], at: [26, 21] },
-               { id: 'tk1', kind: 'stablefighter', name: 'Talmok\'s man', from: [28, 38], at: [31, 22] }, { id: 'tk2', kind: 'stablefighter', name: 'Talmok\'s man', from: [29, 38], at: [34, 22] }, { id: 'tk3', kind: 'stablefighter', name: 'Talmok\'s man', from: [30, 38], at: [32, 21] }, { id: 'tk4', kind: 'stablefighter', name: 'Talmok\'s man', from: [31, 38], at: [33, 21] },
                { id: 'sgt', kind: 'drillsergeant', hatch: true, keepLevel: true, at: [29, 2] }, { id: 'tr1', kind: 'trooper', hatch: true, keepLevel: true, at: [28, 2] }, { id: 'tr2', kind: 'trooper', hatch: true, keepLevel: true, at: [30, 2] }, { id: 'tr3', kind: 'trooper', hatch: true, keepLevel: true, at: [28, 3] }, { id: 'tr4', kind: 'trooper', hatch: true, keepLevel: true, at: [31, 3] }], wave: null }, // (the garrison out of the falls onto the glass's back rows, and it keeps the roof -- `keepLevel`: his play of 10-05 had them drop 45 ft after the trolls)
     { id: 'gallery', level: 9, map: 'cavern', name: 'The Cocoon Gallery', sub: 'off the road, below Third Lamp',
       intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)',
