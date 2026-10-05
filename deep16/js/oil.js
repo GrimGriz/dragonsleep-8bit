@@ -7,8 +7,9 @@
    can take this damage only once per turn."
    So: the throw is an improvised ranged attack -- the thrower's Strength modifier alone, as the torch's (light.js L.torchAtk) -- 20 ft and no farther; a hit coats the creature
    (conds.oiled, a minute: ten of its turns), and the next fire it takes burns 5 more (Battle.hurt, below). His alt, "our way": a thrower with a torch burning in one hand and
-   the other free lights the flask as it goes, and a hit is 5 fire at once (the oil burns off on it). The seat's calls on his "either way" (the SRD says nothing of a miss): a
-   flask thrown at a square oils the square (the ground: no roll), and a missed one oils the square it was thrown at; oil on the ground (B.oils) lights from a torch set or
+   the other free lights the flask as it goes, and a hit is 5 fire at once (the oil burns off on it). The seat's calls on his "either way" (the SRD says nothing of a miss),
+   RULED 10-05 on his "yes and yes" (no scatter roll for a miss -- "in some version a miss like this gets a roll for where it went that can hit your friends. Probably not 5E
+   2014"): a flask thrown at a square oils the square (the ground: no roll), and a missed one oils the square it was thrown at; oil on the ground (B.oils) lights from a torch set or
    thrown on it, from any fire that reaches it (wherever fire burns a web: magic.js M.burnWebs), or from a lit flask -- then burns as the SRD says. Not the 8-bit battle's:
    its flask is content/items.json's (5 fire, a DEX save). */
 (function () {
