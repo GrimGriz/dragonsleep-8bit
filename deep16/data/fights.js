@@ -333,7 +333,7 @@
                 // another round (citizens go get them)". Battle.lateOut; invented.json skylights-dunmore-unpaid)
                 // (and Talmok with them, Bloodsnout's champion -- not property, the arena's door that cannot be bled: 10-05, Griz: "Do bring him"; data/foes.js talmok, the brute's)
                 { allies: ['talmok', 'bs1', 'bs2', 'bs3', 'bs4'], round: 2, card: 'Up the south road at a run, the street\'s people behind them: Talmok and Bloodsnout\'s four, out of the Hex. Captain Dunmore\'s yard stays shut -- nobody has paid his hire.' },
-                { foes: ['troll2', 'giant1', 'giant2', 'troll1'], card: 'Then the rest, down the north road: a troll ahead of them, two stone giants, and the last troll at their heels.' },
+                { foes: ['giant1', 'giant2', 'troll2', 'troll1'], card: 'Then the rest, down the north road: two stone giants, and two more trolls at their heels.' },
                 // (the garrison out of the falls' curtain at the back of the roof in two -- 10-05, Griz: "send two dwarves out the round after Bloodsnouts men are in combat - and 2 and the
                 // captain after the party comes out? Have them come out through waterfall (revert?)" -- "agreed - at least the first two out ... should have crossbows and bolts"; the captain
                 // the Drill-sergeant, "drill sergeant in the 8 bit": two crossbowmen at the start of the third round, the Drill-sergeant and two at the fourth, each with a grapple of its own)
@@ -355,8 +355,8 @@
       // the facade: the male at its foot between the first two fountains, the female before the second, a troll each side of them. The first wave's two hold the street's west end,
       // `free` of the mission: the stables' eight meet them there)
       foes: [{ id: 'troll3', kind: 'troll', from: [5, 0], at: [25, 22], free: true, chase: { to: [26, 31], till: 1 } }, { id: 'troll4', kind: 'troll', from: [5, 0], at: [32, 22], free: true, chase: { to: [30, 31], till: 1 } }, // (`chase`: round 1, down the south road after the street's people -- 10-05, Griz: "have the first trolls chase the civilians more"; Bloodsnout's men meet them there in round 2) // (either side of the south road's mouth, where the street's people run in)
-             { id: 'troll2', kind: 'troll', from: [5, 0], at: [24, 19], guard: 'giant2' }, { id: 'giant1', kind: 'stonegiant', name: 'Hallvör', from: [5, 0], at: [21, 20], guard: 'giant2', rocks: 2 },
-             { id: 'giant2', kind: 'stonegiantm', name: 'Steinarr', from: [5, 0], at: [18, 16], only: true, rocks: 2 }, { id: 'troll1', kind: 'troll', from: [5, 0], at: [10, 18], guard: 'giant2' }], // (troll1 west of the first trolls' melee since their second leg took (13,20) -- 10-05)
+             { id: 'troll2', kind: 'troll', from: [5, 0], at: [14, 20], guard: 'giant2' }, { id: 'giant1', kind: 'stonegiant', name: 'Hallvör', from: [5, 0], at: [21, 20], guard: 'giant2', rocks: 2 },
+             { id: 'giant2', kind: 'stonegiantm', name: 'Steinarr', from: [5, 0], at: [18, 16], only: true, rocks: 2 }, { id: 'troll1', kind: 'troll', from: [5, 0], at: [10, 18], guard: 'giant2' }], // (troll1 west of the first trolls' melee since their second leg took (13,20) -- 10-05; troll2 behind the giants too, at (14,20) under the first fountain, and the giants walk first: 10-05, Griz, "text says trolls are behind giants and one starts in front", then "3rd troll still in front")
       // (ours for the fight, the brute's to run: Bloodsnout's four up the south road to the first two trolls, a round late; the garrison held behind the hatch -- `hatch`. Dunmore's four,
       // once "Talmok's" -- Talmok is Bloodsnout's champion, not a stable's master (wiki the-hex.md) -- stay in their yard, unpaid: 10-05)
       allies: [{ id: 'talmok', kind: 'talmok', side: 'party', ally: true, from: [29, 38], at: [29, 35] }, // (Talmok at their head, up the road to the trolls that ran at the street's people -- 10-05)
