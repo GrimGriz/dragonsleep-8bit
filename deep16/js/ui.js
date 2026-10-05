@@ -992,12 +992,12 @@
   // a vignette, a caption under it; `hit` flashes it and lands three darts up its body; `face` frames its head
   function scene(ctx, B, sc) {
     if (sc.draw) { sc.draw(ctx, sc.t || 0, D.W, D.H); if ((sc.t || 0) > 60 && ((sc.t >> 5) & 1)) D.hint(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5)); return; } // (a picture drawn by its own hand: the landlord's, js/wet.js)
-    var t = sc.t || 0, u = sc.who, k = sc.scale || 3, red = sc.tone === 'red', top = D.spr.top(u.sheet);
+    var t = sc.t || 0, u = sc.who, k = sc.scale || 3, red = sc.tone === 'red', blue = sc.tone === 'blue', top = D.spr.top(u.sheet); // (tone: red, or blue for the dunking booth -- 10-05)
     // `outro` (10-02, Aurdin's joke: "then zoomed back out"): over the beat's last ticks the backdrop thins, the figure shrinks and fades, and the
     // fight comes up behind it
     var oq = sc.outro ? Math.max(0, Math.min(1, (t - ((sc.frames || 120) - sc.outro)) / sc.outro)) : 0;
     ctx.save(); ctx.globalAlpha = 1 - oq;
-    ctx.fillStyle = red ? 'rgba(34,4,8,0.94)' : 'rgba(5,5,12,0.94)'; ctx.fillRect(0, 0, D.W, D.H);
+    ctx.fillStyle = red ? 'rgba(34,4,8,0.94)' : blue ? 'rgba(4,8,30,0.94)' : 'rgba(5,5,12,0.94)'; ctx.fillRect(0, 0, D.W, D.H);
     var g = ctx.createRadialGradient(D.W / 2, D.H / 2 - 10, 10, D.W / 2, D.H / 2 - 10, 210);
     g.addColorStop(0, red ? 'rgba(150,26,36,0.55)' : 'rgba(70,84,140,0.4)'); g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g; ctx.fillRect(0, 0, D.W, D.H);
@@ -1042,8 +1042,8 @@
     if (sc.caption) {
       var w = D.textWidth(sc.caption) + 18, x = Math.round((D.W - w) / 2), y = D.H - 42;
       ctx.fillStyle = 'rgba(8,6,14,.92)'; ctx.fillRect(x, y, w, 17);
-      ctx.strokeStyle = red ? R('red', 4) : R('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 16);
-      D.text(ctx, sc.caption, D.W / 2, y + 5, red ? R('red', 4) : R('gold', 4), 'center');
+      ctx.strokeStyle = red ? R('red', 4) : blue ? R('blue', 3) : R('gold', 3); ctx.strokeRect(x + 0.5, y + 0.5, w - 1, 16);
+      D.text(ctx, sc.caption, D.W / 2, y + 5, red ? R('red', 4) : blue ? R('blue', 3) : R('gold', 4), 'center');
     }
     ctx.restore(); // (the outro's fade)
     if (t > 60 && ((t >> 5) & 1)) D.hint(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5));

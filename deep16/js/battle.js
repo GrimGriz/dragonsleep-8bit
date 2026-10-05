@@ -1168,10 +1168,16 @@
     u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
     u.x = sq.at[0]; u.y = sq.at[1]; delete u.hang; this.keepInView(u);
     yield STEP_FRAMES + 6;
-    var fd = D.roll(Math.floor(sq.ft / 10) + 'd6');
-    this.card(['{o}' + nameOf(u) + ' goes over the edge: ' + sq.ft + ' ft, ' + fd.total + ' bludgeoning, and lands prone.{/}'], 240);
+    // the dunking booth (10-05, Griz: "do similar (zoomed in) fall on whichever player character (only) that not only gets rocked off the ledge but also into a fountain - 'dunking booth'
+    // blue egg"): one of the four, knocked off the edge and down into a fountain's water -- the splash, a close-up of the one in the water, the fall's dice halved (the water takes
+    // the rest: the seat's call, his to overrule), and the blue egg once a save (js/grimoire.js M.EGGS dunk). A guest, an ally or a foe goes over as before
+    var tl = G.map.at(u.x, u.y), dunk = !!(tl && tl.ch === '~' && u.side === 'party' && !u.guest && !u.ally && !u.summon && !u.familiar);
+    var fd = D.roll(Math.max(1, Math.floor(sq.ft / (dunk ? 20 : 10))) + 'd6');
+    if (dunk) { D.sfx('splash'); yield { scene: { who: u, anim: 'hurt', facing: 0, scale: 2.6, frames: 150, tone: 'blue', caption: 'INTO THE FOUNTAIN.' } }; }
+    this.card(['{o}' + nameOf(u) + (dunk ? ' goes over the edge and into the fountain with a splash: ' + sq.ft + ' ft, ' + fd.total + ' bludgeoning -- the water took the rest -- and sits up in it, prone.' : ' goes over the edge: ' + sq.ft + ' ft, ' + fd.total + ' bludgeoning, and lands prone.') + '{/}'], 240);
     this.hurt(u, fd.total, 'bludgeoning', {});
     yield 20;
+    if (dunk && D.magic.egg) yield* D.magic.egg(this, 'dunk');
   };
   Battle.seesFrom = function (u, x, y, z) {
     var st = G.map.def.step, ez = G.gzAt(u, u.x, u.y) + 2 * st, L = G.line(u.x, u.y, x, y);

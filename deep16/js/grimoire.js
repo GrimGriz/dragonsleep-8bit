@@ -640,9 +640,9 @@
     return EGG;
   }
   function hex(c) { return [parseInt(c.slice(1, 3), 16), parseInt(c.slice(3, 5), 16), parseInt(c.slice(5, 7), 16)]; }
-  M.eggDraw = function (line, hue) { return function (ctx, t, W, H) { // (each egg its own line under it, and its own colour: the joke's red, the darkness's purple -- 10-02)
+  M.eggDraw = function (line, hue) { return function (ctx, t, W, H) { // (each egg its own line under it, and its own colour: the joke's red, the darkness's purple -- 10-02; the dunking booth's blue, the four blues and bone for the glint -- 10-05)
     var P = D.PAL.ramps, eg = eggSheet(), w = eg.w, h = eg.h, img = eg.cx.createImageData(w, h), px = img.data, V = hue === 'violet';
-    var RED = (V ? P.violet.slice(1) : P.red).map(hex), WHITE = hex(P.bone[2]), CREAM = hex(P.bone[0]), PINK = hex(P.accent[0]), OUT = hex(P.outline[0]);
+    var RED = (V ? P.violet.slice(1) : hue === 'blue' ? P.blue.concat([P.bone[0]]) : P.red).map(hex), WHITE = hex(P.bone[2]), CREAM = hex(P.bone[0]), PINK = hex(P.accent[0]), OUT = hex(P.outline[0]);
     var g0 = ((t + 40) % 110) * 1.1 - 26; // (the glint's place along the diagonal: a sweep every ~2 s)
     for (var i = 0; i < w * h; i++) {
       var c = null, l = eg.lvl[i];
@@ -695,7 +695,8 @@
   // the eggs found, kept in the save (10-02, Griz: "which I'm hoping we're tracking somewhere in their save files"): each egg's flag goes back to the
   // 8-bit game with the fight's others (B.flags8, js/embed.js), and each shows once a save -- "1 per customer". js/events.js EV.EGGS lists them
   // (the darkness's: RULED 10-02, Griz: "Make the egg purple and call it \"stare into the void long enough\"" -- set in the joke's case)
-  M.EGGS = { joke: { flag: 'eggJoke', line: 'Guess I\'m the Joke, Now' }, darkness: { flag: 'eggDarkness', line: 'Stare Into the Void Long Enough', hue: 'violet' } };
+  M.EGGS = { joke: { flag: 'eggJoke', line: 'Guess I\'m the Joke, Now' }, darkness: { flag: 'eggDarkness', line: 'Stare Into the Void Long Enough', hue: 'violet' },
+    dunk: { flag: 'eggDunk', line: 'Dunking Booth', hue: 'blue' } }; // (a player character rocked off the Edifice's edge into a fountain -- battle.js knockOff; 10-05, Griz: "'dunking booth' blue egg")
   M.eggFound = function (B, key) { var f = M.EGGS[key].flag, fl = (B.from && B.from.data && B.from.data.flags) || {}; return !!(fl[f] || (B.flags8 && B.flags8[f])); };
   M.egg = function* (B, key) {
     if (M.eggFound(B, key)) return;
