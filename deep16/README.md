@@ -24,7 +24,11 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
   (left/right picks the slot level). The bar shows **BARM** after the class — bonus, action, reaction, move and the
   feet left — each lit while it's there to spend.
 - **Zoom:** the screen is drawn at the window's whole-number scale, so zooming out steps by whole device pixels
-  (at 3×: 1, 2/3, 1/3; at 2×: 1, 1/2) and stays crisp; the menus and the floating numbers keep their size.
+  (at 3×: 1, 2/3, 1/3; at 2×: 1, 1/2) and stays crisp; the menus and the floating numbers keep their size. On a floor too big to fit
+  at the smallest of those, far steps follow (10-04 night, Griz: *"can we have huge maps and another zoom level when we do?"*): whole art
+  pixels to a device pixel (1/6, 1/9 at 3×), one after another down to the first that shows the whole floor, drawn smoothed (`js/ui.js zooms`).
+  Huge maps: the drawing skips what is off the screen and sorts the map's props once (`js/iso.js`), so a 90×70 floor draws in under 10 ms;
+  what a big floor costs is its load (the bake, about 2.3 s at 60×46 and 5.3 s at 90×70) and its floor canvas (26 MB and 56 MB).
 - **Sound** (09-27): the 8-bit game's own chip synth (`../js/audio.js`) — its effects for the menus (cursor, confirm,
   cancel, error, a pop when the ring or a prompt comes up) and the fight (hit, crit, miss, a fall, spells by element,
   heals, smites, the jaunt, the drider's arrival), and its tunes: `battle`, `boss` when the drider drops, `victory` or
@@ -184,6 +188,17 @@ finds the hidden it sees clearly (`rise`): the Breach stalled on both. Benched: 
 (his test among them: the party at a distance cutting every tendril, till it walks in to bite) and `ready1002` (the
 Breach itself), both in `dev/check.py`'s gate; `mode=trace&fight=<id>&rounds=N` runs a fight to a round cap and prints
 the log's tail and every unit's state, for a fight that never ends on the bench.
+
+**Ropes and rungs** (10-04; `js/grid.js` ROPES, `js/battle.js` exec 'rope', 'ropeclimb', 'takerope', 'cutrope', `js/ui.js ropeRung`): a map's
+`ropes: [[ax, ay, fx, fy]]` hang from the top of a face to its foot, and the party's Rope & Grapple sets one (the item wheel: tied off from up
+top, or thrown up 30 ft at DC 10 DEX). Along a rope no check and no fall, at the SRD's double cost (5 ft of movement a 2.5 ft step). **The rungs**
+(10-04 night, Griz: *"I can't currently target half-way up the rope with a highlighted wall and choose that as my intentional move"*): the mouse
+on the roped face picks a height a step at a time -- the face outlined, the rung across it, where the figure will hang marked with the height and
+the cost -- and the click climbs or lets down to exactly there and hangs, from the foot, the top, or where it hangs already (any rung, or the
+ground). **The grapple's square** (Griz: *"if one clicks on a square where a grapple is they should be able to take it (unless someone is on it -
+in which case I think they'll attack it if that's not an ally)"*): nobody on it, a click from beside takes it up into the pack for the action (or
+steps there, asked), and standing on it the ring's TAKE THE ROPE; a foe hanging on it within the weapon's reach, the click strikes the rope (AC 11,
+2 HP) and cut, the foe falls; an ally on it, the square is a square. Bench `mode=rungs1004`.
 
 **The climb** (09-27, `js/climb.js`, `?climb`, or C / the button on the ladder; Griz: "an alternate mode that goes
 fight-by-fight 1-9 (random of created battles)"): one party from level 1 (Barley in splint, as on the ladder). Each

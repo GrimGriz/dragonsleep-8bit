@@ -334,6 +334,9 @@
   // grey and dim). The player sees the whole grid, the characters do not (RULED 09-28)
   var lit = null;
   function flick(t) { return Math.sin(t * 0.21) * 0.5 + Math.sin(t * 0.53 + 1.3) * 0.3 + Math.sin(t * 1.7) * 0.2; }
+  // a square whose rhombus lies wholly off the canvas being drawn (W by H, the world canvas) is skipped in the pass's two floor sweeps: a huge floor is thousands of
+  // them a frame, most off the screen (10-04 night, the huge maps)
+  function inView(iso, x, y, gz, W, H) { var c = iso.center(x, y, gz), s = iso.toScreen(c.x, c.y); return s.x > -40 && s.x < W + 40 && s.y > -40 && s.y < H + 40; }
   L.pass = function (ctx, B, W, H) {
     if (!B || !B.dark || !B.map) return;
     var iso = D.iso, t = B.t, m = B.map;
@@ -373,9 +376,9 @@
     var va = B.viewAs && G.standing(B.viewAs) ? B.viewAs : null, pm = va ? L.viewMap(B, va) : L.partyMap(B);
     B.eyes = va; // (whose eyes these are: ui.js names them over the tooltip)
     ctx.globalCompositeOperation = 'saturation'; ctx.fillStyle = '#7c7c84';
-    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
+    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) { var s2 = m.sq[y * m.w + x]; if (!s2.open || pm.v[y * m.w + x] === 2 || !inView(iso, x, y, s2.gz, W, H)) continue; iso.rhombus(ctx, x, y, s2.gz, 0); ctx.fill(); }
     ctx.globalCompositeOperation = 'source-over'; ctx.fillStyle = va ? 'rgba(4,4,12,0.62)' : 'rgba(6,6,16,0.4)';
-    for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2]) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
+    for (var y2 = 0; y2 < m.h; y2++) for (var x2 = 0; x2 < m.w; x2++) { var s3 = m.sq[y2 * m.w + x2]; if (!s3.open || pm.v[y2 * m.w + x2] || !inView(iso, x2, y2, s3.gz, W, H)) continue; iso.rhombus(ctx, x2, y2, s3.gz, 0); ctx.fill(); }
     var sn = va || own; // (whose senses ride on top: the hovered one's, else the one whose turn it is)
     if (sn) { if (sn.sense === 'tongue') tongue(ctx, B, sn, t, sn.blindsight || 0); else sonar(ctx, B, sn, t); if (sn.senseHidden) tongue(ctx, B, sn, t, sn.senseHidden); }
     ctx.restore();

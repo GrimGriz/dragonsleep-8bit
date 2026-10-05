@@ -79,6 +79,7 @@
     m.isOpen = function (x, y) { var s = m.at(x, y); return !!(s && s.open); };
     m.gz = function (x, y) { var s = m.at(x, y); return s ? s.gz : 0; };
     iso.map = m;
+    m.maxGz = 0; m.sq.forEach(function (s) { if (s.open) m.maxGz = Math.max(m.maxGz, s.gz); }); // (the highest floor: iso.draw's bound on a far wall's picture)
     classifyRock(m);
     bake(m);
     buildProps(m);
@@ -128,7 +129,10 @@
     var order = m.sq.filter(function (s) { return s.open; }).sort(function (a, b) { return (a.x + a.y) - (b.x + b.y) || a.gz - b.gz; });
     order.forEach(function (s) {
       var c = iso.center(s.x, s.y, s.gz), ox = c.x - minX, oy = c.y - minY;
-      W = TW; H = TH + s.gz; sqc = { x0: ox - HW, y0: oy - HH };
+      // the square's own canvas: its top, and its faces down to the lower neighbours in front of it -- only as tall as the tallest face it shows (a square inside a
+      // plateau shows none and is 32 px tall, not 32 + its height: the Edifice's deck was 16 MB of mostly blank canvas -- 10-04 night, the huge maps)
+      var faceH = 0; if (s.gz) [[1, 0], [0, 1]].forEach(function (d) { var nz = m.isOpen(s.x + d[0], s.y + d[1]) ? m.gz(s.x + d[0], s.y + d[1]) : 0; faceH = Math.max(faceH, s.gz - nz); });
+      W = TW; H = TH + faceH; sqc = { x0: ox - HW, y0: oy - HH };
       var sqImg = ctx.createImageData(W, H); px = sqImg.data;
       for (var dy = -HH; dy < HH; dy++) {
         var half = HW - Math.abs(dy + 0.5) * 2;
@@ -346,27 +350,30 @@
 
   // ------------------------------------------------------------------ drawing: the floor layer, overlays, then everything sorted
   // objs: [{ depth, gz, draw(ctx) }] from the battle (units, effects); overlay(ctx) draws the grid under the sprites
+  // The floor canvas is blitted (the canvas clips it); the props and the frame's objects are sorted and drawn -- the map's own props sorted once and kept (they never
+  // move; wet.js adds and takes some, so the kept sort is redone when their count changes), the frame's objects sorted and merged in; a prop whose picture lies wholly
+  // outside the canvas being drawn is skipped, and a rock's canvas is only ever made when it is seen (10-04 night, the huge maps: a 90x70 floor is thousands of rock and tile
+  // canvases a frame, most of them off the screen)
+  function byDepth(a, b2) { return a.depth - b2.depth || a.gz - b2.gz || (a.layer || 0) - (b2.layer || 0); }
   iso.draw = function (ctx, objs, overlay) {
     var m = iso.map, b = m.bake, o = iso.toScreen(b.x, b.y);
     ctx.drawImage(b.canvas, o.x, o.y);
     if (overlay) overlay(ctx);
-    var list = [];
-    m.props.forEach(function (p) { list.push(p); });
-    (objs || []).forEach(function (p) { list.push(p); });
-    list.sort(function (a, b2) { return a.depth - b2.depth || a.gz - b2.gz || (a.layer || 0) - (b2.layer || 0); });
-    for (var i = 0; i < list.length; i++) {
-      var p = list[i];
+    if (!m.sorted || m.sortedN !== m.props.length) { m.sorted = m.props.slice().sort(byDepth); m.sortedN = m.props.length; }
+    var A = m.sorted, Bl = (objs || []).slice().sort(byDepth), list = [], i = 0, j = 0;
+    while (i < A.length || j < Bl.length) list.push(j >= Bl.length || (i < A.length && byDepth(A[i], Bl[j]) <= 0) ? A[i++] : Bl[j++]);
+    var vw = iso.inWorld ? D.W / iso.zoom : D.W, vh = iso.inWorld ? D.H / iso.zoom : D.H;
+    for (var k = 0; k < list.length; k++) {
+      var p = list[k];
       if (p.draw) { p.draw(ctx); continue; }
-      if (p.kind === 'rock') {
-        var r = rockCanvas(m, p.sq), c = iso.center(p.sq.x, p.sq.y, 0), s = iso.toScreen(c.x, c.y);
-        ctx.drawImage(r.canvas, s.x - r.ax, s.y - r.ay);
-      } else {
-        var cx = p.fx != null ? p.fx - 0.5 : p.sq.x, cy = p.fy != null ? p.fy - 0.5 : p.sq.y;
-        var c2 = iso.center(cx, cy, p.gz), s2 = iso.toScreen(c2.x, c2.y);
-        ctx.globalAlpha = p.alpha == null ? 1 : p.alpha;
-        ctx.drawImage(p.img.canvas, s2.x - p.img.ax, s2.y - p.img.ay);
-        ctx.globalAlpha = 1;
-      }
+      var rock = p.kind === 'rock', c = rock ? iso.center(p.sq.x, p.sq.y, 0) : iso.center(p.fx != null ? p.fx - 0.5 : p.sq.x, p.fy != null ? p.fy - 0.5 : p.sq.y, p.gz), s = iso.toScreen(c.x, c.y);
+      var img = rock ? null : p.img, x0 = s.x - (rock ? HW : img.ax), y0 = s.y - (rock ? 0 : img.ay);
+      if (rock) { if (x0 >= vw || x0 + TW <= 0 || s.y - WALL - (m.maxGz || 0) - 60 >= vh || s.y + TH <= 0) continue; img = rockCanvas(m, p.sq); x0 = s.x - img.ax; y0 = s.y - img.ay; } // (a far wall can rise WALL above a raised neighbour's floor: the bound before its canvas is made)
+      if (x0 >= vw || y0 >= vh || x0 + img.canvas.width <= 0 || y0 + img.canvas.height <= 0) continue;
+      if (rock) { ctx.drawImage(img.canvas, x0, y0); continue; }
+      ctx.globalAlpha = p.alpha == null ? 1 : p.alpha;
+      ctx.drawImage(img.canvas, x0, y0);
+      ctx.globalAlpha = 1;
     }
   };
 

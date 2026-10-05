@@ -755,6 +755,8 @@
     }
     out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'attacks at you at disadvantage till your next turn' });
     out.push({ id: 'search', label: 'SEARCH', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'a Perception check against anyone hiding in sight, all round you' }); // (SRD 5.1 Search; 10-04)
+    // TAKE THE ROPE (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it"): a rope fixed on this square or one beside it, up top, nobody on it -- coiled back into the pack for the action
+    var rpN = Battle.ropeNear(this, u); if (rpN) { var tkN = Battle.canTakeRope(this, u, rpN); out.push({ id: 'takerope', label: 'TAKE THE ROPE', cost: 'A', ok: tkN.ok, why: tkN.why, note: 'coil the rope and its grapple back into the pack (an object used: the action)' }); }
     // Help (the attack kind) only with a foe beside you (Griz, 09-27) -- and on a friend beside you who needs a hand (10-01c, Griz: "repurpose the help action to
     // conditionally target allies as well as current target enemy"): a sleeper shaken awake (SRD 5.1 Sleep: "someone uses an action to shake or slap the sleeper
     // awake"), one held in a web or a grip given advantage on its next check to get out (SRD 5.1 Help: "advantage on the next ability check it makes")
@@ -810,6 +812,28 @@
   // the dashes u has left this turn, 'a' and 'b' (10-04, Griz: "If she has dash and cunning dash should she be able to try the steepest climb?"): its action's, while the
   // Attack action is not begun, and a bonus action's -- Cunning Action, Expeditious Retreat; each is its speed more (ui.js reachCache: the squares a click dashes to; exec 'dashmove')
   Battle.dashes = function (u) { var T = u.turn || {}, n = []; if (u.conds.restrained || u.conds.dancing) return n; if (T.action && !T.attacksLeft) n.push('a'); if (T.bonus && ((u.cls === 'rogue' && u.lvl >= 2) || u.cunning || (T.bonusDash && u.conds.retreat))) n.push('b'); return n; };
+  // A rope's square (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it (unless someone is on it - in which case I think
+  // they'll attack it if that's not an ally)"): the uncut rope fixed at (x, y); who hangs on it; whether u can take it up (on its square or beside it at its height, nobody
+  // on it, the action free -- an object used, as setting it was) or cut it (a foe hangs on it, and u's weapon reaches its top: melee within reach, a bow within its range
+  // and in line; Battle.cutRope, the AI's own blow at it). The ui.js click and tooltip read these; the ring's TAKE THE ROPE (actions) the first
+  Battle.ropeAt = function (B, x, y) { return ((B && B.ropes) || []).filter(function (r) { return !r.cut && r.at[0] === x && r.at[1] === y; })[0] || null; };
+  Battle.ropeHanger = function (B, r) { return (B.units || []).filter(function (h) { return h.hang && h.hang.rope === r && G.hanging(h) && G.standing(h); })[0] || null; };
+  Battle.ropeNear = function (B, u) { return ((B && B.ropes) || []).filter(function (r) { return !r.cut && Math.max(Math.abs(u.x - r.at[0]), Math.abs(u.y - r.at[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(r.at[0], r.at[1])) <= G.map.def.step; })[0] || null; };
+  Battle.canTakeRope = function (B, u, r) {
+    var T = u.turn || {}, h = Battle.ropeHanger(B, r), near = Math.max(Math.abs(u.x - r.at[0]), Math.abs(u.y - r.at[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(r.at[0], r.at[1])) <= G.map.def.step;
+    if (h) return { ok: false, why: (h.side === 'party' || !G.hostile(u, h) ? h.name : 'the ' + shortName(h)) + ' hangs on it' };
+    if (!near) return { ok: false, why: 'not from here: stand on its square or beside it, up top' };
+    if (u.hang && G.hanging(u)) return { ok: false, why: 'not while hanging on it' };
+    if (!(T.action > 0) || T.attacksLeft) return { ok: false, why: 'the action is spent' };
+    return { ok: true, why: '' };
+  };
+  Battle.canCutRope = function (B, u, r) {
+    var T = u.turn || {}, h = Battle.ropeHanger(B, r); if (!h || !G.hostile(u, h)) return null;
+    var w = u.weapon, spot = { x: r.at[0], y: r.at[1], size: 1 }, d = G.dist(u, spot), reach = w && w.ranged ? ((w.range && (w.range[1] || w.range[0])) || 0) : G.reachOf(u);
+    var inR = d <= reach && (!(w && w.ranged) || G.losPoint(u.x, u.y, r.at[0], r.at[1]));
+    return { foe: h, ok: !!(w && inR && (T.attacksLeft || T.action > 0) && !u.conds.disarmed), why: !w ? 'no weapon' : !inR ? 'the rope\'s top is ' + d + ' ft off (' + (w.ranged ? 'range' : 'reach') + ' ' + reach + ')' : u.conds.disarmed ? 'the weapon is dropped' : 'no attack left this turn',
+      ft: Math.round((h.hang.z - G.map.gz(h.x, h.y)) / G.map.def.step) * 2.5 };
+  };
   // where a Rope & Grapple can be set (10-04, Griz: "as an item on the item wheel"): the top of a face -- an open square with one beside it two steps lower or more (open, or the
   // setter's own) and no rope there yet -- on a map whose cliffs can be climbed. From up there (on it, or beside it at its height) it is tied off with no roll; from below the
   // grapple is thrown up to it, 30 ft at most and in sight, a DC 10 Dexterity check (his lean and the seat's: the SRD 5.1 lists a grappling hook, 2 gp, 4 lb, and gives it no
@@ -919,14 +943,57 @@
         this.card(['{y}' + nameOf(u) + '{/} ' + (rq.top ? 'ties the rope off and lets it down' : 'has the rope up') + ': ' + rFt + ' ft of it down the face.  {g}(climbed with no check; a climber may stop on it){/}'], 280);
         u.anim = 'idle'; yield 16; return;
       }
-      case 'ropeclimb': { // part way along a rope, and hang there (10-04, Griz: "a roped face is gonna be a movement stopping point"; ui.js: a rope's far end, past the move)
+      case 'takerope': { // the rope's grapple taken up (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it"): from the ring, or a click on its square from beside it
+        var rT = c.x != null ? Battle.ropeAt(this, c.x, c.y) : Battle.ropeNear(this, u); if (!rT) return;
+        var tkT = Battle.canTakeRope(this, u, rT); if (!tkT.ok) { this.card(['{o}' + nameOf(u) + ' cannot take the rope up: ' + tkT.why + '.{/}'], 160); return; }
+        if (!byAI(u) && c.x != null && !(u.x === rT.at[0] && u.y === rT.at[1])) { // (the click from beside it: take it, or only step onto its square)
+          var rmT = G.reach(u, T.move), stepT = !!(rmT[rT.at[0] + ',' + rT.at[1]] || {}).stand;
+          var ansT = yield { prompt: { who: u, title: u.name + ': THE ROPE', lines: ['Take the rope and its grapple up and into the pack (the action)' + (stepT ? ', or just step onto its square.' : '.')], opts: [{ label: 'TAKE IT UP', value: 'take' }].concat(stepT ? [{ label: 'STEP THERE', value: 'step' }] : []).concat([{ label: 'NOT NOW', value: false }]) } };
+          if (ansT === 'step') { var pT = G.path(rmT, rT.at[0], rT.at[1]); if (pT) yield* this.moveAlong(u, pT, { spend: true }); return; }
+          if (ansT !== 'take') return;
+        }
+        T.action = 0; u.facing = D.spr.facingFor(rT.at[0] - u.x, rT.at[1] - u.y); u.anim = 'attack'; u.animT = this.t; yield 10;
+        rT.cut = true; var iT = this.ropes.indexOf(rT); if (iT >= 0) this.ropes.splice(iT, 1);
+        var rsT = (this.inv || []).filter(function (x) { return x.id === 'rope'; })[0]; if (rsT) rsT.n = (rsT.n || 0) + 1; else (this.inv = this.inv || []).push({ id: 'rope', n: 1 });
+        D.sfx('confirm'); this.card(['{y}' + nameOf(u) + '{/} hauls the rope up and coils it, grapple and all, back into the pack.'], 240);
+        u.anim = 'idle'; yield 16; return;
+      }
+      case 'cutrope': { // a blow at a rope a foe hangs on, from its top (10-04 night, Griz: "unless someone is on it - in which case I think they'll attack it if that's not an ally"): Battle.cutRope, the AI's own
+        var rC = Battle.ropeAt(this, c.x, c.y); if (!rC) return;
+        var ctC = Battle.canCutRope(this, u, rC); if (!ctC || !ctC.ok) { if (ctC) this.card(['{o}' + nameOf(u) + ' cannot strike the rope: ' + ctC.why + '.{/}'], 160); return; }
+        if (u.conds.hidden) { delete u.conds.hidden; delete u.hidTotal; } // (a blow struck from hiding gives it away, as any attack does)
+        yield* this.cutRope(u, rC, u.weapon);
+        return;
+      }
+      case 'ropeclimb': { // part way along a rope, and hang there (10-04, Griz: "a roped face is gonna be a movement stopping point"; ui.js: a rope's far end, past the move -- or, with c.z, a
+        // rung the mouse picked (10-04 night, Griz: "I can't currently target half-way up the rope with a highlighted wall and choose that as my intentional move" -- "better than
+        // half-way stop plz, these are 45 ft ropes i think"; ui.js ropeRung): to exactly that height, up or down, from an end or from where it hangs, and the ground if a hanger picked it
         var rr0 = (this.ropes || []).filter(function (r) { return !r.cut && ((r.at[0] === c.x && r.at[1] === c.y) || (r.foot[0] === c.x && r.foot[1] === c.y)); })[0];
         if (!rr0 || (u.size || 1) > 1) return;
-        var near = rr0.at[0] === c.x && rr0.at[1] === c.y ? rr0.foot : rr0.at, rmR = G.reach(u, T.move), here = u.x === near[0] && u.y === near[1], pre = here ? [] : G.path(rmR, near[0], near[1]);
+        var hangR = !!(u.hang && G.hanging(u) && u.hang.rope === rr0), stZr = G.map.def.step;
+        var near = hangR ? rr0.foot : rr0.at[0] === c.x && rr0.at[1] === c.y ? rr0.foot : rr0.at, rmR = G.reach(u, T.move), here = hangR || (u.x === near[0] && u.y === near[1]), pre = here ? [] : G.path(rmR, near[0], near[1]);
         if (!pre || (!here && !(rmR[near[0] + ',' + near[1]] || {}).stand)) return;
-        var left = T.move - (here ? 0 : rmR[near[0] + ',' + near[1]].cost), zFrom = here && u.hang && G.hanging(u) ? u.hang.z : G.map.gz(near[0], near[1]), allFt = Math.round(Math.abs(G.map.gz(c.x, c.y) - zFrom) / G.map.def.step) * 2.5, gotFt = Math.min(allFt, Math.floor(left / 5) * 2.5);
+        var left = T.move - (here ? 0 : rmR[near[0] + ',' + near[1]].cost), zFrom = hangR ? u.hang.z : G.map.gz(near[0], near[1]);
+        if (c.z != null) { // a rung picked: no question, the pick was the intent
+          var zTo = c.z, stepsR = Math.round(Math.abs(zTo - zFrom) / stZr);
+          if (stepsR < 1 || left < stepsR * 5) return;
+          if (hangR && zTo < zFrom) { // down the rope from where it hangs, to a lower rung or to its foot (the rope's found-not-built of 10-04: a hanger could go up or step off, never down part way)
+            var ground = zTo <= G.map.gz(u.x, u.y) + 0.5;
+            u.tween = { fx: u.x, fy: u.y, fz: zFrom, t: 0, dur: this.pace(STEP_FRAMES + 2 * stepsR, true), mode: 'ropedown' };
+            if (ground) delete u.hang; else u.hang.z = zTo;
+            T.move -= stepsR * 5; T.moved = (T.moved || 0) + stepsR * 5;
+            this.card(['{y}' + nameOf(u) + '{/} lets down ' + stepsR * 2.5 + ' ft of the rope and ' + (ground ? 'stands at its foot.' : 'hangs there, ' + Math.round((zTo - G.map.gz(u.x, u.y)) / stZr) * 2.5 + ' ft up.')], 260);
+            this.keepInView(u); yield STEP_FRAMES + 2 * stepsR; u.anim = 'idle';
+            if (ground && u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); }
+            return;
+          }
+          var endR = zTo > zFrom ? rr0.at : rr0.foot;
+          yield* this.moveAlong(u, pre.concat([[endR[0], endR[1]]]), { spend: true, stopZ: zTo });
+          return;
+        }
+        var allFt = Math.round(Math.abs(G.map.gz(c.x, c.y) - zFrom) / stZr) * 2.5, gotFt = Math.min(allFt, Math.floor(left / 5) * 2.5);
         if (gotFt <= 0) return;
-        var ansR = yield { prompt: { who: u, title: u.name + ': CLIMB THE ROPE?', lines: ['The rope is ' + allFt + ' ft from here; the move left takes ' + nameOf(u) + ' ' + gotFt + ' ft along it, to hang there.'], opts: [{ label: 'CLIMB', value: true }, { label: 'NOT NOW', value: false }] } };
+        var ansR = yield { prompt: { who: u, title: u.name + ': CLIMB THE ROPE?', lines: ['The rope is ' + allFt + ' ft from here; the move left takes ' + nameOf(u) + ' ' + gotFt + ' ft along it, to hang there.', '(Or point at the face itself: the rung the mouse is on is where the climb stops.)'], opts: [{ label: 'CLIMB', value: true }, { label: 'NOT NOW', value: false }] } };
         if (!ansR) return;
         yield* this.moveAlong(u, pre.concat([[c.x, c.y]]), { spend: true, partial: true });
         return;
@@ -1170,8 +1237,10 @@
       var rpS = G.ropeOn(u, u.x, u.y, nx, ny), hung0 = !!(u.hang && G.hanging(u));
       if (rpS) cliffM = z1 > z0 ? 'climb' : 'ropedown'; else if (hung0) cliffM = 'climb';
       // part way along it, as far as the move goes, and it hangs there (10-04, Griz: "a roped face is gonna be a movement stopping point"; exec 'ropeclimb' asks it)
-      if (rpS && o && o.partial && o.spend && T.move < cost) {
-        var stpR = Math.floor(T.move / 5); if (stpR < 1) { u.anim = 'idle'; return; }
+      // ... or to the rung the hand picked (o.stopZ: exec 'ropeclimb' with z, 10-04 night), whether or not the move could have taken it the whole way
+      var stopR = !!(rpS && o && o.spend && o.stopZ != null) && Math.round(Math.abs(o.stopZ - z0) / stZ) < Math.round(Math.abs(z1 - z0) / stZ);
+      if (rpS && o && o.spend && (stopR || (o.partial && T.move < cost))) {
+        var stpR = stopR ? Math.round(Math.abs(o.stopZ - z0) / stZ) : Math.floor(T.move / 5); if (stpR < 1 || T.move < stpR * 5) { u.anim = 'idle'; return; }
         var upR = z1 > z0, zH = z0 + (upR ? 1 : -1) * stpR * stZ, endZ = upR ? G.map.gz(rpS.at[0], rpS.at[1]) : G.map.gz(rpS.foot[0], rpS.foot[1]);
         u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * stpR, true), mode: upR ? 'climb' : 'ropedown' };
         u.x = rpS.foot[0]; u.y = rpS.foot[1]; u.hang = { rope: rpS, z: zH };

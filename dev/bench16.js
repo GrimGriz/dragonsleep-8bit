@@ -1115,6 +1115,80 @@
     document.body.appendChild(preX);
     return;
   }
+  // the rope's rungs, the grapple taken up, the rope cut (mode=rungs1004; 10-04 night, Griz: "I can't currently target half-way up the rope with a highlighted wall and choose
+  // that as my intentional move" -- "better than half-way stop plz, these are 45 ft ropes i think" -- "if one clicks on a square where a grapple is they should be able to take it
+  // (unless someone is on it - in which case I think they'll attack it if that's not an ally)"): exec 'ropeclimb' with z climbs to exactly that height and hangs, 5 ft of
+  // move a step; up and down from a hang, down to the ground; a rung the move cannot pay is refused and nothing spent; the far-end click still climbs as far as the move
+  // goes; from the top, let down to a rung; ui.js ropeRung picks a rung off the mouse by its height on the face; TAKE THE ROPE puts it back in the pack; a blow at a rope a
+  // foe hangs on cuts it and drops the foe. On the Climbing Floor's 30 ft tower (cols 21-22, rows 1-5), a rope hung from (21, 5) to (21, 6)
+  if (get('mode', '') === 'rungs1004') {
+    var repRg = { checks: [], errors: [] }, d0Rg = D.d, G = D.grid;
+    function okRg(what, v) { repRg.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runRg(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      var Bg = D.npcFight('?npc=goblin&lvl=5&vs=fighter:5,cleric:5&map=climbfloor', {}); D.battle = Bg; Bg.enter(); while (!Bg.order.length) Bg.co.next();
+      var fg = Bg.units.filter(function (u) { return u.side === 'party'; })[0], gb = Bg.units.filter(function (u) { return u.side === 'foe'; })[0], st = G.map.def.step;
+      var rp = { at: [21, 5], foot: [21, 6], hp: 2, by: fg.id }; Bg.ropes.push(rp);
+      gb.x = 2; gb.y = 12; fg.x = 21; fg.y = 6; fg.speed = 30; delete fg.hang; D.rules.startTurn(fg); Bg.active = fg; Bg.tool = 'move';
+      var zt = G.map.gz(21, 5), zf = G.map.gz(21, 6);
+      okRg('the tower: top ' + zt / st + ' steps, foot ' + zf / st + ', the fighter at its foot with ' + fg.turn.move + ' ft', zt / st === 12 && zf === 0 && fg.turn.move === 30);
+      // 1. a rung four steps up (10 ft): 20 ft of move, hanging at 40
+      runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5, z: 4 * st }));
+      okRg('1. to the rung 10 ft up: hangs ' + !!(fg.hang && G.hanging(fg)) + ' at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move + ', still at the foot ' + (fg.x === 21 && fg.y === 6), !!(fg.hang && G.hanging(fg)) && fg.hang.z === 4 * st && fg.turn.move === 10 && fg.x === 21 && fg.y === 6);
+      // 2. two rungs higher from the hang (5 ft): 10 ft, none left
+      runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5, z: 6 * st }));
+      okRg('2. two rungs higher: at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move, !!fg.hang && fg.hang.z === 6 * st && fg.turn.move === 0);
+      // 3. a rung the move cannot pay: refused, nothing spent
+      fg.turn.move = 10; runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5, z: 10 * st }));
+      okRg('3. four rungs up with 10 ft left: refused -- at ' + (fg.hang && fg.hang.z) + ', move ' + fg.turn.move, !!fg.hang && fg.hang.z === 6 * st && fg.turn.move === 10);
+      // 4. down three rungs from the hang (7.5 ft): 15 ft
+      fg.turn.move = 30; runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 6, z: 3 * st }));
+      okRg('4. down to the rung 7.5 ft up: at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move, !!fg.hang && fg.hang.z === 3 * st && fg.turn.move === 15);
+      // 5. to the ground: 15 ft, standing at the foot
+      runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 6, z: 0 }));
+      okRg('5. down to the ground: hanging ' + !!fg.hang + ', at (' + fg.x + ',' + fg.y + '), move left ' + fg.turn.move, !fg.hang && fg.x === 21 && fg.y === 6 && fg.turn.move === 0);
+      // 6. the old far-end click (no z): as far as the move goes -- 30 ft is six steps
+      D.rules.startTurn(fg); runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5 }));
+      okRg('6. the top clicked with 30 ft: hangs at ' + (fg.hang && fg.hang.z) + ' (six steps), move ' + fg.turn.move, !!fg.hang && fg.hang.z === 6 * st && fg.turn.move === 0);
+      // 7. from the top, let down to a rung eight steps up (four down): 20 ft
+      delete fg.hang; fg.x = 21; fg.y = 5; D.rules.startTurn(fg); runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 6, z: 8 * st }));
+      okRg('7. from the top down to the rung 20 ft up: at (' + fg.x + ',' + fg.y + ') hanging at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move, fg.x === 21 && fg.y === 6 && !!fg.hang && fg.hang.z === 8 * st && fg.turn.move === 10);
+      // 8. the mouse's pick (ui.js ropeRung): the rope's line on the screen, the height of the fourth rung -- from the foot, standing
+      delete fg.hang; fg.x = 21; fg.y = 6; D.rules.startTurn(fg); Bg.tool = 'move'; Bg.cache = null;
+      var iso = D.iso, ex = 21, ey = 5.5, pa = iso.center(ex, ey, zt), pb = iso.center(ex, ey, zf), pS = iso.toScreen(pa.x, pa.y), qS = iso.toScreen(pb.x, pb.y);
+      var pick4 = D.ui.ropeRung(Bg, fg, pS.x, qS.y - 4 * st), pickOff = D.ui.ropeRung(Bg, fg, pS.x + 40, qS.y - 4 * st), pickTop = D.ui.ropeRung(Bg, fg, pS.x, pS.y + 1);
+      okRg('8. the mouse on the rope at the fourth rung: k ' + (pick4 && pick4.k) + ', z ' + (pick4 && pick4.z) + ', cost ' + (pick4 && pick4.cost) + ', ok ' + (pick4 && pick4.ok) + ', up ' + (pick4 && pick4.up) + '; 40 px off the rope: ' + (pickOff === null) + '; at the very top: k ' + (pickTop && pickTop.k) + ' (11, never the top itself)',
+        !!pick4 && pick4.k === 4 && pick4.z === 4 * st && pick4.cost === 20 && pick4.ok === true && pick4.up === true && pickOff === null && !!pickTop && pickTop.k === 11);
+      Bg.ropePick = pick4; Bg.cursor = { x: 21, y: 6 };
+      okRg('8. with the rung picked, the foot square validates as the rung: ' + D.ui.valid(Bg, fg, 21, 6), D.ui.valid(Bg, fg, 21, 6) === 'rung');
+      Bg.ropePick = null;
+      // 9. TAKE THE ROPE: from beside its top, nobody on it -- the rope gone, one more in the pack, the action spent; refused while the goblin hangs on it
+      fg.x = 22; fg.y = 5; D.rules.startTurn(fg); var inv0 = ((Bg.inv || []).filter(function (x) { return x.id === 'rope'; })[0] || {}).n || 0;
+      gb.x = 21; gb.y = 6; gb.hang = { rope: rp, z: 6 * st };
+      var tk0 = D.Battle.canTakeRope(Bg, fg, rp); okRg('9. the goblin on the rope: take refused -- ' + tk0.why, !tk0.ok && /goblin/i.test(tk0.why));
+      delete gb.hang; gb.x = 2; gb.y = 12;
+      okRg('9. nobody on it: the square validates as take -- ' + D.ui.valid(Bg, fg, 21, 5), D.ui.valid(Bg, fg, 21, 5) === 'take');
+      runRg(Bg.exec(fg, { do: 'takerope', x: 21, y: 5 })); // (the bench answers the first option: TAKE IT UP)
+      var inv1 = ((Bg.inv || []).filter(function (x) { return x.id === 'rope'; })[0] || {}).n || 0;
+      okRg('9. taken up: ropes left ' + Bg.ropes.filter(function (r) { return !r.cut; }).length + ', in the pack ' + inv0 + ' -> ' + inv1 + ', the action ' + fg.turn.action, !Bg.ropes.filter(function (r) { return !r.cut; }).length && inv1 === inv0 + 1 && fg.turn.action === 0);
+      // 10. the rope cut: hung again, the goblin on it 15 ft up, the fighter at its top with a natural 20 -- it parts, the goblin falls prone and hurt
+      var rp2 = { at: [21, 5], foot: [21, 6], hp: 2, by: fg.id }; Bg.ropes.push(rp2); gb.x = 21; gb.y = 6; gb.hang = { rope: rp2, z: 6 * st }; gb.hp = gb.maxhp = 40; gb.conds = {};
+      fg.x = 21; fg.y = 5; D.rules.startTurn(fg);
+      var ct0 = D.Battle.canCutRope(Bg, fg, rp2); okRg('10. the goblin hangs 15 ft up: cut offered ' + !!(ct0 && ct0.ok) + ' (' + (ct0 && ct0.ft) + ' ft), the square validates as cut -- ' + D.ui.valid(Bg, fg, 21, 5), !!(ct0 && ct0.ok) && ct0.ft === 15 && D.ui.valid(Bg, fg, 21, 5) === 'cut');
+      D.d = function (n) { return n === 20 ? 20 : d0Rg(n); }; runRg(Bg.exec(fg, { do: 'cutrope', x: 21, y: 5 })); D.d = d0Rg;
+      okRg('10. struck with a 20: the rope cut ' + !!rp2.cut + ', the goblin off it ' + !gb.hang + ', prone ' + !!gb.conds.prone + ', HP ' + gb.hp + '/40, the action ' + fg.turn.action, !!rp2.cut && !gb.hang && !!gb.conds.prone && gb.hp < 40 && fg.turn.action === 0);
+      // 11. an ally on the rope: no cut, no take, an ordinary square
+      var rp3 = { at: [21, 5], foot: [21, 6], hp: 2, by: fg.id }; Bg.ropes.push(rp3); gb.conds = {}; delete gb.hang; gb.x = 2; gb.y = 12;
+      var al = Bg.units.filter(function (u) { return u.side === 'party' && u !== fg; })[0];
+      if (al) { al.x = 21; al.y = 6; al.hang = { rope: rp3, z: 4 * st }; D.rules.startTurn(fg); okRg('11. an ally on the rope: cut ' + (D.Battle.canCutRope(Bg, fg, rp3) === null) + ', take ' + D.Battle.canTakeRope(Bg, fg, rp3).ok + ' (' + D.Battle.canTakeRope(Bg, fg, rp3).why + '), the square ' + D.ui.valid(Bg, fg, 21, 5), D.Battle.canCutRope(Bg, fg, rp3) === null && !D.Battle.canTakeRope(Bg, fg, rp3).ok && D.ui.valid(Bg, fg, 21, 5) === 'self'); delete al.hang; }
+      else okRg('11. an ally on the rope: no second hero on the class floor to try with', true);
+    } catch (eRg) { repRg.errors.push(String(eRg && eRg.stack || eRg).slice(0, 900)); }
+    D.d = d0Rg;
+    if (errs.length) repRg.errors = repRg.errors.concat(errs);
+    var preRg = document.createElement('pre'); preRg.id = 'out'; preRg.textContent = 'BENCH16 ' + JSON.stringify(repRg);
+    document.body.appendChild(preRg);
+    return;
+  }
   // the review's rules misses on the grid (mode=rules1003; 10-03, Griz: "Slide way back up to the top with the stuff the cloud review came back with - I think those
   // were probably the important of the todos"; cloud-notes/dev-review-notes.md A3-A5): each check failed before its fix. Battle.hurt straight, D.d pinned for the CON saves
   if (get('mode', '') === 'rules1003') {

@@ -161,8 +161,17 @@
   };
 
   // ------------------------------------------------------------------ the camera: look where you like (the edge, a middle-drag), C comes back
-  // the zoom steps: whole device pixels per art pixel at the backing scale (at 3x: 1, 2/3, 1/3), never under a third
-  function zooms() { var R = D.R, L = []; for (var k = R; k >= 1; k--) if (k / R >= 0.33) L.push(k / R); if (L.length < 2) L.push(0.5); return L; }
+  // the zoom steps: whole device pixels per art pixel at the backing scale (at 3x: 1, 2/3, 1/3), never under a third -- and on a floor too big to fit at that, the far steps
+  // (10-04 night, Griz: "can we have huge maps and another zoom level when we do?"): whole art pixels to a device pixel (at 3x: 1/6, then 1/9), one after another down to the
+  // first that shows the whole floor, capped where the world canvas (D.W/z by D.H/z, drawBattle) would pass FAR_PX. A small cave gets none; the Edifice one; a 60x46 two. Drawn smoothed
+  var FAR_PX = 12e6;
+  function zooms() {
+    var R = D.R, L = []; for (var k = R; k >= 1; k--) if (k / R >= 0.33) L.push(k / R); if (L.length < 2) L.push(0.5);
+    var bk = D.iso.map && D.iso.map.bake, lo = L[L.length - 1];
+    if (bk) { var fit = Math.min(D.W / bk.canvas.width, D.H / bk.canvas.height); for (var n = 1; n <= 12 && lo > fit; n++) { var z = 1 / (R * n); if (z < lo - 1e-9 && (D.W / z) * (D.H / z) <= FAR_PX) { L.push(z); lo = z; } } }
+    return L;
+  }
+  UI.zooms = zooms;
   UI.setZoom = function (dir, ax, ay) {
     var L = zooms(), iso = D.iso, cam = iso.cam, z0 = iso.zoom, i = 0, best = 1e9;
     L.forEach(function (z, k) { if (Math.abs(z - z0) < best) { best = Math.abs(z - z0); i = k; } });
@@ -316,7 +325,7 @@
   }
   function hit(r) { var m = I.mouse; return r && m.x >= r.x && m.y >= r.y && m.x < r.x + r.w && m.y < r.y + r.h; }
   function moveCursor(B, dir) {
-    B.hoverUnit = null; // (the keys move the cursor: the mouse's figure is no longer the one meant -- hoveredRider)
+    B.hoverUnit = null; B.ropePick = null; // (the keys move the cursor: the mouse's figure is no longer the one meant -- hoveredRider; nor the rope's rung -- ropeRung)
     if (D.iso.nudge(B.cursor, dir, G.map.w, G.map.h)) showCursor(B);
   }
   function showCursor(B) { // near the screen's edge (or off it), the view comes to the cursor
@@ -375,7 +384,7 @@
     }
     // the mouse: over the menus, or on the grid
     B.hoverBtn = -1;
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, foeWanted(B, u)), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); B.hoverUnit = pu; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } } // (hoverUnit: a rider on a head the mouse is on -- underCursor)
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, foeWanted(B, u)), rg = pu ? null : ropeRung(B, u, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : rg ? { x: rg.rope.foot[0], y: rg.rope.foot[1] } : D.iso.pick(I.mouse.x, I.mouse.y); B.hoverUnit = pu; B.ropePick = rg; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } } // (hoverUnit: a rider on a head the mouse is on -- underCursor; ropePick: a rung of a rope the mouse is on, the cursor at the rope's foot -- ropeRung, 10-04)
     if (I.mouse.inside) (B.buttons || []).forEach(function (b, i) { if (hit(b)) B.hoverBtn = i; });
     // hovering picks an icon only when the mouse moves onto it: a ring turning under a resting mouse, or a twitch
     // on the same icon, leaves the arrows' choice alone (Griz, 09-27: the arrows stopped working over the wheel)
@@ -549,6 +558,12 @@
     if (tool === 'detach') return D.Battle.pullable(u, B.units).some(function (r) { return r.master === w; }) ? 'ok' : 'no'; // (PULL IT OFF: a friend beside you with one on)
     if (tool === 'breaktendril') return w && D.Battle.breakable(u, B.units).indexOf(w) >= 0 ? 'ok' : 'no'; // (BREAK THE TENDRIL: the one it holds -- you, or a friend beside you -- 10-02)
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
+      // a rope's square (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it (unless someone is on it - in which case I think they'll
+      // attack it if that's not an ally)"): a foe hanging on it within the weapon's reach -- the click cuts; nobody on it, the hero beside it -- the click takes it up (or steps
+      // there, asked); the hero standing on it -- the self-click's ring has TAKE THE ROPE. An ally on it: the square is a square (battle.js Battle.canCutRope, canTakeRope)
+      var rpA = !foe && D.Battle.ropeAt(B, x, y);
+      if (rpA) { var cutA = D.Battle.canCutRope(B, u, rpA); if (cutA && cutA.ok) return 'cut'; if (!cutA && !(x === u.x && y === u.y) && D.Battle.canTakeRope(B, u, rpA).ok) return 'take'; }
+      if (B.ropePick && x === B.ropePick.rope.foot[0] && y === B.ropePick.rope.foot[1] && !foe) return B.ropePick.ok ? 'rung' : 'no'; // (a rung of a rope the mouse is on: ropeRung, 10-04 night)
       if (x === u.x && y === u.y && !foe) return 'self';
       if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action || T.slamsLeft > 0) ? 'ok' : 'no'; // a crossbow reaches out to its long range (T.slamsLeft: the Keeper's second Slam out of the one action -- js/keeperplay.js)
       var rc = reachCache(B, u), k = x + ',' + y; // (the attack tool walks too: a step between swings is fair)
@@ -608,6 +623,68 @@
     }
     return null;
   }
+  // a rung of a rope (10-04 night, Griz: "I can't currently target half-way up the rope with a highlighted wall and choose that as my intentional move" -- "better than
+  // half-way stop plz, these are 45 ft ropes i think"): the mouse on a roped face picks a height along the rope, a step (2.5 ft) at a time, and the click climbs -- or lets
+  // down -- to exactly there and hangs (battle.js exec 'ropeclimb' with z). From the foot or the top (standing there, or walked to with move to spare), or from where it hangs
+  // already (any other rung, or the ground). The pick is a band 36 px wide down the rope's line, so the face itself is the target, as he asked. Returns
+  // { rope, z, k, n, z0, steps, cost, spent, up, to, ok, ground, why } or null: `to` the end it climbs toward, `cost` the rope's 5 ft a step, `spent` the walk to the end first
+  function ropeRung(B, u, mx, my) {
+    if (!u || !u.turn || (u.size || 1) > 1 || u.conds.restrained || u.climbs || (u.flies && !u.conds.prone) || !(B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) return null;
+    var rs = B.ropes || [], iso = D.iso, st = G.map.def.step, z = iso.zoom, T = u.turn, rc = null, hang = u.hang && G.hanging(u) ? u.hang.rope : null;
+    if (!st) return null;
+    for (var i = 0; i < rs.length; i++) {
+      var r = rs[i]; if (r.cut || (hang && r !== hang)) continue;
+      var zt = G.map.gz(r.at[0], r.at[1]), zf = G.map.gz(r.foot[0], r.foot[1]), n = Math.round((zt - zf) / st); if (n < 2) continue;
+      var ex = (r.at[0] + r.foot[0]) / 2, ey = (r.at[1] + r.foot[1]) / 2, a = iso.center(ex, ey, zt), b = iso.center(ex, ey, zf), p = iso.toScreen(a.x, a.y), q = iso.toScreen(b.x, b.y);
+      if (Math.abs(mx - p.x) > 18 * z + 2 || my < p.y - 6 || my > q.y + 6) continue;
+      var k = Math.round((q.y - my) / (st * z)), kMin = hang === r ? 0 : 1; k = Math.max(kMin, Math.min(n - 1, k));
+      // where it climbs from: its hang, the end it stands at, or an end it can walk to with move to spare (the cheaper)
+      var from = [];
+      if (hang === r) from.push({ z0: u.hang.z, spent: 0 });
+      else if (u.x === r.foot[0] && u.y === r.foot[1]) from.push({ z0: zf, spent: 0 });
+      else if (u.x === r.at[0] && u.y === r.at[1]) from.push({ z0: zt, spent: 0 });
+      else { rc = rc || reachCache(B, u); [[r.foot, zf], [r.at, zt]].forEach(function (e) { var m = rc.move[e[0][0] + ',' + e[0][1]]; if (m && m.stand) from.push({ z0: e[1], spent: m.cost }); }); }
+      if (!from.length) continue;
+      var zH = zf + k * st, pick = null;
+      from.forEach(function (f) { var steps = Math.round(Math.abs(zH - f.z0) / st); if (!steps) return; var c = { z0: f.z0, spent: f.spent, steps: steps, cost: steps * 5 }; if (!pick || c.spent + c.cost < pick.spent + pick.cost) pick = c; });
+      if (!pick) continue;
+      var ok = T.move - pick.spent >= pick.cost;
+      return { rope: r, z: zH, k: k, n: n, z0: pick.z0, steps: pick.steps, cost: pick.cost, spent: pick.spent, up: zH > pick.z0, to: zH > pick.z0 ? r.at : r.foot, ok: ok, ground: k === 0,
+        why: ok ? '' : (pick.spent + pick.cost) + ' ft of movement, ' + T.move + ' left' };
+    }
+    return null;
+  }
+  UI.ropeRung = ropeRung;
+  // the rung drawn (overlay): the face the rope hangs down, outlined, the rung across it at the height picked, and where the figure will hang -- a small rhombus at the foot's
+  // square raised to the rung, the height and the cost beside it. Gold; red where the move will not take it. The face goes in the sort just after its own square's tile (as onSq
+  // does), so the raised square's picture does not cover it; the rung's mark just after the rope, so it reads on top of it
+  function drawRung(B, u, rg) {
+    var r = rg.rope, iso = D.iso, HW = iso.TW / 2, HH = iso.TH / 2, st = G.map.def.step, zt = G.map.gz(r.at[0], r.at[1]), zf = G.map.gz(r.foot[0], r.foot[1]), col = rg.ok ? R('gold', 3) : R('red', 4);
+    var dx = r.foot[0] - r.at[0], dy = r.foot[1] - r.at[1], square = (dx === 1 && dy === 0) || (dx === 0 && dy === 1); // (a face shows toward +gx or +gy; a corner-wise foot has no one face)
+    var c = iso.center(r.at[0], r.at[1], 0), ex = (r.at[0] + r.foot[0]) / 2, ey = (r.at[1] + r.foot[1]) / 2;
+    onSq(r.at[0], r.at[1], function (cx) {
+      cx.save(); cx.strokeStyle = col; cx.fillStyle = col; cx.lineWidth = 1;
+      if (square) {
+        var e = dx === 1 ? [[0, HH], [HW, 0]] : [[-HW, 0], [0, HH]], hi = [], lo = []; // (the lip's edge: +gx the lower-right one, +gy the lower-left)
+        e.forEach(function (v) { hi.push(iso.toScreen(c.x + v[0], c.y + v[1] - zt)); lo.push(iso.toScreen(c.x + v[0], c.y + v[1] - zf)); });
+        cx.beginPath(); cx.moveTo(hi[0].x, hi[0].y); cx.lineTo(hi[1].x, hi[1].y); cx.lineTo(lo[1].x, lo[1].y); cx.lineTo(lo[0].x, lo[0].y); cx.closePath();
+        cx.globalAlpha = 0.14; cx.fill(); cx.globalAlpha = 0.6; cx.stroke();
+        var ra = iso.toScreen(c.x + e[0][0], c.y + e[0][1] - rg.z), rb = iso.toScreen(c.x + e[1][0], c.y + e[1][1] - rg.z);
+        cx.globalAlpha = 1; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(ra.x, ra.y); cx.lineTo(rb.x, rb.y); cx.stroke();
+      } else {
+        var m0 = iso.center(ex, ey, rg.z), ms = iso.toScreen(m0.x, m0.y);
+        cx.lineWidth = 2; cx.beginPath(); cx.moveTo(ms.x - 9, ms.y); cx.lineTo(ms.x + 9, ms.y); cx.stroke();
+      }
+      cx.restore();
+    });
+    DEFER.push({ depth: r.foot[0] + r.foot[1] + 0.35, gz: zf, layer: 1, draw: function (cx) {
+      cx.save(); iso.rhombus(cx, r.foot[0], r.foot[1], rg.z, 7); cx.globalAlpha = 0.9; cx.strokeStyle = col; cx.lineWidth = 1; cx.stroke(); cx.globalAlpha = 1;
+      cx.restore();
+    } });
+    var hp = iso.center(r.foot[0], r.foot[1], rg.z), hs = iso.toScreen(hp.x, hp.y); // (the words after everything in the sort: a tile in front painted over them when they rode in it)
+    LABELS.push({ x: hs.x + 18, y: hs.y - 4, text: (rg.ground ? 'the ground' : ((rg.z - zf) / st * 2.5) + ' ft up') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent + rg.cost) + ' ft of move{/}', color: R('bone', 1) });
+  }
+
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)
   UI.throwSq = function (u, x, y) { var s = G.map.at(x, y); return !!(s && s.open && !(x === u.x && y === u.y) && Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, x, y)); };
   function actAt(B, u, x, y, byKey) {
@@ -617,6 +694,9 @@
     if (tool === 'detach') { if (v === 'ok') return UI.command(B, u, { do: 'detach', target: D.Battle.riderOn(u, w, B.units) }); return B.card(['{o}Pull it off: a friend beside you with a darkmantle on.{/}'], 120); }
     if (tool === 'breaktendril') { if (v === 'ok') return UI.command(B, u, { do: 'breaktendril', target: w }); return B.card(['{o}Break the tendril: the one it holds -- yourself, or a friend beside you.{/}'], 120); }
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
+      if (v === 'cut') return UI.command(B, u, { do: 'cutrope', x: x, y: y }); // (a rope a foe hangs on: struck from its top -- 10-04 night)
+      if (v === 'take') return UI.command(B, u, { do: 'takerope', x: x, y: y }); // (a rope's grapple, nobody on it: taken up, or the square stepped onto -- asked)
+      if (v === 'rung') return UI.command(B, u, { do: 'ropeclimb', x: B.ropePick.to[0], y: B.ropePick.to[1], z: B.ropePick.z }); // (the rung picked: to exactly there, and hang -- before the self-click, since a hanger's square is the rope's foot)
       if (x === u.x && y === u.y && !foe) { D.sfx('popup'); B.tool = 'menu'; return; }
       if (foe && v === 'ok') return UI.command(B, u, { do: 'attack', target: foe });
       if (foe) {
@@ -800,6 +880,7 @@
       if (B.dark) D.light.pass(wx, B, vw, vh); // torchdark: the light pass over the world (the player sees it all, dimmed where the four can't)
       drawPathDots(wx);
       drawPathMarks(wx);
+      drawLabels(wx);
       xray(wx, B, objs, hero || B.active); // a figure hidden behind another shows through as its outline
       // a rider the cursor means (a darkmantle on a head: underCursor) outlined, so the mouse shows it is on it (10-01, Griz: "I can't get any indication I'm mousing over the one on his head")
       var hr = hero && underCursor(B), ho = hr && hr.riding && objs.filter(function (o) { return o.unit === hr && o.shown; })[0];
@@ -1403,6 +1484,8 @@
   // so a dark room dimmed them; each is a 3x3 dot on a dark 5x5 backing, so the white reads on pale floor too
   var PATHDOTS = [];
   function dotSq(x, y, color) { var p = D.iso.center(x, y, G.map.gz(x, y)), s = D.iso.toScreen(p.x, p.y); PATHDOTS.push({ x: s.x, y: s.y, color: color }); }
+  var LABELS = []; // (a few words pinned to a world point, drawn after the sort: the rung's height and cost -- 10-04 night)
+  function drawLabels(c) { LABELS.forEach(function (l) { D.text(c, l.text, l.x, l.y, l.color); }); LABELS = []; }
   function drawPathDots(c) { PATHDOTS.forEach(function (d) { c.fillStyle = R('outline', 0); c.fillRect(d.x - 2, d.y - 2, 5, 5); c.fillStyle = d.color; c.fillRect(d.x - 1, d.y - 1, 3, 3); }); PATHDOTS = []; }
   // difficult ground, marked while a move is being chosen (Griz, 10-04: "when a player's move is active, can there be markers on difficult terrain?"): a small gold X on each square the mover
   // could reach where a step in costs more than a plain one (rubble, water, web, ice, thorns); drawn with the dots, after the light pass
@@ -1537,9 +1620,11 @@
         if (picked) { var pp = UI.unitPos(B, w); DEFER.push({ depth: 1e6, gz: 0, draw: function (c) { D.text(c, picked > 1 ? 'x' + picked : 'v', pp.x + 10, pp.y - 8, harm ? R('fire', 2) : R('gold', 4)); } }); }
       });
     }
+    // a rung of a rope the mouse is on (ropeRung, 10-04 night): the face, the rung at the height picked, and where the figure will hang
+    if (B.ropePick && (tool === 'move' || tool === 'menu' || tool === 'attack')) drawRung(B, u, B.ropePick);
     // the cursor: red where the current thing can't go
     var s0 = G.map.at(cx, cy);
-    if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'far' || v === 'rope' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
+    if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'cut' ? R('fire', 2) : v === 'far' || v === 'rope' || v === 'rung' || v === 'take' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
   }
 
   // ------------------------------------------------------------------ the initiative strip, the cards, the tooltip
@@ -1599,6 +1684,14 @@
       }
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
+      var rpT = !B.ropePick && D.Battle.ropeAt(B, B.cursor.x, B.cursor.y); // (a rope's grapple under the cursor: what the click does -- 10-04 night)
+      if (rpT) {
+        var cutT = D.Battle.canCutRope(B, u, rpT), hgT = D.Battle.ropeHanger(B, rpT), tkT = D.Battle.canTakeRope(B, u, rpT);
+        if (cutT) lines.push('{y}the rope{/}: the ' + B.shortName(cutT.foe) + ' hangs on it, ' + cutT.ft + ' ft up  ' + (cutT.ok ? '{n}click: strike the rope (AC 11, 2 HP) -- cut, it drops the ' + B.shortName(cutT.foe) + ' ' + cutT.ft + ' ft{/}' : '{o}' + cutT.why + '{/}'));
+        else if (hgT) lines.push('{y}the rope{/}: ' + hgT.name + ' hangs on it');
+        else lines.push('{y}the rope\'s grapple{/}  ' + (tkT.ok ? '{n}click: take it up into the pack (the action)' + (B.cursor.x === u.x && B.cursor.y === u.y ? ' -- TAKE THE ROPE on the ring' : '') + '{/}' : '{g}' + tkT.why + '{/}'));
+      }
+      if (B.ropePick) { var rg = B.ropePick, rgFt = (rg.z - G.map.gz(rg.rope.foot[0], rg.rope.foot[1])) / G.map.def.step * 2.5; lines.push('{y}the rope{/}: ' + (rg.ground ? 'down to the ground' : (rg.up ? 'climb to ' : 'let down to ') + rgFt + ' ft up it and hang there') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent ? rg.spent + ' ft to its ' + (rg.up ? 'foot' : 'top') + ', then ' : '') + rg.cost + ' ft of movement' + (rg.ok ? '' : ' -- ' + rg.why) + '{/}'); } // (a rung of a rope the mouse is on: ropeRung, 10-04 night)
       if (B.dark) { var lv = D.light.levelAt(B, B.cursor.x, B.cursor.y), ps = D.light.partySeesSq(B, B.cursor.x, B.cursor.y); lines.push('{g}' + D.light.name(lv) + ' here' + (lv === 0 ? (ps === 1 ? ' (one of yours sees it by darkvision)' : ' (no one of yours sees it)') : '') + '{/}'); }
       B.units.forEach(function (p) {
         var au = RU.auraOf(p);
