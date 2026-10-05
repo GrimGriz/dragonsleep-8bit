@@ -686,7 +686,7 @@
       cx.restore();
     });
     DEFER.push({ depth: r.foot[0] + r.foot[1] + 0.35, gz: zf, layer: 1, draw: function (cx) {
-      cx.save(); iso.rhombus(cx, r.foot[0], r.foot[1], rg.z, 7); cx.globalAlpha = 0.9; cx.strokeStyle = col; cx.lineWidth = 1; cx.stroke(); cx.globalAlpha = 1;
+      var Lr = ropeLine(r); cx.save(); iso.rhombus(cx, Lr[0], Lr[1], rg.z, 9); cx.globalAlpha = 0.9; cx.strokeStyle = col; cx.lineWidth = 1; cx.stroke(); cx.globalAlpha = 1; // (where the figure will hang: on the rope's line, as unitPos draws it -- 10-05)
       cx.restore();
     } });
     var hp = iso.center(r.foot[0], r.foot[1], rg.z), hs = iso.toScreen(hp.x, hp.y); // (the words after everything in the sort: a tile in front painted over them when they rode in it)
@@ -1012,20 +1012,31 @@
     if (t > 60 && ((t >> 5) & 1)) D.hint(ctx, 'E', D.W - 16, D.H - 14, R('stone', 5));
   }
 
+  // on a rope: drawn on its line -- the edge between its top and its foot, a little out from the face -- not in the middle of the foot's square (10-05, Griz: "climbing shows left of
+  // rope, but when they get up they seem to step on tile right of rope first"); the sort keeps it in front of the rope
+  function ropeLine(r) { return [r.at[0] + (r.foot[0] - r.at[0]) * 0.65, r.at[1] + (r.foot[1] - r.at[1]) * 0.65]; }
   function unitPos(B, u) {
     var s = u.size || 1, gx = u.drawAt ? u.drawAt.x : u.x, gy = u.drawAt ? u.drawAt.y : u.y, gz = G.gzAt(u, gx, gy); // (drawAt: where a caster stands while his floating weapon swings)
+    var hangR = u.hang && u.hang.rope && G.hanging(u) ? u.hang.rope : null, onR = hangR;
+    if (hangR && !u.tween) { var L0 = ropeLine(hangR); gx = L0[0]; gy = L0[1]; }
     if (u.tween) {
       // (a cliff, battle.js moveAlong, 10-04 -- Griz: "can we move them vertical": 'climb' goes up the face, then over the lip; 'drop' steps out over the edge, then falls, faster as it goes;
       // 'slip' gets part way up the face and comes back down where it started)
-      var tw = u.tween, k = tw.t / tw.dur, kxy = k, kz = k;
+      var tw = u.tween, k = tw.t / tw.dur, kxy = k, kz = k, fx = tw.fx, fy = tw.fy, tx = u.x, ty = u.y;
       if (tw.mode === 'climb') { kz = Math.min(1, k / 0.75); kxy = Math.max(0, (k - 0.75) / 0.25); }
       else if (tw.mode === 'drop') { kxy = Math.min(1, k / 0.3); kz = Math.max(0, (k - 0.3) / 0.7); kz *= kz; }
       else if (tw.mode === 'ropedown') { kxy = Math.min(1, k / 0.25); kz = Math.max(0, (k - 0.25) / 0.75); } // (over the edge onto a rope, then down it hand over hand)
-      gx = tw.fx + (u.x - tw.fx) * kxy; gy = tw.fy + (u.y - tw.fy) * kxy;
+      if ((tw.mode === 'climb' || tw.mode === 'ropedown') && B) { // (up or down a rope: its foot's end on the rope's line)
+        var isFoot = function (r, x, y) { return r.foot[0] === x && r.foot[1] === y; }, isTop = function (r, x, y) { return r.at[0] === x && r.at[1] === y; };
+        onR = (B.ropes || []).filter(function (r) { return !r.cut && ((isFoot(r, tw.fx, tw.fy) && (isTop(r, u.x, u.y) || hangR === r)) || (isTop(r, tw.fx, tw.fy) && isFoot(r, u.x, u.y))); })[0] || hangR;
+        if (onR) { var L1 = ropeLine(onR); if (isFoot(onR, fx, fy)) { fx = L1[0]; fy = L1[1]; } if (hangR === onR && isFoot(onR, tx, ty)) { tx = L1[0]; ty = L1[1]; } }
+      }
+      gx = fx + (tx - fx) * kxy; gy = fy + (ty - fy) * kxy;
       gz = tw.mode === 'slip' ? tw.fz + tw.peak * (k < 0.6 ? k / 0.6 : Math.pow(1 - (k - 0.6) / 0.4, 2)) : tw.fz + (gz - tw.fz) * kz;
     }
-    var c = D.iso.center(gx + (s - 1) / 2, gy + (s - 1) / 2, gz), p = D.iso.toScreen(c.x, c.y);
-    return { x: p.x, y: p.y, depth: gx + gy + (s - 1) + 0.6, gz: gz };
+    var c = D.iso.center(gx + (s - 1) / 2, gy + (s - 1) / 2, gz), p = D.iso.toScreen(c.x, c.y), dep = gx + gy + (s - 1) + 0.6;
+    if (onR) dep = Math.max(dep, onR.foot[0] + onR.foot[1] + 0.4); // (in front of the rope, ropeObjs: its foot's depth + 0.3)
+    return { x: p.x, y: p.y, depth: dep, gz: gz };
   }
   UI.unitPos = unitPos;
   // where a rider sits on the one it rides -- drawn there (unitObj) and picked there by the mouse (UI.pickUnit; 10-01, Griz: "I can't get any indication I'm

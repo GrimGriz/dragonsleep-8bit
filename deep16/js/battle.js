@@ -992,7 +992,7 @@
     [[0, 1], [1, 0], [0, -1], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(function (q, i) { var fx = x + q[0], fy = y + q[1], s = G.map.at(fx, fy), w = G.occupant(fx, fy); if (s && s.walk && zt - G.map.gz(fx, fy) >= 2 * d.step && !(w && w.id !== u.id)) feet.push({ at: [fx, fy], diag: i > 3 ? 1 : 0 }); });
     if (foot) feet = feet.filter(function (f) { return f.at[0] === foot[0] && f.at[1] === foot[1]; });
     if (!feet.length) return null;
-    feet.sort(function (a, b) { return (G.dist(u, { x: a.at[0], y: a.at[1], size: 1 }) - G.dist(u, { x: b.at[0], y: b.at[1], size: 1 })) || (a.diag - b.diag); });
+    feet.sort(function (a, b) { return (a.diag - b.diag) || (G.dist(u, { x: a.at[0], y: a.at[1], size: 1 }) - G.dist(u, { x: b.at[0], y: b.at[1], size: 1 })); }); // (square-on first, straight down the face; corner-wise only where nothing is square under it -- 10-05, Griz: "climbing shows left of rope, but when they get up they seem to step on tile right of rope first": Vivian's from the fountain rim hung corner-wise)
     var uz = G.gzAt(u, u.x, u.y);
     if (Math.max(Math.abs(u.x - x), Math.abs(u.y - y)) <= 1 && Math.abs(uz - zt) <= d.step) return { at: [x, y], foot: feet[0].at, top: true };
     var tFt = G.dist(u, { x: x, y: y, size: 1 });

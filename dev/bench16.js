@@ -1377,6 +1377,9 @@
       var Bw = mkF('?npc=troll&lvl=5&vs=wizard:5&watch'), wz = sideF(Bw, 'party')[0], tw = sideF(Bw, 'foe')[0];
       Bw.hurt(tw, 300, 'slashing'); D.rules.startTurn(wz); var plW = D.tactics.plans(Bw, wz);
       okF('a wizard with a troll down: the best plan ' + (plW[0] && plW[0].why) + ' ' + (plW[0] && plW[0].score), !!plW[0] && /burn the Troll/.test(plW[0].why));
+      // (and a troll up and unburned: fire first -- "troll regen is common world knowledge - a.i. parties would know")
+      var Bw2 = mkF('?npc=troll&lvl=5&vs=wizard:5&watch'), wz2 = sideF(Bw2, 'party')[0]; D.rules.startTurn(wz2); var plW2 = D.tactics.plans(Bw2, wz2);
+      okF('a wizard with a troll up: the best plan ' + (plW2[0] && plW2[0].why) + ' ' + (plW2[0] && plW2[0].score.toFixed(1)) + ' (then ' + (plW2[1] && plW2[1].why) + ')', !!plW2[0] && /Fire|Scorching|Burning/.test(plW2[0].why));
       // c. Divine Smite on the undead
       var Bp = mkF('?npc=skeleton&lvl=5&vs=paladin:5'), pal = sideF(Bp, 'party')[0], sk = sideF(Bp, 'foe')[0]; pal.guest = false; pal.classAI = false; D.rules.startTurn(pal); pal.x = sk.x; pal.y = sk.y + 1;
       D.d = function (n) { return n === 20 ? 19 : d0F(n); }; var n0P = (Bp.log || []).length; runF(Bp.attack(pal, sk, pal.weapon)); D.d = d0F; var lgP = (Bp.log || []).slice(n0P).join(' | ');

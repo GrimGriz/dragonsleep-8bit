@@ -54,10 +54,15 @@
   };
   function DS_R() { return window.DS.R; }
   // a kill is worth its HP and the rounds it will not act; a wound, its share
-  TX.worth = function (dmg, w) {
+  TX.worth = function (dmg, w, burns) {
     if (!w || dmg <= 0) return 0;
-    var hp = Math.max(1, w.hp), got = Math.min(dmg, hp);
-    return got * (0.6 + TX.dpr(w) / Math.max(8, w.maxhp || hp) * 3) + (dmg >= hp ? TX.dpr(w) * 1.5 : 0);
+    var hp = Math.max(1, w.hp), got = Math.min(dmg, hp), base = got * (0.6 + TX.dpr(w) / Math.max(8, w.maxhp || hp) * 3);
+    // a troll not yet burned (10-05, Griz: "troll regen is common world knowledge - a.i. parties would know"; SRD 5.1 Regeneration): a drop that does not burn is undone at its turn --
+    // half, and no kill; fire or acid on it (burns) stops the knitting, and a drop with it is the kill. Burned already this round, any drop is the kill (as below)
+    // (the one that came for nothing but the objective -- the Skylights' male giant, `missionOnly`, 10-05 -- is worth twice: Pyro has said what they are going for)
+    var obj = w.missionOnly ? 2 : 1;
+    if (w.regen > 0 && !w.burned) return obj * (burns ? base * 1.3 + (dmg >= hp ? TX.dpr(w) * 3 : 0) : base * (dmg >= hp ? 0.5 : 0.9));
+    return obj * (base + (dmg >= hp ? TX.dpr(w) * 1.5 : 0));
   };
 
   // ------------------------------------------------------------------ who is who
@@ -183,7 +188,7 @@
           if (wp.ranged && !G.los(u, t, e.x, e.y).clear) return;
           var near = G.foesNear(u, e.x, e.y, 5).length;
           var s = swing(B, u, t, wp, e.x, e.y), dmg = n * s.p * s.d + s.p * s.sneak;
-          var sc = TX.worth(dmg, t);
+          var sc = TX.worth(dmg, t, !!(wp.flame && u.conds.ablaze)); // (a Flame Tongue alight burns a troll: TX.worth, 10-05)
           // walking into their reach costs a little; a bowman beside a foe (disadvantage is in the edges already) would rather not
           sc -= e.cost / 30 + (wp.ranged && near ? 2 : 0) + (!wp.ranged && near > 1 ? (near - 1) * 1.5 : 0);
           if (!best || sc > best.score) best = { score: sc, t: t, e: e, wp: wp, why: (wp.ranged ? 'shoots ' : 'strikes ') + t.name };
@@ -235,6 +240,13 @@
       var fsE = takes ? fs.filter(function (w) { return !M.globeShuts(B, u, e.g, w); }) : fs, alE = allies.filter(function (w) { return !M.globeShuts(B, u, e.g, w); });
       try { best = ev(B, u, e, slot, fsE, alE); } catch (err) { if (D.lastError == null) D.lastError = err; best = null; }
       if (!best) return;
+      // fire or acid on a troll not yet burned (10-05, Griz: "troll regen is common world knowledge - a.i. parties would know"): its knitting stopped at its turn, so the drop that
+      // follows is the kill -- worth its blows twice more for each one the spell takes (a single target, its rays, or what an area catches)
+      var spD = M.data(e.id) || {};
+      if (/fire|acid/.test((spD.el || '') + ' ' + (spD.el2 || ''))) {
+        var hitT = best.caught || (best.t && best.t.id != null ? [best.t] : best.t && best.t.units ? best.t.units : []);
+        hitT.forEach(function (w) { if (w && G.hostile(u, w) && w.regen > 0 && !w.burned && !w.regenDown) best.score += TX.dpr(w) * 2; });
+      }
       if (D.features && D.features.metaPlan) D.features.metaPlan(B, u, e, slot, best, ev, fs, allies); // (a sorcerer's metamagic on the plan, even one its friends spoil without it: js/features.js)
       if (!(best.score > 0)) return;
       // concentration: a new one must be worth more than what the old one still holds
