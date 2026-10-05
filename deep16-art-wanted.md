@@ -27,6 +27,19 @@ Checked 10-05 against `deep16/data/foes.js` (the Pocket DM's pot: every foe but 
 | the axe beak | the Birb | a tall flightless beak |
 | the darkmantle | the Glub (hand-built; the SRD attach needed it) | a real sheet, or the Blender recipe |
 
+### In the 8-bit, no grid foe at all (checked 10-05 against `content/monsters.json`; the bestiary handoff's "seven")
+
+The grid refuses these by name, so each wants a foe block (`deep16/data/foes.js`) and a figure before a sheet:
+
+| creature | 8-bit | wants |
+|---|---|---|
+| the centipede | CR 1/4 beast | a giant centipede: a long segmented body, many legs |
+| the fire beetle | CR 0 beast | a big beetle with glowing glands |
+| the stirge | CR 1/8 beast | a bat-winged, long-snouted blood-drinker, small |
+| the will-o'-wisp | CR 2 undead | a drifting ball of light; a sheet row for going dark |
+| the Hired Blade (`merc`), the Stable Fighter (`stablefighter`) | CR 1, CR 1/2 humanoids | LPC figures will do (the Hired Sword, `hiredsword`, already shares the guard's sheet: is that the Blade? to settle) |
+| the Drow Blade-Captain (`drowcaptain`) | CR 5 humanoid | the grid's `drow` ("Drow Captain", `drow_p0`) is this block under another id: an alias, no art |
+
 Any of them goes first to a free printable with a .blend (`deep16/blender-monsters.md`), second to a generated sheet. A second sheet for something already in hand (idle variations, special moves) is welcome, never needed.
 
 ## IN HAND (on the grid; don't regenerate)
