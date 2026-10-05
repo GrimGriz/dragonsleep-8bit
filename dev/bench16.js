@@ -1306,7 +1306,7 @@
       rg.x = 11; rg.y = 10; delete rg.hang; rg.conds = {}; rg.hp = rg.maxhp; D.rules.startTurn(rg); Be.active = rg; Be.cache = null; rg.turn.move = 30;
       runE(Be.exec(rg, { do: 'ropeclimb', x: 11, y: 9, z: 6 * st })); var hungV = !!(rg.hang && G.hanging(rg)), mvV = rg.turn.move; rg.turn.action = 0;
       var thV = D.Battle.ropeSq(Be, rg, 13, 9), thD = G.dist(rg, { x: 13, y: 9, size: 1 }), thL = G.losPoint(rg.x, rg.y, 13, 9), thS = D.Battle.ropeSq(Be, { x: 13, y: 10, size: 1, id: 'probe' }, 13, 9); // (his other question: a grapple thrown from the hang to the rim two along, 30 ft up -- and from the street under it, 45 ft)
-      repE.checks.push('info a grapple from that hang to the rim at (13,9): ' + thD + ' ft, in sight ' + thL + ' (the sight is read from the foot of the rope, not the hang), offered ' + !!thV + '; from the street under it (45 ft) offered ' + !!thS + ' -- 10-05, his question, open');
+      okE('a grapple from that hang to the rim at (13,9): ' + thD + ' ft (the old sight from the rope\'s foot: ' + thL + '), offered ' + !!thV + '; from the street under it (45 ft) offered ' + !!thS + ' -- 10-05, Griz: "2 yes" (the sight from the thrower\'s own height; the lip of a face you stand under seen)', !!thV && !thS);
       runE(Be.exec(rg, { do: 'cdash' })); Be.cache = null; var spV = D.ui.spent(Be, rg), mvV2 = rg.turn.move;
       rg.turn.move = 0; Be.cache = null; var spV0 = D.ui.spent(Be, rg);
       okE('the rogue up the rope to 15 ft with her move: hanging ' + hungV + ', move left ' + mvV + '; the action spent and the bonus Dash taken: move ' + mvV2 + ', the turn spent ' + spV + ' (a rung is a step); with no move at all, spent ' + spV0, hungV && mvV === 0 && mvV2 === 30 && spV === false && spV0 === true);
@@ -1324,6 +1324,18 @@
       runE(Bk.climbSay()); var saidK = (Bk.log || []).slice(n0K).join(' | '); runE(Bk.climbSay()); var againK = (Bk.log || []).length - n0K;
       okE('a troll clinging 10 ft up the face: ' + saidK + ' (said once: ' + (againK === 1) + ')', /Pyro.*They're going for the skylights!/.test(saidK) && Bk.climbSaid && againK === 1);
       delete trK.hang;
+      // the roles (10-05, Griz: "Male stone giant nothing but window, female leads trolls against anyone that tries to stop him?"; "be problematic if the male has infinite rocks - two
+      // max"): Barley beside the male -- he swings at no one and goes up the face; a troll 20 ft off goes for Barley, not the glass; the male on the roof out of reach throws his two
+      // rocks at the glass and no third
+      var byK = function (id) { return Bk.units.filter(function (u) { return u.id === id; })[0]; }, maleK = byK('giant2'), tr1K = byK('troll1'), barK = byK('barley');
+      trK.x = 24; trK.y = 14; barK.x = 17; barK.y = 13; barK.hp = barK.maxhp; barK.conds = {}; maleK.x = 18; maleK.y = 10; delete maleK.hang; maleK.hp = maleK.maxhp;
+      var n2K = (Bk.log || []).length; runE(D.ai.turn(Bk, maleK)); var mLogK = (Bk.log || []).slice(n2K).join(' | ');
+      okE('the male giant with Barley beside him: struck at no one ' + !/Giant > /.test(mLogK) + ', on the face ' + !!(maleK.hang && maleK.hang.face) + ' -- ' + mLogK.slice(0, 160), !/Giant > /.test(mLogK) && !!(maleK.hang && maleK.hang.face) && maleK.missionOnly && maleK.rocks === 2);
+      var n3K = (Bk.log || []).length; runE(D.ai.turn(Bk, tr1K)); var tLogK = (Bk.log || []).slice(n3K).join(' | ');
+      okE('a troll 20 ft from Barley, Barley 5 ft from the male: it goes for Barley ' + /Troll > Barley/.test(tLogK) + ', not up the face ' + !(tr1K.hang && tr1K.hang.face) + ' -- ' + tLogK.slice(0, 120), /Troll > Barley/.test(tLogK) && !(tr1K.hang && tr1K.hang.face) && tr1K.guard === 'giant2');
+      delete maleK.hang; maleK.x = 21; maleK.y = 5; var rockK = [];
+      for (var rkI = 0; rkI < 3; rkI++) { D.rules.startTurn(maleK); maleK.turn.move = 0; var n4K = (Bk.log || []).length; runE(D.ai.brute(Bk, maleK)); rockK.push(/Giant > the skylight.*Rock|Rock/.test((Bk.log || []).slice(n4K).join(' ')) ? 'rock' : '-'); }
+      okE('the male on the roof, the glass 30 ft off and no move: ' + rockK.join(',') + ', rocks left ' + maleK.rocks, rockK.join(',') === 'rock,rock,-' && maleK.rocks === 0);
     } catch (eE) { repE.errors.push(String(eE && eE.stack || eE).slice(0, 900)); }
     D.d = d0E;
     if (errs.length) repE.errors = repE.errors.concat(errs);
@@ -2831,7 +2843,10 @@
     var B;
     try {
       var fid = get('fight', '');
-      B = fid ? new D.Battle({ ladder: true, fight: fid, bench: true, npc: vs ? { party: vs.split(','), foes: [] } : null, torch: get('torch', '') || undefined, torchKind: get('torchKind', '') || undefined, level: +get('flvl', 0) || undefined, measure: get('measure', '') === '' ? undefined : get('measure', '') === '1' }) /* (torch=<unit id> torchKind=lantern: a light in a hand -- the roost's hooded lantern, 10-02) (flvl=7: the fight's four at another level; measure=0|1: Pyro held or at full -- the Skylights, 10-05) */ : new D.Battle({ npc: { foes: foes, party: vs ? vs.split(',') : null }, bench: true, fightDef: D.classFight(L) });
+      // plus=troll,troll: more of the bestiary in a fight, at the spots its map keeps for them (the Skylights, 10-05, Griz: "Just from CR, what's two more trolls?") -- walked in last, guarding as the fight's own guards do
+      var PLUS = { edifice: [[26, 16], [9, 13]] }, plusK = get('plus', '') ? get('plus', '').split(',') : [], fdef = null;
+      if (fid && plusK.length) { var F0 = D.fight(fid), gd = (F0.foes.filter(function (f) { return f.guard; })[0] || {}).guard; fdef = Object.assign({}, F0, { foes: F0.foes.concat(plusK.map(function (k, ip) { var sp = (PLUS[fid] || [])[ip] || F0.foes[0].at; return { id: 'plus' + ip, kind: k, from: F0.foes[0].from, at: sp, guard: gd }; })) }); }
+      B = fid ? new D.Battle({ ladder: true, fight: fid, fightDef: fdef || undefined, bench: true, npc: vs ? { party: vs.split(','), foes: [] } : null, torch: get('torch', '') || undefined, torchKind: get('torchKind', '') || undefined, level: +get('flvl', 0) || undefined, measure: get('measure', '') === '' ? undefined : get('measure', '') === '1' }) /* (torch=<unit id> torchKind=lantern: a light in a hand -- the roost's hooded lantern, 10-02) (flvl=7: the fight's four at another level; measure=0|1: Pyro held or at full -- the Skylights, 10-05) */ : new D.Battle({ npc: { foes: foes, party: vs ? vs.split(',') : null }, bench: true, fightDef: D.classFight(L) });
       D.battle = B; B.enter();
       if (fid) B.units.concat(B.arriving ? B.arriving.ours : []).forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); // (B.arriving: a fight's party behind its doors till the walk-in, Battle.offstage -- the Skylights, 10-05)
     } catch (e) { errs.push('enter: ' + String(e && e.stack || e).slice(0, 600)); break; }

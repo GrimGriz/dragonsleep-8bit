@@ -309,19 +309,24 @@
     // THE SKYLIGHTS (10-05; the Edifice handoff's boss fight, a defend fight -- Griz, 10-04 night: "make the glass above the hole their target ... like they're trying to make entry
     // into the dwarven place and this is defend mission"; 10-05: "2 stone giants (each model) and 2 trolls and see how that goes"; "Have pyro come out followed by the party then the
     // doors lock behind them. Have the monsters come from the north road, the team pop out and then initiative. Have pyro say 'they're going for the skylights' when the first one
-    // climbs?"). Off the ladder, at 9 (the seat's lean: the road's end, the four at their last rung) -- the door is ?fight=edifice (&lvl=N another level, &full Pyro at full). Pyro
-    // guests, taking the party's measure as he does in every fight he guests in (RULED 09-30b): `measure`. The foes walk down the north road from its top (`from`) to where they
-    // stand; the party comes out of the vault behind him, and the doors shut (Battle.arrive). The skylight is the foes' target (`defend`: the map's `skylight`); broken, it is lost.
-    // invented.json#the-skylights-fight
-    { id: 'edifice', story: true, ladder: false, level: 9, map: 'edifice', name: 'The Skylights', sub: 'Fountain Street, under the Edifice', music: 'boss', defend: true, measure: true, guests: ['pyro'],
-      intro: 'Word comes down to the vault: giants on the north road, and trolls at their heels -- and they are not looking at the street. They are looking up at the glass.',
+    // climbs?"). Off the ladder, at 8 (10-05, Griz: "most likely the party will be 8, so test 8 & 7 - if they wait til 9 it's their fault its easy") -- the door is ?fight=edifice
+    // (&lvl=N another level, &full Pyro at full). The story (Griz: "we end pyro walking them down the road with him getting emergency word and the using the magic teleporting lanterns
+    // the 8 bit added... or other handwaving"): word reaches him on the road, and the held lamps carry them back up to Solskaft (js/deep.js, the lamps as warp points). Pyro guests,
+    // taking the party's measure as he does in every fight he guests in (RULED 09-30b): `measure`. The foes walk down the north road from its top (`from`) and spread along the
+    // facade's foot (Griz: "spread them along the facade"); the party comes out of the vault behind him, and the doors shut (Battle.arrive). The skylight is the foes' target
+    // (`defend`: the map's `skylight`); broken, it is lost. The male giant goes for nothing but the window (`only`), with two rocks to throw at it (`rocks` -- Griz: "be problematic if
+    // the male has infinite rocks - two max"); the female leads the trolls against anyone who comes at him
+    // (`guard`: Griz, "Male stone giant nothing but window, female leads trolls against anyone that tries to stop him?"). invented.json#the-skylights-fight
+    { id: 'edifice', story: true, ladder: false, level: 8, map: 'edifice', name: 'The Skylights', sub: 'Fountain Street, under the Edifice', music: 'boss', defend: true, measure: true, guests: ['pyro'],
+      intro: 'Word reaches the king on the road: giants on Silverton\'s north road, trolls at their heels, and they have not come for the street. Back up the lamps to Sólskaft, down through the halls to the vault door.',
       from: 'the Edifice handoff (10-04): the defend fight; Griz, 10-05: two stone giants, one of each look, and two trolls', won: 'THE GLASS HOLDS.', lost: 'THE SKYLIGHT GAVE WAY: THE EDIFICE IS BREACHED.',
       entry: [[29, 13], [30, 11], [31, 12], [28, 12], [27, 13]], // (the four, then Pyro: in front of the vault, facing the road)
-      arrive: { doors: [[29, 10], [30, 10]], road: 'Down the north road they come: two stone giants, and two trolls at their heels.', open: 'The vault doors swing open. Pyro is first out.', lock: 'The vault doors shut behind them, and the bars drop on the far side.' },
+      arrive: { doors: [[29, 10], [30, 10]], road: 'Down the north road they come, two stone giants and two trolls, and along the foot of the Edifice.', open: 'The vault doors swing open. Pyro is first out.', lock: 'The vault doors shut behind them, and the bars drop on the far side.' },
       climbLine: { who: 'pyro', line: 'They\'re going for the skylights!' },
-      // (in the order they come down the road, each to a square none of the later ones has to pass: the first farthest -- 10-05, the second troll boxed in at the road's mouth)
-      foes: [{ id: 'giant1', kind: 'stonegiant', from: [5, 0], at: [11, 14] }, { id: 'giant2', kind: 'stonegiantm', from: [5, 0], at: [7, 15] },
-             { id: 'troll1', kind: 'troll', from: [5, 0], at: [9, 11] }, { id: 'troll2', kind: 'troll', from: [7, 0], at: [4, 12] }], wave: null },
+      // (in the order they come down the road, each to a square none of the later ones has to pass: the farthest first -- 10-05, the second troll boxed in at the road's mouth. Along
+      // the facade: the male at its foot between the first two fountains, the female before the second, a troll each side of them)
+      foes: [{ id: 'troll2', kind: 'troll', from: [5, 0], at: [24, 14], guard: 'giant2' }, { id: 'giant1', kind: 'stonegiant', from: [5, 0], at: [21, 14], guard: 'giant2' },
+             { id: 'giant2', kind: 'stonegiantm', from: [5, 0], at: [18, 10], only: true, rocks: 2 }, { id: 'troll1', kind: 'troll', from: [5, 0], at: [12, 13], guard: 'giant2' }], wave: null },
     { id: 'gallery', level: 9, map: 'cavern', name: 'The Cocoon Gallery', sub: 'off the road, below Third Lamp',
       intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)',
       looks: { barley: { name: 'Denny', sheet: 'denny_p2' } } } // Denny plays Barley here only (Griz, 09-27)

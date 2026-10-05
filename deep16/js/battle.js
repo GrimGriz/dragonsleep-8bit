@@ -304,6 +304,7 @@
       darkness: d.darkness ? { r: d.darkness.r, range: d.darkness.range, chance: d.darkness.chance, used: false } : null, // (Amara's, once, the turn she runs; the drow's on the 8-bit's chance: magic.js castDarkness)
       hidden0: !!f.hidden,
       from0: f.from ? f.from.slice() : null, // (walks in from there to `at` before the first round: a fight's `arrive` -- the Edifice's foes down the north road, Battle.arrive, 10-05)
+      missionOnly: !!f.only, guard: f.guard || null, rocks: f.rocks != null ? f.rocks : null, // (nothing but the mission's target; guarding the one with that id; the rocks it carried -- the Skylights' giants and trolls, ai.js brute, 10-05)
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
       // and what it does with the dark itself (the darkmantle's aura, the duergar's Invisibility: ai.js brute)
       darkvision: d.darkvision || 0, blindsight: d.blindsight || 0, blind: !!d.blind, truesight: d.truesight || 0, devilSight: !!d.devilSight,
@@ -982,7 +983,7 @@
   };
   // where a Rope & Grapple can be set (10-04, Griz: "as an item on the item wheel"): the top of a face -- an open square with one beside it two steps lower or more (open, or the
   // setter's own) and no rope there yet -- on a map whose cliffs can be climbed. From up there (on it, or beside it at its height) it is tied off with no roll; from below the
-  // grapple is thrown up to it, 30 ft at most and in sight, a DC 10 Dexterity check (his lean and the seat's: the SRD 5.1 lists a grappling hook, 2 gp, 4 lb, and gives it no
+  // grapple is thrown up to it, 30 ft at most and in sight (Battle.seesFrom, 10-05), a DC 10 Dexterity check (his lean and the seat's: the SRD 5.1 lists a grappling hook, 2 gp, 4 lb, and gives it no
   // rule). `foot`: the square it is to hang to (a climb's own); else the nearest, square-on before corner-wise. { at, foot, top } or null
   Battle.ropeSq = function (B, u, x, y, foot) {
     var d = G.map.def, top = G.map.at(x, y); if (!d.climb || !top || !top.walk || (u.size || 1) > 1) return null;
@@ -994,8 +995,16 @@
     feet.sort(function (a, b) { return (G.dist(u, { x: a.at[0], y: a.at[1], size: 1 }) - G.dist(u, { x: b.at[0], y: b.at[1], size: 1 })) || (a.diag - b.diag); });
     var uz = G.gzAt(u, u.x, u.y);
     if (Math.max(Math.abs(u.x - x), Math.abs(u.y - y)) <= 1 && Math.abs(uz - zt) <= d.step) return { at: [x, y], foot: feet[0].at, top: true };
-    if (uz < zt && G.dist(u, { x: x, y: y, size: 1 }) <= 30 && G.losPoint(u.x, u.y, x, y)) return { at: [x, y], foot: feet[0].at, top: false };
+    if (uz < zt && G.dist(u, { x: x, y: y, size: 1 }) <= 30 && (Battle.seesFrom(u, x, y, zt) || feet.some(function (f) { return Battle.seesFrom(u, f.at[0], f.at[1], G.map.gz(f.at[0], f.at[1])); }))) return { at: [x, y], foot: feet[0].at, top: false };
     return null;
+  };
+  // in sight for a throw, from where the thrower is -- a hanger's eye at its hang, not at the rope's foot -- to a square's floor at height z (10-05, Griz: "2 yes" to: sight read from the
+  // thrower's own height, and the top edge of a face you stand under counts as seen). ropeSq asks it of the top and of the squares under it the rope would hang to: nothing overhangs a
+  // face, so whoever sees its foot sees its lip
+  Battle.seesFrom = function (u, x, y, z) {
+    var st = G.map.def.step, ez = G.gzAt(u, u.x, u.y) + 2 * st, L = G.line(u.x, u.y, x, y);
+    if (!L.every(function (p) { var q = G.map.at(p[0], p[1]); return q && q.open; })) return false;
+    return !(G.tall() && G.overFloor(u.x, u.y, ez, x, y, z + 2 * st));
   };
   // the first climb on a hand's path that takes a check, while the pack has a Rope & Grapple and the action is free: where the grapple could go instead (exec 'move' asks USE GRAPPLE)
   Battle.prototype.grappleAt = function (u, path) {
@@ -1363,7 +1372,7 @@
       // leaving a hostile's reach without Disengage provokes, right before the step
       if (!T.disengaged && !u.ethereal && !(o && o.noOA)) {
         var selfO = this, prov = this.units.filter(function (w) {
-          return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) // (a rider -- a darkmantle attached, "can attack no other creature except the target"; a familiar on its wizard -- takes none)
+          return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && !w.missionOnly // (nothing but the window takes no swing at anyone: 10-05) (a rider -- a darkmantle attached, "can attack no other creature except the target"; a familiar on its wizard -- takes none)
             && G.dist(w, u) <= G.reachOf(w) && G.dist(w, u, null, null, nx, ny) > G.reachOf(w) && !(w.conds.hidden && false)
             && (!u.conds.hidden || (u.hidTotal != null ? !!selfO.spots(w, u) : selfO.seenBy(w, u) === 2)) // (SRD 5.1: "a hostile creature that you can see" -- one it cannot see she leaves unseen; 10-04, Griz: fix)
             && D.magic.sees(D.battle, w, u) && !RU.charmedBy(w, u); // (a creature you can see: not into or out of darkness; and never at its charmer)

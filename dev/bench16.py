@@ -95,7 +95,7 @@ def main(argv):
     for j in jobs:
         L = lvl or (j.split(',')[0].split(':')[1] if ':' in j.split(',')[0] else '5')
         params = {'foes': j, 'lvl': L, 'n': kw.get('n', '10'), 'seed': kw.get('seed', '1')}
-        for k in ('vs', 'fight', 'guests', 'sky', 'mode', 'ward', 'plain', 'avghp', 'stone', 'raw', 'climb', 'flvl', 'measure'):
+        for k in ('vs', 'fight', 'guests', 'sky', 'mode', 'ward', 'plain', 'avghp', 'stone', 'raw', 'climb', 'flvl', 'measure', 'plus'):
             if kw.get(k):
                 params[k] = kw[k]
         if kw.get('log'):

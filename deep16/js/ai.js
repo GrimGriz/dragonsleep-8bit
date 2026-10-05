@@ -721,6 +721,15 @@
     if (!grudge && u.kind === 'cloaker') { var vt = hs.filter(function (w) { return w.vital; })[0]; if (vt) hs = [vt]; }
     // the mission (a defend fight, 10-04 night): the skylight is what it came for -- it goes for the glass unless one of theirs stands within its reach, in the way
     if (!grudge && u.mission) { var msn = hs.filter(function (w) { return w.object && w.id === u.mission; })[0], rchM = reachOf(u, hs); if (msn && !hs.some(function (w) { return !w.object && G.dist(u, w) <= rchM; })) hs = [msn]; else if (msn) hs = hs.filter(function (w) { return !w.object; }).concat([msn]); }
+    // nothing but the window (a fight's foe `only`; the Skylights' male giant, 10-05, Griz: "Male stone giant nothing but window, female leads trolls against anyone that tries to stop
+    // him"): the glass whoever stands in its reach -- no rock thrown, no blow or opportunity attack at anyone (below; battle.js moveAlong) -- and those set to guard it (`guard`, its id)
+    // go for whoever comes within 30 ft of it, the nearest to it first, while it stands; with no one near it, or one of ours in their own reach, the mission as above
+    if (!grudge && u.missionOnly && u.mission) { var msO = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); })[0]; hs = msO ? [msO] : []; }
+    if (!grudge && u.guard) {
+      var ward = B.units.filter(function (w) { return w.id === u.guard && G.standing(w); })[0];
+      var thr = ward ? heroes(B, u).filter(function (w) { return !w.object && G.dist(ward, w) <= 30; }).sort(function (a, b) { return G.dist(ward, a) - G.dist(ward, b); }) : [];
+      if (thr.length && !hs.some(function (w) { return !w.object && G.dist(u, w) <= reachOf(u, hs); })) hs = [thr[0]];
+    }
     // lost to every eye (magical darkness, fog, a pillar between): the natural lurker -- one the fight began with hidden: the darkmantle, the grick, the roper -- slips back into hiding
     // for nothing, a Stealth roll held as a hero's is; any other foe with a Stealth score pays the Hide action, and only with nothing within its reach to strike (Griz, 10-04: "if
     // a monster is natural stealth and gets found there should be conditions in which it would be lost and found again ... magical darkness"; "only the natural get a free re-hide")
@@ -874,7 +883,18 @@
       yield 30; return;
     }
     // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow)
-    if (!inReachNow.length && ranged.length) { if (yield* volley(B, u)) return; }
+    // nothing but the window throws at the window alone, and only what it carried (a fight's foe `rocks`; 10-05, Griz: "be problematic if the male has infinite rocks - two max"):
+    // the glass out of its reach, in range and in sight -- from the roof's edge, say; on the face it climbs, and on the street the facade hides it
+    if (u.missionOnly && ranged.length && (u.rocks == null || u.rocks > 0)) {
+      var skyR = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); })[0], rk = ranged[0];
+      if (skyR && rk.range && G.dist(u, skyR) > reachOf(u) && G.dist(u, skyR) <= rk.range[1] && G.los(u, skyR).clear) {
+        T.action = 0; if (u.rocks != null) u.rocks--;
+        yield* B.attack(u, skyR, rk);
+        if (u.rocks != null) B.card(['{g}(' + (u.rocks ? u.rocks + ' rock' + (u.rocks > 1 ? 's' : '') + ' left' : 'its last rock') + '){/}'], 160);
+        return;
+      }
+    }
+    if (!inReachNow.length && ranged.length && !u.missionOnly) { if (yield* volley(B, u)) return; } // (nothing but the window throws at no one: 10-05)
     T.action = 0;
     var names = Object.keys(u.attacks || {}), routine = Array.isArray(u.multi) ? u.multi : [];
     if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);
@@ -904,6 +924,7 @@
       var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u).filter(function (w) { return usableOn(u, atk, w); }); // (a tendril is not thrown at one it cannot hold -- 10-02)
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
       if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
+      if (u.missionOnly && !atk.needsHeld) pool = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); }); // (nothing but the window: 10-05)
       var t = pool.filter(function (w) { return G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) {
         if (atk.grapple) { var ha = u.holding.indexOf(a) >= 0, hb = u.holding.indexOf(b) >= 0; if (ha !== hb) return ha ? 1 : -1; }
         return a.hp - b.hp;
