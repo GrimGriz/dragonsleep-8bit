@@ -233,7 +233,7 @@
     // they can't act or can't move (held, stunned, asleep, restrained, down)
     if (tgt.displacement && !tgt.conds.displaceOff && tgt.hp > 0 && !tgt.conds.paralyzed && !tgt.conds.stunned && !tgt.conds.asleep && !tgt.conds.restrained) dis.push('displacement');
     if (tgt.conds.helped && tgt.conds.helped.side === att.side) adv.push('help');
-    if (tgt.hp <= 0 && !tgt.dead && G.dist(att, tgt, ax, ay) <= 5) adv.push('down');
+    if (tgt.hp <= 0 && !tgt.dead) adv.push('down'); // (SRD 5.1 unconscious: "Attack rolls against the creature have advantage" -- at any range; within 5 ft a hit is a critical, battle.js attack. Till 10-05 only within 5 ft, so a flask or a torch thrown at a troll lying at 0 met the prone's disadvantage alone)
     if (melee && G.flank(att, tgt, ax, ay)) adv.push('flanking');
     if (!melee) {
       if (G.foesNear(att, ax == null ? att.x : ax, ay == null ? att.y : ay, 5).length) dis.push('in melee');

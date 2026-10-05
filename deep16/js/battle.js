@@ -1348,7 +1348,7 @@
         if (!(c.id === 'dancinglights' && u.conc && u.conc.id === 'dancinglights' && u.turn.bonusSpell === false)) this.endInvis(u, 'the spell'); // (Invisibility, Mislead: a spell cast ends it)
         return;
       }
-      case 'item': { yield* this.useItem(u, c.id, c.target); return; }
+      case 'item': { yield* this.useItem(u, c.id, c.target, c); return; } // (c: the oil flask's square, c.x/c.y, when it is thrown at the ground -- js/oil.js)
       case 'breakfree': { yield* D.magic.breakFree(this, u); return; }
       case 'droptorch': T.freeObj = true; D.light.dropTorch(this, u); return;
       case 'dousetorch': T.freeObj = true; D.light.douseTorch(this, u); return;
@@ -1825,6 +1825,7 @@
       if (D.features && D.features.answerBack) yield* D.features.answerBack(this, att, tgt, atk, melee); // (the Path of the Sand, 6)
       return;
     }
+    if (atk.noDamage) { if (o.onHit) o.onHit(tgt, crit); yield o.oa ? 18 : 26; att.anim = 'idle'; return; } // (a throw that only lands: the oil flask unlit coats, js/oil.js -- 10-05)
     // damage
     if (tgt.hunterDef === 'multiattack') { (tgt.madHit = tgt.madHit || {})[att.id] = this.round + ':' + (this.active ? this.active.id : '-'); } // (Multiattack Defense: that one meets +4 AC for the rest of the turn)
     var dice = att.swarm && atk.halfHP && att.hp <= att.maxhp / 2 ? atk.halfHP : atk.dice; // a swarm at half its hit points bites for less

@@ -546,7 +546,7 @@
     if (e.kind === 'item' && (e.use.effect === 'bucket' || e.use.effect === 'light')) return UI.command(B, u, { do: 'item', id: e.id, target: u });
     // (the Rope & Grapple: the top of a face to pick -- battle.js Battle.ropeSq, exec 'rope'; 10-04)
     if (e.kind === 'item' && e.use.effect === 'rope') { B.tool = 'rope'; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, as far as the rope is long, 50 ft (DEX DC 10 to 30 ft, 2 more each 5 ft past).{/}'], 320); return; }
-    if (e.kind === 'item') { B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' : e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240); return; }
+    if (e.kind === 'item') { B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.id === 'oil' && D.oil ? 'at a foe or a square within 20 ft -- ' + (D.oil.lit(u) ? 'lit at your torch: a hit is 5 fire.' : 'a hit coats it, and the next fire on it burns 5 more; a square, oiled.') : e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' :e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240); return; }
     var g = e.g, n = (g.n || 1) + Math.max(0, e.slot - e.level);
     B.spell = { id: e.id, slot: e.slot, g: g, sp: e.sp, n: n, name: e.name };
     B.picks = [];
@@ -597,7 +597,7 @@
     if (tool === 'rope') return D.Battle.ropeSq(B, u, x, y) ? 'ok' : 'no';
     if (tool === 'help') return (foe && G.dist(u, foe) <= 5) || D.Battle.helpable(u, w) ? 'ok' : 'no'; // (a friend beside you who needs a hand, too: 10-01c)
     if (tool === 'lay') return w && w.side === u.side && !w.dead && (w === u || G.dist(u, w) <= 5) ? 'ok' : 'no';
-    if (tool === 'item') return B.itemTargetOK(u, B.itemId, w) ? 'ok' : 'no';
+    if (tool === 'item') { if (B.itemId === 'oil' && !w && D.oil) return D.oil.squareOK(B, u, x, y) ? 'ok' : 'no'; return B.itemTargetOK(u, B.itemId, w) ? 'ok' : 'no'; } // (the flask at the ground: js/oil.js, 10-05)
     if (tool === 'torch') return UI.throwSq(u, x, y) ? 'ok' : 'no';
     if (tool === 'spell') {
       var g = B.spell.g, M = D.magic;
@@ -748,7 +748,7 @@
     if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or from below within the rope\'s 50 ft and in sight.{/}'], 140); }
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}Help: a foe beside you, or a friend beside you asleep or held fast.{/}'], 120); }
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
-    if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w }); // (the refusal says why when it is the reach: his play of 10-05, the flask at a troll 45 ft below the roof read as "oil flask at 0 hp trolls")
+    if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w, x: x, y: y }); // (x, y: the oil flask's square when no one stands there -- js/oil.js) // (the refusal says why when it is the reach: his play of 10-05, the flask at a troll 45 ft below the roof read as "oil flask at 0 hp trolls")
       var itR = window.DS.DATA.items[B.itemId], whyR = itR && itR.use.effect === 'damage' && w && G.hostile(u, w) ? (G.dist(u, w) > 20 ? 'the flask goes 20 ft, and ' + D.Battle.nm(w) + ' is ' + G.dist(u, w) + ' ft off (the height counts)' : !G.los(u, w).clear ? 'no line to ' + D.Battle.nm(w) : '') : '';
       return B.card(['{o}Not a target for that' + (whyR ? ': ' + whyR : '') + '.{/}'], whyR ? 200 : 120); }
     if (tool === 'torch') { if (v === 'ok') return UI.command(B, u, { do: 'throwtorch', x: x, y: y }); return B.card(['{o}Throw it to a square within 20 ft you can see.{/}'], 120); }
@@ -1769,6 +1769,10 @@
     } else if (u && B.tool === 'rope') { // (the Rope & Grapple's pick under the cursor: the throw and its DC -- 10-05, Griz: "go with +2 DC per 5 beyond 30")
       var rqT = D.Battle.ropeSq(B, u, B.cursor.x, B.cursor.y);
       lines.push(rqT ? (rqT.top ? '{y}tie the rope off here{/}: no roll' : '{y}throw the grapple up{/}: ' + rqT.ft + ' ft, {n}DEX DC ' + rqT.dc + '{/}  {g}(10 to 30 ft, 2 more each 5 ft past; 50 ft of rope){/}') : '{g}no top of a face the rope reaches from here{/}');
+    } else if (u && B.tool === 'item' && B.itemId === 'oil' && D.oil) { // (the flask aimed: at whom, or at the ground -- js/oil.js, 10-05)
+      var owT = G.occupant(B.cursor.x, B.cursor.y), lit0 = D.oil.lit(u);
+      if (owT && B.itemTargetOK(u, 'oil', owT)) lines.push('{y}throw it at ' + D.Battle.nm(owT) + '{/}: an improvised ranged attack, ' + (lit0 ? 'lit -- {o}5 fire{/} on a hit' : 'a hit coats it (the next fire, 5 more)') + '; a miss oils its square');
+      else if (!owT && D.oil.squareOK(B, u, B.cursor.x, B.cursor.y)) lines.push('{y}oil this square{/}' + (lit0 || (D.oil.at(B, B.cursor.x, B.cursor.y) || {}).lit != null || (B.lights || []).some(function (l) { return l.flame && Math.round(l.x) === B.cursor.x && Math.round(l.y) === B.cursor.y; }) ? ': {o}it catches{/} -- 2 rounds, 5 fire to enter it or end a turn in it' : ': no roll; a torch or any fire on it lights it'));
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
       if (u.conds.prone && B.cursor.x === u.x && B.cursor.y === u.y) { var halfS = Math.floor(u.speed / 2); lines.push('{y}prone{/}: ' + (RU.canRise(u) && u.turn.move >= halfS ? '{n}click here to stand (half the speed: ' + halfS + ' ft of the move){/}' : '{o}' + (!RU.canRise(u) ? 'cannot stand' : 'no move left to stand: ' + halfS + ' ft needed') + '{/}')); } // (10-04 night)
@@ -1783,6 +1787,7 @@
         else lines.push('{y}the rope\'s grapple{/}  ' + (tkT.ok ? '{n}click: take it up into the pack (the action)' + (B.cursor.x === u.x && B.cursor.y === u.y ? ' -- TAKE THE ROPE on the ring' : '') + '{/}' : '{g}' + tkT.why + '{/}'));
       }
       var ltT = D.light.torchAt(B, B.cursor.x, B.cursor.y); // (a light on the floor under the cursor: what the click does, as the grapple's line -- 10-05, Griz: "torch listed on bottom right?")
+      var olT = D.oil && D.oil.lineAt(B, B.cursor.x, B.cursor.y); if (olT) lines.push(olT); // (oil on the ground, or burning: js/oil.js, 10-05)
       if (ltT) { var tkL = D.light.canTake(B, u, ltT), occL = G.occupant(B.cursor.x, B.cursor.y), selfL = B.cursor.x === u.x && B.cursor.y === u.y; lines.push('{y}a ' + D.light.word(ltT) + ' on the floor, burning{/}  ' + (tkL.ok && (selfL || !occL) ? '{n}click: take it up (free: the hand on an object)' + (selfL ? ' -- TAKE UP on the ring' : '') + '{/}' : '{g}' + (tkL.ok ? 'someone stands on it' : tkL.why) + '{/}')); }
       if (B.ropePick) { var rg = B.ropePick, rgFt = (rg.z - G.map.gz(rg.rope.foot[0], rg.rope.foot[1])) / G.map.def.step * 2.5; lines.push('{y}the rope{/}: ' + (rg.ground ? 'down to the ground' : (rg.up ? 'climb to ' : 'let down to ') + rgFt + ' ft up it and hang there') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent ? rg.spent + ' ft to its ' + (rg.up ? 'foot' : 'top') + ', then ' : '') + rg.cost + ' ft of movement' + (rg.ok ? '' : ' -- ' + rg.why) + '{/}'); } // (a rung of a rope the mouse is on: ropeRung, 10-04 night)
       if (B.dark) { var lv = D.light.levelAt(B, B.cursor.x, B.cursor.y), ps = D.light.partySeesSq(B, B.cursor.x, B.cursor.y); lines.push('{g}' + D.light.name(lv) + ' here' + (lv === 0 ? (ps === 1 ? ' (one of yours sees it by darkvision)' : ' (no one of yours sees it)') : '') + '{/}'); }

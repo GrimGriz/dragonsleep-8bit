@@ -783,19 +783,22 @@
   // of the burn where it lies -- each by the chance the save fails (a flask can be dodged; a spell's burn is counted flat above), so a fire spell the caster has is still taken first.
   // Never at one that does not regenerate, nor with the pack empty; a Thief throws it as a bonus action (itemList says). A STORY guest (Pyro, Ingrith, Dace: u.ownFlask, save.js SV.units; 10-05, Griz:
   // "must NOT spend the player's oil ... allow once and have it not reduce party inventory") never reads the pack's oil: itemList hands it its own one flask, which useItem spends instead of the pack's
+  // (10-05, the flask by the SRD -- js/oil.js, Griz: "SRD, alt would be it does that when you have a free hand and a torch (our way)": an improvised ranged attack now, not a save,
+  // and only the LIT throw burns -- a torch in one hand and the other free; the plain flask only coats, which stops no knitting by itself. So the AI throws it lit or not at all,
+  // each by the chance the throw hits, RU.edges as the torch's)
   function burnFlask(B, u) {
-    var T = u.turn; if (u.side !== 'party' || !T || !T.action || T.attacksLeft) return null;
+    var T = u.turn; if (u.side !== 'party' || !T || !T.action || T.attacksLeft || !D.oil || !D.oil.lit(u)) return null;
     var fl = B.itemList(u).filter(function (x) { return x.id === 'oil' && x.n > 0 && x.ok; })[0]; if (!fl) return null;
-    var use = fl.use || {}, ab = use.save || 'dex', dc = use.dc || 10, dmg = avg(String(use.dice || '5')), best = null;
+    var spec = D.oil.atk(u, true), dmg = D.oil.BURN, best = null;
     AI.heroes(B, u).forEach(function (w) {
       if (!G.hostile(u, w) || w.dead || !(w.regen > 0) || w.burned || !G.standing(w)) return;
       if (G.dist(u, w) > 20 || !G.los(u, w).clear || !M.sees(B, u, w)) return;
-      var p = TX.pFail(w, ab, dc), sc = w.regenDown ? 90 * p : TX.worth(dmg * p, w, true) + TX.dpr(w) * 2 * p;
+      var ed = RU.edges(u, w, spec), p = TX.pHit(spec.atk + (ed.pen || 0), RU.ac(w) + G.los(u, w).cover, ed.net), sc = w.regenDown ? 90 * p : TX.worth(dmg * p, w, true) + TX.dpr(w) * 2 * p;
       if (!best || sc > best.score) best = { t: w, score: sc };
     });
     if (!best || !(best.score > 0)) return null;
     var t = best.t;
-    return { kind: 'item', id: 'oil', score: best.score, why: 'throws an Oil Flask at ' + t.name + (t.regenDown ? ' where it lies' : ' to stop its knitting'), go: function* () { yield* B.exec(u, { do: 'item', id: 'oil', target: t }); } };
+    return { kind: 'item', id: 'oil', score: best.score, why: 'throws an Oil Flask, lit, at ' + t.name + (t.regenDown ? ' where it lies' : ' to stop its knitting'), go: function* () { yield* B.exec(u, { do: 'item', id: 'oil', target: t }); } };
   }
   TX.ACTIONS.push(burnFlask);
   // the Torch, thrown (10-05, Griz: "1 build it", "ai knowing oil and torch yes"; battle.js THROW TORCH, light.js throwTorch): the torch in the hand, at a foe that regenerates and has not burned -- an improvised
