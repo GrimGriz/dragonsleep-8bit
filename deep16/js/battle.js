@@ -306,6 +306,8 @@
       hidden0: !!f.hidden,
       from0: f.from ? f.from.slice() : null, // (walks in from there to `at` before the first round: a fight's `arrive` -- the Edifice's foes down the north road, Battle.arrive, 10-05)
       then0: f.then ? f.then.slice() : null, // (a second leg of the walk-in, a wave's `move`: the Skylights' front trolls come on down the street -- 10-05)
+      ownRope: f.rope != null ? f.rope : f.ally ? 0 : undefined, // (a lent ally's own Rope & Grapple -- the garrison's one each; never the party's pack: exec 'rope', ai.js ropeUp, 10-05)
+      chase: f.chase ? { to: f.chase.to.slice(), till: f.chase.till || 1 } : null, // (a scripted run for its first rounds: the Skylights' first trolls after the street's people, ai.js brute, 10-05)
       keepLevel: !!f.keepLevel, // (holds its level: no step down 10 ft or more -- the garrison keeps the roof, grid.js stepCost, 10-05)
       missionOnly: !!f.only, guard: f.guard || null, rocks: f.rocks != null ? f.rocks : null, // (nothing but the mission's target; guarding the one with that id; the rocks it carried -- the Skylights' giants and trolls, ai.js brute, 10-05)
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
@@ -630,7 +632,8 @@
       folk.forEach(function (f) { file.push(f); });
       als.forEach(function (u) { file.push({ u: u, from: u.from0, to: [u.x, u.y], face: D.spr.facingFor(-1, 0) }); });
       if (file.length) { yield* this.walkIn(file, look); yield 30; }
-      folk.forEach(function (f) { var k = U.indexOf(f.u); if (k >= 0) U.splice(k, 1); }); // (off down the south road and gone)
+      if (wv.flee && wv.flee.stay) self.folkStay = (self.folkStay || []).concat(folk.map(function (f) { return f.u; })); // (they wait at the road's foot till the next ones come up it -- Battle.lateOut; the Skylights' first trolls run at them, 10-05)
+      else folk.forEach(function (f) { var k = U.indexOf(f.u); if (k >= 0) U.splice(k, 1); }); // (off down the south road and gone)
       this.beats++;
     }
     var lateU = []; late.forEach(function (l) { lateU = lateU.concat(l.foes || [], l.allies || []); });
@@ -658,9 +661,15 @@
     var self = this, now = (this.late || []).filter(function (l) { return l.round <= self.round; }), look = function (g) { if (g) self.keepInView(g.u); };
     if (!now.length) return;
     this.late = this.late.filter(function (l) { return now.indexOf(l) < 0; });
+    if (this.folkStay) { var U0 = this.units; this.folkStay.forEach(function (f) { var k = U0.indexOf(f); if (k >= 0) U0.splice(k, 1); }); this.folkStay = null; } // (the street's people at the road's foot, gone down it as the next ones come: a wave's flee.stay, 10-05)
     for (var i = 0; i < now.length; i++) {
       var l = now[i], before = this.units.slice();
       if (l.party) yield* this.doorsOut(l.ours, l.riders);
+      else if (l.walk) { // (one on its way back onto the field -- Pyro out of the falls' curtain, js/pyro.js: its turn kept in the order)
+        if (l.card) this.card(['{y}' + l.card + '{/}'], 320); this.focus({ x: l.walk[0].from[0], y: l.walk[0].from[1], size: 1 }); yield 20;
+        yield* this.walkIn(l.walk.map(function (w) { return { u: w.u, from: w.from, to: w.to, face: w.face != null ? w.face : D.spr.facingFor(0, 1), spark: true }; }), look);
+        l.walk.forEach(function (w) { delete w.u.away; });
+      }
       else {
         var wv = l.wave, file = [];
         if (l.foes.length) { this.focus({ x: l.foes[0].from0[0], y: l.foes[0].from0[1] + 4, size: l.foes[0].size }); D.sfx('encounter'); }
@@ -671,7 +680,7 @@
         if (file.length) { yield* this.walkIn(file, look); yield 20; }
         if (this.skylight) l.foes.forEach(function (u) { if (!u.free) u.mission = 'skylight'; });
       }
-      this.dealIn(this.units.filter(function (u) { return before.indexOf(u) < 0 && !u.familiar && !u.object && !u.look; }));
+      var ordered = this.order; this.dealIn(this.units.filter(function (u) { return before.indexOf(u) < 0 && !u.familiar && !u.object && !u.look && ordered.indexOf(u) < 0; })); // (one back on the field keeps its place in the order)
       yield 30;
     }
   };
@@ -761,7 +770,7 @@
       this.units.push(sky); this.skylight = sky;
       this.units.forEach(function (w) { if (w.side === 'foe' && !w.free) w.mission = 'skylight'; }); // (a foe marked `free` has no mission: the Skylights' first two trolls, met in the street -- 10-05)
     }
-    this.order = this.units.filter(function (u) { return !u.familiar && !u.object; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
+    this.order = this.units.filter(function (u) { return !u.familiar && !u.object && !u.look; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; }); // (!u.look: the street's people waiting at the road's foot take no turns -- 10-05)
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
     yield 50;
     // an ambush (the sect blades at the rest): the foes' Stealth, rolled once, against each hero's passive Perception;
@@ -797,7 +806,7 @@
       if (this.held && this.held.length && this.skyHit != null && this.round >= this.skyHit + ((this.fight.hatch && this.fight.hatch.after) || 1)) yield* this.hatchOut(); // (the garrison out of the hatch, the round after the first bang on the glass -- 10-05)
       for (var i = 0; i < this.order.length; i++) {
         var u = this.order[i];
-        if (u.dead) continue;
+        if (u.dead || u.away) continue; // (u.away: off the field on its way somewhere -- Pyro up the stair inside, js/pyro.js, 10-05)
         this.active = u;
         if (u.side === 'party' && !u.guest && !u.ally) yield* this.heroTurn(u);
         else if (this.show && u.show) yield* D.show.turn(this, u); // (the test ground's director, js/show.js: the AI's turn with its nudges about it)
@@ -1131,8 +1140,10 @@
     feet.sort(function (a, b) { return (a.diag - b.diag) || (G.dist(u, { x: a.at[0], y: a.at[1], size: 1 }) - G.dist(u, { x: b.at[0], y: b.at[1], size: 1 })); }); // (square-on first, straight down the face; corner-wise only where nothing is square under it -- 10-05, Griz: "climbing shows left of rope, but when they get up they seem to step on tile right of rope first": Vivian's from the fountain rim hung corner-wise)
     var uz = G.gzAt(u, u.x, u.y);
     if (Math.max(Math.abs(u.x - x), Math.abs(u.y - y)) <= 1 && Math.abs(uz - zt) <= d.step) return { at: [x, y], foot: feet[0].at, top: true };
-    var tFt = G.dist(u, { x: x, y: y, size: 1 });
-    if (uz < zt && tFt <= Battle.ROPE_FT && (Battle.seesFrom(u, x, y, zt) || feet.some(function (f) { return Battle.seesFrom(u, f.at[0], f.at[1], G.map.gz(f.at[0], f.at[1])); }))) return { at: [x, y], foot: feet[0].at, top: false, ft: tFt, dc: Battle.throwDC(tFt) };
+    // (the throw's reach is the straight line to the lip, across and up -- 10-05, Griz: "especially if that means throw from the bottom": a rim 45 ft up and 45 ft out is some 64 ft
+    // off, past a 50 ft rope, where the grid's distance read 45; the DC by the line in whole 5s, rounded down: the 45 ft facade from its foot still 45 ft, DC 16)
+    var hzF = Math.max(Math.abs(u.x - x), Math.abs(u.y - y)) * 5, vzF = Math.max(0, (zt - uz) / d.step * 2.5), lineF = Math.sqrt(hzF * hzF + vzF * vzF), tFt = Math.floor(lineF / 5 + 1e-9) * 5;
+    if (uz < zt && lineF <= Battle.ROPE_FT + 1e-9 && (Battle.seesFrom(u, x, y, zt) || feet.some(function (f) { return Battle.seesFrom(u, f.at[0], f.at[1], G.map.gz(f.at[0], f.at[1])); }))) return { at: [x, y], foot: feet[0].at, top: false, ft: tFt, dc: Battle.throwDC(tFt) };
     return null;
   };
   // the throw's reach and its DC (10-05, Griz: "go with +2 DC per 5 beyond 30"): as far as the rope is long (fifty feet, content/items.json rope), DC 10 to 30 ft and 2 more for each
@@ -1249,7 +1260,8 @@
       }
       case 'rope': { // a Rope & Grapple set on a face (10-04, Griz: "as an item on the item wheel"; Battle.ropeSq): tied off from up there with no roll, or the grapple thrown up from below
         var rq = Battle.ropeSq(this, u, c.x, c.y, c.foot), rs0 = (this.inv || []).filter(function (x) { return x.id === 'rope' && x.n > 0; })[0];
-        if (!rq || !rs0 || !T.action || T.attacksLeft) return;
+        var ownR = u.ownRope != null; // (a lent ally's own Rope & Grapple, never the party's pack -- 10-05, Griz: "do the 'each trooper get one grappling hook' we did for the guests using party inventory - had to send barley back coz the troopers kept throwing them")
+        if (!rq || (ownR ? !(u.ownRope > 0) : !rs0) || !T.action || T.attacksLeft) return;
         T.action = 0; u.facing = D.spr.facingFor(c.x - u.x, c.y - u.y); u.anim = 'attack'; u.animT = this.t; yield 10;
         if (!rq.top) {
           var re = RU.checkEdges(u, 'dex'), rr = re.dis.length && !re.adv.length ? Math.min(D.d(20), D.d(20)) : re.adv.length && !re.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), rb = D.mod(u.abil ? u.abil.dex : 10), rt = rr + rb;
@@ -1257,7 +1269,7 @@
           this.card(['{y}' + nameOf(u) + '{/} throws the grapple up ' + rq.ft + ' ft: DEX d20 ' + rr + ' ' + RU.sign(rb) + ' = ' + rt + ' against DC ' + tdc + '  ' + (rt >= tdc ? '{n}IT CATCHES{/}' : '{o}IT CLATTERS BACK{/}')], 200);
           yield 20; if (rt < tdc) { u.anim = 'idle'; return; }
         }
-        rs0.n--; this.ropes.push({ at: rq.at.slice(), foot: rq.foot.slice(), hp: 2, by: u.id }); D.sfx('confirm');
+        if (ownR) u.ownRope--; else rs0.n--; this.ropes.push({ at: rq.at.slice(), foot: rq.foot.slice(), hp: 2, by: u.id }); D.sfx('confirm');
         var rFt = Math.round((G.map.gz(rq.at[0], rq.at[1]) - G.map.gz(rq.foot[0], rq.foot[1])) / G.map.def.step) * 2.5;
         this.card(['{y}' + nameOf(u) + '{/} ' + (rq.top ? 'ties the rope off and lets it down' : 'has the rope up') + ': ' + rFt + ' ft of it down the face.  {g}(climbed with no check; a climber may stop on it){/}'], 280);
         u.anim = 'idle'; yield 16; return;
@@ -1297,7 +1309,7 @@
       case 'bucketrope': { // a Rope & Grapple out of Fountain Street's bucket (10-04 night, Griz): free, one a turn, never the last
         if (!this.ropeBucket || !Battle.besideBucket(this, u) || T.tookRope || u.guest) return;
         T.tookRope = true; u.facing = D.spr.facingFor(this.ropeBucket[0] - u.x, this.ropeBucket[1] - u.y); u.anim = 'attack'; u.animT = this.t; yield 8;
-        var rsB = (this.inv || []).filter(function (x) { return x.id === 'rope'; })[0]; if (rsB) rsB.n = (rsB.n || 0) + 1; else (this.inv = this.inv || []).push({ id: 'rope', n: 1 });
+        var rsB = (this.inv || []).filter(function (x) { return x.id === 'rope'; })[0]; if (u.ownRope != null) u.ownRope++; else if (rsB) rsB.n = (rsB.n || 0) + 1; else (this.inv = this.inv || []).push({ id: 'rope', n: 1 }); // (a lent ally's own: never the party's pack, 10-05)
         D.sfx('confirm'); this.card(['{y}' + nameOf(u) + '{/} takes a Rope & Grapple out of the bucket.  {g}(there is always another){/}'], 220);
         u.anim = 'idle'; yield 12; return;
       }

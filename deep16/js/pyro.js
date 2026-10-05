@@ -74,10 +74,33 @@
   };
 
   // ------------------------------------------------------------------ his turn
+  // the king's own way to the roof (a fight's `kingsWay`, the Skylights; 10-05, Griz: "come out the door with the party and in the door when one actually makes the roof, out the waterfall
+  // next turn?"): one of the foes standing on the roof -- not clinging to the face -- and he below it: to the vault's doors and in (off the field, his place in the order kept), and at the
+  // next round's start out of the falls' curtain at the back of the roof (Battle.lateOut). True when he went for it
+  S.toRoof = function* (B, u) {
+    var KW = B.fight && B.fight.kingsWay; if (!KW || u.wentIn) return false;
+    var st = G.map.def.step, zOut = G.map.gz(KW.out[0][0], KW.out[0][1]);
+    if (G.gzAt(u, u.x, u.y) >= zOut - st) return false;
+    if (!B.units.some(function (w) { return w.side === 'foe' && G.standing(w) && !w.regenDown && !(w.hang && G.hanging(w)) && G.gzAt(w, w.x, w.y) >= zOut - st; })) return false;
+    var T = u.turn, onDoor = function () { return KW.doors.some(function (q) { return q[0] === u.x && q[1] === u.y; }); };
+    if (!onDoor()) {
+      var pick = function () { var rm = G.reach(u, T.move); return KW.doors.map(function (q) { return rm[q[0] + ',' + q[1]]; }).filter(function (e) { return e && e.stand; }).sort(function (a, b) { return a.cost - b.cost; })[0]; };
+      var e = pick(); if (!e && T.action && !T.attacksLeft) { yield* B.exec(u, { do: 'dash' }); e = pick(); }
+      if (!e) { var eA = AI.approach(u, { x: KW.doors[0][0], y: KW.doors[0][1], size: 1 }, G.reach(u, T.move), 0); if (eA && (eA.x !== u.x || eA.y !== u.y)) yield* AI.walkTo(B, u, eA); return true; }
+      yield* AI.walkTo(B, u, e);
+      if (u.hp <= 0 || u.dead || !onDoor()) return true;
+    }
+    u.wentIn = true; B.map.doorsOpen = true; D.sfx('earth'); B.focus(u);
+    B.card(['{y}' + u.name + '{/} goes back in through the vault doors, for the stair to the roof.'], 300); yield 30;
+    var k = B.units.indexOf(u); if (k >= 0) B.units.splice(k, 1); u.away = true; B.map.doorsOpen = B.passagesOpen;
+    B.late = (B.late || []).concat([{ round: B.round + 1, walk: [{ u: u, from: KW.out[0], to: KW.to || KW.out[0] }], card: KW.card }]);
+    yield 20; return true;
+  };
   S.measure = function* (B, u) {
     var P = measure(B, u), T = u.turn;
     yield* watch(B);
     if (u.hp <= 0 || !RU.canAct(u) || B.over()) return;
+    if (yield* S.toRoof(B, u)) return;
     var foes = foesUp(B, u); if (!foes.length) { yield 16; return; }
     var full = P.phase >= 3, main = u.weapon, off = u.offhand, bonusUsed = false;
     // Second Wind (at full): hurt below two fifths, the bonus action
@@ -88,8 +111,9 @@
     }
     // the nearest foe; walk to it
     var tgt = foes.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
-    if (G.dist(u, tgt) > G.reachOf(u)) yield* AI.walkTo(B, u, AI.approach(u, tgt, G.reach(u, T.move)));
+    if (G.dist(u, tgt) > G.reachOf(u)) { var x0 = u.x, y0 = u.y; yield* AI.walkTo(B, u, AI.approach(u, tgt, G.reach(u, T.move))); if (u.x === x0 && u.y === y0 && !inReach(B, u).length && AI.ropeUp && (yield* AI.ropeUp(B, u, tgt))) return; } // (no way to it on his feet: a rope, as the garrison's -- 10-05)
     if (u.hp <= 0 || !T.action) return;
+    if (!inReach(B, u).length) { B.card(['{g}' + u.name + ' cannot reach any of them from here.{/}'], 160); yield 16; return; } // (said, not silent -- 10-05: he stood at the vault ten rounds with no word, the foes all up the face)
     T.action = 0;
     var n = u.attacksBase || 3, plan;
     if (P.phase === 1) plan = [main];

@@ -725,12 +725,27 @@
   }
   // up a rope to a fight above (10-05, Griz: "dwarves climbing ropes (much less getting from barrel and tossing)" -- the garrison out of the vault doors paced on the street, "it cannot get at
   // anyone", while the giants broke the glass above it, two ropes hanging there): one of size 1 with no climb of its own, its target a level above. A rope already hanging from up there --
-  // the one it hangs on, or the nearest whose foot it reaches -- climbed as far as the move pays (exec 'ropeclimb' with its rung: no question); none it can reach this turn, walk for the
-  // nearest's foot. No rope up: one in the party's pack (its allies are ours) thrown up from where it stands (exec 'rope': the action, the DEX check), or walked under the face to throw next
-  // turn; the pack empty, a Rope & Grapple out of the bucket (exec 'bucketrope': free, one a turn), walked to first. True when it did any of it
+  // the one it hangs on, or the nearest whose foot it reaches -- climbed as far as the move pays (exec 'ropeclimb' with its rung: no question), the Dash first when nothing else wants the
+  // action; none it can reach this turn, walk for the nearest's foot. No rope up: its own Rope & Grapple (a lent ally's, never the party's pack -- Griz: "each trooper get one grappling hook
+  // ... had to send barley back coz the troopers kept throwing them"; the party's pack for one of the party's own) thrown from the FOOT of the face under the lip nearest its target ("especially
+  // if that means throw from the bottom": walked there first, thrown when it stands there with the action); none, a Rope & Grapple out of the bucket first (free, one a turn). True when it did any
+  // of it. Every brute that wants it -- not this fight's alone: it only fires where a rope hangs, or the map has a face and a rope to throw (10-05, Griz: "is the rope code something we should
+  // leave in for NPCs")
+  function hasRope(B, u) { if (u.ownRope != null) return u.ownRope > 0; return u.side === 'party' && (B.inv || []).some(function (x) { return x.id === 'rope' && x.n > 0; }); }
+  // the lips of the face at level z near (cx, cy) a rope can be set on, each with the square under it the rope hangs to (Battle.ropeSq read as if one stood on the lip)
+  function doorway(B, q) { var ds = ((B.fight && B.fight.arrive && B.fight.arrive.doors) || []).slice(); (B.passages || []).forEach(function (p) { ds.push(p.at, p.to); }); return ds.some(function (d) { return d && d[0] === q[0] && d[1] === q[1]; }); }
+  function lipsNear(B, z, cx, cy, r) {
+    var out = [], st = G.map.def.step;
+    for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+      var x = cx + dx, y = cy + dy, s = G.map.at(x, y); if (!s || !s.walk || Math.abs(G.map.gz(x, y) - z) > st) continue;
+      var q = D.Battle.ropeSq(B, { x: x, y: y, size: 1, id: 'probe' }, x, y); if (q && q.top && !doorway(B, q.foot)) out.push({ at: [x, y], foot: q.foot }); // (not down onto a doorway: the vault's doors are the party's way in and out)
+    }
+    return out;
+  }
   function* ropeUp(B, u, tgt) {
     var T = u.turn, st = G.map.def.step, Bt = D.Battle;
     if (!tgt || (u.size || 1) > 1 || u.climbs || u.flies || !(T.move > 0) || u.conds.restrained || u.conds.grappled || u.under) return false;
+    if (u.ownRope == null && (u.ally || u.guest)) u.ownRope = 0; // (a lent ally or a story guest -- Pyro -- throws its own, never the party's pack: 10-05)
     var zU = G.gzAt(u, u.x, u.y), zT = G.gzAt(tgt, tgt.x, tgt.y), hangR = u.hang && G.hanging(u) && u.hang.rope;
     if (!hangR && zT <= zU + 2 * st) return false; // (not above it: the walk is the way)
     var ropes = (B.ropes || []).filter(function (r) {
@@ -759,34 +774,70 @@
       if (eF && (eF.x !== u.x || eF.y !== u.y)) { yield* walkTo(B, u, eF); return true; }
       return false;
     }
-    // none hanging from up there: a rope out of the pack thrown up, from here or from under the face nearest its target
-    var packR = (B.inv || []).filter(function (x) { return x.id === 'rope' && x.n > 0; })[0], tops = function (fx, fy) {
-      var out = null; for (var dy = -10; dy <= 10; dy++) for (var dx = -10; dx <= 10; dx++) {
-        var x = fx + dx, y = fy + dy, s = G.map.at(x, y); if (!s || !s.walk || Math.abs(G.map.gz(x, y) - zT) > 2 * st) continue;
-        var q = Bt.ropeSq(B, u, x, y); if (!q || q.top) continue;
-        var sc = G.dist({ x: x, y: y, size: 1 }, tgt) + (q.dc || 10) * 2; if (!out || sc < out.sc) out = { x: x, y: y, sc: sc };
-      }
-      return out;
-    };
-    if (u.side === 'party' && packR) {
-      if (T.action && !T.attacksLeft) { var tq = tops(u.x, u.y); if (tq) { yield* B.exec(u, { do: 'rope', x: tq.x, y: tq.y }); return true; } }
-      var eU = approach(u, { x: tgt.x, y: tgt.y, size: tgt.size || 1 }, rm, 0); // (under it, to throw from there next turn)
-      if (eU && (eU.x !== u.x || eU.y !== u.y)) { yield* walkTo(B, u, eU); return true; }
-      return false;
+    if (u.side !== 'party') return false;
+    // none hanging from up there: its own rope thrown from the foot of the face under the lip nearest its target
+    if (hasRope(B, u)) {
+      var lips = lipsNear(B, zT, tgt.x, tgt.y, 8).filter(function (l) { return !(G.occupant(l.foot[0], l.foot[1]) && G.occupant(l.foot[0], l.foot[1]) !== u); });
+      lips.sort(function (a, b) { var ea = rm[a.foot[0] + ',' + a.foot[1]], eb = rm[b.foot[0] + ',' + b.foot[1]]; return ((ea && ea.stand ? ea.cost : 500 + G.dist(u, { x: a.foot[0], y: a.foot[1], size: 1 }) * 2) + G.dist({ x: a.at[0], y: a.at[1], size: 1 }, tgt)) - ((eb && eb.stand ? eb.cost : 500 + G.dist(u, { x: b.foot[0], y: b.foot[1], size: 1 }) * 2) + G.dist({ x: b.at[0], y: b.at[1], size: 1 }, tgt)); });
+      var lp = lips[0]; if (!lp) return false;
+      var atFoot = u.x === lp.foot[0] && u.y === lp.foot[1], eL = rm[lp.foot[0] + ',' + lp.foot[1]];
+      if (!atFoot) { if (eL && eL.stand) { yield* walkTo(B, u, eL); atFoot = u.x === lp.foot[0] && u.y === lp.foot[1]; } else { var eA = approach(u, { x: lp.foot[0], y: lp.foot[1], size: 1 }, rm, 0); if (eA && (eA.x !== u.x || eA.y !== u.y)) yield* walkTo(B, u, eA); return true; } }
+      if (atFoot && T.action && !T.attacksLeft && Bt.ropeSq(B, u, lp.at[0], lp.at[1], lp.foot)) yield* B.exec(u, { do: 'rope', x: lp.at[0], y: lp.at[1], foot: lp.foot });
+      return true;
     }
-    // the pack without one: the bucket (Fountain Street's), walked to and a rope taken out -- free -- and, with the action still there, thrown
-    if (u.side === 'party' && B.ropeBucket && !T.tookRope) {
+    // no rope of its own: the bucket (Fountain Street's), walked to and a rope taken out -- free -- to be thrown from the foot next
+    if (B.ropeBucket && !T.tookRope) {
       if (!Bt.besideBucket(B, u)) { var eB = approach(u, { x: B.ropeBucket[0], y: B.ropeBucket[1], size: 1 }, rm, 5); if (eB && (eB.x !== u.x || eB.y !== u.y)) yield* walkTo(B, u, eB); }
-      if (Bt.besideBucket(B, u)) {
-        var g0 = u.guest; u.guest = false; yield* B.exec(u, { do: 'bucketrope' }); if (g0 !== undefined) u.guest = g0; else delete u.guest; // (the bucket is for the story's guests too when they are the brute's: a garrison trooper)
-        if (T.action && !T.attacksLeft) { var tq2 = tops(u.x, u.y); if (tq2) yield* B.exec(u, { do: 'rope', x: tq2.x, y: tq2.y }); }
-      }
+      if (Bt.besideBucket(B, u)) { var g0 = u.guest; u.guest = false; yield* B.exec(u, { do: 'bucketrope' }); if (g0 !== undefined) u.guest = g0; else delete u.guest; }
       return true;
     }
     return false;
   }
+  AI.ropeUp = ropeUp; // (Pyro's own turn reads it too: js/pyro.js)
+  AI.lipsNear = lipsNear; // (the bench)
+  // a rope set down from the lip (10-05, Griz: "if no ropes down and two on roof, maybe have a dwarf run to the ledge and set a hook/rope down?"): a lent ally with its own rope, up on a level
+  // with a face below it where two or more of ours stand, no rope hanging from there, and none of the foes in its reach -- one of them (the first to take it up: B.ropeTier) goes to the lip
+  // nearest ours below and ties it off (exec 'rope' from beside the lip: no roll), so the street can climb to it
+  function* tieDown(B, u) {
+    var T = u.turn, st = G.map.def.step; if (!(u.ownRope > 0) || (u.size || 1) > 1 || !T.action || T.attacksLeft || u.hang) return false;
+    if (B.ropeTier && B.ropeTier !== u.id && B.units.some(function (w) { return w.id === B.ropeTier && G.standing(w); })) return false;
+    var zU = G.gzAt(u, u.x, u.y);
+    if ((B.ropes || []).some(function (r) { return !r.cut && Math.abs(G.map.gz(r.at[0], r.at[1]) - zU) <= st; })) return false; // (one hangs from up here already)
+    var mates = B.units.filter(function (w) { return w.side === u.side && !w.object && !w.look && G.standing(w) && Math.abs(G.gzAt(w, w.x, w.y) - zU) <= st; });
+    if (mates.length < 2) return false;
+    if (B.units.some(function (w) { return G.hostile(u, w) && G.standing(w) && !w.regenDown && G.dist(u, w) <= reachOf(u, [w]) + 5; })) return false; // (a foe at hand: the fight first)
+    var below = B.units.filter(function (w) { return w.side === u.side && !w.object && !w.look && G.standing(w) && G.gzAt(w, w.x, w.y) < zU - 2 * st; }); if (!below.length) return false;
+    var cx = Math.round(below.reduce(function (s, w) { return s + w.x; }, 0) / below.length), cy = Math.round(below.reduce(function (s, w) { return s + w.y; }, 0) / below.length);
+    var rm = G.reach(u, T.move), all = lipsNear(B, zU, cx, cy, 14); // (the lips nearest ours below)
+    if (!all.length) return false;
+    var lips = all.map(function (l) {
+      var stand = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1], [1, -1], [-1, 1]].map(function (d) { var k = (l.at[0] + d[0]) + ',' + (l.at[1] + d[1]); return (l.at[0] + d[0] === u.x && l.at[1] + d[1] === u.y) ? { x: u.x, y: u.y, cost: 0, stand: true } : rm[k]; }).filter(function (e) { return e && e.stand && Math.abs(G.map.gz(e.x, e.y) - zU) <= st; }).sort(function (a, b) { return a.cost - b.cost; })[0];
+      return stand ? { at: l.at, foot: l.foot, e: stand, sc: Math.hypot(l.foot[0] - cx, l.foot[1] - cy) + stand.cost / 25 } : null; // (the straight line to ours: the grid's distance tied every lip along the facade)
+    }).filter(Boolean).sort(function (a, b) { return a.sc - b.sc; });
+    B.ropeTier = u.id;
+    if (!lips.length) { // (the lip past this turn's move: make for the one nearest ours below, and tie it off when there)
+      var far = all.slice().sort(function (a, b) { return Math.hypot(a.foot[0] - cx, a.foot[1] - cy) - Math.hypot(b.foot[0] - cx, b.foot[1] - cy); })[0];
+      if (T.action && !T.attacksLeft) yield* B.exec(u, { do: 'dash' });
+      var eW = approach(u, { x: far.at[0], y: far.at[1], size: 1 }, G.reach(u, T.move), 5); if (eW && (eW.x !== u.x || eW.y !== u.y)) yield* walkTo(B, u, eW);
+      return true;
+    }
+    var L = lips[0];
+    if (L.e.x !== u.x || L.e.y !== u.y) yield* walkTo(B, u, L.e);
+    if (u.dead || u.hp <= 0 || !T.action) return true;
+    if (D.Battle.ropeSq(B, u, L.at[0], L.at[1], L.foot)) yield* B.exec(u, { do: 'rope', x: L.at[0], y: L.at[1], foot: L.foot });
+    return true;
+  }
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u), grudge = false;
+    // a scripted run (a fight's foe `chase`: the Skylights' first trolls after the street's people in round 1 -- 10-05, Griz: "have the first trolls chase the civilians more"): no one of ours
+    // in its reach, it runs -- the Dash -- for its square, and that is its turn
+    if (u.chase && B.round <= u.chase.till && !hs.some(function (w) { return !w.object && G.dist(u, w) <= reachOf(u, hs); })) {
+      if (T.action && !T.attacksLeft) yield* B.exec(u, { do: 'dash' });
+      var rmC = G.reach(u, T.move), kC = u.chase.to[0] + ',' + u.chase.to[1], eC = rmC[kC] && rmC[kC].stand ? rmC[kC] : approach(u, { x: u.chase.to[0], y: u.chase.to[1], size: u.size || 1 }, rmC, 0);
+      if (eC && (eC.x !== u.x || eC.y !== u.y)) yield* walkTo(B, u, eC);
+      return;
+    }
+    if (u.ally && (yield* tieDown(B, u))) return; // (two of ours up top and no rope down: one sets one at the lip -- 10-05)
     // the darkness attacks back (the gimmick, magic.js): the one the darts found comes for the caster this turn, nothing else
     if (u.grudge) { var gr = B.units.filter(function (w) { return w.id === u.grudge && G.standing(w); })[0]; delete u.grudge; if (gr) { hs = [gr]; grudge = true; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + gr.name + '{/}.'], 240); yield 16; } }
     // the cloaker and the one the party swore to bring back (RULED 10-01c, Griz: "cloaker focuses on kid if they bring him to that fight"): it hunts him while he stands

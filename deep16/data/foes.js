@@ -429,6 +429,15 @@
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
     multi: 1, resist: ['poison'], src: 'SRD 5.1 Guard (CR 1/8), a dwarf of the garrison; content/npcs.json drill1-4 (the Troopers)'
   },
+  // the first two out of the falls carry crossbows (10-05, Griz: "at least the first two out ... should have crossbows and bolts"): the Trooper, and the SRD light crossbow (80/320, 1d8)
+  // at the Guard's +3 (DEX 12, proficient) -- from the roof at whatever climbs the face, the spear for one who makes the top
+  trooperxbow: {
+    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/8', ac: 16, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
+    saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 }, crossbow: { name: 'Light Crossbow', atk: 3, dice: '1d8', mod: 1, type: 'piercing', ranged: true, range: [80, 320] } },
+    multi: 1, resist: ['poison'], src: 'SRD 5.1 Guard (CR 1/8) with the SRD light crossbow, a dwarf of the garrison; content/npcs.json drill1-4 (the Troopers)'
+  },
   drillsergeant: {
     name: 'Drill-sergeant', type: 'humanoid', sheet: 'drillsergeant_p0', humanoid: true, cr: '3', ac: 17, hp: 58, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
