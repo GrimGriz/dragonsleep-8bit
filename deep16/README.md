@@ -28,7 +28,9 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
   at the smallest of those, far steps follow (10-04 night, Griz: *"can we have huge maps and another zoom level when we do?"*): whole art
   pixels to a device pixel (1/6, 1/9 at 3×), one after another down to the first that shows the whole floor, drawn smoothed (`js/ui.js zooms`).
   Huge maps: the drawing skips what is off the screen and sorts the map's props once (`js/iso.js`), so a 90×70 floor draws in under 10 ms;
-  what a big floor costs is its load (the bake, about 2.3 s at 60×46 and 5.3 s at 90×70) and its floor canvas (26 MB and 56 MB).
+  what a big floor costs is its load (the bake, about 2.3 s at 60×46 and 5.3 s at 90×70) and its floor canvas (26 MB and 56 MB). A floor of
+  1,200 squares or more says BAKING THE FLOOR for a frame before it enters (`Battle.prototype.bakes`, `js/core.js D.push`), and at the far steps
+  every standing figure wears a diamond in its side's colour, the active one ringed gold (`farMarks`), since a figure is five pixels tall there.
 - **Sound** (09-27): the 8-bit game's own chip synth (`../js/audio.js`) — its effects for the menus (cursor, confirm,
   cancel, error, a pop when the ring or a prompt comes up) and the fight (hit, crit, miss, a fall, spells by element,
   heals, smites, the jaunt, the drider's arrival), and its tunes: `battle`, `boss` when the drider drops, `victory` or
@@ -189,6 +191,12 @@ finds the hidden it sees clearly (`rise`): the Breach stalled on both. Benched: 
 Breach itself), both in `dev/check.py`'s gate; `mode=trace&fight=<id>&rounds=N` runs a fight to a round cap and prints
 the log's tail and every unit's state, for a fight that never ends on the bench.
 
+**The Edifice** (10-04 night, `data/maps.js` edifice, 60×27): the exterior -- Fountain Street along the foot of Sólskaft's facade as the 8-bit map has it, the
+facade 45 ft, and on top the roof of skylight glass (`G`, walkable; `iso.js` bakes it as leaded panes with the orchard on the floor below showing through, and
+the Sunshaft's circle from the map's `shaft`). The arches' tops are 15 ft sills; a grapple from a sill reaches the rim; the dwarves' rope hangs 45 ft at the
+west end. Griz: *"It's supposed to be external and the third floor is internal tho possibly visible to the skylight glass that should make up the majority
+of the 4th floor/3rd floor ceiling."* `deep16/?npc=<foes>&vs=<party>&map=edifice`.
+
 **Ropes and rungs** (10-04; `js/grid.js` ROPES, `js/battle.js` exec 'rope', 'ropeclimb', 'takerope', 'cutrope', `js/ui.js ropeRung`): a map's
 `ropes: [[ax, ay, fx, fy]]` hang from the top of a face to its foot, and the party's Rope & Grapple sets one (the item wheel: tied off from up
 top, or thrown up 30 ft at DC 10 DEX). Along a rope no check and no fall, at the SRD's double cost (5 ft of movement a 2.5 ft step). **The rungs**
@@ -198,7 +206,12 @@ the cost -- and the click climbs or lets down to exactly there and hangs, from t
 ground). **The grapple's square** (Griz: *"if one clicks on a square where a grapple is they should be able to take it (unless someone is on it -
 in which case I think they'll attack it if that's not an ally)"*): nobody on it, a click from beside takes it up into the pack for the action (or
 steps there, asked), and standing on it the ring's TAKE THE ROPE; a foe hanging on it within the weapon's reach, the click strikes the rope (AC 11,
-2 HP) and cut, the foe falls; an ally on it, the square is a square. Bench `mode=rungs1004`.
+2 HP) and cut, the foe falls; an ally on it, the square is a square. Standing on the grapple's square, the click asks first (TAKE IT UP / NOT NOW), and
+TAKE THE ROPE sits on the ring's own face (10-04 night, Griz: *"never managed to take up the hook, standing on it makes me select character?"* -- it had
+been filed under ACTIONS where nothing listed it). A map's `ropeBucket: [x, y]` (the Edifice: a crate by the first house) hands anyone of ours beside it a
+Rope & Grapple for nothing, one a turn, never the last (TAKE A ROPE; Griz: *"an endless supply of rope and grapple while on the map"*). A creature with a
+climb speed pays the SRD's climb -- the height, 2.5 ft a step rounded up to the 5 -- not the square's 5 alone, and the AI's far route may take a single step
+a Dash would pay for. Benches `mode=rungs1004`, `mode=edifice1004`.
 
 **The climb** (09-27, `js/climb.js`, `?climb`, or C / the button on the ladder; Griz: "an alternate mode that goes
 fight-by-fight 1-9 (random of created battles)"): one party from level 1 (Barley in splint, as on the ladder). Each

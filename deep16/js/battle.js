@@ -12,6 +12,20 @@
   function Battle(o) { this.o = o || {}; }
   D.Battle = Battle;
 
+  // A big floor's bake is a pause of a second or more (10-04 night: a 60x46 2.3 s, a 90x70 5.3 s; Griz: "yes" to a baking frame): pushed, the fight says BAKING THE FLOOR for a
+  // frame and enters on the next (core.js D.push reads `bakes`; update and draw carry the wait). Never on the bench, which calls enter itself; never without a screen
+  Battle.BAKE_SQ = 1200;
+  Battle.prototype.bakes = function () {
+    if (this.o.bench || !D.ctx) return false;
+    var F = this.o.fightDef || (typeof D.fight === 'function' ? D.fight(this.o.fight || 'gallery') : null), m = F && D.MAPS[F.map];
+    return !!(m && m.rows && m.rows.length * m.rows[0].length >= Battle.BAKE_SQ);
+  };
+  Battle.prototype.bakingFrame = function (ctx) {
+    var F = this.o.fightDef || (typeof D.fight === 'function' ? D.fight(this.o.fight || 'gallery') : null), m = F && D.MAPS[F.map];
+    ctx.fillStyle = '#05040a'; ctx.fillRect(0, 0, D.W, D.H);
+    D.text(ctx, 'BAKING THE FLOOR', D.W / 2, D.H / 2 - 10, '#e8d8a0', 'center');
+    D.text(ctx, (m && m.name ? m.name.toUpperCase() + '  --  ' : '') + (m ? m.rows[0].length + ' by ' + m.rows.length + ' squares' : ''), D.W / 2, D.H / 2 + 4, '#9a94a8', 'center');
+  };
   Battle.prototype.enter = function () {
     var F = this.fight = this.o.fightDef || D.fight(this.o.fight || 'gallery'), m = this.map = D.iso.load(D.MAPS[F.map]), self = this;
     // on the ladder: the four at the fight's level, by the 8-bit game's own rules (nothing read from a save).
@@ -98,6 +112,7 @@
     if (!this.o.embed) { var inv0 = this.inv; party.forEach(function (u) { var aid = u.alt && (typeof u.alt === 'string' ? u.alt : u.alt.id); if (u.side === 'party' && u.npc && aid && window.DS.DATA.items[aid] && !inv0.some(function (s) { return s.id === aid; })) inv0.push({ id: aid, n: 1 }); }); } // (the unit's alt is the weapon as the grid reads it: its id)
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
     this.ropes = ((m.def && m.def.ropes) || []).map(function (r) { return { at: [r[0], r[1]], foot: [r[2], r[3]], hp: 2, fixed: true }; }); // (a map's ropes; a Rope & Grapple adds its own: grid.js G.ropeOn, exec 'rope')
+    this.ropeBucket = m.def && m.def.ropeBucket ? m.def.ropeBucket.slice() : null; // (Fountain Street's bucket: a Rope & Grapple for anyone beside it, free, one a turn, endless -- 10-04 night, Griz; exec 'bucketrope')
     if (D.walls && D.walls.seatConjured) D.walls.seatConjured(this); // (an elemental conjured at the camp walks in beside its caster: js/walls.js)
     // torchdark (09-28): dark ground -- the fight's own word, else the 8-bit map's `dark` when the fight is fought from there
     // (js/embed.js), else the grid map's -- and the lights the place keeps (a lamp, a fire, a glow: [x, y, r, color, dimOnly]);
@@ -422,6 +437,7 @@
     this.o.onDone(null, { broke: msg, how: how });
   };
   Battle.prototype.update = function () {
+    if (this.baking) { if (++this.bakeT >= 2) { this.baking = false; this.enter(); } return; } // (the baking frame: Battle.prototype.bakes)
     if (!this.floorable()) return this.frame();
     if (this.paintBroke) return this.broke(this.paintBroke, 'drawing the field'); // (out of the draw loop first: the scenes are not changed under it)
     try { this.frame(); } catch (e) { this.broke(e, 'in a turn'); }
@@ -756,7 +772,8 @@
     out.push({ id: 'dodge', label: 'DODGE', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'attacks at you at disadvantage till your next turn' });
     out.push({ id: 'search', label: 'SEARCH', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'a Perception check against anyone hiding in sight, all round you' }); // (SRD 5.1 Search; 10-04)
     // TAKE THE ROPE (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it"): a rope fixed on this square or one beside it, up top, nobody on it -- coiled back into the pack for the action
-    var rpN = Battle.ropeNear(this, u); if (rpN) { var tkN = Battle.canTakeRope(this, u, rpN); out.push({ id: 'takerope', label: 'TAKE THE ROPE', cost: 'A', ok: tkN.ok, why: tkN.why, note: 'coil the rope and its grapple back into the pack (an object used: the action)' }); }
+    var rpN = Battle.ropeNear(this, u); if (rpN) { var tkN = Battle.canTakeRope(this, u, rpN); out.push({ id: 'takerope', label: 'TAKE THE ROPE', cost: 'A', ok: tkN.ok, why: tkN.why, icon: 'item', note: 'coil the rope and its grapple back into the pack (an object used: the action)' }); }
+    if (this.ropeBucket && Battle.besideBucket(this, u)) out.push({ id: 'bucketrope', label: 'TAKE A ROPE', cost: 'F', ok: !T.tookRope && !u.guest, why: T.tookRope ? 'one a turn' : 'a guest keeps its hands to itself', icon: 'item', note: 'a Rope & Grapple out of the bucket: free, one a turn, and there is always another' }); // (10-04 night)
     // Help (the attack kind) only with a foe beside you (Griz, 09-27) -- and on a friend beside you who needs a hand (10-01c, Griz: "repurpose the help action to
     // conditionally target allies as well as current target enemy"): a sleeper shaken awake (SRD 5.1 Sleep: "someone uses an action to shake or slap the sleeper
     // awake"), one held in a web or a grip given advantage on its next check to get out (SRD 5.1 Help: "advantage on the next ability check it makes")
@@ -828,6 +845,12 @@
     return { ok: true, why: '' };
   };
   Battle.canCutRope = function (B, u, r) {
+    return canCut0(B, u, r);
+  };
+  // the rope bucket (10-04 night, Griz: "there should be a bucket by one of the fountain street houses that is an endless supply of rope and grapple while on the map"): a map's
+  // `ropeBucket: [x, y]` (its square a crate, 'k'); anyone of ours beside it takes a Rope & Grapple out of it for nothing -- an object interaction, one a turn -- and it is never empty
+  Battle.besideBucket = function (B, u) { var b = B && B.ropeBucket; return !!(b && Math.max(Math.abs(u.x - b[0]), Math.abs(u.y - b[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(b[0], b[1])) <= G.map.def.step); };
+  function canCut0(B, u, r) {
     var T = u.turn || {}, h = Battle.ropeHanger(B, r); if (!h || !G.hostile(u, h)) return null;
     var w = u.weapon, spot = { x: r.at[0], y: r.at[1], size: 1 }, d = G.dist(u, spot), reach = w && w.ranged ? ((w.range && (w.range[1] || w.range[0])) || 0) : G.reachOf(u);
     var inR = d <= reach && (!(w && w.ranged) || G.losPoint(u.x, u.y, r.at[0], r.at[1]));
@@ -946,8 +969,8 @@
       case 'takerope': { // the rope's grapple taken up (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it"): from the ring, or a click on its square from beside it
         var rT = c.x != null ? Battle.ropeAt(this, c.x, c.y) : Battle.ropeNear(this, u); if (!rT) return;
         var tkT = Battle.canTakeRope(this, u, rT); if (!tkT.ok) { this.card(['{o}' + nameOf(u) + ' cannot take the rope up: ' + tkT.why + '.{/}'], 160); return; }
-        if (!byAI(u) && c.x != null && !(u.x === rT.at[0] && u.y === rT.at[1])) { // (the click from beside it: take it, or only step onto its square)
-          var rmT = G.reach(u, T.move), stepT = !!(rmT[rT.at[0] + ',' + rT.at[1]] || {}).stand;
+        if (!byAI(u) && c.x != null && (c.ask || !(u.x === rT.at[0] && u.y === rT.at[1]))) { // (c.ask: the self-click on the grapple's square -- Griz, 10-04 night: "standing on it makes me select character?") // (the click from beside it: take it, or only step onto its square)
+          var rmT = G.reach(u, T.move), stepT = !(u.x === rT.at[0] && u.y === rT.at[1]) && !!(rmT[rT.at[0] + ',' + rT.at[1]] || {}).stand;
           var ansT = yield { prompt: { who: u, title: u.name + ': THE ROPE', lines: ['Take the rope and its grapple up and into the pack (the action)' + (stepT ? ', or just step onto its square.' : '.')], opts: [{ label: 'TAKE IT UP', value: 'take' }].concat(stepT ? [{ label: 'STEP THERE', value: 'step' }] : []).concat([{ label: 'NOT NOW', value: false }]) } };
           if (ansT === 'step') { var pT = G.path(rmT, rT.at[0], rT.at[1]); if (pT) yield* this.moveAlong(u, pT, { spend: true }); return; }
           if (ansT !== 'take') return;
@@ -957,6 +980,13 @@
         var rsT = (this.inv || []).filter(function (x) { return x.id === 'rope'; })[0]; if (rsT) rsT.n = (rsT.n || 0) + 1; else (this.inv = this.inv || []).push({ id: 'rope', n: 1 });
         D.sfx('confirm'); this.card(['{y}' + nameOf(u) + '{/} hauls the rope up and coils it, grapple and all, back into the pack.'], 240);
         u.anim = 'idle'; yield 16; return;
+      }
+      case 'bucketrope': { // a Rope & Grapple out of Fountain Street's bucket (10-04 night, Griz): free, one a turn, never the last
+        if (!this.ropeBucket || !Battle.besideBucket(this, u) || T.tookRope || u.guest) return;
+        T.tookRope = true; u.facing = D.spr.facingFor(this.ropeBucket[0] - u.x, this.ropeBucket[1] - u.y); u.anim = 'attack'; u.animT = this.t; yield 8;
+        var rsB = (this.inv || []).filter(function (x) { return x.id === 'rope'; })[0]; if (rsB) rsB.n = (rsB.n || 0) + 1; else (this.inv = this.inv || []).push({ id: 'rope', n: 1 });
+        D.sfx('confirm'); this.card(['{y}' + nameOf(u) + '{/} takes a Rope & Grapple out of the bucket.  {g}(there is always another){/}'], 220);
+        u.anim = 'idle'; yield 12; return;
       }
       case 'cutrope': { // a blow at a rope a foe hangs on, from its top (10-04 night, Griz: "unless someone is on it - in which case I think they'll attack it if that's not an ally"): Battle.cutRope, the AI's own
         var rC = Battle.ropeAt(this, c.x, c.y); if (!rC) return;
@@ -2396,6 +2426,7 @@
 
   Battle.prototype.opaque = true; // (the ladder under it needn't draw)
   Battle.prototype.draw = function (ctx) {
+    if (this.baking) return this.bakingFrame(ctx);
     if (!this.floorable()) return this.paint(ctx);
     try { this.paint(ctx); this.badFrames = 0; }
     catch (e) { // (the floor, above: whatever the broken piece left set is put back, so the next frame paints true)

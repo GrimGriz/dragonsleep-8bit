@@ -152,7 +152,7 @@
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'detach', 'breaktendril', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02)
+    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
@@ -697,7 +697,10 @@
       if (v === 'cut') return UI.command(B, u, { do: 'cutrope', x: x, y: y }); // (a rope a foe hangs on: struck from its top -- 10-04 night)
       if (v === 'take') return UI.command(B, u, { do: 'takerope', x: x, y: y }); // (a rope's grapple, nobody on it: taken up, or the square stepped onto -- asked)
       if (v === 'rung') return UI.command(B, u, { do: 'ropeclimb', x: B.ropePick.to[0], y: B.ropePick.to[1], z: B.ropePick.z }); // (the rung picked: to exactly there, and hang -- before the self-click, since a hanger's square is the rope's foot)
-      if (x === u.x && y === u.y && !foe) { D.sfx('popup'); B.tool = 'menu'; return; }
+      if (x === u.x && y === u.y && !foe) { // (the self-click: the ring -- or, standing on a rope's grapple, the question first: Griz, 10-04 night: "standing on it makes me select character?")
+        var rpSelf = D.Battle.ropeAt(B, x, y); if (rpSelf && D.Battle.canTakeRope(B, u, rpSelf).ok) return UI.command(B, u, { do: 'takerope', x: x, y: y, ask: true });
+        D.sfx('popup'); B.tool = 'menu'; return;
+      }
       if (foe && v === 'ok') return UI.command(B, u, { do: 'attack', target: foe });
       if (foe) {
         D.sfx('error');
@@ -864,6 +867,7 @@
       wallWebs(B).forEach(function (o) { objs.push(o); }); // the silk up the walls behind a map's webs, and its corner webs
       webObjs(B).forEach(function (o) { objs.push(o); }); // the webs themselves, each piece in the round at its hub
       ropeObjs(B).forEach(function (o) { objs.push(o); }); // the ropes down the faces, a tiny grapple at each top (10-04)
+      bucketObjs(B).forEach(function (o) { objs.push(o); }); // the rope bucket's coil (10-04 night)
       // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
       (B.riders || []).forEach(function (r) {
         var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2, r.y + (f[1] - 1) / 2, r.gz), s = D.iso.toScreen(c.x, c.y);
@@ -890,6 +894,7 @@
     ctx.imageSmoothingEnabled = Math.abs(dev - Math.round(dev)) > 1e-6;
     var shk = B.shakeT > 0 && (B.shakeT % 10) < 4; // (the roost coming down: a shake every ten frames, as the 8-bit's swarm)
     ctx.drawImage(wc, 0, 0, vw, vh, shk ? Math.round((Math.random() - 0.5) * 6) : 0, shk ? Math.round((Math.random() - 0.5) * 4) : 0, vw * z, vh * z);
+    if (z * D.R < 1 - 1e-9) farMarks(ctx, B); // (a far step: the figures are a few pixels tall -- a mark on each, 10-04 night, Griz: "great idea")
     ctx.imageSmoothingEnabled = false;
     FX.list.forEach(function (f) { if (f.screen) f.draw(ctx); });
     strip(ctx, B);
@@ -911,6 +916,29 @@
     if (req && req.scene) scene(ctx, B, req.scene);
     if (B.menu) menu(ctx, B);
   };
+
+  // the far steps' marks (10-04 night): a diamond on every standing figure in the side's colour -- ours glow-blue, a guest or an ally moss, a foe red -- the active one ringed gold
+  function farMarks(ctx, B) {
+    B.units.forEach(function (u) {
+      if (!G.standing(u) || (u.riding && u.master)) return;
+      var p = unitPos(B, u), col = u.side === 'foe' ? R('red', 4) : u.side === 'party' && !u.guest ? R('glow', 2) : R('moss', 3);
+      var dia = function (r, h) { ctx.beginPath(); ctx.moveTo(p.x, p.y - h); ctx.lineTo(p.x + r, p.y); ctx.lineTo(p.x, p.y + h); ctx.lineTo(p.x - r, p.y); ctx.closePath(); };
+      ctx.fillStyle = R('outline', 0); dia(7, 5); ctx.fill();
+      ctx.fillStyle = col; dia(5, 3); ctx.fill();
+      if (u === B.active) { ctx.strokeStyle = R('gold', 4); ctx.lineWidth = 1; dia(9, 7); ctx.stroke(); }
+    });
+  }
+  // the rope bucket's coil (B.ropeBucket, 10-04 night): a few turns of hemp and the hook on the crate's top, in the sort just after the crate
+  function bucketObjs(B) {
+    var b = B.ropeBucket; if (!b) return [];
+    return [{ depth: b[0] + b[1] + 0.55, gz: G.map.gz(b[0], b[1]), layer: 1, draw: function (ctx) {
+      var c = D.iso.center(b[0], b[1], G.map.gz(b[0], b[1])), s = D.iso.toScreen(c.x, c.y), x = s.x, y = s.y - 14;
+      ctx.save(); ctx.lineWidth = 2;
+      [[9, 4, 3], [6, 3, 1], [3, 1.5, 3]].forEach(function (e) { ctx.strokeStyle = R('leather', e[2]); ctx.beginPath(); ctx.ellipse(x, y, e[0], e[1], 0, 0, Math.PI * 2); ctx.stroke(); });
+      ctx.fillStyle = R('silver', 5); ctx.fillRect(x + 8, y - 4, 1, 4); ctx.fillRect(x + 7, y - 1, 3, 1); ctx.fillRect(x + 6, y - 2, 1, 1);
+      ctx.restore();
+    } }];
+  }
 
   // ------------------------------------------------------------------ a cutscene beat (the gimmick, Griz 09-28: "a quick cutscene close-up of Aurdin
   // and then that mp3, then a close up of the cloaker showing it hit, then big close up cloaker face"): one figure blown up over
@@ -1684,6 +1712,7 @@
       }
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
+      if (B.ropeBucket && B.cursor.x === B.ropeBucket[0] && B.cursor.y === B.ropeBucket[1]) lines.push('{y}the rope bucket{/}: a Rope & Grapple for anyone beside it -- {n}free, one a turn, and there is always another{/} (TAKE A ROPE on the ring)'); // (10-04 night)
       var rpT = !B.ropePick && D.Battle.ropeAt(B, B.cursor.x, B.cursor.y); // (a rope's grapple under the cursor: what the click does -- 10-04 night)
       if (rpT) {
         var cutT = D.Battle.canCutRope(B, u, rpT), hgT = D.Battle.ropeHanger(B, rpT), tkT = D.Battle.canTakeRope(B, u, rpT);

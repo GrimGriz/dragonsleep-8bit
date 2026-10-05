@@ -150,6 +150,9 @@
     if (rp) return c + Math.max(0, Math.round(Math.abs(G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step) * 5 - 5); // (along a rope, up or down: 5 ft of movement a step, the square's own 5 in it)
     if (u.hang && x0 === u.x && y0 === u.y && G.hanging(u)) return c + Math.round((u.hang.z - G.map.gz(u.x, u.y)) / G.map.def.step) * 5; // (off a rope part way up, anywhere but its top: down it first, 5 ft a step)
     var cs = G.climbsUp(u, x0, y0, x1, y1); if (cs) c += cs * 5 - 5;
+    // a creature with a climb speed (SRD 5.1: "doesn't need to spend extra movement to climb" -- the climb itself is still distance): 2.5 ft of movement a step, rounded up to the
+    // 5, the square's own 5 folded in -- a 45 ft face is 45, not 5 (it was the square's 5 alone; 10-04 night, the Edifice: "the monster has to climb up the ediface")
+    if (!cs && u.climbs && G.map.def.climb) { var csC = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step); if (csC > 1) c += Math.max(0, Math.ceil(csC * 2.5 / 5) * 5 - 5); }
     var cd = u.cdown && G.climbsDown(u, x0, y0, x1, y1); if (cd) c += cd * 5 - 5; // (a hand that chose CLIMB DOWN: the same 5 ft a step down as up)
     return c;
   };

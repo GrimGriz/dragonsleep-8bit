@@ -297,7 +297,9 @@
 
   // ---------------------------------------------------------------- scenes (a small stack, like the 8-bit game's)
   D.scenes = [];
-  D.push = function (s) { D.scenes.push(s); if (s.enter) s.enter(); };
+  // (a scene that says it bakes -- a Battle on a big floor, Battle.prototype.bakes -- enters a frame later, so the frame before it can say BAKING THE FLOOR
+  // instead of the page freezing on a floor that takes seconds to bake: 10-04 night, Griz: "yes". The bench calls enter itself and never comes through here)
+  D.push = function (s) { D.scenes.push(s); if (s.enter) { if (s.bakes && s.bakes()) { s.baking = true; s.bakeT = 0; } else s.enter(); } };
   D.pop = function () { var s = D.scenes.pop(); if (s && s.exit) s.exit(); return s; };
   D.top = function () { return D.scenes[D.scenes.length - 1]; };
 

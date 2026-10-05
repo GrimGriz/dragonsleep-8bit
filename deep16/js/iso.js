@@ -48,13 +48,17 @@
   function dith(px, py) { return (BAYER[(py & 3) * 4 + (px & 3)] + 0.5) / 16; }
   // a value 0..1 onto a ramp with ordered dithering between neighbouring steps
   function rampPick(ramp, v, px, py) {
+    return rampPick0(ramp, v, px, py);
+  }
+  function mix(a, b, t) { return [Math.round(a[0] + (b[0] - a[0]) * t), Math.round(a[1] + (b[1] - a[1]) * t), Math.round(a[2] + (b[2] - a[2]) * t)]; } // (two colours, t of the way from the first)
+  function rampPick0(ramp, v, px, py) {
     var f = D.clamp(v, 0, 0.9999) * (ramp.length - 1), i = Math.floor(f), t = f - i;
     return ramp[Math.min(ramp.length - 1, i + (t > dith(px, py) ? 1 : 0))];
   }
   iso.noise = { vnoise: vnoise, fbm: fbm, dith: dith, rampPick: rampPick, h2: h2 };
 
   // ------------------------------------------------------------------ the map
-  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1, ',': 1, 'g': 1, 'T': 1, 'W': 1, 'V': 1, 'k': 1, 'f': 1, 'w': 1, 'D': 1, 'y': 1 };
+  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1, ',': 1, 'g': 1, 'T': 1, 'W': 1, 'V': 1, 'k': 1, 'f': 1, 'w': 1, 'D': 1, 'y': 1, 'G': 1 }; // (G: a roof of glass -- the Edifice's skylights, walkable, the orchard seen through it: bake, 10-04 night)
   // (the Settling, 09-30: D deep water, the landlord's under the fall; y a cradle, the crawler pens' timber crib. A map's `deepWater`
   // names the water nothing walks in -- grid.js lets only what lives there (bound to it, or a swimmer) in)
   // set design (09-27, Griz: "proceed with set design"): the things a square can hold that stand in the way -- not walked
@@ -76,6 +80,7 @@
       });
     }
     m.at = function (x, y) { return (x < 0 || y < 0 || x >= m.w || y >= m.h) ? null : m.sq[y * m.w + x]; };
+    if (def.ropeBucket) { var rb = m.at(def.ropeBucket[0], def.ropeBucket[1]); if (rb) rb.stands = 'the rope bucket'; } // (Fountain Street's bucket of rope and grapples: battle.js, 10-04 night)
     m.isOpen = function (x, y) { var s = m.at(x, y); return !!(s && s.open); };
     m.gz = function (x, y) { var s = m.at(x, y); return s ? s.gz : 0; };
     iso.map = m;
@@ -155,6 +160,16 @@
             var edge = Math.min(nearOpen(m, gx, gy, s.ch), 1); // (D, the deep water, drawn as the pool is)
             var sheen = vnoise(gx * 2 + 0.3, gy * 5, seed + 9), glint = h2(Math.floor(gx * 11), Math.floor(gy * 22), seed + 8) > 0.992;
             col = edge < 0.1 ? stone[2] : edge < 0.2 ? stone[1] : glint ? silver[5] : sheen > 0.8 ? violet[2] : rampPick(blue, n * 0.22 + (1 - Math.min(1, edge * 2)) * 0.12, ix, iy);
+          } else if (s.ch === 'G') {                              // a roof of glass (the Edifice, 10-04 night, Griz: "the skylight glass that should make up the majority of the 4th floor/3rd floor
+            // ceiling"): leaded panes two squares square, and the orchard on the floor below seen through the tint -- its grass, the dark of its trees, the Sunshaft's circle (`shaft`) -- and a gloss across them
+            var gx0 = gx + 0.5, gy0 = gy + 0.5, fx2 = gx0 - Math.floor(gx0), fy2 = gy0 - Math.floor(gy0);
+            var lead = (Math.floor(gx0) % 2 === 0 && fx2 < 0.06) || (Math.floor(gy0) % 2 === 0 && fy2 < 0.06);
+            var under = fbm(gx0 * 0.8, gy0 * 0.8, seed + 77), tree = vnoise(gx0 * 1.7, gy0 * 1.7, seed + 91) > 0.72;
+            var sh = m.def.shaft, shD = sh ? Math.hypot(gx0 - sh[0], gy0 - sh[1]) : 9, inShaft = sh && shD < sh[2], rimS = sh && !inShaft && shD < sh[2] + 0.2;
+            var gloss = ((gx0 - gy0 * 0.5) % 6 + 6) % 6 < 0.35;
+            var base = inShaft ? stone[0] : tree ? moss[1] : rampPick(moss, 0.1 + under * 0.3, ix, iy);
+            col = lead ? silver[1] : rimS ? silver[3] : mix(base, blue[2], inShaft ? 0.25 : 0.45);
+            if (gloss && !lead && !rimS && dith(ix, iy) < 0.5) col = mix(col, silver[5], 0.35);
           } else {
             var crack = Math.abs(vnoise(gx * 2.2, gy * 2.2, seed + 21) - 0.5) < 0.012;
             var pebble = h2(Math.floor(gx * 14), Math.floor(gy * 14), seed + 5) > 0.985;
