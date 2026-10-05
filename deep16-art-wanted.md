@@ -27,18 +27,14 @@ Checked 10-05 against `deep16/data/foes.js` (the Pocket DM's pot: every foe but 
 | the axe beak | the Birb | a tall flightless beak |
 | the darkmantle | the Glub (hand-built; the SRD attach needed it) | a real sheet, or the Blender recipe |
 
-### In the 8-bit, no grid foe at all (checked 10-05 against `content/monsters.json`; the bestiary handoff's "seven")
+### In the 8-bit with no grid foe: all seven now on the grid (10-05)
 
-The grid refuses these by name, so each wants a foe block (`deep16/data/foes.js`) and a figure before a sheet. Four creatures are left (the three humanoid rows below are done):
+The Hired Blade, the Stable Fighter and the Drow Blade-Captain are done above. The four creatures are **drawn in code** (Griz: *"can we give them a special effect body?"* -- *"Let's try code drawn"*), so they are in hand, and a real sheet or model is welcome, never needed:
 
-| creature | 8-bit | wants |
-|---|---|---|
-| the centipede | CR 1/4 beast | a giant centipede: a long segmented body, many legs |
-| the fire beetle | CR 0 beast | a big beetle with glowing glands |
-| the stirge | CR 1/8 beast | a bat-winged, long-snouted blood-drinker, small |
-| the will-o'-wisp | CR 2 undead | a drifting ball of light; a sheet row for going dark |
-| the Hired Blade (`merc`), the Stable Fighter (`stablefighter`) | CR 1, CR 1/2 humanoids | **done 10-05, no art wanted**: grid blocks with the 8-bit's own stats (`merc` 40 HP on the Hired Sword's sheet, as Griz approved; `stablefighter` on the Crewman's, an 8-bit-only foe: the Hex card never reaches the grid). A recoloured LPC figure for the Fighter is welcome, not needed |
-| the Drow Blade-Captain (`drowcaptain`) | CR 5 humanoid | **done**: `D.kind8` already maps it to the grid's `drow`. The SRD has only the plain Drow (`drowling`); the Captain and the Spell-Weaver are the game's own |
+- the **will-o'-wisp**: a light field (`tools/wisp-sheet.py`), with a floor light of its own (`glow`, out when it turns invisible);
+- the **stirge**, the **fire beetle** (glands that light the floor) and the **giant centipede**: `tools/bugs-sheet.py` on `tools/codeart.py`; the stirge has a `latched` row for Blood Drain (the proboscis driven in, the body swelling red).
+
+What they still want: a front and a back for the three bugs (S and N borrow the side frames); a wisp that shows its Variable Illumination (bright 5-20 ft) on screen.
 
 Any of them goes first to a free printable with a .blend (`deep16/blender-monsters.md`), second to a generated sheet. A second sheet for something already in hand (idle variations, special moves) is welcome, never needed.
 
@@ -63,6 +59,7 @@ Any of them goes first to a free printable with a .blend (`deep16/blender-monste
 | the grick (1b's third) | MZ4250's Grick on its own rig; walk and slither, still, reveal | `tools/grick-blend.py` | 10-02 | frame 3 of its death |
 | the troll (1b's fourth) | MZ4250's Troll Updated, a biped on its own rig | `tools/troll-blend.py` | 10-04 | its own row |
 | the stone giants, her and him (1b's fifth; two looks, one at random) | MZ4250's female and male Stone Giant (thing:4157322, CC BY): idle, walk, greatclub, greatclub2, rock, flinch, hurt, prone; Griz's poser frames in greatclub, prone and hurt | `tools/stonegiant-blend.py`, `tools/stonegiantm-blend.py` | 10-04 | its own row |
+| the will-o'-wisp, the stirge, the fire beetle, the giant centipede (**drawn in code**, 10-05) | `wisp_p1`, `stirge_p1`, `firebeetle_p1`, `centipede_p1`: idle, walk, attack, flinch, hurt; the stirge's `latched` row | `tools/wisp-sheet.py`, `tools/bugs-sheet.py`, `tools/codeart.py` | 10-05 | the hurt row (they die on their backs) |
 | the duergar (an LPC grey dwarf, not generated) | `duergar_full` composed, squashed to a dwarf's build: idle, walk, war-pick swing, hurt, cast (Enlarge, Invisibility) | `tools/lpc-compose.py`, `lpc-squash.py`, `pixelate.py p0` | 10-04 | the LPC fall row |
 | **the Keeper** (the flooded stair; a fight of his own) | a generated sheet, `keeper_p2` (`keeperold`, `keeper_p1`, is the ladder's old one) | -- | 10-04 | immune to prone (SRD) |
 
