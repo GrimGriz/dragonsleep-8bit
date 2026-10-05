@@ -1821,7 +1821,10 @@
       if (this.xpHalf) xp = Math.floor(xp / 2); // (Pyro drew the white mace: the fight's XP halved -- RULED 09-30b, js/pyro.js)
       var living = DS.G.party.filter(function (h) { return !h.ko; });
       if (o.solo != null) living = [DS.G.party[o.solo]];
-      var each = living.length ? Math.floor(xp / living.length) : 0;
+      // (the guests stand in the split: RULED 10-05, Griz: "count guests as 'standing' for xp." -- the pool is divided by the four standing plus each
+      // guest fielded and not down at the end; they bank nothing, the gainXP loop below stays on the party; a solo fight is one hero's)
+      var guestsUp = o.solo != null ? 0 : this.heroes.filter(function (u) { return u.guest && !down(u); }).length;
+      var each = living.length ? Math.floor(xp / (living.length + guestsUp)) : 0;
       var lines = ['Victory!'];
       if (each) lines.push('Each fighter standing gains ' + each + ' XP.' + (this.xpHalf ? ' (Halved: the king drew the white mace.)' : ''));
       if (silver) { DS.G.silver += silver; lines.push('Found ' + silver + ' sp in coin and salvage.'); }

@@ -1133,6 +1133,66 @@
       });
       var okN = cases.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('floor1003: ' + okN + '/' + cases.length + ' cases' + (okN === cases.length ? ' clean' : ': ' + cases.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
+    } else if (test === 'xp1005') {
+      // 10-05 (RULED, Griz: "count guests as 'standing' for xp."): the guests stand in the XP split and bank nothing (js/battle.js finish: the divisor is the
+      // four standing plus each guest fielded and not down at the end; js/events.js EV.fedXp: the landlord's pool the same). A won fight with the foes put down
+      // at the first frame: the pool is the foes' XP (halved if Pyro drew the white mace), each of the four gains its share, a guest's own XP does not move;
+      // the dialog's own line is read off DS.say
+      var said1005 = [], say1005 = DS.say;
+      DS.say = function (t) { said1005.push(DS.stripCodes(Array.isArray(t) ? t.join(' ') : String(t))); return say1005.apply(this, arguments); };
+      try {
+        var xpOf = function (h) { return h.xp; };
+        var fight1005 = function (tag, guestIds, o, mutate, div, soloIdx) {
+          SETUP(5); DS.lastError = null;
+          guestIds.forEach(function (id) { DS.EV.addGuest(id); });
+          var four = DS.G.party, guests = DS.G.guests || [];
+          T.startFight(['ogre', 'ogre'], o);
+          for (var w1005 = 0; w1005 < 400 && !DS.find('battle'); w1005++) T.step(1);
+          var b = DS.find('battle');
+          if (!b) { check(tag + ': no battle came up', false); return; }
+          b.intro = 0; b.heroes.forEach(function (u) { u.h.maxhp = u.h.hp = Math.max(u.h.hp, 400); });
+          var fielded = b.heroes.filter(function (u) { return u.guest; }).length;
+          if (mutate) mutate(b);
+          var before = four.map(xpOf), gBefore = guests.map(function (x) { return x.h.xp; });
+          var pool = b.foes.reduce(function (s, f) { return s + (f.m.xp || 0); }, 0);
+          b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); said1005.length = 0;
+          drive({}, 3000);
+          if (b.xpHalf) pool = Math.floor(pool / 2);
+          var each = Math.floor(pool / div), gain = four.map(function (h, i) { return h.xp - before[i]; });
+          var gStill = guests.every(function (x, i) { return x.h.xp === gBefore[i]; }), line = said1005.filter(function (s) { return /Each fighter standing gains/.test(s); })[0] || '';
+          var okGain = soloIdx != null ? gain.every(function (n, i) { return n === (i === soloIdx ? each : 0); }) : gain.every(function (n) { return n === each; });
+          check(tag + ': ' + fielded + ' guest(s) fielded, a pool of ' + pool + ' by ' + div + ' is ' + each + '; the four gained ' + gain.join('/') + ', the guests\' own XP unmoved (' + gStill + '), "' + line + '", ' + out.result,
+            okGain && gStill && new RegExp('gains ' + each + ' XP').test(line) && /^done/.test(out.result || ''));
+        };
+        fight1005('no guest walking (the four split it)', [], {}, null, 4);
+        fight1005('Pyro walking (five standing: the four and the king)', ['pyro'], {}, null, 5);
+        fight1005('Pyro and Ingrith walking (six standing)', ['pyro', 'ingrith'], {}, null, 6);
+        fight1005('Ingrith down at the end (a guest not standing is not counted)', ['ingrith'], {}, function (bb) { var gu = bb.heroes.filter(function (u) { return u.guest; })[0]; gu.h.hp = 0; gu.h.ko = true; }, 4);
+        fight1005('a noGuests fight (the guest was never fielded)', ['ingrith'], { noGuests: true }, null, 4);
+        fight1005('a solo fight (one hero\'s, the guest not fielded)', ['pyro'], { solo: 0 }, null, 1, 0);
+        // the landlord fed from the bucket (EV.fedXp): once, a quarter again the otyugh's XP, shared as a fight's is
+        var fed1005 = function (tag, guestIds, mutate, div) {
+          SETUP(5); DS.lastError = null;
+          guestIds.forEach(function (id) { DS.EV.addGuest(id); });
+          if (mutate) mutate(DS.G);
+          DS.G.flags.otyughFed = 1; delete DS.G.flags.otyughFedXp;
+          var four = DS.G.party, guests = DS.G.guests || [], before = four.map(xpOf), gBefore = guests.map(function (x) { return x.h.xp; });
+          var pool = Math.round(1.25 * DS.DATA.monsters.otyugh.xp), each = Math.floor(pool / div);
+          said1005.length = 0;
+          DS.run(function* () { yield* DS.EV.fedXp(); }); T.step(2);
+          for (var s1005 = 0; s1005 < 600; s1005++) {
+            var tp = DS.top();
+            if (tp && tp.kind === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1);
+            if (!DS.scriptActive() && !(DS.top() && DS.top().kind === 'dialog')) break;
+          }
+          var gain = four.map(function (h, i) { return h.xp - before[i]; }), gStill = guests.every(function (x, i) { return x.h.xp === gBefore[i]; });
+          check(tag + ': a pool of ' + pool + ' by ' + div + ' is ' + each + '; the four gained ' + gain.join('/') + ', the guests\' own XP unmoved (' + gStill + '), once (otyughFedXp ' + DS.G.flags.otyughFedXp + '), "' + said1005.join(' | ').slice(0, 90) + '"',
+            gain.every(function (n) { return n === each; }) && gStill && DS.G.flags.otyughFedXp === 1 && !DS.lastError);
+        };
+        fed1005('the landlord fed, no guest walking', [], null, 4);
+        fed1005('the landlord fed, Ingrith walking', ['ingrith'], null, 5);
+        fed1005('the landlord fed, Ingrith down', ['ingrith'], function (gg) { gg.guests[0].h.hp = 0; gg.guests[0].h.ko = true; }, 4);
+      } finally { DS.say = say1005; }
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

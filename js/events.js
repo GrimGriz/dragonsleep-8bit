@@ -886,7 +886,9 @@
     var g = G(); if (!g.flags.otyughFed || g.flags.otyughFedXp) return;
     g.flags.otyughFedXp = 1;
     var m = DS.DATA.monsters.otyugh, pool = Math.round(1.25 * ((m && m.xp) || 0));
-    var living = g.party.filter(function (h) { return !h.ko; }), each = living.length ? Math.floor(pool / living.length) : 0, ups = [];
+    // (a guest walking with them stands in the split and banks nothing, as a fight's does: RULED 10-05, Griz: "count guests as 'standing' for xp.")
+    var guestsUp = (g.guests || []).filter(function (x) { return !x.h.ko && x.h.hp > 0; }).length;
+    var living = g.party.filter(function (h) { return !h.ko; }), each = living.length ? Math.floor(pool / (living.length + guestsUp)) : 0, ups = [];
     living.forEach(function (h) { ups = ups.concat(R.gainXP(h, each)); });
     DS.audio.sfx('levelup');
     yield DS.say(L('w.fedXp', { n: each }));
