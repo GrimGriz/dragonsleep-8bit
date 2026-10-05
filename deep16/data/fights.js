@@ -321,13 +321,13 @@
     { id: 'edifice', story: true, ladder: false, level: 8, map: 'edifice', name: 'The Skylights', sub: 'Fountain Street, under the Edifice', music: 'boss', defend: true, measure: false, guests: ['pyro'],
       intro: 'Word reaches the king on the road: giants on Silverton\'s north road, trolls at their heels, and they have not come for the street. Back up the lamps to Sólskaft, down through the halls to the vault door.',
       from: 'the Edifice handoff (10-04): the defend fight; Griz, 10-05: two stone giants, one of each look, and two trolls', won: 'THE GLASS HOLDS.', lost: 'THE SKYLIGHT GAVE WAY: THE EDIFICE IS BREACHED.',
-      entry: [[29, 13], [30, 11], [31, 12], [28, 12], [27, 13]], // (the four, then Pyro: in front of the vault, facing the road)
-      arrive: { doors: [[29, 10], [30, 10]], road: 'Down the north road they come, two stone giants and two trolls, and along the foot of the Edifice.', open: 'The vault doors swing open. Pyro is first out.', lock: 'The vault doors shut behind them, and the bars drop on the far side.' },
+      entry: [[29, 19], [30, 17], [31, 18], [28, 18], [27, 19]], // (the four, then Pyro: in front of the vault, facing the road) (the roof six rows deeper, 10-05: everything from the front rim on, six rows out)
+      arrive: { doors: [[29, 16], [30, 16]], road: 'Down the north road they come, two stone giants and two trolls, and along the foot of the Edifice.', open: 'The vault doors swing open. Pyro is first out.', lock: 'The vault doors shut behind them, and the bars drop on the far side.' },
       climbLine: { who: 'pyro', line: 'They\'re going for the skylights!' },
       // (in the order they come down the road, each to a square none of the later ones has to pass: the farthest first -- 10-05, the second troll boxed in at the road's mouth. Along
       // the facade: the male at its foot between the first two fountains, the female before the second, a troll each side of them)
-      foes: [{ id: 'troll2', kind: 'troll', from: [5, 0], at: [24, 14], guard: 'giant2' }, { id: 'giant1', kind: 'stonegiant', from: [5, 0], at: [21, 14], guard: 'giant2', rocks: 2 },
-             { id: 'giant2', kind: 'stonegiantm', from: [5, 0], at: [18, 10], only: true, rocks: 2 }, { id: 'troll1', kind: 'troll', from: [5, 0], at: [12, 13], guard: 'giant2' }], wave: null },
+      foes: [{ id: 'troll2', kind: 'troll', from: [5, 0], at: [24, 20], guard: 'giant2' }, { id: 'giant1', kind: 'stonegiant', from: [5, 0], at: [21, 20], guard: 'giant2', rocks: 2 },
+             { id: 'giant2', kind: 'stonegiantm', from: [5, 0], at: [18, 16], only: true, rocks: 2 }, { id: 'troll1', kind: 'troll', from: [5, 0], at: [12, 19], guard: 'giant2' }], wave: null },
     { id: 'gallery', level: 9, map: 'cavern', name: 'The Cocoon Gallery', sub: 'off the road, below Third Lamp',
       intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)',
       looks: { barley: { name: 'Denny', sheet: 'denny_p2' } } } // Denny plays Barley here only (Griz, 09-27)

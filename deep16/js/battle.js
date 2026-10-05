@@ -545,7 +545,7 @@
     // the way from where it stands to a square, eight ways, round the walls (and round the others too, when `solid`): the steps, not the square it starts on
     function route(u, to, solid) {
       var key = function (x, y) { return x + ',' + y; }, prev = {}, q = [[u.x, u.y]], seen = {}; seen[key(u.x, u.y)] = 1;
-      var ok = function (x, y) { return G.canStand(u, x, y, solid ? null : { ghost: true }); };
+      var ok = function (x, y) { return G.canStand(u, x, y, solid ? null : { ghost: true }) && G.gzAt(u, x, y) <= G.map.def.step; }; // (on the ground: a climber's big body may straddle any face, and the walk-in took the trolls over the top of the facade above the first fountain -- 10-05, Griz: "Monsters are walking on top of the wall over the first fountain on entry")
       while (q.length) {
         var c = q.shift(); if (c[0] === to[0] && c[1] === to[1]) break;
         for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {

@@ -1231,15 +1231,21 @@ window.D16.MAPS.edifice = {
   name: 'The Edifice',
   sub: 'Fountain Street under the waterfall facade of Sólskaft, and the roof of glass',
   stone: 'grey', step: 10, noBurrow: true, climb: 6, deepWater: 'D', // (D: the channel off the east end) // (a hand scales 15 ft at most -- the arches' sills; the 45 ft face takes the rope, a grapple from a sill, or a climb speed)
-  ropes: [[11, 9, 11, 10]], // a rope the dwarves left hung from the rim at the west end, 45 ft to the street (the top square, the foot square)
-  ropeBucket: [3, 18], // the bucket of rope and grapples by the first house (battle.js exec 'bucketrope')
+  ropes: [[11, 15, 11, 16]], // a rope the dwarves left hung from the rim at the west end, 45 ft to the street (the top square, the foot square)
+  ropeBucket: [3, 24], // the bucket of rope and grapples by the first house (battle.js exec 'bucketrope')
   shaft: [29.5, 4.8, 2.8], // the Sunshaft's circle on the third floor, seen through the glass, under the falls at the roof's middle (centre, radius in squares; iso.js bake -- Griz, 10-04 night: "move the light circle to where the pool is now ... increase the radius of the light-hole for symmetry")
   falls: [[28, 0], [29, 0], [30, 0], [31, 0]], // the waterfall down the back wall's face, into the water at its foot (iso.js rockCanvas)
-  spouts: [[15, 9, 10], [23, 9, 10], [36, 9, 10], [44, 9, 10]], // the fountains: a hole flush in the facade's face at 10 ft over each pool's middle, the water pouring from it (iso.js bake -- Griz, 10-04 night: "5 foot rims around 15 feet of water for each fountain (try for 4 if we can symmetrical) where the hole the water comes out of is flush at 10 ft high"); the pools 3x3 of water (`~`, waded, difficult) ringed by a one-step rim (`=` at `1`), four of them, symmetric about the vault
+  spouts: [[15, 15, 10], [23, 15, 10], [36, 15, 10], [44, 15, 10]], // the fountains: a hole flush in the facade's face at 10 ft over each pool's middle, the water pouring from it (iso.js bake -- Griz, 10-04 night: "5 foot rims around 15 feet of water for each fountain (try for 4 if we can symmetrical) where the hole the water comes out of is flush at 10 ft high"); the pools 3x3 of water (`~`, waded, difficult) ringed by a one-step rim (`=` at `1`), four of them, symmetric about the vault
   skylight: { at: [29, 5], name: 'the skylight over the Sunshaft', hp: 120, ac: 13, threshold: 8 }, // the monsters' target in a defend fight (&defend, or the fight's `defend: true`): magically harder than glass -- AC 13, 120 HP, a damage threshold of 8, resistance to everything, immune to poison and psychic; broken, the Edifice is breached and the fight lost (battle.js enter, hurt, over -- Griz, 10-04 night: "make the glass above the hole their target with a high damage resist that they'd eventually beat through")
-  passages: [[29, 10, 29, 8, 'the vault door'], [30, 10, 30, 8, 'the vault door']], // (the door squares are `d`: a threshold tile, the doorway painted on the face above it -- iso.js bake) // the vault door on the street and the roof's hatch above it: GO IN / COME OUT for the rest of the move (battle.js Battle.passageAt, exec 'passage' -- Griz, 10-04 night: "Front doors possible?"); the arches are sills, not doors
+  passages: [[29, 16, 29, 14, 'the vault door'], [30, 16, 30, 14, 'the vault door']], // (the door squares are `d`: a threshold tile, the doorway painted on the face above it -- iso.js bake) // the vault door on the street and the roof's hatch above it: GO IN / COME OUT for the rest of the move (battle.js Battle.passageAt, exec 'passage' -- Griz, 10-04 night: "Front doors possible?"); the arches are sills, not doors
   heights: [
     '000000000000000000000000000000000000000000000000000000000000',
+    '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
+    '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
+    '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
+    '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
+    '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
+    '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
     '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
     '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
     '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
@@ -1283,6 +1289,12 @@ window.D16.MAPS.edifice = {
     '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
+    '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
+    '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
+    '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
+    '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
+    '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
+    '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '#####,,,,##=P======P=======P====P=======P======P=###########',
     '###,,,,,,,,===~~~=====~~~====dd====~~~=====~~~===,,,,,,,,,,,',
     '###,,,,,,,,,,=~~~=,,,=~~~=,,,,,,,,=~~~=,,,=~~~=,,~~~~DDDDDDD',
@@ -1308,7 +1320,7 @@ window.D16.MAPS.edifice = {
     '###ggggggggggggggggggggggggg,,,,ggggggggggggTgggggggggggggg#',
     '############################,,,,############################'
   ],
-  entry: [[29, 31], [30, 31], [29, 30], [30, 30], [28, 31]],
+  entry: [[29, 37], [30, 37], [29, 36], [30, 36], [28, 37]],
   foes: [],
   wave: null
 };

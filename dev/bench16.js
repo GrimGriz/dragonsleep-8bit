@@ -1198,35 +1198,35 @@
     function runE(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
     try {
       var def = D.MAPS.edifice, w = def.rows[0].length, h = def.rows.length;
-      okE('the Edifice: ' + w + 'x' + h + ', every row that wide', w === 60 && h === 33 && def.rows.every(function (r) { return r.length === 60; }) && def.heights.every(function (r) { return r.length === 60; }));
+      okE('the Edifice: ' + w + 'x' + h + ', every row that wide', w === 60 && h === 39 && def.rows.every(function (r) { return r.length === 60; }) && def.heights.every(function (r) { return r.length === 60; }));
       var Be = D.npcFight('?npc=ogre&lvl=5&vs=fighter:5,rogue:5&map=edifice', {}); D.battle = Be; Be.enter(); while (!Be.order.length) Be.co.next(); Be.units.forEach(function (u) { if (u.side === 'party') u.guest = false; }); // (the hand's, not guests: the END TURN check below wants the hand's turn)
       var m = D.iso.map, st = def.step, fg = Be.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], rg = Be.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0], og = Be.units.filter(function (u) { return u.side === 'foe'; })[0];
-      okE('the roof at 45 ft (18 steps) at (20,5), glass, walked; the fountains 15 by 10 ft (10-05): the pool at (15,11) water at 0, its rim at (13,11) and (15,12) one step up, dressed, the street at (15,13); the spout in the face above at 10 ft; the street at 0; the channel off the east end deep water, not walked; the north road four wide (5..8)', m.gz(20, 5) === 18 * st && m.at(20, 5).ch === 'G' && m.at(20, 5).walk && m.at(15, 11).ch === '~' && m.gz(15, 11) === 0 && m.at(13, 11).ch === '=' && m.gz(13, 11) === st && m.gz(15, 12) === st && m.at(15, 12).ch === '=' && m.at(15, 13).ch === ',' && m.gz(15, 13) === 0 && m.at(15, 9).spout === 10 && m.gz(20, 12) === 0 && m.at(55, 11).deep && !m.at(55, 11).walk && [4, 5, 6, 7, 8, 9].map(function (x) { return m.at(x, 3).walk ? 1 : 0; }).join('') === '011110');
-      var r0 = Be.ropes[0]; okE('the dwarves\' rope from the rim (11,9) to the street (11,10), 18 steps', Be.ropes.length === 1 && r0.at[0] === 11 && r0.at[1] === 9 && r0.foot[0] === 11 && r0.foot[1] === 10 && (m.gz(11, 9) - m.gz(11, 10)) / st === 18);
-      okE('the bucket at (3,18): a crate, not walked, named ' + m.at(3, 18).stands + ', the battle knows it', !m.at(3, 18).walk && m.at(3, 18).stands === 'the rope bucket' && Be.ropeBucket && Be.ropeBucket[0] === 3 && Be.ropeBucket[1] === 18);
+      okE('the roof at 45 ft (18 steps) at (20,5), glass, walked; the fountains 15 by 10 ft (10-05): the pool at (15,17) water at 0, its rim at (13,17) and (15,18) one step up, dressed, the street at (15,19); the spout in the face above at 10 ft; the street at 0; the channel off the east end deep water, not walked; the north road four wide (5..8)', m.gz(20, 5) === 18 * st && m.at(20, 5).ch === 'G' && m.at(20, 5).walk && m.at(15, 17).ch === '~' && m.gz(15, 17) === 0 && m.at(13, 17).ch === '=' && m.gz(13, 17) === st && m.gz(15, 18) === st && m.at(15, 18).ch === '=' && m.at(15, 19).ch === ',' && m.gz(15, 19) === 0 && m.at(15, 15).spout === 10 && m.gz(20, 18) === 0 && m.at(55, 17).deep && !m.at(55, 17).walk && [4, 5, 6, 7, 8, 9].map(function (x) { return m.at(x, 3).walk ? 1 : 0; }).join('') === '011110');
+      var r0 = Be.ropes[0]; okE('the dwarves\' rope from the rim (11,15) to the street (11,16), 18 steps', Be.ropes.length === 1 && r0.at[0] === 11 && r0.at[1] === 15 && r0.foot[0] === 11 && r0.foot[1] === 16 && (m.gz(11, 15) - m.gz(11, 16)) / st === 18);
+      okE('the bucket at (3,24): a crate, not walked, named ' + m.at(3, 24).stands + ', the battle knows it', !m.at(3, 24).walk && m.at(3, 24).stands === 'the rope bucket' && Be.ropeBucket && Be.ropeBucket[0] === 3 && Be.ropeBucket[1] === 24);
       // the fighter beside the bucket: TAKE A ROPE on the ring's top, free, one a turn
-      fg.x = 4; fg.y = 17; D.rules.startTurn(fg); Be.active = fg; Be.cache = null; Be.tool = 'move';
+      fg.x = 4; fg.y = 23; D.rules.startTurn(fg); Be.active = fg; Be.cache = null; Be.tool = 'move';
       var ring = D.ui.cmds(Be, fg).map(function (c) { return c.id; }), n0 = ((Be.inv || []).filter(function (x) { return x.id === 'rope'; })[0] || {}).n || 0;
       okE('beside the bucket: TAKE A ROPE on the ring: ' + ring.join(','), ring.indexOf('bucketrope') >= 0);
       runE(Be.exec(fg, { do: 'bucketrope' })); var n1 = ((Be.inv || []).filter(function (x) { return x.id === 'rope'; })[0] || {}).n || 0, again = Be.commands(fg).filter(function (c) { return c.id === 'bucketrope'; })[0];
       okE('taken: ropes in the pack ' + n0 + ' -> ' + n1 + ', the action still there ' + fg.turn.action + ', again this turn: ' + (again && again.why), n1 === n0 + 1 && fg.turn.action === 1 && again && !again.ok);
       // standing on the grapple: TAKE THE ROPE on the ring's top; the self-click asks, and the bench's first answer takes it up
-      fg.x = 11; fg.y = 9; D.rules.startTurn(fg); Be.cache = null; var ring2 = D.ui.cmds(Be, fg).map(function (c) { return c.id; });
+      fg.x = 11; fg.y = 15; D.rules.startTurn(fg); Be.cache = null; var ring2 = D.ui.cmds(Be, fg).map(function (c) { return c.id; });
       okE('standing on the grapple: TAKE THE ROPE on the ring\'s top: ' + ring2.join(','), ring2.indexOf('takerope') >= 0 && ring2.indexOf('bucketrope') < 0);
-      var ropes0 = Be.ropes.filter(function (r) { return !r.cut; }).length; runE(Be.exec(fg, { do: 'takerope', x: 11, y: 9, ask: true })); var ropes1 = Be.ropes.filter(function (r) { return !r.cut; }).length;
+      var ropes0 = Be.ropes.filter(function (r) { return !r.cut; }).length; runE(Be.exec(fg, { do: 'takerope', x: 11, y: 15, ask: true })); var ropes1 = Be.ropes.filter(function (r) { return !r.cut; }).length;
       okE('the self-click asked and took it up: ropes ' + ropes0 + ' -> ' + ropes1 + ', the action ' + fg.turn.action, ropes1 === ropes0 - 1 && fg.turn.action === 0);
       // a grapple from the street (45 ft) reaches the rim at DC 16 (10-05, Griz: "go with +2 DC per 5 beyond 30" -- it was 30 ft at most); the DCs by the foot; nothing past the rope's 50
-      rg.x = 18; rg.y = 10; var q2 = D.Battle.ropeSq(Be, rg, 18, 9); rg.x = 13; rg.y = 12; // (the street at (18,10), between the first two fountains, under the rim at (18,9))
+      rg.x = 18; rg.y = 16; var q2 = D.Battle.ropeSq(Be, rg, 18, 15); rg.x = 13; rg.y = 18; // (the street at (18,16), between the first two fountains, under the rim at (18,15))
       var tdcs = [30, 35, 40, 45, 50].map(function (f) { return D.Battle.throwDC(f); }).join(',');
       okE('a grapple from the street, 45 ft: offered ' + !!q2 + ' at ' + (q2 && q2.ft) + ' ft, DC ' + (q2 && q2.dc) + '; the DCs at 30/35/40/45/50 ft ' + tdcs + ', the rope ' + D.Battle.ROPE_FT + ' ft', !!q2 && q2.ft === 45 && q2.dc === 16 && tdcs === '10,12,14,16,18' && D.Battle.ROPE_FT === 50);
       // the costs: a climb speed pays the height (SRD), a hand cannot take the 45 ft face, the arch's sill is 30 ft of movement by hand
       var size0 = og.size, climbs0 = og.climbs; og.size = 1; og.climbs = 40; delete og.hang;
-      var cC = G.stepCost(og, 20, 10, 20, 9); og.climbs = climbs0; var cS = G.stepCost(fg, 15, 13, 15, 12), cF = G.stepCost(fg, 20, 10, 20, 9); og.size = size0;
+      var cC = G.stepCost(og, 20, 16, 20, 15); og.climbs = climbs0; var cS = G.stepCost(fg, 15, 19, 15, 18), cF = G.stepCost(fg, 20, 16, 20, 15); og.size = size0;
       okE('a climber up the 45 ft face: ' + cC + ' ft of movement (the SRD\'s climb: the height); a hand onto a fountain\'s rim: ' + cS + ' (one step, no climb); a hand up the 45 ft face: ' + cF, cC === 45 && cS === 5 && cF === Infinity);
       // the AI's far route takes a step a Dash pays for: a climber at the foot with 40 ft and its action, the party on the roof -- the route reaches the roof
-      og.size = 1; og.climbs = 40; og.x = 20; og.y = 11; D.rules.startTurn(og); fg.x = 20; fg.y = 7; rg.x = 21; rg.y = 7;
+      og.size = 1; og.climbs = 40; og.x = 20; og.y = 17; D.rules.startTurn(og); fg.x = 20; fg.y = 7; rg.x = 21; rg.y = 7;
       var farA = G.reach(og, 600, { noRope: true, maxStep: (og.speed || 30) * 2 }), farB = G.reach(og, 600, { noRope: true, maxStep: og.speed || 30 });
-      okE('the far route reaches the roof for a climber with a Dash ' + !!(farA['20,9'] && farA['20,9'].stand) + ' and without ' + !!(farB['20,9'] && farB['20,9'].stand) + ' (a climber\'s step up a face is never dearer than its turn\'s climb: it clings part way)', !!(farA['20,9'] && farA['20,9'].stand) && !!(farB['20,9'] && farB['20,9'].stand));
+      okE('the far route reaches the roof for a climber with a Dash ' + !!(farA['20,15'] && farA['20,15'].stand) + ' and without ' + !!(farB['20,15'] && farB['20,15'].stand) + ' (a climber\'s step up a face is never dearer than its turn\'s climb: it clings part way)', !!(farA['20,15'] && farA['20,15'].stand) && !!(farB['20,15'] && farB['20,15'].stand));
       og.size = size0; og.climbs = climbs0;
       // the baking frame: a Battle on this floor pushed with a screen enters a frame later, saying so; the bench's own fights (bench: true) never wait
       var cv = document.createElement('canvas'); cv.width = 480; cv.height = 270; var ctx0 = D.ctx; D.ctx = cv.getContext('2d');
@@ -1235,43 +1235,43 @@
       // round three (10-04 night): the falls down the back wall into water at its foot, the pool gone to glass, the light circle at the middle; the vault door a passage to the roof's hatch
       okE('the falls: the back wall at (29,0) carries them ' + !!m.at(29, 0).falls + ', water at its foot (29,1) ' + (m.at(29, 1).ch === '~') + ' on the roof ' + (m.gz(29, 1) === 18 * st) + ', glass where the pool was (29,4) ' + (m.at(29, 4).ch === 'G') + ', no deep water on the roof ' + !m.sq.some(function (q) { return q.deep && q.gz > 0; }) + ', the circle at ' + def.shaft.join(','),
         !!m.at(29, 0).falls && m.at(29, 1).ch === '~' && m.gz(29, 1) === 18 * st && m.at(29, 4).ch === 'G' && !m.sq.some(function (q) { return q.deep && q.gz > 0; }) && def.shaft[0] === 29.5);
-      okE('the doors are no longer ways out: exits ' + Be.exits.length + ', none at (29,10) ' + !Be.exits.some(function (e) { return e[0] === 29 && e[1] === 10; }) + '; the passages ' + Be.passages.length + ', shut by default ' + !Be.passagesOpen + ' (nothing at the vault: ' + (D.Battle.passageAt(Be, 29, 10) === null) + ')', !Be.exits.some(function (e) { return e[0] === 29 && e[1] === 10; }) && Be.passages.length === 2 && !Be.passagesOpen && D.Battle.passageAt(Be, 29, 10) === null);
+      okE('the doors are no longer ways out: exits ' + Be.exits.length + ', none at (29,16) ' + !Be.exits.some(function (e) { return e[0] === 29 && e[1] === 16; }) + '; the passages ' + Be.passages.length + ', shut by default ' + !Be.passagesOpen + ' (nothing at the vault: ' + (D.Battle.passageAt(Be, 29, 16) === null) + ')', !Be.exits.some(function (e) { return e[0] === 29 && e[1] === 16; }) && Be.passages.length === 2 && !Be.passagesOpen && D.Battle.passageAt(Be, 29, 16) === null);
       Be.passagesOpen = true; // (the fight opens them: `passages: true` on the fight, or &doors)
-      fg.x = 29; fg.y = 10; delete fg.hang; D.rules.startTurn(fg); Be.active = fg; Be.cache = null; rg.x = 13; rg.y = 12;
+      fg.x = 29; fg.y = 16; delete fg.hang; D.rules.startTurn(fg); Be.active = fg; Be.cache = null; rg.x = 13; rg.y = 18;
       var ring3 = D.ui.cmds(Be, fg), goIn = ring3.filter(function (c) { return c.id === 'passage'; })[0];
       okE('on the vault door: ' + (goIn && goIn.label) + ' on the ring\'s top, ok ' + (goIn && goIn.ok), !!goIn && goIn.label === 'GO IN' && goIn.ok === true);
       runE(Be.exec(fg, { do: 'passage' }));
-      okE('gone in: the fighter at (' + fg.x + ',' + fg.y + ') on the roof, move left ' + fg.turn.move, fg.x === 29 && fg.y === 8 && fg.turn.move === 0 && G.gzAt(fg, fg.x, fg.y) === 18 * st);
+      okE('gone in: the fighter at (' + fg.x + ',' + fg.y + ') on the roof, move left ' + fg.turn.move, fg.x === 29 && fg.y === 14 && fg.turn.move === 0 && G.gzAt(fg, fg.x, fg.y) === 18 * st);
       D.rules.startTurn(fg); Be.cache = null; var out3 = D.ui.cmds(Be, fg).filter(function (c) { return c.id === 'passage'; })[0];
-      fg.turn.move = 10; var out3b = Be.commands(fg).filter(function (c) { return c.id === 'passage'; })[0]; runE(Be.exec(fg, { do: 'passage' })); var stayed = fg.x === 29 && fg.y === 8;
+      fg.turn.move = 10; var out3b = Be.commands(fg).filter(function (c) { return c.id === 'passage'; })[0]; runE(Be.exec(fg, { do: 'passage' })); var stayed = fg.x === 29 && fg.y === 14;
       fg.turn.move = 30; runE(Be.exec(fg, { do: 'passage' }));
-      okE('from the hatch: ' + (out3 && out3.label) + '; with 10 ft refused (' + (out3b && out3b.why) + ') and stayed ' + stayed + '; with 30 ft out onto the street at (' + fg.x + ',' + fg.y + ')', !!out3 && out3.label === 'COME OUT' && out3b && !out3b.ok && stayed && fg.x === 29 && fg.y === 10);
-      // the cursor keeps its level (iso.pick with prefZ): a point under both the roof's rim square (11,9) at 18 steps and the road square (6,4) at 0, behind and below it
-      var cR = D.iso.center(11, 9, 18 * st), cL = D.iso.center(6, 4, 0), pR = D.iso.toScreen(cR.x, cR.y), pL = D.iso.toScreen(cL.x, cL.y), midY = Math.round((pR.y + 8 + pL.y - 8) / 2);
+      okE('from the hatch: ' + (out3 && out3.label) + '; with 10 ft refused (' + (out3b && out3b.why) + ') and stayed ' + stayed + '; with 30 ft out onto the street at (' + fg.x + ',' + fg.y + ')', !!out3 && out3.label === 'COME OUT' && out3b && !out3b.ok && stayed && fg.x === 29 && fg.y === 16);
+      // the cursor keeps its level (iso.pick with prefZ): a point under both the roof's rim square (11,15) at 18 steps and the road square (6,10) at 0, behind and below it
+      var cR = D.iso.center(11, 15, 18 * st), cL = D.iso.center(6, 10, 0), pR = D.iso.toScreen(cR.x, cR.y), pL = D.iso.toScreen(cL.x, cL.y), midY = Math.round((pR.y + 8 + pL.y - 8) / 2);
       var pkHi = D.iso.pick(pR.x, midY, 18 * st), pkLo = D.iso.pick(pR.x, midY, 0), pkNone = D.iso.pick(pR.x, midY);
       okE('the pick under the rim and the road behind it: from the roof ' + (pkHi && pkHi.x + ',' + pkHi.y) + ', from the ground ' + (pkLo && pkLo.x + ',' + pkLo.y) + ', from nowhere ' + (pkNone && pkNone.x + ',' + pkNone.y) + ' (the front-most)',
-        !!pkHi && pkHi.x === 11 && pkHi.y === 9 && !!pkLo && pkLo.x === 6 && pkLo.y === 4 && !!pkNone && pkNone.x === 11 && pkNone.y === 9);
+        !!pkHi && pkHi.x === 11 && pkHi.y === 15 && !!pkLo && pkLo.x === 6 && pkLo.y === 10 && !!pkNone && pkNone.x === 11 && pkNone.y === 15);
       // prone at END TURN with the half to stand: the hand's turn ended by the bench's END -- it stands first
-      fg.x = 20; fg.y = 13; fg.hp = fg.maxhp; og.x = 6; og.y = 0; og.hp = og.maxhp; // (knocked flat during its own turn, below: the start of a turn stands a prone one already, rules.js startTurn)
+      fg.x = 20; fg.y = 19; fg.hp = fg.maxhp; og.x = 6; og.y = 0; og.hp = og.maxhp; // (knocked flat during its own turn, below: the start of a turn stands a prone one already, rules.js startTurn)
       var guardE = 0, stE, vE, sawTurn = false;
       while (guardE++ < 3000) { stE = Be.co.next(vE); vE = undefined; if (stE.done) break; var yE = stE.value; if (!yE || typeof yE === 'number') continue; if (yE.prompt) { vE = yE.prompt.opts[0].value; continue; } if (yE.turn) { vE = { do: 'end' }; if (yE.turn === fg) { fg.conds.prone = true; fg.turn.move = fg.speed; sawTurn = true; stE = Be.co.next(vE); vE = undefined; break; } } }
       okE('knocked flat mid-turn, END TURN with ' + fg.speed + ' ft: stood ' + !fg.conds.prone + ' (the turn seen ' + sawTurn + '), move left ' + fg.turn.move + ' (half spent)', sawTurn && !fg.conds.prone && fg.turn.move === fg.speed - Math.floor(fg.speed / 2));
       // varied footholds, the big body's pull-up, the slow climb's cling (10-04 night)
       var med = { size: 1 }, lg = { size: 2 }, hg = { size: 3 };
-      G.map.def.faces = [[13, 10, 2, 1, 'rough']]; var fk1 = G.faceKind(13, 10), fk2 = G.faceKind(20, 9); delete G.map.def.faces;
-      okE('the DCs: sheer 6 steps ' + G.climbDC(6, med) + ', rough ' + G.climbDC(6, med, 'rough') + ', slick ' + G.climbDC(6, med, 'slick') + ', rough 3 steps ' + G.climbDC(3, med, 'rough') + '; a Large body 6 steps ' + G.climbDC(6, lg) + ', 8 steps ' + G.climbDC(8, lg) + '; a Huge 10 steps ' + G.climbDC(10, hg) + '; a faces list names (13,10) ' + fk1 + ' and (20,9) ' + fk2,
+      G.map.def.faces = [[13, 16, 2, 1, 'rough']]; var fk1 = G.faceKind(13, 16), fk2 = G.faceKind(20, 15); delete G.map.def.faces;
+      okE('the DCs: sheer 6 steps ' + G.climbDC(6, med) + ', rough ' + G.climbDC(6, med, 'rough') + ', slick ' + G.climbDC(6, med, 'slick') + ', rough 3 steps ' + G.climbDC(3, med, 'rough') + '; a Large body 6 steps ' + G.climbDC(6, lg) + ', 8 steps ' + G.climbDC(8, lg) + '; a Huge 10 steps ' + G.climbDC(10, hg) + '; a faces list names (13,16) ' + fk1 + ' and (20,15) ' + fk2,
         G.climbDC(6, med) === 18 && G.climbDC(6, med, 'rough') === 14 && G.climbDC(6, med, 'slick') === 23 && G.climbDC(3, med, 'rough') === 0 && G.climbDC(6, lg) === 0 && G.climbDC(8, lg) === 14 && G.climbDC(10, hg) === 0 && fk1 === 'rough' && fk2 === null);
-      var og2 = { size: 2, speed: 40, conds: {}, side: 'foe', id: 'og2', x: 20, y: 10, hp: 10, turn: { move: 40 } }; og2.turn.climbLeft = 0;
-      var cL18 = G.stepCost(og2, 20, 10, 20, 9), bl2 = G.bigLimit(og2); og2.size = 3; var bl3 = G.bigLimit(og2);
+      var og2 = { size: 2, speed: 40, conds: {}, side: 'foe', id: 'og2', x: 20, y: 16, hp: 10, turn: { move: 40 } }; og2.turn.climbLeft = 0;
+      var cL18 = G.stepCost(og2, 20, 16, 20, 15), bl2 = G.bigLimit(og2); og2.size = 3; var bl3 = G.bigLimit(og2);
       okE('a big body\'s hand climb: a Large ' + bl2 + ' steps (15 ft), a Huge ' + bl3 + ' (25 ft); a Large body up the 45 ft face by hand: ' + cL18, bl2 === 6 && bl3 === 10 && cL18 === Infinity);
-      // the troll's slow climb: a stand-in with climbs 10 at the foot of the 45 ft face at (28,10), five turns up it, clinging between
-      var trl = og; trl.size = 2; trl.climbs = 10; delete trl.hang; trl.x = 28; trl.y = 10; trl.conds = {}; var zs = [], ys = [];
-      for (var tt = 0; tt < 6 && !(trl.y === 9 && !trl.hang); tt++) { D.rules.startTurn(trl); runE(Be.moveAlong(trl, [[28, 9]], { spend: true })); zs.push(trl.hang ? trl.hang.z / st : 'up'); ys.push(trl.y + ':' + trl.turn.move + ':' + trl.turn.climbLeft); }
-      okE('a climb speed of 10 up the 45 ft face: the heights clung to by turn ' + zs.join(',') + ' (y:move:climbLeft ' + ys.join(' ') + ')', zs.length === 5 && zs[0] === 4 && zs[1] === 8 && zs[2] === 12 && zs[3] === 16 && zs[4] === 'up' && trl.y === 9 && !trl.hang && G.gzAt(trl, trl.x, trl.y) === 18 * st && trl.turn.move === 35);
+      // the troll's slow climb: a stand-in with climbs 10 at the foot of the 45 ft face at (28,16), five turns up it, clinging between
+      var trl = og; trl.size = 2; trl.climbs = 10; delete trl.hang; trl.x = 28; trl.y = 16; trl.conds = {}; var zs = [], ys = [];
+      for (var tt = 0; tt < 6 && !(trl.y === 15 && !trl.hang); tt++) { D.rules.startTurn(trl); runE(Be.moveAlong(trl, [[28, 15]], { spend: true })); zs.push(trl.hang ? trl.hang.z / st : 'up'); ys.push(trl.y + ':' + trl.turn.move + ':' + trl.turn.climbLeft); }
+      okE('a climb speed of 10 up the 45 ft face: the heights clung to by turn ' + zs.join(',') + ' (y:move:climbLeft ' + ys.join(' ') + ')', zs.length === 5 && zs[0] === 4 && zs[1] === 8 && zs[2] === 12 && zs[3] === 16 && zs[4] === 'up' && trl.y === 15 && !trl.hang && G.gzAt(trl, trl.x, trl.y) === 18 * st && trl.turn.move === 35);
       trl.size = size0; trl.climbs = climbs0; delete trl.hang; trl.x = 6; trl.y = 0;
       okE('the troll and the stone giant carry a climb speed of 10 (ours): ' + D.FOES.troll.climbs + ', ' + D.FOES.stonegiant.climbs, D.FOES.troll.climbs === 10 && D.FOES.stonegiant.climbs === 10);
       // the stealth line (RULED 10-04 night, Griz: "one line, but lose stealth on successful hit"): the ogre beside the hidden rogue swings at disadvantage; a hit finds her
-      og.x = 20; og.y = 12; og.size = size0; og.hp = og.maxhp; rg.x = 21; rg.y = 12; rg.hp = rg.maxhp; rg.conds = { hidden: true }; rg.hidTotal = 30; D.rules.startTurn(og);
+      og.x = 20; og.y = 18; og.size = size0; og.hp = og.maxhp; rg.x = 21; rg.y = 18; rg.hp = rg.maxhp; rg.conds = { hidden: true }; rg.hidTotal = 30; D.rules.startTurn(og);
       var edg = D.rules.edges(og, rg, og.attacks.greatclub || og.attacks[Object.keys(og.attacks)[0]]);
       D.d = function (n) { return n === 20 ? 20 : d0E(n); }; runE(Be.attack(og, rg, og.attacks.greatclub || og.attacks[Object.keys(og.attacks)[0]], {})); D.d = d0E;
       var found = !rg.conds.hidden, lastE = (Be.log || []).slice(-6).join(' | ');
@@ -1279,18 +1279,18 @@
       rg.conds = { hidden: true }; rg.hidTotal = 30; D.d = function (n) { return n === 20 ? 1 : d0E(n); }; runE(Be.attack(og, rg, og.attacks.greatclub || og.attacks[Object.keys(og.attacks)[0]], {})); D.d = d0E;
       okE('a miss (a 1) leaves her hidden: ' + !!rg.conds.hidden, !!rg.conds.hidden); rg.conds = {};
       // the doors, no moat, the fountains' falls (10-04 night)
-      okE('the vault door squares are thresholds (d), walked: ' + m.at(29, 10).ch + m.at(30, 10).ch + ' ' + m.at(29, 10).walk + '; no moat before the vault: ' + m.at(29, 11).ch + '; the four fountains\' spouts at 10 ft: ' + [15, 23, 36, 44].map(function (c) { return m.at(c, 9).spout; }).join(',') + ', their pools water: ' + [15, 23, 36, 44].map(function (c) { return m.at(c, 11).ch; }).join(''), m.at(29, 10).ch === 'd' && m.at(30, 10).ch === 'd' && m.at(29, 10).walk && m.at(29, 11).ch === ',' && [15, 23, 36, 44].every(function (c) { return m.at(c, 9).spout === 10 && m.at(c, 11).ch === '~'; }));
+      okE('the vault door squares are thresholds (d), walked: ' + m.at(29, 16).ch + m.at(30, 16).ch + ' ' + m.at(29, 16).walk + '; no moat before the vault: ' + m.at(29, 17).ch + '; the four fountains\' spouts at 10 ft: ' + [15, 23, 36, 44].map(function (c) { return m.at(c, 15).spout; }).join(',') + ', their pools water: ' + [15, 23, 36, 44].map(function (c) { return m.at(c, 17).ch; }).join(''), m.at(29, 16).ch === 'd' && m.at(30, 16).ch === 'd' && m.at(29, 16).walk && m.at(29, 17).ch === ',' && [15, 23, 36, 44].every(function (c) { return m.at(c, 15).spout === 10 && m.at(c, 17).ch === '~'; }));
       // the defend fight: the skylight on the field, the troll's mission, the threshold and the resistance, the breach
       var Bd = D.npcFight('?npc=troll&lvl=5&vs=fighter:5&map=edifice&defend', {}); D.battle = Bd; Bd.enter(); while (!Bd.order.length) Bd.co.next();
       var sky = Bd.skylight, trD = Bd.units.filter(function (u) { return u.side === 'foe'; })[0], fgD = Bd.units.filter(function (u) { return u.side === 'party'; })[0];
       okE('the skylight stands at (' + (sky && sky.x) + ',' + (sky && sky.y) + ') with ' + (sky && sky.hp) + ' HP, AC ' + (sky && D.rules.ac(sky)) + ', out of the order ' + (Bd.order.indexOf(sky) < 0) + '; the troll\'s mission ' + trD.mission, !!sky && sky.x === 29 && sky.y === 5 && sky.hp === 120 && D.rules.ac(sky) === 13 && Bd.order.indexOf(sky) < 0 && trD.mission === 'skylight');
       var hp0 = sky.hp; Bd.hurt(sky, 7, 'slashing'); var hp1 = sky.hp; Bd.hurt(sky, 20, 'bludgeoning'); var hp2 = sky.hp; Bd.hurt(sky, 30, 'poison'); var hp3 = sky.hp;
       okE('a 7-point blow glances off (' + hp0 + ' -> ' + hp1 + '); a 20-point blow does 10 (-> ' + hp2 + '); poison nothing (-> ' + hp3 + ')', hp1 === hp0 && hp2 === hp0 - 10 && hp3 === hp2);
-      var inRange = Bd.units.filter(function (u) { return u.side === 'party' && !u.object; }).length; fgD.x = 20; fgD.y = 14; trD.x = 28; trD.y = 7; delete trD.hang;
+      var inRange = Bd.units.filter(function (u) { return u.side === 'party' && !u.object; }).length; fgD.x = 20; fgD.y = 20; trD.x = 28; trD.y = 7; delete trD.hang;
       okE('the fight is not over with the glass whole and the party up: ' + Bd.over(), Bd.over() === null);
       Bd.hurt(sky, 400, 'bludgeoning'); okE('the glass broken: ' + sky.hp + ' HP, dead ' + !!sky.dead + ', the fight ' + Bd.over() + ', the fight\'s word: ' + Bd.fight.lost, sky.hp === 0 && !!sky.dead && Bd.over() === 'lost' && /BREACHED/.test(Bd.fight.lost));
       // the clinging climber's save: the troll clinging 20 ft up, hit for 12 -- a 1 falls (prone, hurt), a 20 holds
-      D.battle = Be; trl = og; trl.size = 2; trl.climbs = 10; trl.x = 28; trl.y = 10; trl.hp = trl.maxhp = 80; trl.conds = {}; trl.hang = { face: [28, 9], foot: [28, 10], z: 8 * st };
+      D.battle = Be; trl = og; trl.size = 2; trl.climbs = 10; trl.x = 28; trl.y = 16; trl.hp = trl.maxhp = 80; trl.conds = {}; trl.hang = { face: [28, 15], foot: [28, 16], z: 8 * st };
       D.d = function (n) { return n === 20 ? 20 : d0E(n); }; Be.hurt(trl, 12, 'piercing'); D.d = d0E; var held = !!(trl.hang && G.hanging(trl)) && trl.hp === 68;
       D.d = function (n) { return n === 20 ? 1 : d0E(n); }; Be.hurt(trl, 12, 'piercing'); D.d = d0E;
       okE('clinging 20 ft up, hit for 12: a 20 holds ' + held + '; a 1 falls: off the face ' + !trl.hang + ', prone ' + !!trl.conds.prone + ', HP ' + trl.hp + ' (68 less the fall\'s d6s less 12)', held && !trl.hang && !!trl.conds.prone && trl.hp < 56 && trl.hp >= 56 - 12);
@@ -1303,15 +1303,15 @@
       okE('a bench fight on it never waits to bake: ' + !Bs.bakes(), !Bs.bakes());
       // AUTO END and a hanger (10-05, Griz: "have viv move and end up on a rope with her bonus action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash
       // movement"): the rogue climbs the dwarves' rope to a rung with all her move, her action spent, then the Cunning Action's Dash -- 30 ft to climb on with, and the turn is not spent
-      D.battle = Be; Be.ropes.forEach(function (r) { r.cut = false; }); if (!Be.ropes.some(function (r) { return r.at[0] === 11 && r.at[1] === 9 && !r.cut; })) Be.ropes.push({ at: [11, 9], foot: [11, 10], hp: 2, fixed: true });
-      rg.x = 11; rg.y = 10; delete rg.hang; rg.conds = {}; rg.hp = rg.maxhp; D.rules.startTurn(rg); Be.active = rg; Be.cache = null; rg.turn.move = 30;
-      runE(Be.exec(rg, { do: 'ropeclimb', x: 11, y: 9, z: 6 * st })); var hungV = !!(rg.hang && G.hanging(rg)), mvV = rg.turn.move; rg.turn.action = 0;
-      var thV = D.Battle.ropeSq(Be, rg, 13, 9), thD = G.dist(rg, { x: 13, y: 9, size: 1 }), thL = G.losPoint(rg.x, rg.y, 13, 9), thS = D.Battle.ropeSq(Be, { x: 13, y: 10, size: 1, id: 'probe' }, 13, 9); // (his other question: a grapple thrown from the hang to the rim two along, 30 ft up -- and from the fountain's rim under it, 40 ft)
-      okE('a grapple from that hang to the rim at (13,9): ' + thD + ' ft (the old sight from the rope\'s foot: ' + thL + '), offered ' + !!thV + ' at DC ' + (thV && thV.dc) + '; from the fountain\'s rim under it (13,10), ' + (thS && thS.ft) + ' ft, at DC ' + (thS && thS.dc) + ' -- 10-05, Griz: "2 yes" (the sight from the thrower\'s own height; the lip of a face you stand under seen); "+2 DC per 5 beyond 30"', !!thV && thV.dc === 10 && !!thS && thS.ft === 40 && thS.dc === 14);
+      D.battle = Be; Be.ropes.forEach(function (r) { r.cut = false; }); if (!Be.ropes.some(function (r) { return r.at[0] === 11 && r.at[1] === 15 && !r.cut; })) Be.ropes.push({ at: [11, 15], foot: [11, 16], hp: 2, fixed: true });
+      rg.x = 11; rg.y = 16; delete rg.hang; rg.conds = {}; rg.hp = rg.maxhp; D.rules.startTurn(rg); Be.active = rg; Be.cache = null; rg.turn.move = 30;
+      runE(Be.exec(rg, { do: 'ropeclimb', x: 11, y: 15, z: 6 * st })); var hungV = !!(rg.hang && G.hanging(rg)), mvV = rg.turn.move; rg.turn.action = 0;
+      var thV = D.Battle.ropeSq(Be, rg, 13, 15), thD = G.dist(rg, { x: 13, y: 15, size: 1 }), thL = G.losPoint(rg.x, rg.y, 13, 15), thS = D.Battle.ropeSq(Be, { x: 13, y: 16, size: 1, id: 'probe' }, 13, 15); // (his other question: a grapple thrown from the hang to the rim two along, 30 ft up -- and from the fountain's rim under it, 40 ft)
+      okE('a grapple from that hang to the rim at (13,15): ' + thD + ' ft (the old sight from the rope\'s foot: ' + thL + '), offered ' + !!thV + ' at DC ' + (thV && thV.dc) + '; from the fountain\'s rim under it (13,16), ' + (thS && thS.ft) + ' ft, at DC ' + (thS && thS.dc) + ' -- 10-05, Griz: "2 yes" (the sight from the thrower\'s own height; the lip of a face you stand under seen); "+2 DC per 5 beyond 30"', !!thV && thV.dc === 10 && !!thS && thS.ft === 40 && thS.dc === 14);
       runE(Be.exec(rg, { do: 'cdash' })); Be.cache = null; var spV = D.ui.spent(Be, rg), mvV2 = rg.turn.move;
       rg.turn.move = 0; Be.cache = null; var spV0 = D.ui.spent(Be, rg);
       okE('the rogue up the rope to 15 ft with her move: hanging ' + hungV + ', move left ' + mvV + '; the action spent and the bonus Dash taken: move ' + mvV2 + ', the turn spent ' + spV + ' (a rung is a step); with no move at all, spent ' + spV0, hungV && mvV === 0 && mvV2 === 30 && spV === false && spV0 === true);
-      delete rg.hang; rg.x = 13; rg.y = 12;
+      delete rg.hang; rg.x = 13; rg.y = 18;
       // the Skylights (10-05, Griz: "Have pyro come out followed by the party then the doors lock behind them. Have the monsters come from the north road, the team pop out and then
       // initiative"; "is it freezing with the second troll still trying to walk?"): off the field at the entry card; the foes down the road to their squares, Pyro out first and the
       // four after him, the doors open while they come and shut after, in a bounded number of beats; Pyro's line the first time one is up the face, and only once
@@ -1321,7 +1321,7 @@
       var footK = FK.foes.map(function (f) { var u = Bk.units.filter(function (w) { return w.id === f.id; })[0]; return u && u.x === f.at[0] && u.y === f.at[1]; }), seatK = Bk.units.filter(function (u) { return u.side === 'party' && !u.object; }).map(function (u, i) { return u.x + ',' + u.y; });
       okE('the Skylights: at the entry card the field holds ' + onField0 + ' (' + arr0 + ' to come); after the walk-in (' + beatsK + ' beats) the foes on their squares ' + footK.join(',') + ', the first out ' + firstK + ', the doors stood open ' + openK + ' and are shut ' + !Bk.map.doorsOpen + ', ours at ' + seatK.join(' ') + ', the skylight on the field ' + !!Bk.skylight,
         onField0 === 0 && arr0 === 9 && beatsK < 400 && footK.every(Boolean) && firstK === 'pyro' && openK && !Bk.map.doorsOpen && seatK.length === 5 && !!Bk.skylight);
-      var trK = Bk.units.filter(function (u) { return u.kind === 'troll'; })[0], n0K = (Bk.log || []).length; trK.x = 20; trK.y = 10; trK.hang = { face: [20, 9], foot: [20, 10], z: 4 * st };
+      var trK = Bk.units.filter(function (u) { return u.kind === 'troll'; })[0], n0K = (Bk.log || []).length; trK.x = 20; trK.y = 16; trK.hang = { face: [20, 15], foot: [20, 16], z: 4 * st };
       runE(Bk.climbSay()); var saidK = (Bk.log || []).slice(n0K).join(' | '); runE(Bk.climbSay()); var againK = (Bk.log || []).length - n0K;
       okE('a troll clinging 10 ft up the face: ' + saidK + ' (said once: ' + (againK === 1) + ')', /Pyro.*They're going for the skylights!/.test(saidK) && Bk.climbSaid && againK === 1);
       delete trK.hang;
@@ -1329,18 +1329,18 @@
       // max"): Barley beside the male -- he swings at no one and goes up the face; a troll 20 ft off goes for Barley, not the glass; the male on the roof out of reach throws his two
       // rocks at the glass and no third
       var byK = function (id) { return Bk.units.filter(function (u) { return u.id === id; })[0]; }, maleK = byK('giant2'), tr1K = byK('troll1'), barK = byK('barley');
-      trK.x = 24; trK.y = 14; barK.x = 17; barK.y = 13; barK.hp = barK.maxhp; barK.conds = {}; maleK.x = 18; maleK.y = 10; delete maleK.hang; maleK.hp = maleK.maxhp;
+      trK.x = 24; trK.y = 20; barK.x = 17; barK.y = 19; barK.hp = barK.maxhp; barK.conds = {}; maleK.x = 18; maleK.y = 16; delete maleK.hang; maleK.hp = maleK.maxhp;
       var n2K = (Bk.log || []).length; runE(D.ai.turn(Bk, maleK)); var mLogK = (Bk.log || []).slice(n2K).join(' | ');
       okE('the male giant with Barley beside him: struck at no one ' + !/Giant > /.test(mLogK) + ', on the face ' + !!(maleK.hang && maleK.hang.face) + ' -- ' + mLogK.slice(0, 160), !/Giant > /.test(mLogK) && !!(maleK.hang && maleK.hang.face) && maleK.missionOnly && maleK.rocks === 2);
       var n3K = (Bk.log || []).length; runE(D.ai.turn(Bk, tr1K)); var tLogK = (Bk.log || []).slice(n3K).join(' | ');
       okE('a troll 20 ft from Barley, Barley 5 ft from the male: it goes for Barley ' + /Troll > Barley/.test(tLogK) + ', not up the face ' + !(tr1K.hang && tr1K.hang.face) + ' -- ' + tLogK.slice(0, 120), /Troll > Barley/.test(tLogK) && !(tr1K.hang && tr1K.hang.face) && tr1K.guard === 'giant2');
-      // at the window (the glass 5 ft off), no move: Barley on the glass beside nothing -- the clubs at the glass; Barley on the front edge (30,9) -- a rock, the STR save failed, over
-      // the edge to the street (31,10), prone; again; then no rock left -- the clubs at the glass
+      // at the window (the glass 5 ft off), no move: Barley on the glass beside nothing -- the clubs at the glass; Barley on the front edge (30,15) -- a rock, the STR save failed, over
+      // the edge to the street (31,16), prone; again; then no rock left -- the clubs at the glass
       delete maleK.hang; maleK.x = 26; maleK.y = 4; var rockK = [], skyK = Bk.skylight, str0K = barK.saves.str, d0K = D.d; barK.saves.str = -20; D.d = function (n) { return n === 20 ? 19 : d0K(n); };
-      [[24, 4], [30, 9], [30, 9], [30, 9]].forEach(function (p) {
+      [[24, 4], [30, 15], [30, 15], [30, 15]].forEach(function (p) {
         barK.x = p[0]; barK.y = p[1]; barK.conds = {}; delete barK.hang; barK.hp = barK.maxhp; D.rules.startTurn(maleK); maleK.turn.move = 0;
         var n4K = (Bk.log || []).length, sk0 = skyK.hp; runE(D.ai.brute(Bk, maleK)); var lg = (Bk.log || []).slice(n4K).join(' ');
-        rockK.push(/Giant > Barley\s+Rock/.test(lg) ? (barK.x === 31 && barK.y === 10 && barK.conds.prone && barK.hp < barK.maxhp ? 'off' : 'rock?') : skyK.hp < sk0 || /Giant > the skylight/.test(lg) ? 'glass' : '-');
+        rockK.push(/Giant > Barley\s+Rock/.test(lg) ? (barK.x === 31 && barK.y === 16 && barK.conds.prone && barK.hp < barK.maxhp ? 'off' : 'rock?') : skyK.hp < sk0 || /Giant > the skylight/.test(lg) ? 'glass' : '-');
       });
       D.d = d0K; barK.saves.str = str0K; barK.conds = {};
       okE('the male at the window: Barley on the glass, then on the edge three times: ' + rockK.join(',') + ', rocks left ' + maleK.rocks, rockK.join(',') === 'glass,off,off,glass' && maleK.rocks === 0);
@@ -2913,7 +2913,7 @@
     try {
       var fid = get('fight', '');
       // plus=troll,troll: more of the bestiary in a fight, at the spots its map keeps for them (the Skylights, 10-05, Griz: "Just from CR, what's two more trolls?") -- walked in last, guarding as the fight's own guards do
-      var PLUS = { edifice: [[26, 16], [9, 13]] }, plusK = get('plus', '') ? get('plus', '').split(',') : [], fdef = null;
+      var PLUS = { edifice: [[26, 22], [9, 19]] }, plusK = get('plus', '') ? get('plus', '').split(',') : [], fdef = null;
       if (fid && plusK.length) { var F0 = D.fight(fid), gd = (F0.foes.filter(function (f) { return f.guard; })[0] || {}).guard; fdef = Object.assign({}, F0, { foes: F0.foes.concat(plusK.map(function (k, ip) { var sp = (PLUS[fid] || [])[ip] || F0.foes[0].at; return { id: 'plus' + ip, kind: k, from: F0.foes[0].from, at: sp, guard: gd }; })) }); }
       B = fid ? new D.Battle({ ladder: true, fight: fid, fightDef: fdef || undefined, bench: true, npc: vs ? { party: vs.split(','), foes: [] } : null, torch: get('torch', '') || undefined, torchKind: get('torchKind', '') || undefined, level: +get('flvl', 0) || undefined, measure: get('measure', '') === '' ? undefined : get('measure', '') === '1' }) /* (torch=<unit id> torchKind=lantern: a light in a hand -- the roost's hooded lantern, 10-02) (flvl=7: the fight's four at another level; measure=0|1: Pyro held or at full -- the Skylights, 10-05) */ : new D.Battle({ npc: { foes: foes, party: vs ? vs.split(',') : null }, bench: true, fightDef: D.classFight(L) });
       D.battle = B; B.enter();
