@@ -733,7 +733,9 @@
     if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or from below within the rope\'s 50 ft and in sight.{/}'], 140); }
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}Help: a foe beside you, or a friend beside you asleep or held fast.{/}'], 120); }
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
-    if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w }); return B.card(['{o}Not a target for that.{/}'], 120); }
+    if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w }); // (the refusal says why when it is the reach: his play of 10-05, the flask at a troll 45 ft below the roof read as "oil flask at 0 hp trolls")
+      var itR = window.DS.DATA.items[B.itemId], whyR = itR && itR.use.effect === 'damage' && w && G.hostile(u, w) ? (G.dist(u, w) > 20 ? 'the flask goes 20 ft, and ' + D.Battle.nm(w) + ' is ' + G.dist(u, w) + ' ft off (the height counts)' : !G.los(u, w).clear ? 'no line to ' + D.Battle.nm(w) : '') : '';
+      return B.card(['{o}Not a target for that' + (whyR ? ': ' + whyR : '') + '.{/}'], whyR ? 200 : 120); }
     if (tool === 'torch') { if (v === 'ok') return UI.command(B, u, { do: 'throwtorch', x: x, y: y }); return B.card(['{o}Throw it to a square within 20 ft you can see.{/}'], 120); }
     if (tool === 'spell') {
       var S = B.spell, g = S.g, M = D.magic, cast = function (t) { UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: t }); };

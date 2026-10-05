@@ -306,6 +306,7 @@
       hidden0: !!f.hidden,
       from0: f.from ? f.from.slice() : null, // (walks in from there to `at` before the first round: a fight's `arrive` -- the Edifice's foes down the north road, Battle.arrive, 10-05)
       then0: f.then ? f.then.slice() : null, // (a second leg of the walk-in, a wave's `move`: the Skylights' front trolls come on down the street -- 10-05)
+      keepLevel: !!f.keepLevel, // (holds its level: no step down 10 ft or more -- the garrison keeps the roof, grid.js stepCost, 10-05)
       missionOnly: !!f.only, guard: f.guard || null, rocks: f.rocks != null ? f.rocks : null, // (nothing but the mission's target; guarding the one with that id; the rocks it carried -- the Skylights' giants and trolls, ai.js brute, 10-05)
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
       // and what it does with the dark itself (the darkmantle's aura, the duergar's Invisibility: ai.js brute)

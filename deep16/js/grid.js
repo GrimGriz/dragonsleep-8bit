@@ -112,6 +112,7 @@
     // (a cliff: a map's `climb` -- the steps a body of one square may scale or drop, SRD 5.1 Climbing and Falling; up costs 1 extra foot a foot (G.stepCost below), and a Strength (Athletics) check, battle.js moveAlong; a drop of under 10 ft is free)
     var clS = G.map.def.climb, limS = u.climbs ? Infinity : (u.size || 1) > 1 ? G.bigLimit(u) : clS; // (a big body climbs its height and 5 ft by hand, or the map's `climbLarge` where set -- G.bigLimit; a one-square body, `climb`; one with a climb speed, any face)
     // (down, any height there: it is a fall, battle.js moveAlong -- 10-04; up, the limit)
+    if (u.keepLevel && dzS <= -4 * stS) return Infinity; // (one that holds its level -- the Skylights' garrison on the roof: no step down 10 ft or more, no rope down; his play of 10-05 had the sergeant drop 42 ft after a troll and a trooper land on a trooper)
     if (Math.abs(dzS) > stS && !(clS && (dzS < 0 || dzS <= limS * stS)) && !(o && o.roped)) return Infinity; // (o.roped: along a rope, any height -- G.ropeOn)
     var dx = x1 - x0, dy = y1 - y0;
     if (dx && dy && !footWalkable(u, x0 + dx, y0, true) && !footWalkable(u, x0, y0 + dy, true)) return Infinity; // no squeezing between two rocks at a corner
