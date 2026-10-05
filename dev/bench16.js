@@ -1215,9 +1215,10 @@
       okE('standing on the grapple: TAKE THE ROPE on the ring\'s top: ' + ring2.join(','), ring2.indexOf('takerope') >= 0 && ring2.indexOf('bucketrope') < 0);
       var ropes0 = Be.ropes.filter(function (r) { return !r.cut; }).length; runE(Be.exec(fg, { do: 'takerope', x: 11, y: 9, ask: true })); var ropes1 = Be.ropes.filter(function (r) { return !r.cut; }).length;
       okE('the self-click asked and took it up: ropes ' + ropes0 + ' -> ' + ropes1 + ', the action ' + fg.turn.action, ropes1 === ropes0 - 1 && fg.turn.action === 0);
-      // a grapple from the street (45 ft) cannot reach the rim; from a hang 15 ft up the dwarves' rope it can (30 ft)
-      rg.x = 13; rg.y = 10; var q2 = D.Battle.ropeSq(Be, rg, 13, 9); rg.x = 11; rg.y = 10; rg.hang = { rope: Be.ropes[0], z: 6 * st }; var q1 = D.Battle.ropeSq(Be, rg, 12, 9), dH = G.dist(rg, { x: 12, y: 9, size: 1 }), lH = G.losPoint(11, 10, 12, 9); delete rg.hang; rg.x = 13; rg.y = 12;
-      okE('a grapple from the street, 45 ft, cannot reach the rim: ' + !q2 + '; from 15 ft up the rope the rim is ' + dH + ' ft off, in line ' + lH + ', the throw offered ' + !!q1 + ' (that rope was taken up above, so this hang reads at its foot; a throw from a real hang: the 10-05 check below)', !q2);
+      // a grapple from the street (45 ft) reaches the rim at DC 16 (10-05, Griz: "go with +2 DC per 5 beyond 30" -- it was 30 ft at most); the DCs by the foot; nothing past the rope's 50
+      rg.x = 18; rg.y = 10; var q2 = D.Battle.ropeSq(Be, rg, 18, 9); rg.x = 13; rg.y = 12; // (the street at (18,10), between the first two fountains, under the rim at (18,9))
+      var tdcs = [30, 35, 40, 45, 50].map(function (f) { return D.Battle.throwDC(f); }).join(',');
+      okE('a grapple from the street, 45 ft: offered ' + !!q2 + ' at ' + (q2 && q2.ft) + ' ft, DC ' + (q2 && q2.dc) + '; the DCs at 30/35/40/45/50 ft ' + tdcs + ', the rope ' + D.Battle.ROPE_FT + ' ft', !!q2 && q2.ft === 45 && q2.dc === 16 && tdcs === '10,12,14,16,18' && D.Battle.ROPE_FT === 50);
       // the costs: a climb speed pays the height (SRD), a hand cannot take the 45 ft face, the arch's sill is 30 ft of movement by hand
       var size0 = og.size, climbs0 = og.climbs; og.size = 1; og.climbs = 40; delete og.hang;
       var cC = G.stepCost(og, 20, 10, 20, 9); og.climbs = climbs0; var cS = G.stepCost(fg, 15, 13, 15, 12), cF = G.stepCost(fg, 20, 10, 20, 9); og.size = size0;
@@ -1305,8 +1306,8 @@
       D.battle = Be; Be.ropes.forEach(function (r) { r.cut = false; }); if (!Be.ropes.some(function (r) { return r.at[0] === 11 && r.at[1] === 9 && !r.cut; })) Be.ropes.push({ at: [11, 9], foot: [11, 10], hp: 2, fixed: true });
       rg.x = 11; rg.y = 10; delete rg.hang; rg.conds = {}; rg.hp = rg.maxhp; D.rules.startTurn(rg); Be.active = rg; Be.cache = null; rg.turn.move = 30;
       runE(Be.exec(rg, { do: 'ropeclimb', x: 11, y: 9, z: 6 * st })); var hungV = !!(rg.hang && G.hanging(rg)), mvV = rg.turn.move; rg.turn.action = 0;
-      var thV = D.Battle.ropeSq(Be, rg, 13, 9), thD = G.dist(rg, { x: 13, y: 9, size: 1 }), thL = G.losPoint(rg.x, rg.y, 13, 9), thS = D.Battle.ropeSq(Be, { x: 13, y: 10, size: 1, id: 'probe' }, 13, 9); // (his other question: a grapple thrown from the hang to the rim two along, 30 ft up -- and from the street under it, 45 ft)
-      okE('a grapple from that hang to the rim at (13,9): ' + thD + ' ft (the old sight from the rope\'s foot: ' + thL + '), offered ' + !!thV + '; from the street under it (45 ft) offered ' + !!thS + ' -- 10-05, Griz: "2 yes" (the sight from the thrower\'s own height; the lip of a face you stand under seen)', !!thV && !thS);
+      var thV = D.Battle.ropeSq(Be, rg, 13, 9), thD = G.dist(rg, { x: 13, y: 9, size: 1 }), thL = G.losPoint(rg.x, rg.y, 13, 9), thS = D.Battle.ropeSq(Be, { x: 13, y: 10, size: 1, id: 'probe' }, 13, 9); // (his other question: a grapple thrown from the hang to the rim two along, 30 ft up -- and from the fountain's rim under it, 40 ft)
+      okE('a grapple from that hang to the rim at (13,9): ' + thD + ' ft (the old sight from the rope\'s foot: ' + thL + '), offered ' + !!thV + ' at DC ' + (thV && thV.dc) + '; from the fountain\'s rim under it (13,10), ' + (thS && thS.ft) + ' ft, at DC ' + (thS && thS.dc) + ' -- 10-05, Griz: "2 yes" (the sight from the thrower\'s own height; the lip of a face you stand under seen); "+2 DC per 5 beyond 30"', !!thV && thV.dc === 10 && !!thS && thS.ft === 40 && thS.dc === 14);
       runE(Be.exec(rg, { do: 'cdash' })); Be.cache = null; var spV = D.ui.spent(Be, rg), mvV2 = rg.turn.move;
       rg.turn.move = 0; Be.cache = null; var spV0 = D.ui.spent(Be, rg);
       okE('the rogue up the rope to 15 ft with her move: hanging ' + hungV + ', move left ' + mvV + '; the action spent and the bonus Dash taken: move ' + mvV2 + ', the turn spent ' + spV + ' (a rung is a step); with no move at all, spent ' + spV0, hungV && mvV === 0 && mvV2 === 30 && spV === false && spV0 === true);

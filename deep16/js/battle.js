@@ -983,7 +983,7 @@
   };
   // where a Rope & Grapple can be set (10-04, Griz: "as an item on the item wheel"): the top of a face -- an open square with one beside it two steps lower or more (open, or the
   // setter's own) and no rope there yet -- on a map whose cliffs can be climbed. From up there (on it, or beside it at its height) it is tied off with no roll; from below the
-  // grapple is thrown up to it, 30 ft at most and in sight (Battle.seesFrom, 10-05), a DC 10 Dexterity check (his lean and the seat's: the SRD 5.1 lists a grappling hook, 2 gp, 4 lb, and gives it no
+  // grapple is thrown up to it, as far as the rope is long and in sight (Battle.seesFrom, Battle.throwDC: 10-05; it was 30 ft at most), a Dexterity check, DC 10 to 30 ft (his lean and the seat's: the SRD 5.1 lists a grappling hook, 2 gp, 4 lb, and gives it no
   // rule). `foot`: the square it is to hang to (a climb's own); else the nearest, square-on before corner-wise. { at, foot, top } or null
   Battle.ropeSq = function (B, u, x, y, foot) {
     var d = G.map.def, top = G.map.at(x, y); if (!d.climb || !top || !top.walk || (u.size || 1) > 1) return null;
@@ -995,9 +995,14 @@
     feet.sort(function (a, b) { return (G.dist(u, { x: a.at[0], y: a.at[1], size: 1 }) - G.dist(u, { x: b.at[0], y: b.at[1], size: 1 })) || (a.diag - b.diag); });
     var uz = G.gzAt(u, u.x, u.y);
     if (Math.max(Math.abs(u.x - x), Math.abs(u.y - y)) <= 1 && Math.abs(uz - zt) <= d.step) return { at: [x, y], foot: feet[0].at, top: true };
-    if (uz < zt && G.dist(u, { x: x, y: y, size: 1 }) <= 30 && (Battle.seesFrom(u, x, y, zt) || feet.some(function (f) { return Battle.seesFrom(u, f.at[0], f.at[1], G.map.gz(f.at[0], f.at[1])); }))) return { at: [x, y], foot: feet[0].at, top: false };
+    var tFt = G.dist(u, { x: x, y: y, size: 1 });
+    if (uz < zt && tFt <= Battle.ROPE_FT && (Battle.seesFrom(u, x, y, zt) || feet.some(function (f) { return Battle.seesFrom(u, f.at[0], f.at[1], G.map.gz(f.at[0], f.at[1])); }))) return { at: [x, y], foot: feet[0].at, top: false, ft: tFt, dc: Battle.throwDC(tFt) };
     return null;
   };
+  // the throw's reach and its DC (10-05, Griz: "go with +2 DC per 5 beyond 30"): as far as the rope is long (fifty feet, content/items.json rope), DC 10 to 30 ft and 2 more for each
+  // 5 ft past it -- 35 ft 12, 40 ft 14, 45 ft 16, 50 ft 18 (the Edifice's 45 ft facade from the street, 16)
+  Battle.ROPE_FT = 50;
+  Battle.throwDC = function (ft) { return 10 + 2 * Math.max(0, Math.ceil((ft - 30) / 5)); };
   // in sight for a throw, from where the thrower is -- a hanger's eye at its hang, not at the rope's foot -- to a square's floor at height z (10-05, Griz: "2 yes" to: sight read from the
   // thrower's own height, and the top edge of a face you stand under counts as seen). ropeSq asks it of the top and of the squares under it the rope would hang to: nothing overhangs a
   // face, so whoever sees its foot sees its lip
@@ -1033,7 +1038,7 @@
     var x = u.x, y = u.y;
     for (var i = 0; i < path.length; i++) {
       var nx = path[i][0], ny = path[i][1], cs = G.climbsUp(u, x, y, nx, ny), dc = G.climbDC(cs, u, G.faceKind(nx, ny));
-      if (dc) return Battle.ropeSq(this, Object.assign({}, u, { x: x, y: y }), nx, ny, [x, y]) ? { i: i, at: [nx, ny], foot: [x, y], ft: cs * 2.5, dc: dc } : null;
+      if (dc) { var gq = Battle.ropeSq(this, Object.assign({}, u, { x: x, y: y }), nx, ny, [x, y]); return gq ? { i: i, at: [nx, ny], foot: [x, y], ft: cs * 2.5, dc: dc, tdc: gq.top ? 0 : gq.dc } : null; } // (tdc: the throw's own DC, 10-05)
       x = nx; y = ny;
     }
     return null;
@@ -1088,7 +1093,7 @@
             var cdPath = null; // (a drop of 10 ft or more: CLIMB DOWN too, where the move can pay it -- the SRD's cost of a climb, a check over 5 ft, a miss a fall)
             if (fDrop) { u.cdown = true; try { var rmD = G.reach(u, T.move), pD = G.path(rmD, c.x, c.y); if (pD && pD.length && rmD[c.x + ',' + c.y].stand) cdPath = pD; } finally { delete u.cdown; } }
             var mOpts = [{ label: fDrop ? 'DROP' : 'CLIMB', value: 'go' }]; if (cdPath) mOpts.push({ label: 'CLIMB DOWN', value: 'down' }); if (gA) mOpts.push({ label: 'USE GRAPPLE (your action)', value: 'grapple' }); mOpts.push({ label: 'NOT THAT WAY', value: 0 });
-            var mAns = yield { prompt: { who: u, title: u.name + (fDrop ? ': DROP?' : ': CLIMB?'), lines: fLs.concat(cdPath ? ['CLIMB DOWN: 5 ft of movement a step, a Strength (Athletics) check over 5 ft; a miss falls.'] : []).concat(gA ? ['USE GRAPPLE: throw it up first (DC 10 DEX), then climb the rope with no check.'] : []), opts: mOpts } };
+            var mAns = yield { prompt: { who: u, title: u.name + (fDrop ? ': DROP?' : ': CLIMB?'), lines: fLs.concat(cdPath ? ['CLIMB DOWN: 5 ft of movement a step, a Strength (Athletics) check over 5 ft; a miss falls.'] : []).concat(gA ? ['USE GRAPPLE: ' + (gA.tdc ? 'throw it up first (DC ' + gA.tdc + ' DEX)' : 'tie it off first (no roll)') + ', then climb the rope with no check.'] : []), opts: mOpts } };
             if (!mAns) return;
             if (mAns === 'down') { u.cdown = true; try { yield* this.moveAlong(u, cdPath, { spend: true }); } finally { delete u.cdown; } return; }
             if (mAns === 'grapple') { // to the foot of the face, the grapple up, and on up the rope -- part way, if the move runs out
@@ -1111,8 +1116,9 @@
         T.action = 0; u.facing = D.spr.facingFor(c.x - u.x, c.y - u.y); u.anim = 'attack'; u.animT = this.t; yield 10;
         if (!rq.top) {
           var re = RU.checkEdges(u, 'dex'), rr = re.dis.length && !re.adv.length ? Math.min(D.d(20), D.d(20)) : re.adv.length && !re.dis.length ? Math.max(D.d(20), D.d(20)) : D.d(20), rb = D.mod(u.abil ? u.abil.dex : 10), rt = rr + rb;
-          this.card(['{y}' + nameOf(u) + '{/} throws the grapple up: DEX d20 ' + rr + ' ' + RU.sign(rb) + ' = ' + rt + ' against DC 10  ' + (rt >= 10 ? '{n}IT CATCHES{/}' : '{o}IT CLATTERS BACK{/}')], 200);
-          yield 20; if (rt < 10) { u.anim = 'idle'; return; }
+          var tdc = rq.dc || 10; // (10 to 30 ft, 2 more each 5 ft past: Battle.throwDC, 10-05)
+          this.card(['{y}' + nameOf(u) + '{/} throws the grapple up ' + rq.ft + ' ft: DEX d20 ' + rr + ' ' + RU.sign(rb) + ' = ' + rt + ' against DC ' + tdc + '  ' + (rt >= tdc ? '{n}IT CATCHES{/}' : '{o}IT CLATTERS BACK{/}')], 200);
+          yield 20; if (rt < tdc) { u.anim = 'idle'; return; }
         }
         rs0.n--; this.ropes.push({ at: rq.at.slice(), foot: rq.foot.slice(), hp: 2, by: u.id }); D.sfx('confirm');
         var rFt = Math.round((G.map.gz(rq.at[0], rq.at[1]) - G.map.gz(rq.foot[0], rq.foot[1])) / G.map.def.step) * 2.5;

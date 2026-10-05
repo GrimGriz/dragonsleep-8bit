@@ -529,7 +529,7 @@
     // (the bucket and a light are his own: used at once, no target to pick -- 09-30d, Griz: "bucket asks for self-or nearby target like a potion")
     if (e.kind === 'item' && (e.use.effect === 'bucket' || e.use.effect === 'light')) return UI.command(B, u, { do: 'item', id: e.id, target: u });
     // (the Rope & Grapple: the top of a face to pick -- battle.js Battle.ropeSq, exec 'rope'; 10-04)
-    if (e.kind === 'item' && e.use.effect === 'rope') { B.tool = 'rope'; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, 30 ft at most (DC 10 DEX).{/}'], 320); return; }
+    if (e.kind === 'item' && e.use.effect === 'rope') { B.tool = 'rope'; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, as far as the rope is long, 50 ft (DEX DC 10 to 30 ft, 2 more each 5 ft past).{/}'], 320); return; }
     if (e.kind === 'item') { B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' : e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240); return; }
     var g = e.g, n = (g.n || 1) + Math.max(0, e.slot - e.level);
     B.spell = { id: e.id, slot: e.slot, g: g, sp: e.sp, n: n, name: e.name };
@@ -1579,8 +1579,8 @@
     });
     if (D.looks) D.looks.ground(ctx, B, onSq); // the spell ground, holy rings, the darkness's edge (js/looks.js)
     // a torch's throw: the squares within 20 ft it may land on
-    // the Rope & Grapple's picks: the tops of faces it can be tied to or thrown up to (30 ft: six squares out)
-    if (u && B.tool === 'rope') for (var ry = u.y - 6; ry <= u.y + 6; ry++) for (var rx = u.x - 6; rx <= u.x + 6; rx++) if (D.Battle.ropeSq(B, u, rx, ry)) lineSq(ctx, rx, ry, R('gold', 3), 0.6, 4);
+    // the Rope & Grapple's picks: the tops of faces it can be tied to or thrown up to (the rope's 50 ft: ten squares out -- 10-05)
+    if (u && B.tool === 'rope') for (var ry = u.y - 10; ry <= u.y + 10; ry++) for (var rx = u.x - 10; rx <= u.x + 10; rx++) if (D.Battle.ropeSq(B, u, rx, ry)) lineSq(ctx, rx, ry, R('gold', 3), 0.6, 4);
     if (u && B.tool === 'torch') for (var ty = u.y - 4; ty <= u.y + 4; ty++) for (var tx = u.x - 4; tx <= u.x + 4; tx++) if (UI.throwSq(u, tx, ty)) lineSq(ctx, tx, ty, R('gold', 3), 0.5, 4);
     if (B.active && !B.active.ethereal) G.foot(B.active).forEach(function (q) { lineSq(ctx, q[0], q[1], R('gold', 4), 0.9, 3); });
     // a pick on the grid (pickInput): the ones it may go to in gold, brighter under the cursor
@@ -1727,6 +1727,9 @@
         if (!s2.ok) sb.push('{n}it cannot see ' + u.name + ': ' + s2.why + '{/}');
         if (sb.length) lines.push(sb.join('  '));
       }
+    } else if (u && B.tool === 'rope') { // (the Rope & Grapple's pick under the cursor: the throw and its DC -- 10-05, Griz: "go with +2 DC per 5 beyond 30")
+      var rqT = D.Battle.ropeSq(B, u, B.cursor.x, B.cursor.y);
+      lines.push(rqT ? (rqT.top ? '{y}tie the rope off here{/}: no roll' : '{y}throw the grapple up{/}: ' + rqT.ft + ' ft, {n}DEX DC ' + rqT.dc + '{/}  {g}(10 to 30 ft, 2 more each 5 ft past; 50 ft of rope){/}') : '{g}no top of a face the rope reaches from here{/}');
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
       if (u.conds.prone && B.cursor.x === u.x && B.cursor.y === u.y) { var halfS = Math.floor(u.speed / 2); lines.push('{y}prone{/}: ' + (RU.canRise(u) && u.turn.move >= halfS ? '{n}click here to stand (half the speed: ' + halfS + ' ft of the move){/}' : '{o}' + (!RU.canRise(u) ? 'cannot stand' : 'no move left to stand: ' + halfS + ' ft needed') + '{/}')); } // (10-04 night)
