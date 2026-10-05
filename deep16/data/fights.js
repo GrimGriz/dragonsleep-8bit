@@ -331,8 +331,9 @@
                 { allies: ['bs1', 'bs2', 'bs3', 'bs4', 'tk1', 'tk2', 'tk3', 'tk4'], card: 'Up the south road at a run, spears and pry-bars: Bloodsnout\'s four and Talmok\'s four, out of the Hex to meet them.' },
                 { foes: ['troll2', 'giant1', 'giant2', 'troll1'], card: 'Then the rest, down the north road: two stone giants, and two more trolls at their heels.' }] },
       climbLine: { who: 'pyro', line: 'They\'re going for the skylights!' },
-      // (the garrison held behind the roof hatch, out two rounds after the first blow that hurts the glass -- Battle.hatchOut; Griz, 10-05: "two after")
-      hatch: { from: [[29, 14], [30, 14]], after: 2, card: 'The roof hatch bangs open: the Drill-sergeant and four troopers of the garrison, out onto the glass.' },
+      // (the garrison held behind the falls at the back of the roof, out two rounds after the first blow that hurts the glass -- Battle.hatchOut; Griz, 10-05: "two after"; after his
+      // play, "troops from behind waterfall instead": they step out of the falls' curtain at (29,1) and (30,1), the water at the back wall's foot, not the hatch by the front rim)
+      hatch: { from: [[29, 1], [30, 1]], after: 2, card: 'Out of the falls\' curtain at the back of the roof: the Drill-sergeant and four troopers of the garrison, onto the glass.' },
       // (in the order they come down the road, each to a square none of the later ones has to pass: the farthest first -- 10-05, the second troll boxed in at the road's mouth. Along
       // the facade: the male at its foot between the first two fountains, the female before the second, a troll each side of them. The first wave's two hold the street's west end,
       // `free` of the mission: the stables' eight meet them there)
@@ -342,7 +343,7 @@
       // (ours for the fight, the brute's to run: Bloodsnout's four and Talmok's four up the south road to the first two trolls; the garrison held behind the hatch -- `hatch`)
       allies: [{ id: 'bs1', kind: 'stablefighter', name: 'Bloodsnout\'s man', from: [28, 38], at: [24, 22] }, { id: 'bs2', kind: 'stablefighter', name: 'Bloodsnout\'s man', from: [29, 38], at: [24, 23] }, { id: 'bs3', kind: 'stablefighter', name: 'Bloodsnout\'s man', from: [30, 38], at: [25, 21] }, { id: 'bs4', kind: 'stablefighter', name: 'Bloodsnout\'s man', from: [31, 38], at: [26, 21] },
                { id: 'tk1', kind: 'stablefighter', name: 'Talmok\'s man', from: [28, 38], at: [31, 22] }, { id: 'tk2', kind: 'stablefighter', name: 'Talmok\'s man', from: [29, 38], at: [34, 22] }, { id: 'tk3', kind: 'stablefighter', name: 'Talmok\'s man', from: [30, 38], at: [32, 21] }, { id: 'tk4', kind: 'stablefighter', name: 'Talmok\'s man', from: [31, 38], at: [33, 21] },
-               { id: 'sgt', kind: 'drillsergeant', hatch: true, at: [29, 12] }, { id: 'tr1', kind: 'trooper', hatch: true, at: [28, 12] }, { id: 'tr2', kind: 'trooper', hatch: true, at: [30, 12] }, { id: 'tr3', kind: 'trooper', hatch: true, at: [28, 13] }, { id: 'tr4', kind: 'trooper', hatch: true, at: [31, 13] }], wave: null },
+               { id: 'sgt', kind: 'drillsergeant', hatch: true, at: [29, 2] }, { id: 'tr1', kind: 'trooper', hatch: true, at: [28, 2] }, { id: 'tr2', kind: 'trooper', hatch: true, at: [30, 2] }, { id: 'tr3', kind: 'trooper', hatch: true, at: [28, 3] }, { id: 'tr4', kind: 'trooper', hatch: true, at: [31, 3] }], wave: null }, // (the garrison out of the falls onto the glass's back rows, 10-05)
     { id: 'gallery', level: 9, map: 'cavern', name: 'The Cocoon Gallery', sub: 'off the road, below Third Lamp',
       intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)',
       looks: { barley: { name: 'Denny', sheet: 'denny_p2' } } } // Denny plays Barley here only (Griz, 09-27)

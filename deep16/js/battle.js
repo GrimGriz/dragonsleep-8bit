@@ -1476,7 +1476,7 @@
         });
         for (var k = 0; k < prov.length; k++) {
           var w = prov[k], take = true;
-          if (w.side === 'party' && !w.guest) {
+          if (w.side === 'party' && !w.guest && !w.ally) { // (a lent ally's opportunity attack is the AI's, never the hand's to approve -- 10-05, Griz after his play: "ai needs to approve opp attacks for NPCs")
             u.anim = 'idle';
             take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is leaving ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } }; // (a readied strike waits on the same reaction: SRD 5.1, one a round -- 10-02)
             u.anim = gait;
@@ -2216,7 +2216,7 @@
     var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.reachOf(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u); });
     for (var k = 0; k < prov.length; k++) {
       var w = prov[k], take = true;
-      if (w.side === 'party' && !w.guest) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
+      if (w.side === 'party' && !w.guest && !w.ally) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
       if (!take) continue;
       w.reaction = 0;
       this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? (u.named ? '' : 'the ') + shortName(u) : u.name) + ', ' + (why || 'leaving') + '.']);
