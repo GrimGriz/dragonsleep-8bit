@@ -1804,7 +1804,7 @@
       hit = nat === 20 || (nat !== 1 && total >= ac);
       glass = '  {p}the glass takes it: again, d20 ' + nat + ' = ' + total + '{/}';
     }
-    var crit = hit && (nat >= critAt || (melee && ((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5)
+    var crit = hit && (nat >= critAt || (((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5) // (SRD 5.1, paralyzed and unconscious: ANY attack that hits from within 5 ft -- a spell's, a bow's -- not the melee alone, 10-05: Aurdin's Scorching Ray beside a troll lying at 0)
       || (att.assassinate && tgt.conds.surprised) // Assassinate: any hit on one caught unaware is a critical
       || (att.subclass === 'Cutthroat' && this.round === 1 && !tgt.acted)); // Opening Cut (the game's Cutthroat): the same, in the first round
     var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)

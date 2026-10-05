@@ -236,7 +236,7 @@
     if (tgt.hp <= 0 && !tgt.dead) adv.push('down'); // (SRD 5.1 unconscious: "Attack rolls against the creature have advantage" -- at any range; within 5 ft a hit is a critical, battle.js attack. Till 10-05 only within 5 ft, so a flask or a torch thrown at a troll lying at 0 met the prone's disadvantage alone)
     if (melee && G.flank(att, tgt, ax, ay)) adv.push('flanking');
     if (!melee) {
-      if (G.foesNear(att, ax == null ? att.x : ax, ay == null ? att.y : ay, 5).length) dis.push('in melee');
+      if (G.foesNear(att, ax == null ? att.x : ax, ay == null ? att.y : ay, 5).filter(function (w) { return w.hp > 0 && !w.conds.paralyzed && !w.conds.asleep && !w.conds.stunned && !w.conds.incapacitated; }).length) dis.push('in melee'); // (SRD 5.1: a hostile within 5 ft "who can see you and who isn't incapacitated" -- a troll lying at 0 is not: 10-05, his Scorching Ray beside one)
       if (atk.range && G.dist(att, tgt, ax, ay) > atk.range[0]) dis.push('long range');
     }
     return { adv: adv, dis: dis, net: adv.length && !dis.length ? 1 : dis.length && !adv.length ? -1 : 0, pen: pen, penWhy: penWhy };

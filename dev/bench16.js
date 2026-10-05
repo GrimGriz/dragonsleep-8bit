@@ -1445,6 +1445,36 @@
       var Bq2 = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bq2; Bq2.enter(); var bq2 = 0; while (!Bq2.order.length && bq2++ < 3000) { if (Bq2.co.next().done) break; }
       Bq2.round = 2; Bq2.hurt(Bq2.skylight, 7, 'bludgeoning'); var glance = Bq2.skyHit;
       okK('a glancing blow (7, under the threshold) is no bang: skyHit ' + glance + ', held still ' + (Bq2.held || []).length, glance == null && (Bq2.held || []).length === 5);
+      // the garrison up the ropes (10-05, Griz: "dwarves climbing ropes (much less getting from barrel and tossing)" -- out of the vault doors they paced on the street, "it cannot get at anyone",
+      // while the giants broke the glass above them; ai.js ropeUp): the foes all on the roof but one troll there, a trooper on the street -- a rope hanging from the rim: it climbs, and is on
+      // the roof in a few turns (it dashes: the climb costs double); no rope hanging and one in the pack: it throws it up; the pack empty: it walks to the bucket and takes one
+      function roofFight(seedK) {
+        var Bx = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bx; Bx.enter(); var nk = 0; while (!Bx.order.length && nk++ < 3000) { if (Bx.co.next().done) break; }
+        Bx.round = 3; runK(Bx.lateOut()); Bx.round = 4; Bx.skyHit = 1; runK(Bx.hatchOut());
+        Bx.units.forEach(function (w) { if (w.side === 'foe' && w.id !== 'troll1') { w.dead = true; w.hp = 0; } if (w.side === 'party' && !w.object && !/^(sgt|tr\d)$/.test(w.id)) { w.x = 50; w.y = 30 + (w.id.length % 5); } });
+        var tl = Bx.units.filter(function (w) { return w.id === 'troll1'; })[0]; tl.x = 25; tl.y = 10; delete tl.hang; Bx.ropes = [];
+        return { B: Bx, troll: tl, tr: Bx.units.filter(function (w) { return w.id === 'tr2'; })[0] };
+      }
+      var RF = roofFight(), trR = RF.tr, BR = RF.B; RF.B.ropes.push({ at: [26, 15], foot: [26, 16], hp: 2, by: 'test' });
+      var stR = BR.map.def.step, zs = [], n0R = (BR.log || []).length;
+      for (var tk = 0; tk < 6 && G.gzAt(trR, trR.x, trR.y) < 18 * stR; tk++) { D.rules.startTurn(trR); runK(D.ai.turn(BR, trR)); zs.push(trR.x + ',' + trR.y + '@' + Math.round(G.gzAt(trR, trR.x, trR.y) / stR * 2.5) + 'ft' + (trR.hang && G.hanging(trR) ? ' hanging' : '')); }
+      var lgR = (BR.log || []).slice(n0R).join(' | ');
+      okK('a trooper out of the vault doors at (' + RF.tr.x + ',' + RF.tr.y + ') -- the troll on the roof at ' + Math.round(G.gzAt(RF.troll, 25, 10) / stR * 2.5) + ' ft, a rope from the rim at (26,15): turn by turn ' + zs.join(' -> ') + ' -- ' + lgR.slice(0, 160), G.gzAt(trR, trR.x, trR.y) === 18 * stR && /climbs .* of the rope/.test(lgR) && !/cannot get at anyone/.test(lgR));
+      var RF2 = roofFight(), tr2 = RF2.tr, B2 = RF2.B; B2.inv = (B2.inv || []).filter(function (x) { return x.id !== 'rope'; }); B2.inv.push({ id: 'rope', n: 1 });
+      var d0R = D.d; D.d = function (n) { return n === 20 ? 20 : d0R(n); }; var n2R = (B2.log || []).length, steps2 = 0;
+      while (steps2++ < 3 && !/throws the grapple up/.test((B2.log || []).slice(n2R).join(' | '))) { D.rules.startTurn(tr2); runK(D.ai.turn(B2, tr2)); }
+      D.d = d0R; var lg2 = (B2.log || []).slice(n2R).join(' | ');
+      okK('no rope hanging, one in the pack: thrown up in ' + steps2 + ' turn(s) -- ropes now ' + B2.ropes.length + ', the pack ' + (B2.inv.filter(function (x) { return x.id === 'rope'; })[0] || { n: 0 }).n + ' -- ' + lg2.slice(0, 160), /throws the grapple up/.test(lg2) && /IT CATCHES/.test(lg2) && B2.ropes.length === 1);
+      var RF3 = roofFight(), tr3 = RF3.tr, B3 = RF3.B; B3.inv = (B3.inv || []).filter(function (x) { return x.id !== 'rope'; }); var n3R = (B3.log || []).length, steps3 = 0;
+      while (steps3++ < 6 && !/out of the bucket/.test((B3.log || []).slice(n3R).join(' | '))) { D.rules.startTurn(tr3); runK(D.ai.turn(B3, tr3)); }
+      var lg3 = (B3.log || []).slice(n3R).join(' | ');
+      okK('no rope hanging, the pack empty: to the bucket and one taken out in ' + steps3 + ' turn(s), beside it ' + D.Battle.besideBucket(B3, tr3) + ' -- ' + lg3.slice(0, 160), /out of the bucket/.test(lg3));
+      // the Scorching Ray beside a troll lying at 0 (10-05, his play: "the unconscious and scorching ray"): no "in melee" from one who cannot act; prone and down within 5 ft, advantage; a hit there a critical
+      var Bz = roofFight().B, wz = Bz.units.filter(function (w) { return w.id === 'aurdin'; })[0], tz = Bz.units.filter(function (w) { return w.id === 'troll1'; })[0];
+      tz.x = 20; tz.y = 20; Bz.hurt(tz, 300, 'slashing'); wz.x = 22; wz.y = 20; var spZ = { name: 'Scorching Ray', atk: 7, dice: '2d6', mod: 0, type: 'fire', ranged: true, spell: true, range: [120, 120] }, edZ = D.rules.edges(wz, tz, spZ);
+      okK('Aurdin 5 ft from a troll lying at 0 (down ' + !!tz.regenDown + '): advantage ' + edZ.adv.join(',') + ', disadvantage ' + (edZ.dis.join(',') || 'none') + ' (net ' + edZ.net + ')', edZ.dis.indexOf('in melee') < 0 && edZ.net === 1);
+      D.d = function (n) { return n === 20 ? 12 : d0R(n); }; var nZ = (Bz.log || []).length; runK(Bz.attack(wz, tz, spZ)); D.d = d0R; var lgZ = (Bz.log || []).slice(nZ).join(' | ');
+      okK('its ray hits: a critical from within 5 ft ' + /CRITICAL/.test(lgZ) + ' -- ' + lgZ.slice(0, 140), /CRITICAL/.test(lgZ));
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     D.d = d0K;
     if (errs.length) repK.errors = repK.errors.concat(errs);

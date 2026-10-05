@@ -723,6 +723,68 @@
     if (far && (far.x !== u.x || far.y !== u.y)) { var m0 = T.move; T.move = cap; yield* walkTo(B, u, far, { ghost: true }); T.move = Math.max(0, m0 - (cap - T.move)); }
     B.card([u.earthGlide ? '{g}Nothing shows where it went.{/}' : '{g}The ground heaves: it is off under the floor.{/}'], 160); yield 16;
   }
+  // up a rope to a fight above (10-05, Griz: "dwarves climbing ropes (much less getting from barrel and tossing)" -- the garrison out of the vault doors paced on the street, "it cannot get at
+  // anyone", while the giants broke the glass above it, two ropes hanging there): one of size 1 with no climb of its own, its target a level above. A rope already hanging from up there --
+  // the one it hangs on, or the nearest whose foot it reaches -- climbed as far as the move pays (exec 'ropeclimb' with its rung: no question); none it can reach this turn, walk for the
+  // nearest's foot. No rope up: one in the party's pack (its allies are ours) thrown up from where it stands (exec 'rope': the action, the DEX check), or walked under the face to throw next
+  // turn; the pack empty, a Rope & Grapple out of the bucket (exec 'bucketrope': free, one a turn), walked to first. True when it did any of it
+  function* ropeUp(B, u, tgt) {
+    var T = u.turn, st = G.map.def.step, Bt = D.Battle;
+    if (!tgt || (u.size || 1) > 1 || u.climbs || u.flies || !(T.move > 0) || u.conds.restrained || u.conds.grappled || u.under) return false;
+    var zU = G.gzAt(u, u.x, u.y), zT = G.gzAt(tgt, tgt.x, tgt.y), hangR = u.hang && G.hanging(u) && u.hang.rope;
+    if (!hangR && zT <= zU + 2 * st) return false; // (not above it: the walk is the way)
+    var ropes = (B.ropes || []).filter(function (r) {
+      if (r.cut) return false; if (hangR) return r === hangR;
+      var zTop = G.map.gz(r.at[0], r.at[1]), h = Bt.ropeHanger(B, r);
+      return zTop > zU + st && zTop >= zT - 2 * st && (!h || h === u);
+    });
+    var rm = G.reach(u, T.move), best = null;
+    ropes.forEach(function (r) {
+      var here = hangR === r || (u.x === r.foot[0] && u.y === r.foot[1]), e = here ? { cost: 0, stand: true } : rm[r.foot[0] + ',' + r.foot[1]];
+      if (!e || !e.stand) return;
+      var sc = (e.cost || 0) + G.dist({ x: r.at[0], y: r.at[1], size: 1 }, tgt);
+      if (!best || sc < best.sc) best = { r: r, cost: e.cost || 0, sc: sc };
+    });
+    if (best) {
+      var r = best.r, zFrom = hangR === r ? u.hang.z : G.map.gz(r.foot[0], r.foot[1]), need = Math.round((G.map.gz(r.at[0], r.at[1]) - zFrom) / st);
+      if (T.action && !T.attacksLeft && Bt.ropeSteps(r, zFrom, true, T.move - best.cost) < need) yield* B.exec(u, { do: 'dash' }); // (nothing to strike from the rope: the Dash for more of it -- the climb costs double)
+      var n = Bt.ropeSteps(r, zFrom, true, T.move - best.cost);
+      if (n > 0) { yield* B.exec(u, { do: 'ropeclimb', x: r.at[0], y: r.at[1], z: zFrom + n * st }); return true; }
+      if (best.cost > 0) { yield* walkTo(B, u, rm[r.foot[0] + ',' + r.foot[1]]); return true; } // (to its foot: the climb next turn)
+      return false;
+    }
+    if (hangR) return false;
+    if (ropes.length) { // (a rope up there, its foot past this turn's move: make for it)
+      var rn = ropes.slice().sort(function (a, b) { return G.dist(u, { x: a.foot[0], y: a.foot[1], size: 1 }) - G.dist(u, { x: b.foot[0], y: b.foot[1], size: 1 }); })[0], eF = approach(u, { x: rn.foot[0], y: rn.foot[1], size: 1 }, rm, 0);
+      if (eF && (eF.x !== u.x || eF.y !== u.y)) { yield* walkTo(B, u, eF); return true; }
+      return false;
+    }
+    // none hanging from up there: a rope out of the pack thrown up, from here or from under the face nearest its target
+    var packR = (B.inv || []).filter(function (x) { return x.id === 'rope' && x.n > 0; })[0], tops = function (fx, fy) {
+      var out = null; for (var dy = -10; dy <= 10; dy++) for (var dx = -10; dx <= 10; dx++) {
+        var x = fx + dx, y = fy + dy, s = G.map.at(x, y); if (!s || !s.walk || Math.abs(G.map.gz(x, y) - zT) > 2 * st) continue;
+        var q = Bt.ropeSq(B, u, x, y); if (!q || q.top) continue;
+        var sc = G.dist({ x: x, y: y, size: 1 }, tgt) + (q.dc || 10) * 2; if (!out || sc < out.sc) out = { x: x, y: y, sc: sc };
+      }
+      return out;
+    };
+    if (u.side === 'party' && packR) {
+      if (T.action && !T.attacksLeft) { var tq = tops(u.x, u.y); if (tq) { yield* B.exec(u, { do: 'rope', x: tq.x, y: tq.y }); return true; } }
+      var eU = approach(u, { x: tgt.x, y: tgt.y, size: tgt.size || 1 }, rm, 0); // (under it, to throw from there next turn)
+      if (eU && (eU.x !== u.x || eU.y !== u.y)) { yield* walkTo(B, u, eU); return true; }
+      return false;
+    }
+    // the pack without one: the bucket (Fountain Street's), walked to and a rope taken out -- free -- and, with the action still there, thrown
+    if (u.side === 'party' && B.ropeBucket && !T.tookRope) {
+      if (!Bt.besideBucket(B, u)) { var eB = approach(u, { x: B.ropeBucket[0], y: B.ropeBucket[1], size: 1 }, rm, 5); if (eB && (eB.x !== u.x || eB.y !== u.y)) yield* walkTo(B, u, eB); }
+      if (Bt.besideBucket(B, u)) {
+        var g0 = u.guest; u.guest = false; yield* B.exec(u, { do: 'bucketrope' }); if (g0 !== undefined) u.guest = g0; else delete u.guest; // (the bucket is for the story's guests too when they are the brute's: a garrison trooper)
+        if (T.action && !T.attacksLeft) { var tq2 = tops(u.x, u.y); if (tq2) yield* B.exec(u, { do: 'rope', x: tq2.x, y: tq2.y }); }
+      }
+      return true;
+    }
+    return false;
+  }
   function* brute(B, u) {
     var T = u.turn, hs = heroes(B, u), grudge = false;
     // the darkness attacks back (the gimmick, magic.js): the one the darts found comes for the caster this turn, nothing else
@@ -873,6 +935,7 @@
     if (ranged.length && ranged.length === Object.keys(u.attacks).length) { yield* shooter(B, u); return; }
     if (!tgt) {
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+      if (yield* ropeUp(B, u, tgt)) return; // (the fight above it: up a rope, or a rope thrown, or one out of the bucket first -- 10-05)
       var e = approach(u, tgt, G.reach(u, T.move), reachOf(u, hs));
       if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
       else if (u.bound) { // (the camera on it, churning, long enough to read: out of reach it looked frozen -- 09-30g)
