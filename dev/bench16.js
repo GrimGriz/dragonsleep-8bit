@@ -3222,7 +3222,7 @@
     try {
       var fid = get('fight', '');
       // plus=troll,troll: more of the bestiary in a fight, at the spots its map keeps for them (the Skylights, 10-05, Griz: "Just from CR, what's two more trolls?") -- walked in last, guarding as the fight's own guards do
-      var PLUS = { edifice: [[26, 22], [9, 19]] }, plusK = get('plus', '') ? get('plus', '').split(',') : [], fdef = null;
+      var PLUS = { edifice: [[5, 21], [8, 21]] }, plusK = get('plus', '') ? get('plus', '').split(',') : [], fdef = null;
       if (fid && plusK.length) { var F0 = D.fight(fid), gd = (F0.foes.filter(function (f) { return f.guard; })[0] || {}).guard; fdef = Object.assign({}, F0, { foes: F0.foes.concat(plusK.map(function (k, ip) { var sp = (PLUS[fid] || [])[ip] || F0.foes[0].at; return { id: 'plus' + ip, kind: k, from: F0.foes[0].from, at: sp, guard: gd }; })) }); }
       B = fid ? new D.Battle({ ladder: true, fight: fid, fightDef: fdef || undefined, bench: true, npc: vs ? { party: vs.split(','), foes: [] } : null, torch: get('torch', '') || undefined, torchKind: get('torchKind', '') || undefined, level: +get('flvl', 0) || undefined, measure: get('measure', '') === '' ? undefined : get('measure', '') === '1' }) /* (torch=<unit id> torchKind=lantern: a light in a hand -- the roost's hooded lantern, 10-02) (flvl=7: the fight's four at another level; measure=0|1: Pyro held or at full -- the Skylights, 10-05) */ : new D.Battle({ npc: { foes: foes, party: vs ? vs.split(',') : null }, bench: true, fightDef: D.classFight(L) });
       D.battle = B; B.enter();

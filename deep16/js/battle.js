@@ -613,6 +613,8 @@
       folk.forEach(function (f) { var k = U.indexOf(f.u); if (k >= 0) U.splice(k, 1); }); // (off down the south road and gone)
       this.beats++;
     }
+    var left = foes.concat(allies).filter(function (u) { return U.indexOf(u) < 0; }); // (any the waves never named -- the bench's `plus` trolls -- come in last, down the road behind the rest)
+    if (left.length) { yield* this.walkIn(left.map(function (u) { return { u: u, from: u.from0, to: [u.x, u.y], face: D.spr.facingFor(1, 0) }; }), look); yield 20; }
     if (ours.length) {
       // the guests first (Pyro leads them out), then the four
       var lead = function (u) { return (self.fight.guests || []).indexOf(u.id) >= 0 ? 1 : 0; }; // (the fight's own guests: the bench makes everyone a guest)
