@@ -1836,12 +1836,12 @@
       this.card(['{r}' + nameOf(att) + '{/} gets ' + nameOf(tgt) + '\'s head: {o}BLINDED{/}, no breath to draw.']); yield 24;
     }
     if (atk.attach && !tgt.dead && tgt.hp > 0 && !att.riding && !tgt.conds.attached) {
-      var onHead = !Battle.overMedium(tgt) && e.net > 0; // (Medium or smaller: SRD 5.1 -- an Enlarged one is a size up, Large -- RULED 10-01, Griz: "only when he's Medium or smaller")
+      var onHead = !atk.stinger && !Battle.overMedium(tgt) && e.net > 0; // (Medium or smaller: SRD 5.1 -- an Enlarged one is a size up, Large -- RULED 10-01, Griz: "only when he's Medium or smaller")
       tgt.conds.attached = { by: att.id, dc: atk.attach.dc, head: onHead, big: Battle.overMedium(tgt) }; // (big: Large already when it got on -- an Enlarge after throws it off, rideSync)
       if (onHead && !tgt.conds.blinded) tgt.conds.blinded = { by: att.id, held: true };
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
       this.card(['{r}' + nameOf(att) + '{/} attaches to ' + nameOf(tgt) + (onHead ? ': over ' + nameOf(tgt) + '\'s head -- {o}BLINDED{/}, no breath to draw' : '') + '.  {g}(DC ' + atk.attach.dc + ' STR to pull it off, an action: ' + nameOf(tgt) + ', or anyone beside){/}']);
-      this.mount(att, tgt);
+      this.mount(att, tgt); if (atk.stinger) att.drained = 5; // (the stirge: the hit's average counts toward the 10 it drinks)
       yield 30;
     }
     // a knockdown (the wolf's bite, the worg's, Talmok's fists, the giant's rock): STR or prone

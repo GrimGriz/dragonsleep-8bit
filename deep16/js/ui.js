@@ -1066,6 +1066,8 @@
         var down = u.dead || u.hp <= 0, sk = D.spr.scaleOf(u); // (sk: Enlarge and Reduce draw it bigger or smaller about its foot, sprites.js scaleOf)
         // the cloaker hangs as a cloak until something hurts it (Griz, 09-29)
         if (!down && u.sheet === 'cloaker_p2' && !u.woken && anim === 'idle' && has('roost')) anim = 'roost';
+        // the stirge latched on (10-05, Griz: "making it look like the stinger went in"): its own row, drawn at the shoulder of the one it drains
+        if (!down && u.riding && u.attached && (anim === 'idle' || anim === 'walk') && has('latched')) anim = 'latched';
         // the ettercap sits braiding on its stump till it has had a turn or been hurt ("It stops braiding when it sees you": Griz's
         // idle sheet, 09-30); a creature that charges has come 20 ft and more this turn, and runs (the giant boar's sprint row)
         if (!down && !u.woken && !u.acted && anim === 'idle' && has('braid')) anim = 'braid';

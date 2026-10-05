@@ -389,6 +389,28 @@
     condImmune: ['exhaustion', 'grappled', 'paralyzed', 'poisoned', 'prone', 'restrained', 'asleep'],
     src: "SRD 5.1 Will-o'-Wisp (CR 2); content/monsters.json wisp; a figure drawn in code (tools/wisp-sheet.py)"
   },
+  // the three bugs of the 8-bit's Glowseep (10-05, Griz: "Let's try code drawn"; tools/bugs-sheet.py), SRD 5.1 blocks as content/monsters.json has them
+  stirge: {
+    name: 'Stirge', type: 'beast', sheet: 'stirge_p1', cr: '1/8', ac: 14, hp: 2, speed: 40, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 4, dex: 16, con: 11, int: 2, wis: 8, cha: 6 }, init: 3, perception: 9,
+    saves: { str: -3, dex: 3, con: 0, int: -4, wis: -1, cha: -2 },
+    attacks: { drain: { name: 'Blood Drain', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5, attach: { dc: 1 }, rides: true, stinger: true } }, // (SRD 5.1: it attaches -- ai.js, a latched stirge drains 1d4+3 at the start of each of its turns and lets go at 10 drained; "a creature can use its action to detach it", so any check serves: dc 1)
+    multi: 1, src: 'SRD 5.1 Stirge (CR 1/8, Tiny, fly 40: here it moves 40 on the ground); content/monsters.json stirge; the attach is the darkmantle machinery without the blinding (battle.js `stinger`)', todo: 'flight is not read (it goes round, not over)'
+  },
+  firebeetle: {
+    name: 'Fire Beetle', type: 'beast', sheet: 'firebeetle_p1', cr: '0', ac: 13, hp: 4, speed: 30, size: 1, reach: 5, blindsight: 30, glow: { bright: 10, dim: 10, color: 'fire' },
+    abil: { str: 8, dex: 10, con: 12, int: 1, wis: 7, cha: 3 }, init: 0, perception: 8,
+    saves: { str: -1, dex: 0, con: 1, int: -5, wis: -2, cha: -4 },
+    attacks: { bite: { name: 'Bite', atk: 1, dice: '1d6', mod: 0, type: 'slashing', reach: 5 } },
+    multi: 1, src: 'SRD 5.1 Giant Fire Beetle (CR 0); content/monsters.json firebeetle; Illumination (SRD: bright 10 ft, dim 10 ft more) as `glow`'
+  },
+  centipede: {
+    name: 'Giant Centipede', type: 'beast', sheet: 'centipede_p1', cr: '1/4', ac: 13, hp: 4, speed: 30, climbs: 30, size: 1, reach: 5, blindsight: 30,
+    abil: { str: 5, dex: 14, con: 12, int: 1, wis: 7, cha: 3 }, init: 2, perception: 8,
+    saves: { str: -3, dex: 2, con: 1, int: -5, wis: -2, cha: -4 },
+    attacks: { bite: { name: 'Bite', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '3d6', type: 'poison', half: false } } },
+    multi: 1, src: 'SRD 5.1 Giant Centipede (CR 1/4); content/monsters.json centipede', todo: 'the SRD poison rule that drops a target to 0 HP leaves it stable, poisoned and paralysed for an hour: not read'
+  },
   stablefighter: {
     name: 'Stable Fighter', type: 'humanoid', sheet: 'crewman_p1', humanoid: true, cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,

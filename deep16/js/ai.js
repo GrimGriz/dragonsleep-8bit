@@ -825,6 +825,15 @@
     // the target): no step of its own -- it squeezes the one it rides
     if (u.riding && u.attached) {
       var host = u.master, ra = Object.keys(u.attacks).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a.rides; })[0];
+      // a stirge (SRD 5.1 Blood Drain: the target takes 1d4+3 piercing at the start of each of the stirge's turns, and it lets go after 10 HP drunk or the target's fall)
+      if (ra && ra.stinger) {
+        if (!host || !G.standing(host)) { B.dismount(u); return; }
+        var dn = ra.dice ? D.roll(ra.dice).total + (ra.mod || 0) : 5;
+        B.card(['{r}' + the(B, u) + '{/} drinks: ' + dn + ' piercing from ' + host.name + '.  {g}(' + (u.drained || 0) + ' of 10 so far){/}'], 120); FX.sparkle(host, 'red', 8); D.sfx('poison');
+        u.drained = (u.drained || 0) + dn; B.hurt(host, dn, ra.type || 'piercing', {}); yield 20;
+        if (u.drained >= 10 || !G.standing(host)) { B.card(['{g}' + the(B, u) + ' lets go, swollen.{/}'], 160); B.dismount(u); }
+        return;
+      }
       if (host && G.standing(host) && T.action && ra) { T.action = 0; yield* B.attack(u, host, ra); }
       return;
     }

@@ -1,0 +1,239 @@
+"""DEEP16 pipeline 3 (drawn in code): the stirge, the fire beetle and the giant centipede -> deep16/art/<creature>_p1.png + .json.
+
+    python tools/bugs-sheet.py                 # all three
+    python tools/bugs-sheet.py stirge          # one
+    python tools/bugs-sheet.py preview         # dev/shots/bugs-<creature>.png: every row, as drawn (facing right), 3x on stone
+
+Griz, 10-05: "can we give them a special effect body?" -- "Let's try code drawn", and of the stirge's Blood Drain: "visually it'd be about
+making it look like the stinger went in". The same hand as tools/wisp-sheet.py, tools/codeart.py doing the pixel work: shapes on a 4x canvas,
+brought down box-filtered, snapped to the 64 palette colours, outlined. One figure facing right; SW, W and NW are its mirror, and S and N
+take the side frames too (a first pass: a front and a back would be the next art).
+Rows (every creature): idle 8, walk 8, attack 8, flinch 6, hurt 8 (the death; the engine plays `hurt` once at the end). The stirge adds
+`latched` 8: drawn at the shoulder of the one it is draining (js/ui.js plays it for an attached rider), the stinger in, the body swelling red.
+The fire beetle's glands glow in the picture and as a light on the floor (data/foes.js `glow`, SRD: bright 10 ft, dim 10 ft).
+"""
+import os, sys, math
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import codeart as ca
+from codeart import C
+
+FW = FH = 96
+AX, AY = 48, 84
+S = math.sin
+PI2 = 2 * math.pi
+
+
+def rotate(c, deg, cx, cy):
+    c.im = c.im.rotate(deg, center=(cx * ca.SS, cy * ca.SS), resample=ca.Image.BICUBIC)
+    c.d = ca.ImageDraw.Draw(c.im)
+
+
+# ------------------------------------------------------------------ the fire beetle
+def beetle(ph=0.0, walk=0.0, bite=0.0, lift=0.0, rot=0.0, pulse=0.5, curl=0.0, nudge=0.0):
+    c = ca.Canvas(FW, FH)
+    L = lift
+    dark, mid, hi = C('leather', 1), C('leather', 2), C('leather', 3)
+    leg_n, leg_f = C('stone', 3), C('stone', 1)
+
+    def legs(col, off, xs):
+        for k, hx in enumerate(xs):
+            sw = S(PI2 * (ph + (k % 2) * 0.5 + off)) * 5 * walk
+            lf = max(0.0, S(PI2 * (ph + (k % 2) * 0.5 + off) + 1.57)) * 4 * walk
+            hy = 72 - L
+            hxx = hx + nudge
+            kx = hxx + (8 if k == 0 else (-8 if k == 2 else 2)) - curl * 2
+            ky = hy + 5 - curl * 14
+            fx = kx + sw * 0.6 + (4 if k == 0 else (-4 if k == 2 else 0))
+            fy = 84 - lf - curl * 22
+            c.line([(hxx, hy), (kx, ky), (fx, fy)], 2.2, col)
+    legs(leg_f, 0.5, [52, 42, 32])        # far side, darker and behind
+    # the body
+    c.ell(40 + nudge, 62 - L, 25, 15, dark)
+    c.ell(39 + nudge, 58 - L, 20, 9.5, mid)
+    c.ell(37 + nudge, 54 - L, 11, 3.2, hi)
+    for bx in (26, 33, 40, 47):             # the elytra's ribs
+        c.line([(bx + nudge, 53 - L), (bx - 2 + nudge, 66 - L)], 0.8, dark)
+    c.ell(60 + nudge, 64 - L, 10, 11, C('stone', 2))               # the thorax
+    c.ell(59 + nudge, 60 - L, 6, 4, C('stone', 4))
+    # the head and its jaws
+    hx, hy = 73 + nudge + bite * 3, 68 - L + bite * 1.5
+    c.ell(hx, hy, 8, 6.8, C('stone', 2))
+    c.ell(hx - 1, hy - 2, 4.5, 2.4, C('stone', 4))
+    op = 1.5 + bite * 4
+    c.line([(hx + 5, hy + 1), (hx + 10, hy + 1 + op * 0.4), (hx + 14, hy - 2 + op)], 2.0, C('bone', 0))
+    c.line([(hx + 5, hy + 3), (hx + 10, hy + 3 - op * 0.2), (hx + 14, hy + 5 - op * 0.6)], 2.0, C('bone', 0))
+    c.ell(hx + 2, hy - 2, 1.3, 1.3, C('outline', 0))
+    wob = S(PI2 * ph * 2) * 2
+    c.line([(hx + 1, hy - 6), (hx + 9, hy - 14 + wob), (hx + 16, hy - 16 + wob * 1.5)], 1.0, C('stone', 5))
+    legs(leg_n, 0.0, [54, 44, 34])         # near side, over it
+    # the glands: a rear one on the abdomen and one over the eyes; they pulse
+    for gx, gy, gr in ((17 + nudge, 63 - L, 5.2), (hx - 2, hy - 7.5, 3.4)):
+        c.glow(gx, gy, gr * 2.4, C('fire', 1), 0.55 * (0.7 + 0.5 * pulse))
+        c.ell(gx, gy, gr * 0.9, gr * 0.75, C('fire', 1))
+        c.ell(gx - 0.5, gy - 0.5, gr * 0.5, gr * 0.4, C('fire', 2))
+    if rot:
+        rotate(c, rot, 48, 78)
+    return c.finish(sc=0.8)
+
+
+def beetle_rows():
+    idle = [beetle(ph=i / 8, pulse=0.5 + 0.5 * S(PI2 * i / 8), nudge=0, lift=0.6 * S(PI2 * i / 8)) for i in range(8)]
+    walk = [beetle(ph=i / 8, walk=1.0, pulse=0.5 + 0.5 * S(PI2 * i / 8), lift=1.2 * abs(S(PI2 * i / 8))) for i in range(8)]
+    atk = [beetle(ph=i / 8, bite=b, nudge=n, lift=l, pulse=0.9) for i, (b, n, l) in enumerate(zip([0, .2, .5, 1, 1, .6, .2, 0], [0, -2, -4, 3, 4, 1, 0, 0], [0, 1, 2, 0, 0, 0, 0, 0]))]
+    flinch = [beetle(ph=i / 6, nudge=n, lift=l, bite=0.4, pulse=0.2) for i, (n, l) in enumerate(zip([0, -4, -3, -1, 0, 0], [0, 2, 1, 0, 0, 0]))]
+    hurt = []
+    for i in range(8):                        # it goes over onto its back, the legs curling, the glands dying
+        k = i / 7
+        hurt.append(beetle(ph=0.2, rot=-180 * min(1, k * 1.5), curl=min(1, max(0, (k - 0.35) * 1.6)), pulse=max(0.0, 0.8 - k), lift=(2 * S(k * 3.14)), nudge=0))
+    return {'idle': idle, 'walk': walk, 'attack': atk, 'flinch': flinch, 'hurt': hurt}
+
+
+# ------------------------------------------------------------------ the giant centipede
+def centipede(ph=0.0, walk=0.0, rear=0.0, bite=0.0, rot=0.0, curl=0.0, nudge=0.0, flat=0.0):
+    c = ca.Canvas(FW, FH)
+    n = 12
+    pts = []
+    for s in range(n + 1):
+        u = s / n
+        x = 12 + u * 60 + nudge * u
+        y = 77 - 3 * u + (4.0 * walk + 1.2) * S(PI2 * (-ph) + u * 6.0) - rear * (u ** 1.8) * 30
+        x += rear * (u ** 1.8) * 8
+        pts.append((x, y))
+    red_a, red_b, hi = C('red', 3), C('red', 2), C('red', 4)
+    legc, legf = C('gold', 3), C('gold', 1)
+    for far in (True, False):                # far-side legs first, then the body, then near legs
+        if far:
+            for s in range(1, n):
+                x, y = pts[s]
+                g = 84 - 2 * (s % 2)
+                sw = S(PI2 * (ph * 2 + s * 0.22)) * 3.0 * walk
+                c.line([(x + 1, y + 2), (x + 3 + sw, y + 9), (x + 2 + sw * 1.4, min(g, y + 15 + curl * -5))], 1.2, legf)
+    for s in range(n + 1):                   # the segments, tail first
+        x, y = pts[s]
+        u = s / n
+        rx = 3.6 + 2.6 * (1 - abs(u - 0.62) * 1.3) if s < n else 0
+        ry = 5.2 - 0.8 * (1 - u)
+        if s < n:
+            c.ell(x, y, max(3.2, rx), ry, red_a if s % 2 == 0 else red_b)
+            c.ell(x - 0.5, y - 2.0, max(2, rx - 1.2), 1.7, hi)
+    for s in range(1, n):
+        x, y = pts[s]
+        g = 84 - 2 * ((s + 1) % 2)
+        sw = S(PI2 * (ph * 2 + s * 0.22 + 0.5)) * 3.0 * walk
+        c.line([(x, y + 3), (x + 2 + sw, y + 10), (x + sw * 1.4 - 1, min(g, y + 16 + curl * -5))], 1.3, legc)
+    # the tail's two trailing feelers
+    tx, ty = pts[0]
+    c.line([(tx - 2, ty), (tx - 8, ty + 1 + S(PI2 * ph) * 1.5)], 1.0, legc)
+    c.line([(tx - 2, ty - 1), (tx - 8, ty - 4 + S(PI2 * ph + 1) * 1.5)], 1.0, legc)
+    # the head and its forcipules
+    hx, hy = pts[n]
+    hx += 3
+    c.ell(hx, hy, 8, 6.4, C('red', 4))
+    c.ell(hx - 1, hy - 2.2, 5, 2.4, C('fire', 2))
+    op = 1.2 + bite * 5
+    c.line([(hx + 5, hy + 2), (hx + 10, hy + 5 + op * 0.3), (hx + 13, hy + 3 + op * 0.2 - 3 * bite)], 2.0, C('bone', 1))
+    c.line([(hx + 4, hy + 4), (hx + 9, hy + 8 - op * 0.1), (hx + 12, hy + 8 + op * 0.5)], 2.0, C('bone', 1))
+    c.ell(hx + 2.5, hy - 1.5, 1.3, 1.3, C('outline', 0))
+    w = S(PI2 * ph * 2) * 2
+    c.line([(hx + 3, hy - 5), (hx + 10, hy - 11 + w), (hx + 17, hy - 12 + w * 1.4)], 1.0, legc)
+    if rot:
+        rotate(c, rot, 48, 80)
+    return c.finish(sc=0.9)
+
+
+def centipede_rows():
+    idle = [centipede(ph=i / 8, walk=0.2, rear=0.05 * S(PI2 * i / 8)) for i in range(8)]
+    walk = [centipede(ph=i / 8, walk=1.0) for i in range(8)]
+    atk = [centipede(ph=i / 8, walk=0.3, rear=r, bite=b, nudge=nd) for i, (r, b, nd) in enumerate(zip([0, .15, .45, .8, .55, .2, 0, 0], [0, 0, .3, 1, 1, .4, 0, 0], [0, -2, -3, 2, 5, 1, 0, 0]))]
+    flinch = [centipede(ph=i / 6, walk=0.5, rear=r, nudge=n, bite=0.5) for i, (r, n) in enumerate(zip([0, .5, .6, .3, .1, 0], [0, -4, -3, -1, 0, 0]))]
+    hurt = []
+    for i in range(8):                        # it rolls onto its back and the legs draw in
+        k = i / 7
+        hurt.append(centipede(ph=0.1, walk=0.0, rear=0.3 * (1 - k), rot=180 * min(1, k * 1.6), curl=k, bite=0.4 * (1 - k)))
+    return {'idle': idle, 'walk': walk, 'attack': atk, 'flinch': flinch, 'hurt': hurt}
+
+
+# ------------------------------------------------------------------ the stirge
+def stirge(ph=0.0, flap=1.0, dive=0.0, rot=0.0, latched=0.0, drop=0.0, fold=0.0, swell=0.0, drip=0.0):
+    c = ca.Canvas(FW, FH)
+    body, belly, wing_n, wing_f = C('leather', 2), C('red', 2), C('leather', 1), C('leather', 0)
+    if latched:
+        # drawn at the shoulder of the one it drains, the stinger in to the right: a round, red, swelling body, the wings folded back
+        r = 6.2 + swell * 3.4
+        cx, cy = 36, 80
+        for wx in (1, 0):
+            c.poly([(cx - 4, cy - 4), (cx - 22, cy - 12 + wx * 4), (cx - 19, cy + 1 + wx * 3), (cx - 6, cy + 3)], wing_f if wx else wing_n)
+        c.ell(cx, cy, r + 1.5, r, C('red', 2))
+        c.ell(cx - 1, cy - 2.5, r - 2, r - 3.2, C('red', 3))
+        c.ell(cx - 3, cy - 4.5, (r - 6) if r > 6 else 2, 2.4, C('red', 4))
+        # the head, down at the end of the stinger
+        c.ell(cx + r - 1, cy + 2, 5, 4.5, body)
+        c.ell(cx + r + 0.5, cy + 0.5, 1.1, 1.1, C('outline', 0))
+        c.line([(cx + r + 3, cy + 3), (cx + r + 10, cy + 7)], 1.2, C('bone', 1))          # the proboscis, driven in
+        c.ell(cx + r + 10.5, cy + 7.5, 1.9, 1.4, C('red', 3))                              # the bead of blood where it enters
+        if drip:
+            c.ell(cx + r + 10.5 + drip * 1.5, cy + 9 + drip * 8, 1.2, 1.8, C('red', 4))
+        for lx in (-5, 3):                                                                    # the clinging feet
+            c.line([(cx + lx, cy + r - 2), (cx + lx + 3, cy + r + 4)], 1.1, wing_f)
+        return c.finish()
+    cx, cy = 48 + dive * 14, 52 + drop + S(PI2 * ph) * 2.2 + dive * 6
+    # the far wing, behind
+    a = (0.25 + 0.95 * S(PI2 * ph)) * flap + (1 - flap) * 0.4
+    a = a * (1 - fold) + (-0.5) * fold
+
+    def wing(col, lean):
+        sx, sy = cx - 2 + lean, cy - 4
+        ang = -2.35 + a * 0.85                          # swept up and back, the stroke wide
+        L1, L2 = 27 * (1 - 0.55 * fold), 21 * (1 - 0.55 * fold)
+        tip = (sx + L1 * math.cos(ang) * 0.9, sy + L1 * math.sin(ang))
+        mid = (sx + L2 * math.cos(ang + 0.75) * 1.05 - 2, sy + L2 * math.sin(ang + 0.75))
+        low = (sx + 12 * math.cos(ang + 1.45) - 4, sy + 12 * math.sin(ang + 1.45) + 3)
+        c.poly([(sx, sy), tip, ((tip[0] + mid[0]) / 2 - 1, (tip[1] + mid[1]) / 2 + 3), mid, ((mid[0] + low[0]) / 2, (mid[1] + low[1]) / 2 + 2), low], col)
+        c.line([(sx, sy), tip], 1.0, C('leather', 3) if col == wing_n else C('leather', 1))
+        c.line([(sx, sy), mid], 0.9, C('leather', 3) if col == wing_n else C('leather', 1))
+    wing(wing_f, -3)
+    # the body, a small oval, head up and forward
+    c.ell(cx, cy, 10, 7.2, body, rot=-0.25)
+    c.ell(cx - 1, cy + 3, 7, 3.4, belly, rot=-0.25)
+    c.ell(cx - 2, cy - 3, 6, 2.2, C('leather', 3), rot=-0.25)
+    hx, hy = cx + 10, cy - 2.5
+    c.ell(hx, hy, 4.6, 4.2, C('leather', 2))
+    c.ell(hx + 1.5, hy - 1, 1.1, 1.1, C('red', 4))
+    pl = 12 + dive * 9
+    c.line([(hx + 3.5, hy + 0.5), (hx + pl, hy + 4 + dive * 2)], 1.3, C('bone', 1))        # the proboscis
+    c.ell(hx + pl + 0.5, hy + 4.4 + dive * 2, 0.9, 0.9, C('bone', 2))
+    c.line([(cx - 2, cy + 6), (cx - 4, cy + 10)], 1.1, wing_f)                               # the tail-end claws
+    c.line([(cx + 3, cy + 6), (cx + 5, cy + 10)], 1.1, wing_f)
+    wing(wing_n, 2)
+    if rot:
+        rotate(c, rot, cx, cy)
+    return c.finish()
+
+
+def stirge_rows():
+    idle = [stirge(ph=i / 8) for i in range(8)]
+    walk = [stirge(ph=(i / 8) * 1.0, flap=1.0, dive=0.1) for i in range(8)]
+    atk = [stirge(ph=i / 8, dive=d, flap=1.0, fold=f) for i, (d, f) in enumerate(zip([0, -.2, -.4, .5, 1, .8, .3, 0], [0, 0, 0, .3, .6, .4, 0, 0]))]
+    flinch = [stirge(ph=i / 6, flap=1.0, dive=-0.15 * (i % 3 == 1), drop=d, rot=r) for i, (d, r) in enumerate(zip([0, 3, 4, 2, 1, 0], [0, 25, 20, 10, 4, 0]))]
+    hurt = []
+    for i in range(8):                        # it tumbles, the wings folding, and lies belly up
+        k = i / 7
+        hurt.append(stirge(ph=i / 8, flap=max(0.2, 1 - k), fold=min(1, k * 1.4), drop=min(30, k * 36), rot=200 * min(1, k * 1.3)))
+    latched = [stirge(latched=1, swell=0.5 + 0.5 * S(PI2 * i / 8) * 0.4 + i / 14, drip=(i % 8) / 8.0 if i > 3 else 0) for i in range(8)]
+    return {'idle': idle, 'walk': walk, 'attack': atk, 'flinch': flinch, 'hurt': hurt, 'latched': latched}
+
+
+MAKE = {'stirge': (stirge_rows, 'stirge_p1', 62, {'idle': 8, 'walk': 10, 'attack': 12, 'flinch': 10, 'hurt': 8, 'latched': 6}),
+        'firebeetle': (beetle_rows, 'firebeetle_p1', 52, {'idle': 6, 'walk': 10, 'attack': 12, 'flinch': 10, 'hurt': 8}),
+        'centipede': (centipede_rows, 'centipede_p1', 50, {'idle': 8, 'walk': 12, 'attack': 12, 'flinch': 10, 'hurt': 8})}
+
+if __name__ == '__main__':
+    names = [a for a in sys.argv[1:] if a in MAKE] or list(MAKE)
+    for nm in names:
+        fn, out, top, fps = MAKE[nm]
+        rows = fn()
+        if 'preview' in sys.argv:
+            ca.preview(rows, os.path.join(ca.ROOT, 'dev', 'shots', 'bugs-%s.png' % nm))
+        else:
+            sh, meta = ca.lay(rows, FW, FH, AX, AY, top, 'drawn in code by tools/bugs-sheet.py (10-05)', out, fps_of=fps)
+            print('wrote deep16/art/%s.png' % out, sh.size)
