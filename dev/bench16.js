@@ -1526,6 +1526,12 @@
       okK('Aurdin 5 ft from a troll lying at 0 (down ' + !!tz.regenDown + '): advantage ' + edZ.adv.join(',') + ', disadvantage ' + (edZ.dis.join(',') || 'none') + ' (net ' + edZ.net + ')', edZ.dis.indexOf('in melee') < 0 && edZ.net === 1);
       D.d = function (n) { return n === 20 ? 12 : d0K(n); }; var nZ = (Bz.log || []).length; runK(Bz.attack(wz, tz, spZ)); D.d = d0K; var lgZ = (Bz.log || []).slice(nZ).join(' | ');
       okK('its ray hits: a critical from within 5 ft ' + /CRITICAL/.test(lgZ) + ' -- ' + lgZ.slice(0, 140), /CRITICAL/.test(lgZ));
+      // inside the 8-bit game (10-05 night, Griz on the live game: "pyro never came out the door when I played"): the grid adds the fight's own guests only on its doors; the 8-bit's
+      // scene sends the king as its guest (js/deep.js S.skylights). The hand-off as js/embed.js makes it -- the four from a save, the 8-bit's list, the fight's own cast -- with him and without
+      function embedK(withPyro) { var dK = D.save.fixture(8); dK.guests = withPyro ? [D.save.guest('pyro')] : []; var Bx = new D.Battle({ embed: { enemies: ['stonegiant', 'stonegiant', 'troll', 'troll', 'troll', 'troll'], canRun: false }, fight: 'edifice', data: dK }); D.battle = Bx; Bx.enter(); var nx = 0; while (!Bx.order.length && nx++ < 3000) { if (Bx.co.next().done) break; } Bx.round = 4; (Bx.late || []).forEach(function (l) { if (l.round === Infinity) l.round = 4; }); runK(Bx.lateOut()); return Bx; }
+      var BeP = embedK(true), pyE = BeP.units.filter(function (u) { return u.script === 'measure'; })[0], ourE = BeP.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally && !/Townsfolk/.test(u.name); }).map(function (u) { return u.name; });
+      okK('inside the 8-bit game, the king its guest: he is on the field ' + !!pyE + (pyE ? ' at (' + pyE.x + ',' + pyE.y + '), ' + pyE.hp + '/' + pyE.maxhp : '') + '; ours ' + ourE.join(', ') + '; the named cast ' + ['giant1', 'giant2'].map(function (id) { var u = byIdK(BeP, id); return u && u.name; }).join(', '), !!pyE && pyE.hp === pyE.maxhp && ourE.length === 5 && !!byIdK(BeP, 'giant2'));
+      var BeN = embedK(false); okK('... and without him the grid adds none (the bug he played: the scene must send him) -- the king on the field ' + BeN.units.some(function (u) { return u.script === 'measure'; }), !BeN.units.some(function (u) { return u.script === 'measure'; }));
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     D.d = d0K;
     if (errs.length) repK.errors = repK.errors.concat(errs);

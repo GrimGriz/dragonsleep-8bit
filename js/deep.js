@@ -561,7 +561,11 @@
     yield DS.say(L('deep.surfaceUp'), { top: true, auto: 70 });
     DS.field.load('solskaft_deep', 36, 11, 'left'); DS.field.banner = 90;
     yield DS.fade(0, 20);
+    // (Pyro: the fight's own guest -- deep16 fights.js edifice `guests` -- which the grid adds only on its own doors; inside the 8-bit game the scene sends its own (battle.js),
+    // so the king is a guest for this fight and goes back to his city after it. 10-05 night, Griz on the live game: "pyro never came out the door when I played")
+    var hadPyro = EV.hasGuest('pyro'); if (!hadPyro) EV.addGuest('pyro');
     var res = yield* EV.fight(['stonegiant', 'stonegiant', 'troll', 'troll', 'troll', 'troll'], { bg: 'dwarf', music: 'boss', canRun: false, introText: L('deep.skylightsIntro'), deep16: 'edifice' });
+    if (!hadPyro) EV.dropGuest('pyro');
     if (res !== 'win') return;
     g.flags.skylightsWon = 1;
     yield DS.say(L('deep.skylightsWon'));

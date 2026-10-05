@@ -1154,14 +1154,15 @@
         check('the runner and the save: the call heard ' + !!g8.flags.surfaceCall + ', his words said ' + said8.some(function (x) { return /on the Edifice/.test(x); }) + ', the save asked ' + asked8.some(function (a) { return a === 'SAVE/NO'; }) + ' (NO)' + (DS.lastError ? ' ERR ' + String(DS.lastError).slice(0, 160) : ''),
           !!g8.flags.surfaceCall && said8.some(function (x) { return /on the Edifice/.test(x); }) && asked8.some(function (a) { return a === 'SAVE/NO'; }));
         check('the lamp leads with TO THE SURFACE!, no way back up while the call is out: ' + menu8, /^TO THE SURFACE!\//.test(menu8) && !/BACK UP/.test(menu8));
-        check('to the grid: the iframe opened ' + !!fr8 + ', the field on ' + (DS.field && DS.field.map && DS.field.map.id) + ', the fight asked for ' + (fr8 ? 'edifice' : '-'), !!fr8 && DS.field.map.id === 'solskaft_deep');
+        var pyro8 = (g8.guests || []).map(function (x) { return x.id; }).join(',');
+        check('to the grid: the iframe opened ' + !!fr8 + ', the field on ' + (DS.field && DS.field.map && DS.field.map.id) + ', the king a guest for it (' + pyro8 + ') -- he walks out of the vault first (Griz: "pyro never came out the door when I played")', !!fr8 && DS.field.map.id === 'solskaft_deep' && pyro8 === 'pyro');
         if (fr8) {
           window.dispatchEvent(new MessageEvent('message', { source: fr8.contentWindow, data: { type: 'd16:done', result: 'won', party: g8.party.map(function (h) { return { id: h.id, hp: h.hp, maxhp: h.maxhp, slots: h.slots, feats: h.feats }; }), foes: [], inv0: {}, inv1: {} } }));
           drive({}, 3000);
           tap8(function () { return done8; }, 4000);
           var gain8 = g8.party.map(function (h, i) { return h.xp - xp8[i]; });
-          check('won and handed back: the flag ' + !!g8.flags.skylightsWon + ', the four gained ' + gain8.join('/') + ' XP (13000 by four), the line said ' + said8.some(function (x) { return /The last of them goes down/.test(x); }) + ', the script done ' + done8 + ', on ' + DS.field.map.id + (DS.lastError ? ' ERR ' + String(DS.lastError).slice(0, 160) : ''),
-            !!g8.flags.skylightsWon && gain8.every(function (n) { return n === 3250; }) && said8.some(function (x) { return /The last of them goes down/.test(x); }) && done8);
+          check('won and handed back: the flag ' + !!g8.flags.skylightsWon + ', the four gained ' + gain8.join('/') + ' XP (13000 by five: the king stands in the split), the king gone home after ' + !(g8.guests || []).some(function (x) { return x.id === 'pyro'; }) + ', the line said ' + said8.some(function (x) { return /The last of them goes down/.test(x); }) + ', the script done ' + done8 + ', on ' + DS.field.map.id + (DS.lastError ? ' ERR ' + String(DS.lastError).slice(0, 160) : ''),
+            !!g8.flags.skylightsWon && gain8.every(function (n) { return n === 2600; }) && !(g8.guests || []).some(function (x) { return x.id === 'pyro'; }) && said8.some(function (x) { return /The last of them goes down/.test(x); }) && done8);
           asked8.length = 0; var done9 = false; DS.run(function* () { yield* DS.EV.roadMenu(3); }, function () { done9 = true; }); tap8(function () { return done9; }, 600);
           check('after it: the lamp offers the way back up again, no surface: ' + asked8.join(' | '), asked8.some(function (a) { return /BACK UP TO SOLSKAFT/.test(a) && !/SURFACE/.test(a); }));
         }
