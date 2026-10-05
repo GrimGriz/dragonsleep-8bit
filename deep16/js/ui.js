@@ -627,6 +627,7 @@
   // the one under the cursor the tooltip, the inspect and a spell's peek speak of: a rider the mouse is on, or -- the attack cued -- the darkmantle on the square, else the one standing there
   function underCursor(B) {
     var x = B.cursor.x, y = B.cursor.y, w = G.occupant(x, y), hu = B.hoverUnit, a = (B.req && B.req.aim && B.req.aim.who) || B.active;
+    if (hu && hu.hang && G.hanging(hu) && hu.x === x && hu.y === y) return hu; // (climbers on one column: the figure the mouse is on, not the square's first occupant -- the one above it. 10-05, Griz: "can't seem to highlight that troll and see how far up he is")
     if (hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y) return hu;
     if (B.tool === 'attack' && a) { var r = D.Battle.riderOn(a, w, B.units) || D.Battle.tendrilOn(a, w, B.units); if (r) return r; } // (or the roper's tendril on the one there: its AC and what is left of it, 10-02)
     if (B.tool === 'spell' && B.spell && a) { var st = spellTarget(B, a, B.spell.g, x, y); if (st) return st; }

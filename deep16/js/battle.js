@@ -1635,6 +1635,8 @@
         var hB = Math.round((z0 - zB) / stZ), rawC = Math.floor(budC / 2.5), canC = rawC;
         if (rawC < needC) {
           canC = Math.floor((hB + rawC) / 2) * 2 - hB; // (short of the top: down to the mark)
+          var hangersC = this.units.filter(function (w) { return w !== u && w.hang && G.hanging(w) && w.x === u.x && w.y === u.y; }); // (others clinging on this column of the face)
+          while (canC >= 1 && hangersC.some(function (w) { return G.sharesZ(w, { z: z0 + canC * stZ, h: G.bodyH(u) }); })) canC -= 2; // (no two bodies in one band of the face: it stops under the one above, a file up the wall -- 10-05, the pane: two giants and a troll clinging on one square, the giants at one height, the troll under them unpickable)
           if (canC < 1) { u.anim = 'idle'; return; }
           var zC = z0 + canC * stZ, spentC = Math.ceil(canC * 2.5 / 5) * 5;
           u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * canC, true), mode: 'climb' };
@@ -2355,7 +2357,7 @@
     // an object with a damage threshold (SRD 5.1 Objects: a blow under it is superficial) and resistance to everything (the skylight, 10-04 night)
     if (u.threshold && n < u.threshold) { FX.float('glances off', u, D.PAL.ramps.silver[5]); return; }
     if (u.object && u === this.skylight && this.skyHit == null) this.skyHit = this.round; // (the first bang on the glass: the garrison's hatch opens the round after -- Battle.hatchOut, 10-05)
-    if (u.resistAll && !/^(poison|psychic)$/.test(type || '')) { n = Math.floor(n / 2); if (n <= 0) return; }
+    if (u.resistAll && !/^(poison|psychic)$/.test(type || '') && !(u.object && type === 'thunder')) /* (thunder shatters glass: the skylight's resistance to everything -- magically harder than glass -- stands against all but Shatter, the one area the SRD lets hurt an object; its threshold of 8 still holds. 10-05, Griz: "SRD only shatter is even nicer") */ { n = Math.floor(n / 2); if (n <= 0) return; }
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
     if (type === 'fire' && D.magic.burnWebs) D.magic.burnWebs(this, G.foot(u)); // (fire on one standing in a web burns the web: magic.js)
     // Talmok rages when he is first hit: blades and fists do half from then on, his own blows +2
@@ -2446,12 +2448,13 @@
   // a clinging climber hit (10-04 night, Griz: "SRD say anything about clinging climbers, cause I think dex saving throws on damage..." -- the SRD 5.1 has nothing for a climber; a flier
   // knocked prone or held still falls, and concentration's save is the shape taken): a Dexterity save, DC 10 or half the damage, whichever is higher, or it loses its hold and falls
   // the height it had climbed (1d6 a 10 ft, prone). Ours, not the SRD's; the fall's own damage asks no second save
-  Battle.prototype.clingSave = function (u, dmg) {
-    var dc = Math.max(10, Math.floor(dmg / 2)), sv = RU.save(u, 'dex', dc), fz = u.hang.z, ft = Math.round((fz - G.map.gz(u.x, u.y)) / G.map.def.step) * 2.5;
-    if (sv.ok) { this.card(['{y}' + nameOf(u) + '{/} keeps its hold on the face: DEX ' + RU.saveText(sv) + ' against DC ' + dc + '  {n}HOLDS{/}'], 200); return; }
+  // (`knocked`: the text of a forced fall -- a push -- in place of the save, which it does not get: magic.js M.push, 10-05)
+  Battle.prototype.clingSave = function (u, dmg, knocked) {
+    var dc = Math.max(10, Math.floor(dmg / 2)), sv = knocked ? null : RU.save(u, 'dex', dc), fz = u.hang.z, ft = Math.round((fz - G.map.gz(u.x, u.y)) / G.map.def.step) * 2.5;
+    if (sv && sv.ok) { this.card(['{y}' + nameOf(u) + '{/} keeps its hold on the face: DEX ' + RU.saveText(sv) + ' against DC ' + dc + '  {n}HOLDS{/}'], 200); return; }
     delete u.hang; u.tween = { fx: u.x, fy: u.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
     var onC = this.under(u), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null; // (onto whoever stood under it: the cushion, the dice split -- 10-05, landOn)
-    this.card(['{o}' + nameOf(u) + ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc + ' -- falls ' + ft + ' ft' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands on its feet.' : (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 240);
+    this.card(['{o}' + nameOf(u) + (knocked || ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc) + ' -- falls ' + ft + ' ft' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands on its feet.' : (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 240);
     if (onC.length) { this.landOn(u, ft, fd); return; }
     u.conds.prone = true;
     if (fd) this.hurt(u, fd.total, 'bludgeoning', { fall: true });

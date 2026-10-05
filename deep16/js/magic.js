@@ -119,7 +119,9 @@
   function roostNote(B) { return B && B.fight && B.fight.roost ? ' -- {r}BRIGHT LIGHT, UNDER THE ROOST{/}' : ''; }
 
   // ------------------------------------------------------------------ shapes
-  M.inRange = function (u, g, x, y) { return Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5 <= (g.range || 0) && G.losPoint(u.x, u.y, x, y) && !(g.see && g.shape !== 'darts' && D.battle && !M.seesSq(D.battle, u, x, y)); }; // (a point you can see -- Call Lightning, Black Tentacles, Guardian of Faith, the Conjures: data/spells.js `see`, 10-02)
+  // (a teleport's 30 ft is a distance, up and down as well as across -- height as a diagonal, as G.dist has it: from the roof's edge the street 45 ft below is out of Misty Step's
+  // reach, where the flat count had let it jump down; 10-05, Griz: "1 agreed")
+  M.inRange = function (u, g, x, y) { var dzT = g.shape === 'teleport' && G.tall() ? Math.floor(Math.abs(G.map.gz(x, y) - G.gzAt(u, u.x, u.y)) / G.map.def.step / 2) : 0; return Math.max(Math.abs(x - u.x), Math.abs(y - u.y), dzT) * 5 <= (g.range || 0) && G.losPoint(u.x, u.y, x, y) && !(g.see && g.shape !== 'darts' && D.battle && !M.seesSq(D.battle, u, x, y)); }; // (a point you can see -- Call Lightning, Black Tentacles, Guardian of Faith, the Conjures: data/spells.js `see`, 10-02)
   M.seesSq = function (B, u, x, y) { return M.seeWhy(B, u, { x: x, y: y, size: 1, conds: {} }).ok; };
   // a foe's square aimed at in the dark by a spell that names one creature and asks no sight of it (10-02, Griz: "allow unseen foes only by guessing the square"): whoever
   // stands there takes it -- an empty square takes nothing but the slot (js/magic.js M.cast). Not a friend's spell: a friend is found where you know them (M.targetOK)
@@ -543,7 +545,7 @@
     if (g.shape === 'sphere' || g.shape === 'cube') { FX.projectile(u, { x: cx, y: cy, size: 1 }, 'fire'); yield { fx: 1 }; }
     var fromMe = g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave';
     FX.bloom(fromMe ? u.x : cx, fromMe ? u.y : cy, sq, ramp);
-    var caught = B.units.filter(function (w) { return G.present(w) && (w.hp > 0 || w.regenDown) && G.inArea(w, sq); }); // (a troll down and knitting is caught too: a fireball burns it where it lies -- 10-05)
+    var caught = B.units.filter(function (w) { return G.present(w) && (w.hp > 0 || w.regenDown) && G.inArea(w, sq) && (!w.object || id === 'shatter'); }); // (an object -- the Skylights' glass -- is caught by Shatter alone: SRD 5.1, "A nonmagical object that isn't being worn or carried also takes the damage"; a Fireball ignites flammables and hurts creatures. 10-05, Griz: "SRD only shatter is even nicer") // (a troll down and knitting is caught too: a fireball burns it where it lies -- 10-05)
     // the Globe of Invulnerability (SRD 5.1: "the area within the barrier is excluded from the areas affected by such spells"): those inside it, the
     // caster outside, are not caught; the card says so
     var inGlobe = M.globed ? caught.filter(function (w) { return M.globed(B, u, w, sp.level); }) : [];
@@ -945,6 +947,7 @@
   // a shove away from `from`, n squares (Thunderwave's 10 ft): each square only if the body can stand there
   M.push = function (B, from, w, n) {
     if (!w || w.dead || w.hp <= 0 || w.bound) return;
+    if (w.hang && G.hanging(w)) { B.clingSave(w, 0, w.hang.rope ? ' is knocked off the rope' : ' is knocked off the face'); return; } // (a climber pushed -- Thunderwave, Gust of Wind -- comes off and falls its height, no second save; it had walked its foot square along the street and stood there unhurt. 10-05, Griz: "2 agreed")
     if (w.riding) return; // (a rider -- a darkmantle on a head, a familiar on its wizard -- goes where the one it rides goes: battle.js mount)
     var dx = Math.sign(w.x - from.x), dy = Math.sign(w.y - from.y), x0 = w.x, y0 = w.y, moved = 0;
     if (!dx && !dy) return;

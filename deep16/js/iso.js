@@ -195,11 +195,13 @@
             // ramp, lighter at the glass and darker toward the floor, a darker course every 0.19 of a square running along the wall; the north face lit a step over the west, as a raised
             // square's two faces are; a corner tile shows both, the nearer wall at each pixel. The tint, the gloss and the silver edge below go over it as over the orchard; a tile touching
             // the Sunshaft's circle and its rim keeps what it had
-            var nbN = m.at(s.x, s.y - 1), nbW = m.at(s.x - 1, s.y), wB = 0.58;
-            var wNd = (!nbN || nbN.ch !== 'G') && fy2 < wB ? fy2 / wB : 9, wWd = (!nbW || nbW.ch !== 'G') && fx2 < wB ? fx2 / wB : 9, wD = Math.min(wNd, wWd);
+            var nbN = m.at(s.x, s.y - 1), nbW = m.at(s.x - 1, s.y), nbN2 = m.at(s.x, s.y - 2), nbW2 = m.at(s.x - 2, s.y), wB = 1.16; // (the band runs two rows deep: a 15 ft wall, where one row read as 7.5 -- 10-05, Griz: "sonnet had the notion right, but that looks at most 7.5 ft, aiming for 15")
+            var isG = function (t) { return !!(t && t.ch === 'G'); };
+            var dN = !isG(nbN) ? fy2 : !isG(nbN2) ? 1 + fy2 : 9, dW = !isG(nbW) ? fx2 : !isG(nbW2) ? 1 + fx2 : 9; // (tiles from the wall, the pixel's own fraction in: the edge row 0..1, the second 1..2)
+            var wNd = dN < wB ? dN / wB : 9, wWd = dW < wB ? dW / wB : 9, wD = Math.min(wNd, wWd);
             var shNx = sh ? Math.max(s.x - sh[0], 0, sh[0] - s.x - 1) : 9, shNy = sh ? Math.max(s.y - sh[1], 0, sh[1] - s.y - 1) : 9;
             if (wD < 1 && !inShaft && !rimS && (!sh || Math.hypot(shNx, shNy) >= sh[2] + 0.22)) {
-              var wIsN = wNd <= wWd, wE = wIsN ? fy2 : fx2, wV = (wIsN ? 0.62 : 0.5) - wD * 0.32 + (fine - 0.5) * 0.08;
+              var wIsN = wNd <= wWd, wE = wIsN ? dN : dW, wV = (wIsN ? 0.62 : 0.5) - wD * 0.32 + (fine - 0.5) * 0.08;
               if (wE > 0.08 && (wE / 0.19) % 1 < 0.34) wV -= 0.2;
               floor = rampPick(stone, wV, ix, iy);
             }
