@@ -371,6 +371,7 @@
     if (I.mouse.y >= BAR_Y) return true;
     return (B.uiRects || []).some(hit);
   }
+  var AIMS = { rope: 1, torch: 1, item: 1, help: 1, lay: 1, detach: 1, breaktendril: 1 }; // (the aimed tools the right button puts away: turnInput)
   function turnInput(B, u) {
     if (B.readying && !B.list) { B.readying = null; B.clearCards(); } // (backed out of READY's wheel: nothing readied, nothing spent)
     var st = UI.opts.style, any = I.pressed('a') || I.pressed('b') || I.pressed('end') || I.mouse.click;
@@ -407,6 +408,9 @@
       if (B.picks && B.picks.length) { B.picks.pop(); return; }
       B.tool = rest(); B.spell = null; B.peek = null; B.clearCards(); return;
     }
+    // (an item or a feature aimed -- the Rope & Grapple, a torch to throw, a potion to give, Help, Lay on Hands, PULL IT OFF, BREAK THE TENDRIL: the right button puts it away, as X does --
+    // 10-05, Griz: "Right-click cancel rope item use")
+    if (I.mouse.rbtn && AIMS[B.tool]) { D.sfx('cancel'); B.tool = rest(); B.spell = null; B.clearCards(); return; }
     if (I.mouse.rclick && !overUI(B)) { var w0 = underCursor(B) || etherealAt(B, B.cursor.x, B.cursor.y); if (w0 && !w0.tendril) B.inspect = w0; return; } // (a tendril has no sheet to inspect: the tooltip says what it is)
     // the pad (Griz 09-28): the left stick pressed in, before anything on the wheel is chosen, drops the wheel (and a list on
     // it) and the cursor is free on the grid; with no wheel up it recentres, as C does. The right stick's left/right (or a
@@ -719,7 +723,7 @@
       if (v === 'rope') return UI.command(B, u, { do: 'ropeclimb', x: x, y: y });
       return;
     }
-    if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or within 30 ft below and in sight.{/}'], 140); }
+    if (tool === 'rope') { if (v === 'ok') return UI.command(B, u, { do: 'rope', x: x, y: y }); return B.card(['{o}The top of a face: from beside it up there, or from below within the rope\'s 50 ft and in sight.{/}'], 140); }
     if (tool === 'help') { if (v === 'ok') return UI.command(B, u, { do: 'help', target: foe || w }); return B.card(['{o}Help: a foe beside you, or a friend beside you asleep or held fast.{/}'], 120); }
     if (tool === 'lay') { if (v === 'ok') return UI.command(B, u, { do: 'lay', target: w }); return B.card(['{o}Lay on Hands is touch: yourself or an ally beside you.{/}'], 120); }
     if (tool === 'item') { if (v === 'ok') return UI.command(B, u, { do: 'item', id: B.itemId, target: w }); return B.card(['{o}Not a target for that.{/}'], 120); }
@@ -2117,9 +2121,12 @@
     var Bq = D.battle, ah = Bq && Bq.active;
     if (u.side === 'foe' && ah && ah.side === 'party' && !ah.guest && Bq.req && Bq.req.turn === ah) { var sw = D.magic.seeWhy(Bq, ah, u); if (!sw.ok) lines.push('{o}' + ah.name + ' cannot see it{/} {g}(' + (sw.why === 'dark' ? 'the dark' : sw.why) + '){/}'); }
     var w = 0; lines.forEach(function (l) { w = Math.max(w, D.textWidth(l)); });
-    box(ctx, 6, 40, w + 28, lines.length * 9 + 8, u.side === 'foe' ? R('red', 3) : R('glow', 1));
-    lines.forEach(function (l, k) { D.text(ctx, l, 12, 44 + k * 9, R('bone', 1)); });
-    UI.drawGlyph(ctx, ty, 6 + w + 28 - 10, 50); // (its creature type: the glyphs above)
+    // the upper left -- or the upper right while the mouse is where the card would be, so it never sits over what is being aimed at (10-05, Griz: "we have the inspect card
+    // coming up during spell selection, but I think I need it to shift to the right side of the screen when the mouse is in the up left corner")
+    var bw = w + 28, bh = lines.length * 9 + 8, m0 = I.mouse, bx = m0 && m0.inside && m0.x <= 6 + bw + 12 && m0.y <= 40 + bh + 12 ? D.W - bw - 6 : 6;
+    box(ctx, bx, 40, bw, bh, u.side === 'foe' ? R('red', 3) : R('glow', 1));
+    lines.forEach(function (l, k) { D.text(ctx, l, bx + 6, 44 + k * 9, R('bone', 1)); });
+    UI.drawGlyph(ctx, ty, bx + bw - 10, 50); // (its creature type: the glyphs above)
   }
   function menu(ctx, B) {
     var M = B.menu;
