@@ -1001,6 +1001,26 @@
   // in sight for a throw, from where the thrower is -- a hanger's eye at its hang, not at the rope's foot -- to a square's floor at height z (10-05, Griz: "2 yes" to: sight read from the
   // thrower's own height, and the top edge of a face you stand under counts as seen). ropeSq asks it of the top and of the squares under it the rope would hang to: nothing overhangs a
   // face, so whoever sees its foot sees its lip
+  // the edge a blow from `from` would knock `u` off (10-05, the male giant's rocks): the square 5 ft straight back from the thrower's middle, open, free, and 10 ft or more below where
+  // u stands -- { at, ft } -- or nothing (no edge there: the rock only knocks prone, as the SRD has it). One square's body; one hanging on a rope or a face is not standing on an edge
+  Battle.knockSq = function (from, u) {
+    if ((u.size || 1) > 1 || (u.hang && G.hanging(u))) return null;
+    var fs = from.size || 1, cx = from.x + (fs - 1) / 2, cy = from.y + (fs - 1) / 2, ddx = u.x - cx, ddy = u.y - cy, sx = Math.abs(ddx) < 0.5 ? 0 : Math.sign(ddx), sy = Math.abs(ddy) < 0.5 ? 0 : Math.sign(ddy);
+    if (!sx && !sy) return null;
+    var px = u.x + sx, py = u.y + sy, s = G.map.at(px, py), st = G.map.def.step, drop = G.map.gz(u.x, u.y) - G.map.gz(px, py);
+    if (!s || !s.walk || G.occupant(px, py, u) || drop < 4 * st) return null;
+    return { at: [px, py], ft: Math.floor(drop / st) * 2.5 };
+  };
+  Battle.prototype.knockOff = function* (u, sq) {
+    var z0 = G.gzAt(u, u.x, u.y);
+    u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
+    u.x = sq.at[0]; u.y = sq.at[1]; delete u.hang; this.keepInView(u);
+    yield STEP_FRAMES + 6;
+    var fd = D.roll(Math.floor(sq.ft / 10) + 'd6');
+    this.card(['{o}' + nameOf(u) + ' goes over the edge: ' + sq.ft + ' ft, ' + fd.total + ' bludgeoning, and lands prone.{/}'], 240);
+    this.hurt(u, fd.total, 'bludgeoning', {});
+    yield 20;
+  };
   Battle.seesFrom = function (u, x, y, z) {
     var st = G.map.def.step, ez = G.gzAt(u, u.x, u.y) + 2 * st, L = G.line(u.x, u.y, x, y);
     if (!L.every(function (p) { var q = G.map.at(p[0], p[1]); return q && q.open; })) return false;
@@ -1845,10 +1865,13 @@
       yield 30;
     }
     // a knockdown (the wolf's bite, the worg's, Talmok's fists, the giant's rock): STR or prone
-    if (atk.prone && !tgt.dead && tgt.hp > 0 && !tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')) {
+    // (atk.knockOff: the same save against being knocked back off the edge it stands on -- the Skylights' male giant's rocks, 10-05, Griz: "the male throws his two rocks at people on
+    // the edge (once he's made it to the window) with a save vs knockback off the edge": failed, 5 ft straight back from the thrower and down, the fall's 1d6 a 10 ft, prone)
+    var offSq = atk.knockOff && atk.prone && !tgt.dead && tgt.hp > 0 ? Battle.knockSq(att, tgt) : null;
+    if (atk.prone && !tgt.dead && tgt.hp > 0 && (offSq || (!tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')))) {
       var ks = RU.save(tgt, 'str', atk.prone);
-      this.card(['{r}' + nameOf(tgt) + '{/}: STR save  ' + RU.saveText(ks) + ' vs DC ' + ks.dc + '  ' + (ks.ok ? '{n}STAYS UP{/}' : '{o}KNOCKED PRONE{/} {g}(half the move to rise){/}')]);
-      if (!ks.ok) { tgt.conds.prone = true; D.sfx('hit'); }
+      this.card(['{r}' + nameOf(tgt) + '{/}: STR save  ' + RU.saveText(ks) + ' vs DC ' + ks.dc + '  ' + (ks.ok ? (offSq ? '{n}HOLDS THE EDGE{/}' : '{n}STAYS UP{/}') : offSq ? '{o}KNOCKED OFF THE EDGE{/}' : '{o}KNOCKED PRONE{/} {g}(half the move to rise){/}')]);
+      if (!ks.ok) { if (offSq) yield* this.knockOff(tgt, offSq); if (!tgt.noProne && !RU.immuneTo(tgt, 'prone')) tgt.conds.prone = true; D.sfx('hit'); }
       yield 24;
     }
     // the chuul's tentacles on one it holds: CON or poisoned, and paralyzed while the poison lasts (a CON save each turn)

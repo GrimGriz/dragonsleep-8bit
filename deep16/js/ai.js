@@ -892,18 +892,18 @@
       yield 30; return;
     }
     // no one in reach after moving: a ranged attack if it has one (the giant's rock, the drow's hand crossbow)
-    // nothing but the window throws at the window alone, and only what it carried (a fight's foe `rocks`; 10-05, Griz: "be problematic if the male has infinite rocks - two max"):
-    // the glass out of its reach, in range and in sight -- from the roof's edge, say; on the face it climbs, and on the street the facade hides it
-    if (u.missionOnly && ranged.length && (u.rocks == null || u.rocks > 0)) {
-      var skyR = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); })[0], rk = ranged[0];
-      if (skyR && rk.range && G.dist(u, skyR) > reachOf(u) && G.dist(u, skyR) <= rk.range[1] && G.los(u, skyR).clear) {
-        T.action = 0; if (u.rocks != null) u.rocks--;
-        yield* B.attack(u, skyR, rk);
-        if (u.rocks != null) B.card(['{g}(' + (u.rocks ? u.rocks + ' rock' + (u.rocks > 1 ? 's' : '') + ' left' : 'its last rock') + '){/}'], 160);
-        return;
-      }
+    // nothing but the window, at the window: its rocks -- only what it carried (a fight's foe `rocks`) -- at whoever stands on the edge where a blow knocks them off, the save against
+    // going over (battle.js attack, atk.knockOff), the nearest first; else its blows at the glass (10-05, Griz: "be problematic if the male has infinite rocks - two max"; "can we make
+    // it so the male throws his two rocks at people on the edge (once he's made it to the window) with a save vs knockback off the edge?")
+    var rk = ranged[0], rocksLeft = function () { return u.rocks == null || u.rocks > 0; };
+    if (u.missionOnly && rk && rk.range && rocksLeft()) {
+      var skyR = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); })[0];
+      var edgeT = skyR && G.dist(u, skyR) <= reachOf(u) ? heroes(B, u).filter(function (w) { return !w.object && G.standing(w) && D.Battle.knockSq(u, w) && G.dist(u, w) <= rk.range[1] && G.los(u, w).clear; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0] : null;
+      if (edgeT) { T.action = 0; yield* rockAt(edgeT, Object.assign({}, rk, { knockOff: true })); return; }
     }
-    if (!inReachNow.length && ranged.length && !u.missionOnly) { if (yield* volley(B, u)) return; } // (nothing but the window throws at no one: 10-05)
+    function* rockAt(t, a) { if (u.rocks != null) u.rocks--; yield* B.attack(u, t, a); if (u.rocks != null && !u.dead && u.hp > 0) { B.card(['{g}(' + (u.rocks ? u.rocks + ' rock' + (u.rocks > 1 ? 's' : '') + ' left' : 'its last rock') + '){/}'], 160); yield 10; } }
+    // (a fight's `rocks` on the others too -- the female, 10-05, Griz: "1 - yes": the throw while it has one, then none)
+    if (!inReachNow.length && ranged.length && !u.missionOnly && rocksLeft()) { var rk0 = u.rocks; if (yield* volley(B, u)) { if (rk0 != null) { u.rocks = Math.max(0, rk0 - 1); B.card(['{g}(' + (u.rocks ? u.rocks + ' rock' + (u.rocks > 1 ? 's' : '') + ' left' : 'its last rock') + '){/}'], 160); } return; } } // (nothing but the window throws at no one but those on the edge: 10-05)
     T.action = 0;
     var names = Object.keys(u.attacks || {}), routine = Array.isArray(u.multi) ? u.multi : [];
     if (!routine.length) for (var i = 0; i < (u.multi || 1); i++) routine.push(names[0]);

@@ -23,7 +23,7 @@
   else if (/[?&]show=/.test(q)) D.push(D.show.fight(q)); // the test ground: ?show=grick -- every row of a creature's sheet, twice, in bright, dim and dark (js/show.js)
   else if (/[?&]npc=/.test(q)) D.push(D.npcFight(q)); // the class floor: ?npc=cleric,wizard&lvl=5 (&vs=fighter,rogue: a band instead of the four) (js/classes.js)
   else if (/[?&]keeperfight\b/.test(q) && D.keeper) D.push(D.keeper.fight(q)); // the Keeper of the Flooded Stair (js/keeper.js)
-  else if (/[?&]fight=[a-z0-9]+/.test(q)) { var fq = /[?&]fight=([a-z0-9]+)/.exec(q)[1], lq = /[?&]lvl=(\d+)/.exec(q); D.push(new D.Battle({ ladder: true, fight: fq, level: lq ? +lq[1] : undefined, measure: /[?&]full\b/.test(q) ? false : undefined })); } // a fight by its id, the four at its level (&lvl=N another; &full: Pyro at full): ?fight=edifice, the Skylights (10-05)
+  else if (/[?&]fight=[a-z0-9]+/.test(q)) { var fq = /[?&]fight=([a-z0-9]+)/.exec(q)[1], lq = /[?&]lvl=(\d+)/.exec(q); D.push(new D.Battle({ ladder: true, fight: fq, level: lq ? +lq[1] : undefined, measure: /[?&]full\b/.test(q) ? false : /[?&]held\b/.test(q) ? true : undefined })); } // a fight by its id, the four at its level (&lvl=N another; &full or &held: Pyro at full or taking the measure, whatever the fight says): ?fight=edifice, the Skylights (10-05)
   else if (/[?&]fxgallery\b/.test(q)) D.push(D.fxGallery(q)); // the spell gallery: every spell cast in turn (js/gallery.js)
   else if (/[?&]ladder\b/.test(q)) D.push(new D.Ladder({ party: /[?&]party=ours\b/.test(q) ? 'ours' : null, play: /[?&]play\b/.test(q) })); // (&party=ours: the tester ladder; &play: you run our four, recorded)
   else if (/[?&]gate\b/.test(q)) D.push(new D.Gate());

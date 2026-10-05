@@ -1217,7 +1217,7 @@
       okE('the self-click asked and took it up: ropes ' + ropes0 + ' -> ' + ropes1 + ', the action ' + fg.turn.action, ropes1 === ropes0 - 1 && fg.turn.action === 0);
       // a grapple from the street (45 ft) cannot reach the rim; from a hang 15 ft up the dwarves' rope it can (30 ft)
       rg.x = 13; rg.y = 10; var q2 = D.Battle.ropeSq(Be, rg, 13, 9); rg.x = 11; rg.y = 10; rg.hang = { rope: Be.ropes[0], z: 6 * st }; var q1 = D.Battle.ropeSq(Be, rg, 12, 9), dH = G.dist(rg, { x: 12, y: 9, size: 1 }), lH = G.losPoint(11, 10, 12, 9); delete rg.hang; rg.x = 13; rg.y = 12;
-      okE('a grapple from the street, 45 ft, cannot reach the rim: ' + !q2 + '; from 15 ft up the rope the rim is ' + dH + ' ft off, in line ' + lH + ', the throw offered ' + !!q1 + ' (a grapple thrown from a rope hang is not built: G.dist reads the hanger at its foot -- for the next seat)', !q2);
+      okE('a grapple from the street, 45 ft, cannot reach the rim: ' + !q2 + '; from 15 ft up the rope the rim is ' + dH + ' ft off, in line ' + lH + ', the throw offered ' + !!q1 + ' (that rope was taken up above, so this hang reads at its foot; a throw from a real hang: the 10-05 check below)', !q2);
       // the costs: a climb speed pays the height (SRD), a hand cannot take the 45 ft face, the arch's sill is 30 ft of movement by hand
       var size0 = og.size, climbs0 = og.climbs; og.size = 1; og.climbs = 40; delete og.hang;
       var cC = G.stepCost(og, 20, 10, 20, 9); og.climbs = climbs0; var cS = G.stepCost(fg, 15, 13, 15, 12), cF = G.stepCost(fg, 20, 10, 20, 9); og.size = size0;
@@ -1333,9 +1333,17 @@
       okE('the male giant with Barley beside him: struck at no one ' + !/Giant > /.test(mLogK) + ', on the face ' + !!(maleK.hang && maleK.hang.face) + ' -- ' + mLogK.slice(0, 160), !/Giant > /.test(mLogK) && !!(maleK.hang && maleK.hang.face) && maleK.missionOnly && maleK.rocks === 2);
       var n3K = (Bk.log || []).length; runE(D.ai.turn(Bk, tr1K)); var tLogK = (Bk.log || []).slice(n3K).join(' | ');
       okE('a troll 20 ft from Barley, Barley 5 ft from the male: it goes for Barley ' + /Troll > Barley/.test(tLogK) + ', not up the face ' + !(tr1K.hang && tr1K.hang.face) + ' -- ' + tLogK.slice(0, 120), /Troll > Barley/.test(tLogK) && !(tr1K.hang && tr1K.hang.face) && tr1K.guard === 'giant2');
-      delete maleK.hang; maleK.x = 21; maleK.y = 5; var rockK = [];
-      for (var rkI = 0; rkI < 3; rkI++) { D.rules.startTurn(maleK); maleK.turn.move = 0; var n4K = (Bk.log || []).length; runE(D.ai.brute(Bk, maleK)); rockK.push(/Giant > the skylight.*Rock|Rock/.test((Bk.log || []).slice(n4K).join(' ')) ? 'rock' : '-'); }
-      okE('the male on the roof, the glass 30 ft off and no move: ' + rockK.join(',') + ', rocks left ' + maleK.rocks, rockK.join(',') === 'rock,rock,-' && maleK.rocks === 0);
+      // at the window (the glass 5 ft off), no move: Barley on the glass beside nothing -- the clubs at the glass; Barley on the front edge (30,9) -- a rock, the STR save failed, over
+      // the edge to the street (31,10), prone; again; then no rock left -- the clubs at the glass
+      delete maleK.hang; maleK.x = 26; maleK.y = 4; var rockK = [], skyK = Bk.skylight, str0K = barK.saves.str, d0K = D.d; barK.saves.str = -20; D.d = function (n) { return n === 20 ? 19 : d0K(n); };
+      [[24, 4], [30, 9], [30, 9], [30, 9]].forEach(function (p) {
+        barK.x = p[0]; barK.y = p[1]; barK.conds = {}; delete barK.hang; barK.hp = barK.maxhp; D.rules.startTurn(maleK); maleK.turn.move = 0;
+        var n4K = (Bk.log || []).length, sk0 = skyK.hp; runE(D.ai.brute(Bk, maleK)); var lg = (Bk.log || []).slice(n4K).join(' ');
+        rockK.push(/Giant > Barley\s+Rock/.test(lg) ? (barK.x === 31 && barK.y === 10 && barK.conds.prone && barK.hp < barK.maxhp ? 'off' : 'rock?') : skyK.hp < sk0 || /Giant > the skylight/.test(lg) ? 'glass' : '-');
+      });
+      D.d = d0K; barK.saves.str = str0K; barK.conds = {};
+      okE('the male at the window: Barley on the glass, then on the edge three times: ' + rockK.join(',') + ', rocks left ' + maleK.rocks, rockK.join(',') === 'glass,off,off,glass' && maleK.rocks === 0);
+      var femK = byK('giant1'); okE('the female carries two rocks: ' + femK.rocks + '; Pyro at full here (measure false): ' + (Bk.fight.measure === false), femK.rocks === 2 && Bk.fight.measure === false);
     } catch (eE) { repE.errors.push(String(eE && eE.stack || eE).slice(0, 900)); }
     D.d = d0E;
     if (errs.length) repE.errors = repE.errors.concat(errs);
