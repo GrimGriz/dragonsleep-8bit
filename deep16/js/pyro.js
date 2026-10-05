@@ -45,8 +45,10 @@
   function* watch(B) {
     var ks = kings(B); if (!ks.length) return;
     var u = ks[0], P = measure(B, u);
-    if (!P.held) return;
+    var kf = !!(B.fight && B.fight.kingFalls); // (a fight where his fall ends it even at full -- the Skylights, 10-05: the watch had returned before the check at full, so Aid lifted him off the street and he went for the stair)
+    if (!P.held && !kf) return;
     if (u.hp <= 0 && !P.down) { P.down = true; B.card(['{r}Pyronimus is down.{/}'], 360); D.sfx('ko'); yield 40; return; }
+    if (!P.held) return;
     var ours = party(B), left = ours.some(function (w) { return w.left && w.hp > 0; }), down = ours.some(function (w) { return !w.left && w.hp <= 0; });
     if (P.phase < 3 && left) {
       P.phase = 3; flip(u); B.lightMap = null; D.sfx('encounter');
@@ -68,7 +70,11 @@
   var over0 = BP.over;
   // ... and in a fight that says so (data/fights.js `kingFalls`: the Skylights), at full as well -- the king cannot die on Fountain Street, so the fight is fought again
   // (10-05, Griz: "code the 'Obviously that didn't happen' reload if Pyro goes down")
-  BP.over = function () { if (this.pyro && this.pyro.down && (this.pyro.held || (this.fight && this.fight.kingFalls))) return 'pyro'; return over0.apply(this, arguments); };
+  BP.over = function () {
+    if (this.pyro && this.pyro.down && this.pyro.held) return 'pyro';
+    if (this.fight && this.fight.kingFalls && kings(this).some(function (w) { return w.hp <= 0 || w.dead; })) return 'pyro'; // (the moment he is at 0: before any Aid or Cure finds him)
+    return over0.apply(this, arguments);
+  };
   var finish0 = BP.finish;
   BP.finish = function* (o) {
     if (o === 'pyro') { this.fight = Object.assign({}, this.fight, { lost: this.fight && this.fight.kingFalls ? "THE KING FALLS.  Obviously that didn't happen." : 'THE KING FALLS.' }); o = 'lost'; }
