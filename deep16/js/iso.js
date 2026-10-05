@@ -58,7 +58,7 @@
   iso.noise = { vnoise: vnoise, fbm: fbm, dith: dith, rampPick: rampPick, h2: h2 };
 
   // ------------------------------------------------------------------ the map
-  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1, ',': 1, 'g': 1, 'T': 1, 'W': 1, 'V': 1, 'k': 1, 'f': 1, 'w': 1, 'D': 1, 'y': 1, 'G': 1 }; // (G: a roof of glass -- the Edifice's skylights, walkable, the orchard seen through it: bake, 10-04 night)
+  var OPEN = { '.': 1, '=': 1, 'r': 1, '~': 1, 'L': 1, '/': 1, 'P': 1, 'c': 1, ',': 1, 'g': 1, 'T': 1, 'W': 1, 'V': 1, 'k': 1, 'f': 1, 'w': 1, 'D': 1, 'y': 1, 'G': 1, 'd': 1 }; // (G: a roof of glass -- the Edifice's skylights, walkable, the orchard seen through it: bake, 10-04 night; d: a door's threshold, dressed stone, the doorway painted on the face above it)
   // (the Settling, 09-30: D deep water, the landlord's under the fall; y a cradle, the crawler pens' timber crib. A map's `deepWater`
   // names the water nothing walks in -- grid.js lets only what lives there (bound to it, or a swimmer) in)
   // set design (09-27, Griz: "proceed with set design"): the things a square can hold that stand in the way -- not walked
@@ -153,7 +153,7 @@
           shade -= Math.max(0, 0.9 - rock) * 0.22;             // darker where the floor meets the wall
           if (s.gz) shade += 0.08;                                // the ledge catches a little more light
           var col;
-          if (s.ch === '=') {                                     // dressed stone: cold, with slab seams
+          if (s.ch === '=' || s.ch === 'd') {                     // dressed stone: cold, with slab seams (d: a door's threshold, the same stone)
             var fx = gx + 0.5 - Math.floor(gx + 0.5), fy = gy + 0.5 - Math.floor(gy + 0.5);
             var seam = fx < 0.04 || fy < 0.04 || (fx > 0.49 && fx < 0.53 && (Math.floor(gy + 0.5) % 2));
             col = seam ? silver[1] : rampPick(silver, 0.25 + n * 0.35, ix, iy);
@@ -204,12 +204,22 @@
           var drop = s.gz - nz;
           if (drop <= 0) return;
           var right = d[0] === 1; // the +gx face shows lower-right, the +gy face lower-left
+          var nb = m.at(s.x + d[0], s.y + d[1]), doorF = !right && nb && nb.ch === 'd', fallF = !right && s.falls; // (a doorway on the +gy face above a threshold tile; the fountains' tiny falls down a sill's face -- 10-04 night)
           for (var k = 0; k < HW; k++) {
             var fx0 = right ? ox + k : ox - HW + k;
             var ytop = right ? oy + HH - Math.floor(k / 2) : oy + Math.floor(k / 2);
             for (var j = 0; j < drop; j++) {
+              if (fallF) { // the water out of the arch's face, a tiny fall into the basin below (the back wall's falls are rockCanvas's)
+                var strkF = vnoise(k * 0.7 + s.x * 13, (ytop + j) * 0.05, seed + 5), wvF = 0.5 + (strkF - 0.5) * 0.9 + (vnoise(k * 2.1, (ytop + j) * 0.35, seed + 6) - 0.5) * 0.3, wcF = rampPick(blue, D.clamp(wvF, 0, 0.99), fx0, ytop + j);
+                if (j >= drop - 6 && dith(fx0, ytop + j) < (j - drop + 7) / 7) wcF = silver[5]; else if (wvF > 0.78) wcF = silver[4]; else if (wvF > 0.66) wcF = silver[2];
+                put(fx0, ytop + j, wcF); continue;
+              }
               var v = (right ? 0.32 : 0.5) + (vnoise(k * 0.3 + s.x * 9, j * 0.12, seed + 60) - 0.5) * 0.3 - (j / drop) * 0.15;
               if (j === 0) v += 0.2;
+              if (doorF && k >= 6 && k < 26 && j >= drop - 40) { // the doorway: dark within, a dressed frame, an arch at the top
+                var fr = k === 6 || k === 25 || j === drop - 40 || (j >= drop - 40 && j < drop - 36 && (k < 9 || k > 22));
+                put(fx0, ytop + j, fr ? silver[3] : j > drop - 4 ? stone[2] : stone[0]); continue;
+              }
               put(fx0, ytop + j, rampPick(stone, v, fx0, ytop + j));
             }
           }

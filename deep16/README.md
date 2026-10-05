@@ -214,6 +214,14 @@ check (Griz: *"for creatures > medium their climbing 5 feet is their top 5 feet?
 `climbLeft`): a face taller than that, the climber takes as far as it goes and clings there, and the AI climbs on next turn (Griz: *"a slow climb speed, like they're
 forcefully digging their way into the walls"*). The troll and the stone giant carry `climbs: 10`, ours, not the SRD's: 45 ft in five turns, hanging on the stone between.
 
+**The defend fight** (10-04 night, `&defend` on the class floor, or `defend: true` on a fight; `data/maps.js` edifice `skylight`; `battle.js` enter, hurt, over; `ai.js`
+brute): the map's skylight stands on the field as a thing of the party's side -- AC 13, 120 HP, a damage threshold of 8 (a blow under it glances off), resistance to
+everything, no turn and no figure, ringed on the glass with its hit points under the strip -- and every foe's mission: it goes for the glass unless one of ours stands
+within its reach. Broken, the Edifice is breached and the fight is lost. Griz: *"make the glass above the hole their target with a high damage resist that they'd
+eventually beat through - like they're trying to make entry into the dwarven place and this is a defend mission."* A clinging climber hit makes a Dexterity save (DC 10
+or half the damage) or loses its hold and falls what it climbed (ours; the SRD has nothing for a climber). The vault's door squares are `d` thresholds with the doorway
+painted on the face above; the fountains pour out of each arch's face in a tiny fall into its own basin; no moat before the vault.
+
 **Hidden, beside a foe** (RULED 10-04 night, Griz: *"one line, but lose stealth on successful hit (it can tell where you are from the force of the blow and
 it's not invisibility, just hide)"*): an attack at a hidden target has disadvantage at any distance (`rules.js RU.edges`; it was beyond 5 ft only, 09-28's
 'heard and felt'), a foe beside her still knows where she is and swings (`ai.js heroes`), and a hit finds her: no longer hidden (`battle.js attack`).

@@ -535,7 +535,7 @@
     var vsl = vs ? vs.split(',').filter(Boolean) : [], fams = (get('fam') || '').split(',').filter(Boolean);
     var familiars = fams.map(function (k, i) { return vsl[i] && R.FAMILIARS[k] ? { kind: k, by: 'p' + i + '-' + vsl[i].split(':')[0] } : null; }).filter(Boolean);
     var map = get('map'), dark = /[?&]dark\b/.test(q) ? true : null;
-    return new D.Battle(Object.assign({ npc: { foes: foes, party: vsl.length ? vsl : null }, watch: /[?&]watch\b/.test(q), familiars: familiars, fightDef: D.classFight(L, { what: what, map: map && D.MAPS[map] ? map : null, dark: dark }) }, o || {}));
+    return new D.Battle(Object.assign({ npc: { foes: foes, party: vsl.length ? vsl : null }, watch: /[?&]watch\b/.test(q), familiars: familiars, fightDef: D.classFight(L, { what: what, map: map && D.MAPS[map] ? map : null, dark: dark, defend: /[?&]defend\b/.test(q), doors: /[?&]doors\b/.test(q) }) }, o || {}));
   };
   NPC.build = function (word, lvl, side, o) {
     // (a word, a spec, or { word, hpLeft, slotsLeft, featsLeft, ... }: the Pocket DM's carry between rungs rides on the word's spec)

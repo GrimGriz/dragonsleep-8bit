@@ -99,7 +99,8 @@
     { id: 'giant', level: 8, map: 'giantcamp', name: 'The Giant\'s Camp', sub: 'the king\'s road, leg three', music: 'boss',
       intro: 'A camp in a cut off the road: duergar, grey and quiet, and behind them, sitting against the wall as if it were part of it, a giant made of the same stone.',
       from: 'the 8-bit game: deep.js S.giant (a stone giant and three duergar)', won: 'IT GOES DOWN LIKE A WALL.',
-      foes: [{ id: 'giant', kind: 'stonegiant', at: [8, 1] }, { id: 'dg1', kind: 'duergar', at: [5, 5] }, { id: 'dg2', kind: 'duergar', at: [11, 5] }, { id: 'dg3', kind: 'duergar', at: [14, 4] }], wave: null },
+      foes: [{ id: 'giant', kind: Math.random() < 0.5 ? 'stonegiant' : 'stonegiantm', at: [8, 1] },     // (her or him, a coin at page load: 10-04, Griz "2 yes")
+              { id: 'dg1', kind: 'duergar', at: [5, 5] }, { id: 'dg2', kind: 'duergar', at: [11, 5] }, { id: 'dg3', kind: 'duergar', at: [14, 4] }], wave: null },
     { id: 'stair', level: 2, map: 'siphon', name: 'Holding the Stair', sub: 'the Warrens, the siphon', music: 'boss',
       intro: 'The siphon runs backward, and the night crews come down the daytime way to stop it. You have the top of the stair.',
       from: 'the 8-bit game: deep.js S.holdStair (a crew boss, two thugs, two of the night crew; the 8-bit game\'s easy fight at 6, hard for four at 2)', won: 'THE STAIR HOLDS.',
@@ -318,7 +319,7 @@
     return { id: o.id || 'classes', level: level, map: o.map || 'hexfloor', dark: o.dark != null ? o.dark : undefined, name: o.name || 'The Class Floor', // (&map=, &dark: js/classes.js npcFight)
       sub: o.sub || ('the Pocket DM: ' + (o.what || 'a class NPC') + ' at ' + level), music: o.music || undefined,
       intro: o.intro || 'The floor is swept. Across it, someone in their own colours has come to see what you are made of.',
-      from: o.from || 'the class NPCs (deep16/js/classes.js): the SRD 5.1 classes at levels 1-6', won: o.won || 'THE FLOOR IS YOURS.', lost: o.lost || 'THE FLOOR IS THEIRS.', foes: [], wave: null, noFlee: true };
+      from: o.from || 'the class NPCs (deep16/js/classes.js): the SRD 5.1 classes at levels 1-6', won: o.won || 'THE FLOOR IS YOURS.', lost: o.lost || (o.defend ? 'THE SKYLIGHT GAVE WAY: THE EDIFICE IS BREACHED.' : 'THE FLOOR IS THEIRS.'), foes: [], wave: null, noFlee: true, defend: !!o.defend, passages: !!o.doors }; // (defend: the map's skylight is the foes' target -- &defend; doors: the passages open -- 10-04 night)
   };
   // a rung's fights: the Cocoon Gallery first on the top rung (the POC, Denny's), then the 8-bit game's set pieces, then
   // the bestiary's (the Cowork seat's first four, `bestiary`)

@@ -1234,9 +1234,10 @@ window.D16.MAPS.edifice = {
   ropes: [[11, 9, 11, 10]], // a rope the dwarves left hung from the rim at the west end, 45 ft to the street (the top square, the foot square)
   ropeBucket: [3, 16], // the bucket of rope and grapples by the first house (battle.js exec 'bucketrope')
   shaft: [29.5, 4.8, 2.8], // the Sunshaft's circle on the third floor, seen through the glass, under the falls at the roof's middle (centre, radius in squares; iso.js bake -- Griz, 10-04 night: "move the light circle to where the pool is now ... increase the radius of the light-hole for symmetry")
-  falls: [[28, 0], [29, 0], [30, 0], [31, 0]], // the waterfall down the back wall's face, into the water at its foot (iso.js rockCanvas -- Griz: "waterfall wall 31, 0 to 28, 0 - water tile 31, 1 to 28, 1")
+  falls: [[28, 0], [29, 0], [30, 0], [31, 0], [13, 10], [14, 10], [17, 10], [18, 10], [21, 10], [22, 10], [25, 10], [26, 10], [34, 10], [35, 10], [38, 10], [39, 10], [42, 10], [43, 10], [46, 10], [47, 10]], // the waterfall down the back wall's face into the water at its foot (iso.js rockCanvas), and the fountains: the water comes out of each arch's face in a tiny fall into its own basin (iso.js bake, the sills' faces -- Griz, 10-04 night: "the water in the fountains comes out in tiny waterfalls into those individual basins"); the big basin before the vault is gone ("stone and no moat")
+  skylight: { at: [29, 5], name: 'the skylight over the Sunshaft', hp: 120, ac: 13, threshold: 8 }, // the monsters' target in a defend fight (&defend, or the fight's `defend: true`): magically harder than glass -- AC 13, 120 HP, a damage threshold of 8, resistance to everything, immune to poison and psychic; broken, the Edifice is breached and the fight lost (battle.js enter, hurt, over -- Griz, 10-04 night: "make the glass above the hole their target with a high damage resist that they'd eventually beat through")
   faces: [[13, 10, 2, 1, 'rough'], [17, 10, 2, 1, 'rough'], [21, 10, 2, 1, 'rough'], [25, 10, 2, 1, 'rough'], [34, 10, 2, 1, 'rough'], [38, 10, 2, 1, 'rough'], [42, 10, 2, 1, 'rough'], [46, 10, 2, 1, 'rough']], // the dwarven carving round the arches: rough footholds up to the sills (grid.js G.faceKind, G.climbDC; the varied footholds, 10-04 night); the sheer face above them stays sheer
-  passages: [[29, 10, 29, 8, 'the vault door'], [30, 10, 30, 8, 'the vault door']], // the vault door on the street and the roof's hatch above it: GO IN / COME OUT for the rest of the move (battle.js Battle.passageAt, exec 'passage' -- Griz, 10-04 night: "Front doors possible?"); the arches are sills, not doors
+  passages: [[29, 10, 29, 8, 'the vault door'], [30, 10, 30, 8, 'the vault door']], // (the door squares are `d`: a threshold tile, the doorway painted on the face above it -- iso.js bake) // the vault door on the street and the roof's hatch above it: GO IN / COME OUT for the rest of the move (battle.js Battle.passageAt, exec 'passage' -- Griz, 10-04 night: "Front doors possible?"); the arches are sills, not doors
   heights: [
     '000000000000000000000000000000000000000000000000000000000000',
     '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
@@ -1281,8 +1282,8 @@ window.D16.MAPS.edifice = {
     '######,,###=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '######,,###=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '######,,###=P==P===P===P===P====P===P===P===P==P=###########',
-    '######,,###======================================###########',
-    '###==========~~==~~==~~==~~~~~~~~=~~==~~==~~==~~=~~~~DDDDDDD',
+    '######,,###==================dd==================###########',
+    '###==========~~==~~==~~==~~=======~~==~~==~~==~~=~~~~DDDDDDD',
     '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
     '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
     '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',

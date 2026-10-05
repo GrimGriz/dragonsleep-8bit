@@ -353,7 +353,7 @@
   UI.pickUnit = function (B, mx, my, want) {
     var best = null, bd = -1e9, pick = null, pd = -1e9, z = D.iso.zoom;
     B.units.forEach(function (u) {
-      if (u.dead || u.ethereal) return;
+      if (u.dead || u.ethereal || u.object) return;
       var p = u.riding && u.master ? perchPos(B, u, z) : unitPos(B, u), s = u.size || 1, top = (u.hp > 0 ? D.spr.unitTop(u) : 16) * z, hw = (s > 1 ? 30 : 11) * Math.max(1, D.spr.scaleOf(u)) * z; // (a rider where it is drawn: on the head, at the shoulder)
       if (!(mx >= p.x - hw && mx <= p.x + hw && my >= p.y - top && my <= p.y + 5 * z)) return;
       if (p.depth > bd) { bd = p.depth; best = u; }
@@ -899,6 +899,7 @@
     ctx.imageSmoothingEnabled = false;
     FX.list.forEach(function (f) { if (f.screen) f.draw(ctx); });
     strip(ctx, B);
+    if (B.skylight) D.text(ctx, B.skylight.name.toUpperCase() + '  ' + (G.standing(B.skylight) ? B.skylight.hp + '/' + B.skylight.maxhp : 'BROKEN'), D.W / 2, 14, G.standing(B.skylight) ? R('glow', 2) : R('red', 4), 'center'); // (the defend fight's object, under the strip)
     cards(ctx, B);
     var ey = B.dark && B.eyes; // (the one under the mouse, or the hero whose turn it is on a map with no light: js/light.js L.pass)
     if (ey) { var vm = D.light.viewMap(B, ey); D.text(ctx, 'EYES: ' + ey.name + ' · ' + [vm.blind ? 'blinded' : vm.dv ? 'darkvision ' + vm.dv : 'no darkvision', vm.bs ? (ey.truesight ? 'truesight ' : 'blindsight ') + vm.bs : ''].filter(Boolean).join(', '), 5, BAR_Y - 22, R('glow', 2)); } // (whose eyes the dark is drawn by: a line above the tooltip's bottom one)
@@ -921,7 +922,7 @@
   // the far steps' marks (10-04 night): a diamond on every standing figure in the side's colour -- ours glow-blue, a guest or an ally moss, a foe red -- the active one ringed gold
   function farMarks(ctx, B) {
     B.units.forEach(function (u) {
-      if (!G.standing(u) || (u.riding && u.master)) return;
+      if (!G.standing(u) || (u.riding && u.master) || u.object) return;
       var p = unitPos(B, u), col = u.side === 'foe' ? R('red', 4) : u.side === 'party' && !u.guest ? R('glow', 2) : R('moss', 3);
       var dia = function (r, h) { ctx.beginPath(); ctx.moveTo(p.x, p.y - h); ctx.lineTo(p.x + r, p.y); ctx.lineTo(p.x, p.y + h); ctx.lineTo(p.x - r, p.y); ctx.closePath(); };
       ctx.fillStyle = R('outline', 0); dia(7, 5); ctx.fill();
@@ -1044,6 +1045,7 @@
     return { cut: Math.round(cut * k), sink: Math.round(sink) };
   };
   function unitObj(B, u) {
+    if (u.object) return null; // (the skylight: no figure -- the overlay rings it, the strip's line says its hit points; 10-04 night)
     var p = unitPos(B, u), has = function (a) { return !!D.spr.anim(u.sheet, a); };
     // a familiar riding its wizard (js/familiar.js): the owls perched on his shoulder, the rest at his feet, drawn just after him
     // (it faces as he does -- Griz, 09-29: "facing left when he's facing north" -- and sits on the shoulder, not above the ear; the shoulder
@@ -1653,6 +1655,8 @@
         if (picked) { var pp = UI.unitPos(B, w); DEFER.push({ depth: 1e6, gz: 0, draw: function (c) { D.text(c, picked > 1 ? 'x' + picked : 'v', pp.x + 10, pp.y - 8, harm ? R('fire', 2) : R('gold', 4)); } }); }
       });
     }
+    // the skylight (a defend fight, 10-04 night): the glass over the hole ringed, and its hit points' share as a wash
+    if (B.skylight && G.standing(B.skylight)) { var skq = B.skylight, skf = skq.hp / skq.maxhp; fillSq(ctx, skq.x, skq.y, skf > 0.5 ? R('glow', 2) : skf > 0.25 ? R('gold', 3) : R('red', 4), 0.18 + 0.1 * Math.sin(B.t / 8), 2); lineSq(ctx, skq.x, skq.y, R('glow', 2), 0.9, 2); }
     // the passages (Battle.passageAt, 10-04 night): both ends outlined, so the vault door and the roof's hatch read as a pair
     if (B.passagesOpen) (B.passages || []).forEach(function (p) { lineSq(ctx, p.at[0], p.at[1], R('gold', 3), 0.55, 4); lineSq(ctx, p.to[0], p.to[1], R('gold', 3), 0.55, 4); });
     // a rung of a rope the mouse is on (ropeRung, 10-04 night): the face, the rung at the height picked, and where the figure will hang

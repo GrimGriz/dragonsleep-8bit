@@ -1276,6 +1276,23 @@
       okE('the hidden rogue 5 ft off: the ogre\'s swing has ' + JSON.stringify(edg.dis) + '; a hit (a 20) finds her: hidden now ' + !found + ' -- ' + lastE.slice(0, 120), edg.dis.indexOf('unseen target') >= 0 && found);
       rg.conds = { hidden: true }; rg.hidTotal = 30; D.d = function (n) { return n === 20 ? 1 : d0E(n); }; runE(Be.attack(og, rg, og.attacks.greatclub || og.attacks[Object.keys(og.attacks)[0]], {})); D.d = d0E;
       okE('a miss (a 1) leaves her hidden: ' + !!rg.conds.hidden, !!rg.conds.hidden); rg.conds = {};
+      // the doors, no moat, the fountains' falls (10-04 night)
+      okE('the vault door squares are thresholds (d), walked: ' + m.at(29, 10).ch + m.at(30, 10).ch + ' ' + m.at(29, 10).walk + '; the basin before the vault is stone: ' + m.at(29, 11).ch + '; the arch sills carry the fountains\' falls: ' + !!m.at(13, 10).falls + ', their basins water: ' + m.at(13, 11).ch, m.at(29, 10).ch === 'd' && m.at(30, 10).ch === 'd' && m.at(29, 10).walk && m.at(29, 11).ch === '=' && !!m.at(13, 10).falls && m.at(13, 11).ch === '~');
+      // the defend fight: the skylight on the field, the troll's mission, the threshold and the resistance, the breach
+      var Bd = D.npcFight('?npc=troll&lvl=5&vs=fighter:5&map=edifice&defend', {}); D.battle = Bd; Bd.enter(); while (!Bd.order.length) Bd.co.next();
+      var sky = Bd.skylight, trD = Bd.units.filter(function (u) { return u.side === 'foe'; })[0], fgD = Bd.units.filter(function (u) { return u.side === 'party'; })[0];
+      okE('the skylight stands at (' + (sky && sky.x) + ',' + (sky && sky.y) + ') with ' + (sky && sky.hp) + ' HP, AC ' + (sky && D.rules.ac(sky)) + ', out of the order ' + (Bd.order.indexOf(sky) < 0) + '; the troll\'s mission ' + trD.mission, !!sky && sky.x === 29 && sky.y === 5 && sky.hp === 120 && D.rules.ac(sky) === 13 && Bd.order.indexOf(sky) < 0 && trD.mission === 'skylight');
+      var hp0 = sky.hp; Bd.hurt(sky, 7, 'slashing'); var hp1 = sky.hp; Bd.hurt(sky, 20, 'bludgeoning'); var hp2 = sky.hp; Bd.hurt(sky, 30, 'poison'); var hp3 = sky.hp;
+      okE('a 7-point blow glances off (' + hp0 + ' -> ' + hp1 + '); a 20-point blow does 10 (-> ' + hp2 + '); poison nothing (-> ' + hp3 + ')', hp1 === hp0 && hp2 === hp0 - 10 && hp3 === hp2);
+      var inRange = Bd.units.filter(function (u) { return u.side === 'party' && !u.object; }).length; fgD.x = 20; fgD.y = 14; trD.x = 28; trD.y = 7; delete trD.hang;
+      okE('the fight is not over with the glass whole and the party up: ' + Bd.over(), Bd.over() === null);
+      Bd.hurt(sky, 400, 'bludgeoning'); okE('the glass broken: ' + sky.hp + ' HP, dead ' + !!sky.dead + ', the fight ' + Bd.over() + ', the fight\'s word: ' + Bd.fight.lost, sky.hp === 0 && !!sky.dead && Bd.over() === 'lost' && /BREACHED/.test(Bd.fight.lost));
+      // the clinging climber's save: the troll clinging 20 ft up, hit for 12 -- a 1 falls (prone, hurt), a 20 holds
+      D.battle = Be; trl = og; trl.size = 2; trl.climbs = 10; trl.x = 28; trl.y = 10; trl.hp = trl.maxhp = 80; trl.conds = {}; trl.hang = { face: [28, 9], foot: [28, 10], z: 8 * st };
+      D.d = function (n) { return n === 20 ? 20 : d0E(n); }; Be.hurt(trl, 12, 'piercing'); D.d = d0E; var held = !!(trl.hang && G.hanging(trl)) && trl.hp === 68;
+      D.d = function (n) { return n === 20 ? 1 : d0E(n); }; Be.hurt(trl, 12, 'piercing'); D.d = d0E;
+      okE('clinging 20 ft up, hit for 12: a 20 holds ' + held + '; a 1 falls: off the face ' + !trl.hang + ', prone ' + !!trl.conds.prone + ', HP ' + trl.hp + ' (68 less the fall\'s d6s less 12)', held && !trl.hang && !!trl.conds.prone && trl.hp < 56 && trl.hp >= 56 - 12);
+      trl.size = size0; trl.climbs = climbs0; trl.conds = {}; delete trl.hang; trl.x = 6; trl.y = 0;
       // a click on your own square while prone (exec 'stand', 10-04 night): with the half, up and the half spent; without it, still down and nothing spent
       D.rules.startTurn(fg); fg.conds.prone = true; fg.turn.move = 10; runE(Be.exec(fg, { do: 'stand' })); var down10 = !!fg.conds.prone && fg.turn.move === 10;
       fg.turn.move = 30; runE(Be.exec(fg, { do: 'stand' }));

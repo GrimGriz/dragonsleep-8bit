@@ -486,6 +486,8 @@
     // bright light under the roost (the Light cantrip, Daylight): the roof lets go -- the 8-bit game's RoostFail runs on it
     // (RULED 09-28: the roost law is canon; fire and thunder stay greyed, the one thing to remember is not to cast light)
     if (this.roostBroken) return 'roost';
+    // the skylight broken (a defend fight, 10-04 night): the Edifice is breached, and it is lost
+    if (this.units.some(function (u) { return u.object && u.breachLoses && (u.dead || u.hp <= 0); })) return 'lost';
     // (a foe turned wholly to stone -- Flesh to Stone's third failed save -- holds no fight open: it had stalled one for good, 10-01)
     if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }).length) return 'won';
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
@@ -500,7 +502,7 @@
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
     // (nor do summoned creatures: they go when their caster's concentration does)
     // (nor a hero turned to stone -- Flesh to Stone's third failed save, the foe side's test above: it never acts again; a party all stone is a lost fight, 10-01)
-    if (!this.alive('party').filter(function (u) { return !u.familiar && !u.summon && !u.dominated && !u.loose && !(u.conds && u.conds.stoning && u.conds.stoning.done); }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
+    if (!this.alive('party').filter(function (u) { return !u.object && !u.familiar && !u.summon && !u.dominated && !u.loose && !(u.conds && u.conds.stoning && u.conds.stoning.done); }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
@@ -535,7 +537,15 @@
     // initiative: d20 + DEX (and the fighter's Remarkable Athlete), rolled once
     var rolls = this.units.map(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init + (u.kind === 'keeper' && D.keeper ? D.keeper.CFG.initBonus : 0); return { u: u, d: d }; }); // (initAdv: the barbarian's Feral Instinct, 7; the Keeper's initiative bonus: js/keeper.js K.CFG.initBonus, 0 -- so a fight can be scripted for it to go first)
     // (a familiar has no initiative: its turn comes right after its caster's -- RULED 09-30, js/familiar.js FM.after)
-    this.order = this.units.filter(function (u) { return !u.familiar; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
+    // a defend fight (F.defend; 10-04 night, Griz: "make the glass above the hole their target with a high damage resist that they'd eventually beat through - like they're trying to make
+    // entry into the dwarven place and this is a defend mission"): the map's `skylight` stands on the field as a thing of the party's side -- AC, hit points, a damage threshold, resistance
+    // to everything (hurt) -- no turn of its own, no square to stand on; every foe's mission (ai.js brute); broken, the fight is lost (over)
+    if (this.fight && this.fight.defend && this.map && this.map.def && this.map.def.skylight) {
+      var skd = this.map.def.skylight, sky = { id: 'skylight', name: skd.name || 'the skylight', kind: 'object', object: true, breachLoses: true, side: 'party', x: skd.at[0], y: skd.at[1], size: 1, hp: skd.hp || 120, maxhp: skd.hp || 120, ac: skd.ac || 13, threshold: skd.threshold || 0, resistAll: true, immune: ['poison', 'psychic'], condImmune: { all: true }, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, saves: {}, conds: {}, attacks: {}, speed: 0, initRoll: -99, lvl: 1, prof: 0, sheet: null, facing: 0 };
+      this.units.push(sky); this.skylight = sky;
+      this.units.forEach(function (w) { if (w.side === 'foe') w.mission = 'skylight'; });
+    }
+    this.order = this.units.filter(function (u) { return !u.familiar && !u.object; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
     yield 50;
     // an ambush (the sect blades at the rest): the foes' Stealth, rolled once, against each hero's passive Perception;
@@ -2016,6 +2026,9 @@
     if (n <= 0) return;
     u.woken = true; // (the cloaker hangs as a cloak till it takes damage: ui.js unitObj)
     if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
+    // an object with a damage threshold (SRD 5.1 Objects: a blow under it is superficial) and resistance to everything (the skylight, 10-04 night)
+    if (u.threshold && n < u.threshold) { FX.float('glances off', u, D.PAL.ramps.silver[5]); return; }
+    if (u.resistAll && !/^(poison|psychic)$/.test(type || '')) { n = Math.floor(n / 2); if (n <= 0) return; }
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
     if (type === 'fire' && D.magic.burnWebs) D.magic.burnWebs(this, G.foot(u)); // (fire on one standing in a web burns the web: magic.js)
     // Talmok rages when he is first hit: blades and fists do half from then on, his own blows +2
@@ -2082,7 +2095,8 @@
       if (D.traits && D.traits.onDown) D.traits.onDown(this, this.active, u); // (the gnoll's Rampage)
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.familiar && D.familiar && D.familiar.vanish) D.familiar.vanish(this, u); // (a familiar at 0 HP is gone, not down: SRD 5.1)
-      else if (u.side === 'party') { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside ' + u.name + '.{/}' : '')]); } // (the name, never "him")
+      else if (u.side === 'party' && !u.object) { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside ' + u.name + '.{/}' : '')]); } // (the name, never "him")
+      else if (u.object) { u.dead = true; u.deadT = this.t; this.breached = true; D.sfx('crit'); this.card(['{r}' + u.name.charAt(0).toUpperCase() + u.name.slice(1) + ' gives way!{/}  {g}(the Edifice is breached){/}'], 300); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}' + (u.named ? '' : 'The ') + shortName(u) + ' falls.{/}']); /* (a named foe -- The Keeper -- has its own article: "The The Keeper falls", 10-02) */ if (u.holding && u.holding.length) this.release(u); }
       // a darkmantle down off the one it rode, or off one who went down, now -- not at the coroutine's next step: the blow that ends the fight leaves no
       // next step, and the one it rode kept "attached" and "blinded" (10-01, the roper window's bench: Barley and Vivian, their darkmantles dead)
@@ -2094,6 +2108,19 @@
       if (u.side === 'foe') { var self = this; this.units.forEach(function (w) { if (w.side === 'foe' && w.bolts && w.bolts === u.kind && !w.dead && w.hp > 0) { w.dead = true; w.fled = true; w.deadT = self.t; if (w.holding && w.holding.length) self.release(w); D.sfx('run'); self.card(['{r}' + w.name + '{/} drops what he was holding and runs for the stair. He is gone.']); } }); }
     } else conc(this);
     if (D.magic.onHurt && u.hp > 0) D.magic.onHurt(this, u, n, type); // (a laughing one's save with advantage, a pattern broken: js/grimoire.js)
+    if (u.hp > 0 && u.hang && u.hang.face && G.hanging(u) && !(src && src.fall) && took > 0) this.clingSave(u, took); // (a clinging climber hit: the hold, or the fall -- 10-04 night)
+  };
+  // a clinging climber hit (10-04 night, Griz: "SRD say anything about clinging climbers, cause I think dex saving throws on damage..." -- the SRD 5.1 has nothing for a climber; a flier
+  // knocked prone or held still falls, and concentration's save is the shape taken): a Dexterity save, DC 10 or half the damage, whichever is higher, or it loses its hold and falls
+  // the height it had climbed (1d6 a 10 ft, prone). Ours, not the SRD's; the fall's own damage asks no second save
+  Battle.prototype.clingSave = function (u, dmg) {
+    var dc = Math.max(10, Math.floor(dmg / 2)), sv = RU.save(u, 'dex', dc), fz = u.hang.z, ft = Math.round((fz - G.map.gz(u.x, u.y)) / G.map.def.step) * 2.5;
+    if (sv.ok) { this.card(['{y}' + nameOf(u) + '{/} keeps its hold on the face: DEX ' + RU.saveText(sv) + ' against DC ' + dc + '  {n}HOLDS{/}'], 200); return; }
+    delete u.hang; u.tween = { fx: u.x, fy: u.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
+    var fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
+    this.card(['{o}' + nameOf(u) + ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc + ' -- falls ' + ft + ' ft' + (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.{/}'], 240);
+    u.conds.prone = true;
+    if (fd) this.hurt(u, fd.total, 'bludgeoning', { fall: true });
   };
   Battle.prototype.heal = function (u, n) {
     var was = u.hp;

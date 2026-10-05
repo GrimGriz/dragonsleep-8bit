@@ -719,6 +719,8 @@
     if (u.grudge) { var gr = B.units.filter(function (w) { return w.id === u.grudge && G.standing(w); })[0]; delete u.grudge; if (gr) { hs = [gr]; grudge = true; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + gr.name + '{/}.'], 240); yield 16; } }
     // the cloaker and the one the party swore to bring back (RULED 10-01c, Griz: "cloaker focuses on kid if they bring him to that fight"): it hunts him while he stands
     if (!grudge && u.kind === 'cloaker') { var vt = hs.filter(function (w) { return w.vital; })[0]; if (vt) hs = [vt]; }
+    // the mission (a defend fight, 10-04 night): the skylight is what it came for -- it goes for the glass unless one of theirs stands within its reach, in the way
+    if (!grudge && u.mission) { var msn = hs.filter(function (w) { return w.object && w.id === u.mission; })[0], rchM = reachOf(u, hs); if (msn && !hs.some(function (w) { return !w.object && G.dist(u, w) <= rchM; })) hs = [msn]; else if (msn) hs = hs.filter(function (w) { return !w.object; }).concat([msn]); }
     // lost to every eye (magical darkness, fog, a pillar between): the natural lurker -- one the fight began with hidden: the darkmantle, the grick, the roper -- slips back into hiding
     // for nothing, a Stealth roll held as a hero's is; any other foe with a Stealth score pays the Hide action, and only with nothing within its reach to strike (Griz, 10-04: "if
     // a monster is natural stealth and gets found there should be conditions in which it would be lost and found again ... magical darkness"; "only the natural get a free re-hide")
