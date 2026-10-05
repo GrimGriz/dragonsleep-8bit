@@ -220,7 +220,8 @@ everything, no turn and no figure, ringed on the glass with its hit points under
 within its reach. Broken, the Edifice is breached and the fight is lost. Griz: *"make the glass above the hole their target with a high damage resist that they'd
 eventually beat through - like they're trying to make entry into the dwarven place and this is a defend mission."* A clinging climber hit makes a Dexterity save (DC 10
 or half the damage) or loses its hold and falls what it climbed (ours; the SRD has nothing for a climber). The vault's door squares are `d` thresholds with the doorway
-painted on the face above; the fountains pour out of each arch's face in a tiny fall into its own basin; no moat before the vault.
+painted on the face above; four fountains stand against the facade's foot -- a 3-square pool of water (waded, difficult) ringed by a one-step rim, the spout a hole
+flush in the face at 10 ft (`spouts`) pouring into it -- and no moat before the vault. The arches' sills are gone: by hand nobody climbs the facade.
 
 **Hidden, beside a foe** (RULED 10-04 night, Griz: *"one line, but lose stealth on successful hit (it can tell where you are from the force of the blow and
 it's not invisibility, just hide)"*): an attack at a hidden target has disadvantage at any distance (`rules.js RU.edges`; it was beyond 5 ft only, 09-28's

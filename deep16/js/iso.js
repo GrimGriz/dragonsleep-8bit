@@ -82,6 +82,7 @@
     m.at = function (x, y) { return (x < 0 || y < 0 || x >= m.w || y >= m.h) ? null : m.sq[y * m.w + x]; };
     if (def.ropeBucket) { var rb = m.at(def.ropeBucket[0], def.ropeBucket[1]); if (rb) rb.stands = 'the rope bucket'; } // (Fountain Street's bucket of rope and grapples: battle.js, 10-04 night)
     (def.falls || []).forEach(function (q) { var fs = m.at(q[0], q[1]); if (fs) fs.falls = true; }); // (a waterfall down a wall's face: rockCanvas paints it -- the Edifice's back wall, 10-04 night)
+    (def.spouts || []).forEach(function (q) { var sp = m.at(q[0], q[1]); if (sp) sp.spout = q[2] || 10; }); // (a fountain's spout: a hole flush in the square's +gy face that many feet up, the water pouring from it -- the Edifice's four, 10-04 night)
     m.isOpen = function (x, y) { var s = m.at(x, y); return !!(s && s.open); };
     m.gz = function (x, y) { var s = m.at(x, y); return s ? s.gz : 0; };
     iso.map = m;
@@ -204,11 +205,17 @@
           var drop = s.gz - nz;
           if (drop <= 0) return;
           var right = d[0] === 1; // the +gx face shows lower-right, the +gy face lower-left
-          var nb = m.at(s.x + d[0], s.y + d[1]), doorF = !right && nb && nb.ch === 'd', fallF = !right && s.falls; // (a doorway on the +gy face above a threshold tile; the fountains' tiny falls down a sill's face -- 10-04 night)
+          var nb = m.at(s.x + d[0], s.y + d[1]), doorF = !right && nb && nb.ch === 'd', fallF = !right && s.falls, spoutF = !right && s.spout ? Math.round(s.spout / 2.5) * m.def.step : 0; // (a doorway on the +gy face above a threshold tile; a fall down the whole face; a spout: a hole that many px up the face, the water from it down -- 10-04 night)
           for (var k = 0; k < HW; k++) {
             var fx0 = right ? ox + k : ox - HW + k;
             var ytop = right ? oy + HH - Math.floor(k / 2) : oy + Math.floor(k / 2);
             for (var j = 0; j < drop; j++) {
+              if (spoutF && j < spoutF + 7) { // the fountain's spout: a dark hole flush in the face at its height, the water below it in a narrow fall to the pool
+                var hr = Math.hypot(k - 16, (j - spoutF) * 1.0), inHole = hr < 6, onRim = hr >= 6 && hr < 7.5;
+                if (inHole) { put(fx0, ytop + j, stone[0]); continue; }
+                if (onRim) { put(fx0, ytop + j, silver[3]); continue; }
+                if (j < spoutF && k >= 11 && k <= 21) { var strkS = vnoise(k * 0.9 + s.x * 13, (ytop + j) * 0.05, seed + 5), wvS = 0.5 + (strkS - 0.5) * 0.9, wcS = rampPick(blue, D.clamp(wvS, 0, 0.99), fx0, ytop + j); if (j < 6 && dith(fx0, ytop + j) < (6 - j) / 7) wcS = silver[5]; else if (wvS > 0.74 || k === 11 || k === 21) wcS = silver[4]; put(fx0, ytop + j, wcS); continue; }
+              }
               if (fallF) { // the water out of the arch's face, a tiny fall into the basin below (the back wall's falls are rockCanvas's)
                 var strkF = vnoise(k * 0.7 + s.x * 13, (ytop + j) * 0.05, seed + 5), wvF = 0.5 + (strkF - 0.5) * 0.9 + (vnoise(k * 2.1, (ytop + j) * 0.35, seed + 6) - 0.5) * 0.3, wcF = rampPick(blue, D.clamp(wvF, 0, 0.99), fx0, ytop + j);
                 if (j >= drop - 6 && dith(fx0, ytop + j) < (j - drop + 7) / 7) wcF = silver[5]; else if (wvF > 0.78) wcF = silver[4]; else if (wvF > 0.66) wcF = silver[2];

@@ -1198,14 +1198,14 @@
     function runE(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
     try {
       var def = D.MAPS.edifice, w = def.rows[0].length, h = def.rows.length;
-      okE('the Edifice: ' + w + 'x' + h + ', every row that wide', w === 60 && h === 31 && def.rows.every(function (r) { return r.length === 60; }) && def.heights.every(function (r) { return r.length === 60; }));
+      okE('the Edifice: ' + w + 'x' + h + ', every row that wide', w === 60 && h === 33 && def.rows.every(function (r) { return r.length === 60; }) && def.heights.every(function (r) { return r.length === 60; }));
       var Be = D.npcFight('?npc=ogre&lvl=5&vs=fighter:5,rogue:5&map=edifice', {}); D.battle = Be; Be.enter(); while (!Be.order.length) Be.co.next(); Be.units.forEach(function (u) { if (u.side === 'party') u.guest = false; }); // (the hand's, not guests: the END TURN check below wants the hand's turn)
       var m = D.iso.map, st = def.step, fg = Be.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], rg = Be.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0], og = Be.units.filter(function (u) { return u.side === 'foe'; })[0];
-      okE('the roof at 45 ft (18 steps) at (20,5), glass, walked; the arch sill at 15 ft at (13,10); the street at 0; the channel off the east end deep water, not walked', m.gz(20, 5) === 18 * st && m.at(20, 5).ch === 'G' && m.at(20, 5).walk && m.gz(13, 10) === 6 * st && m.gz(13, 12) === 0 && m.at(55, 11).deep && !m.at(55, 11).walk);
+      okE('the roof at 45 ft (18 steps) at (20,5), glass, walked; the fountains: the pool at (15,11) water at 0, its rim at (13,11) and (15,13) one step up, dressed; the spout in the face above at 10 ft; the street at 0; the channel off the east end deep water, not walked', m.gz(20, 5) === 18 * st && m.at(20, 5).ch === 'G' && m.at(20, 5).walk && m.at(15, 11).ch === '~' && m.gz(15, 11) === 0 && m.at(13, 11).ch === '=' && m.gz(13, 11) === st && m.gz(15, 13) === st && m.at(15, 9).spout === 10 && m.gz(20, 12) === 0 && m.at(55, 11).deep && !m.at(55, 11).walk);
       var r0 = Be.ropes[0]; okE('the dwarves\' rope from the rim (11,9) to the street (11,10), 18 steps', Be.ropes.length === 1 && r0.at[0] === 11 && r0.at[1] === 9 && r0.foot[0] === 11 && r0.foot[1] === 10 && (m.gz(11, 9) - m.gz(11, 10)) / st === 18);
-      okE('the bucket at (3,16): a crate, not walked, named ' + m.at(3, 16).stands + ', the battle knows it', !m.at(3, 16).walk && m.at(3, 16).stands === 'the rope bucket' && Be.ropeBucket && Be.ropeBucket[0] === 3 && Be.ropeBucket[1] === 16);
+      okE('the bucket at (3,18): a crate, not walked, named ' + m.at(3, 18).stands + ', the battle knows it', !m.at(3, 18).walk && m.at(3, 18).stands === 'the rope bucket' && Be.ropeBucket && Be.ropeBucket[0] === 3 && Be.ropeBucket[1] === 18);
       // the fighter beside the bucket: TAKE A ROPE on the ring's top, free, one a turn
-      fg.x = 4; fg.y = 15; D.rules.startTurn(fg); Be.active = fg; Be.cache = null; Be.tool = 'move';
+      fg.x = 4; fg.y = 17; D.rules.startTurn(fg); Be.active = fg; Be.cache = null; Be.tool = 'move';
       var ring = D.ui.cmds(Be, fg).map(function (c) { return c.id; }), n0 = ((Be.inv || []).filter(function (x) { return x.id === 'rope'; })[0] || {}).n || 0;
       okE('beside the bucket: TAKE A ROPE on the ring: ' + ring.join(','), ring.indexOf('bucketrope') >= 0);
       runE(Be.exec(fg, { do: 'bucketrope' })); var n1 = ((Be.inv || []).filter(function (x) { return x.id === 'rope'; })[0] || {}).n || 0, again = Be.commands(fg).filter(function (c) { return c.id === 'bucketrope'; })[0];
@@ -1215,17 +1215,17 @@
       okE('standing on the grapple: TAKE THE ROPE on the ring\'s top: ' + ring2.join(','), ring2.indexOf('takerope') >= 0 && ring2.indexOf('bucketrope') < 0);
       var ropes0 = Be.ropes.filter(function (r) { return !r.cut; }).length; runE(Be.exec(fg, { do: 'takerope', x: 11, y: 9, ask: true })); var ropes1 = Be.ropes.filter(function (r) { return !r.cut; }).length;
       okE('the self-click asked and took it up: ropes ' + ropes0 + ' -> ' + ropes1 + ', the action ' + fg.turn.action, ropes1 === ropes0 - 1 && fg.turn.action === 0);
-      // a grapple from the arch's sill reaches the rim (30 ft); from the street (45 ft) it cannot
-      rg.x = 13; rg.y = 10; var q1 = D.Battle.ropeSq(Be, rg, 13, 9); rg.x = 13; rg.y = 11; var q2 = D.Battle.ropeSq(Be, rg, 13, 9);
-      okE('a grapple thrown from the arch\'s sill reaches the rim: ' + !!q1 + ' (thrown, not tied: ' + (q1 && !q1.top) + '); from the street, 45 ft, it cannot: ' + !q2, !!q1 && !q1.top && !q2);
+      // a grapple from the street (45 ft) cannot reach the rim; from a hang 15 ft up the dwarves' rope it can (30 ft)
+      rg.x = 13; rg.y = 10; var q2 = D.Battle.ropeSq(Be, rg, 13, 9); rg.x = 11; rg.y = 10; rg.hang = { rope: Be.ropes[0], z: 6 * st }; var q1 = D.Battle.ropeSq(Be, rg, 12, 9), dH = G.dist(rg, { x: 12, y: 9, size: 1 }), lH = G.losPoint(11, 10, 12, 9); delete rg.hang; rg.x = 13; rg.y = 12;
+      okE('a grapple from the street, 45 ft, cannot reach the rim: ' + !q2 + '; from 15 ft up the rope the rim is ' + dH + ' ft off, in line ' + lH + ', the throw offered ' + !!q1 + ' (a grapple thrown from a rope hang is not built: G.dist reads the hanger at its foot -- for the next seat)', !q2);
       // the costs: a climb speed pays the height (SRD), a hand cannot take the 45 ft face, the arch's sill is 30 ft of movement by hand
       var size0 = og.size, climbs0 = og.climbs; og.size = 1; og.climbs = 40; delete og.hang;
-      var cC = G.stepCost(og, 20, 10, 20, 9); og.climbs = climbs0; var cS = G.stepCost(fg, 13, 11, 13, 10), cF = G.stepCost(fg, 20, 10, 20, 9); og.size = size0;
-      okE('a climber up the 45 ft face: ' + cC + ' ft of movement (the SRD\'s climb: the height); a hand up the sill: ' + cS + '; a hand up the 45 ft face: ' + cF, cC === 45 && cS === 30 && cF === Infinity);
+      var cC = G.stepCost(og, 20, 10, 20, 9); og.climbs = climbs0; var cS = G.stepCost(fg, 15, 14, 15, 13), cF = G.stepCost(fg, 20, 10, 20, 9); og.size = size0;
+      okE('a climber up the 45 ft face: ' + cC + ' ft of movement (the SRD\'s climb: the height); a hand onto a fountain\'s rim: ' + cS + ' (one step, no climb); a hand up the 45 ft face: ' + cF, cC === 45 && cS === 5 && cF === Infinity);
       // the AI's far route takes a step a Dash pays for: a climber at the foot with 40 ft and its action, the party on the roof -- the route reaches the roof
       og.size = 1; og.climbs = 40; og.x = 20; og.y = 11; D.rules.startTurn(og); fg.x = 20; fg.y = 7; rg.x = 21; rg.y = 7;
       var farA = G.reach(og, 600, { noRope: true, maxStep: (og.speed || 30) * 2 }), farB = G.reach(og, 600, { noRope: true, maxStep: og.speed || 30 });
-      okE('the far route with a Dash in it reaches the roof: ' + !!(farA['20,9'] && farA['20,9'].stand) + ' (and by the arch sills, 15 then 30, even without one: ' + !!(farB['20,9'] && farB['20,9'].stand) + ')', !!(farA['20,9'] && farA['20,9'].stand) && !!(farB['20,9'] && farB['20,9'].stand));
+      okE('the far route reaches the roof for a climber with a Dash ' + !!(farA['20,9'] && farA['20,9'].stand) + ' and without ' + !!(farB['20,9'] && farB['20,9'].stand) + ' (a climber\'s step up a face is never dearer than its turn\'s climb: it clings part way)', !!(farA['20,9'] && farA['20,9'].stand) && !!(farB['20,9'] && farB['20,9'].stand));
       og.size = size0; og.climbs = climbs0;
       // the baking frame: a Battle on this floor pushed with a screen enters a frame later, saying so; the bench's own fights (bench: true) never wait
       var cv = document.createElement('canvas'); cv.width = 480; cv.height = 270; var ctx0 = D.ctx; D.ctx = cv.getContext('2d');
@@ -1257,11 +1257,12 @@
       okE('knocked flat mid-turn, END TURN with ' + fg.speed + ' ft: stood ' + !fg.conds.prone + ' (the turn seen ' + sawTurn + '), move left ' + fg.turn.move + ' (half spent)', sawTurn && !fg.conds.prone && fg.turn.move === fg.speed - Math.floor(fg.speed / 2));
       // varied footholds, the big body's pull-up, the slow climb's cling (10-04 night)
       var med = { size: 1 }, lg = { size: 2 }, hg = { size: 3 };
-      okE('the DCs: sheer 6 steps ' + G.climbDC(6, med) + ', rough ' + G.climbDC(6, med, 'rough') + ', slick ' + G.climbDC(6, med, 'slick') + ', rough 3 steps ' + G.climbDC(3, med, 'rough') + '; a Large body 6 steps ' + G.climbDC(6, lg) + ', 8 steps ' + G.climbDC(8, lg) + '; a Huge 10 steps ' + G.climbDC(10, hg) + '; the arch sill is ' + G.faceKind(13, 10) + ', the rim ' + G.faceKind(20, 9),
-        G.climbDC(6, med) === 18 && G.climbDC(6, med, 'rough') === 14 && G.climbDC(6, med, 'slick') === 23 && G.climbDC(3, med, 'rough') === 0 && G.climbDC(6, lg) === 0 && G.climbDC(8, lg) === 14 && G.climbDC(10, hg) === 0 && G.faceKind(13, 10) === 'rough' && G.faceKind(20, 9) === null);
-      var og2 = { size: 2, speed: 40, conds: {}, side: 'foe', id: 'og2', x: 13, y: 11, hp: 10, turn: { move: 40 } }; og2.turn.climbLeft = 0;
-      var cL6 = G.stepCost(og2, 13, 11, 13, 10), cL18 = G.stepCost(og2, 20, 10, 20, 9); og2.size = 3; var cH6 = G.stepCost(og2, 13, 11, 13, 10);
-      okE('a Large body by hand up the 15 ft arch sill: ' + cL6 + ' ft (its height and 5: allowed, 6 steps at 5, and 5 more for the fountain its back feet stand in); up the 45 ft face: ' + cL18 + '; a Huge body up the sill: ' + cH6, cL6 === 35 && cL18 === Infinity && cH6 === 35);
+      G.map.def.faces = [[13, 10, 2, 1, 'rough']]; var fk1 = G.faceKind(13, 10), fk2 = G.faceKind(20, 9); delete G.map.def.faces;
+      okE('the DCs: sheer 6 steps ' + G.climbDC(6, med) + ', rough ' + G.climbDC(6, med, 'rough') + ', slick ' + G.climbDC(6, med, 'slick') + ', rough 3 steps ' + G.climbDC(3, med, 'rough') + '; a Large body 6 steps ' + G.climbDC(6, lg) + ', 8 steps ' + G.climbDC(8, lg) + '; a Huge 10 steps ' + G.climbDC(10, hg) + '; a faces list names (13,10) ' + fk1 + ' and (20,9) ' + fk2,
+        G.climbDC(6, med) === 18 && G.climbDC(6, med, 'rough') === 14 && G.climbDC(6, med, 'slick') === 23 && G.climbDC(3, med, 'rough') === 0 && G.climbDC(6, lg) === 0 && G.climbDC(8, lg) === 14 && G.climbDC(10, hg) === 0 && fk1 === 'rough' && fk2 === null);
+      var og2 = { size: 2, speed: 40, conds: {}, side: 'foe', id: 'og2', x: 20, y: 10, hp: 10, turn: { move: 40 } }; og2.turn.climbLeft = 0;
+      var cL18 = G.stepCost(og2, 20, 10, 20, 9), bl2 = G.bigLimit(og2); og2.size = 3; var bl3 = G.bigLimit(og2);
+      okE('a big body\'s hand climb: a Large ' + bl2 + ' steps (15 ft), a Huge ' + bl3 + ' (25 ft); a Large body up the 45 ft face by hand: ' + cL18, bl2 === 6 && bl3 === 10 && cL18 === Infinity);
       // the troll's slow climb: a stand-in with climbs 10 at the foot of the 45 ft face at (28,10), five turns up it, clinging between
       var trl = og; trl.size = 2; trl.climbs = 10; delete trl.hang; trl.x = 28; trl.y = 10; trl.conds = {}; var zs = [], ys = [];
       for (var tt = 0; tt < 6 && !(trl.y === 9 && !trl.hang); tt++) { D.rules.startTurn(trl); runE(Be.moveAlong(trl, [[28, 9]], { spend: true })); zs.push(trl.hang ? trl.hang.z / st : 'up'); ys.push(trl.y + ':' + trl.turn.move + ':' + trl.turn.climbLeft); }
@@ -1277,7 +1278,7 @@
       rg.conds = { hidden: true }; rg.hidTotal = 30; D.d = function (n) { return n === 20 ? 1 : d0E(n); }; runE(Be.attack(og, rg, og.attacks.greatclub || og.attacks[Object.keys(og.attacks)[0]], {})); D.d = d0E;
       okE('a miss (a 1) leaves her hidden: ' + !!rg.conds.hidden, !!rg.conds.hidden); rg.conds = {};
       // the doors, no moat, the fountains' falls (10-04 night)
-      okE('the vault door squares are thresholds (d), walked: ' + m.at(29, 10).ch + m.at(30, 10).ch + ' ' + m.at(29, 10).walk + '; the basin before the vault is stone: ' + m.at(29, 11).ch + '; the arch sills carry the fountains\' falls: ' + !!m.at(13, 10).falls + ', their basins water: ' + m.at(13, 11).ch, m.at(29, 10).ch === 'd' && m.at(30, 10).ch === 'd' && m.at(29, 10).walk && m.at(29, 11).ch === '=' && !!m.at(13, 10).falls && m.at(13, 11).ch === '~');
+      okE('the vault door squares are thresholds (d), walked: ' + m.at(29, 10).ch + m.at(30, 10).ch + ' ' + m.at(29, 10).walk + '; no moat before the vault: ' + m.at(29, 11).ch + '; the four fountains\' spouts at 10 ft: ' + [15, 23, 36, 44].map(function (c) { return m.at(c, 9).spout; }).join(',') + ', their pools water: ' + [15, 23, 36, 44].map(function (c) { return m.at(c, 11).ch; }).join(''), m.at(29, 10).ch === 'd' && m.at(30, 10).ch === 'd' && m.at(29, 10).walk && m.at(29, 11).ch === ',' && [15, 23, 36, 44].every(function (c) { return m.at(c, 9).spout === 10 && m.at(c, 11).ch === '~'; }));
       // the defend fight: the skylight on the field, the troll's mission, the threshold and the resistance, the breach
       var Bd = D.npcFight('?npc=troll&lvl=5&vs=fighter:5&map=edifice&defend', {}); D.battle = Bd; Bd.enter(); while (!Bd.order.length) Bd.co.next();
       var sky = Bd.skylight, trD = Bd.units.filter(function (u) { return u.side === 'foe'; })[0], fgD = Bd.units.filter(function (u) { return u.side === 'party'; })[0];
