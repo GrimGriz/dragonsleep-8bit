@@ -29,7 +29,7 @@ Checked 10-05 against `deep16/data/foes.js` (the Pocket DM's pot: every foe but 
 
 ### In the 8-bit, no grid foe at all (checked 10-05 against `content/monsters.json`; the bestiary handoff's "seven")
 
-The grid refuses these by name, so each wants a foe block (`deep16/data/foes.js`) and a figure before a sheet:
+The grid refuses these by name, so each wants a foe block (`deep16/data/foes.js`) and a figure before a sheet. Four creatures are left (the three humanoid rows below are done):
 
 | creature | 8-bit | wants |
 |---|---|---|
@@ -37,8 +37,8 @@ The grid refuses these by name, so each wants a foe block (`deep16/data/foes.js`
 | the fire beetle | CR 0 beast | a big beetle with glowing glands |
 | the stirge | CR 1/8 beast | a bat-winged, long-snouted blood-drinker, small |
 | the will-o'-wisp | CR 2 undead | a drifting ball of light; a sheet row for going dark |
-| the Hired Blade (`merc`), the Stable Fighter (`stablefighter`) | CR 1, CR 1/2 humanoids | LPC figures will do (the Hired Sword, `hiredsword`, already shares the guard's sheet: is that the Blade? to settle) |
-| the Drow Blade-Captain (`drowcaptain`) | CR 5 humanoid | the grid's `drow` ("Drow Captain", `drow_p0`) is this block under another id: an alias, no art |
+| the Hired Blade (`merc`), the Stable Fighter (`stablefighter`) | CR 1, CR 1/2 humanoids | **done 10-05, no art wanted**: grid blocks with the 8-bit's own stats (`merc` 40 HP on the Hired Sword's sheet, as Griz approved; `stablefighter` on the Crewman's, an 8-bit-only foe: the Hex card never reaches the grid). A recoloured LPC figure for the Fighter is welcome, not needed |
+| the Drow Blade-Captain (`drowcaptain`) | CR 5 humanoid | **done**: `D.kind8` already maps it to the grid's `drow`. The SRD has only the plain Drow (`drowling`); the Captain and the Spell-Weaver are the game's own |
 
 Any of them goes first to a free printable with a .blend (`deep16/blender-monsters.md`), second to a generated sheet. A second sheet for something already in hand (idle variations, special moves) is welcome, never needed.
 

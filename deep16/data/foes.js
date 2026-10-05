@@ -363,6 +363,26 @@
     },
     multi: ['mace', 'mace'], packTactics: true, src: 'SRD 5.1 Thug (CR 1/2); content/monsters.json thug; Pack Tactics (SRD 5.1, 10-02 runner); the Heavy Crossbow +2 1d10 100/400 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
   },
+  // the Hex card's two (10-05, Griz: "hired blade alias to sword approved"; the Stable Fighter an 8-bit-only foe, drawn as the Thug's body): the 8-bit's own blocks (content/monsters.json),
+  // not the Hired Sword's or the Thug's -- the Blade is CR 1 with 40 HP, so the Hex's hardest bout before Talmok stays so. The Hex fights are the 8-bit's by design (no deep16 option in events.js S.hexCard);
+  // these put them in the Pocket DM's pot and on the ladder, and stop the grid refusing a list that names them. The Blade wears the Hired Sword's sheet, the Stable Fighter the Crewman's.
+  merc: {
+    name: 'Hired Blade', type: 'humanoid', sheet: 'guard_p1', humanoid: true, cr: '1', ac: 14, hp: 40, speed: 30, size: 1, reach: 5,
+    abil: { str: 14, dex: 15, con: 13, int: 12, wis: 11, cha: 13 }, init: 2, perception: 10,
+    saves: { str: 2, dex: 2, con: 1, int: 1, wis: 0, cha: 1 },
+    attacks: {
+      sword: { name: 'Sword', atk: 4, dice: '1d6', mod: 2, type: 'slashing', reach: 5 },
+      dagger: { name: 'Dagger', atk: 4, dice: '1d4', mod: 2, type: 'piercing', reach: 5 }
+    },
+    multi: ['sword', 'dagger'], src: 'content/monsters.json merc (SRD 5.1 Bandit Captain cut down to a merc between contracts: two attacks, 40 HP; Griz 09-27: the blade was harder than Talmok); on the Hired Sword sheet'
+  },
+  stablefighter: {
+    name: 'Stable Fighter', type: 'humanoid', sheet: 'crewman_p1', humanoid: true, cr: '1/2', ac: 11, hp: 32, speed: 30, size: 1, reach: 5,
+    abil: { str: 15, dex: 11, con: 14, int: 10, wis: 10, cha: 11 }, init: 0, perception: 10,
+    saves: { str: 2, dex: 0, con: 2, int: 0, wis: 0, cha: 0 },
+    attacks: { spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
+    multi: ['spear', 'spear'], src: 'content/monsters.json stablefighter (SRD 5.1 Thug: a stable man the owner wants bled; wiki/the-hex.md), on the Crewman sheet'
+  },
   robber: {
     name: 'Night Crew', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,
