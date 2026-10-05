@@ -1254,6 +1254,10 @@
       var guardE = 0, stE, vE, sawTurn = false;
       while (guardE++ < 3000) { stE = Be.co.next(vE); vE = undefined; if (stE.done) break; var yE = stE.value; if (!yE || typeof yE === 'number') continue; if (yE.prompt) { vE = yE.prompt.opts[0].value; continue; } if (yE.turn) { vE = { do: 'end' }; if (yE.turn === fg) { fg.conds.prone = true; fg.turn.move = fg.speed; sawTurn = true; stE = Be.co.next(vE); vE = undefined; break; } } }
       okE('knocked flat mid-turn, END TURN with ' + fg.speed + ' ft: stood ' + !fg.conds.prone + ' (the turn seen ' + sawTurn + '), move left ' + fg.turn.move + ' (half spent)', sawTurn && !fg.conds.prone && fg.turn.move === fg.speed - Math.floor(fg.speed / 2));
+      // a click on your own square while prone (exec 'stand', 10-04 night): with the half, up and the half spent; without it, still down and nothing spent
+      D.rules.startTurn(fg); fg.conds.prone = true; fg.turn.move = 10; runE(Be.exec(fg, { do: 'stand' })); var down10 = !!fg.conds.prone && fg.turn.move === 10;
+      fg.turn.move = 30; runE(Be.exec(fg, { do: 'stand' }));
+      okE('prone, the click on yourself: with 10 ft still down ' + down10 + '; with 30 ft stood ' + !fg.conds.prone + ', move left ' + fg.turn.move, down10 && !fg.conds.prone && fg.turn.move === 15);
       var Bs = new D.Battle({ bench: true, npc: { party: ['fighter:5'], foes: ['ogre'] }, fightDef: D.classFight(5, { id: 'x', map: 'edifice' }) });
       okE('a bench fight on it never waits to bake: ' + !Bs.bakes(), !Bs.bakes());
     } catch (eE) { repE.errors.push(String(eE && eE.stack || eE).slice(0, 900)); }

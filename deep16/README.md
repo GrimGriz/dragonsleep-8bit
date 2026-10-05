@@ -26,7 +26,8 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
 - **The cursor keeps its level** (10-04 night, Griz: *"can we have it determine by the square you're moving onto the covered area from?"*): where a
   raised square and a lower one behind it both lie under the mouse, the one at the height the cursor came from is picked (`iso.pick`'s `prefZ`), so
   the roof is reached from the roof and the street from the street. Prone at END TURN with half the speed unspent, a hero stands first (Griz:
-  *"if prone at end turn with movement left ... stand?"*); the start of a turn stood one already.
+  *"if prone at end turn with movement left ... stand?"*), and a click on your own square while prone stands you at once (*"if prone with move
+  left and click on tile your end stand"*); the start of a turn stood one already.
 - **Zoom:** the screen is drawn at the window's whole-number scale, so zooming out steps by whole device pixels
   (at 3×: 1, 2/3, 1/3; at 2×: 1, 1/2) and stays crisp; the menus and the floating numbers keep their size. On a floor too big to fit
   at the smallest of those, far steps follow (10-04 night, Griz: *"can we have huge maps and another zoom level when we do?"*): whole art

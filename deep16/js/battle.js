@@ -995,6 +995,10 @@
         D.sfx('confirm'); this.card(['{y}' + nameOf(u) + '{/} hauls the rope up and coils it, grapple and all, back into the pack.'], 240);
         u.anim = 'idle'; yield 16; return;
       }
+      case 'stand': { // up off the floor by a click on your own square (10-04 night, Griz: "if prone with move left and click on tile your end stand"): half the speed, from the move (rules.js RU.rise)
+        if (!u.conds.prone || !RU.rise(this, u)) return;
+        u.anim = 'idle'; yield 8; return;
+      }
       case 'passage': { // through the vault door and up the stair inside, out onto the roof -- and back down (10-04 night, Griz: "Front doors possible?"): Battle.passageAt; the rest of the turn's move, half the speed at least
         var ps = Battle.passageAt(this, u.x, u.y); if (!ps) return;
         var halfP = Math.floor(u.speed / 2), occP = G.occupant(ps.dest[0], ps.dest[1]);
