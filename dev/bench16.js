@@ -1286,7 +1286,7 @@
       for (var tt = 0; tt < 6 && !(trl.y === 15 && !trl.hang); tt++) { D.rules.startTurn(trl); runE(Be.moveAlong(trl, [[28, 15]], { spend: true })); zs.push(trl.hang ? trl.hang.z / st : 'up'); ys.push(trl.y + ':' + trl.turn.move + ':' + trl.turn.climbLeft); }
       okE('a climb speed of 10 up the 45 ft face: the heights clung to by turn ' + zs.join(',') + ' (y:move:climbLeft ' + ys.join(' ') + ')', zs.length === 5 && zs[0] === 4 && zs[1] === 8 && zs[2] === 12 && zs[3] === 16 && zs[4] === 'up' && trl.y === 15 && !trl.hang && G.gzAt(trl, trl.x, trl.y) === 18 * st && trl.turn.move === 35);
       trl.size = size0; trl.climbs = climbs0; delete trl.hang; trl.x = 6; trl.y = 0;
-      okE('the troll and the stone giant carry a climb speed of 10 (ours): ' + D.FOES.troll.climbs + ', ' + D.FOES.stonegiant.climbs, D.FOES.troll.climbs === 10 && D.FOES.stonegiant.climbs === 10);
+      okE('the troll digs 15 and the stone giant 10 (ours; the troll 15 since 10-05, Griz: "1 and 2"): ' + D.FOES.troll.climbs + ', ' + D.FOES.stonegiant.climbs, D.FOES.troll.climbs === 15 && D.FOES.stonegiant.climbs === 10);
       // the stealth line (RULED 10-04 night, Griz: "one line, but lose stealth on successful hit"): the ogre beside the hidden rogue swings at disadvantage; a hit finds her
       og.x = 20; og.y = 18; og.size = size0; og.hp = og.maxhp; rg.x = 21; rg.y = 18; rg.hp = rg.maxhp; rg.conds = { hidden: true }; rg.hidTotal = 30; D.rules.startTurn(og);
       var edg = D.rules.edges(og, rg, og.attacks.greatclub || og.attacks[Object.keys(og.attacks)[0]]);

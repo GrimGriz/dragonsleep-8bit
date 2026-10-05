@@ -847,7 +847,17 @@
     // the cloaker and the one the party swore to bring back (RULED 10-01c, Griz: "cloaker focuses on kid if they bring him to that fight"): it hunts him while he stands
     if (!grudge && u.kind === 'cloaker') { var vt = hs.filter(function (w) { return w.vital; })[0]; if (vt) hs = [vt]; }
     // the mission (a defend fight, 10-04 night): the skylight is what it came for -- it goes for the glass unless one of theirs stands within its reach, in the way
-    if (!grudge && u.mission) { var msn = hs.filter(function (w) { return w.object && w.id === u.mission; })[0], rchM = reachOf(u, hs); if (msn && !hs.some(function (w) { return !w.object && G.dist(u, w) <= rchM; })) hs = [msn]; else if (msn) hs = hs.filter(function (w) { return !w.object; }).concat([msn]); }
+    if (!grudge && u.mission) {
+      var msn = hs.filter(function (w) { return w.object && w.id === u.mission; })[0], rchM = reachOf(u, hs), stM = G.map.def.step, zU = G.gzAt(u, u.x, u.y);
+      // the street first (a fight's foe `streetFirst`: the Skylights' trolls -- 10-05, Griz: "trolls don't climb unless only hidden targets are in the street"): while one of ours it can see
+      // stands on its own level, that is its fight; the glass only when the street holds nobody but the hidden
+      var onLevel = u.streetFirst ? hs.filter(function (w) { return !w.object && Math.abs(G.gzAt(w, w.x, w.y) - zU) <= stM && !(w.conds && w.conds.hidden) && D.magic.sees(B, u, w); }) : [];
+      // the roof first (a fight's foe `roofGuard`: Hallvör -- 10-05, Griz: "send her to the roof as primary goal, ignore glass protect male?"): she climbs for the glass's roof and never
+      // strikes the glass (noGlass, below); up there whoever stands on the roof is hers, and with nobody up there she holds it; below it the glass is only her road, anyone in reach hers on the way
+      if (u.roofGuard && msn) { var zR = G.gzAt(msn, msn.x, msn.y), upR = zU >= zR - stM; hs = upR ? hs.filter(function (w) { return !w.object && Math.abs(G.gzAt(w, w.x, w.y) - zR) <= stM; }) : [msn].concat(hs.filter(function (w) { return !w.object && G.dist(u, w) <= rchM; })); }
+      else if (onLevel.length) hs = onLevel;
+      else if (msn && !hs.some(function (w) { return !w.object && G.dist(u, w) <= rchM; })) hs = [msn]; else if (msn) hs = hs.filter(function (w) { return !w.object; }).concat([msn]);
+    }
     // nothing but the window (a fight's foe `only`; the Skylights' male giant, 10-05, Griz: "Male stone giant nothing but window, female leads trolls against anyone that tries to stop
     // him"): the glass whoever stands in its reach -- no rock thrown, no blow or opportunity attack at anyone (below; battle.js moveAlong) -- and those set to guard it (`guard`, its id)
     // go for whoever comes within 30 ft of it, the nearest to it first, while it stands; with no one near it, or one of ours in their own reach, the mission as above
@@ -1062,6 +1072,7 @@
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
       if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
       if (u.missionOnly && !atk.needsHeld) pool = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); }); // (nothing but the window: 10-05)
+      if (u.noGlass) pool = pool.filter(function (w) { return !w.object; }); // (the roof guard strikes no glass -- 10-05)
       var t = pool.filter(function (w) { return G.dist(u, w) <= G.reachOf(u, atk.reach); }).sort(function (a, b) {
         if (atk.grapple) { var ha = u.holding.indexOf(a) >= 0, hb = u.holding.indexOf(b) >= 0; if (ha !== hb) return ha ? 1 : -1; }
         return a.hp - b.hp;

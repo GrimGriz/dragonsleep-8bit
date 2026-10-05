@@ -309,7 +309,8 @@
       ownRope: f.rope != null ? f.rope : f.ally ? 0 : undefined, // (a lent ally's own Rope & Grapple -- the garrison's one each; never the party's pack: exec 'rope', ai.js ropeUp, 10-05)
       chase: f.chase ? { to: f.chase.to.slice(), till: f.chase.till || 1 } : null, // (a scripted run for its first rounds: the Skylights' first trolls after the street's people, ai.js brute, 10-05)
       keepLevel: !!f.keepLevel, // (holds its level: no step down 10 ft or more -- the garrison keeps the roof, grid.js stepCost, 10-05)
-      missionOnly: !!f.only, guard: f.guard || null, rocks: f.rocks != null ? f.rocks : null, // (nothing but the mission's target; guarding the one with that id; the rocks it carried -- the Skylights' giants and trolls, ai.js brute, 10-05)
+      missionOnly: !!f.only, guard: f.guard || null, rocks: f.rocks != null ? f.rocks : null,
+      roofGuard: !!f.roofGuard, noGlass: !!f.roofGuard, streetFirst: !!f.streetFirst, // (the roof first and never the glass -- Hallvör; the street first while anyone it can see stands on it -- the trolls: ai.js brute, 10-05) // (nothing but the mission's target; guarding the one with that id; the rocks it carried -- the Skylights' giants and trolls, ai.js brute, 10-05)
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
       // and what it does with the dark itself (the darkmantle's aura, the duergar's Invisibility: ai.js brute)
       darkvision: d.darkvision || 0, blindsight: d.blindsight || 0, blind: !!d.blind, truesight: d.truesight || 0, devilSight: !!d.devilSight,
@@ -1163,21 +1164,40 @@
     if (!s || !s.walk || G.occupant(px, py, u, { z: G.map.gz(px, py), h: G.bodyH(u) }) || drop < 4 * st) return null; // (one hanging high over the landing square is not on it -- 10-05)
     return { at: [px, py], ft: Math.floor(drop / st) * 2.5 };
   };
-  Battle.prototype.knockOff = function* (u, sq) {
-    var z0 = G.gzAt(u, u.x, u.y);
-    u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
-    u.x = sq.at[0]; u.y = sq.at[1]; delete u.hang; this.keepInView(u);
-    yield STEP_FRAMES + 6;
+  // the camera's own beat (the dunking booth -- 10-05, Griz: "I mean zoom on the game map if possible, showing the rock throw and fall"): eased over `ticks` from where it is to a zoom
+  // and a point -- a unit's, a square's ({ gx, gy, gz }), or a camera's own ({ cam, zoom }) -- so the map itself is the close-up. The UI clamps the camera to the map each frame as always
+  Battle.prototype.camTo = function* (at, zoom, ticks) {
+    var iso = D.iso, c = at.cam ? null : (at.gx != null ? at : FX.at(at)), p = c ? iso.center(c.gx, c.gy, c.gz || 0) : null, x1 = c ? Math.round(p.x) : at.cam.x, y1 = c ? Math.round(p.y - 20 - (at.sheet ? D.spr.unitTop(at) / 2 : 0)) : at.cam.y; // (a figure framed at its middle, not its feet: a Huge giant fills the frame at 3)
+    var z0 = iso.zoom, x0 = iso.cam.x, y0 = iso.cam.y;
+    for (var i = 1; i <= ticks; i++) { var q = i / ticks, e = q * q * (3 - 2 * q); iso.zoom = z0 + (zoom - z0) * e; iso.cam.x = x0 + (x1 - x0) * e; iso.cam.y = y0 + (y1 - y0) * e; yield 1; }
+    iso.zoom = zoom; iso.cam.x = x1; iso.cam.y = y1;
+  };
+  // (`att`: who knocked it off. The rock's flight is on the field already when this runs -- the dice roll after it, battle.js attack -- so the booth's beats come before the fall, on the
+  // map itself (10-05, Griz: "Zoom in for rock throw, pause, zoom in on target - target falls out of zoom, zoom in on fountain and show character landing in it, special water splash
+  // effect - show egg"): the camera in on the giant and the throw again, a pause, in on the one hit, who drops out of the frame, then the fountain as it lands, the splash, the egg)
+  Battle.prototype.knockOff = function* (u, sq, att) {
+    var z0 = G.gzAt(u, u.x, u.y), tl = G.map.at(sq.at[0], sq.at[1]), dunk = !!(tl && tl.ch === '~' && u.side === 'party' && !u.guest && !u.ally && !u.summon && !u.familiar);
+    var fd = D.roll(Math.max(1, Math.floor(sq.ft / (dunk ? 20 : 10))) + 'd6'), iso = D.iso, cam0 = { cam: { x: iso.cam.x, y: iso.cam.y }, zoom: iso.zoom };
+    if (dunk) {
+      var dT = this.pace(STEP_FRAMES + 14, true);
+      if (att && att.sheet) { yield* this.camTo(att, 3, 26); att.anim = 'attack'; att.animT = this.t; this.card(['{y}' + nameOf(att) + '{/} lets fly.'], 220); yield 18; FX.projectile(att, u, 'bolt'); yield { fx: 1 }; att.anim = 'idle'; yield 14; }
+      yield* this.camTo(u, 3, 22); yield 10;
+      u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: dT, mode: 'drop' }; u.x = sq.at[0]; u.y = sq.at[1]; delete u.hang;
+      yield Math.floor(dT / 2); // (the camera holds on the edge: it drops out of the frame)
+      yield* this.camTo({ gx: sq.at[0], gy: sq.at[1], gz: 0 }, 3, Math.max(1, Math.ceil(dT / 2))); // (and the fountain, as it lands)
+      D.sfx('splash'); FX.ring(u, 'bone', 30); FX.sparkle(u, 'blue', 28); FX.float('SPLASH', u, D.PAL.ramps.blue[3]); yield 24;
+    } else {
+      u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
+      u.x = sq.at[0]; u.y = sq.at[1]; delete u.hang; this.keepInView(u);
+      yield STEP_FRAMES + 6;
+    }
     // the dunking booth (10-05, Griz: "do similar (zoomed in) fall on whichever player character (only) that not only gets rocked off the ledge but also into a fountain - 'dunking booth'
     // blue egg"): one of the four, knocked off the edge and down into a fountain's water -- the splash, a close-up of the one in the water, the fall's dice halved (the water takes
     // the rest: the seat's call, his to overrule), and the blue egg once a save (js/grimoire.js M.EGGS dunk). A guest, an ally or a foe goes over as before
-    var tl = G.map.at(u.x, u.y), dunk = !!(tl && tl.ch === '~' && u.side === 'party' && !u.guest && !u.ally && !u.summon && !u.familiar);
-    var fd = D.roll(Math.max(1, Math.floor(sq.ft / (dunk ? 20 : 10))) + 'd6');
-    if (dunk) { D.sfx('splash'); yield { scene: { who: u, anim: 'hurt', facing: 0, scale: 2.6, frames: 150, tone: 'blue', caption: 'INTO THE FOUNTAIN.' } }; }
     this.card(['{o}' + nameOf(u) + (dunk ? ' goes over the edge and into the fountain with a splash: ' + sq.ft + ' ft, ' + fd.total + ' bludgeoning -- the water took the rest -- and sits up in it, prone.' : ' goes over the edge: ' + sq.ft + ' ft, ' + fd.total + ' bludgeoning, and lands prone.') + '{/}'], 240);
     this.hurt(u, fd.total, 'bludgeoning', {});
     yield 20;
-    if (dunk && D.magic.egg) yield* D.magic.egg(this, 'dunk');
+    if (dunk) { yield 20; yield* this.camTo(cam0, cam0.zoom, 24); if (D.magic.egg) yield* D.magic.egg(this, 'dunk'); }
   };
   Battle.seesFrom = function (u, x, y, z) {
     var st = G.map.def.step, ez = G.gzAt(u, u.x, u.y) + 2 * st, L = G.line(u.x, u.y, x, y);
@@ -2069,7 +2089,7 @@
     if (atk.prone && !tgt.dead && tgt.hp > 0 && (offSq || (!tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')))) {
       var ks = RU.save(tgt, 'str', atk.prone);
       this.card(['{r}' + nameOf(tgt) + '{/}: STR save  ' + RU.saveText(ks) + ' vs DC ' + ks.dc + '  ' + (ks.ok ? (offSq ? '{n}HOLDS THE EDGE{/}' : '{n}STAYS UP{/}') : offSq ? '{o}KNOCKED OFF THE EDGE{/}' : '{o}KNOCKED PRONE{/} {g}(half the move to rise){/}')]);
-      if (!ks.ok) { if (offSq) yield* this.knockOff(tgt, offSq); if (!tgt.noProne && !RU.immuneTo(tgt, 'prone')) tgt.conds.prone = true; D.sfx('hit'); }
+      if (!ks.ok) { if (offSq) yield* this.knockOff(tgt, offSq, att); if (!tgt.noProne && !RU.immuneTo(tgt, 'prone')) tgt.conds.prone = true; D.sfx('hit'); }
       yield 24;
     }
     // the chuul's tentacles on one it holds: CON or poisoned, and paralyzed while the poison lasts (a CON save each turn)

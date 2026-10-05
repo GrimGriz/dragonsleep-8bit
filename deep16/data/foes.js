@@ -114,7 +114,7 @@
     src: 'SRD 5.1 Skeleton (CR 1/4): armor scraps AC 13, shortsword (the sheet carries the pack\'s blade and small shield), shortbow +4 1d6+2 80/320 (loosed when nothing is in reach: ai.js volley; 10-02 runner). Vulnerable and immune are read (battle.js typed(), 09-27); condition immunities poisoned and exhaustion (SRD 5.1, 10-02 runner)'
   },
   troll: {
-    name: 'Troll', type: 'giant', sheet: 'troll_p1', cr: '5', ac: 15, hp: 84, speed: 30, climbs: 10, size: 2, reach: 5, darkvision: 60, // (climbs 10: ours, not the SRD's -- it digs its claws into the stone, 10 ft a turn, and clings; Griz, 10-04 night: "a slow climb speed, like they're forcefully digging their way into the walls")
+    name: 'Troll', type: 'giant', sheet: 'troll_p1', cr: '5', ac: 15, hp: 84, speed: 30, climbs: 15, size: 2, reach: 5, darkvision: 60, // (climbs 15 since 10-05, Griz: "1 and 2" -- three turns up the Edifice's 45 ft, not five; before that 10: ours, not the SRD's -- it digs its claws into the stone, 10 ft a turn, and clings; Griz, 10-04 night: "a slow climb speed, like they're forcefully digging their way into the walls")
     abil: { str: 18, dex: 13, con: 20, int: 7, wis: 9, cha: 7 }, init: 1, perception: 12,
     saves: { str: 4, dex: 1, con: 5, int: -2, wis: -1, cha: -2 },
     attacks: {
