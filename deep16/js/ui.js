@@ -217,7 +217,7 @@
     if (req.turn) return turnInput(B, req.turn);
   };
   // ------------------------------------------------------------------ READY (battle.js exec 'ready', readySpring; 10-02): the wheel of what can be held, and the aim when it springs
-  function readyWhenText(trig) { return trig === 'ally' ? 'when a foe attacks one of us in sight' : trig === 'down' ? 'when one of us goes down' : trig === 'cast' ? 'when a foe in sight casts a spell' : 'when a foe comes within reach (into sight, for a bow or a spell)'; }
+  function readyWhenText(trig) { return trig === 'ally' ? 'when a foe attacks one of us in sight' : trig === 'down' ? 'when one of us goes down' : trig === 'cast' ? 'when a foe in sight casts a spell' : 'when a foe comes within reach (for a bow or a spell: into sight, or one in sight moves)'; }
   // only what can be readied is on it (Griz: "we'll just not have buttons they can't click (except the grayed out level tier buttons (i.e. willem)"): the weapon, the
   // other one, SPELLS (the spells that take an action, by level), MOVE
   function readiable(e) { return !!(e && e.ok && e.g && e.g.time === 'A'); }

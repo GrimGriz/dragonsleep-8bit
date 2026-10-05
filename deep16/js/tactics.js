@@ -61,7 +61,7 @@
   };
 
   // ------------------------------------------------------------------ who is who
-  function foesOf(B, u) { return AI.heroes(B, u).filter(function (w) { return G.hostile(u, w) && G.standing(w); }); }
+  function foesOf(B, u) { return AI.heroes(B, u).filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.regenDown; }); } // (a troll down and knitting is no one's blow -- only fire or acid matters to it: the burn below, 10-05)
   function alliesOf(B, u) { return B.units.filter(function (w) { return w.side === u.side && !w.dead && !w.fled && !w.left && !w.ethereal; }); }
   TX.foesOf = foesOf; TX.alliesOf = alliesOf;
 
@@ -751,6 +751,16 @@
     var T = u.turn;
     if (!u.darkness || u.darkness.chance == null || u.darkness.used || !T.action || !AI.wantsDark(B, u)) return;
     yield* M.castDarkness(B, u);
+  });
+  // a troll down and not yet burned (10-05, SRD 5.1 Regeneration: it dies only if it starts its turn at 0 and does not regenerate, and acid or fire stops that): a fire or acid
+  // cantrip the caster has, at it, in range and sight -- before any blow at what is standing, or it is up again at its turn (battle.js hurt, ai.js AI.turn)
+  var BURN = ['firebolt', 'produceflame', 'acidsplash'];
+  TX.ACTIONS.push(function (B, u) {
+    var T = u.turn; if (!T.action || T.attacksLeft) return null;
+    var down = B.units.filter(function (w) { return G.hostile(u, w) && w.regenDown && !w.dead && !w.burned; }); if (!down.length) return null;
+    var e = M.list(B, u).filter(function (x) { return BURN.indexOf(x.id) >= 0 && x.ok; })[0]; if (!e) return null;
+    var g = M.geo(e.id), t = down.filter(function (w) { return M.targetOK(B, u, g, w); }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0]; if (!t) return null;
+    return { kind: 'spell', why: e.id + ' to burn the ' + t.name + ' where it lies', score: 90, go: function* () { yield* B.exec(u, { do: 'cast', id: e.id, slot: e.slot, target: t }); } }; // (90: above a buff's -- Haste weighed 57.8 on the bench -- since a troll left to knit is the whole troll again)
   });
   // Lay on Hands (the paladin): the pool on the worst off beside him, when it's needed
   TX.ACTIONS.push(function (B, u, fs, allies) {

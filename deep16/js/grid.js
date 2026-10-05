@@ -16,7 +16,7 @@
   };
   // on the field: holds its space and can be seen (a hero who is down still lies there; an ethereal spider is elsewhere)
   G.present = function (u) { return !u.dead && !u.ethereal; };
-  G.standing = function (u) { return G.present(u) && u.hp > 0; };
+  G.standing = function (u) { return G.present(u) && (u.hp > 0 || !!u.regenDown); }; // (a troll down at 0 and knitting is still on the field to be struck -- fire or acid keeps it down: battle.js hurt, 10-05. It cannot act: RU.canAct reads its hit points)
   G.occupant = function (x, y, except) {
     for (var i = 0; i < G.units.length; i++) {
       var u = G.units[i];

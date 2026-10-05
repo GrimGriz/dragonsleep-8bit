@@ -59,6 +59,16 @@
     if (u.conds.surprised && D.features && D.features.feral && (yield* D.features.feral(B, u))) delete u.conds.surprised; // (Feral Instinct, js/features.js: he rages, and acts)
     if (u.conds.surprised) { delete u.conds.surprised; B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is caught unaware: no turn this round.{/}']); yield 30; return; }
     if (u.conds.recoiling) { delete u.conds.recoiling; B.card(['{g}' + the(B, u) + ' recoils from the light, shrinking up away from it: no turn.{/}']); yield 30; return; }
+    // a troll down at 0 (battle.js hurt, u.regenDown): its turn starts it knitting -- up at its regeneration, still prone (it stands for half its move) -- or, if it burned since
+    // its last turn, it does not, and it dies there (SRD 5.1 Regeneration; 10-05, Griz: "i think the regen is there it's just turning off when they die")
+    if (u.regenDown && !u.dead) {
+      delete u.regenDown;
+      if (u.burned) { u.burned = false; u.dead = true; u.deadT = B.t; D.sfx('die'); B.card(['{y}' + the(B, u, true) + ' does not knit: it burned. It is dead.{/}'], 300); yield 30; return; }
+      B.heal(u, u.regen);
+      if (!(u.hp > 0)) { u.dead = true; u.deadT = B.t; D.sfx('die'); B.card(['{y}' + the(B, u) + ' cannot knit: it is dead.{/}'], 300); yield 30; return; } // (no healing on it -- Chill Touch: it did not regenerate)
+      u.regenRose = true; u.anim = 'idle'; u.animT = B.t; FX.sparkle(u, 'moss', 14);
+      B.card(['{r}' + the(B, u, true) + '{/} knits back together and stirs.  +' + u.regen + '  {g}(fire or acid keeps a troll down){/}'], 300); yield 30;
+    }
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal || u.under) B.focus(u); // (a burrower under the ground: the camera on its mound)
@@ -761,11 +771,11 @@
         if (G.dist(u, rSpot) <= rRch && T.action > 0) { yield* B.cutRope(u, ropeT, meleeA); return; }
       }
     }
-    if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp) {
+    if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp && !u.regenRose) { // (regenRose: up from 0 this turn, its knitting already done -- AI.turn, 10-05)
       if (u.burned) { B.card(['{g}' + u.name + ' does not knit: it burned.{/}']); yield 16; }
       else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
     }
-    u.burned = false;
+    u.burned = false; u.regenRose = false;
     // Second Wind (the Dominion line soldier: 1d10+2 as a bonus action, once, under half)
     if (u.secondWind && !u.secondWindUsed && u.hp > 0 && u.hp < u.maxhp / 2) {
       u.secondWindUsed = true; var sw = D.roll(u.secondWind); B.heal(u, sw.total);

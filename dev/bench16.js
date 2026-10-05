@@ -1352,6 +1352,52 @@
     document.body.appendChild(preE);
     return;
   }
+  // 10-05's fixes (mode=fixes1005; Griz: "i think the regen is there it's just turning off when they die"; "yes, thought it was there" -- Divine Smite's +1d8; "just OR if there's
+  // already in sight"): a troll at 0 down, not dead, up at its turn; burned, dead at its turn; the fight held open while one lies knitting; the class AI's fire bolt at one down; the
+  // smite's +1d8 on the undead; a readied bow springing when a foe already in sight moves, and a held one not asked again in the same move
+  if (get('mode', '') === 'fixes1005') {
+    var repF = { checks: [], errors: [] }, d0F = D.d;
+    function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runF(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkF(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideF(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    try {
+      D.seed = 101;
+      // a. the troll
+      var Bt = mkF('?npc=troll&lvl=8&vs=fighter:8'), tr = sideF(Bt, 'foe')[0], G = D.grid;
+      Bt.hurt(tr, 300, 'slashing');
+      okF('a troll at 0 by steel: down ' + !!tr.regenDown + ', dead ' + !!tr.dead + ', prone ' + !!tr.conds.prone + ', still a target ' + G.standing(tr) + ', can act ' + D.rules.canAct(tr) + ', the fight over? ' + Bt.over(), tr.regenDown && !tr.dead && tr.conds.prone && G.standing(tr) && !D.rules.canAct(tr) && Bt.over() === null);
+      runF(D.ai.turn(Bt, tr));
+      okF('its turn: up at ' + tr.hp + ' HP (regeneration 10), down ' + !!tr.regenDown + ', dead ' + !!tr.dead, tr.hp >= 10 && !tr.regenDown && !tr.dead);
+      Bt.hurt(tr, 300, 'slashing'); Bt.hurt(tr, 4, 'fire'); var lgB = (Bt.log || []).slice(-1)[0] || '';
+      okF('down again, then fire on it where it lies: burned ' + !!tr.burned + ' -- ' + lgB, tr.regenDown && tr.burned && /burns where it lies/.test(lgB));
+      runF(D.ai.turn(Bt, tr));
+      okF('its turn, burned: dead ' + !!tr.dead + ', the fight ' + Bt.over(), tr.dead && Bt.over() === 'won');
+      // b. the class AI burns one down
+      var Bw = mkF('?npc=troll&lvl=5&vs=wizard:5&watch'), wz = sideF(Bw, 'party')[0], tw = sideF(Bw, 'foe')[0];
+      Bw.hurt(tw, 300, 'slashing'); D.rules.startTurn(wz); var plW = D.tactics.plans(Bw, wz);
+      okF('a wizard with a troll down: the best plan ' + (plW[0] && plW[0].why) + ' ' + (plW[0] && plW[0].score), !!plW[0] && /burn the Troll/.test(plW[0].why));
+      // c. Divine Smite on the undead
+      var Bp = mkF('?npc=skeleton&lvl=5&vs=paladin:5'), pal = sideF(Bp, 'party')[0], sk = sideF(Bp, 'foe')[0]; pal.guest = false; pal.classAI = false; D.rules.startTurn(pal); pal.x = sk.x; pal.y = sk.y + 1;
+      D.d = function (n) { return n === 20 ? 19 : d0F(n); }; var n0P = (Bp.log || []).length; runF(Bp.attack(pal, sk, pal.weapon)); D.d = d0F; var lgP = (Bp.log || []).slice(n0P).join(' | ');
+      okF('the paladin smites a skeleton with a 1st-level slot: ' + (lgP.match(/smite [^|]*/) || ['(none)'])[0], /smite 3d8 .*\(\+1d8: undead\)/.test(lgP));
+      // d. READY: a bow readied with the ogre already in sight; the ogre steps -- it springs (the AI's); held (a hand's), not asked again in the same move, asked again next round
+      var Br = mkF('?npc=ogre&lvl=5&vs=rogue:5'), rgR = sideF(Br, 'party')[0], ogR = sideF(Br, 'foe')[0];
+      rgR.guest = true; rgR.classAI = true; D.rules.startTurn(rgR); runF(Br.exec(rgR, { do: 'ready', trigger: 'near', pick: 'alt' }));
+      var had0 = !!(rgR.ready && rgR.ready.had && rgR.ready.had[ogR.id]); D.rules.startTurn(ogR); Br.active = ogR;
+      var n0R = (Br.log || []).length; runF(Br.moveAlong(ogR, [[ogR.x + 1, ogR.y]], {})); var lgR = (Br.log || []).slice(n0R).join(' | ');
+      okF('the ogre in sight when the bow was readied (' + had0 + ') steps: it springs ' + /readied/.test(lgR) + ', the ready spent ' + !rgR.ready + ' -- ' + lgR.slice(0, 140), had0 && /readied/.test(lgR) && !rgR.ready);
+      rgR.guest = false; rgR.classAI = false; rgR.reaction = 1; D.rules.startTurn(rgR); runF(Br.exec(rgR, { do: 'ready', trigger: 'near', pick: 'alt' })); Br.active = ogR; D.rules.startTurn(ogR);
+      var n1R = (Br.log || []).length; runF(Br.moveAlong(ogR, [[ogR.x + 1, ogR.y], [ogR.x + 2, ogR.y]], {})); var held1 = (Br.log || []).slice(n1R).join(' | ').split('holds the readied').length - 1;
+      Br.round++; var n2R = (Br.log || []).length; runF(Br.moveAlong(ogR, [[ogR.x - 1, ogR.y]], {})); var held2 = (Br.log || []).slice(n2R).join(' | ').split('holds the readied').length - 1;
+      okF('a hand that holds: asked once over a two-step move (' + held1 + '), still readied ' + !!rgR.ready + ', asked again the next round (' + held2 + ')', held1 === 1 && !!rgR.ready && held2 === 1);
+    } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
+    D.d = d0F;
+    if (errs.length) repF.errors = repF.errors.concat(errs);
+    var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
+    document.body.appendChild(preF);
+    return;
+  }
   // the review's rules misses on the grid (mode=rules1003; 10-03, Griz: "Slide way back up to the top with the stuff the cloud review came back with - I think those
   // were probably the important of the todos"; cloud-notes/dev-review-notes.md A3-A5): each check failed before its fix. Battle.hurt straight, D.d pinned for the CON saves
   if (get('mode', '') === 'rules1003') {

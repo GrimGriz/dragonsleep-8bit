@@ -216,7 +216,7 @@
     if (!w || w.dead || w.ethereal) return false;
     if (M.targetWhy(u, g, w, B)) return false;
     var foeWanted = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe';
-    if (foeWanted && (!G.hostile(u, w) || w.hp <= 0) && !(g.selfToo && w === u)) return false; // (selfToo: Hideous Laughter on its own caster, the easter egg -- js/grimoire.js M.jokeReady)
+    if (foeWanted && (!G.hostile(u, w) || (w.hp <= 0 && !w.regenDown)) && !(g.selfToo && w === u)) return false; // (selfToo: Hideous Laughter on its own caster, the easter egg -- js/grimoire.js M.jokeReady) (regenDown: a troll down and knitting, to be burned -- 10-05)
     if (((g.shape === 'allies' && g.side !== 'foe') || g.side === 'ally') && w.side !== u.side) return false; // (Bane: an `allies` shape aimed at foes)
     if (w.familiar && w.side === u.side && !foeWanted) return false; // (its own side's spells pass a familiar by -- RULED 10-01, "familiars not targetable")
     if (g.only === 'humanoid' && !M.humanoid(w)) return false;

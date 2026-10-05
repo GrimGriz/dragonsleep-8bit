@@ -496,7 +496,7 @@
     // the skylight broken (a defend fight, 10-04 night): the Edifice is breached, and it is lost
     if (this.units.some(function (u) { return u.object && u.breachLoses && (u.dead || u.hp <= 0); })) return 'lost';
     // (a foe turned wholly to stone -- Flesh to Stone's third failed save -- holds no fight open: it had stalled one for good, 10-01)
-    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }).length) return 'won';
+    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }).length && !this.units.some(function (u) { return u.side === 'foe' && u.regenDown && !u.dead; })) return 'won'; // (a troll down and knitting holds it open: 10-05)
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
     // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
@@ -1452,7 +1452,9 @@
         u.x = rpS.foot[0]; u.y = rpS.foot[1]; u.hang = { rope: rpS, z: zH };
         if (o.spend) { T.move -= stpR * 5; T.moved = (T.moved || 0) + stpR * 5; }
         this.card(['{y}' + nameOf(u) + '{/} ' + (upR ? 'climbs' : 'lets down') + ' ' + stpR * 2.5 + ' ft of the rope and hangs there, ' + Math.round(Math.abs(endZ - zH) / stZ) * 2.5 + ' ft to go.'], 260);
-        this.keepInView(u); yield STEP_FRAMES + 2 * stpR; u.anim = 'idle'; return;
+        this.keepInView(u); yield STEP_FRAMES + 2 * stpR; u.anim = 'idle';
+        if (this.readyArmed()) yield* this.readyHook(u, 'move'); // (part way up a rope is a move too -- 10-05)
+        return;
       }
       // a climb speed up a face it cannot top this turn (10-04 night, Griz: "a slow climb speed, like they're forcefully digging their way into the walls"): as far as the turn's climb
       // allows (T.climbLeft, its climb speed in feet, and the move's feet), and it clings to the face there -- u.hang with `face` and `foot`, read as a rope's hang is (G.hanging, G.gzAt,
@@ -1466,7 +1468,9 @@
           u.hang = { face: [nx, ny], foot: [u.x, u.y], z: zC };
           if (o && o.spend) { T.move -= spentC; T.moved = (T.moved || 0) + spentC; if (T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - spentC); }
           this.card(['{y}' + nameOf(u) + '{/} digs ' + canC * 2.5 + ' ft up the face and clings there, ' + (needC - canC) * 2.5 + ' ft to go.'], 260);
-          this.keepInView(u); yield STEP_FRAMES + 2 * canC; u.anim = 'idle'; return;
+          this.keepInView(u); yield STEP_FRAMES + 2 * canC; u.anim = 'idle';
+          if (this.readyArmed()) yield* this.readyHook(u, 'move'); // (a climb is a move: the readied bow or spell that sees it -- 10-05)
+          return;
         }
         if (o && o.spend && T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - Math.ceil(needC * 2.5 / 5) * 5); // (the whole face this turn: off the turn's climb)
       }
@@ -1521,7 +1525,7 @@
       // the Keeper's readied Ice Wall (js/keeper.js, 10-03): one of ours stepping toward the exit springs it
       if (this.kp && this.kp.ready && D.keeper) yield* D.keeper.watch(this, u, stepFrom);
       // a readied strike (exec 'ready', 10-02): one that steps within a readier's reach, or into its sight, gets it -- and held, stunned or put down by it, walks no farther
-      if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) { yield* this.readyHook(u); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; } u.anim = gait; }
+      if (this.units.some(function (w) { return w.ready && w.reaction > 0; })) { yield* this.readyHook(u, 'move'); if (u.hp <= 0 || u.dead) { u.anim = 'idle'; return; } if (u.conds.restrained || u.conds.paralyzed || u.conds.stunned || u.conds.asleep) { u.anim = 'idle'; if (o && o.spend) T.move = 0; return; } u.anim = gait; }
     }
     u.anim = 'idle';
   };
@@ -1742,16 +1746,16 @@
     if (att.surprise && this.round === 1) { var sa = D.roll(att.surprise, { crit: crit }); dmg += sa.total; parts.push('{o}first blow ' + att.surprise + ' ' + RU.fmtRolls(sa.rolls) + '{/}'); }
     // Divine Smite: after the hit, spend a slot
     if (att.cls === 'paladin' && melee && (!att.guest || att.classAI) && (att.slots || []).some(function (n) { return n > 0; })) {
-      var opts = [];
-      [1, 2, 3].forEach(function (lv) { if (att.slots[lv - 1] > 0) opts.push({ label: 'L' + lv + ' ' + Math.min(5, 1 + lv) + 'd8', value: lv }); });
+      var opts = [], smUF = /^(undead|fiend)$/.test(tgt.type || ''), smN = function (lv) { return Math.min(5, 1 + lv) + (smUF ? 1 : 0); }; // (SRD 5.1: "The damage increases by 1d8 if the target is an undead or a fiend" -- 10-05, Griz: "yes, thought it was there")
+      [1, 2, 3].forEach(function (lv) { if (att.slots[lv - 1] > 0) opts.push({ label: 'L' + lv + ' ' + smN(lv) + 'd8', value: lv }); });
       opts.push({ label: 'NO SMITE', value: 0 });
       this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why], 300, cid);
       // the AI's paladin (09-28): the best slot on a critical; else the lowest, on one the blow alone won't drop and worth the slot
       var lv = byAI(att) ? (crit ? opts[opts.length - 2].value : (tgt.hp > dmg + 4 && tgt.maxhp >= 15 ? opts[0].value : 0)) : yield { prompt: { who: att, title: att.name + ': DIVINE SMITE?', lines: ['The blow lands' + (crit ? ' -- a critical: the smite dice double.' : '.')], opts: opts } };
       if (lv) {
         att.slots[lv - 1]--; D.sfx('magic');
-        var sm = D.roll(Math.min(5, 1 + lv) + 'd8', { crit: crit }); rad += sm.total;
-        parts.push('{y}smite ' + Math.min(5, 1 + lv) + 'd8 ' + RU.fmtRolls(sm.rolls) + ' = ' + sm.total + ' radiant{/}');
+        var sm = D.roll(smN(lv) + 'd8', { crit: crit }); rad += sm.total;
+        parts.push('{y}smite ' + smN(lv) + 'd8 ' + RU.fmtRolls(sm.rolls) + ' = ' + sm.total + ' radiant' + (smUF ? ' (+1d8: ' + tgt.type + ')' : '') + '{/}');
         FX.ring(tgt, 'gold', 30); FX.sparkle(tgt, 'gold', 16);
       }
     }
@@ -1964,15 +1968,21 @@
   // asked of every event that could bring a foe to a readier: a step (moveAlong), a burrower up (ai.js rise), a phase spider out, a spell's end (exec cast), a blow from hiding
   // (attack). Each readier with its reaction looks at who it could strike now against who it could before: a new one springs it -- a player's hero asked, the AI's at once --
   // and the list is kept either way. `about`: the one whose doing it was, struck first when it is among the new
-  Battle.prototype.readyHook = function* (about) {
-    var rs = this.units.filter(function (w) { return w.ready && (w.ready.trigger || 'near') === 'near' && w.reaction > 0 && RU.canAct(w) && G.standing(w); });
+  // (how 'move': `about` took a step. For a bow or a spell, one already in sight moving springs it too -- 10-05, Griz: "just OR if there's already in sight": Aurdin's readied ray
+  // let the male giant climb in plain view twice. Asked once a move: held, it is not asked again for the same one's same turn; a refused trigger waits for the next -- SRD 5.1,
+  // "you can either take your reaction right after the trigger finishes or ignore the trigger", till the start of the readier's turn)
+  Battle.prototype.readyHook = function* (about, how) {
+    var self = this, rs = this.units.filter(function (w) { return w.ready && (w.ready.trigger || 'near') === 'near' && w.reaction > 0 && RU.canAct(w) && G.standing(w); });
     for (var i = 0; i < rs.length; i++) {
       var w = rs[i], rd = w.ready; if (!rd || w.reaction <= 0 || !RU.canAct(w)) continue; // (sprung already from inside another's strike -- a readied spell's own attack asks the hook again)
       var now = this.readyTargets(w, rd), fresh = now.filter(function (t) { return !(rd.had || {})[t.id]; });
       rd.had = {}; now.forEach(function (t) { rd.had[t.id] = 1; });
-      if (!fresh.length) continue;
-      var foe = about && fresh.indexOf(about) >= 0 ? about : fresh[0];
-      yield* this.readySpring(w, rd, { foe: foe, why: Battle.nm(foe, true) + ' comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) ? 'into sight' : 'within reach') + '.' });
+      var sight = rd.what === 'spell' || (rd.wp && rd.wp.ranged), mvKey = about ? about.id + '@' + this.round + ':' + (this.active ? this.active.id : '') : null;
+      var mover = !fresh.length && how === 'move' && sight && about && now.indexOf(about) >= 0 && rd.heldFor !== mvKey ? about : null;
+      if (!fresh.length && !mover) continue;
+      var foe = mover || (about && fresh.indexOf(about) >= 0 ? about : fresh[0]);
+      var sprung = yield* this.readySpring(w, rd, { foe: foe, why: Battle.nm(foe, true) + (mover ? ' moves.' : ' comes ' + (sight ? 'into sight' : 'within reach') + '.') });
+      if (!sprung && w.ready && mover) w.ready.heldFor = mvKey;
       if (about && (about.dead || about.hp <= 0)) return;
     }
   };
@@ -1980,7 +1990,7 @@
   // 'near' is the old one (readyHook, above); the other three are told after the attack, the spell or the turn that made them (readyAfter) -- SRD 5.1: "When the
   // trigger occurs, you can either take your reaction right after the trigger finishes or ignore the trigger"
   Battle.READY_TRIGGERS = [
-    { id: 'near', label: 'A FOE COMES WITHIN REACH (INTO SIGHT, FOR A BOW OR A SPELL)' },
+    { id: 'near', label: 'A FOE COMES WITHIN REACH (FOR A BOW OR A SPELL: INTO SIGHT, OR MOVES IN IT)' },
     { id: 'ally', label: 'A FOE ATTACKS ONE OF US YOU CAN SEE' },
     { id: 'down', label: 'ONE OF US GOES DOWN' },
     { id: 'cast', label: 'YOU SEE A FOE CAST A SPELL (THE CASTER, OR WHAT IT DOES)' }
@@ -1989,7 +1999,7 @@
     if (rd.trigger === 'ally') return 'when a foe attacks one of us in sight';
     if (rd.trigger === 'down') return 'when one of us goes down';
     if (rd.trigger === 'cast') return 'when you see a foe cast a spell';
-    return 'when a foe comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) ? 'into sight' : 'within reach');
+    return 'when a foe comes ' + (rd.what === 'spell' || (rd.wp && rd.wp.ranged) ? 'into sight, or one in sight moves' : 'within reach');
   };
   Battle.sawEffect = function (B, w, ef) { return !!(ef && ((ef.units || []).some(function (x) { return x === w || D.magic.sees(B, w, x); }) || (ef.sq || []).some(function (q) { return D.magic.seesSq(B, w, q[0], q[1]); }))); };
   Battle.nm = function (w, cap) { return w.side === 'foe' ? (w.named ? '' : cap ? 'The ' : 'the ') + shortName(w) : w.name; };
@@ -2206,6 +2216,8 @@
     if (u.beast && n > 0) { if (n < u.beast.hp) { u.beast.hp -= n; u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); conc(this); return; } var over = n - u.beast.hp; conc(this); D.features.unshape(this, u, over); return; }
     if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
     if (n <= 0) { conc(this); return; }
+    // a troll down at 0 (u.regenDown, below): more blows change nothing but the burning -- fire or acid, and it will not knit at its turn (SRD 5.1 Regeneration, 10-05)
+    if (u.regenDown && !u.dead) { u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); if (/fire|acid/.test(type || '')) this.card(['{o}The ' + shortName(u) + ' burns where it lies: it will not knit.{/}'], 200); return; }
     u.hp = Math.max(0, u.hp - n);
     if (u.traces) this.hitAtTraces = true; // (nothing shows now: from their next moves they run, or he turns to fight: ai.js turn)
     if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
@@ -2233,6 +2245,9 @@
       if (u.familiar && D.familiar && D.familiar.vanish) D.familiar.vanish(this, u); // (a familiar at 0 HP is gone, not down: SRD 5.1)
       else if (u.side === 'party' && !u.object) { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside ' + u.name + '.{/}' : '')]); } // (the name, never "him")
       else if (u.object) { u.dead = true; u.deadT = this.t; this.breached = true; D.sfx('crit'); this.card(['{r}' + u.name.charAt(0).toUpperCase() + u.name.slice(1) + ' gives way!{/}  {g}(the Edifice is breached){/}'], 300); }
+      // a troll at 0 is down, not dead (SRD 5.1 Regeneration: "The troll dies only if it starts its turn with 0 hit points and doesn't regenerate"; acid or fire stops it -- 10-05,
+      // Griz: "i think the regen is there it's just turning off when they die"): it lies there, still a target, and gets up at its turn unless it burned (ai.js AI.turn)
+      else if (u.regen > 0) { u.regenDown = true; u.conds.prone = true; this.card(['{y}The ' + shortName(u) + ' falls -- and starts to knit.{/}  {g}(' + (u.burned ? 'it burned: it will not' : 'fire or acid before its turn, or it gets up') + '){/}'], 300); if (u.holding && u.holding.length) this.release(u); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}' + (u.named ? '' : 'The ') + shortName(u) + ' falls.{/}']); /* (a named foe -- The Keeper -- has its own article: "The The Keeper falls", 10-02) */ if (u.holding && u.holding.length) this.release(u); }
       // a darkmantle down off the one it rode, or off one who went down, now -- not at the coroutine's next step: the blow that ends the fight leaves no
       // next step, and the one it rode kept "attached" and "blinded" (10-01, the roper window's bench: Barley and Vivian, their darkmantles dead)
