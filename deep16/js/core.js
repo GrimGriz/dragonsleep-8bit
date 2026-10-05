@@ -66,6 +66,27 @@
       return a;
     } catch (e) { if (done) done(false); return null; }
   };
+  // a spoken line (10-05 evening, Griz: "we'll stephen hawking it"): the browser's own speech synthesis, at the effects' volume (0 says nothing). It speaks
+  // only once a key or a click has unlocked the audio (AU().ctx -- a browser holds speech until a press too), so a headless bench page, which never presses,
+  // says nothing; D.quietVoice and a driven browser (navigator.webdriver) are silent too. No speechSynthesis, or any throw: fails quietly, returns null
+  // (the utterance otherwise). o.pitch (0..2) and o.rate (0.1..10) are optional; an English voice if the browser offers one (a local one first), else its default
+  D.say = function (text, o) {
+    try {
+      var S = window.speechSynthesis, U = window.SpeechSynthesisUtterance, A = AU();
+      if (!S || !U || D.quietVoice || (window.navigator && window.navigator.webdriver) || !A || !A.ctx) return null;
+      var vol = A.sfxVol != null ? Math.max(0, Math.min(1, A.sfxVol)) : 0.7;
+      if (vol <= 0) return null;
+      o = o || {};
+      var u = new U(String(text)); u.volume = vol; u.lang = 'en-US';
+      if (o.pitch != null) u.pitch = o.pitch;
+      if (o.rate != null) u.rate = o.rate;
+      var vs = S.getVoices ? S.getVoices() : [], en = null, i;
+      for (i = 0; i < vs.length; i++) if (/^en([-_]|$)/i.test(vs[i].lang || '') && (!en || (vs[i].localService && !en.localService))) en = vs[i];
+      if (en) { u.voice = en; u.lang = en.lang; }
+      S.speak(u);
+      return u;
+    } catch (e) { return null; }
+  };
   // browsers start sound only on a key or a click. The synth's unlock replays a tune asked for before it, but through
   // play(), which skips a tune it thinks is already on -- so a tune that's named and not sounding is started again here
   D.unlockAudio = function () {

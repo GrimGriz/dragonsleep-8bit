@@ -77,7 +77,11 @@
     if (!RU.canAct(u) && !u.ethereal) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + (u.conds.asleep ? ' sleeps.' : u.conds.paralyzed ? ' is held fast.' : u.conds.stunned ? ' is stunned.' : ' cannot act.') + '{/}']); yield 30; D.magic.endTurn(B, u); return; }
     if (!u.ethereal || u.under) B.focus(u); // (a burrower under the ground: the camera on its mound)
     // clinging to a face part way up (a slow climb speed: battle.js moveAlong, 10-04 night): the climb goes on before anything else; still on the face after, the turn is spent
-    if (u.hang && u.hang.face && G.hanging(u)) { yield* B.moveAlong(u, [u.hang.face], { spend: true }); if (u.hang && G.hanging(u)) { yield 20; return; } }
+    // ... unless it hunts climbers and one of ours still hangs within a column of it (the Skylights' spiders; 10-05 night, Griz: "get the spiders wall-crawling climbers (particularly
+    // webbed ones)"): it holds the face and moves along it to their height instead (alongFace), and the turn goes on from there -- the bite
+    var preyH = u.hang && u.hang.face && G.hanging(u) && u.huntsClimbers && u.climbs ? prey(B, u, true) : null;
+    if (preyH) { yield* alongFace(B, u, preyH); if (u.dead || u.hp <= 0) return; }
+    else if (u.hang && u.hang.face && G.hanging(u)) { if (u.hang.down) yield* climbRest(B, u); else yield* B.moveAlong(u, [u.hang.face], { spend: true }); if (u.hang && G.hanging(u)) { yield 20; return; } } // (down: the rest of the way down, ai.js climbRest -- 10-05 night)
     // the clacker strikes its hooks together as its turn begins, the clacking that is their speech (10-01, Griz's sheet's CLACK row;
     // data/foes.js clacker): the row plays once (js/ui.js), a clack on each strike, then the turn
     if (u.kind && D.FOES[u.kind] && D.FOES[u.kind].clacks && !u.conds.banished) {
@@ -816,10 +820,101 @@
     return best && (best.e.x !== u.x || best.e.y !== u.y) && !(here != null && best.s <= here) ? best.e : null;
   }
   function belowIt(u, w) { return !!u.keepLevel && G.gzAt(w, w.x, w.y) < G.gzAt(u, u.x, u.y) - 2 * G.map.def.step; }
+  // the way down the face to a climber (the Skylights' spiders; 10-05 night, Griz: "get the spiders wall-crawling climbers (particularly webbed ones) - spider spiderclimb faster on web
+  // per SRD"): a hunter with a climb speed on the lip over one of ours hanging on a rope or a face goes over and down the face beside them -- the column next to theirs, its foot the
+  // ground there, its face a lip square beside that column it can climb back onto (u.hang: face, foot, z -- read as the trolls' cling is: G.hanging, G.gzAt, the drawing, the hover) -- as far as the turn's climb
+  // pays (2.5 ft a step in 5s; u.turn.climbLeft, rules.js startTurn), to their height on a 5 ft mark; beside them it bites (the brute's blows), and through their turns it holds the
+  // face and moves along it after them (alongFace, from AI.turn). The webbed first (climbersOf: restrained, then the nearest). The SRD's Spider Climb is the no-check climb and (ours)
+  // the hold no blow shakes (battle.js hurt); Web Walker is grid.js stepCost; the SRD gives it no faster climb on a web -- his "faster on web per SRD" read as those two, the seat's
+  // read. Not through moveAlong: the descent provokes no opportunity attack from the lip, and the three-apart rule for foes' climb spots is not asked of it (the prey is its spot)
+  function climbersOf(B, u) {
+    return B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && w.hang && G.hanging(w); })
+      .sort(function (a, b) { return (b.conds.restrained ? 1 : 0) - (a.conds.restrained ? 1 : 0) || G.dist(u, a) - G.dist(u, b); });
+  }
+  function acrossFt(a, b) { var as = a.size || 1, bs = b.size || 1; return Math.max(0, b.x - (a.x + as - 1), a.x - (b.x + bs - 1), b.y - (a.y + as - 1), a.y - (b.y + bs - 1)) * 5; } // (the flat distance alone)
+  function prey(B, u, near) { var c = climbersOf(B, u); if (near) c = c.filter(function (w) { return acrossFt(u, w) <= 5; }); return c[0] || null; }
+  function climbBudget(u) { var T = u.turn; return Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5; }
+  function spendClimb(u, ft) { var T = u.turn; T.move -= ft; T.moved = (T.moved || 0) + ft; if (T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - ft); }
+  function groundUnder(u, x, y) { var z = 0; G.foot(u, x, y).forEach(function (p) { z = Math.max(z, G.map.gz(p[0], p[1])); }); return z; }
+  // the rest of the way down a face it clung to part way (battle.js moveAlong, `down`): the turn's climb, to the ground if it pays -- it stands at its foot square, no fall -- else to a
+  // lower 5 ft mark; the ground taken by another, it waits at 5 ft
+  function* climbRest(B, u) {
+    var st = G.map.def.step, zB = groundUnder(u, u.x, u.y), steps = Math.floor(climbBudget(u) / 2.5), h = Math.round((u.hang.z - zB) / st), z0 = u.hang.z;
+    if (steps < 1 || h < 1) return false;
+    if (steps >= h) {
+      var h0 = u.hang; delete u.hang;
+      if (!G.canStand(u, u.x, u.y)) { u.hang = h0; if (h > 2) { spendClimb(u, Math.ceil((h - 2) * 2.5 / 5) * 5); u.hang.z = zB + 2 * st; B.card(['{r}' + the(B, u) + '{/} climbs down to 5 ft above the ground and waits there: the ground below it is taken.'], 240); yield 16; } return false; }
+      spendClimb(u, Math.ceil(h * 2.5 / 5) * 5); u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: B.pace(12 + 2 * h, true), mode: 'climb' };
+      B.card(['{r}' + the(B, u) + '{/} climbs the last ' + h * 2.5 + ' ft down the face to the ground.'], 240); B.keepInView(u); yield 12 + 2 * h; u.anim = 'idle';
+      if (B.readyArmed && B.readyArmed()) yield* B.readyHook(u, 'move');
+      return true;
+    }
+    var hN = h - steps; if (hN % 2) hN += 1; if (hN >= h) return false;
+    var hangers = B.units.filter(function (w) { return w !== u && w.hang && G.hanging(w) && w.x === u.x && w.y === u.y; });
+    while (hN < h && hangers.some(function (w) { return G.sharesZ(w, { z: zB + hN * st, h: G.bodyH(u) }); })) hN += 2;
+    if (hN >= h) return false;
+    spendClimb(u, Math.ceil((h - hN) * 2.5 / 5) * 5); u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: B.pace(12 + 2 * (h - hN), true), mode: 'climb' }; u.hang.z = zB + hN * st;
+    B.card(['{r}' + the(B, u) + '{/} climbs ' + (h - hN) * 2.5 + ' ft further down the face and clings there, ' + hN * 2.5 + ' ft above the ground.'], 240); B.keepInView(u); yield 12 + 2 * (h - hN); u.anim = 'idle';
+    if (B.readyArmed && B.readyArmed()) yield* B.readyHook(u, 'move');
+    return true;
+  }
+  // along the face it clings to, up or down to the prey's height: a change of height alone, the turn's climb, a 5 ft mark short of the prey rather than past
+  function* alongFace(B, u, w) {
+    var st = G.map.def.step, zB = groundUnder(u, u.x, u.y), zT = G.gzAt(w, w.x, w.y), z0 = u.hang.z, steps = Math.floor(climbBudget(u) / 2.5), need = Math.round((zT - z0) / st);
+    if (!need || steps < 1) return false;
+    var dir = need > 0 ? 1 : -1, hN = Math.round((z0 - zB) / st) + dir * Math.min(Math.abs(need), steps);
+    if (hN % 2) hN -= dir; hN = Math.max(2, hN);
+    var zN = zB + hN * st, moved = Math.abs(Math.round((zN - z0) / st));
+    if (!moved || zN >= G.map.gz(u.hang.face[0], u.hang.face[1])) return false; // (the lip itself is the climb on, not a cling)
+    spendClimb(u, Math.ceil(moved * 2.5 / 5) * 5);
+    u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: B.pace(12 + 2 * moved, true), mode: 'climb' }; u.hang.z = zN; u.facing = B.faceTo(u, w);
+    B.card(['{r}' + the(B, u) + '{/} scuttles ' + moved * 2.5 + ' ft ' + (dir > 0 ? 'up' : 'down') + ' the face' + (G.dist(u, w) <= reachOf(u) ? ', beside ' + w.name + '.' : ' after ' + w.name + '.')], 240);
+    B.keepInView(u); yield 12 + 2 * moved; u.anim = 'idle';
+    if (B.readyArmed && B.readyArmed()) yield* B.readyHook(u, 'move');
+    return true;
+  }
+  // over the lip and down the face beside the prey: the column next to theirs, the face square the lip square against that column on the prey's own face (its rope's top, or its
+  // face); walks along the lip to it first when it must and has the move. False when there is no such column, no climb left, or another body already in that band of the column
+  function* downFace(B, u, w) {
+    var st = G.map.def.step, us = u.size || 1, ws = w.size || 1, T = u.turn, zL = G.gzAt(u, u.x, u.y), zT = G.gzAt(w, w.x, w.y), zF = groundUnder(w, w.x, w.y);
+    if (zL - zT < 2 * st) return false; // (not below it: the lip's own reach)
+    var rm = G.reach(u, T.move), spots = [];
+    [w.x - us, w.x + ws].forEach(function (fx) {
+      var fy = w.y, zS = groundUnder(u, fx, fy);
+      // level enough ground under it, the prey's own within a step (the street beside the dwarves' rope carries the fountain's 2.5 ft rim)
+      if (Math.abs(zS - zF) > st || !G.foot(u, fx, fy).every(function (p) { var s = G.map.at(p[0], p[1]); return s && s.walk && !s.deep && Math.abs(G.map.gz(p[0], p[1]) - zS) <= st; })) return;
+      // its face: a lip square it can climb back onto, beside that column -- the nearest to where it stands (the rim square over the rope itself may be no square to stand on)
+      var face = null, fd = 1e9;
+      for (var dy = -1; dy <= us; dy++) for (var dx = -1; dx <= us; dx++) { var ax = fx + dx, ay = fy + dy, sq = G.map.at(ax, ay); if (!(sq && sq.walk) || G.map.gz(ax, ay) - zS < 2 * st || Math.abs(G.map.gz(ax, ay) - zL) > st) continue; var d = Math.max(Math.abs(u.x - ax), Math.abs(u.y - ay)); if (d < fd) { fd = d; face = [ax, ay]; } }
+      if (!face) return;
+      var here = fd <= 1, best = null;
+      if (!here) for (var dy2 = -1; dy2 <= 1; dy2++) for (var dx2 = -1; dx2 <= 1; dx2++) { var bx = face[0] + dx2, by = face[1] + dy2, e = rm[bx + ',' + by]; if (e && e.stand && Math.abs(G.gzAt(u, bx, by) - zL) <= st && (!best || e.cost < best.cost)) best = e; }
+      if (here || best) spots.push({ fx: fx, fy: fy, zS: zS, face: face, walk: here ? null : best, cost: here ? 0 : best.cost });
+    });
+    if (!spots.length) return false;
+    spots.sort(function (a, b) { return a.cost - b.cost; }); var sp = spots[0];
+    if (sp.walk) { yield* walkTo(B, u, sp.walk); if (u.dead || u.hp <= 0 || Math.max(Math.abs(u.x - sp.face[0]), Math.abs(u.y - sp.face[1])) > 1) return false; }
+    var bud = climbBudget(u); if (bud < 5) return false;
+    // down to the prey's height, on a 5 ft mark above its own ground (the step above the prey rather than the one below), no further than the turn's climb pays
+    var zLip = G.map.gz(sp.face[0], sp.face[1]), hN = Math.ceil((zT - sp.zS) / st); if (hN % 2) hN += 1; hN = Math.max(2, hN);
+    var hLip = Math.round((zLip - sp.zS) / st), down = hLip - hN, canD = Math.floor(bud / 2.5);
+    if (down > canD) { down = canD; hN = hLip - down; if (hN % 2) { hN += 1; down -= 1; } }
+    if (down < 1 || hN >= hLip) return false;
+    var zN = sp.zS + hN * st, h = G.bodyH(u);
+    if (B.units.some(function (o) { return o !== u && o.hang && G.hanging(o) && o.x === sp.fx && o.y === sp.fy && G.sharesZ(o, { z: zN, h: h }); })) return false; // (no two bodies in one band of a face)
+    var x0 = u.x, y0 = u.y, h0 = u.hang; u.x = sp.fx; u.y = sp.fy; u.hang = { face: sp.face, foot: [sp.fx, sp.fy], z: zN };
+    if (!G.canStand(u, sp.fx, sp.fy)) { u.x = x0; u.y = y0; u.hang = h0; return false; }
+    spendClimb(u, Math.ceil(down * 2.5 / 5) * 5);
+    u.tween = { fx: x0, fy: y0, fz: zL, t: 0, dur: B.pace(12 + 2 * down, true), mode: 'climb' }; u.facing = B.faceTo(u, w);
+    B.card(['{r}' + the(B, u) + '{/} goes over the lip and ' + down * 2.5 + ' ft down the face' + (G.dist(u, w) <= reachOf(u) ? ', beside ' + w.name + (w.conds.restrained ? ' in the web.' : '.') : ' after ' + w.name + '.')], 260);
+    B.keepInView(u); yield 12 + 2 * down; u.anim = 'idle';
+    if (B.readyArmed && B.readyArmed()) yield* B.readyHook(u, 'move');
+    return true;
+  }
   // her whistle (the Skylights, 10-05 evening -- Griz: "I'm considering when/if Hallvor makes the roof, 'whistles and says 'come on down'' as a free action, then 2 spiders come down
   // each side of the waterfall and target her foe-climbers" -- "Two spiders, one comes down centered between the falls and the edge *each edge of edifice" -- "can she whistle and call
-  // them?"): at the end of the fight's `whistler`'s first turn standing on the glass's roof, a free action -- the chip synth's whistle, her call (deep16/audio/come_on_down.mp3 when there
-  // is one; the card carries it till then) -- and the wave the fight holds for it (`whistle`, Battle.arrive) comes down at once, dealt into the order. invented.json skylights-spiders
+  // them?"): at the end of the fight's `whistler`'s first turn standing on the glass's roof, a free action -- the chip synth's whistle, her call (said by the browser's own voice, low and flat, D.say in core.js -- Griz: "we'll stephen hawking it"; the
+  // card carries it too, and a bench says nothing aloud) -- and the wave the fight holds for it (`whistle`, Battle.arrive) comes down at once, dealt into the order. invented.json skylights-spiders
   function* whistle(B, u) {
     if (u.dead || u.hp <= 0 || (u.hang && G.hanging(u)) || !RU.canAct(u)) return;
     var sky = B.units.filter(function (w) { return w.id === 'skylight'; })[0]; if (!sky) return;
@@ -827,12 +922,12 @@
     var held = (B.late || []).filter(function (l) { return l.whistle && l.round === Infinity; }); if (!held.length) return;
     u.whistled = true; B.focus(u); D.sfx('whistle');
     B.card(['{r}' + u.name + '{/} puts two fingers to her mouth and whistles.  "Come on down!"'], 320);
-    if (D.clip) D.clip('audio/come_on_down.mp3');
+    if (D.say) D.say('Come on down!', { pitch: 0.55, rate: 0.85 });
     yield 40;
     held.forEach(function (l) { l.round = B.round; });
     yield* B.lateOut();
   }
-  AI.lipsNear = lipsNear; // (the bench)
+  AI.lipsNear = lipsNear; AI.prey = prey; AI.climbersOf = climbersOf; AI.downFace = downFace; AI.alongFace = alongFace; AI.climbRest = climbRest; // (the bench)
   // a rope set down from the lip (10-05, Griz: "if no ropes down and two on roof, maybe have a dwarf run to the ledge and set a hook/rope down?"): a lent ally with its own rope, up on a level
   // with a face below it where two or more of ours stand, no rope hanging from there, and none of the foes in its reach -- one of them (the first to take it up: B.ropeTier) goes to the lip
   // nearest ours below and ties it off (exec 'rope' from beside the lip: no roll), so the street can climb to it
@@ -914,11 +1009,14 @@
     // the spiders she whistled down (the Skylights, 10-05 evening; Griz: "target her foe-climbers"): any of ours on a rope or a face is theirs -- known by her call, seen or not -- the
     // nearest first: to the square on their level nearest it across (ledgeSq -- the lip over it, not by the drop's height), one with a clear line for the web while the web is ready;
     // then the brute's own way at them: the rope's grapple cut from its top (below), the web at a climber it sees, the bite at one in reach. With no one climbing, the brute's way
+    // ... and since 10-05 night, the way down (Griz: "get the spiders wall-crawling climbers (particularly webbed ones)"): one with a climb speed goes over the lip and down the face
+    // beside them (downFace) -- the webbed one first (climbersOf) -- and bites there; the lip walk for the shot only while its web is ready and the prey is not yet webbed
     if (!grudge && u.huntsClimbers) {
-      var clm = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && w.hang && G.hanging(w); });
+      var clm = climbersOf(B, u);
       if (clm.length) {
-        var c0 = clm.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
-        if (T.move > 0 && !clm.some(function (w) { return G.dist(u, w) <= reachOf(u); })) { var eC0 = ledgeSq(B, u, c0, clm, u.web && u.web.ready ? { range: u.web.range } : null); if (eC0) { yield* walkTo(B, u, eC0); if (u.dead || u.hp <= 0) return; } }
+        var c0 = clm[0], nearC = function () { return clm.some(function (w) { return G.dist(u, w) <= reachOf(u); }); }, webFirst = !!(u.climbs && u.web && u.web.ready && !c0.conds.restrained);
+        if (T.move > 0 && !(u.hang && G.hanging(u)) && !nearC() && (!u.climbs || webFirst)) { var eC0 = ledgeSq(B, u, c0, clm, u.web && u.web.ready ? { range: u.web.range } : null); if (eC0) { yield* walkTo(B, u, eC0); if (u.dead || u.hp <= 0) return; } }
+        if (T.move > 0 && u.climbs && !webFirst && !(u.hang && G.hanging(u)) && !nearC()) { yield* downFace(B, u, c0); if (u.dead || u.hp <= 0) return; }
         hs = clm;
       } else hs = hs.filter(function (w) { return !w.object; }); // (never the glass: free of the mission -- the first bench had them web and bite the skylight, the nearest of ours on the roof)
     }
@@ -945,7 +1043,7 @@
     if (!hs.length && !grudge && T.action > 0 && !u.conds.disarmed && (B.round >= 2 || (B.heardOf && B.heardOf(u))) && B.units.some(function (w) { return w.conds.hidden && G.hostile(u, w) && G.standing(w); })) { yield* B.search(u); hs = heroes(B, u); }
     // a rope one of its enemies hangs on (10-04, Griz: "so long as they only bother to consider it as a target when someone is climbing it"): it goes for the rope from
     // beside its top -- a melee blow at an object, battle.js cutRope -- walking there first if it can; a rope nobody hangs on is no target
-    if (!grudge && T.action > 0 && !u.conds.disarmed && B.ropes && B.ropes.length && !u.missionOnly) { // (nothing but the window cuts no rope: 10-05, the fight log -- the male parted Barley's)
+    if (!grudge && T.action > 0 && !u.conds.disarmed && B.ropes && B.ropes.length && !u.missionOnly && !(u.huntsClimbers && u.climbs)) { // (nothing but the window cuts no rope: 10-05, the fight log -- the male parted Barley's) (nor a hunter with a climb speed -- the spiders go down to the climber, not for the rope: 10-05 night, the seat's call)
       // (only a rope whose top is on its own level: a troll on the street walked off its fight toward the top of a rope 45 ft over it, took the blade beside it, dropped and knitted,
       // sixty rounds of it while Aurdin hung there -- the 10-05 bench; Griz: "we supposedly scripted the trolls to clear the street". From below, the one on the rope is a target as any is)
       var zR0 = G.gzAt(u, u.x, u.y), stR = G.map.def.step;

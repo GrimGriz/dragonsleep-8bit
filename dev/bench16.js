@@ -1286,7 +1286,7 @@
       for (var tt = 0; tt < 6 && !(trl.y === 15 && !trl.hang); tt++) { D.rules.startTurn(trl); runE(Be.moveAlong(trl, [[28, 15]], { spend: true })); zs.push(trl.hang ? trl.hang.z / st : 'up'); ys.push(trl.y + ':' + trl.turn.move + ':' + trl.turn.climbLeft); }
       okE('a climb speed of 10 up the 45 ft face: the heights clung to by turn ' + zs.join(',') + ' (y:move:climbLeft ' + ys.join(' ') + ')', zs.length === 5 && zs[0] === 4 && zs[1] === 8 && zs[2] === 12 && zs[3] === 16 && zs[4] === 'up' && trl.y === 15 && !trl.hang && G.gzAt(trl, trl.x, trl.y) === 18 * st && trl.turn.move === 35);
       trl.size = size0; trl.climbs = climbs0; delete trl.hang; trl.x = 6; trl.y = 0;
-      okE('the troll digs 15 and the stone giants 20 (ours; the troll 15 since 10-05, Griz: "1 and 2"; the giants 20 since 10-05 evening, Griz: "Giant climb speed to 20"): ' + D.FOES.troll.climbs + ', ' + D.FOES.stonegiant.climbs + ', ' + D.FOES.stonegiantm.climbs, D.FOES.troll.climbs === 15 && D.FOES.stonegiant.climbs === 20 && D.FOES.stonegiantm.climbs === 20);
+      okE('the troll digs 15 and the stone giants 15 (ours; the troll 15 since 10-05, Griz: "1 and 2"; the giants 15 since 10-05 night, Griz: "scale giant climb to 15" -- 20 for the evening of 10-05): ' + D.FOES.troll.climbs + ', ' + D.FOES.stonegiant.climbs + ', ' + D.FOES.stonegiantm.climbs, D.FOES.troll.climbs === 15 && D.FOES.stonegiant.climbs === 15 && D.FOES.stonegiantm.climbs === 15);
       // the stealth line (RULED 10-04 night, Griz: "one line, but lose stealth on successful hit"): the ogre beside the hidden rogue swings at disadvantage; a hit finds her
       og.x = 20; og.y = 18; og.size = size0; og.hp = og.maxhp; rg.x = 21; rg.y = 18; rg.hp = rg.maxhp; rg.conds = { hidden: true }; rg.hidTotal = 30; D.rules.startTurn(og);
       var edg = D.rules.edges(og, rg, og.attacks.greatclub || og.attacks[Object.keys(og.attacks)[0]]);
@@ -1567,10 +1567,11 @@
       okU('with the fighter under it, the giant\'s hang still stands for it ' + G.canStand(gi, gi.x, gi.y) + '; the ground there is the fighter\'s: ' + ((G.occupant(under[0], under[1]) || {}).name), G.canStand(gi, gi.x, gi.y) && G.occupant(under[0], under[1]) === fg);
       D.d = function (n) { return n === 20 ? 1 : d0U(n); }; var n0U = (Bu.log || []).length; Bu.hurt(gi, 20, 'slashing'); D.d = d0U; var lgU = (Bu.log || []).slice(n0U).join(' | ');
       var inFoot = G.foot(gi).some(function (p) { return p[0] === fg.x && p[1] === fg.y; }), dUF = Math.max(Math.abs(fg.x - under[0]), Math.abs(fg.y - under[1]));
-      // (the cushion, 10-05 -- Griz: "idgit as a cushion", "softening his landing is good": the giant on its feet, no fall damage; the fighter takes the fall's dice, flat, and is shoved)
-      // (the dice split, 10-05 -- Griz: "little harsh, split damage?": the cushion takes the half rounded up, the giant the rest (0 to 3 of a d6) and stays on its feet)
-      okU('hit while clinging, the save a 1: the giant down ' + !G.hanging(gi) + ' at its foot (' + gi.x + ',' + gi.y + ') on its feet ' + !gi.conds.prone + ', its half of the fall (hp ' + gi.hp + ' of ' + gi.maxhp + ' after the 20); the fighter the cushion: shoved to (' + fg.x + ',' + fg.y + '), ' + dUF + ' squares off, clear of it ' + !inFoot + ', standing room ' + G.canStand(fg, fg.x, fg.y) + ', hurt ' + (fg.maxhp - fg.hp) + ', flat ' + !!fg.conds.prone + ' -- ' + lgU.slice(0, 280),
-        !G.hanging(gi) && !gi.conds.prone && gi.hp <= gi.maxhp - 20 && gi.hp >= gi.maxhp - 23 && gi.x === gx && gi.y === gy && !inFoot && dUF === 2 && G.canStand(fg, fg.x, fg.y) && fg.hp < fg.maxhp && fg.maxhp - fg.hp <= 3 && !!fg.conds.prone && /bludgeoning, split, and lands on its feet/.test(lgU) && /comes down on/.test(lgU) && /shoved out from under, flat/.test(lgU));
+      // (the cushion, 10-05 -- Griz: "idgit as a cushion", "softening his landing is good": the fighter takes the fall's dice, flat, and is shoved)
+      // (the dice split, 10-05 -- Griz: "little harsh, split damage?": the cushion takes the half rounded up, the giant the rest (0 to 3 of a d6))
+      // (and the giant lands PRONE, 10-05 evening -- Griz: "It kicks out the person she falls on to the side and splits damage, but I think the giant should still prone and it is not currently set like that"; the SRD's Falling: lands prone)
+      okU('hit while clinging, the save a 1: the giant down ' + !G.hanging(gi) + ' at its foot (' + gi.x + ',' + gi.y + ') lands prone ' + !!gi.conds.prone + ', its half of the fall (hp ' + gi.hp + ' of ' + gi.maxhp + ' after the 20); the fighter the cushion: shoved to (' + fg.x + ',' + fg.y + '), ' + dUF + ' squares off, clear of it ' + !inFoot + ', standing room ' + G.canStand(fg, fg.x, fg.y) + ', hurt ' + (fg.maxhp - fg.hp) + ', flat ' + !!fg.conds.prone + ' -- ' + lgU.slice(0, 280),
+        !G.hanging(gi) && !!gi.conds.prone && gi.hp <= gi.maxhp - 20 && gi.hp >= gi.maxhp - 23 && gi.x === gx && gi.y === gy && !inFoot && dUF === 2 && G.canStand(fg, fg.x, fg.y) && fg.hp < fg.maxhp && fg.maxhp - fg.hp <= 3 && !!fg.conds.prone && /bludgeoning, split, and lands prone/.test(lgU) && /comes down on/.test(lgU) && /shoved out from under, flat/.test(lgU));
       // the rope: the rogue hangs 10 ft up the dwarves' rope with the fighter at its foot -- the fighter may stand there, and the rogue cannot let herself down onto him
       var r0 = Bu.ropes[0]; gi.x = 5; gi.y = 2; delete gi.hang; gi.conds.prone = false;
       rg.x = r0.foot[0]; rg.y = r0.foot[1]; rg.hang = { rope: r0, z: 4 * st }; fg.x = r0.foot[0]; fg.y = r0.foot[1]; fg.conds.prone = false;
@@ -1580,15 +1581,78 @@
       okU('she picks the ground: refused, still hanging ' + G.hanging(rg) + ' at ' + (rg.hang && rg.hang.z / st * 2.5) + ' ft, her move ' + rg.turn.move + ' -- ' + lgR.slice(0, 120), G.hanging(rg) && rg.hang.z === 4 * st && rg.turn.move === rg.speed && /cannot come down/.test(lgR));
       runU(Bu.exec(rg, { do: 'ropeclimb', x: r0.foot[0], y: r0.foot[1], z: 2 * st }));
       okU('a lower rung instead: taken, hanging at ' + (rg.hang && rg.hang.z / st * 2.5) + ' ft, her move ' + rg.turn.move, G.hanging(rg) && rg.hang.z === 2 * st && rg.turn.move === rg.speed - 10);
-      // the rope cut with her on it: she falls to its foot, onto the fighter, who is shoved
+      // the rope cut with her on it: she falls to its foot, onto the fighter, who is shoved; she lands prone too (Griz, 10-05 evening)
       D.d = function (n) { return n === 20 ? 20 : d0U(n); }; var n2U = (Bu.log || []).length; runU(Bu.cutRope(gi, r0, { name: 'a fist', atk: 9, dice: '3d8', mod: 6, type: 'bludgeoning' })); D.d = d0U; var lgC = (Bu.log || []).slice(n2U).join(' | ');
       var sameSq = fg.x === rg.x && fg.y === rg.y;
-      okU('the rope cut: parted ' + !!r0.cut + ', the rogue at its foot ' + (rg.x === r0.foot[0] && rg.y === r0.foot[1]) + ' on her feet ' + !rg.conds.prone + ' (the fighter the cushion); the fighter shoved off it ' + !sameSq + ' to (' + fg.x + ',' + fg.y + '), flat ' + !!fg.conds.prone + ' -- ' + lgC.slice(-220), !!r0.cut && rg.x === r0.foot[0] && rg.y === r0.foot[1] && !rg.conds.prone && !sameSq && !!fg.conds.prone && /shoved out from under, flat/.test(lgC));
+      okU('the rope cut: parted ' + !!r0.cut + ', the rogue at its foot ' + (rg.x === r0.foot[0] && rg.y === r0.foot[1]) + ' lands prone ' + !!rg.conds.prone + ' (the fighter the cushion); the fighter shoved off it ' + !sameSq + ' to (' + fg.x + ',' + fg.y + '), flat ' + !!fg.conds.prone + ' -- ' + lgC.slice(-220), !!r0.cut && rg.x === r0.foot[0] && rg.y === r0.foot[1] && !!rg.conds.prone && !sameSq && !!fg.conds.prone && /shoved out from under, flat/.test(lgC));
     } catch (eU) { repU.errors.push(String(eU && eU.stack || eU).slice(0, 900)); }
     D.d = d0U;
     if (errs.length) repU.errors = repU.errors.concat(errs);
     var preU = document.createElement('pre'); preU.id = 'out'; preU.textContent = 'BENCH16 ' + JSON.stringify(repU);
     document.body.appendChild(preU);
+    return;
+  }
+  // the spiders down the face to the climbers (mode=spiders1005; 10-05 night, Griz: "get the spiders wall-crawling climbers (particularly webbed ones) - spider spiderclimb faster on web per
+  // SRD"): a giant spider on the Edifice's lip near the dwarves' rope with the rogue hanging 20 ft up it -- its turn takes it over the lip and down the face beside her (ai.js downFace) and it
+  // bites there; she climbs 10 ft higher and it scuttles up after her (alongFace) instead of climbing on; hit while clinging it holds without a save (Spider Climb, battle.js hurt); off the
+  // rope, it climbs back on to the lip; a webbed climber is its prey before a nearer free one (climbersOf); with its web ready and the prey unwebbed, the shot from the lip comes first; and the
+  // stone giants dig 15 (Griz: "see above note to scale giant climb to 15")
+  if (get('mode', '') === 'spiders1005') {
+    var repS = { checks: [], errors: [] }, d0S = D.d;
+    function okS(what, v) { repS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runS(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      D.seed = 5;
+      var Bs = D.npcFight('?npc=giantspider&lvl=8&vs=fighter:8,rogue:8&map=edifice', {}); D.battle = Bs; Bs.enter(); while (!Bs.order.length) Bs.co.next(); Bs.dark = false;
+      var G = D.grid, AI = D.ai, st = D.MAPS.edifice.step, sp = Bs.units.filter(function (u) { return u.side === 'foe'; })[0], fg = Bs.units.filter(function (u) { return u.cls === 'fighter'; })[0], rg = Bs.units.filter(function (u) { return u.cls === 'rogue'; })[0];
+      Bs.units.forEach(function (u) { if (u.side === 'party') { u.guest = false; u.classAI = false; } });
+      sp.huntsClimbers = true; sp.conds = {}; var r0 = Bs.ropes[0];
+      okS('the giant spider: climbs ' + sp.climbs + ', Spider Climb ' + sp.spiderClimb + ', Web Walker ' + sp.webWalker + ', size ' + sp.size + '; the dwarves\' rope from (' + r0.at.join(',') + ') down to (' + r0.foot.join(',') + ')', sp.climbs === 30 && sp.spiderClimb === true && sp.webWalker === true && sp.size === 2 && r0.at[1] === 15 && r0.foot[1] === 16);
+      okS('the stone giants dig 15 now (Griz, 10-05 night): ' + D.FOES.stonegiant.climbs + ', ' + D.FOES.stonegiantm.climbs + '; the troll ' + D.FOES.troll.climbs, D.FOES.stonegiant.climbs === 15 && D.FOES.stonegiantm.climbs === 15 && D.FOES.troll.climbs === 15);
+      // the rogue 20 ft up the rope, the fighter far off on the street; the spider on the lip three squares east of the rope's top, its web spent
+      rg.x = r0.foot[0]; rg.y = r0.foot[1]; rg.hang = { rope: r0, z: 8 * st }; rg.hp = rg.maxhp; fg.x = r0.foot[0] + 8; fg.y = r0.foot[1] + 8; delete fg.hang;
+      var lipX = r0.at[0] + 3, lipY = r0.at[1] - 1; sp.x = lipX; sp.y = lipY; delete sp.hang; if (sp.web) sp.web.ready = false;
+      okS('she hangs ' + G.hanging(rg) + ' at ' + rg.hang.z / st * 2.5 + ' ft; the spider stands on the lip at (' + sp.x + ',' + sp.y + ') ' + G.canStand(sp, sp.x, sp.y) + ', ' + (G.gzAt(sp, sp.x, sp.y) / st * 2.5) + ' ft up; its prey ' + ((AI.prey(Bs, sp) || {}).name), G.hanging(rg) && G.canStand(sp, sp.x, sp.y) && G.gzAt(sp, sp.x, sp.y) === 18 * st && AI.prey(Bs, sp) === rg);
+      var feetD = G.foot(sp, 12, 16).map(function (p) { var s = G.map.at(p[0], p[1]); return p.join(',') + ':' + (s && s.walk ? 'walk' : 'no') + ' ' + (G.map.gz(p[0], p[1]) / st * 2.5) + ' ft'; });
+      okS('the column east of the rope, (12,16) and its 2x2: street at 0 and the fountain rim at 2.5 ft -- ' + feetD.join(', ') + '; the rim square over the rope (12,15) is no square to stand on: walk ' + !!(G.map.at(12, 15) && G.map.at(12, 15).walk), !(G.map.at(12, 15) && G.map.at(12, 15).walk));
+      D.rules.startTurn(sp); Bs.active = sp; Bs.cache = null; var n0S = (Bs.log || []).length, hp0 = rg.hp;
+      runS(AI.turn(Bs, sp)); var lgS = (Bs.log || []).slice(n0S).join(' | ');
+      okS('its turn: over the lip and down the face -- hanging ' + G.hanging(sp) + ' at (' + sp.x + ',' + sp.y + ') ' + (sp.hang ? sp.hang.z / st * 2.5 : '-') + ' ft, ' + G.dist(sp, rg) + ' ft from her, the face [' + (sp.hang && sp.hang.face ? sp.hang.face.join(',') : '') + '], its move left ' + sp.turn.move + ' -- ' + lgS.slice(0, 240), G.hanging(sp) && !!sp.hang.face && Math.abs(sp.hang.z - rg.hang.z) <= st && G.dist(sp, rg) === 5 && /down the face, beside/.test(lgS));
+      okS('and bites at her there (a hit or a miss rolled): ' + (rg.hp < hp0 ? 'hit for ' + (hp0 - rg.hp) : /MISS/.test(lgS) ? 'a miss' : 'no blow') + ' -- ' + lgS.slice(-220), rg.hp < hp0 || /MISS/.test(lgS));
+      // her turn: 10 ft further up the rope; its next turn follows her up the face instead of climbing on, and stays on the face
+      rg.hang.z = 12 * st; rg.hp = rg.maxhp;
+      D.rules.startTurn(sp); Bs.active = sp; Bs.cache = null; var n1S = (Bs.log || []).length; runS(AI.turn(Bs, sp)); var lgS1 = (Bs.log || []).slice(n1S).join(' | ');
+      okS('she climbs to 30 ft: it scuttles up after her -- hanging ' + G.hanging(sp) + ' at ' + (sp.hang ? sp.hang.z / st * 2.5 : '-') + ' ft, ' + G.dist(sp, rg) + ' ft from her -- ' + lgS1.slice(0, 200), G.hanging(sp) && !!sp.hang.face && Math.abs(sp.hang.z - rg.hang.z) <= st && G.dist(sp, rg) === 5 && /scuttles [\d.]+ ft up the face, beside/.test(lgS1));
+      // hit while clinging: it holds, no save asked (Spider Climb)
+      sp.hp = sp.maxhp; D.d = function (n) { return n === 20 ? 1 : d0S(n); }; var n2S = (Bs.log || []).length; Bs.hurt(sp, 6, 'slashing'); D.d = d0S; var lgS2 = (Bs.log || []).slice(n2S).join(' | ');
+      okS('hit for 6 while clinging, the d20 a 1: still on the face ' + G.hanging(sp) + ', no save asked ' + !/its hold/.test(lgS2) + ', hp ' + sp.hp + ' of ' + sp.maxhp, G.hanging(sp) && !/its hold/.test(lgS2) && sp.hp === sp.maxhp - 6);
+      // she is off the rope, down on the street: no prey -- it climbs back on to the lip as any clinger would (then its turn goes on)
+      rg.x = fg.x - 2; rg.y = fg.y; delete rg.hang;
+      D.rules.startTurn(sp); Bs.active = sp; Bs.cache = null; var n3S = (Bs.log || []).length; runS(AI.turn(Bs, sp)); var lgS3 = (Bs.log || []).slice(n3S).join(' | ');
+      okS('she is off the rope: no prey, it climbs on to the lip and its turn goes on (the web at the fighter, then the way back down toward them, clinging) -- beside the rope still ' + !!(sp.hang && !sp.hang.down && G.hanging(sp)) + ', at (' + sp.x + ',' + sp.y + ') ' + (G.gzAt(sp, sp.x, sp.y) / st * 2.5) + ' ft, going down ' + !!(sp.hang && sp.hang.down) + ' -- ' + lgS3.slice(0, 200), !(sp.hang && !sp.hang.down && G.hanging(sp)) && !/scuttles/.test(lgS3));
+      // the way down a face by a climb speed clings part way too (the spiders' handoff: it dropped the 45 ft for one square's cost): the spider on the lip over plain street steps off --
+      // 25 ft of its climb after the first step, 20 ft above the street, `down` -- and its next turn lets it down the last 20 ft to its feet, no fall
+      var colD = -1; for (var cx = 13; cx < 45 && colD < 0; cx++) { var okC = G.canStand(sp, cx, 14) && G.map.gz(cx, 15) === 18 * st && G.map.gz(cx + 1, 15) === 18 * st; for (var j = 0; j < 2 && okC; j++) for (var i = 0; i < 2 && okC; i++) { var q = G.map.at(cx + i, 16 + j); okC = !!(q && q.walk && !q.deep && G.map.gz(cx + i, 16 + j) === 0); } if (okC) colD = cx; }
+      sp.x = colD; sp.y = 14; delete sp.hang; sp.conds = {}; sp.hp = sp.maxhp; D.rules.startTurn(sp); Bs.active = sp; Bs.cache = null;
+      runS(Bs.moveAlong(sp, [[colD, 15]], { spend: true })); var m1D = Math.min(sp.turn.move, sp.turn.climbLeft != null ? sp.turn.climbLeft : sp.climbs), rawD = Math.floor(Math.floor(m1D / 5) * 5 / 2.5), hE = Math.max(2, 18 - rawD); if (hE % 2) hE += 1;
+      var cD = G.stepCost(sp, colD, 15, colD, 16), n5S = (Bs.log || []).length; runS(Bs.moveAlong(sp, [[colD, 16]], { spend: true })); var lgS5 = (Bs.log || []).slice(n5S).join(' | ');
+      okS('a column of plain street under the lip at x ' + colD + '; on the lip row with ' + m1D + ' ft of climb left, the step off it costs the height the turn can pay, ' + cD + ' ft for 45 (it was one square, 5 ft); walked off: hanging ' + G.hanging(sp) + ' going down ' + !!(sp.hang && sp.hang.down) + ' at ' + (sp.hang ? sp.hang.z / st * 2.5 : '-') + ' ft (expected ' + hE * 2.5 + '), the face [' + (sp.hang ? sp.hang.face.join(',') : '') + '], its move left ' + sp.turn.move + ' -- ' + lgS5.slice(0, 160), colD > 0 && cD >= m1D && G.hanging(sp) && !!(sp.hang && sp.hang.down) && sp.hang.z === hE * st && sp.hang.face[0] === colD && sp.hang.face[1] === 15 && /climbs [\d.]+ ft down the face and clings there, [\d.]+ ft above the ground/.test(lgS5));
+      D.rules.startTurn(sp); Bs.active = sp; Bs.cache = null; var n6S = (Bs.log || []).length; runS(AI.turn(Bs, sp)); var lgS6 = (Bs.log || []).slice(n6S).join(' | ');
+      okS('its next turn: the last ' + hE * 2.5 + ' ft down to the street on its feet, no fall -- hanging ' + G.hanging(sp) + ', on the ground ' + (G.gzAt(sp, sp.x, sp.y) < 2 * st) + ', prone ' + !!sp.conds.prone + ' -- ' + lgS6.slice(0, 160), !G.hanging(sp) && G.gzAt(sp, sp.x, sp.y) < 2 * st && !sp.conds.prone && /climbs the last [\d.]+ ft down the face to the ground/.test(lgS6) && !/falls|drops/.test(lgS6));
+      // the webbed first: the fighter webbed 10 ft up the rope and the rogue free at 20 -- the webbed one is its prey though the rogue is nearer the lip
+      sp.x = lipX; sp.y = lipY; delete sp.hang; sp.conds = {}; sp.hp = sp.maxhp;
+      fg.x = r0.foot[0]; fg.y = r0.foot[1]; fg.hang = { rope: r0, z: 4 * st }; fg.conds.restrained = { dc: 12, by: sp.id };
+      rg.x = r0.foot[0]; rg.y = r0.foot[1]; rg.hang = { rope: r0, z: 8 * st };
+      okS('two on the rope, the fighter webbed at 10 ft and the rogue free at 20: its prey is the webbed one -- ' + ((AI.prey(Bs, sp) || {}).name) + ' (nearer: ' + (G.dist(sp, rg) < G.dist(sp, fg) ? 'the rogue' : 'the fighter') + ')', AI.prey(Bs, sp) === fg && G.dist(sp, rg) < G.dist(sp, fg));
+      // its web ready and the only climber unwebbed: the shot from the lip first, not the climb down
+      delete fg.conds.restrained; delete fg.hang; fg.x = r0.foot[0] + 8; fg.y = r0.foot[1] + 8; if (sp.web) sp.web.ready = true;
+      D.rules.startTurn(sp); Bs.active = sp; Bs.cache = null; var n4S = (Bs.log || []).length; runS(AI.turn(Bs, sp)); var lgS4 = (Bs.log || []).slice(n4S).join(' | ');
+      okS('its web ready and the rogue unwebbed: the shot from the lip first, not the climb down -- on the lip ' + !(sp.hang && G.hanging(sp)) + ', WEB thrown ' + /WEB/.test(lgS4) + ' -- ' + lgS4.slice(0, 220), !(sp.hang && G.hanging(sp)) && /WEB/.test(lgS4));
+    } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 900)); }
+    D.d = d0S;
+    if (errs.length) repS.errors = repS.errors.concat(errs);
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
     return;
   }
   // the torch thrown at a troll, and a story guest's own flask (mode=torch1005; 10-05, Griz: "1 build it" -- THROW TORCH at a foe is an improvised ranged attack, the thrower's Strength modifier alone, 1 fire on a
@@ -1895,6 +1959,24 @@
       var n1R = (Br.log || []).length; runF(Br.moveAlong(ogR, [[ogR.x + 1, ogR.y], [ogR.x + 2, ogR.y]], {})); var held1 = (Br.log || []).slice(n1R).join(' | ').split('holds the readied').length - 1;
       Br.round++; var n2R = (Br.log || []).length; runF(Br.moveAlong(ogR, [[ogR.x - 1, ogR.y]], {})); var held2 = (Br.log || []).slice(n2R).join(' | ').split('holds the readied').length - 1;
       okF('a hand that holds: asked once over a two-step move (' + held1 + '), still readied ' + !!rgR.ready + ', asked again the next round (' + held2 + ')', held1 === 1 && !!rgR.ready && held2 === 1);
+      // e. the glass is no creature (10-05 evening, Griz: "See tested fight - Sanctuary on the Glass (at the end, stein died before I saw if it would take effect) - maybe only that
+      // one specific one can target the glass at all?"): SRD 5.1 Sanctuary, Bless, Aid, Cure Wounds, Shield of Faith, Mage Armor say "a creature" -- the glass (an object unit, ours) is no target;
+      // Fire Bolt ("a creature or object"), Dispel Magic ("creature, object, or magical effect"), Light ("one object") still may; a creature still takes them all (js/magic.js targetKind, touchTargets; `obj`)
+      var Bg = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bg; Bg.enter(); var kg = 0; while (!Bg.order.length && kg++ < 3000) { if (Bg.co.next().done) break; }
+      Bg.round = 4; (Bg.late || []).forEach(function (l) { if (l.round === Infinity) l.round = 4; }); runF(Bg.lateOut()); // (the whole cast on the field, the held party too -- as mode=skylights1005's freshK)
+      var glG = Bg.skylight, MG = D.magic, hrG = sideF(Bg, 'party').filter(function (u) { return !u.object && !u.ally && !u.look && !u.familiar; }), clG = hrG.filter(function (u) { return u.cls === 'cleric'; })[0] || hrG[0], frG = hrG.filter(function (u) { return u !== clG; })[0], fnG = sideF(Bg, 'foe')[0];
+      clG.x = glG.x + 1; clG.y = glG.y; frG.x = glG.x + 1; frG.y = glG.y + 1; // (both beside the glass: touch reach, a clear path)
+      var onGlass = ['sanctuary', 'bless', 'aid', 'shieldoffaith', 'curewounds', 'mageArmor', 'lesserrestoration', 'protectionfromevilandgood'].map(function (id) { return id + ' ' + MG.targetOK(Bg, clG, MG.geo(id), glG); });
+      okF('the glass (ours, an object) is no target for a spell that names a creature: ' + onGlass.join(', '), onGlass.every(function (s) { return /false$/.test(s); }));
+      var onFriend = ['sanctuary', 'bless', 'aid', 'shieldoffaith', 'curewounds', 'lesserrestoration', 'protectionfromevilandgood'].map(function (id) { return id + ' ' + MG.targetOK(Bg, clG, MG.geo(id), frG); });
+      okF('a creature beside it still takes them (' + frG.name + ' for ' + clG.name + '): ' + onFriend.join(', '), onFriend.every(function (s) { return /true$/.test(s); }));
+      var objOK = ['dispelmagic', 'light', 'continualflame', 'enlargereduce'].map(function (id) { return id + ' ' + MG.targetOK(Bg, clG, MG.geo(id), glG); }), foeObj = ['firebolt', 'chainlightning', 'disintegrate'].map(function (id) { return id + ' ' + MG.targetKind(Bg, fnG, MG.geo(id), glG); }), foeNot = ['chilltouch', 'holdperson', 'blight'].map(function (id) { return id + ' ' + MG.targetKind(Bg, fnG, MG.geo(id), glG); });
+      okF('the spells whose SRD words take an object may: ours ' + objOK.join(', ') + '; a foe\'s at the glass: ' + foeObj.join(', ') + '; the creature-only ones of a foe\'s, no: ' + foeNot.join(', '), objOK.every(function (s) { return /true$/.test(s); }) && foeObj.every(function (s) { return /true$/.test(s); }) && foeNot.every(function (s) { return /false$/.test(s); }));
+      // (and the three that do take the glass run clean at it, the glass's own size and hit points as they were)
+      var castG = [], szG = glG.size, hpG = glG.hp;
+      clG.slots = [9, 9, 9, 9, 9, 9, 9, 9, 9]; clG.bonus = 1; clG.actions = 1;
+      ['dispelmagic', 'enlargereduce', 'light'].forEach(function (id) { try { D.rules.startTurn(clG); clG.slots = [9, 9, 9, 9, 9, 9, 9, 9, 9]; runF(MG.cast(Bg, clG, id, 3, glG)); castG.push(id + ' ran'); } catch (eC) { castG.push(id + ' THREW ' + String(eC && eC.message || eC).slice(0, 80)); } });
+      okF('cast at the glass: ' + castG.join(', ') + '; the glass size ' + szG + ' -> ' + glG.size + ', HP ' + hpG + ' -> ' + glG.hp + ', enlarged ' + !!glG.conds.enlarged, castG.every(function (s) { return / ran$/.test(s); }));
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
     D.d = d0F;
     if (errs.length) repF.errors = repF.errors.concat(errs);

@@ -276,6 +276,7 @@
       init: d.init, perception: d.perception, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
       fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5,
       climbs: d.climbs || 0, // (a climb speed, SRD 5.1: up and down a map's cliffs at no extra cost, no check -- grid.js G.climbsUp, 10-04)
+      spiderClimb: !!d.spiderClimb, // (Spider Climb, SRD 5.1: it climbs "without needing to make an ability check" -- read as the hold no blow shakes off the face: hurt, below; a push still does. data/foes.js giantspider -- 10-05 night)
       // the bestiary's traits (09-27, the ladder): read by rules.js (packTactics), hurt() (resist/immune/vulnerable),
       // ai.js brute() (web, slam, bound, martial, surprise) and attack() (a grapple on a hit)
       packTactics: !!d.packTactics, resist: d.resist || null, immune: d.immune || null, vulnerable: d.vulnerable || null,
@@ -1233,7 +1234,7 @@
       var fz = h.hang.z, ft = Math.round((fz - G.map.gz(h.x, h.y)) / G.map.def.step) * 2.5; delete h.hang;
       h.tween = { fx: h.x, fy: h.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' }; yield STEP_FRAMES + 6;
       var onR = this.under(h), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null; // (onto whoever stood at the rope's foot: the cushion, the dice split -- 10-05, landOn)
-      this.card(['{o}' + nameOf(h) + ' falls ' + ft + ' ft' + (onR.length ? ' onto ' + onR.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands on its feet.' : (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 220);
+      this.card(['{o}' + nameOf(h) + ' falls ' + ft + ' ft' + (onR.length ? ' onto ' + onR.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands prone.' :(fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 220);
       if (onR.length) { this.landOn(h, ft, fd); continue; }
       if (fd) this.hurt(h, fd.total, 'bludgeoning', {}); h.conds.prone = true;
     }
@@ -1652,6 +1653,28 @@
         if (this.readyArmed()) yield* this.readyHook(u, 'move'); // (part way up a rope is a move too -- 10-05)
         return;
       }
+      // ... and down one (10-05 night, the spiders' handoff: "a `climbs` unit going down a face drops in one step today ... build the way down that clings too"): the turn's climb pays
+      // the height (grid.js stepCost), and short of the ground it clings part way down -- its foot the square below, its face the square it left, `down` for the AI to let itself
+      // down the rest next turn (ai.js climbRest) -- on a 5 ft mark above the ground, under no body already in that band of the column. No fall: a climb, by its climb speed
+      if (u.climbs && !rpS && !hung0 && z0 - z1 > stZ && G.map.def.climb && !u.flies) {
+        var needD = Math.round((z0 - z1) / stZ), budD = Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5, rawD = Math.floor(budD / 2.5), zB1 = 0;
+        G.foot(u, nx, ny).forEach(function (p) { zB1 = Math.max(zB1, G.map.gz(p[0], p[1])); });
+        if (rawD < needD) {
+          var h0D = Math.round((z0 - zB1) / stZ), hD = Math.max(2, h0D - rawD); if (hD % 2) hD += 1;
+          var hangersD = this.units.filter(function (w) { return w !== u && w.hang && G.hanging(w) && w.x === nx && w.y === ny; });
+          while (hD < h0D && hangersD.some(function (w) { return G.sharesZ(w, { z: zB1 + hD * stZ, h: G.bodyH(u) }); })) hD += 2;
+          var canD = h0D - hD; if (canD < 1) { u.anim = 'idle'; return; }
+          var spentD = Math.ceil(canD * 2.5 / 5) * 5;
+          u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * canD, true), mode: 'climb' };
+          u.hang = { face: [u.x, u.y], foot: [nx, ny], z: zB1 + hD * stZ, down: true }; u.x = nx; u.y = ny;
+          if (o && o.spend) { T.move -= spentD; T.moved = (T.moved || 0) + spentD; if (T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - spentD); }
+          this.card(['{y}' + nameOf(u) + '{/} climbs ' + canD * 2.5 + ' ft down the face and clings there, ' + hD * 2.5 + ' ft above the ground.'], 260);
+          this.keepInView(u); yield STEP_FRAMES + 2 * canD; u.anim = 'idle';
+          if (this.readyArmed()) yield* this.readyHook(u, 'move');
+          return;
+        }
+        if (o && o.spend && T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - Math.ceil(needD * 2.5 / 5) * 5); // (the whole face this turn: off the turn's climb)
+      }
       // a climb speed up a face it cannot top this turn (10-04 night, Griz: "a slow climb speed, like they're forcefully digging their way into the walls"): as far as the turn's climb
       // allows (T.climbLeft, its climb speed in feet, and the move's feet), and it clings to the face there -- u.hang with `face` and `foot`, read as a rope's hang is (G.hanging, G.gzAt,
       // the drawing) -- and the AI takes the climb up again first thing next turn (ai.js AI.turn)
@@ -1707,7 +1730,7 @@
       this.keepInView(u);
       yield stF;
       // the landing, once it is down: the walk ends there, flat (it gets up on its next move, for half its speed)
-      if (dropFt >= 10) { var onD = this.under(u); if (onD.length) { var fdD = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft onto ' + onD.map(nameOf).join(' and ') + ': ' + fdD.total + ' bludgeoning, split, and lands on its feet.{/}'], 200); this.landOn(u, dropFt, fdD); u.anim = 'idle'; return; } var fd = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft: ' + fd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, fd.total, 'bludgeoning', {}); u.conds.prone = true; u.anim = 'idle'; if (u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); } return; }
+      if (dropFt >= 10) { var onD = this.under(u); if (onD.length) { var fdD = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft onto ' + onD.map(nameOf).join(' and ') + ': ' + fdD.total + ' bludgeoning, split, and lands prone.{/}'], 200); this.landOn(u, dropFt, fdD); u.anim = 'idle'; return; } var fd = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft: ' + fd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, fd.total, 'bludgeoning', {}); u.conds.prone = true; u.anim = 'idle'; if (u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); } return; }
       // hidden no more (SRD 5.1: "You can't hide from a creature that can see you clearly"): one hidden who steps where a foe sees it clearly is found, and
       // one hidden from the mover that the mover now sees clearly (10-01c, the rogue runner: she crossed 50 ft of lit floor hidden and struck with advantage)
       // (10-04, Griz's notion: a Stealth total holds outside every foe's 15 ft -- the square it stands in and the eight round it -- and inside, each square she moves
@@ -2469,7 +2492,7 @@
       if (u.side === 'foe') { var self = this; this.units.forEach(function (w) { if (w.side === 'foe' && w.bolts && w.bolts === u.kind && !w.dead && w.hp > 0) { w.dead = true; w.fled = true; w.deadT = self.t; if (w.holding && w.holding.length) self.release(w); D.sfx('run'); self.card(['{r}' + w.name + '{/} drops what he was holding and runs for the stair. He is gone.']); } }); }
     } else conc(this);
     if (D.magic.onHurt && u.hp > 0) D.magic.onHurt(this, u, n, type); // (a laughing one's save with advantage, a pattern broken: js/grimoire.js)
-    if (u.hp > 0 && u.hang && u.hang.face && G.hanging(u) && !(src && src.fall) && took > 0) this.clingSave(u, took); // (a clinging climber hit: the hold, or the fall -- 10-04 night)
+    if (u.hp > 0 && u.hang && u.hang.face && G.hanging(u) && !(src && src.fall) && took > 0 && !u.spiderClimb) this.clingSave(u, took); // (a clinging climber hit: the hold, or the fall -- 10-04 night; not one with Spider Climb, whose hold is no check's -- 10-05 night)
   };
   // a clinging climber hit (10-04 night, Griz: "SRD say anything about clinging climbers, cause I think dex saving throws on damage..." -- the SRD 5.1 has nothing for a climber; a flier
   // knocked prone or held still falls, and concentration's save is the shape taken): a Dexterity save, DC 10 or half the damage, whichever is higher, or it loses its hold and falls
@@ -2480,7 +2503,7 @@
     if (sv && sv.ok) { this.card(['{y}' + nameOf(u) + '{/} keeps its hold on the face: DEX ' + RU.saveText(sv) + ' against DC ' + dc + '  {n}HOLDS{/}'], 200); return; }
     delete u.hang; u.tween = { fx: u.x, fy: u.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
     var onC = this.under(u), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null; // (onto whoever stood under it: the cushion, the dice split -- 10-05, landOn)
-    this.card(['{o}' + nameOf(u) + (knocked || ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc) + ' -- falls ' + ft + ' ft' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands on its feet.' : (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 240);
+    this.card(['{o}' + nameOf(u) + (knocked || ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc) + ' -- falls ' + ft + ' ft' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands prone.' : (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 240);
     if (onC.length) { this.landOn(u, ft, fd); return; }
     u.conds.prone = true;
     if (fd) this.hurt(u, fd.total, 'bludgeoning', { fall: true });
@@ -2489,7 +2512,7 @@
   // who ran underneath him (which will shove him to the nearest available square)" -- then, the same day: "A fall is a lot more time for players to wail on him, and melee might get
   // under him before he climbs too high... I'm thinking softening his landing is good and is story battle so SRD deviation is less problematic" · "idgit as a cushion"): whoever stood
   // under it is the cushion -- it takes the fall's damage (SRD 5.1 Falling: 1d6 bludgeoning a 10 ft), is knocked flat, and is shoved out from under to the nearest open square along
-  // the ground, the faller's far side first; the faller lands on its feet, no fall damage, not prone (the Cowork seat's lean, 10-05, his to overrule; the lost climb is its cost). No
+  // the ground, the faller's far side first; the faller lands prone too, by the SRD's Falling, its fall damage only the dice's other half (the Cowork seat's lean of 10-05, on its feet, OVERRULED the same evening, Griz: "It kicks out the person she falls on to the side and splits damage, but I think the giant should still prone and it is not currently set like that"; the lost climb is its cost). No
   // save for the cushion: it ran under a giant. On stone, the full SRD fall (the callers). One hanging over the square is not under it. Battle.under lists the cushions; landOn does
   // it to them. Called where a fall lands: clingSave, cutRope, moveAlong's drop
   Battle.prototype.under = function (u) {
@@ -2499,8 +2522,8 @@
       return G.foot(w).some(function (q) { return foot.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); });
     });
   };
-  // (fd: the fall's dice, rolled once by the caller; split -- the cushion takes the half rounded up, the faller the rest, still on its feet: Griz, 10-05, on the cushion taking it all,
-  // "little harsh, split damage?")
+  // (fd: the fall's dice, rolled once by the caller; split -- the cushion takes the half rounded up, the faller the rest, and the faller lands prone: Griz, 10-05, on the cushion taking it all,
+  // "little harsh, split damage?"; then that evening "I think the giant should still prone")
   Battle.prototype.landOn = function (u, ft, fd) {
     var under = this.under(u), half = fd ? Math.ceil(fd.total / 2) : 0, rest = fd ? Math.floor(fd.total / 2) : 0;
     for (var i = 0; i < under.length; i++) {
@@ -2511,6 +2534,7 @@
       if (to) { w.tween = { fx: w.x, fy: w.y, fz: G.gzAt(w, w.x, w.y), t: 0, dur: this.pace(STEP_FRAMES + 4, true) }; w.x = to[0]; w.y = to[1]; w.anim = 'idle'; }
     }
     if (under.length && rest > 0) this.hurt(u, rest, 'bludgeoning', { fall: true }); // (the faller's half)
+    if (under.length && !u.noProne && !RU.immuneTo(u, 'prone')) u.conds.prone = true; // (and the faller lands prone too, by the SRD's Falling -- Griz, 10-05 evening: "the giant should still prone")
     return under;
   };
   // the nearest open square to w along the ground (a ring at a time), the far side of u first

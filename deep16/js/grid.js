@@ -173,7 +173,8 @@
     // 5, the square's own 5 folded in -- a 45 ft face is 45, not 5 (it was the square's 5 alone; 10-04 night, the Edifice: "the monster has to climb up the ediface")
     // ... and no more of it a turn than its climb speed (u.turn.climbLeft, rules.js startTurn): a face taller than that costs what this turn's climb can pay, and the climber hangs on it
     // part way (battle.js moveAlong: the cling) -- a troll at 10 ft a turn digs up the Edifice's 45 ft in five (10-04 night, Griz: "a slow climb speed, like they're forcefully digging their way into the walls")
-    if (!cs && u.climbs && G.map.def.climb) { var csC = Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step); if (csC > 1) { var hC = Math.ceil(csC * 2.5 / 5) * 5, budC = u.turn ? Math.floor(Math.min(u.turn.move, u.turn.climbLeft != null ? u.turn.climbLeft : u.climbs) / 5) * 5 : hC; if (budC < 5) return Infinity; c += Math.min(hC, budC) - 5; } }
+    // ... and the way down the same (10-05 night, the spiders' handoff: a climber stepped off the Edifice's 45 ft lip for one square's cost -- the way down clings part way too, battle.js moveAlong)
+    if (!cs && u.climbs && G.map.def.climb) { var csC = Math.abs(Math.round((G.gzAt(u, x1, y1) - G.gzAt(u, x0, y0)) / G.map.def.step)); if (csC > 1) { var hC = Math.ceil(csC * 2.5 / 5) * 5, budC = u.turn ? Math.floor(Math.min(u.turn.move, u.turn.climbLeft != null ? u.turn.climbLeft : u.climbs) / 5) * 5 : hC; if (budC < 5) return Infinity; c += Math.min(hC, budC) - 5; } }
     var cd = u.cdown && G.climbsDown(u, x0, y0, x1, y1); if (cd) c += cd * 5 - 5; // (a hand that chose CLIMB DOWN: the same 5 ft a step down as up)
     return c;
   };

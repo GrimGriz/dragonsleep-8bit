@@ -8,17 +8,19 @@
           · reaction (asked for, never cast from the list) · none (no use in this fight)
    time: A action, B bonus action.  conc: concentration.  side: foe / ally / any.
    see: its SRD words say "that you can see" -- of the creature, or of the point (10-02, the runner's register; js/magic.js M.targetOK, M.inRange). A spell
-   without it asks only a clear path: a friend unseen is found where you know them to be, a foe unseen only by aiming at its square (M.guessDark). */
+   without it asks only a clear path: a friend unseen is found where you know them to be, a foe unseen only by aiming at its square (M.guessDark).
+   obj: its SRD words take an object ("a creature or object", "one object"), so an object unit -- the Skylights' glass -- may be aimed at; a spell without it takes creatures
+   only (js/magic.js M.targetKind and M.touchTargets; 10-05, Griz: Sanctuary cast on the glass). */
 'use strict';
 (window.D16 = window.D16 || {}).SPELLS = {
-  firebolt: { shape: 'attack', range: 120, time: 'A' },
+  firebolt: { shape: 'attack', range: 120, time: 'A', obj: true }, // (obj: its SRD words take an object -- "a creature or object within range" -- so the Skylights' glass is a target for it; every spell without it takes creatures only: js/magic.js targetKind, 10-05)
   acidsplash: { shape: 'splash', range: 60, time: 'A' },
   // Light (SRD 5.1; torchdark 09-28): on an object he holds, or an ally's beside him: bright 20 ft and dim 20 more, going where they go (js/light.js)
-  light: { shape: 'touch', side: 'ally', time: 'A' },
+  light: { shape: 'touch', side: 'ally', time: 'A', obj: true }, // (obj: "You touch one object that is no larger than 10 feet in any dimension")
   // the spells that waited on the dark (spells-srd-by-class.md, DARK; torchdark 09-28)
   dancinglights: { shape: 'sphere', range: 120, r: 10, time: 'A', conc: true },   // four dim lights at a point; a bonus action (casting again) moves them
   fogcloud: { shape: 'sphere', range: 120, r: 20, time: 'A', conc: true },        // heavily obscured: nothing sees in, out or across
-  continualflame: { shape: 'touch', side: 'ally', time: 'A' },                    // a torch-bright heatless flame on their gear, for good
+  continualflame: { shape: 'touch', side: 'ally', time: 'A', obj: true },         // (obj: "from an object that you touch") a torch-bright heatless flame on their gear, for good
   darkvision: { shape: 'touch', side: 'ally', time: 'A' },                        // 60 ft in the dark
   invisibility: { shape: 'touch', side: 'ally', time: 'A', conc: true },          // till they attack or cast
   seeinvisibility: { shape: 'self', time: 'A' },
@@ -104,7 +106,7 @@
   blur: { shape: 'self', time: 'A', conc: true },
   brandingsmite: { shape: 'self', time: 'B', conc: true },
   enhanceability: { shape: 'touch', side: 'ally', time: 'A', conc: true },
-  enlargereduce: { see: true, shape: 'single', range: 30, time: 'A', conc: true, noStack: 'enlarged' }, // (noStack: no target already carrying the same way -- js/magic.js targetWhy; the other way replaces)
+  enlargereduce: { see: true, shape: 'single', range: 30, time: 'A', conc: true, noStack: 'enlarged', obj: true }, // (obj: "a creature or an object you can see within range") // (noStack: no target already carrying the same way -- js/magic.js targetWhy; the other way replaces)
   flameblade: { shape: 'self', time: 'B', conc: true },
   gustofwind: { shape: 'line', len: 60, time: 'A' },
   heatmetal: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A', conc: true },
@@ -123,7 +125,7 @@
   blink: { shape: 'self', time: 'A' },
   calllightning: { see: true, shape: 'sphere', range: 120, r: 5, time: 'A', conc: true },
   counterspell: { shape: 'reaction', why: 'a reaction: offered when you see a foe within 60 ft casting a spell' }, // (js/grimoire.js M.counterAsk, 10-02)
-  dispelmagic: { shape: 'single', range: 120, time: 'A', effects: true }, // (effects: an empty square of a spell's area is a target too -- js/grimoire.js M.effectsAt, 10-02)
+  dispelmagic: { shape: 'single', range: 120, time: 'A', effects: true, obj: true }, // (obj: "one creature, object, or magical effect within range") // (effects: an empty square of a spell's area is a target too -- js/grimoire.js M.effectsAt, 10-02)
   fear: { shape: 'cone', len: 30, time: 'A', conc: true },
   haste: { see: true, shape: 'single', side: 'ally', range: 30, time: 'A', conc: true, self: true },
   hypnoticpattern: { shape: 'cube', range: 120, size: 30, time: 'A', conc: true },
@@ -170,9 +172,9 @@
   conjurewoodlandbeings: { see: true, shape: 'sphere', range: 60, r: 10, time: 'A', conc: true, side: 'any' },
   masscurewounds: { shape: 'allies', range: 60, n: 6, time: 'A' },
   // the class NPCs' spells (09-28, batch e; js/grimoire.js)
-  chainlightning: { see: true, shape: 'single', side: 'foe', range: 150, time: 'A' },
+  chainlightning: { see: true, shape: 'single', side: 'foe', range: 150, time: 'A', obj: true }, // (obj: "A target can be a creature or an object")
   circleofdeath: { shape: 'sphere', range: 150, r: 60, time: 'A' },
-  disintegrate: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A' },
+  disintegrate: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A', obj: true }, // (obj: "The target can be a creature, an object, or a creation of magical force")
   eyebite: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A', conc: true },
   fleshtostone: { see: true, shape: 'single', side: 'foe', range: 60, time: 'A', conc: true },
   freezingsphere: { shape: 'sphere', range: 300, r: 60, time: 'A' },

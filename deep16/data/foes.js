@@ -63,8 +63,8 @@
     attacks: {
       bite: { name: 'Bite', atk: 5, dice: '1d8', mod: 3, type: 'piercing', reach: 5, save: { ab: 'con', dc: 11, dice: '2d8', type: 'poison', half: true } }
     },
-    multi: 1, web: { atk: 5, range: [30, 60], dc: 12, recharge: 5 }, webWalker: true,
-    src: 'SRD 5.1 Giant Spider (CR 1); content/monsters.json giantspider. Web is read (09-27, ai.js webShot): a ranged attack, restrained, escape DC 12, recharge 5-6'
+    multi: 1, web: { atk: 5, range: [30, 60], dc: 12, recharge: 5 }, webWalker: true, spiderClimb: true,
+    src: 'SRD 5.1 Giant Spider (CR 1); content/monsters.json giantspider. Web is read (09-27, ai.js webShot): a ranged attack, restrained, escape DC 12, recharge 5-6. Spider Climb (10-05 night): the climb speed up or down any face with no check, and (ours) no blow shakes it off the face -- battle.js hurt; a push still does. Web Walker: grid.js stepCost, a web never slows it. The SRD gives it no faster climb on a web: Griz\'s "spider spiderclimb faster on web per SRD" read as these two traits, the seat\'s read'
   },
   // ------------------------------------------------------------------ the 8-bit game's bosses, set pieces for the ladder (09-27, the ladder seat)
   // The braiding ettercap of Web Gulch (events.js S.ettercap: it fights beside a giant spider). SRD 5.1 as written; its
@@ -213,7 +213,7 @@
   },
   // the stone giant's camp (deep.js S.giant): the giant and three duergar
   stonegiant: {
-    name: 'Stone Giant', type: 'giant', sheet: 'stonegiant_p1', cr: '7', ac: 17, hp: 126, speed: 40, climbs: 20, size: 3, reach: 15, darkvision: 60, // (climbs 20 since 10-05 evening, Griz: "Here's the lever that'll probably make the difference - Giant climb speed to 20"; before that 10. Ours, not the SRD's -- stone into stone, clinging; Griz, 10-04 night)
+    name: 'Stone Giant', type: 'giant', sheet: 'stonegiant_p1', cr: '7', ac: 17, hp: 126, speed: 40, climbs: 15, size: 3, reach: 15, darkvision: 60, // (climbs 15 since 10-05 night, Griz: "see above note to scale giant climb to 15"; 20 from 10-05 evening, Griz: "Here's the lever that'll probably make the difference - Giant climb speed to 20"; before that 10. Ours, not the SRD's -- stone into stone, clinging; Griz, 10-04 night)
     abil: { str: 23, dex: 15, con: 20, int: 10, wis: 12, cha: 9 }, init: 2, perception: 14,
     saves: { str: 6, dex: 5, con: 8, int: 0, wis: 4, cha: -1 },
     attacks: {
