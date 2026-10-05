@@ -160,7 +160,7 @@ for s in 'LR':
     J['hip' + s] = hipL if s == 'L' else hipR
     J['knee' + s] = bound('Leg.' + s, 'Calf.' + s); J['ankle' + s] = bound('Calf.' + s, 'Foot.' + s); J['ball' + s] = bound('Foot.' + s, 'Toes.' + s)
     J['toetip' + s] = far('Toes.' + s, J['ankle' + s])
-if MODE == 'joints':
+if MODE == 'joints' and 'row' not in OPT:     # (with row=: the rows' joints, below)
     for k, v in J.items():
         log('joint %-10s (%6.1f %6.1f %6.1f)' % (k, *v))
     for a, b in (('hipL', 'kneeL'), ('kneeL', 'ankleL'), ('hipR', 'kneeR'), ('kneeR', 'ankleR'), ('shoulderL', 'elbowL'), ('elbowL', 'wristL'), ('shoulderR', 'elbowR'), ('elbowR', 'wristR')):
@@ -437,13 +437,39 @@ if MODE not in ('bend', 'diag'):
         Pb['legs'], Pb['arms'] = legs, arms
         return Pb
 
+    GRP = {g.index: g.name for g in body.vertex_groups}
+    DOM = np.array([GRP[max(v.groups, key=lambda g_: g_.weight).group] if v.groups else '' for v in body.data.vertices])
+    BODYM = np.isin(DOM, ['Hips', 'Back', 'Upperback', 'Leg.L', 'Leg.R', 'Calf.L', 'Calf.R'])
+    ARMM = {'a': np.isin(DOM, ['UperArm.L', 'LowerArm.L', 'Hand.L']), 'b': np.isin(DOM, ['UperArm.R', 'LowerArm.R', 'Hand.R'])}
+    HEADM = np.isin(DOM, ['Neck', 'Head'])
+
+    def settle(P):
+        """a lying frame rests on her body (10-04, Griz: "see the hip elevation" -- planted on whatever was lowest, she lay on one hand with her hips and legs
+        held up in the air): her trunk and legs set down on the floor, then an arm that went under it lifted back onto it, and a face that went under turned up."""
+        P = dict(P)
+        for _ in range(3):
+            R.apply(P); pp = R.posed_points(1); dz = FLOOR + 0.4 - float(pp[BODYM, 2].min())
+            if abs(dz) > 0.25:
+                P['lift'] = P.get('lift', 0.0) + dz; P['legs'] = {s_: (l[0], l[1], l[2] + dz, l[3], l[4]) for s_, l in P['legs'].items()}
+        R.apply(P); pp = R.posed_points(1)
+        for s_ in 'ab':
+            u_ = FLOOR + 0.4 - float(pp[ARMM[s_], 2].min())
+            if u_ > 0:
+                x_, y_, z_ = P['arms'][s_]; P['arms'] = dict(P['arms']); P['arms'][s_] = (x_, y_, z_ + u_)
+        for _ in range(12):
+            R.apply(P); pp = R.posed_points(1)
+            if float(pp[HEADM, 2].min()) >= FLOOR - 0.3:
+                break
+            P['head'] = P.get('head', 0.0) - 4      # (+ turns the front down: a face down on the floor lifts by turning up)
+        return P
+
     def lying(kind, body, fl, club, **k):
         """a frame of the fall, on bends and gravity alone (no feet to plant): the body over about the hip, the limbs laid on the floor by `lie` (kind 'back' or 'face', fl of the
         way), then said again as placed limbs (`bake`), the club aimed. Grounded by 'plant': whatever is lowest rests on the floor."""
         P = dict(body=body, lie=kind, lieside=1.0, liefall=fl, shupb=ST['shupb'])
         P.update(k)
         P = R.grounded(dict(P, _tag='lying'), 'plant'); P.pop('_tag')      # (seated on the floor FIRST: placed ankles are world positions, they would not follow a lift made after)
-        return clubaim(bake(P), club)
+        return clubaim(settle(bake(P)), club)
 
     def row_prone(i, n):
         """knocked over on her back (gravity): thrown back on her heels, she goes over, the arms and legs let go on the floor, the club slid out beside her; she lies at her last
@@ -473,7 +499,26 @@ if MODE not in ('bend', 'diag'):
         return lying('face', [30, 62, 88, 92][j], [0.0, 0.5, 1.0, 1.0][j], (-0.8, -0.5, -0.1), lean=[8, 4, 2, 0][j], head=[-6, -14, -24, -30][j], hroll=[0, -20, -50, -55][j],
                      twist=0, bodyyaw=0), 0
 
-    ROWS += [('PRONE', 6, False, row_prone, 'ik'), ('HURT', 8, False, row_death, 'ik')]
+    def row_climb(i, n):
+        """climbing a face in front of her, in place (the engine raises her up it; js/battle.js tween 'climb'): hand over hand, her left hand and right foot
+        reaching while the other two pull and push, then the other way; leaning in, looking up; the club hangs down her back from her right fist.
+        (10-04, Griz: "climbing poses - might use them as stand in for the edifice fight the other window is building")"""
+        t = i / n
+
+        def limb(ph):            # (height up its stroke 0..1, how far off the wall): pulling down past her for half the cycle, then reaching up off the wall for the next hold
+            ph %= 1.0
+            if ph < 0.5:
+                return 1 - ph / 0.5, 0.0
+            h = (ph - 0.5) / 0.5
+            return h, math.sin(math.pi * h)
+        (ha, oa), (hb, ob) = limb(t), limb(t + 0.5)
+        (fa_, ofa), (fb_, ofb) = limb(t + 0.5), limb(t)      # (each foot with the opposite hand)
+        return stance(lean=L0 + 24, head=H0 - 28, lift=Z0 + 3 + 0.6 * S(TAU * t * 2), shift=-3, twist=T0 + 6 * S(TAU * t),
+                      wa=(8, -11 + 4 * oa, -8 + 30 * ha), wb=(-8, -11 + 4 * ob, -8 + 30 * hb),
+                      fa=(FA[0], -9 + 4 * ofa, 2 + 22 * fa_, 0, -10 * fa_), fb=(FB[0], -9 + 4 * ofb, 2 + 22 * fb_, 0, -10 * fb_),
+                      kpolea=(0.3, -1, 0.4), kpoleb=(-0.3, -1, 0.4), epolea=(0.8, 0.6, -0.4), epoleb=(-0.8, 0.6, -0.4), club=(-0.25, 0.55, -0.8)), 0
+
+    ROWS += [('PRONE', 6, False, row_prone, 'ik'), ('HURT', 8, False, row_death, 'ik'), ('CLIMB', 8, True, row_climb, 'ik')]
     EDITS = os.path.join(ROOT, 'tools', 'stonegiant-poses.json')       # the frames Griz set on the poser page (tools/poser.html), taken in: they win over the script's
     if not OPT.get('noedits'):
         ROWS = R.with_edits(ROWS, OPT.get('edits', EDITS))

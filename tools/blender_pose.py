@@ -383,7 +383,7 @@ class Rig:
             wofs.append(len(widx))
         if col is None:
             col = np.full((nv, 3), 0.5)
-        col = np.asarray(col)[:, :3]
+        col = np.asarray(col)[:, :3]; held = []
         if near is not None:
             col = col[np.array(near)] if len(col) != nv else col
             bpy.data.objects.remove(tmp, do_unlink=True); bpy.data.meshes.remove(me)
@@ -392,6 +392,10 @@ class Rig:
             b = obj.parent_bone; dg = bpy.context.evaluated_depsgraph_get(); oe = obj.evaluated_get(dg); m2 = oe.to_mesh()
             K = self.REST[b] @ self.arm.pose.bones[b].matrix.inverted() @ self.arm.matrix_world.inverted() @ oe.matrix_world
             p2 = np.array([list(K @ v.co) for v in m2.vertices]); base = len(pos)
+            side = 'a' if b == self.ARM['a'][3] else 'b' if b == self.ARM['b'][3] else None
+            if side:      # (held in a hand: its grip, the point nearest the wrist, and its head, the farthest from that -- the page's diamond aims the thing itself)
+                gi = int(np.argmin(np.linalg.norm(p2 - np.array(self.REST[b].translation), axis=1))); hi = int(np.argmax(np.linalg.norm(p2 - p2[gi], axis=1)))
+                held.append(dict(side=side, bone=b, grip=base + gi, head=base + hi))
             tris += [(base + p.vertices[0], base + p.vertices[k], base + p.vertices[k + 1]) for p in m2.polygons for k in range(1, len(p.vertices) - 1)]
             for _ in range(len(p2)):
                 widx.append(idx[b]); wval.append(1.0); wofs.append(len(widx))
@@ -413,7 +417,7 @@ class Rig:
         roles = dict(spine=self.SPINE, neck=self.NECK, head=self.HEAD, jaw=self.JAW, arm=self.ARM, leg=self.LEG, roots=self.ROOTS, foot=self.FOOT,
                      fing={s: [self.chain(f) for f in self.FING[s]] for s in 'ab'}, ank0={s: list(self.ANK0[s]) for s in 'ab'},
                      kpole=self.KPOLE, epole=self.EPOLE)
-        out = dict(fig=fig, floor=self.FLOOR, bones=bones, roles=roles, rows=R, check=checks,
+        out = dict(fig=fig, floor=self.FLOOR, bones=bones, roles=roles, rows=R, check=checks, held=held,
                    mesh=dict(n=nv, pos=B64(pos, '<f4'), tri=B64(np.array(tris).ravel(), '<u4'), col=B64(np.round(srgb * 255), 'u1'),
                              wofs=B64(wofs, '<u4'), widx=B64(widx, '<u2'), wval=B64(wval, '<f4')))
         json.dump(out, open(path, 'w', encoding='utf-8'))

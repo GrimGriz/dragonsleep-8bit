@@ -137,7 +137,7 @@ class Rig {
     }
     const M = this.solve(d, lift, shift, sway);
     for (const s of 'ab') J['sh' + s] = posOf(M[this.ARM[s][1]]);
-    J.head = posOf(M[this.HEAD]); J.face = this.face(M);
+    J.head = posOf(M[this.HEAD]); J.face = this.face(M); J.neck = posOf(M[this.NECK[0]]);
     return { M, J };
   }
   face(M) {
@@ -205,15 +205,27 @@ const curP = () => clone(frameP(row(), frameI));
 const canvas = $('c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene(); scene.background = new THREE.Color(0x15171c);
 const cam = new THREE.OrthographicCamera(-50, 50, 50, -50, -1000, 1000); cam.up.set(0, 0, 1);
 const controls = new OrbitControls(cam, canvas);
-const TGT = new THREE.Vector3(0, 0, FLOOR + 30); controls.target.copy(TGT);
+// (the view fitted to the figure: the troll stands ~60 high, the stone giant ~95)
+let HMAX = -Infinity; for (let i = 2; i < mesh.pos.length; i += 3) HMAX = Math.max(HMAX, mesh.pos[i]);
+const FIGH = Math.max(40, HMAX - FLOOR), VIEW_S = Math.max(52, FIGH * 0.62);
+const TGT = new THREE.Vector3(0, 0, FLOOR + FIGH * 0.45); controls.target.copy(TGT);
 scene.add(new THREE.HemisphereLight(0xdfe6ff, 0x3a3326, 1.6));
 const sun = new THREE.DirectionalLight(0xfff2dc, 2.2); sun.position.set(-40, -60, 120); scene.add(sun);
-const grid = new THREE.GridHelper(150, 30, 0x4a5466, 0x2a303a); grid.rotation.x = Math.PI / 2; grid.position.z = FLOOR; scene.add(grid);
-const disc = new THREE.Mesh(new THREE.CircleGeometry(25.2, 48), new THREE.MeshBasicMaterial({ color: 0x24303f, transparent: true, opacity: 0.5, depthWrite: false }));
-disc.position.z = FLOOR - 0.05; scene.add(disc);         // (its footprint: the print base, two squares)
+// the floor: solid, so a body lying on it reads as lying on it (10-04, Griz: "she looked like she was floating off the floor of the poser"), a shadow cast
+// straight down onto it from overhead (touching or not, at a glance), and a little see-through so what sinks under it shows, in red
+const ground = new THREE.Mesh(new THREE.PlaneGeometry(FIGH * 6, FIGH * 6), new THREE.MeshLambertMaterial({ color: 0x2a2f38, transparent: true, opacity: 0.82 }));
+ground.position.z = FLOOR; ground.receiveShadow = true; ground.renderOrder = 2; scene.add(ground);
+const grid = new THREE.GridHelper(FIGH * 3, 30, 0x4a5466, 0x353b46); grid.rotation.x = Math.PI / 2; grid.position.z = FLOOR + 0.03; grid.renderOrder = 3; scene.add(grid);
+const disc = new THREE.Mesh(new THREE.CircleGeometry(25.2, 48), new THREE.MeshBasicMaterial({ color: 0x3a4a60, transparent: true, opacity: 0.35, depthWrite: false }));
+disc.position.z = FLOOR + 0.05; disc.renderOrder = 4; scene.add(disc);         // (the troll's footprint: the print base, two squares)
+const top = new THREE.DirectionalLight(0xffffff, 0.7); top.position.set(TGT.x - FIGH * 1.1, TGT.y - FIGH * 1.6, FLOOR + FIGH * 3.2); top.target.position.set(TGT.x, TGT.y, FLOOR);     // (from the front-left and high, as the sprites' key light: a body off the floor shows its shadow come away from it)
+top.castShadow = true; top.shadow.mapSize.set(2048, 2048); top.shadow.bias = -0.0008;
+Object.assign(top.shadow.camera, { left: -FIGH * 1.6, right: FIGH * 1.6, top: FIGH * 1.6, bottom: -FIGH * 1.6, near: 1, far: FIGH * 9 });
+scene.add(top); scene.add(top.target);
 
 function makeMesh(material) {
   const g = new THREE.BufferGeometry();
@@ -224,7 +236,8 @@ function makeMesh(material) {
   g.setAttribute('color', new THREE.BufferAttribute(c, 3));
   const m = new THREE.Mesh(g, material); scene.add(m); return m;
 }
-const body = makeMesh(new THREE.MeshLambertMaterial({ vertexColors: true }));
+const body = makeMesh(new THREE.MeshLambertMaterial({ vertexColors: true })); body.castShadow = true;
+const COL0 = body.geometry.attributes.color.array.slice();
 const ghost = makeMesh(new THREE.MeshBasicMaterial({ color: 0xbfd0ff, transparent: true, opacity: 0.18, depthWrite: false }));
 ghost.visible = false;
 
@@ -244,6 +257,14 @@ function skin(target, M) {
     out[v * 3] = ox; out[v * 3 + 1] = oy; out[v * 3 + 2] = oz;
     if (oz < low) low = oz;
   }
+  if (target === body) {        // (under the floor: red, seen through it)
+    const c = body.geometry.attributes.color.array;
+    for (let v = 0; v < mesh.n; v++) {
+      const u = out[v * 3 + 2] < FLOOR - 0.3;
+      c[v * 3] = u ? 0.9 : COL0[v * 3]; c[v * 3 + 1] = u ? 0.05 : COL0[v * 3 + 1]; c[v * 3 + 2] = u ? 0.03 : COL0[v * 3 + 2];
+    }
+    body.geometry.attributes.color.needsUpdate = true;
+  }
   target.geometry.attributes.position.needsUpdate = true; target.geometry.computeVertexNormals(); target.geometry.computeBoundingSphere();
   return low;
 }
@@ -260,16 +281,16 @@ const H = {
   anka: handle('anka', CA, 2.2), ankb: handle('ankb', CB, 2.2), wra: handle('wra', CA, 2.2), wrb: handle('wrb', CB, 2.2),
   kpa: handle('kpa', CA, 1.3), kpb: handle('kpb', CB, 1.3), epa: handle('epa', CA, 1.3), epb: handle('epb', CB, 1.3),
   hda: handle('hda', CA, 1.6, 'diamond'), hdb: handle('hdb', CB, 1.6, 'diamond'), hip: handle('hip', 0xffffff, 2.0),
-  sha: handle('sha', CA, 1.7, 'box'), shb: handle('shb', CB, 1.7, 'box'), look: handle('look', 0xffe066, 1.9, 'diamond'),
+  sha: handle('sha', CA, 1.7, 'box'), shb: handle('shb', CB, 1.7, 'box'), look: handle('look', 0xffe066, 1.9, 'diamond'), neck: handle('neck', 0xffffff, 1.7),
 };
 const lineMat = new THREE.LineBasicMaterial({ color: 0x8890a0, depthTest: false, transparent: true, opacity: 0.6 });
 const poleLines = new THREE.LineSegments(new THREE.BufferGeometry(), lineMat); poleLines.renderOrder = 9; scene.add(poleLines);
 const POLE_R = 10, HAND_R = 9, LOOK_R = 14;
 
-let last = null;     // (the last solve: the joints, for the handles and the drag)
+let last = null, LOW = 0;     // (the last solve: the joints, for the handles and the drag; the lowest point)
 function refresh() {
   const P = curP(); const { M, J } = rig.pose(P); last = { P, M, J };
-  const low = skin(body, M);
+  const low = skin(body, M); LOW = low;
   if (ghost.visible) {
     const r = row(), pi = r.loop ? (frameI - 1 + r.n) % r.n : frameI - 1;
     if (pi >= 0) { skin(ghost, rig.pose(frameP(r, pi)).M); } else ghost.geometry.attributes.position.array.fill(0);
@@ -289,14 +310,15 @@ function refresh() {
       H['wr' + s].position.copy(J['wr' + s]);
       const ep = V(P['epole' + s] || rig.EPOLE[s]).normalize().multiplyScalar(POLE_R).add(J['elb' + s]);
       H['ep' + s].position.copy(ep); lines.push(J['elb' + s], ep);
-      const hb = rig.ARM[s][3], hm = M[hb];
+      const hb = rig.ARM[s][3], hm = M[hb], hd = HELD[s];
       const hdir = new THREE.Vector3(0, rig.len[hb], 0).applyMatrix4(hm).sub(posOf(hm)).normalize();
-      const hp = J['wr' + s].clone().addScaledVector(hdir, HAND_R);
-      H['hd' + s].position.copy(hp); H['hd' + s].material.opacity = (P.hands && P.hands[s]) ? 0.95 : 0.45; lines.push(J['wr' + s], hp);
+      const pa = body.geometry.attributes.position.array, at3 = (k) => new THREE.Vector3(pa[k * 3], pa[k * 3 + 1], pa[k * 3 + 2]);
+      const from = hd ? at3(hd.grip) : J['wr' + s], hp = hd ? at3(hd.head) : J['wr' + s].clone().addScaledVector(hdir, HAND_R);     // (a hand that holds something: the diamond is on its head)
+      H['hd' + s].position.copy(hp); H['hd' + s].material.opacity = (P.hands && P.hands[s]) ? 0.95 : 0.45; lines.push(from, hp);
     }
   }
   H.hip.position.copy(rig.P0t[rig.ROOTS[0]].clone().add(new THREE.Vector3(P.sway || 0, P.shift || 0, P.lift || 0)));
-  H.sha.position.copy(J.sha); H.shb.position.copy(J.shb);
+  H.sha.position.copy(J.sha); H.shb.position.copy(J.shb); H.neck.position.copy(J.neck); lines.push(H.hip.position.clone(), J.neck);
   const lk = J.head.clone().addScaledVector(J.face, LOOK_R); H.look.position.copy(lk); lines.push(J.head, lk);
   poleLines.geometry.setFromPoints(lines);
   syncSliders(P); syncFrames(); status(low);
@@ -341,8 +363,13 @@ function moveHandle(key, at) {
     const d = at.clone().sub(J['knee' + s]).normalize(); P['kpole' + s] = [r2(d.x), r2(d.y), r2(d.z)];
   } else if (key.startsWith('ep')) {
     const d = at.clone().sub(J['elb' + s]).normalize(); P['epole' + s] = [r2(d.x), r2(d.y), r2(d.z)];
+  } else if (key.startsWith('hd') && HELD[s]) {     // the held thing aimed: the fist turned till it points where the diamond was dropped
+    const pa = body.geometry.attributes.position.array, g = HELD[s].grip;
+    heldAim(P, s, at.clone().sub(new THREE.Vector3(pa[g * 3], pa[g * 3 + 1], pa[g * 3 + 2])).normalize());
   } else if (key.startsWith('hd')) {
     const d = at.clone().sub(J['wr' + s]).normalize(); P.hands = P.hands || {}; P.hands[s] = [r2(d.x), r2(d.y), r2(d.z)];
+  } else if (key === 'neck') {     // the top of the spine (10-04, Griz: "another white dot at the base of the skull"): the back bent forward or back (lean) and to the side (tilt), the hips where they are
+    fit(P, ['lean', 'tilt'], (Q_) => rig.pose(Q_).J.neck, at, 85);
   } else if (key === 'look') {     // the head's aim: its pitch and turn (spread down the neck, as the sliders do)
     fit(P, ['head', 'hyaw'], (Q_) => { const r = rig.pose(Q_).J; return r.head.clone().addScaledVector(r.face, LOOK_R); }, at, 85);
   } else if (key.startsWith('sh')) {   // a shoulder: the collarbone up or down, forward or back (the arm rides it: its wrist is set from the shoulder)
@@ -351,6 +378,24 @@ function moveHandle(key, at) {
     const d = at.clone().sub(rig.P0t[rig.ROOTS[0]]); P.sway = r2(d.x); P.shift = r2(d.y); P.lift = r2(d.z);
   }
   setP(P); refresh();
+}
+
+// a held thing (the stone giant's club, 10-04): its grip and head in the mesh, so its diamond aims the thing itself, not the hand's bone it rides at an
+// angle (Griz, 10-04: "I tried to use poser to communicate intent more than canon" -- the seat had to work out which way he meant the club to point)
+const HELD = {}; for (const h of D.held || []) HELD[h.side] = h;
+function heldAim(P, s, c) {
+  const h = HELD[s], b = h.bone, hb = rig.ARM[s][3];
+  const ax = new THREE.Vector3(mesh.pos[h.head * 3] - mesh.pos[h.grip * 3], mesh.pos[h.head * 3 + 1] - mesh.pos[h.grip * 3 + 1], mesh.pos[h.head * 3 + 2] - mesh.pos[h.grip * 3 + 2]);
+  const along = (P_) => { const M = rig.pose(P_).M; return ax.clone().transformDirection(M[b].clone().multiply(rig.RESTinv[b])); };
+  const M0 = rig.pose(P).M; let T = new THREE.Vector3(0, rig.len[hb], 0).applyMatrix4(M0[hb]).sub(posOf(M0[hb])).normalize(), best = null;
+  for (let it = 0; it < 40; it++) {
+    const cur = along({ ...P, hands: { ...(P.hands || {}), [s]: T.toArray() } }), e = cur.angleTo(c);
+    if (!best || e < best.e) best = { e, T: T.clone() };
+    if (e < 0.004) break;
+    T.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(cur, c)).normalize();
+  }
+  P.hands = { ...(P.hands || {}), [s]: best.T.toArray().map((x) => Math.round(x * 1e4) / 1e4) };
+  return best.e;
 }
 
 // ------------------------------------------------------------------ the panel
@@ -394,6 +439,9 @@ function syncFrames() {
 const step = (k) => { const n = row().n; frameI = (frameI + k + n) % n; refresh(); };
 $('prev').onclick = () => { stop(); step(-1); }; $('next').onclick = () => { stop(); step(1); };
 $('copyprev').onclick = () => { const r = row(); if (frameI === 0 && !r.loop) return; setP(clone(frameP(r, (frameI - 1 + r.n) % r.n))); refresh(); };
+$('tofloor').onclick = () => { const P = curP(); P.lift = r2((P.lift || 0) + FLOOR - LOW);
+  if (P.legs) for (const s of Object.keys(P.legs)) P.legs[s][2] = r2(P.legs[s][2] + FLOOR - LOW);     // (placed ankles are world positions: they go with it)
+  setP(P); refresh(); };
 $('reset').onclick = () => { const r = row(); if (EDITS[r.name]) { delete EDITS[r.name][frameI]; save(); } refresh(); };
 $('clearrow').onclick = () => { if (confirm(`Reset every frame of ${row().name} to the script's?`)) { delete EDITS[row().name]; save(); refresh(); } };
 for (const s of 'ab') $('free' + s).onclick = () => { const P = curP(); if (P.hands) { delete P.hands[s]; if (!Object.keys(P.hands).length) delete P.hands; } setP(P); refresh(); };
@@ -431,7 +479,7 @@ $('fig').textContent = FIG;
 $('msg').textContent = 'What you set stays in this browser. When a row looks right, say so: the seat reads it from this page (or download it), writes tools/' + FIG + '-poses.json, and renders.';
 
 function resize() {
-  const w = canvas.clientWidth, h = canvas.clientHeight, s = 52, a = w / h;
+  const w = canvas.clientWidth, h = canvas.clientHeight, s = VIEW_S, a = w / h;
   renderer.setSize(w, h, false); cam.left = -s * a; cam.right = s * a; cam.top = s; cam.bottom = -s; cam.updateProjectionMatrix();
 }
 addEventListener('resize', resize); resize();

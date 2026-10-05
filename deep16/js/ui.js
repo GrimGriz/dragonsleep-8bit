@@ -1065,6 +1065,10 @@
         // the roper stands as a stalagmite the same way till its first turn or a wound (its Still row; js/ai.js plays its Reveal then -- 10-01e)
         if (!down && !u.woken && !u.acted && anim === 'idle' && has('still')) anim = 'still';
         if (!down && anim === 'walk' && u.charge && u.turn && (u.turn.moved || 0) >= 20 && has('run')) anim = 'run';
+        // climbing (10-04, Griz: "climbing poses - might use them as stand in for the edifice fight"): up a face, along a rope, or hanging on one part way,
+        // a sheet with a climb row plays it (battle.js moveAlong's tween modes); one hanging still holds its first frame
+        var climbing = !down && has('climb') && ((u.tween && (u.tween.mode === 'climb' || u.tween.mode === 'ropedown')) || (u.hang && G.hanging(u)));
+        if (climbing) { anim = 'climb'; o.once = false; if (!u.tween) o.frame = 0; }
         // prone (10-01b; the frame is sprites.js S.proneFrame): a figure with a frame for it falls to it when it goes prone, lies there while
         // prone -- crawling, striking, whatever it does -- and gets up through the same frames backwards when the prone ends. Going down
         // from prone, the fall goes on from where it lies
@@ -1076,7 +1080,7 @@
           else if (u.dead) { anim = 'idle'; o.alpha = Math.max(0, 1 - (B.t - u.deadT) / 50); o.tint = R('violet', 4); o.tintAlpha = 0.5; }
           else { anim = 'idle'; o.lie = true; }
         } else if (anim === 'attack' || anim === 'cast' || anim === 'flinch' || anim === 'clack' || anim === 'burrow' || anim === 'reveal' || anim === 'reel' || /^(claw|bite|tendril|tentacles|beak|greatclub|rock)\d?$/.test(anim)) { o.once = true; if (!has(anim) || t > D.spr.duration(u.sheet, anim) + 6) { anim = 'idle'; o.once = false; } } // (back to idle, and idle loops: the flinch's once held its last frame on anyone struck who then did not act -- the landlord, 09-30g)
-        if (anim === 'idle' || anim === 'walk' || anim === 'slither' || anim === 'roost' || anim === 'braid' || anim === 'run' || anim === 'still') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
+        if (anim === 'idle' || anim === 'walk' || anim === 'slither' || anim === 'roost' || anim === 'braid' || anim === 'run' || anim === 'still' || anim === 'climb') t =u.conds.paralyzed || u.conds.asleep ? 0 : B.t + (u.id ? u.id.length * 7 : 0);
         // a hyena helpless with laughter rolls on the floor with it, for as long as it laughs (09-30; since 10-02 the hyenas caught by Aurdin's joke: js/grimoire.js M.hyena)
         if (!down && u.conds.laughing && has('rofl')) { anim = 'rofl'; o.once = false; t = B.t + (u.id ? u.id.length * 7 : 0); }
         // a gnoll's fit on its own row (10-02, Griz's order of its sheet's poses, beat by beat: js/grimoire.js M.LAUGH; the laughs fire there on the same beats)

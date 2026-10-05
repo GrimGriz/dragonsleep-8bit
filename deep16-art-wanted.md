@@ -29,6 +29,7 @@ how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop wha
 | **the roper** -- pipeline 1b's second | MZ4250's Roper 2025 (CC BY-SA): idle, creep, a lash from each of four tendrils, reel, bite, flinch, death, still, reveal | `tools/roper-blend.py` | 10-01 | its own row (10-02): tipped back about its foot, the tendrils flailing |
 | **the grick** -- pipeline 1b's third, on the artist's own rig | MZ4250's Grick Updated (CC BY): idle, walk (a step or two, coiled) and slither (three squares and more, laid flat), tentacles, beak, flinch, death, still (Stone Camouflage), reveal; the den's brown stone, in `S.STONE` | `tools/grick-blend.py` | 10-02 | frame 3 of its death: laid flat, alive |
 | **the troll** -- pipeline 1b's fourth, on the artist's own rig (a biped) | MZ4250's Troll Updated (CC BY): idle, walk, claw from each arm, bite, flinch, death (buckles, falls on its face), prone (over on its back); the Quaternius Yeti stood in till 10-04 | `tools/troll-blend.py` | 10-04 | its own row: knocked over on its back |
+| **the stone giant** -- pipeline 1b's fifth, a skeleton fitted from the artist's weight groups | MZ4250's female Stone Giant (thing:4157322, CC BY): idle, walk, greatclub (an overhead smash), greatclub2 (a flat sweep), rock (thrown from her left hand), flinch, hurt (on her face), prone (on her back); Griz's poser frames in greatclub, prone and hurt; the Quaternius BlueDemon stood in till 10-04. Off the wanted list on his word (10-04, after the test ground: *"1 she's off"*) | `tools/stonegiant-blend.py` | 10-04 | its own row: over on her back |
 
 | **the duergar** -- an LPC grey dwarf, not generated (10-04, Griz: "do the duergar") | `duergar_full` composed, squashed to a dwarf's build, pixelated: idle, walk, war-pick swing, hurt, cast (Enlarge, Invisibility) | `tools/lpc-compose.py`, `lpc-squash.py`, `pixelate.py p0` | 10-04 | the LPC fall row, frame 4, like every `_p0` figure |
 
@@ -92,7 +93,7 @@ A blue demon today.
 
 HEAD: STONE GIANT -- the deep. Lean and hairless, grey skin like carved stone, heavy brow. Huge: much taller than a man. Rows: Idle (8), Walk (8), Club (8), Throw Rock (8), Catch Rock (6), Hurt (6), Death (8).
 
-10-04: being built in Blender (pipeline 1b, `tools/stonegiant-blend.py`, MZ4250's female sculpt), the rows the engine plays: idle, walk, greatclub, greatclub2, rock, flinch, hurt, prone. **Catch Rock waits** with her Rock Catching (Griz, 10-04: *"register now"*): nothing in the game can hurl a rock at her yet (`..\handoff-2026-10-04-the-grids-rules.md` §2.7).
+IN HAND 10-04 (pipeline 1b: above; off the list on his word, *"1 she's off"*). The head is kept for a re-roll; the rows the engine plays: idle, walk, greatclub, greatclub2, rock, flinch, hurt, prone. **Catch Rock waits** with her Rock Catching (Griz, 10-04: *"register now"*): nothing in the game can hurl a rock at her yet (`..\handoff-2026-10-04-the-grids-rules.md` §2.7).
 
 ---
 

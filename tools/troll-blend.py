@@ -298,8 +298,29 @@ def row2_death(i, n):
     return P, 0
 
 
+def row2_climb(i, n):
+    """climbing a face in front of it, in place (the engine raises it up the face: js/battle.js tween 'climb'): hand over hand, its left hand and right foot
+    reaching while the other two pull and push, then the other way; leaning in, looking up, the long arms reaching well over its head
+    (10-04, Griz: "climbing poses - might use them as stand in for the edifice fight the other window is building")."""
+    t = i / n
+
+    def limb(ph):            # (height up its stroke 0..1, how far off the wall): pulling down past it for half the cycle, then reaching up off the wall for the next hold
+        ph %= 1.0
+        if ph < 0.5:
+            return 1 - ph / 0.5, 0.0
+        h = (ph - 0.5) / 0.5
+        return h, math.sin(math.pi * h)
+    (ha, oa), (hb, ob) = limb(t), limb(t + 0.5)
+    (fa_, ofa), (fb_, ofb) = limb(t + 0.5), limb(t)      # (each foot with the opposite hand)
+    return stance(lean=ST['lean'] + 8, head=-16, hyaw=0, lift=ST['lift'] + 2 + 0.5 * S(TAU * t * 2), shift=-2, twist=ST['twist'] + 6 * S(TAU * t), jaw=-16,
+                  wa=(7, -12 + 4 * oa, -10 + 30 * ha), wb=(-7, -12 + 4 * ob, -10 + 30 * hb), finga=18 - 20 * oa, fingb=18 - 20 * ob,
+                  fa=(FA[0], -10 + 4 * ofa, 1 + 18 * fa_, 0, -8 * fa_), fb=(FB[0], -10 + 4 * ofb, 1 + 18 * fb_, 0, -8 * fb_),
+                  kpolea=(0.3, -1, 0.4), kpoleb=(-0.3, -1, 0.4), epolea=(0.8, 0.6, -0.4), epoleb=(-0.8, 0.6, -0.4)), 0
+
+
 ROWS_V2 = [('IDLE', 8, True, row2_idle, 'ik'), ('WALK', 8, True, row2_walk, 'ik'), ('CLAW', 6, False, row2_claw('a'), 'ik'), ('CLAW2', 6, False, row2_claw('b'), 'ik'),
-           ('BITE', 6, False, row2_bite, 'ik'), ('FLINCH', 5, False, row2_flinch, 'ik'), ('DEATH', 8, False, row2_death, 'ik'), ('PRONE', 6, False, row2_prone, 'ik')]
+           ('BITE', 6, False, row2_bite, 'ik'), ('FLINCH', 5, False, row2_flinch, 'ik'), ('DEATH', 8, False, row2_death, 'ik'), ('PRONE', 6, False, row2_prone, 'ik'),
+           ('CLIMB', 8, True, row2_climb, 'ik')]
 ROWS = ROWS_V1 if OPT.get('poses') == 'v1' else ROWS_V2
 EDITS = os.path.join(ROOT, 'tools', 'troll-poses.json')       # the frames Griz set on the poser page (tools/poser.html), taken in: they win over the script's
 if ROWS is ROWS_V2 and not OPT.get('noedits'):

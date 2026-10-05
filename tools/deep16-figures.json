@@ -365,9 +365,10 @@
         "rock": "ROCK",
         "flinch": "FLINCH",
         "hurt": "HURT",
-        "prone": "PRONE"
+        "prone": "PRONE",
+        "climb": "CLIMB"
       },
-      "frames": {"idle": 8, "walk": 8, "greatclub": 8, "greatclub2": 8, "rock": 8, "flinch": 5, "hurt": 8, "prone": 6},
+      "frames": {"idle": 8, "walk": 8, "greatclub": 8, "greatclub2": 8, "rock": 8, "flinch": 5, "hurt": 8, "prone": 6, "climb": 8},
       "once": ["greatclub", "greatclub2", "rock", "flinch", "hurt", "prone"]
     },
     "giantbat": {
@@ -782,9 +783,10 @@
         "bite": "BITE",
         "flinch": "FLINCH",
         "hurt": "DEATH",
-        "prone": "PRONE"
+        "prone": "PRONE",
+        "climb": "CLIMB"
       },
-      "frames": {"idle": 8, "walk": 8, "claw": 6, "claw2": 6, "bite": 6, "flinch": 5, "hurt": 8, "prone": 6},
+      "frames": {"idle": 8, "walk": 8, "claw": 6, "claw2": 6, "bite": 6, "flinch": 5, "hurt": 8, "prone": 6, "climb": 8},
       "once": ["claw", "claw2", "bite", "flinch", "hurt", "prone"]
     },
     "clacker": {

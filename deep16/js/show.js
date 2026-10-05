@@ -71,7 +71,8 @@
     var ks = Object.keys(d.attacks || {});
     return ks.length > 0 && ks.every(function (k) { var a = d.attacks[k]; return a.spell || sh.anims[String(a.name || k).toLowerCase().replace(/[^a-z]/g, '')]; });
   };
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack'); }); };
+  // (a climb row is not wanted here: the test ground is flat, nothing to climb -- it plays on a face or a rope, js/ui.js; the troll's and the stone giant's, 10-04)
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb'; }); };
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 
