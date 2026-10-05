@@ -1229,11 +1229,12 @@ window.D16.MAPS.climbfloor = {
 window.D16.MAPS.edifice = {
   name: 'The Edifice',
   sub: 'Fountain Street under the waterfall facade of Sólskaft, and the roof of glass',
-  stone: 'grey', step: 10, noBurrow: true, climb: 6, deepWater: 'D', // (a hand scales 15 ft at most -- the arches' sills; the 45 ft face takes the rope, a grapple from a sill, or a climb speed)
+  stone: 'grey', step: 10, noBurrow: true, climb: 6, deepWater: 'D', // (D: the channel off the east end) // (a hand scales 15 ft at most -- the arches' sills; the 45 ft face takes the rope, a grapple from a sill, or a climb speed)
   ropes: [[11, 9, 11, 10]], // a rope the dwarves left hung from the rim at the west end, 45 ft to the street (the top square, the foot square)
   ropeBucket: [3, 14], // the bucket of rope and grapples by the first house (battle.js exec 'bucketrope')
-  shaft: [18.5, 5.5, 2.2], // the Sunshaft's circle on the third floor, seen through the glass (centre, radius in squares; iso.js bake)
-  doors: [[29, 10, 'the vault door'], [30, 10, 'the vault door'], [13, 10, 'a front door'], [42, 10, 'a front door']], // (marked only)
+  shaft: [29.5, 4.8, 2.8], // the Sunshaft's circle on the third floor, seen through the glass, under the falls at the roof's middle (centre, radius in squares; iso.js bake -- Griz, 10-04 night: "move the light circle to where the pool is now ... increase the radius of the light-hole for symmetry")
+  falls: [[28, 0], [29, 0], [30, 0], [31, 0]], // the waterfall down the back wall's face, into the water at its foot (iso.js rockCanvas -- Griz: "waterfall wall 31, 0 to 28, 0 - water tile 31, 1 to 28, 1")
+  passages: [[29, 10, 29, 8, 'the vault door'], [30, 10, 30, 8, 'the vault door']], // the vault door on the street and the roof's hatch above it: GO IN / COME OUT for the rest of the move (battle.js Battle.passageAt, exec 'passage' -- Griz, 10-04 night: "Front doors possible?"); the arches are sills, not doors
   heights: [
     '000000000000000000000000000000000000000000000000000000000000',
     '00000000000iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii00000000000',
@@ -1265,11 +1266,11 @@ window.D16.MAPS.edifice = {
   ],
   rows: [
     '######,,####################################################',
-    '######,,###==================~~==================###########',
-    '######,,###=GGGGGGGGGGGGGGGGG~~GGGGGGGGGGGGGGGGG=###########',
-    '######,,###=GGGGGGGGGGGGGGGGDDDDGGGGGGGGGGGGGGGG=###########',
-    '######,,###=GGGGGGGGGGGGGGGGDDDDGGGGGGGGGGGGGGGG=###########',
-    '######,,###=GGGGGGGGGGGGGGGGDDDDGGGGGGGGGGGGGGGG=###########',
+    '######,,###=================~~~~=================###########',
+    '######,,###=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
+    '######,,###=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
+    '######,,###=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
+    '######,,###=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '######,,###=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '######,,###=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '######,,###=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',

@@ -152,7 +152,7 @@
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
+    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
@@ -270,7 +270,7 @@
     var u = a.who, rd = a.rd;
     if (B.inspect && (I.pressed('a') || I.pressed('b') || I.mouse.click || I.mouse.rclick)) { B.inspect = null; return; }
     B.hoverBtn = -1;
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, rd.what === 'weapon' ? foeWanted(B, u) : null), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); B.hoverUnit = pu; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, rd.what === 'weapon' ? foeWanted(B, u) : null), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y, G.map.gz(B.cursor.x, B.cursor.y)); B.hoverUnit = pu; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
     if (I.mouse.inside) (B.buttons || []).forEach(function (b, i) { if (hit(b)) B.hoverBtn = i; });
     B.peek = B.tool === 'spell' && B.spell ? underCursor(B) || null : null;
     ['up', 'down', 'left', 'right'].forEach(function (k) { if (k !== I.stickWay && I.repeat(k)) moveCursor(B, k); });
@@ -306,7 +306,7 @@
     if (I.pressed('b')) { D.sfx('cancel'); return B.answer(p.opts[n - 1].value); }
     for (var k = 1; k <= Math.min(9, p.pick.length); k++) if (I.pressed('n' + k)) return take(p.pick[k - 1]);
     var pickable = function (w) { return p.pick.indexOf(w) >= 0; }; // (one of the gold squares' creatures comes before a figure in front of it: UI.pickUnit's want)
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable), s = pu ? { x: pu.x, y: pu.y } : D.iso.pick(I.mouse.x, I.mouse.y, G.map.gz(B.cursor.x, B.cursor.y)); if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } }
     ['up', 'down', 'left', 'right'].forEach(function (d) { if (d !== I.stickWay && I.repeat(d)) moveCursor(B, d); });
     if (I.repeat('stick')) stickCursor(B);
     if (I.mouse.click && !overUI(B)) { var pc = UI.pickUnit(B, I.mouse.x, I.mouse.y, pickable); return take(pc && p.pick.indexOf(pc) >= 0 ? pc : pickAt(B, p)); }
@@ -384,7 +384,7 @@
     }
     // the mouse: over the menus, or on the grid
     B.hoverBtn = -1;
-    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, foeWanted(B, u)), rg = pu ? null : ropeRung(B, u, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : rg ? { x: rg.rope.foot[0], y: rg.rope.foot[1] } : D.iso.pick(I.mouse.x, I.mouse.y); B.hoverUnit = pu; B.ropePick = rg; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } } // (hoverUnit: a rider on a head the mouse is on -- underCursor; ropePick: a rung of a rope the mouse is on, the cursor at the rope's foot -- ropeRung, 10-04)
+    if (I.mouse.inside && !overUI(B) && I.mouse.moved) { var pu = UI.pickUnit(B, I.mouse.x, I.mouse.y, foeWanted(B, u)), rg = pu ? null : ropeRung(B, u, I.mouse.x, I.mouse.y), s = pu ? { x: pu.x, y: pu.y } : rg ? { x: rg.rope.foot[0], y: rg.rope.foot[1] } : D.iso.pick(I.mouse.x, I.mouse.y, G.map.gz(B.cursor.x, B.cursor.y)); B.hoverUnit = pu; B.ropePick = rg; if (s) { B.cursor.x = s.x; B.cursor.y = s.y; } } // (hoverUnit: a rider on a head the mouse is on -- underCursor; ropePick: a rung of a rope the mouse is on, the cursor at the rope's foot -- ropeRung, 10-04)
     if (I.mouse.inside) (B.buttons || []).forEach(function (b, i) { if (hit(b)) B.hoverBtn = i; });
     // hovering picks an icon only when the mouse moves onto it: a ring turning under a resting mouse, or a twitch
     // on the same icon, leaves the arrows' choice alone (Griz, 09-27: the arrows stopped working over the wheel)
@@ -1652,6 +1652,8 @@
         if (picked) { var pp = UI.unitPos(B, w); DEFER.push({ depth: 1e6, gz: 0, draw: function (c) { D.text(c, picked > 1 ? 'x' + picked : 'v', pp.x + 10, pp.y - 8, harm ? R('fire', 2) : R('gold', 4)); } }); }
       });
     }
+    // the passages (Battle.passageAt, 10-04 night): both ends outlined, so the vault door and the roof's hatch read as a pair
+    (B.passages || []).forEach(function (p) { lineSq(ctx, p.at[0], p.at[1], R('gold', 3), 0.55, 4); lineSq(ctx, p.to[0], p.to[1], R('gold', 3), 0.55, 4); });
     // a rung of a rope the mouse is on (ropeRung, 10-04 night): the face, the rung at the height picked, and where the figure will hang
     if (B.ropePick && (tool === 'move' || tool === 'menu' || tool === 'attack')) drawRung(B, u, B.ropePick);
     // the cursor: red where the current thing can't go
@@ -1716,6 +1718,7 @@
       }
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
+      var pgT = D.Battle.passageAt(B, B.cursor.x, B.cursor.y); if (pgT) lines.push('{y}' + pgT.name + '{/}: ' + (pgT.inward ? 'GO IN -- through it and up the stair inside, out onto the roof' : 'COME OUT -- down the stair inside, out onto the street') + '  {g}(stand on it: the rest of the move, half the speed at least){/}'); // (a passage, 10-04 night)
       if (B.ropeBucket && B.cursor.x === B.ropeBucket[0] && B.cursor.y === B.ropeBucket[1]) lines.push('{y}the rope bucket{/}: a Rope & Grapple for anyone beside it -- {n}free, one a turn, and there is always another{/} (TAKE A ROPE on the ring)'); // (10-04 night)
       var rpT = !B.ropePick && D.Battle.ropeAt(B, B.cursor.x, B.cursor.y); // (a rope's grapple under the cursor: what the click does -- 10-04 night)
       if (rpT) {

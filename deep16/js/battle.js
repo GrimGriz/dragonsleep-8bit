@@ -113,6 +113,7 @@
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
     this.ropes = ((m.def && m.def.ropes) || []).map(function (r) { return { at: [r[0], r[1]], foot: [r[2], r[3]], hp: 2, fixed: true }; }); // (a map's ropes; a Rope & Grapple adds its own: grid.js G.ropeOn, exec 'rope')
     this.ropeBucket = m.def && m.def.ropeBucket ? m.def.ropeBucket.slice() : null; // (Fountain Street's bucket: a Rope & Grapple for anyone beside it, free, one a turn, endless -- 10-04 night, Griz; exec 'bucketrope')
+    this.passages = ((m.def && m.def.passages) || []).map(function (p) { return { at: [p[0], p[1]], to: [p[2], p[3]], name: p[4] || 'the door' }; }); // (a door and its far side: the Edifice's vault to the roof -- 10-04 night, Griz: "Front doors possible?"; exec 'passage')
     if (D.walls && D.walls.seatConjured) D.walls.seatConjured(this); // (an elemental conjured at the camp walks in beside its caster: js/walls.js)
     // torchdark (09-28): dark ground -- the fight's own word, else the 8-bit map's `dark` when the fight is fought from there
     // (js/embed.js), else the grid map's -- and the lights the place keeps (a lamp, a fire, a glow: [x, y, r, color, dimOnly]);
@@ -691,6 +692,9 @@
     this.tool = 'move'; this.cursor = { x: u.x, y: u.y };
     while (true) {
       var cmd = yield { turn: u };
+      // prone at END TURN with the half to stand: it stands, as any player would have (10-04 night, Griz: "if prone at end turn with movement left stand to stand from prone, stand?" --
+      // the fighter fell off the arch sill six turns running and lay there with 15 ft unspent every time; SRD 5.1: standing is half the speed, from the turn's movement)
+      if (cmd && cmd.do === 'end' && u.conds.prone && u.hp > 0 && RU.canRise(u) && u.turn.move >= Math.floor(u.speed / 2)) RU.rise(this, u);
       if (!cmd || cmd.do === 'end') break;
       yield* this.exec(u, cmd);
       yield* this.wave();
@@ -774,6 +778,7 @@
     // TAKE THE ROPE (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it"): a rope fixed on this square or one beside it, up top, nobody on it -- coiled back into the pack for the action
     var rpN = Battle.ropeNear(this, u); if (rpN) { var tkN = Battle.canTakeRope(this, u, rpN); out.push({ id: 'takerope', label: 'TAKE THE ROPE', cost: 'A', ok: tkN.ok, why: tkN.why, icon: 'item', note: 'coil the rope and its grapple back into the pack (an object used: the action)' }); }
     if (this.ropeBucket && Battle.besideBucket(this, u)) out.push({ id: 'bucketrope', label: 'TAKE A ROPE', cost: 'F', ok: !T.tookRope && !u.guest, why: T.tookRope ? 'one a turn' : 'a guest keeps its hands to itself', icon: 'item', note: 'a Rope & Grapple out of the bucket: free, one a turn, and there is always another' }); // (10-04 night)
+    var psgN = Battle.passageAt(this, u.x, u.y); if (psgN) { var occN = G.occupant(psgN.dest[0], psgN.dest[1]), halfN = Math.floor(u.speed / 2); out.push({ id: 'passage', label: psgN.inward ? 'GO IN' : 'COME OUT', cost: 'M', ok: T.move >= halfN && !occN && !u.conds.restrained && (u.size || 1) === 1, why: occN ? 'someone stands at the other end' : T.move < halfN ? 'half the speed at least (' + halfN + ' ft)' : u.conds.restrained ? 'held fast' : 'too big for the door', icon: 'move', note: 'through ' + psgN.name + (psgN.inward ? ' and up the stair inside, out onto the roof' : ' and down the stair, out onto the street') + ': the rest of this turn\'s movement' }); } // (a passage: Battle.passageAt, 10-04 night)
     // Help (the attack kind) only with a foe beside you (Griz, 09-27) -- and on a friend beside you who needs a hand (10-01c, Griz: "repurpose the help action to
     // conditionally target allies as well as current target enemy"): a sleeper shaken awake (SRD 5.1 Sleep: "someone uses an action to shake or slap the sleeper
     // awake"), one held in a web or a grip given advantage on its next check to get out (SRD 5.1 Help: "advantage on the next ability check it makes")
@@ -846,6 +851,14 @@
   };
   Battle.canCutRope = function (B, u, r) {
     return canCut0(B, u, r);
+  };
+  // a passage (10-04 night, Griz: "Front doors possible?" -- and earlier, "might let players walk in them and come out up top for a movement cost"): a map's `passages: [[x, y, tx, ty, name]]`,
+  // a door square and its far side (the Edifice's vault door on the street and the roof's hatch above it). Standing on either end, GO IN / COME OUT (the ring; a hand's walk that ends on
+  // one asks): the rest of the turn's movement, half the speed at least, and the figure is at the other end. { p, from, dest, inward, name } or null
+  Battle.passageAt = function (B, x, y) {
+    var ps = (B && B.passages) || [];
+    for (var i = 0; i < ps.length; i++) { var p = ps[i]; if (p.at[0] === x && p.at[1] === y) return { p: p, from: p.at, dest: p.to, inward: true, name: p.name }; if (p.to[0] === x && p.to[1] === y) return { p: p, from: p.to, dest: p.at, inward: false, name: p.name }; }
+    return null;
   };
   // the rope bucket (10-04 night, Griz: "there should be a bucket by one of the fountain street houses that is an endless supply of rope and grapple while on the map"): a map's
   // `ropeBucket: [x, y]` (its square a crate, 'k'); anyone of ours beside it takes a Rope & Grapple out of it for nothing -- an object interaction, one a turn -- and it is never empty
@@ -950,6 +963,7 @@
           }
         }
         yield* this.moveAlong(u, path, { spend: true });
+        if (!byAI(u) && Battle.passageAt(this, u.x, u.y) && T.move >= Math.floor(u.speed / 2)) yield* this.exec(u, { do: 'passage', ask: true }); // (the walk ended on a door: GO IN? / COME OUT? -- 10-04 night)
         return;
       }
       case 'rope': { // a Rope & Grapple set on a face (10-04, Griz: "as an item on the item wheel"; Battle.ropeSq): tied off from up there with no roll, or the grapple thrown up from below
@@ -980,6 +994,19 @@
         var rsT = (this.inv || []).filter(function (x) { return x.id === 'rope'; })[0]; if (rsT) rsT.n = (rsT.n || 0) + 1; else (this.inv = this.inv || []).push({ id: 'rope', n: 1 });
         D.sfx('confirm'); this.card(['{y}' + nameOf(u) + '{/} hauls the rope up and coils it, grapple and all, back into the pack.'], 240);
         u.anim = 'idle'; yield 16; return;
+      }
+      case 'passage': { // through the vault door and up the stair inside, out onto the roof -- and back down (10-04 night, Griz: "Front doors possible?"): Battle.passageAt; the rest of the turn's move, half the speed at least
+        var ps = Battle.passageAt(this, u.x, u.y); if (!ps) return;
+        var halfP = Math.floor(u.speed / 2), occP = G.occupant(ps.dest[0], ps.dest[1]);
+        if (T.move < halfP || occP || u.conds.restrained || (u.size || 1) > 1 || (u.hang && G.hanging(u))) { this.card(['{o}' + nameOf(u) + ' cannot go through ' + ps.name + ': ' + (occP ? 'someone stands at the other end' : T.move < halfP ? 'it takes half the speed at least (' + halfP + ' ft)' : 'not like this') + '.{/}'], 180); return; }
+        if (!byAI(u) && c.ask) { var ansP = yield { prompt: { who: u, title: u.name + ': ' + (ps.inward ? 'GO IN?' : 'COME OUT?'), lines: ['Through ' + ps.name + (ps.inward ? ' and up the stair inside, out onto the roof' : ' and down the stair, out onto the street') + ': the rest of this turn\'s movement (' + T.move + ' ft).'], opts: [{ label: ps.inward ? 'GO IN' : 'COME OUT', value: true }, { label: 'NOT NOW', value: false }] } }; if (!ansP) return; }
+        u.facing = D.spr.facingFor(ps.dest[0] - u.x, ps.dest[1] - u.y); u.anim = 'walk'; yield 10;
+        T.moved = (T.moved || 0) + T.move; T.move = 0;
+        delete u.hang; u.x = ps.dest[0]; u.y = ps.dest[1]; u.tween = null; u.anim = 'idle';
+        this.card(['{y}' + nameOf(u) + '{/} goes through ' + ps.name + (ps.inward ? ' and up the stair inside: out onto the roof.' : ' and down the stair inside: out onto the street.')], 240);
+        this.keepInView(u); yield 12;
+        if (u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); }
+        return;
       }
       case 'bucketrope': { // a Rope & Grapple out of Fountain Street's bucket (10-04 night, Griz): free, one a turn, never the last
         if (!this.ropeBucket || !Battle.besideBucket(this, u) || T.tookRope || u.guest) return;

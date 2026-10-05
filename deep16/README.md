@@ -23,6 +23,10 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
   **WINDOW** — a Chrono Trigger-style command window with a pointing hand, up at rest; SPELLS and ITEM open a list
   (left/right picks the slot level). The bar shows **BARM** after the class — bonus, action, reaction, move and the
   feet left — each lit while it's there to spend.
+- **The cursor keeps its level** (10-04 night, Griz: *"can we have it determine by the square you're moving onto the covered area from?"*): where a
+  raised square and a lower one behind it both lie under the mouse, the one at the height the cursor came from is picked (`iso.pick`'s `prefZ`), so
+  the roof is reached from the roof and the street from the street. Prone at END TURN with half the speed unspent, a hero stands first (Griz:
+  *"if prone at end turn with movement left ... stand?"*); the start of a turn stood one already.
 - **Zoom:** the screen is drawn at the window's whole-number scale, so zooming out steps by whole device pixels
   (at 3×: 1, 2/3, 1/3; at 2×: 1, 1/2) and stays crisp; the menus and the floating numbers keep their size. On a floor too big to fit
   at the smallest of those, far steps follow (10-04 night, Griz: *"can we have huge maps and another zoom level when we do?"*): whole art
@@ -194,7 +198,10 @@ the log's tail and every unit's state, for a fight that never ends on the bench.
 **The Edifice** (10-04 night, `data/maps.js` edifice, 60×27): the exterior -- Fountain Street along the foot of Sólskaft's facade as the 8-bit map has it, the
 facade 45 ft, and on top the roof of skylight glass (`G`, walkable; `iso.js` bakes it as leaded panes with the orchard on the floor below showing through, and
 the Sunshaft's circle from the map's `shaft`). The arches' tops are 15 ft sills; a grapple from a sill reaches the rim; the dwarves' rope hangs 45 ft at the
-west end. Griz: *"It's supposed to be external and the third floor is internal tho possibly visible to the skylight glass that should make up the majority
+west end; the mountain's waterfall comes down the back wall's face (a map's `falls`, painted by `rockCanvas`) into water at its foot, and the
+Sunshaft's circle lies under it at the roof's middle. The vault door on the street and the roof's hatch above it are a `passage` (GO IN / COME OUT
+on the ring, or asked when a walk ends on either: the rest of the turn's move, half the speed at least; Griz: *"Front doors possible?"*).
+Griz: *"It's supposed to be external and the third floor is internal tho possibly visible to the skylight glass that should make up the majority
 of the 4th floor/3rd floor ceiling."* `deep16/?npc=<foes>&vs=<party>&map=edifice`.
 
 **Ropes and rungs** (10-04; `js/grid.js` ROPES, `js/battle.js` exec 'rope', 'ropeclimb', 'takerope', 'cutrope', `js/ui.js ropeRung`): a map's

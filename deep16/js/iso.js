@@ -81,6 +81,7 @@
     }
     m.at = function (x, y) { return (x < 0 || y < 0 || x >= m.w || y >= m.h) ? null : m.sq[y * m.w + x]; };
     if (def.ropeBucket) { var rb = m.at(def.ropeBucket[0], def.ropeBucket[1]); if (rb) rb.stands = 'the rope bucket'; } // (Fountain Street's bucket of rope and grapples: battle.js, 10-04 night)
+    (def.falls || []).forEach(function (q) { var fs = m.at(q[0], q[1]); if (fs) fs.falls = true; }); // (a waterfall down a wall's face: rockCanvas paints it -- the Edifice's back wall, 10-04 night)
     m.isOpen = function (x, y) { var s = m.at(x, y); return !!(s && s.open); };
     m.gz = function (x, y) { var s = m.at(x, y); return s ? s.gz : 0; };
     iso.map = m;
@@ -311,7 +312,7 @@
   function rockCanvas(m, s) {
     var key = s.x + ',' + s.y;
     if (m.rockImgs[key]) return m.rockImgs[key];
-    var stone = iso.ramp('stone'), outline = iso.ramp('outline')[0];
+    var stone = iso.ramp('stone'), outline = iso.ramp('outline')[0], blueR = iso.ramp('blue'), silverR = iso.ramp('silver');
     var far = s.rock === 'far';
     // a face's foot: the open neighbour's floor, or the top of a cut stub in front of it; a face toward solid rock is never seen
     function foot(x, y) { var n = m.at(x, y); return !n ? null : n.open ? n.gz : n.rock === 'near' ? stubTop(m, n) : null; }
@@ -334,6 +335,11 @@
         var span = top - base;
         for (var j = 0; j < span; j++) {
           var y = yb - j - 1, up = j / Math.max(1, span);
+          if (s.falls && far) { // a waterfall down the face (10-04 night, Griz: "can we waterfall wall 31, 0 to 28, 0"): white water in streaks, foam where it meets the floor
+            var strk = vnoise(k * 0.6 + s.x * 13, y * 0.04, seed + 5), wv = 0.5 + (strk - 0.5) * 0.9 + (vnoise(k * 2.1, y * 0.35, seed + 6) - 0.5) * 0.3, wc = rampPick(blueR, D.clamp(wv, 0, 0.99), fx, y);
+            if (j < 8 && dith(fx, y) < (8 - j) / 9) wc = silverR[5]; else if (wv > 0.78) wc = silverR[4]; else if (wv > 0.66) wc = silverR[2];
+            put(fx, y, wc); continue;
+          }
           // strata: horizontal-ish bands, broken by noise; lit from the upper left
           var band = vnoise(k * 0.08 + s.x * 3.1, (y + s.y * 11) * 0.22, seed) * 0.5 + vnoise(k * 0.3, y * 0.05, seed + 4) * 0.5;
           var v = (right ? 0.26 : 0.46) + (band - 0.5) * 0.36;
@@ -404,16 +410,21 @@
   };
 
   // the square under a screen point: test each open square's rhombus at its own height, front-most wins
-  iso.pick = function (sx, sy) {
-    var m = iso.map, best = null, bd = -1, z = iso.inWorld ? 1 : iso.zoom;
+  // (`prefZ`, 10-04 night, Griz: "can we have it determine by the square you're moving onto the covered area from?": where a raised square and a lower one behind it both
+  // lie under the point, the one at the height the cursor came from wins -- the cursor keeps its level, the roof from the roof, the street from the street; with no such
+  // square, the front-most as before)
+  iso.pick = function (sx, sy, prefZ) {
+    var m = iso.map, best = null, bd = -1, bestZ = null, bdZ = -1, z = iso.inWorld ? 1 : iso.zoom, stP = (m.def && m.def.step) || 10;
     for (var i = 0; i < m.sq.length; i++) {
       var s = m.sq[i];
       if (!s.open) continue;
       var c = iso.center(s.x, s.y, s.gz), p = iso.toScreen(c.x, c.y);
       var dx = Math.abs(sx + 0.5 - p.x), dy = Math.abs(sy + 0.5 - p.y);
-      if (dx / (HW * z) + dy / (HH * z) <= 1 && s.x + s.y > bd) { bd = s.x + s.y; best = s; }
+      if (dx / (HW * z) + dy / (HH * z) > 1) continue;
+      if (s.x + s.y > bd) { bd = s.x + s.y; best = s; }
+      if (prefZ != null && Math.abs(s.gz - prefZ) <= stP && s.x + s.y > bdZ) { bdZ = s.x + s.y; bestZ = s; }
     }
-    return best;
+    return bestZ || best;
   };
 
   // the keyboard cursor: one square a press along the grid's own axes, as on the 8-bit map (up is y-1, right x+1), so
