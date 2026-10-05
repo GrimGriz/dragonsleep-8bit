@@ -64,3 +64,16 @@ NODE_PATH=/opt/node22/lib/node_modules node .claude/skills/spin-up/eyes.js "<pat
 ## After a merge
 
 The live link is the spun-up one: **https://grimgriz.github.io/dragonsleep-8bit/** + the door. Pages redeploys from `main` a minute or two after the push; add `&fresh=N` there too.
+
+## A story fight watched in the pane (10-05, the Skylights case study)
+
+The `?fight=<id>` door has no `&watch`; the class AI takes the four only on the bench. To watch a story fight play itself in the pane -- a bench seed replayed, line for line (the FX draw on `Math.random`, the fight on `D16.rand`): load the door with a fresh `&fresh=N`, then in `javascript_tool`
+
+```
+D16.pop(); D16.seed = 7919 + i * 104729;   // the bench's fight i of seed 1 (dev/bench16.js)
+var B = new D16.Battle({ ladder: true, fight: 'edifice', level: 6, record: { fight: 'edifice', name: 'The Skylights (watched: the class AI, seed N)', level: 6 } });
+var e0 = B.enter; B.enter = function () { var r = e0.apply(this, arguments); this.units.concat(this.arriving ? this.arriving.ours : []).forEach(function (u) { if (u.side === 'party' && !u.ally && !u.object) { u.guest = true; u.classAI = true; } }); return r; };
+D16.push(B);
+```
+
+The four are marked at `enter` (before the walk-in holds them offstage), as the bench marks them. Poll `D16.battle.log` as it runs; at the end `D16.rec.finish(D16.battle, D16.battle.result)` writes the record, since an AI-played fight takes no steps and the per-round checkpoint writes only after a step. Name the record `watched` so his own plays stay his. A background tab runs no frames: step `D16.update()` by hand there, and `tabs_create` gives the seat a tab of its own while he plays in his.
