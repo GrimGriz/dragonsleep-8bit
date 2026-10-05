@@ -62,6 +62,14 @@
       : L >= 5 ? [{ id: 'potion', n: 3 }, { id: 'antitoxin', n: 1 }, { id: 'oil', n: 1 }, { id: 'torch', n: 3 }] : [{ id: 'potion', n: 2 }, { id: 'torch', n: 2 }];
     return { party: party, guests: [], inv: SV.armoury(inv), flags: { lakeDone: 1, expansionDone: L >= 9 ? 1 : 0 }, fixture: true, level: L };
   };
+  // a guest as the 8-bit game makes one (js/deep.js EV.guestSheet): a story fight's own `guests` on the grid's door and bench -- the Edifice's Pyro, 10-05 (battle.js enter)
+  SV.guest = function (id) {
+    var d = DS.DATA.heroes[id], h = R.makeHero(id, d.level);
+    h.attacks = d.attacks; h.resist = d.resist; h.guest = true; h.surgeAI = !!d.surgeAI; h.script = d.script || null; h.key = id;
+    if (d.healer) { h.healer = d.healer; h.feats.heals = d.healer; }
+    if (d.vital) h.vital = true;
+    return h;
+  };
   // every pack DEEP16 fights with carries a light crossbow and twenty bolts (Griz, 09-27: "at least one crossbow/bolts in
   // the player inventory for all of deep16 modes"); the 8-bit save walking in is read, never written, so it's added here
   SV.armoury = function (inv) {

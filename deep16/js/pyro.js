@@ -31,7 +31,7 @@
   // the measure, kept on the battle (deep16/js/embed.js sends it back as `pyro`)
   function measure(B, u) {
     if (!B.pyro) {
-      var held = u.side === 'party' && !!(B.o.embed || B.o.measure);
+      var held = u.side === 'party' && (B.o.measure != null ? !!B.o.measure : !!(B.o.embed || (B.fight && B.fight.measure))); // (a story fight he guests in says so -- the Edifice's `measure`, 10-05 -- and o.measure false, ?fight=edifice&full or the bench's measure=0, has him at full)
       B.pyro = { phase: held ? 1 : 3, held: held, down: false, why: null };
       u.offhandSheathed = held; // (phase 1: the white mace at his belt; from the first round at full it is in his hand)
       if (!held) flip(u);

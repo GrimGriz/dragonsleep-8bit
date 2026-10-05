@@ -1201,7 +1201,7 @@
       okE('the Edifice: ' + w + 'x' + h + ', every row that wide', w === 60 && h === 33 && def.rows.every(function (r) { return r.length === 60; }) && def.heights.every(function (r) { return r.length === 60; }));
       var Be = D.npcFight('?npc=ogre&lvl=5&vs=fighter:5,rogue:5&map=edifice', {}); D.battle = Be; Be.enter(); while (!Be.order.length) Be.co.next(); Be.units.forEach(function (u) { if (u.side === 'party') u.guest = false; }); // (the hand's, not guests: the END TURN check below wants the hand's turn)
       var m = D.iso.map, st = def.step, fg = Be.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], rg = Be.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0], og = Be.units.filter(function (u) { return u.side === 'foe'; })[0];
-      okE('the roof at 45 ft (18 steps) at (20,5), glass, walked; the fountains: the pool at (15,11) water at 0, its rim at (13,11) and (15,13) one step up, dressed; the spout in the face above at 10 ft; the street at 0; the channel off the east end deep water, not walked', m.gz(20, 5) === 18 * st && m.at(20, 5).ch === 'G' && m.at(20, 5).walk && m.at(15, 11).ch === '~' && m.gz(15, 11) === 0 && m.at(13, 11).ch === '=' && m.gz(13, 11) === st && m.gz(15, 13) === st && m.at(15, 9).spout === 10 && m.gz(20, 12) === 0 && m.at(55, 11).deep && !m.at(55, 11).walk);
+      okE('the roof at 45 ft (18 steps) at (20,5), glass, walked; the fountains 15 by 10 ft (10-05): the pool at (15,11) water at 0, its rim at (13,11) and (15,12) one step up, dressed, the street at (15,13); the spout in the face above at 10 ft; the street at 0; the channel off the east end deep water, not walked; the north road four wide (5..8)', m.gz(20, 5) === 18 * st && m.at(20, 5).ch === 'G' && m.at(20, 5).walk && m.at(15, 11).ch === '~' && m.gz(15, 11) === 0 && m.at(13, 11).ch === '=' && m.gz(13, 11) === st && m.gz(15, 12) === st && m.at(15, 12).ch === '=' && m.at(15, 13).ch === ',' && m.gz(15, 13) === 0 && m.at(15, 9).spout === 10 && m.gz(20, 12) === 0 && m.at(55, 11).deep && !m.at(55, 11).walk && [4, 5, 6, 7, 8, 9].map(function (x) { return m.at(x, 3).walk ? 1 : 0; }).join('') === '011110');
       var r0 = Be.ropes[0]; okE('the dwarves\' rope from the rim (11,9) to the street (11,10), 18 steps', Be.ropes.length === 1 && r0.at[0] === 11 && r0.at[1] === 9 && r0.foot[0] === 11 && r0.foot[1] === 10 && (m.gz(11, 9) - m.gz(11, 10)) / st === 18);
       okE('the bucket at (3,18): a crate, not walked, named ' + m.at(3, 18).stands + ', the battle knows it', !m.at(3, 18).walk && m.at(3, 18).stands === 'the rope bucket' && Be.ropeBucket && Be.ropeBucket[0] === 3 && Be.ropeBucket[1] === 18);
       // the fighter beside the bucket: TAKE A ROPE on the ring's top, free, one a turn
@@ -1220,7 +1220,7 @@
       okE('a grapple from the street, 45 ft, cannot reach the rim: ' + !q2 + '; from 15 ft up the rope the rim is ' + dH + ' ft off, in line ' + lH + ', the throw offered ' + !!q1 + ' (a grapple thrown from a rope hang is not built: G.dist reads the hanger at its foot -- for the next seat)', !q2);
       // the costs: a climb speed pays the height (SRD), a hand cannot take the 45 ft face, the arch's sill is 30 ft of movement by hand
       var size0 = og.size, climbs0 = og.climbs; og.size = 1; og.climbs = 40; delete og.hang;
-      var cC = G.stepCost(og, 20, 10, 20, 9); og.climbs = climbs0; var cS = G.stepCost(fg, 15, 14, 15, 13), cF = G.stepCost(fg, 20, 10, 20, 9); og.size = size0;
+      var cC = G.stepCost(og, 20, 10, 20, 9); og.climbs = climbs0; var cS = G.stepCost(fg, 15, 13, 15, 12), cF = G.stepCost(fg, 20, 10, 20, 9); og.size = size0;
       okE('a climber up the 45 ft face: ' + cC + ' ft of movement (the SRD\'s climb: the height); a hand onto a fountain\'s rim: ' + cS + ' (one step, no climb); a hand up the 45 ft face: ' + cF, cC === 45 && cS === 5 && cF === Infinity);
       // the AI's far route takes a step a Dash pays for: a climber at the foot with 40 ft and its action, the party on the roof -- the route reaches the roof
       og.size = 1; og.climbs = 40; og.x = 20; og.y = 11; D.rules.startTurn(og); fg.x = 20; fg.y = 7; rg.x = 21; rg.y = 7;
@@ -1300,6 +1300,30 @@
       okE('prone, the click on yourself: with 10 ft still down ' + down10 + '; with 30 ft stood ' + !fg.conds.prone + ', move left ' + fg.turn.move, down10 && !fg.conds.prone && fg.turn.move === 15);
       var Bs = new D.Battle({ bench: true, npc: { party: ['fighter:5'], foes: ['ogre'] }, fightDef: D.classFight(5, { id: 'x', map: 'edifice' }) });
       okE('a bench fight on it never waits to bake: ' + !Bs.bakes(), !Bs.bakes());
+      // AUTO END and a hanger (10-05, Griz: "have viv move and end up on a rope with her bonus action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash
+      // movement"): the rogue climbs the dwarves' rope to a rung with all her move, her action spent, then the Cunning Action's Dash -- 30 ft to climb on with, and the turn is not spent
+      D.battle = Be; Be.ropes.forEach(function (r) { r.cut = false; }); if (!Be.ropes.some(function (r) { return r.at[0] === 11 && r.at[1] === 9 && !r.cut; })) Be.ropes.push({ at: [11, 9], foot: [11, 10], hp: 2, fixed: true });
+      rg.x = 11; rg.y = 10; delete rg.hang; rg.conds = {}; rg.hp = rg.maxhp; D.rules.startTurn(rg); Be.active = rg; Be.cache = null; rg.turn.move = 30;
+      runE(Be.exec(rg, { do: 'ropeclimb', x: 11, y: 9, z: 6 * st })); var hungV = !!(rg.hang && G.hanging(rg)), mvV = rg.turn.move; rg.turn.action = 0;
+      var thV = D.Battle.ropeSq(Be, rg, 13, 9), thD = G.dist(rg, { x: 13, y: 9, size: 1 }), thL = G.losPoint(rg.x, rg.y, 13, 9), thS = D.Battle.ropeSq(Be, { x: 13, y: 10, size: 1, id: 'probe' }, 13, 9); // (his other question: a grapple thrown from the hang to the rim two along, 30 ft up -- and from the street under it, 45 ft)
+      repE.checks.push('info a grapple from that hang to the rim at (13,9): ' + thD + ' ft, in sight ' + thL + ' (the sight is read from the foot of the rope, not the hang), offered ' + !!thV + '; from the street under it (45 ft) offered ' + !!thS + ' -- 10-05, his question, open');
+      runE(Be.exec(rg, { do: 'cdash' })); Be.cache = null; var spV = D.ui.spent(Be, rg), mvV2 = rg.turn.move;
+      rg.turn.move = 0; Be.cache = null; var spV0 = D.ui.spent(Be, rg);
+      okE('the rogue up the rope to 15 ft with her move: hanging ' + hungV + ', move left ' + mvV + '; the action spent and the bonus Dash taken: move ' + mvV2 + ', the turn spent ' + spV + ' (a rung is a step); with no move at all, spent ' + spV0, hungV && mvV === 0 && mvV2 === 30 && spV === false && spV0 === true);
+      delete rg.hang; rg.x = 13; rg.y = 12;
+      // the Skylights (10-05, Griz: "Have pyro come out followed by the party then the doors lock behind them. Have the monsters come from the north road, the team pop out and then
+      // initiative"; "is it freezing with the second troll still trying to walk?"): off the field at the entry card; the foes down the road to their squares, Pyro out first and the
+      // four after him, the doors open while they come and shut after, in a bounded number of beats; Pyro's line the first time one is up the face, and only once
+      var FK = D.fight('edifice'), Bk = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bk; Bk.enter();
+      var onField0 = Bk.units.filter(function (u) { return !u.object; }).length, arr0 = Bk.arriving ? Bk.arriving.foes.length + Bk.arriving.ours.length : 0, beatsK = 0, firstK = null, openK = false;
+      while (!Bk.order.length && beatsK++ < 2000) { var skK = Bk.co.next(); if (skK.done) break; var o1K = Bk.units.filter(function (u) { return u.side === 'party' && !u.object; })[0]; if (o1K && !firstK) firstK = o1K.id; if (Bk.map.doorsOpen) openK = true; }
+      var footK = FK.foes.map(function (f) { var u = Bk.units.filter(function (w) { return w.id === f.id; })[0]; return u && u.x === f.at[0] && u.y === f.at[1]; }), seatK = Bk.units.filter(function (u) { return u.side === 'party' && !u.object; }).map(function (u, i) { return u.x + ',' + u.y; });
+      okE('the Skylights: at the entry card the field holds ' + onField0 + ' (' + arr0 + ' to come); after the walk-in (' + beatsK + ' beats) the foes on their squares ' + footK.join(',') + ', the first out ' + firstK + ', the doors stood open ' + openK + ' and are shut ' + !Bk.map.doorsOpen + ', ours at ' + seatK.join(' ') + ', the skylight on the field ' + !!Bk.skylight,
+        onField0 === 0 && arr0 === 9 && beatsK < 400 && footK.every(Boolean) && firstK === 'pyro' && openK && !Bk.map.doorsOpen && seatK.length === 5 && !!Bk.skylight);
+      var trK = Bk.units.filter(function (u) { return u.kind === 'troll'; })[0], n0K = (Bk.log || []).length; trK.x = 20; trK.y = 10; trK.hang = { face: [20, 9], foot: [20, 10], z: 4 * st };
+      runE(Bk.climbSay()); var saidK = (Bk.log || []).slice(n0K).join(' | '); runE(Bk.climbSay()); var againK = (Bk.log || []).length - n0K;
+      okE('a troll clinging 10 ft up the face: ' + saidK + ' (said once: ' + (againK === 1) + ')', /Pyro.*They're going for the skylights!/.test(saidK) && Bk.climbSaid && againK === 1);
+      delete trK.hang;
     } catch (eE) { repE.errors.push(String(eE && eE.stack || eE).slice(0, 900)); }
     D.d = d0E;
     if (errs.length) repE.errors = repE.errors.concat(errs);
@@ -2807,15 +2831,15 @@
     var B;
     try {
       var fid = get('fight', '');
-      B = fid ? new D.Battle({ ladder: true, fight: fid, bench: true, npc: vs ? { party: vs.split(','), foes: [] } : null, torch: get('torch', '') || undefined, torchKind: get('torchKind', '') || undefined }) /* (torch=<unit id> torchKind=lantern: a light in a hand -- the roost's hooded lantern, 10-02) */ : new D.Battle({ npc: { foes: foes, party: vs ? vs.split(',') : null }, bench: true, fightDef: D.classFight(L) });
+      B = fid ? new D.Battle({ ladder: true, fight: fid, bench: true, npc: vs ? { party: vs.split(','), foes: [] } : null, torch: get('torch', '') || undefined, torchKind: get('torchKind', '') || undefined, level: +get('flvl', 0) || undefined, measure: get('measure', '') === '' ? undefined : get('measure', '') === '1' }) /* (torch=<unit id> torchKind=lantern: a light in a hand -- the roost's hooded lantern, 10-02) (flvl=7: the fight's four at another level; measure=0|1: Pyro held or at full -- the Skylights, 10-05) */ : new D.Battle({ npc: { foes: foes, party: vs ? vs.split(',') : null }, bench: true, fightDef: D.classFight(L) });
       D.battle = B; B.enter();
-      if (fid) B.units.forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } });
+      if (fid) B.units.concat(B.arriving ? B.arriving.ours : []).forEach(function (u) { if (u.side === 'party') { u.guest = true; u.classAI = true; } }); // (B.arriving: a fight's party behind its doors till the walk-in, Battle.offstage -- the Skylights, 10-05)
     } catch (e) { errs.push('enter: ' + String(e && e.stack || e).slice(0, 600)); break; }
     var res = drive(B);
     if (D.lastError) errs.push('lastError: ' + String(D.lastError.stack || D.lastError).slice(0, 400));
     if (res === 'won') stats.won++; else if (res === 'lost') stats.lost++; else stats.other++;
     stats.rounds += B.round;
-    stats.fights.push(res + ' R' + B.round + ' ' + B.units.map(function (u) { return u.name + ' ' + Math.max(0, u.hp) + '/' + u.maxhp; }).join(', '));
+    stats.fights.push(res + ' R' + B.round + (B.climbSaid ? ' [one climbed]' : '') + ' ' + B.units.map(function (u) { return u.name + ' ' + Math.max(0, u.hp) + '/' + u.maxhp; }).join(', ')); // ([one climbed]: a fight's climbLine fired -- the Skylights, 10-05)
     var pty = B.units.filter(function (u) { return u.side === 'party'; });
     stats.left = (stats.left || 0) + pty.reduce(function (s, u) { return s + Math.max(0, u.hp); }, 0) / Math.max(1, pty.reduce(function (s, u) { return s + u.maxhp; }, 0));
     stats.downs = (stats.downs || 0) + pty.filter(function (u) { return u.hp <= 0; }).length;

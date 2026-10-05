@@ -455,8 +455,12 @@
   function spent(B, u) {
     var T = u.turn;
     if (T.move > 0 && !u.conds.restrained) { var rc = reachCache(B, u); if (Object.keys(rc.move).some(function (k) { return rc.move[k].stand && rc.move[k].cost > 0; })) return false; }
+    // hanging on a rope with 5 ft or more: a rung up or down is a step to take (exec 'ropeclimb'), though no square is (10-05, Griz: "have viv move and end up on a rope with her bonus
+    // action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash movement")
+    if (T.move >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u)) return false;
     return !B.commands(u).some(function (c) { return c.ok; });
   }
+  UI.spent = spent; // (the bench's: dev/bench16.js mode=edifice1004)
   function turnWheel() { return I.repeat('wheell') ? -1 : I.repeat('wheelr') ? 1 : 0; } // the pad's right stick or bumpers, on the wheel
   function castPicks(B, u) { var S = B.spell; if (S && B.picks.length) UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: { units: B.picks.slice() } }); }
   function etherealAt(B, x, y) { return B.units.filter(function (w) { return w.ethereal && !(w.under && w.earthGlide) && x >= w.x && y >= w.y && x < w.x + w.size && y < w.y + w.size; })[0]; }

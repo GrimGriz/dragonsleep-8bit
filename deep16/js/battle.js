@@ -33,8 +33,11 @@
     // from the camp (js/camp.js): the four as the morning left them; copied, so RESTART starts from the camp again
     // inside the 8-bit game (js/embed.js, this.o.embed): the party it handed over, as it stood when the fight began
     if (this.o.data) this.from = { from: this.o.embed ? 'the 8-bit game' : 'the camp', when: null, data: JSON.parse(JSON.stringify(this.o.data)) };
-    else if (this.o.ladder || this.o.npc) this.from = { from: this.o.pocket ? 'the Pocket DM' : this.o.npc ? 'the class floor' : 'the ladder', when: null, data: D.save.fixture(Math.min(9, F.level)) }; // (the four stop at 9: a druid 12 on the class floor meets them at 9)
+    else if (this.o.ladder || this.o.npc) this.from = { from: this.o.pocket ? 'the Pocket DM' : this.o.npc ? 'the class floor' : 'the ladder', when: null, data: D.save.fixture(Math.min(9, this.o.level || F.level)) }; // (the four stop at 9: a druid 12 on the class floor meets them at 9) (o.level: a fight's door or bench at another level -- ?fight=edifice&lvl=7, 10-05)
     else this.from = this.o.fixture ? { from: 'the fixture', when: null, data: D.save.fixture() } : D.save.load();
+    // a story fight's own guests, made as the 8-bit game makes them (js/deep.js EV.guestSheet), where the party walking in brings none of that name: the Edifice's Pyro (10-05, Griz:
+    // "Have pyro come out followed by the party"). Inside the 8-bit game the scene sends its own
+    if (F.guests && !this.o.embed && this.from && this.from.data) { var gd = this.from.data; gd.guests = (gd.guests || []).slice(); F.guests.forEach(function (gid) { if (!gd.guests.some(function (g) { return (g.key || g.id) === gid; })) gd.guests.push(D.save.guest(gid)); }); }
     this.canSwap = !this.o.ladder && !this.o.npc && !this.o.embed && (this.o.fixture || this.from.from !== 'the fixture');
     var party = D.save.units(this.from.data, this.o.climb ? Object.assign({}, F, { looks: null }) : F); // the climb: Barley is Barley
     // the class floor (js/classes.js): a band of class NPCs instead of the four when asked (class against class), and on the bench
@@ -116,6 +119,7 @@
     this.passages = ((m.def && m.def.passages) || []).map(function (p) { return { at: [p[0], p[1]], to: [p[2], p[3]], name: p[4] || 'the door' }; }); // (a door and its far side: the Edifice's vault to the roof -- 10-04 night, Griz: "Front doors possible?"; exec 'passage')
     // shut unless the fight opens them (Griz, 10-04 night: "that works, but turned off by default"): the fight's `passages: true`, the battle's option, the 8-bit's embed, or `&doors` on the URL
     this.passagesOpen = !!(F.passages || this.o.passages || (this.o.embed && this.o.embed.passages) || /[?&]doors\b/.test(location.search));
+    m.doorsOpen = this.passagesOpen; // (the doors drawn: shut unless the passages are open -- iso.js draws a door square's open canvas while this is set; Battle.arrive opens them as the party comes out)
     if (D.walls && D.walls.seatConjured) D.walls.seatConjured(this); // (an elemental conjured at the camp walks in beside its caster: js/walls.js)
     // torchdark (09-28): dark ground -- the fight's own word, else the 8-bit map's `dark` when the fight is fought from there
     // (js/embed.js), else the grid map's -- and the lights the place keeps (a lamp, a fire, a glow: [x, y, r, color, dimOnly]);
@@ -161,6 +165,7 @@
     D.spr.gate(this, want.now);
     D.spr.prefetch(want.soon);
     if (this.o.gallery) D.spr.ensureAll();
+    if (F.arrive) this.offstage(); // (they walk in after the entry card: Battle.arrive -- their sheets are already asked for)
   };
   // the sheets a fight draws (10-03): `now`, what stands on the field as it opens -- every unit's figure (those still in the inn too),
   // a rider's, the scenery's -- which its first frame waits for; `soon`, what it may bring on later: the figure a split or a win swaps
@@ -298,6 +303,7 @@
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
       darkness: d.darkness ? { r: d.darkness.r, range: d.darkness.range, chance: d.darkness.chance, used: false } : null, // (Amara's, once, the turn she runs; the drow's on the 8-bit's chance: magic.js castDarkness)
       hidden0: !!f.hidden,
+      from0: f.from ? f.from.slice() : null, // (walks in from there to `at` before the first round: a fight's `arrive` -- the Edifice's foes down the north road, Battle.arrive, 10-05)
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
       // and what it does with the dark itself (the darkmantle's aura, the duergar's Invisibility: ai.js brute)
       darkvision: d.darkvision || 0, blindsight: d.blindsight || 0, blind: !!d.blind, truesight: d.truesight || 0, devilSight: !!d.devilSight,
@@ -529,11 +535,102 @@
     yield 50;
   };
 
+  // a fight's opening before the first round (a fight's `arrive`; the Edifice's, 10-05, Griz: "Have pyro come out followed by the party then the doors lock behind them. Have the
+  // monsters come from the north road, the team pop out and then initiative"): the foes with a `from` walk in from it to the squares they hold, in step, each setting off when its way
+  // in is clear; then the doors (arrive.doors) stand open and the party comes out of them -- its guests first, then the four in their order -- each to the square it was seated on;
+  // then the doors shut behind them (arrive.lock), and the fight rolls initiative. Before the fight: nothing spent, no one provoked
+  Battle.prototype.arrive = function* () {
+    var self = this, A = this.fight.arrive, U = this.units, m = this.map;
+    // the way from where it stands to a square, eight ways, round the walls (and round the others too, when `solid`): the steps, not the square it starts on
+    function route(u, to, solid) {
+      var key = function (x, y) { return x + ',' + y; }, prev = {}, q = [[u.x, u.y]], seen = {}; seen[key(u.x, u.y)] = 1;
+      var ok = function (x, y) { return G.canStand(u, x, y, solid ? null : { ghost: true }); };
+      while (q.length) {
+        var c = q.shift(); if (c[0] === to[0] && c[1] === to[1]) break;
+        for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+          var nx = c[0] + dx, ny = c[1] + dy; if ((!dx && !dy) || seen[key(nx, ny)]) continue;
+          if (!ok(nx, ny) || (dx && dy && (!ok(c[0] + dx, c[1]) || !ok(c[0], c[1] + dy)))) continue; // (no corner cut past a wall)
+          seen[key(nx, ny)] = 1; prev[key(nx, ny)] = c; q.push([nx, ny]);
+        }
+      }
+      if (!seen[key(to[0], to[1])]) return null;
+      var out = [], p = to; while (p && !(p[0] === u.x && p[1] === u.y)) { out.unshift(p); p = prev[key(p[0], p[1])]; }
+      return out;
+    }
+    // walk a file of them in: each { u, from, to, face }, the next set down on its `from` once that is clear, a step each a beat
+    function* walk(file, look) {
+      var pending = file.slice(), going = [], guard = 0;
+      while ((pending.length || going.length) && guard++ < 150) {
+        var nx0 = pending[0];
+        if (nx0) { var hx = nx0.u.x, hy = nx0.u.y; nx0.u.x = nx0.from[0]; nx0.u.y = nx0.from[1];
+          if (G.canStand(nx0.u, nx0.u.x, nx0.u.y)) {
+            pending.shift(); U.push(nx0.u); (nx0.riders || []).forEach(function (r) { U.push(r); });
+            nx0.u.anim = 'idle'; nx0.u.animT = self.t; nx0.steps = route(nx0.u, nx0.to) || []; nx0.held = 0; going.push(nx0);
+            if (nx0.spark) FX.sparkle(nx0.u, 'gold', 10);
+          } else { nx0.u.x = hx; nx0.u.y = hy; }
+        }
+        going.forEach(function (g) {
+          if (!g.steps.length) return;
+          var to = g.steps[0];
+          if (!G.canStand(g.u, to[0], to[1])) { if (++g.held % 4 === 0) { var r2 = route(g.u, g.to, true); if (r2) g.steps = r2; else if (g.held >= 8) g.steps = []; } return; } // (another in the way: wait, then go round -- and with no way round, it stops where it is: 10-05, Griz: "is it freezing with the second troll still trying to walk?")
+          g.held = 0; g.steps.shift();
+          g.u.tween = { fx: g.u.x, fy: g.u.y, fz: G.gzAt(g.u, g.u.x, g.u.y), t: 0, dur: STEP_FRAMES, mode: null };
+          g.u.facing = D.spr.facingFor(to[0] - g.u.x, to[1] - g.u.y); g.u.anim = 'walk'; g.u.x = to[0]; g.u.y = to[1];
+        });
+        going = going.filter(function (g) { if (g.steps.length && guard < 149) return true; if (g.u.x !== g.to[0] && G.canStand(g.u, g.to[0], g.to[1])) { g.u.x = g.to[0]; g.u.y = g.to[1]; } g.u.anim = 'idle'; g.u.facing = g.face; return false; });
+        if (look) look(going[0] || file[file.length - 1]);
+        yield STEP_FRAMES;
+      }
+      pending.forEach(function (p) { if (G.canStand(p.u, p.to[0], p.to[1])) { p.u.x = p.to[0]; p.u.y = p.to[1]; U.push(p.u); (p.riders || []).forEach(function (r) { U.push(r); }); p.u.anim = 'idle'; p.u.facing = p.face; } }); // (one that never got its way in: set down where it was to stand)
+    }
+    var W8 = this.arriving || this.offstage(), foes = W8.foes, ours = W8.ours, riders = W8.riders; this.arriving = null;
+    if (foes.length) {
+      this.focus({ x: foes[0].from0[0], y: foes[0].from0[1] + 4, size: foes[0].size }); if (A.road) this.card([A.road], 360); D.sfx('encounter');
+      yield* walk(foes.map(function (u) { return { u: u, from: u.from0, to: [u.x, u.y], face: D.spr.facingFor(1, 0) }; }), function (g) { if (g) self.keepInView(g.u); });
+      yield 30;
+    }
+    if (ours.length) {
+      // the guests first (Pyro leads them out), then the four
+      var lead = function (u) { return (self.fight.guests || []).indexOf(u.id) >= 0 ? 1 : 0; }; // (the fight's own guests: the bench makes everyone a guest)
+      ours.sort(function (a, b) { return lead(b) - lead(a); });
+      m.doorsOpen = true; this.focus({ x: A.doors[0][0], y: A.doors[0][1] + 1, size: 1 }); if (A.open) this.card([A.open], 300); D.sfx('earth');
+      yield 30;
+      yield* walk(ours.map(function (u, i) { return { u: u, from: A.doors[i % A.doors.length], to: [u.x, u.y], face: D.spr.facingFor(-1, 0), spark: true, riders: riders.filter(function (r) { return r.master === u; }) }; }), function (g) { if (g) self.keepInView(g.u); });
+      m.doorsOpen = this.passagesOpen;
+      if (A.lock) { this.card(['{y}' + A.lock + '{/}'], 360); D.sfx('clack'); }
+      yield 40;
+    }
+  };
+  // off the field until they arrive (Battle.enter, as soon as everyone is made, so the entry card shows an empty street): the foes on the road and everyone behind the doors, kept
+  // on this.arriving with the squares they were seated on (a bench marks this.arriving.ours as it marks the units)
+  Battle.prototype.offstage = function () {
+    var U = this.units, A = this.fight.arrive || {};
+    var foes = U.filter(function (u) { return u.side === 'foe' && u.from0; }), ours = A.doors ? U.filter(function (u) { return u.side === 'party' && !u.object && !u.riding; }) : [];
+    var riders = U.filter(function (u) { return u.riding && ours.indexOf(u.master) >= 0; });
+    foes.concat(ours, riders).forEach(function (u) { U.splice(U.indexOf(u), 1); });
+    return (this.arriving = { foes: foes, ours: ours, riders: riders });
+  };
+  // a line said the first time a foe goes up a face (a fight's `climbLine`, { who, line }; the Edifice's, 10-05, Griz: "Have pyro say 'they're going for the skylights' when the first one
+  // climbs?"): after the turn it climbed in, 10 ft or more up or clinging to the face, by the one the fight names -- if that one is up to say it
+  Battle.prototype.climbSay = function* () {
+    var CL = this.fight.climbLine, st = this.map.def.step;
+    if (!CL || this.climbSaid) return;
+    var up =this.units.filter(function (w) { return w.side === 'foe' && G.standing(w) && ((w.hang && w.hang.face && G.hanging(w)) || G.gzAt(w, w.x, w.y) >= 4 * st); })[0];
+    if (!up) return;
+    this.climbSaid = true;
+    var who = this.units.filter(function (w) { return (w.id === CL.who || w.kind === CL.who) && G.standing(w) && !w.left; })[0];
+    if (!who) return;
+    this.focus(up); D.sfx('popup');
+    this.card(['{y}' + who.name + '{/}: "' + CL.line + '"'], 420);
+    yield 50;
+  };
+
   // ------------------------------------------------------------------ the run: entry card, initiative, rounds
   Battle.prototype.run = function* () {
     var self = this;
     D.music(this.fight.music || 'battle'); // (it starts on the first key or click: browsers hold sound till then; a set piece's boss tune)
     if (!this.fight.noCards) yield { entry: true }; // (the wet has none: RULED 09-30c, "no press e, just go")
+    if (this.fight.arrive) yield* this.arrive(); // (the foes walk in and the party comes out, before initiative: the Edifice's, 10-05)
     // initiative: d20 + DEX (and the fighter's Remarkable Athlete), rolled once
     var rolls = this.units.map(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + u.init + (u.kind === 'keeper' && D.keeper ? D.keeper.CFG.initBonus : 0); return { u: u, d: d }; }); // (initAdv: the barbarian's Feral Instinct, 7; the Keeper's initiative bonus: js/keeper.js K.CFG.initBonus, 0 -- so a fight can be scripted for it to go first)
     // (a familiar has no initiative: its turn comes right after its caster's -- RULED 09-30, js/familiar.js FM.after)
@@ -588,6 +685,7 @@
         if (this.readyArmed()) yield* this.readyAfter(); // (one of us down by what no blow or spell of the turn told: a turn's-end save, the ring's spirits -- the readied healers, 10-02)
         if (D.familiar && !u.familiar) yield* D.familiar.after(this, u); // (his familiar's turn, right after his: js/familiar.js)
         yield* this.wave();
+        if (this.fight.climbLine && !this.climbSaid) yield* this.climbSay(); // (the first foe up a face: the fight's line -- Pyro's on the Edifice, 10-05)
         this.sweep();
         var o = this.over();
         if (o) { yield* this.finish(o); return; }

@@ -117,6 +117,24 @@
     // and grass instead of cave stone; the rock round it stands as the cutting's walls
     var earth = m.def.ground === 'earth', leather = iso.ramp('leather');
     var seed = D.hash(m.def.name);
+    // a door shut in its doorway (the Edifice's vault, 10-05, Griz, with the 8-bit Edifice's picture: "those doorways are good if we can put those doors over them as closed"): the
+    // 8-bit's leaf -- planked wood, a dark X of braces corner to corner, a gold ring on a dark boss at its middle, a stud at each corner; u across the leaf (0..18), v down it from the
+    // arch's top (1..39). doorOpen keeps the doorway's open look for the same pixels, made into the square's second canvas after its faces (s.tileOpen)
+    var gold = iso.ramp('gold'), doorOpen = [];
+    function doorLeaf(u, v) {
+      if (v <= 1 || v >= 38 || u <= 0 || u >= 17 || (v <= 4 && (u <= 2 || u >= 15))) return leather[0];
+      var rB = Math.hypot(u - 8.5, (v - 21) * 0.9);
+      if (rB < 1.6) return leather[0];
+      if (rB < 3.4) return v < 21 ? gold[4] : gold[3];
+      if (rB < 4.4) return leather[0];
+      var sl = 35 / 15, nl = Math.sqrt(1 + sl * sl), dX = Math.min(Math.abs((v - 2) - sl * (u - 1)), Math.abs((v - 2) - sl * (16 - u))) / nl;
+      if (dX < 1.1) return leather[1];
+      if (dX < 1.7) return gold[1];
+      if ((u === 2 || u === 15) && (v === 6 || v === 35)) return gold[3];
+      if (u % 4 === 0) return leather[2];
+      var wn = vnoise(u * 0.4 + 3.1, v * 0.15, seed + 33);
+      return wn > 0.62 ? mix(leather[3], gold[2], 0.5) : wn < 0.3 ? leather[2] : leather[3];
+    }
     var W, H, px, sqc; // the current square's buffer
     function put(ix, iy, c) { ix -= sqc.x0; iy -= sqc.y0; if (ix < 0 || iy < 0 || ix >= W || iy >= H) return; var o = (iy * W + ix) * 4; px[o] = c[0]; px[o + 1] = c[1]; px[o + 2] = c[2]; px[o + 3] = 255; }
     // distance to the nearest rock square, for the floor's darkening at the walls
@@ -223,9 +241,11 @@
               }
               var v = (right ? 0.32 : 0.5) + (vnoise(k * 0.3 + s.x * 9, j * 0.12, seed + 60) - 0.5) * 0.3 - (j / drop) * 0.15;
               if (j === 0) v += 0.2;
-              if (doorF && k >= 6 && k < 26 && j >= drop - 40) { // the doorway: dark within, a dressed frame, an arch at the top
+              if (doorF && k >= 6 && k < 26 && j >= drop - 40) { // the doorway: dark within, a dressed frame, an arch at the top -- and its door shut in it (the open look kept for when it stands open)
                 var fr = k === 6 || k === 25 || j === drop - 40 || (j >= drop - 40 && j < drop - 36 && (k < 9 || k > 22));
-                put(fx0, ytop + j, fr ? silver[3] : j > drop - 4 ? stone[2] : stone[0]); continue;
+                if (fr) { put(fx0, ytop + j, silver[3]); continue; }
+                put(fx0, ytop + j, doorLeaf(k - 7, j - (drop - 40)));
+                doorOpen.push([fx0, ytop + j, j > drop - 4 ? stone[2] : stone[0]]); continue;
               }
               put(fx0, ytop + j, rampPick(stone, v, fx0, ytop + j));
             }
@@ -236,6 +256,12 @@
       tc.getContext('2d').putImageData(sqImg, 0, 0);
       ctx.drawImage(tc, sqc.x0, sqc.y0);
       if (s.gz) s.tile = { canvas: tc, ax: HW, ay: HH };
+      if (doorOpen.length) { // the same square with its door standing open: the doorway dark within (iso.draw shows it while the map's doorsOpen is set -- battle.js)
+        var oImg = ctx.createImageData(W, H); oImg.data.set(sqImg.data);
+        doorOpen.forEach(function (q) { var ix2 = q[0] - sqc.x0, iy2 = q[1] - sqc.y0; if (ix2 < 0 || iy2 < 0 || ix2 >= W || iy2 >= H) return; var o2 = (iy2 * W + ix2) * 4; oImg.data[o2] = q[2][0]; oImg.data[o2 + 1] = q[2][1]; oImg.data[o2 + 2] = q[2][2]; oImg.data[o2 + 3] = 255; });
+        var tcO = document.createElement('canvas'); tcO.width = W; tcO.height = H; tcO.getContext('2d').putImageData(oImg, 0, 0);
+        s.tileOpen = { canvas: tcO, ax: HW, ay: HH }; doorOpen = [];
+      }
     });
     m.bake = { canvas: cv, x: minX, y: minY };
   }
@@ -258,7 +284,7 @@
     m.props = [];
     m.sq.forEach(function (s) {
       if (s.rock === 'far' || s.rock === 'near') m.props.push({ kind: 'rock', sq: s, depth: s.x + s.y, gz: 0 });
-      if (s.tile) m.props.push({ kind: 'tile', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1, img: s.tile });
+      if (s.tile) m.props.push({ kind: 'tile', sq: s, depth: s.x + s.y, gz: s.gz, layer: -1, img: s.tile, imgOpen: s.tileOpen || null }); // (imgOpen: a door's square standing open -- iso.draw, m.doorsOpen)
       if (s.ch === 'P') m.props.push({ kind: 'pillar', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.stalagmite(D.hash('p' + s.x + ',' + s.y)) });
       if (s.tree) m.props.push({ kind: 'tree', sq: s, depth: s.x + s.y + 0.5, gz: s.gz, img: D.art.tree(D.hash('t' + s.x + ',' + s.y)) });
       if (s.block) m.props.push({ kind: 'block', sq: s, depth: s.x + s.y + 0.5, gz: 0, img: blockCanvas(m, s) });
@@ -407,7 +433,7 @@
       var p = list[k];
       if (p.draw) { p.draw(ctx); continue; }
       var rock = p.kind === 'rock', c = rock ? iso.center(p.sq.x, p.sq.y, 0) : iso.center(p.fx != null ? p.fx - 0.5 : p.sq.x, p.fy != null ? p.fy - 0.5 : p.sq.y, p.gz), s = iso.toScreen(c.x, c.y);
-      var img = rock ? null : p.img, x0 = s.x - (rock ? HW : img.ax), y0 = s.y - (rock ? 0 : img.ay);
+      var img = rock ? null : p.imgOpen && m.doorsOpen ? p.imgOpen : p.img, x0 = s.x - (rock ? HW : img.ax), y0 = s.y - (rock ? 0 : img.ay); // (a door baked shut stands open while the map says so: the Edifice's vault as the party comes out -- battle.js arrive)
       if (rock) { if (x0 >= vw || x0 + TW <= 0 || s.y - WALL - (m.maxGz || 0) - 60 >= vh || s.y + TH <= 0) continue; img = rockCanvas(m, p.sq); x0 = s.x - img.ax; y0 = s.y - img.ay; } // (a far wall can rise WALL above a raised neighbour's floor: the bound before its canvas is made)
       if (x0 >= vw || y0 >= vh || x0 + img.canvas.width <= 0 || y0 + img.canvas.height <= 0) continue;
       if (rock) { ctx.drawImage(img.canvas, x0, y0); continue; }
