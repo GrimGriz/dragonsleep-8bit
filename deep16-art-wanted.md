@@ -34,7 +34,7 @@ The Hired Blade, the Stable Fighter and the Drow Blade-Captain are done above. T
 - the **will-o'-wisp**: a light field (`tools/wisp-sheet.py`), with a floor light of its own (`glow`, out when it turns invisible);
 - the **stirge**, the **fire beetle** (glands that light the floor) and the **giant centipede**: `tools/bugs-sheet.py` on `tools/codeart.py`; the stirge has a `latched` row for Blood Drain (the proboscis driven in, the body swelling red).
 
-What they still want: a front and a back for the three bugs (S and N borrow the side frames); a wisp that shows its Variable Illumination (bright 5-20 ft) on screen.
+Front and back views for the three bugs are in (S and N, 10-05); the hurt row still uses the side frames. What is left: a wisp that shows its Variable Illumination (bright 5-20 ft) on screen.
 
 Any of them goes first to a free printable with a .blend (`deep16/blender-monsters.md`), second to a generated sheet. A second sheet for something already in hand (idle variations, special moves) is welcome, never needed.
 
