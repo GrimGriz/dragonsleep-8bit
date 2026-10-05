@@ -1013,7 +1013,7 @@
     var fs = from.size || 1, cx = from.x + (fs - 1) / 2, cy = from.y + (fs - 1) / 2, ddx = u.x - cx, ddy = u.y - cy, sx = Math.abs(ddx) < 0.5 ? 0 : Math.sign(ddx), sy = Math.abs(ddy) < 0.5 ? 0 : Math.sign(ddy);
     if (!sx && !sy) return null;
     var px = u.x + sx, py = u.y + sy, s = G.map.at(px, py), st = G.map.def.step, drop = G.map.gz(u.x, u.y) - G.map.gz(px, py);
-    if (!s || !s.walk || G.occupant(px, py, u) || drop < 4 * st) return null;
+    if (!s || !s.walk || G.occupant(px, py, u, { z: G.map.gz(px, py), h: G.bodyH(u) }) || drop < 4 * st) return null; // (one hanging high over the landing square is not on it -- 10-05)
     return { at: [px, py], ft: Math.floor(drop / st) * 2.5 };
   };
   Battle.prototype.knockOff = function* (u, sq) {
@@ -1062,6 +1062,7 @@
       var fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
       this.card(['{o}' + nameOf(h) + ' falls ' + ft + ' ft' + (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.{/}'], 220);
       if (fd) this.hurt(h, fd.total, 'bludgeoning', {}); h.conds.prone = true;
+      this.landOn(h); // (onto whoever stood at the rope's foot -- 10-05)
     }
   };
   // what a walk along `path` risks on a map whose cliffs can be climbed (10-04, Griz: "can we add 'Drop?' when a movement click results in fall damage (avoid
@@ -1184,7 +1185,8 @@
           var zTo = c.z, stepsR = Math.round(Math.abs(zTo - zFrom) / stZr);
           if (stepsR < 1 || left < stepsR * 5) return;
           if (hangR && zTo < zFrom) { // down the rope from where it hangs, to a lower rung or to its foot (the rope's found-not-built of 10-04: a hanger could go up or step off, never down part way)
-            var ground = zTo <= G.map.gz(u.x, u.y) + 0.5;
+            var ground = zTo <= G.map.gz(u.x, u.y) + 0.5, underR = ground ? G.occupant(u.x, u.y, u, { z: G.map.gz(u.x, u.y), h: G.bodyH(u) }) : null;
+            if (underR) { this.card(['{o}' + nameOf(u) + ' cannot come down: ' + nameOf(underR) + ' stands at the foot of the rope.{/}'], 200); return; } // (one standing at the foot holds it; the hanger hangs on -- 10-05)
             u.tween = { fx: u.x, fy: u.y, fz: zFrom, t: 0, dur: this.pace(STEP_FRAMES + 2 * stepsR, true), mode: 'ropedown' };
             if (ground) delete u.hang; else u.hang.z = zTo;
             T.move -= stepsR * 5; T.moved = (T.moved || 0) + stepsR * 5;
@@ -1506,7 +1508,7 @@
       this.keepInView(u);
       yield stF;
       // the landing, once it is down: the walk ends there, flat (it gets up on its next move, for half its speed)
-      if (dropFt >= 10) { var fd = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft: ' + fd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, fd.total, 'bludgeoning', {}); u.conds.prone = true; u.anim = 'idle'; if (u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); } return; }
+      if (dropFt >= 10) { var fd = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft: ' + fd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, fd.total, 'bludgeoning', {}); u.conds.prone = true; u.anim = 'idle'; this.landOn(u); if (u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); } return; }
       // hidden no more (SRD 5.1: "You can't hide from a creature that can see you clearly"): one hidden who steps where a foe sees it clearly is found, and
       // one hidden from the mover that the mover now sees clearly (10-01c, the rogue runner: she crossed 50 ft of lit floor hidden and struck with advantage)
       // (10-04, Griz's notion: a Stealth total holds outside every foe's 15 ft -- the square it stands in and the eight round it -- and inside, each square she moves
@@ -2271,7 +2273,36 @@
     var fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
     this.card(['{o}' + nameOf(u) + ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc + ' -- falls ' + ft + ' ft' + (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.{/}'], 240);
     u.conds.prone = true;
+    this.landOn(u); // (onto whoever stood under it -- 10-05)
     if (fd) this.hurt(u, fd.total, 'bludgeoning', { fall: true });
+  };
+  // one who falls onto a square another stands on (10-05, Griz: "see about being under climbing heroes (and a giant falling on someone)" -- "make a climbing giant fall on the idgit
+  // who ran underneath him (which will shove him to the nearest available square)"): the faller lands where it fell, and whoever stood under it is shoved to the nearest open square
+  // along the ground, the faller's far side first. The SRD 5.1 has no rule for a creature falling onto another (Falling: 1d6 a 10 ft, prone, and that is all), so the one under takes
+  // nothing and keeps its feet -- the seat's call. One hanging over the square is not under it. Called where a fall lands: clingSave, cutRope, moveAlong's drop
+  Battle.prototype.landOn = function (u) {
+    var foot = G.foot(u), under = this.units.filter(function (w) {
+      if (w === u || !G.present(w) || w.riding || (w.hang && G.hanging(w))) return false;
+      return G.foot(w).some(function (q) { return foot.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); });
+    });
+    for (var i = 0; i < under.length; i++) {
+      var w = under[i], to = Battle.shoveSq(w, u);
+      if (!to) { this.card(['{o}' + nameOf(u) + ' comes down on ' + nameOf(w) + ', who has nowhere to be shoved to.{/}'], 240); continue; }
+      w.tween = { fx: w.x, fy: w.y, fz: G.gzAt(w, w.x, w.y), t: 0, dur: this.pace(STEP_FRAMES + 4, true) }; w.x = to[0]; w.y = to[1]; w.anim = 'idle';
+      this.card(['{o}' + nameOf(u) + ' comes down on ' + nameOf(w) + ', who is shoved out from under to the nearest open square.{/}'], 240); D.sfx('hit');
+    }
+    return under;
+  };
+  // the nearest open square to w along the ground (a ring at a time), the far side of u first
+  Battle.shoveSq = function (w, u) {
+    var fs = u.size || 1, cx = u.x + (fs - 1) / 2, cy = u.y + (fs - 1) / 2, z0 = G.gzAt(w, w.x, w.y), st = G.map.def.step, best = null, bd = 1e9;
+    for (var r = 1; r <= 6 && !best; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+      var x = w.x + dx, y = w.y + dy;
+      if (!G.canStand(w, x, y) || Math.abs(G.gzAt(w, x, y) - z0) > st) continue; // (not over an edge, not up a face)
+      var d = -Math.hypot(x - cx, y - cy); if (d < bd) { bd = d; best = [x, y]; }
+    }
+    return best;
   };
   Battle.prototype.heal = function (u, n) {
     var was = u.hp;

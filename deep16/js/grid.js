@@ -17,15 +17,30 @@
   // on the field: holds its space and can be seen (a hero who is down still lies there; an ethereal spider is elsewhere)
   G.present = function (u) { return !u.dead && !u.ethereal; };
   G.standing = function (u) { return G.present(u) && (u.hp > 0 || !!u.regenDown); }; // (a troll down at 0 and knitting is still on the field to be struck -- fire or acid keeps it down: battle.js hurt, 10-05. It cannot act: RU.canAct reads its hit points)
-  G.occupant = function (x, y, except) {
+  // the creature on a square: the one standing on its ground first, else one hanging over it. `o` (optional, G.bodyAt): the asker's own body -- then a hanger whose height does not
+  // meet the asker's is no occupant (10-05, Griz: "see about being under climbing heroes (and a giant falling on someone)" -- the SRD 5.1 gives a creature a space at its height, so a
+  // square under one clinging or hanging high enough is free to stand on and pass under, and a hanger hangs on over one standing there; what a fall onto it does: battle.js landOn)
+  G.occupant = function (x, y, except, o) {
+    var over = null;
     for (var i = 0; i < G.units.length; i++) {
       var u = G.units[i];
       if (u === except || !G.present(u) || u.riding || (u.flooding && u.kind === 'keeper')) continue; // (a familiar riding its wizard holds no square of its own; nor does the Keeper while it is the swirl about someone: js/keeper.js)
       var s = u.size || 1;
-      if (x >= u.x && y >= u.y && x < u.x + s && y < u.y + s) return u;
+      if (x >= u.x && y >= u.y && x < u.x + s && y < u.y + s) {
+        var hangs = !!(u.hang && G.hanging(u));
+        if (o && o.h != null && (hangs || o.hangs) && !G.sharesZ(u, o)) continue;
+        if (hangs) { if (!over) over = u; continue; }
+        return u;
+      }
     }
-    return null;
+    return over;
   };
+  // a body's height in steps: 5 ft a size (SRD 5.1: a creature's space is a cube -- Medium 5 ft, Large 10, Huge 15); and where it would be at (x, y), for G.occupant -- its ground
+  // there, or its hang (G.gzAt), and whether it hangs
+  G.bodyH = function (u) { return 2 * ((u && u.size) || 1); };
+  G.bodyAt = function (u, x, y) { return { z: G.gzAt(u, x, y), h: G.bodyH(u), hangs: !!(u.hang && G.hanging(u) && x === u.x && y === u.y) }; };
+  // do u's body and the asker's (o) meet in height, at a square they share?
+  G.sharesZ = function (u, o) { var st = G.map.def.step, lo = G.gzAt(u, u.x, u.y), hi = lo + G.bodyH(u) * st; return lo < o.z + o.h * st && o.z < hi; };
   G.hostile = function (a, b) { return a.side !== b.side; };
   G.gzAt = function (u, x, y) { if (u && u.hang && x === u.x && y === u.y && G.hanging(u)) return u.hang.z; var z = 0; G.foot(u, x, y).forEach(function (p) { z = Math.max(z, G.map.gz(p[0], p[1])); }); return z; };
   // ROPES (10-04, Griz: "can we add rope and tiny grapple next?" -- "1 yes, and a roped face is gonna be a movement stopping point"): a rope hangs from the top of a face
@@ -76,8 +91,8 @@
     if (!footWalkable(u, x, y)) return false;
     if (wallBars(u, x, y)) return false;
     if (o && o.ghost) return true;
-    var f = G.foot(u, x, y);
-    for (var i = 0; i < f.length; i++) if (G.occupant(f[i][0], f[i][1], u)) return false;
+    var f = G.foot(u, x, y), bz = G.bodyAt(u, x, y); // (by height: under one hanging high enough is open -- 10-05)
+    for (var i = 0; i < f.length; i++) if (G.occupant(f[i][0], f[i][1], u, bz)) return false;
     return true;
   };
   // may u pass through here (allies yes, foes no; a creature who is down still blocks its foes)
@@ -85,8 +100,8 @@
     if (!footWalkable(u, x, y, true)) return false;
     if (wallBars(u, x, y)) return false;
     if (o && o.ghost) return true;
-    var f = G.foot(u, x, y);
-    for (var i = 0; i < f.length; i++) { var w = G.occupant(f[i][0], f[i][1], u); if (w && G.hostile(u, w)) return false; }
+    var f = G.foot(u, x, y), bz = G.bodyAt(u, x, y);
+    for (var i = 0; i < f.length; i++) { var w = G.occupant(f[i][0], f[i][1], u, bz); if (w && G.hostile(u, w)) return false; }
     return true;
   };
   G.stepCost = function (u, x0, y0, x1, y1, o) {

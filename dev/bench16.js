@@ -1352,6 +1352,60 @@
     document.body.appendChild(preE);
     return;
   }
+  // standing under a climber, and a giant falling on the one under (mode=under1005; 10-05, Griz: "see about being under climbing heroes (and a giant falling on someone)" -- "work out if we
+  // can make a climbing giant fall on the idgit who ran underneath him (which will shove him to the nearest available square)"): a square under one hanging or clinging high enough is free
+  // to stand on and pass under (grid.js G.occupant by height); a hanger cannot let itself down onto one standing at the rope's foot; a clinger that loses its hold comes down on whoever
+  // stood under it, and they are shoved to the nearest open square (battle.js landOn); a rope cut with one on it, the same
+  if (get('mode', '') === 'under1005') {
+    var repU = { checks: [], errors: [] }, d0U = D.d;
+    function okU(what, v) { repU.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runU(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      D.seed = 7;
+      var Bu = D.npcFight('?npc=stonegiant&lvl=8&vs=fighter:8,rogue:8&map=edifice', {}); D.battle = Bu; Bu.enter(); while (!Bu.order.length) Bu.co.next(); Bu.dark = false;
+      var G = D.grid, m = D.iso.map, st = D.MAPS.edifice.step, gi = Bu.units.filter(function (u) { return u.side === 'foe'; })[0], fg = Bu.units.filter(function (u) { return u.cls === 'fighter'; })[0], rg = Bu.units.filter(function (u) { return u.cls === 'rogue'; })[0];
+      Bu.units.forEach(function (u) { if (u.side === 'party') { u.guest = false; u.classAI = false; } });
+      // a 3x3 of street under the rim: the giant's foot, its face the rim squares above
+      var gx = -1, gy = 16;
+      for (var x = 2; x < m.w - 3 && gx < 0; x++) { var okB = m.gz(x, 15) === 18 * st && m.gz(x + 1, 15) === 18 * st && m.gz(x + 2, 15) === 18 * st; for (var j = 0; j < 3 && okB; j++) for (var i = 0; i < 3 && okB; i++) { var q = m.at(x + i, gy + j); okB = !!(q && q.walk && !q.deep && m.gz(x + i, gy + j) === 0); } if (okB) gx = x; }
+      okU('a 3x3 of street under the rim found at (' + gx + ',' + gy + ')', gx >= 0);
+      // the giant clings 10 ft up the facade over it; the fighter and the rogue on the far street
+      gi.x = gx; gi.y = gy; gi.hang = { face: [gx, 15], foot: [gx, gy], z: 4 * st }; fg.x = gx + 1; fg.y = gy + 5; rg.x = gx - 2; rg.y = gy + 5; fg.hp = fg.maxhp; rg.hp = rg.maxhp;
+      okU('the giant hangs ' + G.hanging(gi) + ' at ' + (gi.hang.z / st) * 2.5 + ' ft, size ' + gi.size + ' (' + G.bodyH(gi) * 2.5 + ' ft tall); the fighter ' + G.bodyH(fg) * 2.5 + ' ft', G.hanging(gi) && gi.size === 3 && G.bodyH(gi) === 6 && G.bodyH(fg) === 2);
+      var under = [gx + 1, gy + 1];
+      okU('the square under its middle, the giant 10 ft up: the fighter may stand there ' + G.canStand(fg, under[0], under[1]) + ', pass ' + G.canPass(fg, under[0], under[1]) + '; the one there by G.occupant: ' + ((G.occupant(under[0], under[1]) || {}).name), G.canStand(fg, under[0], under[1]) && G.canPass(fg, under[0], under[1]) && G.occupant(under[0], under[1]) === gi);
+      gi.hang.z = 1 * st;
+      okU('the giant 2.5 ft up: the square is not free ' + !G.canStand(fg, under[0], under[1]) + ', nor passed ' + !G.canPass(fg, under[0], under[1]), !G.canStand(fg, under[0], under[1]) && !G.canPass(fg, under[0], under[1]));
+      gi.hang.z = 4 * st;
+      D.rules.startTurn(fg); var rmU = G.reach(fg, fg.speed), kU = under.join(',');
+      okU('the fighter\'s reach from the street takes it under the giant: ' + !!(rmU[kU] && rmU[kU].stand), !!(rmU[kU] && rmU[kU].stand));
+      // the giant may hang on over the fighter (its own hang still stands for it); the fighter under it: hit, the giant loses its hold and comes down -- the fighter is shoved
+      fg.x = under[0]; fg.y = under[1];
+      okU('with the fighter under it, the giant\'s hang still stands for it ' + G.canStand(gi, gi.x, gi.y) + '; the ground there is the fighter\'s: ' + ((G.occupant(under[0], under[1]) || {}).name), G.canStand(gi, gi.x, gi.y) && G.occupant(under[0], under[1]) === fg);
+      D.d = function (n) { return n === 20 ? 1 : d0U(n); }; var n0U = (Bu.log || []).length; Bu.hurt(gi, 20, 'slashing'); D.d = d0U; var lgU = (Bu.log || []).slice(n0U).join(' | ');
+      var inFoot = G.foot(gi).some(function (p) { return p[0] === fg.x && p[1] === fg.y; }), dUF = Math.max(Math.abs(fg.x - under[0]), Math.abs(fg.y - under[1]));
+      okU('hit while clinging, the save a 1: the giant down ' + !G.hanging(gi) + ' at its foot (' + gi.x + ',' + gi.y + ') prone ' + !!gi.conds.prone + '; the fighter shoved to (' + fg.x + ',' + fg.y + '), ' + dUF + ' squares off, clear of it ' + !inFoot + ', standing ' + G.canStand(fg, fg.x, fg.y) + ', unhurt ' + (fg.hp === fg.maxhp) + ', on his feet ' + !fg.conds.prone + ' -- ' + lgU.slice(0, 220),
+        !G.hanging(gi) && !!gi.conds.prone && gi.x === gx && gi.y === gy && !inFoot && dUF === 2 && G.canStand(fg, fg.x, fg.y) && fg.hp === fg.maxhp && !fg.conds.prone && /comes down on/.test(lgU) && /shoved/.test(lgU));
+      // the rope: the rogue hangs 10 ft up the dwarves' rope with the fighter at its foot -- the fighter may stand there, and the rogue cannot let herself down onto him
+      var r0 = Bu.ropes[0]; gi.x = 5; gi.y = 2; delete gi.hang; gi.conds.prone = false;
+      rg.x = r0.foot[0]; rg.y = r0.foot[1]; rg.hang = { rope: r0, z: 4 * st }; fg.x = r0.foot[0]; fg.y = r0.foot[1]; fg.conds.prone = false;
+      okU('the rogue 10 ft up the rope at (' + r0.foot.join(',') + '): the fighter may stand at its foot ' + G.canStand(fg, fg.x, fg.y) + ' (the rogue hangs on ' + G.hanging(rg) + ')', G.hanging(rg) && G.canStand(fg, fg.x, fg.y));
+      D.rules.startTurn(rg); Bu.active = rg; Bu.cache = null; var n1U = (Bu.log || []).length;
+      runU(Bu.exec(rg, { do: 'ropeclimb', x: r0.foot[0], y: r0.foot[1], z: m.gz(r0.foot[0], r0.foot[1]) })); var lgR = (Bu.log || []).slice(n1U).join(' | ');
+      okU('she picks the ground: refused, still hanging ' + G.hanging(rg) + ' at ' + (rg.hang && rg.hang.z / st * 2.5) + ' ft, her move ' + rg.turn.move + ' -- ' + lgR.slice(0, 120), G.hanging(rg) && rg.hang.z === 4 * st && rg.turn.move === rg.speed && /cannot come down/.test(lgR));
+      runU(Bu.exec(rg, { do: 'ropeclimb', x: r0.foot[0], y: r0.foot[1], z: 2 * st }));
+      okU('a lower rung instead: taken, hanging at ' + (rg.hang && rg.hang.z / st * 2.5) + ' ft, her move ' + rg.turn.move, G.hanging(rg) && rg.hang.z === 2 * st && rg.turn.move === rg.speed - 10);
+      // the rope cut with her on it: she falls to its foot, onto the fighter, who is shoved
+      D.d = function (n) { return n === 20 ? 20 : d0U(n); }; var n2U = (Bu.log || []).length; runU(Bu.cutRope(gi, r0, { name: 'a fist', atk: 9, dice: '3d8', mod: 6, type: 'bludgeoning' })); D.d = d0U; var lgC = (Bu.log || []).slice(n2U).join(' | ');
+      var sameSq = fg.x === rg.x && fg.y === rg.y;
+      okU('the rope cut: parted ' + !!r0.cut + ', the rogue at its foot ' + (rg.x === r0.foot[0] && rg.y === r0.foot[1]) + ' prone ' + !!rg.conds.prone + '; the fighter shoved off it ' + !sameSq + ' to (' + fg.x + ',' + fg.y + ') -- ' + lgC.slice(-200), !!r0.cut && rg.x === r0.foot[0] && rg.y === r0.foot[1] && !!rg.conds.prone && !sameSq && /shoved/.test(lgC));
+    } catch (eU) { repU.errors.push(String(eU && eU.stack || eU).slice(0, 900)); }
+    D.d = d0U;
+    if (errs.length) repU.errors = repU.errors.concat(errs);
+    var preU = document.createElement('pre'); preU.id = 'out'; preU.textContent = 'BENCH16 ' + JSON.stringify(repU);
+    document.body.appendChild(preU);
+    return;
+  }
   // 10-05's fixes (mode=fixes1005; Griz: "i think the regen is there it's just turning off when they die"; "yes, thought it was there" -- Divine Smite's +1d8; "just OR if there's
   // already in sight"): a troll at 0 down, not dead, up at its turn; burned, dead at its turn; the fight held open while one lies knitting; the class AI's fire bolt at one down; the
   // smite's +1d8 on the undead; a readied bow springing when a foe already in sight moves, and a held one not asked again in the same move
