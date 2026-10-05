@@ -798,6 +798,23 @@
     return false;
   }
   AI.ropeUp = ropeUp; // (Pyro's own turn reads it too: js/pyro.js)
+  // one that holds its level (`keepLevel`: the Skylights' garrison on the roof) with what it fights below it (10-05, Griz, his play: "if the dwarves go to the ledge they have crossbows -
+  // don't seem to be firing"): G.dist counts the 45 ft drop as the distance, so every square near the lip was as near as any other and approach never moved them -- the crossbows stood
+  // at the back of the roof with no clear line down, the spears and the sergeant paced. To the square on its own level nearest the one below, across -- the lip above it -- and with a
+  // crossbow first a square this move reaches from which one below is in sight and range (the volley follows in brute). Null when where it stands is already the best
+  function ledgeSq(B, u, tgt, hs, rk) {
+    var st = G.map.def.step, zU = G.gzAt(u, u.x, u.y), rm = G.reach(u, u.turn.move), best = null, here = null;
+    var across = function (x, y) { var d = 1e9; G.foot(tgt).forEach(function (p) { d = Math.min(d, Math.max(Math.abs(p[0] - x), Math.abs(p[1] - y))); }); return d; };
+    [{ x: u.x, y: u.y, cost: 0, stand: true }].concat(Object.keys(rm).map(function (k) { return rm[k]; })).forEach(function (e) {
+      if (!e.stand || Math.abs(G.gzAt(u, e.x, e.y) - zU) > st) return;
+      var shot = rk && rk.range ? visibleFrom(u, e.x, e.y, hs).filter(function (w) { return !w.object && G.dist(u, w, e.x, e.y) <= rk.range[1]; }).length : 0;
+      var s = (shot ? 1000 + shot * 10 : 0) - across(e.x, e.y) * 5 - e.cost / 10 - G.foesNear(u, e.x, e.y, 5).length * 50;
+      if (e.x === u.x && e.y === u.y) here = s;
+      if (!best || s > best.s) best = { s: s, e: e };
+    });
+    return best && (best.e.x !== u.x || best.e.y !== u.y) && !(here != null && best.s <= here) ? best.e : null;
+  }
+  function belowIt(u, w) { return !!u.keepLevel && G.gzAt(w, w.x, w.y) < G.gzAt(u, u.x, u.y) - 2 * G.map.def.step; }
   AI.lipsNear = lipsNear; // (the bench)
   // a rope set down from the lip (10-05, Griz: "if no ropes down and two on roof, maybe have a dwarf run to the ledge and set a hook/rope down?"): a lent ally with its own rope, up on a level
   // with a face below it where two or more of ours stand, no rope hanging from there, and none of the foes in its reach -- one of them (the first to take it up: B.ropeTier) goes to the lip
@@ -879,7 +896,8 @@
     if (!hs.length && !grudge && B.heardOf && T.move > 0) {
       var hd = B.heardOf(u);
       if (hd) {
-        var eh = approach(u, hd, G.reach(u, T.move), reachOf(u));
+        var rkH = Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a && a.ranged; })[0];
+        var eh = belowIt(u, hd) ? ledgeSq(B, u, hd, B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object; }), rkH) : approach(u, hd, G.reach(u, T.move), reachOf(u)); // (held to the roof: to the lip over the sound -- 10-05)
         if (eh && (eh.x !== u.x || eh.y !== u.y)) { B.card(['{r}' + the(B, u) + '{/} goes for where the last blow came from.'], 200); yield* walkTo(B, u, eh); if (u.dead || u.hp <= 0) return; }
         hs = heroes(B, u);
       }
@@ -1001,7 +1019,7 @@
     if (!tgt) {
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       if (yield* ropeUp(B, u, tgt)) return; // (the fight above it: up a rope, or a rope thrown, or one out of the bucket first -- 10-05)
-      var e = approach(u, tgt, G.reach(u, T.move), reachOf(u, hs));
+      var e = belowIt(u, tgt) ? ledgeSq(B, u, tgt, hs, ranged[0]) : approach(u, tgt, G.reach(u, T.move), reachOf(u, hs)); // (held to the roof with the fight below: to the lip over it, a crossbow to a clear shot -- 10-05)
       if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
       else if (u.bound) { // (the camera on it, churning, long enough to read: out of reach it looked frozen -- 09-30g)
         // a bound caster whose class turn picked "its attacks" on someone its pool never reaches (tactics.js weighs the bite by move + reach, not by where the water is) still has its
@@ -1011,7 +1029,7 @@
         if (B.focus) B.focus(u); var churn = D.spr && D.spr.anim && D.spr.anim(u.sheet, 'flinch'); if (churn) { u.anim = 'flinch'; u.animT = B.t; }
         B.card(['{g}' + the(B, u) + ' churns in its pool; no one is in its reach.{/}'], 260); yield 60; if (churn) { u.anim = 'idle'; u.animT = B.t; }
       }
-      else if (!ranged.length) { B.card(['{g}' + the(B, u) + ' paces: it cannot get at anyone.{/}']); yield 20; }
+      else if (!ranged.length) { B.card(['{g}' + the(B, u) + (belowIt(u, tgt) ? ' holds the edge: no one below in reach.' : ' paces: it cannot get at anyone.') + '{/}']); yield 20; } // (at the lip over the fight, held to the roof: said as what it is doing -- 10-05)
       if (u.dead || u.hp <= 0) return;
     }
     if (!T.action) return;
