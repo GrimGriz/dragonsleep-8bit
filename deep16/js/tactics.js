@@ -781,7 +781,8 @@
   // itemList and useItem, exec 'item') at a foe that regenerates and has not burned since its last turn -- a troll standing, so it does not knit at its turn; a troll lying at 0, so it
   // does not get up. The pack is the party's: no foe's class NPC throws from it. Weighed as the fire spells' burn is -- TX.worth's burns weighing plus two rounds of its blows, or the 90
   // of the burn where it lies -- each by the chance the save fails (a flask can be dodged; a spell's burn is counted flat above), so a fire spell the caster has is still taken first.
-  // Never at one that does not regenerate, nor with the pack empty; a Thief throws it as a bonus action (itemList says)
+  // Never at one that does not regenerate, nor with the pack empty; a Thief throws it as a bonus action (itemList says). A STORY guest (Pyro, Ingrith, Dace: u.ownFlask, save.js SV.units; 10-05, Griz:
+  // "must NOT spend the player's oil ... allow once and have it not reduce party inventory") never reads the pack's oil: itemList hands it its own one flask, which useItem spends instead of the pack's
   function burnFlask(B, u) {
     var T = u.turn; if (u.side !== 'party' || !T || !T.action || T.attacksLeft) return null;
     var fl = B.itemList(u).filter(function (x) { return x.id === 'oil' && x.n > 0 && x.ok; })[0]; if (!fl) return null;
@@ -797,11 +798,32 @@
     return { kind: 'item', id: 'oil', score: best.score, why: 'throws an Oil Flask at ' + t.name + (t.regenDown ? ' where it lies' : ' to stop its knitting'), go: function* () { yield* B.exec(u, { do: 'item', id: 'oil', target: t }); } };
   }
   TX.ACTIONS.push(burnFlask);
-  // the burn on its own: a troll down is no one's blow (foesOf leaves it out), so a turn with it the only foe never reached TX.plans -- the best of the cantrip's burn and the flask's,
+  // the Torch, thrown (10-05, Griz: "1 build it", "ai knowing oil and torch yes"; battle.js THROW TORCH, light.js throwTorch): the torch in the hand, at a foe that regenerates and has not burned -- an improvised
+  // ranged attack, the thrower's Strength modifier alone, 1 fire on a hit, and any fire on a troll stops its knitting. The one lying at 0 first (90, as the flask's), else a troll standing (the burn's worth
+  // and two rounds of its blows, as the flask's), each by the chance the throw HITS (RU.edges: a prone one from afar, or a foe beside the thrower, is at disadvantage) -- the flask's was the chance its save
+  // fails. With the flask in hand too the torch is weighed under it (a tenth), the flask's 5 fire and the light kept. Never at one that does not regenerate, nor with no torch in the hand (a lantern is set
+  // down, never thrown), nor under a roost (no fire), nor for a foe's unit. It throws at the nearest of the target's squares it can throw to (a Large troll's body is four)
+  function burnTorch(B, u) {
+    var T = u.turn; if (u.side !== 'party' || !T || !T.action || T.attacksLeft || !u.torch || D.light.kindOf(u.torch) === 'lantern' || (B.fight && B.fight.roost)) return null;
+    var spec = D.light.torchAtk(u), best = null;
+    AI.heroes(B, u).forEach(function (w) {
+      if (!G.hostile(u, w) || w.dead || !(w.regen > 0) || w.burned || !G.standing(w) || w.object || w.isWall) return;
+      if (G.dist(u, w) > 20 || !G.los(u, w).clear || !M.sees(B, u, w)) return;
+      var sq = G.foot(w).filter(function (q) { return Math.max(Math.abs(q[0] - u.x), Math.abs(q[1] - u.y)) * 5 <= 20 && G.losPoint(u.x, u.y, q[0], q[1]); }).sort(function (a, b) { return Math.max(Math.abs(a[0] - u.x), Math.abs(a[1] - u.y)) - Math.max(Math.abs(b[0] - u.x), Math.abs(b[1] - u.y)); })[0];
+      if (!sq) return;
+      var ed = RU.edges(u, w, spec), p = TX.pHit(spec.atk + (ed.pen || 0), RU.ac(w) + G.los(u, w).cover, ed.net), sc = w.regenDown ? 90 * p : TX.worth(p, w, true) + TX.dpr(w) * 2 * p;
+      if (!best || sc > best.score) best = { t: w, score: sc, sq: sq };
+    });
+    if (!best || !(best.score > 0)) return null;
+    var t = best.t, fl = burnFlask(B, u), sq = best.sq, score = fl ? Math.min(best.score, fl.score * 0.9) : best.score;
+    return { kind: 'item', id: 'torch', score: score, why: 'throws the torch at ' + t.name + (t.regenDown ? ' where it lies' : ' to stop its knitting'), go: function* () { yield* B.exec(u, { do: 'throwtorch', x: sq[0], y: sq[1] }); } };
+  }
+  TX.ACTIONS.push(burnTorch);
+  // the burn on its own: a troll down is no one's blow (foesOf leaves it out), so a turn with it the only foe never reached TX.plans -- the best of the cantrip's burn, the flask's and the torch's,
   // taken if it is worth the action; false when there is none (TX.turn, the empty field)
   TX.burnDown = function* (B, u) {
     var T = u.turn; if (!T || !T.action || T.attacksLeft || u.dead || u.hp <= 0) return false;
-    var bp = [burnSpell(B, u), burnFlask(B, u)].filter(Boolean).sort(function (a, b) { return b.score - a.score; })[0];
+    var bp = [burnSpell(B, u), burnFlask(B, u), burnTorch(B, u)].filter(Boolean).sort(function (a, b) { return b.score - a.score; })[0];
     if (!bp || !(bp.score > 0.5)) return false;
     if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ': ' + bp.why + ' ' + bp.score.toFixed(1));
     yield* bp.go(); return true;

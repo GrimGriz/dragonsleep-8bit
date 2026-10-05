@@ -1232,7 +1232,7 @@ window.D16.MAPS.edifice = {
   sub: 'Fountain Street under the waterfall facade of Sólskaft, and the roof of glass',
   stone: 'grey', step: 10, noBurrow: true, climb: 6, deepWater: 'D', // (D: the channel off the east end) // (a hand scales 15 ft at most -- the arches' sills; the 45 ft face takes the rope, a grapple from a sill, or a climb speed)
   ropes: [[11, 15, 11, 16]], // a rope the dwarves left hung from the rim at the west end, 45 ft to the street (the top square, the foot square)
-  ropeBucket: [3, 24], // the bucket of rope and grapples by the first house (battle.js exec 'bucketrope')
+  ropeBucket: [26, 25], // the bucket of rope and grapples in the alley at the side of the house by the south road (battle.js exec 'bucketrope'; 10-05, Griz: "rope bucket to 26, 25 side of the building" -- it stood by the first house at (3,24))
   shaft: [29.5, 4.8, 2.8], // the Sunshaft's circle on the third floor, seen through the glass, under the falls at the roof's middle (centre, radius in squares; iso.js bake -- Griz, 10-04 night: "move the light circle to where the pool is now ... increase the radius of the light-hole for symmetry")
   falls: [[28, 0], [29, 0], [30, 0], [31, 0]], // the waterfall down the back wall's face, into the water at its foot (iso.js rockCanvas)
   spouts: [[15, 15, 10], [23, 15, 10], [36, 15, 10], [44, 15, 10]], // the fountains: a hole flush in the facade's face at 10 ft over each pool's middle, the water pouring from it (iso.js bake -- Griz, 10-04 night: "5 foot rims around 15 feet of water for each fountain (try for 4 if we can symmetrical) where the hole the water comes out of is flush at 10 ft high"); the pools 3x3 of water (`~`, waded, difficult) ringed by a one-step rim (`=` at `1`), four of them, symmetric about the vault
@@ -1304,13 +1304,13 @@ window.D16.MAPS.edifice = {
     '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
     '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
     '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
-    '###kbbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
-    '###.bbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
-    '###.bbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
-    '###.bbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
-    '###.bbbbbb.bbbbb.bbbbb.bbbbb,,,,bbbbb.bbbbb.bbbbb.bbbbbb...#',
+    '###..bbbbbb..bbbbb..bbbbbb..,,,,bbbbb..bbbbb..bbbbb..bbbbb.#',
+    '###..bbbbbb..bbbbb..bbbbbbk.,,,,bbbbb..bbbbb..bbbbb..bbbbb.#',
+    '###..bbbbbb..bbbbb..bbbbbb..,,,,bbbbb..bbbbb..bbbbb..bbbbb.#',
+    '###..bbbbbb..bbbbb..bbbbbb..,,,,bbbbb..bbbbb..bbbbb..bbbbb.#',
+    '###..bbbbbb..bbbbb..bbbbbb..,,,,bbbbb..bbbbb..bbbbb..bbbbb.#',
     '###ggggggggggggggggggggggggg,,,,ggggggggggggggggggggggggggg#',
-    '###gffffffgfffffgfffffgfffff,,,,fffffgfffffgfffffgffffffggg#',
+    '###ggffffffggfffffggffffffgg,,,,fffffggfffffggfffffggfffffg#',
     '###gTggggggggggggggggggggggg,,,,gggggggggggggggggggggggggTg#',
     '###gggggggggggTggggggggggggg,,,,gggggggggTggggggggggggggggg#',
     '###gggTggggggggggggggggggTgg,,,,gggggggggggggggggggggTggggg#',

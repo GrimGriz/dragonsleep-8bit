@@ -294,10 +294,15 @@
     if (!silent) B.card(['{y}' + u.name + '{/} ' + (L.kindOf(t) === 'lantern' ? 'sets the ' + L.word(t) + ' down. It burns where it stands.' : 'drops the torch. It burns where it fell.')]);
   };
   // thrown (an action): it lands on a square within 20 ft it can see and burns there -- the way to light up the far end
+  // (10-05, Griz: "1 build it" -- the torch thrown at a troll): with a hostile creature standing on that square, the throw is an improvised ranged attack (SRD 5.1: no proficiency, so the
+  // thrower's Strength modifier alone; the burning end, "1 fire damage" on a hit -- which marks a regenerator burned: battle.js hurt). Hit or miss the torch lands there and burns, the hand empty
+  L.torchAtk = function (u) { return { name: 'Torch', atk: D.mod(((u.abil || {}).str) || 10), dice: '1', mod: 0, type: 'fire', range: [20, 60], ranged: true, improvised: true, fx: 'fire' }; };
   L.throwTorch = function* (B, u, x, y) {
     if (!u.torch || L.kindOf(u.torch) === 'lantern') return; // (a lantern is set down, never thrown)
     u.turn.action = 0; u.facing = B.faceTo(u, { x: x, y: y, size: 1 }); u.anim = 'attack'; u.animT = B.t;
-    D.fx.projectile(u, { x: x, y: y, size: 1 }, 'fire'); yield { fx: 1 };
+    var foe = G.occupant(x, y, u); if (foe && (!G.hostile(u, foe) || !G.standing(foe) || foe.object || foe.isWall)) foe = null; // (a creature: not an ally, not one that is done, not a wall or an object)
+    if (foe) yield* B.attack(u, foe, L.torchAtk(u)); // (the shot's own flight and card; the torch is still in the hand for the roll)
+    else { D.fx.projectile(u, { x: x, y: y, size: 1 }, 'fire'); yield { fx: 1 }; }
     delete u.torch; L.regrip(u);
     place(B, x, y, u.id);
     D.sfx('fire');

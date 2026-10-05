@@ -105,7 +105,9 @@
     (data.party || []).forEach(function (h) { out.push(unitOf(h, false, fight)); });
     // the guests fight by the class tactics (09-28, js/tactics.js: Pyro's Action Surge, Halldor's wound, Ingrith's spells laid over her
     // 8-bit sheet by js/classes.js NPC.overlay) -- guest()'s healer counter and surgeAI are retired on the grid
-    (data.guests || []).forEach(function (g) { var u = unitOf(g, true, fight); u.classAI = true; if (D.npc) D.npc.overlay(u, g); if (g.vital) u.vital = true; out.push(u); }); // (vital: one whose fall ends the fight -- Corwen Dace; battle.js over, 10-01c)
+    // (a story guest carries one Oil Flask of its own -- u.ownFlask, thrown once a fight, never from the party's pack: 10-05, Griz: "mechanically allow once and have it not reduce party inventory";
+    // battle.js itemList and useItem read it. Only these units carry it: the bench's and the watch's four are made guests by battle.js, not here, and throw from the pack)
+    (data.guests || []).forEach(function (g) { var u = unitOf(g, true, fight); u.classAI = true; u.ownFlask = 1; if (D.npc) D.npc.overlay(u, g); if (g.vital) u.vital = true; out.push(u); }); // (vital: one whose fall ends the fight -- Corwen Dace; battle.js over, 10-01c)
     return out;
   };
   function unitOf(h, guest, fight) {

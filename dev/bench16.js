@@ -1220,9 +1220,9 @@
       var m = D.iso.map, st = def.step, fg = Be.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0], rg = Be.units.filter(function (u) { return u.side === 'party' && u.cls === 'rogue'; })[0], og = Be.units.filter(function (u) { return u.side === 'foe'; })[0];
       okE('the roof at 45 ft (18 steps) at (20,5), glass, walked; the fountains 15 by 10 ft (10-05): the pool at (15,17) water at 0, its rim at (13,17) and (15,18) one step up, dressed, the street at (15,19); the spout in the face above at 10 ft; the street at 0; the channel off the east end deep water, not walked; the north road four wide (5..8)', m.gz(20, 5) === 18 * st && m.at(20, 5).ch === 'G' && m.at(20, 5).walk && m.at(15, 17).ch === '~' && m.gz(15, 17) === 0 && m.at(13, 17).ch === '=' && m.gz(13, 17) === st && m.gz(15, 18) === st && m.at(15, 18).ch === '=' && m.at(15, 19).ch === ',' && m.gz(15, 19) === 0 && m.at(15, 15).spout === 10 && m.gz(20, 18) === 0 && m.at(55, 17).deep && !m.at(55, 17).walk && [4, 5, 6, 7, 8, 9].map(function (x) { return m.at(x, 3).walk ? 1 : 0; }).join('') === '011110');
       var r0 = Be.ropes[0]; okE('the dwarves\' rope from the rim (11,15) to the street (11,16), 18 steps', Be.ropes.length === 1 && r0.at[0] === 11 && r0.at[1] === 15 && r0.foot[0] === 11 && r0.foot[1] === 16 && (m.gz(11, 15) - m.gz(11, 16)) / st === 18);
-      okE('the bucket at (3,24): a crate, not walked, named ' + m.at(3, 24).stands + ', the battle knows it', !m.at(3, 24).walk && m.at(3, 24).stands === 'the rope bucket' && Be.ropeBucket && Be.ropeBucket[0] === 3 && Be.ropeBucket[1] === 24);
+      okE('the bucket at (26,25), in the alley at the side of the house by the south road (10-05): a crate, not walked, named ' + m.at(26, 25).stands + ', the battle knows it; the first house\'s corner (3,24) walked again ' + m.at(3, 24).walk + '; seven houses with alleys two wide: ' + (m.at(27, 25).walk && m.at(11, 25).walk && m.at(12, 25).walk && !m.at(10, 25).walk), !m.at(26, 25).walk && m.at(26, 25).stands === 'the rope bucket' && Be.ropeBucket && Be.ropeBucket[0] === 26 && Be.ropeBucket[1] === 25 && m.at(3, 24).walk && m.at(27, 25).walk && m.at(11, 25).walk && m.at(12, 25).walk && !m.at(10, 25).walk);
       // the fighter beside the bucket: TAKE A ROPE on the ring's top, free, one a turn
-      fg.x = 4; fg.y = 23; D.rules.startTurn(fg); Be.active = fg; Be.cache = null; Be.tool = 'move';
+      fg.x = 27; fg.y = 25; D.rules.startTurn(fg); Be.active = fg; Be.cache = null; Be.tool = 'move'; // (beside the bucket at (26,25), in the alley)
       var ring = D.ui.cmds(Be, fg).map(function (c) { return c.id; }), n0 = ((Be.inv || []).filter(function (x) { return x.id === 'rope'; })[0] || {}).n || 0;
       okE('beside the bucket: TAKE A ROPE on the ring: ' + ring.join(','), ring.indexOf('bucketrope') >= 0);
       runE(Be.exec(fg, { do: 'bucketrope' })); var n1 = ((Be.inv || []).filter(function (x) { return x.id === 'rope'; })[0] || {}).n || 0, again = Be.commands(fg).filter(function (c) { return c.id === 'bucketrope'; })[0];
@@ -1336,7 +1336,7 @@
       var FK = D.fight('edifice'), Bk = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bk; Bk.enter();
       var onField0 = Bk.units.filter(function (u) { return !u.object; }).length, arr0 = Bk.arriving ? Bk.arriving.foes.length + Bk.arriving.ours.length : 0, beatsK = 0, firstK = null, openK = false;
       while (!Bk.order.length && beatsK++ < 2000) { var skK = Bk.co.next(); if (skK.done) break; var o1K = Bk.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally; })[0]; if (o1K && !firstK) firstK = o1K.id; if (Bk.map.doorsOpen) openK = true; }
-      var footK = FK.foes.map(function (f) { var u = Bk.units.filter(function (w) { return w.id === f.id; })[0]; return u && u.x === f.at[0] && u.y === f.at[1]; }), seatK = Bk.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally; }).map(function (u, i) { return u.x + ',' + u.y; }); // (the lent allies walk in by their own wave -- mode=skylights1005 counts them; 10-05)
+      var footK = FK.foes.map(function (f) { var u = Bk.units.filter(function (w) { return w.id === f.id; })[0], sq = f.then || f.at; return u && u.x === sq[0] && u.y === sq[1]; }), seatK = Bk.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally; }).map(function (u, i) { return u.x + ',' + u.y; }); // (the lent allies walk in by their own wave -- mode=skylights1005 counts them; 10-05)
       okE('the Skylights: at the entry card the field holds ' + onField0 + ' (' + arr0 + ' to come); after the walk-in (' + beatsK + ' beats) the foes on their squares ' + footK.join(',') + ', the first out ' + firstK + ', the doors stood open ' + openK + ' and are shut ' + !Bk.map.doorsOpen + ', ours at ' + seatK.join(' ') + ', the skylight on the field ' + !!Bk.skylight,
         onField0 === 0 && arr0 === 11 && beatsK < 600 && footK.every(Boolean) && firstK === 'pyro' && openK && !Bk.map.doorsOpen && seatK.length === 5 && !!Bk.skylight); // (arr0: six foes and the five of ours; the eight lent and the five held are counted by skylights1005)
       var trK = Bk.units.filter(function (u) { return u.kind === 'troll'; })[0], n0K = (Bk.log || []).length; trK.x = 20; trK.y = 16; trK.hang = { face: [20, 15], foot: [20, 16], z: 4 * st };
@@ -1384,15 +1384,19 @@
       D.seed = 11;
       var FK2 = D.fight('edifice'), G = D.grid;
       okK('the fight: ' + FK2.foes.length + ' foes, ' + (FK2.allies || []).length + ' allies (' + (FK2.allies || []).filter(function (a) { return a.hatch; }).length + ' behind the hatch), ' + FK2.arrive.waves.length + ' waves, the hatch after ' + FK2.hatch.after + '; the giants ' + FK2.foes.filter(function (f) { return f.name; }).map(function (f) { return f.name + (f.only ? ' (the window)' : ''); }).join(', '),
-        FK2.foes.length === 6 && (FK2.allies || []).length === 13 && FK2.arrive.waves.length === 3 && FK2.hatch.after === 1 && FK2.foes.some(function (f) { return f.name === 'Steinarr' && f.only; }) && FK2.foes.some(function (f) { return f.name === 'Hallvör' && f.guard === 'giant2'; }));
+        FK2.foes.length === 6 && (FK2.allies || []).length === 13 && FK2.arrive.waves.length === 3 && FK2.arrive.waves[0].dash === true && FK2.hatch.after === 2 && FK2.foes.some(function (f) { return f.name === 'Steinarr' && f.only; }) && FK2.foes.some(function (f) { return f.name === 'Hallvör' && f.guard === 'giant2'; })); // (the first wave at a run; the hatch two after -- Griz, 10-05: "two after")
       var Bq = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bq; Bq.enter();
       var m = Bq.map, st = m.def.step, fl = FK2.arrive.waves[0].flee;
       var sqOk = fl.from.every(function (q) { return m.at(q[0], q[1]).walk; }) && fl.to.every(function (q) { return m.at(q[0], q[1]).walk; }) && (FK2.allies || []).every(function (a) { return m.at(a.at[0], a.at[1]).walk && (!a.from || m.at(a.from[0], a.from[1]).walk); }) && FK2.hatch.from.every(function (q) { return m.at(q[0], q[1]).walk && m.gz(q[0], q[1]) === 18 * st; });
       okK('the squares: the flight\'s ' + fl.from.length + ' from and ' + fl.to.length + ' to walkable, the stables\' and the road\'s foot walkable, the hatch\'s on the roof: ' + sqOk, sqOk);
       var field0 = Bq.units.filter(function (u) { return !u.object; }).length, held0 = (Bq.held || []).length, arrA = Bq.arriving ? Bq.arriving.allies.length : -1;
       var beats = 0, folkSeen = 0, folkMax = 0, firstOut = null, openQ = false;
-      while (!Bq.order.length && beats++ < 3000) { var sk = Bq.co.next(); if (sk.done) break; var fk = Bq.units.filter(function (u) { return u.look; }).length; folkMax = Math.max(folkMax, fk); if (fk) folkSeen++; var o1 = Bq.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally; })[0]; if (o1 && !firstOut) firstOut = o1.id; if (Bq.map.doorsOpen) openQ = true; }
+      var last3 = null, dashed = false, met = false;
+      while (!Bq.order.length && beats++ < 3000) { var sk = Bq.co.next(); if (sk.done) break; var fk = Bq.units.filter(function (u) { return u.look; }).length; folkMax = Math.max(folkMax, fk); if (fk) folkSeen++; var o1 = Bq.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally; })[0]; if (o1 && !firstOut) firstOut = o1.id; if (Bq.map.doorsOpen) openQ = true;
+        var t3 = Bq.units.filter(function (u) { return u.id === 'troll3'; })[0]; if (t3) { if (last3 && Math.max(Math.abs(t3.x - last3[0]), Math.abs(t3.y - last3[1])) >= 2) dashed = true; last3 = [t3.x, t3.y]; if (fk && t3.y >= 20) met = true; } } // (the run: two squares in a beat; and it reaches the street's end while the townsfolk are still running -- 10-05)
       var folkLeft = Bq.units.filter(function (u) { return u.look; }).length, alliesOn = Bq.units.filter(function (u) { return u.ally && !u.look; }), onSq = (FK2.allies || []).filter(function (a) { return !a.hatch; }).map(function (a) { var u = Bq.units.filter(function (w) { return w.id === a.id; })[0]; return !!u && u.x === a.at[0] && u.y === a.at[1]; }), hatchOn = Bq.units.filter(function (u) { return u.hatch; }).length;
+      var ran = FK2.foes.filter(function (f) { return f.free; }).map(function (f) { var u = Bq.units.filter(function (w) { return w.id === f.id; })[0]; return !!u && u.x === f.at[0] && u.y === f.at[1]; }); // (the first two at the south road's mouth -- 10-05)
+      okK('the first two ran: two squares in a beat seen ' + dashed + ', at the street\'s end while the townsfolk still ran ' + met + ', on their squares by the south road ' + ran.join(','), dashed && met && ran.length === 2 && ran.every(Boolean));
       okK('at the entry card the field holds ' + field0 + ', ' + arrA + ' allies to come, ' + held0 + ' held; the walk-in ' + beats + ' beats: townsfolk on the field ' + folkSeen + ' beats, ' + folkMax + ' at most, left after ' + folkLeft + '; the first of ours out ' + firstOut + ', the doors opened ' + openQ + ' and shut ' + !Bq.map.doorsOpen + '; the Hex\'s eight on the field ' + alliesOn.length + ', on their squares ' + onSq.join(',') + '; the garrison on the field ' + hatchOn + ' (held ' + (Bq.held || []).length + '); the order ' + Bq.order.length + ' with ' + Bq.order.filter(function (u) { return u.ally; }).length + ' allies in it',
         field0 === 0 && arrA === 8 && held0 === 5 && beats < 600 && folkMax === 8 && folkLeft === 0 && firstOut === 'pyro' && openQ && !Bq.map.doorsOpen && alliesOn.length === 8 && onSq.every(Boolean) && hatchOn === 0 && (Bq.held || []).length === 5 && Bq.order.filter(function (u) { return u.ally; }).length === 8);
       // ours and the brute's: a stable fighter's turn is the AI's and it goes for the troll beside it; the first trolls have no mission; the allies do not hold the fight open
@@ -1457,8 +1461,9 @@
       D.d = function (n) { return n === 20 ? 1 : d0U(n); }; var n0U = (Bu.log || []).length; Bu.hurt(gi, 20, 'slashing'); D.d = d0U; var lgU = (Bu.log || []).slice(n0U).join(' | ');
       var inFoot = G.foot(gi).some(function (p) { return p[0] === fg.x && p[1] === fg.y; }), dUF = Math.max(Math.abs(fg.x - under[0]), Math.abs(fg.y - under[1]));
       // (the cushion, 10-05 -- Griz: "idgit as a cushion", "softening his landing is good": the giant on its feet, no fall damage; the fighter takes the fall's dice, flat, and is shoved)
-      okU('hit while clinging, the save a 1: the giant down ' + !G.hanging(gi) + ' at its foot (' + gi.x + ',' + gi.y + ') on its feet ' + !gi.conds.prone + ', no fall damage (hp ' + gi.hp + ' of ' + gi.maxhp + ' after the 20); the fighter the cushion: shoved to (' + fg.x + ',' + fg.y + '), ' + dUF + ' squares off, clear of it ' + !inFoot + ', standing room ' + G.canStand(fg, fg.x, fg.y) + ', hurt ' + (fg.hp < fg.maxhp) + ', flat ' + !!fg.conds.prone + ' -- ' + lgU.slice(0, 260),
-        !G.hanging(gi) && !gi.conds.prone && gi.hp === gi.maxhp - 20 && gi.x === gx && gi.y === gy && !inFoot && dUF === 2 && G.canStand(fg, fg.x, fg.y) && fg.hp < fg.maxhp && !!fg.conds.prone && /lands on its feet/.test(lgU) && /comes down on/.test(lgU) && /shoved out from under, flat/.test(lgU));
+      // (the dice split, 10-05 -- Griz: "little harsh, split damage?": the cushion takes the half rounded up, the giant the rest (0 to 3 of a d6) and stays on its feet)
+      okU('hit while clinging, the save a 1: the giant down ' + !G.hanging(gi) + ' at its foot (' + gi.x + ',' + gi.y + ') on its feet ' + !gi.conds.prone + ', its half of the fall (hp ' + gi.hp + ' of ' + gi.maxhp + ' after the 20); the fighter the cushion: shoved to (' + fg.x + ',' + fg.y + '), ' + dUF + ' squares off, clear of it ' + !inFoot + ', standing room ' + G.canStand(fg, fg.x, fg.y) + ', hurt ' + (fg.maxhp - fg.hp) + ', flat ' + !!fg.conds.prone + ' -- ' + lgU.slice(0, 280),
+        !G.hanging(gi) && !gi.conds.prone && gi.hp <= gi.maxhp - 20 && gi.hp >= gi.maxhp - 23 && gi.x === gx && gi.y === gy && !inFoot && dUF === 2 && G.canStand(fg, fg.x, fg.y) && fg.hp < fg.maxhp && fg.maxhp - fg.hp <= 3 && !!fg.conds.prone && /bludgeoning, split, and lands on its feet/.test(lgU) && /comes down on/.test(lgU) && /shoved out from under, flat/.test(lgU));
       // the rope: the rogue hangs 10 ft up the dwarves' rope with the fighter at its foot -- the fighter may stand there, and the rogue cannot let herself down onto him
       var r0 = Bu.ropes[0]; gi.x = 5; gi.y = 2; delete gi.hang; gi.conds.prone = false;
       rg.x = r0.foot[0]; rg.y = r0.foot[1]; rg.hang = { rope: r0, z: 4 * st }; fg.x = r0.foot[0]; fg.y = r0.foot[1]; fg.conds.prone = false;
@@ -1477,6 +1482,116 @@
     if (errs.length) repU.errors = repU.errors.concat(errs);
     var preU = document.createElement('pre'); preU.id = 'out'; preU.textContent = 'BENCH16 ' + JSON.stringify(repU);
     document.body.appendChild(preU);
+    return;
+  }
+  // the torch thrown at a troll, and a story guest's own flask (mode=torch1005; 10-05, Griz: "1 build it" -- THROW TORCH at a foe is an improvised ranged attack, the thrower's Strength modifier alone, 1 fire on a
+  // hit, which burns a troll: light.js throwTorch; "ai knowing oil and torch yes" -- tactics.js burnTorch; and a story guest must not spend the player's oil, "mechanically allow once and have it not reduce party
+  // inventory": save.js SV.units ownFlask, battle.js itemList and useItem): a fighter 5 with a lit torch and a troll lying at 0 15 ft off, the d20 a 19 (a hit: 1 fire, burned, the torch burning on the troll's
+  // square, the hand empty, the action spent) and a 1 (a miss: unburned, the torch burning all the same); the throw at an empty square as it was; the AI's plans (the torch with no flask, the flask over the torch, none
+  // beside an ogre, none with no torch in hand, a lantern or a burned troll); a story guest with two flasks in the pack throws its own once and the pack still holds two; a bench hero throws from the pack
+  if (get('mode', '') === 'torch1005') {
+    var repT = { checks: [], errors: [] }, d0T = D.d;
+    function okT(what, v) { repT.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runT(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkT(q, o) { var Bx = D.npcFight(q, o || {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideT(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function flasksT(Bx) { return Bx.inv.filter(function (x) { return x.id === 'oil'; }).reduce(function (s, x) { return s + x.n; }, 0); }
+    function packT(Bx, n) { Bx.inv = Bx.inv.filter(function (x) { return x.id !== 'oil'; }); if (n) Bx.inv.push({ id: 'oil', n: n }); } // (n flasks in the one stack; none: the pack without)
+    function lightT(u) { u.torch = { lit: true }; D.light.regrip(u); } // (a torch in the hand as light.js lightTorch leaves it)
+    function logT(Bx, n0) { return (Bx.log || []).slice(n0).join(' | '); }
+    function whyT(pl) { return pl.slice(0, 3).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | '); }
+    // a free square n squares from b with a clear line to it, for a
+    function nearT(a, b, n) {
+      var Gd = D.grid;
+      for (var r = n; r >= 1; r--) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        var x = b.x + dx, y = b.y + dy;
+        if (Gd.canStand(a, x, y) && Gd.los(a, b, x, y).clear) { a.x = x; a.y = y; delete a.tween; return true; }
+      }
+      return false;
+    }
+    try {
+      D.seed = 101;
+      var G = D.grid;
+      // a. a hit: a fighter 5, a lit torch in the hand, a troll lying at 0 15 ft off, the d20 a 19
+      var Bh = mkT('?npc=troll&lvl=5&vs=fighter:5'), ftH = sideT(Bh, 'party')[0], trH = sideT(Bh, 'foe')[0];
+      ftH.guest = false; ftH.classAI = true; lightT(ftH); Bh.hurt(trH, 300, 'slashing'); nearT(ftH, trH, 3); D.rules.startTurn(ftH);
+      var cmH = Bh.commands(ftH).filter(function (c) { return c.id === 'throwtorch'; })[0];
+      okT('the ring: THROW TORCH ok ' + !!(cmH && cmH.ok) + ' -- ' + (cmH && cmH.note), !!cmH && cmH.ok === true && /improvised throw: 1 fire on a hit/.test(cmH.note));
+      D.d = function (n) { return n === 20 ? 19 : d0T(n); }; var n0H = (Bh.log || []).length; runT(Bh.exec(ftH, { do: 'throwtorch', x: trH.x, y: trH.y })); D.d = d0T; var lgH = logT(Bh, n0H);
+      okT('a fighter 5 (STR ' + ftH.abil.str + '), ' + G.dist(ftH, trH) + ' ft from a troll lying at 0, the d20 a 19: the attack on the card ' + /> .*Troll.*Torch/.test(lgH) + ', a hit ' + /HIT|CRITICAL/.test(lgH) + ' (this fighter crits on a 19: the 1 fire is flat, no dice to double), 1 fire ' + /= 1 fire/.test(lgH) + ' -- ' + lgH.slice(0, 170),
+        G.dist(ftH, trH) <= 20 && /Torch/.test(lgH) && /HIT|CRITICAL/.test(lgH) && /= 1 fire/.test(lgH));
+      okT('the troll burned ' + !!trH.burned + ' (hp ' + trH.hp + ', still down ' + !!trH.regenDown + ', dead ' + !!trH.dead + '), the torch burning on its square ' + !!D.light.torchAt(Bh, trH.x, trH.y) + ', the fighter\'s hand empty ' + !ftH.torch + ', the action spent ' + !ftH.turn.action + ', the card "burns where it lies" ' + /burns where it lies/.test(lgH),
+        trH.burned === true && trH.regenDown === true && !trH.dead && trH.hp === 0 && !!D.light.torchAt(Bh, trH.x, trH.y) && !ftH.torch && !ftH.turn.action && /burns where it lies/.test(lgH));
+      runT(D.ai.turn(Bh, trH));
+      okT('the troll\'s turn, burned: dead ' + !!trH.dead + ', the fight ' + Bh.over(), trH.dead && Bh.over() === 'won');
+      // b. the d20 a 1: a miss -- the troll unburned (up at its turn), the torch burning on its square all the same
+      var Bm = mkT('?npc=troll&lvl=5&vs=fighter:5'), ftM = sideT(Bm, 'party')[0], trM = sideT(Bm, 'foe')[0];
+      ftM.guest = false; ftM.classAI = true; lightT(ftM); Bm.hurt(trM, 300, 'slashing'); nearT(ftM, trM, 3); D.rules.startTurn(ftM);
+      D.d = function (n) { return n === 20 ? 1 : d0T(n); }; var n0M = (Bm.log || []).length; runT(Bm.exec(ftM, { do: 'throwtorch', x: trM.x, y: trM.y })); D.d = d0T; var lgM = logT(Bm, n0M);
+      okT('the d20 a 1: a miss ' + /MISS/.test(lgM) + ', no 1 fire ' + !/= 1 fire/.test(lgM) + ', the troll burned ' + !!trM.burned + ', the torch burning on its square ' + !!D.light.torchAt(Bm, trM.x, trM.y) + ', the hand empty ' + !ftM.torch + ', the action spent ' + !ftM.turn.action + ' -- ' + lgM.slice(0, 130),
+        /MISS/.test(lgM) && !/= 1 fire/.test(lgM) && !trM.burned && !!D.light.torchAt(Bm, trM.x, trM.y) && !ftM.torch && !ftM.turn.action);
+      runT(D.ai.turn(Bm, trM));
+      okT('the troll\'s turn, unburned: up at ' + trM.hp + ' HP, down ' + !!trM.regenDown + ', dead ' + !!trM.dead, trM.hp >= 10 && !trM.regenDown && !trM.dead);
+      // c. the throw at an empty square is as it was: no attack, the torch lands and burns, the hand empty, the action spent
+      var Be = mkT('?npc=ogre&lvl=5&vs=fighter:5'), ftE = sideT(Be, 'party')[0], sqE = null;
+      ftE.guest = false; ftE.classAI = true; lightT(ftE); D.rules.startTurn(ftE);
+      for (var ey = -2; ey <= 2 && !sqE; ey++) for (var ex = -2; ex <= 2 && !sqE; ex++) { var qx = ftE.x + ex, qy = ftE.y + ey; if ((ex || ey) && G.canStand(ftE, qx, qy) && !G.occupant(qx, qy) && G.losPoint(ftE.x, ftE.y, qx, qy)) sqE = [qx, qy]; }
+      var n0E = (Be.log || []).length; runT(Be.exec(ftE, { do: 'throwtorch', x: sqE[0], y: sqE[1] })); var lgE = logT(Be, n0E);
+      okT('thrown at an empty square (' + sqE.join(',') + '): no attack ' + !/Torch/.test(lgE) + ', it burns there ' + !!D.light.torchAt(Be, sqE[0], sqE[1]) + ', the hand empty ' + !ftE.torch + ', the action spent ' + !ftE.turn.action + ' -- ' + lgE.slice(0, 100),
+        !/Torch/.test(lgE) && !!D.light.torchAt(Be, sqE[0], sqE[1]) && !ftE.torch && !ftE.turn.action && /throws the torch/.test(lgE));
+      // d. the AI: a fighter with a torch and no flask beside an unburned troll lying at 0 -- the torch the top plan, thrown on its turn
+      var Bc = mkT('?npc=troll&lvl=5&vs=fighter:5'), ftC = sideT(Bc, 'party')[0], trC = sideT(Bc, 'foe')[0];
+      ftC.guest = false; ftC.classAI = true; lightT(ftC); packT(Bc, 0); Bc.hurt(trC, 300, 'slashing'); nearT(ftC, trC, 3); D.rules.startTurn(ftC);
+      var plC = D.tactics.plans(Bc, ftC);
+      okT('a fighter 5 with a torch and no flask, ' + G.dist(ftC, trC) + ' ft from a troll lying at 0: the top plan ' + whyT(plC), !!plC[0] && plC[0].kind === 'item' && /the torch/.test(plC[0].why) && /where it lies/.test(plC[0].why) && G.dist(ftC, trC) <= 20);
+      D.d = function (n) { return n === 20 ? 19 : d0T(n); }; var n0C = (Bc.log || []).length; runT(D.ai.turn(Bc, ftC)); D.d = d0T; var lgC = logT(Bc, n0C);
+      okT('its turn: the torch thrown ' + /Torch/.test(lgC) + ', the troll burned ' + !!trC.burned + ', the torch burning on its square ' + !!D.light.torchAt(Bc, trC.x, trC.y) + ', the hand empty ' + !ftC.torch + ' -- ' + lgC.slice(0, 110), /Torch/.test(lgC) && trC.burned === true && !!D.light.torchAt(Bc, trC.x, trC.y) && !ftC.torch);
+      // e. with a flask in the pack too: the flask first, the torch weighed under it -- at 15 ft, and beside the troll (where the torch alone would weigh above the flask)
+      var Bf = mkT('?npc=troll&lvl=5&vs=fighter:5'), ftF = sideT(Bf, 'party')[0], trF = sideT(Bf, 'foe')[0];
+      ftF.guest = false; ftF.classAI = true; lightT(ftF); packT(Bf, 2); Bf.hurt(trF, 300, 'slashing'); nearT(ftF, trF, 3); D.rules.startTurn(ftF);
+      var plF = D.tactics.plans(Bf, ftF), tpF = plF.filter(function (p) { return /the torch/.test(p.why); })[0];
+      okT('with two flasks in the pack as well, 15 ft off: the top plan ' + whyT(plF), !!plF[0] && /Oil Flask/.test(plF[0].why) && !!tpF && tpF.score < plF[0].score);
+      nearT(ftF, trF, 1); D.rules.startTurn(ftF); var plF2 = D.tactics.plans(Bf, ftF), tpF2 = plF2.filter(function (p) { return /the torch/.test(p.why); })[0], spF = D.light.torchAtk(ftF), edF = D.rules.edges(ftF, trF, spF);
+      var pF = D.tactics.pHit(spF.atk + (edF.pen || 0), D.rules.ac(trF) + G.los(ftF, trF).cover, edF.net);
+      okT('beside it (' + G.dist(ftF, trF) + ' ft; the torch alone would weigh ' + (90 * pF).toFixed(1) + '): the top plan ' + whyT(plF2), !!plF2[0] && /Oil Flask/.test(plF2[0].why) && !!tpF2 && tpF2.score < plF2[0].score && 90 * pF > plF2[0].score);
+      // f. never: a torch beside an ogre (it does not regenerate); no torch in the hand; a lantern (set down, never thrown); a troll burned already
+      var Bg0 = mkT('?npc=ogre&lvl=5&vs=fighter:5'), ftG0 = sideT(Bg0, 'party')[0], ogG = sideT(Bg0, 'foe')[0];
+      ftG0.guest = false; ftG0.classAI = true; lightT(ftG0); packT(Bg0, 0); nearT(ftG0, ogG, 2); D.rules.startTurn(ftG0);
+      var plG0 = D.tactics.plans(Bg0, ftG0);
+      okT('a fighter with a torch ' + G.dist(ftG0, ogG) + ' ft from an ogre (regen ' + (ogG.regen || 0) + '): ' + plG0.length + ' plans, none the torch -- ' + whyT(plG0), plG0.length > 0 && !(ogG.regen > 0) && !plG0.some(function (p) { return /torch/.test(p.why); }));
+      var Bn = mkT('?npc=troll&lvl=5&vs=fighter:5'), ftN = sideT(Bn, 'party')[0], trN = sideT(Bn, 'foe')[0];
+      ftN.guest = false; ftN.classAI = true; packT(Bn, 0); Bn.hurt(trN, 300, 'slashing'); nearT(ftN, trN, 3); D.rules.startTurn(ftN);
+      var plN = D.tactics.plans(Bn, ftN);
+      okT('the same troll, no torch in the hand: ' + plN.length + ' plans, none the torch', !plN.some(function (p) { return /torch/.test(p.why); }));
+      ftN.torch = D.light.make('lantern', false); var plN2 = D.tactics.plans(Bn, ftN);
+      okT('a lantern in the hand (set down, never thrown): none the torch', !plN2.some(function (p) { return /torch/.test(p.why); }));
+      delete ftN.torch; lightT(ftN); trN.burned = true; var plN3 = D.tactics.plans(Bn, ftN);
+      okT('a torch in the hand, the troll burned already: none the torch -- ' + plN3.map(function (p) { return p.why; }).join(' | '), !plN3.some(function (p) { return /torch/.test(p.why); }));
+      // g. a story guest (Ingrith, made by D.save.units from the save\'s guests) with two flasks in the pack: it throws its OWN, once, and the pack still holds two; the second turn plans no flask
+      var d5 = D.save.fixture(5); d5.guests = [D.save.guest('ingrith')];
+      var Bq = mkT('?npc=troll&lvl=5', { data: d5 }), ing = Bq.units.filter(function (u) { return u.id === 'ingrith'; })[0], trQ = sideT(Bq, 'foe')[0], fourQ = Bq.units.filter(function (u) { return u.side === 'party' && !u.guest; });
+      okT('Ingrith, made as a story guest: guest ' + !!(ing && ing.guest) + ', classAI ' + !!(ing && ing.classAI) + ', her own flask ' + (ing && ing.ownFlask) + '; the four (' + fourQ.length + ') carry none: ' + fourQ.map(function (u) { return u.ownFlask; }).join(','),
+        !!ing && ing.guest === true && ing.classAI === true && ing.ownFlask === 1 && fourQ.length === 4 && fourQ.every(function (u) { return u.ownFlask === undefined; }));
+      packT(Bq, 2); Bq.hurt(trQ, 300, 'slashing'); nearT(ing, trQ, 3); D.rules.startTurn(ing);
+      var plQ = D.tactics.plans(Bq, ing);
+      okT('the pack with two flasks, Ingrith ' + G.dist(ing, trQ) + ' ft from a troll lying at 0: the top plan ' + whyT(plQ), !!plQ[0] && plQ[0].kind === 'item' && /Oil Flask/.test(plQ[0].why) && G.dist(ing, trQ) <= 20);
+      D.d = function (n) { return n === 20 ? 20 : d0T(n); }; var n0Q = (Bq.log || []).length; runT(D.ai.turn(Bq, ing)); D.d = d0T; var lgQ = logT(Bq, n0Q);
+      okT('her turn (the save a 20): the flask thrown ' + /throws the Oil Flask/.test(lgQ) + ', her own flask 1 -> ' + ing.ownFlask + ', the pack ' + flasksT(Bq) + ' (was 2), the troll unburned ' + !trQ.burned + ' -- ' + lgQ.slice(0, 110), /throws the Oil Flask/.test(lgQ) && ing.ownFlask === 0 && flasksT(Bq) === 2 && !trQ.burned && trQ.regenDown === true);
+      D.rules.startTurn(ing); D.rules.startTurn(fourQ[0]); var plQ2 = D.tactics.plans(Bq, ing);
+      okT('her next turn, the troll still lying and unburned: no flask plan (the pack still holds ' + flasksT(Bq) + ') -- ' + whyT(plQ2) + '; her list ' + Bq.itemList(ing).filter(function (x) { return x.id === 'oil'; }).length + ' flasks, a hero\'s ' + Bq.itemList(fourQ[0]).filter(function (x) { return x.id === 'oil'; }).map(function (x) { return x.n; }).join(','),
+        !plQ2.some(function (p) { return p.kind === 'item'; }) && flasksT(Bq) === 2 && Bq.itemList(ing).filter(function (x) { return x.id === 'oil'; }).length === 0 && Bq.itemList(fourQ[0]).filter(function (x) { return x.id === 'oil'; }).map(function (x) { return x.n; }).join(',') === '2');
+      // h. a bench hero (guest = true, classAI = true, made by battle.js, no story-guest field) still throws from the pack: two -> one
+      var Bb = mkT('?npc=troll&lvl=5&vs=fighter:5&watch'), ftB = sideT(Bb, 'party')[0], trB = sideT(Bb, 'foe')[0];
+      packT(Bb, 2); Bb.hurt(trB, 300, 'slashing'); nearT(ftB, trB, 3); D.rules.startTurn(ftB);
+      D.d = function (n) { return n === 20 ? 20 : d0T(n); }; var n0B = (Bb.log || []).length; runT(D.ai.turn(Bb, ftB)); D.d = d0T; var lgB = logT(Bb, n0B);
+      okT('a bench fighter (guest ' + !!ftB.guest + ', classAI ' + !!ftB.classAI + ', ownFlask ' + ftB.ownFlask + '): the flask thrown ' + /throws the Oil Flask/.test(lgB) + ', the pack 2 -> ' + flasksT(Bb),
+        ftB.guest === true && ftB.classAI === true && ftB.ownFlask === undefined && /throws the Oil Flask/.test(lgB) && flasksT(Bb) === 1);
+    } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
+    D.d = d0T;
+    if (errs.length) repT.errors = repT.errors.concat(errs);
+    var preT = document.createElement('pre'); preT.id = 'out'; preT.textContent = 'BENCH16 ' + JSON.stringify(repT);
+    document.body.appendChild(preT);
     return;
   }
   // the class AI throws the Oil Flask (mode=oil1005; 10-05, Griz: "ai knowing oil and torch yes" -- the oil now; tactics.js burnFlask, TX.burnDown): a fighter with two flasks and a troll lying at

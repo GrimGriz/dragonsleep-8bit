@@ -461,7 +461,8 @@
     if (T.move > 0 && !u.conds.restrained) { var rc = reachCache(B, u); if (Object.keys(rc.move).some(function (k) { return rc.move[k].stand && rc.move[k].cost > 0; })) return false; }
     // hanging on a rope with the move for a rung up or down (10 ft a 5 ft rung, or an end in reach -- battle.js Battle.ropeSteps, 10-05): a step to take (exec 'ropeclimb'), though no square
     // is (10-05, Griz: "have viv move and end up on a rope with her bonus action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash movement")
-    if (T.move >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u) && (D.Battle.ropeSteps(u.hang.rope, u.hang.z, true, T.move) > 0 || D.Battle.ropeSteps(u.hang.rope, u.hang.z, false, T.move) > 0)) return false;
+    var mvH = T.move + D.Battle.dashes(u).length * (u.speed || 30); // (a Dash still open -- the action's, or Cunning Action's bonus -- is more rope to climb: not spent; 10-05, Griz: "not if they have dash action or dash bonus action of course")
+    if (mvH >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u) && (D.Battle.ropeSteps(u.hang.rope, u.hang.z, true, mvH) > 0 || D.Battle.ropeSteps(u.hang.rope, u.hang.z, false, mvH) > 0)) return false;
     return !B.commands(u).some(function (c) { return c.ok; });
   }
   UI.spent = spent; // (the bench's: dev/bench16.js mode=edifice1004)

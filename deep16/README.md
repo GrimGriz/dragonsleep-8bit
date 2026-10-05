@@ -238,7 +238,7 @@ in which case I think they'll attack it if that's not an ally)"*): nobody on it,
 steps there, asked), and standing on it the ring's TAKE THE ROPE; a foe hanging on it within the weapon's reach, the click strikes the rope (AC 11,
 2 HP) and cut, the foe falls; an ally on it, the square is a square. Standing on the grapple's square, the click asks first (TAKE IT UP / NOT NOW), and
 TAKE THE ROPE sits on the ring's own face (10-04 night, Griz: *"never managed to take up the hook, standing on it makes me select character?"* -- it had
-been filed under ACTIONS where nothing listed it). A map's `ropeBucket: [x, y]` (the Edifice: a crate by the first house) hands anyone of ours beside it a
+been filed under ACTIONS where nothing listed it). A map's `ropeBucket: [x, y]` (the Edifice: a crate in the alley at the side of the house by the south road, (26,25) since 10-05 -- Griz: "rope bucket to 26, 25 side of the building") hands anyone of ours beside it a
 Rope & Grapple for nothing, one a turn, never the last (TAKE A ROPE; Griz: *"an endless supply of rope and grapple while on the map"*). A creature with a
 climb speed pays the SRD's climb -- the height, 2.5 ft a step rounded up to the 5 -- not the square's 5 alone, and the AI's far route may take a single step
 a Dash would pay for. Benches `mode=rungs1004`, `mode=edifice1004`.
