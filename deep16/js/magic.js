@@ -180,7 +180,7 @@
   M.touchTargets = function (B, u, g) {
     return B.units.filter(function (w) {
       if (w.dead || w.side !== u.side) return false;
-      if (w.object && !g.obj) return false; // (the Skylights' glass: a touch that names "a creature" does not take it -- M.targetKind; Light and Continual Flame name an object: `obj`, data/spells.js)
+      if (w.object && (!g.obj || w.spellProof)) return false; // (the Skylights' glass: a touch that names "a creature" does not take it -- M.targetKind; Light and Continual Flame name an object: `obj`, data/spells.js)
       if (w.familiar) return false; // (a familiar is no target for its side's spells -- RULED 10-01, Griz: "familiars not targetable")
       if (w !== u && G.dist(u, w) > 5 && !(D.familiar && D.familiar.delivers(B, u, w))) return false; // (or carried by the familiar: js/familiar.js)
       if (g.unarmored && (w.armored || w.conds.mageArmor)) return false;
@@ -219,7 +219,7 @@
     if (!w || w.dead || w.ethereal) return false;
     // an object (the Skylights' glass) is no creature: a spell whose SRD 5.1 words say "a creature" never takes it; `obj` on the spell's geometry (data/spells.js) marks
     // the ones whose words take an object (10-05 evening, Griz, Sanctuary cast on the glass: "maybe only that one specific one can target the glass at all?")
-    if (w.object && !g.obj) return false;
+    if (w.object && (!g.obj || w.spellProof)) return false;
     if (M.targetWhy(u, g, w, B)) return false;
     var foeWanted = g.shape === 'attack' || g.shape === 'rays' || g.shape === 'darts' || g.shape === 'splash' || g.side === 'foe';
     if (foeWanted && (!G.hostile(u, w) || (w.hp <= 0 && !w.regenDown)) && !(g.selfToo && w === u)) return false; // (selfToo: Hideous Laughter on its own caster, the easter egg -- js/grimoire.js M.jokeReady) (regenDown: a troll down and knitting, to be burned -- 10-05)

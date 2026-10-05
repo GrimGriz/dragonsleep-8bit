@@ -1970,6 +1970,11 @@
       okF('the glass (ours, an object) is no target for a spell that names a creature: ' + onGlass.join(', '), onGlass.every(function (s) { return /false$/.test(s); }));
       var onFriend = ['sanctuary', 'bless', 'aid', 'shieldoffaith', 'curewounds', 'lesserrestoration', 'protectionfromevilandgood'].map(function (id) { return id + ' ' + MG.targetOK(Bg, clG, MG.geo(id), frG); });
       okF('a creature beside it still takes them (' + frG.name + ' for ' + clG.name + '): ' + onFriend.join(', '), onFriend.every(function (s) { return /true$/.test(s); }));
+      // (10-05 night, Griz: "we got 1 thunder spell that's AoE should damage - and as far as I know, we're not letting other ones impact it": the glass is spellProof -- no aimed spell takes it,
+      // the `obj` ones included; the marks are checked below on the glass with the proofing lifted, as an object that is not)
+      var proofG = ['dispelmagic', 'light', 'continualflame', 'enlargereduce'].map(function (id) { return id + ' ' + MG.targetOK(Bg, clG, MG.geo(id), glG); }).concat(['firebolt', 'chainlightning', 'disintegrate'].map(function (id) { return 'a foe ' + id + ' ' + MG.targetKind(Bg, fnG, MG.geo(id), glG); }));
+      okF('the glass is spell-proof, Shatter by its area alone: ' + proofG.join(', '), glG.spellProof === true && proofG.every(function (s) { return /false$/.test(s); }));
+      delete glG.spellProof;
       var objOK = ['dispelmagic', 'light', 'continualflame', 'enlargereduce'].map(function (id) { return id + ' ' + MG.targetOK(Bg, clG, MG.geo(id), glG); }), foeObj = ['firebolt', 'chainlightning', 'disintegrate'].map(function (id) { return id + ' ' + MG.targetKind(Bg, fnG, MG.geo(id), glG); }), foeNot = ['chilltouch', 'holdperson', 'blight'].map(function (id) { return id + ' ' + MG.targetKind(Bg, fnG, MG.geo(id), glG); });
       okF('the spells whose SRD words take an object may: ours ' + objOK.join(', ') + '; a foe\'s at the glass: ' + foeObj.join(', ') + '; the creature-only ones of a foe\'s, no: ' + foeNot.join(', '), objOK.every(function (s) { return /true$/.test(s); }) && foeObj.every(function (s) { return /true$/.test(s); }) && foeNot.every(function (s) { return /false$/.test(s); }));
       // (and the three that do take the glass run clean at it, the glass's own size and hit points as they were)
@@ -1977,6 +1982,24 @@
       clG.slots = [9, 9, 9, 9, 9, 9, 9, 9, 9]; clG.bonus = 1; clG.actions = 1;
       ['dispelmagic', 'enlargereduce', 'light'].forEach(function (id) { try { D.rules.startTurn(clG); clG.slots = [9, 9, 9, 9, 9, 9, 9, 9, 9]; runF(MG.cast(Bg, clG, id, 3, glG)); castG.push(id + ' ran'); } catch (eC) { castG.push(id + ' THREW ' + String(eC && eC.message || eC).slice(0, 80)); } });
       okF('cast at the glass: ' + castG.join(', ') + '; the glass size ' + szG + ' -> ' + glG.size + ', HP ' + hpG + ' -> ' + glG.hp + ', enlarged ' + !!glG.conds.enlarged, castG.every(function (s) { return / ran$/.test(s); }));
+      glG.spellProof = true;
+      // f. Hallvor below the roof climbs (10-05 night, Griz: "lady giant didn't really climb" -- "she threw a rock down at the village men"): at the foot of a climbable column, Steinarr
+      // clinging 32.5 ft up his own, one of ours on the street within 30 ft of him and 10 ft from her -- her guard would have made that one her target; now she goes up the face, no rock
+      var hvG = Bg.units.filter(function (u) { return u.id === 'giant1'; })[0], stG = Bg.units.filter(function (u) { return u.id === 'giant2'; })[0], stepG = Bg.map.def.step, gone = [];
+      Bg.units.forEach(function (u) { if (u !== hvG && u !== stG && u !== frG && !u.object && !u.dead) { gone.push(u); u.dead = true; } });
+      hvG.x = 28; hvG.y = 16; delete hvG.hang; hvG.conds = {}; hvG.hp = hvG.maxhp; stG.x = 19; stG.y = 16; stG.hang = { face: [19, 15], foot: [19, 16], z: 13 * stepG }; frG.x = 26; frG.y = 17; frG.dead = false; frG.hp = frG.maxhp; delete frG.hang; frG.conds = {};
+      var inGuard = D.grid.dist(stG, frG) <= 30, inReach = D.grid.dist(hvG, frG) <= 15;
+      D.rules.startTurn(hvG); Bg.active = hvG; var n0H = (Bg.log || []).length; runF(D.ai.turn(Bg, hvG)); var lgH = (Bg.log || []).slice(n0H).join(' | ');
+      gone.forEach(function (u) { u.dead = false; });
+      // g. a body on the lip square over a clinger's climb blocks the climb on there (10-05 night, his play: Steinarr stepped onto Barley's square): Steinarr 12.5 ft below the lip, his face
+      // square (20,15) taken -- he climbs on beside it if his 3x3 fits, else he clings where he is; never onto the one who stands there
+      gone.forEach(function (u) { if (u !== hvG) u.dead = true; }); hvG.dead = true;
+      stG.x = 19; stG.y = 16; stG.hang = { face: [20, 15], foot: [19, 16], z: 13 * stepG }; stG.conds = {}; frG.x = 20; frG.y = 15; delete frG.hang; frG.conds = {};
+      D.rules.startTurn(stG); Bg.active = stG; var n0B = (Bg.log || []).length; runF(D.ai.turn(Bg, stG)); var lgB = (Bg.log || []).slice(n0B).join(' | ');
+      var ovB = D.grid.foot(stG).some(function (p) { return p[0] === frG.x && p[1] === frG.y; }) && D.grid.sharesZ(stG, { z: D.grid.gzAt(frG, frG.x, frG.y), h: D.grid.bodyH(frG) });
+      gone.forEach(function (u) { u.dead = false; }); hvG.dead = false;
+      okF('Steinarr below the lip, ' + frG.name + ' on his face square: never onto ' + frG.name + ' -- his body over that square ' + ovB + ', at (' + stG.x + ',' + stG.y + ') hanging ' + D.grid.hanging(stG) + ' -- ' + lgB.slice(0, 200), !ovB);
+      okF('Hallvor at the foot of the face, ' + frG.name + ' within 30 ft of Steinarr ' + inGuard + ' and in her reach ' + inReach + ': she climbs -- on the face ' + !!(hvG.hang && D.grid.hanging(hvG)) + ' at ' + (D.grid.gzAt(hvG, hvG.x, hvG.y) / stepG * 2.5) + ' ft, no rock ' + !/Rock/.test(lgH) + ' -- ' + lgH.slice(0, 200), inGuard && inReach && D.grid.gzAt(hvG, hvG.x, hvG.y) >= 6 * stepG && !/Rock/.test(lgH) && /digs|climbs/.test(lgH));
     } catch (eF) { repF.errors.push(String(eF && eF.stack || eF).slice(0, 900)); }
     D.d = d0F;
     if (errs.length) repF.errors = repF.errors.concat(errs);

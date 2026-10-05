@@ -81,7 +81,10 @@
     // webbed ones)"): it holds the face and moves along it to their height instead (alongFace), and the turn goes on from there -- the bite
     var preyH = u.hang && u.hang.face && G.hanging(u) && u.huntsClimbers && u.climbs ? prey(B, u, true) : null;
     if (preyH) { yield* alongFace(B, u, preyH); if (u.dead || u.hp <= 0) return; }
-    else if (u.hang && u.hang.face && G.hanging(u)) { if (u.hang.down) yield* climbRest(B, u); else yield* B.moveAlong(u, [u.hang.face], { spend: true }); if (u.hang && G.hanging(u)) { yield 20; return; } } // (down: the rest of the way down, ai.js climbRest -- 10-05 night)
+    // (the climb on only where its body may stand: its face square, else one beside it at the lip it can stand on -- else it hangs where it is, the turn spent. 10-05 night, his play: Barley on
+    // the lip square over Steinarr's climb, and Steinarr stepped onto it anyway, his body over Barley's -- moveAlong takes the square it is handed. Griz: "i think the people on the ledge
+    // successfully block Steinerrs climb"; SRD 5.1: you may move through a hostile creature's space two sizes from yours, but not end your move in it)
+    else if (u.hang && u.hang.face && G.hanging(u)) { if (u.hang.down) yield* climbRest(B, u); else { var onSq = climbOnSq(u); if (onSq) yield* B.moveAlong(u, [onSq], { spend: true }); else { B.card(['{r}' + the(B, u) + '{/} clings below the lip: someone stands where it would climb on.'], 200); yield 12; } } if (u.hang && G.hanging(u)) { yield 20; return; } } // (down: the rest of the way down, ai.js climbRest -- 10-05 night)
     // the clacker strikes its hooks together as its turn begins, the clacking that is their speech (10-01, Griz's sheet's CLACK row;
     // data/foes.js clacker): the row plays once (js/ui.js), a clack on each strike, then the turn
     if (u.kind && D.FOES[u.kind] && D.FOES[u.kind].clacks && !u.conds.banished) {
@@ -835,6 +838,13 @@
   function prey(B, u, near) { var c = climbersOf(B, u); if (near) c = c.filter(function (w) { return acrossFt(u, w) <= 5; }); return c[0] || null; }
   function climbBudget(u) { var T = u.turn; return Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5; }
   function spendClimb(u, ft) { var T = u.turn; T.move -= ft; T.moved = (T.moved || 0) + ft; if (T.climbLeft != null) T.climbLeft = Math.max(0, T.climbLeft - ft); }
+  // where a clinger may climb on (AI.turn): its face square if its body may stand there, else the nearest square beside it at the lip (G.climbOn) that it may stand on, else null
+  function climbOnSq(u) {
+    var f = u.hang.face; if (G.canStand(u, f[0], f[1])) return f;
+    var best = null, bd = 1e9;
+    for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) { var x = f[0] + dx, y = f[1] + dy; if ((!dx && !dy) || !G.climbOn(u, x, y) || !G.canStand(u, x, y)) continue; var d = Math.abs(dx) + Math.abs(dy); if (d < bd) { bd = d; best = [x, y]; } }
+    return best;
+  }
   function groundUnder(u, x, y) { var z = 0; G.foot(u, x, y).forEach(function (p) { z = Math.max(z, G.map.gz(p[0], p[1])); }); return z; }
   // the rest of the way down a face it clung to part way (battle.js moveAlong, `down`): the turn's climb, to the ground if it pays -- it stands at its foot square, no fall -- else to a
   // lower 5 ft mark; the ground taken by another, it waits at 5 ft
@@ -993,7 +1003,10 @@
       var onLevel = u.streetFirst ? hs.filter(function (w) { return !w.object && Math.abs(G.gzAt(w, w.x, w.y) - zU) <= stM && !(w.conds && w.conds.hidden) && D.magic.sees(B, u, w); }) : [];
       // the roof first (a fight's foe `roofGuard`: Hallvör -- 10-05, Griz: "send her to the roof as primary goal, ignore glass protect male?"): she climbs for the glass's roof and never
       // strikes the glass (noGlass, below); up there whoever stands on the roof is hers, and with nobody up there she holds it; below it the glass is only her road, anyone in reach hers on the way
-      if (u.roofGuard && msn) { var zR = G.gzAt(msn, msn.x, msn.y), upR = zU >= zR - stM; hs = upR ? hs.filter(function (w) { return !w.object && Math.abs(G.gzAt(w, w.x, w.y) - zR) <= stM; }) : [msn].concat(hs.filter(function (w) { return !w.object && G.dist(u, w) <= rchM; })); }
+      // (below it, since 10-05 night, the glass alone is her road: she climbs, and only after the move does anyone in her reach take her blows -- the brute's own pool; her guard of him
+      // waits till she is up (roofClimb, below). Griz, his play: "lady giant didn't really climb" -- "she threw a rock down at the village men": the guard had made one of Bloodsnout's four,
+      // within 30 ft of Steinarr on the face, her target, and anyone beside her kept her on the street)
+      if (u.roofGuard && msn) { var zR = G.gzAt(msn, msn.x, msn.y), upR = zU >= zR - stM, roofClimb = !upR; hs = upR ? hs.filter(function (w) { return !w.object && Math.abs(G.gzAt(w, w.x, w.y) - zR) <= stM; }) : [msn]; }
       else if (onLevel.length) hs = onLevel;
       else if (msn && !hs.some(function (w) { return !w.object && G.dist(u, w) <= rchM; })) hs = [msn]; else if (msn) hs = hs.filter(function (w) { return !w.object; }).concat([msn]);
     }
@@ -1001,7 +1014,7 @@
     // him"): the glass whoever stands in its reach -- no rock thrown, no blow or opportunity attack at anyone (below; battle.js moveAlong) -- and those set to guard it (`guard`, its id)
     // go for whoever comes within 30 ft of it, the nearest to it first, while it stands; with no one near it, or one of ours in their own reach, the mission as above
     if (!grudge && u.missionOnly && u.mission) { var msO = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); })[0]; hs = msO ? [msO] : []; }
-    if (!grudge && u.guard) {
+    if (!grudge && u.guard && !roofClimb) { // (not while the roof guard is still below the roof: the climb first -- 10-05 night)
       var ward = B.units.filter(function (w) { return w.id === u.guard && G.standing(w); })[0];
       var thr = ward ? heroes(B, u).filter(function (w) { return !w.object && G.dist(ward, w) <= 30; }).sort(function (a, b) { return G.dist(ward, a) - G.dist(ward, b); }) : [];
       if (thr.length && !hs.some(function (w) { return !w.object && G.dist(u, w) <= reachOf(u, hs); })) hs = [thr[0]];

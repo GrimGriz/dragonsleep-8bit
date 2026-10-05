@@ -768,7 +768,9 @@
     // entry into the dwarven place and this is a defend mission"): the map's `skylight` stands on the field as a thing of the party's side -- AC, hit points, a damage threshold, resistance
     // to everything (hurt) -- no turn of its own, no square to stand on; every foe's mission (ai.js brute); broken, the fight is lost (over)
     if (this.fight && this.fight.defend && this.map && this.map.def && this.map.def.skylight) {
-      var skd = this.map.def.skylight, sky = { id: 'skylight', name: skd.name || 'the skylight', kind: 'object', object: true, breachLoses: true, side: 'party', x: skd.at[0], y: skd.at[1], size: 1, hp: skd.hp || 120, maxhp: skd.hp || 120, ac: skd.ac || 13, threshold: skd.threshold || 0, resistAll: true, immune: ['poison', 'psychic'], condImmune: { all: true }, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, saves: {}, conds: {}, attacks: {}, speed: 0, initRoll: -99, lvl: 1, prof: 0, sheet: null, facing: 0 };
+      // (spellProof: no spell aimed at it takes it, whatever its words say of objects -- Shatter's area alone reaches it, magic.js area. 10-05 night, Griz: "we got 1 thunder spell
+      // that's AoE should damage - and as far as I know, we're not letting other ones impact it"; before, "SRD only shatter is even nicer")
+      var skd = this.map.def.skylight, sky = { id: 'skylight', name: skd.name || 'the skylight', kind: 'object', object: true, spellProof: true, breachLoses: true, side: 'party', x: skd.at[0], y: skd.at[1], size: 1, hp: skd.hp || 120, maxhp: skd.hp || 120, ac: skd.ac || 13, threshold: skd.threshold || 0, resistAll: true, immune: ['poison', 'psychic'], condImmune: { all: true }, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, saves: {}, conds: {}, attacks: {}, speed: 0, initRoll: -99, lvl: 1, prof: 0, sheet: null, facing: 0 };
       this.units.push(sky); this.skylight = sky;
       this.units.forEach(function (w) { if (w.side === 'foe' && !w.free) w.mission = 'skylight'; }); // (a foe marked `free` has no mission: the Skylights' first two trolls, met in the street -- 10-05)
     }
