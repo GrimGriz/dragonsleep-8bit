@@ -1,51 +1,67 @@
 ---
-title: DEEP16 art wanted -- the generated sheets, in order
-made: 2026-09-28 (Code tab), for Griz's free GPT / Grok image runs, planned at two a day
-updated: 2026-10-01 (Code tab) -- the IN HAND list added at the top, the creatures already in moved off the wanted list (a Cowork seat reading the old file took the landlord for still wanted; it has been on the grid since 09-29), the days renumbered
-how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop what comes back in the repo root (any name; say which creature) and the seat files it in `deep16/_src/` as `<creature>_grok_N.png` (gitignored: that folder is where the generated sheets live; tester screenshots go in `deep16/_src/tester-feedback/`) and cuts it the chuul's way (pipeline 2: one `tools/<creature>-sheet.py` per creature)
+title: DEEP16 art wanted -- what is still a stand-in
+made: 2026-09-28 (Code tab), for Griz's free GPT / Grok image runs
+updated: 2026-10-05 (Code tab) -- rewritten on Griz's word ("we're pretty much done with that list"): the WANTED table is the Pocket DM's pot checked against the figures; everything finished is under IN HAND; the Keeper, rebuilt with a fight of his own, is in
+how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop what comes back in the repo root (any name; say which creature) and the seat files it in `deep16/_src/` as `<creature>_grok_N.png` (gitignored; tester screenshots go in `deep16/_src/tester-feedback/`) and cuts it the chuul's way (pipeline 2: one `tools/<creature>-sheet.py` per creature). A free print model with a .blend goes through pipeline 1b instead: `deep16/blender-monsters.md`
 ---
 
 # DEEP16 art wanted
 
-**Read IN HAND first.** Everything on it is already cut and fighting on the grid: don't generate it again. A second sheet for one of them (idle variations, special moves) is welcome, never needed.
+Checked 10-05 against `deep16/data/foes.js` (the Pocket DM's pot: every foe but the story's named, the familiars and CR 0) and `tools/deep16-figures.json`. **Nothing here blocks anything**; the fights all play. These are looks, not needs.
+
+## WANTED (still a Quaternius stand-in, worst fit first)
+
+| creature | stand-in today | what it wants |
+|---|---|---|
+| the water elemental | **not a foe yet** | RULED 10-04 (Griz: "we're staying as close to the SRD as we can, immunity and a sheet"): a foe of its own with the SRD's condition immunities (prone among them) and its own sheet; Large, swim 90 ft., Whelm. The Keeper is immune to prone by the same ruling |
+| the spirit naga | a snake (`Snake_Angry`) | a human face on the serpent |
+| the gelatinous cube | the green Slime | a cube, see-through, with things inside |
+| the ochre jelly, the gray ooze, the black pudding | the same green Slime (three kinds that look identical) | each its own colour and shape: a jelly, a flat grey film, a black heap |
+| the gibbering mouther | the Pink Blob | a mound of mouths and eyes |
+| the earth elemental | the Blue Demon | a heap of rock and earth |
+| the ettin | the Orc Skull | two heads |
+| the ogre | the Orc | an ogre of its own, not an orc recolour |
+| the bugbear chief, the bugbear (they share the chief's sheet) | the Monkroose | a bugbear: hairy, long-armed, goblinoid |
+| the hobgoblin, the hobgoblin sergeant | the Orc / the Orc Skull | red-faced, disciplined, armoured |
+| the grimlock | the Ninja | blind, grey, toothy |
+| the axe beak | the Birb | a tall flightless beak |
+| the darkmantle | the Glub (hand-built; the SRD attach needed it) | a real sheet, or the Blender recipe |
+
+Any of them goes first to a free printable with a .blend (`deep16/blender-monsters.md`), second to a generated sheet. A second sheet for something already in hand (idle variations, special moves) is welcome, never needed.
 
 ## IN HAND (on the grid; don't regenerate)
 
-| creature | sheets | cut by | in since | prone |
+| creature | what is in | cut by | in since | prone |
 |---|---|---|---|---|
-| the chuul | 2 | `tools/chuul-sheet.py` | 09-27 | someday |
+| the chuul | 2 sheets | `tools/chuul-sheet.py` | 09-27 | someday |
 | the crawler (the Warrens' herd) | 1 | `tools/crawler-sheet.py` | 09-27 | someday |
-| the gnolls (and the Snoot's glory-seekers) | 2: the second gives the PRONE and LAUGH rows (10-02) | `tools/gnoll-sheet.py` | 09-28, 10-02 | a `prone` row of its own: Fall / Get Up 8, 7, 6, 5 (down onto its hands and flat; up by the sheet's own get-up); while it laughs, the LAUGH row (grimoire.js M.LAUGH) |
+| the gnolls (and the Snoot's glory-seekers) | 2: the second gives PRONE and LAUGH rows | `tools/gnoll-sheet.py` | 09-28, 10-02 | its own row |
 | the cloaker (and its close-up) | 3 | `tools/cloaker-sheet.py` | 09-29 | -- (it flies) |
-| the ettercap | 3: the third is the sitting-and-braiding idle, 09-30 (on the grid it braids till it acts or is hurt; on the 8-bit map it sits braiding at the strung end of Web Gulch) | `tools/ettercap-sheet.py` | 09-29, 09-30 | someday |
-| **the otyugh -- the landlord** | 1 | `tools/otyugh-sheet.py` | 09-29 | someday |
-| the hyena | 2: the second gives the ROFL row (Hideous Laughter) | `tools/hyena-sheet.py` | 09-29, 09-30 | the ROFL row, while it laughs; else someday |
+| the ettercap | 3 (the third: the sitting-and-braiding idle) | `tools/ettercap-sheet.py` | 09-29, 09-30 | someday |
+| the otyugh, the landlord | 1 | `tools/otyugh-sheet.py` | 09-29 | someday |
+| the hyena | 2 (the second: the ROFL row) | `tools/hyena-sheet.py` | 09-29, 09-30 | the ROFL row |
 | the bulette | 2 | `tools/bulette-sheet.py` | 09-29 | someday |
 | the owls, brown and snowy (Find Familiar) | 2 each | `tools/owl-sheet.py` | 09-29 | someday |
-| the giant boar | 1 of 2 ("WILD BOAR ... (1/2) - MOVEMENT & CORE"; it replaces the stand-in bull that charged backwards) | `tools/boar-sheet.py` | 09-30 | someday |
-| **the landlord's five pictures** (the Wet's telepathy: the bucket, the fall, the crook, the clackers, the chimney) | 5 stills, his from `dev/visions/` | `tools/visions.py` | 10-01 | -- |
-| **the clacker** (the realm's hook horror; the Q2 head below) | 2 from Grok (`clacker_grok_2`: idle, walk, clack, hurt, death, the turnaround; `clacker_grok_3`: the hook that replaces the sheet's own). The first, GPT's, retired: "they 'hook' with their noses by the noses growing :) also their arms are all akilter" | `tools/clacker-sheet.py` | 10-01 | someday |
-| **the xorn** -- the first Blender monster (pipeline 1b) | MZ4250's printable Xorn (CC BY), rigged and posed in Blender: 11 rows -- idle, walk, a claw from each arm, bite, sink, rise, flinch, death (its `attack` row, never played, off the sheet 10-02; its frames kept) | `tools/xorn-blend.py`, then `render-sprites.py` | 10-01 | its own row (10-02): its first death, over onto its back -- the sink read as going under |
-| **the roper** -- pipeline 1b's second | MZ4250's Roper 2025 (CC BY-SA): idle, creep, a lash from each of four tendrils, reel, bite, flinch, death, still, reveal | `tools/roper-blend.py` | 10-01 | its own row (10-02): tipped back about its foot, the tendrils flailing |
-| **the grick** -- pipeline 1b's third, on the artist's own rig | MZ4250's Grick Updated (CC BY): idle, walk (a step or two, coiled) and slither (three squares and more, laid flat), tentacles, beak, flinch, death, still (Stone Camouflage), reveal; the den's brown stone, in `S.STONE` | `tools/grick-blend.py` | 10-02 | frame 3 of its death: laid flat, alive |
-| **the troll** -- pipeline 1b's fourth, on the artist's own rig (a biped) | MZ4250's Troll Updated (CC BY): idle, walk, claw from each arm, bite, flinch, death (buckles, falls on its face), prone (over on its back); the Quaternius Yeti stood in till 10-04 | `tools/troll-blend.py` | 10-04 | its own row: knocked over on its back |
-| **the stone giant** -- pipeline 1b's fifth, a skeleton fitted from the artist's weight groups; **two looks** (the camp's giant one of them at random) | MZ4250's female Stone Giant (thing:4157322, CC BY): idle, walk, greatclub (an overhead smash), greatclub2 (a flat sweep), rock (thrown from her left hand), flinch, hurt (on her face), prone (on her back); Griz's poser frames in greatclub, prone and hurt; the Quaternius BlueDemon stood in till 10-04. Off the wanted list on his word (10-04, after the test ground: *"1 she's off"*). **The male** (`stonegiantm_p1`, foe kind `stonegiantm`, the same block): the same listing's male sculpt, the spiked club in both hands; the same rows; in hand on his word (10-04: *"he's marked as in hand"*) | `tools/stonegiant-blend.py`, `tools/stonegiantm-blend.py` | 10-04 | its own row: over on its back |
+| the giant boar | 1 of 2 (the first has every row the grid plays) | `tools/boar-sheet.py` | 09-30 | someday |
+| the landlord's five pictures (the Wet's telepathy) | 5 stills from `dev/visions/` | `tools/visions.py` | 10-01 | -- |
+| the clacker | 2 from Grok (`clacker_grok_2`, `clacker_grok_3` for the hook); GPT's first retired | `tools/clacker-sheet.py` | 10-01 | someday |
+| the xorn (pipeline 1b's first) | MZ4250's Xorn, 11 rows | `tools/xorn-blend.py` | 10-01 | its own row |
+| the roper (1b's second) | MZ4250's Roper 2025; still and reveal rows | `tools/roper-blend.py` | 10-01 | its own row |
+| the grick (1b's third) | MZ4250's Grick on its own rig; walk and slither, still, reveal | `tools/grick-blend.py` | 10-02 | frame 3 of its death |
+| the troll (1b's fourth) | MZ4250's Troll Updated, a biped on its own rig | `tools/troll-blend.py` | 10-04 | its own row |
+| the stone giants, her and him (1b's fifth; two looks, one at random) | MZ4250's female and male Stone Giant (thing:4157322, CC BY): idle, walk, greatclub, greatclub2, rock, flinch, hurt, prone; Griz's poser frames in greatclub, prone and hurt | `tools/stonegiant-blend.py`, `tools/stonegiantm-blend.py` | 10-04 | its own row |
+| the duergar (an LPC grey dwarf, not generated) | `duergar_full` composed, squashed to a dwarf's build: idle, walk, war-pick swing, hurt, cast (Enlarge, Invisibility) | `tools/lpc-compose.py`, `lpc-squash.py`, `pixelate.py p0` | 10-04 | the LPC fall row |
+| **the Keeper** (the flooded stair; a fight of his own) | a generated sheet, `keeper_p2` (`keeperold`, `keeper_p1`, is the ladder's old one) | -- | 10-04 | immune to prone (SRD) |
 
-| **the duergar** -- an LPC grey dwarf, not generated (10-04, Griz: "do the duergar") | `duergar_full` composed, squashed to a dwarf's build, pixelated: idle, walk, war-pick swing, hurt, cast (Enlarge, Invisibility) | `tools/lpc-compose.py`, `lpc-squash.py`, `pixelate.py p0` | 10-04 | the LPC fall row, frame 4, like every `_p0` figure |
+**The Edifice story battle (10-05, being built):** its band is the troll and/or the stone giants, both in hand with climb rows (3210a68); the party and Pyro are LPC. No art is wanted for it. If a boss wants a look of its own, it goes on the WANTED table.
 
-**Prone (10-01b).** Griz: *"Seems like we don't have prone for all the pretty characters we've made (and I guess we'd need at least 1 other frame for getting up from prone)"* -- *"The column for 'art someday' is appropriate if not and in other/monster cases."* The LPC figures (the heroes, Ingrith, the guests, every class NPC: the `_p0` sheets) have it already: their fall row's frame before last, on hands and knees, held while prone, and the row played back to get up (`deep16/js/sprites.js` S.proneFrame). The generated sheets' death rows end dead, so they stand while prone until a sheet brings a row for it; the Blender stand-ins (`_p1`) wait for their generated sheets. When a sheet for one of these is made again, or a new head is written, add this row to it: *"PRONE: knocked flat but alive and struggling, 2 frames: lying on the ground, then pushing itself up."* A sheet that brings it is cut into `S.PRONE` (one line) and the column says so.
+Not done on the stone giant: **Catch Rock** waits with her Rock Catching (Griz, 10-04: "register now"); nothing in the game can hurl a rock at her yet (`..\handoff-2026-10-04-the-grids-rules.md` 2.7). Not done on the troll: a Regrow row.
 
-**Special moves before detailed attacks (10-01d).** Griz: *"It's important for us to do the special move ones - like burrow and Earth Glide more than detailed attacks, but since this is prototype, go fancy"*. Today the grid plays one `attack` row for every swing (`deep16/js/battle.js` picks `cast` or `attack`), and no creature goes under or comes up on screen (the bulette's Burrow row is cut and shelved, its Emerge kept as `reveal`; foes.js marks its burrow "not read"). So a row for a special move (going under, coming up) outranks a second attack row, and the hook that plays it serves the xorn's Earth Glide and the bulette's burrow both. The xorn, the Blender prototype, gets both: a row per attack (claw, bite) and the special moves.
+**The prone column (10-01b).** The LPC figures (the heroes, Ingrith, the guests, every class NPC, the duergar: the `_p0` sheets) have prone already: the fall row's frame before last, held while prone, played back to get up (`deep16/js/sprites.js` S.proneFrame). A generated sheet's death row ends dead, so it stands while prone until a sheet brings a row for it. When a sheet is made again, ask for: *"PRONE: knocked flat but alive and struggling, 2 frames: lying on the ground, then pushing itself up."* A sheet that brings it is cut into `S.PRONE` (one line).
 
-**The xorn (10-01d).** **10-01d: two generated sheets in, both off-model** (`dev/visions/xorn1.jpg`: the mouth on its face, two arms, two legs; `xorn2.jpg`: one eye, no arms). **Trying Blender instead:** MZ4250's Xorn, CC BY 4.0, ships its Blender sources (https://www.thingiverse.com/thing:2847683 -- `Xorn_Updated.blend`, `Xorn_Updated_sculpted.blend`; Thingiverse refuses scripted downloads, so Griz fetches them into `deep16/_src/xorn/`). Griz: *"only seeing it in a game-combat test room pulls it off the wanted list"*. The still test (`dev/visions/xorn-mz4250-still-test.png`): the anatomy right in all eight facings, the colour pale and flat; *"gotta prove we can get the image coloring/lighting right first"* -- a Sonnet runner's look variants go to `dev/visions/xorn-look-variants.png` before any rig. The poser (a clay-and-wire page to pose a rigged model by hand) waits: *"we'll build it if we ever get a monster i'm super fond of and ... it's too challenging for me to communicate an articulation I think would look good"*; till then the seat scripts the poses. **Built the same day (10-01d):** his pick "17" (*"but go back to unpainted mouth"*), `xorn_p1` from `tools/xorn-blend.py`, eleven rows -- idle, walk, a claw from each of its three arms, the bite, sink and rise (Earth Glide: no mound, it is simply gone), flinch, the death (it settles half into the floor, arms drooping -- his ask after his own fight; prone at its frame 3); the grid plays a row per blow and the burrow (js/ai.js burrower). **Off the wanted list on his word after his own fight** (*"you can do the remove from list, it'll be done when we're finished"*); the test room: `deep16/?npc=xorn,xorn&lvl=8&map=seamwall` (`&watch` to watch both sides). The recipe for the next one: `deep16/blender-monsters.md`.
+**Special moves before detailed attacks (10-01d).** Griz: *"It's important for us to do the special move ones - like burrow and Earth Glide more than detailed attacks"*. A row for a special move (going under, coming up, a hide's reveal) outranks a second attack row; the grid has the hooks (js/ai.js burrower, still and reveal).
 
-**The roper (10-01e).** One generated sheet (`dev/visions/roper.jpg`) was off-model: its Creep row is a crawling crab. Pipeline 1b took MZ4250's "Roper 2025" (Thingiverse 7410664, CC BY-SA), which Griz fetched: *"grabbed a different one that has a .blend - roper 2025 if that's more convenient"*. It's a printer's kit: the body with six sockets, one loose tendril, and the roper hiding as a plain stalagmite. `tools/roper-blend.py` builds `roper_p1` from it: idle (the tendrils coiled about its foot), creep, a lash from each of four tendrils (the SRD's four: the top pair, then the middle pair), reel, bite (the bend through the maw brings the upper jaw down), flinch, death (slack, sinking; prone at frame 3), **still** (the stalagmite: the grid shows it till its first turn or a wound) and **reveal** (the eye opens, the tendrils come out; `js/ai.js` plays it before its first act). The stone: "fork", as the Fork's own stalagmites are drawn (*"Brown live is good"*; grey and slate are in `dev/visions/roper-looks.png`). **Off the wanted list on his word after his own fight** (*"ran into it in the group tab, off the list :)"*); the test room: `deep16/?npc=roper&lvl=6&map=roperfork&watch`.
-
-**The grick (10-02).** Pipeline 1b's third, from MZ4250's "Grick Updated" (Thingiverse 4738607, CC BY), which Griz fetched: the first zip to ship the artist's own rig and pose, so the rows are bends on the miniature's own coil (`tools/grick-blend.py`). `grick_p1`: idle, walk (a wave back through the coil), `tentacles` (it rears, the four splayed, then lunges and they close), `beak` (holding, it gapes and snaps), flinch, death (the neck falls forward; prone at frame 3), **still** (Stone Camouflage: coiled low, the head down; the grid shows it till its first turn or a wound) and **reveal**. His picks from `dev/visions/grick-looks.png`: the lift off (*"i like 'green no-lift'"*), the hide the den's own brown stone (*"The SRD says stone camoflague, which means we probably go with brown given the existing maps, I'm pretty sure it's not worth getting fancy and having a green one turn brown when it goes stealth"* -- so `S.STONE`, as the roper: a map that names its stone draws it in that), the beak *"pale"*. The test room: `deep16/?npc=grick,grick,grick&lvl=5&map=grickden&watch`. **Then the test ground (10-02, his ask):** `deep16/?show=grick` -- two gricks in bright, dim and dark on slate, four watchers by different eyes, every row twice (`deep16/js/show.js`; the recipe's step 12). The walk redone the same night: *"I just thought they'd flatten out more snake-like when they were moving"* -- laid flat and slithering (`dev/visions/grick-walk.png`); then *"can we do the old one for 1-2 squares and the new if they're going 3 squares or more"* -- two gaits, `walk` and `slither` (`js/battle.js` moveAlong picks by the move's length). The prone frame, after his *"make sure if it can be prone it looks prone when it is"*: the death row's first cut kept the coil's hump (a slump, not a creature down); now it lays the neck along the ground by frame 3, alive, then goes slack (`dev/visions/grick-prone.png` is the old one). **Off the wanted list on his word** (*"it does, looks great"*, of the test ground).
-
-Still wanted below: four creatures (the Keeper first).
-
-What the cutter needs from a sheet (the gnoll sheets were right): a turnaround of stills (front, right, back, left), then rows of frames all facing right in side view; every frame apart from its neighbours; one scale for the whole sheet. Colour needn't be exact: every sheet is regraded and snapped to DEEP16's 64 colours. (The boar sheet drew its lower rows smaller than its walk; the cutter evens that out, but one scale is still best.)
+What the cutter needs from a sheet (the gnoll sheets were right): a turnaround of stills (front, right, back, left), then rows of frames all facing right in side view; every frame apart from its neighbours; one scale for the whole sheet.
 
 ---
 
@@ -55,45 +71,17 @@ What the cutter needs from a sheet (the gnoll sheets were right): a turnaround o
 
 ---
 
-The order is the story fights first, worst stand-in first: a creature drawn today as some other model (the xorn, a green blob till 10-01d, the roper, a cactus till 10-01e, and the grick, a squid till 10-02, are in hand). Two a day. Canon notes are from the wiki and the monster records; the look past them is SRD-plain.
-
-## Day 2
-
-### 3. The grick (the gricks' den)
-
-IN HAND 10-02 (pipeline 1b: above). The head is kept for a re-roll.
+## Heads kept for a re-roll (all IN HAND above)
 
 HEAD: GRICK -- the dwarven road. A thick worm-like body with rubbery grey-green hide, the head a sharp beak ringed by four tentacles. It rears up from a coil to strike. Rows: Idle (coiled, 8), Slither (8), Attack (rears, tentacles then beak, 8), Hurt (6), Death (8).
 
-### 4. The Keeper (the wall's keeper, the flooded stair)
-
-Stands in as a snake today. A water weird, bound by the dwarves to guard the stair: it cannot leave its water, and it can't be seen in the water till light shows it.
-
 HEAD: THE KEEPER (a serpent of living water) -- the flooded dwarven stair. A serpent made of clear blue-green water with a faint face in it, rising out of a pool on a worn stone stair. Every frame rises out of the same pool surface. Rows: Hidden (only ripples on the pool, 6), Rise (8), Idle (8), Strike (8), Constrict (coils round a shape and drags it under, 8), Hurt (a burst of spray, 6), Death (falls back into the pool, 8).
-
-## Day 3
-
-### 5. The duergar (the giant's camp; three to a fight)
-
-IN HAND 10-04 as an LPC figure (`duergar_p0`: prone and a cast row come with it). A generated sheet is welcome, never needed; the head is kept.
 
 HEAD: DUERGAR (grey dwarves) -- the deep. Bald grey-skinned dwarves with pale eyes, dark iron scale armour, a war pick and javelins. Rows: Idle (8), Walk (8), Attack (war pick, 8), Throw (javelin, 6), Enlarge (grows to twice his height, 6), Fade (turns invisible, 6), Hurt (6), Death (8).
 
-### 6. The troll (leg four: the troll pack)
-
-IN HAND 10-04 (pipeline 1b: above). The head is kept for a re-roll; a Regrow row (a wound closing) was not made.
-
 HEAD: TROLL -- the dwarven road. Tall and lanky, rubbery green hide, long arms dragging clawed hands, a long nose, lank dark hair. Large. Rows: Idle (8), Walk (8), Claws (8), Bite (6), Regrow (a wound closing, 6), Hurt (6), Death (burning, 8).
 
-## Day 4
-
-### 7. The stone giant (the giant's camp, with the duergar)
-
-A blue demon today.
-
 HEAD: STONE GIANT -- the deep. Lean and hairless, grey skin like carved stone, heavy brow. Huge: much taller than a man. Rows: Idle (8), Walk (8), Club (8), Throw Rock (8), Catch Rock (6), Hurt (6), Death (8).
-
-IN HAND 10-04 (pipeline 1b: above; off the list on his word, *"1 she's off"*). The head is kept for a re-roll; the rows the engine plays: idle, walk, greatclub, greatclub2, rock, flinch, hurt, prone. **Catch Rock waits** with her Rock Catching (Griz, 10-04: *"register now"*): nothing in the game can hurl a rock at her yet (`..\handoff-2026-10-04-the-grids-rules.md` §2.7).
 
 ---
 
@@ -129,20 +117,6 @@ HEAD: THE CLACKERS -- two tall hunched hook horrors in near darkness: vulture-li
 HEAD: THE CHIMNEY -- a narrow natural rock chimney seen from below, rising into darkness, filled with a spiral of thousands of bats streaming upward; a thin shaft of grey light far above.
 
 ---
-
-## Later (the ladder's bestiary rungs, no story fight yet)
-
-Each wants the same shape; a head drafted when its day comes. Worst fits first:
-- the ettin (two heads; an orc recoloured today)
-- the gibbering mouther (a pink blob today)
-- the gelatinous cube (a slime today: it wants to be a cube, see-through, with things inside)
-- the darkmantle (the roof-killers of the guano galleries)
-- the spirit naga (a snake today: it wants a human face)
-- the earth elemental (a blue demon today)
-- the water elemental (none on the grid yet; the Keeper's snake stood in for the idea): RULED 10-04 (Griz: "we're staying as close to the SRD as we can, immunity and a sheet") -- a foe of its own with the SRD's condition immunities (prone among them) and a sheet of its own: Large, swim 90 ft., Whelm. The Keeper is immune to prone by the same ruling (built 10-04)
-- the bugbear chief, the ogre (a monkey and an orc today)
-- the hobgoblin, the grimlock, the axe beak
-- the boar's second sheet, if it comes (its title says 1/2): welcome, not needed -- the first has every row the grid plays
 
 ---
 
