@@ -210,11 +210,11 @@
             var fx0 = right ? ox + k : ox - HW + k;
             var ytop = right ? oy + HH - Math.floor(k / 2) : oy + Math.floor(k / 2);
             for (var j = 0; j < drop; j++) {
-              if (spoutF && j < spoutF + 7) { // the fountain's spout: a dark hole flush in the face at its height, the water below it in a narrow fall to the pool
-                var hr = Math.hypot(k - 16, (j - spoutF) * 1.0), inHole = hr < 6, onRim = hr >= 6 && hr < 7.5;
+              if (spoutF && j > drop - spoutF - 8) { // the fountain's spout: a dark hole flush in the face at its height over the floor (j runs down from the face's top, so the hole is at drop - spoutF), the water below it in a narrow fall to the pool (10-05: it had counted from the top -- the hole near the roof, the water running up to it)
+                var jH = drop - spoutF, hr = Math.hypot(k - 16, j - jH), inHole = hr < 6, onRim = hr >= 6 && hr < 7.5;
                 if (inHole) { put(fx0, ytop + j, stone[0]); continue; }
                 if (onRim) { put(fx0, ytop + j, silver[3]); continue; }
-                if (j < spoutF && k >= 11 && k <= 21) { var strkS = vnoise(k * 0.9 + s.x * 13, (ytop + j) * 0.05, seed + 5), wvS = 0.5 + (strkS - 0.5) * 0.9, wcS = rampPick(blue, D.clamp(wvS, 0, 0.99), fx0, ytop + j); if (j < 6 && dith(fx0, ytop + j) < (6 - j) / 7) wcS = silver[5]; else if (wvS > 0.74 || k === 11 || k === 21) wcS = silver[4]; put(fx0, ytop + j, wcS); continue; }
+                if (j > jH && k >= 11 && k <= 21) { var strkS = vnoise(k * 0.9 + s.x * 13, (ytop + j) * 0.05, seed + 5), wvS = 0.5 + (strkS - 0.5) * 0.9, wcS = rampPick(blue, D.clamp(wvS, 0, 0.99), fx0, ytop + j); if (j >= drop - 6 && dith(fx0, ytop + j) < (j - drop + 7) / 7) wcS = silver[5]; else if (wvS > 0.74 || k === 11 || k === 21) wcS = silver[4]; put(fx0, ytop + j, wcS); continue; }
               }
               if (fallF) { // the water out of the arch's face, a tiny fall into the basin below (the back wall's falls are rockCanvas's)
                 var strkF = vnoise(k * 0.7 + s.x * 13, (ytop + j) * 0.05, seed + 5), wvF = 0.5 + (strkF - 0.5) * 0.9 + (vnoise(k * 2.1, (ytop + j) * 0.35, seed + 6) - 0.5) * 0.3, wcF = rampPick(blue, D.clamp(wvF, 0, 0.99), fx0, ytop + j);
