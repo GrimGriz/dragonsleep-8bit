@@ -21,7 +21,7 @@ stalagmites, cocoons and rubble are drawn in code (`deep16/js/iso.js`, `deep16/j
   The ladder's sheets (09-27, graded or recoloured per `tools/deep16-figures.json`): Easy Enemy Snake_Angry (`naga_p1`),
   Snake (`keeper_p1`), Spider (`wolfspider_p1`); Animated Monster Bat (`giantbat_p1`), Slime (`pudding_p1`, `puddingm_p1`,
   `ochrejelly_p1`, `ochrejellym_p1`, `grayooze_p1`); Animals Wolf (`worg_p1`), Husky (`hyena_p1`), Horse and Horse_White (`horse_p1`, `horsegrey_p1`: the wagon's team); Ultimate Monsters Big
-  Alien (`ettercap_p1`), BlueDemon (`stonegiant_p1`, `earthelemental_p1`), Cactoro (`roper_p1` till 10-01e), Dino (`bulette_p1`),
+  Alien (`ettercap_p1`), BlueDemon (`stonegiant_p1` till 10-04, `earthelemental_p1`), Cactoro (`roper_p1` till 10-01e), Dino (`bulette_p1`),
   Frog (`chuul_p1`), Monkroose (`bugbearchief_p1`), Orc (`hobgoblin_p1`), Orc_Skull (`hobsergeant_p1`), Tribal
   (`gnoll_p1`, `gloryseeker_p1`); Blob GreenSpikyBlob (`otyugh_p1`; `xorn_p1` till 10-01d); Flying Ghost (`cloaker_p1`), Glub
   (`darkmantle_p1`), Squidle (`grick_p1` till 10-02). KayKit Adventurers again for the people: Knight (`guard_p1`, `veteran_p1`),
@@ -56,6 +56,7 @@ The recipe: `deep16/blender-monsters.md`. Each model's files live in `deep16/_sr
   own rig, 65 bones and their weights, in the miniature's lunge). **Changed** by `tools/troll-blend.py` (10-04): the print base dropped, the rig
   re-origined on its foot, an Armature modifier ahead of the Subsurf, coloured (the green hide, the claws, the jaw), posed into rows in code
   (stood up from his lunge, the limbs placed by a two-bone solve on his rig), rendered in the toon look and snapped to the DEEP16 palette (`troll_p1`). His Patreon: https://www.patreon.com/mz4250.
+- **Stone Giant (female)** — **mz4250**, "Stone Giant Updated" (the listing carries the female club model), Thingiverse thing:4157322, https://www.thingiverse.com/thing:4157322 — licensed under **Creative Commons Attribution** (the download page's "Creative Commons - Attribution"). Used: `Stone_Giant_Female_Sculpted.blend` (a 327k-point sculpt of the giantess, her club, and 24 vertex groups; his armature in that file is not used). **Changed** by `tools/stonegiant-blend.py` (10-04): the print base dropped, a skeleton fitted from her weight groups and the weights spread over the points the sculpt's subdivision left bare, coloured (grey stone skin, leather, linen, the club's wood), posed into rows in code and on the poser page, rendered in the toon look and snapped to the DEEP16 palette (`stonegiant_p1`). His Patreon: https://www.patreon.com/mz4250.
 
 ## Pipeline 2 — generated (`denny_p2`, `chuul_p2`, `crawler_p2`, `gnoll_p2`, `gloryseeker_p2`, `cloaker_p2`, `ettercap_p2`, `otyugh_p2`, `hyena_p2`, `bulette_p2`, `owl_p2`, `snowyowl_p2`)
 

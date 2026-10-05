@@ -347,17 +347,28 @@
       }
     },
     "stonegiant": {
-      "_note": "the stone giant (SRD 5.1, Huge): Quaternius Big/BlueDemon (it carries its own club) turned to grey stone at three squares.",
-      "file": "quaternius/ultimate-monsters/Big/Blends/BlueDemon.blend",
-      "show": ["BlueDemon"],
-      "grade": { "hue": 0, "sat": 0.18, "val": 0.85 },
-      "size_squares": 3.0,
+      "_note": "the stone giant (SRD 5.1, Huge): MZ4250's printable Stone Giant, the female sculpt (Thingiverse; CC BY: deep16/CREDITS.md), fitted with a skeleton from her own weight groups and posed by tools/stonegiant-blend.py -- pipeline 1b's fifth, deep16/blender-monsters.md (10-04). The toon look, light 13, the lift on; grey stone skin, leather kilt, vest and bracers, linen leg wraps, the club of wood. size_by: the print base's disc, three squares. GREATCLUB an overhead smash, GREATCLUB2 a flat sweep, ROCK thrown overhand from her left hand (the engine draws the rock); PRONE over on her back, HURT the death, on her face. (Till then the Quaternius BlueDemon stood in.)",
+      "file": "stonegiant/stonegiant.blend",
+      "show": ["Giant_Body", "Giant_Club"],
+      "look": "toon:13",
+      "lift": true,
+      "lines": {"width": 1.0, "crease": 110},
+      "fit": true,
+      "size_squares": 3,
+      "size_by": ["Giant_Foot"],
       "yaw": 0,
       "anims": {
-        "idle": "Idle",
-        "attack": "Weapon",
-        "walk": "Walk"
-      }
+        "idle": "IDLE",
+        "walk": "WALK",
+        "greatclub": "GREATCLUB",
+        "greatclub2": "GREATCLUB2",
+        "rock": "ROCK",
+        "flinch": "FLINCH",
+        "hurt": "HURT",
+        "prone": "PRONE"
+      },
+      "frames": {"idle": 8, "walk": 8, "greatclub": 8, "greatclub2": 8, "rock": 8, "flinch": 5, "hurt": 8, "prone": 6},
+      "once": ["greatclub", "greatclub2", "rock", "flinch", "hurt", "prone"]
     },
     "giantbat": {
       "_note": "the giant bat (SRD 5.1, Large): Quaternius Animated Monsters Bat, at two squares; it flies all the time.",

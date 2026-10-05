@@ -191,6 +191,16 @@ Griz, 10-04, on the troll's second posing: *"that's so much better"*. The tools 
 - **Taking it back:** what he sets stays in that browser (localStorage) as `{row: {frame: P}}`. In the pane the seat reads it (`POSER.take()`); from his own browser, "download poses". Either way it becomes `tools/<creature>-poses.json` (tracked: his posing is source), the script's rows take those frames in place of their own (`R.with_edits`; `noedits=1` to build without them), then the usual render. A frame taken back poses the same in Blender as on the page (the troll's wrist, checked: the same to three decimals).
 - The page shows the base mesh, not the render's subdivided toon: the sprite sheet stays the judge.
 
+## A sculpt whose rig doesn't fit (the stone giant, 10-04)
+
+The fifth monster: MZ4250's female Stone Giant (Thingiverse thing:4157322, CC BY), `tools/stonegiant-blend.py`. The file's armature was a rest rig in another frame and pose (not parented, not used by any modifier), so the skeleton is **found from the mesh's own vertex groups** and the groups' names are kept, so the artist's weights apply unchanged. What to copy:
+- **A joint is the mean of the points that weight two neighbouring groups above 0.2** (Leg|Calf is the knee). `-- joints` prints them, `-- skin` lists points far from their bone, `-- bend` turns a few single bones and renders the sculpt flat: the proof the skinning holds before any row.
+- **Check how many points carry weights.** Only 53k of the 327k did (the sculpt's subdivision added the rest with none): unweighted points stay at rest and tear into shards. Spread the weights **along the mesh's edges, a ring at a time**, then smooth. Nearest-by-distance leaked: the kilt's fringe beside her fist took the forearm's weights.
+- **Gear in a fused sculpt** (kilt, wraps, vest, fur) is coloured by region masks in the rest pose; `gdiag=1` shows them. A first guess; his marks on a sprite sheet can correct it.
+- **A held weapon is its own object parented to a hand bone**, and the *fist's aim is the weapon's aim*: `clubaim()` finds the fist aim that points the club where a row says (a world vector), through the same turn `aim()` makes. Rows say where the club points, not where the fist does.
+- **A fall by gravity (`lie`) is not on the poser page.** `bake()` says the frame again as placed limbs (ankles, wrists, poles, the foot's yaw and pitch) so the page and its parity (1.6e-5) hold and every limb has handles. Seat the frame on the floor FIRST (`grounded(..., 'plant')`), then bake: placed ankles are world positions and do not follow a lift made afterwards.
+- Rows named for the attack: `greatclub`, `greatclub2`, `rock` (also in `pixelate.py` and `ui.js`'s play-once rule).
+
 ## What cost us a step (so it doesn't again)
 
 - **`EditBone.transform` re-rolls.** Turning the bones with it re-rolled them, and the artist's pose came out wild (the worm 4.7 squares tall). Set `eb.matrix = X @ eb.matrix` instead; it keeps head, direction and roll together.
