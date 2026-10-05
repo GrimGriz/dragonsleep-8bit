@@ -65,6 +65,23 @@
   };
   if (!SMART) return;
 
+  // ------------------------------------------------------------------ the day, prepared for this fight (the camp lets a player choose it: js/rules.js R.prepPool)
+  // (10-05, Griz: "adjust your aurdin\ly spell selection for the smart party if you think it would help them"): Aurdin's book holds Thunderwave -- a failed CON save pushes, and a
+  // pushed climber comes off the face with no hold to keep (magic.js M.push) -- and Burning Hands (fire, a troll's burn up close); Counterspell (no caster among them) and Shatter (the
+  // glass) are no use here. Lymen's default day (Bless, Aid, Cure Wounds, Shield of Faith, Divine Favor) is already the right one: Command wants a tongue the giants share, Magic
+  // Weapon gives a +1 blade nothing, Heroism's 2 a turn is small beside Bless
+  var DAY = ['mageArmor', 'shield', 'magicmissile', 'thunderwave', 'scorchingray', 'fireball', 'lightningbolt', 'icestorm', 'greaterinvisibility', 'burninghands', 'web', 'stinkingcloud'];
+  var fixture0 = D.save.fixture;
+  D.save.fixture = function () {
+    var d = fixture0.apply(this, arguments);
+    (d.party || []).forEach(function (h) {
+      if ((h.id || h.key) !== 'aurdin' || !h.prepared) return;
+      var pool = D.save.prepPool(h), n = D.save.prepCount(h);
+      h.prepared = DAY.filter(function (id) { return pool.indexOf(id) >= 0; }).slice(0, n);
+    });
+    return d;
+  };
+
   // ------------------------------------------------------------------ the field as the seat reads it
   function scan(B, u) {
     var S = { st: byId(B, 'giant2'), ha: byId(B, 'giant1') };
@@ -238,6 +255,7 @@
     var rm = G.reach(u, T.move), pick = null;
     downs.forEach(function (w) {
       if (lyCan(w)) return;
+      if (S.foes.some(function (f) { return !f.regenDown && !f.missionOnly && RU.canAct(f) && G.dist(f, w) <= G.reachOf(f); })) return; // (not into a brute's reach: the six HP go down again at its turn -- the 10-05 wipe fed Barley three potions)
       var e = G.dist(u, w) <= 5 ? { x: u.x, y: u.y, cost: 0, here: true } : AI.approach(u, w, rm, 5);
       if (e && G.dist(u, w, e.x, e.y) <= 5 && !underAt(S, e.x, e.y, 1) && (!pick || e.cost < pick.e.cost)) pick = { w: w, e: e };
     });
@@ -357,6 +375,18 @@
     var T = u.turn;
     if (!T.action || T.attacksLeft) return false;
     var pressed = S.foes.some(function (f) { return !f.regenDown && !f.missionOnly && RU.canAct(f) && G.dist(u, f) <= G.reachOf(f); });
+    // Thunderwave at a climber, walked to (the wave is a cube out from him): weighed against what he would cast from where he stands
+    var tw = wavePlans(B, u, S, pressed).sort(function (a, b) { return b.v - a.v; })[0]; // (pressed: from where he stands -- a step out of reach is a swing at him)
+    if (S.cling.length && entry(B, u, 'thunderwave')) say(B, 'Aurdin R' + B.round + ' wave: ' + (tw ? tw.why + ' ' + tw.v.toFixed(1) : 'none in reach (' + S.cling.map(function (c) { return c.name + '@' + c.x + ',' + c.y; }).join(' ') + '; he at ' + u.x + ',' + u.y + (pressed ? ', pressed' : '') + ')'));
+    if (tw) {
+      var here0 = aurdinPlans(B, u, S).sort(function (a, b) { return b.v - a.v; })[0];
+      if (!here0 || tw.v > here0.v) {
+        say(B, 'Aurdin R' + B.round + ': ' + tw.why + ' ' + tw.v.toFixed(1) + (here0 ? ' | over ' + here0.why + ' ' + here0.v.toFixed(1) : ''));
+        if (tw.e && !tw.e.here) { var rmW = G.reach(u, T.move), eW = rmW[tw.e.x + ',' + tw.e.y]; if (eW) yield* AI.walkTo(B, u, eW); }
+        if (u.dead || u.hp <= 0 || !T.action) return true;
+        if (u.x === tw.e.x && u.y === tw.e.y) { yield* B.exec(u, { do: 'cast', id: 'thunderwave', slot: tw.slot, target: tw.t }); return true; }
+      }
+    }
     if (!pressed && T.move > 0) yield* safeStep(B, u, S);
     if (u.dead || u.hp <= 0) return true;
     var plans = aurdinPlans(B, u, S).sort(function (a, b) { return b.v - a.v; });
@@ -389,16 +419,51 @@
   function* safeStep(B, u, S) {
     var anchor = S.st || S.foes.filter(function (f) { return !f.regenDown; })[0], tr = trollsOf(S).length;
     var eyes = function (x, y) { return tr ? trollsSeen(B, u, S, x, y, 60) : 0; }, seeHere = eyes(u.x, u.y);
-    var here = threatAt(B, u, S, u.x, u.y) + (underAt(S, u.x, u.y, u.size) ? 50 : 0) - seeHere * 3, best = null;
+    // (with Thunderwave in hand and Steinarr on the face: toward his wall, for next turn's wave -- worth some danger, not much)
+    var waveOn = !!(S.st && hanging(S.st) && entry(B, u, 'thunderwave')), pull = function (x, y) { return waveOn && nearCling(S, x, y, S.st) ? 15 : 0; };
+    var here = threatAt(B, u, S, u.x, u.y) + (underAt(S, u.x, u.y, u.size) ? 50 : 0) - seeHere * 3 - pull(u.x, u.y), best = null;
     squares(B, u, u.turn.move, S).forEach(function (e) {
       if (anchor && G.dist(u, anchor, e.x, e.y) > 100) return;
       var see = eyes(e.x, e.y); if (seeHere && !see) return; // (never out of sight of the trolls he could see: he is their fire)
-      var s = threatAt(B, u, S, e.x, e.y) + e.cost / 40 + (e.under ? 50 : 0) - see * 3 + (tr && !see ? 40 : 0);
+      var s = threatAt(B, u, S, e.x, e.y) + e.cost / 40 + (e.under ? 50 : 0) - see * 3 + (tr && !see ? 40 : 0) - pull(e.x, e.y);
       if (!best || s < best.s) best = { s: s, e: e };
     });
     if (best && !best.e.here && best.s < here - 2) yield* AI.walkTo(B, u, best.e);
   }
   function entry(B, u, id) { return M.list(B, u).filter(function (x) { return x.id === id && x.ok; })[0]; }
+  // Thunderwave from each square this move reaches near a climber, in each of the eight ways: what a failed CON save is worth (a climber knocked off -- the fall, no hold to keep --
+  // and the thunder), what a made one is (half, and the hold's own save), less the square's danger. Evocation: Sculpt Spells spares his own
+  function nearCling(S, x, y, who) { return S.cling.some(function (c) { return (!who || c === who) && G.foot(c).some(function (p) { return Math.max(Math.abs(p[0] - x), Math.abs(p[1] - y)) <= 3; }); }); }
+  function wavePlans(B, u, S, stay) {
+    var e = entry(B, u, 'thunderwave'); if (!e || !S.cling.length) return [];
+    var T = u.turn, x0 = u.x, y0 = u.y, dc = u.spellDC, out = [], SLOTV = 4;
+    var near = function (x, y) { return nearCling(S, x, y); };
+    var sqs = squares(B, u, stay ? 0 : T.move, S).filter(function (q) { return !q.under && G.gzAt(u, q.x, q.y) < 40 && near(q.x, q.y); });
+    if (!sqs.length) return [];
+    var levels = e.levels.slice(0, 2);
+    try {
+      sqs.forEach(function (q) {
+        u.x = q.x; u.y = q.y;
+        var risk = threatAt(B, u, S, q.x, q.y) * 0.5 + q.cost / 30;
+        [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]].forEach(function (d) {
+          var area = M.area(u, e.g, q.x + d[0], q.y + d[1]); if (!area.length) return;
+          var caught = B.units.filter(function (w) { return w !== u && G.present(w) && w.hp > 0 && !w.object && G.inArea(w, area); });
+          if (!caught.some(function (w) { return G.hostile(u, w) && hanging(w); })) return;
+          levels.forEach(function (slot) {
+            var dd = TX.avg(M.dice(e.sp, u, slot)), v = 0;
+            caught.forEach(function (w) {
+              if (!G.hostile(u, w)) { if (!(M.sculpts && M.sculpts(u, 'thunderwave'))) v -= 2 * Math.min(dd, w.hp) + (w.script === 'measure' ? 200 : 0); return; }
+              var pf = TX.pFail(w, 'con', dc), fail = hanging(w) ? fallWorth(S, w) + Math.min(dd, w.hp) * hpWorth(w) : blowWorth(S, w, dd, false);
+              v += pf * fail + (1 - pf) * blowWorth(S, w, dd / 2, false);
+            });
+            v -= risk + slot * SLOTV;
+            out.push({ id: 'thunderwave', slot: slot, t: { x: q.x + d[0], y: q.y + d[1] }, e: q, v: v, why: 'Thunderwave L' + slot + ' from ' + q.x + ',' + q.y + ' (' + caught.filter(function (w) { return G.hostile(u, w); }).map(function (w) { return w.name + (hanging(w) ? ' ' + ftUp(w) + ' ft up' : ''); }).join(', ') + ')' });
+          });
+        });
+      });
+    } finally { u.x = x0; u.y = y0; }
+    return out;
+  }
   function aurdinPlans(B, u, S) {
     var out = [], atk = u.spellAtk, dc = u.spellDC, SLOTV = 4;
     var sees = function (t, g) { return M.targetOK(B, u, g, t); };
@@ -438,7 +503,7 @@
       if (bt) { var us = []; for (var i = 0; i < n; i++) us.push(bt.t); out.push({ id: 'magicmissile', slot: slot, t: { units: us }, v: bt.v - slot * SLOTV, why: 'Magic Missile L' + slot + ' at ' + bt.t.name }); }
     });
     // the areas: Fireball, Lightning Bolt, Ice Storm -- the point that is worth most
-    ['fireball', 'lightningbolt', 'icestorm'].forEach(function (id) {
+    ['fireball', 'lightningbolt', 'icestorm', 'burninghands'].forEach(function (id) {
       var e = entry(B, u, id); if (!e) return;
       e.levels.slice(0, 2).forEach(function (slot) {
         var dd = TX.avg(M.dice(e.sp, u, slot)) + (e.sp.dmg2 ? TX.avg(e.sp.dmg2) : 0), fire = /fire/.test(e.sp.el || ''), ab = e.sp.save || 'dex';
