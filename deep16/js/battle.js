@@ -560,19 +560,25 @@
   // out of the hatch, Battle.hatchOut -- 10-05)
   Battle.prototype.walkIn = function* (file, look) {
     var self = this, U = this.units, pending = file.slice(), going = [], guard = 0;
+    var froms = []; file.forEach(function (f) { if (!froms.some(function (q) { return q[0] === f.from[0] && q[1] === f.from[1]; })) froms.push(f.from); });
+    // (a late wave walks onto a street already fought over -- 10-05, Griz: "seemed like i broke it when the dwarves came outside, but I think it came back": a trooper's square was taken,
+    // it gave up on the vault's doorstep, and the next one out of that door waited the walk-in's whole guard, twenty seconds, before it was set down. Now a square taken is traded for the
+    // nearest open one, never a door or a road's mouth the file comes in by; one waiting on a blocked way in takes another of the file's)
+    var retarget = function (g) { if (G.canStand(g.u, g.to[0], g.to[1])) return false; var alt = Battle.nearSq(g.u, g.to, froms); if (!alt) return false; g.to = alt; return true; };
     while ((pending.length || going.length) && guard++ < 150) {
       var nx0 = pending[0];
       if (nx0) { var hx = nx0.u.x, hy = nx0.u.y; nx0.u.x = nx0.from[0]; nx0.u.y = nx0.from[1];
+        if (!G.canStand(nx0.u, nx0.u.x, nx0.u.y)) { var frA = froms.filter(function (q) { return G.canStand(nx0.u, q[0], q[1]); })[0]; if (frA) { nx0.from = frA; nx0.u.x = frA[0]; nx0.u.y = frA[1]; } } // (its way in blocked: another of the file's)
         if (G.canStand(nx0.u, nx0.u.x, nx0.u.y)) {
           pending.shift(); U.push(nx0.u); (nx0.riders || []).forEach(function (r) { U.push(r); });
-          nx0.u.anim = 'idle'; nx0.u.animT = self.t; nx0.steps = Battle.route(nx0.u, nx0.to) || []; nx0.held = 0; going.push(nx0);
+          retarget(nx0); nx0.u.anim = 'idle'; nx0.u.animT = self.t; nx0.steps = Battle.route(nx0.u, nx0.to) || []; nx0.held = 0; going.push(nx0);
           if (nx0.spark) FX.sparkle(nx0.u, 'gold', 10);
         } else { nx0.u.x = hx; nx0.u.y = hy; }
       }
       going.forEach(function (g) {
         for (var sN = 0, nS = g.dash ? 2 : 1; sN < nS && g.steps.length; sN++) { // (`dash`: two squares a beat, the tween sliding both -- the Skylights' first trolls at a run, 10-05)
           var to = g.steps[0];
-          if (!G.canStand(g.u, to[0], to[1])) { if (++g.held % 4 === 0) { var r2 = Battle.route(g.u, g.to, true); if (r2) g.steps = r2; else if (g.held >= 8) g.steps = []; } return; } // (another in the way: wait, then go round -- and with no way round, it stops where it is: 10-05, Griz: "is it freezing with the second troll still trying to walk?")
+          if (!G.canStand(g.u, to[0], to[1])) { if (++g.held % 4 === 0) { if (retarget(g)) g.held = 0; var r2 = Battle.route(g.u, g.to, true); if (r2) g.steps = r2; else if (g.held >= 8) g.steps = []; } return; } // (another in the way: wait, then go round -- its own square taken, the nearest open one instead -- and with no way round, it stops where it is: 10-05, Griz: "is it freezing with the second troll still trying to walk?")
           g.held = 0; g.steps.shift();
           if (!sN) g.u.tween = { fx: g.u.x, fy: g.u.y, fz: G.gzAt(g.u, g.u.x, g.u.y), t: 0, dur: STEP_FRAMES, mode: null };
           g.u.facing = D.spr.facingFor(to[0] - g.u.x, to[1] - g.u.y); g.u.anim = 'walk'; g.u.x = to[0]; g.u.y = to[1];
@@ -585,11 +591,12 @@
     pending.forEach(function (p) { var to = G.canStand(p.u, p.to[0], p.to[1]) ? p.to : Battle.nearSq(p.u, p.to); if (to) { p.u.x = to[0]; p.u.y = to[1]; U.push(p.u); (p.riders || []).forEach(function (r) { U.push(r); }); p.u.anim = 'idle'; p.u.facing = p.face; } }); // (one that never got its way in: set down where it was to stand -- or, that taken, the nearest open square on its level: a late wave comes in on a street already fought over, 10-05)
   };
   // the nearest square to `to` that u may stand on, on to's own level, a ring at a time (Battle.walkIn's last resort)
-  Battle.nearSq = function (u, to) {
+  Battle.nearSq = function (u, to, avoid) { // (avoid: squares not to settle on -- a walk-in's doors and road mouths, 10-05)
     var z0 = G.map.gz(to[0], to[1]), st = G.map.def.step;
     for (var r = 1; r <= 8; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
       if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
       var x = to[0] + dx, y = to[1] + dy, s = G.map.at(x, y);
+      if ((avoid || []).some(function (q) { return q[0] === x && q[1] === y; })) continue;
       if (s && G.canStand(u, x, y) && Math.abs(G.map.gz(x, y) - z0) <= st) return [x, y];
     }
     return null;

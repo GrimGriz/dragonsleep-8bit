@@ -1445,6 +1445,16 @@
       var Bq2 = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bq2; Bq2.enter(); var bq2 = 0; while (!Bq2.order.length && bq2++ < 3000) { if (Bq2.co.next().done) break; }
       Bq2.round = 2; Bq2.hurt(Bq2.skylight, 7, 'bludgeoning'); var glance = Bq2.skyHit;
       okK('a glancing blow (7, under the threshold) is no bang: skyHit ' + glance + ', held still ' + (Bq2.held || []).length, glance == null && (Bq2.held || []).length === 5);
+      // the garrison out onto a street already fought over (10-05, his play at 6: "seemed like i broke it when the dwarves came outside, but I think it came back" -- a trooper's square was taken,
+      // it stopped on the doorstep, and the next one out of that door waited the walk-in's whole guard): the four on the garrison's squares, Pyro on the left doorstep -- every one out, none
+      // left on a doorstep, in a short walk
+      var Bw = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bw; Bw.enter(); var nw = 0; while (!Bw.order.length && nw++ < 3000) { if (Bw.co.next().done) break; }
+      Bw.round = 3; runK(Bw.lateOut());
+      var seatsW = [[28, 17], [29, 17], [31, 17], [30, 18]], ourW = Bw.units.filter(function (w) { return w.side === 'party' && !w.ally && !w.object && !w.familiar; }), pyW = ourW.filter(function (w) { return w.id === 'pyro'; })[0], fourW = ourW.filter(function (w) { return w.id !== 'pyro'; });
+      fourW.slice(0, 4).forEach(function (w, i) { w.x = seatsW[i][0]; w.y = seatsW[i][1]; delete w.hang; }); pyW.x = 29; pyW.y = 16;
+      Bw.round = 4; Bw.skyHit = 1; var gW = Bw.hatchOut(), beatsW = 0, sW; while (beatsW++ < 400) { sW = gW.next(); if (sW.done) break; }
+      var garW = Bw.units.filter(function (w) { return /^(sgt|tr\d)$/.test(w.id); }), onDoor = garW.filter(function (w) { return w.y === 16 && (w.x === 29 || w.x === 30); });
+      okK('the garrison onto a taken street (four seats taken, Pyro on the left doorstep): ' + garW.length + ' out in ' + beatsW + ' beats, on a doorstep ' + onDoor.length + ' -- ' + garW.map(function (w) { return w.id + '@' + w.x + ',' + w.y; }).join(' '), garW.length === 5 && onDoor.length === 0 && beatsW < 100);
       // the garrison up the ropes (10-05, Griz: "dwarves climbing ropes (much less getting from barrel and tossing)" -- out of the vault doors they paced on the street, "it cannot get at anyone",
       // while the giants broke the glass above them; ai.js ropeUp): the foes all on the roof but one troll there, a trooper on the street -- a rope hanging from the rim: it climbs, and is on
       // the roof in a few turns (it dashes: the climb costs double); no rope hanging and one in the pack: it throws it up; the pack empty: it walks to the bucket and takes one
