@@ -781,7 +781,7 @@
     // the duergar's Invisibility (SRD, an action; torchdark 09-28): with no one in reach yet it fades from sight and closes unseen;
     // the first blow, a spell or its Enlarge ends it (battle.js attack)
     if (u.invis && !u.invis.used && !u.conds.invisible && T.action && hs.length && !hs.some(function (w) { return G.dist(u, w) <= reachOf(u); })) {
-      T.action = 0; u.invis.used = true; u.conds.invisible = { ends: true }; delete u.conds.hidden; D.sfx('magic'); FX.sparkle(u, 'silver', 18);
+      T.action = 0; u.invis.used = !u.invis.atWill; u.conds.invisible = { ends: true }; delete u.conds.hidden; D.sfx('magic'); FX.sparkle(u, 'silver', 18);
       B.card(['{r}' + the(B, u) + '{/} fades out of sight.  {g}(Invisibility: till it attacks, casts or grows){/}'], 360);
       yield 30;
       var closeOn = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0], e0 = approach(u, closeOn, G.reach(u, T.move), reachOf(u));

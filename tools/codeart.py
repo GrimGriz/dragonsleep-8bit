@@ -113,16 +113,18 @@ FACINGS = 8
 def lay(anims, FW, FH, AX, AY, top, source, name, fps_of=None, flipset=(1, 2, 3)):
     """anims: {anim: [Image frames facing right]}; writes deep16/art/<name>.png + .json. Facings 1,2,3 (SW, W, NW) mirrored; the rest as drawn."""
     order = list(anims)
-    sheet = Image.new('RGBA', (FW * max(len(v) for v in anims.values()), FH * FACINGS * len(order)))
+    sheet = Image.new('RGBA', (FW * max(len(v['side'] if isinstance(v, dict) else v) for v in anims.values()), FH * FACINGS * len(order)))
     meta = {}
     y = 0
     for an in order:
         fr = anims[an]
+        side = fr['side'] if isinstance(fr, dict) else fr      # a row may bring its own front (S) and back (N): {'side': [...], 'S': [...], 'N': [...]}
         fps = (fps_of or {}).get(an, 8)
-        meta[an] = {'y': y, 'fw': FW, 'fh': FH, 'ax': AX, 'ay': AY, 'frames': len(fr), 'fps': fps}
+        meta[an] = {'y': y, 'fw': FW, 'fh': FH, 'ax': AX, 'ay': AY, 'frames': len(side), 'fps': fps}
         for f in range(FACINGS):
-            for i, im in enumerate(fr):
-                sheet.paste(mirror(im) if f in flipset else im, (i * FW, y + f * FH))
+            frames = fr.get({0: 'S', 4: 'N'}.get(f), side) if isinstance(fr, dict) else side
+            for i, im in enumerate(frames):
+                sheet.paste(mirror(im) if (f in flipset and frames is side) else im, (i * FW, y + f * FH))
         y += FH * FACINGS
     sheet.save(os.path.join(D16, 'art', name + '.png'), optimize=True)
     json.dump({'image': 'art/%s.png' % name, 'fw': FW, 'fh': FH, 'ax': AX, 'ay': AY, 'top': top, 'source': source, 'anims': meta},
@@ -132,11 +134,18 @@ def lay(anims, FW, FH, AX, AY, top, source, name, fps_of=None, flipset=(1, 2, 3)
 
 def preview(anims, path, scale=3, bg=(40, 32, 28, 255)):
     rows = list(anims)
-    FW, FH = next(iter(anims.values()))[0].size
-    n = max(len(v) for v in anims.values())
-    out = Image.new('RGBA', (FW * n, FH * len(rows)), bg)
-    for r, an in enumerate(rows):
-        for i, im in enumerate(anims[an]):
+    first = next(iter(anims.values()))
+    FW, FH = (first['side'] if isinstance(first, dict) else first)[0].size
+    lines = []                                          # a row with a front and a back previews as three lines
+    for an in rows:
+        v = anims[an]
+        lines.append(v['side'] if isinstance(v, dict) else v)
+        if isinstance(v, dict):
+            lines += [v['S'], v['N']] if 'S' in v else []
+    n = max(len(v) for v in lines)
+    out = Image.new('RGBA', (FW * n, FH * len(lines)), bg)
+    for r, fr in enumerate(lines):
+        for i, im in enumerate(fr):
             out.alpha_composite(im, (i * FW, r * FH))
     out = out.resize((out.width * scale // 2, out.height * scale // 2), Image.NEAREST)
     os.makedirs(os.path.dirname(path), exist_ok=True)

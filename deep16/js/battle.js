@@ -308,7 +308,7 @@
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
       // and what it does with the dark itself (the darkmantle's aura, the duergar's Invisibility: ai.js brute)
       darkvision: d.darkvision || 0, blindsight: d.blindsight || 0, blind: !!d.blind, truesight: d.truesight || 0, devilSight: !!d.devilSight,
-      aura: d.darknessAura ? { used: false } : null, invis: d.invisibility ? { used: false } : null, glow: d.glow || null, // (glow: a creature that sheds light -- the will-o'-wisp; js/light.js L.carried)
+      aura: d.darknessAura ? { used: false } : null, invis: d.invisibility ? { used: false, atWill: d.invisibility === 'atwill' } : null, glow: d.glow || null, // (glow: a creature that sheds light -- the will-o'-wisp; js/light.js L.carried)
       mirrorEye: !!d.mirrorEye // the Mirror's warlocks (RULED 09-28): no hiding or invisibility before her, in light (magic.js inMirror)
     };
   };

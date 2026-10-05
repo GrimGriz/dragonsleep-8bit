@@ -223,6 +223,149 @@ def stirge_rows():
     return {'idle': idle, 'walk': walk, 'attack': atk, 'flinch': flinch, 'hurt': hurt, 'latched': latched}
 
 
+# ------------------------------------------------------------------ front (S, toward the viewer) and back (N, away) views
+def beetle_fb(view, ph=0.0, walk=0.0, bite=0.0, lift=0.0, pulse=0.5, nudge=0.0):
+    c = ca.Canvas(FW, FH)
+    L, front = lift, view == 'S'
+    dark, mid, hi = C('leather', 1), C('leather', 2), C('leather', 3)
+    legc = C('stone', 3)
+
+    def legs(sign, off):
+        for k, (hy, kx, ky, fx) in enumerate(((68, 12, 64, 16), (73, 14, 71, 14), (77, 14, 77, 18))):
+            sw = S(PI2 * (ph + (k % 2) * 0.5 + off)) * 3.5 * walk
+            lf = max(0.0, S(PI2 * (ph + (k % 2) * 0.5 + off) + 1.57)) * 3.5 * walk
+            hx = 48 + sign * 11
+            c.line([(hx, hy - L), (48 + sign * (11 + kx), ky - L), (48 + sign * (11 + fx) + sw * 0.0, 84 - lf + (0 if k < 2 else 0))], 2.2, legc)
+    legs(-1, 0.0); legs(1, 0.5)
+    if front:
+        c.ell(48, 56 - L, 21, 17, dark)                      # the carapace, rising behind the head
+        c.ell(48, 51 - L, 14, 8, mid)
+        c.line([(48, 40 - L), (48, 62 - L)], 0.9, dark)
+        hy = 68 - L + bite * 3
+        c.ell(48, hy, 11, 9.4, C('stone', 2))
+        c.ell(48, hy - 3, 7, 3, C('stone', 4))
+        op = 1.0 + bite * 4
+        c.line([(41, hy + 5), (43 - op, hy + 10 + bite), (47, hy + 12 + bite * 2)], 2.2, C('bone', 0))
+        c.line([(55, hy + 5), (53 + op, hy + 10 + bite), (49, hy + 12 + bite * 2)], 2.2, C('bone', 0))
+        for ex in (42.5, 53.5):
+            c.ell(ex, hy - 1, 1.6, 1.6, C('outline', 0))
+        w = S(PI2 * ph * 2) * 2
+        c.line([(41, hy - 7), (33, hy - 15 + w), (27, hy - 17 + w)], 1.0, C('stone', 5))
+        c.line([(55, hy - 7), (63, hy - 15 + w), (69, hy - 17 + w)], 1.0, C('stone', 5))
+        for gx in (40.5, 55.5):
+            c.glow(gx, hy - 5.5, 7, C('fire', 1), 0.55 * (0.7 + 0.5 * pulse))
+            c.ell(gx, hy - 5.5, 3.2, 2.6, C('fire', 1)); c.ell(gx - 0.4, hy - 6, 1.7, 1.3, C('fire', 2))
+    else:
+        c.ell(48, 61 - L, 23, 20, dark)                      # the elytra from behind, the seam down the middle
+        c.ell(48, 55 - L, 16, 11, mid)
+        c.ell(45, 48 - L, 7, 3, hi)
+        c.line([(48, 42 - L), (48, 78 - L)], 1.2, dark)
+        for ry in (52, 60, 68):
+            c.line([(30, ry - L), (48, ry + 3 - L), (66, ry - L)], 0.8, dark)
+        gy = 74 - L
+        c.glow(48, gy, 9, C('fire', 1), 0.6 * (0.7 + 0.5 * pulse))
+        c.ell(48, gy, 5.2, 3.8, C('fire', 1)); c.ell(47.4, gy - 0.7, 2.8, 1.8, C('fire', 2))
+    return c.finish(sc=0.8)
+
+
+def centipede_fb(view, ph=0.0, walk=0.0, rear=0.0, bite=0.0, nudge=0.0):
+    c = ca.Canvas(FW, FH)
+    front = view == 'S'
+    n = 9
+    red_a, red_b, hi = C('red', 3), C('red', 2), C('red', 4)
+    legc, legf = C('gold', 3), C('gold', 1)
+    # the body seen along its length: nearest segment low and big, the far ones up and small
+    segs = []
+    for k in range(n):
+        u = k / (n - 1)                                   # 0 near, 1 far
+        segs.append((48 + S(PI2 * (-ph) + u * 5) * 2.2 * walk, 76 - u * 30 - rear * u * 8, 9.5 - 4.6 * u, 6.4 - 2.4 * u))
+    for k in range(n - 1, -1, -1):                        # far to near
+        x, y, rx, ry = segs[k]
+        sw = S(PI2 * (ph * 2 + k * 0.3)) * 2.5 * walk
+        for sg in (-1, 1):
+            c.line([(x + sg * rx * 0.7, y), (x + sg * (rx + 6 + sw), y + 4 + (n - k) * 0.2), (x + sg * (rx + 9 + sw), y + 9 + (n - k) * 0.5)], 1.5, legf if sg < 0 else legc)
+        c.ell(x, y, rx, ry, red_a if k % 2 == 0 else red_b)
+        c.ell(x, y - ry * 0.45, rx * 0.8, ry * 0.4, hi)
+    x0, y0, rx0, _ = segs[0]
+    if front:
+        hy = y0 + 2 + bite * 3
+        c.ell(x0, hy, 12, 9.2, C('red', 4)); c.ell(x0, hy - 3, 8, 3, C('fire', 2))
+        for ex in (x0 - 4.5, x0 + 4.5):
+            c.ell(ex, hy - 1, 1.5, 1.5, C('outline', 0))
+        op = 1 + bite * 5
+        c.line([(x0 - 6, hy + 5), (x0 - 7 - op * 0.4, hy + 11), (x0 - 2, hy + 14 + bite * 2)], 2.4, C('bone', 1))
+        c.line([(x0 + 6, hy + 5), (x0 + 7 + op * 0.4, hy + 11), (x0 + 2, hy + 14 + bite * 2)], 2.4, C('bone', 1))
+        w = S(PI2 * ph * 2) * 2
+        c.line([(x0 - 6, hy - 6), (x0 - 16, hy - 14 + w), (x0 - 22, hy - 15 + w)], 1.0, legc)
+        c.line([(x0 + 6, hy - 6), (x0 + 16, hy - 14 + w), (x0 + 22, hy - 15 + w)], 1.0, legc)
+    else:
+        w = S(PI2 * ph) * 2
+        c.line([(x0 - 3, y0 + 4), (x0 - 7, y0 + 12 + w)], 1.0, legc)                  # the tail's feelers
+        c.line([(x0 + 3, y0 + 4), (x0 + 7, y0 + 12 - w)], 1.0, legc)
+    return c.finish(sc=0.9)
+
+
+def stirge_fb(view, ph=0.0, flap=1.0, dive=0.0, fold=0.0, drop=0.0):
+    c = ca.Canvas(FW, FH)
+    front = view == 'S'
+    body, belly, wing_n, wing_f = C('leather', 2), C('red', 2), C('leather', 1), C('leather', 0)
+    cx, cy = 48, 52 + drop + S(PI2 * ph) * 2.0 + dive * 8
+    a = ((0.25 + 0.95 * S(PI2 * ph)) * flap + (1 - flap) * 0.4) * (1 - fold) - 0.5 * fold
+    for sg in (-1, 1):                                    # the wings, spread, beating
+        sx, sy = cx + sg * 5, cy - 3
+        up = 0.9 - a * 0.7                                # how far up the tip goes
+        spread = 1 - 0.55 * fold
+        tip = (sx + sg * 27 * spread, sy - 24 * up * spread + 4)
+        mid = (sx + sg * 21 * spread, sy - 3 + 3 * a)
+        low = (sx + sg * 9, sy + 8)
+        c.poly([(sx, sy), tip, (tip[0] - sg * 4, (tip[1] + mid[1]) / 2), mid, ((mid[0] + low[0]) / 2, mid[1] + 6), low], wing_n)
+        c.line([(sx, sy), tip], 1.0, C('leather', 3)); c.line([(sx, sy), mid], 0.9, C('leather', 3))
+    c.ell(cx, cy, 8, 9.5, body)
+    c.ell(cx, cy + 3, 5.6, 5.5, belly)
+    if front:
+        c.ell(cx, cy - 8, 5.2, 4.6, C('leather', 2))
+        for ex in (-2, 2):
+            c.ell(cx + ex, cy - 8.4, 1.1, 1.1, C('red', 4))
+        c.line([(cx, cy - 6), (cx, cy - 3 + dive * 3)], 1.2, C('bone', 1))             # the proboscis, foreshortened at the viewer
+        c.ell(cx, cy - 2.5 + dive * 3, 1.3, 1.3, C('bone', 2))
+    else:
+        c.ell(cx, cy - 8, 5, 4.4, C('leather', 1))
+        for ex in (-4, 4):
+            c.poly([(cx + ex, cy - 11), (cx + ex * 1.5, cy - 15), (cx + ex * 0.4, cy - 11)], C('leather', 1))   # the ears
+        c.line([(cx - 2, cy + 8), (cx - 3, cy + 13)], 1.1, wing_f); c.line([(cx + 2, cy + 8), (cx + 3, cy + 13)], 1.1, wing_f)
+    if front:
+        c.line([(cx - 3, cy + 8), (cx - 4, cy + 13)], 1.1, wing_f); c.line([(cx + 3, cy + 8), (cx + 4, cy + 13)], 1.1, wing_f)
+    return c.finish()
+
+
+def with_fb(name, rows):
+    """Bring each row's front (S) and back (N) beside its side frames; hurt keeps the side frames (as the clacker's sheet)."""
+    out = {}
+    for an, fr in rows.items():
+        if an in ('hurt', 'latched'):
+            out[an] = fr
+            continue
+        n = len(fr)
+        d = {'side': fr}
+        for v in ('S', 'N'):
+            if name == 'firebeetle':
+                if an == 'idle': d[v] = [beetle_fb(v, ph=i / n, pulse=0.5 + 0.5 * S(PI2 * i / n), lift=0.6 * S(PI2 * i / n)) for i in range(n)]
+                elif an == 'walk': d[v] = [beetle_fb(v, ph=i / n, walk=1.0, pulse=0.5 + 0.5 * S(PI2 * i / n), lift=1.2 * abs(S(PI2 * i / n))) for i in range(n)]
+                elif an == 'attack': d[v] = [beetle_fb(v, ph=i / n, bite=b, lift=l, pulse=0.9) for i, (b, l) in enumerate(zip([0, .2, .5, 1, 1, .6, .2, 0], [0, 1, 2, 0, 0, 0, 0, 0]))]
+                else: d[v] = [beetle_fb(v, ph=i / n, bite=0.4, lift=l, pulse=0.2) for i, l in enumerate([0, 2, 1, 0, 0, 0])]
+            elif name == 'centipede':
+                if an == 'idle': d[v] = [centipede_fb(v, ph=i / n, walk=0.2) for i in range(n)]
+                elif an == 'walk': d[v] = [centipede_fb(v, ph=i / n, walk=1.0) for i in range(n)]
+                elif an == 'attack': d[v] = [centipede_fb(v, ph=i / n, walk=0.3, rear=r, bite=b) for i, (r, b) in enumerate(zip([0, .15, .45, .8, .55, .2, 0, 0], [0, 0, .3, 1, 1, .4, 0, 0]))]
+                else: d[v] = [centipede_fb(v, ph=i / n, walk=0.5, rear=r, bite=0.5) for i, r in enumerate([0, .5, .6, .3, .1, 0])]
+            elif name == 'stirge':
+                if an in ('idle', 'walk'): d[v] = [stirge_fb(v, ph=i / n) for i in range(n)]
+                elif an == 'attack': d[v] = [stirge_fb(v, ph=i / n, dive=dv, fold=f) for i, (dv, f) in enumerate(zip([0, -.2, -.4, .5, 1, .8, .3, 0], [0, 0, 0, .3, .6, .4, 0, 0]))]
+                else: d[v] = [stirge_fb(v, ph=i / n, drop=dd) for i, dd in enumerate([0, 3, 4, 2, 1, 0])]
+        out[an] = d
+    return out
+
+
 MAKE = {'stirge': (stirge_rows, 'stirge_p1', 62, {'idle': 8, 'walk': 10, 'attack': 12, 'flinch': 10, 'hurt': 8, 'latched': 6}),
         'firebeetle': (beetle_rows, 'firebeetle_p1', 52, {'idle': 6, 'walk': 10, 'attack': 12, 'flinch': 10, 'hurt': 8}),
         'centipede': (centipede_rows, 'centipede_p1', 50, {'idle': 8, 'walk': 12, 'attack': 12, 'flinch': 10, 'hurt': 8})}
@@ -231,7 +374,7 @@ if __name__ == '__main__':
     names = [a for a in sys.argv[1:] if a in MAKE] or list(MAKE)
     for nm in names:
         fn, out, top, fps = MAKE[nm]
-        rows = fn()
+        rows = with_fb(nm, fn())
         if 'preview' in sys.argv:
             ca.preview(rows, os.path.join(ca.ROOT, 'dev', 'shots', 'bugs-%s.png' % nm))
         else:
