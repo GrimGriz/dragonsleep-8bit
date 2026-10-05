@@ -317,9 +317,21 @@
     var s = packOf(B, id); if (s) s.n++; else (B.inv = B.inv || []).push({ id: id, n: 1 });
     B.card(['{y}' + u.name + '{/} puts the ' + L.word(t) + ' out and stows it.']);
   };
-  // pick up the one burning at his feet (free, a free hand)
-  L.pickUp = function (B, u) {
-    var t = L.torchAt(B, u.x, u.y); if (!t || u.torch) return;
+  // a light on the floor a hero may take up (10-05, Griz: "torch pick up works like grapple hook"): on its square or beside it at its level -- an object within reach --
+  // a hand free, the turn's free object unspent (battle.js exec 'pickuptorch'; ui.js UI.valid 'takelight' and the square's line, bottom right)
+  L.canTake = function (B, u, t) {
+    var T = u.turn || {}, near = Math.max(Math.abs(u.x - t.x), Math.abs(u.y - t.y)) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(t.x, t.y)) <= G.map.def.step;
+    if (u.torch) return { ok: false, why: 'a light in hand already' };
+    if (!near) return { ok: false, why: 'not from here: on its square or beside it' };
+    if (u.hang && G.hanging(u)) return { ok: false, why: 'not while hanging on a rope' };
+    if (T.freeObj) return { ok: false, why: 'the free hand on an object is spent this turn' };
+    if (L.handsFree(u) <= 0) return { ok: false, why: L.handsWhy(u) };
+    return { ok: true, why: '' };
+  };
+  // pick up the one burning at his feet, or beside him (free, a free hand)
+  L.pickUp = function (B, u, x, y) {
+    var t = L.torchAt(B, x == null ? u.x : x, y == null ? u.y : y); if (!t || u.torch) return;
+    if (t.x !== u.x || t.y !== u.y) u.facing = D.spr.facingFor(t.x - u.x, t.y - u.y);
     B.lights = B.lights.filter(function (l) { return l !== t; });
     u.torch = t.kind === 'lantern' ? L.make(t.item, t.hood) : { lit: true }; L.regrip(u);
     B.card(['{y}' + u.name + '{/} takes up the ' + L.word(t) + ' again.']);

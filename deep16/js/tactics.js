@@ -26,7 +26,7 @@
   TX.pHit = function (atk, ac, net) { var p = clamp((21 - (ac - atk)) / 20, 0.05, 0.95); return net > 0 ? 1 - (1 - p) * (1 - p) : net < 0 ? p * p : p; };
   // the chance w fails a save of ab against dc (an auto-fail for STR and DEX when it's held or stunned)
   TX.pFail = function (w, ab, dc) {
-    if ((ab === 'str' || ab === 'dex') && (w.conds.paralyzed || w.conds.stunned || w.conds.asleep)) return 1;
+    if ((ab === 'str' || ab === 'dex') && (w.conds.paralyzed || w.conds.stunned || w.conds.asleep || (w.hp <= 0 && !w.dead && !w.object))) return 1; // (down at 0: rules.js RU.save, 10-05)
     var b = (w.saves ? w.saves[ab] : D.mod((w.abil || {})[ab] || 10)) + (w.conds.blessed ? 2.5 : 0) - (w.conds.baned ? 2.5 : 0);
     return clamp((dc - b - 1) / 20, 0, 1);
   };

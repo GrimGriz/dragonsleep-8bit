@@ -1301,7 +1301,17 @@
       case 'breakfree': { yield* D.magic.breakFree(this, u); return; }
       case 'droptorch': T.freeObj = true; D.light.dropTorch(this, u); return;
       case 'dousetorch': T.freeObj = true; D.light.douseTorch(this, u); return;
-      case 'pickuptorch': T.freeObj = true; D.light.pickUp(this, u); return;
+      case 'pickuptorch': { // from the ring at its feet; or, as the rope's grapple, a click on its square from beside it -- take it up, or only step there, asked -- and the self-click on it asked (10-05, Griz: "torch pick up works like grapple hook")
+        var lxP = c.x != null ? c.x : u.x, lyP = c.y != null ? c.y : u.y, tP = D.light.torchAt(this, lxP, lyP); if (!tP) return;
+        var tkP = D.light.canTake(this, u, tP); if (!tkP.ok) { this.card(['{o}' + nameOf(u) + ' cannot take the ' + D.light.word(tP) + ' up: ' + tkP.why + '.{/}'], 160); return; }
+        if (!byAI(u) && c.x != null && (c.ask || !(u.x === lxP && u.y === lyP))) {
+          var rmP = G.reach(u, T.move), stepP = !(u.x === lxP && u.y === lyP) && !G.occupant(lxP, lyP) && !!(rmP[lxP + ',' + lyP] || {}).stand;
+          var ansP = yield { prompt: { who: u, title: u.name + ': THE ' + D.light.tag(tP), lines: ['Take the ' + D.light.word(tP) + ' up (free: the hand on an object this turn)' + (stepP ? ', or just step onto its square.' : '.')], opts: [{ label: 'TAKE IT UP', value: 'take' }].concat(stepP ? [{ label: 'STEP THERE', value: 'step' }] : []).concat([{ label: 'NOT NOW', value: false }]) } };
+          if (ansP === 'step') { var pP = G.path(rmP, lxP, lyP); if (pP) yield* this.moveAlong(u, pP, { spend: true }); return; }
+          if (ansP !== 'take') return;
+        }
+        T.freeObj = true; D.light.pickUp(this, u, lxP, lyP); return;
+      }
       case 'throwtorch': { yield* D.light.throwTorch(this, u, c.x, c.y); return; }
       case 'hooddown': T.freeObj = true; yield* D.light.hood(this, u, true); return;
       case 'hoodup': T.freeObj = true; yield* D.light.hood(this, u, false); return;

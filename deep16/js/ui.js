@@ -583,6 +583,8 @@
       // there, asked); the hero standing on it -- the self-click's ring has TAKE THE ROPE. An ally on it: the square is a square (battle.js Battle.canCutRope, canTakeRope)
       var rpA = !foe && D.Battle.ropeAt(B, x, y);
       if (rpA) { var cutA = D.Battle.canCutRope(B, u, rpA); if (cutA && cutA.ok) return 'cut'; if (!cutA && !(x === u.x && y === u.y) && D.Battle.canTakeRope(B, u, rpA).ok) return 'take'; }
+      var ltA = !foe && !(x === u.x && y === u.y) && !G.occupant(x, y) && D.light.torchAt(B, x, y); // (a light on the floor beside the hero, nobody on it: the click takes it up, or steps there, asked -- as the grapple, 10-05)
+      if (ltA && D.light.canTake(B, u, ltA).ok) return 'takelight';
       if (B.ropePick && x === B.ropePick.rope.foot[0] && y === B.ropePick.rope.foot[1] && !foe) return B.ropePick.ok ? 'rung' : 'no'; // (a rung of a rope the mouse is on: ropeRung, 10-04 night)
       if (x === u.x && y === u.y && !foe) return 'self';
       if (foe) return B.canHit(u, foe) && (T.attacksLeft || T.action || T.slamsLeft > 0) ? 'ok' : 'no'; // a crossbow reaches out to its long range (T.slamsLeft: the Keeper's second Slam out of the one action -- js/keeperplay.js)
@@ -722,10 +724,12 @@
     if (tool === 'move' || tool === 'menu' || tool === 'attack') {
       if (v === 'cut') return UI.command(B, u, { do: 'cutrope', x: x, y: y }); // (a rope a foe hangs on: struck from its top -- 10-04 night)
       if (v === 'take') return UI.command(B, u, { do: 'takerope', x: x, y: y }); // (a rope's grapple, nobody on it: taken up, or the square stepped onto -- asked)
+      if (v === 'takelight') return UI.command(B, u, { do: 'pickuptorch', x: x, y: y }); // (a torch on the floor beside: the same -- 10-05)
       if (v === 'rung') return UI.command(B, u, { do: 'ropeclimb', x: B.ropePick.to[0], y: B.ropePick.to[1], z: B.ropePick.z }); // (the rung picked: to exactly there, and hang -- before the self-click, since a hanger's square is the rope's foot)
       if (x === u.x && y === u.y && !foe) { // (the self-click: the ring -- or, standing on a rope's grapple, the question first: Griz, 10-04 night: "standing on it makes me select character?")
         if (u.conds.prone && RU.canRise(u) && T.move >= Math.floor(u.speed / 2)) return UI.command(B, u, { do: 'stand' }); // (prone, the half to stand: the click on yourself stands you -- 10-04 night, Griz)
         var rpSelf = D.Battle.ropeAt(B, x, y); if (rpSelf && D.Battle.canTakeRope(B, u, rpSelf).ok) return UI.command(B, u, { do: 'takerope', x: x, y: y, ask: true });
+        var ltSelf = D.light.torchAt(B, x, y); if (ltSelf && D.light.canTake(B, u, ltSelf).ok) return UI.command(B, u, { do: 'pickuptorch', x: x, y: y, ask: true }); // (standing on a torch: the question first, as on the grapple -- 10-05)
         D.sfx('popup'); B.tool = 'menu'; return;
       }
       if (foe && v === 'ok') return UI.command(B, u, { do: 'attack', target: foe });
@@ -1704,7 +1708,7 @@
     if (B.ropePick && (tool === 'move' || tool === 'menu' || tool === 'attack')) drawRung(B, u, B.ropePick);
     // the cursor: red where the current thing can't go
     var s0 = G.map.at(cx, cy);
-    if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'cut' ? R('fire', 2) : v === 'far' || v === 'rope' || v === 'rung' || v === 'take' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
+    if (s0 && s0.open) { var v = UI.valid(B, u, cx, cy); lineSq(ctx, cx, cy, v === 'no' ? R('red', 4) : v === 'cut' ? R('fire', 2) : v === 'far' || v === 'rope' || v === 'rung' || v === 'take' || v === 'takelight' ? R('gold', 2) : v === 'self' ? R('gold', 4) : R('bone', 2), 1, 1); }
   }
 
   // ------------------------------------------------------------------ the initiative strip, the cards, the tooltip
@@ -1778,6 +1782,8 @@
         else if (hgT) lines.push('{y}the rope{/}: ' + hgT.name + ' hangs on it');
         else lines.push('{y}the rope\'s grapple{/}  ' + (tkT.ok ? '{n}click: take it up into the pack (the action)' + (B.cursor.x === u.x && B.cursor.y === u.y ? ' -- TAKE THE ROPE on the ring' : '') + '{/}' : '{g}' + tkT.why + '{/}'));
       }
+      var ltT = D.light.torchAt(B, B.cursor.x, B.cursor.y); // (a light on the floor under the cursor: what the click does, as the grapple's line -- 10-05, Griz: "torch listed on bottom right?")
+      if (ltT) { var tkL = D.light.canTake(B, u, ltT), occL = G.occupant(B.cursor.x, B.cursor.y), selfL = B.cursor.x === u.x && B.cursor.y === u.y; lines.push('{y}a ' + D.light.word(ltT) + ' on the floor, burning{/}  ' + (tkL.ok && (selfL || !occL) ? '{n}click: take it up (free: the hand on an object)' + (selfL ? ' -- TAKE UP on the ring' : '') + '{/}' : '{g}' + (tkL.ok ? 'someone stands on it' : tkL.why) + '{/}')); }
       if (B.ropePick) { var rg = B.ropePick, rgFt = (rg.z - G.map.gz(rg.rope.foot[0], rg.rope.foot[1])) / G.map.def.step * 2.5; lines.push('{y}the rope{/}: ' + (rg.ground ? 'down to the ground' : (rg.up ? 'climb to ' : 'let down to ') + rgFt + ' ft up it and hang there') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent ? rg.spent + ' ft to its ' + (rg.up ? 'foot' : 'top') + ', then ' : '') + rg.cost + ' ft of movement' + (rg.ok ? '' : ' -- ' + rg.why) + '{/}'); } // (a rung of a rope the mouse is on: ropeRung, 10-04 night)
       if (B.dark) { var lv = D.light.levelAt(B, B.cursor.x, B.cursor.y), ps = D.light.partySeesSq(B, B.cursor.x, B.cursor.y); lines.push('{g}' + D.light.name(lv) + ' here' + (lv === 0 ? (ps === 1 ? ' (one of yours sees it by darkvision)' : ' (no one of yours sees it)') : '') + '{/}'); }
       B.units.forEach(function (p) {

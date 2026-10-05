@@ -1557,7 +1557,7 @@
       okT('with two flasks in the pack as well, 15 ft off: the top plan ' + whyT(plF), !!plF[0] && /Oil Flask/.test(plF[0].why) && !!tpF && tpF.score < plF[0].score);
       nearT(ftF, trF, 1); D.rules.startTurn(ftF); var plF2 = D.tactics.plans(Bf, ftF), tpF2 = plF2.filter(function (p) { return /the torch/.test(p.why); })[0], spF = D.light.torchAtk(ftF), edF = D.rules.edges(ftF, trF, spF);
       var pF = D.tactics.pHit(spF.atk + (edF.pen || 0), D.rules.ac(trF) + G.los(ftF, trF).cover, edF.net);
-      okT('beside it (' + G.dist(ftF, trF) + ' ft; the torch alone would weigh ' + (90 * pF).toFixed(1) + '): the top plan ' + whyT(plF2), !!plF2[0] && /Oil Flask/.test(plF2[0].why) && !!tpF2 && tpF2.score < plF2[0].score && 90 * pF > plF2[0].score);
+      okT('beside it (' + G.dist(ftF, trF) + ' ft; the torch alone would weigh ' + (90 * pF).toFixed(1) + ', the flask certain -- a troll at 0 cannot dodge, 10-05): the top plan ' + whyT(plF2), !!plF2[0] && /Oil Flask/.test(plF2[0].why) && !!tpF2 && tpF2.score < plF2[0].score);
       // f. never: a torch beside an ogre (it does not regenerate); no torch in the hand; a lantern (set down, never thrown); a troll burned already
       var Bg0 = mkT('?npc=ogre&lvl=5&vs=fighter:5'), ftG0 = sideT(Bg0, 'party')[0], ogG = sideT(Bg0, 'foe')[0];
       ftG0.guest = false; ftG0.classAI = true; lightT(ftG0); packT(Bg0, 0); nearT(ftG0, ogG, 2); D.rules.startTurn(ftG0);
@@ -1580,7 +1580,8 @@
       var plQ = D.tactics.plans(Bq, ing);
       okT('the pack with two flasks, Ingrith ' + G.dist(ing, trQ) + ' ft from a troll lying at 0: the top plan ' + whyT(plQ), !!plQ[0] && plQ[0].kind === 'item' && /Oil Flask/.test(plQ[0].why) && G.dist(ing, trQ) <= 20);
       D.d = function (n) { return n === 20 ? 20 : d0T(n); }; var n0Q = (Bq.log || []).length; runT(D.ai.turn(Bq, ing)); D.d = d0T; var lgQ = logT(Bq, n0Q);
-      okT('her turn (the save a 20): the flask thrown ' + /throws the Oil Flask/.test(lgQ) + ', her own flask 1 -> ' + ing.ownFlask + ', the pack ' + flasksT(Bq) + ' (was 2), the troll unburned ' + !trQ.burned + ' -- ' + lgQ.slice(0, 110), /throws the Oil Flask/.test(lgQ) && ing.ownFlask === 0 && flasksT(Bq) === 2 && !trQ.burned && trQ.regenDown === true);
+      okT('her turn (the d20 a 20, no matter -- a troll at 0 cannot dodge, 10-05): the flask thrown ' + /throws the Oil Flask/.test(lgQ) + ', her own flask 1 -> ' + ing.ownFlask + ', the pack ' + flasksT(Bq) + ' (was 2), the troll burned ' + !!trQ.burned + ' -- ' + lgQ.slice(0, 110), /throws the Oil Flask/.test(lgQ) && ing.ownFlask === 0 && flasksT(Bq) === 2 && trQ.burned === true && trQ.regenDown === true);
+      delete trQ.burned; // (as if it had not caught: her next turn still has a troll to burn, and no flask of her own to do it with)
       D.rules.startTurn(ing); D.rules.startTurn(fourQ[0]); var plQ2 = D.tactics.plans(Bq, ing);
       okT('her next turn, the troll still lying and unburned: no flask plan (the pack still holds ' + flasksT(Bq) + ') -- ' + whyT(plQ2) + '; her list ' + Bq.itemList(ing).filter(function (x) { return x.id === 'oil'; }).length + ' flasks, a hero\'s ' + Bq.itemList(fourQ[0]).filter(function (x) { return x.id === 'oil'; }).map(function (x) { return x.n; }).join(','),
         !plQ2.some(function (p) { return p.kind === 'item'; }) && flasksT(Bq) === 2 && Bq.itemList(ing).filter(function (x) { return x.id === 'oil'; }).length === 0 && Bq.itemList(fourQ[0]).filter(function (x) { return x.id === 'oil'; }).map(function (x) { return x.n; }).join(',') === '2');
@@ -1590,6 +1591,18 @@
       D.d = function (n) { return n === 20 ? 20 : d0T(n); }; var n0B = (Bb.log || []).length; runT(D.ai.turn(Bb, ftB)); D.d = d0T; var lgB = logT(Bb, n0B);
       okT('a bench fighter (guest ' + !!ftB.guest + ', classAI ' + !!ftB.classAI + ', ownFlask ' + ftB.ownFlask + '): the flask thrown ' + /throws the Oil Flask/.test(lgB) + ', the pack 2 -> ' + flasksT(Bb),
         ftB.guest === true && ftB.classAI === true && ftB.ownFlask === undefined && /throws the Oil Flask/.test(lgB) && flasksT(Bb) === 1);
+      // i. a torch on the floor taken up as the rope's grapple is (10-05, Griz: "torch pick up works like grapple hook (torch listed on bottom right?"): beside it, the click on its
+      // square is 'takelight' and asks, TAKE IT UP first; taken, it is in the hand and off the floor, the turn's free object spent. Two squares off: not from there
+      var Bk = mkT('?npc=ogre&lvl=5&vs=wizard:5'), ftK = sideT(Bk, 'party')[0], gzK = G.gzAt(ftK, ftK.x, ftK.y);
+      ftK.guest = false; delete ftK.torch; D.light.regrip(ftK); D.rules.startTurn(ftK);
+      okT('the wizard has a hand free for it: ' + D.light.handsFree(ftK), D.light.handsFree(ftK) > 0);
+      function sqAtK(r) { for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue; var x = ftK.x + dx, y = ftK.y + dy; if (G.canStand(ftK, x, y) && !G.occupant(x, y) && Math.abs(G.map.gz(x, y) - gzK) <= G.map.def.step) return [x, y]; } return null; }
+      function torchK(sq) { Bk.lights = (Bk.lights || []).concat([{ id: 'torchK' + sq.join('_'), kind: 'torch', x: sq[0], y: sq[1], bright: 20, dim: 20, color: 'gold', flame: true, by: ftK.id }]); }
+      var s1K = sqAtK(1), s2K = sqAtK(2); torchK(s1K); torchK(s2K); Bk.tool = 'move';
+      var v2K = D.ui.valid(Bk, ftK, s2K[0], s2K[1]), why2K = D.light.canTake(Bk, ftK, D.light.torchAt(Bk, s2K[0], s2K[1])).why, v1K = D.ui.valid(Bk, ftK, s1K[0], s1K[1]);
+      var askK = null, gK = Bk.exec(ftK, { do: 'pickuptorch', x: s1K[0], y: s1K[1] }), stK, kK = 0, vK; while (gK && kK++ < 400) { stK = gK.next(vK); vK = undefined; if (stK.done) break; if (stK.value && stK.value.prompt) { askK = stK.value.prompt; vK = askK.opts[0].value; } }
+      okT('a torch on the floor two squares off: the click ' + v2K + ' (' + why2K + '); one beside: the click ' + v1K + ', asked ' + (askK ? askK.opts.map(function (o) { return o.label; }).join('/') : 'nothing') + ', in the hand ' + !!ftK.torch + ', off the floor ' + !D.light.torchAt(Bk, s1K[0], s1K[1]) + ', the free object spent ' + !!ftK.turn.freeObj,
+        v2K !== 'takelight' && /not from here/.test(why2K) && v1K === 'takelight' && !!askK && askK.opts[0].value === 'take' && !!ftK.torch && !D.light.torchAt(Bk, s1K[0], s1K[1]) && ftK.turn.freeObj === true);
     } catch (eT) { repT.errors.push(String(eT && eT.stack || eT).slice(0, 900)); }
     D.d = d0T;
     if (errs.length) repT.errors = repT.errors.concat(errs);
@@ -1633,11 +1646,16 @@
       okO('its turn, the save a 1: flasks ' + f0 + ' -> ' + flasksO(Bo) + ', the action spent ' + !ftO.turn.action + ', burned ' + !!trO.burned + ' -- ' + lgO.slice(0, 150), flasksO(Bo) === f0 - 1 && !ftO.turn.action && trO.burned === true && /throws the Oil Flask/.test(lgO) && /burning: 5 fire/.test(lgO) && /burns where it lies/.test(lgO));
       runO(D.ai.turn(Bo, trO));
       okO('the troll\'s turn, burned: dead ' + !!trO.dead + ', the fight ' + Bo.over(), trO.dead && Bo.over() === 'won');
-      // (the save made: the flask is spent, the troll unburned -- and up at its turn)
+      // (the d20 a 20 at a troll lying at 0: it cannot dodge -- at 0 and not dead is unconscious, which fails DEX saves, SRD 5.1; 10-05, Griz: "dead trolls can't dodge! :)")
       var Bm = mkO('?npc=troll&lvl=5&vs=fighter:5'), ftM = sideO(Bm, 'party')[0], trM = sideO(Bm, 'foe')[0];
       ftM.guest = false; ftM.classAI = true; packO(Bm); Bm.hurt(trM, 300, 'slashing'); nearO(ftM, trM, 3);
       D.d = function (n) { return n === 20 ? 20 : d0O(n); }; var fM = flasksO(Bm), nM = (Bm.log || []).length; runO(D.ai.turn(Bm, ftM)); D.d = d0O; var lgM = (Bm.log || []).slice(nM).join(' | ');
-      okO('the save a 20: flasks ' + fM + ' -> ' + flasksO(Bm) + ', burned ' + !!trM.burned + ', still down ' + !!trM.regenDown + ' -- ' + lgM.slice(0, 150), flasksO(Bm) === fM - 1 && !trM.burned && trM.regenDown && /dodged/.test(lgM));
+      okO('the d20 a 20 at a troll lying at 0: flasks ' + fM + ' -> ' + flasksO(Bm) + ', burned ' + !!trM.burned + ' -- ' + lgM.slice(0, 150), flasksO(Bm) === fM - 1 && trM.burned === true && /auto-fail/.test(lgM) && !/dodged/.test(lgM));
+      // (a troll on its feet still makes the save: a 20 dodges, the flask spent)
+      var Bn = mkO('?npc=troll&lvl=5&vs=fighter:5'), ftN = sideO(Bn, 'party')[0], trN = sideO(Bn, 'foe')[0];
+      ftN.guest = false; packO(Bn); nearO(ftN, trN, 1); D.rules.startTurn(ftN);
+      D.d = function (n) { return n === 20 ? 20 : d0O(n); }; var fN = flasksO(Bn), nN = (Bn.log || []).length; runO(Bn.exec(ftN, { do: 'item', id: 'oil', target: trN })); D.d = d0O; var lgN = (Bn.log || []).slice(nN).join(' | ');
+      okO('the d20 a 20 at a troll on its feet: flasks ' + fN + ' -> ' + flasksO(Bn) + ', burned ' + !!trN.burned + ' -- ' + lgN.slice(0, 150), flasksO(Bn) === fN - 1 && !trN.burned && /dodged/.test(lgN));
       // c. a fighter with flasks beside an ogre: no flask plan
       var Bg = mkO('?npc=ogre&lvl=5&vs=fighter:5'), ftG = sideO(Bg, 'party')[0], ogG = sideO(Bg, 'foe')[0];
       ftG.guest = false; ftG.classAI = true; packO(Bg); nearO(ftG, ogG, 2); D.rules.startTurn(ftG);

@@ -123,7 +123,7 @@
     // Two Heads (SRD 5.1: the ettin has "advantage on saving throws against being blinded, charmed, deafened, frightened, stunned, and knocked unconscious" -- not on WIS and CON saves at large: 10-02 runner)
     var heads = !!(u.twoHeads && against && /^(blinded|charmed|hypnotized|deafened|frightened|feared|stunned|asleep|unconscious)$/.test(against));
     var adv = !!adv0 || counter || pfp || pfg || resil || heads || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = heightened || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
-    if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned)) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true }; // (SRD 5.1: the paralyzed, the stunned, the unconscious -- not Hideous Laughter's incapacitated and prone, 10-02, Griz: "yes")
+    if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || (u.hp <= 0 && !u.dead && !u.object))) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true }; // (SRD 5.1: the paralyzed, the stunned, the unconscious -- not Hideous Laughter's incapacitated and prone, 10-02, Griz: "yes". At 0 and not dead is unconscious: a troll lying there knitting dodges no flask -- 10-05, Griz: "dead trolls can't dodge! :)")
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
     // Bane (-1d4), Resistance (+1d4, once)
@@ -260,7 +260,7 @@
   RU.spendHelp = function (u) { if (u && u.conds && u.conds.helpedCheck) delete u.conds.helpedCheck; };
   // a save's numbers for a card: the d20, the bonus, and what's in it (the aura, Bless)
   RU.saveText = function (sv) {
-    if (sv.auto) return '{o}auto-fail{/} (held or asleep)';
+    if (sv.auto) return '{o}auto-fail{/} (held, asleep or down)';
     if (sv.careful) return '{c}spared{/} (Careful Spell)';
     var bits = []; if (sv.aura) bits.push('aura +' + sv.aura); if (sv.bless) bits.push('bless +' + sv.bless); if (sv.bane) bits.push('bane -' + sv.bane); if (sv.resist) bits.push('resistance +' + sv.resist);
     if (sv.counter) bits.push(sv.counter === 2 ? 'advantage: steel will' : 'advantage: countercharm'); if (sv.heightened) bits.push('disadvantage: heightened'); if (sv.pfp) bits.push('advantage: protection from poison'); if (sv.resil) bits.push('advantage: duergar resilience'); if (sv.heads) bits.push('advantage: two heads'); if (sv.luck) bits.push('dark one\'s own luck +' + sv.luck);
