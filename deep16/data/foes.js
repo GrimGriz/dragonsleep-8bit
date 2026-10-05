@@ -418,6 +418,23 @@
     attacks: { spear: { name: 'Spear', atk: 4, dice: '1d6', mod: 2, type: 'piercing', reach: 5 } },
     multi: ['spear', 'spear'], src: 'content/monsters.json stablefighter (SRD 5.1 Thug: a stable man the owner wants bled; wiki/the-hex.md), on the Crewman sheet'
   },
+  // the garrison of Sólskaft, out of the Edifice's roof hatch in the Skylights (10-05, Griz: "a solskaft guy 'drilling' soldiers (I think 4?) that group could come out the top door when
+  // the first bang hits the skylight"): the 8-bit's Drill-sergeant (content/npcs.json drillmaster) as the SRD 5.1 Veteran, his troopers as the SRD Guard, dwarves (speed 25, darkvision,
+  // poison resistance: SRD 5.1 Dwarf); both on the duergar's dwarf sheet for now (deep16-art-wanted.md: a garrison dwarf in the king's colours is wanted)
+  trooper: {
+    name: 'Trooper', type: 'humanoid', sheet: 'duergar_p0', humanoid: true, cr: '1/8', ac: 16, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
+    saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
+    attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
+    multi: 1, resist: ['poison'], src: 'SRD 5.1 Guard (CR 1/8), a dwarf of the garrison; content/npcs.json drill1-4 (the Troopers)'
+  },
+  drillsergeant: {
+    name: 'Drill-sergeant', type: 'humanoid', sheet: 'duergar_p0', humanoid: true, cr: '3', ac: 17, hp: 58, speed: 25, size: 1, reach: 5, darkvision: 60,
+    abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
+    saves: { str: 3, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
+    attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 } },
+    multi: ['longsword', 'longsword'], resist: ['poison'], src: 'SRD 5.1 Veteran (CR 3: AC 17, 58 HP, Multiattack: two longsword +5 1d8+3; the shortsword and the heavy crossbow not given), a dwarf; content/npcs.json drillmaster'
+  },
   robber: {
     name: 'Night Crew', type: 'humanoid', sheet: 'wheelwright_p1', cr: '1/8', ac: 12, hp: 11, speed: 30, size: 1, reach: 5,
     abil: { str: 11, dex: 12, con: 12, int: 10, wis: 10, cha: 10 }, init: 1, perception: 10,

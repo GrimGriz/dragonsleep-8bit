@@ -121,9 +121,9 @@
     // 8-bit's leaf -- planked wood, a dark X of braces corner to corner, a gold ring on a dark boss at its middle, a stud at each corner; u across the leaf (0..18), v down it from the
     // arch's top (1..39). doorOpen keeps the doorway's open look for the same pixels, made into the square's second canvas after its faces (s.tileOpen)
     var gold = iso.ramp('gold'), doorOpen = [];
-    function doorLeaf(u, v) {
+    function doorLeaf(u, v, ru) { // (ru: where the ring sits across the leaf -- by the seam on a double door, 10-05)
       if (v <= 1 || v >= 38 || u <= 0 || u >= 17 || (v <= 4 && (u <= 2 || u >= 15))) return leather[0];
-      var rB = Math.hypot(u - 8.5, (v - 21) * 0.9);
+      var rB = Math.hypot(u - (ru || 8.5), (v - 21) * 0.9);
       if (rB < 1.6) return leather[0];
       if (rB < 3.4) return v < 21 ? gold[4] : gold[3];
       if (rB < 4.4) return leather[0];
@@ -223,7 +223,7 @@
           var drop = s.gz - nz;
           if (drop <= 0) return;
           var right = d[0] === 1; // the +gx face shows lower-right, the +gy face lower-left
-          var nb = m.at(s.x + d[0], s.y + d[1]), doorF = !right && nb && nb.ch === 'd', fallF = !right && s.falls, spoutF = !right && s.spout ? Math.round(s.spout / 2.5) * m.def.step : 0; // (a doorway on the +gy face above a threshold tile; a fall down the whole face; a spout: a hole that many px up the face, the water from it down -- 10-04 night)
+          var nb = m.at(s.x + d[0], s.y + d[1]), doorF = !right && nb && nb.ch === 'd', dL = doorF ? m.at(s.x - 1, s.y + 1) : null, dR = doorF ? m.at(s.x + 1, s.y + 1) : null, pairL = !!(dL && dL.ch === 'd'), pairR = !!(dR && dR.ch === 'd'), kL = pairL ? 0 : 6, kR = pairR ? HW - 1 : 25, kA = kL + (pairL ? 0 : 1), kB = kR - (pairR ? 0 : 1), ringU = pairR ? 13.5 : pairL ? 3.5 : 8.5, fallF = !right && s.falls, spoutF = !right && s.spout ? Math.round(s.spout / 2.5) * m.def.step : 0; // (a doorway on the +gy face above a threshold tile; a fall down the whole face; a spout: a hole that many px up the face, the water from it down -- 10-04 night)
           for (var k = 0; k < HW; k++) {
             var fx0 = right ? ox + k : ox - HW + k;
             var ytop = right ? oy + HH - Math.floor(k / 2) : oy + Math.floor(k / 2);
@@ -241,10 +241,10 @@
               }
               var v = (right ? 0.32 : 0.5) + (vnoise(k * 0.3 + s.x * 9, j * 0.12, seed + 60) - 0.5) * 0.3 - (j / drop) * 0.15;
               if (j === 0) v += 0.2;
-              if (doorF && k >= 6 && k < 26 && j >= drop - 40) { // the doorway: dark within, a dressed frame, an arch at the top -- and its door shut in it (the open look kept for when it stands open)
-                var fr = k === 6 || k === 25 || j === drop - 40 || (j >= drop - 40 && j < drop - 36 && (k < 9 || k > 22));
+              if (doorF && k >= kL && k <= kR && j >= drop - 40) { // the doorway: dark within, a dressed frame, an arch at the top -- and its door shut in it (the open look kept for when it stands open); two doorways side by side are a double door, the leaves meeting at the seam and the frame on the outer edges only (10-05, Griz: "make the doors big enough that they're double doors touching")
+                var fr = (!pairL && k === kL) || (!pairR && k === kR) || j === drop - 40 || (j >= drop - 40 && j < drop - 36 && ((!pairL && k < kL + 3) || (!pairR && k > kR - 3)));
                 if (fr) { put(fx0, ytop + j, silver[3]); continue; }
-                put(fx0, ytop + j, doorLeaf(k - 7, j - (drop - 40)));
+                put(fx0, ytop + j, doorLeaf(Math.round((k - kA) / Math.max(1, kB - kA) * 17), j - (drop - 40), ringU));
                 doorOpen.push([fx0, ytop + j, j > drop - 4 ? stone[2] : stone[0]]); continue;
               }
               put(fx0, ytop + j, rampPick(stone, v, fx0, ytop + j));

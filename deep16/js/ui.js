@@ -459,9 +459,9 @@
   function spent(B, u) {
     var T = u.turn;
     if (T.move > 0 && !u.conds.restrained) { var rc = reachCache(B, u); if (Object.keys(rc.move).some(function (k) { return rc.move[k].stand && rc.move[k].cost > 0; })) return false; }
-    // hanging on a rope with 5 ft or more: a rung up or down is a step to take (exec 'ropeclimb'), though no square is (10-05, Griz: "have viv move and end up on a rope with her bonus
-    // action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash movement")
-    if (T.move >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u)) return false;
+    // hanging on a rope with the move for a rung up or down (10 ft a 5 ft rung, or an end in reach -- battle.js Battle.ropeSteps, 10-05): a step to take (exec 'ropeclimb'), though no square
+    // is (10-05, Griz: "have viv move and end up on a rope with her bonus action left ... used bonus dash and it auto-ended her turn before i spent the bonus dash movement")
+    if (T.move >= 5 && !u.conds.restrained && u.hang && u.hang.rope && G.hanging(u) && (D.Battle.ropeSteps(u.hang.rope, u.hang.z, true, T.move) > 0 || D.Battle.ropeSteps(u.hang.rope, u.hang.z, false, T.move) > 0)) return false;
     return !B.commands(u).some(function (c) { return c.ok; });
   }
   UI.spent = spent; // (the bench's: dev/bench16.js mode=edifice1004)
@@ -618,8 +618,9 @@
     if (B.tool === 'spell' && B.spell && a) { var st = spellTarget(B, a, B.spell.g, x, y); if (st) return st; }
     return w;
   }
-  // a rope (B.ropes; grid.js G.ropeOn) whose one end is (x, y) and whose other the mover stands at, hangs on, or reaches with 5 ft or more to spare: the click climbs part way
-  // (Griz, 10-04: "a roped face is gonna be a movement stopping point"); a rope it can climb whole is an ordinary 'ok'
+  // a rope (B.ropes; grid.js G.ropeOn) whose one end is (x, y) and whose other the mover stands at, hangs on, or reaches with the move to spare for one 5 ft mark of it at the least
+  // (10 ft of movement; battle.js Battle.ropeSteps -- 10-05, the climb by 5 ft): the click climbs part way (Griz, 10-04: "a roped face is gonna be a movement stopping point"); a rope
+  // it can climb whole is an ordinary 'ok'
   function ropeEnd(B, u, x, y, rc) {
     if ((u.size || 1) > 1 || u.conds.restrained) return null;
     var rs = B.ropes || [];
@@ -627,15 +628,19 @@
       var r = rs[i]; if (r.cut) continue;
       var other = x === r.at[0] && y === r.at[1] ? r.foot : x === r.foot[0] && y === r.foot[1] ? r.at : null; if (!other) continue;
       var k = other[0] + ',' + other[1], spent = u.x === other[0] && u.y === other[1] ? 0 : rc.move[k] && rc.move[k].stand ? rc.move[k].cost : null;
-      if (spent != null && u.turn.move - spent >= 5) return r;
+      if (spent == null) continue;
+      var hz = other === r.foot && u.hang && u.hang.rope === r && G.hanging(u) ? u.hang.z : G.map.gz(other[0], other[1]);
+      if (D.Battle.ropeSteps(r, hz, other === r.foot, u.turn.move - spent) > 0) return r;
     }
     return null;
   }
   // a rung of a rope (10-04 night, Griz: "I can't currently target half-way up the rope with a highlighted wall and choose that as my intentional move" -- "better than
-  // half-way stop plz, these are 45 ft ropes i think"): the mouse on a roped face picks a height along the rope, a step (2.5 ft) at a time, and the click climbs -- or lets
+  // half-way stop plz, these are 45 ft ropes i think"): the mouse on a roped face picks a height along the rope, a rung every 5 ft (two of the maps' 2.5 ft steps) up from the foot's
+  // ground, never a half step (10-05, Griz: "any reason not to do the climb in 5 ft increments instead of 2.5?" -- "1 yes"), and the click climbs -- or lets
   // down -- to exactly there and hangs (battle.js exec 'ropeclimb' with z). From the foot or the top (standing there, or walked to with move to spare), or from where it hangs
   // already (any other rung, or the ground). The pick is a band 36 px wide down the rope's line, so the face itself is the target, as he asked. Returns
-  // { rope, z, k, n, z0, steps, cost, spent, up, to, ok, ground, why } or null: `to` the end it climbs toward, `cost` the rope's 5 ft a step, `spent` the walk to the end first
+  // { rope, z, k, n, z0, steps, cost, spent, up, to, ok, ground, why } or null: `k` the rung in steps (even), `to` the end it climbs toward, `cost` 5 ft of movement a step (10 a rung),
+  // `spent` the walk to the end first
   function ropeRung(B, u, mx, my) {
     if (!u || !u.turn || (u.size || 1) > 1 || u.conds.restrained || u.climbs || (u.flies && !u.conds.prone) || !(B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) return null;
     var rs = B.ropes || [], iso = D.iso, st = G.map.def.step, z = iso.zoom, T = u.turn, rc = null, hang = u.hang && G.hanging(u) ? u.hang.rope : null;
@@ -645,7 +650,8 @@
       var zt = G.map.gz(r.at[0], r.at[1]), zf = G.map.gz(r.foot[0], r.foot[1]), n = Math.round((zt - zf) / st); if (n < 2) continue;
       var ex = (r.at[0] + r.foot[0]) / 2, ey = (r.at[1] + r.foot[1]) / 2, a = iso.center(ex, ey, zt), b = iso.center(ex, ey, zf), p = iso.toScreen(a.x, a.y), q = iso.toScreen(b.x, b.y);
       if (Math.abs(mx - p.x) > 18 * z + 2 || my < p.y - 6 || my > q.y + 6) continue;
-      var k = Math.round((q.y - my) / (st * z)), kMin = hang === r ? 0 : 1; k = Math.max(kMin, Math.min(n - 1, k));
+      var kMin = hang === r ? 0 : 2, kMax = Math.floor((n - 1) / 2) * 2; if (kMax < kMin) continue; // (a rung every 5 ft, two steps, above the foot's ground and short of the top; the ground for a hanger -- 10-05)
+      var k = Math.round((q.y - my) / (2 * st * z)) * 2; k = Math.max(kMin, Math.min(kMax, k));
       // where it climbs from: its hang, the end it stands at, or an end it can walk to with move to spare (the cheaper)
       var from = [];
       if (hang === r) from.push({ z0: u.hang.z, spent: 0 });
@@ -690,7 +696,7 @@
       cx.restore();
     } });
     var hp = iso.center(r.foot[0], r.foot[1], rg.z), hs = iso.toScreen(hp.x, hp.y); // (the words after everything in the sort: a tile in front painted over them when they rode in it)
-    LABELS.push({ x: hs.x + 18, y: hs.y - 4, text: (rg.ground ? 'the ground' : ((rg.z - zf) / st * 2.5) + ' ft up') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent + rg.cost) + ' ft of move{/}', color: R('bone', 1) });
+    LABELS.push({ x: hs.x + 18, y: hs.y - 4, text: (rg.ground ? 'the ground' : (Math.round((rg.z - zf) / st / 2) * 5) + ' ft up') + '  ' + (rg.ok ? '{n}' : '{o}') + (rg.spent + rg.cost) + ' ft of move{/}', color: R('bone', 1) }); // (the rung's height in whole 5s: 10-05)
   }
 
   // a square a torch may be thrown to: open, within 20 ft, in line (not the thrower's own)

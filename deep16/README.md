@@ -229,9 +229,9 @@ it's not invisibility, just hide)"*): an attack at a hidden target has disadvant
 
 **Ropes and rungs** (10-04; `js/grid.js` ROPES, `js/battle.js` exec 'rope', 'ropeclimb', 'takerope', 'cutrope', `js/ui.js ropeRung`): a map's
 `ropes: [[ax, ay, fx, fy]]` hang from the top of a face to its foot, and the party's Rope & Grapple sets one (the item wheel: tied off from up
-top, or thrown up 30 ft at DC 10 DEX). Along a rope no check and no fall, at the SRD's double cost (5 ft of movement a 2.5 ft step). **The rungs**
+top, or thrown as far as the rope is long, 50 ft, at DC 10 DEX to 30 ft and 2 more each 5 ft past -- 10-05). Along a rope no check and no fall, at the SRD's double cost (10 ft of movement a 5 ft rung; the climb goes by 5 ft since 10-05, Griz: *"any reason not to do the climb in 5 ft increments instead of 2.5?"* -- *"1 yes"*; the maps keep their 2.5 ft steps for the drawing and the ledges). **The rungs**
 (10-04 night, Griz: *"I can't currently target half-way up the rope with a highlighted wall and choose that as my intentional move"*): the mouse
-on the roped face picks a height a step at a time -- the face outlined, the rung across it, where the figure will hang marked with the height and
+on the roped face picks a rung at a time, every 5 ft -- the face outlined, the rung across it, where the figure will hang marked with the height and
 the cost -- and the click climbs or lets down to exactly there and hangs, from the foot, the top, or where it hangs already (any rung, or the
 ground). **The grapple's square** (Griz: *"if one clicks on a square where a grapple is they should be able to take it (unless someone is on it -
 in which case I think they'll attack it if that's not an ally)"*): nobody on it, a click from beside takes it up into the pack for the action (or

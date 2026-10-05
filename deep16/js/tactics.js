@@ -531,13 +531,15 @@
     if (u.conc && !foesOf(B, u).length && B.units.some(function (w) { return G.hostile(u, w) && !w.dead && w.hp > 0 && w.conds.banished && w.conds.banished.by === u.id; })) { M.endConc(B, u, 'to finish it'); yield 16; }
     var fs = foesOf(B, u);
     if (!fs.length) {
+      // a troll lying at 0 and no other foe standing (foesOf leaves it out, so TX.plans never ran): the burn that keeps it down -- the cantrip's, or the pack's Oil Flask (10-05)
+      if (yield* TX.burnDown(B, u)) return;
       // a foe under the ground, or out of the world, and nothing else to do: READY for its coming (SRD 5.1 Ready; 10-02)
       if (T.action && !u.ready && TX.readyWanted(B, u)) { yield* TX.readyUp(B, u); return; }
       // no one it knows of: toward the nearest it can hear, then wait
       var any = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.conds.hidden; }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
       if (!any && B.heardOf) any = B.heardOf(u); // (no one to hear but where the last blow came from: it goes there -- SRD 5.1, Hiding; battle.js noteHeard, 10-01c)
       var clue = !!(B.heardOf && B.heardOf(u)); // (a blow or a spell heard, this round or the last: a place to look)
-      if (any) yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), G.reachOf(u)));
+      if (any) { yield* walk(B, u, AI.approach(u, any, G.reach(u, T.move), G.reachOf(u))); if (!u.dead && u.hp > 0 && (yield* TX.burnDown(B, u))) return; } // (the walk may bring the troll lying out of range into it: the burn from there)
       // it still sees no one, with a place to look and a hidden enemy about: the Search action, a Perception check against the hider's Stealth (SRD 5.1; battle.js search, 10-04 --
       // either side's class NPC: Griz, "oversight on my part limiting to 'foes'")
       if ((clue || B.round >= 2) && !u.dead && u.hp > 0 && T.action > 0 && !u.conds.disarmed && B.units.some(function (w) { return w.conds.hidden && G.hostile(u, w) && G.standing(w); })) yield* B.search(u);
@@ -774,6 +776,36 @@
     var g = M.geo(e.id), t = down.filter(function (w) { return M.targetOK(B, u, g, w); }).sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0]; if (!t) return null;
     return { kind: 'spell', why: e.id + ' to burn the ' + t.name + ' where it lies', score: 90, go: function* () { yield* B.exec(u, { do: 'cast', id: e.id, slot: e.slot, target: t }); } }; // (90: above a buff's -- Haste weighed 57.8 on the bench -- since a troll left to knit is the whole troll again)
   });
+  var burnSpell = TX.ACTIONS[TX.ACTIONS.length - 1]; // (the cantrip's burn, above: kept for TX.burnDown)
+  // the Oil Flask, thrown (10-05, Griz: "ai knowing oil and torch yes" -- the oil now): the pack's flask (content/items.json oil: 5 fire, a DEX save, 20 ft in sight, the action; battle.js
+  // itemList and useItem, exec 'item') at a foe that regenerates and has not burned since its last turn -- a troll standing, so it does not knit at its turn; a troll lying at 0, so it
+  // does not get up. The pack is the party's: no foe's class NPC throws from it. Weighed as the fire spells' burn is -- TX.worth's burns weighing plus two rounds of its blows, or the 90
+  // of the burn where it lies -- each by the chance the save fails (a flask can be dodged; a spell's burn is counted flat above), so a fire spell the caster has is still taken first.
+  // Never at one that does not regenerate, nor with the pack empty; a Thief throws it as a bonus action (itemList says)
+  function burnFlask(B, u) {
+    var T = u.turn; if (u.side !== 'party' || !T || !T.action || T.attacksLeft) return null;
+    var fl = B.itemList(u).filter(function (x) { return x.id === 'oil' && x.n > 0 && x.ok; })[0]; if (!fl) return null;
+    var use = fl.use || {}, ab = use.save || 'dex', dc = use.dc || 10, dmg = avg(String(use.dice || '5')), best = null;
+    AI.heroes(B, u).forEach(function (w) {
+      if (!G.hostile(u, w) || w.dead || !(w.regen > 0) || w.burned || !G.standing(w)) return;
+      if (G.dist(u, w) > 20 || !G.los(u, w).clear || !M.sees(B, u, w)) return;
+      var p = TX.pFail(w, ab, dc), sc = w.regenDown ? 90 * p : TX.worth(dmg * p, w, true) + TX.dpr(w) * 2 * p;
+      if (!best || sc > best.score) best = { t: w, score: sc };
+    });
+    if (!best || !(best.score > 0)) return null;
+    var t = best.t;
+    return { kind: 'item', id: 'oil', score: best.score, why: 'throws an Oil Flask at ' + t.name + (t.regenDown ? ' where it lies' : ' to stop its knitting'), go: function* () { yield* B.exec(u, { do: 'item', id: 'oil', target: t }); } };
+  }
+  TX.ACTIONS.push(burnFlask);
+  // the burn on its own: a troll down is no one's blow (foesOf leaves it out), so a turn with it the only foe never reached TX.plans -- the best of the cantrip's burn and the flask's,
+  // taken if it is worth the action; false when there is none (TX.turn, the empty field)
+  TX.burnDown = function* (B, u) {
+    var T = u.turn; if (!T || !T.action || T.attacksLeft || u.dead || u.hp <= 0) return false;
+    var bp = [burnSpell(B, u), burnFlask(B, u)].filter(Boolean).sort(function (a, b) { return b.score - a.score; })[0];
+    if (!bp || !(bp.score > 0.5)) return false;
+    if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ': ' + bp.why + ' ' + bp.score.toFixed(1));
+    yield* bp.go(); return true;
+  };
   // Lay on Hands (the paladin): the pool on the worst off beside him, when it's needed
   TX.ACTIONS.push(function (B, u, fs, allies) {
     if (u.cls !== 'paladin' || !u.feats || !(u.feats.lay > 0) || !u.turn.action || u.turn.attacksLeft) return null;

@@ -105,7 +105,8 @@
     if (NB && NB.foes && NB.foes.length) foes = this.seatBand(NB.foes.map(function (w, i) { var fid = 'f' + i + '-' + String(w).split(':')[0]; var b = D.npc.build(w, F.level, 'foe', { id: fid }) || (typeof w === 'string' && D.FOES[w] ? self.makeFoe({ id: fid, kind: w, hidden: !!LURK[w] }) : null); if (!b) missed.push(String(w)); return b; }).filter(Boolean), m, party);
     if (missed.length) console.warn('DEEP16: not a class or a bestiary monster: ' + missed.join(', '));
     if (this.o.embed && this.o.embed.revealed) foes.forEach(function (u) { u.hidden0 = false; }); // (seen coming: the roper under the ledger-lamp)
-    this.units = party.concat(foes);
+    var lent = (F.allies || []).map(function (f) { return self.makeFoe(Object.assign({ side: 'party', ally: true }, f)); }); // (ours for the fight, the brute's to run: the Skylights' stable fighters up the south road, the garrison behind the hatch -- 10-05)
+    this.units = party.concat(foes, lent);
     // the pack: DEEP16 lends every ladder and climb party a crossbow and bolts (save.js armoury); inside the 8-bit game the party
     // carries only what it brought (Griz, 09-27: "unless the players bring crossbows/range, they shouldn't have one")
     var pack = JSON.parse(JSON.stringify(this.from.data.inv || [])).map(function (s) { return Array.isArray(s) ? { id: s[0], n: s[1] } : s; });
@@ -270,7 +271,7 @@
   Battle.prototype.makeFoe0 = function (f, d) {
     return {
       // the creature type (RULED 09-28: on every sheet) and the challenge rating (Turn Undead's destroying reads it)
-      id: f.id, kind: f.kind, name: d.name, i8: f.i8, side: 'foe', sheet: d.sheet, type: d.type || null, cr: d.cr, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1,
+      id: f.id, kind: f.kind, name: f.name || d.name, fname: !!f.name, i8: f.i8, side: f.side || 'foe', ally: !!f.ally, hatch: !!f.hatch, free: !!f.free, sheet: d.sheet, type: d.type || null, cr: d.cr, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1, // (a fight's own name for it: the Skylights' giants, 10-05; side 'party' with `ally`: one of ours the brute runs -- the Hex's stable fighters, the garrison behind the hatch (`hatch`: held till it opens); `free`: no mission)
       hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       init: d.init, perception: d.perception, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
       fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5,
@@ -297,7 +298,7 @@
       reckless: !!d.reckless, rageOnHit: !!d.rageOnHit, raging: false,
       // (the 8-bit wagon yard, fight.runWhenHurt: nobody runs until the one at the traces is hit -- then both do, Battle.startRun)
       yields: !!d.yields, // (stops at half his hit points: Battle.over's 'yielded', the 8-bit game's yield)
-      flees: !!d.flees && !(this.fight && (this.fight.noFlee || this.fight.runWhenHurt)), traces: !!f.traces, transfer: !!d.transfer, images: 0, named: !!d.named, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
+      flees: !!d.flees && !(this.fight && (this.fight.noFlee || this.fight.runWhenHurt)), traces: !!f.traces, transfer: !!d.transfer, images: 0, named: !!d.named || !!f.name, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
@@ -503,13 +504,13 @@
     // one whose fall ends it (a guest the party swore to bring back: Corwen Dace in the deep gallery -- RULED 10-01c, Griz: "game over if the kid falls")
     if (this.units.some(function (u) { return u.vital && u.side === 'party' && (u.dead || u.hp <= 0); })) return 'lost';
     // one out, all out (a fight's `oneLeavesAll`: the Wet since 09-30e, the Keeper 10-04 -- Griz: "can we do the 'pull the rest of the party' we do with the Wet escape?")
-    if (this.fight && this.fight.oneLeavesAll && this.units.some(function (u) { return u.side === 'party' && u.left && !u.familiar && !u.summon; })) return 'escaped';
+    if (this.fight && this.fight.oneLeavesAll && this.units.some(function (u) { return u.side === 'party' && u.left && !u.familiar && !u.summon && !u.ally; })) return 'escaped';
     // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27), or the rest
     // are still on their way out of the inn (this.reserve)
     // (a familiar left alone keeps no fight going, and one sent to its pocket of the world got nobody out)
     // (nor do summoned creatures: they go when their caster's concentration does)
     // (nor a hero turned to stone -- Flesh to Stone's third failed save, the foe side's test above: it never acts again; a party all stone is a lost fight, 10-01)
-    if (!this.alive('party').filter(function (u) { return !u.object && !u.familiar && !u.summon && !u.dominated && !u.loose && !(u.conds && u.conds.stoning && u.conds.stoning.done); }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
+    if (!this.alive('party').filter(function (u) { return !u.object && !u.familiar && !u.summon && !u.ally && !u.dominated && !u.loose && !(u.conds && u.conds.stoning && u.conds.stoning.done); }).length) return this.reserve.length ? null : this.units.some(function (u) { return u.left && !u.familiar && !u.summon; }) ? 'escaped' : 'lost';
     return null;
   };
   // the rest of the party out of the inn (the lone investigator's round-two help): onto the free squares nearest the fight's
@@ -536,59 +537,77 @@
     yield 50;
   };
 
+  // the way from where it stands to a square, eight ways, round the walls (and round the others too, when `solid`), on the level it starts from (the street's ground; the roof's
+  // glass for the garrison out of the hatch, 10-05): the steps, not the square it starts on
+  Battle.route = function (u, to, solid) {
+    var key = function (x, y) { return x + ',' + y; }, prev = {}, q = [[u.x, u.y]], seen = {}, z0 = G.gzAt(u, u.x, u.y); seen[key(u.x, u.y)] = 1;
+    var ok = function (x, y) { return G.canStand(u, x, y, solid ? null : { ghost: true }) && Math.abs(G.gzAt(u, x, y) - z0) <= G.map.def.step; }; // (on its own level: a climber's big body may straddle any face, and the walk-in took the trolls over the top of the facade above the first fountain -- 10-05, Griz: "Monsters are walking on top of the wall over the first fountain on entry")
+    while (q.length) {
+      var c = q.shift(); if (c[0] === to[0] && c[1] === to[1]) break;
+      for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
+        var nx = c[0] + dx, ny = c[1] + dy; if ((!dx && !dy) || seen[key(nx, ny)]) continue;
+        if (!ok(nx, ny) || (dx && dy && (!ok(c[0] + dx, c[1]) || !ok(c[0], c[1] + dy)))) continue; // (no corner cut past a wall)
+        seen[key(nx, ny)] = 1; prev[key(nx, ny)] = c; q.push([nx, ny]);
+      }
+    }
+    if (!seen[key(to[0], to[1])]) return null;
+    var out = [], p = to; while (p && !(p[0] === u.x && p[1] === u.y)) { out.unshift(p); p = prev[key(p[0], p[1])]; }
+    return out;
+  };
+  // walk a file of them in: each { u, from, to, face }, the next set down on its `from` once that is clear, a step each a beat (the Skylights' waves, Battle.arrive; the garrison
+  // out of the hatch, Battle.hatchOut -- 10-05)
+  Battle.prototype.walkIn = function* (file, look) {
+    var self = this, U = this.units, pending = file.slice(), going = [], guard = 0;
+    while ((pending.length || going.length) && guard++ < 150) {
+      var nx0 = pending[0];
+      if (nx0) { var hx = nx0.u.x, hy = nx0.u.y; nx0.u.x = nx0.from[0]; nx0.u.y = nx0.from[1];
+        if (G.canStand(nx0.u, nx0.u.x, nx0.u.y)) {
+          pending.shift(); U.push(nx0.u); (nx0.riders || []).forEach(function (r) { U.push(r); });
+          nx0.u.anim = 'idle'; nx0.u.animT = self.t; nx0.steps = Battle.route(nx0.u, nx0.to) || []; nx0.held = 0; going.push(nx0);
+          if (nx0.spark) FX.sparkle(nx0.u, 'gold', 10);
+        } else { nx0.u.x = hx; nx0.u.y = hy; }
+      }
+      going.forEach(function (g) {
+        if (!g.steps.length) return;
+        var to = g.steps[0];
+        if (!G.canStand(g.u, to[0], to[1])) { if (++g.held % 4 === 0) { var r2 = Battle.route(g.u, g.to, true); if (r2) g.steps = r2; else if (g.held >= 8) g.steps = []; } return; } // (another in the way: wait, then go round -- and with no way round, it stops where it is: 10-05, Griz: "is it freezing with the second troll still trying to walk?")
+        g.held = 0; g.steps.shift();
+        g.u.tween = { fx: g.u.x, fy: g.u.y, fz: G.gzAt(g.u, g.u.x, g.u.y), t: 0, dur: STEP_FRAMES, mode: null };
+        g.u.facing = D.spr.facingFor(to[0] - g.u.x, to[1] - g.u.y); g.u.anim = 'walk'; g.u.x = to[0]; g.u.y = to[1];
+      });
+      going = going.filter(function (g) { if (g.steps.length && guard < 149) return true; if (g.u.x !== g.to[0] && G.canStand(g.u, g.to[0], g.to[1])) { g.u.x = g.to[0]; g.u.y = g.to[1]; } g.u.anim = 'idle'; g.u.facing = g.face; return false; });
+      if (look) look(going[0] || file[file.length - 1]);
+      yield STEP_FRAMES;
+    }
+    pending.forEach(function (p) { if (G.canStand(p.u, p.to[0], p.to[1])) { p.u.x = p.to[0]; p.u.y = p.to[1]; U.push(p.u); (p.riders || []).forEach(function (r) { U.push(r); }); p.u.anim = 'idle'; p.u.facing = p.face; } }); // (one that never got its way in: set down where it was to stand)
+  };
   // a fight's opening before the first round (a fight's `arrive`; the Edifice's, 10-05, Griz: "Have pyro come out followed by the party then the doors lock behind them. Have the
-  // monsters come from the north road, the team pop out and then initiative"): the foes with a `from` walk in from it to the squares they hold, in step, each setting off when its way
-  // in is clear; then the doors (arrive.doors) stand open and the party comes out of them -- its guests first, then the four in their order -- each to the square it was seated on;
-  // then the doors shut behind them (arrive.lock), and the fight rolls initiative. Before the fight: nothing spent, no one provoked
+  // monsters come from the north road, the team pop out and then initiative" -- and the same day, the waves: "villagers that flee from the buildings to the south road as 2 trolls
+  // come in, then a group of 4 from each of silverton's stables that will engage those trolls, with the two that come in with the giants and the party popping out after"): the
+  // waves in their order (arrive.waves: each { foes: [ids], allies: [ids], flee: { from: [[x, y]], to: [[x, y]] }, card } -- with none, every foe with a `from` as one wave under
+  // arrive.road): the foes walk in from their `from` to the squares they hold, in step, each setting off when its way in is clear, the townsfolk running for the south road beside the
+  // first (made here, gone once they are down it), the lent allies up from theirs; then the doors (arrive.doors) stand open and the party comes out of them -- its guests first, then
+  // the four in their order -- each to the square it was seated on; then the doors shut behind them (arrive.lock), and the fight rolls initiative. Before the fight: nothing spent, no
+  // one provoked. A bench counts the beats (mode=skylights1005)
   Battle.prototype.arrive = function* () {
     var self = this, A = this.fight.arrive, U = this.units, m = this.map;
-    // the way from where it stands to a square, eight ways, round the walls (and round the others too, when `solid`): the steps, not the square it starts on
-    function route(u, to, solid) {
-      var key = function (x, y) { return x + ',' + y; }, prev = {}, q = [[u.x, u.y]], seen = {}; seen[key(u.x, u.y)] = 1;
-      var ok = function (x, y) { return G.canStand(u, x, y, solid ? null : { ghost: true }) && G.gzAt(u, x, y) <= G.map.def.step; }; // (on the ground: a climber's big body may straddle any face, and the walk-in took the trolls over the top of the facade above the first fountain -- 10-05, Griz: "Monsters are walking on top of the wall over the first fountain on entry")
-      while (q.length) {
-        var c = q.shift(); if (c[0] === to[0] && c[1] === to[1]) break;
-        for (var dy = -1; dy <= 1; dy++) for (var dx = -1; dx <= 1; dx++) {
-          var nx = c[0] + dx, ny = c[1] + dy; if ((!dx && !dy) || seen[key(nx, ny)]) continue;
-          if (!ok(nx, ny) || (dx && dy && (!ok(c[0] + dx, c[1]) || !ok(c[0], c[1] + dy)))) continue; // (no corner cut past a wall)
-          seen[key(nx, ny)] = 1; prev[key(nx, ny)] = c; q.push([nx, ny]);
-        }
-      }
-      if (!seen[key(to[0], to[1])]) return null;
-      var out = [], p = to; while (p && !(p[0] === u.x && p[1] === u.y)) { out.unshift(p); p = prev[key(p[0], p[1])]; }
-      return out;
-    }
-    // walk a file of them in: each { u, from, to, face }, the next set down on its `from` once that is clear, a step each a beat
-    function* walk(file, look) {
-      var pending = file.slice(), going = [], guard = 0;
-      while ((pending.length || going.length) && guard++ < 150) {
-        var nx0 = pending[0];
-        if (nx0) { var hx = nx0.u.x, hy = nx0.u.y; nx0.u.x = nx0.from[0]; nx0.u.y = nx0.from[1];
-          if (G.canStand(nx0.u, nx0.u.x, nx0.u.y)) {
-            pending.shift(); U.push(nx0.u); (nx0.riders || []).forEach(function (r) { U.push(r); });
-            nx0.u.anim = 'idle'; nx0.u.animT = self.t; nx0.steps = route(nx0.u, nx0.to) || []; nx0.held = 0; going.push(nx0);
-            if (nx0.spark) FX.sparkle(nx0.u, 'gold', 10);
-          } else { nx0.u.x = hx; nx0.u.y = hy; }
-        }
-        going.forEach(function (g) {
-          if (!g.steps.length) return;
-          var to = g.steps[0];
-          if (!G.canStand(g.u, to[0], to[1])) { if (++g.held % 4 === 0) { var r2 = route(g.u, g.to, true); if (r2) g.steps = r2; else if (g.held >= 8) g.steps = []; } return; } // (another in the way: wait, then go round -- and with no way round, it stops where it is: 10-05, Griz: "is it freezing with the second troll still trying to walk?")
-          g.held = 0; g.steps.shift();
-          g.u.tween = { fx: g.u.x, fy: g.u.y, fz: G.gzAt(g.u, g.u.x, g.u.y), t: 0, dur: STEP_FRAMES, mode: null };
-          g.u.facing = D.spr.facingFor(to[0] - g.u.x, to[1] - g.u.y); g.u.anim = 'walk'; g.u.x = to[0]; g.u.y = to[1];
-        });
-        going = going.filter(function (g) { if (g.steps.length && guard < 149) return true; if (g.u.x !== g.to[0] && G.canStand(g.u, g.to[0], g.to[1])) { g.u.x = g.to[0]; g.u.y = g.to[1]; } g.u.anim = 'idle'; g.u.facing = g.face; return false; });
-        if (look) look(going[0] || file[file.length - 1]);
-        yield STEP_FRAMES;
-      }
-      pending.forEach(function (p) { if (G.canStand(p.u, p.to[0], p.to[1])) { p.u.x = p.to[0]; p.u.y = p.to[1]; U.push(p.u); (p.riders || []).forEach(function (r) { U.push(r); }); p.u.anim = 'idle'; p.u.facing = p.face; } }); // (one that never got its way in: set down where it was to stand)
-    }
-    var W8 = this.arriving || this.offstage(), foes = W8.foes, ours = W8.ours, riders = W8.riders; this.arriving = null;
-    if (foes.length) {
-      this.focus({ x: foes[0].from0[0], y: foes[0].from0[1] + 4, size: foes[0].size }); if (A.road) this.card([A.road], 360); D.sfx('encounter');
-      yield* walk(foes.map(function (u) { return { u: u, from: u.from0, to: [u.x, u.y], face: D.spr.facingFor(1, 0) }; }), function (g) { if (g) self.keepInView(g.u); });
-      yield 30;
+    var W8 = this.arriving || this.offstage(), foes = W8.foes, ours = W8.ours, riders = W8.riders, allies = W8.allies || []; this.arriving = null;
+    var byId = function (ids, pool) { return (ids || []).map(function (id) { return pool.filter(function (u) { return u.id === id; })[0]; }).filter(Boolean); };
+    var look = function (g) { if (g) self.keepInView(g.u); };
+    var waves = A.waves || [{ foes: foes.map(function (u) { return u.id; }), card: A.road }];
+    this.beats = 0;
+    for (var w = 0; w < waves.length; w++) {
+      var wv = waves[w], fs = byId(wv.foes, foes), als = byId(wv.allies, allies), file = [];
+      if (fs.length) { this.focus({ x: fs[0].from0[0], y: fs[0].from0[1] + 4, size: fs[0].size }); D.sfx('encounter'); }
+      else if (als.length) { this.focus({ x: als[0].from0[0], y: als[0].from0[1] - 4, size: 1 }); D.sfx('popup'); }
+      if (wv.card) this.card([wv.card], 360);
+      fs.forEach(function (u) { file.push({ u: u, from: u.from0, to: [u.x, u.y], face: D.spr.facingFor(1, 0) }); });
+      var folk = wv.flee ? this.townsfolk(wv.flee) : [];
+      folk.forEach(function (f) { file.push(f); });
+      als.forEach(function (u) { file.push({ u: u, from: u.from0, to: [u.x, u.y], face: D.spr.facingFor(-1, 0) }); });
+      if (file.length) { yield* this.walkIn(file, look); yield 30; }
+      folk.forEach(function (f) { var k = U.indexOf(f.u); if (k >= 0) U.splice(k, 1); }); // (off down the south road and gone)
+      this.beats++;
     }
     if (ours.length) {
       // the guests first (Pyro leads them out), then the four
@@ -596,20 +615,53 @@
       ours.sort(function (a, b) { return lead(b) - lead(a); });
       m.doorsOpen = true; this.focus({ x: A.doors[0][0], y: A.doors[0][1] + 1, size: 1 }); if (A.open) this.card([A.open], 300); D.sfx('earth');
       yield 30;
-      yield* walk(ours.map(function (u, i) { return { u: u, from: A.doors[i % A.doors.length], to: [u.x, u.y], face: D.spr.facingFor(-1, 0), spark: true, riders: riders.filter(function (r) { return r.master === u; }) }; }), function (g) { if (g) self.keepInView(g.u); });
+      yield* this.walkIn(ours.map(function (u, i) { return { u: u, from: A.doors[i % A.doors.length], to: [u.x, u.y], face: D.spr.facingFor(-1, 0), spark: true, riders: riders.filter(function (r) { return r.master === u; }) }; }), look);
       m.doorsOpen = this.passagesOpen;
       if (A.lock) { this.card(['{y}' + A.lock + '{/}'], 360); D.sfx('clack'); }
       yield 40;
     }
   };
+  // the street's people (a wave's `flee`, 10-05): townsfolk made for the look of it -- ours, no one's target, never in the order -- each at a door or an alley's mouth, running for a
+  // square down the south road; walked with the wave by walkIn and taken off the field after. They wear the plain men's sheets for now (deep16-art-wanted.md)
+  Battle.prototype.townsfolk = function (fl) {
+    var self = this, kinds = ['crewman', 'thug', 'bandit', 'brawler'].filter(function (k) { return !!D.FOES[k]; }), out = [];
+    (fl.from || []).forEach(function (fr, i) {
+      var u = self.makeFoe({ id: 'folk' + i, kind: kinds[i % kinds.length], at: fr, side: 'party', ally: true });
+      u.name = 'Townsfolk'; u.look = true; u.attacks = {}; u.multi = 1; u.hp = u.maxhp = 4; u.lvl = 1;
+      var to = (fl.to || [])[i % Math.max(1, (fl.to || []).length)] || fr;
+      out.push({ u: u, from: fr, to: to, face: D.spr.facingFor(0, 1) });
+    });
+    return out;
+  };
+  // the garrison out of the hatch (the fight's `hatch`: { from: [[x, y]], after: rounds, card }, its allies those marked `hatch`, held off the field; 10-05, Griz: "In the 8 bit
+  // there's a solskaft guy 'drilling' soldiers (I think 4?) that group could come out the top door when the first bang hits the skylight (next round, maybe 2 after)"): `after` rounds
+  // past the first blow that hurts the glass (Battle.hurt sets skyHit; 1, the seat's call between his "next round, maybe 2 after"), they walk out of the hatch's squares onto the roof
+  // to the squares they hold, roll initiative and are dealt into the order
+  Battle.prototype.hatchOut = function* () {
+    var self = this, H = this.fight.hatch, held = this.held || []; this.held = [];
+    if (!H || !held.length) return;
+    this.focus({ x: H.from[0][0], y: H.from[0][1], size: 1 }); D.sfx('clack'); if (H.card) this.card(['{y}' + H.card + '{/}'], 420); yield 30;
+    yield* this.walkIn(held.map(function (u, i) { return { u: u, from: H.from[i % H.from.length], to: [u.x, u.y], face: D.spr.facingFor(0, -1), spark: true }; }), function (g) { if (g) self.keepInView(g.u); });
+    var dealt = held.filter(function (u) { return self.units.indexOf(u) >= 0; });
+    dealt.forEach(function (u) {
+      u.initRoll = D.d(20) + u.init;
+      var at = 0; while (at < self.order.length && (self.order[at].initRoll > u.initRoll || (self.order[at].initRoll === u.initRoll && self.order[at].abil.dex >= u.abil.dex))) at++;
+      self.order.splice(at, 0, u);
+    });
+    this.hatched = this.round;
+    this.card(['{y}INITIATIVE{/}  ' + dealt.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 300);
+    yield 30;
+  };
   // off the field until they arrive (Battle.enter, as soon as everyone is made, so the entry card shows an empty street): the foes on the road and everyone behind the doors, kept
   // on this.arriving with the squares they were seated on (a bench marks this.arriving.ours as it marks the units)
   Battle.prototype.offstage = function () {
     var U = this.units, A = this.fight.arrive || {};
-    var foes = U.filter(function (u) { return u.side === 'foe' && u.from0; }), ours = A.doors ? U.filter(function (u) { return u.side === 'party' && !u.object && !u.riding; }) : [];
+    var foes = U.filter(function (u) { return u.side === 'foe' && u.from0; }), ours = A.doors ? U.filter(function (u) { return u.side === 'party' && !u.object && !u.riding && !u.ally; }) : [];
+    var allies = U.filter(function (u) { return u.ally && u.from0 && !u.hatch; }), held = U.filter(function (u) { return u.ally && u.hatch; }); // (the lent ones that walk in with a wave; those held behind the hatch till it opens -- Battle.hatchOut, 10-05)
     var riders = U.filter(function (u) { return u.riding && ours.indexOf(u.master) >= 0; });
-    foes.concat(ours, riders).forEach(function (u) { U.splice(U.indexOf(u), 1); });
-    return (this.arriving = { foes: foes, ours: ours, riders: riders });
+    foes.concat(ours, riders, allies, held).forEach(function (u) { U.splice(U.indexOf(u), 1); });
+    this.held = held;
+    return (this.arriving = { foes: foes, ours: ours, riders: riders, allies: allies });
   };
   // a line said the first time a foe goes up a face (a fight's `climbLine`, { who, line }; the Edifice's, 10-05, Griz: "Have pyro say 'they're going for the skylights' when the first one
   // climbs?"): after the turn it climbed in, 10 ft or more up or clinging to the face, by the one the fight names -- if that one is up to say it
@@ -641,7 +693,7 @@
     if (this.fight && this.fight.defend && this.map && this.map.def && this.map.def.skylight) {
       var skd = this.map.def.skylight, sky = { id: 'skylight', name: skd.name || 'the skylight', kind: 'object', object: true, breachLoses: true, side: 'party', x: skd.at[0], y: skd.at[1], size: 1, hp: skd.hp || 120, maxhp: skd.hp || 120, ac: skd.ac || 13, threshold: skd.threshold || 0, resistAll: true, immune: ['poison', 'psychic'], condImmune: { all: true }, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, saves: {}, conds: {}, attacks: {}, speed: 0, initRoll: -99, lvl: 1, prof: 0, sheet: null, facing: 0 };
       this.units.push(sky); this.skylight = sky;
-      this.units.forEach(function (w) { if (w.side === 'foe') w.mission = 'skylight'; });
+      this.units.forEach(function (w) { if (w.side === 'foe' && !w.free) w.mission = 'skylight'; }); // (a foe marked `free` has no mission: the Skylights' first two trolls, met in the street -- 10-05)
     }
     this.order = this.units.filter(function (u) { return !u.familiar && !u.object; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; });
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
@@ -675,11 +727,12 @@
       this.round++;
       if (this.rec && D.rec && D.rec.checkpoint) D.rec.checkpoint(this); // (the play record kept as far as the fight has gone, each round: js/record.js, 10-02)
       if (this.reserve.length && this.round >= ((this.o.embed && this.o.embed.join) || 2)) yield* this.joinReserve();
+      if (this.held && this.held.length && this.skyHit != null && this.round >= this.skyHit + ((this.fight.hatch && this.fight.hatch.after) || 1)) yield* this.hatchOut(); // (the garrison out of the hatch, the round after the first bang on the glass -- 10-05)
       for (var i = 0; i < this.order.length; i++) {
         var u = this.order[i];
         if (u.dead) continue;
         this.active = u;
-        if (u.side === 'party' && !u.guest) yield* this.heroTurn(u);
+        if (u.side === 'party' && !u.guest && !u.ally) yield* this.heroTurn(u);
         else if (this.show && u.show) yield* D.show.turn(this, u); // (the test ground's director, js/show.js: the AI's turn with its nudges about it)
         else yield* D.ai.turn(this, u);
         this.active = null;
@@ -694,7 +747,7 @@
       }
     }
   };
-  function shortName(u) { return u.side === 'foe' ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider', spellweaver: 'Weaver', bugbearchief: 'Chief', hobsergeant: 'Sergeant', assassin: 'Blade', stonegiant: 'Giant', pudding: 'Pudding', giantspider: 'Spider', willem: 'Willem' }[u.kind] || u.name) : u.name; }
+  function shortName(u) { return u.side === 'foe' && !u.fname ? ({ drow: 'Captain', phasespider: 'Spider', drider: 'Drider', spellweaver: 'Weaver', bugbearchief: 'Chief', hobsergeant: 'Sergeant', assassin: 'Blade', stonegiant: 'Giant', pudding: 'Pudding', giantspider: 'Spider', willem: 'Willem' }[u.kind] || u.name) : u.name; }
 
   // the second wave: when the gallery goes still, the cocoon on the far wall splits and what was in it drops out,
   // dealt into the initiative on its own roll. The hero whose blow did it keeps the rest of the turn.
@@ -743,7 +796,7 @@
       if (incap && s.holding && s.holding.length) self.release(s);
       // a blinding hold (the darkmantle over the head, the cloaker's fold) ends with the grip, however the grip ended
       var bl = s.conds.blinded;
-      if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple) && !(s.conds.attached && s.conds.attached.by === bl.by)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? 'The ' + shortName(s) : s.name) + ' can see again.{/}'], 200); }
+      if (bl && bl.held && !(s.conds.restrained && s.conds.restrained.by === bl.by && s.conds.restrained.grapple) && !(s.conds.attached && s.conds.attached.by === bl.by)) { delete s.conds.blinded; self.card(['{g}' + (s.side === 'foe' ? Battle.nm(s, true) : s.name) + ' can see again.{/}'], 200); }
     });
   };
 
@@ -952,9 +1005,19 @@
   Battle.ropeAt = function (B, x, y) { return ((B && B.ropes) || []).filter(function (r) { return !r.cut && r.at[0] === x && r.at[1] === y; })[0] || null; };
   Battle.ropeHanger = function (B, r) { return (B.units || []).filter(function (h) { return h.hang && h.hang.rope === r && G.hanging(h) && G.standing(h); })[0] || null; };
   Battle.ropeNear = function (B, u) { return ((B && B.ropes) || []).filter(function (r) { return !r.cut && Math.max(Math.abs(u.x - r.at[0]), Math.abs(u.y - r.at[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(r.at[0], r.at[1])) <= G.map.def.step; })[0] || null; };
+  // the rope's 5 ft marks (10-05, Griz: "any reason not to do the climb in 5 ft increments instead of 2.5?" -- "1 yes"; the SRD 5.1 has no 2.5 ft, the half step is the maps' drawing unit):
+  // a hang is on a mark every 5 ft (two steps) above the foot's ground, never a half step; each step along the rope is still 5 ft of movement (each foot climbed costs one more: 10 a mark).
+  // Battle.ropeSteps: the steps a climber at height z0 goes toward the top (up) or the foot with `move` ft -- the whole way if the move pays it (unless `part`: part way only), else to the
+  // farthest mark it reaches, an odd 5 ft of movement left unspent; 0 none. Battle.ropeMark: the mark nearest a height, the ends included (exec 'ropeclimb' with z; ui.js ropeRung's rungs)
+  Battle.ropeSteps = function (r, z0, up, move, part) {
+    var st = G.map.def.step, zf = G.map.gz(r.foot[0], r.foot[1]), n = Math.round((G.map.gz(r.at[0], r.at[1]) - zf) / st), h = Math.round((z0 - zf) / st), a = Math.floor(Math.max(0, move || 0) / 5), m;
+    if (up) { if (!part && h + a >= n) return Math.max(0, n - h); m = Math.floor(Math.min(h + a, n - 1) / 2) * 2; return m > h ? m - h : 0; }
+    if (!part && h - a <= 0) return Math.max(0, h); m = Math.ceil(Math.max(h - a, 1) / 2) * 2; return m < h ? h - m : 0;
+  };
+  Battle.ropeMark = function (r, z) { var st = G.map.def.step, zf = G.map.gz(r.foot[0], r.foot[1]), zt = G.map.gz(r.at[0], r.at[1]); return Math.max(zf, Math.min(zt, zf + Math.round((z - zf) / (2 * st)) * 2 * st)); };
   Battle.canTakeRope = function (B, u, r) {
     var T = u.turn || {}, h = Battle.ropeHanger(B, r), near = Math.max(Math.abs(u.x - r.at[0]), Math.abs(u.y - r.at[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(r.at[0], r.at[1])) <= G.map.def.step;
-    if (h) return { ok: false, why: (h.side === 'party' || !G.hostile(u, h) ? h.name : 'the ' + shortName(h)) + ' hangs on it' };
+    if (h) return { ok: false, why: (h.side === 'party' || !G.hostile(u, h) ? h.name : Battle.nm(h)) + ' hangs on it' };
     if (!near) return { ok: false, why: 'not from here: stand on its square or beside it, up top' };
     if (u.hang && G.hanging(u)) return { ok: false, why: 'not while hanging on it' };
     if (!(T.action > 0) || T.attacksLeft) return { ok: false, why: 'the action is spent' };
@@ -1059,10 +1122,10 @@
       var h = this.units[i]; if (!(h.hang && h.hang.rope === r)) continue;
       var fz = h.hang.z, ft = Math.round((fz - G.map.gz(h.x, h.y)) / G.map.def.step) * 2.5; delete h.hang;
       h.tween = { fx: h.x, fy: h.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' }; yield STEP_FRAMES + 6;
-      var fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
-      this.card(['{o}' + nameOf(h) + ' falls ' + ft + ' ft' + (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.{/}'], 220);
+      var onR = this.under(h), fd = !onR.length && ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null; // (onto whoever stood at the rope's foot: the cushion -- 10-05, landOn)
+      this.card(['{o}' + nameOf(h) + ' falls ' + ft + ' ft' + (onR.length ? ' onto ' + onR.map(nameOf).join(' and ') + ', and lands on its feet.' : (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 220);
+      if (onR.length) { this.landOn(h, ft); continue; }
       if (fd) this.hurt(h, fd.total, 'bludgeoning', {}); h.conds.prone = true;
-      this.landOn(h); // (onto whoever stood at the rope's foot -- 10-05)
     }
   };
   // what a walk along `path` risks on a map whose cliffs can be climbed (10-04, Griz: "can we add 'Drop?' when a movement click results in fall damage (avoid
@@ -1182,8 +1245,8 @@
         if (!pre || (!here && !(rmR[near[0] + ',' + near[1]] || {}).stand)) return;
         var left = T.move - (here ? 0 : rmR[near[0] + ',' + near[1]].cost), zFrom = hangR ? u.hang.z : G.map.gz(near[0], near[1]);
         if (c.z != null) { // a rung picked: no question, the pick was the intent
-          var zTo = c.z, stepsR = Math.round(Math.abs(zTo - zFrom) / stZr);
-          if (stepsR < 1 || left < stepsR * 5) return;
+          var zTo = Battle.ropeMark(rr0, c.z), stepsR = Math.round(Math.abs(zTo - zFrom) / stZr); // (on a 5 ft mark above the foot, or an end -- a height off the marks is taken to the nearest: 10-05)
+          if (stepsR < 1 || left < stepsR * 5) return; // (5 ft of movement a step along the rope: 10 a 5 ft mark)
           if (hangR && zTo < zFrom) { // down the rope from where it hangs, to a lower rung or to its foot (the rope's found-not-built of 10-04: a hanger could go up or step off, never down part way)
             var ground = zTo <= G.map.gz(u.x, u.y) + 0.5, underR = ground ? G.occupant(u.x, u.y, u, { z: G.map.gz(u.x, u.y), h: G.bodyH(u) }) : null;
             if (underR) { this.card(['{o}' + nameOf(u) + ' cannot come down: ' + nameOf(underR) + ' stands at the foot of the rope.{/}'], 200); return; } // (one standing at the foot holds it; the hanger hangs on -- 10-05)
@@ -1199,7 +1262,7 @@
           yield* this.moveAlong(u, pre.concat([[endR[0], endR[1]]]), { spend: true, stopZ: zTo });
           return;
         }
-        var allFt = Math.round(Math.abs(G.map.gz(c.x, c.y) - zFrom) / stZr) * 2.5, gotFt = Math.min(allFt, Math.floor(left / 5) * 2.5);
+        var allFt = Math.round(Math.abs(G.map.gz(c.x, c.y) - zFrom) / stZr) * 2.5, gotFt = Battle.ropeSteps(rr0, zFrom, G.map.gz(c.x, c.y) > zFrom, left) * 2.5; // (to the farthest 5 ft mark the move pays, 10 ft of movement a mark: 10-05)
         if (gotFt <= 0) return;
         var ansR = yield { prompt: { who: u, title: u.name + ': CLIMB THE ROPE?', lines: ['The rope is ' + allFt + ' ft from here; the move left takes ' + nameOf(u) + ' ' + gotFt + ' ft along it, to hang there.', '(Or point at the face itself: the rung the mouse is on is where the climb stops.)'], opts: [{ label: 'CLIMB', value: true }, { label: 'NOT NOW', value: false }] } };
         if (!ansR) return;
@@ -1208,7 +1271,7 @@
       }
       case 'attack': {
         if (!c.target || c.target.dead || c.target.hp <= 0) return; // (no target: nothing is spent -- a stray command burned Katarina's action 09-29)
-        if (RU.charmedBy(u, c.target)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (c.target.side === 'foe' ? 'the ' + shortName(c.target) : c.target.name) + '.{/}'], 200); return; }
+        if (RU.charmedBy(u, c.target)) { this.card(['{o}' + u.name + ' is charmed: no raising a hand to ' + (c.target.side === 'foe' ? Battle.nm(c.target) : c.target.name) + '.{/}'], 200); return; }
         if (u.conds.disarmed) { this.card(['{o}' + u.name + ' has dropped the weapon (the turn is spent picking it up).{/}'], 200); return; }
         if (!T.attacksLeft) { if (!T.action) return; T.action = 0; T.attackAction = true; T.attacksLeft = T.slowed ? 1 : u.attacks + (T.hasteAction ? 1 : 0); } // (Haste's one more, Slow's one: js/grimoire.js)
         if (u.weapon.ammo && !this.ammoLeft(u)) { this.card(['{o}' + u.name + ' has no ' + this.itemName(u.weapon.ammo).toLowerCase() + ' left.{/}'], 120); return; }
@@ -1409,7 +1472,7 @@
           var w = prov[k], take = true;
           if (w.side === 'party' && !w.guest) {
             u.anim = 'idle';
-            take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' is leaving ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } }; // (a readied strike waits on the same reaction: SRD 5.1, one a round -- 10-02)
+            take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is leaving ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } }; // (a readied strike waits on the same reaction: SRD 5.1, one a round -- 10-02)
             u.anim = gait;
           }
           if (take) {
@@ -1448,8 +1511,8 @@
       // ... or to the rung the hand picked (o.stopZ: exec 'ropeclimb' with z, 10-04 night), whether or not the move could have taken it the whole way
       var stopR = !!(rpS && o && o.spend && o.stopZ != null) && Math.round(Math.abs(o.stopZ - z0) / stZ) < Math.round(Math.abs(z1 - z0) / stZ);
       if (rpS && o && o.spend && (stopR || (o.partial && T.move < cost))) {
-        var stpR = stopR ? Math.round(Math.abs(o.stopZ - z0) / stZ) : Math.floor(T.move / 5); if (stpR < 1 || T.move < stpR * 5) { u.anim = 'idle'; return; }
-        var upR = z1 > z0, zH = z0 + (upR ? 1 : -1) * stpR * stZ, endZ = upR ? G.map.gz(rpS.at[0], rpS.at[1]) : G.map.gz(rpS.foot[0], rpS.foot[1]);
+        var upR = z1 > z0, stpR = stopR ? Math.round(Math.abs(o.stopZ - z0) / stZ) : Battle.ropeSteps(rpS, z0, upR, T.move, true); if (stpR < 1 || T.move < stpR * 5) { u.anim = 'idle'; return; } // (to the farthest 5 ft mark the move pays, 10 ft of movement a mark; an odd 5 ft left unspent -- 10-05)
+        var zH = z0 + (upR ? 1 : -1) * stpR * stZ, endZ = upR ? G.map.gz(rpS.at[0], rpS.at[1]) : G.map.gz(rpS.foot[0], rpS.foot[1]);
         u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * stpR, true), mode: upR ? 'climb' : 'ropedown' };
         u.x = rpS.foot[0]; u.y = rpS.foot[1]; u.hang = { rope: rpS, z: zH };
         if (o.spend) { T.move -= stpR * 5; T.moved = (T.moved || 0) + stpR * 5; }
@@ -1462,8 +1525,11 @@
       // allows (T.climbLeft, its climb speed in feet, and the move's feet), and it clings to the face there -- u.hang with `face` and `foot`, read as a rope's hang is (G.hanging, G.gzAt,
       // the drawing) -- and the AI takes the climb up again first thing next turn (ai.js AI.turn)
       if (u.climbs && !rpS && z1 > z0 && G.map.def.climb && !u.flies) {
-        var needC = Math.round((z1 - z0) / stZ), budC = Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5, canC = Math.floor(budC / 2.5);
-        if (canC < needC) {
+        var needC = Math.round((z1 - z0) / stZ), budC = Math.floor(Math.min(T.move, T.climbLeft != null ? T.climbLeft : u.climbs) / 5) * 5, zB = 0;
+        G.foot(u, u.x, u.y).forEach(function (p) { zB = Math.max(zB, G.map.gz(p[0], p[1])); }); // (the ground under it: the cling stops on a 5 ft mark above it, an even number of steps -- 10-05, Griz: "1 yes")
+        var hB = Math.round((z0 - zB) / stZ), rawC = Math.floor(budC / 2.5), canC = rawC;
+        if (rawC < needC) {
+          canC = Math.floor((hB + rawC) / 2) * 2 - hB; // (short of the top: down to the mark)
           if (canC < 1) { u.anim = 'idle'; return; }
           var zC = z0 + canC * stZ, spentC = Math.ceil(canC * 2.5 / 5) * 5;
           u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 2 * canC, true), mode: 'climb' };
@@ -1508,7 +1574,7 @@
       this.keepInView(u);
       yield stF;
       // the landing, once it is down: the walk ends there, flat (it gets up on its next move, for half its speed)
-      if (dropFt >= 10) { var fd = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft: ' + fd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, fd.total, 'bludgeoning', {}); u.conds.prone = true; u.anim = 'idle'; this.landOn(u); if (u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); } return; }
+      if (dropFt >= 10) { var onD = this.under(u); if (onD.length) { this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft onto ' + onD.map(nameOf).join(' and ') + ', and lands on its feet.{/}'], 200); this.landOn(u, dropFt); u.anim = 'idle'; return; } var fd = D.roll(Math.floor(dropFt / 10) + 'd6'); this.card(['{o}' + nameOf(u) + ' drops ' + dropFt + ' ft: ' + fd.total + ' bludgeoning, and lands prone.{/}'], 200); this.hurt(u, fd.total, 'bludgeoning', {}); u.conds.prone = true; u.anim = 'idle'; if (u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); } return; }
       // hidden no more (SRD 5.1: "You can't hide from a creature that can see you clearly"): one hidden who steps where a foe sees it clearly is found, and
       // one hidden from the mover that the mover now sees clearly (10-01c, the rogue runner: she crossed 50 ft of lit floor hidden and struck with advantage)
       // (10-04, Griz's notion: a Stealth total holds outside every foe's 15 ft -- the square it stands in and the eight round it -- and inside, each square she moves
@@ -1537,7 +1603,7 @@
     var iv = u.conds.invisible;
     if (!iv || !iv.ends) return;
     var caster = iv.by && this.units.filter(function (w) { return w.id === iv.by && w.conc && (w.conc.id === 'invisibility' || w.conc.id === 'mislead'); })[0];
-    if (caster) D.magic.endConc(this, caster, why); else { delete u.conds.invisible; this.card(['{g}' + (u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' is seen again (' + why + ').{/}'], 240); }
+    if (caster) D.magic.endConc(this, caster, why); else { delete u.conds.invisible; this.card(['{g}' + (u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is seen again (' + why + ').{/}'], 240); }
     if (u.conds.invisible && u.conds.invisible.ends) delete u.conds.invisible; // (the undo missed it: a foe's own)
   };
 
@@ -1553,7 +1619,7 @@
       if (o.g && D.magic.targetOK) return D.magic.targetOK(self, att, o.g, w) && (melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.dist(att, w) <= ((atk.range && atk.range[1]) || 60));
       return melee ? G.dist(att, w) <= G.reachOf(att, atk.reach || att.reach) : G.dist(att, w) <= ((atk.range && atk.range[1]) || 60) && G.los(att, w).clear;
     });
-    var human = att.side === 'foe' ? !!(D.keeperPlay && D.keeperPlay.human && D.keeperPlay.human(this, att)) : !(att.classAI || att.guest || att.summon || att.familiar || att.ai);
+    var human = att.side === 'foe' ? !!(D.keeperPlay && D.keeperPlay.human && D.keeperPlay.human(this, att)) : !(att.classAI || att.guest || att.ally || att.summon || att.familiar || att.ai);
     if (!cand.length) { this.card(['{g}' + nameOf(att) + ' has no other target: the ' + (atk.spell ? 'spell' : 'attack') + ' is lost.{/}'], 160); return null; }
     var pick = null;
     if (human && cand.length) {
@@ -2144,7 +2210,7 @@
     var prov = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w) && w.reaction > 0 && !w.conds.turned && !w.ethereal && !w.riding && !(w.weapon && w.weapon.ranged) && G.dist(w, u) <= G.reachOf(w) && D.magic.sees(self, w, u) && !RU.charmedBy(w, u); });
     for (var k = 0; k < prov.length; k++) {
       var w = prov[k], take = true;
-      if (w.side === 'party' && !w.guest) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
+      if (w.side === 'party' && !w.guest) take = yield { prompt: { who: w, title: w.name + ': OPPORTUNITY ATTACK?', lines: [(u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' is ' + (why || 'leaving') + ', out of ' + w.name + "'s reach." + (w.ready ? '  (the reaction is what the readied ' + w.ready.name + ' waits on)' : '')], opts: [{ label: 'STRIKE', value: true }, { label: 'LET IT GO', value: false }] } };
       if (!take) continue;
       w.reaction = 0;
       this.card(['{o}' + w.name + '{/}: an opportunity attack on ' + (u.side === 'foe' ? (u.named ? '' : 'the ') + shortName(u) : u.name) + ', ' + (why || 'leaving') + '.']);
@@ -2176,6 +2242,7 @@
     if (D.magic.preHurt) { n = D.magic.preHurt(this, u, n, type); if (n <= 0) return; } // (the Vigil's Keeper's Ward: js/features.js)
     // an object with a damage threshold (SRD 5.1 Objects: a blow under it is superficial) and resistance to everything (the skylight, 10-04 night)
     if (u.threshold && n < u.threshold) { FX.float('glances off', u, D.PAL.ramps.silver[5]); return; }
+    if (u.object && u === this.skylight && this.skyHit == null) this.skyHit = this.round; // (the first bang on the glass: the garrison's hatch opens the round after -- Battle.hatchOut, 10-05)
     if (u.resistAll && !/^(poison|psychic)$/.test(type || '')) { n = Math.floor(n / 2); if (n <= 0) return; }
     if (/fire|acid/.test(type || '')) u.burned = true; // a troll's regeneration reads this at its next turn
     if (type === 'fire' && D.magic.burnWebs) D.magic.burnWebs(this, G.foot(u)); // (fire on one standing in a web burns the web: magic.js)
@@ -2237,7 +2304,7 @@
       return;
     }
     // Death Ward (js/grimoire.js): the first fall stops at 1
-    if (u.hp <= 0 && u.conds.deathWard) { delete u.conds.deathWard; u.hp = 1; FX.ring(u, 'gold', 30); this.card(['{y}' + (u.side === 'foe' ? 'The ' + shortName(u) : u.name) + ' does not fall: the death ward holds.{/}']); conc(this); return; }
+    if (u.hp <= 0 && u.conds.deathWard) { delete u.conds.deathWard; u.hp = 1; FX.ring(u, 'gold', 30); this.card(['{y}' + (u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' does not fall: the death ward holds.{/}']); conc(this); return; }
     // Relentless (the giant boar: js/traits.js): a small blow that would drop it leaves it at 1
     if (u.hp <= 0 && D.traits && D.traits.refuse && D.traits.refuse(this, u, n)) { conc(this); return; }
     if (u.hp <= 0) {
@@ -2245,6 +2312,7 @@
       if (D.traits && D.traits.onDown) D.traits.onDown(this, this.active, u); // (the gnoll's Rampage)
       D.sfx(u.side === 'party' ? 'ko' : 'die');
       if (u.familiar && D.familiar && D.familiar.vanish) D.familiar.vanish(this, u); // (a familiar at 0 HP is gone, not down: SRD 5.1)
+      else if (u.ally) { u.dead = true; u.deadT = this.t; delete u.conds.ablaze; if (u.holding && u.holding.length) this.release(u); this.card(['{r}' + u.name + ' is cut down.{/}']); } // (one of ours the fight lent -- the Hex's men, the garrison: it dies as a foe does, 10-05)
       else if (u.side === 'party' && !u.object) { u.ko = true; delete u.conds.ablaze; D.light.fell(this, u); this.card(['{r}' + u.name + ' goes down.{/}' + (D.light.torchAt(this, u.x, u.y) ? '  {g}The torch burns beside ' + u.name + '.{/}' : '')]); } // (the name, never "him")
       else if (u.object) { u.dead = true; u.deadT = this.t; this.breached = true; D.sfx('crit'); this.card(['{r}' + u.name.charAt(0).toUpperCase() + u.name.slice(1) + ' gives way!{/}  {g}(the Edifice is breached){/}'], 300); }
       // a troll at 0 is down, not dead (SRD 5.1 Regeneration: "The troll dies only if it starts its turn with 0 hit points and doesn't regenerate"; acid or fire stops it -- 10-05,
@@ -2270,26 +2338,34 @@
     var dc = Math.max(10, Math.floor(dmg / 2)), sv = RU.save(u, 'dex', dc), fz = u.hang.z, ft = Math.round((fz - G.map.gz(u.x, u.y)) / G.map.def.step) * 2.5;
     if (sv.ok) { this.card(['{y}' + nameOf(u) + '{/} keeps its hold on the face: DEX ' + RU.saveText(sv) + ' against DC ' + dc + '  {n}HOLDS{/}'], 200); return; }
     delete u.hang; u.tween = { fx: u.x, fy: u.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
-    var fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
-    this.card(['{o}' + nameOf(u) + ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc + ' -- falls ' + ft + ' ft' + (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.{/}'], 240);
+    var onC = this.under(u), fd = !onC.length && ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null; // (onto whoever stood under it: the cushion -- 10-05, landOn)
+    this.card(['{o}' + nameOf(u) + ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc + ' -- falls ' + ft + ' ft' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + ', and lands on its feet.' : (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 240);
+    if (onC.length) { this.landOn(u, ft); return; }
     u.conds.prone = true;
-    this.landOn(u); // (onto whoever stood under it -- 10-05)
     if (fd) this.hurt(u, fd.total, 'bludgeoning', { fall: true });
   };
   // one who falls onto a square another stands on (10-05, Griz: "see about being under climbing heroes (and a giant falling on someone)" -- "make a climbing giant fall on the idgit
-  // who ran underneath him (which will shove him to the nearest available square)"): the faller lands where it fell, and whoever stood under it is shoved to the nearest open square
-  // along the ground, the faller's far side first. The SRD 5.1 has no rule for a creature falling onto another (Falling: 1d6 a 10 ft, prone, and that is all), so the one under takes
-  // nothing and keeps its feet -- the seat's call. One hanging over the square is not under it. Called where a fall lands: clingSave, cutRope, moveAlong's drop
-  Battle.prototype.landOn = function (u) {
-    var foot = G.foot(u), under = this.units.filter(function (w) {
+  // who ran underneath him (which will shove him to the nearest available square)" -- then, the same day: "A fall is a lot more time for players to wail on him, and melee might get
+  // under him before he climbs too high... I'm thinking softening his landing is good and is story battle so SRD deviation is less problematic" · "idgit as a cushion"): whoever stood
+  // under it is the cushion -- it takes the fall's damage (SRD 5.1 Falling: 1d6 bludgeoning a 10 ft), is knocked flat, and is shoved out from under to the nearest open square along
+  // the ground, the faller's far side first; the faller lands on its feet, no fall damage, not prone (the Cowork seat's lean, 10-05, his to overrule; the lost climb is its cost). No
+  // save for the cushion: it ran under a giant. On stone, the full SRD fall (the callers). One hanging over the square is not under it. Battle.under lists the cushions; landOn does
+  // it to them. Called where a fall lands: clingSave, cutRope, moveAlong's drop
+  Battle.prototype.under = function (u) {
+    var foot = G.foot(u);
+    return this.units.filter(function (w) {
       if (w === u || !G.present(w) || w.riding || (w.hang && G.hanging(w))) return false;
       return G.foot(w).some(function (q) { return foot.some(function (p) { return p[0] === q[0] && p[1] === q[1]; }); });
     });
+  };
+  Battle.prototype.landOn = function (u, ft) {
+    var under = this.under(u);
     for (var i = 0; i < under.length; i++) {
-      var w = under[i], to = Battle.shoveSq(w, u);
-      if (!to) { this.card(['{o}' + nameOf(u) + ' comes down on ' + nameOf(w) + ', who has nowhere to be shoved to.{/}'], 240); continue; }
-      w.tween = { fx: w.x, fy: w.y, fz: G.gzAt(w, w.x, w.y), t: 0, dur: this.pace(STEP_FRAMES + 4, true) }; w.x = to[0]; w.y = to[1]; w.anim = 'idle';
-      this.card(['{o}' + nameOf(u) + ' comes down on ' + nameOf(w) + ', who is shoved out from under to the nearest open square.{/}'], 240); D.sfx('hit');
+      var w = under[i], to = Battle.shoveSq(w, u), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null;
+      this.card(['{o}' + nameOf(u) + ' comes down on ' + nameOf(w) + (fd ? ': ' + fd.total + ' bludgeoning' : '') + ' -- ' + nameOf(w) + ' is shoved out from under, flat' + (to ? ', to the nearest open square.' : ', with nowhere to go.') + '{/}'], 260); D.sfx('hit');
+      if (fd) this.hurt(w, fd.total, 'bludgeoning', { fall: true });
+      if (!w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true;
+      if (to) { w.tween = { fx: w.x, fy: w.y, fz: G.gzAt(w, w.x, w.y), t: 0, dur: this.pace(STEP_FRAMES + 4, true) }; w.x = to[0]; w.y = to[1]; w.anim = 'idle'; }
     }
     return under;
   };
@@ -2386,7 +2462,7 @@
         var w = prov[k], keys = Object.keys(w.attacks || {}).filter(function (key) { return !w.attacks[key].ranged; }), atk = w.weapon || (keys.length ? w.attacks[keys[0]] : null);
         if (!atk) continue;
         w.reaction = 0;
-        this.card(['{o}' + (w.side === 'foe' ? 'The ' + shortName(w) : w.name) + '{/}: an opportunity attack on ' + u.name + ', leaving.']);
+        this.card(['{o}' + (w.side === 'foe' ? Battle.nm(w, true) : w.name) + '{/}: an opportunity attack on ' + u.name + ', leaving.']);
         yield* this.attack(w, u, atk, { oa: true });
         if (u.hp <= 0) return;
       }
@@ -2421,7 +2497,7 @@
   Battle.prototype.itemTargetOK = function (u, id, w) {
     var use = window.DS.DATA.items[id].use;
     if (!w || w.dead) return false;
-    if (use.effect === 'damage') return G.hostile(u, w) && w.hp > 0 && G.dist(u, w) <= 20 && G.los(u, w).clear;
+    if (use.effect === 'damage') return G.hostile(u, w) && (w.hp > 0 || !!w.regenDown) && G.dist(u, w) <= 20 && G.los(u, w).clear; // (a troll lying at 0 and knitting is a target for the flask: the oil runner's find, 10-05)
     if (use.effect === 'light') return w === u;
     if (w.side !== u.side || (w !== u && G.dist(u, w) > 5)) return false;
     if (use.effect === 'revive') return w.hp <= 0;

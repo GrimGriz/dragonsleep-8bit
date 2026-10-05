@@ -1117,9 +1117,11 @@
   }
   // the rope's rungs, the grapple taken up, the rope cut (mode=rungs1004; 10-04 night, Griz: "I can't currently target half-way up the rope with a highlighted wall and choose
   // that as my intentional move" -- "better than half-way stop plz, these are 45 ft ropes i think" -- "if one clicks on a square where a grapple is they should be able to take it
-  // (unless someone is on it - in which case I think they'll attack it if that's not an ally)"): exec 'ropeclimb' with z climbs to exactly that height and hangs, 5 ft of
-  // move a step; up and down from a hang, down to the ground; a rung the move cannot pay is refused and nothing spent; the far-end click still climbs as far as the move
-  // goes; from the top, let down to a rung; ui.js ropeRung picks a rung off the mouse by its height on the face; TAKE THE ROPE puts it back in the pack; a blow at a rope a
+  // (unless someone is on it - in which case I think they'll attack it if that's not an ally)"): exec 'ropeclimb' with z climbs to exactly that height and hangs -- a rung every
+  // 5 ft above the foot, 10 ft of move a rung (10-05, Griz: "any reason not to do the climb in 5 ft increments instead of 2.5?" -- "1 yes"), a height off the marks taken to the
+  // nearest; up and down from a hang, down to the ground; a rung the move cannot pay is refused and nothing spent; the far-end click still climbs as far as the move
+  // goes, to the last whole rung it pays; from the top, let down to a rung; ui.js ropeRung picks a rung off the mouse by its height on the face, never a half step; the cards
+  // say feet in whole 5s; TAKE THE ROPE puts it back in the pack; a blow at a rope a
   // foe hangs on cuts it and drops the foe. On the Climbing Floor's 30 ft tower (cols 21-22, rows 1-5), a rope hung from (21, 5) to (21, 6)
   if (get('mode', '') === 'rungs1004') {
     var repRg = { checks: [], errors: [] }, d0Rg = D.d, G = D.grid;
@@ -1132,33 +1134,48 @@
       gb.x = 2; gb.y = 12; fg.x = 21; fg.y = 6; fg.speed = 30; delete fg.hang; D.rules.startTurn(fg); Bg.active = fg; Bg.tool = 'move';
       var zt = G.map.gz(21, 5), zf = G.map.gz(21, 6);
       okRg('the tower: top ' + zt / st + ' steps, foot ' + zf / st + ', the fighter at its foot with ' + fg.turn.move + ' ft', zt / st === 12 && zf === 0 && fg.turn.move === 30);
-      // 1. a rung four steps up (10 ft): 20 ft of move, hanging at 40
+      var nLg = (Bg.log || []).length; // (the cards from here on: feet in whole 5s, below)
+      // 1. the rung 10 ft up (four steps, two rungs): 20 ft of move, hanging at 40
       runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5, z: 4 * st }));
       okRg('1. to the rung 10 ft up: hangs ' + !!(fg.hang && G.hanging(fg)) + ' at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move + ', still at the foot ' + (fg.x === 21 && fg.y === 6), !!(fg.hang && G.hanging(fg)) && fg.hang.z === 4 * st && fg.turn.move === 10 && fg.x === 21 && fg.y === 6);
-      // 2. two rungs higher from the hang (5 ft): 10 ft, none left
+      // 2. one rung higher from the hang (5 ft): 10 ft, none left
       runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5, z: 6 * st }));
-      okRg('2. two rungs higher: at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move, !!fg.hang && fg.hang.z === 6 * st && fg.turn.move === 0);
+      okRg('2. one rung (5 ft) higher: at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move, !!fg.hang && fg.hang.z === 6 * st && fg.turn.move === 0);
       // 3. a rung the move cannot pay: refused, nothing spent
       fg.turn.move = 10; runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5, z: 10 * st }));
-      okRg('3. four rungs up with 10 ft left: refused -- at ' + (fg.hang && fg.hang.z) + ', move ' + fg.turn.move, !!fg.hang && fg.hang.z === 6 * st && fg.turn.move === 10);
-      // 4. down three rungs from the hang (7.5 ft): 15 ft
+      okRg('3. two rungs (10 ft) up with 10 ft left: refused -- at ' + (fg.hang && fg.hang.z) + ', move ' + fg.turn.move, !!fg.hang && fg.hang.z === 6 * st && fg.turn.move === 10);
+      // 4a. a height off the marks (7.5 ft): taken to the nearest rung, 10 ft up -- one rung down, 10 ft
       fg.turn.move = 30; runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 6, z: 3 * st }));
-      okRg('4. down to the rung 7.5 ft up: at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move, !!fg.hang && fg.hang.z === 3 * st && fg.turn.move === 15);
-      // 5. to the ground: 15 ft, standing at the foot
+      okRg('4a. asked for 7.5 ft up: hangs at the rung ' + (fg.hang && fg.hang.z / st * 2.5) + ' ft up, move left ' + fg.turn.move, !!fg.hang && fg.hang.z === 4 * st && fg.turn.move === 20);
+      // 4. down one rung from the hang (5 ft): 10 ft
+      runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 6, z: 2 * st }));
+      okRg('4. down to the rung 5 ft up: at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move, !!fg.hang && fg.hang.z === 2 * st && fg.turn.move === 10);
+      // 5. to the ground: 10 ft, standing at the foot
       runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 6, z: 0 }));
       okRg('5. down to the ground: hanging ' + !!fg.hang + ', at (' + fg.x + ',' + fg.y + '), move left ' + fg.turn.move, !fg.hang && fg.x === 21 && fg.y === 6 && fg.turn.move === 0);
-      // 6. the old far-end click (no z): as far as the move goes -- 30 ft is six steps
+      // 6. the old far-end click (no z): as far as the move goes -- 30 ft is six steps, three rungs
       D.rules.startTurn(fg); runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5 }));
       okRg('6. the top clicked with 30 ft: hangs at ' + (fg.hang && fg.hang.z) + ' (six steps), move ' + fg.turn.move, !!fg.hang && fg.hang.z === 6 * st && fg.turn.move === 0);
+      // 6b. ... with 25 ft: the last whole rung it pays, 10 ft up, and the odd 5 ft left; a second click with that 5 ft climbs nothing and spends nothing
+      delete fg.hang; fg.x = 21; fg.y = 6; D.rules.startTurn(fg); fg.turn.move = 25; runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5 })); var z6b = fg.hang && fg.hang.z, m6b = fg.turn.move;
+      runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 5 }));
+      okRg('6b. the top clicked with 25 ft: hangs at ' + (z6b / st * 2.5) + ' ft up, move left ' + m6b + '; clicked again with that 5 ft: at ' + (fg.hang && fg.hang.z / st * 2.5) + ' ft, move ' + fg.turn.move, z6b === 4 * st && m6b === 5 && !!fg.hang && fg.hang.z === 4 * st && fg.turn.move === 5);
       // 7. from the top, let down to a rung eight steps up (four down): 20 ft
       delete fg.hang; fg.x = 21; fg.y = 5; D.rules.startTurn(fg); runRg(Bg.exec(fg, { do: 'ropeclimb', x: 21, y: 6, z: 8 * st }));
       okRg('7. from the top down to the rung 20 ft up: at (' + fg.x + ',' + fg.y + ') hanging at ' + (fg.hang && fg.hang.z) + ', move left ' + fg.turn.move, fg.x === 21 && fg.y === 6 && !!fg.hang && fg.hang.z === 8 * st && fg.turn.move === 10);
+      // the cards the player read for all of that: every foot a whole 5
+      var cardsRg = (Bg.log || []).slice(Math.min(nLg, (Bg.log || []).length)).filter(function (l) { return /of the rope/.test(l); }), ftsRg = [];
+      cardsRg.forEach(function (l) { (String(l).match(/\d+(\.\d+)? ft/g) || []).forEach(function (s) { ftsRg.push(parseFloat(s)); }); });
+      okRg('the rope\'s cards: ' + cardsRg.length + ', the feet in them ' + ftsRg.join(',') + ', all whole 5s -- ' + cardsRg.slice(-2).join(' | ').slice(0, 200), cardsRg.length >= 6 && ftsRg.length >= 6 && ftsRg.every(function (f) { return f % 5 === 0; }));
       // 8. the mouse's pick (ui.js ropeRung): the rope's line on the screen, the height of the fourth rung -- from the foot, standing
       delete fg.hang; fg.x = 21; fg.y = 6; D.rules.startTurn(fg); Bg.tool = 'move'; Bg.cache = null;
       var iso = D.iso, ex = 21, ey = 5.5, pa = iso.center(ex, ey, zt), pb = iso.center(ex, ey, zf), pS = iso.toScreen(pa.x, pa.y), qS = iso.toScreen(pb.x, pb.y);
       var pick4 = D.ui.ropeRung(Bg, fg, pS.x, qS.y - 4 * st), pickOff = D.ui.ropeRung(Bg, fg, pS.x + 40, qS.y - 4 * st), pickTop = D.ui.ropeRung(Bg, fg, pS.x, pS.y + 1);
-      okRg('8. the mouse on the rope at the fourth rung: k ' + (pick4 && pick4.k) + ', z ' + (pick4 && pick4.z) + ', cost ' + (pick4 && pick4.cost) + ', ok ' + (pick4 && pick4.ok) + ', up ' + (pick4 && pick4.up) + '; 40 px off the rope: ' + (pickOff === null) + '; at the very top: k ' + (pickTop && pickTop.k) + ' (11, never the top itself)',
-        !!pick4 && pick4.k === 4 && pick4.z === 4 * st && pick4.cost === 20 && pick4.ok === true && pick4.up === true && pickOff === null && !!pickTop && pickTop.k === 11);
+      okRg('8. the mouse on the rope at the rung 10 ft up: k ' + (pick4 && pick4.k) + ', z ' + (pick4 && pick4.z) + ', cost ' + (pick4 && pick4.cost) + ', ok ' + (pick4 && pick4.ok) + ', up ' + (pick4 && pick4.up) + '; 40 px off the rope: ' + (pickOff === null) + '; at the very top: k ' + (pickTop && pickTop.k) + ' (10, the last rung, never the top itself)',
+        !!pick4 && pick4.k === 4 && pick4.z === 4 * st && pick4.cost === 20 && pick4.ok === true && pick4.up === true && pickOff === null && !!pickTop && pickTop.k === 10);
+      var pickMid = D.ui.ropeRung(Bg, fg, pS.x, qS.y - 5.4 * st), pickLow = D.ui.ropeRung(Bg, fg, pS.x, qS.y - 0.5 * st);
+      okRg('8. between rungs (13.5 ft): k ' + (pickMid && pickMid.k) + ' (the rung 15 ft up, cost ' + (pickMid && pickMid.cost) + '); just off the ground: k ' + (pickLow && pickLow.k) + ' (the first rung, 5 ft -- never a half step)',
+        !!pickMid && pickMid.k === 6 && pickMid.cost === 30 && !!pickLow && pickLow.k === 2 && pickLow.cost === 10);
       Bg.ropePick = pick4; Bg.cursor = { x: 21, y: 6 };
       okRg('8. with the rung picked, the foot square validates as the rung: ' + D.ui.valid(Bg, fg, 21, 6), D.ui.valid(Bg, fg, 21, 6) === 'rung');
       Bg.ropePick = null;
@@ -1309,18 +1326,19 @@
       var thV = D.Battle.ropeSq(Be, rg, 13, 15), thD = G.dist(rg, { x: 13, y: 15, size: 1 }), thL = G.losPoint(rg.x, rg.y, 13, 15), thS = D.Battle.ropeSq(Be, { x: 13, y: 16, size: 1, id: 'probe' }, 13, 15); // (his other question: a grapple thrown from the hang to the rim two along, 30 ft up -- and from the fountain's rim under it, 40 ft)
       okE('a grapple from that hang to the rim at (13,15): ' + thD + ' ft (the old sight from the rope\'s foot: ' + thL + '), offered ' + !!thV + ' at DC ' + (thV && thV.dc) + '; from the fountain\'s rim under it (13,16), ' + (thS && thS.ft) + ' ft, at DC ' + (thS && thS.dc) + ' -- 10-05, Griz: "2 yes" (the sight from the thrower\'s own height; the lip of a face you stand under seen); "+2 DC per 5 beyond 30"', !!thV && thV.dc === 10 && !!thS && thS.ft === 40 && thS.dc === 14);
       runE(Be.exec(rg, { do: 'cdash' })); Be.cache = null; var spV = D.ui.spent(Be, rg), mvV2 = rg.turn.move;
+      rg.turn.move = 5; Be.cache = null; var spV5 = D.ui.spent(Be, rg); // (5 ft: half a rung -- the climb goes by 5 ft at 10 ft of movement, 10-05)
       rg.turn.move = 0; Be.cache = null; var spV0 = D.ui.spent(Be, rg);
-      okE('the rogue up the rope to 15 ft with her move: hanging ' + hungV + ', move left ' + mvV + '; the action spent and the bonus Dash taken: move ' + mvV2 + ', the turn spent ' + spV + ' (a rung is a step); with no move at all, spent ' + spV0, hungV && mvV === 0 && mvV2 === 30 && spV === false && spV0 === true);
+      okE('the rogue up the rope to 15 ft with her move: hanging ' + hungV + ', move left ' + mvV + '; the action spent and the bonus Dash taken: move ' + mvV2 + ', the turn spent ' + spV + ' (a rung is a step); with 5 ft (no rung in reach), spent ' + spV5 + '; with no move at all, spent ' + spV0, hungV && mvV === 0 && mvV2 === 30 && spV === false && spV5 === true && spV0 === true);
       delete rg.hang; rg.x = 13; rg.y = 18;
       // the Skylights (10-05, Griz: "Have pyro come out followed by the party then the doors lock behind them. Have the monsters come from the north road, the team pop out and then
       // initiative"; "is it freezing with the second troll still trying to walk?"): off the field at the entry card; the foes down the road to their squares, Pyro out first and the
       // four after him, the doors open while they come and shut after, in a bounded number of beats; Pyro's line the first time one is up the face, and only once
       var FK = D.fight('edifice'), Bk = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bk; Bk.enter();
       var onField0 = Bk.units.filter(function (u) { return !u.object; }).length, arr0 = Bk.arriving ? Bk.arriving.foes.length + Bk.arriving.ours.length : 0, beatsK = 0, firstK = null, openK = false;
-      while (!Bk.order.length && beatsK++ < 2000) { var skK = Bk.co.next(); if (skK.done) break; var o1K = Bk.units.filter(function (u) { return u.side === 'party' && !u.object; })[0]; if (o1K && !firstK) firstK = o1K.id; if (Bk.map.doorsOpen) openK = true; }
-      var footK = FK.foes.map(function (f) { var u = Bk.units.filter(function (w) { return w.id === f.id; })[0]; return u && u.x === f.at[0] && u.y === f.at[1]; }), seatK = Bk.units.filter(function (u) { return u.side === 'party' && !u.object; }).map(function (u, i) { return u.x + ',' + u.y; });
+      while (!Bk.order.length && beatsK++ < 2000) { var skK = Bk.co.next(); if (skK.done) break; var o1K = Bk.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally; })[0]; if (o1K && !firstK) firstK = o1K.id; if (Bk.map.doorsOpen) openK = true; }
+      var footK = FK.foes.map(function (f) { var u = Bk.units.filter(function (w) { return w.id === f.id; })[0]; return u && u.x === f.at[0] && u.y === f.at[1]; }), seatK = Bk.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally; }).map(function (u, i) { return u.x + ',' + u.y; }); // (the lent allies walk in by their own wave -- mode=skylights1005 counts them; 10-05)
       okE('the Skylights: at the entry card the field holds ' + onField0 + ' (' + arr0 + ' to come); after the walk-in (' + beatsK + ' beats) the foes on their squares ' + footK.join(',') + ', the first out ' + firstK + ', the doors stood open ' + openK + ' and are shut ' + !Bk.map.doorsOpen + ', ours at ' + seatK.join(' ') + ', the skylight on the field ' + !!Bk.skylight,
-        onField0 === 0 && arr0 === 9 && beatsK < 400 && footK.every(Boolean) && firstK === 'pyro' && openK && !Bk.map.doorsOpen && seatK.length === 5 && !!Bk.skylight);
+        onField0 === 0 && arr0 === 11 && beatsK < 600 && footK.every(Boolean) && firstK === 'pyro' && openK && !Bk.map.doorsOpen && seatK.length === 5 && !!Bk.skylight); // (arr0: six foes and the five of ours; the eight lent and the five held are counted by skylights1005)
       var trK = Bk.units.filter(function (u) { return u.kind === 'troll'; })[0], n0K = (Bk.log || []).length; trK.x = 20; trK.y = 16; trK.hang = { face: [20, 15], foot: [20, 16], z: 4 * st };
       runE(Bk.climbSay()); var saidK = (Bk.log || []).slice(n0K).join(' | '); runE(Bk.climbSay()); var againK = (Bk.log || []).length - n0K;
       okE('a troll clinging 10 ft up the face: ' + saidK + ' (said once: ' + (againK === 1) + ')', /Pyro.*They're going for the skylights!/.test(saidK) && Bk.climbSaid && againK === 1);
@@ -1328,6 +1346,7 @@
       // the roles (10-05, Griz: "Male stone giant nothing but window, female leads trolls against anyone that tries to stop him?"; "be problematic if the male has infinite rocks - two
       // max"): Barley beside the male -- he swings at no one and goes up the face; a troll 20 ft off goes for Barley, not the glass; the male on the roof out of reach throws his two
       // rocks at the glass and no third
+      Bk.units = Bk.units.filter(function (u) { return !u.ally; }); Bk.order = Bk.order.filter(function (u) { return !u.ally; }); // (the roles below are the four's and the foes': the Hex's eight off the field, or a troll takes the man beside it -- 10-05)
       var byK = function (id) { return Bk.units.filter(function (u) { return u.id === id; })[0]; }, maleK = byK('giant2'), tr1K = byK('troll1'), barK = byK('barley');
       trK.x = 24; trK.y = 20; barK.x = 17; barK.y = 19; barK.hp = barK.maxhp; barK.conds = {}; maleK.x = 18; maleK.y = 16; delete maleK.hang; maleK.hp = maleK.maxhp;
       var n2K = (Bk.log || []).length; runE(D.ai.turn(Bk, maleK)); var mLogK = (Bk.log || []).slice(n2K).join(' | ');
@@ -1340,7 +1359,7 @@
       [[24, 4], [30, 15], [30, 15], [30, 15]].forEach(function (p) {
         barK.x = p[0]; barK.y = p[1]; barK.conds = {}; delete barK.hang; barK.hp = barK.maxhp; D.rules.startTurn(maleK); maleK.turn.move = 0;
         var n4K = (Bk.log || []).length, sk0 = skyK.hp; runE(D.ai.brute(Bk, maleK)); var lg = (Bk.log || []).slice(n4K).join(' ');
-        rockK.push(/Giant > Barley\s+Rock/.test(lg) ? (barK.x === 31 && barK.y === 16 && barK.conds.prone && barK.hp < barK.maxhp ? 'off' : 'rock?') : skyK.hp < sk0 || /Giant > the skylight/.test(lg) ? 'glass' : '-');
+        rockK.push(/(Giant|Steinarr) > Barley\s+Rock/.test(lg) ? (barK.x === 31 && barK.y === 16 && barK.conds.prone && barK.hp < barK.maxhp ? 'off' : 'rock?') : skyK.hp < sk0 || /(Giant|Steinarr) > the skylight/.test(lg) ? 'glass' : '-'); // (the male is Steinarr on the cards since 10-05)
       });
       D.d = d0K; barK.saves.str = str0K; barK.conds = {};
       okE('the male at the window: Barley on the glass, then on the edge three times: ' + rockK.join(',') + ', rocks left ' + maleK.rocks, rockK.join(',') === 'glass,off,off,glass' && maleK.rocks === 0);
@@ -1350,6 +1369,57 @@
     if (errs.length) repE.errors = repE.errors.concat(errs);
     var preE = document.createElement('pre'); preE.id = 'out'; preE.textContent = 'BENCH16 ' + JSON.stringify(repE);
     document.body.appendChild(preE);
+    return;
+  }
+  // the Skylights' waves, the street's people, the Hex's men and the garrison out of the hatch (mode=skylights1005; 10-05, Griz: "villagers that flee from the buildings to the south
+  // road as 2 trolls come in, then a group of 4 from each of silverton's stables that will engage those trolls, with the two that come in with the giants and the party popping out
+  // after"; "that group could come out the top door when the first bang hits the skylight (next round, maybe 2 after)"; "second names"): the fight's shape; the walk-in in bounded
+  // beats with the townsfolk gone after it, the Hex's eight on their squares, the garrison held; the allies ours, the brute's, not counted for the party's standing; the giants' names
+  // on the cards; the hatch the round after the first bang, a glancing blow no bang
+  if (get('mode', '') === 'skylights1005') {
+    var repK = { checks: [], errors: [] }, d0K = D.d;
+    function okK(what, v) { repK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runK(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    try {
+      D.seed = 11;
+      var FK2 = D.fight('edifice'), G = D.grid;
+      okK('the fight: ' + FK2.foes.length + ' foes, ' + (FK2.allies || []).length + ' allies (' + (FK2.allies || []).filter(function (a) { return a.hatch; }).length + ' behind the hatch), ' + FK2.arrive.waves.length + ' waves, the hatch after ' + FK2.hatch.after + '; the giants ' + FK2.foes.filter(function (f) { return f.name; }).map(function (f) { return f.name + (f.only ? ' (the window)' : ''); }).join(', '),
+        FK2.foes.length === 6 && (FK2.allies || []).length === 13 && FK2.arrive.waves.length === 3 && FK2.hatch.after === 1 && FK2.foes.some(function (f) { return f.name === 'Steinarr' && f.only; }) && FK2.foes.some(function (f) { return f.name === 'Hallvör' && f.guard === 'giant2'; }));
+      var Bq = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bq; Bq.enter();
+      var m = Bq.map, st = m.def.step, fl = FK2.arrive.waves[0].flee;
+      var sqOk = fl.from.every(function (q) { return m.at(q[0], q[1]).walk; }) && fl.to.every(function (q) { return m.at(q[0], q[1]).walk; }) && (FK2.allies || []).every(function (a) { return m.at(a.at[0], a.at[1]).walk && (!a.from || m.at(a.from[0], a.from[1]).walk); }) && FK2.hatch.from.every(function (q) { return m.at(q[0], q[1]).walk && m.gz(q[0], q[1]) === 18 * st; });
+      okK('the squares: the flight\'s ' + fl.from.length + ' from and ' + fl.to.length + ' to walkable, the stables\' and the road\'s foot walkable, the hatch\'s on the roof: ' + sqOk, sqOk);
+      var field0 = Bq.units.filter(function (u) { return !u.object; }).length, held0 = (Bq.held || []).length, arrA = Bq.arriving ? Bq.arriving.allies.length : -1;
+      var beats = 0, folkSeen = 0, folkMax = 0, firstOut = null, openQ = false;
+      while (!Bq.order.length && beats++ < 3000) { var sk = Bq.co.next(); if (sk.done) break; var fk = Bq.units.filter(function (u) { return u.look; }).length; folkMax = Math.max(folkMax, fk); if (fk) folkSeen++; var o1 = Bq.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally; })[0]; if (o1 && !firstOut) firstOut = o1.id; if (Bq.map.doorsOpen) openQ = true; }
+      var folkLeft = Bq.units.filter(function (u) { return u.look; }).length, alliesOn = Bq.units.filter(function (u) { return u.ally && !u.look; }), onSq = (FK2.allies || []).filter(function (a) { return !a.hatch; }).map(function (a) { var u = Bq.units.filter(function (w) { return w.id === a.id; })[0]; return !!u && u.x === a.at[0] && u.y === a.at[1]; }), hatchOn = Bq.units.filter(function (u) { return u.hatch; }).length;
+      okK('at the entry card the field holds ' + field0 + ', ' + arrA + ' allies to come, ' + held0 + ' held; the walk-in ' + beats + ' beats: townsfolk on the field ' + folkSeen + ' beats, ' + folkMax + ' at most, left after ' + folkLeft + '; the first of ours out ' + firstOut + ', the doors opened ' + openQ + ' and shut ' + !Bq.map.doorsOpen + '; the Hex\'s eight on the field ' + alliesOn.length + ', on their squares ' + onSq.join(',') + '; the garrison on the field ' + hatchOn + ' (held ' + (Bq.held || []).length + '); the order ' + Bq.order.length + ' with ' + Bq.order.filter(function (u) { return u.ally; }).length + ' allies in it',
+        field0 === 0 && arrA === 8 && held0 === 5 && beats < 600 && folkMax === 8 && folkLeft === 0 && firstOut === 'pyro' && openQ && !Bq.map.doorsOpen && alliesOn.length === 8 && onSq.every(Boolean) && hatchOn === 0 && (Bq.held || []).length === 5 && Bq.order.filter(function (u) { return u.ally; }).length === 8);
+      // ours and the brute's: a stable fighter's turn is the AI's and it goes for the troll beside it; the first trolls have no mission; the allies do not hold the fight open
+      var bs1 = Bq.units.filter(function (u) { return u.id === 'bs1'; })[0], tr3 = Bq.units.filter(function (u) { return u.id === 'troll3'; })[0], onMission = Bq.units.filter(function (u) { return u.side === 'foe' && u.mission === 'skylight'; }).length;
+      okK('a stable fighter: side ' + bs1.side + ', ally ' + bs1.ally + ', no mission ' + !bs1.mission + ', named ' + bs1.name + '; the first trolls free of the mission ' + !tr3.mission + ', the other four on it ' + onMission, bs1.side === 'party' && bs1.ally && !bs1.mission && /Bloodsnout/.test(bs1.name) && !tr3.mission && onMission === 4);
+      D.rules.startTurn(bs1); var n0q = (Bq.log || []).length; runK(D.ai.turn(Bq, bs1)); var lgq = (Bq.log || []).slice(n0q).join(' | ');
+      okK('its turn, the brute\'s: ' + lgq.slice(0, 140), /Bloodsnout's man > Troll/.test(lgq));
+      var party5 = Bq.units.filter(function (u) { return u.side === 'party' && !u.ally && !u.object; });
+      party5.forEach(function (u) { u.hp0 = u.hp; u.hp = 0; u.ko = true; }); var ovr = Bq.over(); party5.forEach(function (u) { u.hp = u.hp0; u.ko = false; });
+      okK('the four and Pyro down with the Hex\'s eight still up: the fight is ' + ovr + ' (the allies do not hold it open)', ovr === 'lost' || ovr === 'pyro');
+      var male = Bq.units.filter(function (u) { return u.id === 'giant2'; })[0], fem = Bq.units.filter(function (u) { return u.id === 'giant1'; })[0];
+      okK('the cards name them: ' + D.Battle.nm(male, true) + ' and ' + D.Battle.nm(fem, true) + ' (the kinds ' + male.kind + ', ' + fem.kind + ')', /Steinarr/.test(D.Battle.nm(male, true)) && /Hallvör/.test(D.Battle.nm(fem, true)) && !/^the /.test(D.Battle.nm(male, true)));
+      // the hatch: the first blow that hurts the glass, then the round after -- the garrison out onto the roof, dealt in
+      Bq.round = 3; Bq.hurt(Bq.skylight, 20, 'bludgeoning'); var hitR = Bq.skyHit; Bq.round = 4; var n1q = (Bq.log || []).length, ord0 = Bq.order.length;
+      runK(Bq.hatchOut()); var lgh = (Bq.log || []).slice(n1q).join(' | '), gar = Bq.units.filter(function (u) { return u.hatch; }), garSq = (FK2.allies || []).filter(function (a) { return a.hatch; }).map(function (a) { var u = Bq.units.filter(function (w) { return w.id === a.id; })[0]; return !!u && u.x === a.at[0] && u.y === a.at[1] && G.gzAt(u, u.x, u.y) === 18 * st; });
+      okK('the glass hit in round 3 (skyHit ' + hitR + '); round 4: the garrison out ' + gar.length + ', on the roof at their squares ' + garSq.join(',') + ', dealt into the order ' + (Bq.order.length - ord0) + ', held now ' + (Bq.held || []).length + ' -- ' + lgh.slice(0, 140), hitR === 3 && gar.length === 5 && garSq.every(Boolean) && Bq.order.length - ord0 === 5 && (Bq.held || []).length === 0 && /roof hatch bangs open/.test(lgh));
+      var sgt = Bq.units.filter(function (u) { return u.id === 'sgt'; })[0];
+      okK('the Drill-sergeant: ' + sgt.name + ', ' + sgt.hp + ' HP, AC ' + sgt.baseAC + ', ' + (Array.isArray(sgt.multi) ? sgt.multi.length : sgt.multi) + ' blows, ours ' + (sgt.side === 'party' && sgt.ally) + '; troopers ' + Bq.units.filter(function (u) { return u.kind === 'trooper'; }).length, sgt.hp === 58 && sgt.baseAC === 17 && sgt.multi.length === 2 && sgt.side === 'party' && sgt.ally && Bq.units.filter(function (u) { return u.kind === 'trooper'; }).length === 4);
+      // a glancing blow is no bang: a fresh fight, a 7-point blow leaves skyHit unset, and the round loop holds the hatch
+      var Bq2 = new D.Battle({ ladder: true, fight: 'edifice', bench: true }); D.battle = Bq2; Bq2.enter(); var bq2 = 0; while (!Bq2.order.length && bq2++ < 3000) { if (Bq2.co.next().done) break; }
+      Bq2.round = 2; Bq2.hurt(Bq2.skylight, 7, 'bludgeoning'); var glance = Bq2.skyHit;
+      okK('a glancing blow (7, under the threshold) is no bang: skyHit ' + glance + ', held still ' + (Bq2.held || []).length, glance == null && (Bq2.held || []).length === 5);
+    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
+    D.d = d0K;
+    if (errs.length) repK.errors = repK.errors.concat(errs);
+    var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);
+    document.body.appendChild(preK);
     return;
   }
   // standing under a climber, and a giant falling on the one under (mode=under1005; 10-05, Griz: "see about being under climbing heroes (and a giant falling on someone)" -- "work out if we
@@ -1374,8 +1444,10 @@
       okU('the giant hangs ' + G.hanging(gi) + ' at ' + (gi.hang.z / st) * 2.5 + ' ft, size ' + gi.size + ' (' + G.bodyH(gi) * 2.5 + ' ft tall); the fighter ' + G.bodyH(fg) * 2.5 + ' ft', G.hanging(gi) && gi.size === 3 && G.bodyH(gi) === 6 && G.bodyH(fg) === 2);
       var under = [gx + 1, gy + 1];
       okU('the square under its middle, the giant 10 ft up: the fighter may stand there ' + G.canStand(fg, under[0], under[1]) + ', pass ' + G.canPass(fg, under[0], under[1]) + '; the one there by G.occupant: ' + ((G.occupant(under[0], under[1]) || {}).name), G.canStand(fg, under[0], under[1]) && G.canPass(fg, under[0], under[1]) && G.occupant(under[0], under[1]) === gi);
-      gi.hang.z = 1 * st;
-      okU('the giant 2.5 ft up: the square is not free ' + !G.canStand(fg, under[0], under[1]) + ', nor passed ' + !G.canPass(fg, under[0], under[1]), !G.canStand(fg, under[0], under[1]) && !G.canPass(fg, under[0], under[1]));
+      gi.hang.z = 2 * st; // (5 ft up: the lowest a hang goes since the climb went by 5 ft -- 10-05, Griz: "1 yes")
+      var medU = G.canStand(fg, under[0], under[1]), fgSz = fg.size; fg.size = 2; var trlU = G.canStand(fg, under[0], under[1]), trlH = G.bodyH(fg) * 2.5; if (fgSz == null) delete fg.size; else fg.size = fgSz;
+      okU('the giant 5 ft up: the fighter (Medium, 5 ft tall) may stand under it ' + medU, medU === true);
+      okU('the giant 5 ft up: a troll\'s body (size 2, ' + trlH + ' ft tall -- the fighter at size 2) may not stand under it ' + !trlU, trlU === false && trlH === 10);
       gi.hang.z = 4 * st;
       D.rules.startTurn(fg); var rmU = G.reach(fg, fg.speed), kU = under.join(',');
       okU('the fighter\'s reach from the street takes it under the giant: ' + !!(rmU[kU] && rmU[kU].stand), !!(rmU[kU] && rmU[kU].stand));
@@ -1384,8 +1456,9 @@
       okU('with the fighter under it, the giant\'s hang still stands for it ' + G.canStand(gi, gi.x, gi.y) + '; the ground there is the fighter\'s: ' + ((G.occupant(under[0], under[1]) || {}).name), G.canStand(gi, gi.x, gi.y) && G.occupant(under[0], under[1]) === fg);
       D.d = function (n) { return n === 20 ? 1 : d0U(n); }; var n0U = (Bu.log || []).length; Bu.hurt(gi, 20, 'slashing'); D.d = d0U; var lgU = (Bu.log || []).slice(n0U).join(' | ');
       var inFoot = G.foot(gi).some(function (p) { return p[0] === fg.x && p[1] === fg.y; }), dUF = Math.max(Math.abs(fg.x - under[0]), Math.abs(fg.y - under[1]));
-      okU('hit while clinging, the save a 1: the giant down ' + !G.hanging(gi) + ' at its foot (' + gi.x + ',' + gi.y + ') prone ' + !!gi.conds.prone + '; the fighter shoved to (' + fg.x + ',' + fg.y + '), ' + dUF + ' squares off, clear of it ' + !inFoot + ', standing ' + G.canStand(fg, fg.x, fg.y) + ', unhurt ' + (fg.hp === fg.maxhp) + ', on his feet ' + !fg.conds.prone + ' -- ' + lgU.slice(0, 220),
-        !G.hanging(gi) && !!gi.conds.prone && gi.x === gx && gi.y === gy && !inFoot && dUF === 2 && G.canStand(fg, fg.x, fg.y) && fg.hp === fg.maxhp && !fg.conds.prone && /comes down on/.test(lgU) && /shoved/.test(lgU));
+      // (the cushion, 10-05 -- Griz: "idgit as a cushion", "softening his landing is good": the giant on its feet, no fall damage; the fighter takes the fall's dice, flat, and is shoved)
+      okU('hit while clinging, the save a 1: the giant down ' + !G.hanging(gi) + ' at its foot (' + gi.x + ',' + gi.y + ') on its feet ' + !gi.conds.prone + ', no fall damage (hp ' + gi.hp + ' of ' + gi.maxhp + ' after the 20); the fighter the cushion: shoved to (' + fg.x + ',' + fg.y + '), ' + dUF + ' squares off, clear of it ' + !inFoot + ', standing room ' + G.canStand(fg, fg.x, fg.y) + ', hurt ' + (fg.hp < fg.maxhp) + ', flat ' + !!fg.conds.prone + ' -- ' + lgU.slice(0, 260),
+        !G.hanging(gi) && !gi.conds.prone && gi.hp === gi.maxhp - 20 && gi.x === gx && gi.y === gy && !inFoot && dUF === 2 && G.canStand(fg, fg.x, fg.y) && fg.hp < fg.maxhp && !!fg.conds.prone && /lands on its feet/.test(lgU) && /comes down on/.test(lgU) && /shoved out from under, flat/.test(lgU));
       // the rope: the rogue hangs 10 ft up the dwarves' rope with the fighter at its foot -- the fighter may stand there, and the rogue cannot let herself down onto him
       var r0 = Bu.ropes[0]; gi.x = 5; gi.y = 2; delete gi.hang; gi.conds.prone = false;
       rg.x = r0.foot[0]; rg.y = r0.foot[1]; rg.hang = { rope: r0, z: 4 * st }; fg.x = r0.foot[0]; fg.y = r0.foot[1]; fg.conds.prone = false;
@@ -1398,12 +1471,79 @@
       // the rope cut with her on it: she falls to its foot, onto the fighter, who is shoved
       D.d = function (n) { return n === 20 ? 20 : d0U(n); }; var n2U = (Bu.log || []).length; runU(Bu.cutRope(gi, r0, { name: 'a fist', atk: 9, dice: '3d8', mod: 6, type: 'bludgeoning' })); D.d = d0U; var lgC = (Bu.log || []).slice(n2U).join(' | ');
       var sameSq = fg.x === rg.x && fg.y === rg.y;
-      okU('the rope cut: parted ' + !!r0.cut + ', the rogue at its foot ' + (rg.x === r0.foot[0] && rg.y === r0.foot[1]) + ' prone ' + !!rg.conds.prone + '; the fighter shoved off it ' + !sameSq + ' to (' + fg.x + ',' + fg.y + ') -- ' + lgC.slice(-200), !!r0.cut && rg.x === r0.foot[0] && rg.y === r0.foot[1] && !!rg.conds.prone && !sameSq && /shoved/.test(lgC));
+      okU('the rope cut: parted ' + !!r0.cut + ', the rogue at its foot ' + (rg.x === r0.foot[0] && rg.y === r0.foot[1]) + ' on her feet ' + !rg.conds.prone + ' (the fighter the cushion); the fighter shoved off it ' + !sameSq + ' to (' + fg.x + ',' + fg.y + '), flat ' + !!fg.conds.prone + ' -- ' + lgC.slice(-220), !!r0.cut && rg.x === r0.foot[0] && rg.y === r0.foot[1] && !rg.conds.prone && !sameSq && !!fg.conds.prone && /shoved out from under, flat/.test(lgC));
     } catch (eU) { repU.errors.push(String(eU && eU.stack || eU).slice(0, 900)); }
     D.d = d0U;
     if (errs.length) repU.errors = repU.errors.concat(errs);
     var preU = document.createElement('pre'); preU.id = 'out'; preU.textContent = 'BENCH16 ' + JSON.stringify(repU);
     document.body.appendChild(preU);
+    return;
+  }
+  // the class AI throws the Oil Flask (mode=oil1005; 10-05, Griz: "ai knowing oil and torch yes" -- the oil now; tactics.js burnFlask, TX.burnDown): a fighter with two flasks and a troll lying at
+  // 0 -- the flask the top plan, thrown on its turn (the pack one lighter; the troll burned on a failed save, unburned on a made one); a troll standing, weighed beside the swing, and not at
+  // one burned already; an ogre, which does not regenerate, no flask plan; a wizard alone with a troll lying, whose cantrip now burns it on its turn (the empty field ran no plan before)
+  if (get('mode', '') === 'oil1005') {
+    var repO = { checks: [], errors: [] }, d0O = D.d;
+    function okO(what, v) { repO.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runO(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkO(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideO(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function flasksO(Bx) { return Bx.inv.filter(function (x) { return x.id === 'oil'; }).reduce(function (s, x) { return s + x.n; }, 0); }
+    // two flasks in the one stack (the fixture's pack carries one already: a second stack would be thrown from the first, battle.js useItem)
+    function packO(Bx) { Bx.inv = Bx.inv.filter(function (x) { return x.id !== 'oil'; }); Bx.inv.push({ id: 'oil', n: 2 }); }
+    // a free square n squares from b with a clear line to it, for a
+    function nearO(a, b, n) {
+      var Gd = D.grid;
+      for (var r = n; r >= 1; r--) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue;
+        var x = b.x + dx, y = b.y + dy;
+        if (Gd.canStand(a, x, y) && Gd.los(a, b, x, y).clear) { a.x = x; a.y = y; delete a.tween; return true; }
+      }
+      return false;
+    }
+    try {
+      D.seed = 101;
+      var G = D.grid;
+      // a. a fighter 5 with two flasks, a troll knocked down: the flask is the top plan
+      var Bo = mkO('?npc=troll&lvl=5&vs=fighter:5'), ftO = sideO(Bo, 'party')[0], trO = sideO(Bo, 'foe')[0];
+      ftO.guest = false; ftO.classAI = true; packO(Bo); okO('the troll regenerates (' + trO.regen + ') and the fighter is on the party side: ' + ftO.side + ' ' + ftO.cls, trO.regen > 0 && ftO.side === 'party' && ftO.cls === 'fighter');
+      Bo.hurt(trO, 300, 'slashing'); nearO(ftO, trO, 3); D.rules.startTurn(ftO);
+      var plO = D.tactics.plans(Bo, ftO);
+      okO('a fighter 5 with two flasks, ' + G.dist(ftO, trO) + ' ft from a troll lying at 0 (down ' + !!trO.regenDown + '): the top plan ' + (plO[0] && plO[0].why) + ' ' + (plO[0] && plO[0].score.toFixed(1)), !!plO[0] && plO[0].kind === 'item' && /Oil Flask/.test(plO[0].why) && G.dist(ftO, trO) <= 20);
+      // b. its turn, the save forced to fail (a natural 1): a flask lighter, the throw in the log, the troll burned; then its own turn -- it does not knit, and the fight is won
+      D.d = function (n) { return n === 20 ? 1 : d0O(n); }; var f0 = flasksO(Bo), n0O = (Bo.log || []).length; runO(D.ai.turn(Bo, ftO)); D.d = d0O; var lgO = (Bo.log || []).slice(n0O).join(' | ');
+      okO('its turn, the save a 1: flasks ' + f0 + ' -> ' + flasksO(Bo) + ', the action spent ' + !ftO.turn.action + ', burned ' + !!trO.burned + ' -- ' + lgO.slice(0, 150), flasksO(Bo) === f0 - 1 && !ftO.turn.action && trO.burned === true && /throws the Oil Flask/.test(lgO) && /burning: 5 fire/.test(lgO) && /burns where it lies/.test(lgO));
+      runO(D.ai.turn(Bo, trO));
+      okO('the troll\'s turn, burned: dead ' + !!trO.dead + ', the fight ' + Bo.over(), trO.dead && Bo.over() === 'won');
+      // (the save made: the flask is spent, the troll unburned -- and up at its turn)
+      var Bm = mkO('?npc=troll&lvl=5&vs=fighter:5'), ftM = sideO(Bm, 'party')[0], trM = sideO(Bm, 'foe')[0];
+      ftM.guest = false; ftM.classAI = true; packO(Bm); Bm.hurt(trM, 300, 'slashing'); nearO(ftM, trM, 3);
+      D.d = function (n) { return n === 20 ? 20 : d0O(n); }; var fM = flasksO(Bm), nM = (Bm.log || []).length; runO(D.ai.turn(Bm, ftM)); D.d = d0O; var lgM = (Bm.log || []).slice(nM).join(' | ');
+      okO('the save a 20: flasks ' + fM + ' -> ' + flasksO(Bm) + ', burned ' + !!trM.burned + ', still down ' + !!trM.regenDown + ' -- ' + lgM.slice(0, 150), flasksO(Bm) === fM - 1 && !trM.burned && trM.regenDown && /dodged/.test(lgM));
+      // c. a fighter with flasks beside an ogre: no flask plan
+      var Bg = mkO('?npc=ogre&lvl=5&vs=fighter:5'), ftG = sideO(Bg, 'party')[0], ogG = sideO(Bg, 'foe')[0];
+      ftG.guest = false; ftG.classAI = true; packO(Bg); nearO(ftG, ogG, 2); D.rules.startTurn(ftG);
+      var plG = D.tactics.plans(Bg, ftG);
+      okO('a fighter with two flasks ' + G.dist(ftG, ogG) + ' ft from an ogre (regen ' + (ogG.regen || 0) + '): ' + plG.length + ' plans, none a flask -- ' + plG.slice(0, 3).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | '), plG.length > 0 && !(ogG.regen > 0) && !plG.some(function (p) { return p.kind === 'item' || /Oil/.test(p.why); }) && G.dist(ftG, ogG) <= 20);
+      // d. a troll standing and unburned: the flask is weighed beside the swing; burned already, no flask; and an empty pack, none
+      var Bs = mkO('?npc=troll&lvl=5&vs=fighter:5'), ftS = sideO(Bs, 'party')[0], trS = sideO(Bs, 'foe')[0];
+      ftS.guest = false; ftS.classAI = true; packO(Bs); nearO(ftS, trS, 1); D.rules.startTurn(ftS);
+      var plS = D.tactics.plans(Bs, ftS), flS = plS.filter(function (p) { return p.kind === 'item'; })[0];
+      okO('a troll standing and unburned, beside the fighter: plans ' + plS.slice(0, 3).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | '), !!flS && /to stop its knitting/.test(flS.why) && flS.score > 0.5);
+      trS.burned = true; var plS2 = D.tactics.plans(Bs, ftS);
+      okO('the same troll burned already: no flask plan -- ' + plS2.map(function (p) { return p.why; }).join(' | '), !plS2.some(function (p) { return p.kind === 'item'; }));
+      trS.burned = false; Bs.inv.forEach(function (x) { if (x.id === 'oil') x.n = 0; }); var plS3 = D.tactics.plans(Bs, ftS);
+      okO('the pack without a flask: no flask plan -- ' + plS3.map(function (p) { return p.why; }).join(' | '), !plS3.some(function (p) { return p.kind === 'item'; }));
+      // e. a wizard alone with a troll lying: its turn burns it with the cantrip (the pack's flask kept), where the empty field ran no plan before
+      var Bz = mkO('?npc=troll&lvl=5&vs=wizard:5'), wzO = sideO(Bz, 'party')[0], trZ = sideO(Bz, 'foe')[0];
+      wzO.guest = false; wzO.classAI = true; packO(Bz); Bz.hurt(trZ, 300, 'slashing'); nearO(wzO, trZ, 4);
+      D.d = function (n) { return n === 20 ? 18 : d0O(n); }; var fZ = flasksO(Bz), nZ = (Bz.log || []).length; runO(D.ai.turn(Bz, wzO)); D.d = d0O; var lgZ = (Bz.log || []).slice(nZ).join(' | ');
+      okO('a wizard 5 alone with a troll lying: burned ' + !!trZ.burned + ', the flask kept ' + (flasksO(Bz) === fZ) + ' -- ' + lgZ.slice(0, 150), trZ.burned === true && flasksO(Bz) === fZ && /burns where it lies/.test(lgZ));
+    } catch (eO) { repO.errors.push(String(eO && eO.stack || eO).slice(0, 900)); }
+    D.d = d0O;
+    if (errs.length) repO.errors = repO.errors.concat(errs);
+    var preO = document.createElement('pre'); preO.id = 'out'; preO.textContent = 'BENCH16 ' + JSON.stringify(repO);
+    document.body.appendChild(preO);
     return;
   }
   // 10-05's fixes (mode=fixes1005; Griz: "i think the regen is there it's just turning off when they die"; "yes, thought it was there" -- Divine Smite's +1d8; "just OR if there's

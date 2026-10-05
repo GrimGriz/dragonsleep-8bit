@@ -111,7 +111,7 @@
     if (u.traces) yield* traces(B, u);
     else if (u.familiar && D.familiar) yield* D.familiar.turn(B, u); // a wizard's familiar: Help, and the owl flies back out (js/familiar.js)
     else if (u.script && D.scripts && D.scripts[u.script]) yield* D.scripts[u.script](B, u); // a named NPC's own turn (js/pyro.js: Pyro's measure, 09-30)
-    else if ((u.summon || u.dominated || u.loose) && !u.classAI) yield* brute(B, u); // a summoned creature, or a beast dominated for its caster (js/grimoire.js) (js/grimoire.js summonSpell): it fights for its caster's side, as if commanded (RULED 09-30)
+    else if ((u.summon || u.dominated || u.loose || u.ally) && !u.classAI) yield* brute(B, u); // (an ally a fight lent -- the Hex's men, the garrison in the Skylights, 10-05: the brute, as a summon) // a summoned creature, or a beast dominated for its caster (js/grimoire.js) (js/grimoire.js summonSpell): it fights for its caster's side, as if commanded (RULED 09-30)
     else if (u.classAI && D.tactics) yield* D.tactics.turn(B, u); // a class NPC (js/classes.js), or a hero on the bench: the class's own tactics (js/tactics.js)
     else if (u.kind === 'phasespider') yield* spider(B, u);
     else if (u.kind === 'keeper' && u.side === 'foe' && D.keeper) yield* D.keeper.turn(B, u); // (the Keeper of the Flooded Stair: the Slam, the Wave, the deep, the Ice Wall -- js/keeper.js, 10-03)
