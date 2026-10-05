@@ -1298,6 +1298,52 @@
 }
 }
 },
+"drillsergeant_p0": {
+"image": "art/drillsergeant_p0.png?v=711acbf846",
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"top": 42,
+"anims": {
+"idle": {
+"y": 0,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 2,
+"fps": 6
+},
+"walk": {
+"y": 512,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 9,
+"fps": 10
+},
+"attack": {
+"y": 1024,
+"fw": 192,
+"fh": 192,
+"ax": 96,
+"ay": 125,
+"frames": 6,
+"fps": 12
+},
+"hurt": {
+"y": 2560,
+"fw": 64,
+"fh": 64,
+"ax": 32,
+"ay": 61,
+"frames": 6,
+"fps": 10
+}
+}
+},
 "drow_p0": {
 "image": "art/drow_p0.png?v=f44c92b74c",
 "fw": 64,

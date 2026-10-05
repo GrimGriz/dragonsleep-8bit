@@ -697,8 +697,10 @@
   Battle.prototype.hatchOut = function* () {
     var self = this, H = this.fight.hatch, held = this.held || []; this.held = [];
     if (!H || !held.length) return;
-    this.focus({ x: H.from[0][0], y: H.from[0][1], size: 1 }); D.sfx('clack'); if (H.card) this.card(['{y}' + H.card + '{/}'], 420); yield 30;
-    yield* this.walkIn(held.map(function (u, i) { return { u: u, from: H.from[i % H.from.length], to: [u.x, u.y], face: D.spr.facingFor(0, -1), spark: true }; }), function (g) { if (g) self.keepInView(g.u); });
+    if (H.doors) { this.map.doorsOpen = true; D.sfx('earth'); } // (out of the vault's doors, the leaves open while they come -- the Skylights since 10-05 late)
+    this.focus({ x: H.from[0][0], y: H.from[0][1] + (H.doors ? 1 : 0), size: 1 }); D.sfx('clack'); if (H.card) this.card(['{y}' + H.card + '{/}'], 420); yield 30;
+    yield* this.walkIn(held.map(function (u, i) { return { u: u, from: H.from[i % H.from.length], to: [u.x, u.y], face: D.spr.facingFor(0, H.doors ? 1 : -1), spark: true }; }), function (g) { if (g) self.keepInView(g.u); });
+    if (H.doors) this.map.doorsOpen = this.passagesOpen;
     var dealt = held.filter(function (u) { return self.units.indexOf(u) >= 0; });
     dealt.forEach(function (u) {
       u.initRoll = D.d(20) + u.init;

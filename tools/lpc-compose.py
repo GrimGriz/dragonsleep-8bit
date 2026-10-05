@@ -712,6 +712,21 @@ FIGURES = {
         ],
         'notes': ['the 8-bit dtrooper look: a hat (the nasal helm), a beard'],
     },
+    'drillsergeant_full': {  # the Drill-sergeant (10-05, Griz: "LPC the pop-op dwarves more like the NPC dwarves instead of Duergar"): his troopers' kit, a rank above -- armoured arms, a bronze helm, a black beard (the 8-bit's dtrooper2)
+        'body': 'male', 'skin': 'lpcr.tan', 'eyes': 'brown', 'attack': ('slash', 'slash_oversize'),
+        'items': [
+            {'def': 'body/body.json'},
+            {'def': 'head/heads/human/heads_human_male.json'},
+            {'def': 'legs/pants/legs_pants.json', 'color': 'charcoal'},
+            {'def': 'feet/boots/feet_boots_basic.json', 'color': 'black'},
+            {'def': 'torso/torso_chainmail.json', 'color': 'steel'},
+            {'def': 'arms/arms_armour.json', 'color': 'iron'},
+            {'def': 'hair/beards/beards_beard.json', 'color': 'black'},
+            {'def': 'headwear/helmets/helmets/hat_helmet_nasal.json', 'color': 'bronze'},
+            {'def': 'weapons/blunt/weapon_blunt_mace.json', 'variant': 'mace', 'idle_from': IDLE_FROM_WALK},
+        ],
+        'notes': ['the trooper with the captain\'s armoured arms, a bronze nasal helm and a black full beard: the one who drills them'],
+    },
     'brann_full': {  # Brann Silversands: a red beard, splint (plate), the battleaxe
         'body': 'male', 'skin': 'light', 'eyes': 'blue', 'attack': ('slash', 'slash_oversize'),
         'items': [

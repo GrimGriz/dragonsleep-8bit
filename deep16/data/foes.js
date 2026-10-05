@@ -420,16 +420,17 @@
   },
   // the garrison of Sólskaft, out of the Edifice's roof hatch in the Skylights (10-05, Griz: "a solskaft guy 'drilling' soldiers (I think 4?) that group could come out the top door when
   // the first bang hits the skylight"): the 8-bit's Drill-sergeant (content/npcs.json drillmaster) as the SRD 5.1 Veteran, his troopers as the SRD Guard, dwarves (speed 25, darkvision,
-  // poison resistance: SRD 5.1 Dwarf); both on the duergar's dwarf sheet for now (deep16-art-wanted.md: a garrison dwarf in the king's colours is wanted)
+  // poison resistance: SRD 5.1 Dwarf). Their looks LPC-composed as the 8-bit's dwarves are (10-05, Griz: "LPC the pop-op dwarves more like the NPC dwarves instead of Duergar"): the troopers
+  // on the garrison trooper's sheet (`trooper_p0`, composed 09-27: nasal helm, chainmail, a brown beard), the sergeant on his own (`drillsergeant_p0`: a bronze helm, armoured arms, a black beard)
   trooper: {
-    name: 'Trooper', type: 'humanoid', sheet: 'duergar_p0', humanoid: true, cr: '1/8', ac: 16, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Trooper', type: 'humanoid', sheet: 'trooper_p0', humanoid: true, cr: '1/8', ac: 16, hp: 11, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: { spear: { name: 'Spear', atk: 3, dice: '1d6', mod: 1, type: 'piercing', reach: 5 } },
     multi: 1, resist: ['poison'], src: 'SRD 5.1 Guard (CR 1/8), a dwarf of the garrison; content/npcs.json drill1-4 (the Troopers)'
   },
   drillsergeant: {
-    name: 'Drill-sergeant', type: 'humanoid', sheet: 'duergar_p0', humanoid: true, cr: '3', ac: 17, hp: 58, speed: 25, size: 1, reach: 5, darkvision: 60,
+    name: 'Drill-sergeant', type: 'humanoid', sheet: 'drillsergeant_p0', humanoid: true, cr: '3', ac: 17, hp: 58, speed: 25, size: 1, reach: 5, darkvision: 60,
     abil: { str: 16, dex: 13, con: 14, int: 10, wis: 11, cha: 10 }, init: 1, perception: 12,
     saves: { str: 3, dex: 1, con: 2, int: 0, wis: 0, cha: 0 },
     attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 3, type: 'slashing', reach: 5 } },
