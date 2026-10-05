@@ -103,6 +103,7 @@
     B.card(['{y}' + u.name + '{/} goes back in through the vault doors, for the stair to the roof.'], 300); yield 30;
     var k = B.units.indexOf(u); if (k >= 0) B.units.splice(k, 1); u.away = true; B.map.doorsOpen = B.passagesOpen;
     B.late = (B.late || []).concat([{ round: B.round + 1, walk: [{ u: u, from: KW.out[0], to: KW.to || KW.out[0] }], card: KW.card }]);
+    B.late.forEach(function (l) { if (l.king && l.round === Infinity) l.round = B.round + 1 + l.king; }); // (a wave held for the king -- the Drill-sergeant and his two -- the `king`-th round after he comes out: 10-05 evening, Griz, "the second round after pyro shows up")
     yield 20; return true;
   };
   // his flask at a troll lying at 0 and knitting that nobody has burned (10-05, Griz: "without fire, add script to oil flask first down troll and say 'torch him!' - mechanically he can

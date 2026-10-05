@@ -350,6 +350,8 @@
     poison: function (t) { [60, 61, 60, 59].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.06, 0.06, 0.1, 0.125); }); },
     error: function (t) { tone(sfxBus, 'pulse', 50, t, 0.12, 0.14, 0.5); },
     popup: function (t) { [76, 83, 88].forEach(function (m, i) { tone(sfxBus, 'pulse', m, t + i * 0.05, 0.08, 0.12, 0.25); }); },
+    // a two-fingered whistle, up and then down (DEEP16's Skylights: Hallvör calls the spiders down -- 10-05 evening, Griz: "can she whistle and call them?")
+    whistle: function (t) { tone(sfxBus, 'triangle', 93, t, 0.16, 0.2, null, 4); tone(sfxBus, 'triangle', 98, t + 0.2, 0.32, 0.2, null, -9); },
     // ------------------------------------------------ the spells' voices (the spell animation pass, 09-28h; Griz: "one per element and
     // an additional alternate for special cases"): fire, frost and zap were here already; each element has its own now, and a
     // heavier second (…2) for the big ones and the signatures (a fireball's boom, the bolt's thunderclap, a sunburst's choir)

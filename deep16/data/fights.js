@@ -338,7 +338,13 @@
                 // captain after the party comes out? Have them come out through waterfall (revert?)" -- "agreed - at least the first two out ... should have crossbows and bolts"; the captain
                 // the Drill-sergeant, "drill sergeant in the 8 bit": two crossbowmen at the start of the third round, the Drill-sergeant and two at the fourth, each with a grapple of its own)
                 { allies: ['tr1', 'tr2'], round: 3, card: 'Out of the falls\' curtain at the back of the roof: two troopers of the garrison, crossbows wound.' },
-                { allies: ['sgt', 'tr3', 'tr4'], round: 4, card: 'Out of the falls\' curtain: the Drill-sergeant and two more troopers, onto the glass.' }],
+                // (the Drill-sergeant and his two the second round after Pyro comes out of the falls -- `king`: rounds after the king's own way up, js/pyro.js S.toRoof; never, if he never
+                // goes up. 10-05 evening, Griz: "Stagger the dwarves up top. First two as now, second two and the captain the second round after pyro shows up." Till then, round 4)
+                { allies: ['sgt', 'tr3', 'tr4'], king: 2, card: 'Out of the falls\' curtain: the Drill-sergeant and two more troopers, onto the glass.' },
+                // (the spiders Hallvör whistles down when she first stands on the roof -- `whistle`: held till then, never if she never makes it; ai.js whistle. 10-05 evening, Griz: "when/if
+                // Hallvor makes the roof, 'whistles and says 'come on down'' as a free action, then 2 spiders come down ... and target her foe-climbers" -- "Two spiders, one comes down centered
+                // between the falls and the edge *each edge of edifice")
+                { foes: ['spider1', 'spider2'], whistle: true, card: 'Down the mountain\'s face, one either side of the falls: two giant spiders, answering her.' }],
         // (the party a round after the stables, at the start of the third: the word went down the road quickly and the lamps are fast, but the fight is under way when they come out --
         // Griz, 10-05: "stall another round before the heroes show up ... - potential lever"; the lever is this number)
         party: { round: 3 } },
@@ -349,6 +355,7 @@
       // leaves stand open while they come, Battle.hatchOut)
       // (since the second play of 10-05 the garrison comes by rounds, out of the falls -- the waves above -- and the hatch is gone: `hatch` and Battle.hatchOut stay for a fight that wants a bang)
       // the king's own way up (10-05, Griz: "come out the door with the party and in the door when one actually makes the roof, out the waterfall next turn?"): js/pyro.js S.toRoof
+      whistler: 'giant1', // (the one whose first turn on the roof brings the `whistle` wave down: Hallvör -- ai.js whistle, 10-05 evening)
       kingFalls: true, // (his fall ends the fight -- "THE KING FALLS.  Obviously that didn't happen." -- and it is fought again: 10-05, Griz, "code the 'Obviously that didn't happen' reload if Pyro goes down"; js/pyro.js over)
       kingsWay: { doors: [[29, 16], [30, 16]], out: [[29, 1], [30, 1]], to: [29, 3], card: 'Out of the falls\' curtain at the back of the roof: Pyro.' },
       // (in the order they come down the road, each to a square none of the later ones has to pass: the farthest first -- 10-05, the second troll boxed in at the road's mouth. Along
@@ -356,7 +363,8 @@
       // `free` of the mission: the stables' eight meet them there)
       foes: [{ id: 'troll3', kind: 'troll', from: [5, 0], at: [25, 22], free: true, chase: { to: [26, 31], till: 1 } }, { id: 'troll4', kind: 'troll', from: [5, 0], at: [32, 22], free: true, chase: { to: [30, 31], till: 1 } }, // (`chase`: round 1, down the south road after the street's people -- 10-05, Griz: "have the first trolls chase the civilians more"; Bloodsnout's men meet them there in round 2) // (either side of the south road's mouth, where the street's people run in)
              { id: 'troll2', kind: 'troll', from: [5, 0], at: [14, 20], guard: 'giant2', streetFirst: true }, { id: 'giant1', kind: 'stonegiant', name: 'Hallvör', from: [5, 0], at: [21, 20], guard: 'giant2', roofGuard: true, rocks: 2 },
-             { id: 'giant2', kind: 'stonegiantm', name: 'Steinarr', from: [5, 0], at: [18, 16], only: true, rocks: 2 }, { id: 'troll1', kind: 'troll', from: [5, 0], at: [10, 18], guard: 'giant2', streetFirst: true }], // (roofGuard on Hallvor and streetFirst on the trolls -- 10-05, Griz: "1 and 2 - but trolls don't climb unless only hidden targets are in the street and see how the bench do"; troll1 west of the first trolls' melee since their second leg took (13,20) -- 10-05; troll2 behind the giants too, at (14,20) under the first fountain, and the giants walk first: 10-05, Griz, "text says trolls are behind giants and one starts in front", then "3rd troll still in front")
+             { id: 'giant2', kind: 'stonegiantm', name: 'Steinarr', from: [5, 0], at: [18, 16], only: true, rocks: 2 }, { id: 'troll1', kind: 'troll', from: [5, 0], at: [10, 18], guard: 'giant2', streetFirst: true },
+             { id: 'spider1', kind: 'giantspider', from: [19, 1], at: [19, 2], free: true, huntsClimbers: true }, { id: 'spider2', kind: 'giantspider', from: [39, 1], at: [39, 2], free: true, huntsClimbers: true }], // (the two she whistles down, each centred between the falls -- x 28 to 31 -- and its edge of the roof, x 11 and 48; `free` of the glass, `huntsClimbers`: ai.js brute. 10-05 evening) // (roofGuard on Hallvor and streetFirst on the trolls -- 10-05, Griz: "1 and 2 - but trolls don't climb unless only hidden targets are in the street and see how the bench do"; troll1 west of the first trolls' melee since their second leg took (13,20) -- 10-05; troll2 behind the giants too, at (14,20) under the first fountain, and the giants walk first: 10-05, Griz, "text says trolls are behind giants and one starts in front", then "3rd troll still in front")
       // (ours for the fight, the brute's to run: Bloodsnout's four up the south road to the first two trolls, a round late; the garrison held behind the hatch -- `hatch`. Dunmore's four,
       // once "Talmok's" -- Talmok is Bloodsnout's champion, not a stable's master (wiki the-hex.md) -- stay in their yard, unpaid: 10-05)
       allies: [{ id: 'talmok', kind: 'talmok', side: 'party', ally: true, from: [29, 38], at: [29, 35] }, // (Talmok at their head, up the road to the trolls that ran at the street's people -- 10-05)

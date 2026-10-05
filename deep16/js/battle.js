@@ -310,7 +310,7 @@
       chase: f.chase ? { to: f.chase.to.slice(), till: f.chase.till || 1 } : null, // (a scripted run for its first rounds: the Skylights' first trolls after the street's people, ai.js brute, 10-05)
       keepLevel: !!f.keepLevel, // (holds its level: no step down 10 ft or more -- the garrison keeps the roof, grid.js stepCost, 10-05)
       missionOnly: !!f.only, guard: f.guard || null, rocks: f.rocks != null ? f.rocks : null,
-      roofGuard: !!f.roofGuard, noGlass: !!f.roofGuard, streetFirst: !!f.streetFirst, // (the roof first and never the glass -- Hallvör; the street first while anyone it can see stands on it -- the trolls: ai.js brute, 10-05) // (nothing but the mission's target; guarding the one with that id; the rocks it carried -- the Skylights' giants and trolls, ai.js brute, 10-05)
+      roofGuard: !!f.roofGuard, noGlass: !!f.roofGuard, streetFirst: !!f.streetFirst, huntsClimbers: !!f.huntsClimbers, // (huntsClimbers: any of ours on a rope or a face first -- the Skylights' spiders, ai.js brute, 10-05 evening) // (the roof first and never the glass -- Hallvör; the street first while anyone it can see stands on it -- the trolls: ai.js brute, 10-05) // (nothing but the mission's target; guarding the one with that id; the rocks it carried -- the Skylights' giants and trolls, ai.js brute, 10-05)
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
       // and what it does with the dark itself (the darkmantle's aura, the duergar's Invisibility: ai.js brute)
       darkvision: d.darkvision || 0, blindsight: d.blindsight || 0, blind: !!d.blind, truesight: d.truesight || 0, devilSight: !!d.devilSight,
@@ -502,7 +502,7 @@
     // the skylight broken (a defend fight, 10-04 night): the Edifice is breached, and it is lost
     if (this.units.some(function (u) { return u.object && u.breachLoses && (u.dead || u.hp <= 0); })) return 'lost';
     // (a foe turned wholly to stone -- Flesh to Stone's third failed save -- holds no fight open: it had stalled one for good, 10-01)
-    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }).length && !this.units.some(function (u) { return u.side === 'foe' && u.regenDown && !u.dead; }) && !(this.late || []).some(function (l) { return l.foes && l.foes.length; })) return 'won'; // (a troll down and knitting holds it open: 10-05) (so does a late wave of foes still to come: Battle.lateOut)
+    if (!this.alive('foe').filter(function (u) { return !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); }).length && !this.units.some(function (u) { return u.side === 'foe' && u.regenDown && !u.dead; }) && !(this.late || []).some(function (l) { return l.foes && l.foes.length && l.round !== Infinity; })) return 'won'; // (a troll down and knitting holds it open: 10-05) (so does a late wave of foes still to come: Battle.lateOut -- not one held for a call that never came, the Skylights' spiders, 10-05 evening)
     // one who yields when he is beaten (the cleric at Deepholm's door): at half his hit points, standing, it is over (the
     // 8-bit battle's `yields`: a blow that drops him from above half to nothing kills him instead)
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
@@ -621,7 +621,7 @@
     var late = this.late = this.late || []; // (a wave with a `round`, and the party when arrive.party has one: held off the field till the start of that round -- Battle.lateOut, 10-05)
     this.beats = 0;
     for (var w = 0; w < waves.length; w++) {
-      if (waves[w].round) { late.push({ round: waves[w].round, wave: waves[w], foes: byId(waves[w].foes, foes), allies: byId(waves[w].allies, allies) }); continue; }
+      if (waves[w].round || waves[w].king || waves[w].whistle) { late.push({ round: waves[w].round || Infinity, king: waves[w].king || 0, whistle: !!waves[w].whistle, wave: waves[w], foes: byId(waves[w].foes, foes), allies: byId(waves[w].allies, allies) }); continue; } // (`king`: held with no round till the king goes up his own way -- js/pyro.js S.toRoof gives it one; the Skylights' second garrison wave, 10-05 evening) (`whistle`: held till the fight's `whistler` calls it -- ai.js whistle; the Skylights' spiders, the same evening)
       var wv = waves[w], fs = byId(wv.foes, foes), als = byId(wv.allies, allies), mvs = byId(wv.move, U).filter(function (u) { return u.then0; }), file = [];
       if (fs.length) { this.focus({ x: fs[0].from0[0], y: fs[0].from0[1] + 4, size: fs[0].size }); D.sfx('encounter'); }
       else if (als.length) { this.focus({ x: als[0].from0[0], y: als[0].from0[1] - 4, size: 1 }); D.sfx('popup'); }

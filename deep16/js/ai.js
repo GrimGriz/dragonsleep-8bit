@@ -126,6 +126,7 @@
     else if (u.side === 'foe') yield* brute(B, u);
     else yield* guest(B, u);
     if (u.side === 'foe' && D.traits && D.traits.after) yield* D.traits.after(B, u); // (the gnoll's Rampage, the goblin's Nimble Escape)
+    if (u.side === 'foe' && B.fight && B.fight.whistler === u.id && !u.whistled) yield* whistle(B, u); // (the Skylights: Hallvör's call, the turn she first stands on the roof)
     // a Slam's stun and a Moan's fright last till the end of the foe's next turn
     // (a stun laid with no `fresh` is not this sweep's: a spell's -- Power Word Stun, Divine Word, Symbol -- holds by its own rule, the save at the
     // end of the stunned one's turns, and a monk's Stunning Strike by its own clock, js/features.js; 09-30)
@@ -815,6 +816,22 @@
     return best && (best.e.x !== u.x || best.e.y !== u.y) && !(here != null && best.s <= here) ? best.e : null;
   }
   function belowIt(u, w) { return !!u.keepLevel && G.gzAt(w, w.x, w.y) < G.gzAt(u, u.x, u.y) - 2 * G.map.def.step; }
+  // her whistle (the Skylights, 10-05 evening -- Griz: "I'm considering when/if Hallvor makes the roof, 'whistles and says 'come on down'' as a free action, then 2 spiders come down
+  // each side of the waterfall and target her foe-climbers" -- "Two spiders, one comes down centered between the falls and the edge *each edge of edifice" -- "can she whistle and call
+  // them?"): at the end of the fight's `whistler`'s first turn standing on the glass's roof, a free action -- the chip synth's whistle, her call (deep16/audio/come_on_down.mp3 when there
+  // is one; the card carries it till then) -- and the wave the fight holds for it (`whistle`, Battle.arrive) comes down at once, dealt into the order. invented.json skylights-spiders
+  function* whistle(B, u) {
+    if (u.dead || u.hp <= 0 || (u.hang && G.hanging(u)) || !RU.canAct(u)) return;
+    var sky = B.units.filter(function (w) { return w.id === 'skylight'; })[0]; if (!sky) return;
+    if (G.gzAt(u, u.x, u.y) < G.gzAt(sky, sky.x, sky.y) - G.map.def.step) return;
+    var held = (B.late || []).filter(function (l) { return l.whistle && l.round === Infinity; }); if (!held.length) return;
+    u.whistled = true; B.focus(u); D.sfx('whistle');
+    B.card(['{r}' + u.name + '{/} puts two fingers to her mouth and whistles.  "Come on down!"'], 320);
+    if (D.clip) D.clip('audio/come_on_down.mp3');
+    yield 40;
+    held.forEach(function (l) { l.round = B.round; });
+    yield* B.lateOut();
+  }
   AI.lipsNear = lipsNear; // (the bench)
   // a rope set down from the lip (10-05, Griz: "if no ropes down and two on roof, maybe have a dwarf run to the ledge and set a hook/rope down?"): a lent ally with its own rope, up on a level
   // with a face below it where two or more of ours stand, no rope hanging from there, and none of the foes in its reach -- one of them (the first to take it up: B.ropeTier) goes to the lip
@@ -894,6 +911,17 @@
       var thr = ward ? heroes(B, u).filter(function (w) { return !w.object && G.dist(ward, w) <= 30; }).sort(function (a, b) { return G.dist(ward, a) - G.dist(ward, b); }) : [];
       if (thr.length && !hs.some(function (w) { return !w.object && G.dist(u, w) <= reachOf(u, hs); })) hs = [thr[0]];
     }
+    // the spiders she whistled down (the Skylights, 10-05 evening; Griz: "target her foe-climbers"): any of ours on a rope or a face is theirs -- known by her call, seen or not -- the
+    // nearest first: to the square on their level nearest it across (ledgeSq -- the lip over it, not by the drop's height), one with a clear line for the web while the web is ready;
+    // then the brute's own way at them: the rope's grapple cut from its top (below), the web at a climber it sees, the bite at one in reach. With no one climbing, the brute's way
+    if (!grudge && u.huntsClimbers) {
+      var clm = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.object && w.hang && G.hanging(w); });
+      if (clm.length) {
+        var c0 = clm.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+        if (T.move > 0 && !clm.some(function (w) { return G.dist(u, w) <= reachOf(u); })) { var eC0 = ledgeSq(B, u, c0, clm, u.web && u.web.ready ? { range: u.web.range } : null); if (eC0) { yield* walkTo(B, u, eC0); if (u.dead || u.hp <= 0) return; } }
+        hs = clm;
+      } else hs = hs.filter(function (w) { return !w.object; }); // (never the glass: free of the mission -- the first bench had them web and bite the skylight, the nearest of ours on the roof)
+    }
     // lost to every eye (magical darkness, fog, a pillar between): the natural lurker -- one the fight began with hidden: the darkmantle, the grick, the roper -- slips back into hiding
     // for nothing, a Stealth roll held as a hero's is; any other foe with a Stealth score pays the Hide action, and only with nothing within its reach to strike (Griz, 10-04: "if
     // a monster is natural stealth and gets found there should be conditions in which it would be lost and found again ... magical darkness"; "only the natural get a free re-hide")
@@ -918,7 +946,10 @@
     // a rope one of its enemies hangs on (10-04, Griz: "so long as they only bother to consider it as a target when someone is climbing it"): it goes for the rope from
     // beside its top -- a melee blow at an object, battle.js cutRope -- walking there first if it can; a rope nobody hangs on is no target
     if (!grudge && T.action > 0 && !u.conds.disarmed && B.ropes && B.ropes.length && !u.missionOnly) { // (nothing but the window cuts no rope: 10-05, the fight log -- the male parted Barley's)
-      var ropeT = B.ropes.filter(function (r) { return !r.cut && B.units.some(function (h) { return h.hang && h.hang.rope === r && G.hanging(h) && G.hostile(u, h) && G.standing(h); }); })[0];
+      // (only a rope whose top is on its own level: a troll on the street walked off its fight toward the top of a rope 45 ft over it, took the blade beside it, dropped and knitted,
+      // sixty rounds of it while Aurdin hung there -- the 10-05 bench; Griz: "we supposedly scripted the trolls to clear the street". From below, the one on the rope is a target as any is)
+      var zR0 = G.gzAt(u, u.x, u.y), stR = G.map.def.step;
+      var ropeT = B.ropes.filter(function (r) { return !r.cut && Math.abs(G.map.gz(r.at[0], r.at[1]) - zR0) <= stR && B.units.some(function (h) { return h.hang && h.hang.rope === r && G.hanging(h) && G.hostile(u, h) && G.standing(h); }); })[0];
       var meleeA = ropeT && Object.keys(u.attacks || {}).map(function (k) { return u.attacks[k]; }).filter(function (a) { return a && !a.ranged && a.dice; })[0];
       if (ropeT && meleeA) {
         var rSpot = { x: ropeT.at[0], y: ropeT.at[1], size: 1 }, rRch = reachOf(u);
