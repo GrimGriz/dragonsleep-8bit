@@ -864,11 +864,14 @@
     // the cloaker and the one the party swore to bring back (RULED 10-01c, Griz: "cloaker focuses on kid if they bring him to that fight"): it hunts him while he stands
     if (!grudge && u.kind === 'cloaker') { var vt = hs.filter(function (w) { return w.vital; })[0]; if (vt) hs = [vt]; }
     // her man down (10-05, Griz: "and lady giant (rages?) and goes for window if her man goes down"): the roof guard takes up his work -- the glass hers now, whoever stands in her reach
-    // on the way struck first (the mission's own rule, below), and the trolls that guarded him guard no one. Said once. (The rage itself is his to say: asked, not built)
+    // on the way struck first (the mission's own rule, below), and the trolls that guarded him guard no one. Said once. And she rages (Griz, the same evening: "yeah, regular rage she
+    // shouldn't have - storyline can cite unknown deific intervention or lady giant hormones"): the barbarian's Rage the grid already runs (features.js F.rageCond's shape) -- +2 on her
+    // STR blows, blades and blows halved (battle.js hurt's ward), STR saves with advantage -- for a minute. Ours, not the SRD's: invented.json hallvor-rages
     if (u.roofGuard && u.guard && !B.units.some(function (w) { return w.id === u.guard && !w.dead && w.hp > 0; })) {
       var lost = B.units.filter(function (w) { return w.id === u.guard; })[0];
       u.roofGuard = false; u.noGlass = false; u.guard = null; D.sfx('encounter');
-      B.card(['{r}' + u.name + '{/} sees ' + (lost ? lost.name : 'him') + ' fall, roars, and turns on the glass herself.'], 320); yield 30;
+      u.conds.raging = { dmg: 2, till: { who: u.id, at: 'start', n: 10 }, endText: '{who}\'s rage burns out.' }; FX.ring(u, 'red', 40);
+      B.card(['{r}' + u.name + '{/} sees ' + (lost ? lost.name : 'him') + ' fall, roars, and rages -- and turns on the glass herself.  {g}(+2 to her blows, blades and blows halved, for a minute){/}'], 360); yield 30;
     }
     // the mission (a defend fight, 10-04 night): the skylight is what it came for -- it goes for the glass unless one of theirs stands within its reach, in the way
     if (!grudge && u.mission) {

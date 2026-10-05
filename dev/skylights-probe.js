@@ -17,6 +17,9 @@
         known: u.known, slots: u.slots, feats: u.feats, dc: u.spellDC, atk: u.spellAtk, attacksBase: u.attacksBase, torch: u.torch, ownFlask: u.ownFlask, ownRope: u.ownRope, x: u.x, y: u.y, script: u.script };
     });
     out.inv = B.inv;
+    // the day each caster could prepare: the book or the class list (the pool), how many, and what the build's default took
+    var fx = D.save.fixture(+get('flvl', 6));
+    out.prep = fx.party.filter(function (h) { return D.save.prepCount(h); }).map(function (h) { return { id: h.id || h.key, count: D.save.prepCount(h), prepared: h.prepared, pool: D.save.prepPool(h) }; });
     out.foes = all.filter(function (u) { return u.side === 'foe'; }).map(function (u) { return { id: u.id, name: u.name, kind: u.kind, x: u.x, y: u.y, size: u.size, hp: u.hp, ac: D.rules.ac(u), climbs: u.climbs, mission: u.mission, missionOnly: u.missionOnly, guard: u.guard, roofGuard: u.roofGuard, streetFirst: u.streetFirst, rocks: u.rocks }; });
     out.ropes = B.ropes; out.ropeBucket = B.ropeBucket;
     var sky = B.units.filter(function (w) { return w.id === 'skylight'; })[0];

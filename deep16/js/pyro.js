@@ -120,7 +120,27 @@
     if (!T.action && u.feats && u.feats.actionSurge > 0) { u.feats.actionSurge = 0; T.action = 1; D.sfx('buff'); B.card(['{y}' + u.name + '{/} surges!  {g}(Action Surge: the action again){/}']); yield 16; }
     return true;
   };
+  // the king's handaxe (10-05, Griz, on "Pyro cannot reach any of them from here" in the watched fight: "one handaxe +3 magical return the at the end of his next turn (turn without
+  // it) (i figure the logic will still use it rare given normal action damage...)"): with no one in his reach after his walk, he throws it -- the SRD 5.1 handaxe (1d6 slashing, light,
+  // thrown 20/60) as a +3 weapon -- at the one highest up the face first (a hit on a climber asks its hold: battle.js clingSave), else the nearest he sees and has a line to; the Attack
+  // action, one throw. It comes back to his hand at the end of his next turn, the one he is without it (S.measure, below). Ours, the return: invented.json pyro-handaxe
+  function axeOf(u) { var s = D.mod(u.abil.str); return { id: 'handaxe3', name: 'Handaxe +3', atk: (u.prof || 4) + s + 3, dice: '1d6', mod: s + 3, type: 'slashing', props: ['light', 'thrown'], magic: true, ranged: true, thrown: true, range: [20, 60], fx: 'bolt' }; }
+  S.axe = function* (B, u) {
+    var T = u.turn; if (!T || !T.action || T.attacksLeft || u.axeOut || u.conds.disarmed) return false;
+    var a = axeOf(u), seen = foesUp(B, u).filter(function (w) { return !w.object && G.standing(w) && G.dist(u, w) <= a.range[1] && G.los(u, w).clear && M.sees(B, u, w); });
+    if (!seen.length) return false;
+    var up = function (w) { return w.hang && G.hanging(w) ? w.hang.z - G.map.gz(w.x, w.y) : -1; };
+    var t = seen.sort(function (p, q) { return up(q) - up(p) || G.dist(u, p) - G.dist(u, q); })[0];
+    T.action = 0; u.axeOut = B.round;
+    B.card(['{y}' + u.name + '{/} throws the handaxe.'], 160); yield 10;
+    yield* B.attack(u, t, a);
+    return true;
+  };
   S.measure = function* (B, u) {
+    yield* turn(B, u);
+    if (u.axeOut && B.round > u.axeOut && !u.dead) { delete u.axeOut; B.card(['{g}The handaxe comes back to ' + u.name + '\'s hand.{/}'], 160); yield 10; } // (the end of his next turn)
+  };
+  function* turn(B, u) {
     var P = measure(B, u), T = u.turn;
     yield* watch(B);
     if (u.hp <= 0 || !RU.canAct(u) || B.over()) return;
@@ -138,7 +158,10 @@
     var tgt = foes.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
     if (G.dist(u, tgt) > G.reachOf(u)) { var x0 = u.x, y0 = u.y; yield* AI.walkTo(B, u, AI.approach(u, tgt, G.reach(u, T.move))); if (u.x === x0 && u.y === y0 && !inReach(B, u).length && AI.ropeUp && (yield* AI.ropeUp(B, u, tgt))) return; } // (no way to it on his feet: a rope, as the garrison's -- 10-05)
     if (u.hp <= 0 || !T.action) return;
-    if (!inReach(B, u).length) { B.card(['{g}' + u.name + ' cannot reach any of them from here.{/}'], 160); yield 16; return; } // (said, not silent -- 10-05: he stood at the vault ten rounds with no word, the foes all up the face)
+    if (!inReach(B, u).length) {
+      if (full && (yield* S.axe(B, u))) return; // (his handaxe, thrown, at full -- not while he is taking the party's measure: 10-05)
+      B.card(['{g}' + u.name + ' cannot reach any of them from here.{/}'], 160); yield 16; return; // (said, not silent -- 10-05: he stood at the vault ten rounds with no word, the foes all up the face)
+    }
     T.action = 0;
     var n = u.attacksBase || 3, plan;
     if (P.phase === 1) plan = [main];

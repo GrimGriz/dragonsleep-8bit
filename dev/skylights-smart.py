@@ -51,7 +51,7 @@ def run(params, smart=True, probe=False):
         TAIL['v'] = '<script src="skylights-party.js"></script>\n<script src="%s"></script>' % name
     p = dict(params)
     p['smart'] = '1' if smart else '0'
-    return bench16.run(p)
+    return bench16.run(p, timeout=1800) # (sixteen fights with one long one ran past bench16's 600 s, 10-05)
 
 
 def glass(f):
