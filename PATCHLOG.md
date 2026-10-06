@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · what · hi
 
 ## 2026-10-06
 
+- 2026-10-06 · seen · the menus · The burned troll's new fire on the grid (`cadbe08`'s smoulder and sparks); the oil sheen not yet · *"I did see the trolls new fire effect. I'm less than ideal at reporting back :)"*
 - 2026-10-06 · `40496a2` · the menus · The grid's EQUIP is the 8-bit's page: the slot rows, then the place's box of the grid's own choices, each with its cost or why not; a pick spends the action, back to the turn · *"why is not same?"* · *"i swapped weapons thinking I was going to see what weapons I could swap too (like 16 worked) - part of why the uniformity"*
 - 2026-10-06 · seen · the menus · The 8-bit's EQUIP and the grid's, side by side (his screenshot): not the same, made so in `40496a2`
 - 2026-10-06 · `3431a54` · the menus · The grid's M menu is the one menu, a 256x240 window on its screen: the party with the fight's HP, EQUIP by the grid's rules (each change the action), ITEMS lit or grey by the turn's economy, OPTIONS applied at once, RESTART / THE LADDER / back where the fight has them, the mouse points and clicks · *"2 - yeah, replaces the current grid menu for equip and using items from there should be colored or greyed out by action economy you have on your turn"* · *"I think you can get the grid on the new menu pretty easy, proceed"*
