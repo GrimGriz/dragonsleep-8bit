@@ -1247,16 +1247,18 @@
       // "up to three creatures of your choice" (SRD: Aid, Bless), the caster one of them if he likes (Griz, 09-28: Lymen's own
       // Aid). One too many standing: pick who goes without; more: pick them one by one, X when that's enough. Bless takes one more for each slot level
       // above 1st, in the same cast (SRD 5.1: "you can target one additional creature for each slot level above 1st" -- the record's maxUp, 10-03)
-      var live = this.liveHeroes(), max = (sp.max || 4) + (sp.maxUp && slot ? (slot - sp.level) * sp.maxUp : 0);
+      // (Aid reaches the fallen and wakes them: its HP is HP regained, SRD 5.1 "unconsciousness ends if you regain any hit points" -- 10-06, Griz: "That's
+      // how our table plays (HP adds heal from 0)"; the picker's standing-only was the 09-23 game's "beyond a spell", left on Aid when healing opened 09-28)
+      var live = sp.buff === 'aid' ? this.heroes.slice() : this.liveHeroes(), inLive = function (x) { return live.indexOf(x) >= 0; }, max = (sp.max || 4) + (sp.maxUp && slot ? (slot - sp.level) * sp.maxUp : 0);
       if (live.length <= max) targets = live;
       else if (live.length === max + 1) {
         this.msg = sp.name + ': who goes without?';
-        var left = yield* this.pickAlly(); if (!left) return false;
+        var left = yield* this.pickAlly(inLive); if (!left) return false;
         targets = live.filter(function (x) { return x !== left; });
       } else {
         while (targets.length < max) {
           this.msg = sp.name + ': on whom? (' + (targets.length + 1) + ' of ' + max + (targets.length ? ', X for enough' : '') + ')';
-          var pk = yield* this.pickAlly(function (x) { return !down(x) && targets.indexOf(x) < 0; });
+          var pk = yield* this.pickAlly(function (x) { return inLive(x) && targets.indexOf(x) < 0; });
           if (!pk) { if (!targets.length) return false; break; }
           targets.push(pk);
         }
@@ -1268,6 +1270,7 @@
       if (!this.heroes.some(function (x) { return down(x) && !x.guest; })) { yield* this.say('No one is down.', 30); return false; }
       var tr = yield* this.pickAlly(function (x) { return down(x) && !x.guest; }); if (!tr) return false; targets = [tr];
     }
+    var woke8 = []; // (those Aid brings round)
     var cureAil = null; // Lesser Restoration: ONE thing ends; where more than one afflicts the friend, he asks which (cancel: no slot spent)
     if (sp.kind === 'cure' && targets[0]) {
       var ails = ailments(targets[0]); cureAil = ails[0] || null;
@@ -1369,7 +1372,7 @@
         DS.audio.sfx('heal'); this.elemBurst(t, 'heal', 'rise'); this.num(t, hv, '#58F898');
         yield* this.say(nameOf(t) + ' recovers ' + hv + ' HP.', 36);
       } else if (k === 'buff') {
-        if (down(t)) continue;
+        if (down(t) && sp.buff !== 'aid') continue;
         if (sp.buff === 'shield') { t.conds.shielded = true; }
         else if (sp.buff === 'mageArmor') { t.h.conds.mageArmor = true; }
         else if (sp.buff === 'invisible') { t.conds.invisible = { rounds: 10, ends: sp.id === 'invisibility' }; delete t.conds.hidden; } // (the 2nd-level one ends when they attack or cast; Greater does not)
@@ -1379,7 +1382,7 @@
         else if (sp.buff === 'darkvision') { t.h.conds.darkvision = true; }
         else if (sp.buff === 'continualFlame') { t.h.conds.continualFlame = t.h.equip.weapon || t.h.equip.armor || true; this.lit = true; this.flashT = 8; yield* this.dazzle(nameOf(u) + ' sets a flame on ' + plain(t) + "'s " + (R.item(t.h.equip.weapon) ? R.item(t.h.equip.weapon).name.toLowerCase() : 'gear') + ' that gives no heat.'); }
         else if (sp.buff === 'stoneskin') { t.conds.stoneskin = { rounds: 10 }; }
-        else if (sp.buff === 'aid') { var had8 = t.h.conds.aid || 0, a8 = 5 * (1 + up), more8 = Math.max(0, a8 - had8); t.h.maxhp += more8; t.h.hp += more8; t.h.conds.aid = Math.max(had8, a8); } // (the same spell doesn't combine, SRD 5.1: the higher Aid stands -- 09-28h, it stacked)
+        else if (sp.buff === 'aid') { var had8 = t.h.conds.aid || 0, a8 = 5 * (1 + up), more8 = Math.max(0, a8 - had8), was8 = down(t); t.h.maxhp += more8; t.h.hp = Math.max(0, t.h.hp) + more8; t.h.conds.aid = Math.max(had8, a8); if (was8 && t.h.hp > 0) { t.h.ko = false; t.conds = {}; t.pose = null; woke8.push(t); } } // (the same spell doesn't combine, SRD 5.1: the higher Aid stands -- 09-28h, it stacked)
         // Lymen's list (09-28g; the grid's since 09-28, deep16/js/grimoire.js): for the fight (ten rounds, a minute), on the unit
         else if (sp.buff === 'branding') { t.conds.branding = { dice: (2 + up) + 'd6', rounds: 10 }; }
         else if (sp.buff === 'magicWeapon') { t.conds.magicWeapon = { b: slot >= 6 ? 3 : slot >= 4 ? 2 : 1, rounds: 10 }; }
@@ -1401,7 +1404,7 @@
     if (sp.conc) this.concMark(u, sp, targets, null, pre); // (what this cast laid on them is the caster's to hold -- concentration, 10-03)
     if (k === 'buff') {
       var bt = targets.map(plain).join(', ');
-      yield* this.say(bt + (sp.buff === 'shield' ? ' raises a shield of force. +5 AC.' : sp.buff === 'shieldOfFaith' ? ': +2 AC.' : sp.buff === 'bless' ? ': blessed.' : sp.buff === 'mageArmor' ? ': mage armor.' : sp.buff === 'aid' ? ': +' + 5 * (1 + up) + ' max HP.' : sp.buff === 'heroism' ? ': heroism. No fear, and +' + Math.max(1, DS.mod(h.abil.cha)) + ' temporary HP at the start of each turn.'
+      yield* this.say(bt + (sp.buff === 'shield' ? ' raises a shield of force. +5 AC.' : sp.buff === 'shieldOfFaith' ? ': +2 AC.' : sp.buff === 'bless' ? ': blessed.' : sp.buff === 'mageArmor' ? ': mage armor.' : sp.buff === 'aid' ? ': +' + 5 * (1 + up) + ' max HP.' + (woke8.length ? ' ' + woke8.map(plain).join(' and ') + (woke8.length > 1 ? ' come' : ' comes') + ' round.' : '') : sp.buff === 'heroism' ? ': heroism. No fear, and +' + Math.max(1, DS.mod(h.abil.cha)) + ' temporary HP at the start of each turn.'
         : sp.buff === 'invisible' ? ': gone from sight' + (sp.id === 'invisibility' ? ', till they attack or cast.' : '.') : sp.buff === 'mislead' ? ': gone, and a double stands in the place.' : sp.buff === 'seeInvisible' ? ': the invisible stand plain.' : sp.buff === 'darkvision' ? ': darkvision, sixty feet.' : sp.buff === 'continualFlame' ? ': a light that will not go out.'
         : sp.buff === 'branding' ? "'s blade takes a waiting light. The next hit: +" + (2 + up) + 'd6 radiant.' : sp.buff === 'magicWeapon' ? "'s weapon: +" + (slot >= 6 ? 3 : slot >= 4 ? 2 : 1) + ', and magical.'
         : sp.buff === 'pfeg' ? ': warded against the dead and the otherworldly.' : sp.buff === 'sanctuary' ? ': sanctuary. A foe must pass WIS ' + dc + ' to strike.' : ': ' + sp.name + '.'), 40);
