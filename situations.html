@@ -142,11 +142,18 @@
         '<a class="btn" href="' + esc(url + '&x=' + Date.now().toString(36)) + '" target="_blank" rel="noopener">FRESH</a>' +
         '<button data-copy="' + esc(url) + '">COPY</button></div>' +
         '<div class="fb"><div class="chips">' + VERDICTS.map(function (v) { return '<button data-v="' + v[0] + '"' + (f.v === v[0] ? ' class="on"' : '') + '>' + v[1] + '</button>'; }).join('') + '</div>' +
-        '<textarea placeholder="What happened? (kept on this device till you copy or save)">' + esc(f.note || '') + '</textarea></div></div>';
+        // (autocomplete off: the browser put each box's old text back by its place on the page after a reload, and the sorted rows had moved -- his
+        // Keeper note landed in the way-out row, 10-06: "the text from the thing now at the bottom ... was still in here"; a row's note is its own, from FB)
+        '<textarea autocomplete="off" placeholder="What happened? (kept on this device till you copy or save)">' + esc(f.note || '') + '</textarea></div></div>';
     });
     list.innerHTML = html ? html + pager() : '<p>No situations found: js/situations.js did not load.</p>';
+    ownNotes();
     count();
   }
+  // each box shows its own row's note and nothing the browser kept by position (10-06; see the textarea's autocomplete above)
+  function ownNotes() { list.querySelectorAll('.item').forEach(function (it) { var ta = it.querySelector('textarea'), f = FB[it.getAttribute('data-id')] || {}; if (ta) ta.value = f.note || ''; }); }
+  window.addEventListener('load', ownNotes);
+  window.addEventListener('pageshow', ownNotes);
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-pg]'); if (!b || b.disabled) return;
     var to = pg + (+b.getAttribute('data-pg')); if (to < 0 || to > pages() - 1) return;

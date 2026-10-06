@@ -529,6 +529,14 @@
   // the class floor from a URL: ?npc=cleric,wizard&lvl=5 -- those against the four at that level; &vs=fighter,rogue -- a band instead
   // of the four (yours to run); an entry like higertha or druid:3:dwarf names one (NPC.spec); &watch -- your side run by the class
   // AI too, and you watch (09-28h: the class NPCs handoff's "a small, welcome addition")
+  // the class floor from its door records its fights (10-06, Griz: "yes" -- every row he clicks through on situations.html lands in R's file): not &watch (no hands
+  // to read), not a bench (which calls D.npcFight itself and never asks)
+  D.npcRecord = function (q) {
+    if (/[?&]watch\b/.test(q)) return {};
+    var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
+    var L = Math.max(1, Math.min(12, +(get('lvl') || get('level')) || 5)), vs = get('vs');
+    return { record: { fight: 'npc', name: 'The class floor: ' + (get('npc') || 'fighter').split(',').join(', ') + ' against ' + (vs ? vs.split(',').join(', ') : 'our four') + (get('map') ? ' on ' + get('map') : ''), level: L } };
+  };
   D.npcFight = function (q, o) {
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var L = Math.max(1, Math.min(12, +(get('lvl') || get('level')) || 5)), foes = (get('npc') || 'fighter').split(',').filter(Boolean), vs = get('vs');

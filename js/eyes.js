@@ -11,9 +11,6 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
-    'eyes-keeper-l3': { pri: 1, group: G1, title: 'The Keeper at level 3, from the ledge, three times', pt: 'the difficulty §2.8 · eyes §2.3',
-      url: 'deep16/?keeperfight&lvl=3&start=ledge&log',
-      look: 'Play it three times (you run the fixture four). Note each: won or lost, how many went down, what felt unfair or too soft. This is the measure the Keeper\'s tune waits on (160 HP, the Slam twice, the Wave, the ice wall thawing at round 3). &log keeps a record of each fight.' },
     'eyes-wayout': { pri: 1, group: G1, title: 'The way out of a grid fight', pt: 'the grid\'s rules §2.15 · eyes §1b',
       url: '?at=stair',
       look: 'In the Keeper\'s fight: LEAVE THE FIGHT is on the wheel wherever you stand, greyed off a way out with the reason and the count of ways out; the ways out are drawn plainer than the old faint line. Take the corridor out: the fight ends, the Keeper stays awake and unbeaten.' },
@@ -32,9 +29,9 @@
     'eyes-keeper-in': { pri: 2, group: G2, title: 'The Keeper\'s two ways in, from the 8-bit', pt: 'eyes §2.3',
       url: '?at=stair',
       look: 'WADE IN at the ledge, or PUT A HAND ON IT by the rune: the splash, the Keeper waking, the grid fight starting where you came in. After it, the five back up in the 8-bit.' },
-    'eyes-pocket': { pri: 2, group: G2, title: 'The Pocket DM: the roster, the maker, the styles', pt: 'eyes §2.4 · the story and the Pocket DM',
+    'eyes-pocket': { pri: 1, group: G1, title: 'The Pocket DM: SAVE TABLE and LOAD TABLE, the maker, the styles', pt: 'the Pocket DM and the races · the story and the Pocket DM',
       url: 'deep16/?pocket',
-      look: 'SAVE ROSTER and LOAD ROSTER (the file picker; a failed save says NOT SAVED in red). Make a character all the way through: a dragonborn or a tiefling, a fighter with the STYLE tab on the gear step. Their figure on the party card and at the camp.' },
+      look: 'New 10-06: SAVE TABLE on the title (or THE PARTY) -- one file with the seats and their winnings, your own characters, Pyro and a ladder under way; save it to play-records. In another browser (or after a clear) LOAD TABLE brings it all back, the ladder too; your 10-03 roster file (THALDOR) loads as well. A greyed button now says why. Then make a character all the way through: a fighter with the STYLE tab on the gear step.' },
     'eyes-racefig': { pri: 2, group: G2, title: 'The race figures\' sheet (three looks wait on your word)', pt: 'the Pocket DM and the races §2.13',
       url: 'deep16-race-figures.png',
       look: 'The made dragonborn and tiefling figures. In the note, a word on each: the dragonborn in gold and garnet (keep, or the tiefling to red?); the curled horns drawn over hoods and hats (keep?); the dragonborn\'s tail (keep as asked, or drop -- the PHB\'s has none).' },

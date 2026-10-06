@@ -383,6 +383,13 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   fourth win **LONG REST FOR THE TRIAL** (whole), then **the trial: double deadly** -- the smallest table whose adjusted XP is twice the party's
   deadly threshold (his: *"give them a 'long rest for the trial' after the fourth win and then do your double deadly"*). Win it and **Pyro joins
   the roster**. A loss: **QUIT, RETRY or REROLL THE RUNG**, the party as it went in (his: *"restored to what they went in with before they died"*).
+- **The table's file** (10-06, his: *"I couldn't seem to save a roster and saw no place to load a ladder save"*; *"yes to 1 & 2"*): **SAVE TABLE** and
+  **LOAD TABLE** on the title (reachable mid-ladder) and on THE PARTY write and read `pocket-dm-table-<date>-<time>.json` -- the seats with their
+  winnings, the characters of your own, Pyro, and the ladder under way. A ladder keeps itself in this browser between visits (`deep16.pocket`);
+  the file takes it to another browser, the live site from a local one, or past a cleared storage. LOAD adds the file's characters (none here
+  lost), points the seats at them, takes the ladder -- asking first if it would put away one under way here -- and still reads a roster file of
+  10-03's (`pocket-roster`). SAVE ROSTER (greyed till a character of your own existed, and silent about it) is gone from the screens; a greyed
+  button now says why when pressed.
 - **The winnings** (his: *"pick a random character on victory and give magic item appropriate to class"*; *"not pyro"*): on every win one of the
   party, drawn at random, finds a thing the class may wear and is better than what it has -- the plus-ones (a weapon of the kind in hand, the
   armour of a weight worn, the Ring of Protection, the Cloak of Displacement), the +2s, Flame Tongue, the Door-Shield and the dwarven plate from

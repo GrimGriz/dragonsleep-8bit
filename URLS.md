@@ -90,6 +90,10 @@ Examples:
   - [`deep16/?npc=clacker,clacker&lvl=4`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?npc=clacker,clacker&lvl=4): two clackers against our four at level 4; each clacks its hooks as its turn begins.
   - [`deep16/?fxgallery&foe=clacker`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?fxgallery&foe=clacker): every spell, cast at three of them.
 
+## Where the saves go
+
+Every SAVE (the Pocket DM's SAVE TABLE and SAVE A FILE, R on the tester ladder, the situations page's Save, a Keeper fight's `&log`) is a download: the browser asks where, or drops it in the last folder it used. **Put them in the repo's `play-records/`** -- it stays on this PC (git ignores it), and it is where the seat reads them. Fights recorded for R (since 10-06): the tester ladder played (P), `?fight=`, `?npc=` (the class floor), the Pocket DM, the story inside the 8-bit; live and localhost keep separate records.
+
 ## Pages beside the game
 
 - [`test-runs.html`](https://grimgriz.github.io/dragonsleep-8bit/test-runs.html): **new 10-01**, builds any URL on this page (the class floor's foes row by row, the galleries' picks, the situations), with LIVE / LOCAL, copy, open, and a RECENT list. Its pick-lists are read live from the game's files.

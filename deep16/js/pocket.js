@@ -253,7 +253,7 @@
   // a write that fails says so (10-03, Griz: "failed save should report"): a character made or a roster brought in stays on the screen for this visit and can go to a
   // file (SAVE ROSTER), but a reload would lose it -- the message outlasts the screen it was set on
   Pocket.prototype.keep = function () { this.st.mapId = this.mapSel; this.st.crI = this.crI; this.st.foes = this.foes; this.st.watch = this.watch; var ok = PK.save(this.st); if (!ok) this.failSay(); return ok; };
-  Pocket.prototype.failSay = function () { this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. SAVE ROSTER to a file.', t: 480, sticky: true, bad: true }; };
+  Pocket.prototype.failSay = function () { this.msg = { text: 'NOT SAVED: this browser\'s storage is full or shut. SAVE TABLE to a file.', t: 480, sticky: true, bad: true }; };
   Pocket.prototype.go = function (screen) { this.dropField(); this.screen = screen; this.ksel = 0; this.scroll = 0; this.msg = this.msg && this.msg.sticky ? this.msg : null; this.cache = {}; };
 
   // a field over the canvas (a name, the notes): the game hears no key while it has the focus (core.js D.typing)
@@ -285,7 +285,7 @@
   function hit(b) { var m = I.mouse; return m.inside && m.x >= b.x && m.x < b.x + b.w && m.y >= b.y && m.y < b.y + b.h; }
   Pocket.prototype.btn = function (ctx, label, x, y, w, h, fn, o) {
     o = o || {};
-    var b = { label: label, x: x, y: y, w: w, h: h, fn: fn, dis: !!o.dis, pri: !!o.pri, on: !!o.on, small: !!o.small, key: o.key, nokey: !!o.nokey }, i = this.btns.length;
+    var b = { label: label, x: x, y: y, w: w, h: h, fn: fn, dis: !!o.dis, why: o.why || null, pri: !!o.pri, on: !!o.on, small: !!o.small, key: o.key, nokey: !!o.nokey }, i = this.btns.length;
     this.btns.push(b);
     var sel = this.ksel === i && !o.nokey;
     ctx.fillStyle = o.on ? P('gold', 1) : o.pri && !o.dis ? 'rgba(60,38,8,.95)' : 'rgba(20,16,30,.92)';
@@ -312,7 +312,8 @@
     });
     return best;
   }
-  Pocket.prototype.fire = function (b) { if (!b || b.dis) { if (b) D.sfx('error'); return; } D.sfx(b.pri ? 'confirm' : 'cursor'); b.fn(); };
+  // a greyed button says why when it is pressed (10-06, Griz: "I couldn't seem to save a roster" -- SAVE ROSTER was greyed and said nothing)
+  Pocket.prototype.fire = function (b) { if (!b || b.dis) { if (b) { D.sfx('error'); if (b.why) this.say(b.why, 300); } return; } D.sfx(b.pri ? 'confirm' : 'cursor'); b.fn(); };
   Pocket.prototype.readButtons = function () {
     var m = I.mouse, self = this, n = this.btns.length;
     if (!n) return false;
@@ -573,6 +574,63 @@
     if (res.saved) this.say((added ? added + ' brought in' : 'nothing new') + (had ? ', ' + had + ' already here' : '') + (bad ? ', ' + bad + ' would not build' : '') + (pyro ? ', and Pyro' : ''), 300);
     return res;
   };
+
+  // ------------------------------------------------------------------ the whole table in one file (10-06, Griz: "I couldn't seem to save a roster and saw no place to load a ladder
+  // save"; "where am i supposed to save to?"; RULED "yes to 1 & 2"): the seats with their winnings, the made characters, Pyro, and the ladder under way, to a .json and back -- SAVE
+  // TABLE / LOAD TABLE on the title (reachable mid-ladder) and on THE PARTY. The ladder still keeps itself in this browser between visits (deep16.pocket); the file is how it goes
+  // to another browser, the live site from a local one, or past a cleared storage. LOAD TABLE takes a roster file (10-03's) too: its characters are added, as LOAD ROSTER did
+  PK.TABLE_KIND = 'pocket-table';
+  PK.tableFile = function (st) {
+    var copy = function (v) { return v == null ? null : JSON.parse(JSON.stringify(v)); };
+    return { game: 'DRAGONSLEEP', kind: PK.TABLE_KIND, v: 1, at: new Date().toISOString(), party: copy(st.party), roster: copy(st.roster) || [], pyro: !!st.pyro, run: copy(st.run),
+      mapId: st.mapId || null, crI: st.crI == null ? -1 : st.crI, foes: copy(st.foes) };
+  };
+  Pocket.prototype.saveTable = function () {
+    this.keep(); // (the screen's own picks -- the map, the dial, the foes -- onto the store first)
+    var st = this.st, d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; };
+    var name = 'pocket-dm-table-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
+    try {
+      var a = document.createElement('a'), url = URL.createObjectURL(new Blob([JSON.stringify(PK.tableFile(st), null, 1)], { type: 'application/json' }));
+      a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+      this.say('saved the table' + (st.run ? ' and the ladder at ' + (st.run.trial ? 'the trial' : 'rung ' + st.run.rung) : '') + ' to ' + name + ' -- where your browser puts downloads', 420);
+      return name;
+    } catch (e) { this.msg = { text: 'could not write the file: ' + e, t: 300, bad: true }; return null; }
+  };
+  Pocket.prototype.loadTable = function () {
+    var self = this, inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.json,application/json';
+    inp.onchange = function () { var f = inp.files && inp.files[0]; if (!f) return; var rd = new FileReader(); rd.onload = function () { self.takeFile(rd.result); }; rd.readAsText(f); };
+    inp.click();
+  };
+  // a table file onto this table: its characters added to the roster (none here lost), the seats and the ladder taken as the file has them -- asked first when that would put
+  // away a ladder under way here (this.ask: the browser's confirm, a bench's own); a roster file goes the roster's way
+  Pocket.prototype.takeFile = function (text) {
+    var file = null; try { file = JSON.parse(text); } catch (e) { /* (not JSON) */ }
+    if (file && file.game === 'DRAGONSLEEP' && file.kind === PK.FILE_KIND) return this.takeRoster(text);
+    if (!file || file.game !== 'DRAGONSLEEP' || file.kind !== PK.TABLE_KIND || !Array.isArray(file.roster)) { this.msg = { text: 'that file is not a Pocket DM table or roster', t: 300, bad: true }; return null; }
+    var st = this.st, here = st.run, ask = this.ask || function (q) { return window.confirm(q); };
+    if (here && JSON.stringify(here) !== JSON.stringify(file.run || null) && !ask('A ladder is under way here (' + (here.trial ? 'the trial' : 'rung ' + here.rung) + '). Put it away for the file\'s ' + (file.run ? 'ladder (' + (file.run.trial ? 'the trial' : 'rung ' + file.run.rung) + ')' : 'table, with no ladder') + '?')) { this.say('kept the ladder here; nothing taken', 240); return { declined: true }; }
+    // the roster: each of the file's characters found here (the same word and name) or added; its seats re-pointed to where each now stands
+    var at = [], added = 0, bad = 0;
+    file.roster.forEach(function (c, i) {
+      var ok = false; try { ok = !!(c && typeof c.code === 'string' && NPC.spec(c.code)); } catch (e) { ok = false; }
+      if (!ok) { at[i] = -1; bad++; return; }
+      var j = -1; st.roster.forEach(function (r, k) { if (j < 0 && r.code === c.code && r.name === c.name) j = k; });
+      if (j < 0) { st.roster.push({ code: c.code, name: String(c.name || 'unnamed').slice(0, 24), cls: c.cls, lvl: c.lvl, made: c.made || Date.now() }); j = st.roster.length - 1; added++; }
+      at[i] = j;
+    });
+    var seats = Array.isArray(file.party) ? file.party.map(function (s) { if (!s) return null; if (s.custom == null) return JSON.parse(JSON.stringify(s)); var j = at[s.custom]; return j >= 0 ? Object.assign(JSON.parse(JSON.stringify(s)), { custom: j }) : null; }).filter(Boolean) : null;
+    if (seats && seats.length) st.party = seats;
+    if (file.pyro) st.pyro = true;
+    st.run = file.run || null; st.mapId = file.mapId || null; st.crI = file.crI == null ? -1 : file.crI; st.foes = file.foes || null;
+    this.mapSel = st.mapId; this.crI = st.crI; this.foes = st.run ? st.run.foes : st.foes; this.fightMap = st.run ? st.run.map : null;
+    if (st.run && this.mapIds().indexOf(st.run.map) < 0) { this.fightMap = st.run.map = this.randomMap(); } // (as at the door: a floor the table no longer deals draws a fresh one)
+    this.cache = {};
+    var res = { added: added, bad: bad, seats: st.party ? st.party.length : 0, run: st.run ? (st.run.trial ? 'trial' : st.run.rung) : null, saved: this.keep() };
+    if (this.screen !== 'title' && this.screen !== 'party') this.go('title'); // (before the line: a screen change clears what is said)
+    if (res.saved) this.say('the table brought in: ' + res.seats + ' at the table' + (added ? ', ' + added + ' new to the roster' : '') + (bad ? ', ' + bad + ' would not build' : '') + (st.run ? ', the ladder at ' + (st.run.trial ? 'the trial' : 'rung ' + st.run.rung) : ''), 360);
+    return res;
+  };
   Pocket.prototype.copy = function (text, what) {
     var self = this;
     try { navigator.clipboard.writeText(text).then(function () { self.say((what || 'copied') + ' to the clipboard'); }, function () { self.say('could not copy'); }); }
@@ -685,11 +743,14 @@
     D.text(ctx, '{o}alpha{/}', D.W / 2 + 92, 20, P('fire', 1));
     D.text(ctx, 'any party, any map, any CR -- every fight a URL', D.W / 2, 50, P('bone', 1), 'center');
     // (the buttons stand to the right, so the stone and the light on it stay in view)
-    var w = 150, x = D.W - w - 22, y = 150, n = this.st.fights.length;
+    var w = 150, x = D.W - w - 22, y = 132, n = this.st.fights.length; // (y 150 till 10-06: up a row for the table's file)
     this.btn(ctx, this.st.run ? 'THE LADDER: ' + (this.st.run.trial ? 'THE TRIAL' : 'RUNG ' + this.st.run.rung) : 'START', x, y, w, 18, function () { if (self.st.run) { self.foes = self.st.run.foes; self.fightMap = self.st.run.map; self.go('cr'); } else self.go('party'); }, { pri: true });
-    this.btn(ctx, 'FIGHTS' + (n ? '  (' + n + ')' : ''), x, y + 22, w, 16, function () { self.go('fights'); }, { dis: !n });
+    this.btn(ctx, 'FIGHTS' + (n ? '  (' + n + ')' : ''), x, y + 22, w, 16, function () { self.go('fights'); }, { dis: !n, why: 'no fights kept yet: START one' });
     this.btn(ctx, 'USEFULS', x, y + 41, w, 16, function () { self.go('useful'); });
     this.btn(ctx, 'THE 8-BIT GAME', x, y + 60, w, 16, function () { location.href = '../'; });
+    // the whole table to a file and back, here where a ladder under way can reach it (10-06: PK.tableFile)
+    this.btn(ctx, 'SAVE TABLE', x, y + 79, 73, 15, function () { self.saveTable(); });
+    this.btn(ctx, 'LOAD TABLE', x + 77, y + 79, 73, 15, function () { self.loadTable(); });
     D.text(ctx, 'Solskaft: the oath-stone of the Silversands, under the Sunshaft. At noon the light lands here.', D.W / 2, 243, P('stone', 5), 'center');
     D.hint(ctx, 'up/down choose · E go · X the 8-bit game · the Discord: ' + PK.DISCORD.replace('https://', ''), D.W / 2, 256, P('stone', 4), 'center');
   };
@@ -747,9 +808,9 @@
     this.btn(ctx, '+ a seat', 96, 200, 70, 14, function () { if (st.party.length < 6) { st.party.push({ w: 'new' }); self.cache = {}; self.keep(); } }, { dis: n >= 6 });
     if (st.roster.length) D.text(ctx, st.roster.length + ' of your own on the roster (cycle to them)', 180, 203, P('stone', 5));
     this.btn(ctx, 'BACK', 20, 236, 60, 15, function () { self.back(); });
-    this.btn(ctx, 'SAVE ROSTER', 88, 236, 114, 15, function () { self.saveRoster(); }, { dis: !st.roster.length }); // (the roster's own file: saveRoster above, 10-03)
-    this.btn(ctx, 'LOAD ROSTER', 208, 236, 114, 15, function () { self.loadRoster(); });
-    this.btn(ctx, 'NEXT: THE MAP', D.W - 150, 236, 130, 15, function () { if (self.st.run) { self.st.run = null; } self.go('map'); }, { pri: true, dis: !ready });
+    this.btn(ctx, 'SAVE TABLE', 88, 236, 114, 15, function () { self.saveTable(); }); // (the whole table's file, 10-06: PK.tableFile; SAVE ROSTER till then, greyed with no character of your own)
+    this.btn(ctx, 'LOAD TABLE', 208, 236, 114, 15, function () { self.loadTable(); }); // (a table file, or a roster file of 10-03's)
+    this.btn(ctx, 'NEXT: THE MAP', D.W - 150, 236, 130, 15, function () { if (self.st.run) { self.st.run = null; } self.go('map'); }, { pri: true, dis: !ready, why: 'every seat wants someone in it: arrows cycle the roster, the ? makes one' });
     if (!ready) D.text(ctx, 'every seat wants a character (a locked one cannot come)', D.W / 2, 222, P('fire', 1), 'center');
     else D.hint(ctx, 'E on a card\'s arrows cycles · X back', D.W / 2, 222, P('stone', 4), 'center');
   };

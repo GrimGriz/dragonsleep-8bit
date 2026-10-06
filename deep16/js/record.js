@@ -178,7 +178,7 @@
     if (!all.length) return false;
     var d = new Date(), pad = function (n) { return (n < 10 ? '0' : '') + n; };
     var name = 'deep16-play-record-' + d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + '-' + pad(d.getHours()) + pad(d.getMinutes()) + '.json';
-    var body = JSON.stringify({ what: 'DEEP16 play record: ?ladder&party=ours, the player running our four (js/record.js)', saved: d.toISOString(), fights: all }, null, 1);
+    var body = JSON.stringify({ what: 'DEEP16 play record: every fight this browser kept at this address -- the tester ladder played (P), ?fight=, ?npc= (the class floor, since 10-06), the Pocket DM, the story inside the 8-bit (js/record.js)', saved: d.toISOString(), fights: all }, null, 1);
     var a = document.createElement('a'), url = URL.createObjectURL(new Blob([body], { type: 'application/json' }));
     a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
     setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
@@ -198,6 +198,13 @@
     if (prev && prev !== this && prev.rec && !prev.rec.done && prev.rec.steps.length) REC.finish(prev, 'restarted');
     if (this.o.record && !this.rec) REC.start(this, this.o.record);
     return enter0.apply(this, arguments);
+  };
+  // the fight's end closes its record where no door of its own does (10-06: ?fight=, ?npc= and the story inside the 8-bit have no onDone -- the ladder, the
+  // climb and the Pocket DM finish theirs there -- so their records stood 'unfinished' at the last round's checkpoint; Griz's Skylights of 10-05 is one)
+  var finish0 = P.finish;
+  P.finish = function* (o) {
+    if (this.rec && !this.rec.done && typeof this.o.onDone !== 'function') { try { REC.finish(this, o || 'ended'); } catch (e) { /* (the record must never stop the fight's end) */ } }
+    return yield* finish0.apply(this, arguments);
   };
   // the tab closed, reloaded or sent away mid-fight: the fight as far as it went (REC.checkpoint)
   window.addEventListener('pagehide', function () { try { REC.checkpoint(D.battle); } catch (e) { /* (nothing to keep) */ } });

@@ -3371,6 +3371,25 @@
         okP(PQ.takeRoster('{"game":"DRAGONSLEEP","kind":"saves","keys":{}}') === null && PQ.msg && /not a Pocket DM roster/.test(PQ.msg.text) && PQ.st.roster.length === 2, 'an 8-bit save file is not taken for a roster (' + (PQ.msg && PQ.msg.text) + ')');
         var fk = /^(ds8-save-[123]|deep16\.(ladder|climb|camp)[\w.-]*)$/; // (js/scenes.js FILE_KEYS, as it stands)
         okP(!fk.test('deep16.pocket'), 'the 8-bit\'s SAVE TO FILE does not carry deep16.pocket');
+        // i2. the whole table in one file (10-06, Griz: "I couldn't seem to save a roster and saw no place to load a ladder save"; "yes to 1 & 2"): SAVE TABLE carries the
+        // seats with their winnings, the made characters, Pyro and the ladder under way; LOAD TABLE onto another browser's table adds the characters (none there lost), points
+        // the seats at them where they now stand, takes the ladder; it asks before it puts away a ladder under way there; a roster file still loads; a greyed button says why
+        var memKeep = mem['deep16.pocket'], tm0 = PQ.mapIds()[0];
+        PQ.st.party = [{ custom: 1 }, { custom: 0 }, { w: 'barley', lvl: 5, loot: ['ringofprotection'] }]; PQ.st.run = { rung: 2, trial: false, won: 1, map: tm0, foes: ['goblin', 'goblin'] }; PQ.keep();
+        clicked = null; var tName = PQ.saveTable(), tFile = PK.tableFile(PQ.st);
+        okP(clicked && /^pocket-dm-table-.*\.json$/.test(clicked.name) && tName === clicked.name && tFile.kind === 'pocket-table' && tFile.roster.length === 2 && tFile.party.length === 3 && tFile.party[2].loot[0] === 'ringofprotection' && tFile.run && tFile.run.rung === 2 && tFile.pyro, 'SAVE TABLE: one file, the seats with their winnings, the two made, Pyro, the ladder at rung 2 (' + (clicked && clicked.name) + ')');
+        mem['deep16.pocket'] = JSON.stringify({ roster: [{ code: other.code, name: other.name, cls: other.cls, lvl: other.lvl, made: 2 }], fights: [], party: null, run: null });
+        var PT = new D.Pocket(); PT.enter(); PT.ask = function () { return true; };
+        var tIn = PT.takeFile(JSON.stringify(tFile)), tSeat = PT.st.party || [];
+        okP(tIn && tIn.added === 1 && PT.st.roster.length === 2 && tSeat.length === 3 && PT.st.roster[tSeat[0].custom].code === other.code && PT.st.roster[tSeat[1].custom].code === code && tSeat[2].loot[0] === 'ringofprotection' && PT.st.run && PT.st.run.rung === 2 && PT.st.pyro && JSON.parse(mem['deep16.pocket']).run.rung === 2, 'LOAD TABLE on another table: one new to its roster, the seats pointed at where each now stands, the winnings and the ladder taken, written (' + JSON.stringify(tIn) + ')');
+        PT.ask = function () { return false; }; var tNo = PT.takeFile(JSON.stringify(Object.assign({}, tFile, { run: null })));
+        okP(tNo && tNo.declined && PT.st.run && PT.st.run.rung === 2, 'a ladder under way is not put away when he says no');
+        var tRos = PT.takeFile(JSON.stringify({ game: 'DRAGONSLEEP', kind: 'pocket-roster', v: 1, roster: [mine], pyro: false }));
+        okP(tRos && tRos.had === 1 && PT.st.run && PT.st.run.rung === 2, 'LOAD TABLE takes a roster file of 10-03\'s the roster\'s way, the ladder untouched');
+        okP(PT.takeFile('{"game":"DRAGONSLEEP","kind":"saves","keys":{}}') === null && /not a Pocket DM table or roster/.test(PT.msg && PT.msg.text), 'an 8-bit save is taken for neither');
+        PT.msg = null; PT.fire({ dis: true, why: 'no fights kept yet: START one', fn: function () { } });
+        okP(PT.msg && /no fights kept yet/.test(PT.msg.text), 'a greyed button says why when pressed (' + (PT.msg && PT.msg.text) + ')');
+        mem['deep16.pocket'] = memKeep; PQ.st = PK.load(); clicked = null;
         full = true; PQ.msg = null; var kept = PQ.keep();
         okP(kept === false && PQ.msg && PQ.msg.bad && /NOT SAVED/.test(PQ.msg.text), 'a refused write says so: "' + (PQ.msg && PQ.msg.text) + '"');
         PQ.go('party');
