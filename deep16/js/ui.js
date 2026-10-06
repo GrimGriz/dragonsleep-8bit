@@ -826,7 +826,62 @@
   }
 
   // ------------------------------------------------------------------ the X/Esc menu (and M, Tab): the party, the menu's style, and out
-  UI.openMenu = function (B) { D.sfx('popup'); B.menu = { sel: 0, panel: null }; };
+  // THE M MENU IS THE ONE MENU (js/menu.js; RULED 10-06, Griz: "ideal = identical menus", the grid's "2 - yeah, replaces the current grid menu for equip and
+  // using items from there should be colored or greyed out by action economy you have on your turn"; "I think you can get the grid on the new menu pretty
+  // easy, proceed"): the 8-bit's menu in its own look, a 256x240 window on the grid's screen; this is its host here -- the party as the fight has them
+  // (each hero's sheet with the fight's own HP), the pack (B.inv), EQUIP by the grid's own rules (gearOptions / swapGear: each costs the action), the
+  // options applied at once, the ways out (RESTART, THE LADDER, back) where the fight has them. The mouse points and clicks
+  UI.MENU_X = 112; UI.MENU_Y = 15;
+  function gridHost(B) {
+    var R8 = window.DS.R, story = !!B.o.embed, cache = [];
+    function sheet(u) { // the hero's sheet, its HP and slots the fight's own (a sheet in front of the sheet: equip, abilities, the book read through)
+      var c = cache.filter(function (x) { return x.u === u; })[0];
+      if (!c) { c = { u: u, p: Object.create(u.src) }; cache.push(c); }
+      var p = c.p; p.hp = Math.max(0, u.hp); p.maxhp = u.maxhp; p.ko = u.dead || u.hp <= 0; p.name = u.name; if (u.slots) p.slots = u.slots;
+      return p;
+    }
+    function heroes(guest) { return B.units.filter(function (u) { return u.side === 'party' && !u.object && u.src && u.src.equip && !u.summon && !u.familiar && !!u.guest === guest; }); }
+    var gu = gearHero(B), turn = gu ? sheet(gu) : null, T = gu && gu.turn;
+    return {
+      fight: { hero: turn, acted: !T || !(T.action > 0) || !!T.attacksLeft,
+        canUse: function (it) { return !!(gu && it && it.use && it.use.battle && T && (T.action > 0 && !T.attacksLeft || (gu.subclass === 'Thief' && T.bonus > 0))); } },
+      party: function () { return heroes(false).map(sheet); },
+      guests: function () { return heroes(true).map(sheet); },
+      pack: function () { return B.inv.filter(function (s) { return s.n > 0; }); },
+      give: function (id, n) { var s = B.inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n += n || 1; else B.inv.push({ id: id, n: n || 1 }); },
+      take: function (id, n) { var s = B.inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n -= n || 1; },
+      info: function () { return { place: (B.fight && (B.fight.title || B.fight.name)) || (D.MAPS[B.o.map] || {}).name || '' }; },
+      canSave: function () { return false; },
+      walker: function () { return null; }, portrait: function () { return null; },
+      whyNot: function () { return ''; }, light: function () { return null; },
+      journal: null,
+      fightEquip: function () { return gu ? B.gearOptions(gu) : []; },
+      fightSwap: function (o) { if (gu) B.swapGear(gu, o); },
+      exits: function () {
+        if (story) return []; // (inside the 8-bit game the fight is the story's: no way round it)
+        return [{ label: 'RESTART THE FIGHT', value: 'restart' }].concat(B.o.onDone ? [] : [{ label: 'THE LADDER', value: 'ladder' }], [{ label: UI.backLabel(), value: 'out' }]);
+      },
+      optsChanged: function (o) { UI.opts.style = o.style === 'window' ? 'window' : 'ring'; UI.opts.autoEnd = o.autoEnd !== false; if (UI.ASKS.indexOf(o.confirmEnd) >= 0) UI.opts.confirmEnd = o.confirmEnd; if (UI.PACES.indexOf(o.pace) >= 0) UI.opts.pace = D.PACE = o.pace; UI.saveOpts(); restyle(B); },
+      run: function (kind, a, done) {
+        if (kind === 'kofi') { try { window.open('https://ko-fi.com/grimgriz', '_blank'); } catch (e) { } }
+        if (kind === 'exit') {
+          B.menu = null;
+          if (a.to === 'restart') { D.pop(); D.push(new D.Battle(B.o)); }
+          if (a.to === 'ladder') location.search = '?ladder';
+          if (a.to === 'out') { if (B.o.onDone) { D.pop(); B.o.onDone(null); } else location.href = '../'; } // the ladder, or back to the 8-bit game: nothing is written
+        }
+        done();
+      },
+      close: function () { B.menu = null; }
+    };
+  }
+  UI.openMenu = function (B) { D.sfx('popup'); B.menu = { m: window.DS.MENU.open(gridHost(B)) }; };
+  // the grid's keys and mouse, in the menu's terms
+  function menuKeys() {
+    var mo = I.mouse || {}, x = mo.x - UI.MENU_X, y = mo.y - UI.MENU_Y;
+    return { pressed: function (b) { return I.pressed(b); }, repeat: function (b) { return I.repeat(b); },
+      mouse: { x: x, y: y, moved: !!mo.moved, click: !!mo.click && x >= 0 && y >= 0 && x < 256 && y < 240, rclick: !!mo.rclick } };
+  }
   // the volumes are the 8-bit game's own (shared: one player, one ear)
   function vol(k) { var A = window.DS.audio; return A ? A[k] : 0; }
   function pct(v) { return v > 0 ? Math.round(v * 100) + '%' : 'OFF'; }
@@ -865,6 +920,7 @@
   }
   UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? (B.o.climb ? 'BACK TO THE CLIMB' : B.o.pocket ? 'BACK TO THE POCKET DM' : 'BACK TO THE LADDER') : 'RETURN TO SILVERTON'; };
   UI.menuInput = function (B) {
+    if (B.menu && B.menu.m) { B.menu.m.update(menuKeys()); return; } // (the one menu, 10-06)
     var M = B.menu, items = menuItems(B), n = items.length, s0 = M.sel;
     if (M.panel === 'equip') return gearInput(B);
     if (M.panel) { if (I.pressed('a') || I.pressed('b') || I.pressed('menu') || I.mouse.click) { D.sfx('cancel'); M.panel = null; } return; }
@@ -2240,8 +2296,16 @@
     lines.forEach(function (l, k) { D.text(ctx, l, bx + 6, 44 + k * 9, R('bone', 1)); });
     UI.drawGlyph(ctx, ty, bx + bw - 10, 50); // (its creature type: the glyphs above)
   }
+  var menuCv = null;
   function menu(ctx, B) {
     var M = B.menu;
+    if (M.m) { // (the one menu: drawn at its own 256x240 and set on the screen as a window)
+      if (!menuCv) { menuCv = document.createElement('canvas'); menuCv.width = 256; menuCv.height = 240; }
+      var mc = menuCv.getContext('2d'); mc.imageSmoothingEnabled = false; mc.clearRect(0, 0, 256, 240);
+      M.m.draw(mc);
+      ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(menuCv, UI.MENU_X, UI.MENU_Y); ctx.restore();
+      return;
+    }
     if (M.panel === 'party') return party(ctx, B);
     if (M.panel === 'equip') return gear(ctx, B);
     var items = menuItems(B), w = 190, h = items.length * 13 + 12, x = (D.W - w) / 2, y = 60, W8 = D.WIN8;

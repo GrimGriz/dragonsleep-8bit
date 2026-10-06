@@ -81,11 +81,14 @@
     return null;
   };
   // rows from (x, y), the right column ending at x + w; `t` blinks the cursor of a list that is not the one moving
+  // (each row drawn is a place the mouse may point: the grid's players click -- HITS, gathered as the menu draws, read by Menu.update)
+  var HITS = [], OWNER = null;
   List.prototype.draw = function (ctx, x, y, w, active, t, rowH, gutter) {
     rowH = rowH || 12;
     for (var r = 0; r < this.vis; r++) {
       var k = this.scroll + r, it = this.items[k]; if (!it) break;
       var yy = y + r * rowH, col = it.disabled ? C.dim : (it.color || C.white), lx = x + 8 + (gutter || 0);
+      HITS.push({ list: this, k: k, owner: OWNER, x: x, y: yy - 2, w: w + 4, h: rowH });
       if (it.mark) ctx.drawImage(glyph(it.mark), x + 8, yy + 1);
       if (it.pre) text(ctx, it.pre, lx - 7, yy, it.preColor || C.gold);
       text(ctx, it.label, lx, yy, col);
@@ -117,7 +120,7 @@
   function footer(ctx, s, y) { DS.textCenter(ctx, DS.keys ? DS.keys(s) : s, 128, y || 228, C.dim); }
 
   // ------------------------------------------------------------------ the menu
-  function Menu(host) { this.host = host; this.t = 0; this.pages = []; this.toast = null; this.busy = false; this.closed = false; this.root = new Root(this); }
+  function Menu(host) { this.host = host; this.t = 0; this.pages = []; this.toast = null; this.busy = false; this.closed = false; this.hits = []; this.root = new Root(this); }
   MN.open = function (host) { return new Menu(host); };
   Menu.prototype.push = function (p) { this.pages.push(p); return p; };
   Menu.prototype.pop = function () { this.pages.pop(); var p = this.top(); if (p.refresh) p.refresh(); };
@@ -132,14 +135,27 @@
   Menu.prototype.update = function (k) {
     this.t++;
     if (this.busy || this.closed) return;
+    // the mouse (a host that has one: k.mouse = { x, y, moved, click, rclick } in the menu's own 256x240): pointing at a row of the page on top moves the
+    // cursor there, a click is E on it, a right click is X
+    if (k.mouse && !this.toast) {
+      var ms = k.mouse, top = this.root.mode === 'pick' ? null : this.top(), hit = null;
+      if (top) for (var hi = this.hits.length - 1; hi >= 0; hi--) { var hh = this.hits[hi]; if (hh.owner === top && ms.x >= hh.x && ms.x < hh.x + hh.w && ms.y >= hh.y && ms.y < hh.y + hh.h) { hit = hh; break; } }
+      if (hit && (ms.moved || ms.click) && hit.list.i !== hit.k) { hit.list.i = hit.k; hit.list.fix(); }
+      if (ms.click && hit) k = MN.keyAlso(k, 'a');
+      else if (ms.rclick) k = MN.keyAlso(k, 'b');
+    }
     if (this.toast) { if (k.pressed('a') || k.pressed('b')) { sfx('confirm'); var th = this.toast.then; this.toast = null; if (th) th(); } return; }
     if (this.root.mode === 'pick') { this.root.update(k); return; } // (the cursor kicked into the panel, over whatever page asked)
     this.top().update(k);
   };
+  // a key pressed as well as what the host's keys say (the mouse's click as E)
+  MN.keyAlso = function (k, b) { return { pressed: function (x) { return x === b || k.pressed(x); }, repeat: function (x) { return x === b || k.repeat(x); } }; };
   Menu.prototype.draw = function (ctx) {
     var self = this;
+    HITS = []; OWNER = this.root;
     this.root.draw(ctx);
-    this.pages.forEach(function (p) { p.draw(ctx, p === self.top() && self.root.mode !== 'pick'); });
+    this.pages.forEach(function (p) { OWNER = p; p.draw(ctx, p === self.top() && self.root.mode !== 'pick'); });
+    OWNER = null; this.hits = HITS;
     if (this.root.mode === 'pick' && this.pages.length) this.root.drawPick(ctx);
     if (this.toast) {
       var ls = []; this.toast.lines.forEach(function (l) { ls = ls.concat(wrap(l, 214)); }); ls = ls.slice(0, 7);
@@ -196,7 +212,16 @@
     if (v === 'gear') m.push(new GearPage(m));
     if (v === 'magic') this.choose({ title: 'WHO CASTS?', ok: function (h) { return bookOf(h).length ? true : h.name + ' casts no spells.'; }, then: function (h) { m.push(new MagicPage(m, h)); } });
     if (v === 'skills') this.choose({ title: 'WHOSE SKILLS?', ok: function (h) { return skillsOf(h).length ? true : h.name + ' has nothing to use here.'; }, then: function (h) { m.push(new SkillsPage(m, h)); } });
-    if (v === 'equip') { if (host.fight) m.push(new EquipPage(m, host.fight.hero)); else this.choose({ title: 'EQUIP WHOM?', ok: function () { return true; }, then: function (h) { m.push(new EquipPage(m, h)); } }); }
+    if (v === 'equip') {
+      // (a host whose fight equips its own way -- the grid's: the weapons in the pack and the shield, each costing the action, battle.js gearOptions /
+      // swapGear -- lists those, each with what it costs or why not, and the change ends the menu: back to the turn)
+      if (host.fight && host.fightEquip) {
+        var opts = host.fightEquip();
+        if (!opts.length) { m.say('Nothing in the pack ' + host.fight.hero.name + ' can take up.'); return; }
+        m.push(new ChoicePage(m, 'EQUIP: ' + host.fight.hero.name.toUpperCase(), opts.map(function (o) { return { label: fit(o.label, 130), right: fit(o.ok ? o.note : o.why, 100), value: o, disabled: !o.ok, rightColor: o.ok ? C.pale : C.dim }; }), function (o) { host.fightSwap(o); m.close(); }, 244));
+      } else if (host.fight) m.push(new EquipPage(m, host.fight.hero));
+      else this.choose({ title: 'EQUIP WHOM?', ok: function () { return true; }, then: function (h) { m.push(new EquipPage(m, h)); } });
+    }
     if (v === 'status') this.choose({ title: 'WHOSE STATUS?', guests: true, ok: function () { return true; }, then: function (h) { m.push(new StatusPage(m, h)); } });
     if (v === 'order') m.push(new OrderPage(m));
     if (v === 'journal') m.push(new JournalPage(m));
@@ -274,8 +299,9 @@
     var host = this.m.host, self = this, pack = host.pack();
     this.counts = [0, 1, 2, 3].map(function (t) { return pack.filter(function (s) { return itemTab(item(s.id)) === t; }).length; });
     this.list.set(pack.filter(function (s) { return itemTab(item(s.id)) === self.tab; }).map(function (s) {
-      var it = item(s.id), why = host.whyNot ? host.whyNot(s.id, null) : '';
-      return { label: fit(it.name, 168), right: 'x' + s.n, value: s.id, color: it.kind === 'key' ? C.gold : why ? C.dim : null, mark: (it.use && it.use.battle) || s.id === 'rope' ? 'fight' : null }; // (the rope: the grid's THE ROPE, in a fight)
+      var it = item(s.id), why = host.whyNot ? host.whyNot(s.id, null) : '', now = host.fight && host.fight.canUse ? host.fight.canUse(it) : null;
+      // (in a fight on the grid, what the turn's action economy lets the hero use now is lit, the rest grey: Griz, 10-06, "colored or greyed out by action economy")
+      return { label: fit(it.name, 168), right: 'x' + s.n, value: s.id, color: it.kind === 'key' ? C.gold : why || now === false ? C.dim : null, mark: (it.use && it.use.battle) || s.id === 'rope' ? 'fight' : null }; // (the rope: the grid's THE ROPE, in a fight)
     }));
   };
   ItemsPage.prototype.update = function (k) {
@@ -286,7 +312,7 @@
   };
   ItemsPage.prototype.use = function (id) {
     var m = this.m, host = m.host, it = item(id), u = it.use, self = this;
-    if (host.fight) { m.say([it.name + ': ' + (it.desc || '')].concat(u && u.battle ? ['In a fight, use it from the fight\'s ITEM.'] : [])); return; }
+    if (host.fight) { var nw = host.fight.canUse ? host.fight.canUse(it) : null; m.say([it.name + ': ' + (it.desc || '')].concat(u && u.battle ? [nw === false ? 'Not now: the turn has nothing left to use it with.' : 'In a fight, use it from the fight\'s ITEM.'] : [])); return; }
     if (!u || !u.field) { m.say([it.name + ': ' + (it.desc || 'Nothing to do with it here.')].concat(u && u.battle ? ['It is for a fight.'] : [])); return; }
     if (u.target === 'party') { m.act('item', { id: id }); return; }
     if (u.effect === 'learn') { var lw = host.whyNot(id, null); if (lw) { m.say(lw); return; } }
@@ -477,10 +503,10 @@
     m.push(new CandPage(m, h, slot, this));
   };
   // a small list over the page: one choice, then back
-  function ChoicePage(m, title, rows, then) { this.m = m; this.title = title; this.then = then; this.list = new List({ visible: rows.length, items: rows }); }
+  function ChoicePage(m, title, rows, then, w) { this.m = m; this.title = title; this.then = then; this.w = w || 196; this.list = new List({ visible: Math.min(10, rows.length), items: rows }); }
   MN.ChoicePage = ChoicePage;
-  ChoicePage.prototype.update = function (k) { var r = this.list.update(k); if (r === 'back') this.m.pop(); if (r === 'pick') { var v = this.list.cur().value; this.m.pop(); this.then(v); } };
-  ChoicePage.prototype.draw = function (ctx, active) { var n = this.list.items.length; win(ctx, 30, 60, 196, 24 + n * 12); text(ctx, this.title, 38, 67, C.gold); this.list.draw(ctx, 36, 81, 182, active, this.m.t); };
+  ChoicePage.prototype.update = function (k) { var r = this.list.update(k); if (r === 'back') this.m.pop(); if (r === 'refused') { var c = this.list.cur(); if (c && typeof c.right === 'string') this.m.say(c.label + ': ' + c.right + '.'); } if (r === 'pick') { var v = this.list.cur().value; this.m.pop(); this.then(v); } };
+  ChoicePage.prototype.draw = function (ctx, active) { var n = this.list.vis, x = Math.round((256 - this.w) / 2); win(ctx, x, 60, this.w, 24 + n * 12); text(ctx, this.title, x + 8, 67, C.gold); this.list.draw(ctx, x + 6, 81, this.w - 14, active, this.m.t); };
   EquipPage.prototype.draw = function (ctx, active) {
     var h = this.h, R0 = R(), fight = !!this.m.host.fight, n = this.list.items.length;
     win(ctx, 14, 16, 228, 22 + n * 12);
