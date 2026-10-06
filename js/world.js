@@ -195,6 +195,18 @@
     if (m.music) DS.audio.play(m.music);
     DS.EV && DS.EV.onEnter && DS.EV.onEnter(mapId, this);
   };
+  // the party's footing on a loaded map (10-06, the 8-bit battle lane §2.4: a save's square off its own map, or on one no body stands on -- a map edited
+  // since the save): the nearest square a body can stand on, the flag tiles as this load laid them; null when the square is good or the map has none
+  Field.prototype.footing = function () {
+    var m = this.map, G = DS.G, ok = function (x, y) { var t = m.at(x, y); return !!t && !!DS.TILES[t].pass; };
+    if (ok(G.x, G.y)) return null;
+    var best = null, bd = 1e9;
+    for (var y = 0; y < m.h; y++) for (var x = 0; x < m.w; x++) if (ok(x, y) && !this.chestAt(x, y)) { var d = Math.abs(x - G.x) + Math.abs(y - G.y); if (d < bd) { bd = d; best = { x: x, y: y }; } }
+    if (!best) return null;
+    var was = { x: G.x, y: G.y, off: !m.at(G.x, G.y) };
+    G.x = best.x; G.y = best.y; this.px = best.x * T; this.py = best.y * T;
+    return { from: was, to: best };
+  };
   Field.prototype.refreshNpcs = function () {
     var G = DS.G, m = this.map, keep = {};
     this.npcs.forEach(function (n) { keep[n.id] = n; });

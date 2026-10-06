@@ -1385,6 +1385,31 @@
         check('Mirror Image: three (' + m1 + '), nine rounds on still ' + m9 + ', the tenth gone (' + m10 + '): "' + line + '"', m1 === 3 && m9 === 3 && m10 === 0 && !!line);
         b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
       });
+      // §2.4 the floor's last holes (todo 1.4): a map that throws as a save loads goes in at the start with a line, a start that throws too goes to the title, and a
+      // square off its own map or in a wall is the nearest one a body stands on. The console is held: the errors here are the ones the floor means to write
+      laneCase('a load that throws, a square off the map', function () {
+        var err0 = console.error, warn0 = console.warn, onEnter0 = DS.EV.onEnter, errs = [], warns = [], st = DS.DATA.config.start;
+        console.error = function () { errs.push(Array.prototype.map.call(arguments, String).join(' ')); }; console.warn = function () { warns.push(Array.prototype.join.call(arguments, ' ')); };
+        try {
+          SETUP(5); var save0 = JSON.parse(JSON.stringify(DS.G)); save0.map = 'gulch'; save0.x = 33; save0.y = 8; save0.dir = 'right';
+          function load(s, bad) { DS.lastError = null; DS.EV.onEnter = function (id, F) { if (bad.indexOf(id) >= 0) throw new Error('boom in ' + id); return onEnter0 && onEnter0.apply(this, arguments); }; errs = []; warns = []; var raised = null; try { DS.startFrom(JSON.parse(JSON.stringify(s))); } catch (e) { raised = e; } DS.EV.onEnter = onEnter0; return raised; }
+          var r1 = load(save0, ['gulch']), said = [];
+          for (var i = 0; i < 200 && DS.scriptActive(); i++) { var tp = DS.top(); if (tp && tp.kind === 'dialog') { said.push(DS.stripCodes(tp.pages[tp.p].lines.join(' '))); tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1); }
+          check('a map that throws as the save loads: no throw out (' + !r1 + '), the field up at the start (' + (DS.field && DS.field.map.id) + ' ' + DS.G.x + ',' + DS.G.y + ', top ' + (DS.top() && DS.top().kind) + '), the console told (' + errs.length + ': ' + (errs[0] || '').slice(0, 80) + '), the player told ("' + said.join(' | ') + '")',
+            !r1 && DS.top() && DS.top().kind === 'field' && DS.field.map.id === st.map && DS.G.x === st.x && DS.G.y === st.y && errs.length === 1 && /gulch threw/.test(errs[0]) && said.length === 1 && /would not open/.test(said[0]));
+          var r2 = load(save0, ['gulch', st.map]);
+          check('the start throws too: no throw out (' + !r2 + '), the title up (' + (DS.top() && DS.top().kind) + '), the console told twice (' + errs.length + ')', !r2 && DS.top() && DS.top().kind === 'title' && errs.length === 2);
+          var s3 = JSON.parse(JSON.stringify(save0)); s3.x = 400; s3.y = 400; load(s3, []);
+          var m3 = DS.field.map, t3 = m3.at(DS.G.x, DS.G.y);
+          check('a square off its own map (400,400): on ' + m3.id + ' at ' + DS.G.x + ',' + DS.G.y + ' (' + t3 + '), the console told ("' + (warns[0] || '').slice(0, 90) + '")', m3.id === 'gulch' && !!t3 && DS.TILES[t3].pass && warns.some(function (w) { return /off the map/.test(w); }));
+          var mg = DS.getMap('gulch'), wall = null;
+          for (var y = 1; y < mg.h - 1 && !wall; y++) for (var x = 1; x < mg.w - 1 && !wall; x++) { var t = mg.at(x, y); if (t && !DS.TILES[t].pass && [[0, 1], [0, -1], [1, 0], [-1, 0]].some(function (d) { var q = mg.at(x + d[0], y + d[1]); return q && DS.TILES[q].pass; })) wall = { x: x, y: y, t: t }; }
+          var s4 = JSON.parse(JSON.stringify(save0)); s4.x = wall.x; s4.y = wall.y; load(s4, []);
+          var d4 = Math.abs(DS.G.x - wall.x) + Math.abs(DS.G.y - wall.y), t4 = DS.field.map.at(DS.G.x, DS.G.y);
+          check('a square in a wall (' + wall.t + ' at ' + wall.x + ',' + wall.y + '): moved ' + d4 + ' to ' + DS.G.x + ',' + DS.G.y + ' (' + t4 + ')', d4 === 1 && DS.TILES[t4].pass && warns.some(function (w) { return /no square to stand on/.test(w); }));
+          load(save0, []); check('a good save stays where it was (' + [DS.field.map.id, DS.G.x, DS.G.y].join(',') + ', ' + warns.length + ' warnings)', DS.field.map.id === 'gulch' && DS.G.x === 33 && DS.G.y === 8 && !warns.length);
+        } finally { console.error = err0; console.warn = warn0; DS.EV.onEnter = onEnter0; }
+      });
       var ok6 = cases6.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('battle1006: ' + ok6 + '/' + cases6.length + ' cases' + (ok6 === cases6.length ? ' clean' : ': ' + cases6.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
     } else if (test === 'migrate') {

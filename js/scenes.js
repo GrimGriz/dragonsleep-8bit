@@ -100,7 +100,22 @@
     DS.clearScenes();
     var F = DS.field = new DS.Field();
     DS.push(F);
-    F.load(data.map, data.x, data.y, data.dir);
+    // (10-06, the 8-bit battle lane §2.4, the floor's last holes: a map that throws as it loads -- its enter hook, a flag tile, a bad row -- must not leave the
+    // screen black with the scenes cleared. The console says so, the party goes in at the way a new game opens (config.start, as migrateSave does for a map
+    // this page has not got) and is told; a start that throws too goes back to the title. A square off its own map or on one no body stands on is the nearest
+    // one that is: Field.footing)
+    try { F.load(data.map, data.x, data.y, data.dir); }
+    catch (e) {
+      var st = DS.DATA.config.start, was = data.map;
+      console.error('load: map ' + was + ' threw as it loaded (' + String(e && e.message || e) + '): back to ' + st.map + ' ' + st.x + ',' + st.y, e);
+      try { DS.clearScenes(); F = DS.field = new DS.Field(); DS.push(F); F.load(st.map, st.x, st.y, st.dir); }
+      catch (e2) { console.error('load: the start threw too (' + String(e2 && e2.message || e2) + '): to the title', e2); DS.clearScenes(); DS.field = null; DS.push(new Title()); return; }
+      F.banner = 90;
+      DS.run(function* () { yield DS.say('The place you saved in would not open. You go on from ' + (F.map.name || 'the start') + '.'); });
+      return;
+    }
+    var moved = F.footing();
+    if (moved) console.warn('save: ' + data.map + ' ' + moved.from.x + ',' + moved.from.y + (moved.from.off ? ' is off the map' : ' is no square to stand on') + ': moved to ' + moved.to.x + ',' + moved.to.y);
     F.banner = 90;
   };
   function fmtTime(frames) { var s = Math.floor(frames / 60), h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; return h + ':' + ('0' + m).slice(-2); }
