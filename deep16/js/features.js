@@ -806,6 +806,7 @@
     if (u.cls === 'barbarian' && u.subclass === 'Path of the Berserker' && u.lvl >= 6) out.push('mindless rage');
     if (u.hunterDef) out.push({ horde: 'escape the horde', multiattack: 'multiattack defense', steelwill: 'steel will' }[u.hunterDef] || '');
     if (u.cls === 'rogue' && u.subclass === 'Thief' && u.lvl >= 9) out.push('supreme sneak');
+    if (u.style && window.DS.R.STYLES[u.style]) out.push(window.DS.R.STYLES[u.style].short); // (the fighting style, 10-06: the Pocket DM's picked ones)
     return out.filter(Boolean).join(', ');
   };
 

@@ -1859,6 +1859,15 @@
     if (o.oa && !o.answer && tgt.hunterDef === 'horde') { e.dis.push('escape the horde'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
     var madAC = tgt.hunterDef === 'multiattack' && tgt.madHit && tgt.madHit[att.id] === this.round + ':' + (this.active ? this.active.id : '-') ? 4 : 0;
     ac += madAC;
+    // Fighting Style: Protection (SRD 5.1: "When a creature you can see attacks a target other than you that is within 5 feet of you, you can use
+    // your reaction to impose disadvantage on the attack roll. You must be wielding a shield." -- 10-06, the Pocket DM's maker picks it)
+    if (!atk.save && e.net >= 0) {
+      var prot = this.units.filter(function (w) { return w !== tgt && w !== att && w.side === tgt.side && w.style === 'protection' && w.reaction > 0 && G.standing(w) && RU.canAct(w) && w.src && w.src.equip && w.src.equip.shield && G.dist(w, tgt) <= 5 && M16().sees(self, w, att); })[0];
+      if (prot) {
+        var pz = byAI(prot) ? true : yield { prompt: { who: prot, title: prot.name + ': PROTECTION?', lines: [nameOf(att) + ' attacks ' + nameOf(tgt) + '. The shield in the way: the roll at disadvantage? (the reaction)'], opts: [{ label: 'SHIELD THEM', value: true }, { label: 'NOT NOW', value: false }] } };
+        if (pz) { prot.reaction = 0; D.sfx('bump'); FX.ring(tgt, 'silver', 18); e.dis.push('protection'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
+      }
+    }
     // a Wind Wall between them (js/walls.js): an arrow, a bolt, a thrown weapon is torn upward and misses
     if (D.walls && D.walls.shellTurns(this, att, tgt, atk)) { this.card([(att.side === 'foe' ? '{r}' + shortName(att) + '{/}' : '{y}' + att.name + '{/}') + ': the blow meets the Antilife Shell and goes nowhere.']); D.sfx('bump'); yield 20; att.anim = 'idle'; return; }
     if (D.walls && D.walls.windStops(this, att, tgt, atk)) { this.card([(att.side === 'foe' ? '{r}' + shortName(att) + '{/}' : '{y}' + att.name + '{/}') + ': ' + (atk.name || 'the shot') + ' -- the wind wall tears it upward.  {g}MISS{/}']); D.sfx('miss'); yield 20; att.anim = 'idle'; return; }

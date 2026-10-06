@@ -211,7 +211,7 @@
     if (s && s.shield) ac += s.shield.ac;
     var ring = R.item(h.equip.ring);
     if (ring && ring.ring && ring.ring.ac) ac += ring.ring.ac;
-    if ((h.cls === 'paladin' || h.style === 'defense') && a && a.armor && a.armor.type !== 'robe') ac += 1; // Fighting Style: Defense (Lymen's; a class NPC's `style`)
+    if (R.style(h) === 'defense' && a && a.armor && a.armor.type !== 'robe') ac += 1; // Fighting Style: Defense (Lymen's sheet; a class NPC's `style`; from the paladin's 2nd, SRD 5.1 -- 10-06, it was every paladin's from the 1st)
     return ac;
   };
   // wearing real armor (robes aren't armor to Mage Armor): the spell has no one to take it (playtest 09-25 round four)
@@ -250,6 +250,32 @@
     if (p.indexOf('two-handed') >= 0) return true;
     return p.indexOf('versatile') >= 0 && !h.equip.shield && !h.equip.torch; // (a torch in the other hand: one-handed)
   };
+  // ---------------------------------------------------------------- the fighting styles (SRD 5.1: the fighter chooses at 1, the paladin
+  // and the ranger at 2). One rule, both games (10-06, Griz: Great Weapon Fighting in the 8-bit "yeah", as the grid's; "yeses. Pocket DM is
+  // meant exactly for that type of character building"): a story hero's style is on its sheet (content/heroes.json `style`: Barley's and
+  // Brann's Great Weapon Fighting, Lymen's Defense), a class NPC's on its own (deep16/js/classes.js; the Pocket DM's maker picks it).
+  // Two-Weapon Fighting waits with the off-hand attack itself (only Pyro's own script swings a second weapon)
+  R.STYLES = {
+    archery: { name: 'Archery', short: 'archery', words: '+2 to hit with ranged weapons' },
+    defense: { name: 'Defense', short: 'defense', words: '+1 AC while wearing armour' },
+    dueling: { name: 'Dueling', short: 'dueling', words: '+2 damage: a melee weapon in one hand, no other' },
+    gwf: { name: 'Great Weapon Fighting', short: 'great weapon', words: 'a 1 or 2 on the die of a two-handed blow: again' },
+    protection: { name: 'Protection', short: 'protection', words: 'shield up: the reaction, disadvantage on a blow beside' }
+  };
+  R.STYLE_AT = { fighter: 1, paladin: 2, ranger: 2 };
+  R.STYLE_FOR = { fighter: ['archery', 'defense', 'dueling', 'gwf', 'protection'], paladin: ['defense', 'dueling', 'gwf', 'protection'], ranger: ['archery', 'defense', 'dueling'] };
+  // the style a hero fights with now: none before its class's level; its own (a class NPC's, even none), else its sheet's (an 8-bit save never stored one)
+  R.style = function (h) {
+    var at = R.STYLE_AT[h.cls];
+    if (!at || h.lvl < at) return null;
+    if ('style' in h) return h.style || null;
+    var d = h.id && DS.DATA.heroes[h.id];
+    return (d && d.style) || null;
+  };
+  // Great Weapon Fighting: the style, a melee weapon, both hands on it
+  R.gwf = function (h, w) { w = w || R.weaponOf(h); return R.style(h) === 'gwf' && (w.weapon.props || []).indexOf('ranged') < 0 && R.twoHanded(h, w); };
+  // Savage Attacks (the half-orc, SRD 5.1): by blood -- a class NPC's race key, or a story sheet's race (10-06: the grid never gave Lymen his, Griz: "inconceivable!")
+  R.savage = function (h) { var d = h.id && DS.DATA.heroes[h.id]; return /^half-?orc$/i.test(h.race || (d && d.race) || ''); };
   // ---------------------------------------------------------------- torchdark (09-28; Griz: "Aurdin would pretty much have to carry it lest lyman
   // drop shield"). Hands: a two-handed weapon takes both, a shield one, a torch one, fists none. One law for both games
   // (DEEP16 reads these too: deep16/js/light.js). Darkvision by blood (SRD 5.1) off the sheet's race, or the day's Darkvision
@@ -282,7 +308,7 @@
   R.attackBonus = function (h, w) {
     w = w || R.weaponOf(h);
     var b = DS.mod(h.abil[R.weaponAbil(h, w)]) + (R.isProfWeapon(h, w) ? R.prof(h.lvl) : 0) + (w.weapon.bonus || 0);
-    if (h.style === 'archery' && (w.weapon.props || []).indexOf('ranged') >= 0) b += 2; // Fighting Style: Archery (a class NPC's)
+    if (R.style(h) === 'archery' && (w.weapon.props || []).indexOf('ranged') >= 0) b += 2; // Fighting Style: Archery (a class NPC's; from the ranger's 2nd)
     return b;
   };
   R.damageExpr = function (h, w) {
@@ -295,6 +321,8 @@
     // PIT FISTS (the Path of the Sand, 3rd; 09-28h, Griz on Talmok's fists: "Almost certainly"): 1d4 + STR, 1d6 from the 6th
     if (w.id === 'unarmed' && h.subclass === 'Path of the Sand' && h.lvl >= 3) return { dice: h.lvl >= 6 ? '1d6' : '1d4', mod: DS.mod(h.abil.str), type: 'bludgeoning' };
     if (w.id === 'unarmed') return { dice: '0', mod: 1 + DS.mod(h.abil.str), type: 'bludgeoning' };
+    // Dueling (10-06): a melee weapon in one hand and no other weapon -- +2 damage
+    if (R.style(h) === 'dueling' && (w.weapon.props || []).indexOf('ranged') < 0 && !R.twoHanded(h, w) && !h.equip.offhand) mod += 2;
     return { dice: dice, mod: mod, type: w.weapon.type };
   };
   // a cloak against spells (the King's Mantle, Pyro's: +5 to saving throws against spells, RULED 09-30b): both games add it when the

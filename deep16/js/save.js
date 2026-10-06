@@ -86,7 +86,7 @@
     var w = R.weaponOf(h), dm = R.damageExpr(h, w), wd = w.weapon || {}, props = wd.props || [], ranged = props.indexOf('ranged') >= 0;
     return {
       id: h.equip && h.equip.weapon, name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: props, magic: !!(wd.bonus || wd.magic),
-      finesse: props.indexOf('finesse') >= 0, gwf: h.cls === 'fighter' && !ranged && R.twoHanded(h, w),
+      finesse: props.indexOf('finesse') >= 0, gwf: !ranged && R.gwf(h, w), // (Great Weapon Fighting by the style, js/rules.js: 10-06; it was every fighter's)
       ranged: ranged, range: ranged ? (wd.range || [80, 320]) : null, ammo: wd.ammo || null, loading: props.indexOf('loading') >= 0, fx: 'bolt',
       flame: wd.flame || null, // Flame Tongue: a bonus action lights it (battle.js IGNITE)
       // the 8-bit game's named weapons (09-28g, Griz: "make sure items are being loaded into the 16bit fights"): the Winnower's
@@ -127,7 +127,10 @@
       stealth: R.skill(h, 'Stealth', 'dex'), perception: 10 + R.skill(h, 'Perception', 'wis'), src: h,
       // what he sees the dark by (torchdark 09-28): his blood (the 8-bit sheet's race: Lymen the half-orc, the dwarves), or the
       // Darkvision spell cast on him that day (the 8-bit's conds, till the long rest)
-      darkvision: Math.max(D.light ? D.light.raceDV((DS.DATA.heroes[h.id] || {}).race) : 0, h.conds && h.conds.darkvision ? 60 : 0)
+      darkvision: Math.max(D.light ? D.light.raceDV((DS.DATA.heroes[h.id] || {}).race) : 0, h.conds && h.conds.darkvision ? 60 : 0),
+      // his blood's Savage Attacks (battle.js attack: a melee critical rolls one more weapon die) and the fighting style he fights by (battle.js
+      // reads 'protection'; the rest are in his numbers, js/rules.js) -- 10-06: the grid never gave Lymen his (Griz: "inconceivable!")
+      savage: R.savage(h), style: R.style(h)
     };
   }
   SV.unitOf = unitOf; // (the class NPCs are made units the same way: js/classes.js)

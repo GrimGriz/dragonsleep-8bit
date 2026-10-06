@@ -251,7 +251,7 @@
       id: spec.id || ('npc-' + cls + lvl), name: spec.name || (RC.name + ' ' + lvl), cls: cls, lvl: lvl, xp: R.XP_LEVEL[lvl],
       base: JSON.parse(JSON.stringify(abil)), abil: abil, maxhp: hp, hp: hp,
       equip: Object.assign({ weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }, spec.equip || {}),
-      known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: c.style || null,
+      known: [], feats: {}, conds: {}, subclass: sub, saveProf: RC.saves.slice(), style: spec.style && (R.STYLE_FOR[cls] || []).indexOf(spec.style) >= 0 ? spec.style : c.style || null, // (the Pocket DM's maker picks one, 10-06; R.style gives none before the class's level)
       skills: {}, expertise: [], race: spec.race || 'human', npc: true, alt: 'alt' in spec ? spec.alt : (c.kit.alt || null),
       land: spec.land || (cls === 'druid' ? 'underdark' : null), // (a druid's circle land: the generic druid's is the Pit's Underdark, 09-29)
       script: spec.script || null // (a named one's own turn: js/pyro.js)
@@ -514,13 +514,14 @@
     if (abil) sp.abil = abil;
     if (known) sp.known = known;
     if (C[cls].pact) sp.pact = C[cls].pact;
+    if (f[7] && (R.STYLE_FOR[cls] || []).indexOf(f[7]) >= 0) sp.style = f[7]; // (the fighting style picked, 10-06: a word made before it has none, and fights by the class's)
     return sp;
   };
   NPC.code = function (sp) {
     var ab = sp.abil ? NPC.ABIL.map(function (k) { return sp.abil[k]; }).join('-') : '';
     var eq = sp.equip || {}, gear = NPC.GEAR.map(function (k) { return k === 'alt' ? (sp.alt || '') : (eq[k] || ''); }).join('_');
     var name = String(sp.name || '').replace(/[^A-Za-z0-9 \-']/g, '').replace(/'/g, '').trim().replace(/ +/g, '_');
-    return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-')].join('.').replace(/\.+$/, '');
+    return '~' + [sp.cls, sp.lvl, sp.race || 'human', ab, gear, name, (sp.known || []).join('-'), sp.style || ''].join('.').replace(/\.+$/, '');
   };
   // the class floor from a URL: ?npc=cleric,wizard&lvl=5 -- those against the four at that level; &vs=fighter,rogue -- a band instead
   // of the four (yours to run); an entry like higertha or druid:3:dwarf names one (NPC.spec); &watch -- your side run by the class

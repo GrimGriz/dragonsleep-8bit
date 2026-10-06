@@ -1034,9 +1034,9 @@
       }
       var crit = nat >= R.critRange(h) || (melee && critClose(t)) || opening;
       var dx = R.damageExpr(h, w);
-      var gwf = h.cls === 'fighter' && R.twoHanded(h, w) && h.id === 'barley';
+      var gwf = melee && R.gwf(h, w); // Great Weapon Fighting by the style and the weapon, as the grid's (10-06: it was Barley's by name; Brann's battleaxe too now)
       var dmg = (dx.dice === '0' ? 0 : DS.roll(dx.dice, { crit: crit, reroll12: gwf })) + dx.mod + mw;
-      if (crit && h.id === 'lymen' && melee) dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks
+      if (crit && melee && R.savage(h) && dx.dice !== '0') dmg += DS.roll('1' + dx.dice.replace(/^\d+/, ''), {}); // Savage Attacks (by blood, R.savage: Lymen's)
       var extra = opening ? ' Opening cut!' : '', rad = 0;
       var sneaked = false;
       if (h.cls === 'rogue' && !st.sneakUsed && (w.weapon.props || []).join().match(/finesse|ranged/) && adv >= 0 && (adv > 0 || wasHidden || this.liveHeroes().length > 1)) {

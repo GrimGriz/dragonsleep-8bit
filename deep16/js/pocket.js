@@ -583,15 +583,18 @@
     // (the code keeps the scores with the race's numbers in: take them back out for the dials)
     if (sp && sp.abil) { var rc = NPC.RACES[sp.race] || NPC.RACES.human; Object.keys(rc.abil).forEach(function (k) { abil[k] -= rc.abil[k]; }); }
     this.mk = { step: 1, slot: slotIndex, editing: custom ? this.st.party[slotIndex].custom : null, cls: sp ? sp.cls : 'fighter', race: sp ? sp.race : 'human', abil: abil, lvl: sp ? Math.min(PK.CAP, sp.lvl) : 1,
-      equip: sp ? Object.assign({}, sp.equip) : null, alt: sp ? sp.alt : undefined, known: sp && sp.known ? sp.known.slice() : null, name: sp ? sp.name : '', tab: 'weapon', spellTab: 0 };
+      equip: sp ? Object.assign({}, sp.equip) : null, alt: sp ? sp.alt : undefined, known: sp && sp.known ? sp.known.slice() : null, name: sp ? sp.name : '', tab: 'weapon', spellTab: 0,
+      style: sp ? sp.style || NPC.CLASSES[sp.cls].style || null : null };
     if (!this.mk.equip) this.kitUp();
     this.go('maker');
   };
-  Pocket.prototype.kitUp = function () { var c = NPC.CLASSES[this.mk.cls]; this.mk.equip = { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }; this.mk.alt = c.kit.alt || null; this.mk.known = null; };
+  // (the class's own kit -- and its own fighting style, the maker's STYLE tab picks another: 10-06)
+  Pocket.prototype.kitUp = function () { var c = NPC.CLASSES[this.mk.cls]; this.mk.equip = { weapon: c.kit.weapon, armor: c.kit.armor || null, shield: c.kit.shield || null, ring: null, cloak: null }; this.mk.alt = c.kit.alt || null; this.mk.known = null; this.mk.style = c.style || null; };
   Pocket.prototype.mkSpec = function () {
     var m = this.mk, rc = NPC.RACES[m.race] || NPC.RACES.human, abil = {};
     NPC.ABIL.forEach(function (k) { abil[k] = m.abil[k] + (rc.abil[k] || 0); });
     var sp = { cls: m.cls, lvl: m.lvl, race: m.race, abil: abil, asis: true, maxhp: true, named: true, custom: true, equip: Object.assign({}, m.equip), alt: m.alt, name: m.name || (R.CLASSES[m.cls].name + ' ' + m.lvl) };
+    if (m.style && (R.STYLE_FOR[m.cls] || []).indexOf(m.style) >= 0) sp.style = m.style;
     if (m.known) sp.known = m.known.slice();
     if (NPC.CLASSES[m.cls].pact) sp.pact = NPC.CLASSES[m.cls].pact;
     return sp;
@@ -783,17 +786,30 @@
         lines.forEach(function (l, i) { D.text(ctx, l, D.W / 2, y + 48 + i * 11, P('bone', 1), 'center'); });
       }
     } else if (step === 4) {
-      var tabs = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['alt', 'SECOND WEAPON']];
-      tabs.forEach(function (tb, i) { self.btn(ctx, tb[1], 20 + i * 110, y, 104, 13, function () { m.tab = tb[0]; self.scroll = 0; }, { on: m.tab === tb[0], small: true }); });
-      var kind = m.tab === 'alt' ? 'weapon' : m.tab, rack = this.rack(kind), cur = m.tab === 'alt' ? m.alt : m.equip[m.tab];
-      var list = (m.tab === 'weapon' ? [] : [null]).concat(rack), per = 11, from = Math.min(this.scroll, Math.max(0, list.length - per));
-      this.scroll = from;
-      list.slice(from, from + per).forEach(function (id, i) {
-        var it = id ? DS.DATA.items[id] : null, yy = y + 18 + i * 15, label = it ? it.name : 'none';
-        self.btn(ctx, label, 20, yy, 130, 13, function () { if (m.tab === 'alt') m.alt = id; else m.equip[m.tab] = id; if (m.tab === 'weapon' && id && (DS.DATA.items[id].weapon.props || []).indexOf('two-handed') >= 0) m.equip.shield = null; }, { on: cur === id, small: true });
-        if (it) D.text(ctx, (it.desc || '').slice(0, 54), 156, yy + 3, P('bone', 1));
-      });
-      var sumLine = h ? 'AC ' + R.ac(h) + '  ·  ' + (R.weaponOf(h) || {}).name + (m.alt ? '  ·  second: ' + (DS.DATA.items[m.alt] || {}).name : '') : '';
+      // the fighting style beside the gear, from the class's level (SRD 5.1: the fighter at 1, the paladin and the ranger at 2; 10-06, Griz:
+      // "Pocket DM is meant exactly for that type of character building")
+      var stl = R.STYLE_AT[m.cls] && m.lvl >= R.STYLE_AT[m.cls] ? R.STYLE_FOR[m.cls] : null, per = 11, list = [], from = 0;
+      if (m.tab === 'style' && !stl) m.tab = 'weapon';
+      var tabs = [['weapon', 'WEAPON'], ['armor', 'ARMOUR'], ['shield', 'SHIELD'], ['alt', 'SECOND WEAPON']].concat(stl ? [['style', 'STYLE']] : []), tw = stl ? 90 : 110;
+      tabs.forEach(function (tb, i) { self.btn(ctx, tb[1], 20 + i * tw, y, tw - 6, 13, function () { m.tab = tb[0]; self.scroll = 0; }, { on: m.tab === tb[0], small: true }); });
+      if (m.tab === 'style') {
+        stl.forEach(function (k, i) {
+          var st = R.STYLES[k], yy = y + 18 + i * 15;
+          self.btn(ctx, st.name, 20, yy, 130, 13, function () { m.style = k; }, { on: m.style === k, small: true });
+          D.text(ctx, st.words, 156, yy + 3, P('bone', 1));
+        });
+        D.text(ctx, 'chosen at ' + R.CLASSES[m.cls].name.toLowerCase() + ' ' + R.STYLE_AT[m.cls] + ' (SRD 5.1); two-weapon fighting waits with the off-hand attack', 20, y + 18 + stl.length * 15 + 6, P('stone', 5));
+      } else {
+        var kind = m.tab === 'alt' ? 'weapon' : m.tab, rack = this.rack(kind), cur = m.tab === 'alt' ? m.alt : m.equip[m.tab];
+        list = (m.tab === 'weapon' ? [] : [null]).concat(rack); from = Math.min(this.scroll, Math.max(0, list.length - per));
+        this.scroll = from;
+        list.slice(from, from + per).forEach(function (id, i) {
+          var it = id ? DS.DATA.items[id] : null, yy = y + 18 + i * 15, label = it ? it.name : 'none';
+          self.btn(ctx, label, 20, yy, 130, 13, function () { if (m.tab === 'alt') m.alt = id; else m.equip[m.tab] = id; if (m.tab === 'weapon' && id && (DS.DATA.items[id].weapon.props || []).indexOf('two-handed') >= 0) m.equip.shield = null; }, { on: cur === id, small: true });
+          if (it) D.text(ctx, (it.desc || '').slice(0, 54), 156, yy + 3, P('bone', 1));
+        });
+      }
+      var hs = h && R.style(h), sumLine = h ? 'AC ' + R.ac(h) + '  ·  ' + (R.weaponOf(h) || {}).name + (m.alt ? '  ·  second: ' + (DS.DATA.items[m.alt] || {}).name : '') + (hs ? '  ·  ' + R.STYLES[hs].name.toLowerCase() : '') : '';
       var sw2 = D.text(ctx, sumLine, 20, y + 18 + per * 15 + 1, P('gold', 4));
       if (list.length > per) D.text(ctx, '  {g}(wheel: ' + (from + 1) + '-' + Math.min(list.length, from + per) + ' of ' + list.length + '){/}', 20 + sw2, y + 18 + per * 15 + 1, P('stone', 5));
       this.btn(ctx, 'THE KIT', D.W - 90, y + 18 + per * 15 - 2, 70, 13, function () { var k = m.known; self.kitUp(); m.known = k; }, { small: true });
@@ -827,6 +843,7 @@
         var ls = [(m.name || (R.CLASSES[m.cls].name + ' ' + m.lvl)) + ' -- ' + (NPC.RACES[m.race] || {}).name + ' ' + R.CLASSES[m.cls].name + ' ' + m.lvl + (h.subclass ? ' (' + h.subclass + ')' : ''),
           'HP ' + h.maxhp + '  AC ' + R.ac(h) + '  ' + (R.weaponOf(h) || {}).name + (h.equip.armor ? ', ' + DS.DATA.items[h.equip.armor].name : '') + (h.equip.shield ? ', shield' : ''),
           NPC.ABIL.map(function (k) { return k.toUpperCase() + ' ' + h.abil[k]; }).join('  ')];
+        if (R.style(h)) ls.push('fighting style: ' + R.STYLES[R.style(h)].name);
         if (h.known && h.known.length) ls.push('spells: ' + h.known.map(function (id) { var sd = D.magic.data(id); return sd ? sd.name : id; }).join(', '));
         var yy2 = y + 44; ls.forEach(function (l) { D.wrap(l, D.W - 60).forEach(function (w) { D.text(ctx, w, 30, yy2, P('bone', 1)); yy2 += 10; }); });
         D.text(ctx, 'the word: ', 30, yy2 + 6, P('stone', 5));
