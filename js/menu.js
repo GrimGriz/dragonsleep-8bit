@@ -215,11 +215,8 @@
     if (v === 'equip') {
       // (a host whose fight equips its own way -- the grid's: the weapons in the pack and the shield, each costing the action, battle.js gearOptions /
       // swapGear -- lists those, each with what it costs or why not, and the change ends the menu: back to the turn)
-      if (host.fight && host.fightEquip) {
-        var opts = host.fightEquip();
-        if (!opts.length) { m.say('Nothing in the pack ' + host.fight.hero.name + ' can take up.'); return; }
-        m.push(new ChoicePage(m, 'EQUIP: ' + host.fight.hero.name.toUpperCase(), opts.map(function (o) { return { label: fit(o.label, 130), right: fit(o.ok ? o.note : o.why, 100), value: o, disabled: !o.ok, rightColor: o.ok ? C.pale : C.dim }; }), function (o) { host.fightSwap(o); m.close(); }, 244));
-      } else if (host.fight) m.push(new EquipPage(m, host.fight.hero));
+      // (the same EQUIP page in both games -- Griz, 10-06, the two side by side: "why is not same?" -- the grid's choices behind its slot rows)
+      if (host.fight) m.push(new EquipPage(m, host.fight.hero));
       else this.choose({ title: 'EQUIP WHOM?', ok: function () { return true; }, then: function (h) { m.push(new EquipPage(m, h)); } });
     }
     if (v === 'status') this.choose({ title: 'WHOSE STATUS?', guests: true, ok: function () { return true; }, then: function (h) { m.push(new StatusPage(m, h)); } });
@@ -280,7 +277,7 @@
     if (inf.time != null) text(ctx, 'Time ' + inf.time, 12, 210, C.grey);
     if (inf.steps != null) text(ctx, 'Steps ' + inf.steps, 96, 210, C.grey);
     if (host.journal) text(ctx, fit(inf.pin ? '◆ ' + inf.pin : 'Pin a quest in JOURNAL', 162), 12, 222, inf.pin ? C.gold : C.dim);
-    if (host.fight) { win(ctx, 184, 196, 70, 40); wrap(host.fight.acted ? 'Action spent: look, no changes.' : 'In a fight: weapon and shield before acting.', 58).slice(0, 3).forEach(function (l, i) { text(ctx, l, 190, 203 + i * 10, C.gold); }); }
+    if (host.fight) { win(ctx, 184, 196, 70, 40); wrap(host.fight.acted ? 'Action spent: look, no changes.' : host.fightEquip ? 'A change of gear costs the action.' : 'In a fight: weapon and shield before acting.', 58).slice(0, 3).forEach(function (l, i) { text(ctx, l, 190, 203 + i * 10, C.gold); }); }
   };
 
   // ------------------------------------------------------------------ ITEMS: tabs by kind (his: consumables, utility -- the gear a fight can use -- components, quest)
@@ -479,11 +476,14 @@
     return '';
   }
   function EquipPage(m, h, at) { this.m = m; this.h = h; this.list = new List({ visible: 9 }); this.refresh(); if (at) { this.list.i = Math.max(0, this.list.items.map(function (x) { return x.value; }).indexOf(at)); this.list.fix(); } }
+  // a grid choice's place (deep16/js/battle.js gearOptions kinds)
+  function optSlot(o) { return o.kind === 'weapon' ? 'weapon' : /^shield/.test(o.kind) ? 'shield' : /^armor/.test(o.kind) ? 'armor' : null; }
   EquipPage.prototype.refresh = function () {
     var h = this.h, host = this.m.host, fight = !!host.fight, acted = fight && host.fight.acted, lit = !!h.equip.torch, lt = host.light ? host.light(h) : null;
+    var fo = this.fo = fight && host.fightEquip ? host.fightEquip() : null; // (the grid: its own choices, each with what it costs or why not)
     var rows = SLOTS.map(function (s) {
       var id = h.equip[s[0]], it = item(id), mk = it ? bondMark(h, id) : null;
-      var off = (fight && (acted || (s[0] !== 'weapon' && s[0] !== 'shield'))) || (s[0] === 'shield' && lit && !h.equip.shield);
+      var off = fo ? !fo.some(function (o) { return optSlot(o) === s[0]; }) : (fight && (acted || (s[0] !== 'weapon' && s[0] !== 'shield'))) || (s[0] === 'shield' && lit && !h.equip.shield);
       return { label: s[1], right: it ? fit((mk ? mk + ' ' : '') + it.name, 128) : (s[0] === 'shield' && lit ? 'a light in hand' : '—'), value: s[0], disabled: off, rightColor: it && bondColor(h, id) === C.dim ? C.dim : null };
     });
     if (lt) rows.push({ label: 'LIGHT', right: fit(lt.name, 128), value: 'light', disabled: fight });
@@ -492,7 +492,7 @@
   EquipPage.prototype.update = function (k) {
     var r = this.list.update(k), m = this.m, h = this.h, self = this;
     if (r === 'back') { m.pop(); return; }
-    if (r === 'refused') { m.say(m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the shield only.') : 'A light in that hand: no shield.'); return; }
+    if (r === 'refused') { m.say(this.fo ? 'Nothing goes there in this fight.' : m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the shield only.') : 'A light in that hand: no shield.'); return; }
     if (r !== 'pick') return;
     var slot = this.list.cur().value;
     if (slot === 'light') { // (a torch put out is spent; a lantern or the lamp goes back in the pack)
@@ -500,7 +500,7 @@
       m.push(new ChoicePage(m, 'EQUIP LIGHT', [{ label: lt.hooded ? '(put it away)' : '(put it out)', right: lt.hooded ? 'to the pack' : 'spent', value: 'off' }], function () { m.act('light-off', { h: h }, function () { self.refresh(); }); }));
       return;
     }
-    m.push(new CandPage(m, h, slot, this));
+    m.push(new CandPage(m, h, slot, this, this.fo && this.fo.filter(function (o) { return optSlot(o) === slot; })));
   };
   // a small list over the page: one choice, then back
   function ChoicePage(m, title, rows, then, w) { this.m = m; this.title = title; this.then = then; this.w = w || 196; this.list = new List({ visible: Math.min(10, rows.length), items: rows }); }
@@ -518,12 +518,14 @@
     text(ctx, fit('Weapons: ' + (c ? c.weapons.join(', ') : ''), 210), 22, y + 18, C.grey);
     var bx = 22 + text(ctx, 'BONDS ' + nb + '/' + (R0.ATTUNE_MAX || 3) + '   ', 22, y + 29, C.magic);
     bx += text(ctx, '◆ bonded   ', bx, y + 29, C.pale); text(ctx, '◆ bonds at a rest', bx, y + 29, C.dim);
-    if (fight) text(ctx, 'In a fight: weapon, shield, before acting.', 22, y + 40, C.gold);
+    if (fight) text(ctx, this.fo ? 'In a fight: each change costs the action.' : 'In a fight: weapon, shield, before acting.', 22, y + 40, C.gold);
   };
   // the things in the pack that go in a place, the change compared
-  function CandPage(m, h, slot, back) { this.m = m; this.h = h; this.slot = slot; this.back = back; this.list = new List({ visible: 8 }); this.refresh(); }
+  // (fo: the grid's choices for this place -- shown as the 8-bit's are, each with its cost or why not; a pick is the grid's swap, and back to the turn)
+  function CandPage(m, h, slot, back, fo) { this.m = m; this.h = h; this.slot = slot; this.back = back; this.fo = fo || null; this.list = new List({ visible: 8 }); this.refresh(); }
   CandPage.prototype.refresh = function () {
     var h = this.h, slot = this.slot, host = this.m.host, lit = !!h.equip.torch, R0 = R(), rows = [];
+    if (this.fo) { this.list.set(this.fo.map(function (o) { return { label: fit(o.label.replace(/^(WEAR|SHIELD ON): /, ''), 104), right: fit(o.ok ? o.note : o.why, 96), value: o, disabled: !o.ok, rightColor: o.ok ? C.pale : C.dim }; })); return; }
     host.pack().forEach(function (s) {
       var it = item(s.id); if (!fitsSlot(it, slot) || !R0.canEquip(h, it)) return;
       if ((slot === 'ring' || slot === 'ring2') && h.equip[slot === 'ring' ? 'ring2' : 'ring'] === s.id && s.n < 1) return;
@@ -536,9 +538,10 @@
   CandPage.prototype.update = function (k) {
     var r = this.list.update(k), m = this.m;
     if (r === 'back') { m.pop(); return; }
-    if (r === 'refused') { m.say('Both hands on it, and a light in one: put the light away first.'); return; }
+    if (r === 'refused') { var c0 = this.list.cur(); m.say(this.fo ? c0.value.label + ': ' + c0.value.why + '.' : 'Both hands on it, and a light in one: put the light away first.'); return; }
     if (r !== 'pick') return;
     var pick = this.list.cur().value;
+    if (this.fo) { m.host.fightSwap(pick); m.close(); return; } // (the grid: the swap spends the action, back to the turn)
     if (MN.swap(m, this.h, this.slot, pick === '__none' ? null : pick)) m.pop();
   };
   // one change of gear: the pack gives and takes, two hands are two hands
