@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · what · hi
 
 ## 2026-10-06
 
+- 2026-10-06 · `e865f05` · eyes on the screen · What is built and unseen is one list, `js/eyes.js` (twenty rows, each with its priority, its door and what should happen), and `situations.html` shows it first, six a page, most wanted first, ahead of the story situations; his saved ear file turns a noted row into a `seen` line here · *"Bulk processing is good, but do like 6 items per page by any priority they might have"* · *"not that i'm saying we should keep using them, but i sense overlap"*
 - 2026-10-06 · seen · the menus · The burned troll's new fire on the grid (`cadbe08`'s smoulder and sparks); the oil sheen not yet · *"I did see the trolls new fire effect. I'm less than ideal at reporting back :)"*
 - 2026-10-06 · `40496a2` · the menus · The grid's EQUIP is the 8-bit's page: the slot rows, then the place's box of the grid's own choices, each with its cost or why not; a pick spends the action, back to the turn · *"why is not same?"* · *"i swapped weapons thinking I was going to see what weapons I could swap too (like 16 worked) - part of why the uniformity"*
 - 2026-10-06 · seen · the menus · The 8-bit's EQUIP and the grid's, side by side (his screenshot): not the same, made so in `40496a2`
