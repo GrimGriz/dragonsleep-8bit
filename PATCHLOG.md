@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-06
 
+- 2026-10-06 · `54f2a47` · the house · The quick gate checks that `js/eyes.js` parses and `situations.html` draws its rows (`dev/eyes-probe.py`; proved RED on 3d4f63f, the commit that drew none) · *"yes"*
 - 2026-10-06 · seen · MPMon · Rascal's three beats in the pane (`?mpshow&only=sharing,flame,distancing`): his hat comes and goes -- the generator drew it in the sheet's background navy and the cut drops it (the lane §4b; the eyes row cut) · *"his hat renders seemingly transparent or doesn't render at time"*
 - 2026-10-06 · `378b270` · the grid's rules · The bulette's Deadly Leap by the SRD: the readied strikes as it comes down within reach, before the landing hits · *"SRD the leap (in the lane or this session) then close please"*
 - 2026-10-06 · ruled · the grid's rules · A readied action waits for its trigger to finish (SRD 5.1, "right after the trigger finishes"): a surfacing burrower is struck before its bite, as built · *"2 - confirm SRD, reactions often interrupt"*
