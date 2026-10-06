@@ -118,7 +118,7 @@
   }
 
   // ------------------------------------------------------------------ Title
-  function Title() { this.kind = 'title'; this.opaque = true; this.t = 0; this.stars = []; for (var i = 0; i < 70; i++) this.stars.push([DS.rint(256), DS.rint(120), DS.rint(3)]); this.menu = null; }
+  function Title() { this.kind = 'title'; this.opaque = true; this.t = 0; this.stars = []; for (var i = 0; i < 70; i++) this.stars.push([DS.fxInt(256), DS.fxInt(120), DS.fxInt(3)]); this.menu = null; }
   DS.Title = Title;
   Title.prototype.enter = function () { DS.audio.play('title'); DS.fadeLevel = 0; this.buildMenu(); };
   Title.prototype.buildMenu = function () {

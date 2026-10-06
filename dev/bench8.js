@@ -114,7 +114,7 @@
       if ((m = /^COUNTERSPELL\? (.*)$/.exec(t))) { var lv = 0; for (var id in DS.DATA.spells) if (DS.DATA.spells[id].name === m[1]) lv = DS.DATA.spells[id].level; return lv >= 1; }
       return false;
     };
-    function seed(s) { var a = s >>> 0; Math.random = function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+    function seed(s) { DS.seedDice(s); } // (the dice's own stream since 10-06, js/core.js DS.rng: the particles' Math.random no longer moves a walk)
     function inRect(r, x, y) { return x >= r[0] && y >= r[1] && x < r[0] + r[2] && y < r[1] + r[3]; }
     function rectOf(t) { return t.rect || [t.x, t.y, 1, 1]; }
     function live(list) { return (list || []).filter(function (t) { return DS.cond(t.cond) && !(t.once && DS.G.flags['trig:' + t.id]); }); }
@@ -228,7 +228,7 @@
         // length L in the zone's rate, drawn as often as it is long, then 1..L of it
         var zs = F.map.src.zones || [], zm = F.zoneAt(p0.x, p0.y) || (zs[0] && zs[0].zone), E = zm && DS.DATA.encounters[zm], rt = (E && E.rate) || [18, 40], tot = 0, Lr = rt[0];
         for (var L = rt[0]; L <= rt[1]; L++) tot += L;
-        for (var u = Math.random() * tot, L2 = rt[0]; L2 <= rt[1]; L2++) { u -= L2; if (u < 0) { Lr = L2; break; } }
+        for (var u = DS.rng() * tot, L2 = rt[0]; L2 <= rt[1]; L2++) { u -= L2; if (u < 0) { Lr = L2; break; } }
         F.encounterIn = 1 + DS.rint(Lr);
       }
       run.start = snapParty();
@@ -1332,6 +1332,61 @@
         fed1005('the landlord fed, Ingrith walking', ['ingrith'], null, 5);
         fed1005('the landlord fed, Ingrith down', ['ingrith'], function (gg) { gg.guests[0].h.hp = 0; gg.guests[0].h.ko = true; }, 4);
       } finally { DS.say = say1005; }
+    } else if (test === 'battle1006') {
+      // the 8-bit battle lane (handoff-2026-10-04-the-8-bit-battle-and-its-hands.md), built 10-06: one case an item; a case that throws is a failed case
+      var cases6 = [], rnd0 = Math.random;
+      function laneCase(name, fn) {
+        var before = out.checks.length;
+        try { fn(); } catch (e) { check(name + ': threw ' + String(e && e.stack || e).slice(0, 240), false); }
+        Math.random = rnd0; DS.rng = rnd0;
+        cases6.push({ name: name, ok: out.checks.slice(before).every(function (c) { return c.indexOf('ok') === 0; }) });
+      }
+      // §2.7 the dice off the particles (review A5's 8-bit half): one seeded fight fought twice, the second with Math.random another stream entirely -- the
+      // particles, the shake, the swarm draw from it -- says the same lines, so an effect or a frame's timing never moves a seeded run
+      laneCase('the dice off the particles', function () {
+        function fightLog(noisy) {
+          SETUP(5); DS.rng = DS.mulberry32(1006); // (the seed set by hand, not DS.seedDice: on the old core.js this reads RED for the right reason, the dice on Math.random)
+          if (noisy) { var k = 0; Math.random = function () { k++; return (k * 0.6180339887) % 1; }; }
+          T.startFight(['ogre', 'goblin', 'goblin']); drive({}, 4000);
+          Math.random = rnd0;
+          return (T.blog || []).join(' / ');
+        }
+        var a = fightLog(false), b = fightLog(true), n = a.split(' / ').length;
+        check('the same seed, Math.random another stream: the fight said the same ' + n + ' lines (' + (a === b) + ')' + (a === b ? '' : ' -- first apart at "' + a.split(' / ').filter(function (l, i) { return l !== b.split(' / ')[i]; })[0] + '"'), a === b && n > 10);
+        check('DS.seedDice seeds the dice alone: two seeded runs of ten d20 the same (' + (function () { DS.seedDice(5); var x = []; for (var i = 0; i < 10; i++) x.push(DS.d(20)); DS.seedDice(5); Math.random(); DS.fxInt(9); var y = []; for (var j = 0; j < 10; j++) y.push(DS.d(20)); return x.join(',') === y.join(',') ? x.join(',') : x.join(',') + ' vs ' + y.join(','); })() + ')', (function () { DS.seedDice(5); var x = []; for (var i = 0; i < 10; i++) x.push(DS.d(20)); DS.seedDice(5); var y = []; for (var j = 0; j < 10; j++) y.push(DS.d(20)); return x.join(',') === y.join(','); })());
+      });
+      function runGen(gen) { var r = gen.next(); while (!r.done) r = gen.next(); return r.value; } // (a battle generator run through, its frame waits ignored: the lines are instant here)
+      function pinD20(seq) { var q = seq.slice(); DS.rng = function () { return q.length ? (q.shift() - 0.5) / 20 : 0.5; }; } // (the next d20s, in order)
+      // §2.6 the 8-bit's small SRD misses: Fey Ancestry read (advantage on a save against being charmed: the drow's sheets, an elf's blood), Mislead's double on the
+      // spell's own clock and concentration, Mirror Image's three a minute (two-books law 5). The oozes' charmed landed in f6e5109
+      laneCase('the small SRD misses', function () {
+        SETUP(9); T.startFight(['drow', 'goblin']); for (var w0 = 0; w0 < 200 && !DS.find('battle'); w0++) T.step(1);
+        var b = DS.find('battle'), drow = b.foes.filter(function (f) { return f.id === 'drow'; })[0], gob = b.foes.filter(function (f) { return f.id === 'goblin'; })[0];
+        function sv(u, opt) { pinD20([2, 19]); var s = b.save(u, 'wis', 15, opt); DS.rng = rnd0; return s.nat; }
+        var a1 = sv(drow, { charm: true }), a2 = sv(drow, {}), a3 = sv(gob, { charm: true });
+        check('Fey Ancestry: the drow against a charm keeps the better of 2 and 19 (' + a1 + '), against anything else the first (' + a2 + '); a goblin against a charm the first (' + a3 + ')', a1 === 19 && a2 === 2 && a3 === 2);
+        var oozes = ['grayooze', 'ochrejelly', 'cube', 'pudding'].filter(function (id) { return ((DS.DATA.monsters[id] || {}).condImmune || []).indexOf('charmed') < 0; });
+        check('the four oozes immune to charm by the SRD (f6e5109): ' + (oozes.length ? 'not ' + oozes.join(', ') : 'all four'), !oozes.length);
+        var au = b.heroes.filter(function (x) { return x.h.id === 'aurdin'; })[0], h = au.h, st = { actions: 1, bonus: 1 };
+        h.slots = [4, 3, 3, 3, 2]; h.slotsMax = h.slots.slice();
+        runGen(b.castSpell(au, DS.DATA.spells.mislead, st));
+        var c1 = { img: au.images, dbl: !!au.conds.double, inv: !!au.conds.invisible, conc: au.conc && au.conc.id };
+        delete au.conds.invisible; // (his attack ends the invisibility: heroAttack's own line)
+        runGen(b.endTurn(au)); var c2 = { img: au.images, conc: au.conc && au.conc.id };
+        for (var i = 0; i < 9; i++) runGen(b.endTurn(au));
+        var c3 = { img: au.images, dbl: !!au.conds.double, conc: !!au.conc };
+        check('Mislead: invisible, a double and its concentration (' + JSON.stringify(c1) + '); he strikes and the double stays, the spell held (' + JSON.stringify(c2) + '); ten rounds on, the double gone with it (' + JSON.stringify(c3) + ')',
+          c1.img === 1 && c1.dbl && c1.inv && c1.conc === 'mislead' && c2.img === 1 && c2.conc === 'mislead' && c3.img === 0 && !c3.dbl && !c3.conc);
+        runGen(b.castSpell(au, DS.DATA.spells.mislead, st)); var d1 = au.images; b.dropConc(au);
+        check('Mislead let go (a blow, a new spell): the double goes with it (' + d1 + ' then ' + au.images + ')', d1 === 1 && au.images === 0);
+        runGen(b.castSpell(au, DS.DATA.spells.mirrorimage, st)); var m1 = au.images, said0 = T.blog.length;
+        for (var j = 0; j < 9; j++) runGen(b.endTurn(au));
+        var m9 = au.images; runGen(b.endTurn(au)); var m10 = au.images, line = T.blog.slice(said0).filter(function (l) { return /images fade/.test(l); })[0];
+        check('Mirror Image: three (' + m1 + '), nine rounds on still ' + m9 + ', the tenth gone (' + m10 + '): "' + line + '"', m1 === 3 && m9 === 3 && m10 === 0 && !!line);
+        b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
+      });
+      var ok6 = cases6.filter(function (c) { return c.ok; }).length;
+      T.blog = []; out.log.push('battle1006: ' + ok6 + '/' + cases6.length + ' cases' + (ok6 === cases6.length ? ' clean' : ': ' + cases6.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

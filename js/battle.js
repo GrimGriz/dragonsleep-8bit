@@ -36,12 +36,20 @@
   // the minute's spells running out (09-28g): what the card says as each goes
   var END_TEXT = { spiritWeapon: "'s spiritual weapon fades.", magicWeapon: "'s weapon is plain steel again.", branding: "'s waiting light goes out.",
     pfeg: "'s ward against the otherworldly fades.", sanctuary: "'s sanctuary fades.",
-    blessed: "'s blessing fades.", shieldOfFaith: "'s shield of faith fades.", heroism: "'s heroism fades.", divineFavor: "'s divine favor fades.", sacred: "'s blade loses its light." };
+    blessed: "'s blessing fades.", shieldOfFaith: "'s shield of faith fades.", heroism: "'s heroism fades.", divineFavor: "'s divine favor fades.", sacred: "'s blade loses its light.",
+    mirror: "'s images fade.", double: "'s double fades." };
   // concentration (SRD 5.1; RULED 10-03, Griz: "1 yes, 2 yes" -- the reaction window and concentration, the one-buff slot retired): what each
   // concentration spell lays on its targets, so the caster's letting go takes it back (a mark carries `by`, the caster's id -- Battle.concMark)
   var CONC_KEYS = { bless: ['blessed'], shieldoffaith: ['shieldOfFaith'], heroism: ['heroism'], divinefavor: ['divineFavor'], hideouslaughter: ['laughing'],
-    holdperson: ['paralyzed'], holdmonster: ['paralyzed'], web: ['restrained'], invisibility: ['invisible'], greaterinvisibility: ['invisible'], mislead: ['invisible'],
+    holdperson: ['paralyzed'], holdmonster: ['paralyzed'], web: ['restrained'], invisibility: ['invisible'], greaterinvisibility: ['invisible'], mislead: ['invisible', 'double'],
     stoneskin: ['stoneskin'], brandingsmite: ['branding'], magicweapon: ['magicWeapon'], protectionfromevilandgood: ['pfeg'] };
+  // a hero's false images keep their spell's clock (10-06, the 8-bit battle lane §2.6; two-books law 5): Mirror Image's three a minute (SRD 5.1), ten
+  // rounds as every 8-bit minute; Mislead's double while the spell holds (its concentration, an hour, ten rounds here) -- the invisibility ends on an
+  // attack, the double stays. When `mirror` and `double` are both gone the images go; Mislead's alone leaves one. A foe's phantasms are its own (the cloaker's)
+  function imagesHold(u) {
+    if (!u || !isHero(u) || !(u.images > 0) || u.conds.mirror) return;
+    u.images = u.conds.double ? Math.min(u.images, 1) : 0;
+  }
   // Command's word falls on no ears among the dead and the witless (the grid's reading: deep16/js/grimoire.js deaf)
   // what Lesser Restoration may end, the worst first (SRD 5.1: "either one disease or one condition ... blinded, deafened, paralyzed, or poisoned"; the
   // 8-bit lays no disease and no deafness -- 10-03, the grid's order, deep16/js/magic.js): a paralysing poison (the crawler's feelers, the chuul's
@@ -182,7 +190,7 @@
     var p = this.posOf(u);
     for (var i = 0; i < (n || 14); i++) {
       var a = Math.random() * Math.PI * 2, s = Math.random() * (spread || 1.6);
-      var q = { x: p.x + (Math.random() - 0.5) * 10, y: p.y + (Math.random() - 0.5) * 10, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 16 + DS.rint(14), col: col, sz: 1 + DS.rint(2) };
+      var q = { x: p.x + (Math.random() - 0.5) * 10, y: p.y + (Math.random() - 0.5) * 10, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 16 + DS.fxInt(14), col: col, sz: 1 + DS.fxInt(2) };
       if (style === 'rise') { q.vx *= 0.3; q.vy = -0.6 - Math.random(); }
       if (style === 'fall') { q.vx *= 0.3; q.vy = 0.3 + Math.random(); q.y -= 12; }
       this.fx.push(q);
@@ -225,12 +233,15 @@
     var s = u.m.saves && u.m.saves[ab];
     return s != null ? s : DS.mod(abil(u, ab));
   };
+  // Fey Ancestry (SRD 5.1: the elf's and the half-elf's, the drow's): a foe's sheet carries the trait, a hero has it by blood
+  function feyAncestry(u) { if (isHero(u)) { var d = DS.DATA.heroes[u.h.id]; return /^(elf|half-?elf|drow)$/i.test(u.h.race || (d && d.race) || ''); } return !!(u.m && u.m.traits && u.m.traits.feyAncestry); }
   // returns {total, nat, success}
   Battle.prototype.save = function (u, ab, dc, opt) {
     opt = opt || {};
     var adv = 0;
     if (opt.poison && u.conds.antitoxin) adv++;
     if (opt.adv) adv++; // (a save the rule itself gives advantage: Hideous Laughter's when hurt)
+    if (opt.charm && feyAncestry(u)) adv++; // (Fey Ancestry, SRD 5.1: "advantage on saving throws against being charmed" -- the drow's sheets, an elf's blood; 10-06)
     if (opt.dis) adv--; // (a save the rule itself gives disadvantage: Shatter's on a creature of stone, crystal or metal -- SRD 5.1; 10-06)
     if (ab === 'dex' && (u.conds.restrained)) adv--;
     if ((ab === 'str' || ab === 'dex') && failsStrDex(u)) return { total: 0, nat: 1, success: false };
@@ -393,7 +404,7 @@
     }
     // initiative, rolled once
     var all = this.heroes.concat(this.foes);
-    all.forEach(function (u) { u.init = DS.d(20) + (isHero(u) ? R.initBonus(u.h) : DS.mod(abil(u, 'dex'))) + Math.random() * 0.1; });
+    all.forEach(function (u) { u.init = DS.d(20) + (isHero(u) ? R.initBonus(u.h) : DS.mod(abil(u, 'dex'))) + DS.rng() * 0.1; });
     var seer = this.heroes.some(function (x) { var w = R.item(x.h.equip.weapon); return w && w.weapon && w.weapon.reveals; }); // the Sunshaft staff's light
     if (this.o.revealed || seer) this.foes.forEach(function (f) { f.conds.revealed = true; }); // seen coming: the light already on it
     this.order = all.slice().sort(function (a, b) { return b.init - a.init; });
@@ -428,7 +439,7 @@
     if (!more.length) return;
     more.forEach(function (h) {
       var u = { side: 'hero', h: h, idx: 0, conds: {}, reaction: 1, off: 0, pose: null, poseT: 0 };
-      u.init = DS.d(20) + R.initBonus(h) + Math.random() * 0.1;
+      u.init = DS.d(20) + R.initBonus(h) + DS.rng() * 0.1;
       self.heroes.push(u); self.order.push(u);
     });
     this.heroes.sort(function (a, b) { return (a.guest ? 9 : DS.G.party.indexOf(a.h)) - (b.guest ? 9 : DS.G.party.indexOf(b.h)); });
@@ -485,7 +496,7 @@
   Battle.prototype.doorWard = function* (t) {
     var sh = R.item(t.h.equip.shield), self = this;
     if (!sh || !sh.shield || !sh.shield.doorward || this.doorWardOn || down(t) || this.over) return;
-    if (Math.random() >= (DS.doorWardChance != null ? DS.doorWardChance : 0.03)) return;
+    if (DS.rng() >= (DS.doorWardChance != null ? DS.doorWardChance : 0.03)) return;
     var c = this.posOf(t);
     DS.audio.sfx('magic');
     for (var k = 0; k < 28; k++) { var a = k / 28 * Math.PI * 2; this.fx.push({ x: c.x, y: c.y, vx: Math.cos(a) * 1.7, vy: Math.sin(a) * 1.7, life: 20, col: k % 2 ? '#E8F0FF' : '#A4C8F8', sz: 2 }); }
@@ -569,6 +580,7 @@
     });
     // conditions that ride on another
     Object.keys(u.conds).forEach(function (k) { var c = u.conds[k]; if (c && c.linked && !u.conds[c.linked]) { delete u.conds[k]; msgs.push(plain(u) + ' can move again.'); } });
+    imagesHold(u); // (Mirror Image's minute or Mislead's double run out: their images with them)
     // concentration (10-03): what the spell laid keeps its own clock; once none of it is left the caster is free, and the minute's end takes the rest (the lights)
     if (u.conc && !this.concLive(u)) delete u.conc;
     else if (u.conc && --u.conc.rounds <= 0) { var cn = u.conc.name, cg = this.dropConc(u); msgs.push(plain(u) + "'s " + cn + ' has run its minute.'); msgs = msgs.concat(cg); }
@@ -661,6 +673,7 @@
       var v = m.u.conds[m.k]; if (!v || typeof v !== 'object' || v.by !== id) return;
       delete m.u.conds[m.k];
       if (m.k === 'paralyzed' || m.k === 'laughing') delete m.u.conds.prone; // (the fall came with the spell; the SRD leaves them prone, the 8-bit stands them up with it)
+      if (m.k === 'double') imagesHold(m.u); // (Mislead let go: the double with it)
       gone.push(plain(m.u) + (END_TEXT[m.k] || (' is no longer ' + m.k + '.')));
     });
     if (c.cloud && this.cloud && this.cloud.by === id) { gone.push(this.cloud.kind === 'fog' ? 'The fog thins and is gone.' : this.cloud.kind === 'stink' ? 'The yellow cloud drifts apart.' : 'The sleet stops.'); this.cloud = null; }
@@ -1357,7 +1370,7 @@
         yield* this.say((darts === 1 ? 'A dart strikes ' : darts + ' darts strike ') + nameOf(t) + ' for ' + dd + '.', 38);
         yield* this.flushMsg();
       } else if (k === 'save') {
-        var s = this.save(t, sp.save, dc, { poison: sp.el === 'poison', dis: sp.id === 'shatter' && !!(t.m && t.m.traits && t.m.traits.inorganic) }); // (Shatter: "a creature made of inorganic material such as stone, crystal, or metal has disadvantage on the saving throw" -- the earth elemental's trait `inorganic`; 10-06)
+        var s = this.save(t, sp.save, dc, { poison: sp.el === 'poison', charm: sp.cond === 'charmed', dis: sp.id === 'shatter' && !!(t.m && t.m.traits && t.m.traits.inorganic) }); // (Shatter: "a creature made of inorganic material such as stone, crystal, or metal has disadvantage on the saving throw" -- the earth elemental's trait `inorganic`; 10-06)
         var potent = sp.level === 0 && h.cls === 'wizard' && h.lvl >= 6; // Potent Cantrip: a save still takes half
         var dexp = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
         var upd = function (e) { return e.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up * (sp.upDice || 0)) + 'd'; }); };
@@ -1396,8 +1409,8 @@
         if (sp.buff === 'shield') { t.conds.shielded = true; }
         else if (sp.buff === 'mageArmor') { t.h.conds.mageArmor = true; }
         else if (sp.buff === 'invisible') { t.conds.invisible = { rounds: 10, ends: sp.id === 'invisibility' }; delete t.conds.hidden; } // (the 2nd-level one ends when they attack or cast; Greater does not)
-        else if (sp.buff === 'mirror') { t.images = 3; } // (Mirror Image, the 8-bit's: three images -- RULED 10-01c, 'work a simplified version into 8-bit battles')
-        else if (sp.buff === 'mislead') { t.conds.invisible = { rounds: 10, ends: true }; delete t.conds.hidden; t.images = Math.max(t.images || 0, 1); } // (and the double where he stood, SRD 5.1: one image a blow may go at, Mirror Image's rule -- the grid's, deep16/js/magic.js; 10-03)
+        else if (sp.buff === 'mirror') { t.images = 3; t.conds.mirror = { rounds: 10 }; } // (Mirror Image, the 8-bit's: three images -- RULED 10-01c, 'work a simplified version into 8-bit battles')
+        else if (sp.buff === 'mislead') { t.conds.invisible = { rounds: 10, ends: true }; t.conds.double = { rounds: 10 }; delete t.conds.hidden; t.images = Math.max(t.images || 0, 1); } // (and the double where he stood, SRD 5.1: one image a blow may go at, Mirror Image's rule -- the grid's, deep16/js/magic.js; 10-03)
         else if (sp.buff === 'seeInvisible') { t.conds.seeInvisible = { rounds: 10 }; }
         else if (sp.buff === 'darkvision') { t.h.conds.darkvision = true; }
         else if (sp.buff === 'continualFlame') { t.h.conds.continualFlame = t.h.equip.weapon || t.h.equip.armor || true; this.lit = true; this.flashT = 8; yield* this.dazzle(nameOf(u) + ' sets a flame on ' + plain(t) + "'s " + (R.item(t.h.equip.weapon) ? R.item(t.h.equip.weapon).name.toLowerCase() : 'gear') + ' that gives no heat.'); }
@@ -1568,7 +1581,7 @@
       if (s.when === 'bloodied' && f.hp > f.maxhp / 2) return false;
       return true;
     });
-    var sp = specials.length && Math.random() < (specials[0].chance || 0.4) ? (m.pickSpecial ? DS.pick(specials) : specials[0]) : null;
+    var sp = specials.length && DS.rng() < (specials[0].chance || 0.4) ? (m.pickSpecial ? DS.pick(specials) : specials[0]) : null;
     if (sp) { yield* this.special(f, sp); return; }
     var routine = m.multi || [Object.keys(m.attacks)[0]];
     if (m.choose) routine = DS.pick(m.choose);
@@ -1671,7 +1684,7 @@
       if (!ps.success) { t.conds.prone = true; yield* this.note(t, nameOf(t) + ' is knocked prone!', 34); }
     }
     if (atk.save) {
-      var s = this.save(t, atk.save.ab, atk.save.dc, { poison: atk.save.poison });
+      var s = this.save(t, atk.save.ab, atk.save.dc, { poison: atk.save.poison, charm: atk.save.cond === 'charmed' });
       yield* this.flushMsg();
       if (atk.save.dmg) {
         var d0 = DS.roll(atk.save.dmg), d = d0; if (s.success) d = atk.save.half ? Math.floor(d / 2) : 0;
@@ -1764,7 +1777,7 @@
       for (var bi = 0; bi < hit.length && !this.over; bi++) {
         var tb = hit[bi]; if (down(tb)) continue;
         if (sp.spell === 'magicmissile' && tb.conds.shielded) { yield* this.note(tb, nameOf(tb) + "'s shield of force turns the darts aside.", 36); continue; } // (Shield: no damage from Magic Missile, SRD 5.1 -- 10-03)
-        var sb = sp.save ? this.save(tb, sp.save, sp.dc, { poison: sp.type === 'poison' }) : { total: 0, nat: 0, success: false };
+        var sb = sp.save ? this.save(tb, sp.save, sp.dc, { poison: sp.type === 'poison', charm: sp.cond === 'charmed' }) : { total: 0, nat: 0, success: false };
         yield* this.flushMsg();
         var line = nameOf(tb) + (sb.success ? ' resists' : ' is caught');
         if (sp.dmg) {
@@ -1839,7 +1852,7 @@
         if (f.fled) return;
         xp += f.m.xp || 0;
         if (f.m.silver) silver += DS.roll(f.m.silver);
-        (f.m.drops || []).forEach(function (d) { if (Math.random() < d.chance) drops.push(d.item); });
+        (f.m.drops || []).forEach(function (d) { if (DS.rng() < d.chance) drops.push(d.item); });
       });
       if (o.noXp) xp = 0;
       var K = DS.G.kills;
@@ -1902,7 +1915,7 @@
     yield this.wait(30);
   };
   DS.newBat = function (top) {
-    return { x: Math.random() * 256, y: top ? -8 - Math.random() * 30 : Math.random() * 240, vx: (Math.random() - 0.5) * 3, vy: 1.5 + Math.random() * 3.5, ph: DS.rint(8) };
+    return { x: Math.random() * 256, y: top ? -8 - Math.random() * 30 : Math.random() * 240, vx: (Math.random() - 0.5) * 3, vy: 1.5 + Math.random() * 3.5, ph: DS.fxInt(8) };
   };
   DS.drawBats = function (ctx, bats) {
     for (var i = 0; i < bats.length; i++) {
@@ -1919,7 +1932,7 @@
 
   // ------------------------------------------------------------------ drawing
   Battle.prototype.draw = function (ctx) {
-    var sx = this.shake ? (DS.rint(3) - 1) * 2 : 0;
+    var sx = this.shake ? (DS.fxInt(3) - 1) * 2 : 0;
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, 256, 240);
     ctx.drawImage(this.bg, sx, 20);
     if (this.bright) { ctx.globalAlpha = 0.12; ctx.fillStyle = '#F8F0C0'; ctx.fillRect(0, 20, 256, 132); ctx.globalAlpha = 1; }

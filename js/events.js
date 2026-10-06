@@ -71,7 +71,7 @@
   EV.encounter = function* (zone) {
     var p = EV.pickGroup(zone), m = F().map.src;
     if (!p.list.length) return;
-    if (p.grp.flee && Math.random() < p.grp.flee) { yield DS.say(L(p.grp.fleeText || 'w.nightcrewGone')); return; }
+    if (p.grp.flee && DS.rng() < p.grp.flee) { yield DS.say(L(p.grp.fleeText || 'w.nightcrewGone')); return; }
     var res = yield DS.battle({ enemies: p.list, bg: p.Z.bg || m.bg, music: p.Z.music, roost: !!m.roost, zone: zone, dark: EV.darkHere(), torch: G().flags.torchBy || null });
     if (res === 'lose') return;
     yield* EV.afterBattle();

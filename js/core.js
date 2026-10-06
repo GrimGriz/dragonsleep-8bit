@@ -7,9 +7,15 @@
   DS.frame = 0;
 
   // ---------------------------------------------------------------- dice & math
-  DS.rint = function (n) { return Math.floor(Math.random() * n); };
-  DS.d = function (n) { return 1 + Math.floor(Math.random() * n); };
-  DS.pick = function (a) { return a[Math.floor(Math.random() * a.length)]; };
+  // the dice's own stream (10-06, the 8-bit battle lane §2.7; review A5): every roll the game makes -- a die, a pick, a shuffle, a chance, the encounter
+  // countdown -- draws from DS.rng, and the particles, the shake, the title's stars and the wanderers' idling draw from Math.random through DS.fxInt.
+  // So an effect or a frame's timing never moves a roll, and a bench seeds the dice alone (DS.seedDice)
+  DS.rng = Math.random;
+  DS.seedDice = function (s) { DS.rng = DS.mulberry32(s >>> 0); };
+  DS.rint = function (n) { return Math.floor(DS.rng() * n); };
+  DS.d = function (n) { return 1 + Math.floor(DS.rng() * n); };
+  DS.pick = function (a) { return a[Math.floor(DS.rng() * a.length)]; };
+  DS.fxInt = function (n) { return Math.floor(Math.random() * n); }; // (the look's, never a roll's)
   DS.clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
   DS.mod = function (score) { return Math.floor((score - 10) / 2); };
   DS.sgn = function (n) { return n >= 0 ? '+' + n : '' + n; };
@@ -19,7 +25,7 @@
   };
   DS.weighted = function (list, wkey) {
     var tot = 0, i; for (i = 0; i < list.length; i++) tot += list[i][wkey || 'w'] || 1;
-    var r = Math.random() * tot;
+    var r = DS.rng() * tot;
     for (i = 0; i < list.length; i++) { r -= list[i][wkey || 'w'] || 1; if (r < 0) return list[i]; }
     return list[list.length - 1];
   };

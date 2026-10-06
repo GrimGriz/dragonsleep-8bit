@@ -139,7 +139,7 @@
     this.def = def; this.id = def.id; this.x = def.x; this.y = def.y; this.hx = def.x; this.hy = def.y;
     this.dir = def.dir || 'down'; this.look = DS.LOOKS[def.look] || DS.LOOKS.worker; this.name = def.name;
     this.px = def.x * T; this.py = def.y * T; this.moving = false; this.path = []; this.wander = def.wander;
-    this.wt = 60 + DS.rint(120); this.hidden = false; this.solid = def.solid !== false;
+    this.wt = 60 + DS.fxInt(120); this.hidden = false; this.solid = def.solid !== false;
     this.art = def.art; // optional static canvas key (e.g. 'chest')
   }
   Npc.prototype.update = function (F) {
@@ -161,7 +161,7 @@
       return;
     }
     if (this.wander && !F.busy() && --this.wt <= 0) {
-      this.wt = 60 + DS.rint(150);
+      this.wt = 60 + DS.fxInt(150);
       var dirs = ['up', 'down', 'left', 'right'], d2 = DS.pick(dirs), nx = this.x + DIRS[d2][0], ny = this.y + DIRS[d2][1];
       this.dir = d2;
       if (Math.abs(nx - this.hx) <= this.wander && Math.abs(ny - this.hy) <= this.wander && F.free(nx, ny, this)) {
