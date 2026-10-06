@@ -1197,6 +1197,13 @@
       g7.hp = g7.maxhp = 35; g7.condImmune = ['blinded']; g7.x = c7.x; g7.y = c7.y - 3; D.rules.startTurn(c7); c7.slots[6] = 1; B7b.active = c7;
       pinR6(1); var n7b = (B7b.log || []).length; runR6(MR6.cast(B7b, c7, 'divineword', 7, c7)); D.d = d0R6; var l7b = logR6(B7b, n7b);
       okR6('§2.7 Divine Word on a goblin at 35 HP proof against blindness: deafened ' + !!g7.conds.deafened + ', blinded ' + !!g7.conds.blinded + ' -- ' + l7b.slice(0, 160), !!g7.conds.deafened && !g7.conds.blinded && /proof against blinded/.test(l7b));
+      // §2.14 blindsight has no front (10-06, Griz: "blindsight like the ettin or blindsight like the echolocation, dealer's choice" -- the echolocation's, within its range): a darkmantle
+      // facing away from a rogue three squares behind it watches her as if she were in front; a goblin facing away does not; past its 60 ft the darkmantle's watch is gone
+      var B14 = mkR6('?npc=darkmantle,goblin&lvl=5&vs=rogue:5'), dm14 = sideR6(B14, 'foe').filter(function (u) { return u.kind === 'darkmantle'; })[0], gb14 = sideR6(B14, 'foe').filter(function (u) { return u.kind === 'goblin'; })[0], v14 = sideR6(B14, 'party')[0];
+      v14.x = 8; v14.y = 9; dm14.x = 8; dm14.y = 6; dm14.facing = 4; gb14.x = 10; gb14.y = 6; gb14.facing = 4;
+      var near14 = B14.nearOf(dm14, v14), gnear14 = B14.nearOf(gb14, v14); dm14.blindsight = 10; var far14 = B14.nearOf(dm14, v14); dm14.blindsight = 60;
+      okR6('§2.14 behind them: the darkmantle\'s watch ' + JSON.stringify(near14) + ' (facing ' + dm14.facing + '), the goblin\'s ' + JSON.stringify(gnear14) + '; the darkmantle\'s blindsight cut to 10 ft: ' + JSON.stringify(far14),
+        !!(near14 && near14.side === 'front' && near14.bonus > 0) && !gnear14 && !far14);
       // §2b.18 the Keeper's way out: the corridor's end on the grid (14, 8) is the 8-bit's (25, 22), carried home in the seam's report
       var B18 = new D.Battle({ fight: 'keeper', data: D.save.fixture(3), bench: true }); D.battle = B18; B18.enter(); while (!B18.order.length) B18.co.next();
       var h18 = sideR6(B18, 'party')[0], ex18 = (B18.exits || []).map(function (q) { return q.join(','); });

@@ -1902,7 +1902,7 @@
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
       // a way out under the cursor (one of the pale squares: battle.js exits): says so, and how (10-06, the grid's rules §2.15 -- "the inspect of an exit square says it is a way out")
-      if (!(B.o.embed && B.o.embed.canRun === false) && (B.exits || []).some(function (q) { return q[0] === B.cursor.x && q[1] === B.cursor.y; })) lines.push('{y}a way out{/}: stand here, then LEAVE THE FIGHT on the ring (5 ft of the move' + (B.fight && B.fight.oneLeavesAll ? '; the party goes too' : '') + ')  {g}(a foe beside you gets its swing){/}');
+      if (!(B.o.embed && B.o.embed.canRun === false) && (B.exits || []).some(function (q) { return q[0] === B.cursor.x && q[1] === B.cursor.y; })) lines.push('{y}a way out{/}: LEAVE THE FIGHT from here' + (B.fight && B.fight.oneLeavesAll ? ' {g}(the party goes too){/}' : ''));
       if (u.conds.prone && B.cursor.x === u.x && B.cursor.y === u.y) { var halfS = Math.floor(u.speed / 2); lines.push('{y}prone{/}: ' + (RU.canRise(u) && u.turn.move >= halfS ? '{n}click here to stand (half the speed: ' + halfS + ' ft of the move){/}' : '{o}' + (!RU.canRise(u) ? 'cannot stand' : 'no move left to stand: ' + halfS + ' ft needed') + '{/}')); } // (10-04 night)
       if (!B.passagesOpen && (B.passages || []).some(function (p) { return p.at[0] === B.cursor.x && p.at[1] === B.cursor.y; })) lines.push('{y}' + (B.passages.filter(function (p) { return p.at[0] === B.cursor.x && p.at[1] === B.cursor.y; })[0].name) + '{/}: shut'); // (the passages shut by default, 10-04 night)
       var pgT = D.Battle.passageAt(B, B.cursor.x, B.cursor.y); if (pgT) lines.push('{y}' + pgT.name + '{/}: ' + (pgT.inward ? 'GO IN -- through it and up the stair inside, out onto the roof' : 'COME OUT -- down the stair inside, out onto the street') + '  {g}(stand on it: the rest of the move, half the speed at least){/}'); // (a passage, 10-04 night)
@@ -1933,8 +1933,10 @@
       }
     }
     if (!lines.length) return;
+    // (a line wider than the screen is wrapped, not cut off at the left: 10-06, Griz, "Hoverline cropping left side in pane" -- the way-out line, the rope bucket's)
+    lines = lines.reduce(function (a, l) { return a.concat(D.textWidth(l) > D.W - 20 ? D.wrap(l, D.W - 20) : [l]); }, []);
     var ww = 0; lines.forEach(function (l) { ww = Math.max(ww, D.textWidth(l)); });
-    var x = D.W - ww - 12, y = BAR_Y - lines.length * 9 - 8;
+    var x = Math.max(2, D.W - ww - 12), y = BAR_Y - lines.length * 9 - 8;
     if (UI.opts.style === 'window' && B.req && B.req.turn) x = 6;
     ctx.fillStyle = 'rgba(10,8,16,.82)'; ctx.fillRect(x, y, ww + 8, lines.length * 9 + 4);
     lines.forEach(function (l, i) { D.text(ctx, l, x + 4, y + 2 + i * 9, R('bone', 1)); });

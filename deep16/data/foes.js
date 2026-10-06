@@ -645,7 +645,11 @@
     saves: { str: 3, dex: 0, con: 6, int: 0, wis: 0, cha: 0 },
     attacks: { claw: { name: 'Claw', atk: 6, dice: '1d6', mod: 3, type: 'slashing', reach: 5 }, bite: { name: 'Bite', atk: 6, dice: '3d6', mod: 3, type: 'piercing', reach: 5 } },
     multi: ['claw', 'claw', 'claw', 'bite'], resist: ['mundaneps'], earthGlide: true, burrow: 20, // (SRD 5.1 "burrow 20 ft.": under the floor and up beside you, unseen -- Earth Glide leaves no mound: js/ai.js burrower, 10-01d)
-    walkWithin: 15, // (it walks to anyone within 15 ft, and goes under for farther: Griz, 10-01d, "have them walk within 15")
+    // under the floor to anyone out of its reach (js/ai.js burrower). 10-06, Griz, on the seat's call that it stays up: "no(?) unless there's good reason he wouldn't burrow, i did have that
+    // coded in before we figured out show-me's such that I could see it's walk anim" -- the walk within 15 ft (10-01d) was for seeing its walk, and ?show=xorn shows it now; dug or
+    // walked, its 20 ft is the same 20 ft, and under it cannot be seen or struck. And under again after its claws with the move it has left, as the bulette (js/ai.js diveAfter), RULED
+    // 10-06, Griz: "from no losses to at least some losses is better gameplay 8/10 is improvement i think" (bench16 fight=xorns lvl=8 n=10: 10 won in 4.5 rounds without it, 8 in 10.5 with it)
+    diveAfter: true,
     src: 'SRD 5.1 Xorn (CR 5): three claws and a bite; resists plain steel (the SRD\'s non-adamantine); content/monsters.json xorn; Earth Glide: through the rock, standing only on open ground (js/grid.js, 09-28)'
   },
   // ------------------------------------------------------------------ the bestiary from the 8-bit game's random tables (content/encounters.json), 09-27

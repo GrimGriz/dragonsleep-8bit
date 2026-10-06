@@ -2931,7 +2931,9 @@
   Battle.prototype.nearOf = function (w, u) {
     var ring = G.foot(w).some(function (q) { return Math.max(Math.abs(q[0] - u.x), Math.abs(q[1] - u.y)) <= 1; });
     var c = ((w.size || 1) - 1) / 2, vx = u.x - (w.x + c), vy = u.y - (w.y + c), f = FACE_STEP[((w.facing || 0) % 8 + 8) % 8], fl = Math.hypot(f[0], f[1]), vl = Math.hypot(vx, vy) || 1;
-    var fwd = (vx * f[0] + vy * f[1]) / fl, lat = Math.abs(vx * f[1] - vy * f[0]) / fl, cone = fwd > 0 && lat <= fwd + 1e-6, all = !!(w.twoHeads || w.allAround);
+    var fwd = (vx * f[0] + vy * f[1]) / fl, lat = Math.abs(vx * f[1] - vy * f[0]) / fl, cone = fwd > 0 && lat <= fwd + 1e-6, all = !!(w.twoHeads || w.allAround || (w.blindsight && G.dist(w, u) <= w.blindsight));
+    // (blindsight has no front: within its range every square is the front, as the ettin's two heads -- echolocation, a tremor in the stone. 10-06, Griz: "blindsight like the
+    // ettin or blindsight like the echolocation, dealer's choice" -- the seat's pick, the echolocation's: all round, but only as far as the sense reaches; past it, its eyes if any)
     if (!ring && !cone && !all) return null;
     var side = all || cone ? 'front' : fwd / vl < -0.5 ? 'back' : 'side', lvl = this.seenBy(w, u, true);
     var base = NEAR_BONUS[side][lvl], wis = w.abil && w.abil.wis != null ? Math.floor((w.abil.wis - 10) / 2) : 0; // (Griz, 10-04: "try add wisdom bonuses to the cone", then "wisdom on the 9-square they're in (back and sides included)" -- the watcher's Wisdom modifier on top, in its cone and its 3x3)

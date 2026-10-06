@@ -766,7 +766,7 @@
   // do it, we'll allow it" -- the seat's call of 10-01d that kept it up through the party's turns is lifted now that READY answers it): a foe with `diveAfter` (data/foes.js:
   // the bulette) that has 5 ft of its move left after the bite goes under where it stands -- out of everyone's reach at once, so those beside it that see it get their
   // opportunity attacks first (battle.js provoke) -- and digs on with what is left, as far from them as that goes; next turn it comes up again beside the weakest. The
-  // xorn, which resists plain steel and claws three times, stays up and fights (the seat's call)
+  // xorn the same since 10-06 (data/foes.js xorn: RULED, "8/10 is improvement"; it had stayed up and fought on the seat's call)
   function* diveAfter(B, u) {
     var T = u.turn;
     // (bite AND dive: a turn it came up and struck at no one -- the Leap recharged, it surfaced 15-30 ft off and found no landing -- it stays up, as before, where they can
