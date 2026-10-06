@@ -152,7 +152,7 @@
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
     var out = [{ id: 'move', label: 'MOVE', cost: 'M', ok: u.turn.move > 0 && !u.conds.restrained, tool: 'move', icon: 'move' }];
-    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
+    ['attack', 'beside', 'again', 'front', 'hide', 'breakfree', 'detach', 'breaktendril', 'takerope', 'bucketrope', 'barreltorch', 'passage', 'spells'].forEach(function (k) { if (top[k]) out.push(top[k]); }); // (detach: PULL IT OFF, the darkmantle -- 10-01, Griz: "Didn't see a pull it off out there"; breaktendril: BREAK THE TENDRIL, the roper's -- 10-02; takerope, bucketrope: TAKE THE ROPE and TAKE A ROPE, 10-04 night -- the first sat under ACTIONS where nothing listed it, Griz: "never managed to take up the hook")
     if (cd.length) { var left = (u.feats && u.feats.channel) || 0; out.push({ id: 'channel', label: 'CHANNEL DIVINITY (' + left + ')', cost: 'A', ok: cd.some(function (x) { return x.ok; }), why: left ? 'nothing there to do now' : 'spent (a short rest brings it back)', sub: 'channel', icon: 'sacred', items: cd }); }
     if (sk.length) out.push(group('skills', 'SKILLS', sk));
     if (top.items) out.push(top.items);
@@ -916,6 +916,7 @@
       webObjs(B).forEach(function (o) { objs.push(o); }); // the webs themselves, each piece in the round at its hub
       ropeObjs(B).forEach(function (o) { objs.push(o); }); // the ropes down the faces, a tiny grapple at each top (10-04)
       bucketObjs(B).forEach(function (o) { objs.push(o); }); // the rope bucket's coil (10-04 night)
+      barrelObjs(B).forEach(function (o) { objs.push(o); }); // the torch barrel's torches (10-05 night)
       // riders: a big one (a horse, foot [2, 1]) stands at the middle of its squares; a startle (r.anim) plays once, then idle
       (B.riders || []).forEach(function (r) {
         var f = r.foot || [1, 1], c = D.iso.center(r.x + (f[0] - 1) / 2, r.y + (f[1] - 1) / 2, r.gz), s = D.iso.toScreen(c.x, c.y);
@@ -985,6 +986,18 @@
       ctx.save(); ctx.lineWidth = 2;
       [[9, 4, 3], [6, 3, 1], [3, 1.5, 3]].forEach(function (e) { ctx.strokeStyle = R('leather', e[2]); ctx.beginPath(); ctx.ellipse(x, y, e[0], e[1], 0, 0, Math.PI * 2); ctx.stroke(); });
       ctx.fillStyle = R('silver', 5); ctx.fillRect(x + 8, y - 4, 1, 4); ctx.fillRect(x + 7, y - 1, 3, 1); ctx.fillRect(x + 6, y - 2, 1, 1);
+      ctx.restore();
+    } }];
+  }
+
+  // the torch barrel's torches (B.torchBarrel, 10-05 night): three handles up out of the crate's top, a lamp's flame flickering on the tallest
+  function barrelObjs(B) {
+    var b = B.torchBarrel; if (!b) return [];
+    return [{ depth: b[0] + b[1] + 0.55, gz: G.map.gz(b[0], b[1]), layer: 1, draw: function (ctx) {
+      var c = D.iso.center(b[0], b[1], G.map.gz(b[0], b[1])), s = D.iso.toScreen(c.x, c.y), x = s.x, y = s.y - 13, f = (B.t >> 3) & 1;
+      ctx.save();
+      [[-6, 10, 2], [-1, 14, 3], [4, 9, 2]].forEach(function (h) { ctx.fillStyle = R('leather', h[2]); ctx.fillRect(x + h[0], y - h[1], 3, h[1]); ctx.fillStyle = R('stone', 1); ctx.fillRect(x + h[0] - 1, y - h[1] - 1, 5, 4); }); // (the handles, and their pitch-wrapped heads)
+      ctx.fillStyle = R('gold', 3); ctx.fillRect(x - 2, y - 19, 5, 4); ctx.fillStyle = R('gold', 5); ctx.fillRect(x - 1, y - 22 - f, 3, 4 + f); // (the one taken to the door's lamp: alight)
       ctx.restore();
     } }];
   }
@@ -1795,6 +1808,7 @@
       if (u.conds.prone && B.cursor.x === u.x && B.cursor.y === u.y) { var halfS = Math.floor(u.speed / 2); lines.push('{y}prone{/}: ' + (RU.canRise(u) && u.turn.move >= halfS ? '{n}click here to stand (half the speed: ' + halfS + ' ft of the move){/}' : '{o}' + (!RU.canRise(u) ? 'cannot stand' : 'no move left to stand: ' + halfS + ' ft needed') + '{/}')); } // (10-04 night)
       if (!B.passagesOpen && (B.passages || []).some(function (p) { return p.at[0] === B.cursor.x && p.at[1] === B.cursor.y; })) lines.push('{y}' + (B.passages.filter(function (p) { return p.at[0] === B.cursor.x && p.at[1] === B.cursor.y; })[0].name) + '{/}: shut'); // (the passages shut by default, 10-04 night)
       var pgT = D.Battle.passageAt(B, B.cursor.x, B.cursor.y); if (pgT) lines.push('{y}' + pgT.name + '{/}: ' + (pgT.inward ? 'GO IN -- through it and up the stair inside, out onto the roof' : 'COME OUT -- down the stair inside, out onto the street') + '  {g}(stand on it: the rest of the move, half the speed at least){/}'); // (a passage, 10-04 night)
+      if (B.torchBarrel && B.cursor.x === B.torchBarrel[0] && B.cursor.y === B.torchBarrel[1]) lines.push('{y}the torch barrel{/}: a lit torch for anyone beside it with a hand for one -- {n}free (the turn\'s object), and there is always another{/} (TAKE A TORCH on the ring)'); // (10-05 night)
       if (B.ropeBucket && B.cursor.x === B.ropeBucket[0] && B.cursor.y === B.ropeBucket[1]) lines.push('{y}the rope bucket{/}: a Rope & Grapple for anyone beside it -- {n}free, one a turn, and there is always another{/} (TAKE A ROPE on the ring)'); // (10-04 night)
       var rpT = !B.ropePick && D.Battle.ropeAt(B, B.cursor.x, B.cursor.y); // (a rope's grapple under the cursor: what the click does -- 10-04 night)
       if (rpT) {

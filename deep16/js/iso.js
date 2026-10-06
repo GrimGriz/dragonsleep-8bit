@@ -80,7 +80,8 @@
       });
     }
     m.at = function (x, y) { return (x < 0 || y < 0 || x >= m.w || y >= m.h) ? null : m.sq[y * m.w + x]; };
-    if (def.ropeBucket) { var rb = m.at(def.ropeBucket[0], def.ropeBucket[1]); if (rb) rb.stands = 'the rope bucket'; } // (Fountain Street's bucket of rope and grapples: battle.js, 10-04 night)
+    if (def.ropeBucket) { var rb = m.at(def.ropeBucket[0], def.ropeBucket[1]); if (rb) rb.stands = 'the rope bucket'; }
+    if (def.torchBarrel) { var tb = m.at(def.torchBarrel[0], def.torchBarrel[1]); if (tb) tb.stands = 'the torch barrel'; } // (the Edifice's barrel of torches by the vault doors: battle.js, 10-05 night) // (Fountain Street's bucket of rope and grapples: battle.js, 10-04 night)
     (def.falls || []).forEach(function (q) { var fs = m.at(q[0], q[1]); if (fs) fs.falls = true; }); // (a waterfall down a wall's face: rockCanvas paints it -- the Edifice's back wall, 10-04 night)
     (def.spouts || []).forEach(function (q) { var sp = m.at(q[0], q[1]); if (sp) sp.spout = q[2] || 10; }); // (a fountain's spout: a hole flush in the square's +gy face that many feet up, the water pouring from it -- the Edifice's four, 10-04 night)
     m.isOpen = function (x, y) { var s = m.at(x, y); return !!(s && s.open); };

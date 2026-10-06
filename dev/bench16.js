@@ -1438,10 +1438,11 @@
       // at the window (the glass 5 ft off), no move: Barley on the glass beside nothing -- the clubs at the glass; Barley on the front edge (30,15) -- a rock, the STR save failed, over
       // the edge to the street (31,16), prone; again; then no rock left -- the clubs at the glass
       delete maleK.hang; maleK.x = 26; maleK.y = 4; var rockK = [], skyK = Bk.skylight, str0K = barK.saves.str, d0K = D.d; barK.saves.str = -20; D.d = function (n) { return n === 20 ? 19 : d0K(n); };
-      [[24, 4], [30, 15], [30, 15], [30, 15]].forEach(function (p) {
+      // (the edge at (29,15) since 10-05 night: from (30,15) the fall's square is (31,16), the torch barrel's crate -- no open square below, so no edge, and he struck the glass)
+      [[24, 4], [29, 15], [29, 15], [29, 15]].forEach(function (p) {
         barK.x = p[0]; barK.y = p[1]; barK.conds = {}; delete barK.hang; barK.hp = barK.maxhp; D.rules.startTurn(maleK); maleK.turn.move = 0;
         var n4K = (Bk.log || []).length, sk0 = skyK.hp; runE(D.ai.brute(Bk, maleK)); var lg = (Bk.log || []).slice(n4K).join(' ');
-        rockK.push(/(Giant|Steinarr) > Barley\s+Rock/.test(lg) ? (barK.x === 31 && barK.y === 16 && barK.conds.prone && barK.hp < barK.maxhp ? 'off' : 'rock?') : skyK.hp < sk0 || /(Giant|Steinarr) > the skylight/.test(lg) ? 'glass' : '-'); // (the male is Steinarr on the cards since 10-05)
+        rockK.push(/(Giant|Steinarr) > Barley\s+Rock/.test(lg) ? (barK.x === 30 && barK.y === 16 && barK.conds.prone && barK.hp < barK.maxhp ? 'off' : 'rock?') : skyK.hp < sk0 || /(Giant|Steinarr) > the skylight/.test(lg) ? 'glass' : '-'); // (the male is Steinarr on the cards since 10-05)
       });
       D.d = d0K; barK.saves.str = str0K; barK.conds = {};
       okE('the male at the window: Barley on the glass, then on the edge three times: ' + rockK.join(',') + ', rocks left ' + maleK.rocks, rockK.join(',') === 'glass,off,off,glass' && maleK.rocks === 0);

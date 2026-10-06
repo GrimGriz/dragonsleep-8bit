@@ -825,11 +825,30 @@
     return { kind: 'item', id: 'torch', score: score, why: 'throws the torch at ' + t.name + (t.regenDown ? ' where it lies' : ' to stop its knitting'), go: function* () { yield* B.exec(u, { do: 'throwtorch', x: sq[0], y: sq[1] }); } };
   }
   TX.ACTIONS.push(burnTorch);
+  // a torch out of the barrel (a map's `torchBarrel`: the Edifice's, by the vault doors -- 10-05 night, Griz: "1 barrel yes 2 barrel yes", the barrel the answer to Pyro's "Torch him!"): no light in
+  // the hand, a hand for one, the turn's object free; a walk this turn to beside the barrel, the torch taken there (free, battle.js exec 'barreltorch') and thrown -- weighed as burnTorch would weigh
+  // the throw from beside the barrel, a tenth off for the walk. Only while a foe that regenerates and has not burned is on the field
+  function barrelTorch(B, u) {
+    var T = u.turn; if (u.side !== 'party' || !B.torchBarrel || !T || !T.action || T.attacksLeft || u.torch || T.freeObj || !D.light.handForLight(u) || (u.hang && G.hanging(u)) || (B.fight && B.fight.roost)) return null;
+    if (!AI.heroes(B, u).some(function (w) { return G.hostile(u, w) && !w.dead && w.regen > 0 && !w.burned && G.standing(w); })) return null;
+    var rm = G.reach(u, T.move), spot = null, x0 = u.x, y0 = u.y;
+    Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; u.x = e.x; u.y = e.y; var ok = D.Battle.besideBarrel(B, u); u.x = x0; u.y = y0; if (ok && (!spot || e.cost < spot.cost)) spot = e; });
+    if (!spot) return null;
+    var t0 = u.torch, pl = null; u.x = spot.x; u.y = spot.y; u.torch = { lit: true };
+    try { pl = burnTorch(B, u); } finally { u.x = x0; u.y = y0; u.torch = t0; }
+    if (!pl) return null;
+    return { kind: 'item', id: 'barreltorch', score: pl.score * 0.9, why: 'takes a torch from the barrel and' + pl.why.replace(/^throws the torch/, ' throws it'), go: function* () {
+      yield* walk(B, u, spot); if (u.dead || u.hp <= 0 || !D.Battle.besideBarrel(B, u)) return;
+      yield* B.exec(u, { do: 'barreltorch' }); if (!u.torch) return;
+      var th = burnTorch(B, u); if (th) yield* th.go();
+    } };
+  }
+  TX.ACTIONS.push(barrelTorch);
   // the burn on its own: a troll down is no one's blow (foesOf leaves it out), so a turn with it the only foe never reached TX.plans -- the best of the cantrip's burn, the flask's and the torch's,
   // taken if it is worth the action; false when there is none (TX.turn, the empty field)
   TX.burnDown = function* (B, u) {
     var T = u.turn; if (!T || !T.action || T.attacksLeft || u.dead || u.hp <= 0) return false;
-    var bp = [burnSpell(B, u), burnFlask(B, u), burnTorch(B, u)].filter(Boolean).sort(function (a, b) { return b.score - a.score; })[0];
+    var bp = [burnSpell(B, u), burnFlask(B, u), burnTorch(B, u), barrelTorch(B, u)].filter(Boolean).sort(function (a, b) { return b.score - a.score; })[0];
     if (!bp || !(bp.score > 0.5)) return false;
     if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ': ' + bp.why + ' ' + bp.score.toFixed(1));
     yield* bp.go(); return true;

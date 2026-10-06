@@ -118,6 +118,7 @@
     if (!this.o.embed) { var inv0 = this.inv; party.forEach(function (u) { var aid = u.alt && (typeof u.alt === 'string' ? u.alt : u.alt.id); if (u.side === 'party' && u.npc && aid && window.DS.DATA.items[aid] && !inv0.some(function (s) { return s.id === aid; })) inv0.push({ id: aid, n: 1 }); }); } // (the unit's alt is the weapon as the grid reads it: its id)
     this.units.forEach(function (u) { u.anim = 'idle'; u.animT = 0; u.flash = 0; u.reaction = 1; u.conds = u.conds || {}; if (u.hp <= 0 && u.side === 'party') u.ko = true; if (u.hidden0) u.conds.hidden = true; });    G.setup(m, this.units);
     this.ropes = ((m.def && m.def.ropes) || []).map(function (r) { return { at: [r[0], r[1]], foot: [r[2], r[3]], hp: 2, fixed: true }; }); // (a map's ropes; a Rope & Grapple adds its own: grid.js G.ropeOn, exec 'rope')
+    this.torchBarrel = m.def && m.def.torchBarrel ? m.def.torchBarrel.slice() : null; // (the Edifice's barrel of torches by the vault doors: a lit torch for anyone beside it with a hand for one, free, endless -- 10-05 night, Griz; exec 'barreltorch')
     this.ropeBucket = m.def && m.def.ropeBucket ? m.def.ropeBucket.slice() : null; // (Fountain Street's bucket: a Rope & Grapple for anyone beside it, free, one a turn, endless -- 10-04 night, Griz; exec 'bucketrope')
     this.passages = ((m.def && m.def.passages) || []).map(function (p) { return { at: [p[0], p[1]], to: [p[2], p[3]], name: p[4] || 'the door' }; }); // (a door and its far side: the Edifice's vault to the roof -- 10-04 night, Griz: "Front doors possible?"; exec 'passage')
     // shut unless the fight opens them (Griz, 10-04 night: "that works, but turned off by default"): the fight's `passages: true`, the battle's option, the 8-bit's embed, or `&doors` on the URL
@@ -1034,6 +1035,7 @@
     out.push({ id: 'search', label: 'SEARCH', cost: 'A', ok: T.action > 0 && !T.attacksLeft, note: 'a Perception check against anyone hiding in sight, all round you' }); // (SRD 5.1 Search; 10-04)
     // TAKE THE ROPE (10-04 night, Griz: "if one clicks on a square where a grapple is they should be able to take it"): a rope fixed on this square or one beside it, up top, nobody on it -- coiled back into the pack for the action
     var rpN = Battle.ropeNear(this, u); if (rpN) { var tkN = Battle.canTakeRope(this, u, rpN); out.push({ id: 'takerope', label: 'TAKE THE ROPE', cost: 'A', ok: tkN.ok, why: tkN.why, icon: 'item', note: 'coil the rope and its grapple back into the pack (an object used: the action)' }); }
+    if (this.torchBarrel && Battle.besideBarrel(this, u)) out.push({ id: 'barreltorch', label: 'TAKE A TORCH', cost: 'F', icon: 'torch', ok: !u.torch && !T.freeObj && Lt.handForLight(u) && !(u.hang && G.hanging(u)), why: u.torch ? 'a light in hand already' : T.freeObj ? 'the free hand on an object is spent this turn' : !Lt.handForLight(u) ? Lt.handsWhy(u) : 'not while hanging', note: 'a lit torch out of the barrel: free, and there is always another' }); // (10-05 night)
     if (this.ropeBucket && Battle.besideBucket(this, u)) out.push({ id: 'bucketrope', label: 'TAKE A ROPE', cost: 'F', ok: !T.tookRope && !u.guest, why: T.tookRope ? 'one a turn' : 'a guest keeps its hands to itself', icon: 'item', note: 'a Rope & Grapple out of the bucket: free, one a turn, and there is always another' }); // (10-04 night)
     var psgN = Battle.passageAt(this, u.x, u.y); if (psgN) { var occN = G.occupant(psgN.dest[0], psgN.dest[1]), halfN = Math.floor(u.speed / 2); out.push({ id: 'passage', label: psgN.inward ? 'GO IN' : 'COME OUT', cost: 'M', ok: T.move >= halfN && !occN && !u.conds.restrained && (u.size || 1) === 1, why: occN ? 'someone stands at the other end' : T.move < halfN ? 'half the speed at least (' + halfN + ' ft)' : u.conds.restrained ? 'held fast' : 'too big for the door', icon: 'move', note: 'through ' + psgN.name + (psgN.inward ? ' and up the stair inside, out onto the roof' : ' and down the stair, out onto the street') + ': the rest of this turn\'s movement' }); } // (a passage: Battle.passageAt, 10-04 night)
     // Help (the attack kind) only with a foe beside you (Griz, 09-27) -- and on a friend beside you who needs a hand (10-01c, Griz: "repurpose the help action to
@@ -1129,6 +1131,9 @@
   };
   // the rope bucket (10-04 night, Griz: "there should be a bucket by one of the fountain street houses that is an endless supply of rope and grapple while on the map"): a map's
   // `ropeBucket: [x, y]` (its square a crate, 'k'); anyone of ours beside it takes a Rope & Grapple out of it for nothing -- an object interaction, one a turn -- and it is never empty
+  // the torch barrel (10-05 night, Griz: "Should we add a torch barrel like the rope barrel?" -- "1 barrel yes 2 barrel yes", the barrel the answer to Pyro's "Torch him!"): a map's
+  // `torchBarrel: [x, y]` (its square a crate, 'k'); anyone beside it with a hand for a light takes a torch out, lit at the door's lamp -- the turn's free object -- and it is never empty
+  Battle.besideBarrel = function (B, u) { var b = B && B.torchBarrel; return !!(b && Math.max(Math.abs(u.x - b[0]), Math.abs(u.y - b[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(b[0], b[1])) <= G.map.def.step); };
   Battle.besideBucket = function (B, u) { var b = B && B.ropeBucket; return !!(b && Math.max(Math.abs(u.x - b[0]), Math.abs(u.y - b[1])) <= 1 && Math.abs(G.gzAt(u, u.x, u.y) - G.map.gz(b[0], b[1])) <= G.map.def.step); };
   function canCut0(B, u, r) {
     var T = u.turn || {}, h = Battle.ropeHanger(B, r); if (!h || !G.hostile(u, h)) return null;
@@ -1341,6 +1346,13 @@
         this.keepInView(u); yield 12;
         if (u.hp > 0 && !u.dead) { this.lostCover(u); if (RU.canAct(u)) this.findsHidden(u); }
         return;
+      }
+      case 'barreltorch': { // a lit torch out of the barrel by the vault doors (10-05 night, Griz: "barrel yes"): the turn's free object, a hand for it, never the last
+        if (!this.torchBarrel || !Battle.besideBarrel(this, u) || u.torch || T.freeObj || !D.light.handForLight(u) || (u.hang && G.hanging(u))) return;
+        T.freeObj = true; u.facing = D.spr.facingFor(this.torchBarrel[0] - u.x, this.torchBarrel[1] - u.y); u.anim = 'attack'; u.animT = this.t; yield 8;
+        u.torch = { lit: true }; D.light.regrip(u); D.sfx('fire');
+        this.card(['{y}' + nameOf(u) + '{/} takes a torch from the barrel and lights it at the door\'s lamp.  {g}(there is always another){/}'], 220);
+        u.anim = 'idle'; yield 12; return;
       }
       case 'bucketrope': { // a Rope & Grapple out of Fountain Street's bucket (10-04 night, Griz): free, one a turn, never the last
         if (!this.ropeBucket || !Battle.besideBucket(this, u) || T.tookRope || u.guest) return;

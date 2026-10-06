@@ -11,7 +11,7 @@
    for a beat that did not show). A show, not a rule: no fight reads this file, and the pins are the show's battle's only.
    The beats, as the fight stands tonight: Hallvör's own lane (tonight) · under a climber, and the giant comes down on the one under (the cushion, the split dice, both
    flat) · the Shove · Steinarr's rock at the edge and the Dunking Booth · the whistle, her call (the clip, tonight) and the spiders · a spider down the face to a climber on a
-   rope · a troll at 0 that knits, then Pyro's flask, "Torch him!", and a torch thrown at it (the card's new words, tonight) · only Shatter touches the glass · Pyro's handaxe
+   rope · a troll at 0 that knits, then Pyro's flask, "Torch him!", and a torch from the barrel by the doors thrown at it (the barrel and the card's new words, tonight) · the class AI to the barrel by itself (tonight) · only Shatter touches the glass · Pyro's handaxe
    and its return · READY ends the turn (tonight). */
 'use strict';
 (function () {
@@ -189,9 +189,9 @@
           var lg = logFrom(n), onFace = !!(C.sp1.hang && C.sp1.hang.face && G.hanging(C.sp1)), bit = /> Lymen\s+Bite/.test(lg);
           return [onFace && bit, 'the spider on the face ' + onFace + (onFace ? ' (' + ftUp(C.sp1) + ' ft up)' : '') + ', the bite ' + bit];
         } },
-      { id: 'troll', name: 'A troll at 0, Pyro\'s flask, and the torch', what: 'A troll knocked to 0 knits at its turn. Down again: Pyro\'s own flask at it, "Torch him!" -- then Barley throws a torch at it (the card\'s new words: it lands at its feet). The oil burns 5 more, it burned, and at its turn it does not knit. Pinned: every d20 15.',
+      { id: 'troll', name: 'A troll at 0, Pyro\'s flask, and the torch', what: 'A troll knocked to 0 knits at its turn. Down again: Pyro\'s own flask at it, "Torch him!" -- then Barley takes a torch from the barrel by the doors and throws it (the card\'s new words: it lands at its feet). The oil burns 5 more, it burned, and at its turn it does not knit. Pinned: every d20 15.',
         run: function* () {
-          stage([[C.troll, 27, 21], [C.pyro, 29, 20], [C.barley, 26, 21]], 7);
+          stage([[C.troll, 29, 20], [C.pyro, 31, 21], [C.barley, 32, 17]], 7); // (Barley beside the torch barrel, by the vault doors' east leaf)
           var n = (B.log || []).length; B.focus(C.troll);
           B.hurt(C.troll, C.troll.hp + (C.troll.temp || 0), 'slashing', {}); yield W(40);
           var down1 = !!C.troll.regenDown;
@@ -201,13 +201,24 @@
           RU.startTurn(C.pyro); C.pyro.ownFlask = 1; setPin(15, null);
           yield* turnOf(C.pyro); setPin(null, null);
           var oiled = !!(C.troll.conds && C.troll.conds.oiled), called = /Torch him!/.test(logFrom(n));
-          B.active = C.barley; RU.startTurn(C.barley); B.focus(C.barley); C.barley.torch = { lit: true }; if (D.light && D.light.regrip) D.light.regrip(C.barley);
+          B.active = C.barley; RU.startTurn(C.barley); B.focus(C.barley);
+          var ring = B.commands(C.barley).some(function (c) { return c.id === 'barreltorch' && c.ok; });
+          yield* fire(B.exec(C.barley, { do: 'barreltorch' })); var took = ring && !!C.barley.torch; yield W(20);
           setPin(15, null); yield* fire(B.exec(C.barley, { do: 'throwtorch', x: C.troll.x, y: C.troll.y })); setPin(null, null); B.active = null; yield W(30);
           var burned = !!C.troll.burned;
           yield* turnOf(C.troll);
           var lg = logFrom(n);
-          return [down1 && knit && called && oiled && burned && !!C.troll.dead && /lands at its feet/.test(lg),
-            'down ' + down1 + ', knit ' + knit + '; "Torch him!" ' + called + ', oiled ' + oiled + '; the torch: burned ' + burned + ', its words ' + /lands at its feet/.test(lg) + '; dead ' + !!C.troll.dead];
+          return [down1 && knit && called && oiled && took && burned && !!C.troll.dead && /lands at its feet/.test(lg),
+            'down ' + down1 + ', knit ' + knit + '; "Torch him!" ' + called + ', oiled ' + oiled + '; a torch from the barrel ' + took + ', burned ' + burned + ', its words ' + /lands at its feet/.test(lg) + '; dead ' + !!C.troll.dead];
+        } },
+      { id: 'barrel', name: 'The torch barrel, by the class AI', what: 'Tonight: the barrel by the vault doors. A troll lies at 0 and nobody has fire: Barley, run by the class AI, walks to the barrel, takes a torch (free) and throws it. Pinned: every d20 15.',
+        run: function* () {
+          stage([[C.troll, 27, 21], [C.barley, 34, 20]], 8);
+          B.hurt(C.troll, C.troll.hp + (C.troll.temp || 0), 'slashing', {}); yield W(30);
+          var n = (B.log || []).length, ai0 = C.barley.classAI; C.barley.classAI = true; setPin(15, null);
+          try { yield* turnOf(C.barley); } finally { C.barley.classAI = ai0; setPin(null, null); }
+          var lg = logFrom(n), took = /takes a torch from the barrel/.test(lg), threw = /throws the torch/.test(lg);
+          return [took && threw && !!C.troll.burned, 'to the barrel and a torch ' + took + ', thrown ' + threw + ', the troll burned ' + !!C.troll.burned];
         } },
       { id: 'glass', name: 'Only Shatter touches the glass', what: 'Aurdin on the roof: Fire Bolt will not take the skylight (no aimed spell does); Shatter\'s thunder does, the glass making no save. Pinned: Shatter\'s dice at their top (the glass shrugs off anything under 8).',
         run: function* () {
