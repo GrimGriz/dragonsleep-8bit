@@ -44,12 +44,6 @@
     'eyes-show': { pri: 3, group: G3, title: 'The test ground: every row of a creature', pt: 'eyes §2.5',
       url: 'deep16/?show=grick',
       look: 'Every row of the grick\'s sheet, twice, in bright, dim and dark. Change the end of the address to roper or xorn for theirs.' },
-    'eyes-react8': { pri: 3, group: G3, title: 'The 8-bit\'s reaction asks', pt: 'eyes §2.1',
-      url: '?round6',
-      look: 'No door sets these up yet; watch for them in any 8-bit fight: "begins to cast ..." then COUNTERSPELL?, a rebuke ask, the decline (LET IT LAND / LET IT GO), the Bandit Captain\'s Parry, a cloud ending with its caster\'s concentration. The ask\'s box wraps a long name.' },
-    'eyes-road': { pri: 3, group: G3, title: 'The road\'s things in motion', pt: 'eyes §2.6',
-      url: '?round6',
-      look: 'Whenever they come up: the Globe\'s swell and fall; HELP on a friend; sleep\'s prone and the set-down lantern; the druid\'s smack; Kat\'s ink; a sheet greyed for who can\'t learn it; Gudrun\'s stores; Dace both ways and Wynn\'s send-home; the 8-bit\'s laughter, grease and images; arrows running out.' },
     'eyes-pads': { pri: 3, group: G3, title: 'A game pad', pt: 'eyes §2.9 · the Pocket DM and the races §2.15',
       url: 'deep16/?npc=goblin,goblin&lvl=3',
       look: 'With an Xbox or PlayStation pad: the right stick zooms, left-right brings up the wheel and runs it, the left stick moves the cursor; A confirm, B back, Y end turn. (A key or a click first: the browser won\'t start the sound for a pad press.)' }

@@ -173,6 +173,8 @@
     it.classList.toggle('noted', noted(id)); saveFB();
   });
   function stamp() { return new Date().toISOString().slice(0, 10); }
+  // the save's name carries the time (10-06: a day-only name let his 14:29Z save replace his 08:44Z one in play-records/; the Pocket DM's files carry it)
+  function stampT() { var d = new Date(), p = function (n) { return (n < 10 ? '0' : '') + n; }; return stamp() + '-' + p(d.getUTCHours()) + p(d.getUTCMinutes()) + 'Z'; }
   function notedRows() { return ROWS.filter(function (r) { return noted(r.id); }); }
   function feedbackText() {
     var rs = notedRows();
@@ -189,10 +191,15 @@
   document.getElementById('savefb').addEventListener('click', function () {
     var rs = notedRows();
     if (!rs.length) { toast('Nothing noted yet'); return; }
-    var out = { _readme: { what: 'Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).', fold_back: 'An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js. Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester\'s words, verbatim.' },
-      saved_at: new Date().toISOString(), items: rs.map(function (r) { var f = FB[r.id]; return { id: r.id, eyes: r.eyes, pri: r.pri, title: r.s.title, pt: r.s.pt, url: r.s.url || ('?at=' + r.id), verdict: f.v || '', note: f.note || '', at: f.at || '' }; }) };
+    // every Save writes every note still on the device, so the file names the save before it (previous_save): a folding seat folds only the
+    // notes newer than that (each note's `at`) -- 10-06, his 10-04 verdicts went out again in his 14:29Z file and could have been folded twice
+    var prev = get('dsl-situations-lastsave') || null, now = new Date().toISOString();
+    var out = { _readme: { what: 'Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).', fold_back: 'Fold only the items whose `at` is after `previous_save` (the rest went out in an earlier file). An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js. Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester\'s words, verbatim.' },
+      saved_at: now, previous_save: prev, items: rs.map(function (r) { var f = FB[r.id]; return { id: r.id, eyes: r.eyes, pri: r.pri, title: r.s.title, pt: r.s.pt, url: r.s.url || ('?at=' + r.id), verdict: f.v || '', note: f.note || '', at: f.at || '', new_since_last_save: !prev || (f.at || '') > prev }; }) };
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }));
-    a.download = 'situations-ear-file-' + stamp() + '.json'; document.body.appendChild(a); a.click(); a.remove();
+    a.download = 'situations-ear-file-' + stampT() + '.json'; document.body.appendChild(a); a.click(); a.remove();
+    put('dsl-situations-lastsave', now);
+    toast('Saved ' + rs.length + ' (' + out.items.filter(function (i) { return i.new_since_last_save; }).length + ' new since your last save) -- put it in play-records/');
   });
   document.getElementById('clearfb').addEventListener('click', function () {
     if (!window.confirm('Wipe every note and verdict on this device?')) return;
