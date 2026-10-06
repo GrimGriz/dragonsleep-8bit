@@ -422,7 +422,7 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
   DM's seats and short rest -- as `js/familiar.js` wraps. The class code it touches: one line each where Confusion's turn is taken
   (`ai.js`, `battle.js`: DOMINATED), where the Ring of Binding turns a brute (`ai.js`: TAUNTED) and the class AI's `foesOf` (`tactics.js`),
   and the one-shot rows (`ui.js`). The Pocket DM's maker does not offer it (its classes are NPC.CLASSES').
-- **THE SPECIALS:** 2 a fight, shared, back on a short rest (MP's "2 specials per encounter" as it stands).
+- **THE SPECIALS:** a pool a fight, shared, back on a short rest: 1 at 1st, 2 at 3rd, 3 at 5th, 4 at 7th, 5 at 9th (MP's "2 specials per encounter" grown with the level; RULED 10-06, Griz: *"3 at level 5, 4 at 7, 5 at 9 down to 1 move at lvl 1"*).
 - **DENNY**, a Lobstamonkee (climbs 30): MONKEY FISTS (1d6 + STR, 1d8 with both hands free), AC 14 in his denim jacket, d10.
   TAUNT -- his swings (+1d6 on the first that lands, 2d6 at 5th, 3d6 at 9th); then the one he swung at and up to his proficiency
   bonus more within 15 ft save WIS (8 + prof + STR) or are TAUNTED till their turn ends: the AI goes only at him when it can, and anyone

@@ -42,7 +42,7 @@
       u.maxhp = hp || (o ? o.maxhp : u.maxhp); u.hp = u.maxhp; u.temp = 0; u.conds = {}; u.dead = false; u.ko = false;
       ['tween', 'ready', 'conc'].forEach(function (k) { delete u[k]; });
       u.reaction = 1; u.anim = 'idle'; u.animT = B.t; u.flash = 0;
-      if (u.mpmon) u.feats.specials = MP.SPECIALS;
+      if (u.mpmon) u.feats.specials = MP.specialsAt(u.lvl);
     }
     function free(u, x, y) { return G.canStand(u, x, y) && !B.units.some(function (w) { return w !== u && !w.dead && w.x === x && w.y === y; }); }
     function spot(u, x, y) { for (var r = 0; r < 8; r++) for (var dy = -r; dy <= r; dy++) for (var dx = -r; dx <= r; dx++) { if (Math.max(Math.abs(dx), Math.abs(dy)) !== r) continue; if (free(u, x + dx, y + dy)) return [x + dx, y + dy]; } return [x, y]; }

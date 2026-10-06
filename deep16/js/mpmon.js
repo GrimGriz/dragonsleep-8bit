@@ -12,7 +12,8 @@
      DENNY, a Lobstamonkee: climbs; MONKEY FISTS; TAUNT and DENIM DAMAGE; at 5, Extra Attack and CANNONBALL.
      BEHOLDA, an EyeGregore: hovers, sees 120 ft in the dark, has no hands; DICE SLAM (her dice swung on her will, WIS);
        the VNA BUBBLE and BALEFUL GAZE; at 5, the BIG SCREEN (the projection, a cone).
-   THE SPECIALS: 2 a fight, shared, back on a short rest (MP's "2 specials per encounter" as it stands). Rascal and Goose
+   THE SPECIALS: a pool a fight, shared, back on a short rest -- 1 at 1st, one more every two levels: 2 at 3rd, 3 at 5th, 4 at 7th, 5 at 9th
+   (MP's "2 specials per encounter" grown with the level, RULED 10-06, Griz: "3 at level 5, 4 at 7, 5 at 9 down to 1 move at lvl 1"). Rascal and Goose
    are two more builds the day they are wanted. */
 'use strict';
 (function () {
@@ -27,7 +28,8 @@
   // (cast 'wis': the spell DC the unit carries is 8 + prof + WIS, Beholda's gaze; Denny's DCs are his STR's, below. hd: the Pocket DM's short
   // rest rolls the class's die -- a d10 for both; Beholda's own hit points are a d8's)
   R.CLASSES.mpmon = { name: 'MP Monster', hd: 10, saves: ['con', 'wis'], armor: [], weapons: ['natural'], primary: 'str', cast: 'wis', asi: {} };
-  MP.SPECIALS = 2;
+  // THE SPECIALS by level (RULED 10-06, Griz: "3 at level 5, 4 at 7, 5 at 9 down to 1 move at lvl 1"): one more every two levels
+  MP.specialsAt = function (L) { return Math.max(1, Math.floor(((L || 1) + 1) / 2)); };
   MP.KINDS = {
     lobstamonkee: { name: 'Lobstamonkee', speed: 30, climbs: true, type: 'humanoid' }, // (Griz's spelling, 10-06; MP's docs write lobstamonkey)
     eyegregore: { name: 'EyeGregore', speed: 25, flies: true, dv: 120, noHands: true, type: 'aberration' } // (his name for her kind, 10-06: the book's beholder is not in the SRD)
@@ -57,7 +59,7 @@
     var con = mod(abil.con), hp = b.hd + con + (lvl - 1) * (b.hd / 2 + 1 + con);
     var h = {
       id: spec.id || spec.build, name: spec.name || b.name, cls: 'mpmon', build: spec.build, lvl: lvl, xp: R.XP_LEVEL[lvl], base: JSON.parse(JSON.stringify(abil)), abil: abil,
-      maxhp: hp, hp: hp, equip: { weapon: b.weapon, armor: b.armor, shield: null, ring: null, cloak: null }, known: [], feats: { specials: MP.SPECIALS }, conds: {},
+      maxhp: hp, hp: hp, equip: { weapon: b.weapon, armor: b.armor, shield: null, ring: null, cloak: null }, known: [], feats: { specials: MP.specialsAt(lvl) }, conds: {},
       subclass: b.name, saveProf: b.saves.slice(), style: null, skills: {}, expertise: [], race: b.kind, npc: true, named: true, alt: null, slots: [], slotsMax: [],
       attacks: b.extraAttack && lvl >= b.extraAttack ? 2 : 1
     };
@@ -473,7 +475,7 @@
   if (PK && PK.shortRest) {
     var rest0 = PK.shortRest; PK.shortRest = function (c) {
       var r = rest0.apply(this, arguments);
-      if (c && c.cls === 'mpmon') { var f = c.feats = c.feats || {}; if (!(f.specials >= MP.SPECIALS)) r.text += '; the specials back'; f.specials = MP.SPECIALS; }
+      if (c && c.cls === 'mpmon') { var f = c.feats = c.feats || {}; if (!(f.specials >= MP.specialsAt(c.lvl))) r.text += '; the specials back'; f.specials = MP.specialsAt(c.lvl); }
       return r;
     };
   }

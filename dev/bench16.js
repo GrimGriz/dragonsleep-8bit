@@ -3024,7 +3024,7 @@
       [['denny', 1, 13, 14, 5], ['denny', 4, 40, 14, 6], ['denny', 9, 85, 14, 9], ['beholda', 1, 10, 14, 5], ['beholda', 4, 31, 14, 6], ['beholda', 9, 66, 14, 9]].forEach(function (r) {
         var u = D.npc.build(r[0] + ':' + r[1], r[1], 'party', { id: r[0] + r[1] });
         rowsM.push(r[0] + ':' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' +' + u.weapon.atk + ' ' + u.weapon.dice + '+' + u.weapon.mod + ' x' + u.attacksBase + ' ' + u.feats.specials + 'sp');
-        okM(r[0] + ':' + r[1] + ': HP ' + u.maxhp + ' (want ' + r[2] + '), AC ' + u.baseAC + ' (' + r[3] + '), to hit +' + u.weapon.atk + ' (' + r[4] + '), 2 specials', u.maxhp === r[2] && u.baseAC === r[3] && u.weapon.atk === r[4] && u.feats.specials === 2);
+        okM(r[0] + ':' + r[1] + ': HP ' + u.maxhp + ' (want ' + r[2] + '), AC ' + u.baseAC + ' (' + r[3] + '), to hit +' + u.weapon.atk + ' (' + r[4] + '), specials ' + u.feats.specials + ' (' + Math.floor((r[1] + 1) / 2) + ')', u.maxhp === r[2] && u.baseAC === r[3] && u.weapon.atk === r[4] && u.feats.specials === Math.floor((r[1] + 1) / 2));
       });
       var d5 = D.npc.build('denny:5', 5, 'party', { id: 'd5' }), b5 = D.npc.build('beholda:5', 5, 'party', { id: 'b5' });
       okM('Denny at 5: two swings, Monkey Fists ' + d5.weapon.dice + ' (both hands free: 1d8), climbs ' + !!d5.climbs + ', speed ' + d5.speed, d5.attacksBase === 2 && d5.weapon.dice === '1d8' && d5.climbs && d5.speed === 30);
@@ -3092,7 +3092,7 @@
       okM('the ring: Denny ' + c0.map(function (c) { return c.label + (c.ok ? '' : '(x)'); }).join(', ') + ' | Beholda ' + c1.map(function (c) { return c.label + (c.ok ? '' : '(x)'); }).join(', '),
         c0.length === 3 && c1.length === 3 && c0.every(function (c) { return c.ok; }) && c1.every(function (c) { return c.ok; }));
       pin(2, 'max'); runM(FM.exec(B7, p7[1], { do: 'mp-gaze' }), 1); D.d = dM;
-      okM('BALEFUL GAZE from the ring: the goblin ' + (g7.dead ? 'falls' : g7.hp + ' hp') + ', ' + p7[1].feats.specials + ' special left', p7[1].feats.specials === 1 && (g7.dead || g7.hp < g7.maxhp));
+      okM('BALEFUL GAZE from the ring: the goblin ' + (g7.dead ? 'falls' : g7.hp + ' hp') + ', ' + p7[1].feats.specials + ' special left', p7[1].feats.specials === 2 && (g7.dead || g7.hp < g7.maxhp));
       p7[0].feats.specials = 0; RUM.startTurn(p7[0]);
       var gone = FM.commands(B7, p7[0]).filter(function (c) { return /^mp-/.test(c.id); });
       okM('none left: greyed and why (' + (gone[0] && gone[0].why) + ')', gone.every(function (c) { return !c.ok && /short rest/.test(c.why); }));
@@ -3102,7 +3102,7 @@
       // the Pocket DM: two seats on its roster, the specials back on its short rest
       var PKM = D.pocket, seats = PKM.STOCK.map(function (s) { return s.w; });
       var c8 = { cls: 'mpmon', lvl: 5, hp: 10, maxhp: 50, con: 2, feats: { specials: 0 } }, r8 = PKM.shortRest(c8, 0, false, function () { return 0.5; });
-      okM('the Pocket DM: seats ' + seats.slice(-4).join(', ') + '; its short rest: ' + r8.text + ' (specials ' + c8.feats.specials + ')', seats.indexOf('denny') >= 0 && seats.indexOf('beholda') >= 0 && c8.feats.specials === 2);
+      okM('the Pocket DM: seats ' + seats.slice(-4).join(', ') + '; its short rest: ' + r8.text + ' (specials ' + c8.feats.specials + ')', seats.indexOf('denny') >= 0 && seats.indexOf('beholda') >= 0 && c8.feats.specials === 3);
 
       // a whole fight, the class AI on both sides: no error, and the specials spent
       var B9 = mkB(['denny:5', 'beholda:5'], ['goblin', 'goblin', 'hobgoblin', 'hobgoblin'], 5), it9 = 0, st9;
