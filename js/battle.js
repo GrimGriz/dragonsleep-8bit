@@ -29,7 +29,7 @@
   function pfegStops(t, f, cond) { return !!(t && t.conds.pfeg && f && otherworld(f) && /frightened|charmed/.test(cond || '')) || devotionStops(t, cond); }
   // Aura of Devotion (paladin 7; the Oath of Devotion is the 8-bit's one oath, R.oathSpells): while he stands the party can't be charmed
   var cur = null; // (the battle running: Battle() sets it)
-  function devotionStops(t, cond) { return !!(cur && t && isHero(t) && cond === 'charmed' && cur.heroes.some(function (x) { return !x.guest && x.h.cls === 'paladin' && x.h.lvl >= 7 && !down(x); })); }
+  function devotionStops(t, cond) { return !!(cur && t && isHero(t) && cond === 'charmed' && cur.heroes.some(function (x) { return !x.guest && x.h.cls === 'paladin' && x.h.lvl >= 7 && !down(x) && !x.conds.asleep; })); } // (an aura needs him conscious, and asleep is unconscious -- SRD 5.1 Sleep; 10-06, the story-and-the-pocket-dm handoff)
   // the minute's spells running out (09-28g): what the card says as each goes
   var END_TEXT = { spiritWeapon: "'s spiritual weapon fades.", magicWeapon: "'s weapon is plain steel again.", branding: "'s waiting light goes out.",
     pfeg: "'s ward against the otherworldly fades.", sanctuary: "'s sanctuary fades.",
@@ -214,7 +214,7 @@
   };
   // Aura of Protection (paladin 6): while he stands, the party adds his CHA to saves
   Battle.prototype.aura = function () {
-    var p = this.heroes.filter(function (x) { return !x.guest && x.h.cls === 'paladin' && x.h.lvl >= 6 && !down(x); })[0];
+    var p = this.heroes.filter(function (x) { return !x.guest && x.h.cls === 'paladin' && x.h.lvl >= 6 && !down(x) && !x.conds.asleep; })[0]; // (conscious: asleep is unconscious, SRD 5.1; 10-06)
     return p ? Math.max(1, DS.mod(p.h.abil.cha)) : 0;
   };
   Battle.prototype.saveMod = function (u, ab) {
@@ -228,6 +228,7 @@
     var adv = 0;
     if (opt.poison && u.conds.antitoxin) adv++;
     if (opt.adv) adv++; // (a save the rule itself gives advantage: Hideous Laughter's when hurt)
+    if (opt.dis) adv--; // (a save the rule itself gives disadvantage: Shatter's on a creature of stone, crystal or metal -- SRD 5.1; 10-06)
     if (ab === 'dex' && (u.conds.restrained)) adv--;
     if ((ab === 'str' || ab === 'dex') && failsStrDex(u)) return { total: 0, nat: 1, success: false };
     var r1 = DS.d(20), r2 = DS.d(20), nat = adv > 0 ? Math.max(r1, r2) : adv < 0 ? Math.min(r1, r2) : r1;
@@ -251,9 +252,11 @@
     var eyeT = this.lit && !isHero(t) && t.m.traits && t.m.traits.mirrorEye, eyeA = this.lit && !isHero(a) && a.m.traits && a.m.traits.mirrorEye;
     // the snake's caster senses the hidden and the unseen (RULED 09-30; no ranges here, so always): as if he had See Invisible (js/familiar.js)
     var famSees = isHero(a) && !!(DS.famPerk && DS.famPerk(a.h.id, 'senseHidden'));
-    if (a.conds.hidden && !eyeT) adv++;
-    if (a.conds.invisible && !eyeT) adv++;
-    if (t.conds.invisible && !a.conds.seeInvisible && !eyeA && !famSees) dis++;
+    // (Faerie Fire, the drow captain's: an outlined creature draws advantage and gains nothing from hiding or being invisible -- SRD 5.1; 10-06)
+    if (a.conds.hidden && !eyeT && !a.conds.outlined) adv++;
+    if (a.conds.invisible && !eyeT && !a.conds.outlined) adv++;
+    if (t.conds.invisible && !a.conds.seeInvisible && !eyeA && !famSees && !t.conds.outlined) dis++;
+    if (t.conds.outlined && !a.conds.blinded) adv++;
     if (t.conds.pfeg && otherworld(a)) dis++; // Protection from Evil and Good (SRD 5.1; 09-28g)
     if (this.blindTo(a) && typeof R.BLIND !== 'number') dis++; // shooting blind: the SRD's disadvantage (the -4 is the other switch)
     if (this.dark && !this.lit && this.seesDark(a) && !this.seesDark(t)) adv++; // unseen attacker (SRD): the one who sees in the dark on the one who does not
@@ -288,7 +291,8 @@
         if (m.traits && m.traits.split && (type === 'slashing' || type === 'lightning') && u.hp >= 10 && this.foes.length < 8) this.splitFoe(u);
         return 0;
       }
-      if (m.resist && (m.resist.indexOf(type) >= 0 || (m.resist.indexOf('mundane') >= 0 && /bludgeoning|piercing|slashing/.test(type) && !(from && from.magicWeapon)))) n = Math.floor(n / 2);
+      // ('mundaneps': piercing and slashing only, the xorn's -- SRD 5.1 "piercing and slashing from nonmagical attacks that aren't adamantine"; the grid's name for it, deep16/js/battle.js; 10-06)
+      if (m.resist && (m.resist.indexOf(type) >= 0 || (m.resist.indexOf('mundane') >= 0 && /bludgeoning|piercing|slashing/.test(type) && !(from && from.magicWeapon)) || (m.resist.indexOf('mundaneps') >= 0 && /piercing|slashing/.test(type) && !(from && from.magicWeapon)))) n = Math.floor(n / 2);
       if (m.vuln && m.vuln.indexOf(type) >= 0) n *= 2;
       if (m.traits && m.traits.regen && (type === 'fire' || type === 'acid') && n > 0) u.burned = true; // a troll doesn't grow back what burned
       if (u.conds.raging && /bludgeoning|piercing|slashing/.test(type)) n = Math.floor(n / 2);
@@ -561,7 +565,8 @@
     // concentration (10-03): what the spell laid keeps its own clock; once none of it is left the caster is free, and the minute's end takes the rest (the lights)
     if (u.conc && !this.concLive(u)) delete u.conc;
     else if (u.conc && --u.conc.rounds <= 0) { var cn = u.conc.name, cg = this.dropConc(u); msgs.push(plain(u) + "'s " + cn + ' has run its minute.'); msgs = msgs.concat(cg); }
-    if (this.cloud && isHero(u) && !u.guest && --this.cloud.rounds <= 0) { msgs.push(this.cloud.kind === 'fog' ? 'The fog thins and is gone.' : this.cloud.kind === 'stink' ? 'The yellow cloud drifts apart.' : 'The sleet stops.'); this.cloud = null; }
+    // (a cloud's ten rounds are its caster's ten turns, not every hero's turn ending: 10-06, the story-and-the-pocket-dm handoff)
+    if (this.cloud && isHero(u) && u.h && u.h.id === this.cloud.by && --this.cloud.rounds <= 0) { msgs.push(this.cloud.kind === 'fog' ? 'The fog thins and is gone.' : this.cloud.kind === 'stink' ? 'The yellow cloud drifts apart.' : 'The sleet stops.'); this.cloud = null; }
     for (var i = 0; i < msgs.length; i++) yield* this.say(msgs[i], 34);
   };
 
@@ -691,7 +696,7 @@
   // can u see w? (no light and no darkvision; the unseen; blinded)
   Battle.prototype.sees = function (u, w) {
     if (u.conds.blinded || this.blindTo(u)) return false;
-    if (w.conds.invisible && !u.conds.seeInvisible && !(isHero(u) && DS.famPerk && DS.famPerk(u.h.id, 'senseHidden')) && !(this.lit && !isHero(u) && u.m.traits && u.m.traits.mirrorEye)) return false;
+    if (w.conds.invisible && !w.conds.outlined && !u.conds.seeInvisible && !(isHero(u) && DS.famPerk && DS.famPerk(u.h.id, 'senseHidden')) && !(this.lit && !isHero(u) && u.m.traits && u.m.traits.mirrorEye)) return false;
     return true;
   };
   Battle.prototype.askReact = function* (u, title, items) {
@@ -1002,7 +1007,8 @@
 
   // ------------------------------------------------------------------ attacks
   Battle.prototype.heroAttack = function* (u, t, st, smite) {
-    var h = u.h, w = st.w || R.weaponOf(h), n = st.n || R.attacksPerTurn(h), self = this; // (st.w, st.n: a script's own swings -- Pyro's, js/pyro.js)
+    // (st.w, st.n: a script's own swings -- Pyro's, js/pyro.js; a Loading weapon fires one shot an action, however many attacks -- SRD 5.1, 10-06)
+    var h = u.h, w = st.w || R.weaponOf(h), n = st.n || (((w.weapon || {}).props || []).indexOf('loading') >= 0 ? 1 : R.attacksPerTurn(h)), self = this;
     u.pose = 'act'; u.poseT = 999;
     for (var a = 0; a < n && !this.over; a++) {
       if (down(t) || t.conds.ethereal) { var alt = this.liveFoes(); if (!alt.length) break; t = DS.pick(alt); }
@@ -1043,7 +1049,7 @@
         var sn = DS.roll(R.sneakDice(h.lvl), { crit: crit }); dmg += sn; st.sneakUsed = true; extra += ' Sneak Attack!'; sneaked = true;
       }
       if (smite) {
-        rad = DS.roll((1 + smite) + 'd8', { crit: crit });
+        rad = DS.roll(Math.min(5, 1 + smite) + 'd8', { crit: crit }); // (5d8 at the most, SRD 5.1; 10-06)
         if (tags(t).indexOf('undead') >= 0 || tags(t).indexOf('fiend') >= 0) rad += DS.roll('1d8', { crit: crit });
         h.slots[smite - 1]--; smite = 0; extra += ' Divine Smite!';
         this.elemBurst(t, 'radiant');
@@ -1054,7 +1060,7 @@
       if (dis) { rad += DS.roll(dis.dice, { crit: crit }); extra += ' Disruption!'; this.elemBurst(t, 'radiant'); }
       // Branding Smite (09-28g): the waiting light goes into this blow, and the one struck glows (no invisibility on it)
       if (u.conds.branding) { rad += DS.roll(u.conds.branding.dice, { crit: crit }); delete u.conds.branding; t.conds.revealed = true; delete t.conds.invisible; extra += ' Branded!'; this.elemBurst(t, 'radiant'); }
-      var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 || mw > 0 });
+      var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 || mw > 0 || !!w.weapon.magic }); // (a magic weapon with no bonus counts as magic: the Mace of Disruption; 10-06)
       if (rad) dealt += this.hurt(t, rad, 'radiant', {});
       var tImm = function (c) { return !isHero(t) && (t.m.condImmune || []).indexOf(c) >= 0; };
       // disruption: one left at 25 HP or fewer saves WIS 15 or is destroyed; one that saves is frightened of him a round
@@ -1127,7 +1133,7 @@
     if (sk === 'lay') {
       var t = yield* this.pickAlly(function (x) { return true; }); // (the downed too: SRD, RULED 09-28)
       if (!t) return 'cancel';
-      var hasPoison = t.conds.poisoned || t.conds.paralyzed;
+      var hasPoison = !!t.conds.poisoned; // (SRD 5.1: five points neutralize a poison -- not paralysis as such, only the paralysis that rides on the poison; 10-06, the story-and-the-pocket-dm handoff)
       var opts = [{ label: 'HEAL', value: 'heal', disabled: t.h.hp >= t.h.maxhp }, { label: 'CURE POISON (5)', value: 'cure', disabled: f.lay < 5 || !hasPoison }];
       var mode = yield DS.choose({ items: opts, x: 60, y: 110, w: 130, rowH: 11, pad: 7 });
       if (!mode) return 'cancel';
@@ -1136,7 +1142,7 @@
         DS.audio.sfx('heal'); this.elemBurst(t, 'heal', 'rise'); this.num(t, amt, '#58F898');
         yield* this.say(nameOf(u) + ' lays on hands. ' + nameOf(t) + ' +' + amt + ' HP.', 44);
       } else {
-        f.lay -= 5; delete t.conds.poisoned; delete t.conds.paralyzed;
+        f.lay -= 5; delete t.conds.poisoned; Object.keys(t.conds).forEach(function (ck) { var cv = t.conds[ck]; if (cv && cv.linked === 'poisoned') delete t.conds[ck]; }); // (what rides on the poison goes with it -- the crawler's paralysis; a Hold Person's stays, 10-06)
         DS.audio.sfx('heal'); this.elemBurst(t, 'radiant', 'rise');
         yield* this.say(nameOf(u) + ' draws the poison out of ' + nameOf(t) + '.', 48);
       }
@@ -1170,11 +1176,15 @@
     if (sp.id === 'smite') {
       var lv = R.lowestSlot(h, 1);
       if (!lv) { yield* this.say('No spell slots left.', 30); return false; }
-      var choice = lv;
-      if (R.lowestSlot(h, 2)) {
-        var pick = yield DS.choose({ items: [{ label: 'SMITE (L1) 2d8', value: 1, disabled: !h.slots[0] }, { label: 'SMITE (L2) 3d8', value: 2, disabled: !h.slots[1] }], x: 40, y: 100, w: 140, rowH: 11, pad: 7 });
+      // (SRD 5.1: "when you hit a creature with a melee weapon attack" -- a ranged weapon can't carry it; 10-06, the story-and-the-pocket-dm handoff)
+      if (((((st && st.w) || R.weaponOf(h)).weapon || {}).props || []).indexOf('ranged') >= 0) { yield* this.say('Divine Smite needs a melee weapon.', 30); return false; }
+      var choice = lv, smiteLvs = [];
+      // (every slot level 1-5 the paladin has a slot at, 2d8 + 1d8 a level, 5d8 at the most -- the SRD's table; 10-06)
+      for (var sl = 1; sl <= 5; sl++) if ((h.slots || [])[sl - 1] > 0) smiteLvs.push(sl);
+      if (smiteLvs.length > 1) {
+        var pick = yield DS.choose({ items: smiteLvs.map(function (n) { return { label: 'SMITE (L' + n + ') ' + Math.min(5, 1 + n) + 'd8', value: n }; }), x: 40, y: 92, w: 140, rowH: 11, pad: 7 });
         if (!pick) return false; choice = pick;
-      }
+      } else if (smiteLvs.length === 1) choice = smiteLvs[0];
       var t = yield* this.pickFoe();
       if (!t) return false;
       yield* this.heroAttack(u, t, st, choice);
@@ -1339,7 +1349,7 @@
         yield* this.say((darts === 1 ? 'A dart strikes ' : darts + ' darts strike ') + nameOf(t) + ' for ' + dd + '.', 38);
         yield* this.flushMsg();
       } else if (k === 'save') {
-        var s = this.save(t, sp.save, dc, { poison: sp.el === 'poison' });
+        var s = this.save(t, sp.save, dc, { poison: sp.el === 'poison', dis: sp.id === 'shatter' && !!(t.m && t.m.traits && t.m.traits.inorganic) }); // (Shatter: "a creature made of inorganic material such as stone, crystal, or metal has disadvantage on the saving throw" -- the earth elemental's trait `inorganic`; 10-06)
         var potent = sp.level === 0 && h.cls === 'wizard' && h.lvl >= 6; // Potent Cantrip: a save still takes half
         var dexp = sp.level === 0 ? R.cantripDice(sp, h) : sp.dmg;
         var upd = function (e) { return e.replace(/^(\d+)d/, function (m0, nn) { return (parseInt(nn, 10) + up * (sp.upDice || 0)) + 'd'; }); };
@@ -1350,7 +1360,9 @@
         if (dmg2 && !down(t)) dealt += this.hurt(t, dmg2, sp.el2, { magicWeapon: true });
         this.elemBurst(t, sp.el); if (dealt) { t.flash = 12; this.num(t, dealt, '#F8D878'); }
         var line = nameOf(t) + (s.success ? ' resists' : ' is caught') + (dealt ? '. ' + dealt + ' damage.' : '.');
-        if (!s.success && sp.cond && !down(t) && !(t.m && (t.m.condImmune || []).indexOf(sp.cond) >= 0)) {
+        // (SRD 5.1 Hold Monster: "This spell has no effect on undead" -- the slot is spent, the save is moot; 10-06, the story-and-the-pocket-dm handoff)
+        if (sp.id === 'holdmonster' && tags(t)[0] === 'undead') line = nameOf(t) + ' is untouched. Hold Monster has no effect on the dead.';
+        else if (!s.success && sp.cond && !down(t) && !(t.m && (t.m.condImmune || []).indexOf(sp.cond) >= 0)) {
           if ((sp.only && tags(t).indexOf(sp.only) < 0) || (sp.minInt && t.m && t.m.abil && t.m.abil.int < sp.minInt)) line += ' It is not affected.'; // (minInt: Hideous Laughter, INT 4 or less unmoved -- SRD 5.1)
           else { t.conds[sp.cond] = { rounds: sp.rounds || 10, save: sp.repeat ? { ab: sp.save, dc: dc } : null, escape: sp.cond === 'restrained' ? dc : null }; line += ' It is ' + sp.cond + '!'; if (sp.prone && !t.conds.prone) t.conds.prone = true; } // (prone: Hideous Laughter's fall, SRD 5.1 -- 10-01c)
         }
@@ -1504,7 +1516,7 @@
     var engulfed = live.filter(function (u) { return f.holding.indexOf(u) >= 0 && u.conds.engulfed; });
     if (engulfed.length) return engulfed[0];
     var self = this, eye = this.lit && f.m.traits && f.m.traits.mirrorEye; // (the Mirror's eye: a hidden one is as plain as the rest)
-    var weights = live.map(function (u) { var w = [5, 4, 3, 2][u.idx] || 1; if (u.h.wounded) w = 6; if (u.conds.hidden && !eye) w *= 0.3; return { u: u, w: w }; }); // the wounded draw them
+    var weights = live.map(function (u) { var w = [5, 4, 3, 2][u.idx] || 1; if (u.h.wounded) w = 6; if (u.conds.hidden && !eye && !u.conds.outlined) w *= 0.3; return { u: u, w: w }; }); // the wounded draw them
     return DS.weighted(weights).u;
   };
   Battle.prototype.foeTurn = function* (f) {
@@ -1552,7 +1564,7 @@
     if (sp) { yield* this.special(f, sp); return; }
     var routine = m.multi || [Object.keys(m.attacks)[0]];
     if (m.choose) routine = DS.pick(m.choose);
-    if (f.conds.raging && m.traits && m.traits.reckless) f.conds.reckless = { rounds: 1 };
+    if (m.traits && m.traits.reckless && (f.conds.raging || !m.traits.rageOnHit)) f.conds.reckless = { rounds: 1 }; // (Reckless: a berserker has no rage of its own to wait on, Talmok's rageOnHit keeps his raging-only; 10-06, the story-and-the-pocket-dm handoff)
     var target = null;
     for (var i = 0; i < routine.length && !this.over; i++) {
       var atk = m.attacks[routine[i]];
@@ -1611,11 +1623,11 @@
     if (f.conds.raging && atk.rage) dmg += atk.rage;
     if (atk.halfHP && f.hp <= f.maxhp / 2) dmg = DS.roll(atk.halfHP, { crit: crit });
     // Uncanny Dodge (rogue 5): the reaction halves a blow from an attacker she can see (10-03: a reaction she spends and is asked for, as the grid's; it was automatic)
-    var dodge = '';
-    if (yield* this.dodgeReact(t, f, dmg)) { dmg = Math.floor(dmg / 2); dodge = ' (uncanny dodge: half)'; }
+    var dodge = '', dodged = false;
+    if (yield* this.dodgeReact(t, f, dmg)) { dmg = Math.floor(dmg / 2); dodge = ' (uncanny dodge: half)'; dodged = true; }
     t.soaked = 0;
     var dealt = this.hurt(t, dmg, atk.type, f);
-    if (atk.extra) dealt += this.hurt(t, DS.roll(atk.extra, { crit: crit }), atk.extraType || atk.type, f);
+    if (atk.extra) { var xd = DS.roll(atk.extra, { crit: crit }); dealt += this.hurt(t, dodged ? Math.floor(xd / 2) : xd, atk.extraType || atk.type, f); } // (SRD 5.1 Uncanny Dodge: "halve the attack's damage against you" -- the extra dice too; 10-06, the story-and-the-pocket-dm handoff)
     if (t.soaked) dodge += ' (heroism takes ' + t.soaked + ')';
     t.pose = 'hurt'; t.poseT = 24; this.shake = crit ? 10 : 5; if (crit) this.flashT = 8;
     DS.audio.sfx(crit ? 'crit' : 'hit');
@@ -1936,8 +1948,9 @@
       if (u.conds.engulfed) { ctx.fillStyle = '#1a1a24'; ctx.fillRect(x - 1, y - 1, 18, 14); }
       if (u.conds.grappled) { ctx.fillStyle = '#b85a3a'; ctx.fillRect(x - 3, y + 12, 3, 4); }
       if (u.conds.restrained && !u.conds.grappled) { ctx.strokeStyle = '#E8E8F0'; ctx.beginPath(); ctx.moveTo(x, y + 6); ctx.lineTo(x + 16, y + 18); ctx.moveTo(x + 16, y + 6); ctx.lineTo(x, y + 18); ctx.stroke(); }
-      if (u.conds.hidden) { ctx.globalAlpha = 0.5; ctx.fillStyle = '#000'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
-      if (u.conds.invisible) { ctx.globalAlpha = 0.6; ctx.fillStyle = '#10123a'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      if (u.conds.hidden && !u.conds.outlined) { ctx.globalAlpha = 0.5; ctx.fillStyle = '#000'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      if (u.conds.invisible && !u.conds.outlined) { ctx.globalAlpha = 0.6; ctx.fillStyle = '#10123a'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      if (u.conds.outlined) { ctx.globalAlpha = 0.5 + 0.25 * Math.sin(DS.frame / 6 + u.idx); ctx.strokeStyle = '#E070F8'; ctx.strokeRect(x - 0.5, y - 0.5, 17, 25); ctx.globalAlpha = 1; } // (Faerie Fire's outline, 10-06)
       if (u.conds.stoneskin && ((DS.frame >> 3) & 1)) { ctx.fillStyle = '#9a9aa8'; ctx.fillRect(x + 2, y + 12, 1, 1); ctx.fillRect(x + 12, y + 8, 1, 1); }
       if (aura && !down(u) && ((DS.frame + u.idx * 9) % 40) < 20) { ctx.fillStyle = '#F8E8A0'; ctx.fillRect(x + 1, y - 2, 1, 1); ctx.fillRect(x + 14, y - 2, 1, 1); }
       if (u.guest) { DS.bar(ctx, x, y + 25, 16, h.hp / h.maxhp, h.hp < h.maxhp / 4 ? '#F85838' : '#58D854'); }
