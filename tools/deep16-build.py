@@ -8,6 +8,8 @@ D16 = os.path.join(ROOT, 'deep16')
 
 
 def write(path, text):
+    if os.path.exists(path) and open(path, encoding='utf-8').read() == text: # (written only on change, CRLF read as LF: a rebuild leaves an unchanged file alone -- 10-06)
+        return
     with open(path, 'w', encoding='utf-8', newline='\n') as f:
         f.write(text)
 
@@ -41,7 +43,7 @@ def main():
         if not os.path.exists(p):
             print('  missing script', src)
             return m.group(0)
-        h = hashlib.sha1(open(p, 'rb').read()).hexdigest()[:10]
+        h = hashlib.sha1(open(p, 'rb').read().replace(b'\r\n', b'\n')).hexdigest()[:10] # (CRLF read as LF: a Windows and a Linux checkout stamp alike -- 10-06, the gate handoff §2.2)
         return '<script src="%s?v=%s"></script>' % (src, h)
     html2 = re.sub(r'<script src="([^"]+)"></script>', stamp, html)
     if html2 != html:

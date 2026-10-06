@@ -94,7 +94,7 @@ All Blender runs are headless from **PowerShell**, with `--disable-autoexec` on 
 10. **Render.**
     - Smoke-test first: set `$env:D16_OUT = "render-test"; $env:D16_ONLY = "idle:0,6"`, run `& $bl -b --disable-autoexec --python tools/render-sprites.py -- <creature> 8`, then set both back to `$null`.
     - Then run all of it without the env vars: about 570 frames and 15–20 minutes for the xorn's 11 rows. Run it in the background. Blender holds back its prints when its output goes to a file, so count the frames in the render folder to see how far it has got.
-    - Then `python tools/pixelate.py p1 <creature>`, `python tools/deep16-build.py`, and `git checkout -- deep16/js/palette.js`.
+    - Then `python tools/pixelate.py p1 <creature>`, and `python tools/deep16-build.py` (the old palette.js checkout after it retired 10-06).
 
 11. **Wire it.**
     - The foe's `sheet` in `deep16/data/foes.js` becomes `<creature>_p1`.

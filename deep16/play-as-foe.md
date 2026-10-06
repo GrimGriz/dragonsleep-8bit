@@ -23,4 +23,4 @@ How `?keeperfight&play=keeper` lets a human play the Keeper against the class-AI
 
 ## Serving it for a person to play (a desktop seat)
 
-`.claude/launch.json` has three Python `http.server` entries (ports 8923 to 8925) that serve the folder the seat is working in. Use a worktree for the build you are testing and add `&fresh=N` to the URL to bust the pane's cache. The page needs no build step to run; rebuild with `python tools/deep16-build.py` (then `git checkout -- deep16/js/palette.js`) after editing script files.
+`.claude/launch.json` has three Python `http.server` entries (ports 8923 to 8925) that serve the folder the seat is working in. Use a worktree for the build you are testing and add `&fresh=N` to the URL to bust the pane's cache. The page needs no build step to run; rebuild with `python tools/deep16-build.py` after editing script files.
