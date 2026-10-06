@@ -22,6 +22,7 @@ QUICK_FIGHTS = [
 QUICK_MODES = ['rulings0930', 'doorfloor1006', 'features', 'mpmon1006', 'charms', 'walls', 'familiar', 'globe1001c', 'ring1001c', 'sleep1001c', 'tendrils1002', 'ready1002', 'ready1002b', 'ready1005', 'skyshow', 'dispel1002', 'joke1002', 'pocket1002', 'fixes1003', 'lazy1003', 'rules1003', 'drawfloor1003', 'rungs1004', 'edifice1004', 'fixes1005', 'under1005', 'oil1005', 'torch1005', 'skylights1005', 'spiders1005', 'rules1006']
 ALL_MODES = ['mpmon1006', 'doorfloor1006', 'items', 'lantern', 'ledgerlamp', 'druid12', 'rulings0930', 'featurewalk', 'ring0930', 'campcast', 'druidlast', 'charms',
              'walls', 'zones', 'subs', 'auras', 'familiar', 'features', 'matrix', 'globe1001c', 'ring1001c', 'sleep1001c', 'show', 'tendrils1002', 'ready1002', 'ready1002b', 'ready1005', 'skyshow', 'dispel1002', 'joke1002', 'pocket1002', 'fixes1003', 'lazy1003', 'rules1003', 'drawfloor1003', 'rungs1004', 'edifice1004', 'fixes1005', 'under1005', 'oil1005', 'torch1005', 'skylights1005', 'spiders1005', 'rules1006']
+QUICK_SCRIPTS = [['dev/eyes-probe.py']] # (10-06: the eyes list draws on situations.html -- his ear; 3d4f63f shipped js/eyes.js unparseable for a commit and the page drew no eyes rows; ~5 s, so before every push)
 ALL_SCRIPTS = [['dev/bench8.py', 'lymen'], ['dev/bench8.py', 'ingrith'], ['dev/bench8.py', 'sheets1001c'], ['dev/bench8.py', 'srd1002'], ['dev/bench8.py', 'familiar'], ['dev/bench8.py', 'ledgerlamp8'], ['dev/bench8.py', 'ledgerlamp8seam'], ['dev/bench8.py', 'fixes1003'], ['dev/bench8.py', 'reactions1003'], ['dev/bench8.py', 'wet3'],
                ['dev/wet-probe.py'], ['dev/wet8-probe.py'], ['dev/pyro-probe.py'], ['dev/pyro8-probe.py'], ['dev/srdleft-probe.py'],
                ['dev/bench8.py', 'floor1003'], # (the floor under the player: a grid crash or no ready falls back to the 8-bit battle, a bad save loads, a warp's throw fades back -- the review, 10-03)
@@ -81,10 +82,10 @@ def main(argv):
     t0 = time.time()
     with ThreadPoolExecutor(4) as ex:
         res = list(ex.map(lambda j: (j[0], j[1](j[2]) if j[2] is not None else j[1]()), jobs))
-    if full: # (four at a time since 10-06: the 8-bit bench and the probes each write a page of their own now, not one by a fixed name)
-        with ThreadPoolExecutor(4) as ex:
-            res += list(ex.map(lambda c: (' '.join(c), script(c)), ALL_SCRIPTS))
-        jobs += ALL_SCRIPTS
+    scripts = QUICK_SCRIPTS + (ALL_SCRIPTS if full else []) # (the quick gate runs the eyes probe too, 10-06)
+    with ThreadPoolExecutor(4) as ex: # (four at a time since 10-06: the 8-bit bench and the probes each write a page of their own now, not one by a fixed name)
+        res += list(ex.map(lambda c: (' '.join(c), script(c)), scripts))
+    jobs += scripts
     red = [line for _, lines in res for line in lines]
     for name, lines in res:
         print(('RED   ' if lines else 'ok    ') + name)
