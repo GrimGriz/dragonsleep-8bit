@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-06
 
+- 2026-10-06 · `0f23023` · eyes on the screen · The fold rule closed (the folder-reflection's loop OL-eyes-fold-rule-gaps): a noted row is cut whatever the verdict, and a fix that wants his eye again writes a fresh row -- the troll's oil is `eyes-oil-show` now · *"you got that lean for me?"*
 - 2026-10-06 · `99bf503` · MPMon (new) · THE SPECIALS grow with the level: 1 at 1st, 2 at 3rd, 3 at 5th, 4 at 7th, 5 at 9th (`MP.specialsAt`) · *"3 at level 5, 4 at 7, 5 at 9 down to 1 move at lvl 1"*
 - 2026-10-06 · `603e957` · MPMon (new) · Denny and Beholda, his Monster Party PCs, as a DEEP16 class of their own (`deep16/js/mpmon.js`): 2 specials a fight; Taunt, Denim Damage, the Cannonball at 5; the VNA Bubble, Baleful Gaze, the Big Screen at 5; `?mpshow` · *"MPMon (MonsterPartyMonster) as a separate class to keep our hands clear of the other machinery"*; *"Build now"*
 - 2026-10-06 · `8188f20` · the house · The lanes after a day: a patch-log line is a line, the lane list lives in the todo alone, his ear file carries the time and marks what is new since his last save, and a row's door is a show · *"Take all four, plus the save-name fix and the "only newer notes" rule? Lean: yes."* (the fork, pasted; his word was the paste)
