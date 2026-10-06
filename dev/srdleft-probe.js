@@ -84,7 +84,9 @@
     var E = battle('ettins'), eh = party(E)[0]; party(E).slice(1).forEach(function (u) { u.hp = 0; u.ko = true; });
     var es = sq(eh, function () { return foes(E).every(function (w) { return E.seenBy(w, eh) < 2; }); });
     ok('a square for the ettins Hide found: ' + es, !!es);
-    if (es) { put(eh, es[0], es[1]); cs = cardsOf(E); D.rules.startTurn(eh); drain(E.hide(eh)); ok('Hide against two heads: passive 14 + 5 // ' + short(cs), say(cs, /vs passive Perception 19/) && say(cs, /two heads/)); }
+    // (the card since hide-per-foe, 10-04: "Stealth n against the Ettin's passive Perception 14 +5 (two heads) +b (front) = pp" -- the Stealth d20 held at 2, so a
+    // high roll never hides the line this checks; 10-06)
+    if (es) { put(eh, es[0], es[1]); cs = cardsOf(E); D.rules.startTurn(eh); var dE = D.d; D.d = function (n) { return n === 20 ? 2 : dE.apply(this, arguments); }; try { drain(E.hide(eh)); } finally { D.d = dE; } ok('Hide against two heads: passive 14 + 5 // ' + short(cs.map(function (c) { return c.replace(/^.*?\| /, ''); })), say(cs, /passive Perception 14 \+5 \(two heads\)/)); }
     // ---------------------------------------------------------------- thrown weapons
     function shooterAt(fid, kind, ft) {
       var X = battle(fid), s = foes(X).filter(function (u) { return u.kind === kind; })[0], h = party(X)[0]; party(X).slice(1).forEach(function (u) { u.hp = 0; u.ko = true; });

@@ -382,6 +382,7 @@
       var st0 = Bs.co.next(); while (!Bs.order.length) st0 = Bs.co.next(); // (past the entry and the initiative roll)
       var dr = Bs.units.filter(function (u) { return u.side === 'foe'; })[0], n0u = Bs.units.length, ord0 = Bs.order.length;
       D.rules.startTurn(dr); var tgt = Bs.units.filter(function (u) { return u.side === 'party'; })[0];
+      Bs.units.forEach(function (w) { if (w.side === 'party') w.reaction = 0; }); // (Counterspell since 10-02d: Aurdin counters the call, and this check is the summons, not his reaction)
       var gc = D.magic.cast(Bs, dr, 'conjureanimals', 3, { x: tgt.x, y: tgt.y }), sc; do { sc = gc.next(); } while (!sc.done);
       var made = Bs.units.slice(n0u), idx = made.map(function (w) { return Bs.order.indexOf(w); });
       var together = idx.every(function (v, i) { return i === 0 || v === idx[i - 1] + 1; }), oneRoll = made.every(function (w) { return w.initRoll === made[0].initRoll; });

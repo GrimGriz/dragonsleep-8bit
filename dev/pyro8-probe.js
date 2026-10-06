@@ -79,8 +79,10 @@
     T.blog = []; DS.push(b5); // (enter(): fromDeep runs only the ending)
     for (var s5 = 0; s5 < 3000 && DS.find('battle'); s5++) { var t5 = DS.top(); if (t5 && t5.kind === 'dialog') { if (t5.chars < t5.pageLen()) t5.chars = t5.pageLen(); T.tapf('a'); } else T.step(1); }
     var xb = g.party.map(function (h) { return h.xp; });
-    var ogreXp = DS.R.CR_XP[DS.DATA.monsters.ogre.cr], want = Math.floor(Math.floor(ogreXp / 2) / 4);
-    check('the grid said phase 2: the fight\'s XP halved at the ending (' + xa.join('/') + ' -> ' + xb.join('/') + '; the ogre\'s ' + ogreXp + ', halved and shared ' + want + ' each)', xb.every(function (x, i) { return x - xa[i] === want; }) && !DS.pyroBack);
+    // (the guests stand in the split since 7c05f91, RULED 10-05, Griz: "count guests as 'standing' for xp." -- the four and Pyro: five shares)
+    var split = g.party.filter(function (h) { return !h.ko; }).length + b5.heroes.filter(function (u) { return u.guest && !(u.h.ko || u.h.hp <= 0); }).length;
+    var ogreXp = DS.R.CR_XP[DS.DATA.monsters.ogre.cr], want = Math.floor(Math.floor(ogreXp / 2) / split);
+    check('the grid said phase 2: the fight\'s XP halved at the ending (' + xa.join('/') + ' -> ' + xb.join('/') + '; the ogre\'s ' + ogreXp + ', halved and shared ' + want + ' each among ' + split + ', Pyro one)', split === 5 && xb.every(function (x, i) { return x - xa[i] === want; }) && !DS.pyroBack);
     while (DS.find('battle')) DS.pop(DS.find('battle'));
 
     // ---- a whole road fight, driven: nothing thrown

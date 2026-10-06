@@ -1094,7 +1094,9 @@
     // lost to every eye (magical darkness, fog, a pillar between): the natural lurker -- one the fight began with hidden: the darkmantle, the grick, the roper -- slips back into hiding
     // for nothing, a Stealth roll held as a hero's is; any other foe with a Stealth score pays the Hide action, and only with nothing within its reach to strike (Griz, 10-04: "if
     // a monster is natural stealth and gets found there should be conditions in which it would be lost and found again ... magical darkness"; "only the natural get a free re-hide")
-    if (!grudge && !u.conds.hidden && !u.ethereal && !u.riding && T.action > 0 && ((u.stealth || 0) > 0 || u.hidden0) && B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }).every(function (w) { return B.seenBy(w, u, true) === 0; })) {
+    // (not one about to bolt: the Spy's bonus action is the second Dash to the door -- bolt below; the re-hide had it, 10-06, srdleft-probe)
+    var bolting = !!(u.bolts && B.units.some(function (w) { return w.kind === u.bolts && w.dead; }));
+    if (!grudge && !bolting && !u.conds.hidden && !u.ethereal && !u.riding && T.action > 0 && ((u.stealth || 0) > 0 || u.hidden0) && B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }).every(function (w) { return B.seenBy(w, u, true) === 0; })) {
       if (u.hidden0) { u.conds.hidden = true; u.hidTotal = B.stealthRoll(u).total; B.card(['{r}' + the(B, u) + '{/} is lost to every eye: hidden again.  {g}(a natural lurker: Stealth ' + u.hidTotal + '){/}'], 200); yield 16; }
       else if (!hs.some(function (w) { return G.dist(u, w) <= reachOf(u, hs); })) { yield* B.hide(u); hs = heroes(B, u); }
     }
@@ -1155,7 +1157,7 @@
     }
     // it bolts (the wheelwright, when Hask is down): Dash for the map's exit and gone -- the player's opportunity attacks are
     // the only stop. (Amara and Willem, who fight only to get away, give ground a step at a time instead: shooter())
-    if (u.bolts && B.units.some(function (w) { return w.kind === u.bolts && w.dead; })) { if (yield* bolt(B, u)) return; }
+    if (bolting) { if (yield* bolt(B, u)) return; }
     // recharges (5-6 at the start of its turn): the Moan, the Leap (once a turn: a burrower rolls before it picks where to come up -- burrower)
     if (!T.recharged) [u.moan, u.leap].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
     // Phantasms (the cloaker when bloodied; Willem at once): three false images, its action

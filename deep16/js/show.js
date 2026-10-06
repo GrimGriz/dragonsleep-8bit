@@ -13,8 +13,9 @@
      * no one drops below 1 HP till the director says (the watchers stay up to watch; the creature lives till it has shown its rows), and the
        creature has three times its hit points, so it flinches a while before it is down to its last;
      * one that has not walked by the end of a turn is walked toward the watchers (a roper holds its ground): a step or two for its walk,
-       three squares and more for its slither where it has one; one no one has hit by the end of its second turn has a stone flung at it
-       (its flinch);
+       three squares and more for its slither where it has one; one with a thrown blow of its own row it has not shown by the end of its
+       second turn throws it at the nearest watcher (the stone giant's rock, 10-06); one no one has hit by the end of its second turn has a
+       stone flung at it (its flinch);
      * once in the fight, at the end of its second turn, each is knocked flat: its prone frame, and getting up at its next turn;
      * at the start of a turn, one that has shown every row it has (or any, from round 8) goes down: its death row.
    The tally counts what the engine plays, not what is drawn: a row set on the unit (a run of sets between two steps of the fight is the last
@@ -105,6 +106,17 @@
         B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + g[0] + ' yet. ' + (g[0] === 'walk' ? 'A step or two' : 'Three squares and more') + ', to see it.'], 200);
         yield* B.moveAlong(u, D.grid.path(rm, best.x, best.y), { noOA: true });
         u.anim = 'idle';
+      }
+    }
+    // one with a thrown or shot blow of its own row it has not shown by the end of its second turn (the stone giant's rock: the AI throws only
+    // with no one in its reach, and on the test ground a giant's 15 ft always has someone -- 10-06): one throw at the nearest watcher it sees,
+    // through the engine's own attack
+    var rk = Object.keys(u.attacks || {}).filter(function (k) { var a = u.attacks[k], r = String(a.name || k).toLowerCase().replace(/[^a-z]/g, ''); return a.ranged && a.range && !(u.showSeen || {})[r] && D.spr.anim(u.sheet, r); })[0];
+    if (rk && u.showTurns >= 2 && RU.canAct(u) && !u.conds.prone) {
+      var ra = u.attacks[rk], tw = B.units.filter(function (w) { return w.side === 'party' && D.grid.standing(w) && !w.familiar && D.grid.dist(u, w) <= ra.range[1] && D.magic.sees(B, u, w); }).sort(function (a, b) { return D.grid.dist(u, a) - D.grid.dist(u, b); })[0];
+      if (tw) {
+        B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ra.name || rk).toLowerCase() + ' yet. One at ' + tw.name + ', to see it.'], 200);
+        yield* B.attack(u, tw, ra); u.anim = 'idle';
       }
     }
     // one no one has hit by the end of its second turn (the watchers fight what is nearest; a roper stays back): a stone flung at it, through
