@@ -89,7 +89,7 @@
     saves: { str: 3, dex: 0, con: 7, int: -2, wis: 1, cha: -2 },
     attacks: {
       bite: { name: 'Bite', atk: 6, dice: '2d8', mod: 3, type: 'piercing', reach: 5 },
-      tentacle: { name: 'Tentacle', atk: 6, dice: '1d8', mod: 3, type: 'bludgeoning', extra: '1d8', extraType: 'piercing', reach: 10, grapple: { dc: 13, max: 2 } }
+      tentacle: { name: 'Tentacle', atk: 6, dice: '1d8', mod: 3, type: 'bludgeoning', extra: '1d8', extraType: 'piercing', reach: 10, grapple: { dc: 13, max: 2, size: 'M' } }
     },
     multi: ['tentacle', 'tentacle', 'bite'], slam: { dc: 14, dice: '2d6+3', chance: 0.5 }, bound: '~',
     src: 'SRD 5.1 Otyugh (CR 5); content/monsters.json otyugh (the landlord, wiki/the-warrens.md). Tentacle reach 10 ft (SRD); the bite\'s disease and the telepathy left off, as in the 8-bit game'
@@ -482,7 +482,7 @@
     abil: { str: 17, dex: 15, con: 12, int: 13, wis: 12, cha: 14 }, init: 2, perception: 11,
     saves: { str: 3, dex: 2, con: 1, int: 1, wis: 1, cha: 2 },
     attacks: {
-      bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 3, type: 'piercing', reach: 5, grapple: { dc: 16, max: 1 }, autoHitHeld: true, blindHeld: 'always' },
+      bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 3, type: 'piercing', reach: 5, grapple: { dc: 16, max: 1, size: 'L' }, autoHitHeld: true, blindHeld: 'always' },
       tail: { name: 'Tail', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 10 }
     },
     multi: ['bite', 'tail'], moan: { dc: 13, recharge: 5 }, phantasms: 'bloodied', transfer: true, lightSensitive: true,
@@ -532,9 +532,9 @@
     attacks: { bite: { name: 'Bite', atk: 7, dice: '1d6', mod: 4, type: 'piercing', reach: 10, save: { ab: 'con', dc: 13, dice: '7d8', type: 'poison', half: true } } },
     multi: 1, immune: ['poison'], bound: '~', condImmune: ['charmed', 'poisoned'], // (SRD 5.1 condition immunities charmed, poisoned; the 8-bit sheet had poisoned only, 10-02 runner)
     // the SRD Spirit Naga's list (RULED 09-28): a 10th-level caster, INT, DC 14, +6 -- Ray of Frost, Sleep, Hold Person, Lightning Bolt
-    // built; Blight and Dimension Door since built (4th level); Charm Person added 10-02 (SRD 5.1, a 1st-level slot); Dominate Person waits on control (LATER, spells-srd-by-class.md);
+    // built; Blight and Dimension Door since built (4th level); Charm Person added 10-02 (SRD 5.1, a 1st-level slot); Dominate Person since 10-06 (its two 5th-level slots; the grid's rules lane, js/grimoire.js dominate);
     // Detect Thoughts and Water Breathing (SRD) have no fight use, Mage Hand, Minor Illusion and Detect Magic are not on the grid; the old weave retired
-    caster: { lvl: 10, ab: 'int', dc: 14, atk: 6, slots: [4, 3, 3, 3, 2], known: ['rayoffrost', 'sleep', 'charmperson', 'holdperson', 'lightningbolt', 'blight', 'dimensiondoor'] },
+    caster: { lvl: 10, ab: 'int', dc: 14, atk: 6, slots: [4, 3, 3, 3, 2], known: ['rayoffrost', 'sleep', 'charmperson', 'holdperson', 'lightningbolt', 'blight', 'dimensiondoor', 'dominateperson'] },
     src: 'SRD 5.1 Spirit Naga (CR 8); content/monsters.json naga (since 09-28 its SRD list: `caster`; Charm Person 10-02); condition immunities charmed, poisoned (SRD 5.1, 10-02 runner); its rejuvenation (back in 1d6 days) is the story\'s, not a fight\'s'
   },
   // the made road's cut (deep.js S.elemental): "the cut's walls move"
@@ -605,7 +605,7 @@
     abil: { str: 17, dex: 16, con: 13, int: 11, wis: 10, cha: 10 }, init: 3, perception: 10,
     saves: { str: 3, dex: 3, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
-      constrict: { name: 'Constrict', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 10, grapple: { dc: 13, max: 1 }, pull: true },
+      constrict: { name: 'Constrict', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 10, grapple: { dc: 13, max: 1, size: 'M' }, pull: true },
       drown: { name: 'Drag Under', atk: 5, dice: '2d6', mod: 0, type: 'bludgeoning', reach: 10, needsHeld: true, autoHitHeld: true, pull: true }
     },
     multi: ['constrict', 'drown'], resist: ['fire'], immune: ['poison'], bound: '~',
@@ -617,7 +617,7 @@
     abil: { str: 19, dex: 10, con: 16, int: 5, wis: 11, cha: 5 }, init: 0, perception: 14,
     saves: { str: 4, dex: 0, con: 3, int: -3, wis: 0, cha: -3 },
     attacks: {
-      pincer: { name: 'Pincer', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 10, grapple: { dc: 14, max: 2, only: true } }, // (only: grappled, not restrained -- SRD 5.1's chuul, 10-06; its frog and the otyugh do restrain)
+      pincer: { name: 'Pincer', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 10, grapple: { dc: 14, max: 2, only: true, size: 'L' } }, // (only: grappled, not restrained -- SRD 5.1's chuul, 10-06; its frog and the otyugh do restrain)
       tentacles: { name: 'Tentacles', atk: 6, dice: '1d1', mod: -1, type: 'poison', reach: 10, needsHeld: true, autoHitHeld: true, paralyze: { dc: 13 } }
     },
     multi: ['pincer', 'pincer', 'tentacles'], immune: ['poison'], swims: true,
@@ -773,7 +773,7 @@
     abil: { str: 14, dex: 3, con: 20, int: 1, wis: 6, cha: 1 }, init: -4, perception: 8,
     saves: { str: 2, dex: -4, con: 5, int: -5, wis: -2, cha: -5 },
     attacks: {
-      engulf: { name: 'Engulf', atk: 4, dice: '3d6', mod: 0, type: 'acid', reach: 5, grapple: { dc: 12, max: 1 } },
+      engulf: { name: 'Engulf', atk: 4, dice: '3d6', mod: 0, type: 'acid', reach: 5, grapple: { dc: 12, max: 1, size: 'L' } },
       digest: { name: 'Digest', atk: 4, dice: '6d6', mod: 0, type: 'acid', reach: 5, needsHeld: true, autoHitHeld: true }
     },
     multi: ['engulf', 'digest'], condImmune: ['blinded', 'charmed', 'deafened', 'exhaustion', 'frightened', 'prone', 'asleep'],

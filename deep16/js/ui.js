@@ -650,7 +650,11 @@
     var M = D.magic, w = occ(x, y), hu = B.hoverUnit, ok = function (t) { return !!(t && M.targetOK(B, u, g, t)); };
     if (hu && hu.riding && hu.attached && G.standing(hu) && hu.x === x && hu.y === y && ok(hu)) return hu;
     if (ok(w)) return w;
-    var r = D.Battle.riderOn(u, w, B.units); return ok(r) ? r : null;
+    var r = D.Battle.riderOn(u, w, B.units); if (ok(r)) return r;
+    // a roper's tendril on the one there -- a friend's, or the one on the caster -- for a spell attack whose SRD 5.1 words take an object (`obj`: Fire Bolt, "a creature or
+    // object"): the tendril is a thing, AC 20 and 10 HP (battle.js strikeTendril). 10-06, the grid's rules §2.4: "Fire Bolt at an object (the tendril, AC 20, 10 HP)"
+    var tn = g.obj && g.shape === 'attack' ? D.Battle.tendrilOn(u, w, B.units) : null;
+    return tn && G.dist(u, tn) <= (g.range || 5) && (tn.held === u || G.los(u, tn.held).clear) ? tn : null;
   }
   UI.spellTarget = spellTarget;
   // a hostile rider on (x, y) the mouse is on (B.hoverUnit, set as the mouse moves): a darkmantle on a head, outlined red
@@ -1897,6 +1901,8 @@
       else if (!owT && D.oil.squareOK(B, u, B.cursor.x, B.cursor.y)) lines.push('{y}oil this square{/}' + (lit0 || (D.oil.at(B, B.cursor.x, B.cursor.y) || {}).lit != null || (B.lights || []).some(function (l) { return l.flame && Math.round(l.x) === B.cursor.x && Math.round(l.y) === B.cursor.y; }) ? ': {o}it catches{/} -- 2 rounds, 5 fire to enter it or end a turn in it' : ': no roll; a torch or any fire on it lights it'));
     } else if (u && (B.tool === 'move' || B.tool === 'menu' || B.tool === 'attack')) {
       var k = B.cursor.x + ',' + B.cursor.y;
+      // a way out under the cursor (one of the pale squares: battle.js exits): says so, and how (10-06, the grid's rules §2.15 -- "the inspect of an exit square says it is a way out")
+      if (!(B.o.embed && B.o.embed.canRun === false) && (B.exits || []).some(function (q) { return q[0] === B.cursor.x && q[1] === B.cursor.y; })) lines.push('{y}a way out{/}: stand here, then LEAVE THE FIGHT on the ring (5 ft of the move' + (B.fight && B.fight.oneLeavesAll ? '; the party goes too' : '') + ')  {g}(a foe beside you gets its swing){/}');
       if (u.conds.prone && B.cursor.x === u.x && B.cursor.y === u.y) { var halfS = Math.floor(u.speed / 2); lines.push('{y}prone{/}: ' + (RU.canRise(u) && u.turn.move >= halfS ? '{n}click here to stand (half the speed: ' + halfS + ' ft of the move){/}' : '{o}' + (!RU.canRise(u) ? 'cannot stand' : 'no move left to stand: ' + halfS + ' ft needed') + '{/}')); } // (10-04 night)
       if (!B.passagesOpen && (B.passages || []).some(function (p) { return p.at[0] === B.cursor.x && p.at[1] === B.cursor.y; })) lines.push('{y}' + (B.passages.filter(function (p) { return p.at[0] === B.cursor.x && p.at[1] === B.cursor.y; })[0].name) + '{/}: shut'); // (the passages shut by default, 10-04 night)
       var pgT = D.Battle.passageAt(B, B.cursor.x, B.cursor.y); if (pgT) lines.push('{y}' + pgT.name + '{/}: ' + (pgT.inward ? 'GO IN -- through it and up the stair inside, out onto the roof' : 'COME OUT -- down the stair inside, out onto the street') + '  {g}(stand on it: the rest of the move, half the speed at least){/}'); // (a passage, 10-04 night)

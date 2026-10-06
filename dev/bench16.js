@@ -1111,6 +1111,105 @@
     document.body.appendChild(preR);
     return;
   }
+  // the grid's rules lane, built whole (mode=rules1006; 10-06, Griz: "take the grid's rules lane whole"; handoff-2026-10-04-the-grids-rules.md): each check failed on the code
+  // before it (a byte-exact swap of the old files, the CLAUDE.md way). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
+  if (get('mode', '') === 'rules1006') {
+    var repR6 = { checks: [], errors: [] }, d0R6 = D.d, MR6 = D.magic;
+    function okR6(what, v) { repR6.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runR6(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; if (st.value && st.value.aim) v = D.battle.readyAuto(st.value.aim.who, st.value.aim.rd, st.value.aim.ctx); } }
+    function mkR6(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideR6(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logR6(Bx, n) { return (Bx.log || []).slice(n).join(' | ').replace(/\{\/?[a-z]*\}/g, ''); }
+    function pinR6(d20) { D.d = function (n) { return n === 20 ? d20 : n; }; }
+    function concR6(u) { u.conc = { id: 'bless', name: 'Bless', undo: function () {} }; }
+    function holdsR6(l) { return (l.match(/holds Bless\?/g) || []).length; }
+    try {
+      // §2.1 one blow, one concentration save on the sum. Ice Storm on a concentrating fighter, every die at its top and his DEX save a 20 (half): 8 bludgeoning + 12 cold,
+      // one save at DC 10 (half of 20) -- before, two (DC 10 for the hail, DC 12 for the cold)
+      var B1 = mkR6('?npc=wizard:7&lvl=7&vs=fighter:7'), w1 = sideR6(B1, 'foe')[0], p1 = sideR6(B1, 'party')[0];
+      p1.hp = p1.maxhp = 400; p1.conds = {}; concR6(p1); w1.x = p1.x; w1.y = Math.max(0, p1.y - 8); D.rules.startTurn(w1); w1.slots[3] = 2; B1.active = w1;
+      pinR6(20); var n1 = (B1.log || []).length; runR6(MR6.cast(B1, w1, 'icestorm', 4, { x: p1.x, y: p1.y })); D.d = d0R6; var l1 = logR6(B1, n1);
+      okR6('§2.1 Ice Storm (hail and cold) on a concentrating fighter: ' + holdsR6(l1) + ' concentration save(s), DC ' + ((l1.match(/holds Bless\? CON [^|]*? vs DC (\d+)/) || [])[1]) + ' -- ' + (l1.match(/holds Bless[^|]*/g) || []).join(' / '), holdsR6(l1) === 1 && /holds Bless\? CON [^|]*? vs DC 10\b/.test(l1));
+      // the otyugh's tentacle (1d8 bludgeoning and 1d8 piercing, SRD 5.1) on a concentrating fighter: one save
+      var B1b = mkR6('?npc=otyugh&lvl=5&vs=fighter:5,fighter:5'), o1 = sideR6(B1b, 'foe')[0], q1 = sideR6(B1b, 'party')[0];
+      q1.hp = q1.maxhp = 400; q1.conds = {}; concR6(q1); o1.x = q1.x; o1.y = q1.y - 2; D.rules.startTurn(o1); B1b.active = o1;
+      pinR6(20); var n1b = (B1b.log || []).length; runR6(B1b.attack(o1, q1, o1.attacks.tentacle)); D.d = d0R6; var l1b = logR6(B1b, n1b);
+      okR6('§2.1 the otyugh\'s tentacle (two kinds) on a concentrating fighter: ' + holdsR6(l1b) + ' concentration save(s) -- ' + (l1b.match(/holds Bless[^|]*/g) || []).join(' / '), holdsR6(l1b) === 1);
+      // §2.2 Wild Shape's overflow lands as the blow's own kind: a druid in a wolf's shape, her own form resisting fire, takes the wolf's hit points and 6 more in fire -- 3 to her
+      var B2 = mkR6('?npc=goblin&lvl=5&vs=druid:5'), d2 = sideR6(B2, 'party')[0];
+      d2.hp = d2.maxhp = 40; D.features.morph(B2, d2, 'wolf', d2); d2.beast.keep.resist = ['fire'];
+      var h2 = d2.hp, bh2 = d2.beast.hp; B2.hurt(d2, bh2 + 6, 'fire', { magic: true });
+      okR6('§2.2 the wolf\'s ' + bh2 + ' HP and 6 more in fire: back in her own shape ' + !d2.beast + ', she loses ' + (h2 - d2.hp) + ' (6 fire, resisted, is 3; as bludgeoning it was 6)', !d2.beast && h2 - d2.hp === 3);
+      // §2.3 the grapple's size by each sheet. A Large one (two squares) held by the chuul's pincer ("Large or smaller") and the roper's tendril (no size); not by the otyugh
+      // ("Medium or smaller"); a druid in the giant spider's shape (Large) not by the otyugh either, a Medium fighter yes
+      function gripR6(q, atkName, prep) {
+        var Bx = mkR6(q), f = sideR6(Bx, 'foe')[0], t = sideR6(Bx, 'party')[0]; t.hp = t.maxhp = 400; t.conds = {}; if (prep) prep(Bx, t);
+        f.x = t.x; f.y = t.y - (f.size || 1) - 1; D.rules.startTurn(f); Bx.active = f; pinR6(20); runR6(Bx.attack(f, t, f.attacks[atkName])); D.d = d0R6;
+        return !!(t.conds.restrained && t.conds.restrained.by === f.id);
+      }
+      var big = function (Bx, t) { t.size = 2; };
+      var g3 = { chuulL: gripR6('?npc=chuul&lvl=5&vs=fighter:5,fighter:5', 'pincer', big), roperL: gripR6('?npc=roper&lvl=5&vs=fighter:5,fighter:5', 'tendril', big), otyL: gripR6('?npc=otyugh&lvl=5&vs=fighter:5,fighter:5', 'tentacle', big),
+        otySpider: gripR6('?npc=otyugh&lvl=5&vs=druid:8,fighter:5', 'tentacle', function (Bx, t) { D.features.morph(Bx, t, 'giantspider', t); t.beast.hp = 400; }), otyM: gripR6('?npc=otyugh&lvl=5&vs=fighter:5,fighter:5', 'tentacle') };
+      okR6('§2.3 held, a Large one: by the chuul ' + g3.chuulL + ', the roper ' + g3.roperL + ', the otyugh ' + g3.otyL + '; a druid as a giant spider by the otyugh ' + g3.otySpider + '; a Medium fighter by the otyugh ' + g3.otyM, g3.chuulL && g3.roperL && !g3.otyL && !g3.otySpider && g3.otyM);
+      var SZ = D.Battle.sizeCat || function () { return -1; }; okR6('§2.3 the sizes read: a fighter ' + SZ({ size: 1, conds: {} }) + ', enlarged ' + SZ({ size: 1, conds: { enlarged: {} } }) + ', a halfling ' + SZ({ size: 1, race: 'Halfling', conds: {} }) + ', two squares ' + SZ({ size: 2, conds: {} }) + ', a druid as a giant spider ' + SZ({ size: 1, beast: { kind: 'giantspider' }, conds: {} }),
+        SZ({ size: 1, conds: {} }) === 2 && SZ({ size: 1, conds: { enlarged: {} } }) === 3 && SZ({ size: 1, race: 'Halfling', conds: {} }) === 1 && SZ({ size: 2, conds: {} }) === 3 && SZ({ size: 1, beast: { kind: 'giantspider' }, conds: {} }) === 3);
+      // §2.4 Fire Bolt ("a creature or object") at the roper's tendril on a friend: the friend's square is the tendril for it, and a crit cuts it through -- the friend free
+      var B4 = mkR6('?npc=roper&lvl=5&vs=fighter:5,wizard:5'), r4 = sideR6(B4, 'foe')[0], f4 = sideR6(B4, 'party').filter(function (u) { return u.cls === 'fighter'; })[0], w4 = sideR6(B4, 'party').filter(function (u) { return u.cls === 'wizard'; })[0];
+      f4.hp = f4.maxhp = 400; r4.x = f4.x; r4.y = f4.y - 3; D.rules.startTurn(r4); B4.active = r4; pinR6(20); runR6(B4.attack(r4, f4, r4.attacks.tendril)); D.d = d0R6;
+      var held4 = !!(f4.conds.restrained && f4.conds.restrained.tendril);
+      w4.x = f4.x + 3; w4.y = f4.y; D.rules.startTurn(w4); B4.active = w4;
+      var st4 = D.ui.spellTarget(B4, w4, MR6.geo('firebolt'), f4.x, f4.y), mm4 = D.ui.spellTarget(B4, w4, MR6.geo('rayoffrost'), f4.x, f4.y);
+      var n4 = (B4.log || []).length, fhp4 = f4.hp; pinR6(20); if (st4) runR6(MR6.cast(B4, w4, 'firebolt', 0, st4)); D.d = d0R6; var l4 = logR6(B4, n4);
+      okR6('§2.4 the fighter held by a tendril ' + held4 + '; Fire Bolt\'s target there: ' + (st4 && st4.name) + ' (Ray of Frost, "a creature": ' + (mm4 && mm4.name) + '); cast: the fighter free ' + !f4.conds.restrained + ', unhurt ' + (f4.hp === fhp4) + ' -- ' + l4.slice(0, 200),
+        held4 && !!(st4 && st4.tendril) && !mm4 && !f4.conds.restrained && f4.hp === fhp4 && /cut through/.test(l4));
+      // §2.5 a forced move asks the readied hook: a fighter readies her blade two squares from a friend wearing a darkmantle; another friend pulls it off, and it drops beside
+      // her (dismount's square), within her reach -- the readied strike springs (before, nothing asked: only a walk did)
+      var B5 = mkR6('?npc=darkmantle&lvl=5&vs=fighter:5,fighter:5,fighter:5'), dm5 = sideR6(B5, 'foe')[0], ps5 = sideR6(B5, 'party'), H5 = ps5[0], P5 = ps5[1], R5 = ps5[2];
+      [H5, P5, R5].forEach(function (u) { u.hp = u.maxhp = 400; u.conds = {}; u.reaction = 1; });
+      H5.x = 8; H5.y = 8; P5.x = 9; P5.y = 8; R5.x = 10; R5.y = 6;
+      H5.conds.attached = { by: dm5.id, dc: 13, head: false }; B5.mount(dm5, H5);
+      D.rules.startTurn(R5); B5.active = R5; runR6(B5.exec(R5, { do: 'ready', pick: 'weapon' })); var had5 = JSON.stringify(R5.ready && R5.ready.had);
+      D.rules.startTurn(P5); B5.active = P5; var n5 = (B5.log || []).length; pinR6(20); runR6(B5.exec(P5, { do: 'detach', target: dm5 })); D.d = d0R6; var l5 = logR6(B5, n5);
+      okR6('§2.5 a darkmantle pulled off and dropped at (' + dm5.x + ',' + dm5.y + '), beside the readied fighter (had ' + had5 + '): the readied strike ' + /readied/.test(l5) + ', her reaction spent ' + (R5.reaction === 0) + ' -- ' + l5.slice(0, 220), !dm5.riding && /readied/.test(l5) && R5.reaction === 0);
+      // the same for a push (M.push records it; any exec asks): a readied fighter, a goblin two squares off, Thunderwave from the far side pushes it beside her (a guard: a spell by
+      // exec asked the hook before too -- battle.js exec 'cast'; the old code passes this one)
+      var B5b = mkR6('?npc=goblin&lvl=5&vs=fighter:5,wizard:5'), g5 = sideR6(B5b, 'foe')[0], f5 = sideR6(B5b, 'party').filter(function (u) { return u.cls === 'fighter'; })[0], w5 = sideR6(B5b, 'party').filter(function (u) { return u.cls === 'wizard'; })[0];
+      [f5, w5].forEach(function (u) { u.hp = u.maxhp = 400; u.conds = {}; u.reaction = 1; }); g5.hp = g5.maxhp = 400;
+      w5.x = 6; w5.y = 8; g5.x = 7; g5.y = 8; f5.x = 10; f5.y = 8;
+      D.rules.startTurn(f5); B5b.active = f5; runR6(B5b.exec(f5, { do: 'ready', pick: 'weapon' }));
+      D.rules.startTurn(w5); B5b.active = w5; var n5b = (B5b.log || []).length; pinR6(1); runR6(B5b.exec(w5, { do: 'cast', id: 'thunderwave', slot: 1, target: { x: g5.x, y: g5.y } })); D.d = d0R6; var l5b = logR6(B5b, n5b);
+      okR6('§2.5 Thunderwave pushes the goblin to (' + g5.x + ',' + g5.y + '), beside the readied fighter: the readied strike ' + /readied/.test(l5b) + ' -- ' + l5b.slice(0, 200), g5.x === 9 && /readied/.test(l5b));
+      // §2.7 Dominate Person (SRD 5.1, 5th): a foe wizard's on our fighter, his save a 1 -- over to the foe, run by his class; hurt, his save a 20, ours again and the spell over
+      var B7 = mkR6('?npc=wizard:9&lvl=9&vs=fighter:9,cleric:9'), w7 = sideR6(B7, 'foe')[0], f7 = sideR6(B7, 'party').filter(function (u) { return u.cls === 'fighter'; })[0];
+      f7.hp = f7.maxhp = 400; f7.conds = {}; var cai7 = f7.classAI; w7.x = f7.x; w7.y = Math.max(0, f7.y - 6); D.rules.startTurn(w7); w7.slots[4] = 2; B7.active = w7;
+      var ok7 = MR6.targetOK(B7, w7, MR6.geo('dominateperson'), f7);
+      pinR6(1); var n7 = (B7.log || []).length; runR6(MR6.cast(B7, w7, 'dominateperson', 5, f7)); D.d = d0R6; var l7 = logR6(B7, n7);
+      var over7 = f7.side === 'foe' && !!f7.dominated && f7.classAI === true && !!(w7.conc && w7.conc.id === 'dominateperson'), seam7 = null;
+      try { var real7 = Object.getOwnPropertyDescriptor(window, 'parent'); Object.defineProperty(window, 'parent', { value: { postMessage: function (m) { seam7 = m; } }, configurable: true }); try { D.embed.done(B7, 'escaped'); } finally { if (real7) Object.defineProperty(window, 'parent', real7); else delete window.parent; } } catch (eS7) { seam7 = { fail: String(eS7) }; }
+      var home7 = !!(seam7 && seam7.party && seam7.party.some(function (x) { return x.id === f7.id || x.name === f7.name; }));
+      B7.active = B7.units.filter(function (u) { return u.side === 'party' && u !== f7; })[0]; pinR6(20); B7.hurt(f7, 5, 'slashing'); D.d = d0R6;
+      okR6('§2.7 Dominate Person on our fighter (a target ' + ok7 + '): over to the foe, his class AI, the wizard concentrating ' + over7 + '; the seam\'s report still has him in the party ' + home7 + '; hurt, his save a 20: ours again ' + (f7.side === 'party' && !f7.dominated && f7.classAI === cai7) + ', the spell over ' + !w7.conc + ' -- ' + l7.slice(0, 160),
+        ok7 && over7 && home7 && f7.side === 'party' && !f7.dominated && f7.classAI === cai7 && !w7.conc);
+      var nagaK = (D.FOES.naga.caster.known || []).indexOf('dominateperson') >= 0, beastNo = (function () { var Bq = mkR6('?npc=wizard:9&lvl=9&vs=druid:8,fighter:9'), wq = sideR6(Bq, 'foe')[0], dq = sideR6(Bq, 'party').filter(function (u) { return u.cls === 'druid'; })[0]; D.features.morph(Bq, dq, 'wolf', dq); return !MR6.humanoid(dq) && MR6.humanoid(sideR6(Bq, 'party').filter(function (u) { return u.cls === 'fighter'; })[0]); })();
+      okR6('§2.7 the spirit naga knows it ' + nagaK + '; a druid in a wolf\'s shape is no humanoid for it ' + beastNo + '; its record ' + !!MR6.data('dominateperson'), nagaK && beastNo && !!MR6.data('dominateperson'));
+      // §2.7 Divine Word lays only what a creature can take: a goblin made proof against blindness, at 35 HP -- deafened, not blinded, the line says so
+      var B7b = mkR6('?npc=goblin&lvl=9&vs=cleric:9'), g7 = sideR6(B7b, 'foe')[0], c7 = sideR6(B7b, 'party')[0];
+      g7.hp = g7.maxhp = 35; g7.condImmune = ['blinded']; g7.x = c7.x; g7.y = c7.y - 3; D.rules.startTurn(c7); c7.slots[6] = 1; B7b.active = c7;
+      pinR6(1); var n7b = (B7b.log || []).length; runR6(MR6.cast(B7b, c7, 'divineword', 7, c7)); D.d = d0R6; var l7b = logR6(B7b, n7b);
+      okR6('§2.7 Divine Word on a goblin at 35 HP proof against blindness: deafened ' + !!g7.conds.deafened + ', blinded ' + !!g7.conds.blinded + ' -- ' + l7b.slice(0, 160), !!g7.conds.deafened && !g7.conds.blinded && /proof against blinded/.test(l7b));
+      // §2b.18 the Keeper's way out: the corridor's end on the grid (14, 8) is the 8-bit's (25, 22), carried home in the seam's report
+      var B18 = new D.Battle({ fight: 'keeper', data: D.save.fixture(3), bench: true }); D.battle = B18; B18.enter(); while (!B18.order.length) B18.co.next();
+      var h18 = sideR6(B18, 'party')[0], ex18 = (B18.exits || []).map(function (q) { return q.join(','); });
+      h18.x = 14; h18.y = 8; h18.left = true; h18.dead = true;
+      var e18 = D.embed.exit8(B18, 'escaped');
+      okR6('§2b.18 the floodstair\'s ways out ' + JSON.stringify(ex18) + '; one who left at (14,8) comes up on the 8-bit\'s ' + JSON.stringify(e18) + ' (warrens_d\'s corridor, (25,22))', ex18.indexOf('14,8') >= 0 && e18 && e18[0] === 25 && e18[1] === 22);
+    } catch (eR6) { repR6.errors.push(String(eR6 && eR6.stack || eR6).slice(0, 900)); }
+    D.d = d0R6;
+    if (errs.length) repR6.errors = repR6.errors.concat(errs);
+    var preR6 = document.createElement('pre'); preR6.id = 'out'; preR6.textContent = 'BENCH16 ' + JSON.stringify(repR6);
+    document.body.appendChild(preR6);
+    return;
+  }
   // the cheap SRD fixes, the grid's six (mode=fixes1003; 10-03, Griz: "4 yes" to "The cheap SRD fixes as one Sonnet or cloud batch?"; spells-two-books.md §2c): each
   // check failed before its fix (cloud-notes/spell-fixes-notes.md). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
   if (get('mode', '') === 'fixes1003') {

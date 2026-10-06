@@ -171,8 +171,11 @@
     return out;
   };
   // a humanoid (Hold Person): the party, the 8-bit game's monsters tagged so, and the grid's own kinds that say so
+  // (a druid in a beast's shape is a beast -- SRD 5.1 Wild Shape, "you assume the beast's ... statistics" -- and one of ours dominated onto the other side is still one of ours:
+  // 10-06, the grid's rules §2.7, with Dominate Person)
   M.humanoid = function (w) {
-    if (w.side === 'party') return true;
+    if (w.beast) return false;
+    if (w.side === 'party' || (w.dominated && w.dominated.side0 === 'party')) return true;
     if (w.type) return w.type === 'humanoid'; // (the creature type on every sheet, 09-28)
     var m = window.DS.DATA.monsters[w.kind], f = D.FOES[w.kind] || {};
     return !!(f.humanoid || (m && (m.tags || []).indexOf('humanoid') >= 0));
@@ -370,7 +373,9 @@
       if (g.shape === 'rays') B.card([head + ' -- ' + shots.length + ' rays']);
       for (var i = 0; i < shots.length; i++) {
         if (shots[i].dead || (shots[i].hp <= 0 && !shots[i].regenDown)) continue; // (a troll down and knitting takes the ray: fire on it where it lies -- 10-05, Griz: "is scorching ray supposed to stop regen? Aurdin was shooting him when they were down and there was no real card")
-        yield* B.attack(u, shots[i], { name: sp.name, atk: u.spellAtk, dice: dice, mod: 0, type: sp.el, spell: true, ranged: true, range: [g.range, g.range], fx: 'fire' });
+        var spAtk = { name: sp.name, atk: u.spellAtk, dice: dice, mod: 0, type: sp.el, spell: true, ranged: true, range: [g.range, g.range], fx: 'fire' };
+        if (shots[i].tendril) { yield* B.strikeTendril(u, shots[i], spAtk); continue; } // (a roper's tendril, the spell's object -- js/ui.js spellTarget, 10-06: the grid's rules §2.4)
+        yield* B.attack(u, shots[i], spAtk);
       }
     } else if (g.shape === 'darts') {
       // "Magic Missile at the darkness" (Griz, 09-28: "we have to do [the] magic missile at the darkness gimmick somewhere in the
@@ -663,7 +668,7 @@
       if (!caught.length && !globeLines.length) lines.push('  {g}no one in it.{/}');
       B.card(lines.slice(0, 7), 420);
       yield { fx: 1 };
-      hits.forEach(function (h) { B.hurt(h[0], h[1], sp.el, MAGIC); if (h[3] && !h[0].dead) B.hurt(h[0], h[3], sp.el2, MAGIC); }); // (each kind its own hurt, as Flame Strike's: grimoire.js)
+      hits.forEach(function (h) { B.hurtAll(h[0], [[h[1], sp.el], [h[3] || 0, sp.el2]], MAGIC); }); // (each kind its own hurt, as Flame Strike's: grimoire.js -- one concentration save on the sum, B.hurtAll)
       // Thunderwave: a failed save is pushed 10 ft straight away from the caster (stopped by a wall, a creature, the edge)
       if (g.shape === 'wave') hits.forEach(function (h) { if (!h[2]) M.push(B, u, h[0], 2); });
       // Ice Storm: "Hailstones turn the storm's area of effect into difficult terrain until the end of your next turn" (SRD 5.1 -- 10-03, the register said
@@ -963,6 +968,7 @@
     if (!dx && !dy) return;
     for (var i = 0; i < n; i++) { if (!G.canStand(w, w.x + dx, w.y + dy)) break; w.x += dx; w.y += dy; moved++; }
     if (!moved) return;
+    if (B.forced) B.forced(w); // (a forced move: the readied strikes asked when the action is done -- battle.js readyForced, the grid's rules §2.5)
     w.tween = { fx: x0, fy: y0, fz: G.gzAt(w, x0, y0), t: 0, dur: B.pace(10, true) }; // (a shove on an AI-run unit's turn keeps to the pace: Battle.prototype.pace)
     FX.float('pushed ' + moved * 5 + ' ft', w, D.PAL.ramps.silver[5]);
   };

@@ -1649,7 +1649,7 @@
       var f = D.roll(more('4d6', up(x.sp, slot))), r = D.roll('4d6'), lines = [head + '  a column of divine fire: ' + f.total + ' fire + ' + r.total + ' radiant  DEX DC ' + x.dc], hits = [];
       list.forEach(function (w) { if (M.globed(B, u, w, 5)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', x.dc), k = sv.ok ? 0.5 : 1; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}')); hits.push([w, Math.floor(f.total * k), Math.floor(r.total * k)]); }); // (the Globe of Invulnerability: this one had no filter at all)
       B.card(lines.slice(0, 8), 420); yield { fx: 1 };
-      hits.forEach(function (h) { B.hurt(h[0], h[1], 'fire', MAGIC); if (!h[0].dead) B.hurt(h[0], h[2], 'radiant', MAGIC); });
+      hits.forEach(function (h) { B.hurtAll(h[0], [[h[1], 'fire'], [h[2], 'radiant']], MAGIC); }); // (one concentration save on the sum: B.hurtAll)
       yield 24;
     },
     ai: function (B, u, e, slot, fs) { return TX().bestArea(B, u, e, fs, function (caught) { return TX().areaWorth(B, u, Object.assign({}, e, { sp: Object.assign({}, e.sp, { dmg: '8d6', half: true, save: 'dex' }) }), 0, caught); }); }
@@ -1677,7 +1677,7 @@
     }
     if (k === 'charm') {
       var dm = t.dominated, dby = dm && byId(dm.by), hy = c.hypnotized;
-      if (dm) { if (dby && dby.conc && dby.conc.id === 'dominatebeast') M.endConc(B, dby, 'it was undone'); else freeDominated(B, t, dby || { id: dm.by }); }
+      if (dm) { if (dby && dby.conc && dby.conc.id === (dm.spell || 'dominatebeast')) M.endConc(B, dby, 'it was undone'); else freeDominated(B, t, dby || { id: dm.by }); }
       if (hy) { delete c.hypnotized; if (c.incapacitated && c.incapacitated.by === hy.by) delete c.incapacitated; } // (the pattern's trance: the charm, the stupor and the mark of it)
       delete c.charmed;
       return 'the charm';
@@ -1892,36 +1892,44 @@
   };
   // Dominate Beast (SRD 5.1, 4th, concentration): a beast he can see within 60 ft, WIS with advantage (it is being fought: always, here)
   // or it fights for his side till the spell ends; each time it is hurt, WIS again, and a success frees it (M.onHurt below)
-  E.dominatebeast = {
-    summary: function () { return 'a beast you can see within 60 ft (concentration) · WIS, with advantage (it is being fought) -- failed, it fights for you; each time it is hurt it saves again'; },
-    cast: function* (B, u, t, slot, head, x) {
-      if (!t || t.hp <= 0 || t.type !== 'beast') { B.card([head + ': ' + (t ? nm(B, t) : 'that') + ' is no beast.'], 200); yield 16; return; }
-      if (RU.immuneTo(t, 'charmed', u)) { B.card([head + ': ' + nm(B, t) + ' is proof against it.'], 200); yield 16; return; }
-      var sv = RU.save(t, 'wis', x.dc, G.hostile(u, t), 'charmed');
-      B.card([head + ' on ' + nm(B, t) + ': WIS ' + RU.saveText(sv) + ' vs DC ' + x.dc + '  ' + (sv.ok ? '{n}it shakes him off{/}' : '{o}it is his{/}')], 260);
-      if (sv.ok) { yield 20; return; }
-      t.dominated = { by: u.id, side0: t.side, guest0: t.guest, dc: x.dc };
-      t.side = u.side; t.guest = true; t.conds.charmed = { by: u.id, dominated: true };
-      FX.sparkle(t, 'violet', 18); D.sfx('charm');
-      M.concentrate(B, u, 'dominatebeast', 'Dominate Beast', function () { freeDominated(B, t, u); });
-      u.conc.t = t;
-      yield 24;
-    },
-    ai: function (B, u, e, slot, fs) {
-      if (u.conc) return null;
-      var best = null;
-      fs.forEach(function (f) {
-        if (f.type !== 'beast' || f.hp <= 0 || G.dist(u, f) > 60 || !M.sees(B, u, f) || RU.immuneTo(f, 'charmed', u)) return;
-        var pf = TX().pFail(f, 'wis', u.spellDC); pf = pf * pf; // (advantage)
-        var sc = pf * TX().dpr(f) * 3 * 2 + pf * f.hp * 0.1;
-        if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: f, keep: sc * 0.6 };
-      });
-      return best;
-    }
-  };
+  // Dominate Person (SRD 5.1, 5th, concentration; 10-06, the grid's rules §2.7 -- it had waited on "control": the dominated fight on their own wits, as the beast does, the
+  // commanding not built for either): the same for a humanoid -- one of the party too, who goes over to the caster's side and is run by the class AI till it is free (the
+  // spirit naga's two 5th-level slots, its SRD list). `dominated.spell` carries which, so a dispel or a save ends the right concentration
+  function dominate(id, name, test, what) {
+    return {
+      summary: function () { return what + ' you can see within 60 ft (concentration) · WIS, with advantage (it is being fought) -- failed, it fights for you; each time it is hurt it saves again'; },
+      cast: function* (B, u, t, slot, head, x) {
+        if (!t || t.hp <= 0 || !test(t)) { B.card([head + ': ' + (t ? nm(B, t) : 'that') + ' is not ' + what + '.'], 200); yield 16; return; }
+        if (RU.immuneTo(t, 'charmed', u)) { B.card([head + ': ' + nm(B, t) + ' is proof against it.'], 200); yield 16; return; }
+        var sv = RU.save(t, 'wis', x.dc, G.hostile(u, t), 'charmed');
+        B.card([head + ' on ' + nm(B, t) + ': WIS ' + RU.saveText(sv) + ' vs DC ' + x.dc + '  ' + (sv.ok ? '{n}' + (id === 'dominatebeast' ? 'it shakes him off' : 'shakes it off') + '{/}' : '{o}' + (id === 'dominatebeast' ? 'it is his' : 'goes over to ' + (u.side === 'foe' ? 'the ' + B.shortName(u) : u.name)) + '{/}')], 260);
+        if (sv.ok) { yield 20; return; }
+        t.dominated = { by: u.id, side0: t.side, guest0: t.guest, classAI0: t.classAI, dc: x.dc, spell: id };
+        t.side = u.side; t.guest = true; t.conds.charmed = { by: u.id, dominated: true };
+        if (t.cls) t.classAI = true; // (one of a class -- a hero, a class NPC -- fights by its class's own tactics, its blade and its spells, for its new side: ai.js turn)
+        FX.sparkle(t, 'violet', 18); D.sfx('charm');
+        M.concentrate(B, u, id, name, function () { freeDominated(B, t, u); });
+        u.conc.t = t;
+        yield 24;
+      },
+      ai: function (B, u, e, slot, fs) {
+        if (u.conc) return null;
+        var best = null;
+        fs.forEach(function (f) {
+          if (!test(f) || f.hp <= 0 || f.dominated || G.dist(u, f) > 60 || !M.sees(B, u, f) || RU.immuneTo(f, 'charmed', u)) return;
+          var pf = TX().pFail(f, 'wis', u.spellDC); pf = pf * pf; // (advantage)
+          var sc = pf * TX().dpr(f) * 3 * 2 + pf * f.hp * 0.1;
+          if (sc > 0 && (!best || sc > best.score)) best = { score: sc, t: f, keep: sc * 0.6 };
+        });
+        return best;
+      }
+    };
+  }
+  E.dominatebeast = dominate('dominatebeast', 'Dominate Beast', function (t) { return t.type === 'beast'; }, 'a beast');
+  E.dominateperson = dominate('dominateperson', 'Dominate Person', function (t) { return !t.beast && M.humanoid(t); }, 'a humanoid');
   function freeDominated(B, t, u) {
     if (!t.dominated || t.dominated.by !== u.id) return;
-    t.side = t.dominated.side0; t.guest = t.dominated.guest0; delete t.dominated;
+    t.side = t.dominated.side0; t.guest = t.dominated.guest0; if (t.cls) t.classAI = t.dominated.classAI0; delete t.dominated;
     if (t.conds.charmed && t.conds.charmed.dominated) delete t.conds.charmed;
     if (t.hp > 0 && !t.dead) B.card(['{g}' + Nm(B, t) + ' is its own again.{/}'], 240);
   }
@@ -1963,7 +1971,7 @@
     if (dm) {
       var by = B.units.filter(function (w) { return w.id === dm.by; })[0], sv = RU.save(u, 'wis', dm.dc);
       B.card([Nm(B, u) + ', hurt, fights the domination: WIS ' + RU.saveText(sv) + ' vs DC ' + dm.dc + '  ' + (sv.ok ? '{n}FREE{/}' : '{o}still his{/}')], 220);
-      if (sv.ok && by && by.conc && by.conc.id === 'dominatebeast') M.endConc(B, by, 'it broke free'); else if (sv.ok) freeDominated(B, u, by || { id: dm.by });
+      if (sv.ok && by && by.conc && by.conc.id === (dm.spell || 'dominatebeast')) M.endConc(B, by, 'it broke free'); else if (sv.ok) freeDominated(B, u, by || { id: dm.by });
     }
     var ch = u.conds.charmed;
     if (ch && ch.breaks && B.active) { var cb = B.units.filter(function (w) { return w.id === ch.by; })[0]; if (cb && B.active.side === cb.side) { delete u.conds.charmed; B.card(['{g}The charm on ' + nm(B, u) + ' breaks.{/}'], 200); } }
@@ -2429,10 +2437,17 @@
         // the otherworldly are forced back to their plane and cannot return for a day: out of the fight, as a summoned one is when it goes
         if (HOME.test(w.type || '')) { delete w.conds.banished; w.dead = true; w.left = true; w.deadT = B.t; FX.sparkle(w, 'violet', 20); lines.push('  ' + Nm(B, w) + ': {y}sent home{/}'); return; }
         // (deafened for a minute -- ten of its own turns -- at 50 or fewer; the longer blindness and stun are the fight's, as they were)
+        // (each condition only where the creature can take it -- a construct proof against blindness, the deaf-born: 10-06, the grid's rules §2.7, "Divine Word sets it with no
+        // immunity check"; the line names what it shrugged off)
+        var lay = function (want) {
+          var got = [], off = [];
+          want.forEach(function (k) { if (RU.immuneTo(w, k)) { off.push(k); return; } w.conds[k] = k === 'deafened' && want.length === 1 ? { by: u.id, till: { who: w.id, at: 'end', n: 10 } } : { by: u.id }; got.push(k); });
+          lines.push('  ' + Nm(B, w) + ': ' + (got.length ? '{' + (got.length > 2 ? 'p' : 'o') + '}' + got.join(', ') + '{/}' : '{g}untouched{/}') + (off.length ? '  {g}(proof against ' + off.join(', ') + '){/}' : ''));
+        };
         if (w.hp <= 20) { lines.push('  ' + Nm(B, w) + ': {y}DROPS{/}'); B.hurt(w, w.hp + (w.temp || 0), 'radiant', MAGIC); }
-        else if (w.hp <= 30) { w.conds.deafened = { by: u.id }; w.conds.stunned = { by: u.id }; w.conds.blinded = { by: u.id }; lines.push('  ' + Nm(B, w) + ': {p}deafened, stunned, blinded{/}'); }
-        else if (w.hp <= 40) { w.conds.deafened = { by: u.id }; w.conds.blinded = { by: u.id }; lines.push('  ' + Nm(B, w) + ': {o}deafened, blinded{/}'); }
-        else if (w.hp <= 50) { w.conds.deafened = { by: u.id, till: { who: w.id, at: 'end', n: 10 } }; lines.push('  ' + Nm(B, w) + ': {o}deafened{/}'); }
+        else if (w.hp <= 30) lay(['deafened', 'stunned', 'blinded']);
+        else if (w.hp <= 40) lay(['deafened', 'blinded']);
+        else if (w.hp <= 50) lay(['deafened']);
         else lines.push('  ' + Nm(B, w) + ': {g}too much life in it{/}');
       });
       B.card(lines.slice(0, 8), 420); yield 30;
@@ -2534,7 +2549,7 @@
       // (the Globe of Invulnerability: a 9th-level spell is past the highest globe there is -- one raised from a 9th-level slot holds out the 8th and under -- so nothing is ever shut out here; asked all the same, so a rule that moved would not leave this one behind)
       list.forEach(function (w) { if (M.globed(B, u, w, 9)) { lines.push('  ' + Nm(B, w) + ': {c}inside the globe: untouched{/}'); return; } var sv = RU.save(w, 'dex', x.dc), k = sv.ok ? 0.5 : 1; lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv)); hits.push([w, Math.floor(f.total * k), Math.floor(b.total * k)]); });
       B.card(lines.slice(0, 8), 480); yield { fx: 1 };
-      hits.forEach(function (h) { B.hurt(h[0], h[1], 'fire', MAGIC); if (!h[0].dead) B.hurt(h[0], h[2], 'bludgeoning', MAGIC); });
+      hits.forEach(function (h) { B.hurtAll(h[0], [[h[1], 'fire'], [h[2], 'bludgeoning']], MAGIC); }); // (one concentration save on the sum: B.hurtAll)
       yield 30;
     },
     ai: function (B, u, e, slot, fs) { var sc = 0; B.units.forEach(function (w) { if (!G.standing(w) || M.globeShuts(B, u, e.g, w)) return; sc += (G.hostile(u, w) ? 1 : -1.5) * TX().worth(70 * 0.7, w); }); var t = fs[0]; return t && sc > 0 ? { score: sc, t: { x: t.x, y: t.y } } : null; }

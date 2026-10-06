@@ -452,7 +452,7 @@
   function noSpare(u, a) { return !!(a && a.holdOnly && a.grapple && (u.holding || []).length + (u.tendrilsLost || 0) >= (a.grapple.max || 1)); }
   // a seizing attack is of no use on one it holds already, or one it cannot hold (Freedom of Movement: RU.immuneTo 'grappled'; 10-02, Griz: "when feared? (or immune or
   // something)" -- a party nothing can hold is bitten, not lashed at forever): with `hs`, the heroes it knows of, the tendril's reach counts only while someone in it can be held
-  function usableOn(u, a, w) { return !(a && a.holdOnly && a.grapple && (noSpare(u, a) || (u.holding || []).indexOf(w) >= 0 || RU.immuneTo(w, 'grappled') || RU.immuneTo(w, 'restrained'))); }
+  function usableOn(u, a, w) { return !(a && a.holdOnly && a.grapple && (noSpare(u, a) || (u.holding || []).indexOf(w) >= 0 || RU.immuneTo(w, 'grappled') || RU.immuneTo(w, 'restrained') || (a.grapple.size && D.Battle.sizeCat(w) > D.Battle.SIZE[a.grapple.size]))); } // (too big for the grip its sheet names: battle.js, the grid's rules §2.3)
   function reachOf(u, hs) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { var a = u.attacks[k]; if (noSpare(u, a)) return; if (hs && a.holdOnly && a.grapple && !hs.some(function (w) { return usableOn(u, a, w) && G.dist(u, w) <= G.reachOf(u, a.reach); })) return; r = Math.max(r, a.reach || 0); }); return G.reachOf(u, r); }
   function gripReach(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r, u.attacks[k].reach || 0); }); return G.reachOf(u, r); }
   function* webShot(B, u, tgt) {
@@ -903,6 +903,7 @@
     D.sfx(won ? 'hit' : 'miss'); yield 20;
     if (won) {
       var s = u.size || 1; D.magic.push(B, { x: u.x + (s - 1) / 2, y: u.y + (s - 1) / 2 }, w, 1);
+      if (B.readyForced) yield* B.readyForced(); // (shoved into a readier's reach: the readied strikes, the grid's rules §2.5)
       if (w.x === x0 && w.y === y0 && !(w.hang && G.hanging(w)) && !w.noProne && !RU.immuneTo(w, 'prone')) { w.conds.prone = true; B.card(['{o}' + w.name + ' has nowhere to go: knocked flat instead.{/}'], 200); }
       yield 16;
     }

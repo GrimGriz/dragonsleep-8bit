@@ -405,14 +405,21 @@
     }
     u.x = best ? best[0] : hx; u.y = best ? best[1] : hy;
     u.tween = { fx: hx, fy: hy, fz: 18, t: 0, dur: this.pace(12, true) };
+    this.forced(u); // (set down by another's doing: the readied strikes are asked when the action is done -- readyForced, the grid's rules §2.5)
     if (host && !u.dead && u.hp > 0) this.card(['{g}The ' + shortName(u) + ' drops off ' + nameOf(host) + ' to the floor beside.{/}'], 220);
   };
-  // bigger than Medium: two squares and more, or a Medium (not a halfling's or a gnome's Small) Enlarged a size up (SRD 5.1 Enlarge: "from Medium to Large")
-  Battle.overMedium = function (u) {
-    if ((u.size || 1) > 1) return true;
-    var en = u.conds && u.conds.enlarged, small = u.sizeClass === 'S' || /halfling|gnome/i.test(u.race || '');
-    return !!(en && !en.down && !small);
+  // a creature's size where a rule names one (SRD 5.1: Tiny 0, Small 1, Medium 2, Large 3, Huge 4, Gargantuan 5): its body's squares (one Medium, two Large, three Huge,
+  // four Gargantuan); a one-square body Small by its race (a halfling, a gnome) or a split ooze's `sizeClass`, Tiny a familiar; a beast's shape its own size (Wild Shape and
+  // Polymorph keep the druid's square on the grid: the giant spider is Large all the same -- the grid's rules §2.3, 10-06); Enlarge a size up, Reduce one down
+  Battle.SIZE = { T: 0, S: 1, M: 2, L: 3, H: 4, G: 5 };
+  Battle.sizeCat = function (u) {
+    var bf = u.beast && D.FOES && D.FOES[u.beast.kind], n = bf ? (bf.size || 1) : (u.size || 1);
+    var c = n > 1 ? n + 1 : (bf ? 2 : u.sizeClass === 'S' || /halfling|gnome/i.test(u.race || '') ? 1 : u.familiar ? 0 : 2);
+    var en = u.conds && u.conds.enlarged; if (en) c += en.down ? -1 : 1;
+    return Math.max(0, Math.min(5, c));
   };
+  // bigger than Medium: two squares and more, or a Medium (not a halfling's or a gnome's Small) Enlarged a size up (SRD 5.1 Enlarge: "from Medium to Large"), or in a Large beast's shape
+  Battle.overMedium = function (u) { return Battle.sizeCat(u) > Battle.SIZE.M; };
   // each step of the coroutine (step, below): a rider whose hold is gone comes off -- its host or itself down, gone off the plane, banished, turned, asleep on the
   // floor (prone) -- and one whose host has grown past Medium since it got on (Enlarge) is thrown off, as if pulled off, to the nearest open square (RULED 10-01,
   // Griz: "only when he's Medium or smaller"; then "treat if 'victim enlarge' = pull it off to nearby square")
@@ -1209,13 +1216,14 @@
       var dT = this.pace(STEP_FRAMES + 14, true);
       if (att && att.sheet) { yield* this.camTo(att, 3, 26); att.anim = 'attack'; att.animT = this.t; this.card(['{y}' + nameOf(att) + '{/} lets fly.'], 220); yield 18; FX.projectile(att, u, 'bolt'); yield { fx: 1 }; att.anim = 'idle'; yield 14; }
       yield* this.camTo(u, 3, 22); yield 10;
-      u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: dT, mode: 'drop' }; u.x = sq.at[0]; u.y = sq.at[1]; delete u.hang;
+      u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: dT, mode: 'drop' }; u.x = sq.at[0]; u.y = sq.at[1]; delete u.hang; this.forced(u);
       yield Math.floor(dT / 2); // (the camera holds on the edge: it drops out of the frame)
       yield* this.camTo({ gx: sq.at[0], gy: sq.at[1], gz: 0 }, 3, Math.max(1, Math.ceil(dT / 2))); // (and the fountain, as it lands)
       D.sfx('splash'); FX.ring(u, 'bone', 30); FX.sparkle(u, 'blue', 28); FX.float('SPLASH', u, D.PAL.ramps.blue[3]); yield 24;
     } else {
       u.tween = { fx: u.x, fy: u.y, fz: z0, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
       u.x = sq.at[0]; u.y = sq.at[1]; delete u.hang; this.keepInView(u);
+      this.forced(u); // (knocked down off the edge: readyForced)
       yield STEP_FRAMES + 6;
     }
     // the dunking booth (10-05, Griz: "do similar (zoomed in) fall on whichever player character (only) that not only gets rocked off the ledge but also into a fountain - 'dunking booth'
@@ -1257,7 +1265,7 @@
     r.cut = true;
     for (var i = 0; i < this.units.length; i++) {
       var h = this.units[i]; if (!(h.hang && h.hang.rope === r)) continue;
-      var fz = h.hang.z, ft = Math.round((fz - G.map.gz(h.x, h.y)) / G.map.def.step) * 2.5; delete h.hang;
+      var fz = h.hang.z, ft = Math.round((fz - G.map.gz(h.x, h.y)) / G.map.def.step) * 2.5; delete h.hang; this.forced(h); // (dropped down into reach, maybe: readyForced)
       h.tween = { fx: h.x, fy: h.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' }; yield STEP_FRAMES + 6;
       var onR = this.under(h), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null; // (onto whoever stood at the rope's foot: the cushion, the dice split -- 10-05, landOn)
       this.card(['{o}' + nameOf(h) + ' falls ' + ft + ' ft' + (onR.length ? ' onto ' + onR.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands prone.' :(fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 220);
@@ -2059,11 +2067,13 @@
     }
     this.card([head, line + '  ' + (crit ? '{y}CRITICAL{/}' : '{n}HIT{/}') + why, parts.join('  ') + '  = {r}' + (dmg + fire + rad + ext + xtra.reduce(function (a, x) { return a + x[0]; }, 0)) + '{/}'], 300, cid);
     if (melee) FX.slash(tgt, crit ? D.PAL.ramps.gold[4] : null);
-    if (fire) { FX.sparkle(tgt, 'fire', 12); this.hurt(tgt, fire, 'fire'); }
-    if (rad && !tgt.dead) this.hurt(tgt, rad, 'radiant');
-    var blowSrc = { magic: !!(atk.magic || atk.spell) }; // (the weapon's magic, or a spell attack's: Stoneskin reads it in hurt())
+    // (one blow, one concentration save on all it dealt: the fire, the smite, a mark's, the blade's, and a bite's poison on a failed save below -- B.blowEnd, the grid's rules §2.1)
+    var bl = this.blow(); tgt.blowIn = bl; // (what rides the weapon's hit from js/features.js -- Colossus Slayer, Divine Strike -- banks here too: `blow: tgt.blowIn`)
+    if (fire) { FX.sparkle(tgt, 'fire', 12); this.hurt(tgt, fire, 'fire', { blow: bl }); }
+    if (rad && !tgt.dead) this.hurt(tgt, rad, 'radiant', { blow: bl });
+    var blowSrc = { magic: !!(atk.magic || atk.spell), blow: bl }; // (the weapon's magic, or a spell attack's: Stoneskin reads it in hurt())
     if (ext && !tgt.dead) this.hurt(tgt, ext, atk.extraType || atk.type, blowSrc);
-    for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1], { magic: true }); // (a mark's, a curse's: a spell's)
+    for (var xi = 0; xi < xtra.length; xi++) if (!tgt.dead) this.hurt(tgt, xtra[xi][0], xtra[xi][1], { magic: true, blow: bl }); // (a mark's, a curse's: a spell's)
     if (!tgt.dead) this.hurt(tgt, dmg, atk.type, blowSrc);
     // disruption: one left at 25 HP or fewer saves WIS DC 15 or is destroyed; on a success it is frightened of the wielder till the
     // end of his next turn (`fresh`: the Slam's idiom -- ai.js's end-of-turn sweep spares it once)
@@ -2097,10 +2107,12 @@
       if (!sv.ok) { D.sfx('poison'); tgt.conds.poisoned = atk.poison.repeat ? { save: 'con', dc: atk.poison.dc } : true; FX.sparkle(tgt, 'moss', 10); }
       yield 30;
     }
-    // a grapple on the hit (the otyugh's tentacles): Medium or smaller, while it has a tentacle free; grappled and restrained
+    // a grapple on the hit (the otyugh's tentacles): while it has a tentacle free; grappled and restrained -- of the size its own sheet names, `grapple.size` (the otyugh's "Medium
+    // or smaller" 'M', the chuul's "Large or smaller" 'L'), and of any size where it names none (the roper's tendril, the frog's bite): 10-06, the grid's rules §2.3, on the lane's
+    // lean ("per grappler, by each SRD sheet"); before, every grappler took the otyugh's Medium or smaller, and a Large wild-shaped hero could not be held by a roper
     // (tendrilsLost: a roper's tendrils cut or broken this round are not there to grab with till its next turn -- SRD 5.1, "can extrude a replacement tendril on its next turn"; tendrilGone, rules.js startTurn)
     var grabbed = false;
-    if (atk.grapple && !tgt.dead && tgt.hp > 0 && (tgt.size || 1) <= 1 && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length + (att.tendrilsLost || 0) < (atk.grapple.max || 1)) {
+    if (atk.grapple && !tgt.dead && tgt.hp > 0 && (!atk.grapple.size || Battle.sizeCat(tgt) <= Battle.SIZE[atk.grapple.size]) && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length + (att.tendrilsLost || 0) < (atk.grapple.max || 1)) {
       grabbed = true;
       tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true, weak: !!atk.weakens, only: !!atk.grapple.only }; // (weak: the roper's tendril, disadvantage on STR: js/traits.js; only: grappled and no more -- the chuul's pincer, SRD 5.1, no restraint, rules.js edges, 10-06)
       // the roper's tendril is a thing on the grid (SRD 5.1 Grasping Tendrils: "Each tendril can be attacked (AC 20; 10 hit points; immunity to poison and psychic damage).
@@ -2180,9 +2192,10 @@
       var pr = D.roll(atk.save.dice), s2 = RU.save(tgt, atk.save.ab, atk.save.dc, atk.save.type === 'poison' && RU.vsPoison(tgt), null, pr.total), ev2 = atk.save.half && atk.save.ab === 'dex' && RU.evasion(tgt); // (Evasion: none on a success, half on a failure -- the breath weapons too)
       var pd = ev2 ? (s2.ok ? 0 : Math.floor(pr.total / 2)) : s2.ok && atk.save.half ? Math.floor(pr.total / 2) : s2.ok ? 0 : pr.total;
       this.card(['{r}' + nameOf(tgt) + '{/}: ' + atk.save.ab.toUpperCase() + ' save  ' + RU.saveText(s2) + ' vs DC ' + s2.dc + '  ' + (s2.ok ? '{n}SAVED{/} (half)' : '{o}FAILED{/}'), atk.save.dice + ' ' + RU.fmtRolls(pr.rolls) + ' = ' + pr.total + ' ' + atk.save.type + '  = {r}' + pd + '{/}']);
-      if (pd) this.hurt(tgt, pd, atk.save.type);
+      if (pd) this.hurt(tgt, pd, atk.save.type, { blow: bl });
       yield 30;
     }
+    this.blowEnd(tgt, bl);
     att.anim = 'idle';
     if (!o.ready && !o.oa && this.units.some(function (w) { return w.ready && w.reaction > 0; })) yield* this.readyHook(att); // (a blow from hiding, or from the invisible, gives its maker away: the readied strikes, 10-02)
   };
@@ -2396,8 +2409,22 @@
   var attack0 = Battle.prototype.attack;
   Battle.prototype.attack = function* (att, tgt, atk, o) {
     yield* attack0.call(this, att, tgt, atk, o);
+    yield* this.readyForced();
     if (tgt && this.readyArmed()) yield* this.readyAfter({ kind: 'ally', foe: att, ally: tgt });
   };
+  // forced moves (10-06, the grid's rules §2.5; SRD 5.1 Ready: "right after the trigger finishes"): a body set down by something not its own walk -- pushed (Thunderwave, Gust of
+  // Wind, Repelling Blast, a shove: magic.js M.push), a rider pulled off or thrown off and dropped beside (dismount), a cushion shoved out from under a fall (landOn), one knocked over
+  // a ledge (knockOff) -- goes on B.shoved where it lands, and the readied strikes are asked of it once the action that moved it is done: the end of every exec, of every attack, and
+  // the AI's own shove (ai.js shoveOff). The Keeper's Wave asks the hook itself (keeper.js, the pattern this follows); asked twice, the second finds nothing new (readyHook's `had`)
+  Battle.prototype.forced = function (w) { if (w && !w.dead) (this.shoved = this.shoved || []).push(w); };
+  Battle.prototype.readyForced = function* () {
+    var s = this.shoved; if (!s || !s.length) return;
+    this.shoved = [];
+    if (!this.readyArmed() || this.over()) return;
+    for (var i = 0; i < s.length; i++) if (s.indexOf(s[i]) === i && G.standing(s[i])) yield* this.readyHook(s[i]);
+  };
+  var exec0 = Battle.prototype.exec;
+  Battle.prototype.exec = function* (u, c) { var r = yield* exec0.apply(this, arguments); yield* this.readyForced(); return r; };
   var cast0 = D.magic.cast, ZK = ['grounds', 'zones', 'darks', 'webs', 'walls', 'auras', 'wards', 'beads', 'lights', 'spirits', 'shells'];
   D.magic.cast = function* (B, u, id, slot, t) {
     // (what the spell does, for "you see a foe cast a spell": the creatures it hurt or marked, the squares of what it laid -- told only with a ready armed)
@@ -2456,6 +2483,16 @@
   // 10-04, Griz: every turn of the model -- two foes flanking it, two blows, two looks -- and a step turns it too, moveAlong)
   Battle.prototype.turnTo = function (u, f) { if (u.facing === f) return; u.facing = f; if (RU.canAct(u) && u.hp > 0) this.findsHidden(u); };
 
+  // one blow of several kinds, one concentration save (the grid's rules §2.1, RULED 10-06 on the lane's lean): `parts` [[n, type], ...] land in order on u, each
+  // its own hurt (resistance by kind), their `blow` banking what u took; then one save, DC 10 or half the sum (SRD 5.1 Concentration: "you make a separate saving
+  // throw for each source of damage"). A part after u is dead is not dealt (one down still takes it, as before)
+  Battle.prototype.blow = function () { return { took: 0 }; };
+  Battle.prototype.blowEnd = function (u, blow) { if (u.blowIn === blow) delete u.blowIn; if (blow && blow.took > 0 && !u.dead && u.hp > 0) D.magic.concCheck(this, u, blow.took); if (blow) blow.took = 0; };
+  Battle.prototype.hurtAll = function (u, parts, src) {
+    var bl = this.blow(), s = Object.assign({}, src || {}, { blow: bl });
+    for (var i = 0; i < parts.length; i++) if (parts[i][0] > 0 && !u.dead) this.hurt(u, parts[i][0], parts[i][1], s);
+    this.blowEnd(u, bl);
+  };
   // damage lands: a flash, a number, and at 0 a hero goes down (and can be brought back), a foe dies
   Battle.prototype.hurt = function (u, n, type, src) { // (src: { magic: true } when the blow is magical -- a spell, a magic weapon, a monster's magical attacks)
     if (n <= 0) return;
@@ -2500,10 +2537,12 @@
     // concentration reads the damage taken, temporary hit points and a beast's shape included (SRD 5.1: "Whenever you take damage while you
     // are concentrating"; the DC "half the damage you take") -- one save a blow: the rest a reverted druid carries into their own shape
     // comes back `carried` and rolls none (10-03, the review: a temp-HP soak and Wild Shape both returned before the save)
-    var took = n, conc = function (B) { if (took > 0 && !(src && src.carried)) D.magic.concCheck(B, u, took); };
+    // (a blow of two kinds -- Ice Storm's hail and cold, Flame Strike's fire and radiant, a blade and its fire or a bite and its poison -- is one source, one save on the sum:
+    // its parts carry one `blow` record and bank what they took, and the caller asks once at the end, Battle.blowEnd -- the grid's rules §2.1, SRD 5.1 "half the damage you take")
+    var took = n, conc = function (B) { if (took > 0 && !(src && src.carried)) { if (src && src.blow) src.blow.took += took; else D.magic.concCheck(B, u, took); } };
     if (u.temp > 0) { var soak = Math.min(u.temp, n); u.temp -= soak; n -= soak; }
     // Wild Shape (js/features.js): the beast's hit points take it first; at 0 the druid comes back with the rest
-    if (u.beast && n > 0) { if (n < u.beast.hp) { u.beast.hp -= n; u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); conc(this); return; } var over = n - u.beast.hp; conc(this); D.features.unshape(this, u, over); return; }
+    if (u.beast && n > 0) { if (n < u.beast.hp) { u.beast.hp -= n; u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); conc(this); return; } var over = n - u.beast.hp; conc(this); D.features.unshape(this, u, over, false, type, src); return; } // (the rest lands as the blow's own kind, its magic with it: the grid's rules §2.2)
     if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
     if (n <= 0) { conc(this); return; }
     // a troll down at 0 (u.regenDown, below): more blows change nothing but the burning -- fire or acid, and it is dead there and then (RULED 10-06, Griz: "if hp drops to
@@ -2584,7 +2623,7 @@
   Battle.prototype.clingSave = function (u, dmg, knocked) {
     var dc = Math.max(10, Math.floor(dmg / 2)), sv = knocked ? null : RU.save(u, 'dex', dc), fz = u.hang.z, ft = Math.round((fz - G.map.gz(u.x, u.y)) / G.map.def.step) * 2.5;
     if (sv && sv.ok) { this.card(['{y}' + nameOf(u) + '{/} keeps its hold on the face: DEX ' + RU.saveText(sv) + ' against DC ' + dc + '  {n}HOLDS{/}'], 200); return; }
-    delete u.hang; u.tween = { fx: u.x, fy: u.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' };
+    delete u.hang; this.forced(u); u.tween = { fx: u.x, fy: u.y, fz: fz, t: 0, dur: this.pace(STEP_FRAMES + 6, true), mode: 'drop' }; // (a fall is a forced move: readyForced)
     var onC = this.under(u), fd = ft >= 10 ? D.roll(Math.floor(ft / 10) + 'd6') : null; // (onto whoever stood under it: the cushion, the dice split -- 10-05, landOn)
     this.card(['{o}' + nameOf(u) + (knocked || ' loses its hold: DEX ' + RU.saveText(sv) + ' against DC ' + dc) + ' -- falls ' + ft + ' ft' + (onC.length ? ' onto ' + onC.map(nameOf).join(' and ') + (fd ? ': ' + fd.total + ' bludgeoning, split,' : ',') + ' and lands prone.' : (fd ? ': ' + fd.total + ' bludgeoning,' : ',') + ' and lands prone.') + '{/}'], 240);
     if (onC.length) { this.landOn(u, ft, fd); return; }
@@ -2614,7 +2653,7 @@
       this.card(['{o}' + nameOf(u) + ' comes down on ' + nameOf(w) + (fd ? ': ' + half + ' of the ' + fd.total + ' bludgeoning' : '') + ' -- ' + nameOf(w) + ' is shoved out from under, flat' + (to ? ', to the nearest open square.' : ', with nowhere to go.') + '{/}'], 260); D.sfx('hit');
       if (half) this.hurt(w, half, 'bludgeoning', { fall: true });
       if (!w.noProne && !RU.immuneTo(w, 'prone')) w.conds.prone = true;
-      if (to) { w.tween = { fx: w.x, fy: w.y, fz: G.gzAt(w, w.x, w.y), t: 0, dur: this.pace(STEP_FRAMES + 4, true) }; w.x = to[0]; w.y = to[1]; w.anim = 'idle'; }
+      if (to) { w.tween = { fx: w.x, fy: w.y, fz: G.gzAt(w, w.x, w.y), t: 0, dur: this.pace(STEP_FRAMES + 4, true) }; w.x = to[0]; w.y = to[1]; w.anim = 'idle'; this.forced(w); }
     }
     if (under.length && rest > 0) this.hurt(u, rest, 'bludgeoning', { fall: true }); // (the faller's half)
     if (under.length && !u.noProne && !RU.immuneTo(u, 'prone')) u.conds.prone = true; // (and the faller lands prone too, by the SRD's Falling -- Griz, 10-05 evening: "the giant should still prone")

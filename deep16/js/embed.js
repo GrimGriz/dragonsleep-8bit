@@ -66,11 +66,19 @@
     if (B.lampReturned) E.inv0[B.lampReturned] = Math.max(0, (E.inv0[B.lampReturned] || 0) - 1); // (a lantern nobody could take up went into the pack: the 8-bit game's pack does not have it yet, so the seam hands it over as a gain)
     D.canvas.focus();
   };
+  // the 8-bit square the party walked off a grid at, where the grid is an 8-bit map turned or framed (its `to8`): the one who left by a way out. The Wet sets its own
+  // (js/wet.js W.exitOf); the Keeper's stair since 10-06 (data/maps.js floodstair `to8` -- the grid's rules §2b.18, his note on ?at=stair: "Returns me to where I spawned in
+  // (rather than the 8bit version of the exit square)"). The 8-bit page lands the party there before its ending runs (js/embed.js there, EV.wetLand: the stair's map, warrens_d)
+  E.exit8 = function (B, res) {
+    var to8 = B.map && B.map.def && B.map.def.to8; if (!to8 || res !== 'escaped') return null;
+    var w = B.units.filter(function (u) { return u.side === 'party' && u.left && !u.summon && !u.familiar && B.onExit(u); })[0];
+    return w ? to8(w.x, w.y) : null;
+  };
   E.done = function (B, res) {
-    var foes = B.units.filter(function (u) { return (u.side === 'foe' || (u.dominated && u.dominated.side0 === 'foe')) && !u.summon && !u.loose; }); // (a beast dominated for a while is still the 8-bit's foe)
+    var foes = B.units.filter(function (u) { return ((u.side === 'foe' && !(u.dominated && u.dominated.side0 === 'party')) || (u.dominated && u.dominated.side0 === 'foe')) && !u.summon && !u.loose; }); // (a beast dominated for a while is still the 8-bit's foe)
     send({
       type: 'd16:done', result: res || 'escaped',
-      party: B.units.concat(B.reserve || [], B.stayed || []).filter(function (u) { return u.side === 'party' && !u.summon && !u.dominated && !u.loose; }).map(function (u) { // (reserve: still in the inn when it ended; a summoned creature is the fight's alone)
+      party: B.units.concat(B.reserve || [], B.stayed || []).filter(function (u) { return ((u.side === 'party' && !u.dominated) || (u.dominated && u.dominated.side0 === 'party')) && !u.summon && !u.loose; }).map(function (u) { // (one of ours dominated when it ended -- Dominate Person -- comes home as ours, 10-06) // (reserve: still in the inn when it ended; a summoned creature is the fight's alone)
         // (the bat-wing pie's +5 is the fight's alone, as the 8-bit battle's finish() takes it back: never read there as Aid)
         var mx = u.maxhp - (u.fortified ? 5 : 0);
         // (drained: max HP the herd took, for good -- js/wet.js. 09-30d: its note sat mid-line from 09-30b and cut slots, feats, mageArmor and left out of every report)
@@ -93,7 +101,7 @@
       // the phase he reached, and whether he went down -- the 8-bit side takes the XP or loads the save)
       flags: B.flags8 || null, pyro: B.pyro || null,
       enemies8: B.enemies8 || null, // (the Settling: the 8-bit foes it killed, for the ending's XP -- js/wet.js)
-      exit8: B.exit8 || null, // (the Settling: the 8-bit square the party walked off the grid at -- js/wet.js W.exitOf, 09-30d)
+      exit8: B.exit8 || E.exit8(B, res) || null, // (the Settling: the 8-bit square the party walked off the grid at -- js/wet.js W.exitOf, 09-30d; the Keeper's stair, E.exit8 above)
       // the wizard's familiar (Find Familiar): gone if it fell, else what it has left (a dismissed one is safe)
       familiar: (function () { var f = B.units.filter(function (u) { return u.familiar; })[0]; return f ? { gone: f.hp <= 0, hp: Math.max(0, f.hp) } : null; })()
     });

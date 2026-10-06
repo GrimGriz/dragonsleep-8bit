@@ -164,7 +164,7 @@
     // (dealt as its own blow so the card shows it)
     if (att.cls === 'ranger' && att.lvl >= 3 && att.subclass === 'Hunter' && att.turn && !att.turn.colossus && tgt.hp < tgt.maxhp && !atk.spell) {
       att.turn.colossus = true; var cs = D.roll('1d8', { crit: crit });
-      B.card(['  {y}colossus slayer{/} 1d8 [' + cs.rolls.join(',') + '] = {r}' + cs.total + '{/}'], 200); B.hurt(tgt, cs.total, atk.type, { magic: !!(atk.magic || atk.spell) });
+      B.card(['  {y}colossus slayer{/} 1d8 [' + cs.rolls.join(',') + '] = {r}' + cs.total + '{/}'], 200); B.hurt(tgt, cs.total, atk.type, { magic: !!(atk.magic || atk.spell), blow: tgt.blowIn }); // (the weapon's blow: one concentration save, battle.js blowEnd)
       yield 8;
     }
   };
@@ -296,7 +296,7 @@
   // advantage on saves against being frightened or charmed (js/rules.js RU.save `against`: Fear, Hypnotic Pattern, Charm Person, the moan ...).
   // Ends early if it is incapacitated (RU.countercharmed asks). The AI sings it when a foe that frightens or charms is up, or a friend is under such
   // a spell; the player's COUNTERCHARM button (F.commands)
-  var FEARSOME = ['fear', 'hypnoticpattern', 'charmperson', 'animalfriendship', 'dominatebeast', 'phantasmalkiller', 'weird', 'eyebite'];
+  var FEARSOME = ['fear', 'hypnoticpattern', 'charmperson', 'animalfriendship', 'dominatebeast', 'dominateperson', 'phantasmalkiller', 'weird', 'eyebite'];
   F.countercharm = function* (B, u) {
     u.turn.action = 0; u.conds.countercharm = { till: { who: u.id, at: 'end', n: 2 }, endText: '{who}\'s countercharm ends.' };
     D.sfx('buff'); FX.ring(u, 'gold', 60);
@@ -451,14 +451,14 @@
     else { u.attacks = JSON.parse(JSON.stringify(d.attacks)); u.multi = d.multi || 1; }
     return true;
   };
-  F.unshape = function (B, u, over, willing) {
+  F.unshape = function (B, u, over, willing, type, src) { // (type, src: the blow that threw the beast off -- what is left of it lands as that kind, magic or not; 10-06, the grid's rules §2.2)
     var k = u.beast.keep, mb = u.beast.morph; delete u.beast;
     Object.keys(k).forEach(function (f) { u[f] = k[f]; });
     FX.sparkle(u, 'moss', 16);
     B.card(['{g}' + Nm(B, u) + (willing ? ' takes their own shape again.' : ' is thrown back into their own shape.') + '{/}'], 240);
     // (a Polymorph undone by the blow ends the spell: SRD "until the target drops to 0 hit points")
     if (mb) { var cst = B.units.filter(function (w) { return w.id === mb.by; })[0]; if (cst && cst.conc && cst.conc.id === 'polymorph' && cst.conc.t === u) delete cst.conc; }
-    if (over > 0) B.hurt(u, over, 'bludgeoning', { carried: true }); // (carried: the blow's concentration save was rolled once already, Battle.hurt -- 10-03)
+    if (over > 0) B.hurt(u, over, type || 'bludgeoning', { carried: true, magic: !!(src && src.magic) }); // (carried: the blow's concentration save was rolled once already, Battle.hurt -- 10-03) (SRD 5.1 Wild Shape: "any excess damage carries over to your normal form" -- the blow's own kind, not a bludgeoning one: f854491 kept the amount and lost the kind)
   };
   TX.ACTIONS.push(function (B, u, fs) {
     if (u.cls !== 'druid' || u.lvl < 2 || u.beast || !feat(u, 'wildShape') || !u.turn.action) return null;
@@ -790,7 +790,7 @@
     var dd = (att.lvl >= 14 ? 2 : 1) + 'd8', r = D.roll(dd, { crit: crit });
     FX.sparkle(tgt, ty === 'psychic' ? 'violet' : 'gold', 12);
     B.card(['  ' + (ty === 'psychic' ? '{p}divine strike{/}: the glass shows ' + nm(B, tgt) + ' a crack' : '{y}divine strike{/}') + '  ' + dd + ' [' + r.rolls.join(',') + '] = {r}' + r.total + '{/} ' + ty], 200);
-    B.hurt(tgt, r.total, ty);
+    B.hurt(tgt, r.total, ty, { blow: tgt.blowIn }); // (the weapon's blow: one concentration save, battle.js blowEnd)
     yield 8;
   };
 

@@ -160,6 +160,7 @@
   // shapes and charms (the druid to twelve, 09-30: js/grimoire.js, js/features.js F.morph)
   polymorph: { see: true, shape: 'single', range: 60, time: 'A', conc: true, side: 'any' },
   dominatebeast: { see: true, shape: 'single', range: 60, time: 'A', conc: true, side: 'foe', only: 'beast' },
+  dominateperson: { see: true, shape: 'single', range: 60, time: 'A', conc: true, side: 'foe', only: 'humanoid' }, // (10-06, the grid's rules §2.7: the spirit naga's 5th)
   charmperson: { see: true, shape: 'single', range: 30, time: 'A', side: 'foe', only: 'humanoid' },
   animalfriendship: { see: true, shape: 'single', range: 30, time: 'A', side: 'foe', only: 'beast' },
   // the walls (the druid to twelve, 09-30: js/walls.js): a run of squares across your line to the point, centred on it

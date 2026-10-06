@@ -887,6 +887,9 @@ window.D16.laneAt = function (m, a, c, size) {
 };
 (function () { var m = window.D16.MAPS.floodstair, g = m.geo, at = function (p) { return window.D16.laneAt(m, p[0], p[1]); }; m.deeps = g.deeps.map(at); m.entry = g.entry.map(at); m.entryRune = g.entryRune.map(at);
   var rl = at(g.rune); m.lights = [[rl[0], rl[1], 20, 'glow']]; // (the rune lights the landing: a cold glow, modest -- the engine's own map light, [x, y, ft, colour])
+  // back to the 8-bit's warrens_d (tools/mapgen.py: the landing x20-23 y20-23, the corridor east along y22 from x24): a = x - 11 there, c = y - 13 -- the way out at the corridor's
+  // end, grid (14, 8), is the 8-bit's (25, 22), two squares into the corridor (10-06, the grid's rules §2b.18; deep16/js/embed.js E.exit8)
+  m.to8 = function (gx, gy) { var a = gx, c = g.width - 1 - gy; return [a + 11, c + 13]; };
 })();
 
 // THE LADDER'S FLOODED STAIR (10-03, Griz: the ladder's fight is the old fight unchanged): `floodstair` as it is on origin/main before the Keeper work landed (ed7be2a), word for
