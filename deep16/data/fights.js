@@ -288,10 +288,10 @@
       intro: 'The floor of the lower works moves: two swarms of rats, and two of the big ones driving them.',
       from: 'the 8-bit game\'s warrens_c table (rat swarms, giant rats)', won: 'THE FLOOR IS ONLY FLOOR.',
       foes: [{ id: 'rs1', kind: 'ratswarm', at: [7, 3] }, { id: 'rs2', kind: 'ratswarm', at: [11, 5] }, { id: 'r1', kind: 'giantrat', at: [4, 5] }, { id: 'r2', kind: 'giantrat', at: [14, 5] }], wave: null },
-    { id: 'batswarms', bestiary: true, level: 1, map: 'roost', name: 'Bat Swarms', sub: 'the galleries, under the roost', roost: true, familiar: 'bat', // (Aurdin's bat on the ladder, its blindsight in the dark: Griz, 10-02 -- lost ~5 in 6 without it)
-      intro: 'Something has woken a corner of the roost: two clouds of bats and one of the giant ones. No fire under the roost.',
+    { id: 'batswarms', bestiary: true, level: 1, map: 'roost', name: 'Bat Swarms', sub: 'the galleries, under the roost', roost: true, familiar: 'bat', // (Aurdin's bat on the ladder, its blindsight in the dark: Griz, 10-02 -- lost ~5 in 6 without it) (one swarm since 10-06, Griz: "one swarm" -- two at level 1 were still lost most nights: the grid's rules §2.7)
+      intro: 'Something has woken a corner of the roost: a cloud of bats and one of the giant ones. No fire under the roost.',
       from: 'the 8-bit game\'s g3 table (giant bats; the swarms from the galleries)', won: 'THE ROOST SETTLES.',
-      foes: [{ id: 'bs1', kind: 'batswarm', at: [6, 3] }, { id: 'bs2', kind: 'batswarm', at: [11, 3] }, { id: 'gb', kind: 'giantbat', at: [8, 1] }], wave: null },
+      foes: [{ id: 'bs1', kind: 'batswarm', at: [8, 3] }, { id: 'gb', kind: 'giantbat', at: [8, 1] }], wave: null },
     { id: 'insects', bestiary: true, level: 2, map: 'bog', name: 'The Glowseep\'s Swarms', sub: 'the bog',
       intro: 'A hum over the water that turns into two clouds, and a frog that has been waiting for whatever they drive into it.',
       from: 'the 8-bit game\'s glowseep table (insect swarms, a giant frog, a snake)', won: 'THE HUM STOPS.',
