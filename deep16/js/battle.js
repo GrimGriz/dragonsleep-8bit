@@ -262,8 +262,14 @@
     });
     return band;
   };
+  // a story fight: one the 8-bit game sent (this.o.embed), or a story fight's own (data/fights.js `story`) at its door or on the bench -- never the Pocket DM,
+  // the class floor or the climb. (10-06, Griz: "Can we successfully differentiate between ... the game grid and the pocket DM grid?")
+  Battle.prototype.isStory = function () { return !!(this.o.embed || (this.fight && this.fight.story && !this.o.pocket && !this.o.npc && !this.o.climb)); };
   Battle.prototype.makeFoe = function (f) {
     var d = D.FOES[f.kind];
+    // a sheet's `srd`: the SRD's reading of it everywhere but the story, which keeps its own (the cloaker's grip, an egg -- RULED 10-06, Griz: "Story Cloaker is riding
+    // as is for the time being, it's an easter egg one. Cloaker's that are used in the Pocket DM should match SRD")
+    if (d && d.srd && !this.isStory()) d = Object.assign({}, d, d.srd);
     if (d.build && D.npc && D.npc.NAMED[d.build]) return D.npc.fromFoe(this, f, d); // (a named caster built by its class: js/classes.js)
     var u = this.makeFoe0(f, d);
     // the bestiary's traits (js/traits.js): the sheet's own, carried on the unit
@@ -517,6 +523,8 @@
     if (this.units.some(function (u) { return u.side === 'foe' && u.yields && u.hp > 0 && u.hp <= u.maxhp / 2; })) return 'yielded';
     // one whose fall ends it (a guest the party swore to bring back: Corwen Dace in the deep gallery -- RULED 10-01c, Griz: "game over if the kid falls")
     if (this.units.some(function (u) { return u.vital && u.side === 'party' && (u.dead || u.hp <= 0); })) return 'lost';
+    // one of the party killed outright in a story fight (massive damage, Battle.hurt): the game is over (RULED 10-06)
+    if (this.slainLost) return 'lost';
     // one out, all out (a fight's `oneLeavesAll`: the Wet since 09-30e, the Keeper 10-04 -- Griz: "can we do the 'pull the rest of the party' we do with the Wet escape?")
     if (this.fight && this.fight.oneLeavesAll && this.units.some(function (u) { return u.side === 'party' && u.left && !u.familiar && !u.summon && !u.ally; })) return 'escaped';
     // none of the party left on the field: lost, unless one of them got out (the climb's campfire; Griz, 09-27), or the rest
@@ -2136,12 +2144,13 @@
     // (on already, at the shoulder, and the one it rides Medium or smaller again -- an Enlarge ended -- a hit with advantage takes the head: the SRD's "attaches by
     // engulfing the target's head", read on every hit)
     var atNow = tgt.conds.attached;
-    if (atk.attach && atNow && atNow.by === att.id && !atNow.head && !tgt.dead && tgt.hp > 0 && e.net > 0 && !Battle.overMedium(tgt)) {
+    var headOK = atk.attach && (atk.attach.large ? (tgt.size || 1) <= 2 : !Battle.overMedium(tgt)); // (attach.large: the cloaker takes a Large one's head too, SRD 5.1 -- 10-06)
+    if (atk.attach && atNow && atNow.by === att.id && !atNow.head && !tgt.dead && tgt.hp > 0 && e.net > 0 && headOK) {
       atNow.head = true; att.perch = 'over'; if (!tgt.conds.blinded) tgt.conds.blinded = { by: att.id, held: true };
       this.card(['{r}' + nameOf(att) + '{/} gets ' + nameOf(tgt) + '\'s head: {o}BLINDED{/}, no breath to draw.']); yield 24;
     }
-    if (atk.attach && !tgt.dead && tgt.hp > 0 && !att.riding && !tgt.conds.attached) {
-      var onHead = !atk.stinger && !Battle.overMedium(tgt) && e.net > 0; // (Medium or smaller: SRD 5.1 -- an Enlarged one is a size up, Large -- RULED 10-01, Griz: "only when he's Medium or smaller")
+    if (atk.attach && !tgt.dead && tgt.hp > 0 && !att.riding && !tgt.conds.attached && !(atk.attach.large && (tgt.size || 1) > 2)) { // (the cloaker: Large or smaller, SRD 5.1)
+      var onHead = !atk.stinger && headOK && e.net > 0; // (Medium or smaller: SRD 5.1 -- an Enlarged one is a size up, Large -- RULED 10-01, Griz: "only when he's Medium or smaller")
       tgt.conds.attached = { by: att.id, dc: atk.attach.dc, head: onHead, big: Battle.overMedium(tgt) }; // (big: Large already when it got on -- an Enlarge after throws it off, rideSync)
       if (onHead && !tgt.conds.blinded) tgt.conds.blinded = { by: att.id, held: true };
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
@@ -2471,9 +2480,9 @@
       n = ty.n;
       if (n <= 0) return;
     }
-    // Damage Transfer (the cloaker): while it has someone engulfed, half of what it takes goes to them
-    if (u.transfer && u.holding && u.holding.length && n > 1) {
-      var vic = u.holding[0], half = Math.floor(n / 2);
+    // Damage Transfer (the cloaker): while it has someone engulfed -- or rides one, attached (the SRD's cloaker, 10-06) -- half of what it takes goes to them
+    if (u.transfer && ((u.holding && u.holding.length) || (u.attached && u.riding && u.master)) && n > 1) {
+      var vic = (u.holding && u.holding[0]) || u.master, half = Math.floor(n / 2);
       if (vic && !vic.dead && vic.hp > 0) { n -= half; FX.float('transfer', vic, D.PAL.ramps.violet[4]); this.hurt(vic, half, type); }
     }
     // Stoneskin (SRD 5.1: "resistance to nonmagical bludgeoning, piercing, and slashing damage" -- 10-03: a magic blade or a spell's hail lands whole)
@@ -2503,7 +2512,7 @@
       if (/fire|acid/.test(type || '')) { delete u.regenDown; u.dead = true; u.deadT = this.t; D.sfx('die'); this.card(['{o}The ' + shortName(u) + ' burns where it lies. It is dead.{/}'], 260); }
       return;
     }
-    u.hp = Math.max(0, u.hp - n);
+    var hp0 = u.hp; u.hp = Math.max(0, u.hp - n);
     if (u.traces) this.hitAtTraces = true; // (nothing shows now: from their next moves they run, or he turns to fight: ai.js turn)
     if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
     u.flash = 10;
@@ -2511,6 +2520,23 @@
     if (u.hp > 0 && (!u.anim || u.anim === 'idle' || u.anim === 'flinch') && D.spr.anim(u.sheet, 'flinch')) { u.anim = 'flinch'; u.animT = this.t; }
     FX.float('-' + n, u, D.PAL.ramps.red[4]);
     if (u.conds.hidden) delete u.conds.hidden;
+    // massive damage (SRD 5.1: "When damage reduces you to 0 hit points and there is damage remaining, you die if the remaining damage equals or exceeds your hit point maximum";
+    // at 0 already, a blow of the maximum): one of the party -- a hero, a guest, the Pocket DM's own -- is dead, not down, and no Relentless holds it (it is for "not killed
+    // outright"); Death Ward's 1 HP still does, below. In a story fight the game is over (RULED 10-06, Griz: "This should probably go in both, and force a game-over reload in
+    // story fights"). Foes fall at 0 as ever
+    var past = hp0 > 0 ? n - hp0 : n;
+    if (u.hp <= 0 && u.side === 'party' && !u.object && !u.familiar && !u.summon && !u.ally && !u.conds.deathWard && !u.dead && past >= u.maxhp) {
+      var story = this.isStory();
+      u.hp = 0; u.dead = true; u.slain = true; u.ko = true; u.deadT = this.t; u.anim = 'hurt'; u.animT = this.t; delete u.conds.ablaze;
+      D.sfx('ko'); FX.ring(u, 'red', 30); if (D.light && D.light.fell) D.light.fell(this, u);
+      this.card(['{r}' + u.name + ' is killed outright.{/}  {g}(' + past + ' past 0, against ' + u.maxhp + ' hit points: massive damage' + (story ? ' -- the story cannot go on without them' : '') + '){/}'], 400);
+      if (D.traits && D.traits.onDown) D.traits.onDown(this, this.active, u);
+      if (u.holding && u.holding.length) this.release(u);
+      this.rideSync();
+      if (u.conc) D.magic.endConc(this, u, 'dead');
+      if (story) this.slainLost = u;
+      return;
+    }
     if (u.hp <= 0 && (u.side === 'party' && !u.guest || u.npc) && u.feats && u.feats.relentless > 0) {
       // Relentless (the 8-bit game's own, js/battle.js: Lymen, once a day): the blow that would drop him leaves him at 1 (review 09-28 #3)
       // (a half-orc class NPC's Relentless Endurance too: js/classes.js)
@@ -2606,6 +2632,7 @@
   };
   Battle.prototype.heal = function (u, n) {
     var was = u.hp;
+    if (u.slain) { this.card(['{g}' + u.name + ' is dead: no healing reaches them.{/}'], 240); return 0; } // (killed outright, massive damage: 10-06)
     // Chill Touch (SRD 5.1): no hit points come back till the caster's next turn
     if (u.conds.noHeal) { FX.float('no healing', u, D.PAL.ramps.violet[4]); this.card(['{p}' + u.name + ' cannot be healed: the grave\'s hand is on them.{/}'], 240); return 0; }
     // Beacon of Hope (SRD 5.1): a heal on one under it is the most it could be (the caster's heal says so: o.max)

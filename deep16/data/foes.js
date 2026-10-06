@@ -486,6 +486,11 @@
       tail: { name: 'Tail', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 10 }
     },
     multi: ['bite', 'tail'], moan: { dc: 13, recharge: 5 }, phantasms: 'bloodied', transfer: true, lightSensitive: true,
+    // the SRD's cloaker everywhere but the story (battle.js makeFoe, Battle.isStory -- RULED 10-06, Griz: "Story Cloaker is riding as is for the time being, it's an easter egg
+    // one. Cloaker's that are used in the Pocket DM should match SRD"): its bite attaches to one Large or smaller and rides it, over the head -- blinded, no breath -- when it had
+    // advantage, and bites that one at advantage after; a DC 16 STR check, an action, pulls it off (the darkmantle's machinery: battle.js mount, exec 'detach'); Damage Transfer to
+    // the one it rides (battle.js hurt). The story's grip above stays the deep gallery's
+    srd: { attacks: { bite: { name: 'Bite', atk: 6, dice: '2d6', mod: 3, type: 'piercing', reach: 5, attach: { dc: 16, large: true }, rides: true }, tail: { name: 'Tail', atk: 6, dice: '1d8', mod: 3, type: 'slashing', reach: 10 } } },
     src: 'SRD 5.1 Cloaker (CR 8, fly 40 read as moving 40); content/monsters.json cloaker: the bite engulfs (read as a grip, escape DC 16, its bite then always lands), Damage Transfer, Moan (WIS 13, frightened), Phantasms once when bloodied', todo: 'the engulfed one\'s blindness is not read'
   },
   amara: {
