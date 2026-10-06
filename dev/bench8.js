@@ -1524,6 +1524,37 @@
         check('Dace at two ' + und + 's: no Sleep ("' + s6.slice(0, 50) + '"); at one goblin: no Sleep ("' + s7.slice(0, 50) + '")', !/casts Sleep/.test(s6) && !/casts Sleep/.test(s7) && /Dace (hits|attacks)/.test(s7));
         done(F1.b);
       });
+      // §2.2 the prone cue (his "2 for now as placeholder"): a prone body lies (u.lie to 1 in five frames, a thud as it lands); acting it pops up (a foe's lunge,
+      // a hero's swing), then drops back with the thud; standing up it rises; and the battle draws every step of it
+      laneCase('the prone cue', function () {
+        SETUP(5); T.startFight(['ogre', 'goblin']); for (var w0 = 0; w0 < 200 && !DS.find('battle'); w0++) T.step(1);
+        var b = DS.find('battle'), og = b.foes[0], bar = b.heroes[0], thuds = 0, sfx0 = DS.audio.sfx, drawErr = null;
+        DS.audio.sfx = function (k) { if (k === 'bump') thuds++; };
+        function ticks(n) { for (var i = 0; i < n; i++) { b.tick(); try { b.draw(DS.ctx); } catch (e) { drawErr = drawErr || String(e); } } }
+        try {
+          og.conds.prone = true; ticks(1); var mid = og.lie; ticks(5); var lay = og.lie, t1 = thuds;
+          og.off = 8; ticks(3); var up = og.lie; og.off = 0; ticks(5); var back = og.lie, t2 = thuds;
+          bar.conds.prone = true; ticks(6); var hl = bar.lie; bar.pose = 'act'; ticks(3); var hu = bar.lie; bar.pose = null; ticks(6); var hb = bar.lie;
+          delete og.conds.prone; ticks(3); var risen = og.lie;
+          check('a prone ogre: ' + mid.toFixed(1) + ' after a frame, lying (' + lay + ') with a thud (' + t1 + '); its lunge pops it up (' + up + '), it drops back (' + back + ') with another (' + t2 + '); up again it stands (' + risen + ')', mid > 0 && mid < 1 && lay === 1 && t1 === 1 && up === 0 && back === 1 && t2 === 2 && risen === 0);
+          check('a prone Barley: lying (' + hl + '), his swing pops him up (' + hu + '), down again after (' + hb + '); the draws threw nothing (' + (drawErr || 'none') + ')', hl === 1 && hu === 0 && hb === 1 && !drawErr);
+        } finally { DS.audio.sfx = sfx0; delete og.conds.prone; delete bar.conds.prone; }
+        b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
+        // the show's own fight (?at=prone8, js/situations.js): the sleet already falling, the four on the AI -- it plays itself, no menu opened, the foes fall
+        // on the ice and swing from it
+        var sit = DS.SITUATIONS && DS.SITUATIONS.prone8, menus = 0, iced = 0, steps = 0, endedAs = null;
+        SETUP(5); T.res = undefined; T.startFight(['ogre', 'ogre', 'worg'], { auto: true, cloud: { kind: 'sleet', dc: 30, save: 'dex' } }); for (var w1 = 0; w1 < 200 && !DS.find('battle'); w1++) T.step(1);
+        for (; steps < 20000 && DS.find('battle') && !DS.lastError; steps++) {
+          var tp = DS.top(), bb = DS.find('battle');
+          if (tp && (tp.kind === 'menu' || tp.kind === 'target')) { menus++; T.tapf('b'); }
+          else if (tp && tp.kind === 'dialog') { tp.chars = tp.pageLen(); T.tapf('a'); }
+          else T.step(1);
+          if (bb) endedAs = bb.over;
+        }
+        iced = (T.blog || []).filter(function (l) { return /goes down on the ice, and fights on from the ground/.test(l); }).length;
+        check('the show ?at=prone8 (the lines instant here, so the lying is the tick case above): its record (' + !!(sit && sit.start) + '), the fight ran itself to ' + (endedAs || 'no end') + ' in ' + steps + ' steps with ' + menus + ' menus, ' + iced + ' falls on the ice' + (DS.lastError ? ' ERR ' + DS.lastError : ''),
+          !!(sit && sit.start) && menus === 0 && iced >= 2 && !!endedAs && !DS.lastError);
+      });
       var ok6 = cases6.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('battle1006: ' + ok6 + '/' + cases6.length + ' cases' + (ok6 === cases6.length ? ' clean' : ': ' + cases6.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
     } else if (test === 'migrate') {

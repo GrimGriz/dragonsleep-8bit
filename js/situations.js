@@ -183,6 +183,12 @@
       map: 'solskaft', x: 28, y: 20, dir: 'down' },
     // the burrowers on the grid (10-01d): DEEP16's own rooms, the class floor with monsters on it. Each fight's question is the page's own
     // (situations.html ASK -- Griz: "should some of this ground be solid stone?": a map's `noBurrow`, deep16/data/maps.js)
+    // a show (10-06, CLAUDE.md's close: a thing to be SEEN gets a staged beat): the 8-bit prone cue, the fight running itself
+    prone8: { group: 'Shows (the 8-bit battle)', title: 'The prone cue (a placeholder by your word, 10-06)', pt: 'the 8-bit battle §2.2', lvl: 5,
+      look: 'A fight that plays itself: sleet already falling over two ogres and a worg (DC 30: each goes down on the ice at its turn), the four on the AI. Each foe drops onto its side, away from you, with a thud; when it swings from the ice it pops up for the blow and drops back with another thud; at its next turn it gets up. The worg\'s bite knocks one of the four over the other way, toward the screen\'s edge, till that one\'s turn. No new art: the sprite turned on its side.',
+      say: 'A show: the prone cue. Sleet over them; watch them fall, swing, and fall again.',
+      map: 'gulch', x: 33, y: 8, dir: 'right',
+      start: function* () { yield* EV().fight(['ogre', 'ogre', 'worg'], { bg: 'cavern', canRun: false, auto: true, cloud: { kind: 'sleet', dc: 30, save: 'dex' } }); } },
     xorns: { group: 'The burrowers (DEEP16)', title: 'The xorns at the Seam', pt: 'Earth Glide · the first Blender monster (new 10-01)', lvl: 8,
       url: 'deep16/?npc=xorn,xorn&lvl=8&map=seamwall',
       look: 'Two xorns. Within 15 ft they walk to you; farther, they sink into the floor and nothing shows where they went, then rise beside someone: a claw from each arm and the bite. One that dies settles half into the floor. Add &watch to the URL to watch both sides play.' },

@@ -93,6 +93,9 @@
     this.layoutFoes();
     this.layoutHeroes();
     this.tauntWearer = null;
+    // a show's stage (10-06, the 8-bit battle lane §2.2: ?at=prone8, a thing to be seen, CLAUDE.md's close): `cloud`, one already falling at the start, held by no
+    // caster so it stands the fight; `auto`, the four on the guest turn too, so the fight runs itself
+    if (o.cloud) this.cloud = Object.assign({ rounds: 10, by: null }, o.cloud);
     // a light the party carries in (the Sunshaft staff, a Continual Flame, a torch lit in the field): the place is lit from the first round
     // (a lantern walked in under a roost is hooded -- 09-29: light enough to see by, no bright light, the roof sleeps)
     if (this.dark && (this.heroes.some(function (u) { return R.carriesLight(u.h); }) || (this.torchBy && this.heroes.some(function (u) { return u.h.id === self.torchBy && !down(u); })))) { this.lit = true; this.bright = !(R.hooded(this.torchKind) && this.o.roost) ||this.heroes.some(function (u) { return R.carriesLight(u.h); }); }
@@ -159,7 +162,23 @@
     this.nums = this.nums.filter(function (n) { n.t++; return n.t < 50; });
     this.foes.forEach(function (f) { if (f.flash > 0) f.flash--; if (f.dead && f.fade > 0) f.fade--; });
     this.heroes.forEach(function (u) { if (u.poseT > 0 && --u.poseT === 0) u.pose = null; });
+    // the prone cue (10-06, the 8-bit battle lane §2.2; RULED 10-06, Griz: "2 for now as placeholder" -- 10-03: "we're not doing prone combat animations - they'll
+    // have to pop-up and fall back prone or something"): a prone body lies fallen away from its enemy; acting (a hero's swing or cast, a foe's lunge) it pops up,
+    // and after it drops back with a thud (the 8-bit's own bump: there is no hurt sound of its own). u.lie runs 0 (standing) to 1 (lying); drawFallen draws it
+    this.foes.concat(this.heroes).forEach(function (u) {
+      var acting = isHero(u) ? (u.pose === 'act' || u.pose === 'cast') : (u.off || 0) > 0;
+      var want = u.conds && u.conds.prone && !(isHero(u) ? down(u) : u.dead) && !acting ? 1 : 0, was = u.lie || 0;
+      if (was === want) return;
+      u.lie = want > was ? Math.min(1, was + 0.2) : Math.max(0, was - 0.34); // (the drop in five frames, the hop up in three)
+      if (u.lie === 1) DS.audio.sfx('bump');
+    });
   };
+  // a body drawn fallen by t (0 standing, 1 lying), about its feet, away from its enemy (away -1: a foe falls left; +1: a hero falls right), its feet
+  // kept on the ground it stood on
+  function drawFallen(ctx, img, x, y, w, h, t, away) {
+    if (!(t > 0)) { ctx.drawImage(img, x, y); return; }
+    ctx.save(); ctx.translate(Math.round(x + w / 2 - away * t * h / 2), Math.round(y + h - t * w / 2)); ctx.rotate(away * t * Math.PI / 2); ctx.drawImage(img, -w / 2, -h); ctx.restore();
+  }
   Battle.prototype.wait = function (n) { return W8.frames(n); };
   Battle.prototype.say = function* (t, frames) {
     this.msg = t; this.holding = false;
@@ -736,7 +755,7 @@
   Battle.prototype.shieldReact = function* (t, f, nat, tot, ac) {
     if (!isHero(t) || t.conds.shielded || !this.canReact(t) || nat === 1 || nat === 20 || tot < ac || tot >= ac + 5) return false;
     var sl = this.reactSpell(t, 'shield'); if (!sl) return false;
-    var yes = t.guest ? true : yield* this.askReact(t, 'SHIELD? ' + tot + ' hits AC ' + ac, [{ label: 'CAST SHIELD', value: true, right: 'L' + sl }, { label: 'LET IT LAND', value: false }]);
+    var yes = t.guest || this.o.auto ? true : yield* this.askReact(t, 'SHIELD? ' + tot + ' hits AC ' + ac, [{ label: 'CAST SHIELD', value: true, right: 'L' + sl }, { label: 'LET IT LAND', value: false }]);
     if (!yes) return false;
     t.h.slots[sl - 1]--; t.reaction = 0; t.conds.shielded = true;
     DS.audio.sfx('magic'); this.elemBurst(t, 'buff', 'rise');
@@ -746,7 +765,7 @@
   // Uncanny Dodge (rogue 5; SRD 5.1): the reaction halves one attack's damage from an attacker she can see
   Battle.prototype.dodgeReact = function* (t, f, dmg) {
     if (!isHero(t) || t.h.cls !== 'rogue' || t.h.lvl < 5 || !this.canReact(t) || !this.sees(t, f)) return false;
-    var yes = t.guest ? dmg >= 6 : yield* this.askReact(t, 'UNCANNY DODGE? ' + dmg + ' damage', [{ label: 'DODGE IT', value: true, right: 'take ' + Math.floor(dmg / 2) }, { label: 'TAKE IT', value: false }]);
+    var yes = t.guest || this.o.auto ? dmg >= 6 : yield* this.askReact(t, 'UNCANNY DODGE? ' + dmg + ' damage', [{ label: 'DODGE IT', value: true, right: 'take ' + Math.floor(dmg / 2) }, { label: 'TAKE IT', value: false }]);
     if (!yes) return false;
     t.reaction = 0; DS.audio.sfx('run');
     return true;
@@ -767,7 +786,7 @@
     var sl = this.reactSpell(t, 'hellishrebuke'); if (!sl) return;
     var roost = !!this.o.roost; if (roost && t.guest) return;
     var dice = (1 + sl) + 'd10', dc = R.spellDC(t.h);
-    var yes = t.guest ? true : yield* this.askReact(t, 'HELLISH REBUKE? ' + dice + ' fire', [{ label: 'REBUKE ' + plain(f).toUpperCase().slice(0, 14), value: true, right: roost ? 'ROOST' : 'L' + sl }, { label: 'LET IT GO', value: false }]);
+    var yes = t.guest || this.o.auto ? true : yield* this.askReact(t, 'HELLISH REBUKE? ' + dice + ' fire', [{ label: 'REBUKE ' + plain(f).toUpperCase().slice(0, 14), value: true, right: roost ? 'ROOST' : 'L' + sl }, { label: 'LET IT GO', value: false }]);
     if (!yes) return;
     t.h.slots[sl - 1]--; t.reaction = 0; t.pose = 'cast'; t.poseT = 30;
     DS.audio.sfx('fire');
@@ -787,7 +806,7 @@
       if (!this.canReact(t) || !this.sees(t, f)) continue;
       var sl = this.reactSpell(t, 'counterspell'); if (!sl) continue;
       if (!said) { said = true; yield* this.say(nameOf(f) + ' begins to cast ' + nm + '...', 30); }
-      var yes = t.guest ? lv >= 1 : yield* this.askReact(t, 'COUNTERSPELL? ' + nm, [{ label: lv <= sl ? 'COUNTER (NO CHECK)' : 'COUNTER (CHECK DC ' + (10 + lv) + ')', value: true, right: 'L' + sl }, { label: 'LET IT GO', value: false }]);
+      var yes = t.guest || this.o.auto ? lv >= 1 : yield* this.askReact(t, 'COUNTERSPELL? ' + nm, [{ label: lv <= sl ? 'COUNTER (NO CHECK)' : 'COUNTER (CHECK DC ' + (10 + lv) + ')', value: true, right: 'L' + sl }, { label: 'LET IT GO', value: false }]);
       if (!yes) continue;
       t.h.slots[sl - 1]--; t.reaction = 0; t.pose = 'cast'; t.poseT = 30;
       var ok = lv <= sl, tot = 0;
@@ -934,7 +953,7 @@
   };
   Battle.prototype.heroTurn = function* (u) {
     var h = u.h, self = this;
-    if (u.guest) { yield* this.guestTurn(u); return; }
+    if (u.guest || this.o.auto) { yield* this.guestTurn(u); return; } // (auto: a show's fight runs itself, 10-06)
     var st = { actions: 1, bonus: 1, surged: false, sneakUsed: false };
     u.off = 6;
     while (st.actions > 0 && !this.over && !down(u) && !incap(u) && this.liveFoes().length) { // nothing left in sight (all in the rock): the turn ends
@@ -2003,7 +2022,7 @@
       var img = (f.flash > 0 && (f.flash & 2)) ? f.art.flash : f.art.img;
       if (f.conds.asleep || f.conds.paralyzed) { ctx.globalAlpha = 0.7; }
       if (f.conds.ethereal) { ctx.globalAlpha = 0.12 + 0.08 * ((DS.frame >> 3) & 1); } // in the rock: a shimmer where it went
-      ctx.drawImage(img, x, y);
+      drawFallen(ctx, img, x, y, f.art.w, f.art.h, f.lie, -1); // (prone: fallen, 10-06)
       ctx.globalAlpha = 1;
       if (f.conds.asleep && ((DS.frame >> 4) & 1)) DS.text(ctx, 'z', x + f.art.w - 4, y - 2, '#B8B8F8');
       if (self.bright && f.m.traits && f.m.traits.lightSensitive && ((DS.frame >> 4) & 1)) DS.textCenter(ctx, 'DAZZLED', x + f.art.w / 2, y - 18, '#F8D878');
@@ -2018,8 +2037,8 @@
       var x = u.x - (act === u ? (u.off || 0) : 0) + sx, y = u.y;
       if (pose === 'ko') { ctx.drawImage(spr.ko, x - 4, y + 8); return; }
       if (u.images > 0) { ctx.globalAlpha = 0.35; for (var k = 0; k < u.images; k++) ctx.drawImage(spr[pose], x + [-8, 8, -4][k], y + [2, -2, 4][k]); ctx.globalAlpha = 1; } // (Mirror Image: his doubles about him, as a foe's phantasms are drawn -- 10-02)
-      if (u.conds.paralyzed) { ctx.drawImage(spr[pose], x, y); ctx.globalAlpha = 0.4; ctx.fillStyle = '#6888FC'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
-      else ctx.drawImage(spr[pose], x, y);
+      if (u.conds.paralyzed) { drawFallen(ctx, spr[pose], x, y, 16, 24, u.lie, 1); ctx.globalAlpha = 0.4; ctx.fillStyle = '#6888FC'; ctx.fillRect(x, y, 16, 24); ctx.globalAlpha = 1; }
+      else drawFallen(ctx, spr[pose], x, y, 16, 24, u.lie, 1); // (prone: fallen, 10-06)
       if (self.doorWardOn) { ctx.globalAlpha = 0.28 + 0.16 * Math.sin(DS.frame / 5 + u.idx); ctx.drawImage(sheenOf(spr[pose]), x, y); ctx.globalAlpha = 1; if (((DS.frame >> 2) + u.idx * 3) % 11 === 0) { ctx.fillStyle = '#F8F8F8'; ctx.fillRect(x + 3 + (DS.frame % 9), y + 4 + (DS.frame % 13), 1, 1); } }
       if (u.conds.engulfed) { ctx.fillStyle = '#1a1a24'; ctx.fillRect(x - 1, y - 1, 18, 14); }
       if (u.conds.grappled) { ctx.fillStyle = '#b85a3a'; ctx.fillRect(x - 3, y + 12, 3, 4); }
