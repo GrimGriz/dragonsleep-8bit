@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-06
 
+- 2026-10-06 · `8188f20` · the house · The lanes after a day: a patch-log line is a line, the lane list lives in the todo alone, his ear file carries the time and marks what is new since his last save, and a row's door is a show · *"Take all four, plus the save-name fix and the "only newer notes" rule? Lean: yes."* (the fork, pasted; his word was the paste)
 - 2026-10-06 · ruled · the bestiary · A troll's death by fire stays as it is for the present: no flare drawn in code (the art list's troll head already asks a burning death row) · *"troll is good for the present"*
 - 2026-10-06 · ruled · the menus · THE NIGHT'S BONDS stays as built, every morning anyone wears a thing that bonds: it is where bonds are made and let go, not a report of what changed (the WAITING rows -- worn, not bonded -- were the case "only when it changes" missed) · *"Waiting was an oversight, good catch - and if it's a bonding interface not just a morning report I was wrong in the first place."*
 - 2026-10-06 · `5b91644` · eyes on the screen · An eyes row's door is a show first for a thing to be seen (a beat staged and run with the dice pinned, as `?skyshow`, `?fxgallery`, `?show=`), a live door only for a thing to be tested by hand (CLAUDE.md's close, `js/eyes.js`'s head) · *"see if this showing method works as first consideration when creating URLs for things that need to be seen (vs tested)"*
