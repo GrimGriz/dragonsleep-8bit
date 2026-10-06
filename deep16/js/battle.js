@@ -200,6 +200,7 @@
   // the 8-bit game's monster ids where DEEP16's kinds differ (its drow are DEEP16's drowlings; its blade-captain, DEEP16's drow)
   var KIND8 = { drow: 'drowling', drowcaptain: 'drow' };
   D.kind8 = function (id8) { return KIND8[id8] || id8; };
+  D.id8 = function (kind) { var k = Object.keys(KIND8).filter(function (i) { return KIND8[i] === kind; })[0]; return k || (KIND8[kind] ? null : kind); }; // (and back: our kind's 8-bit id -- none for a kind that is only the 8-bit's name for another)
   // the fight inside the 8-bit game (RULED 09-28, Griz: the 8-bit's list): the foes the 8-bit scene sends, sized there for
   // the party and its guests (EV.guestWeight: Pyro is worth two), each on the fight's own spot for its kind; one the fight
   // has no spot for is set down on the nearest free square beside one of its kind (hidden or in the rock as that one is),
@@ -278,7 +279,7 @@
       hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
       // (athletics: the block's own skill -- the stone giant's +12 never reached the unit, so his Shove rolled STR's +6: 10-05 night, the Skylights show's find)
       init: d.init, perception: d.perception, athletics: d.athletics != null ? d.athletics : undefined, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
-      fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5,
+      fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5, inorganic: !!d.inorganic, // (inorganic: stone, crystal or metal -- Shatter's save at disadvantage, js/magic.js; 10-06)
       climbs: d.climbs || 0, // (a climb speed, SRD 5.1: up and down a map's cliffs at no extra cost, no check -- grid.js G.climbsUp, 10-04)
       spiderClimb: !!d.spiderClimb, // (Spider Climb, SRD 5.1: it climbs "without needing to make an ability check" -- read as the hold no blow shakes off the face: hurt, below; a push still does. data/foes.js giantspider -- 10-05 night)
       // the bestiary's traits (09-27, the ladder): read by rules.js (packTactics), hurt() (resist/immune/vulnerable),
@@ -287,8 +288,9 @@
       // condition immunities cross from the 8-bit sheet (review 09-28 #9: the Keeper is not webbed, the pudding not put to sleep, the
       // roper not knocked down); a grid-only kind names its own. Light sensitivity (#7): bright light (the Light cantrip, Daylight)
       // costs it its next turn the first time and disadvantage while the light holds, as the 8-bit battle's dazzle does
-      condImmune: (d.condImmune || (window.DS.DATA.monsters[f.kind] || {}).condImmune || null),
-      lightSensitive: !!(d.lightSensitive || ((window.DS.DATA.monsters[f.kind] || {}).traits || {}).lightSensitive),
+      // (the 8-bit sheet by the 8-bit's own id: its drow is our drowling, its blade-captain our drow -- KIND8 read backwards; 10-06, it was looked up by our kind)
+      condImmune: (d.condImmune || (window.DS.DATA.monsters[D.id8(f.kind)] || {}).condImmune || null),
+      lightSensitive: !!(d.lightSensitive || ((window.DS.DATA.monsters[D.id8(f.kind)] || {}).traits || {}).lightSensitive),
       // a soldier's own second wind and action surge (the Dominion line, review 09-28 #16): ai.js brute()
       secondWind: d.secondWind || null, actionSurge: !!d.actionSurge,
       web: d.web ? { atk: d.web.atk, range: d.web.range, dc: d.web.dc, recharge: d.web.recharge, ready: true } : null,
@@ -305,6 +307,7 @@
       yields: !!d.yields, // (stops at half his hit points: Battle.over's 'yielded', the 8-bit game's yield)
       flees: !!d.flees && !(this.fight && (this.fight.noFlee || this.fight.runWhenHurt)), traces: !!f.traces, transfer: !!d.transfer, images: 0, named: !!d.named || !!f.name, swims: !!d.swims, swarm: !!d.swarm, noProne: !!d.noProne,
       moan: d.moan ? Object.assign({ ready: true }, d.moan) : null,
+      gibber: d.gibber || null, aberrant: d.aberrant || null, spittle: d.spittle ? Object.assign({ ready: true }, d.spittle) : null, // (the gibbering mouther, SRD 5.1: js/traits.js, ai.js spit -- 10-06)
       leap: d.leap ? Object.assign({ ready: true }, d.leap) : null,
       phantasms: d.phantasms ? { when: d.phantasms, used: false } : null,
       darkness: d.darkness ? { r: d.darkness.r, range: d.darkness.range, chance: d.darkness.chance, used: false } : null, // (Amara's, once, the turn she runs; the drow's on the 8-bit's chance: magic.js castDarkness)
@@ -1895,7 +1898,7 @@
     if (tgt.conds.guided) delete tgt.conds.guided;
     if (att.conds.mocked) delete att.conds.mocked;
     if (att.conds.trueStrike && att.conds.trueStrike.ready && att.conds.trueStrike.at === tgt.id) { delete att.conds.trueStrike; if (att.conc && att.conc.id === 'truestrike') D.magic.endConc(this, att, 'the swing'); } // (True Strike: the first attack roll at it on the next turn -- advantage, and the spell is spent: rules.js edges, magic.js startTurn)
-    var sacred = att.conds.sacred && !atk.spell && !atk.ranged ? att.conds.sacred.atk : 0;
+    var sacred = att.conds.sacred && !atk.spell ? att.conds.sacred.atk : 0; // (Sacred Weapon: the weapon he holds, a bow as well as a blade -- SRD 5.1; 10-06, it was melee only)
     var baneR = att.conds.baned ? D.d(4) : 0;
     var r = RU.d20(e.net), nat = r.pick, bless = att.conds.blessed ? D.d(4) : 0, pen = (e.pen || 0) - baneR, total = nat + atk.atk + bless + sacred + pen;
     if (baneR && !e.pen) e.penWhy = 'bane';
@@ -2090,7 +2093,7 @@
     var grabbed = false;
     if (atk.grapple && !tgt.dead && tgt.hp > 0 && (tgt.size || 1) <= 1 && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length + (att.tendrilsLost || 0) < (atk.grapple.max || 1)) {
       grabbed = true;
-      tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true, weak: !!atk.weakens }; // (weak: the roper's tendril, disadvantage on STR: js/traits.js)
+      tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true, weak: !!atk.weakens, only: !!atk.grapple.only }; // (weak: the roper's tendril, disadvantage on STR: js/traits.js; only: grappled and no more -- the chuul's pincer, SRD 5.1, no restraint, rules.js edges, 10-06)
       // the roper's tendril is a thing on the grid (SRD 5.1 Grasping Tendrils: "Each tendril can be attacked (AC 20; 10 hit points; immunity to poison and psychic damage).
       // Destroying a tendril deals no damage to the roper ... A tendril can also be broken if a creature takes an action and succeeds on a DC 15 Strength check against it"):
       // it rides the grip -- struck at through the held one's square (tendrilOn, strikeTendril) or broken (exec breaktendril) -- and the grip ends with it (tendrilGone).
@@ -2098,7 +2101,7 @@
       if (atk.tendril) tgt.conds.restrained.tendril = { hp: atk.tendril.hp, max: atk.tendril.hp, ac: atk.tendril.ac, immune: atk.tendril.immune || [], breakDC: atk.tendril.breakDC || 15 };
       att.holding = (att.holding || []).concat([tgt]);
       D.sfx('poison'); FX.ring(tgt, 'bone', 26);
-      this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED and RESTRAINED{/}  {g}(escape DC ' + atk.grapple.dc + ', an action' + (atk.tendril ? '; the tendril AC ' + atk.tendril.ac + ', ' + atk.tendril.hp + ' HP -- strike it, or break it with a DC ' + (atk.tendril.breakDC || 15) + ' STR check' : '') + '){/}']);
+      this.card(['{r}' + nameOf(att) + '{/} has ' + nameOf(tgt) + ': {o}GRAPPLED' + (atk.grapple.only ? '' : ' and RESTRAINED') + '{/}  {g}(escape DC ' + atk.grapple.dc + ', an action' + (atk.tendril ? '; the tendril AC ' + atk.tendril.ac + ', ' + atk.tendril.hp + ' HP -- strike it, or break it with a DC ' + (atk.tendril.breakDC || 15) + ' STR check' : '') + '){/}']);
       yield 30;
       // (pulled in: below)
     }
@@ -2150,7 +2153,7 @@
     // (atk.knockOff: the same save against being knocked back off the edge it stands on -- the Skylights' male giant's rocks, 10-05, Griz: "the male throws his two rocks at people on
     // the edge (once he's made it to the window) with a save vs knockback off the edge": failed, 5 ft straight back from the thrower and down, the fall's 1d6 a 10 ft, prone)
     var offSq = atk.knockOff && atk.prone && !tgt.dead && tgt.hp > 0 ? Battle.knockSq(att, tgt) : null;
-    if (atk.prone && !tgt.dead && tgt.hp > 0 && (offSq || (!tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')))) {
+    if (atk.prone && !tgt.dead && tgt.hp > 0 && !(atk.proneMax && (tgt.size || 1) > atk.proneMax) && (offSq || (!tgt.conds.prone && !tgt.noProne && !RU.immuneTo(tgt, 'prone')))) { // (proneMax: the largest it can knock down -- the mouther's bite, Medium or smaller, 10-06)
       var ks = RU.save(tgt, 'str', atk.prone);
       this.card(['{r}' + nameOf(tgt) + '{/}: STR save  ' + RU.saveText(ks) + ' vs DC ' + ks.dc + '  ' + (ks.ok ? (offSq ? '{n}HOLDS THE EDGE{/}' : '{n}STAYS UP{/}') : offSq ? '{o}KNOCKED OFF THE EDGE{/}' : '{o}KNOCKED PRONE{/} {g}(half the move to rise){/}')]);
       if (!ks.ok) { if (offSq) yield* this.knockOff(tgt, offSq, att); if (!tgt.noProne && !RU.immuneTo(tgt, 'prone')) tgt.conds.prone = true; D.sfx('hit'); }

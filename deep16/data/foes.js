@@ -13,7 +13,7 @@
       shortsword: { name: 'Shortsword', atk: 7, dice: '1d6', mod: 4, type: 'piercing', extra: '2d6', extraType: 'poison', reach: 5 },
       crossbow: { name: 'Hand Crossbow', atk: 7, dice: '1d6', mod: 4, type: 'piercing', range: [30, 120], ranged: true, poison: { dc: 13 } }
     },
-    multi: 2, faerieFire: { dc: 12, range: 60, cube: 4 }, darkness: { r: 15, range: 60, chance: 0.3 }, lightSensitive: true, // (innate Darkness once on the 8-bit's chance; sunlight sensitivity: crossed 09-28)
+    multi: 2, faerieFire: { dc: 12, range: 60, cube: 4 }, darkness: { r: 15, range: 60, chance: 0.3 }, lightSensitive: true, fey: true, // (innate Darkness once on the 8-bit's chance; sunlight sensitivity: crossed 09-28; fey: Fey Ancestry, no magic puts it to sleep -- 10-06, Eyebite could)
     src: 'content/monsters.json drowcaptain (game-original, CR 5) + SRD 5.1 Drow (hand crossbow, poison, Faerie Fire)'
   },
   phasespider: {
@@ -323,7 +323,7 @@
   hask: {
     named: true, name: 'Hask', type: 'humanoid', sheet: 'hask_p1', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
-    saves: { str: 4, dex: 5, con: 2, int: 2, wis: 0, cha: 2 },
+    saves: { str: 4, dex: 5, con: 2, int: 2, wis: 2, cha: 2 }, // (SRD 5.1 Bandit Captain: Str +4, Dex +5, Wis +2 -- 10-06, the WIS +2 was dropped)
     attacks: { bar: { name: 'Pry-bar', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 5 }, knife: { name: 'Knife', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 } },
     multi: ['bar', 'bar', 'knife'], parry: 2, src: 'content/monsters.json hask (the SRD 5.1 Bandit Captain as the night crew\'s boss)'
   },
@@ -538,7 +538,7 @@
     abil: { str: 20, dex: 8, con: 20, int: 5, wis: 10, cha: 5 }, init: -1, perception: 10,
     saves: { str: 5, dex: -1, con: 5, int: -3, wis: 0, cha: -3 },
     attacks: { slam: { name: 'Slam', atk: 8, dice: '2d8', mod: 5, type: 'bludgeoning', reach: 10 } },
-    multi: ['slam', 'slam'], resist: ['mundane'], vulnerable: ['thunder'], immune: ['poison'], earthGlide: true, condImmune: ['exhaustion', 'paralyzed', 'petrified', 'poisoned', 'unconscious', 'asleep'], // (SRD 5.1 exhaustion, paralyzed, petrified, poisoned, unconscious; 'asleep' is this grid's unconscious from Sleep and Eyebite -- the 8-bit sheet had paralyzed, poisoned; 10-02 runner)
+    multi: ['slam', 'slam'], resist: ['mundane'], vulnerable: ['thunder'], immune: ['poison'], earthGlide: true, inorganic: true, condImmune: ['exhaustion', 'paralyzed', 'petrified', 'poisoned', 'unconscious', 'asleep'], // (SRD 5.1 exhaustion, paralyzed, petrified, poisoned, unconscious; 'asleep' is this grid's unconscious from Sleep and Eyebite -- the 8-bit sheet had paralyzed, poisoned; 10-02 runner)
     src: 'SRD 5.1 Earth Elemental (CR 5, Large, slam reach 10 ft); content/monsters.json earthelemental: resists plain steel, thunder hurts it double, immune to poison; Earth Glide: through the rock, standing only on open ground (js/grid.js, 09-28); condition immunities exhaustion, paralyzed, petrified, poisoned, unconscious (SRD 5.1; 10-02 runner); it has blindsight 60 where the SRD gives tremorsense 60 (sense not changed yet)'
   },
   // the roper on leg two's fork (deep.js S.roper): it looks like the stalagmites until it doesn't (hidden at the start)
@@ -612,7 +612,7 @@
     abil: { str: 19, dex: 10, con: 16, int: 5, wis: 11, cha: 5 }, init: 0, perception: 14,
     saves: { str: 4, dex: 0, con: 3, int: -3, wis: 0, cha: -3 },
     attacks: {
-      pincer: { name: 'Pincer', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 10, grapple: { dc: 14, max: 2 } },
+      pincer: { name: 'Pincer', atk: 6, dice: '2d6', mod: 4, type: 'bludgeoning', reach: 10, grapple: { dc: 14, max: 2, only: true } }, // (only: grappled, not restrained -- SRD 5.1's chuul, 10-06; its frog and the otyugh do restrain)
       tentacles: { name: 'Tentacles', atk: 6, dice: '1d1', mod: -1, type: 'poison', reach: 10, needsHeld: true, autoHitHeld: true, paralyze: { dc: 13 } }
     },
     multi: ['pincer', 'pincer', 'tentacles'], immune: ['poison'], swims: true,
@@ -723,9 +723,11 @@
     name: 'Gibbering Mouther', type: 'aberration', sheet: 'mouther_p1', cr: '2', ac: 9, hp: 67, speed: 10, size: 1, reach: 5, darkvision: 60,
     abil: { str: 10, dex: 8, con: 16, int: 3, wis: 10, cha: 6 }, init: -1, perception: 10,
     saves: { str: 0, dex: -1, con: 3, int: -4, wis: 0, cha: -2 },
-    attacks: { bites: { name: 'Bites', atk: 2, dice: '5d6', mod: 0, type: 'piercing', reach: 5 } },
-    multi: 1, moan: { dc: 10, recharge: 4, cond: 'stunned', range: 20, min: 1, text: 'gibbers, a hundred mouths at once. Minds slip.' },
-    src: 'SRD 5.1 Gibbering Mouther (CR 2); content/monsters.json mouther (leg two): Gibbering read as the 8-bit game has it (WIS 10 or stunned, within 20 ft; here on a recharge of 4-6)', todo: 'the Blinding Spittle and the Aberrant Ground are not read'
+    attacks: { bites: { name: 'Bites', atk: 2, dice: '5d6', mod: 0, type: 'piercing', reach: 5, prone: 10, proneMax: 1 } }, // (Medium or smaller: STR 10 or knocked prone)
+    multi: 1, gibber: { dc: 10, range: 20 }, aberrant: { dc: 10, r: 10 }, spittle: { dc: 13, range: 15, r: 5, recharge: 5 },
+    // (10-06, the story-and-the-pocket-dm handoff, Griz: "SRD what you can": Gibbering was a stun on a recharge of 4-6, "read as the 8-bit game has it" -- now the SRD's, js/traits.js and
+    // grimoire.js M.confusedTurn; the Spittle ai.js spit; the 8-bit's own mouther keeps its stun, its frame's)
+    src: 'SRD 5.1 Gibbering Mouther (CR 2): Aberrant Ground (10 ft of doughlike difficult ground, STR 10 at a turn\'s start or no move), Gibbering (within 20 ft at a turn\'s start, WIS 10 or no reactions and a d8 for the turn), Bites (STR 10 or prone, Medium or smaller), Blinding Spittle (recharge 5-6, a point within 15 ft, DEX 13 or blinded till the end of its next turn); content/monsters.json mouther (leg two)', todo: 'one killed by the bite is not absorbed'
   },
   // the Hex card's top (events.js, Fight Night): Talmok and the visiting barbarian, both reckless; Talmok rages when first hit
   talmok: {
@@ -746,7 +748,7 @@
   banditcaptain: {
     name: 'Bandit Captain', type: 'humanoid', sheet: 'hask_p1', cr: '2', ac: 15, hp: 65, speed: 30, size: 1, reach: 5,
     abil: { str: 15, dex: 16, con: 14, int: 14, wis: 11, cha: 14 }, init: 3, perception: 10,
-    saves: { str: 4, dex: 5, con: 2, int: 2, wis: 0, cha: 2 },
+    saves: { str: 4, dex: 5, con: 2, int: 2, wis: 2, cha: 2 }, // (SRD 5.1 Bandit Captain: Str +4, Dex +5, Wis +2 -- 10-06, the WIS +2 was dropped)
     attacks: {
       scimitar: { name: 'Scimitar', atk: 5, dice: '1d6', mod: 3, type: 'slashing', reach: 5 },
       dagger: { name: 'Dagger', atk: 5, dice: '1d4', mod: 3, type: 'piercing', reach: 5 },

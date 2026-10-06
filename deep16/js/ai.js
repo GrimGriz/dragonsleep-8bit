@@ -545,6 +545,27 @@
     }
     if (!(yield* volley(B, u))) { B.card(['{g}' + the(B, u) + ' has no clear shot.{/}']); yield 20; }
   }
+  // Blinding Spittle (SRD 5.1 Gibbering Mouther, recharge 5-6): "spits a chemical glob at a point it can see within 15 feet of it ... Each creature within 5 feet of the
+  // flash must succeed on a DC 13 Dexterity saving throw or be blinded until the end of the mouther's next turn" -- at the one of them with the most of theirs about it (10-06)
+  function* spit(B, u, hs) {
+    var S = u.spittle, best = null;
+    hs.forEach(function (t) {
+      if (G.dist(u, t) > S.range || t.conds.blinded) return;
+      var n = hs.filter(function (w) { return !w.conds.blinded && G.dist(t, w) <= S.r; }).length;
+      if (!best || n > best.n) best = { t: t, n: n };
+    });
+    if (!best) return;
+    S.ready = false; D.sfx('poison'); FX.sparkle(best.t, 'bone', 24);
+    var ml = ['{r}' + the(B, u) + '{/} spits a glob at ' + best.t.name + ': a blinding flash  DEX DC ' + S.dc];
+    B.units.filter(function (w) { return w !== u && G.standing(w) && !w.object && G.dist(best.t, w) <= S.r; }).forEach(function (w) {
+      var wn = w.side === 'foe' ? the(B, w) : w.name;
+      if (RU.immuneTo(w, 'blinded')) { ml.push('  ' + wn + ': {n}not blinded{/}'); return; }
+      var sv = RU.save(w, 'dex', S.dc, false, 'blinded');
+      ml.push('  ' + wn + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}looks away{/}' : '{o}BLINDED{/} (till the end of its next turn)'));
+      if (!sv.ok) w.conds.blinded = { by: u.id, till: { who: u.id, at: 'end', n: 2 } };
+    });
+    B.card(ml, 360); yield 30;
+  }
   function* leap(B, u, hs) {
     var L = u.leap, best = null;
     hs.forEach(function (t) {
@@ -1161,7 +1182,9 @@
     // the only stop. (Amara and Willem, who fight only to get away, give ground a step at a time instead: shooter())
     if (bolting) { if (yield* bolt(B, u)) return; }
     // recharges (5-6 at the start of its turn): the Moan, the Leap (once a turn: a burrower rolls before it picks where to come up -- burrower)
-    if (!T.recharged) [u.moan, u.leap].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
+    if (!T.recharged) [u.moan, u.leap, u.spittle].forEach(function (s) { if (s && !s.ready && D.d(6) >= s.recharge) s.ready = true; });
+    // the mouther's Blinding Spittle (SRD 5.1: its Multiattack is "one bite attack and, if it can, uses its Blinding Spittle" -- no action of its own; 10-06)
+    if (!grudge && u.spittle && u.spittle.ready && T.action && hs.length) yield* spit(B, u, hs);
     // Phantasms (the cloaker when bloodied; Willem at once): three false images, its action
     if (!grudge && u.phantasms && !u.phantasms.used && T.action && (u.phantasms.when === 'start' || u.hp <= u.maxhp / 2)) {
       T.action = 0; u.phantasms.used = true; u.images = 3; D.sfx('magic'); FX.sparkle(u, 'violet', 30);
@@ -1169,8 +1192,8 @@
       yield 34;
       if (!hs.length) return;
     }
-    // the Moan (the cloaker): every hero within 60 ft, WIS or frightened till the end of its next turn; the mouther's
-    // Gibbering is the same shape (20 ft, stunned) -- moan: { dc, recharge, cond, range, text }
+    // the Moan (the cloaker): every hero within 60 ft, WIS or frightened till the end of its next turn -- moan: { dc, recharge, cond, range, text }
+    // (the mouther's Gibbering read this way till 10-06, stunned within 20 ft; it is the SRD's own now, js/traits.js)
     var MO = u.moan, mcond = MO && (MO.cond || 'frightened'), mrange = MO && (MO.range || 60);
     if (!grudge && MO && MO.ready && T.action && hs.filter(function (w) { return G.dist(u, w) <= mrange && !w.conds[mcond]; }).length >= (MO.min || 2)) {
       T.action = 0; MO.ready = false; D.sfx('encounter');

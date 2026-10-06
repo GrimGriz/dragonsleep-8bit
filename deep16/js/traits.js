@@ -134,4 +134,35 @@
       if (pick && G.foesNear(u, pick.x, pick.y, 5).length === 0) { B.card(['{r}' + Nm(B, u) + '{/} darts back.  {g}(Nimble Escape){/}'], 160); yield* AI.walkTo(B, u, pick); }
     }
   };
+
+  // ------------------------------------------------------------------ the gibbering mouther (SRD 5.1; 10-06, Griz: "SRD what you can" -- it was a stun on a recharge, the 8-bit's
+  // reading). Aberrant Ground: 10 ft about it is doughlike difficult ground (M.rough), and one that starts its turn in it makes a DC 10 STR save or has no move that turn.
+  // Gibbering, while it can see and isn't incapacitated: one that starts its turn within 20 ft of it and can hear it makes a DC 10 WIS save, or has no reactions till its
+  // next turn and rolls a d8 for this one (grimoire.js M.confusedTurn, `gibber`). Each creature, by the SRD's words -- another mouther too. The Spittle: ai.js spit
+  function nearM(m, x, y) { return Math.max(Math.abs(x - m.x), Math.abs(y - m.y)) * 5; }
+  var rough1 = M.rough;
+  M.rough = function (B, x, y, u) {
+    if (rough1.apply(this, arguments)) return true;
+    return !!B && (B.units || []).some(function (m) { return m.aberrant && m !== u && G.standing(m) && nearM(m, x, y) <= m.aberrant.r; });
+  };
+  var onStartM = M.onStart;
+  M.onStart = function (B, u) {
+    onStartM.apply(this, arguments);
+    if (!B || !u || u.dead || u.hp <= 0 || u.object || !u.turn) return;
+    var ms = B.units.filter(function (m) { return m !== u && (m.gibber || m.aberrant) && G.standing(m) && !m.dead; }); if (!ms.length) return;
+    var T = u.turn, lines = [];
+    ms.forEach(function (m) {
+      if (!m.aberrant || T.move === 0 || nearM(m, u.x, u.y) > m.aberrant.r) return;
+      var sv = RU.save(u, 'str', m.aberrant.dc);
+      lines.push(Nm(B, u) + ' in the doughlike ground: STR ' + RU.saveText(sv) + ' vs DC ' + m.aberrant.dc + '  ' + (sv.ok ? '{n}pulls free{/}' : '{o}stuck fast: no move this turn{/}'));
+      if (!sv.ok) T.move = 0;
+    });
+    ms.filter(function (m) { return m.gibber && RU.canAct(m) && !m.conds.blinded && !u.conds.deafened && G.dist(m, u) <= m.gibber.range; }).forEach(function (m) {
+      if (u.conds.confused) return; // (one babble is enough to lose a turn to)
+      var sv = RU.save(u, 'wis', m.gibber.dc);
+      lines.push('{p}' + Nm(B, m) + ' gibbers{/} at ' + Nm(B, u) + ': WIS ' + RU.saveText(sv) + ' vs DC ' + m.gibber.dc + '  ' + (sv.ok ? '{n}steady{/}' : '{p}the mind slips: no reactions, a d8 for the turn{/}'));
+      if (!sv.ok) { u.conds.confused = { gibber: true, by: m.id }; u.reaction = 0; }
+    });
+    if (lines.length) B.card(lines, 300);
+  };
 })();

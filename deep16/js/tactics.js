@@ -390,7 +390,7 @@
   function holdEval(B, u, e, slot, fs) {
     var best = null;
     fs.forEach(function (t) {
-      if (!M.targetOK(B, u, e.g, t) || t.conds.paralyzed || RU.immuneTo(t, 'paralyzed')) return;
+      if (!M.targetOK(B, u, e.g, t) || t.conds.paralyzed || RU.immuneTo(t, 'paralyzed') || (e.id === 'holdmonster' && t.type === 'undead')) return; // (Hold Monster: no effect on undead, 10-06)
       var pf = TX.pFail(t, 'wis', u.spellDC), rounds = Math.min(3, 1 / Math.max(0.25, 1 - pf));
       var sc = pf * (TX.dpr(t) * rounds + 6);
       if (!best || sc > best.score) best = { score: sc, t: t, keep: sc * 0.7 };

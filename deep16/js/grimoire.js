@@ -215,7 +215,11 @@
     var T = u.turn, src = null;
     if (word === 'halt') { T.move = 0; T.action = 0; T.bonus = 0; T.attacksLeft = 0; T.lost = 'halts'; B.card(['{p}' + Nm(B, u) + ' HALTS: no move, no action.{/}'], 300); }
     else if (word === 'grovel') { u.conds.prone = true; T.move = 0; T.action = 0; T.bonus = 0; T.lost = 'grovels'; B.card(['{p}' + Nm(B, u) + ' GROVELS: face down, the turn gone.{/}'], 300); }
-    else if (word === 'drop') { u.conds.disarmed = { till: { who: u.id, at: 'end', n: 1 } }; B.card(['{p}' + Nm(B, u) + ' DROPS what it holds.{/}'], 300); }
+    else if (word === 'drop') { // (SRD 5.1: "drops whatever it is holding and then ends its turn" -- 10-06: the turn went on; one it gripped goes free, as the 8-bit's DROP)
+      u.conds.disarmed = { till: { who: u.id, at: 'end', n: 1 } }; T.move = 0; T.action = 0; T.bonus = 0; T.attacksLeft = 0; T.lost = 'drops';
+      B.units.forEach(function (w) { var r = w.conds.restrained; if (r && r.by === u.id && r.grapple) B.release(u, w); });
+      B.card(['{p}' + Nm(B, u) + ' DROPS what it holds: the turn gone.{/}'], 300);
+    }
     else if (word === 'flee') { T.fleeFrom = u.commandedBy; T.action = 0; T.bonus = 0; T.lost = 'flees'; B.card(['{p}' + Nm(B, u) + ' FLEES.{/}'], 300); }
   }
   M.commandTurn = commandTurn;
@@ -1511,6 +1515,7 @@
   // what a confused one does on its turn (ai.js turn, battle.js heroTurn ask): true if the d10 took the turn
   M.confusedTurn = function* (B, u) {
     var c = u.conds.confused; if (!c) return false;
+    if (c.gibber) return yield* gibberTurn(B, u); // (the gibbering mouther's babble, one turn of it: js/traits.js -- 10-06)
     if (M.zoneShut(B, c, u, 'is muddled')) return false; // (the Globe of Invulnerability: the Confusion was cast from outside it -- its turn is its own, nothing rolled)
     var r = D.d(10), T = u.turn;
     if (r >= 9) { B.card(['{g}' + Nm(B, u) + ' shakes clear for a moment (d10 ' + r + ').{/}'], 200); return false; }
@@ -1527,6 +1532,25 @@
     T.action = 0; T.bonus = 0; T.move = 0;
     return true;
   };
+  // Gibbering (SRD 5.1 Gibbering Mouther): failed, "rolls a d8 to determine what it does during its turn. On a 1 to 4, the creature does nothing. On a 5 or 6, the creature
+  // takes no action or bonus action and uses all its movement to move in a randomly determined direction. On a 7 or 8, the creature makes a melee attack against a randomly
+  // determined creature within its reach or does nothing if it can't make such an attack" -- its reactions are gone till its next turn (js/traits.js laid both; 10-06)
+  function* gibberTurn(B, u) {
+    var r = D.d(8), T = u.turn; delete u.conds.confused;
+    if (r <= 4) { B.card(['{p}' + Nm(B, u) + ' stands lost in the babble (d8 ' + r + '): nothing this turn.{/}'], 240); yield 16; }
+    else if (r <= 6) {
+      B.card(['{p}' + Nm(B, u) + ' lurches off at random (d8 ' + r + ').{/}'], 240);
+      var rm = G.reach(u, T.move), ks = Object.keys(rm).filter(function (k) { return rm[k].stand && k !== u.x + ',' + u.y; }), pick = ks.length ? rm[ks[D.rint(ks.length)]] : null;
+      if (pick) yield* D.ai.walkTo(B, u, pick); else yield 16;
+    } else {
+      var near = B.units.filter(function (w) { return w !== u && G.standing(w) && !w.object && G.dist(u, w) <= G.reachOf(u); }), w = near.length ? near[D.rint(near.length)] : null;
+      var atk = u.weapon && !u.weapon.ranged ? u.weapon : (u.attacks && u.attacks[Object.keys(u.attacks).filter(function (k) { return !u.attacks[k].ranged; })[0]]);
+      B.card(['{p}' + Nm(B, u) + ' lashes out at random (d8 ' + r + ')' + (w && atk ? ': at ' + Nm(B, w) + '.' : ', and there is no one in reach.') + '{/}'], 240);
+      if (w && atk && typeof atk === 'object' && atk.name) yield* B.attack(u, w, atk); else yield 16;
+    }
+    T.action = 0; T.bonus = 0; T.move = 0;
+    return true;
+  }
   E.deathward = {
     summary: function () { return 'touch · the first blow that would drop them leaves them at 1 instead'; },
     cast: function* (B, u, t, slot, head) { t.conds.deathWard = { by: u.id }; FX.ring(t, 'gold', 30); B.card([head + ' on ' + t.name + ': a ward against the fall.']); yield 16; },

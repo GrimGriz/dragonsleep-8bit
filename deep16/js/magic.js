@@ -330,6 +330,9 @@
     yield Math.max(10, Math.round((D.spr.duration(u.sheet, u.anim) || 18) * 0.55)); // (the release at the height of the cast pose)
     if (carry && !(yield* D.familiar.carry(B, u, t))) { u.anim = 'idle'; return; } // (it goes with the spell; one lost on the way loses it)
     if (M.counterAsk && (yield* M.counterAsk(B, u, id, slot, g))) { u.anim = 'idle'; return; } // (Counterspell, as it is released: countered, it fails -- the slot and the action spent; js/grimoire.js, 10-02)
+    // a concentration spell let go: the one held before ends now, whether this one takes anyone or not (SRD 5.1: "casting another spell that requires
+    // concentration" ends it -- 10-06; a Hold or a Laughter saved against used to leave the old Bless up). Not the same spell's own use again (the lights moved, Eyebite's next gaze)
+    if (u.conc && u.conc.id !== id && !g.again && !g.move && D.DURATION && (D.DURATION[id] || {}).c) M.endConc(B, u, 'a new spell');
 
     // Sanctuary (SRD 5.1): a harmful spell at the warded one (a single target or a touch, not the attack rolls -- Battle.attack asks those -- nor an area: "This spell doesn't protect the warded
     // creature from area effects") asks the WIS save first; failed, a new target or the spell is lost (the slot and the action spent)
@@ -446,7 +449,8 @@
     } else if (g.shape === 'sphere' || g.shape === 'cube' || g.shape === 'cone' || g.shape === 'line' || g.shape === 'wave') {
       yield* area(B, u, id, sp, g, slot, t.x, t.y, head);
     } else if (g.shape === 'single') {
-      if (id === 'holdmonster' || id === 'holdperson') {
+      if (id === 'holdmonster' && t.type === 'undead') { B.card([head + ' on the ' + B.shortName(t) + ': {g}the dead are not held{/}  (SRD 5.1: "no effect on undead")']); FX.ring(t, 'violet', 20); } // (10-06)
+      else if (id === 'holdmonster' || id === 'holdperson') {
         var sv2 = RU.save(t, 'wis', dc, false, 'paralyzed');
         B.card([head + ' on the ' + B.shortName(t) + '  WIS ' + RU.saveText(sv2) + ' vs DC ' + dc + '  ' + (sv2.ok ? '{n}SAVED{/}' : '{p}HELD FAST: paralyzed{/}')]);
         FX.ring(t, 'violet', 40);
@@ -650,7 +654,7 @@
         if (spared.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}sculpted out of it{/}'); return; }
         // (an object makes no save -- SRD 5.1 Shatter: "A nonmagical object that isn't being worn or carried also takes the damage"; its card read "d20 3 NaN = NaN": 10-05 night, the show's find)
         if (w.object) { lines.push('  ' + w.name + ': {g}an object, no save{/} -> {r}' + (d1 + d2) + '{/}'); hits.push([w, d1, false, d2]); return; }
-        var sv = RU.save(w, ab, dc, sp.el === 'poison' && RU.vsPoison(w), null, tot), evade = ab === 'dex' && RU.evasion(w); // (Evasion: the rogue's and the monk's 7, js/rules.js)
+        var sv = RU.save(w, ab, dc, sp.el === 'poison' && RU.vsPoison(w), null, tot, id === 'shatter' && !!w.inorganic), evade = ab === 'dex' && RU.evasion(w); // (Evasion: the rogue's and the monk's 7, js/rules.js) (Shatter: "A creature made of inorganic material such as stone, crystal, or metal has disadvantage on this saving throw", SRD 5.1 -- 10-06)
         var share = function (x) { return sv.ok ? (evade ? 0 : (sp.half ? Math.floor(x / 2) : 0)) : (evade ? Math.floor(x / 2) : x); }, d = share(d1), dB = share(d2);
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + (d + dB) + '{/}');
         hits.push([w, d, sv.ok, dB]);

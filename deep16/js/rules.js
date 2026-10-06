@@ -83,7 +83,7 @@
   // 10 ft add his CHA to saves), Aura of Devotion from 7 for the Oath of Devotion (they can't be charmed). null when none is up.
   // One test for the rules and the looks (js/looks.js draws the ring from it).
   RU.auraOf = function (p) {
-    if (!p || p.cls !== 'paladin' || p.lvl < 6 || !G.standing(p) || !RU.canAct(p)) return null; // (either side: a class NPC paladin's too)
+    if (!p || p.cls !== 'paladin' || p.lvl < 6 || !G.standing(p) || p.conds.asleep) return null; // (either side: a class NPC paladin's too) (SRD 5.1: "You must be conscious" -- asleep is unconscious; held or stunned he is awake and it holds. 10-06: it read able-to-act)
     return { r: 10, protect: Math.max(1, D.mod(p.abil.cha)), devotion: p.lvl >= 7 && RU.devoted(p) };
   };
   RU.devoted = function (p) { return /devotion/i.test(p.subclass || '') || p.id === 'lymen'; }; // (Lymen's oath is Devotion: its spells are PfEG and Sanctuary)
@@ -101,7 +101,7 @@
   // (adv0: an advantage the caller knows of -- Land's Stride against Entangle. against: the condition the save is against -- 'frightened',
   // 'charmed', or any other a spell lays -- for the bard's Countercharm, the Hunter's Steel Will, and the Fiend's Dark One's Own Luck (it
   // matters). dmg: the damage that rides on it, for that luck too)
-  RU.save = function (u, ab, dc, adv0, against, dmg) {
+  RU.save = function (u, ab, dc, adv0, against, dmg, dis0) { // (dis0: a disadvantage the caller knows of -- Shatter on a creature of stone, js/magic.js area, 10-06)
     var c = u.conds, bonus = (u.saves ? u.saves[ab] : D.mod(u.abil[ab])) + RU.aura(u) + (c.wardingBond ? 1 : 0) - (ab === 'dex' && c.slowed ? 2 : 0);
     // the sorcerer's metamagic, for the spell being cast now (js/features.js M.cast: B.meta): Careful Spell -- a chosen friend of his simply
     // succeeds; Heightened Spell -- the chosen target has disadvantage on its first save against it
@@ -122,7 +122,7 @@
     var resil = !!(u.resilient && ((D.battle && (D.battle.castLevel != null || D.battle.spellRun === u) && against !== 'concentration') || (against && /^(poison(ed)?|charmed|hypnotized|paralyzed)$/.test(against))));
     // Two Heads (SRD 5.1: the ettin has "advantage on saving throws against being blinded, charmed, deafened, frightened, stunned, and knocked unconscious" -- not on WIS and CON saves at large: 10-02 runner)
     var heads = !!(u.twoHeads && against && /^(blinded|charmed|hypnotized|deafened|frightened|feared|stunned|asleep|unconscious)$/.test(against));
-    var adv = !!adv0 || counter || pfp || pfg || resil || heads || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = heightened || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
+    var adv = !!adv0 || counter || pfp || pfg || resil || heads || (ab === 'dex' && (c.dodge || c.hasted || (c.dangerSense && !c.blinded))) || (ab === 'wis' && c.beacon) || !!(c.holyAura || c.foresight) || !!(RU.saveAdv && RU.saveAdv(u, ab)) || (ab === 'str' && !!c.enlarged && !c.enlarged.down), dis = !!dis0 || heightened || (ab === 'dex' && c.restrained) || !!(RU.saveDis && RU.saveDis(u, ab)) || (ab === 'str' && !!c.enlarged && !!c.enlarged.down); // (Enlarge: advantage on STR saves and checks, Reduce: disadvantage) // (the roper's grip on STR: js/traits.js)
     if ((ab === 'str' || ab === 'dex') && (c.paralyzed || c.asleep || c.stunned || (u.hp <= 0 && !u.dead && !u.object))) return { rolls: [0], d20: 0, bonus: bonus, total: 0, dc: dc, ok: false, aura: 0, auto: true }; // (SRD 5.1: the paralyzed, the stunned, the unconscious -- not Hideous Laughter's incapacitated and prone, 10-02, Griz: "yes". At 0 and not dead is unconscious: a troll lying there knitting dodges no flask -- 10-05, Griz: "dead trolls can't dodge! :)")
     var both = adv !== dis, r1 = D.d(20), r2 = both ? D.d(20) : null, d = both ? (adv ? Math.max(r1, r2) : Math.min(r1, r2)) : r1;
     var bl = c.blessed ? D.d(4) : 0; bonus += bl;
@@ -201,8 +201,8 @@
       var v2 = D.magic.seeWhy(DB, tgt, att);
       if (!v2.ok) adv.push(v2.why === 'blinded' ? 'blinded target' : 'unseen attacker: ' + v2.why);
     }
-    if (att.conds.restrained) dis.push('restrained');
-    if (tgt.conds.restrained) adv.push('restrained target');
+    if (att.conds.restrained && !att.conds.restrained.only) dis.push('restrained'); // (only: a grip that grapples and does not restrain -- the chuul's, 10-06)
+    if (tgt.conds.restrained && !tgt.conds.restrained.only) adv.push('restrained target');
     if (att.attached && att.riding && att.master === tgt) adv.push('attached'); // (the darkmantle on the one it rides: SRD 5.1, "has advantage on its attack rolls")
     if (tgt.conds.paralyzed || tgt.conds.asleep) adv.push(tgt.conds.asleep ? 'asleep' : 'paralyzed');
     if (tgt.conds.stunned) adv.push('stunned');
