@@ -17,9 +17,6 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
-    'eyes-rascal-show-1006': { pri: 2, group: G2, title: 'Rascal, shown: his three specials (10-06)', pt: 'MPMon (deep16/README.md) · eyes',
-      url: 'deep16/?mpshow&only=sharing,flame,distancing',
-      look: 'Three beats, the dice pinned, each checked: Social Sharing (the hat comes off, a bow; Denny and Beholda each get a d8, and Denny\'s 16 on AC 18 turns into a hit by it), Social Flame (he dances, the claw clapping; a ball of fire 20 ft round the middle goblin of three, 5d6 each), Social Distancing (a 30-ft cone at two goblins: 2d8 psychic and FRIGHTENED, the near one runs 50 ft off instead of swinging). His look is your first sheet, cut (the rows face left so the claw arm shows; the whiskers the generator ran through his hat are erased above it).' },
     'eyes-rascal-play-1006': { pri: 2, group: G2, title: 'Rascal by your hands: Fire Bolt and the ring\'s SKILLS (10-06)', pt: 'MPMon (deep16/README.md) · eyes',
       url: 'deep16/?npc=goblin,goblin,hobgoblin,hobgoblin&vs=rascal:5,denny:5&lvl=5',
       look: 'On his turn: Fire Bolt from the ring (2d10 at 5th, +7 on CHA), and SKILLS: SOCIAL SHARING (greyed with the reason when no friend is within 30 ft), SOCIAL FLAME (a gold pick for where it bursts; friends in it burn too), SOCIAL DISTANCING. Three specials a fight at 5th. He climbs. The Pocket DM seats him too (LOAD TABLE, the roster).' },
