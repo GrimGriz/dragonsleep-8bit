@@ -190,7 +190,7 @@
     yield DS.say(L('g.joins', { name: h.name, lvl: h.lvl }));
     return true;
   };
-  EV.longRest = function () { EV.torchOut(true); G().party.forEach(function (h) { if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; R.refresh(h, true); }); };
+  EV.longRest = function () { EV.torchOut(true); G().party.forEach(function (h) { if (h.conds.aid) { h.maxhp -= h.conds.aid; delete h.conds.aid; } delete h.conds.mageArmor; h.bondsBefore = (h.attuned || []).slice(); R.refresh(h, true); }); }; // (bondsBefore: the morning's sheet says what the night bonded, EV.bonds)
   EV.rest = function* (song) {
     var g = G();
     yield DS.fade(1, 24);
@@ -209,6 +209,7 @@
   EV.morning = function* () {
     var g = G();
     if (!DS.field || g.party.every(function (h) { return h.ko; })) return; // (the night broke the rest: nobody wakes)
+    yield* EV.bonds();
     yield* EV.prepare();
     var s = yield DS.ask(L('g.saveAsk'), ['SAVE', 'NO']);
     if (s === 0) yield W8.scene(new DS.SlotScene(true));
@@ -246,6 +247,36 @@
       at = rows.map(function (r) { return r.value; }).indexOf(pick);
       if (pick.prep) yield* prepHero(pick.prep);
       else if (pick.cast) yield* EV.fieldCast(pick.h, pick.cast);
+    }
+  };
+  // the night's bonds (SRD 5.1 attunement, js/rules.js R.attune; Griz, 10-06: "put bondings in front of spell prep in the morning, all on a sheet that
+  // scrolls if necessary (12 at a time for a test or an OCD player)"): every bond-wanting thing the four wear, what the night did with it -- BONDED (held),
+  // NEW (bonded tonight), WAITING (no room: three bonds held) -- and E to bond or let go, three at most; what was set down and let go tonight, listed
+  EV.bonds = function* () {
+    var g = G(), at = 0, MAX = R.ATTUNE_MAX || 3;
+    function worn(h) { var out = []; Object.keys(h.equip || {}).forEach(function (s) { var id = h.equip[s], it = R.item(id); if (s !== 'torch' && it && it.attune && out.indexOf(id) < 0) out.push(id); }); return out; }
+    if (!g.party.some(function (h) { return worn(h).length || (h.bondsBefore || []).length; })) return;
+    while (true) {
+      var rows = [{ label: 'DONE', value: 'done', desc: 'On to the day\'s spells. A bond lasts while the thing is worn; take it off, and the next rest lets it go.' }];
+      g.party.forEach(function (h) {
+        var was = h.bondsBefore || [], now = h.attuned || [];
+        worn(h).forEach(function (id) {
+          var it = R.item(id), on = now.indexOf(id) >= 0;
+          rows.push({ label: h.name.toUpperCase() + ': ' + it.name, right: on ? (was.indexOf(id) >= 0 ? 'BONDED' : 'NEW') : 'WAITING', rightColor: on ? (was.indexOf(id) >= 0 ? '#C8D0E8' : '#B8F8B8') : '#6C6C84',
+            value: { h: h, id: id }, desc: (it.desc || '') + (on ? '  E: let it go.' : now.length >= MAX ? '  Three bonds held: let one go first.' : '  E: bond with it.') });
+        });
+        was.filter(function (id) { return now.indexOf(id) < 0 && worn(h).indexOf(id) < 0; }).forEach(function (id) {
+          var it = R.item(id); if (it) rows.push({ label: h.name.toUpperCase() + ': ' + it.name, right: 'LET GO', value: null, disabled: true, desc: 'Set down, and let go in the night.' });
+        });
+      });
+      var pick = yield DS.choose({ items: rows, x: 8, y: 20, w: 240, visible: Math.min(12, rows.length), index: Math.min(at, rows.length - 1), title: 'THE NIGHT\'S BONDS', drawExtra: descBox });
+      if (!pick || pick === 'done') { g.party.forEach(function (h) { delete h.bondsBefore; }); return; }
+      at = rows.map(function (r) { return r.value; }).indexOf(pick);
+      var hh = pick.h, a = hh.attuned = (hh.attuned || []).slice(), i = a.indexOf(pick.id);
+      // (a bond let go here stays let go while the thing is worn -- R.attune reads h.noBond -- and bonding it again clears that)
+      if (i >= 0) { a.splice(i, 1); hh.noBond = (hh.noBond || []).concat([pick.id]); DS.audio.sfx('cancel'); }
+      else if (a.length >= MAX) { DS.audio.sfx('error'); yield DS.say(hh.name + ' holds three bonds already. Let one go first.'); }
+      else { a.push(pick.id); if (hh.noBond) { hh.noBond = hh.noBond.filter(function (x) { return x !== pick.id; }); if (!hh.noBond.length) delete hh.noBond; } DS.audio.sfx('magic'); }
     }
   };
   // one caster's day: toggle a spell in or out; the oath's and the book's rituals are listed, always ready, uncounted

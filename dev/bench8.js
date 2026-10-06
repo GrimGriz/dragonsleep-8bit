@@ -1035,6 +1035,33 @@
         var old = JSON.parse(JSON.stringify(g.hero('aurdin'))); delete old.attuned; old.equip.ring = 'ringofprotection'; var ac0 = R.ac(old);
         R.migrate(old);
         check('an older save\'s Aurdin with the Ring of Protection: bonded on load (' + JSON.stringify(old.attuned) + '), AC ' + ac0 + ' -> ' + R.ac(old), (old.attuned || []).indexOf('ringofprotection') >= 0 && R.ac(old) === ac0);
+        // 8. GEAR, out of a fight: a worn thing opens its wearer's EQUIP at its place; a thing in the pack asks who (the panel), then its place's list with it under the cursor
+        // (Griz, 10-06: "when I see the Quarterstaff is on Ly click doesn't kick me into the equip tab with lymen selected" -- "(when out of combat)")
+        var au8 = g.hero('aurdin'); m = open(); toCmd(m, 'gear'); press(m, 'a'); gp = m.pages[0]; gp.tab = 0; gp.refresh();
+        gp.list.i = gp.list.items.map(function (x) { return x.who === au8 ? 1 : 0; }).indexOf(1); press(m, 'a');
+        var ep8 = m.pages[1], wOK = ep8 && ep8.h === au8 && ep8.list.cur().value === 'weapon';
+        m = open(); g.give('ringofprotection', 1); toCmd(m, 'gear'); press(m, 'a'); gp = m.pages[0]; gp.tab = 3; gp.refresh();
+        gp.list.i = gp.list.items.map(function (x) { return !x.who && x.value === 'ringofprotection' ? 1 : 0; }).indexOf(1); press(m, 'a');
+        var kick8 = m.root.mode === 'pick'; m.root.pi = m.root.rows(false).indexOf(g.hero('vivian')); press(m, 'a');
+        var cp8 = m.pages[m.pages.length - 1], pOK = cp8 && cp8.h === g.hero('vivian') && /^ring2?$/.test(cp8.slot) && cp8.list.cur() && cp8.list.cur().value === 'ringofprotection';
+        check('GEAR: Aurdin\'s worn weapon opens his EQUIP at WEAPON (' + wOK + '); the pack\'s Ring of Protection asks who (' + kick8 + '), then Vivian\'s ring list with it under the cursor (' + pOK + ')', wOK && kick8 && pOK);
+        // 9. OPTIONS: the grid's four rows, written where the grid reads them (localStorage deep16.opts)
+        var o0 = null; try { o0 = window.localStorage.getItem('deep16.opts'); } catch (eO) { }
+        m = open(); toCmd(m, 'options'); press(m, 'a'); var op = m.pages[0], labs = op.list.items.map(function (x) { return x.label; });
+        op.list.i = labs.indexOf('END TURN ASKS'); var r0 = op.list.cur().right; press(m, 'right'); var r1 = op.list.items[labs.indexOf('END TURN ASKS')].right, st9 = null;
+        try { st9 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0 == null) window.localStorage.removeItem('deep16.opts'); else window.localStorage.setItem('deep16.opts', o0); } catch (eO2) { }
+        check('OPTIONS has the grid\'s rows (' + labs.join(', ') + '); END TURN ASKS ' + r0 + ' -> ' + r1 + ', kept as ' + (st9 && st9.confirmEnd), ['MENU STYLE', 'AUTO END TURN', 'END TURN ASKS', 'AI + MESSAGE TIME'].every(function (l) { return labs.indexOf(l) >= 0; }) && r0 !== r1 && st9 && st9.confirmEnd === 'always');
+        // 10. the night's bonds, before the day's spells: a ring put on bonds in the night (NEW); one let go on the sheet stays let go through the next rest
+        var vi = g.hero('vivian'); DS.clearScenes(); vi.attuned = []; vi.equip.ring = 'ringofprotection'; delete vi.noBond;
+        DS.EV.longRest(); var newB = vi.attuned.indexOf('ringofprotection') >= 0, seenB = null;
+        var ch1 = DS.choose; DS.choose = function (o) { if (o.title === 'THE NIGHT\'S BONDS' && !seenB) { seenB = o; var row = o.items.filter(function (x) { return x.value && x.value.h === vi; })[0]; return { start: function () { this.finished = true; this.result = row.value; } }; } return { start: function () { this.finished = true; this.result = 'done'; } }; };
+        try { DS.run(function* () { yield* DS.EV.bonds(); }); T.step(5); } finally { DS.choose = ch1; }
+        var rowB = seenB && seenB.items.filter(function (x) { return x.value && x.value.h === vi; })[0];
+        R.refresh(vi, false); var stays = vi.attuned.indexOf('ringofprotection') < 0;
+        check('the night\'s bonds: Vivian\'s ring bonded in the night (' + newB + '), the sheet says ' + (rowB && rowB.right) + ' (' + (seenB && seenB.items.length) + ' rows, ' + (seenB && seenB.visible) + ' at a time); let go there, it stays let go through a rest (' + stays + ', noBond ' + JSON.stringify(vi.noBond) + ')', newB && rowB && rowB.right === 'NEW' && stays && seenB.visible <= 12);
+        // 11. CREDITS names the 16-bit figures' makers (Griz: "check the attrib we have to do for the .blend files we used and add to credits")
+        var cr = (DS.DATA.credits || []).map(function (l) { return l.t; }).join(' | ');
+        check('CREDITS names mz4250\'s models and their licences, the LPC figures, and where every licence is', /mz4250/.test(cr) && /CC BY-SA/.test(cr) && /LPC/.test(cr) && /CREDITS\.md/.test(cr));
         if (Q.get('shot')) { m = open(); toCmd(m, 'status'); press(m, 'a'); press(m, 'a'); out.shot = cv.toDataURL('image/png'); }
       } finally { DS.choose = choose0; }
     } else if (test === 'countdown1003') {

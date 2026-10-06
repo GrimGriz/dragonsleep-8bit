@@ -224,8 +224,10 @@
     var msgs = [], worn = [];
     Object.keys(h.equip || {}).forEach(function (s) { var it = R.item(h.equip[s]); if (s !== 'torch' && it && it.attune && worn.indexOf(h.equip[s]) < 0) worn.push(h.equip[s]); });
     var a = (h.attuned || []).filter(function (id) { return worn.indexOf(id) >= 0; });
+    // (h.noBond: what the player let go on the morning's sheet, js/events.js EV.bonds -- it stays unbonded while worn; taken off, the choice is forgotten)
+    if (h.noBond) { h.noBond = h.noBond.filter(function (id) { return worn.indexOf(id) >= 0; }); if (!h.noBond.length) delete h.noBond; }
     worn.forEach(function (id) {
-      if (a.indexOf(id) >= 0) return;
+      if (a.indexOf(id) >= 0 || (h.noBond && h.noBond.indexOf(id) >= 0)) return;
       var nm = R.item(id).name.replace(/\.$/, ''); // ("Ring of Prot." ends in its own stop)
       if (a.length >= R.ATTUNE_MAX) { msgs.push(h.name + ' cannot bond with the ' + nm + ': three bonds already.'); return; }
       a.push(id); msgs.push(h.name + ' bonds with the ' + nm + '.');

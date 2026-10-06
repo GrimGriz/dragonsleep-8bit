@@ -317,13 +317,23 @@
   GearPage.prototype.refresh = function () {
     var host = this.m.host, tab = GEAR_TABS[this.tab], rows = [];
     host.pack().forEach(function (s) { var it = item(s.id); if (it && tab.kinds.indexOf(it.kind) >= 0) rows.push({ label: fit(it.name, 150), right: 'x' + s.n, value: s.id }); });
-    host.party().forEach(function (h) { Object.keys(h.equip || {}).forEach(function (sl) { var it = item(h.equip[sl]); if (sl !== 'torch' && it && tab.kinds.indexOf(it.kind) >= 0) rows.push({ label: fit(it.name, 150), right: 'on ' + h.name, value: h.equip[sl], color: C.pale, rightColor: C.gold }); }); });
+    host.party().forEach(function (h) { Object.keys(h.equip || {}).forEach(function (sl) { var it = item(h.equip[sl]); if (sl !== 'torch' && it && tab.kinds.indexOf(it.kind) >= 0) rows.push({ label: fit(it.name, 150), right: 'on ' + h.name, value: h.equip[sl], who: h, slot: sl, color: C.pale, rightColor: C.gold }); }); });
     this.list.set(rows);
   };
+  // E on a row, out of a fight (Griz, 10-06: "when I see the Quarterstaff is on Ly click doesn't kick me into the equip tab with lymen selected" -- "(when out
+  // of combat)"): a thing worn opens EQUIP on its wearer at its place; a thing in the pack kicks the cursor into the panel for who wears it, then its place
+  // and the list of what goes there, the thing under the cursor
   GearPage.prototype.update = function (k) {
     var t = tabStep(k, GEAR_TABS.length, this.tab); if (t !== this.tab) { this.tab = t; this.list.i = 0; this.refresh(); }
-    var r = this.list.update(k);
-    if (r === 'back' || r === 'pick') { if (r === 'back') this.m.pop(); }
+    var r = this.list.update(k), m = this.m, host = m.host;
+    if (r === 'back') { m.pop(); return; }
+    if (r !== 'pick') return;
+    var row = this.list.cur(), it = item(row.value);
+    if (host.fight) { m.say([it.name + ': ' + (it.desc || '')].concat(['In a fight, EQUIP is the one whose turn it is.'])); return; }
+    if (row.who) { m.push(new EquipPage(m, row.who, row.slot)); return; }
+    if (it.kind === 'ammo') { m.say(it.name + ': ' + (it.desc || '') + ' It goes with the bow or crossbow that shoots it.'); return; }
+    m.root.choose({ title: 'WHO WEARS IT?', sub: it.name, ok: function (h) { return R().canEquip(h, it) ? true : h.name + ' can\'t use it.'; },
+      then: function (h) { var slot = R().slotFor(h, it), ep = m.push(new EquipPage(m, h, slot)), cp = m.push(new CandPage(m, h, slot, ep)); cp.list.i = Math.max(0, cp.list.items.map(function (x) { return x.value; }).indexOf(row.value)); cp.list.fix(); } });
   };
   GearPage.prototype.draw = function (ctx, active) {
     var self = this, host = this.m.host;
@@ -335,7 +345,8 @@
     if (it) {
       var who = host.party().filter(function (h) { return R().canEquip(h, it); }).map(function (h) { return h.name; });
       descBox(ctx, it.desc || '', (it.attune ? 'Wants a bond (attunement). ' : '') + (who.length === host.party().length ? '' : who.length ? 'For ' + who.join(', ') + '.' : 'No one here can use it.'));
-    } else descBox(ctx, '◀ ▶ the kinds.  To wear a thing: EQUIP.');
+    } else descBox(ctx, '◀ ▶ the kinds.');
+    if (it && !host.fight) footer(ctx, cur.who ? 'E: ' + cur.who.name + '\'s EQUIP' : 'E: who wears it', 186);
   };
 
   // ------------------------------------------------------------------ spells: what a hero has to cast from, and their colours
@@ -441,7 +452,7 @@
     if (slot === 'armor' || slot === 'shield' || after !== before) return 'AC ' + after + (after > before ? ' ▲' : after < before ? ' ▼' : '');
     return '';
   }
-  function EquipPage(m, h) { this.m = m; this.h = h; this.list = new List({ visible: 9 }); this.refresh(); }
+  function EquipPage(m, h, at) { this.m = m; this.h = h; this.list = new List({ visible: 9 }); this.refresh(); if (at) { this.list.i = Math.max(0, this.list.items.map(function (x) { return x.value; }).indexOf(at)); this.list.fix(); } }
   EquipPage.prototype.refresh = function () {
     var h = this.h, host = this.m.host, fight = !!host.fight, acted = fight && host.fight.acted, lit = !!h.equip.torch, lt = host.light ? host.light(h) : null;
     var rows = SLOTS.map(function (s) {
@@ -676,9 +687,24 @@
   };
 
   // ------------------------------------------------------------------ OPTIONS (his: "Menu ring to sounds from the grid menu into options")
-  function OptionsPage(m) { this.m = m; this.list = new List({ visible: 12 }); this.refresh(); }
+  // the grid's own rows (deep16/js/ui.js UI.opts; Griz, 10-06: "OPTIONS - doesn't include ai message speed or end turn asks (even if greyed for menu
+  // uniformity)"): kept where the grid keeps them, localStorage deep16.opts, so a story fight reads them when it opens; a host holding the grid live
+  // applies them at once (host.optsChanged). The volumes were one store already (js/audio.js ds8-audio)
+  var OPT_KEY = 'deep16.opts', PACES = [1, 1.25, 1.5], ASKS = ['idle', 'always', 'never'], ASKW = { idle: 'IF IDLE', always: 'ALWAYS', never: 'NEVER' };
+  function readOpts() { var o = { help: false, style: 'ring', autoEnd: true, pace: 1.25, confirmEnd: 'idle' }; try { var s = JSON.parse(window.localStorage.getItem(OPT_KEY) || 'null'); if (s) Object.keys(o).forEach(function (k) { if (k in s) o[k] = s[k]; }); } catch (e) { } return o; }
+  function cyc(list, v, d) { var i = list.indexOf(v); return list[((i < 0 ? 0 : i) + d + list.length) % list.length]; }
+  MN.gridRows = function (host) {
+    var o = readOpts(), save = function () { try { window.localStorage.setItem(OPT_KEY, JSON.stringify(o)); } catch (e) { } if (host && host.optsChanged) host.optsChanged(o); };
+    return [
+      { label: 'MENU STYLE', get: function () { return o.style.toUpperCase(); }, step: function (d) { o.style = cyc(['ring', 'window'], o.style, d); save(); } },
+      { label: 'AUTO END TURN', get: function () { return o.autoEnd ? 'ON' : 'OFF'; }, step: function () { o.autoEnd = !o.autoEnd; save(); } },
+      { label: 'END TURN ASKS', get: function () { return ASKW[o.confirmEnd] || 'IF IDLE'; }, step: function (d) { o.confirmEnd = cyc(ASKS, o.confirmEnd, d); save(); } },
+      { label: 'AI + MESSAGE TIME', get: function () { return o.pace + 'x'; }, step: function (d) { o.pace = cyc(PACES, o.pace, d); save(); } }
+    ];
+  };
+  function OptionsPage(m) { this.m = m; this.grid = MN.gridRows(m.host); this.list = new List({ visible: 12 }); this.refresh(); }
   OptionsPage.prototype.rows = function () {
-    var A = DS.audio || {}, extra = this.m.host.options ? this.m.host.options() : [];
+    var A = DS.audio || {}, extra = this.grid;
     return [{ label: 'MUSIC', right: Math.round((A.musicVol || 0) * 10), value: { k: 'music' } }, { label: 'SOUND', right: Math.round((A.sfxVol || 0) * 10), value: { k: 'sound' } }]
       .concat(extra.map(function (o) { return { label: o.label, right: o.get(), value: { k: 'opt', o: o } }; }))
       .concat([{ label: 'SUPPORT THE EXPANSION', value: { k: 'kofi' }, color: C.pink }, { label: 'DONE', value: { k: 'done' } }]);
@@ -686,8 +712,8 @@
   OptionsPage.prototype.refresh = function () { this.list.set(this.rows()); };
   OptionsPage.prototype.step = function (v, d) {
     var A = DS.audio;
-    if (v.k === 'music' && A) { A.musicVol = clamp(Math.round((A.musicVol + d * 0.1) * 10) / 10, 0, 1); if (A.setVolumes) A.setVolumes(); }
-    if (v.k === 'sound' && A) { A.sfxVol = clamp(Math.round((A.sfxVol + d * 0.1) * 10) / 10, 0, 1); if (A.setVolumes) A.setVolumes(); }
+    if (v.k === 'music' && A) { A.musicVol = clamp(Math.round((A.musicVol + d * 0.1) * 10) / 10, 0, 1); if (A.setVolumes) A.setVolumes(); if (A.savePrefs) A.savePrefs(); }
+    if (v.k === 'sound' && A) { A.sfxVol = clamp(Math.round((A.sfxVol + d * 0.1) * 10) / 10, 0, 1); if (A.setVolumes) A.setVolumes(); if (A.savePrefs) A.savePrefs(); }
     if (v.k === 'opt') v.o.step(d);
     this.refresh();
   };
@@ -706,10 +732,10 @@
   };
   OptionsPage.prototype.draw = function (ctx, active) {
     var n = this.list.items.length;
-    win(ctx, 28, 30, 200, 24 + n * 13);
+    win(ctx, 28, 30, 200, 36 + n * 13);
     text(ctx, 'OPTIONS', 36, 37, C.gold);
     this.list.draw(ctx, 34, 51, 186, active, this.m.t, 13);
-    footer(ctx, '◀ ▶ to adjust', 60 + n * 13);
+    footer(ctx, '◀ ▶ adjust  (rows 3-6: the 16-bit fights)', 52 + n * 13);
   };
 
   // ------------------------------------------------------------------ CREDITS: the game's, and the notes from the making that sat on STATUS (his "4 - I lean yes so hard")
