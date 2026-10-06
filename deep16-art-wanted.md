@@ -1,7 +1,7 @@
 ---
 title: DEEP16 art wanted -- what is still a stand-in
 made: 2026-09-28 (Code tab), for Griz's free GPT / Grok image runs
-updated: 2026-10-05 (Code tab) -- rewritten on Griz's word ("we're pretty much done with that list"): the WANTED table is the Pocket DM's pot checked against the figures; everything finished is under IN HAND; the Keeper, rebuilt with a fight of his own, is in
+updated: 2026-10-06 (Code tab) -- the Wet's three props under WANTED, on his word; 2026-10-05 (Code tab) -- rewritten on Griz's word ("we're pretty much done with that list"): the WANTED table is the Pocket DM's pot checked against the figures; everything finished is under IN HAND; the Keeper, rebuilt with a fight of his own, is in
 how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop what comes back in the repo root (any name; say which creature) and the seat files it in `deep16/_src/` as `<creature>_grok_N.png` (gitignored; tester screenshots go in `deep16/_src/tester-feedback/`) and cuts it the chuul's way (pipeline 2: one `tools/<creature>-sheet.py` per creature). A free print model with a .blend goes through pipeline 1b instead: `deep16/blender-monsters.md`
 ---
 
@@ -26,6 +26,22 @@ Checked 10-05 against `deep16/data/foes.js` (the Pocket DM's pot: every foe but 
 | the grimlock | the Ninja | blind, grey, toothy |
 | the axe beak | the Birb | a tall flightless beak |
 | the darkmantle | the Glub (hand-built; the SRD attach needed it) | a real sheet, or the Blender recipe |
+
+### Props wanted (things on the grid, not creatures; added 10-06)
+
+Griz, 10-06, on the Wet's deep station in his situations ear file: *"Can find at a glance. All 3 are very very 2D, particularly the lantern"* -- then *"please also add to art wanted"*. Today the three are drawn in code as flat rectangles, front-on (`deep16/js/wet.js` `W.layCrate`, `W.layBucket`, `W.layLamp`): they read as stickers on the grid's diamond floor.
+
+| prop | where | today | what it wants |
+|---|---|---|---|
+| the crate | the Wet's deep station, the grid's (5, 30) (the 8-bit's crate at (13, 5)) | a brown box, its front face only | a plain wooden crate in the grid's isometric view: a top and two sides, the planks and a nailed cross |
+| the bucket | on the crate while it lies; carried after | staves, two hoops and a rope handle, front-on (half again as big since 10-04) | a wooden bucket in the same view: a round mouth, dark inside, iron hoops round it, the rope handle |
+| the lamp on its post | the grid's (3, 30) since 10-06 (it was (5, 29)) | an iron cage on a post, one face, gold glass | an iron cage lantern hung from the arm of a wooden post, lit: the cage in the round, warm gold glass, the flame flickering |
+
+Any one of three ways: a free model with a .blend through pipeline 1b, rendered at the grid's camera (`deep16/blender-monsters.md`); a generated props sheet from the head below, one frame each (the lamp's flame 2-4 frames); or the seat redraws them in code as boxes and cylinders on the grid's own projection, as the bugs were drawn (no generator needed).
+
+HEAD: PROPS, THE DEEP STATION -- a mine's working station in the dark. Three props, each alone: a plain wooden crate with a nailed cross on its sides; an empty wooden bucket with two iron hoops and a rope handle; an iron cage lantern hanging from the arm of a wooden post, lit with a warm gold light (the lantern again in three more frames, its flame flickering).
+
+PROPS TAIL (paste after the props head, in place of the COMMON TAIL): 16-bit pixel art props, SNES-era, crisp dark outline, readable at small size. Isometric view from above at three-quarters, the floor tiles diamonds twice as wide as they are tall; light from the upper left. Flat dark navy background. Each prop alone with clear space around it, one scale for all, each standing on one floor diamond (the crate fills most of one, the bucket about half, the post as tall as a standing man). No characters, no labels on the props.
 
 ### In the 8-bit with no grid foe: all seven now on the grid (10-05)
 

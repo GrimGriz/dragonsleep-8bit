@@ -1,0 +1,163 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js. Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-06T14:29:57.520Z",
+ "items": [
+  {
+   "id": "eyes-wayout",
+   "eyes": true,
+   "pri": 1,
+   "title": "The way out of a grid fight",
+   "pt": "the grid's rules §2.15 · eyes §1b",
+   "url": "?at=stair",
+   "verdict": "",
+   "note": "Returns me to where I spawned in (rather than the 8bit version of the exit square)\nThe surface is calm on exit (awake) but is re-wake-able from both methods until the people are rescued by his defeat or by the rope.",
+   "at": "2026-10-06T13:53:35.687Z"
+  },
+  {
+   "id": "eyes-wetcrate",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Wet: the crate, the lamp, the bigger bucket",
+   "pt": "the bestiary · eyes §1b",
+   "url": "?at=wet",
+   "verdict": "",
+   "note": "Can find at a glance. All 3 are very very 2D, particularly the lantern - which sits at 5, 29 and I think would go better at 3, 30",
+   "at": "2026-10-06T13:56:44.509Z"
+  },
+  {
+   "id": "eyes-pocket",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Pocket DM: SAVE TABLE and LOAD TABLE, the maker, the styles",
+   "pt": "the Pocket DM and the races · the story and the Pocket DM",
+   "url": "deep16/?pocket",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-06T14:06:01.977Z"
+  },
+  {
+   "id": "eyes-keeper-in",
+   "eyes": true,
+   "pri": 2,
+   "title": "The Keeper's two ways in, from the 8-bit",
+   "pt": "eyes §2.3",
+   "url": "?at=stair",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-06T14:28:49.052Z"
+  },
+  {
+   "id": "eyes-racefig",
+   "eyes": true,
+   "pri": 2,
+   "title": "The race figures' sheet (three looks wait on your word)",
+   "pt": "the Pocket DM and the races §2.13",
+   "url": "deep16-race-figures.png",
+   "verdict": "works",
+   "note": "so long as the tails are cosmetic - these are fine for now",
+   "at": "2026-10-06T14:29:46.392Z"
+  },
+  {
+   "id": "eyes-gridmenu",
+   "eyes": true,
+   "pri": 2,
+   "title": "The one menu on the grid, with the mouse",
+   "pt": "the menus §2.7",
+   "url": "deep16/?npc=goblin,goblin&lvl=3",
+   "verdict": "unclear",
+   "note": "doesn't work for items, skills, or magic - must have weapon to swap to, cannot stow from menu\n\"nothing goes there in this fight\" vs \"no weapon barley can swap to\"  \ntorches cannot be equipped ",
+   "at": "2026-10-06T14:12:28.783Z"
+  },
+  {
+   "id": "eyes-bonds",
+   "eyes": true,
+   "pri": 2,
+   "title": "The morning: THE NIGHT'S BONDS",
+   "pt": "the menus §2.7",
+   "url": "?round6",
+   "verdict": "unclear",
+   "note": "worked as intended - only show when it changes? (new bond/lost bond)?",
+   "at": "2026-10-06T14:16:17.283Z"
+  },
+  {
+   "id": "eyes-trolloil",
+   "eyes": true,
+   "pri": 2,
+   "title": "Oil on a troll",
+   "pt": "the menus §2.7",
+   "url": "deep16/?fight=edifice",
+   "verdict": "unclear",
+   "note": "party has one, 3 load-tries with it all apparently missed the troll and landed on the ground",
+   "at": "2026-10-06T14:27:50.841Z"
+  },
+  {
+   "id": "wet",
+   "eyes": false,
+   "pri": 4,
+   "title": "The Wet: the bucket and the landlord",
+   "pt": "§5 the wet · the landlord's pictures (new 10-01)",
+   "url": "?at=wet",
+   "verdict": "works",
+   "note": "This works. I think we made it such that no one can to this spot in the 8-bit without already being pulled on to the grid (check to make sure). We should put a light nearby the bucket and double check the sprite we're using to make it more a visible draw on the grid. The tiles around the Landlords pool should be switched to solid stone. ",
+   "at": "2026-10-04T05:23:43.178Z"
+  },
+  {
+   "id": "wet3",
+   "eyes": false,
+   "pri": 4,
+   "title": "The gates down to the wet, at level 3",
+   "pt": "§5 the wet · §3 battle feel (new 10-03)",
+   "url": "?at=wet3",
+   "verdict": "unclear",
+   "note": "No encounters between town and warrens. Running back and forth on the road and got 2 giant rats. \nNo encounters in the mine until down in the wet itself. There either are not exit squares in the fight with the landlord, or party members are not allowed to use the flee under action (not on wheel). ",
+   "at": "2026-10-04T05:24:47.498Z"
+  },
+  {
+   "id": "gulch",
+   "eyes": false,
+   "pri": 4,
+   "title": "Web Gulch: the strung end",
+   "pt": "§7 the braiding ettercap · §11 the snared traveler",
+   "url": "?at=gulch",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:38.432Z"
+  },
+  {
+   "id": "cloaker",
+   "eyes": false,
+   "pri": 4,
+   "title": "The guano slide and the cloaker",
+   "pt": "§6 the cloaker · §11 guano slide",
+   "url": "?at=cloaker",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:30:46.273Z"
+  },
+  {
+   "id": "roost",
+   "eyes": false,
+   "pri": 4,
+   "title": "Under the roost",
+   "pt": "§6 the one law · §11/§12 NOT THIS KIND OF NAME",
+   "url": "?at=roost",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:34:59.719Z"
+  },
+  {
+   "id": "cradle",
+   "eyes": false,
+   "pri": 4,
+   "title": "A shift at the cradle",
+   "pt": "§13 the cradle, rebuilt",
+   "url": "?at=cradle",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-04T05:35:12.626Z"
+  }
+ ]
+}

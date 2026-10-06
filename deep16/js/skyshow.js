@@ -11,7 +11,7 @@
    for a beat that did not show). A show, not a rule: no fight reads this file, and the pins are the show's battle's only.
    The beats, as the fight stands tonight: Hallvör's own lane (tonight) · under a climber, and the giant comes down on the one under (the cushion, the split dice, both
    flat) · the Shove · Steinarr's rock at the edge and the Dunking Booth · the whistle, her call (the clip, tonight) and the spiders · a spider down the face to a climber on a
-   rope · a troll at 0 that knits, then Pyro's flask, "Torch him!", and a torch from the barrel behind the houses thrown at it (the barrel and the card's new words, tonight) · the class AI to the barrel by itself (tonight) · only Shatter touches the glass · Pyro's handaxe
+   rope · a troll at 0 that knits, then Pyro's flask, "Torch him!", and a torch from the barrel behind the houses thrown at it (the barrel and the card's new words, tonight) · oil on a troll on its feet, its sheen, then fire (10-06) · the class AI to the barrel by itself (tonight) · only Shatter touches the glass · Pyro's handaxe
    and its return · READY ends the turn (tonight). */
 'use strict';
 (function () {
@@ -210,6 +210,23 @@
           var lg = logFrom(n);
           return [down1 && knit && called && oiled && took && burned && !!C.troll.dead && /lands at its feet/.test(lg),
             'down ' + down1 + ', knit ' + knit + '; "Torch him!" ' + called + ', oiled ' + oiled + '; a torch from the barrel ' + took + ', burned ' + burned + ', its words ' + /lands at its feet/.test(lg) + '; dead ' + !!C.troll.dead];
+        } },
+      { id: 'oil', name: 'Oil on a troll on its feet, then fire', what: 'Added 10-06 (his three throws had missed): Barley throws the party\'s flask at a troll standing on the street, and it hits -- the dark sheen over it, the gloss and the drip (hover it: its card says oiled, and that the oiled burn 5 more). Then Aurdin\'s Fire Bolt: the oil catches, 5 fire more, and the troll smoulders where it stands. Pinned: every d20 15.',
+        run: function* () {
+          stage([[C.barley, 16, 22], [C.troll1, 19, 21], [C.aurdin, 14, 19]], 7); // (all on the open street, y 19-23: the troll 15 ft from Barley, in the flask's 20; Aurdin 25 ft off it, out of its reach, no one in his line)
+          if (D.oil.lit(C.barley)) delete C.barley.torch; // (a torch burning in his hand would light the flask: the plain throw is the one that coats)
+          var fl = (B.inv || []).filter(function (s) { return s.id === 'oil'; })[0]; if (!fl) B.inv = (B.inv || []).concat([{ id: 'oil', n: 1 }]); else if (fl.n < 1) fl.n = 1; // (the party's one flask, whatever came before)
+          var n = (B.log || []).length;
+          B.active = C.barley; RU.startTurn(C.barley); B.focus(C.troll1);
+          setPin(15, null); yield* fire(B.exec(C.barley, { do: 'item', id: 'oil', target: C.troll1 })); setPin(null, null); B.active = null;
+          var oiled = !!(C.troll1.conds && C.troll1.conds.oiled);
+          B.focus(C.troll1); yield W(300); // (the sheen, held)
+          var e = D.magic.list(B, C.aurdin, { anyTarget: true }).filter(function (x) { return x.id === 'firebolt'; })[0];
+          B.active = C.aurdin; RU.startTurn(C.aurdin);
+          setPin(15, null); if (e && e.ok) yield* fire(B.exec(C.aurdin, { do: 'cast', id: 'firebolt', slot: e.slot, target: C.troll1 })); setPin(null, null); B.active = null;
+          B.focus(C.troll1); yield W(300); // (the smoulder on a troll still on its feet, held)
+          var lg = logFrom(n), coat = /covered in oil/.test(lg), caught = /The oil on [^|]* catches/.test(lg), burned = !!C.troll1.burned, dry = !(C.troll1.conds && C.troll1.conds.oiled), up = C.troll1.hp > 0 && !C.troll1.dead && !C.troll1.regenDown;
+          return [oiled && coat && caught && burned && dry && up, 'the flask hits and coats it ' + (oiled && coat) + '; Fire Bolt ' + (e && e.ok ? 'cast' : 'not castable (' + (e ? e.why : 'unknown') + ')') + ', the oil catches ' + caught + ', burned ' + burned + ', the coat gone ' + dry + ', on its feet ' + up + ' (' + C.troll1.hp + ' HP)'];
         } },
       { id: 'barrel', name: 'The torch barrel, by the class AI', what: 'Tonight: the barrel in the fence behind the houses, (22,30). A troll lies at 0 and nobody has fire: Barley, run by the class AI, walks to the barrel, takes a torch (free) and throws it. Pinned: every d20 15.',
         run: function* () {

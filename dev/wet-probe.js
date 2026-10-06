@@ -38,8 +38,8 @@
     ok('the bucket on its square (the 8-bit 13, 5): ' + JSON.stringify(B.wet.bucket && B.wet.bucket.at), B.wet.bucket && JSON.stringify(B.wet.bucket.at) === JSON.stringify(g8(13, 5)));
     // 10-04 (Griz, the situations ear-file): the crate under the bucket and the lamp on it; the pool and its rim dressed stone
     var cq = g8(13, 5);
-    var lq = g8(14, 5);
-    ok('the deep station\'s crate under it (a crate prop on (13, 5)), and its lamp on a post one square east (a lamp prop on (14, 5), the map light there bright 10 ft gold, none on the bucket: ' + (B.lights || []).filter(function (l) { return l.kind === 'map'; }).map(function (l) { return [l.x, l.y, l.bright, l.color].join('/'); }).join(' ') + ')',
+    var lq = g8(13, 3); // (10-06, Griz: the lamp "would go better at 3, 30" -- the grid's (3, 30) is the 8-bit's (13, 3))
+    ok('the deep station\'s crate under it (a crate prop on (13, 5)), and its lamp on a post two squares north (a lamp prop on (13, 3), the grid\'s (3, 30) -- ' + JSON.stringify(lq) + ', the map light there bright 10 ft gold, none on the bucket: ' + (B.lights || []).filter(function (l) { return l.kind === 'map'; }).map(function (l) { return [l.x, l.y, l.bright, l.color].join('/'); }).join(' ') + ')',
       G.map.props.some(function (p) { return p.kind === 'crate' && p.sq === G.map.at(cq[0], cq[1]); }) && G.map.props.some(function (p) { return p.kind === 'lamp' && p.sq === G.map.at(lq[0], lq[1]); }) && (B.lights || []).some(function (l) { return l.kind === 'map' && l.x === lq[0] && l.y === lq[1] && l.bright === 10 && l.color === 'gold'; }) && !(B.lights || []).some(function (l) { return l.kind === 'map' && l.x === cq[0] && l.y === cq[1]; }));
     var sf = function (x, y) { var p = g8(x, y); return G.solidFloor(p[0], p[1]); };
     ok('the pool and its rim are solid stone (noBurrowAt), the cave floor past them is not: (10,3) ' + sf(10, 3) + ', (6,5) ' + sf(6, 5) + ', (3,7) ' + sf(3, 7) + '; (13,5) ' + sf(13, 5) + ', (2,7) ' + sf(2, 7) + ', (20,11) ' + sf(20, 11),
