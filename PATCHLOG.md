@@ -4,6 +4,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-06
 
+- 2026-10-06 · ruled · MPMon · Rascal's specials on a sheet: Social Sharing a hat-removing bow, Social Flame dancing with the claw clapping (the paste in `deep16-art-wanted.md`, RASCAL SHEET 1) · *"Social sharing as a hat removing bow"* · *"Social flame as dancing with claw clapping"*
+- 2026-10-06 · seen · MPMon · Rascal's Blender figure, the v8 look in the pane (`tools/rascal-blend.py`, 8b9e34c): the claw wrong; the figure parked, a generated sheet first · *"that claw is all jacked"* · *"Please give me an art wanted paste for a 16b sheet attempt from the image gen"*
 - 2026-10-06 · `0f23023` · eyes on the screen · The fold rule closed (the folder-reflection's loop OL-eyes-fold-rule-gaps): a noted row is cut whatever the verdict, and a fix that wants his eye again writes a fresh row -- the troll's oil is `eyes-oil-show` now · *"you got that lean for me?"*
 - 2026-10-06 · `99bf503` · MPMon (new) · THE SPECIALS grow with the level: 1 at 1st, 2 at 3rd, 3 at 5th, 4 at 7th, 5 at 9th (`MP.specialsAt`) · *"3 at level 5, 4 at 7, 5 at 9 down to 1 move at lvl 1"*
 - 2026-10-06 · `603e957` · MPMon (new) · Denny and Beholda, his Monster Party PCs, as a DEEP16 class of their own (`deep16/js/mpmon.js`): 2 specials a fight; Taunt, Denim Damage, the Cannonball at 5; the VNA Bubble, Baleful Gaze, the Big Screen at 5; `?mpshow` · *"MPMon (MonsterPartyMonster) as a separate class to keep our hands clear of the other machinery"*; *"Build now"*
