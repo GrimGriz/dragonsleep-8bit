@@ -1095,6 +1095,15 @@
       D.rules.startTurn(c6); B6.active = c6;
       runR(B6.exec(c6, { do: 'ready', trigger: 'down', what: 'spell', id: 'curewounds', slot: 1 }));
       okR('a leveled spell readied: the turn\'s spellAction ' + c6.turn.spellAction, !!c6.ready && c6.turn.spellAction === 'leveled');
+      // 5 an item aimed at the hero's own square is asked first (10-05 night, his play: the Bat-Wing Pie refused on Aurdin, down, then a click on Lymen's own square ate it): NOT NOW
+      // spends nothing; USE IT eats it
+      var B7R = mkR('?npc=goblin&lvl=5&vs=cleric'), c7 = B7R.units.filter(function (u) { return u.side === 'party'; })[0]; B7R.inv = (B7R.inv || []).concat([{ id: 'batpie', n: 1 }]);
+      D.rules.startTurn(c7); B7R.active = c7;
+      var g7 = B7R.exec(c7, { do: 'item', id: 'batpie', target: c7, askSelf: true }), s7 = g7.next(), asked7 = !!(s7.value && s7.value.prompt); g7.next(0);
+      var pie7 = function () { return (B7R.inv.filter(function (x) { return x.id === 'batpie'; })[0] || {}).n; };
+      okR('the pie on oneself asked first ' + asked7 + '; NOT NOW: the action ' + c7.turn.action + ', pies ' + pie7() + ', fed ' + !!c7.fortified, asked7 && c7.turn.action === 1 && pie7() === 1 && !c7.fortified);
+      runR(B7R.exec(c7, { do: 'item', id: 'batpie', target: c7, askSelf: true }));
+      okR('USE IT: eaten -- the action ' + c7.turn.action + ', pies ' + pie7() + ', fed ' + !!c7.fortified, c7.turn.action === 0 && pie7() === 0 && !!c7.fortified);
     } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); }
     if (errs.length) repR.errors = repR.errors.concat(errs);
     var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
@@ -1438,11 +1447,10 @@
       // at the window (the glass 5 ft off), no move: Barley on the glass beside nothing -- the clubs at the glass; Barley on the front edge (30,15) -- a rock, the STR save failed, over
       // the edge to the street (31,16), prone; again; then no rock left -- the clubs at the glass
       delete maleK.hang; maleK.x = 26; maleK.y = 4; var rockK = [], skyK = Bk.skylight, str0K = barK.saves.str, d0K = D.d; barK.saves.str = -20; D.d = function (n) { return n === 20 ? 19 : d0K(n); };
-      // (the edge at (29,15) since 10-05 night: from (30,15) the fall's square is (31,16), the torch barrel's crate -- no open square below, so no edge, and he struck the glass)
-      [[24, 4], [29, 15], [29, 15], [29, 15]].forEach(function (p) {
+      [[24, 4], [30, 15], [30, 15], [30, 15]].forEach(function (p) {
         barK.x = p[0]; barK.y = p[1]; barK.conds = {}; delete barK.hang; barK.hp = barK.maxhp; D.rules.startTurn(maleK); maleK.turn.move = 0;
         var n4K = (Bk.log || []).length, sk0 = skyK.hp; runE(D.ai.brute(Bk, maleK)); var lg = (Bk.log || []).slice(n4K).join(' ');
-        rockK.push(/(Giant|Steinarr) > Barley\s+Rock/.test(lg) ? (barK.x === 30 && barK.y === 16 && barK.conds.prone && barK.hp < barK.maxhp ? 'off' : 'rock?') : skyK.hp < sk0 || /(Giant|Steinarr) > the skylight/.test(lg) ? 'glass' : '-'); // (the male is Steinarr on the cards since 10-05)
+        rockK.push(/(Giant|Steinarr) > Barley\s+Rock/.test(lg) ? (barK.x === 31 && barK.y === 16 && barK.conds.prone && barK.hp < barK.maxhp ? 'off' : 'rock?') : skyK.hp < sk0 || /(Giant|Steinarr) > the skylight/.test(lg) ? 'glass' : '-'); // (the male is Steinarr on the cards since 10-05)
       });
       D.d = d0K; barK.saves.str = str0K; barK.conds = {};
       okE('the male at the window: Barley on the glass, then on the edge three times: ' + rockK.join(',') + ', rocks left ' + maleK.rocks, rockK.join(',') === 'glass,off,off,glass' && maleK.rocks === 0);

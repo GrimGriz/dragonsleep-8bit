@@ -1232,7 +1232,7 @@ window.D16.MAPS.edifice = {
   sub: 'Fountain Street under the waterfall facade of Sólskaft, and the roof of glass',
   stone: 'grey', step: 10, noBurrow: true, climb: 6, deepWater: 'D', // (D: the channel off the east end) // (a hand scales 15 ft at most -- the arches' sills; the 45 ft face takes the rope, a grapple from a sill, or a climb speed)
   ropes: [[11, 15, 11, 16]], // a rope the dwarves left hung from the rim at the west end, 45 ft to the street (the top square, the foot square)
-  torchBarrel: [31, 16], // a barrel of torches against the facade by the vault doors' east leaf, lit at the door's lamp (battle.js exec 'barreltorch'; 10-05 night, Griz: "Should we add a torch barrel like the rope barrel?" -- "1 barrel yes 2 barrel yes")
+  torchBarrel: [22, 30], // a barrel of torches in the rail fence behind the houses south of the street, off the path to the doors (battle.js exec 'barreltorch'; 10-05 night, Griz: "Should we add a torch barrel like the rope barrel?" -- "1 barrel yes 2 barrel yes"; then "please move the barrel to 22, 30 (behind the house to the right of the path to the doors)" -- it stood by the vault doors at (31,16))
   ropeBucket: [26, 25], // the bucket of rope and grapples in the alley at the side of the house by the south road (battle.js exec 'bucketrope'; 10-05, Griz: "rope bucket to 26, 25 side of the building" -- it stood by the first house at (3,24))
   shaft: [29.5, 4.8, 2.8], // the Sunshaft's circle on the third floor, seen through the glass, under the falls at the roof's middle (centre, radius in squares; iso.js bake -- Griz, 10-04 night: "move the light circle to where the pool is now ... increase the radius of the light-hole for symmetry")
   falls: [[28, 0], [29, 0], [30, 0], [31, 0]], // the waterfall down the back wall's face, into the water at its foot (iso.js rockCanvas)
@@ -1297,7 +1297,7 @@ window.D16.MAPS.edifice = {
     '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '#####,,,,##=GGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGGG=###########',
     '#####,,,,##=P======P=======P====P=======P======P=###########',
-    '###,,,,,,,,===~~~=====~~~====ddk===~~~=====~~~===,,,,,,,,,,,',
+    '###,,,,,,,,===~~~=====~~~====dd====~~~=====~~~===,,,,,,,,,,,',
     '###,,,,,,,,,,=~~~=,,,=~~~=,,,,,,,,=~~~=,,,=~~~=,,~~~~DDDDDDD',
     '###,,,,,,,,,,=====,,,=====,,,,,,,,=====,,,=====,,,,,,,,,,,,,',
     '###,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,',
@@ -1311,7 +1311,7 @@ window.D16.MAPS.edifice = {
     '###..bbbbbb..bbbbb..bbbbbb..,,,,bbbbb..bbbbb..bbbbb..bbbbb.#',
     '###..bbbbbb..bbbbb..bbbbbb..,,,,bbbbb..bbbbb..bbbbb..bbbbb.#',
     '###ggggggggggggggggggggggggg,,,,ggggggggggggggggggggggggggg#',
-    '###ggffffffggfffffggffffffgg,,,,fffffggfffffggfffffggfffffg#',
+    '###ggffffffggfffffggffkfffgg,,,,fffffggfffffggfffffggfffffg#',
     '###gTggggggggggggggggggggggg,,,,gggggggggggggggggggggggggTg#',
     '###gggggggggggTggggggggggggg,,,,gggggggggTggggggggggggggggg#',
     '###gggTggggggggggggggggggTgg,,,,gggggggggggggggggggggTggggg#',

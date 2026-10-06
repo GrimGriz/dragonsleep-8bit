@@ -825,7 +825,7 @@
     return { kind: 'item', id: 'torch', score: score, why: 'throws the torch at ' + t.name + (t.regenDown ? ' where it lies' : ' to stop its knitting'), go: function* () { yield* B.exec(u, { do: 'throwtorch', x: sq[0], y: sq[1] }); } };
   }
   TX.ACTIONS.push(burnTorch);
-  // a torch out of the barrel (a map's `torchBarrel`: the Edifice's, by the vault doors -- 10-05 night, Griz: "1 barrel yes 2 barrel yes", the barrel the answer to Pyro's "Torch him!"): no light in
+  // a torch out of the barrel (a map's `torchBarrel`: the Edifice's, behind the houses south of the street -- 10-05 night, Griz: "1 barrel yes 2 barrel yes", the barrel the answer to Pyro's "Torch him!"): no light in
   // the hand, a hand for one, the turn's object free; a walk this turn to beside the barrel, the torch taken there (free, battle.js exec 'barreltorch') and thrown -- weighed as burnTorch would weigh
   // the throw from beside the barrel, a tenth off for the walk. Only while a foe that regenerates and has not burned is on the field
   function barrelTorch(B, u) {
