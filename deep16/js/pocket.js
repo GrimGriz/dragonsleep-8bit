@@ -277,7 +277,7 @@
   function hit(b) { var m = I.mouse; return m.inside && m.x >= b.x && m.x < b.x + b.w && m.y >= b.y && m.y < b.y + b.h; }
   Pocket.prototype.btn = function (ctx, label, x, y, w, h, fn, o) {
     o = o || {};
-    var b = { label: label, x: x, y: y, w: w, h: h, fn: fn, dis: !!o.dis, pri: !!o.pri, on: !!o.on, small: !!o.small, key: o.key }, i = this.btns.length;
+    var b = { label: label, x: x, y: y, w: w, h: h, fn: fn, dis: !!o.dis, pri: !!o.pri, on: !!o.on, small: !!o.small, key: o.key, nokey: !!o.nokey }, i = this.btns.length;
     this.btns.push(b);
     var sel = this.ksel === i && !o.nokey;
     ctx.fillStyle = o.on ? P('gold', 1) : o.pri && !o.dis ? 'rgba(60,38,8,.95)' : 'rgba(20,16,30,.92)';
@@ -288,14 +288,29 @@
     D.text(ctx, label, x + w / 2, y + Math.floor((h - 8) / 2), col, 'center');
     return b;
   };
+  // the arrows (the d-pad, the keys) go to the nearest button that way on the screen, not the next in the order drawn (10-06, a pad player: "d-pad presses
+  // should change selected menu buttons based on direction"; Griz: "yes, and it's good the keyboard matches the d-pad"): of the centres that way -- no more
+  // than twice as far off the line as along it -- the nearest, along plus off; a greyed button and one the keys never take are passed over; none, it stays
+  function stepTo(btns, from, way) {
+    var a = btns[from]; if (!a) return 0;
+    var dx = way === 'left' ? -1 : way === 'right' ? 1 : 0, dy = way === 'up' ? -1 : way === 'down' ? 1 : 0, ax = a.x + a.w / 2, ay = a.y + a.h / 2, best = from, bs = Infinity;
+    // (left and right keep to the row where one is on it: a card's v goes to the next card's v, not to the level arrow above it)
+    var row = function (b) { return b.y < a.y + a.h && b.y + b.h > a.y; }, rowOnly = dx && btns.some(function (b, i) { return i !== from && !b.dis && !b.nokey && row(b) && (b.x + b.w / 2 - ax) * dx >= 1; });
+    btns.forEach(function (b, i) {
+      if (i === from || b.dis || b.nokey || (rowOnly && !row(b))) return;
+      var vx = b.x + b.w / 2 - ax, vy = b.y + b.h / 2 - ay, along = vx * dx + vy * dy, off = Math.abs(vx * dy - vy * dx);
+      if (along < 1 || off > along * 2) return;
+      var s = along + off; if (s < bs) { bs = s; best = i; }
+    });
+    return best;
+  }
   Pocket.prototype.fire = function (b) { if (!b || b.dis) { if (b) D.sfx('error'); return; } D.sfx(b.pri ? 'confirm' : 'cursor'); b.fn(); };
   Pocket.prototype.readButtons = function () {
     var m = I.mouse, self = this, n = this.btns.length;
     if (!n) return false;
     if (m.moved && m.inside) this.btns.forEach(function (b, i) { if (hit(b)) self.ksel = i; });
-    if (I.repeat('down') || I.repeat('right')) { this.ksel = (this.ksel + 1) % n; D.sfx('cursor'); }
-    if (I.repeat('up') || I.repeat('left')) { this.ksel = (this.ksel + n - 1) % n; D.sfx('cursor'); }
     if (this.ksel >= n) this.ksel = 0;
+    ['up', 'down', 'left', 'right'].forEach(function (way) { if (!I.repeat(way)) return; var to = stepTo(self.btns, self.ksel, way); if (to !== self.ksel) { self.ksel = to; D.sfx('cursor'); } });
     if (m.click) { var hb = null; this.btns.forEach(function (b) { if (hit(b)) hb = b; }); if (hb) { this.fire(hb); return true; } }
     if (I.pressed('a')) { this.fire(this.btns[this.ksel]); return true; }
     return false;

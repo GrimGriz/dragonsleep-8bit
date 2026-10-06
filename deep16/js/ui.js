@@ -29,9 +29,12 @@
   // (a saved 'bar' becomes the ring)
   // PACE (10-01, Griz: "if adjustable, slow down the ai-turn and message display times by 25%"): D.PACE, read by battle.js (Battle.prototype.pace) --
   // 1.25 by default; the M menu's PACE row cycles 1 / 1.25 / 1.5 and keeps it here with the rest; ?pace=1.5 in the address overrides it for that page only
-  UI.opts = { help: false, style: 'ring', autoEnd: true, pace: 1.25 };
+  // END TURN ASKS (10-06, a pad player: "maybe a confirmation screen if you press end turn without having done anything? or have it available in settings to always
+  // confirm end turn / only ask for confirmation if no other actions taken / never ask"; Griz: "yeah"): 'idle' asks only when nothing is done yet, the default
+  UI.opts = { help: false, style: 'ring', autoEnd: true, pace: 1.25, confirmEnd: 'idle' };
   UI.PACES = [1, 1.25, 1.5];
-  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window') UI.opts.style = 'window'; if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; } } catch (e) { }
+  UI.ASKS = ['idle', 'always', 'never'];
+  try { var o0 = JSON.parse(window.localStorage.getItem('deep16.opts') || 'null'); if (o0) { if (o0.style === 'window') UI.opts.style = 'window'; if (o0.autoEnd === false) UI.opts.autoEnd = false; if (UI.PACES.indexOf(o0.pace) >= 0) UI.opts.pace = o0.pace; if (UI.ASKS.indexOf(o0.confirmEnd) >= 0) UI.opts.confirmEnd = o0.confirmEnd; } } catch (e) { }
   UI.saveOpts = function () { try { window.localStorage.setItem('deep16.opts', JSON.stringify(UI.opts)); } catch (e) { } };
   var qs = /[?&]menu=(window|ring)/.exec(location.search); if (qs) UI.opts.style = qs[1];
   D.PACE = UI.opts.pace;
@@ -389,7 +392,8 @@
     if (B.readying && !B.list) { B.readying = null; B.clearCards(); } // (backed out of READY's wheel: nothing readied, nothing spent)
     var st = UI.opts.style, any = I.pressed('a') || I.pressed('b') || I.pressed('end') || I.mouse.click;
     if (B.inspect && (any || I.mouse.rclick)) { B.inspect = null; return; }
-    if (I.pressed('end')) return UI.command(B, u, { do: 'end' });
+    if (B.endAsk && B.endAsk === B.req && I.pressed('b')) { D.sfx('cancel'); B.endAsk = null; B.clearCards(); return; } // (X keeps the turn)
+    if (I.pressed('end')) return endTurn(B, u);
     // AUTO END: every command grey and no step left to take -- a beat to see it, then the turn passes (X holds it)
     if (UI.opts.autoEnd && !B.list && B.tool !== 'spell' && B.autoHold !== B.req && spent(B, u)) {
       if (B.autoFor !== B.req) { B.autoFor = B.req; B.autoT = B.t; B.card([D.keys('{g}Nothing left to spend: the turn passes.  X holds it{/}')], 50); }
@@ -432,7 +436,7 @@
       if (B.list || B.tool === 'menu') { D.sfx('cancel'); B.list = null; B.tool = 'move'; B.spell = null; B.picks = []; B.clearCards(); showCursor(B); return; }
       B.focus(u);
     }
-    if (!B.list && B.tool !== 'menu' && (I.pressed('wheell') || I.pressed('wheelr'))) { D.sfx('popup'); B.tool = 'menu'; B.spell = null; B.picks = []; B.clearCards(); B.ringStill = false; return; }
+    if (!B.list && B.tool !== 'menu' && (I.pressed('wheell') || I.pressed('wheelr') || I.pressed('bumpl') || I.pressed('bumpr'))) { D.sfx('popup'); B.tool = 'menu'; B.spell = null; B.picks = []; B.clearCards(); B.ringStill = false; return; }
     // an open list (spells, items) takes the keys first
     if (B.list) return listInput(B, u);
     var cmds = UI.cmds(B, u);
@@ -442,7 +446,7 @@
     if (B.tool === 'menu') {
       var n = cmds.length, prev = B.cmdSel;
       if (st === 'window') { if (I.repeat('up') || turnWheel() < 0) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('down') || turnWheel() > 0) B.cmdSel = (B.cmdSel + 1) % n; }
-      else { if (I.repeat('left') || I.repeat('up') || turnWheel() < 0) B.cmdSel = (B.cmdSel + n - 1) % n; if (I.repeat('right') || I.repeat('down') || turnWheel() > 0) B.cmdSel = (B.cmdSel + 1) % n; }
+      else { var rs = ringStep() || (I.repeat('up') ? -1 : I.repeat('down') ? 1 : 0); if (rs) B.cmdSel = (B.cmdSel + n + rs) % n; }
       if (B.cmdSel !== prev) { B.clearCards(); D.sfx('cursor'); B.ringStill = false; }
       if (I.pressed('a')) return pickCommand(B, u, cmds[B.cmdSel], B.cmdSel);
       if (I.pressed('b')) { if (rest() !== 'menu') { D.sfx('cancel'); B.tool = rest(); return; } return UI.openMenu(B); } // the ring goes back down
@@ -462,6 +466,19 @@
     if (I.pressed('a')) actAt(B, u, B.cursor.x, B.cursor.y, true);
     else if (I.mouse.click && !overUI(B)) actAt(B, u, B.cursor.x, B.cursor.y, false);
   }
+  // END TURN, asked first by the M menu's END TURN ASKS (UI.opts.confirmEnd): IF IDLE -- not a step, the action and the bonus both unspent -- ALWAYS, or NEVER.
+  // Asked, the same END again (Y, Space, the ring's END) ends it, X keeps it; the ask lasts while the turn stands where it was (B.req: a step or a blow is a new one)
+  function idleTurn(u) { var T = u.turn || {}; return T.action > 0 && T.bonus > 0 && !(T.moved > 0) && !T.attackAction && !T.spellAction; }
+  function endTurn(B, u) {
+    var c = UI.opts.confirmEnd, ask = c === 'always' || (c !== 'never' && idleTurn(u));
+    if (ask && B.endAsk !== B.req) {
+      B.endAsk = B.req; D.sfx('popup'); B.clearCards();
+      B.card([D.keys('{y}End ' + u.name + '\'s turn?{/}' + (idleTurn(u) ? '  {g}nothing done yet{/}' : '')), D.keys('{g}SPACE again ends it.  X keeps it{/}')], 600);
+      return;
+    }
+    B.endAsk = null; B.clearCards();
+    return UI.command(B, u, { do: 'end' });
+  }
   function gridDone(B, u) {
     var T = u.turn;
     if ((T.attacksLeft > 0 || T.action > 0) && B.foeInReach(u)) return false;
@@ -479,7 +496,19 @@
     return !B.commands(u).some(function (c) { return c.ok && c.id !== 'putaway' && c.id !== 'drawweapon'; }); // (PUT AWAY and DRAW hold no turn open: free and nearly always there -- 10-05)
   }
   UI.spent = spent; // (the bench's: dev/bench16.js mode=edifice1004)
-  function turnWheel() { return I.repeat('wheell') ? -1 : I.repeat('wheelr') ? 1 : 0; } // the pad's right stick or bumpers, on the wheel
+  function turnWheel() { return I.repeat('wheell') || I.repeat('bumpl') ? -1 : I.repeat('wheelr') || I.repeat('bumpr') ? 1 : 0; } // the pad's right stick or bumpers, on the wheel (the window's list)
+  // a step round the ring, -1 or 1 (0: none): the d-pad, the arrow keys and the bumpers pick what is on that side of the front -- right brings the icon on the
+  // right round (10-06, a pad player: "d-pad should be reverse of that, right should bring the option from the right to the front"; Griz: "agreed, stick swipe";
+  // "it's good the keyboard matches the d-pad"); the next icon sits left of the front (cmdRing), so right steps back. The sticks keep the swipe: the left
+  // stick's own arrows (I.stickWay) and the right stick push the ring the way they go, as before
+  function ringStep() {
+    var s = 0;
+    if (I.repeat('left')) s += I.stickWay === 'left' ? -1 : 1;
+    if (I.repeat('right')) s += I.stickWay === 'right' ? 1 : -1;
+    if (I.repeat('wheell')) s -= 1; if (I.repeat('wheelr')) s += 1;
+    if (I.repeat('bumpl')) s += 1; if (I.repeat('bumpr')) s -= 1;
+    return s > 0 ? 1 : s < 0 ? -1 : 0;
+  }
   function castPicks(B, u) { var S = B.spell; if (S && B.picks.length) UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: { units: B.picks.slice() } }); }
   function etherealAt(B, x, y) { return B.units.filter(function (w) { return w.ethereal && !(w.under && w.earthGlide) && x >= w.x && y >= w.y && x < w.x + w.size && y < w.y + w.size; })[0]; }
   function pickCommand(B, u, c, idx) {
@@ -488,7 +517,7 @@
     if (!c.ok) { D.sfx('error'); B.card(['{g}' + c.label + ': ' + (c.why || 'not now') + '.{/}'], 120); return; }
     if (c.quick) { B.list = { kind: 'spells', items: [c], sel: 0 }; return pickListItem(B, u, c, 0); } // (the cantrip on the first ring)
     D.sfx('confirm');
-    if (c.id === 'end') return UI.command(B, u, { do: 'end' });
+    if (c.id === 'end') return endTurn(B, u);
     if (c.sub === 'spells' && UI.opts.style === 'ring') { B.list = levelRing(B, u); B.ringB = null; return; }
     if (c.items) { // SKILLS, ACTIONS: their commands as a list (a ring on the ring)
       var cl = c.items.map(function (x) { return { kind: 'cmd', cmd: x, id: x.id, icon: x.icon, name: x.label, label: x.label, cost: x.cost, ok: x.ok, why: x.why, note: x.note }; });
@@ -519,8 +548,8 @@
     var L = B.list, n = L.items.length, st = UI.opts.style, e = L.items[L.sel];
     var ringy = st === 'ring', nextKey = ringy ? ['left', 'right'] : ['up', 'down'], slotKey = ringy ? ['down', 'up'] : ['left', 'right']; // [lower, higher]
     var sel0 = L.sel, slot0 = e && e.slot;
-    if (n && (I.repeat(nextKey[0]) || turnWheel() < 0)) L.sel = (L.sel + n - 1) % n;
-    if (n && (I.repeat(nextKey[1]) || turnWheel() > 0)) L.sel = (L.sel + 1) % n;
+    var ls = ringy ? ringStep() : I.repeat(nextKey[0]) || turnWheel() < 0 ? -1 : I.repeat(nextKey[1]) || turnWheel() > 0 ? 1 : 0; // (the ring's: ringStep)
+    if (n && ls) L.sel = (L.sel + n + ls) % n;
     if (e && e.kind === 'spell' && e.levels.length > 1) {
       var i = e.levels.indexOf(e.slot);
       if (I.repeat(slotKey[0])) e.slot = e.levels[Math.max(0, i - 1)];
@@ -808,7 +837,7 @@
     var g = gearHero(B), eq = g ? [['equip', 'EQUIP: ' + g.name.toUpperCase()]] : [], story = !!(B && B.o.embed);
     // inside the 8-bit game the fight is the story's: no restart, no ladder, no way round it (the party, the menu's style and
     // the volumes stay). THE GATE (the sprites) is gone from the menu (Griz 09-28); ?gate still opens it
-    return [['resume', 'RESUME']].concat(eq, [['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')],
+    return [['resume', 'RESUME']].concat(eq, [['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')], ['asks', 'END TURN ASKS: ' + { idle: 'IF IDLE', always: 'ALWAYS', never: 'NEVER' }[UI.opts.confirmEnd] + '  < >'],
       ['pace', 'AI + MESSAGE TIME: ' + D.PACE + 'x  < >'],
       ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >']],
       story ? [] : [['restart', 'RESTART THE FIGHT']],
@@ -845,6 +874,7 @@
     var styles = ['ring', 'window'], si = styles.indexOf(UI.opts.style), here = items[M.sel][0], lr = I.repeat('left') ? -1 : I.repeat('right') ? 1 : 0;
     if (here === 'style' && lr) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); D.sfx('cursor'); return; }
     if (here === 'pace' && lr) { cyclePace(lr); D.sfx('cursor'); return; }
+    if (here === 'asks' && lr) { cycleAsks(lr); D.sfx('cursor'); return; }
     if ((here === 'music' || here === 'sounds') && lr) { setVol(here === 'music' ? 'musicVol' : 'sfxVol', vol(here === 'music' ? 'musicVol' : 'sfxVol') + lr * 0.1); D.sfx('cursor'); return; }
     var pick = I.pressed('a') ? M.sel : -1;
     if (I.mouse.click && B.menuRects) B.menuRects.forEach(function (r, i) { if (hit(r)) pick = i; });
@@ -859,6 +889,7 @@
     if (id === 'style') { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); }
     if (id === 'auto') { UI.opts.autoEnd = !UI.opts.autoEnd; UI.saveOpts(); }
     if (id === 'pace') cyclePace(1);
+    if (id === 'asks') cycleAsks(1);
     if (id === 'music') setVol('musicVol', vol('musicVol') > 0 ? 0 : 0.5); // E: off, or back on
     if (id === 'sounds') setVol('sfxVol', vol('sfxVol') > 0 ? 0 : 0.7);
     if (id === 'restart') { D.pop(); D.push(new D.Battle(B.o)); }
@@ -867,6 +898,7 @@
   };
   function restyle(B) { if (B.req && B.req.turn && (B.tool === 'move' || B.tool === 'menu')) B.tool = rest(); }
   // the PACE row: 1x / 1.25x / 1.5x, kept with the other options (D.PACE is what battle.js reads: the AI's waits and every message's time)
+  function cycleAsks(lr) { var n = UI.ASKS.length, i = UI.ASKS.indexOf(UI.opts.confirmEnd); UI.opts.confirmEnd = UI.ASKS[((i < 0 ? 0 : i) + lr + n) % n]; UI.saveOpts(); }
   function cyclePace(lr) { var n = UI.PACES.length, i = UI.PACES.indexOf(D.PACE); i = i < 0 ? (lr > 0 ? 0 : n - 1) : (i + lr + n) % n; UI.opts.pace = D.PACE = UI.PACES[i]; UI.saveOpts(); }
   UI.resultInput = function (B) {
     UI.camera(B);

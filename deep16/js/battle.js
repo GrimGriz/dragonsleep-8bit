@@ -1551,7 +1551,7 @@
         // or you choose to move up to your speed in response to it"
         if (!T.action || T.attacksLeft || u.ready) return;
         if (!c.trigger && !c.pick) {
-          var tp = byAI(u) ? 0 : yield { prompt: { who: u, title: u.name + ': READY -- WHEN?', lines: ['Pick the trigger; then, on the wheel, what you hold for it.', 'Readied, your turn ends: no more move or bonus action.'], opts: Battle.READY_TRIGGERS.map(function (t) { return { label: t.label, value: t.id }; }).concat([{ label: 'NOT NOW', value: 0 }]) } };
+          var tp = byAI(u) ? 0 : yield { prompt: { who: u, title: u.name + ': READY -- WHEN?', lines: ['Reach is sight for a bow or a spell. Readied, your turn ends.'], opts: Battle.READY_TRIGGERS.map(function (t) { return { label: t.label, value: t.id }; }).concat([{ label: 'NOT NOW', value: 0 }]) } };
           if (tp) this.readying = { who: u, trigger: tp }; // (nothing spent yet: the wheel takes it from here)
           return;
         }
@@ -2253,11 +2253,13 @@
   // the four triggers (10-02, Griz: 1 and 2 of the seat's draft, "let's make 3 'an ally goes down' for readied healers", and "foe you can see casts a spell").
   // 'near' is the old one (readyHook, above); the other three are told after the attack, the spell or the turn that made them (readyAfter) -- SRD 5.1: "When the
   // trigger occurs, you can either take your reaction right after the trigger finishes or ignore the trigger"
+  // (short, so the prompt is one row of buttons under one line, as the others are -- 10-06, a pad player: "trigger renders text box above selection, unlike
+  // other options (3 rows of text instead of 1 or 2)"; it stood three rows tall over the hero. The long words are Battle.readyWhen's, on the card after)
   Battle.READY_TRIGGERS = [
-    { id: 'near', label: 'A FOE COMES WITHIN REACH (FOR A BOW OR A SPELL: INTO SIGHT, OR MOVES IN IT)' },
-    { id: 'ally', label: 'A FOE ATTACKS ONE OF US YOU CAN SEE' },
-    { id: 'down', label: 'ONE OF US GOES DOWN' },
-    { id: 'cast', label: 'YOU SEE A FOE CAST A SPELL (THE CASTER, OR WHAT IT DOES)' }
+    { id: 'near', label: 'A FOE IN REACH' },
+    { id: 'ally', label: 'A FOE ATTACKS US' },
+    { id: 'down', label: 'ONE OF US DOWN' },
+    { id: 'cast', label: 'A FOE CASTS' }
   ];
   Battle.readyWhen = function (rd) {
     if (rd.trigger === 'ally') return 'when a foe attacks one of us in sight';

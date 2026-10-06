@@ -167,7 +167,7 @@
   // Y is END TURN (Space), X/square INFO (the right-click), start MENU, back and R3 recentre (C), the bumpers turn the
   // wheel and the triggers zoom, for a hand that would rather press than push
   var PADMAP = {
-    buttons: { 0: 'a', 1: 'b', 2: 'info', 3: 'end', 4: 'wheell', 5: 'wheelr', 6: 'zoomout', 7: 'zoomin', 8: 'center', 9: 'menu',
+    buttons: { 0: 'a', 1: 'b', 2: 'info', 3: 'end', 4: 'bumpl', 5: 'bumpr', 6: 'zoomout', // (the bumpers their own: on the ring they go as the d-pad, the right stick as a swipe -- js/ui.js ringStep, 10-06) 7: 'zoomin', 8: 'center', 9: 'menu',
       10: 'drop', 11: 'center', 12: 'up', 13: 'down', 14: 'left', 15: 'right' },
     ls: { up: 'up', down: 'down', left: 'left', right: 'right' },
     rs: { up: 'zoomin', down: 'zoomout', left: 'wheell', right: 'wheelr' },
