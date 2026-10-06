@@ -77,8 +77,9 @@ def main(argv):
     t0 = time.time()
     with ThreadPoolExecutor(4) as ex:
         res = list(ex.map(lambda j: (j[0], j[1](j[2]) if j[2] is not None else j[1]()), jobs))
-    if full: # (one at a time: the 8-bit bench and the probes each write a page by a fixed name)
-        res += [(' '.join(c), script(c)) for c in ALL_SCRIPTS]
+    if full: # (four at a time since 10-06: the 8-bit bench and the probes each write a page of their own now, not one by a fixed name)
+        with ThreadPoolExecutor(4) as ex:
+            res += list(ex.map(lambda c: (' '.join(c), script(c)), ALL_SCRIPTS))
         jobs += ALL_SCRIPTS
     red = [line for _, lines in res for line in lines]
     for name, lines in res:

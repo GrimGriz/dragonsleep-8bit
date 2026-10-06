@@ -1,4 +1,4 @@
-"""The 8-bit battle's bench (dev/, gitignored; 09-28g): builds dev/bench8.html from index.html's own script list (main.js left
+"""The 8-bit battle's bench (dev/, gitignored; 09-28g): builds dev/bench8-<pid>-<thread>.html from index.html's own script list (main.js left
 out: no rAF loop, no title) plus dev/harness.js, dev/fastbattle.js and dev/bench8.js, runs it in headless Edge off his screen,
 and prints what the battle said. Run it from PowerShell (the Bash tool's sandbox gets no DOM back from Edge).
 
@@ -28,17 +28,23 @@ def build_page():
     catcher = "<script>window.onerror = function (m, s, l, c, e) { var p = document.createElement('pre'); p.textContent = 'LOADERR ' + m + ' @ ' + s + ':' + l + (e && e.stack ? ' ' + e.stack : ''); document.body.appendChild(p); };</script>"
     page = ('<!doctype html><html><head><meta charset="utf-8"></head><body>\n<canvas id="screen" width="256" height="240"></canvas>\n' + catcher + '\n'
             + '\n'.join(tags) + '\n<script src="harness.js"></script>\n<script src="fastbattle.js"></script>\n<script src="bench8.js"></script>\n</body></html>\n')
-    out = os.path.join(HERE, 'bench8.html')
+    import threading # (a page of its own each run, as bench16.py's: two `check.py all` at once, or a probe beside the bench, rewrote one
+    out = os.path.join(HERE, 'bench8-%d-%d.html' % (os.getpid(), threading.get_ident())) # bench8.html under each other -- the gate handoff §2.3, 10-06; the caller removes it)
     open(out, 'w', encoding='utf-8').write(page)
     return out
 
 
 def run(params, timeout=300):
     page = build_page()
-    prof = os.path.join(tempfile.gettempdir(), 'ds8-bench-edge-%d' % os.getpid())
+    import threading
+    prof = os.path.join(tempfile.gettempdir(), 'ds8-bench-edge-%d-%d' % (os.getpid(), threading.get_ident()))
     url = 'file:///' + page.replace('\\', '/') + '?' + urllib.parse.urlencode(params)
     cmd = [EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url]
-    p = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    try:
+        p = subprocess.run(cmd, capture_output=True, timeout=timeout)
+    finally:
+        try: os.remove(page)
+        except OSError: pass
     dom = p.stdout.decode('utf-8', 'replace')
     m = re.search(r'BENCH8 (\{.*\})', dom, re.S)
     if not m:

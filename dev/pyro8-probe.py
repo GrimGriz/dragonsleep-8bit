@@ -7,13 +7,17 @@ import bench8
 
 
 def main():
-    bench8.build_page()
-    page = open(os.path.join(HERE, 'bench8.html'), encoding='utf-8').read().replace('<script src="bench8.js"></script>', '<script src="pyro8-probe.js"></script>')
-    out = os.path.join(HERE, 'pyro8-probe.html')
+    built = bench8.build_page() # (a page of its own each run, and this probe's own too: two gates at once collided on fixed names -- 10-06)
+    page = open(built, encoding='utf-8').read().replace('<script src="bench8.js"></script>', '<script src="pyro8-probe.js"></script>')
+    os.remove(built)
+    out = os.path.join(HERE, 'pyro8-probe-%d.html' % os.getpid())
     open(out, 'w', encoding='utf-8').write(page)
     prof = os.path.join(tempfile.gettempdir(), 'pyro8-probe-edge-%d' % os.getpid())
     url = 'file:///' + out.replace('\\', '/')
-    p = subprocess.run([bench8.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench8.EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=300)
+    try:
+        p = subprocess.run([bench8.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench8.EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=300)
+    finally:
+        os.remove(out)
     dom = p.stdout.decode('utf-8', 'replace')
     import html as H
     m = re.search(r'PYRO8 (\{.*?\})\s*</pre>', dom, re.S)

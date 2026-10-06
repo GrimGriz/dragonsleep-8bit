@@ -454,9 +454,13 @@ def main(argv):
     jobs = int(kw.get('jobs', 4))
     # hand=1 (the default since 10-03): the player's hand; hand=0: the guest turn alone, the floor. The table walks both, the same dice
     hands = [True, False] if 'table' in flags else [kw.get('hand', '1') != '0']
-    with ThreadPoolExecutor(jobs) as ex:
-        extra = dict((k, kw[k]) for k in ('group', 'tent') if k in kw)
-        res = list(ex.map(lambda xh: run_leg(pg, xh[0], n, seed, lvl, log='log' in flags, hand=xh[1], extra=extra), [(x, hd) for hd in hands for x in names]))
+    try:
+        with ThreadPoolExecutor(jobs) as ex:
+            extra = dict((k, kw[k]) for k in ('group', 'tent') if k in kw)
+            res = list(ex.map(lambda xh: run_leg(pg, xh[0], n, seed, lvl, log='log' in flags, hand=xh[1], extra=extra), [(x, hd) for hd in hands for x in names]))
+    finally:
+        try: os.remove(pg) # (bench8's page is the run's own since 10-06)
+        except OSError: pass
     sums, chained, floor, floorch, red = [], [], {}, {}, False
     for r in res:
         quiet = 'table' in flags and not r.get('hand', True) # (the floor's walks feed the table's floor columns; the hand's are printed)

@@ -10,11 +10,14 @@ def main():
     built = bench16.build_page() # (a page of its own each run: bench16.py, 10-01b)
     page = open(built, encoding='utf-8').read().replace('<script src="bench16.js"></script>', '<script src="wet-probe.js"></script>')
     os.remove(built)
-    out = os.path.join(HERE, 'wet-probe.html')
+    out = os.path.join(HERE, 'wet-probe-%d.html' % os.getpid()) # (the run's own page: two gates at once collided on a fixed name -- 10-06)
     open(out, 'w', encoding='utf-8').write(page)
     prof = os.path.join(tempfile.gettempdir(), 'wet-probe-edge-%d' % os.getpid())
     url = 'file:///' + out.replace('\\', '/') + '?' + urllib.parse.urlencode(dict(a.split('=', 1) for a in sys.argv[1:] if '=' in a))
-    p = subprocess.run([bench16.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench16.EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=300)
+    try:
+        p = subprocess.run([bench16.EDGE, '--headless=new', '--disable-gpu', '--no-first-run', '--allow-file-access-from-files'] + bench16.EXTRA + ['--user-data-dir=' + prof, '--dump-dom', url], capture_output=True, timeout=300)
+    finally:
+        os.remove(out)
     dom = p.stdout.decode('utf-8', 'replace')
     import html as H
     m = re.search(r'WETPROBE (\{.*?\})\s*</pre>', dom, re.S)

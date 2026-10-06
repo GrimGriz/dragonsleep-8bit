@@ -90,9 +90,12 @@ def main():
     built = bench16.build_page() # (a page of its own each run: bench16.py, 10-01b)
     page = open(built, encoding='utf-8').read().replace('<script src="bench16.js"></script>', '<script>\n' + js + '\n</script>\n<script src="keeper-probe.js"></script>')
     os.remove(built)
-    out = os.path.join(HERE, 'keeper-probe.html')
+    out = os.path.join(HERE, 'keeper-probe-%d.html' % os.getpid()) # (the run's own pages, this and the 8-bit half's: two gates at once collided on fixed names -- 10-06)
     open(out, 'w', encoding='utf-8').write(page)
-    r, err = edge(out, args, 'KEEPERPROBE', os.path.join(tempfile.gettempdir(), 'keeper-probe-edge-%d' % os.getpid()))
+    try:
+        r, err = edge(out, args, 'KEEPERPROBE', os.path.join(tempfile.gettempdir(), 'keeper-probe-edge-%d' % os.getpid()))
+    finally:
+        os.remove(out)
     if not r:
         print('no result', err)
         return
@@ -100,11 +103,15 @@ def main():
     # the 8-bit half: the stair's quest and the mark, through the seam (js/events.js, js/embed.js) -- dev/keeper8-probe.js on the 8-bit bench's page
     if args.get('eight') != '0':
         import bench8
-        bench8.build_page()
-        p8 = open(os.path.join(HERE, 'bench8.html'), encoding='utf-8').read().replace('<script src="bench8.js"></script>', '<script src="keeper8-probe.js"></script>')
-        out8 = os.path.join(HERE, 'keeper8-probe.html')
+        built8 = bench8.build_page()
+        p8 = open(built8, encoding='utf-8').read().replace('<script src="bench8.js"></script>', '<script src="keeper8-probe.js"></script>')
+        os.remove(built8)
+        out8 = os.path.join(HERE, 'keeper8-probe-%d.html' % os.getpid())
         open(out8, 'w', encoding='utf-8').write(p8)
-        r8, err8 = edge(out8, None, 'KEEPER8', os.path.join(tempfile.gettempdir(), 'keeper8-probe-edge-%d' % os.getpid()))
+        try:
+            r8, err8 = edge(out8, None, 'KEEPER8', os.path.join(tempfile.gettempdir(), 'keeper8-probe-edge-%d' % os.getpid()))
+        finally:
+            os.remove(out8)
         if not r8:
             checks.append(['8-bit: the stair\'s page ran (' + str(err8)[:300] + ')', False])
         else:
