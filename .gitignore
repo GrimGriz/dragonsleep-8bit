@@ -16,3 +16,9 @@ deep16/_src/
 # Griz's play records stay on this PC, read by the desk after he plays (10-06, the gate handoff §2.4: 7.8 MB and growing, and a
 # tracked file would be served on the live site; the branch keeper-playtest-records on origin keeps its 35 Keeper logs off the PC)
 play-records/
+
+# his own files at the root, kept off the live site (10-06, Griz: "go with your leans" -- a stray `git add .` would have published them):
+# the Pocket DM's saved rosters, the reading lamp, a short story
+/pocketDMRosters/
+/reading-lamp.html
+/short-story-*.md
