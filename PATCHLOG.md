@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-06
 
+- 2026-10-06 · `603e957` · MPMon (new) · Denny and Beholda, his Monster Party PCs, as a DEEP16 class of their own (`deep16/js/mpmon.js`): 2 specials a fight; Taunt, Denim Damage, the Cannonball at 5; the VNA Bubble, Baleful Gaze, the Big Screen at 5; `?mpshow` · *"MPMon (MonsterPartyMonster) as a separate class to keep our hands clear of the other machinery"*; *"Build now"*
 - 2026-10-06 · `8188f20` · the house · The lanes after a day: a patch-log line is a line, the lane list lives in the todo alone, his ear file carries the time and marks what is new since his last save, and a row's door is a show · *"Take all four, plus the save-name fix and the "only newer notes" rule? Lean: yes."* (the fork, pasted; his word was the paste)
 - 2026-10-06 · ruled · the bestiary · A troll's death by fire stays as it is for the present: no flare drawn in code (the art list's troll head already asks a burning death row) · *"troll is good for the present"*
 - 2026-10-06 · ruled · the menus · THE NIGHT'S BONDS stays as built, every morning anyone wears a thing that bonds: it is where bonds are made and let go, not a report of what changed (the WAITING rows -- worn, not bonded -- were the case "only when it changes" missed) · *"Waiting was an oversight, good catch - and if it's a bonding interface not just a morning report I was wrong in the first place."*
