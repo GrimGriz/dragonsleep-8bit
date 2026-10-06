@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-06
 
+- 2026-10-06 · `c91a137` · MPMon · Rascal, the third build: a Lobstamonkee on CHA with Fire Bolt for his blow, SOCIAL SHARING (the hat-removing bow: a Social die to his friends), SOCIAL FLAME (a ball of fire) and at 5 SOCIAL DISTANCING (a cone: psychic and frightened); his look `rascal_p1` from his first generated sheet; three beats of `?mpshow`, two eyes rows · *"please invent a third special for rascal"* · *"He'll range attack with a cantrip like Aurdin."* · *"1 - love it"* · *"2 - ... action seems right"* · *"Build it"*
 - 2026-10-06 · ruled · MPMon · Rascal's specials on a sheet: Social Sharing a hat-removing bow, Social Flame dancing with the claw clapping (the paste in `deep16-art-wanted.md`, RASCAL SHEET 1) · *"Social sharing as a hat removing bow"* · *"Social flame as dancing with claw clapping"*
 - 2026-10-06 · seen · MPMon · Rascal's Blender figure, the v8 look in the pane (`tools/rascal-blend.py`, 8b9e34c): the claw wrong; the figure parked, a generated sheet first · *"that claw is all jacked"* · *"Please give me an art wanted paste for a 16b sheet attempt from the image gen"*
 - 2026-10-06 · `dd6cc59` · the 8-bit battle · The flags registry and the story walk: `tools/compile.py` refuses a flag `content/flags.json` does not name, and `dev/bench8.py story1006` walks the spine by the journal's doors (there, open, in reach from Silverton, played to move the story; every flag read named) · *"3 dunno what that means - trusting your lean"*
