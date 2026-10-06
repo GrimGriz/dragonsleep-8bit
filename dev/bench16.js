@@ -1022,6 +1022,22 @@
     document.body.appendChild(preZ);
     return;
   }
+  // the Skylights, shown (mode=skyshow; 10-05 night, Griz: "can you script a 'show me' like the art render windows do - where we test all the things we added/changed/reverted in
+  // the edifice fight today (current only)"): deep16/js/skyshow.js's beats run headless, each beat's own check a line here (a FAIL for a beat that did not show)
+  if (get('mode', '') === 'skyshow') {
+    var repSS = { checks: [], errors: [] };
+    try {
+      var BSS = D.skyshow.make('?skyshow&fast' + (get('only', '') ? '&only=' + get('only', '') : '')); D.battle = BSS; BSS.enter();
+      var vSS, kSS = 0;
+      while (BSS.co && kSS++ < 400000) { var rSS = BSS.co.next(vSS); vSS = undefined; if (rSS.done) break; var ySS = rSS.value; if (ySS && ySS.prompt) vSS = ySS.prompt.opts[0].value; }
+      (BSS.skyReport || []).forEach(function (b) { repSS.checks.push((b.ok ? 'ok   ' : 'FAIL ') + b.name + ' -- ' + b.why + (b.ok && !get('logs', '') ? '' : ' || LOG: ' + String(b.log || '').slice(0, 2400))); });
+      if (!(BSS.skyReport || []).length) repSS.checks.push('FAIL no beat ran');
+    } catch (eSS) { repSS.errors.push(String(eSS && eSS.stack || eSS).slice(0, 900)); }
+    if (errs.length) repSS.errors = repSS.errors.concat(errs);
+    var preSS = document.createElement('pre'); preSS.id = 'out'; preSS.textContent = 'BENCH16 ' + JSON.stringify(repSS);
+    document.body.appendChild(preSS);
+    return;
+  }
   // READY ends the turn, springs only on another's, and no spell readied after a bonus-action spell (mode=ready1005; RULED 10-05, Griz: "Making yourself ready and
   // waiting to do it implies you've decided to wait for a trigger until your next turn and that you're done moving and using bonus actions - but the action stored as
   // reaction goes off if triggered on someone else's turn"; "Casting a spell with a bonus action means you can't ready a spell (other actions still ready-able)")
@@ -1595,6 +1611,11 @@
       var BeP = embedK(true), pyE = BeP.units.filter(function (u) { return u.script === 'measure'; })[0], ourE = BeP.units.filter(function (u) { return u.side === 'party' && !u.object && !u.ally && !/Townsfolk/.test(u.name); }).map(function (u) { return u.name; });
       okK('inside the 8-bit game, the king its guest: he is on the field ' + !!pyE + (pyE ? ' at (' + pyE.x + ',' + pyE.y + '), ' + pyE.hp + '/' + pyE.maxhp : '') + '; ours ' + ourE.join(', ') + '; the named cast ' + ['giant1', 'giant2'].map(function (id) { var u = byIdK(BeP, id); return u && u.name; }).join(', '), !!pyE && pyE.hp === pyE.maxhp && ourE.length === 5 && !!byIdK(BeP, 'giant2'));
       var BeN = embedK(false); okK('... and without him the grid adds none (the bug he played: the scene must send him) -- the king on the field ' + BeN.units.some(function (u) { return u.script === 'measure'; }), !BeN.units.some(function (u) { return u.script === 'measure'; }));
+      // the play record inside the 8-bit game too (10-05 night, Griz: "1 yeah sounds good"): js/embed.js E.start, as the 8-bit's message makes it, records the fight
+      var dR = D.save.fixture(8), cv0 = D.canvas; dR.guests = [D.save.guest('pyro')]; D.embed.B = null; if (!D.canvas) D.canvas = { focus: function () { } }; // (the bench page has no canvas to focus)
+      try { D.embed.start({ type: 'ds8:fight', fight: 'edifice', save: dR, opts: { enemies: ['stonegiant', 'stonegiant', 'troll', 'troll', 'troll', 'troll'], canRun: false } }); } finally { D.canvas = cv0; }
+      var rR = D.embed.B && D.embed.B.rec; D.embed.B = null;
+      okK('the fight the 8-bit hands over is recorded: ' + JSON.stringify(rR && { fight: rR.fight, name: rR.name, level: rR.level }), !!rR && rR.fight === 'edifice' && /inside the 8-bit/.test(rR.name) && rR.level === 8);
     } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
     D.d = d0K;
     if (errs.length) repK.errors = repK.errors.concat(errs);

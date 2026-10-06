@@ -275,7 +275,8 @@
       // the creature type (RULED 09-28: on every sheet) and the challenge rating (Turn Undead's destroying reads it)
       id: f.id, kind: f.kind, name: f.name || d.name, fname: !!f.name, i8: f.i8, side: f.side || 'foe', ally: !!f.ally, hatch: !!f.hatch, free: !!f.free, sheet: d.sheet, type: d.type || null, cr: d.cr, rider: d.rider || null, x: f.at ? f.at[0] : 0, y: f.at ? f.at[1] : 0, facing: 1, // (a fight's own name for it: the Skylights' giants, 10-05; side 'party' with `ally`: one of ours the brute runs -- the Hex's stable fighters, the garrison behind the hatch (`hatch`: held till it opens); `free`: no mission)
       hp: d.hp, maxhp: d.hp, baseAC: d.ac, speed: d.speed, size: d.size, reach: d.reach, abil: d.abil, saves: d.saves,
-      init: d.init, perception: d.perception, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
+      // (athletics: the block's own skill -- the stone giant's +12 never reached the unit, so his Shove rolled STR's +6: 10-05 night, the Skylights show's find)
+      init: d.init, perception: d.perception, athletics: d.athletics != null ? d.athletics : undefined, attacks: d.attacks, multi: d.multi, jaunt: d.jaunt, faerie: d.faerieFire ? JSON.parse(JSON.stringify(d.faerieFire)) : null,
       fey: !!d.fey, webWalker: !!d.webWalker, regen: d.regen || 0, conds: {}, lvl: 5,
       climbs: d.climbs || 0, // (a climb speed, SRD 5.1: up and down a map's cliffs at no extra cost, no check -- grid.js G.climbsUp, 10-04)
       spiderClimb: !!d.spiderClimb, // (Spider Climb, SRD 5.1: it climbs "without needing to make an ability check" -- read as the hold no blow shakes off the face: hurt, below; a push still does. data/foes.js giantspider -- 10-05 night)
@@ -312,6 +313,7 @@
       ownRope: f.rope != null ? f.rope : f.ally ? 0 : undefined, // (a lent ally's own Rope & Grapple -- the garrison's one each; never the party's pack: exec 'rope', ai.js ropeUp, 10-05)
       chase: f.chase ? { to: f.chase.to.slice(), till: f.chase.till || 1 } : null, // (a scripted run for its first rounds: the Skylights' first trolls after the street's people, ai.js brute, 10-05)
       keepLevel: !!f.keepLevel, // (holds its level: no step down 10 ft or more -- the garrison keeps the roof, grid.js stepCost, 10-05)
+      climbAt: f.climbAt ? f.climbAt.slice() : null, // (the columns a roof guard goes up the face by: Hallvör's west bay, away from the vault doors -- ai.js brute, 10-05 night)
       missionOnly: !!f.only, guard: f.guard || null, rocks: f.rocks != null ? f.rocks : null,
       roofGuard: !!f.roofGuard, noGlass: !!f.roofGuard, streetFirst: !!f.streetFirst, huntsClimbers: !!f.huntsClimbers, // (huntsClimbers: any of ours on a rope or a face first -- the Skylights' spiders, ai.js brute, 10-05 evening) // (the roof first and never the glass -- Hallvör; the street first while anyone it can see stands on it -- the trolls: ai.js brute, 10-05) // (nothing but the mission's target; guarding the one with that id; the rocks it carried -- the Skylights' giants and trolls, ai.js brute, 10-05)
       // senses (SRD 5.1; torchdark 09-28): how far it sees in the dark, or by blindsight (and blind past it: the oozes, the darkmantle),
@@ -757,6 +759,15 @@
     yield 50;
   };
 
+  // the defend fight's glass on the field (run, below; and the Skylights show, js/skyshow.js, 10-05 night)
+  Battle.prototype.skyUp = function () {
+    // (spellProof: no spell aimed at it takes it, whatever its words say of objects -- Shatter's area alone reaches it, magic.js area. 10-05 night, Griz: "we got 1 thunder spell
+    // that's AoE should damage - and as far as I know, we're not letting other ones impact it"; before, "SRD only shatter is even nicer")
+    var skd = this.map.def.skylight, sky = { id: 'skylight', name: skd.name || 'the skylight', kind: 'object', object: true, spellProof: true, breachLoses: true, side: 'party', x: skd.at[0], y: skd.at[1], size: 1, hp: skd.hp || 120, maxhp: skd.hp || 120, ac: skd.ac || 13, threshold: skd.threshold || 0, resistAll: true, immune: ['poison', 'psychic'], condImmune: { all: true }, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, saves: {}, conds: {}, attacks: {}, speed: 0, initRoll: -99, lvl: 1, prof: 0, sheet: null, facing: 0 };
+    this.units.push(sky); this.skylight = sky;
+    this.units.forEach(function (w) { if (w.side === 'foe' && !w.free) w.mission = 'skylight'; }); // (a foe marked `free` has no mission: the Skylights' first two trolls, met in the street -- 10-05)
+    return sky;
+  };
   // ------------------------------------------------------------------ the run: entry card, initiative, rounds
   Battle.prototype.run = function* () {
     var self = this;
@@ -769,13 +780,7 @@
     // a defend fight (F.defend; 10-04 night, Griz: "make the glass above the hole their target with a high damage resist that they'd eventually beat through - like they're trying to make
     // entry into the dwarven place and this is a defend mission"): the map's `skylight` stands on the field as a thing of the party's side -- AC, hit points, a damage threshold, resistance
     // to everything (hurt) -- no turn of its own, no square to stand on; every foe's mission (ai.js brute); broken, the fight is lost (over)
-    if (this.fight && this.fight.defend && this.map && this.map.def && this.map.def.skylight) {
-      // (spellProof: no spell aimed at it takes it, whatever its words say of objects -- Shatter's area alone reaches it, magic.js area. 10-05 night, Griz: "we got 1 thunder spell
-      // that's AoE should damage - and as far as I know, we're not letting other ones impact it"; before, "SRD only shatter is even nicer")
-      var skd = this.map.def.skylight, sky = { id: 'skylight', name: skd.name || 'the skylight', kind: 'object', object: true, spellProof: true, breachLoses: true, side: 'party', x: skd.at[0], y: skd.at[1], size: 1, hp: skd.hp || 120, maxhp: skd.hp || 120, ac: skd.ac || 13, threshold: skd.threshold || 0, resistAll: true, immune: ['poison', 'psychic'], condImmune: { all: true }, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, saves: {}, conds: {}, attacks: {}, speed: 0, initRoll: -99, lvl: 1, prof: 0, sheet: null, facing: 0 };
-      this.units.push(sky); this.skylight = sky;
-      this.units.forEach(function (w) { if (w.side === 'foe' && !w.free) w.mission = 'skylight'; }); // (a foe marked `free` has no mission: the Skylights' first two trolls, met in the street -- 10-05)
-    }
+    if (this.fight && this.fight.defend && this.map && this.map.def && this.map.def.skylight) this.skyUp();
     this.order = this.units.filter(function (u) { return !u.familiar && !u.object && !u.look; }).sort(function (a, b) { return b.initRoll - a.initRoll || b.abil.dex - a.abil.dex; }); // (!u.look: the street's people waiting at the road's foot take no turns -- 10-05)
     this.card(['{y}INITIATIVE{/}  ' + this.order.map(function (u) { return shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
     yield 50;

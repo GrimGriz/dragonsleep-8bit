@@ -18,7 +18,8 @@
   M.sculpts = function (u, id) { return u.subclass === 'School of Evocation' && u.lvl >= 2 && EVOCATION.indexOf(id) >= 0; };
   M.sculpted = function (u, id, sp, caught) {
     if (!M.sculpts(u, id)) return [];
-    return caught.filter(function (w) { return w.side === u.side; }).sort(function (a, b) { return (a === u) - (b === u); }).slice(0, 1 + (sp.level || 0));
+    // (SRD 5.1: "other creatures that you can see" -- not himself, and never an object: the Skylights' glass was being sculpted out of his Shatter, 10-05 night, the show's find)
+    return caught.filter(function (w) { return w.side === u.side && w !== u && !w.object; }).slice(0, 1 + (sp.level || 0));
   };
   // ------------------------------------------------------------------ the sorcerer: Elemental Affinity (Draconic 6)
   M.affinity = function (u, el) { return u.subclass === 'Draconic Bloodline' && u.lvl >= 6 && el === (u.src && u.src.ancestry || 'fire') ? Math.max(0, D.mod(u.abil.cha)) : 0; };

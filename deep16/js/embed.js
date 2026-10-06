@@ -56,6 +56,11 @@
     var list = m.opts && m.opts.enemies, missing = (list || []).filter(function (id8) { return !D.FOES[D.kind8 ? D.kind8(id8) : id8]; });
     if (missing.length) { console.warn('DEEP16: no foe for the 8-bit game\'s ' + missing.join(', ') + ': the fight stays 8-bit'); send({ type: 'd16:refuse', missing: missing }); return; }
     var B = E.B = new D.Battle({ embed: m.opts || {}, fight: m.fight, data: m.save, onDone: function (res) { E.done(B, res); } });
+    // the play record inside the 8-bit game too (10-05 night, Griz: "1 yeah sounds good" -- the Skylights he played there, Pyro missing, left no record): the frame is the
+    // 8-bit page's own origin, so its fights keep in the same deep16.plays as the doors' and R on the tester ladder saves them (js/record.js; at the enter D.push makes)
+    var fd8 = m.fight && D.FIGHTS.filter(function (f) { return f.id === m.fight; })[0], lv8 = 0;
+    try { ((m.save && m.save.party) || []).forEach(function (h) { lv8 = Math.max(lv8, +(h && (h.lvl || h.level)) || 0); }); } catch (e) { lv8 = 0; } // (the units are dealt at the enter: the level from the save the 8-bit sent)
+    B.o.record = { fight: m.fight || 'embed', name: (fd8 ? fd8.name : 'The 8-bit: ' + ((list || []).join(', ') || 'a fight')) + ' (inside the 8-bit)', level: lv8 || null };
     D.push(B);
     E.inv0 = counts(B.inv); // (the pack as the fight began: only what the party brought, no loan here)
     if (B.lampReturned) E.inv0[B.lampReturned] = Math.max(0, (E.inv0[B.lampReturned] || 0) - 1); // (a lantern nobody could take up went into the pack: the 8-bit game's pack does not have it yet, so the seam hands it over as a gain)

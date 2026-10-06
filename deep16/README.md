@@ -229,6 +229,19 @@ or half the damage) or loses its hold and falls what it climbed (ours; the SRD h
 painted on the face above; four fountains stand against the facade's foot -- a 3-square pool of water (waded, difficult) ringed by a one-step rim, the spout a hole
 flush in the face at 10 ft (`spouts`) pouring into it -- and no moat before the vault. The arches' sills are gone: by hand nobody climbs the facade.
 
+**The Skylights, shown** (10-05 night, Griz: *"can you script a 'show me' like the art render windows do - where we test all the things we added/changed/reverted in the
+edifice fight today (current only)"*): `deep16/?skyshow` (`js/skyshow.js`; `&beat=N`, `&only=lane,booth`, `&fast`, `&lvl=N`) -- ten beats on the Edifice's own map and cast,
+each staged where it happens and run by the engine itself, the dice pinned where a beat needs a roll to go one way (its card says so): Hallvör's own lane; under a climber
+and the giant down on the one under (from 7.5 ft no dice, then from 10 ft the 1d6 split); the Shove; the rock at the edge and the Dunking Booth; the whistle, her call and
+the spiders; a spider down the face to a climber; a troll at 0, Pyro's flask and "Torch him!", and a torch; Shatter alone on the glass; Pyro's handaxe; READY ends the
+turn. Each beat checks itself; the last card is the tally (`B.skyReport`; `dev/bench16.js mode=skyshow`, in `dev/check.py`'s gate). Also that night: **Hallvör's lane**
+(`fights.js` `climbAt: [13, 16]`, `ai.js brute`): she goes up the west bay, not the column beside the vault doors (the bench had her there, throwing a rock, in 32 fights
+of 32, and the party came out at her feet into her opportunity attacks); **her rocks never at the glass** while she guards the roof (`volley`, as her blows); **her call**
+a recorded clip, `deep16/audio/come_on_down.mp3` (Windows' Zira, pitched down; the browser's voice was silent in Brave), the browser's voice its fallback; **a foe's
+Athletics** from its block (`battle.js makeFoe`: the stone giant's +12 never reached the unit, so the Shove rolled +6); **Sculpt Spells** spares other creatures only
+(SRD 5.1: never the caster, never an object -- the glass had been sculpted out of Aurdin's Shatter); the thrown torch's card says where it lands (at its feet, N ft
+away: the distance is the thrower's, not a scatter); and the play record inside the 8-bit game (`embed.js`).
+
 **Hidden, beside a foe** (RULED 10-04 night, Griz: *"one line, but lose stealth on successful hit (it can tell where you are from the force of the blow and
 it's not invisibility, just hide)"*): an attack at a hidden target has disadvantage at any distance (`rules.js RU.edges`; it was beyond 5 ft only, 09-28's
 'heard and felt'), a foe beside her still knows where she is and swings (`ai.js heroes`), and a hit finds her: no longer hidden (`battle.js attack`).

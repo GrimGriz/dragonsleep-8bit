@@ -648,6 +648,8 @@
       var spared = M.sculpted ? M.sculpted(u, id, sp, caught) : [];
       caught.forEach(function (w) {
         if (spared.indexOf(w) >= 0) { lines.push('  ' + w.name + ': {c}sculpted out of it{/}'); return; }
+        // (an object makes no save -- SRD 5.1 Shatter: "A nonmagical object that isn't being worn or carried also takes the damage"; its card read "d20 3 NaN = NaN": 10-05 night, the show's find)
+        if (w.object) { lines.push('  ' + w.name + ': {g}an object, no save{/} -> {r}' + (d1 + d2) + '{/}'); hits.push([w, d1, false, d2]); return; }
         var sv = RU.save(w, ab, dc, sp.el === 'poison' && RU.vsPoison(w), null, tot), evade = ab === 'dex' && RU.evasion(w); // (Evasion: the rogue's and the monk's 7, js/rules.js)
         var share = function (x) { return sv.ok ? (evade ? 0 : (sp.half ? Math.floor(x / 2) : 0)) : (evade ? Math.floor(x / 2) : x); }, d = share(d1), dB = share(d2);
         lines.push('  ' + w.name + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}saved{/}' : '{o}failed{/}') + (evade ? ' {c}evasion{/}' : '') + ' -> {r}' + (d + dB) + '{/}');

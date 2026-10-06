@@ -313,7 +313,10 @@
     place(B, x, y, u.id);
     D.sfx('fire');
     if (D.magic.burnWebs) D.magic.burnWebs(B, [[x, y]], u.id); // (a torch landing on a web burns it: magic.js)
-    yield* D.magic.brighten(B, u, 'torch', '{y}' + u.name + '{/} throws the torch. It lands ' + (Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5) + ' ft off and burns there.', { x: x, y: y, bright: L.TORCH.bright });
+    // (the distance is the thrower's, not a scatter -- hit or miss it lands on the square aimed at, as the oil's missed flask: 10-05 night, Griz: "it says the torch lands 5 ft off
+    // in the text, but seems to appear in the square I aimed at")
+    var ftT = Math.max(Math.abs(x - u.x), Math.abs(y - u.y)) * 5;
+    yield* D.magic.brighten(B, u, 'torch', '{y}' + u.name + '{/} throws the torch' + (foe ? ' at ' + (foe.side === 'foe' && !foe.named ? 'the ' : '') + foe.name + '. It lands at its feet, ' + ftT + ' ft away,' : '. It lands ' + ftT + ' ft away') + ' and burns there.', { x: x, y: y, bright: L.TORCH.bright });
     u.anim = 'idle';
   };
   // put it out (free): back in the pack, unspent

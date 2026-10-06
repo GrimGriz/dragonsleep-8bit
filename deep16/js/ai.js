@@ -480,13 +480,15 @@
   }
   // its ranged routine (the multiattack's ranged names, else its first ranged attack once), each at the lowest AC in sight
   function* volley(B, u) {
+    // (the roof guard throws no rock at the glass either -- noGlass, as her blows: 10-05 night, the bench with her own lane had her on the lip at round 4 throwing at the skylight)
+    var aimable = function () { return heroes(B, u).filter(function (w) { return !(u.noGlass && w.object); }); };
     var keys = Array.isArray(u.multi) ? u.multi.filter(function (k) { return u.attacks[k] && u.attacks[k].ranged; }) : [];
     // a ranged Multiattack of its own (`rangedMulti`: the Bandit Captain's "two ranged attacks with its daggers", SRD 5.1 -- the melee `multi` stays the melee routine)
     if (!keys.length && Array.isArray(u.rangedMulti)) keys = u.rangedMulti.filter(function (k) { return u.attacks[k] && u.attacks[k].ranged; });
     // else its best one weapon: with two to choose from (the gnoll's longbow and its thrown spear) the likelier, bigger blow at the lowest AC it can see -- a thrown weapon past its
     // normal range at disadvantage (RU.edges), so the spear is for 20 ft and the bow for the rest (10-02)
     if (!keys.length) {
-      var rks = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].ranged; }), see0 = visibleFrom(u, u.x, u.y, heroes(B, u)), bestS = -1;
+      var rks = Object.keys(u.attacks).filter(function (k) { return u.attacks[k].ranged; }), see0 = visibleFrom(u, u.x, u.y, aimable()), bestS = -1;
       rks.forEach(function (k) {
         var a = u.attacks[k], tg = see0.filter(function (w) { return G.dist(u, w) <= a.range[1]; }).sort(function (p, q) { return RU.ac(p) - RU.ac(q); })[0]; if (!tg) return;
         var p1 = Math.max(0.05, Math.min(0.95, (21 - (RU.ac(tg) - a.atk)) / 20)), pp = G.dist(u, tg) > a.range[0] ? p1 * p1 : p1, sc = pp * D.tactics.avg(a.dice) + pp * (a.mod || 0);
@@ -496,10 +498,10 @@
     }
     if (!keys.length || !u.turn.action) return false;
     var first = u.attacks[keys[0]];
-    if (!visibleFrom(u, u.x, u.y, heroes(B, u)).some(function (w) { return G.dist(u, w) <= first.range[1]; })) return false;
+    if (!visibleFrom(u, u.x, u.y, aimable()).some(function (w) { return G.dist(u, w) <= first.range[1]; })) return false;
     u.turn.action = 0;
     for (var i = 0; i < keys.length; i++) {
-      var atk = u.attacks[keys[i]], seen = visibleFrom(u, u.x, u.y, heroes(B, u)).filter(function (w) { return G.dist(u, w) <= atk.range[1]; });
+      var atk = u.attacks[keys[i]], seen = visibleFrom(u, u.x, u.y, aimable()).filter(function (w) { return G.dist(u, w) <= atk.range[1]; });
       if (!seen.length) break;
       yield* B.attack(u, seen.sort(function (p, q) { return RU.ac(p) - RU.ac(q) || p.hp - q.hp; })[0], atk);
       if (u.dead || u.hp <= 0) break;
@@ -984,7 +986,10 @@
     var held = (B.late || []).filter(function (l) { return l.whistle && l.round === Infinity; }); if (!held.length) return;
     u.whistled = true; B.focus(u); D.sfx('whistle');
     B.card(['{r}' + u.name + '{/} puts two fingers to her mouth and whistles.  "Come on down!"'], 320);
-    if (D.say) D.say('Come on down!', { pitch: 0.55, rate: 0.85 });
+    // her call as a recorded clip, as the darkness's lines are (10-05 night, Griz: "I turned on the music and still only heard the whistle (I play in brave and voices try to use
+    // edge?) Might have to do one similar to the voices we made for the Cloaker easter egg"): deep16/audio/come_on_down.mp3, rendered on his PC from Windows' Zira voice, pitched
+    // low and slowed, a touch of echo; a beat after the whistle. The browser's own voice only if the clip will not play
+    setTimeout(function () { if (D.clip) D.clip('audio/come_on_down.mp3', function (ok) { if (!ok && D.say) D.say('Come on down!', { pitch: 0.55, rate: 0.85 }); }); else if (D.say) D.say('Come on down!', { pitch: 0.55, rate: 0.85 }); }, 650);
     yield 40;
     held.forEach(function (l) { l.round = B.round; });
     yield* B.lateOut();
@@ -1223,6 +1228,24 @@
     if (ranged.length && ranged.length === Object.keys(u.attacks).length) { yield* shooter(B, u); return; }
     if (!tgt) {
       tgt = hs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+      // the roof guard's own lane up the face (a fight's foe `climbAt`, [x0, x1]: the columns she goes up by -- 10-05 night, Griz: "how often Hallvor goes over and stands by the door
+      // and throws a rock ... 5 folks come out the door at her foot, then she starts climbing and gets aoo'd"; the bench at 6 had her at (27,16), beside the vault doors, in 32 fights
+      // of 32 -- the shortest way to the glass): up the lane as high as the move goes if it reaches it (the cling part way, battle.js moveAlong), else along her level toward it
+      // (only on her way to a wall: one already at the foot of a face it can climb straight up from climbs there -- walked along the street to the lane, she gave every blade
+      // beside her its opportunity attack: dev/bench16.js fixes1005, Barley beside her at the doors)
+      var rmA = roofClimb && u.climbAt && T.move > 0 && !(u.hang && G.hanging(u)) ? G.reach(u, T.move) : null, zA = G.gzAt(u, u.x, u.y);
+      var upHere = rmA && [-1, 0, 1].some(function (dx) { var e = rmA[(u.x + dx) + ',' + (u.y - 1)]; return e && e.stand && G.gzAt(u, e.x, e.y) > zA + stM; });
+      if (rmA && !upHere) {
+        var lnA = u.climbAt, upA = null, byA = null;
+        Object.keys(rmA).forEach(function (k) {
+          var e = rmA[k]; if (!e.stand) return;
+          var z = G.gzAt(u, e.x, e.y), dx = e.x < lnA[0] ? lnA[0] - e.x : e.x > lnA[1] ? e.x - lnA[1] : 0;
+          if (!dx && z > zA + stM && (!upA || z > upA.z || (z === upA.z && e.cost < upA.e.cost))) upA = { e: e, z: z };
+          if (Math.abs(z - zA) <= stM && (!byA || dx * 1000 + e.cost < byA.s)) byA = { e: e, s: dx * 1000 + e.cost };
+        });
+        var goA = upA ? upA.e : byA && byA.e;
+        if (goA && (goA.x !== u.x || goA.y !== u.y)) { yield* walkTo(B, u, goA); if (u.dead || u.hp <= 0) return; }
+      }
       if (yield* ropeUp(B, u, tgt)) return; // (the fight above it: up a rope, or a rope thrown, or one out of the bucket first -- 10-05)
       var e = belowIt(u, tgt) ? ledgeSq(B, u, tgt, hs, ranged[0]) : approach(u, tgt, G.reach(u, T.move), reachOf(u, hs)); // (held to the roof with the fight below: to the lip over it, a crossbow to a clear shot -- 10-05)
       if (e && (e.x !== u.x || e.y !== u.y)) yield* walkTo(B, u, e);
