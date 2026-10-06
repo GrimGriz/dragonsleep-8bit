@@ -12,3 +12,7 @@ deep16/_src/
 
 # the desk's worktrees (a cloud branch to look at, a scratch merge): never committed (10-03, the review seat's handoff)
 .claude/worktrees/
+
+# Griz's play records stay on this PC, read by the desk after he plays (10-06, the gate handoff §2.4: 7.8 MB and growing, and a
+# tracked file would be served on the live site; the branch keeper-playtest-records on origin keeps its 35 Keeper logs off the PC)
+play-records/

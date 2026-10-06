@@ -256,6 +256,37 @@ The ledge rows are the last build's numbers on the same seeds (5 / 18 / 30), so 
 
 **Not seen**: the 8-bit pane (the mark's fight by eye; the embed in a real iframe, where the seam was probed by dispatching DEEP16's messages); a human-played fight from the rune; Edge on Griz's machine (every bench here is headless Chromium on Linux).
 
+
+## For the next seat (10-03, the keeper-spawns seat's close)
+*(Moved 10-06 from the branch `keeper-spawns`, commit 6fd7b25, where it never reached main; the branch then pruned -- the gate handoff §2.4.)*
+Branch `keeper-spawns` (off `keeper-integration`); `main` untouched. Commit `0e73c8b` holds both jobs (the ladder is main's old fight; the two ways in), plus this note. Griz at the close: "all is well" and, on the rune start against the Ice Wall (open decision 1), "Leave it on, we've finished up the keeper and I see little use case other than if we give a human an opportunity to play keeper." Read as: the rune spawn stays as built, the wall at row 11 included; no retune.
+
+**Gotchas that cost time**
+- `dev/keeper-probe.py` hands main's records to the page as JS literals cut out of `git show` text. Its scanner must skip `//` comments: an apostrophe in a comment ("the 8-bit map's") opened a string and ran the literal past its end, and the page's `KEEPER_MAIN` came up undefined (a LOADERR in the DOM, not in the probe's output). If a check reads "origin/main's records read at undefined", look for a LOADERR first.
+- The ladder diff is pinned to `MAIN_REF = 'ed7be2a'`, not `origin/main`. Once this branch is on main, main's `keeper` is the new Keeper; a diff against `origin/main` would then fail by design. `main=<ref>` overrides it. A shallow clone without `ed7be2a` fails the first ladder check with the git error in its text.
+- The 8-bit half (`dev/keeper8-probe.js`) steps the game itself. The 8-bit battle resumes its script on `setTimeout`, so the seam's checks route `setTimeout` into the step queue (dev/bench8.js's way); without that the grid's win never comes back and the five never come up. `DS.W8.scene` is overridden the same way (dev/wet8-probe.js).
+- The opening's "until it strikes" window cannot be measured by watching a whole fight: `S.opened` is set lazily (only when `K.opened` is called on a hero's turn), and under the lure the Keeper's first Wave sweeps heroes into the water before any hero's turn. The rune-opening check therefore drives `D.tactics.turn` hero by hero, as the ledge's drift check does.
+- `?v=` stamps. deep16/index.html: on Griz's Windows checkout a hand-edited file hashes as CRLF bytes (`tools/deep16-build.py` reads the file), the generated `sprites.js` as LF; running `deep16-build.py` on Linux restamps every tag with LF hashes. This seat restored the committed file and restamped only the seven changed files with CRLF hashes. The 8-bit's `index.html` is one hash over all of js/*.js and data/data.js, so `tools/compile.py` restamps every tag on any JS change, whatever the line endings; cloud seats before stamped it on LF bytes too.
+- `tools/compile.py`'s "possible text key not in text.json: w.....w" warning is older than this branch.
+- Benches here: `DEEP16_BROWSER=/opt/pw-browsers/chromium-1194/chrome-linux/chrome DEEP16_BROWSER_ARGS=--no-sandbox`. Two probe runs at once are fine (each takes its own browser profile; the page they write is the same).
+
+**What was not seen**
+- The 8-bit pane: the mark's fight started by hand, and the party standing by the rune, by eye. The seam was probed with DEEP16's messages dispatched into the 8-bit page, not with a DEEP16 page answering in the iframe.
+- A human-played fight from the rune (party or Keeper), and the ladder's rung screen by eye (the rung is checked by its list and a battle).
+- Edge on Griz's machine, from PowerShell: every probe and bench here is headless Chromium on Linux.
+- What a human Keeper does with the rune start: the wall-versus-rune finding (heroes on row 11 thrown back prone, the one on row 12 sealed out) is the class-AI party against the lure AI.
+
+**Who said what**
+- Griz (relayed in this seat's brief): the ladder stays exactly as on main, its fight the old one with the old foe, map and art; the new Keeper keeps the id `keeper` for the 8-bit's stair, the gallery and the play modes; WADE IN at the ledge, a hand on the rune at the rune; the rope with the Keeper asleep passes the quest with no fight; awake, the rope fights first, at the rune spawn. At the close: "all is well"; "Leave it on ..." (above).
+- The seat's own calls, standing under "all is well" but not separately ruled: a win at the rune brings the five up at once (`w.keeperGone`, no new words); the fifth rune square (map 12,9); the names `keeperold` and `floodstair-old`; `floodstair-old` off the Pocket DM's maps; the pin to `ed7be2a`.
+
+**What to rerun, and when**
+- After any edit to `js/keeper.js`, `keeperplay.js`, `keeperlog.js`, `deep16/js/battle.js` (Battle.enter), `data/maps.js` (floodstair), `data/fights.js` (keeper, keeper-ladder) or `data/foes.js` (keeper, keeperold): `python3 dev/keeper-probe.py` (205 checks: 195 on the grid, 10 for the 8-bit stair) and `python3 dev/check.py` (GREEN, 20 checks) before any push.
+- After any edit to `js/events.js` (S.stair, S.mark) or `js/embed.js`: the probe again (its 8-bit half; `eight=0` leaves it out when only the grid changed), then `python3 tools/compile.py` for the stamp.
+- If anyone retunes the Keeper or its AI: `python3 dev/keeper-probe.py runs=30 lvls=3,4,5 start=ledge eight=0` and the same with `start=rune`, same seeds; the ledge should reproduce the table in the section above (5 / 18 / 30 at the defaults) until the rules change.
+- When this branch goes to main: the ladder checks keep passing as long as `MAIN_REF` stays `ed7be2a`. If main's ladder fight is ever meant to change, move `MAIN_REF` deliberately and say so in its commit.
+- The day a human plays the Keeper from the rune: the log's header now says `start rune` or `start ledge`; read it before comparing records.
+
 ## 10-03 -- the opener ends in the deep (the desk, on Griz's word after playing it from the ledge)
 
 His fight (`play-records/keeper-seed50086211-L3.txt`, mode party, from the ledge): the four walked into its reach before its first turn, it cast the wall and waved and stood; flanked on every blow after, it Slammed Aurdin (AC 15, Shield) six times without a hit and fell in round 5, the party untouched. His word: *"Can you add 'moves as deep as he can' to the end of his opener (even if he'll take an AOO)"*.
