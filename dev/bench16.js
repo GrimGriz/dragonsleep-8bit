@@ -3096,6 +3096,44 @@
   // numbers against they live\beholda\deep16-translation.md's tables, each special by its rule with the dice pinned (the bubble's AC and its pop, the
   // gaze's damage and the dominated turn that goes at its own side, the taunt that turns a brute and the disadvantage on anyone else, Denim's dice on the
   // first blow only, the Cannonball's leap and prone, the Big Screen's cone), the player's buttons, the Pocket DM's seats and rest, and a fight run whole
+  // the door's floor (mode=doorfloor1006; 10-06, the 8-bit battle lane §2.5, Griz: "4 lean"): a page with no way back of its own -- a bare ?npc= here -- whose
+  // scene throws frame after frame goes to THE FIGHT BROKE after D.BROKE_N and E takes it to the 8-bit title; one bad frame plays on; inside the 8-bit game
+  // the throw goes on out (the 8-bit's own floor hears it). The loop's body is driven by hand (D.loopStep): a bench runs no requestAnimationFrame
+  if (get('mode', '') === 'doorfloor1006') {
+    var repF = { checks: [], errors: [] }, cerrF = console.error, said = [], went = 0, title0 = D.toTitle8;
+    function okF(what, v) { repF.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    if (!D.ctx) { var cvF0 = document.createElement('canvas'); cvF0.width = D.W; cvF0.height = D.H; D.ctx = cvF0.getContext('2d'); D.R = D.R || 1; } // (a bench page has no canvas: the loop paints offscreen)
+    var clockF = 1000; function stepF(k) { for (var i = 0; i < k; i++) { clockF += 17; D.loopStep(clockF); } }
+    function bareFight() { D.scenes.length = 0; D.seed = 1006; D.lastError = null; var Bf = D.npcFight('?npc=goblin,goblin&lvl=3', null); D.push(Bf); return Bf; }
+    console.error = function () { said.push(Array.prototype.map.call(arguments, function (a) { return a && a.message ? a.message : String(a); }).join(' ').slice(0, 160)); };
+    D.toTitle8 = function () { went++; };
+    try {
+      if (typeof D.loopStep !== 'function') okF('the loop\'s body is D.loopStep (it is not: no floor in the loop)', false);
+      else {
+        var B1 = bareFight(), up0 = B1.update, n0;
+        stepF(3); okF('a bare ?npc= fight steps clean (top is the fight: ' + (D.top() === B1) + ')', D.top() === B1);
+        var once = true; B1.update = function () { if (once) { once = false; throw new Error('one bad frame'); } return up0.apply(this, arguments); };
+        stepF(5); okF('one bad frame plays on: the fight still up (' + (D.top() === B1) + '), logged once (' + said.length + ': ' + (said[0] || '') + ')', D.top() === B1 && said.length === 1);
+        said = []; B1.update = function () { throw new Error('boom, a test'); };
+        stepF(D.BROKE_N - 1); var mid = D.top() === B1;
+        stepF(1); var card = D.top();
+        okF('a scene that throws every frame: up through ' + (D.BROKE_N - 1) + ' bad frames (' + mid + '), the card at the ' + D.BROKE_N + 'th (' + (card && card.kind) + ', alone ' + (D.scenes.length === 1) + '), the console told (' + said.length + ')', mid && card instanceof D.BrokeCard && D.scenes.length === 1 && said.length === 2);
+        var cv = document.createElement('canvas'); cv.width = D.W; cv.height = D.H; var drawn = null; try { card.draw(cv.getContext('2d')); drawn = true; } catch (e) { drawn = String(e); }
+        okF('the card draws (' + drawn + ') and says what broke ("' + card.msg + '")', drawn === true && /boom, a test/.test(card.msg));
+        D.input.edge = { a: true }; stepF(1); var early = went;
+        stepF(30); D.input.edge = { a: true }; stepF(1);
+        okF('E on the card: not in its first frames (' + early + '), then to the 8-bit title (' + went + ')', early === 0 && went === 1);
+        D.embed.on = true; var B2 = bareFight(); B2.update = function () { throw new Error('boom inside the 8-bit'); }; var out2 = null;
+        try { stepF(2); } catch (e) { out2 = e; }
+        D.embed.on = false;
+        okF('inside the 8-bit game the throw goes on out to its floor (' + (out2 && out2.message) + '), no card (' + !(D.top() instanceof D.BrokeCard) + ')', !!out2 && /inside the 8-bit/.test(out2.message) && !(D.top() instanceof D.BrokeCard));
+      }
+    } catch (e) { repF.errors.push(String(e && e.stack || e).slice(0, 600)); }
+    console.error = cerrF; D.toTitle8 = title0; D.embed.on = false; D.scenes.length = 0; D.lastError = null;
+    var preF = document.createElement('pre'); preF.id = 'out'; preF.textContent = 'BENCH16 ' + JSON.stringify(repF);
+    document.body.appendChild(preF);
+    return;
+  }
   if (get('mode', '') === 'mpmon1006') {
     var repM = { checks: [], errors: [] }, GM = D.grid, RUM = D.rules, MPM = D.mpmon, FM = D.features;
     function okM(what, v) { repM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

@@ -17,7 +17,11 @@
   window.addEventListener('error', function (e) { D.lastError = e.error || e.message; });
   D.canvas.focus();
   // (no sheet is fetched here: each scene asks for its own before it draws -- js/sprites.js S.gate, 10-03; the 135 used to come first, 36.8 MB)
-  if (D.embed.on) D.embed.boot(); // inside the 8-bit game: the fight and the party come by postMessage (js/embed.js)
+  // (the door's floor, 10-06, the 8-bit battle lane §2.5: a door that throws as it opens -- a name the bestiary hasn't got in ?npc=, a fight that will not set -- gets
+  // the card and the way back to the 8-bit title, as one that breaks mid-way does in the loop: js/core.js D.loopStep, D.BrokeCard; inside the 8-bit game it goes on out)
+  try {
+  if (/[?&]broke\b/.test(q) && !D.embed.on) D.push(new D.BrokeCard(new Error('a sample -- the page that broke says its own error here'))); // (the card, shown: ?broke)
+  else if (D.embed.on) D.embed.boot(); // inside the 8-bit game: the fight and the party come by postMessage (js/embed.js)
   else if (/[?&]pocket\b/.test(q)) D.push(new D.Pocket()); // the Pocket DM (alpha): a party, a map, a CR, a fight -- and the four-rung ladder (js/pocket.js, 10-02)
   else if (/[?&]climb\b/.test(q)) D.push(new D.Climb()); // the climb: one party, 1 to 9 (js/climb.js)
   else if (/[?&]skyshow\b/.test(q) && D.skyshow) D.push(D.skyshow.make(q)); // the Skylights, shown: today's beats of the Edifice fight, one after another (js/skyshow.js, 10-05 night)
@@ -31,5 +35,10 @@
   else if (/[?&]gate\b/.test(q)) D.push(new D.Gate());
   else if (/[?&]view\b/.test(q)) D.push(new D.MapView('cavern'));
   else D.push(new D.Battle());
+  } catch (e) {
+    if (D.embed.on) throw e;
+    if (window.console) console.error('DEEP16: the door would not open', e);
+    D.lastError = e; D.scenes.length = 0; D.push(new D.BrokeCard(e, 'THE DOOR WOULD NOT OPEN.'));
+  }
   D.start();
 })();

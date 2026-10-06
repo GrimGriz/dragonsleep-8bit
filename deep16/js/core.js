@@ -352,21 +352,61 @@
       D.text(ctx, (D.drawMs || 0).toFixed(1) + ' ms draw', D.W - 66, 14, '#a8e8ff');
     }
   };
-  function tick(t) {
-    requestAnimationFrame(tick);
+  // the door's floor (10-06, the 8-bit battle lane §2.5; RULED 10-06, Griz: "4 lean"): a page with no way back of its own -- a bare ?npc=, ?keeperfight, ?fight=,
+  // ?show=, a gallery, a show -- whose scene throws as it updates or paints, frame after frame, froze where it stood. One bad frame is logged and the page plays on;
+  // BROKE_N in a row and the scene is set aside for a card, THE FIGHT BROKE, and a way back to the 8-bit title. A fight with a way back of its own (the Pocket DM,
+  // the ladder, the climb) floors itself first (js/battle.js Battle.broke); inside the 8-bit game the throw goes on to the 8-bit's floor (js/embed.js, d16:crash);
+  // a bench steps D.update by hand and never runs this loop
+  D.BROKE_N = 30;
+  var badRun = 0;
+  function tick(t) { requestAnimationFrame(tick); D.loopStep(t); }
+  D.loopStep = function (t) { // (the loop's body: a bench drives it with a clock of its own, as a page's rAF does)
     if (D.paused) return;
     if (!last) last = t;
     acc += Math.min(100, t - last); last = t;
     var n = 0;
-    while (acc >= 1000 / 60 && n < 4) { D.update(); acc -= 1000 / 60; n++; }
-    if (n) {
-      var t0 = performance.now();
-      D.draw();
-      D.drawMs = (D.drawMs || 0) * 0.9 + (performance.now() - t0) * 0.1;
-      fpsN++;
+    try {
+      while (acc >= 1000 / 60 && n < 4) { D.update(); acc -= 1000 / 60; n++; }
+      if (n) {
+        var t0 = performance.now();
+        D.draw();
+        D.drawMs = (D.drawMs || 0) * 0.9 + (performance.now() - t0) * 0.1;
+        fpsN++;
+      }
+      if (n) badRun = 0;
+    } catch (e) {
+      if (D.embed && D.embed.on) throw e; // (the 8-bit's floor hears it: js/embed.js)
+      acc = 0; D.lastError = e; badRun++;
+      if (badRun === 1 && window.console) console.error('DEEP16: a frame failed (the page plays on)', e);
+      if (badRun >= D.BROKE_N) { badRun = 0; D.doorBroke(e); }
     }
     if (t - fpsT >= 1000) { D.fps = fpsN; fpsN = 0; fpsT = t; }
-  }
+  };
+  // set aside whatever kept throwing, and the card in its place
+  D.doorBroke = function (e) {
+    var top = D.top(), where = top && (top.kind || (top.constructor && top.constructor.name)) || 'the page';
+    if (window.console) console.error('DEEP16: the page broke (' + where + '); its card, and the way back to the 8-bit title', e);
+    try { if (top && top.rec && D.rec && D.rec.finish) { (top.rec.errors = top.rec.errors || []).push(String(e && e.message || e)); D.rec.finish(top, 'broke'); } } catch (e2) { /* (the record as far as it went) */ }
+    D.scenes.length = 0;
+    try { D.music && D.music('title'); } catch (e3) { }
+    D.push(new BrokeCard(e));
+  };
+  // THE FIGHT BROKE, on a page with no way back of its own: what broke, and E to the 8-bit title (the URL's own door is the browser's reload)
+  function BrokeCard(e, head) { this.kind = 'broke'; this.opaque = true; this.t = 0; this.head = head || 'THE FIGHT BROKE.'; this.msg = String(e && e.message || e || 'unknown error'); }
+  BrokeCard.prototype.update = function () {
+    if (++this.t < 30) return; // (a key held through the break doesn't leave at once)
+    if (I.pressed('a') || I.pressed('b') || I.pressed('center') || I.mouse.click) { D.sfx('confirm'); D.toTitle8(); }
+  };
+  BrokeCard.prototype.draw = function (ctx) {
+    var w = 420, x = (D.W - w) / 2, bl = D.wrap('It broke: ' + this.msg, w - 30), h = 58 + bl.length * 9, y = Math.round((D.H - h) / 2);
+    D.win8(ctx, x, y, w, h);
+    D.text(ctx, '{r}' + this.head + '{/}', D.W / 2, y + 10, D.WIN8.gold, 'center');
+    bl.forEach(function (l, i) { D.text(ctx, l, D.W / 2, y + 26 + i * 9, D.WIN8.text, 'center'); });
+    D.text(ctx, 'Nothing was saved or changed. Reload the page to try its door again.', D.W / 2, y + 30 + bl.length * 9, '#b8b8d0', 'center');
+    D.text(ctx, D.keys('{g}E{/}') + ': back to the 8-bit title', D.W / 2, y + 42 + bl.length * 9, D.WIN8.gold, 'center');
+  };
+  D.BrokeCard = BrokeCard;
+  D.toTitle8 = function () { location.href = '../index.html'; }; // (the 8-bit game's title, beside deep16/ -- locally and on Pages alike)
   D.start = function () { requestAnimationFrame(tick); };
 
   // ---------------------------------------------------------------- text: the 8-bit game's own bitmap font (../js/font.js), with a drop shadow
