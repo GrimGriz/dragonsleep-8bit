@@ -585,6 +585,10 @@
     var T = u.turn; T.action = 0; L.ready = false;
     u.tween = { fx: u.x, fy: u.y, fz: 60, t: 0, dur: B.pace(22, true) }; u.x = best.land[0]; u.y = best.land[1]; // (the leap's flight is paced with its waits below, as a step is: Battle.prototype.pace)
     u.facing = B.faceTo(u, best.t); u.anim = 'attack'; u.animT = B.t; D.sfx('crit');
+    // the readied strikes as it comes down within reach, before the landing hits (SRD 5.1: the jump is "part of its movement", the landing is "this action", and a readied
+    // action goes "right after the trigger finishes" -- the trigger, a foe come within reach, is the jump's end). 10-06, Griz: "SRD the leap"; they went after the landing's
+    // blow before (the seat's call of 10-02). Struck down in the air, it lands on no one
+    if (B.readyHook && B.readyArmed && B.readyArmed()) { yield* B.readyHook(u); if (u.dead || u.hp <= 0) { u.anim = 'idle'; return true; } }
     var hit = [best.t].concat(hs.filter(function (w) { return w !== best.t && G.dist(w, best.t) <= 5 && G.dist(u, w) <= 5; }).slice(0, (L.targets || 2) - 1));
     if (u.turn) u.turn.attacked = (u.turn.attacked || 0) + 1; // (the Leap is its attack this turn: it may dive after -- diveAfter, 10-02)
     // the Deadly Leap by the SRD 5.1 (10-02 runner): "DC 16 Strength or Dexterity saving throw (target's choice) or be knocked prone and take 14 (3d6 + 4) bludgeoning damage plus 14 (3d6 + 4) slashing damage. On a
@@ -602,7 +606,6 @@
     B.card(lines, 400);
     hurt.forEach(function (h) { FX.slash(h[0], D.PAL.ramps.red[4]); parts.forEach(function (p, i) { if (h[1][i] > 0 && !h[0].dead && h[0].hp > 0) B.hurt(h[0], h[1][i], p.type); }); }); // (a second type on one the first dropped is no second fall: no "goes down" twice)
     yield 34; u.anim = 'idle';
-    if (B.readyHook) yield* B.readyHook(u); // (it came down within their reach: the readied strikes, once its own blow is done -- battle.js exec 'ready', 10-02)
     return true;
   }
   function* bolt(B, u) {

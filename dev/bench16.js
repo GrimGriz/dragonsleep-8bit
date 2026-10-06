@@ -1204,6 +1204,14 @@
       var near14 = B14.nearOf(dm14, v14), gnear14 = B14.nearOf(gb14, v14); dm14.blindsight = 10; var far14 = B14.nearOf(dm14, v14); dm14.blindsight = 60;
       okR6('§2.14 behind them: the darkmantle\'s watch ' + JSON.stringify(near14) + ' (facing ' + dm14.facing + '), the goblin\'s ' + JSON.stringify(gnear14) + '; the darkmantle\'s blindsight cut to 10 ft: ' + JSON.stringify(far14),
         !!(near14 && near14.side === 'front' && near14.bonus > 0) && !gnear14 && !far14);
+      // §2.13 the Leap by the SRD (10-06, Griz: "SRD the leap"): a fighter readied beside the bulette's mark strikes as it comes down within reach, before the landing's blow
+      var B13 = mkR6('?npc=bulette&lvl=5&vs=fighter:5,fighter:5'), bl13 = sideR6(B13, 'foe')[0], ps13 = sideR6(B13, 'party'), t13 = ps13[0], r13 = ps13[1];
+      [t13, r13].forEach(function (u) { u.hp = u.maxhp = 400; u.conds = {}; u.reaction = 1; }); bl13.hp = bl13.maxhp = 400;
+      bl13.under = false; bl13.x = 8; bl13.y = 2; t13.x = 8; t13.y = 8; r13.x = 9; r13.y = 8; bl13.leap.ready = true;
+      D.rules.startTurn(r13); B13.active = r13; runR6(B13.exec(r13, { do: 'ready', pick: 'weapon' }));
+      D.rules.startTurn(bl13); B13.active = bl13; var n13 = (B13.log || []).length; runR6(D.ai.brute(B13, bl13)); var l13 = logR6(B13, n13);
+      var iR13 = l13.indexOf('readied'), iL13 = l13.indexOf('comes down on them');
+      okR6('§2.13 the Leap at (' + bl13.x + ',' + bl13.y + '): the readied strike ' + (iR13 >= 0) + ', before the landing\'s blow ' + (iR13 >= 0 && iL13 >= 0 && iR13 < iL13) + ' -- ' + l13.slice(0, 220), iR13 >= 0 && iL13 >= 0 && iR13 < iL13);
       // §2b.18 the Keeper's way out: the corridor's end on the grid (14, 8) is the 8-bit's (25, 22), carried home in the seam's report
       var B18 = new D.Battle({ fight: 'keeper', data: D.save.fixture(3), bench: true }); D.battle = B18; B18.enter(); while (!B18.order.length) B18.co.next();
       var h18 = sideR6(B18, 'party')[0], ex18 = (B18.exits || []).map(function (q) { return q.join(','); });
