@@ -286,13 +286,20 @@
     if ((w.known || []).indexOf(use.spell) >= 0) return w.name + ' knows ' + sp.name + ' already.';
     return w.name + ' can\'t yet cast a spell of its level (' + lvl + '): the sheet waits.';
   };
+  // healing out of a fight: HP back up to the max, and one knocked out comes round (SRD 5.1: unconsciousness at 0 "ends if you regain any hit
+  // points" -- the battle's since 09-28, the field's since 10-06, Griz: "let out of combat spells bring them back"); { n, woke }
+  EV.fieldHeal = function (t, amt) {
+    var before = Math.max(0, t.hp), n = Math.max(0, Math.min(t.maxhp - before, amt)), woke = !!t.ko && n > 0;
+    t.hp = before + n; if (woke) t.ko = false;
+    return { n: n, woke: woke };
+  };
   EV.useFieldItem = function* (id, h) {
     var it = DS.DATA.items[id], use = it.use, g = G();
-    if (use.effect === 'heal') {
-      if (h.ko) { yield DS.say(L('g.needKit')); return; }
+    if (use.effect === 'heal') { // (a potion wakes the fallen out of a fight as in one: RULED 10-06, Griz: "let out of combat spells bring them back, you can just drag a corpse to the inn and wakeup fine")
       if (h.hp >= h.maxhp) { yield DS.say(L('g.fullHP', { name: h.name })); return; }
-      g.take(id, 1); var n = Math.min(h.maxhp - h.hp, DS.roll(use.dice)); h.hp += n; DS.audio.sfx('heal');
-      yield DS.say(L('g.healed', { name: h.name, n: n }));
+      g.take(id, 1); var hr = EV.fieldHeal(h, DS.roll(use.dice)); DS.audio.sfx('heal');
+      yield DS.say(L('g.healed', { name: h.name, n: hr.n }));
+      if (hr.woke) yield DS.say(L('g.comesRound', { name: h.name }));
     } else if (use.effect === 'revive') {
       if (!h.ko) { yield DS.say(L('g.notDown', { name: h.name })); return; }
       g.take(id, 1); h.ko = false; h.hp = use.hp || 1; DS.audio.sfx('heal');
@@ -357,13 +364,16 @@
     }
     if (sp.kind === 'heal' || sp.kind === 'cure' || (sp.kind === 'buff' && sp.target !== 'allies')) {
       var ma = sp.buff === 'mageArmor';
-      var items = g.party.map(function (x) { return { label: x.name, right: ma && R.armored(x) ? 'ARMORED' : (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: x.ko || (ma && R.armored(x)) }; });
+      var items = g.party.map(function (x) { return { label: x.name, right: ma && R.armored(x) ? 'ARMORED' : (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: sp.kind === 'heal' ? x.hp >= x.maxhp : x.ko || (ma && R.armored(x)) }; }); // (a healing spell reaches the fallen: EV.fieldHeal)
       if (ma && items.every(function (it) { return it.disabled; })) { yield DS.say(L('g.mageArmorNone')); return; }
       var t = yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'ON WHOM?' });
       if (!t) return;
       if (slot) h.slots[slot - 1]--;
       DS.audio.sfx('heal');
-      if (sp.kind === 'heal') { var n = Math.min(t.maxhp - t.hp, DS.roll(sp.dmg.replace(/^(\d+)d/, function (m, k) { return (+k + (slot - sp.level)) + 'd'; })) + DS.mod(h.abil.cha)); t.hp += n; yield DS.say(L('g.healed', { name: t.name, n: n })); }
+      if (sp.kind === 'heal') { // (the caster's own casting ability, as the battle's: a cleric's WIS, not CHA for everyone -- 10-06)
+        var hf = EV.fieldHeal(t, DS.roll(sp.dmg.replace(/^(\d+)d/, function (m, k) { return (+k + (slot - sp.level)) + 'd'; })) + DS.mod(h.abil[R.CLASSES[h.cls].cast || 'cha']));
+        yield DS.say(L('g.healed', { name: t.name, n: hf.n })); if (hf.woke) yield DS.say(L('g.comesRound', { name: t.name }));
+      }
       else if (sp.kind === 'cure') yield DS.say(L('g.cured', { name: t.name }));
       else if (sp.buff === 'mageArmor') { t.conds.mageArmor = true; yield DS.say(L('g.mageArmor', { name: t.name, ac: R.ac(t) })); }
       else if (sp.buff === 'darkvision') { t.conds.darkvision = true; yield DS.say(L('g.darkvision', { name: t.name })); } // (till the long rest: R.refresh)
@@ -376,15 +386,21 @@
     if (sp.buff === 'aid') {
       // up to three of the caster's choice, himself among them if he likes (SRD; Griz, 09-28: Lymen's own Aid): four in the
       // party, one goes without
-      var up3 = g.party.filter(function (x) { return !x.ko; });
+      // (the fallen among them, and one down comes round -- 10-06, as the battle's; +5 a slot level over 2nd, and the higher Aid stands, not both:
+      // SRD 5.1, the battle's since 09-28h -- the field's stacked and stayed at 5)
+      var up3 = g.party.slice();
       if (up3.length > 3) {
-        var out = yield DS.choose({ items: up3.map(function (x) { return { label: x.name, right: x.hp + '/' + x.maxhp, value: x }; }), x: 60, y: 60, w: 136, title: 'WHO GOES WITHOUT?' });
+        var out = yield DS.choose({ items: up3.map(function (x) { return { label: x.name, right: (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x }; }), x: 60, y: 60, w: 136, title: 'WHO GOES WITHOUT?' });
         if (!out) return;
         up3 = up3.filter(function (x) { return x !== out; });
       }
       if (slot) h.slots[slot - 1]--;
-      up3.slice(0, 3).forEach(function (x) { x.maxhp += 5; x.hp += 5; x.conds.aid = (x.conds.aid || 0) + 5; });
-      DS.audio.sfx('buff'); yield DS.say(L('g.aid')); return;
+      var aN = 5 * Math.max(1, (slot || sp.level) - 1), woke = [];
+      up3 = up3.slice(0, 3);
+      up3.forEach(function (x) { var had = x.conds.aid || 0, more = Math.max(0, aN - had); x.maxhp += more; x.hp = Math.max(0, x.hp) + more; x.conds.aid = Math.max(had, aN); if (x.ko && x.hp > 0) { x.ko = false; woke.push(x); } });
+      DS.audio.sfx('buff'); yield DS.say(L('g.aid', { who: up3.map(function (x) { return x.name; }).join(', '), n: aN }));
+      for (var wi = 0; wi < woke.length; wi++) yield DS.say(L('g.comesRound', { name: woke[wi].name }));
+      return;
     }
     if (sp.kind === 'light') { DS.audio.sfx('magic'); yield DS.say(L('g.light')); return; }
     if (sp.kind === 'detect') {
@@ -397,11 +413,11 @@
   EV.fieldSkill = function* (h, s) {
     var g = G();
     if (s === 'lay') {
-      var items = g.party.map(function (x) { return { label: x.name, right: (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: x.ko || x.hp >= x.maxhp }; });
+      var items = g.party.map(function (x) { return { label: x.name, right: (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: x.hp >= x.maxhp }; }); // (the fallen too: EV.fieldHeal, 10-06)
       var t = yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'LAY ON HANDS (' + h.feats.lay + ')' });
       if (!t) return;
-      var n = Math.min(h.feats.lay, t.maxhp - t.hp); h.feats.lay -= n; t.hp += n; DS.audio.sfx('heal');
-      yield DS.say(L('g.healed', { name: t.name, n: n }));
+      var lh = EV.fieldHeal(t, h.feats.lay); h.feats.lay -= lh.n; DS.audio.sfx('heal');
+      yield DS.say(L('g.healed', { name: t.name, n: lh.n })); if (lh.woke) yield DS.say(L('g.comesRound', { name: t.name }));
     }
     if (s === 'arcane') {
       var budget = Math.ceil(h.lvl / 2), got = 0;
