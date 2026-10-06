@@ -1337,6 +1337,7 @@
       var cases6 = [], rnd0 = Math.random;
       function laneCase(name, fn) {
         var before = out.checks.length;
+        DS.seedDice(1006); // (each case on the same dice every run)
         try { fn(); } catch (e) { check(name + ': threw ' + String(e && e.stack || e).slice(0, 240), false); }
         Math.random = rnd0; DS.rng = rnd0;
         cases6.push({ name: name, ok: out.checks.slice(before).every(function (c) { return c.indexOf('ok') === 0; }) });
@@ -1409,6 +1410,49 @@
           check('a square in a wall (' + wall.t + ' at ' + wall.x + ',' + wall.y + '): moved ' + d4 + ' to ' + DS.G.x + ',' + DS.G.y + ' (' + t4 + ')', d4 === 1 && DS.TILES[t4].pass && warns.some(function (w) { return /no square to stand on/.test(w); }));
           load(save0, []); check('a good save stays where it was (' + [DS.field.map.id, DS.G.x, DS.G.y].join(',') + ', ' + warns.length + ' warnings)', DS.field.map.id === 'gulch' && DS.G.x === 33 && DS.G.y === 8 && !warns.length);
         } finally { console.error = err0; console.warn = warn0; DS.EV.onEnter = onEnter0; }
+      });
+      // §2.3 what a grid crash's fallback carries (todo 1.3): nothing of a grid report stands (no stale square, no stale measure); in the wet's fallback with the landlord
+      // in it the bucket feeds it as the grid's USE BUCKET does (otyughFed, the stream's rumour, not dead, no kill XP); elsewhere it is refused and kept; and the
+      // Skylights' fallback fields Pyro on his own 8-bit measure (js/pyro.js): one swing, then the white mace and the halved XP when one of the four is down
+      laneCase('the grid crashed: what the fallback carries', function () {
+        var set0 = window.setTimeout, clr0 = window.clearTimeout, warn0 = console.warn, timers = [];
+        function crash(list, o, before) {
+          var stale; while ((stale = document.getElementById('d16'))) stale.parentNode.removeChild(stale);
+          SETUP(5); DS.lastError = null; DS.paused = false; T.res = undefined; timers = [];
+          window.setTimeout = function (fn, ms) { var t = { fn: fn, ms: ms }; timers.push(t); return t; }; window.clearTimeout = function (t) { if (t) t.cleared = true; };
+          console.warn = function () { };
+          if (before) before();
+          T.startFight(list, Object.assign({ dark: false, torch: null }, o));
+          for (var i = 0; i < 400 && !document.getElementById('d16'); i++) T.step(1);
+          var fr = document.getElementById('d16'); if (!fr) return null;
+          function msg(d) { window.dispatchEvent(new MessageEvent('message', { source: fr.contentWindow, data: d })); }
+          msg({ type: 'd16:ready' }); msg({ type: 'd16:crash', msg: 'boom', at: 'battle1006' });
+          for (var j = 0; j < 600 && !DS.find('battle'); j++) { var tp = DS.top(); if (tp && tp.kind === 'dialog') { tp.chars = tp.pageLen(); T.tapf('a'); } else T.step(1); }
+          return DS.find('battle');
+        }
+        function flush() { timers.forEach(function (t) { if (!t.cleared && !t.ran && !t.ms) { t.ran = true; t.fn(); } }); T.step(2); }
+        try {
+          var b = crash(['otyugh'], { deep16: 'wet', wake: 'rim', bg: 'wet' }, function () { DS.G.give('bucket', 1); DS.wetExit = [9, 9]; DS.pyroBack = { held: true, phase: 3 }; });
+          check('the wet crashed: the 8-bit battle has it (' + !!b + ', fromDeep ' + !!(b && b.fromDeep) + '), a stale exit and measure cleared (' + JSON.stringify([DS.wetExit, DS.pyroBack]) + ')', !!b && !b.fromDeep && DS.wetExit === null && DS.pyroBack === null);
+          var xp0 = DS.G.party.map(function (h) { return h.xp; }).join();
+          drive({ barley: ['ITEM', 'Carrion Bucket'] }, 3000); flush();
+          var xp1 = DS.G.party.map(function (h) { return h.xp; }).join();
+          var fl = DS.G.flags, said1 = (T.blog || []).join(' / ');
+          check('the bucket to the landlord in the fallback: ' + T.res + ', otyughFed ' + fl.otyughFed + ', the stream heard ' + fl['heard:r-stream'] + ', otyughDead ' + !!fl.otyughDead + ', the bucket x' + DS.G.count('bucket') + ', "' + ((said1.match(/[^/]*settles\.[^/]*/) || [''])[0]).trim() + '", the pictures ' + /chimney full of wings/.test(said1) + ', the XP banked ' + (xp0 === xp1 ? 'none here (the fed XP is the wet\'s way out)' : xp0 + ' to ' + xp1),
+            T.res === 'win' && fl.otyughFed === 1 && fl['heard:r-stream'] === 1 && !fl.otyughDead && DS.G.count('bucket') === 0 && /The landlord takes it, and settles\./.test(said1) && /chimney full of wings/.test(said1) && xp0 === xp1);
+          var b2 = crash(['ochrejelly'], { deep16: 'wet', wake: 'jelly', bg: 'wet' }, function () { DS.G.give('bucket', 1); });
+          var bar = b2 && b2.heroes[0], got = b2 && runGen(b2.useItem(bar, 'bucket')), lastLine = (T.blog || []).slice(-1)[0];
+          check('the bucket where no landlord stands (the jelly\'s fallback): refused (' + got + '), "' + lastLine + '", kept x' + DS.G.count('bucket') + ', nothing fed (' + !!DS.G.flags.otyughFed + ')', got === false && /Nothing here takes it/.test(lastLine) && DS.G.count('bucket') === 1 && !DS.G.flags.otyughFed);
+          b2.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500); flush();
+          var b3 = crash(['troll'], { deep16: 'edifice', canRun: false }, function () { DS.EV.addGuest('pyro'); });
+          var py = b3 && b3.heroes.filter(function (x) { return x.guest && x.h.script === 'measure'; })[0], n0 = (T.blog || []).length;
+          if (py) runGen(b3.guestTurn(py));
+          var swing = (T.blog || []).slice(n0).filter(function (l) { return /\bPyro (hits|attacks)\b/.test(l); }); // (a crit's line starts "Critical! ")
+          b3.heroes[0].h.hp = 0; b3.heroes[0].h.ko = true; runGen(DS.scripts8.watch(b3));
+          check('the Skylights crashed: Pyro walks in the 8-bit battle on his own measure (' + !!py + '), one swing a turn (' + swing.length + ': "' + (swing[0] || '') + '"), Barley down and the white mace drawn (phase ' + (b3.pyro8 && b3.pyro8.phase) + ', the XP halved ' + !!b3.xpHalf + ')',
+            !!py && swing.length === 1 && !!b3.pyro8 && b3.pyro8.phase === 2 && b3.xpHalf === true);
+          b3.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); b3.over = 'win'; drive({}, 1500); flush();
+        } finally { window.setTimeout = set0; window.clearTimeout = clr0; console.warn = warn0; }
       });
       var ok6 = cases6.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('battle1006: ' + ok6 + '/' + cases6.length + ' cases' + (ok6 === cases6.length ? ' clean' : ': ' + cases6.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));

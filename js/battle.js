@@ -1479,7 +1479,22 @@
       if (!t) { if (use.target === 'revive') yield* this.say('No one is down.', 30); return false; }
     } else t = u;
     if (use.effect === 'heal' && t.h && t.h.hp >= t.h.maxhp) { yield* this.say(nameOf(t) + ' is unhurt.', 30); return false; }
-    if (use.effect === 'bucket') { yield* this.say('Nothing here takes it. It is for the deep water under the fall.', 40); return false; } // (the landlord's: the wet is fought on the grid, deep16/js/wet.js)
+    if (use.effect === 'bucket') { // (the landlord's: the wet is fought on the grid, deep16/js/wet.js)
+      // the wet's fight fallen back from the grid (js/embed.js d16:crash) with the landlord in it: it takes the bucket as the grid's USE BUCKET has it -- fed, it does
+      // not fight, it shows its pictures, and the fed XP is paid as the party leaves the wet (EV.wetOut, EV.fedXp). 10-06, the 8-bit battle lane §2.3: the one
+      // grid-only extra a fallback dropped that the story reads (otyughFed: the rim, the bucket's station, the landlord's own word)
+      var ll = this.o.deep16 === 'wet' ? this.liveFoes().filter(function (f) { return f.id === 'otyugh'; })[0] : null;
+      if (!ll) { yield* this.say('Nothing here takes it. It is for the deep water under the fall.', 40); return false; }
+      DS.G.take(id, 1); DS.G.flags.otyughFed = 1; DS.G.flags['heard:r-stream'] = 1; delete DS.G.flags.bucketBy;
+      ll.fed = true; ll.off = 0; ll.dead = true; ll.fled = true; ll.fade = 24; this.release(ll); // (out of the fight as one gone is: no kill, no XP here, not dead -- embed's WET_DEAD skips it)
+      ll.holding.forEach(function (x) { delete x.conds.grappled; delete x.conds.engulfed; delete x.conds.restrained; }); ll.holding = [];
+      DS.audio.sfx('heal'); this.elemBurst(ll, 'heal', 'rise');
+      yield* this.say(nameOf(u) + ' lowers the bucket into the deep water. The landlord takes it, and settles.', 50);
+      DS.audio.sfx('magic');
+      yield* this.say('Pictures, one after another, in ' + plain(u) + "'s head: the stream coming down out of the hills; a cave of pale fungus and still water; hooked things clacking in the dark; and a chimney full of wings.", 110);
+      this.checkEnd();
+      return true;
+    }
     DS.G.take(id, 1);
     if (use.effect === 'heal') {
       var n = this.heal(t, DS.roll(use.dice));

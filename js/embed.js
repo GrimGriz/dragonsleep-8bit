@@ -34,6 +34,8 @@
               // (the report was never applied, so the party is as it walked in. DS.lastD16Crash is for probes: never in DS.G, never in the save)
               if (crashed) { console.warn('DEEP16 crashed in ' + o.deep16 + ' (' + d.msg + (d.at ? ' at ' + d.at : '') + '): fought in the 8-bit game'); DS.lastD16Crash = { fight: o.deep16, msg: d.msg, at: d.at }; }
               else console.warn('DEEP16 refused ' + o.deep16 + ' (' + (d.missing || []).join(', ') + '): fought in the 8-bit game');
+              // (nothing of a grid report stands: no square to land on, no measure of Pyro's -- the 8-bit battle keeps its own, js/pyro.js; 10-06, the 8-bit battle lane §2.3)
+              DS.wetExit = null; DS.pyroBack = null;
               var b8 = new DS.Battle(o);
               b8.onClose = function (r) {
                 if (o.deep16 === 'wet') b8.foes.forEach(function (f) { if (f.dead && !f.fled && WET_DEAD[f.id]) DS.G.flags[WET_DEAD[f.id]] = 1; });

@@ -13,6 +13,9 @@
   function drain(g) { var n = 0, r; do { r = g.next(); } while (!r.done && n++ < 100000); return r.value; }
   function battleNow(list) { T.startFight(list); for (var w = 0; w < 400 && !DS.find('battle'); w++) T.step(1); return DS.find('battle'); }
   function said() { return (T.blog || []).join(' | '); }
+  // (the dice seeded, 10-06, the 8-bit battle lane §2.7: "left at 25 or fewer" went RED about one run in ten on unseeded dice -- a 12-HP undead a strong blow
+  // kills outright, and then neither line is said; seeded, the probe reads the same every run)
+  if (DS.seedDice) DS.seedDice(930);
   try {
     SETUP(6);
     var g = DS.G;
