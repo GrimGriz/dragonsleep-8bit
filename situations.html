@@ -37,6 +37,7 @@
   .row code { font-size:12px; }
   .row button, .row a.btn { background:none; border:1px solid var(--rule); color:var(--ink); border-radius:999px; padding:.15rem .6rem; cursor:pointer; font:inherit; text-decoration:none; min-height:28px; display:inline-flex; align-items:center; }
   .row button:hover, .row a.btn:hover { border-color:var(--accent); }
+  .row button:disabled { opacity:.35; cursor:default; border-color:var(--rule); }
   .fb { margin-top:.55rem; border-top:1px dashed var(--rule); padding-top:.5rem; }
   .chips { display:flex; flex-wrap:wrap; gap:.35rem; font:13px system-ui,sans-serif; }
   .chips button { background:none; border:1px solid var(--rule); color:var(--ink); border-radius:999px; padding:.15rem .6rem; cursor:pointer; font:inherit; min-height:28px; }
@@ -62,6 +63,7 @@
   <button data-base="local">LOCAL :8923</button>
   <span class="sp"></span>
   <span id="count"></span>
+  <button data-pg="-1" title="The six before">‹</button><span id="pg"></span><button data-pg="1" title="The next six">›</button>
   <button id="copyfb" title="Copy every note and verdict, ready to paste into the chat">Copy feedback</button>
   <button id="savefb" title="Download the notes as a situations ear-file (JSON)">Save ⬇</button>
   <button id="clearfb" title="Wipe every note on this device">Clear</button>
@@ -72,7 +74,7 @@
 <main id="page">
   <h1>Situations</h1>
   <div class="intro">
-    <p>Each link starts a NEW GAME standing at a line of the playtest ear-file (PLAYTEST.md), at that point's level, with the story done up to there. Pick NEW GAME, pick a lead, and you're in. Nothing touches your saves unless you save.</p>
+    <p><b>Six at a time, most wanted first.</b> The <b>Eyes</b> rows come first: things built that nobody has seen on a screen yet, each opening its own door, with what should happen. Then the story situations: each starts a NEW GAME standing at a line of the playtest ear-file (PLAYTEST.md), at that point's level, with the story done up to there -- pick NEW GAME, pick a lead, and you're in. Nothing touches your saves unless you save.</p>
     <p>Vivian comes as a Thief; add <code>&amp;rogue=cutthroat</code> for the other. Add <code>&amp;x=anything</code> to force a fresh load past the cache (the FRESH links do it for you).</p>
     <p>Under each one: mark it and say what happened. Notes stay on this device as you go; <b>Copy feedback</b> gives you all of them at once to paste into the chat (or <b>Save</b> them as a file for the next seat).</p>
   </div>
@@ -81,6 +83,7 @@
 <div id="toast"></div>
 <script>window.DS = {};</script>
 <script src="js/situations.js"></script>
+<script src="js/eyes.js"></script>
 <script>
 (function () {
   var BASES = { live: 'https://grimgriz.github.io/dragonsleep-8bit/', local: 'http://localhost:8923/' };
@@ -101,21 +104,40 @@
   var FB = {}; try { FB = JSON.parse(get(FKEY) || '{}') || {}; } catch (e) { FB = {}; }
   function saveFB() { put(FKEY, JSON.stringify(FB)); count(); }
   function noted(id) { var f = FB[id]; return !!(f && (f.v || (f.note || '').trim())); }
+  // six a page, most wanted first (10-06, Griz: "Bulk processing is good, but do like 6 items per page by any priority they might have"):
+  // the eyes rows (js/eyes.js: built, never seen) by their pri, then the story situations (pri 4) in the story's order; a row already
+  // noted when the page opened sinks below the unnoted of its priority (sorted at load, so a row doesn't jump while you mark it)
+  var PER = 6, ROWS = [], pg = +(get('dsl-situations-page') || 0) || 0;
+  function build() {
+    var E = window.DS.EYES || {}, S = window.DS.SITUATIONS || {}, all = [], n = 0;
+    Object.keys(E).forEach(function (id) { all.push({ id: id, s: E[id], pri: E[id].pri || 3, eyes: true, o: n++ }); });
+    Object.keys(S).forEach(function (id) { all.push({ id: id, s: S[id], pri: S[id].pri || 4, eyes: false, o: n++ }); });
+    all.forEach(function (r) { r.done = noted(r.id) ? 1 : 0; });
+    all.sort(function (a, b) { return a.pri - b.pri || a.done - b.done || a.o - b.o; });
+    ROWS = all;
+  }
+  function pages() { return Math.max(1, Math.ceil(ROWS.length / PER)); }
   function count() {
-    var S = window.DS.SITUATIONS || {}, ids = Object.keys(S), n = ids.filter(noted).length;
-    document.getElementById('count').innerHTML = '<b>' + n + '</b> of ' + ids.length + ' noted';
+    var n = ROWS.filter(function (r) { return noted(r.id); }).length;
+    document.getElementById('count').innerHTML = '<b>' + n + '</b> of ' + ROWS.length + ' noted';
+    document.getElementById('pg').textContent = 'page ' + (pg + 1) + ' of ' + pages();
+  }
+  function pager() {
+    return '<div class="row" style="justify-content:space-between;margin-top:1.2rem"><button data-pg="-1"' + (pg ? '' : ' disabled') + '>‹ the six before</button>' +
+      '<span>page ' + (pg + 1) + ' of ' + pages() + '</span><button data-pg="1"' + (pg < pages() - 1 ? '' : ' disabled') + '>the next six ›</button></div>';
   }
   function render() {
     document.querySelectorAll('#bar [data-base]').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-base') === base); });
-    var S = window.DS.SITUATIONS || {}, ids = Object.keys(S), html = '', group = null;
-    ids.forEach(function (id, i) {
-      var s = S[id], url = BASES[base] + (s.url || '?at=' + id), f = FB[id] || {};
+    if (pg > pages() - 1) pg = pages() - 1; if (pg < 0) pg = 0;
+    var html = '', group = null;
+    ROWS.slice(pg * PER, pg * PER + PER).forEach(function (r, k) {
+      var id = r.id, s = r.s, i = pg * PER + k, url = BASES[base] + (s.url || '?at=' + id), f = FB[id] || {};
       if (s.group !== group) { group = s.group; html += '<h2>' + esc(group || '') + '</h2>'; }
       html += '<div class="item' + (s.url && /deep16/.test(s.url) ? ' deep' : '') + (noted(id) ? ' noted' : '') + '" data-id="' + esc(id) + '">' +
         '<h3><span class="n">' + (i + 1) + '</span><a href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(s.title) + '</a></h3>' +
         '<p class="meta">' + esc(s.pt || '') + (s.lvl ? ' · level ' + s.lvl : '') + '</p>' +
         '<p class="look">' + esc(s.look || '') + '</p>' +
-        '<p class="ask">' + esc(ASK) + '</p>' +
+        (r.eyes ? '' : '<p class="ask">' + esc(ASK) + '</p>') +
         '<div class="row"><code>' + esc(url) + '</code>' +
         '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">OPEN</a>' +
         '<a class="btn" href="' + esc(url + '&x=' + Date.now().toString(36)) + '" target="_blank" rel="noopener">FRESH</a>' +
@@ -123,9 +145,14 @@
         '<div class="fb"><div class="chips">' + VERDICTS.map(function (v) { return '<button data-v="' + v[0] + '"' + (f.v === v[0] ? ' class="on"' : '') + '>' + v[1] + '</button>'; }).join('') + '</div>' +
         '<textarea placeholder="What happened? (kept on this device till you copy or save)">' + esc(f.note || '') + '</textarea></div></div>';
     });
-    list.innerHTML = html || '<p>No situations found: js/situations.js did not load.</p>';
+    list.innerHTML = html ? html + pager() : '<p>No situations found: js/situations.js did not load.</p>';
     count();
   }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pg]'); if (!b || b.disabled) return;
+    var to = pg + (+b.getAttribute('data-pg')); if (to < 0 || to > pages() - 1) return;
+    pg = to; put('dsl-situations-page', String(pg)); render(); window.scrollTo(0, 0);
+  });
   list.addEventListener('click', function (e) {
     var b = e.target.closest('.chips button'); if (!b) return;
     var it = b.closest('.item'), id = it.getAttribute('data-id'), v = b.getAttribute('data-v'), f = FB[id] = FB[id] || {};
@@ -140,12 +167,13 @@
     it.classList.toggle('noted', noted(id)); saveFB();
   });
   function stamp() { return new Date().toISOString().slice(0, 10); }
+  function notedRows() { return ROWS.filter(function (r) { return noted(r.id); }); }
   function feedbackText() {
-    var S = window.DS.SITUATIONS || {}, ids = Object.keys(S).filter(noted);
-    if (!ids.length) return '';
-    return ['Situations feedback (' + stamp() + ', ' + ids.length + ' noted):'].concat(ids.map(function (id) {
-      var f = FB[id], s = S[id], n = Object.keys(S).indexOf(id) + 1;
-      return n + '. ' + id + ' (' + s.title + ')' + (f.v ? ' ' + VL[f.v] : '') + ((f.note || '').trim() ? ': ' + f.note.trim().replace(/\s*\n\s*/g, ' / ') : '');
+    var rs = notedRows();
+    if (!rs.length) return '';
+    return ['Situations feedback (' + stamp() + ', ' + rs.length + ' noted):'].concat(rs.map(function (r) {
+      var f = FB[r.id], n = ROWS.indexOf(r) + 1;
+      return n + '. ' + r.id + ' (' + r.s.title + ')' + (f.v ? ' ' + VL[f.v] : '') + ((f.note || '').trim() ? ': ' + f.note.trim().replace(/\s*\n\s*/g, ' / ') : '');
     })).join('\n');
   }
   document.getElementById('copyfb').addEventListener('click', function () {
@@ -153,16 +181,16 @@
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast('Copied: paste it into the chat'); }, function () { window.prompt('Copy this:', t); });
   });
   document.getElementById('savefb').addEventListener('click', function () {
-    var S = window.DS.SITUATIONS || {}, ids = Object.keys(S).filter(noted);
-    if (!ids.length) { toast('Nothing noted yet'); return; }
-    var out = { _readme: { what: 'Playtest feedback from situations.html: one verdict and note a situation (?at=<id>, js/situations.js).', fold_back: 'Broken and unclear become the fix list; too hard / too easy are tuning; notes are the tester\'s words, verbatim.' },
-      saved_at: new Date().toISOString(), items: ids.map(function (id) { return { id: id, title: S[id].title, pt: S[id].pt, verdict: FB[id].v || '', note: FB[id].note || '', at: FB[id].at || '' }; }) };
+    var rs = notedRows();
+    if (!rs.length) { toast('Nothing noted yet'); return; }
+    var out = { _readme: { what: 'Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).', fold_back: 'An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js. Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester\'s words, verbatim.' },
+      saved_at: new Date().toISOString(), items: rs.map(function (r) { var f = FB[r.id]; return { id: r.id, eyes: r.eyes, pri: r.pri, title: r.s.title, pt: r.s.pt, url: r.s.url || ('?at=' + r.id), verdict: f.v || '', note: f.note || '', at: f.at || '' }; }) };
     var a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 1)], { type: 'application/json' }));
     a.download = 'situations-ear-file-' + stamp() + '.json'; document.body.appendChild(a); a.click(); a.remove();
   });
   document.getElementById('clearfb').addEventListener('click', function () {
     if (!window.confirm('Wipe every note and verdict on this device?')) return;
-    FB = {}; saveFB(); render();
+    FB = {}; build(); saveFB(); render();
   });
   document.getElementById('bar').addEventListener('click', function (e) {
     var b = e.target.closest('[data-base]'); if (b) { base = b.getAttribute('data-base'); put('dsl-situations-base', base); render(); }
@@ -179,6 +207,7 @@
     var t = b.getAttribute('data-copy');
     (navigator.clipboard ? navigator.clipboard.writeText(t) : Promise.reject()).then(function () { toast('Copied'); }, function () { toast(t); });
   });
+  build();
   render();
 })();
 </script>
