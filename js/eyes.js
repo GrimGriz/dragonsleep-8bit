@@ -31,7 +31,7 @@
       look: 'WADE IN at the ledge, or PUT A HAND ON IT by the rune: the splash, the Keeper waking, the grid fight starting where you came in. After it, the five back up in the 8-bit.' },
     'eyes-pocket': { pri: 1, group: G1, title: 'The Pocket DM: SAVE TABLE and LOAD TABLE, the maker, the styles', pt: 'the Pocket DM and the races · the story and the Pocket DM',
       url: 'deep16/?pocket',
-      look: 'New 10-06: SAVE TABLE on the title (or THE PARTY) -- one file with the seats and their winnings, your own characters, Pyro and a ladder under way; save it to play-records. In another browser (or after a clear) LOAD TABLE brings it all back, the ladder too; your 10-03 roster file (THALDOR) loads as well. A greyed button now says why. Then make a character all the way through: a fighter with the STYLE tab on the gear step.' },
+      look: 'SAVE TABLE you have seen work (10-06). Left: LOAD TABLE in another browser, or the pane -- your table file from play-records should bring the four seats, their winnings, THALDOR and Pyro; a ladder under way rides along the same way. Then make a character all the way through: a fighter with the STYLE tab on the gear step.' },
     'eyes-racefig': { pri: 2, group: G2, title: 'The race figures\' sheet (three looks wait on your word)', pt: 'the Pocket DM and the races §2.13',
       url: 'deep16-race-figures.png',
       look: 'The made dragonborn and tiefling figures. In the note, a word on each: the dragonborn in gold and garnet (keep, or the tiefling to red?); the curled horns drawn over hoods and hats (keep?); the dragonborn\'s tail (keep as asked, or drop -- the PHB\'s has none).' },
