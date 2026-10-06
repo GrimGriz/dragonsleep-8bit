@@ -94,7 +94,7 @@ Examples:
 
 - [`test-runs.html`](https://grimgriz.github.io/dragonsleep-8bit/test-runs.html): **new 10-01**, builds any URL on this page (the class floor's foes row by row, the galleries' picks, the situations), with LIVE / LOCAL, copy, open, and a RECENT list. Its pick-lists are read live from the game's files.
 - [`situations.html`](https://grimgriz.github.io/dragonsleep-8bit/situations.html): **new 10-01**, the `?at=` situations, each with what to try; **since 10-06** the eyes rows first (`js/eyes.js`: what is built and nobody has seen, each with its door), six a page, most wanted first. Mark each and Save: that file is how what you saw gets back to the seat.
-- [`playtest-lamp.html`](https://grimgriz.github.io/dragonsleep-8bit/playtest-lamp.html): the playtest lamp.
+- [`playtest-lamp.html`](https://grimgriz.github.io/dragonsleep-8bit/playtest-lamp.html): the playtest lamp -- **retired 10-06** (kept as history; mark things on `situations.html` instead).
 - **Local only** (not on Pages; open these with the preview server running):
   - [`dev/spell-walk-lamp.html`](http://localhost:8923/dev/spell-walk-lamp.html): Ear Lamp, the spell walk
   - [`dev/feature-walk-lamp.html`](http://localhost:8923/dev/feature-walk-lamp.html): Ear Lamp, the feature walk
