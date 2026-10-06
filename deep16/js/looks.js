@@ -549,6 +549,7 @@
   // afterimages. A false image struck breaks like glass where it stood
   var IMG_OFF = [[-15, 2], [15, -2], [0, -7]];
   LK.behind = function (ctx, B, u, p, anim, t, o) {
+    if (u.regen > 0 && u.burned && u.hp > 0 && !u.dead) hairNote(B, u, anim, t, o); // (a burned troll's crown, off the frame about to be drawn: smoulder, below)
     // Longstrider and Expeditious Retreat (10-01b, Griz, of the green dashes off the heels: "looks like the guy is pooping lines of green?
     // Maybe green like the old bat sonar only in the tile he's in"): his own square glows green, a ring running out from his feet to its
     // edge and again -- the 09-30 sonar's tint and ping, kept to one square, under him
@@ -586,6 +587,69 @@
     } });
   }
 
+  // ------------------------------------------------------------------ the troll's marks (10-06, Griz: "surely we should re-blender his hair all up and in the shape of flames and...
+  // yeah, smoulder and hoverlines, color tint for coated in oil cheap enough?" -- the seat's lean he took: no re-render, no new sheet). A troll burned since its last turn (u.burned:
+  // battle.js hurt sets it on fire or acid, ai.js clears it at the troll's own turn start, so it will not knit at its next) smoulders for as long as the flag holds: flame licking up
+  // off its hair, sparks rising, a thin wisp of smoke drifting off (smoulder, below). Where the head is read off the frame being drawn -- the troll's blue hair is the only blue on
+  // its sheet -- because the sheet's `top` is the height of the figure facing the eye and the head stands 30 px over that facing north, and 40 px to one side facing east or west.
+  // Per frame and cached, so after the first time round nothing is read or allocated; where a sheet cannot be read (a page served off a file) or has no hair on the frame, the head is
+  // taken for the top of the figure over its foot. (Coated in oil: the tint is LK.tint's, the gloss is overMore's.)
+  var HAIR = {}, HAIRAT = {}, hairCv = null;
+  function crownOf(d, fw, fh, blue) { // the topmost row of hair (or, failing it, of the figure) and where the top six rows of it lie
+    var ty = -1, y, x, i;
+    for (y = 0; y < fh && ty < 0; y++) for (x = 0; x < fw; x++) { i = (y * fw + x) * 4; if (d[i + 3] > 40 && (!blue || (d[i + 2] > d[i] + 30 && d[i + 2] > d[i + 1]))) { ty = y; break; } }
+    if (ty < 0) return null;
+    var s = 0, k = 0, lo = fw, hi = 0;
+    for (y = ty; y < ty + 6 && y < fh; y++) for (x = 0; x < fw; x++) { i = (y * fw + x) * 4; if (d[i + 3] > 40 && (!blue || (d[i + 2] > d[i] + 30 && d[i + 2] > d[i + 1]))) { s += x; k++; if (x < lo) lo = x; if (x > hi) hi = x; } }
+    return k >= (blue ? 12 : 1) ? { ty: ty, cx: s / k, lo: lo, hi: hi } : null;
+  }
+  function hairOf(u, anim, t, o) { // the crown of the hair on the frame drawn, as pixels from the foot, in the sheet's own scale: { x: its middle, y: its top, w: half its width } or null (not cached: the sheet is still on its way)
+    var name = u.sheet, sh = D.SHEETS && D.SHEETS[name]; if (!sh || !D.spr.has(name)) return null;
+    var an = sh.anims[anim] ? anim : 'idle', a = sh.anims[an]; if (!a) return null;
+    var fw = a.fw || sh.fw, fh = a.fh || sh.fh, ax = a.ax != null ? a.ax : sh.ax, ay = a.ay != null ? a.ay : sh.ay;
+    var n = Math.floor(t * (a.fps || 8) / 60), fr = o && o.frame != null ? Math.max(0, Math.min(a.frames - 1, o.frame)) : o && o.once ? Math.min(a.frames - 1, n) : n % a.frames; // (as sprites.js frameOf)
+    var face = (u.facing || 0) % 8, key = name + ':' + an + ':' + face + ':' + fr, h = HAIR[key];
+    if (h !== undefined) return h;
+    var img = D.images && D.images[sh.image]; if (!img || !img.naturalWidth) return null;
+    if (!hairCv) hairCv = document.createElement('canvas');
+    if (hairCv.width !== fw || hairCv.height !== fh) { hairCv.width = fw; hairCv.height = fh; }
+    var cx = hairCv.getContext('2d', { willReadFrequently: true }), d, c;
+    cx.clearRect(0, 0, fw, fh); cx.drawImage(img, fr * fw, (a.y != null ? a.y : a.row * sh.fh) + face * fh, fw, fh, 0, 0, fw, fh);
+    try { d = cx.getImageData(0, 0, fw, fh).data; } catch (e) { return (HAIR[key] = null); }
+    c = crownOf(d, fw, fh, true) || crownOf(d, fw, fh, false);
+    return (HAIR[key] = c ? { x: (c.lo + c.hi) / 2 - ax, y: c.ty - ay, w: (c.hi - c.lo) / 2 } : null);
+  }
+  // (told by LK.behind, which is handed the frame, for LK.over, which is not: one record to a creature, written over, not made again)
+  function hairNote(B, u, anim, t, o) {
+    var k = u.id || u.name, e = HAIRAT[k] || (HAIRAT[k] = { ok: false, t: -1, x: 0, y: 0, w: 0 }), h = hairOf(u, anim, t, o);
+    e.t = B.t; e.ok = !!h; if (h) { e.x = h.x; e.y = h.y; e.w = h.w; }
+  }
+  function smoulder(ctx, B, u, p, top) {
+    var t = B.t, ph = uph(u), sk = D.spr.scaleOf ? D.spr.scaleOf(u) : 1, e = HAIRAT[u.id || u.name], EF = FX.EL.fire, i, k;
+    var ok = e && e.ok && e.t === t, hx = ok ? p.x + e.x * sk : p.x, hy = ok ? p.y + e.y * sk : p.y - top;
+    var hw = ok ? Math.max(5, Math.min(13, e.w * sk)) : 9; // (half the width of the crown, the flames spread over it)
+    // the hair a-light: a faint glow about the head, five tongues of flame along the crown, each its own flicker (orange at the root, yellow at the tip, narrowing as it goes)
+    glow(ctx, hx, hy - 2, EF.c[2], 11, 0.14 + 0.06 * Math.sin(t / 5 + ph));
+    for (i = 0; i < 5; i++) {
+      var fph = t / 3 + i * 1.9 + ph, fh2 = Math.max(5, Math.round(10 + 4.5 * Math.sin(fph) + 2 * Math.sin(fph * 2.3))), fx = hx + (i - 2) * hw / 2;
+      for (k = 0; k < fh2; k++) {
+        var fq = k / fh2, fsw = Math.sin(fph + k * 0.6) * 1.6 * fq;
+        px(ctx, fx + fsw, hy + 4 - k, fq < 0.35 ? EF.c[2] : fq < 0.7 ? EF.c[1] : EF.c[0], fq < 0.5 ? 4 : fq < 0.85 ? 3 : 1);
+      }
+    }
+    // sparks off the crown, six of them in turn, drifting up and thinning
+    for (i = 0; i < 6; i++) {
+      var sa = (t * 0.8 + i * 7 + ph) % 40, sx = hx + (i - 2.5) * hw / 3 + Math.sin(sa / 6 + i * 1.7) * 4;
+      ctx.globalAlpha = 1 - sa / 40; px(ctx, sx, hy - 5 - sa * 0.9, sa < 10 ? EF.c[0] : sa < 24 ? EF.c[1] : EF.c[2], sa < 20 ? 2 : 1);
+    }
+    // the smoke: one thin grey wisp, a dozen motes of it climbing a slow curve off the back of the head, fading in and out
+    for (i = 0; i < 12; i++) {
+      var sm = ((i * 3 + t * 0.5 + ph) % 36) / 36;
+      ctx.globalAlpha = 0.8 * Math.sin(Math.PI * sm); px(ctx, hx + 3 + Math.sin(sm * 7 + ph) * (1 + sm * 5), hy - 8 - sm * 34, sm < 0.5 ? P('silver', 5) : P('silver', 4), sm < 0.4 ? 2 : 1);
+    }
+    ctx.globalAlpha = 1;
+  }
+
   // a tint for the whole figure from what is on it (the conditions ui.js tints for itself come after and win)
   LK.tint = function (u, B) {
     var c = u.conds;
@@ -594,6 +658,7 @@
     // (a barbarian's Rage is a condition; a foe that rages when hurt -- rageOnHit, js/battle.js -- is a flag on the creature itself)
     if (c.raging || u.raging) return [P('red', 3), 0.12 + 0.08 * Math.sin(B.t / 6)];
     if (c.enlarged) return null;
+    if (c.oiled) return [P('outline', 0), 0.4 + 0.04 * Math.sin(B.t / 14)]; // (covered in oil, js/oil.js: the next fire on it burns 5 more -- a dark sheen over the figure, the gloss and the drip are overMore's; before the fire's below, which the oil would feed)
     if (c.ablaze || c.heated) return [P('fire', 1), 0.18 + 0.1 * Math.sin(B.t / 4)];
     if (c.frosted) return [FX.EL.cold.c[1], 0.3];
     return null;
@@ -651,6 +716,7 @@
     // Heroism: a gold glint now and then; Fire Shield: flames about it
     if (c.heroism && (t % 40) < 6) FX.star(ctx, hx, hy + 2, FX.EL.holy, 4);
     if (c.fireShield) { E = FX.EL.fire; for (var fs = 0; fs < 6; fs++) { var fa2 = t / 12 + fs * 1.05, fy = (t * 0.8 + fs * 5) % 10; px(ctx, p.x + Math.cos(fa2) * 12, p.y - top / 2 + Math.sin(fa2) * 6 - fy, fy < 4 ? E.c[0] : E.c[1], 2); } }
+    if (u.regen > 0 && u.burned && u.hp > 0 && !u.dead) smoulder(ctx, B, u, p, top); // (a troll burned since its last turn: it will not knit at its next -- above)
     overMore(ctx, B, u, p, top, hx, hy);
   };
 
@@ -776,6 +842,15 @@
     // (Longstrider and Expeditious Retreat: under the figure now -- LK.behind)
     // Pass without Trace: smoke-grey wisps at the feet, drifting up and thinning
     if (c.pwt) for (i = 0; i < 3; i++) { var wp = (t * 0.35 + i * 14) % 42; glow(ctx, p.x - 8 + i * 8 + Math.sin(wp / 7 + i) * 2, p.y - 1 - wp * 0.2, i % 2 ? P('stone', 4) : P('violet', 3), 4 + wp / 10, 0.5 * (1 - wp / 42)); }
+    // covered in oil (js/oil.js; the dark sheen is LK.tint's): the gloss on it -- a thin pale glint that slides across the chest, a second the other way lower down, out of step --
+    // and a drop of it now and then off the waist, amber, falling and fading
+    if (c.oiled) {
+      var og = (t + ph * 3) % 90, og2 = (t + ph * 7 + 45) % 90, od = (t * 0.8 + ph * 5) % 70;
+      if (og < 40) { ctx.globalAlpha = 0.8 * Math.sin(Math.PI * og / 40); var ox = p.x - bw * 0.6 + bw * 1.2 * og / 40, oy = p.y - top * 0.68; for (k = 0; k < 6; k++) px(ctx, ox + k, oy + k, k > 0 && k < 5 ? P('bone', 2) : P('silver', 6), k > 0 && k < 5 ? 2 : 1); }
+      if (og2 < 40) { ctx.globalAlpha = 0.65 * Math.sin(Math.PI * og2 / 40); var ox2 = p.x + bw * 0.6 - bw * 1.2 * og2 / 40, oy2 = p.y - top * 0.4; for (k = 0; k < 5; k++) px(ctx, ox2 - k, oy2 + k, k > 0 && k < 4 ? P('bone', 2) : P('silver', 6), k > 0 && k < 4 ? 2 : 1); }
+      if (od < 26) { ctx.globalAlpha = 1 - od / 26; dpx(ctx, p.x + ((ph % 7) - 3) * bw / 8, p.y - top * 0.3 + od * 0.9, P('leather', 3), 2); }
+      ctx.globalAlpha = 1;
+    }
     // Vampiric Touch waiting: the hand dark with it, a violet glow and a green glint (the touch is the caster's action each turn)
     if (c.vampiric) { E = FX.EL.necrotic; var vh = FX.hands(u); glow(ctx, vh.x, vh.y, E.c[1], 6, 0.22 + 0.12 * Math.sin(t / 8)); px(ctx, vh.x, vh.y, E.c[0], 2); if ((t >> 2) % 6 === 0) FX.star(ctx, vh.x, vh.y, E, 3); }
   }

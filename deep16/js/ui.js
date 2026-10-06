@@ -1979,6 +1979,10 @@
     var sv = D.magic && D.magic.shelved ? D.magic.shelved(w) : null;
     if (sv) { var idle = conds({ conds: sv, hp: 1 }).replace(/\{[a-z]*\}|\{\/\}/g, '').trim(); c.unshift('{c}idle in the globe:{/} {g}' + (idle || Object.keys(sv).join(' ')) + '{/}'); }
     var tail = [];
+    // a troll burned since its last turn does not knit at its next (battle.js hurt sets it, ai.js clears it at the troll's turn start: looks.js smoulder draws it); one covered in oil takes 5 more
+    // from the next fire (js/oil.js) -- both in the kept end of the row, long as they are: the trimming below drops the short conditions before them (10-06, the troll's marks)
+    if (w.regen > 0 && w.burned && w.hp > 0 && !w.dead) tail.push('{o}burned: no knitting next turn{/}');
+    if (q.oiled) tail.push('{o}oiled: the next fire burns 5 more{/}');
     if (w.conc) tail.push('{y}conc: ' + w.conc.name + '{/}');
     if (w.hp <= 0 && !w.dead) tail.push('{r}down{/}');
     // one row on a 480-px screen: what will not fit gives way to a count (the concentration and the down are kept)
