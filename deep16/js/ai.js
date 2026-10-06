@@ -119,6 +119,8 @@
     if (u.conds.banished) { B.card(['{g}' + (u.side === 'foe' ? the(B, u) : u.name) + ' is not here.{/}'], 160); yield 16; D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // confused (Confusion): the d10 may take the turn
     if (u.conds.confused && D.magic.confusedTurn && (yield* D.magic.confusedTurn(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
+    // dominated (an MPMon's Baleful Gaze, js/mpmon.js): the turn is the gaze's -- at the nearest of its own side it can reach
+    if (u.conds.dominated && D.mpmon && (yield* D.mpmon.dominatedTurn(B, u))) { D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // a word of Command it must obey (js/grimoire.js): halted, grovelling, or away from the one who spoke, and nothing more
     if (u.turn.lost) { if (u.turn.fleeFrom) yield* D.magic.flee(B, u); yield 20; D.magic.endTurn(B, u); u.anim = 'idle'; return; }
     // Fear's run (js/grimoire.js): any creature under it Dashes away from the one it fears
@@ -1233,6 +1235,8 @@
     // the Ring of Binding (the chuul, rounds 1/4/7/10): it must turn on whoever wears the ring
     if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && hs.indexOf(B.taunt.u) >= 0) {
       hs = [B.taunt.u]; B.card(['{r}' + the(B, u) + '{/} turns on {y}' + B.taunt.u.name + '{/}: the ring binds it  {g}(round ' + B.round + '){/}']); yield 20;
+    } else if (u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, hs)) { // (taunted by an MPMon, js/mpmon.js: only at him, when it can)
+      hs = [D.mpmon.tauntTarget(B, u, hs)];
     }
     // Tentacle Slam, instead of the bites and lashes, on what it already holds (the 8-bit game: half the time)
     if (u.slam && u.holding.length && T.action && D.d(100) <= (u.slam.chance || 0.5) * 100) { yield* slam(B, u); return; }
@@ -1343,6 +1347,7 @@
       // attack only for the held (the Keeper's Drag Under, the chuul's tentacles) goes at one it holds, or not at all
       var pool = atk.needsHeld ? (u.holding || []).filter(function (w) { return G.standing(w); }) : heroes(B, u).filter(function (w) { return usableOn(u, atk, w); }); // (a tendril is not thrown at one it cannot hold -- 10-02)
       if (B.taunt && B.taunt.rounds.indexOf(B.round) >= 0 && G.standing(B.taunt.u) && !atk.needsHeld) pool = pool.filter(function (w) { return w === B.taunt.u; });
+      var tauntAt = !atk.needsHeld && u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, pool); if (tauntAt) pool = [tauntAt]; // (taunted: js/mpmon.js)
       if (u.kind === 'cloaker' && !atk.needsHeld) { var vp = pool.filter(function (w) { return w.vital && G.dist(u, w) <= G.reachOf(u, atk.reach); }); if (vp.length) pool = vp; } // (the one it hunts, in reach: him first -- 10-01c)
       if (u.missionOnly && !atk.needsHeld) pool = B.units.filter(function (w) { return w.object && w.id === u.mission && G.standing(w); }); // (nothing but the window: 10-05)
       if (u.noGlass) pool = pool.filter(function (w) { return !w.object; }); // (the roof guard strikes no glass -- 10-05)

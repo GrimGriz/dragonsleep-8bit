@@ -407,6 +407,44 @@ the pages beside the game, the Discord) and THE 8-BIT GAME; the 8-bit title has 
   the pot and the roll summing to its CR, the DMG reading, the rests, the winnings by class, a fight by the Pocket's words with a carry, and a
   table of Large and Huge foes seated whole (`battle.js seatBand` honours a footprint now).
 
+## MPMon, the Monster Party Monster -- `js/mpmon.js` (10-06)
+
+Griz's stream table on the grid. Monster Party is his own game, played live with the hivemind (`..\..\monster-party-prep\`): four
+persistent PCs, a regular blow each and two specials, 2 specials an encounter, every number a per-level formula. Griz, 10-06: *"MPMon
+(MonsterPartyMonster) as a separate class to keep our hands clear of the other machinery"*; *"Make the projection a 3rd ability/feature
+that unlocks at level 5"*; *"Denny Race Lobstamonkee"*; *"Come up with a level 5 for him that is loosely 'balanced' with what player
+classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster Party's numbers to the SRD's scale by 0.27):
+`..\..\beholda\deep16-translation.md`.
+
+- **A class of its own, in one file.** `js/mpmon.js` registers `mpmon` (R.CLASSES), its natural weapons and hides (items kept off the maker's
+  racks), two named builds (NPC.NAMED: any level 1-9), and wraps what it needs -- NPC.sheet/unit, RU.ac (the bubble), RU.edges (the taunt),
+  R.weaponAbil (a WIS weapon), F.commands/exec (the ring), F.classLine, the item list (no hands), LK.ground/over (the looks), the Pocket
+  DM's seats and short rest -- as `js/familiar.js` wraps. The class code it touches: one line each where Confusion's turn is taken
+  (`ai.js`, `battle.js`: DOMINATED), where the Ring of Binding turns a brute (`ai.js`: TAUNTED) and the class AI's `foesOf` (`tactics.js`),
+  and the one-shot rows (`ui.js`). The Pocket DM's maker does not offer it (its classes are NPC.CLASSES').
+- **THE SPECIALS:** 2 a fight, shared, back on a short rest (MP's "2 specials per encounter" as it stands).
+- **DENNY**, a Lobstamonkee (climbs 30): MONKEY FISTS (1d6 + STR, 1d8 with both hands free), AC 14 in his denim jacket, d10.
+  TAUNT -- his swings (+1d6 on the first that lands, 2d6 at 5th, 3d6 at 9th); then the one he swung at and up to his proficiency
+  bonus more within 15 ft save WIS (8 + prof + STR) or are TAUNTED till their turn ends: the AI goes only at him when it can, and anyone
+  taunted has disadvantage on attacks at anyone else. DENIM DAMAGE -- his swings, the first that lands +1d8 (2d8 at 4th, 3d8 at 6th,
+  4d8 at 8th), doubled on a critical. **At 5:** Extra Attack and CANNONBALL -- a leap of up to 20 ft (no opportunity attacks) beside a foe,
+  every foe beside him DEX (8 + prof + STR) or 2d8 bludgeoning and prone (half and standing on a save; 3d8 at 9th), then a swing.
+- **BEHOLDA**, an EyeGregore (hovers at 25 ft, darkvision 120, no hands: a potion held to her, no flask, no kit), AC 14 hide, d8.
+  DICE SLAM -- her dice swung on her will, 1d8 + WIS. VNA BUBBLE (a bonus action) -- 10 ft + 5 a level (at most 30), +1 AC and 1 more
+  for every two levels (at most +5) to her and her friends inside, till her next turn; it pops when she is stunned or down; Griz's bubble
+  art (`art/vna-bubble.png`) round her, its reach on the floor. BALEFUL GAZE -- one she sees within 60 ft, WIS (8 + prof + WIS): 1d8
+  psychic a level and DOMINATED till the end of its next turn (it goes at the nearest of its own side it can reach), half on a save; one
+  proof against charm takes the damage only. **At 5:** THE BIG SCREEN -- the projection, a 30-ft cone at one she picks, (level - 1)d8 and
+  dominated, half on a save.
+- **Doors:** `?npc=goblin,goblin,hobgoblin,hobgoblin&vs=denny:5,beholda:5&lvl=5` (yours to play: SKILLS on the ring; `&watch` for the class
+  AI); the Pocket DM's roster has both seats; **`?mpshow`** shows the six specials one beat at a time (`js/mpshow.js`, the dice pinned, each
+  beat checked; `&only=`, `&beat=`, `&fast`, `&lvl=`).
+- **Looks:** `beholda_p2` is a stand-in cut from her first sheet (`tools/beholda-sheet.py`: front views for every facing, the projection
+  for the gaze); `denny_p2` gained TAUNT, DENIM DAMAGE and CANNONBALL rows from his poses (`tools/denny-sheet.py`). Their next sheets'
+  prompts are in `deep16-art-wanted.md`.
+- **Bench:** `python dev/bench16.py x mode=mpmon1006` (in `dev/check.py`'s gate): the builds against the design's tables, each special by
+  its rule with the dice pinned, the ring, the Pocket DM's seats and rest, a whole fight, and the show's six beats.
+
 ## Not in the POC
 
 Story beyond the entry card; shops; rests; writing back to the 8-bit save; flight (bats and cloakers

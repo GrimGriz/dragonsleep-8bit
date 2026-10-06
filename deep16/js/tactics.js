@@ -66,7 +66,7 @@
   };
 
   // ------------------------------------------------------------------ who is who
-  function foesOf(B, u) { return AI.heroes(B, u).filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.regenDown; }); } // (a troll down and knitting is no one's blow -- only fire or acid matters to it: the burn below, 10-05)
+  function foesOf(B, u) { var fs = AI.heroes(B, u).filter(function (w) { return G.hostile(u, w) && G.standing(w) && !w.regenDown; }), tt = u.conds && u.conds.taunted && D.mpmon && D.mpmon.tauntTarget(B, u, fs); return tt ? [tt] : fs; } // (a troll down and knitting is no one's blow -- only fire or acid matters to it: the burn below, 10-05)
   function alliesOf(B, u) { return B.units.filter(function (w) { return w.side === u.side && !w.dead && !w.fled && !w.left && !w.ethereal; }); }
   TX.foesOf = foesOf; TX.alliesOf = alliesOf;
 

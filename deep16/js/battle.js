@@ -945,6 +945,7 @@
     // banished or sealed in a sphere; confused (js/grimoire.js)
     if (u.conds.banished) { this.card(['{g}' + u.name + ' is not here.{/}']); yield 40; D.magic.endTurn(this, u); return; }
     if (u.conds.confused && D.magic.confusedTurn && (yield* D.magic.confusedTurn(this, u))) { yield 30; D.magic.endTurn(this, u); return; }
+    if (u.conds.dominated && D.mpmon && (yield* D.mpmon.dominatedTurn(this, u))) { yield 30; D.magic.endTurn(this, u); return; } // (Baleful Gaze, js/mpmon.js)
     // Fear's run (a foe's Fear, js/grimoire.js): the Dash away from it, and the turn is over
     if (D.magic.mustFlee && D.magic.mustFlee(u) && (yield* D.tactics.fleeFear(this, u))) { yield 30; D.magic.endTurn(this, u); return; } // (cornered: the turn is the player's, js/tactics.js TX.cornered)
     // a word of Command obeyed (a foe's Command, js/grimoire.js): the turn is the word's

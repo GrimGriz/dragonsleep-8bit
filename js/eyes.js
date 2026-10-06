@@ -14,6 +14,12 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-mpshow': { pri: 2, group: G2, title: 'Denny and Beholda, shown: the MPMon\'s six specials', pt: 'MPMon (deep16/README.md) · eyes',
+      url: 'deep16/?mpshow',
+      look: 'Six beats, the dice pinned, each checked: the VNA Bubble (your bubble art round her; a goblin\'s arrow that would hit AC 14 turned at 17), Baleful Gaze (the hobgoblin DOMINATED, a spiral over its head, and on its turn it hits its own goblin), the Big Screen (the cone; three goblins dominated), Taunt (the goblin beside Beholda goes at Denny instead; a red ! over the taunted), Denim Damage (the first blow that lands +2d8), the Cannonball (a 20-ft leap, two goblins flat). Beholda is a stand-in cut from her first sheet till her second comes.' },
+    'eyes-mpplay': { pri: 2, group: G2, title: 'Denny and Beholda by your hands (the ring\'s SKILLS)', pt: 'MPMon (deep16/README.md) · eyes',
+      url: 'deep16/?npc=goblin,goblin,hobgoblin,hobgoblin&vs=denny:5,beholda:5&lvl=5',
+      look: 'On each one\'s turn the ring\'s SKILLS: Denny TAUNT, DENIM DAMAGE, CANNONBALL; Beholda VNA BUBBLE (a bonus action), BALEFUL GAZE, THE BIG SCREEN -- 2 specials a fight between them each, greyed with the reason when spent; a gold pick for the foe. Both are on the Pocket DM\'s roster too (any level 1 to 8).' },
     'eyes-trolloil': { pri: 1, group: G1, title: 'Oil on a troll, then fire (a beat on the Skylights show page)', pt: 'the menus §2.7 · eyes',
       url: 'deep16/?skyshow&only=oil,oildown',
       look: 'Your three flasks in the Edifice all missed (10-06: the throw is Strength alone, no proficiency, against AC 15, and a miss oils the ground as ruled 10-05), so the show has two beats: Barley\'s flask hits a troll on its feet (the dice pinned) -- a brown coat, a thick amber band sliding down the body (your "thicker", 10-06; the bright edge gone), drips to a pool at its feet; then Fire Bolt: the oil catches, 5 more, and it smoulders standing. The second: the same oil on a troll lying at 0, then fire, and it dies.' },
