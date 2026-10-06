@@ -185,7 +185,13 @@ the escape, cutting the tendril and fighting on by the odds (`tactics.js freeHow
 cut against its swing at the roper. **READY** (ACTIONS): one trigger, the first foe that comes within reach -- for a bow, a
 thrown weapon or an attack spell, into sight and range -- and a single weapon attack, or an attack-shaped spell cast now and
 held under concentration, its slot spent (`exec ready`; sprung by `readyHook` from a step, a burrower up, a phase spider out, a
-spell's end, a blow from hiding; let go at the next turn, `rules.js startTurn`). The class AI and the plain guests ready
+spell's end, a blow from hiding; let go at the next turn, `rules.js startTurn`). **READY ends the turn** (RULED 10-05, Griz:
+*"Making yourself ready and waiting to do it implies you've decided to wait for a trigger until your next turn and that you're
+done moving and using bonus actions - but the action stored as reaction goes off if triggered on someone else's turn"*): the
+move and the bonus action left go with it (`T.waits`, `heroTurn`), and a readied thing never springs on its readier's own turn
+(`readyHook`, `readyOn`). **No spell readied after a bonus-action spell**, a cantrip neither (RULED 10-05: *"Casting a spell with
+a bonus action means you can't ready a spell (other actions still ready-able)"*); a leveled spell readied marks the turn's
+`spellAction`. Benched: `ready1005`. The class AI and the plain guests ready
 against a foe under the ground or out of the world (`tactics.js readyWanted`, `readyUp`). The bulette bites and dives again
 with the move it has left (`ai.js diveAfter`, data/foes.js `diveAfter`), the opportunity attacks of those beside it first
 (`battle.js provoke`); it dives only after a turn it struck at someone (`turn.attacked`), and a burrower with no square its

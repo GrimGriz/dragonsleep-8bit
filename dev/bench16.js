@@ -1022,6 +1022,69 @@
     document.body.appendChild(preZ);
     return;
   }
+  // READY ends the turn, springs only on another's, and no spell readied after a bonus-action spell (mode=ready1005; RULED 10-05, Griz: "Making yourself ready and
+  // waiting to do it implies you've decided to wait for a trigger until your next turn and that you're done moving and using bonus actions - but the action stored as
+  // reaction goes off if triggered on someone else's turn"; "Casting a spell with a bonus action means you can't ready a spell (other actions still ready-able)")
+  if (get('mode', '') === 'ready1005') {
+    var repR = { checks: [], errors: [] };
+    function okR(what, v) { repR.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runR(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; if (st.value && st.value.aim) v = D.battle.readyAuto(st.value.aim.who, st.value.aim.rd, st.value.aim.ctx); } }
+    function mkR(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    try {
+      // 1 a hero's READY ends the turn: no second ask, the move and the bonus action gone with it
+      var B1 = mkR('?npc=goblin&lvl=5&vs=fighter'), f1 = B1.units.filter(function (u) { return u.side === 'party'; })[0], g1 = B1.units.filter(function (u) { return u.side === 'foe'; })[0];
+      f1.x = 9; f1.y = 9; g1.x = 9; g1.y = 2; B1.active = f1;
+      var ht = B1.heroTurn(f1), st = ht.next(), asked = !!(st.value && st.value.turn === f1), k1 = 0;
+      st = ht.next({ do: 'ready', pick: 'weapon' });
+      while (!st.done && k1++ < 400 && !(st.value && st.value.turn)) st = ht.next();
+      okR('READY ends the turn: asked once ' + asked + ', no second ask ' + !!st.done + ', readied ' + !!f1.ready + ', move ' + f1.turn.move + ', bonus ' + f1.turn.bonus, asked && st.done && !!f1.ready && f1.turn.move === 0 && f1.turn.bonus === 0);
+      // 2 never on the readier's own turn: a foe that comes into sight while it is his turn springs nothing; on the foe's turn, it springs
+      var B2 = mkR('?npc=goblin&lvl=5&vs=wizard'), w2 = B2.units.filter(function (u) { return u.side === 'party'; })[0], g2 = B2.units.filter(function (u) { return u.side === 'foe'; })[0];
+      w2.x = 9; w2.y = 9; g2.x = 9; g2.y = 4; g2.ethereal = true; D.rules.startTurn(w2); B2.active = w2;
+      var e2 = D.magic.list(B2, w2, { anyTarget: true }).filter(function (x) { return x.id === 'firebolt' && x.ok; })[0];
+      if (e2) runR(B2.exec(w2, { do: 'ready', pick: e2 }));
+      okR('the wizard readies ' + (e2 && e2.name) + ': ' + !!w2.ready + ', had ' + JSON.stringify(w2.ready && w2.ready.had), !!e2 && !!w2.ready && !Object.keys((w2.ready && w2.ready.had) || {}).length);
+      g2.ethereal = false; var n2 = (B2.log || []).length;
+      runR(B2.readyHook(g2, 'move'));
+      okR('in sight on his own turn: not sprung (ready ' + !!w2.ready + ', reaction ' + w2.reaction + ')', !!w2.ready && w2.reaction === 1);
+      B2.active = g2; D.rules.startTurn(g2); var hp2 = g2.hp;
+      runR(B2.readyHook(g2, 'move'));
+      okR('in sight on the goblin\'s turn: sprung (ready ' + !!w2.ready + ', reaction ' + w2.reaction + ', the goblin ' + hp2 + ' -> ' + g2.hp + ')', !w2.ready && w2.reaction === 0);
+      // 2b one of us goes down at the end of the readier's own turn (the turn loop's readyAfter): not sprung
+      var B3 = mkR('?npc=goblin&lvl=5&vs=cleric,fighter'), cl = B3.units.filter(function (u) { return u.side === 'party' && u.cls === 'cleric'; })[0], ft = B3.units.filter(function (u) { return u.side === 'party' && u.cls === 'fighter'; })[0];
+      cl.x = 9; cl.y = 9; ft.x = 10; ft.y = 9; D.rules.startTurn(cl); B3.active = cl;
+      runR(B3.exec(cl, { do: 'ready', trigger: 'down', what: 'spell', id: 'curewounds', slot: 1 })); B3.readySnap();
+      ft.hp = 0; B3.active = null; runR(B3.readyAfter({ turnOf: cl }));
+      okR('one of us down at the end of the cleric\'s own turn: not sprung (ready ' + !!cl.ready + ', reaction ' + cl.reaction + ')', !!cl.ready && cl.reaction === 1);
+      // 3 a bonus-action spell cast this turn: no spell on READY's wheel, none readied (a cantrip neither); the weapon still readied
+      var B4 = mkR('?npc=goblin&lvl=5&vs=cleric'), c4 = B4.units.filter(function (u) { return u.side === 'party'; })[0], g4 = B4.units.filter(function (u) { return u.side === 'foe'; })[0];
+      c4.x = 9; c4.y = 9; g4.x = 9; g4.y = 2; D.rules.startTurn(c4); B4.active = c4;
+      var ring0 = D.ui.readyRing(B4, c4).items.map(function (x) { return x.id; });
+      c4.turn.bonusSpell = true; // (Healing Word cast: magic.js cast marks the turn)
+      var ring1 = D.ui.readyRing(B4, c4).items.map(function (x) { return x.id; });
+      okR('the wheel: SPELLS before ' + (ring0.indexOf('spells') >= 0) + ', after a bonus-action spell ' + (ring1.indexOf('spells') >= 0) + ' (' + ring1.join(',') + ')', ring0.indexOf('spells') >= 0 && ring1.indexOf('spells') < 0 && ring1.indexOf('attack') >= 0);
+      var s4 = c4.slots[0];
+      runR(B4.exec(c4, { do: 'ready', trigger: 'near', what: 'spell', id: 'sacredflame', slot: 0 }));
+      runR(B4.exec(c4, { do: 'ready', trigger: 'near', what: 'spell', id: 'curewounds', slot: 1 }));
+      okR('no spell readied after it: ready ' + !!c4.ready + ', the action ' + c4.turn.action + ', slots ' + s4 + ' -> ' + c4.slots[0], !c4.ready && c4.turn.action === 1 && c4.slots[0] === s4);
+      runR(B4.exec(c4, { do: 'ready', trigger: 'near', what: 'weapon' }));
+      okR('the weapon still readied: ' + JSON.stringify(c4.ready && { what: c4.ready.what, name: c4.ready.name }), !!c4.ready && c4.ready.what === 'weapon');
+      // 3b the class AI after a bonus-action spell readies its weapon, not its cantrip
+      var B5 = mkR('?npc=goblin&lvl=5&vs=wizard'), w5 = B5.units.filter(function (u) { return u.side === 'party'; })[0], g5 = B5.units.filter(function (u) { return u.side === 'foe'; })[0];
+      g5.ethereal = true; w5.x = 9; w5.y = 9; g5.x = 9; g5.y = 2; D.rules.startTurn(w5); B5.active = w5; w5.turn.bonusSpell = true;
+      runR(D.tactics.readyUp(B5, w5));
+      okR('the class AI after a bonus-action spell: ' + JSON.stringify(w5.ready && { what: w5.ready.what, name: w5.ready.name }), !!w5.ready && w5.ready.what === 'weapon');
+      // 4 a leveled spell readied marks the turn's action spell (magic.js list: no bonus-action spell after it)
+      var B6 = mkR('?npc=goblin&lvl=5&vs=cleric'), c6 = B6.units.filter(function (u) { return u.side === 'party'; })[0];
+      D.rules.startTurn(c6); B6.active = c6;
+      runR(B6.exec(c6, { do: 'ready', trigger: 'down', what: 'spell', id: 'curewounds', slot: 1 }));
+      okR('a leveled spell readied: the turn\'s spellAction ' + c6.turn.spellAction, !!c6.ready && c6.turn.spellAction === 'leveled');
+    } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); }
+    if (errs.length) repR.errors = repR.errors.concat(errs);
+    var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
+    document.body.appendChild(preR);
+    return;
+  }
   // the cheap SRD fixes, the grid's six (mode=fixes1003; 10-03, Griz: "4 yes" to "The cheap SRD fixes as one Sonnet or cloud batch?"; spells-two-books.md §2c): each
   // check failed before its fix (cloud-notes/spell-fixes-notes.md). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
   if (get('mode', '') === 'fixes1003') {

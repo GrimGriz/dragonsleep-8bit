@@ -224,7 +224,8 @@
   function readyRing(B, u) {
     var items = [];
     [['weapon', u.weapon], ['alt', u.alt]].forEach(function (p) { var wp = p[1]; if (wp && wp.name && !u.conds.disarmed) items.push({ kind: 'readypick', what: p[0], id: 'attack', icon: 'attack', name: wp.name.toUpperCase(), label: wp.name.toUpperCase(), ok: true, note: 'one ' + (wp.ranged ? 'shot' : 'swing') + ' at the one you pick when it springs' }); });
-    if (D.magic.list(B, u, { anyTarget: true }).some(readiable)) items.push({ kind: 'readylevels', id: 'spells', icon: 'spells', name: 'SPELLS', label: 'SPELLS', ok: true, note: 'cast now and held: the slot spent, and concentration' });
+    // (no SPELLS after a bonus-action spell, cantrips too -- RULED 10-05, Griz: "Casting a spell with a bonus action means you can't ready a spell (other actions still ready-able)")
+    if (!u.turn.bonusSpell && D.magic.list(B, u, { anyTarget: true }).some(readiable)) items.push({ kind: 'readylevels', id: 'spells', icon: 'spells', name: 'SPELLS', label: 'SPELLS', ok: true, note: 'cast now and held: the slot spent, and concentration' });
     if (u.speed > 0 && !u.conds.restrained) items.push({ kind: 'readypick', what: 'move', id: 'move', icon: 'move', name: 'MOVE', label: 'MOVE', ok: true, note: 'up to your speed, to the square you pick when it springs (the Dash, on a reaction)' });
     // the features and plain actions that take the action (10-02, Griz: "1 - yes but not disengage ... you get to ready an action not store movement"): Lay on Hands, a
     // Channel Divinity, Help, Dodge, Hide ... -- not the swing (the weapon above), the spells, Dash (the MOVE is it), Disengage, nor what costs the bonus action
@@ -234,6 +235,7 @@
     if (B.itemList(u).some(function (e) { return e.ok && e.id !== 'rope'; })) items.push({ kind: 'readyitems', id: 'items', icon: 'item', name: 'ITEM', label: 'ITEM', ok: true, note: 'a potion, a flask, a light: used when it springs' });
     return { kind: 'ready', items: items, sel: 0, title: 'READY' };
   }
+  UI.readyRing = readyRing; // (dev/bench16.js ready1005)
   // the spell levels, as the SPELLS ring has them -- a tier with no slot (or nothing to ready) greyed, never hidden -- and in each only the spells that can be readied
   function readyLevels(B, u) {
     var all = D.magic.list(B, u, { anyTarget: true }), lv = {}, items = [];

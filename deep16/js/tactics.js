@@ -896,7 +896,7 @@
   };
   TX.readyUp = function* (B, u) {
     var pick = 'weapon';
-    if (TX.caster(u)) { var e = M.list(B, u, { anyTarget: true }).filter(function (x) { return x.ok && x.level === 0 && x.g && /^(attack|rays)$/.test(x.g.shape) && x.g.time === 'A'; }).sort(function (a, b) { return avg(b.sp.dmg || '0') - avg(a.sp.dmg || '0'); })[0]; if (e) pick = e; }
+    if (TX.caster(u) && !u.turn.bonusSpell) { var e = M.list(B, u, { anyTarget: true }).filter(function (x) { return x.ok && x.level === 0 && x.g && /^(attack|rays)$/.test(x.g.shape) && x.g.time === 'A'; }).sort(function (a, b) { return avg(b.sp.dmg || '0') - avg(a.sp.dmg || '0'); })[0]; if (e) pick = e; }
     else if (u.alt && u.alt.ranged && !(u.weapon && u.weapon.ranged) && !u.conds.disarmed) pick = 'alt';
     if (pick === 'weapon' && !(u.weapon && u.weapon.name)) return;
     yield* B.exec(u, { do: 'ready', pick: pick });
