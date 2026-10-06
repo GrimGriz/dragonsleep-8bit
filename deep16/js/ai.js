@@ -452,7 +452,7 @@
   function noSpare(u, a) { return !!(a && a.holdOnly && a.grapple && (u.holding || []).length + (u.tendrilsLost || 0) >= (a.grapple.max || 1)); }
   // a seizing attack is of no use on one it holds already, or one it cannot hold (Freedom of Movement: RU.immuneTo 'grappled'; 10-02, Griz: "when feared? (or immune or
   // something)" -- a party nothing can hold is bitten, not lashed at forever): with `hs`, the heroes it knows of, the tendril's reach counts only while someone in it can be held
-  function usableOn(u, a, w) { return !(a && a.holdOnly && a.grapple && (noSpare(u, a) || (u.holding || []).indexOf(w) >= 0 || RU.immuneTo(w, 'grappled') || RU.immuneTo(w, 'restrained') || (a.grapple.size && D.Battle.sizeCat(w) > D.Battle.SIZE[a.grapple.size]))); } // (too big for the grip its sheet names: battle.js, the grid's rules §2.3)
+  function usableOn(u, a, w) { return !(a && a.holdOnly && a.grapple && (noSpare(u, a) || (u.holding || []).indexOf(w) >= 0 || RU.immuneTo(w, 'grappled') || RU.immuneTo(w, 'restrained') || (D.Battle.gripSize(u, a) && D.Battle.sizeCat(w) > D.Battle.SIZE[D.Battle.gripSize(u, a)]))); } // (too big for the grip its sheet names: battle.js, the grid's rules §2.3)
   function reachOf(u, hs) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { var a = u.attacks[k]; if (noSpare(u, a)) return; if (hs && a.holdOnly && a.grapple && !hs.some(function (w) { return usableOn(u, a, w) && G.dist(u, w) <= G.reachOf(u, a.reach); })) return; r = Math.max(r, a.reach || 0); }); return G.reachOf(u, r); }
   function gripReach(u) { var r = u.reach; Object.keys(u.attacks || {}).forEach(function (k) { r = Math.max(r, u.attacks[k].reach || 0); }); return G.reachOf(u, r); }
   function* webShot(B, u, tgt) {

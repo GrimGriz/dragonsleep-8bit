@@ -412,6 +412,11 @@
   // four Gargantuan); a one-square body Small by its race (a halfling, a gnome) or a split ooze's `sizeClass`, Tiny a familiar; a beast's shape its own size (Wild Shape and
   // Polymorph keep the druid's square on the grid: the giant spider is Large all the same -- the grid's rules §2.3, 10-06); Enlarge a size up, Reduce one down
   Battle.SIZE = { T: 0, S: 1, M: 2, L: 3, H: 4, G: 5 };
+  // the size a grip takes: its sheet's `grapple.size`; the ladder's old Keeper's record is frozen as it stood at ed7be2a (RULED 10-03, "the ladder's fight is the old fight
+  // unchanged": dev/keeper-probe.py diffs it field for field), so its Water Weird's "Medium or smaller" is kept here
+  var GRIP_SIZE = { keeperold: 'M' };
+  function gripSize(att, atk) { return (atk.grapple && atk.grapple.size) || GRIP_SIZE[att.kind] || null; }
+  Battle.gripSize = gripSize;
   Battle.sizeCat = function (u) {
     var bf = u.beast && D.FOES && D.FOES[u.beast.kind], n = bf ? (bf.size || 1) : (u.size || 1);
     var c = n > 1 ? n + 1 : (bf ? 2 : u.sizeClass === 'S' || /halfling|gnome/i.test(u.race || '') ? 1 : u.familiar ? 0 : 2);
@@ -2112,7 +2117,7 @@
     // lean ("per grappler, by each SRD sheet"); before, every grappler took the otyugh's Medium or smaller, and a Large wild-shaped hero could not be held by a roper
     // (tendrilsLost: a roper's tendrils cut or broken this round are not there to grab with till its next turn -- SRD 5.1, "can extrude a replacement tendril on its next turn"; tendrilGone, rules.js startTurn)
     var grabbed = false;
-    if (atk.grapple && !tgt.dead && tgt.hp > 0 && (!atk.grapple.size || Battle.sizeCat(tgt) <= Battle.SIZE[atk.grapple.size]) && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length + (att.tendrilsLost || 0) < (atk.grapple.max || 1)) {
+    if (atk.grapple && !tgt.dead && tgt.hp > 0 && (!gripSize(att, atk) || Battle.sizeCat(tgt) <= Battle.SIZE[gripSize(att, atk)]) && !tgt.conds.restrained && !RU.immuneTo(tgt, 'grappled') && (att.holding || []).length + (att.tendrilsLost || 0) < (atk.grapple.max || 1)) {
       grabbed = true;
       tgt.conds.restrained = { dc: atk.grapple.dc, by: att.id, grapple: true, weak: !!atk.weakens, only: !!atk.grapple.only }; // (weak: the roper's tendril, disadvantage on STR: js/traits.js; only: grappled and no more -- the chuul's pincer, SRD 5.1, no restraint, rules.js edges, 10-06)
       // the roper's tendril is a thing on the grid (SRD 5.1 Grasping Tendrils: "Each tendril can be attacked (AC 20; 10 hit points; immunity to poison and psychic damage).

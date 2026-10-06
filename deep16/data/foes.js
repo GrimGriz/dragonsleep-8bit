@@ -605,7 +605,7 @@
     abil: { str: 17, dex: 16, con: 13, int: 11, wis: 10, cha: 10 }, init: 3, perception: 10,
     saves: { str: 3, dex: 3, con: 1, int: 0, wis: 0, cha: 0 },
     attacks: {
-      constrict: { name: 'Constrict', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 10, grapple: { dc: 13, max: 1, size: 'M' }, pull: true },
+      constrict: { name: 'Constrict', atk: 5, dice: '1d6', mod: 3, type: 'bludgeoning', reach: 10, grapple: { dc: 13, max: 1 }, pull: true },
       drown: { name: 'Drag Under', atk: 5, dice: '2d6', mod: 0, type: 'bludgeoning', reach: 10, needsHeld: true, autoHitHeld: true, pull: true }
     },
     multi: ['constrict', 'drown'], resist: ['fire'], immune: ['poison'], bound: '~',
