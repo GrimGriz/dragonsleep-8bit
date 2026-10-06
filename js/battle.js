@@ -814,6 +814,22 @@
     }
     if (u.h.cls === 'cleric' && (yield* this.clericTurn(u))) return;
     var h = u.h, f = h.feats || {};
+    // a potion from the pack to wake one of the four who is down, the plain one first (RULED 10-06, Griz: "1 lean" -- only to wake one who is down, never on
+    // one merely under half, and no kit after a fight: the pack and the field stay the player's; a cleric's word comes first, clericTurn above)
+    var fallen = this.heroes.filter(function (x) { return !x.guest && down(x) && !x.dead; })[0];
+    var pot = fallen && ['potion', 'greaterpotion', 'superiorpotion'].filter(function (id) { return DS.G.count(id) > 0; })[0];
+    if (pot) {
+      this.aimAlly = fallen;
+      try { var poured = yield* this.useItem(u, pot); } finally { this.aimAlly = null; }
+      if (poured) { yield* this.flushMsg(); return; }
+    }
+    // Sleep at a group (RULED 10-06, "1 lean": Dace's, a wizard guest's one spell for a crowd): two or more awake, and the weakest it can take within the
+    // pool's 5d8 on average (the spell's own rule: not the undead, the fey, the drow or the charm-immune; castSpell's sleep)
+    var awake = foes.filter(function (x) { return !x.conds.asleep; });
+    var sleepSp = DS.DATA.spells.sleep, takeable = awake.filter(function (x) { var ci = x.m.condImmune || []; return !(x.m.traits && x.m.traits.feyAncestry) && !/^(fey|undead)$/.test(tags(x)[0] || '') && ci.indexOf('asleep') < 0 && ci.indexOf('charmed') < 0; });
+    if (awake.length >= 2 && sleepSp && R.spellList(h, 'battle').indexOf(sleepSp) >= 0 && R.lowestSlot(h, 1) && takeable.some(function (x) { return x.hp <= DS.avgDice('5d8'); })) {
+      if (yield* this.castSpell(u, sleepSp, { actions: 1, bonus: 0 })) return;
+    }
     // a fighter guest's own resources (Pyro's kit, re-cut §2 beat 2): Second Wind when hurt, Action Surge when two or more stand against him
     if (h.cls === 'fighter' && !h.wounded && f.secondWind && h.hp < h.maxhp * 0.4) {
       f.secondWind = 0; var sw = this.heal(u, DS.roll('1d10') + h.lvl);

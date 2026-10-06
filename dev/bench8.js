@@ -1484,6 +1484,46 @@
         check('Vivian a guest, the party beside her: Sneak Attack on the swing ("' + L4.slice(0, 140) + '")', /Vivian hits Goblin[^.]* for \d+\..*Sneak Attack!/.test(L4));
         done(V.b);
       });
+      // §2.1, his "1 lean" (10-06): a guest pours a pack potion only to wake one of the four who is down (the plain one first; never on one merely under half; a
+      // cleric's word before the pack), and Dace casts Sleep at a group it can take (two awake; not at the dead; not at one)
+      laneCase('the guest\'s potion and Dace\'s Sleep', function () {
+        function withGuest(id, list, prep) {
+          SETUP(5); DS.EV.addGuest(id); if (prep) prep(DS.G);
+          T.startFight(list); for (var w0 = 0; w0 < 200 && !DS.find('battle'); w0++) T.step(1);
+          var b = DS.find('battle'); return { b: b, g: b.heroes.filter(function (x) { return x.guest && x.h.id === id; })[0], bar: b.heroes.filter(function (x) { return x.h.id === 'barley'; })[0] };
+        }
+        function said(n0) { return (T.blog || []).slice(n0).join(' / '); }
+        function done(b) { b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500); }
+        var A = withGuest('brann', ['ogre']), p0 = DS.G.count('potion'), n0 = (T.blog || []).length;
+        A.bar.h.hp = 0; A.bar.h.ko = true;
+        runGen(A.b.guestTurn(A.g)); var s1 = said(n0);
+        check('Barley down, Brann a guest: the pack\'s potion wakes him ("' + s1.slice(0, 90) + '"), potions ' + p0 + ' to ' + DS.G.count('potion') + ', Barley ' + A.bar.h.hp + ' HP', /Brann uses Potion of Healing\. Barley \+\d+ HP/.test(s1) && DS.G.count('potion') === p0 - 1 && A.bar.h.hp > 0 && !A.bar.h.ko);
+        done(A.b);
+        var B = withGuest('brann', ['ogre']); p0 = DS.G.count('potion'); n0 = (T.blog || []).length;
+        B.bar.h.hp = 3;
+        runGen(B.b.guestTurn(B.g)); var s2 = said(n0);
+        check('Barley at 3 HP, standing: Brann swings, the pack untouched ("' + s2.slice(0, 60) + '", potions ' + DS.G.count('potion') + ' of ' + p0 + ')', DS.G.count('potion') === p0 && /Brann (hits|attacks)/.test(s2) && !/uses Potion/.test(s2));
+        done(B.b);
+        var C = withGuest('brann', ['ogre'], function (g) { g.inv = g.inv.filter(function (s) { return !/potion/.test(s.id); }); }), k0 = DS.G.count('kit'); n0 = (T.blog || []).length;
+        C.bar.h.hp = 0; C.bar.h.ko = true;
+        runGen(C.b.guestTurn(C.g)); var s3 = said(n0);
+        check('Barley down, no potion in the pack (kits only): Brann swings, no kit ("' + s3.slice(0, 60) + '", kits ' + k0 + ' to ' + DS.G.count('kit') + ')', /Brann (hits|attacks)/.test(s3) && !/works the/.test(s3) && DS.G.count('kit') === k0);
+        done(C.b);
+        var I = withGuest('ingrith', ['ogre']); p0 = DS.G.count('potion'); n0 = (T.blog || []).length;
+        I.bar.h.hp = 0; I.bar.h.ko = true;
+        runGen(I.b.guestTurn(I.g)); var s4 = said(n0);
+        check('Barley down, Ingrith a guest: her word first, the pack untouched ("' + s4.slice(0, 70) + '", potions ' + DS.G.count('potion') + ' of ' + p0 + ')', /speaks a word to Barley/.test(s4) && DS.G.count('potion') === p0);
+        done(I.b);
+        var D = withGuest('dace', ['goblin', 'goblin', 'goblin']), ds0 = D.g.h.slots.slice(); n0 = (T.blog || []).length;
+        runGen(D.b.guestTurn(D.g)); var s5 = said(n0);
+        check('Dace at three goblins: "' + (s5.match(/Dace casts [^!]*!/) || [''])[0] + '", ' + D.b.foes.filter(function (f) { return f.conds.asleep; }).length + ' asleep, slots ' + JSON.stringify(ds0) + ' to ' + JSON.stringify(D.g.h.slots), /Dace casts Sleep!/.test(s5) && D.g.h.slots[0] === ds0[0] - 1);
+        done(D.b);
+        var und = Object.keys(DS.DATA.monsters).filter(function (k) { return (DS.DATA.monsters[k].tags || [])[0] === 'undead'; })[0];
+        var E = withGuest('dace', [und, und]); n0 = (T.blog || []).length; runGen(E.b.guestTurn(E.g)); var s6 = said(n0);
+        var F1 = withGuest('dace', ['goblin']); var n1 = (T.blog || []).length; runGen(F1.b.guestTurn(F1.g)); var s7 = said(n1);
+        check('Dace at two ' + und + 's: no Sleep ("' + s6.slice(0, 50) + '"); at one goblin: no Sleep ("' + s7.slice(0, 50) + '")', !/casts Sleep/.test(s6) && !/casts Sleep/.test(s7) && /Dace (hits|attacks)/.test(s7));
+        done(F1.b);
+      });
       var ok6 = cases6.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('battle1006: ' + ok6 + '/' + cases6.length + ' cases' + (ok6 === cases6.length ? ' clean' : ': ' + cases6.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
     } else if (test === 'migrate') {
