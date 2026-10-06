@@ -183,6 +183,11 @@ def main():
         for z in m.get('zones', []):
             if z['zone'] and z['zone'] not in encounters:
                 errors.append('map %s: zone %s unknown' % (mid, z['zone']))
+    # the flags registry (10-06, the 8-bit battle lane §2.8): a flag read or set that content/flags.json does not name is refused, as a record without
+    # its src is -- DS.cond reads an unknown flag as a false one, silently, and a door would never open (tools/flags.py)
+    import flags as FLAGS
+    fe, fw = FLAGS.check(ROOT)
+    errors.extend(fe); warnings.extend(fw)
     st = config['start']
     if st['map'] not in maps:
         errors.append('config start map unknown')

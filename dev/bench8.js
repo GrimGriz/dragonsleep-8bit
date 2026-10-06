@@ -1557,6 +1557,140 @@
       });
       var ok6 = cases6.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('battle1006: ' + ok6 + '/' + cases6.length + ' cases' + (ok6 === cases6.length ? ' clean' : ': ' + cases6.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
+    } else if (test === 'story1006') {
+      // THE STORY WALK (10-06, the 8-bit battle lane §2.8; review C15, rec 9 -- Griz, 10-06: "3 dunno what that means - trusting your lean"): the expansion's spine
+      // beat by beat (js/situations.js STEPS, the walker's DS.situation), and at each the door the game itself points at -- the journal's pinned quest, its step
+      // whose `if` holds (content/quests.json) -- checked: there (the NPC or trigger on its map, its cond true), reachable from Silverton across the maps as the
+      // flags lay them (the walker's rules: tiles, live warps and exits, doors, solid NPCs and chests in the way), and played -- its script run with every
+      // question answered by its first choice and every fight won (a stub battle) -- to see that the story moves. A door missing, shut or out of reach is a
+      // soft-lock: FAIL. A door played that moves nothing is a NOTE (some only point the way: "do some good in the halls while he mends"). And every flag the
+      // scripts read on the way is in content/flags.json (a Proxy on the flags: the reads the build cannot see, f.captainHome through an alias)
+      var REG = null; try { var xr = new XMLHttpRequest(); xr.open('GET', '../content/flags.json', false); xr.send(); REG = JSON.parse(xr.responseText); } catch (e) { out.err = 'flags.json: ' + e; }
+      var QUESTS = {}; (DS.DATA.quests || []).forEach(function (q) { QUESTS[q.id] = q; });
+      var EV = DS.EV, S = DS.SCRIPTS, base0 = DS.battle, fought = [], readSeen = {}, notes = [], walked = [];
+      function stubWin() { DS.battle = function (o) { fought.push((o.enemies || []).join(',')); return { start: function (script) { var self = this; self.finished = true; self.result = 'win'; pending.push(function () { script.resume(self, 'win'); }); } }; }; }
+      function watchFlags(G) { // (every key read through G.flags, from here on)
+        var raw = G.flags; G.flags = new Proxy(raw, { get: function (t, k) { if (typeof k === 'string') readSeen[k] = (readSeen[k] || 0) + 1; return t[k]; } });
+      }
+      function fresh(n) { T.newGame('barley'); DS.paused = true; DS.lastError = null; DS.situation(DS.G, { base: 'lake', spine: n }); DS.G.party.forEach(function (h) { delete h.pendingChoice; }); watchFlags(DS.G); return DS.G; }
+      function stepOf(q) { return DS.questStep ? DS.questStep(q) : null; } // (the game's own: the step the journal's marker follows, js/world.js)
+      function live(list) { return (list || []).filter(function (t) { return DS.cond(t.cond) && !(t.once && DS.G.flags['trig:' + t.id]); }); }
+      function inRect(r, x, y) { return x >= r[0] && y >= r[1] && x < r[0] + r[2] && y < r[1] + r[3]; }
+      function rectOf(t) { return t.rect || [t.x, t.y, t.w || 1, t.h || 1]; }
+      // the door a step names, on its map as the flags lay it: { kind: 'npc'|'trigger'|'square', ... } or null with why
+      function doorOf(step) {
+        var F = DS.field; F.load(step.map, 0, 0, 'down'); var m = F.map, id = step.npc;
+        if (step.trig || step.door) { // (a trigger by its id, or a door by its arg -- js/world.js stepPoint)
+          var td = (m.src.triggers || []).filter(function (x) { return step.door ? x.arg === step.door : x.id === step.trig; })[0], nm = step.trig || step.door;
+          if (!td) return { why: 'no trigger ' + (step.door ? 'with the arg ' : '') + nm + ' on ' + step.map };
+          if (!live([td])[0]) return { why: 'its trigger ' + nm + ' is shut (cond ' + (td.cond || '-') + (td.once ? ', once' : '') + ')' };
+          return { kind: 'trigger', map: step.map, rect: rectOf(td), on: td.on || 'step', t: td };
+        }
+        if (id) {
+          var n = F.npcs.filter(function (x) { return x.id === id; })[0];
+          if (n) return { kind: 'npc', map: step.map, x: n.x, y: n.y, npc: n };
+          var anyN = (m.src.npcs || []).filter(function (x) { return x.id === id; })[0];
+          var t = (m.src.triggers || []).filter(function (x) { return x.id === id; })[0];
+          if (t) { var lt = live([t])[0]; if (!lt) return { why: 'its trigger ' + id + ' is shut (cond ' + (t.cond || '-') + (t.once ? ', once' : '') + ')' }; var r = rectOf(t); return { kind: 'trigger', map: step.map, rect: r, on: t.on || 'step', t: t }; }
+          return { why: anyN ? 'the NPC ' + id + ' is not there (cond ' + (anyN.cond || '-') + ')' : 'no NPC or trigger named ' + id + ' on ' + step.map };
+        }
+        if (step.at) { var ax = step.at[0], ay = step.at[1], tt = live(m.src.triggers).filter(function (x) { return inRect(rectOf(x), ax, ay); })[0]
+            || live(m.src.triggers).filter(function (x) { return x.on === 'use' && x.script !== 'warp' && [[0, 1], [0, -1], [1, 0], [-1, 0]].some(function (d) { return inRect(rectOf(x), ax + d[0], ay + d[1]); }); })[0]; return { kind: tt ? 'trigger' : 'square', map: step.map, rect: tt ? rectOf(tt) : [step.at[0], step.at[1], 1, 1], on: tt ? (tt.on || 'step') : 'step', t: tt || null }; }
+        return { kind: 'map', map: step.map, rect: null };
+      }
+      // reachable from Silverton's start across the maps (the walker's rules, js-side: dev/bench8.js walk findPath), to a square beside an NPC or a use door, or in a step's rect
+      function reach(door) {
+        var F = DS.field, M = {}, st = DS.DATA.config.start;
+        Object.keys(DS.DATA.maps).forEach(function (id) { F.load(id, 0, 0, 'down'); var m = F.map, blk = {};
+          (m.src.npcs || []).forEach(function (d) { if (DS.cond(d.cond) && d.solid !== false && !d.wander) blk[d.x + ',' + d.y] = 1; });
+          (m.src.chests || []).forEach(function (c) { if (DS.cond(c.cond)) blk[c.x + ',' + c.y] = 1; });
+          M[id] = { m: m, tiles: m.tiles.slice(), w: m.w, h: m.h, blk: blk, trig: live(m.src.triggers), warps: live(m.src.warps) }; });
+        function pass(Q, x, y) { if (x < 0 || y < 0 || x >= Q.w || y >= Q.h) return false; var t = Q.tiles[y * Q.w + x]; return !!(t && DS.TILES[t] && DS.TILES[t].pass) && !Q.blk[x + ',' + y]; }
+        function goal(mp, x, y) {
+          if (mp !== door.map) return false;
+          if (!door.rect && door.kind !== 'npc') return true;
+          if (door.kind === 'npc') return Math.abs(x - door.x) + Math.abs(y - door.y) === 1;
+          if (door.on === 'use') return !inRect(door.rect, x, y) && [[0, 1], [0, -1], [1, 0], [-1, 0]].some(function (d) { return inRect(door.rect, x + d[0], y + d[1]); });
+          return inRect(door.rect, x, y) || (door.kind === 'square' && [[0, 1], [0, -1], [1, 0], [-1, 0]].some(function (d) { return inRect(door.rect, x + d[0], y + d[1]); }));
+        }
+        var seen = {}, q = [[st.map, st.x, st.y]], key = function (p) { return p[0] + ',' + p[1] + ',' + p[2]; }; seen[key(q[0])] = 1;
+        while (q.length) {
+          var p = q.shift(), Q = M[p[0]]; if (!Q) continue;
+          if (goal(p[0], p[1], p[2])) return true;
+          [[0, -1, 'up'], [0, 1, 'down'], [-1, 0, 'left'], [1, 0, 'right']].forEach(function (d) {
+            var nx = p[1] + d[0], ny = p[2] + d[1], nxt = null;
+            if (nx < 0 || ny < 0 || nx >= Q.w || ny >= Q.h) { var edge = nx < 0 ? 'west' : nx >= Q.w ? 'east' : ny < 0 ? 'north' : 'south', ex = (Q.m.src.exits && Q.m.src.exits[edge]) || Q.m.src.exit; if (ex && M[ex.to]) nxt = [ex.to, ex.tx, ex.ty]; }
+            else {
+              var dr = Q.trig.filter(function (t) { return t.on === 'use' && t.script === 'warp' && t.to && inRect(rectOf(t), nx, ny); })[0];
+              if (dr && M[dr.to]) nxt = [dr.to, dr.tx, dr.ty];
+              else if (goal(p[0], nx, ny) && door.kind !== 'npc' && door.on !== 'use') nxt = [p[0], nx, ny];
+              else if (pass(Q, nx, ny)) { var w = Q.warps.filter(function (x) { return x.x === nx && x.y === ny; })[0]; if (w && M[w.to]) { var at = (w.alt && w.alt[d[2]]) || w; nxt = [w.to, at.tx, at.ty]; } else nxt = [p[0], nx, ny]; }
+            }
+            if (nxt && !seen[key(nxt)]) { seen[key(nxt)] = 1; q.push(nxt); }
+          });
+        }
+        return false;
+      }
+      // play a door: talk, or its trigger's script, or arrive on its map (its enter hook) -- every question its first choice, every fight won
+      function playDoor(door) {
+        var F = DS.field, said = [], fin = false, steps = 0, err = null;
+        F.load(door.map, door.kind === 'npc' ? door.x : door.rect ? door.rect[0] : 1, door.kind === 'npc' ? door.y + 1 : door.rect ? door.rect[1] : 1, 'up');
+        // arriving first, as a warp does (the map's enter hook: the threshold holds the road on arrival), then the door itself
+        var enter = S['enter:' + door.map], act = door.kind === 'npc' ? function* () { var nn = F.npcs.filter(function (x) { return x.id === door.npc.id; })[0]; if (nn) yield* EV.talk(nn); }
+          : door.t ? function* () { yield* EV.trigger(door.t, F); } : null;
+        if (!enter && !act) return { said: [], err: null, none: true };
+        var gen = function* () { if (enter) yield* enter(); if (act && DS.field && DS.field.map && DS.field.map.id === door.map) yield* act(); };
+        var c0 = console.error; console.error = function () { err = err || Array.prototype.join.call(arguments, ' ').slice(0, 200); };
+        try {
+          DS.run(gen, function () { fin = true; });
+          for (; steps < 6000; steps++) {
+            var tp = DS.top(), k = tp && tp.kind, menu = (k === 'dialog' || k === 'menu' || k === 'popup') ? tp.menu : null;
+            if (k === 'dialog') { var pg = tp.pages && tp.pages[tp.p]; if (pg) { var t = DS.stripCodes(pg.lines.join(' ')); if (said[said.length - 1] !== t) said.push(t); } }
+            if (DS.lastError) { err = err || String(DS.lastError); break; }
+            if (k === 'gameover') { err = 'GAME OVER'; break; }
+            if (menu) { menu.i = Math.max(0, menu.items.findIndex(function (it) { return !it.disabled && !/DONATE|SUPPORT|KO-?FI/i.test(String(it.label || it)); })); T.tapf('a'); }
+            else if (k === 'dialog') { if (tp.chars < tp.pageLen()) tp.chars = tp.pageLen(); T.tapf('a'); }
+            else if (k === 'target') { tp.i = 0; T.tapf('a'); }
+            else if (k === 'check') { if (tp.t > 60) T.tapf('a'); else T.step(4); }
+            else if (k && k !== 'field' && k !== 'flash') { T.tapf('a'); T.step(2); }
+            else T.step(1);
+            if (fin && !DS.scriptActive() && (!k || k === 'field')) break;
+          }
+        } catch (e) { err = String(e && e.stack || e).slice(0, 300); }
+        console.error = c0;
+        return { said: said, err: err, steps: steps };
+      }
+      var STORY = ['pin', 'stairHook', 'drySeen', 'crewMet', 'crewDealt', 'clericMet', 'frontDoor', 'hookDone', 'pyroMet', 'pyroLeads', 'roadOpen', 'lamp1', 'lamp2', 'lamp3', 'heardPinned', 'captainFound', 'captainHome', 'pyroTrusts', 'petition', 'nestCrushed', 'wordBelow', 'mustered', 'raidWon', 'highwaySecured', 'pyroConsent', 'ingrithEscort', 'expansionDone', 'sealCleared', 'roperDead', 'buletteDead', 'halldorUp', 'deepholmSeen', 'torvaldMet', 'assassinsMet'];
+      function storyNow() { var f = DS.G.flags, o = {}; STORY.forEach(function (k) { if (f[k]) o[k] = f[k]; }); var q = QUESTS[f.pin], s = q && stepOf(q); o._step = s ? (s.where || '').slice(0, 40) : null; return JSON.stringify(o); }
+      try {
+        stubWin();
+        // a spine state no save can stand in: the situations split it, the game does it in one script
+        // where the story goes when the journal points nowhere (read in the scripts, 10-06)
+        var NEXT = { 13: 'the word from below comes at the next rest (js/deep.js EV.rest: nestCrushed and no wordBelow)', 21: 'the expansion is done (the consult)' };
+        var SEAMS = { 3: 'the night crew dealt with and Ingrith come are one script (js/deep.js: both ways of dealing call EV.ingrithArrives at once): no save stands between beats 3 and 4' };
+        for (var n = 0; n <= 21; n++) {
+          if (SEAMS[n]) { notes.push('beat ' + n + ': a seam, not walked -- ' + SEAMS[n]); continue; }
+          fresh(n);
+          var pin = DS.G.flags.pin, q = QUESTS[pin], step = q ? stepOf(q) : null, door = null, row = { n: n, pin: pin || '(none)' };
+          if (!pin && n === 0) { door = { kind: 'map', map: 'silverton', rect: null }; row.where = 'Silverton, the lake done: Papa comes out of his door (the map\'s enter hook)'; }
+          else if (!q) { check('beat ' + n + ': the journal pins "' + pin + '", a quest content/quests.json has not got', false); continue; }
+          else if (q.done && DS.cond(q.done)) { row.where = '(the journal points nowhere: ' + pin + ' is done, ' + q.done + ')'; notes.push('beat ' + n + ': the pinned quest ' + pin + ' is done (' + q.done + ') and nothing new is pinned -- the marker shows nothing' + (NEXT[n] ? '; ' + NEXT[n] : '')); walked.push(row); continue; }
+          else if (!step) { check('beat ' + n + ': the pinned quest ' + pin + ' has no step whose if holds', false); continue; }
+          else { row.where = step.where; door = doorOf(step); }
+          if (!door || door.why) { check('beat ' + n + ' (' + pin + '): the door the journal points at -- "' + (step && step.where) + '" -- ' + (door ? door.why : 'none'), false); continue; }
+          var ok = reach(door); row.reach = ok;
+          if (!ok) { check('beat ' + n + ' (' + pin + '): "' + row.where + '" is out of reach from Silverton (' + door.kind + ' on ' + door.map + ')', false); continue; }
+          var before = storyNow(), r = playDoor(door), after = storyNow();
+          row.moved = before !== after; row.door = door.kind + ' ' + (door.npc ? door.npc.id : door.t ? door.t.id : '') + ' on ' + door.map;
+          if (r.err) check('beat ' + n + ' (' + pin + '): playing "' + row.where + '" threw: ' + r.err, false);
+          if (!row.moved && !r.err) notes.push('beat ' + n + ' (' + pin + ', ' + row.door + '): played, nothing moved -- "' + (r.said[0] || '').slice(0, 90) + '"');
+          walked.push(row);
+        }
+        var unreg = Object.keys(readSeen).filter(function (k) { return REG && !(k in REG.flags) && !(k.indexOf(':') > 0 && (k.split(':')[0] + ':') in REG.families) && !/^(toJSON|constructor|hasOwnProperty|then)$/.test(k) && typeof k === 'string'; });
+        check('the walk: ' + walked.length + ' of ' + (22 - Object.keys(SEAMS).length) + ' beats walked to a door that is there and in reach (' + walked.filter(function (w) { return w.moved; }).length + ' moved the story), ' + fought.length + ' fights won by the stub', walked.length === 22 - Object.keys(SEAMS).length);
+        check('every flag the scripts read on the walk is in content/flags.json (' + Object.keys(readSeen).length + ' read' + (unreg.length ? '; not named: ' + unreg.join(', ') : '') + ')', REG && !unreg.length);
+        out.log = out.log.concat(walked.map(function (w) { return 'beat ' + w.n + ' [' + w.pin + '] ' + (w.door || '') + (w.moved ? ' -- moved' : w.moved === false ? ' -- still' : '') + ': ' + (w.where || '').slice(0, 80); }), notes.map(function (x) { return 'NOTE ' + x; }));
+      } finally { DS.battle = base0; }
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');
