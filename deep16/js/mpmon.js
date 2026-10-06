@@ -13,8 +13,10 @@
      BEHOLDA, an EyeGregore: hovers, sees 120 ft in the dark, has no hands; DICE SLAM (her dice swung on her will, WIS);
        the VNA BUBBLE and BALEFUL GAZE; at 5, the BIG SCREEN (the projection, a cone).
    THE SPECIALS: a pool a fight, shared, back on a short rest -- 1 at 1st, one more every two levels: 2 at 3rd, 3 at 5th, 4 at 7th, 5 at 9th
-   (MP's "2 specials per encounter" grown with the level, RULED 10-06, Griz: "3 at level 5, 4 at 7, 5 at 9 down to 1 move at lvl 1"). Rascal and Goose
-   are two more builds the day they are wanted. */
+   (MP's "2 specials per encounter" grown with the level, RULED 10-06, Griz: "3 at level 5, 4 at 7, 5 at 9 down to 1 move at lvl 1").
+     RASCAL, a Lobstamonkee (10-06 late): his blow a FIRE BOLT on CHA (a PINCH when something is on him); SOCIAL SHARING (a Social die to his friends),
+       SOCIAL FLAME (a ball of fire); at 5, SOCIAL DISTANCING (a cone: psychic and frightened).
+   Goose is the fourth, the day he is wanted. */
 'use strict';
 (function () {
   var D = window.D16, DS = window.DS, R = DS.R, G = D.grid, RU = D.rules, M = D.magic, FX = D.fx, AI = D.ai, TX = D.tactics, F = D.features, NPC = D.npc;
@@ -38,7 +40,11 @@
     denny: { name: 'Denny', kind: 'lobstamonkee', hd: 10, abil: { str: 16, dex: 14, con: 16, int: 8, wis: 10, cha: 12 }, asi: { 4: 'str', 8: 'str' },
       saves: ['str', 'con'], weapon: 'monkeyfists', armor: 'denimjacket', look: 'denny_p2', extraAttack: 5 },
     beholda: { name: 'Beholda', kind: 'eyegregore', hd: 8, abil: { str: 10, dex: 14, con: 14, int: 12, wis: 16, cha: 13 }, asi: { 4: 'wis', 8: 'wis' },
-      saves: ['wis', 'cha'], weapon: 'diceslam', armor: 'eyehide', look: 'beholda_p2' }
+      saves: ['wis', 'cha'], weapon: 'diceslam', armor: 'eyehide', look: 'beholda_p2' },
+    // RASCAL (10-06, the Rascal seat; Griz: "please invent a third special for rascal", "He'll range attack with a cantrip like Aurdin"): MP's Social PC,
+    // so CHA is his stat (cast: his DC and Fire Bolt's attack by it; MP.unit lays it on the unit); MP gives him 70 HP against Denny's 120: a d8 and CON 10
+    rascal: { name: 'Rascal', kind: 'lobstamonkee', hd: 8, abil: { str: 10, dex: 14, con: 10, int: 10, wis: 12, cha: 16 }, asi: { 4: 'cha', 8: 'cha' },
+      saves: ['cha', 'wis'], weapon: 'pinch', armor: 'lobstershell', look: 'rascal_p1', cast: 'cha', cantrip: 'firebolt' }
   };
   // the natural weapons and hides: items so every rule that reads a weapon or an armour reads them, kept off the maker's racks (noSell)
   var IT = DS.DATA.items, SRC = 'they live/beholda/deep16-translation.md; invented.json#mpmon';
@@ -46,11 +52,14 @@
   IT.diceslam = { name: 'Dice Slam', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d8', type: 'bludgeoning', group: 'natural', kind: 'diceslam', props: [], abil: 'wis' }, desc: 'Her three dice swung on their chains, on her will: 1d8 + WIS.', src: SRC };
   IT.denimjacket = { name: 'Denim Jacket', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'light' }, desc: 'Studded denim: AC 12 + DEX.', src: SRC };
   IT.eyehide = { name: 'EyeGregore Hide', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'natural' }, desc: 'Her fuzz is tougher than it looks: AC 12 + DEX.', src: SRC };
+  IT.pinch = { name: 'Pinch', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d6', type: 'slashing', group: 'natural', kind: 'pinch', props: [] }, desc: 'The giant claw, when something is on him: 1d6 + STR.', src: SRC };
+  IT.lobstershell = { name: 'Lobster Shell', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'natural' }, desc: 'The claw arm\'s shell and quick feet: AC 12 + DEX.', src: SRC };
   // a weapon swung by an ability of its own (Dice Slam's WIS): the one line the shared rules need
   var wa0 = R.weaponAbil; R.weaponAbil = function (h, w) { return (w && w.weapon && w.weapon.abil) || wa0(h, w); };
   // by name, at any level (as Higertha stands): ?npc=denny:5, the Pocket DM's seats
   NPC.NAMED.denny = { name: 'Denny', cls: 'mpmon', build: 'denny', named: true, look: 'denny_p2' };
   NPC.NAMED.beholda = { name: 'Beholda', cls: 'mpmon', build: 'beholda', named: true, look: 'beholda_p2' };
+  NPC.NAMED.rascal = { name: 'Rascal', cls: 'mpmon', build: 'rascal', named: true, look: 'rascal_p1' };
 
   // the sheet: the build's numbers at the level (the SRD's average hit points; an ASI at 4 and 8), the natural kit, the specials
   MP.sheet = function (spec) {
@@ -59,7 +68,7 @@
     var con = mod(abil.con), hp = b.hd + con + (lvl - 1) * (b.hd / 2 + 1 + con);
     var h = {
       id: spec.id || spec.build, name: spec.name || b.name, cls: 'mpmon', build: spec.build, lvl: lvl, xp: R.XP_LEVEL[lvl], base: JSON.parse(JSON.stringify(abil)), abil: abil,
-      maxhp: hp, hp: hp, equip: { weapon: b.weapon, armor: b.armor, shield: null, ring: null, cloak: null }, known: [], feats: { specials: MP.specialsAt(lvl) }, conds: {},
+      maxhp: hp, hp: hp, equip: { weapon: b.weapon, armor: b.armor, shield: null, ring: null, cloak: null }, known: b.cantrip ? [b.cantrip] : [], feats: { specials: MP.specialsAt(lvl) }, conds: {},
       subclass: b.name, saveProf: b.saves.slice(), style: null, skills: {}, expertise: [], race: b.kind, npc: true, named: true, alt: null, slots: [], slotsMax: [],
       attacks: b.extraAttack && lvl >= b.extraAttack ? 2 : 1
     };
@@ -80,6 +89,7 @@
     if (k.climbs) u.climbs = true;
     if (k.noHands) u.noHands = true;
     u.darkvision = Math.max(u.darkvision || 0, k.dv || 0);
+    if (b.cast) { u.castAb = b.cast; u.spellDC = 8 + u.prof + mod(u.abil[b.cast]); u.spellAtk = u.prof + mod(u.abil[b.cast]); } // (Rascal's CHA: js/magic.js M.mod reads castAb before the class's cast)
     return u;
   };
   MP.left = function (u) { return (u.feats && u.feats.specials) || 0; };
@@ -96,6 +106,13 @@
   MP.gazeDice = function (L) { return L + 'd8'; };
   MP.screenDice = function (L) { return Math.max(1, L - 1) + 'd8'; };
   MP.SCREEN = { shape: 'cone', len: 30 };
+  // Rascal's (10-06): the Social die, the flame's dice and reach (10 ft round, 15 at 3rd, 20 at 5th: the SRD Fireball's), the distancing's dice
+  MP.shareDie = function (L) { return L >= 9 ? 'd10' : L >= 5 ? 'd8' : 'd6'; };
+  MP.flameDice = function (L) { return L + 'd6'; };
+  MP.flameR = function (L) { return Math.min(20, 10 + 5 * Math.floor((L - 1) / 2)); };
+  MP.flameGeo = function (L) { return { shape: 'sphere', range: 60, r: MP.flameR(L) }; };
+  MP.distDice = function (L) { return L >= 9 ? '3d8' : '2d8'; };
+  MP.DISTANCE = { shape: 'cone', len: 30 };
 
   // who is where: foes in reach, foes it sees within a range
   MP.foes = function (B, u, ft, see) { return B.units.filter(function (w) { return G.hostile(u, w) && standing(w) && G.dist(u, w) <= ft && (!see || M.sees(B, u, w)); }); };
@@ -304,6 +321,88 @@
     return e;
   };
 
+  // ------------------------------------------------------------------ RASCAL (10-06): MP's Social PC. His regular blow is a cantrip, Fire Bolt (in his `known`: the class
+  // AI flings it as any caster's; Griz: "He'll range attack with a cantrip like Aurdin"), the claw a 1d6 Pinch when something is on him. The specials by his
+  // word (10-06): "Social sharing as a hat removing bow", "Social flame as dancing with claw clapping", the third "love it", and all three actions ("they get
+  // two specials per fight and that's a usage - action seems right")
+  function rowOr(u, row, alt) { return D.spr.anim(u.sheet, row) ? row : D.spr.anim(u.sheet, alt) ? alt : 'attack'; }
+  // SOCIAL SHARING (an action, a special; MP's Dice-Share: "distributes Rascal's action dice to other lobstamonkees at round start"): the hat comes off and he
+  // bows -- up to 1 + prof friends within 30 ft each get a Social die, a d6 (d8 at 5th, d10 at 9th), spent where it turns a miss into a hit or a failed save
+  // into a saved one (the bard's inspiration: js/features.js F.inspire, one die a creature)
+  MP.shareTargets = function (B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && standing(w) && !w.conds.inspired && G.dist(u, w) <= 30; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); }).slice(0, 1 + u.prof); };
+  MP.sharing = function* (B, u) {
+    var list = MP.shareTargets(B, u), die = MP.shareDie(u.lvl);
+    spend(u); u.turn.action = 0;
+    u.anim = rowOr(u, 'socialsharing', 'cast'); u.animT = B.t; D.sfx('buff');
+    list.forEach(function (w) { w.conds.inspired = { die: die, by: u.id }; FX.sparkle(w, 'gold', 14); });
+    B.card(['{y}' + u.name + '{/}: SOCIAL SHARING!  {g}(the hat comes off; a bow){/}  a ' + die + ' to ' + (list.length ? list.map(function (w) { return w.name; }).join(', ') : 'no one near') + '  {g}(for a roll that needs it; ' + leftText(u) + '){/}'], 340);
+    yield 30;
+    u.anim = 'idle';
+  };
+  // SOCIAL FLAME (an action, a special; MP's Range Fireball: 60 ft, 10 ft + 5 ft a level, 10 + 5/level + 10 a success): a ball of fire round one he sees within
+  // 60 ft, 10 ft (15 at 3rd, 20 at 5th); every creature in it saves DEX (his DC) or takes 1d6 fire a level, half on a save -- 5d6 at 5th, where MP's 60 x 0.27
+  // lands; friends in it burn too, as a Fireball's do. The dance with the claw clapping is its row; the fire is drawn here
+  MP.flameTargets = function (B, u) { return MP.foes(B, u, 60, true); };
+  MP.flameCatch = function (B, u, t) {
+    var sq = M.area(u, MP.flameGeo(u.lvl), t.x, t.y);
+    return { sq: sq, all: B.units.filter(function (w) { return w !== u && standing(w) && G.inArea(w, sq); }) };
+  };
+  MP.flame = function* (B, u, t) {
+    var c = MP.flameCatch(B, u, t);
+    spend(u); u.turn.action = 0;
+    u.facing = B.faceTo(u, t); u.anim = rowOr(u, 'socialflame', 'cast'); u.animT = B.t; D.sfx('crit');
+    yield 20;
+    FX.beam(u, t, 'fire', { thin: true }); yield 14;
+    FX.bloom(t.x, t.y, c.sq, 'fire');
+    var dx = MP.flameDice(u.lvl), r = D.roll(dx), dc = u.spellDC, hurt = [];
+    var lines = ['{y}' + u.name + '{/}: SOCIAL FLAME!  ' + dx + ' ' + RU.fmtRolls(r.rolls) + ' = {o}' + r.total + '{/} fire  DEX DC ' + dc + '  {g}(' + MP.flameR(u.lvl) + ' ft round ' + nm(B, t) + '; ' + leftText(u) + '){/}'];
+    c.all.forEach(function (w) {
+      var sv = RU.save(w, 'dex', dc, false, null, r.total), ev = RU.evasion(w), n = sv.ok ? (ev ? 0 : Math.floor(r.total / 2)) : (ev ? Math.floor(r.total / 2) : r.total);
+      lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' -> {r}' + n + '{/}');
+      if (n) hurt.push([w, n]);
+    });
+    if (!c.all.length) lines.push('  {g}no one in it.{/}');
+    B.card(lines.slice(0, 9), 420); yield 20;
+    hurt.forEach(function (h) { if (!h[0].dead && h[0].hp > 0) B.hurt(h[0], h[1], 'fire', { magic: true }); });
+    yield 24;
+    u.anim = 'idle';
+  };
+  // SOCIAL DISTANCING (5th; an action, a special): a 30-ft cone -- each foe in it saves WIS (his DC) or takes 2d8 psychic (3d8 at 9th) and is FRIGHTENED of
+  // him till the end of its next turn: it spends that turn getting away and can't willingly come closer, disadvantage on attacks while it sees him (Fear's
+  // own machinery, js/grimoire.js E.fear: `frightened` and `feared`, no concentration, one turn on the sweep's clock); half and unshaken on a save; one that
+  // cannot be frightened takes the damage only. Set against Fear, the wizard's 3rd-level spell at 5 (a minute for a slot): one turn of it with the Cannonball's
+  // dice, from the pool, on the one of the four who most wants foes kept off him
+  MP.distTargets = function (B, u) { return MP.foes(B, u, 30, true); };
+  MP.distCatch = function (B, u, t) {
+    var sq = M.area(u, MP.DISTANCE, t.x, t.y);
+    return { sq: sq, foes: B.units.filter(function (w) { return G.hostile(u, w) && standing(w) && G.inArea(w, sq); }) };
+  };
+  MP.distancing = function* (B, u, t) {
+    var c = MP.distCatch(B, u, t);
+    spend(u); u.turn.action = 0;
+    u.facing = B.faceTo(u, t); u.anim = rowOr(u, 'socialdistancing', 'cast'); u.animT = B.t; D.sfx('charm');
+    FX.bloom(u.x, u.y, c.sq, 'violet'); if (FX.stream) FX.stream(u, c.sq, 'psychic');
+    yield 24;
+    var dx = MP.distDice(u.lvl), r = D.roll(dx), dc = u.spellDC, hurt = [], fled = [];
+    var lines = ['{y}' + u.name + '{/}: SOCIAL DISTANCING!  ' + dx + ' ' + RU.fmtRolls(r.rolls) + ' = {o}' + r.total + '{/} psychic  WIS DC ' + dc + '  {g}(a 30-ft cone; ' + leftText(u) + '){/}'];
+    c.foes.forEach(function (w) {
+      var proof = !!(w.conds.heroism || RU.immuneTo(w, 'frightened', u)), sv = RU.save(w, 'wis', dc, false, proof ? null : 'frightened', r.total), n = sv.ok ? Math.floor(r.total / 2) : r.total;
+      lines.push('  ' + Nm(B, w) + ': ' + RU.saveText(sv) + ' ' + (sv.ok ? '{n}keeps its nerve{/}' : '{o}failed{/}' + (proof ? ' {g}(fearless){/}' : ' {p}FRIGHTENED{/} {g}(it keeps its distance till its turn ends){/}')) + ' -> {r}' + n + '{/}');
+      hurt.push([w, n]); if (!sv.ok && !proof) fled.push(w);
+    });
+    if (!c.foes.length) lines.push('  {g}no one in it.{/}');
+    B.card(lines.slice(0, 9), 420); yield 20;
+    hurt.forEach(function (h) { if (h[1] && !h[0].dead && h[0].hp > 0) B.hurt(h[0], h[1], 'psychic', { magic: true }); });
+    fled.forEach(function (w) {
+      if (w.dead || w.hp <= 0) return;
+      w.conds.frightened = { by: u.id, till: { who: w.id, at: 'end', n: 1 }, endText: '{who} gets a grip on itself.' };
+      w.conds.feared = { dc: dc, by: u.id, till: { who: w.id, at: 'end', n: 1 } };
+      FX.ring(w, 'violet', 30);
+    });
+    yield 24;
+    u.anim = 'idle';
+  };
+
   // ------------------------------------------------------------------ the AI's hand (js/tactics.js: TX.FIRST before the action, TX.ACTIONS among its plans)
   function reachFor(B, u, t, ft) { // here, or a walk that brings t within ft: { e } (e null: from where it stands), or null
     if (G.dist(u, t) <= ft) return { e: null };
@@ -346,6 +445,24 @@
         c.foes.forEach(function (w) { var pf = TX.pFail(w, 'wis', dc); v += TX.worth(pf * d + (1 - pf) * d / 2, w) + (RU.immuneTo(w, 'charmed', u) ? 0 : pf * TX.dpr(w) * 1.5); });
         plans.push({ kind: 'special', why: 'THE BIG SCREEN at ' + t.name + ' (' + c.foes.length + ')', score: v, go: function* () { yield* MP.screen(B, u, t); } });
       });
+    }
+    if (u.mpmon === 'rascal') {
+      var dcR = u.spellDC, bolt = TX.avg('1d10') * (u.lvl >= 5 ? 2 : 1) * 0.6;   // (about what his Fire Bolt does in a turn: a special has to beat it)
+      // Social Flame: the ball that catches the most foes and the fewest friends
+      MP.flameTargets(B, u).forEach(function (t) {
+        var c = MP.flameCatch(B, u, t), d = TX.avg(MP.flameDice(u.lvl)), v = 0, nf = 0;
+        c.all.forEach(function (w) { var pf = TX.pFail(w, 'dex', dcR), dmg = pf * d + (1 - pf) * d / 2; if (G.hostile(u, w)) { v += TX.worth(dmg, w); nf++; } else v -= TX.worth(dmg, w) * 1.5; });
+        if (nf >= 2 || (nf === 1 && v > bolt * 1.5)) plans.push({ kind: 'special', why: 'SOCIAL FLAME at ' + t.name + ' (' + nf + ')', score: v, go: function* () { yield* MP.flame(B, u, t); } });
+      });
+      // Social Distancing: the cone with the most in it, dearer when one is on him
+      if (u.lvl >= 5) MP.distTargets(B, u).forEach(function (t) {
+        var c = MP.distCatch(B, u, t), d = TX.avg(MP.distDice(u.lvl)), v = 0;
+        c.foes.forEach(function (w) { var pf = TX.pFail(w, 'wis', dcR); v += TX.worth(pf * d + (1 - pf) * d / 2, w) + (RU.immuneTo(w, 'frightened', u) ? 0 : pf * TX.dpr(w) * (G.dist(u, w) <= 5 ? 1.2 : 0.6)); });
+        if (c.foes.length >= 2 || c.foes.some(function (w) { return G.dist(u, w) <= 5; })) plans.push({ kind: 'special', why: 'SOCIAL DISTANCING at ' + t.name + ' (' + c.foes.length + ')', score: v, go: function* () { yield* MP.distancing(B, u, t); } });
+      });
+      // Social Sharing: a die each to the friends who swing hardest, when two or more are near and hold none
+      var sh = MP.shareTargets(B, u);
+      if (sh.length >= 2) plans.push({ kind: 'special', why: 'SOCIAL SHARING to ' + sh.length, score: sh.reduce(function (s, w) { return s + TX.dpr(w) * 0.35; }, 0) + 1, go: function* () { yield* MP.sharing(B, u); } });
     }
     return plans;
   });
@@ -391,6 +508,16 @@
       if (u.lvl >= 5) { var sc = MP.screenTargets(B, u); out.push({ id: 'mp-screen', label: 'THE BIG SCREEN', cost: 'A', icon: 'sacred', skill: true, ok: !whyA(sc, 'x'), why: whyA(sc, 'no foe you see within 30 ft'),
         note: 'a 30-ft cone at one you pick: each foe in it WIS DC ' + u.spellDC + ' or ' + MP.screenDice(u.lvl) + ' psychic and DOMINATED; half on a save; ' + leftText(u) }); }
     }
+    if (u.mpmon === 'rascal') {
+      var sh = MP.shareTargets(B, u);
+      out.push({ id: 'mp-sharing', label: 'SOCIAL SHARING', cost: 'A', icon: 'sacred', skill: true, ok: !whyA(sh, 'x'), why: whyA(sh, 'no friend within 30 ft without a die'),
+        note: 'the hat comes off, a bow: up to ' + (1 + u.prof) + ' friends within 30 ft each get a ' + MP.shareDie(u.lvl) + ' for a roll that needs it; ' + leftText(u) });
+      var fl = MP.flameTargets(B, u);
+      out.push({ id: 'mp-flame', label: 'SOCIAL FLAME', cost: 'A', icon: 'attack', skill: true, ok: !whyA(fl, 'x'), why: whyA(fl, 'no foe you see within 60 ft'),
+        note: 'a ball of fire round one you pick within 60 ft, ' + MP.flameR(u.lvl) + ' ft out from it: everyone in it (friends too) DEX DC ' + u.spellDC + ' or ' + MP.flameDice(u.lvl) + ' fire, half on a save; ' + leftText(u) });
+      if (u.lvl >= 5) { var ds = MP.distTargets(B, u); out.push({ id: 'mp-distancing', label: 'SOCIAL DISTANCING', cost: 'A', icon: 'surge', skill: true, ok: !whyA(ds, 'x'), why: whyA(ds, 'no foe you see within 30 ft'),
+        note: 'a 30-ft cone at one you pick: each foe in it WIS DC ' + u.spellDC + ' or ' + MP.distDice(u.lvl) + ' psychic and FRIGHTENED of you till its turn ends (it keeps away); half on a save; ' + leftText(u) }); }
+    }
     return out;
   };
   F.exec = function* (B, u, c) {
@@ -403,6 +530,9 @@
       case 'mp-bubble': yield* MP.bubble(B, u); return;
       case 'mp-gaze': t = yield* pick(B, u, 'BALEFUL GAZE', MP.gazeTargets(B, u), 'Which one meets your eye? (WIS DC ' + u.spellDC + ')'); if (t) yield* MP.gaze(B, u, t); return;
       case 'mp-screen': t = yield* pick(B, u, 'THE BIG SCREEN', MP.screenTargets(B, u), 'Aim the projection at which one? Every foe in the 30-ft cone toward it saves.'); if (t) yield* MP.screen(B, u, t); return;
+      case 'mp-sharing': yield* MP.sharing(B, u); return;
+      case 'mp-flame': t = yield* pick(B, u, 'SOCIAL FLAME', MP.flameTargets(B, u), 'Where does it burst? Everyone within ' + MP.flameR(u.lvl) + ' ft of the one you pick saves, DEX DC ' + u.spellDC + ' -- friends too.'); if (t) yield* MP.flame(B, u, t); return;
+      case 'mp-distancing': t = yield* pick(B, u, 'SOCIAL DISTANCING', MP.distTargets(B, u), 'Aim it at which one? Every foe in the 30-ft cone toward it saves, WIS DC ' + u.spellDC + '.'); if (t) yield* MP.distancing(B, u, t); return;
     }
   };
   var line0 = F.classLine; F.classLine = function (u) {
@@ -470,7 +600,7 @@
   var PK = D.pocket;
   if (PK && PK.STOCK) {
     var at = PK.STOCK.map(function (s) { return s.w; }).indexOf('pyro');
-    PK.STOCK.splice(at < 0 ? PK.STOCK.length : at, 0, { w: 'denny', lo: 1 }, { w: 'beholda', lo: 1 });
+    PK.STOCK.splice(at < 0 ? PK.STOCK.length : at, 0, { w: 'denny', lo: 1 }, { w: 'beholda', lo: 1 }, { w: 'rascal', lo: 1 });
   }
   if (PK && PK.shortRest) {
     var rest0 = PK.shortRest; PK.shortRest = function (c) {

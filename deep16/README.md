@@ -436,14 +436,25 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
   psychic a level and DOMINATED till the end of its next turn (it goes at the nearest of its own side it can reach), half on a save; one
   proof against charm takes the damage only. **At 5:** THE BIG SCREEN -- the projection, a 30-ft cone at one she picks, (level - 1)d8 and
   dominated, half on a save.
-- **Doors:** `?npc=goblin,goblin,hobgoblin,hobgoblin&vs=denny:5,beholda:5&lvl=5` (yours to play: SKILLS on the ring; `&watch` for the class
-  AI); the Pocket DM's roster has both seats; **`?mpshow`** shows the six specials one beat at a time (`js/mpshow.js`, the dice pinned, each
-  beat checked; `&only=`, `&beat=`, `&fast`, `&lvl=`).
+- **RASCAL**, a Lobstamonkee (climbs 30; 10-06 late, the third build): MP's Social PC, so CHA is his stat -- his DC and his blow are by it.
+  FIRE BOLT, his regular blow (Griz: *"He'll range attack with a cantrip like Aurdin"*): a spell attack, 1d10 fire at 120 ft, 2d10 at 5th;
+  PINCH, the claw, 1d6 + STR when something is on him; AC 14 shell, d8. SOCIAL SHARING (an action) -- the hat comes off and he bows: up
+  to 1 + prof friends within 30 ft each get a Social die (d6, d8 at 5th, d10 at 9th) for a roll that needs it (the bard's die, spent where
+  it turns a miss into a hit or a failed save into a saved one). SOCIAL FLAME -- a ball of fire round one he sees within 60 ft, 10 ft out
+  (15 at 3rd, 20 at 5th): everyone in it, friends too, DEX (8 + prof + CHA) or 1d6 fire a level, half on a save. **At 5:** SOCIAL
+  DISTANCING -- a 30-ft cone: each foe in it WIS or 2d8 psychic (3d8 at 9th) and FRIGHTENED of him till its turn ends (it gets away;
+  disadvantage on attacks while it sees him), half and unshaken on a save; set against Fear, the wizard's 3rd-level spell at 5. His word
+  on the three (10-06): *"love it"*, *"action seems right"*, *"Build it"*.
+- **Doors:** `?npc=goblin,goblin,hobgoblin,hobgoblin&vs=denny:5,beholda:5,rascal:5&lvl=5` (yours to play: SKILLS on the ring; `&watch`
+  for the class AI); the Pocket DM's roster has all three seats; **`?mpshow`** shows the nine specials one beat at a time (`js/mpshow.js`,
+  the dice pinned, each beat checked; `&only=`, `&beat=`, `&fast`, `&lvl=`).
 - **Looks:** `beholda_p2` is a stand-in cut from her first sheet (`tools/beholda-sheet.py`: front views for every facing, the projection
-  for the gaze); `denny_p2` gained TAUNT, DENIM DAMAGE and CANNONBALL rows from his poses (`tools/denny-sheet.py`). Their next sheets'
-  prompts are in `deep16-art-wanted.md`.
+  for the gaze); `denny_p2` gained TAUNT, DENIM DAMAGE and CANNONBALL rows from his poses (`tools/denny-sheet.py`); `rascal_p1` is his
+  first generated sheet cut whole (`tools/rascal-sheet.py`: the rows face left so the claw arm shows, the whiskers the generator ran
+  through his hat erased above it). Their next sheets' prompts are in `deep16-art-wanted.md`.
 - **Bench:** `python dev/bench16.py x mode=mpmon1006` (in `dev/check.py`'s gate): the builds against the design's tables, each special by
-  its rule with the dice pinned, the ring, the Pocket DM's seats and rest, a whole fight, and the show's six beats.
+  its rule with the dice pinned, the ring, the Pocket DM's seats and rest, a whole fight, Fire Bolt with the specials spent, and the
+  show's nine beats.
 
 ## Not in the POC
 

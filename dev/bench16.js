@@ -3253,6 +3253,52 @@
       while (!B9.over() && it9++ < 200000) { st9 = B9.co.next(); if (st9.done) break; if (st9.value && st9.value.prompt) B9.co.next(st9.value.prompt.opts[0].value); }
       var used9 = (B9.log || []).filter(function (l) { return /VNA BUBBLE!|BALEFUL GAZE|TAUNT!|DENIM DAMAGE!|CANNONBALL!|THE BIG SCREEN!/.test(l); }).length;
       okM('a fight at 5 against two goblins and two hobgoblins: over ' + B9.over() + ' in ' + B9.round + ' rounds, ' + used9 + ' specials used, error ' + (D.lastError ? String(D.lastError).slice(0, 60) : 'none'), !!B9.over() && used9 >= 2 && !D.lastError);
+
+      // RASCAL (10-06): the build by the lane's table (HP, AC, the DC and Fire Bolt on CHA), then his three specials by their rules with the dice pinned
+      [['rascal', 1, 8, 14, 13], ['rascal', 4, 23, 14, 14], ['rascal', 5, 28, 14, 15], ['rascal', 9, 48, 14, 17]].forEach(function (r) {
+        var u = D.npc.build('rascal:' + r[1], r[1], 'party', { id: 'r' + r[1] });
+        rowsM.push('rascal:' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' dc ' + u.spellDC + ' bolt +' + u.spellAtk + ' ' + u.feats.specials + 'sp');
+        okM('Rascal at ' + r[1] + ': HP ' + u.maxhp + ' (want ' + r[2] + '), AC ' + u.baseAC + ' (' + r[3] + '), DC ' + u.spellDC + ' (' + r[4] + ') on ' + u.castAb + ', Fire Bolt +' + u.spellAtk + ', known ' + (u.known || []).join() + ', Pinch ' + u.weapon.dice + ', climbs ' + !!u.climbs,
+          u.maxhp === r[2] && u.baseAC === r[3] && u.spellDC === r[4] && u.castAb === 'cha' && u.spellAtk === r[4] - 8 && (u.known || []).indexOf('firebolt') >= 0 && u.weapon.dice === '1d6' && u.climbs);
+      });
+      // Social Sharing: a d8 at 5 to the friends within 30 ft (not the one 50 ft off), spent on the miss it turns
+      var BR1 = mkB(['rascal:5', 'denny:5', 'aurdin:5'], ['hobgoblin'], 5), rs1 = sideM(BR1, 'party')[0], dR = sideM(BR1, 'party')[1], aR = sideM(BR1, 'party')[2], hR = sideM(BR1, 'foe')[0];
+      spotM(BR1, rs1, 6, 8); spotM(BR1, dR, 8, 8); spotM(BR1, aR, 16, 8); spotM(BR1, hR, 9, 8);
+      RUM.startTurn(rs1); var spR = rs1.feats.specials; runM(MPM.sharing(BR1, rs1));
+      okM('Social Sharing at 5: Denny holds a ' + (dR.conds.inspired && dR.conds.inspired.die) + ' (want d8), Aurdin 50 ft off holds ' + (aR.conds.inspired ? 'one' : 'none') + ', a special spent (' + spR + ' -> ' + rs1.feats.specials + '), the action ' + rs1.turn.action,
+        dR.conds.inspired && dR.conds.inspired.die === 'd8' && !aR.conds.inspired && rs1.feats.specials === spR - 1 && rs1.turn.action === 0);
+      pin(9, 'max'); RUM.startTurn(dR); var hh0 = hR.hp; runM(BR1.attack(dR, hR, dR.weapon)); D.d = dM;
+      okM('the die at work: Denny\'s 9 + 7 on AC 18, the d8 at its top -> ' + (hR.hp < hh0 ? 'a hit' : 'a miss') + ' (' + hh0 + ' -> ' + hR.hp + '), the die ' + (dR.conds.inspired ? 'kept' : 'spent'), hR.hp < hh0 && !dR.conds.inspired);
+      // Social Flame: 20 ft round the middle goblin at 5, 5d6 to each that fails
+      var BR2 = mkB(['rascal:5'], ['goblin', 'goblin', 'goblin'], 5), rs2 = sideM(BR2, 'party')[0], g2 = sideM(BR2, 'foe'); spotM(BR2, rs2, 4, 8); spotM(BR2, g2[0], 10, 8); spotM(BR2, g2[1], 11, 8); spotM(BR2, g2[2], 11, 9);
+      g2.forEach(function (g) { g.hp = g.maxhp = 200; });
+      var c2 = MPM.flameCatch(BR2, rs2, g2[1]).all.length; pin(2, 'max'); RUM.startTurn(rs2); runM(MPM.flame(BR2, rs2, g2[1])); D.d = dM;
+      okM('Social Flame at 5 (saves a 2, dice max): caught ' + c2 + ', ' + g2.filter(function (g) { return g.maxhp - g.hp === 30; }).length + ' took 5d6 max (30): ' + g2.map(function (g) { return g.maxhp - g.hp; }).join('/') + ', reach ' + MPM.flameR(5) + ' ft', c2 === 3 && g2.every(function (g) { return g.maxhp - g.hp === 30; }) && MPM.flameR(5) === 20);
+      // Social Distancing: the cone, 2d8 and frightened; the near goblin's turn takes it away from him
+      var BR3 = mkB(['rascal:5'], ['goblin', 'goblin'], 5), rs3 = sideM(BR3, 'party')[0], g3 = sideM(BR3, 'foe'); spotM(BR3, rs3, 4, 8); spotM(BR3, g3[0], 5, 8); spotM(BR3, g3[1], 7, 9);
+      g3.forEach(function (g) { g.hp = g.maxhp = 200; });
+      var c3 = MPM.distCatch(BR3, rs3, g3[1]).foes.length; pin(2, 'max'); RUM.startTurn(rs3); runM(MPM.distancing(BR3, rs3, g3[1])); D.d = dM;
+      var sc3 = g3.filter(function (g) { return g.conds.frightened && g.conds.feared; }).length, dd0 = GM.dist(rs3, g3[0]), took3 = g3.map(function (g) { return g.maxhp - g.hp; });
+      pin(15, null); RUM.startTurn(g3[0]); runM(D.ai.turn(BR3, g3[0])); D.d = dM; var dd1 = GM.dist(rs3, g3[0]);
+      okM('Social Distancing at 5 (saves a 2, dice max): caught ' + c3 + ', frightened ' + sc3 + ', ' + took3.join('/') + ' psychic (16 wanted); the near goblin\'s turn: ' + dd0 + ' -> ' + dd1 + ' ft off (the Pinch as it went: ' + (g3[0].maxhp - g3[0].hp - took3[0]) + '), Rascal ' + (rs3.hp === rs3.maxhp ? 'untouched' : 'hit'),
+        c3 === 2 && sc3 === 2 && took3.every(function (n) { return n === 16; }) && dd1 > dd0 && rs3.hp === rs3.maxhp);
+      var BR3b = mkB(['rascal:5'], ['goblin'], 5), rs3b = sideM(BR3b, 'party')[0], g3b = sideM(BR3b, 'foe')[0]; spotM(BR3b, rs3b, 4, 8); spotM(BR3b, g3b, 5, 8); g3b.hp = g3b.maxhp = 200;
+      g3b.condImmune = ['frightened']; pin(2, 'max'); RUM.startTurn(rs3b); runM(MPM.distancing(BR3b, rs3b, g3b)); D.d = dM;
+      okM('one that cannot be frightened takes the damage only: ' + (g3b.maxhp - g3b.hp) + ' psychic, frightened ' + !!g3b.conds.frightened, g3b.maxhp - g3b.hp === 16 && !g3b.conds.frightened);
+      // his buttons, and a fight run whole with the class AI flinging Fire Bolt
+      var BR4 = mkB(['rascal:5'], ['goblin'], 5), rs4 = sideM(BR4, 'party')[0], g4 = sideM(BR4, 'foe')[0]; rs4.guest = false; rs4.classAI = false; spotM(BR4, rs4, 6, 8); spotM(BR4, g4, 9, 8); RUM.startTurn(rs4);
+      var c4 = FM.commands(BR4, rs4).filter(function (c) { return /^mp-/.test(c.id); });
+      okM('the ring: Rascal ' + c4.map(function (c) { return c.label + (c.ok ? '' : '(x: ' + c.why + ')'); }).join(', '), c4.length === 3 && c4.filter(function (c) { return c.ok; }).length === 2 && c4.some(function (c) { return c.id === 'mp-sharing' && !c.ok && /no friend/.test(c.why); }));
+      okM('the Pocket DM seats Rascal: ' + (PKM.STOCK.map(function (s) { return s.w; }).indexOf('rascal') >= 0), PKM.STOCK.map(function (s) { return s.w; }).indexOf('rascal') >= 0);
+      var B10 = mkB(['rascal:5', 'denny:5'], ['goblin', 'goblin', 'hobgoblin', 'hobgoblin'], 5), it10 = 0, st10;
+      while (!B10.over() && it10++ < 200000) { st10 = B10.co.next(); if (st10.done) break; if (st10.value && st10.value.prompt) B10.co.next(st10.value.prompt.opts[0].value); }
+      var used10 = (B10.log || []).filter(function (l) { return /SOCIAL SHARING!|SOCIAL FLAME!|SOCIAL DISTANCING!/.test(l); }).length, bolts10 = (B10.log || []).filter(function (l) { return /Rascal.*Fire Bolt/.test(l); }).length;
+      okM('a fight at 5, Rascal and Denny against two goblins and two hobgoblins: over ' + B10.over() + ' in ' + B10.round + ' rounds, ' + used10 + ' of his specials used, ' + bolts10 + ' Fire Bolts, error ' + (D.lastError ? String(D.lastError).slice(0, 60) : 'none'), !!B10.over() && used10 >= 1 && !D.lastError);
+      // his regular blow: with the specials spent and a goblin 30 ft off, the class AI flings Fire Bolt
+      var BR5 = mkB(['rascal:5'], ['goblin'], 5), rs5 = sideM(BR5, 'party')[0], g5r = sideM(BR5, 'foe')[0]; spotM(BR5, rs5, 4, 8); spotM(BR5, g5r, 10, 8); g5r.hp = g5r.maxhp = 60;
+      rs5.feats.specials = 0; pin(15, 'max'); RUM.startTurn(rs5); var n5 = (BR5.log || []).length; runM(D.ai.turn(BR5, rs5)); D.d = dM;
+      var l5 = logSince(BR5, n5).join(' | ');
+      okM('no specials left, a goblin 30 ft off: Rascal ' + (/Fire Bolt/.test(l5) ? 'flings Fire Bolt' : 'does not cast') + ' (' + l5.slice(0, 200) + '), the goblin ' + g5r.maxhp + ' -> ' + g5r.hp, /Fire Bolt/.test(l5) && g5r.hp < g5r.maxhp);
       repM.builds = rowsM;
       // the show (deep16/?mpshow, js/mpshow.js): every beat run headless, each beat's own check a line here
       var BS = D.mpshow.make('?mpshow&fast'); D.battle = BS; BS.enter();

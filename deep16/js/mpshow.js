@@ -16,7 +16,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var L = Math.max(5, Math.min(9, +(get('lvl') || 5))), FAST = /[?&]fast\b/.test(q);
-    var B = D.npcFight('?npc=goblin,goblin,goblin,hobgoblin,ogre&vs=denny:' + L + ',beholda:' + L + '&lvl=' + L, {});
+    var B = D.npcFight('?npc=goblin,goblin,goblin,hobgoblin,ogre&vs=denny:' + L + ',beholda:' + L + ',rascal:' + L + '&lvl=' + L, {});
     var enter0 = B.enter;
     B.enter = function () { enter0.apply(this, arguments); this.req = null; this.co = show(this, get, FAST, L); };
     return B;
@@ -25,7 +25,7 @@
   function* show(B, get, FAST, L) {
     var W = function (n) { return FAST ? 1 : n; }, MP = D.mpmon;
     var pool = B.units.slice(), kind = function (k) { return pool.filter(function (u) { return u.kind === k; }); };
-    var dn = pool.filter(function (u) { return u.mpmon === 'denny'; })[0], bh = pool.filter(function (u) { return u.mpmon === 'beholda'; })[0];
+    var dn = pool.filter(function (u) { return u.mpmon === 'denny'; })[0], bh = pool.filter(function (u) { return u.mpmon === 'beholda'; })[0], rs = pool.filter(function (u) { return u.mpmon === 'rascal'; })[0];
     var gob = kind('goblin'), hob = kind('hobgoblin')[0], ogre = kind('ogre')[0];
     var orig = pool.map(function (u) { return { u: u, maxhp: u.maxhp }; });
     var report = B.mpReport = [], home = { x: dn.x, y: dn.y };
@@ -101,6 +101,30 @@
         var x0 = dn.x; RU.startTurn(dn); yield* act(dn, MP.cannonball(B, dn, gob[1]), 15, 2, true);
         var flat = [gob[0], gob[1]].filter(function (w) { return w.conds.prone; }).length;
         return [flat === 2 && dn.x !== x0, 'Denny ' + Math.abs(dn.x - x0) * 5 + ' ft through the air; ' + flat + ' prone; ' + [gob[0], gob[1]].map(function (w) { return w.maxhp - w.hp; }).join('/') + ' damage'];
+      } },
+      // Rascal's three (10-06): the hat-removing bow, the dance with the claw clapping, the cone that sends them running
+      { id: 'sharing', name: 'Social Sharing', what: 'Rascal sweeps off his hat and bows: Denny and Beholda each get a ' + MP.shareDie(L) + '. Then Denny swings at the hobgoblin (AC 18) with his d20 pinned at 9: a miss by a little -- and the die, rolled at its top, turns it into a hit.', run: function* () {
+        stage([[rs, 0, 0], [dn, 2, 0], [bh, -1, 1], [hob, 3, 0, 60]], rs);
+        RU.startTurn(rs); yield* act(rs, MP.sharing(B, rs));
+        var got = [dn, bh].filter(function (w) { return w.conds.inspired; }).length, h0 = hob.hp;
+        RU.startTurn(dn); var lg = yield* act(dn, B.attack(dn, hob, dn.weapon), 9, null, true);
+        var hit = hob.hp < h0, spent = !dn.conds.inspired;
+        return [got === 2 && hit && spent, got + ' of 2 hold a die; Denny\'s 9 + 7 = 16 on AC 18 ' + (hit ? 'turned into a hit by the die' : 'missed') + ' (' + h0 + ' -> ' + hob.hp + ' HP), the die ' + (spent ? 'spent' : 'kept')];
+      } },
+      { id: 'flame', name: 'Social Flame', what: 'Rascal dances, the claw clapping over his head, and a ball of fire bursts round the middle goblin of three (60 HP each), ' + MP.flameR(L) + ' ft out from it: their DEX saves pinned at 2, the dice at their top -- ' + MP.flameDice(L) + ' fire each. Denny and Beholda stand well back.', run: function* () {
+        stage([[rs, 0, 0], [dn, -3, -3], [bh, -3, 3], [gob[0], 5, 0, 60], [gob[1], 6, 1, 60], [gob[2], 6, -1, 60]], gob[1]);
+        var caught = MP.flameCatch(B, rs, gob[1]).all, want = +MP.flameDice(L).split('d')[0] * 6;
+        RU.startTurn(rs); yield* act(rs, MP.flame(B, rs, gob[1]), null, 2, true);
+        var burned = caught.filter(function (w) { return w.maxhp - w.hp === want; }).length, friends = caught.filter(function (w) { return w.side === rs.side; }).length;
+        return [caught.length === 3 && burned === 3 && !friends, caught.length + ' in the fire (' + friends + ' friends), ' + burned + ' took ' + want + ' (' + caught.map(function (w) { return w.maxhp - w.hp; }).join('/') + ')'];
+      } },
+      { id: 'distancing', name: 'Social Distancing', what: 'Two goblins (60 HP) close on Rascal; he opens the 30-ft cone at them, their WIS saves pinned at 2, the dice at their top -- ' + MP.distDice(L) + ' psychic each and FRIGHTENED. On its turn the nearer one gets away from him instead of swinging.', run: function* () {
+        stage([[rs, 0, 0], [dn, -2, 2], [bh, -2, -2], [gob[0], 1, 0, 60], [gob[1], 2, 1, 60]], rs);
+        var caught = MP.distCatch(B, rs, gob[1]).foes;
+        RU.startTurn(rs); yield* act(rs, MP.distancing(B, rs, gob[1]), null, 2, true);
+        var scared = [gob[0], gob[1]].filter(function (w) { return w.conds.frightened; }).length, want = +MP.distDice(L).split('d')[0] * 8, d0 = G.dist(rs, gob[0]), hp0 = rs.hp;
+        var lg = yield* turn(gob[0], 15, null), d1 = G.dist(rs, gob[0]);
+        return [caught.length === 2 && scared === 2 && d1 > d0 && rs.hp === hp0, scared + ' of ' + caught.length + ' frightened (' + [gob[0], gob[1]].map(function (w) { return w.maxhp - w.hp; }).join('/') + ' psychic, ' + want + ' wanted); the near goblin went from ' + d0 + ' ft to ' + d1 + ' ft off, Rascal ' + (rs.hp === hp0 ? 'untouched' : 'hit')];
       } }
     ];
 
@@ -110,7 +134,7 @@
       for (var i = 0; i < list.length; i++) {
         var b = list[i];
         B.clearCards();
-        B.card(['{y}DENNY AND BEHOLDA, SHOWN  ' + (i + 1) + ' / ' + list.length + ':  ' + b.name.toUpperCase() + '{/}'].concat(D.wrap(b.what, 440).map(function (l) { return '{g}' + l + '{/}'; })), W(480));
+        B.card(['{y}THE MPMONS, SHOWN  ' + (i + 1) + ' / ' + list.length + ':  ' + b.name.toUpperCase() + '{/}'].concat(D.wrap(b.what, 440).map(function (l) { return '{g}' + l + '{/}'; })), W(480));
         yield W(140);
         var res, n0 = (B.log || []).length;
         try { res = yield* b.run(); } catch (e) { res = [false, 'threw: ' + String(e && e.message || e)]; if (window.console) console.error('mpshow ' + b.id, e); }
@@ -122,7 +146,7 @@
     } finally { D.d = d0; RU.save = save0; }
     B.clearCards();
     var okN = report.filter(function (r) { return r.ok; }).length;
-    B.card(['{y}DENNY AND BEHOLDA, SHOWN: ' + okN + ' OF ' + report.length + '{/}'].concat(report.map(function (r) { return (r.ok ? '{n}ok{/}  ' : '{r}NO{/}  ') + r.name; })), 1e9);
+    B.card(['{y}THE MPMONS, SHOWN: ' + okN + ' OF ' + report.length + '{/}'].concat(report.map(function (r) { return (r.ok ? '{n}ok{/}  ' : '{r}NO{/}  ') + r.name; })), 1e9);
     if (window.console) console.log('DEEP16 mpshow: ' + okN + ' of ' + report.length, report);
   }
 })();
