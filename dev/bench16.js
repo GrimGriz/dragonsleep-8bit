@@ -1793,7 +1793,7 @@
       okT('a fighter 5 (STR ' + ftH.abil.str + '), ' + G.dist(ftH, trH) + ' ft from a troll lying at 0, the d20 a 19: the attack on the card ' + /> .*Troll.*Torch/.test(lgH) + ', a hit ' + /HIT|CRITICAL/.test(lgH) + ' (this fighter crits on a 19: the 1 fire is flat, no dice to double), 1 fire ' + /= 1 fire/.test(lgH) + ' -- ' + lgH.slice(0, 170),
         G.dist(ftH, trH) <= 20 && /Torch/.test(lgH) && /HIT|CRITICAL/.test(lgH) && /= 1 fire/.test(lgH));
       okT('the troll burned ' + !!trH.burned + ' (hp ' + trH.hp + ', still down ' + !!trH.regenDown + ', dead ' + !!trH.dead + '), the torch burning on its square ' + !!D.light.torchAt(Bh, trH.x, trH.y) + ', the fighter\'s hand empty ' + !ftH.torch + ', the action spent ' + !ftH.turn.action + ', the card "burns where it lies" ' + /burns where it lies/.test(lgH),
-        trH.burned === true && trH.regenDown === true && !trH.dead && trH.hp === 0 && !!D.light.torchAt(Bh, trH.x, trH.y) && !ftH.torch && !ftH.turn.action && /burns where it lies/.test(lgH));
+        trH.burned === true && !trH.regenDown && !!trH.dead && trH.hp === 0 && !!D.light.torchAt(Bh, trH.x, trH.y) && !ftH.torch && !ftH.turn.action && /burns where it lies/.test(lgH)); // (dead at once: RULED 10-06, Griz: "if hp drops to 0 while burning = true, trigger troll death")
       runT(D.ai.turn(Bh, trH));
       okT('the troll\'s turn, burned: dead ' + !!trH.dead + ', the fight ' + Bh.over(), trH.dead && Bh.over() === 'won');
       // b. the d20 a 1: a miss -- the troll unburned (up at its turn), the torch burning on its square all the same
@@ -1852,8 +1852,8 @@
       var plQ = D.tactics.plans(Bq, ing);
       okT('the pack with two flasks, Ingrith ' + G.dist(ing, trQ) + ' ft from a troll lying at 0: the top plan ' + whyT(plQ), !!plQ[0] && plQ[0].kind === 'item' && /Oil Flask/.test(plQ[0].why) && G.dist(ing, trQ) <= 20);
       D.d = function (n) { return n === 20 ? 20 : d0T(n); }; var n0Q = (Bq.log || []).length; runT(D.ai.turn(Bq, ing)); D.d = d0T; var lgQ = logT(Bq, n0Q);
-      okT('her turn (the d20 a 20: a hit, the flask lit at her torch -- 10-05): the flask thrown ' + /Oil Flask, lit/.test(lgQ) + ', her own flask 1 -> ' + ing.ownFlask + ', the pack ' + flasksT(Bq) + ' (was 2), the troll burned ' + !!trQ.burned + ' -- ' + lgQ.slice(0, 110), /Oil Flask, lit/.test(lgQ) && ing.ownFlask === 0 && flasksT(Bq) === 2 && trQ.burned === true && trQ.regenDown === true);
-      delete trQ.burned; // (as if it had not caught: her next turn still has a troll to burn, and no flask of her own to do it with)
+      okT('her turn (the d20 a 20: a hit, the flask lit at her torch -- 10-05): the flask thrown ' + /Oil Flask, lit/.test(lgQ) + ', her own flask 1 -> ' + ing.ownFlask + ', the pack ' + flasksT(Bq) + ' (was 2), the troll burned ' + !!trQ.burned + ', dead ' + !!trQ.dead + ' -- ' + lgQ.slice(0, 110), /Oil Flask, lit/.test(lgQ) && ing.ownFlask === 0 && flasksT(Bq) === 2 && trQ.burned === true && !!trQ.dead); // (dead at once: RULED 10-06, Griz: "if hp drops to 0 while burning = true, trigger troll death")
+      delete trQ.burned; trQ.dead = false; trQ.regenDown = true; // (as if it had not caught: her next turn still has a troll lying to burn, and no flask of her own to do it with)
       D.rules.startTurn(ing); D.rules.startTurn(fourQ[0]); var plQ2 = D.tactics.plans(Bq, ing);
       okT('her next turn, the troll still lying and unburned: no flask plan (the pack still holds ' + flasksT(Bq) + ') -- ' + whyT(plQ2) + '; her list ' + Bq.itemList(ing).filter(function (x) { return x.id === 'oil'; }).length + ' flasks, a hero\'s ' + Bq.itemList(fourQ[0]).filter(function (x) { return x.id === 'oil'; }).map(function (x) { return x.n; }).join(','),
         !plQ2.some(function (p) { return p.kind === 'item' && p.id === 'oil'; }) && flasksT(Bq) === 2 && Bq.itemList(ing).filter(function (x) { return x.id === 'oil'; }).length === 0 && Bq.itemList(fourQ[0]).filter(function (x) { return x.id === 'oil'; }).map(function (x) { return x.n; }).join(',') === '2');
@@ -2024,7 +2024,7 @@
       runF(D.ai.turn(Bt, tr));
       okF('its turn: up at ' + tr.hp + ' HP (regeneration 10), down ' + !!tr.regenDown + ', dead ' + !!tr.dead, tr.hp >= 10 && !tr.regenDown && !tr.dead);
       Bt.hurt(tr, 300, 'slashing'); Bt.hurt(tr, 4, 'fire'); var lgB = (Bt.log || []).slice(-1)[0] || '';
-      okF('down again, then fire on it where it lies: burned ' + !!tr.burned + ' -- ' + lgB, tr.regenDown && tr.burned && /burns where it lies/.test(lgB));
+      okF('down again, then fire on it where it lies: burned ' + !!tr.burned + ', dead at once ' + !!tr.dead + ' -- ' + lgB, !tr.regenDown && tr.dead && tr.burned && /burns where it lies/.test(lgB)); // (RULED 10-06: dead there and then, not at its turn)
       runF(D.ai.turn(Bt, tr));
       okF('its turn, burned: dead ' + !!tr.dead + ', the fight ' + Bt.over(), tr.dead && Bt.over() === 'won');
       // b. the class AI burns one down
@@ -2037,7 +2037,7 @@
       // (Scorching Ray at a troll down: the rays land and burn it -- 10-05, Griz: "is scorching ray supposed to stop regen? Aurdin was shooting him when they were down and there was no real card")
       var Bsr = mkF('?npc=troll&lvl=5&vs=wizard:5&watch'), wsr = sideF(Bsr, 'party')[0], tsr = sideF(Bsr, 'foe')[0]; Bsr.hurt(tsr, 300, 'slashing'); D.rules.startTurn(wsr);
       D.d = function (n) { return n === 20 ? 18 : d0F(n); }; var n0S = (Bsr.log || []).length; runF(D.magic.cast(Bsr, wsr, 'scorchingray', 2, { units: [tsr, tsr, tsr] })); D.d = d0F; var lgS = (Bsr.log || []).slice(n0S).join(' | ');
-      okF('Scorching Ray at a troll down: rays at it ' + (lgS.split('> Troll  Scorching Ray').length - 1) + ', burned ' + !!tsr.burned + ', the card ' + /burns where it lies/.test(lgS), tsr.burned && /burns where it lies/.test(lgS) && lgS.split('> Troll  Scorching Ray').length - 1 === 3);
+      okF('Scorching Ray at a troll down: rays at it ' + (lgS.split('> Troll  Scorching Ray').length - 1) + ', burned ' + !!tsr.burned + ', dead ' + !!tsr.dead + ', the card ' + /burns where it lies/.test(lgS), tsr.burned && tsr.dead && /burns where it lies/.test(lgS) && lgS.split('> Troll  Scorching Ray').length - 1 === 1); // (the first ray takes it, the rest go at no one: RULED 10-06, dead at once)
       // (Pyro beside a troll down: his maces do not burn, so he swings at no troll down -- 10-05, the fight log)
       var Bpy = mkF('?npc=troll&lvl=8&vs=pyro&watch'), py = sideF(Bpy, 'party')[0], tp = sideF(Bpy, 'foe')[0]; py.x = tp.x; py.y = tp.y + (tp.size || 1); Bpy.hurt(tp, 300, 'slashing');
       var n0Y = (Bpy.log || []).length; runF(D.ai.turn(Bpy, py)); var lgY = (Bpy.log || []).slice(n0Y).join(' | ');

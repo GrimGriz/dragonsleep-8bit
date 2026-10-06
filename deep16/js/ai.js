@@ -66,9 +66,16 @@
       if (u.burned) { u.burned = false; u.dead = true; u.deadT = B.t; D.sfx('die'); B.card(['{y}' + the(B, u, true) + ' does not knit: it burned. It is dead.{/}'], 300); yield 30; return; }
       B.heal(u, u.regen);
       if (!(u.hp > 0)) { u.dead = true; u.deadT = B.t; D.sfx('die'); B.card(['{y}' + the(B, u) + ' cannot knit: it is dead.{/}'], 300); yield 30; return; } // (no healing on it -- Chill Touch: it did not regenerate)
-      u.regenRose = true; u.anim = 'idle'; u.animT = B.t; FX.sparkle(u, 'moss', 14);
+      u.anim = 'idle'; u.animT = B.t; FX.sparkle(u, 'moss', 14);
       B.card(['{r}' + the(B, u, true) + '{/} knits back together and stirs.  +' + u.regen + '  {g}(fire or acid keeps a troll down){/}'], 300); yield 30;
     }
+    // a troll standing and hurt: its 10 back at the start of its turn too (SRD 5.1 Regeneration: "at the start of its turn"), unless fire or acid found it since the start of
+    // its last. It knit in the middle of its turn, after its walk, till 10-06 (Griz: "2 - yes"): one that walked through burning oil missed that turn's knit and had the next
+    else if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp) {
+      if (u.burned) { B.card(['{g}' + u.name + ' does not knit: it burned.{/}']); yield 16; }
+      else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
+    }
+    u.burned = false; // (read here, at the start: fire or acid from now on -- its own turn too -- stops the next one)
     if (u.hp <= 0) { B.card(['{g}' + u.name + ' is down.{/}']); yield 30; return; }
     // flat and able: up first, half the speed (SRD 5.1), whether or not it walks after -- the walk stood it for the same cost, but a foe with its target already in reach never walked,
     // so it never stood, and fought prone all fight at disadvantage (10-05, Griz: "why trolls like fighting prone so much instead of standing when they aren't moving anywhere?" -- on the
@@ -1128,11 +1135,6 @@
         if (G.dist(u, rSpot) <= rRch && T.action > 0) { yield* B.cutRope(u, ropeT, meleeA); return; }
       }
     }
-    if (u.regen > 0 && u.hp > 0 && u.hp < u.maxhp && !u.regenRose) { // (regenRose: up from 0 this turn, its knitting already done -- AI.turn, 10-05)
-      if (u.burned) { B.card(['{g}' + u.name + ' does not knit: it burned.{/}']); yield 16; }
-      else { B.heal(u, u.regen); B.card(['{r}' + u.name + '{/} knits back together.  +' + u.regen]); yield 20; }
-    }
-    u.burned = false; u.regenRose = false;
     // Second Wind (the Dominion line soldier: 1d10+2 as a bonus action, once, under half)
     if (u.secondWind && !u.secondWindUsed && u.hp > 0 && u.hp < u.maxhp / 2) {
       u.secondWindUsed = true; var sw = D.roll(u.secondWind); B.heal(u, sw.total);

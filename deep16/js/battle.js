@@ -2484,8 +2484,13 @@
     if (u.beast && n > 0) { if (n < u.beast.hp) { u.beast.hp -= n; u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); conc(this); return; } var over = n - u.beast.hp; conc(this); D.features.unshape(this, u, over); return; }
     if (u.conds.asleep) { delete u.conds.asleep; FX.float('awake!', u, D.PAL.ramps.bone[2]); }
     if (n <= 0) { conc(this); return; }
-    // a troll down at 0 (u.regenDown, below): more blows change nothing but the burning -- fire or acid, and it will not knit at its turn (SRD 5.1 Regeneration, 10-05)
-    if (u.regenDown && !u.dead) { u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]); if (/fire|acid/.test(type || '')) this.card(['{o}The ' + shortName(u) + ' burns where it lies: it will not knit.{/}'], 200); return; }
+    // a troll down at 0 (u.regenDown, below): more blows change nothing but the burning -- fire or acid, and it is dead there and then (RULED 10-06, Griz: "if hp drops to
+    // 0 while burning = true, trigger troll death"; his "troll HP = 0 AND fire/acid = True ... trigger troll death" -- ours, not the SRD's wait for the start of its turn)
+    if (u.regenDown && !u.dead) {
+      u.flash = 10; FX.float('-' + n, u, D.PAL.ramps.red[4]);
+      if (/fire|acid/.test(type || '')) { delete u.regenDown; u.dead = true; u.deadT = this.t; D.sfx('die'); this.card(['{o}The ' + shortName(u) + ' burns where it lies. It is dead.{/}'], 260); }
+      return;
+    }
     u.hp = Math.max(0, u.hp - n);
     if (u.traces) this.hitAtTraces = true; // (nothing shows now: from their next moves they run, or he turns to fight: ai.js turn)
     if (u.displacement) u.conds.displaceOff = true; // the cloak falters when a blow lands
@@ -2516,7 +2521,10 @@
       else if (u.object) { u.dead = true; u.deadT = this.t; this.breached = true; D.sfx('crit'); this.card(['{r}' + u.name.charAt(0).toUpperCase() + u.name.slice(1) + ' gives way!{/}  {g}(the Edifice is breached){/}'], 300); }
       // a troll at 0 is down, not dead (SRD 5.1 Regeneration: "The troll dies only if it starts its turn with 0 hit points and doesn't regenerate"; acid or fire stops it -- 10-05,
       // Griz: "i think the regen is there it's just turning off when they die"): it lies there, still a target, and gets up at its turn unless it burned (ai.js AI.turn)
-      else if (u.regen > 0) { u.regenDown = true; u.conds.prone = true; this.card(['{y}The ' + shortName(u) + ' falls -- and starts to knit.{/}  {g}(' + (u.burned ? 'it burned: it will not' : 'fire or acid before its turn, or it gets up') + '){/}'], 300); if (u.holding && u.holding.length) this.release(u); }
+      // (burned since the start of its last turn -- this blow's fire or acid, or an earlier one's: dead at once, RULED 10-06, Griz: "if hp drops to 0 while burning = true,
+      // trigger troll death")
+      else if (u.regen > 0 && u.burned) { u.dead = true; u.deadT = this.t; this.card(['{y}The ' + shortName(u) + ' falls, burning. It will not knit: it is dead.{/}'], 300); if (u.holding && u.holding.length) this.release(u); }
+      else if (u.regen > 0) { u.regenDown = true; u.conds.prone = true; this.card(['{y}The ' + shortName(u) + ' falls -- and starts to knit.{/}  {g}(fire or acid before its turn, and it is dead){/}'], 300); if (u.holding && u.holding.length) this.release(u); }
       else { u.dead = true; u.deadT = this.t; this.card(['{y}' + (u.named ? '' : 'The ') + shortName(u) + ' falls.{/}']); /* (a named foe -- The Keeper -- has its own article: "The The Keeper falls", 10-02) */ if (u.holding && u.holding.length) this.release(u); }
       // a darkmantle down off the one it rode, or off one who went down, now -- not at the coroutine's next step: the blow that ends the fight leaves no
       // next step, and the one it rode kept "attached" and "blinded" (10-01, the roper window's bench: Barley and Vivian, their darkmantles dead)
