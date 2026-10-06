@@ -1454,6 +1454,36 @@
           b3.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); b3.over = 'win'; drive({}, 1500); flush();
         } finally { window.setTimeout = set0; window.clearTimeout = clr0; console.warn = warn0; }
       });
+      // §2.1 the guest turn learns the hand (todo 3.2): at two or more foes the highest damaging area spell it has a slot for, a cone or a line at the front foe and no
+      // picker opened; at one foe the weapon; under a roost no fire or thunder; and the rogue's Sneak Attack through the swing, as FIGHT has it
+      laneCase('the guest turn casts and sneaks', function () {
+        function guestFight(list, o, who) {
+          SETUP(5); T.startFight(list, o || {}); for (var w0 = 0; w0 < 200 && !DS.find('battle'); w0++) T.step(1);
+          var b = DS.find('battle'), u = b.heroes.filter(function (x) { return x.h.id === who; })[0]; u.guest = true; return { b: b, u: u };
+        }
+        function lines(n0) { return (T.blog || []).slice(n0); }
+        function done(b) { b.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); b.heroes.forEach(function (x) { x.guest = false; }); drive({}, 1500); }
+        var A = guestFight(['goblin', 'goblin', 'goblin'], {}, 'aurdin'), sl0 = A.u.h.slots.slice(), n0 = (T.blog || []).length, top0 = DS.top();
+        runGen(A.b.guestTurn(A.u)); var L1 = lines(n0), cast1 = (L1.filter(function (l) { return / casts /.test(l); })[0] || ''), sp1 = A.b.areaSpell ? null : null;
+        var spent = A.u.h.slots.map(function (n, i) { return sl0[i] - n; }), hitN = L1.filter(function (l) { return /Goblin.*(is caught|resists)|is defeated/.test(l); }).length;
+        check('three goblins, Aurdin a guest: "' + cast1 + '" (slots spent ' + JSON.stringify(spent) + '), ' + hitN + ' lines on the goblins, no picker opened (top ' + (DS.top() && DS.top().kind) + ')',
+          /^Aurdin casts (Fireball|Shatter|Burning Hands|Lightning Bolt)!$/.test(cast1) && spent.reduce(function (s, x) { return s + x; }, 0) === 1 && hitN >= 2 && DS.top() === top0);
+        done(A.b);
+        var B = guestFight(['goblin'], {}, 'aurdin'), sl1 = B.u.h.slots.slice(); n0 = (T.blog || []).length;
+        runGen(B.b.guestTurn(B.u)); var L2 = lines(n0);
+        check('one goblin: the weapon, no spell ("' + L2.join(' / ').slice(0, 120) + '", slots ' + JSON.stringify(B.u.h.slots) + ')', !L2.some(function (l) { return / casts /.test(l); }) && JSON.stringify(B.u.h.slots) === JSON.stringify(sl1) && L2.some(function (l) { return /^(Critical! )?Aurdin (hits|attacks)/.test(l); }));
+        done(B.b);
+        var C = guestFight(['goblin', 'goblin', 'goblin'], { roost: true }, 'aurdin'), ar = C.b.areaSpell(C.u.h); n0 = (T.blog || []).length;
+        runGen(C.b.guestTurn(C.u)); var L3 = lines(n0).join(' / ');
+        check('under a roost: no fire or thunder (' + (ar ? ar.name + ', ' + ar.el : 'nothing') + '), the roost undisturbed (usedFire ' + !!C.b.usedFire + ', over ' + C.b.over + ')', (!ar || (ar.el !== 'fire' && ar.el !== 'thunder')) && !C.b.usedFire && C.b.over !== 'roost');
+        done(C.b);
+        var V = guestFight(['goblin', 'goblin'], {}, 'vivian'); n0 = (T.blog || []).length;
+        DS.rng = function () { return 0.97; }; // (every die near its top: the swing lands)
+        try { runGen(V.b.guestTurn(V.u)); } finally { DS.seedDice(1006); }
+        var L4 = lines(n0).join(' / ');
+        check('Vivian a guest, the party beside her: Sneak Attack on the swing ("' + L4.slice(0, 140) + '")', /Vivian hits Goblin[^.]* for \d+\..*Sneak Attack!/.test(L4));
+        done(V.b);
+      });
       var ok6 = cases6.filter(function (c) { return c.ok; }).length;
       T.blog = []; out.log.push('battle1006: ' + ok6 + '/' + cases6.length + ' cases' + (ok6 === cases6.length ? ' clean' : ': ' + cases6.filter(function (c) { return !c.ok; }).map(function (c) { return c.name; }).join('; ') + ' went wrong'));
     } else if (test === 'migrate') {

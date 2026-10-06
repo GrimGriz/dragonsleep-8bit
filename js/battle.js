@@ -820,16 +820,34 @@
       DS.audio.sfx('heal'); this.elemBurst(u, 'heal', 'rise'); this.num(u, sw, '#58F898');
       yield* this.say(nameOf(u) + ' catches his second wind. +' + sw + ' HP.', 36);
     }
+    // an area spell at a group (10-06, the 8-bit battle lane §2.1; Griz, 10-03: "the guest turn as a queued game job, since hires fight that badly for real
+    // players too" -- the walker's hand is the spec, dev/bench8.js walk): at two or more foes up, the highest-levelled damaging area spell it has a slot for,
+    // a cone or a line aimed at the front foe (Battle.aimAt: no picker on a turn the battle runs)
+    var area = foes.length >= 2 && this.areaSpell(h);
+    if (area) {
+      this.aimAt = this.frontFoe();
+      try { var cast = yield* this.castSpell(u, area, { actions: 1, bonus: 0 }); } finally { this.aimAt = null; }
+      if (cast) return;
+    }
     var surge = h.cls === 'fighter' && h.lvl >= 2 && f.actionSurge && !h.wounded && foes.length >= 2 && h.surgeAI;
     var rounds = surge ? 2 : 1;
     if (surge) { f.actionSurge = 0; DS.audio.sfx('buff'); yield* this.say(nameOf(u) + ' surges!', 28); }
     for (var r = 0; r < rounds && !this.over; r++) {
       foes = this.liveFoes(); if (!foes.length) break;
-      var t = foes.slice().sort(function (a, b) { return (b.x + b.art.w) - (a.x + a.art.w); })[0];
+      var t = this.frontFoe();
       u.off = 6;
-      yield* this.heroAttack(u, t, { actions: 1, bonus: 0, surged: false, sneakUsed: true }, null);
+      yield* this.heroAttack(u, t, { actions: 1, bonus: 0, surged: false, sneakUsed: false }, null); // (Sneak Attack by heroAttack's own rule, as FIGHT has it: 10-06, §2.1)
       u.off = 0;
     }
+  };
+  // the foe in front (the rightmost edge: the one nearest the party's line), the one a guest swings at and aims a cone or a line at
+  Battle.prototype.frontFoe = function () { return this.liveFoes().slice().sort(function (a, b) { return (b.x + b.art.w) - (a.x + a.art.w); })[0] || null; };
+  // a caster's best area for a group: damaging, a cone, a line or every foe, a slot for it, not a reaction or a bonus action, and under a roost no fire or
+  // thunder; the highest level first, all the foes before a cone or a line at a tie (the walker's hand, dev/bench8.js areaSpell)
+  Battle.prototype.areaSpell = function (h) {
+    var roost = this.o.roost;
+    return R.spellList(h, 'battle').filter(function (sp) { return sp.level > 0 && sp.dmg && /^(cone|line|enemies)$/.test(sp.target) && !sp.reaction && !sp.bonus && R.lowestSlot(h, sp.level) && !(roost && (sp.el === 'fire' || sp.el === 'thunder')); })
+      .sort(function (a, c) { return c.level - a.level || (c.target === 'enemies') - (a.target === 'enemies'); })[0] || null;
   };
   // a cleric guest's turn (Ingrith, RULED 09-28g: "she's meant to be Cleric"; Life Domain, the SRD's, INFERENCE invented.json
   // #ingrith-cleric): Rekknar balances the account. By the SRD's economy: a friend down, Healing Word (the bonus action) and the
@@ -999,11 +1017,13 @@
   Battle.prototype.pickFoe = function* (filter) {
     var list = this.liveFoes().filter(filter || function () { return true; });
     if (!list.length) return null;
+    if (this.aimAt) return list.indexOf(this.aimAt) >= 0 ? this.aimAt : list[0]; // (a guest's aim, set by the turn the battle runs: 10-06)
     return yield W8.scene(new TargetScene(this, list, 'foe'));
   };
   Battle.prototype.pickAlly = function* (filter) {
     var list = this.heroes.filter(filter || function (u) { return !down(u); });
     if (!list.length) return null;
+    if (this.aimAlly) return list.indexOf(this.aimAlly) >= 0 ? this.aimAlly : null; // (a guest's aim at a friend: 10-06)
     return yield W8.scene(new TargetScene(this, list, 'hero'));
   };
   Battle.prototype.pickSpell = function* (u, list, st) {
