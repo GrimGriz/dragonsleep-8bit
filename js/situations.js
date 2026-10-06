@@ -211,6 +211,7 @@
     });
     (s.give || []).forEach(function (it) { if (DS.DATA.items[it[0]]) G.give(it[0], it[1]); });
     if (s.prep) s.prep(G);
+    G.party.forEach(function (h) { if (h.attuned) R.attune(h); }); // (the party stands rested: what it wears is bonded -- 10-06, attunement)
     G.map = s.map; G.x = s.x; G.y = s.y; G.dir = s.dir || 'down';
     return G;
   };

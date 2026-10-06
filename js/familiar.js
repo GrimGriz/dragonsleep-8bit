@@ -23,8 +23,8 @@
   }
 
   var baseCast = EV.fieldCast;
-  EV.fieldCast = function* (h, sp) {
-    if (sp.kind !== 'familiar') { yield* baseCast(h, sp); return; }
+  EV.fieldCast = function* (h, sp, t0) { // (t0: the menu's panel's pick, passed on -- 10-06)
+    if (sp.kind !== 'familiar') { yield* baseCast(h, sp, t0); return; }
     var g = G(), fl = g.flags.familiar, had = fl && fl.by === h.id ? fl : null;
     if (had) {
       yield DS.say(L('fam.keep', { name: h.name, form: R.FAMILIARS[had.kind].name }));

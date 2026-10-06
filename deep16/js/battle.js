@@ -152,7 +152,7 @@
     // inside the 8-bit game the ring is whoever wears it, standing (its S.lakeFight), and its +3 is already in their saves
     // (the 8-bit R.saveBonus); nobody wearing it, no taunt, and the card says so (fight.introNoRing)
     if (ring && this.o.embed) {
-      var wr = party.filter(function (u) { return u.hp > 0 && u.src && u.src.equip && u.src.equip.ring === 'ringofbinding'; })[0];
+      var wr = party.filter(function (u) { return u.hp > 0 && u.src && DS.R.wears(u.src, 'ringofbinding'); })[0]; // (either ring hand, 10-06)
       ring = wr ? Object.assign({}, ring, { hero: wr.id, con: 0 }) : null;
       this.intro = wr ? (F.introRing || F.intro).replace('{ring}', wr.name) : F.introNoRing || F.intro;
     }
@@ -2867,7 +2867,12 @@
   };
   // a Stealth roll for u now: the d20 and the total (Supreme Sneak's advantage only on her own turn, if she has walked no more than half her speed)
   Battle.prototype.stealthRoll = function (u) {
-    var T = u.turn || {}, supreme = u.subclass === 'Thief' && u.lvl >= 9 && (this.active === u || !this.active) && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex'), hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20);
+    var T = u.turn || {}, supreme = u.subclass === 'Thief' && u.lvl >= 9 && (this.active === u || !this.active) && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex');
+    // what is worn (SRD 5.1, the Boots of Elvenkind: "advantage on Dexterity (Stealth) checks that rely on moving silently" -- the grid's hide and held roll are the one Stealth, so all of
+    // it; js/rules.js R.gear, only what works): its name on the card with the other edges. A foe has no sheet (u.src) and wears nothing
+    var shod = u.src && DS.R.gear ? DS.R.gear(u.src).filter(function (g) { return (g.adv || []).indexOf('Stealth') >= 0; }).map(function (g) { return g.name.toLowerCase(); }) : [];
+    if (shod.length) ce = { adv: ce.adv.concat(shod), dis: ce.dis };
+    var hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20);
     var r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
     return { r: r, total: r + u.stealth + (u.conds.pwt ? 10 : 0), supreme: supreme, ce: ce, hadv: hadv, hdis: hdis };
   };

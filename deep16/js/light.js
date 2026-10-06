@@ -71,9 +71,10 @@
     // a Continual Flame rides the weapon it was set on (the 8-bit keeps the weapon's id): it shines while that weapon is in hand
     var cf = u.conds.continualFlame || (u.src && u.src.conds && u.src.conds.continualFlame);
     if (cf && (typeof cf !== 'string' || (u.weapon && u.weapon.id === cf))) add(20, 20, 'fire', false, 'flame', typeof cf === 'object' && cf.from ? cf : { from: D.magic && D.magic.OUTSIDE, lv: 2 }); // torch-bright, no heat (one from the 8-bit sheet was cast before any globe rose: from outside every one -- 10-01c, Griz: "everything cast before the globe has a 'where' of 'outside'")
-    var wl = u.weapon && itemLight(u.weapon.id);
+    var bonded = function (id) { return !u.src || !DS.R.bonded || DS.R.bonded(u.src, id); }; // (a magic weapon's light is its magic: one bonded with it -- js/rules.js, 10-06)
+    var wl = u.weapon && bonded(u.weapon.id) && itemLight(u.weapon.id);
     if (wl && (wl.when === 'always' || (wl.when === 'lit' && u.conds.ablaze))) add(wl.bright, wl.dim, wl.when === 'lit' ? 'fire' : 'bone', wl.when === 'lit', 'weapon');
-    var ol = u.offhand && !u.offhandSheathed && itemLight(u.offhand.id); // (the other hand's: Pyro's Mace of Disruption once it is out, js/pyro.js)
+    var ol = u.offhand && !u.offhandSheathed && bonded(u.offhand.id) && itemLight(u.offhand.id); // (the other hand's: Pyro's Mace of Disruption once it is out, js/pyro.js)
     if (ol && ol.when === 'always') add(ol.bright, ol.dim, 'bone', false, 'weapon');
     return out;
   };

@@ -216,6 +216,7 @@
     G.main().equip.ring = 'ringofbinding';                                 // When You're Ready: Winters' ring, to the lead
     var bare = G.party.filter(function (h) { return !h.equip.ring; }).sort(function (a, b) { return R.ac(a) - R.ac(b); })[0];
     if (bare) bare.equip.ring = 'ringofprotection';                        // the dens' chest
+    G.party.forEach(function (h) { if (h.attuned) R.attune(h); });         // (a rested party: what it wears is bonded -- 10-06, attunement)
     set({ wintersMet: 1, heardWinters: 1, wErrA: 1, wSealed: 1, wValued: 1, wErrADone: 1, wErrB: 1, wSigned: 1, wPaid: 1, wErrBDone: 1 });
     set({ heardPete: 1, heardWarrens: 1, tallyMet: 1, fiveKnown: 1, skarnOk: 1, skarnGateOpen: 1, landlordSpoke: 1, otyughFed: 1,
           markRead: 1, fiveRecovered: 1, fiveDone: 1, skarnPaid: 1, fiveNotice: 1, 'trig:jelly': 1, 'trig:ooze': 1 });
@@ -375,190 +376,72 @@
   DS.SlotScene = SlotScene;
 
   // ------------------------------------------------------------------ Field menu
-  // o.battle: opened from a fight's commands with X/ESC (RULED 09-30c, Griz: "I thought it always opened this menu and that's how we
-  // changed equip in 8-bit fights ... I couldn't turn sound off or exit the game during a fight"). The fight has its own ITEM, MAGIC and
-  // SKILL, and ORDER and SAVE wait till it is over; STATUS, JOURNAL, OPTIONS and QUIT are as ever. EQUIP is the one whose turn it is:
-  // his weapon and shield, while he has not spent his action; armour and ring wait till the fight is over (RULED 09-30c, Griz: "weapon
-  // and shield should be changable if the character hasn't spent an action - greyed if he has")
+  // The one menu (js/menu.js; RULED 10-06, Griz: "ideal = identical menus") held as a scene: this is the 8-bit's host for it -- the party,
+  // the pack, and the actions that talk in the game's own voice (a potion drunk, a spell cast, the save). o.battle: opened from a fight's
+  // commands with X/ESC (RULED 09-30c, Griz: "I thought it always opened this menu and that's how we changed equip in 8-bit fights ... I
+  // couldn't turn sound off or exit the game during a fight"): the fight has its own ITEM, MAGIC and SKILL (here a look only), ORDER and SAVE
+  // wait till it is over, and EQUIP is the one whose turn it is -- his weapon and shield, while he has not spent his action (RULED 09-30c,
+  // Griz: "weapon and shield should be changable if the character hasn't spent an action - greyed if he has")
   function FieldMenu(o) {
-    var self = this;
-    this.kind = 'fieldmenu'; this.battle = (o && o.battle) || null; this.hero = (o && o.hero) || null; this.acted = !!(o && o.acted);
-    var canSave = DS.field && DS.field.map && DS.field.map.src.save !== false, fight = !!this.battle;
-    this.menu = new DS.Menu({
-      items: [
-        { label: 'ITEM', value: 'item', disabled: fight }, { label: 'MAGIC', value: 'magic', disabled: fight }, { label: 'SKILL', value: 'skill', disabled: fight }, { label: 'EQUIP', value: 'equip' },
-        { label: 'STATUS', value: 'status' }, { label: 'ORDER', value: 'order', disabled: fight || DS.G.party.length < 2 }, { label: 'JOURNAL', value: 'journal' },
-        { label: 'SAVE', value: 'save', disabled: fight || !canSave }, { label: 'OPTIONS', value: 'options' }, { label: 'QUIT', value: 'quit' }
-      ],
-      index: fight ? 3 : 0, // (in a fight the cursor starts on EQUIP)
-      x: 184, y: 4, w: 70, rowH: 12, pad: 7,
-      onSelect: function (it) { DS.run(function* () { self.menu.active = false; yield* self.pick(it.value); self.menu.active = true; }); },
-      onCancel: function () { DS.pop(self); }
-    });
+    var self = this; o = o || {};
+    this.kind = 'fieldmenu'; this.battle = o.battle || null;
+    this.m = DS.MENU.open(host8(o, function () { DS.pop(self); }));
   }
   DS.FieldMenu = FieldMenu;
-  FieldMenu.prototype.update = function () { this.menu.update(); };
-  FieldMenu.prototype.draw = function (ctx) {
-    var G = DS.G;
-    DS.win(ctx, 2, 4, 180, 170);
-    G.party.forEach(function (h, i) {
-      var y = 10 + i * 40, spr = DS.walker(DS.LOOKS[h.look]);
-      ctx.drawImage(spr.down[0], 10, y + 4);
-      DS.text(ctx, h.name, 32, y + 2, '#F8D878');
-      DS.text(ctx, R.CLASSES[h.cls].name + ' ' + h.lvl, 96, y + 2, '#C8D0E8');
-      var col = h.ko ? '#9C9C9C' : h.hp < h.maxhp / 4 ? '#F85838' : '#F8F8F8';
-      DS.text(ctx, (h.ko ? 'KO  ' : 'HP ') + h.hp + '/' + h.maxhp, 32, y + 13, col);
-      DS.bar(ctx, 32, y + 22, 80, h.hp / h.maxhp, h.ko ? '#9C9C9C' : '#58D854');
-      if (h.slotsMax && h.slotsMax.length) DS.text(ctx, 'Slots ' + h.slots.map(function (n, k) { return n + '/' + h.slotsMax[k]; }).join(' '), 96, y + 13, '#B8B8F8');
-      var nx = R.nextXP(h); DS.text(ctx, nx ? 'Next ' + (nx - h.xp) : 'MAX LEVEL', 120, y + 22, '#6C6C84');
-    });
-    DS.win(ctx, 2, 176, 180, 60);
-    DS.text(ctx, '◆ ' + G.silver + ' sp', 12, 184, '#F8F8F8');
-    DS.text(ctx, '★ Renown ' + G.renown, 96, 184, '#F8D878');
-    DS.text(ctx, DS.field && DS.field.map ? DS.field.map.name : '', 12, 198, '#C8D0E8');
-    DS.text(ctx, 'Time ' + fmtTime(G.time), 12, 210, '#9C9C9C');
-    DS.text(ctx, 'Steps ' + G.steps, 96, 210, '#9C9C9C');
-    var pq = DS.pinnedQuest && DS.pinnedQuest();
-    DS.text(ctx, pq ? '◆ ' + pq.name : 'Pin a quest in JOURNAL', 12, 222, pq ? '#F8D878' : '#6C6C84');
-    this.menu.draw(ctx);
-  };
+  FieldMenu.prototype.update = function () { this.m.update(I); };
+  FieldMenu.prototype.draw = function (ctx) { this.m.draw(ctx); };
+  function host8(o, close) {
+    var G = DS.G, fight = o.battle ? { hero: o.hero || null, acted: !!o.acted } : null;
+    return {
+      fight: fight,
+      party: function () { return G.party; },
+      guests: function () { return (G.guests || []).map(function (x) { return x.h; }); },
+      pack: function () { return G.inv; },
+      give: function (id, n) { G.give(id, n || 1); },
+      take: function (id, n) { G.take(id, n || 1); },
+      info: function () { var pq = DS.pinnedQuest && DS.pinnedQuest(); return { silver: G.silver, renown: G.renown, place: DS.field && DS.field.map ? DS.field.map.name : '', time: fmtTime(G.time), steps: G.steps, pin: pq ? pq.name : null }; },
+      canSave: function () { return !fight && !!(DS.field && DS.field.map && DS.field.map.src.save !== false); },
+      walker: function (h) { return DS.walker(DS.LOOKS[h.look]).down[0]; },
+      portrait: function (h) { return DS.fighter(DS.LOOKS[h.look], h.weapon).stand; },
+      // a spell sheet no one here can copy: why not ('' when someone can -- RULED 10-01c, "unusable if not")
+      whyNot: function (id, h) { var it = DS.DATA.items[id]; return it && it.use && it.use.effect === 'learn' ? DS.EV.learnWhy(id, h || null) : ''; },
+      // the light in this hero's hand: a lantern or the lamp stays lit till it is put away here (RULED 09-30d: "using a lantern should stick")
+      light: function (h) { if (!h.equip.torch || G.flags.torchBy !== h.id) return null; var k = G.flags.torchKind || 'torch'; return { id: k, name: (DS.DATA.items[k] || { name: 'Torch' }).name, hooded: R.hooded(k) }; },
+      journal: function () {
+        var all = (DS.DATA.quests || []).filter(function (q) { return DS.cond(q.show); }), titles = DS.DATA.config.renownTitles;
+        return {
+          renown: G.renown, title: titles[Math.min(G.renown, titles.length - 1)], pin: G.flags.pin || null,
+          quests: all.map(function (q) { var done = DS.cond(q.done), st = !done && DS.questStep(q); return { id: q.id, name: q.name, text: q.text, doneText: q.doneText, done: done, where: st && st.where }; }),
+          rumors: (DS.DATA.rumors || []).filter(function (r) { return G.flags['heard:' + r.id]; }).map(function (r) { return r.t; }),
+          setPin: function (id) { if (id) { G.flags.pin = id; DS.audio.sfx('confirm'); } else { delete G.flags.pin; DS.audio.sfx('cancel'); } }
+        };
+      },
+      exits: function () { return [{ label: 'TO THE TITLE', value: 'title', warn: 'Unsaved progress is lost.' }]; },
+      run: function (kind, a, done) {
+        DS.run(function* () {
+          if (kind === 'item') yield* DS.EV.useFieldItem(a.id, a.h || null);
+          else if (kind === 'cast') yield* DS.EV.fieldCast(a.h, a.sp, a.t);
+          else if (kind === 'skill') yield* DS.EV.fieldSkill(a.h, a.s, a.t);
+          else if (kind === 'save') yield W8.scene(new SlotScene(true));
+          else if (kind === 'light-off') { DS.EV.torchOut(true); DS.audio.sfx('confirm'); }
+          else if (kind === 'kofi') DS.openKofi();
+          else if (kind === 'exit') {
+            // (from inside a fight, the fight's own scripts and the one that started it are waiting on this menu: end them, or the field
+            // would think a script still runs and never take a step again)
+            if (fight) DS.scripts.forEach(function (s) { s.done = true; });
+            DS.clearScenes(); DS.push(new Title());
+          }
+        }, function () { done(); });
+      },
+      close: close
+    };
+  }
+  DS.host8 = host8;
   function pickHero(title, filter) {
     var items = DS.G.party.map(function (h) { return { label: h.name, right: (h.ko ? 'KO ' : '') + h.hp + '/' + h.maxhp, value: h, disabled: filter ? !filter(h) : false }; });
     return DS.choose({ items: items, x: 60, y: 60, w: 136, title: title, rowH: 12 });
   }
-  FieldMenu.prototype.pick = function* (what) {
-    var G = DS.G;
-    if (what === 'item') {
-      while (true) {
-        var items = G.inv.map(function (s) { var it = DS.DATA.items[s.id], dead = it.use && it.use.effect === 'learn' && !!DS.EV.learnWhy(s.id, null); return { label: it.name, right: 'x' + s.n, value: s.id, color: it.kind === 'key' ? '#F8D878' : dead ? '#6C6C84' : null }; }); // (a spell sheet no one in the party can copy now: grey -- RULED 10-01c, "unusable if not")
-        if (!items.length) { yield DS.say('The pack is empty.'); return; }
-        var id = yield DS.choose({ items: items, x: 20, y: 20, w: 216, visible: 12, title: 'ITEMS', drawExtra: descBox });
-        if (!id) return;
-        var it = DS.DATA.items[id];
-        if (it.use && it.use.field) {
-          var tgtF = it.use.target === 'revive' ? function (h) { return h.ko; } : it.use.target === 'party' ? null : function (h) { return !h.ko; };
-          if (it.use.target === 'party') { yield* DS.EV.useFieldItem(id, null); continue; }
-          if (it.use.effect === 'learn') { var lw = DS.EV.learnWhy(id, null); if (lw) { yield DS.say(lw); continue; } tgtF = function (h) { return !DS.EV.learnWhy(id, h); }; } // (a spell sheet: only one who can copy it)
-          var h = yield pickHero(it.use.effect === 'learn' ? 'WHO COPIES IT?' : 'USE ON WHOM?', tgtF);
-          if (!h) continue;
-          yield* DS.EV.useFieldItem(id, h);
-        } else if (it.kind === 'weapon' || it.kind === 'armor' || it.kind === 'shield' || it.kind === 'ring') {
-          yield DS.say(it.name + ': ' + (it.desc || '') + ' Equip it from EQUIP.');
-        } else yield DS.say(it.name + ': ' + (it.desc || 'Nothing to do with it here.'));
-      }
-    }
-    if (what === 'magic') {
-      var casters = G.party.filter(function (h) { return !h.ko && R.spellList(h, 'field').length; });
-      if (!casters.length) { yield DS.say('No one can cast anything useful here.'); return; }
-      var c = casters.length === 1 ? casters[0] : yield pickHero('WHO CASTS?', function (h) { return !h.ko && R.spellList(h, 'field').length; });
-      if (!c) return;
-      var list = R.spellList(c, 'field').map(function (sp) { var lv = sp.level ? R.lowestSlot(c, sp.level) : 0; return { label: sp.name, right: sp.level ? 'L' + (lv || sp.level) : '—', value: sp, disabled: sp.level > 0 && !lv }; });
-      var sp = yield DS.choose({ items: list, x: 30, y: 40, w: 196, title: c.name + '  slots ' + (c.slots || []).join('/'), drawExtra: descBoxSpell });
-      if (!sp) return;
-      yield* DS.EV.fieldCast(c, sp);
-    }
-    if (what === 'skill') {
-      var opts = [];
-      G.party.forEach(function (h) {
-        if (h.ko) return;
-        if (h.cls === 'paladin' && h.feats.lay > 0) opts.push({ label: h.name + ': LAY ON HANDS', right: h.feats.lay, value: { h: h, s: 'lay' } });
-        if (h.cls === 'wizard' && h.feats.arcaneRecovery) opts.push({ label: h.name + ': ARCANE RECOVERY', value: { h: h, s: 'arcane' } });
-        if (h.cls === 'fighter' && h.feats.secondWind) opts.push({ label: h.name + ': SECOND WIND', value: { h: h, s: 'wind' } });
-      });
-      if (!opts.length) { yield DS.say('Nothing to use right now.'); return; }
-      var s = yield DS.choose({ items: opts, x: 20, y: 60, w: 216, title: 'SKILLS' });
-      if (!s) return;
-      yield* DS.EV.fieldSkill(s.h, s.s);
-    }
-    if (what === 'equip') {
-      if (this.battle && this.hero) { yield* equipHero(this.hero, { fight: true, acted: this.acted }); return; }
-      var he = G.party.length === 1 ? G.party[0] : yield pickHero('EQUIP WHOM?'); if (he) yield* equipHero(he);
-    }
-    if (what === 'status') { var hs = G.party.length === 1 ? G.party[0] : yield pickHero('WHOSE STATUS?'); if (hs) yield W8.scene(new StatusScene(hs)); }
-    if (what === 'order') {
-      var a = yield pickHero('MOVE WHOM?'); if (!a) return;
-      var b = yield pickHero('SWAP WITH?'); if (!b || a === b) return;
-      var ia = G.party.indexOf(a), ib = G.party.indexOf(b); G.party[ia] = b; G.party[ib] = a;
-      DS.audio.sfx('confirm');
-    }
-    if (what === 'journal') yield W8.scene(new Journal());
-    if (what === 'save') yield W8.scene(new SlotScene(true));
-    if (what === 'options') yield W8.scene(new Options());
-    if (what === 'quit') {
-      var q = yield DS.ask('Return to the title? Unsaved progress is lost.', ['STAY', 'QUIT']);
-      if (q === 1) {
-        // (from inside a fight, the fight's own scripts and the one that started it are waiting on this menu: end them, or the field
-        // would think a script still runs and never take a step again)
-        if (this.battle) DS.scripts.forEach(function (s) { s.done = true; });
-        DS.clearScenes(); DS.push(new Title());
-      }
-    }
-  };
-  function descBox(ctx, menu) {
-    var it = menu.current() && DS.DATA.items[menu.current().value];
-    if (!it) return;
-    DS.win(ctx, 4, 196, 248, 40);
-    var ln = DS.wrap(it.desc || '', 236);
-    for (var i = 0; i < Math.min(3, ln.length); i++) DS.text(ctx, ln[i], 10, 203 + i * 10, '#E0C8A0');
-  }
-  function descBoxSpell(ctx, menu) {
-    var sp = menu.current() && menu.current().value;
-    if (!sp) return;
-    DS.win(ctx, 4, 196, 248, 40);
-    var ln = DS.wrap(sp.desc || '', 236);
-    for (var i = 0; i < Math.min(3, ln.length); i++) DS.text(ctx, ln[i], 10, 203 + i * 10, '#E0C8A0');
-  }
-  function* equipHero(h, o) {
-    var G = DS.G, fight = !!(o && o.fight), acted = !!(o && o.acted);
-    while (true) {
-      var slots = [['weapon', 'WEAPON'], ['armor', 'ARMOR'], ['shield', 'SHIELD'], ['ring', 'RING']];
-      // (in a fight: weapon and shield only, and only before his action is spent; a light in his hand -- a torch, a lantern, the lamp --
-      // leaves one hand: no shield, and no two-handed weapon. RULED 09-30c, Griz: "if lantern/torch shield and two-hand weapons grayed on
-      // in-fight equip change" -- the field's equip holds to it too, or the field could hand a fight three hands' worth)
-      var lit = !!h.equip.torch;
-      var items = slots.map(function (s) { var it = R.item(h.equip[s[0]]); return { label: s[1], right: it ? it.name : (s[0] === 'shield' && lit ? 'a light in hand' : '—'), value: s[0], disabled: (fight && (acted || s[0] === 'armor' || s[0] === 'ring')) || (s[0] === 'shield' && lit && !h.equip.shield) }; });
-      // the light in his hand: a lantern or the lamp stays lit till it is put away here (RULED 09-30d: "using a lantern should stick"); the field's only
-      var lk = lit && G.flags.torchBy === h.id ? (G.flags.torchKind || 'torch') : null, hooded = lk && R.hooded(lk);
-      if (lk) items.push({ label: 'LIGHT', right: (DS.DATA.items[lk] || { name: 'Torch' }).name, value: 'light', disabled: fight });
-      var slot = yield DS.choose({
-        items: items, x: 20, y: 30, w: 216, title: h.name + '   AC ' + R.ac(h) + '   ATK ' + DS.sgn(R.attackBonus(h)) + ' ' + dmgText(h),
-        drawExtra: function (ctx) { DS.win(ctx, 20, 100, 216, fight ? 41 : 30); DS.text(ctx, 'Proficient: ' + R.CLASSES[h.cls].armor.join(', ') + (R.CLASSES[h.cls].armor.length ? '' : 'no armor'), 28, 108, '#9C9C9C'); DS.text(ctx, 'Weapons: ' + R.CLASSES[h.cls].weapons.join(', '), 28, 119, '#9C9C9C');
-          if (fight) DS.text(ctx, acted ? 'Action spent: no changes now.' : 'In a fight: weapon, shield, before acting.', 28, 130, '#F8D878'); }
-      });
-      if (!slot) return;
-      if (slot === 'light') { // (a torch put out is spent; a lantern or the lamp goes back in the pack)
-        var off = yield DS.choose({ items: [{ label: hooded ? '(put it away)' : '(put it out)', right: hooded ? 'to the pack' : 'spent', value: 'off' }], x: 30, y: 60, w: 196, title: 'EQUIP LIGHT' });
-        if (off) { DS.EV.torchOut(true); DS.audio.sfx('confirm'); }
-        continue;
-      }
-      var cands = G.inv.filter(function (s) { var it = DS.DATA.items[s.id]; return it && it.kind === slot && R.canEquip(h, it); })
-        .map(function (s) { var it = DS.DATA.items[s.id], two = !!(it.weapon && (it.weapon.props || []).indexOf('two-handed') >= 0); return { label: it.name, right: two && lit ? 'both hands' : compare(h, slot, it), value: s.id, disabled: two && lit }; });
-      if (h.equip[slot]) cands.unshift({ label: '(remove)', value: '__none' });
-      if (!cands.length) { yield DS.say('Nothing in the pack ' + h.name + ' can use there.'); continue; }
-      var pick = yield DS.choose({ items: cands, x: 30, y: 60, w: 196, visible: 8, title: 'EQUIP ' + slot.toUpperCase(), drawExtra: descBox });
-      if (!pick) continue;
-      if (slot === 'shield' && pick !== '__none') {
-        var w = R.item(h.equip.weapon);
-        if (w && (w.weapon.props || []).indexOf('two-handed') >= 0) { yield DS.say(w.name + ' needs both hands. No shield with it.'); continue; }
-      }
-      if (slot === 'weapon' && pick !== '__none') {
-        var nw = DS.DATA.items[pick];
-        if ((nw.weapon.props || []).indexOf('two-handed') >= 0 && h.equip.shield) { G.give(h.equip.shield, 1); h.equip.shield = null; }
-      }
-      if (h.equip[slot]) G.give(h.equip[slot], 1);
-      h.equip[slot] = null;
-      if (pick !== '__none') { G.take(pick, 1); h.equip[slot] = pick; }
-      DS.audio.sfx('confirm');
-    }
-  }
-  function dmgText(h) { var d = R.damageExpr(h); return (d.dice === '0' ? '' : d.dice) + (d.mod ? DS.sgn(d.mod) : '') + ''; }
-  function compare(h, slot, it) {
-    if (slot === 'weapon') { var cur = R.item(h.equip.weapon); var save = h.equip.weapon; h.equip.weapon = it.id; var a = R.attackBonus(h), d = dmgText(h); h.equip.weapon = save; return DS.sgn(a) + ' ' + d; }
-    if (slot === 'armor' || slot === 'shield' || slot === 'ring') { var s2 = h.equip[slot]; var before = R.ac(h); h.equip[slot] = it.id; var after = R.ac(h); h.equip[slot] = s2; return 'AC ' + after + (after > before ? ' ▲' : after < before ? ' ▼' : ''); }
-    return '';
-  }
-  DS.equipCompare = compare;
-  // +1 better, -1 worse, 0 same: average weapon damage, or AC
+  // +1 better, -1 worse, 0 same: average weapon damage, or AC (the shops' arrows)
   function better(h, it) {
     var slot = it.kind, save = h.equip[slot], before, after;
     function score() {
@@ -568,132 +451,6 @@
     before = score(); h.equip[slot] = it.id; after = score(); h.equip[slot] = save;
     return after > before ? 1 : after < before ? -1 : 0;
   }
-
-  // ------------------------------------------------------------------ Status
-  function StatusScene(h) { this.kind = 'status'; this.h = h; }
-  StatusScene.prototype.update = function () { if (I.pressed('a') || I.pressed('b')) { DS.audio.sfx('cancel'); DS.pop(this); } };
-  StatusScene.prototype.draw = function (ctx) {
-    var h = this.h, c = R.CLASSES[h.cls], d = DS.DATA.heroes[h.id];
-    DS.win(ctx, 2, 2, 252, 236);
-    var spr = DS.fighter(DS.LOOKS[h.look], h.weapon);
-    ctx.drawImage(spr.stand, 12, 12, 32, 48);
-    DS.text(ctx, h.name, 52, 12, '#F8D878');
-    DS.text(ctx, c.name + ' ' + h.lvl + (h.subclass ? ' · ' + h.subclass : ''), 52, 24, '#C8D0E8');
-    DS.text(ctx, d.race + ' · ' + d.background, 52, 35, '#9C9C9C');
-    var nx = R.nextXP(h);
-    DS.text(ctx, 'XP ' + h.xp + (nx ? '  next ' + nx : '  (cap)'), 52, 47);
-    DS.text(ctx, 'HP ' + h.hp + '/' + h.maxhp + '   AC ' + R.ac(h) + '   PROF +' + R.prof(h.lvl), 12, 66);
-    R.ABIL.forEach(function (a, i) {
-      var x = 12 + (i % 3) * 80, y = 80 + Math.floor(i / 3) * 12;
-      var sv = h.saveProf.indexOf(a) >= 0;
-      DS.text(ctx, a.toUpperCase() + ' ' + h.abil[a] + ' (' + DS.sgn(DS.mod(h.abil[a])) + ')' + (sv ? '*' : ''), x, y, sv ? '#F8F8F8' : '#C8D0E8');
-    });
-    var w = R.weaponOf(h), dx = R.damageExpr(h, w);
-    DS.text(ctx, 'WEAPON ' + w.name + '  ' + DS.sgn(R.attackBonus(h, w)) + ' to hit, ' + (dx.dice === '0' ? '' : dx.dice) + DS.sgn(dx.mod) + ' ' + dx.type, 12, 108);
-    ['armor', 'shield', 'ring'].forEach(function (s, i) { var it = R.item(h.equip[s]); DS.text(ctx, s.toUpperCase() + ' ' + (it ? it.name : '—'), 12 + (i % 3) * 80, 120, '#C8D0E8'); });
-    var y = 134;
-    if (c.cast) { DS.text(ctx, 'SPELL DC ' + R.spellDC(h) + '  ATTACK ' + DS.sgn(R.spellAtk(h)) + '  SLOTS ' + (h.slots || []).map(function (n, k) { return n + '/' + h.slotsMax[k]; }).join(' '), 12, y, '#B8B8F8'); y += 12; }
-    // a caster who prepares shows the day's spells (cantrips, prepared, the oath's, the book's rituals)
-    var sp = R.castable(h, 'field').map(function (id) { return DS.DATA.spells[id] ? DS.DATA.spells[id].name : id; });
-    if (sp.length) { DS.wrap((h.prepared ? 'Ready: ' : 'Spells: ') + sp.join(', '), 234).slice(0, 3).forEach(function (l) { DS.text(ctx, l, 12, y, '#9C9C9C'); y += 10; }); y += 2; }
-    var feats = (d.featText || []).filter(function (f) { return (!f.lvl || f.lvl <= h.lvl) && (!f.sub || f.sub === h.subclass); }).map(function (f) { return f.t; });
-    if (h.cls === 'rogue') feats.unshift('Sneak Attack ' + R.sneakDice(h.lvl));
-    if (h.cls === 'paladin') feats.push('Lay on Hands pool ' + (h.feats.lay || 0));
-    DS.wrap('Features: ' + feats.join(' · '), 234).slice(0, 5).forEach(function (l) { DS.text(ctx, l, 12, y, '#E0C8A0'); y += 10; });
-    if (d.note) DS.wrap(d.note, 234).slice(0, 3).forEach(function (l) { DS.text(ctx, l, 12, Math.max(y + 2, 200), '#6C6C84'); y += 10; });
-  };
-
-  // ------------------------------------------------------------------ Journal
-  // Journal: the quests (pick one and pin it: a marker then shows the way), and the talk you've heard
-  function Journal() {
-    this.kind = 'journal'; this.page = 0; this.i = 0; this.scroll = 0;
-    var pin = DS.G.flags.pin, list = this.quests();
-    for (var k = 0; k < list.length; k++) if (list[k].id === pin) this.i = k;
-  }
-  Journal.prototype.quests = function () {
-    // open quests first, finished ones after
-    var all = (DS.DATA.quests || []).filter(function (q) { return DS.cond(q.show); });
-    return all.filter(function (q) { return !DS.cond(q.done); }).concat(all.filter(function (q) { return DS.cond(q.done); }));
-  };
-  Journal.prototype.update = function () {
-    var G = DS.G, list = this.quests();
-    if (I.pressed('b')) { DS.audio.sfx('cancel'); DS.pop(this); return; }
-    if (I.pressed('left') || I.pressed('right')) { this.page ^= 1; DS.audio.sfx('cursor'); }
-    if (this.page || !list.length) { if (I.pressed('a')) { DS.audio.sfx('cancel'); DS.pop(this); } return; }
-    if (I.repeat('down')) { this.i = (this.i + 1) % list.length; DS.audio.sfx('cursor'); }
-    if (I.repeat('up')) { this.i = (this.i - 1 + list.length) % list.length; DS.audio.sfx('cursor'); }
-    if (this.i < this.scroll) this.scroll = this.i;
-    if (this.i >= this.scroll + 10) this.scroll = this.i - 9;
-    if (I.pressed('a')) {
-      var q = list[this.i];
-      if (DS.cond(q.done)) { DS.audio.sfx('error'); return; }
-      if (G.flags.pin === q.id) { delete G.flags.pin; DS.audio.sfx('cancel'); }
-      else { G.flags.pin = q.id; DS.audio.sfx('confirm'); }
-    }
-  };
-  Journal.prototype.draw = function (ctx) {
-    var G = DS.G;
-    DS.win(ctx, 2, 2, 252, 236);
-    DS.text(ctx, this.page ? 'THE BOARD & THE TALK' : 'THE LOCAL HERO', 12, 10, '#F8D878');
-    DS.textRight(ctx, '◀ ▶', 244, 10, '#6C6C84');
-    var y = 26, self = this;
-    if (!this.page) {
-      DS.text(ctx, '★ Renown: ' + G.renown + '   ' + (DS.DATA.config.renownTitles[Math.min(G.renown, DS.DATA.config.renownTitles.length - 1)]), 12, y, '#F8F8F8'); y += 14;
-      var list = this.quests();
-      list.slice(this.scroll, this.scroll + 10).forEach(function (q, k) {
-        var idx = k + self.scroll, done = DS.cond(q.done), pinned = G.flags.pin === q.id;
-        if (idx === self.i) DS.cursor(ctx, 10, y, false);
-        DS.text(ctx, (done ? '★ ' : pinned ? '◆ ' : '  ') + q.name, 18, y, done ? '#6C6C84' : pinned ? '#F8D878' : '#F8F8F8');
-        if (pinned) DS.textRight(ctx, 'PINNED', 244, y, '#F8D878');
-        y += 11;
-      });
-      if (list.length > 10) DS.textRight(ctx, (this.scroll > 0 ? '▲' : ' ') + (this.scroll + 10 < list.length ? '▼' : ' '), 244, 26, '#C8D0E8');
-      var q = list[this.i];
-      DS.win(ctx, 6, 150, 244, 84);
-      if (q) {
-        var done = DS.cond(q.done), step = !done && DS.questStep(q), yy = 157;
-        DS.wrap(done ? (q.doneText || 'Done.') : q.text, 230).slice(0, 4).forEach(function (l) { DS.text(ctx, l, 12, yy, done ? '#9C9C9C' : '#E0C8A0'); yy += 10; });
-        if (step && step.where) DS.wrap('NEXT: ' + step.where, 230).slice(0, 2).forEach(function (l) { DS.text(ctx, l, 12, yy + 2, '#B8F8B8'); yy += 10; });
-        DS.textCenter(ctx, DS.keys(done ? 'X: close' : G.flags.pin === q.id ? 'E: unpin   X: close' : 'E: pin (a marker shows the way)  X: close'), 128, 224, '#6C6C84');
-      }
-    } else {
-      (DS.DATA.rumors || []).filter(function (r) { return G.flags['heard:' + r.id]; }).slice(-14).forEach(function (r) {
-        DS.wrap('· ' + r.t, 232).forEach(function (l) { if (y < 228) DS.text(ctx, l, 12, y, '#E0C8A0'); y += 10; });
-        y += 2;
-      });
-      if (y === 26) DS.text(ctx, 'Nothing heard yet. Talk to people.', 12, y, '#9C9C9C');
-    }
-  };
-
-  // ------------------------------------------------------------------ Options
-  function Options() {
-    var self = this;
-    this.kind = 'options';
-    this.menu = new DS.Menu({ items: this.items(), x: 40, y: 70, w: 176, rowH: 14, title: 'OPTIONS', onSelect: function (it) { self.act(it.value, 1); }, onCancel: function () { DS.pop(self); } });
-  }
-  Options.prototype.items = function () {
-    var A = DS.audio;
-    return [{ label: 'MUSIC', right: Math.round(A.musicVol * 10), value: 'm' }, { label: 'SOUND', right: Math.round(A.sfxVol * 10), value: 's' }, { label: 'SUPPORT THE EXPANSION', value: 'kofi' }, { label: 'DONE', value: 'done' }];
-  };
-  Options.prototype.act = function (v, d) {
-    var A = DS.audio;
-    if (v === 'm') A.musicVol = DS.clamp(Math.round((A.musicVol + d * 0.1) * 10) / 10, 0, 1);
-    if (v === 's') A.sfxVol = DS.clamp(Math.round((A.sfxVol + d * 0.1) * 10) / 10, 0, 1);
-    if (v === 'm' || v === 's') { if ((v === 'm' && A.musicVol === 0 && d > 0) || (v === 's' && A.sfxVol === 0 && d > 0)) { } A.setVolumes(); if (d > 0 && ((v === 'm' && A.musicVol >= 1) || (v === 's' && A.sfxVol >= 1))) { } }
-    if (v === 'kofi') DS.openKofi();
-    if (v === 'done') DS.pop(this);
-    this.menu.items = this.items();
-  };
-  Options.prototype.update = function () {
-    var it = this.menu.current();
-    if (it && (it.value === 'm' || it.value === 's')) {
-      if (I.repeat('left')) { this.act(it.value, -1); DS.audio.sfx('cursor'); return; }
-      if (I.repeat('right')) { this.act(it.value, 1); DS.audio.sfx('cursor'); return; }
-      if (I.pressed('a')) { var A = DS.audio; if (it.value === 'm') A.musicVol = A.musicVol >= 1 ? 0 : A.musicVol; if (it.value === 's') A.sfxVol = A.sfxVol >= 1 ? 0 : A.sfxVol; }
-    }
-    this.menu.update();
-  };
-  Options.prototype.draw = function (ctx) { this.menu.draw(ctx); DS.textCenter(ctx, '◀ ▶ to adjust', 128, 150, '#9C9C9C'); };
 
   // ------------------------------------------------------------------ Shop
   function Shop(def) {

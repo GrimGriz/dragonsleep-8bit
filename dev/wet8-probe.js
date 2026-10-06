@@ -70,12 +70,17 @@
     DS.EV.longRest(); var l2 = !g.flags.torchBy && !lh.equip.torch && g.count('lantern') === 1;
     check('a lantern lit (' + lh.name + ') stays lit down the stair to the wet, and a rest puts it away (09-30e): ' + [l0, l1, l2].join(',') + ', the pack x' + g.count('lantern'), l0 && l1 && l2);
     DS.run(function* () { yield* DS.EV.useFieldItem('lantern', lh); }); pump(200); // (lit again, for EQUIP's LIGHT)
-    var ch0 = DS.choose, ans = ['light', 'off', null], seen = [];
-    DS.choose = function (o) { seen.push(o); var a = ans.shift(); return { start: function (script) { var self = this; self.finished = true; self.result = a; pending.push(function () { script.resume(self, a); }); } }; };
-    var pp = g.party; g.party = [lh];
-    try { DS.run(function* () { yield* DS.FieldMenu.prototype.pick.call({}, 'equip'); }); T.step(30); } finally { g.party = pp; DS.choose = ch0; }
-    var row = seen[0] && seen[0].items.filter(function (x) { return x.value === 'light'; })[0];
-    check('EQUIP shows LIGHT (' + (row && row.right) + ', ' + JSON.stringify(seen[1] && seen[1].items[0].label) + ') and puts the lantern away: the pack x' + g.count('lantern') + ', in hand ' + !!lh.equip.torch + ', torchBy ' + g.flags.torchBy, row && !row.disabled && seen[1] && seen[1].items[0].label === '(put it away)' && g.count('lantern') === 1 && !lh.equip.torch && !g.flags.torchBy);
+    // (the one menu since 10-06, js/menu.js: EQUIP's LIGHT row, then its one choice)
+    var seen = [], pp = g.party; g.party = [lh];
+    var keyA = { pressed: function (x) { return x === 'a'; }, repeat: function (x) { return x === 'a'; } };
+    try {
+      var mm = new DS.FieldMenu().m; mm.root.go('equip'); var ep = mm.pages[mm.pages.length - 1];
+      var row = ep.list.items.filter(function (x) { return x.value === 'light'; })[0]; seen.push(row);
+      ep.list.i = ep.list.items.indexOf(row); mm.update(keyA);
+      var cp = mm.pages[mm.pages.length - 1]; seen.push(cp && cp.list && cp.list.items[0]);
+      mm.update(keyA); T.step(30);
+    } finally { g.party = pp; }
+    check('EQUIP shows LIGHT (' + (row && row.right) + ', ' + JSON.stringify(seen[1] && seen[1].label) + ') and puts the lantern away: the pack x' + g.count('lantern') + ', in hand ' + !!lh.equip.torch + ', torchBy ' + g.flags.torchBy, row && !row.disabled && seen[1] && seen[1].label === '(put it away)' && g.count('lantern') === 1 && !lh.equip.torch && !g.flags.torchBy);
     var tn0 = g.count('torch');
     DS.run(function* () { yield* DS.EV.useFieldItem('torch', lh); }); pump(200);
     var t0 = g.flags.torchBy === lh.id && g.flags.torchKind === 'torch';

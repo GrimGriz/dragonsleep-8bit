@@ -964,6 +964,79 @@
         check('the two-line box draws: ' + drew8, drew8 === true);
         if (Q.get('shot')) out.shot = cv8.toDataURL('image/png'); // (shot=1: the two boxes as a picture, for an eye)
       } finally { DS.choose = choose0; }
+    } else if (test === 'menu1006') {
+      // the one menu (js/menu.js; RULED 10-06, Griz: "ideal = identical menus"): every entry opens and draws; the cursor kicked into the
+      // panel picks a target with no second ask; STATUS's two old bugs (Sneak Attack twice, the note's lines on one y) gone; the ITEMS tabs and
+      // GEAR between them hold the whole pack; a ritual is not greyed for want of a slot; the worn places and the bonds (attunement)
+      var MN = DS.MENU, cv = document.createElement('canvas'); cv.width = 256; cv.height = 240; var cx = cv.getContext('2d'), drawErr = [];
+      function key(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; }
+      function press(m, b, n) { for (var q = 0; q < (n || 1); q++) { m.update(key(b)); try { m.draw(cx); } catch (eD) { drawErr.push(String(eD.stack || eD).slice(0, 300)); } T.step(1); } }
+      function open() { DS.clearScenes(); var fm = new DS.FieldMenu(); DS.push(fm); return fm.m; }
+      function toCmd(m, v) { m.root.cmds.i = m.root.cmds.items.map(function (x) { return x.value; }).indexOf(v); }
+      var choose0 = DS.choose, asked = [];
+      DS.choose = function (o) { asked.push(o.title || ''); return choose0(o); };
+      try {
+        g = DS.G; DS.EV.addGuest('ingrith');
+        ['ringresistfire', 'periaptpoison', 'bootselvenkind', 'ringofprotection', 'potion', 'sheet_grease', 'callingherbs'].forEach(function (id) { if (DS.DATA.items[id]) g.give(id, 1); });
+        // 1. every entry opens and draws, and goes back
+        var m = open(), opened = [];
+        m.root.cmds.items.forEach(function (it) {
+          if (it.disabled || it.value === 'save' || it.value === 'exit') return;
+          toCmd(m, it.value); press(m, 'a');
+          var where = m.root.mode === 'pick' ? 'pick' : (m.pages.length ? 'page' : 'none');
+          if (m.root.mode === 'pick') press(m, 'a');
+          opened.push(it.value + ':' + where + (m.pages.length ? '>' + m.pages.length : ''));
+          for (var bk = 0; bk < 4 && (m.pages.length || m.root.mode === 'pick' || m.toast); bk++) press(m, 'b');
+        });
+        check('every entry opens and draws and backs out (' + opened.join(' ') + ')' + (drawErr.length ? ': ' + drawErr[0] : ''), !drawErr.length && opened.length >= 9 && !m.pages.length);
+        // 2. STATUS: each hero's every page draws; Sneak Attack once, Expertise one line, the designer asides gone to CREDITS
+        var viv = g.hero('vivian'), fl = MN.featureLines(viv), sa = fl.filter(function (f) { return /^Sneak Attack/.test(f.t); }).length, ex = fl.filter(function (f) { return /^Expertise/.test(f.t); }).length;
+        g.party.concat(g.guests.map(function (x) { return x.h; })).forEach(function (h) { m = open(); toCmd(m, 'status'); press(m, 'a'); var rows = m.root.rows(true); m.root.pi = rows.indexOf(h); press(m, 'a'); var pg = m.pages[0]; for (var p = 0; pg && p < pg.pages.length; p++) press(m, 'right'); });
+        check('STATUS draws every page of the four and the guest; Vivian\'s Sneak Attack ' + sa + ' line, Expertise ' + ex + ' (' + (fl.filter(function (f) { return /^Expertise/.test(f.t); })[0] || {}).t + ')' + (drawErr.length ? ': ' + drawErr[0] : ''), !drawErr.length && sa === 1 && (viv.lvl < 6 || ex === 1));
+        var asides = ['aurdin', 'vivian', 'lymen'].filter(function (id) { return DS.DATA.heroes[id].credit && !DS.DATA.heroes[id].note; });
+        m = open(); toCmd(m, 'credits'); press(m, 'a'); var cp = m.pages[0], made = cp && cp.lines.some(function (l) { return l.t === 'FROM THE MAKING'; });
+        check('the designer asides on CREDITS, off STATUS (' + asides.join(', ') + '); Barley\'s lore stays on his: ' + JSON.stringify(DS.DATA.heroes.barley.note), asides.length === 3 && made && !!DS.DATA.heroes.barley.note);
+        // 3. ITEMS' four tabs and GEAR's seven between them hold the whole pack, each row a name
+        var inT = 0, inG = 0, kinds = {};
+        g.inv.forEach(function (s) { var it = DS.DATA.items[s.id], t = MN.itemTab(it); if (t >= 0) inT++; else { inG++; kinds[it.kind] = 1; } });
+        m = open(); toCmd(m, 'items'); press(m, 'a'); var ip = m.pages[0], seenI = 0; for (var ti = 0; ti < 4; ti++) { ip.tab = ti; ip.refresh(); seenI += ip.list.items.length; m.draw(cx); }
+        press(m, 'b'); toCmd(m, 'gear'); press(m, 'a'); var gp = m.pages[0], seenG = 0; for (var tg = 0; tg < 7; tg++) { gp.tab = tg; gp.refresh(); seenG += gp.list.items.filter(function (x) { return /^x/.test(x.right); }).length; m.draw(cx); }
+        check('ITEMS shows ' + seenI + ' of the pack\'s ' + inT + ' things to use, GEAR ' + seenG + ' of its ' + inG + ' to wear (' + Object.keys(kinds).join(', ') + ')', seenI === inT && seenG === inG);
+        // 4. the cursor kicked into the panel: Lymen's Cure Wounds on a hurt Barley, asked once (the panel), not twice
+        var ly = g.hero('lymen'), ba = g.hero('barley'); ba.hp = Math.max(1, ba.maxhp - 12); var hp0 = ba.hp; ly.slots = ly.slotsMax.slice();
+        if (ly.prepared && ly.prepared.indexOf('curewounds') < 0) ly.prepared.push('curewounds'); // (his day holds it)
+        m = open(); asked = []; toCmd(m, 'magic'); press(m, 'a'); var rowsM = m.root.rows(false); m.root.pi = rowsM.indexOf(ly); press(m, 'a');
+        var mp = m.pages[0]; for (var lt = 0; lt < mp.levels.length && mp.levels[mp.tab] !== 1; lt++) press(m, 'right');
+        mp.list.i = mp.list.items.map(function (x) { return x.id; }).indexOf('curewounds'); press(m, 'a');
+        var kicked = m.root.mode === 'pick'; m.root.pi = rowsM.indexOf(ba); press(m, 'a');
+        for (var w5 = 0; w5 < 300 && m.busy; w5++) { var tq = DS.top(); if (tq && tq.kind === 'dialog') { if (tq.chars < tq.pageLen()) tq.chars = tq.pageLen(); T.tapf('a'); } else T.step(1); }
+        check('MAGIC: Lymen\'s Cure Wounds kicks the cursor to the panel (' + kicked + '), Barley ' + hp0 + ' -> ' + ba.hp + ', no ON WHOM? asked after (' + JSON.stringify(asked) + ')', kicked && ba.hp > hp0 && asked.indexOf('ON WHOM?') < 0);
+        // 5. a ritual is not greyed for want of a slot (scenes.js:455 the old bug); a spell of a level is
+        var au = g.hero('aurdin'), sl0 = au.slots.slice(); au.slots = au.slots.map(function () { return 0; });
+        m = open(); toCmd(m, 'magic'); press(m, 'a'); m.root.pi = m.root.rows(false).indexOf(au); press(m, 'a'); mp = m.pages[0];
+        var rit = null, lev = null; for (var lt2 = 0; lt2 < mp.levels.length; lt2++) { mp.tab = lt2; mp.refresh(); mp.list.items.forEach(function (x) { if (x.value.ritual && x.value.field) rit = rit || x; else if (x.value.level && x.value.field) lev = lev || x; }); }
+        au.slots = sl0;
+        check('Aurdin with no slots: the ritual ' + (rit && rit.value.name) + ' open (' + (rit && !rit.disabled) + '), ' + (lev && lev.value.name) + ' greyed (' + (lev && lev.disabled) + ')', rit && !rit.disabled && lev && lev.disabled);
+        // 6. the worn places and the bonds: the fire ring to Barley's second hand (he wears the Ring of Binding? either hand), unbonded till a rest
+        var hasRing = DS.DATA.items.ringresistfire && DS.DATA.items.ringresistfire.attune;
+        if (hasRing) {
+          m = open(); ba.equip.ring2 = null; var ok6 = MN.swap(m, ba, 'ring2', 'ringresistfire');
+          var before = R.bondState(ba, 'ringresistfire'), resB = R.wornList(ba, 'resist').indexOf('fire') >= 0;
+          R.refresh(ba, false);
+          var after = R.bondState(ba, 'ringresistfire'), resA = R.wornList(ba, 'resist').indexOf('fire') >= 0;
+          check('the fire ring in Barley\'s second ring hand: ' + before + ' (fire ' + resB + '), after a rest ' + after + ' (fire ' + resA + '); his bonds ' + JSON.stringify(ba.attuned), ok6 && before === 'unbonded' && !resB && after === 'bonded' && resA);
+          // a fourth bond is refused: three bond-wanting things worn already
+          var lyB = g.hero('lymen'); lyB.attuned = []; ['cloakdisplacement', 'ringofprotection', 'flametongue'].forEach(function (id) { g.give(id, 1); });
+          lyB.equip.cloak = 'cloakdisplacement'; lyB.equip.ring = 'ringofprotection'; lyB.equip.ring2 = 'ringresistfire'; var w0 = lyB.equip.weapon; lyB.equip.weapon = 'flametongue';
+          var said = R.attune(lyB); lyB.equip.weapon = w0;
+          check('four bond-wanting things on Lymen: three bond, the fourth refused (' + said.join(' / ') + ')', lyB.attuned.length === 3 && said.some(function (s) { return /three bonds already/.test(s); }));
+        } else check('the fire ring (a runner\'s) is not in the items yet: skipped', true);
+        // 7. an older save's hero (no bonds list) keeps what works: bonded on load
+        var old = JSON.parse(JSON.stringify(g.hero('aurdin'))); delete old.attuned; old.equip.ring = 'ringofprotection'; var ac0 = R.ac(old);
+        R.migrate(old);
+        check('an older save\'s Aurdin with the Ring of Protection: bonded on load (' + JSON.stringify(old.attuned) + '), AC ' + ac0 + ' -> ' + R.ac(old), (old.attuned || []).indexOf('ringofprotection') >= 0 && R.ac(old) === ac0);
+        if (Q.get('shot')) { m = open(); toCmd(m, 'status'); press(m, 'a'); press(m, 'a'); out.shot = cv.toDataURL('image/png'); }
+      } finally { DS.choose = choose0; }
     } else if (test === 'countdown1003') {
       // the countdown carried across map loads (RULED 10-03, Griz: "yes; a map load is not a rest, but it is a game change"; js/world.js Field.load): a load keeps
       // what is left, a warp too, and the chalk's sixty with them; a fresh field rolls in its zone's rate; and a count carried in fires on the new map's steps
@@ -1069,12 +1142,16 @@
         check('each said so on the console (' + w1.length + '), the second pass quiet (' + w2.length + ')', w1.length === 3 && ['zzbogusitem', 'zzbogusblade', 'zzbogusmail'].every(function (id) { return w1.some(function (w) { return w.indexOf(id) >= 0; }); }) && w2.length === 0);
         DS.startFrom(s1); // (the way a load goes in: the heroes brought up to date on the sheet as it now is)
         check('startFrom took it: the weapon in his hand is ' + R.weaponOf(DS.G.party[0]).id + ', his AC ' + R.ac(DS.G.party[0]), R.weaponOf(DS.G.party[0]).id === 'unarmed' && R.ac(DS.G.party[0]) > 0);
-        var listed = null, asked = [], c0 = console.error;
-        DS.choose = function (o) { listed = o.items; return { start: function () { this.finished = true; this.result = null; } }; };
+        // (the one menu since 10-06, js/menu.js: the pack across ITEMS' four tabs and GEAR's seven, each row a name)
+        var listed = [], asked = [], c0 = console.error;
         console.error = function () { asked.push(Array.prototype.join.call(arguments, ' ')); };
-        DS.run(function* () { yield* DS.FieldMenu.prototype.pick.call({}, 'item'); });
-        console.error = c0; DS.choose = chooseReal;
-        check('the ITEM menu\'s list builds: ' + (listed ? listed.length + ' rows, ' + listed.map(function (i) { return i.label; }).slice(0, 4).join(', ') + '...' : 'it did not (' + asked.length + ' script errors)'), !!listed && listed.length === DS.G.inv.length && listed.every(function (i) { return typeof i.label === 'string' && i.label; }));
+        try {
+          var fm0 = new DS.FieldMenu(), m0 = fm0.m, ip0 = new (function () { m0.root.go('items'); return function () { }; })();
+          var pgI = m0.pages[m0.pages.length - 1]; for (var t0 = 0; t0 < 4; t0++) { pgI.tab = t0; pgI.refresh(); listed = listed.concat(pgI.list.items); }
+          m0.pop(); m0.root.go('gear'); var pgG = m0.pages[m0.pages.length - 1]; for (var t1 = 0; t1 < 7; t1++) { pgG.tab = t1; pgG.refresh(); listed = listed.concat(pgG.list.items.filter(function (x) { return /^x/.test(x.right); })); }
+        } catch (eL) { asked.push(String(eL)); }
+        console.error = c0;
+        check('the menu\'s ITEMS and GEAR lists build: ' + (listed.length ? listed.length + ' rows, ' + listed.map(function (i) { return i.label; }).slice(0, 4).join(', ') + '...' : 'they did not (' + asked.length + ' errors: ' + asked[0] + ')'), listed.length === DS.G.inv.length && listed.every(function (i) { return typeof i.label === 'string' && i.label; }));
       });
       // 4. a save in a map the game has not got: the way the game opens a new one (config.start), before the scenes are cleared
       floorCase('a save in an unknown map', function () {

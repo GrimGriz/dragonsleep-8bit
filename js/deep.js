@@ -53,10 +53,12 @@
     var g = G(), hands = o.hero ? [o.hero] : g.party.filter(function (h) { return !h.ko; });
     // the snake's caster has advantage on a Persuasion check (RULED 09-30; js/familiar.js DS.famPerk): worth about +3 to the hand that is best
     function snaked(x) { return skill === 'Persuasion' && !!x && !!DS.famPerk && DS.famPerk(x.id, 'persuasion') === 'adv'; }
-    var sorted = hands.slice().sort(function (a, b) { return (R.skill(b, skill, ab) + (snaked(b) ? 3 : 0)) - (R.skill(a, skill, ab) + (snaked(a) ? 3 : 0)); });
+    // and what is worn (SRD 5.1, the Boots of Elvenkind: advantage on Stealth checks; js/rules.js R.wornAdv -- bonded where it must be): worth the same +3 in the choosing
+    function shod(x) { return !!x && R.wornAdv(x, skill); }
+    var sorted = hands.slice().sort(function (a, b) { return (R.skill(b, skill, ab) + (snaked(b) || shod(b) ? 3 : 0)) - (R.skill(a, skill, ab) + (snaked(a) || shod(a) ? 3 : 0)); });
     // a group check (all of you creeping up together) rides on the middle of the party, not its best
     var h = (o.group ? sorted[Math.floor((sorted.length - 1) / 2) + (sorted.length > 2 ? 1 : 0)] : sorted[0]) || g.main();
-    var adv = !!o.adv || snaked(h), form = snaked(h) && R.FAMILIARS[g.flags.familiar.kind];
+    var adv = !!o.adv || snaked(h) || shod(h), form = snaked(h) && R.FAMILIARS[g.flags.familiar.kind];
     var mod = R.skill(h, skill, ab), r1 = DS.d(20), r2 = DS.d(20), nat = adv ? Math.max(r1, r2) : r1, total = nat + mod, ok = total >= dc;
     yield W8.scene(new CheckScene({ skill: skill, dc: dc, name: o.group ? 'The party, at ' + h.name + "'s pace" : h.name, mod: mod, nat: nat, total: total, ok: ok, adv: adv, note: form ? L('fam.persuade', { name: h.name, form: form.name.replace(/^poisonous /, '') }) : null }));
     return ok;
@@ -337,7 +339,7 @@
     list.forEach(function (n, k) { n.pathSpeed = 2; n.path = ['wait' + (6 + k * 6)].concat(DS.pathTo(m, n.x, n.y, DWARF_STAIR[0], DWARF_STAIR[1]), ['hide']); });
     yield W8.frames(20);
   }
-  function unequip(id) { G().party.forEach(function (h) { ['weapon', 'armor', 'shield', 'ring'].forEach(function (s) { if (h.equip[s] === id) { h.equip[s] = null; G().give(id, 1); } }); }); }
+  function unequip(id) { G().party.forEach(function (h) { ['weapon', 'armor', 'shield'].concat(R.PLACES).forEach(function (s) { if (h.equip[s] === id) { h.equip[s] = null; G().give(id, 1); } }); }); }
   function restoreTaken(ids) { // back on the bones: the niche shows it again
     var g = G();
     if (ids.indexOf('doorshield') >= 0) delete g.flags.shieldTaken;
@@ -953,14 +955,14 @@
   };
   // Revivify in the field: a diamond, and a fallen friend
   var baseFieldCast = EV.fieldCast;
-  EV.fieldCast = function* (h, sp) {
-    if (sp.kind !== 'revive') { yield* baseFieldCast(h, sp); return; }
+  EV.fieldCast = function* (h, sp, t0) { // (t0: the one the menu's panel chose, 10-06)
+    if (sp.kind !== 'revive') { yield* baseFieldCast(h, sp, t0); return; }
     var g = G(), slot = R.lowestSlot(h, sp.level);
     if (!slot) { yield DS.say(L('g.noSlots')); return; }
     if (!g.count('diamond')) { yield DS.say(L('deep.noDiamond')); return; }
     var items = g.party.map(function (x) { return { label: x.name, right: x.ko ? 'KO' : x.hp + '/' + x.maxhp, value: x, disabled: !x.ko }; });
     if (!items.some(function (it) { return !it.disabled; })) { yield DS.say(L('deep.noneDown')); return; }
-    var t = yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'WHO COMES BACK?' });
+    var t = t0 && t0.ko ? t0 : yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'WHO COMES BACK?' });
     if (!t) return;
     h.slots[slot - 1]--; g.take('diamond', 1); t.ko = false; t.hp = 1; DS.audio.sfx('heal');
     yield DS.say(L('deep.revived', { name: t.name }));

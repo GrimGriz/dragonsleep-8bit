@@ -83,16 +83,17 @@
   // a hero's weapon as the grid reads it (the unit's, and again after a swap in the fight). A ranged weapon shoots out to
   // its long range; a loading one (the crossbow) fires once an action, Extra Attack or no; Great Weapon Fighting is melee only
   SV.weaponOf = function (h) {
-    var w = R.weaponOf(h), dm = R.damageExpr(h, w), wd = w.weapon || {}, props = wd.props || [], ranged = props.indexOf('ranged') >= 0;
+    var w = R.weaponOf(h), dm = R.damageExpr(h, w), wd = w.weapon || {}, props = wd.props || [], ranged = props.indexOf('ranged') >= 0, bond = R.bonded(h, w.id);
     return {
       id: h.equip && h.equip.weapon, name: w.name, atk: R.attackBonus(h, w), dice: dm.dice, mod: dm.mod, type: dm.type, props: props, magic: !!(wd.bonus || wd.magic),
       finesse: props.indexOf('finesse') >= 0, gwf: !ranged && R.gwf(h, w), // (Great Weapon Fighting by the style, js/rules.js: 10-06; it was every fighter's)
       ranged: ranged, range: ranged ? (wd.range || [80, 320]) : null, ammo: wd.ammo || null, loading: props.indexOf('loading') >= 0, fx: 'bolt',
-      flame: wd.flame || null, // Flame Tongue: a bonus action lights it (battle.js IGNITE)
+      // (the weapon's own magic works only for one bonded with it -- js/rules.js R.bonded, 10-06: a Flame Tongue unbonded is a longsword, a Mace of Disruption a mace)
+      flame: bond ? wd.flame || null : null, // Flame Tongue: a bonus action lights it (battle.js IGNITE)
       // the 8-bit game's named weapons (09-28g, Griz: "make sure items are being loaded into the 16bit fights"): the Winnower's
       // critical knocks flat, the Greyseam knife's Sneak Attack poisons (battle.js attack, as the 8-bit battle.js heroAttack)
       onCrit: wd.onCrit || null, sneakPoison: wd.sneakPoison || 0,
-      disrupt: wd.disrupt || null // the Mace of Disruption (SRD 5.1; Pyro's, 09-30): battle.js attack
+      disrupt: bond ? wd.disrupt || null : null // the Mace of Disruption (SRD 5.1; Pyro's, 09-30): battle.js attack
     };
   };
   // the weapon in the other hand (Pyro's two maces, 09-30: equip.offhand), read as the main one is
@@ -120,7 +121,8 @@
       slots: (h.slots || []).slice(), slotsMax: (h.slotsMax || []).slice(), known: knownOf(h), armored: R.armored(h),
       feats: JSON.parse(JSON.stringify(h.feats || {})), subclass: h.subclass,
       displacement: SV.displaced(h), // a Cloak of Displacement (rules.js edges)
-      resist: h.resist || null, // (the 8-bit game's guests: Dwarven Resilience, poison halved)
+      resist: SV.wornLists(h, 'resist', h.resist), // (the 8-bit game's guests: Dwarven Resilience, poison halved; and a Ring of Resistance worn and bonded)
+      immune: SV.wornLists(h, 'immune'), condImmune: SV.wornLists(h, 'condImmune'), // (the Periapt of Proof against Poison: battle.js Battle.typed, rules.js RU.immuneTo)
       offhand: SV.offhandOf(h), script: h.script || null, // (a named NPC's own turn: js/pyro.js, 09-30)
       weapon: wp, attacksBase: R.attacksPerTurn(h), attacks: wp.loading ? 1 : R.attacksPerTurn(h), crit: R.critRange(h), spellDC: R.spellDC(h), spellAtk: R.spellAtk(h),
       saves: { str: R.saveBonus(h, 'str'), dex: R.saveBonus(h, 'dex'), con: R.saveBonus(h, 'con'), int: R.saveBonus(h, 'int'), wis: R.saveBonus(h, 'wis'), cha: R.saveBonus(h, 'cha') },
@@ -134,7 +136,14 @@
     };
   }
   SV.unitOf = unitOf; // (the class NPCs are made units the same way: js/classes.js)
-  SV.displaced = function (h) { var c = R.item(h.equip && h.equip.cloak); return !!(c && c.cloak && c.cloak.displacement); };
+  // (a Cloak of Displacement works only for one bonded with it -- js/rules.js R.bonded, 10-06; unbonded it is a cloak)
+  SV.displaced = function (h) { var c = R.item(h.equip && h.equip.cloak); return !!(c && c.cloak && c.cloak.displacement && R.bonded(h, h.equip.cloak)); };
+  // what the worn things give the unit (SRD 5.1; js/rules.js R.wornList: the Ring of Resistance's one type, the Periapt of Proof against Poison's immunity to poison
+  // and to the poisoned condition -- bonded where they must be), laid over the sheet's own (a guest's resistances). null when nothing, as the grid reads it
+  SV.wornLists = function (h, key, own) {
+    var out = (own || []).slice(); R.wornList(h, key).forEach(function (x) { if (out.indexOf(x) < 0) out.push(x); });
+    return out.length ? out : null;
+  };
   // what a hero can cast in the fight: all he knows, or, once his day is prepared (h.prepared: the camp's, or the 8-bit
   // game's morning), his cantrips, the spells he prepared, and the ones his oath keeps ready. His book is his own everywhere
   // (RULED 09-27, Griz: Misty Step is "a spell he can learn"; the POC's loan of it to every wizard of 3rd level is gone):

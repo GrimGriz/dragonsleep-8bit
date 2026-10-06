@@ -175,15 +175,17 @@
 
   // ------------------------------------------------------------------ the winnings (his: "pick a random character on victory and give magic item appropriate to class" -- not Pyro)
   // the plus-ones and the two SRD items the ladder's armoury already carries, by what the class may wear; the +2s from the third rung and the trial
-  PK.LOOT = ['longsword1', 'dagger1', 'maul1', 'staff1', 'leather1', 'studded1', 'padded1', 'hide1', 'chainshirt1', 'scalemail1', 'ringmail1', 'chainmail1', 'splint1', 'robes1', 'ringofprotection', 'cloakdisplacement'];
+  // (10-06: and the worn things -- the Ring of Resistance (fire), the Boots of Elvenkind, the Periapt of Proof against Poison; any class may wear them: R.canEquip)
+  PK.LOOT = ['longsword1', 'dagger1', 'maul1', 'staff1', 'leather1', 'studded1', 'padded1', 'hide1', 'chainshirt1', 'scalemail1', 'ringmail1', 'chainmail1', 'splint1', 'robes1', 'ringofprotection', 'cloakdisplacement', 'ringresistfire', 'bootselvenkind', 'periaptpoison'];
   PK.LOOT_LATE = ['longsword2', 'dagger2', 'staff2', 'flametongue', 'doorshield', 'dwarfplate'];
   function bonusOf(it) { if (!it) return 0; var w = it.weapon || it.armor || it.shield || {}; return w.bonus || (w.magic ? 1 : 0) || (it.kind === 'shield' && w.ac > 2 ? w.ac - 2 : 0); }
   PK.lootFor = function (h, late) {
     var pool = PK.LOOT.concat(late ? PK.LOOT_LATE : []), out = [];
     pool.forEach(function (id) {
       var it = DS.DATA.items[id]; if (!it) return;
-      var slot = { weapon: 'weapon', armor: 'armor', shield: 'shield', ring: 'ring', cloak: 'cloak' }[it.kind]; if (!slot) return;
+      var slot = R.slotFor(h, it); if (!slot) return; // (a ring: the first free hand of two; boots, a periapt: their own place -- js/rules.js R.slotFor)
       if (it.kind !== 'cloak' && !R.canEquip(h, it)) return;
+      if (R.wears(h, id)) return; // (one of a thing is enough: it is not a gift twice)
       // a weapon is a gift only in the kind already in hand (a longsword for a longsword): a greatsword's man is not handed a dagger
       if (it.kind === 'weapon') { var inHand = DS.DATA.items[h.equip.weapon]; if (inHand && inHand.weapon && (inHand.weapon.kind || inHand.weapon.group) !== (it.weapon.kind || '')) return; if (!inHand || h.equip.weapon === 'unarmed') return; }
       var have = DS.DATA.items[h.equip[slot]];
@@ -210,9 +212,15 @@
     if (s.custom != null) {
       var c = st.roster[s.custom]; if (!c) return;
       var sp = NPC.decode(c.code); if (!sp) return;
-      var slot = { weapon: 'weapon', armor: 'armor', shield: 'shield', ring: 'ring', cloak: 'cloak' }[it.kind];
-      sp.equip = sp.equip || {}; sp.equip[slot] = item; c.code = NPC.code(sp);
-    } else { s.loot = (s.loot || []).filter(function (id) { return (DS.DATA.items[id] || {}).kind !== it.kind; }); s.loot.push(item); }
+      sp.equip = sp.equip || {};
+      var slot = R.slotFor({ equip: sp.equip }, it); if (!slot) return; // (the item's own place, a ring in the first free hand: js/rules.js R.slotFor)
+      sp.equip[slot] = item; c.code = NPC.code(sp);
+    } else {
+      // a stock word's winnings are kept as `+item`s: a new one takes the place of what was won for the same place (a ring: the older of two ring hands)
+      var same = function (a, b) { return a.kind === b.kind && (a.kind !== 'worn' || a.place === b.place); };
+      var olds = (s.loot || []).filter(function (id) { return same(DS.DATA.items[id] || {}, it); }), drop = it.kind === 'ring' ? olds.slice(0, Math.max(0, olds.length - 1)) : olds;
+      s.loot = (s.loot || []).filter(function (id) { return drop.indexOf(id) < 0; }); s.loot.push(item);
+    }
   };
 
   // ------------------------------------------------------------------ the query (every fight a URL)

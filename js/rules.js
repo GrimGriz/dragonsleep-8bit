@@ -85,7 +85,7 @@
       id: id, name: d.name, cls: d.cls, lvl: d.level, xp: R.XP_LEVEL[d.level], base: JSON.parse(JSON.stringify(d.abil)),
       abil: JSON.parse(JSON.stringify(d.abil)), maxhp: d.hp, hp: d.hp, equip: JSON.parse(JSON.stringify(d.equip)),
       known: (d.spells || []).slice(), feats: {}, conds: {}, ko: false, subclass: null, look: d.look, weapon: d.weaponArt,
-      skills: d.skills || {}, saveProf: d.saveProf || R.CLASSES[d.cls].saves
+      skills: d.skills || {}, saveProf: d.saveProf || R.CLASSES[d.cls].saves, attuned: [] // (the kit bonds at the refresh below)
     };
     h.subclass = d.subclassStart || null;
     R.refresh(h, true);
@@ -117,6 +117,7 @@
       if (h.id === 'lymen') f.relentless = 1;
     }
     if (!h.slots) { h.slotsMax = R.slotsFor(h); h.slots = h.slotsMax.slice(); }
+    if (h.attuned) R.attune(h); // (any rest: what is worn bonds, what was taken off lets go -- 10-06, the menus' attunement)
   };
   R.levelUp = function (h) {
     var msgs = [], c = R.CLASSES[h.cls];
@@ -184,11 +185,56 @@
     }
     var d = DS.DATA.heroes[h.id], arch = (d && d.archetypes) || [];
     if (arch.length && h.lvl >= 3 && !arch.some(function (a) { return a.name === h.subclass; })) { h.subclass = null; h.pendingChoice = 'archetype'; }
+    if (!h.attuned) { h.attuned = []; R.attune(h); } // (10-06: an older save's heroes keep what works on them now -- bonded on load)
   };
   R.isArch = function (h, name) { return h.subclass === name; };
 
   // ---------------------------------------------------------------- derived numbers
   R.item = function (id) { return id ? DS.DATA.items[id] : null; };
+  // ---------------------------------------------------------------- worn things and attunement (SRD 5.1, srd/13-magic-items.md; RULED 10-06,
+  // Griz, on the menu revision's attunement: "SRD compliance ftw, agree with your story calls" -- handoff-2026-10-06-the-menus.md §4). The
+  // body's places beside the hands: two rings (`ring`, `ring2`), a cloak, the feet and the neck (an item of kind `worn` names its `place`).
+  // An item marked `attune` works only for one bonded with it: three bonds at most, one to an item however many copies. A bond is made at a
+  // rest while the item is worn (the SRD's short rest spent on it), and a bond to a thing no longer worn lets go at the next rest (the SRD's
+  // 24 hours apart, or another taking it up). Unbonded it is only what it looks like: a sword still cuts, a cloak is a cloak. A sheet with no
+  // `attuned` list (a class NPC's, the Pocket DM's made ones) wears its kit bonded, as the SRD's built characters come
+  R.PLACES = ['ring', 'ring2', 'cloak', 'feet', 'neck'];
+  R.PLACE_NAME = { ring: 'RING', ring2: 'RING', cloak: 'CLOAK', feet: 'FEET', neck: 'NECK' };
+  R.ATTUNE_MAX = 3;
+  // the slot an item goes in (a ring: the first free hand, else the first)
+  R.slotFor = function (h, it) {
+    if (!it) return null;
+    if (it.kind === 'worn') return it.place || null;
+    if (it.kind === 'ring') return h && h.equip && h.equip.ring && !h.equip.ring2 ? 'ring2' : 'ring';
+    return /^(weapon|armor|shield|cloak)$/.test(it.kind) ? it.kind : null;
+  };
+  R.bonded = function (h, id) { var it = R.item(id); return !!it && (!it.attune || !h || !h.attuned || h.attuned.indexOf(id) >= 0); };
+  // everything worn or held that works (a light in the hand aside), each item once
+  R.gear = function (h) {
+    var seen = {}, out = [];
+    Object.keys((h && h.equip) || {}).forEach(function (s) { var id = h.equip[s]; if (s === 'torch' || typeof id !== 'string' || seen[id] || !R.bonded(h, id)) return; seen[id] = 1; var it = R.item(id); if (it) out.push(it); });
+    return out;
+  };
+  R.wears = function (h, id) { return Object.keys((h && h.equip) || {}).some(function (s) { return s !== 'torch' && h.equip[s] === id; }); };
+  // what the worn things give, read off the items (`resist`, `immune`, `condImmune`: damage types and conditions; `adv`: skills rolled with advantage)
+  R.wornList = function (h, key) { var out = []; R.gear(h).forEach(function (g) { (g[key] || []).forEach(function (x) { if (out.indexOf(x) < 0) out.push(x); }); }); return out; };
+  R.wornAdv = function (h, skill) { return R.wornList(h, 'adv').indexOf(skill) >= 0; };
+  // a rest: keep the bonds to what is still worn, then bond what is worn and not yet bonded, three at most. Returns the lines to say
+  R.attune = function (h) {
+    var msgs = [], worn = [];
+    Object.keys(h.equip || {}).forEach(function (s) { var it = R.item(h.equip[s]); if (s !== 'torch' && it && it.attune && worn.indexOf(h.equip[s]) < 0) worn.push(h.equip[s]); });
+    var a = (h.attuned || []).filter(function (id) { return worn.indexOf(id) >= 0; });
+    worn.forEach(function (id) {
+      if (a.indexOf(id) >= 0) return;
+      var nm = R.item(id).name.replace(/\.$/, ''); // ("Ring of Prot." ends in its own stop)
+      if (a.length >= R.ATTUNE_MAX) { msgs.push(h.name + ' cannot bond with the ' + nm + ': three bonds already.'); return; }
+      a.push(id); msgs.push(h.name + ' bonds with the ' + nm + '.');
+    });
+    h.attuned = a;
+    return msgs;
+  };
+  // the bond's state of one worn item, for the menus: '' (needs none), 'bonded', 'unbonded'
+  R.bondState = function (h, id) { var it = R.item(id); return !it || !it.attune ? '' : (!h.attuned || h.attuned.indexOf(id) >= 0) ? 'bonded' : 'unbonded'; };
   R.weaponOf = function (h) {
     var w = R.item(h.equip.weapon);
     return w || DS.DATA.items.unarmed;
@@ -209,8 +255,7 @@
     }
     var s = R.item(h.equip.shield);
     if (s && s.shield) ac += s.shield.ac;
-    var ring = R.item(h.equip.ring);
-    if (ring && ring.ring && ring.ring.ac) ac += ring.ring.ac;
+    R.gear(h).forEach(function (g) { if (g.ring && g.ring.ac) ac += g.ring.ac; }); // (either ring, bonded where it must be)
     if (R.style(h) === 'defense' && a && a.armor && a.armor.type !== 'robe') ac += 1; // Fighting Style: Defense (Lymen's sheet; a class NPC's `style`; from the paladin's 2nd, SRD 5.1 -- 10-06, it was every paladin's from the 1st)
     return ac;
   };
@@ -229,7 +274,7 @@
       var w = R.item(h.equip.weapon);
       return c.armor.indexOf('shield') >= 0;
     }
-    if (it.kind === 'ring') return true;
+    if (it.kind === 'ring' || it.kind === 'cloak' || it.kind === 'worn') return true; // (anyone can wear a ring, a cloak, boots, an amulet)
     return false;
   };
   // a monk weapon (SRD 5.1): the shortsword, or a simple melee weapon that is neither two-handed nor heavy; fists too
@@ -303,7 +348,7 @@
   R.hooded = function (k) { var it = k && k !== 'torch' ? R.item(k) : null; return k === 'lantern' || !!(it && it.light && it.light.hood); };
   R.carriesLight = function (h) {
     if (h.conds && h.conds.continualFlame) return true;
-    return Object.keys(h.equip || {}).some(function (s) { var it = R.item(h.equip[s]); return !!(it && it.light && it.light.when === 'always'); });
+    return Object.keys(h.equip || {}).some(function (s) { var it = R.item(h.equip[s]); return !!(it && it.light && it.light.when === 'always' && R.bonded(h, h.equip[s])); }); // (a Mace of Disruption's light is its magic: bonded -- 10-06)
   };
   R.attackBonus = function (h, w) {
     w = w || R.weaponOf(h);
@@ -327,13 +372,14 @@
   };
   // a cloak against spells (the King's Mantle, Pyro's: +5 to saving throws against spells, RULED 09-30b): both games add it when the
   // save is against a spell (the 8-bit battle's spellNow; the grid's B.spellNow, deep16/js/pyro.js)
-  R.spellSave = function (h) { var c = R.item(h && h.equip && h.equip.cloak); return (c && c.cloak && c.cloak.spellSave) || 0; };
+  R.spellSave = function (h) { var c = h && h.equip && h.equip.cloak && R.bonded(h, h.equip.cloak) ? R.item(h.equip.cloak) : null; return (c && c.cloak && c.cloak.spellSave) || 0; };
   R.saveBonus = function (h, ab) {
     var b = DS.mod(h.abil[ab]);
     if (h.saveProf && h.saveProf.indexOf(ab) >= 0) b += R.prof(h.lvl);
-    var ring = R.item(h.equip.ring);
-    if (ring && ring.ring && ring.ring.saveBonus && ring.ring.saveBonus[ab]) b += ring.ring.saveBonus[ab];
-    if (ring && ring.ring && ring.ring.saveAll) b += ring.ring.saveAll;
+    R.gear(h).forEach(function (g) {
+      if (g.ring && g.ring.saveBonus && g.ring.saveBonus[ab]) b += g.ring.saveBonus[ab];
+      if (g.ring && g.ring.saveAll) b += g.ring.saveAll;
+    });
     return b;
   };
   // skills are written at proficiency +2; they grow with it, twice over where there's expertise, and a skill that gains
@@ -458,7 +504,7 @@
   // Lisbet's charm (content/items.json `charm`, a ring; Charms & Chalk, Silverton): whoever wears it cannot be frightened. HIDDEN BY RULING --
   // Griz, 09-30: "let's make that charm grant immune to fear in the mechanics, but not say so anywhere the player sees". Its words stay "No
   // promises made."; no card or line ever names it: a fright that would take simply does not (js/battle.js the moan; deep16/js/rules.js RU.save)
-  R.fearWard = function (h) { return !!(h && h.equip && h.equip.ring === 'charm'); };
+  R.fearWard = function (h) { return R.wears(h, 'charm'); };
   // the spells that charm (the snake's charmDC; the SRD's enchantments that lay the charmed condition or take the will): both games
   R.CHARM_SPELLS = ['charmperson', 'animalfriendship', 'hypnoticpattern', 'irresistibledance', 'suggestion', 'masssuggestion', 'dominatebeast', 'dominateperson', 'dominatemonster', 'geas'];
   // the world map's ground (content/maps/world.json legend) -> the shapes a spirit takes there; off the world map: the caves' or the town's

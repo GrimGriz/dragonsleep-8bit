@@ -26,7 +26,10 @@
   // what Protection from Evil and Good wards against (SRD 5.1): aberrations, celestials, elementals, fey, fiends and the dead
   function otherworld(u) { return /^(aberration|celestial|elemental|fey|fiend|undead)$/.test(tags(u)[0] || ''); }
   // one ward-able condition from one otherworldly (frightened, charmed) on one under the ward: nothing
-  function pfegStops(t, f, cond) { return !!(t && t.conds.pfeg && f && otherworld(f) && /frightened|charmed/.test(cond || '')) || devotionStops(t, cond); }
+  function pfegStops(t, f, cond) { return !!(t && t.conds.pfeg && f && otherworld(f) && /frightened|charmed/.test(cond || '')) || devotionStops(t, cond) || !!wornWard(t, cond); }
+  // a thing worn that cannot be given a condition (SRD 5.1, the Periapt of Proof against Poison: "immune to the poisoned condition"): the item, or null.
+  // (10-06; js/rules.js R.gear: only what works -- a bond-needing thing unbonded is not it. The grid reads the unit's condImmune, deep16/js/save.js)
+  function wornWard(t, cond) { var it = null; if (t && isHero(t) && cond) R.gear(t.h).forEach(function (g) { if ((g.condImmune || []).indexOf(cond) >= 0) it = g; }); return it; }
   // Aura of Devotion (paladin 7; the Oath of Devotion is the 8-bit's one oath, R.oathSpells): while he stands the party can't be charmed
   var cur = null; // (the battle running: Battle() sets it)
   function devotionStops(t, cond) { return !!(cur && t && isHero(t) && cond === 'charmed' && cur.heroes.some(function (x) { return !x.guest && x.h.cls === 'paladin' && x.h.lvl >= 7 && !down(x) && !x.conds.asleep; })); } // (an aura needs him conscious, and asleep is unconscious -- SRD 5.1 Sleep; 10-06, the story-and-the-pocket-dm handoff)
@@ -312,7 +315,10 @@
       return n;
     }
     var h = u.h;
-    if (h.resist && h.resist.indexOf(type) >= 0) n = Math.floor(n / 2);
+    // what the worn things give (SRD 5.1: the Ring of Resistance's one damage type, the Periapt of Proof against Poison's immunity; js/rules.js R.wornList
+    // reads only what is bonded where it must be). Resistance counts once however many say so, as the grid's Battle.hurt
+    if (R.wornList(h, 'immune').indexOf(type) >= 0) n = 0;
+    else if ((h.resist || []).concat(R.wornList(h, 'resist')).indexOf(type) >= 0) n = Math.floor(n / 2);
     if (u.conds.stoneskin && /bludgeoning|piercing|slashing/.test(type) && !(from && from.magicWeapon)) n = Math.floor(n / 2);
     var hr = u.conds.heroism; // (Heroism's temporary HP: a condition since 10-03)
     if (hr && hr.temp) { var soak = Math.min(hr.temp, n); hr.temp -= soak; n -= soak; u.soaked = (u.soaked || 0) + soak; }
@@ -378,9 +384,10 @@
     if (this.dark && !this.lit) yield* this.hold('Dark. Nobody without darkvision can see to aim: ' + (typeof R.BLIND === 'number' ? R.BLIND + ' to hit' : 'disadvantage') + ' until somebody makes a light.');
     else if (this.dark && this.torchBy) { var tb = this.heroes.filter(function (u) { return u.h.id === self.torchBy; })[0]; if (tb) yield* this.say(nameOf(tb) + (R.hooded(this.torchKind) ? (this.o.roost ? ' keeps the ' + lightWord(this.torchKind) + ' low, hood down.' : ' holds the ' + lightWord(this.torchKind) + ' up.') : ' holds the torch up.'), 40); }
     // Sense Magic: the chuul feels a ring of binding coming
-    var ringU = this.heroes.filter(function (u) { var r = R.item(u.h.equip.ring); return r && r.ring && r.ring.taunt; })[0];
+    var tauntOf = function (h) { var t = null; R.gear(h).forEach(function (g) { if (g.ring && g.ring.taunt) t = g.ring.taunt; }); return t; }; // (either ring hand, 10-06)
+    var ringU = this.heroes.filter(function (u) { return !!tauntOf(u.h); })[0];
     if (ringU) {
-      var rg = R.item(ringU.h.equip.ring).ring.taunt;
+      var rg = tauntOf(ringU.h);
       var bound = this.foes.filter(function (f) { return (f.m.tags || []).indexOf(rg.tag) >= 0; });
       if (bound.length) { this.tauntWearer = ringU; this.tauntRounds = rg.rounds; this.tauntTag = rg.tag; yield* this.say('Something in the deep feels the ring coming.', 60); }
     }
@@ -1668,7 +1675,11 @@
       if (atk.save.dmg) {
         var d0 = DS.roll(atk.save.dmg), d = d0; if (s.success) d = atk.save.half ? Math.floor(d / 2) : 0;
         if (this.evades(t, atk.save.ab, atk.save.half)) d = s.success ? 0 : Math.floor(d0 / 2);
-        if (d) { var dd = this.hurt(t, d, atk.save.type || 'poison', f); this.num(t, dd, '#9878F8'); yield* this.say(nameOf(t) + (s.success ? ' resists some of the ' : ' takes the full ') + (atk.save.type || 'poison') + '. ' + dd + ' damage.', 40); }
+        if (d) {
+          var dd = this.hurt(t, d, atk.save.type || 'poison', f); this.num(t, dd, '#9878F8');
+          if (isHero(t) && R.wornList(t.h, 'immune').indexOf(atk.save.type || 'poison') >= 0) yield* this.say(nameOf(t) + ' is immune to ' + (atk.save.type || 'poison') + '.', 40); // (the Periapt: hurt gave 0)
+          else yield* this.say(nameOf(t) + (s.success ? ' resists some of the ' : ' takes the full ') + (atk.save.type || 'poison') + '. ' + dd + ' damage.', 40);
+        }
         else if (s.success) yield* this.say(nameOf(t) + ' shrugs it off.', 30);
         if (down(t)) { yield* this.note(t, nameOf(t) + ' falls!', 38); return; }
       }
@@ -1680,7 +1691,7 @@
           DS.audio.sfx('poison'); this.elemBurst(t, 'poison', 'fall');
           var cure = isHero(t) && atk.save.cond === 'poisoned' ? ' (Lay on Hands or an elixir cures it.)' : '';
           yield* this.note(t, nameOf(t) + ' is ' + atk.save.cond + (atk.save.also ? ' — and ' + atk.save.also + '!' : '!') + cure, 44);
-        }
+        } else if (wornWard(t, atk.save.cond)) yield* this.say(nameOf(t) + ' cannot be ' + atk.save.cond + ': the ' + wornWard(t, atk.save.cond).name + '.', 36);
       } else if (atk.save.cond && s.success && !atk.save.dmg) yield* this.say(nameOf(t) + ' resists. (' + s.total + ' vs DC ' + atk.save.dc + ')', 34);
     }
   };
@@ -1778,7 +1789,7 @@
       var sc = this.save(tc, sp.save, sp.dc);
       yield* this.flushMsg();
       if (sc.success) { yield* this.say(nameOf(tc) + ' resists. (' + sc.total + ' vs DC ' + sp.dc + ')', 34); return; }
-      if (pfegStops(tc, f, sp.cond)) { yield* this.say(nameOf(tc) + "'s ward holds: it cannot take hold of " + plain(tc) + '.', 36); return; }
+      if (pfegStops(tc, f, sp.cond)) { yield* this.say(wornWard(tc, sp.cond) ? nameOf(tc) + ' cannot be ' + sp.cond + ': the ' + wornWard(tc, sp.cond).name + '.' : nameOf(tc) + "'s ward holds: it cannot take hold of " + plain(tc) + '.', 36); return; }
       tc.conds[sp.cond] = { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null };
       DS.audio.sfx('poison');
       yield* this.note(tc, nameOf(tc) + ' is ' + sp.cond + '!', 40);

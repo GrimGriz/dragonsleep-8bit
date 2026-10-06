@@ -328,14 +328,16 @@
   };
   // the Pocket DM's winnings worn (10-02, Griz: "pick a random character on victory and give magic item appropriate to class"): each id goes
   // in the slot its kind names, if the class may carry it (R.canEquip: the weapon's group, the armour's weight, a shield with a free hand)
+  // (10-06: the place is the item's own -- js/rules.js R.slotFor: a ring the first free hand of two, boots the feet, a periapt the neck; a sheet that keeps a
+  // list of bonds (a story hero's) takes up what it wears at once, as at a rest)
   NPC.wear = function (h, ids) {
-    var SLOT = { weapon: 'weapon', armor: 'armor', shield: 'shield', ring: 'ring', cloak: 'cloak' };
     (ids || []).forEach(function (id) {
-      var it = DS.DATA.items[id], slot = it && SLOT[it.kind];
+      var it = DS.DATA.items[id], slot = it && R.slotFor(h, it);
       if (!slot) return;
       if (it.kind !== 'cloak' && !R.canEquip(h, it)) return;
       h.equip[slot] = id;
     });
+    if (h.attuned) R.attune(h);
     return h;
   };
   // the always-prepared at a level: our own domain's list (in the Life Domain's place), else the class's
@@ -377,7 +379,7 @@
     u.speed = (race.speed || 30) + (h.cls === 'monk' && h.lvl >= 2 ? (h.lvl >= 6 ? 15 : 10) : 0) + (h.cls === 'barbarian' && h.lvl >= 5 ? 10 : 0);
     u.darkvision = Math.max(race.dv || 0, u.darkvision || 0);
     if (h.invocations && h.invocations.indexOf('devilsight') >= 0) u.devilSight = true; // Devil's Sight: sees in any dark, the magical too, to 120 ft
-    if (race.resist) u.resist = race.resist.slice();
+    if (race.resist) u.resist = (u.resist || []).concat(race.resist).filter(function (x, i, a) { return a.indexOf(x) === i; }); // (beside what is worn: a Ring of Resistance, save.js unitOf)
     if (race.fey) u.fey = true; // (Fey Ancestry: no magic puts it to sleep)
     if (race.savage) u.savage = true;
     if (h.mirrorEye) u.mirrorEye = true;
@@ -499,7 +501,8 @@
   // The scores are the level-1 numbers as typed, race included; the ASIs come with the level (spec.asis). A max hit die a level, as the
   // heroes (RULED 09-25). An empty gear slot is nothing there; a blank spells field is the class's own list
   NPC.ABIL = ['str', 'dex', 'con', 'int', 'wis', 'cha'];
-  NPC.GEAR = ['weapon', 'armor', 'shield', 'alt', 'ring', 'cloak'];
+  // (10-06: the worn places beyond these six are appended -- js/rules.js R.PLACES: the second ring, the feet, the neck -- so a code made before them still decodes: a short code has nothing there)
+  NPC.GEAR = ['weapon', 'armor', 'shield', 'alt', 'ring', 'cloak', 'ring2', 'feet', 'neck'];
   NPC.decode = function (code) {
     var f = String(code).slice(1).split('.'), cls = (f[0] || '').toLowerCase();
     if (!C[cls]) return null;

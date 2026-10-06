@@ -341,7 +341,8 @@
   // RULED 09-30d, Griz: "I don't mind torches working that way, but using a lantern should stick"; 09-30e: "let the rest put the light away".
   // `all`: put away whatever is lit -- the rest (EV.longRest) and EQUIP's LIGHT)
   EV.torchOut = function (all) { var g = G(); if (!g.flags.torchBy || (!all && R.hooded(g.flags.torchKind))) return; g.party.forEach(function (h) { delete h.equip.torch; }); if (R.hooded(g.flags.torchKind)) g.give(g.flags.torchKind, 1); delete g.flags.torchBy; delete g.flags.torchKind; }; // (a lantern is not spent: put away, back in the pack; nor the Ledger-Lamp, 09-30: back as 'ledgerlamp')
-  EV.fieldCast = function* (h, sp) {
+  // (t: the one the menu's party panel already chose -- the cursor kicked into the panel, 10-06 js/menu.js; else the old ON WHOM? asks)
+  EV.fieldCast = function* (h, sp, t0) {
     var g = G();
     var slot = sp.level && !sp.ritual ? R.lowestSlot(h, sp.level) : 0;
     if (sp.level && !sp.ritual && !slot) { yield DS.say(L('g.noSlots')); return; }
@@ -366,7 +367,7 @@
       var ma = sp.buff === 'mageArmor';
       var items = g.party.map(function (x) { return { label: x.name, right: ma && R.armored(x) ? 'ARMORED' : (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: sp.kind === 'heal' ? x.hp >= x.maxhp : x.ko || (ma && R.armored(x)) }; }); // (a healing spell reaches the fallen: EV.fieldHeal)
       if (ma && items.every(function (it) { return it.disabled; })) { yield DS.say(L('g.mageArmorNone')); return; }
-      var t = yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'ON WHOM?' });
+      var t = t0 || (yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'ON WHOM?' }));
       if (!t) return;
       if (slot) h.slots[slot - 1]--;
       DS.audio.sfx('heal');
@@ -410,11 +411,11 @@
     }
     yield DS.say(L('g.nothingHappens'));
   };
-  EV.fieldSkill = function* (h, s) {
+  EV.fieldSkill = function* (h, s, t0) { // (t0: the menu's panel chose the one already -- 10-06)
     var g = G();
     if (s === 'lay') {
       var items = g.party.map(function (x) { return { label: x.name, right: (x.ko ? 'KO ' : '') + x.hp + '/' + x.maxhp, value: x, disabled: x.hp >= x.maxhp }; }); // (the fallen too: EV.fieldHeal, 10-06)
-      var t = yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'LAY ON HANDS (' + h.feats.lay + ')' });
+      var t = t0 || (yield DS.choose({ items: items, x: 60, y: 60, w: 136, title: 'LAY ON HANDS (' + h.feats.lay + ')' }));
       if (!t) return;
       var lh = EV.fieldHeal(t, h.feats.lay); h.feats.lay -= lh.n; DS.audio.sfx('heal');
       yield DS.say(L('g.healed', { name: t.name, n: lh.n })); if (lh.woke) yield DS.say(L('g.comesRound', { name: t.name }));
@@ -1606,7 +1607,7 @@
   };
   S.lakeFight = function* (poked) {
     var g = G();
-    var ring = g.party.some(function (h) { return h.equip.ring === 'ringofbinding' && !h.ko; });
+    var ring = g.party.some(function (h) { return R.wears(h, 'ringofbinding') && !h.ko; });
     yield DS.say(L(ring ? 'lake.rises' : 'lake.risesNoRing'));
     // fought in DEEP16 (deep16/data/fights.js chuul): the ring on whoever wears it, the water hand-waved (it swims, nobody else does)
     var res = yield* EV.fight(['chuul'], { bg: 'lake', music: 'boss', canRun: false, introText: ring ? L('lake.senseMagic') : null, deep16: 'chuul' });
