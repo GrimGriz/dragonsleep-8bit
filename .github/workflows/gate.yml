@@ -1,0 +1,35 @@
+# The gate on GitHub (10-06, the gate handoff §2.1; Griz: "Ask an Opus runner, totally not my wheelhouse" -- the runner's (a)):
+# `python dev/check.py all` on a Linux runner after every push to main and to a cloud seat's claude/* branch, a green or red mark
+# on the commit. It blocks nothing: Pages still deploys from main, and the push law on the desk (GREEN before a push) is unchanged.
+# A second witness: a clean checkout on another OS, the full gate every time, where the desk's quick gate runs before a push.
+name: gate
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # (dev/keeper-probe.py reads the pinned ed7be2a with `git show`: a shallow clone reads RED)
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: the browser
+        run: |
+          B=$(command -v microsoft-edge || command -v microsoft-edge-stable || command -v google-chrome || command -v chromium || true)
+          if [ -z "$B" ]; then echo "no Chromium-family browser on the runner"; exit 1; fi
+          echo "the gate's browser: $B ($("$B" --version))"
+          echo "DEEP16_BROWSER=$B" >> "$GITHUB_ENV"
+
+      - name: python dev/check.py all
+        env:
+          DEEP16_BROWSER_ARGS: --no-sandbox
+        run: python dev/check.py all
