@@ -1063,11 +1063,12 @@
       }
       if (u.conds.divineFavor) rad += DS.d(4); // (Divine Favor: a condition since 10-03)
       // the Mace of Disruption (SRD 5.1; Pyro's, 09-30): a fiend or undead takes 2d6 radiant more, and after the blow the save below
-      var dis = w.weapon.disrupt && w.weapon.disrupt.vs.some(function (k) { return tags(t).indexOf(k) >= 0; }) ? w.weapon.disrupt : null;
+      // (its magic works only for one bonded with it -- js/rules.js R.bonded, as the grid's deep16/js/save.js; 10-06)
+      var bondW = R.bonded(h, w.id), dis = bondW && w.weapon.disrupt && w.weapon.disrupt.vs.some(function (k) { return tags(t).indexOf(k) >= 0; }) ? w.weapon.disrupt : null;
       if (dis) { rad += DS.roll(dis.dice, { crit: crit }); extra += ' Disruption!'; this.elemBurst(t, 'radiant'); }
       // Branding Smite (09-28g): the waiting light goes into this blow, and the one struck glows (no invisibility on it)
       if (u.conds.branding) { rad += DS.roll(u.conds.branding.dice, { crit: crit }); delete u.conds.branding; t.conds.revealed = true; delete t.conds.invisible; extra += ' Branded!'; this.elemBurst(t, 'radiant'); }
-      var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 || mw > 0 || !!w.weapon.magic }); // (a magic weapon with no bonus counts as magic: the Mace of Disruption; 10-06)
+      var dealt = this.hurt(t, Math.max(1, dmg), dx.type, { magicWeapon: (w.weapon.bonus || 0) > 0 || mw > 0 || (!!w.weapon.magic && bondW) }); // (a magic weapon with no bonus counts as magic: the Mace of Disruption, bonded; 10-06)
       if (rad) dealt += this.hurt(t, rad, 'radiant', {});
       var tImm = function (c) { return !isHero(t) && (t.m.condImmune || []).indexOf(c) >= 0; };
       // disruption: one left at 25 HP or fewer saves WIS 15 or is destroyed; one that saves is frightened of him a round
