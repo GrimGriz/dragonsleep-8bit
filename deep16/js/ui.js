@@ -1222,6 +1222,7 @@
       depth: p.depth, gz: p.gz, layer: 1, unit: u, draw: function (ctx) {
         var o = { color: u.side === 'foe' ? R('violet', 3) : R('silver', 4) }, anim = u.anim, t = B.t - (u.animT || 0);
         var down = u.dead || u.hp <= 0, sk = D.spr.scaleOf(u); // (sk: Enlarge and Reduce draw it bigger or smaller about its foot, sprites.js scaleOf)
+        var oilDown = down && !u.dead && !!u.conds.oiled; // (one lying at 0 still shows its oil, and only that: js/looks.js -- 10-06, Griz: "we'll need on prone as well"; a troll is oiled where it lies)
         // the cloaker hangs as a cloak until something hurts it (Griz, 09-29)
         if (!down && u.sheet === 'cloaker_p2' && !u.woken && anim === 'idle' && has('roost')) anim = 'roost';
         // the stirge latched on (10-05, Griz: "making it look like the stinger went in"): its own row, drawn at the shoulder of the one it drains
@@ -1272,7 +1273,7 @@
         if ((B.darks || []).length && D.magic.inDark(B, u)) o.alpha = u.side === 'foe' ? 0.33 : 0.5; // (inside the darkness: a shape, if that -- 0.33, not 0.2: 10-01, Griz, "if that's always true it's fine 20% - if not let's bump to 33%" -- the dashed ring that marks one the hero can't see shows only on a hero's own turn, and the darkmantle beside Aurdin looked dead)
         // in the dark where no one of the party sees (torchdark 09-28): the player sees it still, grey and faint; by darkvision, grey
         if (B.dark && u.side === 'foe' && !down && !u.flash) { var ps = D.light.partySees(B, u); if (ps < 2) { o.alpha = Math.min(o.alpha == null ? 1 : o.alpha, ps === 1 ? 0.85 : 0.6); o.tint = R('stone', 3); o.tintAlpha = ps === 1 ? 0.3 : 0.5; } }
-        var lt = D.looks && !down && D.looks.tint(u, B); if (lt) { o.tint = lt[0]; o.tintAlpha = lt[1]; } // (stoneskin, barkskin, rage: js/looks.js)
+        var lt = D.looks && (!down || oilDown) && D.looks.tint(u, B); if (lt) { o.tint = lt[0]; o.tintAlpha = lt[1]; } // (stoneskin, barkskin, rage: js/looks.js)
         if (u.flash > 0) { var fe = u.flashEl && FX.EL && FX.EL[u.flashEl]; o.tint = fe ? fe.c[1] : R('bone', 2); o.tintAlpha = fe ? 0.55 : 0.85; } // (a blow of an element flashes its colour: js/looks.js)
         else if (u.conds.faerie && !down && !u.ethereal) { o.tint = R('violet', 5); o.tintAlpha = 0.25 + 0.15 * Math.sin(B.t / 7); }
         else if (u.conds.paralyzed || u.conds.stunned) { o.tint = R('violet', 4); o.tintAlpha = 0.35; }
@@ -1291,7 +1292,7 @@
         // a rider's body (the drider's spider half) goes dark unless something else tints it; the rider on top
         var body = u.rider && !o.tint ? Object.assign({}, o, { tint: R('outline', 0), tintAlpha: 0.5 }) : o;
         if (sk !== 1) { ctx.save(); ctx.translate(p.x, p.y); ctx.scale(sk, sk); ctx.translate(-p.x, -p.y); } // (the figure and what stands behind it, grown about the foot)
-        if (D.looks && !down && !u.ethereal) D.looks.behind(ctx, B, u, p, anim === 'hurt' && !has('hurt') ? 'idle' : anim, t, o); // (false images, blur, haste: js/looks.js)
+        if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.behind(ctx, B, u, p, anim === 'hurt' && !has('hurt') ? 'idle' : anim, t, o); // (false images, blur, haste: js/looks.js)
         // (a flier whose sheet walks on the ground -- the bat stand-in -- is drawn up in the air when out on the field, bobbing; its shadow stays below)
         var lift = u.lift && !u.riding && !down ? u.lift + Math.round(2 * Math.sin(B.t / 6)) : 0;
         var wet = !down && !lift ? UI.wading(B, u) : null, an0 = anim === 'hurt' && !has('hurt') ? 'idle' : anim;
@@ -1314,7 +1315,7 @@
         obj.shown = down || u.ethereal ? null : { anim: anim, t: t, once: !!o.once, frame: o.frame, x: p.x, y: p.y, k: sk, box: [p.x - hw, p.y - tall, p.x + hw, p.y] };
         if (u.rider && !down) D.spr.drawRider(ctx, u, anim, t, p.x, p.y, o);
         if (sk !== 1) ctx.restore();
-        if (D.looks && !down && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js)
+        if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js; down, the oil's alone)
         if (!u.dead && !u.ethereal && (!u.riding || u.attached)) { // (a darkmantle on someone keeps its bar, over it)
           var top = tall, w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
           ctx.fillStyle = R('outline', 0); ctx.fillRect(bx - 1, by - 1, w + 2, 4);

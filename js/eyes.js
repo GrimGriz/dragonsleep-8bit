@@ -3,7 +3,10 @@
    lives here, one list, and situations.html shows it six a page, most wanted first, ahead of the story situations (js/situations.js).
    A row: { pri, group, title, pt (the lane and section it came from), look (what to try, and what should happen), url (its door, from the
    site's root) }. pri 1 = first (a measure another lane waits on, or the way a player gets out); 2 = built this week; 3 = built before and
-   never seen. TO ADD ONE: a seat that builds a thing he hasn't seen writes its row here (CLAUDE.md's close). WHEN HE SAVES: every eyes row
+   never seen. TO ADD ONE: a seat that builds a thing he hasn't seen writes its row here (CLAUDE.md's close). ITS DOOR, A SHOW FIRST (10-06, Griz: "see if this
+   showing method works as first consideration when creating URLs for things that need to be seen (vs tested)"): a thing to be SEEN -- a look, a moment the dice
+   must bring -- gets a beat on a show page, staged and run by the engine with the dice pinned (deep16/js/skyshow.js's beats; ?fxgallery; ?show=<creature>); a
+   live door only for a thing to be TESTED by his hands (a menu, a prompt, a pad). WHEN HE SAVES: every eyes row
    with a verdict or a note is SEEN -- a `seen` line in PATCHLOG.md with his note verbatim, and the row cut from this file; broken or
    unclear also goes to the lane its `pt` names. Rows with no door stay in the eyes lane (..\..\handoff-2026-10-04-eyes-on-the-screen.md). */
 'use strict';
@@ -12,8 +15,8 @@
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
     'eyes-trolloil': { pri: 1, group: G1, title: 'Oil on a troll, then fire (a beat on the Skylights show page)', pt: 'the menus §2.7 · eyes',
-      url: 'deep16/?skyshow&only=oil',
-      look: 'Your three flasks in the Edifice all missed (10-06: the throw is Strength alone, no proficiency, against AC 15, and a miss oils the ground as ruled 10-05), so the show has a beat for it: Barley\'s flask hits a troll on its feet (the dice pinned) -- it goes dark with a sheen; hover it: its card says oiled. Then Aurdin\'s Fire Bolt: the oil catches, 5 fire more, and it smoulders where it stands.' },
+      url: 'deep16/?skyshow&only=oil,oildown',
+      look: 'Your three flasks in the Edifice all missed (10-06: the throw is Strength alone, no proficiency, against AC 15, and a miss oils the ground as ruled 10-05), so the show has two beats: Barley\'s flask hits a troll on its feet (the dice pinned) -- a brown coat, a thick amber band sliding down the body (your "thicker", 10-06; the bright edge gone), drips to a pool at its feet; then Fire Bolt: the oil catches, 5 more, and it smoulders standing. The second: the same oil on a troll lying at 0, then fire, and it dies.' },
     'eyes-wetlamp': { pri: 2, group: G2, title: 'The Wet: the lamp at (3, 30)', pt: 'the bestiary · eyes',
       url: '?at=wet',
       look: 'The deep station\'s lamp moved where you asked, the grid\'s (3, 30), two squares from the crate; its light went with it. Does the bucket still read at a glance? (The three props\' flat look is on the art-wanted list.)' },

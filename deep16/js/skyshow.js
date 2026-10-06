@@ -11,7 +11,7 @@
    for a beat that did not show). A show, not a rule: no fight reads this file, and the pins are the show's battle's only.
    The beats, as the fight stands tonight: Hallvör's own lane (tonight) · under a climber, and the giant comes down on the one under (the cushion, the split dice, both
    flat) · the Shove · Steinarr's rock at the edge and the Dunking Booth · the whistle, her call (the clip, tonight) and the spiders · a spider down the face to a climber on a
-   rope · a troll at 0 that knits, then Pyro's flask, "Torch him!", and a torch from the barrel behind the houses thrown at it (the barrel and the card's new words, tonight) · oil on a troll on its feet, its sheen, then fire (10-06) · the class AI to the barrel by itself (tonight) · only Shatter touches the glass · Pyro's handaxe
+   rope · a troll at 0 that knits, then Pyro's flask, "Torch him!", and a torch from the barrel behind the houses thrown at it (the barrel and the card's new words, tonight) · oil on a troll on its feet, its sheen, then fire, and on one lying at 0 (10-06) · the class AI to the barrel by itself (tonight) · only Shatter touches the glass · Pyro's handaxe
    and its return · READY ends the turn (tonight). */
 'use strict';
 (function () {
@@ -227,6 +227,26 @@
           B.focus(C.troll1); yield W(300); // (the smoulder on a troll still on its feet, held)
           var lg = logFrom(n), coat = /covered in oil/.test(lg), caught = /The oil on [^|]* catches/.test(lg), burned = !!C.troll1.burned, dry = !(C.troll1.conds && C.troll1.conds.oiled), up = C.troll1.hp > 0 && !C.troll1.dead && !C.troll1.regenDown;
           return [oiled && coat && caught && burned && dry && up, 'the flask hits and coats it ' + (oiled && coat) + '; Fire Bolt ' + (e && e.ok ? 'cast' : 'not castable (' + (e ? e.why : 'unknown') + ')') + ', the oil catches ' + caught + ', burned ' + burned + ', the coat gone ' + dry + ', on its feet ' + up + ' (' + C.troll1.hp + ' HP)'];
+        } },
+      { id: 'oildown', name: 'Oil on a troll where it lies, then fire', what: 'Added 10-06 (Griz: "we\'ll need on prone as well"): a troll knocked to 0 lies knitting; Barley\'s flask hits it where it lies -- the same band and drips, over the height it lies at. Then Aurdin\'s Fire Bolt: a troll burned at 0 dies. Pinned: every d20 15.',
+        run: function* () {
+          stage([[C.barley, 16, 22], [C.troll1, 19, 21], [C.aurdin, 14, 19]], 7);
+          if (D.oil.lit(C.barley)) delete C.barley.torch;
+          var fl = (B.inv || []).filter(function (s) { return s.id === 'oil'; })[0]; if (!fl) B.inv = (B.inv || []).concat([{ id: 'oil', n: 1 }]); else if (fl.n < 1) fl.n = 1;
+          var n = (B.log || []).length; B.focus(C.troll1);
+          B.hurt(C.troll1, C.troll1.hp + (C.troll1.temp || 0), 'slashing', {}); yield W(50);
+          var down1 = !!C.troll1.regenDown;
+          B.active = C.barley; RU.startTurn(C.barley);
+          setPin(15, null); yield* fire(B.exec(C.barley, { do: 'item', id: 'oil', target: C.troll1 })); setPin(null, null); B.active = null;
+          var oiled = !!(C.troll1.conds && C.troll1.conds.oiled);
+          B.focus(C.troll1); yield W(300); // (the sheen on one lying, held)
+          var e = D.magic.list(B, C.aurdin, { anyTarget: true }).filter(function (x) { return x.id === 'firebolt'; })[0];
+          B.active = C.aurdin; RU.startTurn(C.aurdin);
+          setPin(15, null); if (e && e.ok) yield* fire(B.exec(C.aurdin, { do: 'cast', id: 'firebolt', slot: e.slot, target: C.troll1 })); setPin(null, null); B.active = null;
+          B.focus(C.troll1); yield W(120);
+          var lg = logFrom(n), caught = /The oil on [^|]* catches/.test(lg);
+          // (the fire kills a troll at 0 outright, so the oil's 5 more never comes: js/oil.js spares the dead)
+          return [down1 && oiled && !!C.troll1.dead, 'down at 0 ' + down1 + '; the flask hits it where it lies ' + oiled + '; Fire Bolt ' + (e && e.ok ? 'cast' : 'not castable (' + (e ? e.why : 'unknown') + ')') + ', dead ' + !!C.troll1.dead + (caught ? ' (the oil caught first)' : '')];
         } },
       { id: 'barrel', name: 'The torch barrel, by the class AI', what: 'Tonight: the barrel in the fence behind the houses, (22,30). A troll lies at 0 and nobody has fire: Barley, run by the class AI, walks to the barrel, takes a torch (free) and throws it. Pinned: every d20 15.',
         run: function* () {

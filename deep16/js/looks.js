@@ -548,7 +548,18 @@
   // before the figure: its false images (Mirror Image, Mislead's double, the Doubling, the phantasms), blur's shiver, haste's
   // afterimages. A false image struck breaks like glass where it stood
   var IMG_OFF = [[-15, 2], [15, -2], [0, -7]];
+  // the oil's pool under the feet (10-06, Griz: "maybe with dripping to the ground"): where the drips land, dark amber with a gloss on it, breathing a little
+  function oilPool(ctx, B, u, p) {
+    var osz = (u.size || 1) * (D.spr.scaleOf ? D.spr.scaleOf(u) : 1), orx = 15 * osz, ory2 = 6 * osz, opk = 0.94 + 0.06 * Math.sin(B.t / 20);
+    ctx.save();
+    ctx.globalAlpha = 0.62; ctx.fillStyle = P('leather', 0); ctx.beginPath(); ctx.ellipse(p.x, p.y + 1, orx * opk, ory2 * opk, 0, 0, 7); ctx.fill();
+    ctx.globalAlpha = 0.5; ctx.fillStyle = P('gold', 2); ctx.beginPath(); ctx.ellipse(p.x - orx * 0.35, p.y - ory2 * 0.15, orx * 0.32, 1.5 * osz, 0, 0, 7); ctx.fill();
+    ctx.restore();
+  }
+  var LKDRAW = new WeakMap(); // (a figure's frame as LK.behind saw it, kept off the unit itself so nothing that copies or saves units carries it)
   LK.behind = function (ctx, B, u, p, anim, t, o) {
+    if (u.conds.oiled) LKDRAW.set(u, { anim: anim, t: t, o: o }); // (the frame the figure is about to be drawn with: the oil's gloss draws it again, clipped, after -- overMore)
+    if (u.hp <= 0) { if (u.conds.oiled && !u.dead) oilPool(ctx, B, u, p); return; } // (down at 0: ui.js asks only for the oil -- 10-06)
     if (u.regen > 0 && u.burned && u.hp > 0 && !u.dead) hairNote(B, u, anim, t, o); // (a burned troll's crown, off the frame about to be drawn: smoulder, below)
     // Longstrider and Expeditious Retreat (10-01b, Griz, of the green dashes off the heels: "looks like the guy is pooping lines of green?
     // Maybe green like the old bat sonar only in the tile he's in"): his own square glows green, a ring running out from his feet to its
@@ -561,6 +572,7 @@
       dia(lk); ctx.globalAlpha = 0.95 * (1 - lph); ctx.strokeStyle = '#c8e090'; ctx.lineWidth = 1; ctx.stroke();
       ctx.restore();
     }
+    if (u.conds.oiled && !u.dead) oilPool(ctx, B, u, p);
     var n = Math.max(0, u.images || 0), was = u._imgs || 0;
     if (n < was) for (var k = n; k < was; k++) { var off = IMG_OFF[k % 3]; shatter(u, off); }
     u._imgs = n;
@@ -651,14 +663,16 @@
   }
 
   // a tint for the whole figure from what is on it (the conditions ui.js tints for itself come after and win)
+  function OIL_TINT(B) { return [P('leather', 1), 0.42 + 0.04 * Math.sin(B.t / 14)]; } // (oil, not shadow: brown, 10-06)
   LK.tint = function (u, B) {
     var c = u.conds;
+    if (u.hp <= 0) return c.oiled && !u.dead ? OIL_TINT(B) : null; // (down at 0: ui.js asks only for the oil -- 10-06)
     if (c.stoneskin || c.stoning) return [P('stone', 5), 0.35];
     if (c.barkskin) return [P('leather', 3), 0.3];
     // (a barbarian's Rage is a condition; a foe that rages when hurt -- rageOnHit, js/battle.js -- is a flag on the creature itself)
     if (c.raging || u.raging) return [P('red', 3), 0.12 + 0.08 * Math.sin(B.t / 6)];
     if (c.enlarged) return null;
-    if (c.oiled) return [P('outline', 0), 0.4 + 0.04 * Math.sin(B.t / 14)]; // (covered in oil, js/oil.js: the next fire on it burns 5 more -- a dark sheen over the figure, the gloss and the drip are overMore's; before the fire's below, which the oil would feed)
+    if (c.oiled) return OIL_TINT(B); // (covered in oil, js/oil.js: the next fire on it burns 5 more -- a dark brown coat over the figure (10-06: brown, not the outline's black -- oil, not shadow), the gloss and the drips are overMore's, the pool LK.behind's; before the fire's below, which the oil would feed)
     if (c.ablaze || c.heated) return [P('fire', 1), 0.18 + 0.1 * Math.sin(B.t / 4)];
     if (c.frosted) return [FX.EL.cold.c[1], 0.3];
     return null;
@@ -667,6 +681,7 @@
   // after the figure: the marks of what is on it, small, over the head or about the body
   LK.over = function (ctx, B, u, p) {
     var c = u.conds, t = B.t, top = D.spr.unitTop(u), hx = p.x, hy = p.y - top - 11, E;
+    if (u.hp <= 0) { if (c.oiled && !u.dead) oilMarks(ctx, B, u, p, top); return; } // (down at 0: ui.js asks only for the oil -- 10-06, a troll oiled where it lies)
     // blessed: gold motes wheeling over the head; baned, cursed: dark ones
     if (c.blessed || c.guided || c.inspired || c.helped) orbit(ctx, hx, hy, FX.EL.holy, 2, t, 7);
     if (c.baned || c.cursed || c.contagion) orbit(ctx, hx, hy, FX.EL.shadow, 2, t + 40, 7);
@@ -842,17 +857,40 @@
     // (Longstrider and Expeditious Retreat: under the figure now -- LK.behind)
     // Pass without Trace: smoke-grey wisps at the feet, drifting up and thinning
     if (c.pwt) for (i = 0; i < 3; i++) { var wp = (t * 0.35 + i * 14) % 42; glow(ctx, p.x - 8 + i * 8 + Math.sin(wp / 7 + i) * 2, p.y - 1 - wp * 0.2, i % 2 ? P('stone', 4) : P('violet', 3), 4 + wp / 10, 0.5 * (1 - wp / 42)); }
-    // covered in oil (js/oil.js; the dark sheen is LK.tint's): the gloss on it -- a thin pale glint that slides across the chest, a second the other way lower down, out of step --
-    // and a drop of it now and then off the waist, amber, falling and fading
-    if (c.oiled) {
-      var og = (t + ph * 3) % 90, og2 = (t + ph * 7 + 45) % 90, od = (t * 0.8 + ph * 5) % 70;
-      if (og < 40) { ctx.globalAlpha = 0.8 * Math.sin(Math.PI * og / 40); var ox = p.x - bw * 0.6 + bw * 1.2 * og / 40, oy = p.y - top * 0.68; for (k = 0; k < 6; k++) px(ctx, ox + k, oy + k, k > 0 && k < 5 ? P('bone', 2) : P('silver', 6), k > 0 && k < 5 ? 2 : 1); }
-      if (og2 < 40) { ctx.globalAlpha = 0.65 * Math.sin(Math.PI * og2 / 40); var ox2 = p.x + bw * 0.6 - bw * 1.2 * og2 / 40, oy2 = p.y - top * 0.4; for (k = 0; k < 5; k++) px(ctx, ox2 - k, oy2 + k, k > 0 && k < 4 ? P('bone', 2) : P('silver', 6), k > 0 && k < 4 ? 2 : 1); }
-      if (od < 26) { ctx.globalAlpha = 1 - od / 26; dpx(ctx, p.x + ((ph % 7) - 3) * bw / 8, p.y - top * 0.3 + od * 0.9, P('leather', 3), 2); }
-      ctx.globalAlpha = 1;
-    }
+    if (c.oiled) oilMarks(ctx, B, u, p, top); // (covered in oil: below, its own, since one lying at 0 shows it too)
     // Vampiric Touch waiting: the hand dark with it, a violet glow and a green glint (the touch is the caster's action each turn)
     if (c.vampiric) { E = FX.EL.necrotic; var vh = FX.hands(u); glow(ctx, vh.x, vh.y, E.c[1], 6, 0.22 + 0.12 * Math.sin(t / 8)); px(ctx, vh.x, vh.y, E.c[0], 2); if ((t >> 2) % 6 === 0) FX.star(ctx, vh.x, vh.y, E, 3); }
+  }
+  // covered in oil (js/oil.js; the brown coat itself is LK.tint's, the pool under the feet LK.behind's). 10-06, Griz, of the first look's slanting glints: "looks like
+  // feathers swirling around its arm to me" -- "request similar to mage armor but more visible, maybe with dripping to the ground"; then, of a thinner band with a
+  // pale leading edge: "bright wasn't right - I think the thicker is doing the work - that's pretty good - we'll need on prone as well". So: a thick band of amber
+  // slides down him as Mage Armor's force does, but the whole way down (oil runs), no bright edge -- the figure itself drawn again in amber, clipped to a strip, so
+  // the gloss lies on the body and never bridges the gap between the legs (a flat bar there read as a stick); drops gather at the hem and fall to the ground. One
+  // lying (prone, or down at 0 -- a troll oiled where it lies, which is the oil's whole use on it) gets it over the height it lies at. The frame is the one
+  // LK.behind saw just before the figure was drawn; a flier aloft or one wading gets the drips alone
+  var OIL_STRIPS = [[-11, 4, 'leather', 3, 0.34], [-7, 4, 'gold', 2, 0.5], [-3, 4, 'gold', 2, 0.62]]; // (the band: its dimmer tail above, its fullest at the foot; 12 px)
+  function oilMarks(ctx, B, u, p, top) {
+    var t = B.t, ph = uph(u), k, sk = D.spr.scaleOf ? D.spr.scaleOf(u) : 1, bw = (13 + 9 * ((u.size || 1) - 1)) * sk, oW = bw - 2;
+    var lying = u.hp <= 0 || !!u.conds.prone, oH = Math.max(8, lying ? Math.round(top * 0.45) : top + 1), oTop = p.y - oH - (lying ? 2 : 1), sd = LKDRAW.get(u);
+    var os = (t + ph * 3) % 100;
+    if (os < 76 && sd && !(u.lift && !u.riding) && !(D.ui && D.ui.wading && D.ui.wading(B, u))) {
+      var of = os / 76, oy0 = Math.round(oTop + of * (oH + 6)), ofade = Math.min(1, 1.6 * Math.sin(Math.PI * of));
+      ctx.save();
+      if (sk !== 1) { ctx.translate(p.x, p.y); ctx.scale(sk, sk); ctx.translate(-p.x, -p.y); }
+      for (k = 0; k < OIL_STRIPS.length; k++) {
+        var st = OIL_STRIPS[k]; ctx.save(); ctx.beginPath(); ctx.rect(p.x - 120, oy0 + st[0], 240, st[1]); ctx.clip();
+        D.spr.draw(ctx, u.sheet, sd.anim, u.facing || 0, sd.t, p.x, p.y, Object.assign({}, sd.o, { tint: P(st[2], st[3]), tintAlpha: 1, alpha: st[4] * ofade }));
+        ctx.restore();
+      }
+      ctx.restore();
+    }
+    for (k = 0; k < 3; k++) {   // the drips: off the hem at either side and the middle, swelling, then falling faster to the ground
+      var dq = (t * 0.7 + ph * 5 + k * 23) % 46, ddx = Math.round(p.x + (k - 1) * oW * 0.7 + ((ph + k) % 3) - 1), dy0 = p.y - (lying ? oH * 0.5 : top * 0.32);
+      ctx.globalAlpha = 0.95;
+      if (dq < 16) dpx(ctx, ddx, dy0, P('gold', 2), dq < 8 ? 1 : 2);
+      else { var dfl = (dq - 16) / 30, dyy = Math.round(dy0 + (p.y - dy0) * dfl * dfl); dpx(ctx, ddx, dyy, P('gold', 2), 2); }
+    }
+    ctx.globalAlpha = 1;
   }
   function orbit(ctx, x, y, E, n, t, r) { for (var i = 0; i < n; i++) { var a = t / 12 + i * Math.PI * 2 / n, ox = x + Math.cos(a) * r, oy = y + Math.sin(a) * r * 0.35; glow(ctx, ox, oy, E.c[2], 3, 0.3); px(ctx, ox, oy, E.c[i % 2 ? 1 : 0], 2); } }
   function bubbles(ctx, x, y, E, t) { for (var i = 0; i < 3; i++) { var ph = (t * 0.5 + i * 9) % 26; ctx.globalAlpha = 1 - ph / 26; var bx = x - 6 + i * 6 + Math.sin(ph / 4 + i) * 2, by = y - ph; px(ctx, bx - 1, by, E.c[0]); px(ctx, bx + 1, by, E.c[0]); px(ctx, bx, by - 1, E.c[0]); px(ctx, bx, by + 1, E.c[0]); } ctx.globalAlpha = 1; }
