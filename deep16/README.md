@@ -452,9 +452,12 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
   for the class AI); the Pocket DM's roster has all three seats; **`?mpshow`** shows the nine specials one beat at a time (`js/mpshow.js`,
   the dice pinned, each beat checked; `&only=`, `&beat=`, `&fast`, `&lvl=`).
 - **Looks:** `beholda_p2` is a stand-in cut from her first sheet (`tools/beholda-sheet.py`: front views for every facing, the projection
-  for the gaze); `denny_p2` gained TAUNT, DENIM DAMAGE and CANNONBALL rows from his poses (`tools/denny-sheet.py`); `rascal_p1` is his
-  first generated sheet cut whole (`tools/rascal-sheet.py`: the rows face left so the claw arm shows, the whiskers the generator ran
-  through his hat erased above it); `goose_p1` is his three generated sheets cut by Griz's picks (`tools/goose-sheet.py` over
+  for the gaze); `denny_p2` gained TAUNT, DENIM DAMAGE and CANNONBALL rows from his poses (`tools/denny-sheet.py`); `rascal_p2` (10-07,
+  his look since) is his second round cut whole (`tools/rascal-sheet-p2.py` over `tools/sheetrows.py`: sheet 1 redone with the felt's
+  face and a charcoal hat, sheet 2's Fire Bolt as his `cast`, Social Distancing, Hot Take and Going Viral rows, the bow from sheet 3; the
+  rows face left so the claw arm shows; each row sized by his hat's brim, the one rigid thing he wears -- the generator drew the rows at
+  their own sizes); `rascal_p1`, his first sheet (`tools/rascal-sheet.py`, the whiskers through his hat erased, the hat lost to the
+  navy), stays on disk till he has seen p2; `goose_p1` is his three generated sheets cut by Griz's picks (`tools/goose-sheet.py` over
   `tools/sheetrows.py`: each sheet cut by its own row and number labels, the rows mixed frame by frame, each sheet at its own scale by the
   torso's thickness, small -- his idle about 38 px to Denny's 52 --, the cast's glow the heal's green; no build plays it yet). Their next
   sheets' prompts are in `deep16-art-wanted.md`. **`tools/sheet-play.html?sheet=goose_p1&ref=denny_p2`** plays a sheet's rows, four

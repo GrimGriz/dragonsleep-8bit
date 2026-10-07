@@ -66,7 +66,7 @@
     // RASCAL (10-06, the Rascal seat; Griz: "please invent a third special for rascal", "He'll range attack with a cantrip like Aurdin"): MP's Social PC,
     // so CHA is his stat (cast: his DC and Fire Bolt's attack by it; MP.unit lays it on the unit); MP gives him 70 HP against Denny's 120: a d8 and CON 10
     rascal: { name: 'Rascal', kind: 'lobstamonkee', sub: 'dps', hd: 8, abil: { str: 10, dex: 14, con: 10, int: 10, wis: 12, cha: 16 }, asi: { 4: 'cha', 8: 'cha' },
-      weapon: 'pinch', armor: 'lobstershell', look: 'rascal_p1', cast: 'cha', cantrip: 'firebolt' },
+      weapon: 'pinch', armor: 'lobstershell', look: 'rascal_p2', cast: 'cha', cantrip: 'firebolt' },   // (his look p2 since 10-07: his second round of sheets, tools/rascal-sheet-p2.py; Fire Bolt plays its own cast row)
     // GOOSE (10-07; his sheet goose_p1, tools/goose-sheet.py): MP's Heals, LOVE his stat ("the key ability is LOVE... which we'll say is wise. Wisdom it is"), so
     // his DC and his blow are by WIS; MP gives him 65 HP to Rascal's 70: a d8 and CON 10, as Rascal's. His blow the sling ("yes, historically a sling")
     goose: { name: 'Goose', kind: 'lobstamonkee', sub: 'heals', hd: 8, abil: { str: 8, dex: 14, con: 10, int: 10, wis: 16, cha: 12 }, asi: { 4: 'wis', 8: 'wis' },
@@ -88,7 +88,7 @@
   // by name, at any level (as Higertha stands): ?npc=denny:5, the Pocket DM's seats
   NPC.NAMED.denny = { name: 'Denny', cls: 'mpmon', build: 'denny', named: true, look: 'denny_p2' };
   NPC.NAMED.beholda = { name: 'Beholda', cls: 'mpmon', build: 'beholda', named: true, look: 'beholda_p2' };
-  NPC.NAMED.rascal = { name: 'Rascal', cls: 'mpmon', build: 'rascal', named: true, look: 'rascal_p1' };
+  NPC.NAMED.rascal = { name: 'Rascal', cls: 'mpmon', build: 'rascal', named: true, look: 'rascal_p2' };
   NPC.NAMED.goose = { name: 'Goose', cls: 'mpmon', build: 'goose', named: true, look: 'goose_p1' };
 
   // the sheet: the build's numbers at the level (the SRD's average hit points; an ASI at 4 and 8), the natural kit, the specials

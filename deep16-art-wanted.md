@@ -72,11 +72,11 @@ The class is the Mascot now (`deep16/js/mpmon.js`; the MPMon lane §6): every on
 | Beholda | Lucky Dice, 3rd (a passive) | none (a sparkle in code) | -- |
 | Beholda | Eye Contact, 6th (a reaction: a stare) | `gaze` | yes (sheet 2) |
 | Beholda | Spotlight, 7th (a friend Hasted) | **`spotlight`** / `cast` | **no: SPOTLIGHT, below** |
-| Rascal | Fire Bolt, his regular blow | **`cast`** / `attack` | **no: his sheet has no cast row, so the bolt plays the Pinch** |
+| Rascal | Fire Bolt, his regular blow | `cast` | **IN HAND 10-07: `rascal_p2`, sheet 2's Fire Bolt** |
 | Rascal | Scuttle, 2nd (Dash, Disengage, Hide) | `walk` | yes |
-| Rascal | Social Distancing, 5th (the ring round him cleared, no longer a cone) | **`socialdistancing`** / `attack` | **no: it plays the Pinch today** |
-| Rascal | Hot Take, 6th (a reaction: fire back) | **`hottake`** / `socialflame` | **no (the clap stands in)** |
-| Rascal | Going Viral, 7th (fire foe to foe) | **`goingviral`** / `socialflame` | **no (the clap stands in)** |
+| Rascal | Social Distancing, 5th (the ring round him cleared, no longer a cone) | `socialdistancing` | **IN HAND 10-07: `rascal_p2`, sheet 2** |
+| Rascal | Hot Take, 6th (a reaction: fire back) | `hottake` | **IN HAND 10-07: `rascal_p2`, sheet 2** |
+| Rascal | Going Viral, 7th (fire foe to foe) | `goingviral` | **IN HAND 10-07: `rascal_p2`, sheet 2** |
 | Goose | everything | `idle` `walk` `attack` `cast` `honk` `climb` `flinch` `hurt` `prone` | **IN HAND 10-07: `goose_p1`, his picks from three sheets (`tools/goose-sheet.py`); his build 10-07 (the heals play `cast`, Honk `honk`)** |
 
 When they come back: each new row name into `tools/pixelate.py`'s ANIM_ORDER and FPS and `deep16/js/ui.js`'s play-once rule, the cutter (`tools/denny-sheet.py`, `tools/beholda-sheet.py`, `tools/rascal-sheet.py`) given the rows, then `?mpshow&lvl=9` (every move has a beat) and a fresh eyes row.
@@ -98,6 +98,8 @@ HEAD: BEHOLDA, THE BENEVOLENT BEHOLDER -- sheet 3, two more moves for a tactics 
 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background. Labelled rows of frames, every frame in side view facing right, numbered under each frame. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row, every frame floating at the same height above one baseline. No scenery except what a row names.
 
 RASCAL, SHEET 2 (four rows, and his face put right) -- attach his illustration (the cleaned drawing of the front photo) or `dev/visions/Rascal/RascalFront.jpg`:
+
+**Both came back 10-07, with a third** (`dev/visions/rascal/`: "Rascal the Lobstamonkee Sprite Sheet1.png", sheet 1 redone with the felt's face and the hat charcoal grey; "Sheet2.png", these four rows and a walk; "Rascal Social Sharing Sprite Sheet3.png", the bow again at a larger scale) and are `rascal_p2` since 10-07 (`tools/rascal-sheet-p2.py`; the bow is sheet 3's -- sheet 1's drew a second hat in his hand while the first stayed on his head). Still side rows only: S and N show the side frames for every row but the idle and the walk.
 
 Attached: a drawing of Rascal, a needle-felted lobstamonkee. Draw him as a pixel-art character, keeping every feature: a round fuzzy bright orange body, a big domed head with a bright red face, two big black bead eyes each ringed in yellow, yellow lines running from under the eyes down to an orange muzzle, two long thin orange wire antennae arching out from the sides of his head and hooking at the ends, two thick orange whisker-tentacles curling out from his MOUTH with hooked yellow tips (they never cross the hat), a black felt cowboy hat with a red rope band, his RIGHT arm one giant lobster claw as long as his body, banded yellow, orange and black, with two fat red-tipped pincers, his LEFT arm a thin furry orange arm with a three-fingered hand, short bent furry orange legs with three-toed feet, and a long thin lobster tail banded red and black with an orange tip. No clothes but the hat.
 
