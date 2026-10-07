@@ -944,6 +944,59 @@
   function wpAvg(u) { var w = u.weapon || {}; return TX.avg(w.dice || '0') + (w.mod || 0); }
   function swingWorth(u, t) { var p = TX.pHit(u.weapon.atk, RU.ac(t), 0); return { p: p, any: 1 - Math.pow(1 - p, u.attacksBase || 1), dmg: p * wpAvg(u) * (u.attacksBase || 1) }; }
   function nearFriends(B, u, w, ft) { return B.units.some(function (a) { return a.side === u.side && a !== u && standing(a) && G.dist(a, w) <= ft; }); }
+  // THE MASCOTS' PLAY, the second stab (MP.AI2; false is the first). 10-07, Griz, after the show, on how the four were played by hand: "shield up, everyone under it"
+  // · "taunt any time he fights outside the bubble, taunt to keep people from breaking beholda concentration" · "honk than sling when no one is hurt, bonus then
+  // action" · "Denny would position in hallway for AOO of people and wait for beholda to bring the bubble up (unless fighting different sides)" · "drink when you are
+  // hurt, have them, and have nothing useful to do with your action" · "think 'eye on you' and action gaze when applicable" · "had to ready for the phase spiders,
+  // nothing else to do"; and his run's record (play-records, 10-07): no Dash alone into a fight, READY 12 times, Dodge 9, Rascal hiding after his shots
+  MP.AI2 = true;
+  function beholdaOf(B, u) { return B.units.filter(function (w) { return w.mpmon === 'beholda' && w.side === u.side && standing(w); })[0] || null; }
+  function bubbleOn(B, u) { var b = beholdaOf(B, u); return b && MP.bubbleUp(b) ? b : null; }
+  function inBubble(B, u, x, y) { var b = bubbleOn(B, u); return !!b && (b === u || G.dist(u, b, x == null ? u.x : x, y == null ? u.y : y) <= b.conds.vnaBubble.r); }
+  // a potion from the pack (B.inv): the greater first when the hurt is deep
+  function potionFor(B, u) { var inv = B.inv || [], has = function (id) { return inv.some(function (x) { return x.id === id && x.n > 0; }); }; return u.hp < u.maxhp * 0.3 && has('greaterpotion') ? 'greaterpotion' : has('potion') ? 'potion' : has('greaterpotion') ? 'greaterpotion' : null; }
+  function* drink(B, u, frac) {
+    var id = u.hp > 0 && u.hp <= u.maxhp * frac && u.turn.action > 0 && potionFor(B, u); if (!id) return false;
+    yield* B.useItem(u, id, u); return true;
+  }
+  // where a Mascot with nothing in reach stands this turn, on its own move (no Dash): in the bubble when it is up; else round Beholda (Denny a stride out in front
+  // of her, holding the hall); with no one to gather to, toward the fight
+  function holdSquare(B, u, near) {
+    var up = bubbleOn(B, u), b = beholdaOf(B, u), den = B.units.filter(function (w) { return w.mpmon === 'denny' && w.side === u.side && standing(w); })[0];
+    var anchor = up && up !== u ? up : u.mpmon === 'beholda' ? den : b, R = up && up !== u ? up.conds.vnaBubble.r : u.mpSub === 'tank' ? 15 : 10;
+    var rm = G.reach(u, u.turn.move), pick = null, ps = -1e9;
+    Object.keys(rm).forEach(function (k) {
+      var e = rm[k]; if (!e.stand) return;
+      var dn = G.dist(u, near, e.x, e.y), da = anchor && anchor !== u ? G.dist(u, anchor, e.x, e.y) : 0;
+      var s = anchor && anchor !== u ? (da <= R ? 100 - dn / 5 : -da) : -dn;
+      s -= e.cost / 100;
+      if (s > ps) { ps = s; pick = e; }
+    });
+    return pick;
+  }
+  // nothing worth doing with the action (js/tactics.js TX.IDLE): a potion if hurt; else hold the formation, then READY (the class turn's: a cantrip, a bow, the swing)
+  // or Dodge. Denny closes as the class turn does -- the Dash too -- once the bubble is up, or with no Beholda to wait on
+  TX.IDLE.push(function* (B, u, fs) {
+    if (!MP.AI2 || u.cls !== 'mpmon' || u.side !== 'party') return false;
+    if (yield* drink(B, u, 0.5)) return true;
+    var near = fs.slice().sort(function (a, b) { return G.dist(u, a) - G.dist(u, b); })[0];
+    if (!near) return false;
+    var b = beholdaOf(B, u);
+    if (u.mpSub === 'tank' && (bubbleOn(B, u) || !b || MP.left(b, 'A') <= 0)) return false;
+    var e = u.turn.move > 0 && !u.conds.restrained ? holdSquare(B, u, near) : null;
+    if (e && (e.x !== u.x || e.y !== u.y)) yield* AI.walkTo(B, u, e);
+    if (u.dead || u.hp <= 0 || B.over() || !u.turn.action) return true;
+    var p = TX.plans(B, u)[0]; if (p && p.score > 0.5) { yield* p.go(); return true; } // (the walk may have brought something into reach)
+    if (!u.ready) yield* TX.readyUp(B, u);
+    if (u.turn.action > 0 && !u.ready) yield* B.exec(u, { do: 'dodge' });
+    return true;
+  });
+  // the potion as a plan among the actions: a quarter of the hit points left, drink before the swing (his "drink when you are hurt")
+  TX.ACTIONS.push(function (B, u) {
+    if (!MP.AI2 || u.cls !== 'mpmon' || !u.turn.action || u.turn.attacksLeft || u.hp > u.maxhp * 0.25 || u.hp <= 0) return null;
+    var id = potionFor(B, u); if (!id) return null;
+    return { kind: 'item', why: 'DRINK A ' + (id === 'greaterpotion' ? 'GREATER ' : '') + 'POTION (' + u.hp + '/' + u.maxhp + ')', score: 25, go: function* () { yield* B.useItem(u, id, u); } };
+  });
   // the specials that are actions
   TX.ACTIONS.push(function (B, u, fs) {
     var T = u.turn;
@@ -974,7 +1027,9 @@
         var rB = MP.bubbleR(u.lvl), acB = MP.bubbleAC(u.lvl), vB = 0;
         var inB = B.units.filter(function (w) { return w.side === u.side && standing(w) && (w === u || G.dist(u, w) <= rB); });
         inB.forEach(function (w) { B.units.forEach(function (f) { if (G.hostile(u, f) && standing(f) && G.dist(w, f) <= 30) vB += TX.dpr(f) * 0.05 * acB * 2 / Math.max(1, inB.length - 1); }); });
-        if (inB.length >= 2 && vB > 0) plans.push({ kind: 'special', why: 'VNA BUBBLE (' + inB.length + ' inside)', score: vB, go: function* () { yield* MP.bubble(B, u); } });
+        // (AI2: shield up as they come -- a foe within 60 ft and a friend near enough to step in -- his "shield up, everyone under it")
+        var soon = MP.AI2 && MP.foes(B, u, 60).length > 0 && B.units.filter(function (w) { return w.side === u.side && standing(w) && (w === u || G.dist(u, w) <= rB + 10); }).length >= 2;
+        if ((inB.length >= 2 && vB > 0) || soon) plans.push({ kind: 'special', why: 'VNA BUBBLE (' + inB.length + ' inside)', score: soon ? Math.max(vB, 40) : vB, go: function* () { yield* MP.bubble(B, u); } });
       }
       if (u.lvl >= 5) MP.screenTargets(B, u).forEach(function (t) {
         var c = MP.screenCatch(B, u, t), d = TX.avg(MP.screenDice(u.lvl)), v = 0;
@@ -1052,6 +1107,11 @@
   function tauntWorth(B, u) {
     var tl = MP.tauntList(B, u), onF = tl.filter(function (w) { return nearFriends(B, u, w, 10); });
     if (MP.left(u, 'B') <= 0) return false;
+    if (MP.AI2 && tl.length) { // (his: "taunt any time he fights outside the bubble, taunt to keep people from breaking beholda concentration")
+      var bh = beholdaOf(B, u);
+      if (bh && bh !== u && bh.conds.vnaBubble && tl.some(function (w) { return G.dist(w, bh) <= G.reachOf(w) + 5; })) return true;
+      if (!inBubble(B, u) && MP.foes(B, u, 10).length) return true;
+    }
     if (onF.length > 0 && (tl.length >= 2 || MP.left(u, 'B') >= 2)) return true;
     return !!(MP.tauntDR(u.lvl) && !u.conds.braced && MP.foes(B, u, 5).length && tl.length); // (from 3rd the brace: worth it for himself when a foe is on him and none holds)
   }
@@ -1065,7 +1125,10 @@
     return on || (MP.left(u, 'B') >= 2 ? ts.sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0] || null : null);
   }
   // Goose's honk: the foe near a friend of his that hits hardest
-  function honkMark(B, u) { return MP.honkTargets(B, u).filter(function (w) { return nearFriends(B, u, w, 10) || G.dist(u, w) <= 10; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0]; }
+  function honkMark(B, u) {
+    var ts = MP.honkTargets(B, u), close = ts.filter(function (w) { return nearFriends(B, u, w, 10) || G.dist(u, w) <= 10; });
+    return (close.length || !MP.AI2 ? close : ts).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0]; // (AI2: his "honk than sling when no one is hurt, bonus then action": any in its 30 ft)
+  }
   // Goose's heart to heart: the one who needs it most (the down first), unless his last special is better kept for a group hug two or more want
   function heartFor(B, u) {
     if (MP.left(u, 'B') <= 0) return null;
@@ -1082,6 +1145,7 @@
       return;
     }
     if (u.mpSub === 'buffs') {
+      if (MP.AI2 && u.conds.vnaBubble) { var e2 = u.lvl >= 2 && eyeMark(B, u); if (e2) { yield* MP.eyeOnIt(B, u, e2); return; } } // (AI2, his "think 'eye on you' and action gaze when applicable": the bubble up, the action is free for the gaze)
       var gm = gazeMark(B, u); if (gm) { yield* MP.gaze(B, u, gm); return; } // (the gaze first, a bonus special; else the free eye)
       var em = u.lvl >= 2 && eyeMark(B, u); if (em) yield* MP.eyeOnIt(B, u, em);
       return;
@@ -1102,6 +1166,7 @@
       return;
     }
     if (u.mpSub === 'dps' && u.lvl >= 2 && MP.foes(B, u, 5).length && T.move >= 10 && !u.conds.restrained) { T.bonus = 0; T.disengaged = true; B.card(['{y}' + u.name + '{/} SCUTTLES: disengages, sideways like a lobster.'], 160); yield 8; return; }
+    if (MP.AI2 && u.mpSub === 'dps' && u.lvl >= 2 && !T.action && !MP.foes(B, u, 5).length && !u.conds.hidden && !T.hid && !u.conds.restrained) { yield* B.hide(u, true); return; } // (AI2: he hides after his shot, as his player did -- Scuttle's Hide, a bonus action)
     if (u.mpSub === 'buffs') { var gm = gazeMark(B, u); if (gm) { yield* MP.gaze(B, u, gm); return; } var em = u.lvl >= 2 && eyeMark(B, u); if (em) yield* MP.eyeOnIt(B, u, em); }
     if (u.mpSub === 'heals') { var ht = heartFor(B, u); if (ht) { yield* MP.heart(B, u, ht); return; } var hk = u.lvl >= 2 && honkMark(B, u); if (hk) yield* MP.honk(B, u, hk); }
   });

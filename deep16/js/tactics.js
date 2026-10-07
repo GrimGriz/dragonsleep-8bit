@@ -575,6 +575,8 @@
     var pick = plans[0];
     if (B.o && B.o.bench) (B.benchLog = B.benchLog || []).push(u.name + ' R' + B.round + ': ' + plans.slice(0, 3).map(function (p) { return p.why + ' ' + p.score.toFixed(1); }).join(' | '));
     if (pick && pick.score > 0.5) { yield* pick.go(); return; }
+    // a class's own way to spend an action with nothing worth doing (TX.IDLE, 10-07: the Mascots hold their formation and ready, js/mpmon.js); true when it took the turn
+    for (var h = 0; h < TX.IDLE.length; h++) if (yield* TX.IDLE[h](B, u, fs)) return;
     // nothing worth doing, and a foe under the ground or out of the world (a burrower, a phase spider): READY -- the first that comes within reach, or into sight for a bow or an
     // attack cantrip (SRD 5.1 Ready; 10-02, handoff-2026-10-01-the-tendrils-and-ready: the class AI readying against a burrower). Else close on the nearest, as before
     if (T.action && !u.ready && TX.readyWanted(B, u)) { yield* TX.readyUp(B, u); return; }
@@ -713,6 +715,7 @@
   TX.FIRST = [];   // function* (B, u)
   TX.ACTIONS = []; // function (B, u, fs, allies) -> a plan, or a list of them
   TX.AFTER = [];   // function* (B, u)
+  TX.IDLE = [];    // function* (B, u, fs) -> true when it spent the turn (nothing worth doing: before the class turn's Ready and its Dash to close)
 
   // the bonus-action spells worth casting first (a Healing Word to the fallen, a mark, the floating weapon), by the same weighing
   TX.FIRST.push(function* (B, u) {
