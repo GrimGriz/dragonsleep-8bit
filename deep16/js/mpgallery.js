@@ -383,6 +383,8 @@
           if (!S.levels || !S.rebuild) { D.sfx('error'); S.i = S.i; continue; }
           var L2 = Math.max(1, Math.min(9, S.L + (v === 'up' ? 1 : -1)));
           if (L2 === S.L) { D.sfx('error'); continue; }
+          var old = WHO.map(function (k) { return S.M[k]; }).filter(Boolean); // (the old level's four off the floor first: stage() keeps whoever is not in the new pool -- 10-07, Griz: "up-downing levels doesn't despawn previous")
+          B.units = B.units.filter(function (u) { return old.indexOf(u) < 0; }); G.setup(G.map, B.units);
           S.L = L2; S.M = S.rebuild(S.L); // (the same ability again, the four rebuilt at the new level)
           continue;
         }

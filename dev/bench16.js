@@ -3451,6 +3451,21 @@
         okG('the gallery at ' + Lg + ': every fired entry left its lines in the log (' + silent.length + ' silent' + (silent.length ? ': ' + silent.join(', ') : '') + ')', !silent.length);
         if (D.lastError) { okG('the gallery at ' + Lg + ': the loop logged no error (' + String(D.lastError.message || D.lastError).slice(0, 160) + ')', false); D.lastError = null; }
       });
+      // up/down the level takes the four of the old level off the floor (10-07, Griz: "Gallery is broken, up-downing levels doesn't despawn previous"): the
+      // first entry at 5, then up, then down -- each time one of each Mascot on the floor, never the old one beside the new
+      if (D.fxMascots) {
+        D.seed = 10071; D.lastError = null;
+        var BU = D.fxMascots('?mpgallery&fast&lvl=5'); D.battle = BU; BU.enter();
+        var SU = BU.mpgallery, vU, kU = 0, stepU = 0, seenU = [];
+        while (BU.co && kU++ < 200000) {
+          var rU = BU.co.next(vU); vU = undefined; if (rU.done) break;
+          if (rU.value && rU.value.prompt) { vU = rU.value.prompt.opts[0].value; continue; }
+          if (rU.value && rU.value.mpgallery) { seenU.push(SU.L + ':' + BU.units.filter(function (u) { return u.mpmon; }).map(function (u) { return u.mpmon; }).join('+')); if (stepU === 0) { vU = 'up'; stepU = 1; } else if (stepU === 1) { vU = 'down'; stepU = 2; } else break; }
+        }
+        SU.teardown();
+        var dupU = seenU.filter(function (s) { var ks = s.split(':')[1].split('+').filter(Boolean); return ks.some(function (k, i) { return ks.indexOf(k) !== i; }); });
+        okG('up/down the level: one of each Mascot on the floor at 5, 6 and back at 5 -- ' + seenU.join(' | ') + (dupU.length ? ' (the old one left beside the new: ' + dupU.join(', ') + ')' : ''), seenU.length === 3 && !dupU.length);
+      }
       // the walk inside another fight (D.mpgallery.walk; the Game Show's TUTORIAL, js/gameshow.js): Denny's kit at 1st on a class-floor fight whose foes are
       // gone, one pass in auto -- his four entries at 1st and no other, none broke, the dice and the picture put back, the four back on their squares
       if (D.mpgallery && D.mpgallery.walk) {
