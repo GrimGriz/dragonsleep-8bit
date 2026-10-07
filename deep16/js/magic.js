@@ -259,7 +259,10 @@
     // were); a foe unseen, by a spell that names one creature, only by aiming at its square in the dark (M.guessDark, js/ui.js) -- or Magic Missile at the dark, the gimmick.
     // (before: every single, darts and splash spell asked sight -- right for 33 of 44; Shield of Faith, Sanctuary, Acid Splash, Dispel Magic among the 9 it was wrong for)
     var unseen = w !== u && !M.sees(B, u, w);
-    if (unseen && (g.see || (G.hostile(u, w) && (g.shape === 'single' || g.shape === 'splash')))) return false;
+    // (g.swing: a blow aimed as a spell is -- a Mascot's Denim Damage, Monkey Flurry -- asks no sight, as the plain attack never did: a foe in reach you can't see is
+    // swung at all the same, at disadvantage (SRD 5.1, unseen attackers and targets). 10-07, Griz, after the show: "darkmantle attack error denny (regular attack,
+    // but not denim damage or flurry - says out of range of the darkmantle on your head)" -- over his head it blinds him, and the aim wanted to see it)
+    if (unseen && !g.swing && (g.see || (G.hostile(u, w) && (g.shape === 'single' || g.shape === 'splash')))) return false;
     if (G.dist(u, w) > (g.range || 5)) return false;
     return G.los(u, w).clear || w === u;
   };

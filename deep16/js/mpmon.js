@@ -1102,7 +1102,7 @@
   // Aimed as spells are (10-06 night, Griz: "the abilities weren't using the normal targeting - it had the menu popups again"): `aim` is the geometry js/ui.js
   // aimCommand hands the spell aim -- the cursor, the reach or the area on the floor, the click -- and the click comes back here as { do, target }
   var cmd0 = F.commands, exec0 = F.exec;
-  function foeAim(ft, see, kind) { return { shape: 'single', side: 'foe', range: ft, see: !!see, kind: kind || 'save' }; }
+  function foeAim(ft, see, kind) { return { shape: 'single', side: 'foe', range: ft, see: !!see, kind: kind || 'save', swing: kind === 'attack' && !see }; } // (swing: a blow in reach, seen or not -- js/magic.js targetOK; the darkmantle on Denny's head, 10-07)
   F.commands = function (B, u) {
     var out = cmd0(B, u);
     if (u.cls !== 'mpmon' || u.side !== 'party' || u.guest) return out;

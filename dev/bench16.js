@@ -4098,6 +4098,18 @@
         c1.map(function (c) { return c.id; }).join() === 'mp-bubble,mp-eye,mp-gaze,mp-gazea,mp-screen' && c1.every(function (c) { return c.ok; }) && c0.concat(c1).every(function (c) { return c.id === 'mp-taunt' || c.id === 'mp-bubble' || !!c.aim; }));
       pin(2, 'max'); runM(FM.exec(B7, p7[1], { do: 'mp-gaze' }), 1); D.d = dM;
       okM('BALEFUL GAZE from the ring: the goblin ' + (g7.dead ? 'falls' : g7.hp + ' hp') + ', ' + MPM.left(p7[1], 'B') + ' bonus specials left (of 3)', MPM.left(p7[1], 'B') === 2 && (g7.dead || g7.hp < g7.maxhp));
+
+      // a darkmantle over Denny's head (10-07, Griz, after the show: "darkmantle attack error denny (regular attack, but not denim damage or flurry - says out of range of
+      // the darkmantle on your head)"): it blinds him, and the specials' aim asked sight (js/magic.js targetOK, g.swing). Aimed at his own square, Denim Damage and the
+      // Flurry take the darkmantle, as the plain attack does; and DENIM DAMAGE lands on it
+      var B8 = mkB(['denny:5'], ['darkmantle'], 5), d8 = sideM(B8, 'party')[0], m8 = sideM(B8, 'foe')[0]; d8.guest = false; d8.classAI = false;
+      spotM(B8, d8, 8, 8); d8.hp = d8.maxhp = 400; m8.hp = m8.maxhp = 400; d8.conds = {};
+      d8.conds.attached = { by: m8.id, dc: 13, head: true }; d8.conds.blinded = { by: m8.id, held: true }; B8.mount(m8, d8); RUM.startTurn(d8); B8.active = d8;
+      var c8 = FM.commands(B8, d8).filter(function (c) { return c.id === 'mp-denim' || c.id === 'mp-flurry'; });
+      var t8 = c8.map(function (c) { var w = c.aim && D.ui.spellTarget(B8, d8, c.aim, d8.x, d8.y); return c.id + ' -> ' + (w ? w.name : 'nothing'); });
+      var h8 = m8.hp; pin(19, 'max'); runM(FM.exec(B8, d8, { do: 'mp-denim', target: m8 }), 1); D.d = dM;
+      okM('a darkmantle over Denny\'s head (blinded ' + !!d8.conds.blinded + '): his aim at his own square ' + t8.join(', ') + '; DENIM DAMAGE at it ' + (m8.hp < h8 ? 'lands (' + (h8 - m8.hp) + ')' : 'misses or is refused'),
+        c8.length === 2 && t8.every(function (s) { return /darkmantle/i.test(s); }) && m8.hp < h8);
       // one gaze a turn (RULED 10-07, Griz: "if used as action, disabled for bonus use"): after the bonus gaze both buttons shut; the action gaze an action special
       var gzB = FM.commands(B7, p7[1]).filter(function (c) { return c.id === 'mp-gaze' || c.id === 'mp-gazea'; });
       okM('one gaze a turn: after the bonus gaze ' + gzB.map(function (c) { return c.label + (c.ok ? '' : '(x: ' + c.why + ')'); }).join(', '), gzB.length === 2 && gzB.every(function (c) { return !c.ok && /one gaze a turn/.test(c.why); }));
