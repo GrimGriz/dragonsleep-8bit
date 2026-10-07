@@ -4,6 +4,10 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `f0b163e` · MPMon · His walk-through's rules: two pools of specials, bonus / action (1/1 at 1st to 5/5 at 9th, a trial); Taunt to the end of Denny's next turn; the VNA Bubble an action and concentration; Baleful Gaze a bonus action, d4s, AC down till a save, no domination; Social Sharing a friend a level; the Hivemind's once-a-fight roll-off · *"we'll try it and see what the bench says"* · *"2 - agreed"*
+- 2026-10-07 · `f0b163e` · the Game Show · Denny's tutorial teaches a reaction: BODYGUARD lent for one beat, the game asks, the pointer clicks STEP IN; Taunt and Denim from his two pools, nothing handed back · *"if you're in his tutorial, we gotta fake it enough so noobs get reactions (even though he won't be level yet)"*
+- 2026-10-07 · seen · the Game Show · Denny's lesson in the pane (`eyes-tutorial-lesson-1007`, cut) · *"watched the denny tutorial, solid."*
+- 2026-10-07 · ruled · the Game Show · The supplies: Goose's sling runs dry and the ammo button refills it; attunement on for the Mascots; the ring is 21b, the Gains Ring (`deep16-gameshow-supplies.md`) · *"it can, ammo button will get pressed often enough"* · *"yes, they'll have to choose if enough support comes in"* · *"21b"*
 - 2026-10-07 · `3758470` · the bestiary · The bugbears' side rows from his re-rolls, crisp at about 2.5x (`Bugbear GPT`, `bugbear chief GPT`): the fall from standing, a prone; the packed front, back and tricks toned to them · *"bugbear GPT and bugbear chief GPT are in the _src now"*
 - 2026-10-07 · `2b80107` · MPMon · The gallery's up/down the level takes the old level's four off the floor (the new check in `mode=mpgallery1007` RED on the old file: one Denny, then two, then three) · *"Gallery is broken, up-downing levels doesn't despawn previous"*
 - 2026-10-07 · seen · MPMon · The Mascot gallery, walked through (`eyes-mpgallery-1007`, cut): his notes on every kit are the MPMon lane §6g · *"Gonna type Gallery feedback here"*
