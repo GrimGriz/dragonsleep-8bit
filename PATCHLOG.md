@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `3758470` · the bestiary · The bugbears' side rows from his re-rolls, crisp at about 2.5x (`Bugbear GPT`, `bugbear chief GPT`): the fall from standing, a prone; the packed front, back and tricks toned to them · *"bugbear GPT and bugbear chief GPT are in the _src now"*
 - 2026-10-07 · `2b80107` · MPMon · The gallery's up/down the level takes the old level's four off the floor (the new check in `mode=mpgallery1007` RED on the old file: one Denny, then two, then three) · *"Gallery is broken, up-downing levels doesn't despawn previous"*
 - 2026-10-07 · seen · MPMon · The Mascot gallery, walked through (`eyes-mpgallery-1007`, cut): his notes on every kit are the MPMon lane §6g · *"Gonna type Gallery feedback here"*
 - 2026-10-07 · `57ae894` · the Game Show · The tutorial's second cut, Denny's lesson (`deep16/js/gstutorial.js`): his lines in a box, then a real turn on the game's own ring clicked by a ghost of the mouse (the walk, TAUNT off SKILLS, ATTACK, END TURN, DENIM DAMAGE aimed at the hobgoblin); `mode=gstutorial1007` in the gate · *"i should see text like the lines Pyro and Ingrith give from Denny about his ability and when to use it, then the wheel popup - highlight - like you click it - show the cursor moving to the target"*
