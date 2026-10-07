@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `d48f85a` · MPMon · Rascal at 80% of Denny (about 42 at rest to his 53), his walk from sheet 2, `rascal_p1` and its cutter gone; `?mpshow&lvl=7&only=sharing,flame,distancing,spicy,hottake,viral` · *"much more feasible Denny is the group's tank"*
 - 2026-10-07 · seen · MPMon · Rascal's `rascal_p2` at 63 px (`eyes-rascal-p2-1007`, cut) · *"he is a little large for the squishy DPS"*
 - 2026-10-07 · ruled · MPMon · `rascal_p1` retired with its cutter, `tools/rascal-sheet.py` · *"1 just from glancing while you were building, the invisible hat one has no further purpose"*
 - 2026-10-07 · ruled · MPMon · Rascal's walk is sheet 2's · *"3 sheet twos is better because the image is bigger, but its significantly better"*
