@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `392e9c1` · MPMon · The bench-balance pipeline named in CLAUDE.md (bench, a fight's seed, watched on the class floor); Goose's and Rascal's front and back sheets asked in the art list · *"note somewhere the class-floor thing as the bench-balance-pipeline tool"*
 - 2026-10-07 · `6940c08` · MPMon · The Mascots benched against the story party (`deep16-mascot-bench.md`): the band 0-2 of 20 at levels 1-8, 13 of 20 at 9; the class floor replays a bench fight by `&seed=`; Barley as himself in the Cocoon Gallery · *"Bench them vs the story party please"*
 - 2026-10-07 · ruled · MPMon · Barley plays himself in the Cocoon Gallery, no longer Denny · *"Denny has his own thing and isn't just a cameo anymore"*
 - 2026-10-07 · ruled · MPMon · S and N play the side rows for every Mascot move · *"fine enough, plenty else to do"*
