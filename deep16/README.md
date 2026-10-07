@@ -108,7 +108,7 @@ hand-drawn ASCII (`data/cavern.js`, `data/maps.js`), foes are `data/foes.js` (co
 | 6 | Pinned (three phase spiders out of the walls) · The Drain Cut (two black puddings that split) · The Cloaker · The Fork (a roper, two darkmantles, hidden) |
 | 7 | The Brood (the broodmother and a phase spider) · The Fallback Line (a blade-captain, four drow) · The Black Water (the spirit naga) |
 | 8 | Two Trolls · The Raid on Third Lamp (captain, spell-weaver, drow) · The Giant's Camp (stone giant, duergar) · The Cut's Walls (two earth elementals) · The Seam (two xorns) |
-| 9 | The Cocoon Gallery (the POC; Denny plays Barley here only) · House-Cleaning (two sect blades, an ambush: DEADLY by the table, which assumes average HP; kept at two on Griz's word, 09-27) |
+| 9 | The Cocoon Gallery (the POC; Barley as himself since 10-07 -- Denny played him here from 09-27, *"Denny has his own thing and isn't just a cameo anymore"*) · House-Cleaning (two sect blades, an ambush: DEADLY by the table, which assumes average HP; kept at two on Griz's word, 09-27) |
 
 After the set pieces on each rung come the bestiary's fights: the Cowork seat's first four, then eight from the
 8-bit game's random tables (`content/encounters.json`) on the set pieces' maps (09-27). Each set piece is sized **hard for the four** by the DMG table (the 8-bit game sized them for its guests; the card
@@ -459,7 +459,7 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
   the dust, a wide cell, played at the floor while the engine throws him --, Guard (Bodyguard), Lobstah Hug, Climb, Flinch, Fall, Prone;
   the two sheets at one size by the front views and the head, his walk his second sheet's at the same scale); Spotlight and the Hug wait
   their rows out before the idle (`rowWait`). `beholda_p2` (her first sheet's stand-in, `tools/beholda-sheet.py`) and `denny_p2` (his
-  poses as rows, `tools/denny-sheet.py`; Barley's look in the Ledger fight) stay on disk; `rascal_p2` (10-07,
+  poses as rows, `tools/denny-sheet.py`) stay on disk; `rascal_p2` (10-07,
   his look since) is his second round cut whole (`tools/rascal-sheet-p2.py` over `tools/sheetrows.py`: sheet 1 redone with the felt's
   face and a charcoal hat, sheet 2's walk, Fire Bolt as his `cast`, Social Distancing, Hot Take and Going Viral rows, the bow from sheet
   3; the rows face left so the claw arm shows; each row sized by his hat's brim, the one rigid thing he wears -- the generator drew the
@@ -472,6 +472,10 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
 - **Bench:** `python dev/bench16.py x mode=mpmon1006` (in `dev/check.py`'s gate): the builds against the design's tables, each special by
   its rule with the dice pinned, the ring, the Pocket DM's seats and rest, a whole fight, Fire Bolt with the specials spent, and the
   show's beats run twice, at 5 and at 9.
+- **Against the story party** (10-07, Griz: *"Bench them vs the story party please"*): `python dev/bench_mascots.py` (`dev/bench16.py`
+  mode=mascots, about eight minutes) writes `deep16-mascot-bench.md` at the root -- the four as a band against Barley, Aurdin, Vivian and
+  Lymen, and each one on one against each, levels 1-9, on the ladder's fixture and on average HP, the class bench's bands beside. `&detail=1`
+  lists each fight's seed; the class floor plays one roll for roll: `?npc=denny:9,beholda:9,rascal:9,goose:9&lvl=9&watch&seed=20838`.
 
 ### THE MASCOT (10-06 night) -- the class as races, a class and four roles
 

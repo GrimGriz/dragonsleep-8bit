@@ -90,6 +90,44 @@
     document.body.appendChild(pre0);
     return;
   }
+  // the Mascots against the story party (mode=mascots&lvl=5&n=20; Griz, 10-07: "Bench them vs the story party please"): the four Mascots as a band
+  // against the four heroes (the matrix's band: the ladder's fixture, max hit dice, their magic weapons from 5), and each Mascot one on one against
+  // each hero, at one level; the band's damage, downs and specials left counted by name. avghp=1 (above) puts the heroes on the NPCs' average HP
+  if (get('mode', '') === 'mascots') {
+    var MSC = ['denny', 'beholda', 'rascal', 'goose'], HER = ['barley', 'aurdin', 'vivian', 'lymen'], nd = +get('nd', n);
+    var res3 = { lvl: L, n: n, nd: nd, band: null, duel: {}, dealt: {}, taken: {}, down: {}, left: {}, errors: [], fights: [] }, det = !!get('detail', '');
+    function one3(o, seed) {
+      D.seed = seed; D.lastError = null;
+      var B4 = new D.Battle(Object.assign({ bench: true, fightDef: D.classFight(L) }, o));
+      D.battle = B4; B4.enter();
+      var r4 = drive(B4);
+      if (D.lastError && res3.errors.length < 5) res3.errors.push(String(D.lastError.stack || D.lastError).slice(0, 300));
+      return { r: r4, rounds: B4.round, B: B4 };
+    }
+    stats.dealt = {}; stats.taken = {}; stats.down = {};
+    var bw3 = 0, hw3 = 0, br3 = 0;
+    for (var k3 = 0; k3 < n; k3++) {
+      var y3 = one3({ npc: { foes: MSC.map(function (m) { return m + ':' + L; }) } }, 5000 + k3 * 7919);
+      if (det) res3.fights.push({ seed: 5000 + k3 * 7919, r: y3.r, rounds: y3.B.round, stand: y3.B.units.filter(function (u) { return !u.familiar && !u.dead && u.hp > 0; }).map(function (u) { return u.name + ' ' + u.hp + '/' + u.maxhp; }) });
+      if (y3.r === 'lost') bw3++; else if (y3.r === 'won') hw3++;
+      br3 += y3.rounds;
+      y3.B.units.forEach(function (u) { if (u.cls === 'mpmon') res3.left[u.name] = (res3.left[u.name] || 0) + ((u.feats && u.feats.specials) || 0); });
+    }
+    res3.band = [bw3, hw3, +(br3 / n).toFixed(1)];
+    ['dealt', 'taken', 'down'].forEach(function (k) { res3[k] = JSON.parse(JSON.stringify(stats[k])); }); // (a copy: the duels count on after)
+    Object.keys(res3.left).forEach(function (k) { res3.left[k] = +(res3.left[k] / n).toFixed(2); });
+    MSC.forEach(function (m, i) {
+      HER.forEach(function (h, j) {
+        var mw = 0, hw = 0, rr = 0;
+        for (var k = 0; k < nd; k++) { var sd = 1000 + i * 97 + j * 13 + k * 7919, x = one3({ npc: { party: [h + ':' + L], foes: [m + ':' + L] } }, sd); if (x.r === 'lost') mw++; else if (x.r === 'won') hw++; rr += x.rounds; if (det) res3.fights.push({ duel: m + '>' + h, seed: sd, r: x.r, rounds: x.B.round, stand: x.B.units.filter(function (u) { return !u.familiar && !u.dead && u.hp > 0; }).map(function (u) { return u.name + ' ' + u.hp + '/' + u.maxhp; }) }); }
+        res3.duel[m + '>' + h] = [mw, hw, +(rr / nd).toFixed(1)];
+      });
+    });
+    res3.specials = MSC.map(function (m) { var u = D.npc.build(m + ':' + L, L, 'foe', { id: 'sp' + m }); return u.feats.specials; });
+    var pre3 = document.createElement('pre'); pre3.id = 'out'; pre3.textContent = 'BENCH16 ' + JSON.stringify(res3);
+    document.body.appendChild(pre3);
+    return;
+  }
   // every spell once (mode=spells): a caster that knows only it, full slots, at the target its own weighing picks (or a plain one for its
   // shape); anything thrown is reported. The proof a spell runs, not that it is chosen
   if (get('mode', '') === 'spells') {

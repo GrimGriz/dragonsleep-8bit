@@ -373,8 +373,7 @@
                { id: 'tr1', kind: 'trooperxbow', keepLevel: true, rope: 1, from: [29, 1], at: [28, 2] }, { id: 'tr2', kind: 'trooperxbow', keepLevel: true, rope: 1, from: [30, 1], at: [31, 3] },
                { id: 'sgt', kind: 'drillsergeant', keepLevel: true, rope: 1, from: [29, 1], at: [29, 2] }, { id: 'tr3', kind: 'trooper', keepLevel: true, rope: 1, from: [30, 1], at: [30, 2] }, { id: 'tr4', kind: 'trooper', keepLevel: true, rope: 1, from: [29, 1], at: [28, 3] }], wave: null }, // (the garrison out of the falls onto the roof's back rows by rounds, each with a grapple of its own -- `rope`, never the party's pack; `keepLevel`: no step down 10 ft or more, 10-05) // (the garrison out of the vault doors onto the street before them, 10-05 late; `keepLevel` still: no step down 10 ft or more -- his play of 10-05 had them drop 45 ft after the trolls from the roof)
     { id: 'gallery', level: 9, map: 'cavern', name: 'The Cocoon Gallery', sub: 'off the road, below Third Lamp',
-      intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)',
-      looks: { barley: { name: 'Denny', sheet: 'denny_p2' } } } // Denny plays Barley here only (Griz, 09-27)
+      intro: 'Two drow on the ledge. Something in the stalagmites.', from: 'the expansion: the road below Third Lamp (the POC)' } // (Barley as himself since 10-07 -- Denny played him here from 09-27; Griz, 10-07: "Denny has his own thing and isn't just a cameo anymore")
   ];
   D.fight = function (id) { return D.FIGHTS.filter(function (f) { return f.id === id; })[0] || D.FIGHTS.filter(function (f) { return f.id === 'gallery'; })[0]; };
   // the class floor (09-28, the class NPCs: ?npc=cleric,wizard&lvl=5, and the bench): the Hex floor, lit, open, the band of class
