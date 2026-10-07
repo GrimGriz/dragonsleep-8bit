@@ -974,6 +974,38 @@
     });
     return pick;
   }
+  // where Beholda raises it, on her own move: the square with the most friends within its reach, then the one farthest from a foe (10-07: on the bench's seed 4 the
+  // bubble went up round her alone, "+1 AC to herself", and the four were picked apart on a wave from both ends)
+  function bubbleSquare(B, u, r) {
+    if (!u.turn.move || u.conds.restrained) return null;
+    var rm = G.reach(u, u.turn.move), fr = B.units.filter(function (w) { return w.side === u.side && w !== u && standing(w) && !w.object; }), pick = null, ps = -1e9;
+    var fs = B.units.filter(function (w) { return G.hostile(u, w) && standing(w); });
+    Object.keys(rm).forEach(function (k) {
+      var e = rm[k]; if (!e.stand) return;
+      var n = fr.filter(function (w) { return G.dist(u, w, e.x, e.y) <= r; }).length, nf = fs.length ? Math.min.apply(null, fs.map(function (f) { return G.dist(u, f, e.x, e.y); })) : 99;
+      var s = n * 100 + Math.min(nf, 40) - e.cost / 50;
+      if (s > ps) { ps = s; pick = e; }
+    });
+    return pick;
+  }
+  // the formation, before the action (AI2): Rascal and Goose, with no foe on them, step under the bubble when it is up -- or to within 10 ft of Beholda while she
+  // has it to raise -- and act from there (his "shield up, everyone under it"; they shoot from inside: Fire Bolt 120 ft, the sling 30). Denny holds the front
+  TX.FIRST.push(function* (B, u) {
+    if (!MP.AI2 || u.cls !== 'mpmon' || u.side !== 'party' || u.mpSub === 'tank' || u.mpSub === 'buffs') return;
+    var T = u.turn; if (!T.move || u.conds.restrained || MP.foes(B, u, 5).length) return;
+    var b = beholdaOf(B, u); if (!b) return;
+    var up = bubbleOn(B, u), R = up ? up.conds.vnaBubble.r : (MP.left(b, 'A') > 0 && MP.foes(B, b, 60).length ? 10 : 0);
+    if (!R || G.dist(u, b) <= R) return;
+    var fs = B.units.filter(function (w) { return G.hostile(u, w) && standing(w); });
+    var rm = G.reach(u, T.move), pick = null, ps = -1e9;
+    Object.keys(rm).forEach(function (k) {
+      var e = rm[k]; if (!e.stand) return;
+      var db = G.dist(u, b, e.x, e.y), nf = fs.length ? Math.min.apply(null, fs.map(function (f) { return G.dist(u, f, e.x, e.y); })) : 99;
+      var s = (db <= R ? 1000 : -db * 10) + Math.min(nf, 30) - e.cost / 50;   // (inside, and not stepping up to a foe; else as near her as the walk goes)
+      if (s > ps) { ps = s; pick = e; }
+    });
+    if (pick && (pick.x !== u.x || pick.y !== u.y)) yield* AI.walkTo(B, u, pick);
+  });
   // nothing worth doing with the action (js/tactics.js TX.IDLE): a potion if hurt; else hold the formation, then READY (the class turn's: a cantrip, a bow, the swing)
   // or Dodge. Denny closes as the class turn does -- the Dash too -- once the bubble is up, or with no Beholda to wait on
   TX.IDLE.push(function* (B, u, fs) {
@@ -1029,7 +1061,7 @@
         inB.forEach(function (w) { B.units.forEach(function (f) { if (G.hostile(u, f) && standing(f) && G.dist(w, f) <= 30) vB += TX.dpr(f) * 0.05 * acB * 2 / Math.max(1, inB.length - 1); }); });
         // (AI2: shield up as they come -- a foe within 60 ft and a friend near enough to step in -- his "shield up, everyone under it")
         var soon = MP.AI2 && MP.foes(B, u, 60).length > 0 && B.units.filter(function (w) { return w.side === u.side && standing(w) && (w === u || G.dist(u, w) <= rB + 10); }).length >= 2;
-        if ((inB.length >= 2 && vB > 0) || soon) plans.push({ kind: 'special', why: 'VNA BUBBLE (' + inB.length + ' inside)', score: soon ? Math.max(vB, 40) : vB, go: function* () { yield* MP.bubble(B, u); } });
+        if ((inB.length >= 2 && vB > 0) || soon) plans.push({ kind: 'special', why: 'VNA BUBBLE (' + inB.length + ' inside)', score: soon ? Math.max(vB, 40) : vB, go: function* () { if (MP.AI2) { var sq = bubbleSquare(B, u, rB); if (sq && (sq.x !== u.x || sq.y !== u.y)) yield* AI.walkTo(B, u, sq); } if (standing(u) && u.turn.action) yield* MP.bubble(B, u); } });
       }
       if (u.lvl >= 5) MP.screenTargets(B, u).forEach(function (t) {
         var c = MP.screenCatch(B, u, t), d = TX.avg(MP.screenDice(u.lvl)), v = 0;
