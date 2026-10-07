@@ -349,6 +349,9 @@
       ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q), oldwalk: /[?&]oldwalk\b/.test(q), end0: (/[?&]end=(lamp|wipe)\b/.exec(q) || [])[1] || null };
     S.lampHP = S.lampMax = num('lamp') || WV.CFG.lampHP(S.tier);
     var st = B.gs; B.cine = false; st.mode = 'fight'; st.lock = null; st.clicks = [];
+    // the play record (10-07, Griz: "is saving the stream fights a less than 5 minute fix?"): the whole run one fight in deep16.plays, kept at each round's top
+    // (js/record.js, battle.js) and as the tab goes; R on the tester ladder saves it with the rest. Never a bench's
+    if (D.rec && D.rec.start && !B.rec && !B.bench && !(B.o && B.o.bench)) D.rec.start(B, { fight: 'gameshow', name: 'The Game Show from tier ' + S.tier, level: Math.min(9, S.tier) });
     // the cots off the map (its `y` squares) and the bed, the floor beside the first of them
     WV.cots = []; (G.map.def.rows || []).forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (r.charAt(x) === 'y') WV.cots.push([x, y]); });
     var c0 = WV.cots[0] || G.map.def.circle.at;
