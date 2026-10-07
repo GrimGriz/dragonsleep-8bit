@@ -20,6 +20,20 @@ Your words, verbatim: *"Tier 1 - roll 1d4 and add one of them, unless Goose is <
 - **Tier 4:** a roll-off, ONE item unless more than one natural 20. **23a Hard Carry at +4**; **23b Ban Hammer** thrown and back the next round, the way Pyro's handaxe comes back (`deep16/js/pyro.js`); **23c Hot Take at +4**; **24a** as drafted; **24b Boiled Shell**: a different resistance for each Mascot, chosen against what the waves throw at them (the waves' bench); **24c Dwarven Denim**: +2 AC, and it ends poison at the start of the wearer's turn -- no shove reaction. **Another epic cloak goes into tier 4** (to draft).
 - **Still to pick:** the epic amulet (25a or 25b), and the new tier 2 rings/amulets and the tier 4 cloak once drafted.
 
+## To pick: the rings, the amulets, the cloaks you asked for (seat 3's draft, 10-07)
+
+Each is an SRD 5.1 item under a stream name, and each takes a bond, so a Mascot with three has to give one up. Pick two or three of 2o-2q (tier 2's package gets one more roll-off for it) and one or two of 26a-26b (they join tier 4's pool).
+
+| # | Name | SRD 5.1 item | What it does in the show | Its line |
+|---|---|---|---|---|
+| **2o** | Subscriber Ring | Ring of Protection | +1 AC and +1 to every save | *"Thanks for the sub."* |
+| **2p** | Hydration Amulet | Amulet of Health | CON becomes 19: Rascal and Goose +4 HP a level, Beholda +2, Denny +1 | *"Stay hydrated, chat."* |
+| **2q** | Clip Chain | Periapt of Wound Closure | every hit die at a short rest heals double | *"That one's going in the highlights."* |
+| **26a** | Webcam Cloak | Cloak of Arachnida | resists poison, climbs walls and ceilings, webs can't hold the wearer (the spiders, the drider); once a rest it casts Web | *"Always watching. Eight eyes."* |
+| **26b** | Night Mode Cloak | Cloak of the Bat | advantage on Stealth; in dim light or the dark (most of Third Lamp) it flies 40 ft | *"Easier on the eyes."* |
+
+**The epic amulet is still yours to pick: 25a Virtually Invulnerable or 25b the VNA Amulet.** Both are built. Until you pick, the pop-up at 100 lets chat pick between them on your click.
+
 ## The items as drafted (your picks above)
 
 **Tier 1, the small stuff** (0.1 on the score). All four exist except the sling bullets, which get made.
@@ -79,19 +93,20 @@ Your words, verbatim: *"Tier 1 - roll 1d4 and add one of them, unless Goose is <
   - **Denny:** he's the one who shoves. From 3rd, Denim Damage knocks foes back with no save, and Cannonball knocks them prone. Stand Firm at 3rd already gives him advantage against being shoved or knocked down.
   - **24c:** the runner's "suits Denny" note was backwards. It fits Goose or Rascal, if anyone.
 
-## For the build (seat 3)
+## Built (seat 3, 10-07)
 
-- **Data only:** the +N weapons and armour, resistance, and the Lag Cloak.
-- **Small new rules:**
-  - Rascal's +1 on spells (2g, 23c).
-  - The ring's stat bonus, its d4 roll kept per Mascot (a CON change recomputes HP).
-  - Rivet Job's no-crit (20b).
-  - The Mod Cape's +1 AC and saves (22a).
-  - The VNA Amulet's aura (25b).
-  - The sling's ammo and a starting stack.
-  - Attunement switched on for the Mascots (`h.attuned`).
-- **Not built yet:** the Ban Hammer's throw (23b), Dwarven Denim's reaction (24c), 25a's once-a-rest immunity, Boiled Shell's dragon advantage (24b).
-- **Equipping:**
-  - The Mascots' class refuses armour and any weapon but their own, so the chest puts an item straight onto the winner.
-  - Armour goes on at the bed, never mid-fight.
-  - Beholda has no hands: she drinks potions herself, a friend gives her the rest, and rings and cloaks go on an eyestalk.
+How it plays: click the lamp (on its tower, or the LAMP box in the bottom-right corner) and four buttons open. Each click sends that tier. The roll-offs show in a panel beside the buttons and go in the log. What's sent lands in the chest. After each wave the token opens the chest, and each thing is handed out: potions and bullets go in the pack, each piece goes onto its winner, and chat picks when a Mascot has to choose. Armour goes on at the bed. Try it at `deep16/?gameshow&at=lamp&watch`.
+
+- **Every item above is built**, except the five drafts still to pick (2o-2q, 26a, 26b).
+- **Goose starts with 20 bullets.** Each shot takes one. When he runs dry he swings the empty sling (1d4) until the chest brings more.
+- **The Ban Hammer** has its own THROW button on Denny's ring (and the AI throws it too). It comes back at the end of his next turn.
+- **Not built:** 25a's once-a-rest immunity (its resistance is built), and Boiled Shell's advantage against dragons (there are no dragons in the waves).
+
+The seat's calls (yours to overrule):
+
+- **Who rolls:** anyone who hasn't had that item yet. For tier 2's +1 weapon, a Mascot with any weapon at least as good sits it out. A tie rolls again. A solo natural 20 gets +3 on that Mascot's next roll-off, won or not.
+- **When everyone has it,** all four roll and the winner gets an item from the tier above. At tier 4 that's another tier 4 item.
+- **Tiers 3 and 4:** the roll-off picks the winner, then a die picks one item from the pool that fits them and they don't have yet. 23b only fits Denny, 23c only fits Rascal, and 23a fits the other three.
+- **Armour pluses don't stack:** a Mascot wears one plus over its armour at a time, so a second one is a choice. The AC ladder on this page tops out at 18.
+- **Boiled Shell's resistances** come from tallying what the waves hit with (piercing 348, slashing 231, bludgeoning 222, poison 48): **Denny piercing** (he takes the most hits), **Goose bludgeoning** (ogres and giants' rocks), **Rascal slashing**, **Beholda poison** (spiders and the drider).
+- **The epic amulet** goes to a roll-off winner too. At every 100 another one pops.

@@ -273,6 +273,9 @@
     var s = R.item(h.equip.shield);
     if (s && s.shield) ac += s.shield.ac;
     R.gear(h).forEach(function (g) { if (g.ring && g.ring.ac) ac += g.ring.ac; }); // (either ring, bonded where it must be)
+    // a cloak's own (SRD 5.1, the Cloak of Protection: +1 AC), and a plus laid over the armour worn (the Game Show's tier 3 and 4 armour -- his "Yes" to "add their plus
+    // to whatever armour the winner wears", 10-07: an item of place `over`, deep16/js/supplies.js)
+    R.gear(h).forEach(function (g) { if (g.cloak && g.cloak.ac) ac += g.cloak.ac; if (g.over && g.over.ac && a && a.armor) ac += g.over.ac; });
     if (R.style(h) === 'defense' && a && a.armor && a.armor.type !== 'robe') ac += 1; // Fighting Style: Defense (Lymen's sheet; a class NPC's `style`; from the paladin's 2nd, SRD 5.1 -- 10-06, it was every paladin's from the 1st)
     return ac;
   };
@@ -396,6 +399,7 @@
     R.gear(h).forEach(function (g) {
       if (g.ring && g.ring.saveBonus && g.ring.saveBonus[ab]) b += g.ring.saveBonus[ab];
       if (g.ring && g.ring.saveAll) b += g.ring.saveAll;
+      if (g.cloak && g.cloak.saveAll) b += g.cloak.saveAll; // (the Cloak of Protection's +1 to saves, SRD 5.1: the Game Show's Mod Cape, 10-07)
     });
     return b;
   };

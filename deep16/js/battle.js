@@ -1952,8 +1952,9 @@
     var crit = hit && (nat >= critAt || (((tgt.hp <= 0 && !tgt.dead) || tgt.conds.paralyzed || tgt.conds.asleep) && G.dist(att, tgt) <= 5) // (SRD 5.1, paralyzed and unconscious: ANY attack that hits from within 5 ft -- a spell's, a bow's -- not the melee alone, 10-05: Aurdin's Scorching Ray beside a troll lying at 0)
       || (att.assassinate && tgt.conds.surprised) // Assassinate: any hit on one caught unaware is a critical
       || (att.subclass === 'Cutthroat' && this.round === 1 && !tgt.acted)); // Opening Cut (the game's Cutthroat): the same, in the first round
-    var head = '{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
-    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass;
+    var rivets = crit && tgt.critProof; if (rivets) crit = false; // (SRD 5.1, Adamantine Armor: "any critical hit against you becomes a normal hit" -- the Game Show's Rivet Job, deep16/js/supplies.js, 10-07)
+    var head ='{y}' + nameOf(att) + '{/} > {r}' + nameOf(tgt) + '{/}  ' + atk.name + (o.ready ? ' {c}(readied){/}' : ''); // (readied: the Ready action's strike, sprung -- readyHook, 10-02)
+    var line = 'd20 ' + (r.rolls.length > 1 ? RU.fmtRolls(r.rolls) + '>' : '') + nat + ' ' + RU.sign(atk.atk) + (bless ? ' {y}+' + bless + ' bless{/}' : '') + (sacred ? ' {y}+' + sacred + ' sacred{/}' : '') + (pen ? ' {o}' + pen + ' ' + e.penWhy + '{/}' : '') + ' = ' + total + '  vs AC ' + RU.ac(tgt) + (cover ? ' {c}+' + cover + ' cover{/}' : '') + (madAC ? ' {c}+4 multiattack defense{/}' : '') + glass + (rivets ? '  {c}RIVETS: not a critical{/}' : '');
     var why = (e.adv.length ? '  {n}adv: ' + e.adv.join(', ') + '{/}' : '') + (e.dis.length ? '  {o}dis: ' + e.dis.join(', ') + '{/}' : '');
     // Shield: Aurdin's reaction, +5 AC against this and every attack till his turn (a class NPC's too, 09-28: it takes it whenever
     // the +5 turns the blow; one run by the AI never asks)

@@ -3739,6 +3739,223 @@
     document.body.appendChild(preW);
     return;
   }
+  // the Game Show's supplies (mode=gssupplies1007; js/supplies.js, the lane's seat 3 -- §3 C, his picks in deep16-gameshow-supplies.md). ITEMS: each piece on a
+  // Mascot's sheet as the item machinery reads it (the +1s and the +4s, the armour's AC ladder 14 / 16 / 17 / 18, the Mod Cape, the Gains Ring's d4, three bonds,
+  // the Hot Take's spells, the Boiled Shell's four resistances, the amulets). RULES: Rivet Job's critical turned to a hit, Dwarven Denim's poison gone at the turn's
+  // start, the VNA Amulet's +2 within 10 ft. SHOW: Third Lamp's run as the show hands it over (&auto): Goose's twenty bullets; his clicks (the lantern, a tier's
+  // button); tier 1's d4 and the ammo when Goose is low; tier 2's package and its roll-offs -- a solo natural 20's +3, two natural 20s each a winner, no one left
+  // to roll (the tier up); tiers 3 and 4, one item, the Gains Ring's d4; the score and the epic amulet at 100; a choice at the chest (a second cloak, a fourth
+  // bond); the chest after the wave -- the pack, the pieces on, the armour at the bed, the Mascots made again in it; the long rest keeps it; the sling runs dry and
+  // fills again; the Ban Hammer thrown and back at the end of the next turn
+  if (get('mode', '') === 'gssupplies1007') {
+    var repU = { checks: [], errors: [] };
+    function okU(what, v) { repU.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    if (!D.ctx) { var cvU0 = document.createElement('canvas'); cvU0.width = D.W; cvU0.height = D.H; D.ctx = cvU0.getContext('2d'); D.R = D.R || 1; }
+    var clockU = 1000, memU = {}, stGU = D.store.get, stSU = D.store.set, GSU = D.gameshow, SUU = GSU && GSU.supply, WVU = GSU && GSU.wave, dU = D.d, sdU = SUU && SUU.d;
+    D.store.get = function (k) { return memU[k] ? JSON.parse(memU[k]) : null; }; D.store.set = function (k, v) { memU[k] = JSON.stringify(v); return true; };
+    function runU(g, pick) { var v, k = 0, st; while (g && k++ < 20000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = pick != null ? pick : st.value.prompt.opts[0].value; } }
+    function stepU(BU, fn, cap, each) { for (var k = 0; k < cap; k++) { clockU += 17; D.loopStep(clockU); if (each) each(BU); if (fn()) return k; } return -1; }
+    function weakU(BU) { (BU.units || []).forEach(function (u) { if (u.side !== 'foe' || u.gsWeak) return; u.gsWeak = true; u.hp = u.maxhp = 1; u.regen = 0; Object.keys(u.attacks || {}).forEach(function (a) { u.attacks[a] = Object.assign({}, u.attacks[a], { atk: -40 }); }); }); }
+    // the dice in order (the queue first, then the seeded ones)
+    var qU = [];
+    function pinU(list) { qU = list.slice(); }
+    function lampU(q) {
+      GSU.make(q); GSU.q = q; GSU.run = null;
+      var BU = D.npcFight('?npc=goblin&vs=denny:1,beholda:1,rascal:1,goose:1&map=lampcircle&lvl=1', {});
+      var en0 = BU.enter;
+      BU.enter = function () {
+        en0.apply(this, arguments);
+        var cs = [[29, 6], [33, 6], [29, 10], [33, 10]];
+        this.units = this.units.filter(function (u) { return u.side === 'party'; });
+        this.units.forEach(function (u, i) { u.x = cs[i][0]; u.y = cs[i][1]; });
+        D.grid.setup(D.grid.map, this.units); this.order = []; this.active = null; this.req = null;
+        this.gs = { clicks: [], fade: 0, mode: 'fight' }; this.cine = false;
+        this.co = GSU.waves(this, GSU);
+      };
+      D.scenes.length = 0; D.lastError = null; D.push(BU);
+      return BU;
+    }
+    function errU(what) { if (D.lastError) { okU(what + ': the loop logged no error (' + String(D.lastError.stack || D.lastError).slice(0, 300) + ')', false); D.lastError = null; } }
+    function mU(BU, k) { var P0 = BU.gs && BU.gs.party; return BU.units.concat(P0 ? [P0.token].concat(P0.rest) : []).filter(function (u) { return u && u.mpmon === k; })[0]; }
+    function chestIds(S, k) { return S.chest.filter(function (e) { return e.to === k; }).map(function (e) { return e.id; }); }
+    try {
+      if (!SUU || !SUU.send || !GSU.supplies) okU('the supplies are loaded (js/supplies.js: D.gameshow.supply, GS.supplies)', false);
+      else {
+        SUU.d = function (n) { return qU.length ? qU.shift() : dU(n); };
+        // ---- ITEMS: on the sheet
+        WVU.gains = {};
+        var bU = function (w, L) { return D.npc.build(w, L || 1, 'party', { id: 'u' + w.replace(/[^a-z0-9]/g, '') }); };
+        var d0 = bU('denny:1'), d2 = bU('denny:1+playbuttonknuckles'), d4 = bU('denny:1+hardcarry_denny');
+        okU('items: Denny\'s blow +' + d0.weapon.atk + ' ' + d0.weapon.dice + '+' + d0.weapon.mod + ', the Play-Button Knuckles +' + d2.weapon.atk + '/+' + d2.weapon.mod + ' (want one more each), Hard Carry +' + d4.weapon.atk + '/+' + d4.weapon.mod + ' (four more)',
+          d2.weapon.atk === d0.weapon.atk + 1 && d2.weapon.mod === d0.weapon.mod + 1 && d4.weapon.atk === d0.weapon.atk + 4 && d2.weapon.name === 'Play-Button Knuckles');
+        var b0 = bU('beholda:1'), b2 = bU('beholda:1+loadeddice'), g2 = bU('goose:1+heartstringsling'), g4 = bU('goose:1+hardcarry_goose');
+        okU('items: Beholda\'s Loaded Dice on WIS +' + b2.weapon.atk + ' (want ' + (b0.weapon.atk + 1) + '); Goose\'s Heartstring Sling +' + g2.weapon.atk + ' ' + (g2.weapon.range || []).join('/') + ' ft on ' + g2.weapon.ammo + ', Hard Carry\'s sling on ' + g4.weapon.ammo,
+          b2.weapon.atk === b0.weapon.atk + 1 && g2.weapon.ranged && g2.weapon.ammo === 'slingbullets' && g4.weapon.ammo === 'slingbullets');
+        var r0 = bU('rascal:1'), r2 = bU('rascal:1+flamewarclaw'), r4 = bU('rascal:9+hottake'), r9 = bU('rascal:9');
+        okU('items: Rascal\'s Fire Bolt +' + r0.spellAtk + ', with the Flame War Claw +' + r2.spellAtk + ' (his "add small rule"), at 9 +' + r9.spellAtk + ' and with the Hot Take +' + r4.spellAtk + ' (23c +4), its Pinch +' + r4.weapon.atk,
+          r2.spellAtk === r0.spellAtk + 1 && r4.spellAtk === r9.spellAtk + 4 && r4.weapon.atk === r9.weapon.atk + 4);
+        var acs = [['denny:1', 14], ['denny:1+doubledenim', 16], ['denny:1+doubledenim+freshfit', 17], ['denny:1+doubledenim+sponsoredskin', 18], ['denny:1+freshfit', 15], ['beholda:1+jannyjerkin', 16], ['rascal:1+thermidorplate', 16], ['goose:1+pufferplate', 16], ['goose:1+pufferplate+modcape', 17]]
+          .map(function (r) { var u = bU(r[0]); return [r[0], u.baseAC, r[1]]; });
+        okU('items: the AC ladder -- ' + acs.map(function (a) { return a[0].replace(/^\w+:1\+?/, '') + ' ' + a[1]; }).join(', ') + ' (want 14 natural, 16 tier 2, 17 with +1, 18 with +2; a plus on the hide alone 15; the Mod Cape +1)', acs.every(function (a) { return a[1] === a[2]; }));
+        var gc = bU('goose:1+modcape'), g0 = bU('goose:1');
+        okU('items: the Mod Cape +1 to every save (WIS ' + g0.saves.wis + ' > ' + gc.saves.wis + ', STR ' + g0.saves.str + ' > ' + gc.saves.str + ')', gc.saves.wis === g0.saves.wis + 1 && gc.saves.str === g0.saves.str + 1);
+        WVU.gains = { rascal: { ab: 'cha', n: 3 }, goose: { ab: 'con', n: 4 } };
+        var rg = bU('rascal:1+gainsring'), gg3 = bU('goose:3+gainsring'), gb3 = bU('goose:3');
+        okU('items: the Gains Ring -- Rascal CHA ' + rg.abil.cha + ' (16 + 3), his Fire Bolt +' + rg.spellAtk + ' (want ' + (r0.spellAtk + 1) + '); Goose CON +4 at 3rd: HP ' + gb3.maxhp + ' > ' + gg3.maxhp + ' (want +6: a CON change is a hit-point change)',
+          rg.abil.cha === 19 && rg.spellAtk === r0.spellAtk + 1 && gg3.maxhp === gb3.maxhp + 6);
+        WVU.gains = {};
+        var dA = bU('denny:5+gainsring+modcape+banhammer+boiledshell_denny', 5);
+        okU('items: three bonds at most (SRD 5.1) -- four worn, bonded ' + (dA.src.attuned || []).join(', '), (dA.src.attuned || []).length === 3);
+        var sh = ['denny', 'beholda', 'rascal', 'goose'].map(function (k) { var u = bU(k + ':1+boiledshell_' + k); return k + ' ' + (u.resist || []).join('/') + ' AC ' + u.baseAC; });
+        var vi = bU('denny:1+virtuallyinvulnerable'), lc = bU('beholda:1+lagcloak'), rj = bU('denny:1+rivetjob'), dd = bU('goose:1+dwarvendenim'), va = bU('beholda:1+vnaamulet');
+        okU('items: the Boiled Shell, a resistance each against the waves (' + sh.join(', ') + '); Virtually Invulnerable ' + (vi.resist || []).join('/') + '; the Lag Cloak ' + !!lc.displacement + '; Rivet Job ' + !!rj.critProof + '; Dwarven Denim ' + !!dd.endsPoison + ' AC ' + dd.baseAC + '; the VNA Amulet\'s aura ' + JSON.stringify(va.gsAura),
+          sh.join(',') === 'denny piercing AC 15,beholda poison AC 15,rascal slashing AC 15,goose bludgeoning AC 15' && (vi.resist || []).indexOf('mundane') >= 0 && lc.displacement && rj.critProof && dd.endsPoison && dd.baseAC === 16 && va.gsAura && va.gsAura.protect === 2);
+        var bh = bU('denny:5+banhammer', 5);
+        okU('items: the Ban Hammer, Denny\'s -- +' + bh.weapon.atk + ' ' + bh.weapon.dice + '+' + bh.weapon.mod + ', to throw ' + (bh.alt && bh.alt.range.join('/')) + ' ft ' + bh.alt.dice + ' (' + !!bh.banHammer + ')', bh.banHammer && bh.alt && bh.alt.banThrow && bh.alt.range[0] === 20 && bh.weapon.mod === bh.alt.mod);
+        // ---- RULES: on the grid
+        D.seed = 1107;
+        var BR = new D.Battle({ npc: { party: ['denny:5+rivetjob', 'goose:5+dwarvendenim', 'beholda:5+vnaamulet'], foes: ['ogre'] }, bench: true, fightDef: D.classFight(5) }); D.battle = BR; BR.enter(); while (!BR.order.length) BR.co.next(); BR.round = 1;
+        var dR = BR.units.filter(function (u) { return u.mpmon === 'denny'; })[0], gR = BR.units.filter(function (u) { return u.mpmon === 'goose'; })[0], bR = BR.units.filter(function (u) { return u.mpmon === 'beholda'; })[0], oR = BR.units.filter(function (u) { return u.side === 'foe'; })[0];
+        dR.x = 10; dR.y = 10; oR.x = 11; oR.y = 10; bR.x = 12; bR.y = 12; gR.x = 15; gR.y = 12; D.grid.setup(D.grid.map, BR.units);
+        var oa = oR.attacks[Object.keys(oR.attacks)[0]], hp0 = dR.hp, n0 = (BR.log || []).length;
+        D.d = function (s) { return s === 20 ? 20 : 1; };
+        runU(BR.attack(oR, dR, oa));
+        D.d = dU;
+        var ln = (BR.log || []).slice(n0).join(' | ');
+        okU('rules: Rivet Job -- a natural 20 at Denny is a hit, not a critical (' + ln.slice(0, 160) + '), ' + (hp0 - dR.hp) + ' damage on all ones (want the dice once: ' + oa.dice + '+' + oa.mod + ')', /RIVETS/.test(ln) && !/CRITICAL/.test(ln) && hp0 - dR.hp === +String(oa.dice).split('d')[0] + oa.mod);
+        gR.conds.poisoned = { by: 'x' }; gR.conds.paralyzed = { poison: true };
+        D.rules.startTurn(gR);
+        okU('rules: Dwarven Denim -- Goose poisoned (and held by it) at the start of the turn: ' + JSON.stringify(Object.keys(gR.conds)), !gR.conds.poisoned && !gR.conds.paralyzed);
+        var a1 = D.rules.aura(dR), a0 = D.rules.aura(gR);
+        okU('rules: the VNA Amulet -- +' + D.rules.aura(bR) + ' on Beholda, +' + a1 + ' on Denny 10 ft away, +' + a0 + ' on Goose 10 ft past that (want 2, 2, 0)', D.rules.aura(bR) === 2 && a1 === 2 && a0 === 0);
+        errU('rules');
+        // ---- SHOW: the run, and the supplies in it
+        D.seed = 2107; memU = {}; WVU.loot = {}; WVU.gains = {};
+        var BS = lampU('?gameshow&at=lamp&fast&auto'), SS;
+        var i0 = stepU(BS, function () { SS = BS.su; return !!SS; }, 2000);
+        var gS = mU(BS, 'goose'), inv0 = (BS.inv || []).filter(function (x) { return x.id === 'slingbullets'; })[0];
+        okU('show: the run starts with the supplies on (' + i0 + ' frames) -- Goose\'s pouch ' + (inv0 && inv0.n) + ' (want 20), his sling on ' + (gS && gS.weapon.ammo), i0 >= 0 && inv0 && inv0.n === 20 && gS && gS.weapon.ammo === 'slingbullets' && GSU.run && GSU.run.supplies === SS);
+        // his click on the lantern, then on a tier's button
+        var la = SUU.lanternAt(BS), Mi = D.input.mouse;
+        Mi.x = Math.round(la.sx); Mi.y = Math.round(la.sy); Mi.click = true; stepU(BS, function () { return true; }, 1);
+        var open1 = SS.open; stepU(BS, function () { return true; }, 2);
+        var bt1 = SUU.btn && SUU.btn('tier1');
+        pinU([3]);
+        if (bt1) { Mi.x = bt1.x + 10; Mi.y = bt1.y + 5; Mi.click = true; stepU(BS, function () { return true; }, 1); }
+        okU('show: his click on the lantern (' + Mi.x + ',' + Mi.y + ') opens the four buttons (' + open1 + '); TIER 1 clicked: ' + JSON.stringify(SS.chest) + ' (a d4 of 3: the torches)', open1 && SS.sent[1] === 1 && SS.chest.length === 1 && SS.chest[0].id === 'torch' && SS.chest[0].n === 3);
+        inv0.n = 5;
+        SUU.send(BS, 1);
+        okU('show: tier 1 with Goose at 5 bullets -- the ammo, no d4 (' + JSON.stringify(SS.chest[1]) + ')', SS.chest[1] && SS.chest[1].id === 'slingbullets' && SS.chest[1].n === 20);
+        inv0.n = 20;
+        // tier 2: the weapon -- Beholda's solo natural 20 (+3 on her next roll-off); the armour -- her 2 +3 is 5, Rascal's 15 wins
+        pinU([5, 20, 3, 9, 7, 2, 15, 11]);
+        var sh2 = SUU.send(BS, 2);
+        okU('show: tier 2 -- the pack ' + chestIds(SS, undefined).length + ' (' + SS.chest.filter(function (e) { return !e.to; }).map(function (e) { return e.n + ' ' + e.id; }).join(', ') + '); the weapon to ' + chestIds(SS, 'beholda').join() + ' (Beholda\'s natural 20), the armour to ' + chestIds(SS, 'rascal').join() + ' (Rascal 15 over Beholda\'s 2+3); ' + sh2.rows.map(function (r) { return r.label + ': ' + r.dice; }).join(' / '),
+          chestIds(SS, 'beholda').join() === 'loadeddice' && chestIds(SS, 'rascal').join() === 'thermidorplate' && !SS.bonus.beholda && SS.chest.filter(function (e) { return e.id === 'greaterpotion' && e.n === 3; }).length === 1 && SS.chest.filter(function (e) { return e.id === 'batpie'; }).length === 1);
+        // tier 2 again: the weapon among the three without -- two natural 20s, each of them has theirs; the armour, Goose
+        pinU([20, 20, 4, 1, 1, 10]);
+        SUU.send(BS, 2);
+        okU('show: tier 2 again -- two natural 20s on the weapon, each a winner (Denny ' + chestIds(SS, 'denny').join() + ', Rascal ' + chestIds(SS, 'rascal').join() + '), no +3 for a pair (' + JSON.stringify(SS.bonus) + '); the armour among the three without it: Goose ' + chestIds(SS, 'goose').join(),
+          chestIds(SS, 'denny').join() === 'playbuttonknuckles' && chestIds(SS, 'rascal').join() === 'thermidorplate,flamewarclaw' && !Object.keys(SS.bonus).length && chestIds(SS, 'goose').join() === 'pufferplate');
+        // tier 3: one item -- Rascal's 12; the die picks the Gains Ring, the d4 its 4 on his CHA
+        pinU([3, 8, 12, 6, 3, 4]);
+        SUU.send(BS, 3);
+        var eG = SS.chest.filter(function (e) { return e.id === 'gainsring'; })[0];
+        okU('show: tier 3 -- one item to the roll-off\'s winner, Rascal: ' + JSON.stringify(eG), eG && eG.to === 'rascal' && eG.gains && eG.gains.ab === 'cha' && eG.gains.n === 4);
+        // tier 4: Denny's 19; his pool (no Hot Take for him) -- the die's 2 is the Ban Hammer
+        pinU([19, 2, 2, 2, 2]);
+        SUU.send(BS, 4);
+        okU('show: tier 4 -- Denny\'s item from the pool that fits him: ' + chestIds(SS, 'denny').join() + '; the score ' + SUU.score(BS) + ' (want 38.2)', chestIds(SS, 'denny').join() === 'playbuttonknuckles,banhammer' && Math.abs(SUU.score(BS) - 38.2) < 1e-9);
+        // no one left to roll: all four have tier 2's armour coming -- all four roll, the winner takes an item of the tier up
+        pinU([1, 1, 1, 1, 2, 3, 4, 5, 1, 2, 3, 4, 1]);
+        SS.chest.push({ id: 'doubledenim', to: 'denny' }, { id: 'jannyjerkin', to: 'beholda' });
+        var sh2b = SUU.send(BS, 2), arm2 = sh2b.rows[sh2b.rows.length - 1];
+        okU('show: tier 2 with every Mascot\'s armour had -- "' + arm2.label + '" -> ' + arm2.got.join(' · '), /all four roll/.test(arm2.label) && /tier 3/.test(arm2.got.join()));
+        // the score to 100: the epic amulet pops (the auto picks it: his lever SU.EPIC, or chat's click on the pop-up)
+        SS.score10 = 999; qU = [];
+        SUU.send(BS, 1); stepU(BS, function () { return true; }, 2);
+        var amu = SS.chest.filter(function (e) { return /virtuallyinvulnerable|vnaamulet/.test(e.id); });
+        okU('show: the score at 100 -- the epic amulet (' + SS.epic.map(function (e) { return e.at + ' ' + e.pick + ' ' + !!e.done; }).join() + ') in the chest for ' + amu.map(function (e) { return e.to; }).join() + '; "check the chest!" carded ' + /check the chest/i.test((BS.log || []).join(' ')),
+          SS.epic.length === 1 && SS.epic[0].done && amu.length >= 1 && /check the chest/i.test((BS.log || []).join(' ')));
+        // the choices at the chest: a second cloak; a fourth bond
+        var keepL = WVU.loot; WVU.loot = { beholda: ['modcape'], denny: ['gainsring', 'modcape', 'banhammer'] };
+        var f1 = SUU.fit(SS, { id: 'lagcloak', to: 'beholda' }), f2 = SUU.fit(SS, { id: 'boiledshell_denny', to: 'denny' });
+        okU('show: a choice -- Beholda\'s second cloak: ' + f1.map(function (o) { return o.label; }).join(' | ') + '; Denny\'s fourth bond: ' + f2.map(function (o) { return o.label; }).join(' | '),
+          f1.length === 2 && /OFF: MOD CAPE/.test(f1[0].label) && /^KEEP/.test(f1[1].label) && f2.length === 4 && /KEEP THE THREE BONDS/.test(f2[3].label));
+        WVU.loot = keepL;
+        errU('show: the sends');
+        // the wave, then the chest: everything handed out (the auto's picks), the armour for the bed; then the Mascots made again in it
+        var nInv = function (id) { var s = (BS.inv || []).filter(function (x) { return x.id === id; })[0]; return s ? s.n : 0; }, gp0 = nInv('greaterpotion');
+        var c1 = stepU(BS, function () { var tr = GSU.run && GSU.run.trail || []; return tr.indexOf('bed') >= 0; }, 40000, weakU);
+        okU('show: wave 1, then the chest (' + c1 + ' frames) -- the chest empty (' + SS.chest.length + '), the pack +' + (nInv('greaterpotion') - gp0) + ' Greater Potions, ' + nInv('slingbullets') + ' bullets; worn: ' + ['denny', 'beholda', 'rascal', 'goose'].map(function (k) { return k + ' ' + (WVU.loot[k] || []).join('+'); }).join('; ') + '; put by ' + SS.stash.map(function (e) { return e.id; }).join(),
+          c1 >= 0 && !SS.chest.length && nInv('greaterpotion') - gp0 === 9 && (WVU.loot.denny || []).indexOf('banhammer') >= 0 && (WVU.loot.rascal || []).indexOf('gainsring') >= 0 && (WVU.loot.rascal || []).indexOf('thermidorplate') >= 0 && SS.stash.some(function (e) { return e.id === 'playbuttonknuckles'; }));
+        var w2 = stepU(BS, function () { return GSU.run.wi === 1 && GSU.run.foes.length && GSU.run.foes.every(function (u) { return BS.units.indexOf(u) >= 0; }) && BS.order.length > 5; }, 30000, weakU);
+        var rS = mU(BS, 'rascal'), dS = mU(BS, 'denny'), bS = mU(BS, 'beholda');
+        okU('show: after the short rest, wave 2 with the four made again in their gear (' + w2 + ' frames) -- Rascal AC ' + rS.baseAC + ' (Thermidor Plate: 16), CHA ' + rS.abil.cha + ' (20: the ring), Fire Bolt +' + rS.spellAtk + '; Denny\'s Ban Hammer ' + !!dS.banHammer + '; Beholda\'s ' + bS.weapon.name + '; all four in the order ' + BS.order.filter(function (u) { return u.mpmon; }).length,
+          w2 >= 0 && rS.baseAC === 16 && rS.abil.cha === 20 && rS.spellAtk === r0.spellAtk + 3 && dS.banHammer && bS.weapon.name === 'Loaded Dice' && BS.order.filter(function (u) { return u.mpmon; }).length === 4);
+        errU('show: the chest');
+        // the sling runs dry: one bullet, a shot by the AI's own path, none; his turn starts on the empty sling's bonk; bullets in, the sling again
+        var gW = mU(BS, 'goose'), foeW = GSU.run.foes.filter(function (u) { return D.grid.standing(u); })[0], bl = (BS.inv || []).filter(function (x) { return x.id === 'slingbullets'; })[0];
+        bl.n = 1; D.rules.startTurn(gW); var w1n = gW.weapon.name;
+        runU(BS.attack(gW, foeW || GSU.run.lamp, gW.weapon));
+        var left1 = bl.n; D.rules.startTurn(gW); var dry = gW.weapon.name, bonk = !!gW.weapon.bonk;
+        bl.n = 6; D.rules.startTurn(gW);
+        okU('show: the sling runs dry -- ' + w1n + ' with 1 bullet, a shot leaves ' + left1 + ', the next turn ' + dry + ' (' + bonk + '), 6 bullets in and it is the ' + gW.weapon.name + ' again', left1 === 0 && bonk && !gW.weapon.bonk && gW.weapon.ammo === 'slingbullets');
+        // the Ban Hammer: thrown at a foe (the ring's THROW), out of his hand -- his fists the rest of the Attack -- and back at the end of the next turn
+        var dW = mU(BS, 'denny'), tW = GSU.run.foes.filter(function (u) { return D.grid.standing(u); })[0];
+        dW.guest = false; dW.classAI = false;
+        if (tW) { var spotT = null; for (var dxT = 3; dxT <= 9 && !spotT; dxT++) for (var dyT = -2; dyT <= 2 && !spotT; dyT++) { var xT = dW.x + dxT, yT = dW.y + dyT; if (BS.units.some(function (w) { return w !== tW && !w.dead && w.x === xT && w.y === yT; })) continue; tW.x = xT; tW.y = yT; if (D.grid.canStand(tW, xT, yT) && D.grid.los(dW, tW).clear) spotT = [xT, yT]; } D.grid.setup(D.grid.map, BS.units); }
+        D.rules.startTurn(dW);
+        var cmdT = D.features.commands(BS, dW).filter(function (c) { return c.id === 'gs-throw'; })[0];
+        BS.round = 3;
+        runU(D.features.exec(BS, dW, { do: 'gs-throw', target: tW }));
+        var out1 = dW.hammerOut, fist = dW.weapon.name, cmdT2 = D.features.commands(BS, dW).filter(function (c) { return c.id === 'gs-throw'; })[0];
+        dW.guest = true; dW.classAI = true; BS.round = 3; runU(D.ai.turn(BS, dW)); var still = dW.hammerOut != null && dW.weapon.name;
+        BS.round = 4; runU(D.ai.turn(BS, dW));
+        okU('show: the Ban Hammer -- the ring\'s ' + (cmdT && cmdT.label) + ' (' + (cmdT && cmdT.ok) + '), thrown in round 3 (out ' + out1 + ', ' + fist + ' in hand, the button ' + (cmdT2 && cmdT2.why) + '), still out at the end of round 3 (' + still + '), back at the end of round 4: ' + dW.weapon.name + ' (' + (dW.hammerOut == null) + ')',
+          cmdT && cmdT.ok && out1 === 3 && fist === 'Monkey Fists' && cmdT2 && !cmdT2.ok && still === 'Monkey Fists' && dW.hammerOut == null && dW.weapon.name === 'Ban Hammer' && dW.alt && dW.alt.banThrow);
+        dW.guest = true; dW.classAI = true; // (back on the auto's hand: the run is &auto)
+        errU('show: the fight');
+        // the long rest: made at the next level from the same words -- the gear kept
+        var lr = stepU(BS, function () { return GSU.run.tier === 2 && GSU.run.foes.length && GSU.run.foes.every(function (u) { return BS.units.indexOf(u) >= 0; }); }, 50000, weakU);
+        var rL = mU(BS, 'rascal'), gL = mU(BS, 'goose');
+        okU('show: the long rest (' + lr + ' frames' + (lr < 0 ? ': stuck at tier ' + GSU.run.tier + ' wave ' + (GSU.run.wi + 1) + ', mode ' + BS.gs.mode + ', round ' + BS.round + ', foes up ' + BS.units.filter(function (u) { return u.side === 'foe' && D.grid.standing(u); }).map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }).join(' ') + ', active ' + (BS.active && BS.active.name) + ', trail ' + (GSU.run.trail || []).join('>') + ', last log ' + (BS.log || []).slice(-3).join(' / ') : '') + ') -- Rascal at ' + rL.lvl + ' still AC ' + rL.baseAC + ', CHA ' + rL.abil.cha + '; Goose at ' + gL.lvl + ' in the ' + (gL.src.equip.armor) + ' AC ' + gL.baseAC + ', his sling on ' + (gL.weapon.ammo || (gL.slingW && gL.slingW.ammo)),
+          lr >= 0 && rL.lvl === 2 && rL.baseAC === 16 && rL.abil.cha === 20 && gL.lvl === 2 && gL.src.equip.armor === 'pufferplate' && gL.baseAC === 16 && (gL.weapon.ammo || (gL.slingW && gL.slingW.ammo)) === 'slingbullets');
+        errU('show: the long rest');
+        // ---- IDLE (Griz, 10-07: "ensure the idle-turn safety works on lamp turns"): a Mascot's turn in his hands at Third Lamp, and only the lamp clicked -- the
+        // lantern and a tier's button are the show's, so the turn stays his and stays idle (js/ui.js idleTurn: no step, the action and the bonus unspent); END asks
+        // "nothing done yet" (END TURN ASKS: IF IDLE) and the turn stays; a lantern click while asked keeps the ask; END again ends it. The lamp itself never holds a turn
+        D.seed = 3107; memU = {}; WVU.loot = {}; WVU.gains = {};
+        var UIo = D.ui && D.ui.opts, ce0 = UIo && UIo.confirmEnd; if (UIo) UIo.confirmEnd = 'idle';
+        var BI = lampU('?gameshow&at=lamp&fast'), SI, MiI = D.input.mouse;
+        var hI = stepU(BI, function () { SI = BI.su; var a = BI.active; return SI && a && a.mpmon && a.side === 'party' && !a.guest && a.turn && GSU.run.foes.length && BI.order.length > 4; }, 20000, weakU);
+        stepU(BI, function () { return true; }, 40, weakU);
+        var huI = BI.active, tOf = function (u) { var T = u && u.turn || {}; return [T.action, T.bonus, T.moved || 0, !!T.attackAction].join(','); }, t0I = tOf(huI);
+        var clickI = function (x, y) { MiI.x = Math.round(x); MiI.y = Math.round(y); MiI.click = true; stepU(BI, function () { return true; }, 1); stepU(BI, function () { return true; }, 2); };
+        var uiIn0 = D.ui.input, uiCk = 0; D.ui.input = function () { if (D.input.mouse.click) uiCk++; return uiIn0.apply(this, arguments); }; // (a click that reaches the ring: js/ui.js UI.input, the hero's turn)
+        var laI = SUU.lanternAt(BI); clickI(laI.sx, laI.sy); var openI = SI.open, b1I = SUU.btn('tier1');
+        if (b1I) clickI(b1I.x + 10, b1I.y + 5);
+        D.ui.input = uiIn0;
+        okU('idle: ' + (huI && huI.name) + '\'s turn in his hands (' + hI + ' frames): the lantern opens its buttons (' + openI + '), TIER 1 sent (' + SI.sent[1] + '), and neither click reached the ring (' + uiCk + ' did); still ' + (BI.active && BI.active.name) + '\'s turn, untouched (' + tOf(BI.active) + ', was ' + t0I + ')',
+          hI >= 0 && openI && SI.sent[1] === 1 && uiCk === 0 && BI.active === huI && tOf(huI) === t0I && t0I === '1,1,0,false');
+        var nL0 = (BI.log || []).length;
+        D.input.edge.end = true; stepU(BI, function () { return true; }, 3);
+        var askI = BI.endAsk != null, askTxt = (BI.log || []).slice(nL0).join(' | ');
+        clickI(laI.sx, laI.sy); var keptI = BI.active === huI && BI.endAsk != null;
+        okU('idle: END on that turn asks (' + askI + ': ' + askTxt.slice(0, 90) + ') and the turn stays ' + (BI.active && BI.active.name) + '\'s; a lantern click while asked keeps the ask (' + keptI + ', the buttons ' + (SI.open ? 'open' : 'shut') + ')',
+          askI && /nothing done yet/.test(askTxt) && keptI);
+        D.input.edge.end = true; var endI = stepU(BI, function () { return BI.active !== huI; }, 400, weakU);
+        okU('idle: END again ends it (' + endI + ' frames, now ' + (BI.active ? BI.active.name || BI.active.kind : 'no one') + '); the lamp in the order ' + (BI.order.indexOf(GSU.run.lamp) >= 0) + ' (want false: an object takes no turn)',
+          endI >= 0 && BI.order.indexOf(GSU.run.lamp) < 0);
+        if (UIo) UIo.confirmEnd = ce0;
+        errU('idle');
+      }
+    } catch (eU) { repU.errors.push(String(eU && eU.stack || eU).slice(0, 900)); }
+    finally { if (typeof uiIn0 === 'function') D.ui.input = uiIn0; D.store.get = stGU; D.store.set = stSU; D.d = dU; if (SUU) SUU.d = sdU; D.scenes.length = 0; if (WVU) { WVU.loot = {}; WVU.gains = {}; } }
+    var preU = document.createElement('pre'); preU.id = 'out'; preU.textContent = 'BENCH16 ' + JSON.stringify(repU);
+    document.body.appendChild(preU);
+    return;
+  }
   if (get('mode', '') === 'mpmon1006') {
     var repM = { checks: [], errors: [] }, GM = D.grid, RUM = D.rules, MPM = D.mpmon, FM = D.features;
     function okM(what, v) { repM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
