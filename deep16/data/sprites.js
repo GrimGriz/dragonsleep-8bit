@@ -7663,7 +7663,7 @@
 },
 "zodiacwheel3_p1": {
 "_note": "his zodiac wheel on the floor (tools/wheel-sheet.py): spin frame f is the wheel risen and turned 7.5*f degrees clockwise, frame 4k resting rest[k] under the highlight; blur the same angles smeared, for a fast spin; rise column k is the wheel resting on rest[k] from flush in the floor (row 0, dormant, its colours pulled to the floor) to risen (the last row, the same as spin frame 4k); play it backwards to sink; riseDressed the same in dressed stone. (ax, ay) is where its centre meets the floor.",
-"image": "art/zodiacwheel3_p1.png?v=7828e15c0d",
+"image": "art/zodiacwheel3_p1.png?v=ea0d20e908",
 "squares": 3,
 "fw": 140,
 "fh": 74,
@@ -7724,7 +7724,7 @@
 },
 "zodiacwheel_p1": {
 "_note": "his zodiac wheel on the floor (tools/wheel-sheet.py): spin frame f is the wheel risen and turned 7.5*f degrees clockwise, frame 4k resting rest[k] under the highlight; blur the same angles smeared, for a fast spin; rise column k is the wheel resting on rest[k] from flush in the floor (row 0, dormant, its colours pulled to the floor) to risen (the last row, the same as spin frame 4k); play it backwards to sink; riseDressed the same in dressed stone. (ax, ay) is where its centre meets the floor.",
-"image": "art/zodiacwheel_p1.png?v=6ff218556e",
+"image": "art/zodiacwheel_p1.png?v=67a7fed2a4",
 "squares": 5,
 "fw": 232,
 "fh": 120,

@@ -16,11 +16,11 @@ Rows, 12 frames to a line, frame f at 7.5 * f degrees clockwise:
   spin  48 frames, sharp. Frame 4k rests a sign under the window: `rest` in the json names which.
   blur  48 frames at the same angles, each smeared over 22.5 degrees, for the fast part of a spin (stepping sharp
         frames faster than half a cell a tick reads as the wheel going backwards).
-  rise  8 rows, one column for each resting sign (column k rests rest[k]): row 0 flush in the floor and dormant, its
-        colours pulled toward the floor's (Griz, 10-07: "one without the edge that blends in with the surroundings, then
+  rise  8 rows, one column for each resting sign (column k rests rest[k]): row 0 flush in the floor and dormant, in
+        the tiles' colours (Griz, 10-07: "one without the edge that blends in with the surroundings, then
         we'll use the one with the ledge as it rising up as it is activated"), the highlight lit halfway, the last row
-        risen on its ledge -- spin frame 4k. Backwards, it sinks. Its colours pull toward the cave's brown stone;
-  riseDressed  the same 8 rows pulled toward dressed stone's silver, for a circle in a dwarf-cut floor (js/circles.js picks).
+        risen on its ledge -- spin frame 4k. Backwards, it sinks. Flush, it is drawn in the cave floor's own brown;
+  riseDressed  the same 8 rows in dressed stone's silver, for a circle in a dwarf-cut floor (js/circles.js picks).
 The anchor (ax, ay) is where the wheel's centre meets the floor: lay it on iso.center of the middle square.
 """
 import json, math, os, sys
@@ -57,11 +57,13 @@ SIGNS = ['pisces', 'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra
 STEP, FRAMES, COLS, BLUR_ARC, BLUR_N = 7.5, 48, 12, 22.5, 9
 SIDE = 2                          # the board's edge, seen on the near side when it has risen (px)
 RISE = 8                          # frames from flush in the floor to risen
-DORMANT = 0.75                    # flush, how far every colour is pulled toward the floor's
-FLOOR = np.array([0x5c, 0x48, 0x38], np.float32)   # the floor's middle stone (palette stone 4, DEEP16's default rock)
 # the floors a flush wheel may lie in, each its own rise rows (the anim's name): the cave's brown stone, and the dressed stone the
-# dwarves cut (js/iso.js bake: '=' is drawn in the silver ramp) -- Third Lamp's station and the lighthouse's room (10-07)
-FLOORS = [('rise', FLOOR), ('riseDressed', np.array([0x47, 0x50, 0x61], np.float32))]   # (silver 3)
+# dwarves cut (js/iso.js bake: '=' is drawn in the silver ramp) -- Third Lamp's station and the lighthouse's room (10-07). Flush,
+# the wheel is drawn in the floor's own tiles' colours, no red (Griz, 10-07: "can you color it the tile color when its inactive -
+# less red showing through?"): each of its colours a step of the floor's ramp -- the black a step darker than the tile (the hub,
+# the band, the grooves), the red the tile's own, the streaks a step off it, the signs a step lighter -- and the rise warms them
+# from there. (The floor tiles: the cave's are stone 3-5 on stone 2 seams; dressed stone is silver 2-4 on silver 1 seams.)
+FLOORS = [('rise', ['stone', 2, 4, 3, 5, 3]), ('riseDressed', ['silver', 2, 3, 2, 4, 2])]   # ramp; black, red, streak, sign, shadow
 SS = 4                            # samples a pixel, each way, for what comes from his art
 
 PAL = json.load(open(os.path.join(ROOT, 'deep16', 'palette.json'), encoding='utf-8'))['ramps']
@@ -78,16 +80,22 @@ def snap(rgb):
     return SUBSET[d.argmin(-1)]
 
 
-def dull(b, floor=FLOOR):
-    """each of the face's colours pulled b of the way to the floor's, snapped to the palette -- the face's own colours kept
-    apart at every step (left to the nearest, the red cells and their streaks fell into one colour midway and the streaks
-    blinked as the wheel rose)."""
+def dull(b, floor):
+    """each of the face's colours b of the way to its tile colour (the floor's ramp, by FLOORS), snapped to the palette; at b = 1
+    the tile colours themselves. Between, the face's own colours are kept apart at every step (left to the nearest, the red cells
+    and their streaks fell into one colour midway and the streaks blinked as the wheel rose)."""
+    ramp = floor[0]
+    tile = [C(ramp, floor[1]), C(ramp, floor[2]), C(ramp, floor[3]), C(ramp, floor[4]), C(ramp, floor[5]),
+            C(ramp, floor[1]), C(ramp, max(0, floor[1] - 1)), OUTLINE]          # the highlight off as the black; the edge and outline darker
+    keys = (BLACK, RED, RED_DK, SIGN, SHADOW, NAVY, RED_SIDE, OUTLINE)
+    if b >= 1:
+        return list(zip(keys, tile))
     lab = PX.PAL_LAB.reshape(-1, 3)
     used, out = [], []
-    for c in (BLACK, RED, RED_DK, SIGN, SHADOW, NAVY, RED_SIDE, OUTLINE):
-        t = PX.to_lab(((c * (1 - b) + floor * b) / 255.0)[None, None])[0, 0]
+    for n, c in enumerate(keys):
+        t = PX.to_lab(((c * (1 - b) + tile[n] * b) / 255.0)[None, None])[0, 0]
         order = np.argsort(((lab - t) ** 2).sum(-1))
-        keep = len(used) < 5                                       # the first five stay apart; the rest take the nearest
+        keep = n < 5                                               # the first five stay apart; the rest take the nearest
         i = next(j for j in order if not keep or j not in used)
         used.append(i)
         out.append((c, PX.PAL_RGB.reshape(-1, 3)[i].astype(np.float32)))
@@ -194,10 +202,10 @@ class Wheel:
         img[self.rim] = RED
         return img
 
-    def compose(self, face, lift=SIDE, wake=1.0, floor=FLOOR):
+    def compose(self, face, lift=SIDE, wake=1.0, floor=None):
         """the face set into the floor: lift px above it (0 flush, SIDE risen, the near edge showing below), the outline
-        once it stands off the floor; wake < 1 pulls every colour toward the floor's (the dormant wheel, his "blends in
-        with the surroundings"), snapped back to the palette."""
+        once it stands off the floor; wake < 1 pulls every colour toward its tile colour in `floor` (FLOORS: the dormant
+        wheel, his "blends in with the surroundings", then "the tile color when its inactive"), snapped to the palette."""
         d = SIDE - lift
         fm, img = np.roll(self.face, d, 0), np.roll(face, d, 0)
         side = np.zeros_like(fm)
@@ -216,8 +224,8 @@ class Wheel:
         img[side] = RED_SIDE
         img[outline] = OUTLINE
         alpha = body | outline
-        b = DORMANT * (1 - wake)
-        if b > 0:
+        b = 1 - wake
+        if b > 0 and floor is not None:
             masks = [(alpha & np.all(img == c, -1), to) for c, to in dull(b, floor)]   # every mask from the face as it was, then paint
             for m, to in masks:
                 img[m] = to
