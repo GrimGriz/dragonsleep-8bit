@@ -118,6 +118,7 @@
     }
     if (!h.slots) { h.slotsMax = R.slotsFor(h); h.slots = h.slotsMax.slice(); }
     if (h.attuned) R.attune(h); // (any rest: what is worn bonds, what was taken off lets go -- 10-06, the menus' attunement)
+    if (h.equip) R.ward(h); // (and a condition a worn thing bars ends on him -- the Periapt against a poison he carried to it, 10-07; after the bonds, which decide what works)
   };
   R.levelUp = function (h) {
     var msgs = [], c = R.CLASSES[h.cls];
@@ -219,6 +220,20 @@
   // what the worn things give, read off the items (`resist`, `immune`, `condImmune`: damage types and conditions; `adv`: skills rolled with advantage)
   R.wornList = function (h, key) { var out = []; R.gear(h).forEach(function (g) { (g[key] || []).forEach(function (x) { if (out.indexOf(x) < 0) out.push(x); }); }); return out; };
   R.wornAdv = function (h, skill) { return R.wornList(h, 'adv').indexOf(skill) >= 0; };
+  // a condition the worn things make him immune to ends on him (SRD 5.1, the Periapt of Proof against Poison: "you are immune to the poisoned condition" -- one already poisoned who puts it on
+  // is not poisoned any more, and the paralysis that rides on the poison goes with it: the 8-bit's `linked`, the grid's `poison`). Returns what it ended. The one place that does it, called where
+  // the sheet is read again: R.refresh (any rest) and the grid's SV.unitOf (a sheet becoming a unit, whichever way the thing went on -- the field menu, the camp; no fight puts on a worn thing:
+  // the 8-bit's EQUIP in a fight is the weapon and the shield, the grid's is those and the ladder's armour). The 8-bit's battle unit starts with no conditions: nothing carries over to clear there (10-07)
+  R.ward = function (h) {
+    var c = h && h.conds, out = [];
+    if (!c) return out;
+    R.wornList(h, 'condImmune').forEach(function (k) {
+      if (!c[k]) return;
+      delete c[k]; out.push(k);
+      Object.keys(c).forEach(function (ck) { var v = c[ck]; if (v && typeof v === 'object' && (v.linked === k || (k === 'poisoned' && v.poison))) delete c[ck]; });
+    });
+    return out;
+  };
   // a rest: keep the bonds to what is still worn, then bond what is worn and not yet bonded, three at most. Returns the lines to say
   R.attune = function (h) {
     var msgs = [], worn = [];

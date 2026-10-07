@@ -1111,6 +1111,139 @@
     document.body.appendChild(preR);
     return;
   }
+  // the looks, drawn (mode=looks1007; 10-07, the menus lane §2.5 and §2.6: "nothing in the gate draws deep16/js/looks.js, so a draw typo there would still read GREEN"): every entry point
+  // looks.js hands the page -- LK.props, LK.ground, LK.tint, LK.behind, LK.over (the troll's smoulder and its oil marks among them) -- drawn on a scratch canvas on units carrying every condition
+  // it draws, each alone and then all at once, and a throw is a FAIL naming it. Then the finds of the wearables runner and the troll runner, each failed on the code before it (a byte-exact
+  // swap of the old files, the CLAUDE.md way): the class AI's Hide counts the Boots of Elvenkind (§2.5), a poison carried to the Periapt of Proof against Poison is not carried into the fight
+  // (§2.5), and the HP bar and the badges over a smouldering troll stand clear of its flames, facing the eye or north (§2.6). Its 8-bit half is dev/bench8.py wear1007
+  if (get('mode', '') === 'looks1007') {
+    var repK = { checks: [], errors: [] }, d0K = D.d, LK = D.looks, MK = D.magic, GK = D.grid, iso0K = D.iso.draw, inW0K = D.iso.inWorld;
+    function okK(what, v) { repK.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkK(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideK(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function runK(g) { var v, k = 0, st; while (g && k++ < 4000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    // a scratch canvas, and one that remembers each fillRect (what a bar or a badge draws), the real one underneath
+    var cvK = document.createElement('canvas'); cvK.width = 640; cvK.height = 480; var cxK = cvK.getContext('2d');
+    function recK(rec) { return new Proxy(cxK, { get: function (t, k) { var v = t[k]; if (typeof v !== 'function') return v; return function () { if (k === 'fillRect') rec.push({ x: arguments[0], y: arguments[1], w: arguments[2], h: arguments[3] }); return v.apply(t, arguments); }; }, set: function (t, k, val) { t[k] = val; return true; } }); }
+    function tryK(what, fn) { try { fn(); okK(what, true); } catch (e) { okK(what + ': threw ' + String(e && e.message || e).slice(0, 140) + ' -- ' + String(e && e.stack || '').split('\n').slice(1, 3).join(' ').replace(/\s+/g, ' ').slice(0, 200), false); } }
+    // every condition looks.js reads (tint, behind, over: the grep of c.<name> and conds.<name>); a value that is an object with what a reader could ask of it, and bare `true`
+    var CONDK = 'ablaze acid aid asleep baned barkskin beacon blessed blinded blink blur branded branding charmed commanded confused contagion cursed dancing divineFavor dodge energyWard enfeebled enhanced enlarged faerie feared feeble fireShield flameBlade foresight freeMove frightened frosted guided hasted heated helped heroism hypnotized incapacitated inspired laughing lethargic longstrider mageArmor magicWeapon marked mindBlank noHeal oiled paralyzed poisoned prone pwt raging reckless regenerating restrained retreat sacred shield shieldOfFaith shillelagh sickened slowed stoneskin stoning storm stunned surprised turned vampiric holyAura sanctuary pfeg wardingBond deathWard poisonWard'.split(' ');
+    function valK(u, big) { return big ? { rounds: 3, by: u.id, type: 'fire', abil: 'str', id: 'bless', grapple: true, down: false, name: 'x', gaze: true, save: { ab: 'con', dc: 12 }, from: null } : true; }
+    try {
+      D.iso.inWorld = true; D.seed = 1007;
+      var BK = mkK('?npc=troll&lvl=5&vs=rogue:5'), pk = sideK(BK, 'party')[0], tk = sideK(BK, 'foe')[0], pK = D.ui.unitPos(BK, pk), qK = D.ui.unitPos(BK, tk);
+      okK('the page has what the draws need: the battle, a figure each side, a map (' + [!!BK.units.length, !!pk, !!tk, !!D.iso.map].join(',') + ')', !!pk && !!tk && !!D.iso.map);
+      // 1. every condition, alone (a bare true and a record), on the party's and on the foe's figure, through tint, behind and over -- and the same for one lying at 0 and one large
+      function drawU(u, p, t) { LK.tint(u, BK); LK.behind(cxK, BK, u, p, 'idle', t, {}); LK.over(cxK, BK, u, p); }
+      var tK = 5000, nK = 0;
+      CONDK.forEach(function (c) {
+        [pk, tk].forEach(function (u) {
+          [false, true].forEach(function (big) {
+            tryK('looks: ' + c + (big ? ' (a record)' : '') + ' on ' + u.name, function () { var was = u.conds; u.conds = {}; u.conds[c] = valK(u, big); BK.t = tK += 7; var p = D.ui.unitPos(BK, u); try { drawU(u, p, BK.t); } finally { u.conds = was; } nK++; });
+          });
+        });
+      });
+      // (only the throws are checks of their own: a thousand "ok" lines read as noise, so the passing ones are told in one)
+      repK.checks = repK.checks.filter(function (c, i, a) { return c.indexOf('FAIL') === 0 || !/^ok   looks: /.test(c); });
+      okK('every condition looks.js draws, alone and as a record, on two figures: ' + nK + ' draws, no throw', !repK.checks.some(function (c) { return /^FAIL looks: /.test(c); }));
+      tryK('looks: every condition at once, as a record and bare, on both figures', function () {
+        [pk, tk].forEach(function (u) { [false, true].forEach(function (big) { var was = u.conds; u.conds = {}; CONDK.forEach(function (c) { u.conds[c] = valK(u, big); }); BK.t = tK += 7; try { drawU(u, D.ui.unitPos(BK, u), BK.t); } finally { u.conds = was; } }); });
+      });
+      tryK('looks: down at 0 with oil, prone with oil, large and oiled, a held spell, false images, a flier', function () {
+        var u = tk, was = { hp: u.hp, conds: u.conds, size: u.size, images: u.images, conc: u.conc, lift: u.lift };
+        try {
+          u.conds = { oiled: { rounds: 5 } }; u.hp = 0; BK.t = tK += 7; LK.behind(cxK, BK, u, qK, 'idle', BK.t, {}); LK.over(cxK, BK, u, qK);
+          u.hp = was.hp; u.conds = { oiled: { rounds: 5 }, prone: true }; BK.t = tK += 7; drawU(u, qK, BK.t);
+          u.conds = { oiled: { rounds: 5 } }; u.size = 2; BK.t = tK += 7; drawU(u, qK, BK.t); u.size = was.size;
+          u.conc = { id: 'bless', name: 'Bless' }; u.conds = { blinded: true }; BK.t = tK += 7; drawU(u, qK, BK.t); u.conc = was.conc;
+          u.images = 3; BK.t = tK += 7; drawU(u, qK, BK.t); u.images = 1; BK.t = tK += 7; drawU(u, qK, BK.t); u.images = was.images;
+          u.lift = 8; u.conds = { oiled: { rounds: 5 }, longstrider: true }; BK.t = tK += 7; drawU(u, qK, BK.t);
+        } finally { u.hp = was.hp; u.conds = was.conds; u.size = was.size; u.images = was.images; u.conc = was.conc; u.lift = was.lift; }
+      });
+      // 2. the lists the battle keeps, drawn: props (a globe growing and fallen, Moonbeam, the Flaming Sphere, the floating weapons, Guardian of Faith, the spirits' wheel) and the ground
+      // (every kind a spell leaves, the dark and its clouds, the rings and threads of the wards)
+      tryK('looks: LK.props and LK.ground, every record a battle keeps', function () {
+        var x0 = pk.x, y0 = pk.y;
+        BK.globes = [{ x: x0, y: y0, grow: 0.5, by: pk.id }]; BK.globesGone = [{ x: x0 + 1, y: y0, t0: BK.t - 5 }];
+        BK.zones = [{ id: 'moonbeam', x: x0 + 2, y: y0, by: pk.id }, { id: 'flamingsphere', x: x0 + 3, y: y0, by: pk.id }];
+        BK.spirits = [{ x: x0, y: y0 + 1, by: pk.id, rounds: 3, swingT: BK.t - 12 }, { x: x0 + 1, y: y0 + 1, by: pk.id, sword: true, rounds: 3 }];
+        BK.wards = [{ x: x0 + 2, y: y0 + 1, left: 3, by: pk.id }];
+        BK.auras = [{ by: pk.id, r: 15 }, { by: pk.id, r: 10, type: 'necrotic', ramp: 'violet' }];
+        BK.grounds = ['vines', 'spikes', 'grease', 'tentacles', 'glyph', 'quake', 'hail', 'insects', 'moss'].map(function (k, i) { return { kind: k, sq: [[x0 + i % 5, y0 + 2], [x0 + i % 5 + 1, y0 + 2]], by: pk.id }; });
+        BK.darks = ['darkness', 'fog', 'stink', 'kill', 'sleet'].map(function (k, i) { return { kind: k, sq: GK.sphere(x0 + i, y0 + 3, 10), by: pk.id }; });
+        pk.conds.holyAura = true; pk.conds.sanctuary = true; pk.conds.pfeg = true; pk.conds.wardingBond = { by: tk.id }; pk.conds.deathWard = true; pk.conds.poisonWard = true; tk.conds.marked = { by: pk.id }; tk.conds.restrained = { grapple: true, by: pk.id };
+        try {
+          for (var f = 0; f < 3; f++) { BK.t = tK += 11; LK.props(BK).forEach(function (o) { o.draw(cxK); }); LK.ground(cxK, BK, function (x, y, fn) { fn(cxK); }); }
+        } finally { delete pk.conds.holyAura; delete pk.conds.sanctuary; delete pk.conds.pfeg; delete pk.conds.wardingBond; delete pk.conds.deathWard; delete pk.conds.poisonWard; delete tk.conds.marked; delete tk.conds.restrained; BK.globes = []; BK.globesGone = []; BK.zones = []; BK.spirits = []; BK.wards = []; BK.auras = []; BK.grounds = []; BK.darks = []; }
+      });
+      // 3. the troll's smoulder and its oil, on a sheet that has hair (a stand-in: eight facings of a 40 x 100 frame, the troll's blue crown 48 over the foot facing the eye and 78 facing north,
+      // as the real one's head stands 30 over its `top` there) -- the HP bar and the badges over a burned troll stand clear of its flames, a troll not burned keeps its bar where it was
+      var fwK = 40, fhK = 100, ayK = 96, hsK = document.createElement('canvas'); hsK.width = fwK; hsK.height = fhK * 8; var hgK = hsK.getContext('2d');
+      for (var fK = 0; fK < 8; fK++) {
+        var crK = fK === 5 ? 78 : 48; hgK.fillStyle = 'rgb(110,90,60)'; hgK.fillRect(10, fK * fhK + ayK - crK + 8, 20, crK - 8); hgK.fillStyle = 'rgb(40,60,200)'; hgK.fillRect(12, fK * fhK + ayK - crK, 16, 9);
+      }
+      hsK.naturalWidth = fwK; D.images.zzTroll = hsK; D.SHEETS.zzTroll = { image: 'zzTroll', fw: fwK, fh: fhK, ax: 20, ay: ayK, top: 48, anims: { idle: { frames: 1, row: 0, fps: 8 }, hurt: { frames: 1, row: 0, fps: 8 } } };
+      var sheet0K = tk.sheet; tk.sheet = 'zzTroll'; tk.regen = tk.regen > 0 ? tk.regen : 10; tk.hp = Math.max(tk.hp, 1);
+      var skK = D.spr.scaleOf(tk), topK = D.spr.unitTop(tk), barWK = (tk.size > 1 ? 30 : 20) + 2, qK2 = D.ui.unitPos(BK, tk);
+      // the bar the troll's own figure draws (ui.js unitObj): the battle painted once for the figures, the troll's object drawn again through the recorder
+      function troll(face, burned, conds) {
+        tk.facing = face; tk.burned = burned; tk.conds = conds || {}; BK.t = tK += 13; var got = null;
+        D.iso.draw = function (wx, objs, ov) { got = objs.filter(function (o) { return o.unit === tk; })[0]; return iso0K.apply(this, arguments); };
+        try { D.ui.drawBattle(cxK, BK); } finally { D.iso.draw = iso0K; }
+        if (!got) throw new Error('the troll was not among the objects the battle painted');
+        var rec = []; got.draw(recK(rec)); var p = D.ui.unitPos(BK, tk);
+        var bar = rec.filter(function (r) { return r.h === 4 && r.w === barWK && Math.abs(r.x + r.w / 2 - p.x) < 1.01; })[0], bad = rec.filter(function (r) { return r.h === 7 && r.w === 9; });
+        return { bar: bar, badges: bad, p: p };
+      }
+      tryK('the troll drawn through the battle\'s own paint, burned and not, facing the eye and north, with a badge', function () {
+        var kp = troll(0, false); if (!kp.bar) throw new Error('no bar found in ' + JSON.stringify(kp.bar));
+        okK('a troll not burned keeps its bar where it was: the border\'s top row ' + kp.bar.y + ' (the bar 5 over the figure\'s top, its border a row more: ' + (kp.p.y - topK - 6).toFixed(1) + ')', Math.abs(kp.bar.y - (kp.p.y - topK - 6)) < 0.01);
+        [[0, 48], [5, 78]].forEach(function (fc) {
+          var r = troll(fc[0], true, { blinded: true }), tip = r.p.y - fc[1] * skK - 12; // (the topmost flame: the longest tongue, 12 over the crown -- looks.js smoulder)
+          okK('burned, facing ' + (fc[0] ? 'north' : 'the eye') + ': the bar (rows ' + (r.bar && r.bar.y) + ' to ' + (r.bar && r.bar.y + 4) + ') stands clear over the flame tip (row ' + tip.toFixed(1) + ')', !!r.bar && r.bar.y + r.bar.h + 1 <= tip);
+          var bd = r.badges[0];
+          okK('burned, facing ' + (fc[0] ? 'north' : 'the eye') + ': the badge (rows ' + (bd && bd.y) + ' to ' + (bd && bd.y + bd.h) + ') stands clear over the flame tip and over the bar', !!bd && bd.y + bd.h + 1 <= tip && !!r.bar && bd.y + bd.h <= r.bar.y);
+        });
+        var oil = troll(5, true, { oiled: { rounds: 5 }, blinded: true }); okK('burned and oiled, facing north: drawn, the bar kept (' + !!oil.bar + ')', !!oil.bar);
+        // (a sheet whose crown cannot be read -- the troll's own, not fetched on this page: the flames are taken to start at the top of the figure, and the bar clears them there too)
+        tk.sheet = sheet0K; var fb = troll(0, true, {}), top0K = D.spr.unitTop(tk); tk.sheet = 'zzTroll';
+        okK('burned, its crown unread: the bar (rows ' + (fb.bar && fb.bar.y) + ' to ' + (fb.bar && fb.bar.y + 4) + ') stands clear over flames that start at the figure\'s top (flame tip row ' + (fb.p.y - top0K - 12).toFixed(1) + ')', !!fb.bar && fb.bar.y + fb.bar.h + 1 <= fb.p.y - top0K - 12);
+      });
+      tk.sheet = sheet0K; tk.burned = false; tk.facing = 0; tk.conds = {};
+      // 4. §2.5 the class AI's Hide counts the Boots of Elvenkind: a rogue who cannot hide from a watch her roll would only just beat without them (the foe's passive Perception and the square's bonus
+      // 17, her Stealth 5: 15 a middling roll without the boots) does hide in it with them (advantage is about 5 on the d20: 20) -- the same turn, the boots the only difference
+      function hideTurn(boots) {
+        var Bh = mkK('?npc=rogue:5&lvl=5&vs=fighter:5'), r = sideK(Bh, 'foe')[0], ps = sideK(Bh, 'party');
+        if (r.src && r.src.equip) { r.src.equip.feet = boots ? 'bootselvenkind' : null; }
+        r.stealth = 5; r.conds = {}; ps.forEach(function (f) { f.perception = 8; });
+        Bh.nearOf = function () { return { side: 'front', bonus: 9, lvl: 2 }; }; // (every square in a cone's bright front: 8 + 9 = 17 against her 5 + 10)
+        D.d = function (n) { return n === 20 ? 20 : n; };
+        Bh.round = 1; Bh.active = r; D.rules.startTurn(r); var hid = false, acted;
+        try { acted = runK(D.tactics.rogueTurn(Bh, r)); hid = !!r.conds.hidden; } finally { D.d = d0K; }
+        return { acted: !!acted, hid: hid, edges: Bh.stealthEdges ? Bh.stealthEdges(r) : null, shod: r.src && D.rules && r.src.equip && r.src.equip.feet };
+      }
+      tryK('the Hide estimate, run both ways', function () {
+        var w0 = hideTurn(false), w1 = hideTurn(true);
+        okK('a rogue in Elvenkind Boots: the estimate has her hide a 17 watch with a 5 Stealth (acted ' + w1.acted + ', hidden ' + w1.hid + ', the edge ' + JSON.stringify(w1.edges && { adv: w1.edges.hadv, w: (w1.edges.ce.adv || []).join() }) + ')', w1.hid && !!w1.edges && w1.edges.hadv);
+        okK('and without them she does not try it, the watch beyond a middling roll (acted ' + w0.acted + ', hidden ' + w0.hid + ')', !w0.hid);
+      });
+      // 5. §2.5 a poison carried to the Periapt of Proof against Poison is not carried into the fight: the sheet ends it as it is made a unit (js/rules.js R.ward, deep16/js/save.js unitOf)
+      tryK('the Periapt and a poisoned sheet, made a unit', function () {
+        var fx = D.save.fixture(5), h = fx.party[0], R = window.DS.R;
+        h.conds = { poisoned: { rounds: 5 }, paralyzed: { poison: true, save: 'con', dc: 12 }, prone: true }; h.equip.neck = null;
+        var u0 = D.save.unitOf(h, false, null), kept = !!u0.conds.poisoned && !!u0.conds.paralyzed;
+        h.conds = { poisoned: { rounds: 5 }, paralyzed: { poison: true, save: 'con', dc: 12 }, prone: true }; h.equip.neck = 'periaptpoison';
+        var u1 = D.save.unitOf(h, false, null);
+        okK('a hero without it keeps the poison and the paralysis riding on it into the fight (' + kept + ')', kept);
+        okK('with the Periapt worn: the unit starts with no poison (' + !u1.conds.poisoned + '), no paralysis from it (' + !u1.conds.paralyzed + '), still prone (' + !!u1.conds.prone + '), and is immune to it (' + (u1.condImmune || []).join() + ')', !u1.conds.poisoned && !u1.conds.paralyzed && !!u1.conds.prone && (u1.condImmune || []).indexOf('poisoned') >= 0);
+      });
+    } catch (eK) { repK.errors.push(String(eK && eK.stack || eK).slice(0, 900)); }
+    D.d = d0K; D.iso.draw = iso0K; D.iso.inWorld = inW0K;
+    if (errs.length) repK.errors = repK.errors.concat(errs);
+    var preK = document.createElement('pre'); preK.id = 'out'; preK.textContent = 'BENCH16 ' + JSON.stringify(repK);
+    document.body.appendChild(preK);
+    return;
+  }
   // the grid's rules lane, built whole (mode=rules1006; 10-06, Griz: "take the grid's rules lane whole"; handoff-2026-10-04-the-grids-rules.md): each check failed on the code
   // before it (a byte-exact swap of the old files, the CLAUDE.md way). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
   if (get('mode', '') === 'rules1006') {

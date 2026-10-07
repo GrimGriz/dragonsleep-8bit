@@ -964,7 +964,10 @@
       u.x = e.x; u.y = e.y;
       // (10-04, Griz: "it can't tell it's in the cone"): a square she may hide from is one where, for each foe watching it, that foe's passive Perception and the bonus of the
       // square (battle.js nearOf: the 3x3 and the cone, by light, by Wisdom) are no more than a middling roll of hers -- outside every watch, or one she can beat
-      e.hide = all.every(function (f) { var n = B.nearOf(f, u); return !n || !n.bonus || f.perception + (f.twoHeads ? 5 : 0) + n.bonus <= u.stealth + 10 + (u.conds.pwt ? 10 : 0); });
+      // (10-07: the estimate reads what the real roll reads -- Battle.stealthEdges: the Boots of Elvenkind's advantage on Stealth, Enhance Ability, a friend's Help, Supreme Sneak if the walk to this square
+      // is no more than half her speed -- and an edge is worth about 5 on a middling d20 (the odds of a roll that matters go from half to three in four, or to one in four), a disadvantage as much against)
+      var se = B.stealthEdges(u, (T.moved || 0) + (e.cost || 0)), edge = se.hadv !== se.hdis ? (se.hadv ? 5 : -5) : 0;
+      e.hide = all.every(function (f) { var n = B.nearOf(f, u); return !n || !n.bonus || f.perception + (f.twoHeads ? 5 : 0) + n.bonus <= u.stealth + 10 + edge + (u.conds.pwt ? 10 : 0); });
       e.beside = all.some(function (f) { return G.dist(u, f) <= Math.max(5, G.reachOf(f)); });
       e.far = chase.every(function (f) { return G.dist(u, f) > G.reachOf(f) + (f.speed || 30); }); // (past what any one that could run at her could cover, even seen)
     });

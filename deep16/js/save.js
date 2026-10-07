@@ -113,6 +113,7 @@
   };
   function unitOf(h, guest, fight) {
     var look = SV.look(h.id, fight), wp = SV.weaponOf(h);
+    if (R.ward) R.ward(h); // (a condition a worn thing bars ends on the sheet before it is carried in: the Periapt of Proof against Poison on one already poisoned -- 10-07, js/rules.js R.ward)
     return {
       // (a guest by its 8-bit key: two troopers are two)
       id: h.key || h.id, name: look.name || h.name, cls: h.cls, lvl: h.lvl, guest: guest, side: 'party', sheet: look.sheet || h.id + '_p0',

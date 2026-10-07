@@ -1691,6 +1691,44 @@
         check('every flag the scripts read on the walk is in content/flags.json (' + Object.keys(readSeen).length + ' read' + (unreg.length ? '; not named: ' + unreg.join(', ') : '') + ')', REG && !unreg.length);
         out.log = out.log.concat(walked.map(function (w) { return 'beat ' + w.n + ' [' + w.pin + '] ' + (w.door || '') + (w.moved ? ' -- moved' : w.moved === false ? ' -- still' : '') + ': ' + (w.where || '').slice(0, 80); }), notes.map(function (x) { return 'NOTE ' + x; }));
       } finally { DS.battle = base0; }
+    } else if (test === 'wear1007') {
+      // the wearables runner's finds, folded 10-07 (the menus lane §2.5; each check failed on the code before it, a byte-exact swap of the old files): the Periapt of Proof against Poison ends a
+      // poison already on the one who puts it on (js/rules.js R.ward -- a rest reads it, and the grid's sheet-to-unit, deep16/js/save.js, asks it), and the 8-bit's line for a blow of a type a worn thing
+      // bars says the hero is immune to it, not "for 0"
+      var rng7 = DS.rng;
+      function runGen7(gen) { var r = gen.next(); while (!r.done) r = gen.next(); return r.value; }
+      function pin7(seq) { var q = seq.slice(); DS.rng = function () { return q.length ? (q.shift() - 0.5) / 20 : 0.5; }; } // (the next d20s, in order)
+      try {
+        // 1. R.ward: the poison he carried, and the paralysis that rides on it, end on the Periapt; with nothing worn that bars it, nothing ends; a prone is no poison's
+        var hw = g.hero('lymen'); hw.equip.neck = null;
+        hw.conds.poisoned = { rounds: 5 }; hw.conds.paralyzed = { linked: 'poisoned' }; hw.conds.prone = true;
+        var w0 = typeof R.ward === 'function' ? R.ward(hw) : null;
+        check('R.ward with no Periapt: nothing ended (' + JSON.stringify(w0) + '), still poisoned ' + !!hw.conds.poisoned + ' and held ' + !!hw.conds.paralyzed, !!w0 && !w0.length && !!hw.conds.poisoned && !!hw.conds.paralyzed);
+        hw.equip.neck = 'periaptpoison';
+        var w1 = typeof R.ward === 'function' ? R.ward(hw) : null;
+        check('the Poison Periapt put on: R.ward ended ' + JSON.stringify(w1) + ' -- poisoned ' + !!hw.conds.poisoned + ', the paralysis that rode on it ' + !!hw.conds.paralyzed + ', the prone kept ' + !!hw.conds.prone, !!w1 && w1.join() === 'poisoned' && !hw.conds.poisoned && !hw.conds.paralyzed && !!hw.conds.prone);
+        // 2. a rest reads it too (R.refresh, short or long): a poison given to one wearing it is gone at the rest; taken off, it stays
+        hw.conds.poisoned = { rounds: 5 }; R.refresh(hw, false);
+        check('a short rest in the Periapt: poisoned ' + !!hw.conds.poisoned, !hw.conds.poisoned);
+        hw.equip.neck = null; hw.conds.poisoned = { rounds: 5 }; R.refresh(hw, false);
+        check('a short rest without it: poisoned stays ' + !!hw.conds.poisoned, !!hw.conds.poisoned);
+        delete hw.conds.poisoned;
+        // 3. the line: the crawler's feelers are poison, and on the Periapt the blow is "immune to poison" (not "for 0"); one without it is hit as ever; the blast of a poison gas the same
+        SETUP(5); g = DS.G; var hp7 = g.hero('lymen'); hp7.equip.neck = 'periaptpoison';
+        T.startFight(['crawler']); for (var w7 = 0; w7 < 200 && !DS.find('battle'); w7++) T.step(1);
+        var b7 = DS.find('battle'), f7 = b7.foes[0], u7 = b7.heroes.filter(function (x) { return x.h.id === 'lymen'; })[0], v7 = b7.heroes.filter(function (x) { return x.h.id !== 'lymen'; })[0];
+        T.blog = []; pin7([20]); runGen7(b7.foeAttack(f7, u7, f7.m.attacks.feelers)); DS.rng = rng7;
+        var said7 = T.blog.filter(function (l) { return /Lymen/.test(l); }).join(' / ');
+        check('the crawler\'s feelers (poison) on the Periapt: "' + said7.slice(0, 160) + '"', /immune to poison/.test(said7) && !/ for 0\b/.test(said7));
+        T.blog = []; pin7([20]); runGen7(b7.foeAttack(f7, v7, f7.m.attacks.feelers)); DS.rng = rng7;
+        var said8 = T.blog.filter(function (l) { return /for \d+\./.test(l); }).join(' / ');
+        check('the same blow on one without it: hit for damage, no word of immunity: "' + said8.slice(0, 120) + '"', /for [1-9]\d*\./.test(said8) && !/immune/.test(said8));
+        // (a sheet with no Periapt in the line's own reading: the hurt gave 0 -- immune -- only where the item is worn)
+        T.blog = []; pin7([1, 1, 1, 1, 1, 1, 1, 1, 1, 1]); runGen7(b7.special(f7, { kind: 'blast', text: 'breathes a green cloud.', targets: 'all', save: 'dex', dc: 30, dmg: '3d6', half: true, type: 'poison' })); DS.rng = rng7;
+        var said9 = T.blog.filter(function (l) { return /Lymen/.test(l); }).join(' / '), said10 = T.blog.filter(function (l) { return /\d+ damage/.test(l); }).join(' / ');
+        check('a poison cloud on the Periapt: "' + said9.slice(0, 120) + '"; on the others it hurts ("' + said10.slice(0, 60) + '")', /immune to poison/.test(said9) && !/\d+ damage/.test(said9) && /\d+ damage/.test(said10));
+        b7.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
+      } finally { DS.rng = rng7; }
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

@@ -1334,7 +1334,7 @@
         if (sk !== 1) ctx.restore();
         if (D.looks && (!down || oilDown) && !u.ethereal) D.looks.over(ctx, B, u, p); // (the marks of its conditions: js/looks.js; down, the oil's alone)
         if (!u.dead && !u.ethereal && (!u.riding || u.attached)) { // (a darkmantle on someone keeps its bar, over it)
-          var top = tall, w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5;
+          var top = Math.max(tall, D.looks && D.looks.flameTop ? D.looks.flameTop(u, B) : 0), w = u.size > 1 ? 30 : 20, bx = p.x - w / 2, by = p.y - top - 5; // (a smouldering troll's bar over its flames, not across them -- facing north its head stands 30 px over `tall`: js/looks.js LK.flameTop, 10-07)
           ctx.fillStyle = R('outline', 0); ctx.fillRect(bx - 1, by - 1, w + 2, 4);
           ctx.fillStyle = R('stone', 1); ctx.fillRect(bx, by, w, 2);
           ctx.fillStyle = u.side === 'foe' ? R('red', 3) : u.hp <= u.maxhp / 4 ? R('fire', 1) : R('moss', 2);

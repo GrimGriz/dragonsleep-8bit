@@ -661,6 +661,16 @@
     }
     ctx.globalAlpha = 1;
   }
+  // how high over its foot, in screen pixels, the flames of a smouldering troll reach, or 0 for any other: what stands over a head (the HP bar, js/ui.js; the badges and the wheel, LK.over) is
+  // lifted to clear of it. The crown is the one smoulder reads (HAIRAT, told by LK.behind this frame): facing north the head stands 30 px over the sheet's `top` and the bar, kept
+  // at `top` + 5, lay across the head and its fire (10-07, the troll runner's find: "as before the flames"); where the crown is not known the flames start at `top`, so
+  // the reach is that. The longest tongue is 12 px over the crown (smoulder: 4 down, 16 up); the bar's foot (border and all) lies 2 rows over the height this gives,
+  // so 12 here leaves two clear rows between the bar and the tip
+  LK.flameTop = function (u, B) {
+    if (!(u && u.regen > 0 && u.burned && u.hp > 0 && !u.dead)) return 0;
+    var e = HAIRAT[u.id || u.name], sk = D.spr.scaleOf ? D.spr.scaleOf(u) : 1;
+    return Math.round(e && e.ok && e.t === B.t ? -e.y * sk : D.spr.unitTop(u)) + 12;
+  };
 
   // a tint for the whole figure from what is on it (the conditions ui.js tints for itself come after and win)
   function OIL_TINT(B) { return [P('leather', 1), 0.42 + 0.04 * Math.sin(B.t / 14)]; } // (oil, not shadow: brown, 10-06)
@@ -680,7 +690,7 @@
 
   // after the figure: the marks of what is on it, small, over the head or about the body
   LK.over = function (ctx, B, u, p) {
-    var c = u.conds, t = B.t, top = D.spr.unitTop(u), hx = p.x, hy = p.y - top - 11, E;
+    var c = u.conds, t = B.t, top = D.spr.unitTop(u), hx = p.x, hy = p.y - Math.max(top, LK.flameTop(u, B)) - 11, E; // (the marks over the head clear of a smouldering troll's flames: LK.flameTop, 10-07)
     if (u.hp <= 0) { if (c.oiled && !u.dead) oilMarks(ctx, B, u, p, top); return; } // (down at 0: ui.js asks only for the oil -- 10-06, a troll oiled where it lies)
     // blessed: gold motes wheeling over the head; baned, cursed: dark ones
     if (c.blessed || c.guided || c.inspired || c.helped) orbit(ctx, hx, hy, FX.EL.holy, 2, t, 7);

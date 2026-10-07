@@ -30,6 +30,9 @@
   // a thing worn that cannot be given a condition (SRD 5.1, the Periapt of Proof against Poison: "immune to the poisoned condition"): the item, or null.
   // (10-06; js/rules.js R.gear: only what works -- a bond-needing thing unbonded is not it. The grid reads the unit's condImmune, deep16/js/save.js)
   function wornWard(t, cond) { var it = null; if (t && isHero(t) && cond) R.gear(t.h).forEach(function (g) { if ((g.condImmune || []).indexOf(cond) >= 0) it = g; }); return it; }
+  // a damage type a hero is immune to by what is worn (the Periapt of Proof against Poison: poison; Battle.hurt gives 0 for it): the line says so instead of "for 0" (10-07, the wearables runner's find)
+  function wornImmune(t, type) { return !!(t && isHero(t) && type && R.wornList(t.h, 'immune').indexOf(type) >= 0); }
+  function immuneTypes(t, types) { var out = []; types.forEach(function (ty) { if (wornImmune(t, ty) && out.indexOf(ty) < 0) out.push(ty); }); return out; }
   // Aura of Devotion (paladin 7; the Oath of Devotion is the 8-bit's one oath, R.oathSpells): while he stands the party can't be charmed
   var cur = null; // (the battle running: Battle() sets it)
   function devotionStops(t, cond) { return !!(cur && t && isHero(t) && cond === 'charmed' && cur.heroes.some(function (x) { return !x.guest && x.h.cls === 'paladin' && x.h.lvl >= 7 && !down(x) && !x.conds.asleep; })); } // (an aura needs him conscious, and asleep is unconscious -- SRD 5.1 Sleep; 10-06, the story-and-the-pocket-dm handoff)
@@ -1723,7 +1726,9 @@
     t.pose = 'hurt'; t.poseT = 24; this.shake = crit ? 10 : 5; if (crit) this.flashT = 8;
     DS.audio.sfx(crit ? 'crit' : 'hit');
     this.num(t, dealt, '#F85838');
-    yield* this.say((crit ? 'Critical! ' : '') + nameOf(f) + ' ' + (atk.verb || 'hits') + ' ' + nameOf(t) + ' for ' + dealt + '.' + dodge + dazzle, crit ? 46 : 36);
+    // (10-07: a blow of a type a worn thing makes him immune to -- the crawler's feelers are poison, the Periapt of Proof against Poison -- is "immune", not "for 0")
+    var imm = immuneTypes(t, [atk.type].concat(atk.extra ? [atk.extraType || atk.type] : []));
+    yield* this.say((crit ? 'Critical! ' : '') + nameOf(f) + ' ' + (atk.verb || 'hits') + ' ' + nameOf(t) + (dealt || !imm.length ? ' for ' + dealt + '.' + (imm.length ? ' (immune to ' + imm.join(' and ') + ')' : '') : ', but ' + nameOf(t) + ' is immune to ' + imm.join(' and ') + '.') + dodge + dazzle, crit ? 46 : 36);
     yield* this.flushMsg();
     if (down(t)) { yield* this.note(t, nameOf(t) + ' falls!', 38); return; }
     yield* this.applyRider(f, t, atk, true);
@@ -1853,8 +1858,9 @@
         if (sp.dmg) {
           var db0 = DS.roll(sp.dmg), db = sb.success ? (sp.half ? Math.floor(db0 / 2) : 0) : db0;
           if (this.evades(tb, sp.save, sp.half)) db = sb.success ? 0 : Math.floor(db0 / 2);
+          var dpre = db; // (what it would have dealt: a worn immunity gives 0 from the hurt, and the line says so -- 10-07)
           if (db) { db = this.hurt(tb, db, sp.type || 'force', f); this.num(tb, db, '#F85838'); tb.pose = 'hurt'; tb.poseT = 20; this.elemBurst(tb, sp.type || 'force'); }
-          line += db ? '. ' + db + ' damage.' : '.';
+          line += db ? '. ' + db + ' damage.' : dpre && wornImmune(tb, sp.type || 'force') ? '. ' + nameOf(tb) + ' is immune to ' + (sp.type || 'force') + '.' : '.';
         } else line += '.';
         if (!sb.success && sp.cond && !down(tb) && !pfegStops(tb, f, sp.cond)) { tb.conds[sp.cond] = sp.cond === 'prone' ? true : { rounds: sp.rounds || 1, save: sp.repeat ? { ab: sp.save, dc: sp.dc } : null }; line += ' ' + (sp.condText || (sp.cond.charAt(0).toUpperCase() + sp.cond.slice(1) + '!')); }
         this.shake = 4; DS.audio.sfx(db ? 'hit' : 'miss');

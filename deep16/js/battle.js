@@ -2940,14 +2940,19 @@
     var base = NEAR_BONUS[side][lvl], wis = w.abil && w.abil.wis != null ? Math.floor((w.abil.wis - 10) / 2) : 0; // (Griz, 10-04: "try add wisdom bonuses to the cone", then "wisdom on the 9-square they're in (back and sides included)" -- the watcher's Wisdom modifier on top, in its cone and its 3x3)
     return { side: side, bonus: base && (ring || cone) ? base + Math.max(0, wis) : base, lvl: lvl };
   };
-  // a Stealth roll for u now: the d20 and the total (Supreme Sneak's advantage only on her own turn, if she has walked no more than half her speed)
-  Battle.prototype.stealthRoll = function (u) {
-    var T = u.turn || {}, supreme = u.subclass === 'Thief' && u.lvl >= 9 && (this.active === u || !this.active) && (T.moved || 0) <= u.speed / 2, ce = RU.checkEdges(u, 'dex');
-    // what is worn (SRD 5.1, the Boots of Elvenkind: "advantage on Dexterity (Stealth) checks that rely on moving silently" -- the grid's hide and held roll are the one Stealth, so all of
-    // it; js/rules.js R.gear, only what works): its name on the card with the other edges. A foe has no sheet (u.src) and wears nothing
+  // what u's Stealth check has to its side or against it (the one place it is read -- the roll below and the class AI's Hide estimate, tactics.js rogueCoverTurn, ask it): Supreme Sneak's
+  // advantage only on her own turn, if she has walked no more than half her speed (`moved`: what she would have walked by then; the turn's own if none is given), RU.checkEdges, and what is worn
+  // (SRD 5.1, the Boots of Elvenkind: "advantage on Dexterity (Stealth) checks that rely on moving silently" -- the grid's hide and held roll are the one Stealth, so all of it; js/rules.js
+  // R.gear, only what works): its name on the card with the other edges. A foe has no sheet (u.src) and wears nothing
+  Battle.prototype.stealthEdges = function (u, moved) {
+    var T = u.turn || {}, supreme = u.subclass === 'Thief' && u.lvl >= 9 && (this.active === u || !this.active) && (moved == null ? (T.moved || 0) : moved) <= u.speed / 2, ce = RU.checkEdges(u, 'dex');
     var shod = u.src && DS.R.gear ? DS.R.gear(u.src).filter(function (g) { return (g.adv || []).indexOf('Stealth') >= 0; }).map(function (g) { return g.name.toLowerCase(); }) : [];
     if (shod.length) ce = { adv: ce.adv.concat(shod), dis: ce.dis };
-    var hadv = supreme || ce.adv.length > 0, hdis = ce.dis.length > 0, ra = D.d(20);
+    return { supreme: supreme, ce: ce, hadv: supreme || ce.adv.length > 0, hdis: ce.dis.length > 0 };
+  };
+  // a Stealth roll for u now: the d20 and the total
+  Battle.prototype.stealthRoll = function (u) {
+    var se = this.stealthEdges(u), supreme = se.supreme, ce = se.ce, hadv = se.hadv, hdis = se.hdis, ra = D.d(20);
     var r = hadv !== hdis ? (hadv ? Math.max(ra, D.d(20)) : Math.min(ra, D.d(20))) : ra;
     return { r: r, total: r + u.stealth + (u.conds.pwt ? 10 : 0), supreme: supreme, ce: ce, hadv: hadv, hdis: hdis };
   };
