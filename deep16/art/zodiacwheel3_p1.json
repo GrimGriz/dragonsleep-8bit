@@ -1,0 +1,50 @@
+{
+ "_note": "his zodiac wheel flat on the floor (tools/wheel-sheet.py): frame f is the wheel turned 7.5*f degrees clockwise; frame 4k rests rest[k] under the highlight; blur is the same angles smeared, for a fast spin; (ax, ay) the centre on the floor",
+ "image": "art/zodiacwheel3_p1.png",
+ "squares": 3,
+ "fw": 140,
+ "fh": 74,
+ "ax": 70,
+ "ay": 36,
+ "cols": 12,
+ "degPerFrame": 7.5,
+ "framesPerSign": 4,
+ "anims": {
+  "spin": {
+   "row": 0,
+   "frames": 48
+  },
+  "blur": {
+   "row": 4,
+   "frames": 48
+  }
+ },
+ "signs": [
+  "pisces",
+  "aries",
+  "taurus",
+  "gemini",
+  "cancer",
+  "leo",
+  "virgo",
+  "libra",
+  "scorpio",
+  "sagittarius",
+  "capricorn",
+  "aquarius"
+ ],
+ "rest": [
+  "pisces",
+  "aquarius",
+  "capricorn",
+  "sagittarius",
+  "scorpio",
+  "libra",
+  "virgo",
+  "leo",
+  "cancer",
+  "gemini",
+  "taurus",
+  "aries"
+ ]
+}

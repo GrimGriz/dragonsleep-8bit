@@ -1,0 +1,110 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>Zodiac wheel</title>
+<!-- His zodiac wheel (dev/visions/wheel.webp) flat on a DEEP16 floor, from the sheet tools/wheel-sheet.py cuts (10-07).
+     It rests on a sign until it is set going: click the wheel or SPIN for a sign by chance, or a sign's button to land there.
+     tools/wheel-play.html?z=3              (z: the zoom)
+     tools/wheel-play.html?both             (the 3-across cut beside the 5, for size)
+     Frame f of a row is the wheel turned 7.5*f degrees clockwise; frame 4k rests json.rest[k] under the highlight. The fast part
+     of a spin plays the blur row (sharp frames stepped faster than half a cell a tick read as the wheel turning backwards). -->
+<style>
+  body { background: #2b2e2b; color: #ddd; font: 13px system-ui, sans-serif; margin: 16px; }
+  h1 { font-size: 16px; margin: 0 0 4px; } p { margin: 0 0 12px; color: #aaa; }
+  canvas { image-rendering: pixelated; display: block; cursor: pointer; max-width: 100%; }
+  .bar { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; align-items: center; }
+  button { background: #342822; color: #eeeadc; border: 1px solid #765e4a; padding: 4px 9px; font: inherit; cursor: pointer; }
+  button:hover { background: #46362c; } button.go { background: #801c1c; border-color: #e8624a; font-weight: 600; }
+  #out { color: #ffe08a; margin-left: 8px; min-width: 200px; }
+  .cap { color: #999; font-size: 11px; margin: 4px 0 14px; }
+</style>
+<h1>Zodiac wheel</h1>
+<p>His wheel lying flat on the floor. The highlight stays put and the wheel turns under it. It holds its sign until it is set going.</p>
+<div class="bar"><button class="go" id="spin">SPIN</button><span id="signs"></span><span id="out"></span></div>
+<div id="stages"></div>
+<script>
+(function () {
+  var q = new URLSearchParams(location.search), Z = +q.get('z') || 3, BOTH = q.has('both');
+  var NAMES = { pisces: 'Pisces', aries: 'Aries', taurus: 'Taurus', gemini: 'Gemini', cancer: 'Cancer', leo: 'Leo', virgo: 'Virgo',
+    libra: 'Libra', scorpio: 'Scorpio', sagittarius: 'Sagittarius', capricorn: 'Capricorn', aquarius: 'Aquarius' };
+  var STONE = ['#161110', '#241c18', '#342822', '#46362c', '#5c4838', '#765e4a', '#94795f', '#b49a7c'];   // deep16/palette.json's stone
+  var HW = 32, HH = 16;
+  function load(name) {
+    return fetch('../deep16/art/' + name + '.json?v=' + Date.now()).then(function (r) { return r.json(); }).then(function (m) {
+      return new Promise(function (ok) { var im = new Image(); im.onload = function () { ok({ m: m, im: im }); }; im.src = '../deep16/' + m.image + '?v=' + Date.now(); });
+    });
+  }
+  function h2(x, y) { var h = Math.imul(x, 374761393) + Math.imul(y, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
+  // a floor of n x n squares, the stone ramp, a darker seam between squares
+  function floor(n) {
+    var c = document.createElement('canvas'); c.width = n * 64; c.height = n * 32 + 2;
+    var x = c.getContext('2d'), ox = n * HW;
+    for (var gy = 0; gy < n; gy++) for (var gx = 0; gx < n; gx++) {
+      var cx = ox + (gx - gy) * HW, cy = (gx + gy) * HH + HH, k = h2(gx, gy);
+      x.fillStyle = STONE[k < 0.3 ? 3 : k < 0.85 ? 4 : 5];
+      x.beginPath(); x.moveTo(cx, cy - HH); x.lineTo(cx + HW, cy); x.lineTo(cx, cy + HH); x.lineTo(cx - HW, cy); x.closePath(); x.fill();
+      x.strokeStyle = STONE[2]; x.lineWidth = 1; x.stroke();
+    }
+    return { c: c, center: function (gx, gy) { return { x: ox + (gx - gy) * HW, y: (gx + gy) * HH + HH }; } };
+  }
+  function stage(S, n) {
+    var fl = floor(n), cv = document.createElement('canvas'), m = S.m;
+    cv.width = fl.c.width; cv.height = fl.c.height;
+    cv.style.width = cv.width * Z + 'px';
+    var cap = document.createElement('div'); cap.className = 'cap';
+    cap.textContent = m.squares + ' squares across (' + m.squares * m.squares + ' tiles): ' + m.fw + ' x ' + m.fh + ' px a frame, ' + m.anims.spin.frames + ' spin + ' + m.anims.blur.frames + ' blur frames';
+    var wrap = document.getElementById('stages'); wrap.appendChild(cv); wrap.appendChild(cap);
+    var mid = (n - 1) / 2, at = fl.center(mid, mid);
+    var W = { S: S, cv: cv, x: cv.getContext('2d'), fl: fl, at: at, a: 0, spin: null };
+    cv.onclick = function () { go(null); };
+    return W;
+  }
+  function frameOf(W, speed) {         // the angle -> a frame; the blur row while it moves faster than 400 degrees a second
+    var m = W.S.m, f = ((Math.round(W.a / m.degPerFrame) % m.anims.spin.frames) + m.anims.spin.frames) % m.anims.spin.frames;
+    var row = speed > 400 ? m.anims.blur.row : m.anims.spin.row;
+    return { sx: (f % m.cols) * m.fw, sy: (row + Math.floor(f / m.cols)) * m.fh };
+  }
+  function draw(W, speed) {
+    var x = W.x, m = W.S.m, fr = frameOf(W, speed || 0);
+    x.clearRect(0, 0, W.cv.width, W.cv.height); x.drawImage(W.fl.c, 0, 0);
+    x.drawImage(W.S.im, fr.sx, fr.sy, m.fw, m.fh, W.at.x - m.ax, W.at.y - m.ay, m.fw, m.fh);
+  }
+  function restSign(W) { var m = W.S.m, k = ((Math.round(W.a / 30) % 12) + 12) % 12; return m.rest[k]; }
+  // a spin: a kick up to speed in a quarter second, then slowing to a stop on the target over the rest
+  function plan(W, target, turns, T) {
+    var m = W.S.m, k = m.rest.indexOf(target), want = 30 * k, from = W.a;
+    var d = ((want - from) % 360 + 360) % 360 + 360 * turns, t1 = 0.25;
+    var vmax = d / (t1 / 2 + (T - t1) / 3);
+    W.spin = { t0: performance.now() / 1000, from: from, d: d, T: T, t1: t1, vmax: vmax, target: target };
+  }
+  function step(W, now) {
+    var s = W.spin; if (!s) return 0;
+    var t = now - s.t0, T = s.T, t1 = s.t1, p, v;
+    if (t >= T) { W.a = (s.from + s.d) % 360; W.spin = null; return 0; }
+    if (t < t1) { p = s.vmax * t * t / (2 * t1); v = s.vmax * t / t1; }
+    else { var u = (T - t) / (T - t1); p = s.vmax * (t1 / 2 + (T - t1) / 3 * (1 - u * u * u)); v = s.vmax * u * u; }
+    W.a = s.from + p; return v;
+  }
+  var WS = [], out = document.getElementById('out');
+  function go(target) {
+    if (WS.some(function (W) { return W.spin; })) return;
+    var m = WS[0].S.m, pick = target || m.signs[Math.floor(Math.random() * 12)], turns = 3 + Math.floor(Math.random() * 2);
+    WS.forEach(function (W) { plan(W, pick, turns, 3.6); });
+    out.textContent = 'spinning...';
+  }
+  function tick() {
+    var now = performance.now() / 1000, moving = false;
+    WS.forEach(function (W) { var was = !!W.spin, v = step(W, now); draw(W, v); if (W.spin) moving = true; else if (was) out.textContent = 'rests on ' + NAMES[restSign(W)]; });
+    requestAnimationFrame(tick);
+  }
+  var names = ['zodiacwheel_p1'].concat(BOTH ? ['zodiacwheel3_p1'] : []);
+  Promise.all(names.map(load)).then(function (L) {
+    L.forEach(function (S) { WS.push(stage(S, S.m.squares + 2)); });
+    var m = L[0].m, box = document.getElementById('signs');
+    m.signs.forEach(function (s) { var b = document.createElement('button'); b.textContent = NAMES[s]; b.onclick = function () { go(s); }; box.appendChild(b); });
+    document.getElementById('spin').onclick = function () { go(null); };
+    out.textContent = 'rests on ' + NAMES[restSign(WS[0])];
+    window.WHEEL = { WS: WS, go: go, restSign: restSign };
+    requestAnimationFrame(tick);
+  });
+})();
+</script>
