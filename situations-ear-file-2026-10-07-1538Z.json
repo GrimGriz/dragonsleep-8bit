@@ -1,0 +1,70 @@
+{
+ "_readme": {
+  "what": "Playtest feedback from situations.html: one verdict and note a row -- an eyes row (js/eyes.js: built, not yet seen) or a story situation (?at=<id>, js/situations.js).",
+  "fold_back": "Fold only the items whose `at` is after `previous_save` (the rest went out in an earlier file). An eyes row noted at all is SEEN: a `seen` line in PATCHLOG.md with the note verbatim, and the row cut from js/eyes.js whatever the verdict (a fix that wants another look writes a fresh row). Broken and unclear become the fix list (in the lane its pt names); too hard / too easy are tuning; notes are the tester's words, verbatim."
+ },
+ "saved_at": "2026-10-07T15:38:50.967Z",
+ "previous_save": null,
+ "items": [
+  {
+   "id": "eyes-gameshow-afterwave-1007",
+   "eyes": true,
+   "pri": 1,
+   "title": "The Game Show after a wave: the token to the chest, chat, the bed; lanterns on the road (10-07)",
+   "pt": "the Game Show lane §11 (deep16/js/waves.js afterWave, gameshow.js GS.gather / tokenWalk / scatter) · eyes",
+   "url": "deep16/?gameshow&at=lamp&watch",
+   "verdict": "broken",
+   "note": "I know this is AI automated, so maybe it's not an issue - but I'm hoping for player (my) control after the token merge, and should probably trigger a lamp turn when they combine into party token\n\nparty wipe is good\nbest if they don't go for the lamp unless there's a party-wipe, but if you need them to go for it for the waves to work, disregard",
+   "at": "2026-10-07T15:36:33.803Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-oil-show",
+   "eyes": true,
+   "pri": 1,
+   "title": "Oil on a troll, then fire -- redrawn by your eye 10-06 (a beat on the Skylights show page)",
+   "pt": "the menus §2.7 · eyes",
+   "url": "deep16/?skyshow&only=oil,oildown",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-07T15:36:50.026Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-taunt-brace-1007",
+   "eyes": true,
+   "pri": 2,
+   "title": "Denny's Taunt braces him: every blow on him 4 less at 6th (10-07)",
+   "pt": "MPMon lane §6h (deep16/js/mpmon.js MP.tauntDR) · eyes",
+   "url": "deep16/?mpshow&lvl=6&only=taunt",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-07T15:37:30.533Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-rascal-size-1007",
+   "eyes": true,
+   "pri": 2,
+   "title": "Rascal at 80% of Denny, his walk from sheet 2 (10-07)",
+   "pt": "MPMon lane §4c (tools/rascal-sheet-p2.py) · eyes",
+   "url": "deep16/?mpshow&lvl=7&only=sharing,flame,distancing,spicy,hottake,viral",
+   "verdict": "works",
+   "note": "",
+   "at": "2026-10-07T15:38:01.804Z",
+   "new_since_last_save": true
+  },
+  {
+   "id": "eyes-bugbears-1007",
+   "eyes": true,
+   "pri": 2,
+   "title": "The bugbear and the bugbear chief, two looks from GPT's packed sheets (10-07)",
+   "pt": "the bestiary lane §4 (tools/bugbear-sheet.py) · eyes",
+   "url": "deep16/?show=bugbear,bugbearchief",
+   "verdict": "works",
+   "note": "looks good, they're a little short or the goblins a lil tall - save for 10/8 or later (post show)",
+   "at": "2026-10-07T15:38:47.891Z",
+   "new_since_last_save": true
+  }
+ ]
+}
