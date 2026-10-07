@@ -3572,6 +3572,8 @@
         okW('flow: wave 1 held, the XP fudged to the tier -- ' + JSON.stringify(SF.xp) + ' (want 139 each: 300 x 150 / 325)', h1 >= 0 && ['denny', 'beholda', 'rascal', 'goose'].every(function (k) { return SF.xp[k] === 139; }));
         var w2 = stepW(BF, function () { return SF.wi === 1 && SF.foes.length && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }) && BF.order.length > 5; }, 30000, weak);
         var fourW = BF.units.filter(function (u) { return u.mpmon; }), inOrd = fourW.filter(function (u) { return BF.order.indexOf(u) >= 0; });
+        var bedW = GSW.wave.bed, cotsW = GSW.wave.cots || [], bedOK = !!bedW && !!D.grid.map.at(bedW[0], bedW[1]) && D.grid.map.at(bedW[0], bedW[1]).walk && !cotsW.some(function (c) { return c[0] === bedW[0] && c[1] === bedW[1]; });
+        okW('flow: the bed ' + bedW + ' on the floor beside the cots (' + cotsW.join(' ') + ')', bedOK && cotsW.length === 3);
         okW('flow: the short rest (' + lg(BF, /SHORT REST/).length + '), then wave 2 rolls with all four back on the field and in the order (' + inOrd.length + ' of ' + fourW.length + ', ' + w2 + ' frames), its foes from both ends (' + SF.foes.map(function (u) { return u.kind + '@' + u.from0[0]; }).join(' ') + ')',
           w2 >= 0 && lg(BF, /SHORT REST/).length === 1 && fourW.length === 4 && inOrd.length === 4 && SF.foes.some(function (u) { return u.from0[0] === 0; }) && SF.foes.some(function (u) { return u.from0[0] === 82; }));
         var t2 = stepW(BF, function () { return SF.tier === 2 && SF.foes.length && SF.foes[0].id.indexOf('gs3-') === 0 && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }); }, 40000, weak);

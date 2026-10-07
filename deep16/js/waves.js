@@ -32,8 +32,8 @@
 
   // ------------------------------------------------------------------ the levers (nothing here is benched yet: his "all benching is pending")
   WV.CFG = {
-    bed: [35, 13],                                   // where the four meet at a rest's end (beside the cots, Third Lamp's south room)
-    cots: [[36, 13], [36, 14], [38, 14]],            // the cots that light (the 8-bit's `y`), and take his click
+    // (the cots are read off the map at the run's start -- its `y` squares, Third Lamp's three in the south room, drawn from his cot sheet by js/circles.js -- and
+    // the bed, where the four meet at a rest's end, is the floor square beside the first: a cot itself is not walked into. WV.cots, WV.bed)
     lampAC: 15, lampHP: function (tier) { return 40 + 20 * tier; },   // the lamp: 60 at tier 1 to 220 at tier 9, resisting everything (halved)
     stall: 40,                                       // rounds before a wave that cannot end is called (the rest of it melts back into the dark)
     // the road's own lamps, dim (the seat's lean, his to rule): Third Lamp is the 8-bit's dark map and past the tower's 30 ft the halls are black -- the goblins'
@@ -212,7 +212,7 @@
 
   // ------------------------------------------------------------------ the bed: the rest that is due, lit; his click takes it
   function* bedRest(B, S, kind) {
-    var st = B.gs, bed = WV.CFG.bed;
+    var st = B.gs, bed = WV.bed;
     st.mode = 'rest'; st.clicks = []; S.rest = { due: kind, t0: B.t };
     yield* B.camTo({ gx: bed[0], gy: bed[1], gz: 0 }, 1.25, W(30));
     D.sfx('popup');
@@ -221,7 +221,7 @@
       var ck = st.clicks.shift();
       if (ck) {
         var hit = WV.hit(ck), sq = !hit && D.iso.pick(ck.x, ck.y, 0);
-        if (hit === kind || (sq && WV.CFG.cots.some(function (c) { return c[0] === sq.x && c[1] === sq.y; })) || (sq && sq.x === bed[0] && sq.y === bed[1])) break;
+        if (hit === kind || (sq && WV.cots.some(function (c) { return c[0] === sq.x && c[1] === sq.y; })) || (sq && sq.x === bed[0] && sq.y === bed[1])) break;
       }
       if (S.auto && ++wait > W(90)) break;
       yield 1;
@@ -259,6 +259,10 @@
       ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q) };
     S.lampHP = S.lampMax = num('lamp') || WV.CFG.lampHP(S.tier);
     var st = B.gs; B.cine = false; st.mode = 'fight'; st.lock = null; st.clicks = [];
+    // the cots off the map (its `y` squares) and the bed, the floor beside the first of them
+    WV.cots = []; (G.map.def.rows || []).forEach(function (r, y) { for (var x = 0; x < r.length; x++) if (r.charAt(x) === 'y') WV.cots.push([x, y]); });
+    var c0 = WV.cots[0] || G.map.def.circle.at;
+    WV.bed = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1]].map(function (d) { return [c0[0] + d[0], c0[1] + d[1]]; }).filter(function (q) { var s = G.map.at(q[0], q[1]); return s && s.walk; })[0] || c0;
     WV.B = B; WV.S = S; W = (GS._ && GS._.W) || function (n) { return n; };
     // the run's start at a later tier (&tier=N): the four at that level, their XP at its threshold
     four(B).forEach(function (u) {
@@ -295,7 +299,7 @@
         yield* bedRest(B, S, last ? 'long' : 'short');
         if (GS.supplies) yield* GS.supplies(B, { tier: S.tier, wave: S.wi + 1, run: S }); // (the supplies' seat: the chest between waves -- the lane's §3 C)
         var n4 = four(B).length;
-        yield* GS.between(B, { bed: WV.CFG.bed });
+        yield* GS.between(B, { bed: WV.bed });
         // (all four back on the field and still before anyone rolls: the token's walk-out is the show's, js/gameshow.js)
         for (var g = 0; g < 600 && (four(B).length < n4 || four(B).some(function (u) { return u.tween || u.anim === 'walk'; })); g++) yield 1;
         lampUp(B, S);
@@ -336,7 +340,7 @@
   function restPanel(ctx, B, S) {
     var due = S.rest.due, pulse = 0.5 + 0.5 * Math.sin((B.t - S.rest.t0) / 8);
     // the cots lit: a glow on each, the due rest's colour
-    WV.CFG.cots.forEach(function (c) {
+    WV.cots.forEach(function (c) {
       var p = D.iso.center(c[0], c[1], G.map.gz(c[0], c[1])), s = D.iso.toScreen(p.x, p.y), z = D.iso.zoom;
       ctx.globalAlpha = 0.25 + 0.3 * pulse; ctx.fillStyle = due === 'long' ? P('gold', 4) : P('glow', 2);
       ctx.beginPath(); ctx.moveTo(s.x, s.y - 8 * z); ctx.lineTo(s.x + 16 * z, s.y); ctx.lineTo(s.x, s.y + 8 * z); ctx.lineTo(s.x - 16 * z, s.y); ctx.closePath(); ctx.fill();
