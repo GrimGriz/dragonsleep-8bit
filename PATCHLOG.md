@@ -4,6 +4,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · seen · MPMon · Goose and Rascal from the front and from behind, Goose's Group Hug and Lifeline (`eyes-fronts-1007`, cut) · *"everything in the pane eyed - love that lifeline comes from the heart - so great"*
+- 2026-10-07 · `98257e5` · MPMon · Goose and Rascal face S and N on rows of their own (his five GPT sheets), Goose's Group Hug and Lifeline on rows of their own; `tools/sheet-play.html?sheet=goose_p1&ref=denny_p3&face=0,4,6,2` · *Couldn't do it. Technically using gpt so the filenames are slightly different than expected - but there's 5 new sheets to work with in _src.*
 - 2026-10-07 · seen · the Game Show · The token walk between waves (`?gameshow&at=lamp`, the circle clicked) · *"i saw the token walk kinda, cam went south still - looked good from what i saw"*
 - 2026-10-07 · `4b645a9` · the Game Show · Seat 1: `deep16/?gameshow` -- the lighthouse title and idle (the 33 s wander and search), the jump in, Third Lamp's arrival (Ingrith's Ledger-Lamp, Pyro's charge), the token walk and the game over with high scores, handed to seat 2 by hooks · *"Monster Party Game Show / Scene 1 - Lobster Monkey Lighthouse"*
 - 2026-10-07 · ruled · the Game Show · The idle shot locked with the circle dead centre; Third Lamp's circle between the north and south rooms at (31, 8) (`4b645a9`) · *"center the circle in the middle middle and don't follow the characters with the cam on idle"* · *"the one in the lamp centered between north and south rooms"*
