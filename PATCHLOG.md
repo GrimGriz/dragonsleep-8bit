@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `c5cd66a` · the bestiary · The bugbear and the bugbear chief on looks of their own from his GPT sheets (`bugbear_p1`, `bugbearchief_p2`): Lurk till the first turn, the round-one Ambush, the javelin on its release; `deep16/?show=bugbear,bugbearchief` · *"Bugbear and chief"*
 - 2026-10-07 · `a682877` · the bestiary · The goblin redone from his four GPT sheets, `goblin_p2` (`tools/goblin-sheet.py`): side, tricks, front and back rows, Nimble Escape's hop, the arrow on the bow's release frame; `deep16/?show=goblin` · *"Should be GPT Goblins in _src"*
 - 2026-10-07 · `81180ad` `1e652a7` · the bestiary · The goblin's four sheet pastes, and the bugbear's four as one file for the generator (`deep16-art-bugbear.md`) · *"Redoing goblins while we have an expanded art department"* · *"try me the bugbear as an .md with all the sheets listed"*
 - 2026-10-07 · `0771b7c` · MPMon · The Mascot gallery's card as a scrollable column down the left, its foes the spell gallery's normies (every score 8, AC 10, 100 HP), and the Game Show's TUTORIAL toggle on the title: Denny's kit walked on the lighthouse floor before the jump in (`D.mpgallery.walk`) · *"Please make the giant info box left adjusted scrollable column - hard to see moves"* · *"soften like the spell gallery"* · *"build for denny as test"*
