@@ -4,6 +4,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `2b80107` · MPMon · The gallery's up/down the level takes the old level's four off the floor (the new check in `mode=mpgallery1007` RED on the old file: one Denny, then two, then three) · *"Gallery is broken, up-downing levels doesn't despawn previous"*
+- 2026-10-07 · seen · MPMon · The Mascot gallery, walked through (`eyes-mpgallery-1007`, cut): his notes on every kit are the MPMon lane §6g · *"Gonna type Gallery feedback here"*
 - 2026-10-07 · `57ae894` · the Game Show · The tutorial's second cut, Denny's lesson (`deep16/js/gstutorial.js`): his lines in a box, then a real turn on the game's own ring clicked by a ghost of the mouse (the walk, TAUNT off SKILLS, ATTACK, END TURN, DENIM DAMAGE aimed at the hobgoblin); `mode=gstutorial1007` in the gate · *"i should see text like the lines Pyro and Ingrith give from Denny about his ability and when to use it, then the wheel popup - highlight - like you click it - show the cursor moving to the target"*
 - 2026-10-07 · `a00127a` · the Game Show · The stream's log (a Sonnet runner's): `&stream` or any `?gameshow` page -- no dice lines, a heal one line of names and green numbers, the AI's pace at 2.5 · *"under the group hug line, all 3 names and green HP numbers on one line"*
 - 2026-10-07 · `57ae894` · the Game Show · The supplies drafted for his picks as one table, `deep16-gameshow-supplies.md` (two Sonnet runners; nothing built) · *"might have sonnet runners invent them..."*
