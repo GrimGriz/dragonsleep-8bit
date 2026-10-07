@@ -4,6 +4,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `6d9b329` · the Game Show · Third Lamp's east hall opens into a cavern past the station, the road dressed stone through it to the causeway · *"while the road has to go all the way, the hallway can end/widen right after 3rd lamp (become cavernous instead of worked stone)"*
+- 2026-10-07 · `53fb12a` `5677eea` · MPMon · The Mascots' AI, the second stab (MP.AI2): the bubble raised as they come and stepped under before acting, Denny holding the front till it is up and taunting off her, the eye with the gaze by action, the honk, Rascal's hide, potions, Ready or Dodge for a Dash alone; the show bench's downs 27 to 14 over four runs · *"shield up, everyone under it"* · *"Denny would position in hallway for AOO of people and wait for beholda to bring the bubble up"*
 - 2026-10-07 · `01ff082` · MPMon · A Mascot reads "mascot 5" beside its level on every screen (the class id stays mpmon) · *"they show mpmon 5 or whatever ingame"*
 - 2026-10-07 · `126df8c` · the Game Show · A run saves under its own group, held from its start (it read the stored name each wave: found loading GANGOF4's save) · *"better to test loading with it?"*
 - 2026-10-07 · ruled · the Game Show · A game over keeps the group's save, so CONTINUE tries that wave again · *"yeah, that'd be courteous of us"*
