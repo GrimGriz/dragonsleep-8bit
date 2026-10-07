@@ -4,6 +4,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `740d01f` · the Game Show · After the stream, from his play record: the bed names only the armour still worn (it said Rascal wore a piece he had swapped off), and no "the The VNA Amulet" · *"Nothing crashed during the stream. Good work."*
+- 2026-10-07 · seen · the Game Show · The supplies on the stream: tier 1 and tier 4 sends, chat's choices at the chest, the epic amulet at 100 to Goose (his play record; `eyes-gameshow-supplies-1007` cut) · *"Nothing crashed during the stream. Good work."*
 - 2026-10-07 · ruled · the grid's rules · Cover for attacks stays the SRD's: any creature in the line, friend or foe, is half cover; "a size larger" is for hiding only · *"SRD the Cover, just the first time I noticed it"*
 - 2026-10-07 · `b6e68ec` · the house · `mode=gsrun1007`: a whole Game Show run on `&auto` as a bench, per wave and per Mascot; not in the gate · *"run gameshow as a bench please"* · *"don't run the bench til there's a different stab at the lobstamonkee AI script"*
 - 2026-10-07 · `8dffe40` · the Game Show · The east way in a square short of the map's edge: a Large foe walks in at once, where it waited out the walk-in's guard (about 20 seconds) · *"they appear and they do just fine on the north, on the south takes several seconds"*
