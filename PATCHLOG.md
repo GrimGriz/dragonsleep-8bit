@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `f7708bd` · the menus · Armour never changes in a fight, by the SRD: the ladder's ARMOUR OFF and WEAR cut, and every `?fight=` door's with them; the ARMOR row says "Armour: not in a fight." · *"1 - SRD everywhere 2 - (not in a fight) is plenty"* · *"I suspect my ladder exception was prior to the camp or an oversight"*
 - 2026-10-07 · `022cb81` · the menus · On the grid's menu what can be done now is lit in its cost's colour -- the action yellow, the bonus action blue, free white -- and the box under the entries says which is which · *"can we color the actions actually available by their cost, bonus blue, action yellow and say something like that there?"*
 - 2026-10-07 · ruled · the menus · The one sentence for an empty place stands: "Nothing in the pack Barley can put there in this fight." · *"1 - yes"*
 - 2026-10-07 · ruled · the menus · MAGIC from the menu casts at the slot the ring starts at; upcasting stays the ring's · *"2 - yes"*
