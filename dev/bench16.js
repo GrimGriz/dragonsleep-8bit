@@ -1392,6 +1392,88 @@
     document.body.appendChild(preK);
     return;
   }
+  // the goblin's Hide (mode=goblinhide1007; 10-07, Griz: "4 yes", the bestiary lane's item: SRD 5.1 Nimble Escape, "the Disengage or Hide action as a bonus action on each of its turns" -- the
+  // grid had built the Disengage only): a goblin out of reach of the party shoots, then Hides with its BONUS (its action stays the shot's) where no foe's watch would find it, or steps to such
+  // a square within the move it has left; one beside a hero still Disengages and does not hide; no second Hide in a turn, none restrained; the sheet's hide row plays at the Hide and the drawn
+  // row holds its last frame while it stays hidden (js/ui.js). Failed on the code before it (a byte-exact swap of js/traits.js, battle.js and data/foes.js, the CLAUDE.md way). D.d pinned:
+  // n === 20 gives the d20 asked, any other die its top face
+  if (get('mode', '') === 'goblinhide1007') {
+    var repH = { checks: [], errors: [] }, d0H = D.d, iso0H = D.iso.inWorld, GH = D.grid;
+    function okH(what, v) { repH.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function runH(g) { var v, k = 0, st; while (g && k++ < 6000) { st = g.next(v); v = undefined; if (st.done) return st.value; if (st.value && st.value.prompt) v = st.value.prompt.opts[0].value; } }
+    function mkH(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; return Bx; }
+    function sideH(Bx, s) { return Bx.units.filter(function (u) { return u.side === s; }); }
+    function logH(Bx, n) { return (Bx.log || []).slice(n).join(' | '); }
+    function pinH(d20) { D.d = function (n) { return n === 20 ? d20 : n; }; }
+    // a goblin and a hero on the class floor at the squares given (the hero unhurt, facing as asked; the goblin's turn fresh)
+    function setH(q, gx, gy, hx, hy, face) {
+      var Bx = mkH(q), g = sideH(Bx, 'foe')[0], h = sideH(Bx, 'party')[0];
+      h.hp = h.maxhp = 400; h.conds = {}; h.reaction = 1; h.x = hx; h.y = hy; h.facing = face; g.hp = g.maxhp = 400; g.conds = {}; g.x = gx; g.y = gy; g.facing = 3;
+      D.rules.startTurn(g); Bx.active = g; return { B: Bx, g: g, h: h };
+    }
+    function watchH(Bx, h, g) { var n = Bx.nearOf(h, g); return n && n.bonus ? n.bonus : 0; }
+    try {
+      D.iso.inWorld = true; D.seed = 1007;
+      var KH = D.FOES.goblin;
+      okH('the sheet carries it: nimble ' + KH.nimble + ', Stealth +' + KH.stealth + ' (SRD 5.1 Skills), a hide row ' + !!D.spr.anim(KH.sheet, 'hide') + ', four frames at ' + (D.spr.anim(KH.sheet, 'hide') || {}).fps + ' fps',
+        KH.nimble === true && KH.stealth === 6 && !!D.spr.anim(KH.sheet, 'hide'));
+      // 1. out of reach of the party, a hiding place: the turn's walk and shot as ever, then the Hide with the bonus action where it stands (the hero faces away: no watch over it)
+      var S1 = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B1 = S1.B, g1 = S1.g, h1 = S1.h, T1 = g1.turn;
+      pinH(20); var n1 = (B1.log || []).length; runH(D.ai.turn(B1, g1)); D.d = d0H; var l1 = logH(B1, n1), T1b = g1.turn;
+      var iShot1 = l1.search(/Goblin[^|]*(Shortbow|shortbow|shoots|looses)|Shortbow/), iHide1 = l1.indexOf('Goblin hides');
+      okH('1: out of reach, it shot (' + (iShot1 >= 0) + ') and then hid (' + (iHide1 > iShot1) + '): hidden ' + !!g1.conds.hidden + ', the bonus spent ' + (T1b.bonus === 0) + ', the action spent on the shot ' + (T1b.action === 0) + ', at (' + g1.x + ',' + g1.y + ') -- ' + l1.slice(0, 260),
+        iShot1 >= 0 && iHide1 > iShot1 && !!g1.conds.hidden && T1b.bonus === 0 && T1b.action === 0 && !!T1b.hid);
+      // 2. one the hero reaches (it closes and strikes) Disengages with the bonus action, and does not hide
+      var S2 = setH('?npc=goblin&lvl=5&vs=fighter:5', 8, 10, 3, 10, 7), B2 = S2.B, g2 = S2.g;
+      pinH(20); var n2 = (B2.log || []).length; runH(D.ai.turn(B2, g2)); D.d = d0H; var l2 = logH(B2, n2), T2 = g2.turn;
+      okH('2: beside a hero it Disengages: darts back ' + /darts back/.test(l2) + ', disengaged ' + !!T2.disengaged + ', the bonus spent ' + (T2.bonus === 0) + '; no Hide ' + (!/hides/.test(l2) && !g2.conds.hidden && !T2.hid) + ' -- ' + l2.slice(0, 220),
+        /darts back/.test(l2) && !!T2.disengaged && T2.bonus === 0 && !/hides/.test(l2) && !g2.conds.hidden && !T2.hid);
+      // 2b. beside a hero with no move left (nothing to Disengage by): it does not Hide either -- nowhere to hide with a foe beside it -- and the bonus action stays unspent
+      var S2b = setH('?npc=goblin&lvl=5&vs=fighter:5', 4, 10, 3, 10, 7), B2b = S2b.B, g2b = S2b.g; g2b.turn.move = 0; g2b.turn.action = 0;
+      var n2b = (B2b.log || []).length; pinH(20); runH(D.traits.after(B2b, g2b)); D.d = d0H;
+      okH('2b: beside a hero, no move left: no Hide (' + !g2b.conds.hidden + '), the bonus action still its own (' + (g2b.turn.bonus === 1) + ') -- ' + logH(B2b, n2b).slice(0, 120), !g2b.conds.hidden && g2b.turn.bonus === 1 && !/hides/.test(logH(B2b, n2b)));
+      // 3. in the hero's cone with move left (after its turn's blow): a step to a square no foe's watch reaches, by a way that never brushes the hero's reach -- and the Hide, the bonus, never the action
+      var S3 = setH('?npc=goblin&lvl=5&vs=fighter:5', 5, 10, 3, 10, 7), B3 = S3.B, g3 = S3.g, h3 = S3.h, T3 = g3.turn; T3.action = 1; T3.move = 30;
+      var w3 = watchH(B3, h3, g3), x3 = g3.x, y3 = g3.y, near3 = Infinity; pinH(20); var n3 = (B3.log || []).length; runH(D.traits.after(B3, g3)); D.d = d0H;
+      var l3 = logH(B3, n3), w3b = watchH(B3, h3, g3); near3 = GH.dist(g3, h3);
+      okH('3: in the cone (watch +' + w3 + ') with move left, it stepped (' + x3 + ',' + y3 + ') to (' + g3.x + ',' + g3.y + '), now watched +' + w3b + ', ' + near3 + ' ft off, and hid: hidden ' + !!g3.conds.hidden + ', the bonus spent ' + (T3.bonus === 0) + ', its action untouched ' + (T3.action === 1) + ', the move paid ' + (T3.move < 30) + ' -- ' + l3.slice(0, 220),
+        w3 > 0 && (g3.x !== x3 || g3.y !== y3) && w3b === 0 && near3 > 5 && !!g3.conds.hidden && T3.bonus === 0 && T3.action === 1 && T3.move < 30);
+      // 3b. the same in the cone with no move left: no square to step to, and a Hide that could not take is not tried
+      var S3b = setH('?npc=goblin&lvl=5&vs=fighter:5', 5, 10, 3, 10, 7), B3b = S3b.B, g3b = S3b.g; g3b.turn.action = 0; g3b.turn.move = 0;
+      var n3b = (B3b.log || []).length; pinH(20); runH(D.traits.after(B3b, g3b)); D.d = d0H;
+      okH('3b: in the cone, no move left: not tried (hidden ' + !!g3b.conds.hidden + ', the bonus unspent ' + (g3b.turn.bonus === 1) + ')', !g3b.conds.hidden && g3b.turn.bonus === 1 && !/hides/.test(logH(B3b, n3b)));
+      // 4. one Hide to a turn: a Hide already made this turn (the lost-to-every-eye re-hide in ai.js, failed) is not made again; hidden already, nor; held fast (restrained), nor
+      var S4 = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B4 = S4.B, g4 = S4.g; g4.turn.hid = true; g4.turn.action = 0;
+      var n4 = (B4.log || []).length; pinH(20); runH(D.traits.after(B4, g4)); D.d = d0H;
+      var S4b = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B4b = S4b.B, g4b = S4b.g; g4b.turn.action = 0; g4b.conds.restrained = { by: 'x' };
+      var n4b = (B4b.log || []).length; pinH(20); runH(D.traits.after(B4b, g4b)); D.d = d0H;
+      var S4c = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B4c = S4c.B, g4c = S4c.g; g4c.turn.action = 0;
+      pinH(20); runH(D.traits.after(B4c, g4c)); var firstH = !!g4c.conds.hidden, nH = (B4c.log || []).length; g4c.turn.bonus = 1; runH(D.traits.after(B4c, g4c)); D.d = d0H;
+      okH('4: a Hide already made this turn is not made again (' + !g4.conds.hidden + ', the bonus unspent ' + (g4.turn.bonus === 1) + '); held fast, it does not hide (' + !g4b.conds.hidden + '); already hidden, it does not hide twice (first ' + firstH + ', no new card ' + ((B4c.log || []).length === nH) + ')',
+        !g4.conds.hidden && g4.turn.bonus === 1 && !/hides/.test(logH(B4, n4)) && !g4b.conds.hidden && g4b.turn.bonus === 1 && firstH && (B4c.log || []).length === nH);
+      // 5. the Hide is the bonus action by the trait, whatever the level (battle.js hide: `u.nimble`); a foe with no such trait at level 1 still pays the action (the SRD's Hide action)
+      var S5 = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B5 = S5.B, g5 = S5.g; g5.lvl = 1; pinH(20); runH(B5.hide(g5)); D.d = d0H;
+      var S5b = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B5b = S5b.B, g5b = S5b.g; g5b.lvl = 1; g5b.nimble = false; pinH(20); runH(B5b.hide(g5b)); D.d = d0H;
+      okH('5: at level 1 a nimble one hides by the bonus (bonus ' + g5.turn.bonus + ', action ' + g5.turn.action + '); one with no Nimble Escape pays the action (bonus ' + g5b.turn.bonus + ', action ' + g5b.turn.action + ')', g5.turn.bonus === 0 && g5.turn.action === 1 && g5b.turn.bonus === 1 && g5b.turn.action === 0);
+      // 6. the hide row: the engine sets it at the Hide (the attempt too -- a Hide that fails stands up again), the figure drawn plays it once, then holds its last frame while hidden
+      var S6 = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B6 = S6.B, g6 = S6.g, hr6 = D.spr.anim(g6.sheet, 'hide'), dur6 = D.spr.duration(g6.sheet, 'hide');
+      pinH(20); runH(B6.hide(g6, true)); D.d = d0H;
+      var t6 = B6.t, ok6 = g6.anim === 'hide' && g6.animT === B6.t, cv6 = document.createElement('canvas'); cv6.width = 640; cv6.height = 480; var cx6 = cv6.getContext('2d'), sh = {};
+      function shot6(when, anim) { g6.anim = anim; B6.t = t6 + when; var o = D.ui.unitObj(B6, g6); o.draw(cx6); return o.shown || {}; }
+      // (animT is the battle's t at the Hide: the row is read from it) just after: the row playing, once; the turn ended, idle, hidden, long after: the last frame held
+      g6.animT = B6.t = t6; sh.play = shot6(5, 'hide'); sh.held = shot6(dur6 + 40, 'idle'); sh.heldLong = shot6(dur6 + 4000, 'idle');
+      delete g6.conds.hidden; sh.found = shot6(dur6 + 40, 'idle'); g6.conds.hidden = true; var walk6 = shot6(dur6 + 40, 'walk');
+      okH('6: the engine sets the hide row at the Hide (' + ok6 + '); drawn: playing ' + sh.play.anim + ' once ' + sh.play.once + '; hidden and idle, held on ' + sh.held.anim + ' frame ' + sh.held.frame + ' (of ' + hr6.frames + '), long after on ' + sh.heldLong.anim + ' frame ' + sh.heldLong.frame + '; found, standing ' + sh.found.anim + '; a hidden one that walks shows the walk (' + walk6.anim + ')',
+        ok6 && sh.play.anim === 'hide' && sh.play.once === true && sh.held.anim === 'hide' && sh.held.frame === hr6.frames - 1 && sh.heldLong.anim === 'hide' && sh.heldLong.frame === hr6.frames - 1 && sh.found.anim === 'idle' && walk6.anim === 'walk');
+      // 7. the show's door: ?show=goblin wants the hide row now (twice), and its beat plays it through the engine's Hide
+      okH('7: the show wants the goblin\'s hide row: ' + (D.show.wanted(KH.sheet, 'goblin').indexOf('hide') >= 0), D.show.wanted(KH.sheet, 'goblin').indexOf('hide') >= 0);
+    } catch (eH) { repH.errors.push(String(eH && eH.stack || eH).slice(0, 900)); }
+    D.d = d0H; D.iso.inWorld = iso0H;
+    if (errs.length) repH.errors = repH.errors.concat(errs);
+    var preH = document.createElement('pre'); preH.id = 'out'; preH.textContent = 'BENCH16 ' + JSON.stringify(repH);
+    document.body.appendChild(preH);
+    return;
+  }
   // the grid's rules lane, built whole (mode=rules1006; 10-06, Griz: "take the grid's rules lane whole"; handoff-2026-10-04-the-grids-rules.md): each check failed on the code
   // before it (a byte-exact swap of the old files, the CLAUDE.md way). D.d pinned where a roll would make it dice: n === 20 gives the d20 asked, any other die its top face
   if (get('mode', '') === 'rules1006') {

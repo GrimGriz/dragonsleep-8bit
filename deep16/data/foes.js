@@ -699,7 +699,7 @@
       scimitar: { name: 'Scimitar', atk: 4, dice: '1d6', mod: 2, type: 'slashing', reach: 5 },
       shortbow: { name: 'Shortbow', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [80, 320], ranged: true }
     },
-    multi: 1, nimble: true, src: 'SRD 5.1 Goblin (CR 1/4); content/monsters.json goblin (the king\'s road, leg one); Nimble Escape: Disengage for the bonus action, and a step back (js/traits.js, 09-28); the Shortbow +4 1d6+2 80/320 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
+    multi: 1, nimble: true, stealth: 6, src: 'SRD 5.1 Goblin (CR 1/4); content/monsters.json goblin (the king\'s road, leg one); Nimble Escape: Disengage for the bonus action, and a step back (js/traits.js, 09-28), and the Hide for the bonus action (js/traits.js after, Stealth +6 -- SRD 5.1 Skills; 10-07, Griz: "4 yes"; its sheet\'s hide row plays: js/ui.js, battle.js hide); the Shortbow +4 1d6+2 80/320 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   bugbear: {
     name: 'Bugbear', type: 'humanoid', sheet: 'bugbear_p1', cr: '1', ac: 16, hp: 27, speed: 30, size: 1, reach: 5, darkvision: 60,

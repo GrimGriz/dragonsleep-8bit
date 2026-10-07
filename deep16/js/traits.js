@@ -137,6 +137,32 @@
         yield* AI.walkTo(B, u, pick);
       }
     }
+    // Nimble Escape's other half (SRD 5.1 Goblin: "the Disengage or Hide action as a bonus action on each of its turns"; 10-07, Griz: "4 yes" -- the Disengage above was all the grid read
+    // of it): the bonus action still its own, no foe beside it (the Disengage is for that), not hidden already, no Hide yet this turn (battle.js T.hid: the lost-to-every-eye re-hide in
+    // ai.js may have taken it), it Hides -- where it stands if no foe's watch would find it, else a step first: the move it has left, the nearest square that does hold, by a way that
+    // brushes no foe's reach, and then the Hide. "Holds" is the Hide's own question (battle.js nearOf, a foe's passive Perception and the bonus of its watch against the Stealth roll)
+    // read at an average roll, as the class rogue's cover play reads it (tactics.js): it is not tried where it could not take. The BONUS, never the action (B.hide's `bonus`) -- and
+    // after the turn's blow, so a goblin that shot is out of sight for the answer, and a hit from hiding gives it away again (battle.js attack: a foe that strikes from hiding is seen)
+    if (u.nimble && T.bonus > 0 && !T.hid && !u.conds.hidden && !u.conds.restrained && !u.conds.dancing && !u.conds.faerie && !u.ethereal && !G.foesNear(u, u.x, u.y, 5).length) {
+      var seers = B.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); });
+      if (seers.length && !seers.some(function (w) { return w.mirrorEye; })) { // (nothing hides in front of the Mirror's eye: the Hide would only fail)
+        var holds = function () { return seers.every(function (w) { var n = B.nearOf(w, u); return !n || !n.bonus || w.perception + (w.twoHeads ? 5 : 0) + n.bonus <= u.stealth + 10; }); }, spot = null;
+        if (!holds() && T.move > 0) {
+          var rmH = G.reach(u, T.move), ox = u.x, oy = u.y;
+          var cand = Object.keys(rmH).map(function (k) { return rmH[k]; }).filter(function (e) { return e.stand && (e.x !== ox || e.y !== oy); }).sort(function (a, b) { return a.cost - b.cost; });
+          for (var ci = 0; ci < cand.length && !spot; ci++) {
+            var ce = cand[ci], way = G.path(rmH, ce.x, ce.y);
+            if (!way || way.some(function (p) { return G.foesNear(u, p[0], p[1], 5).length; })) continue; // (never through a foe's reach: that is an opportunity attack the Hide was to avoid)
+            u.x = ce.x; u.y = ce.y;
+            try { if (!G.foesNear(u, ce.x, ce.y, 5).length && holds()) spot = ce; } finally { u.x = ox; u.y = oy; }
+          }
+        }
+        if (spot || holds()) {
+          if (spot) { B.card(['{r}' + Nm(B, u) + '{/} slips out of their watch.  {g}(Nimble Escape){/}'], 160); yield* AI.walkTo(B, u, spot); }
+          if (!u.dead && u.hp > 0) yield* B.hide(u, true);
+        }
+      }
+    }
   };
 
   // ------------------------------------------------------------------ the gibbering mouther (SRD 5.1; 10-06, Griz: "SRD what you can" -- it was a stun on a recharge, the 8-bit's

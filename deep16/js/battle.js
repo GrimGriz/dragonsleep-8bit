@@ -2996,9 +2996,12 @@
       delete w.conds.hidden; delete w.hidTotal; self.card(['{o}' + nameOf(o) + ' finds ' + nameOf(w) + '.{/}  {g}(' + why + '){/}'], 200);
     });
   };
-  Battle.prototype.hide = function* (u) {
+  // (`bonus`: the Hide is this one's bonus action by a trait of its own -- the goblin's Nimble Escape, js/traits.js after: SRD 5.1, "the Disengage or Hide action as a bonus action
+  // on each of its turns" -- and never reads its level for it. T.hid: one Hide to a turn, whichever action paid it -- 10-07, Griz: "4 yes")
+  Battle.prototype.hide = function* (u, bonus) {
     var T = u.turn;
-    if (T.bonus > 0 && (u.lvl >= 2 || u.cunning)) T.bonus = 0; else T.action = 0; // Cunning Action from level 2 (or a stat block's: the Spy); the Hide action before
+    if (T.bonus > 0 && (bonus || u.nimble || u.lvl >= 2 || u.cunning)) T.bonus = 0; else T.action = 0; // Cunning Action from level 2 (or a stat block's: the Spy; the goblin's Nimble Escape); the Hide action before
+    T.hid = true;
     D.sfx('run');
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)
     var mirror = foes.filter(function (w) { return w.mirrorEye && G.los(w, u).clear && D.magic.inMirror(self, w, u); }); // (the Mirror's eye: no hiding before it, in light)
@@ -3019,9 +3022,11 @@
       var rr = { t: total, r: r }, why = '';
       foes.forEach(function (w) { if (!why) why = self.spots(w, u, rr) || ''; });
       var ok = !why && !u.conds.faerie; // (faerie: outlined in violet light, nowhere to hide)
-      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage){/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + (ok ? '  {n}HIDDEN{/}' : '  {o}SEEN{/}'), ok ? '{g}Out of every foe\'s watch, or not seen in it; her next attack has advantage (and Sneak Attack).{/}' : why ? '{g}' + why + '.{/}' : '']);
+      this.card(['{y}' + u.name + '{/} hides: Stealth d20 ' + r + (supreme ? ' {n}(supreme sneak: advantage){/}' : '') + (!supreme && hadv !== hdis ? (hadv ? ' {n}(advantage: ' + ce.adv.join(', ') + '){/}' : ' {o}(disadvantage: ' + ce.dis.join(', ') + '){/}') : '') + ' ' + RU.sign(u.stealth) + (gd ? ' {c}+' + gd + ' guidance{/}' : '') + ' = ' + total + (ok ? '  {n}HIDDEN{/}' : '  {o}SEEN{/}'), ok ? '{g}Out of every foe\'s watch, or not seen in it; ' + u.name + '\'s next attack has advantage' + (u.cls === 'rogue' || u.sneak ? ' (and Sneak Attack)' : '') + '.{/}' : why ? '{g}' + why + '.{/}' : '']);
       if (ok) u.conds.hidden = true; else delete u.hidTotal;
     }
+    // a sheet's own hide row (the goblin's crouch behind its shield, 10-07): played at the Hide, held while it stays hidden (js/ui.js) -- the row is the try, so a Hide that fails stands up again
+    if (D.spr.anim(u.sheet, 'hide')) { u.anim = 'hide'; u.animT = this.t; }
     yield 30;
   };
 

@@ -72,9 +72,9 @@
     var ks = Object.keys(d.attacks || {});
     return ks.length > 0 && ks.every(function (k) { var a = d.attacks[k]; return a.spell || sh.anims[String(a.name || k).toLowerCase().replace(/[^a-z]/g, '')]; });
   };
-  // (a climb row is not wanted here: the test ground is flat, nothing to climb -- it plays on a face or a rope, js/ui.js; the troll's and the stone giant's, 10-04;
-  // nor a hide row: nothing plays it till the creature's Hide is built -- the goblin's, 10-07; tools/sheet-play.html shows it)
-  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb' && r !== 'hide'; }); };
+  // (a climb row is not wanted here: the test ground is flat, nothing to climb -- it plays on a face or a rope, js/ui.js; the troll's and the stone giant's, 10-04.
+  // A hide row is: the goblin's Hide is built since 10-07 -- the AI's own after its turn, and the director's beat below where it has not shown it twice)
+  SH.wanted = function (sheet, kind) { var fb = SH.fallback(sheet, kind); return SH.rowsOf(sheet).filter(function (r) { return !(fb && r === 'attack') && r !== 'climb'; }); };
   // has it shown every row it has (but its death)?
   function shown(u) { return SH.wanted(u.sheet, u.kind).every(function (r) { return r === 'hurt' || (u.showSeen || {})[r]; }); }
 
@@ -119,6 +119,17 @@
         B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its ' + String(ra.name || rk).toLowerCase() + ' yet. One at ' + tw.name + ', to see it.'], 200);
         yield* B.attack(u, tw, ra); u.anim = 'idle';
       }
+    }
+    // one with a hide row it has not shown twice by the end of its second turn (the goblin's crouch behind its shield, 10-07): its Hide through the engine's own Battle.hide -- the
+    // bonus action, the d20 pinned to a 20 and its Stealth lifted past what any watcher's eyes could beat (the human rogue's passive Perception 18 and the front's +11 stood at 29 on
+    // the first run: the dice must bring a Hide that holds, so that the row is seen held) -- one it already holds from the AI's own Hide is let go first (the watchers looked), and
+    // one the AI hid this turn is not hidden again. The row is held while it stays hidden (js/ui.js); a watcher's Search or a blow at it ends it
+    if (D.spr.anim(u.sheet, 'hide') && ((u.showSeen || {}).hide || 0) < 2 && u.showTurns >= 2 && u.turn && !u.turn.hid && RU.canAct(u) && !u.conds.prone && u.hp > 0) {
+      delete u.conds.hidden; delete u.hidTotal; u.turn.bonus = 1;
+      B.card(['{c}THE SHOW{/}: the ' + u.name + ' has not shown its hide yet. Its Hide, the d20 pinned, a Stealth no watcher beats, to see it held.'], 200);
+      var d0 = D.d, st0 = u.stealth; D.d = function (n) { return n === 20 ? 20 : d0.apply(this, arguments); }; u.stealth = 40;
+      try { yield* B.hide(u, true); } finally { D.d = d0; u.stealth = st0; }
+      u.anim = 'idle'; u.animT = B.t;
     }
     // one no one has hit by the end of its second turn (the watchers fight what is nearest; a roper stays back): a stone flung at it, through
     // the engine's own hurt, to see it flinch
