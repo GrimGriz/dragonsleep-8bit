@@ -4,6 +4,9 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `6940c08` · MPMon · The Mascots benched against the story party (`deep16-mascot-bench.md`): the band 0-2 of 20 at levels 1-8, 13 of 20 at 9; the class floor replays a bench fight by `&seed=`; Barley as himself in the Cocoon Gallery · *"Bench them vs the story party please"*
+- 2026-10-07 · ruled · MPMon · Barley plays himself in the Cocoon Gallery, no longer Denny · *"Denny has his own thing and isn't just a cameo anymore"*
+- 2026-10-07 · ruled · MPMon · S and N play the side rows for every Mascot move · *"fine enough, plenty else to do"*
 - 2026-10-07 · `d48f85a` · MPMon · Rascal at 80% of Denny (about 42 at rest to his 53), his walk from sheet 2, `rascal_p1` and its cutter gone; `?mpshow&lvl=7&only=sharing,flame,distancing,spicy,hottake,viral` · *"much more feasible Denny is the group's tank"*
 - 2026-10-07 · seen · MPMon · Rascal's `rascal_p2` at 63 px (`eyes-rascal-p2-1007`, cut) · *"he is a little large for the squishy DPS"*
 - 2026-10-07 · ruled · MPMon · `rascal_p1` retired with its cutter, `tools/rascal-sheet.py` · *"1 just from glancing while you were building, the invisible hat one has no further purpose"*
