@@ -4,6 +4,12 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `ef90506` · MPMon · The Mascot bench rerun at 1-9 after the walk-through's rules, now counting what each Mascot's action and bonus specials go to (`deep16-mascot-bench.md`): the band 0-5 of 20 at every level, 9th's spike gone with the once-a-fight Hivemind; Beholda splits her actions after 5th, Spotlight the most at 7-9 · *"Bench Lobstamonkees vs story party 1-9"*
+- 2026-10-07 · seen · MPMon · His walk-through's rules in the show beats, `?mpshow&lvl=5&only=bubble,gaze,taunt` (`eyes-mascot-rules-1007`, cut) · *"Approved for benching."*
+- 2026-10-07 · ruled · MPMon · Baleful Gaze's AC ladder stands for the bench as the seat drafted it: 1, then 2 at 3rd, 3 at 6th, 4 at 9th (`MP.gazeAC`) · *"Approved for benching."*
+- 2026-10-07 · seen · MPMon · The gallery's level change leaves one of each Mascot on the floor (`eyes-mpgallery-levels-1007`, cut) · *"Check"*
+- 2026-10-07 · seen · the Game Show · The end with a villain: the walk to the lamp, GAME OVER, the scores (`eyes-gameshow-end-1007b`, cut) · *"Looks great."*
+- 2026-10-07 · seen · the Game Show · The stream's log, its two calls kept as built: a heal prints what was rolled, damage prints no type (`eyes-stream-log-1007`, cut) · *"Looks good."*
 - 2026-10-07 · `99b3b98` · the bestiary · The goblin's Hide (a Sonnet runner's): Nimble Escape's other half, the bonus action after its blow, a step out of the watch first if it needs one, its crouch held while hidden; Stealth +6 · *"4 yes"*
 - 2026-10-07 · `b4354ec` · the Game Show · The run goes on past the ninth tier: tier 10 and up are tier 9's waves with one more of each wave's smallest kind a tier, till the lamp goes out; THE LAMP HOLDS cut · *"3 keep going"*
 - 2026-10-07 · ruled · the Game Show · The road's dim lamps stay (`WV.CFG.roadLight`); tier 1's weight at level 1 waits on the bench · *"1 - keep, 2 bench"*
