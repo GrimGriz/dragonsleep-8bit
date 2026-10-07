@@ -148,7 +148,7 @@
     src: 'content/monsters.json bugbearchief (game-original from SRD 5.1 pieces: the Bugbear, two attacks); Surprise Attack as the 8-bit game reads it (+2d6 in the first round)'
   },
   hobsergeant: {
-    name: 'Hobgoblin Sergeant', type: 'humanoid', sheet: 'hobsergeant_p1', cr: '3', ac: 18, hp: 39, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Hobgoblin Sergeant', type: 'humanoid', sheet: 'hobsergeant_p2', cr: '3', ac: 18, hp: 39, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 15, dex: 14, con: 14, int: 12, wis: 10, cha: 13 }, init: 2, perception: 10,
     saves: { str: 2, dex: 2, con: 2, int: 1, wis: 0, cha: 1 },
     attacks: { longsword: { name: 'Longsword', atk: 5, dice: '1d8', mod: 2, type: 'slashing', reach: 5 } },
@@ -156,7 +156,7 @@
     src: 'content/monsters.json hobsergeant (game-original from SRD 5.1 pieces: the Hobgoblin and the Veteran); Martial Advantage'
   },
   hobgoblin: {
-    name: 'Hobgoblin', type: 'humanoid', sheet: 'hobgoblin_p1', cr: '1/2', ac: 18, hp: 11, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Hobgoblin', type: 'humanoid', sheet: 'hobgoblin_p2', cr: '1/2', ac: 18, hp: 11, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 13, dex: 12, con: 12, int: 10, wis: 10, cha: 9 }, init: 1, perception: 10,
     saves: { str: 1, dex: 1, con: 1, int: 0, wis: 0, cha: -1 },
     attacks: {

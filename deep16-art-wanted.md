@@ -21,7 +21,6 @@ Checked 10-05 against `deep16/data/foes.js` (the Pocket DM's pot: every foe but 
 | the earth elemental | the Blue Demon | a heap of rock and earth |
 | the ettin | the Orc Skull | two heads |
 | the ogre | the Orc | an ogre of its own, not an orc recolour |
-| the hobgoblin, the hobgoblin sergeant | the Orc / the Orc Skull | red-faced, disciplined, armoured (the pastes below, 10-07) |
 | the grimlock | the Ninja | blind, grey, toothy |
 | the axe beak | the Birb | a tall flightless beak |
 | the darkmantle | the Glub (hand-built; the SRD attach needed it) | a real sheet, or the Blender recipe |
@@ -234,7 +233,7 @@ Griz, 10-07: *"copy pasta for 3 and 4 please"* (3: the next goblinoids, the best
 
 **Four sheets each, one sheet an image** (the bugbear's finding: a file of every sheet came back as one packed image with soft frames). Sheet 1 first; sheets 2-4 attach what sheet 1 brought back. Same calls as the goblin: Fall and Prone side-on only, Climb side and behind, one frame count for each row in every facing, no arrow in flight.
 
-**When they come back:** `deep16/_src/`, cut by a `tools/hobgoblin-sheet.py` over `tools/sheetrows.py` to `hobgoblin_p2` and `hobsergeant_p2` (then `foes.js` `sheet`). Rows: Idle -> idle; Walk -> walk; Longsword -> `longsword` and `attack`; **Longsword 2 -> `longsword2`** (battle.js plays an attack's second use in a turn on its numbered row, as claw2 does; it goes in pixelate's ANIM_ORDER); Longbow -> `longbow` (with a `release` frame, as the goblin's shortbow has); **Martial Advantage -> `martial`** (new: the drilled lunge, played on a melee blow when an ally stands by the target and the turn's Martial Advantage is unspent; on a miss too, since the drill is visible either way; the seat's call); Flinch -> flinch; Fall -> hurt; Prone -> prone; Climb -> climb. Sheet 3 plays facing S, sheet 4 facing N, the diagonals use the side rows. Then `deep16/?show=hobgoblin` and `?show=hobsergeant` and a fresh eyes row.
+**IN HAND (10-07, his: *"Hobgoblin and hobsergeant sheets are in _src"*):** `deep16/_src/Hobgoblin1..4.png` and `HobSergeant1..4.png`, cut by `tools/hobgoblin-sheet.py` to `hobgoblin_p2` and `hobsergeant_p2`, worn by both foes; `deep16/?show=hobgoblin,hobsergeant`. **As asked:** `deep16/_src/`, cut by a `tools/hobgoblin-sheet.py` over `tools/sheetrows.py` to `hobgoblin_p2` and `hobsergeant_p2` (then `foes.js` `sheet`). Rows: Idle -> idle; Walk -> walk; Longsword -> `longsword` and `attack`; **Longsword 2 -> `longsword2`** (battle.js plays an attack's second use in a turn on its numbered row, as claw2 does; it goes in pixelate's ANIM_ORDER); Longbow -> `longbow` (with a `release` frame, as the goblin's shortbow has); **Martial Advantage -> `martial`** (new: the drilled lunge, played on a melee blow when an ally stands by the target and the turn's Martial Advantage is unspent; on a miss too, since the drill is visible either way; the seat's call); Flinch -> flinch; Fall -> hurt; Prone -> prone; Climb -> climb. Sheet 3 plays facing S, sheet 4 facing N, the diagonals use the side rows. Then `deep16/?show=hobgoblin` and `?show=hobsergeant` and a fresh eyes row.
 
 HOBGOBLIN, SHEET 1 (the look, side-on; nothing to attach):
 

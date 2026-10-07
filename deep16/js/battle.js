@@ -1877,6 +1877,9 @@
       if (rk && D.spr.anim(att.sheet, rw)) att.anim = rw;
       // (Surprise Attack's blow: a foe with it, its first melee blow of round one, plays its ambush row -- the bugbears' sheets, 10-07)
       if (att.surprise && this.round === 1 && melee && rn === 1 && D.spr.anim(att.sheet, 'ambush')) att.anim = 'ambush';
+      // (Martial Advantage's blow: the drilled lunge where the sheet has one, a melee blow while an ally who can act stands by the target and the
+      // turn's Martial Advantage is unspent -- hit or miss, the drill shows either way; its dice are the hit's, below. The hobgoblins' sheets, 10-07)
+      if (att.martial && melee && !(att.turn && att.turn.martialUsed) && D.spr.anim(att.sheet, 'martial') && this.units.some(function (w) { return w !== att && w.side === att.side && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5; })) att.anim = 'martial';
     }
     // (a shot from a row that names its release frame -- the goblin's shortbow, 10-07: the arrow leaves as the bow hand opens, not 10 ticks in)
     var rel = !melee && !atk.spell && D.spr.anim(att.sheet, att.anim), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;
