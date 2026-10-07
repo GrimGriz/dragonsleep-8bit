@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-goose-sheet-1007': { pri: 2, group: G2, title: 'Goose\'s sheet: your picks from the three, every row playing (10-07)', pt: 'MPMon lane §6 (tools/goose-sheet.py) · eyes',
+      url: 'tools/sheet-play.html?sheet=goose_p1&ref=denny_p2&z=2',
+      look: 'Each row plays at its own speed facing E, W, S and N, with Denny\'s idle beside for size: Goose stands about two thirds of Denny. The rows mixed from the sheets meet at one size (cast B1 B2 B3 C5 A4 B6, honk B1 B2 A3 B4, climb B1-3 C4-6, flinch B1 B2 A3 C4, prone C1 A2 C3 C4 -- stored standing to lying, so getting up plays your order). The cast\'s glow is the heal\'s green with a white heart; the hop and the top of the leap lift off the floor; S and N bounce and hop the turnaround\'s front and back. No fight plays him yet: his build is next.' },
     'eyes-menu8-1007': { pri: 2, group: G2, title: 'The one menu in an 8-bit fight: ITEMS, MAGIC and SKILLS act, lit by cost (10-07)', pt: 'the menus (spent 10-07) · eyes',
       url: '?at=menu8',
       look: 'An 8-bit fight by your hands (two gnolls). X on a hero\'s commands opens the menu: ITEMS, MAGIC and SKILLS are the fight\'s own lists, lit yellow (the action), blue (the bonus) or white (free), the rest grey with its why, and the box under the entries says which is which. A pick closes the menu and is the turn\'s command, the battle\'s own target picker after it (Lymen\'s SACRED WEAPON from SKILLS lit his sword at once). Barley\'s SECOND WIND blue; a Channel Divinity\'s options on the SKILLS list itself. &rogue=cutthroat: Vivian\'s ITEMS yellow; a Thief\'s blue (Fast Hands).' },

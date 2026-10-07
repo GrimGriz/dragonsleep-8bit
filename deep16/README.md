@@ -454,7 +454,11 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
 - **Looks:** `beholda_p2` is a stand-in cut from her first sheet (`tools/beholda-sheet.py`: front views for every facing, the projection
   for the gaze); `denny_p2` gained TAUNT, DENIM DAMAGE and CANNONBALL rows from his poses (`tools/denny-sheet.py`); `rascal_p1` is his
   first generated sheet cut whole (`tools/rascal-sheet.py`: the rows face left so the claw arm shows, the whiskers the generator ran
-  through his hat erased above it). Their next sheets' prompts are in `deep16-art-wanted.md`.
+  through his hat erased above it); `goose_p1` is his three generated sheets cut by Griz's picks (`tools/goose-sheet.py` over
+  `tools/sheetrows.py`: each sheet cut by its own row and number labels, the rows mixed frame by frame, each sheet at its own scale by the
+  torso's thickness, small -- his idle about 38 px to Denny's 52 --, the cast's glow the heal's green; no build plays it yet). Their next
+  sheets' prompts are in `deep16-art-wanted.md`. **`tools/sheet-play.html?sheet=goose_p1&ref=denny_p2`** plays a sheet's rows, four
+  facings, another sheet's idle beside for size, before any build does.
 - **Bench:** `python dev/bench16.py x mode=mpmon1006` (in `dev/check.py`'s gate): the builds against the design's tables, each special by
   its rule with the dice pinned, the ring, the Pocket DM's seats and rest, a whole fight, Fire Bolt with the specials spent, and the
   show's beats run twice, at 5 and at 9.
