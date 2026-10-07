@@ -476,6 +476,7 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
   mode=mascots, about eight minutes) writes `deep16-mascot-bench.md` at the root -- the four as a band against Barley, Aurdin, Vivian and
   Lymen, and each one on one against each, levels 1-9, on the ladder's fixture and on average HP, the class bench's bands beside. `&detail=1`
   lists each fight's seed; the class floor plays one roll for roll: `?npc=denny:9,beholda:9,rascal:9,goose:9&lvl=9&watch&seed=20838`.
+  This is **the bench-balance pipeline** (named 10-07, Griz): bench, pick a fight by its seed, watch it on the class floor (CLAUDE.md).
 
 ### THE MASCOT (10-06 night) -- the class as races, a class and four roles
 
