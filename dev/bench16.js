@@ -3697,8 +3697,8 @@
           w2 >= 0 && lg(BF, /SHORT REST/).length === 1 && fourW.length === 4 && inOrd.length === 4 && SF.foes.some(function (u) { return u.from0[0] === 0; }) && SF.foes.some(function (u) { return u.from0[0] === 82; }));
         // after the wave in his order (10-07: "do the token combine - walk around to the chest, check in with chat - then walk to bed and interact as party token"), and the lanterns
         var lampsW = D.grid.map.props.filter(function (p) { return p.kind === 'roadlamp'; }).length, lightsW = BF.lights.filter(function (l) { return /^road/.test(l.id); }).length;
-        okW('flow: after the wave the token went ' + (SF.trail || []).join(' > ') + ' (want gather > chest > bed > scatter), the chest shut again ' + !(D.circles.chestOpen && D.circles.chestOpen(BF)) + '; the road\'s lanterns on the floor ' + lampsW + ', their lights ' + lightsW + ' (want 8 and 8)',
-          (SF.trail || []).join(',') === 'gather,chest,bed,scatter' && !(D.circles.chestOpen && D.circles.chestOpen(BF)) && lampsW === 8 && lightsW === 8);
+        okW('flow: after the wave the token went ' + (SF.trail || []).join(' > ') + ' (want gather > lamp > chest > bed > scatter), the chest shut again ' + !(D.circles.chestOpen && D.circles.chestOpen(BF)) + '; the road\'s lanterns on the floor ' + lampsW + ', their lights ' + lightsW + ' (want 8 and 8)',
+          (SF.trail || []).join(',') === 'gather,lamp,chest,bed,scatter' && !(D.circles.chestOpen && D.circles.chestOpen(BF)) && lampsW === 8 && lightsW === 8);
         var t2 = stepW(BF, function () { return SF.tier === 2 && SF.foes.length && SF.foes[0].id.indexOf('gs3-') === 0 && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }); }, 40000, weak);
         var lv = BF.units.filter(function (u) { return u.mpmon; }).map(function (u) { return u.mpmon + ' L' + u.lvl + ' ' + u.hp + '/' + u.maxhp; });
         okW('flow: the long rest -- ' + lg(BF, /LEVEL UP/).join(' ').slice(0, 120) + ' -- the four at 2 and whole (' + lv.join(', ') + '), XP ' + JSON.stringify(SF.xp) + ', the lamp ' + SF.lamp.hp + '/' + SF.lampMax + ' (want 80), tier 2 under way (' + t2 + ' frames)',

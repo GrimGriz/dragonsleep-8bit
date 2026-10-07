@@ -15,6 +15,7 @@
      &watch                       the Mascots run by their class AI (his click still takes each rest) · &auto the same, and the rests taken by themselves
      &tier=N&wave=M               start at tier N (the four at level N, their XP at its threshold), wave M of it · &lamp=N the lamp's hit points
      &end=lamp | &end=wipe        the end staged for a look: after the first foe's turn the lamp is out, or no Mascot stands (a show door)
+     &oldwalk                     after a wave the token walks to the chest by itself, no lamp's turn (the walk before 10-07's lamp turn)
 
    THE RUN: nine tiers, the four at level 1 at tier 1. Tiers 1-3 two waves, 4-9 three; at 7-9 the third is a boss -- an SRD monster with a tough CR, none
    of our own, and tier 9's the Edifice team (the Skylights' stone giants and trolls). Surface kinds come in from the west (the road up from Second Lamp),
@@ -285,14 +286,42 @@
   // token combine - walk around to the chest, check in with chat - then walk to bed and interact as party token"): the four into one where they stand (the fallen carried
   // in), the token to the chest -- it opens; THE CHEST, check in with chat (the supplies' seat's buttons hang here: GS.supplies) till his click -- then to the bed, where the
   // due rest lights for its click; then out to the circle and onto its corners
+  // a walkable square beside a prop (the chest, the tower), not `not`; on a cot or the bed
+  function beside(at, not) {
+    return at && [[0, 1], [1, 1], [-1, 1], [1, 0], [-1, 0], [0, -1]].map(function (d) { return [at[0] + d[0], at[1] + d[1]]; }).filter(function (q) {
+      var s = G.map.at(q[0], q[1]); return s && s.walk && !(not && q[0] === not[0] && q[1] === not[1]);
+    })[0];
+  }
+  function onBed(q) { return (q.x === WV.bed[0] && q.y === WV.bed[1]) || (WV.cots || []).some(function (c) { return c[0] === q.x && c[1] === q.y; }); }
   function* afterWave(B, S, kind) {
     var st = B.gs;
     B.order = []; B.active = null;   // (the strip of the wave just fought off the screen)
     S.party = four(B); S.trail = [];
     if (!(yield* GS.gather(B, { party: S.party }))) return;
     S.trail.push('gather');
-    var cs = G.map.def.chest, side = cs && [[0, 1], [1, 1], [-1, 1], [1, 0], [-1, 0], [0, -1]].map(function (d) { return [cs[0] + d[0], cs[1] + d[1]]; }).filter(function (q) { var s = G.map.at(q[0], q[1]); return s && s.walk; })[0];
-    if (side) {
+    var cs = G.map.def.chest, side = beside(cs);
+    // THE LAMP'S TURN (10-07, Griz, on the after-wave row: "I'm hoping for player (my) control after the token merge" · "you could walk the token over near the lamp
+    // first - then lamp turn while I talk to chat, then i can send the party token to the supply box and then to bed"): the token to the tower by itself; then it is
+    // his -- chat, the lantern's buttons (the supplies' seat's) -- till his click sends it to the chest (TO THE CHEST, or the chest) or straight to the bed (TO THE
+    // BED, the bed or a cot); &oldwalk the walk as it was (the chest, then the bed)
+    var go = 'chest';
+    if (!S.oldwalk) {
+      var nl = beside(G.map.def.tower, side);
+      if (nl) { yield* GS.tokenWalk(B, nl); S.trail.push('lamp'); }
+      st.mode = 'lamp'; st.clicks = []; S.chat = { t0: B.t };
+      for (var w0 = 0; ; w0++) {
+        var c0 = st.clicks.shift();
+        if (c0) {
+          var h0 = WV.hit(c0), q0 = !h0 && D.iso.pick(c0.x, c0.y, 0);
+          if (h0 === 'tochest' || (q0 && cs && q0.x === cs[0] && q0.y === cs[1])) { go = 'chest'; break; }
+          if (h0 === 'tobed' || (q0 && onBed(q0))) { go = 'bed'; break; }
+        }
+        if (S.auto && w0 > W(90)) break;
+        yield 1;
+      }
+      S.chat = null; st.mode = 'fight'; D.sfx('confirm');
+    }
+    if (side && go === 'chest') {
       yield* GS.tokenWalk(B, side); S.trail.push('chest');
       if (D.circles && D.circles.chest) D.circles.chest(B, 'open');
       st.mode = 'chest'; st.clicks = []; S.chat = { t0: B.t };
@@ -317,7 +346,7 @@
     var q = GS.q || location.search;
     var num = function (k) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : null; };
     var S = GS.run = { tier: Math.max(1, Math.min(99, num('tier') || 1)), wi: Math.max(0, (num('wave') || 1) - 1), count: 0, held: 0, xp: {}, hd: {}, foes: [], rest: null,
-      ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q), end0: (/[?&]end=(lamp|wipe)\b/.exec(q) || [])[1] || null };
+      ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q), oldwalk: /[?&]oldwalk\b/.test(q), end0: (/[?&]end=(lamp|wipe)\b/.exec(q) || [])[1] || null };
     S.lampHP = S.lampMax = num('lamp') || WV.CFG.lampHP(S.tier);
     var st = B.gs; B.cine = false; st.mode = 'fight'; st.lock = null; st.clicks = [];
     // the cots off the map (its `y` squares) and the bed, the floor beside the first of them
@@ -384,8 +413,9 @@
   function P(r, i) { return D.PAL.ramps[r][i]; }
   WV.hud = function (ctx, B) {
     var S = GS.run, st = B.gs; BTN = {};
-    if (!S || !st || (st.mode !== 'fight' && st.mode !== 'rest' && st.mode !== 'chest')) return;
+    if (!S || !st || (st.mode !== 'fight' && st.mode !== 'rest' && st.mode !== 'chest' && st.mode !== 'lamp')) return;
     if (st.mode === 'chest' && S.chat) chestPanel(ctx, B, S);
+    if (st.mode === 'lamp' && S.chat) lampPanel(ctx, B, S);
     var Wd = D.W, waves = WV.tierWaves(S.tier) || [], x = Wd - 132, y = D.H - 102;   // (bottom right, over the unit panel: the cards and the strip keep the top)
     D.win8(ctx, x, y, 128, 30);
     D.text(ctx, 'TIER ' + S.tier + '  WAVE ' + Math.min(waves.length, S.wi + 1) + '/' + waves.length, x + 6, y + 5, P('gold', 4));
@@ -396,6 +426,18 @@
     D.text(ctx, Math.max(0, hp) + '', x + 100, y + 17, P('bone', 1));
     if (st.mode === 'rest' && S.rest) restPanel(ctx, B, S);
   };
+  // the lamp's turn: the box over the top, and his two ways on (a click on the chest, or on the bed or a cot, does the same)
+  function lampPanel(ctx, B, S) {
+    var Wd = D.W, w = 236, x = Math.round(Wd / 2 - w / 2), y = 50;
+    D.win8(ctx, x, y, w, 58);
+    D.text(ctx, 'THE LAMP', Wd / 2, y + 5, P('gold', 4), 'center');
+    D.text(ctx, 'check in with chat', Wd / 2, y + 18, P('bone', 1), 'center');
+    var by = y + 33;
+    D.win8(ctx, x + 10, by, 104, 18, P('red', 1)); D.text(ctx, 'TO THE CHEST', x + 62, by + 5, P('gold', 4), 'center');
+    BTN.tochest = { x: x + 10, y: by, w: 104, h: 18 };
+    D.win8(ctx, x + w - 114, by, 104, 18, P('red', 1)); D.text(ctx, 'TO THE BED', x + w - 62, by + 5, P('gold', 4), 'center');
+    BTN.tobed = { x: x + w - 114, y: by, w: 104, h: 18 };
+  }
   // the chest's moment: the box over the top, and the button on to the bed (a click on the chest or the bed does the same)
   function chestPanel(ctx, B, S) {
     var Wd = D.W, w = 236, x = Math.round(Wd / 2 - w / 2), y = 50;
