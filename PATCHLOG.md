@@ -4,6 +4,11 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `57ae894` · the Game Show · The tutorial's second cut, Denny's lesson (`deep16/js/gstutorial.js`): his lines in a box, then a real turn on the game's own ring clicked by a ghost of the mouse (the walk, TAUNT off SKILLS, ATTACK, END TURN, DENIM DAMAGE aimed at the hobgoblin); `mode=gstutorial1007` in the gate · *"i should see text like the lines Pyro and Ingrith give from Denny about his ability and when to use it, then the wheel popup - highlight - like you click it - show the cursor moving to the target"*
+- 2026-10-07 · `a00127a` · the Game Show · The stream's log (a Sonnet runner's): `&stream` or any `?gameshow` page -- no dice lines, a heal one line of names and green numbers, the AI's pace at 2.5 · *"under the group hug line, all 3 names and green HP numbers on one line"*
+- 2026-10-07 · `57ae894` · the Game Show · The supplies drafted for his picks as one table, `deep16-gameshow-supplies.md` (two Sonnet runners; nothing built) · *"might have sonnet runners invent them..."*
+- 2026-10-07 · seen · the Game Show · The tutorial's first cut, the gallery's walk on the lighthouse floor (`eyes-tutorial-1007`, cut) · *"tutorial 1 isn't done"*
+- 2026-10-07 · ruled · the Game Show · The lighthouse title stays as it is with a Mascot wandering behind it; the small wheel waits · *"The mascots wander around no worries about behind title."* · *"small wheel can wait, we're goal oriented"*
 - 2026-10-07 · `c5cd66a` · the bestiary · The bugbear and the bugbear chief on looks of their own from his GPT sheets (`bugbear_p1`, `bugbearchief_p2`): Lurk till the first turn, the round-one Ambush, the javelin on its release; `deep16/?show=bugbear,bugbearchief` · *"Bugbear and chief"*
 - 2026-10-07 · `a682877` · the bestiary · The goblin redone from his four GPT sheets, `goblin_p2` (`tools/goblin-sheet.py`): side, tricks, front and back rows, Nimble Escape's hop, the arrow on the bow's release frame; `deep16/?show=goblin` · *"Should be GPT Goblins in _src"*
 - 2026-10-07 · `81180ad` `1e652a7` · the bestiary · The goblin's four sheet pastes, and the bugbear's four as one file for the generator (`deep16-art-bugbear.md`) · *"Redoing goblins while we have an expanded art department"* · *"try me the bugbear as an .md with all the sheets listed"*
