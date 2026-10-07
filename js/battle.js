@@ -962,7 +962,7 @@
     while (st.actions > 0 && !this.over && !down(u) && !incap(u) && this.liveFoes().length) { // nothing left in sight (all in the rock): the turn ends
       var held = u.conds.grappled || u.conds.engulfed || (u.conds.restrained && u.conds.restrained.escape);
       var skills = this.skillList(u, st);
-      var castable = R.spellList(h, 'battle').filter(function (sp) { return !sp.reaction; }).concat(h.cls === 'paladin' && R.maxSlotLevel(h) > 0 ? [DS.DATA.spells.smite] : []); // (a reaction spell -- Shield, Hellish Rebuke, Counterspell -- is never cast from the list: the window asks for it, 10-03)
+      var castable = this.castableFor(u);
       var items = this.battleItems(u);
       var fastHands = h.subclass === 'Thief' && st.bonus > 0; // Thief: ITEM as a bonus action
       var cmds = [
@@ -973,9 +973,11 @@
         held ? { label: 'ESCAPE', value: 'escape' } : { label: 'RUN', value: 'run', disabled: this.o.canRun === false }
       ];
       this.msg = h.name + (st.surged ? ' surges!' : '') + (st.actions > 1 ? ' (2 actions)' : '');
-      var cmd = yield DS.choose({ items: cmds, x: 0, y: 156, w: 90, h: 84, rowH: 12, pad: 8, index: this.lastCmd && this.lastCmd[h.id] || 0 });
-      // X/ESC on the commands: the field menu, mid-fight (RULED 09-30c) -- EQUIP, STATUS, OPTIONS, QUIT -- and back to the commands
-      if (cmd == null) { yield W8.scene(new DS.FieldMenu({ battle: this, hero: h, acted: !!st.acted })); continue; }
+      var cmd = yield DS.choose({ items: cmds, x: 0, y: 156, w: 90, h: 84, rowH: 12, pad: 8, index: this.lastCmd && this.lastCmd[h.id] || 0 }), pre = null;
+      // X/ESC on the commands: the field menu, mid-fight (RULED 09-30c) -- EQUIP, STATUS, OPTIONS, QUIT -- and back to the commands. Since 10-07 its ITEMS, MAGIC and
+      // SKILLS are this fight's own lists, lit and coloured by their cost as the grid's are, and a pick there is this turn's command (Griz, 10-07: "1 - you're the instance
+      // for it if its not too big of a job", on the 8-bit's in-fight menu doing what the grid's does; js/scenes.js host8 fight.ring/pick)
+      if (cmd == null) { var fm = new DS.FieldMenu({ battle: this, hero: h, acted: !!st.acted, unit: u, st: st }); yield W8.scene(fm); if (!fm.picked) continue; cmd = fm.picked.cmd; pre = fm.picked.value; }
       this.lastCmd = this.lastCmd || {}; this.lastCmd[h.id] = ['fight', 'magic', 'skill', 'item', 'run', 'escape'].indexOf(cmd) % 5;
       var used = false;
       if (cmd === 'fight') {
@@ -984,14 +986,14 @@
         yield* this.heroAttack(u, t, st, null);
         used = true;
       } else if (cmd === 'magic') {
-        var sp = yield* this.pickSpell(u, castable, st);
+        var sp = pre || (yield* this.pickSpell(u, castable, st)); // (pre: the spell picked on the menu's MAGIC)
         if (!sp) continue;
         used = yield* this.castSpell(u, sp, st);
         // a bonus-action spell (SRD 5.1; 09-28g, as the grid has them): the bonus action spent, the action still his -- but a spell
         // with it may only be a cantrip (pickSpell greys the rest)
         if (used && sp.bonus && st.bonus > 0) { st.bonus = 0; st.bonusSpell = true; used = false; }
       } else if (cmd === 'skill') {
-        var sk = yield DS.choose({ items: skills, x: 0, y: 156 - Math.max(0, skills.length * 11 - 50), w: 120, rowH: 11, pad: 7 });
+        var sk = pre != null ? pre : (yield DS.choose({ items: skills, x: 0, y: 156 - Math.max(0, skills.length * 11 - 50), w: 120, rowH: 11, pad: 7 })); // (pre: the menu's SKILLS -- a Channel Divinity's own option, so no second list)
         if (!sk) continue;
         if (sk === 'channel') { var chl = this.channelList(u); sk = yield DS.choose({ items: chl, x: 0, y: 156 - Math.max(0, chl.length * 11 - 50), w: 120, rowH: 11, pad: 7, title: 'CHANNEL DIVINITY' }); if (!sk) continue; }
         var res = yield* this.useSkill(u, sk, st);
@@ -1000,7 +1002,7 @@
         if (res === 'free') continue;
         used = true;
       } else if (cmd === 'item') {
-        var it = yield DS.choose({ items: items, x: 0, y: 96, w: 150, rowH: 11, pad: 7, visible: 6 });
+        var it = pre || (yield DS.choose({ items: items, x: 0, y: 96, w: 150, rowH: 11, pad: 7, visible: 6 })); // (pre: the menu's ITEMS)
         if (!it) continue;
         used = yield* this.useItem(u, it);
         if (used && fastHands && !this.usedFire) { st.bonus = 0; used = false; } // Fast Hands: the action is still hers
@@ -1064,18 +1066,28 @@
     if (this.aimAlly) return list.indexOf(this.aimAlly) >= 0 ? this.aimAlly : null; // (a guest's aim at a friend: 10-06)
     return yield W8.scene(new TargetScene(this, list, 'hero'));
   };
-  Battle.prototype.pickSpell = function* (u, list, st) {
-    var h = u.h, self = this;
-    var roost = this.o.roost;
-    var items = list.map(function (sp) {
+  // what a hero can cast in a fight: the battle list, a reaction spell left out (Shield, Hellish Rebuke, Counterspell: the window asks for it, 10-03), the paladin's smite
+  Battle.prototype.castableFor = function (u) {
+    var h = u.h;
+    return R.spellList(h, 'battle').filter(function (sp) { return !sp.reaction; }).concat(h.cls === 'paladin' && R.maxSlotLevel(h) > 0 ? [DS.DATA.spells.smite] : []);
+  };
+  // MAGIC's rows, greyed and why (pickSpell's list, and the menu's MAGIC in a fight since 10-07: js/scenes.js host8)
+  Battle.prototype.spellRows = function (u, list, st) {
+    var h = u.h, roost = this.o.roost;
+    return list.map(function (sp) {
       var lv = sp.id === 'smite' ? R.lowestSlot(h, 1) : sp.level ? R.lowestSlot(h, sp.level) : 0;
       // under a roost the fire and thunder spells are out (RULED 09-24): grayed. Light stays castable, and costs you.
       var banned = roost && (sp.el === 'fire' || sp.el === 'thunder');
       // the bonus action (09-28g): a bonus-action spell wants it free; after one, the action's spell may only be a cantrip
-      var noBonus = sp.bonus && st && !st.bonus, onlyCantrip = st && st.bonusSpell && sp.level > 0 && !sp.bonus && sp.id !== 'smite';
-      var dis = (sp.level > 0 && !lv) || banned || noBonus || onlyCantrip;
-      return { label: sp.name, value: sp, right: banned ? 'ROOST' : noBonus ? 'bonus' : sp.level === 0 ? '—' : 'L' + (lv || sp.level), disabled: dis };
+      var noBonus = sp.bonus && st && !st.bonus, onlyCantrip = st && st.bonusSpell && sp.level > 0 && !sp.bonus && sp.id !== 'smite', noSlot = sp.level > 0 && !lv;
+      var dis = noSlot || banned || noBonus || onlyCantrip;
+      return { label: sp.name, value: sp, lv: lv, right: banned ? 'ROOST' : noBonus ? 'bonus' : sp.level === 0 ? '—' : 'L' + (lv || sp.level), disabled: dis,
+        why: banned ? 'the roost overhead: no fire, no thunder' : noBonus ? 'the bonus action is spent' : onlyCantrip ? 'after a bonus-action spell, only a cantrip' : noSlot ? 'no slot of level ' + sp.level + ' or higher' : '' };
     });
+  };
+  Battle.prototype.pickSpell = function* (u, list, st) {
+    var h = u.h, self = this;
+    var items = this.spellRows(u, list, st);
     var slotTxt = (h.slots || []).map(function (n, i) { return 'L' + (i + 1) + ':' + n + '/' + h.slotsMax[i]; }).join(' ');
     return yield DS.choose({
       items: items, x: 0, y: 70, w: 150, rowH: 11, pad: 7, visible: 7, title: slotTxt || 'CANTRIPS',

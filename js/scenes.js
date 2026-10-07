@@ -399,7 +399,8 @@
   // Griz: "weapon and shield should be changable if the character hasn't spent an action - greyed if he has")
   function FieldMenu(o) {
     var self = this; o = o || {};
-    this.kind = 'fieldmenu'; this.battle = o.battle || null;
+    this.kind = 'fieldmenu'; this.battle = o.battle || null; this.picked = null;
+    o.picked = function (p) { self.picked = p; }; // (a fight's command picked on the menu: { cmd, value } -- js/battle.js heroTurn reads it when the menu closes, 10-07)
     this.m = DS.MENU.open(host8(o, function () { DS.pop(self); }));
   }
   DS.FieldMenu = FieldMenu;
@@ -407,6 +408,31 @@
   FieldMenu.prototype.draw = function (ctx) { this.m.draw(ctx); };
   function host8(o, close) {
     var G = DS.G, fight = o.battle ? { hero: o.hero || null, acted: !!o.acted } : null;
+    // in a fight, the fight's own lists for the hero whose turn it is (10-07, Griz: "1 - you're the instance for it if its not too big of a job" -- the grid's menu does
+    // this, deep16/js/ui.js gridHost): ITEMS, MAGIC and SKILLS lit and greyed as the battle's own commands are (js/battle.js battleItems, spellRows, skillList,
+    // channelList), each with its cost for the menu's colour (the action yellow, the bonus blue, free white), and a pick is this turn's command -- the battle's own
+    // target picker after it, as from its own lists
+    var B8 = o.battle, u8 = o.unit, st8 = o.st;
+    if (fight && u8 && st8 && B8.spellRows) {
+      var SK = { secondWind: ['B', '1d10 + level HP back'], actionSurge: ['F', 'one more action this turn'], hideAttack: ['B', 'hide, then strike from hiding'], attackHide: ['B', 'strike, then hide'],
+        lay: ['A', 'heal by touch from the pool'], sacred: ['A', 'Sacred Weapon: +CHA to hit for a minute'], unholy: ['A', 'Turn the Unholy: fiends and undead save or flee'] };
+      fight.ring = function (kind) {
+        if (kind === 'items') { var fast = o.hero.subclass === 'Thief' && st8.bonus > 0; return B8.battleItems(u8).map(function (r) { return { id: r.value, name: r.label, ok: !r.disabled, why: r.right === 'ROOST' ? 'the roost overhead: no fire' : r.right === 'hands' ? 'no free hand to hold it' : '', cost: fast ? 'B' : 'A' }; }); }
+        if (kind === 'spells') return B8.spellRows(u8, B8.castableFor(u8), st8).map(function (r) { var sp = r.value; return { id: sp.id, name: sp.name, level: sp.level || 0, levels: r.lv ? [r.lv] : [], slot: r.lv || 0, g: { time: sp.bonus ? 'B' : 'A' }, sp: sp, spell: sp, ok: !r.disabled, why: r.why }; });
+        var out = [];
+        B8.skillList(u8, st8).forEach(function (r) {
+          if (r.value === 'channel') { // (its options on the list itself, as the grid's ring has them: no second list)
+            if (r.disabled) out.push({ id: 'channel', label: r.label, cost: 'A', ok: false, why: 'Channel Divinity is spent (a short rest brings it back)', value: 'channel' });
+            else B8.channelList(u8).forEach(function (c) { out.push({ id: c.value, label: c.label, cost: 'A', ok: !c.disabled, why: c.disabled ? 'no fiend or undead here to turn' : '', note: (SK[c.value] || [])[1] || '', value: c.value }); });
+            return;
+          }
+          var k = SK[r.value] || ['A', ''];
+          out.push({ id: r.value, label: r.label, cost: k[0], ok: !r.disabled, why: r.disabled ? 'the bonus action is spent' : '', note: k[1] + (r.value === 'lay' ? ' (' + r.right + ' left)' : ''), value: r.value });
+        });
+        return out;
+      };
+      fight.pick = function (kind, e) { o.picked({ cmd: kind === 'items' ? 'item' : kind === 'spells' ? 'magic' : 'skill', value: kind === 'items' ? e.id : kind === 'spells' ? e.spell : e.value }); };
+    }
     return {
       fight: fight,
       party: function () { return G.party; },

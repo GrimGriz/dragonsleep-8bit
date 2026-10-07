@@ -1746,6 +1746,48 @@
         check('a poison cloud on the Periapt: "' + said9.slice(0, 120) + '"; on the others it hurts ("' + said10.slice(0, 60) + '")', /immune to poison/.test(said9) && !/\d+ damage/.test(said9) && /\d+ damage/.test(said10));
         b7.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
       } finally { DS.rng = rng7; }
+    } else if (test === 'menu8fight1007') {
+      // the 8-bit's in-fight menu acts as the grid's (10-07, Griz: "1 - you're the instance for it if its not too big of a job"): X on a hero's commands opens the one menu;
+      // its ITEMS, MAGIC and SKILLS are this fight's own lists, lit by their cost (the action yellow, the bonus blue), and a pick is the turn's command -- the battle's own
+      // target picker after it. Barley drinks a potion from ITEMS and takes his Second Wind from SKILLS; Aurdin casts from MAGIC. The gnolls are made to outlast it
+      var YEL = '#F8D878', BLU = '#3CBCFC', ba = g.hero('barley'), au = g.hero('aurdin'), seen = {}, said = [];
+      g.party.forEach(function (h) { h.maxhp = h.hp = 300; }); ba.hp = 250; au.slots = au.slotsMax.slice(); g.give('potion', 2); ba.feats.secondWind = 1;
+      var pot0 = g.inv.filter(function (s) { return s.id === 'potion'; })[0].n, slots0 = au.slots.reduce(function (a, b) { return a + b; }, 0);
+      T.startFight(['gnoll', 'gnoll']);
+      for (var w0 = 0; w0 < 400 && !DS.find('battle'); w0++) T.step(1);
+      var bt = DS.find('battle'); bt.foes.forEach(function (f) { f.hp = f.maxhp = 900; });
+      function keyF(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; } }; }
+      function first(list, f) { var i = list.items.map(f).indexOf(true); if (i >= 0) { list.i = i; list.fix(); } return i >= 0 ? list.items[i] : null; }
+      var plan = { barley: ['items', 'skills'], aurdin: ['magic'] }, steps = 0;
+      while (steps++ < 8000 && DS.find('battle') && !DS.lastError && (plan.barley.length || plan.aurdin.length)) {
+        var top = DS.top(), k = top && top.kind, who = bt.active && bt.active.h ? bt.active.h.id : null, pl = who && plan[who];
+        if (k === 'menu' && top.menu.items.some(function (it) { return it.label === 'FIGHT'; })) {
+          if (pl && pl.length) { T.tapf('b'); continue; } // (X on the commands: the one menu)
+          top.menu.i = top.menu.items.findIndex(function (it) { return it.label === 'FIGHT'; }); T.tapf('a'); continue;
+        }
+        if (k === 'menu') { var no = top.menu.items.findIndex(function (it) { return !it.disabled && /^(LET IT|NOT NOW|NO\b)/.test(it.label); }); top.menu.i = no >= 0 ? no : Math.max(0, top.menu.items.findIndex(function (it) { return !it.disabled; })); T.tapf('a'); continue; } // (a reaction's ask: let it land)
+        if (k === 'fieldmenu') {
+          var mm = top.m, what = pl.shift(); mm.root.cmds.i = mm.root.cmds.items.map(function (x) { return x.value; }).indexOf(what); mm.update(keyF('a'));
+          var pg = mm.pages[0];
+          if (!said.length) { var tx0 = DS.text; DS.text = function (c, s, x, y, col) { said.push(String(s) + '=' + col); return tx0.apply(this, arguments); }; try { mm.draw(DS.ctx || document.getElementById('screen').getContext('2d')); } finally { DS.text = tx0; } }
+          if (what === 'items' && pg) { pg.tab = DS.MENU.itemTab(DS.DATA.items.potion); pg.refresh(); seen.potion = first(pg.list, function (x) { return x.value === 'potion'; }); }
+          if (what === 'magic' && pg) { for (var tb = 0; tb < pg.levels.length && !seen.spell; tb++) { pg.tab = tb; pg.refresh(); seen.spell = first(pg.list, function (x) { return !x.disabled && x.value.level > 0; }); } seen.spells = pg.ring.map(function (e) { return e.id + (e.ok ? '' : '(grey)'); }); }
+          if (what === 'skills' && pg) seen.wind = first(pg.list, function (x) { return x.value && x.value.id === 'secondWind'; });
+          if (!pg) seen['no page ' + what] = (mm.toast && mm.toast.lines || []).join(' ');
+          mm.update(keyF('a')); T.step(1); continue;
+        }
+        if (k === 'target') { top.i = 0; T.tapf('a'); continue; }
+        if (k === 'dialog') { if (top.chars < top.pageLen()) top.chars = top.pageLen(); T.tapf('a'); continue; }
+        T.step(1);
+      }
+      var pot1 = (g.inv.filter(function (s) { return s.id === 'potion'; })[0] || { n: 0 }).n, slots1 = au.slots.reduce(function (a, b) { return a + b; }, 0), lg = (T.blog || []).join(' | ');
+      check('ITEMS in the 8-bit fight: the potion lit ' + (seen.potion && seen.potion.color) + ' (the action), picked: drunk -- potions ' + pot0 + ' -> ' + pot1, seen.potion && seen.potion.color === YEL && pot1 === pot0 - 1);
+      check('SKILLS: Barley\'s SECOND WIND lit ' + (seen.wind && seen.wind.color) + ' (the bonus), picked: spent (' + ba.feats.secondWind + ')', seen.wind && seen.wind.color === BLU && !ba.feats.secondWind);
+      var spn = seen.spell && seen.spell.value.name;
+      check('MAGIC: Aurdin\'s list the fight\'s own (' + (seen.spells || []).join(', ') + '); ' + spn + ' lit ' + (seen.spell && seen.spell.color) + ', picked: cast (slots ' + slots0 + ' -> ' + slots1 + ', "' + ((lg.match(new RegExp('[^|]*' + (spn || 'x@x') + '[^|]*')) || [''])[0].trim()) + '")',
+        seen.spell && seen.spell.color === (seen.spell.value.spell.bonus ? BLU : YEL) && slots1 === slots0 - 1);
+      check('the box under the entries in the 8-bit fight: ' + said.filter(function (s) { return /^(Can do now:|action|free|bonus action)=/.test(s); }).join(' '), said.indexOf('action=' + YEL) >= 0 && said.indexOf('bonus action=' + BLU) >= 0);
+      check('the plan ran out, the fight still on (' + JSON.stringify(plan) + ', ' + steps + ' steps)' + (Object.keys(seen).filter(function (s) { return /^no page/.test(s); }).map(function (s) { return '; ' + s + ': ' + seen[s]; }).join('')), !plan.barley.length && !plan.aurdin.length);
     } else if (test === 'loaderr1007') {
       // the bench's own load error (10-07, the todo §6, the house: bench8.py read LOADERR only when the page wrote no result): a script that throws as it loads, then the
       // result written as ever -- dev/loaderr-probe.py wants the throw handed back
