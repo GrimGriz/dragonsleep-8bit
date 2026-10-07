@@ -16,7 +16,8 @@
    (MP's "2 specials per encounter" grown with the level, RULED 10-06, Griz: "3 at level 5, 4 at 7, 5 at 9 down to 1 move at lvl 1").
      RASCAL, a Lobstamonkee (10-06 late): his blow a FIRE BOLT on CHA (a PINCH when something is on him); SOCIAL SHARING (a Social die to his friends),
        SOCIAL FLAME (a ball of fire); at 5, SOCIAL DISTANCING (a cone: psychic and frightened).
-   Goose is the fourth, the day he is wanted.
+     GOOSE, a Lobstamonkee (10-07, the fourth): the Heals, on WIS; his blow a SLING; HEART TO HEART (a heal, a bonus action) and GROUP HUG (a heal round
+       him); at 5, FOUNTAIN. His specials are green energy (Griz, 10-07: "his specials should mainly be green energy").
 
    THE MASCOT (10-06 night, the race-and-class seat; the MPMon lane §6, every ruling verbatim there): the class is named Mascot ("Good class name!"), its four
    subclasses the roles -- TANK (Denny), BUFFS (Beholda), DPS (Rascal), HEALS (Goose, drafted) ("Tank, DPS, Buffs & Heals"); the kinds are races: the
@@ -55,7 +56,7 @@
     tank: { name: 'Tank', key: 'str', saves: ['str', 'con'] },
     buffs: { name: 'Buffs', key: 'wis', saves: ['wis', 'cha'] },
     dps: { name: 'DPS', key: 'cha', saves: ['cha', 'wis'] },
-    heals: { name: 'Heals', key: 'wis', saves: ['wis', 'int'] } // (Goose's, drafted: no build till his sheet)
+    heals: { name: 'Heals', key: 'wis', saves: ['wis', 'int'] } // (Goose's, 10-07)
   };
   MP.BUILDS = {
     denny: { name: 'Denny', kind: 'lobstamonkee', sub: 'tank', hd: 10, abil: { str: 16, dex: 14, con: 16, int: 8, wis: 10, cha: 12 }, asi: { 4: 'str', 8: 'str' },
@@ -65,7 +66,11 @@
     // RASCAL (10-06, the Rascal seat; Griz: "please invent a third special for rascal", "He'll range attack with a cantrip like Aurdin"): MP's Social PC,
     // so CHA is his stat (cast: his DC and Fire Bolt's attack by it; MP.unit lays it on the unit); MP gives him 70 HP against Denny's 120: a d8 and CON 10
     rascal: { name: 'Rascal', kind: 'lobstamonkee', sub: 'dps', hd: 8, abil: { str: 10, dex: 14, con: 10, int: 10, wis: 12, cha: 16 }, asi: { 4: 'cha', 8: 'cha' },
-      weapon: 'pinch', armor: 'lobstershell', look: 'rascal_p1', cast: 'cha', cantrip: 'firebolt' }
+      weapon: 'pinch', armor: 'lobstershell', look: 'rascal_p1', cast: 'cha', cantrip: 'firebolt' },
+    // GOOSE (10-07; his sheet goose_p1, tools/goose-sheet.py): MP's Heals, LOVE his stat ("the key ability is LOVE... which we'll say is wise. Wisdom it is"), so
+    // his DC and his blow are by WIS; MP gives him 65 HP to Rascal's 70: a d8 and CON 10, as Rascal's. His blow the sling ("yes, historically a sling")
+    goose: { name: 'Goose', kind: 'lobstamonkee', sub: 'heals', hd: 8, abil: { str: 8, dex: 14, con: 10, int: 10, wis: 16, cha: 12 }, asi: { 4: 'wis', 8: 'wis' },
+      weapon: 'goosesling', armor: 'goosefur', look: 'goose_p1', cast: 'wis' }
   };
   Object.keys(MP.BUILDS).forEach(function (k) { var b = MP.BUILDS[k]; b.saves = MP.SUBS[b.sub].saves.slice(); }); // (the role's saves: Denny STR/CON, Beholda WIS/CHA, Rascal CHA/WIS, as they were)
   // the natural weapons and hides: items so every rule that reads a weapon or an armour reads them, kept off the maker's racks (noSell)
@@ -76,12 +81,15 @@
   IT.eyehide = { name: 'EyeGregore Hide', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'natural' }, desc: 'Her fuzz is tougher than it looks: AC 12 + DEX.', src: SRC };
   IT.pinch = { name: 'Pinch', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d6', type: 'slashing', group: 'natural', kind: 'pinch', props: [] }, desc: 'The giant claw, when something is on him: 1d6 + STR.', src: SRC };
   IT.lobstershell = { name: 'Lobster Shell', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'natural' }, desc: 'The claw arm\'s shell and quick feet: AC 12 + DEX.', src: SRC };
+  IT.goosesling = { name: 'Sling', kind: 'weapon', price: 0, noSell: true, weapon: { dmg: '1d4', type: 'bludgeoning', group: 'natural', kind: 'goosesling', props: ['ranged'], range: [30, 120], abil: 'wis' }, desc: 'His old sling, a stone off the floor, slung on his heart: 1d4 + WIS, 30/120 ft (the SRD\'s sling).', src: SRC };
+  IT.goosefur = { name: 'Shaggy Fur', kind: 'armor', price: 0, noSell: true, armor: { base: 12, type: 'natural' }, desc: 'Charcoal fur and a hop that never stops: AC 12 + DEX.', src: SRC };
   // a weapon swung by an ability of its own (Dice Slam's WIS): the one line the shared rules need
   var wa0 = R.weaponAbil; R.weaponAbil = function (h, w) { return (w && w.weapon && w.weapon.abil) || wa0(h, w); };
   // by name, at any level (as Higertha stands): ?npc=denny:5, the Pocket DM's seats
   NPC.NAMED.denny = { name: 'Denny', cls: 'mpmon', build: 'denny', named: true, look: 'denny_p2' };
   NPC.NAMED.beholda = { name: 'Beholda', cls: 'mpmon', build: 'beholda', named: true, look: 'beholda_p2' };
   NPC.NAMED.rascal = { name: 'Rascal', cls: 'mpmon', build: 'rascal', named: true, look: 'rascal_p1' };
+  NPC.NAMED.goose = { name: 'Goose', cls: 'mpmon', build: 'goose', named: true, look: 'goose_p1' };
 
   // the sheet: the build's numbers at the level (the SRD's average hit points; an ASI at 4 and 8), the natural kit, the specials
   MP.sheet = function (spec) {
@@ -165,6 +173,20 @@
   MP.distR = function (L) { return 5 + 5 * rc(L, 5); };
   MP.viralDice = function (L) { return (3 + pw(L, 7)) + 'd8'; };
   MP.viralN = function (L) { return 3 + rc(L, 7); };
+  // Goose, the Heals (10-07; MP: "Single-target heal: Base +5, +5/level, +10 per action-die success", "Group heal: Base +0, +5/level, +5 per action-die success"). HEART
+  // TO HEART (1): 1d6 + WIS, +1d6 a power step (5th 3d6, 9th 5d6: Healing Word's 1d4 + WIS at 1st, by the d6); 30 ft, +15 a reach step (5th 60, 9th 90). GROUP HUG (1):
+  // 1d4 + WIS each, +1d4 a power step (5th 3d4, 9th 5d4); 15 ft round him, +5 a reach step (5th 25, 9th 35). BIG HEART (3) adds his level to each heal. FOUNTAIN (5):
+  // an ailment ended and 1d8 each, +1d8 a power step (8th 3d8); 30 ft, +10 a reach step (9th 50). LIFELINE (7): tied from 30 ft, 60 at 9th (holding to twice that);
+  // at 8th the one tied +1 AC and +1 on its saves too (Warding Bond's other half). Sized by MP's numbers at 0.27 and set beside the SRD's heals (a Life cleric's)
+  MP.heartDice = function (L) { return (1 + pw(L, 1)) + 'd6'; };
+  MP.heartR = function (L) { return 30 + 15 * rc(L, 1); };
+  MP.groupDice = function (L) { return (1 + pw(L, 1)) + 'd4'; };
+  MP.groupR = function (L) { return 15 + 5 * rc(L, 1); };
+  MP.fountDice = function (L) { return (1 + pw(L, 5)) + 'd8'; };
+  MP.fountR = function (L) { return 30 + 10 * rc(L, 5); };
+  MP.lifeR = function (L) { return 30 + 30 * rc(L, 7); };
+  MP.lifeWard = function (L) { return pw(L, 7); };
+  MP.bigHeart = function (u) { return MP.has(u, 'heals', 3) ? (u.lvl || 1) : 0; };
 
   // who is where: foes in reach, foes it sees within a range
   MP.foes = function (B, u, ft, see) { return B.units.filter(function (w) { return G.hostile(u, w) && standing(w) && G.dist(u, w) <= ft && (!see || M.sees(B, u, w)); }); };
@@ -502,11 +524,80 @@
     yield 24; u.anim = 'idle';
   };
 
+  // ------------------------------------------------------------------ GOOSE (10-07): MP's Heals. His regular blow is the sling on WIS (in the class AI's hands as any ranged
+  // weapon); his specials are the heals, each the jump with the glow between his hands (his sheet's cast row), and green: the heal's own look, js/fx.js EL.heal (Griz,
+  // 10-07: "his specials should mainly be green energy"). A heal reaches a friend standing or down -- not the dead, nor the slain, nor a familiar (its own side's heals
+  // pass one by, as the spells do) -- and him
+  function mendable(u, w) { return !!w && w.side === u.side && !w.dead && !w.slain && !w.object && !w.familiar && !w.fled; }
+  MP.healable = function (B, u, ft) { return B.units.filter(function (w) { return mendable(u, w) && w.hp < w.maxhp && (w === u || G.dist(u, w) <= ft); }); };
+  // one heal: the dice, his WIS (the core two), his level from 3rd (BIG HEART), into B.heal (the down get up); the card's line. The Hivemind's heat is a blow's: a heal
+  // keeps it for the next special that hurts (MP.cur.heated)
+  function mend(B, u, w, dexpr, wis) {
+    if (MP.cur) MP.cur.heated = true;
+    var r = D.roll(dexpr), m = wis ? mod(u.abil.wis) : 0, big = MP.bigHeart(u), amt = Math.max(1, r.total + m + big), got = B.heal(w, amt);
+    FX.heal(w);
+    return '  ' + w.name + ': ' + dexpr + (m ? RU.sign(m) : '') + (big ? ' +' + big + ' {g}(big heart){/}' : '') + ' ' + RU.fmtRolls(r.rolls) + ' = {n}+' + amt + '{/}' + (got < amt ? ' {g}(' + (got <= 0 ? 'whole already' : got + ' to full') + '){/}' : '');
+  }
+  function healRow(u) { return rowOr(u, 'cast', 'attack'); }
+  // HEART TO HEART (a BONUS action, a special -- 10-06 night, the setup special to the bonus action, "solid": "the single heal, the way the SRD's Healing Word is a bonus
+  // action"; MP's single-target heal): a friend he sees within MP.heartR ft (30; 60 at 5th, 90 at 9th), or himself -- up again, if it was down -- heals MP.heartDice +
+  // WIS (1d6; 3d6 at 5th, 5d6 at 9th), and his level from 3rd. The name is the seat's (Goose's suit is MP's Heart)
+  MP.heartTargets = function (B, u) { return MP.healable(B, u, MP.heartR(u.lvl)).filter(function (w) { return w === u || M.sees(B, u, w); }); };
+  MP.heart = function* (B, u, t) {
+    spend(u); u.turn.bonus = 0;
+    if (t !== u) u.facing = B.faceTo(u, t);
+    u.anim = healRow(u); u.animT = B.t; D.sfx('buff');
+    yield 14;
+    if (t !== u) FX.beam(u, t, 'heal', { thin: true });
+    yield 8;
+    var line = mend(B, u, t, MP.heartDice(u.lvl), true);
+    FX.sparkle(t, 'orc', 16);
+    B.card(['{y}' + u.name + '{/}: HEART TO HEART!  {g}(a bonus action; ' + leftText(u) + '){/}', line], 300);
+    yield 24; u.anim = 'idle';
+  };
+  // GROUP HUG (an action, a special; MP's group heal, "to all party members"): he springs up and the glow comes down round him -- every friend within MP.groupR ft (15;
+  // 25 at 5th, 35 at 9th), himself and the down among them, heals MP.groupDice + WIS (1d4; 3d4 at 5th, 5d4 at 9th), and his level from 3rd. The name is the seat's
+  MP.groupCatch = function (B, u) { return MP.healable(B, u, MP.groupR(u.lvl)); };
+  MP.group = function* (B, u) {
+    var list = MP.groupCatch(B, u), R0 = MP.groupR(u.lvl);
+    spend(u); u.turn.action = 0;
+    u.anim = healRow(u); u.animT = B.t; D.sfx('buff');
+    yield 14;
+    FX.bloom(u.x, u.y, G.sphere(u.x, u.y, R0), 'heal'); FX.ring(u, 'orc', 30 + R0);
+    yield 12;
+    var lines = ['{y}' + u.name + '{/}: GROUP HUG!  {g}(everyone within ' + R0 + ' ft of him; ' + leftText(u) + '){/}'];
+    list.forEach(function (w) { lines.push(mend(B, u, w, MP.groupDice(u.lvl), true)); });
+    if (!list.length) lines.push('  {g}no one near him is hurt.{/}');
+    B.card(lines.slice(0, 9), 360);
+    yield 28; u.anim = 'idle';
+  };
+  // FOUNTAIN (5th; an action, a special -- the draft's CLEANSE, on his word: "Cleanse as 'Fountain'"): the glow wells up round him -- every friend within MP.fountR ft (30;
+  // 40 at 7th, 50 at 9th), himself too, has its worst ailment ended (Lesser Restoration's, SRD 5.1: paralysis, a disease, blindness, poison, deafness -- js/magic.js
+  // M.ailments, worst first) and heals MP.fountDice (1d8; 2d8 at 6th, 3d8 at 8th) and his level
+  MP.fountCatch = function (B, u) { var R0 = MP.fountR(u.lvl); return B.units.filter(function (w) { return mendable(u, w) && (w === u || G.dist(u, w) <= R0) && (w.hp < w.maxhp || M.ailments(w).length > 0); }); };
+  MP.fountain = function* (B, u) {
+    var list = MP.fountCatch(B, u), R0 = MP.fountR(u.lvl);
+    spend(u); u.turn.action = 0;
+    u.anim = healRow(u); u.animT = B.t; D.sfx('buff');
+    yield 14;
+    FX.bloom(u.x, u.y, G.sphere(u.x, u.y, R0), 'heal');
+    yield 12;
+    var lines = ['{y}' + u.name + '{/}: FOUNTAIN!  {g}(everyone within ' + R0 + ' ft: an ailment ended, and healing; ' + leftText(u) + '){/}'];
+    list.forEach(function (w) {
+      var ail = M.ailments(w)[0], ended = ail ? ail.label : '';
+      if (ail) ail.end();
+      lines.push(mend(B, u, w, MP.fountDice(u.lvl), false) + (ended ? '  {c}' + ended + ' ended{/}' : ''));
+    });
+    if (!list.length) lines.push('  {g}no one near him needs it.{/}');
+    B.card(lines.slice(0, 9), 380);
+    yield 28; u.anim = 'idle';
+  };
+
   // ------------------------------------------------------------------ THE IN-BETWEEN LEVELS (10-06 night, Griz: "I'm thinking of these as stuff that adds on during the inbetween
   // levels, with a passive between these unlocking"; the seat's draft, "Those are good"): a free bonus move at 2nd, a passive at 3rd, a reaction at 6th -- each on a
   // mechanic the grid already has. The passives' and the reactions' uses are a fight's, back on a short rest with the specials (MP.refill): the proficiency bonus of each
   MP.has = function (u, sub, lvl) { return !!(u && u.cls === 'mpmon' && u.mpSub === sub && (u.lvl || 1) >= lvl); };
-  MP.refill = function (u) { var f = u.feats = u.feats || {}, p = 2 + Math.floor(((u.lvl || 1) - 1) / 4); f.specials = MP.specialsAt(u.lvl); f.lucky = p; f.eyeContact = p; f.hotTake = p; };
+  MP.refill = function (u) { var f = u.feats = u.feats || {}, p = 2 + Math.floor(((u.lvl || 1) - 1) / 4); f.specials = MP.specialsAt(u.lvl); f.lucky = p; f.eyeContact = p; f.hotTake = p; f.notToday = 1; }; // (Not Today: once a fight, by the draft)
 
   // MONKEY FLURRY (the Tank, 2nd; a bonus action, free): after he takes the Attack action, one more punch of the Monkey Fists (the monk's Martial Arts, SRD 5.1)
   MP.flurryOK = function (u) { var T = u.turn; return MP.has(u, 'tank', 2) && !!T && T.bonus > 0 && !!T.attackAction && !u.conds.incapacitated; };
@@ -530,8 +621,11 @@
     return true;
   }
   var swingers = []; // (who is swinging: the attack wrap below keeps it, so the attack roll's one roller, RU.d20, knows whose 1 it is)
+  // the one swinging now: a fight that ends inside a swing never closes it (its generator is dropped mid-blow), so one not in this battle is left over -- dropped
+  // (10-07: the bench's fights left one, and the next battle's Hivemind heat looked for its own user under it)
+  function swinger() { var B = D.battle; while (swingers.length && !(B && B.units && B.units.indexOf(swingers[swingers.length - 1]) >= 0)) swingers.pop(); return swingers[swingers.length - 1] || null; }
   var d20_0 = RU.d20; RU.d20 = function () {
-    var r = d20_0.apply(this, arguments), w = swingers[swingers.length - 1];
+    var r = d20_0.apply(this, arguments), w = swinger();
     if (r && r.pick === 1 && w && lucky(D.battle, w, 'a swing')) r = d20_0.apply(this, arguments);
     return r;
   };
@@ -559,6 +653,34 @@
     u.facing = B.faceTo(u, t); u.anim = rowOr(u, 'spot', 'gaze'); u.animT = B.t; FX.ring(t, 'violet', 18); D.sfx('buff');
     B.card(['{y}' + u.name + '{/}: EYE ON IT!  {g}(' + nm(B, t) + ': the next swing at it has advantage){/}'], 200); yield 12;
   };
+  // HONK (the Heals, 2nd; a bonus action, free -- the draft: "a foe within 30 ft has disadvantage on its next attack, like Vicious Mockery's rider"): a foe within 30 ft
+  // that can hear him -- its next attack roll before the end of its next turn has disadvantage (Vicious Mockery's own mark, conds.mocked: js/rules.js reads it, the roll
+  // spends it, js/battle.js). His sheet's honk row
+  MP.honkTargets = function (B, u) { return MP.foes(B, u, 30).filter(function (w) { return !w.conds.deafened && !w.conds.mocked; }); };
+  MP.honk = function* (B, u, t) {
+    u.turn.bonus = 0; t.conds.mocked = { by: u.id, honk: true, till: { who: t.id, at: 'end', n: 1 } };
+    u.facing = B.faceTo(u, t); u.anim = rowOr(u, 'honk', 'attack'); u.animT = B.t; D.sfx('crit'); FX.ring(t, 'orc', 20);
+    B.card(['{y}' + u.name + '{/}: HONK!  {g}(' + nm(B, t) + ': its next swing at disadvantage; a free bonus action){/}'], 200);
+    yield 16; u.anim = 'idle';
+  };
+  // BIG HEART (the Heals, 3rd; a passive): his heals add his level to each one they mend (the Life cleric's Disciple of Life, SRD 5.1) -- MP.bigHeart, in mend() above
+  // NOT TODAY (the Heals, 6th; a reaction -- the draft: "a friend within 30 ft who drops to 0 drops to 1 instead, once a fight", Death Ward's shape): a blow that would
+  // drop a friend of his within 30 ft (not himself) leaves it at 1 instead -- js/battle.js hurt's own Death Ward stop, lent for the one blow -- once a fight, back on a
+  // short rest. It goes on its own, as Eye Contact does (a blow is no prompt). The hurt wrap below lends and settles it
+  function notToday(B, w, n) {
+    if (!B || !B.units || !w || !w.conds || w.dead || w.hp <= 0 || w.object || w.familiar || w.conds.deathWard || n < w.hp + (w.temp || 0)) return null;
+    var g = B.units.filter(function (b) { return MP.has(b, 'heals', 6) && b !== w && b.side === w.side && b.reaction > 0 && standing(b) && RU.canAct(b) && (b.feats.notToday || 0) > 0 && G.dist(b, w) <= 30; })[0];
+    if (!g) return null;
+    w.conds.deathWard = { notToday: g.id };
+    return g;
+  }
+  function notTodayAfter(B, g, w) {
+    if (w.conds.deathWard && w.conds.deathWard.notToday === g.id) { delete w.conds.deathWard; return; } // (the blow did not drop it after all: a resistance, the temporary hit points)
+    if (w.dead || w.hp !== 1) return;
+    g.reaction = 0; g.feats.notToday--;
+    g.facing = B.faceTo(g, w); g.anim = healRow(g); g.animT = B.t; FX.heal(w); FX.ring(w, 'orc', 30); D.sfx('buff');
+    B.card(['{y}' + g.name + '{/}: NOT TODAY!  {n}' + w.name + ' stays up, at 1.{/}  {g}(his reaction; once a fight){/}'], 260);
+  }
   // SCUTTLE (DPS, 2nd; a bonus action, free): Dash, Disengage or Hide -- the rogue's Cunning Action, SRD 5.1 (battle.js's cdash, cdisengage, hide; `cunning` on him)
   var bd0 = TX.bonusDash; TX.bonusDash = function (u) { return bd0.apply(this, arguments) || (MP.has(u, 'dps', 2) && u.turn && u.turn.bonus > 0 && !u.conds.restrained ? 'Scuttle' : ''); };
   // BODYGUARD (the Tank, 6th; a reaction): a foe he sees swings at a friend within 5 ft of him -- the roll at disadvantage (the Protection fighting style, SRD 5.1,
@@ -624,6 +746,47 @@
     B.card(['{y}' + u.name + '{/}: SPOTLIGHT!  {c}' + (list.length ? list.map(function (w) { return w.name; }).join(', ') + ': HASTED' : 'no friend in it') + '{/}  {g}(till the end of their next turn, no lethargy after; ' + leftText(u) + '){/}'], 320);
     yield 24; u.anim = 'idle';
   };
+  // LIFELINE (the Heals; the draft: "Goose binds a friend for the fight, and half the damage they take comes to him instead (Warding Bond)", and his: "LifeLine chooses
+  // recipient ally (can tie denny instead of self)"): a friend he sees within MP.lifeR ft (30; 60 at 9th) is TIED, the fight long, to a second -- himself, or another
+  // friend -- and half of every blow on the one tied is taken by the other instead (the hurt wrap below). It lets go when either drops to 0, when the two are more than
+  // twice MP.lifeR apart, or when he ties another; at 8th the one tied also has +1 AC and +1 on its saves (Warding Bond's other half). A green thread on the floor
+  MP.lifeTargets = function (B, u) { var R0 = MP.lifeR(u.lvl); return B.units.filter(function (w) { return w.side === u.side && standing(w) && !w.familiar && !w.object && (w === u || (G.dist(u, w) <= R0 && M.sees(B, u, w))); }); };
+  function lifeCut(B, w, why) { if (!w.conds.lifeline) return; delete w.conds.lifeline; if (why && B) B.card(['{g}' + w.name + '\'s lifeline lets go: ' + why + '.{/}'], 200); }
+  MP.lifeline = function* (B, u, bound, to) {
+    to = to && to !== bound ? to : bound === u ? null : u;
+    if (!bound || !to) { D.sfx('error'); B.card(['{o}' + u.name + ': LIFELINE ties two -- the one tied, and who takes the half.{/}'], 200); return; }
+    spend(u); u.turn.action = 0;
+    B.units.forEach(function (w) { if (w.conds.lifeline && w.conds.lifeline.by === u.id) lifeCut(B, w, null); }); // (one tie of his at a time)
+    u.anim = healRow(u); u.animT = B.t; D.sfx('buff');
+    yield 14;
+    bound.conds.lifeline = { by: u.id, to: to.id, toName: to.name, ward: MP.lifeWard(u.lvl), apart: 2 * MP.lifeR(u.lvl) };
+    FX.beam(to, bound, 'heal', { thin: true }); FX.ring(bound, 'orc', 30); FX.ring(to, 'orc', 30);
+    B.card(['{y}' + u.name + '{/}: LIFELINE!  {n}' + bound.name + '{/} tied to {n}' + (to === u ? 'him' : to.name) + '{/}: half of every blow on ' + bound.name + ' goes to ' + to.name + (MP.lifeWard(u.lvl) ? '; ' + bound.name + ' +1 AC and saves' : '') + '  {g}(the fight long; ' + leftText(u) + '){/}'], 340);
+    yield 24; u.anim = 'idle';
+  };
+  // the one tied: its +1 AC and saves at 8th
+  var acL = RU.ac; RU.ac = function (u) { var c = u && u.conds && u.conds.lifeline; return acL.apply(this, arguments) + (c && c.ward ? c.ward : 0); };
+  var saveL = RU.save; RU.save = function (u, ab, dc) { var c = u && u.conds && u.conds.lifeline; if (c && c.ward) { var a = Array.prototype.slice.call(arguments); a[2] = dc - c.ward; return saveL.apply(this, a); } return saveL.apply(this, arguments); };
+  // the blow: half of it to the one the tie runs to (Warding Bond: "Each time it takes damage, you take the same amount" -- here the half, moved); then NOT TODAY's 1 HP, lent
+  // for the blow (above). A blow passed down the line is not passed again (o.lifeline)
+  var hurtG = D.Battle.prototype.hurt;
+  D.Battle.prototype.hurt = function (u, n, type, o) {
+    var B = this, a = Array.prototype.slice.call(arguments), c = u && u.conds && u.conds.lifeline;
+    if (c && n > 0 && !(o && o.lifeline)) {
+      var to = (B.units || []).filter(function (w) { return w.id === c.to; })[0];
+      if (!to || to.dead || to.hp <= 0) lifeCut(B, u, (to ? to.name : 'the other') + ' is down');
+      else if (G.dist(u, to) > c.apart) lifeCut(B, u, 'too far apart');
+      else {
+        var half = Math.floor(n / 2);
+        if (half > 0) { a[1] = n - half; if (FX.float) FX.float('lifeline ' + half, to, D.PAL.ramps.orc[3]); hurtG.call(B, to, half, type, Object.assign({}, o || {}, { lifeline: true })); if (to.dead || to.hp <= 0) lifeCut(B, u, to.name + ' is down'); }
+      }
+    }
+    var g = notToday(B, u, a[1]);
+    var r = hurtG.apply(B, a);
+    if (g) notTodayAfter(B, g, u);
+    if (u && u.conds && u.conds.lifeline && (u.dead || u.hp <= 0)) lifeCut(B, u, u.name + ' is down');
+    return r;
+  };
 
   // ------------------------------------------------------------------ THE HIVEMIND (9th, every Mascot: the capstone)
   // RULED 10-06 night, Griz: "rather than 1d6 to one roll at level 9 for the whole party... Denny's activation damage resist for the whole party 1d6, behold 1d6
@@ -660,7 +823,7 @@
     var h = u.conds && u.conds.hive; MP.cur = { u: u, aim: 0, heat: 0 };
     if (h && h.ward) { delete h.ward; u.conds.hiveWard = { till: { who: u.id, at: 'start', n: 1 }, endText: '{who}\'s ward lets go.' }; FX.ring(u, 'silver', 22); }
   };
-  ['taunt', 'denim', 'cannonball', 'hug', 'bubble', 'gaze', 'screen', 'spotlight', 'sharing', 'flame', 'distancing', 'viral'].forEach(function (k) {
+  ['taunt', 'denim', 'cannonball', 'hug', 'bubble', 'gaze', 'screen', 'spotlight', 'sharing', 'flame', 'distancing', 'viral', 'heart', 'group', 'fountain', 'lifeline'].forEach(function (k) {
     var f0 = MP[k]; if (!f0) return;
     MP[k] = function* () { var was = MP.cur; try { return yield* f0.apply(this, arguments); } finally { MP.cur = was; } };
   });
@@ -681,7 +844,8 @@
   // the heat: the special's first damage roll -- its own, or its user's blow in it (not a readied foe's, nor a reaction's)
   var roll0 = D.roll; D.roll = function (expr, o) {
     var r = roll0.apply(this, arguments), c = MP.cur;
-    if (c && !c.heated && (!swingers.length || swingers[swingers.length - 1] === c.u)) { var n = heatOf(c); if (n) { c.heated = true; r = { total: r.total + n, rolls: r.rolls.concat([n]), mod: r.mod }; } }
+    var sw = c && !c.heated ? swinger() : null;
+    if (c && !c.heated && (!sw || sw === c.u)) { var n = heatOf(c); if (n) { c.heated = true; r = { total: r.total + n, rolls: r.rolls.concat([n]), mod: r.mod }; } }
     return r;
   };
   // the ward: 1d6 off every blow on it till its next turn
@@ -768,15 +932,58 @@
         if (ch.length >= 2 || v > bolt * 1.5) plans.push({ kind: 'special', why: 'GOING VIRAL at ' + t.name + ' (' + ch.length + ')', score: v, go: function* () { yield* MP.viral(B, u, t); } });
       });
     }
+    if (u.mpSub === 'heals') {
+      // a heal's worth by the class AI's own measure (js/tactics.js TX.healNeed: the down first, then the worst under half), as Cure Wounds is weighed
+      var big = MP.bigHeart(u), wm = mod(u.abil.wis);
+      var healWorth = function (w, amt) { var need = TX.healNeed(B, u, w); return need ? Math.min(amt, w.maxhp - Math.max(0, w.hp)) * need + (w.hp <= 0 ? TX.dpr(w) * 2 : 0) : 0; };
+      // the group hug: two or more round him wanting it
+      var ga = TX.avg(MP.groupDice(u.lvl)) + wm + big, gv = 0, gn = 0;
+      MP.groupCatch(B, u).forEach(function (w) { var v = healWorth(w, ga); if (v > 0) { gn++; gv += v; } });
+      if (gn >= 2) plans.push({ kind: 'special', why: 'GROUP HUG (' + gn + ')', score: gv, go: function* () { yield* MP.group(B, u); } });
+      // the fountain: an ailment ended is worth what it keeps off the one it held (paralysis most), and the healing on top
+      if (u.lvl >= 5) {
+        var fa = TX.avg(MP.fountDice(u.lvl)) + big, fv = 0, fn = 0;
+        MP.fountCatch(B, u).forEach(function (w) {
+          var ail = M.ailments(w)[0], v = healWorth(w, fa);
+          if (ail) v += (/paralys/.test(ail.label) ? 3 : /blind/.test(ail.label) ? 1.2 : /poison|disease/.test(ail.label) ? 0.8 : 0.3) * Math.max(4, TX.dpr(w));
+          if (v > 0) { fn++; fv += v; }
+        });
+        if (fn && (fn >= 2 || fv > ga * 2)) plans.push({ kind: 'special', why: 'FOUNTAIN (' + fn + ')', score: fv, go: function* () { yield* MP.fountain(B, u); } });
+      }
+      // the lifeline: the friend the foes are on, low, tied to one who can take it -- the Tank above half, else the friend with the most to spare, else him
+      if (u.lvl >= 7 && !B.units.some(function (w) { return w.conds.lifeline && w.conds.lifeline.by === u.id; })) {
+        var lts = MP.lifeTargets(B, u), press = function (w) { return B.units.filter(function (f) { return G.hostile(u, f) && standing(f) && G.dist(w, f) <= 10; }).reduce(function (s, f) { return s + TX.dpr(f); }, 0); };
+        var lb = lts.filter(function (w) { return w.hp < w.maxhp * 0.6 && press(w) > 0; }).sort(function (a, b) { return a.hp / a.maxhp - b.hp / b.maxhp; })[0];
+        if (lb) {
+          var lr = lts.filter(function (w) { return w !== lb && w.mpSub === 'tank' && w.hp > w.maxhp / 2; })[0] || lts.filter(function (w) { return w !== lb && w.hp > lb.hp * 2 && w.hp > 10; }).sort(function (a, b) { return b.hp - a.hp; })[0] || (lb !== u && u.hp > lb.hp ? u : null);
+          if (lr) plans.push({ kind: 'special', why: 'LIFELINE: ' + lb.name + ' to ' + lr.name, score: press(lb) * 1.2, go: function* () { yield* MP.lifeline(B, u, lb, lr); } });
+        }
+      }
+    }
     return plans;
   });
   // the bonus actions before the action: the bubble, else the eye on a foe her friends are on (Beholda); the taunt (Denny); the sharing (Rascal). The taunt is
   // kept back while it is his last special and there is no foe on a friend
   function tauntWorth(B, u) { var tl = MP.tauntList(B, u), onF = tl.filter(function (w) { return nearFriends(B, u, w, 10); }); return MP.left(u) > 0 && onF.length > 0 && (tl.length >= 2 || MP.left(u) >= 2); }
   function eyeMark(B, u) { return MP.eyeTargets(B, u).filter(function (w) { return !w.conds.helped && nearFriends(B, u, w, 5); }).sort(function (a, b) { return b.hp - a.hp; })[0]; }
+  // Goose's honk: the foe near a friend of his that hits hardest
+  function honkMark(B, u) { return MP.honkTargets(B, u).filter(function (w) { return nearFriends(B, u, w, 10) || G.dist(u, w) <= 10; }).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0]; }
+  // Goose's heart to heart: the one who needs it most (the down first), unless his last special is better kept for a group hug two or more want
+  function heartFor(B, u) {
+    if (MP.left(u) <= 0) return null;
+    var t = MP.heartTargets(B, u).map(function (w) { return { w: w, need: TX.healNeed(B, u, w) }; }).filter(function (e) { return e.need >= 1; }).sort(function (a, b) { return b.need - a.need || a.w.hp / a.w.maxhp - b.w.hp / b.w.maxhp; })[0];
+    if (!t) return null;
+    var want = MP.groupCatch(B, u).filter(function (w) { return TX.healNeed(B, u, w) >= 1; }).length;
+    return MP.left(u) === 1 && want >= 2 && t.w.hp > 0 ? null : t.w;
+  }
   TX.FIRST.push(function* (B, u) {
     var T = u.turn;
     if (u.cls !== 'mpmon' || !T.bonus || u.conds.incapacitated) return;
+    if (u.mpSub === 'heals') {
+      var ht = heartFor(B, u); if (ht) { yield* MP.heart(B, u, ht); return; }
+      var hk = u.lvl >= 2 && honkMark(B, u); if (hk) yield* MP.honk(B, u, hk);
+      return;
+    }
     if (u.mpSub === 'buffs') {
       if (MP.left(u) > 0 && !u.conds.vnaBubble) {
         var r = MP.bubbleR(u.lvl), inside = B.units.filter(function (w) { return w.side === u.side && standing(w) && (w === u || G.dist(u, w) <= r); });
@@ -803,6 +1010,7 @@
     }
     if (u.mpSub === 'dps' && u.lvl >= 2 && MP.foes(B, u, 5).length && T.move >= 10 && !u.conds.restrained) { T.bonus = 0; T.disengaged = true; B.card(['{y}' + u.name + '{/} SCUTTLES: disengages, sideways like a lobster.'], 160); yield 8; return; }
     if (u.mpSub === 'buffs' && u.lvl >= 2) { var em = eyeMark(B, u); if (em) yield* MP.eyeOnIt(B, u, em); }
+    if (u.mpSub === 'heals') { var ht = heartFor(B, u); if (ht) { yield* MP.heart(B, u, ht); return; } var hk = u.lvl >= 2 && honkMark(B, u); if (hk) yield* MP.honk(B, u, hk); }
   });
 
   // ------------------------------------------------------------------ the player's buttons (the ring's SKILLS: js/features.js F.commands / F.exec, wrapped as familiar.js does).
@@ -847,6 +1055,15 @@
         add('hide', 'SCUTTLE: HIDE', 'B', 'dash', sw, 'a bonus action: try to hide');
       }
     }
+    if (u.mpSub === 'heals') {
+      var bigT = L >= 3 ? ' + ' + L + ' (big heart)' : '', hh = MP.heartTargets(B, u);
+      add('mp-heart', 'HEART TO HEART', 'B', 'sacred', whyB(hh, 'no one hurt within ' + MP.heartR(L) + ' ft'), 'a friend you see within ' + MP.heartR(L) + ' ft, or you: ' + MP.heartDice(L) + ' + WIS' + bigT + ' back, up again if down; ' + leftText(u), { shape: 'single', side: 'ally', range: MP.heartR(L), kind: 'buff' }, 'a friend within ' + MP.heartR(L) + ' ft, or you');
+      if (L >= 2) { var hk = MP.honkTargets(B, u); add('mp-honk', 'HONK', 'B', 'surge', whyB(hk, 'no foe within 30 ft that can hear you', true), 'a foe within 30 ft: its next swing at disadvantage (free: a bonus action)', foeAim(30, false, 'buff'), 'a foe within 30 ft'); }
+      var gc = MP.groupCatch(B, u);
+      add('mp-group', 'GROUP HUG', 'A', 'sacred', whyA(gc, 'no one hurt within ' + MP.groupR(L) + ' ft of you'), 'everyone within ' + MP.groupR(L) + ' ft of you, you too: ' + MP.groupDice(L) + ' + WIS' + bigT + ' each, the down back up; ' + leftText(u));
+      if (L >= 5) { var fc = MP.fountCatch(B, u); add('mp-fountain', 'FOUNTAIN', 'A', 'sacred', whyA(fc, 'no one within ' + MP.fountR(L) + ' ft needs it'), 'everyone within ' + MP.fountR(L) + ' ft, you too: the worst of paralysis, blindness, poison or deafness ended, and ' + MP.fountDice(L) + bigT + ' back; ' + leftText(u)); }
+      if (L >= 7) { var lf = MP.lifeTargets(B, u); add('mp-lifeline', 'LIFELINE', 'A', 'sacred', whyA(lf.length >= 2 ? lf : [], 'no friend within ' + MP.lifeR(L) + ' ft to tie'), 'tie a friend within ' + MP.lifeR(L) + ' ft to another, or to you: half of every blow on the first goes to the second, the fight long' + (MP.lifeWard(L) ? '; the first +1 AC and saves' : '') + '; ' + leftText(u), { shape: 'allies', side: 'ally', range: MP.lifeR(L), n: 2, see: true, kind: 'buff' }, 'the friend to tie, then who takes the half (one pick: you take it)'); }
+    }
     return out;
   };
   F.exec = function* (B, u, c) {
@@ -870,6 +1087,16 @@
       case 'mp-flame': t = pt(MP.flameTargets(B, u)); if (t) yield* MP.flame(B, u, t); return;
       case 'mp-distancing': yield* MP.distancing(B, u); return;
       case 'mp-viral': t = one(MP.viralTargets(B, u)); if (t) yield* MP.viral(B, u, t); else nope('Going Viral: a foe you see within 120 ft.'); return;
+      case 'mp-heart': t = one(MP.heartTargets(B, u)); if (t) yield* MP.heart(B, u, t); else nope('Heart to Heart: a friend you see within ' + MP.heartR(L) + ' ft who is hurt, or you.'); return;
+      case 'mp-honk': t = one(MP.honkTargets(B, u)); if (t) yield* MP.honk(B, u, t); else nope('Honk: a foe within 30 ft that can hear you.'); return;
+      case 'mp-group': yield* MP.group(B, u); return;
+      case 'mp-fountain': yield* MP.fountain(B, u); return;
+      case 'mp-lifeline': { // (the picks in order: the one tied, then who takes the half; one pick, he takes it)
+        var ok = MP.lifeTargets(B, u), lu = (t && t.units ? t.units : t && t.side ? [t] : []).filter(function (w) { return ok.indexOf(w) >= 0; });
+        if (!lu.length) lu = ok.filter(function (w) { return w !== u; }).slice(0, 1);
+        if (lu.length && (lu[1] || lu[0] !== u)) yield* MP.lifeline(B, u, lu[0], lu[1] || u); else nope('Lifeline: a friend to tie, then who takes the half (you, if only one).');
+        return;
+      }
     }
   };
   var line0 = F.classLine; F.classLine = function (u) {
@@ -901,6 +1128,14 @@
         ctx.globalAlpha = 0.07; ctx.fillStyle = '#c58bff'; ctx.fill();
         ctx.globalAlpha = 0.45 + 0.15 * Math.sin(t / 15); ctx.strokeStyle = '#ffb3f0'; ctx.lineWidth = 1; ctx.setLineDash([4, 3]); ctx.lineDashOffset = -t / 5; ctx.stroke();
         ctx.restore();
+      });
+      // Goose's lifeline: a green thread between the one tied and the one it runs to, the heal's green
+      (B.units || []).forEach(function (w) {
+        var c = w.conds && w.conds.lifeline; if (!c || w.dead || !D.ui || !D.ui.unitPos) return;
+        var to = (B.units || []).filter(function (x) { return x.id === c.to; })[0]; if (!to || to.dead) return;
+        var p = D.ui.unitPos(B, w), q = D.ui.unitPos(B, to), t = B.t || 0;
+        ctx.save(); ctx.globalAlpha = 0.5 + 0.2 * Math.sin(t / 10); ctx.strokeStyle = D.PAL.ramps.orc[3]; ctx.lineWidth = 1; ctx.setLineDash([3, 3]); ctx.lineDashOffset = -t / 4;
+        ctx.beginPath(); ctx.moveTo(p.x, p.y - 6); ctx.lineTo(q.x, q.y - 6); ctx.stroke(); ctx.restore();
       });
     };
   }
@@ -937,11 +1172,11 @@
   var PK = D.pocket;
   if (PK && PK.STOCK) {
     var at = PK.STOCK.map(function (s) { return s.w; }).indexOf('pyro');
-    PK.STOCK.splice(at < 0 ? PK.STOCK.length : at, 0, { w: 'denny', lo: 1, mascot: true }, { w: 'beholda', lo: 1, mascot: true }, { w: 'rascal', lo: 1, mascot: true });
+    PK.STOCK.splice(at < 0 ? PK.STOCK.length : at, 0, { w: 'denny', lo: 1, mascot: true }, { w: 'beholda', lo: 1, mascot: true }, { w: 'rascal', lo: 1, mascot: true }, { w: 'goose', lo: 1, mascot: true });
   }
   // LOCKED (RULED 10-06 night, Griz: "Easter Egg unlocks. i.e. 'make your own character the first time' = unlock denny ... All locked for now with a flag we can
   // switch so I can stream monster party monster fights with them"; the door "good for testing"): a mascot is off the roster till its egg gives it (the save's
-  // `mascots`, { denny: true }: the eggs are to come) -- hidden, not greyed, so the egg is a surprise -- or the page's door `&mascots` opens all three
+  // `mascots`, { denny: true }: the eggs are to come) -- hidden, not greyed, so the egg is a surprise -- or the page's door `&mascots` opens all four
   MP.door = function () { try { return /[?&]mascots\b/.test(window.location.search || ''); } catch (e) { return false; } };
   MP.unlocked = function (st, w) { return MP.door() || !!(st && st.mascots && st.mascots[w]); };
   MP.unlock = function (st, w) { st.mascots = st.mascots || {}; var was = !!st.mascots[w]; st.mascots[w] = true; return !was; };

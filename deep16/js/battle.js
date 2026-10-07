@@ -2591,8 +2591,8 @@
       conc(this);
       return;
     }
-    // Death Ward (js/grimoire.js): the first fall stops at 1
-    if (u.hp <= 0 && u.conds.deathWard) { delete u.conds.deathWard; u.hp = 1; FX.ring(u, 'gold', 30); this.card(['{y}' + (u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' does not fall: the death ward holds.{/}']); conc(this); return; }
+    // Death Ward (js/grimoire.js): the first fall stops at 1 (Goose's NOT TODAY lends it for a blow and says so itself: js/mpmon.js)
+    if (u.hp <= 0 && u.conds.deathWard) { var dw = u.conds.deathWard; delete u.conds.deathWard; u.hp = 1; if (!dw.notToday) { FX.ring(u, 'gold', 30); this.card(['{y}' + (u.side === 'foe' ? Battle.nm(u, true) : u.name) + ' does not fall: the death ward holds.{/}']); } conc(this); return; }
     // Relentless (the giant boar: js/traits.js): a small blow that would drop it leaves it at 1
     if (u.hp <= 0 && D.traits && D.traits.refuse && D.traits.refuse(this, u, n)) { conc(this); return; }
     if (u.hp <= 0) {

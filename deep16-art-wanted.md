@@ -77,7 +77,7 @@ The class is the Mascot now (`deep16/js/mpmon.js`; the MPMon lane §6): every on
 | Rascal | Social Distancing, 5th (the ring round him cleared, no longer a cone) | **`socialdistancing`** / `attack` | **no: it plays the Pinch today** |
 | Rascal | Hot Take, 6th (a reaction: fire back) | **`hottake`** / `socialflame` | **no (the clap stands in)** |
 | Rascal | Going Viral, 7th (fire foe to foe) | **`goingviral`** / `socialflame` | **no (the clap stands in)** |
-| Goose | everything | `idle` `walk` `attack` `cast` `honk` `climb` `flinch` `hurt` `prone` | **IN HAND 10-07: `goose_p1`, his picks from three sheets (`tools/goose-sheet.py`); no build yet** |
+| Goose | everything | `idle` `walk` `attack` `cast` `honk` `climb` `flinch` `hurt` `prone` | **IN HAND 10-07: `goose_p1`, his picks from three sheets (`tools/goose-sheet.py`); his build 10-07 (the heals play `cast`, Honk `honk`)** |
 
 When they come back: each new row name into `tools/pixelate.py`'s ANIM_ORDER and FPS and `deep16/js/ui.js`'s play-once rule, the cutter (`tools/denny-sheet.py`, `tools/beholda-sheet.py`, `tools/rascal-sheet.py`) given the rows, then `?mpshow&lvl=9` (every move has a beat) and a fresh eyes row.
 

@@ -472,7 +472,7 @@ otherwise, this stands.
   (humanoid, walk 30, climbs, Athletics), the EyeGregore (**fey**; she **floats** -- the grid's flier today, one layer, 5 ft, at most when
   flight at a height lands; darkvision 120, no hands, Perception), shaped as NPC.RACES entries but kept out of the maker (his: *"we'll let
   them unlock the 3 as they are"*). **The roles:** `MP.SUBS` -- **Tank** (Denny, STR), **Buffs** (Beholda, WIS), **DPS** (Rascal, CHA),
-  **Heals** (Goose, WIS -- *"the key ability is LOVE... which we'll say is wise"*; drafted, no build till his sheet). The specials dispatch
+  **Heals** (Goose, WIS -- *"the key ability is LOVE... which we'll say is wise"*; built 10-07, below). The specials dispatch
   on `u.mpSub`.
 - **The levels:** 1 the two core specials, the setup one a BONUS action (Taunt -- no swing of its own now --, the VNA Bubble, Social
   Sharing); 2 a free bonus move; 3 a passive; 4 an ability score; 5 the third special; 6 a reaction; 7 the fourth special; 8 an ability
@@ -493,6 +493,17 @@ otherwise, this stands.
   of its next turn, no lethargy).
 - **Rascal, the DPS:** 2 SCUTTLE (Dash, Disengage or Hide as a bonus action; `cunning` on him); 3 SPICY (CHA on Fire Bolt's damage); 6 HOT
   TAKE (Hellish Rebuke's shape: 2d10 fire at one that hits him, the player asked); 7 GOING VIRAL (fire foe to foe, 3d8, three of them).
+- **GOOSE, the Heals** (10-07; a Lobstamonkee on his sheet `goose_p1`; the draft the race-and-class seat wrote and he passed, and his
+  *"his specials should mainly be green energy"*): WIS his stat; d8, CON 10, AC 14; his blow the SLING, 1d4 + WIS at 30/120 (*"yes,
+  historically a sling"*). 1 HEART TO HEART (a bonus action: a friend within 30 ft or himself, 1d6 + WIS; 60 ft and 3d6 at 5th, 90 ft and
+  5d6 at 9th; the down get up) and GROUP HUG (an action: every friend within 15 ft of him, him too, 1d4 + WIS each; 25 ft and 3d4 at 5th,
+  35 ft and 5d4 at 9th) -- both names the seat's; 2 HONK (free: a foe within 30 ft that can hear him, its next swing at disadvantage,
+  Vicious Mockery's mark); 3 BIG HEART (his level on each heal: Disciple of Life); 5 FOUNTAIN (his "Cleanse as 'Fountain'": within 30 ft
+  the worst of Lesser Restoration's ailments ended and 1d8 + his level); 6 NOT TODAY (a reaction, once a fight, on its own: a friend
+  within 30 ft whose blow would drop it stays at 1 -- js/battle.js's Death Ward stop, lent for the blow); 7 LIFELINE (his *"LifeLine
+  chooses recipient ally (can tie denny instead of self)"*: a friend tied the fight long to a second, himself or another, who takes half
+  of every blow on it; a green thread on the floor; +1 AC and saves to the one tied at 8th). Every heal is the jump with the glow (his
+  cast row) in js/fx.js's heal greens.
 - **THE HIVEMIND, 9th** (RULED, Griz: *"Denny's activation damage resist for the whole party 1d6, behold 1d6 to hit, rascal 1d6 damage,
   goose 1d6 temp hp - except goose, all apply to next 'special' each char uses (not other moves)"*): each 9th-level Mascot gives every Mascot
   on its side its role's token for that one's next special -- the WARD (1d6 off each blow on it till its next turn), the AIM (1d6 on the
@@ -502,9 +513,10 @@ otherwise, this stands.
   `aim`, a spell's geometry, and `js/ui.js` aimCommand hands it to the spell aim -- the cursor, the area on the floor, the click.
 - **Locked on the Pocket DM's roster** (*"All locked for now with a flag we can switch"*): hidden till an egg gives one (`st.mascots`; the
   eggs are to come: Denny for the first character made, Beholda for the first battlemap edited); **`&mascots`** on the Pocket DM's door
-  opens all three for testing.
-- **Doors:** `?mpshow` (5th: the core and the 2nd-3rd moves) and **`?mpshow&lvl=9`** (all 22 beats: the 6ths' reactions, the fourths, the
-  Hivemind).
+  opens all four for testing.
+- **Doors:** `?mpshow` (5th: the core and the 2nd-3rd moves) and **`?mpshow&lvl=9`** (all 28 beats: the 6ths' reactions, the fourths, the
+  Hivemind); Goose's alone: `?mpshow&lvl=7&only=heart,group,fountain,honk,nottoday,lifeline`. By hand:
+  `?npc=goblin,goblin,hobgoblin,hobgoblin&vs=denny:5,goose:5&lvl=5`.
 
 ## Not in the POC
 

@@ -16,7 +16,7 @@
     q = q || '';
     var get = function (k) { var m = new RegExp('[?&]' + k + '=([^&]*)').exec(q); return m ? decodeURIComponent(m[1]) : null; };
     var L = Math.max(5, Math.min(9, +(get('lvl') || 5))), FAST = /[?&]fast\b/.test(q);
-    var B = D.npcFight('?npc=goblin,goblin,goblin,hobgoblin,ogre&vs=denny:' + L + ',beholda:' + L + ',rascal:' + L + '&lvl=' + L, {});
+    var B = D.npcFight('?npc=goblin,goblin,goblin,hobgoblin,ogre&vs=denny:' + L + ',beholda:' + L + ',rascal:' + L + ',goose:' + L + '&lvl=' + L, {});
     var enter0 = B.enter;
     B.enter = function () { enter0.apply(this, arguments); this.req = null; this.co = show(this, get, FAST, L); };
     return B;
@@ -25,7 +25,7 @@
   function* show(B, get, FAST, L) {
     var W = function (n) { return FAST ? 1 : n; }, MP = D.mpmon;
     var pool = B.units.slice(), kind = function (k) { return pool.filter(function (u) { return u.kind === k; }); };
-    var dn = pool.filter(function (u) { return u.mpmon === 'denny'; })[0], bh = pool.filter(function (u) { return u.mpmon === 'beholda'; })[0], rs = pool.filter(function (u) { return u.mpmon === 'rascal'; })[0];
+    var dn = pool.filter(function (u) { return u.mpmon === 'denny'; })[0], bh = pool.filter(function (u) { return u.mpmon === 'beholda'; })[0], rs = pool.filter(function (u) { return u.mpmon === 'rascal'; })[0], gs = pool.filter(function (u) { return u.mpmon === 'goose'; })[0];
     var gob = kind('goblin'), hob = kind('hobgoblin')[0], ogre = kind('ogre')[0];
     var orig = pool.map(function (u) { return { u: u, maxhp: u.maxhp }; });
     var report = B.mpReport = [], home = { x: dn.x, y: dn.y };
@@ -141,6 +141,30 @@
         var lg = yield* turn(gob[0], 15, null), d1 = G.dist(rs, gob[0]);
         return [caught.length === 2 && scared === 2 && out === 2 && d1 >= d0 && rs.hp === hp0, scared + ' of ' + caught.length + ' frightened (' + [gob[0], gob[1]].map(function (w) { return w.maxhp - w.hp; }).join('/') + ' psychic, ' + want + ' wanted), ' + out + ' shoved out of the ring; the near goblin from ' + d0 + ' ft to ' + d1 + ' ft off on its turn, Rascal ' + (rs.hp === hp0 ? 'untouched' : 'hit')];
       } },
+      // Goose's (10-07): the heals in the heal's green -- the jump with the glow between his hands
+      { id: 'heart', name: 'Heart to Heart', what: 'Denny is down to 3 HP across the floor. Goose, a bonus action: HEART TO HEART -- ' + MP.heartDice(L) + ' + WIS + ' + L + ' (his big heart), the dice at their top -- and his action is still his.', run: function* () {
+        stage([[gs, 0, 0], [dn, 6, 0], [bh, -2, 2]], dn);
+        dn.hp = 3; var want = Math.min(dn.maxhp - 3, +MP.heartDice(L).split('d')[0] * 6 + Math.floor((gs.abil.wis - 10) / 2) + L);
+        RU.startTurn(gs); yield* act(gs, MP.heart(B, gs, dn), null, null, true);
+        var got = dn.hp - 3, kept = gs.turn.action > 0 && gs.turn.bonus === 0;
+        return [got === want && kept, 'Denny 3 -> ' + dn.hp + ' (+' + got + '; ' + want + ' wanted), the action ' + (gs.turn.action ? 'kept' : 'spent') + ', the bonus ' + (gs.turn.bonus ? 'kept' : 'spent')];
+      } },
+      { id: 'group', name: 'Group Hug', what: 'Denny, Beholda and Rascal hurt to 2 HP round Goose, within ' + MP.groupR(L) + ' ft, a goblin among them: GROUP HUG -- ' + MP.groupDice(L) + ' + WIS + ' + L + ' each at their top, Goose too; the goblin gets nothing.', run: function* () {
+        stage([[gs, 0, 0], [dn, 2, 0], [bh, -2, 1], [rs, 0, 2], [gob[0], 3, 1, 30]], gs);
+        [dn, bh, rs].forEach(function (w) { w.hp = 2; }); gs.hp = gs.maxhp - 5; gob[0].hp = 10;
+        var each = +MP.groupDice(L).split('d')[0] * 4 + Math.floor((gs.abil.wis - 10) / 2) + L;
+        RU.startTurn(gs); yield* act(gs, MP.group(B, gs), null, null, true);
+        var ok3 = [dn, bh, rs].filter(function (w) { return w.hp === Math.min(w.maxhp, 2 + each); }).length;
+        return [ok3 === 3 && gs.hp === gs.maxhp && gob[0].hp === 10, ok3 + ' of 3 friends +' + each + ' (' + [dn, bh, rs].map(function (w) { return w.hp; }).join('/') + ' HP), Goose whole ' + (gs.hp === gs.maxhp) + ', the goblin ' + gob[0].hp + ' HP'];
+      } },
+      { id: 'fountain', name: 'Fountain', what: 'Denny poisoned, Rascal blinded, Beholda paralysed, each 20 HP down, all within ' + MP.fountR(L) + ' ft of Goose: FOUNTAIN ends each one\'s ailment and heals ' + MP.fountDice(L) + ' + ' + L + ', the dice at their top.', run: function* () {
+        stage([[gs, 0, 0], [dn, 3, 0], [rs, -3, 1], [bh, 0, 3]], gs);
+        dn.conds.poisoned = {}; rs.conds.blinded = {}; bh.conds.paralyzed = {}; [dn, rs, bh].forEach(function (w) { w.hp = w.maxhp - 20; });
+        var each = +MP.fountDice(L).split('d')[0] * 8 + L;
+        RU.startTurn(gs); yield* act(gs, MP.fountain(B, gs), null, null, true);
+        var clean = !dn.conds.poisoned && !rs.conds.blinded && !bh.conds.paralyzed, healed = [dn, rs, bh].filter(function (w) { return w.hp === Math.min(w.maxhp, w.maxhp - 20 + each); }).length;
+        return [clean && healed === 3, 'ailments ended ' + clean + ' (poisoned ' + !!dn.conds.poisoned + ', blinded ' + !!rs.conds.blinded + ', paralysed ' + !!bh.conds.paralyzed + '), ' + healed + ' of 3 healed +' + each];
+      } },
       // THE MASCOT's in-between levels and fourths (10-06 night): a beat each; those past the show's level wait for &lvl=7 or &lvl=9
       { id: 'flurry', at: 2, name: 'Monkey Flurry', what: 'Denny swings at the hobgoblin (60 HP) -- the Attack action -- then MONKEY FLURRY, his free bonus action: a punch more. Every d20 at 15, the dice at their top.', run: function* () {
         stage([[dn, 0, 0], [hob, 1, 0, 60], [bh, -3, 2]], dn);
@@ -182,6 +206,19 @@
         var T = rs.turn;
         return [!!T.disengaged && T.bonus === 0 && T.action > 0, 'disengaged ' + !!T.disengaged + ', the bonus action ' + (T.bonus ? 'kept' : 'spent') + ', the action ' + (T.action ? 'kept' : 'spent')];
       } },
+      { id: 'honk', at: 2, name: 'Honk', what: 'A goblin by Rascal: Goose HONKS at it, a free bonus action -- its next swing has disadvantage. It swings at Rascal with two d20s, a 15 and a 3, and keeps the 3.', run: function* () {
+        stage([[gs, 0, 0], [rs, 3, 0], [gob[0], 4, 0, 30], [dn, -3, 3]], gs);
+        RU.startTurn(gs); yield* act(gs, MP.honk(B, gs, gob[0]));
+        var marked = !!gob[0].conds.mocked, kept = gs.turn.action > 0 && gs.turn.bonus === 0, h0 = rs.hp, k = 0;
+        var lg = yield* act(gob[0], B.attack(gob[0], rs, MP.meleeOf(gob[0]).atk), function () { return k++ % 2 ? 3 : 15; }, null);
+        return [marked && kept && rs.hp === h0 && !gob[0].conds.mocked, 'honked ' + marked + ', his action ' + (kept ? 'kept' : 'spent') + '; the goblin\'s swing ' + ((lg.match(/d20[^|]*/) || ['none'])[0]) + ', Rascal ' + h0 + ' -> ' + rs.hp + ', the mark ' + (gob[0].conds.mocked ? 'kept' : 'spent')];
+      } },
+      { id: 'nottoday', at: 6, name: 'Not Today', what: 'Beholda at 4 HP takes a goblin\'s blow that would drop her (its d20 at 19, the dice at their top) -- Goose 15 ft off: NOT TODAY, his reaction, and she stays up at 1.', run: function* () {
+        stage([[bh, 0, 0], [gs, -3, 0], [gob[0], 1, 0, 30]], bh);
+        bh.hp = 4; var n0 = gs.feats.notToday;
+        var lg = yield* act(gob[0], B.attack(gob[0], bh, MP.meleeOf(gob[0]).atk), 19, null, true);
+        return [bh.hp === 1 && !bh.dead && gs.reaction === 0 && gs.feats.notToday === n0 - 1 && /NOT TODAY/.test(lg), 'Beholda 4 -> ' + bh.hp + ' HP, Goose\'s reaction ' + (gs.reaction ? 'kept' : 'spent') + ', ' + gs.feats.notToday + ' left this fight'];
+      } },
       { id: 'bodyguard', at: 6, name: 'Bodyguard', what: 'A goblin swings at Beholda with Denny beside her: BODYGUARD, his reaction -- he steps in, the roll at disadvantage (the Protection style, no shield).', run: function* () {
         stage([[bh, 0, 0], [dn, 1, 0], [gob[0], -1, 0, 30]], bh);
         var lg = yield* act(gob[0], B.attack(gob[0], bh, MP.meleeOf(gob[0]).atk), 15, null);
@@ -219,13 +256,21 @@
         var want = +MP.viralDice(L).split('d')[0] * 8, burned = [gob[0], gob[1], gob[2]].filter(function (w) { return w.maxhp - w.hp === want; }).length;
         return [ch.length === 3 && burned === 3, ch.length + ' in the chain, ' + burned + ' took ' + want + ' (' + [gob[0], gob[1], gob[2]].map(function (w) { return w.maxhp - w.hp; }).join('/') + ')'];
       } },
-      { id: 'hivemind', at: 9, name: 'The Hivemind', what: 'A new round, the three at 9th: THE HIVEMIND cheers each -- Denny\'s WARD, Beholda\'s AIM, Rascal\'s HEAT, a token each for every Mascot\'s next special. Then Rascal\'s Social Flame takes the heat (1d6 more fire) and the aim (each save 1d6 harder: pinned at 16, it would have made it), and the ward is on him till his next turn.', run: function* () {
-        stage([[rs, 0, 0], [dn, -3, 3], [bh, -3, -3], [gob[0], 5, 0, 90], [gob[1], 6, 1, 90]], rs);
+      { id: 'lifeline', at: 7, name: 'Lifeline', what: 'Goose ties Rascal to Denny, the fight long: a goblin hits Rascal (its d20 at 19, the dice at their top) -- Rascal takes half the blow, Denny the other half down the green thread.', run: function* () {
+        stage([[gs, 0, 0], [rs, 3, 0], [dn, 0, 2], [gob[0], 4, 0, 30]], gs);
+        RU.startTurn(gs); yield* act(gs, MP.lifeline(B, gs, rs, dn));
+        var tied = !!(rs.conds.lifeline && rs.conds.lifeline.to === dn.id), r0 = rs.hp, d0 = dn.hp;
+        var lg = yield* act(gob[0], B.attack(gob[0], rs, MP.meleeOf(gob[0]).atk), 19, null, true);
+        var n = (r0 - rs.hp) + (d0 - dn.hp), half = Math.floor(n / 2);
+        return [tied && n > 0 && d0 - dn.hp === half && r0 - rs.hp === n - half, 'tied ' + tied + '; the blow ' + n + ': Rascal ' + r0 + ' -> ' + rs.hp + ', Denny ' + d0 + ' -> ' + dn.hp + ' (' + half + ' wanted down the line)'];
+      } },
+      { id: 'hivemind', at: 9, name: 'The Hivemind', what: 'A new round, the four at 9th: THE HIVEMIND cheers each -- Denny\'s WARD, Beholda\'s AIM, Rascal\'s HEAT, a token each for every Mascot\'s next special, and Goose\'s LOVE, temporary hit points at once. Then Rascal\'s Social Flame takes the heat (1d6 more fire) and the aim (each save 1d6 harder: pinned at 16, it would have made it), and the ward is on him till his next turn.', run: function* () {
+        stage([[rs, 0, 0], [dn, -3, 3], [bh, -3, -3], [gs, -4, 0], [gob[0], 5, 0, 90], [gob[1], 6, 1, 90]], rs);
         B.round = 2; B.mpHive = 1; D.magic.onStart(B, rs); yield W(80);
-        var all = [dn, bh, rs].every(function (w) { var h = w.conds.hive || {}; return h.ward && h.aim && h.heat; });
+        var all = [dn, bh, rs].every(function (w) { var h = w.conds.hive || {}; return h.ward && h.aim && h.heat; }) && [dn, bh, rs, gs].every(function (w) { return (w.temp || 0) > 0; });
         RU.startTurn(rs); yield* act(rs, MP.flame(B, rs, gob[0]), null, 16, true);
         var want = +MP.flameDice(L).split('d')[0] * 6 + 6, took = [gob[0], gob[1]].map(function (w) { return w.maxhp - w.hp; }), h = rs.conds.hive || {};
-        return [all && took.every(function (n) { return n === want; }) && !h.aim && !h.heat && !!rs.conds.hiveWard, 'tokens to all three ' + all + '; the flame ' + took.join('/') + ' (' + want + ' wanted: the dice and the heat, every save failed by the aim), Rascal\'s aim and heat spent ' + (!h.aim && !h.heat) + ', warded ' + !!rs.conds.hiveWard];
+        return [all && took.every(function (n) { return n === want; }) && !h.aim && !h.heat && !!rs.conds.hiveWard, 'tokens to all three and the love to all four ' + all + '; the flame ' + took.join('/') + ' (' + want + ' wanted: the dice and the heat, every save failed by the aim), Rascal\'s aim and heat spent ' + (!h.aim && !h.heat) + ', warded ' + !!rs.conds.hiveWard];
       } }
     ];
 
