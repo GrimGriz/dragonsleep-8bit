@@ -4,6 +4,18 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · seen · the Game Show · The token walk between waves (`?gameshow&at=lamp`, the circle clicked) · *"i saw the token walk kinda, cam went south still - looked good from what i saw"*
+- 2026-10-07 · `4b645a9` · the Game Show · Seat 1: `deep16/?gameshow` -- the lighthouse title and idle (the 33 s wander and search), the jump in, Third Lamp's arrival (Ingrith's Ledger-Lamp, Pyro's charge), the token walk and the game over with high scores, handed to seat 2 by hooks · *"Monster Party Game Show / Scene 1 - Lobster Monkey Lighthouse"*
+- 2026-10-07 · ruled · the Game Show · The idle shot locked with the circle dead centre; Third Lamp's circle between the north and south rooms at (31, 8) (`4b645a9`) · *"center the circle in the middle middle and don't follow the characters with the cam on idle"* · *"the one in the lamp centered between north and south rooms"*
+- 2026-10-07 · ruled · the Game Show · The lane's rulings: the supplies are four buttons he clicks by chat activity, the lamp is the target and a wipe ends in the slow walk to it, the cleric is Ingrith with the Ledger-Lamp, wave tiers 1-9 with a boss third at 7-9, Beholda the token between waves (the lane §1b) · *"the wheel I get from the lamp is buttons"*
+- 2026-10-07 · `84834a4` · the Game Show · Third Lamp's circle the big one, in the station's south room (moved between the rooms in `4b645a9`) · *"go ahead and use the big circle centered in the room south of the map"*
+- 2026-10-07 · `3037a7a` · the Game Show · The dormant circle in the floor tile's own colours (silver in dressed stone, brown on cave floor), warming as it rises · *"can you color it the tile color when its inactive - less red showing through?"*
+- 2026-10-07 · `251ce17` · the Game Show · Third Lamp Station (`lampcircle`, the 8-bit's road square for square, 83 x 18, 606 open) and the Lobstamonkee Lighthouse (`lighthouse`); `deep16/js/circles.js` · *"a tile-by-tile version of the 8-bit 3rd lamp with the inactive version in the floor"*
+- 2026-10-07 · `859f27f` · the Game Show · The storyboard's party stands round the big wheel and jumps in · *"have them jump in the big one please"*
+- 2026-10-07 · `696b36f` · the Game Show · The wheel flush in the floor and rising onto its ledge; the storyboard `tools/wheel-play.html?scene`, out counter-clockwise · *"can you spin opposite direction on exit"*
+- 2026-10-07 · seen · the Game Show · The storyboard (`tools/wheel-play.html?scene`) · *"this is great"*
+- 2026-10-07 · ruled · the Game Show · Both wheels kept; the big one the lighthouse's entrance, the small one where they come out · *"1 - keep them both"*
+- 2026-10-07 · `569e839` · the Game Show · His zodiac wheel (`dev/visions/wheel.webp`) as a 16-bit floor prop that spins, five across and three (`tools/wheel-sheet.py`, `tools/wheel-play.html`) · *"make a 16 bit version that's flat on the ground and spins"*
 - 2026-10-07 · `392e9c1` · MPMon · The bench-balance pipeline named in CLAUDE.md (bench, a fight's seed, watched on the class floor); Goose's and Rascal's front and back sheets asked in the art list · *"note somewhere the class-floor thing as the bench-balance-pipeline tool"*
 - 2026-10-07 · `6940c08` · MPMon · The Mascots benched against the story party (`deep16-mascot-bench.md`): the band 0-2 of 20 at levels 1-8, 13 of 20 at 9; the class floor replays a bench fight by `&seed=`; Barley as himself in the Cocoon Gallery · *"Bench them vs the story party please"*
 - 2026-10-07 · ruled · MPMon · Barley plays himself in the Cocoon Gallery, no longer Denny · *"Denny has his own thing and isn't just a cameo anymore"*
