@@ -159,7 +159,7 @@
     for (var k = 0; k < 4; k++) { u.facing = (f0 + (k % 2 ? 6 : 2)) % 8; yield W(22); }
     u.facing = f0;
     var own = OWN[u.mpmon] || [], pool = FINDS.concat(own, own), find = pool[Math.floor(D.rand() * pool.length)];
-    if (D.rand() < 0.35 && FLOURISH[u.mpmon] && D.spr.anim(u.sheet, FLOURISH[u.mpmon])) { u.anim = FLOURISH[u.mpmon]; u.animT = B.t; yield W(Math.min(90, D.spr.duration(u.sheet, u.anim) || 40)); u.anim = 'idle'; }
+    if (D.rand() < 0.35 && FLOURISH[u.mpmon] && D.spr.anim(u.sheet, FLOURISH[u.mpmon])) { u.anim = FLOURISH[u.mpmon]; u.animT = B.t; if (u.anim === 'honk') D.sfx('honk'); /* (his honk on the synth, js/audio.js SFX.honk, 10-07) */ yield W(Math.min(90, D.spr.duration(u.sheet, u.anim) || 40)); u.anim = 'idle'; }
     D.sfx('popup'); FX.sparkle(u, 'gold', 14);
     B.gs.caption = { s: '{y}' + u.name + '{/} searches the lighthouse and finds ' + find, t0: B.t, life: 330 };
     yield W(60);
