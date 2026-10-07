@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `0771b7c` · MPMon · The Mascot gallery's card as a scrollable column down the left, its foes the spell gallery's normies (every score 8, AC 10, 100 HP), and the Game Show's TUTORIAL toggle on the title: Denny's kit walked on the lighthouse floor before the jump in (`D.mpgallery.walk`) · *"Please make the giant info box left adjusted scrollable column - hard to see moves"* · *"soften like the spell gallery"* · *"build for denny as test"*
 - 2026-10-07 · `daa069e` · MPMon · The Mascot gallery, `deep16/?mpgallery`: the four kits one ability at a time on the class floor (37 entries), left/right the next, up/down the level 1-9 with the card's numbers and a BY LEVEL ladder recomputed, E or a click again; `mode=mpgallery1007` in the gate · *"a gallery view of lobstamonkee abilities like the spell effect one (repeats on click, advances on arrows) and to examine the current effects of the various abilities per level"*
 - 2026-10-07 · seen · MPMon · Beholda's and Denny's new looks, `beholda_p3` and `denny_p3` (`eyes-beholda-p3-1007`, `eyes-denny-p3-1007`, cut) · *"yes, they were so good I had to come back to rascal goose"*
 - 2026-10-07 · seen · MPMon · Goose and Rascal from the front and from behind, Goose's Group Hug and Lifeline (`eyes-fronts-1007`, cut) · *"everything in the pane eyed - love that lifeline comes from the heart - so great"*
