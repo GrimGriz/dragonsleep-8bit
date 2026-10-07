@@ -1062,6 +1062,23 @@
         // 11. CREDITS names the 16-bit figures' makers (Griz: "check the attrib we have to do for the .blend files we used and add to credits")
         var cr = (DS.DATA.credits || []).map(function (l) { return l.t; }).join(' | ');
         check('CREDITS names mz4250\'s models and their licences, the LPC figures, and where every licence is', /mz4250/.test(cr) && /CC BY-SA/.test(cr) && /LPC/.test(cr) && /CREDITS\.md/.test(cr));
+        // 12. (10-07, his find on the grid's menu: "torches cannot be equipped" -- one menu, so both games) EQUIP's LIGHT with none lit and a torch in the pack: the row is
+        // there, and E on it, then on the torch, lights it in that hero's hand, as ITEMS lights it
+        var vi12 = g.hero('vivian'); DS.EV.torchOut(true); g.give('torch', 1); vi12.equip.shield = null; drawErr = [];
+        m = open(); toCmd(m, 'equip'); press(m, 'a'); m.root.pi = m.root.rows(false).indexOf(vi12); press(m, 'a');
+        var ep12 = m.pages[0], li12 = ep12 && ep12.list ? ep12.list.items.map(function (x) { return x.value; }).indexOf('light') : -1;
+        if (li12 >= 0) { ep12.list.i = li12; press(m, 'a'); press(m, 'a'); }
+        for (var w12 = 0; w12 < 300 && m.busy; w12++) { var tq12 = DS.top(); if (tq12 && tq12.kind === 'dialog') { if (tq12.chars < tq12.pageLen()) tq12.chars = tq12.pageLen(); T.tapf('a'); } else T.step(1); }
+        check('EQUIP\'s LIGHT in the 8-bit: the row there with a torch in the pack and none lit (' + (li12 >= 0) + '), the torch lit in Vivian\'s hand (torchBy ' + g.flags.torchBy + ')' + (drawErr.length ? ': ' + drawErr[0] : ''), li12 >= 0 && g.flags.torchBy === 'vivian' && !drawErr.length);
+        DS.EV.torchOut(true);
+        // 13. (10-07, his: "\"nothing goes there in this fight\" vs \"no weapon barley can swap to\"") one wording for a place with nothing to put there: Vivian's SHIELD (a rogue
+        // takes up none) says the grid's sentence
+        m = open(); toCmd(m, 'equip'); press(m, 'a'); m.root.pi = m.root.rows(false).indexOf(vi12); press(m, 'a');
+        var ep13 = m.pages[0]; if (ep13) { ep13.list.i = ep13.list.items.map(function (x) { return x.value; }).indexOf('shield'); press(m, 'a'); }
+        var said13 = [], text13 = DS.text; DS.text = function (c, s) { said13.push(String(s)); return text13.apply(this, arguments); };
+        try { m.draw(cx); } finally { DS.text = text13; }
+        var empty13 = said13.join(' ');
+        check('an empty place in the 8-bit\'s EQUIP says the one sentence: ' + (/Nothing in the pack[^.]*\./.exec(empty13) || [empty13.slice(0, 80)])[0], /Nothing in the pack Vivian can put there\./.test(empty13));
         if (Q.get('shot')) { m = open(); toCmd(m, 'status'); press(m, 'a'); press(m, 'a'); out.shot = cv.toDataURL('image/png'); }
       } finally { DS.choose = choose0; }
     } else if (test === 'countdown1003') {
@@ -1729,6 +1746,11 @@
         check('a poison cloud on the Periapt: "' + said9.slice(0, 120) + '"; on the others it hurts ("' + said10.slice(0, 60) + '")', /immune to poison/.test(said9) && !/\d+ damage/.test(said9) && /\d+ damage/.test(said10));
         b7.foes.forEach(function (f) { f.hp = 0; f.dead = true; }); drive({}, 1500);
       } finally { DS.rng = rng7; }
+    } else if (test === 'loaderr1007') {
+      // the bench's own load error (10-07, the todo §6, the house: bench8.py read LOADERR only when the page wrote no result): a script that throws as it loads, then the
+      // result written as ever -- dev/loaderr-probe.py wants the throw handed back
+      var sL = document.createElement('script'); sL.textContent = 'throw new Error("the bench\'s own load error (loaderr1007)")'; document.body.appendChild(sL);
+      check('the page writes its result after a script threw on load', true);
     } else if (test === 'migrate') {
       // an older save: Ingrith a fighter with a heals counter, hurt; DS.startFrom walks her on as the cleric she is
       DS.EV.addGuest('ingrith');

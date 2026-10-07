@@ -1111,6 +1111,89 @@
     document.body.appendChild(preR);
     return;
   }
+  // the menus lane, the grid's half (mode=menus1007; 10-07, Griz: "take the menus lane whole", and his four finds on the grid's menu: "doesn't work for items, skills, or
+  // magic - must have weapon to swap to, cannot stow from menu" · "\"nothing goes there in this fight\" vs \"no weapon barley can swap to\"" · "torches cannot be equipped"):
+  // the one menu on the grid hands ITEMS, MAGIC and SKILLS to the ring, EQUIP puts a weapon away and takes up a light, one wording for an empty place, the grid's own
+  // figures on the panel and STATUS, the old grid menu cut, the camp's THE NIGHT'S BONDS, each cloak its own line. Each check failed on the code before it (a byte-exact
+  // swap of the old files, the CLAUDE.md way). A command the menu hands to the turn is caught at B.answer (the coroutine is not stepped)
+  if (get('mode', '') === 'menus1007') {
+    var repM = { checks: [], errors: [] };
+    function okM(what, v) { repM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    function mkM(q) { var Bx = D.npcFight(q, {}); D.battle = Bx; Bx.enter(); while (!Bx.order.length) Bx.co.next(); Bx.dark = false; Bx.answered = []; Bx.answer = function (v) { this.answered.push(v); this.req = null; }; return Bx; }
+    function heroM(Bx, cls) { return Bx.units.filter(function (u) { return u.side === 'party' && u.cls === cls; })[0]; }
+    function turnM(Bx, u) { D.rules.startTurn(u); Bx.active = u; Bx.req = { turn: u }; Bx.tool = 'move'; Bx.menu = null; return u; }
+    function keyM(b) { return { pressed: function (x) { return x === b; }, repeat: function (x) { return x === b; }, mouse: null }; }
+    function pressM(Bx, b) { if (Bx.menu && Bx.menu.m) Bx.menu.m.update(keyM(b)); }
+    function openM(Bx, v) { D.ui.openMenu(Bx); var m = Bx.menu.m; m.root.cmds.i = m.root.cmds.items.map(function (x) { return x.value; }).indexOf(v); pressM(Bx, 'a'); return m; }
+    function rowM(list, f) { var i = list.items.map(f).indexOf(true); if (i >= 0) { list.i = i; list.fix(); } return i; }
+    function packM(Bx, id, n) { var s = Bx.inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n = Math.max(s.n, n); else Bx.inv.push({ id: id, n: n }); }
+    function drawM(m) { var cv = document.createElement('canvas'); cv.width = 256; cv.height = 240; try { m.draw(cv.getContext('2d')); return true; } catch (eD) { return String(eD && eD.stack || eD).slice(0, 300); } }
+    try {
+      // (a) ITEMS: the potion, picked from the grid's menu, is the ring's ITEM -- the menu closes, the aim is up (before: a card, "In a fight, use it from the fight's ITEM")
+      var B1 = mkM('?npc=goblin,goblin&lvl=5&vs=fighter:5,rogue:5'), f1 = turnM(B1, heroM(B1, 'fighter')); packM(B1, 'potion', 2);
+      var m1 = openM(B1, 'items'), ip = m1.pages[0], ptab = DS.MENU.itemTab(DS.DATA.items.potion); if (ip) { ip.tab = ptab; ip.refresh(); rowM(ip.list, function (x) { return x.value === 'potion'; }); }
+      var drew1 = drawM(m1); pressM(B1, 'a');
+      okM('(a) ITEMS: the potion picked from the grid\'s menu -- the menu closed ' + !B1.menu + ', the ring\'s aim up (tool ' + B1.tool + ', ' + B1.itemId + '); the page drew ' + drew1, !B1.menu && B1.tool === 'item' && B1.itemId === 'potion' && drew1 === true);
+      // (a) MAGIC: straight to the one whose turn it is (no WHO CASTS?), Magic Missile picked is the ring's three darts to aim
+      var B2 = mkM('?npc=goblin,goblin&lvl=5&vs=wizard:5,fighter:5'), w2 = turnM(B2, heroM(B2, 'wizard')), m2 = openM(B2, 'magic'), mp = m2.pages[0], asked2 = m2.root.mode === 'pick';
+      if (mp && mp.levels) { mp.tab = Math.max(0, mp.levels.indexOf(1)); mp.refresh(); rowM(mp.list, function (x) { return (x.id || (x.value && x.value.id)) === 'magicmissile'; }); }
+      var drew2 = mp ? drawM(m2) : 'no page'; pressM(B2, 'a');
+      okM('(a) MAGIC: the wizard\'s turn -- no WHO CASTS? (' + !asked2 + '), Magic Missile picked: the menu closed ' + !B2.menu + ', the ring\'s aim (tool ' + B2.tool + ', ' + (B2.spell && B2.spell.id) + ' x' + (B2.spell && B2.spell.n) + '); drew ' + drew2,
+        !asked2 && !B2.menu && B2.tool === 'spell' && B2.spell && B2.spell.id === 'magicmissile' && B2.spell.n === 3 && drew2 === true);
+      // (a) SKILLS: the fighter's are the ring's -- 2ND WIND and SURGE with their costs -- and 2ND WIND picked goes to the turn as the ring's command
+      var B3 = mkM('?npc=goblin,goblin&lvl=5&vs=fighter:5,rogue:5'), f3 = turnM(B3, heroM(B3, 'fighter')), m3 = openM(B3, 'skills'), sp3 = m3.pages[0], labs3 = sp3 && sp3.list ? sp3.list.items.map(function (x) { return x.label + '=' + x.right; }) : [];
+      if (sp3) rowM(sp3.list, function (x) { return x.value && x.value.id === 'secondwind'; });
+      var drew3 = sp3 ? drawM(m3) : 'no page'; pressM(B3, 'a');
+      okM('(a) SKILLS: the fighter\'s (' + labs3.join(', ') + '); 2ND WIND picked: the menu closed ' + !B3.menu + ', to the turn ' + JSON.stringify(B3.answered) + '; drew ' + drew3, !B3.menu && B3.answered.length === 1 && B3.answered[0].do === 'secondwind' && drew3 === true);
+      // (b) EQUIP: the weapon PUT AWAY from the menu (the ring's own, free) -- before, only a swap to another weapon
+      var B4 = mkM('?npc=goblin,goblin&lvl=5&vs=rogue:5,fighter:5'), r4 = turnM(B4, heroM(B4, 'rogue')), m4 = openM(B4, 'equip'), ep4 = m4.pages[0];
+      if (ep4) { rowM(ep4.list, function (x) { return x.value === 'weapon'; }); pressM(B4, 'a'); }
+      var cp4 = m4.pages[1], away4 = cp4 ? rowM(cp4.list, function (x) { return x.value && x.value.cmd && x.value.cmd.id === 'putaway'; }) : -1, drew4 = cp4 ? drawM(m4) : 'no list'; if (away4 >= 0) pressM(B4, 'a');
+      okM('(b) EQUIP: the rogue\'s WEAPON lists (put it away) (' + (away4 >= 0) + '); picked: the menu closed ' + !B4.menu + ', to the turn ' + JSON.stringify(B4.answered) + '; drew ' + drew4, away4 >= 0 && !B4.menu && B4.answered.length === 1 && B4.answered[0].do === 'putaway' && drew4 === true);
+      // (c) one wording: a place nothing can change in the fight (the rogue's ARMOR) says the one sentence
+      var B5 = mkM('?npc=goblin,goblin&lvl=5&vs=rogue:5,fighter:5'), r5 = turnM(B5, heroM(B5, 'rogue')), m5 = openM(B5, 'equip'), ep5 = m5.pages[0];
+      if (ep5) { rowM(ep5.list, function (x) { return x.value === 'armor'; }); pressM(B5, 'a'); }
+      var say5 = (m5.toast && m5.toast.lines || []).join(' ');
+      okM('(c) a place with nothing to change in the fight: "' + say5 + '"', say5 === 'Nothing in the pack ' + r5.name + ' can put there in this fight.');
+      // (d) LIGHT: with a torch in the pack, EQUIP has the row; its list is the pack's torch at the action, and the pick lights it in hand (the ring's ITEM, to the turn)
+      var B6 = mkM('?npc=goblin,goblin&lvl=5&vs=rogue:5,fighter:5'), r6 = turnM(B6, heroM(B6, 'rogue')); packM(B6, 'torch', 2); delete r6.torch;
+      var m6 = openM(B6, 'equip'), ep6 = m6.pages[0], lrow6 = ep6 ? rowM(ep6.list, function (x) { return x.value === 'light'; }) : -1;
+      if (lrow6 >= 0) pressM(B6, 'a');
+      var cp6 = m6.pages[1], t6 = cp6 ? rowM(cp6.list, function (x) { return x.value && x.value.kind === 'item' && x.value.e.id === 'torch'; }) : -1, ok6 = t6 >= 0 && !cp6.list.cur().disabled, drew6 = cp6 ? drawM(m6) : 'no list';
+      if (ok6) pressM(B6, 'a');
+      okM('(d) LIGHT: the row there (' + (lrow6 >= 0) + '), the pack\'s torch on its list and lit-able (' + ok6 + '); picked: the menu closed ' + !B6.menu + ', to the turn ' + JSON.stringify(B6.answered.map(function (c) { return { do: c.do, id: c.id, self: c.target === r6 }; })) + '; drew ' + drew6,
+        lrow6 >= 0 && ok6 && !B6.menu && B6.answered.length === 1 && B6.answered[0].do === 'item' && B6.answered[0].id === 'torch' && B6.answered[0].target === r6 && drew6 === true);
+      // §2.2 the grid's own figures: the panel's (20x32) and STATUS's (32x48) drawn from the hero's sheet (the bench fetches no images: the sheet is taken as in)
+      var B7 = mkM('?npc=goblin,goblin&lvl=5&vs=rogue:5,fighter:5'), r7 = turnM(B7, heroM(B7, 'rogue')); D.ui.openMenu(B7);
+      var host7 = B7.menu.m.host, h7 = host7.party().filter(function (h) { return h.name === r7.name; })[0], has0 = D.spr.has, draw0 = D.spr.draw, drawn7 = [];
+      D.spr.has = function () { return true; }; D.spr.draw = function (cx, name) { drawn7.push(name); return 48; };
+      var wk7 = null, pt7 = null; try { wk7 = host7.walker(h7); pt7 = host7.portrait(h7); } finally { D.spr.has = has0; D.spr.draw = draw0; }
+      okM('§2.2 the panel\'s figure ' + (wk7 ? wk7.width + 'x' + wk7.height : null) + ' and STATUS\'s ' + (pt7 ? pt7.width + 'x' + pt7.height : null) + ', from ' + JSON.stringify(drawn7) + ' (' + r7.sheet + ')',
+        wk7 && wk7.width === 20 && wk7.height === 32 && pt7 && pt7.width === 32 && pt7.height === 48 && drawn7.length === 2 && drawn7[0] === r7.sheet);
+      // §2.3 the old grid menu is cut: UI.menuInput is the one menu's keys and nothing else
+      var mi8 = D.ui.menuInput.toString();
+      okM('§2.3 the old grid menu cut: UI.menuInput is ' + mi8.length + ' characters, no PARTY panel nor the old EQUIP list in it', mi8.length < 300 && !/gearInput|menuItems|panel/.test(mi8));
+      // §2.4 the camp's THE NIGHT'S BONDS: four bond-wanting things on one hero -- three bonded, one waiting; the row before PREPARE SPELLS; one let go, the waiting one bonds,
+      // and the fight's sheet holds the three the sheet shows
+      var F9 = D.FIGHTS.filter(function (f) { return f.level === 6; })[0] || D.FIGHTS[0], C9 = new D.Camp(6, F9, function () { }, null); C9.enter(); C9.st = C9.fresh();
+      var h9 = C9.data.party[0]; C9.st.equip[h9.id] = { weapon: 'flametongue', ring: 'ringofprotection', ring2: 'ringresistfire', cloak: 'cloakdisplacement' }; C9.rebuild(); // (the periapt wants no bond: SRD 5.1)
+      var rows9 = C9.bondRows ? C9.bondRows().filter(function (b) { return b.h.id === h9.id; }) : [], st9 = rows9.map(function (b) { return b.id + ':' + b.state; });
+      C9.mode = 'menu'; var labs9 = C9.list().rows.map(function (r) { return r.label; }), bi9 = labs9.indexOf('THE NIGHT\'S BONDS'), pi9 = labs9.indexOf('PREPARE SPELLS');
+      var first9 = rows9.filter(function (b) { return b.state === 'BONDED'; })[0], wait9 = rows9.filter(function (b) { return b.state === 'WAITING'; })[0];
+      if (first9 && C9.toggleBond) C9.toggleBond(first9);
+      var h9b = C9.data.party.filter(function (h) { return h.id === h9.id; })[0], after9 = C9.bondRows ? C9.bondRows().filter(function (b) { return b.h.id === h9.id; }).map(function (b) { return b.id + ':' + b.state; }) : [];
+      okM('§2.4 the camp\'s THE NIGHT\'S BONDS (' + bi9 + ', before PREPARE SPELLS at ' + pi9 + '): ' + st9.join(' ') + '; ' + (first9 && first9.id) + ' let go: ' + after9.join(' ') + '; the fight\'s sheet bonds ' + JSON.stringify(h9b && h9b.attuned),
+        rows9.length === 4 && st9.filter(function (s) { return /BONDED/.test(s); }).length === 3 && !!wait9 && bi9 >= 0 && bi9 < pi9 && after9.indexOf(first9.id + ':LET GO') >= 0 && after9.indexOf(wait9.id + ':BONDED') >= 0 && h9b.attuned.length === 3 && h9b.attuned.indexOf(first9.id) < 0);
+      // §2.5 the camp's cloak line, each cloak its own: the King's Mantle +5 saves vs spells, the Cloak of Displacement foes at disadvantage
+      C9.avail.kingsmantle = 1; C9.avail.cloakdisplacement = 1; C9.mode = 'item'; C9.pick = { hero: C9.data.party[1].id, slot: 'cloak' };
+      var rows10 = C9.list().rows, km10 = rows10.filter(function (r) { return r.label === DS.DATA.items.kingsmantle.name; })[0], cd10 = rows10.filter(function (r) { return r.label === DS.DATA.items.cloakdisplacement.name; })[0];
+      okM('§2.5 the camp\'s cloak lines: the King\'s Mantle "' + (km10 && km10.right) + '", the Cloak of Displacement "' + (cd10 && cd10.right) + '"', km10 && km10.right === '+5 saves vs spells' && cd10 && cd10.right === 'foes at disadvantage');
+    } catch (eM) { repM.errors.push(String(eM && eM.stack || eM).slice(0, 900)); }
+    if (errs.length) repM.errors = repM.errors.concat(errs);
+    var preM = document.createElement('pre'); preM.id = 'out'; preM.textContent = 'BENCH16 ' + JSON.stringify(repM);
+    document.body.appendChild(preM);
+    return;
+  }
   // the looks, drawn (mode=looks1007; 10-07, the menus lane §2.5 and §2.6: "nothing in the gate draws deep16/js/looks.js, so a draw typo there would still read GREEN"): every entry point
   // looks.js hands the page -- LK.props, LK.ground, LK.tint, LK.behind, LK.over (the troll's smoulder and its oil marks among them) -- drawn on a scratch canvas on units carrying every condition
   // it draws, each alone and then all at once, and a throw is a FAIL naming it. Then the finds of the wearables runner and the troll runner, each failed on the code before it (a byte-exact

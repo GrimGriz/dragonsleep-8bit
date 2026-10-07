@@ -586,11 +586,19 @@
     D.sfx('confirm');
     if (e.kind === 'level') { var sp = e.spells.map(function (x) { x.kind = 'spell'; return x; }), f = 0; sp.some(function (x, k) { if (x.ok) { f = k; return true; } return false; }); B.list = { kind: 'spells', items: sp, sel: f, back: B.list, title: e.label }; B.ringC = null; return; }
     B.list = null;
+    return e.kind === 'item' ? itemAim(B, u, e) : spellAim(B, u, e);
+  }
+  // an item picked -- off the ring's ITEM, or off the M menu's ITEMS (10-07, the menus lane §2.1, Griz: "using items from there"; his find, "doesn't work for items,
+  // skills, or magic"): used at once, or the tool that aims it
+  function itemAim(B, u, e) {
     // (the bucket and a light are his own: used at once, no target to pick -- 09-30d, Griz: "bucket asks for self-or nearby target like a potion")
-    if (e.kind === 'item' && (e.use.effect === 'bucket' || e.use.effect === 'light')) return UI.command(B, u, { do: 'item', id: e.id, target: u });
+    if (e.use.effect === 'bucket' || e.use.effect === 'light') return UI.command(B, u, { do: 'item', id: e.id, target: u });
     // (the Rope & Grapple: the top of a face to pick -- battle.js Battle.ropeSq, exec 'rope'; 10-04)
-    if (e.kind === 'item' && e.use.effect === 'rope') { B.tool = 'rope'; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, as far as the rope is long, 50 ft (DEX DC 10 to 30 ft, 2 more each 5 ft past).{/}'], 320); return; }
-    if (e.kind === 'item') { B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.id === 'oil' && D.oil ? 'at a foe or a square within 20 ft -- ' + (D.oil.lit(u) ? 'lit at your torch: a hit is 5 fire.' : 'a hit coats it, and the next fire on it burns 5 more; a square, oiled.') : e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' :e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240); return; }
+    if (e.use.effect === 'rope') { B.tool = 'rope'; B.card(['{g}' + e.name.toUpperCase() + ': the top of a face -- tie it off from up there, or throw the grapple up from below, as far as the rope is long, 50 ft (DEX DC 10 to 30 ft, 2 more each 5 ft past).{/}'], 320); return; }
+    B.tool = 'item'; B.itemId = e.id; B.card(['{g}' + e.name + ': ' + (e.id === 'oil' && D.oil ? 'at a foe or a square within 20 ft -- ' + (D.oil.lit(u) ? 'lit at your torch: a hit is 5 fire.' : 'a hit coats it, and the next fire on it burns 5 more; a square, oiled.') : e.use.effect === 'damage' ? 'throw it at a foe within 20 ft.' :e.use.effect === 'revive' ? 'a fallen ally beside you.' : 'yourself, or an ally beside you.') + '{/}'], 240);
+  }
+  // a spell picked -- off the ring's SPELLS, or off the M menu's MAGIC (10-07): on itself at once, or aimed on the floor at the slot the ring would start at
+  function spellAim(B, u, e) {
     var g = e.g, n = (g.n || 1) + Math.max(0, e.slot - e.level);
     B.spell = { id: e.id, slot: e.slot, g: g, sp: e.sp, n: n, name: e.name };
     B.picks = [];
@@ -857,11 +865,37 @@
       var p = c.p; p.hp = Math.max(0, u.hp); p.maxhp = u.maxhp; p.ko = u.dead || u.hp <= 0; p.name = u.name; if (u.slots) p.slots = u.slots;
       return p;
     }
+    function unitOf(h) { var c = cache.filter(function (x) { return x.p === h; })[0]; return c ? c.u : null; }
     function heroes(guest) { return B.units.filter(function (u) { return u.side === 'party' && !u.object && u.src && u.src.equip && !u.summon && !u.familiar && !!u.guest === guest; }); }
-    var gu = gearHero(B), turn = gu ? sheet(gu) : null, T = gu && gu.turn;
+    // the grid's own figures for the panel and STATUS (10-07, the menus lane §2.2: "the grid's own sheets could stand in"): the hero's sheet standing, facing out, its
+    // head and shoulders in the panel's 20x32 (as the old PARTY panel cut it) and head to foot in STATUS's 32x48; drawn once its image is in, null till then
+    var figs = {};
+    function figure(h, w, hh) {
+      var u = unitOf(h), name = u && u.sheet; if (!name || !D.spr.has(name)) return null;
+      var k = name + ':' + w; if (figs[k]) return figs[k];
+      var cv = document.createElement('canvas'); cv.width = w; cv.height = hh;
+      D.spr.draw(cv.getContext('2d'), name, 'idle', 0, 0, w / 2, hh < 40 ? Math.min(D.spr.top(name), 44) + 2 : hh - 1, { frame: 0 });
+      return (figs[k] = cv);
+    }
+    var gu = gearHero(B), turn = gu ? sheet(gu) : null, COSTW = { A: 'the action', B: 'the bonus action', F: 'free', M: 'movement' };
     return {
-      fight: { hero: turn, acted: !T || !(T.action > 0) || !!T.attacksLeft,
-        canUse: function (it) { return !!(gu && it && it.use && it.use.battle && T && (T.action > 0 && !T.attacksLeft || (gu.subclass === 'Thief' && T.bonus > 0))); } },
+      // the ring's own lists for the hero whose turn it is (10-07, the menus lane §2.1 and his find on the grid's menu: "doesn't work for items, skills, or magic"):
+      // ITEMS, MAGIC and SKILLS show what the ring would, lit as the ring lights it, each with the ring's why; a pick goes to the ring's own flow -- the aim on the
+      // floor, the tool, the command -- and the menu closes on it, never a popup
+      fight: { hero: turn,
+        ring: function (kind) {
+          if (!gu) return [];
+          if (kind === 'items') return B.itemList(gu);
+          if (kind === 'spells') return D.magic.list(B, gu);
+          return B.commands(gu).filter(function (c) { return CHANNEL[c.id] || SKILLS[c.id] || c.skill || FRONT[gu.cls] === c.id; }); // (the ring's SKILLS and CHANNEL DIVINITY, and a martial's feature off the first ring: UI.cmds)
+        },
+        pick: function (kind, e) {
+          if (!gu) return;
+          B.list = null; B.clearCards();
+          if (kind === 'items') return itemAim(B, gu, e);
+          if (kind === 'spells') { e.kind = 'spell'; return spellAim(B, gu, e); }
+          return pickCommand(B, gu, e);
+        } },
       party: function () { return heroes(false).map(sheet); },
       guests: function () { return heroes(true).map(sheet); },
       pack: function () { return B.inv.filter(function (s) { return s.n > 0; }); },
@@ -869,11 +903,32 @@
       take: function (id, n) { var s = B.inv.filter(function (x) { return x.id === id; })[0]; if (s) s.n -= n || 1; },
       info: function () { return { place: (B.fight && (B.fight.title || B.fight.name)) || (D.MAPS[B.o.map] || {}).name || '' }; },
       canSave: function () { return false; },
-      walker: function () { return null; }, portrait: function () { return null; },
-      whyNot: function () { return ''; }, light: function () { return null; },
+      walker: function (h) { return figure(h, 20, 32); }, portrait: function (h) { return figure(h, 32, 48); },
+      whyNot: function () { return ''; },
+      // the light in a hero's hand on the grid (u.torch, js/light.js): EQUIP's LIGHT row
+      light: function (h) { var u = unitOf(h), L = D.light; if (!u || !u.torch) return null; var id = u.torch.item || L.kindOf(u.torch), it = window.DS.DATA.items[id]; return { id: id, name: it ? it.name : L.word(u.torch), hooded: L.kindOf(u.torch) === 'lantern' }; }, // (u.torch: { lit, kind, item, hood }, item set only for the lamp)
+      wielding: function (h) { var u = unitOf(h); return u && u.sheathed ? 'away' : ''; }, // (a weapon PUT AWAY: EQUIP says so)
       journal: null,
-      fightEquip: function () { return gu ? B.gearOptions(gu) : []; },
-      fightSwap: function (o) { if (gu) B.swapGear(gu, o); },
+      // EQUIP's choices in the fight: battle.js gearOptions (a weapon from the pack, the shield on or off: the action), and the free hand's -- the weapon PUT AWAY or
+      // DRAWN (10-07, his find: "cannot stow from menu"; the ring's PUT AWAY, exec 'putaway'), and the LIGHT: the one in hand set down, thrown, put out or hooded, or one
+      // taken up off the floor, out of the barrel or the pack (his find: "torches cannot be equipped") -- each the ring's own command, with its cost and its why
+      fightEquip: function () {
+        if (!gu) return [];
+        var out = B.gearOptions(gu), LIGHTS = { droptorch: 1, throwtorch: 1, dousetorch: 1, hooddown: 1, hoodup: 1, pickuptorch: 1, barreltorch: 1 };
+        B.commands(gu).forEach(function (c) {
+          if (c.id === 'putaway' || c.id === 'drawweapon') out.push({ kind: 'cmd', slot: 'weapon', cmd: c, label: c.id === 'putaway' ? '(put it away)' : '(draw it)', short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why });
+          if (LIGHTS[c.id]) out.push({ kind: 'cmd', slot: 'light', cmd: c, label: '(' + c.label.toLowerCase() + ')', short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why });
+        });
+        if (!gu.torch) B.itemList(gu).forEach(function (e) { if (e.use && e.use.effect === 'light') out.push({ kind: 'item', slot: 'light', e: e, label: e.name, short: COSTW[e.cost || 'A'], note: COSTW[e.cost || 'A'] + ': lit, in hand', ok: e.ok, why: e.why }); });
+        return out;
+      },
+      fightSwap: function (o) {
+        if (!gu) return;
+        B.list = null; B.clearCards();
+        if (o.kind === 'cmd') return pickCommand(B, gu, o.cmd);
+        if (o.kind === 'item') return itemAim(B, gu, o.e);
+        B.swapGear(gu, o);
+      },
       exits: function () {
         if (story) return []; // (inside the 8-bit game the fight is the story's: no way round it)
         return [{ label: 'RESTART THE FIGHT', value: 'restart' }].concat(B.o.onDone ? [] : [{ label: 'THE LADDER', value: 'ladder' }], [{ label: UI.backLabel(), value: 'out' }]);
@@ -899,80 +954,13 @@
     return { pressed: function (b) { return I.pressed(b); }, repeat: function (b) { return I.repeat(b); },
       mouse: { x: x, y: y, moved: !!mo.moved, click: !!mo.click && x >= 0 && y >= 0 && x < 256 && y < 240, rclick: !!mo.rclick } };
   }
-  // the volumes are the 8-bit game's own (shared: one player, one ear)
-  function vol(k) { var A = window.DS.audio; return A ? A[k] : 0; }
-  function pct(v) { return v > 0 ? Math.round(v * 100) + '%' : 'OFF'; }
-  function setVol(k, v) { var A = window.DS.audio; if (!A) return; A[k] = Math.round(D.clamp(v, 0, 1) * 10) / 10; A.setVolumes(); }
   // the hero whose turn it is, for EQUIP (a guest's gear is its own)
   function gearHero(B) { var u = B && B.req && B.req.turn; return u && u.side === 'party' && !u.guest && u.src ? u : null; }
-  function menuItems(B) {
-    var g = gearHero(B), eq = g ? [['equip', 'EQUIP: ' + g.name.toUpperCase()]] : [], story = !!(B && B.o.embed);
-    // inside the 8-bit game the fight is the story's: no restart, no ladder, no way round it (the party, the menu's style and
-    // the volumes stay). THE GATE (the sprites) is gone from the menu (Griz 09-28); ?gate still opens it
-    return [['resume', 'RESUME']].concat(eq, [['party', 'PARTY'], ['style', 'MENU: ' + UI.opts.style.toUpperCase() + '  < >'], ['auto', 'AUTO END TURN: ' + (UI.opts.autoEnd ? 'ON' : 'OFF')], ['asks', 'END TURN ASKS: ' + { idle: 'IF IDLE', always: 'ALWAYS', never: 'NEVER' }[UI.opts.confirmEnd] + '  < >'],
-      ['pace', 'AI + MESSAGE TIME: ' + D.PACE + 'x  < >'],
-      ['music', 'MUSIC: ' + pct(vol('musicVol')) + '  < >'], ['sounds', 'SOUNDS: ' + pct(vol('sfxVol')) + '  < >']],
-      story ? [] : [['restart', 'RESTART THE FIGHT']],
-      story || (B && B.o.onDone) ? [] : [['ladder', 'THE LADDER']],
-      story ? [] : [['out', UI.backLabel()]]);
-  }
-  // EQUIP's panel: the weapons in the pack this hero can use, and the shield off or on; each costs the action
-  function gearInput(B) {
-    var M = B.menu, u = gearHero(B), opts = u ? B.gearOptions(u) : [], n = opts.length;
-    if (I.pressed('b') || I.pressed('menu') || !u) { D.sfx('cancel'); M.panel = null; return; }
-    if (!n) { if (I.pressed('a') || I.mouse.click) { D.sfx('cancel'); M.panel = null; } return; }
-    var s0 = M.gsel = D.clamp(M.gsel || 0, 0, n - 1);
-    if (I.repeat('up')) M.gsel = (M.gsel + n - 1) % n;
-    if (I.repeat('down')) M.gsel = (M.gsel + 1) % n;
-    if (M.gsel !== s0) D.sfx('cursor');
-    var pick = I.pressed('a') ? M.gsel : -1;
-    if (I.mouse.click && B.gearRects) B.gearRects.forEach(function (r, i) { if (hit(r)) pick = i; });
-    if (I.mouse.moved && B.gearRects) B.gearRects.forEach(function (r, i) { if (hit(r)) M.gsel = i; });
-    if (pick < 0) return;
-    M.gsel = pick;
-    var o = opts[pick];
-    if (!o.ok) { D.sfx('error'); B.card(['{o}' + o.label + ': ' + o.why + '.{/}'], 120); return; }
-    B.swapGear(u, o);
-    B.menu = null; // back to the turn
-  }
   UI.backLabel = function () { var B = D.battle; return B && B.o.onDone ? (B.o.climb ? 'BACK TO THE CLIMB' : B.o.pocket ? 'BACK TO THE POCKET DM' : 'BACK TO THE LADDER') : 'RETURN TO SILVERTON'; };
   UI.menuInput = function (B) {
-    if (B.menu && B.menu.m) { B.menu.m.update(menuKeys()); return; } // (the one menu, 10-06)
-    var M = B.menu, items = menuItems(B), n = items.length, s0 = M.sel;
-    if (M.panel === 'equip') return gearInput(B);
-    if (M.panel) { if (I.pressed('a') || I.pressed('b') || I.pressed('menu') || I.mouse.click) { D.sfx('cancel'); M.panel = null; } return; }
-    if (I.repeat('up')) M.sel = (M.sel + n - 1) % n;
-    if (I.repeat('down')) M.sel = (M.sel + 1) % n;
-    if (M.sel !== s0) D.sfx('cursor');
-    var styles = ['ring', 'window'], si = styles.indexOf(UI.opts.style), here = items[M.sel][0], lr = I.repeat('left') ? -1 : I.repeat('right') ? 1 : 0;
-    if (here === 'style' && lr) { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); D.sfx('cursor'); return; }
-    if (here === 'pace' && lr) { cyclePace(lr); D.sfx('cursor'); return; }
-    if (here === 'asks' && lr) { cycleAsks(lr); D.sfx('cursor'); return; }
-    if ((here === 'music' || here === 'sounds') && lr) { setVol(here === 'music' ? 'musicVol' : 'sfxVol', vol(here === 'music' ? 'musicVol' : 'sfxVol') + lr * 0.1); D.sfx('cursor'); return; }
-    var pick = I.pressed('a') ? M.sel : -1;
-    if (I.mouse.click && B.menuRects) B.menuRects.forEach(function (r, i) { if (hit(r)) pick = i; });
-    if (I.pressed('b') || I.pressed('menu')) { D.sfx('cancel'); B.menu = null; return; }
-    if (pick < 0) return;
-    M.sel = pick;
-    var id = items[pick][0];
-    D.sfx('confirm');
-    if (id === 'resume') B.menu = null;
-    if (id === 'party') M.panel = 'party';
-    if (id === 'equip') { M.panel = 'equip'; M.gsel = 0; }
-    if (id === 'style') { UI.opts.style = styles[(si + 1) % 2]; UI.saveOpts(); restyle(B); }
-    if (id === 'auto') { UI.opts.autoEnd = !UI.opts.autoEnd; UI.saveOpts(); }
-    if (id === 'pace') cyclePace(1);
-    if (id === 'asks') cycleAsks(1);
-    if (id === 'music') setVol('musicVol', vol('musicVol') > 0 ? 0 : 0.5); // E: off, or back on
-    if (id === 'sounds') setVol('sfxVol', vol('sfxVol') > 0 ? 0 : 0.7);
-    if (id === 'restart') { D.pop(); D.push(new D.Battle(B.o)); }
-    if (id === 'ladder') location.search = '?ladder';
-    if (id === 'out') { if (B.o.onDone) { D.pop(); B.o.onDone(null); } else location.href = '../'; } // the ladder, or back to the 8-bit game: nothing is written
+    if (B.menu && B.menu.m) B.menu.m.update(menuKeys()); // (the one menu, 10-06; the old grid menu cut 10-07, unreached since 3431a54)
   };
   function restyle(B) { if (B.req && B.req.turn && (B.tool === 'move' || B.tool === 'menu')) B.tool = rest(); }
-  // the PACE row: 1x / 1.25x / 1.5x, kept with the other options (D.PACE is what battle.js reads: the AI's waits and every message's time)
-  function cycleAsks(lr) { var n = UI.ASKS.length, i = UI.ASKS.indexOf(UI.opts.confirmEnd); UI.opts.confirmEnd = UI.ASKS[((i < 0 ? 0 : i) + lr + n) % n]; UI.saveOpts(); }
-  function cyclePace(lr) { var n = UI.PACES.length, i = UI.PACES.indexOf(D.PACE); i = i < 0 ? (lr > 0 ? 0 : n - 1) : (i + lr + n) % n; UI.opts.pace = D.PACE = UI.PACES[i]; UI.saveOpts(); }
   UI.resultInput = function (B) {
     UI.camera(B);
     if (I.pressed('a') || (I.mouse.click && !overUI(B))) {
@@ -2319,67 +2307,11 @@
     UI.drawGlyph(ctx, ty, bx + bw - 10, 50); // (its creature type: the glyphs above)
   }
   var menuCv = null;
-  function menu(ctx, B) {
-    var M = B.menu;
-    if (M.m) { // (the one menu: drawn at its own 256x240 and set on the screen as a window)
-      if (!menuCv) { menuCv = document.createElement('canvas'); menuCv.width = 256; menuCv.height = 240; }
-      var mc = menuCv.getContext('2d'); mc.imageSmoothingEnabled = false; mc.clearRect(0, 0, 256, 240);
-      M.m.draw(mc);
-      ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(menuCv, UI.MENU_X, UI.MENU_Y); ctx.restore();
-      return;
-    }
-    if (M.panel === 'party') return party(ctx, B);
-    if (M.panel === 'equip') return gear(ctx, B);
-    var items = menuItems(B), w = 190, h = items.length * 13 + 12, x = (D.W - w) / 2, y = 60, W8 = D.WIN8;
-    D.win8(ctx, x, y, w, h); // (the 8-bit game's window, its field menu's look: js/core.js D.win8, 10-01)
-    B.menuRects = [];
-    items.forEach(function (it, i) {
-      var r = { x: x + 6, y: y + 6 + i * 13, w: w - 12, h: 12 };
-      B.menuRects.push(r);
-      if (i === M.sel) { ctx.fillStyle = W8.sel; ctx.fillRect(r.x, r.y, r.w, r.h); D.text(ctx, '>', r.x + 1, r.y + 2, W8.gold); }
-      D.text(ctx, it[1], r.x + 8, r.y + 2, i === M.sel ? W8.gold : W8.text);
-    });
-  }
-  // EQUIP: the hero's weapon and shield now, the pack's choices, each greyed with its reason when it can't be done
-  function gear(ctx, B) {
-    var M = B.menu, u = gearHero(B), opts = u ? B.gearOptions(u) : [], w = 300, rowH = 13, h = Math.max(1, opts.length) * rowH + 44, x = (D.W - w) / 2, y = 50;
-    D.win8(ctx, x, y, w, h);
-    if (!u) return;
-    D.text(ctx, 'EQUIP: ' + u.name.toUpperCase(), x + 8, y + 5, R('gold', 4));
-    D.hint(ctx, 'a swap costs the action  ·  X back', x + w - 8, y + 5, R('stone', 5), 'right');
-    D.text(ctx, 'in hand: ' + u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + (u.weapon.ranged ? ', ' + u.weapon.range.join('/') + ' ft' : '') + UI.handsNote(u) + '   AC ' + RU.ac(u), x + 8, y + 17, R('bone', 2)); // (the torch, a two-hander carried, a weapon put away: 10-05)
-    B.gearRects = [];
-    if (!opts.length) { D.text(ctx, '{g}Nothing in the pack ' + u.name + ' can take up.{/}', x + 8, y + 31, R('bone', 1)); return; }
-    opts.forEach(function (o, i) {
-      var r = { x: x + 6, y: y + 29 + i * rowH, w: w - 12, h: rowH - 1 };
-      B.gearRects.push(r);
-      if (i === M.gsel) { ctx.fillStyle = D.WIN8.sel; ctx.fillRect(r.x, r.y, r.w, r.h); }
-      var col = !o.ok ? R('stone', 5) : i === M.gsel ? D.WIN8.gold : D.WIN8.text;
-      D.text(ctx, o.label, r.x + 6, r.y + 2, col);
-      D.text(ctx, o.ok ? o.note : o.why, r.x + r.w - 6, r.y + 2, o.ok ? R('stone', 6) : R('stone', 5), 'right');
-    });
-  }
-  // the party at a glance (the 8-bit game's status screen, in small)
-  function party(ctx, B) {
-    var ps = B.units.filter(function (u) { return u.side === 'party'; }), w = 440, rowH = 38, h = ps.length * rowH + 20, x = (D.W - w) / 2, y = Math.max(16, (BAR_Y - h) / 2);
-    D.win8(ctx, x, y, w, h);
-    D.text(ctx, 'THE PARTY', x + 8, y + 5, R('gold', 4));
-    D.hint(ctx, 'X back', x + w - 8, y + 5, R('stone', 5), 'right');
-    ps.forEach(function (u, i) {
-      var ry = y + 17 + i * rowH, f = u.feats || {};
-      ctx.save(); ctx.beginPath(); ctx.rect(x + 6, ry, 30, 34); ctx.clip();
-      D.spr.draw(ctx, u.sheet, 'idle', 0, B.t, x + 21, ry + Math.min(D.spr.top(u.sheet), 44) + 2, {});
-      ctx.restore();
-      D.text(ctx, '{y}' + u.name + '{/}  ' + u.cls + ' ' + u.lvl + '   HP ' + u.hp + '/' + u.maxhp + (u.temp ? ' +' + u.temp : '') + '   AC ' + RU.ac(u) + '   ' + (u.weapon ? u.weapon.name + ' ' + RU.sign(u.weapon.atk) + UI.handsNote(u, true) : ''), x + 42, ry + 1, R('bone', 1));
-      var res = [];
-      if (u.slots && u.slots.length) res.push('slots ' + u.slots.map(function (n, k) { return (k + 1) + ':' + n + '/' + u.slotsMax[k]; }).join(' '));
-      if (u.cls === 'fighter') res.push('2nd wind ' + (f.secondWind ? 'yes' : 'spent') + ', surge ' + (f.actionSurge ? 'yes' : 'spent') + ', indomitable ' + (f.indomitable ? 'yes' : 'spent'));
-      if (u.cls === 'paladin') res.push('lay on hands ' + (f.lay || 0));
-      if (u.cls === 'rogue') res.push('sneak ' + RU.sneakDice(u) + ', cunning action, uncanny dodge, evasion');
-      if (D.features && D.features.classLine) { var fl = D.features.classLine(u); if (fl) res.push(fl); } // (the class features past those: js/features.js -- the monk's ki, the metamagic, the pact, the luck ...)
-      D.text(ctx, res.join('   '), x + 42, ry + 11, R('silver', 5));
-      D.text(ctx, conds(u).trim() || '{g}no conditions{/}', x + 42, ry + 21, R('accent', 2));
-    });
-    if (B.inv && B.inv.length) D.text(ctx, 'packs: ' + B.inv.filter(function (s) { return s.n > 0; }).map(function (s) { var it = window.DS.DATA.items[s.id]; return (it ? it.name : s.id) + ' x' + s.n; }).join(', '), x + 8, y + h - 10, R('accent', 2));
+  function menu(ctx, B) { // (the one menu: drawn at its own 256x240 and set on the screen as a window; the old grid menu cut 10-07)
+    if (!B.menu.m) return;
+    if (!menuCv) { menuCv = document.createElement('canvas'); menuCv.width = 256; menuCv.height = 240; }
+    var mc = menuCv.getContext('2d'); mc.imageSmoothingEnabled = false; mc.clearRect(0, 0, 256, 240);
+    B.menu.m.draw(mc);
+    ctx.save(); ctx.imageSmoothingEnabled = false; ctx.drawImage(menuCv, UI.MENU_X, UI.MENU_Y); ctx.restore();
   }
 })();

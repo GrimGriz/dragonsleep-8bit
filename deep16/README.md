@@ -11,7 +11,9 @@ area spell. One map, one fight, the 8-bit save carried across. Spec: `they live\
   screen's edge (a 16-px band, and as far again past the canvas) to look round · arrows/WASD move the cursor a square
   a press along the grid, as on the 8-bit map (up is up-right on screen), or the menu · E/Z confirm · X/Esc back, and
   at rest the ring (on the window style, the menu) · Q the ring · 1–9 commands · SPACE end turn · C recentre · M/Tab
-  the menu (PARTY, MENU style, AUTO END TURN, restart, the gate, RETURN TO SILVERTON).
+  the menu -- since 10-06 the 8-bit's own (`../js/menu.js`, Griz: "ideal = identical menus"): the party panel with the grid's own figures,
+  ITEMS, MAGIC and SKILLS lit as the ring lights them and handed to the ring's aim (10-07), EQUIP with PUT AWAY and the LIGHT, STATUS,
+  OPTIONS (the MENU style, AUTO END TURN, END TURN ASKS, the pace, the volumes), CREDITS and the ways out (restart, the ladder, back).
 - **Menu styles** (RULED 09-27, Griz: the ring main, the window for those who'd rather; the first try's BAR of
   buttons dropped. Switched in the menu, kept per browser, or `?menu=ring|window`): **RING** — a Secret of Mana-style
   ring of icons round the hero; a turn starts on the grid, ready to walk, and the ring comes up on X, Q, E over the
@@ -315,7 +317,8 @@ restrained or down.
 swaps"; "at least one crossbow/bolts in the player inventory for all of deep16 modes"): every pack DEEP16 fights with
 carries a light crossbow and twenty bolts (`SV.armoury`; the 8-bit save walking in is never written). On a hero's turn
 the MENU has **EQUIP**: a weapon from the pack, or a shield off or on, each for the action (a swap is two object
-interactions; the second takes the action). Armour doesn't change in a fight on the tabletop, but the ladder's test
+interactions; the second takes the action); and since 10-07 the free hand's own -- the weapon PUT AWAY or DRAWN, and LIGHT: a torch or
+lantern from the pack lit in hand, or the one held set down, thrown, put out, hooded -- each the ring's own command at its own cost. Armour doesn't change in a fight on the tabletop, but the ladder's test
 bench allows it, for the action (09-27: "Allow for in-combat armor swapping on the non-climbing ladder"): ARMOUR OFF
 and WEAR, with what the party has taken off in the pack; a climb (`o.climb`, not built) won't. Mage Armor ends when its
 wearer puts armour on, and Aurdin's morning Mage Armor on the ladder costs a 1st-level slot. A hero's ranged weapon reaches to its long range with a clear line,

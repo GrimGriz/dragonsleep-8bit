@@ -172,10 +172,13 @@
     this.cmds = new List({ visible: ENTRIES.length, index: m.host.fight ? 4 : 0 }); // (in a fight the cursor starts on EQUIP)
     this.refresh();
   }
+  // the ring's own list in a fight whose host has one (the grid's: deep16/js/ui.js gridHost fight.ring -- items, spells, skills for the hero whose turn it is), or null
+  function ringOf(m, kind) { var f = m.host.fight; return f && f.ring ? f.ring(kind) : null; }
+  function ringPick(m, kind, e) { m.host.fight.pick(kind, e); m.close(); } // (the pick to the ring's own flow -- the aim, the tool, the command -- and back to the turn)
   Root.prototype.refresh = function () {
-    var host = this.m.host, fight = !!host.fight, party = host.party();
+    var host = this.m.host, fight = !!host.fight, party = host.party(), ring = fight && !!host.fight.ring;
     this.cmds.set(ENTRIES.map(function (e) {
-      var off = (e[1] === 'order' && (fight || party.length < 2)) || (e[1] === 'save' && (fight || !host.canSave())) || (e[1] === 'journal' && !host.journal) || (e[1] === 'equip' && fight && !host.fight.hero);
+      var off = (e[1] === 'order' && (fight || party.length < 2)) || (e[1] === 'save' && (fight || !host.canSave())) || (e[1] === 'journal' && !host.journal) || ((e[1] === 'equip' || (ring && (e[1] === 'magic' || e[1] === 'skills'))) && fight && !host.fight.hero);
       return { label: e[0], value: e[1], disabled: off };
     }));
   };
@@ -210,8 +213,12 @@
     var m = this.m, host = m.host, self = this;
     if (v === 'items') m.push(new ItemsPage(m));
     if (v === 'gear') m.push(new GearPage(m));
-    if (v === 'magic') this.choose({ title: 'WHO CASTS?', ok: function (h) { return bookOf(h).length ? true : h.name + ' casts no spells.'; }, then: function (h) { m.push(new MagicPage(m, h)); } });
-    if (v === 'skills') this.choose({ title: 'WHOSE SKILLS?', ok: function (h) { return skillsOf(h).length ? true : h.name + ' has nothing to use here.'; }, then: function (h) { m.push(new SkillsPage(m, h)); } });
+    // (a fight with the ring's lists -- the grid's: MAGIC and SKILLS are the one whose turn it is, as EQUIP is; 10-07, his find: "doesn't work for items, skills, or magic")
+    var ringH = host.fight && host.fight.ring ? host.fight.hero : null;
+    if (v === 'magic' && ringH) { if (ringOf(m, 'spells').length) m.push(new MagicPage(m, ringH)); else { sfx('error'); m.say(ringH.name + ' casts no spells.'); } }
+    else if (v === 'magic') this.choose({ title: 'WHO CASTS?', ok: function (h) { return bookOf(h).length ? true : h.name + ' casts no spells.'; }, then: function (h) { m.push(new MagicPage(m, h)); } });
+    if (v === 'skills' && ringH) { if (ringOf(m, 'skills').length) m.push(new SkillsPage(m, ringH)); else { sfx('error'); m.say(ringH.name + ' has nothing to use here.'); } }
+    else if (v === 'skills') this.choose({ title: 'WHOSE SKILLS?', ok: function (h) { return skillsOf(h).length ? true : h.name + ' has nothing to use here.'; }, then: function (h) { m.push(new SkillsPage(m, h)); } });
     if (v === 'equip') {
       // (a host whose fight equips its own way -- the grid's: the weapons in the pack and the shield, each costing the action, battle.js gearOptions /
       // swapGear -- lists those, each with what it costs or why not, and the change ends the menu: back to the turn)
@@ -277,7 +284,7 @@
     if (inf.time != null) text(ctx, 'Time ' + inf.time, 12, 210, C.grey);
     if (inf.steps != null) text(ctx, 'Steps ' + inf.steps, 96, 210, C.grey);
     if (host.journal) text(ctx, fit(inf.pin ? '◆ ' + inf.pin : 'Pin a quest in JOURNAL', 162), 12, 222, inf.pin ? C.gold : C.dim);
-    if (host.fight) { win(ctx, 184, 196, 70, 40); wrap(host.fight.acted ? 'Action spent: look, no changes.' : host.fightEquip ? 'A change of gear costs the action.' : 'In a fight: weapon and shield before acting.', 58).slice(0, 3).forEach(function (l, i) { text(ctx, l, 190, 203 + i * 10, C.gold); }); }
+    if (host.fight) { win(ctx, 184, 196, 70, 40); wrap(host.fight.ring ? (host.fight.hero ? 'Lit rows: yours to do this turn.' : 'A look only: no hero\'s turn.') : host.fight.acted ? 'Action spent: look, no changes.' : 'In a fight: weapon and shield before acting.', 58).slice(0, 3).forEach(function (l, i) { text(ctx, l, 190, 203 + i * 10, C.gold); }); }
   };
 
   // ------------------------------------------------------------------ ITEMS: tabs by kind (his: consumables, utility -- the gear a fight can use -- components, quest)
@@ -292,12 +299,15 @@
   }
   MN.itemTab = itemTab;
   function ItemsPage(m) { this.m = m; this.list = new List({ visible: 13 }); this.tab = 0; var self = this, pack = m.host.pack(); for (var t = 0; t < 4; t++) if (pack.some(function (s) { return itemTab(item(s.id)) === t; })) { this.tab = t; break; } this.refresh(); }
+  // the ring's entry for a thing in the pack (the grid's ITEM list: battle.js itemList -- its ok and its why), or null
+  function ringItem(m, id) { var l = ringOf(m, 'items'); return l ? l.filter(function (e) { return e.id === id; })[0] || null : null; }
   ItemsPage.prototype.refresh = function () {
-    var host = this.m.host, self = this, pack = host.pack();
+    var host = this.m.host, self = this, pack = host.pack(), ring = !!ringOf(this.m, 'items');
     this.counts = [0, 1, 2, 3].map(function (t) { return pack.filter(function (s) { return itemTab(item(s.id)) === t; }).length; });
     this.list.set(pack.filter(function (s) { return itemTab(item(s.id)) === self.tab; }).map(function (s) {
-      var it = item(s.id), why = host.whyNot ? host.whyNot(s.id, null) : '', now = host.fight && host.fight.canUse ? host.fight.canUse(it) : null;
-      // (in a fight on the grid, what the turn's action economy lets the hero use now is lit, the rest grey: Griz, 10-06, "colored or greyed out by action economy")
+      var it = item(s.id), why = host.whyNot ? host.whyNot(s.id, null) : '', re = ring ? ringItem(self.m, s.id) : null, now = ring ? !!(re && re.ok) : null;
+      // (in a fight on the grid, what the turn's action economy lets the hero use now is lit, the rest grey: Griz, 10-06, "colored or greyed out by action economy" --
+      // lit as the ring's ITEM lights it since 10-07: a torch wants a free hand, the rope a face to climb)
       return { label: fit(it.name, 168), right: 'x' + s.n, value: s.id, color: it.kind === 'key' ? C.gold : why || now === false ? C.dim : null, mark: (it.use && it.use.battle) || s.id === 'rope' ? 'fight' : null }; // (the rope: the grid's THE ROPE, in a fight)
     }));
   };
@@ -309,7 +319,9 @@
   };
   ItemsPage.prototype.use = function (id) {
     var m = this.m, host = m.host, it = item(id), u = it.use, self = this;
-    if (host.fight) { var nw = host.fight.canUse ? host.fight.canUse(it) : null; m.say([it.name + ': ' + (it.desc || '')].concat(u && u.battle ? [nw === false ? 'Not now: the turn has nothing left to use it with.' : 'In a fight, use it from the fight\'s ITEM.'] : [])); return; }
+    // (the grid: the pick goes to the ring's ITEM -- drunk, lit, or aimed on the floor as the ring aims it -- 10-07, the menus lane §2.1, Griz: "using items from there")
+    if (host.fight && host.fight.ring) { var re = ringItem(m, id); if (re && re.ok) { ringPick(m, 'items', re); return; } sfx('error'); m.say([it.name + ': ' + (re ? (re.why || 'not now') + '.' : (it.desc || '') + (u && u.battle ? '' : ' Not for a fight.'))]); return; }
+    if (host.fight) { m.say([it.name + ': ' + (it.desc || '')].concat(u && u.battle ? ['In a fight, use it from the fight\'s ITEM.'] : [])); return; }
     if (!u || !u.field) { m.say([it.name + ': ' + (it.desc || 'Nothing to do with it here.')].concat(u && u.battle ? ['It is for a fight.'] : [])); return; }
     if (u.target === 'party') { m.act('item', { id: id }); return; }
     if (u.effect === 'learn') { var lw = host.whyNot(id, null); if (lw) { m.say(lw); return; } }
@@ -329,8 +341,9 @@
     if (!this.list.items.length) text(ctx, 'Nothing of this kind.', 24, 32, C.grey);
     this.list.draw(ctx, 10, 30, 234, active, this.m.t, 12, 9);
     var cur = this.list.cur(), it = cur && item(cur.value);
-    if (it) { var why = this.m.host.whyNot ? this.m.host.whyNot(cur.value, null) : ''; descBox(ctx, it.desc || '', why || (it.use && it.use.battle ? 'Usable in a fight.' : '')); }
-    else descBox(ctx, '◀ ▶ the kinds   ' + (this.m.host.fight ? 'a look only, in a fight' : 'E: use'));
+    var ring = !!ringOf(this.m, 'items'), re = it && ring ? ringItem(this.m, cur.value) : null;
+    if (it) { var why = this.m.host.whyNot ? this.m.host.whyNot(cur.value, null) : ''; descBox(ctx, it.desc || '', why || (re ? (re.ok ? 'E: use it now.' : 'Not now: ' + (re.why || 'not now') + '.') : it.use && it.use.battle ? 'Usable in a fight.' : '')); }
+    else descBox(ctx, '◀ ▶ the kinds   ' + (this.m.host.fight && !ring ? 'a look only, in a fight' : 'E: use'));
   };
 
   // ------------------------------------------------------------------ GEAR: to look at, tabs by kind; equipping is EQUIP's
@@ -390,8 +403,24 @@
   function legend(ctx, y) { var x = 10; ['ritual', 'rest', 'lasting', 'field', 'battle'].forEach(function (k) { text(ctx, CAT[k].w, x, y, CAT[k].c); x += DS.textWidth(CAT[k].w) + 9; }); }
 
   // ------------------------------------------------------------------ MAGIC: the caster from the panel, a tab per level
-  function MagicPage(m, h) { this.m = m; this.h = h; this.levels = levelsOf(h); this.tab = 0; this.list = new List({ visible: 11 }); this.refresh(); }
+  // (in a fight with the ring's lists -- the grid's -- the page is the ring's SPELLS for the one whose turn it is, a tab a level: each lit as the ring lights it, its why
+  // when not, and E on it is the ring's own aim at the slot the ring starts at; 10-07, his find on the grid's menu, "doesn't work for ... magic")
+  function MagicPage(m, h) {
+    this.m = m; this.h = h; this.ring = ringOf(m, 'spells'); this.tab = 0; this.list = new List({ visible: 11 });
+    this.levels = this.ring ? this.ring.map(function (e) { return e.level || 0; }).filter(function (lv, i, a) { return a.indexOf(lv) === i; }).sort(function (a, b) { return a - b; }) : levelsOf(h);
+    if (this.ring) { var self = this; this.ring.some(function (e) { if (e.ok) { self.tab = self.levels.indexOf(e.level || 0); return true; } return false; }); } // (the first tab with something to cast)
+    this.refresh();
+    if (this.ring) { var f = 0; this.list.items.some(function (x, i) { if (!x.disabled) { f = i; return true; } return false; }); this.list.i = f; this.list.fix(); }
+  }
   MagicPage.prototype.refresh = function () {
+    if (this.ring) {
+      var lvR = this.levels[this.tab]; this.ring = ringOf(this.m, 'spells');
+      this.list.set(this.ring.filter(function (e) { return (e.level || 0) === lvR; }).map(function (e) {
+        var sp8 = spell(e.id), cat = sp8 ? spellCat(sp8) : 'battle', rt = !e.level ? 'at will' : e.levels && e.levels.length ? 'L' + e.slot : 'no slot';
+        return { label: fit(e.name, 150), right: rt, value: e, id: e.id, ready: true, ring: true, color: CAT[cat].c, disabled: !e.ok, rightColor: CAT[cat].c, desc: (sp8 && sp8.desc) || (e.sp && e.sp.desc) || '' };
+      }));
+      return;
+    }
     var h = this.h, R0 = R(), fight = !!this.m.host.fight, lv = this.levels[this.tab], field = R0.castable(h, 'field');
     this.list.set(bookOf(h).filter(function (id) { return (spell(id).level || 0) === lv; }).map(function (id) {
       var sp = spell(id), cat = spellCat(sp), ready = readied(h, id), slot = sp.level && !sp.ritual ? R0.lowestSlot(h, sp.level) : 0;
@@ -401,9 +430,11 @@
     }));
   };
   MagicPage.prototype.update = function (k) {
-    var t = tabStep(k, this.levels.length, this.tab); if (t !== this.tab) { this.tab = t; this.list.i = 0; this.refresh(); }
+    var t = tabStep(k, this.levels.length, this.tab); if (t !== this.tab) { this.tab = t; this.list.i = 0; this.refresh(); if (this.ring) { var f = 0; this.list.items.some(function (x, i) { if (!x.disabled) { f = i; return true; } return false; }); this.list.i = f; this.list.fix(); } } // (the ring's: the first that can be cast)
     var r = this.list.update(k), m = this.m, h = this.h, self = this;
     if (r === 'back') { m.pop(); return; }
+    if (r === 'refused' && this.ring) { var cR = this.list.cur().value; m.say(cR.name + ': ' + (cR.why || 'not now') + '.'); return; }
+    if (r === 'pick' && this.ring) { ringPick(m, 'spells', this.list.cur().value); return; }
     if (r === 'refused') { var c0 = this.list.cur(), sp0 = c0.value; m.say(m.host.fight ? 'In a fight, cast from the fight\'s MAGIC.' : !sp0.field ? sp0.name + ' is for a fight.' : !c0.ready ? sp0.name + ' is not prepared today.' : h.ko ? h.name + ' is down.' : sp0.level > R().maxSlotLevel(h) ? 'Not yet: no slot of its level.' : 'No slot left for it.'); return; }
     if (r === 'pick') {
       var sp = this.list.cur().value;
@@ -426,7 +457,8 @@
     this.list.draw(ctx, 10, 52, 234, active, this.m.t);
     legend(ctx, 184);
     var cur = this.list.cur();
-    descBox(ctx, cur ? (cur.value.desc || '') : '', cur && !cur.ready ? 'Not prepared today.' : '');
+    if (cur && cur.ring) descBox(ctx, cur.desc, cur.disabled ? 'Not now: ' + (cur.value.why || 'not now') + '.' : 'E: cast it -- aimed as the ring aims.');
+    else descBox(ctx, cur ? (cur.value.desc || '') : '', cur && !cur.ready ? 'Not prepared today.' : '');
   };
 
   // ------------------------------------------------------------------ SKILLS: a hero's, each with its line (his: "popup available skill with description line")
@@ -438,14 +470,20 @@
     return out;
   }
   MN.skillsOf = skillsOf;
-  function SkillsPage(m, h) { this.m = m; this.h = h; this.list = new List({ visible: 5 }); this.refresh(); }
+  // (in a fight with the ring's lists -- the grid's -- the page is the ring's SKILLS for the one whose turn it is: the class's features that spend something, the
+  // Channel Divinity's, a martial's first-ring feature; each with its cost, lit as the ring lights it, and E on it is the ring's own -- 10-07, his find: "doesn't work for ... skills")
+  var COSTW = { A: 'action', B: 'bonus', F: 'free', M: 'move', R: 'reaction' };
+  function SkillsPage(m, h) { this.m = m; this.h = h; this.ring = !!ringOf(m, 'skills'); this.list = new List({ visible: 5 }); this.refresh(); var f = 0; this.list.items.some(function (x, i) { if (!x.disabled) { f = i; return true; } return false; }); this.list.i = f; this.list.fix(); }
   SkillsPage.prototype.refresh = function () {
     var h = this.h, fight = !!this.m.host.fight;
+    if (this.ring) { this.list.set(ringOf(this.m, 'skills').map(function (c) { return { label: fit(c.label, 150), right: COSTW[c.cost] || '', value: c, sub: fit(c.ok ? (c.note || '') : 'not now: ' + (c.why || 'not now'), 196), disabled: !c.ok }; })); return; }
     this.list.set(skillsOf(h).map(function (s) { return { label: s.name, right: s.right, value: s, sub: s.desc, disabled: fight || h.ko || !s.ok }; }));
   };
   SkillsPage.prototype.update = function (k) {
     var r = this.list.update(k), m = this.m, h = this.h, self = this;
     if (r === 'back') { m.pop(); return; }
+    if (r === 'refused' && this.ring) { var cR = this.list.cur().value; m.say(cR.label + ': ' + (cR.why || 'not now') + '.'); return; }
+    if (r === 'pick' && this.ring) { ringPick(m, 'skills', this.list.cur().value); return; }
     if (r === 'refused') { m.say(m.host.fight ? 'In a fight, from the fight\'s SKILL.' : h.ko ? h.name + ' is down.' : 'Spent till the rest.'); return; }
     if (r !== 'pick') return;
     var s = this.list.cur().value;
@@ -453,7 +491,7 @@
     m.act('skill', { h: h, s: s.s }, function () { self.refresh(); });
   };
   SkillsPage.prototype.draw = function (ctx, active) {
-    var n = Math.max(1, this.list.items.length), hh = 26 + n * 24;
+    var n = Math.max(1, Math.min(this.list.vis, this.list.items.length)), hh = 26 + n * 24; // (the ring's SKILLS may run past five: the list scrolls)
     win(ctx, 16, 50, 224, hh);
     text(ctx, this.h.name + ': SKILLS', 24, 57, C.gold);
     this.list.draw(ctx, 22, 72, 208, active, this.m.t, 24);
@@ -476,25 +514,37 @@
     return '';
   }
   function EquipPage(m, h, at) { this.m = m; this.h = h; this.list = new List({ visible: 9 }); this.refresh(); if (at) { this.list.i = Math.max(0, this.list.items.map(function (x) { return x.value; }).indexOf(at)); this.list.fix(); } }
-  // a grid choice's place (deep16/js/battle.js gearOptions kinds)
-  function optSlot(o) { return o.kind === 'weapon' ? 'weapon' : /^shield/.test(o.kind) ? 'shield' : /^armor/.test(o.kind) ? 'armor' : null; }
+  // a grid choice's place (deep16/js/battle.js gearOptions kinds; the free hand's -- PUT AWAY, DRAW, the light -- name theirs: deep16/js/ui.js gridHost fightEquip)
+  function optSlot(o) { return o.slot || (o.kind === 'weapon' ? 'weapon' : /^shield/.test(o.kind) ? 'shield' : /^armor/.test(o.kind) ? 'armor' : null); }
+  // a place with nothing to change it to: one wording wherever it is said (10-07, his find on the grid's menu: "\"nothing goes there in this fight\" vs \"no weapon barley
+  // can swap to\"" -- the seat's pick)
+  function emptyWhy(m, h) { return 'Nothing in the pack ' + h.name + ' can put there' + (m.host.fight ? ' in this fight.' : '.'); }
+  function packLights(host) { return host.pack().filter(function (s) { var it = item(s.id); return s.n > 0 && it && it.use && it.use.effect === 'light'; }); }
   EquipPage.prototype.refresh = function () {
-    var h = this.h, host = this.m.host, fight = !!host.fight, acted = fight && host.fight.acted, lit = !!h.equip.torch, lt = host.light ? host.light(h) : null;
-    var fo = this.fo = fight && host.fightEquip ? host.fightEquip() : null; // (the grid: its own choices, each with what it costs or why not)
+    var h = this.h, host = this.m.host, fight = !!host.fight, acted = fight && host.fight.acted, lt = host.light ? host.light(h) : null, lit = !!lt;
+    var fo = this.fo = fight && host.fightEquip ? host.fightEquip() : null, away = host.wielding ? host.wielding(h) : ''; // (the grid: its own choices, each with what it costs or why not)
     var rows = SLOTS.map(function (s) {
       var id = h.equip[s[0]], it = item(id), mk = it ? bondMark(h, id) : null;
       var off = fo ? !fo.some(function (o) { return optSlot(o) === s[0]; }) : (fight && (acted || (s[0] !== 'weapon' && s[0] !== 'shield'))) || (s[0] === 'shield' && lit && !h.equip.shield);
-      return { label: s[1], right: it ? fit((mk ? mk + ' ' : '') + it.name, 128) : (s[0] === 'shield' && lit ? 'a light in hand' : '—'), value: s[0], disabled: off, rightColor: it && bondColor(h, id) === C.dim ? C.dim : null };
+      return { label: s[1], right: it ? fit((mk ? mk + ' ' : '') + it.name + (s[0] === 'weapon' && away ? ' (' + away + ')' : ''), 128) : (s[0] === 'shield' && lit ? 'a light in hand' : '—'), value: s[0], disabled: off, rightColor: it && bondColor(h, id) === C.dim ? C.dim : null };
     });
-    if (lt) rows.push({ label: 'LIGHT', right: fit(lt.name, 128), value: 'light', disabled: fight });
+    // LIGHT: the one in hand, or -- with a light in the pack -- the place to take one up (10-07, his find on the grid's menu: "torches cannot be equipped"); in the
+    // grid's fight its choices are the ring's (fo), out of one the light put away or lit from here, as ITEMS lights it
+    var lights = fo ? fo.filter(function (o) { return optSlot(o) === 'light'; }) : null;
+    if (lt || (fo ? lights.length : packLights(host).length)) rows.push({ label: 'LIGHT', right: lt ? fit(lt.name, 128) : '—', value: 'light', disabled: fo ? !lights.length : fight });
     this.list.set(rows);
   };
   EquipPage.prototype.update = function (k) {
     var r = this.list.update(k), m = this.m, h = this.h, self = this;
     if (r === 'back') { m.pop(); return; }
-    if (r === 'refused') { m.say(this.fo ? 'Nothing goes there in this fight.' : m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the shield only.') : 'A light in that hand: no shield.'); return; }
+    if (r === 'refused') { m.say(this.fo ? emptyWhy(m, h) : m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the shield only.') : 'A light in that hand: no shield.'); return; }
     if (r !== 'pick') return;
     var slot = this.list.cur().value;
+    if (slot === 'light' && this.fo) { m.push(new CandPage(m, h, 'light', this, this.fo.filter(function (o) { return optSlot(o) === 'light'; }))); return; }
+    if (slot === 'light' && !m.host.light(h)) { // (none in hand: the pack's lights, each lit in this hand as ITEMS lights it -- a free hand, one light for the party)
+      m.push(new ChoicePage(m, 'TAKE UP A LIGHT', packLights(m.host).map(function (s) { return { label: fit(item(s.id).name, 120), right: 'x' + s.n, value: s.id }; }), function (id) { m.act('item', { id: id, h: h }, function () { self.refresh(); }); }));
+      return;
+    }
     if (slot === 'light') { // (a torch put out is spent; a lantern or the lamp goes back in the pack)
       var lt = m.host.light(h);
       m.push(new ChoicePage(m, 'EQUIP LIGHT', [{ label: lt.hooded ? '(put it away)' : '(put it out)', right: lt.hooded ? 'to the pack' : 'spent', value: 'off' }], function () { m.act('light-off', { h: h }, function () { self.refresh(); }); }));
@@ -525,7 +575,7 @@
   function CandPage(m, h, slot, back, fo) { this.m = m; this.h = h; this.slot = slot; this.back = back; this.fo = fo || null; this.list = new List({ visible: 8 }); this.refresh(); }
   CandPage.prototype.refresh = function () {
     var h = this.h, slot = this.slot, host = this.m.host, lit = !!h.equip.torch, R0 = R(), rows = [];
-    if (this.fo) { this.list.set(this.fo.map(function (o) { return { label: fit(o.label.replace(/^(WEAR|SHIELD ON): /, ''), 104), right: fit(o.ok ? o.note : o.why, 96), value: o, disabled: !o.ok, rightColor: o.ok ? C.pale : C.dim }; })); return; }
+    if (this.fo) { this.list.set(this.fo.map(function (o) { return { label: fit(o.label.replace(/^(WEAR|SHIELD ON): /, ''), 104), right: fit(o.ok ? o.short || o.note : o.why, 96), value: o, disabled: !o.ok, rightColor: o.ok ? C.pale : C.dim }; })); return; }
     host.pack().forEach(function (s) {
       var it = item(s.id); if (!fitsSlot(it, slot) || !R0.canEquip(h, it)) return;
       if ((slot === 'ring' || slot === 'ring2') && h.equip[slot === 'ring' ? 'ring2' : 'ring'] === s.id && s.n < 1) return;
@@ -538,7 +588,7 @@
   CandPage.prototype.update = function (k) {
     var r = this.list.update(k), m = this.m;
     if (r === 'back') { m.pop(); return; }
-    if (r === 'refused') { var c0 = this.list.cur(); m.say(this.fo ? c0.value.label + ': ' + c0.value.why + '.' : 'Both hands on it, and a light in one: put the light away first.'); return; }
+    if (r === 'refused') { var c0 = this.list.cur(); m.say(this.fo ? c0.value.label.replace(/^\(|\)$/g, '') + ': ' + c0.value.why + '.' : 'Both hands on it, and a light in one: put the light away first.'); return; }
     if (r !== 'pick') return;
     var pick = this.list.cur().value;
     if (this.fo) { m.host.fightSwap(pick); m.close(); return; } // (the grid: the swap spends the action, back to the turn)
@@ -551,7 +601,7 @@
     if (slot === 'weapon' && pick) { var nw = item(pick); if ((nw.weapon.props || []).indexOf('two-handed') >= 0 && h.equip.shield) { host.give(h.equip.shield, 1); h.equip.shield = null; } }
     if (h.equip[slot]) host.give(h.equip[slot], 1);
     h.equip[slot] = null;
-    if (pick) { host.take(pick, 1); h.equip[slot] = pick; }
+    if (pick) { host.take(pick, 1); h.equip[slot] = pick; if (R0.ward) R0.ward(h); } // (a thing put on that bars a condition ends it -- the Periapt and a poison: js/rules.js R.ward, 10-07)
     sfx('confirm');
     if (pick && R0.bondState && R0.bondState(h, pick) === 'unbonded') m.say(h.name + ' wears the ' + item(pick).name + '. It wants a bond: it works after the next rest' + ((h.attuned || []).length >= (R0.ATTUNE_MAX || 3) ? ', and three bonds are held already.' : '.'));
     return true;
@@ -559,11 +609,12 @@
   CandPage.prototype.draw = function (ctx, active) {
     var n = Math.max(1, this.list.items.length), hh = 24 + Math.min(8, n) * 12;
     win(ctx, 30, 56, 196, hh);
-    text(ctx, 'EQUIP ' + (SLOTS.filter(function (s) { return s[0] === this.slot; }, this)[0] || ['', this.slot])[1], 38, 63, C.gold);
-    if (!this.list.items.length) text(ctx, 'Nothing in the pack goes here.', 44, 77, C.grey);
+    text(ctx, 'EQUIP ' + (SLOTS.filter(function (s) { return s[0] === this.slot; }, this)[0] || ['', this.slot.toUpperCase()])[1], 38, 63, C.gold);
+    if (!this.list.items.length) wrap(emptyWhy(this.m, this.h), 172).slice(0, 2).forEach(function (l, i) { text(ctx, l, 44, 77 + i * 10, C.grey); });
     this.list.draw(ctx, 38, 77, 180, active, this.m.t);
     var cur = this.list.cur(), it = cur && item(cur.value);
     if (it) descBox(ctx, it.desc || '', it.attune ? 'Bonds at a rest (three at most).' : '');
+    else if (cur && this.fo) descBox(ctx, cur.value.label.replace(/^\(|\)$/g, '') + ': ' + (cur.value.note || ''), cur.value.ok ? '' : 'Not now: ' + (cur.value.why || 'not now') + '.'); // (the grid's choice: what it does and what it costs, or why not)
   };
 
   // ------------------------------------------------------------------ STATUS: features, spells by level, what is worn; a guest's own page

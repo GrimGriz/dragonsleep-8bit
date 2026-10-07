@@ -105,8 +105,10 @@
       Object.keys(w).forEach(function (s) { if (!w[s].id) return; if (take(w[s].id)) h.equip[s] = w[s].id; else if (take(w[s].def)) h.equip[s] = w[s].def; });
     });
     this.avail = avail;
-    // the camp is the night's rest: what is worn and wants a bond takes it up, what was set down lets go (js/rules.js R.attune -- a fixture's hero keeps a list of bonds)
-    hs.forEach(function (h) { if (h.attuned) R.attune(h); });
+    // the camp is the night's rest: what is worn and wants a bond takes it up, what was set down lets go (js/rules.js R.attune -- a fixture's hero keeps a list of bonds);
+    // what was let go on THE NIGHT'S BONDS stays let go while it is worn (st.noBond, a hero's list: R.attune reads h.noBond -- 10-07, the menus lane §2.4)
+    var nb = st.noBond || {};
+    hs.forEach(function (h) { if (!h.attuned) return; if (nb[h.id] && nb[h.id].length) h.noBond = nb[h.id].slice(); R.attune(h); });
     // the day's spells
     hs.forEach(function (h) {
       if (!SV.prepCount(h)) return;
@@ -216,7 +218,7 @@
     if (slot === 'weapon' && twoHanded(id)) h2.equip.shield = null;
     if (slot === 'armor' && R.armored(h2)) delete h2.conds.mageArmor;
     if (slot === 'weapon' && !id) return 'bare hands';
-    if (slot === 'cloak') return id ? 'foes at disadvantage' : '';
+    if (slot === 'cloak') { var ck = id && item(id) && item(id).cloak; return !ck ? '' : ck.displacement ? 'foes at disadvantage' : ck.spellSave ? '+' + ck.spellSave + ' saves vs spells' : wornWords(item(id)); } // (each cloak its own: the King's Mantle read "foes at disadvantage" -- the wearables runner, 10-06)
     var wi = id && item(id), ww = wi && wornWords(wi);
     if (ww) return ww; // (10-06: a worn thing says what it gives -- a ring of AC still says its AC)
     if (slot === 'feet' || slot === 'neck') return '';
@@ -231,6 +233,9 @@
     switch (this.mode) {
       case 'menu': return { title: 'THE CAMP', rows: [
         { label: 'EQUIP', right: armoury(this.L).length + ' in the armoury', act: go('hero'), desc: 'Weapons, armour, shields and rings from the armoury, free: nobody is fighting yet. What one hero sets down, another can take up.' },
+        // THE NIGHT'S BONDS before the day's spells, as the 8-bit's morning has them (js/events.js EV.bonds; Griz, 10-06: "put bondings in front of spell prep in the morning") --
+        // the grid camp's own since 10-07 (the menus lane §2.4: it bonded in silence)
+        this.bondRows().length ? { label: 'THE NIGHT\'S BONDS', right: this.bondSum(), act: go('bonds'), desc: 'What the four wear that wants a bond (attunement, three at most each): bonded in the night, or waiting for room. E on one to let it go, or to take it up again.' } : null,
         { label: 'PREPARE SPELLS', right: hs.filter(function (h) { return h.prepared; }).map(function (h) { return (self.o.ours ? h.name.charAt(0) : h.name) + ' ' + h.prepared.length + '/' + self.prepCount(h); }).join('  '), act: go('caster'), desc: this.o.ours ? 'The day\'s spells. Willem prepares INT + his level from his book (the register\'s list and the Rimeglass\'s growth); Katarina and Torvald WIS + level from the cleric\'s list. Cantrips and the domain\'s own are always ready.' : 'The day\'s spells. Aurdin prepares INT + his level from his book; Lymen CHA + half his level from the paladin list. Cantrips, and Lymen\'s oath spells, are always ready.' },
         // (RULED 09-30, Griz: "what's in there should be dependent on party members": only what someone in the party has on their list)
         this.castAny() ? { label: 'CAST AHEAD', right: [this.info.mageArmor.on ? 'mage armor' : '', this.info.aid.on ? 'aid' : '', this.info.light && this.info.light.on ? 'light' : '', this.info.elemental && this.info.elemental.on ? D.FOES[this.info.elemental.kind].name.toLowerCase() : ''].filter(Boolean).join(', ') || 'nothing', act: go('cast'), desc: 'The long spells, cast this morning: they are on when the fight starts, and their slots are spent. Only what someone in the party can cast is here.' } : null,
@@ -269,6 +274,11 @@
         if (!rows.length) rows.push({ label: '(nothing here ' + h2.name + ' can use)', ok: false, why: 'the armoury has nothing for that slot' });
         return { title: h2.name.toUpperCase() + ': ' + slot.toUpperCase(), rows: rows };
       }
+      case 'bonds': return { title: 'THE NIGHT\'S BONDS', rows: this.bondRows().map(function (b) {
+        var it = item(b.id);
+        return { label: b.h.name.toUpperCase() + ': ' + it.name, right: b.state, hero: b.h.id, act: function () { self.toggleBond(b); },
+          desc: (it.desc || '') + (b.state === 'BONDED' ? '  E: let it go.' : b.state === 'LET GO' ? '  E: bond with it again.' : '  Three bonds held: let one go first.') };
+      }) };
       case 'caster': return { title: 'PREPARE WHOSE SPELLS?', rows: hs.filter(function (h) { return self.isCaster(h); }).map(function (h) {
         var n = self.prepCount(h);
         return { label: h.name.toUpperCase(), right: n ? h.prepared.length + ' of ' + n + ' prepared' : 'no spells yet', ok: !!n, why: 'a paladin has no spells until level 2', act: go('spells', { hero: h.id }), hero: h.id };
@@ -340,6 +350,27 @@
     this.changed();
   };
 
+  // THE NIGHT'S BONDS' rows: every bond-wanting thing a hero with a list of bonds wears (a fixture's, the climb's; our four keep no list), and what the night did --
+  // BONDED, WAITING (three held already), LET GO (the player's, st.noBond)
+  Camp.prototype.bondRows = function () {
+    var out = [], nb = this.st.noBond || {};
+    (this.data.party || []).forEach(function (h) {
+      if (!h.attuned) return;
+      var seen = [];
+      Object.keys(h.equip || {}).forEach(function (s) { var id = h.equip[s], it = item(id); if (s === 'torch' || !it || !it.attune || seen.indexOf(id) >= 0) return; seen.push(id);
+        out.push({ h: h, id: id, state: h.attuned.indexOf(id) >= 0 ? 'BONDED' : (nb[h.id] || []).indexOf(id) >= 0 ? 'LET GO' : 'WAITING' }); });
+    });
+    return out;
+  };
+  Camp.prototype.bondSum = function () { var n = { BONDED: 0, WAITING: 0, 'LET GO': 0 }; this.bondRows().forEach(function (b) { n[b.state]++; }); return [n.BONDED + ' bonded', n.WAITING ? n.WAITING + ' waiting' : '', n['LET GO'] ? n['LET GO'] + ' let go' : ''].filter(Boolean).join(', '); };
+  Camp.prototype.toggleBond = function (b) {
+    var nb = this.st.noBond = this.st.noBond || {}, l = nb[b.h.id] = (nb[b.h.id] || []).slice(), i = l.indexOf(b.id);
+    if (b.state === 'WAITING') { D.sfx('error'); this.say(b.h.name + ' holds three bonds already. Let one go first.'); return; }
+    if (b.state === 'BONDED' && i < 0) l.push(b.id);
+    if (b.state === 'LET GO' && i >= 0) l.splice(i, 1);
+    if (!l.length) delete nb[b.h.id];
+    this.changed();
+  };
   Camp.prototype.changed = function () { this.save(); this.rebuild(); D.sfx('confirm'); };
   Camp.prototype.setEquip = function (h, slot, id) {
     var e = this.st.equip[h.id] = this.st.equip[h.id] || {};
