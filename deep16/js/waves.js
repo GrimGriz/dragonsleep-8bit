@@ -122,7 +122,7 @@
   WV.saveKey = function (g) { return SAVE + String(g || '').toUpperCase(); };
   WV.save = function (B, S) {
     if (!S || S.ai) return false;
-    var su = B.su, rec = { v: 1, group: GS.group(), saved: new Date().toISOString(), tier: S.tier, wi: S.wi, held: S.held, count: S.count, xp: S.xp, hd: S.hd,
+    var su = B.su, rec = { v: 1, group: S.group || GS.group(), saved: new Date().toISOString(), tier: S.tier, wi: S.wi, held: S.held, count: S.count, xp: S.xp, hd: S.hd,
       lampHP: S.lampHP, lampMax: S.lampMax, loot: WV.loot, inv: B.inv || [],
       su: su ? { chest: su.chest, stash: su.stash, score10: su.score10, bonus: su.bonus, epic: su.epic, sent: su.sent, bed: su.bed, amulets: su.amulets } : null,
       four: four(B).map(function (u) { return { k: u.mpmon, hp: u.hp, feats: u.feats }; }) };
@@ -377,6 +377,9 @@
     var S = GS.run = { tier: Math.max(1, Math.min(99, num('tier') || 1)), wi: Math.max(0, (num('wave') || 1) - 1), count: 0, held: 0, xp: {}, hd: {}, foes: [], rest: null,
       ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q), oldwalk: /[?&]oldwalk\b/.test(q), end0: (/[?&]end=(lamp|wipe)\b/.exec(q) || [])[1] || null };
     var RS = GS.resume; GS.resume = null;   // (CONTINUE on the title: the save it chose, js/gameshow.js)
+    // the run's own group, held from its start (10-07, found loading GANGOF4's save: the save went under whatever name was stored at that wave -- the title's
+    // field changed mid-run would have written this run under another group)
+    S.group = RS && RS.group ? RS.group : GS.group();
     if (RS) { S.tier = RS.tier; S.wi = RS.wi || 0; S.held = RS.held || 0; S.count = RS.count || 0; S.resumed = RS; WV.loot = JSON.parse(JSON.stringify(RS.loot || {})); B.inv = JSON.parse(JSON.stringify(RS.inv || [])); }
     S.lampHP = S.lampMax = num('lamp') || WV.CFG.lampHP(S.tier);
     if (RS && RS.lampMax) { S.lampMax = RS.lampMax; S.lampHP = Math.max(1, Math.min(RS.lampMax, RS.lampHP || RS.lampMax)); }
