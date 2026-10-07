@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `99b3b98` · the bestiary · The goblin's Hide (a Sonnet runner's): Nimble Escape's other half, the bonus action after its blow, a step out of the watch first if it needs one, its crouch held while hidden; Stealth +6 · *"4 yes"*
 - 2026-10-07 · `b4354ec` · the Game Show · The run goes on past the ninth tier: tier 10 and up are tier 9's waves with one more of each wave's smallest kind a tier, till the lamp goes out; THE LAMP HOLDS cut · *"3 keep going"*
 - 2026-10-07 · ruled · the Game Show · The road's dim lamps stay (`WV.CFG.roadLight`); tier 1's weight at level 1 waits on the bench · *"1 - keep, 2 bench"*
 - 2026-10-07 · ruled · the bestiary · The goblin's Hide goes to a Sonnet runner · *"4 yes"*
