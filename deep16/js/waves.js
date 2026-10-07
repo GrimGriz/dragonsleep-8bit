@@ -47,7 +47,10 @@
     // (10-07, after he watched tier 1: "Lamps/Lanterns on the floor back toward 2nd lamp" -- each light a lantern set on the floor at the hall's edge, drawn: lanternProp)
     roadLight: 25, roadLamps: [[4, 7], [11, 10], [18, 7], [44, 10], [51, 7], [58, 10], [65, 7], [69, 10]]
   };
-  var WEST = { from: [[0, 8], [0, 9], [0, 7], [0, 10]], at: [6, 8] }, EAST = { from: [[82, 8], [82, 9]], at: [64, 8] };
+  // (the east way in a square short of the map's last column, 10-07, Griz, playing: "they appear and they do just fine on the north, on the south takes several
+  // seconds": a Large one is 2 by 2, and at x 82 it needed an x 83 the map hasn't -- the walk-in waited out its guard, 150 beats, then set them down. At (81, 8)
+  // every size the causeway takes fits; a Large one takes it when its own square won't hold it, Battle.walkIn)
+  var WEST = { from: [[0, 8], [0, 9], [0, 7], [0, 10]], at: [6, 8] }, EAST = { from: [[81, 8], [82, 9]], at: [64, 8] };
 
   // THE WAVES (the seat's draft, his to recut): by tier, each { west: [kinds], east: [kinds], boss, card }. The SRD's own monsters only; against the DMG's
   // table for four at the tier's level the waves read MEDIUM to HARD, the bosses HARD to DEADLY, the Edifice team past it (his, on the Skylights: "kinda

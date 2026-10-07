@@ -3732,6 +3732,15 @@
         okW('boss: the Edifice team down, and on past the ninth -- ' + seenB.join(' > ') + ' (' + vb + ' frames), tier ' + SB.tier + ' with ' + k10 + ' (want ettin,ettin,troll,troll: the ettin is its smallest), the lamp ' + SB.lamp.hp + ' (want 240), no end (' + (SB.end || 'none') + ', ' + scB.length + ' scores)',
           vb >= 0 && SB.tier === 10 && k10 === 'ettin,ettin,troll,troll' && SB.lamp.hp === 240 && !SB.end && scB.length === 0 && seenB.indexOf('scores') < 0 && lg(BB, /PAST THE NINTH/).length === 1);
         errW('boss');
+
+        // ---- THE EAST WAY IN (10-07, Griz, playing: "on the south takes several seconds"): tier 5's second wave, four Large spiders over the causeway. Its mouth was the
+        // map's last column, where a 2 by 2 never stood: the walk-in waited out its guard (150 beats of 8 frames) and set them down. Want them in and rolled well inside it
+        D.seed = 1007;
+        var BE = lampFight('?gameshow&at=lamp&fast&auto&tier=5&wave=2'), SE;
+        var wE = stepW(BE, function () { SE = GSW.run; return SE && SE.foes.length && SE.foes.every(function (u) { return BE.units.indexOf(u) >= 0; }) && BE.order.length > 4; }, 20000);
+        var bigE = SE ? SE.foes.filter(function (u) { return (u.size || 1) > 1; }).length : 0;
+        okW('the east way in: tier 5 wave 2, ' + bigE + ' Large of ' + (SE ? SE.foes.length : 0) + ' over the causeway, in and rolled in ' + wE + ' frames (want under 700: the guard alone was 1200)', bigE === 4 && wE > 0 && wE < 700);
+        errW('east');
       }
     } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
     finally { D.store.get = stGW; D.store.set = stSW; D.scenes.length = 0; }
