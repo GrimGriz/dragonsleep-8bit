@@ -4,6 +4,9 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `c13d937` · the Game Show · After a wave in his order: the four into the token where they stand, the token to the chest (check in with chat), to the bed for the rest, out to the circle; lanterns on the road's floor; `&end=lamp` / `&end=wipe` stage the end; a foe's Hide is its action unless a trait makes it the bonus · *"when combat ends, don't auto-popup the rest - do the token combine - walk around to the chest, check in with chat - then walk to bed and interact as party token"* · *"Lamps/Lanterns on the floor back toward 2nd lamp"* · *"4 please fix"*
+- 2026-10-07 · seen · the Game Show · Tier 1 of the waves in the pane (`eyes-gameshow-waves-1007`, cut; his notes are `c13d937`) · *"watched tier1"*
+- 2026-10-07 · ruled · the Game Show · The waves' balance bench goes to the bench window · *"2 for bench"*
 - 2026-10-07 · `dc24bc9` · the bestiary · The hobgoblins' old Quaternius looks retired, `hobgoblin_p1` (the Orc) and `hobsergeant_p1` (the Orc Skull) · *"retire them now"*
 - 2026-10-07 · ruled · the bestiary · The hobgoblins' front-view skin stays as GPT drew it (a touch lighter orange than the side), for now · *"Leave it for now, show in two hours."*
 - 2026-10-07 · `a8b6bf8` · the bestiary · The hobgoblin and the sergeant on looks of their own from his eight GPT sheets (`tools/hobgoblin-sheet.py` -> `hobgoblin_p2`, `hobsergeant_p2`): the longsword, the longbow, the sergeant's backhand second blow, MARTIAL ADVANTAGE as its own row whenever it can fire; `deep16/?show=hobgoblin,hobsergeant` · *"Hobgoblin and hobsergeant sheets are in _src"*
