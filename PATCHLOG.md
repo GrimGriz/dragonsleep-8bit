@@ -4,6 +4,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `e393b8f` · the Game Show · The supplies on the lamp's turn: the buttons work there, the show's own buttons win over the tower, and TO THE BED with chat's supplies still in the chest asks first (again goes) · *"ensure the idle-turn safety works on lamp turns"* · *"pre-show messed with the lamp interaction, msg it?"*
+- 2026-10-07 · `2dad7f9` · the Game Show · The supplies built from his picks: the lamp's four buttons, the roll-offs and natural-20 rules, the score and the epic amulet at 100, the chest's hand-out with chat's choices, armour at the bed, the 27 items, Goose's sling on bullets, the Ban Hammer thrown and back; the draft table for his pick (2o-2q, 26a-26b) · *"Tier 1 - roll 1d4 and add one of them, unless Goose is <10 ammo, then ammo goes in chest"* · *"23b - check pyro's handaxe code (comes back next round)"*
 - 2026-10-07 · seen · MPMon · Denny's Taunt brace (`eyes-taunt-brace-1007`, cut); Beholda's action Gaze to be tested live on the show (`eyes-gaze-action-1007` stands) · *"Taunt brace was seen, beholda gonna be tested live it seems"*
 - 2026-10-07 · ruled · MPMon · The Mascots' dip at 5th stays (2 of 20 against the story party on the bench): on the show the foes don't start in range · *"Dip is gonna ride, enemies don't start in range on the show"*
 - 2026-10-07 · ruled · the Game Show · The lamp's own turn for his supply clicks (the seat's proposal: initiative count 20 each round, clicks during other turns held for it) goes to the Pre-Show window · *"Pre-Show is taking the lamp turn"*
