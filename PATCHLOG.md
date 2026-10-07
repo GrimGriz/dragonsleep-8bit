@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `a793153` · MPMon · Rascal's new look `rascal_p2`, cut whole from his second three sheets: the felt's face, the hat charcoal and solid (the see-through hat closed), his own rows for Fire Bolt, Social Distancing, Hot Take and Going Viral, the bow from sheet 3; `?mpshow&lvl=7&only=sharing,flame,distancing,spicy,hottake,viral` · *"Cut a new look, rascal_p2, whole from the new sheets by tools/sheetrows.py"*
 - 2026-10-07 · seen · MPMon · Goose, the sheet and the build (`eyes-goose-sheet-1007`, `eyes-goose-show-1007`, cut) · *"He looks great."*
 - 2026-10-07 · ruled · MPMon · The names HEART TO HEART and GROUP HUG stay · *"1 - keep them, good call"*
 - 2026-10-07 · ruled · MPMon · The bench of the Mascots against the classes waits for the other three's new animations · *"2 - Additional animations coming in for the other lobstamonkees, will bench after."*
