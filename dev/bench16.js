@@ -105,14 +105,41 @@
       return { r: r4, rounds: B4.round, B: B4 };
     }
     stats.dealt = {}; stats.taken = {}; stats.down = {};
+    // what each Mascot's action and bonus action went to in the band fights (the MPMon lane §6g, his worry: "concerned beholda won't do anything but the lvl 5 with all
+    // her actions after lvl 5"): the action as the class AI's pick (js/tactics.js act -> TX.plans, the best plan run), the bonus specials as they fire (their MP
+    // functions); res3.acts / res3.bonus {name: {what: count}}, res3.leftB / leftA the two pools at the fight's end, res3.turns each one's turns standing. Counted only while `tally` is on (the band). dbg=<name> hands back the
+    // first band fight's AI weighing for that one (B.benchLog)
+    var MPM3 = D.mpmon, TXM = D.tactics, plans3 = TXM.plans, tally = false;
+    res3.acts = {}; res3.bonus = {}; res3.leftB = {}; res3.leftA = {};
+    function bump(o, nm, k) { var r = o[nm] = o[nm] || {}; r[k] = (r[k] || 0) + 1; }
+    function what(p) { return p.kind === 'special' ? p.why.replace(/ (at|on|by|beside) .*$| \(.*$|:.*$/, '') : p.kind === 'weapon' ? (/^shoots/.test(p.why || '') ? 'shoots' : 'strikes') :p.kind === 'spell' ? 'cast ' + (p.id || p.why) : p.kind; }
+    TXM.plans = function (B, u, bonus) {
+      var ps = plans3.apply(this, arguments);
+      if (tally && !bonus && u.cls === 'mpmon') {
+        var pk = ps[0];
+        if (pk && pk.score > 0.5) { var g0 = pk.go, w0 = what(pk); pk.go = function* () { bump(res3.acts, u.name, w0); return yield* g0.apply(this, arguments); }; }
+        else bump(res3.acts, u.name, 'nothing worth it: close in or ready');
+      }
+      return ps;
+    };
+    ['taunt', 'flurry', 'eyeOnIt', 'gaze', 'sharing', 'heart', 'honk'].forEach(function (k) {
+      var f0 = MPM3[k]; if (!f0) return;
+      MPM3[k] = function* (B, u) { if (tally && u && u.cls === 'mpmon') bump(res3.bonus, u.name, k); return yield* f0.apply(this, arguments); };
+    });
+    var st3 = D.rules.startTurn; res3.turns = {};
+    D.rules.startTurn = function (u) { if (tally && u && u.cls === 'mpmon' && u.hp > 0 && !u.dead) res3.turns[u.name] = (res3.turns[u.name] || 0) + 1; return st3.apply(this, arguments); };
     var bw3 = 0, hw3 = 0, br3 = 0;
+    tally = true;
     for (var k3 = 0; k3 < n; k3++) {
       var y3 = one3({ npc: { foes: MSC.map(function (m) { return m + ':' + L; }) } }, 5000 + k3 * 7919);
       if (det) res3.fights.push({ seed: 5000 + k3 * 7919, r: y3.r, rounds: y3.B.round, stand: y3.B.units.filter(function (u) { return !u.familiar && !u.dead && u.hp > 0; }).map(function (u) { return u.name + ' ' + u.hp + '/' + u.maxhp; }) });
       if (y3.r === 'lost') bw3++; else if (y3.r === 'won') hw3++;
       br3 += y3.rounds;
-      y3.B.units.forEach(function (u) { if (u.cls === 'mpmon') res3.left[u.name] = (res3.left[u.name] || 0) + D.mpmon.left(u); });
+      if (get('dbg', '') && k3 === 0) res3.dbg = (y3.B.benchLog || []).filter(function (s) { return s.indexOf(get('dbg', '')) === 0; });
+      y3.B.units.forEach(function (u) { if (u.cls === 'mpmon') { res3.left[u.name] = (res3.left[u.name] || 0) + D.mpmon.left(u); res3.leftB[u.name] = (res3.leftB[u.name] || 0) + D.mpmon.left(u, 'B'); res3.leftA[u.name] = (res3.leftA[u.name] || 0) + D.mpmon.left(u, 'A'); } });
     }
+    tally = false;
+    ['leftB', 'leftA'].forEach(function (p) { Object.keys(res3[p]).forEach(function (k) { res3[p][k] = +(res3[p][k] / n).toFixed(2); }); });
     res3.band = [bw3, hw3, +(br3 / n).toFixed(1)];
     ['dealt', 'taken', 'down'].forEach(function (k) { res3[k] = JSON.parse(JSON.stringify(stats[k])); }); // (a copy: the duels count on after)
     Object.keys(res3.left).forEach(function (k) { res3.left[k] = +(res3.left[k] / n).toFixed(2); });
@@ -124,6 +151,7 @@
       });
     });
     res3.specials = MSC.map(function (m) { var u = D.npc.build(m + ':' + L, L, 'foe', { id: 'sp' + m }); return D.mpmon.left(u); });
+    res3.pools = MSC.map(function (m) { var u = D.npc.build(m + ':' + L, L, 'foe', { id: 'sq' + m }); return [D.mpmon.left(u, 'B'), D.mpmon.left(u, 'A')]; });
     var pre3 = document.createElement('pre'); pre3.id = 'out'; pre3.textContent = 'BENCH16 ' + JSON.stringify(res3);
     document.body.appendChild(pre3);
     return;
