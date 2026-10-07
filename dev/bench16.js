@@ -1188,6 +1188,24 @@
       C9.avail.kingsmantle = 1; C9.avail.cloakdisplacement = 1; C9.mode = 'item'; C9.pick = { hero: C9.data.party[1].id, slot: 'cloak' };
       var rows10 = C9.list().rows, km10 = rows10.filter(function (r) { return r.label === DS.DATA.items.kingsmantle.name; })[0], cd10 = rows10.filter(function (r) { return r.label === DS.DATA.items.cloakdisplacement.name; })[0];
       okM('§2.5 the camp\'s cloak lines: the King\'s Mantle "' + (km10 && km10.right) + '", the Cloak of Displacement "' + (cd10 && cd10.right) + '"', km10 && km10.right === '+5 saves vs spells' && cd10 && cd10.right === 'foes at disadvantage');
+      // (10-07, Griz: "can we color the actions actually available by their cost, bonus blue, action yellow and say something like that there?") what can be done now is lit in
+      // its cost's colour -- the action yellow, the bonus action blue, the free white -- and the box under the entries says which is which
+      var YEL = '#F8D878', BLU = '#3CBCFC', WHI = '#F8F8F8';
+      var B11 = mkM('?npc=goblin,goblin&lvl=5&vs=fighter:5,wizard:5'), f11 = turnM(B11, heroM(B11, 'fighter')); packM(B11, 'potion', 2);
+      var m11 = openM(B11, 'items'), ip11 = m11.pages[0]; ip11.tab = DS.MENU.itemTab(DS.DATA.items.potion); ip11.refresh();
+      var pot11 = ip11.list.items.filter(function (x) { return x.value === 'potion'; })[0]; pressM(B11, 'b');
+      m11.root.cmds.i = m11.root.cmds.items.map(function (x) { return x.value; }).indexOf('skills'); pressM(B11, 'a');
+      var sw11 = m11.pages[0] && m11.pages[0].list.items.filter(function (x) { return x.value && x.value.id === 'secondwind'; })[0]; pressM(B11, 'b');
+      m11.root.cmds.i = m11.root.cmds.items.map(function (x) { return x.value; }).indexOf('equip'); pressM(B11, 'a'); var ep11 = m11.pages[0]; if (ep11) { rowM(ep11.list, function (x) { return x.value === 'weapon'; }); pressM(B11, 'a'); }
+      var c11 = m11.pages[1] ? m11.pages[1].list.items : [], wpn11 = c11.filter(function (x) { return x.value && x.value.kind === 'weapon' && !x.disabled; })[0], away11 = c11.filter(function (x) { return x.value && x.value.cmd && x.value.cmd.id === 'putaway'; })[0];
+      while (m11.pages.length) pressM(B11, 'b');
+      var said11 = [], tx11 = DS.text; DS.text = function (c, s, x, y, col) { said11.push(String(s) + '=' + col); return tx11.apply(this, arguments); };
+      try { m11.draw(document.createElement('canvas').getContext('2d')); } finally { DS.text = tx11; }
+      var w11 = turnM(B11, heroM(B11, 'wizard')), m11b = openM(B11, 'magic'), mp11 = m11b.pages[0], spc = {};
+      if (mp11) mp11.levels.forEach(function (lv, i) { mp11.tab = i; mp11.refresh(); mp11.list.items.forEach(function (x) { if (!x.disabled) spc[x.id] = x.color; }); });
+      okM('the cost colours: the fighter\'s potion ' + (pot11 && pot11.color) + ', 2ND WIND ' + (sw11 && sw11.color) + ', a weapon ' + (wpn11 && wpn11.color) + ', (put it away) ' + (away11 && away11.color) + '; the wizard\'s Fire Bolt ' + spc.firebolt + ', Misty Step ' + spc.mistystep + '; the box says ' + said11.filter(function (s) { return /^(Can do now:|action|free|bonus action)=/.test(s); }).join(' '),
+        pot11 && pot11.color === YEL && sw11 && sw11.color === BLU && wpn11 && wpn11.color === YEL && away11 && away11.color === WHI && spc.firebolt === YEL && spc.mistystep === BLU &&
+        said11.indexOf('action=' + YEL) >= 0 && said11.indexOf('bonus action=' + BLU) >= 0 && said11.indexOf('free=' + WHI) >= 0);
     } catch (eM) { repM.errors.push(String(eM && eM.stack || eM).slice(0, 900)); }
     if (errs.length) repM.errors = repM.errors.concat(errs);
     var preM = document.createElement('pre'); preM.id = 'out'; preM.textContent = 'BENCH16 ' + JSON.stringify(repM);

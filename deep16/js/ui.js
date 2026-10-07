@@ -885,7 +885,7 @@
       fight: { hero: turn,
         ring: function (kind) {
           if (!gu) return [];
-          if (kind === 'items') return B.itemList(gu);
+          if (kind === 'items') { var fastI = gu.subclass === 'Thief' && gu.turn.bonus > 0; return B.itemList(gu).map(function (e) { e.cost = e.cost || (e.id !== 'rope' && fastI ? 'B' : 'A'); return e; }); } // (its cost, for the menu's colour: Fast Hands the bonus -- battle.js commands' ITEM)
           if (kind === 'spells') return D.magic.list(B, gu);
           return B.commands(gu).filter(function (c) { return CHANNEL[c.id] || SKILLS[c.id] || c.skill || FRONT[gu.cls] === c.id; }); // (the ring's SKILLS and CHANNEL DIVINITY, and a martial's feature off the first ring: UI.cmds)
         },
@@ -914,12 +914,12 @@
       // taken up off the floor, out of the barrel or the pack (his find: "torches cannot be equipped") -- each the ring's own command, with its cost and its why
       fightEquip: function () {
         if (!gu) return [];
-        var out = B.gearOptions(gu), LIGHTS = { droptorch: 1, throwtorch: 1, dousetorch: 1, hooddown: 1, hoodup: 1, pickuptorch: 1, barreltorch: 1 };
+        var out = B.gearOptions(gu).map(function (o) { o.cost = 'A'; return o; }), LIGHTS = { droptorch: 1, throwtorch: 1, dousetorch: 1, hooddown: 1, hoodup: 1, pickuptorch: 1, barreltorch: 1 }; // (a change of gear: the action)
         B.commands(gu).forEach(function (c) {
-          if (c.id === 'putaway' || c.id === 'drawweapon') out.push({ kind: 'cmd', slot: 'weapon', cmd: c, label: c.id === 'putaway' ? '(put it away)' : '(draw it)', short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why });
-          if (LIGHTS[c.id]) out.push({ kind: 'cmd', slot: 'light', cmd: c, label: '(' + c.label.toLowerCase() + ')', short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why });
+          if (c.id === 'putaway' || c.id === 'drawweapon') out.push({ kind: 'cmd', slot: 'weapon', cmd: c, cost: c.cost, label: c.id === 'putaway' ? '(put it away)' : '(draw it)', short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why });
+          if (LIGHTS[c.id]) out.push({ kind: 'cmd', slot: 'light', cmd: c, cost: c.cost, label: '(' + c.label.toLowerCase() + ')', short: COSTW[c.cost], note: COSTW[c.cost] + ': ' + c.note, ok: c.ok, why: c.why });
         });
-        if (!gu.torch) B.itemList(gu).forEach(function (e) { if (e.use && e.use.effect === 'light') out.push({ kind: 'item', slot: 'light', e: e, label: e.name, short: COSTW[e.cost || 'A'], note: COSTW[e.cost || 'A'] + ': lit, in hand', ok: e.ok, why: e.why }); });
+        if (!gu.torch) B.itemList(gu).forEach(function (e) { if (e.use && e.use.effect === 'light') out.push({ kind: 'item', slot: 'light', e: e, cost: e.cost || 'A', label: e.name, short: COSTW[e.cost || 'A'], note: COSTW[e.cost || 'A'] + ': lit, in hand', ok: e.ok, why: e.why }); });
         return out;
       },
       fightSwap: function (o) {

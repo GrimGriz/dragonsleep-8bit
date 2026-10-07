@@ -174,6 +174,11 @@
   }
   // the ring's own list in a fight whose host has one (the grid's: deep16/js/ui.js gridHost fight.ring -- items, spells, skills for the hero whose turn it is), or null
   function ringOf(m, kind) { var f = m.host.fight; return f && f.ring ? f.ring(kind) : null; }
+  // a lit row's colour in the grid's fight, by what it costs (10-07, Griz: "can we color the actions actually available by their cost, bonus blue, action yellow and say
+  // something like that there?"): the action yellow, the bonus action the turn bar's blue (its B pip), what is free white
+  var COSTC = { A: C.gold, B: '#3CBCFC' };
+  function costCol(c) { return COSTC[c] || C.white; }
+  function costKey(ctx, x, y) { x += text(ctx, 'action', x, y, COSTC.A) + 5; x += text(ctx, 'bonus', x, y, COSTC.B) + 5; text(ctx, 'free', x, y, C.white); } // (the legend)
   function ringPick(m, kind, e) { m.host.fight.pick(kind, e); m.close(); } // (the pick to the ring's own flow -- the aim, the tool, the command -- and back to the turn)
   Root.prototype.refresh = function () {
     var host = this.m.host, fight = !!host.fight, party = host.party(), ring = fight && !!host.fight.ring;
@@ -284,7 +289,12 @@
     if (inf.time != null) text(ctx, 'Time ' + inf.time, 12, 210, C.grey);
     if (inf.steps != null) text(ctx, 'Steps ' + inf.steps, 96, 210, C.grey);
     if (host.journal) text(ctx, fit(inf.pin ? '◆ ' + inf.pin : 'Pin a quest in JOURNAL', 162), 12, 222, inf.pin ? C.gold : C.dim);
-    if (host.fight) { win(ctx, 184, 196, 70, 40); wrap(host.fight.ring ? (host.fight.hero ? 'Lit rows: yours to do this turn.' : 'A look only: no hero\'s turn.') : host.fight.acted ? 'Action spent: look, no changes.' : 'In a fight: weapon and shield before acting.', 58).slice(0, 3).forEach(function (l, i) { text(ctx, l, 190, 203 + i * 10, C.gold); }); }
+    if (host.fight) {
+      win(ctx, 184, 196, 70, 40);
+      // (the grid's: what can be done now is lit in its cost's colour, and the box says which is which -- 10-07, Griz: "bonus blue, action yellow and say something like that there")
+      if (host.fight.ring && host.fight.hero) { text(ctx, 'Can do now:', 190, 203, C.pale); text(ctx, 'action', 190, 213, COSTC.A); text(ctx, 'free', 222, 213, C.white); text(ctx, 'bonus action', 190, 223, COSTC.B); }
+      else wrap(host.fight.ring ? 'A look only: no hero\'s turn.' : host.fight.acted ? 'Action spent: look, no changes.' : 'In a fight: weapon and shield before acting.', 58).slice(0, 3).forEach(function (l, i) { text(ctx, l, 190, 203 + i * 10, C.gold); });
+    }
   };
 
   // ------------------------------------------------------------------ ITEMS: tabs by kind (his: consumables, utility -- the gear a fight can use -- components, quest)
@@ -308,7 +318,7 @@
       var it = item(s.id), why = host.whyNot ? host.whyNot(s.id, null) : '', re = ring ? ringItem(self.m, s.id) : null, now = ring ? !!(re && re.ok) : null;
       // (in a fight on the grid, what the turn's action economy lets the hero use now is lit, the rest grey: Griz, 10-06, "colored or greyed out by action economy" --
       // lit as the ring's ITEM lights it since 10-07: a torch wants a free hand, the rope a face to climb)
-      return { label: fit(it.name, 168), right: 'x' + s.n, value: s.id, color: it.kind === 'key' ? C.gold : why || now === false ? C.dim : null, mark: (it.use && it.use.battle) || s.id === 'rope' ? 'fight' : null }; // (the rope: the grid's THE ROPE, in a fight)
+      return { label: fit(it.name, 168), right: 'x' + s.n, value: s.id, color: ring ? (now ? costCol(re.cost) : C.dim) : it.kind === 'key' ? C.gold : why || now === false ? C.dim : null, rightColor: ring && now ? costCol(re.cost) : null, mark: (it.use && it.use.battle) || s.id === 'rope' ? 'fight' : null }; // (the rope: the grid's THE ROPE, in a fight) // (the grid: lit in its cost's colour, 10-07)
     }));
   };
   ItemsPage.prototype.update = function (k) {
@@ -416,8 +426,8 @@
     if (this.ring) {
       var lvR = this.levels[this.tab]; this.ring = ringOf(this.m, 'spells');
       this.list.set(this.ring.filter(function (e) { return (e.level || 0) === lvR; }).map(function (e) {
-        var sp8 = spell(e.id), cat = sp8 ? spellCat(sp8) : 'battle', rt = !e.level ? 'at will' : e.levels && e.levels.length ? 'L' + e.slot : 'no slot';
-        return { label: fit(e.name, 150), right: rt, value: e, id: e.id, ready: true, ring: true, color: CAT[cat].c, disabled: !e.ok, rightColor: CAT[cat].c, desc: (sp8 && sp8.desc) || (e.sp && e.sp.desc) || '' };
+        var sp8 = spell(e.id), cc = costCol((e.g && e.g.time) || 'A'), rt = !e.level ? 'at will' : e.levels && e.levels.length ? 'L' + e.slot : 'no slot'; // (lit by its cost: a bonus-action spell blue, 10-07)
+        return { label: fit(e.name, 150), right: rt, value: e, id: e.id, ready: true, ring: true, color: cc, disabled: !e.ok, rightColor: cc, desc: (sp8 && sp8.desc) || (e.sp && e.sp.desc) || '' };
       }));
       return;
     }
@@ -455,7 +465,7 @@
     drawTabs(ctx, this.levels.map(function (lv) { return { label: lv ? 'L' + lv : 'C' }; }), this.tab, 8, 22, Math.min(240, this.levels.length * 34));
     text(ctx, lvWord(this.levels[this.tab]), 10, 38, C.pale);
     this.list.draw(ctx, 10, 52, 234, active, this.m.t);
-    legend(ctx, 184);
+    if (this.ring) costKey(ctx, 10, 184); else legend(ctx, 184);
     var cur = this.list.cur();
     if (cur && cur.ring) descBox(ctx, cur.desc, cur.disabled ? 'Not now: ' + (cur.value.why || 'not now') + '.' : 'E: cast it -- aimed as the ring aims.');
     else descBox(ctx, cur ? (cur.value.desc || '') : '', cur && !cur.ready ? 'Not prepared today.' : '');
@@ -476,7 +486,7 @@
   function SkillsPage(m, h) { this.m = m; this.h = h; this.ring = !!ringOf(m, 'skills'); this.list = new List({ visible: 5 }); this.refresh(); var f = 0; this.list.items.some(function (x, i) { if (!x.disabled) { f = i; return true; } return false; }); this.list.i = f; this.list.fix(); }
   SkillsPage.prototype.refresh = function () {
     var h = this.h, fight = !!this.m.host.fight;
-    if (this.ring) { this.list.set(ringOf(this.m, 'skills').map(function (c) { return { label: fit(c.label, 150), right: COSTW[c.cost] || '', value: c, sub: fit(c.ok ? (c.note || '') : 'not now: ' + (c.why || 'not now'), 196), disabled: !c.ok }; })); return; }
+    if (this.ring) { this.list.set(ringOf(this.m, 'skills').map(function (c) { return { label: fit(c.label, 150), right: COSTW[c.cost] || '', value: c, sub: fit(c.ok ? (c.note || '') : 'not now: ' + (c.why || 'not now'), 196), disabled: !c.ok, color: costCol(c.cost), rightColor: costCol(c.cost) }; })); return; } // (lit by its cost, 10-07)
     this.list.set(skillsOf(h).map(function (s) { return { label: s.name, right: s.right, value: s, sub: s.desc, disabled: fight || h.ko || !s.ok }; }));
   };
   SkillsPage.prototype.update = function (k) {
@@ -575,7 +585,7 @@
   function CandPage(m, h, slot, back, fo) { this.m = m; this.h = h; this.slot = slot; this.back = back; this.fo = fo || null; this.list = new List({ visible: 8 }); this.refresh(); }
   CandPage.prototype.refresh = function () {
     var h = this.h, slot = this.slot, host = this.m.host, lit = !!h.equip.torch, R0 = R(), rows = [];
-    if (this.fo) { this.list.set(this.fo.map(function (o) { return { label: fit(o.label.replace(/^(WEAR|SHIELD ON): /, ''), 104), right: fit(o.ok ? o.short || o.note : o.why, 96), value: o, disabled: !o.ok, rightColor: o.ok ? C.pale : C.dim }; })); return; }
+    if (this.fo) { this.list.set(this.fo.map(function (o) { return { label: fit(o.label.replace(/^(WEAR|SHIELD ON): /, ''), 104), right: fit(o.ok ? o.short || o.note : o.why, 96), value: o, disabled: !o.ok, color: o.ok ? costCol(o.cost) : null, rightColor: o.ok ? costCol(o.cost) : C.dim }; })); return; } // (lit by its cost, 10-07)
     host.pack().forEach(function (s) {
       var it = item(s.id); if (!fitsSlot(it, slot) || !R0.canEquip(h, it)) return;
       if ((slot === 'ring' || slot === 'ring2') && h.equip[slot === 'ring' ? 'ring2' : 'ring'] === s.id && s.n < 1) return;
