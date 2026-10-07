@@ -685,7 +685,7 @@
 }
 },
 "bugbear_p1": {
-"image": "art/bugbear_p1.png?v=26677580a7",
+"image": "art/bugbear_p1.png?v=e305214c83",
 "fw": 96,
 "fh": 144,
 "ax": 48,
@@ -712,18 +712,18 @@
 },
 "attack": {
 "y": 2304,
-"fw": 112,
+"fw": 104,
 "fh": 144,
-"ax": 56,
+"ax": 52,
 "ay": 132,
 "frames": 6,
 "fps": 12
 },
 "hurt": {
 "y": 3456,
-"fw": 152,
+"fw": 136,
 "fh": 144,
-"ax": 76,
+"ax": 68,
 "ay": 132,
 "frames": 6,
 "fps": 10
@@ -748,9 +748,9 @@
 },
 "prone": {
 "y": 6912,
-"fw": 96,
+"fw": 128,
 "fh": 144,
-"ax": 48,
+"ax": 64,
 "ay": 132,
 "frames": 2,
 "fps": 8
@@ -766,9 +766,9 @@
 },
 "morningstar": {
 "y": 9216,
-"fw": 112,
+"fw": 104,
 "fh": 144,
-"ax": 56,
+"ax": 52,
 "ay": 132,
 "frames": 6,
 "fps": 12
@@ -833,7 +833,7 @@
 }
 },
 "bugbearchief_p2": {
-"image": "art/bugbearchief_p2.png?v=b8b1c34b55",
+"image": "art/bugbearchief_p2.png?v=6c3c83a4a3",
 "fw": 96,
 "fh": 144,
 "ax": 48,
@@ -869,11 +869,11 @@
 },
 "hurt": {
 "y": 3456,
-"fw": 96,
+"fw": 136,
 "fh": 144,
-"ax": 48,
+"ax": 68,
 "ay": 132,
-"frames": 4,
+"frames": 6,
 "fps": 10
 },
 "flinch": {
@@ -896,9 +896,9 @@
 },
 "prone": {
 "y": 6912,
-"fw": 96,
+"fw": 112,
 "fh": 144,
-"ax": 48,
+"ax": 56,
 "ay": 132,
 "frames": 2,
 "fps": 8

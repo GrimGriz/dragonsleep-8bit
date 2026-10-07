@@ -13,10 +13,14 @@ Each panel's rows are cut by tools/sheetrows.py on boxes read off the image; the
 hidden behind a figure, so a row may give its frames' x by hand (XS below, read off the image and the probe). The rows face RIGHT: NE, E and
 SE take them as drawn, SW, W and NW mirrored; S takes sheet 3's rows, N sheet 4's (fall, prone, lurk side-on only, climb side and back).
 The scale is by the figure's area against each image's turnaround, as the goblin's (K below). The seat's calls: where a row was drawn with
-nine frames (a number twice), the second is dropped; the chief's side flinch is drawn facing the viewer and stands in for every side; its fall
-is drawn 1 2 3 5 6 2 -- down on 1 2 3 5, and 6 (up on its hands) with 5 (lying) its prone; the bugbear's fall lies flat from its first frame
-(a re-roll of the side rows is asked: deep16-art-wanted.md, "The bugbear"); the chief's javelin rows are not cut (it has no javelin in
-deep16/data/foes.js). Lurk is the `still` row: js/ui.js plays it for a foe that has not acted or been woken.
+nine frames (a number twice), the second is dropped; the chief's javelin rows are not cut (it has no javelin in deep16/data/foes.js). Lurk is
+the `still` row: js/ui.js plays it for a foe that has not acted or been woken.
+
+THE SIDE ROWS RE-ROLLED (10-07, his: "bugbear GPT and bugbear chief GPT are in the _src now"): deep16/_src/Bugbear GPT.png and bugbear chief
+GPT.png, one sheet an image at about 2.5x game size (the pastes in deep16-art-wanted.md, "The bugbear"), give the side rows -- idle, walk,
+morningstar, javelin, flinch, the fall from standing, a prone; the packed images keep the front, the back and the tricks, toned to the re-rolls'
+orange (TONE). The bugbear's re-roll drew three flinch frames (played 1 2 3 1); the chief's skipped the second swing it was asked for, so it
+has no `morningstar2` (its second blow plays the first's row again).
 """
 import os, sys, json, subprocess, tempfile
 import importlib.util
@@ -98,13 +102,37 @@ IMAGES = {
               ('s4.ambush', (880, 813, 1536, 873), (874, 885), NUM(6), [943, 1030, 1116, 1205, 1291, 1378]),
               ('s4.climb', (880, 912, 1440, 1013), (1007, 1018), NUM(6), [942, 1027, 1122, 1217, 1307, 1390])]),   # (a seventh climber, unnumbered, past 1440)
 }
+# his re-rolls of the side rows, one sheet an image and large (10-07, "bugbear GPT and bugbear chief GPT are in the _src now"): they take the side
+# rows the packed sheet 1 gave (idle, walk, morningstar, javelin, flinch, fall, prone); the tricks (lurk, ambush, climb) stay the packed sheet 2's
+IMAGES['bugbear2'] = dict(file='Bugbear GPT.png',
+    text=[(10, 60, 130, 100), (10, 210, 125, 255), (10, 365, 205, 412), (10, 522, 130, 570), (10, 660, 125, 700), (10, 802, 100, 846),
+          (10, 928, 115, 968)],
+    rows=[('s1.idle', (150, 5, 1536, 143), (144, 161), NUM(6), [239, 476, 694, 924, 1160, 1401]),
+          ('s1.walk', (125, 161, 1536, 290), (291, 308), NUM(8), [208, 378, 557, 730, 907, 1075, 1250, 1429]),
+          ('s1.morningstar', (205, 292, 1536, 451), (452, 469), NUM(6), [298, 474, 695, 888, 1107, 1335]),
+          ('s1.javelin', (130, 470, 1536, 607), (608, 626), NUM(6), [259, 498, 698, 892, 1131, 1369]),
+          ('s1.flinch', (130, 627, 1536, 746), (747, 766), NUM(3), [246, 489, 726]),
+          ('s1.fall', (130, 767, 1536, 885), (886, 903), NUM(6), [227, 435, 633, 861, 1120, 1384]),
+          ('s1.prone', (130, 905, 1536, 998), (999, 1016), NUM(2), [261, 566])])
+IMAGES['bugbear2']['text'] += [(200, 289, 217, 309), (370, 289, 388, 309), (549, 289, 566, 309), (722, 289, 739, 309), (899, 289, 916, 309),
+                               (1067, 289, 1084, 309), (1242, 289, 1259, 309), (1421, 289, 1438, 309)]   # the walk's numbers, in the morningstar's band
+IMAGES['chief2'] = dict(file='bugbear chief GPT.png',
+    text=[(10, 58, 120, 100), (10, 215, 120, 256), (10, 388, 190, 430), (10, 552, 130, 592), (10, 694, 120, 734), (10, 846, 90, 884),
+          (10, 984, 110, 1030)],
+    rows=[('s1.idle', (130, 5, 1448, 144), (145, 162), NUM(6), [222, 397, 574, 759, 935, 1111]),
+          ('s1.walk', (120, 162, 1448, 305), (306, 323), NUM(8), [207, 345, 505, 659, 829, 998, 1167, 1349]),
+          ('s1.morningstar', (190, 323, 1448, 480), (481, 498), NUM(6), [269, 456, 643, 814, 1003, 1207]),
+          ('s1.flinch', (130, 662, 1448, 781), (782, 799), NUM(4), [212, 369, 531, 697]),
+          ('s1.fall', (130, 800, 1448, 929), (930, 947), NUM(6), [206, 386, 562, 765, 1056, 1311]),
+          ('s1.prone', (130, 947, 1448, 1055), (1056, 1073), NUM(2), [235, 470])])   # (its javelin row is not cut: the chief has none)
 IMAGES['chief']['text'] += [(885, 876, 1176, 925), (915, 924, 1155, 937), (935, 1006, 1400, 1019), (785, 695, 910, 718)]   # (the last: sheet 4's
                                                             # "Morningstar (6)", its bracket in the band)   # sheet 4's flinch (drawn facing the viewer:
                                                             # unused, N plays the side flinch) and its numbers, the climb's numbers
 # the panels' border lines (rows, columns), painted navy before the cut: a figure touching one (the bugbear's prone, on its panel's floor)
 # would join it into one long blob, and sheetrows drops a long thin blob as a rule
 ERASE = {'bugbear': [(932, 934, 941, 944)]}                 # the back flinch's "1", fused to climb 1's raised hand
-BORDERS = {'bugbear': ([2, 3, 513, 514, 519, 520, 521, 1020, 1021], [2, 3, 4, 763, 764, 771, 772, 773, 1532, 1533]),
+BORDERS = {'bugbear2': ([], []), 'chief2': ([], []),
+           'bugbear': ([2, 3, 513, 514, 519, 520, 521, 1020, 1021], [2, 3, 4, 763, 764, 771, 772, 773, 1532, 1533]),
            'chief': ([485, 486, 1023], [0, 767, 768, 1534, 1535])}
 # the rest of the rows' frames by hand too, from the probe of the number labels (detection read a raised hand or a spear tip as a label)
 XS = {('bugbear', 's1.idle'): [137, 217, 298, 378, 460, 542], ('bugbear', 's1.walk'): [139, 217, 292, 363, 437, 512, 587, 662],
@@ -120,7 +148,8 @@ XS = {('bugbear', 's1.idle'): [137, 217, 298, 378, 460, 542], ('bugbear', 's1.wa
       ('chief', 's3.idle'): [171, 257, 341, 422, 507, 591], ('chief', 's3.morningstar'): [178, 259, 340, 422, 507, 593],
       ('chief', 's3.flinch'): [167, 257, 335, 414]}
 # loose bits by hand: look -> row -> [(box on the image: every blob wholly inside it, the label it belongs to)]
-FIX = {'bugbear': {'s1.prone': [((100, 483, 226, 513), '1'), ((226, 483, 330, 513), '2')]},    # (lying flat, too thin to seed a frame)
+FIX = {'bugbear2': {'s1.fall': [((950, 825, 1000, 875), '5'), ((1210, 825, 1260, 875), '6')]},   # the dropped morningstars, each its own frame's
+       'bugbear': {'s1.prone': [((100, 483, 226, 513), '1'), ((226, 483, 330, 513), '2')]},    # (lying flat, too thin to seed a frame)
        'chief': {'s1.flinch': [((258, 414, 305, 467), '4')]}}                                   # (its small last frame seeds none)
 CUT, TOUCH_OK = {}, {}
 
@@ -165,30 +194,38 @@ for _look, (_r1, _r3, _r4, _r2) in {'bugbear': (0.549, 0.650, 0.615, 1.34), 'chi
 # the engine's rows: side (sheets 1 and 2, facing right), S (sheet 3), N (sheet 4); each (panel.row, the labels in the order played)
 LOOKS = {
     'bugbear_p1': dict(look='bugbear', rows={
-        'idle': dict(side='s1.idle', S='s3.idle', N='s4.idle'),
-        'walk': dict(side='s1.walk', S='s3.walk', N=('s4.walk', ['1', '2', '3', '4', '5', '6', '7', '8'])),
-        'morningstar': dict(side='s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
-        'attack': dict(side='s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
-        'javelin': dict(side='s1.javelin', S='s3.javelin', N='s4.javelin'),
+        'idle': dict(side='bugbear2:s1.idle', S='s3.idle', N='s4.idle'),
+        'walk': dict(side='bugbear2:s1.walk', S='s3.walk', N=('s4.walk', ['1', '2', '3', '4', '5', '6', '7', '8'])),
+        'morningstar': dict(side='bugbear2:s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
+        'attack': dict(side='bugbear2:s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
+        'javelin': dict(side='bugbear2:s1.javelin', S='s3.javelin', N='s4.javelin'),
         'ambush': dict(side='s2.ambush', S='s3.ambush', N='s4.ambush'),
         'still': dict(side='s2.lurk'),
         'climb': dict(side='s2.climb', N='s4.climb'),
-        'flinch': dict(side='s1.flinch', S='s3.flinch'),
-        'hurt': dict(side='s1.fall'),
-        'prone': dict(side=('s1.prone', ['2', '1']))}),                   # (up on an arm, then lying: it lies at its last frame)
+        'flinch': dict(side=('bugbear2:s1.flinch', ['1', '2', '3', '1']), S='s3.flinch'),   # (the re-roll drew three: back to its first to make four)
+        'hurt': dict(side='bugbear2:s1.fall'),
+        'prone': dict(side=('bugbear2:s1.prone', ['2', '1']))}),          # (up on an arm, then lying: it lies at its last frame)
     'bugbearchief_p2': dict(look='chief', rows={
-        'idle': dict(side='s1.idle', S='s3.idle', N='s4.idle'),
-        'walk': dict(side=('s1.walk', ['1', '2', '3', '4', '5', '6', '7', '8']), S=('s3.walk', ['1', '2', '3', '4', '5', '6', '7', '8']),
+        'idle': dict(side='chief2:s1.idle', S='s3.idle', N='s4.idle'),
+        'walk': dict(side='chief2:s1.walk', S=('s3.walk', ['1', '2', '3', '4', '5', '6', '7', '8']),
                      N=('s4.walk', ['1', '2', '3', '4', '5', '6', '7', '8'])),
-        'morningstar': dict(side='s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
-        'attack': dict(side='s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
+        'morningstar': dict(side='chief2:s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
+        'attack': dict(side='chief2:s1.morningstar', S='s3.morningstar', N='s4.morningstar'),
         'ambush': dict(side='s2.ambush', S='s3.ambush', N='s4.ambush'),
         'still': dict(side='s2.lurk'),
         'climb': dict(side='s2.climb', N='s4.climb'),
-        'flinch': dict(side=('s1.flinch', ['1', '2', '3', '1']), S='s3.flinch'),   # (its side flinch drawn facing the viewer: it stands in; its 4 drawn small)
-        'hurt': dict(side=('s1.fall', ['1', '2', '3', '5'])),
-        'prone': dict(side=('s1.fall', ['6', '5']))}),                   # (up on its hands, then lying)
+        'flinch': dict(side='chief2:s1.flinch', S='s3.flinch'),
+        'hurt': dict(side='chief2:s1.fall'),
+        'prone': dict(side=('chief2:s1.prone', ['2', '1']))}),            # (up on its hands, then lying)
 }
+# the re-rolls' scale: their side idle's area against the packed side idle's at its K (sqrt(area) 105.5 to 41.8 the bugbear's, 99.8 to 38.8 the
+# chief's): the same body at the same size -- their idles stand straighter, about 54 and 52 px against the packed hunch's 49 and 50
+K['bugbear2'] = {'s1': K['bugbear']['s1'] * 105.5 / 41.8}
+K['chief2'] = {'s1': K['chief']['s1'] * 99.8 / 38.8}
+# the packed images' colour to the re-rolls' (they hold six facings of eight): the re-rolls drew the fur a more saturated orange (at game size,
+# the fur's mean 123/72/36 the bugbear's re-roll to 117/75/45 its packed front; the chief's 129/77/39 to 129/85/48): each channel times a factor,
+# the greys (the steel, the javelins' heads) left be
+TONE = {'bugbear': (1.046, 0.960, 0.805), 'chief': (1.000, 0.909, 0.810)}
 RELEASE = {'javelin': 3}                                     # the frame the javelin leaves on (frame 4, the arm thrown forward): js/battle.js
 FH, AY = 144, 132
 
@@ -196,6 +233,14 @@ FH, AY = 144, 132
 def game_size(img, k):
     w, h = img.size
     return img.resize((max(1, round(w / k)), max(1, round(h / k))), Image.BOX if k >= 1 else Image.LANCZOS)
+
+
+def toned(img, f):
+    a = np.asarray(img).astype(float)
+    rgb = a[..., :3]
+    grey = rgb.max(-1) - rgb.min(-1) < 25
+    rgb[~grey] *= np.array(f, float)
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
 
 
 def core_x(a):
@@ -222,13 +267,14 @@ def main(check=False):
         look = L['look']
         def frames_of(src):
             row, names = src if isinstance(src, tuple) else (src, None)
-            frs = cuts[look][row]
+            img, row = row.split(':') if ':' in row else (look, row)
+            frs = cuts[img][row]
             floor = max(b[3] for _, _, b in frs)
-            k = K[look][row.split('.')[0]]
+            k = K[img][row.split('.')[0]]
             pick = [next(f for f in frs if f[0] == nm) for nm in names] if names else frs
             out = []
             for nm, im, box in pick:
-                a = pix.pixelate(game_size(im, k), 1, do_lift=False)
+                a = pix.pixelate(game_size(toned(im, TONE[img]) if img in TONE else im, k), 1, do_lift=False)
                 out.append((a, core_x(a), int(round((floor - box[3]) / k))))
             return out
         src = {}
