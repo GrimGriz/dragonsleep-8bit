@@ -4,6 +4,10 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-06
 
+- 2026-10-06 · `d7e4457` · MPMon · The Mascot: the races, the class and four roles (Tank, Buffs, DPS, Heals), the setup specials as bonus actions, every special growing a step a level, the moves at 2, 3, 6 and 7, the Hivemind's tokens, the specials aimed as spells, the three locked on the Pocket DM (`&mascots`), `?mpshow&lvl=9` · *"I trust your plan, you can start building"*
+- 2026-10-06 · ruled · MPMon · The class is Mascot, its subclasses the roles, Heals on WIS, the EyeGregore fey and floating, the races not in the maker, the eggs as the unlocks · *"Tank, DPS, Buffs & Heals"* · *"Wisdom it is"* · *"Fey"* · *"is hover-float not fly"* · *"we'll let them unlock the 3 as they are"* · *"Good class name!"*
+- 2026-10-06 · ruled · MPMon · Social Distancing clears the ring round Rascal, growing by its dice and its rings in turn · *"clears the 8 square donut around him when he first gets it instead of a front-wave"* · *"DamageDie or static + at 6, radius at 7, repeat"*
+- 2026-10-06 · seen · MPMon · Rascal by his hands (`eyes-rascal-play-1006`, cut; the fresh rows are `eyes-mascot-play-1006` and `eyes-mascot-show-1006`) · *"oh, and the abilities weren't using the normal targeting - it had the menu popups again"*
 - 2026-10-06 · `54f2a47` · the house · The quick gate checks that `js/eyes.js` parses and `situations.html` draws its rows (`dev/eyes-probe.py`; proved RED on 3d4f63f, the commit that drew none) · *"yes"*
 - 2026-10-06 · seen · MPMon · Rascal's three beats in the pane (`?mpshow&only=sharing,flame,distancing`): his hat comes and goes -- the generator drew it in the sheet's background navy and the cut drops it (the lane §4b; the eyes row cut) · *"his hat renders seemingly transparent or doesn't render at time"*
 - 2026-10-06 · `378b270` · the grid's rules · The bulette's Deadly Leap by the SRD: the readied strikes as it comes down within reach, before the landing hits · *"SRD the leap (in the lane or this session) then close please"*
