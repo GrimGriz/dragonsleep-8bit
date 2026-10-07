@@ -4,6 +4,8 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `dc24bc9` · the bestiary · The hobgoblins' old Quaternius looks retired, `hobgoblin_p1` (the Orc) and `hobsergeant_p1` (the Orc Skull) · *"retire them now"*
+- 2026-10-07 · ruled · the bestiary · The hobgoblins' front-view skin stays as GPT drew it (a touch lighter orange than the side), for now · *"Leave it for now, show in two hours."*
 - 2026-10-07 · `a8b6bf8` · the bestiary · The hobgoblin and the sergeant on looks of their own from his eight GPT sheets (`tools/hobgoblin-sheet.py` -> `hobgoblin_p2`, `hobsergeant_p2`): the longsword, the longbow, the sergeant's backhand second blow, MARTIAL ADVANTAGE as its own row whenever it can fire; `deep16/?show=hobgoblin,hobsergeant` · *"Hobgoblin and hobsergeant sheets are in _src"*
 - 2026-10-07 · `ef90506` · MPMon · The Mascot bench rerun at 1-9 after the walk-through's rules, now counting what each Mascot's action and bonus specials go to (`deep16-mascot-bench.md`): the band 0-5 of 20 at every level, 9th's spike gone with the once-a-fight Hivemind; Beholda splits her actions after 5th, Spotlight the most at 7-9 · *"Bench Lobstamonkees vs story party 1-9"*
 - 2026-10-07 · seen · MPMon · His walk-through's rules in the show beats, `?mpshow&lvl=5&only=bubble,gaze,taunt` (`eyes-mascot-rules-1007`, cut) · *"Approved for benching."*
