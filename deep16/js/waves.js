@@ -23,7 +23,10 @@
    Its hit points carry from wave to wave and come back whole at the long rest. THE BED (the station's cots in the south room) lights the rest that is due:
    a short rest between waves, the long rest after the tier's last; his click on it (or its button) takes it. THE XP: each Mascot's share of a wave is
    fudged so the tier's waves bring it exactly to the next level's threshold -- level 2 after tier 1, 9 when tier 9 starts -- and one down when the wave
-   ends takes half its share (it catches up over the next tier's waves). The levels come at the long rest. */
+   ends takes half its share (it catches up over the next tier's waves). The levels come at the long rest. PAST THE NINTH (RULED 10-07, Griz: "3 keep going"): the
+   run never ends on a win -- tier 10 and on are tier 9's waves with more of each wave's smallest kind every tier (WV.tierWaves), the lamp's hit points still
+   growing, the XP banked, till the lamp goes out; the score is the waves held. The road's dim lamps RULED the same day ("1 - keep"); tier 1's weight waits on
+   the bench ("2 bench"). */
 'use strict';
 (function () {
   var D = window.D16, DS = window.DS, R = DS.R, G = D.grid, RU = D.rules, FX = D.fx;
@@ -36,7 +39,7 @@
     // the bed, where the four meet at a rest's end, is the floor square beside the first: a cot itself is not walked into. WV.cots, WV.bed)
     lampAC: 15, lampHP: function (tier) { return 40 + 20 * tier; },   // the lamp: 60 at tier 1 to 220 at tier 9, resisting everything (halved)
     stall: 40,                                       // rounds before a wave that cannot end is called (the rest of it melts back into the dark)
-    // the road's own lamps, dim (the seat's lean, his to rule): Third Lamp is the 8-bit's dark map and past the tower's 30 ft the halls are black -- the goblins'
+    // the road's own lamps, dim (RULED 10-07, Griz: "1 - keep"): Third Lamp is the 8-bit's dark map and past the tower's 30 ft the halls are black -- the goblins'
     // darkvision shot three Mascots without it from where they could not be seen (the first run, 10-07). Dim light is enough to be seen by (no disadvantage), so
     // the waves are fought where the stream can see them; the supplies' torches still give bright light. 0 keeps the 8-bit's dark
     roadLight: 20, roadLamps: [[4, 8], [12, 8], [20, 8], [44, 8], [52, 8], [60, 8], [68, 8], [76, 8]]
@@ -71,6 +74,19 @@
     9: [{ west: ['troll', 'troll', 'ettin'], card: 'Trolls and an ettin, down the road at a run.' },
         { east: ['drider', 'phasespider', 'phasespider', 'giantspider', 'giantspider'], card: 'A drider and its spiders -- the deep is emptying.' },
         { west: ['stonegiant', 'stonegiant', 'troll', 'troll'], boss: 'stonegiant', card: 'THE EDIFICE TEAM: the stone giants, and the trolls they brought.' }]
+  };
+  // PAST THE NINTH (RULED 10-07, Griz, asked whether the run ends on THE LAMP HOLDS or goes on for a high score: "3 keep going"): every tier after 9 is tier 9's three
+  // waves again, the Edifice team the boss, with one more of each wave's smallest kind for each tier past 9 (on that kind's own side), till the lamp goes out
+  WV.tierWaves = function (t) {
+    if (t <= 9) return WV.TIERS[t];
+    var more = t - 9;
+    return WV.TIERS[9].map(function (wv) {
+      var all = (wv.west || []).map(function (k) { return ['west', k]; }).concat((wv.east || []).map(function (k) { return ['east', k]; }));
+      var small = all.slice().sort(function (a, b) { return (R.CR_XP[String((D.FOES[a[1]] || {}).cr)] || 0) - (R.CR_XP[String((D.FOES[b[1]] || {}).cr)] || 0); })[0];
+      var out = { west: (wv.west || []).slice(), east: (wv.east || []).slice(), boss: wv.boss, card: wv.card + '  {o}And ' + more + ' more of them.{/}' };
+      for (var i = 0; i < more; i++) out[small[0]].push(small[1]);
+      return out;
+    });
   };
   WV.xpOf = function (wave) { var n = 0; (wave.west || []).concat(wave.east || []).forEach(function (k) { var f = D.FOES[k]; n += f ? (R.CR_XP[String(f.cr)] || 0) : 0; }); return n; };
 
@@ -198,11 +214,12 @@
   }
 
   // ------------------------------------------------------------------ the XP (fudged to the tier: his "we'll fudge the numbers on xp if we have to")
+  // (past tier 9 there is no level to reach: each takes a quarter of the wave's own XP, banked for the show)
   function award(B, S, waves, wi) {
     var target = R.XP_LEVEL[Math.min(10, S.tier + 1)], rest = 0, w = WV.xpOf(waves[wi]), lines = [];
     for (var j = wi; j < waves.length; j++) rest += WV.xpOf(waves[j]);
     four(B).forEach(function (u) {
-      var have = S.xp[u.mpmon] || 0, share = Math.max(0, Math.ceil((target - have) * w / Math.max(1, rest))), down = !standingM(u);
+      var have = S.xp[u.mpmon] || 0, share = S.tier > 9 ? Math.ceil(w / 4) : Math.max(0, Math.ceil((target - have) * w / Math.max(1, rest))), down = !standingM(u);
       if (down) share = Math.floor(share / 2);
       S.xp[u.mpmon] = have + share;
       lines.push(u.name + ' {g}+' + share + '{/}' + (down ? ' {o}(down: half){/}' : ''));
@@ -244,7 +261,7 @@
         var n = rebuild(B, u, L); S.hd[n.mpmon] = L;
         if (L > L0) ups.push(n.name + ' is level ' + L);
       });
-      S.lampHP = S.lampMax = WV.CFG.lampHP(Math.min(9, S.tier + 1));
+      S.lampHP = S.lampMax = WV.CFG.lampHP(S.tier + 1);
       if (ups.length) { lines.push('{y}LEVEL UP!{/}  ' + ups.join(' · ')); D.sfx('levelup'); four(B).forEach(function (u) { FX.sparkle(u, 'gold', 20); }); }
     }
     G.setup(G.map, B.units);
@@ -255,7 +272,7 @@
   GS.waves = function* (B, GSx) {
     var q = GS.q || location.search;
     var num = function (k) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : null; };
-    var S = GS.run = { tier: Math.max(1, Math.min(9, num('tier') || 1)), wi: Math.max(0, (num('wave') || 1) - 1), count: 0, held: 0, xp: {}, hd: {}, foes: [], rest: null,
+    var S = GS.run = { tier: Math.max(1, Math.min(99, num('tier') || 1)), wi: Math.max(0, (num('wave') || 1) - 1), count: 0, held: 0, xp: {}, hd: {}, foes: [], rest: null,
       ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q) };
     S.lampHP = S.lampMax = num('lamp') || WV.CFG.lampHP(S.tier);
     var st = B.gs; B.cine = false; st.mode = 'fight'; st.lock = null; st.clicks = [];
@@ -264,17 +281,19 @@
     var c0 = WV.cots[0] || G.map.def.circle.at;
     WV.bed = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [-1, -1]].map(function (d) { return [c0[0] + d[0], c0[1] + d[1]]; }).filter(function (q) { var s = G.map.at(q[0], q[1]); return s && s.walk; })[0] || c0;
     WV.B = B; WV.S = S; W = (GS._ && GS._.W) || function (n) { return n; };
-    // the run's start at a later tier (&tier=N): the four at that level, their XP at its threshold
+    // the run's start at a later tier (&tier=N): the four at that level (9 at most), their XP at its threshold
+    var L0 = Math.min(9, S.tier);
     four(B).forEach(function (u) {
       if (S.ai) { u.guest = true; u.classAI = true; }
-      S.xp[u.mpmon] = R.XP_LEVEL[S.tier] || 0;
-      var n = S.tier > 1 ? rebuild(B, u, S.tier) : u; S.hd[n.mpmon] = n.lvl || S.tier;
+      S.xp[u.mpmon] = R.XP_LEVEL[L0] || 0;
+      var n = L0 > 1 ? rebuild(B, u, L0) : u; S.hd[n.mpmon] = n.lvl || L0;
     });
     lampUp(B, S);
     if (WV.CFG.roadLight > 0) { WV.CFG.roadLamps.forEach(function (p, i) { B.lights.push({ id: 'road' + i, kind: 'map', x: p[0], y: p[1], bright: 0, dim: WV.CFG.roadLight, color: 'gold', flame: false }); }); B.lightMap = null; }
     var pw0 = B.paint; B.paint = function (ctx) { pw0.apply(this, arguments); WV.hud(ctx, this); };
-    while (S.tier <= 9) {
-      var waves = WV.TIERS[S.tier];
+    while (true) {
+      var waves = WV.tierWaves(S.tier);
+      if (S.tier === 10 && S.wi === 0) { B.card(['{y}PAST THE NINTH.{/}  The deep keeps coming: every tier from here, more of them.'], W(360)); yield W(90); }
       B.card(['{y}TIER ' + S.tier + '{/}  ' + waves.length + ' waves' + (S.tier >= 7 ? ', the last a boss' : '') + '.  Keep the lamp lit.'], W(360)); yield W(90);
       for (; S.wi < waves.length; S.wi++) {
         var wave = waves[S.wi]; S.count++;
@@ -292,7 +311,6 @@
         D.music(null); D.sfx('popup');
         var xl = award(B, S, waves, S.wi);
         B.card(['{y}WAVE ' + (S.wi + 1) + ' OF ' + waves.length + ' HELD.{/}  XP: ' + xl.join(' · ')], W(420)); yield W(120);
-        if (S.tier === 9 && S.wi === waves.length - 1) break;
         var last = S.wi === waves.length - 1;
         // the lamp off the field for the rest, back after it (its hit points kept, or made whole by the long rest)
         B.units = B.units.filter(function (u) { return u !== S.lamp; });
@@ -304,13 +322,8 @@
         for (var g = 0; g < 600 && (four(B).length < n4 || four(B).some(function (u) { return u.tween || u.anim === 'walk'; })); g++) yield 1;
         lampUp(B, S);
       }
-      if (S.tier === 9) break;
       S.tier++; S.wi = 0;
     }
-    // tier 9 held: the lamp stays lit
-    S.end = 'held';
-    if (GS.victory) { yield* GS.victory(B, { waves: S.held, tier: 9 }); return; }
-    yield* GS.gameOver(B, null, { waves: S.held, tier: 9 });
   };
   var W = function (n) { return n; };
   // the one that walks to the lamp when no Mascot stands (his "slow mo walk to the lamp by surviving villain"): the toughest still up, the nearest the lamp of those
@@ -327,7 +340,7 @@
   WV.hud = function (ctx, B) {
     var S = GS.run, st = B.gs; BTN = {};
     if (!S || !st || (st.mode !== 'fight' && st.mode !== 'rest')) return;
-    var Wd = D.W, waves = WV.TIERS[S.tier] || [], x = Wd - 132, y = D.H - 102;   // (bottom right, over the unit panel: the cards and the strip keep the top)
+    var Wd = D.W, waves = WV.tierWaves(S.tier) || [], x = Wd - 132, y = D.H - 102;   // (bottom right, over the unit panel: the cards and the strip keep the top)
     D.win8(ctx, x, y, 128, 30);
     D.text(ctx, 'TIER ' + S.tier + '  WAVE ' + Math.min(waves.length, S.wi + 1) + '/' + waves.length, x + 6, y + 5, P('gold', 4));
     var L = S.lamp, hp = L && B.units.indexOf(L) >= 0 ? L.hp : S.lampHP, mx = S.lampMax || 1, k = Math.max(0, Math.min(1, hp / mx));

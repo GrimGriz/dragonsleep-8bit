@@ -395,26 +395,6 @@
     }
   };
 
-  // ------------------------------------------------------------------ the run held to its end (seat 2 calls it when tier 9's last wave is down, js/waves.js):
-  // the lamp still lit, THE LAMP HOLDS over the group's name, the high scores with the run on them
-  GS.victory = function* (B, stats) {
-    var st = B.gs || (B.gs = { clicks: [], fade: 0 }), tower = G.map.def.tower;
-    B.cine = true; st.mode = 'end'; st.clicks = [];
-    D.music('victory');
-    if (tower) yield* B.camTo({ gx: tower[0], gy: tower[1] + 2, gz: 0 }, 1.5, W(60));
-    D.sfx('levelup'); B.units.forEach(function (u) { if (u.mpmon && G.standing(u)) FX.sparkle(u, 'gold', 24); });
-    yield W(90);
-    st.over = { group: GS.group(), waves: (stats && stats.waves) || 0, tier: (stats && stats.tier) || 9, won: true };
-    st.mode = 'won'; yield W(300);
-    var row = { group: st.over.group, waves: st.over.waves, tier: st.over.tier, t: Date.now() };
-    st.mine = GS.record(row); st.mode = 'scores';
-    while (true) {
-      var ck = st.clicks.shift();
-      if (ck && titleHit(B, ck) === 'again') { location.search = '?gameshow'; return; }
-      yield 1;
-    }
-  };
-
   // ------------------------------------------------------------------ the overlay: the title, the scores, the fade, GAME OVER
   var BTN = {};
   function big(ctx, s, x, y, color, k) {         // the 8-bit's letters, k times their size (whole pixels)
@@ -466,12 +446,6 @@
       big(ctx, 'GAME OVER', Wd / 2, Hd / 2 - 40, P('red', 4), 3);
       big(ctx, st.over.group, Wd / 2, Hd / 2 + 4, P('gold', 4), 2);
       D.text(ctx, 'waves held: ' + st.over.waves + '   tier ' + st.over.tier, Wd / 2, Hd / 2 + 40, P('bone', 1), 'center');
-    }
-    if (st.mode === 'won' && st.over) {
-      ctx.fillStyle = 'rgba(10,8,16,0.55)'; ctx.fillRect(0, Hd / 2 - 50, Wd, 104);
-      big(ctx, 'THE LAMP HOLDS', Wd / 2, Hd / 2 - 40, P('gold', 4), 3);
-      big(ctx, st.over.group, Wd / 2, Hd / 2 + 4, P('red', 4), 2);
-      D.text(ctx, 'every wave held: ' + st.over.waves + '   tier ' + st.over.tier, Wd / 2, Hd / 2 + 40, P('bone', 1), 'center');
     }
     if (st.mode === 'scores' && st.over) { button(ctx, 'again', 'BACK TO THE LIGHTHOUSE', Wd / 2 - 90, Hd - 30, 180, 18); }
   };

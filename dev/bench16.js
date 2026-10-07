@@ -3527,8 +3527,8 @@
   // no regeneration -- the run's machinery, not a fight), tier 1 through its long rest: the goblins in from the west and after the lamp, the lamp on its tower,
   // the XP fudged to the tier (139 each for the first wave, 300 at the tier's end), the short rest, all four back before the second wave rolls, the second wave
   // from both ends, the long rest's level 2 and the lamp's tier-2 hit points. LAMP and WIPE: the lamp broken mid-wave, and then no Mascot standing -- each to
-  // the villain's walk, GAME OVER and a score kept. BOSS: tier 9's last wave (&tier=9&wave=3), the four at 9, the Edifice team in from the west, and the run
-  // held -- THE LAMP HOLDS and the score
+  // the villain's walk, GAME OVER and a score kept. BOSS: tier 9's last wave (&tier=9&wave=3), the four at 9, the Edifice team in from the west, and then on
+  // past the ninth -- tier 10 with one more of its first wave's smallest kind, no end (his "3 keep going", 10-07)
   if (get('mode', '') === 'gswaves1007') {
     var repW = { checks: [], errors: [] };
     function okW(what, v) { repW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
@@ -3595,18 +3595,19 @@
             e >= 0 && SL.end === how && seenW.indexOf('gameover') >= 0 && !!BL.lampOut && sc.length >= 1 && BL.gs.over && BL.gs.over.waves === 0 && BL.gs.over.tier === 1);
           errW(how);
         });
-        // ---- BOSS: tier 9's last wave, the Edifice team, and the run held
+        // ---- BOSS: tier 9's last wave, the Edifice team, and the run goes on
         D.seed = 3007; memW = {};
         var BB = lampFight('?gameshow&at=lamp&fast&auto&tier=9&wave=3'), SB;
         var wb = stepW(BB, function () { SB = GSW.run; return SB && SB.foes.length && SB.foes.every(function (u) { return BB.units.indexOf(u) >= 0; }) && BB.order.length > 4; }, 30000);
         var at9 = BB.units.filter(function (u) { return u.mpmon && u.lvl === 9; }).length;
         okW('boss: tier 9, wave 3 -- the four at 9 (' + at9 + '), the lamp ' + (SB && SB.lamp.hp) + ' (want 220), the Edifice team in from the west (' + (SB ? SB.foes.map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }).join(' ') : '-') + ')',
           wb >= 0 && at9 === 4 && SB.lamp.hp === 220 && SB.foes.length === 4 && SB.foes.filter(function (u) { return u.kind === 'stonegiant'; }).length === 2 && SB.foes.every(function (u) { return u.from0[0] === 0; }));
+        // past the ninth (his "3 keep going"): the long rest, then tier 10 -- tier 9's first wave with one more of its smallest kind, the lamp at 240 -- and no end
         var seenB = [];
-        var vb = stepW(BB, function () { var m = BB.gs.mode; if (seenB[seenB.length - 1] !== m) seenB.push(m); return m === 'scores'; }, 60000, weak);
-        var scB = GSW.scores();
-        okW('boss: the wave down and the run held -- ' + seenB.join(' > ') + ' (' + vb + ' frames), the end ' + (SB && SB.end) + ', the score ' + (scB[0] ? scB[0].waves + ' waves, tier ' + scB[0].tier : 'none'),
-          vb >= 0 && SB.end === 'held' && seenB.indexOf('won') >= 0 && scB.length === 1 && scB[0].tier === 9 && scB[0].waves === 1);
+        var vb = stepW(BB, function () { var m = BB.gs.mode; if (seenB[seenB.length - 1] !== m) seenB.push(m); return m === 'scores' || (SB.tier === 10 && SB.foes.length && SB.foes[0].id.indexOf('gs2-') === 0 && SB.foes.every(function (u) { return BB.units.indexOf(u) >= 0; })); }, 60000, weak);
+        var scB = GSW.scores(), k10 = SB.foes.map(function (u) { return u.kind; }).sort().join(',');
+        okW('boss: the Edifice team down, and on past the ninth -- ' + seenB.join(' > ') + ' (' + vb + ' frames), tier ' + SB.tier + ' with ' + k10 + ' (want ettin,ettin,troll,troll: the ettin is its smallest), the lamp ' + SB.lamp.hp + ' (want 240), no end (' + (SB.end || 'none') + ', ' + scB.length + ' scores)',
+          vb >= 0 && SB.tier === 10 && k10 === 'ettin,ettin,troll,troll' && SB.lamp.hp === 240 && !SB.end && scB.length === 0 && seenB.indexOf('scores') < 0 && lg(BB, /PAST THE NINTH/).length === 1);
         errW('boss');
       }
     } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
