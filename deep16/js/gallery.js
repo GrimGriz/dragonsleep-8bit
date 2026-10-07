@@ -285,7 +285,7 @@
 
     // ---- the card: the feature's name, its class and level, its words (B.card does not wrap a line: wrapped here, as the spell mode's)
     function header(id, f) {
-      var desc = D.typeText(f.words, true), lines = ['{y}' + (S.i + 1) + ' / ' + S.ids.length + '   ' + f.name.toUpperCase() + '{/}  (' + f.cls + ' ' + f.lvl + (f.sub ? ', ' + f.sub : '') + ')'];
+      var desc = D.typeText(f.words, true), lines = ['{y}' + (S.i + 1) + ' / ' + S.ids.length + '   ' + f.name.toUpperCase() + '{/}  (' + D.clsLabel(f.cls) + ' ' + f.lvl + (f.sub ? ', ' + f.sub : '') + ')'];
       if (/\{:/.test(desc)) desc += ' {g}(inspect){/}';
       lines = lines.concat(D.wrap(desc, 440));
       lines.push('{g}' + KIND_TAG[f.kind] + (/\bours\b|our own/i.test(f.src || '') ? ' · ours' : '') + '{/}');

@@ -40,6 +40,9 @@
   D.clamp = function (v, a, b) { return v < a ? a : v > b ? b : v; };
 
   // ---------------------------------------------------------------- storage (guarded, same origin as the 8-bit game)
+  // a class as the screens name it (10-07, Griz: "I understood that we renamed mpmon to Mascot, but they show mpmon 5 or whatever ingame"): the Mascot's
+  // class id stays mpmon in the code (js/mpmon.js); every label beside a level says mascot
+  D.clsLabel = function (c) { return c === 'mpmon' ? 'mascot' : (c || ''); };
   D.store = {
     get: function (k) { try { var v = window.localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
     set: function (k, v) {

@@ -224,7 +224,7 @@
       D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 18, y + Math.min(D.spr.top(sheet), 42) + 3, {});
       ctx.restore();
       var w0 = R.weaponOf(h);
-      D.text(ctx, '{y}' + h.name + '{/}  ' + h.cls + ' ' + h.lvl + sub(h), x + 38, y + 4, P('bone', 1));
+      D.text(ctx, '{y}' + h.name + '{/}  ' + D.clsLabel(h.cls) + ' ' + h.lvl + sub(h), x + 38, y + 4, P('bone', 1));
       D.text(ctx, 'HP ' + h.maxhp + '  AC ' + R.ac(h) + '  ' + w0.name, x + 38, y + 14, P('silver', 5));
       D.text(ctx, abils(h), x + 38, y + 24, P('stone', 5));
       if (h.cls === 'wizard') D.text(ctx, D.wrap((h.known || []).length + ' in the book', w - 42)[0], x + 38, y + 33, P('accent', 2));
@@ -370,7 +370,7 @@
       var sheet = SV.look(h.id, null).sheet || h.id + '_p0';
       D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 19, y + Math.min(D.spr.top(sheet), 46) + 3, {});
       ctx.restore();
-      D.text(ctx, '{y}' + h.name + '{/}  ' + h.cls + ' ' + h.lvl + ' -> ' + (h.lvl + 1), x + 40, y + 4, P('bone', 1));
+      D.text(ctx, '{y}' + h.name + '{/}  ' + D.clsLabel(h.cls) + ' ' + h.lvl + ' -> ' + (h.lvl + 1), x + 40, y + 4, P('bone', 1));
       D.text(ctx, abils(h), x + 40, y + 15, P('silver', 5));
       var c = R.CLASSES[h.cls];
       D.text(ctx, 'HP ' + h.maxhp + ' -> ' + (h.lvl + 1) * Math.max(1, c.hd + DS.mod(h.abil.con)) + ' (a max hit die)', x + 40, y + 26, P('moss', 2));

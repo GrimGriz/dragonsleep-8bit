@@ -2079,7 +2079,7 @@
     D.spr.draw(ctx, face, 'idle', 0, B.t, 22, BAR_Y + 6 + Math.min(top, u.size > 1 && !u.rider ? 30 : 44), { alpha: u.ethereal ? 0.3 : 1 });
     ctx.restore();
     ctx.strokeStyle = u.side === 'foe' ? R('red', 3) : R('gold', 3); ctx.strokeRect(4.5, BAR_Y + 4.5, 35, 37);
-    var cl = u.side === 'foe' ? 'foe' : u.cls ? (u.cls + ' ' + u.lvl) : u.familiar ? 'familiar' : 'ally', clx = 44 + D.textWidth(u.name) + 6; // (a familiar has no class: it read "null 0", 10-02)
+    var cl = u.side === 'foe' ? 'foe' : u.cls ? (D.clsLabel(u.cls) + ' ' + u.lvl) : u.familiar ? 'familiar' : 'ally', clx = 44 + D.textWidth(u.name) + 6; // (a familiar has no class: it read "null 0", 10-02)
     D.text(ctx, u.name, 44, BAR_Y + 4, u.side === 'foe' ? R('red', 4) : R('gold', 4));
     D.text(ctx, cl, clx, BAR_Y + 4, R('accent', 2));
     ctx.fillStyle = R('stone', 1); ctx.fillRect(44, BAR_Y + 15, 100, 4);
@@ -2276,7 +2276,7 @@
   }
   function inspect(ctx, u) {
     var ty = UI.typeOf(u);
-    var lines = ['{' + (u.side === 'foe' ? 'r' : 'c') + '}' + u.name + '{/}' + (u.cls ? '  ' + u.cls + ' ' + u.lvl : '') + '  {g}' + ty + '{/}', 'HP ' + u.hp + '/' + u.maxhp + '  AC ' + RU.ac(u) + '  speed ' + u.speed + ' ft' + (u.size > 1 ? '  Large' : '')];
+    var lines = ['{' + (u.side === 'foe' ? 'r' : 'c') + '}' + u.name + '{/}' + (u.cls ? '  ' + D.clsLabel(u.cls) + ' ' + u.lvl : '') + '  {g}' + ty + '{/}', 'HP ' + u.hp + '/' + u.maxhp + '  AC ' + RU.ac(u) + '  speed ' + u.speed + ' ft' + (u.size > 1 ? '  Large' : '')];
     var own = u.kind === 'keeper' && D.keeper && D.keeper.inspectLines ? D.keeper.inspectLines(D.battle, u) : null; // (the Keeper's own lines in place of its Slam's and its water's: js/keeper.js, 10-03)
     if (own) own.forEach(function (l) { lines.push(l); });
     else if (u.weapon) lines.push(u.weapon.name + ' ' + RU.sign(u.weapon.atk) + ', ' + u.weapon.dice + RU.sign(u.weapon.mod) + ' ' + u.weapon.type + (u.attacks > 1 ? ', x' + u.attacks : '') + UI.handsNote(u));

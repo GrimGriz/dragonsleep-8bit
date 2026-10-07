@@ -520,7 +520,7 @@
       D.spr.draw(ctx, sheet, 'idle', 0, self.t, x + 19, y + Math.min(D.spr.top(sheet), 46) + 3, {});
       ctx.restore();
       var w0 = R.weaponOf(h), dm = R.damageExpr(h, w0), gear = [item(h.equip.armor), item(h.equip.shield)].concat(R.PLACES.map(function (s) { return item(h.equip[s]); })).filter(Boolean).map(function (it) { return it.name; });
-      D.text(ctx, '{y}' + (look.name || h.name) + '{/}  ' + h.cls + ' ' + h.lvl + '   HP ' + h.maxhp + '   AC ' + R.ac(h), x + 40, y + 4, P('bone', 1));
+      D.text(ctx, '{y}' + (look.name || h.name) + '{/}  ' + D.clsLabel(h.cls) + ' ' + h.lvl + '   HP ' + h.maxhp + '   AC ' + R.ac(h), x + 40, y + 4, P('bone', 1));
       D.text(ctx, w0.name + ' ' + D.rules.sign(R.attackBonus(h, w0)) + ', ' + dm.dice + (dm.mod ? D.rules.sign(dm.mod) : ''), x + 40, y + 14, P('silver', 5));
       D.text(ctx, fit(gear.join(', ') || 'no armour', w - 46), x + 40, y + 23, P('silver', 5)); // (cut where the box ends: seven places can be worn now)
       // the slots left after the morning (by level), what's on them, and the day's spells

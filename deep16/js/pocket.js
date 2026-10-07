@@ -439,7 +439,7 @@
     var party = (B.units || []).filter(function (u) { return u.side === 'party' && !u.familiar && !u.summon && !u.dominated && !u.loose; });
     var end = party.map(function (u) { return { id: u.id, name: u.name, hp: Math.max(0, u.hp), maxhp: u.maxhp, slots: (u.slots || []).slice(), slotsMax: (u.slotsMax || []).slice(), feats: JSON.parse(JSON.stringify(u.feats || {})), cls: u.cls, lvl: u.lvl, con: DS.mod((u.abil || {}).con || 10), cha: DS.mod((u.abil || {}).cha || 10), down: !!(u.ko || u.hp <= 0 || u.dead) }; });
     var rec = { t: Date.now(), started: (B.rec && B.rec.started) || info.started, result: res || 'left', rounds: B.round || 0, q: info.q, map: info.mapId, mapName: (D.MAPS[info.mapId] || {}).name || info.mapId,
-      party: end.map(function (e) { return e.name + ' (' + e.cls + ' ' + e.lvl + ')'; }), foes: PK.foesText(info.kinds), kinds: info.kinds, cr: PK.fmt8(PK.sum8(info.kinds)), diff: info.d.label + (info.d.deadlyX > 1 ? ' x' + info.d.deadlyX : ''), adj: info.d.adj,
+      party: end.map(function (e) { return e.name + ' (' + D.clsLabel(e.cls) + ' ' + e.lvl + ')'; }), foes: PK.foesText(info.kinds), kinds: info.kinds, cr: PK.fmt8(PK.sum8(info.kinds)), diff: info.d.label + (info.d.deadlyX > 1 ? ' x' + info.d.deadlyX : ''), adj: info.d.adj,
       downs: end.filter(function (e) { return e.down; }).length, rung: run ? (run.trial ? 'trial' : run.rung) : null, notes: '' };
     this.st.fights.unshift(rec); while (this.st.fights.length > KEEP) this.st.fights.pop();
     this.result = { res: res, rec: rec, end: end, loot: null };

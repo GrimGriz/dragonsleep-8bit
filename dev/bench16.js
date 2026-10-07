@@ -4214,6 +4214,8 @@
       var h8 = m8.hp; pin(19, 'max'); runM(FM.exec(B8, d8, { do: 'mp-denim', target: m8 }), 1); D.d = dM;
       okM('a darkmantle over Denny\'s head (blinded ' + !!d8.conds.blinded + '): his aim at his own square ' + t8.join(', ') + '; DENIM DAMAGE at it ' + (m8.hp < h8 ? 'lands (' + (h8 - m8.hp) + ')' : 'misses or is refused'),
         c8.length === 2 && t8.every(function (s) { return /darkmantle/i.test(s); }) && m8.hp < h8);
+      // the class as the screens name it (10-07, Griz: "they show mpmon 5 or whatever ingame"): mascot, the id staying mpmon
+      okM('the label beside a level: Denny is "' + D.clsLabel(d8.cls) + ' ' + d8.lvl + '" (his class id ' + d8.cls + '), a wizard "' + D.clsLabel('wizard') + '"', D.clsLabel(d8.cls) === 'mascot' && d8.cls === 'mpmon' && D.clsLabel('wizard') === 'wizard');
 
       // the first ring (10-07, Griz, after the show): Rascal's Fire Bolt beside his ATTACK ("as his only spell no reason to be 3 clicks deep"), and Denny's MONKEY FLURRY
       // up front once it can be used ("put denny's flurry on the bar when it activates for use please") -- in SKILLS before the Attack action, on the first ring after

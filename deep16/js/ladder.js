@@ -189,7 +189,7 @@
     var p0 = Math.max(112, ty + 4), ph = Math.min(28, Math.floor((232 - p0) / 4)); // the four close up when the rung's words run long
     party.forEach(function (h, i) {
       var yy = p0 + i * ph;
-      D.text(ctx, '{y}' + h.name + '{/}  ' + h.cls + ' ' + h.lvl, bx + 6, yy, P('bone', 1));
+      D.text(ctx, '{y}' + h.name + '{/}  ' + D.clsLabel(h.cls) + ' ' + h.lvl, bx + 6, yy, P('bone', 1));
       D.text(ctx, 'HP ' + h.hp + '  AC ' + h.ac + '  ' + h.weapon, bx + 6, yy + 9, P('silver', 5));
       if (h.slots) D.text(ctx, h.slots, bx + 6, yy + 18, P('accent', 2));
     });

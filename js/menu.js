@@ -23,7 +23,7 @@
   function wrap(s, w) { return DS.wrap(String(s || ''), w); }
   // cut a line to a width, a dot where it was cut (10-06: a long RING name ran off EQUIP's box)
   function fit(s, w) { s = String(s); if (DS.textWidth(s) <= w) return s; while (s.length > 1 && DS.textWidth(s + '.') > w) s = s.slice(0, -1); return s + '.'; }
-  function clsName(h) { var c = R().CLASSES[h.cls]; return c ? c.name : (h.cls || ''); }
+  function clsName(h) { var c = R().CLASSES[h.cls]; return c ? c.name : h.cls === 'mpmon' ? 'Mascot' : (h.cls || ''); } // (the Mascot's class id is mpmon: 10-07, his "they show mpmon 5")
 
   // ------------------------------------------------------------------ the window (the 8-bit's: a silver frame on night blue)
   var BG = '#10123a', EDGE = '#e8e8f4', MID = '#6e6e98';
