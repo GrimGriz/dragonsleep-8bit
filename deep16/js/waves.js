@@ -1,0 +1,355 @@
+/* DEEP16 — the Monster Party Game Show's waves (10-07; the lane: they live\handoff-2026-10-07-the-monster-party-game-show.md, seat 2 -- §3 D). The fight
+   after Third Lamp's arrival: the waves by tier, the lamp as the foes' target, the bed's rests, the XP and the levels, the run's end. Seat 1's show hands
+   its battle over (js/gameshow.js, the lane's §5): D.gameshow.waves = function* (B, GS) runs here, and calls the show back for its two scenes --
+   yield* GS.between(B, { bed }) at a rest's end and yield* GS.gameOver(B, villain, { waves, tier }) when the lamp goes out.
+
+   His words, the ones that bind it (10-07): "1 - the most famous monsters that fit the CR requirements (i.e. goblins) - surface monsters from the back, cave
+   types from the deepholm side" · "add a bed that offers a short rest at between wave increments and a long rest after every 'tier'. First tier will be 2
+   waves with one short rest, then only long rest highlighted. Tier will get higher twice, then add an additional wave increment." · "5 - that is right, 7-9
+   we'll aim for third is a 'boss monster' (tough CR, not our customs - save 9 - which can be the edifice team) - we'll fudge the numbers on xp if we have to
+   with the aim that if none of the heroes are down when the fight ends and xp is awarded they'll hit 9 when the 9th wave starts." · "yes" (the lamp is the
+   foes' target) · "party wipe doesn't end the run - slow mo walk to the lamp by surviving villain then darkness - pause - game over" · "all benching is
+   pending lobstamonkee effect gallery thing" (build and gate; the numbers below are levers, not a balance).
+
+     deep16/?gameshow&at=lamp     straight to Third Lamp; the waves start when the king and the cleric have gone
+     &watch                       the Mascots run by their class AI (his click still takes each rest) · &auto the same, and the rests taken by themselves
+     &tier=N&wave=M               start at tier N (the four at level N, their XP at its threshold), wave M of it · &lamp=N the lamp's hit points
+
+   THE RUN: nine tiers, the four at level 1 at tier 1. Tiers 1-3 two waves, 4-9 three; at 7-9 the third is a boss -- an SRD monster with a tough CR, none
+   of our own, and tier 9's the Edifice team (the Skylights' stone giants and trolls). Surface kinds come in from the west (the road up from Second Lamp),
+   cave kinds from the east (over the causeway from Deepholm). Each wave is a fight of its own: the foes walk in, everyone rolls initiative, it ends when
+   the wave is down (cleared), the lamp is broken, or no Mascot stands. THE LAMP is a thing on the field on the party's side (the Skylights' glass is the
+   model, Battle.skyUp): AC, hit points, resistance to everything; every foe's mission (ai.js: it goes for the lamp unless one of ours stands in its reach).
+   Its hit points carry from wave to wave and come back whole at the long rest. THE BED (the station's cots in the south room) lights the rest that is due:
+   a short rest between waves, the long rest after the tier's last; his click on it (or its button) takes it. THE XP: each Mascot's share of a wave is
+   fudged so the tier's waves bring it exactly to the next level's threshold -- level 2 after tier 1, 9 when tier 9 starts -- and one down when the wave
+   ends takes half its share (it catches up over the next tier's waves). The levels come at the long rest. */
+'use strict';
+(function () {
+  var D = window.D16, DS = window.DS, R = DS.R, G = D.grid, RU = D.rules, FX = D.fx;
+  var GS = D.gameshow; if (!GS) return;
+  var WV = GS.wave = {};
+
+  // ------------------------------------------------------------------ the levers (nothing here is benched yet: his "all benching is pending")
+  WV.CFG = {
+    bed: [35, 13],                                   // where the four meet at a rest's end (beside the cots, Third Lamp's south room)
+    cots: [[36, 13], [36, 14], [38, 14]],            // the cots that light (the 8-bit's `y`), and take his click
+    lampAC: 15, lampHP: function (tier) { return 40 + 20 * tier; },   // the lamp: 60 at tier 1 to 220 at tier 9, resisting everything (halved)
+    stall: 40,                                       // rounds before a wave that cannot end is called (the rest of it melts back into the dark)
+    // the road's own lamps, dim (the seat's lean, his to rule): Third Lamp is the 8-bit's dark map and past the tower's 30 ft the halls are black -- the goblins'
+    // darkvision shot three Mascots without it from where they could not be seen (the first run, 10-07). Dim light is enough to be seen by (no disadvantage), so
+    // the waves are fought where the stream can see them; the supplies' torches still give bright light. 0 keeps the 8-bit's dark
+    roadLight: 20, roadLamps: [[4, 8], [12, 8], [20, 8], [44, 8], [52, 8], [60, 8], [68, 8], [76, 8]]
+  };
+  var WEST = { from: [[0, 8], [0, 9], [0, 7], [0, 10]], at: [6, 8] }, EAST = { from: [[82, 8], [82, 9]], at: [64, 8] };
+
+  // THE WAVES (the seat's draft, his to recut): by tier, each { west: [kinds], east: [kinds], boss, card }. The SRD's own monsters only; against the DMG's
+  // table for four at the tier's level the waves read MEDIUM to HARD, the bosses HARD to DEADLY, the Edifice team past it (his, on the Skylights: "kinda
+  // hoping players have to load once or twice")
+  WV.TIERS = {
+    1: [{ west: ['goblin', 'goblin', 'goblin'], card: 'Goblins, up the road from Second Lamp!' },
+        { west: ['goblin', 'goblin'], east: ['giantrat', 'giantrat', 'giantrat'], card: 'Goblins behind -- and giant rats over the causeway from Deepholm!' }],
+    2: [{ west: ['hobgoblin', 'hobgoblin', 'goblin', 'goblin'], card: 'Hobgoblins, in step, with goblins at their heels.' },
+        { east: ['giantspider', 'giantrat', 'giantrat', 'giantrat'], card: 'Something on eight legs comes over the causeway, and the rats run ahead of it.' }],
+    3: [{ west: ['bugbear', 'hobgoblin', 'hobgoblin', 'goblin', 'goblin'], card: 'A bugbear drives a goblin war band down the road.' },
+        { east: ['duergar', 'duergar', 'darkmantle', 'darkmantle'], card: 'Duergar out of the Deepholm dark -- and the ceiling moves.' }],
+    4: [{ west: ['gnoll', 'gnoll', 'gnoll', 'gnoll', 'gnoll', 'hyena', 'hyena'], card: 'Gnolls, laughing, and their hyenas with them.' },
+        { east: ['ochrejelly', 'grimlock', 'grimlock', 'grimlock'], card: 'Grimlocks feel their way along the wall. Behind them the floor oozes.' },
+        { west: ['ogre', 'worg', 'worg'], east: ['grimlock', 'grimlock'], card: 'An ogre and its worgs from the road; grimlocks over the causeway.' }],
+    5: [{ west: ['ogre', 'ogre', 'bugbear', 'bugbear', 'goblin', 'goblin'], card: 'Two ogres, and bugbears in their shadow.' },
+        { east: ['phasespider', 'phasespider', 'giantspider', 'giantspider'], card: 'Phase spiders blink out of the rock; giant spiders come down after them.' },
+        { west: ['bugbear', 'hobgoblin', 'hobgoblin', 'hobgoblin', 'hobgoblin'], east: ['grick', 'grick'], card: 'A war band from the road, gricks from the dark.' }],
+    6: [{ west: ['ettin', 'ogre', 'ogre'], card: 'An ettin, both heads arguing, and two ogres.' },
+        { east: ['chuul', 'grick', 'grick'], card: 'A chuul hauls itself out of the black water. Gricks follow.' },
+        { west: ['troll', 'worg', 'worg'], east: ['grayooze', 'grayooze'], card: 'A troll from the road; the causeway grows slick.' }],
+    7: [{ west: ['troll', 'troll'], card: 'Two trolls, hungry.' },
+        { east: ['xorn', 'earthelemental'], card: 'The rock itself comes for the lamp: a xorn, and the earth walking.' },
+        { east: ['drider', 'giantspider', 'giantspider'], boss: 'drider', card: 'A drider climbs out of Deepholm, its spiders before it.' }],
+    8: [{ west: ['troll', 'troll', 'ogre'], card: 'Trolls, and an ogre, all teeth.' },
+        { east: ['otyugh', 'chuul', 'grick', 'grick'], card: 'An otyugh and a chuul out of the water, gricks on the walls.' },
+        { east: ['cloaker', 'darkmantle', 'darkmantle', 'darkmantle'], boss: 'cloaker', card: 'A cloaker unfolds from the dark, and the darkmantles drop.' }],
+    9: [{ west: ['troll', 'troll', 'ettin'], card: 'Trolls and an ettin, down the road at a run.' },
+        { east: ['drider', 'phasespider', 'phasespider', 'giantspider', 'giantspider'], card: 'A drider and its spiders -- the deep is emptying.' },
+        { west: ['stonegiant', 'stonegiant', 'troll', 'troll'], boss: 'stonegiant', card: 'THE EDIFICE TEAM: the stone giants, and the trolls they brought.' }]
+  };
+  WV.xpOf = function (wave) { var n = 0; (wave.west || []).concat(wave.east || []).forEach(function (k) { var f = D.FOES[k]; n += f ? (R.CR_XP[String(f.cr)] || 0) : 0; }); return n; };
+
+  // ------------------------------------------------------------------ the four: their XP, their level, what a rest gives back
+  var KEYS = ['denny', 'beholda', 'rascal', 'goose'];
+  function four(B) { return KEYS.map(function (k) { return B.units.filter(function (u) { return u.mpmon === k; })[0]; }).filter(Boolean); }
+  function standingM(u) { return u && G.standing(u) && !u.left && !u.dead; }
+  function levelFor(xp) { var L = 1; while (L < 9 && xp >= R.XP_LEVEL[L + 1]) L++; return L; }
+  // the word a Mascot is built from: its level and whatever the run has given it to wear (WV.loot[key], the supplies' seat's to fill: '+itemid' words, js/classes.js NPC.spec)
+  WV.loot = {};
+  function word(key, L) { return key + ':' + L + (WV.loot[key] || []).map(function (id) { return '+' + id; }).join(''); }
+  // a Mascot made again at a level, where the old one stood (the long rest; the run's start at a later tier)
+  function rebuild(B, u, L) {
+    var n = D.npc.build(word(u.mpmon, L), L, 'party', { id: u.id });
+    if (!n) return u;
+    n.x = u.x; n.y = u.y; n.facing = u.facing; n.anim = 'idle'; n.animT = B.t; n.flash = 0; n.reaction = 1; n.conds = {};
+    if (u.guest) { n.guest = true; n.classAI = true; }
+    var i = B.units.indexOf(u); if (i >= 0) B.units[i] = n; else B.units.push(n);
+    var j = B.order.indexOf(u); if (j >= 0) B.order[j] = n;
+    return n;
+  }
+  // a short rest (SRD 5.1: an hour, hit dice spent to heal): the fallen stand first (the Pocket DM's rest, his: "SRD + free rez for the fallen before the short rest
+  // applies is good"), then their hit dice till whole or out; the specials back (MP.refill: both pools, the passives' uses)
+  function shortRest(B, u, S) {
+    var b = (D.mpmon && D.mpmon.BUILDS && D.mpmon.BUILDS[u.mpmon]) || { hd: 8 }, con = Math.floor(((u.abil && u.abil.con) || 10) - 10) >> 1, notes = [], spent = 0, healed = 0;
+    if (u.hp <= 0 || u.dead) { u.hp = 1; u.dead = false; u.ko = false; u.slain = false; notes.push('back on their feet'); }
+    var hd = S.hd[u.mpmon] != null ? S.hd[u.mpmon] : u.lvl || 1;
+    while (u.hp < u.maxhp && hd > 0) { var g = Math.max(0, D.d(b.hd || 8) + con); u.hp = Math.min(u.maxhp, u.hp + g); healed += g; hd--; spent++; }
+    S.hd[u.mpmon] = hd;
+    if (spent) notes.push(spent + ' hit ' + (spent === 1 ? 'die' : 'dice') + ', +' + healed);
+    else notes.push(u.hp >= u.maxhp ? 'whole' : 'no hit dice left');
+    if (D.mpmon && D.mpmon.refill) D.mpmon.refill(u);
+    return notes.join(', ');
+  }
+
+  // ------------------------------------------------------------------ the lamp, on the field
+  function lampUp(B, S) {
+    var tw = G.map.def.tower, hp = S.lampMax;
+    var L = { id: 'lamp', name: 'the lamp', kind: 'object', object: true, spellProof: true, side: 'party', x: tw[0], y: tw[1], size: 1, hp: S.lampHP, maxhp: hp, ac: WV.CFG.lampAC, baseAC: WV.CFG.lampAC,
+      threshold: 0, resistAll: true, immune: ['poison', 'psychic'], condImmune: { all: true }, abil: { str: 10, dex: 10, con: 10, int: 10, wis: 10, cha: 10 }, saves: {}, conds: {}, attacks: {},
+      speed: 0, initRoll: -99, lvl: 1, prof: 0, sheet: null, facing: 0 };
+    B.units.push(L); S.lamp = L; G.setup(G.map, B.units);
+    return L;
+  }
+
+  // ------------------------------------------------------------------ the foes in: made at their end of the road, walked to their squares
+  // a square for each near its side's mark, clear of the walls, of each other and of anyone already standing (a big one's whole footing)
+  function seat(B, list, side) {
+    var taken = {}, out = [], mark = side.at;
+    B.units.forEach(function (w) { if (w.dead || w.object) return; for (var j = 0; j < (w.size || 1); j++) for (var i = 0; i < (w.size || 1); i++) taken[(w.x + i) + ',' + (w.y + j)] = 1; });
+    list.forEach(function (u) {
+      var best = null, bd = 1e9, n = u.size || 1;
+      for (var y = 0; y < G.map.h; y++) for (var x = 0; x < G.map.w; x++) {
+        var d = Math.hypot(x - mark[0], y - mark[1]); if (d >= bd || d > 14) continue;
+        var free = true; for (var j = 0; j < n && free; j++) for (var i = 0; i < n && free; i++) if (taken[(x + i) + ',' + (y + j)]) free = false;
+        if (!free) continue;
+        u.x = x; u.y = y; if (!G.canStand(u, x, y)) continue;
+        bd = d; best = [x, y];
+      }
+      if (!best) return;
+      for (var j = 0; j < n; j++) for (var i = 0; i < n; i++) taken[(best[0] + i) + ',' + (best[1] + j)] = 1;
+      u.x = best[0]; u.y = best[1]; out.push(u);
+    });
+    return out;
+  }
+  function* comeIn(B, S, wave) {
+    var file = [], made = [], k = 0;
+    [['west', WEST], ['east', EAST]].forEach(function (e) {
+      var kinds = wave[e[0]] || []; if (!kinds.length) return;
+      var us = kinds.map(function (kind) { var u = B.makeFoe({ id: 'gs' + S.count + '-' + (k++) + '-' + kind, kind: kind }); u.mission = 'lamp'; u.gsSide = e[0]; return u; });
+      seat(B, us, e[1]).forEach(function (u, i) {
+        var from = e[1].from[i % e[1].from.length];
+        u.from0 = from.slice();
+        file.push({ u: u, from: from, to: [u.x, u.y], face: D.spr.facingFor(e[0] === 'west' ? 1 : -1, 0) });
+        made.push(u);
+      });
+    });
+    S.foes = made;
+    var first = file[0];
+    if (first) { B.focus({ x: first.from[0] + (first.from[0] ? -4 : 4), y: first.from[1], size: 1 }); D.sfx('encounter'); }
+    B.card(['{r}' + (wave.boss ? 'BOSS: ' : '') + '{/}' + wave.card], W(420));
+    if (file.length) { yield* B.walkIn(file, function (g) { if (g) B.keepInView(g.u); }); yield W(20); }
+    // both ends at once: the second side's walk is the first's (walkIn takes a file in step; the camera follows the file's head)
+    made.forEach(function (u) { u.anim = 'idle'; u.animT = B.t; });
+    return made;
+  }
+
+  // ------------------------------------------------------------------ one wave: initiative, the rounds, its end
+  // its end: 'lamp' (broken), 'wipe' (no Mascot stands), 'cleared' (the wave is down -- a troll knitting at 0 still holds it open), or null
+  function waveOver(B, S) {
+    if (!S.lamp || S.lamp.hp <= 0 || S.lamp.dead) return 'lamp';
+    if (!four(B).some(standingM)) return 'wipe';
+    var up = B.units.filter(function (u) { return u.side === 'foe' && !u.dead && u.hp > 0 && !u.fled && !u.left && !u.summon && !u.dominated && !(u.conds.stoning && u.conds.stoning.done); });
+    if (!up.length && !B.units.some(function (u) { return u.side === 'foe' && u.regenDown && !u.dead; })) return 'cleared';
+    return null;
+  }
+  function* fight(B, S) {
+    B.round = 0; B.mpHiveDone = {}; B.active = null;
+    var rolls = B.units.filter(function (u) { return !u.familiar && !u.object && !u.look && !u.dead; });
+    rolls.forEach(function (u) { var d = D.d(20); if (u.initAdv) d = Math.max(d, D.d(20)); u.initRoll = d + (u.init || 0); });
+    B.order = rolls.sort(function (a, b) { return b.initRoll - a.initRoll || ((b.abil && b.abil.dex) || 10) - ((a.abil && a.abil.dex) || 10); });
+    B.card(['{y}INITIATIVE{/}  ' + B.order.map(function (u) { return B.shortName(u) + ' ' + u.initRoll; }).join(' · ')], 360);
+    yield 50;
+    while (true) {
+      B.round++;
+      if (B.round > WV.CFG.stall) {
+        B.units.forEach(function (u) { if (u.side === 'foe' && !u.dead) { u.left = true; u.dead = true; } });
+        B.card(['{g}The rest of them melt back into the dark.{/}'], 300); yield 40; return 'cleared';
+      }
+      for (var i = 0; i < B.order.length; i++) {
+        var u = B.order[i];
+        if (u.dead || u.away) continue;
+        B.active = u;
+        if (u.side === 'party' && !u.guest && !u.ally) yield* B.heroTurn(u);
+        else yield* D.ai.turn(B, u);
+        B.active = null;
+        if (B.readyArmed()) yield* B.readyAfter({ turnOf: u });
+        if (D.familiar && !u.familiar) yield* D.familiar.after(B, u);
+        B.sweep();
+        var o = waveOver(B, S);
+        if (o) { S.last = u; return o; }
+        i = B.order.indexOf(u);
+      }
+    }
+  }
+
+  // ------------------------------------------------------------------ the XP (fudged to the tier: his "we'll fudge the numbers on xp if we have to")
+  function award(B, S, waves, wi) {
+    var target = R.XP_LEVEL[Math.min(10, S.tier + 1)], rest = 0, w = WV.xpOf(waves[wi]), lines = [];
+    for (var j = wi; j < waves.length; j++) rest += WV.xpOf(waves[j]);
+    four(B).forEach(function (u) {
+      var have = S.xp[u.mpmon] || 0, share = Math.max(0, Math.ceil((target - have) * w / Math.max(1, rest))), down = !standingM(u);
+      if (down) share = Math.floor(share / 2);
+      S.xp[u.mpmon] = have + share;
+      lines.push(u.name + ' {g}+' + share + '{/}' + (down ? ' {o}(down: half){/}' : ''));
+    });
+    return lines;
+  }
+
+  // ------------------------------------------------------------------ the bed: the rest that is due, lit; his click takes it
+  function* bedRest(B, S, kind) {
+    var st = B.gs, bed = WV.CFG.bed;
+    st.mode = 'rest'; st.clicks = []; S.rest = { due: kind, t0: B.t };
+    yield* B.camTo({ gx: bed[0], gy: bed[1], gz: 0 }, 1.25, W(30));
+    D.sfx('popup');
+    var wait = 0;
+    while (true) {
+      var ck = st.clicks.shift();
+      if (ck) {
+        var hit = WV.hit(ck), sq = !hit && D.iso.pick(ck.x, ck.y, 0);
+        if (hit === kind || (sq && WV.CFG.cots.some(function (c) { return c[0] === sq.x && c[1] === sq.y; })) || (sq && sq.x === bed[0] && sq.y === bed[1])) break;
+      }
+      if (S.auto && ++wait > W(90)) break;
+      yield 1;
+    }
+    S.rest = null; st.mode = 'fight'; D.sfx('confirm');
+    var lines = [];
+    // whatever the wave left on the field goes with the hour: the bodies, the spells, the conditions
+    B.units = B.units.filter(function (u) { return u.side !== 'foe' && !u.summon; });
+    ['grounds', 'auras', 'wards', 'spirits', 'darks', 'zones', 'beads', 'walls', 'shells', 'oils'].forEach(function (k) { if (B[k]) B[k] = []; });
+    B.webs = (B.webs || []).filter(function (w) { return w.ground; }); B.wallMap = null; B.lightMap = null;
+    four(B).forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'rest'); u.conds = {}; u.temp = kind === 'long' ? 0 : u.temp; });
+    if (kind === 'short') {
+      lines.push('{y}SHORT REST{/} at the cots.');
+      four(B).forEach(function (u) { lines.push(u.name + ': ' + shortRest(B, u, S)); });
+    } else {
+      lines.push('{y}LONG REST{/}: the night at the cots, and the dwarves\' wardens mend the lamp.');
+      var ups = [];
+      four(B).forEach(function (u) {
+        var L0 = u.lvl || 1, L = Math.max(L0, levelFor(S.xp[u.mpmon] || 0));
+        var n = rebuild(B, u, L); S.hd[n.mpmon] = L;
+        if (L > L0) ups.push(n.name + ' is level ' + L);
+      });
+      S.lampHP = S.lampMax = WV.CFG.lampHP(Math.min(9, S.tier + 1));
+      if (ups.length) { lines.push('{y}LEVEL UP!{/}  ' + ups.join(' · ')); D.sfx('levelup'); four(B).forEach(function (u) { FX.sparkle(u, 'gold', 20); }); }
+    }
+    G.setup(G.map, B.units);
+    B.card(lines, W(480)); yield W(150);
+  }
+
+  // ------------------------------------------------------------------ the run
+  GS.waves = function* (B, GSx) {
+    var q = GS.q || location.search;
+    var num = function (k) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : null; };
+    var S = GS.run = { tier: Math.max(1, Math.min(9, num('tier') || 1)), wi: Math.max(0, (num('wave') || 1) - 1), count: 0, held: 0, xp: {}, hd: {}, foes: [], rest: null,
+      ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q) };
+    S.lampHP = S.lampMax = num('lamp') || WV.CFG.lampHP(S.tier);
+    var st = B.gs; B.cine = false; st.mode = 'fight'; st.lock = null; st.clicks = [];
+    WV.B = B; WV.S = S; W = (GS._ && GS._.W) || function (n) { return n; };
+    // the run's start at a later tier (&tier=N): the four at that level, their XP at its threshold
+    four(B).forEach(function (u) {
+      if (S.ai) { u.guest = true; u.classAI = true; }
+      S.xp[u.mpmon] = R.XP_LEVEL[S.tier] || 0;
+      var n = S.tier > 1 ? rebuild(B, u, S.tier) : u; S.hd[n.mpmon] = n.lvl || S.tier;
+    });
+    lampUp(B, S);
+    if (WV.CFG.roadLight > 0) { WV.CFG.roadLamps.forEach(function (p, i) { B.lights.push({ id: 'road' + i, kind: 'map', x: p[0], y: p[1], bright: 0, dim: WV.CFG.roadLight, color: 'gold', flame: false }); }); B.lightMap = null; }
+    var pw0 = B.paint; B.paint = function (ctx) { pw0.apply(this, arguments); WV.hud(ctx, this); };
+    while (S.tier <= 9) {
+      var waves = WV.TIERS[S.tier];
+      B.card(['{y}TIER ' + S.tier + '{/}  ' + waves.length + ' waves' + (S.tier >= 7 ? ', the last a boss' : '') + '.  Keep the lamp lit.'], W(360)); yield W(90);
+      for (; S.wi < waves.length; S.wi++) {
+        var wave = waves[S.wi]; S.count++;
+        D.music(wave.boss ? 'boss' : 'battle');
+        yield* comeIn(B, S, wave);
+        var how = yield* fight(B, S);
+        if (how === 'lamp' || how === 'wipe') {
+          var villain = how === 'lamp' && S.last && S.last.side === 'foe' && G.standing(S.last) ? S.last : WV.villain(B);
+          B.card([how === 'lamp' ? '{r}THE LAMP BREAKS.{/}' : '{r}NO ONE IS LEFT STANDING.{/}  ' + (villain ? B.shortName(villain) + ' turns to the lamp.' : '')], W(300)); yield W(80);
+          S.end = how;
+          yield* GS.gameOver(B, villain, { waves: S.held, tier: S.tier });
+          return;
+        }
+        S.held++; S.lampHP = S.lamp.hp;
+        D.music(null); D.sfx('popup');
+        var xl = award(B, S, waves, S.wi);
+        B.card(['{y}WAVE ' + (S.wi + 1) + ' OF ' + waves.length + ' HELD.{/}  XP: ' + xl.join(' · ')], W(420)); yield W(120);
+        if (S.tier === 9 && S.wi === waves.length - 1) break;
+        var last = S.wi === waves.length - 1;
+        // the lamp off the field for the rest, back after it (its hit points kept, or made whole by the long rest)
+        B.units = B.units.filter(function (u) { return u !== S.lamp; });
+        yield* bedRest(B, S, last ? 'long' : 'short');
+        if (GS.supplies) yield* GS.supplies(B, { tier: S.tier, wave: S.wi + 1, run: S }); // (the supplies' seat: the chest between waves -- the lane's §3 C)
+        var n4 = four(B).length;
+        yield* GS.between(B, { bed: WV.CFG.bed });
+        // (all four back on the field and still before anyone rolls: the token's walk-out is the show's, js/gameshow.js)
+        for (var g = 0; g < 600 && (four(B).length < n4 || four(B).some(function (u) { return u.tween || u.anim === 'walk'; })); g++) yield 1;
+        lampUp(B, S);
+      }
+      if (S.tier === 9) break;
+      S.tier++; S.wi = 0;
+    }
+    // tier 9 held: the lamp stays lit
+    S.end = 'held';
+    if (GS.victory) { yield* GS.victory(B, { waves: S.held, tier: 9 }); return; }
+    yield* GS.gameOver(B, null, { waves: S.held, tier: 9 });
+  };
+  var W = function (n) { return n; };
+  // the one that walks to the lamp when no Mascot stands (his "slow mo walk to the lamp by surviving villain"): the toughest still up, the nearest the lamp of those
+  WV.villain = function (B) {
+    var tw = G.map.def.tower, up = B.units.filter(function (u) { return u.side === 'foe' && G.standing(u) && !u.left; });
+    up.sort(function (a, b) { return (R.CR_XP[String(b.cr)] || 0) - (R.CR_XP[String(a.cr)] || 0) || (Math.hypot(a.x - tw[0], a.y - tw[1]) - Math.hypot(b.x - tw[0], b.y - tw[1])); });
+    return up[0] || null;
+  };
+
+  // ------------------------------------------------------------------ the picture: the run's line, the lamp, the bed lit and its two buttons
+  var BTN = {};
+  WV.hit = function (ck) { for (var id in BTN) { var b = BTN[id]; if (b && ck.x >= b.x && ck.x <= b.x + b.w && ck.y >= b.y && ck.y <= b.y + b.h) return id; } return null; };
+  function P(r, i) { return D.PAL.ramps[r][i]; }
+  WV.hud = function (ctx, B) {
+    var S = GS.run, st = B.gs; BTN = {};
+    if (!S || !st || (st.mode !== 'fight' && st.mode !== 'rest')) return;
+    var Wd = D.W, waves = WV.TIERS[S.tier] || [], x = Wd - 132, y = D.H - 102;   // (bottom right, over the unit panel: the cards and the strip keep the top)
+    D.win8(ctx, x, y, 128, 30);
+    D.text(ctx, 'TIER ' + S.tier + '  WAVE ' + Math.min(waves.length, S.wi + 1) + '/' + waves.length, x + 6, y + 5, P('gold', 4));
+    var L = S.lamp, hp = L && B.units.indexOf(L) >= 0 ? L.hp : S.lampHP, mx = S.lampMax || 1, k = Math.max(0, Math.min(1, hp / mx));
+    D.text(ctx, 'LAMP', x + 6, y + 17, P('bone', 1));
+    ctx.fillStyle = P('outline', 0); ctx.fillRect(x + 36, y + 18, 60, 6);
+    ctx.fillStyle = k > 0.5 ? P('gold', 4) : k > 0.25 ? P('fire', 2) : P('red', 3); ctx.fillRect(x + 37, y + 19, Math.round(58 * k), 4);
+    D.text(ctx, Math.max(0, hp) + '', x + 100, y + 17, P('bone', 1));
+    if (st.mode === 'rest' && S.rest) restPanel(ctx, B, S);
+  };
+  function restPanel(ctx, B, S) {
+    var due = S.rest.due, pulse = 0.5 + 0.5 * Math.sin((B.t - S.rest.t0) / 8);
+    // the cots lit: a glow on each, the due rest's colour
+    WV.CFG.cots.forEach(function (c) {
+      var p = D.iso.center(c[0], c[1], G.map.gz(c[0], c[1])), s = D.iso.toScreen(p.x, p.y), z = D.iso.zoom;
+      ctx.globalAlpha = 0.25 + 0.3 * pulse; ctx.fillStyle = due === 'long' ? P('gold', 4) : P('glow', 2);
+      ctx.beginPath(); ctx.moveTo(s.x, s.y - 8 * z); ctx.lineTo(s.x + 16 * z, s.y); ctx.lineTo(s.x, s.y + 8 * z); ctx.lineTo(s.x - 16 * z, s.y); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1;
+    });
+    var Wd = D.W, w = 236, x = Math.round(Wd / 2 - w / 2), y = 50;
+    D.win8(ctx, x, y, w, 46);
+    D.text(ctx, 'THE BED', Wd / 2, y + 5, P('gold', 4), 'center');
+    [['short', 'SHORT REST'], ['long', 'LONG REST']].forEach(function (b, i) {
+      var bx = x + 10 + i * 112, by = y + 20, on = b[0] === due;
+      D.win8(ctx, bx, by, 104, 18, on ? (b[0] === 'long' ? P('red', 1) : P('moss', 1)) : null);
+      D.text(ctx, b[1], bx + 52, by + 5, on ? P('gold', 4) : P('accent', 2), 'center');
+      if (on) BTN[b[0]] = { x: bx, y: by, w: 104, h: 18 };
+    });
+  }
+})();

@@ -3522,6 +3522,97 @@
     document.body.appendChild(preS);
     return;
   }
+  // the Game Show's waves (mode=gswaves1007; js/waves.js, the lane's seat 2): Third Lamp's battle as the show hands it over (the four on the circle's corners,
+  // no foes), run by the loop with the Mascots on their class AI and the rests taken by themselves. FLOW: the foes made weak as they come (1 HP, nothing lands,
+  // no regeneration -- the run's machinery, not a fight), tier 1 through its long rest: the goblins in from the west and after the lamp, the lamp on its tower,
+  // the XP fudged to the tier (139 each for the first wave, 300 at the tier's end), the short rest, all four back before the second wave rolls, the second wave
+  // from both ends, the long rest's level 2 and the lamp's tier-2 hit points. LAMP and WIPE: the lamp broken mid-wave, and then no Mascot standing -- each to
+  // the villain's walk, GAME OVER and a score kept. BOSS: tier 9's last wave (&tier=9&wave=3), the four at 9, the Edifice team in from the west, and the run
+  // held -- THE LAMP HOLDS and the score
+  if (get('mode', '') === 'gswaves1007') {
+    var repW = { checks: [], errors: [] };
+    function okW(what, v) { repW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    if (!D.ctx) { var cvW0 = document.createElement('canvas'); cvW0.width = D.W; cvW0.height = D.H; D.ctx = cvW0.getContext('2d'); D.R = D.R || 1; }
+    var clockW = 1000;
+    var memW = {}, stGW = D.store.get, stSW = D.store.set;
+    D.store.get = function (k) { return memW[k] ? JSON.parse(memW[k]) : null; }; D.store.set = function (k, v) { memW[k] = JSON.stringify(v); return true; };
+    var GSW = D.gameshow;
+    function weak(BW) { (BW.units || []).forEach(function (u) { if (u.side !== 'foe' || u.gsWeak) return; u.gsWeak = true; u.hp = u.maxhp = 1; u.regen = 0; Object.keys(u.attacks || {}).forEach(function (a) { u.attacks[a] = Object.assign({}, u.attacks[a], { atk: -40 }); }); }); }
+    function stepW(BW, fn, cap, each) { for (var k = 0; k < cap; k++) { clockW += 17; D.loopStep(clockW); if (each) each(BW); if (fn()) return k; } return -1; }
+    // the show's hand-over, made as js/gameshow.js makes it -- but on the corners already (the arrival's flight runs on the wall clock, which a bench never gives)
+    function lampFight(q) {
+      GSW.make(q); GSW.q = q; GSW.run = null; // (make sets the show's &fast and the address the waves read; its own battle is thrown away)
+      var BW = D.npcFight('?npc=goblin&vs=denny:1,beholda:1,rascal:1,goose:1&map=lampcircle&lvl=1', {});
+      var en0 = BW.enter;
+      BW.enter = function () {
+        en0.apply(this, arguments);
+        var cs = [[29, 6], [33, 6], [29, 10], [33, 10]];
+        this.units = this.units.filter(function (u) { return u.side === 'party'; });
+        this.units.forEach(function (u, i) { u.x = cs[i][0]; u.y = cs[i][1]; });
+        D.grid.setup(D.grid.map, this.units); this.order = []; this.active = null; this.req = null;
+        this.gs = { clicks: [], fade: 0, mode: 'fight' }; this.cine = false;
+        this.co = GSW.waves(this, GSW);
+      };
+      D.scenes.length = 0; D.lastError = null; D.push(BW);
+      return BW;
+    }
+    function lg(BW, re) { return (BW.log || []).filter(function (l) { return re.test(l); }); }
+    function errW(what) { if (D.lastError) { okW(what + ': the loop logged no error (' + String(D.lastError.stack || D.lastError).slice(0, 300) + ')', false); D.lastError = null; } }
+    try {
+      if (!GSW || !GSW.waves || !GSW.wave || !GSW.wave.TIERS) okW('the waves are loaded (js/waves.js: D.gameshow.waves, its tiers)', false);
+      else {
+        // ---- FLOW
+        D.seed = 1007;
+        var BF = lampFight('?gameshow&at=lamp&fast&auto'), SF;
+        var w1 = stepW(BF, function () { SF = GSW.run; return SF && SF.foes.length && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }) && BF.order.length > 4; }, 20000, weak);
+        var lampF = SF && SF.lamp, tw = D.grid.map.def.tower;
+        okW('flow: wave 1 rolls (' + w1 + ' frames) with the lamp on its tower (' + (lampF && [lampF.x, lampF.y, lampF.hp].join(',')) + ', want ' + tw.join(',') + ',60) and goblins in from the west after it (' + (SF ? SF.foes.map(function (u) { return u.kind + ' from ' + u.from0 + ' ' + u.mission; }).join('; ') : '-') + ')',
+          w1 >= 0 && lampF && lampF.x === tw[0] && lampF.y === tw[1] && lampF.hp === 60 && BF.units.indexOf(lampF) >= 0 && SF.foes.length === 3 && SF.foes.every(function (u) { return u.kind === 'goblin' && u.from0[0] === 0 && u.mission === 'lamp'; }));
+        var h1 = stepW(BF, function () { return SF.held >= 1; }, 40000, weak);
+        okW('flow: wave 1 held, the XP fudged to the tier -- ' + JSON.stringify(SF.xp) + ' (want 139 each: 300 x 150 / 325)', h1 >= 0 && ['denny', 'beholda', 'rascal', 'goose'].every(function (k) { return SF.xp[k] === 139; }));
+        var w2 = stepW(BF, function () { return SF.wi === 1 && SF.foes.length && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }) && BF.order.length > 5; }, 30000, weak);
+        var fourW = BF.units.filter(function (u) { return u.mpmon; }), inOrd = fourW.filter(function (u) { return BF.order.indexOf(u) >= 0; });
+        okW('flow: the short rest (' + lg(BF, /SHORT REST/).length + '), then wave 2 rolls with all four back on the field and in the order (' + inOrd.length + ' of ' + fourW.length + ', ' + w2 + ' frames), its foes from both ends (' + SF.foes.map(function (u) { return u.kind + '@' + u.from0[0]; }).join(' ') + ')',
+          w2 >= 0 && lg(BF, /SHORT REST/).length === 1 && fourW.length === 4 && inOrd.length === 4 && SF.foes.some(function (u) { return u.from0[0] === 0; }) && SF.foes.some(function (u) { return u.from0[0] === 82; }));
+        var t2 = stepW(BF, function () { return SF.tier === 2 && SF.foes.length && SF.foes[0].id.indexOf('gs3-') === 0 && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }); }, 40000, weak);
+        var lv = BF.units.filter(function (u) { return u.mpmon; }).map(function (u) { return u.mpmon + ' L' + u.lvl + ' ' + u.hp + '/' + u.maxhp; });
+        okW('flow: the long rest -- ' + lg(BF, /LEVEL UP/).join(' ').slice(0, 120) + ' -- the four at 2 and whole (' + lv.join(', ') + '), XP ' + JSON.stringify(SF.xp) + ', the lamp ' + SF.lamp.hp + '/' + SF.lampMax + ' (want 80), tier 2 under way (' + t2 + ' frames)',
+          t2 >= 0 && BF.units.filter(function (u) { return u.mpmon && u.lvl === 2 && u.hp === u.maxhp; }).length === 4 && ['denny', 'beholda', 'rascal', 'goose'].every(function (k) { return SF.xp[k] === 300; }) && SF.lamp.hp === 80 && SF.lampMax === 80 && lg(BF, /LONG REST/).length === 1);
+        errW('flow');
+        // ---- LAMP, then WIPE: each to the villain's walk, GAME OVER and the score
+        ['lamp', 'wipe'].forEach(function (how) {
+          D.seed = 2007;
+          var BL = lampFight('?gameshow&at=lamp&fast&auto'), SL;
+          stepW(BL, function () { SL = GSW.run; return SL && SL.foes.length && SL.foes.every(function (u) { return BL.units.indexOf(u) >= 0; }) && BL.order.length > 4; }, 20000);
+          if (!SL) { okW(how + ': wave 1 never rolled', false); return; }
+          if (how === 'lamp') SL.lamp.hp = 0; else BL.units.forEach(function (u) { if (u.mpmon) { u.hp = 0; u.ko = true; } });
+          var seenW = [];
+          var e = stepW(BL, function () { var m = BL.gs.mode; if (seenW[seenW.length - 1] !== m) seenW.push(m); return m === 'scores'; }, 20000);
+          var sc = GSW.scores();
+          okW(how + ': ' + (how === 'lamp' ? 'the lamp broken mid-wave' : 'no Mascot standing') + ' -- the end ' + SL.end + ', ' + seenW.join(' > ') + ' (' + e + ' frames), the lamp out ' + !!BL.lampOut + ', the score kept (' + (sc[0] ? sc[0].group + ' ' + sc[0].waves + ' waves, tier ' + sc[0].tier : 'none') + ')',
+            e >= 0 && SL.end === how && seenW.indexOf('gameover') >= 0 && !!BL.lampOut && sc.length >= 1 && BL.gs.over && BL.gs.over.waves === 0 && BL.gs.over.tier === 1);
+          errW(how);
+        });
+        // ---- BOSS: tier 9's last wave, the Edifice team, and the run held
+        D.seed = 3007; memW = {};
+        var BB = lampFight('?gameshow&at=lamp&fast&auto&tier=9&wave=3'), SB;
+        var wb = stepW(BB, function () { SB = GSW.run; return SB && SB.foes.length && SB.foes.every(function (u) { return BB.units.indexOf(u) >= 0; }) && BB.order.length > 4; }, 30000);
+        var at9 = BB.units.filter(function (u) { return u.mpmon && u.lvl === 9; }).length;
+        okW('boss: tier 9, wave 3 -- the four at 9 (' + at9 + '), the lamp ' + (SB && SB.lamp.hp) + ' (want 220), the Edifice team in from the west (' + (SB ? SB.foes.map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }).join(' ') : '-') + ')',
+          wb >= 0 && at9 === 4 && SB.lamp.hp === 220 && SB.foes.length === 4 && SB.foes.filter(function (u) { return u.kind === 'stonegiant'; }).length === 2 && SB.foes.every(function (u) { return u.from0[0] === 0; }));
+        var seenB = [];
+        var vb = stepW(BB, function () { var m = BB.gs.mode; if (seenB[seenB.length - 1] !== m) seenB.push(m); return m === 'scores'; }, 60000, weak);
+        var scB = GSW.scores();
+        okW('boss: the wave down and the run held -- ' + seenB.join(' > ') + ' (' + vb + ' frames), the end ' + (SB && SB.end) + ', the score ' + (scB[0] ? scB[0].waves + ' waves, tier ' + scB[0].tier : 'none'),
+          vb >= 0 && SB.end === 'held' && seenB.indexOf('won') >= 0 && scB.length === 1 && scB[0].tier === 9 && scB[0].waves === 1);
+        errW('boss');
+      }
+    } catch (eW) { repW.errors.push(String(eW && eW.stack || eW).slice(0, 900)); }
+    finally { D.store.get = stGW; D.store.set = stSW; D.scenes.length = 0; }
+    var preW = document.createElement('pre'); preW.id = 'out'; preW.textContent = 'BENCH16 ' + JSON.stringify(repW);
+    document.body.appendChild(preW);
+    return;
+  }
   if (get('mode', '') === 'mpmon1006') {
     var repM = { checks: [], errors: [] }, GM = D.grid, RUM = D.rules, MPM = D.mpmon, FM = D.features;
     function okM(what, v) { repM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

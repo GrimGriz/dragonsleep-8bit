@@ -75,7 +75,7 @@
     return B;
   }
   GS.make = function (q) {
-    q = q || ''; FAST = /[?&]fast\b/.test(q);
+    q = q || ''; FAST = /[?&]fast\b/.test(q); GS.q = q;   // (the address the show was made from: the waves read &tier, &wave, &auto from it -- js/waves.js)
     if (/[?&]at=lamp\b/.test(q)) return GS.lamp(null);
     return asShow(stage('lighthouse'), lighthouse);
   };
@@ -335,15 +335,22 @@
     var cs = corners(ctr, sh.squares);
     yield* walkTo(B, token, cs[0], 8);
     var rest = four.filter(function (u) { return u !== token; });
-    for (var k = 0; k < rest.length; k++) { var u = rest[k]; u.x = token.x; u.y = token.y; walkOut(B, u, cs[k + 1], W(k * 10)); }
-    yield W(rest.length * 10 + 40);
+    // (each out of it in turn, ten frames apart, walked on the fight's own frames -- not the wall clock's, so a bench stepping the loop sees them come out, and the waves
+    // never roll initiative before they are back: js/waves.js, 10-07)
+    var outs = rest.map(function (u, k) { u.x = token.x; u.y = token.y; return { u: u, at: W(k * 10), to: cs[k + 1], co: null, wait: 0, done: false }; });
+    for (var f = 0; f < 900 && outs.some(function (o) { return !o.done; }); f++) {
+      outs.forEach(function (o) {
+        if (o.done || f < o.at) return;
+        if (!o.co) { if (B.units.indexOf(o.u) < 0) B.units.push(o.u); G.setup(G.map, B.units); o.co = walkTo(B, o.u, o.to, 7); }
+        if (o.wait > 0) { o.wait--; return; }
+        var r = o.co.next(); if (r.done) o.done = true; else o.wait = (r.value || 1) - 1;
+      });
+      yield 1;
+    }
+    yield W(30);
     G.setup(G.map, B.units);
     B.cine = was;
   };
-  function walkOut(B, u, to, delay) {
-    var go = function () { if (B.units.indexOf(u) < 0) B.units.push(u); G.setup(G.map, B.units); var co = walkTo(B, u, to, 7); var step = function () { var r = co.next(); if (!r.done) setTimeout(step, 16 * (r.value || 1)); }; step(); };
-    if (delay > 0) setTimeout(go, delay * 16); else go();
-  }
 
   // ------------------------------------------------------------------ the end (seat 2 calls it when the lamp goes out)
   // (Griz: "slow mo walk to the lamp by surviving villain then darkness - pause - game over <insert group name> - high score screen")
@@ -372,6 +379,26 @@
     st.over = { group: GS.group(), waves: (stats && stats.waves) || 0, tier: (stats && stats.tier) || 1 };
     D.music('gameover');
     st.mode = 'gameover'; yield W(240);
+    var row = { group: st.over.group, waves: st.over.waves, tier: st.over.tier, t: Date.now() };
+    st.mine = GS.record(row); st.mode = 'scores';
+    while (true) {
+      var ck = st.clicks.shift();
+      if (ck && titleHit(B, ck) === 'again') { location.search = '?gameshow'; return; }
+      yield 1;
+    }
+  };
+
+  // ------------------------------------------------------------------ the run held to its end (seat 2 calls it when tier 9's last wave is down, js/waves.js):
+  // the lamp still lit, THE LAMP HOLDS over the group's name, the high scores with the run on them
+  GS.victory = function* (B, stats) {
+    var st = B.gs || (B.gs = { clicks: [], fade: 0 }), tower = G.map.def.tower;
+    B.cine = true; st.mode = 'end'; st.clicks = [];
+    D.music('victory');
+    if (tower) yield* B.camTo({ gx: tower[0], gy: tower[1] + 2, gz: 0 }, 1.5, W(60));
+    D.sfx('levelup'); B.units.forEach(function (u) { if (u.mpmon && G.standing(u)) FX.sparkle(u, 'gold', 24); });
+    yield W(90);
+    st.over = { group: GS.group(), waves: (stats && stats.waves) || 0, tier: (stats && stats.tier) || 9, won: true };
+    st.mode = 'won'; yield W(300);
     var row = { group: st.over.group, waves: st.over.waves, tier: st.over.tier, t: Date.now() };
     st.mine = GS.record(row); st.mode = 'scores';
     while (true) {
@@ -432,6 +459,12 @@
       big(ctx, 'GAME OVER', Wd / 2, Hd / 2 - 40, P('red', 4), 3);
       big(ctx, st.over.group, Wd / 2, Hd / 2 + 4, P('gold', 4), 2);
       D.text(ctx, 'waves held: ' + st.over.waves + '   tier ' + st.over.tier, Wd / 2, Hd / 2 + 40, P('bone', 1), 'center');
+    }
+    if (st.mode === 'won' && st.over) {
+      ctx.fillStyle = 'rgba(10,8,16,0.55)'; ctx.fillRect(0, Hd / 2 - 50, Wd, 104);
+      big(ctx, 'THE LAMP HOLDS', Wd / 2, Hd / 2 - 40, P('gold', 4), 3);
+      big(ctx, st.over.group, Wd / 2, Hd / 2 + 4, P('red', 4), 2);
+      D.text(ctx, 'every wave held: ' + st.over.waves + '   tier ' + st.over.tier, Wd / 2, Hd / 2 + 40, P('bone', 1), 'center');
     }
     if (st.mode === 'scores' && st.over) { button(ctx, 'again', 'BACK TO THE LIGHTHOUSE', Wd / 2 - 90, Hd - 30, 180, 18); }
   };
