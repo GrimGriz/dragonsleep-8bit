@@ -3423,7 +3423,12 @@
       });
       var d5 = D.npc.build('denny:5', 5, 'party', { id: 'd5' }), b5 = D.npc.build('beholda:5', 5, 'party', { id: 'b5' });
       okM('Denny at 5: two swings, Monkey Fists ' + d5.weapon.dice + ' (both hands free: 1d8), climbs ' + !!d5.climbs + ', speed ' + d5.speed, d5.attacksBase === 2 && d5.weapon.dice === '1d8' && d5.climbs && d5.speed === 30);
-      okM('Beholda at 5: one swing, Dice Slam on WIS (+' + b5.weapon.atk + ', 1d8+' + b5.weapon.mod + '), hovers ' + !!b5.flies + ' at ' + b5.speed + ' ft, darkvision ' + b5.darkvision + ', no hands ' + !!b5.noHands + ', DC ' + b5.spellDC + ', sheet ' + b5.sheet, b5.attacksBase === 1 && b5.weapon.mod === 4 && b5.flies && b5.speed === 25 && b5.darkvision === 120 && b5.noHands && b5.spellDC === 15 && b5.sheet === 'beholda_p2');
+      okM('Beholda at 5: one swing, Dice Slam on WIS (+' + b5.weapon.atk + ', 1d8+' + b5.weapon.mod + '), hovers ' + !!b5.flies + ' at ' + b5.speed + ' ft, darkvision ' + b5.darkvision + ', no hands ' + !!b5.noHands + ', DC ' + b5.spellDC + ', sheet ' + b5.sheet, b5.attacksBase === 1 && b5.weapon.mod === 4 && b5.flies && b5.speed === 25 && b5.darkvision === 120 && b5.noHands && b5.spellDC === 15 && b5.sheet === 'beholda_p3');
+      // their new sheets (10-07: Beholda's second, Denny's third in two -- tools/beholda-p3.py, tools/denny-p3.py): every row their moves play is on the look
+      var missM = function (s, l) { return l.filter(function (a) { return !D.spr.anim(s, a); }); };
+      var dMiss = missM(d5.sheet, ['idle', 'walk', 'attack', 'taunt', 'denimdamage', 'cannonball', 'guard', 'lobstahhug', 'climb', 'flinch', 'hurt', 'prone']);
+      var bMiss = missM(b5.sheet, ['idle', 'walk', 'attack', 'cast', 'gaze', 'spot', 'spotlight', 'flinch', 'hurt', 'prone']);
+      okM('their sheets: Denny ' + d5.sheet + (dMiss.length ? ' wants ' + dMiss.join(', ') : ', every row') + '; Beholda ' + b5.sheet + (bMiss.length ? ' wants ' + bMiss.join(', ') : ', every row'), d5.sheet === 'denny_p3' && b5.sheet === 'beholda_p3' && !dMiss.length && !bMiss.length);
 
       // the VNA Bubble: +3 at 4 to friends within 30 ft, none outside; gone when she is stunned
       var B1 = mkB(['beholda:4', 'barley:4', 'aurdin:4'], ['goblin', 'goblin'], 4), bh = sideM(B1, 'party')[0], bar = sideM(B1, 'party')[1], aur = sideM(B1, 'party')[2];

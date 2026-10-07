@@ -60,9 +60,9 @@
   };
   MP.BUILDS = {
     denny: { name: 'Denny', kind: 'lobstamonkee', sub: 'tank', hd: 10, abil: { str: 16, dex: 14, con: 16, int: 8, wis: 10, cha: 12 }, asi: { 4: 'str', 8: 'str' },
-      weapon: 'monkeyfists', armor: 'denimjacket', look: 'denny_p2', extraAttack: 5 },
+      weapon: 'monkeyfists', armor: 'denimjacket', look: 'denny_p3', extraAttack: 5 }, // (his third sheet, 10-07: tools/denny-p3.py)
     beholda: { name: 'Beholda', kind: 'eyegregore', sub: 'buffs', hd: 8, abil: { str: 10, dex: 14, con: 14, int: 12, wis: 16, cha: 13 }, asi: { 4: 'wis', 8: 'wis' },
-      weapon: 'diceslam', armor: 'eyehide', look: 'beholda_p2' },
+      weapon: 'diceslam', armor: 'eyehide', look: 'beholda_p3' }, // (her second sheet, 10-07: tools/beholda-p3.py)
     // RASCAL (10-06, the Rascal seat; Griz: "please invent a third special for rascal", "He'll range attack with a cantrip like Aurdin"): MP's Social PC,
     // so CHA is his stat (cast: his DC and Fire Bolt's attack by it; MP.unit lays it on the unit); MP gives him 70 HP against Denny's 120: a d8 and CON 10
     rascal: { name: 'Rascal', kind: 'lobstamonkee', sub: 'dps', hd: 8, abil: { str: 10, dex: 14, con: 10, int: 10, wis: 12, cha: 16 }, asi: { 4: 'cha', 8: 'cha' },
@@ -86,8 +86,8 @@
   // a weapon swung by an ability of its own (Dice Slam's WIS): the one line the shared rules need
   var wa0 = R.weaponAbil; R.weaponAbil = function (h, w) { return (w && w.weapon && w.weapon.abil) || wa0(h, w); };
   // by name, at any level (as Higertha stands): ?npc=denny:5, the Pocket DM's seats
-  NPC.NAMED.denny = { name: 'Denny', cls: 'mpmon', build: 'denny', named: true, look: 'denny_p2' };
-  NPC.NAMED.beholda = { name: 'Beholda', cls: 'mpmon', build: 'beholda', named: true, look: 'beholda_p2' };
+  NPC.NAMED.denny = { name: 'Denny', cls: 'mpmon', build: 'denny', named: true, look: 'denny_p3' };
+  NPC.NAMED.beholda = { name: 'Beholda', cls: 'mpmon', build: 'beholda', named: true, look: 'beholda_p3' };
   NPC.NAMED.rascal = { name: 'Rascal', cls: 'mpmon', build: 'rascal', named: true, look: 'rascal_p2' };
   NPC.NAMED.goose = { name: 'Goose', cls: 'mpmon', build: 'goose', named: true, look: 'goose_p1' };
 
@@ -209,6 +209,7 @@
     return landed;
   }
   function rowOr(u, row, alt) { return D.spr.anim(u.sheet, row) ? row : D.spr.anim(u.sheet, alt) ? alt : 'attack'; }
+  function rowWait(u, n) { return Math.max(n, D.spr.duration(u.sheet, u.anim) || 0); } // (a row of its own plays out before the idle: the hug's eight frames and the spotlight's six, 10-07)
   // a shove, ft straight away from him (js/magic.js M.push: in squares, the eight ways, stopped by the first square it cannot stand in); the readied strikes after
   MP.shove = function* (B, u, w, ft, text) {
     var x0 = w.x, y0 = w.y;
@@ -694,6 +695,7 @@
     if (!b) return 0;
     b.reaction = 0; b.feats.eyeContact--;
     var r = D.d(6); FX.ring(att, 'violet', 16);
+    if (B.faceTo) b.facing = B.faceTo(b, att); b.anim = gazeRow(b); b.animT = B.t; // (the stare on her own row: the art list's table, 10-07)
     B.card(['{y}' + b.name + '{/}: EYE CONTACT!  {g}(' + nm(B, att) + ' meets her eye: -' + r + ' on the roll; ' + b.feats.eyeContact + ' left this fight){/}'], 220);
     return r;
   };
@@ -721,7 +723,7 @@
     u.facing = B.faceTo(u, t); u.anim = rowOr(u, 'lobstahhug', 'attack'); u.animT = B.t; D.sfx('crit');
     var dc = MP.tauntDC(u), sv = RU.save(t, 'str', dc, false, 'grappled');
     B.card(['{y}' + u.name + '{/}: LOBSTAH HUG!  ' + Nm(B, t) + ': STR ' + RU.saveText(sv) + ' vs DC ' + dc + '  ' + (sv.ok ? '{n}slips out of it{/}' : '{o}HELD{/} {g}(squeezed each of his turns; it may go only at him){/}') + '  {g}(' + leftText(u) + '){/}'], 320);
-    yield 20;
+    yield rowWait(u, 20);
     if (!sv.ok && standing(t)) { t.conds.restrained = { dc: dc, by: u.id, grapple: true, hug: true }; (u.holding = u.holding || []).push(t); holdTaunt(u, t); FX.ring(t, 'red', 24); }
     u.anim = 'idle';
   };
@@ -744,7 +746,7 @@
     u.anim = rowOr(u, 'spotlight', 'cast'); u.animT = B.t; D.sfx('buff');
     list.forEach(function (w) { w.conds.hasted = { by: u.id, spotlight: true, till: { who: w.id, at: 'end', n: 1 }, endText: '{who} steps out of the spotlight.' }; FX.ring(w, 'gold', 30); FX.sparkle(w, 'gold', 18); });
     B.card(['{y}' + u.name + '{/}: SPOTLIGHT!  {c}' + (list.length ? list.map(function (w) { return w.name; }).join(', ') + ': HASTED' : 'no friend in it') + '{/}  {g}(till the end of their next turn, no lethargy after; ' + leftText(u) + '){/}'], 320);
-    yield 24; u.anim = 'idle';
+    yield rowWait(u, 24); u.anim = 'idle';
   };
   // LIFELINE (the Heals; the draft: "Goose binds a friend for the fight, and half the damage they take comes to him instead (Warding Bond)", and his: "LifeLine chooses
   // recipient ally (can tie denny instead of self)"): a friend he sees within MP.lifeR ft (30; 60 at 9th) is TIED, the fight long, to a second -- himself, or another

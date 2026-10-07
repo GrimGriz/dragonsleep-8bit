@@ -451,8 +451,15 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
 - **Doors:** `?npc=goblin,goblin,hobgoblin,hobgoblin&vs=denny:5,beholda:5,rascal:5&lvl=5` (yours to play: SKILLS on the ring; `&watch`
   for the class AI); the Pocket DM's roster has all three seats; **`?mpshow`** shows the nine specials one beat at a time (`js/mpshow.js`,
   the dice pinned, each beat checked; `&only=`, `&beat=`, `&fast`, `&lvl=`).
-- **Looks:** `beholda_p2` is a stand-in cut from her first sheet (`tools/beholda-sheet.py`: front views for every facing, the projection
-  for the gaze); `denny_p2` gained TAUNT, DENIM DAMAGE and CANNONBALL rows from his poses (`tools/denny-sheet.py`); `rascal_p2` (10-07,
+- **Looks:** `beholda_p3` (10-07, her look since) is her second sheet cut whole (`tools/beholda-p3.py` over `tools/sheetrows.py`: the
+  turnaround for the idle by facing, Hover the walk, Dice Slam the attack, the VNA Bubble her `cast`, Baleful Gaze, Spot (Eye On It),
+  Spotlight, Flinch, Fall the hurt, Prone; she floats, the lowest die 6 px over the floor in every frame, and the fall sinks her to it;
+  the rows at one size by her body's radius, the turnaround and the fall drawn a little bigger and brought to it); `denny_p3` (10-07)
+  is his third sheet in two (`tools/denny-p3.py`: the Punch his attack, Taunt, Denim Damage, Cannonball -- its 6 and 7 one landing in
+  the dust, a wide cell, played at the floor while the engine throws him --, Guard (Bodyguard), Lobstah Hug, Climb, Flinch, Fall, Prone;
+  the two sheets at one size by the front views and the head, his walk his second sheet's at the same scale); Spotlight and the Hug wait
+  their rows out before the idle (`rowWait`). `beholda_p2` (her first sheet's stand-in, `tools/beholda-sheet.py`) and `denny_p2` (his
+  poses as rows, `tools/denny-sheet.py`; Barley's look in the Ledger fight) stay on disk; `rascal_p2` (10-07,
   his look since) is his second round cut whole (`tools/rascal-sheet-p2.py` over `tools/sheetrows.py`: sheet 1 redone with the felt's
   face and a charcoal hat, sheet 2's Fire Bolt as his `cast`, Social Distancing, Hot Take and Going Viral rows, the bow from sheet 3; the
   rows face left so the claw arm shows; each row sized by his hat's brim, the one rigid thing he wears -- the generator drew the rows at

@@ -31,6 +31,8 @@ Checked 10-05 against `deep16/data/foes.js` (the Pocket DM's pot: every foe but 
 
 On the grid since 10-06 (`deep16/js/mpmon.js`; deep16/README.md "MPMon"): Beholda on a stand-in cut from her first sheet (`tools/beholda-sheet.py`: her front views for every facing, the projection for the gaze, no swing, no fall), Denny with TAUNT, DENIM DAMAGE and CANNONBALL rows made from his poses (`tools/denny-sheet.py`). Griz, 10-06: *"sheets aren't coming until tomorrow"*. When they come back: Beholda's goes in `deep16/_src/beholda_grok_2.<ext>` and `tools/beholda-sheet.py` cuts it (turnaround -> idle by facing; Hover -> walk; Dice Slam -> attack; VNA Bubble -> cast; Baleful Gaze -> gaze, which the Big Screen plays too; Flinch -> flinch; Fall -> hurt; Prone -> prone); Denny's goes in `deep16/_src/denny_sheet_3.<ext>` and `tools/denny-sheet.py` cuts it (Punch -> attack, in the lunge's place; Taunt -> taunt; Denim Damage -> denimdamage; Cannonball -> cannonball; Climb -> climb; Flinch -> flinch; Fall -> hurt; Prone -> prone). The design and these prompts' first draft: `..\beholda\deep16-translation.md`. Each paste is whole (they are his characters, so they carry their own reference line and their own tail, not the COMMON TAIL); attach the named sheet as the reference image.
 
+**Both came back 10-07, IN HAND** (Griz: Beholda's two pastes as one sheet, `dev/visions/beholda/Beholda Pixel Sprite Sheet.png`; Denny's sheets 3 and 4 as "sheet 3 (1 of 2)" and "(2 of 2)", `dev/visions/denny/`): `beholda_p3` by `tools/beholda-p3.py`, `denny_p3` by `tools/denny-p3.py`, both over `tools/sheetrows.py` (deep16/README.md "MPMon", the looks). The pastes below are kept for a re-roll.
+
 BEHOLDA, SHEET 2 -- attach her first sheet (the one with the Big Screen Projection row):
 
 Attached: Beholda's first sprite sheet. Draw her again exactly: the same character, the same pixel style, the same colours, the same size. A round fuzzy purple body with one big eye and a wide smile, four eyestalks with red-ringed eyes on top, cyan lightning wisps at her sides, and three dice hanging on short chains below her (a cyan d20 on the left, a magenta d10 in the middle, a lime d8 on the right).
@@ -63,15 +65,15 @@ The class is the Mascot now (`deep16/js/mpmon.js`; the MPMon lane §6): every on
 
 | Mascot | the move | the row it plays | asked for above? |
 |---|---|---|---|
-| Denny | Taunt (a bonus action now, no swing of its own) | `taunt` | yes (sheet 3) |
-| Denny | Monkey Flurry, 2nd (one more punch) | `attack` (the Punch) | yes |
-| Denny | Denim Damage's knock (3rd on) | `denimdamage` | yes |
-| Denny | Bodyguard, 6th (a reaction: he steps in the way) | **`guard`** / none | **no: GUARD, below** |
-| Denny | Lobstah Hug, 7th (a grab and a squeeze) | **`lobstahhug`** / `attack` | **no: LOBSTAH HUG, below** |
-| Beholda | Eye On It, 2nd (her stalks on a foe) | **`spot`** / `gaze` | **no: SPOT, below** |
+| Denny | Taunt (a bonus action now, no swing of its own) | `taunt` | **IN HAND 10-07: `denny_p3`, sheet 3 (1 of 2)** |
+| Denny | Monkey Flurry, 2nd (one more punch) | `attack` (the Punch) | **IN HAND 10-07: `denny_p3`, sheet 3 (1 of 2)** |
+| Denny | Denim Damage's knock (3rd on) | `denimdamage` | **IN HAND 10-07: `denny_p3`, sheet 3 (1 of 2)** |
+| Denny | Bodyguard, 6th (a reaction: he steps in the way) | `guard` | **IN HAND 10-07: `denny_p3`, sheet 3 (1 of 2)** |
+| Denny | Lobstah Hug, 7th (a grab and a squeeze) | `lobstahhug` | **IN HAND 10-07: `denny_p3`, sheet 3 (2 of 2)** |
+| Beholda | Eye On It, 2nd (her stalks on a foe) | `spot` | **IN HAND 10-07: `beholda_p3`, her second sheet** |
 | Beholda | Lucky Dice, 3rd (a passive) | none (a sparkle in code) | -- |
-| Beholda | Eye Contact, 6th (a reaction: a stare) | `gaze` | yes (sheet 2) |
-| Beholda | Spotlight, 7th (a friend Hasted) | **`spotlight`** / `cast` | **no: SPOTLIGHT, below** |
+| Beholda | Eye Contact, 6th (a reaction: a stare) | `gaze` | **IN HAND 10-07: `beholda_p3`** |
+| Beholda | Spotlight, 7th (a friend Hasted) | `spotlight` | **IN HAND 10-07: `beholda_p3`, her second sheet** |
 | Rascal | Fire Bolt, his regular blow | `cast` | **IN HAND 10-07: `rascal_p2`, sheet 2's Fire Bolt** |
 | Rascal | Scuttle, 2nd (Dash, Disengage, Hide) | `walk` | yes |
 | Rascal | Social Distancing, 5th (the ring round him cleared, no longer a cone) | `socialdistancing` | **IN HAND 10-07: `rascal_p2`, sheet 2** |

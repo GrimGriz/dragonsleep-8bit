@@ -7,7 +7,7 @@ box, and its rows -- (row, band x0 y0 x1 y1, label strip y0 y1, the labels' name
 CUT (a line of pixels cleared where one frame's feeler touches the next frame's tail), TOUCH_OK (a touch looked at and left).
 
 How a frame is cut: a pixel is figure when it is grey, not navy (blue minus red under 20; the navy's is 31-42) or far from the navy (a
-glow) -- a spec may set its own `grey` and `far` (Rascal's second round: a bluer navy, 47-66, and black bands on his tail that read 10-30). The labels' x centres are found in each strip (bright columns, clustered). Each row's band is split among its labels: the bodies'
+glow) -- a spec may set its own `grey` and `far` (Rascal's second round: a bluer navy, 47-66, and black bands on his tail that read 10-30), or `chan`, a test of each channel alone (Beholda's purple outline, Denny's grey navy, 10-07); `join` gives two numbers under one drawing one frame (Denny's Cannonball 6 and 7). The labels' x centres are found in each strip (bright columns, clustered). Each row's band is split among its labels: the bodies'
 cores (the mask eroded, a core of 200 px or more) go to the nearest label, the rest of each blob to the core that reaches it first along
 the blob (so a feeler stays with its own body), and loose bits (a stone let fly, sparkles, a honk's lines) to the nearest frame.
 """
@@ -16,9 +16,12 @@ from PIL import Image, ImageDraw
 from scipy import ndimage
 
 
-def figure_mask(a, grey=20, far=150):
+def figure_mask(a, grey=20, far=150, chan=None):
     navy = np.median(a.reshape(-1, 3)[::97], axis=0)
-    m = ((a[..., 2] - a[..., 0]) < grey) | (np.abs(a - navy).sum(-1) > far)
+    if chan:                                                        # a sheet may test each channel instead (spec `chan`): any one this far from
+        m = np.abs(a - navy).max(-1) > chan                         # its navy -- Beholda's dark purple outline is neither grey nor far by the sum,
+    else:                                                           # and Denny's navy is grey itself (blue minus red 18), 10-07
+        m = ((a[..., 2] - a[..., 0]) < grey) | (np.abs(a - navy).sum(-1) > far)
     holes = ndimage.binary_fill_holes(m) & ~m                      # pinholes only: a hole of real navy (between arm and head) stays
     lab, n = ndimage.label(holes)
     if n:
@@ -98,7 +101,7 @@ def cut_sheet(path, spec, fix=None, cuts=None, touch_ok=(), only=None, overlay=N
     figure. `only`: the rows wanted (all by default). `overlay`: a list to append the check image to (each frame tinted its own colour)."""
     fix, cuts = fix or {}, cuts or {}
     a = np.asarray(Image.open(path).convert('RGB')).astype(np.int32)
-    m = figure_mask(a, spec.get('grey', 20), spec.get('far', 150))   # (a sheet's own thresholds: Rascal's navy is bluer, 10-07)
+    m = figure_mask(a, spec.get('grey', 20), spec.get('far', 150), spec.get('chan'))   # (a sheet's own thresholds: Rascal's navy is bluer, 10-07)
     drop_text(m, spec['text'])
     out = {}
     if 'portrait' in spec and (only is None or 'portrait' in only):
@@ -116,6 +119,11 @@ def cut_sheet(path, spec, fix=None, cuts=None, touch_ok=(), only=None, overlay=N
         xs = label_xs(a, x0, x1, ly0, ly1)
         if len(xs) != len(names):
             raise SystemExit('%s %s: %d labels found at %s, %d wanted' % (tag, row, len(xs), [int(x) for x in xs], len(names)))
+        for grp in spec.get('join', {}).get(row, ()):                  # two numbers under one drawing (Denny's Cannonball 6 and 7, the dust
+            at = [names.index(nm) for nm in grp]                        # round one landing): one frame at their mean x, named '6+7'
+            mid = float(np.mean([xs[i] for i in at]))
+            xs = [mid if i == at[0] else x for i, x in enumerate(xs) if i not in at[1:]]
+            names = ['+'.join(grp) if i == at[0] else n for i, n in enumerate(names) if i not in at[1:]]
         band = np.zeros_like(m); band[y0:y1, x0:x1] = m[y0:y1, x0:x1]
         blab, bn = ndimage.label(band, structure=np.ones((3, 3)))   # specks under 6 px are noise
         sz = ndimage.sum(band, blab, range(1, bn + 1))
