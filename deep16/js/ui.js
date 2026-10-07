@@ -140,8 +140,10 @@
     var e = D.magic.list(B, u).filter(function (x) { return x.g && x.g.again; })[0];
     return e ? Object.assign(e, { kind: 'spell', label: e.name.toUpperCase(), quick: true }) : null;
   }
+  // (a Mascot's own cantrip BESIDE its ATTACK -- Rascal's Fire Bolt, 10-07, Griz: "keep the fight on the ring, but as his only spell no reason to be 3 clicks deep";
+  // by the cantrip its build knows, js/mpmon.js, so one without a cantrip gets nothing here)
   function quickSpell(B, u, map) {
-    var id = !u.guest && (map || QUICK)[u.cls], e = id && D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
+    var id = !u.guest && ((map || QUICK)[u.cls] || (map === BESIDE && u.cls === 'mpmon' && (u.known || [])[0])), e = id && D.magic.list(B, u).filter(function (x) { return x.id === id; })[0];
     return e ? Object.assign(e, { kind: 'spell', label: e.name.toUpperCase(), quick: true }) : null;
   }
   // the Channel Divinity's options, one list of their own beside SPELLS (RULED 09-30, Griz: "should the channel divinity be a button similar to
@@ -149,9 +151,9 @@
   var CHANNEL = { sacred: 1, turnundead: 1, turnunholy: 1, preservelife: 1, doubling: 1, showing: 1, holddoor: 1 };
   UI.cmds = function (B, u) {
     if (D.keeperPlay && D.keeperPlay.human(B, u)) return D.keeperPlay.ring(B, u); // (?keeperfight&play=keeper: the Keeper's own ring -- js/keeperplay.js)
-    var c = B.commands(u), top = {}, sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && FRONT[u.cls];
+    var c = B.commands(u), top = {}, sk = [], ac = [], cd = [], q = quickSpell(B, u), q2 = quickSpell(B, u, BESIDE), fr = !u.guest && (FRONT[u.cls] || (u.cls === 'mpmon' && 'mp-flurry'));
     // (x.skill: a class feature's button from js/features.js F.commands -- Rage, the Channel Divinities, the subclasses' own)
-    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (fr && x.id === fr) { top.front = x; return; } if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
+    c.forEach(function (x) { if (CHANNEL[x.id]) { cd.push(x); return; } if (fr && x.id === fr && (x.ok || u.cls !== 'mpmon')) { top.front = x; return; } /* (Denny's MONKEY FLURRY up front once he can use it, after the Attack action -- 10-07, Griz: "put denny's flurry on the bar when it activates for use please"; till then in SKILLS, greyed) */ if (SKILLS[x.id] || x.skill || (q && x.id === 'attack')) (SKILLS[x.id] || x.skill ? sk : ac).push(x); else if (ACTIONS[x.id]) ac.push(x); else top[x.id] = x; });
     if (q) top.attack = q;
     if (q2) top.beside = q2;
     var q3 = againSpell(B, u); if (q3 && !(q && q.id === q3.id) && !(q2 && q2.id === q3.id)) top.again = q3; // (Hunter's Mark moved: BESIDE has it already)
@@ -834,11 +836,12 @@
         return B.card(['{y}' + S.name + '{/}: ' + B.picks.length + ' of ' + S.n + ' aimed.  {g}X takes the last back{/}'], 100000);
       }
       if (g.shape === 'allies') {
-        if (v === 'ok') { var i = B.picks.indexOf(w); if (i >= 0) B.picks.splice(i, 1); else B.picks.push(w); }
+        if (v === 'ok') { var i = B.picks.indexOf(w); if (i >= 0 && !g.stack) B.picks.splice(i, 1); else B.picks.push(w); } // (stack: a friend clicked again takes another -- Social Sharing's dice; X takes the last back)
         else if (byKey && B.picks.length) return cast({ units: B.picks.slice() });
         else return;
         if (B.picks.length >= S.n) return cast({ units: B.picks.slice() });
-        return B.card(['{y}' + S.name + '{/}: ' + (B.picks.length ? B.picks.map(function (p) { return p.name; }).join(', ') : 'no one yet') + ' (' + B.picks.length + ' of ' + S.n + ').  {g}CAST below, or E off a target, casts with these{/}'], 100000);
+        var pn = []; B.picks.forEach(function (p) { var e = pn.filter(function (q) { return q.p === p; })[0]; if (e) e.n++; else pn.push({ p: p, n: 1 }); });
+        return B.card(['{y}' + S.name + '{/}: ' + (pn.length ? pn.map(function (q) { return q.p.name + (q.n > 1 ? ' x' + q.n : ''); }).join(', ') : 'no one yet') + ' (' + B.picks.length + ' of ' + S.n + ').  {g}CAST below, or E off a target, casts with these{/}'], 100000);
       }
       if (v !== 'ok') { // (a target the spell itself turns away: Enlarge on one already enlarged -- say why, js/magic.js targetWhy)
         var refused = w && M.targetWhy(u, g, w);
@@ -2012,7 +2015,7 @@
     if (q.guided) c.push('{y}lit up{/}');
     if (q.reckless) c.push('{o}reckless{/}');
     if (q.raging) c.push('{r}raging{/}');
-    if (q.inspired) c.push('{y}inspired{/}');
+    if (q.inspired) c.push('{y}inspired' + (q.inspired.n > 1 ? ' x' + q.inspired.n : '') + '{/}');
     if (q.countercharm) c.push('{y}countercharm{/}');
     if (q.hasted) c.push('{y}hasted{/}');
     if (q.enlarged) c.push(q.enlarged.down ? '{o}reduced{/}' : '{y}enlarged{/}');

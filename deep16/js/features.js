@@ -280,7 +280,7 @@
   F.inspire = function (u, need) {
     var c = u.conds.inspired; if (!c || need <= 0) return 0;
     var faces = +c.die.slice(1); if (need > faces) return 0;
-    var r = D.d(faces); delete u.conds.inspired; return r;
+    var r = D.d(faces); if ((c.n || 1) > 1) c.n--; else delete u.conds.inspired; return r; // (Rascal's dice stack, c.n: one spent a roll, js/mpmon.js MP.sharing)
   };
   // Cutting Words: a bard within 60 ft of the attacker, on the target's side, with a use and its reaction, and the blow within reach of the die
   F.cutting = function (B, att, tgt, over) {

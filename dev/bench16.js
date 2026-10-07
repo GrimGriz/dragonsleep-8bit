@@ -4191,6 +4191,25 @@
       var h8 = m8.hp; pin(19, 'max'); runM(FM.exec(B8, d8, { do: 'mp-denim', target: m8 }), 1); D.d = dM;
       okM('a darkmantle over Denny\'s head (blinded ' + !!d8.conds.blinded + '): his aim at his own square ' + t8.join(', ') + '; DENIM DAMAGE at it ' + (m8.hp < h8 ? 'lands (' + (h8 - m8.hp) + ')' : 'misses or is refused'),
         c8.length === 2 && t8.every(function (s) { return /darkmantle/i.test(s); }) && m8.hp < h8);
+
+      // the first ring (10-07, Griz, after the show): Rascal's Fire Bolt beside his ATTACK ("as his only spell no reason to be 3 clicks deep"), and Denny's MONKEY FLURRY
+      // up front once it can be used ("put denny's flurry on the bar when it activates for use please") -- in SKILLS before the Attack action, on the first ring after
+      var B9 = mkB(['denny:5', 'beholda:5', 'rascal:5'], ['goblin'], 5), p9 = sideM(B9, 'party'), g9 = sideM(B9, 'foe')[0]; p9.forEach(function (u) { u.guest = false; u.classAI = false; });
+      var dn9 = p9.filter(function (u) { return u.mpmon === 'denny'; })[0], bh9 = p9.filter(function (u) { return u.mpmon === 'beholda'; })[0], rc9 = p9.filter(function (u) { return u.mpmon === 'rascal'; })[0];
+      spotM(B9, dn9, 8, 8); spotM(B9, bh9, 7, 8); spotM(B9, rc9, 7, 9); spotM(B9, g9, 9, 8); p9.forEach(function (u) { RUM.startTurn(u); }); B9.active = rc9;
+      var top9 = function (u) { return D.ui.cmds(B9, u).map(function (c) { return c.id; }); };
+      var r9 = top9(rc9), dA = top9(dn9); dn9.turn.attackAction = true; dn9.turn.action = 0; var dB = top9(dn9);
+      okM('the first ring: Rascal ' + r9.join(',') + ' | Denny before the Attack ' + dA.join(',') + ' | after it ' + dB.join(','),
+        r9.indexOf('attack') >= 0 && r9.indexOf('firebolt') >= 0 && dA.indexOf('mp-flurry') < 0 && dB.indexOf('mp-flurry') >= 0);
+
+      // Social Sharing's dice stack (10-07, Griz, after the show: "Rascal cannot put more than one die on a friend ... ability dies with 5 dice he can't distribute"):
+      // his picks Denny, Denny, Beholda and himself -- two on Denny, one on Beholda, none on him (the aim won't take him); Denny spends his one a roll
+      var shG = FM.commands(B9, rc9).filter(function (c) { return c.id === 'mp-sharing'; })[0], selfOK = shG && D.magic.targetKind(B9, rc9, shG.aim, rc9);
+      runM(FM.exec(B9, rc9, { do: 'mp-sharing', target: { units: [dn9, dn9, bh9, rc9] } }), 1);
+      var hold9 = [dn9, bh9, rc9].map(function (u) { return u.name + ' ' + (u.conds.inspired ? (u.conds.inspired.n || 1) + 'x' + u.conds.inspired.die : 'none'); });
+      var s1 = D.features.inspire(dn9, 1), left1 = dn9.conds.inspired && dn9.conds.inspired.n, s2 = D.features.inspire(dn9, 1), left2 = !!dn9.conds.inspired;
+      okM('Social Sharing at 5: ' + hold9.join(', ') + ' (the aim takes Rascal: ' + !!selfOK + '); Denny spends ' + s1 + ', ' + left1 + ' left, then ' + s2 + ', none left ' + !left2 + (shG ? '' : ' -- no SOCIAL SHARING on his ring'),
+        !!shG && !selfOK && (dn9.conds.inspired ? false : true) && /Denny 2x/.test(hold9[0]) && /Beholda 1x/.test(hold9[1]) && /none/.test(hold9[2]) && s1 > 0 && left1 === 1 && s2 > 0 && !left2);
       // one gaze a turn (RULED 10-07, Griz: "if used as action, disabled for bonus use"): after the bonus gaze both buttons shut; the action gaze an action special
       var gzB = FM.commands(B7, p7[1]).filter(function (c) { return c.id === 'mp-gaze' || c.id === 'mp-gazea'; });
       okM('one gaze a turn: after the bonus gaze ' + gzB.map(function (c) { return c.label + (c.ok ? '' : '(x: ' + c.why + ')'); }).join(', '), gzB.length === 2 && gzB.every(function (c) { return !c.ok && /one gaze a turn/.test(c.why); }));
@@ -4241,8 +4260,9 @@
       RUM.startTurn(rs1); var spR = MPM.left(rs1, 'B'); runM(MPM.sharing(BR1, rs1));
       okM('Social Sharing at 5, a bonus action: Denny holds a ' + (dR.conds.inspired && dR.conds.inspired.die) + ' (want d8), Aurdin 50 ft off holds ' + (aR.conds.inspired ? 'one' : 'none') + ', a bonus special spent (' + spR + ' -> ' + MPM.left(rs1, 'B') + '), the bonus ' + rs1.turn.bonus + ', the action kept' + rs1.turn.action,
         dR.conds.inspired && dR.conds.inspired.die === 'd8' && !aR.conds.inspired && MPM.left(rs1, 'B') === spR - 1 && rs1.turn.bonus === 0 && rs1.turn.action > 0);
+      var hdR = function (w) { return w && w.conds.inspired ? (w.conds.inspired.n || 1) : 0; }, nR0 = hdR(dR); // (his dice stack since 10-07: Aurdin out of reach, all of them on Denny)
       pin(9, 'max'); RUM.startTurn(dR); var hh0 = hR.hp; runM(BR1.attack(dR, hR, dR.weapon)); D.d = dM;
-      okM('the die at work: Denny\'s 9 + 7 on AC 18, the d8 at its top -> ' + (hR.hp < hh0 ? 'a hit' : 'a miss') + ' (' + hh0 + ' -> ' + hR.hp + '), the die ' + (dR.conds.inspired ? 'kept' : 'spent'), hR.hp < hh0 && !dR.conds.inspired);
+      okM('the die at work: Denny\'s 9 + 7 on AC 18, the d8 at its top -> ' + (hR.hp < hh0 ? 'a hit' : 'a miss') + ' (' + hh0 + ' -> ' + hR.hp + '), one die spent of ' + nR0 + ' (' + hdR(dR) + ' left)', hR.hp < hh0 && hdR(dR) === nR0 - 1);
       // Social Flame: 20 ft round the middle goblin at 5, 5d6 to each that fails
       var BR2 = mkB(['rascal:5'], ['goblin', 'goblin', 'goblin'], 5), rs2 = sideM(BR2, 'party')[0], g2 = sideM(BR2, 'foe'); spotM(BR2, rs2, 4, 8); spotM(BR2, g2[0], 10, 8); spotM(BR2, g2[1], 11, 8); spotM(BR2, g2[2], 11, 9);
       g2.forEach(function (g) { g.hp = g.maxhp = 200; });

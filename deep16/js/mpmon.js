@@ -456,14 +456,22 @@
   // "distributes Rascal's action dice to other lobstamonkees at round start", never an attack): the hat comes off and he bows -- MP.shareN friends within 30 ft
   // (1; 3 at 5th, 5 at 9th), the player's picks or the hardest hitters, each get a Social die (a d4; a d8 at 5th, a d12 at 9th), spent where it turns a miss
   // into a hit or a failed save into a saved one (the bard's inspiration: js/features.js F.inspire, one die a creature)
-  MP.shareable = function (B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && standing(w) && !w.familiar && !w.conds.inspired && G.dist(u, w) <= 30; }); };
-  MP.shareTargets = function (B, u) { return MP.shareable(B, u).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); }).slice(0, MP.shareN(u.lvl)); };
+  // (his dice, as many as he likes on one friend -- 10-07, Griz, after the show: "Rascal cannot put more than one die on a friend. Several attempts in my record, ability
+  // dies with 5 dice he can't distribute": a friend with a die takes more, each its own roll that needs it, js/features.js F.inspire; never on himself)
+  MP.shareable = function (B, u) { return B.units.filter(function (w) { return w !== u && w.side === u.side && standing(w) && !w.familiar && G.dist(u, w) <= 30; }); };
+  // the AI's spread: the hardest hitters without a die first, then round again, till his dice are out
+  MP.shareTargets = function (B, u) {
+    var fs = MP.shareable(B, u).sort(function (a, b) { return (a.conds.inspired ? 1 : 0) - (b.conds.inspired ? 1 : 0) || TX.dpr(b) - TX.dpr(a); }), out = [];
+    for (var i = 0; fs.length && i < MP.shareN(u.lvl); i++) out.push(fs[i % fs.length]);
+    return out;
+  };
   MP.sharing = function* (B, u, picks) {
-    var ok = MP.shareable(B, u), list = picks && picks.length ? picks.filter(function (w) { return ok.indexOf(w) >= 0; }).slice(0, MP.shareN(u.lvl)) : MP.shareTargets(B, u), die = MP.shareDie(u.lvl);
+    var ok = MP.shareable(B, u), all = picks && picks.length ? picks.filter(function (w) { return ok.indexOf(w) >= 0; }).slice(0, MP.shareN(u.lvl)) : MP.shareTargets(B, u), die = MP.shareDie(u.lvl);
+    var list = [], n = {}; all.forEach(function (w) { if (!n[w.id]) list.push(w); n[w.id] = (n[w.id] || 0) + 1; }); // (a friend picked twice holds two)
     spend(u); u.turn.bonus = 0;
     u.anim = rowOr(u, 'socialsharing', 'cast'); u.animT = B.t; D.sfx('buff');
-    list.forEach(function (w) { w.conds.inspired = { die: die, by: u.id }; FX.sparkle(w, 'gold', 14); });
-    B.card(['{y}' + u.name + '{/}: SOCIAL SHARING!  {g}(the hat comes off; a bow){/}  a ' + die + ' to ' + (list.length ? list.map(function (w) { return w.name; }).join(', ') : 'no one near') + '  {g}(for a roll that needs it; ' + leftText(u) + '){/}'], 340);
+    list.forEach(function (w) { var c = w.conds.inspired, k = n[w.id] + (c ? c.n || 1 : 0), d = c && +c.die.slice(1) > +die.slice(1) ? c.die : die; w.conds.inspired = { die: d, by: u.id, n: k }; FX.sparkle(w, 'gold', 14); });
+    B.card(['{y}' + u.name + '{/}: SOCIAL SHARING!  {g}(the hat comes off; a bow){/}  a ' + die + ' to ' + (list.length ? list.map(function (w) { return w.name + (n[w.id] > 1 ? ' x' + n[w.id] : ''); }).join(', ') : 'no one near') + '  {g}(for a roll that needs it; ' + leftText(u) + '){/}'], 340);
     yield 30;
     u.anim = 'idle';
   };
@@ -1080,7 +1088,7 @@
     }
     if (u.mpSub === 'tank') { if (tauntWorth(B, u)) yield* MP.taunt(B, u); return; }
     if (u.mpSub === 'dps' && MP.left(u, 'B') > 0) {
-      var sh = MP.shareTargets(B, u);
+      var sh = MP.shareable(B, u).filter(function (w) { return !w.conds.inspired; }); // (the AI shares when two friends near have no die; its dice spread, MP.shareTargets)
       if (sh.length >= Math.min(2, MP.shareN(u.lvl))) yield* MP.sharing(B, u);
     }
   });
@@ -1130,7 +1138,7 @@
     }
     if (u.mpSub === 'dps') {
       var sh = MP.shareable(B, u);
-      add('mp-sharing', 'SOCIAL SHARING', 'B', 'sacred', whyB(sh, 'no friend within 30 ft without a die'), 'the hat comes off, a bow: ' + (MP.shareN(L) > 1 ? 'up to ' + MP.shareN(L) + ' friends' : 'a friend') + ' within 30 ft each get a ' + MP.shareDie(L) + ' for a roll that needs it; ' + leftText(u), { shape: 'allies', side: 'ally', range: 30, n: MP.shareN(L), kind: 'buff' }, (MP.shareN(L) > 1 ? 'up to ' + MP.shareN(L) + ' friends' : 'a friend') + ' within 30 ft');
+      add('mp-sharing', 'SOCIAL SHARING', 'B', 'sacred', whyB(sh, 'no friend within 30 ft'), 'the hat comes off, a bow: ' + (MP.shareN(L) > 1 ? MP.shareN(L) + ' dice, a ' + MP.shareDie(L) + ' each, among friends within 30 ft (click a friend again for another)' : 'a ' + MP.shareDie(L) + ' to a friend within 30 ft') + ', each for a roll that needs it; ' + leftText(u), { shape: 'allies', side: 'ally', range: 30, n: MP.shareN(L), kind: 'buff', stack: true, others: true }, (MP.shareN(L) > 1 ? MP.shareN(L) + ' dice among friends within 30 ft, again on a friend for another' : 'a friend within 30 ft'));
       var fl = MP.flameTargets(B, u);
       add('mp-flame', 'SOCIAL FLAME', 'A', 'attack', whyA(fl, 'no foe you see within 60 ft'), 'a ball of fire at a point within 60 ft, ' + MP.flameR(L) + ' ft round: everyone in it (friends too) DEX DC ' + u.spellDC + ' or ' + MP.flameDice(L) + ' fire, half on a save; ' + leftText(u), { shape: 'sphere', range: 60, r: MP.flameR(L), see: true, kind: 'save', el: 'fire' }, 'a point within 60 ft (' + MP.flameR(L) + ' ft round it burns)');
       if (L >= 5) { var dz = MP.distCatch(B, u).foes; add('mp-distancing', 'SOCIAL DISTANCING', 'A', 'surge', whyA(dz, 'no foe within ' + MP.distR(L) + ' ft of you'), 'everyone within ' + MP.distR(L) + ' ft of you: WIS DC ' + u.spellDC + ' or ' + MP.distDice(L) + ' psychic, SHOVED out of the ring and FRIGHTENED of you till its turn ends; half on a save; ' + leftText(u)); }

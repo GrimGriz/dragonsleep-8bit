@@ -115,13 +115,14 @@
         return [flat === 2 && dn.x !== x0, 'Denny ' + Math.abs(dn.x - x0) * 5 + ' ft through the air; ' + flat + ' prone; ' + [gob[0], gob[1]].map(function (w) { return w.maxhp - w.hp; }).join('/') + ' damage'];
       } },
       // Rascal's three (10-06): the hat-removing bow, the dance with the claw clapping, the cone that sends them running
-      { id: 'sharing', name: 'Social Sharing', what: 'Rascal sweeps off his hat and bows, a bonus action: Denny and Beholda each get a ' + MP.shareDie(L) + '. Then Denny swings at the hobgoblin (AC 18) with his d20 pinned a point short -- and the die, rolled at its top, turns it into a hit.', run: function* () {
+      { id: 'sharing', name: 'Social Sharing', what: 'Rascal sweeps off his hat and bows, a bonus action: Denny and Beholda share his ' + MP.shareN(L) + ' dice, a ' + MP.shareDie(L) + ' each, more than one on a friend when he has them. Then Denny swings at the hobgoblin (AC 18) with his d20 pinned a point short -- and the die, rolled at its top, turns it into a hit.', run: function* () {
         stage([[rs, 0, 0], [dn, 2, 0], [bh, -1, 1], [hob, 3, 0, 60]], rs);
         RU.startTurn(rs); yield* act(rs, MP.sharing(B, rs));
         var got = [dn, bh].filter(function (w) { return w.conds.inspired; }).length, h0 = hob.hp, d20 = RU.ac(hob) - 1 - dn.weapon.atk;
+        var hd = function (w) { return w && w.conds.inspired ? (w.conds.inspired.n || 1) : 0; }, n0 = hd(dn);
         RU.startTurn(dn); var lg = yield* act(dn, B.attack(dn, hob, dn.weapon), d20, null, true);
-        var hit = hob.hp < h0, spent = !dn.conds.inspired;
-        return [got === 2 && hit && spent, got + ' of 2 hold a die; Denny\'s ' + d20 + ' + ' + dn.weapon.atk + ' = ' + (d20 + dn.weapon.atk) + ' on AC ' + RU.ac(hob) + ' ' + (hit ? 'turned into a hit by the die' : 'missed') + ' (' + h0 + ' -> ' + hob.hp + ' HP), the die ' + (spent ? 'spent' : 'kept')];
+        var hit = hob.hp < h0, spent = hd(dn) === n0 - 1; // (one die spent of those he held: they stack since 10-07)
+        return [got === 2 && hit && spent, got + ' of 2 hold a die; Denny\'s ' + d20 + ' + ' + dn.weapon.atk + ' = ' + (d20 + dn.weapon.atk) + ' on AC ' + RU.ac(hob) + ' ' + (hit ? 'turned into a hit by the die' : 'missed') + ' (' + h0 + ' -> ' + hob.hp + ' HP), the die ' + (spent ? 'spent (' + hd(dn) + ' left)' : 'kept')];
       } },
       { id: 'flame', name: 'Social Flame', what: 'Rascal dances, the claw clapping over his head, and a ball of fire bursts round the middle goblin of three (60 HP each), ' + MP.flameR(L) + ' ft out from it: their DEX saves pinned at 2, the dice at their top -- ' + MP.flameDice(L) + ' fire each. Denny and Beholda stand well back.', run: function* () {
         stage([[rs, 0, 0], [dn, -3, -3], [bh, -3, 3], [gob[0], 5, 0, 60], [gob[1], 6, 1, 60], [gob[2], 6, -1, 60]], gob[1]);

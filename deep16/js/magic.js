@@ -220,6 +220,7 @@
   // is w the kind of creature this spell takes, wherever it stands (the side, the type, the spell's own refusals)? M.targetOK adds reach and sight
   M.targetKind = function (B, u, g, w) {
     if (!w || w.dead || w.ethereal) return false;
+    if (g.others && w === u) return false; // (others: the aimer is never one of them -- Rascal's Social Sharing, 10-07: his picks of himself went nowhere)
     // an object (the Skylights' glass) is no creature: a spell whose SRD 5.1 words say "a creature" never takes it; `obj` on the spell's geometry (data/spells.js) marks
     // the ones whose words take an object (10-05 evening, Griz, Sanctuary cast on the glass: "maybe only that one specific one can target the glass at all?")
     if (w.object && (!g.obj || w.spellProof)) return false;
