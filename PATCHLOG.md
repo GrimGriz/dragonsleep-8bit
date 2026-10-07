@@ -4,6 +4,9 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · seen · MPMon · Goose, the sheet and the build (`eyes-goose-sheet-1007`, `eyes-goose-show-1007`, cut) · *"He looks great."*
+- 2026-10-07 · ruled · MPMon · The names HEART TO HEART and GROUP HUG stay · *"1 - keep them, good call"*
+- 2026-10-07 · ruled · MPMon · The bench of the Mascots against the classes waits for the other three's new animations · *"2 - Additional animations coming in for the other lobstamonkees, will bench after."*
 - 2026-10-07 · `141a647` · MPMon · Goose built, the fourth Mascot: Heart to Heart, Group Hug, Honk, Big Heart, Fountain, Not Today, Lifeline, his heals in green; `?mpshow&lvl=7&only=heart,group,fountain,honk,nottoday,lifeline` · *"I asked that session if it needed a second sheet and it said no"* (the draft, recovered from that seat's 10-06 night message)
 - 2026-10-07 · ruled · MPMon · Goose's size on the sheet, about two-thirds of Denny · *"1 yes"*
 - 2026-10-07 · `141a647` · MPMon · A swing a fight dropped mid-blow no longer lingers into the next battle's Hivemind heat or Lucky Dice (found by Goose's checks)
