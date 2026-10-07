@@ -16,7 +16,11 @@ Rows, 12 frames to a line, frame f at 7.5 * f degrees clockwise:
   spin  48 frames, sharp. Frame 4k rests a sign under the window: `rest` in the json names which.
   blur  48 frames at the same angles, each smeared over 22.5 degrees, for the fast part of a spin (stepping sharp
         frames faster than half a cell a tick reads as the wheel going backwards).
-The anchor (ax, ay) is the wheel's centre on the floor: lay it on iso.center of the middle square.
+  rise  8 rows, one column for each resting sign (column k rests rest[k]): row 0 flush in the floor and dormant, its
+        colours pulled toward the floor's (Griz, 10-07: "one without the edge that blends in with the surroundings, then
+        we'll use the one with the ledge as it rising up as it is activated"), the highlight lit halfway, the last row
+        risen on its ledge -- spin frame 4k. Backwards, it sinks.
+The anchor (ax, ay) is where the wheel's centre meets the floor: lay it on iso.center of the middle square.
 """
 import json, math, os, sys
 import numpy as np
@@ -46,7 +50,10 @@ WINDOW = (-30, 29, -299, -263)    # the highlight's window: his patch, widened t
 SIGNS = ['pisces', 'aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius']  # clockwise from 12
 
 STEP, FRAMES, COLS, BLUR_ARC, BLUR_N = 7.5, 48, 12, 22.5, 9
-SIDE = 2                          # the board's edge, seen on the near side (px)
+SIDE = 2                          # the board's edge, seen on the near side when it has risen (px)
+RISE = 8                          # frames from flush in the floor to risen
+DORMANT = 0.75                    # flush, how far every colour is pulled toward the floor's
+FLOOR = np.array([0x5c, 0x48, 0x38], np.float32)   # the floor's middle stone (palette stone 4, DEEP16's default rock)
 SS = 4                            # samples a pixel, each way, for what comes from his art
 
 PAL = json.load(open(os.path.join(ROOT, 'deep16', 'palette.json'), encoding='utf-8'))['ramps']
@@ -61,6 +68,22 @@ SUBSET_LAB = PX.to_lab(SUBSET / 255.0)
 def snap(rgb):
     d = ((PX.to_lab(rgb / 255.0)[..., None, :] - SUBSET_LAB[None, None]) ** 2).sum(-1)
     return SUBSET[d.argmin(-1)]
+
+
+def dull(b):
+    """each of the face's colours pulled b of the way to the floor's, snapped to the palette -- the face's own colours kept
+    apart at every step (left to the nearest, the red cells and their streaks fell into one colour midway and the streaks
+    blinked as the wheel rose)."""
+    lab = PX.PAL_LAB.reshape(-1, 3)
+    used, out = [], []
+    for c in (BLACK, RED, RED_DK, SIGN, SHADOW, NAVY, RED_SIDE, OUTLINE):
+        t = PX.to_lab(((c * (1 - b) + FLOOR * b) / 255.0)[None, None])[0, 0]
+        order = np.argsort(((lab - t) ** 2).sum(-1))
+        keep = len(used) < 5                                       # the first five stay apart; the rest take the nearest
+        i = next(j for j in order if not keep or j not in used)
+        used.append(i)
+        out.append((c, PX.PAL_RGB.reshape(-1, 3)[i].astype(np.float32)))
+    return out
 
 
 def layers():
@@ -120,19 +143,10 @@ class Wheel:
         self.su = (px[..., None, None] + 0.5 + o[None, None, None, :] - self.cx) * R_OUT / self.A
         self.sv = (py[..., None, None] + 0.5 + o[None, None, :, None] - self.cy) * R_OUT / self.B
         self.sign, self.shadow, self.red = layers()
-        # the board: its face, its near edge, the outline round both
+        # the board's face, at its risen place; compose() sets it down into the floor and draws its edge and outline
         self.face = self.r <= R_OUT
         rim = edge(-self.r, -R_OUT, self.face)                                  # the face's own last pixel
         self.rim = rim | (self.face & (self.r >= R_RIM))
-        side = np.zeros_like(self.face)
-        for t in range(1, SIDE + 1):
-            side |= np.roll(self.face, t, 0)
-        self.side = side & ~self.face
-        body = self.face | self.side
-        nb = np.zeros_like(body)
-        for sh in ((1, 0), (-1, 0), (0, 1), (0, -1)):
-            nb |= np.roll(body, sh, (0, 1))
-        self.outline = nb & ~body
         x0, x1, y0, y1 = WINDOW
         self.window = (self.u >= x0) & (self.u <= x1) & (self.v >= y0) & (self.v <= y1)
 
@@ -144,7 +158,7 @@ class Wheel:
         return map_coordinates(plane, [y.ravel(), x.ravel()], order=1, mode='nearest').reshape(x.shape).mean((-1, -2))
 
     def render(self, theta):
-        """one frame, the wheel turned theta degrees clockwise: RGB (palette colours) and the alpha."""
+        """the wheel's face turned theta degrees clockwise, RGB in palette colours (meaningful on self.face)."""
         r, psi = self.r, (self.phi - theta) % 360
         img = np.zeros((self.H, self.W, 3), np.float32)
         img[...] = BLACK
@@ -170,24 +184,50 @@ class Wheel:
         img[wrap_edge(g, band | ((r >= R_HAIR) & (r < R_BAND[0])) | ((r >= R_BAND[1]) & (r < R_RIM)))] = RED   # the band's dividers
         img[edge(r, R_BANDLINE, (r >= R_BAND[1]) & (r < R_RIM))] = RED
         img[self.rim] = RED
-        img[self.side] = RED_SIDE
-        img[self.outline] = OUTLINE
-        alpha = (self.face | self.side | self.outline)
-        return img, alpha
+        return img
 
-    def frame(self, theta, blur=False):
+    def compose(self, face, lift=SIDE, wake=1.0):
+        """the face set into the floor: lift px above it (0 flush, SIDE risen, the near edge showing below), the outline
+        once it stands off the floor; wake < 1 pulls every colour toward the floor's (the dormant wheel, his "blends in
+        with the surroundings"), snapped back to the palette."""
+        d = SIDE - lift
+        fm, img = np.roll(self.face, d, 0), np.roll(face, d, 0)
+        side = np.zeros_like(fm)
+        for t in range(1, lift + 1):
+            side |= np.roll(fm, t, 0)
+        side &= ~fm
+        body = fm | side
+        outline = np.zeros_like(fm)
+        if lift > 0:
+            for sh in ((1, 0), (-1, 0), (0, 1), (0, -1)):
+                outline |= np.roll(body, sh, (0, 1))
+            outline &= ~body
+        img = img.copy()
+        if wake < 0.5:
+            img[np.roll(self.window & (self.r >= R_BAND[0]) & (self.r < R_BAND[1]), d, 0) & np.all(img == NAVY, -1)] = BLACK   # the highlight lights halfway up
+        img[side] = RED_SIDE
+        img[outline] = OUTLINE
+        alpha = body | outline
+        b = DORMANT * (1 - wake)
+        if b > 0:
+            masks = [(alpha & np.all(img == c, -1), to) for c, to in dull(b)]   # every mask from the face as it was, then paint
+            for m, to in masks:
+                img[m] = to
+        out = np.zeros((self.H, self.W, 4), np.uint8)
+        out[..., :3] = img.astype(np.uint8)
+        out[..., 3] = np.where(alpha, 255, 0)
+        return out
+
+    def frame(self, theta, blur=False, lift=SIDE, wake=1.0):
         if not blur:
-            img, al = self.render(theta)
+            face = self.render(theta)
         else:
             acc = None
             for i in range(BLUR_N):
-                im, al = self.render(theta - BLUR_ARC / 2 + BLUR_ARC * i / (BLUR_N - 1))
+                im = self.render(theta - BLUR_ARC / 2 + BLUR_ARC * i / (BLUR_N - 1))
                 acc = im if acc is None else acc + im
-            img = snap(acc / BLUR_N)
-        out = np.zeros((self.H, self.W, 4), np.uint8)
-        out[..., :3] = img.astype(np.uint8)
-        out[..., 3] = np.where(al, 255, 0)
-        return out
+            face = snap(acc / BLUR_N)
+        return self.compose(face, lift, wake)
 
 
 def main():
@@ -195,18 +235,27 @@ def main():
     name = 'zodiacwheel_p1' if n == 5 else 'zodiacwheel%d_p1' % n
     w = Wheel(n)
     rows = FRAMES // COLS
-    sheet = np.zeros((w.H * rows * 2, w.W * COLS, 4), np.uint8)
+    sheet = np.zeros((w.H * (rows * 2 + RISE), w.W * COLS, 4), np.uint8)
     for b, blur in enumerate((False, True)):
         for f in range(FRAMES):
             y, x = (b * rows + f // COLS) * w.H, (f % COLS) * w.W
             sheet[y:y + w.H, x:x + w.W] = w.frame(f * STEP, blur)
+    for k in range(12):                                   # the rise from each resting sign: column k, its steps down the rows
+        face = w.render(30 * k)
+        for i in range(RISE):
+            wake = i / (RISE - 1)
+            y, x = (rows * 2 + i) * w.H, k * w.W
+            sheet[y:y + w.H, x:x + w.W] = w.compose(face, int(round(SIDE * wake)), wake)
     Image.fromarray(sheet, 'RGBA').save(os.path.join(ART, name + '.png'), optimize=True)
     meta = {
-        '_note': 'his zodiac wheel flat on the floor (tools/wheel-sheet.py): frame f is the wheel turned 7.5*f degrees clockwise; '
-                 'frame 4k rests rest[k] under the highlight; blur is the same angles smeared, for a fast spin; (ax, ay) the centre on the floor',
-        'image': 'art/' + name + '.png', 'squares': n, 'fw': w.W, 'fh': w.H, 'ax': w.cx, 'ay': w.cy, 'cols': COLS,
-        'degPerFrame': STEP, 'framesPerSign': int(30 / STEP),
-        'anims': {'spin': {'row': 0, 'frames': FRAMES}, 'blur': {'row': rows, 'frames': FRAMES}},
+        '_note': 'his zodiac wheel on the floor (tools/wheel-sheet.py): spin frame f is the wheel risen and turned 7.5*f degrees clockwise, '
+                 'frame 4k resting rest[k] under the highlight; blur the same angles smeared, for a fast spin; rise column k is the wheel '
+                 'resting on rest[k] from flush in the floor (row 0, dormant, its colours pulled to the floor) to risen (the last row, '
+                 'the same as spin frame 4k); play it backwards to sink. (ax, ay) is where its centre meets the floor.',
+        'image': 'art/' + name + '.png', 'squares': n, 'fw': w.W, 'fh': w.H, 'ax': w.cx, 'ay': w.cy + SIDE, 'cols': COLS,
+        'degPerFrame': STEP, 'framesPerSign': int(30 / STEP), 'lift': SIDE,
+        'anims': {'spin': {'row': 0, 'frames': FRAMES}, 'blur': {'row': rows, 'frames': FRAMES},
+                  'rise': {'row': rows * 2, 'frames': RISE, 'bySign': True}},
         'signs': SIGNS,
         'rest': [SIGNS[(-k) % 12] for k in range(12)],
     }

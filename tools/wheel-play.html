@@ -1,12 +1,16 @@
 <!doctype html>
 <meta charset="utf-8">
 <title>Zodiac wheel</title>
-<!-- His zodiac wheel (dev/visions/wheel.webp) flat on a DEEP16 floor, from the sheet tools/wheel-sheet.py cuts (10-07).
-     It rests on a sign until it is set going: click the wheel or SPIN for a sign by chance, or a sign's button to land there.
-     tools/wheel-play.html?z=3              (z: the zoom)
-     tools/wheel-play.html?both             (the 3-across cut beside the 5, for size)
-     Frame f of a row is the wheel turned 7.5*f degrees clockwise; frame 4k rests json.rest[k] under the highlight. The fast part
-     of a spin plays the blur row (sharp frames stepped faster than half a cell a tick read as the wheel turning backwards). -->
+<!-- His zodiac wheel (dev/visions/wheel.webp) on a DEEP16 floor, from the sheets tools/wheel-sheet.py cuts (10-07).
+     It lies flush in the floor, dormant, till it is set going: then it rises onto its ledge and spins, and rests on the sign it
+     lands on. Click the wheel or SPIN for a sign by chance, a sign's button to land there, SINK to set it back into the floor.
+     tools/wheel-play.html?z=3        (z: the zoom)
+     tools/wheel-play.html?both       (the 3-across beside the 5)
+     tools/wheel-play.html?scene      (his notion, 10-07: the big wheel the entrance at the lobstamonkee lighthouse; the small one
+                                       appears on the ground in the next scene, and the party pops out of it and lands around it;
+                                       the exit spins counter-clockwise, his "can you spin opposite direction on exit")
+     A sheet's spin frame f is the wheel turned 7.5*f degrees clockwise, frame 4k resting json.rest[k] under the highlight; the fast
+     part of a spin plays the blur row; rise column k goes from flush (row 0) to risen with rest[k] under the highlight. -->
 <style>
   body { background: #2b2e2b; color: #ddd; font: 13px system-ui, sans-serif; margin: 16px; }
   h1 { font-size: 16px; margin: 0 0 4px; } p { margin: 0 0 12px; color: #aaa; }
@@ -16,95 +20,215 @@
   button:hover { background: #46362c; } button.go { background: #801c1c; border-color: #e8624a; font-weight: 600; }
   #out { color: #ffe08a; margin-left: 8px; min-width: 200px; }
   .cap { color: #999; font-size: 11px; margin: 4px 0 14px; }
+  #title { color: #f8d67a; font-size: 15px; letter-spacing: 1px; min-height: 20px; margin: 6px 0; }
 </style>
 <h1>Zodiac wheel</h1>
-<p>His wheel lying flat on the floor. The highlight stays put and the wheel turns under it. It holds its sign until it is set going.</p>
-<div class="bar"><button class="go" id="spin">SPIN</button><span id="signs"></span><span id="out"></span></div>
+<p id="lede">His wheel lies flush in the floor until it is set going. Then it rises onto its ledge and spins, and the highlight stays put while the signs turn under it.</p>
+<div class="bar" id="bar"><button class="go" id="spin">SPIN</button><button id="sink">SINK</button><span id="signs"></span><span id="out"></span></div>
+<div id="title"></div>
 <div id="stages"></div>
 <script>
 (function () {
-  var q = new URLSearchParams(location.search), Z = +q.get('z') || 3, BOTH = q.has('both');
+  var q = new URLSearchParams(location.search), Z = +q.get('z') || 3, BOTH = q.has('both'), SCENE = q.has('scene');
   var NAMES = { pisces: 'Pisces', aries: 'Aries', taurus: 'Taurus', gemini: 'Gemini', cancer: 'Cancer', leo: 'Leo', virgo: 'Virgo',
     libra: 'Libra', scorpio: 'Scorpio', sagittarius: 'Sagittarius', capricorn: 'Capricorn', aquarius: 'Aquarius' };
   var STONE = ['#161110', '#241c18', '#342822', '#46362c', '#5c4838', '#765e4a', '#94795f', '#b49a7c'];   // deep16/palette.json's stone
-  var HW = 32, HH = 16;
+  var HW = 32, HH = 16, RISE_FPS = 12;
+  var BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  var out = document.getElementById('out'), title = document.getElementById('title');
+  function now() { return performance.now() / 1000; }
   function load(name) {
     return fetch('../deep16/art/' + name + '.json?v=' + Date.now()).then(function (r) { return r.json(); }).then(function (m) {
       return new Promise(function (ok) { var im = new Image(); im.onload = function () { ok({ m: m, im: im }); }; im.src = '../deep16/' + m.image + '?v=' + Date.now(); });
     });
   }
   function h2(x, y) { var h = Math.imul(x, 374761393) + Math.imul(y, 668265263); h = Math.imul(h ^ (h >>> 13), 1274126177); return ((h ^ (h >>> 16)) >>> 0) / 4294967296; }
-  // a floor of n x n squares, the stone ramp, a darker seam between squares
-  function floor(n) {
+  // a floor of n x n squares in the stone ramp, a darker seam between squares; seed varies the scene
+  function floor(n, seed) {
     var c = document.createElement('canvas'); c.width = n * 64; c.height = n * 32 + 2;
     var x = c.getContext('2d'), ox = n * HW;
     for (var gy = 0; gy < n; gy++) for (var gx = 0; gx < n; gx++) {
-      var cx = ox + (gx - gy) * HW, cy = (gx + gy) * HH + HH, k = h2(gx, gy);
+      var cx = ox + (gx - gy) * HW, cy = (gx + gy) * HH + HH, k = h2(gx + seed * 31, gy);
       x.fillStyle = STONE[k < 0.3 ? 3 : k < 0.85 ? 4 : 5];
       x.beginPath(); x.moveTo(cx, cy - HH); x.lineTo(cx + HW, cy); x.lineTo(cx, cy + HH); x.lineTo(cx - HW, cy); x.closePath(); x.fill();
       x.strokeStyle = STONE[2]; x.lineWidth = 1; x.stroke();
     }
-    return { c: c, center: function (gx, gy) { return { x: ox + (gx - gy) * HW, y: (gx + gy) * HH + HH }; } };
+    return { c: c, n: n, center: function (gx, gy) { return { x: ox + (gx - gy) * HW, y: (gx + gy) * HH + HH }; } };
   }
-  function stage(S, n) {
-    var fl = floor(n), cv = document.createElement('canvas'), m = S.m;
-    cv.width = fl.c.width; cv.height = fl.c.height;
-    cv.style.width = cv.width * Z + 'px';
-    var cap = document.createElement('div'); cap.className = 'cap';
-    cap.textContent = m.squares + ' squares across (' + m.squares * m.squares + ' tiles): ' + m.fw + ' x ' + m.fh + ' px a frame, ' + m.anims.spin.frames + ' spin + ' + m.anims.blur.frames + ' blur frames';
-    var wrap = document.getElementById('stages'); wrap.appendChild(cv); wrap.appendChild(cap);
-    var mid = (n - 1) / 2, at = fl.center(mid, mid);
-    var W = { S: S, cv: cv, x: cv.getContext('2d'), fl: fl, at: at, a: 0, spin: null };
-    cv.onclick = function () { go(null); };
+
+  // ---------------------------------------------------------------- a wheel: flush and dormant -> rising -> risen -> spinning -> risen
+  function Wheel(S) { this.S = S; this.a = 0; this.state = 'flush'; this.i = 0; this.reveal = 1; this.tmp = document.createElement('canvas'); }
+  Wheel.prototype.k = function () { return ((Math.round(this.a / 30) % 12) + 12) % 12; };
+  Wheel.prototype.sign = function () { return this.S.m.rest[this.k()]; };
+  Wheel.prototype.rise = function (done) { this.state = 'rising'; this.t0 = now(); this.done = done; };
+  Wheel.prototype.sink = function (done) { if (this.state !== 'risen') return; this.state = 'sinking'; this.t0 = now(); this.done = done; };
+  // a kick up to speed in a quarter second, then slowing to a stop on the target; dir -1 turns it counter-clockwise (the same
+  // frames played the other way: a frame is an angle, and the blur row smears both ways alike)
+  Wheel.prototype.spin = function (target, turns, T, done, dir) {
+    var m = this.S.m, want = 30 * m.rest.indexOf(target), from = this.a, t1 = 0.25;
+    dir = dir || 1;
+    var d = ((dir * (want - from)) % 360 + 360) % 360 + 360 * turns;
+    this.sp = { t0: now(), from: from, d: d, dir: dir, T: T, t1: t1, vmax: d / (t1 / 2 + (T - t1) / 3) };
+    this.state = 'spinning'; this.done = done;
+  };
+  Wheel.prototype.update = function () {
+    var m = this.S.m, R = m.anims.rise.frames, t = now() - this.t0, fin = null;
+    this.v = 0;
+    if (this.state === 'rising') { this.i = Math.min(R - 1, Math.floor(t * RISE_FPS)); if (t * RISE_FPS >= R) { this.state = 'risen'; fin = this.done; } }
+    else if (this.state === 'sinking') { this.i = Math.max(0, R - 1 - Math.floor(t * RISE_FPS)); if (t * RISE_FPS >= R) { this.state = 'flush'; this.i = 0; fin = this.done; } }
+    else if (this.state === 'spinning') {
+      var s = this.sp, u, tt = now() - s.t0;
+      if (tt >= s.T) { this.a = ((s.from + s.dir * s.d) % 360 + 360) % 360; this.state = 'risen'; fin = this.done; }
+      else if (tt < s.t1) { this.a = s.from + s.dir * s.vmax * tt * tt / (2 * s.t1); this.v = s.vmax * tt / s.t1; }
+      else { u = (s.T - tt) / (s.T - s.t1); this.a = s.from + s.dir * s.vmax * (s.t1 / 2 + (s.T - s.t1) / 3 * (1 - u * u * u)); this.v = s.vmax * u * u; }
+    }
+    if (fin) { this.done = null; fin(); }
+  };
+  Wheel.prototype.cell = function () {        // the sheet cell to draw now
+    var m = this.S.m;
+    if (this.state === 'flush' || this.state === 'rising' || this.state === 'sinking')
+      return { sx: this.k() * m.fw, sy: (m.anims.rise.row + this.i) * m.fh };
+    var n = m.anims.spin.frames, f = ((Math.round(this.a / m.degPerFrame) % n) + n) % n;
+    var row = this.v > 400 ? m.anims.blur.row : m.anims.spin.row;   // the blur row while it turns faster than 400 degrees a second
+    return { sx: (f % m.cols) * m.fw, sy: (row + Math.floor(f / m.cols)) * m.fh };
+  };
+  Wheel.prototype.draw = function (x, at) {
+    var m = this.S.m, c = this.cell(), dx = at.x - m.ax, dy = at.y - m.ay;
+    if (this.reveal >= 1) { x.drawImage(this.S.im, c.sx, c.sy, m.fw, m.fh, dx, dy, m.fw, m.fh); return; }
+    if (this.reveal <= 0) return;
+    var t = this.tmp; t.width = m.fw; t.height = m.fh;      // appearing: a 4x4 ordered dissolve, the sprite's own pixels
+    var tx = t.getContext('2d'); tx.drawImage(this.S.im, c.sx, c.sy, m.fw, m.fh, 0, 0, m.fw, m.fh);
+    var d = tx.getImageData(0, 0, m.fw, m.fh), p = d.data, cut = this.reveal * 16;
+    for (var y = 0; y < m.fh; y++) for (var xx = 0; xx < m.fw; xx++) if (BAYER[(y & 3) * 4 + (xx & 3)] >= cut) p[(y * m.fw + xx) * 4 + 3] = 0;
+    tx.putImageData(d, 0, 0); x.drawImage(t, dx, dy);
+  };
+  Wheel.prototype.activate = function (target, done) {          // the wheel set going: rise if it lies flush, then spin
+    var self = this, turns = 3 + Math.floor(Math.random() * 2);
+    function go() { self.spin(target, turns, 3.6, done); }
+    if (this.state === 'flush') this.rise(go); else if (this.state === 'risen') go();
+  };
+
+  // ---------------------------------------------------------------- the plain player
+  function stage(S) {
+    var fl = floor(S.m.squares + 2, 0), cv = document.createElement('canvas');
+    cv.width = fl.c.width; cv.height = fl.c.height; cv.style.width = cv.width * Z + 'px';
+    var cap = document.createElement('div'), m = S.m; cap.className = 'cap';
+    cap.textContent = m.squares + ' squares across (' + m.squares * m.squares + ' tiles): ' + m.fw + ' x ' + m.fh + ' px a frame; ' +
+      m.anims.spin.frames + ' spin, ' + m.anims.blur.frames + ' blur, ' + m.anims.rise.frames + ' rise x 12 signs';
+    document.getElementById('stages').appendChild(cv); document.getElementById('stages').appendChild(cap);
+    var mid = (fl.n - 1) / 2, W = new Wheel(S);
+    W.cv = cv; W.x = cv.getContext('2d'); W.fl = fl; W.at = fl.center(mid, mid);
+    cv.onclick = function () { spinAll(null); };
     return W;
   }
-  function frameOf(W, speed) {         // the angle -> a frame; the blur row while it moves faster than 400 degrees a second
-    var m = W.S.m, f = ((Math.round(W.a / m.degPerFrame) % m.anims.spin.frames) + m.anims.spin.frames) % m.anims.spin.frames;
-    var row = speed > 400 ? m.anims.blur.row : m.anims.spin.row;
-    return { sx: (f % m.cols) * m.fw, sy: (row + Math.floor(f / m.cols)) * m.fh };
+  var WS = [];
+  function busy() { return WS.some(function (W) { return W.state === 'rising' || W.state === 'sinking' || W.state === 'spinning'; }); }
+  function spinAll(target) {
+    if (busy()) return;
+    var pick = target || WS[0].S.m.signs[Math.floor(Math.random() * 12)];
+    WS.forEach(function (W) { W.activate(pick, function () { out.textContent = 'rests on ' + NAMES[W.sign()]; }); });
   }
-  function draw(W, speed) {
-    var x = W.x, m = W.S.m, fr = frameOf(W, speed || 0);
-    x.clearRect(0, 0, W.cv.width, W.cv.height); x.drawImage(W.fl.c, 0, 0);
-    x.drawImage(W.S.im, fr.sx, fr.sy, m.fw, m.fh, W.at.x - m.ax, W.at.y - m.ay, m.fw, m.fh);
+  function sinkAll() { if (busy()) return; WS.forEach(function (W) { W.sink(function () { out.textContent = 'flush in the floor, on ' + NAMES[W.sign()]; }); }); }
+  function plain(L) {
+    L.forEach(function (S) { WS.push(stage(S)); });
+    var box = document.getElementById('signs');
+    L[0].m.signs.forEach(function (s) { var b = document.createElement('button'); b.textContent = NAMES[s]; b.onclick = function () { spinAll(s); }; box.appendChild(b); });
+    document.getElementById('spin').onclick = function () { spinAll(null); };
+    document.getElementById('sink').onclick = sinkAll;
+    out.textContent = 'flush in the floor, on ' + NAMES[WS[0].sign()];
+    (function tick() {
+      WS.forEach(function (W) { W.update(); W.x.clearRect(0, 0, W.cv.width, W.cv.height); W.x.drawImage(W.fl.c, 0, 0); W.draw(W.x, W.at); });
+      var s0 = WS[0].state; if (s0 === 'rising' || s0 === 'spinning' || s0 === 'sinking') out.textContent = s0 + '...';
+      requestAnimationFrame(tick);
+    })();
   }
-  function restSign(W) { var m = W.S.m, k = ((Math.round(W.a / 30) % 12) + 12) % 12; return m.rest[k]; }
-  // a spin: a kick up to speed in a quarter second, then slowing to a stop on the target over the rest
-  function plan(W, target, turns, T) {
-    var m = W.S.m, k = m.rest.indexOf(target), want = 30 * k, from = W.a;
-    var d = ((want - from) % 360 + 360) % 360 + 360 * turns, t1 = 0.25;
-    var vmax = d / (t1 / 2 + (T - t1) / 3);
-    W.spin = { t0: performance.now() / 1000, from: from, d: d, T: T, t1: t1, vmax: vmax, target: target };
+
+  // ---------------------------------------------------------------- the scene: the lighthouse entrance, then the party pops out
+  var PARTY = [   // who pops out, where they land (squares round the small wheel, the middle at 3,3) and which way they face
+    { sheet: 'denny_p3', at: [5, 5], face: 0 }, { sheet: 'rascal_p2', at: [5, 1], face: 6 },     // their looks as js/mpmon.js names them
+    { sheet: 'goose_p1', at: [1, 5], face: 2 }, { sheet: 'beholda_p3', at: [1, 1], face: 0 }];
+  function scene(big, small, party) {
+    document.getElementById('bar').style.display = 'none';
+    document.getElementById('lede').textContent = 'His notion: the big wheel is the entrance at the lobstamonkee lighthouse; the small one appears on the ground in the next scene, and the party pops out of it and lands around it. Click the wheel to set it going.';
+    var cv = document.createElement('canvas'), N = 7, x;
+    var F1 = floor(N, 1), F2 = floor(N, 2);
+    cv.width = F1.c.width; cv.height = F1.c.height + 60; cv.style.width = cv.width * Z + 'px';
+    document.getElementById('stages').appendChild(cv); x = cv.getContext('2d');
+    var OY = 50, mid = (N - 1) / 2;
+    function at(F, gx, gy) { var c = F.center(gx, gy); return { x: c.x, y: c.y + OY }; }
+    var Wb = new Wheel(big), Ws = new Wheel(small), st = { name: 'one', t0: now(), fade: 0, pops: [] };
+    function setTitle(s) { title.textContent = s; }
+    setTitle('THE LOBSTAMONKEE LIGHTHOUSE -- the entrance');
+    function begin() {
+      if (st.name !== 'one' || Wb.state !== 'flush') { if (st.name === 'end') restart(); return; }
+      var pick = big.m.signs[Math.floor(Math.random() * 12)];
+      st.name = 'one-go'; out.textContent = '';
+      Wb.activate(pick, function () {
+        setTitle('THE LOBSTAMONKEE LIGHTHOUSE -- the wheel lands on ' + NAMES[Wb.sign()].toUpperCase());
+        st.t0 = now(); st.name = 'fade-out';
+      });
+    }
+    function restart() { Wb = new Wheel(big); Ws = new Wheel(small); st = { name: 'one', t0: now(), fade: 0, pops: [] }; setTitle('THE LOBSTAMONKEE LIGHTHOUSE -- the entrance'); }
+    cv.onclick = begin;
+    function popOut() {
+      st.name = 'pops'; st.t0 = now();
+      st.pops = party.map(function (P, i) { return { P: P, t0: now() + 0.35 * i }; });
+    }
+    function drawMascot(P, ftime, px, py, face) {
+      var m = P.S.m, an = m.anims.idle, f = Math.floor(ftime * an.fps) % an.frames;
+      x.drawImage(P.S.im, f * an.fw, an.y + face * an.fh, an.fw, an.fh, Math.round(px - an.ax), Math.round(py - an.ay), an.fw, an.fh);
+    }
+    function shadow(px, py, r) { x.fillStyle = 'rgba(10,8,16,0.45)'; x.beginPath(); x.ellipse(px, py, r, r / 2, 0, 0, Math.PI * 2); x.fill(); }
+    (function tick() {
+      var t = now(), dt = t - st.t0;
+      x.fillStyle = '#2b2e2b'; x.fillRect(0, 0, cv.width, cv.height);
+      if (st.name === 'one' || st.name === 'one-go' || st.name === 'fade-out') {
+        Wb.update(); x.drawImage(F1.c, 0, OY); Wb.draw(x, at(F1, mid, mid));
+        if (st.name === 'fade-out' && dt > 0.9) { var k = Math.min(1, (dt - 0.9) / 0.6); x.fillStyle = 'rgba(0,0,0,' + k + ')'; x.fillRect(0, 0, cv.width, cv.height);
+          if (k >= 1) { st.name = 'appear'; st.t0 = t; Ws.reveal = 0; Ws.a = Wb.a; setTitle('THE NEXT SCENE'); } }
+      } else {
+        Ws.update(); x.drawImage(F2.c, 0, OY);
+        if (st.name === 'appear') {
+          Ws.reveal = Math.min(1, Math.max(0, (dt - 0.4) / 0.9));
+          if (dt > 1.6) { st.name = 'two-go'; Ws.rise(function () { Ws.spin(Wb.sign(), 2, 2.6, function () { setTitle('THE NEXT SCENE -- ' + NAMES[Ws.sign()].toUpperCase() + ' again, and out they pop'); popOut(); }, -1); }); }   // the exit turns the other way (Griz, 10-07: "can you spin opposite direction on exit")
+        }
+        var c0 = at(F2, mid, mid);
+        Ws.draw(x, c0);
+        // the party: out of the hub (clipped by its near rim while they climb out), an arc to their square, then idle
+        var hubA = 142 / 316 * small.m.squares * 32 * Math.SQRT2 / 2, hubB = hubA / 2, lift = small.m.lift, hy = c0.y - lift;
+        var draws = [];
+        st.pops.forEach(function (p) {
+          var tt = t - p.t0, P = p.P, dst = at(F2, P.at[0], P.at[1]);
+          if (tt < 0) return;
+          if (tt < 0.25) {                       // climbing out of the hole
+            var e = tt / 0.25, py = hy + 60 - e * 66;
+            draws.push({ y: hy, f: function () { x.save(); x.beginPath(); x.moveTo(0, 0); x.lineTo(cv.width, 0); x.lineTo(cv.width, hy); x.lineTo(c0.x + hubA, hy);
+              x.ellipse(c0.x, hy, hubA, hubB, 0, 0, Math.PI); x.lineTo(0, hy); x.closePath(); x.clip(); drawMascot(P, tt, c0.x, py, 0); x.restore(); } });
+          } else if (tt < 0.8) {                 // the hop to the square
+            var u = (tt - 0.25) / 0.55, px = c0.x + (dst.x - c0.x) * u, gy = hy - 6 + (dst.y - hy + 6) * u, h = 46 * 4 * u * (1 - u) + 6 * (1 - u);
+            draws.push({ y: gy, f: function () { shadow(px, gy, 10 + 4 * u); drawMascot(P, tt, px, gy - h, P.face); } });
+          } else {
+            var land = tt - 0.8, sq = land < 0.12 ? 2 : 0;
+            draws.push({ y: dst.y, f: function () { shadow(dst.x, dst.y, 14); drawMascot(P, tt, dst.x, dst.y + sq, P.face);
+              if (land < 0.3) { x.fillStyle = 'rgba(180,154,124,' + (0.6 * (1 - land / 0.3)) + ')'; for (var j = 0; j < 6; j++) { var aa = j * Math.PI / 3, rr = 8 + land * 40; x.fillRect(Math.round(dst.x + Math.cos(aa) * rr), Math.round(dst.y + Math.sin(aa) * rr / 2), 2, 2); } } } });
+          }
+        });
+        draws.sort(function (a, b) { return a.y - b.y; }).forEach(function (d) { d.f(); });
+        if (st.name === 'appear') { var fk2 = Math.max(0, 1 - dt / 0.5); if (fk2 > 0) { x.fillStyle = 'rgba(0,0,0,' + fk2 + ')'; x.fillRect(0, 0, cv.width, cv.height); } }
+        if (st.name === 'pops' && t - st.pops[st.pops.length - 1].t0 > 1.4) { st.name = 'end'; out.textContent = ''; setTitle(title.textContent + '  (click to run it again)'); }
+      }
+      requestAnimationFrame(tick);
+    })();
+    window.SCENE = { st: function () { return st; }, big: function () { return Wb; }, small: function () { return Ws; }, begin: begin };
   }
-  function step(W, now) {
-    var s = W.spin; if (!s) return 0;
-    var t = now - s.t0, T = s.T, t1 = s.t1, p, v;
-    if (t >= T) { W.a = (s.from + s.d) % 360; W.spin = null; return 0; }
-    if (t < t1) { p = s.vmax * t * t / (2 * t1); v = s.vmax * t / t1; }
-    else { var u = (T - t) / (T - t1); p = s.vmax * (t1 / 2 + (T - t1) / 3 * (1 - u * u * u)); v = s.vmax * u * u; }
-    W.a = s.from + p; return v;
+
+  if (SCENE) {
+    Promise.all(['zodiacwheel_p1', 'zodiacwheel3_p1'].concat(PARTY.map(function (P) { return P.sheet; })).map(load)).then(function (L) {
+      PARTY.forEach(function (P, i) { P.S = L[2 + i]; });
+      scene(L[0], L[1], PARTY);
+    });
+  } else {
+    Promise.all(['zodiacwheel_p1'].concat(BOTH ? ['zodiacwheel3_p1'] : []).map(load)).then(function (L) { plain(L); window.WHEEL = { WS: WS, spin: spinAll, sink: sinkAll }; });
   }
-  var WS = [], out = document.getElementById('out');
-  function go(target) {
-    if (WS.some(function (W) { return W.spin; })) return;
-    var m = WS[0].S.m, pick = target || m.signs[Math.floor(Math.random() * 12)], turns = 3 + Math.floor(Math.random() * 2);
-    WS.forEach(function (W) { plan(W, pick, turns, 3.6); });
-    out.textContent = 'spinning...';
-  }
-  function tick() {
-    var now = performance.now() / 1000, moving = false;
-    WS.forEach(function (W) { var was = !!W.spin, v = step(W, now); draw(W, v); if (W.spin) moving = true; else if (was) out.textContent = 'rests on ' + NAMES[restSign(W)]; });
-    requestAnimationFrame(tick);
-  }
-  var names = ['zodiacwheel_p1'].concat(BOTH ? ['zodiacwheel3_p1'] : []);
-  Promise.all(names.map(load)).then(function (L) {
-    L.forEach(function (S) { WS.push(stage(S, S.m.squares + 2)); });
-    var m = L[0].m, box = document.getElementById('signs');
-    m.signs.forEach(function (s) { var b = document.createElement('button'); b.textContent = NAMES[s]; b.onclick = function () { go(s); }; box.appendChild(b); });
-    document.getElementById('spin').onclick = function () { go(null); };
-    out.textContent = 'rests on ' + NAMES[restSign(WS[0])];
-    window.WHEEL = { WS: WS, go: go, restSign: restSign };
-    requestAnimationFrame(tick);
-  });
 })();
 </script>

@@ -1,14 +1,15 @@
 {
- "_note": "his zodiac wheel flat on the floor (tools/wheel-sheet.py): frame f is the wheel turned 7.5*f degrees clockwise; frame 4k rests rest[k] under the highlight; blur is the same angles smeared, for a fast spin; (ax, ay) the centre on the floor",
+ "_note": "his zodiac wheel on the floor (tools/wheel-sheet.py): spin frame f is the wheel risen and turned 7.5*f degrees clockwise, frame 4k resting rest[k] under the highlight; blur the same angles smeared, for a fast spin; rise column k is the wheel resting on rest[k] from flush in the floor (row 0, dormant, its colours pulled to the floor) to risen (the last row, the same as spin frame 4k); play it backwards to sink. (ax, ay) is where its centre meets the floor.",
  "image": "art/zodiacwheel_p1.png",
  "squares": 5,
  "fw": 232,
  "fh": 120,
  "ax": 116,
- "ay": 59,
+ "ay": 61,
  "cols": 12,
  "degPerFrame": 7.5,
  "framesPerSign": 4,
+ "lift": 2,
  "anims": {
   "spin": {
    "row": 0,
@@ -17,6 +18,11 @@
   "blur": {
    "row": 4,
    "frames": 48
+  },
+  "rise": {
+   "row": 8,
+   "frames": 8,
+   "bySign": true
   }
  },
  "signs": [
