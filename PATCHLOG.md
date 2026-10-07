@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `daa069e` · MPMon · The Mascot gallery, `deep16/?mpgallery`: the four kits one ability at a time on the class floor (37 entries), left/right the next, up/down the level 1-9 with the card's numbers and a BY LEVEL ladder recomputed, E or a click again; `mode=mpgallery1007` in the gate · *"a gallery view of lobstamonkee abilities like the spell effect one (repeats on click, advances on arrows) and to examine the current effects of the various abilities per level"*
 - 2026-10-07 · seen · MPMon · Beholda's and Denny's new looks, `beholda_p3` and `denny_p3` (`eyes-beholda-p3-1007`, `eyes-denny-p3-1007`, cut) · *"yes, they were so good I had to come back to rascal goose"*
 - 2026-10-07 · seen · MPMon · Goose and Rascal from the front and from behind, Goose's Group Hug and Lifeline (`eyes-fronts-1007`, cut) · *"everything in the pane eyed - love that lifeline comes from the heart - so great"*
 - 2026-10-07 · `98257e5` · MPMon · Goose and Rascal face S and N on rows of their own (his five GPT sheets), Goose's Group Hug and Lifeline on rows of their own; `tools/sheet-play.html?sheet=goose_p1&ref=denny_p3&face=0,4,6,2` · *Couldn't do it. Technically using gpt so the filenames are slightly different than expected - but there's 5 new sheets to work with in _src.*
