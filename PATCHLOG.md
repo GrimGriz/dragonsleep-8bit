@@ -4,6 +4,9 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `141a647` · MPMon · Goose built, the fourth Mascot: Heart to Heart, Group Hug, Honk, Big Heart, Fountain, Not Today, Lifeline, his heals in green; `?mpshow&lvl=7&only=heart,group,fountain,honk,nottoday,lifeline` · *"I asked that session if it needed a second sheet and it said no"* (the draft, recovered from that seat's 10-06 night message)
+- 2026-10-07 · ruled · MPMon · Goose's size on the sheet, about two-thirds of Denny · *"1 yes"*
+- 2026-10-07 · `141a647` · MPMon · A swing a fight dropped mid-blow no longer lingers into the next battle's Hivemind heat or Lucky Dice (found by Goose's checks)
 - 2026-10-07 · `75e9143` · MPMon · Goose's sheet `goose_p1`: his picks from his three generated sheets, each cut by its own labels and drawn at one scale, the cast's glow the heal's green; `tools/sheet-play.html?sheet=goose_p1&ref=denny_p2` plays it (no build yet) · *"turn around C, idle C, hop B, sling B, cast B - with C5 in place of B4 with the extra claw out of his head, and A4 for #5, can we honk B 1, B2, A3, B4?, climb B 1-3, C4-6, flinch B1-2, A3, C4, fall B, prone C1, A2, C3-4"*
 - 2026-10-07 · ruled · MPMon · Goose's specials are green energy (his sheet's glow drawn so; his build's effects to follow) · *"in case it's not in there, his specials should mainly be green energy"*
 - 2026-10-07 · `43a711e` · the menus · The one menu in an 8-bit fight acts as the grid's: ITEMS, MAGIC and SKILLS the fight's own lists, lit by cost, a pick the turn's command; `?at=menu8` to try it · *"1 - you're the instance for it if its not too big of a job"*
