@@ -3643,6 +3643,74 @@
   // from both ends, the long rest's level 2 and the lamp's tier-2 hit points. LAMP and WIPE: the lamp broken mid-wave, and then no Mascot standing -- each to
   // the villain's walk, GAME OVER and a score kept. BOSS: tier 9's last wave (&tier=9&wave=3), the four at 9, the Edifice team in from the west, and then on
   // past the ninth -- tier 10 with one more of its first wave's smallest kind, no end (his "3 keep going", 10-07)
+  // the Game Show as a bench (mode=gsrun1007; Griz, 10-07, after the first show: "run gameshow as a bench please"): one whole run on &auto -- the four on their class
+  // AI, the rests taken by themselves, no supplies (those are his clicks) -- till the lamp goes out or `cap` frames; &seed=N. Per wave: the tier and wave, its rounds,
+  // the four's hit points and downs as it ended, the lamp's; the run's end (lamp or wipe); what each Mascot did (the log's specials, blows, casts, dashes); what the
+  // foes did besides strike (Dash, Disengage, Hide); the attack rolls taken through cover; the play record's size at the end. &grep=<re> returns the lines behind a count
+  if (get('mode', '') === 'gsrun1007') {
+    var repR = { seed: +get('seed', 1007), waves: [], end: null, frames: 0, did: {}, foes: {}, cover: { half: 0, three: 0, rolls: 0 }, recBytes: 0, recSteps: 0, errors: [] };
+    if (!D.ctx) { var cvR0 = document.createElement('canvas'); cvR0.width = D.W; cvR0.height = D.H; D.ctx = cvR0.getContext('2d'); D.R = D.R || 1; }
+    var clockR = 1000, memR = {}, stGR = D.store.get, stSR = D.store.set;
+    D.store.get = function (k) { return memR[k] ? JSON.parse(memR[k]) : null; }; D.store.set = function (k, v) { memR[k] = JSON.stringify(v); return true; };
+    var GSR = D.gameshow, capR = +get('cap', 300000);
+    try {
+      D.seed = repR.seed;
+      GSR.make('?gameshow&at=lamp&fast&auto'); GSR.q = '?gameshow&at=lamp&fast&auto'; GSR.run = null;
+      var BR = D.npcFight('?npc=goblin&vs=denny:1,beholda:1,rascal:1,goose:1&map=lampcircle&lvl=1', {});
+      var enR = BR.enter;
+      BR.enter = function () {
+        enR.apply(this, arguments);
+        var cs = [[29, 6], [33, 6], [29, 10], [33, 10]];
+        this.units = this.units.filter(function (u) { return u.side === 'party'; });
+        this.units.forEach(function (u, i) { u.x = cs[i][0]; u.y = cs[i][1]; });
+        D.grid.setup(D.grid.map, this.units); this.order = []; this.active = null; this.req = null;
+        this.gs = { clicks: [], fade: 0, mode: 'fight' }; this.cine = false;
+        this.co = GSR.waves(this, GSR);
+      };
+      D.scenes.length = 0; D.lastError = null; D.push(BR);
+      var fourR = function () { return BR.units.filter(function (u) { return u.mpmon; }); };
+      var atR = null, fought = false, f;
+      var snapR = function (S) {
+        var fu = (S.party && S.party.length ? S.party : fourR()), hp = 0, mx = 0, dn = 0;
+        fu.forEach(function (u) { hp += Math.max(0, u.hp); mx += u.maxhp; if (u.hp <= 0 || u.ko || u.dead) dn++; });
+        var L = S.lamp;
+        return { tier: S.tier, wave: S.wi + 1, rounds: BR.round, hp: hp + '/' + mx, down: dn, lamp: (L ? Math.max(0, L.hp) : S.lampHP) + '/' + S.lampMax, lvl: fu.length ? fu[0].lvl : null };
+      };
+      for (f = 0; f < capR; f++) {
+        clockR += 17; D.loopStep(clockR);
+        var S = GSR.run, md = BR.gs && BR.gs.mode;
+        if (D.lastError) { if (repR.errors.length < 5) repR.errors.push(String(D.lastError.stack || D.lastError).slice(0, 400)); D.lastError = null; }
+        if (!S) continue;
+        var foesUp = S.foes.filter(function (u) { return BR.units.indexOf(u) >= 0 && u.hp > 0; }).length;
+        if (foesUp && BR.order.length) { fought = true; atR = snapR(S); }
+        // a wave is over when its foes are gone, or the run ends
+        if (fought && (!foesUp || md === 'end' || md === 'gameover' || md === 'scores')) { repR.waves.push(atR); fought = false; }
+        if (md === 'end' || md === 'gameover' || md === 'scores') { repR.end = { how: S.lamp && S.lamp.hp <= 0 ? 'lamp' : 'wipe', tier: S.tier, wave: S.wi + 1, held: S.held, frames: f }; break; }
+      }
+      repR.frames = f;
+      // what was done: the log's lines (js/battle.js: "Name: SPECIAL!" / "at" / "on", "Name > Foe  Weapon", "Name dashes.")
+      (BR.log || []).forEach(function (l0) {
+        var l = String(l0 && l0.text || l0);
+        if (/ \+2 cover/.test(l)) repR.cover.half++; else if (/ \+5 cover/.test(l)) repR.cover.three++;
+        if (/^R\d+ d20 /.test(l)) repR.cover.rolls++;
+        var mv = /^R\d+ (Denny|Beholda|Rascal|Goose) (dashes|disengages|dodges|hides)/.exec(l);
+        if (mv) { var d0 = repR.did[mv[1]] = repR.did[mv[1]] || {}; d0[mv[2]] = (d0[mv[2]] || 0) + 1; return; }
+        var m = /^R\d+ (Denny|Beholda|Rascal|Goose): ([A-Z][A-Z' -]*[A-Z])(?:!| at | on |  |$)/.exec(l);
+        if (m) { var d1 = repR.did[m[1]] = repR.did[m[1]] || {}; d1[m[2]] = (d1[m[2]] || 0) + 1; return; }
+        var a = /^R\d+ (Denny|Beholda|Rascal|Goose) > .+?  (.+)$/.exec(l);
+        if (a) { var d2 = repR.did[a[1]] = repR.did[a[1]] || {}; d2['blow: ' + a[2]] = (d2['blow: ' + a[2]] || 0) + 1; return; }
+        var fm = /^R\d+ (?:The )?([A-Z][a-z]+(?: [A-Z][a-z]+)?) (dashes|disengages|dodges|hides)/.exec(l);
+        if (fm) { var k3 = fm[1] + ' ' + fm[2]; repR.foes[k3] = (repR.foes[k3] || 0) + 1; }
+      });
+      if (BR.rec) { repR.recSteps = BR.rec.steps.length; repR.recBytes = JSON.stringify(BR.rec).length; }
+      repR.logLines = (BR.log || []).length;
+      if (get('grep', '')) { var reG = new RegExp(get('grep', ''), 'i'); repR.sample = (BR.log || []).map(function (l0) { return String(l0 && l0.text || l0); }).filter(function (l) { return reG.test(l); }).slice(0, +get('max', 60)); }
+    } catch (eR) { repR.errors.push(String(eR && eR.stack || eR).slice(0, 900)); }
+    finally { D.store.get = stGR; D.store.set = stSR; D.scenes.length = 0; }
+    var preR = document.createElement('pre'); preR.id = 'out'; preR.textContent = 'BENCH16 ' + JSON.stringify(repR);
+    document.body.appendChild(preR);
+    return;
+  }
   if (get('mode', '') === 'gswaves1007') {
     var repW = { checks: [], errors: [] };
     function okW(what, v) { repW.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
