@@ -138,7 +138,7 @@
       foes: [{ id: 'amara', kind: 'amara', at: [9, 6] }, { id: 'willem', kind: 'willem', at: [8, 5], traces: true }, { id: 'ds1', kind: 'dominion', at: [10, 7] }, { id: 'ds2', kind: 'dominion', at: [9, 9] }], wave: null,
       // in the wagon's bed, the cargo: goblins to the eye until the glamour breaks, then children (Griz, 09-27: "we need NPC goblin
       // or children in that wagon"; the 8-bit game's W.goblin, look kid once glamourBroken)
-      riders: [{ at: [4, 3], sheet: 'goblin_p1', after: 'kid1_p0', gz: 12 }, { at: [4, 4], sheet: 'goblin_p1', after: 'kid2_p0', gz: 12 }].concat(TEAM) },
+      riders: [{ at: [4, 3], sheet: 'goblin_p2', after: 'kid1_p0', gz: 12 }, { at: [4, 4], sheet: 'goblin_p2', after: 'kid2_p0', gz: 12 }].concat(TEAM) },
     // the 8-bit game's own wagon yard (events.js S.wagonFight fights it here, js/embed.js; not on the ladder: no level). Griz,
     // 09-27: "add horses to the wagon ... have willem try to unhook them for the first part of the fight (until he takes damage)
     // - then amara and willem will try to make the escape on foot - either succeeding switches to chase 1 fight 2". Willem at

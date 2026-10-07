@@ -131,7 +131,11 @@
       T.bonus = 0; T.disengaged = true;
       var rm = G.reach(u, T.move), pick = null, ps = -1e9;
       Object.keys(rm).forEach(function (k) { var e = rm[k]; if (!e.stand) return; var s = -G.foesNear(u, e.x, e.y, 5).length * 20 - e.cost / 10; if (s > ps) { ps = s; pick = e; } });
-      if (pick && G.foesNear(u, pick.x, pick.y, 5).length === 0) { B.card(['{r}' + Nm(B, u) + '{/} darts back.  {g}(Nimble Escape){/}'], 160); yield* AI.walkTo(B, u, pick); }
+      if (pick && G.foesNear(u, pick.x, pick.y, 5).length === 0) {
+        B.card(['{r}' + Nm(B, u) + '{/} darts back.  {g}(Nimble Escape){/}'], 160);
+        if (D.spr.anim(u.sheet, 'nimble')) { u.anim = 'nimble'; u.animT = B.t; yield D.spr.duration(u.sheet, 'nimble'); } // (its hop, then the steps: the goblin's sheet, 10-07)
+        yield* AI.walkTo(B, u, pick);
+      }
     }
   };
 

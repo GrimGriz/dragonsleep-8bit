@@ -692,7 +692,7 @@
     multi: 1, charge: { dice: '2d6', dc: 13 }, relentlessBeast: 10, src: 'SRD 5.1 Giant Boar (CR 2, Large); content/monsters.json giantboar; Charge (20 ft and a tusk: +2d6, STR 13 or prone) and Relentless (a blow of 10 or less that would drop it, once) (js/traits.js, 09-28)'
   },
   goblin: {
-    name: 'Goblin', type: 'humanoid', sheet: 'goblin_p1', cr: '1/4', ac: 15, hp: 7, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Goblin', type: 'humanoid', sheet: 'goblin_p2', cr: '1/4', ac: 15, hp: 7, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 8, dex: 14, con: 10, int: 10, wis: 8, cha: 8 }, init: 2, perception: 9,
     saves: { str: -1, dex: 2, con: 0, int: 0, wis: -1, cha: -1 },
     attacks: {
