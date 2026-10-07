@@ -4,7 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
-- 2026-10-07 · (this commit) · the menus · On the grid's menu what can be done now is lit in its cost's colour -- the action yellow, the bonus action blue, free white -- and the box under the entries says which is which · *"can we color the actions actually available by their cost, bonus blue, action yellow and say something like that there?"*
+- 2026-10-07 · `022cb81` · the menus · On the grid's menu what can be done now is lit in its cost's colour -- the action yellow, the bonus action blue, free white -- and the box under the entries says which is which · *"can we color the actions actually available by their cost, bonus blue, action yellow and say something like that there?"*
 - 2026-10-07 · ruled · the menus · The one sentence for an empty place stands: "Nothing in the pack Barley can put there in this fight." · *"1 - yes"*
 - 2026-10-07 · ruled · the menus · MAGIC from the menu casts at the slot the ring starts at; upcasting stays the ring's · *"2 - yes"*
 - 2026-10-07 · `c16efab` · the menus · The lane SPENT: §2 empty, the file to `handoffs-spent\` · *"the lane is SPENT if §2 empties"*
