@@ -38,8 +38,15 @@
   function mascot(B, key) { return B.units.filter(function (u) { return u.mpmon === key; })[0] || null; }
 
   // ------------------------------------------------------------------ the scores and the group's name (this browser's: D.store)
-  GS.scores = function () { var s = D.store.get(SCORES); return Array.isArray(s) ? s : []; };
+  // (10-07, Griz: "please also clear the high score 0s from eye tests" -- "links from situations.html": a run that held no wave is no high score. The 0s already
+  // on a board are swept out of it the next time it is read, in whatever browser holds them, and a 0 is never written again)
+  GS.scores = function () {
+    var s = D.store.get(SCORES); if (!Array.isArray(s)) return [];
+    var k = s.filter(function (r) { return r && r.waves > 0; }); if (k.length !== s.length) D.store.set(SCORES, k);
+    return k;
+  };
   GS.record = function (row) {
+    if (!(row && row.waves > 0)) return -1;
     var s = GS.scores().concat([row]).sort(function (a, b) { return (b.waves - a.waves) || (b.tier - a.tier) || (a.t - b.t); }).slice(0, 10);
     D.store.set(SCORES, s); return s.indexOf(row);
   };

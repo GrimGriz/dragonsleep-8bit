@@ -3651,6 +3651,11 @@
     var memW = {}, stGW = D.store.get, stSW = D.store.set;
     D.store.get = function (k) { return memW[k] ? JSON.parse(memW[k]) : null; }; D.store.set = function (k, v) { memW[k] = JSON.stringify(v); return true; };
     var GSW = D.gameshow;
+    // the high scores (10-07, Griz: "please also clear the high score 0s from eye tests"): a 0 on the board swept out when it is read, a 0 never written
+    memW['deep16.gameshow.scores'] = JSON.stringify([{ group: 'EYES', waves: 0, tier: 1, t: 1 }, { group: 'REAL', waves: 3, tier: 2, t: 2 }]);
+    var sc0 = GSW.scores(), sc1 = JSON.parse(memW['deep16.gameshow.scores']), rc0 = GSW.record({ group: 'EYES', waves: 0, tier: 1, t: 3 }), sc2 = GSW.scores();
+    okW('the high scores: the 0 swept (' + sc0.map(function (r) { return r.group + ' ' + r.waves; }).join(', ') + '; ' + sc1.length + ' stored), a 0 not recorded (' + rc0 + '; ' + sc2.length + ' on the board)', sc0.length === 1 && sc0[0].waves === 3 && sc1.length === 1 && rc0 === -1 && sc2.length === 1);
+    delete memW['deep16.gameshow.scores'];
     function weak(BW) { (BW.units || []).forEach(function (u) { if (u.side !== 'foe' || u.gsWeak) return; u.gsWeak = true; u.hp = u.maxhp = 1; u.regen = 0; Object.keys(u.attacks || {}).forEach(function (a) { u.attacks[a] = Object.assign({}, u.attacks[a], { atk: -40 }); }); }); }
     function stepW(BW, fn, cap, each) { for (var k = 0; k < cap; k++) { clockW += 17; D.loopStep(clockW); if (each) each(BW); if (fn()) return k; } return -1; }
     // the show's hand-over, made as js/gameshow.js makes it -- but on the corners already (the arrival's flight runs on the wall clock, which a bench never gives)
@@ -3709,8 +3714,8 @@
           var seenW = [];
           var e = stepW(BL, function () { var m = BL.gs.mode; if (seenW[seenW.length - 1] !== m) seenW.push(m); return m === 'scores'; }, 20000);
           var sc = GSW.scores();
-          okW(how + ': ' + (how === 'lamp' ? 'the lamp broken mid-wave' : 'no Mascot standing') + ' -- the end ' + SL.end + ', ' + seenW.join(' > ') + ' (' + e + ' frames), the lamp out ' + !!BL.lampOut + ', the score kept (' + (sc[0] ? sc[0].group + ' ' + sc[0].waves + ' waves, tier ' + sc[0].tier : 'none') + ')',
-            e >= 0 && SL.end === how && seenW.indexOf('gameover') >= 0 && !!BL.lampOut && sc.length >= 1 && BL.gs.over && BL.gs.over.waves === 0 && BL.gs.over.tier === 1);
+          okW(how + ': ' + (how === 'lamp' ? 'the lamp broken mid-wave' : 'no Mascot standing') + ' -- the end ' + SL.end + ', ' + seenW.join(' > ') + ' (' + e + ' frames), the lamp out ' + !!BL.lampOut + ', the run of 0 waves kept off the board (' + sc.length + ' on it, ' + sc.filter(function (r) { return r.waves === 0; }).length + ' of 0)',
+            e >= 0 && SL.end === how && seenW.indexOf('gameover') >= 0 && !!BL.lampOut && !sc.some(function (r) { return r.waves === 0; }) && BL.gs.over && BL.gs.over.waves === 0 && BL.gs.over.tier === 1);
           errW(how);
         });
         // ---- BOSS: tier 9's last wave, the Edifice team, and the run goes on
