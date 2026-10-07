@@ -92,10 +92,13 @@
   NPC.NAMED.goose = { name: 'Goose', cls: 'mpmon', build: 'goose', named: true, look: 'goose_p1' };
 
   // the sheet: the build's numbers at the level (the SRD's average hit points; an ASI at 4 and 8), the natural kit, the specials
+  MP.MAXTO = 5;
   MP.sheet = function (spec) {
     var b = MP.BUILDS[spec.build] || MP.BUILDS.denny, lvl = Math.max(1, Math.min(9, spec.lvl || 1)), abil = JSON.parse(JSON.stringify(b.abil));
     Object.keys(b.asi).forEach(function (at) { if (lvl >= +at) abil[b.asi[at]] = Math.min(20, abil[b.asi[at]] + 2); });
-    var con = mod(abil.con), hp = b.hd + con + (lvl - 1) * (b.hd / 2 + 1 + con);
+    // hit points (RULED 10-07, Griz: "we doing max HP per hit die like we did for main party?", the bench, then "return to HD rolls after 5"): a max hit die a level to
+    // MP.MAXTO (5th), as the party's, then the SRD's average a level after -- Denny 13 / 65 / 101 at 1 / 5 / 9, Beholda 10 / 50 / 78, Rascal and Goose 8 / 40 / 60
+    var con = mod(abil.con), hp = Math.min(lvl, MP.MAXTO) * Math.max(1, b.hd + con) + Math.max(0, lvl - MP.MAXTO) * (b.hd / 2 + 1 + con);
     var h = {
       id: spec.id || spec.build, name: spec.name || b.name, cls: 'mpmon', build: spec.build, lvl: lvl, xp: R.XP_LEVEL[lvl], base: JSON.parse(JSON.stringify(abil)), abil: abil,
       maxhp: hp, hp: hp, equip: { weapon: b.weapon, armor: b.armor, shield: null, ring: null, cloak: null }, known: b.cantrip ? [b.cantrip] : [], feats: {}, conds: {},
@@ -378,13 +381,17 @@
   }
   // GAZED: its AC down while it lasts (RU.ac below, with the bubble's), and a WIS save at the end of each of its turns to shake it (M.endTurn below)
   MP.gazedOff = function (u) { var g = u && u.conds && u.conds.gazed; return g ? g.ac : 0; };
-  MP.gaze = function* (B, u, t) {
-    spend(u); u.turn.bonus = 0;
+  function* gazeAt(B, u, t) {
     u.facing = B.faceTo(u, t); u.anim = gazeRow(u); u.animT = B.t; D.sfx('charm');
     FX.beam(u, t, 'psychic', { thin: true }); yield 18;
     yield* stare(B, u, [t].filter(standing), MP.gazeDice(u.lvl), '{y}' + u.name + '{/}: BALEFUL GAZE at ' + nm(B, t), 'gaze');
     u.anim = 'idle';
-  };
+  }
+  MP.gaze = function* (B, u, t) { spend(u); u.turn.bonus = 0; u.turn.gazed = true; yield* gazeAt(B, u, t); };
+  // with her ACTION too (RULED 10-07, Griz: "let her burn an action to baleful, like a rogues dash or spends instead of bonus (bench with your call)", the bench, then
+  // "1 yes"): the same gaze, an action special (MP.poolOf('gazeA') is the action pool, the seat's call); ONE GAZE A TURN either way (RULED: "if used as action,
+  // disabled for bonus use"): u.turn.gazed shuts the other, and her bonus action goes to Eye On It
+  MP.gazeA = function* (B, u, t) { spend(u); u.turn.action = 0; u.turn.gazed = true; yield* gazeAt(B, u, t); };
   MP.screen = function* (B, u, t) {
     var c = MP.screenCatch(B, u, t);
     spend(u); u.turn.action = 0;
@@ -865,7 +872,7 @@
     var h = u.conds && u.conds.hive; MP.cur = { u: u, aim: 0, heat: 0 };
     if (h && h.ward) { delete h.ward; u.conds.hiveWard = { till: { who: u.id, at: 'start', n: 1 }, endText: '{who}\'s ward lets go.' }; FX.ring(u, 'silver', 22); }
   };
-  ['taunt', 'denim', 'cannonball', 'hug', 'bubble', 'gaze', 'screen', 'spotlight', 'sharing', 'flame', 'distancing', 'viral', 'heart', 'group', 'fountain', 'lifeline'].forEach(function (k) {
+  ['taunt', 'denim', 'cannonball', 'hug', 'bubble', 'gaze', 'gazeA', 'screen', 'spotlight', 'sharing', 'flame', 'distancing', 'viral', 'heart', 'group', 'fountain', 'lifeline'].forEach(function (k) {
     var f0 = MP[k]; if (!f0) return;
     MP[k] = function* () { var was = MP.cur, wk = MP.curKind; MP.curKind = k; try { return yield* f0.apply(this, arguments); } finally { MP.cur = was; MP.curKind = wk; } }; // (curKind: which pool its spend() draws on)
   });
@@ -967,6 +974,14 @@
         c.foes.forEach(function (w) { var pf = TX.pFail(w, 'wis', dc); v += TX.worth(pf * d + (1 - pf) * d / 2, w) + (RU.immuneTo(w, 'charmed', u) ? 0 : pf * TX.dpr(w) * 1.5); });
         plans.push({ kind: 'special', why: 'THE BIG SCREEN at ' + t.name + ' (' + c.foes.length + ')', score: v, go: function* () { yield* MP.screen(B, u, t); } });
       });
+      // Baleful Gaze with her action (10-07): not if she gazed this turn (her bonus gaze goes first, so this is the gaze when the bonus ones are spent); a foe not
+      // marked already, worth its dice and the mark -- the AC off about one blow in twenty a point, on what her friends within 30 ft of it throw over two rounds
+      if (!u.turn.gazed) MP.gazeTargets(B, u).forEach(function (t) {
+        if (t.conds.gazed && t.conds.gazed.ac >= MP.gazeAC(u.lvl)) return;
+        var pf = TX.pFail(t, 'wis', dc), d = TX.avg(MP.gazeDice(u.lvl)), mk = 0;
+        B.units.forEach(function (w) { if (w.side === u.side && w !== u && standing(w) && G.dist(w, t) <= 30) mk += TX.dpr(w) * 0.05 * MP.gazeAC(u.lvl) * 2; });
+        plans.push({ kind: 'special', why: 'BALEFUL GAZE (her action) at ' + t.name, score: TX.worth(pf * d + (1 - pf) * d / 2, t) + pf * mk, go: function* () { yield* MP.gazeA(B, u, t); } });
+      });
       // the spotlight: the friends who hit hardest, Hasted a turn
       if (u.lvl >= 7 && fs.length) {
         var sp = MP.spotTargets(B, u).sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); }).slice(0, MP.spotN(u.lvl));
@@ -1036,7 +1051,7 @@
   // Beholda's gaze (a bonus action since 10-07): the foe her friends are on, not marked already, the one with the most left to hit; with two or more bonus specials
   // in hand, the hardest hitter in sight if none is on a friend yet
   function gazeMark(B, u) {
-    if (MP.left(u, 'B') <= 0) return null;
+    if (MP.left(u, 'B') <= 0 || u.turn.gazed) return null; // (one gaze a turn: her action took it)
     var ts = MP.gazeTargets(B, u).filter(function (w) { return !(w.conds.gazed && w.conds.gazed.ac >= MP.gazeAC(u.lvl)); });
     var on = ts.filter(function (w) { return nearFriends(B, u, w, 5); }).sort(function (a, b) { return b.hp - a.hp; })[0];
     return on || (MP.left(u, 'B') >= 2 ? ts.sort(function (a, b) { return TX.dpr(b) - TX.dpr(a); })[0] || null : null);
@@ -1108,7 +1123,8 @@
       add('mp-bubble', 'VNA BUBBLE', 'A', 'sacred', nA <= 0 ? noneA : u.conds.vnaBubble ? 'the bubble is up' : !act ? 'the action is spent' : '', '+' + MP.bubbleAC(L) + ' AC to you and friends within ' + MP.bubbleR(L) + ' ft while you hold your concentration; ' + leftText(u));
       if (L >= 2) { var et = MP.eyeTargets(B, u); add('mp-eye', 'EYE ON IT', 'B', 'sacred', whyB(et, 'no foe you see within 30 ft', true), 'a foe you see within 30 ft: the next swing your side makes at it has advantage (free: a bonus action)', foeAim(30, true, 'buff'), 'a foe you see within 30 ft'); }
       var gz = MP.gazeTargets(B, u);
-      add('mp-gaze', 'BALEFUL GAZE', 'B', 'sacred', whyB(gz, 'no foe you see within ' + MP.gazeRange(L) + ' ft'), 'one within ' + MP.gazeRange(L) + ' ft: WIS DC ' + u.spellDC + ' or ' + MP.gazeDice(L) + ' psychic and AC -' + MP.gazeAC(L) + ' till it saves at the end of a turn; half on a save; ' + leftText(u), foeAim(MP.gazeRange(L), true), 'a foe you see within ' + MP.gazeRange(L) + ' ft');
+      add('mp-gaze', 'BALEFUL GAZE', 'B', 'sacred', T.gazed ? 'one gaze a turn: you gazed already' : whyB(gz, 'no foe you see within ' + MP.gazeRange(L) + ' ft'), 'one within ' + MP.gazeRange(L) + ' ft: WIS DC ' + u.spellDC + ' or ' + MP.gazeDice(L) + ' psychic and AC -' + MP.gazeAC(L) + ' till it saves at the end of a turn; half on a save; ' + leftText(u), foeAim(MP.gazeRange(L), true), 'a foe you see within ' + MP.gazeRange(L) + ' ft');
+      add('mp-gazea', 'BALEFUL GAZE: ACTION', 'A', 'sacred', T.gazed ? 'one gaze a turn: you gazed already' : whyA(gz, 'no foe you see within ' + MP.gazeRange(L) + ' ft'), 'the same gaze with your action, an action special (one gaze a turn): WIS DC ' + u.spellDC + ' or ' + MP.gazeDice(L) + ' psychic and AC -' + MP.gazeAC(L) + '; ' + leftText(u), foeAim(MP.gazeRange(L), true), 'a foe you see within ' + MP.gazeRange(L) + ' ft');
       if (L >= 5) { var sc = MP.screenTargets(B, u); add('mp-screen', 'THE BIG SCREEN', 'A', 'sacred', whyA(sc, 'no foe you see within ' + MP.screenLen(L) + ' ft'), 'a ' + MP.screenLen(L) + '-ft cone: each foe in it WIS DC ' + u.spellDC + ' or ' + MP.screenDice(L) + ' psychic and DOMINATED; half on a save; ' + leftText(u), { shape: 'cone', len: MP.screenLen(L), kind: 'save', el: 'psychic' }, 'a ' + MP.screenLen(L) + '-ft cone'); }
       if (L >= 7) { var st = MP.spotTargets(B, u); add('mp-spotlight', 'SPOTLIGHT', 'A', 'sacred', whyA(st, 'no friend you see within ' + MP.spotR(L) + ' ft'), (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' you see within ' + MP.spotR(L) + ' ft: HASTED till the end of their next turn (+2 AC, double speed, an attack more), no lethargy after; ' + leftText(u), { shape: 'allies', side: 'ally', range: MP.spotR(L), n: MP.spotN(L), see: true, kind: 'buff' }, (MP.spotN(L) > 1 ? MP.spotN(L) + ' friends' : 'a friend') + ' within ' + MP.spotR(L) + ' ft'); }
     }
@@ -1152,6 +1168,7 @@
       case 'mp-bubble': yield* MP.bubble(B, u); return;
       case 'mp-eye': t = one(MP.eyeTargets(B, u)); if (t) yield* MP.eyeOnIt(B, u, t); else nope('Eye On It: a foe you see within 30 ft.'); return;
       case 'mp-gaze': t = one(MP.gazeTargets(B, u)); if (t) yield* MP.gaze(B, u, t); else nope('Baleful Gaze: a foe you see within ' + MP.gazeRange(L) + ' ft.'); return;
+      case 'mp-gazea': t = one(MP.gazeTargets(B, u)); if (t) yield* MP.gazeA(B, u, t); else nope('Baleful Gaze: a foe you see within ' + MP.gazeRange(L) + ' ft.'); return;
       case 'mp-screen': t = pt(MP.screenTargets(B, u)); if (t) yield* MP.screen(B, u, t); return;
       case 'mp-spotlight': yield* MP.spotlight(B, u, t && t.units); return;
       case 'mp-sharing': yield* MP.sharing(B, u, t && t.units); return;

@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-gaze-action-1007': { pri: 2, group: G2, title: 'Beholda\'s Baleful Gaze by her action, one gaze a turn (10-07)', pt: 'MPMon lane §6h (deep16/js/mpmon.js MP.gazeA) · eyes',
+      url: 'deep16/?npc=goblin,goblin,hobgoblin&vs=beholda:3&lvl=3&mascots',
+      look: 'Your "let her burn an action to baleful" and "if used as action, disabled for bonus use". Beholda at 3rd is yours. On SKILLS: BALEFUL GAZE (the bonus action) and BALEFUL GAZE: ACTION (the action). Gaze a goblin with the action: an action special spent, the bonus ones untouched, and both gaze buttons grey with "one gaze a turn: you gazed already"; EYE ON IT is still there for the bonus. Next turn, gaze by the bonus: the action one greys the same way.' },
     'eyes-taunt-brace-1007': { pri: 2, group: G2, title: 'Denny\'s Taunt braces him: every blow on him 4 less at 6th (10-07)', pt: 'MPMon lane §6h (deep16/js/mpmon.js MP.tauntDR) · eyes',
       url: 'deep16/?mpshow&lvl=6&only=taunt',
       look: 'Your "Taunt gives +2 DR at 3, 6 & 9?", then "yes". The taunt beat at 6th: the taunt card ends "Denny braces: every blow on him 4 less (till the end of his next turn)", and when the goblin beside Beholda goes at him instead, a silver "brace -4" floats off Denny and the blow takes 4 less. Read as adding up: 2 at 3rd, 4 at 6th, 6 at 9th, any damage type. The bench (deep16-mascot-bench.md) has the band at 4, 0, 1, 3, 1, 4, 5, 8, 7 of 20 with it.' },

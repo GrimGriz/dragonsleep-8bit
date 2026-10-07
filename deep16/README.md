@@ -509,7 +509,12 @@ otherwise, this stands.
   blow on him 2 less (4 at 6th, 6 at 9th), any type (`MP.tauntDR`, `conds.braced`); the AI taunts for it too when a foe is on him.
 - **Beholda, Buffs:** 2 EYE ON IT (the Help from 30 ft); 3 LUCKY DICE (a friend within 30 ft who rolls a 1 on an attack or a save rolls
   again); 6 EYE CONTACT (Cutting Words' shape: 1d6 off a foe's blow that would land, on its own); 7 SPOTLIGHT (a friend Hasted till the end
-  of its next turn, no lethargy).
+  of its next turn, no lethargy). BALEFUL GAZE BY HER ACTION too (10-07, his *"let her burn an action to baleful, like a rogues dash"*,
+  *"if used as action, disabled for bonus use"*, *"yes"*): the same gaze from the action specials (`MP.gazeA`, BALEFUL GAZE: ACTION on the
+  ring), ONE GAZE A TURN either way (`turn.gazed`); the AI gazes by the bonus first, so the action's is the gaze when the bonus pool is spent.
+- **Their hit points** (10-07, his *"we doing max HP per hit die like we did for main party?"*, the bench, *"return to HD rolls after 5"*):
+  a max hit die a level to 5th, as the party's, the SRD's average a level after (`MP.MAXTO`): Denny 13 / 65 / 101 at 1 / 5 / 9, Beholda
+  10 / 50 / 78, Rascal and Goose 8 / 40 / 60.
 - **Rascal, the DPS:** 2 SCUTTLE (Dash, Disengage or Hide as a bonus action; `cunning` on him); 3 SPICY (CHA on Fire Bolt's damage); 6 HOT
   TAKE (Hellish Rebuke's shape: 2d10 fire at one that hits him, the player asked); 7 GOING VIRAL (fire foe to foe, 3d8, three of them).
 - **GOOSE, the Heals** (10-07; a Lobstamonkee on his sheet `goose_p1`; the draft the race-and-class seat wrote and he passed, and his

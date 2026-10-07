@@ -3763,7 +3763,7 @@
     try {
       // the builds, by the doc's tables (HP, AC, the blow, the DC, the specials)
       var rowsM = [];
-      [['denny', 1, 13, 14, 5], ['denny', 4, 40, 14, 6], ['denny', 9, 85, 14, 9], ['beholda', 1, 10, 14, 5], ['beholda', 4, 31, 14, 6], ['beholda', 9, 66, 14, 9]].forEach(function (r) {
+      [['denny', 1, 13, 14, 5], ['denny', 4, 52, 14, 6], ['denny', 9, 101, 14, 9], ['beholda', 1, 10, 14, 5], ['beholda', 4, 40, 14, 6], ['beholda', 9, 78, 14, 9]].forEach(function (r) {
         var u = D.npc.build(r[0] + ':' + r[1], r[1], 'party', { id: r[0] + r[1] });
         // (the specials in two pools since 10-07, RULED as a trial: bonus / action, one more each level in turn, the bonus first -- 1st 1/1, 4th 3/2, 9th 5/5)
         var pw0 = { 1: '1/1', 4: '3/2', 9: '5/5' }[r[1]], pwN = MPM.left(u, 'B') + '/' + MPM.left(u, 'A');
@@ -3860,9 +3860,21 @@
       var c0 = FM.commands(B7, p7[0]).filter(function (c) { return /^mp-/.test(c.id); }), c1 = FM.commands(B7, p7[1]).filter(function (c) { return /^mp-/.test(c.id); });
       okM('the ring: Denny ' + c0.map(function (c) { return c.label + (c.ok ? '' : '(x)'); }).join(', ') + ' | Beholda ' + c1.map(function (c) { return c.label + (c.ok ? '' : '(x)'); }).join(', '),
         c0.map(function (c) { return c.id; }).join() === 'mp-taunt,mp-denim,mp-flurry,mp-cannonball' && c0.every(function (c) { return c.ok === (c.id !== 'mp-flurry'); }) && // (the Mascot, 10-06 night: Monkey Flurry free, after the Attack action)
-        c1.map(function (c) { return c.id; }).join() === 'mp-bubble,mp-eye,mp-gaze,mp-screen' && c1.every(function (c) { return c.ok; }) && c0.concat(c1).every(function (c) { return c.id === 'mp-taunt' || c.id === 'mp-bubble' || !!c.aim; }));
+        c1.map(function (c) { return c.id; }).join() === 'mp-bubble,mp-eye,mp-gaze,mp-gazea,mp-screen' && c1.every(function (c) { return c.ok; }) && c0.concat(c1).every(function (c) { return c.id === 'mp-taunt' || c.id === 'mp-bubble' || !!c.aim; }));
       pin(2, 'max'); runM(FM.exec(B7, p7[1], { do: 'mp-gaze' }), 1); D.d = dM;
       okM('BALEFUL GAZE from the ring: the goblin ' + (g7.dead ? 'falls' : g7.hp + ' hp') + ', ' + MPM.left(p7[1], 'B') + ' bonus specials left (of 3)', MPM.left(p7[1], 'B') === 2 && (g7.dead || g7.hp < g7.maxhp));
+      // one gaze a turn (RULED 10-07, Griz: "if used as action, disabled for bonus use"): after the bonus gaze both buttons shut; the action gaze an action special
+      var gzB = FM.commands(B7, p7[1]).filter(function (c) { return c.id === 'mp-gaze' || c.id === 'mp-gazea'; });
+      okM('one gaze a turn: after the bonus gaze ' + gzB.map(function (c) { return c.label + (c.ok ? '' : '(x: ' + c.why + ')'); }).join(', '), gzB.length === 2 && gzB.every(function (c) { return !c.ok && /one gaze a turn/.test(c.why); }));
+      var B7g = mkB(['beholda:5'], ['goblin', 'goblin'], 5), bg7 = sideM(B7g, 'party')[0], gs7 = sideM(B7g, 'foe'); bg7.guest = false; bg7.classAI = false;
+      spotM(B7g, bg7, 6, 8); spotM(B7g, gs7[0], 9, 8); spotM(B7g, gs7[1], 9, 10); RUM.startTurn(bg7);
+      var a7 = MPM.left(bg7, 'A'), b7 = MPM.left(bg7, 'B'); pin(2, 'max'); runM(FM.exec(B7g, bg7, { do: 'mp-gazea', target: gs7[0] }), 1); D.d = dM;
+      var gzA = FM.commands(B7g, bg7).filter(function (c) { return c.id === 'mp-gaze'; })[0];
+      okM('BALEFUL GAZE: ACTION from the ring: the goblin ' + (gs7[0].dead ? 'falls' : gs7[0].hp + ' hp') + '; action specials ' + a7 + ' -> ' + MPM.left(bg7, 'A') + ', bonus ' + b7 + ' -> ' + MPM.left(bg7, 'B') + '; the action ' + bg7.turn.action + ', the bonus ' + bg7.turn.bonus + '; the bonus gaze ' + (gzA && gzA.ok ? 'open' : 'shut (' + (gzA && gzA.why) + ')'),
+        MPM.left(bg7, 'A') === a7 - 1 && MPM.left(bg7, 'B') === b7 && bg7.turn.action === 0 && bg7.turn.bonus === 1 && !!gzA && !gzA.ok && /one gaze a turn/.test(gzA.why) && (gs7[0].dead || gs7[0].hp < gs7[0].maxhp));
+      // hit points (RULED 10-07, Griz: "return to HD rolls after 5"): a max hit die a level to 5th, the average after
+      var hpN = function (w, L) { return D.npc.build(w + ':' + L, L, 'foe', { id: 'hp' + w + L }).maxhp; }, hpD = [1, 5, 6, 9].map(function (L) { return hpN('denny', L); }), hpB = [5, 9].map(function (L) { return hpN('beholda', L); }), hpG = [5, 9].map(function (L) { return hpN('goose', L); });
+      okM('hit points, a max die a level to 5th then the average: Denny ' + hpD.join(' / ') + ' (13 / 65 / 74 / 101), Beholda ' + hpB.join(' / ') + ' (50 / 78), Goose ' + hpG.join(' / ') + ' (40 / 60)', hpD.join() === '13,65,74,101' && hpB.join() === '50,78' && hpG.join() === '40,60');
       p7[0].feats.specialsB = 0; p7[0].feats.specialsA = 0; RUM.startTurn(p7[0]);
       var gone = FM.commands(B7, p7[0]).filter(function (c) { return /^mp-/.test(c.id); });
       okM('none left: the specials greyed and why (' + (gone[0] && gone[0].why) + '), the free Monkey Flurry not by it', gone.every(function (c) { return c.id === 'mp-flurry' ? !/short rest/.test(c.why) : !c.ok && /short rest/.test(c.why); }));
@@ -3889,7 +3901,7 @@
       okM('a fight at 5 against two goblins and two hobgoblins: over ' + B9.over() + ' in ' + B9.round + ' rounds, ' + used9 + ' specials used, error ' + (D.lastError ? String(D.lastError).slice(0, 60) : 'none'), !!B9.over() && used9 >= 2 && !D.lastError);
 
       // RASCAL (10-06): the build by the lane's table (HP, AC, the DC and Fire Bolt on CHA), then his three specials by their rules with the dice pinned
-      [['rascal', 1, 8, 14, 13], ['rascal', 4, 23, 14, 14], ['rascal', 5, 28, 14, 15], ['rascal', 9, 48, 14, 17]].forEach(function (r) {
+      [['rascal', 1, 8, 14, 13], ['rascal', 4, 32, 14, 14], ['rascal', 5, 40, 14, 15], ['rascal', 9, 60, 14, 17]].forEach(function (r) {
         var u = D.npc.build('rascal:' + r[1], r[1], 'party', { id: 'r' + r[1] });
         rowsM.push('rascal:' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' dc ' + u.spellDC + ' bolt +' + u.spellAtk + ' ' + MPM.left(u, 'B') + '/' + MPM.left(u, 'A') + 'sp');
         okM('Rascal at ' + r[1] + ': HP ' + u.maxhp + ' (want ' + r[2] + '), AC ' + u.baseAC + ' (' + r[3] + '), DC ' + u.spellDC + ' (' + r[4] + ') on ' + u.castAb + ', Fire Bolt +' + u.spellAtk + ', known ' + (u.known || []).join() + ', Pinch ' + u.weapon.dice + ', climbs ' + !!u.climbs,
@@ -3940,7 +3952,7 @@
       okM('no specials left, a goblin 30 ft off: Rascal ' + (/Fire Bolt/.test(l5) ? 'flings Fire Bolt' : 'does not cast') + ' (' + l5.slice(0, 200) + '), the goblin ' + g5r.maxhp + ' -> ' + g5r.hp, /Fire Bolt/.test(l5) && g5r.hp < g5r.maxhp);
       // GOOSE (10-07): the build (HP as Rascal's, AC 14, his DC and the sling on WIS), the heals by their rules with the dice at their top, the honk, Not Today once a fight,
       // the lifeline's half, his buttons, the roster, a fight run whole and the sling when the specials are spent
-      [['goose', 1, 8, 14, 13], ['goose', 4, 23, 14, 14], ['goose', 5, 28, 14, 15], ['goose', 9, 48, 14, 17]].forEach(function (r) {
+      [['goose', 1, 8, 14, 13], ['goose', 4, 32, 14, 14], ['goose', 5, 40, 14, 15], ['goose', 9, 60, 14, 17]].forEach(function (r) {
         var u = D.npc.build('goose:' + r[1], r[1], 'party', { id: 'g' + r[1] });
         rowsM.push('goose:' + r[1] + ' hp ' + u.maxhp + ' ac ' + u.baseAC + ' dc ' + u.spellDC + ' sling +' + u.weapon.atk + ' ' + MPM.left(u, 'B') + '/' + MPM.left(u, 'A') + 'sp');
         okM('Goose at ' + r[1] + ': HP ' + u.maxhp + ' (want ' + r[2] + '), AC ' + u.baseAC + ' (' + r[3] + '), DC ' + u.spellDC + ' (' + r[4] + '), the sling +' + u.weapon.atk + ' ' + u.weapon.dice + '+' + u.weapon.mod + ' ranged ' + u.weapon.ranged + ' (' + (u.weapon.range || []).join('/') + '), climbs ' + !!u.climbs + ', sheet ' + u.sheet,
