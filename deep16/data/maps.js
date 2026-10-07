@@ -1340,9 +1340,10 @@ window.D16.MAPS.edifice = {
 // dressed stone (=; nothing burrows under them), the hall's edges cave floor; the station's walls and the hall's sealed doors are built
 // stone (b); the cistern's two pools still water; the cots (y) as the 8-bit has them; the 8-bit's rubble (r), crates and tent (k, W); the
 // pool on highway_4 deep water, the causeway's two squares across it. The season's stores (k) stand where the 8-bit stacks its crates
-// once the drow have the station (its raid's flag tiles), cover for a fight. The lamp tower on the 8-bit's (68, 5), lit (js/circles.js).
-// The dwarves' circle (his zodiac wheel, three across) lies flush in the floor north-west of the tower, at the 8-bit's (64, 6): the
-// party comes out of it onto the four squares round it. Both ends of the road are open: the ways out, and where a wave comes in.
+// once the drow have the station (its raid's flag tiles), cover for a fight (kept: Griz, 10-07, "keep them"). The lamp tower on the 8-bit's (68, 5), lit (js/circles.js).
+// The dwarves' circle -- the big one, his zodiac wheel five across -- lies flush in the middle of the station's south room (the 8-bit's
+// rows 14-18, south of the road; Griz, 10-07: "use the big circle centered in the room south of the map"), centre (31, 13): the party
+// comes out of it onto the four corners of its square. It covers one of the stores' crates, gone. Both ends of the road are open: the ways out, and where a wave comes in.
 window.D16.MAPS.lampcircle = {
   name: 'Third Lamp Station',
   sub: 'the king\'s road, the dwarves\' circle in the floor',
@@ -1350,7 +1351,7 @@ window.D16.MAPS.lampcircle = {
   step: 10, deepWater: 'D', noBurrow: '=',
   tower: [32, 2], // the lamp tower (the 8-bit's L at (68, 5))
   lights: [[32, 2, 30, 'fire']], // the tower's lamp: bright 30 ft, dim 30 more -- the station, not the halls
-  circle: { at: [28, 3], sheet: 'zodiacwheel3_p1', sign: 'pisces' },
+  circle: { at: [31, 13], sheet: 'zodiacwheel_p1', sign: 'pisces' }, // the big one, five across, in the middle of the station's south room (Griz, 10-07: "go ahead and use the big circle centered in the room south of the map")
   rows: [
     '########################bbbbbbbbbbbbbbbb###########################################',
     '########################b==============b###########################################',
@@ -1364,14 +1365,14 @@ window.D16.MAPS.lampcircle = {
     '===================================================================================',
     '........................================..............................DDDDDDDDDDDDD',
     '######b#.########b######b===========kk=b###############k##b###########DDDDDDDDDDDD#',
-    '########..##############b=====k========b##############r################DDDDDDDDDD##',
+    '########..##############b==============b##############r################DDDDDDDDDD##',
     '####........############b==========y===b################################DDDDDDD####',
     '###..........###########b==========y=y=b##################################DD#######',
     '###........k.###########b==============b###########################################',
     '####..W......###########bbbbbbbbbbbbbbbb###########################################',
     '########.##########################################################################'
   ],
-  entry: [[26, 1], [30, 1], [26, 5], [30, 5], [25, 3]], // round the circle (the squares the storyboard lands them on: tools/wheel-play.html?scene)
+  entry: [[29, 11], [33, 11], [29, 15], [33, 15], [31, 10]], // round the circle: the four corners of its square (where the storyboard lands them: tools/wheel-play.html?scene), and the road beside it
   foes: [],
   wave: null
 };
