@@ -4,6 +4,9 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · ruled · the Game Show · A game over keeps the group's save, so CONTINUE tries that wave again · *"yeah, that'd be courteous of us"*
+- 2026-10-07 · `8333c53` · the Game Show · The show saves by the group's name as each wave begins (a run played by hand), and CONTINUE on the title picks it up: tier, wave, gear, pack, supplies, hit points · *"Save and resume by group name would be great"*
+- 2026-10-07 · `681f7a5` · MPMon · Rascal's Fire Bolt beside his ATTACK and Denny's Monkey Flurry up front once usable, on the first ring; Social Sharing's dice stack on a friend, never on Rascal · *"as his only spell no reason to be 3 clicks deep"* · *"put denny's flurry on the bar when it activates for use please"* · *"Rascal cannot put more than one die on a friend"*
 - 2026-10-07 · `740d01f` · the Game Show · After the stream, from his play record: the bed names only the armour still worn (it said Rascal wore a piece he had swapped off), and no "the The VNA Amulet" · *"Nothing crashed during the stream. Good work."*
 - 2026-10-07 · seen · the Game Show · The supplies on the stream: tier 1 and tier 4 sends, chat's choices at the chest, the epic amulet at 100 to Goose (his play record; `eyes-gameshow-supplies-1007` cut) · *"Nothing crashed during the stream. Good work."*
 - 2026-10-07 · ruled · the grid's rules · Cover for attacks stays the SRD's: any creature in the line, friend or foe, is half cover; "a size larger" is for hiding only · *"SRD the Cover, just the first time I noticed it"*
