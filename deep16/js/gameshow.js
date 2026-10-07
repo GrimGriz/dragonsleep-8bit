@@ -288,7 +288,14 @@
     // the cleric's word on the chest, the circle open for her while she says it
     if (ing) {
       D.sfx('popup');
-      B.card(['{y}Ingrith{/}: "One more thing. The chest by the lamp -- whatever the folk up top send down for you lands in it."'], W(420)); yield W(200);
+      B.card(['{y}Ingrith{/}: "One more thing. The chest by the lamp -- whatever the folk up top send down for you lands in it."'], W(420));
+      var chest = B.map.chest;
+      if (chest) {                                                                   // the chest: the camera to it, and a thump as she says so (his sheet, 10-07)
+        st.lock = null; yield* B.camTo({ gx: chest.sq.x, gy: chest.sq.y + 1, gz: 0 }, 1.4, W(40));
+        yield W(30); C.chest(B, 'thump'); yield W(80);
+        yield* B.camTo({ gx: ctr[0], gy: ctr[1] - 1, gz: 0 }, 1.1, W(40)); st.lock = { x: cc.x, y: cc.y - 20, zoom: 1.1 };
+        yield W(20);
+      } else yield W(200);
       B.card(['{y}Ingrith{/}: "They\'re watching. Give them a show, and they\'ll keep you fed. Check it between waves."'], W(420)); yield W(200);
       st.ledger = null; B.lights = B.lights.filter(function (l) { return l.id !== 'ledger'; });
       jumpIn(B, ing, 0); yield W(60);

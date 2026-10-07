@@ -300,7 +300,7 @@ HEAD: THE HOBGOBLIN SERGEANT -- sheet 4, its moves seen from BEHIND, for a tacti
 
 The Game Show lane §3 F. **The chest** is where the audience's supplies land (seat 1's words for Ingrith: *"The chest by the lamp -- whatever the folk up top send down for you lands in it."*; the epic amulet's pop-up says "check the chest!"). Nothing draws it today. **The bed** is where the rests are taken between waves. Third Lamp's cots are the 8-bit's `y` tiles, which the grid draws as `deep16/js/iso.js` BLOCK `y`, a timber crib with slats and a bar, so they read as cradles, not beds. Both are props on one floor diamond each, drawn from a sheet as `deep16/js/circles.js` draws the wheel. The bed's glow when its rest is due is the code's job, not the art's.
 
-**When they come back:** `deep16/_src/`, cut to `gschest_p1` (rows `shut`, `thump`, `open`, `opened`) and `gsbed_p1` (`a`, `b`: the two diagonals); the cots in `lampcircle` are drawn from it instead of the crib.
+**IN HAND (10-07):** his two sheets (`deep16/_src/Pixel Art Treasure Chest Animation Sheet.png`, `Pixel Art Cot Comparison A and B.png`) cut by `tools/gsprops-sheet.py` to `gschest_p1` (rows `shut`, `thump`, `open`, `opened`) and `gsbed_p1` (`a`, `b`: the two diagonals); the chest stands at Third Lamp's tower (`lampcircle` `chest`), the cots are drawn from the sheet instead of the crib (`cots`), `deep16/js/circles.js`. Seen in the pane: *"looks great from here in the pane"* · *"cots too"*.
 
 PROPS, THE SUPPLY CHEST (one image):
 

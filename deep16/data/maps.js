@@ -1351,6 +1351,8 @@ window.D16.MAPS.lampcircle = {
   step: 10, deepWater: 'D', noBurrow: '=',
   tower: [32, 2], // the lamp tower (the 8-bit's L at (68, 5))
   lights: [[32, 2, 30, 'fire']], // the tower's lamp: bright 30 ft, dim 30 more -- the station, not the halls
+  chest: [33, 2], // the Game Show's supply chest at the tower's foot (Ingrith: "The chest by the lamp"; js/circles.js D.circles.chest), its front to the circle
+  cots: { sheet: 'gsbed_p1' }, // the three cots (y) drawn from his cot sheet, each along the grid's x (js/circles.js), not as the crib
   circle: { at: [31, 8], sheet: 'zodiacwheel_p1', sign: 'pisces' }, // the big one, five across, in the middle of the station: between the north and south rooms, over the road (Griz, 10-07: "go ahead and use the big circle centered in the room south of the map", then "the one in the lamp centered between north and south rooms")
   rows: [
     '########################bbbbbbbbbbbbbbbb###########################################',

@@ -131,11 +131,66 @@
     } };
   }
 
-  // a map's tower: on its square at load, standing (not walked through; half cover, as a stalagmite)
+  // ------------------------------------------------------------------ the Game Show's props: the supply chest and the camp cots (10-07)
+  // Griz's generated sheets, cut by tools/gsprops-sheet.py: gschest_p1 (shut, thump, open, opened) and gsbed_p1 (a, b: the two diagonals).
+  // A map's `chest: [gx, gy]` stands the chest on that square (not walked through, half cover, as a crate). A map's `cots: { sheet, b }`
+  // draws its cots -- the `y` squares, iso.js's timber crib everywhere else -- from the sheet, each lying along the grid's x (row a), or
+  // along its y for the squares `b` names. The chest plays by D.circles.chest(B, what): 'thump', something lands in it from above (then
+  // shut again); 'open', the lid up on its glow (opened flickers until it is closed); 'close', the lid down. Its glow is the
+  // sheet's own, no light on the field: a light is the fight's (sight, js/light.js), and a second one over the tower's drew the floor blue.
+  function sheetCell(ctx, name, row, f, sq) {
+    var sh = D.SHEETS && D.SHEETS[name]; if (!sh) return;
+    var im = D.images && D.images[sh.image]; if (!im || !im.naturalWidth) { if (D.spr && !im) D.spr.load(sh.image); return; }
+    var p = iso.center(sq.x, sq.y, sq.gz), s = iso.toScreen(p.x, p.y);
+    ctx.drawImage(im, f * sh.fw, sh.anims[row].row * sh.fh, sh.fw, sh.fh, Math.round(s.x - sh.ax), Math.round(s.y - sh.ay), sh.fw, sh.fh);
+  }
+  var CHEST = 'gschest_p1';
+  function chestFrame(st, sh) {      // the row and frame to draw now; a row played out goes on to the next it names
+    var a = sh.anims[st.row], f = Math.floor((now() - st.t0) * a.fps);
+    if (st.row === 'opened') return { row: st.row, f: f % a.frames };
+    if (f >= a.frames && st.then) { st.row = st.then; st.then = null; st.back = false; st.t0 = now(); return chestFrame(st, sh); }
+    f = Math.min(f, a.frames - 1);
+    return { row: st.row, f: st.back ? a.frames - 1 - f : f };
+  }
+  function chestProp(m, sq) {
+    var st = { row: 'shut', t0: 0, back: false, then: null };
+    return { kind: 'chest', sq: sq, st: st, depth: sq.x + sq.y + 0.5, gz: sq.gz, draw: function (ctx) {
+      var sh = D.SHEETS && D.SHEETS[CHEST]; if (!sh) return;
+      var c = chestFrame(st, sh); sheetCell(ctx, CHEST, c.row, c.f, sq);
+    } };
+  }
+  C.chest = function (B, what) {
+    var p = B && B.map && B.map.chest; if (!p) return false;
+    var st = p.st, open = st.row === 'opened' || (st.row === 'open' && !st.back);
+    if (what === 'thump') {
+      if (open) { D.sfx('chest'); return true; }                     // (an open chest: it lands, and the jingle says so)
+      st.row = 'thump'; st.then = 'shut'; st.back = false; st.t0 = now(); D.sfx('bump');
+    } else if (what === 'open') {
+      if (open) return true;
+      st.row = 'open'; st.then = 'opened'; st.back = false; st.t0 = now(); D.sfx('chest');
+    } else if (what === 'close') {
+      if (!open) return true;
+      st.row = 'open'; st.then = 'shut'; st.back = true; st.t0 = now(); D.sfx('bump');
+    } else return false;
+    return true;
+  };
+  C.chestOpen = function (B) { var p = B && B.map && B.map.chest; return !!(p && (p.st.row === 'opened' || (p.st.row === 'open' && !p.st.back))); };
+  function cotProp(sq, row, sheet) {
+    return { kind: 'cot', sq: sq, depth: sq.x + sq.y + 0.5, gz: sq.gz, draw: function (ctx) { sheetCell(ctx, sheet, row, 0, sq); } };
+  }
+
+  // a map's tower: on its square at load, standing (not walked through; half cover, as a stalagmite); its chest and its cots the same way
   var load0 = iso.load;
   iso.load = function (def) {
     var m = load0.apply(this, arguments);
     if (def.tower) { var sq = m.at(def.tower[0], def.tower[1]); if (sq) { sq.walk = false; sq.pillar = true; sq.stands = 'the lamp tower'; m.props.push(towerProp(m, def.tower)); m.sorted = null; } }
+    if (def.chest) { var cq = m.at(def.chest[0], def.chest[1]); if (cq) { cq.walk = false; cq.pillar = true; cq.stands = 'the supply chest'; m.chest = chestProp(m, cq); m.props.push(m.chest); m.sorted = null; } }
+    if (def.cots) {
+      var isB = function (s) { return (def.cots.b || []).some(function (q) { return q[0] === s.x && q[1] === s.y; }); };
+      m.props = m.props.filter(function (p) { return !(p.kind === 'block' && p.sq.ch === 'y'); });   // (the crib's drawing; the square's rules stay)
+      m.sq.forEach(function (s) { if (s.ch === 'y') { s.stands = 'a cot'; m.props.push(cotProp(s, isB(s) ? 'b' : 'a', def.cots.sheet || 'gsbed_p1')); } });
+      m.sorted = null;
+    }
     return m;
   };
 
