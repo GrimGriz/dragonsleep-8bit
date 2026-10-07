@@ -534,10 +534,14 @@ otherwise, this stands.
 - **The Mascot gallery (10-07, `js/mpgallery.js`; Griz: *"a gallery view of lobstamonkee abilities like the spell effect one (repeats on click,
   advances on arrows) and to examine the current effects of the various abilities per level"*): **`?mpgallery`** (or `?fxgallery&mascots`) --
   the four kits one ability at a time on the class floor, 37 entries (each Mascot's sheet, its blow, then its abilities by the level they come
-  at; the Hivemind last): left/right the next, **up/down the level 1-9** (the four rebuilt at it; the card's words, the ring's rules line and
-  a BY LEVEL ladder of the numbers from the level it comes at to 9th, this level in brackets), E or a click again. The dice are real (a
-  foe's trigger pinned only where a reaction needs one, said on the card); the foes at 100 HP so nothing dies. `&lvl=`, `&ability=<id>`,
-  `&who=denny,goose`, `&only=a,b`, `&auto`, `&fast`. `mode=mpgallery1007` runs every entry headless at 1, 5 and 9 (in the gate).
+  at; the Hivemind last): left/right the next, **up/down the level 1-9** (the four rebuilt at it), E or a click on the floor again. **The card
+  is a column down the left** (his *"left adjusted scrollable column - hard to see moves"*): the words at this level, THE RING's rules line
+  and BY LEVEL, a line a level from the one it comes at to 9th, this level marked; the wheel over it or a click on it scrolls; the stage is
+  shifted right of it and the fight's own cards draw over the stage. The dice are real (a foe's trigger pinned only where a reaction needs
+  one, said in the column); **the foes are normies** as the spell gallery's (his *"soften like the spell gallery"*: every score 8, AC 10,
+  100 HP). `&lvl=`, `&ability=<id>`, `&who=denny,goose`, `&only=a,b`, `&auto`, `&fast`. `mode=mpgallery1007` runs every entry headless at 1,
+  5 and 9 (in the gate). **`D.mpgallery.walk(B, { who, L, home })`** runs the same walk inside another fight, one pass: the Game Show's
+  TUTORIAL toggle on its title (`js/gameshow.js`; his *"build for denny as test"*) walks Denny's kit on the lighthouse floor before the jump in.
 - **Doors:** `?mpshow` (5th: the core and the 2nd-3rd moves) and **`?mpshow&lvl=9`** (all 28 beats: the 6ths' reactions, the fourths, the
   Hivemind); Goose's alone: `?mpshow&lvl=7&only=heart,group,fountain,honk,nottoday,lifeline`. By hand:
   `?npc=goblin,goblin,hobgoblin,hobgoblin&vs=denny:5,goose:5&lvl=5`.

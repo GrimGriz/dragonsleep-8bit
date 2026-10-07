@@ -28,7 +28,7 @@
   var D = window.D16, G = D.grid, RU = D.rules, C = D.circles, FX = D.fx;
   var GS = D.gameshow = {};
   var LOBSTAMONKEES = ['denny', 'rascal', 'goose'];                // (Beholda is an EyeGregore: she keeps her place while they wander)
-  var WANDER = 33 * 60, SCORES = 'deep16.gameshow.scores', NAME = 'deep16.gameshow.group';
+  var WANDER = 33 * 60, SCORES = 'deep16.gameshow.scores', NAME = 'deep16.gameshow.group', TUT = 'deep16.gameshow.tutorial';
   var FAST = false;
   function W(n) { return FAST ? Math.min(n, 2) : n; }
   function P(r, i) { return D.PAL.ramps[r][i]; }
@@ -41,6 +41,12 @@
     D.store.set(SCORES, s); return s.indexOf(row);
   };
   GS.group = function () { var g = D.store.get(NAME); return typeof g === 'string' && g ? g : 'THE LOBSTAMONKEES'; };
+  // THE TUTORIAL (10-07, Griz: "a spell gallery version of the heroes abilities with a front page toggle for 'tutorial'"; "build for denny as test"): a
+  // toggle on the title. On, the show opens with the Mascot gallery's walk (js/mpgallery.js MG.walk) on the lighthouse floor before the jump in -- Denny's
+  // kit as it stands at the show's level, one move at a time, the column down the left, the players clicking through -- then the circle wakes as ever.
+  // Denny alone for now (his "as test"); TUTORIAL_WHO is the list to grow. It is this browser's, as the group's name is
+  GS.tutorial = function () { return !!D.store.get(TUT); };
+  GS.TUTORIAL_WHO = ['denny'];
 
   // ------------------------------------------------------------------ the show's fights
   function stage(map, extra, lvl) {
@@ -91,7 +97,7 @@
 
   function* lighthouse(B) {
     var st = B.gs, def = G.map.def, ctr = def.circle.at, next = B.t + W(6 * 60);
-    st.mode = 'title'; st.name = GS.group();
+    st.mode = 'title'; st.name = GS.group(); st.tutorial = GS.tutorial();
     D.music('corridor');                                            // (the 8-bit's surface music -- his "lighthouse music as surface 8bit music")
     hold(B, ctr, 1);
     while (true) {
@@ -100,6 +106,7 @@
         var hit = titleHit(B, ck);
         if (hit === 'scores') { st.mode = st.mode === 'scores' ? 'title' : 'scores'; continue; }
         if (hit === 'name') { nameEdit(B); continue; }
+        if (hit === 'tutorial') { st.tutorial = !st.tutorial; D.store.set(TUT, st.tutorial); D.sfx('cursor'); continue; }
         if (st.mode === 'title' && !st.editing) {
           var sq = D.iso.pick(ck.x, ck.y, 0);
           if (sq && sq.x === ctr[0] && sq.y === ctr[1]) break;      // the circle's centre: the show begins
@@ -109,8 +116,17 @@
       if (B.t >= next && st.mode === 'title' && !st.editing) { yield* wander(B); next = B.t + W(WANDER); continue; }
       yield 1;
     }
+    st.editing = false; D.store.set(NAME, st.name);
+    // the tutorial first, when its toggle is on: the kit walked on this floor, round the circle, before anyone jumps in
+    if (st.tutorial && D.mpgallery && D.mpgallery.walk) {
+      st.mode = 'tutorial'; st.lock = null;
+      B.card(['{y}THE TUTORIAL.{/}  Denny first: his kit as it stands, one move at a time.', '{g}left/right the next · E again · X skips the rest{/}'], W(360)); yield W(70);
+      yield* D.mpgallery.walk(B, { who: GS.TUTORIAL_WHO, home: [ctr[0], ctr[1]], fast: FAST });
+      st.clicks = []; hold(B, ctr, 1);
+      B.card(['{y}That\'s the kit.{/}  Now, in they go.'], W(240)); yield W(60);
+    }
     // the jump in: the circle wakes and spins, and they go in one by one (the storyboard's, tools/wheel-play.html?scene)
-    st.mode = 'go'; st.editing = false; st.lock = null; D.store.set(NAME, st.name);
+    st.mode = 'go'; st.lock = null;
     var sign = D.SHEETS[def.circle.sheet].signs[Math.floor(D.rand() * 12)];
     yield* B.camTo({ gx: ctr[0], gy: ctr[1], gz: 0 }, 1.25, W(40));
     yield* wake(B, sign, { turns: 3, T: 3.6 });
@@ -404,6 +420,7 @@
       big(ctx, 'GAME SHOW', Wd / 2, 40, P('gold', 4), 2);
       ctx.fillStyle = 'rgba(10,8,16,0.6)'; ctx.fillRect(0, Hd - 40, Wd, 40);
       button(ctx, 'name', 'GROUP: ' + (st.name || '') + (st.editing && (B.t >> 4) & 1 ? '_' : ''), 12, Hd - 34, 220, 18, st.editing);
+      button(ctx, 'tutorial', 'TUTORIAL ' + (st.tutorial ? 'ON' : 'OFF'), 240, Hd - 34, 120, 18, !!st.tutorial);
       button(ctx, 'scores', 'HIGH SCORES', Wd - 112, Hd - 34, 100, 18);
       if ((B.t >> 5) & 1) D.text(ctx, 'click the centre of the circle to begin', Wd / 2, Hd - 12, P('bone', 1), 'center');
       var cp = st.caption;

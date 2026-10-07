@@ -3451,6 +3451,19 @@
         okG('the gallery at ' + Lg + ': every fired entry left its lines in the log (' + silent.length + ' silent' + (silent.length ? ': ' + silent.join(', ') : '') + ')', !silent.length);
         if (D.lastError) { okG('the gallery at ' + Lg + ': the loop logged no error (' + String(D.lastError.message || D.lastError).slice(0, 160) + ')', false); D.lastError = null; }
       });
+      // the walk inside another fight (D.mpgallery.walk; the Game Show's TUTORIAL, js/gameshow.js): Denny's kit at 1st on a class-floor fight whose foes are
+      // gone, one pass in auto -- his four entries at 1st and no other, none broke, the dice and the picture put back, the four back on their squares
+      if (D.mpgallery && D.mpgallery.walk) {
+        D.seed = 1007; var BT = D.npcFight('?npc=goblin&vs=denny:1,beholda:1,rascal:1,goose:1&lvl=1', {}); D.battle = BT; BT.enter();
+        BT.units = BT.units.filter(function (u) { return u.side === 'party'; }); BT.units.forEach(function (u, i) { u.x = 6 + i; u.y = 8; }); D.grid.setup(D.grid.map, BT.units);
+        var d0T = D.d, paint0T = BT.paint, update0T = BT.update, wasT = BT.units.map(function (u) { return u.x + ',' + u.y; }).join(' '), repT = null;
+        BT.co = (function* () { repT = yield* D.mpgallery.walk(BT, { who: ['denny'], auto: true, fast: true }); })();
+        var vT, kT = 0; while (BT.co && kT++ < 400000) { var rT = BT.co.next(vT); vT = undefined; if (rT.done) break; if (rT.value && rT.value.prompt) vT = rT.value.prompt.opts[0].value; }
+        var keysT = Object.keys(repT || {}), brokeT = keysT.filter(function (k) { return /^error/.test(repT[k].how); });
+        okG('the walk (the tutorial\'s): Denny\'s kit at 1st, one pass -- ' + keysT.join(', ') + ' (want denny@1, fists@1, taunt@1, denim@1), ' + brokeT.length + ' broke' + (brokeT.length ? ' -- ' + brokeT.map(function (k) { return k + ': ' + repT[k].how.slice(0, 200); }).join(' || ') : ''), keysT.join(',') === 'denny@1,fists@1,taunt@1,denim@1' && !brokeT.length && kT < 400000);
+        var nowT = BT.units.map(function (u) { return u.x + ',' + u.y; }).join(' ');
+        okG('the walk put the fight back: the four where they stood (' + nowT + ' vs ' + wasT + '), no dummies left (' + BT.units.length + ' units), the dice (' + (D.d === d0T) + '), the picture (' + (BT.paint === paint0T && BT.update === update0T) + ')', nowT === wasT && BT.units.length === 4 && D.d === d0T && BT.paint === paint0T && BT.update === update0T);
+      } else okG('the walk (the tutorial\'s) is loaded', false);
     } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
     var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
     document.body.appendChild(preG);
