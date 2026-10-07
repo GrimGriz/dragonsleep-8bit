@@ -151,6 +151,9 @@
   // squeeze 1d8 + STR, 2d8 at 8th; Large and smaller, Huge at 9th
   MP.tauntN = function (L) { return 2 + pw(L, 1); };
   MP.tauntR = function (L) { return 10 + 5 * rc(L, 1); };
+  // THE BRACE (RULED 10-07, Griz, on the bench's Denny dropping first: "Taunt gives +2 DR at 3, 6 & 9?" then "1 yes"): from 3rd, while his taunt holds (to the
+  // end of his next turn), every blow on him is MP.tauntDR less -- 2 at 3rd, 4 at 6th, 6 at 9th (the seat's reading: adding up), whatever its type, never below 0
+  MP.tauntDR = function (L) { return 2 * Math.floor((L || 1) / 3); };
   MP.denimDice = function (L) { return (1 + pw(L, 1)) + 'd6'; };
   MP.denimPush = function (L) { return 5 * rc(L, 1); };
   MP.cannonDice = function (L) { var p = pw(L, 5); return '2d8' + (p ? '+' + 2 * p : ''); };
@@ -249,6 +252,8 @@
       if (!sv.ok) { w.conds.taunted = { by: u.id, name: u.name, till: { who: u.id, at: 'end', n: 2 }, endText: '{who} is no longer taunted.' }; FX.ring(w, 'red', 26); }
     });
     if (!list.length) lines.push('  {g}no foe near enough to hear it.{/}');
+    var dr = MP.tauntDR(u.lvl);
+    if (dr) { u.conds.braced = { n: dr, till: { who: u.id, at: 'end', n: 2 }, endText: '{who} lets his guard down.' }; lines.push('  {y}' + u.name + '{/} braces: {n}every blow on him ' + dr + ' less{/} {g}(till the end of his next turn){/}'); }
     B.card(lines, 360); yield 24;
     u.anim = 'idle';
   };
@@ -891,6 +896,13 @@
     if (u && u.conds && u.conds.hiveWard && n > 0) { var r = D.d(6), a = Array.prototype.slice.call(arguments); a[1] = Math.max(0, n - r); if (FX.float) FX.float('ward -' + r, u, D.PAL.ramps.silver[5]); return hurtH.apply(this, a); }
     return hurtH.apply(this, arguments);
   };
+  // the brace (Denny's taunt from 3rd, MP.tauntDR): its number off every blow on him while it holds
+  var hurtBr = D.Battle.prototype.hurt;
+  D.Battle.prototype.hurt = function (u, n) {
+    var b = u && u.conds && u.conds.braced;
+    if (b && b.n && n > 0) { var a = Array.prototype.slice.call(arguments), k = Math.min(n, b.n); a[1] = n - k; if (FX.float) FX.float('brace -' + k, u, D.PAL.ramps.silver[5]); return hurtBr.apply(this, a); }
+    return hurtBr.apply(this, arguments);
+  };
   // both at a turn's start (js/grimoire.js M.onStart, every creature's): the round's Hivemind once, and the hug's squeeze on its own turn
   var onStart0 = M.onStart; M.onStart = function (B, u) {
     if (onStart0) onStart0.apply(this, arguments);
@@ -1014,7 +1026,12 @@
   });
   // the bonus actions before the action: the bubble, else the eye on a foe her friends are on (Beholda); the taunt (Denny); the sharing (Rascal). The taunt is
   // kept back while it is his last special and there is no foe on a friend
-  function tauntWorth(B, u) { var tl = MP.tauntList(B, u), onF = tl.filter(function (w) { return nearFriends(B, u, w, 10); }); return MP.left(u, 'B') > 0 && onF.length > 0 && (tl.length >= 2 || MP.left(u, 'B') >= 2); }
+  function tauntWorth(B, u) {
+    var tl = MP.tauntList(B, u), onF = tl.filter(function (w) { return nearFriends(B, u, w, 10); });
+    if (MP.left(u, 'B') <= 0) return false;
+    if (onF.length > 0 && (tl.length >= 2 || MP.left(u, 'B') >= 2)) return true;
+    return !!(MP.tauntDR(u.lvl) && !u.conds.braced && MP.foes(B, u, 5).length && tl.length); // (from 3rd the brace: worth it for himself when a foe is on him and none holds)
+  }
   function eyeMark(B, u) { return MP.eyeTargets(B, u).filter(function (w) { return !w.conds.helped && nearFriends(B, u, w, 5); }).sort(function (a, b) { return b.hp - a.hp; })[0]; }
   // Beholda's gaze (a bonus action since 10-07): the foe her friends are on, not marked already, the one with the most left to hit; with two or more bonus specials
   // in hand, the hardest hitter in sight if none is on a friend yet
@@ -1081,7 +1098,7 @@
     function add(id, label, cost, icon, why, note, aim, aimText) { out.push({ id: id, label: label, cost: cost, icon: icon, skill: true, ok: !why, why: why, note: note, aim: aim || null, aimText: aimText || null }); }
     if (u.mpSub === 'tank') {
       var rch = MP.inReach(B, u), tl = MP.tauntList(B, u), rr = G.reachOf(u);
-      add('mp-taunt', 'TAUNT', 'B', 'surge', whyB(tl, 'no foe within ' + MP.tauntR(L) + ' ft to hear it'), 'the ' + MP.tauntN(L) + ' nearest foes within ' + MP.tauntR(L) + ' ft: WIS DC ' + MP.tauntDC(u) + ' or they may go only at you, till the end of your next turn; ' + leftText(u));
+      add('mp-taunt', 'TAUNT', 'B', 'surge', whyB(tl, 'no foe within ' + MP.tauntR(L) + ' ft to hear it'), 'the ' + MP.tauntN(L) + ' nearest foes within ' + MP.tauntR(L) + ' ft: WIS DC ' + MP.tauntDC(u) + ' or they may go only at you, till the end of your next turn' + (MP.tauntDR(L) ? '; you brace, every blow on you ' + MP.tauntDR(L) + ' less till then' : '') + '; ' + leftText(u));
       add('mp-denim', 'DENIM DAMAGE', 'A', 'attack', whyA(rch, 'no foe in reach'), 'your swings, +' + MP.denimDice(L) + ' on the first that lands (doubled on a critical)' + (MP.denimPush(L) ? '; it knocks that one ' + MP.denimPush(L) + ' ft back' : '') + '; ' + leftText(u), foeAim(rr, false, 'attack'), 'a foe in your reach');
       if (L >= 2) add('mp-flurry', 'MONKEY FLURRY', 'B', 'attack', !T.attackAction ? 'after you take the Attack action' : whyB(rch, 'no foe in reach', true), 'one more punch, free: a bonus action after the Attack action', foeAim(rr, false, 'attack'), 'a foe in your reach');
       if (L >= 5) { var lt = MP.leapTargets(B, u); add('mp-cannonball', 'CANNONBALL', 'A', 'dash', whyA(lt, 'no foe within a ' + MP.leap(L) + '-ft leap'), 'leap up to ' + MP.leap(L) + ' ft beside a foe: each foe beside you DEX DC ' + MP.tauntDC(u) + ' or ' + MP.cannonDice(L) + ' and prone (half on a save), then a swing; ' + leftText(u), foeAim(MP.leap(L) + 5, true), 'the foe to come down beside'); }

@@ -3812,10 +3812,14 @@
       pin(3, null); RUM.startTurn(dn); var sp3 = MPM.left(dn, 'B'), spA3 = MPM.left(dn, 'A'); runM(MPM.taunt(B3, dn)); D.d = dM;
       var tn = fo.filter(function (w) { return w.conds.taunted; }).length;
       okM('Taunt at 4, a bonus action (saves a 3): taunted ' + tn + ' of 3 (' + MPM.tauntN(4) + ' within ' + MPM.tauntR(4) + ' ft), a bonus special spent (' + sp3 + ' -> ' + MPM.left(dn, 'B') + ', the action ones ' + spA3 + ' -> ' + MPM.left(dn, 'A') + '), the bonus ' + dn.turn.bonus + ', the action kept ' + dn.turn.action, tn === 3 && MPM.left(dn, 'B') === sp3 - 1 && MPM.left(dn, 'A') === spA3 && dn.turn.bonus === 0 && dn.turn.action > 0);
+      // the brace (10-07, RULED: "Taunt gives +2 DR at 3, 6 & 9?", "yes"): his taunt at 4 braces him 2 off every blow, a blow of 1 takes nothing
+      var br3 = dn.conds.braced && dn.conds.braced.n, h3 = dn.hp; B3.hurt(dn, 7, 'slashing'); var tk3 = h3 - dn.hp; h3 = dn.hp; B3.hurt(dn, 1, 'piercing'); var tk3b = h3 - dn.hp;
+      okM('the brace at 4: ' + br3 + ' off a blow -- a 7 took ' + tk3 + ', a 1 took ' + tk3b + '; ' + MPM.tauntDR(2) + ' at 2nd, ' + MPM.tauntDR(6) + ' at 6th, ' + MPM.tauntDR(9) + ' at 9th', br3 === 2 && tk3 === 5 && tk3b === 0 && MPM.tauntDR(2) === 0 && MPM.tauntDR(6) === 4 && MPM.tauntDR(9) === 6);
       // (till the end of HIS next turn, 10-07, RULED: "lasts until the end of denny's next turn, not foe current turn"; no save to end it sooner -- "agreed")
       var tk = fo.filter(function (w) { return w.conds.taunted; }), tq = tk[0]; D.magic.endTurn(B3, tq); var a3 = tk.every(function (w) { return !!w.conds.taunted; });
       D.magic.endTurn(B3, dn); var b3 = tk.every(function (w) { return !!w.conds.taunted; }); D.magic.endTurn(B3, dn); var c3 = tk.every(function (w) { return !w.conds.taunted; });
       okM('the taunt holds past a foe\'s turn end ' + a3 + ' and the end of the turn it was used on ' + b3 + ', and lets go at the end of his next ' + c3, a3 && b3 && c3);
+      okM('the brace lets go with the taunt, at the end of his next turn: braced ' + !!dn.conds.braced, !dn.conds.braced);
       tk.forEach(function (w) { w.conds.taunted = { by: dn.id, name: dn.name, till: { who: dn.id, at: 'end', n: 2 } }; }); // (back on, for the turns below)
       var eT = RUM.edges(fo[0], au, fo[0].attacks[Object.keys(fo[0].attacks)[0]]), eD = RUM.edges(fo[0], dn, fo[0].attacks[Object.keys(fo[0].attacks)[0]]);
       okM('a taunted foe has disadvantage at Aurdin (' + eT.dis.join(', ') + ') and not at Denny (' + eD.dis.join(', ') + ')', eT.dis.some(function (x) { return /taunted/.test(x); }) && !eD.dis.some(function (x) { return /taunted/.test(x); }));

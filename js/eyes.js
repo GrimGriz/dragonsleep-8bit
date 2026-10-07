@@ -17,6 +17,9 @@
   var DS = window.DS = window.DS || {};
   var G1 = 'Eyes: first', G2 = 'Eyes: built this week', G3 = 'Eyes: built before, never seen';
   DS.EYES = {
+    'eyes-taunt-brace-1007': { pri: 2, group: G2, title: 'Denny\'s Taunt braces him: every blow on him 4 less at 6th (10-07)', pt: 'MPMon lane §6h (deep16/js/mpmon.js MP.tauntDR) · eyes',
+      url: 'deep16/?mpshow&lvl=6&only=taunt',
+      look: 'Your "Taunt gives +2 DR at 3, 6 & 9?", then "yes". The taunt beat at 6th: the taunt card ends "Denny braces: every blow on him 4 less (till the end of his next turn)", and when the goblin beside Beholda goes at him instead, a silver "brace -4" floats off Denny and the blow takes 4 less. Read as adding up: 2 at 3rd, 4 at 6th, 6 at 9th, any damage type. The bench (deep16-mascot-bench.md) has the band at 4, 0, 1, 3, 1, 4, 5, 8, 7 of 20 with it.' },
     'eyes-rascal-size-1007': { pri: 2, group: G2, title: 'Rascal at 80% of Denny, his walk from sheet 2 (10-07)', pt: 'MPMon lane §4c (tools/rascal-sheet-p2.py) · eyes',
       url: 'deep16/?mpshow&lvl=7&only=sharing,flame,distancing,spicy,hottake,viral',
       look: 'Your "a little large for the squishy DPS" and "80% of Denny Height": he stands about 42 at rest to Denny\'s 53 (63 before), about Goose\'s height, wider; about 36 in the rows. Six beats, the dice pinned, Rascal on each of his rows: the bow (sheet 3), the dance, the ring of air, Fire Bolt\'s spark, Hot Take\'s sparks, Going Viral\'s buzz. His walk is sheet 2\'s now. At this size the hat, the eyes, the claw and the whiskers read; the yellow rings round his eyes run into the red of his face. The sheet beside Denny: tools/sheet-play.html?sheet=rascal_p2&ref=denny_p3. p1 is gone.' },

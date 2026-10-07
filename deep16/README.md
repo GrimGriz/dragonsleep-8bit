@@ -505,6 +505,8 @@ otherwise, this stands.
 - **Denny, the Tank:** 2 MONKEY FLURRY (one more punch after the Attack action); 3 STAND FIRM (advantage on saves against prone and on
   STR saves, and on breaking a grip); 6 BODYGUARD (the Protection style without the shield: battle.js reads `bodyguard`, the player is
   asked); 7 LOBSTAH HUG (STR or HELD: grappled and restrained, taunted to him, squeezed 1d8 + STR at the start of each of his turns).
+  THE BRACE (10-07, his *"Taunt gives +2 DR at 3, 6 & 9?"*, *"yes"*): from 3rd his Taunt braces him to the end of his next turn, every
+  blow on him 2 less (4 at 6th, 6 at 9th), any type (`MP.tauntDR`, `conds.braced`); the AI taunts for it too when a foe is on him.
 - **Beholda, Buffs:** 2 EYE ON IT (the Help from 30 ft); 3 LUCKY DICE (a friend within 30 ft who rolls a 1 on an attack or a save rolls
   again); 6 EYE CONTACT (Cutting Words' shape: 1d6 off a foe's blow that would land, on its own); 7 SPOTLIGHT (a friend Hasted till the end
   of its next turn, no lethargy).
