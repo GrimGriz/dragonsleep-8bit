@@ -7660,5 +7660,127 @@
 "fps": 8
 }
 }
+},
+"zodiacwheel3_p1": {
+"_note": "his zodiac wheel on the floor (tools/wheel-sheet.py): spin frame f is the wheel risen and turned 7.5*f degrees clockwise, frame 4k resting rest[k] under the highlight; blur the same angles smeared, for a fast spin; rise column k is the wheel resting on rest[k] from flush in the floor (row 0, dormant, its colours pulled to the floor) to risen (the last row, the same as spin frame 4k); play it backwards to sink; riseDressed the same in dressed stone. (ax, ay) is where its centre meets the floor.",
+"image": "art/zodiacwheel3_p1.png?v=7828e15c0d",
+"squares": 3,
+"fw": 140,
+"fh": 74,
+"ax": 70,
+"ay": 38,
+"cols": 12,
+"degPerFrame": 7.5,
+"framesPerSign": 4,
+"lift": 2,
+"anims": {
+"spin": {
+"row": 0,
+"frames": 48
+},
+"blur": {
+"row": 4,
+"frames": 48
+},
+"rise": {
+"row": 8,
+"frames": 8,
+"bySign": true
+},
+"riseDressed": {
+"row": 16,
+"frames": 8,
+"bySign": true
+}
+},
+"signs": [
+"pisces",
+"aries",
+"taurus",
+"gemini",
+"cancer",
+"leo",
+"virgo",
+"libra",
+"scorpio",
+"sagittarius",
+"capricorn",
+"aquarius"
+],
+"rest": [
+"pisces",
+"aquarius",
+"capricorn",
+"sagittarius",
+"scorpio",
+"libra",
+"virgo",
+"leo",
+"cancer",
+"gemini",
+"taurus",
+"aries"
+]
+},
+"zodiacwheel_p1": {
+"_note": "his zodiac wheel on the floor (tools/wheel-sheet.py): spin frame f is the wheel risen and turned 7.5*f degrees clockwise, frame 4k resting rest[k] under the highlight; blur the same angles smeared, for a fast spin; rise column k is the wheel resting on rest[k] from flush in the floor (row 0, dormant, its colours pulled to the floor) to risen (the last row, the same as spin frame 4k); play it backwards to sink; riseDressed the same in dressed stone. (ax, ay) is where its centre meets the floor.",
+"image": "art/zodiacwheel_p1.png?v=6ff218556e",
+"squares": 5,
+"fw": 232,
+"fh": 120,
+"ax": 116,
+"ay": 61,
+"cols": 12,
+"degPerFrame": 7.5,
+"framesPerSign": 4,
+"lift": 2,
+"anims": {
+"spin": {
+"row": 0,
+"frames": 48
+},
+"blur": {
+"row": 4,
+"frames": 48
+},
+"rise": {
+"row": 8,
+"frames": 8,
+"bySign": true
+},
+"riseDressed": {
+"row": 16,
+"frames": 8,
+"bySign": true
+}
+},
+"signs": [
+"pisces",
+"aries",
+"taurus",
+"gemini",
+"cancer",
+"leo",
+"virgo",
+"libra",
+"scorpio",
+"sagittarius",
+"capricorn",
+"aquarius"
+],
+"rest": [
+"pisces",
+"aquarius",
+"capricorn",
+"sagittarius",
+"scorpio",
+"libra",
+"virgo",
+"leo",
+"cancer",
+"gemini",
+"taurus",
+"aries"
+]
 }
 };

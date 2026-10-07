@@ -1329,3 +1329,103 @@ window.D16.MAPS.edifice = {
   wave: null
 };
 })();
+
+// Third Lamp Station (10-07, Griz: "a tile-by-tile version of the 8-bit 3rd lamp with the inactive version in the floor. If the 8 bit map is
+// too small, use it as a guide to make a suitable grid map for the 3rd lamp. Aim for as many squares as we use in the wet 'give or take' -
+// we'll have waves of attackers - have more of the hall past the 3rd lamp than hall between the second and third lamps"). The 8-bit game's
+// road, square for square: highway_3 from x 36 to its east end (the hall up from Second Lamp, 24 squares, its south alcove with the tent,
+// then the station itself, x 60-75) and highway_4 from x 0 to 42 (the hall on toward Deepholm, 43 squares, out to the causeway over the
+// black water); rows 3-20 of both. The 8-bit square (x, y) is the grid's (x - 36, y - 3) west of the station's east wall and (x + 40, y - 3)
+// past it. 606 open squares, 497 of them to stand on (the Wet: 554 and 445). Its tiles: the station's dwarf-cut floor and the road are
+// dressed stone (=; nothing burrows under them), the hall's edges cave floor; the station's walls and the hall's sealed doors are built
+// stone (b); the cistern's two pools still water; the cots (y) as the 8-bit has them; the 8-bit's rubble (r), crates and tent (k, W); the
+// pool on highway_4 deep water, the causeway's two squares across it. The season's stores (k) stand where the 8-bit stacks its crates
+// once the drow have the station (its raid's flag tiles), cover for a fight. The lamp tower on the 8-bit's (68, 5), lit (js/circles.js).
+// The dwarves' circle (his zodiac wheel, three across) lies flush in the floor north-west of the tower, at the 8-bit's (64, 6): the
+// party comes out of it onto the four squares round it. Both ends of the road are open: the ways out, and where a wave comes in.
+window.D16.MAPS.lampcircle = {
+  name: 'Third Lamp Station',
+  sub: 'the king\'s road, the dwarves\' circle in the floor',
+  dark: true, // (the 8-bit map's `dark`: the halls are black; the tower is the station's light)
+  step: 10, deepWater: 'D', noBurrow: '=',
+  tower: [32, 2], // the lamp tower (the 8-bit's L at (68, 5))
+  lights: [[32, 2, 30, 'fire']], // the tower's lamp: bright 30 ft, dim 30 more -- the station, not the halls
+  circle: { at: [28, 3], sheet: 'zodiacwheel3_p1', sign: 'pisces' },
+  rows: [
+    '########################bbbbbbbbbbbbbbbb###########################################',
+    '########################b==============b###########################################',
+    '########################b============~~b##################################DD#######',
+    '########################b============~~b################################DDDDDDDD###',
+    '########################b==============b###############################DDDDDDDDDD##',
+    '########################b==kk==========b##############################DDDDDDDDDDDD#',
+    '#b##########b###########b==============b#########b#####k########b#####DDDDDDDDDDDDD',
+    '........................================..............................DDDDDDDDDDDDD',
+    '===================================================================================',
+    '===================================================================================',
+    '........................================..............................DDDDDDDDDDDDD',
+    '######b#.########b######b===========kk=b###############k##b###########DDDDDDDDDDDD#',
+    '########..##############b=====k========b##############r################DDDDDDDDDD##',
+    '####........############b==========y===b################################DDDDDDD####',
+    '###..........###########b==========y=y=b##################################DD#######',
+    '###........k.###########b==============b###########################################',
+    '####..W......###########bbbbbbbbbbbbbbbb###########################################',
+    '########.##########################################################################'
+  ],
+  entry: [[26, 1], [30, 1], [26, 5], [30, 5], [25, 3]], // round the circle (the squares the storyboard lands them on: tools/wheel-play.html?scene)
+  foes: [],
+  wave: null
+};
+
+// The Lobstamonkee Lighthouse, the room under the light (10-07, Griz: "a map for the room under the light at the lighthouse with the big
+// portal they jump into"): the stream's start -- Monster Party's monster fights, "we used to do monster party monster fight on an owlbear
+// table". A round room in the tower, 13 squares across inside a wall of built stone; grey dressed stone underfoot (nothing burrows). In the
+// middle the big circle, his zodiac wheel five across, flush in the floor; the party stands round it. A stair climbs the west wall to the
+// light above (`heights`, one step a square, five up to the hatch); the way down is the door on the south side. Crates against the wall.
+// Lit (no `dark`): the lamp burns over their heads. Invented, the seat's: the room's size, the stair, the door, the crates.
+window.D16.MAPS.lighthouse = {
+  name: 'The Lobstamonkee Lighthouse',
+  sub: 'the room under the light',
+  stone: 'grey', step: 10, noBurrow: true,
+  circle: { at: [8, 8], sheet: 'zodiacwheel_p1', sign: 'pisces' },
+  rows: [
+    '#######bbb#######',
+    '####bbbbbbbbb####',
+    '###bbb=====bbb###',
+    '##bb========kbb##',
+    '#bb===========bb#',
+    '#bb==========kbb#',
+    '#b=============b#',
+    'bb=============bb',
+    'bb=============bb',
+    'bb=============bb',
+    '#b=============b#',
+    '#bb===========bb#',
+    '#bb===========bb#',
+    '##bbk========bb##',
+    '###bbb=====bbb###',
+    '####bbbbdbbbb####',
+    '#######b=b#######'
+  ],
+  heights: [
+    '00000000000000000',
+    '00000000000000000',
+    '00000000000000000',
+    '00000000000000000',
+    '00000000000000000',
+    '00000000000000000',
+    '00500000000000000',
+    '00400000000000000',
+    '00300000000000000',
+    '00200000000000000',
+    '00100000000000000',
+    '00000000000000000',
+    '00000000000000000',
+    '00000000000000000',
+    '00000000000000000',
+    '00000000000000000',
+    '00000000000000000'
+  ],
+  entry: [[6, 6], [10, 6], [6, 10], [10, 10], [8, 11]], // round the circle
+  foes: [],
+  wave: null
+};

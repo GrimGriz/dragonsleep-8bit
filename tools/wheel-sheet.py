@@ -19,7 +19,8 @@ Rows, 12 frames to a line, frame f at 7.5 * f degrees clockwise:
   rise  8 rows, one column for each resting sign (column k rests rest[k]): row 0 flush in the floor and dormant, its
         colours pulled toward the floor's (Griz, 10-07: "one without the edge that blends in with the surroundings, then
         we'll use the one with the ledge as it rising up as it is activated"), the highlight lit halfway, the last row
-        risen on its ledge -- spin frame 4k. Backwards, it sinks.
+        risen on its ledge -- spin frame 4k. Backwards, it sinks. Its colours pull toward the cave's brown stone;
+  riseDressed  the same 8 rows pulled toward dressed stone's silver, for a circle in a dwarf-cut floor (js/circles.js picks).
 The anchor (ax, ay) is where the wheel's centre meets the floor: lay it on iso.center of the middle square.
 """
 import json, math, os, sys
@@ -31,7 +32,11 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import pixelate as PX
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SRC = os.path.join(ROOT, 'dev', 'visions', 'wheel.webp')
+SRC = os.path.join(ROOT, 'dev', 'visions', 'wheel.webp')   # his art lives in the main checkout (dev/visions is not in git): a worktree reads it there
+if not os.path.exists(SRC):
+    import subprocess
+    _common = subprocess.run(['git', '-C', ROOT, 'rev-parse', '--git-common-dir'], capture_output=True, text=True).stdout.strip()
+    SRC = os.path.join(os.path.dirname(os.path.abspath(os.path.join(ROOT, _common))), 'dev', 'visions', 'wheel.webp')
 ART = os.path.join(ROOT, 'deep16', 'art')
 
 # his wheel in the source's pixels: the centre, the radii of each ring (measured off a profile, 10-07), the sign order
@@ -54,6 +59,9 @@ SIDE = 2                          # the board's edge, seen on the near side when
 RISE = 8                          # frames from flush in the floor to risen
 DORMANT = 0.75                    # flush, how far every colour is pulled toward the floor's
 FLOOR = np.array([0x5c, 0x48, 0x38], np.float32)   # the floor's middle stone (palette stone 4, DEEP16's default rock)
+# the floors a flush wheel may lie in, each its own rise rows (the anim's name): the cave's brown stone, and the dressed stone the
+# dwarves cut (js/iso.js bake: '=' is drawn in the silver ramp) -- Third Lamp's station and the lighthouse's room (10-07)
+FLOORS = [('rise', FLOOR), ('riseDressed', np.array([0x47, 0x50, 0x61], np.float32))]   # (silver 3)
 SS = 4                            # samples a pixel, each way, for what comes from his art
 
 PAL = json.load(open(os.path.join(ROOT, 'deep16', 'palette.json'), encoding='utf-8'))['ramps']
@@ -70,14 +78,14 @@ def snap(rgb):
     return SUBSET[d.argmin(-1)]
 
 
-def dull(b):
+def dull(b, floor=FLOOR):
     """each of the face's colours pulled b of the way to the floor's, snapped to the palette -- the face's own colours kept
     apart at every step (left to the nearest, the red cells and their streaks fell into one colour midway and the streaks
     blinked as the wheel rose)."""
     lab = PX.PAL_LAB.reshape(-1, 3)
     used, out = [], []
     for c in (BLACK, RED, RED_DK, SIGN, SHADOW, NAVY, RED_SIDE, OUTLINE):
-        t = PX.to_lab(((c * (1 - b) + FLOOR * b) / 255.0)[None, None])[0, 0]
+        t = PX.to_lab(((c * (1 - b) + floor * b) / 255.0)[None, None])[0, 0]
         order = np.argsort(((lab - t) ** 2).sum(-1))
         keep = len(used) < 5                                       # the first five stay apart; the rest take the nearest
         i = next(j for j in order if not keep or j not in used)
@@ -186,7 +194,7 @@ class Wheel:
         img[self.rim] = RED
         return img
 
-    def compose(self, face, lift=SIDE, wake=1.0):
+    def compose(self, face, lift=SIDE, wake=1.0, floor=FLOOR):
         """the face set into the floor: lift px above it (0 flush, SIDE risen, the near edge showing below), the outline
         once it stands off the floor; wake < 1 pulls every colour toward the floor's (the dormant wheel, his "blends in
         with the surroundings"), snapped back to the palette."""
@@ -210,7 +218,7 @@ class Wheel:
         alpha = body | outline
         b = DORMANT * (1 - wake)
         if b > 0:
-            masks = [(alpha & np.all(img == c, -1), to) for c, to in dull(b)]   # every mask from the face as it was, then paint
+            masks = [(alpha & np.all(img == c, -1), to) for c, to in dull(b, floor)]   # every mask from the face as it was, then paint
             for m, to in masks:
                 img[m] = to
         out = np.zeros((self.H, self.W, 4), np.uint8)
@@ -235,27 +243,28 @@ def main():
     name = 'zodiacwheel_p1' if n == 5 else 'zodiacwheel%d_p1' % n
     w = Wheel(n)
     rows = FRAMES // COLS
-    sheet = np.zeros((w.H * (rows * 2 + RISE), w.W * COLS, 4), np.uint8)
+    sheet = np.zeros((w.H * (rows * 2 + RISE * len(FLOORS)), w.W * COLS, 4), np.uint8)
     for b, blur in enumerate((False, True)):
         for f in range(FRAMES):
             y, x = (b * rows + f // COLS) * w.H, (f % COLS) * w.W
             sheet[y:y + w.H, x:x + w.W] = w.frame(f * STEP, blur)
-    for k in range(12):                                   # the rise from each resting sign: column k, its steps down the rows
+    for k in range(12):                                   # the rise from each resting sign: column k, its steps down the rows, a set for each floor
         face = w.render(30 * k)
-        for i in range(RISE):
-            wake = i / (RISE - 1)
-            y, x = (rows * 2 + i) * w.H, k * w.W
-            sheet[y:y + w.H, x:x + w.W] = w.compose(face, int(round(SIDE * wake)), wake)
+        for j, (_, floor) in enumerate(FLOORS):
+            for i in range(RISE):
+                wake = i / (RISE - 1)
+                y, x = (rows * 2 + j * RISE + i) * w.H, k * w.W
+                sheet[y:y + w.H, x:x + w.W] = w.compose(face, int(round(SIDE * wake)), wake, floor)
     Image.fromarray(sheet, 'RGBA').save(os.path.join(ART, name + '.png'), optimize=True)
     meta = {
         '_note': 'his zodiac wheel on the floor (tools/wheel-sheet.py): spin frame f is the wheel risen and turned 7.5*f degrees clockwise, '
                  'frame 4k resting rest[k] under the highlight; blur the same angles smeared, for a fast spin; rise column k is the wheel '
                  'resting on rest[k] from flush in the floor (row 0, dormant, its colours pulled to the floor) to risen (the last row, '
-                 'the same as spin frame 4k); play it backwards to sink. (ax, ay) is where its centre meets the floor.',
+                 'the same as spin frame 4k); play it backwards to sink; riseDressed the same in dressed stone. (ax, ay) is where its centre meets the floor.',
         'image': 'art/' + name + '.png', 'squares': n, 'fw': w.W, 'fh': w.H, 'ax': w.cx, 'ay': w.cy + SIDE, 'cols': COLS,
         'degPerFrame': STEP, 'framesPerSign': int(30 / STEP), 'lift': SIDE,
         'anims': {'spin': {'row': 0, 'frames': FRAMES}, 'blur': {'row': rows, 'frames': FRAMES},
-                  'rise': {'row': rows * 2, 'frames': RISE, 'bySign': True}},
+                  **{nm: {'row': rows * 2 + j * RISE, 'frames': RISE, 'bySign': True} for j, (nm, _) in enumerate(FLOORS)}},
         'signs': SIGNS,
         'rest': [SIGNS[(-k) % 12] for k in range(12)],
     }

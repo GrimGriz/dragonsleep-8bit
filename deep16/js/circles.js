@@ -1,0 +1,99 @@
+/* DEEP16 — the dwarves' circles and the lamp towers (10-07). Griz: "The dwarves have put teleportation circles at the lamps, and we'll
+   use this for the one at the third lamp they use to get to the battle at the edifice" -- and the big one is the entrance at the
+   lobstamonkee lighthouse, "the room under the light ... with the big portal they jump into".
+
+   A map's `circle: { at: [gx, gy], sheet, sign, state }` lays his zodiac wheel (tools/wheel-sheet.py: zodiacwheel_p1 five squares
+   across, zodiacwheel3_p1 three) in the floor with its middle on `at`'s square: `flush` (the default) lies in the floor, dormant, its
+   colours pulled to the floor's ("one without the edge that blends in with the surroundings"); `risen` stands on its ledge with the
+   highlight lit. `sign` is the one under the highlight (the sheet's `signs`; Pisces unless named). The door `&circle=risen` shows a
+   map's circle risen. It is drawn on the ground (under the walls, the props and everyone standing on it) and its squares are floor.
+
+   A map's `tower: [gx, gy]` stands a lamp tower on that square (the 8-bit game's lampTower: Third Lamp's, "a tower burning"): dwarf-
+   cut stone, its lamp lit at the top, half cover like a stalagmite. Its light is the map's own `lights` entry. */
+'use strict';
+(function () {
+  var D = window.D16, iso = D.iso;
+  var C = D.circles = {};
+
+  function P(r, i) { return D.PAL.ramps[r][i]; }
+  function sheet(c) { return D.SHEETS && D.SHEETS[c.sheet]; }
+
+  // the sheet cell for a circle: flush is the rise's first row, risen the spin frame that rests its sign under the highlight
+  C.cell = function (c, state) {
+    var sh = sheet(c); if (!sh) return null;
+    var k = Math.max(0, sh.rest.indexOf(c.sign || 'pisces'));
+    if ((state || c.state) === 'risen') { var f = k * sh.framesPerSign; return { sh: sh, sx: (f % sh.cols) * sh.fw, sy: (sh.anims.spin.row + Math.floor(f / sh.cols)) * sh.fh }; }
+    return { sh: sh, sx: k * sh.fw, sy: sh.anims[C.riseOf(c, sh)].row * sh.fh };
+  };
+  // the rise rows that match the floor it lies in: dressed stone (the dwarves' cut floors, drawn in silver) or the cave's brown
+  C.riseOf = function (c, sh) {
+    var q = iso.map && iso.map.at(c.at[0], c.at[1]), dressed = c.floor ? c.floor === 'dressed' : !!(q && (q.ch === '=' || q.ch === 'd'));
+    return dressed && sh.anims.riseDressed ? 'riseDressed' : 'rise';
+  };
+  C.state = function (c) {
+    var q = new URLSearchParams(location.search).get('circle');
+    return q === 'risen' || q === 'flush' ? q : c.state || 'flush';
+  };
+  C.draw = function (ctx, def) {
+    var c = def && def.circle; if (!c) return;
+    var cell = C.cell(c, C.state(c)); if (!cell) return;
+    var im = D.images && D.images[cell.sh.image]; if (!im || !im.naturalWidth) { if (D.spr && !im) D.spr.load(cell.sh.image); return; }   // (a sheet no figure asked for: fetched now, drawn when it lands)
+    var p = iso.center(c.at[0], c.at[1], iso.map ? iso.map.gz(c.at[0], c.at[1]) : 0), s = iso.toScreen(p.x, p.y);
+    ctx.drawImage(im, cell.sx, cell.sy, cell.sh.fw, cell.sh.fh, Math.round(s.x - cell.sh.ax), Math.round(s.y - cell.sh.ay), cell.sh.fw, cell.sh.fh);
+  };
+
+  // ------------------------------------------------------------------ the lamp tower
+  var TOWER = null;
+  function towerCanvas() {           // the stone, drawn once: a plinth, a banded shaft, a capital, the lamp's cage (its glass and flame per frame)
+    if (TOWER) return TOWER;
+    var w = 40, h = 92, cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    var x = cv.getContext('2d'), cx = w / 2, by = h - 6;
+    function r(col, x0, y0, ww, hh) { x.fillStyle = col; x.fillRect(x0, y0, ww, hh); }
+    // the plinth: a low block on the square, its top lit from the upper left
+    for (var i = 0; i < 6; i++) { r(P('silver', 2), cx - 16 + i, by - 2 + Math.floor(i / 2), 1, 6); }
+    r(P('silver', 3), cx - 14, by - 4, 14, 6); r(P('silver', 2), cx, by - 4, 14, 6); r(P('silver', 4), cx - 14, by - 5, 28, 1);
+    // the shaft: dwarf-cut blocks, a lit face and a shadowed one, a mortar line every seven
+    var top = 22;
+    r(P('silver', 4), cx - 8, top, 8, by - 5 - top); r(P('silver', 3), cx, top, 8, by - 5 - top);
+    for (var y = by - 12; y > top; y -= 7) { r(P('silver', 2), cx - 8, y, 16, 1); r(P('silver', 2), cx + ((y / 7) % 2 ? -3 : 2), y - 6, 1, 6); }
+    r(P('silver', 5), cx - 8, top, 1, by - 5 - top);                                           // the lit edge
+    // the capital: a wider ledge the lamp sits on
+    r(P('silver', 5), cx - 11, top - 3, 22, 1); r(P('silver', 4), cx - 11, top - 2, 11, 3); r(P('silver', 2), cx, top - 2, 11, 3);
+    // the cage: four posts and a roof, the glass left for the flame
+    r(P('outline', 0), cx - 7, top - 17, 14, 1); r(P('outline', 0), cx - 5, top - 19, 10, 2); r(P('gold', 1), cx - 1, top - 21, 2, 2);
+    r(P('outline', 0), cx - 7, top - 16, 1, 13); r(P('outline', 0), cx + 6, top - 16, 1, 13); r(P('outline', 0), cx - 1, top - 16, 1, 13);
+    r(P('outline', 0), cx - 7, top - 4, 14, 1);
+    TOWER = { canvas: cv, ax: cx, ay: by, top: top };
+    return TOWER;
+  }
+  function towerProp(m, at, B) {
+    var sq = m.at(at[0], at[1]);
+    return { kind: 'tower', sq: sq, depth: at[0] + at[1] + 0.5, gz: sq.gz, draw: function (ctx) {
+      var T = towerCanvas(), p = iso.center(at[0], at[1], sq.gz), s = iso.toScreen(p.x, p.y), x0 = Math.round(s.x - T.ax), y0 = Math.round(s.y - T.ay);
+      ctx.drawImage(T.canvas, x0, y0);
+      var t = Date.now() / 16, fl = Math.sin(t / 5 + at[0]) + Math.sin(t / 3.1);
+      var gx = x0 + T.ax, gy = y0 + T.top - 16;                                                  // the glass: gold, the flame in it
+      ctx.fillStyle = P('gold', 3); ctx.fillRect(gx - 6, gy, 5, 12); ctx.fillRect(gx, gy, 6, 12);
+      ctx.fillStyle = P('gold', 4); ctx.fillRect(gx - 6, gy, 1, 12);
+      ctx.fillStyle = P('fire', 1); ctx.fillRect(gx - 3, gy + 4 - (fl > 0.8 ? 1 : 0), 6, 7);
+      ctx.fillStyle = P('fire', 2); ctx.fillRect(gx - 2, gy + 6 - (fl > 0.3 ? 1 : 0), 4, 4);
+      ctx.fillStyle = P('bone', 2); ctx.fillRect(gx - 1, gy + 8, 2, 2);
+      ctx.globalAlpha = 0.18 + 0.06 * fl; ctx.fillStyle = P('fire', 2);                       // its glow round the cage
+      ctx.beginPath(); ctx.ellipse(gx, gy + 6, 16, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+    } };
+  }
+
+  // a map's tower: on its square at load, standing (not walked through; half cover, as a stalagmite)
+  var load0 = iso.load;
+  iso.load = function (def) {
+    var m = load0.apply(this, arguments);
+    if (def.tower) { var sq = m.at(def.tower[0], def.tower[1]); if (sq) { sq.walk = false; sq.pillar = true; sq.stands = 'the lamp tower'; m.props.push(towerProp(m, def.tower)); m.sorted = null; } }
+    return m;
+  };
+
+  // the circle on the ground, under the spell grounds and the rings (js/looks.js LK.ground, drawn after the floor and before anyone standing)
+  if (D.looks && D.looks.ground) {
+    var ground0 = D.looks.ground;
+    D.looks.ground = function (ctx, B, onSq) { C.draw(ctx, B && B.map && B.map.def); return ground0.apply(this, arguments); };
+  }
+})();
