@@ -3467,6 +3467,10 @@
       var dMiss = missM(d5.sheet, ['idle', 'walk', 'attack', 'taunt', 'denimdamage', 'cannonball', 'guard', 'lobstahhug', 'climb', 'flinch', 'hurt', 'prone']);
       var bMiss = missM(b5.sheet, ['idle', 'walk', 'attack', 'cast', 'gaze', 'spot', 'spotlight', 'flinch', 'hurt', 'prone']);
       okM('their sheets: Denny ' + d5.sheet + (dMiss.length ? ' wants ' + dMiss.join(', ') : ', every row') + '; Beholda ' + b5.sheet + (bMiss.length ? ' wants ' + bMiss.join(', ') : ', every row'), d5.sheet === 'denny_p3' && b5.sheet === 'beholda_p3' && !dMiss.length && !bMiss.length);
+      // Goose's and Rascal's (10-07: their fronts and backs, sheets 3-5 and 4-5; Goose's Group Hug and Lifeline on rows of their own)
+      var g7m = D.npc.build('goose:7', 7, 'party', { id: 'g7m' }), r7m = D.npc.build('rascal:7', 7, 'party', { id: 'r7m' });
+      var gMiss = missM(g7m.sheet, ['idle', 'walk', 'attack', 'cast', 'honk', 'climb', 'flinch', 'hurt', 'prone', 'grouphug', 'lifeline']), rMiss = missM(r7m.sheet, ['idle', 'walk', 'attack', 'cast', 'socialsharing', 'socialflame', 'socialdistancing', 'hottake', 'goingviral', 'climb', 'flinch', 'hurt', 'prone']);
+      okM('their sheets: Goose ' + g7m.sheet + (gMiss.length ? ' wants ' + gMiss.join(', ') : ', every row') + '; Rascal ' + r7m.sheet + (rMiss.length ? ' wants ' + rMiss.join(', ') : ', every row'), !gMiss.length && !rMiss.length);
 
       // the VNA Bubble: +3 at 4 to friends within 30 ft, none outside; gone when she is stunned
       var B1 = mkB(['beholda:4', 'barley:4', 'aurdin:4'], ['goblin', 'goblin'], 4), bh = sideM(B1, 'party')[0], bar = sideM(B1, 'party')[1], aur = sideM(B1, 'party')[2];

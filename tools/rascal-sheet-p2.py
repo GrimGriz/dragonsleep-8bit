@@ -12,8 +12,9 @@ Distancing -> socialdistancing; Hot Take -> hottake; Going Viral -> goingviral.
 
 The same pass as Goose's: each figure boxed down to game size, snapped to deep16/palette.json and outlined. The sheets draw him at their own
 sizes, so each row takes its own scale by his hat's brim (K below) and the frames meet at one size. The rows face LEFT as drawn (his claw is his
-right arm, nearest the viewer): facings SW, W and NW take them as drawn, NE, E and SE mirrored; S and N take the turnaround's front and back
-(the idle breathes, the walk bobs) and the side frames for every other row (the sheets drew side rows only). The hat is charcoal grey on these
+right arm, nearest the viewer): facings SW, W and NW take them as drawn, NE, E and SE mirrored; S and N take sheets 4 and 5 (10-07: his moves
+from the front and from behind -- idle, walk, Pinch, Fire Bolt, Hot Take, Going Viral, Flinch, and the climb from behind), the side frames for
+the rest (the bow, the dance, the spin, the fall, prone). The hat is charcoal grey on these
 sheets, not the background's navy, so it cuts whole. (p1, his first sheet, and its cutter tools/rascal-sheet.py with its whisker erase and
 the hat it lost to the navy, retired 10-07 on his word: "the invisible hat one has no further purpose".)
 
@@ -64,6 +65,29 @@ SHEETS = {
     '3': dict(file='rascal_grok_4.png', grey=30, far=60,
               text=[(60, 140, 1000, 230)],
               rows=[('sharing', (0, 226, 2172, 556), (556, 604), NUM(6))]),
+    # his moves from the front (sheet 4) and from behind (sheet 5): GPT, Griz 10-07, from the pastes in deep16-art-wanted.md "Goose and Rascal
+    # from the front and from behind" (deep16/_src/rascal_gpt_4.png, rascal_gpt_5.png). Front: the claw on the viewer's left; behind: on the right
+    '4': dict(file='rascal_gpt_4.png', grey=30, far=60,
+              text=[(0, 0, 1086, 52), (20, 68, 222, 101), (20, 248, 228, 281), (20, 438, 238, 471), (20, 624, 292, 657), (20, 808, 283, 841),
+                    (20, 986, 309, 1021), (20, 1204, 248, 1237)],
+              rows=[('idle', (0, 98, 1086, 233), (233, 251), NUM(4)),
+                    ('walk', (0, 279, 1086, 409), (409, 432), NUM(8)),
+                    ('pinch', (0, 468, 1086, 599), (599, 622), NUM(6)),
+                    ('firebolt', (0, 655, 1086, 784), (784, 807), NUM(6)),
+                    ('hottake', (0, 838, 1086, 966), (966, 989), NUM(4)),
+                    ('viral', (0, 1018, 1086, 1169), (1169, 1192), NUM(8)),
+                    ('flinch', (0, 1235, 1086, 1387), (1387, 1410), NUM(4))]),
+    '5': dict(file='rascal_gpt_5.png', grey=30, far=60,
+              text=[(0, 0, 1086, 52), (18, 62, 222, 95), (18, 218, 227, 250), (18, 397, 238, 430), (18, 568, 286, 601), (18, 739, 285, 772),
+                    (18, 892, 285, 928), (18, 1072, 245, 1104), (18, 1226, 236, 1256)],
+              rows=[('idle', (0, 62, 1086, 206), (206, 230), NUM(4)),
+                    ('walk', (0, 248, 1086, 371), (371, 395), NUM(8)),
+                    ('pinch', (0, 428, 1086, 547), (547, 571), NUM(6)),
+                    ('firebolt', (0, 596, 1086, 717), (717, 741), NUM(6)),
+                    ('hottake', (0, 770, 1086, 880), (881, 895), NUM(4)),
+                    ('viral', (0, 926, 1086, 1049), (1049, 1073), NUM(8)),
+                    ('flinch', (0, 1097, 1086, 1218), (1219, 1233), NUM(4)),
+                    ('climb', (0, 1236, 1086, 1402), (1402, 1428), NUM(6))]),
 }
 # loose bits moved by hand: sheet -> row -> [(box x0 y0 x1 y1 on the sheet: every blob wholly inside it, the label it belongs to)]
 FIX = {'2': {'firebolt': [((350, 590, 382, 620), '3'), ((512, 590, 550, 616), '4')],    # each frame's spark whole (a speck went to the frame before)
@@ -71,7 +95,8 @@ FIX = {'2': {'firebolt': [((350, 590, 382, 620), '3'), ((512, 590, 550, 616), '4
              'viral': [((262, 1230, 290, 1272), '3'),                                   # 3's buzz lines left of the claw (half of one went to 2)
                        ((360, 1312, 410, 1350), '3'),                                   # 3's tail end, apart from him past a dark band (its tip went to 4)
                        ((604, 1312, 650, 1352), '5')]}}                                 # 5's the same (a quarter went to 6)
-CUT, TOUCH_OK = {}, {}
+CUT = {}
+TOUCH_OK = {'4': {'pinch', 'hottake', 'viral'}, '5': {'firebolt', 'viral'}}   # (a spark or a buzz line against the next frame's: split where they meet, looked at 10-07)
 
 # the engine's rows, each (sheet, the sheet's row): the pastes' row maps. Social Sharing is sheet 3's take (the seat's pick, 10-07: sheet 1's
 # bow draws a second hat in his hand while the first stays on his head, frames 1, 3 and 4; sheet 3 lifts it off, bows bare-headed, sets it
@@ -79,6 +104,12 @@ CUT, TOUCH_OK = {}, {}
 TAKE = {'turnaround': ('1', 'turnaround'), 'walk': ('2', 'walk'), 'attack': ('1', 'pinch'), 'socialsharing': ('3', 'sharing'),
         'socialflame': ('1', 'flame'), 'climb': ('1', 'climb'), 'flinch': ('1', 'flinch'), 'hurt': ('1', 'fall'), 'prone': ('1', 'prone'),
         'cast': ('2', 'firebolt'), 'socialdistancing': ('2', 'distancing'), 'hottake': ('2', 'hottake'), 'goingviral': ('2', 'viral')}
+# facing S and N (10-07, sheets 4 and 5; Griz: "they need norths and souths"): the moves aimed at someone or walking somewhere, from the front
+# and from behind; the bow, the dance, the spin, the fall and prone stay side-on (the seat's call in the paste). The climb from behind only, its
+# first five frames to match the side climb's five (a row has one frame count in every facing)
+TAKE_S = {'idle': ('4', 'idle'), 'walk': ('4', 'walk'), 'attack': ('4', 'pinch'), 'cast': ('4', 'firebolt'), 'hottake': ('4', 'hottake'),
+          'goingviral': ('4', 'viral'), 'flinch': ('4', 'flinch')}
+TAKE_N = dict({k: ('5', v[1]) for k, v in TAKE_S.items()}, climb=('5', 'climb'))
 # the scale: the hat is the one rigid thing he wears, so each row is sized by its brim's width where it sits level on his head (the frames
 # named, None for all; measured as the charcoal grey's span in the figure's top 45%). The sheets drew the rows at their own sizes -- the
 # turnaround half as big again as the walk, sheet 2's Hot Take a sixth bigger than its walk, sheet 3 2.6 times -- and the hat brings them to
@@ -87,7 +118,7 @@ HATW = 21.5                   # the brim in game px: he stands about 42 at rest,
                               # squishy DPS. does it still look good at 80% of Denny Height?"; at 32 he stood 63)
 LEVEL = {('1', 'turnaround'): None, ('1', 'walk'): None, ('1', 'pinch'): None, ('1', 'flinch'): ['1', '4'], ('2', 'walk'): None,
          ('2', 'firebolt'): None, ('2', 'distancing'): ['1', '6'], ('2', 'hottake'): ['1', '2', '4'], ('2', 'viral'): ['6', '7', '8'],
-         ('3', 'sharing'): ['1', '6']}
+         ('3', 'sharing'): ['1', '6'], ('4', 'idle'): None, ('4', 'walk'): None, ('5', 'idle'): None, ('5', 'walk'): None}   # (4 and 5: their other rows take the walk's)
 BOB = [0, 1, 1, 0, 0, 1, 1, 0]   # the front and back views' walk, game px
 FW, FH, AX, AY = 96, 96, 48, 84
 
@@ -144,7 +175,7 @@ def main():
     cuts = {}
     for L, s in SHEETS.items():
         ov = []
-        wanted = None if CHECK else {row for (l, row) in TAKE.values() if l == L} | {row for (l, row) in LEVEL if l == L}
+        wanted = None if CHECK else {row for (l, row) in list(TAKE.values()) + list(TAKE_S.values()) + list(TAKE_N.values()) if l == L} | {row for (l, row) in LEVEL if l == L}
         cuts[L] = SR.cut_sheet(os.path.join(ROOT, 'deep16', '_src', s['file']), s, fix=FIX.get(L), cuts=CUT.get(L), touch_ok=TOUCH_OK.get(L, ()),
                                only=wanted, overlay=ov if CHECK else None, tag=L)
         if CHECK:
@@ -160,6 +191,18 @@ def main():
         return
     ground = {(L, row): max(b[3] for _, _, b in frs) for L, c in cuts.items() for row, frs in c.items()}   # each sheet row's floor line
     rows, lost = {}, []
+    def cut_row(L, row):
+        k, out = k_of(L, row), []
+        for nm, im, box in cuts[L][row]:
+            a = pix.pixelate(game_size(im, k), 1, do_lift=False)
+            fr, cut_off = place(a, core_x(a), int(round((ground[(L, row)] - box[3]) / k)))
+            if cut_off:
+                lost.append('%s %s %s: %d px' % (L, row, nm, cut_off))
+            out.append(fr)
+        return out
+    rowsS = {name: cut_row(L, row) for name, (L, row) in TAKE_S.items()}
+    rowsN = {name: cut_row(L, row) for name, (L, row) in TAKE_N.items()}
+    rowsN['climb'] = rowsN['climb'][:5]
     for name, (L, row) in TAKE.items():
         k, out = k_of(L, row), []
         for nm, im, box in cuts[L][row]:
@@ -177,15 +220,17 @@ def main():
     frames = {'idle': [], 'walk': []}
     for f in range(8):                                      # facings S, SW, W, NW, N, NE, E, SE: the rows face left
         base = front if f == 0 else back if f == 4 else left if f in (1, 2, 3) else right
-        frames['idle'].append([base, base, breathe(base), breathe(base)])
-        if f in (0, 4):
-            frames['walk'].append([np.roll(base, -n, axis=0) for n in BOB])
+        if f in (0, 4):                                     # (his own front and back rows since 10-07: sheets 4 and 5)
+            frames['idle'].append((rowsS if f == 0 else rowsN)['idle'])
+            frames['walk'].append((rowsS if f == 0 else rowsN)['walk'])
         else:
+            frames['idle'].append([base, base, breathe(base), breathe(base)])
             frames['walk'].append(rows['walk'] if f in (1, 2, 3) else [mirror(fr) for fr in rows['walk']])
     rows['prone'] = rows['prone'][::-1]                     # the sheet's lying then pushing up -> standing to lying (up: played backwards)
-    for name, seq in rows.items():                          # the rest: the side frames for S and N too (the sheets drew side rows only)
+    for name, seq in rows.items():                          # the rest: S and N their own rows where sheets 4 and 5 drew them, else the side frames
         if name != 'walk':
-            frames[name] = [[mirror(fr) for fr in seq] if f in (5, 6, 7) else seq for f in range(8)]
+            frames[name] = [rowsS[name] if f == 0 and name in rowsS else rowsN[name] if f == 4 and name in rowsN else
+                            [mirror(fr) for fr in seq] if f in (5, 6, 7) else seq for f in range(8)]
     pix.write_sheet('rascal_p2', frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0], AY))
     meta_p = os.path.join(ROOT, 'deep16', 'art', 'rascal_p2.json')
     meta = json.load(open(meta_p)); meta['anims']['idle']['fps'] = 2

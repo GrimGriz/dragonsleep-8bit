@@ -467,7 +467,9 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
   `rascal_p1`, his first sheet, retired 10-07 with its cutter (*"the invisible hat one has no further purpose"*); `goose_p1` is his three generated sheets cut by Griz's picks (`tools/goose-sheet.py` over
   `tools/sheetrows.py`: each sheet cut by its own row and number labels, the rows mixed frame by frame, each sheet at its own scale by the
   torso's thickness, small -- his idle about 38 px to Denny's 52 --, the cast's glow the heal's green; no build plays it yet). Their next
-  sheets' prompts are in `deep16-art-wanted.md`. **`tools/sheet-play.html?sheet=goose_p1&ref=denny_p2`** plays a sheet's rows, four
+  sheets' prompts are in `deep16-art-wanted.md`; since 10-07 (his fifth to seventh sheets, GPT) Goose and Rascal face S and N on rows of their own -- their
+  moves from the front and from behind (`tools/goose-fronts-spec.py`, `tools/rascal-sheet-p2.py` sheets 4-5), Goose's toned to his first
+  sheets' charcoal -- and Goose's Group Hug and Lifeline play rows of their own (`grouphug`, `lifeline`). **`tools/sheet-play.html?sheet=goose_p1&ref=denny_p2`** plays a sheet's rows, four
   facings, another sheet's idle beside for size, before any build does.
 - **Bench:** `python dev/bench16.py x mode=mpmon1006` (in `dev/check.py`'s gate): the builds against the design's tables, each special by
   its rule with the dice pinned, the ring, the Pocket DM's seats and rest, a whole fight, Fire Bolt with the specials spent, and the

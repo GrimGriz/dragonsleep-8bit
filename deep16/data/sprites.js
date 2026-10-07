@@ -2582,12 +2582,12 @@
 }
 },
 "goose_p1": {
-"image": "art/goose_p1.png?v=d2b849a022",
+"image": "art/goose_p1.png?v=ad175a68fa",
 "fw": 96,
 "fh": 96,
 "ax": 48,
 "ay": 84,
-"top": 43,
+"top": 41,
 "anims": {
 "idle": {
 "y": 0,
@@ -2668,6 +2668,24 @@
 "ax": 48,
 "ay": 84,
 "frames": 4,
+"fps": 10
+},
+"grouphug": {
+"y": 6912,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 6,
+"fps": 10
+},
+"lifeline": {
+"y": 7680,
+"fw": 96,
+"fh": 96,
+"ax": 48,
+"ay": 84,
+"frames": 6,
 "fps": 10
 }
 },
@@ -6240,12 +6258,12 @@
 }
 },
 "rascal_p2": {
-"image": "art/rascal_p2.png?v=a37460b5dc",
+"image": "art/rascal_p2.png?v=afa3b8bee0",
 "fw": 96,
 "fh": 96,
 "ax": 48,
 "ay": 84,
-"top": 41,
+"top": 39,
 "anims": {
 "idle": {
 "y": 0,

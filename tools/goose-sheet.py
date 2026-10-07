@@ -12,8 +12,9 @@ C1, A2, C3-4").
 The same pass as Denny's and Rascal's: each figure boxed down to game size, snapped to deep16/palette.json and outlined. The three sheets
 draw him at three sizes (A : B : C as 1 : 0.94 : 1.12, the median over their matching frames of the torso's thickness -- not the height:
 B holds his arms up high, which made it read the biggest), so each takes its own scale and the frames meet at one size; he is small (Griz: "Goose is small"), his idle about 38 px against Denny's 52, baked in, not drawn shrunk.
-The rows face RIGHT: facings NE, E and SE take them as drawn, SW, W and NW mirrored; S and N take the turnaround's front and back (C),
-bounced for the idle and hopped for the walk. His specials are green energy (Griz, 10-07: "his specials should mainly be green energy"):
+The rows face RIGHT: facings NE, E and SE take them as drawn, SW, W and NW mirrored; S and N take his front and back rows (10-07: sheets 3 and 4,
+GPT, deep16/_src/goose_gpt_3..4.png -- idle, hop, sling, cast, honk, flinch, and the climb from behind; the fall and prone stay side-on), sized
+by the body's radius against C's and brought to his side rows' colour (TONE); Group Hug and Lifeline have rows of their own (sheet 5, side-on). His specials are green energy (Griz, 10-07: "his specials should mainly be green energy"):
 the sheets' blue-white glow (the cast's) is drawn in the heal's greens (js/fx.js's), white only at its heart. The seat's calls: a lift on the hop's airborne frames
 and at the top of the cast's leap (the sheets drew both on the ground line); the prone row runs standing to lying, the engine's way (it
 lies at its last frame and gets up by playing it backwards), so his C1, A2, C3, C4 is the getting up.
@@ -76,13 +77,19 @@ SHEETS = {
                     ('flinch', (0, 1081, 1055, 1242), (1242, 1262), NUM(4)),
                     ('prone', (0, 1263, 1055, 1423), (1423, 1443), NUM(4))]),
 }
+# his moves from the front (D, sheet 3), from behind (E, sheet 4) and two heals side-on (F, sheet 5): GPT, Griz 10-07, from the pastes in
+# deep16-art-wanted.md "Goose and Rascal from the front and from behind" (deep16/_src/goose_gpt_3..5.png); their specs in tools/goose-fronts-spec.py
+SHEETS.update(_load('goose_fronts_spec', os.path.join(ROOT, 'tools', 'goose-fronts-spec.py')).SHEETS)
 # loose bits moved by hand: letter -> row -> [(box x0 y0 x1 y1 on the sheet: every blob wholly inside it, the label it belongs to)]
 FIX = {'A': {'sling': [((690, 612, 760, 640), '4')]},        # the stone let fly (the nearest frame was 5's)
-       'B': {'sling': [((470, 560, 545, 585), '4')]}}
+       'B': {'sling': [((470, 560, 545, 585), '4')]},
+       'E': {'sling': [((200, 505, 255, 585), '2')]},        # 2's swing arc whole (its lower end lay nearer 1's feeler)
+       'F': {'lifeline': [((1080, 515, 1245, 595), '5')]}}   # 5's thread end, its ball and sparks (the thread breaks short of him, so it went to 6)
 # where one frame's feeler touches the next frame's tail: a line of pixels cleared (2 wide) so neither grows into the other
 CUT = {'A': {'hop': [[(223, 482), (223, 500)]]},                        # hop 1's feeler hook against hop 2's tail
        'B': {'idle': [[(353, 418), (357, 413), (360, 410), (361, 403)]]}}   # idle 3's feeler hook against idle 4's tail
-TOUCH_OK = {'B': {'hop'}}                     # hop 5's foot on hop 6's tail: split where they meet, looked at 10-07
+TOUCH_OK = {'B': {'hop'}, 'D': {'sling', 'honk'}, 'E': {'sling'}, 'F': {'grouphug', 'lifeline'}}   # (hop 5's foot on hop 6's tail; the GPT sheets' arcs, honk
+                                              # lines and rings against the next frame's: split where they meet, looked at 10-07)
 
 # his picks (10-07), each (sheet, the sheet's label), in the order played
 PICKS = {
@@ -97,7 +104,16 @@ PICKS = {
     'fall': [('B', n) for n in NUM(6)],
     'prone': [('C', '1'), ('A', '2'), ('C', '3'), ('C', '4')],                          # lying, then up (played backwards below)
 }
-K = {'A': 2.69, 'B': 2.50, 'C': 3.0}          # sheet px a game px: C's idle (115 px on the sheet) stands about 38
+K = {'A': 2.69, 'B': 2.50, 'C': 3.0,          # sheet px a game px: C's idle (115 px on the sheet) stands about 38
+     'D': 3.82, 'E': 3.67, 'F': 4.86}          # (10-07: the body's radius, holes filled, against C's own -- D's idle 31.3 to C's front view 26.0 at C's
+                                              # turnaround scale, E's 31.6 to its back 27.5, F's crouch 36 to C's side idle 22.2)
+TONE = {'D': (0.87, 0.89, 0.98), 'E': (0.81, 0.81, 0.88), 'F': (0.80, 0.82, 0.92)}   # the GPT sheets draw his fur lighter and warm (mean RGB
+# 64/61/56, 69/66/62, 70/66/60 against B's 54/52/54 and C's 60/59/58): each channel brought to 56/54/55, between the two his side rows come from; the glow left be
+# facing S and N (10-07, sheets 3 and 4; Griz: "they need norths and souths"): the engine's row -> (sheet, the sheet's row); the fall and prone stay
+# side-on (the seat's call in the paste), the climb from behind only. And two rows of his own for two heals (sheet 5, side-on, facing right)
+FRONT = {'idle': 'idle', 'walk': 'hop', 'attack': 'sling', 'cast': 'cast', 'honk': 'honk', 'flinch': 'flinch'}
+BACK = dict(FRONT, climb='climb')
+HEALS = {'grouphug': 'grouphug', 'lifeline': 'lifeline'}
 K_TURN = 1.06                                 # C drew its turnaround a little bigger than its rows (the side views' torso 23.4 to the idle's 22)
 LIFT = {'hop': [0, 0, 4, 1, 4, 0, 2, 0], 'cast': [0, 2, 7, 0, 0, 0]}     # game px off the floor (the seat's: the hop's air, the leap's top)
 BOUNCE = [0, 1, 2, 2, 1, 0]                   # the front and back views' idle bounce, game px
@@ -140,6 +156,23 @@ def green(a, small, glow):
     return a
 
 
+def gpt_glow(img):
+    """255 where a GPT sheet drew his green energy (green over red and blue by 40), grown 2 px into its bright halo and white heart"""
+    a = np.asarray(img).astype(int)
+    al = a[..., 3] > 0
+    g = al & (a[..., 1] - np.maximum(a[..., 0], a[..., 2]) > 40)
+    g = ndimage.binary_dilation(g, iterations=2) & al & (a[..., :3].mean(-1) > 120) | g
+    return Image.fromarray((g * 255).astype(np.uint8), 'L')
+
+
+def toned(img, f, glow):
+    """his fur brought to his side rows' colour: every pixel but the glow and the near-white (his feelers' cream), each channel times f"""
+    a = np.asarray(img).astype(float)
+    keep = (np.asarray(glow) > 0) | (a[..., :3].mean(-1) > 190)
+    a[~keep, :3] *= np.array(f, float)
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
+
+
 def game_size(img, k):
     w, h = img.size
     return img.resize((max(1, round(w / k)), max(1, round(h / k))), Image.BOX)
@@ -166,7 +199,7 @@ def place(a, x_ref, up=0):
 def main():
     cuts = {}
     for L, s in SHEETS.items():
-        wanted = {row for row, picks in PICKS.items() if any(p[0] == L for p in picks)}
+        wanted = {row for row, picks in PICKS.items() if any(p[0] == L for p in picks)} if L in 'ABC' else None
         cuts[L] = SR.cut_sheet(os.path.join(ROOT, 'deep16', '_src', s['file']), s, fix=FIX.get(L), cuts=CUT.get(L), touch_ok=TOUCH_OK.get(L, ()),
                                only=wanted, tag=L)
     ground = {(L, row): max(b[3] for _, _, b in frs) for L, c in cuts.items() for row, frs in c.items()}   # each sheet row's floor line
@@ -180,6 +213,23 @@ def main():
             up = 0 if row == 'turnaround' else int(round((ground[(L, row)] - box[3]) / K[L])) + LIFT.get(row, [0] * 9)[i]   # (off the floor where the sheet drew it so)
             out.append(place(a, core_x(a), up))
         rows[row] = out
+    lost = []
+    def gpt_row(L, row):                                    # a GPT sheet's row at his size and tone, its green the heal's; each at its own height
+        out = []
+        for nm, im, box in cuts[L][row]:
+            glow = gpt_glow(im)
+            small = game_size(toned(im, TONE[L], glow), K[L])
+            a = green(pix.pixelate(small, 1, do_lift=False), small, glow.resize(small.size, Image.BOX))
+            fr = place(a, core_x(a), int(round((ground[(L, row)] - box[3]) / K[L])))
+            if (a[..., 3] > 0).sum() > (fr[..., 3] > 0).sum():
+                lost.append('%s %s %s' % (L, row, nm))
+            out.append(fr)
+        return out
+    rowsS = {name: gpt_row('D', row) for name, row in FRONT.items()}
+    rowsN = {name: gpt_row('E', row) for name, row in BACK.items()}
+    heals = {name: gpt_row('F', row) for name, row in HEALS.items()}
+    if lost:
+        raise SystemExit('cut off at the frame edges: ' + ', '.join(lost))
     mirror = lambda fr: fr[:, ::-1].copy()
     front, back = rows['turnaround'][0], rows['turnaround'][2]
     lift = lambda fr, n: np.roll(fr, -n, axis=0)
@@ -188,16 +238,17 @@ def main():
             'prone': rows['prone'][::-1]}                   # standing to lying; up again by the row played backwards
     frames = {'idle': [], 'walk': []}
     for f in range(8):                                      # facings S, SW, W, NW, N, NE, E, SE: the rows face right
-        if f in (0, 4):
-            v = front if f == 0 else back
-            frames['idle'].append([lift(v, n) for n in BOUNCE])
-            frames['walk'].append([lift(v, n) for n in LIFT['hop']])
+        if f in (0, 4):                                     # (his own front and back rows since 10-07: sheets 3 and 4)
+            frames['idle'].append((rowsS if f == 0 else rowsN)['idle'])
+            frames['walk'].append((rowsS if f == 0 else rowsN)['walk'])
         else:
             side = (lambda fr: mirror(fr)) if f in (1, 2, 3) else (lambda fr: fr)
             frames['idle'].append([side(fr) for fr in rows['idle']])
             frames['walk'].append([side(fr) for fr in rows['hop']])
-    for name, seq in seqs.items():
-        frames[name] = [[mirror(fr) for fr in seq] if f in (1, 2, 3) else seq for f in range(8)]
+    seqs.update(heals)                                      # (Group Hug and Lifeline: rows of their own, side-on, 10-07)
+    for name, seq in seqs.items():                          # S and N their own rows where sheets 3 and 4 drew them, else the side frames
+        frames[name] = [rowsS[name] if f == 0 and name in rowsS else rowsN[name] if f == 4 and name in rowsN else
+                        [mirror(fr) for fr in seq] if f in (1, 2, 3) else seq for f in range(8)]
     pix.write_sheet('goose_p1', frames, FW, FH, AX, AY, pix.top_of(frames['idle'][0], AY))
     meta_p = os.path.join(ROOT, 'deep16', 'art', 'goose_p1.json')
     meta = json.load(open(meta_p))

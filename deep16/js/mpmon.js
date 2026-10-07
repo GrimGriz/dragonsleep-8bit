@@ -562,7 +562,7 @@
   MP.group = function* (B, u) {
     var list = MP.groupCatch(B, u), R0 = MP.groupR(u.lvl);
     spend(u); u.turn.action = 0;
-    u.anim = healRow(u); u.animT = B.t; D.sfx('buff');
+    u.anim = rowOr(u, 'grouphug', 'cast'); u.animT = B.t; D.sfx('buff'); // (his own row since 10-07: arms flung wide, the ring of green -- his sheet 5)
     yield 14;
     FX.bloom(u.x, u.y, G.sphere(u.x, u.y, R0), 'heal'); FX.ring(u, 'orc', 30 + R0);
     yield 12;
@@ -759,7 +759,7 @@
     if (!bound || !to) { D.sfx('error'); B.card(['{o}' + u.name + ': LIFELINE ties two -- the one tied, and who takes the half.{/}'], 200); return; }
     spend(u); u.turn.action = 0;
     B.units.forEach(function (w) { if (w.conds.lifeline && w.conds.lifeline.by === u.id) lifeCut(B, w, null); }); // (one tie of his at a time)
-    u.anim = healRow(u); u.animT = B.t; D.sfx('buff');
+    u.anim = rowOr(u, 'lifeline', 'cast'); u.animT = B.t; D.sfx('buff'); // (his own row since 10-07: the green thread drawn from his chest -- his sheet 5)
     yield 14;
     bound.conds.lifeline = { by: u.id, to: to.id, toName: to.name, ward: MP.lifeWard(u.lvl), apart: 2 * MP.lifeR(u.lvl) };
     FX.beam(to, bound, 'heal', { thin: true }); FX.ring(bound, 'orc', 30); FX.ring(to, 'orc', 30);
