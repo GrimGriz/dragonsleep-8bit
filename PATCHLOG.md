@@ -4,6 +4,7 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · `01ff082` · MPMon · A Mascot reads "mascot 5" beside its level on every screen (the class id stays mpmon) · *"they show mpmon 5 or whatever ingame"*
 - 2026-10-07 · `126df8c` · the Game Show · A run saves under its own group, held from its start (it read the stored name each wave: found loading GANGOF4's save) · *"better to test loading with it?"*
 - 2026-10-07 · ruled · the Game Show · A game over keeps the group's save, so CONTINUE tries that wave again · *"yeah, that'd be courteous of us"*
 - 2026-10-07 · `8333c53` · the Game Show · The show saves by the group's name as each wave begins (a run played by hand), and CONTINUE on the title picks it up: tier, wave, gear, pack, supplies, hit points · *"Save and resume by group name would be great"*
