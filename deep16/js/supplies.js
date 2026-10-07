@@ -19,7 +19,9 @@
    buttons, one a supply tier; his click on one sends it: tier 1 one thing by a
    d4 (the sling bullets whenever Goose has under 10), tier 2 the package (three Greater Potions and a Bat-Wing Pie, and a roll-off each for a +1 weapon and
    an armour), tiers 3 and 4 one item by a roll-off (each natural 20 of two or more its own). It lands in the chest (D.circles.chest 'thump'); the score
-   goes up, and at every 100 the epic amulet pops. Between waves the token opens the chest (js/waves.js afterWave calls GS.supplies with ctx.at 'chest'):
+   goes up, and at every 100 the epic amulet pops. After a wave the token stands by the lamp for his turn with chat (js/waves.js afterWave, the mode
+   'lamp': the buttons work there too, and TO THE BED with chat's supplies still in the chest asks first, as END on an idle turn does); at the chest
+   (afterWave calls GS.supplies with ctx.at 'chest'):
    what is in it is handed out -- the potions and the bullets to the pack, each piece onto its winner, his pick where a Mascot must choose (a second cloak,
    a third ring, a fourth bond) -- and the armour waits for the bed: it goes on at the rest, never mid-fight (the Mascots are made again before they set
    out, their gear in the words WV.loot[key] that the long rest's rebuild reads too).
@@ -145,7 +147,7 @@
   SU.arm = arm;
   // a shot by the class AI (js/tactics.js swingAll calls B.attack itself; a player's ATTACK is battle.js exec's, which spends the bullet before it): the bullet
   // from the pack here; and the Ban Hammer thrown, out of his hand
-  var Bp = D.Battle.prototype, attack0 = Bp.attack, exec0 = Bp.exec, hero0 = Bp.heroTurn, aiTurn0 = D.ai.turn;
+  var Bp = D.Battle.prototype, attack0 = Bp.attack, exec0 = Bp.exec, hero0 = Bp.heroTurn;
   Bp.attack = function* (att, tgt, atk, o) {
     if (!SU.live(this) || !att || !att.mpmon || !atk) { yield* attack0.apply(this, arguments); return; }
     o = o || {};
@@ -184,7 +186,7 @@
     else if (u.hammerOut != null) { u.weapon = fistsOf(u); u.alt = null; }   // (js/tactics.js swingAll puts back the weapon it found; out is out)
   }
   Bp.heroTurn = function* (u) { yield* hero0.apply(this, arguments); endTurn(this, u); };
-  D.ai.turn = function* (B, u) { yield* aiTurn0.apply(this, arguments); endTurn(B, u); };
+  if (D.tactics && D.tactics.AFTER) D.tactics.AFTER.push(function* (B, u) { endTurn(B, u); });   // (the class AI's turn's end -- not a wrap of D.ai.turn, whose own text a bench reads)
   // the ring's THROW for a player's Denny (the Mascots' buttons are js/features.js F.commands, wrapped as js/mpmon.js does): the Attack action's first blow, or
   // one of its blows; aimed as the specials are
   var cmd0 = F.commands, fexec0 = F.exec;
@@ -370,6 +372,7 @@
   SU.tick = function (B) {
     var S = B && B.su; if (!S || !usable(B)) return;
     S.epic.forEach(function (e) { if (!e.done && (e.pick || S.auto)) epicGo(B, S, e, e.pick || SU.EPICS[0]); });
+    if (B.gs.mode !== 'lamp') S.bedAsk = null;
     if (S.show && B.t - S.show.t0 > SU.SHOW_T + (S.show.rows.length > 2 ? 120 : 0)) S.show = null;   // (its own time, not the show's waits: &fast cuts those)
   };
   SU.epicGo = function (B, id) { var S = B.su, e = S && S.epic.filter(function (x) { return !x.done; })[0]; if (e) epicGo(B, S, e, id || e.pick || SU.EPIC || SU.EPICS[0]); };
@@ -511,17 +514,26 @@
     var cs = G.map.def.chest; if (sq && cs && sq.x === cs[0] && sq.y === cs[1]) return false;
     return inR(SU.lanternAt(B), x, y);
   }
-  function usable(B) { var m = B.gs && B.gs.mode; return m === 'fight' || m === 'rest' || m === 'chest'; }
+  function usable(B) { var m = B.gs && B.gs.mode; return m === 'fight' || m === 'rest' || m === 'chest' || m === 'lamp'; }   // (the lamp's turn after a wave, js/waves.js: where he checks in with chat)
+  function onBedSq(x, y) { var q = D.iso.pick(x, y, 0); return !!(q && ((WV.bed && q.x === WV.bed[0] && q.y === WV.bed[1]) || (WV.cots || []).some(function (c) { return c[0] === q.x && c[1] === q.y; }))); }
   SU.click = function (B, x, y) {
     var S = B.su; if (!S || !usable(B)) return false;
     var ep = S.epic.filter(function (e) { return !e.done; })[0];
     if (ep) { for (var j = 0; j < SU.EPICS.length; j++) if (inR(BTN['epic' + j], x, y)) { epicGo(B, S, ep, SU.EPICS[j]); return true; } }
     if (S.ask) { for (var i = 0; i < S.ask.opts.length; i++) if (inR(BTN['ask' + i], x, y)) { answer(B, S, i); return true; } }
     if (S.show && inR(BTN.show, x, y)) { S.show = null; return true; }
+    // THE IDLE TURN'S SAFETY, on the lamp's turn (Griz, 10-07: "ensure the idle-turn safety works on lamp turns"): as END on a turn with nothing done asks first
+    // (js/ui.js idleTurn), TO THE BED with chat's supplies still in the chest asks first -- the same click again goes (they wait for the next wave's chest)
+    if (B.gs.mode === 'lamp' && S.chest.length && !S.auto && ((WV.hit && WV.hit({ x: x, y: y }) === 'tobed') || onBedSq(x, y)) && S.bedAsk !== S.chest.length) {
+      S.bedAsk = S.chest.length; D.sfx('popup');
+      B.card(['{y}The chest holds ' + S.chest.length + ' from chat.{/}  TO THE BED again skips it (it waits for the next wave); TO THE CHEST hands it out.'], 420);
+      return true;
+    }
     if (S.open) {
       for (var t = 1; t <= 4; t++) if (inR(BTN['tier' + t], x, y)) { SU.send(B, t); return true; }
       if (inR(BTN.close, x, y) || inR(BTN.panel, x, y)) { if (inR(BTN.close, x, y)) S.open = false; return true; }
     }
+    if (WV.hit && WV.hit({ x: x, y: y })) return false;   // (the show's own buttons -- TO THE CHEST, ON TO THE BED, a rest's -- lie over the floor: the tower under one is not clicked)
     // the lamp: on its tower, or its box in the run's corner (always on the screen -- the tower is off it whenever the fight is elsewhere)
     if (onLantern(B, x, y) || inR({ x: D.W - 132, y: D.H - 102, w: 128, h: 30 }, x, y)) { S.open = !S.open; D.sfx(S.open ? 'popup' : 'cancel'); return true; }
     return false;
@@ -552,8 +564,9 @@
       var n = S.chest.length;
       D.text(ctx, (n ? 'CHEST ' + n + '  ' : '') + 'SCORE ' + score(S), Wd - 6, Hd - 113, n ? P('gold', 4) : P('bone', 1), 'right');
     }
-    // the chest's moment: what came out of it, and a choice to make
+    // the chest's moment: what came out of it, and a choice to make; on the lamp's turn, what is waiting in it
     if (B.gs.mode === 'chest' && S.at) chestPanel(ctx, B, S);
+    if (B.gs.mode === 'lamp' && S.chest.length) { D.win8(ctx, Wd / 2 - 90, 110, 180, 16); D.text(ctx, 'THE CHEST: ' + S.chest.length + ' from chat', Wd / 2, 114, P('gold', 4), 'center'); }
     // a roll-off's panel
     if (S.show) showPanel(ctx, B, S.show);
     // the epic amulet, waiting on chat's pick
@@ -575,7 +588,7 @@
       lines.push(['  -> ' + r.got.join(' · '), 'bone']);
       if (r.note) lines.push(['  {c}' + r.note + '{/}', 'bone']);
     });
-    var h = 22 + lines.length * 11, x = 8, y = B.gs.mode === 'chest' ? D.H - 44 - h : 58;   // (left of the lantern's buttons, so chat can keep sending; under the fight's cards, or at the chest moment under its panels)
+    var h = 22 + lines.length * 11, x = 8, y = B.gs.mode === 'chest' || B.gs.mode === 'lamp' ? D.H - 44 - h : 58;   // (left of the lantern's buttons, so chat can keep sending; under the fight's cards, or at the chest moment under its panels)
     D.win8(ctx, x, y, w, h); BTN.show = { x: x, y: y, w: w, h: h };
     D.text(ctx, sh.title, x + w / 2, y + 6, P('gold', 4), 'center');
     lines.forEach(function (l, i) { D.text(ctx, fitText(l[0], w - 14), x + 7, y + 19 + i * 11, P(l[1], 1)); });

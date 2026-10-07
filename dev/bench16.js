@@ -3772,6 +3772,7 @@
         this.gs = { clicks: [], fade: 0, mode: 'fight' }; this.cine = false;
         this.co = GSU.waves(this, GSU);
       };
+      var upU = BU.update; BU.update = function () { var m = D.input.mouse; if (m.click && this.gs) this.gs.clicks.push({ x: m.x, y: m.y }); return upU.apply(this, arguments); };   // (the show's click queue, as js/gameshow.js asShow feeds it)
       D.scenes.length = 0; D.lastError = null; D.push(BU);
       return BU;
     }
@@ -3947,6 +3948,23 @@
         D.input.edge.end = true; var endI = stepU(BI, function () { return BI.active !== huI; }, 400, weakU);
         okU('idle: END again ends it (' + endI + ' frames, now ' + (BI.active ? BI.active.name || BI.active.kind : 'no one') + '); the lamp in the order ' + (BI.order.indexOf(GSU.run.lamp) >= 0) + ' (want false: an object takes no turn)',
           endI >= 0 && BI.order.indexOf(GSU.run.lamp) < 0);
+        // the lamp's turn after the wave (js/waves.js afterWave, mode 'lamp': the token by the tower, his till TO THE CHEST or TO THE BED): the buttons work there and leave
+        // the turn waiting; TO THE BED with chat's supplies in the chest asks first, as END does on an idle turn; TO THE CHEST hands them out
+        BI.units.forEach(function (u) { if (u.mpmon) { u.guest = true; u.classAI = true; } if (u.side === 'foe') { u.hp = 0; u.dead = true; } });
+        for (var eI = 0; eI < 4 && BI.active && BI.active.mpmon && BI.req; eI++) { D.input.edge.end = true; stepU(BI, function () { return true; }, 3); }   // (the turn in his hands now: END, and END past its ask)
+        var ltI = stepU(BI, function () { return BI.gs.mode === 'lamp'; }, 20000); stepU(BI, function () { return true; }, 20);
+        var laL = SUU.lanternAt(BI), sentL = SI.sent[1]; clickI(laL.sx, laL.sy); var openL = SI.open, b1L = SUU.btn('tier1'); if (b1L) clickI(b1L.x + 10, b1L.y + 5);
+        var stillL = BI.gs.mode === 'lamp', nChL = SI.chest.length;
+        var tbx = D.W / 2 + 56, tby = 92, isTB = WVU.hit({ x: tbx, y: tby }) === 'tobed', nL1 = (BI.log || []).length;
+        clickI(tbx, tby);
+        var askL = BI.gs.mode === 'lamp' && /TO THE BED again skips it/.test((BI.log || []).slice(nL1).join(' '));
+        var tcx = D.W / 2 - 56, isTC = WVU.hit({ x: tcx, y: tby }) === 'tochest';
+        clickI(tcx, tby);
+        var chL = stepU(BI, function () { return BI.gs.mode === 'chest' && SI.at && !SI.chest.length && !SI.ask; }, 4000);
+        okU('lamp turn: after the wave the lamp\'s turn (' + ltI + ' frames, trail ' + (GSU.run.trail || []).join('>') + '); the lantern opens its buttons there (' + openL + '), TIER 1 sent (' + (SI.sent[1] - sentL) + ') and the turn still waits (' + stillL + ', ' + nChL + ' in the chest)',
+          ltI >= 0 && openL && SI.sent[1] === sentL + 1 && stillL && nChL >= 1);
+        okU('lamp turn: TO THE BED with the chest full asks first (' + askL + ', the button ' + isTB + ') and the turn stays the lamp\'s; TO THE CHEST (' + isTC + ') hands it all out (' + chL + ' frames, ' + SI.chest.length + ' left)',
+          isTB && askL && isTC && chL >= 0);
         if (UIo) UIo.confirmEnd = ce0;
         errU('idle');
       }

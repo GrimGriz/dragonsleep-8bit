@@ -95,7 +95,7 @@ Each is an SRD 5.1 item under a stream name, and each takes a bond, so a Mascot 
 
 ## Built (seat 3, 10-07)
 
-How it plays: click the lamp (on its tower, or the LAMP box in the bottom-right corner) and four buttons open. Each click sends that tier. The roll-offs show in a panel beside the buttons and go in the log. What's sent lands in the chest. After each wave the token opens the chest, and each thing is handed out: potions and bullets go in the pack, each piece goes onto its winner, and chat picks when a Mascot has to choose. Armour goes on at the bed. Try it at `deep16/?gameshow&at=lamp&watch`.
+How it plays: click the lamp (on its tower, or the LAMP box in the bottom-right corner) and four buttons open. Each click sends that tier. The roll-offs show in a panel beside the buttons and go in the log. What's sent lands in the chest. After each wave the token opens the chest, and each thing is handed out: potions and bullets go in the pack, each piece goes onto its winner, and chat picks when a Mascot has to choose. Armour goes on at the bed. The buttons work on the lamp's turn after a wave too, and there TO THE BED asks first if chat's supplies are still in the chest (click it again to go anyway): the idle-turn safety you asked for. Try it at `deep16/?gameshow&at=lamp&watch`.
 
 - **Every item above is built**, except the five drafts still to pick (2o-2q, 26a, 26b).
 - **Goose starts with 20 bullets.** Each shot takes one. When he runs dry he swings the empty sling (1d4) until the chest brings more.
