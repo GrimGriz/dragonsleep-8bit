@@ -3003,7 +3003,7 @@
   // on each of its turns" -- and never reads its level for it. T.hid: one Hide to a turn, whichever action paid it -- 10-07, Griz: "4 yes")
   Battle.prototype.hide = function* (u, bonus) {
     var T = u.turn;
-    if (T.bonus > 0 && (bonus || u.nimble || u.lvl >= 2 || u.cunning)) T.bonus = 0; else T.action = 0; // Cunning Action from level 2 (or a stat block's: the Spy; the goblin's Nimble Escape); the Hide action before
+    if (T.bonus > 0 && (bonus || u.nimble || u.cunning || (u.cls === 'rogue' && u.lvl >= 2))) T.bonus = 0; else T.action = 0; // a rogue's Cunning Action from level 2 (or a stat block's: the Spy; the goblin's Nimble Escape); the Hide action before -- and for anyone else, whatever its level (every bestiary foe is made at 5, makeFoe0: its level is no Cunning Action -- 10-07, Griz: "4 please fix")
     T.hid = true;
     D.sfx('run');
     var foes = this.units.filter(function (w) { return G.hostile(u, w) && G.standing(w) && RU.canAct(w); }), self = this; // (whoever is against her: a rogue NPC hides from the four)

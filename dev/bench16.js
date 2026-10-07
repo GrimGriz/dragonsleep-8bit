@@ -1483,6 +1483,10 @@
       var S5 = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B5 = S5.B, g5 = S5.g; g5.lvl = 1; pinH(20); runH(B5.hide(g5)); D.d = d0H;
       var S5b = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B5b = S5b.B, g5b = S5b.g; g5b.lvl = 1; g5b.nimble = false; pinH(20); runH(B5b.hide(g5b)); D.d = d0H;
       okH('5: at level 1 a nimble one hides by the bonus (bonus ' + g5.turn.bonus + ', action ' + g5.turn.action + '); one with no Nimble Escape pays the action (bonus ' + g5b.turn.bonus + ', action ' + g5b.turn.action + ')', g5.turn.bonus === 0 && g5.turn.action === 1 && g5b.turn.bonus === 1 && g5b.turn.action === 0);
+      // 5b. and at a foe's own level (every bestiary foe is made at 5: battle.js makeFoe0) one with no Nimble Escape and no Cunning Action still pays the ACTION -- the level is a rogue's
+      // Cunning Action, not anyone's (10-07, Griz: "4 please fix", the runner's find)
+      var S5c = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B5c = S5c.B, g5c = S5c.g; g5c.nimble = false; pinH(20); runH(B5c.hide(g5c)); D.d = d0H;
+      okH('5b: a level-' + g5c.lvl + ' foe with no Nimble Escape or Cunning Action pays the action (bonus ' + g5c.turn.bonus + ', action ' + g5c.turn.action + ')', g5c.lvl >= 2 && g5c.turn.bonus === 1 && g5c.turn.action === 0);
       // 6. the hide row: the engine sets it at the Hide (the attempt too -- a Hide that fails stands up again), the figure drawn plays it once, then holds its last frame while hidden
       var S6 = setH('?npc=goblin&lvl=5&vs=fighter:5', 15, 10, 3, 10, 3), B6 = S6.B, g6 = S6.g, hr6 = D.spr.anim(g6.sheet, 'hide'), dur6 = D.spr.duration(g6.sheet, 'hide');
       pinH(20); runH(B6.hide(g6, true)); D.d = d0H;
@@ -3686,6 +3690,10 @@
         okW('flow: the bed ' + bedW + ' on the floor beside the cots (' + cotsW.join(' ') + ')', bedOK && cotsW.length === 3);
         okW('flow: the short rest (' + lg(BF, /SHORT REST/).length + '), then wave 2 rolls with all four back on the field and in the order (' + inOrd.length + ' of ' + fourW.length + ', ' + w2 + ' frames), its foes from both ends (' + SF.foes.map(function (u) { return u.kind + '@' + u.from0[0]; }).join(' ') + ')',
           w2 >= 0 && lg(BF, /SHORT REST/).length === 1 && fourW.length === 4 && inOrd.length === 4 && SF.foes.some(function (u) { return u.from0[0] === 0; }) && SF.foes.some(function (u) { return u.from0[0] === 82; }));
+        // after the wave in his order (10-07: "do the token combine - walk around to the chest, check in with chat - then walk to bed and interact as party token"), and the lanterns
+        var lampsW = D.grid.map.props.filter(function (p) { return p.kind === 'roadlamp'; }).length, lightsW = BF.lights.filter(function (l) { return /^road/.test(l.id); }).length;
+        okW('flow: after the wave the token went ' + (SF.trail || []).join(' > ') + ' (want gather > chest > bed > scatter), the chest shut again ' + !(D.circles.chestOpen && D.circles.chestOpen(BF)) + '; the road\'s lanterns on the floor ' + lampsW + ', their lights ' + lightsW + ' (want 8 and 8)',
+          (SF.trail || []).join(',') === 'gather,chest,bed,scatter' && !(D.circles.chestOpen && D.circles.chestOpen(BF)) && lampsW === 8 && lightsW === 8);
         var t2 = stepW(BF, function () { return SF.tier === 2 && SF.foes.length && SF.foes[0].id.indexOf('gs3-') === 0 && SF.foes.every(function (u) { return BF.units.indexOf(u) >= 0; }); }, 40000, weak);
         var lv = BF.units.filter(function (u) { return u.mpmon; }).map(function (u) { return u.mpmon + ' L' + u.lvl + ' ' + u.hp + '/' + u.maxhp; });
         okW('flow: the long rest -- ' + lg(BF, /LEVEL UP/).join(' ').slice(0, 120) + ' -- the four at 2 and whole (' + lv.join(', ') + '), XP ' + JSON.stringify(SF.xp) + ', the lamp ' + SF.lamp.hp + '/' + SF.lampMax + ' (want 80), tier 2 under way (' + t2 + ' frames)',
@@ -3694,10 +3702,10 @@
         // ---- LAMP, then WIPE: each to the villain's walk, GAME OVER and the score
         ['lamp', 'wipe'].forEach(function (how) {
           D.seed = 2007;
-          var BL = lampFight('?gameshow&at=lamp&fast&auto'), SL;
+          // (by the show door, &end=lamp / &end=wipe: staged after the first foe's turn -- 10-07, his "&lamp=1 didn't show the ending")
+          var BL = lampFight('?gameshow&at=lamp&fast&auto&end=' + how), SL;
           stepW(BL, function () { SL = GSW.run; return SL && SL.foes.length && SL.foes.every(function (u) { return BL.units.indexOf(u) >= 0; }) && BL.order.length > 4; }, 20000);
           if (!SL) { okW(how + ': wave 1 never rolled', false); return; }
-          if (how === 'lamp') SL.lamp.hp = 0; else BL.units.forEach(function (u) { if (u.mpmon) { u.hp = 0; u.ko = true; } });
           var seenW = [];
           var e = stepW(BL, function () { var m = BL.gs.mode; if (seenW[seenW.length - 1] !== m) seenW.push(m); return m === 'scores'; }, 20000);
           var sc = GSW.scores();

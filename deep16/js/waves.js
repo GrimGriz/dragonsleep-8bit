@@ -1,7 +1,7 @@
 /* DEEP16 — the Monster Party Game Show's waves (10-07; the lane: they live\handoff-2026-10-07-the-monster-party-game-show.md, seat 2 -- §3 D). The fight
    after Third Lamp's arrival: the waves by tier, the lamp as the foes' target, the bed's rests, the XP and the levels, the run's end. Seat 1's show hands
-   its battle over (js/gameshow.js, the lane's §5): D.gameshow.waves = function* (B, GS) runs here, and calls the show back for its two scenes --
-   yield* GS.between(B, { bed }) at a rest's end and yield* GS.gameOver(B, villain, { waves, tier }) when the lamp goes out.
+   its battle over (js/gameshow.js, the lane's §5): D.gameshow.waves = function* (B, GS) runs here, and calls the show back for its scenes -- after a wave
+   GS.gather, GS.tokenWalk (to the chest, then the bed), GS.scatter (afterWave, below), and yield* GS.gameOver(B, villain, { waves, tier }) when the lamp goes out.
 
    His words, the ones that bind it (10-07): "1 - the most famous monsters that fit the CR requirements (i.e. goblins) - surface monsters from the back, cave
    types from the deepholm side" · "add a bed that offers a short rest at between wave increments and a long rest after every 'tier'. First tier will be 2
@@ -14,6 +14,7 @@
      deep16/?gameshow&at=lamp     straight to Third Lamp; the waves start when the king and the cleric have gone
      &watch                       the Mascots run by their class AI (his click still takes each rest) · &auto the same, and the rests taken by themselves
      &tier=N&wave=M               start at tier N (the four at level N, their XP at its threshold), wave M of it · &lamp=N the lamp's hit points
+     &end=lamp | &end=wipe        the end staged for a look: after the first foe's turn the lamp is out, or no Mascot stands (a show door)
 
    THE RUN: nine tiers, the four at level 1 at tier 1. Tiers 1-3 two waves, 4-9 three; at 7-9 the third is a boss -- an SRD monster with a tough CR, none
    of our own, and tier 9's the Edifice team (the Skylights' stone giants and trolls). Surface kinds come in from the west (the road up from Second Lamp),
@@ -42,7 +43,8 @@
     // the road's own lamps, dim (RULED 10-07, Griz: "1 - keep"): Third Lamp is the 8-bit's dark map and past the tower's 30 ft the halls are black -- the goblins'
     // darkvision shot three Mascots without it from where they could not be seen (the first run, 10-07). Dim light is enough to be seen by (no disadvantage), so
     // the waves are fought where the stream can see them; the supplies' torches still give bright light. 0 keeps the 8-bit's dark
-    roadLight: 20, roadLamps: [[4, 8], [12, 8], [20, 8], [44, 8], [52, 8], [60, 8], [68, 8], [76, 8]]
+    // (10-07, after he watched tier 1: "Lamps/Lanterns on the floor back toward 2nd lamp" -- each light a lantern set on the floor at the hall's edge, drawn: lanternProp)
+    roadLight: 25, roadLamps: [[4, 7], [11, 10], [18, 7], [44, 10], [51, 7], [58, 10], [65, 7], [69, 10]]
   };
   var WEST = { from: [[0, 8], [0, 9], [0, 7], [0, 10]], at: [6, 8] }, EAST = { from: [[82, 8], [82, 9]], at: [64, 8] };
 
@@ -104,7 +106,7 @@
     if (!n) return u;
     n.x = u.x; n.y = u.y; n.facing = u.facing; n.anim = 'idle'; n.animT = B.t; n.flash = 0; n.reaction = 1; n.conds = {};
     if (u.guest) { n.guest = true; n.classAI = true; }
-    var i = B.units.indexOf(u); if (i >= 0) B.units[i] = n; else B.units.push(n);
+    var i = B.units.indexOf(u); if (i >= 0) B.units[i] = n; // (one carried in the token stays off the field: GS.scatter sets it down)
     var j = B.order.indexOf(u); if (j >= 0) B.order[j] = n;
     return n;
   }
@@ -206,6 +208,13 @@
         if (B.readyArmed()) yield* B.readyAfter({ turnOf: u });
         if (D.familiar && !u.familiar) yield* D.familiar.after(B, u);
         B.sweep();
+        // the end staged for a look (&end=lamp or &end=wipe -- a show door, 10-07: his "&lamp=1 didn't show the ending"; a lamp at 1 HP waits on a blow that lands on it):
+        // after the first foe's turn the lamp is out, or no Mascot stands, and the run ends as it would
+        if (S.end0 && u.side === 'foe') {
+          B.card(['{c}THE SHOW{/}: the end, staged (&end=' + S.end0 + ').'], 240);
+          if (S.end0 === 'lamp') S.lamp.hp = 0; else four(B).forEach(function (m) { m.hp = 0; m.ko = true; });
+          S.end0 = null; yield 30;
+        }
         var o = waveOver(B, S);
         if (o) { S.last = u; return o; }
         i = B.order.indexOf(u);
@@ -229,7 +238,7 @@
 
   // ------------------------------------------------------------------ the bed: the rest that is due, lit; his click takes it
   function* bedRest(B, S, kind) {
-    var st = B.gs, bed = WV.bed;
+    var st = B.gs, bed = WV.bed, party = S.party || four(B);   // (the four: on the field or carried in the token, GS.gather)
     st.mode = 'rest'; st.clicks = []; S.rest = { due: kind, t0: B.t };
     yield* B.camTo({ gx: bed[0], gy: bed[1], gz: 0 }, 1.25, W(30));
     D.sfx('popup');
@@ -249,23 +258,58 @@
     B.units = B.units.filter(function (u) { return u.side !== 'foe' && !u.summon; });
     ['grounds', 'auras', 'wards', 'spirits', 'darks', 'zones', 'beads', 'walls', 'shells', 'oils'].forEach(function (k) { if (B[k]) B[k] = []; });
     B.webs = (B.webs || []).filter(function (w) { return w.ground; }); B.wallMap = null; B.lightMap = null;
-    four(B).forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'rest'); u.conds = {}; u.temp = kind === 'long' ? 0 : u.temp; });
+    party.forEach(function (u) { if (u.conc && D.magic && D.magic.endConc) D.magic.endConc(B, u, 'rest'); u.conds = {}; u.temp = kind === 'long' ? 0 : u.temp; });
     if (kind === 'short') {
       lines.push('{y}SHORT REST{/} at the cots.');
-      four(B).forEach(function (u) { lines.push(u.name + ': ' + shortRest(B, u, S)); });
+      party.forEach(function (u) { lines.push(u.name + ': ' + shortRest(B, u, S)); });
     } else {
       lines.push('{y}LONG REST{/}: the night at the cots, and the dwarves\' wardens mend the lamp.');
-      var ups = [];
-      four(B).forEach(function (u) {
+      var ups = [], made = party.map(function (u) {
         var L0 = u.lvl || 1, L = Math.max(L0, levelFor(S.xp[u.mpmon] || 0));
         var n = rebuild(B, u, L); S.hd[n.mpmon] = L;
         if (L > L0) ups.push(n.name + ' is level ' + L);
+        return n;
       });
+      // (made anew: the token and the ones it carries are the new four)
+      var P = st.party, swap = function (u) { var k = party.indexOf(u); return k >= 0 ? made[k] : u; };
+      if (P) { P.token = swap(P.token); P.rest = P.rest.map(swap); }
+      S.party = made; party = made;
       S.lampHP = S.lampMax = WV.CFG.lampHP(S.tier + 1);
-      if (ups.length) { lines.push('{y}LEVEL UP!{/}  ' + ups.join(' · ')); D.sfx('levelup'); four(B).forEach(function (u) { FX.sparkle(u, 'gold', 20); }); }
+      if (ups.length) { lines.push('{y}LEVEL UP!{/}  ' + ups.join(' · ')); D.sfx('levelup'); party.forEach(function (u) { if (B.units.indexOf(u) >= 0) FX.sparkle(u, 'gold', 20); }); }
     }
     G.setup(G.map, B.units);
     B.card(lines, W(480)); yield W(150);
+  }
+
+  // ------------------------------------------------------------------ after a wave (Griz, 10-07, after watching tier 1: "when combat ends, don't auto-popup the rest - do the
+  // token combine - walk around to the chest, check in with chat - then walk to bed and interact as party token"): the four into one where they stand (the fallen carried
+  // in), the token to the chest -- it opens; THE CHEST, check in with chat (the supplies' seat's buttons hang here: GS.supplies) till his click -- then to the bed, where the
+  // due rest lights for its click; then out to the circle and onto its corners
+  function* afterWave(B, S, kind) {
+    var st = B.gs;
+    B.order = []; B.active = null;   // (the strip of the wave just fought off the screen)
+    S.party = four(B); S.trail = [];
+    if (!(yield* GS.gather(B, { party: S.party }))) return;
+    S.trail.push('gather');
+    var cs = G.map.def.chest, side = cs && [[0, 1], [1, 1], [-1, 1], [1, 0], [-1, 0], [0, -1]].map(function (d) { return [cs[0] + d[0], cs[1] + d[1]]; }).filter(function (q) { var s = G.map.at(q[0], q[1]); return s && s.walk; })[0];
+    if (side) {
+      yield* GS.tokenWalk(B, side); S.trail.push('chest');
+      if (D.circles && D.circles.chest) D.circles.chest(B, 'open');
+      st.mode = 'chest'; st.clicks = []; S.chat = { t0: B.t };
+      if (GS.supplies) yield* GS.supplies(B, { tier: S.tier, wave: S.wi + 1, run: S, at: 'chest' }); // (the supplies' seat: the lane's §3 C)
+      for (var wait = 0; ; wait++) {
+        var ck = st.clicks.shift();
+        if (ck) { var hit = WV.hit(ck), sq = !hit && D.iso.pick(ck.x, ck.y, 0); if (hit === 'onward' || (sq && ((sq.x === cs[0] && sq.y === cs[1]) || (sq.x === WV.bed[0] && sq.y === WV.bed[1])))) break; }
+        if (S.auto && wait > W(90)) break;
+        yield 1;
+      }
+      S.chat = null; st.mode = 'fight'; D.sfx('confirm');
+      if (D.circles && D.circles.chest) D.circles.chest(B, 'close');
+    }
+    yield* GS.tokenWalk(B, WV.bed); S.trail.push('bed');
+    yield* bedRest(B, S, kind);
+    yield* GS.scatter(B); S.trail.push('scatter');
+    S.party = null;
   }
 
   // ------------------------------------------------------------------ the run
@@ -273,7 +317,7 @@
     var q = GS.q || location.search;
     var num = function (k) { var m = new RegExp('[?&]' + k + '=(\\d+)').exec(q); return m ? +m[1] : null; };
     var S = GS.run = { tier: Math.max(1, Math.min(99, num('tier') || 1)), wi: Math.max(0, (num('wave') || 1) - 1), count: 0, held: 0, xp: {}, hd: {}, foes: [], rest: null,
-      ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q) };
+      ai: /[?&](auto|watch)\b/.test(q), auto: /[?&]auto\b/.test(q), end0: (/[?&]end=(lamp|wipe)\b/.exec(q) || [])[1] || null };
     S.lampHP = S.lampMax = num('lamp') || WV.CFG.lampHP(S.tier);
     var st = B.gs; B.cine = false; st.mode = 'fight'; st.lock = null; st.clicks = [];
     // the cots off the map (its `y` squares) and the bed, the floor beside the first of them
@@ -289,7 +333,11 @@
       var n = L0 > 1 ? rebuild(B, u, L0) : u; S.hd[n.mpmon] = n.lvl || L0;
     });
     lampUp(B, S);
-    if (WV.CFG.roadLight > 0) { WV.CFG.roadLamps.forEach(function (p, i) { B.lights.push({ id: 'road' + i, kind: 'map', x: p[0], y: p[1], bright: 0, dim: WV.CFG.roadLight, color: 'gold', flame: false }); }); B.lightMap = null; }
+    if (WV.CFG.roadLight > 0) {
+      WV.CFG.roadLamps.forEach(function (p, i) { B.lights.push({ id: 'road' + i, kind: 'map', x: p[0], y: p[1], bright: 5, dim: WV.CFG.roadLight, color: 'gold', flame: false }); }); // (bright on its own square, so the lantern reads lit; dim round it)
+      if (!G.map.props.some(function (pp) { return pp.kind === 'roadlamp'; })) { WV.CFG.roadLamps.forEach(function (p) { G.map.props.push(lanternProp(G.map, p)); }); G.map.sorted = null; }
+      B.lightMap = null;
+    }
     var pw0 = B.paint; B.paint = function (ctx) { pw0.apply(this, arguments); WV.hud(ctx, this); };
     while (true) {
       var waves = WV.tierWaves(S.tier);
@@ -314,12 +362,9 @@
         var last = S.wi === waves.length - 1;
         // the lamp off the field for the rest, back after it (its hit points kept, or made whole by the long rest)
         B.units = B.units.filter(function (u) { return u !== S.lamp; });
-        yield* bedRest(B, S, last ? 'long' : 'short');
-        if (GS.supplies) yield* GS.supplies(B, { tier: S.tier, wave: S.wi + 1, run: S }); // (the supplies' seat: the chest between waves -- the lane's §3 C)
-        var n4 = four(B).length;
-        yield* GS.between(B, { bed: WV.bed });
+        yield* afterWave(B, S, last ? 'long' : 'short');
         // (all four back on the field and still before anyone rolls: the token's walk-out is the show's, js/gameshow.js)
-        for (var g = 0; g < 600 && (four(B).length < n4 || four(B).some(function (u) { return u.tween || u.anim === 'walk'; })); g++) yield 1;
+        for (var g = 0; g < 600 && (four(B).length < 4 || four(B).some(function (u) { return u.tween || u.anim === 'walk'; })); g++) yield 1;
         lampUp(B, S);
       }
       S.tier++; S.wi = 0;
@@ -339,7 +384,8 @@
   function P(r, i) { return D.PAL.ramps[r][i]; }
   WV.hud = function (ctx, B) {
     var S = GS.run, st = B.gs; BTN = {};
-    if (!S || !st || (st.mode !== 'fight' && st.mode !== 'rest')) return;
+    if (!S || !st || (st.mode !== 'fight' && st.mode !== 'rest' && st.mode !== 'chest')) return;
+    if (st.mode === 'chest' && S.chat) chestPanel(ctx, B, S);
     var Wd = D.W, waves = WV.tierWaves(S.tier) || [], x = Wd - 132, y = D.H - 102;   // (bottom right, over the unit panel: the cards and the strip keep the top)
     D.win8(ctx, x, y, 128, 30);
     D.text(ctx, 'TIER ' + S.tier + '  WAVE ' + Math.min(waves.length, S.wi + 1) + '/' + waves.length, x + 6, y + 5, P('gold', 4));
@@ -350,6 +396,34 @@
     D.text(ctx, Math.max(0, hp) + '', x + 100, y + 17, P('bone', 1));
     if (st.mode === 'rest' && S.rest) restPanel(ctx, B, S);
   };
+  // the chest's moment: the box over the top, and the button on to the bed (a click on the chest or the bed does the same)
+  function chestPanel(ctx, B, S) {
+    var Wd = D.W, w = 236, x = Math.round(Wd / 2 - w / 2), y = 50;
+    D.win8(ctx, x, y, w, 58);
+    D.text(ctx, 'THE CHEST', Wd / 2, y + 5, P('gold', 4), 'center');
+    D.text(ctx, 'check in with chat', Wd / 2, y + 18, P('bone', 1), 'center');
+    var bx = Math.round(Wd / 2 - 60), by = y + 33;
+    D.win8(ctx, bx, by, 120, 18, P('red', 1)); D.text(ctx, 'ON TO THE BED', bx + 60, by + 5, P('gold', 4), 'center');
+    BTN.onward = { x: bx, y: by, w: 120, h: 18 };
+  }
+  // a road lamp: a dwarf lantern set on the floor at the hall's edge -- an iron cage, gold glass, the flame flickering, a little glow on the stone (world pixels, as the tower's
+  // own lamp is drawn: js/circles.js towerProp)
+  function lanternProp(m, at) {
+    var sq = m.at(at[0], at[1]);
+    return { kind: 'roadlamp', sq: sq, depth: at[0] + at[1] + 0.4, gz: sq ? sq.gz : 0, draw: function (ctx) {
+      var p = D.iso.center(at[0], at[1], sq ? sq.gz : 0), s = D.iso.toScreen(p.x, p.y), x = Math.round(s.x), y = Math.round(s.y);
+      var t = Date.now() / 16, fl = Math.sin(t / 5 + at[0]) + Math.sin(t / 3.3 + at[1]);
+      ctx.globalAlpha = 0.2 + 0.06 * fl; ctx.fillStyle = P('fire', 2); ctx.beginPath(); ctx.ellipse(x, y, 18, 8, 0, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.fillStyle = P('outline', 0); ctx.fillRect(x - 6, y - 3, 13, 3);                         // its foot
+      ctx.fillRect(x - 6, y - 18, 2, 15); ctx.fillRect(x + 5, y - 18, 2, 15); ctx.fillRect(x - 6, y - 19, 13, 2); // the cage
+      ctx.fillRect(x - 3, y - 22, 7, 3); ctx.fillStyle = P('gold', 1); ctx.fillRect(x - 1, y - 25, 3, 3); ctx.fillStyle = P('outline', 0); ctx.fillRect(x, y - 24, 1, 1); // the cap, the ring
+      ctx.fillStyle = P('gold', 3); ctx.fillRect(x - 4, y - 17, 9, 14); ctx.fillStyle = P('gold', 4); ctx.fillRect(x - 4, y - 17, 2, 14);
+      ctx.fillStyle = P('outline', 0); ctx.fillRect(x, y - 17, 1, 14);                            // the cage's middle bar
+      ctx.fillStyle = P('fire', 1); ctx.fillRect(x - 2, y - 13 - (fl > 0.8 ? 1 : 0), 5, 7);
+      ctx.fillStyle = P('fire', 2); ctx.fillRect(x - 1, y - 11 - (fl > 0.3 ? 1 : 0), 3, 4);
+      ctx.fillStyle = P('bone', 2); ctx.fillRect(x, y - 8, 1, 2);
+    } };
+  }
   function restPanel(ctx, B, S) {
     var due = S.rest.due, pulse = 0.5 + 0.5 * Math.sin((B.t - S.rest.t0) / 8);
     // the cots lit: a glow on each, the due rest's colour

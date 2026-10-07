@@ -18,8 +18,11 @@
    Each scene is a fight on its map run by a script of its own in place of the turns (js/skyshow.js's way): nobody takes a turn while the show
    has the floor. The fight itself is seat 2's (the lane's §3 D): the show hands Third Lamp's battle to `D.gameshow.waves` when it is set --
        D.gameshow.waves = function* (B, show) { ... }      the run: waves, rests, the lamp; until it is set, the show waits on the floor
-   and seat 2 calls the show back for its two scenes:
-       yield* D.gameshow.between(B, { bed: [x, y] })       the rest's end: the four walk into one square, Beholda the party token to the circle
+   and seat 2 calls the show back for its scenes:
+       yield* D.gameshow.gather(B, { party, at })          the four into one square, Beholda the party token (B.gs.party)
+       yield* D.gameshow.tokenWalk(B, [x, y])              the token to a square, the camera with it
+       yield* D.gameshow.scatter(B)                        the token to the circle, the four out onto its corners
+       yield* D.gameshow.between(B, { bed: [x, y] })       gather at the bed, then scatter (the first form)
        yield* D.gameshow.gameOver(B, villain, { waves, tier })   the lamp's end: the villain's slow walk to it, the dark, GAME OVER, the scores
    The circle itself is js/circles.js (D.circles: wake, spin, sink, the hub). The show draws over the fight with `B.cine` set (js/ui.js leaves
    off the turn strip and the bar). */
@@ -310,7 +313,7 @@
       var ck = B.gs.clicks.shift();
       if (ck) {
         var sq = D.iso.pick(ck.x, ck.y, 0);
-        if (sq && sq.x === ctr[0] && sq.y === ctr[1]) yield* GS.between(B, { bed: [35, 13] });
+        if (sq && sq.x === ctr[0] && sq.y === ctr[1]) yield* GS.between(B, { bed: [36, 13] });
         else if (sq && tower && sq.x === tower[0] && sq.y === tower[1]) { yield* GS.gameOver(B, null, { waves: 0, tier: 1 }); return; }
       }
       yield 1;
@@ -319,29 +322,47 @@
 
   // ------------------------------------------------------------------ between waves (seat 2 calls it): the token
   // (Griz: "in between waves (end of rest - main walks from bed to portal) all 4 lobstamonkees walk into the same square and beholda becomes 'party
-  // token'"): the four walk into the bed's square and are one; Beholda, the token, walks to the circle; the others come out round it
-  GS.between = function* (B, o) {
+  // token'"; and after watching tier 1, 10-07: "when combat ends, don't auto-popup the rest - do the token combine - walk around to the chest, check in with
+  // chat - then walk to bed and interact as party token"): three pieces seat 2 runs in his order -- GS.gather, the four into one square (where the token
+  // stands, or o.at), the fallen carried in with them; GS.tokenWalk, the token to a square, the camera with it; GS.scatter, the token to the circle and the
+  // others out of it onto the corners. B.gs.party holds { token, rest } while they are one. GS.between is the first two-step form, kept
+  GS.gather = function* (B, o) {
     o = o || {};
-    var def = G.map.def, ctr = def.circle.at, bed = o.bed || ctr, sh = D.SHEETS[def.circle.sheet];
-    var four = ['denny', 'rascal', 'goose', 'beholda'].map(function (k) { return mascot(B, k); }).filter(function (u) { return u && G.standing(u); });
-    var token = four.filter(function (u) { return u.mpmon === 'beholda'; })[0] || four[0];
-    if (!token) return;
-    var was = B.cine; B.cine = true;
-    yield* B.camTo({ gx: bed[0], gy: bed[1], gz: 0 }, 1.25, W(30));
-    // into one square: the others walk onto the token's ground and are gone into it
-    var meet = bed;
-    for (var i = 0; i < four.length; i++) if (four[i] !== token) yield* walkTo(B, four[i], meet, 6);
-    yield* walkTo(B, token, meet, 6);
-    four.forEach(function (u) { if (u !== token) { var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1); } });
+    var four = (o.party || ['denny', 'rascal', 'goose', 'beholda'].map(function (k) { return mascot(B, k); })).filter(Boolean);
+    var up = four.filter(function (u) { return G.standing(u); });
+    var token = up.filter(function (u) { return u.mpmon === 'beholda'; })[0] || up[0];
+    if (!token) return null;
+    var was = B.cine, meet = o.at || [token.x, token.y];
+    B.cine = true;
+    yield* B.camTo({ gx: meet[0], gy: meet[1], gz: 0 }, 1.25, W(30));
+    // into one square: the others walk onto the token's ground and are gone into it; one down is carried in (a glow where it lay)
+    for (var i = 0; i < up.length; i++) if (up[i] !== token) yield* walkTo(B, up[i], meet, 6);
+    if (o.at) yield* walkTo(B, token, meet, 6);
+    four.forEach(function (u) { if (u === token) return; if (!G.standing(u)) FX.sparkle(u, 'glow', 12); var j = B.units.indexOf(u); if (j >= 0) B.units.splice(j, 1); });
     G.setup(G.map, B.units); FX.ring(token, 'glow', 22); D.sfx('popup');
-    B.card(['{y}The party{/} sets out.'], 200);
+    B.card(['{y}The party{/} ' + (o.line || 'gathers.')], 200);
+    B.gs = B.gs || { clicks: [], fade: 0 };
+    B.gs.party = { token: token, rest: four.filter(function (u) { return u !== token; }) };
+    B.cine = was;
+    return token;
+  };
+  GS.tokenWalk = function* (B, to) {
+    var P = B.gs && B.gs.party; if (!P || !to) return;
+    var was = B.cine; B.cine = true;
+    var co = walkTo(B, P.token, to, 8), r;
+    while (!(r = co.next()).done) { B.keepInView(P.token); yield r.value; }
+    B.cine = was;
+  };
+  GS.scatter = function* (B) {
+    var P = B.gs && B.gs.party; if (!P) return;
+    var def = G.map.def, ctr = def.circle.at, sh = D.SHEETS[def.circle.sheet], token = P.token, was = B.cine; B.cine = true;
     // the token to the circle
     yield* walkTo(B, token, [ctr[0], ctr[1] - (sh.squares - 1) / 2 - 1], 8);
     yield* B.camTo({ gx: ctr[0], gy: ctr[1], gz: 0 }, 1.25, W(24));
     // and the four round it again: the token steps to its corner, the others come out of it
     var cs = corners(ctr, sh.squares);
     yield* walkTo(B, token, cs[0], 8);
-    var rest = four.filter(function (u) { return u !== token; });
+    var rest = P.rest;
     // (each out of it in turn, ten frames apart, walked on the fight's own frames -- not the wall clock's, so a bench stepping the loop sees them come out, and the waves
     // never roll initiative before they are back: js/waves.js, 10-07)
     var outs = rest.map(function (u, k) { u.x = token.x; u.y = token.y; return { u: u, at: W(k * 10), to: cs[k + 1], co: null, wait: 0, done: false }; });
@@ -356,7 +377,13 @@
     }
     yield W(30);
     G.setup(G.map, B.units);
+    B.gs.party = null;
     B.cine = was;
+  };
+  GS.between = function* (B, o) {
+    o = o || {};
+    if (!(yield* GS.gather(B, { at: o.bed || G.map.def.circle.at, line: 'sets out.' }))) return;
+    yield* GS.scatter(B);
   };
 
   // ------------------------------------------------------------------ the end (seat 2 calls it when the lamp goes out)
