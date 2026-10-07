@@ -1,7 +1,7 @@
 ---
 title: DEEP16 art wanted -- what is still a stand-in
 made: 2026-09-28 (Code tab), for Griz's free GPT / Grok image runs
-updated: 2026-10-06 (Code tab) -- the Wet's three props under WANTED, on his word; 2026-10-05 (Code tab) -- rewritten on Griz's word ("we're pretty much done with that list"): the WANTED table is the Pocket DM's pot checked against the figures; everything finished is under IN HAND; the Keeper, rebuilt with a fight of his own, is in
+updated: 2026-10-06 night (Code tab) -- the Mascot's new rows against the sheets asked for, and Goose's first sheet, on his word; 2026-10-06 (Code tab) -- the Wet's three props under WANTED, on his word; 2026-10-05 (Code tab) -- rewritten on Griz's word ("we're pretty much done with that list"): the WANTED table is the Pocket DM's pot checked against the figures; everything finished is under IN HAND; the Keeper, rebuilt with a fight of his own, is in
 how: paste a creature's HEAD, then the COMMON TAIL, into the generator. Drop what comes back in the repo root (any name; say which creature) and the seat files it in `deep16/_src/` as `<creature>_grok_N.png` (gitignored; tester screenshots go in `deep16/_src/tester-feedback/`) and cuts it the chuul's way (pipeline 2: one `tools/<creature>-sheet.py` per creature). A free print model with a .blend goes through pipeline 1b instead: `deep16/blender-monsters.md`
 ---
 
@@ -56,6 +56,62 @@ Attached: a drawing of Rascal, a needle-felted lobstamonkee. Draw him as a pixel
 HEAD: RASCAL THE LOBSTAMONKEE -- sheet 1, his moves for a tactics game. He fights with the giant claw. Rows: Walk (8: a scuttling walk on the short bent legs, the claw held up in front, the tail trailing behind); Pinch (6: his regular blow: the giant claw swings up and snaps shut on a foe in front of him, then draws back); Social Sharing (6: his left hand sweeps the hat off his head and he bows low, the hat held out wide, the antennae dipping with him, then he straightens and sets it back on); Social Flame (8: he dances on the spot, hopping from foot to foot, the giant claw raised over his head clapping its pincers together in time, the tail swinging; no fire drawn, the game adds it); Climb (6: climbing straight up an unseen wall with the claw, the hand, the feet and the tail; do not draw the wall); Flinch (4: struck, he jolts back with his eyes squeezed shut and the antennae whipping, then recovers); Fall (6: knocked out, he topples backward and lies flat on his back, the claw fallen open, the hat still on; the last frame lies on the ground); Prone (2: knocked flat but alive and struggling: lying on the ground, then pushing himself up).
 
 16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background. Top left: one large portrait. Beside it a turnaround of four stills labelled Front, Right, Back, Left. Below: labelled rows of frames, every frame in side view facing left so the claw arm is nearest the viewer, numbered under each frame. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row, feet on one baseline. No scenery except what a row names.
+
+### The Mascot's new rows, and Goose (added 10-06 night, the race-and-class seat)
+
+The class is the Mascot now (`deep16/js/mpmon.js`; the MPMon lane §6): every one of the four gets a free bonus move at 2nd, a passive at 3rd, a reaction at 6th and a fourth special at 7th. Griz: *"please add goose 16b sheet prompt to art_wanted (and compare what's there for the others versus the new ability needs). Goose is small and should bounce around on idle and jump up to cast."* The rows the sheets above already ask for, against what the new kit plays (the game falls back to the row named after the slash until the new row is cut):
+
+| Mascot | the move | the row it plays | asked for above? |
+|---|---|---|---|
+| Denny | Taunt (a bonus action now, no swing of its own) | `taunt` | yes (sheet 3) |
+| Denny | Monkey Flurry, 2nd (one more punch) | `attack` (the Punch) | yes |
+| Denny | Denim Damage's knock (3rd on) | `denimdamage` | yes |
+| Denny | Bodyguard, 6th (a reaction: he steps in the way) | **`guard`** / none | **no: GUARD, below** |
+| Denny | Lobstah Hug, 7th (a grab and a squeeze) | **`lobstahhug`** / `attack` | **no: LOBSTAH HUG, below** |
+| Beholda | Eye On It, 2nd (her stalks on a foe) | **`spot`** / `gaze` | **no: SPOT, below** |
+| Beholda | Lucky Dice, 3rd (a passive) | none (a sparkle in code) | -- |
+| Beholda | Eye Contact, 6th (a reaction: a stare) | `gaze` | yes (sheet 2) |
+| Beholda | Spotlight, 7th (a friend Hasted) | **`spotlight`** / `cast` | **no: SPOTLIGHT, below** |
+| Rascal | Fire Bolt, his regular blow | **`cast`** / `attack` | **no: his sheet has no cast row, so the bolt plays the Pinch** |
+| Rascal | Scuttle, 2nd (Dash, Disengage, Hide) | `walk` | yes |
+| Rascal | Social Distancing, 5th (the ring round him cleared, no longer a cone) | **`socialdistancing`** / `attack` | **no: it plays the Pinch today** |
+| Rascal | Hot Take, 6th (a reaction: fire back) | **`hottake`** / `socialflame` | **no (the clap stands in)** |
+| Rascal | Going Viral, 7th (fire foe to foe) | **`goingviral`** / `socialflame` | **no (the clap stands in)** |
+| Goose | everything | -- | **no sheet yet: GOOSE, SHEET 1, below** |
+
+When they come back: each new row name into `tools/pixelate.py`'s ANIM_ORDER and FPS and `deep16/js/ui.js`'s play-once rule, the cutter (`tools/denny-sheet.py`, `tools/beholda-sheet.py`, `tools/rascal-sheet.py`) given the rows, then `?mpshow&lvl=9` (every move has a beat) and a fresh eyes row.
+
+DENNY, SHEET 4 (two rows) -- attach `deep16/_src/denny_sheet_2.webp`:
+
+Attached: Denny's character sheet. Draw him again exactly: the same character, the same pixel style, the same colours, the same size as the turnaround in the attached sheet. A red monkey with big dark eyes, a tan muzzle, orange fin-like ears and a tuft of red hair, a long red tail curled in a spiral, an open blue denim jacket with brass buttons over a bare chest, rolled denim jeans, bare red feet.
+
+HEAD: DENNY THE LOBSTAMONKEE -- sheet 4, two more moves for a tactics game. Rows: Guard (4: he hops sideways into the way of a blow meant for a friend and braces, forearms crossed in front of his face, the denim jacket flaring, then holds it); Lobstah Hug (8: he lunges forward and throws both arms and his curled tail round a foe in front of him -- do not draw the foe: he hugs a shape as big as he is -- squeezes hard twice with his cheeks puffed out, then holds the hug).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background. Labelled rows of frames, every frame in side view facing right, numbered under each frame. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row, feet on one baseline. No scenery.
+
+BEHOLDA, SHEET 3 (two rows) -- attach her first sheet:
+
+Attached: Beholda's first sprite sheet. Draw her again exactly: the same character, the same pixel style, the same colours, the same size. A round fuzzy purple body with one big eye and a wide smile, four eyestalks with red-ringed eyes on top, cyan lightning wisps at her sides, and three dice hanging on short chains below her (a cyan d20 on the left, a magenta d10 in the middle, a lime d8 on the right).
+
+HEAD: BEHOLDA, THE BENEVOLENT BEHOLDER -- sheet 3, two more moves for a tactics game. She floats: in every frame the bottom of her lowest die hangs the same small height above one shared baseline. Rows: Spot (4: all four eyestalks swivel round to point at a foe in front of her and her big eye narrows knowingly, a small star glinting at each stalk's tip); Spotlight (6: her big eye opens wide and glows warm gold, and a short cone of golden stage light shines up and forward from it, then fades; the cone no longer than she is wide).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background. Labelled rows of frames, every frame in side view facing right, numbered under each frame. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row, every frame floating at the same height above one baseline. No scenery except what a row names.
+
+RASCAL, SHEET 2 (four rows, and his face put right) -- attach his illustration (the cleaned drawing of the front photo) or `dev/visions/Rascal/RascalFront.jpg`:
+
+Attached: a drawing of Rascal, a needle-felted lobstamonkee. Draw him as a pixel-art character, keeping every feature: a round fuzzy bright orange body, a big domed head with a bright red face, two big black bead eyes each ringed in yellow, yellow lines running from under the eyes down to an orange muzzle, two long thin orange wire antennae arching out from the sides of his head and hooking at the ends, two thick orange whisker-tentacles curling out from his MOUTH with hooked yellow tips (they never cross the hat), a black felt cowboy hat with a red rope band, his RIGHT arm one giant lobster claw as long as his body, banded yellow, orange and black, with two fat red-tipped pincers, his LEFT arm a thin furry orange arm with a three-fingered hand, short bent furry orange legs with three-toed feet, and a long thin lobster tail banded red and black with an orange tip. No clothes but the hat.
+
+HEAD: RASCAL THE LOBSTAMONKEE -- sheet 2, four more moves for a tactics game. Rows: Fire Bolt (6: his regular blow at range: he snaps the giant claw shut toward a foe and a small spark of fire flicks out from its tip; draw the spark small); Social Distancing (6: he spins once on the spot with the claw and the free arm flung out wide, a ring of rushing air bursting out round him at knee height, then strikes a pose; no foes drawn); Hot Take (4: a quick indignant claw-snap at a foe in front of him, a burst of sparks off the pincers, his face scowling); Going Viral (8: he holds the giant claw high and shakes it as if it were buzzing, then flings it forward with a flourish and points; no fire drawn, the game adds it).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background. Top left: one large portrait. Below: labelled rows of frames, every frame in side view facing left so the claw arm is nearest the viewer, numbered under each frame. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row, feet on one baseline. No scenery except what a row names.
+
+GOOSE, SHEET 1 -- attach `dev/visions/Goose/Goose1.jpg` (his drawing, 10-06). He is the Heals of the four: a sling for his regular blow, his heals cast with a jump (Griz: *"Goose is small and should bounce around on idle and jump up to cast"*). Small: the game draws him smaller than the others (a scale under 1 on his look, set when he is cut), so draw him at the same scale as any sheet; it is the game that shrinks him. When it comes back it goes in `deep16/_src/goose_grok_1.<ext>`, a cutter `tools/goose-sheet.py` by `tools/denny-sheet.py`'s pattern (turnaround -> idle by facing; Idle -> idle; Hop -> walk; Sling -> attack; Cast -> cast; Honk -> honk; Climb -> climb; Flinch -> flinch; Fall -> hurt; Prone -> prone), then his build in `deep16/js/mpmon.js` (the Heals subclass is drafted there, `MP.SUBS.heals`).
+
+Attached: a drawing of Goose, a lobstamonkee. Draw him as a pixel-art character, keeping every feature and the drawing's greys: a small crouching monkey-like body with shaggy charcoal-black fur, slate grey on the arms and legs, long thin arms ending in grasping clawed hands, a bald domed head veined like a skull, two pale hollow round eyes, a grey whiskery beard round the mouth, two very long thin feelers sweeping straight out sideways from his mouth and hooking up at the tips, short bent legs, and a long tail curled at the end. Eerie, a little Lovecraftian, but friendly in how he moves.
+
+HEAD: GOOSE THE LOBSTAMONKEE -- sheet 1, his moves for a tactics game. He is small and springy and never stands still. Rows: Idle (6: bouncing up and down on the spot on his bent legs, the feelers bobbing with each bounce, the tail curling and uncurling); Hop (8: travelling in little bouncing hops, the long arms swinging, the tail held out behind for balance); Sling (6: his regular blow: he whirls a sling over his head in one hand and lets fly forward, then follows through; the stone small); Cast (6: he crouches low, springs straight up into the air with both arms raised high over his head and the clawed hands spread wide, a soft glow between the hands at the top of the jump, then lands back in a crouch); Honk (4: he thrusts his head forward with his mouth wide open and the feelers flaring out, a loud honk); Climb (6: climbing straight up an unseen wall with the clawed hands, the feet and the tail; do not draw the wall); Flinch (4: struck, he jolts back with his eyes squeezed shut and the feelers whipping, then recovers); Fall (6: knocked out, he topples over and lies curled on his side, the feelers limp; the last frame lies on the ground); Prone (2: knocked flat but alive and struggling: lying on the ground, then bouncing back up).
+
+16-bit pixel art animation sheet, SNES-era action RPG style, crisp dark outline, readable at small size. Flat dark navy background. Top left: one large portrait. Beside it a turnaround of four stills labelled Front, Right, Back, Left. Below: labelled rows of frames, every frame in side view facing right, numbered under each frame. Every frame stands apart with clear space around it: nothing overlaps a neighbour or a label. The same scale in every row, feet on one baseline. No scenery except what a row names.
 
 ### Props wanted (things on the grid, not creatures; added 10-06)
 

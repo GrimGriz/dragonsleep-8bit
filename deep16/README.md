@@ -454,7 +454,50 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
   through his hat erased above it). Their next sheets' prompts are in `deep16-art-wanted.md`.
 - **Bench:** `python dev/bench16.py x mode=mpmon1006` (in `dev/check.py`'s gate): the builds against the design's tables, each special by
   its rule with the dice pinned, the ring, the Pocket DM's seats and rest, a whole fight, Fire Bolt with the specials spent, and the
-  show's nine beats.
+  show's beats run twice, at 5 and at 9.
+
+### THE MASCOT (10-06 night) -- the class as races, a class and four roles
+
+Griz's rulings verbatim are in the MPMon lane (`..\..\handoff-2026-10-06-the-monster-party-monsters.md` §6). Where the section above says
+otherwise, this stands.
+
+- **Named:** the class is the **Mascot** (R.CLASSES.mpmon's name; the code key stays `mpmon`). **The races:** `MP.RACES` -- the Lobstamonkee
+  (humanoid, walk 30, climbs, Athletics), the EyeGregore (**fey**; she **floats** -- the grid's flier today, one layer, 5 ft, at most when
+  flight at a height lands; darkvision 120, no hands, Perception), shaped as NPC.RACES entries but kept out of the maker (his: *"we'll let
+  them unlock the 3 as they are"*). **The roles:** `MP.SUBS` -- **Tank** (Denny, STR), **Buffs** (Beholda, WIS), **DPS** (Rascal, CHA),
+  **Heals** (Goose, WIS -- *"the key ability is LOVE... which we'll say is wise"*; drafted, no build till his sheet). The specials dispatch
+  on `u.mpSub`.
+- **The levels:** 1 the two core specials, the setup one a BONUS action (Taunt -- no swing of its own now --, the VNA Bubble, Social
+  Sharing); 2 a free bonus move; 3 a passive; 4 an ability score; 5 the third special; 6 a reaction; 7 the fourth special; 8 an ability
+  score; 9 THE HIVEMIND. Free moves and reactions spend nothing from the pool; the passives' and reactions' uses are the proficiency bonus a
+  fight, back on a short rest (`MP.refill`).
+- **THE GROWTH:** every special grows a step a level after it comes, its power on the even levels and its reach on the odd (his, for
+  Social Distancing: *"DamageDie or static + at 6, radius at 7, repeat"*), sized to land at or under the first pass's at 5 and 9 (`MP.pw`,
+  `MP.rc`; the numbers beside each formula in mpmon.js). Taunt 2 foes in 10 ft -> 4 in 20 at 5th -> 6 in 30 at 9th; Denim +1d6 -> 3d6 -> 5d6
+  and its KNOCK (5 ft a reach step, from 3rd); Cannonball 2d8 -> 2d8+4, the leap 20 -> 30; the Bubble +1 -> +5, 10 ft -> 30; the Gaze 1d8 ->
+  3d8 -> 5d8, 30 ft -> 90; the Big Screen 4d8 -> 6d8, the cone 30 -> 40; Sharing d4 x1 -> d8 x3 -> d12 x5; Flame 2d6 -> 4d6 -> 6d6, 5 ft
+  round -> 25; SOCIAL DISTANCING is the ring round him now (*"clears the 8 square donut around him"*): 2d8 -> 4d8, 5 ft -> 15, every foe in it
+  SHOVED out of it and frightened on a failed save.
+- **Denny, the Tank:** 2 MONKEY FLURRY (one more punch after the Attack action); 3 STAND FIRM (advantage on saves against prone and on
+  STR saves, and on breaking a grip); 6 BODYGUARD (the Protection style without the shield: battle.js reads `bodyguard`, the player is
+  asked); 7 LOBSTAH HUG (STR or HELD: grappled and restrained, taunted to him, squeezed 1d8 + STR at the start of each of his turns).
+- **Beholda, Buffs:** 2 EYE ON IT (the Help from 30 ft); 3 LUCKY DICE (a friend within 30 ft who rolls a 1 on an attack or a save rolls
+  again); 6 EYE CONTACT (Cutting Words' shape: 1d6 off a foe's blow that would land, on its own); 7 SPOTLIGHT (a friend Hasted till the end
+  of its next turn, no lethargy).
+- **Rascal, the DPS:** 2 SCUTTLE (Dash, Disengage or Hide as a bonus action; `cunning` on him); 3 SPICY (CHA on Fire Bolt's damage); 6 HOT
+  TAKE (Hellish Rebuke's shape: 2d10 fire at one that hits him, the player asked); 7 GOING VIRAL (fire foe to foe, 3d8, three of them).
+- **THE HIVEMIND, 9th** (RULED, Griz: *"Denny's activation damage resist for the whole party 1d6, behold 1d6 to hit, rascal 1d6 damage,
+  goose 1d6 temp hp - except goose, all apply to next 'special' each char uses (not other moves)"*): each 9th-level Mascot gives every Mascot
+  on its side its role's token for that one's next special -- the WARD (1d6 off each blow on it till its next turn), the AIM (1d6 on the
+  special's attack roll or off each save against it), the HEAT (1d6 on its first damage roll) -- and the Heals' 1d6 temporary hit points
+  at once. When it fires is the seat's lean, asked of him: at the start of each round.
+- **Aimed, no popups** (his: *"the abilities weren't using the normal targeting - it had the menu popups again"*): the ring's buttons carry
+  `aim`, a spell's geometry, and `js/ui.js` aimCommand hands it to the spell aim -- the cursor, the area on the floor, the click.
+- **Locked on the Pocket DM's roster** (*"All locked for now with a flag we can switch"*): hidden till an egg gives one (`st.mascots`; the
+  eggs are to come: Denny for the first character made, Beholda for the first battlemap edited); **`&mascots`** on the Pocket DM's door
+  opens all three for testing.
+- **Doors:** `?mpshow` (5th: the core and the 2nd-3rd moves) and **`?mpshow&lvl=9`** (all 22 beats: the 6ths' reactions, the fourths, the
+  Hivemind).
 
 ## Not in the POC
 

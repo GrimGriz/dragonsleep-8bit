@@ -509,7 +509,19 @@
     if (I.repeat('bumpl')) s += 1; if (I.repeat('bumpr')) s -= 1;
     return s > 0 ? 1 : s < 0 ? -1 : 0;
   }
-  function castPicks(B, u) { var S = B.spell; if (S && B.picks.length) UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: { units: B.picks.slice() } }); }
+  function castPicks(B, u) { var S = B.spell; if (S && B.picks.length) UI.command(B, u, aimedCmd(S, { units: B.picks.slice() })); }
+  // what an aim's click answers: a spell's cast, or a class feature's own command when the aim was a ring button's (`aim` below: the MPMons' specials)
+  function aimedCmd(S, t) { return S.cmd ? { do: S.id, target: t } : { do: 'cast', id: S.id, slot: S.slot, target: t }; }
+  // a ring button aimed the way a spell is (10-06 night, Griz on the MPMons' specials: "the abilities weren't using the normal targeting - it had the menu popups
+  // again"): `aim` on a command is a spell's geometry (single, allies, sphere, cone; js/magic.js targetOK and area read it), so the cursor, the area on the floor and the
+  // click are the spell's; the click answers { do: <the command's id>, target } and js/features.js F.exec (or the class file's wrap of it) takes it from there
+  function aimCommand(B, u, c) {
+    var g = c.aim;
+    B.spell = { id: c.id, cmd: true, slot: 0, g: g, n: g.n || 1, name: c.label, sp: { kind: g.kind || 'save', level: 0, el: g.el || null } }; B.picks = []; B.list = null;
+    if (g.shape === 'self') return UI.command(B, u, { do: c.id, target: u });
+    B.tool = 'spell'; B.clearCards();
+    B.card(['{y}' + c.label + '{/}: ' + (c.aimText || c.note || '') + D.keys('.  {g}X back{/}')], 100000);
+  }
   function etherealAt(B, x, y) { return B.units.filter(function (w) { return w.ethereal && !(w.under && w.earthGlide) && x >= w.x && y >= w.y && x < w.x + w.size && y < w.y + w.size; })[0]; }
   function pickCommand(B, u, c, idx) {
     if (idx != null) B.cmdSel = idx;
@@ -517,6 +529,7 @@
     if (!c.ok) { D.sfx('error'); B.card(['{g}' + c.label + ': ' + (c.why || 'not now') + '.{/}'], 120); return; }
     if (c.quick) { B.list = { kind: 'spells', items: [c], sel: 0 }; return pickListItem(B, u, c, 0); } // (the cantrip on the first ring)
     D.sfx('confirm');
+    if (c.aim) return aimCommand(B, u, c);
     if (c.id === 'end') return endTurn(B, u);
     if (c.sub === 'spells' && UI.opts.style === 'ring') { B.list = levelRing(B, u); B.ringB = null; return; }
     if (c.items) { // SKILLS, ACTIONS: their commands as a list (a ring on the ring)
@@ -804,7 +817,7 @@
       return B.card(['{o}Not a target for that' + (whyR ? ': ' + whyR : '') + '.{/}'], whyR ? 200 : 120); }
     if (tool === 'torch') { if (v === 'ok') return UI.command(B, u, { do: 'throwtorch', x: x, y: y }); return B.card(['{o}Throw it to a square within 20 ft you can see.{/}'], 120); }
     if (tool === 'spell') {
-      var S = B.spell, g = S.g, M = D.magic, cast = function (t) { UI.command(B, u, { do: 'cast', id: S.id, slot: S.slot, target: t }); };
+      var S = B.spell, g = S.g, M = D.magic, cast = function (t) { UI.command(B, u, aimedCmd(S, t)); };
       if (g.shape === 'rays' || g.shape === 'darts') {
         if (v !== 'ok') return;
         B.picks.push(spellTarget(B, u, g, x, y) || { x: x, y: y, size: 1, dark: true, name: 'the dark' }); // (a dart at the darkness; at a darkmantle on a friend, spellTarget)

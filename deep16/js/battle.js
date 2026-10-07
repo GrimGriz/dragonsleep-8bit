@@ -1887,10 +1887,11 @@
     // Fighting Style: Protection (SRD 5.1: "When a creature you can see attacks a target other than you that is within 5 feet of you, you can use
     // your reaction to impose disadvantage on the attack roll. You must be wielding a shield." -- 10-06, the Pocket DM's maker picks it)
     if (!atk.save && e.net >= 0) {
-      var prot = this.units.filter(function (w) { return w !== tgt && w !== att && w.side === tgt.side && w.style === 'protection' && w.reaction > 0 && G.standing(w) && RU.canAct(w) && w.src && w.src.equip && w.src.equip.shield && G.dist(w, tgt) <= 5 && M16().sees(self, w, att); })[0];
+      // (or a Mascot Tank's BODYGUARD, 6th, the same without the shield: js/mpmon.js `bodyguard`, 10-06 night)
+      var prot = this.units.filter(function (w) { return w !== tgt && w !== att && w.side === tgt.side && ((w.style === 'protection' && w.src && w.src.equip && w.src.equip.shield) || w.bodyguard) && w.reaction > 0 && G.standing(w) && RU.canAct(w) && G.dist(w, tgt) <= 5 && M16().sees(self, w, att); })[0];
       if (prot) {
-        var pz = byAI(prot) ? true : yield { prompt: { who: prot, title: prot.name + ': PROTECTION?', lines: [nameOf(att) + ' attacks ' + nameOf(tgt) + '. The shield in the way: the roll at disadvantage? (the reaction)'], opts: [{ label: 'SHIELD THEM', value: true }, { label: 'NOT NOW', value: false }] } };
-        if (pz) { prot.reaction = 0; D.sfx('bump'); FX.ring(tgt, 'silver', 18); e.dis.push('protection'); e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
+        var pz = byAI(prot) ? true : yield { prompt: { who: prot, title: prot.name + ': ' + (prot.bodyguard ? 'BODYGUARD?' : 'PROTECTION?'), lines: [nameOf(att) + ' attacks ' + nameOf(tgt) + '. ' + (prot.bodyguard ? 'Step in the way' : 'The shield in the way') + ': the roll at disadvantage? (the reaction)'], opts: [{ label: prot.bodyguard ? 'STEP IN' : 'SHIELD THEM', value: true }, { label: 'NOT NOW', value: false }] } };
+        if (pz) { prot.reaction = 0; D.sfx('bump'); FX.ring(tgt, 'silver', 18); e.dis.push('protection'); if (prot.bodyguard && D.spr.anim(prot.sheet, 'guard')) { prot.anim = 'guard'; prot.animT = this.t; } e.net = e.adv.length && !e.dis.length ? 1 : e.dis.length && !e.adv.length ? -1 : 0; }
       }
     }
     // a Wind Wall between them (js/walls.js): an arrow, a bolt, a thrown weapon is torn upward and misses
