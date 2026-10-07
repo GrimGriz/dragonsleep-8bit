@@ -140,7 +140,7 @@
   },
   // the cut seal camp (deep.js S.cutSeal): budgeted hard for four at 5
   bugbearchief: {
-    name: 'Bugbear Chief', type: 'humanoid', sheet: 'bugbearchief_p1', cr: '3', ac: 17, hp: 65, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Bugbear Chief', type: 'humanoid', sheet: 'bugbearchief_p2', cr: '3', ac: 17, hp: 65, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 17, dex: 14, con: 14, int: 11, wis: 12, cha: 11 }, init: 2, perception: 11,
     saves: { str: 3, dex: 2, con: 2, int: 0, wis: 1, cha: 0 },
     attacks: { morningstar: { name: 'Morningstar', atk: 5, dice: '2d8', mod: 3, type: 'piercing', reach: 5 } },
@@ -702,14 +702,14 @@
     multi: 1, nimble: true, src: 'SRD 5.1 Goblin (CR 1/4); content/monsters.json goblin (the king\'s road, leg one); Nimble Escape: Disengage for the bonus action, and a step back (js/traits.js, 09-28); the Shortbow +4 1d6+2 80/320 (SRD 5.1, loosed when nothing is in reach: ai.js volley; 10-02 runner)'
   },
   bugbear: {
-    name: 'Bugbear', type: 'humanoid', sheet: 'bugbearchief_p1', cr: '1', ac: 16, hp: 27, speed: 30, size: 1, reach: 5, darkvision: 60,
+    name: 'Bugbear', type: 'humanoid', sheet: 'bugbear_p1', cr: '1', ac: 16, hp: 27, speed: 30, size: 1, reach: 5, darkvision: 60,
     abil: { str: 15, dex: 14, con: 13, int: 8, wis: 11, cha: 9 }, init: 2, perception: 10,
     saves: { str: 2, dex: 2, con: 1, int: -1, wis: 0, cha: -1 },
     attacks: {
       morningstar: { name: 'Morningstar', atk: 4, dice: '2d8', mod: 2, type: 'piercing', reach: 5 },
       javelin: { name: 'Javelin', atk: 4, dice: '1d6', mod: 2, type: 'piercing', range: [30, 120], ranged: true }
     },
-    multi: 1, surprise: '2d6', src: 'SRD 5.1 Bugbear (CR 1); content/monsters.json bugbear; the chief\'s sheet; the Javelin thrown +4 1d6+2 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner)'
+    multi: 1, surprise: '2d6', src: 'SRD 5.1 Bugbear (CR 1); content/monsters.json bugbear; the chief\'s sheet; the Javelin thrown +4 1d6+2 30/120 (SRD 5.1, when nothing is in reach: ai.js volley; 10-02 runner); its own look since 10-07, bugbear_p1 (his GPT sheet, tools/bugbear-sheet.py)'
   },
   ogre: {
     name: 'Ogre', type: 'giant', sheet: 'ogre_p1', cr: '2', ac: 11, hp: 59, speed: 40, size: 2, reach: 5, darkvision: 60,

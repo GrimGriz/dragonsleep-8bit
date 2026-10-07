@@ -1874,6 +1874,8 @@
       var rk = String(atk.name).toLowerCase().replace(/[^a-z]/g, ''), rt = att.turn || {}, rn = ((rt.rowN = rt.rowN || {})[rk] = (rt.rowN[rk] || 0) + 1);
       var rw = rn > 1 && D.spr.anim(att.sheet, rk + rn) ? rk + rn : rk;
       if (rk && D.spr.anim(att.sheet, rw)) att.anim = rw;
+      // (Surprise Attack's blow: a foe with it, its first melee blow of round one, plays its ambush row -- the bugbears' sheets, 10-07)
+      if (att.surprise && this.round === 1 && melee && rn === 1 && D.spr.anim(att.sheet, 'ambush')) att.anim = 'ambush';
     }
     // (a shot from a row that names its release frame -- the goblin's shortbow, 10-07: the arrow leaves as the bow hand opens, not 10 ticks in)
     var rel = !melee && !atk.spell && D.spr.anim(att.sheet, att.anim), relT = rel && rel.release != null ? Math.ceil(rel.release * 60 / (rel.fps || 8)) : 0;
