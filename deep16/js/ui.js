@@ -1042,7 +1042,7 @@
     if (z * D.R < 1 - 1e-9) farMarks(ctx, B); // (a far step: the figures are a few pixels tall -- a mark on each, 10-04 night, Griz: "great idea")
     ctx.imageSmoothingEnabled = false;
     FX.list.forEach(function (f) { if (f.screen) f.draw(ctx); });
-    strip(ctx, B);
+    if (!B.cine) strip(ctx, B); // (B.cine: a show's scene, js/gameshow.js -- no turn strip and no bar over it)
     if (B.skylight) D.text(ctx, B.skylight.name.toUpperCase() + '  ' + (G.standing(B.skylight) ? B.skylight.hp + '/' + B.skylight.maxhp : 'BROKEN'), D.W / 2, 14, G.standing(B.skylight) ? R('glow', 2) : R('red', 4), 'center'); // (the defend fight's object, under the strip)
     cards(ctx, B);
     var ey = B.dark && B.eyes; // (the one under the mouse, or the hero whose turn it is on a map with no light: js/light.js L.pass)
@@ -1052,7 +1052,7 @@
     // your numbering or some standardized tile referencing"): x counts from the far upper-left wall, y from the far upper-right, so
     // (0, 0) is the map's top corner; x grows down to the right, y down to the left -- he can say "4,1" and mean the seat's 4,1
     if (B.cursor && G.map.at(B.cursor.x, B.cursor.y)) D.text(ctx, B.cursor.x + ',' + B.cursor.y, D.W - 5, 3, R('silver', 5), 'right');
-    bar(ctx, B, hero);
+    if (!B.cine) bar(ctx, B, hero);
     if (hero && UI.opts.style === 'window') cmdWindow(ctx, B, hero);
     if (hero && UI.opts.style === 'ring') cmdRing(ctx, B, hero);
     if (hero && B.tool === 'spell' && B.spell && B.spell.g.shape === 'allies' && B.picks.length) castButton(ctx, B);
