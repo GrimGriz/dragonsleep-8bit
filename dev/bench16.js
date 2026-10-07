@@ -3469,6 +3469,44 @@
     document.body.appendChild(preG);
     return;
   }
+  // the Game Show's tutorial (mode=gstutorial1007; deep16/?gameshow with TUTORIAL on, js/gstutorial.js; 10-07, Griz: "i should see text like the lines Pyro and
+  // Ingrith give from Denny about his ability and when to use it, then the wheel popup - highlight - like you click it - show the cursor moving to the target"):
+  // the show run by the loop itself (the ghost's clicks go through js/ui.js as a player's), &fast -- Denny's lesson plays its five commands off the ring and the
+  // bar, nothing stuck, then the show goes on to the jump in with the four where they stood and whole, the player's UI options and the picture put back; and
+  // again with X pressed on his first turn: skipped, and everything put back the same
+  if (get('mode', '') === 'gstutorial1007') {
+    var repS = { checks: [], errors: [] };
+    function okS(what, v) { repS.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    if (!D.ctx) { var cvS0 = document.createElement('canvas'); cvS0.width = D.W; cvS0.height = D.H; D.ctx = cvS0.getContext('2d'); D.R = D.R || 1; }
+    var clockS = 1000; function stepS(k) { for (var i = 0; i < k; i++) { clockS += 17; D.loopStep(clockS); } }
+    function stepUntil(fn, cap) { for (var k = 0; k < cap; k++) { stepS(1); if (fn()) return k; } return -1; }
+    var memS = { 'deep16.gameshow.tutorial': 'true' }, stG = D.store.get, stS = D.store.set;
+    D.store.get = function (k) { return memS[k] ? JSON.parse(memS[k]) : null; }; D.store.set = function (k, v) { memS[k] = JSON.stringify(v); return true; };
+    try {
+      if (!D.gameshow || !D.gameshow.teach || !D.gameshow.LESSONS || !D.gameshow.LESSONS.denny) okS('the tutorial is loaded (js/gstutorial.js: GS.teach, a lesson for Denny)', false);
+      else ['play', 'skip'].forEach(function (how) {
+        D.scenes.length = 0; D.seed = 1007; D.lastError = null; D.gameshow.lastTeach = null;
+        var BS = D.gameshow.make('?gameshow&fast'); D.push(BS);
+        var up = stepUntil(function () { return BS.gs && BS.gs.mode === 'title' && D.top() === BS; }, 3000);
+        if (up < 0) { okS(how + ': the lighthouse title comes up (' + (BS.gs && BS.gs.mode) + ')', false); return; }
+        var style0 = D.ui.opts.style, paint0S = BS.paint, update0S = BS.update, was = BS.units.map(function (u) { return u.mpmon + '@' + u.x + ',' + u.y; }).join(' ');
+        var ctrS = D.grid.map.def.circle.at, cS = D.iso.center(ctrS[0], ctrS[1], 0), sS = D.iso.toScreen(cS.x, cS.y);
+        BS.gs.clicks.push({ x: sS.x, y: sS.y });
+        if (how === 'skip') { stepUntil(function () { return BS.req && BS.req.turn; }, 40000); D.input.edge = { b: true }; }
+        var went = stepUntil(function () { return BS.gs.mode === 'go' || D.top() !== BS; }, 80000);
+        var rT = D.gameshow.lastTeach, dn = rT && rT.who.denny;
+        if (how === 'play') okS('play: Denny\'s lesson -- ' + (dn ? dn.steps.join(', ') : 'no report') + ' (want move, mp-taunt, attack, end, mp-denim), ' + (dn ? dn.stuck : '?') + ' stuck, ' + (dn ? dn.said : '?') + ' lines, skipped ' + (rT && rT.skipped), !!dn && dn.steps.join(',') === 'move,mp-taunt,attack,end,mp-denim' && !dn.stuck && dn.said >= 5 && !rT.skipped);
+        else okS('skip: X on his first turn ends the lesson -- skipped ' + (rT && rT.skipped) + ', ' + (dn ? dn.steps.length : '?') + ' commands made', !!rT && rT.skipped && !!dn && dn.steps.length === 0);
+        var now = BS.units.map(function (u) { return u.mpmon + '@' + u.x + ',' + u.y; }).join(' '), whole = BS.units.every(function (u) { return u.hp === u.maxhp && !u.dead; });
+        okS(how + ': on to the jump in (' + BS.gs.mode + ', ' + went + ' frames), the four where they stood and whole (' + now + ' vs ' + was + ', ' + whole + '), the UI put back (' + D.ui.opts.style + ', the picture ' + (BS.paint === paint0S && BS.update === update0S) + ', cine ' + BS.cine + ', no ghost ' + !BS.gs.ghost + ')', went >= 0 && BS.gs.mode === 'go' && now === was && whole && BS.units.length === 4 && D.ui.opts.style === style0 && BS.paint === paint0S && BS.update === update0S && !BS.gs.ghost);
+        if (D.lastError) { okS(how + ': the loop logged no error (' + String(D.lastError.stack || D.lastError).slice(0, 300) + ')', false); D.lastError = null; }
+      });
+    } catch (eS) { repS.errors.push(String(eS && eS.stack || eS).slice(0, 900)); }
+    finally { D.store.get = stG; D.store.set = stS; D.scenes.length = 0; }
+    var preS = document.createElement('pre'); preS.id = 'out'; preS.textContent = 'BENCH16 ' + JSON.stringify(repS);
+    document.body.appendChild(preS);
+    return;
+  }
   if (get('mode', '') === 'mpmon1006') {
     var repM = { checks: [], errors: [] }, GM = D.grid, RUM = D.rules, MPM = D.mpmon, FM = D.features;
     function okM(what, v) { repM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

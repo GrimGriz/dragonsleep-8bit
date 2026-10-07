@@ -42,9 +42,10 @@
   };
   GS.group = function () { var g = D.store.get(NAME); return typeof g === 'string' && g ? g : 'THE LOBSTAMONKEES'; };
   // THE TUTORIAL (10-07, Griz: "a spell gallery version of the heroes abilities with a front page toggle for 'tutorial'"; "build for denny as test"): a
-  // toggle on the title. On, the show opens with the Mascot gallery's walk (js/mpgallery.js MG.walk) on the lighthouse floor before the jump in -- Denny's
-  // kit as it stands at the show's level, one move at a time, the column down the left, the players clicking through -- then the circle wakes as ever.
-  // Denny alone for now (his "as test"); TUTORIAL_WHO is the list to grow. It is this browser's, as the group's name is
+  // toggle on the title. On, the show opens with each Mascot's lesson on the lighthouse floor before the jump in (js/gstutorial.js GS.teach: his own words,
+  // then a real turn played on the game's own ring by a ghost of the mouse -- Griz, 10-07: "i should see text like the lines Pyro and Ingrith give from Denny
+  // about his ability and when to use it, then the wheel popup - highlight - like you click it - show the cursor moving to the target"), then the circle
+  // wakes as ever. Denny alone for now (his "as test"); TUTORIAL_WHO is the list to grow. It is this browser's, as the group's name is
   GS.tutorial = function () { return !!D.store.get(TUT); };
   GS.TUTORIAL_WHO = ['denny'];
 
@@ -64,7 +65,8 @@
       this.co = script(this);
     };
     B.update = function () {
-      var m = D.input.mouse; if (m.click && this.gs) this.gs.clicks.push({ x: m.x, y: m.y });
+      var m = D.input.mouse;
+      if (!(this.gs && this.gs.ghost && GS.ghostTick && GS.ghostTick(this)) && m.click && this.gs) this.gs.clicks.push({ x: m.x, y: m.y });   // (the tutorial's ghost has the mouse while it drives: js/gstutorial.js)
       var r = update0.apply(this, arguments), L = this.gs && this.gs.lock;
       if (L) { D.iso.zoom = L.zoom; D.iso.cam.x = L.x; D.iso.cam.y = L.y; }
       return r;
@@ -117,11 +119,10 @@
       yield 1;
     }
     st.editing = false; D.store.set(NAME, st.name);
-    // the tutorial first, when its toggle is on: the kit walked on this floor, round the circle, before anyone jumps in
-    if (st.tutorial && D.mpgallery && D.mpgallery.walk) {
+    // the tutorial first, when its toggle is on: each Mascot's lesson on this floor (js/gstutorial.js), before anyone jumps in
+    if (st.tutorial && GS.teach) {
       st.mode = 'tutorial'; st.lock = null;
-      B.card(['{y}THE TUTORIAL.{/}  Denny first: his kit as it stands, one move at a time.', '{g}left/right the next · E again · X skips the rest{/}'], W(360)); yield W(70);
-      yield* D.mpgallery.walk(B, { who: GS.TUTORIAL_WHO, home: [ctr[0], ctr[1]], fast: FAST });
+      yield* GS.teach(B, { who: GS.TUTORIAL_WHO, home: [ctr[0], ctr[1]], fast: FAST });
       st.clicks = []; hold(B, ctr, 1);
       B.card(['{y}That\'s the kit.{/}  Now, in they go.'], W(240)); yield W(60);
     }
@@ -457,4 +458,6 @@
     });
     if (!B.gs.over) button(ctx, 'scores', 'BACK', Wd / 2 - 40, y + h + 6, 80, 18);
   }
+  // what the tutorial (js/gstutorial.js) borrows: the waits (cut short by &fast), a scripted walk, a Mascot by key
+  GS._ = { W: W, walkTo: walkTo, mascot: mascot, hold: hold };
 })();
