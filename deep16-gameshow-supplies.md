@@ -10,7 +10,17 @@ What the audience can send down, tier by tier. Pick by number, e.g. "2c, 2f, 2g,
 - **Tier 2's armour goes to one Mascot, by the roll-off**, with the natural-20 rule on top: *"one by roll off (with roll of 20 bonus - could be all 4 with a yahtzee, usually 1)"*.
 - **Tier 3's and tier 4's armour add their plus to whatever armour the winner wears** (*"Yes"*). AC runs 14 natural, 16 with tier 2's, 17 with tier 3's +1 on top, 18 with tier 4's +2.
 
-## Still to pick
+## Your picks (10-07, the second list -- RULED)
+
+Your words, verbatim: *"Tier 1 - roll 1d4 and add one of them, unless Goose is <10 ammo, then ammo goes in chest / Tier 2 - 2c, 2e, 2g - add small rule, 2j - beholda 'Janny Jerkin' / Tier 3 - one item unless the rolloff has more than one nat 20 - all items approved / Tier 4 - Roll off, one item unless more than one nat 20 / 23a +4 / 23b - check pyro's handaxe code (comes back next round) / 23c +4 / 24b - each hero diff resist, choose wisely (check gameshow benches?) / 24c - cures poison start of turn, no shove modifier / Attunement - thought that was 3 per character... more ring/amulet in Tier 2 plz / add another epic cloak to tier 4"*
+
+- **Tier 1:** the button puts ONE thing in the chest: a d4 picks among 1a-1d, except when Goose has under 10 sling bullets -- then it's the ammo.
+- **Tier 2:** the weapons are **2c** Play-Button Knuckles (Denny), **2e** Loaded Dice (Beholda), **2g** Flame War Claw (Rascal; build the small rule: +1 on his Fire Bolt too), **2j** Heartstring Sling (Goose). Beholda's armour is renamed **Janny Jerkin** (was Mod Mail). **More ring and amulet items go into tier 2** (to draft: attunement is three items per Mascot, SRD, so tier 2 should feed that choice).
+- **Tier 3:** ONE item by the roll-off, unless the roll-off brings more than one natural 20. **All of 20a, 20b, 21b, 22a, 22b are in the pool.**
+- **Tier 4:** a roll-off, ONE item unless more than one natural 20. **23a Hard Carry at +4**; **23b Ban Hammer** thrown and back the next round, the way Pyro's handaxe comes back (`deep16/js/pyro.js`); **23c Hot Take at +4**; **24a** as drafted; **24b Boiled Shell**: a different resistance for each Mascot, chosen against what the waves throw at them (the waves' bench); **24c Dwarven Denim**: +2 AC, and it ends poison at the start of the wearer's turn -- no shove reaction. **Another epic cloak goes into tier 4** (to draft).
+- **Still to pick:** the epic amulet (25a or 25b), and the new tier 2 rings/amulets and the tier 4 cloak once drafted.
+
+## The items as drafted (your picks above)
 
 **Tier 1, the small stuff** (0.1 on the score). All four exist except the sling bullets, which get made.
 
