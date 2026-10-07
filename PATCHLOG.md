@@ -2,6 +2,24 @@
 
 What landed, newest first, one line each: **date · commit · lane · one sentence · his word** when there is one. **A line is a line** (RULED 10-06, on a consult and its fork: 20 of the first 55 ran past 400 characters): the hash, one sentence of what, his words verbatim; the files, the numbers and the why are the bolt's and the commit's. The lines before this rule stand as written. A lane is a live handoff at `..\handoff-*.md`, named by its title (the table at the head of the todo is the list); "the house" is the gate, the build and the repo. When an item lands it is cut from its lane and from `..\dragonsleep-todo-2026-10-03.md` and written here (RULED 2026-10-06, Griz: *"I'm on board"*). The story of each line is in the bolt (`..\weaving-room\dragonsleep-8bit.md`); before 2026-10-03, `git log` and the bolt are the record. A line is never edited once written. A ruling that something stays as it is gets a line too, marked `ruled`.
 
+## 2026-10-07
+
+- 2026-10-07 · `c16efab` · the menus · The lane SPENT: §2 empty, the file to `handoffs-spent\` · *"the lane is SPENT if §2 empties"*
+- 2026-10-07 · `c16efab` · the menus · On the grid the one menu's ITEMS, MAGIC and SKILLS are the ring's own lists for the hero whose turn it is, and a pick closes the menu on the ring's aim, tool or command · *"doesn't work for items, skills, or magic"* · *"Picks go the ring's way, not a popup"*
+- 2026-10-07 · `c16efab` · the menus · EQUIP puts the weapon away and draws it again, the ring's PUT AWAY and DRAW · *"cannot stow from menu"*
+- 2026-10-07 · `c16efab` · the menus · EQUIP's LIGHT in both games: a torch or lantern from the pack lit in hand, or the one held set down, thrown, put out or hooded · *"torches cannot be equipped"*
+- 2026-10-07 · `c16efab` · the menus · One wording for a place with nothing to put there, the seat's pick: "Nothing in the pack Barley can put there in this fight." · *"\"nothing goes there in this fight\" vs \"no weapon barley can swap to\""*
+- 2026-10-07 · `c16efab` · the menus · The grid's own figures on the menu's party panel and on STATUS
+- 2026-10-07 · `c16efab` · the menus · The old grid menu cut (menuItems, gearInput, the PARTY panel, the old EQUIP list; unreached since `3431a54`)
+- 2026-10-07 · `c16efab` · the menus · The grid camp's THE NIGHT'S BONDS before PREPARE SPELLS: bonded, waiting, let go
+- 2026-10-07 · `c16efab` · the menus · The camp's cloak line says what each cloak does (the King's Mantle had read "foes at disadvantage")
+- 2026-10-07 · `1d29e05` · the menus · The class AI's Hide estimate counts the Boots of Elvenkind as the roll does (a Sonnet runner's, as are the next four)
+- 2026-10-07 · `1d29e05`, `c16efab` · the menus · A worn thing that bars a condition ends it -- the Poison Periapt and a poison already there -- at a rest, as a sheet becomes a grid unit, and as it is put on
+- 2026-10-07 · `1d29e05` · the menus · The 8-bit says a hero is immune to a blow of a type a worn thing bars, not "for 0"
+- 2026-10-07 · `1d29e05` · the menus · A smouldering troll's HP bar and badges ride over its flames
+- 2026-10-07 · `1d29e05` · the house · The gate draws `deep16/js/looks.js` (`mode=looks1007`: every look it has, alone and together)
+- 2026-10-07 · `c16efab` · the house · `dev/bench8.py` hands back a script that failed to load though the page wrote its result (`dev/loaderr-probe.py` in the full gate) · *"return it always"*
+
 ## 2026-10-06
 
 - 2026-10-06 · `d7e4457` · MPMon · The Mascot: the races, the class and four roles (Tank, Buffs, DPS, Heals), the setup specials as bonus actions, every special growing a step a level, the moves at 2, 3, 6 and 7, the Hivemind's tokens, the specials aimed as spells, the three locked on the Pocket DM (`&mascots`), `?mpshow&lvl=9` · *"I trust your plan, you can start building"*
