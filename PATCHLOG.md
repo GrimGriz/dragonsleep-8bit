@@ -4,6 +4,9 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · seen · MPMon · Denny's Taunt brace (`eyes-taunt-brace-1007`, cut); Beholda's action Gaze to be tested live on the show (`eyes-gaze-action-1007` stands) · *"Taunt brace was seen, beholda gonna be tested live it seems"*
+- 2026-10-07 · ruled · MPMon · The Mascots' dip at 5th stays (2 of 20 against the story party on the bench): on the show the foes don't start in range · *"Dip is gonna ride, enemies don't start in range on the show"*
+- 2026-10-07 · ruled · the Game Show · The lamp's own turn for his supply clicks (the seat's proposal: initiative count 20 each round, clicks during other turns held for it) goes to the Pre-Show window · *"Pre-Show is taking the lamp turn"*
 - 2026-10-07 · `e92caeb` · MPMon · Beholda may Baleful Gaze with her action (an action special), one gaze a turn either way; the Mascots take a max hit die a level to 5th and the average after (Denny 65 at 5th, 101 at 9th); the band 4, 4, 5, 9, 2, 11, 6, 13, 11 of 20 at 1-9 · *"let her burn an action to baleful, like a rogues dash"* · *"if used as action, disabled for bonus use"* · *"1 yes"* · *"return to HD rolls after 5"*
 - 2026-10-07 · `be482f2` · the Game Show · No 0s on the high scores: a board read sweeps them out (the eye tests' 0s go wherever situations.html's links were opened), and a run that held no wave is not written · *"please also clear the high score 0s from eye tests"*
 - 2026-10-07 · `49ff0e3` · MPMon · Denny's Taunt braces him from 3rd: every blow on him 2 less (4 at 6th, 6 at 9th) till the end of his next turn; the band 4, 0, 1, 3, 1, 4, 5, 8, 7 of 20 at 1-9 with it (`deep16-mascot-bench.md`) · *"Taunt gives +2 DR at 3, 6 & 9?"* · *"1 yes"*
