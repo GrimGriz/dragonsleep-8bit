@@ -39,7 +39,7 @@
   var KEYS = ['denny', 'beholda', 'rascal', 'goose'];
   function W(n) { return (GS._ && GS._.W ? GS._.W(n) : n); }
   function P(r, i) { return D.PAL.ramps[r][i]; }
-  function nm(id) { var it = IT[id]; return it ? it.name.replace(/\.$/, '') : id; }
+  function nm(id) { var it = IT[id]; return it ? it.name.replace(/\.$/, '').replace(/^The /, '') : id; }   // (every line says "the" itself: the stream's "the The VNA Amulet", 10-07)
   function many(id, n) { var s = nm(id); return n > 1 ? (/^Potion of/.test(s) ? s.replace(/^Potion/, 'Potions') : /(ch|sh|s)$/.test(s) ? s + (/s$/.test(s) ? '' : 'es') : s + 's') : s; }   // (3 Greater Potions, 3 Torches)
   function who(k) { return (MP.BUILDS[k] || {}).name || k; }
 
@@ -473,6 +473,7 @@
   function wordOf(k, L) { return k + ':' + L + (WV.loot[k] || []).map(function (id) { return '+' + id; }).join(''); }
   function dress(B) {
     var S = B.su, P0 = B.gs && B.gs.party, four = P0 ? [P0.token].concat(P0.rest) : B.units.filter(function (u) { return u.mpmon; });
+    S.bed = S.bed.filter(function (b) { return (WV.loot[b.k] || []).indexOf(b.id) >= 0; });   // (only what is still worn: a piece swapped off since it came is in the chest -- the stream's Rascal "has" both, 10-07)
     S.bed.forEach(function (b) { B.card(['{y}' + who(b.k) + '{/} ' + (place(b.id) === 'armor' ? 'changes into the ' + nm(b.id) : 'has the ' + nm(b.id) + ' laid over ' + (b.k === 'beholda' ? 'the eye\'s armour' : 'the armour')) + '.'], W(300)); });
     S.bed = [];
     four.forEach(function (u) { if (u && u.mpmon && (u.gsLoot || '') !== (WV.loot[u.mpmon] || []).join('+')) remake(B, u); });
@@ -491,7 +492,7 @@
     arm(B, n);
     return n;
   }
-  SU.remake = remake;
+  SU.remake = remake; SU.dress = dress; SU.nm = nm;
   // a wave's end: the hammer home (the four go into the token)
   var gather0 = GS.gather;
   GS.gather = function* (B, o) {

@@ -4000,6 +4000,10 @@
         okU('show: the long rest (' + lr + ' frames' + (lr < 0 ? ': stuck at tier ' + GSU.run.tier + ' wave ' + (GSU.run.wi + 1) + ', mode ' + BS.gs.mode + ', round ' + BS.round + ', foes up ' + BS.units.filter(function (u) { return u.side === 'foe' && D.grid.standing(u); }).map(function (u) { return u.kind + '@' + u.x + ',' + u.y; }).join(' ') + ', active ' + (BS.active && BS.active.name) + ', trail ' + (GSU.run.trail || []).join('>') + ', last log ' + (BS.log || []).slice(-3).join(' / ') : '') + ') -- Rascal at ' + rL.lvl + ' still AC ' + rL.baseAC + ', CHA ' + rL.abil.cha + '; Goose at ' + gL.lvl + ' in the ' + (gL.src.equip.armor) + ' AC ' + gL.baseAC + ', his sling on ' + (gL.weapon.ammo || (gL.slingW && gL.slingW.ammo)),
           lr >= 0 && rL.lvl === 2 && rL.baseAC === 16 && rL.abil.cha === 20 && gL.lvl === 2 && gL.src.equip.armor === 'pufferplate' && gL.baseAC === 16 && (gL.weapon.ammo || (gL.slingW && gL.slingW.ammo)) === 'slingbullets');
         errU('show: the long rest');
+        // the stream's record (10-07): the bed named a piece swapped off before it ("Rascal has the Dwarven Denim laid over" and the Sponsored Skin both), and "the The VNA Amulet"
+        var nB0 = (BS.log || []).length, rB = mU(BS, 'rascal'); SS.bed = [{ k: 'rascal', id: 'dwarvendenim' }, { k: 'rascal', id: 'thermidorplate' }]; SUU.dress(BS);
+        var bedL = (BS.log || []).slice(nB0).join(' | ');
+        okU('show: the bed names only what is worn (' + bedL + '); the amulet is "the ' + SUU.nm('vnaamulet') + '"', !/Dwarven Denim/.test(bedL) && /Thermidor Plate/.test(bedL) && SUU.nm('vnaamulet') === 'VNA Amulet');
         // ---- IDLE (Griz, 10-07: "ensure the idle-turn safety works on lamp turns"): a Mascot's turn in his hands at Third Lamp, and only the lamp clicked -- the
         // lantern and a tier's button are the show's, so the turn stays his and stays idle (js/ui.js idleTurn: no step, the action and the bonus unspent); END asks
         // "nothing done yet" (END TURN ASKS: IF IDLE) and the turn stays; a lantern click while asked keeps the ask; END again ends it. The lamp itself never holds a turn
