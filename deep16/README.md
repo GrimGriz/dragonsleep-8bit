@@ -461,10 +461,10 @@ classes get at level 5"*; *"Build now"*. The design and its arithmetic (Monster 
   their rows out before the idle (`rowWait`). `beholda_p2` (her first sheet's stand-in, `tools/beholda-sheet.py`) and `denny_p2` (his
   poses as rows, `tools/denny-sheet.py`; Barley's look in the Ledger fight) stay on disk; `rascal_p2` (10-07,
   his look since) is his second round cut whole (`tools/rascal-sheet-p2.py` over `tools/sheetrows.py`: sheet 1 redone with the felt's
-  face and a charcoal hat, sheet 2's Fire Bolt as his `cast`, Social Distancing, Hot Take and Going Viral rows, the bow from sheet 3; the
-  rows face left so the claw arm shows; each row sized by his hat's brim, the one rigid thing he wears -- the generator drew the rows at
-  their own sizes); `rascal_p1`, his first sheet (`tools/rascal-sheet.py`, the whiskers through his hat erased, the hat lost to the
-  navy), stays on disk till he has seen p2; `goose_p1` is his three generated sheets cut by Griz's picks (`tools/goose-sheet.py` over
+  face and a charcoal hat, sheet 2's walk, Fire Bolt as his `cast`, Social Distancing, Hot Take and Going Viral rows, the bow from sheet
+  3; the rows face left so the claw arm shows; each row sized by his hat's brim, the one rigid thing he wears -- the generator drew the
+  rows at their own sizes -- and the brim set so he stands about 42 at rest, 80% of Denny's 53: *"a little large for the squishy DPS"*);
+  `rascal_p1`, his first sheet, retired 10-07 with its cutter (*"the invisible hat one has no further purpose"*); `goose_p1` is his three generated sheets cut by Griz's picks (`tools/goose-sheet.py` over
   `tools/sheetrows.py`: each sheet cut by its own row and number labels, the rows mixed frame by frame, each sheet at its own scale by the
   torso's thickness, small -- his idle about 38 px to Denny's 52 --, the cast's glow the heal's green; no build plays it yet). Their next
   sheets' prompts are in `deep16-art-wanted.md`. **`tools/sheet-play.html?sheet=goose_p1&ref=denny_p2`** plays a sheet's rows, four

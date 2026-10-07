@@ -14,7 +14,8 @@ The same pass as Goose's: each figure boxed down to game size, snapped to deep16
 sizes, so each row takes its own scale by his hat's brim (K below) and the frames meet at one size. The rows face LEFT as drawn (his claw is his
 right arm, nearest the viewer): facings SW, W and NW take them as drawn, NE, E and SE mirrored; S and N take the turnaround's front and back
 (the idle breathes, the walk bobs) and the side frames for every other row (the sheets drew side rows only). The hat is charcoal grey on these
-sheets, not the background's navy, so it cuts whole: p1's whisker erase and hat workaround (tools/rascal-sheet.py) retire with p1.
+sheets, not the background's navy, so it cuts whole. (p1, his first sheet, and its cutter tools/rascal-sheet.py with its whisker erase and
+the hat it lost to the navy, retired 10-07 on his word: "the invisible hat one has no further purpose".)
 
 `check=1` cuts every row of every sheet, writes each sheet with its frames tinted (dev/visions/rascal/p2-cut-<sheet>.png) and prints the
 scales, without writing the look.
@@ -74,20 +75,21 @@ CUT, TOUCH_OK = {}, {}
 
 # the engine's rows, each (sheet, the sheet's row): the pastes' row maps. Social Sharing is sheet 3's take (the seat's pick, 10-07: sheet 1's
 # bow draws a second hat in his hand while the first stays on his head, frames 1, 3 and 4; sheet 3 lifts it off, bows bare-headed, sets it
-# back). The walk is sheet 1's, by the map (sheet 2 drew one too, unasked).
-TAKE = {'turnaround': ('1', 'turnaround'), 'walk': ('1', 'walk'), 'attack': ('1', 'pinch'), 'socialsharing': ('3', 'sharing'),
+# back). The walk is sheet 2's (Griz, 10-07: "sheet twos is better because the image is bigger, but its significantly better").
+TAKE = {'turnaround': ('1', 'turnaround'), 'walk': ('2', 'walk'), 'attack': ('1', 'pinch'), 'socialsharing': ('3', 'sharing'),
         'socialflame': ('1', 'flame'), 'climb': ('1', 'climb'), 'flinch': ('1', 'flinch'), 'hurt': ('1', 'fall'), 'prone': ('1', 'prone'),
         'cast': ('2', 'firebolt'), 'socialdistancing': ('2', 'distancing'), 'hottake': ('2', 'hottake'), 'goingviral': ('2', 'viral')}
 # the scale: the hat is the one rigid thing he wears, so each row is sized by its brim's width where it sits level on his head (the frames
 # named, None for all; measured as the charcoal grey's span in the figure's top 45%). The sheets drew the rows at their own sizes -- the
 # turnaround half as big again as the walk, sheet 2's Hot Take a sixth bigger than its walk, sheet 3 2.6 times -- and the hat brings them to
 # one. A row with no level hat (the dance, the climb, the fall) takes its sheet's walk.
-HATW = 32                     # the brim in game px: his walk then stands about 53, Denny's 51 (p1's rows stood 54)
+HATW = 21.5                   # the brim in game px: he stands about 42 at rest, 80% of Denny's 53 (denny_p3; Griz, 10-07: "he is a little large for the
+                              # squishy DPS. does it still look good at 80% of Denny Height?"; at 32 he stood 63)
 LEVEL = {('1', 'turnaround'): None, ('1', 'walk'): None, ('1', 'pinch'): None, ('1', 'flinch'): ['1', '4'], ('2', 'walk'): None,
          ('2', 'firebolt'): None, ('2', 'distancing'): ['1', '6'], ('2', 'hottake'): ['1', '2', '4'], ('2', 'viral'): ['6', '7', '8'],
          ('3', 'sharing'): ['1', '6']}
 BOB = [0, 1, 1, 0, 0, 1, 1, 0]   # the front and back views' walk, game px
-FW, FH, AX, AY = 128, 104, 64, 92
+FW, FH, AX, AY = 96, 96, 48, 84
 
 
 def hat_w(im):

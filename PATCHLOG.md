@@ -4,6 +4,9 @@ What landed, newest first, one line each: **date · commit · lane · one senten
 
 ## 2026-10-07
 
+- 2026-10-07 · seen · MPMon · Rascal's `rascal_p2` at 63 px (`eyes-rascal-p2-1007`, cut) · *"he is a little large for the squishy DPS"*
+- 2026-10-07 · ruled · MPMon · `rascal_p1` retired with its cutter, `tools/rascal-sheet.py` · *"1 just from glancing while you were building, the invisible hat one has no further purpose"*
+- 2026-10-07 · ruled · MPMon · Rascal's walk is sheet 2's · *"3 sheet twos is better because the image is bigger, but its significantly better"*
 - 2026-10-07 · `827a7d6` · MPMon · Beholda's and Denny's new looks `beholda_p3` and `denny_p3`, cut whole from her second sheet and his third in two: their own rows for Spot, Spotlight, Guard and Lobstah Hug, her lift kept, Eye Contact on her gaze; `?mpshow&lvl=9` · *"take the MPMon lane's §3.1: cut Beholda's and Denny's new sheets"*
 - 2026-10-07 · `a793153` · MPMon · Rascal's new look `rascal_p2`, cut whole from his second three sheets: the felt's face, the hat charcoal and solid (the see-through hat closed), his own rows for Fire Bolt, Social Distancing, Hot Take and Going Viral, the bow from sheet 3; `?mpshow&lvl=7&only=sharing,flame,distancing,spicy,hottake,viral` · *"Cut a new look, rascal_p2, whole from the new sheets by tools/sheetrows.py"*
 - 2026-10-07 · seen · MPMon · Goose, the sheet and the build (`eyes-goose-sheet-1007`, `eyes-goose-show-1007`, cut) · *"He looks great."*
