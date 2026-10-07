@@ -762,6 +762,7 @@
       ['THE CLIMB', 'one party from level 1 to 9, your own picks at each level', function () { location.href = '?climb'; }],
       ['THE SPELL GALLERY', 'every spell on the grid, cast in turn', function () { location.href = '?fxgallery'; }],
       ['THE FEATURE GALLERY', 'every class feature, fired in turn', function () { location.href = '?fxgallery&features'; }],
+      ['THE MASCOT GALLERY', 'the four Mascots\' abilities one at a time, up/down the level', function () { location.href = '?mpgallery'; }],
       ['TEST RUNS', 'the page that builds any URL of the game, row by row', function () { self.open('../test-runs.html'); }],
       ['SITUATIONS', 'twenty places in the 8-bit story to stand, one step short', function () { self.open('../situations.html'); }],
       ['EVERY URL', 'URLS.md: the whole list, with what each does', function () { self.open('https://github.com/GrimGriz/dragonsleep-8bit/blob/main/URLS.md'); }],

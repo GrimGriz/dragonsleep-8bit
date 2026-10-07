@@ -3430,6 +3430,32 @@
     document.body.appendChild(preF);
     return;
   }
+  // the Mascot gallery (mode=mpgallery1007; deep16/?mpgallery, js/mpgallery.js; 10-07, Griz: "a gallery view of lobstamonkee abilities like the spell effect one
+  // (repeats on click, advances on arrows) and to examine the current effects of the various abilities per level"): every entry run headless at 1st, 5th and 9th
+  // in &auto -- each fires (or shows its sheet), none breaks, every fired entry leaves its lines in the log, the not-yet entries are exactly those past the level
+  if (get('mode', '') === 'mpgallery1007') {
+    var repG = { checks: [], errors: [] };
+    function okG(what, v) { repG.checks.push((v ? 'ok   ' : 'FAIL ') + what); }
+    try {
+      if (!D.fxMascots) okG('the Mascot gallery is loaded (js/mpgallery.js)', false);
+      else [1, 5, 9].forEach(function (Lg) {
+        D.seed = 1007 * Lg; D.lastError = null;
+        var BG = D.fxMascots('?mpgallery&auto&fast&lvl=' + Lg); D.battle = BG; BG.enter();
+        var SG = BG.mpgallery, vG, kG = 0, nG = SG.ids.length;
+        while (BG.co && kG++ < 900000 && SG.shown < nG) { var rG = BG.co.next(vG); vG = undefined; if (rG.done) break; if (rG.value && rG.value.prompt) vG = rG.value.prompt.opts[0].value; }
+        SG.teardown();
+        var keys = Object.keys(SG.report), broke = keys.filter(function (k) { return /^error/.test(SG.report[k].how); }), fired = keys.filter(function (k) { return SG.report[k].how === 'fired'; });
+        var notyet = keys.filter(function (k) { return SG.report[k].how === 'not yet'; }), wantNot = D.mpgallery.ENTRIES.filter(function (e) { return e.at > Lg; }).length;
+        var silent = fired.filter(function (k) { return !SG.report[k].log; });
+        okG('the gallery at ' + Lg + ': every one of ' + nG + ' entries shown (' + SG.shown + '), ' + fired.length + ' fired, ' + notyet.length + ' not yet come (' + wantNot + ' past the level), ' + broke.length + ' broke' + (broke.length ? ' -- ' + broke.map(function (k) { return k + ': ' + SG.report[k].how.slice(0, 220); }).join(' || ') : ''), SG.shown >= nG && !broke.length && notyet.length === wantNot);
+        okG('the gallery at ' + Lg + ': every fired entry left its lines in the log (' + silent.length + ' silent' + (silent.length ? ': ' + silent.join(', ') : '') + ')', !silent.length);
+        if (D.lastError) { okG('the gallery at ' + Lg + ': the loop logged no error (' + String(D.lastError.message || D.lastError).slice(0, 160) + ')', false); D.lastError = null; }
+      });
+    } catch (eG) { repG.errors.push(String(eG && eG.stack || eG).slice(0, 900)); }
+    var preG = document.createElement('pre'); preG.id = 'out'; preG.textContent = 'BENCH16 ' + JSON.stringify(repG);
+    document.body.appendChild(preG);
+    return;
+  }
   if (get('mode', '') === 'mpmon1006') {
     var repM = { checks: [], errors: [] }, GM = D.grid, RUM = D.rules, MPM = D.mpmon, FM = D.features;
     function okM(what, v) { repM.checks.push((v ? 'ok   ' : 'FAIL ') + what); }

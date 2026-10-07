@@ -421,6 +421,7 @@ var MODES=[
   {id:'npc',grp:16,t:'Class floor',n:'?npc= : foes against our four'},
   {id:'fx',grp:16,t:'Spell gallery',n:'?fxgallery'},
   {id:'fxf',grp:16,t:'Feature gallery',n:'?fxgallery&features'},
+  {id:'mpg',grp:16,t:'Mascot gallery',n:'?mpgallery: the four Mascots\' kits, up/down the level'},
   {id:'gate',grp:16,t:'Gate',n:'?gate: stop and look'},
   {id:'view',grp:16,t:'View',n:'?view: the cavern, a cursor'}
 ];
@@ -462,6 +463,7 @@ function build(){
     else if(m==='pocket') parts.push('pocket');
     else if(m==='gate') parts.push('gate');
     else if(m==='view') parts.push('view');
+    else if(m==='mpg') parts.push('mpgallery');
     else if(m==='npc'){
       var fw=words(S.foes), vw=words(S.vs);
       parts.push('npc='+(fw.length?fw.join(','):'fighter'));
@@ -545,6 +547,7 @@ function describe(){
   else if(m==='pocket') t='The Pocket DM (alpha): a party of up to six from the roster or your own making, a map, a CR dial that rolls the bestiary to it; a fight, or the four-rung ladder with a short rest between and the trial for Pyro at the top. Every fight it makes is a class-floor URL it shows and copies.';
   else if(m==='gate') t='The stop-and-look gate.';
   else if(m==='view') t='The cavern with a cursor, and no fight.';
+  else if(m==='mpg') t='The Mascot gallery: Denny, Beholda, Rascal and Goose, one ability at a time -- left/right the next, up/down the level 1-9, E or a click again. Real dice; the card carries each ability\'s numbers by level.';
   else if(m.indexOf('at-')===0){ var st=SIT[m.slice(3)]||{}; t='The 8-bit game, new game, pick a lead, and you stand at a line of the playtest ear-file: '+st.title+' ('+(st.pt||'')+(st.lvl?', level '+st.lvl:'')+'). '+(st.look||''); }
   else if(m==='npc'){
     var foes=S.foes.filter(function(r){return phrase(r,Lurl);}), vs=S.vs.filter(function(r){return phrase(r,Lurl);});

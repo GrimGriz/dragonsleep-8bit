@@ -36,6 +36,7 @@ Base: **https://grimgriz.github.io/dragonsleep-8bit/deep16/**. One mode per URL:
 | [`?fxgallery`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?fxgallery) | The spell gallery: every spell on the grid, cast in turn. |
 | [`?broke`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?broke) | **new 10-06:** the card a bare door shows when it breaks (THE FIGHT BROKE, its error, E to the 8-bit title), with a sample error -- nothing broke. |
 | [`?fxgallery&features`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?fxgallery&features) | The feature gallery: every class feature, fired in turn. |
+| [`?mpgallery`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?mpgallery) | **new 10-07:** the Mascot gallery: the four Mascots' kits (Denny, Beholda, Rascal, Goose), one ability at a time -- left/right the next, **up/down the level 1-9** (the card's numbers and the BY LEVEL ladder recomputed), E or a click again. `&lvl=5`, `&ability=cannonball`, `&who=goose`, `&only=heart,group`, `&auto`. Also `?fxgallery&mascots`. |
 | [`?gate`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?gate) | The stop-and-look gate. |
 | [`?view`](https://grimgriz.github.io/dragonsleep-8bit/deep16/?view) | The cavern with a cursor, and no fight. |
 
