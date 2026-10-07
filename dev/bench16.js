@@ -1150,11 +1150,20 @@
       if (ep4) { rowM(ep4.list, function (x) { return x.value === 'weapon'; }); pressM(B4, 'a'); }
       var cp4 = m4.pages[1], away4 = cp4 ? rowM(cp4.list, function (x) { return x.value && x.value.cmd && x.value.cmd.id === 'putaway'; }) : -1, drew4 = cp4 ? drawM(m4) : 'no list'; if (away4 >= 0) pressM(B4, 'a');
       okM('(b) EQUIP: the rogue\'s WEAPON lists (put it away) (' + (away4 >= 0) + '); picked: the menu closed ' + !B4.menu + ', to the turn ' + JSON.stringify(B4.answered) + '; drew ' + drew4, away4 >= 0 && !B4.menu && B4.answered.length === 1 && B4.answered[0].do === 'putaway' && drew4 === true);
-      // (c) one wording: a place nothing can change in the fight (the rogue's ARMOR) says the one sentence
+      // (c) one wording: a place nothing can change in the fight (the rogue's RING) says the one sentence (RULED 10-07, "1 - yes")
       var B5 = mkM('?npc=goblin,goblin&lvl=5&vs=rogue:5,fighter:5'), r5 = turnM(B5, heroM(B5, 'rogue')), m5 = openM(B5, 'equip'), ep5 = m5.pages[0];
-      if (ep5) { rowM(ep5.list, function (x) { return x.value === 'armor'; }); pressM(B5, 'a'); }
+      if (ep5) { rowM(ep5.list, function (x) { return x.value === 'ring'; }); pressM(B5, 'a'); }
       var say5 = (m5.toast && m5.toast.lines || []).join(' ');
       okM('(c) a place with nothing to change in the fight: "' + say5 + '"', say5 === 'Nothing in the pack ' + r5.name + ' can put there in this fight.');
+      // armour never changes in a fight (RULED 10-07, Griz: "SRD everywhere" -- SRD 5.1, a minute or more to don or doff): a fight with the ladder's mark (the ladder's rungs,
+      // every ?fight= door) offers no ARMOUR OFF or WEAR with armour in the pack, and the ARMOR row says "Armour: not in a fight." (his "(not in a fight) is plenty")
+      var Fa = D.FIGHTS.filter(function (f) { return f.level === 5; })[0] || D.FIGHTS[0], Ba = new D.Battle({ ladder: true, fight: Fa.id, level: 5 }); D.battle = Ba; Ba.enter(); var ka = 0; while (!Ba.order.length && ka++ < 2000) Ba.co.next();
+      Ba.answered = []; Ba.answer = function (v) { this.answered.push(v); this.req = null; };
+      var ha = Ba.units.filter(function (u) { return u.side === 'party' && !u.guest && u.src && u.src.equip && u.src.equip.armor; })[0]; ['leather', 'chainmail', 'splint'].forEach(function (id) { packM(Ba, id, 1); });
+      turnM(Ba, ha); var armA = Ba.gearOptions(ha).filter(function (o) { return /^armo/.test(o.kind); }).map(function (o) { return o.label; });
+      var ma = openM(Ba, 'equip'), epa = ma.pages[0]; if (epa) { rowM(epa.list, function (x) { return x.value === 'armor'; }); pressM(Ba, 'a'); }
+      var saya = (ma.toast && ma.toast.lines || []).join(' ');
+      okM('armour in a ladder fight (' + Fa.id + ', ' + (ha && ha.name) + ' in ' + (ha && ha.src.equip.armor) + ', three suits in the pack): ARMOUR OFF / WEAR offered ' + JSON.stringify(armA) + '; the ARMOR row says "' + saya + '"', !!ha && !armA.length && saya === 'Armour: not in a fight.');
       // (d) LIGHT: with a torch in the pack, EQUIP has the row; its list is the pack's torch at the action, and the pick lights it in hand (the ring's ITEM, to the turn)
       var B6 = mkM('?npc=goblin,goblin&lvl=5&vs=rogue:5,fighter:5'), r6 = turnM(B6, heroM(B6, 'rogue')); packM(B6, 'torch', 2); delete r6.torch;
       var m6 = openM(B6, 'equip'), ep6 = m6.pages[0], lrow6 = ep6 ? rowM(ep6.list, function (x) { return x.value === 'light'; }) : -1;

@@ -318,9 +318,9 @@ swaps"; "at least one crossbow/bolts in the player inventory for all of deep16 m
 carries a light crossbow and twenty bolts (`SV.armoury`; the 8-bit save walking in is never written). On a hero's turn
 the MENU has **EQUIP**: a weapon from the pack, or a shield off or on, each for the action (a swap is two object
 interactions; the second takes the action); and since 10-07 the free hand's own -- the weapon PUT AWAY or DRAWN, and LIGHT: a torch or
-lantern from the pack lit in hand, or the one held set down, thrown, put out, hooded -- each the ring's own command at its own cost. Armour doesn't change in a fight on the tabletop, but the ladder's test
-bench allows it, for the action (09-27: "Allow for in-combat armor swapping on the non-climbing ladder"): ARMOUR OFF
-and WEAR, with what the party has taken off in the pack; a climb (`o.climb`, not built) won't. Mage Armor ends when its
+lantern from the pack lit in hand, or the one held set down, thrown, put out, hooded -- each the ring's own command at its own cost. Armour never changes in a fight (SRD 5.1: a minute or more to don or doff; RULED 10-07, Griz: "SRD everywhere" -- the
+ladder's 09-27 ARMOUR OFF and WEAR cut, his "I suspect my ladder exception was prior to the camp or an oversight"); the camp's
+EQUIP changes it before a rung, free, and the menu's ARMOR row in a fight says "Armour: not in a fight." Mage Armor ends when its
 wearer puts armour on, and Aurdin's morning Mage Armor on the ladder costs a 1st-level slot. A hero's ranged weapon reaches to its long range with a clear line,
 spends a bolt a shot, fires once an action however many attacks (Loading), gets no Great Weapon Fighting, and makes no
 opportunity attacks. The ring: the rogue's HIDE is on the first circle, and ACTIONS is the same for all four (DASH,

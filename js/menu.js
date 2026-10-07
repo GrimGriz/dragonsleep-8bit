@@ -547,7 +547,8 @@
   EquipPage.prototype.update = function (k) {
     var r = this.list.update(k), m = this.m, h = this.h, self = this;
     if (r === 'back') { m.pop(); return; }
-    if (r === 'refused') { m.say(this.fo ? emptyWhy(m, h) : m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the shield only.') : 'A light in that hand: no shield.'); return; }
+    // (ARMOR in a fight, either game: the SRD's minutes -- RULED 10-07, Griz: "SRD everywhere", "(not in a fight) is plenty")
+    if (r === 'refused') { m.say(m.host.fight && this.list.cur().value === 'armor' ? 'Armour: not in a fight.' : this.fo ? emptyWhy(m, h) : m.host.fight ? (m.host.fight.acted ? 'The action is spent: no changes now.' : 'In a fight: the weapon and the shield only.') : 'A light in that hand: no shield.'); return; }
     if (r !== 'pick') return;
     var slot = this.list.cur().value;
     if (slot === 'light' && this.fo) { m.push(new CandPage(m, h, 'light', this, this.fo.filter(function (o) { return optSlot(o) === 'light'; }))); return; }
