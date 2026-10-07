@@ -7,6 +7,8 @@ What the audience can send down, tier by tier. Pick by number, e.g. "2c, 2f, 2g,
 - **Ammo matters.** Goose's sling runs dry, and the ammo button refills it: *"it can, ammo button will get pressed often enough"*.
 - **Attunement is on.** A Mascot holds three magic items at most and has to choose: *"yes, they'll have to choose if enough support comes in"*.
 - **The ring is 21b, the Gains Ring.** It's cut to the winner's best stat, and your click rolls 1d4 for how much it goes up.
+- **Tier 2's armour goes to one Mascot, by the roll-off**, with the natural-20 rule on top: *"one by roll off (with roll of 20 bonus - could be all 4 with a yahtzee, usually 1)"*.
+- **Tier 3's and tier 4's armour add their plus to whatever armour the winner wears** (*"Yes"*). AC runs 14 natural, 16 with tier 2's, 17 with tier 3's +1 on top, 18 with tier 4's +2.
 
 ## Still to pick
 
@@ -56,15 +58,6 @@ What the audience can send down, tier by tier. Pick by number, e.g. "2c, 2f, 2g,
 
 - **25a Virtually Invulnerable**: resistance to ordinary weapons' blows, and once a long rest, immunity for the rest of the fight. *"'Virtually' is doing a lot of work."*
 - **25b The VNA Amulet**: +2 to saves for the wearer and every friend within 10 ft.
-
-## Two questions left, and why they came up
-
-1. **Tier 2's armour: one Mascot or all four?** Your roll-off rule covers "a package magic item". The +1 weapon is magic, so it clearly goes by roll-off. The armour is "no plus", so it isn't magic, and the rule doesn't say. "One +1" counts the weapon but nothing counts the armour. **Lean:** one armour per package, by the same roll-off.
-2. **Does tier 3's +1 armour go on top of tier 2's?** The two runners didn't line up:
-   - Tier 2's runner made the armour a breastplate (AC 16) and expected tier 3's to be a +1 breastplate (17).
-   - Tier 3's runner made Fresh Fit "+1 on the Mascot's own hide", which is 15. That's worse than the 16 they might already wear.
-
-   **Lean:** tier 3's and tier 4's armour add their plus to whatever the winner wears. The ladder runs 14, then 16, then 17, then 18.
 
 ## The seat's opinion on the items (yours to overrule)
 
